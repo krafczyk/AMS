@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.25 2002/10/30 14:57:10 mdelgado Exp $
+//  $Id: root.C,v 1.26 2002/11/19 13:55:43 choutko Exp $
 #include <root.h>
 #include <ntuple.h>
 #include <antirec02.h>
@@ -605,7 +605,7 @@ EcalHitRoot::EcalHitRoot(AMSEcalHit *ptr)
     Coo[1]= ptr->_cool;
   }
   Coo[2]  = ptr->_cooz;
-
+   AMSECIdSoft ic(ptr->getid());
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.117 2002/09/27 15:17:38 choutko Exp $
+//  $Id: particle.C,v 1.118 2002/11/19 13:55:43 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -528,10 +528,10 @@ void AMSParticle::_writeEl(){
     }
   }
   for(int i=0;i<TKDBc::nlay();i++){
-    for(int j=0;j<2;j++){
+    for(int j=0;j<3;j++){
       PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
     }
-      PN->TrCoo[PN->Npart][i][2]=_Local[i];
+      PN->Local[PN->Npart][2]=_Local[i];
   }
 
   for(int i=0;i<2;i++){

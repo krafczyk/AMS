@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.67 2002/11/15 16:08:51 choutko Exp $
+//  $Id: ntuple.h,v 1.68 2002/11/19 13:55:49 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -163,6 +163,7 @@ public:
   float RichPathBeta[MAXPART02][2];
   float RichLength[MAXPART02];
   float TRDLikelihood[MAXPART02];
+  float Local[MAXPART02][trconst::maxlay];
 friend class AMSParticle;
 friend class AMSNtuple;
 };
