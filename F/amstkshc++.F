@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.67 2002/06/06 14:41:03 choutko Exp $
+*  $Id: amstkshc++.F,v 1.68 2002/08/09 16:03:49 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -1689,6 +1689,7 @@ c      ITCKOV=1
       CALL GSPART( 62,'LI7  ',itrt,   6.53536,  3., 1000., UBUF,0)
       CALL GSPART( 63,'BE7  ',itrt,   6.53622,  4., 1000., UBUF,0)
       CALL GSPART( 64,'BE9  ',itrt,   8.39479,  4., 1000., UBUF,0)
+      CALL GSPART( 114,'BE10  ',itrt,   9.33,    4., 1000., UBUF,0)
       CALL GSPART( 65,'B10  ',itrt,   9.32699,  4., 1000., UBUF,0)
       CALL GSPART( 66,'B11  ',itrt,  10.25510,  5., 1000., UBUF,0)
       CALL GSPART( 67,'C12  ',itrt,  11.17793,  6., 1000., UBUF,0)
@@ -9121,9 +9122,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.67 2002/06/06 14:41:03 choutko Exp $
+* $Id: amstkshc++.F,v 1.68 2002/08/09 16:03:49 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.68  2002/08/09 16:03:49  choutko
+* added be10 (as ipart 114)
+*
 * Revision 1.67  2002/06/06 14:41:03  choutko
 * *** empty log message ***
 *
