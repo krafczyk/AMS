@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.35 2003/03/28 16:10:46 choutko Exp $
+//  $Id: gamma.C,v 1.36 2003/04/08 09:20:53 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -2974,9 +2974,28 @@ AMSTrRecHit * parrayR[trconst::maxlay];
      //    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
      TrGamma* TrTN = AMSJob::gethead()->getntuple()->Get_tpai02();
-     if (TrTN->Ngam>=MAXPAIR02) return; //const int MAXPAIR02    =   2; see ntuple.h
+     if (TrTN->Ngam>=MAXPAIR02 ) return; //const int MAXPAIR02    =   2; see ntuple.h
+     if(_PGAMM!=_PGAMM){
+       cerr<<" AMSTrTrackGamma::_writeEl-S-_PGAMMisNAN, please fix me "<<endl;
+       setstatus(AMSDBc::BAD);
+       return;
+     }
+     if(_PGAMM!=_PGAMM){
+       cerr<<" AMSTrTrackGamma::_writeEl-S-_PGAMMisNAN, please fix me "<<endl;
+       setstatus(AMSDBc::BAD);
+       return;
+     }
+     if(_GThetaMSL!=_GThetaMSL){
+       cerr<<" AMSTrTrackGamma::_writeEl-S-_GThetaMSLisNAN, please fix me "<<endl;
+        _GThetaMSL=0;
+      }
+     if(_GThetaMSR!=_GThetaMSR){
+        _GThetaMSR=0;
+        cerr<<" AMSTrTrackGamma::_writeEl-S-_GThetaMSRisNAN, please fix me "<<endl;
+       setstatus(AMSDBc::BAD);
+       return;
+     }
      // Fill the ntuple
-     
      
      
      TrTN->Pgam[TrTN->Ngam]=_PGAMM;
@@ -2994,7 +3013,6 @@ AMSTrRecHit * parrayR[trconst::maxlay];
      
      TrTN->PtrLeft[TrTN->Ngam]=_pntTrL->getpos();
      TrTN->PtrRight[TrTN->Ngam]=_pntTrR->getpos();
-     
      
      TrTN->Jthetal[TrTN->Ngam]=(geant)_GThetaMSL;
      TrTN->Jphil[TrTN->Ngam]=(geant)_GPhiMSL;
