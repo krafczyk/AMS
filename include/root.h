@@ -70,6 +70,49 @@ public:
   int CTCMCClusters;
   int AntiMCClusters;
   int AntiClusters;
+  int EventStatus;
+  
+friend class AMSEvent;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(EventNtuple,1)       //EventNtuple
+#endif
+};
+
+#ifdef __WRITEROOT__
+class EventNtuple02: public TObject {
+#else
+class EventNtuple02 {
+#endif
+public:
+  int Eventno;
+  int Run;
+  int RunType;
+  int Time[2];
+  int RawWords;
+  float RadS;
+  float ThetaS;
+  float PhiS;
+  float Yaw;
+  float Pitch;
+  float Roll;
+  float VelocityS;
+  float VelTheta;
+  float VelPhi;
+  float ThetaM;
+  float PhiM;
+  int Particles;
+  int Tracks;
+  int Betas;
+  int Charges;
+  int TrRecHits;
+  int TrClusters;
+  int TrRawClusters;
+  int TrMCClusters;
+  int TOFClusters;
+  int TOFMCClusters;
+  int AntiMCClusters;
+  int AntiClusters;
   int EcalClusters;
   int EventStatus;
   int EcalCell; 
@@ -77,7 +120,7 @@ public:
 friend class AMSEvent;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
-ClassDef(EventNtuple,1)       //EventNtuple
+ClassDef(EventNtuple02,1)       //EventNtuple
 #endif
 };
 

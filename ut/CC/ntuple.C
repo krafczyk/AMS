@@ -100,7 +100,7 @@ void AMSNtuple::init(){
   }
 else{
 // Station
-  HBNAME(_lun,"EventH",&_event.Eventno,
+  HBNAME(_lun,"EventH",&_event02.Eventno,
  
 "eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,1000]:I,EcalClusters[0,5000]:I,EventStatus:I,EcalCell[0,10000]:I");
 

@@ -10,6 +10,7 @@ protected:
   integer _lun;
   integer _Nentries;
   EventNtuple _event;
+  EventNtuple02 _event02;
   BetaNtuple _beta;
   ChargeNtuple _charge;
   ParticleNtuple _part;
@@ -54,6 +55,7 @@ public:
   void initR(char* name);
   integer getentries(){return _Nentries;}
   EventNtuple* Get_event() {return &_event;}
+  EventNtuple02* Get_event02() {return &_event02;}
   BetaNtuple* Get_beta() { return &_beta;}
   ChargeNtuple* Get_charge() { return &_charge;}
   ParticleNtuple* Get_part() {return &_part;}

@@ -1975,6 +1975,10 @@ void AMSEvent::_printEl(ostream & stream){
 }
 
 void AMSEvent::_writeEl(){
+
+if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+
+
 // Get event length
   DAQEvent *myp=(DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
   int nws=myp?myp->getlength():0;
@@ -2014,8 +2018,6 @@ void AMSEvent::_writeEl(){
   EN->CTCMCClusters=0;
   EN->AntiClusters=0;
   EN->AntiMCClusters=0;
-  EN->EcalClusters=0;
-  EN->EcalCell=0;
   getmag(EN->ThetaM,EN->PhiM);
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSParticle",i);
@@ -2100,6 +2102,121 @@ void AMSEvent::_writeEl(){
    else break;
   }
  
+
+}
+else{
+// Get event length
+  DAQEvent *myp=(DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
+  int nws=myp?myp->getlength():0;
+// Fill the ntuple
+  EventNtuple02* EN = AMSJob::gethead()->getntuple()->Get_event02();
+  EN->EventStatus=getstatus();
+  EN->Eventno=_id;
+  EN->RawWords=nws<(1<<20)?nws:((1<<20)-1);
+  EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
+  EN->Run=_run;
+  EN->RunType=_runtype;
+  EN->Time[0]=_time;
+  EN->Time[1]=AMSJob::gethead()->isRealData()?_usec:_usec/1000;
+  //EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
+  EN->ThetaS=_StationTheta;
+  EN->PhiS=fmod(_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
+  EN->RadS=_StationRad;
+  EN->Yaw=_Yaw;
+  EN->Pitch=_Pitch;
+  EN->Roll=_Roll;
+  EN->VelocityS=_StationSpeed;
+  EN->VelTheta=_VelTheta;
+  EN->VelPhi=fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
+  integer  i,nc;
+  AMSContainer *p;
+  EN->Particles=0;
+  EN->Tracks=0;
+  EN->Betas=0;
+  EN->Charges=0;
+  EN->TrRecHits=0;
+  EN->TrClusters=0;
+  EN->TrRawClusters=0;
+  EN->TrMCClusters=0;
+  EN->TOFClusters=0;
+  EN->TOFMCClusters=0;
+  EN->AntiClusters=0;
+  EN->AntiMCClusters=0;
+  EN->EcalClusters=0;
+  EN->EcalCell=0;
+  getmag(EN->ThetaM,EN->PhiM);
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSParticle",i);
+   if(p) EN->Particles+=p->getnelem();
+   else break;
+  }  
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrTrack",i);
+   if(p) EN->Tracks+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSBeta",i);
+   if(p) EN->Betas+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSCharge",i);
+   if(p) EN->Charges+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrRecHit",i);
+   if(p) EN->TrRecHits+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrCluster",i);
+   if(p) EN->TrClusters+=p->getnelem();
+   else break;
+  }
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrRawCluster",i);
+   if(p) EN->TrRawClusters+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrMCCluster",i);
+   if(p) EN->TrMCClusters+=p->getnelem();
+   else break;
+  }
+ 
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTOFCluster",i);
+   if(p) EN->TOFClusters+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTOFMCCluster",i);
+   if(p) EN->TOFMCClusters+=p->getnelem();
+   else break;
+  }
+
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSAntiCluster",i);
+   if(p) EN->AntiClusters+=p->getnelem();
+   else break;
+  }
+  
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSAntiMCCluster",i);
+   if(p) EN->AntiMCClusters+=p->getnelem();
+   else break;
+  }
+ 
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSEcalCluster",i);
    if(p) EN->EcalClusters+=p->getnelem();
@@ -2112,6 +2229,7 @@ void AMSEvent::_writeEl(){
    else break;
   }
 
+}
 }
 
 
