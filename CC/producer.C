@@ -101,6 +101,9 @@ UpdateARS();
 }
 else{
      AString fpath=(const char *)_dstinfo->OutputDirPath;
+     AString fmake="mkdir -p ";
+     fmake+=fpath;
+     system((const char*)fmake);
      fpath+="/run.";
      char tmp[80];
      sprintf(tmp,"%d",_reinfo->Run);
