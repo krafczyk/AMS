@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.192 2003/12/09 14:31:44 choutko Exp $
+//  $Id: commons.h,v 1.193 2003/12/15 15:38:58 choutko Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -625,7 +625,6 @@ public:
                       // TOF info for pattern rec for pattern 16
   geant Chi2FastFit;  //  Max acceptable chi2 for tkhmd; 
   geant Chi2StrLine; // The same for Straight line fit
-  geant Chi2WithoutMS;  // The same for PI fit withut multiple scattering
   geant ResCutFastFit;   // Max acceptible distance betgween point and fitted curve 
   geant ResCutStrLine;    // ---
   geant ResCutCircle;     // ---
@@ -651,6 +650,7 @@ public:
   integer OnlyGammaVtx;
   integer UseGeaneFitting; // Use Geane(1) or Yale (0) fitting method
   integer OldTracking;  //Use Old (VC) or new (JA) pattern recognition
+  geant Chi2WithoutMS;  // The same for PI fit withut multiple scattering
 };
 //
 
