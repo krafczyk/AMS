@@ -10,6 +10,7 @@ M A I N  ->      gbatch.C
  |    |
  |    |
  |    |->GINIT            GEANT initialization routine
+ |    |->new AMSjob()     Creates job instance
  |    |->AMSJob::data     defines user data cards
  |    |   |
  |    |   |->_siamsdata   Simulation specific datacards
@@ -211,3 +212,13 @@ M A I N  ->      gbatch.C
  |
  |
  | ->U G L A S T                      Termination
+      |
+      |->GLAST          
+      |->delete AMSjob()                   Delete job instance          
+           |
+           |->_ctcendjob            Detector specific terminations
+           |->_tofendjob
+           |->_tkendjob
+           |->_trdendjob
+           |->_dbendjob
+           |->_axendjob
