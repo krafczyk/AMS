@@ -217,7 +217,7 @@ integer AMSCharge::build(integer refit){
 }
 
 
-void AMSCharge::addnext(AMSBeta *pbeta, integer nhitTOF, integer nhitTracker, AMSTOFCluster *pTOFc[], number EdepTOF[TOFTypes][], AMSTrCluster  *pTrackerc[TrackerTypes-1][], number EdepTracker[TrackerTypes-1][], number trtr, number trtof, number trtofd){
+void AMSCharge::addnext(AMSBeta *pbeta, integer nhitTOF, integer nhitTracker, AMSTOFCluster *pTOFc[], number EdepTOF[TOFTypes][TOFMaxHits], AMSTrCluster  *pTrackerc[TrackerTypes-1][TrackerMaxHits], number EdepTracker[TrackerTypes-1][TrackerMaxHits], number trtr, number trtof, number trtofd){
   AMSCharge *pcharge=new AMSCharge(pbeta, trtr, trtof, trtofd);
   number beta=pbeta->getbeta();
   int bstatus=!pbeta->checkstatus(AMSDBc::AMBIG);
@@ -230,7 +230,7 @@ void AMSCharge::addnext(AMSBeta *pbeta, integer nhitTOF, integer nhitTracker, AM
   AMSEvent::gethead()->addnext(AMSID("AMSCharge",0),pcharge);
 }
 
-integer AMSCharge::FitTOF(int toffit, number beta, int bstatus, int nhitTOF, AMSTOFCluster *pTOFc[], number etof[TOFTypes][]){
+integer AMSCharge::FitTOF(int toffit, number beta, int bstatus, int nhitTOF, AMSTOFCluster *pTOFc[], number etof[TOFTypes][TOFMaxHits]){
   static number ETOF[TOFTypes][TOFMaxHits];
   int typetof[TOFMaxHits], nhittoftyp[TOFTypes];
   number TOFresmax[TOFTypes], etofh[TOFMaxHits], x[TOFMaxHits];
@@ -307,7 +307,7 @@ integer AMSCharge::FitTOF(int toffit, number beta, int bstatus, int nhitTOF, AMS
 }
 
  
-integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTracker, AMSTrCluster  *pTrackerc[TrackerTypes-1][], number etrk[TrackerTypes-1][]){
+integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTracker, AMSTrCluster  *pTrackerc[TrackerTypes-1][TrackerMaxHits], number etrk[TrackerTypes-1][TrackerMaxHits]){
   static number ETRK[TrackerTypes-1][TrackerMaxHits];
   int typetrk[TrackerMaxHits], nhittrktyp[TrackerTypes];
   number Trackerresmax[TrackerTypes-1], etrkh[TrackerMaxHits], x[TrackerMaxHits];
