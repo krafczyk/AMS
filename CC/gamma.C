@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.40 2003/04/30 13:28:27 glamanna Exp $
+//  $Id: gamma.C,v 1.41 2003/04/30 13:36:53 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -6088,6 +6088,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
    //**
    } //if (LL[0] ==0 && LL[1] != 0 && LL[2] !=0
  }//if (LL[1] == 1 && LL[3] !=0)
+
 
 
 }
