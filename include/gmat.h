@@ -105,7 +105,7 @@ class AMSgtmed : public AMSNode
               integer ifield=1, geant fieldm=20, 
             geant tmaxfd=10, geant stemax=1000, 
             geant deemax=-1, geant epsil=0.001,
-            geant stmin=-1 ):
+            geant stmin=-1):_G4Range(-1 ),_G4EHad(GCCUTS.CUTHAD),_G4EEl(GCCUTS.CUTELE),_G4EPh(GCCUTS.CUTGAM),_G4EHNeu(GCCUTS.CUTNEU),_G4EMu(GCCUTS.CUTMUO),_G4TofMax(GCCUTS.TOFMAX),
     _itmed(++_GlobalMedI),_isvol(isvol), _ifield(ifield),_fieldm(fieldm),_tmaxfd(tmaxfd),
     _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_yb(yb),_nwbuf(0),_uwbuf(0),
     AMSNode(){
@@ -138,7 +138,20 @@ class AMSgtmed : public AMSNode
   static uinteger GetLastMedNo(){return _GlobalMedI;}
   AMSgmat * getpgmat(){ return _pgmat;}
   integer IsSensitive() const {return _isvol?1:0;}
- protected:
+  geant & CUTGAM(){ return _G4EPh;}
+  geant & CUTHAD(){ return _G4EHad;}
+  geant & CUTNEU(){ return _G4EHNeu;}
+  geant & CUTELE(){ return _G4EEl;}
+  geant & CUTMUO(){ return _G4EMu;}
+  geant & CUTRANGE(){ return _G4Range;}
+  geant & TOFMAX(){ return _G4TofMax;}
+  void     CUTGAM(geant cut){_G4EPh=cut;GSTPAR(_itmed,"CUTGAM",cut);}
+  void     CUTHAD(geant cut){_G4EHad=cut;GSTPAR(_itmed,"CUTHAD",cut);}
+  void     CUTNEU(geant cut){_G4EHNeu=cut;GSTPAR(_itmed,"CUTNEU",cut);}
+  void     CUTELE(geant cut){_G4EEl=cut;GSTPAR(_itmed,"CUTELE",cut);}
+  void     CUTMUO(geant cut){_G4EMu=cut;GSTPAR(_itmed,"CUTMUO",cut);}
+  void     TOFMAX(geant cut){_G4TofMax=cut;GSTPAR(_itmed,"TOFMAX",cut);}
+  protected:
    void _init();
    static uinteger _GlobalMedI;
    AMSgtmed (const AMSgtmed&);   // do not want cc
@@ -157,7 +170,13 @@ class AMSgtmed : public AMSNode
    geant * _uwbuf;
    geant _birks[3];
    char _yb;  
-     
+   geant _G4Range;
+   geant _G4EHad;
+   geant _G4EHNeu;
+   geant _G4EEl;
+   geant _G4EMu;
+   geant _G4EPh;
+   geant _G4TofMax;
    virtual ostream & print(ostream &)const;
 };
 #endif

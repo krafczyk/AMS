@@ -27,12 +27,12 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
           call ucopy(x(1),xyz(1),nx)
           call ucopy(y(1),xyz(1+nx),ny)
           call ucopy(z(1),xyz(1+nx+ny),nz)
-         read(21,*)isec
-         read(21,*)imin
-         read(21,*)ihour
-         read(21,*)iday
-         read(21,*)imon
-         read(21,*)iyear
+*         read(21,*)isec
+*         read(21,*)imin
+*         read(21,*)ihour
+*         read(21,*)iday
+*         read(21,*)imon
+*         read(21,*)iyear
           iniok=1
           close(21)
           write(*,*)'Closing field file...'

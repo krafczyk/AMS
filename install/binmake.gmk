@@ -1,4 +1,4 @@
-# $Id: binmake.gmk,v 1.6 2000/07/14 11:07:27 choutko Exp $
+# $Id: binmake.gmk,v 1.7 2000/08/22 16:01:28 choutko Exp $
 # ----------------------------------------------------------
 # Script defining rules and paths for making binaries.
 #                          Gabriele Cosmo, 25/06/1998.
@@ -133,16 +133,18 @@ ifdef GLOBALLIBS
   LDLIBS2 := -lG4readout \
              -lG4run \
              -lG4event \
+             -lG3toG4 \
              -lG4tracking \
              -lG4processes \
-             -lG4particles \
              -lG4digits+hits \
              -lG4track \
-             -lG4materials \
+             -lG4particles \
              -lG4geometry \
+             -lG4materials \
              -lG4graphics_reps \
              -lG4intercoms \
              -lG4global
+
 else
   LDLIBS2 := -lG4run \
              -lG4event \

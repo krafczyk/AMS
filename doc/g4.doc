@@ -49,9 +49,16 @@ CC/gvolume.C << Constructor modified
 CC/gmat.C    << new geant4  constructors
 
 
+
+
+
+
+
+
+
+
 To be done
 
-<User cuts a-la geant3>
 
 
 F/rndm.F  <-- heprandom
@@ -73,9 +80,37 @@ geometry tested: tof,tracker,trd,srd,magnet,ecal,anti,rich
 
 
 
+Important:
 
+<User cuts a-la geant3>
 
+Geant4 has no default tracking cuts and 
+also production cuts (in range) belong to particle,
+not tracking media.  
+Default production cut for all particles except e+- is 1mm,
+for e+- is 100 mkm (to properly handle  tracker)
 
+The following routines are available to manually
+set up some geant-3 tracking cuts:
+CUTGAM CUTELE CUTNEU CUTMUO CUTHAD TOFMAX
+
+Example:
+AMSgtmed ptmed= (AMSgtmed*)tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
+-1.,0.001,-1.)); // simplif.tracking in magn.f
+//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
+//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+
+// geant4 + geant3 (i.e. also calls GSTPAR)
+
+ptmed->CUTGAM(ECMCFFKEY.cutge);
+ptmed->CUTELE(ECMCFFKEY.cutge);
+
+in addition one can also set the range cut (in cm)
+
+via 
+ptmed.CUTRANGE()=range;
+
+For debug purposes all geant3-like cuts may be switch on/off via 
 
 
 

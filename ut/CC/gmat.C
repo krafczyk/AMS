@@ -526,22 +526,33 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed("EC_EFFRAD","LIGHTLEAD",0));// eff.radiator for fast sim(not sens !!!)
 //tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0)); // 
-tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
+AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
                                     -1.,0.001,-1.)); // simplif.tracking in magn.f
-GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
-GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
-tmed.add (new AMSgtmed("EC_FCORE","ECSCINT",1,'Y',birks));//
-GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_FIBER-core
-GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
-tmed.add (new AMSgtmed("EC_FWALL","ECFPLEX",0));// 
-GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_FIBER-wall
-GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
-tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));
-GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
-GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
-tmed.add (new AMSgtmed("EC_HONEYC","EC-AL-HONEYC",0));
-GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_HONEYC
-GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+
+//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
+pgtmed->CUTGAM(ECMCFFKEY.cutge);
+//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+pgtmed->CUTELE(ECMCFFKEY.cutge);
+pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_FCORE","ECSCINT",1,'Y',birks));//
+//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_FIBER-core
+pgtmed->CUTGAM(ECMCFFKEY.cutge);
+//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+pgtmed->CUTELE(ECMCFFKEY.cutge);
+pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_FWALL","ECFPLEX",0));// 
+//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_FIBER-wall
+pgtmed->CUTGAM(ECMCFFKEY.cutge);
+//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+pgtmed->CUTELE(ECMCFFKEY.cutge);
+pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));
+//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
+pgtmed->CUTGAM(ECMCFFKEY.cutge);
+//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+pgtmed->CUTELE(ECMCFFKEY.cutge);
+pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_HONEYC","EC-AL-HONEYC",0));
+//GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_HONEYC
+pgtmed->CUTGAM(ECMCFFKEY.cutge);
+//GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
+pgtmed->CUTELE(ECMCFFKEY.cutge);
 } 
 //----------------
 

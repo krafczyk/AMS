@@ -4,7 +4,6 @@
 #include "G4VUserPhysicsList.hh"
 #include "globals.hh"
 #include <node.h>
-
 class AMSG4Physics: public AMSNode, public G4VUserPhysicsList
 {
 public:
@@ -41,4 +40,56 @@ protected:
 };
 
 
+
+
+//     AMSUserLimits  Class
+
+#include "G4UserLimits.hh"
+
+class AMSUserLimits: public G4UserLimits{
+
+protected:
+
+number _ElectronECut;
+number _PhotonECut;
+number _HadronECut;
+number _HNeutralECut;
+number _MuonECut;
+public:
+  AMSUserLimits(G4double ustepMax = DBL_MAX,
+               G4double utrakMax = -1,
+               G4double utimeMax = -1,
+               G4double uekinMin = -1,
+               G4double urangMin = -1 ): G4UserLimits(ustepMax,utrakMax,utimeMax,uekinMin,urangMin){};
+number & ElectronECut(){return _ElectronECut;}
+number & PhotonECut(){return _PhotonECut;}
+number & HadronECut(){return _HadronECut;}
+number & HNeutralECut(){return _HNeutralECut;}
+number & MuonECut(){return _MuonECut;}
+
+};
+
+
+// AMSUserSpecialCuts Class
+#include "G4UserSpecialCuts.hh"
+
+class AMSUserSpecialCuts: public G4UserSpecialCuts{
+public:
+AMSUserSpecialCuts(const G4String& processName ="AMSSpecialCut" ):
+G4UserSpecialCuts(processName){};
+G4double PostStepGetPhysicalInteractionLength(
+                             const G4Track& track,
+                             G4double   previousStepSize,
+                             G4ForceCondition* condition
+                            );
+G4VParticleChange* PostStepDoIt(
+                             const G4Track& aTrack,
+                             const G4Step& step
+                            );
+
+};
+
+
+
 #endif
+

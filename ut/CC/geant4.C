@@ -76,6 +76,11 @@ void g4ams::G4RUN(){
 
 
 void g4ams::G4LAST(){
+float TIMLFT;
+ TIMEL(TIMLFT);
+ geant xmean  = (GCTIME.TIMINT - TIMLFT)/GCFLAG.IEVENT;
+  cout <<"           **** NUMBER OF EVENTS PROCESSED = "<<GCFLAG.IEVENT<<endl;
+  cout <<"           **** TIME TO PROCESS ONE EVENT IS = "<<xmean<<" SECONDS "<<endl;
 delete  G4RunManager::GetRunManager();
 #ifdef G4VIS_USE
 AMSG4VisManager::kill();
@@ -286,8 +291,12 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       return;
    }
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
-         GCFLAG.IEVENT>=GCFLAG.NEVENT)
+         GCFLAG.IEVENT>=GCFLAG.NEVENT){
       AMSEvent::gethead()->printA(AMSEvent::debug);
+       
+      GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+       cout <<"RNDM "<<GCFLAG.NRNDM[0]<<" " <<GCFLAG.NRNDM[1]<<endl;
+}
      integer trig;
      if(AMSJob::gethead()->gettriggerOr()){
       trig=0;
@@ -387,7 +396,7 @@ if(!_pv){
  fnam+=AMSJob::gethead()->getsetup();
  fnam+= AMSJob::gethead()->isRealData()?".1":".0";
 // as usual doesn't work...
-  AMSJob::gethead()->getgeom()->ReadG4StepVolumes((char*)fnam);  
+//  AMSJob::gethead()->getgeom()->ReadG4StepVolumes((char*)fnam);  
   cout << "AMSG4DetectorInterface::Construct-I-"<<AMSgvolume::getNpv()<<" Physical volumes, "<<AMSgvolume::getNlv()<<" logical volumes and "<<AMSgvolume::getNrm()<<" rotation matrixes have been created "<<endl;
  _pv=AMSJob::gethead()->getgeom()->pg4v();
 }

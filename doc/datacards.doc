@@ -675,7 +675,7 @@ G4FF    // Geant4 Datacards
 I 1 BFOrder(4)       // Runge Kutta order 
 R 2 Delta(0.001)     // Runge Kutta delta
 I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead field map
-
+I 4 Geant3CutsOn(1)  // Use(1) not use(0) geant3-like energy cuts
 
 
 

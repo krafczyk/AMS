@@ -95,7 +95,7 @@ if(shift==0 && strip != (side==0?_stripx:_stripy)){
  error=1;
  return 0;
 }
-else if((strip -(side==0?_stripx:_stripy))*shift<0){
+else if((strip -(side==0?_stripx:_stripy))*shift<0 && (side==0?_stripx:_stripy)+shift>0){
 #ifdef __AMSDEBUG__
   cerr <<"AMSTrIdGeom::getcofg-W-ClusterGeomError "<<side<<" "<<strip<<" "<<readoutch<<" "<<rch<<" "<<shift<<" "<<*this;
 #endif

@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.12 1999/12/08 15:53:00 choutko Exp $
+// $Id: g4physics.C,v 1.13 2000/08/22 16:01:12 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -78,7 +78,7 @@ void AMSG4Physics::ConstructProcess()
   while( (*theParticleIterator)() ){
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
-//    pmanager->AddDiscreteProcess(new G4UserSpecialCuts());
+    if(G4FFKEY.Geant3CutsOn)pmanager->AddDiscreteProcess(new AMSUserSpecialCuts());
   }
 
 
@@ -710,7 +710,26 @@ void AMSG4Physics::SetCuts()
 {
   //  " G4VUserPhysicsList::SetCutsWithDefault" method sets 
   //   the default cut value for all particle types 
-  SetCutsWithDefault();   
+//  SetCutsWithDefault();   
+
+   G4double cut = defaultCutValue;
+
+
+  // set cut values for gamma at first and for e- second and next for e+,
+  // because some processes for e+/e- need cut values for gamma
+  SetCutValue(cut, "gamma");
+  SetCutValue(cut/10., "e-");
+  SetCutValue(cut/10., "e+");
+
+  // set cut values for proton and anti_proton before all other hadrons
+  // because some processes for hadrons need cut values for proton/anti_proton
+  SetCutValue(cut, "proton");
+  SetCutValue(cut, "anti_proton");
+ 
+  SetCutValueForOthers(cut);
+
+
+
 #ifdef __AMSDEBUG__
   theParticleIterator->reset();
   while( (*theParticleIterator)() ){
@@ -848,7 +867,10 @@ for(ipart=0;ipart<1000;ipart++){
       }
      }
      if(fdelta<0.01*g3mass[ipart]*GeV){
-      g3tog4p[ipart]=cand;
+      if(g3pid[ipart]==13){
+          g3tog4p[ipart]=ppart->FindParticle("neutron");
+      }  
+      else g3tog4p[ipart]=cand;
 //       cout <<" a "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
      }
      else if (fdelta==0){
@@ -904,6 +926,7 @@ for(ipart=0;ipart<1000;ipart++){
      if(g3tog4p[ipart]){
       _pg3tog4[_Ng3tog4].setid(g3pid[ipart]);
       _pg4tog3[_Ng3tog4].setid(g3pid[ipart]);
+      g3tog4p[ipart]->SetAntiPDGEncoding(g3pid[ipart]);
       _pg3tog4[_Ng3tog4].setname(g3tog4p[ipart]->GetParticleName());
       _pg4tog3[_Ng3tog4++].setname(g3tog4p[ipart]->GetParticleName());
      }
@@ -963,3 +986,102 @@ integer g4part=0;
 
 
 G4int AMSG4Physics::_G3DummyParticle=556;
+
+
+
+//     AMSUserSpecialCuts  Class
+G4double AMSUserSpecialCuts::PostStepGetPhysicalInteractionLength(
+                             const G4Track& aTrack,
+                             G4double   previousStepSize,
+                             G4ForceCondition* condition){
+  // condition is set to "Not Forced"
+  *condition = NotForced;
+
+   G4double ProposedStep = DBL_MAX;
+   AMSUserLimits* pUserLimits = (AMSUserLimits*)aTrack.GetVolume()->GetLogicalVolume()->GetUserLimits();
+   if (pUserLimits){ 
+       G4ParticleDefinition* ParticleDef = aTrack.GetDefinition();
+       G4double Ekine    = aTrack.GetKineticEnergy();
+//       const G4DynamicParticle* Particle = aTrack.GetDynamicParticle();
+       //ekin & range limits
+//        G4String particleName = ParticleDef->GetParticleName();
+        G4String particleType = ParticleDef->GetParticleType();
+        int g3=ParticleDef->GetAntiPDGEncoding();
+//        cout <<particleName<<" "<<particleType<<" "<<ParticleDef->GetAntiPDGEncoding()<<" "<<ParticleDef->GetBaryonNumber();
+        G4double Emin=0;
+        G4double Charge=ParticleDef->GetPDGCharge();
+//        if(particleName=="gamma"){
+        if(g3==1){       
+          Emin=pUserLimits->PhotonECut();
+        }
+//        else if (particleName=="e-" || particleName=="e+"){
+        else if (g3==2 || g3==3){
+          Emin=pUserLimits->ElectronECut();
+        }         
+//        else if (particleName=="mu-" || particleName=="mu+"){
+        else if (g3==5 || g3==6){
+          Emin=pUserLimits->MuonECut();
+        }         
+        else if ((g3>6 && g3<33) || particleType=="baryon" || particleType=="meson"){
+          if(Charge != 0.){
+           Emin=pUserLimits->HadronECut();
+          }
+          else{
+           Emin=pUserLimits->HNeutralECut();
+          }
+        }         
+        else if (particleType=="nucleus"){
+           Emin=pUserLimits->HadronECut()*abs(ParticleDef->GetBaryonNumber());
+        }
+        else{
+         Emin=pUserLimits->GetUserMinEkine(aTrack);
+        }
+        if(Ekine<Emin)return 0;
+/*
+        else if(Charge !=0){
+           G4Material* Material = aTrack.GetMaterial();
+           G4double RangeNow = G4EnergyLossTables::GetRange(ParticleDef,Ekine,Material);
+           G4double RangeMin = G4EnergyLossTables::GetRange(ParticleDef,Emin, Material);
+           if(pUserLimits->GetUserMinRange(aTrack)> RangeMin ){
+               RangeMin=pUserLimits->GetUserMinRange(aTrack);    
+               if(RangeNow<RangeMin)return 0;
+           }
+           if(ProposedStep > RangeNow-RangeMin) ProposedStep =RangeNow-RangeMin;
+        }
+*/
+/*         
+       //max time limit
+       G4double beta = (Particle->GetTotalMomentum())/(aTrack.GetTotalEnergy());
+       G4double dTime= (pUserLimits->GetUserMaxTime(aTrack) - aTrack.GetGlobalTime());
+       G4double temp = beta*c_light*dTime;
+       if (temp < 0.) return 0.;
+       if (ProposedStep > temp) ProposedStep = temp;
+*/
+   }
+   return ProposedStep;
+}
+
+
+
+G4VParticleChange* AMSUserSpecialCuts::PostStepDoIt(
+                             const G4Track& aTrack,
+                             const G4Step& step){
+//
+// Stop the current particle, if requested by G4UserLimits
+//
+#ifdef __AMSDEBUG__
+       G4ParticleDefinition* ParticleDef = aTrack.GetDefinition();
+       G4double Ekine    = aTrack.GetKineticEnergy();
+ const G4DynamicParticle* Particle = aTrack.GetDynamicParticle();
+        G4String particleName = ParticleDef->GetParticleName();
+        G4String particleType = ParticleDef->GetParticleType();
+        G4Material* Material = aTrack.GetMaterial();
+        cout <<"stopped: "<< particleName<<" "<<ParticleDef->GetAntiPDGEncoding()<<" "<<  Ekine<<" "<<Particle->GetKineticEnergy()<<" at "<<Material->GetName()<<endl;
+#endif
+   aParticleChange.Initialize(aTrack);
+   aParticleChange.SetEnergyChange(0.) ;
+   aParticleChange.SetLocalEnergyDeposit (aTrack.GetKineticEnergy()) ;
+//   aParticleChange.SetStatusChange(fStopButAlive);
+   aParticleChange.SetStatusChange(fStopAndKill);
+   return &aParticleChange;
+}
