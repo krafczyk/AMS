@@ -128,7 +128,7 @@ if(TRMCFFKEY.CalcCmnNoise[0]){
            *(ida[i]+l)+=idd.getsig()*rnormx()+ecmn;   
            idlocal[l-vamin]=*(ida[i]+l);
          }
-         AMSsortNAGa(idlocal,maxva);
+         //AMSsortNAGa(idlocal,maxva);
          geant cmn=0;
          for(l=TRMCFFKEY.CalcCmnNoise[1];l<maxva-TRMCFFKEY.CalcCmnNoise[1];l++)
          cmn+=idlocal[l];

@@ -269,7 +269,7 @@ TRMCFFKEY.thr2R[1]=1;
 TRMCFFKEY.neib[0]=1;
 TRMCFFKEY.neib[1]=1;
 TRMCFFKEY.CalcCmnNoise[0]=1;
-TRMCFFKEY.CalcCmnNoise[1]=3;
+TRMCFFKEY.CalcCmnNoise[1]=0;
 {
 int i,j,k;
 for(i=0;i<2;i++){
