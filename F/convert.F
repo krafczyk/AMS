@@ -1390,7 +1390,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
          call hgntb(1,cblock(idet),i,ierr)
 c         if(mod(i,10).eq.1)write(*,*)i
          if(ierr.ne.0)write(*,*)ierr
-         if(ierr.ne.0.or.
+         if(ierr.eq.1.or.
      +   (ierr.eq.2.and. cblock(idet).eq.'EVENTH').or.
      +   (ierr.eq.2.and. cblock(idet).eq.'TRMCCLUS')
      +   )then

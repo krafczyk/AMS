@@ -2,7 +2,7 @@
 =========================================================================
 
      Introduction  to  a  Offline Monitor  Based  on  ROOT  and
-     AMS Event  Display ( Ping  Yeh /Academia Sinica)
+     AMS Event  Display 
 
 				
 		  	     
