@@ -154,9 +154,13 @@ int16u pheader[12];
        }
        int ctdrsofar=0;
        do{
+         if(l16ptr == tlength-3){
+           ie=fscanf(fbin,"%x",&elem);
+           goto out;          
+         }
          if(ctdrsofar == ntdr){
            cerr <<"a2h-E-FormatLogicError "<<tlength-2-l16ptr<<" words will be skipped"<<endl;
-          for(int ks=l16ptr;ks<tlength-2;ks++){
+          for(int ks=l16ptr;ks<tlength-3;ks++){
            ie=fscanf(fbin,"%x",&elem);
            pnblk[nblk-1]--;
           }  
@@ -187,7 +191,6 @@ int16u pheader[12];
 out:
         ie=fscanf(fbin,"%x",&ch1);
         ie=fscanf(fbin,"%x",&ch2);
-
        if(tdrn == 23){
          if(nrecords != 24 ){
            cerr <<" a2h-E-EventError-"<<nrecords<<" "<<datatype<<endl;
@@ -282,10 +285,10 @@ out:
             }
           
            }
-           if(tlen%2){
-             //if(evt==20)cout <<"subt"<<endl;
-             Record[14]--;
-           }
+           //           if(tlen%2){
+           //             //if(evt==20)cout <<"subt"<<endl;
+           //             Record[14]--;
+           //           }
            cntdr++;
     
           }
@@ -403,10 +406,10 @@ out:
             }
           
            }
-           if(tlen%2){
-             //if(evt==20)cout <<"subt"<<endl;
-             Record[mixed]--;
-           }
+           //           if(tlen%2){
+           //             //if(evt==20)cout <<"subt"<<endl;
+           //             Record[mixed]--;
+           //           }
            cntdr++;
           }   
         }

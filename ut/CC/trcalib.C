@@ -1105,7 +1105,7 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
      }
      ptr+=lrec;
     }
-    if(!oldformat)ptr+=2;
+    if(!oldformat)ptr+=3;
   }
 
 

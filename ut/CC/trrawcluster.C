@@ -316,7 +316,8 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
   integer ic=checkdaqid(*p)-1;
   int leng=0;
   int16u * ptr;
-  for(ptr=p+1;ptr<p+n;ptr+=leng+3){
+  
+  for(ptr=p+1;ptr<p+n-1;ptr+=leng+3){      // cluster length > 1 
      leng=(*ptr)&255;
      AMSTrIdSoft id(ic,int16u(*(ptr+1)));
      if(!id.dead() ){
@@ -594,7 +595,10 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
      }
      ptr+=lrec;
     }
-    if(oldformat == 0)ptr+=2;
+    if(oldformat == 0){
+      ptr+=3;         // add one word
+      
+    }
   }
 
 }
