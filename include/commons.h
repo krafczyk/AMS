@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.171 2002/03/20 09:43:09 choumilo Exp $
+//  $Id: commons.h,v 1.172 2002/07/01 20:59:17 schol Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -184,6 +184,7 @@ float cor;     // saveliev parameter
 float alpha;    // garibyan pars
 float beta;    //  garibyan par
 geant ped;     
+geant pedsig;     
 geant sigma;
 geant gain;
 geant cmn;

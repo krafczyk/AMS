@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.406 2002/05/22 12:27:07 choumilo Exp $
+// $Id: job.C,v 1.407 2002/07/01 20:58:42 schol Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -741,7 +741,8 @@ TRDMCFFKEY.beta=0;
 TRDMCFFKEY.gain=1;
 TRDMCFFKEY.f2i=8;
 TRDMCFFKEY.adcoverflow=4095;
-TRDMCFFKEY.ped=500;
+TRDMCFFKEY.ped=355;
+TRDMCFFKEY.pedsig=102;
 TRDMCFFKEY.sigma=6;
 TRDMCFFKEY.cmn=15;
 TRDMCFFKEY.NoiseOn=1;
@@ -1655,7 +1656,7 @@ void AMSJob::_sitrdinitjob(){
            for (int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
              geant d;
              AMSTRDIdSoft id(i,j,k);
-             id.setped()=TRDMCFFKEY.ped*(0.75+0.5*RNDM(d));
+             id.setped()=TRDMCFFKEY.ped+rnormx()*TRDMCFFKEY.pedsig;
              id.clearstatus(~0);
              id.setsig()=TRDMCFFKEY.sigma*(0.9+0.2*RNDM(d));
              if(RNDM(d)<TRDMCFFKEY.NoiseLevel){
