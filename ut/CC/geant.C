@@ -175,7 +175,6 @@ if(MISCFFKEY.G4On)g4ams::G4LAST();
 if(MISCFFKEY.G3On)
 #endif
 GLAST();
-if( CCFFKEY.low ==2)CMEND();
 #ifdef __DB__
      dbout.dbend();
 #endif

@@ -883,3 +883,18 @@ return (WriteAll || status);
 bool AMSmceventg::Primary(){
  return _ipart>0 && _ipart<256;
 }
+
+void AMSmceventg::endjob(){
+    char cdir[256];
+    char *R="R";
+    HCDIR(cdir,R);
+    char hpawc[256]="//PAWC/GEN";
+    char *BLANK=" ";
+    HCDIR (hpawc,BLANK);
+    if(CCFFKEY.low==2){
+     CMEND();
+    }
+    char hp[9]="//PAWC";
+    HCDIR(hp," ");
+    HCDIR (cdir, " ");
+}

@@ -110,6 +110,7 @@ static void setcuts( geant [],geant[],geant[],integer,geant,geant);
 static void setspectra(integer begind, integer begint, integer endd, 
 integer endt, integer ipart, integer low);
 static integer _hid;
+static void endjob();
 AMSmceventg *  next(){return (AMSmceventg*)_next;}
  // Interface with DAQ
 

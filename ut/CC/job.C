@@ -2288,6 +2288,7 @@ cout <<"AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::get
 
 AMSJob::~AMSJob(){
   cout << "~AMSJob called "<<endl;
+_signendjob();
   uhend();
   cout <<"uhend finished"<<endl;
 _tkendjob();
@@ -2449,6 +2450,10 @@ for(i=0;i<nalg;i++){
 
 
 
+}
+
+void AMSJob::_signendjob(){
+AMSmceventg::endjob();
 }
 
 //------------------------------------------------------------------

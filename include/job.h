@@ -147,6 +147,7 @@ void _cantinitjob();
 void _caaxinitjob();
 void _dbinitjob();
 void _dbendjob();
+void _signendjob();
 void _tkendjob();
 void _trdendjob();
 void _srdendjob();
