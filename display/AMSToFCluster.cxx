@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "Debugger.h"
-
+#include <iostream.h>
 #include "AMSToFCluster.h"
 #include "AMSRoot.h"
 #include "AMSVirtualDisplay.h"
@@ -52,7 +52,7 @@ char *AMSToFCluster::GetObjectInfo(Int_t px, Int_t py)
 {
    static char info[64];
    sprintf(info,"ToF S%dB%d: time=%3.1f+-%3.1f, Edep=%4.1f, at (%5.1f,%5.1f,%5.1f)+-(%5.1f,%5.1f,%5.1f)",
-		m_Plane, m_Bar, m_Energy, m_Time, m_ErTime,
+		m_Plane, m_Bar,  m_Time*1.e9, m_ErTime*1.e9,m_Energy,
 		fX, fY, fZ,
 		fDx, fDy, fDz );
    return info;

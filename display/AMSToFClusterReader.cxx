@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "Debugger.h"
-
+#include <iostream.h>
 #include <TRandom.h>
 
 #include <TClonesArray.h>
@@ -40,8 +40,8 @@ static struct {
   Float_t         Edep[60];
   Float_t         Time[60];
   Float_t         ErTime[60];
-  Float_t         Coo[20][3];
-  Float_t         ErCoo[20][3];
+  Float_t         Coo[60][3];
+  Float_t         ErCoo[60][3];
 } _ntuple;
 
 //_____________________________________________________________________________
@@ -163,6 +163,7 @@ void  AMSToFClusterReader::AddCluster(Int_t status, Int_t plane, Int_t bar,
  // This technique should save a huge amount of time otherwise spent
  // in the operators new and delete.
 
+  //cout << "ene "<<energy<<endl;
    TClonesArray &clusters = *(TClonesArray*)m_Fruits;
    new(clusters[m_Nclusters++]) AMSToFCluster(status, plane, bar, 
 	energy, time, ertime, coo, ercoo, ncells, npart, ntracks, tracks);

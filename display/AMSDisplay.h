@@ -50,6 +50,7 @@ private:
    Float_t           m_Phi;                  //Viewing angle phi
 // TCanvas          *m_Canvas;               //Pointer to the display canvas
    AMSCanvas        *m_Canvas;               //Pointer to the display canvas
+   TPad             *m_UCPad;                //Pointer to the UC pad 
    TPad             *m_LogoPad;              //Pointer to the logo pad 
    TPad             *m_TrigPad;              //Pointer to the trigger pad 
    TPad             *m_Buttons;              //Pointer to the buttons pad

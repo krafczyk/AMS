@@ -173,6 +173,20 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
          m_ObjInfoPad->XtoAbsPixel(0.0), m_ObjInfoPad->YtoAbsPixel(0.0), 
          m_ObjInfoPad->XtoAbsPixel(1.0), m_ObjInfoPad->YtoAbsPixel(1.0) );
 
+
+
+   // Create User Communicator Pad
+
+
+   m_Canvas->cd();
+   m_UCPad = new TPad("UserComPad", "User Communication Pad", 0.2, 0, 1, 0.05);
+   m_UCPad->SetFillColor(0);
+   m_UCPad->SetBorderSize(1);
+   m_UCPad->SetBorderMode(2);
+   m_UCPad->Draw();
+
+
+
 /*
    m_LogoPad = new TPad("LogoPad", "AMS Logo", 0.0, ysep, xsep, 1.0);
    m_LogoPad->SetFillColor(7);

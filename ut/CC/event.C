@@ -703,8 +703,8 @@ void AMSEvent::_rectcevent(){
   ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr)trflag=ptr->gettoflg();
   if(trflag<=0){
-    AMSgObj::BookTimer.stop("RECTCEVENT");
-    return;// "no h/w TOF-trigger"
+    //    AMSgObj::BookTimer.stop("RECTCEVENT");
+    //    return;// "no h/w TOF-trigger"
   }
 //
   CTCJobStat::addre(1);
