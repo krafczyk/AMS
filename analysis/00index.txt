@@ -1,4 +1,5 @@
 get.f  // Example of paw analysis function for "dumb" ntuple
 convert.f //Standalone  for converting "dumb" ntuple into more clever one
+          // use ../install/Mconvert to create an exe
 ntuple.f // Example of paw analysis function for converted ntuple
 
