@@ -1,9 +1,14 @@
-#  $Id: corba.doc,v 1.5 2001/01/22 17:00:55 vitali Exp $
+#  $Id: corba.doc,v 1.6 2001/01/24 10:30:04 choutko Exp $
 Files:
+
+
 ../include/server.h
 ../include/server.idl
 ../CC/server.C
 ../CC/producer.C
+../perl/monitor.perl,monitor.cgi
+../perl/lib/*.pm
+
 Make:
 gmake server -f ../install/Mopt
 gmake producer -f ../install/Mopt
