@@ -135,9 +135,9 @@ public:
 
   AMSRichMCHit(integer idsoft,AMSPoint xcoo,number energy,integer kind,
 	       AMSPoint origin,AMSPoint momentum) :
-    _idsoft(idsoft),_xcoo(xcoo),_energy(energy),_kind(kind),
-    _origin(origin),_momentum(momentum){_next=0;};
-  AMSRichMCHit(){_next=0;};
+    AMSlink(),_idsoft(idsoft),_xcoo(xcoo),_energy(energy),_kind(kind),
+    _origin(origin),_momentum(momentum){};
+  AMSRichMCHit():AMSlink(){};
   ~AMSRichMCHit(){};
 
   void _printEl(ostream &stream){stream <<"AMSRichMCHit "<<_idsoft<<endl;}
