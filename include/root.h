@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.129 2004/01/27 10:40:01 alcaraz Exp $
+//  $Id: root.h,v 1.130 2004/01/31 16:41:35 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -518,7 +518,7 @@ public:
   /// \param number index in container
   /// \return human readable info about AnticlusterR
   char * Info(int number=-1){
-    sprintf(_Info,"Anticluster No %d Sector=%d Coo=(%5.2f,%5.2f,%5.2f)#pm(%5.2f,%5.2f,%5.2f) E_{Dep}(MeV)=%7.3g",number,Sector,Coo[0],Coo[1],Coo[2],ErrorCoo[0],ErrorCoo[1],ErrorCoo[2],Edep);
+    sprintf(_Info,"Anticluster No %d Sector=%d R=%5.2f#pm%5.2f #Phi=%5.2f#pm%5.2f Z=%5.2f#pm%5.2f E_{Dep}(MeV)=%7.3g",number,Sector,Coo[0],ErrorCoo[0],Coo[1],ErrorCoo[1],Coo[2],ErrorCoo[2],Edep);
   return _Info;
   } 
 ClassDef(AntiClusterR,1)       //AntiClusterR
