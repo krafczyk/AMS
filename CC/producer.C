@@ -520,11 +520,11 @@ if(!suc){
  FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
  return false;
 }
-DPS::Producer::TDVbody_var vbody=pbody;
-vb2->length(totallength+length);
-for(int i=0;i<length;i++){
+ DPS::Producer::TDVbody_var vbody=pbody;
+ vb2->length(totallength+length);
+ for(int i=0;i<length;i++){
   vb2[i+totallength]=vbody[i];
-}
+ }
 totallength+=length;
 }
 if(name.Success){
