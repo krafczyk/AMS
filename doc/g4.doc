@@ -1,8 +1,6 @@
-Foreseend changes for geant4 incorporation into AMS
-
 -------
 Platform:
-linux-g++ and dec-cxx >= v6.1
+linux-g++(egcs only, no gcc2.95.2) and dec-cxx >= v6.2
 
 -------
 Installer:

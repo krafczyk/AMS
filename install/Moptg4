@@ -437,7 +437,7 @@ $(BIN)uzstat.o: 	 $(SCC)uzstat.C
 	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)uzstat.C -o $(BIN)uzstat.o
 
 $(BIN)io.o: 	 $(SCC)io.C
-	$(CC) -c $(CP2F) $(CFLAGS) $(SCC)io.C -o $(BIN)io.o
+	$(CC) -c $(CP2F) $(CFLAGSDAQ) $(SCC)io.C -o $(BIN)io.o
 
 $(BIN)daqevt.o: 	 $(SCC)daqevt.C
 	$(CC) -c $(CP2F) $(CFLAGSDAQ) $(SCC)daqevt.C -o $(BIN)daqevt.o
