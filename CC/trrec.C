@@ -1989,7 +1989,7 @@ _CircleRidgidity=xmom;
 }
 
 
-number AMSTrTrack::Fit(integer fit, integer ipart){
+number AMSTrTrack::Fit(integer fits, integer ipart){
 
   // fit =0  fit pattern
   // fit =1  fit 1st part if pat=0,1,2,3, ... etc  
@@ -2014,6 +2014,7 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
   integer ialgo=1;
   geant out[9];
   integer i;
+    integer fit =abs(fits);
     if(fit==3 || fit==5)ialgo=3;      
     for(i=0;i<_NHits;i++){
      normal[i][0]=0;
@@ -2024,7 +2025,7 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
     for(i=0;i<_NHits;i++){
      for(int j=0;j<3;j++){
       if (_Pthit[i]) {
-       hits[i][j]=getHit(i)[j];
+       hits[i][j]=getHit(i,fits<0)[j];
        sigma[i][j]=getEHit(i)[j];
       } else {
         cout <<"AMSTrTrack::Fit -W- _Pthit["<<i<<"] = NULL, j"<<j<<endl;
@@ -2037,11 +2038,11 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       //fit 124
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=getHit(0)[j];
+      hits[0][j]=getHit(0,fits<0)[j];
       sigma[0][j]=getEHit(0)[j];
-      hits[1][j]=getHit(1)[j];
+      hits[1][j]=getHit(1,fits<0)[j];
       sigma[1][j]=getEHit(1)[j];
-      hits[2][j]=getHit(3)[j];
+      hits[2][j]=getHit(3,fits<0)[j];
       sigma[2][j]=getEHit(3)[j];
      }
       
@@ -2050,11 +2051,11 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       //fit 123
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=getHit(0)[j];
+      hits[0][j]=getHit(0,fits<0)[j];
       sigma[0][j]=getEHit(0)[j];
-      hits[1][j]=getHit(1)[j];
+      hits[1][j]=getHit(1,fits<0)[j];
       sigma[1][j]=getEHit(1)[j];
-      hits[2][j]=getHit(2)[j];
+      hits[2][j]=getHit(2,fits<0)[j];
       sigma[2][j]=getEHit(2)[j];
      }
     }
@@ -2068,11 +2069,11 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       // fit 356
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=getHit(2)[j];
+      hits[0][j]=getHit(2,fits<0)[j];
       sigma[0][j]=getEHit(2)[j];
-      hits[1][j]=getHit(4)[j];
+      hits[1][j]=getHit(4,fits<0)[j];
       sigma[1][j]=getEHit(4)[j];
-      hits[2][j]=getHit(5)[j];
+      hits[2][j]=getHit(5,fits<0)[j];
       sigma[2][j]=getEHit(5)[j];
      }
     }
@@ -2080,11 +2081,11 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       // fit 345
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=getHit(2)[j];
+      hits[0][j]=getHit(2,fits<0)[j];
       sigma[0][j]=getEHit(2)[j];
-      hits[1][j]=getHit(3)[j];
+      hits[1][j]=getHit(3,fits<0)[j];
       sigma[1][j]=getEHit(3)[j];
-      hits[2][j]=getHit(4)[j];
+      hits[2][j]=getHit(4,fits<0)[j];
       sigma[2][j]=getEHit(4)[j];
      }
     }
@@ -2092,11 +2093,11 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       // fit 234
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=getHit(1)[j];
+      hits[0][j]=getHit(1,fits<0)[j];
       sigma[0][j]=getEHit(1)[j];
-      hits[1][j]=getHit(2)[j];
+      hits[1][j]=getHit(2,fits<0)[j];
       sigma[1][j]=getEHit(2)[j];
-      hits[2][j]=getHit(3)[j];
+      hits[2][j]=getHit(3,fits<0)[j];
       sigma[2][j]=getEHit(3)[j];
      }
     }
@@ -2880,14 +2881,16 @@ void AMSTrTrack::_crHit(){
  integer found=0;
  AMSTrAligPar * par(0);
  if(AMSTrAligFit::glDBOK(_Address))setstatus(AMSDBc::GlobalDB);
- if(!TRALIG.UpdateDB &&  !checkstatus(AMSDBc::GlobalDB))par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
+// if(!TRALIG.UpdateDB &&  !checkstatus(AMSDBc::GlobalDB))par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
+ if(!TRALIG.UpdateDB )par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
   if(found){
    for(int i=0;i<_NHits;i++){
     int plane=patconf[_Pattern][i]-1;
     for(int j=0;j<3;j++){
      _Hit[i][j]=(par[plane].getcoo())[j]+
-      (par[plane].getmtx(j)).prod(_Pthit[i]->getHit());
+      (par[plane].getmtx(j)).prod(_Pthit[i]->getlocHit());
      _EHit[i][j]=(par[plane].getmtx(j)).prod(_Pthit[i]->getEHit());
+//     cout <<i<<" "<<j<<" "<<_Hit[i][j]<<" "<<_Pthit[i]->getHit()[j]<<endl; 
     }
    }
    setstatus(AMSDBc::LocalDB);
@@ -2927,6 +2930,10 @@ void AMSTrTrack::decodeaddress(integer ladder[2][6], uinteger _Address){
 }
 
 uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
+   // suppress childs;
+    nchild=0;
+    return 0;
+
     const int maxchld=21;
     static uinteger achld[maxchld];
     integer lad[2][6];    

@@ -535,9 +535,10 @@ void AMSParticle::refit(int fast){
         }
 
     if(_Mass > 0){
-     _ptrack->Fit(3,_GPart);
+     _ptrack->Fit(_pbeta->getbeta()>0?3:-3,_GPart);
      if(_ptrack->GeaneFitDone()){
-      number fac=_ptrack->getgrid()*_Charge/_Momentum/sign(_pbeta->getbeta());
+//      number fac=_ptrack->getgrid()*_Charge/_Momentum/sign(_pbeta->getbeta());
+      number fac=_ptrack->getgrid()*_Charge/_Momentum;
       integer itr;
       geant xmass,chrg,tlt7,uwb[1];
       integer nwb=0;

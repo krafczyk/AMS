@@ -217,6 +217,7 @@ number getsonly()const {return _Sum*(1-_DifoSum);}
 number getkonly()const {return _Sum*(1+_DifoSum);}
 AMSgSen * getpsen()const{return _pSen;}
 inline  AMSPoint  getHit(){return _Hit;}
+AMSPoint  getlocHit(){ return (_pSen->up())->gl2loc(_Hit);}
 inline  AMSPoint  getEHit(){return _EHit;}
 integer       getLayer() const            {return _Layer;}
 AMSTrCluster* getClusterP(integer n) const {
@@ -307,7 +308,7 @@ static integer patconf[npat][6];
 static integer patmiss[npat][6];
 static integer _RefitIsNeeded;
 void _crHit();
-inline  AMSPoint  getHit(int i){return _Hit[i];}
+inline  AMSPoint  getHit(int i, int dir=0){return _Hit[dir==0?i:_NHits-1-i];}
 inline  AMSPoint  getEHit(int i){return _EHit[i];}
 void _buildaddress();
 static void decodeaddress(integer ladder[2][6], uinteger address);

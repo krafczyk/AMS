@@ -50,6 +50,7 @@ AMSPoint _Coo;
 AMSPoint _Angles;
 AMSDir _Dir[3];
 void _a2m();
+void _m2a();
 static AMSTrAligDB _traldb;
 static AMSTrAligPar par[6];
 public:
@@ -65,6 +66,7 @@ integer      AddOne(){if(_NEntries>=0)_NEntries++;return _NEntries>=0;}
 AMSDir   getmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 AMSDir &  setmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 void updmtx(){_a2m();}
+void updangles(){_m2a();}
 static AMSID getTDVDB();
 AMSTrAligPar  operator +(const AMSTrAligPar &o){
 return AMSTrAligPar(_Coo+o._Coo,_Angles+o._Angles);
@@ -185,6 +187,7 @@ number _tmppsi;
 number _fcn;   // pointer to fcns;
 number _fcnI;   // pointer to fcns;
 number _pfit;  //pointer to fitterd mom
+number _pfitbefore;  //pointer to fitterd mom before
 number _pfits;  //pointer to fitterd mom sigma
 AMSTrAligPar _pParC[6];
 static AMSTrAligPar _pPargl[17][2][6];

@@ -392,6 +392,8 @@ for( i=0;i<6;i++){
   TRALIG.ActiveParameters[i][5]=1;   // roll   yz
 }
   TRALIG.EventsPerRun=1001;
+  TRALIG.LayersOnly=0;
+  TRALIG.GlobalGoodLimit=0.06;
  FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
 
 
@@ -912,7 +914,7 @@ BETAFITFFKEY.SearchReg[1]=3.;
 BETAFITFFKEY.SearchReg[2]=3.;
 BETAFITFFKEY.LowBetaThr=0.4;
 BETAFITFFKEY.FullReco=0;
-BETAFITFFKEY.MassFromBetaRaw=0;
+BETAFITFFKEY.MassFromBetaRaw=1;
 FFKEY("BETAFIT",(float*)&BETAFITFFKEY,sizeof(BETAFITFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CHARGEFIT",(float*)&CHARGEFITFFKEY,sizeof(CHARGEFITFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -2093,7 +2095,7 @@ void AMSJob::_tkendjob(){
   if(isCalibration() & CTracker){
     if(TRALIG.UpdateDB){
       if(!TRALIG.GlobalFit)AMSTrAligFit::Test(1);
-      else AMSTrAligFit::Testgl(1);
+      else AMSTrAligFit::Testgl(2);
     }
   }
   if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){

@@ -502,6 +502,7 @@ I27 Algorithm(0)    // 0 - exect mom, 1 - mom from beta
 I28 ActiveParameters[6][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
 I64 GlobalFit(0)                   // global fit (1) local(0)
 I65 EventsPerRun(1001)            
+I66 LayersOnly(0)                     // ladder(0) or layer(1) based alig
 
 
 LVL1    // LVL1 Trigger 

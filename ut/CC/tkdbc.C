@@ -874,6 +874,7 @@ fnam+=AMSJob::gethead()->getsetup();
 if(update)fnam+=".update";
 if(update==2)fnam+=".2";
 else if (update==3)fnam+=".3";
+else if (update==4)fnam+=".4";
 ofstream iftxt;
 if(update)iftxt.open((const char *)fnam,ios::out|ios::trunc);
 else iftxt.open((const char *)fnam,ios::out|ios::noreplace);
