@@ -89,9 +89,9 @@ should have four functions of the following format (names are not relevant)
                                                                    //CTC
       static integer calcdaqlength();                              // return data length in 32 bit words
 
-      static void builddaq(integer n, uinteger *p);                // builds daq from raw into p
+      static void builddaq(integer length, uinteger *p);          // builds daq from raw into p
 
-      static void buildraw(integer n, uinteger *p);                // builds raw from daq from p
+      static void buildraw(integer length, uinteger *p);          // builds raw from daq from p
 
 
 
