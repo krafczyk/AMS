@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.12 2003/05/08 11:23:20 choutko Exp $
+#  $Id: POADBServer.pm,v 1.13 2003/05/13 13:11:45 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -366,7 +366,7 @@ OUT:
       
                      }
                          untie %hash;
-              throw DPS::DBProblem message=>"Unable to $rc the dsts $ri->{uid}";
+              throw DPS::DBProblem message=>"Unable to $rc the dsts $ri->{Name}";
           }
           else{
              throw DPS::DBProblem message=>"Unable to Open DB File";

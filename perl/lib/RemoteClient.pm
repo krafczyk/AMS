@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.164 2003/05/13 12:53:39 alexei Exp $
+# $Id: RemoteClient.pm,v 1.165 2003/05/13 13:11:45 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -760,6 +760,7 @@ sub RestartServer{
              }
            close FILE;
               my $i=system("chmod +x $full");
+              my $i=system("$full");
            return $i,$full;
           }
        }

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.59 2003/05/08 14:32:52 choutko Exp $
+# $Id: Monitor.pm,v 1.60 2003/05/13 13:11:44 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -645,7 +645,7 @@ sub getactivehosts{
       @dummy=split '\:', $hdst->{Name};
      my $chop=$dummy[0];
       if ( $chop eq $host){
-          if( $hdst->{Type} eq "Ntuple"){
+          if( $hdst->{Type} eq "Ntuple" or $hdst->{Type} eq "RootFile"){
               $ntp++;
           }elsif( $hdst->{Type} eq "EventTag"){
               $evtag++;
@@ -794,7 +794,7 @@ if ($producer eq "Producer"){
         my $lastev=0;
      for my $j (0 ... $#{$Monitor::Singleton->{dsts}}){
        my $rdst=$Monitor::Singleton->{dsts}[$j];
-       if( $rdst->{Type} eq "Ntuple"){
+       if( $rdst->{Type} eq "Ntuple" or $rdst->{Type} eq "RootFile"){
 #           warn "wasrun $run $rdst->{Run} \n";
            if ($rdst->{Run}==$run){
 #               warn "runfound $rdst->{FirstEvent} $lastev $rdst->{Name} \n";
@@ -892,7 +892,7 @@ sub getntuples{
     for my $i (0 ... $#sorteddst){
      $#text=-1;
      my $hash=$sorteddst[$i];
-     if($hash->{Type} eq "Ntuple"){
+     if($hash->{Type} eq "Ntuple" or $hash->{Type} eq "RootFile"){
          if($hash->{Status} eq $sort[$j]){
      my $ctime=localtime($hash->{Insert});
      my $smartsize=$hash->{size};
@@ -1022,7 +1022,7 @@ int($hash->{CPUNeeded}*10)/10,
      my @houtput=();
      for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
          my $hash=$Monitor::Singleton->{dsts}[$i];
-         if($hash->{Type} eq "Ntuple"){
+         if($hash->{Type} eq "Ntuple" or $hash->{Type} eq "RootFile"){
           push @houtput, $hash;
          }
      }
@@ -1618,7 +1618,7 @@ sub ResetFailedRuns{
 
     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
      my %nc=%{$Monitor::Singleton->{dsts}[$i]};
-     if($nc{Type} eq "Ntuple"){
+     if($nc{Type} eq "Ntuple" or $nc{Type} eq "RootFile"){
          if($nc{Status} eq "InProgress"){
              my $Run=$nc{Run};
              for my $j (0 ... $#{$ref->{rtb}}){
