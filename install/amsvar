@@ -6,8 +6,8 @@ setenv AMSDataDir $Offline/AMSDataDir
 setenv EDITOR  emacs
 setenv CVSEDITOR  emacs
 setenv RunsDir $Offline/RunsDir
-setenv AMSDataNtuplesDir $Offline/AMSDataNtuplesDir
-setenv AMSMCNtuplesDir   $Offline/AMSMCNtuplesDir
+setenv AMSDataNtuplesDir $Offline/amsdatantuplesdir
+setenv AMSMCNtuplesDir   $Offline/amsmcntuplesdir
 setenv SlowRateDataDir   $Offline/SlowRateDataDir
 setenv AMSGeoDir         $Offline/vdev/display/v2.00
 setenv amsed             $Offline/vdev/display/v2.00/$OS/bin/amseda
