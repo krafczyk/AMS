@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.12 2001/02/05 17:10:44 choutko Exp $
+//  $Id: client.h,v 1.13 2001/02/06 10:54:44 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -39,6 +39,7 @@ AMSClient(int debug=0):_debug(debug),_DBFileName(0),_MaxDBProcesses(0),_error(" 
 virtual ~AMSClient(){};
 const char * getdbfile() const {return _DBFileName;}
 void setdbfile(const char * db);
+void resetdbfile();
 int getmaxdb()const{return _MaxDBProcesses;}
 bool DBServerExists() const{return _MaxDBProcesses!=0;}
 AMSClientError & Error(){return _error;}

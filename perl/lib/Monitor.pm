@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.25 2001/02/02 17:37:36 choutko Exp $
+# $Id: Monitor.pm,v 1.26 2001/02/06 10:54:45 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1170,6 +1170,7 @@ sub Exiting{
             try{
                 my %cid=%{$ref->{cid}};
                 $arsref->Exiting(\%cid,"Exiting ","CInExit");
+                return;
             }
             catch CORBA::SystemException with{
                 warn "Exiting corba exc";

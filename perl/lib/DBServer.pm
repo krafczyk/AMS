@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.2 2001/02/02 17:37:36 choutko Exp $
+# $Id: DBServer.pm,v 1.3 2001/02/06 10:54:44 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -348,8 +348,12 @@ sub SendId{
                 my $hash=\%cid;
                 my ($ok,$ok2)=$arsref->sendId(\$hash,30);
                 if (not $ok){
-                 $ref->Exiting(" Server Requested To Exit ","SInExit");
-                    return 0;
+                    sleep 10;
+                    ($ok,$ok2)=$arsref->sendId(\$hash,30);
+                if (not $ok){
+                  $ref->Exiting(" Server Requested To Exit ","SInExit");
+                   return 0;
+                }
                 }
                 $ref->{cid}=$hash;
                 my %ac=%{$ref->{ac}};
@@ -452,7 +456,7 @@ sub InitDBFile{
         $init=1;
     }
      if(not $db){
-      $ref->Exiting("Unable to tie db_file $ref->{dbm_file}","CInAbort");
+      $ref->Exiting("Unable to tie db_file $ref->{dbfile}","CInAbort");
       return 0;
       }
       my $fd=$db->fd;
@@ -466,7 +470,7 @@ sub InitDBFile{
          sleep 1;
          $ntry=$ntry+1;
          if($ntry>10){
-           $ref->Exiting("Unable to get lock for $ref->{dbm_file}","CInAbort");
+           $ref->Exiting("Unable to get lock for $ref->{dbfile}","CInAbort");
           return 0;
          }
      }

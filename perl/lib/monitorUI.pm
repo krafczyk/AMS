@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.20 2001/02/02 16:22:49 choutko Exp $
+#  $Id: monitorUI.pm,v 1.21 2001/02/06 10:54:45 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -560,7 +560,6 @@ sub notebook_create_pages {
 	    "LastUpdate Time",
             "Run",
             "Name",
-            "Size(MB)",
             "Status",
 	);
 

@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.12 2001/02/02 16:22:46 choutko Exp $
+//  $Id: client.C,v 1.13 2001/02/06 10:54:42 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -369,4 +369,9 @@ void AMSClient::setdbfile(const char * dbf){
   _DBFileName= new char[strlen(dbf)+1];
   strcpy(_DBFileName,dbf);
  }
+}
+
+void AMSClient::resetdbfile(){
+  if(_DBFileName)delete [] _DBFileName;
+  _DBFileName= 0;
 }

@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.2 2001/02/02 17:37:36 choutko Exp $
+#  $Id: POADBServer.pm,v 1.3 2001/02/06 10:54:45 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -684,6 +684,53 @@ OUT:
              throw DPS::Server::DBProblem message=>"Unable to Open DB File";
           } 
 }
+sub getGeneric{
+    my $ref=$DBServer::Singleton;
+    my ($cid,@tag)=@_;
+#        my ($ok,%hash)=$ref->OpenDBFile();
+# need to explicitely open db file in every sub 
+    my $ok=0;
+    my %hash;
+    local *DBM;
+    my $db;
+    if (defined $ref->{dbfile}){
+      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
+    }
+    else{
+        goto OUT;
+    }
+     if(not $db){
+        goto OUT;
+      }
+      my $fd=$db->fd;
+      $ok=open DBM, "<&=$fd";
+      if( not $ok){
+        untie %hash;
+        goto OUT;
+      }
+     my $ntry=0;
+     $ok=0;
+     until (flock DBM, LOCK_EX|LOCK_NB){
+         sleep 2;
+         $ntry=$ntry+1;
+         if($ntry>10){
+             untie %hash;
+             goto OUT;
+         }
+     }
+    $ok=1;
+OUT:
+      undef $db;
+          if($ok){
+              foreach my $tag (@tag){
+               $ref->{$tag}=$hash{$tag};           
+              }
+               untie %hash;
+           }
+          else{
+             throw DPS::Server::DBProblem message=>"Unable to Open DB File";
+         }
+}
 
 sub sendNC{
     my $ref=$DBServer::Singleton;
@@ -716,3 +763,87 @@ sub sendNH{
     sendGeneric($cid,$ri,$rc,$tag,"HostName");
 }
 
+
+
+sub getAHS{
+    my $ref=$DBServer::Singleton;
+    my ($class,$cid)=@_;
+
+# need to explicitely open db file in every sub 
+    my $tag;
+              if($cid->{Type} eq "Server"){
+               $tag="ahls";
+              }
+              elsif($cid->{Type} eq "Producer"){
+               $tag="ahlp";
+              }
+              elsif($cid->{Type} eq "DBServer"){
+               $tag="ahls";
+              }
+              else{
+               throw DPS::Server::DBProblem message=>"Unable to getahs for $cid->{Type}";
+              }
+   
+    getGeneric($cid,$tag);
+    return ($#{$ref->{$tag}}+1,$ref->{$tag});
+}
+
+sub getFreeHost{
+    my $ref=$DBServer::Singleton;
+    my ($class,$cid)=@_;
+    if($cid->{Type} eq "Server"){
+        getGeneric($cid,"ahls","nsl","asl");
+        my $hash=$ref->{nsl}[0];
+        if ($#{$ref->{asl}}+1 < $hash->{MaxClients}){
+            sub Clock { 
+                if($a->{Status} eq $b->{Status}){
+                  return $b->{Clock}  <=> $a->{Clock};
+                }elsif( $b->{Status} eq "OK"){
+                 return 0;
+                }elsif($a->{Status} ne "NoResponse"){
+                  return 1;
+                }else{
+                  return 0;
+                }
+            }
+        my @sortedahl=sort Clock @{$ref->{ahls}};
+              foreach my $ahl (@sortedahl){
+                  if ($ahl->{Status} ne "NoResponse" or $ahl->{Status} ne "InActive" ){
+                      if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
+                          $ahl->{Status}="InActive";
+                          POADBServer::sendAH("Class",$cid,$ahl,"Update");
+                          return (1,$ahl);                
+                      }
+                  }
+              }
+ }
+               return (0,$ref->{ahls}[0]);             
+}elsif($cid->{Type} eq "Producer"){
+        getGeneric($cid,"ahlp","ncl","acl","rtb");
+        my $hash=$ref->{ncl}[0];
+        if ($#{$ref->{acl}}+1 < $hash->{MaxClients}){
+        my $runstorerun=0;
+        foreach my $run (@{$ref->{rtb}}){
+         if($run->{Status} eq "ToBeRerun"){
+          $runstorerun=$runstorerun+1;
+      }
+        }
+        if($#{$ref->{acl}} <$runstorerun){
+        my @sortedahl=sort Clock @{$ref->{ahlp}};
+              foreach my $ahl (@sortedahl){
+                  if ($ahl->{Status} ne "NoResponse" or $ahl->{Status} ne "InActive" ){
+                      if ($ahl->{ClientsRunning}<$ahl->{ClientsAllowed}){
+                          $ahl->{Status}="InActive";
+                           sendAH("Class",$cid,$ahl,"Update");
+                          return (1,$ahl);                
+                      }
+                  }
+              }
+    }
+}
+               return (0,$ref->{ahlp}[0]);             
+}
+              else{
+               throw DPS::Server::DBProblem message=>"Unable to getahs for $cid->{Type}";
+              }
+}

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.37 2001/02/02 17:37:35 choutko Exp $
+//  $Id: server.C,v 1.38 2001/02/06 10:54:43 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -651,25 +651,38 @@ if(pcur->InactiveClientExists(getType()))return;
 
 
 
-if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
-
  // Check if there are some hosts to run on
+ DPS::Client::ActiveHost_var ahlv=new DPS::Client::ActiveHost();
+ bool suc=false;
+ if(_parent->DBServerExists() && getHostInfoSDB(_parent->getcid(),ahlv)){
+  suc=true;
+ }
+ else{
  _ahl.sort(Less());
+if(_acl.size()<(*_ncl.begin())->MaxClients ){
  for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
-  if(_acl.size()<(*_ncl.begin())->MaxClients ){
   if((*i)->Status!=NoResponse && (*i)->Status!=InActive){
     if((*i)->ClientsRunning>=(*i)->ClientsAllowed)continue;
     // HereStartClient
-   CORBA::String_var _refstring=_refmap.find((const char *)((*i)->Interface))->second;
+    ahlv=*i;
+    suc=true;
+    break;
+   }
+  }
+ }
+ }
+  if(suc){
+  if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
+   CORBA::String_var _refstring=_refmap.find((const char *)((ahlv)->Interface))->second;
 #ifdef __AMSDEBUG__
-    cout <<((*i)->Interface)<<" "<<_refstring<<endl;
+    cout <<((ahlv)->Interface)<<" "<<_refstring<<endl;
 #endif
-    NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(*i)->HostName)); 
+    NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(ahlv)->HostName)); 
     if(cli==_ncl.end())cli=_ncl.begin();
     AString submit;
     submit+=(const char*)((*cli)->SubmitCommand);  
     submit+=" ";
-    submit+=(const char*)((*i)->HostName);
+    submit+=(const char*)((ahlv)->HostName);
      char tmp[80];
      sprintf(tmp,"%d",_Submit+1);
      submit+=" ";
@@ -687,7 +700,7 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     submit+=" -F";
     submit+= _iface;
     submit+=" -I";
-    submit+=(const char*)(*i)->Interface;
+    submit+=(const char*)(ahlv)->Interface;
     if(_parent->Debug())submit+=" -D1";
     UpdateDBFileName(); 
     if(_parent->getdbfile()){
@@ -715,12 +728,12 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     int out=system(submit);
      time_t tt;
      time(&tt);
-     (*i)->LastUpdate=tt;     
+     (ahlv)->LastUpdate=tt;     
     if(out==0){
      // Add New Active Client
      DPS::Client::ActiveClient ac;
-     (ac.id).HostName=CORBA::string_dup((*i)->HostName);
-     ac.id.Interface=(*i)->Interface;
+     (ac.id).HostName=CORBA::string_dup((ahlv)->HostName);
+     ac.id.Interface=(ahlv)->Interface;
      (ac.id).uid=_Submit+1;
      ac.id.Type=getType();
      ac.id.ppid=0;
@@ -737,33 +750,36 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
      ((ac.ars)[0]).uid=0;
 /*
      _acl.push_back(ac);
-     ((*i)->ClientsRunning)++;
 */
-    (*i)->Status=DPS::Client::OK; 
+//     ((ahlv)->ClientsRunning)++;
+    (ahlv)->Status=DPS::Client::OK; 
+     DPS::Client::CID cid=_parent->getcid();      
+     cid.Type=getType();
+     cid.Interface= (const char *) " "; 
+    PropagateAH(cid,(ahlv),DPS::Client::Update);
     DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(ac);
     PropagateAC(acv,DPS::Client::Create);
 //      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 //      _pser->MonInfo("Started client ",DPS::Client::Info);
     }
     else{
-     (*i)->Status=DPS::Client::LastClientFailed; 
-     ((*i)->ClientsFailed)++; 
+     (ahlv)->Status=DPS::Client::LastClientFailed; 
+     ((ahlv)->ClientsFailed)++; 
+     DPS::Client::CID cid=_parent->getcid();      
+     cid.Type=getType();
+     cid.Interface= (const char *) " "; 
+     PropagateAH(cid,(ahlv),DPS::Client::Update);
+
      AString a="StartClients-E-UnableToStartClient ";
      a+=submit;
      _parent->EMessage((const char *) a);
       Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
       _pser->MonInfo((const char *) a,DPS::Client::Error);
+
      
     }
-     DPS::Client::CID cid;      
-      cid.Type=getType();
-      cid.Interface= (const char *) " "; 
-    PropagateAH(cid,(*i),DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
-    break;
-   }
+    _pser->Lock(pid,ClearStartClient,getType(),_StartTimeOut);
   }
- } 
- _pser->Lock(pid,ClearStartClient,getType(),_StartTimeOut);
 }
 
 #include <signal.h>
@@ -1101,7 +1117,7 @@ return 0;
         if(pprod)pprod->RunFailed(ac);
 //      Here find the corr Ahost and update it
          for(AHLI i=pcur->getahl().begin();i!=pcur->getahl().end();++i){
-            if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
+            if(!strcmp((const char *)(*i)->HostName, (const char *)(ac.id).HostName)){
 //          cout << " host found for deleteing "<<endl;
         ((*i)->ClientsRunning)--;
        ((*i)->ClientsProcessed)++; 
@@ -1109,7 +1125,7 @@ return 0;
      time(&tt);
      (*i)->LastUpdate=tt;     
 
-       switch (((*li)->id).Status){
+       switch ((ac.id).Status){
        case DPS::Client::CInExit: 
             (*i)->Status=DPS::Client::OK; 
         break;
@@ -1321,6 +1337,7 @@ return length;
         if(op.Action==KillClient)op1.Action=ClearKillClient;        
         if(op.Action==CheckClient)op1.Action=ClearCheckClient;        
         pcur->getcol().push_back(op1);
+        
 //        cout << "set lock "<<cid.uid<<" "<<op.Type<<endl;
        break;
       case ClearStartClient: ClearKillClient: ClearCheckClient:
@@ -1717,26 +1734,40 @@ if(pcur->InactiveClientExists(getType()))return;
 }
 
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
-  if(!_pser->Lock(pid,DPS::Server::StartClient,getType(),_StartTimeOut))return;
  // Check if there are some hosts to run on
+ DPS::Client::ActiveHost_var ahlv=new DPS::Client::ActiveHost();
+ bool suc=false;
+ if(_parent->DBServerExists() && getHostInfoSDB(_parent->getcid(),ahlv)){
+  suc=true;
+ }
+ else{
  _ahl.sort(Less());
- for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
   if(_acl.size()<(*_ncl.begin())->MaxClients && _acl.size()<count_if(_rl.begin(),_rl.end(),REInfo_Count())){
+ for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
   if((*i)->Status!=NoResponse && (*i)->Status!=InActive){
     if((*i)->ClientsRunning>=(*i)->ClientsAllowed)continue;
-    // HereStartClient
-   CORBA::String_var _refstring=_refmap.find((const char *)((*i)->Interface))->second;
+     ahlv=*i;
+     suc=true;
+     break;
+    }
+   }
+  }
+ }
+  if(suc){ 
+  if(!_pser->Lock(pid,DPS::Server::StartClient,getType(),_StartTimeOut))return;
+   // HereStartClient
+   CORBA::String_var _refstring=_refmap.find((const char *)((ahlv)->Interface))->second;
 #ifdef __AMSDEBUG__
-//    cout <<((*i)->Interface)<<" "<<_refstring<<endl;
+//    cout <<((ahlv)->Interface)<<" "<<_refstring<<endl;
 #endif
-    NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(*i)->HostName)); 
+    NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(ahlv)->HostName)); 
     if(cli==_ncl.end())cli=_ncl.begin();
     AString submit;
     char tmp[80];
      sprintf(tmp,"%d",_Submit+1);
     submit+=(const char *)(*cli)->SubmitCommand;  
     submit+=" ";
-    submit+=(const char*)((*i)->HostName);
+    submit+=(const char*)((ahlv)->HostName);
     submit+=" ";
     if(!(*cli)->LogInTheEnd){
      submit+=(const char*)((*cli)->LogPath);  
@@ -1766,12 +1797,12 @@ if(pcur->InactiveClientExists(getType()))return;
     int out=system(submit);
      time_t tt;
      time(&tt);
-     (*i)->LastUpdate=tt;     
+     (ahlv)->LastUpdate=tt;     
     if(out==0){
      // Add New Active Client
      DPS::Client::ActiveClient ac;
-     (ac.id).HostName=CORBA::string_dup((*i)->HostName);
-     ac.id.Interface=(*i)->Interface;
+     (ac.id).HostName=CORBA::string_dup((ahlv)->HostName);
+     ac.id.Interface=(ahlv)->Interface;
      (ac.id).uid=_Submit+1;
      ac.id.pid=0;
      ac.id.ppid=0;
@@ -1787,29 +1818,32 @@ if(pcur->InactiveClientExists(getType()))return;
      ((ac.ars)[0]).IOR=(const char *)(" ");
      ((ac.ars)[0]).Type=DPS::Client::Generic;
      ((ac.ars)[0]).uid=0;
+    (ahlv)->Status=DPS::Client::OK; 
+     DPS::Client::CID cid;      
+      cid.Type=getType();
+      cid.Interface= (const char *) " "; 
+    PropagateAH(cid,(ahlv),DPS::Client::Update);
+
     DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(ac);
     PropagateAC(acv,DPS::Client::Create);
-    (*i)->Status=DPS::Client::OK; 
+//     ((ahlv)->ClientsRunning)++;
     }
     else{
-     (*i)->Status=DPS::Client::LastClientFailed; 
-     ((*i)->ClientsFailed)++; 
+     (ahlv)->Status=DPS::Client::LastClientFailed; 
+     ((ahlv)->ClientsFailed)++; 
+     DPS::Client::CID cid;      
+      cid.Type=getType();
+      cid.Interface= (const char *) " "; 
+    PropagateAH(cid,(ahlv),DPS::Client::Update);
      AString a="StartClients-E-UnableToStartClient ";
      a+=submit;
      _parent->EMessage((const char *)a);
       Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
       _pser->MonInfo((const char *) a,DPS::Client::Error);
     }
-     DPS::Client::CID cid;      
-      cid.Type=getType();
-      cid.Interface= (const char *) " "; 
-    PropagateAH(cid,(*i),DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
-    break;
+    _pser->Lock(pid,DPS::Server::ClearStartClient,getType(),_StartTimeOut);  
    }
-  }
- }
 
- _pser->Lock(pid,DPS::Server::ClearStartClient,getType(),_StartTimeOut);  
 }
 
 
@@ -2214,23 +2248,6 @@ return length;
 void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro,DSTInfo_out dso)throw (CORBA::SystemException){
 
 
-  DSTInfo_var dv =new DSTInfo();
-  RunEvInfo_var rv=new RunEvInfo(); 
-
- if(_parent->DBServerExists()){
-
-  bool succ=getRunEvInfoSDB(cid,rv,dv);
-  if(! succ){
-     _parent->EMessage(AMSClient::print(_parent->getcid(),"getRunEvInfoSDBFailed"));
-   dv->DieHard=1;
-   ro=rv._retn();
-   dso=dv._retn();
-   return;
- }
- 
-}
-else{
-
 
  DPS::Client::CID pid;
  pid.Interface=(const char *)" ";
@@ -2263,8 +2280,29 @@ else{
      // Have to Kill Servers Here
    }
  }
+
  cout <<" Master getrunevinfo "<<_parent->getcid().uid<<endl;
  _UpdateACT(cid,DPS::Client::Active);
+
+
+  DSTInfo_var dv =new DSTInfo();
+  RunEvInfo_var rv=new RunEvInfo(); 
+
+ if(_parent->DBServerExists()){
+
+  bool succ=getRunEvInfoSDB(cid,rv,dv);
+  if(! succ){
+     _parent->EMessage(AMSClient::print(_parent->getcid(),"getRunEvInfoSDBFailed"));
+   dv->DieHard=1;
+   ro=rv._retn();
+   dso=dv._retn();
+   return;
+ }
+ 
+}
+else{
+
+
 {
  DSTILI li=find_if(_dstinfo.begin(),_dstinfo.end(),DSTInfo_find(cid));
  if(li==_dstinfo.end())li=_dstinfo.begin();
@@ -3132,14 +3170,14 @@ return _pser->getARS(cid, arf,type,id);
        time(&tt);
        (*j)->LastUpdate=tt;
 #ifdef __AMSDEBUG__
-       _parent->IMessage(AMSClient::print(cid,"Producer_impl::sendId-I-RegClient "));
+       _parent->IMessage(AMSClient::print(cid,"Client_impl::sendId-I-RegClient "));
 #endif 
 //       DPS::Client::ActiveClient_var acv=*j;
 //       PropagateAC(acv,DPS::Client::Update);
        return true;
       }
       }
-       _parent->EMessage(AMSClient::print(cid,"Producer_impl::sendId-E-RegClientNotFound "));
+       _parent->EMessage(AMSClient::print(cid,"Client_impl::sendId-E-RegClientNotFound "));
      return false;
 
     }
@@ -3184,7 +3222,6 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
  
 }
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
-  if(!_pser->Lock(pid,DPS::Server::StartClient,getType(),_StartTimeOut))return;
   bool freeslot=true;
     for(ACLI li=_acl.begin();li!=_acl.end();++li){
      if(strstr((const char*)_parent->getcid().HostName,(const char*)(*li)->id.HostName)){
@@ -3193,6 +3230,7 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
      }
     } 
   if(_acl.size()<_parent->getmaxdb() && freeslot){
+   if(_pser->Lock(pid,DPS::Server::StartClient,getType(),_StartTimeOut)){
    char * perldir=getenv("AMSProdPerl");
      if(!perldir){
       _parent->EMessage("AMSProdPerl not defined");
@@ -3221,7 +3259,7 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
                submit+=(const char*) _refstring;
            cout <<" submit "<<submit<<endl;
       int pid=fork();
-//       int pid=1000;
+//      int pid=1000;
       if(pid==-1){
        _parent->EMessage("Unable to fork DBServer");
       }
@@ -3261,8 +3299,9 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
 
       }
      }
-   } 
-   _pser->Lock(pid,DPS::Server::ClearStartClient,getType(),_StartTimeOut);
+     _pser->Lock(pid,DPS::Server::ClearStartClient,getType(),_StartTimeOut);
+    }
+   }
   }
 
  }
@@ -3317,7 +3356,8 @@ _parent->IMessage(AMSClient::print(cid,message?message:"Client exiting"));
 for( ACLI li=_acl.begin();li!=_acl.end();++li){
  if (cid.uid==((*li)->id).uid){
         if(_parent->Debug())_parent->IMessage(AMSClient::print((*li),"Deleting Client "));
-   _acl.erase(li);
+   DPS::Client::ActiveClient_var acv=*li;
+   PropagateAC(acv,DPS::Client::Delete);
    return;
 
 }
@@ -3491,17 +3531,73 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
       CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
       _parent->setdbfile(filepath);
-      break;
+      return;
      }
      catch (CORBA::SystemException &ex){
       cerr<<" oops corba error during dbserver" <<endl;
      }
     }
    }
+   _parent->resetdbfile();
+   return;
  }
 }
 }
 
+bool AMSServerI::getHostInfoSDB(const DPS::Client::CID & cid, DPS::Client::ActiveHost_var & prv){
+//return false;
+for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+ if(pcur->getType()==DPS::Client::DBServer){
+   bool done=false;
+   bool retry=false;
+   pcur->getacl().sort(Less(_parent->getcid()));
+   for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+   while( ! done){
+   for (int i=0;i<((*li)->ars).length();i++){
+    try{
+      CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
+      DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+      CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
+      _parent->setdbfile(filepath);
+      DPS::Client::AHS * pres;
+      DPS::Client::CID tcid=cid;
+      tcid.Type=getType();
+      int length=dvar->getAHS(tcid, pres);
+      DPS::Client::AHS_var res=pres; 
+      if(length){
+       _ahl.clear();
+       for(int i=0;i<length;i++){
+        DPS::Client::ActiveHost_var vre= new DPS::Client::ActiveHost(res[i]);
+        _ahl.push_back(vre);
+       }
+      }
+      else{
+       _parent->EMessage(" UpdateRunTable-UnableToUpdate"); 
+        return 0;
+      }
+      DPS::Client::ActiveHost *pre;
+      int ret=dvar->getFreeHost(tcid,pre);     
+      prv=pre;
+      return ret;
+     }
+     catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       sleep (2);
+       retry=! retry;    
+     }
+     catch (CORBA::SystemException &ex){
+      cerr<<" oops corba error during dbserver" <<endl;
+     }
+    }
+    if(!retry)return 0;
+   }
+  }
+break;
+}
+}
+return 0;
+
+}
 bool Producer_impl::getRunEvInfoSDB(const DPS::Client::CID & cid, RunEvInfo_var & prv, DSTInfo_var & pdv){
 for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
  if(pcur->getType()==DPS::Client::DBServer){
@@ -3671,7 +3767,61 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
       DPS::Client::CID acid=ac.id;
       dvar->sendACPerl(acid,ac,rc);
+      if(rc == DPS::Client::Delete){
+//      Here find the corr Ahost and update it
+        for(AMSServerI * curp=getServer(); curp; curp=(curp->down())?curp->down():curp->next()){
+          if(curp->getType()==ac.id.Type){
+             for(AHLI i=curp->getahl().begin();i!=curp->getahl().end();++i){
+               if(!strcmp((const char *)(*i)->HostName, (const char *)((ac.id).HostName))){
+               DPS::Client::ActiveHost_var ahlv= *i;
+               (ahlv->ClientsRunning)--;
+               (ahlv->ClientsProcessed)++; 
+               time_t tt;
+               time(&tt);
+               (ahlv)->LastUpdate=tt;     
+               switch ((ac.id).Status){
+               case DPS::Client::CInExit: 
+                (ahlv)->Status=DPS::Client::OK; 
+                break;
+               case DPS::Client::SInExit:
+                (ahlv)->Status=DPS::Client::OK; 
+                break;
+               case DPS::Client::CInAbort:
+                (ahlv)->Status=DPS::Client::LastClientFailed; 
+                ((ahlv)->ClientsFailed)++; 
+                break;
+               case DPS::Client::SInKill:
+                (ahlv)->Status=DPS::Client::LastClientFailed; 
+                ((ahlv)->ClientsKilled)++; 
+                break;
+               }
+               dvar->sendAH(acid,ahlv,DPS::Client::Update);
+               break;
+              }  
+             }
+            }
+           }
+       }
+       else if(rc == DPS::Client::Create){
+        for(AMSServerI * curp=getServer(); curp; curp=(curp->down())?curp->down():curp->next()){
+          if(curp->getType()==ac.id.Type){
+             for(AHLI i=curp->getahl().begin();i!=curp->getahl().end();++i){
+            if(!strcmp((const char *)(*i)->HostName, (const char *)(ac.id).HostName)){
+            DPS::Client::ActiveHost_var ahlv= *i;
+            ((ahlv)->ClientsRunning)++;
+            time_t tt;
+            time(&tt);
+            (ahlv)->LastUpdate=tt;     
+            (ahlv)->Status=DPS::Client::OK;
+             dvar->sendAH(acid,ahlv,DPS::Client::Update);
+            break;
+        }
+         }
+       }
+      }
+      }
       return 1;
+
      }
      catch(DPS::DBServer::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
