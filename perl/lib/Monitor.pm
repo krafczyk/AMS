@@ -64,6 +64,10 @@ sub Connect{
      $ref->{ok}=0;
  my $ior=getior();
  if(not defined $ior){ 
+     $ior=getior2();
+ }
+ if(not defined $ior){ 
+
   $ior= shift @ARGV;
   unshift @ARGV, $ior;
  }
@@ -339,6 +343,7 @@ sub getior{
             open(FILEO,"<".$fileo) or next;
             while (<FILEO>){
                 if (/^IOR:/){
+                    close(FILE);
                     close(FILEO);
                     return $_;
                 }
@@ -352,9 +357,20 @@ sub getior{
     close(FILE);
     system "rm -f $file";
     system "rm -f $fileo";
-
+    return undef;
 }
-
+sub getior2{
+    my $file ="/tmp/DumpIOR";
+    open(FILE,"<".$file) or return undef;
+            while (<FILE>){
+                if (/^IOR:/){
+                    close(FILE);
+                    return $_;
+                }
+            }
+            close(FILE);
+    return undef;
+}
 sub getdbok{
     my @output=();
     my @text=();
