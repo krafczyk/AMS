@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.233 2004/01/12 14:18:08 alexei Exp $
+# $Id: RemoteClient.pm,v 1.234 2004/01/14 10:48:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4693,7 +4693,8 @@ print qq`
          open(FILE,">".$root) or die "Unable to open file $root\n";  
          if($self->{CCT} eq "local"){
           if(defined $self->{AMSDSTOutputDir} and $self->{AMSDSTOutputDir} ne ""){
- print FILE "export NtupleDir=$self->{AMSDSTOutputDir} \n";
+ print FILE "export NtupleDestDir=$self->{AMSDSTOutputDir} \n";
+ print FILE "export NtupleDir=/dat0/local/logs/nt \n";
 }
         my $key='ntuplevalidator';
         my $sql="select myvalue from Environment where mykey='".$key."'";
