@@ -270,8 +270,9 @@ Below there is a description of a  ntuple.
 
 
  * I*4  * [0,2]       * LVL3     * nlvl3                 // lvl3trigger number 
- * I*4  *             * LVL3     * LVL3TOFTr(nlvl3)      // TOF Trigger
- * I*4  *             * LVL3     * LVL3AntiTr(nlvl3)     // Anti Trigger
+ * I*4  *             * LVL3     * LVL3TOFTr(nlvl3)      // TOF Trigger -1 if rejected by matrix trigger, 
+                                                         // 0 if rejected by adj hits, 1 otherwise
+ * I*4  *             * LVL3     * LVL3AntiTr(nlvl3)     // Anti Trigger  not used now
  * I*4  *             * LVL3     * LVL3TrackerTr(nlvl3)  // TrackerTrigger
                                                          // 0  - initial state
                                                          // 1  - reject (p)
