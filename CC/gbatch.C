@@ -60,7 +60,7 @@ void (handler)(int sig){
   case SIGFPE:
    cerr <<" FPE intercepted"<<endl;
    break;
-  case SIGTERM: case SIGINT:
+  case SIGTERM: case SIGINT: case SIGXCPU:
     cerr <<" SIGTERM intercepted"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
