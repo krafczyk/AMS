@@ -1,2 +1,2 @@
-../exe/linux/amsprodserver.exe -R../prod/RunTable -P../prod/NominalProducer -H../prod/NominalHost -S../prod/NominalServer -F../prod/NominalInterface -N/dat0/local/logs/producer
+../exe/linux/amsprodserver.exe -R../prod/RunTable -P../prod/NominalProducer -H../prod/NominalHost -S../prod/NominalServer -F/afs/cern.ch/user/c/choutko/AMS/prod/NominalInterface -N/p0dat4/local/amsdatantuple/tmp -Ihrdl
 

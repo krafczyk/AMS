@@ -42,19 +42,21 @@ else{
     if(!CORBA::is_nil(_pvar)){
      _plist.clear();
      _plist.push_front(_pvar);
-     if(_debug)_openLogFile("Producer");
      if(!_getpidhost(uid)){
+      if(_debug)_openLogFile("Producer");
       FMessage("AMSProducer::AMSProducer-F-UnableToGetHostName", DPS::Client::CInAbort);
      }
+     if(_debug)_openLogFile("Producer");
      time_t cput=3*AMSFFKEY.CpuLimit;
      if(!(_pvar->sendId(_pid,cput))){
       // dieHard
       FMessage("Server Requested Termination after sendID ",DPS::Client::SInExit);
      }
-     IMessage("sendID-I-");
+     IMessage("sendID-I-Success");
      UpdateARS();
      getRunEventInfo();
      _Head=this;
+      return;       
      }
     }
    }
@@ -81,8 +83,8 @@ void AMSProducer::getRunEventInfo(){
 UpdateARS();
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
-    if(_reinfo->DieHard)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
     (*li)->getRunEvInfo(_pid,_reinfo);
+    if(_reinfo->DieHard)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
     _cinfo.Run=_reinfo->Run;
     SELECTFFKEY.Run=_reinfo->Run;
     SELECTFFKEY.Event=_reinfo->FirstEvent;

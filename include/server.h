@@ -56,6 +56,8 @@ typedef map<AString,CORBA::String_var> MS;
   bool operator () (const DPS::Client::ActiveClient_var & a){return _a.id.uid==a->id.uid;}
 };
   uinteger getmaxcl() const {return _Submit;}
+  DPS::Client::NominalClient_var getncl(){return _ncl;}
+  void addone(){++_Submit;}
   COL & getcol(){return _col;}
   ACL & getacl(){return _acl;}
   AHL & getahl(){return _ahl;}
@@ -68,7 +70,7 @@ typedef map<AString,CORBA::String_var> MS;
  virtual void KillClients(const DPS::Client::CID &cid)=0;
  virtual AMSServerI * getServer()=0;
 
-  void PropagateAC(const DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc);
+  void PropagateAC( DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc);
 
   bool InactiveClientExists();
 
@@ -115,8 +117,8 @@ class Server_impl : public virtual POA_DPS::Server, public AMSServerI{
 protected:
 AString _iface;
 public:
-  Server_impl(uinteger i=0):POA_DPS::Server(),AMSServerI(AMSID("Server",++i)){};
-  Server_impl(const map<AString, AMSServer::OrbitVars> & mo,  AMSClient * parent, char * NS=0, char* NH=0);
+  Server_impl(uinteger i=0):POA_DPS::Server(),AMSServerI(AMSID("Server",++i),0,DPS::Client::Server){};
+  Server_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient * parent, char * NS=0, char* NH=0);
   Server_impl(const map<AString, AMSServer::OrbitVars> & mo, DPS::Server_ptr _cvar, const DPS::Client::CID & cid, AMSClient * parent);
   ~Server_impl(){if(_down)_down->remove();}
 
@@ -130,7 +132,7 @@ public:
   CORBA::Boolean getNC(const DPS::Client::CID &cid, DPS::Client::NominalClient_out nc)throw (CORBA::SystemException);
    int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars)throw (CORBA::SystemException);
    int getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException);
-   void sendAC(const DPS::Client::CID &cid, const DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc)throw (CORBA::SystemException);
+   void sendAC(const DPS::Client::CID &cid,  DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
    int getNHS(const DPS::Client::CID &cid,NHS_out nhl)throw (CORBA::SystemException);
    int getAHS(const DPS::Client::CID &cid,AHS_out ahl)throw (CORBA::SystemException);
@@ -141,7 +143,7 @@ public:
   bool pingHost(const char * host);
   CORBA::Boolean TypeExists(DPS::Client::ClientType type)throw (CORBA::SystemException);
 
-  void StartSelf(const DPS::Client::CID & cid);
+  void StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordChange rc);
 
 };
 
@@ -166,8 +168,8 @@ DSTL _ntuple;
 public:
  AMSServerI * getServer(){return up();}
 
-  Producer_impl(const map<AString, AMSServer::OrbitVars> & mo,  AMSClient * parent,char * NC=0, char* RF=0, char* NS=0, char * TS=0);
-  Producer_impl(uinteger i=0):POA_DPS::Producer(),AMSServerI(AMSID("Producer",++i)){};
+  Producer_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient * parent,char * NC=0, char* RF=0, char* NS=0, char * TS=0);
+  Producer_impl(uinteger i=0):POA_DPS::Producer(),AMSServerI(AMSID("Producer",++i),0,DPS::Client::Producer){};
   Producer_impl(const map<AString, AMSServer::OrbitVars> & mo, DPS::Server_ptr _cvar,DPS::Client::CID  cid, AMSClient * parent);
   void _init();
  virtual void StartClients(const DPS::Client::CID &cid);
@@ -210,6 +212,13 @@ RunEvInfo _re;
 public:
  explicit REInfo_Eqs(const RunEvInfo & re):_re(re){}
  bool operator()(const RunEvInfo & a){return a.uid== _re.uid;}
+};
+
+class REInfo_EqsClient: public unary_function<RunEvInfo,bool>{
+DPS::Client::CID _cid;
+public:
+ explicit REInfo_EqsClient(const DPS::Client::CID & cid):_cid(cid){}
+ bool operator()(const RunEvInfo & a){return a.cuid== _cid.uid;}
 };
 
 

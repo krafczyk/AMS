@@ -1,4 +1,4 @@
 #Max CPU Mem  Job                                         Log     //   Submit
- 10 0.9 100 /Offline/vdev/datacards/StandardNtuple.job -o /dat0/local/logs/
- bsub -q linux_client -m
+ 3 0.9 100 /Offline/vdev/datacards/StandardNtuple.job -o /dat0/local/logs/
+ /usr/local/lsf/bin/bsub -q linux_client -m
 
