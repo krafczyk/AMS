@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.151 2003/03/14 11:11:29 choutko Exp $
+//  $Id: amsgeom.C,v 1.152 2003/03/14 13:37:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2101,6 +2101,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 #ifdef __G4AMS__
                  if(MISCFFKEY.G4On)
+                  for(int i=0;i<3;i++)coo[i]-=daug4->getcoo(i);
 		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
                  else
 #endif
