@@ -28,8 +28,8 @@ static    TStopwatch  * _pw;
 
 
 void stlv::Begin(TTree *tree){
-   // Function called before starting the event loop.
-   // Initialize the tree branches. 
+   // User Function called before starting the event loop.
+   // Initialize the tree branches.
    // Book Histos
    Init(tree);
 
@@ -65,9 +65,9 @@ Bool_t stlv::ProcessCut(Int_t entry)
 {
    // Selection function.
    // Entry is the entry number in the current tree.
-   // Read only the necessary branches to select entries.
-   // Return kFALSE as soon as a bad entry is detected.
-   // To read complete event, call fChain->GetTree()->GetEntry(entry).
+   // Read only the header to select entries.
+   // May return kFALSE as soon as a bad entry is detected.
+   // Should Not be modified by (Non)Advanced User
 
    ev.ReadHeader(entry);
 
@@ -76,10 +76,9 @@ Bool_t stlv::ProcessCut(Int_t entry)
 
 void stlv::ProcessFill(Int_t entry)
 {
-   // Function called for selected entries only.
+   // User Function called for selected entries only.
    // Entry is the entry number in the current tree.
-   // Read branches not processed in ProcessCut() and fill histograms.
-   // To read complete event, call fChain->GetTree()->GetEntry(entry).
+   // Fills histograms.
    
 
     

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.68 2003/05/13 11:05:14 choutko Exp $
+//  $Id: producer.C,v 1.69 2003/05/13 15:12:05 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -155,6 +155,8 @@ if (_Solo){
      _reinfo =new DPS::Producer::RunEvInfo(); 
      _dstinfo =new DPS::Producer::DSTInfo(); 
      _dstinfo->UpdateFreq=1000;
+     if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
+     else _dstinfo->type = DPS::Producer::Ntuple;
      _reinfo->uid=0;
      _reinfo->Priority=0;
      time_t ct;
@@ -301,15 +303,21 @@ else{
      IOPA.hlun=0;
      IOPA.WriteRoot=0;
     if(_dstinfo->type == DPS::Producer::RootFile){
-      IOPA.WriteRoot=1;
+      IOPA.hlun=0;
       AMSJob::gethead()->SetRootPath((const char *)ntpath);
     }
     else{
        IOPA.hlun=1;
+       IOPA.WriteRoot=0;
        AMSJob::gethead()->SetNtuplePath((const char *)ntpath);
     }
     }
     else{
+      if(IOPA.WriteRoot)_dstinfo->type = DPS::Producer::RootFile;
+      else _dstinfo->type = DPS::Producer::Ntuple;
+     if(_dstinfo->type == DPS::Producer::RootFile)
+     _dstinfo->OutputDirPath=AMSJob::gethead()->GetRootPath();
+     else
      _dstinfo->OutputDirPath=AMSJob::gethead()->GetNtuplePath();
      if(_RemoteDST){
        if(_dstinfo->Mode==DPS::Producer::LILO)_dstinfo->Mode=DPS::Producer::LIRO;
