@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.193 2003/06/17 15:15:35 choutko Exp $
+# $Id: RemoteClient.pm,v 1.194 2003/06/18 14:04:11 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1848,8 +1848,17 @@ sub Connect{
           }
          print "<tr><td><font size=\"3\" color=\"green\"><b>Output Format : </b></td><td><b> $outform</b></td></tr>\n";
          print "<tr><td><font size=\"3\" color=\"green\"><b>DSTs Type : </b></td><td><b> $dsttype</b></td></tr>\n";
-        my $scriptfile = "XYZ";
-        my $dirstructure = "XYZ";
+        my $dstversion  = undef;
+        if (defined $q->param("QDSTVERSION")) {
+         if ($q->param("DSTV") ne "All" and 
+             $q->param("DSTV") ne "all" and
+             $q->param("DSTV") ne "ALL") {
+              $dstversion = $q->param("QDSTVERSION");
+              print "<tr><td><font size=\"3\" color=\"green\"><b>DST Version : </b></td><td><b> $dstversion</b></td></tr>\n";
+          }
+        }
+        my $scriptfile = undef;
+        my $dirstructure = undef;
         $self->{ScriptFileDir} = "XYZ";
         if (defined $q->param("SCRIPT")) {
           $scriptfile   = trimblanks($q->param("SCRIPT"));
@@ -1864,10 +1873,15 @@ sub Connect{
       print "<INPUT TYPE=\"hidden\" NAME=\"NTOUT\" VALUE=\"$ntout\">\n"; 
       print "<INPUT TYPE=\"hidden\" NAME=\"NTCHAIN\" VALUE=\"$ntchain\">\n"; 
       print "<INPUT TYPE=\"hidden\" NAME=\"DST\" VALUE=\"$dstformat\">\n";
-      print "<INPUT TYPE=\"hidden\" NAME=\"SCRIPT\" VALUE=\"$scriptfile\">\n";
-      print "<INPUT TYPE=\"hidden\" NAME=\"DIRSTR\" VALUE=\"$dirstructure\">\n";
-
+      if (defined $scriptfile and defined $dirstructure) {
+       print "<INPUT TYPE=\"hidden\" NAME=\"SCRIPT\" VALUE=\"$scriptfile\">\n";
+       print "<INPUT TYPE=\"hidden\" NAME=\"DIRSTR\" VALUE=\"$dirstructure\">\n";
+      }
+      if (defined $dstversion) {
+       print "<INPUT TYPE=\"hidden\" NAME=\"DSTV\" VALUE=\"$dstversion\">\n";
+      }
      }
+     
         $sql=$sql." runcatalog.TIMESTAMP != 0 ORDER BY PART, RUN ";
       htmlTableEnd();
 #                  RUN          NUMBER       NOT NULL
@@ -1908,6 +1922,7 @@ sub Connect{
       my $pold=undef;
       my $scriptfile=undef;
       my $dirstructure=0;
+      my $dstversion  = undef;
 
       my $timenow = time();
       $timenow = EpochToDDMMYYHHMMSS($timenow);
@@ -1918,6 +1933,9 @@ sub Connect{
          $ntout=$q->param("NTOUT");
          if (defined $q->param("DST")) {
           $dstformat = $q->param("DST");
+         }
+         if (defined $q->param("DSTV")) {
+          $dstversion = $q->param("DSTV");
          }
          if (defined $q->param("SCRIPT")) {
           if ($q->param("SCRIPT") eq "XYZ" and 
@@ -1950,19 +1968,25 @@ sub Connect{
              my $particleid=$r->[1];
              my $part=>undef;
 
-             $sql="SELECT jobname, runs.submit FROM Jobs, Runs 
-                     WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run ORDER BY Runs.run";
+             $sql="SELECT jobname, runs.submit FROM Jobs, Runs, NTuples  
+                     WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run";
              if (defined $dstformat) {
               if ($dstformat eq "NTUPLE") {
                $sql="SELECT jobname, runs.submit FROM Jobs, Runs, NTuples 
                       WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run AND 
-                            NTuples.jid = Jobs.jid AND NTuples.type='Ntuple' ORDER BY Runs.run";
+                            NTuples.jid = Jobs.jid AND NTuples.type='Ntuple' ";
                } elsif ($dstformat eq "ROOT") {
                 $sql="SELECT jobname, runs.submit FROM Jobs, Runs, NTuples 
                       WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run AND 
-                            NTuples.jid = Jobs.jid AND NTuples.type='RootFile' ORDER BY Runs.run";
+                            NTuples.jid = Jobs.jid AND NTuples.type='RootFile' ";
               }
              }
+             if (defined $dstversion) {
+              if ($dstversion ne "All") {
+                  $sql = $sql." AND NTuples.run=Runs.run AND NTuples.version like '%$dstversion%' ";
+              }
+             }
+             $sql = $sql." ORDER By Runs.run";
              my $r3=$self->{sqlserver}->Query($sql);
 
              if (defined $r3->[0][0]) {
@@ -2231,6 +2255,12 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
             htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
+# Job Parameters
+          print "<tr><td><b><font color=\"green\" size=2>DST Parameters</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            htmlTextField("Version","text",20,"All","QDSTVERSION"," ");
+          htmlTableEnd();
 # spectrum and focusing
 #            print "<tr><td><b><font color=\"blue\" size=2>Spectrum and Focusing</font></b>\n";
 #            print "</td><td>\n";
@@ -2310,7 +2340,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
    print "<br>Directory structure can be hierarchical : <i><b>mydir/MC/AMS02/DataSet/particle/job/</i> or linear : <i><b>mydir/dstfile </i>\n";
    print "<br><font color=blue> be sure that apache server has 'write' access to script file path</font>\n";
    print "<TR></TR><br>\n";
-   print "<b><font color=green> Script path : </font><INPUT TYPE=\"text\" name=\"SCRIPT\">  ";
+   print "<b><font color=green> Script path : </font><INPUT TYPE=\"text\" name=\"SCRIPT\" Value=\"\" >  ";
    print "<b><font color=green> Directory Structure : </font><INPUT TYPE=\"radio\" name=\"DIRSTR\" VALUE=\"HIER\"> Hierarchical";
    print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"DIRSTR\" VALUE=\"LINEAR\" CHECKED> Linear;\n";
    print "<TR></TR>\n";
