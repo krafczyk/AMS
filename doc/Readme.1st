@@ -98,7 +98,7 @@ c) setenv AMSDataDir  <your preferred dir>
 
 
 
-VIII. Current (Sep 10 1998) computer situation
+VIII. Current (Sep 9 1998) computer situation
 
 a. Accounts
    To get AFS account and account on shift51,rsplus,dxplus
@@ -132,6 +132,7 @@ c. SoftWare/DataAccess
   Database Related Ntuples in $AMSDataDir/ntuples  [only on ams alphas now]
  
   Datacards to run real data $Offline/vdev/datacards/rt_all.job  
-
+  
+  AMS eventDisplay $amsed
 
 Comments, questions to shoutko@vxcern.cern.ch
