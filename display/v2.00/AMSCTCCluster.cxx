@@ -33,10 +33,10 @@ AMSCTCCluster::AMSCTCCluster(Int_t status, Int_t plane, Int_t rawsignal,
    m_Tracks     = tracks;
 
    SetDirection(0.0, 0.0);
-   SetLineWidth(1);
+   SetLineWidth(3);
    SetLineColor(7);             // light blue
    SetFillColor(7);
-   SetFillStyle(1001);          // solid filling (not working now....)
+   SetFillStyle(3001);          // solid filling (not working now....)
 
    debugger.Print("AMSCTCCluster(%lx,%d bytes): position (%f,%f,%f)+-(%f,%f,%f)\n",
 	this, sizeof(*this), coo[0], coo[1], coo[2], ercoo[0], ercoo[1], ercoo[2]);

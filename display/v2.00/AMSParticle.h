@@ -37,7 +37,11 @@ private:
    Float_t	m_BetaCTC[2];		//Beta from Cerenkov
    Float_t	m_ErrBetaCTC[2];	//Error of the above
    Float_t	m_PositionCTC[2][3];	//Track extrapolated into Cerenkov
-
+   Float_t      m_beta;
+   Float_t      m_errbeta;
+   Int_t        m_betapattern;
+   Int_t        m_pattern;
+   Int_t        m_trstatus;
 
 public:
                   AMSParticle() {;}

@@ -44,6 +44,7 @@
 #include "TSwitch.h"
 #include "AMSSiHitReader.h"
 #include "AMSAxis.h"
+#include "AMSGeometrySetter.h"
 //#include "AMSParticle.h"
 //#include "AMSMCMaker.h"
 //#include "AMSClusterMaker.h"
@@ -110,6 +111,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    m_View = kFrontView;
    m_DrawParticles = kTRUE;
    m_DrawGeometry  = kTRUE;
+   m_DrawMoreGeometry  = kFALSE;
 
    // Create display canvas
 //   m_Canvas = new TCanvas("Canvas", (char*)title,14,47,740,650);
@@ -297,6 +299,10 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    y -= dy;
     
    sw[7] = new TSwitch("Geometry", &m_DrawGeometry, 
+			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
+   y -= dy;
+    
+   sw[7] = new TSwitch("More Geometry", &m_DrawMoreGeometry, 
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
 
 
@@ -713,7 +719,7 @@ void AMSDisplay::AddParticleInfo()
 
    text->SetTextFont(7);
    text->SetTextAlign(22);
-   text->SetTextSize(0.65);
+   text->SetTextSize(0.45);
    text->Draw();
 
    gPadSave->cd();
@@ -867,6 +873,23 @@ void AMSDisplay::DrawView(Float_t theta, Float_t phi, Int_t index)
    // add the geomtry to the pad
    if (m_DrawGeometry) {
      view->SetRange(-800.0, -800.0, -520.0, 800.0, 800.0, 520.0);
+     EVisibility vis;
+     if(m_DrawMoreGeometry)vis=kDrawAll;
+     else vis=kDrawNone;
+     TNode * node=m_Geometry->GetNode("ANTI_SUPP_TUBE");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L1_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L2_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L3_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L4_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L5_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L6_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
      m_Geometry->Draw();
    }
    else

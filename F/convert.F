@@ -1321,7 +1321,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
         write(*,*)'Unable to open input file ',fnam
         stop
        endif
-       call hrin(0,9999,0)
+       call hrin(1,999,0)
        if(iquest(1).ne.0)then
         write(*,*)'Prepare-E-Error-IQUEST(1)-',iquest(1)
         write(*,*)'Try to read ntuple only'
@@ -1334,7 +1334,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        ic=0
        call hcdir('//input',' ')
         
-        call hrin(1,9999,0)
+        call hrin(1,999,0)
        endif
        ic=0
        cblock(1)='EVENTH'

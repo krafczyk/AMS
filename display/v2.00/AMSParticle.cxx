@@ -75,10 +75,11 @@ void AMSParticle::Paint(Option_t *option)
 //_____________________________________________________________________________
 char * AMSParticle::GetObjectInfo(Int_t px, Int_t py)
 {
-   static char info[80];
+   static char info[255];
    info[0]='\0';
-   sprintf(info,"Track #%d (GID=%d): m=%4.1f+-%4.2g, p=%4.1f+-%4.2g",
-		 m_PTrack, m_GeantID, m_Mass, m_ErrMass, m_Momentum, m_ErrMomentum);
+   sprintf(info,"GID=%d  m=%4.1f+-%4.2g, p=%4.1f+-%4.2g, pat=%d, status=%x, beta=%4.2f+-%4.2g, betapat=%d, charge=%4.1f",
+		 m_GeantID, m_Mass, m_ErrMass, m_Momentum, m_ErrMomentum,
+                 m_pattern,m_trstatus,m_beta,m_errbeta,m_betapattern,m_Charge);
 
    return info;
 

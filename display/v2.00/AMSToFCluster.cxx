@@ -38,7 +38,7 @@ AMSToFCluster::AMSToFCluster(Int_t status, Int_t plane, Int_t bar,
    m_Tracks     = tracks;
 
    SetDirection(0.0, 0.0);
-   SetLineWidth(1);
+   SetLineWidth(3);
    SetLineColor(3);             // light green
    SetFillColor(3);
    SetFillStyle(1001);          // solid filling (not working now....)

@@ -27,7 +27,7 @@ AMSAntiCluster::AMSAntiCluster(Int_t status, Int_t sector,
    m_Tracks     = tracks;
 
    SetDirection(0.0, 0.0);
-   SetLineWidth(1);
+   SetLineWidth(3);
    SetLineColor(6);             // light blue
    SetFillColor(6);
    SetFillStyle(1001);          // solid filling (not working now....)

@@ -336,26 +336,23 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
 void AMSOnDisplay::DrawRunInfo(Option_t *option)
 {
 
-   const int kTMAX = 160;
    static TText * text=0;
-   static TText * text1=0;
-   static char atext[kTMAX];
+   static char atext[255]="Alpha";
 
    TVirtualPad * gPadSave = gPad;
    m_ObjInfoPad->cd();
-
-   sprintf(atext,"                                               Run %d          %s",m_ntuple->GetRun(),m_ntuple->GetTime());
-   for (Int_t i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
-   atext[kTMAX-1] = 0;
+   m_ObjInfoPad->Clear();
+   atext[0]=0;
+   sprintf(atext,"Run %d     %s",m_ntuple->GetRun(),m_ntuple->GetTime());
 
    if (! text) {
-	text = new TText(0.04, 0.38, atext);
+	text = new TText(0.5, 0.38, atext);
    }
    else
-	text->SetText(0.04, 0.38,atext);
+	text->SetText(0.5, 0.38,atext);
 
    text->SetTextFont(7);
-   text->SetTextAlign(12);
+   text->SetTextAlign(22);
    text->SetTextSize(0.6);
    text->Draw();
 

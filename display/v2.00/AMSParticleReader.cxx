@@ -45,6 +45,11 @@ static struct {
    Float_t         betactc[maxpart][2];
    Float_t         errorbetactc[maxpart][2];
    Float_t         cooctc[maxpart][2][3];
+   Float_t         beta[maxpart];
+   Float_t         errbeta[maxpart];
+   Int_t           pattern[maxpart];
+   Int_t           betapattern[maxpart];
+   Int_t           trstatus[maxpart];
 } _ntuple;
 
 
@@ -135,6 +140,11 @@ void AMSParticleReader::Init(TTree * h1)
      h1->SetBranchAddress("betactc",       _ntuple.betactc);
      h1->SetBranchAddress("errorbetactc",  _ntuple.errorbetactc);
 //   h1->SetBranchAddress("cooctc",        _ntuple.cooctc);
+     h1->SetBranchAddress("beta",       _ntuple.beta);
+     h1->SetBranchAddress("betaerror",       _ntuple.errbeta);
+     h1->SetBranchAddress("betapattern",       _ntuple.betapattern);
+     h1->SetBranchAddress("pattern",       _ntuple.pattern);
+     h1->SetBranchAddress("trstatus",       _ntuple.trstatus);
 
      debugger.Print("AMSParticleReader::Init(): branch address set\n");
    }
@@ -181,6 +191,11 @@ void AMSParticleReader::Make()
       t->m_Charge           = _ntuple.pcharge[k];
       t->m_Theta            = _ntuple.ptheta[k];
       t->m_Phi              = _ntuple.pphi[k];
+      t->m_beta             = _ntuple.beta[t->m_PBeta-1];
+      t->m_errbeta          = _ntuple.errbeta[t->m_PBeta-1];
+      t->m_pattern          = _ntuple.pattern[t->m_PTrack-1];
+      t->m_betapattern      = _ntuple.betapattern[t->m_PBeta-1];
+      t->m_trstatus         = _ntuple.trstatus[t->m_PTrack-1];
       for (i=0; i<3; i++)
           t->m_Position[i]  = _ntuple.pcoo[k][i];
 

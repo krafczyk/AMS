@@ -59,6 +59,7 @@ private:
 //   Bool_t            m_DrawTwoViews;         //Flag True if TwoViews selected
    Bool_t            m_DrawParticles;        //Flag True if particles to be drawn
    Bool_t            m_DrawGeometry;         //Draw geometry?
+   Bool_t            m_DrawMoreGeometry;         //Draw geometry?
    TGeometry        *m_Geometry;	     //Pointer to the geometry
    AMSGeometrySetter *m_GeoSetter;	     //Pointer to the geometry setter
 // AMSKeyNode       *m_KeyNode;		     //Pointer to selected geom nodes
