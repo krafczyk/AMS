@@ -97,7 +97,7 @@ float double_float(double *a) {
 
 int main(int argc, char *argv[]) {
 
-double Coo_M1950[3], Vel_M1950[3], q[4], Greenw_Phi, Vel_angle;
+double Coo_M1950[3], Vel_M1950[3], q[4], Greenw_Phi, Vel_angle, times;
 polar Geo,Solar;
 Euler Euler_LVLH;
 FILE *fp, *ftemp, *fout, *fl;
@@ -196,11 +196,9 @@ NEW_FILES: /* look for new files in the directory */
       q[2]=CASvalue((3319),8);
       q[3]=CASvalue((3333),8);
 
-	/*	times = CAStime(10);   time, millisec, from the New Year 
-	utime = (time_t) (times) + Year1998;*/
+	times = CAStime(10);   
+	utime = (time_t) (times) + Year1997;
 
-      utime ++; 
-      
       if ((Radius(Coo_M1950)<=.1) || (Radius(Vel_M1950)<=.1))
 	goto BEG;
 
