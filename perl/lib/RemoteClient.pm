@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.289 2005/02/04 14:22:56 choutko Exp $
+# $Id: RemoteClient.pm,v 1.290 2005/02/04 14:47:38 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -93,6 +93,20 @@ use File::Find;
 
 @RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
 
+# debugging
+my $t0Init = 0;
+my $tsInit = 0;
+my $teInit = 0;
+my $tdInit = 0;
+my $td0    = 0;
+my $td1    = 0;
+my $td2    = 0;
+my $td3    = 0;
+my $td4    = 0;
+my $tfInit = 0;
+#
+
+
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
                              # expects Web like output
@@ -180,6 +194,7 @@ my     $MAX_RUN_POWER   = 26; #
 my     $MIN_DISK_SPACE  = 10; # if available disk space <  MIN_DISK_SPACE 
                               # do not use disk to store DSTs
 #
+
 sub new{
     my $type=shift;
 my %fields=(
@@ -271,6 +286,8 @@ sub Init{
 #
     my $sql  = undef;
     my $ret  = undef;
+  
+    $t0Init = time();
 
 #just temporary skeleton to check basic princ
 #should be replaced by real db servers
@@ -399,6 +416,8 @@ my %mv=(
 #sqlserver
     $self->{sqlserver}=new DBSQLServer();
     $self->{sqlserver}->Connect();
+    $tsInit = time();
+
 #
    $sql = "SELECT myvalue from Environment where mykey='HTTPserver'";
    $ret=$self->{sqlserver}->Query($sql);
@@ -539,15 +558,18 @@ my %mv=(
      $self->{$key}="$self->{AMSSoftwareDir}/prod";
     }
     $ENV{$key}=$self->{$key};
+    $teInit = time();
 
 #datasets
 {
+    $td0 = time();
         my $totalcpu=0;
         my $restcpu=0;
      $dir="$self->{AMSSoftwareDir}/DataSets";
      opendir THISDIR ,$dir or die "unable to open $dir";
      my @allfiles= readdir THISDIR;
      closedir THISDIR;    
+    $td1 = time();
     foreach my $file (@allfiles){
        my $newfile="$dir/$file";
        if($file =~/^\.Trial/){
@@ -559,7 +581,8 @@ my %mv=(
            $self->{TrialRun}=$buf;          
            last;
        }
-    }
+   }
+    $td2 = time();
     foreach my $file (@allfiles){
         my $newfile="$dir/$file";
         if(readlink $newfile or  $file =~/^\./){
@@ -589,6 +612,7 @@ my %mv=(
            open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
            read(FILE,$buf,1638400) or next;
            close FILE;
+    $td3 = time();
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
            my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
@@ -602,6 +626,7 @@ my %mv=(
                }
             }         
         }
+    $td4 = time();
         if(defined $self->{TrialRun}){
             $template->{TOTALEVENTS}*=$self->{TrialRun};
         }
@@ -612,6 +637,9 @@ my %mv=(
                $template->{initok}=undef;
              }
            }
+
+    $tdInit = time();
+
 #
 # get no of events
 #
@@ -812,6 +840,7 @@ foreach my $file (@allfiles){
         $self->{IORP}=undef;
       }
   }
+ $tfInit = time();
  if( not defined $self->{IOR}){
   return $self->{ok};
  } 
@@ -1790,6 +1819,8 @@ sub ConnectDB{
 
 sub Connect{
 
+    my $t0 = time();
+
     my $self = shift;
     if( not $self->Init()){
         return 0;
@@ -1798,6 +1829,7 @@ sub Connect{
         $self->{ok}=1;
     }
  ; 
+    my $ti = time();
 
 #
  my    $insertjobsql = undef;
@@ -1805,11 +1837,12 @@ sub Connect{
 #
 #understand parameters
 
-        $self->{read}=0;
+    $self->{read}=0;
     my $q=$self->{q};
     my $sql=>undef;
     my $color;
     my $cite = 'Any';
+
 # db query
     if ($self->{q}->param("getJobID")) {
      $self->{read}=1;
@@ -2855,7 +2888,8 @@ CheckCite:            if (defined $q->param("QCite")) {
             my $cite = $ret->[0][0];
             htmlTop();
             if ($resp == 1) {
-             print "<TR><B><font color=green size= 5> Select Template or Production DataSet: </font>";
+             print "<TR><B><font color=green size= 5> Select Template or Production DataSet: $t0/$ti</font>";
+             print "<TR><B><font color=green size= 3> ($t0Init/$tsInit/$teInit - ($td0,$td1,$td2,$td3,$td4)-$tdInit/$tfInit)</font>";
             } else { 
              print "<TR><B><font color=green size= 5> Select Template : </font>";
             }
@@ -2909,7 +2943,8 @@ CheckCite:            if (defined $q->param("QCite")) {
 
             print "<TR><TD><font color=\"green\" size=\"3\"> Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
             print "<br>\n";
-            print "<TR><TD><font color=\"tomato\" size=\"3\"> Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed</font></TD></TR>\n";
+            my $te = time();
+            print "<TR><TD><font color=\"tomato\" size=\"3\"> Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed ($te)</font></TD></TR>\n";
           
           print "<p>\n";
           print "<br>\n";
