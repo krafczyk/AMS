@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.168 2003/04/01 11:07:07 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.169 2003/04/01 11:45:18 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2021,8 +2021,7 @@ AMSgvolume * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
 int i;
-// changed by VC 11-nov-2002  (removed trd hc (i==0))
-for ( i=1;i<TRDDBc::PrimaryOctagonNo();i++){
+for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
  ost.seekp(0);  
  ost << "TRD"<<i<<ends;
  TRDDBc::GetOctagon(i,status,coo,nrm,rgid);

@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.37 2003/04/01 10:49:00 kscholbe Exp $
+//  $Id: trddbc.C,v 1.38 2003/04/01 11:45:18 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -446,11 +446,11 @@ void TRDDBc::init(){
 
    // Bottom edge
       OctagonDimensions(0,5)=2052./20.;         // rmin
-      OctagonDimensions(0,6)=2220./20.;  // rmax
+      OctagonDimensions(0,6)=2210./20.;  // rmax
 
    // Top edge
       OctagonDimensions(0,8)=2052./20;         // rmin
-      OctagonDimensions(0,9)=2220./20.;  // rmax
+      OctagonDimensions(0,9)=2210./20.;  // rmax
 
 // Main octagon
 
