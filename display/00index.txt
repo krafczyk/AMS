@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.16 2004/01/22 17:56:12 choutko Exp $
+#  $Id: 00index.txt,v 1.17 2004/02/22 15:27:15 choutko Exp $
 =========================================================================
 
      Introduction  to  AMS    Event  Display  Based  on  ROOT
@@ -49,7 +49,7 @@ of AMS event display into it.
         setenv AMSICC 1   will invoke icc compiler
         unsetenv AMSICC   will invoke g++ compiler
         setenv RH9        if your system is linux9   (need ctype.o vc hacked)
-                                   
+         br.bat           if you want to build amsed for native win32 (ms vc++)                                   
 -------------------------------------------------------------------------
 3. Running the program
 ----------------------

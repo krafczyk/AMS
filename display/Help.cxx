@@ -1,11 +1,11 @@
-//  $Id: Help.cxx,v 1.1 2003/07/18 14:49:28 choutko Exp $
+//  $Id: Help.cxx,v 1.2 2004/02/22 15:27:16 choutko Exp $
 #include "Help.h"
 #include <TGTextView.h>
 #include <TGLabel.h>
 #include <TGTextEntry.h>
 #include <TGButton.h>
 #include <stdlib.h>
-#include <iostream.h>
+#include <iostream>
 
 //_____________________________________________________________________________
 

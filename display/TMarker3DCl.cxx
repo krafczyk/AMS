@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl.cxx,v 1.5 2003/09/26 11:06:53 choutko Exp $
+//  $Id: TMarker3DCl.cxx,v 1.6 2004/02/22 15:27:16 choutko Exp $
 
 #include "Riostream.h"
 #include "TROOT.h"
@@ -160,7 +160,7 @@ Int_t TMarker3DCl::DistancetoPrimitive(Int_t px, Int_t py){
    Int_t   xd[numPoints],	// device coordinate
            yd[numPoints];
 
-   for (i = 0; i < numPoints; i++) {
+   for (int i = 0; i < numPoints; i++) {
       view->WCtoNDC(&points[3*i], &xn[3*i]);
       xd[i] = gPad->XtoAbsPixel(xn[3*i]);
       yd[i] = gPad->YtoAbsPixel(xn[3*i+1]);

@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.14 2003/09/26 11:06:52 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.15 2004/02/22 15:27:16 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -355,7 +355,7 @@ if(type==kall || type==kusedonly || type==krichrings){
  fRichRingV.clear();
  if(gAMSDisplay->DrawObject(krichrings)){
   for(int i=0;i<NRichRing();i++){
-   if( (!gAMSDisplay->DrawUsedOnly() || (pRichRing(i)->Status)/32)%2){
+   if( (!gAMSDisplay->DrawUsedOnly() || ((pRichRing(i)->Status)/32)%2)){
     fRichRingV.push_back( RichRingV(this,i,false));
     if(gAMSDisplay->DrawRichRingsFromPlex())fRichRingV.push_back( RichRingV(this,i,true));
    }

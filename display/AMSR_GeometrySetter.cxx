@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.6 2003/07/25 14:54:01 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.7 2004/02/22 15:27:16 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -10,7 +10,7 @@
 
 #include <TNode.h>
 #include <TDialogCanvas.h>
-#include <iostream.h>
+#include <iostream>
 #include "AMSR_GeometrySetter.h"
 #include "TList.h"
 #include "TCONE.h"

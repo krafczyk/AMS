@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.25 2004/02/11 13:24:59 choutko Exp $
+//  $Id: main.cxx,v 1.26 2004/02/22 15:27:17 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -7,22 +7,26 @@
 #include <TCanvas.h>
 #include <TGeometry.h>
 #include "AMSDisplay.h"
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
+#ifndef WIN32
 #include <unistd.h> 
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <dirent.h>
+#endif
+#include <TRFIOFile.h>
 #include <stdlib.h>
 #include <signal.h>
 #include "AMSNtupleV.h"
 #include "main.h"
-#include <dirent.h>
 #include <TString.h>
-#include <TRFIOFile.h>
 TString * Selector;
 extern void * gAMSUserFunction;
 void OpenChain(TChain & chain, char * filename);
+#ifndef WIN32
 static int Selectsdir( const dirent * entry=0);
+#endif
 void Myapp::HandleIdleTimer(){
   
   if(fDisplay){
@@ -36,23 +40,23 @@ void Myapp::HandleIdleTimer(){
 }
 
 void (handler)(int);
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
+
 // First create application environment. If you replace TApplication
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
+#ifndef WIN32
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGINT, handler);
      *signal(SIGQUIT, handler);
-
+#endif
   char * filename = 0;		// default file name
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
   }
-
   AMSNtupleV *pntuple=0;
   TChain chain("AMSRoot");
   if(filename){
@@ -62,11 +66,15 @@ int main(int argc, char *argv[])
   printf("opening file %s...\n", filename);
   int err=0;
   int argcc=1;
+#ifdef WIN32
+    Myapp *theApp = new Myapp("App", &argcc, argv);
+#else
   gVirtualX=new TGX11("X11","Root Interface to X11");
   gGuiFactory=new TRootGuiFactory();
   Myapp *theApp = new Myapp("App", &argcc, argv);
-//  gDebug=6; 
   theApp->SetStatic();
+#endif
+//  gDebug=6; 
 
 
 
@@ -82,7 +90,7 @@ int main(int argc, char *argv[])
   char geoFile[256];
   strcpy(geoFile,geo_dir);
 
-  char *geoFile_new = "/../ams02.root";
+  char *geoFile_new = "ams02.root";
   strcat(geoFile,geoFile_new);
   TFile fgeo(geoFile);
 
@@ -112,6 +120,7 @@ int main(int argc, char *argv[])
 
 
 void (handler)(int sig){
+#ifndef WIN32
   switch(sig){
   case  SIGFPE:
    cerr <<" FPE intercepted"<<endl;
@@ -132,6 +141,7 @@ void (handler)(int sig){
    cerr <<" Process resumed"<<endl;
    break;
   }
+#endif
 }
 
 
@@ -152,7 +162,9 @@ void OpenChain(TChain & chain, char * filenam){
    TRegexp f("^/castor",false);
    bool wildsubdir=false;
    if(a.Contains(b)){
+#ifndef WIN32
     TRFIOFile f("");
+#endif
     strcpy(filename,filenam);
    }
    else if(a.Contains(c)){
@@ -169,11 +181,15 @@ void OpenChain(TChain & chain, char * filenam){
     strcat(filename,filenam);
    }
    else{ 
+#ifndef WIN32
     if(filenam[0]!='/'){
-    strcpy(filename,"./");
-    strcat(filename,filenam);
-   }
-   else strcpy(filename,filenam);
+     strcpy(filename,"./");
+     strcat(filename,filenam);
+    }
+   else strcpy(filename,filenam); 
+#else
+   strcpy(filename,filenam); 
+#endif
    bool go=false;
    for(int i=strlen(filename)-1;i>=0;i--){
      if(filename[i]=='/')go=true;
@@ -183,6 +199,7 @@ void OpenChain(TChain & chain, char * filenam){
      }
    }
    }
+#ifndef WIN32
    if(wildsubdir){
     for(int i=0;i<strlen(filename);i++){
      if (filename[i]=='*'){
@@ -213,12 +230,13 @@ void OpenChain(TChain & chain, char * filenam){
            }
         }
       }
+#endif
     chain.Add(filename);
 }
 
 
 
-
+#ifndef WIN32
 int Selectsdir(const dirent *entry){
 if(Selector){
  TString a(entry->d_name);
@@ -227,3 +245,4 @@ if(Selector){
 }
 else return entry->d_name[0]!='.';
 }
+#endif

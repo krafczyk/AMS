@@ -1,12 +1,12 @@
-//  $Id: TGRunEventDialog.cxx,v 1.1 2003/07/08 16:21:30 choutko Exp $
+//  $Id: TGRunEventDialog.cxx,v 1.2 2004/02/22 15:27:16 choutko Exp $
 #include "TGRunEventDialog.h"
 #include <TGTextView.h>
 #include <TGLabel.h>
 #include <TGTextEntry.h>
 #include <TGButton.h>
 #include <stdlib.h>
-#include <iostream.h>
-
+#include <iostream>
+using namespace std;
 enum {
    kIDF_OK,
    kIDF_CLEAR,
@@ -30,7 +30,7 @@ TGRunEventDialog::TGRunEventDialog(const TGWindow *p, const TGWindow *main,
    //
    fLmain  = new TGLayoutHints( kLHintsTop | kLHintsExpandX, 4, 4, 5, 5);
 
-   fText   = new TGTextView(this, 10, 10, -1,TGView::kNoHSB | TGView::kNoVSB, fgDefaultFrameBackground);
+   fText   = new TGTextView(this, 10, 10, -1,TGView::kNoHSB | TGView::kNoVSB, 0);
    fText->ChangeOptions(0);
    fText->LoadBuffer(fLines);
    fText->Resize(350, 50);

@@ -1,11 +1,16 @@
-//  $Id: main.h,v 1.5 2003/09/26 11:06:53 choutko Exp $
+//  $Id: main.h,v 1.6 2004/02/22 15:27:17 choutko Exp $
 #include <TROOT.h>
 #include <TSystem.h>
 #include <TEnv.h>
 #include <TRootGuiFactory.h>
 #include <TApplication.h>
+#ifdef WIN32
+//#include <TGWin32.h>
+#include <TTF.h>
+#else
 #include <TGX11.h>
 #include <TGX11TTF.h>
+#endif
 #include <THistPainter.h>
 #include <TFitter.h>
 #include <TUtilHist.h>
@@ -13,14 +18,15 @@ class Myapp : public TApplication{
 protected:
 AMSDisplay * fDisplay;
  private:
- THistPainter a;
- TUtilHist aa;
- TFitter b;
+// THistPainter a;
+// TUtilHist aa;
+// TFitter b;
 public:
  void HandleIdleTimer();
  Myapp(const char *appClassName,int *argc, char **argv):TApplication(appClassName,argc, argv),fDisplay(0){
 }
  void SetStatic(){
+#ifndef WIN32
        const char *ttpath = gEnv->GetValue("Root.TTFontPath","$(HOME)/ttf/fonts");
    if(ttpath && !getenv("OffmonNoTTF")){
     char file[512];
@@ -34,9 +40,9 @@ public:
    else{
      cerr<<"Myapp-ctor-W-TrueTypeFontsWillNotBeUsed"<<endl;
    }
-
-    TVirtualFitter::SetFitter(&b);
-     gROOT->GetListOfTypes(true);
+#endif
+//    TVirtualFitter::SetFitter(&b);
+//     gROOT->GetListOfTypes(true);
   }
  void SetDisplay(AMSDisplay* d){fDisplay=d;} 
 };

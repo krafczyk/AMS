@@ -1,11 +1,11 @@
-//  $Id: AMSDisplay.cxx,v 1.35 2003/12/18 12:21:53 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.36 2004/02/22 15:27:16 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-#include <iostream.h>
+#include <iostream>
 #include <TROOT.h>
 #include <TRootCanvas.h>
 #include <TButton.h>
@@ -27,7 +27,12 @@
 #include "AMSR_GeometrySetter.h"
 #include "TGRunEventDialog.h"
 #include "TLatex.h"
+#ifndef WIN32
 #include <dlfcn.h>
+#else
+#include <windows.h>
+#endif
+
 #include "AMSNtupleV.h"
 #include "TAxis3D.h"
 #include "Help.h"
@@ -517,7 +522,7 @@ void AMSDisplay::ExecuteEvent(Int_t event, Int_t px, Int_t py){
            return;
          }
        }
-       gPad->GetView()->ExecuteRotateView(event, px, py);
+      gPad->GetView()->ExecuteRotateView(event, px, py);
       if (event == kButton1Up) {
         for(int i=0;i<4;i++){
          if(m_AxisPadP[i]==gPad){
@@ -640,8 +645,11 @@ void AMSDisplay::SaveParticleGIF(){
 
 
 void AMSDisplay::PrintCB(){
-
+#ifndef WIN32
    pid_t pid = getpid();
+#else
+   int pid=0;
+#endif
    char filename[80];
    sprintf(filename, "/tmp/AMSDisplay.%u.ps",pid);
    GetCanvas()->SaveAs(filename);
@@ -656,6 +664,7 @@ void AMSDisplay::PrintCB(){
 
 
 int  AMSDisplay::ReLoad(){
+#ifndef WIN32
         static void *handle=0;
         char *CC=getenv("CC");
         if(!CC){
@@ -678,6 +687,35 @@ int  AMSDisplay::ReLoad(){
             
         }
         }
+#else
+       static HINSTANCE handle=0;
+       typedef AMSNtupleHelper * (*MYPROC)(VOID);
+       if(handle){
+         FreeLibrary(handle);
+         handle=0;
+       }
+      int i=system("cl.exe -c AMSNtupleSelect.C -I%ROOTSYS%\\include  /EHsc /TP");
+      if(!i){
+       i=system("cl.exe AMSNtupleSelect.obj -o libuser.so /LD /link -nologo -export:gethelper");
+      if(!i){
+      handle=LoadLibrary(".\\libuser.so");
+       if(!handle){
+          cout <<"  Unable to load lib "<<endl; 
+          return 1;
+       }
+       else {
+        MYPROC pa=(MYPROC)GetProcAddress(handle,"gethelper");
+        if(pa){
+         AMSNtupleHelper::fgHelper= ((pa)()); 
+         cout << " ok "<< ((pa)())<<endl;
+         return 0;
+        }  
+        return 1;
+       }
+       }
+       }
+        
+#endif
         return -1;
 
 }
