@@ -7,6 +7,10 @@
 #include "AMSDisplay.h"
 #include "Debugger.h"
 #include <iostream.h>
+#include <fstream.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+
 extern void InitGui(); // loads the device dependent graphics system
 VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
 int Error; // needed by Motif
@@ -40,11 +44,12 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
   }
 
   printf("opening file %s...\n", filename);
-  FILE * fn=fopen(filename,"r");
-  if(fn){
-   fclose(fn);  
    TFile f(filename);
    TTree * t = (TTree *)f.Get("h1");
+   if(!t){
+    if(argc <=1)cout <<"Please type file name as first parameter"<<endl;
+    return;
+   }
    AMSRoot amsroot("AMS", "AMS Display");
    amsroot.Init(t);
    amsroot.MakeTree("AMSTree", "AMS Display Tree");
@@ -57,17 +62,15 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
    display.GetCanvas()->Update();	// force it to draw
 
 
-  }
-  else {
-   cerr <<"amsed-E-could not open file "<<filename<<endl;
-   if(argc <=1)cout <<"Please type file name as first parameter"<<endl;
-   return;
-  }
+  
 
 
 // Enter event loop
   theApp->Run();
 
   delete theApp;
-  }
+}
 //---------------------------------------
+
+
+
