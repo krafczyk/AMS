@@ -203,8 +203,8 @@ void TriggerLVL3::init(){
         }
       }
       if(nsf==0){
-        cerr <<"Trigger3::Init-F-no sensors found for layer "<<i+1<<endl;
-        exit(1);
+        cerr <<"Trigger3::Init-S-no sensors found for layer "<<i+1<<endl;
+        //exit(1);
       }
       else{
           _TrackerCooZ[i]=_TrackerCooZ[i]/nsf;
@@ -252,8 +252,8 @@ void TriggerLVL3::init(){
               }
           }
           if(nfs==0){
-             cerr <<"Trigger3::Init-F-no sensors found for DRP "<<i+1<<" crate "<<k<<" "<<id.getlayer()<<" "<<id.getdrp()<<endl;
-             exit(1);
+             cerr <<"Trigger3::Init-S-no sensors found for DRP "<<i+1<<" crate "<<k<<" "<<id.getlayer()<<" "<<id.getdrp()<<endl;
+             //exit(1);
           }
           else{
 #ifdef __AMSDEBUG__

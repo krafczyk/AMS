@@ -42,6 +42,7 @@
 #include <ntuple.h>
 #include <user.h>
 #include <tralig.h>
+#include <status.h>
 //+
  integer        ntdvNames;               // number of TDV's types
  char*          tdvNameTab[maxtdv];      // TDV's nomenclature
@@ -1402,13 +1403,14 @@ void AMSJob::_siantiinitjob(){
   }
 //
   AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ANTS",1));
-      #ifdef __AMSDEBUG__
-       assert (pg != NULL);
-      #endif
      number par[5];
+if(pg){
      for(int i=0;i<5;i++)par[i]=pg->getpar(i);
      ANTIMCFFKEY.PMulZPos=par[2];// half-length (in Z)
-
+}
+else{
+cerr<<" AMSJob::_siantiinitjob-E-NoAntiGeomDefined "<<endl;
+}
 }
 
 void AMSJob::_sictcinitjob(){

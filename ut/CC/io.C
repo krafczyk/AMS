@@ -1,6 +1,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
+#include <sys/time.h>
+#include <sys/times.h>
 #include <commons.h>
 #include <amsdbc.h>
 #include <mceventg.h>

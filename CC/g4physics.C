@@ -5,10 +5,11 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.3 1999/11/01 09:53:06 choutko Exp $
+// $Id: g4physics.C,v 1.4 1999/11/10 13:35:56 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
+
 
 #include <g4physics.h>
 #include <cern.h>
@@ -75,7 +76,7 @@ void AMSG4Physics::ConstructProcess()
   AddTransportation();
 
   ConstructEM();
-  ConstructHad();
+  if(GCPHYS.IHADR)ConstructHad();
   ConstructGeneral();
 }
 
@@ -725,13 +726,13 @@ void AMSG4Physics::ConstructAllShortLiveds()
    }
  }
 
- G4int AMSG4Physics::G4toG3(G4String* particle){
-   int found=AMSbins(_pg4tog3,AMSIDs((const char*)(*particle)),_Ng3tog4);
+ G4int AMSG4Physics::G4toG3(const G4String & particle){
+   int found=AMSbins(_pg4tog3,AMSIDs((const char*)(particle)),_Ng3tog4);
    if(found>0){
     return _pg3tog4[found-1].getid();
    }
    else if(GetVerboseLevel()){
-     cerr<<"AMSG4Physics::G4toG3-I-NoG3ParticleFoundFor"<<(const char *)(*particle)<<endl;
+     cerr<<"AMSG4Physics::G4toG3-I-NoG3ParticleFoundFor"<<(const char *)(particle)<<endl;
      return _G3DummyParticle;
    }
 
@@ -775,7 +776,7 @@ for(ipart=0;ipart<1000;ipart++){
 
 
    G4ParticleTable *ppart=G4ParticleTable::GetParticleTable();
-   const G4IonTable *pIonT= ppart->GetIonTable();
+    const G4IonTable *pIonT= ppart->GetIonTable();
     for(ipart=0;ipart<g3part;ipart++){
      double fdelta=1000000;
      G4ParticleDefinition* cand=0;
@@ -806,7 +807,11 @@ for(ipart=0;ipart<1000;ipart++){
 //       cout <<" b "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
      }
      else{
-       pIonT->GetIon(abs(g3charge[ipart]),g3mass[ipart]/.93,0,g3charge[ipart]);       
+       G4int Z=abs(g3charge[ipart]);
+       G4int A=g3mass[ipart]/.93;
+       G4int J=0;
+       G4int Q=g3charge[ipart];
+       G4ParticleDefinition* dummy=((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
        double fdelta=1000000;
        G4ParticleDefinition* cand=0;
        theParticleIterator->reset();

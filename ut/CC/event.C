@@ -44,7 +44,10 @@
 #include <ecaldbc.h>
 #include <ecalrec.h>
 #include <geantnamespace.h>
-
+#include <sys/types.h>
+#include <sys/time.h>
+#include <time.h>
+#include <status.h>
 static geant   Tcpu0 = 0; 
 static time_t  T0    = 0;
 
@@ -837,6 +840,9 @@ void AMSEvent::_reaxinitevent(){
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:Dummy",0),0));
 
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:WriteAll",0),0));
+
 
 
 
@@ -980,6 +986,7 @@ for (int i=0;;){
 }
 //------------------------------------------------------------------
 void AMSEvent::event(){
+     addnext(AMSID("WriteAll",0),new Test());
   // First Selected Events
   if(_SelectedEvents){
     if(_SelectedEvents->Run==0){
@@ -1451,6 +1458,8 @@ void AMSEvent::_resrdevent(){
 void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
 //
+
+
 buildC("AMSBeta");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSBeta::print();
@@ -1464,6 +1473,9 @@ buildC("AMSParticle");
 if(AMSEvent::debug)AMSParticle::print();
 #endif
 //
+
+
+
 AMSgObj::BookTimer.stop("REAXEVENT");
 }
 

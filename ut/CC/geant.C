@@ -59,6 +59,7 @@
 #include <trrec.h>
 #include <daqevt.h>
 #include <iostream.h>
+#include <status.h>
 #include <geantnamespace.h>
 #ifdef __DB__
 #include <db_comm.h>
@@ -115,6 +116,7 @@ LMS*                   lms;
 
 
 void gams::UGINIT(){
+ cout.sync_with_stdio();   
   GINIT();
   new AMSJob();
   AMSJob::gethead()->data();

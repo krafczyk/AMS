@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: G4PropagatorInField.cc,v 1.1 1999/11/01 09:53:02 choutko Exp $
+// $Id: G4PropagatorInField.cc,v 1.2 1999/11/10 13:35:54 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -97,7 +97,7 @@ G4PropagatorInField::
    G4ThreeVector StartPointA, VelocityUnit;
    StartPointA = pFieldTrack.GetPosition();
    VelocityUnit= pFieldTrack.GetMomentumDir();
-   kJopa= 1.e1 *  ( 10.0 * cm + 
+   kJopa= 1.e0 *  ( 10.0 * cm + 
 		  fNavigator->GetWorldVolume()->GetLogicalVolume()->
                   GetSolid()->DistanceToOut(StartPointA, VelocityUnit) ) ;
     CurrentProposedStepLength=kJopa;

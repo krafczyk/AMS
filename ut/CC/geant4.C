@@ -1,8 +1,10 @@
-#include <geant4.h>
 #include <job.h>
 #include <event.h>
-#include <daqevt.h>
 #include <trrec.h>
+#include <mccluster.h>
+#include <daqevt.h>
+#include <mceventg.h>
+#include <geant4.h>
 #include <g4physics.h>
 #include "G4FieldManager.hh"
 #include "G4ChordFinder.hh"
@@ -18,7 +20,7 @@
 #include "G4ThreeVector.hh"
 #include "G4Event.hh"
 #include "G4PVPlacement.hh"
- extern "C" void getfield_(geant& );
+ extern "C" void getfield_(geant& a);
 
 void g4ams::G4INIT(){
  
@@ -26,13 +28,10 @@ G4RunManager * pmgr = new G4RunManager();
 
 
 
-// Initialize GEANT3
-
-    TIMEL(GCTIME.TIMINT);
 
 //   Detector
 
-    pmgr->SetUserInitialization(new AMSG4DetectorInterface(AMSJob::gethead()->getgeom()->getg4pv())); 
+    pmgr->SetUserInitialization(new AMSG4DetectorInterface(AMSJob::gethead()->getgeom()->pg4v())); 
    AMSG4Physics * pph = new AMSG4Physics();
 //   AMSJob::gethead()->addup(pph);
     AMSJob::gethead()->getg4physics()=pph;
@@ -46,18 +45,21 @@ G4RunManager * pmgr = new G4RunManager();
 
 
      AMSG4GeneratorInterface* ppg=new AMSG4GeneratorInterface(CCFFKEY.npat);
-//     AMSJob::gethead()->addup(ppg);
-    AMSJob::gethead()->getg4generator()=ppg;
+     AMSJob::gethead()->getg4generator()=ppg;
      pmgr->SetUserAction(ppg);
-//    pmgr->SetUserAction(new AMSG4RunAction);
      pmgr->SetUserAction(new AMSG4EventAction);
-//    pmgr->SetUserAction(new AMSG4SteppingAction);
+     pmgr->SetUserAction(new AMSG4SteppingAction);
+//    pmgr->SetUserAction(new AMSG4RunAction);
 
 
 
 
 }
 void g4ams::G4RUN(){
+// Initialize GEANT3
+
+    TIMEL(GCTIME.TIMINT);
+
  G4RunManager::GetRunManager()->BeamOn(GCFLAG.NEVENT);
 }
 
@@ -70,25 +72,26 @@ delete  G4RunManager::GetRunManager();
 
 void AMSG4MagneticField::GetFieldValue(const double x[3], double *B) const{
  int i;
- geant _v[3],_b[3];
- for(i=0;i<2;i++)_v[i]=x[i]/cm;
- GUFLD(_v,_b);
- for(i=0;i<2;i++)B[i]=_b[i]*kilogauss;
-
-
-// Geant4 doesn't work well with non-uniform field at the moment
-if(G4FFKEY.UniformMagField){
   static integer init=0;
-  geant bb;
-  if(!init++){
+  static geant bb=0;
+if(G4FFKEY.UniformMagField){
+  if(!init){
+    init++;
     getfield_(bb);
   }
-  for(i=0;i<2;i++)B[i]=0;
+  for(i=0;i<2;i++)*(B+i)=0;
   if(fabs(x[2])<40*cm){
-   B[0]=bb*tesla;
+   *B=bb*tesla;
   } 
 }
-//cout <<x[0]<<" "<<x[1]<<" "<<x[2]<<" "<<B[0]<<endl;
+else{
+   geant _v[3],_b[3];
+ for(i=0;i<2;i++)_v[i]=x[i]/cm;
+ GUFLD(_v,_b);
+ for(i=0;i<2;i++)*(B+i)=_b[i]*kilogauss;
+
+}
+//if(B[0])cout <<x[0]<<" "<<x[1]<<" "<<x[2]<<" "<<B[0]<<endl;
 }
 
 
@@ -328,16 +331,15 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 
 //Mag Field
     static AMSG4MagneticField * pf=0;
+     G4FieldManager*  fieldMgr =G4TransportationManager::GetTransportationManager()->GetFieldManager();
     if(!pf){
      AMSG4MagneticField * pf = new AMSG4MagneticField();
-     G4FieldManager* fieldMgr=
-       G4TransportationManager::GetTransportationManager()->GetFieldManager();
      fieldMgr->SetDetectorField(pf);
      G4double delta =G4FFKEY.Delta*cm;
      if(G4FFKEY.BFOrder){
       G4ChordFinder *pchord;
       G4Mag_EqRhs* fEquation = new G4Mag_UsualEqRhs(pf);
-      const G4double stepMinimum = 0.1e-2 * mm;
+      const G4double stepMinimum = 0.01e-2 * mm;
       if(G4FFKEY.BFOrder ==3){
         pchord=new G4ChordFinder(pf,stepMinimum,new G4SimpleHeum(fEquation));
       }
@@ -371,11 +373,264 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       new G4LogicalVolume(new G4Box("Box",AMSDBc::ams_size[0]/2*cm,AMSDBc::ams_size[1]/2*cm,AMSDBc::ams_size[2]/2*cm),
       new G4Material("Vacuum",1,g/mole,kfac*universe_mean_density,kStateGas,0.1*kelvin,1.e-19*pascal*kfac),"Vacuum_log",0,0,0);
   _pv=new G4PVPlacement(0,G4ThreeVector(),"AMS",
-                        dummyl,0,false,0);
+                        dummyl,0,false,1);
 
  }
+  _pv->GetLogicalVolume()->SetFieldManager(fieldMgr,true);
  return _pv;
 
 
 
+}
+
+AMSG4RotationMatrix::AMSG4RotationMatrix(number nrm[3][3]):G4RotationMatrix(nrm[0][0],nrm[0][1],nrm[0][2],nrm[1][0],nrm[1][1],nrm[1][2],nrm[2][0],nrm[2][1],nrm[2][2]){
+#ifdef __AMSDEBUG__
+ for (int i=0;i<3;i++){
+  double norm=0;
+  for(int j=0;j<3;j++){
+   norm+=nrm[j][i]*nrm[j][i];
+  }
+  if(fabs(norm-1)>1.e-6){
+   cerr <<"AMSG4RotationMatrix::AMSG4RotationMatrix-E-MatrixNotNormalized "<<i<<" "<<norm<<" "<<nrm[0][i]<<" "<<nrm[1][i]<<" "<<nrm[2][i]<<" "<<endl;
+   exit(1);
+  }
+ }
+#endif
+
+}
+
+void AMSG4RotationMatrix::Test(){
+ 
+   AMSPoint xp,yp,zp;
+   float d;
+   number nrm[3][3];
+// Test against possible CLHEP changes in the future
+   for (int i=0;i<10;i++){
+    int j,k;
+    for(j=0;j<3;j++){
+      xp[j]=RNDM(d);
+      yp[j]=RNDM(d);
+      zp[j]=RNDM(d);
+    }
+    AMSDir x(xp);
+    AMSDir y(yp);
+    AMSDir z(zp);
+     for(j=0;j<3;j++){
+        nrm[j][0]=x[j];
+        nrm[j][1]=y[j];
+        nrm[j][2]=z[j];
+     }
+     AMSG4RotationMatrix mtest(nrm);
+     geant r[3],sph,cth,cph,sth,theta[3],phi[3];
+     integer rt=0;
+     for (j=0;j<3;j++){
+      for (k=0;k<3;k++) r[k]=nrm[k][j];
+       GFANG(r, cth,  sth, cph, sph,  rt);
+       theta[j]=atan2((double)sth,(double)cth);
+       phi[j]=atan2((double)sph,(double)cph);
+      }
+     geant t1[3],p1[3];
+     p1[0]=mtest.phiX(); 
+     p1[1]=mtest.phiY(); 
+     p1[2]=mtest.phiZ(); 
+     t1[0]=mtest.thetaX(); 
+     t1[1]=mtest.thetaY(); 
+     t1[2]=mtest.thetaZ(); 
+     AMSPoint P1(p1); 
+     AMSPoint T1(t1); 
+     AMSPoint Phi(phi); 
+     AMSPoint Theta(theta); 
+     if(P1.dist(Phi)>1.e-6 ||  T1.dist(Theta)>1.e-6){
+      cerr<<"AMSG4RotationMatrix::Test-F-TestFailed at "<<i<<" "<<
+      P1<< " " <<Phi <<" "<<T1<< " "<<Theta<<" "<<P1.dist(Phi)<<" "<<T1.dist(Theta)<<endl;
+      exit(1);
+     }
+   }
+#ifdef __AMSDEBUG__
+     cout <<"AMSG4RotationMatrix::Test-I-TestPassed "<<endl;
+#endif
+   
+
+}
+
+
+AMSG4DummySD* AMSG4DummySD::_pSD=0;
+integer AMSG4DummySDI::_Count=0;
+
+AMSG4DummySDI::AMSG4DummySDI(){
+if(!_Count++){
+ AMSG4DummySD::pSD()=new AMSG4DummySD();
+}
+}
+
+AMSG4DummySDI::~AMSG4DummySDI(){
+ if(--_Count==0){
+  delete AMSG4DummySD::pSD();
+ }
+}
+#include "G4SteppingManager.hh"
+#include "G4Track.hh"
+#include "G4Step.hh"
+#include "G4StepPoint.hh"
+#include "G4TrackStatus.hh"
+#include "G4VPhysicalVolume.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4ParticleTypes.hh"
+
+void AMSG4SteppingAction::UserSteppingAction(const G4Step * Step){
+
+
+// just do as in example N04
+// don't really understand the stuff
+
+/* 
+    Some stuff about step
+G4StepPoint* GetPreStepPoint() const
+void SetPreStepPoint(G4StepPoint* value)
+G4StepPoint* GetPostStepPoint() const
+void SetPostStepPoint(G4StepPoint* value)
+G4double GetStepLength() const
+void SetStepLength(G4double value)
+G4Track* GetTrack() const
+void SetTrack(G4Track* value)
+G4ThreeVector GetDeltaPosition() const
+G4double GetDeltaTime() const
+G4ThreeVector GetDeltaMomentum() const
+G4double GetDeltaEnergy() const
+G4double GetTotalEnergyDeposit() const
+void SetTotalEnergyDeposit(G4double value)
+void AddTotalEnergyDeposit(G4double value)
+void ResetTotalEnergyDeposit()
+G4SteppingControl GetControlFlag() const
+void SetControlFlag(G4SteppingControl StepControlFlag)
+
+*/
+ 
+
+     // Checking if Volume is sensitive one 
+    G4StepPoint * PostPoint = Step->GetPostStepPoint();
+    G4VPhysicalVolume * PostPV = PostPoint->GetPhysicalVolume();
+    if(PostPV){
+      cout << "Stepping  "<<" "<<PostPV->GetName()<<endl;
+    GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0;
+    GCTRAK.destep=Step->GetTotalEnergyDeposit()*GeV;
+    if(GCTMED.isvol){
+      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<endl;
+     // gothering some info and put it into geant3 commons
+
+     G4StepPoint * PrePoint = Step->GetPreStepPoint();
+     G4VPhysicalVolume * PrePV = PrePoint->GetPhysicalVolume();
+     GCTRAK.inwvol= PostPV != PrePV;
+     GCTRAK.step=Step->GetStepLength()*cm;
+     GCTRAK.vect[0]=PostPoint->GetPosition().x()*cm; 
+     GCTRAK.vect[1]=PostPoint->GetPosition().y()*cm; 
+     GCTRAK.vect[2]=PostPoint->GetPosition().z()*cm; 
+     GCTRAK.vect[3]=PostPoint->GetMomentumDirection().x(); 
+     GCTRAK.vect[4]=PostPoint->GetMomentumDirection().y(); 
+     GCTRAK.vect[5]=PostPoint->GetMomentumDirection().z(); 
+     GCTRAK.getot=PostPoint->GetTotalEnergy()*GeV;
+     GCTRAK.gekin=PostPoint->GetKineticEnergy()*GeV;
+     GCTRAK.vect[6]=GCTRAK.getot*PostPoint->GetBeta();
+     GCTRAK.tofg=PostPoint->GetGlobalTime()*second;
+     G4Track * Track = Step->GetTrack();
+
+/* 
+     Some stuff about track
+ 
+ 
+ const G4ThreeVector& GetPosition() const
+ void SetPosition(const G4ThreeVector& aValue)
+ G4double GetGlobalTime() const
+ void SetGlobalTime(const G4double aValue)
+ // Time since the event in which the track belongs is created.
+ G4double GetLocalTime() const
+ void SetLocalTime(const G4double aValue)
+ // Time since the current track is created.
+ G4double GetProperTime() const
+ void SetProperTime(const G4double aValue)
+ // Proper time of the current track
+ G4double GetTrackLength() const
+ void AddTrackLength(const G4double aValue)
+ // Accumulated the track length
+ G4int GetParentID() const
+ void SetParentID(const G4int aValue)
+ G4int GetTrackID() const
+ void SetTrackID(const G4int aValue)
+ G4VPhysicalVolume* GetVolume() const
+ G4VPhysicalVolume* GetNextVolume() const
+ G4Material* GetMaterial() const
+ G4Material* GetNextMaterial() const
+ G4VTouchable* GetTouchable() const
+ void SetTouchable(G4VTouchable* apValue)
+ G4VTouchable* GetNextTouchable() const
+ void SetNextTouchable(G4VTouchable* apValue)
+ G4double GetKineticEnergy() const
+ void SetKineticEnergy(const G4double aValue)
+ G4double GetVelocity() const
+ const G4ThreeVector& GetMomentumDirection() const
+ void SetMomentumDirection(const G4ThreeVector& aValue)
+ const G4ThreeVector& GetPolarization() const
+ void SetPolarization(const G4ThreeVector& aValue)
+ G4TrackStatus GetTrackStatus() const
+ void SetTrackStatus(const G4TrackStatus aTrackStatus)
+ G4bool IsBelowThreshold() const
+ void SetBelowThresholdFlag(G4bool value = true)
+ G4bool IsGoodForTracking() const
+ void SetGoodForTrackingFlag(G4bool value = true)
+ G4int GetCurrentStepNumber() const
+ void IncrementCurrentStepNumber()
+ G4double GetTotalEnergy() const
+ G4ThreeVector GetMomentum() const
+ G4DynamicParticle* GetDynamicParticle() const
+ G4ParticleDefinition* GetDefinition() const
+ G4double GetStepLength() const
+ void SetStepLength(G4double value)
+ G4Step* GetStep() const
+ void SetStep(G4Step* aValue)
+ const G4ThreeVector& GetVertexPosition() const
+ void SetVertexPosition(const G4ThreeVector& aValue)
+ const G4ThreeVector& GetVertexMomentumDirection() const
+ void SetVertexMomentumDirection(const G4ThreeVector& aValue)
+ G4double GetVertexKineticEnergy() const
+ void SetVertexKineticEnergy(const G4double aValue)
+ G4LogicalVolume* GetLogicalVolumeAtVertex() const
+ void SetLogicalVolumeAtVertex(G4LogicalVolume* )
+ const G4VProcess* GetCreatorProcess() const
+ void SetCreatorProcess(G4VProcess* aValue)
+ G4double GetWeight() const
+ void SetWeight(G4double aValue)
+
+
+
+*/
+   G4ParticleDefinition* particle =Track->GetDefinition();
+   GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
+   GCKINE.charge=particle->GetPDGCharge();
+
+  try{
+  // Now one has decide based on the names of volumes (or their parents)
+     G4VPhysicalVolume * Mother=PostPV->GetMother();
+     G4VPhysicalVolume * GrandMother= Mother?Mother->GetMother():0;      
+  // Tracker
+     if(GCTRAK.destep && GrandMother && GrandMother->GetName()[0]=='S' 
+     &&  GrandMother->GetName()[0]=='T' && GrandMother->GetName()[0]=='K'){
+      AMSTrMCCluster::sitkhits(PostPV->GetCopyNo(),GCTRAK.vect,
+      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
+     }
+  }
+   catch (AMSuPoolError e){
+    cerr << "GUSTEP  "<< e.getmessage();
+    GCTRAK.istop =1;
+     AMSEvent::gethead()->Recovery();
+     return;
+   }
+   catch (AMSaPoolError e){
+    cerr << "GUSTEP  "<< e.getmessage();
+    GCTRAK.istop =1;
+    AMSEvent::gethead()->Recovery();
+      return;
+   }
+   }
+   cout <<"leaving stepping "<<endl;
+  }
 }

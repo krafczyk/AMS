@@ -6,6 +6,7 @@
 #include <amsstl.h>
 #include <iostream.h>
 #include <event.h>
+#include <timeid.h>
 integer AMSStatus::_Mode=0;
 void AMSStatus::_init(){
      _Nelem=0;

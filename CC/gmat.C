@@ -4,23 +4,31 @@
 #include <snode.h>
 #include <amsgobj.h>
 #include <job.h>
+#ifdef __G4AMS__
+#include "G4Material.hh"
+#include "G4Element.hh"
+#include "G4UnitsTable.hh"
+#include <strstream.h>
+#endif
 integer AMSgmat::debug=0;
 void AMSgmat::_init(){
 #ifdef __AMSDEBUG__
   for( AMSNode *p=this->prev();p;p=p->prev()){
-//    cout <<getname() <<" "<<p->getname()<<endl;
     if(!strcmp(getname(),p->getname())){
       cerr<<"AMSgmat-F-MaterialalrdyExists "<<getname()<<endl;
       exit(1);
     }
   }
 #endif
+#ifdef __G4AMS__
+if(MISCFFKEY.G3On){
+#endif
    geant *a=new geant[_npar];
    geant *z=new geant[_npar];
    geant *w=new geant[_npar];
    for(int i=0;i<_npar;i++){
      a[i]=_a[i];
-     if(_npar>1)w[i]=_w[i];
+     w[i]=_w[i];
      z[i]=_z[i];
    }
    
@@ -30,7 +38,30 @@ void AMSgmat::_init(){
    delete []a;
    delete []z;
    delete []w;
-}      
+#ifdef __G4AMS__
+}
+if(MISCFFKEY.G4On){
+ if(_npar==1 ){
+  if(_temp==0)_pamsg4m= new G4Material(G4String(_name),_z[0],_a[0]*g/mole,_rho*g/cm3);
+  else _pamsg4m= new G4Material(G4String(_name),_z[0],_a[0]*g/mole,_rho*g/cm3,kStateGas,_temp*kelvin,1.e-18*_rho*g/cm3/universe_mean_density*_temp*kelvin*pascal); 
+ }
+ else{
+  char namz[255];
+  ostrstream ost(namz,sizeof(namz));
+  _pamsg4m= new G4Material(G4String(_name),_rho*g/cm3,_npar);
+  for(int i=0;i<_npar;i++){
+   ost.seekp(0);
+   ost<<_name<<int(_z[i])<<ends;
+   G4String name(namz);
+   int natoms=int(_w[i]);
+   _pamsg4m->AddElement(new G4Element(name," ",_z[i],_a[i]*g/mole),natoms);
+  }
+ }
+}
+#endif
+}
+
+      
 ostream & AMSgmat::print(ostream & stream)const{
 return(AMSID::print(stream)  <<  " GSMATE" << endl);
 }
@@ -45,7 +76,7 @@ void AMSgtmed::_init(){
     }
   }
 #endif
-  GSTMED(_itmed,_name,_itmat,_isvol,_ifield,_fieldm,_tmaxfd,
+  GSTMED(_itmed,_name,_pgmat->getmati(),_isvol,_ifield,_fieldm,_tmaxfd,
   _stemax,_deemax,_epsil,_stmin,_ubuf,1);
   if(_yb=='Y'){
    GSTPAR(_itmed,"BIRK1",_birks[0]);
@@ -65,13 +96,13 @@ static AMSgmat mat;
 mat.setname("Materials:");
 AMSJob::gethead()->addup(&mat);
 mat.add (new AMSgmat("HYDROGEN",1.01, 1.,0.0708,865.,790.));
-mat.add (new AMSgmat("DEUTERIUM",  2.01,1.,0.162 ,757.,342.));
+//mat.add (new AMSgmat("DEUTERIUM",  2.01,1.,0.162 ,757.,342.));
 mat.add (new AMSgmat("HELIUM",  4.  , 2.,0.125 ,755.,478.));
-mat.add (new AMSgmat("LITHIUM",  6.94, 3.,0.534 ,155.,120.6));
-mat.add (new AMSgmat("BERILLIUM",  9.01, 4., 1.848 ,35.3,36.7));
+//mat.add (new AMSgmat("LITHIUM",  6.94, 3.,0.534 ,155.,120.6));
+//mat.add (new AMSgmat("BERILLIUM",  9.01, 4., 1.848 ,35.3,36.7));
 mat.add (new AMSgmat("CARBON", 12.01, 6., 2.265 ,18.8,49.9));
-mat.add (new AMSgmat("NITROGEN", 14.01, 7.,0.808 ,44.5,99.4));
-mat.add (new AMSgmat("NEON", 20.18,10., 1.207 , 24.,74.9));
+//mat.add (new AMSgmat("NITROGEN", 14.01, 7.,0.808 ,44.5,99.4));
+//mat.add (new AMSgmat("NEON", 20.18,10., 1.207 , 24.,74.9));
          // Half density alum
 mat.add (new AMSgmat("ALUMINIUM",26.98, 13., 1.35, 17.8, 74.4));
 mat.add (new AMSgmat("IRON", 55.85,26., 7.87  ,1.76,17.1));
@@ -85,11 +116,11 @@ mat.add (new AMSgmat("MYLAR",  8.7   ,4.5,  1.39  ,28.7, 43.));
 geant a[]={20.18,12.01,1.01,0};
 geant z[]={10.,6.,1.,0};
 geant w[]={4.,1.,4.,0};
-mat.add (new AMSgmat("TPC GAS",a,z,w,3,0.8634e-3));
+//mat.add (new AMSgmat("TPC GAS",a,z,w,3,0.8634e-3));
 a[0]=39.95;a[1]=12.01;a[2]=1.01;
 z[0]=18.;  z[1]=6.;   z[2]=1.;
 w[0]=1.;   w[1]=2.;   w[2]=6.;
-mat.add (new AMSgmat("DRIFT GAS ",a,z,w,3,1.568e-3));
+//mat.add (new AMSgmat("DRIFT GAS ",a,z,w,3,1.568e-3));
 a[0]=12.01;a[1]=28.1;
 z[0]=6.;  z[1]=14.;
 w[0]=2.66;w[1]=1.;
@@ -232,7 +263,7 @@ for(iw=0;iw<44;iw++)
   mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,.7368));
   
   // Define optical properties
-  GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
+  GSCKOV(GetLastMatNo(),44,p,abs_l,dummy,index);
 }
 
 { // Mirrors: plexiglass
@@ -246,7 +277,7 @@ for(iw=0;iw<44;iw++)
   for(iw=0;iw<44;iw++)
       abs_l[iw]=1.-0.9; // Reflectivity=90%
   index[0]=0;
-  GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
+  GSCKOV(GetLastMatNo(),44,p,abs_l,dummy,index);
 }
 
 { // PMTs
@@ -261,7 +292,7 @@ for(iw=0;iw<44;iw++)
       abs_l[iw]=1e5;
       index[iw]=1.458;
     }
-  GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
+  GSCKOV(GetLastMatNo(),44,p,abs_l,dummy,index);
 }
 
 
@@ -276,10 +307,10 @@ for(iw=0;iw<44;iw++)
   for(iw=0;iw<44;iw++)
       abs_l[iw]=1.; // Reflectivity=90%
   index[0]=0;
-  GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
+  GSCKOV(GetLastMatNo(),44,p,abs_l,dummy,index);
 }
 
-mat.add (new AMSgmat("VACUUM",1.E-16,1.E-16, 1.E-16,1.E+16,1.E+16));
+mat.add (new AMSgmat("VACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
 // Define vaccum optical properties
 
 for(iw=0;iw<44;iw++)
@@ -288,7 +319,7 @@ for(iw=0;iw<44;iw++)
   index[iw]=1;
 }
 
-GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
+GSCKOV(GetLastMatNo(),44,p,abs_l,dummy,index);
 }
 //-------------------
 // Light lead for ECAL test :
@@ -362,7 +393,7 @@ AMSgObj::GTrMatMap.map(mat);
 #ifdef __AMSDEBUG__
 if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();
 #endif
-cout <<"AMSgmat::amsmat-I-TotalOf "<<GetMatNo()<<" materials defined"<<endl;
+cout <<"AMSgmat::amsmat-I-TotalOf "<<GetLastMatNo()<<" materials defined"<<endl;
 }
 
 void AMSgtmed::amstmed(){
@@ -451,12 +482,12 @@ tmed.add (new AMSgtmed("EC_EFFRAD","LIGHTLEAD",0));// 36 eff.radiator for fast s
 //tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0)); // 37
 tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
                                     -1.,0.001,-1.)); // 37 simplif.tracking in magn.f
-GSTPAR(GetMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
-GSTPAR(GetMedNo(),"CUTELE",ECMCFFKEY.cutge);
+GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
+GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
 tmed.add (new AMSgtmed("EC_FIBER","ECSCINT",1,'Y',birks));// 38
 tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));// 39 tempor as for TOF-boxes
-GSTPAR(GetMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
-GSTPAR(GetMedNo(),"CUTELE",ECMCFFKEY.cutge);
+GSTPAR(GetLastMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
+GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
 } 
 
 
@@ -491,7 +522,7 @@ if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPTMED(0);
 #endif
-cout <<"AMSgmat::amstmed-I-TotalOf "<<GetMedNo()<<" media defined"<<endl;
+cout <<"AMSgmat::amstmed-I-TotalOf "<<GetLastMedNo()<<" media defined"<<endl;
 }
 
 

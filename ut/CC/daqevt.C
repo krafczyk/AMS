@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <ctype.h>
+#include <astring.h>
 #ifndef __IBMAIX__
 #include <dirent.h>
 #else

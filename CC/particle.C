@@ -17,6 +17,7 @@
 #include <ctcdbc.h>
 #include <ntuple.h>
 #include <antirec.h>
+#include <mceventg.h>
 
 extern "C" void atcrec_(const integer & run, integer & nctcht, geant cooctc[1][2][3], int la[], int co[], int ro[], geant sig[],
                    int atcnbcel[], geant atcnbphe[], int atcidcel[], int atcdispm[], int atcdaero[], int atcstatu[], float & atcbeta);

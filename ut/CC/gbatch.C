@@ -26,13 +26,17 @@ void (handler)(int);
      *signal(SIGQUIT, handler);
      *signal(SIGUSR1, handler); 
      *signal(SIGUSR2, handler); 
-    cout.sync_with_stdio();
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
     UGINIT();
 #ifdef __G4AMS__
+try{
     if(MISCFFKEY.G4On)g4ams::G4RUN();
     else if(MISCFFKEY.G3On)GRUN();
+} 
+catch (std::bad_alloc a){
+ cerr <<"catch-F-NoMemoryAvailable "<<endl;
+}
 #else
     GRUN();
 #endif
