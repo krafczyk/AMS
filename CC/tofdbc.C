@@ -124,6 +124,10 @@ geant TOFDBc::_plnstr[15]={
           cout <<" TOFGeom-I-Shuttle setup selected."<<endl;
           strcat(name,vers1);
     }
+    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
+          cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
+          strcat(name,vers1);
+    }
     else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
           cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
           strcat(name,vers3);

@@ -66,7 +66,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
 }
 else if (strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
  magnetgeom02Test(mother);
- tofgeom02(mother);
+ tofgeom(mother);
  antigeom02(mother);
  pshgeom02(mother);
  tkgeom02(mother);

@@ -59,6 +59,9 @@ ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
     {
           cout <<" ANTIGeom-I-Shuttle setup selected."<<endl;
     }
+    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
+          cout <<" ANTIGeom-I-AMS02Test setup selected."<<endl;
+    }
     else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
           cout <<" ANTIGeom-I-AMS02 setup selected."<<endl;
           _scleng=83.+19.; //(old+19) tempor solution
