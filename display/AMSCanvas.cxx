@@ -6,6 +6,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <unistd.h>		// for getpid()
+#include <iostream.h>
 #include <stdlib.h>
 #include <TROOT.h>
 #ifndef ROOT_TMotifCanvas
@@ -519,8 +520,8 @@ void AMSCanvas::HandleInput(Int_t event, Int_t px, Int_t py)
 //______________________________________________________________________
 void AMSCanvas::SaveParticleCB(Widget wid, XtPointer cd, XtPointer pointer)
 {
-   AddParticleInfo();
    AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
+   disp->AddParticleInfo();
    char fnam[255];
    sprintf(fnam, "%u.%u.ps",gAMSRoot->RunNum(),gAMSRoot->EventNum());
    disp->GetCanvas()->SaveAs(fnam);
@@ -528,8 +529,8 @@ void AMSCanvas::SaveParticleCB(Widget wid, XtPointer cd, XtPointer pointer)
 }
 void AMSCanvas::SaveParticleGIF(Widget wid, XtPointer cd, XtPointer pointer)
 {
-   AddParticleInfo();
    AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
+   disp->AddParticleInfo();
    char fnam[255];
    sprintf(fnam, "%u.%u.gif",gAMSRoot->RunNum(),gAMSRoot->EventNum());
    disp->GetCanvas()->SaveAs(fnam);
@@ -575,8 +576,9 @@ void AMSCanvas::OpenFileCB(Widget wid, XtPointer cd, XtPointer pointer)
 //______________________________________________________________________
 void AMSCanvas::PrintCB(Widget wid, XtPointer cd, XtPointer pointer)
 {
-   AddParticleInfo();
+ 
    AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
+   disp->AddParticleInfo();
    pid_t pid = getpid();
    char filename[80];
    sprintf(filename, "/tmp/AMSDisplay.%u.ps",pid);
@@ -587,13 +589,13 @@ void AMSCanvas::PrintCB(Widget wid, XtPointer cd, XtPointer pointer)
    system(cmd);
    sprintf(cmd, "rm /tmp/AMSDisplay.%u.ps",pid);
    system(cmd);
- 
 }
 
 
 //______________________________________________________________________
 void AMSCanvas::AddParticleInfo()
 {
+   
    // first append the particle info in event status pad
    AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
    TPad * objInfo     = disp->GetObjInfoPad();
@@ -620,12 +622,14 @@ void AMSCanvas::AddParticleInfo()
            info = obj->GetObjectInfo(0,0);
      }
 // m_Fruits points to an object in general. Insert this object in the pad
-  } else {
+  }
+  else {
      info = fruits->GetObjectInfo(0,0);
   }
 
   debugger.Print("get particle info: %s\n", info);
-  char info1[80]="\0";
+  char info1[80];
+  cout <<" u "<<info<<endl;
   sprintf(info1, "Particle: %s", info);
   TText * text = new TText(0.01, 0.45, info1);	// should be 0.5 , but somehow 0.45 is better
   text->SetTextSize(0.60);	// 0.65 should be fine, but somehow 0.60 is better

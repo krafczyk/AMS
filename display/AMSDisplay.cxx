@@ -6,7 +6,7 @@
 // Utility class to display AMSRoot outline, tracks, clusters...        //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-
+#include <iostream.h>
 #include <TROOT.h>
 #include <TButton.h>
 #include <TCanvas.h>
@@ -49,6 +49,7 @@ AMSDisplay::AMSDisplay() : AMSVirtualDisplay()
 
 //   m_Particle  = 0;
 
+   m_theapp=0;
    m_View = kFrontView;
 //   m_DrawAllViews = kFALSE;
 //   m_DrawTwoViews = kFALSE;
@@ -60,6 +61,7 @@ AMSDisplay::AMSDisplay() : AMSVirtualDisplay()
 AMSDisplay::AMSDisplay(const char *title, TGeometry * geo) 
    : AMSVirtualDisplay()
 {
+   m_theapp=0;
    // Constructor of AMSDisplay
    //
 
@@ -119,7 +121,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    //
    // Create title pad
    // ----------------------------
-   m_TitlePad = new TPad("TitlePad", "AMSRoot title", xsep,0.9, 1.0, 1.0);
+   m_TitlePad = new TPad("TitlePad", "AMSRoot title", xsep,0.95, 1.0, 1.0);
    m_TitlePad->Draw();
    m_TitlePad->Modified();
    //m_TitlePad->SetFillColor(33);
@@ -129,7 +131,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    //
    // Create main display pad
    // ----------------------------
-   m_Pad = new TPad("ViewPad", "AMSRoot display",xsep,0.05,1,0.9);
+   m_Pad = new TPad("ViewPad", "AMSRoot display",xsep,0.05,1,0.95);
    m_Pad->Modified();
    m_Pad->SetFillColor(0);	//white 
    m_Pad->SetBorderSize(2);
@@ -188,6 +190,19 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    debugger.Print("objInfoPad at %d,%d,%d,%d\n", 
          m_ObjInfoPad->XtoAbsPixel(0.0), m_ObjInfoPad->YtoAbsPixel(0.0), 
          m_ObjInfoPad->XtoAbsPixel(1.0), m_ObjInfoPad->YtoAbsPixel(1.0) );
+
+   //
+   // Create part info pad
+   // ----------------------------
+   //   m_Canvas->cd();
+   //   m_PartInfoPad = new TPad("PartInfoPad", "object info pad", 0.2, 0.05, 1, 0.09);
+   //   m_PartInfoPad->SetFillColor(0);
+   //   m_PartInfoPad->SetBorderSize(1);
+   //   m_PartInfoPad->SetBorderMode(2);
+   //   m_PartInfoPad->Draw();
+   //   debugger.Print("objInfoPad at %d,%d,%d,%d\n", 
+   //         m_PartInfoPad->XtoAbsPixel(0.0), m_ObjInfoPad->YtoAbsPixel(0.0), 
+   //         m_PartInfoPad->XtoAbsPixel(1.0), m_ObjInfoPad->YtoAbsPixel(1.0) );
 
 
 
@@ -382,6 +397,12 @@ void AMSDisplay::DisplayButtons()
    button->SetFillColor(butcolor);
    button->Draw();
 
+   y -= dbutton +dy;
+   char *but8 = "gAMSRoot->Display()->SetView(20)";
+   button = new TButton("Stop Timer",but8,x0,y-dbutton,x1,y);
+   button->SetFillColor(butcolor);
+   button->Draw();
+
 /*
    y -= dbutton +dy;
    char *but7 = "gAMSRoot->Display()->DrawViewGL()";
@@ -449,6 +470,7 @@ void AMSDisplay::Draw(Option_t *option)
    m_Canvas->SetEditable(kIsNotEditable);
 
    DrawTitle();
+   AddParticleInfo();
    DrawEventInfo();
    m_Pad->cd();
    if ( m_View == kAllView ) {
@@ -601,6 +623,10 @@ void AMSDisplay::DrawTitle(Option_t *option)
    static TText * text=0;
    static char * atext = "Alpha Magnetic Spectrometer";
 
+   AMSMaker * p = (AMSMaker *) gAMSRoot->ParticleMaker();
+   
+
+
    TVirtualPad * gPadSave = gPad;
    pad->cd();
 
@@ -617,6 +643,68 @@ void AMSDisplay::DrawTitle(Option_t *option)
 
    gPadSave->cd();
 }
+
+void AMSDisplay::AddParticleInfo()
+{
+   AMSDisplay * disp = (AMSDisplay *) gAMSRoot->Display();
+   TPad * pad = disp->GetObjInfoPad();
+
+   static TText * text=0;
+   static char  atext[255] = "Alpha Magnetic Spectrometer";
+
+   
+
+
+   TVirtualPad * gPadSave = gPad;
+   pad->cd();
+   pad->Clear();
+
+   AMSMaker * p = (AMSMaker *) gAMSRoot->ParticleMaker();
+   
+  TObject *fruits = p->Fruits();
+  TObject *obj;
+  char * info=0;
+
+// If m_Fruits is a ClonesArray, insert all the objects in the list
+// of objects to be painted
+
+  if (fruits->InheritsFrom("TClonesArray")) {
+     TClonesArray *clones = (TClonesArray*)fruits;
+     Int_t nobjects = clones->GetEntries();
+     for (Int_t i=0;i<nobjects;i++) {
+        obj = clones->At(i);
+        if (obj && i==0){ 
+           debugger.Print("obj class = %s\n", obj->ClassName());}
+        if (obj && p->Enabled(obj)) 
+           info = obj->GetObjectInfo(0,0);
+     }
+// m_Fruits points to an object in general. Insert this object in the pad
+  }
+  else {
+     info = fruits->GetObjectInfo(0,0);
+  }
+
+  debugger.Print("get particle info: %s\n", info);
+  atext[0]=0;
+  sprintf(atext, "Particle: %s", info);
+
+
+
+   if (! text) {
+	text = new TText(0.5, 0.5, atext);
+   }
+   else
+	text->SetText(0.5, 0.5, atext);
+
+   text->SetTextFont(7);
+   text->SetTextAlign(22);
+   text->SetTextSize(0.65);
+   text->Draw();
+
+   gPadSave->cd();
+}
+
+
 
 //_____________________________________________________________________________
 void AMSDisplay::DrawEventInfo(Option_t *option)
@@ -885,6 +973,32 @@ void AMSDisplay::SetPTcutEGMUNU(Float_t ptcut)
 }
 
 //_____________________________________________________________________________
+void AMSDisplay::StartStop(){
+  if(!m_theapp)return;
+  gPad->Clear();
+  static int state=0;
+  state=(state+1)%2;
+   static TText * text=0;
+   static char atext2[20]="Stop Timer";
+   static char atext1[20]="Start Timer";
+
+   if (! text) {
+	if(state%2)text = new TText(0.5, 0.5, atext1);
+	else text = new TText(0.5, 0.5, atext2);
+   }
+   else{
+	if(state%2)text->SetText(0.5, 0.5, atext1);
+	else text = new TText(0.5, 0.5, atext2);
+   }
+    if(state%2)m_theapp->RemoveIdleTimer();
+    else m_theapp->SetIdleTimer(4,"");
+   text->SetTextAlign(22);
+   text->SetTextSize(0.55);
+   text->Draw();
+
+
+}
+
 void AMSDisplay::SetView(EAMSView newView)
 {
  /*
@@ -904,6 +1018,7 @@ void AMSDisplay::SetView(EAMSView newView)
      case kSideView:   SetView(90,-90); break;
      case kTopView:    SetView(0,0);    break;
      case kAllView:    DrawAllViews();  break;
+     case 20:          StartStop(); m_View=kTwoView;break;
      case kTwoView:    DrawFrontAndSideViews();  break;
      default:          SetView(90,0);   break;
    }
@@ -954,6 +1069,12 @@ void AMSDisplay::ShowNextEvent(Int_t delta)
        gAMSRoot->Clear();
        gAMSRoot->SelectEvent(); 
   }
+  m_Pad->cd(); 
+  Draw();
+}
+
+void AMSDisplay::DrawEvent()
+{
   m_Pad->cd(); 
   Draw();
 }

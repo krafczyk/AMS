@@ -26,31 +26,55 @@ AMSParticle::AMSParticle(Int_t status, Int_t pattern)
 */
 
 //_____________________________________________________________________________
-void AMSParticle::SetHelix()
-{
 
-   //debugger.Print(":::::: particle points to track #%d\n", m_PTrack);
 
-   AMSMaker * maker = (AMSMaker *) gAMSRoot->TrackMaker();
-   TClonesArray &tracks = *(TClonesArray*) maker->Fruits();
-//   TObject * obj = maker->Fruits();
-   THelix * helix = (THelix *)tracks[m_PTrack-1];	// m_PTrack starts at 1
-   helix->Copy(*this);		// copy *helix to *this
 
-   //debugger.Print(":::::: particle helix: (x0,y0,z0)=(%5.1f,%5.1f,%5.1f)\n",
-   //	  fX0, fY0, fZ0);
-   //debugger.Print(":::::: particle helix: axis=(%5.1f,%5.1f,%5.1f), fVt, fW, fVt/fW = %f, %f, %f\n",
-   //	  fAxis[0], fAxis[1], fAxis[2], fVt, fW, fVt/fW);
-          
-   AMSTrack * trk = (AMSTrack *)tracks[m_PTrack];
-   //debugger.Print(":::::: track: %s\n", trk->GetObjectInfo(0,0));
+//void AMSParticle::SetHelix()
+//{
+//
+//   //debugger.Print(":::::: particle points to track #%d\n", m_PTrack);
+//
+//   AMSMaker * maker = (AMSMaker *) gAMSRoot->TrackMaker();
+//   TClonesArray &tracks = *(TClonesArray*) maker->Fruits();
+////   TObject * obj = maker->Fruits();
+//   THelix * helix = (THelix *)tracks[m_PTrack-1];	// m_PTrack starts at 1
+//   helix->Copy(*this);		// copy *helix to *this
+//
+//   //debugger.Print(":::::: particle helix: (x0,y0,z0)=(%5.1f,%5.1f,%5.1f)\n",
+//   //	  fX0, fY0, fZ0);
+//   //debugger.Print(":::::: particle helix: axis=(%5.1f,%5.1f,%5.1f), fVt, fW, fVt/fW = %f, %f, %f\n",
+//   //	  fAxis[0], fAxis[1], fAxis[2], fVt, fW, fVt/fW);
+//          
+//   AMSTrack * trk = (AMSTrack *)tracks[m_PTrack];
+//   //debugger.Print(":::::: track: %s\n", trk->GetObjectInfo(0,0));
+//
+//   SetLineColor(2);
+//   SetLineWidth(1);
+//
+//   //debugger.Print("<=== returning from AMSParticle::SetHelix()\n");
+//   return;
+//}
+
+void AMSParticle::SetHelix(){
+
+   Double_t Bfield = -0.15*0.95;	// in minus-x direction of AMS
+     THelix::SetHelix(m_Position[0], m_Position[1], m_Position[2], 
+		      m_Momentum * TMath::Sin(m_Theta) * TMath::Cos(m_Phi),
+		      m_Momentum * TMath::Sin(m_Theta) * TMath::Sin(m_Phi),
+		      m_Momentum * TMath::Cos(m_Theta),
+		      0.3*Bfield/100,
+		      -120.0, 120.0, kHelixX,
+		      -1.0, 0.0, 0.0);
+   
+
+
 
    SetLineColor(2);
    SetLineWidth(1);
 
-   //debugger.Print("<=== returning from AMSParticle::SetHelix()\n");
    return;
 }
+
 
 //_____________________________________________________________________________
 void AMSParticle::Paint(Option_t *option)

@@ -25,6 +25,7 @@ const Int_t kMAXCELLS = 2000;
 const Int_t kMAXCLU   = 1000;
 */
 
+const Int_t maxtof=200;
 ClassImp(AMSToFClusterReader)
 
 
@@ -34,14 +35,14 @@ ClassImp(AMSToFClusterReader)
 //
 static struct {
   Int_t           NToF;
-  Int_t           Status[60];
-  Int_t           Plane[60];
-  Int_t           Bar[60];
-  Float_t         Edep[60];
-  Float_t         Time[60];
-  Float_t         ErTime[60];
-  Float_t         Coo[60][3];
-  Float_t         ErCoo[60][3];
+  Int_t           Status[maxtof];
+  Int_t           Plane[maxtof];
+  Int_t           Bar[maxtof];
+  Float_t         Edep[maxtof];
+  Float_t         Time[maxtof];
+  Float_t         ErTime[maxtof];
+  Float_t         Coo[maxtof][3];
+  Float_t         ErCoo[maxtof][3];
 } _ntuple;
 
 //_____________________________________________________________________________
@@ -51,7 +52,7 @@ AMSToFClusterReader::AMSToFClusterReader(const char *name, const char *title)
    // Construct an AMSToFClusterReader
    //
 
-   m_Fruits     = new TClonesArray("AMSToFCluster",8,kFALSE);
+   m_Fruits     = new TClonesArray("AMSToFCluster",maxtof,kFALSE);
    m_BranchName = "ToFClusters";
    m_Nclusters  = 0;
 //   m_Ncells     = 0;

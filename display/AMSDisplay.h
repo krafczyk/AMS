@@ -9,13 +9,13 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+#include <TApplication.h>
 #ifndef AMSVirtualDisplay_H
 #include "AMSVirtualDisplay.h"
 #endif
 #include "AMSGeometrySetter.h"
 #include "AMSCanvas.h"
 //#include "AMSColorManager.h"
-
 class TCanvas;
 class TPad;
 class TArc;
@@ -61,6 +61,7 @@ private:
    TPad             *m_TitlePad;             //Pointer to title pad 
    TPad             *m_EventInfoPad;         //Pointer to event info pad 
    TPad             *m_ObjInfoPad;           //Pointer to object info pad 
+   TPad             *m_PartInfoPad;           //Pointer to object info pad 
 //   TPad             *m_AxisPad[4];           //Pointers to axis pad 
 
    TArc             *m_EM1;                  //Pointer to arc showing ON/OFF trigger EM1
@@ -75,11 +76,15 @@ private:
    TArc             *m_ALL;                  //Pointer to arc showing ON/OFF trigger ALL
 // ATLFParticle     *m_Particle;             //Pointer to Particle graphics manager
    TList	    *m_ToBeDrawn;	     //List of objects to be drawn
-   
+   TApplication	    *m_theapp;	     //Current App
+
+      
 public:
+
                      AMSDisplay();
                      AMSDisplay(const char *title, TGeometry * geo=0);
    virtual          ~AMSDisplay();
+   virtual void      SetApplication(TApplication* papp){m_theapp=papp;}
    virtual Bool_t    AllViews() {return (m_View == kAllView);}
            EAMSView  GetView() {return m_View;}
    virtual void      Clear(Option_t *option="");
@@ -101,12 +106,14 @@ public:
    virtual void      DrawViewX3D();
 //	   void      DoubleSize();
 //	   void      HalfSize();
+    void AddParticleInfo();
    virtual void      ExecuteEvent(Int_t event, Int_t px, Int_t py);
    virtual Int_t      GetEvent(Int_t event); //*MENU*
 // AMSKeyNode       *GetKeyNode() const { return m_KeyNode; }
    TPad             *Pad() {return m_Pad;}
    AMSCanvas        *GetCanvas() { return m_Canvas; }
    TPad             *GetObjInfoPad() { return m_ObjInfoPad; }
+   TPad             *GetPartInfoPad() { return m_PartInfoPad; }
    TPad             *GetEventInfoPad() { return m_EventInfoPad; }
    TPad             *GetTitlePad() { return m_TitlePad; }
 //   AMSColorManager  *GetColorManager() { return m_ColorManager; }
@@ -119,9 +126,11 @@ public:
    virtual void      SetPTcut(Float_t ptcut=0.4); // *MENU*
    virtual void      SetPTcutEGMUNU(Float_t ptcut=5); // *MENU*
    virtual void      SetGeometry(TGeometry * geo); // *--MENU*
+   void              StartStop();
    virtual void      SetView(Float_t theta, Float_t phi);
            void      SetView(EAMSView newView=kFrontView);
    virtual void      ShowNextEvent(Int_t delta=1);
+   virtual void      DrawEvent();
    virtual void      SizeParticles() const;
    //
    // Geometry related functions

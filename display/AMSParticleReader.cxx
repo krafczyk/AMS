@@ -25,25 +25,26 @@ ClassImp(AMSParticleReader)
 //
 // The structure for reading data
 //
+const Int_t maxpart=20;
 static struct {
    Int_t           npart;
-   Int_t           pctcp[30][2];
-   Int_t           pbetap[30];
-   Int_t           pchargep[30];
-   Int_t           ptrackp[30];
-   Int_t           pid[30];
-   Float_t         pmass[30];
-   Float_t         perrmass[30];
-   Float_t         pmom[30];
-   Float_t         perrmom[30];
-   Float_t         pcharge[30];
-   Float_t         ptheta[30];
-   Float_t         pphi[30];
-   Float_t         pcoo[30][3];
-   Float_t         signalctc[30][2];
-   Float_t         betactc[30][2];
-   Float_t         errorbetactc[30][2];
-   Float_t         cooctc[30][2];
+   Int_t           pctcp[maxpart][2];
+   Int_t           pbetap[maxpart];
+   Int_t           pchargep[maxpart];
+   Int_t           ptrackp[maxpart];
+   Int_t           pid[maxpart];
+   Float_t         pmass[maxpart];
+   Float_t         perrmass[maxpart];
+   Float_t         pmom[maxpart];
+   Float_t         perrmom[maxpart];
+   Float_t         pcharge[maxpart];
+   Float_t         ptheta[maxpart];
+   Float_t         pphi[maxpart];
+   Float_t         pcoo[maxpart][3];
+   Float_t         signalctc[maxpart][2];
+   Float_t         betactc[maxpart][2];
+   Float_t         errorbetactc[maxpart][2];
+   Float_t         cooctc[maxpart][2][3];
 } _ntuple;
 
 
@@ -154,6 +155,7 @@ void AMSParticleReader::Make()
    Int_t k, i;
 
    m_NParticles = _ntuple.npart;
+   //   m_NParticles=0;
    debugger.Print("AMSParticleReader::Make(): making %d particles.\n", m_NParticles);
    TClonesArray &particles = *(TClonesArray*)m_Fruits;
    for (k=0; k<m_NParticles; k++) {

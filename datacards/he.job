@@ -38,7 +38,6 @@ IOPA 1=0 2='pr.hbk'  85=2 86='proton.dat'
 RNDM 191483093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='v203 Protons '
-46='CTCVer '
 C Special HP-UX
 TIME 3=10000000
 END

@@ -10,7 +10,14 @@
 #include <fstream.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <stdlib.h>
+#include "main.h"
 
+
+void Myapp::HandleIdleTimer(){
+SetReturnFromRun(1);
+Terminate();
+}
 extern void InitGui(); // loads the device dependent graphics system
 VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
 int Error; // needed by Motif
@@ -22,11 +29,11 @@ void main(int argc, char *argv[])
 // First create application environment. If you replace TApplication
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
-TApplication *theApp = new TApplication("App", &argc, argv);
-
+Myapp *theApp = new Myapp("App", &argc, argv);
+theApp->SetIdleTimer(4,"");
 /*
 // Do drawing and all everything else you want
-TCanvas *c = new TCanvas("Picture", "The Alignment Geometry", 400, 400);
+TCanvas *c = new TCanvas("Picture", "The Alignment Geometry", 1024, 768);
 c->Show();
 
 TLine *l = new TLine(0.1,0.2,0.5,0.9);
@@ -37,7 +44,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
 
   debugger.Off();
   
-  char * filename = "mc.root";		// default file name
+  char * filename = "realtime.root";		// default file name
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
@@ -59,12 +66,17 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
    cout <<""<<endl;
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
-   amsroot.GetEvent(0);
-      display.SetView (kTwoView);
-          display.ShowNextEvent(-1);
-           display.GetCanvas()->Update();	// force it to draw
-   
-
+       display.SetApplication(theApp);
+          display.SetView (kTwoView);
+      for(int i=1;;i++){
+       amsroot.Clear();
+       if(!amsroot.GetEvent(i))break;;
+          display.DrawEvent();
+          display.GetCanvas()->Update();	// force it to draw
+              theApp->Run();
+              //              system("sleep 5");       
+      }        
+      return ;
   
 
 

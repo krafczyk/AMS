@@ -66,7 +66,7 @@ void AMSTrack::Paint(Option_t *option)
 
   // special treatment on dummy tracks which has status word 17 (a la Vitaly)
   //
-  if ( m_Status != 17 )
+  //if ( m_Status != 17 )
      THelix::Paint(option);
 
 }
@@ -74,7 +74,7 @@ void AMSTrack::Paint(Option_t *option)
 //_____________________________________________________________________________
 char * AMSTrack::GetObjectInfo(Int_t px, Int_t py)
 {
-   static char info[64];
+   static char info[255];
    sprintf(info,"#%d, (Rigidity,theta,phi)=(%4.1lf+-%4.1lf,%4.1f,%4.1f), %d hits, pattern=%d", m_ID,
 		 m_GeaneFitDone? m_GRigidity    : m_FRigidity, 
 		 m_GeaneFitDone? m_GErrRigidity : m_FErrRigidity,

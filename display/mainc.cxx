@@ -73,9 +73,11 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
        display.SetView (kTwoView);
+       display.SetApplication(theApp);
       for(int i=1;;i++){
+       amsroot.Clear();
        if(!amsroot.GetEvent(i))break;;
-          display.ShowNextEvent(-1);
+          display.DrawEvent();
           display.GetCanvas()->Update();	// force it to draw
               theApp->Run();
               //              system("sleep 5");       

@@ -27,40 +27,41 @@ ClassImp(AMSTrackReader)
 //
 // The structure for reading data
 //
+const Int_t maxtr=20;
 static struct {
    Int_t           ntrtr;
-   Int_t           trstatus[20];
-   Int_t           pattern[20];
-   Int_t           nhits[20];
-   Int_t           phits[20][6];
-   Int_t           Fastfitdone[20];
-   Int_t           Geanefitdone[20];
-   Int_t           Advancedfitdone[20];
-   Float_t         Chi2strline[20];
-   Float_t         Chi2circle[20];
-   Float_t         Circlerigidity[20];
-   Float_t         Chi2fastfit[20];
-   Float_t         Rigidity[20];
-   Float_t         Errrigidity[20];
-   Float_t         Theta[20];
-   Float_t         phi[20];
-   Float_t         p0[20][3];
-   Float_t         gchi2[20];
-   Float_t         grigidity[20];
-   Float_t         gerrrigidity[20];
-   Float_t         gtheta[20];
-   Float_t         gphi[20];
-   Float_t         gp0[20][3];
-   Float_t         hchi2[20][2];
-   Float_t         Hrigidity[20][2];
-   Float_t         Herrrigidity[20][2];
-   Float_t         htheta[20][2];
-   Float_t         hphi[20][2];
-   Float_t         hp0[20][2];
-   Float_t         fchi2ms[20];
-   Float_t         gchi2ms[20];
-   Float_t         rigidityms[20];
-   Float_t         grigidityms[20];
+   Int_t           trstatus[maxtr];
+   Int_t           pattern[maxtr];
+   Int_t           nhits[maxtr];
+   Int_t           phits[maxtr][6];
+   Int_t           Fastfitdone[maxtr];
+   Int_t           Geanefitdone[maxtr];
+   Int_t           Advancedfitdone[maxtr];
+   Float_t         Chi2strline[maxtr];
+   Float_t         Chi2circle[maxtr];
+   Float_t         Circlerigidity[maxtr];
+   Float_t         Chi2fastfit[maxtr];
+   Float_t         Rigidity[maxtr];
+   Float_t         Errrigidity[maxtr];
+   Float_t         Theta[maxtr];
+   Float_t         phi[maxtr];
+   Float_t         p0[maxtr][3];
+   Float_t         gchi2[maxtr];
+   Float_t         grigidity[maxtr];
+   Float_t         gerrrigidity[maxtr];
+   Float_t         gtheta[maxtr];
+   Float_t         gphi[maxtr];
+   Float_t         gp0[maxtr][3];
+   Float_t         hchi2[maxtr][2];
+   Float_t         Hrigidity[maxtr][2];
+   Float_t         Herrrigidity[maxtr][2];
+   Float_t         htheta[maxtr][2];
+   Float_t         hphi[maxtr][2];
+   Float_t         hp0[maxtr][2][3];
+   Float_t         fchi2ms[maxtr];
+   Float_t         gchi2ms[maxtr];
+   Float_t         rigidityms[maxtr];
+   Float_t         grigidityms[maxtr];
 } _ntuple;
 
 
@@ -82,7 +83,7 @@ AMSTrackReader::AMSTrackReader(const char *name, const char *title)
 {
 //    Default Setters for tracks
 
-   m_Fruits     = new TClonesArray("AMSTrack",4, kFALSE);
+   m_Fruits     = new TClonesArray("AMSTrack",maxtr, kFALSE);
    m_BranchName = "Tracks";
    m_NTracks    = 0;
 // Please, how to do this optionally ??!!!
@@ -112,6 +113,7 @@ AMSTrack *AMSTrackReader::AddTrack(Int_t code, Int_t mcparticle)
 
    TClonesArray &tracks = *(TClonesArray*)m_Fruits;
    return new(tracks[m_NTracks++]) AMSTrack(code,mcparticle);
+   //   return new(tracks[m_NTracks++]) AMSTrack(code,mcparticle);
 }
 
 //_____________________________________________________________________________
@@ -183,11 +185,11 @@ void AMSTrackReader::Make()
 {
 
    Int_t k, i;
-
    m_NTracks = _ntuple.ntrtr;
+   if(m_NTracks >= maxtr)m_NTracks=maxtr;
    debugger.Print("AMSTrackReader::Make(): making %d tracks.\n", m_NTracks);
    TClonesArray &tracks = *(TClonesArray*)m_Fruits;
-   for (k=0; k<_ntuple.ntrtr; k++) {
+   for (k=0; k<m_NTracks; k++) {
       debugger.Print("Making track #%d: status %d, pattern %d, %d hits\n",
 		k, _ntuple.trstatus[k], _ntuple.pattern[k], _ntuple.nhits[k]);
 
