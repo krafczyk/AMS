@@ -214,6 +214,7 @@ if(_Address==1){
    for(int j=0;j<2;j++){
     for(int k=0;k<6;k++){   
        _pPargl[i][j][k].NEntries()=-_gldb[i][j][k].nentries;
+       if(_pPargl[i][j][k].NEntries())cout <<i<<" "<<j<<" "<<k<<" "<<_pPargl[i][j][k].NEntries()<<endl;
     }
    }
   }
@@ -687,7 +688,7 @@ cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<end
     else cout <<"tralig ntuple file "<<filename<<" opened."<<endl;
 
    HBNT(IOPA.ntuple+1,"Tracker Alignment"," ");
-   HBNAME(IOPA.ntuple+1,"TrAlig",(int*)(&TRALIGG),"Alg:I,Layer:I,Ladder:I,Side:I,FCN:R,FCNI:R,PFIT:R,PFITS:R,Coo(3):R,Angle(3):R");
+   HBNAME(IOPA.ntuple+1,"TrAlig",(int*)(&TRALIGG),"Alg:I,Layer:I,Ladder:I,Side:I,FCN:R,FCNI:R,PFIT:R,PFITS:R,Coo(3):R,Angle(3):R,Stat:I");
  
 
   }
@@ -704,6 +705,7 @@ cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<end
           TRALIGG.FCNI=_fcnI;
           TRALIGG.Pfit=_pfit;
           TRALIGG.Pfitsig=_pfits;
+          TRALIGG.Stat=_pPargl[nlad][side][j].NEntries();
            for(k=0;k<3;k++){
             TRALIGG.Coo[k]=_pPargl[nlad][side][j].getcoo()[k];
             TRALIGG.Angle[k]=_pPargl[nlad][side][j].getang()[k];

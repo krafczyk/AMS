@@ -2879,7 +2879,8 @@ void AMSTrTrack::_crHit(){
  //decodeaddress();
  integer found=0;
  AMSTrAligPar * par(0);
- if(!TRALIG.UpdateDB)par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
+ if(AMSTrAligFit::glDBOK(_Address))setstatus(AMSDBc::GlobalDB);
+ if(!TRALIG.UpdateDB &&  !checkstatus(AMSDBc::GlobalDB))par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
   if(found){
    for(int i=0;i<_NHits;i++){
     int plane=patconf[_Pattern][i]-1;
@@ -2902,7 +2903,6 @@ void AMSTrTrack::_crHit(){
     }
    }
   }
-  if(AMSTrAligFit::glDBOK(_Address))setstatus(AMSDBc::GlobalDB);
 }
 
 void AMSTrTrack::_buildaddress(){

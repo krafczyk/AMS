@@ -164,6 +164,7 @@ geant Pfit;
 geant Pfitsig;
 geant Coo[3];
 geant Angle[3];
+integer Stat;
 };
 protected:
 uinteger _Address;
