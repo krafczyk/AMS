@@ -17,7 +17,10 @@ echo $UNAME is not supported yet
 
 fi
 RUN=$1
-$Offline/logs.local/gbatch.exe.db <<!
+AMSDataDir=/hedat0/local/AMSDataDir
+export AMSDataDir
+mkdir $Offline/amsdatantuple.local/alig
+/offline/vdev/exe/$MACHINE/gb <<!
 LIST
 KINE -1
 MULS 1
@@ -34,7 +37,7 @@ C npars ims
   5     1   
 C          Nparticles 
 MISC 1=1 2=2
-IOPA 1=0 2='$Offline/amsdatantuple.local/alig.$RUN.hbk' 43=2
+IOPA 1=0 2='/offline/amsdatantuple.local/alig/alig.$RUN.hbk' 43=2
 45='AMSParticle' 
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
@@ -44,7 +47,7 @@ AMSJOB 1=111   2=0      3=3.   4=1  5=0 6='v203a'
 C Special HP-UX
 TIME 3=10000000
 DAQC 1=1 2='$Offline/RunsDir/runs/$RUN'
-TRALIG 2=0 3=1 4=5999 5=499 6=199      
+TRALIG 2=0 3=1 4=5999 5=499 6=199 67=0.1      
 TERM 1=1234567890
 L3REC  11=1 12=2 
 SELECT 0 -1
