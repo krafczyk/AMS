@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.149 2003/03/12 15:29:34 choutko Exp $
+//  $Id: amsgeom.C,v 1.150 2003/03/12 16:38:01 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2099,15 +2099,20 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 		  // First one made is j=4, in bulkhead 0
 		  
+// temporary disable cutouts completely  VC 12-mar-2003
+/*
+
 #ifdef __G4AMS__
                  if(MISCFFKEY.G4On)
 		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
                  else
 #endif
+
 		  oct[itrd]->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
 			 0,name,"BOX",par,3,coo,nrm,"ONLY", 
 			 j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
 
+*/
 		}
 	    }
 	  }
