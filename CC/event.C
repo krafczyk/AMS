@@ -36,7 +36,10 @@
 #include <user.h>
 #include <signal.h>
 extern "C" void uglast_();
- 
+
+static geant   Tcpu0 = 0; 
+static time_t  T0    = 0;
+
 #ifdef __DB__
 
 #include <dbS.h>
@@ -83,6 +86,7 @@ void AMSEvent::_init(){
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
    cout <<" AMS-I-New Run "<<_run<<endl;
+   if (!SRun && AMSJob::gethead()->isProduction()) _startofrun();
    // get rid of crazy runs
    if(_run<TRMFFKEY.OKAY/10 && AMSJob::gethead()->isRealData()){
      cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
@@ -137,6 +141,83 @@ void AMSEvent::_init(){
   PosGlobal++;
 }
 
+void AMSEvent::_startofrun() {
+ TIMEX(Tcpu0);
+ T0 = time((time_t)0);
+}
+
+void AMSEvent::_endofrun() {
+
+
+ const int NSUBS  = 2;
+ const int RUN    = 0;
+ const int EVENTS = 1;
+ 
+ geant  Tcpu1;
+ time_t T1;
+ char   time1[26];
+ char   time11[17];
+
+ T1 = time((time_t)0);
+ TIMEX(Tcpu1);
+ 
+
+  FILE *runs;
+
+  int   events = -1;       /* events in file   */
+  int   eventsp= PosInRun; /* events processed */
+  char* host;              /* hostname         */
+  char  hh[12];
+
+  int  found = 0;
+
+  char line[256];
+  char *ptr[NSUBS];
+
+  char he[4]  = "He";
+  char ahe[4] = "aHe";
+  char c[4]   = "C";
+  char ac[4]  = "aC";
+  char comp[4];
+
+  geant cputime = Tcpu1 - Tcpu0;
+  strcpy(time1,ctime(&T0));
+  for(int j=0; j<15; j++) time11[j] = time1[j+4];
+  
+  if ((runs=fopen("/offline/runs_Aug.log","r"))==NULL)
+    { 
+      cout<<"Error - file /offruns/runs/runs_Aug.log not found "<<endl;
+    } else {
+     found = 0;
+     while (fgets(line,255,runs)) {
+       ptr[0] = strtok(line," ");
+       for (int j=1; j<NSUBS; j++) ptr[j] = strtok(NULL," ");
+       if (_run == atoi(ptr[RUN])) {
+         found = 1;
+         events = atoi(ptr[EVENTS]);
+         break;
+       }
+     }
+     ofstream rfile("/offline/logs.local/run_prod.log",ios::out|ios::app);
+     rfile.setf(ios::dec);
+     host = getenv("HOST");
+
+     if (host) strcpy(hh,host);
+     if (hh[0] == 'H' || hh[0] == 'h') strcpy(comp,he);
+     if (hh[0] == 'C' || hh[0] == 'c') strcpy(comp,c);
+     if (hh[1] == 'H' || hh[1] == 'h') strcpy(comp,ahe);
+     if (hh[1] == 'C' || hh[1] == 'c') strcpy(comp,ac);
+
+     rfile<<setw(10)<<_run<<" "<<setw(7)<<events<<" "<<setw(7)<<eventsp<<" "
+          <<setw(7)<<T1-T0<<setw(7)<<cputime<<" "<<setw(16)<<time11
+          <<setw(7)<<comp<<endl;
+
+      rfile.close();
+    fclose(runs);
+    }
+
+}
+
 void AMSEvent::_siamsinitrun(){
 _sitkinitrun();
 _sitofinitrun();
@@ -144,11 +225,14 @@ _siantiinitrun();
 _sictcinitrun();
 }
 
+
 void AMSEvent::_reamsinitrun(){
 if(!SRun && AMSJob::gethead()->isProduction()){
   AMSJob::gethead()->uhinit(getrun(),getid());
   AMSJob::map(1);
+  if (_run != SRun) _endofrun();
 }
+
 _retkinitrun();
 _retofinitrun();
 _reantiinitrun();

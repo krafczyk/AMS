@@ -117,6 +117,10 @@ void _cactcevent();
 void _caaxevent();
 void _validate(int i=0);
 void _collectstatus();
+
+void _startofrun();
+void _endofrun();
+
 //+
 void _validateDB();
 //-
