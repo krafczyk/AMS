@@ -1,7 +1,11 @@
 //           
 // Sep 17, 1997 ak. print content of TDV
 //
-// Last Edit : Oct 14, 1997. 
+// Last Edit : March 3, 1998.
+// 
+// arg[0] - print mode
+// arg[1] - objname
+// arg[2] -  container name 
 //
 #include <iostream.h>
 #include <strstream.h>
@@ -162,6 +166,7 @@ int main(int argc, char** argv)
  char*                  printMode = "S";
  char*                  cptr;
  char*                  contName = "Time_Dep_Var";
+ char                   objName[120];
 
  time_t                 insert;
  time_t                 begin;
@@ -176,19 +181,24 @@ int main(int argc, char** argv)
  ooItr(AMSTimeIDD)      tdvItr;
  
  int                    i, j, k;
+ int                     allObj = 1;
 
  cptr = getenv("OO_FD_BOOT");
  if (!cptr) Fatal("environment OO_FD_BOOT in undefined");
 
  cout<<" "<<endl;
- if(argc > 2)  contName  = argv[2];
+ objName[0] = '\0';
+
+ if(argc > 2)  {allObj = 0;  strcpy(objName, argv[2]);}
+ if(argc > 3)  contName  = argv[3];
  if(argc > 1)  printMode = argv[1];
 
- if (argc > 2) {
-   cout<<"TDV container "<<contName<<", mode "<<printMode<<endl;
- } else {
+ if (argc > 2) 
+   cout<<"TDV object "<<objName<<" from container "<<contName
+       <<", mode "<<printMode<<endl;
+ else 
    cout<<"all TDV containers, mode "<<printMode<<endl;
- }
+ 
 
  
  // if oosession has not been initialised do it now
@@ -235,9 +245,16 @@ int main(int argc, char** argv)
     }
    }
   }
-      rstatus = tdvItr.scan(contH, oocRead);
+  if (!allObj && strlen(objName)) {
+   char pred[130];
+   (void) sprintf(pred,"_name=~%c%s%c",'"',objName,'"');
+   tdvItr.scan(contH,oocRead,oocAll,pred);
+  } else {
+    rstatus = tdvItr.scan(contH, oocRead);
+  }
       while (tdvItr.next()) {
        char* name = tdvItr -> getname();
+      
        tdvt[nobj].setname(name);
        tdvItr -> GetTime(insert, begin, end);
        tdvt[nobj].settime(insert, begin, end);
@@ -282,12 +299,14 @@ int main(int argc, char** argv)
  if (tdvt) delete [] tdvt; 
 
  for (i=0; i< ntdv; i++) {
+  if (ptr_end[i]>-1) {
    cout<<tdvnames[i]<<endl;
    for (int j=ptr_start[i]; j<ptr_end[i]; j++) {
      cout<<"id... "<<tdv[j]._id<<endl;
      ooRef(AMSTimeIDD) ref = tdv[j]._ref;
      if (ref) ref -> PrintTime();
    }
+  }
  }  
 
  lms.Commit();

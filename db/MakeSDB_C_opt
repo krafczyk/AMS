@@ -8,8 +8,9 @@
 # V2.01    Apr 10, 1997. new version of CXX, no cxxfix for Alpha anymore
 # V2.02    May   , 1997. lms are replaced by dbA
 # V2.10    Feb  7, 1998. jobDB, eventDB, timeidDB
+#          Mar   , 1998. c++ with optimization
 #
-# Last Edit : Feb 07, 1998. ak
+# Last Edit : Mar 11, 1998. ak
 #
 #
 
