@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.134 2003/07/08 16:30:27 choutko Exp $
+//  $Id: particle.C,v 1.135 2003/07/09 14:54:36 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -489,6 +489,7 @@ void AMSParticle::richfit(){
     RICHDB::ring_fraction(_ptrack,direct,reflected,length,_prich->getbeta());
     _RichPathBeta[0]=direct;
     _RichPathBeta[1]=reflected;
+    _prich->setstatus(AMSDBc::USED);
   }
 
 }
