@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.68 2003/06/19 15:25:00 isevilla Exp $
+//  $Id: event.h,v 1.69 2003/06/20 15:08:41 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -231,9 +231,9 @@ void SetTimeCoo(integer rec=0);
 void GetGeographicCoo(number & pole, number & theta, number &phi){
 pole=_NorthPolePhi;theta=_StationTheta;phi=_StationPhi;}
 geant GetStationRad() const{return _StationRad;}
-geant GetISSCoo(number & ra, number & dec){
+void GetISSCoo(number & ra, number & dec){
   ra=_StationRa;dec=_StationDec;} // ISN 
-geant GetAMSCoo(number & ra, number & dec){
+void GetAMSCoo(number & ra, number & dec){
   ra=_AMSRa;dec=_AMSDec;} // ISN 
 static void  sethead(AMSEvent* head) 
 { _Head=head;if(_Head)AMSEvent::EventMap.map(*_Head);}
