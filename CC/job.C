@@ -958,6 +958,7 @@ if(CCFFKEY.Fast){
  GCPHYS.IANNI=0;
  TRMCFFKEY.NoiseOn=0;
  TRFITFFKEY.FastTracking=4;
+ LVL3FFKEY.Accept=32;
  cout <<"AMSJob::udata-W-FastSimSelectedSomeDatacardsWereRedefined"<<endl;
 }
 

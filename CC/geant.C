@@ -354,9 +354,6 @@ extern "C" void guout_(){
       UPool.erase(0);
       return;
    }
-   catch (AMSLVL3Error e){
-     // No LVL3
-   }
       if(GCFLAG.IEVENT%GCFLAG.ITEST==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
          GCFLAG.IEVENT==GCFLAG.NEVENT)
       AMSEvent::gethead()->printA(AMSEvent::debug);

@@ -958,10 +958,15 @@ void AMSEvent::event(){
    //_status=AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun());
    AMSgObj::BookTimer.stop("EventStatus");
     AMSUser::InitEvent();
+   try{
     if(AMSJob::gethead()->isSimulation())_siamsevent();
     _reamsevent();
     if(AMSJob::gethead()->isCalibration())_caamsevent();
     _collectstatus();
+   }
+   catch (AMSLVL3Error e){
+     // No LVL3
+   }
     if(AMSStatus::isDBWriteR()){
       AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());
     }
@@ -1179,7 +1184,7 @@ AMSgObj::BookTimer.start("RETKEVENT");
   //if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
   AMSgObj::BookTimer.stop("RETKEVENT");
 }
-else throw AMSLVL3Error("LVL3NotCreated");  
+// else throw AMSLVL3Error("LVL3NotCreated");  
 }
 //----------------------------------------------------------
 void AMSEvent::_reantievent(){

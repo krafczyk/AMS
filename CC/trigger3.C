@@ -882,9 +882,11 @@ void TriggerLVL3::builddaq(integer i, integer n, int16u *p){
   getheadC("TriggerLVL3",i);
   *p=getdaqid(i);
   if(ptr){
+    integer toftr=ptr->_TOFTrigger;
+    if(toftr==-1)toftr=255;
     uinteger tra=ptr->TrackerTriggerS();
     *(p+1)=int16u(tra);
-    *(p+2)=(ptr->_TOFTrigger) | ((ptr->_AntiTrigger)<<8);
+    *(p+2)=(toftr) | ((ptr->_AntiTrigger)<<8);
     int16 res=int16(ptr->_Residual[0]*1000);
     *(p+3)=int16u(res);
     res=int16(ptr->_Residual[1]*1000);
@@ -914,6 +916,7 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  //tra=(*(p+1)%32);   // tmp probg
  tra=(*(p+1));   // tmp probg
  tof=(*(p+2))&255;
+ if(tof==255)tof=-1;
  anti=((*(p+2))>>8)&255;
  res[0]=int16(*(p+3))/1000.;
  res[1]=int16(*(p+4))/1000.;

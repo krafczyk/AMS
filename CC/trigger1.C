@@ -172,7 +172,7 @@ void TriggerLVL1::builddaq(integer i, integer n, int16u *p){
    }
 
   // Word 2 Z > 1
-  if(ptr->_tofflag==3)*(p+2)=*(p+2) | (1<<4);
+  if((ptr->_tofflag)%10==3)*(p+2)=*(p+2) | (1<<4);
   if(ptr->_tofflag>10)*(p+2)=*(p+2) | (1<<5);
 
   // Words 3-10  
