@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.109 2002/07/17 10:46:54 delgadom Exp $
+//  $Id: ntuple.C,v 1.110 2002/07/18 12:00:06 alexei Exp $
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
@@ -406,8 +406,6 @@ void AMSNtuple::initR(char* fname){
    _tree= new TTree("AMSRoot","AMS Ntuple Root");
     static void *pev1=(void*)&_evroot02;
    TBranch *b1=_tree->Branch("evroot02.","EventRoot02",&pev1,64000,branchSplit); 
-   //    static void *pev2=(void*)&_event02;
-   //   TBranch *b2=_tree->Branch("event02.","EventNtuple02",&pev2,64000,branchSplit); 
 #endif
 #ifndef __WRITEROOT__
 cerr <<" RootFileOutput is Not supported in this version "<<endl;
@@ -420,6 +418,8 @@ void AMSNtuple::writeR(){
     if(!_lun )_Nentries++;
      _tree->Fill();
     }
+    //    deleteClones();
+    //    createClones();
 #endif
 }
 
