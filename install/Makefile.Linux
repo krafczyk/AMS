@@ -11,6 +11,10 @@ ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
  RH9add=-pthread  /usr/lib/ctype-info.o
 endif
 
+ifeq "$(wildcard /usr/lib/ctype-info.cc)" ""
+ RH9add=
+endif
+
 CERN_LEVEL = 2001
 CERNDIR = /cern/$(CERN_LEVEL)
 CERNSRCDIR = /cern/$(CERN_LEVEL)
