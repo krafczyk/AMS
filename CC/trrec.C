@@ -1304,6 +1304,7 @@ integer AMSTrTrack::build(integer refit){
                 // 5 point combination found
              if(AMSTrTrack::_addnext(pat,5,phit)){
                   NTrackFound++;
+                 ThreePointNotWanted=1;
                   goto out;
              }
                 
@@ -2688,10 +2689,12 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
     else return -1;
   }
+          integer       ThreePointNotWanted=0;
 
   for (int pat=0;pat<npat;pat++){
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(TRFITFFKEY.pattern[pat]){
+    if(patpoints[pat]==3 && ThreePointNotWanted)continue;
       int fp=patpoints[pat]-1;    
       // Try to make StrLine Fit
       integer first=AMSTrTrack::patconf[pat][0]-1;
@@ -2740,6 +2743,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
               if(AMSTrTrack::_addnext(pat,6,phit)){
                   // cout << "FalseTOFX track found with 5 hits" << endl;
                   NTrackFound++;
+                   ThreePointNotWanted=1;
                   goto out;
               }                
                 
@@ -2752,6 +2756,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
              if(AMSTrTrack::_addnext(pat,5,phit)){
                   // cout << "FalseTOFX track found with 5 hits" << endl;
                   NTrackFound++;
+                   ThreePointNotWanted=1;
                   goto out;
              }
                 
