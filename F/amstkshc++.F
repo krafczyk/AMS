@@ -796,7 +796,7 @@ CDECK  ID>, ABSIIN.
 *        a_p,t atomic weight
 *        z_p,t 
 *        output p_sec(6,1000)   // as in gkin
-         real *8 p_sec(6,*)
+         real *4 p_sec(6,*)
          real *4 u(3),pmom_p(6)
          a_p=int(a_p+0.5)
          ekin=(pmom_p(6)-pmom_p(5))/a_p
@@ -1398,7 +1398,7 @@ CDE, FCONS.
       REAL RNDMm(1)
       real *4 pmom_p(6),pmom_t(6)
       parameter (nsecm=1000)
-      real *8 p_sec(6,nsecm)
+      real *4 p_sec(6,nsecm)
 *
       NP = 0
 *
