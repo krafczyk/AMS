@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.176 2004/10/06 13:16:04 alcaraz Exp $
+//  $Id: trrec.C,v 1.177 2004/11/23 17:30:07 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1230,6 +1230,7 @@ for(int i=0;i<TKDBc::nlay();i++){
 }
 
 geant AMSTrTrack::_Time=0;
+time_t AMSTrTrack::__Time=0;
 geant AMSTrTrack::_TimeLimit=0;
 
 
@@ -3604,7 +3605,11 @@ integer AMSTrTrack::_TrSearcherFalseX(int icall){
 }
 
 bool AMSTrTrack::_NoMoreTime(){
-return _TimeLimit>0? _CheckTime()>_TimeLimit: _CheckTime()>AMSFFKEY.CpuLimit;
+static unsigned int count=0;
+if(! AMSCommonsI::remote() || (count++)%512==0 ){
+ return _TimeLimit>0? _CheckTime()>_TimeLimit: _CheckTime()>AMSFFKEY.CpuLimit;
+}
+else return false;
 }
 
 

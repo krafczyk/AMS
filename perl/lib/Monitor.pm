@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.81 2004/11/08 17:25:29 choutko Exp $
+# $Id: Monitor.pm,v 1.82 2004/11/23 17:30:14 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -695,6 +695,9 @@ sub getactivehosts{
        my $rdst=$Monitor::Singleton->{rtb}[$j];
        $total+=$rdst->{LastEvent}+1-$rdst->{FirstEvent};
        my $rdstc=$rdst->{cinfo};
+       if($rdst->{Status} eq "Failed" and (not ($rdst->{FilePath} =~/laser/))){
+          warn "  Run $rdst->{Run}  $rdst->{FilePath} \n";
+       }
        if( $rdst->{Status} eq "Finished" or $rdst->{Status} eq "Processing"){
            $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
            $tevt+=$rdstc->{EventsProcessed};
@@ -1716,8 +1719,57 @@ sub ResetFailedRuns{
 }
 
 
-sub RestoreRuns2{
+sub RestoreRuns{
+
  my $ref=shift;
+
+
+#
+# case than runs disappered from run table on server
+#
+
+#
+# kill double runs
+#
+      my %rdst; 
+      for my $j (0 ... $#{$ref->{rtb}}){
+        %rdst=%{${$ref->{rtb}}[$j]};
+#         warn " run $rdst{Run} \n";
+        my %rdst2; 
+       for my $k ($j+1...$#{$ref->{rtb}}){
+        %rdst2=%{${$ref->{rtb}}[$k]};
+      if( $rdst{Run} eq $rdst2{Run}){
+          warn "  Deleting $rdst{Run} \n";
+        my $arsref;
+        foreach $arsref (@{$ref->{arpref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst2,"Delete");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst2,"Delete");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+
+       
+    }
+  }
+}
+return;
+
+
+
+
+
  my $dir;
 # get amsdatadir
      for my $i (0 ... $#{$Monitor::Singleton->{env}}){
@@ -1763,6 +1815,8 @@ foreach my $file (@allfiles){
         my $buf;
         read(FILE,$buf,16384000) or next;
         close FILE;
+        $rdst{Priority}=0;
+        $rdst{CounterFail}=0;
         $rdst{Run}=$id;
         $maxrun=$maxrun+1;
         $rdst{uid}=$maxrun;
@@ -1866,6 +1920,8 @@ foreach my $file (@allfiles){
         $rdst{Run}=$id;
         $maxrun=$maxrun+1;
         $rdst{uid}=$maxrun;
+        $rdst{Priority}=0;
+        $rdst{CounterFail}=0;
         $rdst{FirstEvent}=1;
         $rdst{FilePath}=$file;
         $rdst{History}="ToBeRerun";
@@ -1936,7 +1992,7 @@ FoundRun2:
 
 
 
-sub RestoreRuns{
+sub RestoreRuns1{
 #  in case if runs are in scripts, but not in server
 #
  my $ref=shift;

@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.81 2004/10/06 13:16:06 alcaraz Exp $
+//  $Id: trrec.h,v 1.82 2004/11/23 17:30:12 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -319,11 +319,13 @@ number _PIChi2;
 
 void SimpleFit(AMSPoint err);
 void VerySimpleFit(AMSPoint err);
-static void _Start(){TIMEX(_Time);}
+static void _Start(){TIMEX(_Time);time(&__Time);}
 static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
+static int _CheckTimeE(){time_t tt1;time(&tt1);return tt1-__Time;}
 
 static bool _NoMoreTime();
 static geant _Time;
+static time_t __Time;
 static geant _TimeLimit;
   void _printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Rigidity (no MS)" << 
   _RigidityWithoutMS <<" Rigidity (Fast) "<<_Ridgidity <<" Chi2Fast " << 

@@ -1,8 +1,9 @@
-//  $Id: commons.C,v 1.276 2004/11/15 14:07:29 choutko Exp $
+//  $Id: commons.C,v 1.277 2004/11/23 17:30:06 choutko Exp $
 
 
-
-
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/time.h>
 #include <commons.h>
 #include <stdlib.h>
 #include <iostream.h>
@@ -79,6 +80,8 @@ uinteger AMSCommonsI::_build=131;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
+pid_t AMSCommonsI::_pid=0;
+bool AMSCommonsI::_remote=false;
 AMSCommonsI::AMSCommonsI(){
   init();
 }
@@ -174,7 +177,7 @@ void AMSCommonsI::init(){
        AMSDBc dummy;
        AMSDBc::amsdatabase=new char[strlen(AMSDATADIR.amsdatabase)+1];
        strcpy(AMSDBc::amsdatabase,AMSDATADIR.amsdatabase);
-
+       _pid=getpid();
        //  get mips
        char *fname = tempnam("/tmp",NULL);
        char syscom[255];

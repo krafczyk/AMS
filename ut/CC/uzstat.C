@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.11 2003/03/04 13:09:23 choutko Exp $
+//  $Id: uzstat.C,v 1.12 2004/11/23 17:30:07 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <uzstat.h>
@@ -7,6 +7,8 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
+#include <fstream.h>
+#include <commons.h>
  extern "C" float etime_(float ar[]);
 
 AMSStat::AMSStat():AMSNodeMap(){
@@ -78,14 +80,14 @@ return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry*_freq<<" "<<se
 extern "C" number HighResTime(){
 
  static float ar[2];
-
+ static unsigned int count=0;
+  static float ltime=0;
 #ifdef __ALPHAOLD__
  static number ETimeLast;
  static timeval  TPSLast;
  static struct timezone  TZ;
  static timeval TPS;
  static integer init=0;
-
   const number TRes=0.002;
 
 if(init++ ==0){
@@ -104,7 +106,6 @@ else {
   // Try to get more high res
   //
 gettimeofday(&TPS,&TZ);
-number ltime=
 number(TPS.tv_sec-TPSLast.tv_sec)+1.e-6*(TPS.tv_usec-TPSLast.tv_usec);
 TPSLast.tv_sec=TPS.tv_sec;
 TPSLast.tv_usec=TPS.tv_usec;
@@ -118,7 +119,35 @@ return ETimeLast;
  hrtime_t nsec=gethrtime();
   return double(nsec)*1e-9;
 #else
-return etime_(ar);
+if(!AMSCommonsI::remote()){
+  ltime=etime_(ar);
+  count++;
+}
+else if((count++)%128==0){
+  clock_t clicks = clock();
+  ltime=( (float) clicks / CLOCKS_PER_SEC );
+}
+
+if((count)%4095==0){
+       ifstream fbin;
+        fbin.open("/proc/self/where");
+        if(fbin){
+         int node=-1;
+          fbin>>node;
+         if(node!=0){
+          if(!AMSCommonsI::remote())cout <<"AMSTimeID::validate-I-Remote Client Detected "<<endl;
+          AMSCommonsI::setremote(true);
+         }
+         else{
+           AMSCommonsI::setremote(false); 
+        }
+        }
+        else{
+         AMSCommonsI::setremote(false); 
+        }    
+        fbin.close();
+}
+return ltime;
 #endif
 #endif
 

@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.80 2003/05/22 12:25:53 choutko Exp $
+//  $Id: timeid.C,v 1.81 2004/11/23 17:30:07 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -13,6 +13,7 @@
 #include <amsdbc.h>
 #include <amsstl.h>
 #include <stdio.h>
+#include <commons.h>
 #ifdef __CORBA__
 #include <producer.h>
 #endif
@@ -138,6 +139,7 @@ integer AMSTimeID::CopyOut  (void *pdata)const {
 
 integer AMSTimeID::validate(time_t & Time, integer reenter){
 
+
 #ifndef __DB__
 int ok = readDB(AMSDBc::amsdatabase,Time,reenter);
 #endif
@@ -148,7 +150,7 @@ int ok = readDB();
 
 if (Time >= _Begin && Time <= _End){
   if(ok==-1 || _CRC == _CalcCRC()){
-     return 1;
+        return 1;
   }
   else {
       cerr<<"AMSTimeID::validate-S-CRC Error "<<getname()<<" Old CRC "
@@ -273,6 +275,28 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
 }
 
 bool AMSTimeID::read(const char * dir,int run, time_t begin,int index){
+
+//   Add check remote client here
+        ifstream fbin;
+        fbin.open("/proc/self/where");
+        if(fbin){
+         int node;
+          fbin>>node;
+         if(node!=0){
+          if(!AMSCommonsI::remote())cout <<"AMSTimeID::validate-I-Remote Client Detected "<<endl;
+          AMSCommonsI::setremote(true);
+         }
+         else{
+           AMSCommonsI::setremote(false); 
+        }
+        }
+        else{
+         AMSCommonsI::setremote(false); 
+        }    
+        fbin.close();
+
+
+
 if(_Type!=Client){
     enum open_mode{binary=0x80};
     fstream fbin;
