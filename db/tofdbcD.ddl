@@ -1,7 +1,7 @@
 // Objectivity class Oct 08, 1996 ak.
 // ( origianal TOFDBcD class by E.Choumilov 13.06.96.)
 //
-// Last Edit : May 23, 1997. 
+// Last Edit : Nov 3, 1997. 
 //
 //
 #include <string.h>
@@ -22,6 +22,10 @@ private:
   geant   _plnstr[15];       // sc. plane structure param.
 // MC/RECO constants:
   geant _edep2ph;     // MC edep(Mev)-to-Photons convertion
+//
+  geant _seresp;      // PMT single elec.responce (mV on 50 Ohm, MP=MEAN)
+  geant _seresv;      // ........................ variations (relat to MP) 
+//
   geant _fladctb;     // MC flash-ADC time binning (ns)
   geant _shaptb;      // MC shaper pulse time binning
   geant _shrtim;      // MC shaper pulse rise time (ns)
@@ -40,7 +44,6 @@ private:
   geant _fstdcd;
   geant _fatdcd;
   geant _pbonup;  
-
 //
 public:  
 // constructor;

@@ -1164,7 +1164,7 @@ while(offspring){
        offspring -> gettime(i,b,e);
        if (i==I && b==B && e==E) {
 #ifdef __AMSDEBUG__
-         cout<<"AMSEvent::_validate-I- i,b,e are up to date"<<endl;
+         //cout<<"AMSEvent::_validate-I- i,b,e are up to date"<<endl;
 #endif
        } else {
          cerr<<"AMSEvent::_validate-W- i,b,e need to be updated "<<endl;

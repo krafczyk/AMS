@@ -2,7 +2,7 @@
 //                   method source file of object AMSDBcD
 //                   AMBIG, BAD, USED, DELETED are not compared.
 //
-// Last Edit : Sep 15, 1997. ak.
+// Last Edit : Nov 3, 1997. ak.
 //
 
 #include <iostream.h>
@@ -12,29 +12,32 @@
 
 #include <amsdbc.h>
 #include <amsdbcD.h>
-//
 
 AMSDBcD:: AMSDBcD() 
 {
-  integer i, j;
+  integer i, j, k;
 
-  _maxstripsD = AMSDBc::_maxstrips;
-  _nlayD      = AMSDBc::_nlay;
-  _maxnladD   = AMSDBc::_maxnlad;
+  _nlay      = AMSDBc::_nlay;
+  _maxnlad   = AMSDBc::_maxnlad;
 
   for (i = 0; i<nl; i++) {
     for (j=0; j<5; j++) {
-      _laydD[i][j] = AMSDBc::_layd[i][j];
+      _layd[i][j] = AMSDBc::_layd[i][j];
     }
   }
 
   for (i=0; i<nl; i++) {
-   _zposlD[i] = AMSDBc::_zposl[i];
-   _nladD[i]  = AMSDBc::_nlad[i];
-   _zposD[i]  = AMSDBc::_zpos[i];
-   _c2cD[i]   = AMSDBc::_c2c[i];
-    _silicon_zD[i]     = AMSDBc::_silicon_z[i];
-   _support_wD[i]      = AMSDBc::_support_w[i];
+   _xposl[i] = AMSDBc::_xposl[i];
+   _yposl[i] = AMSDBc::_yposl[i];
+   _zposl[i] = AMSDBc::_zposl[i];
+   _nlad[i]  = AMSDBc::_nlad[i];
+   _zpos[i]  = AMSDBc::_zpos[i];
+   _c2c[i]   = AMSDBc::_c2c[i];
+    _silicon_z[i]     = AMSDBc::_silicon_z[i];
+   _support_foam_w[i]      = AMSDBc::_support_foam_w[i];
+   _support_hc_w[i]      = AMSDBc::_support_hc_w[i];
+   _support_hc_r[i]      = AMSDBc::_support_hc_r[i];
+   _support_hc_z[i]      = AMSDBc::_support_hc_z[i];
    _nladshuttle[i]     = AMSDBc::_nladshuttle[i];
    _boundladshuttle[i] = AMSDBc::_boundladshuttle[i];
    _halfldist[i]       = AMSDBc::_halfldist[i];
@@ -42,28 +45,41 @@ AMSDBcD:: AMSDBcD()
 
   for (i = 0; i<nl; i++) {
     for (j=0; j<nld; j++) {
-      _nsenD[i][j]  = AMSDBc::_nsen[i][j];
-      _nhalfD[i][j] = AMSDBc::_nhalf[i][j];
+      _nsen[i][j]  = AMSDBc::_nsen[i][j];
+      _nhalf[i][j] = AMSDBc::_nhalf[i][j];
     }
   }
 
   for (i = 0; i<nl; i++) {
     for (j=0; j<2; j++) {
-      _ssize_activeD[i][j]    = AMSDBc::_ssize_active[i][j];
-      _ssize_inactiveD[i][j]  = AMSDBc::_ssize_inactive[i][j];
-      _nstripssenD[i][j]      = AMSDBc::_nstripssen[i][j];
-      _nstripsdrpD[i][j]      = AMSDBc::_nstripsdrp[i][j];
-      _zelecD[i][j]           = AMSDBc::_zelec[i][j];
+      _ssize_active[i][j]    = AMSDBc::_ssize_active[i][j];
+      _ssize_inactive[i][j]  = AMSDBc::_ssize_inactive[i][j];
+      _nstripssen[i][j]      = AMSDBc::_nstripssen[i][j];
+      _nstripsdrp[i][j]      = AMSDBc::_nstripsdrp[i][j];
     }
   }
 
-  raddegD = AMSDBc::raddeg;
-  piD     = AMSDBc::pi;
+  for (i = 0; i<nl; i++) {
+    for (j=0; j<3; j++) {
+      _zelec[i][j]           = AMSDBc::_zelec[i][j];
+    }
+  }
+
+  for (i=0; i<nl; i++) {
+    for (j=0; j<3; j++) {
+      for (k=0; k<3; k++) {
+        _nrml[i][j][k] = AMSDBc::_nrml[i][j][k];
+      }
+    }
+  }
+ 
+  raddeg  = AMSDBc::raddeg;
+  pi      = AMSDBc::pi;
   twopi   = AMSDBc::twopi;
 
   for (i=0; i<3; i++) {
-   ams_sizeD[i] = AMSDBc::ams_size[i];
-   ams_cooD[i]  = AMSDBc::ams_coo[i];
+   ams_size[i] = AMSDBc::ams_size[i];
+   ams_coo[i]  = AMSDBc::ams_coo[i];
   }
 
   AMBIG   = AMSDBc::AMBIG;
@@ -73,54 +89,60 @@ AMSDBcD:: AMSDBcD()
 
   BigEndian = BigEndian;
 
-  if(AMSDBc::ams_name) strcpy (ams_nameD,AMSDBc::ams_name);  
+  if(AMSDBc::ams_name) strcpy (ams_name,AMSDBc::ams_name);  
 }
 
 ooStatus AMSDBcD::CmpConstants() 
 {
-  integer i, j;
+  integer i, j, k;
   ooStatus rstatus = oocSuccess;  
 
-  if ( (_maxstripsD != AMSDBc::_maxstrips) ||
-       (_nlayD != AMSDBc::_nlay)           ||
-       (_maxnladD != AMSDBc::_maxnlad)) {
+  if ( (_nlay    != AMSDBc::_nlay) || (_maxnlad != AMSDBc::_maxnlad)) {
       rstatus = oocError;
-      cout<<" _maxstrips, _nlay, _maxnlad "
-          << _maxstripsD<<" "<<_nlayD<<" "<<_maxnladD<< endl;
-      cout<<" _maxstrips, _nlay, _maxnlad "
-          << AMSDBc::_maxstrips<<" "<<AMSDBc::_nlay<<" "<<AMSDBc::_maxnlad 
-          << endl;
+      cout<<" _nlay, _maxnlad "<<_nlay<<" "<<_maxnlad<< endl;
+      cout<<" _nlay, _maxnlad "<<AMSDBc::_nlay<<" "<<AMSDBc::_maxnlad<< endl;
   }
 
   for (i = 0; i<nl; i++) {
     for (j=0; j<5; j++) {
-      if(_laydD[i][j] != AMSDBc::_layd[i][j]) 
+      if(_layd[i][j] != AMSDBc::_layd[i][j]) 
         {
          rstatus = oocError;
-         cout <<"layd "<<_laydD[i]<<" "<<AMSDBc::_layd[i]<<endl;
+         cout <<"layd "<<_layd[i]<<" "<<AMSDBc::_layd[i]<<endl;
          break;
         }
     }
   }
 
   for (i=0; i<nl; i++) {
-    if((_zposlD[i] != AMSDBc::_zposl[i]) ||
-       (_nladD[i]  != AMSDBc::_nlad[i])  ||
-       (_zposD[i]  != AMSDBc::_zpos[i])  ||
-       (_c2cD[i]   != AMSDBc::_c2c[i])   ||
-       (_silicon_zD[i]      != AMSDBc::_silicon_z[i])       ||
-       (_support_wD[i]      != AMSDBc::_support_w[i])       ||
-       (_nladshuttle[i]     != AMSDBc::_nladshuttle[i])     ||
-       (_boundladshuttle[i] != AMSDBc::_boundladshuttle[i]) ||
-       (_halfldist[i]       != AMSDBc::_halfldist[i]))
+    if((_zposl[i] != AMSDBc::_zposl[i]) ||
+       (_xposl[i] != AMSDBc::_xposl[i]) ||
+       (_yposl[i] != AMSDBc::_yposl[i]) ||
+       (_nlad[i]  != AMSDBc::_nlad[i])  ||
+       (_zpos[i]  != AMSDBc::_zpos[i])  ||
+       (_c2c[i]   != AMSDBc::_c2c[i])   ||
+       (_silicon_z[i]           != AMSDBc::_silicon_z[i])       ||
+       (_support_foam_w[i]      != AMSDBc::_support_foam_w[i])  ||
+       (_support_hc_w[i]        != AMSDBc::_support_hc_w[i])    ||
+       (_support_hc_r[i]        != AMSDBc::_support_hc_r[i])    ||
+       (_support_hc_z[i]        != AMSDBc::_support_hc_z[i])    ||
+       (_nladshuttle[i]         != AMSDBc::_nladshuttle[i])     ||
+       (_boundladshuttle[i]     != AMSDBc::_boundladshuttle[i]) ||
+       (_halfldist[i]           != AMSDBc::_halfldist[i]))
       {
         rstatus = oocError;
-        cout<<"zposl "<<_zposlD[i]<<" "<<AMSDBc::_zposl[i]<<endl;
-        cout<<"nlad "<<_nladD[i] <<" "<<AMSDBc::_nlad[i]<<endl;
-        cout<<"zpos "<<_zposD[i]<<" "<<AMSDBc::_zpos[i]<<endl;
-        cout<<"c2c "<<_c2cD[i]<<" "<<AMSDBc::_c2c[i]<<endl;
-        cout<<"silicon z"<<_silicon_zD[i]<<" "<<AMSDBc::_silicon_z[i]<<endl;
-        cout<<"support_w"<<_support_wD[i]<<" "<<AMSDBc::_support_w[i]<<endl;
+        cout<<"xposl "<<_xposl[i]<<" "<<AMSDBc::_xposl[i]<<endl;
+        cout<<"yposl "<<_yposl[i]<<" "<<AMSDBc::_yposl[i]<<endl;
+        cout<<"zposl "<<_zposl[i]<<" "<<AMSDBc::_zposl[i]<<endl;
+        cout<<"nlad "<<_nlad[i] <<" "<<AMSDBc::_nlad[i]<<endl;
+        cout<<"zpos "<<_zpos[i]<<" "<<AMSDBc::_zpos[i]<<endl;
+        cout<<"c2c "<<_c2c[i]<<" "<<AMSDBc::_c2c[i]<<endl;
+        cout<<"silicon z"<<_silicon_z[i]<<" "<<AMSDBc::_silicon_z[i]<<endl;
+        cout<<"support_foam_w"<<_support_foam_w[i]<<" "
+            <<AMSDBc::_support_foam_w[i]<<endl;
+        cout<<"support_hc_w"<<_support_hc_w[i]<<" "<<AMSDBc::_support_hc_w[i]<<endl;
+        cout<<"support_hc_r"<<_support_hc_r[i]<<" "<<AMSDBc::_support_hc_r[i]<<endl;
+        cout<<"support_hc_z"<<_support_hc_z[i]<<" "<<AMSDBc::_support_hc_z[i]<<endl;
         cout<<"n_ladshuttle "<<_nladshuttle[i]<<" "
              <<AMSDBc::_nladshuttle[i]<<endl;
         cout<<"boundladshuttle "<<_boundladshuttle[i]<<" "
@@ -133,12 +155,12 @@ ooStatus AMSDBcD::CmpConstants()
 
   for (i = 0; i<nl; i++) {
     for (j=0; j<nld; j++) {
-     if( (_nsenD[i][j]  != AMSDBc::_nsen[i][j]) ||
-         (_nhalfD[i][j] != AMSDBc::_nhalf[i][j]) )
+     if( (_nsen[i][j]  != AMSDBc::_nsen[i][j]) ||
+         (_nhalf[i][j] != AMSDBc::_nhalf[i][j]) )
       {
         rstatus = oocError;
-        cout<<"nsen "<<_nsenD[i][j]<<" "<<AMSDBc::_nsen[i][j]<<endl;
-        cout<<"nhalf "<<_nhalfD[i][j]<<" "<<AMSDBc::_nhalf[i][j]<<endl;
+        cout<<"nsen "<<_nsen[i][j]<<" "<<AMSDBc::_nsen[i][j]<<endl;
+        cout<<"nhalf "<<_nhalf[i][j]<<" "<<AMSDBc::_nhalf[i][j]<<endl;
         break;
       }
     }
@@ -146,49 +168,71 @@ ooStatus AMSDBcD::CmpConstants()
 
   for (i = 0; i<nl; i++) {
     for (j=0; j<2; j++) {
-     if( (_ssize_activeD[i][j]  != AMSDBc::_ssize_active[i][j]) ||
-         (_ssize_inactiveD[i][j]  != AMSDBc::_ssize_inactive[i][j]) ||
-         (_nstripssenD[i][j]      != AMSDBc::_nstripssen[i][j]) ||
-        (_nstripsdrpD[i][j]      != AMSDBc::_nstripsdrp[i][j]) ||
-        (_zelecD[i][j]           != AMSDBc::_zelec[i][j]) )
+     if( (_ssize_active[i][j]  != AMSDBc::_ssize_active[i][j]) ||
+         (_ssize_inactive[i][j]  != AMSDBc::_ssize_inactive[i][j]) ||
+         (_nstripssen[i][j]      != AMSDBc::_nstripssen[i][j]) ||
+         (_nstripsdrp[i][j]      != AMSDBc::_nstripsdrp[i][j]) )
       {
         rstatus = oocError;
-        cout<<"ssize_acive "<<_ssize_activeD[i][j]
+        cout<<"ssize_acive "<<_ssize_active[i][j]
             <<AMSDBc::_ssize_active[i][j]<<endl;
-        cout<<"ssize_inactive "<<_ssize_inactiveD[i][j]
+        cout<<"ssize_inactive "<<_ssize_inactive[i][j]
             <<AMSDBc::_ssize_inactive[i][j]<<endl;
-        cout<<"nstripssed "<<_nstripssenD[i][j]
+        cout<<"nstripssed "<<_nstripssen[i][j]
             <<AMSDBc::_nstripssen[i][j]<<endl;
-          cout<<"nstripsdrp "<<_nstripsdrpD[i][j]
+          cout<<"nstripsdrp "<<_nstripsdrp[i][j]
               <<AMSDBc::_nstripsdrp[i][j]<<endl;
-        cout<<"zelec "<<_zelecD[i][j]<<AMSDBc::_zelec[i][j]<<endl;
         break;
       }
     }
   }
 
-  if ( (raddegD != AMSDBc::raddeg) ||
-        (piD != AMSDBc::pi)        ||
+  for (i = 0; i<nl; i++) {
+    for (j=0; j<3; j++) {
+     if( (_zelec[i][j] != AMSDBc::_zelec[i][j]) )
+      {
+        rstatus = oocError;
+        cout<<"zelec "<<_zelec[i][j]<<AMSDBc::_zelec[i][j]<<endl;
+        break;
+      }
+    }
+  }
+
+  if ( (raddeg != AMSDBc::raddeg) ||
+        (pi != AMSDBc::pi)        ||
         (twopi != AMSDBc::twopi))
     {
       rstatus = oocError;
-      cout<<"raddeg "<<raddegD<<" "<<AMSDBc::raddeg<<endl;
-      cout<<"pi "<<piD<<" "<<AMSDBc::pi<<endl;
+      cout<<"raddeg "<<raddeg<<" "<<AMSDBc::raddeg<<endl;
+      cout<<"pi "<<pi<<" "<<AMSDBc::pi<<endl;
       cout<<"twopi "<<twopi<<" "<<AMSDBc::twopi<<endl;
     }
 
   for (i=0; i<3; i++) {
    if (
-       (ams_sizeD[i] != AMSDBc::ams_size[i]) ||
-       (ams_cooD[i]  = AMSDBc::ams_coo[i]) )
+       (ams_size[i] != AMSDBc::ams_size[i]) ||
+       (ams_coo[i]  = AMSDBc::ams_coo[i]) )
       {
-        cout<<"ams_size "<<ams_sizeD[i]<<" "
+        cout<<"ams_size "<<ams_size[i]<<" "
             <<AMSDBc::ams_size[i]<<endl;
-        cout<<"ams_coo "<<ams_cooD[i]<<" "<<AMSDBc::ams_coo[i]
+        cout<<"ams_coo "<<ams_coo[i]<<" "<<AMSDBc::ams_coo[i]
             <<endl;
         rstatus = oocError;
         break;
       }
+  }
+
+  for (i=0; i<nl; i++) {
+    for (j=0; j<3; j++) {
+      for (k=0; k<3; k++) {
+        if(_nrml[i][j][k] != AMSDBc::_nrml[i][j][k]) {
+          rstatus = oocError;
+          cout<<"nrml["<<i<<"]["<<j<<"]["<<k<<"] "
+              <<_nrml[i][j][k]<<", "<<AMSDBc::_nrml[i][j][k]<<endl;
+          break;
+        }
+      }
+    }
   }
   return rstatus;
 }

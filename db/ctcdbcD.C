@@ -1,23 +1,34 @@
 //
 // 13.Jan.1997 - call setgeom from CmpConstants()
 //
-// Last Edit : Mar 06, 1997. ak. add nlay
+// Last Edit : Nov 03, 1997. ak. 
 //
 #include <ctcdbcD.h>
 #include <ctcdbc.h>
 
 CTCDBcD::CTCDBcD() {
-  _geomIdD = CTCDBc::_geomId;
-  _nlayD   = CTCDBc::_nlay;
+  _geomId = CTCDBc::_geomId;
+  _nlay   = CTCDBc::_nlay;
+  _tdcabw = CTCDBc::_tdcabw;
+  _ftpulw = CTCDBc::_ftpulw;
+
 }
 
 ooStatus CTCDBcD::CmpConstants() {
 
  ooStatus  rstatus = oocSuccess;
 
- CTCDBc::setgeom(_geomIdD);
- cout <<" CTCDBcD::CmpConstants -I- CTCDBc::setgeom(_geomIdD) done"<<endl;
- if (_nlayD != CTCDBc::_nlay) 
-  cout <<" CTCDBcD::CmpConstants -W- nlay "<<_nlayD<<", "<<CTCDBc::_nlay<<endl;
+ CTCDBc::setgeom(_geomId);
+ cout <<" CTCDBcD::CmpConstants -I- CTCDBc::setgeom(_geomId) done"<<endl;
+
+ if (_nlay != CTCDBc::_nlay) 
+  cout <<" CTCDBcD::CmpConstants -W- nlay "<<_nlay<<", "<<CTCDBc::_nlay<<endl;
+
+ if (_tdcabw != CTCDBc::_tdcabw) 
+  cout <<" CTCDBcD::CmpConstants -W- tdcabw "<<_tdcabw<<", "<<CTCDBc::_tdcabw<<endl;
+
+ if (_ftpulw != CTCDBc::_ftpulw) 
+  cout <<" CTCDBcD::CmpConstants -W- ftpulw "<<_ftpulw<<", "<<CTCDBc::_ftpulw<<endl;
+
  return rstatus;
 }

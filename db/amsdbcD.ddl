@@ -4,8 +4,9 @@
 //
 // Mar 06, 1997. up to date 
 // Sep 15, 1997. up to date. remove non-db member functions
+// Nov  3, 1997. modifications, V212
 //
-// Last edit : Sep 15, 1997 ak
+// Last edit : Nov 3, 1997 ak
 //
 #include <typedefs.h> 
 
@@ -19,36 +20,42 @@ class AMSDBcD: public ooObj {
 //
 protected:
 // Tracker parameters
-   integer _maxstripsD;
-   integer _nlayD;
-   integer _maxnladD;
-   number  _laydD[nl][5];
-   number  _zposlD[nl];
-   integer _nladD[nl];
-   integer _nsenD[nl][nld];
-   integer _nhalfD[nl][nld];
-   number  _zposD[nl];
-   number  _ssize_activeD[nl][2];
-   number  _ssize_inactiveD[nl][2];
-   integer _nstripssenD[nl][2];
-   integer _nstripsdrpD[nl][2];
-   number  _silicon_zD[nl];
-   number  _zelecD[nl][2];
-   number  _c2cD[nl];
+   integer _nlay;
+   integer _maxnlad;
+   number  _layd[nl][5];
+   number  _xposl[nl];
+   number  _yposl[nl];
+   number  _zposl[nl];
+   number  _nrml[nl][3][3];
+   integer _nlad[nl];
+   integer _nsen[nl][nld];
+   integer _nhalf[nl][nld];
+   number  _zpos[nl];
+   number  _ssize_active[nl][2];
+   number  _ssize_inactive[nl][2];
+   integer _nstripssen[nl][2];
+   integer _nstripssenR[nl][2];
+   integer _nstripsdrp[nl][2];
+   number  _silicon_z[nl];
+   number  _zelec[nl][3];
+   number  _c2c[nl];
    number  _halfldist[nl];
-   number  _support_wD[nl];
+   number  _support_foam_w[nl];
+   number  _support_hc_w[nl];
+   number  _support_hc_r[nl];
+   number  _support_hc_z[nl];
    integer _nladshuttle[nl];
    integer _boundladshuttle[nl];
     
 
-   number raddegD;
-   number piD;
+   number raddeg;
+   number pi;
    number twopi;
 
 // AMS parameters
-   geant ams_sizeD[3];
-   char ams_nameD[129];
-   geant ams_cooD[3];
+   char ams_name[129];
+   geant ams_size[3];
+   geant ams_coo[3];
 //bits
    integer AMBIG;
    integer BAD;
@@ -57,8 +64,6 @@ protected:
 //machine dependent values
    integer BigEndian;
 
-   integer debug;
-   
 public:
 // constructor
    AMSDBcD();

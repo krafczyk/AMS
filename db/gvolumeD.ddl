@@ -4,8 +4,10 @@
 //                   Add _id and _name. The order of variables is changed
 // Mar 25, 1997. ak. _rel member of class gvolume
 // July 01, 1997. ah. CmpGeometry method defined 
+// Nov  04, 1997. ak. inrm replaced by nrmA
+//                    add coo
 //
-// Last Edit : Mar 25, 1997. ak.
+// Last Edit : Nov 5, 1997. ak.
 // 
 
 #include <iostream.h>
@@ -31,9 +33,10 @@ class AMSgvolumeD : public ooObj
    char    _gonly[5]; //   ! should be 'MANY' or 'ONLY'
    char    _shape[5]; //   ! geant voulme shape
    geant  _par[6];    //   ! geant volume par
-   AMSPoint _coo;     //   ! geant volume coord _cooA in gvolume.h
+   AMSPoint _coo;     //   ! geant volume coord _coo  in gvolume.h
+   AMSPoint _cooA;    //   ! geant volume coord _cooA in gvolume.h
    number  _nrm[3][3];   //   ! normales  with resp to mother
-   number  _inrm[3][3];  //   ! norm absolute
+   number  _nrmA[3][3];  //   ! norm absolute
 
    integer _ContPos;  // position in the container
    integer _posN;     // pointer to the Next
@@ -56,7 +59,7 @@ class AMSgvolumeD : public ooObj
 
  // Set/Get Methods
  void getnrm  ( number* nbuff0);
- void getinrm ( number* nbuff0);
+ void getnrmA ( number* nbuff0);
  inline integer getid() {return _id;}
         char*   getname() {return _name;}
  inline integer getmatter() {return _matter;}
@@ -68,7 +71,8 @@ class AMSgvolumeD : public ooObj
         void    getgonly(char gonly[]);
         void    getpar(geant* par);
         void    getcoo(AMSPoint* coo);
-
+        void    getcooA(AMSPoint* cooA);
+ inline integer getrel()  {return _rel;}
  inline integer getNext() {return _posN;}
  inline integer getPrev() {return _posP;}
  inline integer getUp()   {return _posU;}

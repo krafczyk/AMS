@@ -299,10 +299,11 @@ ooStatus LMS::CopyGeometry()
    AMSgvolume* p;
    AMSPoint                 coo[1];
    geant                    par[6];
+   geant                    cooAG[3];
    geant                    cooG[3];
    number                   nbuff0[9];
-   //number                   nrm[3][3];
-   number                   inrm[3][3];
+   number                   nrmA[3][3];
+   number                   nrm[3][3];
    char                     gonly[5];
    char                     shape[5];
 
@@ -318,18 +319,30 @@ ooStatus LMS::CopyGeometry()
                     cooG[1] = coo[0] [1];
                     cooG[2] = coo[0] [2];
 
+                    geometryHT[j] -> getcooA(coo);
+                    cooAG[0] = coo[0] [0];
+                    cooAG[1] = coo[0] [1];
+                    cooAG[2] = coo[0] [2];
+
                     geometryHT[j] -> getgonly(gonly);
    integer posp   = geometryHT[j] -> getposp();
    integer gid    = geometryHT[j] -> getgid();
    integer npar   = geometryHT[j] -> getnpar();
-   //geometryHT[j] -> getnrm(nbuff0);
-   //UCOPY(nbuff0,nrm,sizeof(number)*9/4);
-                    geometryHT[j] -> getinrm(nbuff0);
-                    UCOPY(nbuff0,inrm,sizeof(number)*9/4);
 
-   integer rel    = 0;
-   p = new AMSgvolume (matter, rotmno, name, shape, par, npar, 
-                       cooG, inrm, gonly, posp, gid);
+                    geometryHT[j] -> getnrmA(nbuff0);
+                    UCOPY(nbuff0,nrmA,sizeof(number)*9/4);
+
+                    geometryHT[j] -> getnrm(nbuff0);
+                    UCOPY(nbuff0,nrm,sizeof(number)*9/4);
+
+   integer rel    = geometryHT[j] -> getrel();
+   if (rel == 1) 
+    p = new AMSgvolume (matter, rotmno, name, shape, par, npar, 
+                        cooG, nrm, gonly, posp, gid, rel);
+   if (rel == 0) 
+    p = new AMSgvolume (matter, rotmno, name, shape, par, npar, 
+                        cooAG, nrmA, gonly, posp, gid, rel);
+   
    integer pos = geometryHT[j] -> getContPos();
    p -> setContPos(pos);
 

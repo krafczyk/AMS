@@ -31,7 +31,7 @@ AMSgvolumeD::AMSgvolumeD(integer id, AMSgvolume* p, char name[], integer pos)
   for (i=0; i<3; i++) {
     for (j=0; j<3; j++) { 
      _nrm[i][j]  = p -> _nrm[i][j];
-     _inrm[i][j] = p -> _inrm[i][j];
+     _nrmA[i][j] = p -> _nrmA[i][j];
     }
   }
 
@@ -47,18 +47,21 @@ AMSgvolumeD::AMSgvolumeD(integer id, AMSgvolume* p, char name[], integer pos)
   _posD = 0;
 
 // coo special trick
-  _coo    = p -> _cooA;
+  _coo    = p -> _coo;
+  _cooA   = p -> _cooA;
 }
  // Set/Get Methods
 void AMSgvolumeD::getpar(geant* par) {UCOPY( &_par, par, sizeof(geant)*6/4);}
 void AMSgvolumeD::getcoo(AMSPoint* coo) 
                                  {UCOPY( &_coo, coo, sizeof(AMSPoint)*1/4);}
+void AMSgvolumeD::getcooA(AMSPoint* cooA) 
+                                 {UCOPY( &_cooA, cooA, sizeof(AMSPoint)*1/4);}
 void AMSgvolumeD::getshape(char shape[]) { if(_shape)strcpy(shape,_shape); }
 void AMSgvolumeD::getgonly(char gonly[]) { if(_gonly)strcpy(gonly,_gonly); }
 void AMSgvolumeD::getnrm(number* nbuff0) { 
                                UCOPY( &_nrm, nbuff0, sizeof(number)*3*3/4); }
-void AMSgvolumeD::getinrm(number* nbuff0) { 
-                              UCOPY( &_inrm, nbuff0, sizeof(number)*3*3/4); }
+void AMSgvolumeD::getnrmA(number* nbuff0) { 
+                              UCOPY( &_nrmA, nbuff0, sizeof(number)*3*3/4); }
 ooStatus AMSgvolumeD::CmpGeometry(integer id, AMSgvolume* p)
 {
   ooStatus rstatus = oocSuccess;
@@ -114,12 +117,16 @@ ooStatus AMSgvolumeD::CmpGeometry(integer id, AMSgvolume* p)
   } //end of inner if loop
 
 
-  if (_coo == p->_cooA)  {
-                        }
-                   else {
-   cout<<"AMSgvolumeD::CmpGeometry -E- _coo is different "<<_coo<<", "<<p->_cooA<<endl;
+  if (!(_cooA == p->_cooA)) {
+   cout <<"AMSgvolumeD::CmpGeometry -E- _cooA is different "
+        <<_cooA<<", "<<p->_cooA<<endl;
    return oocError;
-                        }
+ }
+  if (!(_coo == p->_coo))  {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _coo is different "
+       <<_cooA<<", "<<p->_cooA<<endl;
+   return oocError;
+ }                      
 for (integer j=0; j<3; j++) {
  for (integer k=0; k<3; k++) {
   if (_nrm[j][k] != p->_nrm[j][k]) {
@@ -128,9 +135,9 @@ for (integer j=0; j<3; j++) {
    return oocError;
   } //end of inner if loop
 
-  if (_inrm[j][k] != p->_inrm[j][k]) {
-   cout<<"AMSgvolumeD::CmpGeometry -E- _inrm[i][j] is different " <<_inrm[j][k]<<", "
-                                                                  <<p->_inrm[j][k]<<endl;
+  if (_nrmA[j][k] != p->_nrmA[j][k]) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _nrmA[i][j] is different " <<_nrmA[j][k]<<", "
+                                                                  <<p->_nrmA[j][k]<<endl;
    return oocError;
   } //end of inner if loop
                              } //end of k for loop

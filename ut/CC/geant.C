@@ -580,11 +580,13 @@ extern "C" void readSetup(){
    AMSgvolume::amsgeom();
   }  
   if ((AMSFFKEY.Read%2) == 1)   {
-    //dbout.CheckConstants();
+   //dbout.CheckConstants();
    dbout.ReadMaterial();
    GPMATE(0);
    dbout.ReadTMedia();
    GPTMED(0);
+   //AMSgmat::amsmat();
+   //AMSgvolume::amsgeom();
    dbout.ReadGeometry();
   }
 #endif

@@ -1986,10 +1986,10 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
         E = _tdv[ptr]._end;
         S = _tdv[ptr]._size;
 #ifdef __AMSDEBUG__
-         cout <<"found TDV for "<<tdvNameTab[i]<<", size "<<S<<endl;
-         cout <<"i/b/e "<<asctime(localtime(&_tdv[ptr]._insert))
-              <<"      "<<asctime(localtime(&_tdv[ptr]._begin))
-              <<"      "<<asctime(localtime(&_tdv[ptr]._end))<<endl;
+         //cout <<"found TDV for "<<tdvNameTab[i]<<", size "<<S<<endl;
+         //cout <<"i/b/e "<<asctime(localtime(&_tdv[ptr]._insert))
+         //     <<"      "<<asctime(localtime(&_tdv[ptr]._begin))
+         //     <<"      "<<asctime(localtime(&_tdv[ptr]._end))<<endl;
 #endif
        rstatus = 1;
        } else {

@@ -7,7 +7,7 @@
 // Feb 28, 1997. ak.   TOFDBcD up to date
 // Mar 24, 1997. ak.   CmpConstants is significantly modified
 //
-//Last Edit : May 23, 1997. ak.
+//Last Edit : Nov 3, 1997. ak.
 //
 
 #include <iostream.h>
@@ -45,6 +45,8 @@ TOFDBcD::TOFDBcD()
 
 
   _edep2ph     = TOFDBc::_edep2ph;
+  _seresp      = TOFDBc::_seresp;
+  _seresv      = TOFDBc::_seresv;
   _fladctb     = TOFDBc::_fladctb;
   _shaptb      = TOFDBc::_shaptb;
   _shrtim      = TOFDBc::_shrtim;
@@ -162,6 +164,18 @@ ooStatus TOFDBcD::CmpConstants()
       rstatus = oocError;
       Error("TOFDBc::CmpConstants :_edep2ph is different ");
       cerr<<" _edep2ph: dbase, mem "<<_edep2ph<<", "<<TOFDBc::_edep2ph<<endl;
+  }
+
+  if (_seresp != TOFDBc::_seresp) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants :_seresp is different ");
+      cerr<<" _seresp: dbase, mem "<<_seresp<<", "<<TOFDBc::_seresp<<endl;
+  }
+
+  if (_seresv != TOFDBc::_seresv) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants :_seresv is different ");
+      cerr<<" _seresv: dbase, mem "<<_seresv<<", "<<TOFDBc::_seresv<<endl;
   }
 
 
