@@ -1,4 +1,7 @@
-# $Id: RemoteClient.pm,v 1.71 2003/04/01 11:35:34 alexei Exp $
+# $Id: RemoteClient.pm,v 1.72 2003/04/02 14:17:38 alexei Exp $
+#
+# Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
+#
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
