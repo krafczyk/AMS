@@ -109,8 +109,8 @@ I20   sec[2](0,0)           //
 I22   min[2](0,0)           //
 I24   hour[2](0,0)          // Validity time
 I26   day[2](1,1)           //
-I28   mon[2](1,1)           //
-I30   year[2](1996,1998)    //
+I28   mon[2](0,0)           //
+I30   year[2](96,98)    //
 
 // MC particle generation
 

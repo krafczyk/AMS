@@ -1,6 +1,6 @@
 #include <timeid.h>
 #include <job.h>
-AMSTimeID::AMSTimeID(AMSID  id, tm & begin, tm &end, integer nbytes=0, 
+AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0, 
                      void *pdata=0):
            AMSNode(id),_pData(pdata),_UpdateMe(0){
       _Nbytes=nbytes;
@@ -10,6 +10,9 @@ AMSTimeID::AMSTimeID(AMSID  id, tm & begin, tm &end, integer nbytes=0,
         exit(1);
       }
 #endif
+      //  Zero light saving hour
+      begin.tm_isdst=0;
+      end.tm_isdst=0;
       _Begin=mktime(&begin); 
       _End=mktime(&end); 
       _Insert=_Begin;
@@ -24,6 +27,8 @@ AMSTimeID::AMSTimeID(AMSID  id, tm & begin, tm &end, integer nbytes=0,
          time(&_Insert);
          cout <<"AMSTimeID-ctor-I-Update for "<<getname()<<" "<<getid()<<
            " requested. "<<endl;
+         cout <<" Begin "<<ctime(&_Begin)<<" End "<<ctime(&_End)<<
+           " Insert "<<ctime(&_Insert)<<endl;
          break;
         }
       }

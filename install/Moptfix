@@ -1014,6 +1014,18 @@ depend:
 ../bin/osf1/timeid.o: /usr/include/stdio.h /usr/include/limits.h
 ../bin/osf1/timeid.o: ../include/id.h /usr/include/cxx/strstream.h
 ../bin/osf1/timeid.o: /usr/include/cxx/strstream.hxx /usr/include/stdlib.h
+../bin/osf1/timeid.o: ../include/job.h ../include/snode.h ../include/upool.h
+../bin/osf1/timeid.o: /usr/include/cxx/new.h /usr/include/cxx/new.hxx
+../bin/osf1/timeid.o: /usr/include/string.h /usr/include/sys/types.h
+../bin/osf1/timeid.o: ../include/gvolume.h ../include/cern.h
+../bin/osf1/timeid.o: ../include/cfortran.h /usr/include/malloc.h
+../bin/osf1/timeid.o: ../include/hbook.h ../include/geant321.h
+../bin/osf1/timeid.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/osf1/timeid.o: ../include/point.h /usr/include/math.h
+../bin/osf1/timeid.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/timeid.o: /usr/include/cxx/iomanip.hxx
+../bin/osf1/timeid.o: /usr/include/cxx/generic.hxx ../include/amsgobj.h
+../bin/osf1/timeid.o: ../include/uzstat.h
 ../bin/osf1/io.o: ../include/io.h ../include/point.h ../include/typedefs.h
 ../bin/osf1/io.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/io.o: /usr/include/cxx/iostream.h /usr/include/cxx/iostream.hxx

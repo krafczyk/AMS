@@ -23,7 +23,7 @@ id is unique identifier, where
 tm begin - start validity time
 tm end   - end   validity time
 nbytes   - sizeof data in bytes
-pdat     - pointer to first element of the data 
+pdata     - pointer to first element of the data 
 
 tm structure is defined in sys <time.h>
 
@@ -42,10 +42,6 @@ int tm_year   //  year from 1900 (96 for 1996)
 ...
 }
 
----------
-
-The AMSFFKEY.Update datacard is foreseen to write the timeids into objectivity
-dbase
 
 ------------
 
@@ -63,6 +59,7 @@ while(offspring){
 
 
 public methods:
+
 integer UpdateMe()      // update(!=0) or not update dbase
 integer GetNbytes()     // get number of bytes
 integer CopyOut(void *pdataNew) // copy timeid-> pdatanew

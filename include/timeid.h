@@ -19,7 +19,7 @@ _CRC(0),_UpdateMe(0){}
 AMSTimeID(AMSID  id, integer nbytes=0, void* pdata=0):
 AMSNode(id),_Insert(0),_Begin(0),_End(0),_Nbytes(nbytes),_pData(pdata),
 _UpdateMe(0){_CalcCRC();}
-AMSTimeID( AMSID  id, tm & begin, tm &end, integer nbytes,  void *pdata);
+AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata);
 integer GetNbytes() const { return _Nbytes;}
 void * GetpData() const { return _pData;}
 integer CopyOut(void *pdataNew);
