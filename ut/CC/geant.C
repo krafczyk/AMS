@@ -140,7 +140,7 @@ extern "C" void uginit_(){
    AMSStatus::create();
   AMSJob::map();
   AMSJob::gethead()->init();
-  AMSJob::gethead()->uhinit();
+  if(!AMSJob::gethead()->isProduction())AMSJob::gethead()->uhinit();
   AMSJob::gethead()->urinit();
   AMSJob::map(1);
 #ifndef __BATCH__

@@ -558,7 +558,7 @@ void  AMSEvent::write(int trig){
     }
    }
     // check if one want to close ntuple 
-    if(IOPA.MaxNtupleEntries){
+    if(IOPA.MaxNtupleEntries && AMSJob::gethead()->isProduction()){
       //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries){
         AMSJob::gethead()->uhend();
@@ -1831,6 +1831,10 @@ void AMSEvent::_collectstatus(){
       else if(ptr->checkstatus(AMSDBc::WEAK) )trquality=1;
       else trquality=0;   
       _status=_status | (trquality<<25);
+      uinteger singeo;
+      if(ptr->getsinmagmer()<0)singeo=0;
+      else singeo=1;
+      _status=_status | (trquality<<29);
     }
   }
   {
@@ -1858,6 +1862,6 @@ void AMSEvent::_collectstatus(){
      else if(cosgm<0.766)icos=2;
      else icos=3;
       _status=_status | (icos<<27);
-
+     
 }
 

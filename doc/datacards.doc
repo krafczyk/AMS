@@ -570,6 +570,7 @@ I 1  status[32](32*0)    //
                              [10] rigidity range
                              [11] track quality
                              [12] shuttle geomag latitude
+                             [13] sin (part_dir, geomag_meridian)
                                      
 
 MISC   // misc

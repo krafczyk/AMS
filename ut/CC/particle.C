@@ -520,4 +520,12 @@ void AMSParticle::_loc2gl(){
   _ThetaGl=global.gettheta();
   _PhiGl= global.getphi();
           AMSgObj::BookTimer.stop("part::loc2gl");
+
+
+  // Get mag east-west 
+
+
+  AMSDir magpole(AMSDBc::pi/2-AMSmceventg::Orbit.PoleTheta,polephi);
+  AMSDir magmeridian=magpole.cross(amszg);
+  _SinMagMeridian=magmeridian.prod(global);
 }

@@ -30,7 +30,7 @@ status word definition
 26   ------
 27   geomagnetic latitude
 28   geomagnetic latitude
-29   cos (track,plane of geommeridian) 
+29   sin (track,plane of geommeridian) 
 30   free
 31   status not found
 
@@ -106,8 +106,19 @@ geomagnetic latitude
 2 < 50 degrees cos < 0.766
 3 > 50 degrees cos > 0.766
 
+sin(particle_dir,geomag_meridian)
+0<0
+1>0
 
 correspondance between bits & status datacards words:
 
 values 0123...etc --> 1 10 100 1000 
                       0 in datacards means select everything
+
+
+
+N.B.
+
+Due to lack of bits there is no "undefined state" bits,
+so to ensure proper functionality one has to require 
+particle (datacards: ESTA 10=1110) for most other status bits

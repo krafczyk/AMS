@@ -46,6 +46,7 @@ protected:
   number  _Phi;
   number  _ThetaGl;
   number  _PhiGl;
+  number  _SinMagMeridian;
   AMSPoint _Coo;
   CTC    _Value[2];
   AMSPoint _TOFCoo[4];  
@@ -97,6 +98,7 @@ public:
   void refit(); // refit if necessary;
   static integer build(integer refit=0);
   static void print();
+  number getsinmagmer()const{return _SinMagMeridian;}
 //+
 
 #ifdef __DB__
