@@ -522,7 +522,7 @@ void AMSTrIdCalib::_calc(){
           if( TRCALIB.Pass >= 2){
             geant thr=TRCALIB.BadChanThr[1]*_Count[ch];
             if(thr<3)thr=3;
-            if(_BadCh[ch]*_Count[ch]>thr || cid.getsig()==0 ){ 
+            if(_BadCh[ch]*_Count[ch]>thr || cid.getsig()==0 ||(cid.getsig()<2 && cid.getside()==0)){ 
               cid.setstatus(AMSDBc::BAD);
               bad[l]++;
             }
