@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.442 2003/03/18 09:04:07 choumilo Exp $
+// $Id: job.C,v 1.443 2003/03/24 13:23:46 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -754,14 +754,14 @@ FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
 //===============================================================================
 //
 void AMSJob::_sianti2data(){
-  ATGEFFKEY.scradi=54.4;   // internal radious of ANTI sc. cylinder (cm)
-  ATGEFFKEY.scinth=1.;     // thickness of scintillator (cm)
-  ATGEFFKEY.scleng=86.;    //(ams02) scintillator paddle length (glob. Z-dim)
+  ATGEFFKEY.scradi=54.55;   // internal radious of ANTI sc. cylinder (cm)
+  ATGEFFKEY.scinth=0.8;     // thickness of scintillator (cm)
+  ATGEFFKEY.scleng=82.65;  //(ams02) scintillator paddle length (glob. Z-dim)
   ATGEFFKEY.wrapth=0.04;   // wrapper thickness (cm)
-  ATGEFFKEY.groovr=0.45;   // groove radious (bump_rad = groove_rad-pdlgap)
+  ATGEFFKEY.groovr=0.4;   // groove radious (bump_rad = groove_rad-pdlgap)
   ATGEFFKEY.pdlgap=0.1;   // inter paddle gap (cm)(2*wrapth+extra)
   ATGEFFKEY.stradi=54.235; // inner radious of supp. tube
-  ATGEFFKEY.stleng=86.;    // (ams02)length of supp. tube
+  ATGEFFKEY.stleng=85.;    // (ams02)length of supp. tube
   ATGEFFKEY.stthic=0.12;   // thickness of supp. tube
   
 //---

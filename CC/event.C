@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.308 2003/03/18 09:04:06 choumilo Exp $
+//  $Id: event.C,v 1.309 2003/03/24 13:23:46 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1957,6 +1957,7 @@ void AMSEvent:: _sitof2event(){
    TOF2Tovt::build();// Ghits->TovT-hits
 //    cout <<"after build "<<endl;
    AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
+   TOF2JobStat::addmc(1);
 //
    AMSgObj::BookTimer.start("TOF:Tovt->RwEv");
    TOF2RawEvent::mc_build(stat);//Tovt_hit->RawEv_hit
@@ -1965,7 +1966,7 @@ void AMSEvent:: _sitof2event(){
      AMSgObj::BookTimer.stop("SITOFDIGI");
      return; // no FTrigger from TOF
    }
-   TOF2JobStat::addmc(1);
+   TOF2JobStat::addmc(2);
   AMSgObj::BookTimer.stop("SITOFDIGI");
 //
 #ifdef __AMSDEBUG__

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.162 2003/03/21 15:55:23 choutko Exp $
+//  $Id: amsgeom.C,v 1.163 2003/03/24 13:23:45 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -8,6 +8,7 @@
 // ATC (Aerogel Threshold Cerenkov) geometry A.K.Gougas 14-Mar-1997
 // AMS02 MAGNET geometry v1.0  E.Choumilov 17.11.2000
 // AMS02 Radiators/crates/TRD-TOF_supports/USS geometry v1.0  E.Choumilov 4.06.2001
+// New ANTI design (AMS-02). E.Choumilov 24.03.03.
 // 
 //
 #include <typedefs.h>
@@ -638,6 +639,9 @@ integer i,nrot,gid=0,gidd=0;
 geant scradi,scinth,scleng,wrapth,groovr,pdlgap,stradi,stleng,stthic;
 geant rs,phi,phib,dphis,dphi,dphig;
 geant degrad,raddeg;
+geant dx1g,dx2g,dzg,dyg;
+geant dx1b,dx2b,dzb,dyb;
+geant ddfi;
 integer nscpad;
 AMSNode * pAmother;
 AMSNode * pSegm;
@@ -661,35 +665,96 @@ AMSNode * p;
   dphi=360./float(nscpad);
   dphig=raddeg*pdlgap/scradi;// phi-thickness of paddle gap(degree)
   dphis=dphi-dphig;
+// bump dim. (as TRD1)
+  dx1b=0.516;
+  dx2b=0.17;
+  dyb=scleng;
+  dzb=0.3;
+// groove
+  dx1g=0.645;
+  dx2g=0.30;
+  dyg=scleng;
+  dzg=0.3;
 //
 // create ANTI-counter supp.tube volume as  cylinder:
 //
   par[0]=stradi;
   par[1]=stradi+stthic;
   par[2]=stleng/2.;
-  par[3]=0.;
-  par[4]=360.;
   gid=100;
   p=mother.add(new AMSgvolume(
-       "ANTI_SUPTB",0,"ASTB","TUBE",par,5,coo,nrm, "ONLY",0,gid,1));
+       "ANTI_SUPTB",0,"ASTB","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
 //
 // create ANTI-counter mother volume as wrapper-made cylinder:
 //
   par[0]=scradi-wrapth;
   par[1]=scradi+scinth+wrapth;
   par[2]=scleng/2.+wrapth;
-  par[3]=0.;
-  par[4]=360.;
   gid=200;
   pAmother=mother.add(new AMSgvolume(
-       "ANTI_WRAP",0,"AMOT","TUBE",par,5,coo,nrm, "ONLY",0,gid,1));
+       "ANTI_WRAP",0,"AMOT","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
 //
 // ---> Loop to fill A-mother volume with sc.segments,sc.bumps and holes :
 //
   gid=0;
-  for(i=0;i<nscpad;i++){
+  nrot=TOF2GC::SCROTN+200;
+//
+  for(i=0;i<nscpad;i++){//<--- Anti sector loop
+    gid+=1;
     phi=i*dphi;
     phib=phi+dphis;
+    ddfi=atan(0.5*dzb/rs);
+//
+//     create/pos sc. bump in Amother:
+//
+    nrd[0][0]=cos(phib*degrad);// rot.matrix(wrt Amother) for bump(1s-col)
+    nrd[1][0]=sin(phib*degrad);
+    nrd[2][0]=0.;
+    
+    nrd[0][1]=0.;//2nd-col
+    nrd[1][1]=0.;
+    nrd[2][1]=-1.;
+    
+    nrd[0][2]=-sin(phib*degrad);//3rd-col
+    nrd[1][2]=cos(phib*degrad);
+    nrd[2][2]=0.;
+    
+    coo[0]=sqrt(rs*rs+0.25*dzb*dzb)*cos(phib*degrad+ddfi);
+    coo[1]=sqrt(rs*rs+0.25*dzb*dzb)*sin(phib*degrad+ddfi);
+    coo[2]=0.;
+    
+    par[0]=dx1b/2;
+    par[1]=dx2b/2;
+    par[2]=dyb/2;
+    par[3]=dzb/2;
+    p=pAmother->add(new AMSgvolume(
+       "ANTI_SCINT",nrot++,"ANTB","TRD1",par,4,coo,nrd, "ONLY",1,gid,1));
+//
+//     create/pos groove in A-mother:
+//
+    ddfi=atan(0.5*dzg/rs);
+    nrd[0][0]=cos(phi*degrad);// rot.matrix(wrt Amother) for bump(1s-col)
+    nrd[1][0]=sin(phi*degrad);
+    nrd[2][0]=0.;
+    
+    nrd[0][1]=0.;//2nd-col
+    nrd[1][1]=0.;
+    nrd[2][1]=-1.;
+    
+    nrd[0][2]=-sin(phi*degrad);//3rd-col
+    nrd[1][2]=cos(phi*degrad);
+    nrd[2][2]=0.;
+    
+    coo[0]=sqrt(rs*rs+0.25*dzg*dzg)*cos(phi*degrad+ddfi);
+    coo[1]=sqrt(rs*rs+0.25*dzg*dzg)*sin(phi*degrad+ddfi);
+    coo[2]=0.;
+    
+    par[0]=dx1g/2;
+    par[1]=dx2g/2;
+    par[2]=dyg/2;
+    par[3]=dzg/2;
+    pGroov=pAmother->add(new AMSgvolume(
+       "ANTI_WRAP",nrot++,"AGRV","TRD1",par,4,coo,nrd, "MANY",1,gid,1));
 //
 //     create/pos sc. segment in A-mother:
 //
@@ -701,55 +766,8 @@ AMSNode * p;
     coo[0]=0.;
     coo[1]=0.;
     coo[2]=0.;
-    gid+=1;
     pSegm=pAmother->add(new AMSgvolume(
        "ANTI_SCINT",0,"ANTS","TUBS",par,5,coo,nrm, "MANY",1,gid,1));
-//
-//     create/pos groove in A-mother:
-//
-    nrot=TOF2GC::SCROTN+100+i;
-    nrd[0][0]=cos(phib*degrad);// rot.matrix(wrt Amother) for groove
-    nrd[0][1]=-sin(phib*degrad);
-    nrd[0][2]=0.;
-    nrd[1][0]=sin(phib*degrad);
-    nrd[1][1]=cos(phib*degrad);
-    nrd[1][2]=0.;
-    nrd[2][0]=0.;
-    nrd[2][1]=0.;
-    nrd[2][2]=1.;
-    coo[0]=rs*cos(phib*degrad);
-    coo[1]=rs*sin(phib*degrad);
-    coo[2]=0.;
-    par[0]=groovr-pdlgap;
-    par[1]=groovr;
-    par[2]=0.5*scleng;
-    par[3]=0.;
-    par[4]=180.;
-    pGroov=pAmother->add(new AMSgvolume(
-       "ANTI_WRAP",nrot,"AGRV","TUBS",par,5,coo,nrd, "ONLY",1,gid,1));
-//
-//     create/pos sc. bump in Amother:
-//
-    nrot=TOF2GC::SCROTN+200+i;
-    nrd[0][0]=cos(phib*degrad);// rot.matrix(wrt Amother) for bump
-    nrd[0][1]=-sin(phib*degrad);
-    nrd[0][2]=0.;
-    nrd[1][0]=sin(phib*degrad);
-    nrd[1][1]=cos(phib*degrad);
-    nrd[1][2]=0.;
-    nrd[2][0]=0.;
-    nrd[2][1]=0.;
-    nrd[2][2]=1.;
-    coo[0]=rs*cos(phib*degrad);
-    coo[1]=rs*sin(phib*degrad);
-    coo[2]=0.;
-    par[0]=0.;
-    par[1]=groovr-pdlgap;
-    par[2]=0.5*scleng;
-    par[3]=0.;
-    par[4]=180.;
-    p=pAmother->add(new AMSgvolume(
-       "ANTI_SCINT",nrot,"ANTB","TUBS",par,5,coo,nrd, "ONLY",1,gid,1));
   }// ---> end of sector loop
 //
   cout<<"AMSGEOM: ANTI02 geometry(G3-version) done !"<<endl;
