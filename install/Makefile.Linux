@@ -7,6 +7,10 @@ ifdef RH9
  RH9add=-pthread  /usr/lib/ctype-info.o
 endif
 
+#ifeq "$(shell uname-a )" "2.4"
+ RH9add=-pthread  /usr/lib/ctype-info.o
+#endif
+
 CERN_LEVEL = 2001
 CERNDIR = /cern/$(CERN_LEVEL)
 CERNSRCDIR = /cern/$(CERN_LEVEL)
@@ -179,9 +183,9 @@ else
 # Need ROOTLIBS
   LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB) $(ROOTLIBS) -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lcrypt $(PFLAGS)
 
-  #LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lfreetype
+  #LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lfreetype  $(RH9add)
 
-  LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -lcrypt -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl -lfreetype $(PFLAGS)
+  LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -lcrypt -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl -lfreetype $(PFLAGS) $(RH9add)
 
 endif
 
