@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.90 2003/04/08 13:29:33 choutko Exp $
+# $Id: RemoteClient.pm,v 1.91 2003/04/08 13:41:44 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4484,7 +4484,7 @@ sub Download {
     print "<TITLE>AMS Offline Software</TITLE></HEAD>\n";
     print "<FORM METHOD=\"GET\" action=\"$self->{Name}\">\n";
     print "<TABLE border=0 cellspacing=0 cellpadding=0>\n";
-    my $mode = "Server";
+    my $mode = "Client";
     if ($self->{dwldaddon} == 1) {
      $mode = "Standalone";
     }
