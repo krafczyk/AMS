@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.180 2003/05/22 14:46:12 choutko Exp $
+# $Id: RemoteClient.pm,v 1.181 2003/05/23 08:32:53 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20,7 +20,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -987,7 +987,7 @@ sub ValidateRuns {
                                                 $status,
                                                 $outputpath,
                                                 $ntuple->{crc});
-                            print FILE "insert $run->{Run}, $outputpath \n";
+                            print FILE "insert : $run->{Run}, $outputpath, $status \n";
                             $copied++;
                             push @cpntuples, $fpath;
                             $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
@@ -1202,10 +1202,25 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
         die "Unable To Connect To Server";
     }
     my $sql="select run,submit from Runs";
-         my $ret=$self->{sqlserver}->Query($sql);
+    my $ret=$self->{sqlserver}->Query($sql);
    if( not defined $self->{dbserver}->{rtb}){
      DBServer::InitDBFile($self->{dbserver});
    }
+
+   $self->htmlTop();
+
+   my $vdir = undef;
+   my $vlog = undef;
+   $vdir=$self->getValidationDir();
+   if (not defined $vdir) {
+     die " Validate -F- cannot get path to ValidationDir \n";
+   }
+   my $timenow = time();
+   $vlog = $vdir."/validateDST.log.".$timenow;   
+
+   open(LOGFILE,">".$vlog) or die "Unable to open file $vlog\n";
+
+
     foreach my $run (@{$self->{dbserver}->{rtb}}){
      if($run->{Status} eq "Finished"){
 # check if it is in the database
@@ -1217,8 +1232,9 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
              }
          }
          $status = $run->{Status};
-         if(not $found){
-       
+         if($found != 1){
+             print LOGFILE "insert Run : $run-{Run} into Runs \n";
+             print "insert Run : $run-{Run} into Runs \n";
              $self->insertRun(
                     $run->{Run},
                     $run->{Run},
@@ -1231,7 +1247,9 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
          }
 # Find corresponding ntuples
           foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-              if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
+              if($ntuple->{Type} eq "Ntuple" and 
+                ($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and 
+                 $ntuple->{Run}== $run->{Run}){
 # suppress double //
                   $ntuple->{Name}=~s/\/\//\//;                  
                   my @fpatha=split ':', $ntuple->{Name};
@@ -1253,7 +1271,23 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                   }  
                   else{
                       close FILE;
-                      my $i=system("$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber}");
+                   
+                   my $validatecmd = undef;
+                   if($ntuple->{Type} eq "Ntuple") {
+                    $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber} 0";
+                   } elsif ($ntuple->{Type} eq "RootFile") {
+                    $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber} 1";
+                   } else {
+                       print LOGFILE "***** Unknown ntuple->{Type : $ntuple->{Type} \n";
+                   }
+                   my $i = 0;
+                   if (defined $validatecmd) {
+                    print LOGFILE "$validatecmd\n";
+                    print "$validatecmd\n";
+                    $i=system($validatecmd);
+                   } else {
+                    $i = 0xff00;
+                   }
                       if( ($i == 0xff00) or ($i & 0xff)){
                       if($ntuple->{Status} ne "Validated"){
                        $status="Unchecked";                     
@@ -1281,6 +1315,8 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                           }
                       }
                   }
+
+                  print "Validate : insert ntuple : $run->{Run}, $ntuple->{Name}\n";
                   $self->insertNtuple(
                                $run->{Run},
                                $ntuple->{Version},
@@ -1299,14 +1335,15 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
           }
         }
          else{
-#        find all the unchecked ntuples
+#        find all 'Unchecked' ntuples
              $sql="select path from Ntuples where status='Unchecked' and run=$run->{Run}";
              my $rts=$self->{sqlserver}->Query($sql);
              if(defined $rts->[0][0]){
                  foreach my $uc (@{$rts}){
                      my $path=$uc->[0];
                      foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
-                     if($ntuple->{Type} eq "Ntuple" and $ntuple->{Status} eq "Success" and $ntuple->{Run}== $run->{Run} ){
+                     if($ntuple->{Type} eq "Ntuple" and 
+                        $ntuple->{Status} eq "Success" and $ntuple->{Run}== $run->{Run} ){
                      $ntuple->{Name}=~s/\/\//\//;                  
                      if($path eq $ntuple->{Name}){
                      my @fpatha=split ':', $ntuple->{Name};
@@ -1350,7 +1387,13 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
              }
          }
      }
+
+   close LOGFILE;
+
    $self->InfoPlus("$validated Ntuple(s) Successfully Validated.\n $bad Ntuple(s) Turned Bad.\n $unchecked Ntuples(s) Could Not Be Validated.\n $thrusted Ntuples Could Not be Validated But Assumed  OK.");
+
+  $self->htmlBottom();
+
    $self->{ok}=1;
 }
 
@@ -5691,7 +5734,7 @@ sub listServers {
             my $lasttime  = EpochToDDMMYYHHMMSS($lastupd);
             my $time      = time();
             if ($status eq 'Active' or $deadserver == 0) {
-             if ($time - $lasttime < $srvtimeout) {
+             if ($time - $lastupd < $srvtimeout) {
              print "<td><b> $name </td><td><b> $starttime </td><td><b> $lasttime </td><td><b> $status </td> </b>\n";
              } else {
              my $color = statusColor($status);
@@ -5750,8 +5793,12 @@ sub listJobs {
       foreach my $job (@{$r3}){
           my $jid       = $job->[0];
           my $name      = $job->[1];
-          my $starttime = EpochToDDMMYYHHMMSS($job->[4]); 
-          my $texpire   = $job->[4] + $job->[5];
+          my $starttime = EpochToDDMMYYHHMMSS($job->[4]);
+
+          my $texpire = 0;
+          if (defined $job->[4]) { $texpire = $job->[4]}; 
+          if (defined $job->[5]) {$texpire  += $job->[5]};
+
           my $expiretime= EpochToDDMMYYHHMMSS($texpire); 
           my $trig      = $job->[6];
           my $cite      = $job->[8];
@@ -5850,7 +5897,8 @@ sub listNtuples {
     my $self = shift;
     my $nn   = 0;
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
-     print "<TR><B><font color=green size= 5><a href=$validatecgi><b><font color=green> MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
+#     print "<TR><B><font color=green size= 5><a href=$validatecgi><b><font color=green> MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
+     print "<TR><B><font color=green size= 5><b>MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
      print "<tr><font color=blue><b><i> Only recent 100 files are listed, to get complete list 
             <a href=http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form> click here</a>
             </b><i></font></tr>\n";
@@ -6669,9 +6717,11 @@ foreach my $block (@blocks) {
              $startingrun[11],
              $startingrun[7]);
 
-     $host=$startingrun[12];
+     if (defined $startingrun[12]) {
+      $host=$startingrun[12];
+     }
      $sql = "UPDATE Jobs SET 
-                 host='$startingrun[12]',
+                 host='$host',
                  events=$startingrun[13], errors=$startingrun[15],
                  cputime=$startingrun[16], elapsed=$startingrun[17],
                  timestamp=$timestamp 
@@ -6841,7 +6891,7 @@ foreach my $block (@blocks) {
                                $outputpath,
                                $ntcrc); 
 
-           print FILE "insert ntuple : $run, $outputpath \n";
+           print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
           push @cpntuples, $dstfile;
         }
        }
@@ -7463,4 +7513,15 @@ sub printJobParamTransferDST {
 #            }
              print "</b></font></td></tr>\n";
             htmlTableEnd();
+}
+
+sub set_root_env {
+#
+# this function sets up the necessary environement variables
+# to be able to use ROOT
+#
+    $ENV{"ROOTSYS"}='/afs/ams.cern.ch/Offline/root/Linux/v3.05.05gcc322';
+    $ENV{"PATH"}=$ENV{"PATH"}.":".$ENV{"ROOTSYS"}."/bin";
+    $ENV{"LD_LIBRARY_PATH"}=$ENV{"LD_LIBRARY_PATH"}.":".$ENV{"ROOTSYS"}."/lib";
+    1;
 }
