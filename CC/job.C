@@ -2263,8 +2263,14 @@ _axendjob();
 delete _pntuple;
   cout <<"pntuple deleted"<<endl;
 
+#ifdef __G4AMS__
+if(MISCFFKEY.G4On){
+// due to infinite geant4 destructors
 
-
+delete &(AMSgObj::BookTimer);
+exit(0);
+}
+#endif
 }
 
 void AMSJob::uhend(){
