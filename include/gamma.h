@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.10 2002/12/16 09:54:21 glamanna Exp $
+//  $Id: gamma.h,v 1.11 2003/01/31 15:13:17 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -140,11 +140,14 @@ inline  AMSPoint  getEHright(int i){return _EHRIGH[i];}
 static void _LeftRight(vector<double>, integer , number);
 //-----
 public:
+static void _CheckZOrder(double re[], double ze[], double ce[], integer &);
+static void _CheckInvReswrtZ(double re[], double ze[], double ce[], integer &);
 static void _Combi(integer&, integer, integer);
 static void _Averes(number&, number&, vector<double>, integer, integer);
 static void _Cente(number&, number&, vector<double>, integer, integer, number, number);
 static vector<double> _TK1YRemoveTRD2TOF(vector<double>, integer);
 static void _LSQP2(integer FLPAT[], vector<double> H[], integer, integer);
+static void SetBestResLR(integer FLPAT[], vector<double> H[], integer, integer, integer);
 static void _LookOneEight(integer FLPAT[], vector<double> H[]);
 static void _SingleCommonHit(integer FLPAT[], vector<double> H[]);
 static void _SingleHit(integer FLPAT[], double CE[], integer );
