@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.70 2005/03/02 18:46:35 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.71 2005/03/21 08:18:36 alexei Exp $
 
 #
 #
@@ -34,6 +34,7 @@
 #  Nov 23, 2004. ak. Table  : DatasetDesc, filled from $AMSSoftwareDir/Datasets
 #  Feb 15, 2005. ak. Table  : productionset add db, gbatch, OS version
 #                             datasets      add version (db version)
+#  Mar 18, 2005. ak. Table  : Jobs add pid - production period ID
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -223,7 +224,8 @@ sub Create{
         cputime   int,
         elapsed   int,
         jobtype   VARCHAR(20),
-        mips      number)",
+        mips      number,
+        pid       number)",
 
       "CREATE TABLE  DataSetsDesc 
        (did        int not null,
