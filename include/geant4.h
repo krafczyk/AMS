@@ -18,7 +18,7 @@ protected:
 G4VPhysicalVolume * _pv;
 public:
  AMSG4DetectorInterface(G4VPhysicalVolume * pv=0):_pv(pv){}
- G4VPhysicalVolume* Construct(){return _pv;}
+ G4VPhysicalVolume* Construct();
 };
 
 

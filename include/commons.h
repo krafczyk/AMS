@@ -697,6 +697,7 @@ class G4FFKEY_DEF{
 public:
 int BFOrder;
 float Delta;
+int UniformMagField;
 };
 #define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);
