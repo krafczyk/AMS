@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.302 2005/03/09 09:47:13 alexei Exp $
+# $Id: RemoteClient.pm,v 1.303 2005/03/09 12:25:12 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -76,6 +76,8 @@
 #
 # Feb 17, 2005    : allow more than 1 "Active" Production Sets
 #                   new subs, remove $ActiveProductionSet use @productionPeriods
+#
+# Mar  9, 2005    : Protection against invalid JID in parsejournalfiles
 #
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -7798,14 +7800,14 @@ sub parseJournalFiles {
 }
 
  $parserStartTime=time();# start journal files check
+ my $minJobID    = 0;
  
  
 
  $sql = "SELECT dirpath,journals.timelast,name,journals.cid  
               FROM journals,cites WHERE journals.cid=cites.cid";
-
  $ret = $self->{sqlserver}->Query($sql);
-
+ 
  if(defined $ret->[0][0]){
   foreach my $jou (@{$ret}){
    $nCheckedCite++;
@@ -7813,7 +7815,22 @@ sub parseJournalFiles {
    my $dir        = trimblanks($jou->[0]);  # journal file's path
    my $timestamp  = trimblanks($jou->[1]);  # time of latest processed file
    my $cite       = trimblanks($jou->[2]);  # cite
-      $cid        = $jou->[3];
+
+   if ( $cid != $jou->[3]) {
+    $cid        = $jou->[3];
+#+ get min JID for cite and given production period
+   $sql = "SELECT  min(jid) from jobs where cid=$cid and timestamp>=$periodStartTime";
+   my $r0 = $self->{sqlserver}->Query($sql);
+   if (not defined $r0->[0][0]) {
+    $sql = "SELECT  MAX(jid) from jobs where cid=$cid and timestamp<$periodStartTime";
+    my $r1 = $self->{sqlserver}->Query($sql);
+    if (defined $r1->[0][0]) { $minJobID = $r1->[0][0];}
+   } else {
+    $minJobID = $r0->[0][0];
+   }
+#-
+  }
+
    my $lastcheck  = EpochToDDMMYYHHMMSS($timestamp);
    $JouDirPath[$nCheckedCite]=$cite;
    $JouLastCheck[$nCheckedCite] = $lastcheck;
@@ -7856,39 +7873,51 @@ sub parseJournalFiles {
            next;
         }
        }
-       $newfile=$joudir."/".$file;
-       my $writetime = 0;
-       $writetime = (stat($newfile)) [9];
-       if ($writetime > $writelast) {
+
+
+       my $fid  = $junk[0];
+       $fid  =~ s/.journal//;
+       if ($fid < $minJobID) {
+        if ($webmode == 0) {
+           print "ParseJournalFiles -W- skip $joudir/$file invalid JID \n";
+        }
+        next; 
+       }
+
+
+        $newfile=$joudir."/".$file;
+        my $writetime = 0;
+        $writetime = (stat($newfile)) [9];
+        if ($writetime > $writelast) {
            $writelast = $writetime;
            $lastfile = $newfile;
        }
 
-       my $color   ="black";
-       my $fstatus ="CheckInProgress";
-       if ($writetime < $timestamp) { $color   = "magenta";
+        my $color   ="black";
+        my $fstatus ="CheckInProgress";
+        if ($writetime < $timestamp) { $color   = "magenta";
                                       $fstatus = "AlreadyChecked"}
-       my $wtime = EpochToDDMMYYHHMMSS($writetime);
-       if ($webmode == 0) {$color = 666;} # no CR
-       $self->amsprint($file, $color);
-       $self->amsprint($wtime, $color);
-       $self->amsprint($fstatus,$color);
-       $self->amsprint(" ",0);
-       if ($webmode == 1) {print "</tr>\n";}
+        my $wtime = EpochToDDMMYYHHMMSS($writetime);
+        if ($webmode == 0) {$color = 666;} # no CR
+        $self->amsprint($file, $color);
+        $self->amsprint($wtime, $color);
+        $self->amsprint($fstatus,$color);
+        $self->amsprint(" ",0);
+        if ($webmode == 1) {print "</tr>\n";}
 #
 # $timestamp - latest time of journal file during previous validation
 # all files produced $timestamp- 24h -> pass automatic validation
 # it is possible that some files been transmitted with delay > 24h, so they 
 # pass manual validation
 #
-       if ($writetime > $timestamp - 24*60*60) {
-         $self->parseJournalFile($firstjobtime,
+        if ($writetime > $timestamp - 24*60*60) {
+          $self->parseJournalFile($firstjobtime,
                                  $lastjobtime,
                                  $logdir,
                                  $newfile,
                                  $ntdir);
-         $JournalFiles[$nCheckedCite]++;
-       }
+          $JournalFiles[$nCheckedCite]++;
+        }
 #
 # check jobs processing flag if -1 stop processing
      ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
