@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.231 2002/09/09 09:44:31 choutko Exp $
+#  $Id: Mopt,v 1.232 2002/09/17 09:51:06 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -193,7 +193,7 @@ BIN=$(AMSWD)/bin/linux/icc/
 EXE=$(AMSWD)/exe/linux/icc/
 LIB=$(AMSWD)/lib/linux/icc/
 else
-#CERN_LEVEL=2000
+#CERN_LEVEL=2002
 #CERNDIR = /afs/cern.ch/asis/i386_redhat61/cern/$(CERN_LEVEL)
 #CERNSRCDIR = /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
 NAGDIR = /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
@@ -293,7 +293,7 @@ ifdef AMSICC
 LDFLAGS=  -static    -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lmy2  -lPEPCF90 -lPOSF90 -limf -lirc -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut    $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf
 #LDFLAGS=  -static   -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/lib -L/usr/local/lib -L../lib/linux/icc -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut 
 else
-LDFLAGS=  -static   -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut  -lg2c  $(PFLAGS)
+LDFLAGS=  -static   -L$(CERNDIR)/lib   -lgeant321  -lpacklib_noshift -lmathlib -lkernlib_noshift -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut  -lg2c  $(PFLAGS)
 endif
 TIMEL=
 INCS= $(wildcard $(SRC)*.*h)    
