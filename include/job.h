@@ -16,8 +16,9 @@
 #include <iomanip.h>
 #include <amsgobj.h>
 #include <timeid.h>
+#ifdef __DB__
 #include <db_comm.h>
-
+#endif
 const integer maxtrig=20;
 const integer maxtdv=255;
 const integer maxtdvsize=256;
@@ -117,9 +118,12 @@ uinteger setjobtype(uinteger checker){return _jobtype | checker;}
 
 uinteger eventRtype()     { return _eventRtype;}
 void     seteventRtype(integer eventR) {_eventRtype = eventR;}
+
+#ifdef __DB__
 uinteger isMCBanks()   { return (_eventRtype/DBWriteMC)%2;}
 uinteger isRecoBanks() { return (_eventRtype/DBWriteRecE)%2;}
 uinteger isRawBanks()  { return (_eventRtype/DBWriteRawE)%2;}
+#endif
 
 AMSNode * getnodep(AMSID  id) const{return JobMap.getp(id);}
 AMSgvolume * getgeom(AMSID id=0);
