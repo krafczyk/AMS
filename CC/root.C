@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.49 2003/07/08 16:30:28 choutko Exp $
+//  $Id: root.C,v 1.50 2003/07/16 15:51:38 choutko Exp $
 //
 
 #include <root.h>
@@ -1960,6 +1960,7 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   GChi2           = (float)ptr->_GChi2;
   GRigidity       = (float)ptr->_GRidgidity;;
   GErrRigidity    = (float)ptr->_GErrRidgidity;
+  if(AdvancedFitDone){
   for (int i=0; i<2; i++) {
         HChi2[i]        = (float)ptr->_HChi2[i];
         HRigidity[i]    = (float)ptr->_HRidgidity[i];
@@ -1968,6 +1969,17 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
         HPhi[i]         = (float)ptr->_HPhi[i];
         for (int j=0; j<3; j++)  HP0[i][j] = (float)ptr->_HP0[i][j];
   }
+ } 
+ else{
+  for (int i=0; i<2; i++) {
+        HChi2[i]        = 0;
+        HRigidity[i]    = 0;
+        HErrRigidity[i] = 0;
+        HTheta[i]       = 0;
+        HPhi[i]         = 0;
+        for (int j=0; j<3; j++)  HP0[i][j] = 0;
+  }
+ }
   FChi2MS         = ptr->_Chi2MS;
   PiErrRig        = ptr->_PIErrRigidity;
   RigidityMS      = ptr->_RidgidityMS;
