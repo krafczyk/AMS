@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.271 2004/06/07 06:13:50 alexei Exp $
+# $Id: RemoteClient.pm,v 1.272 2004/06/07 17:17:50 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2690,7 +2690,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            print "</b></font></td></tr>\n";
            foreach my $dataset (@{$self->{DataSetsT}}){
              print "</b>
-                     <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=$dataset->{name}>$dataset->{name}, $dataset->{eventstodo}<BR>\n";
+                     <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=$dataset->{name}>$dataset->{name}<BR>\n";
               print "</b></font></td></tr>\n";
            }
         htmlTableEnd();
@@ -2851,7 +2851,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 
             print "<TR><TD><font color=\"green\" size=\"3\"> Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
             print "<br>\n";
-            print "<TR><TD><font color=\"tomato\" size=\"3\"> Note : If dataset is not clickable, means all events already allocated for running jobs or processed</font></TD></TR>\n";
+            print "<TR><TD><font color=\"tomato\" size=\"3\"> Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed</font></TD></TR>\n";
           
           print "<p>\n";
           print "<br>\n";
@@ -3564,7 +3564,7 @@ DDTAB:          $self->htmlTemplateTable(" ");
 <INPUT TYPE="checkbox" NAME="ForceCpuLimit" VALUE="FCL" CHECKED>Force CPULimit (Untick for NON-BATCH jobs)<BR> 
 `;
                  }
-              htmlTextField("Total  Real Time Required","number",3,10,"QTimeOut"," (days)");  
+              htmlTextField("Total  Real Time Required","number",3,15,"QTimeOut"," (days)");  
               my ($rid) = $self->getRID();
               htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
               htmlText("<i>rndm sequence number </i>",abs($rid));
@@ -3870,7 +3870,7 @@ print qq`
           print $q->textfield(-name=>"QRun",-default=>3);
           print "<BR>";
                 print "Approximate Jobs Total Elapsed Time (days)";
-          print $q->textfield(-name=>"QTimeOut",-default=>7);
+          print $q->textfield(-name=>"QTimeOut",-default=>15);
           print "<BR>";
          print "Automatic NtupleFile Transfer to Server";
           print "<BR>";
@@ -4140,8 +4140,8 @@ print qq`
          $timendu=timelocal(1,0,8,$date,$month,$year);
         if($self->{q}->param("ProductionQuery") or $self->{q}->param("ProductionForm")  ){
           $timeout=$q->param("QTimeOut");
-          if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>31){
-             $self->ErrorPlus("Time  $timeout is out of range (1,31) days. ");
+          if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>40){
+             $self->ErrorPlus("Time  $timeout is out of range (1,40) days. ");
           }
           $timeout=int($timeout*3600*24);
           $particleid= $q->param("QPart");
