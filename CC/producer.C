@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.36 2001/06/06 10:43:54 choutko Exp $
+//  $Id: producer.C,v 1.37 2001/06/08 15:05:39 amsp Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -67,7 +67,7 @@ else{
        sleep(10);
       if(!(_pvar->sendId(_pid,cput))){
        // dieHard
-       FMessage("Server Requested Termination after sendID ",DPS::Client::SInExit);
+       FMessage("Server Requested Termination after sendID ",DPS::Client::SInAbort);
       }
      }
      IMessage(AMSClient::print(_pid,"sendID-I-Success"));

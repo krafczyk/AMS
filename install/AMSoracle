@@ -5,7 +5,7 @@ setenv Offline /offline
 
 source /usr/local/lib/hepix/oracle_env.csh
 
-setenv AMSDEBUG  1
+#setenv AMSDEBUG  1
 setenv AMSORACLE 1
 
 

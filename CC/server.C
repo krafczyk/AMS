@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.64 2001/06/06 16:12:13 choutko Exp $
+//  $Id: server.C,v 1.65 2001/06/08 15:05:39 amsp Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -1267,6 +1267,9 @@ return 0;
             if(!strcmp((const char *)(*i)->HostName, (const char *)(ac.id).HostName)){
 //          cout << " host found for deleteing "<<endl;
         ((*i)->ClientsRunning)--;
+        if((*i)->ClientsRunning<0){
+          _parent->FMessage("Server_impl::sendAC-F-NegativeNumberClientRunning ",DPS::Client::CInAbort);
+        }
      time_t tt;
      time(&tt);
      (*i)->LastUpdate=tt;     
@@ -2000,9 +2003,7 @@ if(pcur->InactiveClientExists(getType()))return;
      submit+=tmp;
      submit+=".log ";
     }
-#ifdef __AMSDEBUG__
-    cout <<submit<<endl;
-#endif
+    if(_parent->Debug())_parent->IMessage(submit);
     submit+=" &";
     int out=system(submit);
      time_t tt;
@@ -4078,6 +4079,9 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
                if(!strcmp((const char *)(*i)->HostName, (const char *)((ac.id).HostName))){
                DPS::Client::ActiveHost_var ahlv= *i;
                (ahlv->ClientsRunning)--;
+        if(ahlv->ClientsRunning<0){
+          _parent->FMessage("AMSServerI::PropagateACDB-F-NegativeNumberClientRunning ",DPS::Client::CInAbort);
+        }
                time_t tt;
                time(&tt);
                (ahlv)->LastUpdate=tt;     
