@@ -20,12 +20,6 @@ class AMSR_Display;
 class AMSR_3DCluster : public TMarker3DBox { 
 
 protected:
-#if defined(ROOT10308)
-#else
-   Float_t           fX;	//X0 (interface for versions before v1.03/08)
-   Float_t           fY;	//Y0 (interface for versions before v1.03/08)
-   Float_t           fZ;	//Z0 (interface for versions before v1.03/08)
-#endif
    Int_t             fRange;	//Range that considered close on view pad
 
 public:
