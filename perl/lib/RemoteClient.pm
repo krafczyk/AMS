@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.162 2003/05/12 17:00:49 choutko Exp $
+# $Id: RemoteClient.pm,v 1.163 2003/05/12 17:04:22 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20,7 +20,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -890,7 +890,8 @@ sub ValidateRuns {
                                      ERRORS=$errors,
                                      CPUTIME=$cputime,
                                      ELAPSED=$elapsed,
-                                     HOST='$host' 
+                                     HOST='$host',
+                                     TIMESTAMP=$timenow  
                             WHERE JID = $run->{Run}";
           $self->{sqlserver}->Update($sql);
           print FILE $sql;
@@ -1978,7 +1979,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
    print "</ul>\n";
    print "<font size=\"2\" color=\"black\">\n";
    print "<li> Catalogues are updated nightly.\n";
-   print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=$dbqueryR> here </a>\n";
+   print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/print.gamma.test.cgi\"> here </a>\n";
    print "<p>\n";
     print "<TR><B><font color=green size= 4> Select by key(s) (you can select multiple keys) </font>";
     print "<p>\n";
@@ -7244,4 +7245,39 @@ sub insertNtuple {
                                            $crc)"; 
   $self->{sqlserver}->Update($sql);
 
+}
+
+sub printMC02GammaTest {
+    my $self = shift;
+
+    my $buf;
+
+    my $mc02gammafile = "/afs/ams.cern.ch/AMS02/MC/mc02-gamma-test.datasets";
+
+    open(FILE,"<".$mc02gammafile) or die "Unable to open $mc02gammafile \n";
+    read(FILE,$buf,1638400);
+    close FILE;
+  
+    my @lines=split "\n",$buf;
+  
+    htmlTop();
+      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+      print "<td><b><font color=\"blue\">Dataset </font></b></td>";
+      print "<td><b><font color=\"blue\" >Tape # </font></b></td>";
+      print "</tr>\n";
+  foreach my $line (@lines) {
+        my @junk = split ';',$line;
+        if ($#junk > 0) {
+         my $dataset = $junk[0];
+         my $tape    = $junk[1];
+         if ($#junk > 1) { $tape = $tape.";".$junk[2]};
+         print "<td><b><font color=\"black\">$dataset </font></b></td>";
+         print "<td><b><font color=\"black\">$tape </font></b></td>";
+         print "</tr>\n";
+     } else {
+         print "<td><b>--------------------------------</b><td></tr>\n";
+     }
+    }
+
+    htmlBottom();
 }
