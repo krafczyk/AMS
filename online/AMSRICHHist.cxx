@@ -1,7 +1,5 @@
-//  $Id: AMSRICHHist.cxx,v 1.2 2003/11/10 17:10:42 mdelgado Exp $
-// By V. Choutko & D. Casadei
-// Last changes: 27 Feb 1998 by D.C.
-#include <iostream.h>
+//  $Id: AMSRICHHist.cxx,v 1.3 2004/02/22 15:39:40 choutko Exp $
+#include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
 #include "AMSNtuple.h"
@@ -146,7 +144,7 @@ void AMSRICHHist::Fill(AMSNtupleR *ntuple){
       _filled[1]->Fill(current.Channel,1.);
 
       _filled[2]->Fill(current.Npe,1.);
-      if(! current.Status&(1<<30))
+      if(! (current.Status&(1<<30)))
 	_filled[3]->Fill(current.Counts,1.);
       else
 	_filled[4]->Fill(current.Counts,1.);

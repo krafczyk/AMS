@@ -1,8 +1,8 @@
-//  $Id: ControlFrame.h,v 1.3 2003/06/19 13:00:13 choutko Exp $
+//  $Id: ControlFrame.h,v 1.4 2004/02/22 15:39:40 choutko Exp $
 #ifndef __CONTROLFRAME__
 #define __CONTROLFRAME__
 #include <stdlib.h>
-#include <iostream.h>
+#include <iostream>
 #include <TROOT.h>
 #include <TApplication.h>
 #include <TGClient.h>

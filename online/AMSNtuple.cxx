@@ -1,6 +1,6 @@
-//  $Id: AMSNtuple.cxx,v 1.7 2003/07/01 06:42:20 choutko Exp $
+//  $Id: AMSNtuple.cxx,v 1.8 2004/02/22 15:39:40 choutko Exp $
 #include <stdlib.h>
-#include <iostream.h>
+#include <iostream>
 #include "AMSNtuple.h"
 #include "AMSNtupleHelper.h"
 ClassImp(AMSNtupleR)

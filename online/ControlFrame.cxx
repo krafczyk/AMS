@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.7 2004/01/20 19:59:18 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.8 2004/02/22 15:39:40 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
@@ -12,7 +12,6 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   TGHotString *ptg1=0;
   TGHotString *ptg2=0;
   // Process messages sent to this dialog.
-  
   switch (GET_MSG(msg)) {
   case kC_HSLIDER:
   case kC_VSLIDER:
@@ -68,13 +67,14 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
       case 402:
 	gAMSDisplay->Filled(buf);
-//	if(strlen(buf)){
-//	  ptg2 =new TGHotString(buf);
-//	  _pcontrol[1]->SetText(ptg2);
-//	}
+	if(strlen(buf)){
+	  ptg2 =new TGHotString(buf);
+	  _pcontrol[1]->SetText(ptg2);
+	}
 	break;
       case 403:
 	gAMSDisplay->Reset();
+         _pcontrol[1]->SetText("Fill");
 	break;
       case 404:
         int i=gAMSDisplay->ReLoad();
@@ -248,11 +248,13 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     
 
     _pcontrolfr= new TGGroupFrame(this, new TGString("Controls"));
+    _pcontrolfr->ChangeBackground(tggcolor);
+/* 
     wattr.fMask = kWABackPixel | kWAEventMask;
     wattr.fBackgroundPixel = tggcolor;
     wattr.fEventMask = kExposureMask;
     gVirtualX->ChangeWindowAttributes(_pcontrolfr->GetId(), &wattr);
-    
+*/    
     _pcyclefr= new TGGroupFrame(this, new TGString("Cycle"));
     wattr.fMask = kWABackPixel | kWAEventMask;
     wattr.fBackgroundPixel = tggcolor;
@@ -273,29 +275,38 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
    
     for(i=0;i<fSubDetMenu.size();i++){
        _pbutton.push_back(new TGTextButton(_pbutfr, gAMSDisplay->getSubDet(i)->GetName(), 200000+i));
+/*
       wattr.fMask = kWABackPixel | kWAEventMask;
       wattr.fBackgroundPixel = tgbcolor;
       wattr.fEventMask = kExposureMask;
       gVirtualX->ChangeWindowAttributes(_pbutton[i]->GetId(), &wattr);
-      
+*/      
     }
     //  get subdet from amsdisplay
     for(i=0;i<_pbutton.size();i++){
       _pcycle.push_back(new TGCheckButton(_pcyclefr, gAMSDisplay->getSubDet(i)->GetName(), 300000+i));
+/*
       wattr.fMask = kWABackPixel | kWAEventMask;
       wattr.fBackgroundPixel = tggcolor;
       wattr.fEventMask = kExposureMask;
       gVirtualX->ChangeWindowAttributes(_pcycle[i]->GetId(), &wattr);
+*/
+       _pcycle[i]->ChangeBackground(tggcolor);
     }
     _plogx=new TGCheckButton(_plogfr,"LogX",501);
     _plogy=new TGCheckButton(_plogfr,"LogY",502);
     _plogz=new TGCheckButton(_plogfr,"LogZ",503);
+/*
       wattr.fMask = kWABackPixel | kWAEventMask;
       wattr.fBackgroundPixel = tggcolor;
       wattr.fEventMask = kExposureMask;
       gVirtualX->ChangeWindowAttributes(_plogx->GetId(), &wattr);
       gVirtualX->ChangeWindowAttributes(_plogy->GetId(), &wattr);
       gVirtualX->ChangeWindowAttributes(_plogz->GetId(), &wattr);
+*/
+     _plogx->ChangeBackground(tggcolor);
+     _plogy->ChangeBackground(tggcolor);
+     _plogz->ChangeBackground(tggcolor);
     for(i=0;i<_pbutton.size();i++)_pbutton[i]->Associate(this);
     for(i=0;i<_pbutton.size();i++)_pcycle[i]->Associate(this);
     _plogx->Associate(this);   
@@ -311,10 +322,13 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
 
     
     for(i=0;i<_pcontrol.size();i++){
+/*
       wattr.fMask = kWABackPixel | kWAEventMask;
       wattr.fBackgroundPixel = tgccolor;
       wattr.fEventMask = kExposureMask;
       gVirtualX->ChangeWindowAttributes(_pcontrol[i]->GetId(), &wattr);
+*/
+      _pcontrol[i]->ChangeBackground(tgccolor);
     }
     for(i=0;i<_pcontrol.size();i++)_pcontrol[i]->Associate(this);
     for(i=0;i<_pcontrol.size();i++)_pcontrolfr->AddFrame(_pcontrol[i],fL1);
@@ -342,7 +356,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     AddFrame(_plogfr,fL5);
     AddFrame(_pbutfr,fL4);
     AddFrame(_pcyclefr,fL3);
-   
+    fbar=0; 
 //  Progress bar
     fbar=new TGHProgressBar(this,TGProgressBar::kStandard,300);
     fbar->SetFillType(TGProgressBar::kBlockFill);

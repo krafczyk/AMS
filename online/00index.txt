@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.14 2004/01/29 10:45:11 choutko Exp $
+#  $Id: 00index.txt,v 1.15 2004/02/22 15:39:39 choutko Exp $
 
 =========================================================================
 
@@ -34,7 +34,7 @@ of AMS offline monitor into it.
         setenv AMSICC     if you have icc compiler (gains exec speed)
         unsetenv AMSICC   -----  don;t  --------------- 
         setenv RH9        if your system is linux9   (need ctype.o vc hacked)
-
+        br.bat             (for win32 msvc++) 
 -------------------------------------------------------------------------
 3. Running the program
 ----------------------

@@ -1,7 +1,7 @@
-#  $Id: Makefile,v 1.12 2004/02/13 10:55:47 choutko Exp $
+#  $Id: Makefile,v 1.13 2004/02/22 15:39:40 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
-ARCH         := $(shell root-config --arch)
+ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
 RH9add=
 ifdef RH9
@@ -44,6 +44,19 @@ LDFLAGS       = -g
 ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm.dll -lX11.dll $(RH9add) -L/usr/lib -lshift
 LIBS          =  $(ROOTLIBS) -lm 
 endif
+ifeq ($(ARCH),win32)
+PREFIX   = $(AMSWD)/online/wingdk/
+CXX        =  $(ROOTSYS)/build/win/cxx.sh
+CXXFLAGS =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__ -O2 -Z7 -G5 -GR -GX -MD -DWIN32 -DGDK_WIN32  -D_WINDOWS -DWINVER=0x0400 -nologo -DCRTAPI1=_cdecl -DCRTAPI2=_cdecl -FIw32pragma.h -D_X86_=1 -D_DLL -DVISUAL_CPLUSPLUS -I../include  -I$(ROOTSYS)/include  /TP
+OPT           = 
+OPTC          = 
+NOOPT         = -g
+NOOPTC         = -g
+LD = $(ROOTSYS)/build/win/ld.sh
+LDFLAGS       =  -nologo    -nodefaultlib:libc.lib -nodefaultlib:dfor.lib 
+LIBS          =  $(ROOTSYS)/lib/libCore.lib $(ROOTSYS)/lib/libCint.lib $(ROOTSYS)/lib/libHist.lib  $(ROOTSYS)/lib/libHistPainter.lib $(ROOTSYS)/lib/libGui.lib  $(ROOTSYS)/lib/libMatrix.lib $(ROOTSYS)/lib/libGeom.lib $(ROOTSYS)/lib/libPhysics.lib $(ROOTSYS)/lib/libGpad.lib $(ROOTSYS)/lib/libGraf.lib $(ROOTSYS)/lib/libGraf3d.lib $(ROOTSYS)/lib/libTree.lib  $(ROOTSYS)/lib/libRint.lib advapi32.lib
+ALIBS          = lib/libroot.a lib/libCore.lib lib/libfreetype.lib advapi32.lib
+endif
 GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d -lGui -lGpad -lGX11  -lTree -lRint -lPostscript -lMatrix -lPhysics  -lHistPainter -lMinuit -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -lXpm -lm -ldl 
 
 ##### MACROS #####
@@ -81,7 +94,7 @@ HDRS          =   \
                 AMSGenHist.h\
                 AMSNtuple.h\
                 LinkDef.h
-DICT          = AMSCint.cxx
+DICT          = AMSCint_$(ARCH).cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
 
@@ -109,6 +122,9 @@ AMSSHAREDLIB = libAMS.so
 
 AMSPRG       = $(PREFIX)offmon
 AMSPRGC       = $(PREFIX)offmonc
+ifeq ($(ARCH),win32)
+AMSPRG       = $(PREFIX)offmon.exe
+endif
 
 
 
@@ -175,7 +191,7 @@ $(OBJSR): $(PREFIX)%.o : ../CC/%.C
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(DICTO): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(OPT) $(CXXFLAGS)  -c $(<)  -o $(@)
+	$(CXX) $(OPT)  $(CXXFLAGS)  -c $(<)  -o $(@)
 
 
 ##### DEPENDENCIES #####

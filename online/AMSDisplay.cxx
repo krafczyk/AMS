@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.17 2003/07/01 06:42:20 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.18 2004/02/22 15:39:39 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -7,7 +7,7 @@
 // Utility class to display AMSRoot outline, tracks, clusters...        //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-#include <iostream.h>
+#include <iostream>
 #include <TROOT.h>
 #include <TButton.h>
 #include <TCanvas.h>
@@ -28,7 +28,11 @@
 #include "AMSDisplay.h"
 #include "AMSNtuple.h"
 #include "ControlFrame.h"
+#ifndef WIN32
 #include <dlfcn.h>
+#else
+#include <windows.h>
+#endif
 AMSOnDisplay * gAMSDisplay;
 
 
@@ -339,11 +343,11 @@ void AMSOnDisplay::Filled(char *buf){
    sprintf(atext2,"Fill/%d",_Begin);
    sprintf(atext1,"Filled/%d",_Begin);
    if (! text) {
-	if(filled%2)text = new TText(0.5, 0.5, atext1);
+	if(filled)text = new TText(0.5, 0.5, atext1);
 	else text = new TText(0.5, 0.5, atext2);
    }
    else{
-	if(filled%2)text->SetText(0.5, 0.5, atext1);
+	if(filled)text->SetText(0.5, 0.5, atext1);
 	else text = new TText(0.5, 0.5, atext2);
    }
    text->SetTextAlign(22);
@@ -353,7 +357,7 @@ void AMSOnDisplay::Filled(char *buf){
     text->Draw();
    }
    else {
-	if(filled%2)strcpy(buf,atext1);
+	if(filled)strcpy(buf,atext1);
 	else strcpy(buf,atext2);
    }
 }
@@ -415,13 +419,44 @@ void AMSOnDisplay::Reset(){
 
 
 int  AMSOnDisplay::ReLoad(){
+
+#ifdef WIN32
+        char cmd[]="cl.exe -c AMSNtupleSelect.C -I%ROOTSYS%\\include  /EHsc /TP";
+#else
         static void *handle=0;
-        char cmd[]="g++ -I$ROOTSYS/include -c AMSNtupleSelect.C";
+        char *CC=getenv("CC");
+        if(!CC){
+          setenv("CC","g++",0);
+        }
+        char cmd[]="$CC -I$ROOTSYS/include  -c AMSNtupleSelect.C";
+#endif
         int $i=system(cmd);
         if(!$i){
-         char cmd1[]="g++ -shared AMSNtupleSelect.o -o libuser.so";
+#ifdef WIN32
+	char cmd1[]="cl.exe AMSNtupleSelect.obj -o libuser.so /LD /link -nologo -export:gethelper";
+#else
+         char cmd1[]="ld -init fgselect -shared AMSNtupleSelect.o -o libuser.so";
+#endif
          $i=system(cmd1);
          if(!$i){  
+#ifdef WIN32
+       static HINSTANCE handle=0;
+       typedef AMSNtupleHelper * (*MYPROC)(VOID);
+      handle=LoadLibrary(".\\libuser.so");
+       if(!handle){
+          cout <<"  Unable to load lib "<<endl; 
+          return 1;
+       }
+       else {
+        MYPROC pa=(MYPROC)GetProcAddress(handle,"gethelper");
+        if(pa){
+         AMSNtupleHelper::fgHelper= ((pa)()); 
+         return 0;
+        }  
+        return 1;
+       }
+	 
+#else
            if(handle)dlclose(handle);
            if(handle=dlopen("libuser.so",RTLD_NOW)){
               return 0;
@@ -434,8 +469,9 @@ int  AMSOnDisplay::ReLoad(){
 //           if($i==-1)$i=1;
 //           else $i==0;
 //           return $i;
-            
-        }
+#endif          
+  
+	 }
         }
         return -1;
 
@@ -460,8 +496,11 @@ void AMSOnDisplay::SaveParticleGIF()
 
 void AMSOnDisplay::PrintCB()
 {
-
+#ifndef WIN32
    pid_t pid = getpid();
+#else
+   int pid=0;
+#endif
    char filename[80];
    sprintf(filename, "/tmp/AMSOnDisplay.%u.ps",pid);
    GetCanvas()->SaveAs(filename);

@@ -1,5 +1,5 @@
-//  $Id: AMSAxAMSHist.cxx,v 1.8 2003/07/25 14:54:14 choutko Exp $
-#include <iostream.h>
+//  $Id: AMSAxAMSHist.cxx,v 1.9 2004/02/22 15:39:39 choutko Exp $
+#include <iostream>
 #include "AMSNtuple.h"
 #include "AMSDisplay.h"
 #include <math.h>
@@ -206,8 +206,9 @@ void AMSAxAMSHist::Fill(AMSNtupleR * ntuple){
     if(err<100000){
       err=err*100;
      if (fabs(ntuple->pParticle(0)->Momentum) !=0)err=err/fabs(ntuple->pParticle(0)->Momentum);
-    }
-    ((TH2F*)_filled[6])->Fill(fabs(ntuple->pParticle(0)->Momentum),err,1.);
+    } 
+    ((TProfile*)_filled[6])->Fill(fabs(ntuple->pParticle(0)->Momentum),err,1.);
+     return;
     _filled[7]->Fill(ntuple->pParticle(0)->TOFCoo[0][0],1.);
     _filled[8]->Fill(ntuple->pParticle(0)->TOFCoo[0][1],1.);
     _filled[9]->Fill(ntuple->pParticle(0)->Theta*180./3.1415926,1.);

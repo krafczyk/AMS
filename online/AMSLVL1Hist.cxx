@@ -1,6 +1,6 @@
-//  $Id: AMSLVL1Hist.cxx,v 1.11 2003/06/26 13:13:44 choumilo Exp $
+//  $Id: AMSLVL1Hist.cxx,v 1.12 2004/02/22 15:39:39 choutko Exp $
 //      v1.0/E.Choumilov/20.06.2003
-#include <iostream.h>
+#include <iostream>
 #include "AMSDisplay.h"
 #include <TGraphErrors.h>
 #include "AMSNtuple.h"

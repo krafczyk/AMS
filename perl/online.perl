@@ -1,4 +1,4 @@
-# $Id: online.perl,v 1.4 2004/01/27 10:40:43 choutko Exp $
+# $Id: online.perl,v 1.5 2004/02/22 15:42:56 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
@@ -10,7 +10,7 @@ print FILEO "// \n";
 print FILEO "// File Is Auto Generated \n";
 print FILEO "// All Manual Changes Will Be Lost \n";
 print FILEO "// \n";
-print FILEO '#include <iostream.h>'."\n";
+print FILEO '#include <iostream>'."\n";
 print FILEO '#include "AMSNtuple.h"'."\n";
 print FILEO '#include "AMSDisplay.h"'."\n";
 print FILEO '#include <math.h>'."\n";
@@ -157,16 +157,18 @@ while (my $line=<FILEI>){
               my @j1=split /\?/,$line;
               my @j2=split/\(/,$j1[1];
               $j2[0]=~s/p/N/;
-          print FILEO " for(int loc=0;loc<ntuple->$j2[0]();loc++){
+          print FILEO "{
+         for(int loc=0;loc<ntuple->$j2[0]();loc++){
           t=ntuple->$fun\(loc\);
           if(fabs(t)<1e20)_filled[i]->Fill(t,1.);\n";
-          print FILEO "}\ni++;\n";   
+          print FILEO "}\n}\ni++;\n";   
           }
           else{
-          print FILEO " for(int loc=0;loc<ntuple->$junk4[$tag]();loc++){
-          t=ntuple->$fun\(loc\);
-          if(fabs(t)<1e20)_filled[i]->Fill(t,1.);\n";
-          print FILEO "}\ni++;\n";   
+          print FILEO "{
+          for(int loc=0;loc<ntuple->$junk4[$tag]();loc++){
+           t=ntuple->$fun\(loc\);
+           if(fabs(t)<1e20)_filled[i]->Fill(t,1.);\n";
+          print FILEO "}\n}\ni++;\n";   
           }
      }
     }

@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.21 2004/01/30 13:01:31 choutko Exp $
+//  $Id: main.cxx,v 1.22 2004/02/22 15:39:41 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -6,11 +6,13 @@
 #include <TTree.h>
 #include <TGeometry.h>
 #include "AMSDisplay.h"
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
+#ifndef WIN32
 #include <unistd.h> 
 #include <sys/stat.h>
 #include <sys/file.h>
+#endif
 #include <stdlib.h>
 #include <signal.h>
 #include "AMSNtuple.h"
@@ -26,13 +28,17 @@
 #include "AMSGenHist.h"
 #include "AMSEverything.h"
 #include "main.h"
+#ifndef WIN32
 #include <dirent.h>
+#endif
 #include <TString.h>
-#include <TCastorFile.h>
+#include <TRFIOFile.h>
 TString * Selector;
 extern void * gAMSUserFunction;
 void OpenChain(TChain & chain, char * filename);
+#ifndef WIN32
 static int Selectsdir( const dirent * entry=0);
+#endif
 void Myapp::HandleIdleTimer(){
   if(fDisplay)fDisplay->DispatchProcesses();
   SetReturnFromRun(1);
@@ -47,12 +53,13 @@ int main(int argc, char *argv[])
 // First create application environment. If you replace TApplication
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
+/*
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGINT, handler);
      *signal(SIGQUIT, handler);
-
+*/
   char * filename = "test.root";		// default file name
 
   if ( argc > 1 ) {		// now take the file name
@@ -67,15 +74,22 @@ int main(int argc, char *argv[])
   AMSNtupleR ntuple(&chain);
   int err=0;
   int argcc=1;
+#ifdef WIN32
+Myapp *theApp = new Myapp("App", &argcc, argv);
+#else
   gVirtualX=new TGX11("X11","Root Interface to X11");
   gGuiFactory=new TRootGuiFactory();
   Myapp *theApp = new Myapp("App", &argcc, argv);
 //  gDebug=6; 
   theApp->SetStatic();
+#endif
   AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Offline Display",&ntuple);
+
   theApp->SetDisplay(amd);  
+
   AMSAntiHist  antih("&AntiCounters","Anti counter Hists");
   amd->AddSubDet(antih);
+
   AMSTRDHist  trdh("&TRD","TRD Hists");
   amd->AddSubDet(trdh);
   AMSTOFHist  TOFh("TO&F","TOF Hists");
@@ -96,7 +110,6 @@ int main(int argc, char *argv[])
   amd->AddSubDet(Genh);
   AMSEverything  Everyh("E&verything","All Hists");
   amd->AddSubDet(Everyh);
- 
 
 
   amd->Init();
@@ -122,6 +135,7 @@ int main(int argc, char *argv[])
 
 
 void (handler)(int sig){
+/*
   switch(sig){
   case  SIGFPE:
    cerr <<" FPE intercepted"<<endl;
@@ -142,6 +156,7 @@ void (handler)(int sig){
    cerr <<" Process resumed"<<endl;
    break;
   }
+*/
 }
 
 
@@ -162,7 +177,9 @@ void OpenChain(TChain & chain, char * filenam){
    TRegexp f("^/castor",false);
    bool wildsubdir=false;
    if(a.Contains(b)){
-    TCastorFile f;
+#ifndef WIN32
+    TRFIOFile f("");
+#endif
     strcpy(filename,filenam);
    }
    else if(a.Contains(c)){
@@ -179,11 +196,15 @@ void OpenChain(TChain & chain, char * filenam){
     strcat(filename,filenam);
    }
    else{ 
+#ifndef WIN32
     if(filenam[0]!='/'){
     strcpy(filename,"./");
     strcat(filename,filenam);
    }
    else strcpy(filename,filenam);
+#else
+ strcpy(filename,filenam);
+#endif
    bool go=false;
    for(int i=strlen(filename)-1;i>=0;i--){
      if(filename[i]=='/')go=true;
@@ -193,7 +214,7 @@ void OpenChain(TChain & chain, char * filenam){
      }
    }
    }
-   
+#ifndef WIN32   
    if(wildsubdir){
     for(int i=0;i<strlen(filename);i++){
      if (filename[i]=='*'){
@@ -224,12 +245,13 @@ void OpenChain(TChain & chain, char * filenam){
            }
         }
       }
+#endif
     chain.Add(filename);
 }
 
 
 
-
+#ifndef WIN32
 int Selectsdir(const dirent *entry){
 if(Selector){
  TString a(entry->d_name);
@@ -238,3 +260,4 @@ if(Selector){
 }
 else return entry->d_name[0]!='.';
 }
+#endif
