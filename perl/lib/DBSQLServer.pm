@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.15 2002/03/26 21:21:59 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.16 2002/03/27 12:07:59 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -131,7 +131,9 @@ sub Create{
        cid     INT,
        status  VARCHAR(16),
        requests INT,
-       timestamp INT)",
+       timestamp INT,
+       timeu1    INT,
+       timeu2    INT)",
       "CREATE TABLE Jobs 
       (jid     INT NOT NULL,
        jobname VARCHAR(255),
@@ -286,24 +288,24 @@ sub Create{
     my $address='v.choutko@cern.ch';           
     my $alias='vitali.choutko@cern.ch';
     my $time = time();        
-   $dbh->do("insert into Mails values(1,'$address','$alias','Vitali Choutko',1,1,1,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("insert into Mails values(1,'$address','$alias','Vitali Choutko',1,1,1,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
      $address='vitali@afl3u1.cern.ch';        
-   $dbh->do("insert into Mails values(2,'$address',NULL,'Vitali Choutko',1,0,2,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("insert into Mails values(2,'$address',NULL,'Vitali Choutko',1,0,2,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
      $address='a.klimentov@cern.ch';        
      $alias='alexei.klimentov@cern.ch';
-   $dbh->do("insert into Mails values(3,'$address','$alias','Alexei Klimentov',1,1,1,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("insert into Mails values(3,'$address','$alias','Alexei Klimentov',1,1,1,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
      $address='biland@particle.phys.ethz.ch';
      $alias='adrian.biland@cern.ch';      
-  $dbh->do("insert into Mails values(4,'$address','$alias','Adrian Biland',1,0,4,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+  $dbh->do("insert into Mails values(4,'$address','$alias','Adrian Biland',1,0,4,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
     $address='diego.casadei@bo.infn.it';
     $alias='diego.casadei@cern.ch'; 
-  $dbh->do("insert into Mails values(5,'$address','$alias','Diego Casadei',1,0,3,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+  $dbh->do("insert into Mails values(5,'$address','$alias','Diego Casadei',1,0,3,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
     $address='davide.grandi@mib.infn.it';
     $alias='davide.grandi@cern.ch'; 
-  $dbh->do("insert into Mails values(6,'$address','$alias','Davide Grandi',1,0,5,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+  $dbh->do("insert into Mails values(6,'$address','$alias','Davide Grandi',1,0,5,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
     $address='evgueni.choumilov@cern.ch';
     $alias='e.choumilov@cern.ch'; 
-  $dbh->do("insert into Mails values(7,'$address','$alias','Eugeni Choumilov',0,0,2,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+  $dbh->do("insert into Mails values(7,'$address','$alias','Eugeni Choumilov',0,0,2,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
     $time=time();
     warn $time;
 #find responsible

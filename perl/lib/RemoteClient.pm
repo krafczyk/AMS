@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.30 2002/03/27 11:35:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.31 2002/03/27 12:07:59 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -931,7 +931,7 @@ sub Connect{
             my $mid=$ret->[$#{$ret}][0]+1;
             my $resp=$newcite;
             my $time=time();
-            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time)";
+            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0)";
             $self->{sqlserver}->Update($sql);
             if($newcite){
                 $sql="update Cites set mid=$mid where cid=$cid";
@@ -1011,7 +1011,7 @@ sub Connect{
              $ret=$self->{sqlserver}->Query($sql);
              my $mid=$ret->[0][0]+1;
              my $resp=1;
-             $sql="INSERT INTO Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time)";
+             $sql="INSERT INTO Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0)";
             $self->{sqlserver}->Update($sql);
 # add responsible info to Cites
              $sql="UPDATE Cites SET mid=$mid WHERE cid=$cid";
@@ -1137,7 +1137,7 @@ sub Connect{
             my $mid=$ret->[0][0]+1;
             my $resp=0;
             my $time=time();
-            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time)";
+            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0)";
             $self->{sqlserver}->Update($sql);
          $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";     
         }
@@ -2050,9 +2050,10 @@ print qq`
           $i=system("mv $filedb $filedb.o");
           $i=system("mv $filen.gz $filedb");
           unlink "$filedb.o";
-    }
-
-
+       }
+        elsif($sta[9]>$self->{TU1}){
+            $self->{senddb}=1;
+        }
         $filedb_att="$self->{UploadsDir}/ams02mcdb.att.tar.gz";
         @sta = stat $filedb_att;
 
@@ -2078,7 +2079,10 @@ print qq`
           $i=system("mv $filedb_att $filedb_att.o");
           $i=system("mv $filen.gz $filedb_att");
           unlink "$filedb_att.o";
-    }
+       }
+        elsif($sta[9]>$self->{TU2}){
+            $self->{sendaddon}=1;
+        }
 
     
 # write readme file
@@ -2273,28 +2277,34 @@ print qq`
                   my $message=$self->{tsyntax}->{headers}->{readme};
                 
                   my $attach;
+       if ($self->{CCT} eq "remote"){
           if($self->{senddb}){
+          my $time=time();
+          $self->{TU1}=$time;
            $attach="$file2tar.gz,ams02mcscripts.tar.gz;$filedb,ams02mcdb.tar.gz";
           }
           elsif($self->{sendaddon}){
+              my $time=time();
+              $self->{TU2}=$time;
               $self->{sendaddon}=0;
              $attach= "$file2tar.gz,ams02mcscripts.tar.gz;$filedb_att,ams02mcdb.addon.tar.gz";
           }
           else{
               $attach= "$file2tar.gz,ams02mcscripts.tar.gz";
           }
-         if ($self->{CCT} eq "remote"){
                   $self->sendmailmessage($address,$subject,$message,$attach);
                   my $i=unlink "$file2tar.gz";
                   if($self->{sendaddon}){
+                   my $time=time();
+                   $self->{TU2}=$time;
                    $attach="$filedb_att,ams02mcdb.addon.tar.gz";
                    $subject="Addon To AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
                    $self->sendmailmessage($address,$subject,$message,$attach);
                }
-          }
+              }
          my $totalreq=$self->{CEMR}+$runno;
          my $time=time();
-         $sql="Update Mails set requests=$totalreq, timestamp=$time where mid=$self->{CEMID}";
+         $sql="Update Mails set requests=$totalreq, timeu1=$self->{TU1}, timeu2=$self->{TU2}, timestamp=$time where mid=$self->{CEMID}";
          $self->{sqlserver}->Update($sql);              
          $subject="MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
          $self->sendmailerror($subject," ");
@@ -2485,6 +2495,8 @@ sub findemail(){
                 $self->{CEMR}=$chop->{requests};
                 $self->{CCR}=$chop->{rsite};
                 $self->{CSR}=$chop->{rserver};
+                $self->{TU1}=$chop->{timeu1};
+                $self->{TU2}=$chop->{timeu2};
                 foreach my $cite (@{$self->{CiteT}}){
                     if($chop->{cid} eq $cite->{cid}){
                         $self->{CCA}=$cite->{name};
@@ -2503,6 +2515,8 @@ sub findemail(){
                 $self->{CEMR}=$chop->{requests};
                 $self->{CCR}=$chop->{rsite};
                 $self->{CSR}=$chop->{rserver};
+                $self->{TU1}=$chop->{timeu1};
+                $self->{TU2}=$chop->{timeu2};
                 foreach my $cite (@{$self->{CiteT}}){
                     if($chop->{cid} eq $cite->{cid}){
                         $self->{CCA}=$cite->{name};
