@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.13 2002/03/12 14:05:52 choutko Exp $
+# $Id: RemoteClient.pm,v 1.14 2002/03/13 08:42:27 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -11,7 +11,10 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll);
+
+my     $bluebar    = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
+my     $srvtimeout = 30; # server timeout 30 seconds
 
 sub new{
     my $type=shift;
@@ -733,6 +736,17 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
     
 }
 
+sub ConnectDB{
+
+    my $self = shift;
+    if( not $self->Init()){
+        return 0;
+    }
+    else{
+        $self->{ok}=1;
+    }
+} 
+
 sub Connect{
 
     my $self = shift;
@@ -743,7 +757,6 @@ sub Connect{
         $self->{ok}=1;
     }
  ; 
-#    $self->{Name}="/cgi-bin/mon/rc.o.cgi";
 
 #understand parameters
 
@@ -1976,9 +1989,9 @@ print qq`
             $q->param("FEM",$save);
              save_state($q,$save);
              htmlTop();
-             $self->htmlTemplateTable("Job Submit Script (click \"Save\" to continue)");
-          if($self->{CCT} eq "remote"){
-              print "<BR><TR><B><font color=magenta size= 4><i> the password is required </i></font></TR></B></BR>";
+             $self->htmlTemplateTable("Job Submit Script (click [Save] to continue)");
+          if($self->{CCT} eq "local"){
+              print "<TR><B><font color=magenta size= 4><i> the password is required </i></font></TR></B>";
          }
 #                print $q->header( "text/html" ),
 #                $q->start_html( "Welcome");
@@ -2501,6 +2514,13 @@ sub htmlTemplateTable {
    print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
 }
 
+sub htmlTable {
+   my ($text) = shift;
+   print "<TR><B><font color=green size= 5> $text </font>";
+   print "<p>\n";
+   print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+}
+
 sub htmlTableEnd {
    print "</TABLE>\n";
 }
@@ -2529,4 +2549,293 @@ sub trimblanks {
         s/\s+$//;
     }
     return wantarray ? @inp_string : $inp_string[0];
+}
+
+sub listAll {
+    my $self = shift;
+    htmlTop();
+    ht_init();
+    print "<p>\n";
+    $self -> colorLegend();
+    print "<p>\n";
+    $self -> listCites();
+    print "<p>\n";
+    $self -> listMails();
+    print "<p>\n";
+    $self -> listServers();
+    print "<p>\n";
+    $self -> listJobs();
+    print "<p>\n";
+    $self -> listRuns();
+    print "<p>\n";
+    $self -> listNtuples();
+    htmlBottom();
+}
+    
+sub listCites {
+    my $self = shift;
+     htmlTable("MC02 Cites");
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     my $sql="SELECT cid, name, status, maxrun FROM Cites";
+     my $r3=$self->{sqlserver}->Query($sql);
+              print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
+              print "<td><b><font color=\"blue\" >ID </font></b></td>";
+              print "<td><b><font color=\"blue\" >Type </font></b></td>";
+              print "<td><b><font color=\"blue\" >MaxRuns </font></b></td>";
+     print_bar($bluebar,3);
+     if(defined $r3->[0][0]){
+      foreach my $cite (@{$r3}){
+          my $cid    = $cite->[0];
+          my $name   = $cite->[1];
+          my $status = $cite->[2];
+          my $maxrun = $cite->[3];
+          print "<tr><font size=\"2\">\n";
+          print "<td><b> $name </td><td><b> $cid </td><td><b> $status </td><td><b> $maxrun </td> </b>\n";
+          print "</font></tr>\n";
+      }
+  }
+
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+}
+
+sub listMails {
+    my $self = shift;
+     htmlTable("MC02 Contacts");
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+#     my $sql="SELECT address, name, rsite, requests FROM Mails ORDER BY name";
+     my $sql="SELECT address, mails.name, rsite, requests, mails.cid, cites.cid, 
+              cites.name FROM  mails, cites WHERE cites.cid=mails.cid 
+              ORDER BY cites.name";
+
+     my $r3=$self->{sqlserver}->Query($sql);
+              print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
+              print "<td><b><font color=\"blue\" >User </font></b></td>";
+              print "<td><b><font color=\"blue\" >e-mail </font></b></td>";
+              print "<td><b><font color=\"blue\" >Responsible </font></b></td>";
+              print "<td><b><font color=\"blue\" >Requests </font></b></td>";
+     print_bar($bluebar,3);
+     if(defined $r3->[0][0]){
+      foreach my $mail (@{$r3}){
+          my $name   = $mail->[1];
+          my $email  = $mail->[0];
+          my $req    = $mail->[3];
+          my $cite   = $mail->[6];
+          my $resp   = 'no';
+          if ($mail->[2] == 1) { $resp = 'yes';}
+          print "<tr><font size=\"2\">\n";
+          print "<td><b> $cite </td><td><b> $name </b></td><td><b> [$email] </td><td><b> $resp </td><td><b> $req </td> </b>\n";
+          print "</font></tr>\n";
+      }
+  }
+
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+}
+
+sub listServers {
+    my $self = shift;
+     htmlTable("MC02 Servers");
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     my $sql="SELECT dbfilename, status, createtime, lastupdate FROM servers";
+     my $r3=$self->{sqlserver}->Query($sql);
+              print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
+              print "<td><b><font color=\"blue\" >Started </font></b></td>";
+              print "<td><b><font color=\"blue\" >LastUpdate </font></b></td>";
+              print "<td><b><font color=\"blue\" >Status </font></b></td>";
+     print_bar($bluebar,3);
+     if(defined $r3->[0][0]){
+      foreach my $srv (@{$r3}){
+          my $name      = $srv->[0];
+          my $status    = $srv->[1];
+          my $lastupd   = $srv->[3];
+          my $starttime = EpochToDDMMYYHHMMSS($srv->[2]); 
+          my $lasttime  = EpochToDDMMYYHHMMSS($lastupd);
+          my $time      = DDMMYYHHMMSSToEpoch();
+          if ($time - $lasttime < $srvtimeout) {
+           print "<td><b> $name </td><td><b> $starttime </td><td><b> $lasttime </td><td><b> $status </td> </b>\n";
+          } else {
+           print "<td><b> $name </td><td><b> $starttime </td><td><b><font color=magenta> $lasttime </font></td><td><b><font color=magenta> $status </font></td> </b>\n";
+         } 
+          print "</font></tr>\n";
+      }
+  }
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+}
+
+sub listJobs {
+    my $self = shift;
+     htmlTable("MC02 Jobs");
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     my $sql="SELECT jobs.jid, jobs.jobname, jobs.cid, jobs.mid, jobs.time, jobs.triggers,
+                     cites.cid, cites.name,
+                     mails.mid, mails.name
+              FROM   jobs, cites, mails
+              WHERE  jobs.cid=cites.cid AND jobs.mid=mails.mid
+              ORDER  BY cites.name, jobs.jid";
+     my $r3=$self->{sqlserver}->Query($sql);
+              print "<tr><td><b><font color=\"blue\" >Cite </font></b></td>";
+              print "<td><b><font color=\"blue\">JobId </font></b></td>";
+              print "<td><b><font color=\"blue\" >Owner </font></b></td>";
+              print "<td><b><font color=\"blue\" >JobName </font></b></td>";
+              print "<td><b><font color=\"blue\" >Started </font></b></td>";
+              print "<td><b><font color=\"blue\" >Triggers </font></b></td>";
+             print "</tr>\n";
+     print_bar($bluebar,3);
+     if(defined $r3->[0][0]){
+      foreach my $job (@{$r3}){
+          my $jid       = $job->[0];
+          my $name      = $job->[1];
+          my $starttime = EpochToDDMMYYHHMMSS($job->[4]); 
+          my $trig      = $job->[5];
+          my $cite      = $job->[7];
+          my $user      = $job->[9];
+           print "<td><b> $cite </td></b><td><b> $jid </td><td><b> $user </td>
+                  <td><b>$name </td></b><td><b> $starttime </b></td>
+                  <td><b> $trig </b></td> \n";
+          print "</font></tr>\n";
+      }
+  }
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+}
+
+sub listRuns {
+    my $self = shift;
+     htmlTable("MC02 Runs");
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     my $sql="SELECT runs.run, runs.jid, jobs.jobname, runs.submit, runs.status, jobs.jid 
+              FROM   runs, jobs
+              WHERE  jobs.jid=runs.jid 
+              ORDER  BY jobs.jid";
+     my $r3=$self->{sqlserver}->Query($sql);
+              print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
+              print "<td><b><font color=\"blue\">Run </font></b></td>";
+              print "<td><b><font color=\"blue\" >Started </font></b></td>";
+              print "<td><b><font color=\"blue\" >Status </font></b></td>";
+             print "</tr>\n";
+     print_bar($bluebar,3);
+     if(defined $r3->[0][0]){
+      foreach my $run (@{$r3}){
+          my $nn        = $run->[0];
+          my $jid       = $run->[1];
+          my $starttime = EpochToDDMMYYHHMMSS($run->[3]); 
+          my $status    = $run->[4];
+           print "<td><b> $jid </td></b><td><b> $nn </td>
+                  <td><b> $starttime </b></td>
+                  <td><b> $status </b></td> \n";
+          print "</font></tr>\n";
+      }
+  }
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+}
+
+sub listNtuples {
+    my $self = shift;
+     htmlTable("MC02 Ntuples");
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     my $sql="SELECT ntuples.run, ntuples.jid, ntuples.nevents, ntuples.neventserr, 
+                     ntuples.timestamp, ntuples.status, ntuples.path
+              FROM   ntuples
+              ORDER  BY ntuples.jid";
+     my $r3=$self->{sqlserver}->Query($sql);
+              print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
+              print "<td><b><font color=\"blue\">Run </font></b></td>";
+              print "<td><b><font color=\"blue\" >LastUpdate </font></b></td>";
+              print "<td><b><font color=\"blue\" >FilePath </font></b></td>";
+              print "<td><b><font color=\"blue\" >Events </font></b></td>";
+              print "<td><b><font color=\"blue\" >Errors </font></b></td>";
+              print "<td><b><font color=\"blue\" >Status </font></b></td>";
+             print "</tr>\n";
+     print_bar($bluebar,3);
+     if(defined $r3->[0][0]){
+      foreach my $nt (@{$r3}){
+          my $run       = $nt->[0];
+          my $jid       = $nt->[1];
+          my $nevents   = $nt->[2];
+          my $nerrors   = $nt->[3];
+          my $starttime = EpochToDDMMYYHHMMSS($nt->[4]); 
+          my $status    = $nt->[5];
+          my $path      = $nt->[6];
+           print "<td><b> $jid </td></b><td><b> $run </td>
+                  <td><b> $starttime </b></td>
+                  <td><b> $path </b></td> 
+                  <td><b> $nevents </b></td> 
+                  <td><b> $nerrors </b></td> 
+                  <td><b> $status </b></td> \n";
+          print "</font></tr>\n";
+      }
+  }
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+}
+
+sub ht_init{
+
+  print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">
+         <tr bgcolor=\"#ffdc9f\">\n";
+   print "<Body BGCOLOR=\"#ffff66\">\n";
+   print "<tr bgcolor=\"#ffff66\"><td align=center colspan=3>
+          <font size=\"+2\" color=\"ff0066\"> <b>\n";
+   print "AMS MC PRODUCTION STATUS \n";
+   print "</b></font></td></tr>\n";
+   print "</TR></TABLE>\n";
+#
+   my $time = localtime;
+   print "<p></p>\n";
+   print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+   print "<tr><td width=100% align=\"right\"><b>Updated $time </b></td><tr>\n";
+   print "</table><p></p>\n";
+#
+}
+
+sub print_bar {
+    my ($bar,$height)    = @_;
+    print "<TR><img width=100% height=$height src=\"$bar\">  </TR>\n";
+}
+
+sub EpochToDDMMYYHHMMSS {
+    my $time = shift;
+    my ($sec, $min, $hour, $mday, $month, $year, $wday, $yday, $isdst) = 
+          localtime($time);
+
+    $month++;
+    $year = $year + 1900;
+           
+   my $ddmmyyhhmmss = $mday."/".$month."/".$year." ".$hour.":".$min.":".$sec;
+
+    return $ddmmyyhhmmss;
+}
+
+sub DDMMYYHHMMSSToEpoch {
+    my ($sec, $min, $hour, $mday, $month, $year) = (localtime)[0..5];
+    my $time = timelocal($sec, $min, $hour, $mday, $month, $year);
+
+    return $time;
+}
+
+sub colorLegend {
+    print "<table width=100 cellpadding=2 cellspacing=2 border=2 align=right>\n";;
+    print "<caption><font size=4 color=\"#3399ff\"><b>Colors Legend</b></font><br>\n";
+    print "<tr>\n";
+    print "<td width=40 height=20 align=middle valign=middle bgcolor=\"green\">
+            <font size=3 color=\"ffffff\"><b>Normal</b></font></td>\n";
+    print "<td width=40 height=20 align=middle valign=middle bgcolor=\"orange\">
+            <font size=3 color=\"cc00cc\"><b>Warning</b></font></td>\n";
+    print "<td width=40 height=20 align=middle valign=middle bgcolor=\"red\">
+            <font size=3 color=\"990033\"><b>Error</b></font></td>\n";
+    print "<td width=40 height=20 align=middle valign=middle bgcolor=\"#8cc099\">
+            <font size=3 color=\"990099\"><b>NoUpdate</b></font></td>\n";
+    print "<td width=40 height=20 align=middle valign=middle bgcolor=\"#990099\">
+            <font size=3 color=\"ffff66\"><b>Obsolete</b></font></td>\n";
+    print "</tr>\n";
+    print "</table><p></p><br>\n";
 }
