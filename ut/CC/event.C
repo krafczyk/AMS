@@ -778,21 +778,21 @@ void  AMSEvent::write(int trig){
   
 // Sort before by "Used" variable : 
 // AMSTrTrack & AMSTrCluster & AMSCTCCl
-  AMSEvent::gethead()->getheadC("AMSCTCCluster",0,1); 
-  AMSEvent::gethead()->getheadC("AMSCTCCluster",1,1); 
+  AMSEvent::gethead()->getheadC("AMSCTCCluster",0,2); 
+  AMSEvent::gethead()->getheadC("AMSCTCCluster",1,2); 
 
-  AMSEvent::gethead()->getheadC("AMSTrCluster",0,1); 
-  AMSEvent::gethead()->getheadC("AMSTrCluster",1,1); 
+  AMSEvent::gethead()->getheadC("AMSTrCluster",0,2); 
+  AMSEvent::gethead()->getheadC("AMSTrCluster",1,2); 
   for(int i=0;i<npat;i++){
-   AMSEvent::gethead()->getheadC("AMSTrTrack",i,1); 
+   AMSEvent::gethead()->getheadC("AMSTrTrack",i,2); 
   }
  
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",0,1); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",1,1); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",2,1); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",3,1); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",4,1); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",5,1); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",0,2); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",1,2); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",2,2); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",3,2); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",4,2); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",5,2); 
    
   if(IOPA.hlun || IOPA.WriteRoot){
     AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
@@ -1610,7 +1610,7 @@ AMSlink * AMSEvent::_getheadC( AMSID id, integer sorted){
 _findC(id);
   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
   if(p){
-    if(sorted)p->sort();
+    if(sorted)p->sort(sorted-1);
     // Reset global ref if any
     if(p->gethead())(p->gethead())->resethash(id.getid(),p->gethead());
     return p->gethead();

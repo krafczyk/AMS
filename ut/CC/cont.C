@@ -92,8 +92,8 @@ delete pel;
 }
 
 
-void AMSContainer::sort(){
-if(_sorted || (_nelem < 2) )return;
+void AMSContainer::sort(int forced){
+if((!forced && _sorted) || (_nelem < 2) )return;
 _sorted=1;
 AMSlink ** arr=(AMSlink **)UPool.insert(sizeof(AMSlink*)*_nelem);
 int i;
