@@ -2883,7 +2883,8 @@ void AMSTrTrack::_crHit(){
  if(AMSTrAligFit::glDBOK(_Address))setstatus(AMSDBc::GlobalDB);
 // if(!TRALIG.UpdateDB &&  !checkstatus(AMSDBc::GlobalDB))par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
  if(!TRALIG.UpdateDB )par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
-  if(found && fabs(_Dbase[1]-1.02)>TRALIG.GlobalGoodLimit){
+  if(found && fabs(_Dbase[1]-1.02)>TRALIG.GlobalGoodLimit && 
+     fabs(_Dbase[0]-1.02)<TRALIG.GlobalGoodLimit){
    for(int i=0;i<_NHits;i++){
     int plane=patconf[_Pattern][i]-1;
     for(int j=0;j<3;j++){
