@@ -1,4 +1,4 @@
-//  $Id: daqevt.h,v 1.28 2001/01/22 17:32:42 choutko Exp $
+//  $Id: daqevt.h,v 1.29 2001/12/10 18:24:32 choutko Exp $
 // V. Choutko 15/6/97
 //
 // A.Klimentov June 21, 1997.                   ! add functions
@@ -80,7 +80,7 @@ void _writeEl(){}
 void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
-#ifndef __ALPHA__
+#if !defined( __ALPHA__) && !defined(sun)
 static integer _select(const dirent * entry=0);
 static int _sort(const dirent **e1, const dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #else

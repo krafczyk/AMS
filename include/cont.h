@@ -1,4 +1,4 @@
-//  $Id: cont.h,v 1.11 2001/01/22 17:32:42 choutko Exp $
+//  $Id: cont.h,v 1.12 2001/12/10 18:24:32 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSCONTAINER__
@@ -8,7 +8,7 @@
 #include <node.h>
 #include <upool.h>
 
-typedef integer  (*pBuilder)(integer refit=0);
+typedef integer  (*pBuilder)(integer refit);
 class AMSContainer: public AMSNode{
 private:
 pBuilder _pb;

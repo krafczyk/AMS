@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.27 2001/12/07 11:32:25 choutko Exp $
+//  $Id: timeid.h,v 1.28 2001/12/10 18:24:32 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>
@@ -45,12 +45,12 @@ void _checkcompatibility (const char* dir);
 void _rewrite(const char * dir, AString & ffile);
 char* _getsubdirname(time_t time);
 static integer _select(
-#ifndef __ALPHA__
+#if !defined( __ALPHA__) && !defined(sun)
 const
 #endif
 dirent * entry=0);
 static integer _selectsdir(
-#ifndef __ALPHA__
+#if !defined( __ALPHA__) && !defined(sun)
 const
 #endif
 dirent * entry=0);

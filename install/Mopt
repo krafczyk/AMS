@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.203 2001/12/08 14:54:21 mdelgado Exp $
+#  $Id: Mopt,v 1.204 2001/12/10 18:24:33 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -26,6 +26,40 @@ LD=xlC
 BIN=../bin/aix/
 EXE=../exe/aix/
 LIB=../lib/aix/
+TIMEL=
+endif
+ifeq  "$(shell uname)"  "SunOS" 
+
+CC=CC
+FF=f77
+LD=CC
+BIN=../bin/sunos/
+EXE=../exe/sunos/
+LIB=../lib/sunos/
+INCLUDE=../include/
+IFLAGS= -I/usr/include -I$(SRC) 
+ifdef AMSDEBUG
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  
+CFLAGSTOFSIM= $(CFLAGS)
+CFLAGSn=      $(CFLAGS)
+CFLAGSDAQ=    $(CFLAGS) 
+FFLAGS=   -g -I../include  
+FFLAGSn=   -g -I../include  
+CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db 
+else
+#CFLAGSB=      -D__BATCH__   -library=rwtools7,iostream,Cstd,Crun    -I../include   -I../db 
+#CFLAGSB=      -D__BATCH__       -I../include     -mt -lpthread
+CFLAGSB=      -D__BATCH__       -I../include    
+CFLAGSTOFSIM= $(CFLAGSB)     -O1   
+CFLAGSDAQ=    $(CFLAGSB) -O2 
+CFLAGSn=      $(CFLAGSB) -O2
+CFLAGS=      $(CFLAGSB) -O2
+FFLAGS=   -O -I../include
+FFLAGSn=    -I../include
+endif
+DFLAGS=       -I/usr/include  -I../include   -I$(SRC)
+#LDFLAGS=   -Bstatic -r -library=f77,Cstd,Crun -lm   -L/cern/pro/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sun4x_56/nagfl16df -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L/usr/ucblib -lucb  
+LDFLAGS=   -Bstatic -library=f77,Cstd,Crun -lm   -L/cern/pro/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sun4x_56/nagfl16df -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L/usr/ucblib -lucb -Bdynamic -L/usr/lib -ldl 
 TIMEL=
 endif
 ifeq  "$(shell uname)"  "OSF1" 
@@ -388,10 +422,10 @@ ifeq  "$(shell uname)"  "AIX"
 $(BIN)mtx.o:                   ../F/mtx.F
 	xlf90 -c $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
 endif
-ifeq  "$(shell uname)"  "AIXold" 
+ifeq  "$(shell uname)"  "SunOS" 
 
-$(BIN)mtx.o:                   ../F/mtx.F
-	xlf90 -c $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
+$(BIN)mtx.o:                   ../F/mtx77.F
+	f77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
 endif
 
 ifeq  "$(shell uname)"  "OSF1" 

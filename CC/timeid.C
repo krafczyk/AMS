@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.73 2001/12/07 11:32:19 choutko Exp $
+//  $Id: timeid.C,v 1.74 2001/12/10 18:24:25 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -16,7 +16,7 @@
 #ifdef __CORBA__
 #include <producer.h>
 #endif
-#ifndef __IBMAIX__
+#if !defined( __IBMAIX__) && !defined(sun) 
 #include <dirent.h>
 #else
 
@@ -422,7 +422,7 @@ void AMSTimeID::_getDefaultEnd(uinteger time, time_t & end){
 AString * AMSTimeID::_selectEntry=0;
 
 integer AMSTimeID::_select(
-#ifndef __ALPHA__
+#if !defined( __ALPHA__) && !defined(sun)
 const 
 #endif
 dirent *entry){
@@ -430,7 +430,7 @@ return strstr(entry->d_name,(char*)*_selectEntry)!=NULL;
 }
 
 integer AMSTimeID::_selectsdir(
-#ifndef __ALPHA__
+#if !defined( __ALPHA__) && !defined(sun)
 const 
 #endif
 dirent *entry){

@@ -2,8 +2,8 @@
 [ -z "$UNAME" -a -d /sys/node_data ] && UNAME="DomainOS"
 [ -z "$UNAME" ]      && (echo could not determine hosttype ; exit)
 
-if [ "$UNAME" = "AIX" ] ; then
-   MACHINE="aix"
+if [ "$UNAME" = "SunOS" ] ; then
+   MACHINE="sunos"
 elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="osf1"
 elif [ "$UNAME" = "HP-UX" ] ; then

@@ -1,11 +1,13 @@
-#  $Id: Readme.AMS02.1st,v 1.28 2001/09/25 08:06:51 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.29 2001/12/10 18:24:32 choutko Exp $          
 
 
 
 
 I. The following hardware platforms are currently supported:
- DEC/OSF1/cxx6.2 and above
- Linux/gcc2.95.2 and above  
+ Linux/gcc2.95.2, gcc3.0.2 
+ DEC/OSF1/cxx6.2 
+ Sun/SunOS5.7/Sun WorkShop 6 update 1 C++ 5.2     (geant3 only)
+
 
 II. Software management:
     cvs  ( Concurrent Version System)

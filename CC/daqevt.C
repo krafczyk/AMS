@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.67 2001/12/07 11:32:18 choutko Exp $
+//  $Id: daqevt.C,v 1.68 2001/12/10 18:24:24 choutko Exp $
 #include <stdio.h>
 #include <daqevt.h>
 #include <event.h>
@@ -7,21 +7,24 @@
 #include <sys/file.h>
 #include <ctype.h>
 #include <astring.h>
-#ifdef __IBMAIX__
-#define _D_NAME_MAX 255
+#include <fstream.h>
 
-struct  dirent {
-        ulong_t         d_offset;       /* real off after this entry */
-        ino_t           d_ino;          /* inode number of entry */
-                                        /* make ino_t when it's ulong */
-        ushort_t        d_reclen;       /* length of this record */
-        ushort_t        d_namlen;       /* length of string in d_name */
-        char            d_name[_D_NAME_MAX+1];  /* name must be no longer than t
-his */
-                                        /* redefine w/#define when name decided
-*/
-};
+#if !defined( __IBMAIX__) && !defined(sun) 
+#else
 
+//#define _D_NAME_MAX 255
+
+//struct  dirent {
+//         ulong_t         d_offset;       /* real off after this entry */
+//         ino_t           d_ino;          /* inode number of entry */
+                                         /* make ino_t when it's ulong */
+//         ushort_t        d_reclen;       /* length of this record */
+//         ushort_t        d_namlen;       /* length of string in d_name */
+//         char            d_name[_D_NAME_MAX+1];  /* name must be no longer than t
+// his */
+//                                         /* redefine w/#define when name decided
+// */
+// };
 
 extern "C" int scandir(		const char *, struct dirent ***, 
                                 int (*)(struct dirent *),  
@@ -477,7 +480,7 @@ void DAQEvent::initO(integer run){
      // else ost << ofnam<<ends;
      if(fbout)fbout.close();
      if(ofnam[strlen(ofnam)-1]!='/')ost << ofnam<<ends;
-#if !defined(__USE_STD_IOSTREAM) && !defined(__STDC_HOSTED__)
+#if !defined(__USE_STD_IOSTREAM) && !defined(__STDC_HOSTED__) 
     if((mode/10)%10 ==1)fbout.open(name,ios::out|ios::noreplace);
 #else
     if((mode/10)%10 ==1)fbout.open(name,ios::out);
@@ -486,7 +489,7 @@ void DAQEvent::initO(integer run){
      if(fbout){ 
       static char buffer[2048+1];
       // Associate buffer
-#if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)
+#if defined(__USE_STD_IOSTREAM) || defined(__STDC_HOSTED__)  || defined(sun)
       (fbout.rdbuf())->pubsetbuf(buffer,2048);
 #else
       (fbout.rdbuf())->setbuf(buffer,2048);
@@ -763,7 +766,7 @@ int DAQEvent::parser(char a[], char **& fname){
 
 
 integer DAQEvent::_select(
-#ifndef __ALPHA__
+#if !defined( __ALPHA__) && !defined(sun)
 const
 #endif
 dirent *entry){

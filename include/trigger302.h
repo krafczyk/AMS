@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.8 2001/12/05 16:48:15 choutko Exp $
+//  $Id: trigger302.h,v 1.9 2001/12/10 18:24:33 choutko Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -153,7 +153,7 @@ protected:
 
 
 // Trd Aux Part
-  class TRDAux{
+  class TRDAux_DEF{
    public:
     number _Par[2][6];    // fit parameters: t=par[0]*(z-par[2])+par[1]
                           //                   par[3] == error(par[0])
@@ -178,7 +178,7 @@ static geant _CooT[trdid::nute][trdconst::maxtube];
 
 static geant _IncMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
 static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
-   TRDAux():_HMult(0),_nufe(-1),_lasthaddr(-1){
+   TRDAux_DEF():_HMult(0),_nufe(-1),_lasthaddr(-1){
     for(int i=0;i<2;i++){_SegmentFound[i]=false;_NHits[i]=0;}
     for(int i=0;i<trigger302const::matrixsize;i++){
      for(int j=0;j<trigger302const::matrixsize;j++){
@@ -193,7 +193,7 @@ static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst:
   integer addnewhit(uinteger crate, uinteger udr, uinteger ufe,uinteger ute, uinteger tube, int16u amp);
   void build();
   };  
-  TRDAux TRDAux;
+  TRDAux_DEF TRDAux;
 
 
 

@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.11 2001/12/07 11:32:19 choutko Exp $
+//  $Id: trigger302.C,v 1.12 2001/12/10 18:24:25 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -156,17 +156,17 @@ integer TriggerLVL302::_TrackerOtherTDR[NTRHDRP][trid::ncrt];
 
 
 
-    geant TriggerLVL302::TRDAux::_CooLimits[2];
-    geant TriggerLVL302::TRDAux::_CooBinSize;
-    geant TriggerLVL302::TRDAux::_TanLimits[2];
-    geant TriggerLVL302::TRDAux::_TanBinSize;
- uinteger TriggerLVL302::TRDAux::_Dir[trdid::nufe][trdid::nudr][trdid::ncrt];
- geant TriggerLVL302::TRDAux::_Coo[trdid::nufe][trdid::nudr][trdid::ncrt][3];
- geant TriggerLVL302::TRDAux::_CooZ[trdid::nute][trdconst::maxtube];
- geant TriggerLVL302::TRDAux::_CooT[trdid::nute][trdconst::maxtube];
+    geant TriggerLVL302::TRDAux_DEF::_CooLimits[2];
+    geant TriggerLVL302::TRDAux_DEF::_CooBinSize;
+    geant TriggerLVL302::TRDAux_DEF::_TanLimits[2];
+    geant TriggerLVL302::TRDAux_DEF::_TanBinSize;
+ uinteger TriggerLVL302::TRDAux_DEF::_Dir[trdid::nufe][trdid::nudr][trdid::ncrt];
+ geant TriggerLVL302::TRDAux_DEF::_Coo[trdid::nufe][trdid::nudr][trdid::ncrt][3];
+ geant TriggerLVL302::TRDAux_DEF::_CooZ[trdid::nute][trdconst::maxtube];
+ geant TriggerLVL302::TRDAux_DEF::_CooT[trdid::nute][trdconst::maxtube];
 
- geant TriggerLVL302::TRDAux::_IncMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
- geant TriggerLVL302::TRDAux::_CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
+ geant TriggerLVL302::TRDAux_DEF::_IncMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
+ geant TriggerLVL302::TRDAux_DEF::_CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
 
 
 
@@ -434,17 +434,17 @@ void TriggerLVL302::init(){
 
 // TRD   
 
-  TRDAux::_CooLimits[0]=-90.;
-  TRDAux::_CooLimits[1]=90.;
-  TRDAux::_CooBinSize=(TRDAux::_CooLimits[1]-TRDAux::_CooLimits[0])/trigger302const::matrixsize;
-  TRDAux::_TanLimits[0]=-1.5;
-  TRDAux::_TanLimits[1]=+1.5;
-  TRDAux::_TanBinSize=(TRDAux::_TanLimits[1]-TRDAux::_TanLimits[0])/trigger302const::matrixsize;
+  TRDAux_DEF::_CooLimits[0]=-90.;
+  TRDAux_DEF::_CooLimits[1]=90.;
+  TRDAux_DEF::_CooBinSize=(TRDAux_DEF::_CooLimits[1]-TRDAux_DEF::_CooLimits[0])/trigger302const::matrixsize;
+  TRDAux_DEF::_TanLimits[0]=-1.5;
+  TRDAux_DEF::_TanLimits[1]=+1.5;
+  TRDAux_DEF::_TanBinSize=(TRDAux_DEF::_TanLimits[1]-TRDAux_DEF::_TanLimits[0])/trigger302const::matrixsize;
    for(i=0;i<trdid::nufe;i++){
     for(int j=0;j<trdid::nudr;j++){
      for(int ij=0;ij<trdid::ncrt;ij++){
-      for(int k=0;k<3;k++)TRDAux::_Coo[i][j][ij][k]=0;
-                          TRDAux::_Dir[i][j][ij]   =0;
+      for(int k=0;k<3;k++)TRDAux_DEF::_Coo[i][j][ij][k]=0;
+                          TRDAux_DEF::_Dir[i][j][ij]   =0;
    
       int nsf=0;
       for(int k=0;k<trdconst::maxtube;k++){
@@ -458,8 +458,8 @@ void TriggerLVL302::init(){
             AMSPoint loc(0,0,0);
             AMSPoint global=ptr->loc2gl(loc);
             nsf++;
-            for(int m=0;m<3;m++)TRDAux::_Coo[ids.getufe()][ids.getudr()][ids.getcrate()][m]+=global[m];
-           TRDAux::_Dir[ids.getufe()][ids.getudr()][ids.getcrate()]+=TRDDBc::LadderOrientation(0,id.getlayer());
+            for(int m=0;m<3;m++)TRDAux_DEF::_Coo[ids.getufe()][ids.getudr()][ids.getcrate()][m]+=global[m];
+           TRDAux_DEF::_Dir[ids.getufe()][ids.getudr()][ids.getcrate()]+=TRDDBc::LadderOrientation(0,id.getlayer());
         }
        }
 //       else if(l==0 && k==0)cerr <<" ids dead " << ij << " " << j << " " << i << endl;
@@ -470,10 +470,10 @@ void TriggerLVL302::init(){
         cerr <<"Trigger3::Init-W-no TRD Tubes found for segment "<<i<<" "<<j<<ij<<endl;
       }
       else{
-           for(int m=0;m<3;m++)TRDAux::_Coo[i][j][ij][m]/=nsf;
-           TRDAux::_Dir[i][j][ij]/=nsf;
-           TRDAux::_Dir[i][j][ij]=TRDAux::_Dir[i][j][ij]==0?1:0;
-//           cout <<" i "<<i<<" "<<j<<" "<<ij<<" "<<TRDAux::_Coo[i][j][ij][0]<<" "<<TRDAux::_Coo[i][j][ij][1]<<" "<<TRDAux::_Coo[i][j][ij][2]<<" "<<TRDAux::_Dir[i][j][ij]<<endl;
+           for(int m=0;m<3;m++)TRDAux_DEF::_Coo[i][j][ij][m]/=nsf;
+           TRDAux_DEF::_Dir[i][j][ij]/=nsf;
+           TRDAux_DEF::_Dir[i][j][ij]=TRDAux_DEF::_Dir[i][j][ij]==0?1:0;
+//           cout <<" i "<<i<<" "<<j<<" "<<ij<<" "<<TRDAux_DEF::_Coo[i][j][ij][0]<<" "<<TRDAux_DEF::_Coo[i][j][ij][1]<<" "<<TRDAux_DEF::_Coo[i][j][ij][2]<<" "<<TRDAux_DEF::_Dir[i][j][ij]<<endl;
 #ifdef __AMSDEBUG__
 //        cout <<"Trigger3::Init-I-"<<nsf<<" TRD Tubes found for segment "<<i<<" "<<j<<" "<<ij<<endl;
 #endif
@@ -488,8 +488,8 @@ void TriggerLVL302::init(){
 
    for(i=0;i<trdid::nute;i++){
     for(int j=0;j<trdconst::maxtube;j++){
-     TRDAux::_CooZ[i][j]=0;
-     TRDAux::_CooT[i][j]=0;
+     TRDAux_DEF::_CooZ[i][j]=0;
+     TRDAux_DEF::_CooT[i][j]=0;
      int nsf=0;
       for (int k=0;k<trdid::ncrt;k++){
         for(int l=0;l<trdid::nudr;l++){
@@ -502,8 +502,8 @@ void TriggerLVL302::init(){
             AMSPoint loc(0,0,0);
             AMSPoint global=ptr->loc2gl(loc);
             nsf++;
-            TRDAux::_CooZ[i][j]+=global[2]-TRDAux::_Coo[m][l][k][2];
-           TRDAux::_CooT[i][j]+=global[TRDAux::_Dir[m][l][k]]-TRDAux::_Coo[m][l][k][TRDAux::_Dir[m][l][k]];
+            TRDAux_DEF::_CooZ[i][j]+=global[2]-TRDAux_DEF::_Coo[m][l][k][2];
+           TRDAux_DEF::_CooT[i][j]+=global[TRDAux_DEF::_Dir[m][l][k]]-TRDAux_DEF::_Coo[m][l][k][TRDAux_DEF::_Dir[m][l][k]];
         }
         }
        }
@@ -515,9 +515,9 @@ void TriggerLVL302::init(){
         exit(1);
       }
       else{
-           TRDAux::_CooZ[i][j]/=nsf;
-           TRDAux::_CooT[i][j]/=nsf;
-//           cout <<" ii "<<i<<" "<<j<<" "<<TRDAux::_CooZ[i][j]<<" "<<TRDAux::_CooT[i][j]<<endl;
+           TRDAux_DEF::_CooZ[i][j]/=nsf;
+           TRDAux_DEF::_CooT[i][j]/=nsf;
+//           cout <<" ii "<<i<<" "<<j<<" "<<TRDAux_DEF::_CooZ[i][j]<<" "<<TRDAux_DEF::_CooT[i][j]<<endl;
       }
 
 
@@ -528,12 +528,12 @@ void TriggerLVL302::init(){
          for(int j=0;j<trdconst::maxtube;j++){
            for(int k=i+1;k<trdid::nute;k++){
             for(int l=0;l<trdconst::maxtube;l++){
-              TRDAux::_IncMatrix[i][j][k-1][l]=(TRDAux::_CooT[i][j]-TRDAux::_CooT[k][l])/
-              (TRDAux::_CooZ[i][j]-TRDAux::_CooZ[k][l]);
-              TRDAux::_CooMatrix[i][j][k-1][l]=-TRDAux::_IncMatrix[i][j][k-1][l]*(TRDAux::_CooZ[i][j]+TRDAux::_CooZ[k][l])/2+(TRDAux::_CooT[i][j]+TRDAux::_CooT[k][l])/2;
+              TRDAux_DEF::_IncMatrix[i][j][k-1][l]=(TRDAux_DEF::_CooT[i][j]-TRDAux_DEF::_CooT[k][l])/
+              (TRDAux_DEF::_CooZ[i][j]-TRDAux_DEF::_CooZ[k][l]);
+              TRDAux_DEF::_CooMatrix[i][j][k-1][l]=-TRDAux_DEF::_IncMatrix[i][j][k-1][l]*(TRDAux_DEF::_CooZ[i][j]+TRDAux_DEF::_CooZ[k][l])/2+(TRDAux_DEF::_CooT[i][j]+TRDAux_DEF::_CooT[k][l])/2;
 /*
-              cout <<"IncMatrix["<<i<<"]["<<j<<"]["<<k-1<<"]["<<l<<"]="<<TRDAux::_IncMatrix[i][j][k-1][l]<<endl;
-              cout <<"CooMatrix["<<i<<"]["<<j<<"]["<<k-1<<"]["<<l<<"]="<<TRDAux::_CooMatrix[i][j][k-1][l]<<endl;
+              cout <<"IncMatrix["<<i<<"]["<<j<<"]["<<k-1<<"]["<<l<<"]="<<TRDAux_DEF::_IncMatrix[i][j][k-1][l]<<endl;
+              cout <<"CooMatrix["<<i<<"]["<<j<<"]["<<k-1<<"]["<<l<<"]="<<TRDAux_DEF::_CooMatrix[i][j][k-1][l]<<endl;
 */
             }
            }
@@ -1125,7 +1125,7 @@ void TriggerLVL302::_writeEl(){
 
 }
 
-integer TriggerLVL302::TRDAux::addnewhit(uinteger crate,uinteger udr, uinteger ufe,uinteger ute, uinteger tube, int16u amp){
+integer TriggerLVL302::TRDAux_DEF::addnewhit(uinteger crate,uinteger udr, uinteger ufe,uinteger ute, uinteger tube, int16u amp){
   //
   // strongly assumin ufe are following each other!!!!!
   //
@@ -1410,7 +1410,7 @@ void TriggerLVL302::Finalize(){
 }
 
 
-void TriggerLVL302::TRDAux::build(){
+void TriggerLVL302::TRDAux_DEF::build(){
 
 
   integer xmax[2]={-1,-1};
