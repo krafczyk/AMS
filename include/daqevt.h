@@ -80,6 +80,7 @@ void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
 static integer _select(dirent * entry=0);
+static integer _sort(dirent ** e1, dirent ** e2);
 public:
 uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();

@@ -313,7 +313,7 @@ void AMSEvent::SetTimeCoo(integer rec){
       if(phi < 0)phi=phi+AMSDBc::twopi;
       _StationTheta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*sin(phi));
       _StationPhi=fmod(phi+PhiZero,AMSDBc::twopi);
-
+      _StationSpeed*=idir;
 
      
     }

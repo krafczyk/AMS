@@ -617,7 +617,7 @@ int DAQEvent::parser(char a[], char **& fname){
       dirent ** namelist;
       AString fdir(a);
       
-      ntot=scandir((const char *)fdir,&namelist,&_select,NULL);     
+      ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);     
       if(ntot>0){
           fname =new char*[ntot];
           for(int i=0;i<ntot;i++){
@@ -724,4 +724,7 @@ for(int i=0;i<strlen(entry->d_name);i++){
 
 }
 
+int DAQEvent::_sort(dirent ** e1, dirent ** e2){
+ return strcmp((*e1)->d_name,(*e2)->d_name);
 
+}

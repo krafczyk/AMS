@@ -1570,7 +1570,6 @@ end.tm_year=TOFRECFFKEY.year[1];
 TID.add (new AMSTimeID(AMSID("Tofbarcal1",isRealData()),
    begin,end,SCBLMX*sizeof(scbrcal[0][0]),
    (void*)&scbrcal[0][0]));
-   cout <<"qq*** "<<SCBLMX*sizeof(scbrcal[0][0])<<endl;
    
 TID.add (new AMSTimeID(AMSID("Tofvpar",isRealData()),
    begin,end,sizeof(TOFVarp),
