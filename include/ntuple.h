@@ -43,6 +43,7 @@ protected:
   EcalHitNtuple _ecalhit;
   RICMCNtuple _richmc;
   RICEventNtuple _richevent;
+  RICRing _ring;
 #ifdef __WRITEROOT__
   static TTree* _tree;  
   static TFile* _rfile;
@@ -94,6 +95,7 @@ public:
   EcalHitNtuple* Get_ecalhit() {return &_ecalhit;}
   RICMCNtuple* Get_richmc() {return &_richmc;}
   RICEventNtuple* Get_richevent() {return &_richevent;}
+  RICRing* Get_ring(){return &_ring;}
 
 //ClassDef(AMSNtuple ,1)       //AMSNtuple
 };

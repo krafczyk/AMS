@@ -172,13 +172,17 @@ else{
   "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
 
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
-  	 "nsignals[0,500],sid(nsignals):I,"
+  	 "nsignals[0,300],sid(nsignals):I,"
   	 "origin(3,nsignals),direction(3,nsignals),RICstatus(nsignals):I,"
          "nphgen:I,phit(nsignals):I");
 
   HBNAME(_lun,"RICEvent",&_richevent.Nhits,
     	 "Rhits[0,100]:I,Rchannel(Rhits):I,Radc(Rhits):I,"
   	 "Rx(Rhits),Ry(Rhits)");
+
+  HBNAME(_lun,"Ring",&_ring.NRings,
+  	 "nrings[0,100]:I,trackn(nrings):I,"
+  	 "hused(nrings):I,rbeta(nrings),quality(nrings)");
 
 }
 }
@@ -216,6 +220,7 @@ void AMSNtuple::reset(int full){
     if(_tofraw.Ntofraw)VZERO(&_tofraw,sizeof(_tofraw)/sizeof(integer));
     if(_richmc.NMC)VZERO(&_richmc,sizeof(_richmc)/sizeof(integer));
     if(_richevent.Nhits)VZERO(&_richevent,sizeof(_richevent)/sizeof(integer));
+    if(_ring.NRings)VZERO(&_ring,sizeof(_ring)/sizeof(integer));
   }
   else{
    _beta.Nbeta= 0;
@@ -249,6 +254,7 @@ void AMSNtuple::reset(int full){
    _tofraw.Ntofraw = 0;
    _richmc.NMC=0;
    _richevent.Nhits=0;
+   _ring.NRings=0;
   }
 }
 
@@ -322,6 +328,8 @@ void AMSNtuple::initR(char* fname){
    TBranch *bo=_tree->Branch("ricmccl","RICMCNtuple",&pevo,32000,1);
    void *pevp=(void*)&_richevent;
    TBranch *bp=_tree->Branch("ricevent","RICEventNtuple",&pevp,32000,1);
+   void *pevq=(void*)&_ring;
+   TBranch *bq=_tree->Branch("ring","RICRings",&pevq,32000,1);
    cout <<"AMSNtuple::initR-I-OpenRootFile "<<fname<<" "<<_rfile<<" "<<_tree<<endl;
 #else
 cerr <<" RootFileOutput is Not supported in this version "<<endl;

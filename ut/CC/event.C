@@ -758,6 +758,7 @@ void AMSEvent::_sirichinitevent(){
   AMSNode *ptr;
   ptr=AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSRichMCHit",0),0));
   if(!ptr) cout << "AMSEvent::_sirichinitevent() No container Error" <<endl;
+  ptr=AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSRichRawEvent",0),0));
   RICHDB::nphgen=0;
   RICHDB::nphbas=0;
   RICHDB::numrefm=0;
@@ -921,8 +922,10 @@ void AMSEvent::_retrdinitevent(){
 }
 void AMSEvent::_rerichinitevent(){
   AMSNode *ptr;
+  //  ptr=AMSEvent::gethead()->add(
+  //    new AMSContainer(AMSID("AMSContainer:AMSRichRawEvent",0),0));
   ptr=AMSEvent::gethead()->add(
-    new AMSContainer(AMSID("AMSContainer:AMSRichRawEvent",0),0));
+    new AMSContainer(AMSID("AMSContainer:AMSRichRing",0),0));
 }
 //=====================================================================
 void AMSEvent::_reaxinitevent(){
@@ -1753,6 +1756,9 @@ void AMSEvent::_rerichevent(){
     AMSgObj::BookTimer.stop("RERICH");
     return;// "no LVL1 trigger"   
   }
+  // Reconstruction CJD
+  if(RICCONTROL.recon)
+    AMSRichRing::build();
 //
 //
   AMSgObj::BookTimer.stop("RERICH");

@@ -39,7 +39,7 @@ const int MAXECCLUST =    50;
 const int MAXECHITS  =   500;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
-const int MAXRICMC   =   500;
+const int MAXRICMC   =   300;
 const int MAXRICHITS =   100;
 const int MAXTRDCLMC   =   200;
 };
@@ -944,6 +944,26 @@ friend class AMSRichRawEvent;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
 ClassDef(RICEventNtuple,1)
+#endif
+};
+
+#ifdef __WRITEROOT__
+class RICRing : public TObject {
+#else
+class RICRing {
+#endif
+public:
+  int NRings;
+  int track[MAXTRTR02];
+  int used[MAXTRTR02];
+  float beta[MAXTRTR02];
+  float quality[MAXTRTR02];
+  integer Z[MAXTRTR02];
+
+
+friend class AMSRichRing;
+#ifdef __WRITEROOT__
+ClassDef(RICRing,1)
 #endif
 };
 

@@ -240,6 +240,7 @@ void AMSJob::_sirichdata(){
   RICGTKOV.usrcla=RICHDB::rad_clarity;
 
   RICCONTROL.iflgk_flag=0;
+  RICCONTROL.recon=1;
 //  FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
   FFKEY("RICCONT",(float *)&RICCONTROL,sizeof(RICCONTROL_DEF)/sizeof(integer),"MIXED");
 }
