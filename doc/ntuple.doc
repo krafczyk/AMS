@@ -47,8 +47,7 @@ Below there is a description of a  ntuple.
 
 * I*4  * [0,10]       * BETA     * nbeta             // betas number
 * I*4  *              * BETA     * betastatus        // 4 - ambig
-                                                        
-                                              
+                                                        ******)
 * I*4  *              * BETA     * betapattern(nbeta) // beta pattern(beta.doc) 
 * R*4  *              * BETA     * beta(nbeta)       // velocity
 * R*4  *              * BETA     * betac(nbeta)       // corrected velocity
@@ -441,7 +440,8 @@ Addendum (V.Choutko + F.Barao) : The code below should do the job
 cootr(3,1:6,npart) now contains the minimal distance to sensor edge in sensor length units;
 
 
-
+******) Estimated rigidity cutoff for the reconstructed particle is also included
+      abs(rgcutoff)*10 (GV) = mod(betastatus(pbetap(ip))/1048576,1024)
 
 
 =======

@@ -443,6 +443,7 @@ public:
   integer BetaPowAnode;
   integer TrackerForceSK;
   geant TrackerKSRatio;
+  integer TrackerProbOnly;
 };
 //
 

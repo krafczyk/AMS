@@ -202,6 +202,7 @@ integer getnC (char name[]);
 void SetTimeCoo(integer rec=0);
 void GetGeographicCoo(number & pole, number & theta, number &phi){
 pole=_NorthPolePhi;theta=_StationTheta;phi=_StationPhi;}
+void GetStationRad(number & rad) {rad=_StationRad;}
 static void  sethead(AMSEvent* head) 
 { _Head=head;if(_Head)AMSEvent::EventMap.map(*_Head);}
 integer removeC();
