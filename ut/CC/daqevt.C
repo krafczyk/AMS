@@ -466,10 +466,12 @@ void DAQEvent::initO(integer run){
 #endif
     if((mode/10)%10 ==2)fbout.open(name,ios::out|binary|ios::app);
      if(fbout){ 
-#ifndef __USE_STD_IOSTREAM
-       // Associate buffer
-      static char buffer[1000+1];
-      fbout.setbuf(buffer,1000);
+      static char buffer[2048+1];
+      // Associate buffer
+#ifdef __USE_STD_IOSTREAM
+      (fbout.rdbuf())->pubsetbuf(buffer,2048);
+#else
+      (fbout.rdbuf())->setbuf(buffer,2048);
 #endif
       cout<<"DAQEvent::initO-I- opened file "<<name<<" in mode "<<mode<<endl;
 

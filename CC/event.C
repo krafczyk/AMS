@@ -942,8 +942,16 @@ for(int il=0;il<TKDBc::nlay();il++){
     }
     if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
 // if event has been selected write it straight away
+    // oh nono check for errors first
+     if(HasNoErrors() || (IOPA.WriteAll/100)*100){
             AMSJob::gethead()->getntuple()->write(1);
             AMSJob::gethead()->getntuple()->writeR();
+     }
+     else{
+      AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
+      AMSJob::gethead()->getntuple()->write();
+      AMSJob::gethead()->getntuple()->writeR();
+     }
     }
     else {
 // if event was not selected check if at least header should be written

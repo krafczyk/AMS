@@ -179,10 +179,12 @@ void AMSIO::init(integer mode,integer format){
       cerr<<"AMSIO::init-F-cannot open file "<<fnam<<" in mode "<<mode<<endl;
       exit(1);
     }
-#ifndef __USE_STD_IOSTREAM
-    // Associate buffer
     static char buffer[32*sizeof(AMSIO)+1];
-    fbin.setbuf(buffer,32*sizeof(AMSIO));
+    // Associate buffer
+#ifdef __USE_STD_IOSTREAM
+    (fbin.rdbuf())->pubsetbuf(buffer,32*sizeof(AMSIO));
+#else
+    (fbin.rdbuf())->setbuf(buffer,32*sizeof(AMSIO));
 #endif
   }
   else {
@@ -198,11 +200,13 @@ void AMSIO::write(){
     // Stupid DEC has no setbuf,
     // but stupid global buffer about 1 kbytes
    // 
-#ifdef __ALPHA__
+#ifndef __USE_STD_IOSTREAM
+#ifdef __ALPHA__ 
    static integer counter=0;
    static integer nb=800/sizeof(AMSIO);
    counter=(counter+1)%nb;
    if(!counter)fbin.flush();   
+#endif
 #endif
 }
 integer AMSIO::read(){
