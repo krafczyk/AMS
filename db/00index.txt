@@ -1,0 +1,94 @@
+
+*.ddl                // Database Schema files (description of classes)
+*.C                  // Schema Method files
+*_ref.h              // header files and method file created by  so called DDL 
+*_ddl.C              // (Data Definition Language) 
+*.h                  // processor
+
+MakeDB               // makefile to build AMS+DB exe file
+InitDB               // makefile to build database initialization exe file
+
+MakeDL               // makefile to build deleteList exe
+MakeDR               // makefile to build deleteRun exe
+MakeDS               // makefile to build deleteSetup exe
+MakePL               // makefile to build printList exe
+MakeU                // makefile to build the database upgrade procedure
+
+amsdbcD.ddl  - Various constants & parameters (geometry most)
+amsdbcD.C    - method file
+
+chargeD.ddl  - Charge measurement
+chargeD.C    - method file
+
+commonsD.ddl - Fortran  common blocks declarations
+commonsD.C   - method file
+
+ctcdbcD.ddl  - Various constants & parameters (geometry most) for CTC
+ctcdbcD.C    - method file
+
+ctcrecD.ddl  - ctc class
+ctcrecD.C    - method file
+
+eventD.ddl   - Event class
+eventD.C     - method file
+
+gmatD.ddl    - AMS materials class
+gmatD.C      - method file
+
+gtmedD.ddl   - AMS tracking media class
+gtmedD.C     - method file
+
+gvolumeD.ddl - Geant volume class
+gvolumeD.C   - method file 
+
+list.ddl     - List of runs class (dbase only)
+list.C       - method file
+
+mcanticlusterD.ddl -  MC class for anticounters
+mcanticlusterD.C   -  method file
+
+mcctcclusterD.ddl  -  MC Clusters for CTC
+mcctcclusterD.C    -  method file
+
+mceventgD.ddl      -  MC generator class
+mceventgD.C        -  method file
+
+mctofclusterD.ddl  -  MC Clusters for TOF
+mctofclusterD.C    -  method file
+
+particleD.ddl      -  Particle class
+particleD.C        -  method file
+
+tbeta.ddl          -  velocity
+tbeta.C            -  method file
+
+tcluster.ddl       -  tracker cluster
+tcluster.C         -  method file
+
+tmccluster.ddl     -  MC Clusters for Tracker
+tmccluster.C       -  method file
+
+tofdbcD.ddl        -  Various constants & parameters (geometry most) for TOF
+tofdbcD.C          -  method file
+
+tofrecD.ddl        -  TOF classes
+tofrecD.C          -  method file
+
+trrechit.ddl       -  Tracker hits classes
+trrechit.C         -  method file
+
+ttrack.ddl         -  Tracker tracks
+ttrack.C           -  method file
+
+A_LMS.C            -  Methods and Constructors for DBASE management file
+A_LMSAdd.C         -  Add     + 
+A_LMSDelete.C      -  Delete  | 
+A_LMSFill.C        -  Fill    | Methods for DBASE
+A_LMSMenu.C        -  Menu    |
+A_LMSPrint.C       -  Print   +
+
+deleteList.C       -  delete " - " - " - " -
+deleteSetup.C      -  delete setup from the database
+deleteRun.C        -  delete run
+printList.C        -  print event list from the database 
+upgrade.C          -  database upgrade procedure

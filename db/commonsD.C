@@ -109,7 +109,9 @@ ooStatus AMScommonsD::CmpConstants(integer Write) {
 
   cout<<"AMScommonsD::CmpConstants -I- started "<<endl;
 
-  cout<<"AMScommonsD::CmpConstants -I- TOFMCFFKEY"<<endl;
+  ld = tofmcffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- TOFMCFFKEY, size "<<ld<<" int words"
+      <<endl;
   lm = sizeof(TOFMCFFKEY);
   ld = tofmcffkeyD.size();
   if (lm/4 != ld) {
@@ -128,9 +130,10 @@ ooStatus AMScommonsD::CmpConstants(integer Write) {
   delete [] buff;
 
 tofrecffkey:
-  cout<<"AMScommonsD::CmpConstants -I- TOFRECFFKEY"<<endl;
-  lm = sizeof(TOFRECFFKEY);
   ld = tofrecffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- TOFRECFFKEY, size "<<ld<<" int words"
+      <<endl;
+  lm = sizeof(TOFRECFFKEY);
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TOFRECFFKEY and tofrecffkeyD size are"
         <<" not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
@@ -147,9 +150,10 @@ tofrecffkey:
   delete [] buff;
 
 ctcmcffkey:
-  cout<<"AMScommonsD::CmpConstants -I- CTCMCFFKEY"<<endl;
-  lm = sizeof(CTCMCFFKEY);
   ld = ctcmcffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- CTCMCFFKEY, size "<<ld<<" int words"
+      <<endl;
+  lm = sizeof(CTCMCFFKEY);
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- CTCMCFFKEY and ctcmcffkeyD size are"
         <<" not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
@@ -166,10 +170,11 @@ ctcmcffkey:
   delete [] buff;
 
 ctcgeomffkey:
-  cout<<"AMScommonsD::CmpConstants -I- CTCGEOMFFKEY"<<endl;
+  ld = ctcgeomffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- CTCGEOMFFKEY, size "<<ld
+      <<" int words"<<endl;
   integer set_geom = 0;
   lm = sizeof(CTCGEOMFFKEY);
-  ld = ctcgeomffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -E- CTCGEOMFFKEY and ctcgeomffkeyD size"
         <<"  are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
@@ -204,9 +209,10 @@ ctcgeomffkey:
    }
 
 ctcrecffkey:
-  cout<<"AMScommonsD::CmpConstants -I- TRMCFFKEY"<<endl;
-  lm = sizeof(TRMCFFKEY);
   ld = trmcffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- TRMCFFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(TRMCFFKEY);
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TRMCFFKEY and trmcffkeyD size are"
         <<" not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
@@ -223,9 +229,10 @@ ctcrecffkey:
   delete [] buff;
 
 betafitffkey:
-  cout<<"AMScommonsD::CmpConstants -I- BETAFITFFKEY"<<endl;
-  lm = sizeof(BETAFITFFKEY);
   ld = betafitffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- BETAFITFFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(BETAFITFFKEY);
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- BETAFITFFKEY and betafitffkeyD "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
@@ -242,9 +249,10 @@ betafitffkey:
   delete [] buff;
 
 trfitffkey:
-  cout<<"AMScommonsD::CmpConstants -I- TRFITFFKEY"<<endl;
-  lm = sizeof(TRFITFFKEY);
   ld = trfitffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- TRFITFFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(TRFITFFKEY);
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TRFITFFKEY and trfitffkeyD "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
@@ -261,9 +269,10 @@ trfitffkey:
   delete [] buff;
 
 ccffkey:
-  cout<<"AMScommonsD::CmpConstants -I- CCFFKEY"<<endl;
-  lm = sizeof(CCFFKEY);
   ld = ccffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- CCFFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(CCFFKEY);
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- CCFFKEY and ccffkeyD "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
@@ -280,9 +289,10 @@ ccffkey:
   delete [] buff;
 
 trclffkey:
-  cout<<"AMScommonsD::CmpConstants -I- TRCLFFKEY"<<endl;
-  lm = sizeof(TRCLFFKEY);
   ld = trclffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- TRCLFFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(TRCLFFKEY);
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TRCLFFKEY and trclffkeyD "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
