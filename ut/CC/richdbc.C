@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.39 2003/09/12 11:11:45 mdelgado Exp $
+//  $Id: richdbc.C,v 1.40 2004/11/10 10:10:15 mdelgado Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -19,7 +19,8 @@ geant RICHDB::wave_length[RICmaxentries]={608.696, 605.797, 602.899, 600.000, 59
 					  288.406, 284.058, 279.71,  275.812, 272.464, 270.014,
 					  268.116, 266.667};
 
-geant RICHDB::rad_index=1.02998;
+//geant RICHDB::rad_index=1.02998;
+geant RICHDB::rad_index=1.0529; // updated 10/28/04
 geant RICHDB::naf_index=1.33;
 
 // Fused SiO2 scaled to n=1.14
@@ -144,13 +145,18 @@ geant RICHDB::rich_height=45.8;        // Mirror height (for historical reasons)
 geant RICHDB::hole_radius[2]={63.8/2.,64.3/2};
 geant RICHDB::inner_mirror_height=50;  // UNUSED
 //geant RICHDB::rad_clarity=0.007598;      // Radiator clarity
-geant RICHDB::rad_clarity=0.0059;      // Radiator clarity
-geant RICHDB::scatprob=.15;                // Probability of surface scattering
-geant RICHDB::scatang=24e-3;             // Scattered angle 
-geant RICHDB::eff_rad_clarity=0.007598;  // clarity used in charge recosntruction
+//geant RICHDB::rad_clarity=0.0059;      // Radiator clarity
+//geant RICHDB::scatprob=.15;                // Probability of surface scattering
+//geant RICHDB::scatang=24e-3;             // Scattered angle 
+geant RICHDB::rad_clarity=0.0055;      // Radiator clarity: updated 10/28/04
+geant RICHDB::scatprob=.19;                // Probability of surface scattering
+geant RICHDB::scatang=14e-3;             // Scattered angle 
+//geant RICHDB::eff_rad_clarity=0.007598;  // clarity used in charge recosntruction
+geant RICHDB::eff_rad_clarity=0.0055;  // clarity used in charge recosntruction
 
 geant RICHDB::rad_radius=60.0;         // Radiator radius
-geant RICHDB::rad_height=3;            // Radiator support structure thickness. In principle== aerogel radiator thickness
+geant RICHDB::rad_agl_height=2.5;      // Radiator agl thickness
+geant RICHDB::rad_height=3;            // Radiator support structure height
 geant RICHDB::naf_height=0.5;
 geant RICHDB::rad_length=11.3+0.1;        // Radiator tile side length
 geant RICHDB::lg_height=3.0;           // Light guide height withou the fixing foil

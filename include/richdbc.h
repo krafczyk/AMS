@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.33 2003/09/12 11:11:52 mdelgado Exp $
+//  $Id: richdbc.h,v 1.34 2004/11/10 10:10:19 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -157,6 +157,7 @@ public: // To be migrated in the future
   // Radiator features
   static geant rad_clarity;
   static geant rad_radius;
+  static geant rad_agl_height;
   static geant rad_height;
   static geant rad_length;
   static geant rad_index;   // Mean index for the main radiator

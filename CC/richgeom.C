@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.22 2003/09/12 11:11:45 mdelgado Exp $
+//  $Id: richgeom.C,v 1.23 2004/11/10 10:10:15 mdelgado Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -60,11 +60,13 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int kind=1)  //kind=1 ae
     
     par[0]=RICHDB::rad_length/2.-RICaethk/2.;
     par[1]=RICHDB::rad_length/2.-RICaethk/2.;
-    par[2]=RICHDB::rad_height/2;
+    //    par[2]=RICHDB::rad_height/2;
+    par[2]=RICHDB::rad_agl_height/2;
     coo[0]=0;
     coo[1]=0;
-    coo[2]=0;
+    //    coo[2]=0;
     
+    coo[2]=RICHDB::rad_agl_height/2.-RICHDB::rad_height/2.;    
     
     mother->add(new AMSgvolume("RICH RAD",
 			       0,
@@ -78,6 +80,25 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int kind=1)  //kind=1 ae
 			       0,
 			       copia,
 			       rel));
+
+    // This is added to fill up the gap 
+    par[2]=RICHDB::rad_height/2.-RICHDB::rad_agl_height/2.;
+    coo[2]=RICHDB::rad_agl_height/2;
+
+    mother->add(new AMSgvolume("VACUUM",
+			       0,
+			       "RADV ",
+			       "BOX",
+			       par,
+			       3,
+			       coo,
+			       nrm,
+			       "ONLY",
+			       0,
+			       copia,
+			       rel));
+
+
   }else if(kind==naf_kind){
     par[0]=RICHDB::rad_length/2.-RICaethk/2.;
     par[1]=RICHDB::rad_length/2.-RICaethk/2.;

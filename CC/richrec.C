@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.63 2004/06/28 13:25:09 choutko Exp $
+//  $Id: richrec.C,v 1.64 2004/11/10 10:10:15 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -1040,7 +1040,8 @@ void RichRadiatorTile::Init(){
   // Ensure that the index tables for agl are OK
   RICHDB::mat_init();
 
-  _rad_heights[0]=RICHDB::rad_height;
+  //  _rad_heights[0]=RICHDB::rad_height;
+  _rad_heights[0]=RICHDB::rad_agl_height; //Updated to new index
   _rad_heights[1]=RICHDB::naf_height;
   _abs_length[0]=RICHDB::abs_length;
   _abs_length[1]=RICHDB::naf_abs_length;
