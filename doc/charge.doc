@@ -4,8 +4,8 @@ protected:
   AMSBeta * _pbeta;      // pointer to beta --> then to track & tof 
  integer _ChargeTOF;     // Charge from TOF
  integer _ChargeTracker;  // Charge from tracker
- number _ProbTOF[ncharge];       //(prob) to be e, p, He, C
- number _ProbTracker[ncharge];   // (prob) to be e, p, He, C
+ number _ProbTOF[ncharge];       //(prob) to be e, p, He,... C
+ number _ProbTracker[ncharge];   // (prob) to be e, p, He,... C
 
  static number _lkhdTracker[ncharge][100];
 
