@@ -757,7 +757,7 @@ void AMSJob::_rectcdata(){
   CTCRECFFKEY.reprtf[1]=0;//(4) DAQ-print (1/2->print for decoding/decoding+encoding)
   CTCRECFFKEY.reprtf[2]=0;//(5) spare
   CTCRECFFKEY.ftwin=100.;//(6) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
-  CTCRECFFKEY.q2pe=0.1;  //(7)
+  CTCRECFFKEY.q2pe=0.16;  //(7)
   CTCRECFFKEY.ft2edg=1;  //(8) 0/1-> 1/2 edges readout for FT signal
 //
   CTCRECFFKEY.ReadConstFiles=0;//(9)read const. from DB/myFiles (0/1)
@@ -776,7 +776,7 @@ void AMSJob::_rectcdata(){
   CTCRECFFKEY.year[1]=99;
   FFKEY("CTCREC",(float*)&CTCRECFFKEY,sizeof(CTCRECFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
-  CTCCAFFKEY.cfvers=1; // (01-99) vers.number NN for ctcverlistNN.dat file
+  CTCCAFFKEY.cfvers=2; // (01-99) vers.number NN for ctcverlistNN.dat file
   FFKEY("CTCCA",(float*)&CTCCAFFKEY,sizeof(CTCCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //========================================================================
@@ -1246,7 +1246,7 @@ void AMSJob::_reantiinitjob(){
 //
     AMSgObj::BookTimer.book("REANTIEVENT");
     if(ANTIRECFFKEY.reprtf[0]>0){
-      HBOOK1(2500,"ANTI_counters total  energy(reco,Mev)",80,0.,20.,0.);
+      HBOOK1(2500,"ANTI_counters total  energy(reco,Mev)",80,0.,16.,0.);
       HBOOK1(2501,"ANTI_bar: T_tdca-T_tdct(reco,ns)",80,-20.,220.,0.);
     }
 //
@@ -1264,7 +1264,7 @@ void AMSJob::_rectcinitjob(){
 AMSgObj::BookTimer.book("RECTCEVENT");
 // AMSCTCRawHit::init();
   if(CTCRECFFKEY.reprtf[0]>0){
-    HBOOK1(3000,"CTC total RECO raw signal(p.e.)",80,0.,800.,0.);
+    HBOOK1(3000,"CTC total RECO raw signal(p.e.)",80,0.,40.,0.);
     HBOOK1(3001,"CTC_channel: T_tdca-Ttdct (reco,ns)",80,-20.,220.,0.);
   }
 // ===> Clear JOB-statistics counters for SIM/REC :

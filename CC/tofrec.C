@@ -1126,7 +1126,7 @@ void AMSTOFCluster::build(int &stat){
 //    select between anode and dinode measurements:
         edep=edepa;
         asatl=scbrcal[il-1][ib-1].getasatl();
-    asatl=160.;// tempor !!! to avoid dynode (~80mips)
+    asatl=300.;// tempor !!! to avoid dynode (~150mips)
         if(edepd/2. > asatl)edep=edepd;
 //
         eplane[ib]=edep;
@@ -1627,7 +1627,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //
   integer i,j,ic,ilay,ibar,isid,lentot,bias;
   geant edep(0.),charge(0.);
-  integer val;
+  integer val,warnfl;
   int16u btyp,ntyp,naddr,dtyp,crate,sfet,tdcc,hmsk,slad,slnu,chip,chipc,chc;
   int16u swid,mtyp,hcnt,shft,nhit,nzch,n4ch,sbit;
   int16u tdca,phbt,tofc;
@@ -1789,15 +1789,18 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
         tdcc=8*(1-chip)+chc; // channel inside SFET(0-15) ((1-chip) is due to Contin's error) 
         hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
         hwch=SCTDCC*sfet+tdcc;//sequential tdc-ch numbering through all SFETs
-//   cout<<"in_buff: chip/ch="<<chip<<" "<<chc<<" sfet="<<sfet<<" tdcc="<<tdcc<<endl;
-//   cout<<"     ic/lent="<<ic<<" "<<lent<<endl;
-//   cout<<"     hitn="<<nhits[hwch]<<" hwch="<<hwch<<" hitv="<<hitv<<endl;
         if(nhits[hwch]<16){
+          warnfl=0;
           hits[hwch][nhits[hwch]]=hitv;
           nhits[hwch]+=1;
         }
         else{
-          cout<<"TOF:RawFmt:read_error: more 16 hits in h/w channel "<<hwch<<endl;
+          if(warnfl==0){
+          cout<<"TOF:RawFmt:read_warning: more 16 hits in channel: crate="<<crate
+          <<" sfet="<<sfet<<" chip="<<chip<<" chipch="<<chc<<endl;
+          cout<<"event="<<(AMSEvent::gethead()->getid())<<endl;
+          warnfl=1;
+          }
         }
       }// ---> end of SFET data check
 //

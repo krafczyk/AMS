@@ -127,7 +127,7 @@ void CTCCCcal::build(){
   char vers1[3]="mc";
   char vers2[3]="rl";
   geant aipa[CTCCCMX][SCIPAR];
-  geant aip[SCIPAR]={50.,62.6,1.3};
+  geant aip[SCIPAR]={120.,-70.,4};
 //      ( def.param. for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs))
 //------------------------------------
   char in[2]="0";

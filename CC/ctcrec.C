@@ -186,7 +186,7 @@ void AMSCTCRawEvent::mc_build(int &stat){//to build from CTCRawHit
       if(dbs==0){// sum signals/times for alive cells (geo-channels)
         sig=ptr->getsignal();//signal in p.e.
         tm=(1.e+9)*(ptr->gettime());// time in ns
-        signal[combn]+=(sig*gain);// sum gain-"incorrected" signal
+        signal[combn]+=(sig/gain);// sum gain-"incorrected" signal
         timesig[combn]+=tm*sig;
       }
       ptr=ptr->next();
@@ -329,12 +329,12 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
           signal+=(q*q2pe);// Q(pC)-> Signal(pe) and sum up TDCA-hits (true)
         }
       }// ---> end of TDCA-hit loop
-      totsig+=signal/gain;
+      totsig+=signal*gain;
 //
 // create CTCRawHit objects :
 //
     if(ngmem>0 && signal>0){ // good comb.channel
-      msignal=signal/number(ngmem)/gain;//gain-corrected signal per good member
+      msignal=signal*gain/number(ngmem);//gain-corrected signal per good member
       for(i=0;i<nmemb;i++){
         gid=mblist[i];//LXXY=LCCR
         layer=gid/1000;

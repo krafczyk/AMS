@@ -34,13 +34,14 @@ void AMSAntiRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u id,idN,stat[2];
   integer sector,isid,isds;
   integer i,j,im,nhit,chnum,am[2],sta,st;
-  int bad(0);
+  int bad;
   AMSAntiRawEvent *ptr;
   AMSAntiRawEvent *ptrN;
 //
   pbitn=SCPHBP;// as for TOF
   pbanti=pbitn-1;
   status=1;//bad
+  bad=1;// means no good atdc sequences
 //
 // =============> check/correct logical "up/down" sequence :
 //
@@ -54,7 +55,6 @@ void AMSAntiRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   cout<<endl<<"=======> Anti::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
 //                             <---- loop over ANTI RawEvent hits -----
-  bad=1;
   while(ptr){
 #ifdef __AMSDEBUG__
     if(ANTIRECFFKEY.reprtf[1]>=1)ptr->_printEl(cout);
@@ -122,7 +122,7 @@ void AMSAntiRawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //
   }// end of ptr>0 check
 //
-  if(bad==0)status=0;//good anti-event
+  if(bad==0)status=0;//good anti-event(was good tdca sequence)
 }
 //----------------------------------------------------
 void AMSAntiRawEvent::mc_build(int &stat){

@@ -71,7 +71,7 @@ void TOFTZSLcalib::mfit(){  // calibr. fit procedure
 //
 // -----------> set parameter defaults:
   strcpy(pnam[0],p1nam); // for slope
-  start[0]=TOFCAFFKEY.fixsl;// def. slope
+  start[0]=TOFCAFFKEY.fixsl;// def. slope 
   step[0]=1.;
   plow[0]=0.;
   phigh[0]=40.;
@@ -88,10 +88,10 @@ void TOFTZSLcalib::mfit(){  // calibr. fit procedure
     for(ib=0;ib<SCMXBR;ib++){
       id=(il+1)*100+ib+1;
       ii=il*SCMXBR+ib;
-      start[ii+2]=0.;// def.T0 for all counters
+      start[ii+2]=scbrcal[il][ib].gettzero();// def.T0's from current calibration
       for(j=0;j<2;j++){
         if(id == TOFCAFFKEY.idref[j])
-          start[ii+2]=TOFCAFFKEY.tzref[j];//def. t0 for ref.counters
+          start[ii+2]=TOFCAFFKEY.tzref[j];//def. t0 for ref.counters (0.)
       }
       step[ii+2]=1.;
       plow[ii+2]=-40.;
@@ -1029,7 +1029,7 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
         td[nb]=0;
         nev=nevnt[chan][nb];
    cout<<" "<<nev;
-        if(nev>=20){//min.cut on event number in bin
+        if(nev>=40){//min.cut on event number in bin
           t=tdiff[chan][nb]/number(nev);// mean td
           tdiff[chan][nb]=t;
           td[nb]=geant(t);
