@@ -1,7 +1,9 @@
 // Objectivity class Oct 08, 1996 ak.
 // ( origianal TOFDBcD class by E.Choumilov 13.06.96.)
 //
-// Last Edit : Oct 08, 1996. ak.
+// Last Edit : Jan 21, 1997. 
+//
+// TOFDBcD should be modified according to the last E.C. version
 //
 #include <string.h>
 #include <typedefs.h>
