@@ -1,7 +1,7 @@
 {     
 // Resetting and loading AMS library
       gROOT->Reset();
-      gSystem->Load("$AMSDir/lib/linux/ntuple.so");   
+      gSystem->Load("/afs/cern.ch/exp/ams/Offline/vdev/lib/linux/ntuple.so");   
       
 // Input AMS ROOT Chain
       AMSChain *ams = new AMSChain;              

@@ -27,13 +27,13 @@ else
 fi
 
 if [ ! -n "$AMSWD" ]; then
-  AMSWD="/afs/ams.cern.ch/Offline/vdev"
+  AMSWD="/afs/cern.ch/exp/ams/Offline/vdev"
 fi
 
 OS=`uname`
 if [ "${OS}" = "Linux" ]; then
    GC="g++"
-   EXTRALIBS="-ldl -lcrypt -lshift"
+   EXTRALIBS="-ldl -lcrypt -rdynamic"
    AMSOBJS="${AMSWD}/bin/linux/icc/root_rs.o ${AMSWD}/bin/linux/icc/rootdict_s.o"
 elif [ "${OS}" = "OSF1" ]; then
    GC="cxx"

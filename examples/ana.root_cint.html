@@ -16,7 +16,7 @@ Some comments are in order:
       <li> One has to load the specific AMS Root library containing all the ROOT class
            definitions, class attributes and utilities. On Linux, you can always try:
               <CENTER><b>
-              "gSystem->Load(/offline/vdev/lib/linux/ntuple.so)". 
+              "gSystem->Load(/afs/cern.ch/exp/ams/Offline/vdev/lib/linux/ntuple.so)". 
               </b></CENTER><br>
            In some specific cases, when
            you are modifying or developing code, you will prefer to use your own 
@@ -34,7 +34,7 @@ Some comments are in order:
 
 <ul>
       <li> We can add several Root files with the AMSChain::Add("file") method. 
-           The class AMSChain inherit all the methods of the TChain class, but 
+           The AMSChain class inherits all the methods of the TChain class, but 
            simplifies the life by hiding some AMS internal operations.
 </ul>
 
@@ -44,16 +44,17 @@ Some comments are in order:
                  "AMSEventR* pev = ams.GetEvent()"
               </b></CENTER><br>
               <CENTER><b>
-                 "AMSEventR* pev = ams.GetEvent(event_number)"
+                 "AMSEventR* pev = ams.GetEvent(entry_number)"
               </b></CENTER><br>
               <CENTER><b>
                  "AMSEventR* pev = ams.GetEvent(run_number, event_number)"
               </b></CENTER><br>
-           If you prefer not to use a pointer "pev", you can add:
+           If you prefer not do pointer coding like "pev->whatever", you 
+           can add:
               <CENTER><b>
                  "AMSEventR &ev = *pev;"
               </b></CENTER><br>
-           and use "ev" from that point on.
+           and use "ev.whatever" from that point on.
 </ul>
 
 <ul>
