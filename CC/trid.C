@@ -64,12 +64,33 @@ if(side==0)return _swxy[_layer-1][0][_stripx];
 else return _swxy[_layer-1][1][_stripy];
 }
 
-number AMSTrIdGeom::getcofg(integer side,integer shift, integer & error) const{
+number AMSTrIdGeom::getcofg(integer side,integer shift, integer readoutch, integer & error) const{
 if(side !=0)side=1;
-integer strip = side==0?_stripx+shift:_stripy+shift;
-if(strip < 0 || strip >= getmaxstrips(side)){
+// get right strip
+ readoutch+=shift;
+if(side==1){
+ // ok
+}
+else{
+  integer isen=_sensor
+  -(_sensor>AMSDBc::nhalf(_layer,_ladder)? AMSDBc::nhalf(_layer,_ladder):0);
+  integer alpha=(isen*AMSDBc::NStripsSen(_layer,side)-readoutch)/AMSDBc::NStripsDrp(_layer,side);
+  readoutch =(readoutch+alpha*AMSDBc::NStripsDrp(_layer,side))%AMSDBc::NStripsSen(_layer,side);
+}
+
+integer strip = side==0?_R2Gx(readoutch):_R2Gy(readoutch);
+if(shift==0 && strip != (side==0?_stripx:_stripy)){
+  cerr <<"AMSTrIdGeom::getcofg-E-StripNoVerificationError "<<side<<" "<<strip<<" "<<" "<<readoutch<<" "<<*this;
  error=1;
  return 0;
+}
+else if((strip -(side==0?_stripx:_stripy))*shift<0){
+#ifdef __AMSDEBUG__
+  cerr <<"AMSTrIdGeom::getcofg-W-ClusterGeomError "<<side<<" "<<strip<<" "<<" "<<shift<<" "<<*this;
+#endif
+ error=1;
+ return 0;
+
 }
 else {
  error=0;
@@ -262,35 +283,47 @@ integer tdrs=_GetHard[_layer-1][_drp-1][_half][_side];
   _haddr=strip | va<<6 | tdrs << 10 ;
  else _dead=1;
 }
-void AMSTrIdGeom::R2Gy(integer stripy){
-   if(AMSJob::gethead()->isRealData()){
-      if(stripy==0) _stripy=0;
-      else if(stripy== AMSDBc::NStripsSen(_layer,1)-1)
-        _stripy=stripy*2+4;
-      else  _stripy=stripy*2+2;
-   }
-   else _stripy=stripy;
+
+void  AMSTrIdGeom::R2Gy(integer stripy){
+_stripy=_R2Gy(stripy);
 }
 
-void AMSTrIdGeom::R2Gx(integer stripx){
+void  AMSTrIdGeom::R2Gx(integer stripx){
+_stripx=_R2Gx(stripx);
+}
+
+integer  AMSTrIdGeom::_R2Gy(integer stripy)const {
+   integer __stripy;
+   if(AMSJob::gethead()->isRealData()){
+      if(stripy==0) __stripy=0;
+      else if(stripy== AMSDBc::NStripsSen(_layer,1)-1)
+        __stripy=stripy*2+4;
+      else  __stripy=stripy*2+2;
+   }
+   else __stripy=stripy;
+   return __stripy;
+}
+
+integer AMSTrIdGeom::_R2Gx(integer stripx)const {
+   integer __stripx;
    if(AMSJob::gethead()->isRealData()){
      if(_layer == 1 || _layer ==6){
        //K7
-       if(stripx<64)_stripx=3*stripx;
-       else if (stripx<64+97)_stripx=63*3+(stripx-63)*4;
-       else _stripx=63*3+97*4+(stripx-64-96)*3;
+       if(stripx<64)__stripx=3*stripx;
+       else if (stripx<64+97)__stripx=63*3+(stripx-63)*4;
+       else __stripx=63*3+97*4+(stripx-64-96)*3;
      }
      else{
        //K5
        if(stripx== AMSDBc::NStripsSen(_layer,0)-1)
-        _stripx=AMSDBc::NStripsSenR(_layer,0)-1;
-       else _stripx=4*stripx;  
+        __stripx=AMSDBc::NStripsSenR(_layer,0)-1;
+       else __stripx=4*stripx;  
        
      }
    }
 
-   else _stripx=stripx;
-
+   else __stripx=stripx;
+   return __stripx;
 }
 
 void AMSTrIdGeom::R2G(const AMSTrIdSoft &id){
@@ -307,9 +340,6 @@ AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
     namb=0; 
     _pid=spid;
   if( _side==0 && o._side==1) {
-   if(AMSJob::gethead()->isRealData()){
-
-
      integer isen=strip/AMSDBc::NStripsSen(_layer,_side)+1;
      do {
       (_pid+namb)->_layer=_layer;
@@ -321,6 +351,7 @@ AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
       strip=strip+AMSDBc::NStripsDrp(_layer,_side);
       isen=strip/AMSDBc::NStripsSen(_layer,_side)+1;
       namb++;    
+      
 #ifdef __AMSDEBUG__
       assert(namb<19);
 #endif    
@@ -331,26 +362,6 @@ AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
 
    
      
-   }
-   else{
-     integer isen=strip/AMSDBc::NStripsSen(_layer,_side)+1;
-     do {
-      (_pid+namb)->_layer=_layer;
-      (_pid+namb)->_ladder=_drp;
-      (_pid+namb)->_sensor=isen+(_half==0?0:AMSDBc::nhalf(_layer,_drp));
-      (_pid+namb)->R2Gy(o._strip);
-      stripx=strip%AMSDBc::NStripsSen(_layer,_side);
-      (_pid+namb)->R2Gx(stripx);
-      strip=strip+AMSDBc::NStripsDrp(_layer,_side);
-      isen=strip/AMSDBc::NStripsSen(_layer,_side)+1;
-      namb++;    
-#ifdef __AMSDEBUG__
-      assert(namb<19);
-#endif    
-     }while (isen<=(_half==0?
-                           AMSDBc::nhalf(_layer,_drp):
-                           AMSDBc::nsen(_layer,_drp)-AMSDBc::nhalf(_layer,_drp)));
-   }
   }
   else{
    namb=0;

@@ -270,6 +270,8 @@ public:
   float EHit[MAXTRRH][3];
   float Sum[MAXTRRH];
   float DifoSum[MAXTRRH];
+  float CofgX[MAXTRRH];
+  float CofgY[MAXTRRH];
 
 friend class AMSTrRecHit;
 friend class AMSNtuple;

@@ -702,13 +702,11 @@ integer AMSTrCluster::buildWeak(integer refit){
 
 
 
-number AMSTrCluster::getcofg(integer side, AMSTrIdGeom * pid){
+number AMSTrCluster::getcofg(AMSTrIdGeom * pid){
   //
   // Here we are able to recalculate the center of gravity...
   //
-#ifdef __AMSDEBUG__
- assert(side>=0 && side <2);
-#endif
+ integer side=_Id.getside();
 number cofg=0;
 number eval=0;
 number smax=0;
@@ -716,7 +714,7 @@ number smt=0;
 if(_pValues)smax=_pValues[-_NelemL];
 integer i,error;
 for(i=_NelemL;i<_NelemR;i++){
- cofg+=_pValues[i-_NelemL]*pid->getcofg(side,i,error);
+ cofg+=_pValues[i-_NelemL]*pid->getcofg(side,i,_Id.getstrip(),error);
  if(error==0)eval+=_pValues[i-_NelemL];
 }
 if(eval > 0){
@@ -732,6 +730,17 @@ smt=0;
 }
 return cofg-cfgCorFun(smt,pid); 
 }
+
+number AMSTrCluster::getlcofg(AMSTrIdGeom * pid){
+
+if(_pValues){
+ int error;
+ return getcofg(pid)-pid->getcofg(_Id.getside(),0,_Id.getstrip(),error);
+}
+else return 0;
+}
+
+
 number AMSTrCluster::cfgCorFun(number s, AMSTrIdGeom * pid){
 integer side=_Id.getside();
 integer strip=pid->getstrip(side);
@@ -913,8 +922,8 @@ integer AMSTrRecHit::build(integer refit){
              (pid+i)->crgid()<<endl;          
          }
          else{
-          _addnext(p,0,ilay,x,y,
-          p->str2pnt(x->getcofg(0,pid+i),y->getcofg(1,pid+i)),
+          _addnext(p,0,ilay,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
+          p->str2pnt(x->getcofg(pid+i),y->getcofg(pid+i)),
           AMSPoint(x->getecofg(),y->getecofg(),(number)TRCLFFKEY.ErrZ));
          }
          } 
@@ -972,8 +981,8 @@ integer AMSTrRecHit::buildWeak(integer refit){
          }
          else{
            //           cout <<" rec hit weak added "<<endl;
-          _addnext(p,AMSDBc::WEAK,ilay,x,y,
-          p->str2pnt(x->getcofg(0,pid+i),y->getcofg(1,pid+i)),
+          _addnext(p,AMSDBc::WEAK,ilay,x->getlcofg(pid+i),y->getlcofg(pid+i),x,y,
+          p->str2pnt(x->getcofg(pid+i),y->getcofg(pid+i)),
           AMSPoint(x->getecofg(),y->getecofg(),(number)TRCLFFKEY.ErrZ));
          }
          } 
@@ -1122,7 +1131,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 
 
 
- void AMSTrRecHit::_addnext(AMSgSen * pSen, integer status, integer layer, AMSTrCluster *x,
+ void AMSTrRecHit::_addnext(AMSgSen * pSen, integer status, integer layer, number cofgx, number cofgy, AMSTrCluster *x,
                             AMSTrCluster * y, const AMSPoint & hit,
                             const AMSPoint & ehit){
     number s1=0,s2=0;
@@ -1131,7 +1140,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
     if(x)x->setstatus(AMSDBc::USED);
     if(y)y->setstatus(AMSDBc::USED);
     AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",layer-1),
-    new     AMSTrRecHit(pSen, status,layer,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2)));
+    new     AMSTrRecHit(pSen, status,layer,cofgx,cofgy,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2)));
       
 }
 
@@ -1196,6 +1205,9 @@ void AMSTrRecHit::_writeEl(){
     for(i=0;i<3;i++)THN->EHit[THN->Ntrrh][i]=_EHit[i];
     THN->Sum[THN->Ntrrh]=_Sum;
     THN->DifoSum[THN->Ntrrh]=_DifoSum;
+    THN->CofgX[THN->Ntrrh]=_cofgx;
+    THN->CofgY[THN->Ntrrh]=_cofgy;
+
     THN->Ntrrh++;
   }
 }
@@ -1718,11 +1730,11 @@ AMSgObj::BookTimer.start("TrFalseX");
                         //  Create False RawHit and put it in the corr container 
                         AMSPoint loc=pls->gl2loc(P1);
                         id.R2Gy(idy.getstrip());
-                        AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(1,&id)); 
+                        AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(&id)); 
                         AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
                                      TRFITFFKEY.SearchRegStrLine,TRFITFFKEY.SearchRegStrLine);
                         if((hit-P1).abs() < Err){
-                          AMSTrRecHit::_addnext(pls,AMSDBc::FalseX,id.getlayer(),0,py,hit,
+                          AMSTrRecHit::_addnext(pls,AMSDBc::FalseX,id.getlayer(),-1,-1,0,py,hit,
                                                 AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
                           pointfound++;
                         } 
@@ -2633,7 +2645,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       AMSgSen *psensor=(AMSgSen*)AMSJob::gethead()->getgeomvolume(idgeom.crgid());
       idgeom.R2G(idsoft);
 // Get the approximate global y coordinate
-      AMSPoint glopos = psensor->str2pnt(0.,py->getcofg(1,&idgeom));
+      AMSPoint glopos = psensor->str2pnt(0.,py->getcofg(&idgeom));
 // Impose the X global coordinate from TOF
       glopos[0] = intercept_x + slope_x*glopos[2];
 // Do not use if it is far away from TOF prediction
@@ -2648,7 +2660,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       if(idgeom.FindAtt(glopos,sensor_size)==0) continue;
 // Go to local coordinates to get a better global position
       AMSPoint locpos = psensor->gl2loc(glopos);
-      glopos = psensor->str2pnt(locpos[0]+sensor_size[0],py->getcofg(1,&idgeom));
+      glopos = psensor->str2pnt(locpos[0]+sensor_size[0],py->getcofg(&idgeom));
 // Error
       AMSPoint gloerr;
       gloerr[0] = sqrt(covii+2*glopos[2]*covsi+glopos[2]*glopos[2]*covss);
@@ -2660,6 +2672,8 @@ integer AMSTrTrack::makeFalseTOFXHits(){
         psensor,
         AMSDBc::FalseTOFX,
         idsoft.getlayer(),
+        -1,
+        -1,
         0,
         py,
         glopos,
@@ -2877,6 +2891,8 @@ void AMSTrTrack::_crHit(){
    setstatus(AMSDBc::LocalDB);
   }
   else{
+   _Dbase[0]=0;
+   _Dbase[1]=0;
    for(int i=0;i<_NHits;i++){
     int plane=patconf[_Pattern][i]-1;
     for(int j=0;j<3;j++){

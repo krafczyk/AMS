@@ -20,7 +20,11 @@ integer _sensor;   // from 1 to AMSDBc::nsen(_layer,_ladder)
 integer _stripx;   // from 0 to AMSDBc::NStripsSen(_layer,0)-1
 integer _stripy;   // from 0 to AMSDBc::NStripsSen(_layer,1)-1
 void _check();
+integer _R2Gx(integer stripx) const;
+integer _R2Gy(integer stripy) const;
 public:
+friend ostream &operator << (ostream &o, const  AMSTrIdGeom &b )
+   {return o<<" lay "<<b._layer<<" lad "<<b._ladder<<" sensor "<<b._sensor<<" strip(x,y) "<<b._stripx<<" "<<b._stripy<<endl;}
 friend class AMSTrIdSoft;
 AMSTrIdGeom():_layer(1),_ladder(1),_sensor(1),_stripx(0),_stripy(0){};
 ~AMSTrIdGeom(){};
@@ -37,7 +41,7 @@ void R2Gx(integer stripx);
 void R2Gy(integer stripy);
 void R2G(const AMSTrIdSoft &id);
 number  getsize(integer side)const;
-number  getcofg(integer side, integer shift, integer & error)const;
+number  getcofg(integer side, integer shift, integer readoutch, integer & error)const;
 inline void upd(integer side,integer strip){
 #ifdef __AMSDEBUG__
        assert(side>=0 && side<2);

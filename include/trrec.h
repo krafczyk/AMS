@@ -74,7 +74,8 @@ static number _etacor(integer side, number eta);
 public:
 static integer Out(integer);
 number getVal(){return TRCLFFKEY.CommonGain[_Id.getside()]*(_Sum-TRCLFFKEY.CommonShift[_Id.getside()]);}
-number getcofg(integer side, AMSTrIdGeom * id);
+number getcofg( AMSTrIdGeom * id);
+number getlcofg(AMSTrIdGeom * id);
 number cfgCorFun(number s, AMSTrIdGeom * id);
 number getecofg(){return _ErrorMean;}
 number geteta(){return _Eta;}
@@ -141,10 +142,11 @@ AMSPoint     _Hit;
 AMSPoint     _EHit;
 number       _Sum;
 number       _DifoSum;
-
+number       _cofgx;
+number       _cofgy;
 
 static AMSTrRecHit* _Head[6];
-static void _addnext(AMSgSen * p, integer ,integer ,AMSTrCluster *, 
+static void _addnext(AMSgSen * p, integer ,integer ,number, number, AMSTrCluster *, 
             AMSTrCluster *,  const AMSPoint &, const AMSPoint &);
   void _copyEl();
   void _writeEl();
@@ -201,9 +203,9 @@ static AMSTrRecHit * gethead(integer i=0){
 
 
 
-AMSTrRecHit(AMSgSen *p, integer good,integer layer, AMSTrCluster * xcl, AMSTrCluster * ycl,
+AMSTrRecHit(AMSgSen *p, integer good,integer layer, number cofgx, number cofgy,AMSTrCluster * xcl, AMSTrCluster * ycl,
             const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs): AMSlink(good,0),
-            _pSen(p), _Layer(layer),_Xcl(xcl),
+            _pSen(p), _Layer(layer),_Xcl(xcl),_cofgx(cofgx),_cofgy(cofgy),
             _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs){};
 AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0){};
 static integer build(integer refit=0);
