@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.33 2003/03/18 13:20:36 choumilo Exp $
+//  $Id: root.C,v 1.34 2003/04/03 10:15:28 kscholbe Exp $
 //  Last Edit : Nov 19, 2002. A.Klimentov
 //              check Root classes
 //              ? TrGammaRoot02 - commented
@@ -413,6 +413,7 @@ TRDMCClusterRoot::TRDMCClusterRoot(AMSTRDMCCluster *ptr)
   Layer  = ptr->_idsoft.getlayer();
   Ladder = ptr->_idsoft.getladder();
   Tube   = ptr->_idsoft.gettube();
+  ParticleNo= ptr->_ipart;
   TrackNo= ptr->_itra;
   Edep   = ptr->_edep;
   Ekin   = ptr->_ekin;

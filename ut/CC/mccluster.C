@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.61 2003/02/11 15:27:38 choutko Exp $
+//  $Id: mccluster.C,v 1.62 2003/04/03 10:15:28 kscholbe Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -32,8 +32,6 @@ integer idsoft , geant vect[],geant edep, geant ekin, geant step, integer ipart,
       AMSEvent::gethead()->addnext(AMSID("AMSTRDMCCluster",0),
       new AMSTRDMCCluster(idsoft,xgl,xvec,step,ekin,edep,ipart,itra));
 
-
-
 }
 
 void AMSTRDMCCluster::sitrdnoise(){
@@ -56,6 +54,7 @@ void AMSTRDMCCluster::_writeEl(){
     TRDMCClusterN->Tube[TRDMCClusterN->Ntrdclmc]=_idsoft.gettube();
     TRDMCClusterN->Edep[TRDMCClusterN->Ntrdclmc]=_edep;
     TRDMCClusterN->Ekin[TRDMCClusterN->Ntrdclmc]=_ekin;
+    TRDMCClusterN->ParticleNo[TRDMCClusterN->Ntrdclmc]=_ipart;
     TRDMCClusterN->TrackNo[TRDMCClusterN->Ntrdclmc]=_itra;
     for(int i=0;i<3;i++)TRDMCClusterN->Xgl[TRDMCClusterN->Ntrdclmc][i]=_xgl[i];
     TRDMCClusterN->Step[TRDMCClusterN->Ntrdclmc]=_step;

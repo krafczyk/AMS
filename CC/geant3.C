@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.77 2003/03/18 15:40:13 choumilo Exp $
+//  $Id: geant3.C,v 1.78 2003/04/03 10:15:28 kscholbe Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -150,9 +150,14 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
  if(GCTRAK.destep != 0 && GCTMED.isvol != 0 && GCVOLU.names[lvl][0]=='T' && GCVOLU.names[lvl][1]=='R'  && GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]=='T'){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
 
-     AMSTRDMCCluster::sitrdhits(GCVOLU.number[lvl],GCTRAK.vect,
-        GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra);   
-
+      if (GCKINE.istak==0){
+	AMSTRDMCCluster::sitrdhits(GCVOLU.number[lvl],GCTRAK.vect,
+	   GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,0,GCKINE.itra);   
+      }
+      else {
+	AMSTRDMCCluster::sitrdhits(GCVOLU.number[lvl],GCTRAK.vect,
+	   GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra);   
+      }
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
 } 
 }
