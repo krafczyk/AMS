@@ -21,7 +21,7 @@ endif
 ifeq  "$(shell uname)"  "OSF1" 
 ROOTLIBS      =
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
-CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include -I../include/stl -I../db -tuse 
+CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include -I../include/stl -I../db -tlocal 
 FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
 LDFLAGS= -g -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag 
