@@ -1,10 +1,10 @@
         DirFrom=/Offline/AMSDataDir/DataBase
-        DirTo=/usr0/users/ams/AMSDataDir/DataBase
+        DirTo=/runsALL/AMSDataDir/DataBase
         export DirFrom
         export  DirTo
         /Offline/vdev/slow/backup 1>/offruns/logs/backup.log 2>&1 &
         DirFrom=/Offline/AMSDataDir/v2.16
-        DirTo=/usr0/users/ams/AMSDataDir/v2.16
+        DirTo=/runsALL/AMSDataDir/v2.16
         export DirFrom
         export  DirTo
         /Offline/vdev/slow/backup 1>/offruns/logs/backup.log 2>&1 &

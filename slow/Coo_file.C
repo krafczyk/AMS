@@ -1,3 +1,4 @@
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdlib.h>
@@ -7,6 +8,7 @@
 #include <iostream.h>
 #include <ams/types.h>
 #include <ams/castcp.h>
+#include <fstream.h>
 
 #include "Coordinates.h" // cooradinate recalculation 
 #include "file_reading.h" // reading CAS files
@@ -109,7 +111,22 @@ float fbuf;
 int block_size;
 char current_f_name[120], chb80[120];
 time_t umaxx;
-
+time_t xvar;
+ifstream fbin;
+fbin.open("/Offline/vdev/slow/clock");
+if(fbin){
+fbin>>xvar;
+if(fbin.eof()){
+        cerr <<"Unexpected end of clock file "<<xvar<<endl;
+        xvar=15;
+}
+}
+else{
+cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
+xvar=15;
+}
+cout <<"clock set to "<<xvar <<" sec"<<endl;
+fbin.close();
 file_n=0;
 record_n=Umax=0;
 Umin = 999999999;
@@ -121,7 +138,21 @@ Umin = 999999999;
   //puts("********************");
   cout <<"********************"<<endl;
   while(1) {  /*GLOBAL LOOP */
-
+  fbin.open("/Offline/vdev/slow/clock");
+if(fbin){
+fbin>>xvar;
+if(fbin.eof()){
+        cerr <<"Unexpected end of clock file "<<xvar<<endl;
+        xvar=15;
+}
+}
+else{
+cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
+xvar=15;
+}
+cout <<"clock set to "<<xvar <<" sec"<<endl;
+fbin.close();
+ 
 NEW_FILES: /* look for new files in the directory */
     file_n=0;
     record_n=Umax=0;
@@ -212,7 +243,7 @@ NEW_FILES: /* look for new files in the directory */
       q[3]=CASvalue((3333),8);
 
       times = CAStime(10);   
-      utime = (time_t) (times) + Year1998-15;      // correction 15 sec is here
+      utime = (time_t) (times) + Year1998-xvar;      // correction 15 sec is here
       
       if ((Radius(Coo_M1950)<=.1) || (Radius(Vel_M1950)<=.1) || (times<=0)){
 	cerr <<" Some Parameters are Zero, record skipped"<<endl;
