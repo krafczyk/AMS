@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.46 2003/01/24 11:17:10 delgadom Exp $
+//  $Id: richrec.C,v 1.47 2003/05/03 08:43:54 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -159,7 +159,7 @@ void AMSRichRawEvent::_writeEl(){
   AMSRICHIdGeom channel(_channel);
   AMSRICHIdSoft calibration(channel);
 
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     float x = channel.x();
     float y = channel.y();
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this, x, y);
@@ -824,7 +824,7 @@ void AMSRichRing::rebuild(AMSTrTrack *ptrack){
 
 void AMSRichRing::_writeEl(){
   
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   RICRing* cluster=AMSJob::gethead()->getntuple()->Get_ring();
@@ -859,14 +859,13 @@ void AMSRichRing::_writeEl(){
   cluster->NRings++;
 }
 void AMSRichRing::_copyEl(){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
  RICRingRoot *ptr = (RICRingRoot*)_ptr;
  if (ptr) {
    if (_ptrack) ptr->fTrack= _ptrack->GetClonePointer();
  } else { 
   cout<<"AMSRichRing::_copyEl -I-  AMSRichRing::RICRingRoot *ptr is NULL "<<endl;
  }
-
 #endif
 }
 void AMSRichRing::CalcBetaError(){

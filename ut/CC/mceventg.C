@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.126 2003/03/19 17:17:28 choutko Exp $
+//  $Id: mceventg.C,v 1.127 2003/05/03 08:43:54 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -853,7 +853,7 @@ void AMSmceventg::_copyEl(){
 
 void AMSmceventg::_writeEl(){
 if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   MCEventGNtuple02* GN = AMSJob::gethead()->getntuple()->Get_mcg02();
@@ -1219,7 +1219,7 @@ else{
 
 
 void AMSmctrack::_writeEl(){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 // Fill the ntuple

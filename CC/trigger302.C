@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.26 2002/10/15 12:44:17 choumilo Exp $
+//  $Id: trigger302.C,v 1.27 2003/05/03 08:43:55 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -1610,7 +1610,7 @@ void TriggerLVL302::_writeEl(){
   if (lvl3N->Nlvl3>=MAXLVL3) return;
 
 // Fill the ntuple
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     int trdhits = TRDAux._NHits[0]+TRDAux._NHits[1];
     int hmult   = TRDAux._HMult;
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.20 2002/12/06 14:43:21 choumilo Exp $
+//  $Id: tofrec02.C,v 1.21 2003/05/03 08:43:55 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -1077,7 +1077,7 @@ void TOF2RawCluster::recovers(number x){ // function to recover missing side
 void TOF2RawCluster::_writeEl(){
 
   if(TOF2RawCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 // Fill the ntuple
@@ -1114,7 +1114,7 @@ void AMSTOFCluster::_writeEl(){
 
   // p2memb for Root
   if(AMSTOFCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     int p2memb[3];
     for (int i=0; i<3; i++) {p2memb[i] =0;}
 

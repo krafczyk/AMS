@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.62 2003/01/08 17:34:54 jorgec Exp $
+//  $Id: charge.C,v 1.63 2003/05/03 08:43:53 choutko Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -686,7 +686,7 @@ int AMSCharge::_sortlkhd(int sort){
 void AMSCharge::_writeEl(){
 
    int i,j;
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     float probtof[4];
     int   chintof[4];
     float probtr[4];

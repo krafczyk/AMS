@@ -134,7 +134,7 @@ void AMSTRDCluster::_writeEl(){
   integer flag =    (IOPA.WriteAll%10==1)
                  || (checkstatus(AMSDBc::USED));
   if(AMSTRDCluster::Out(flag) ){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   TRDClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdcl();
@@ -171,16 +171,11 @@ void AMSTRDCluster::_writeEl(){
 }
 
 void AMSTRDCluster::_copyEl(){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   TRDClusterRoot *ptr = (TRDClusterRoot*)_ptr;
   if (ptr) {
-    // AMSTRDRawHit *_pmaxhit;
     if (_pmaxhit) ptr->fTRDRawHit= _pmaxhit->GetClonePointer();
-  } else {
-#ifdef __AMSDEBUG__
-    cout<<"AMSTRDCluster::_copyEl -I-  AMSTRDCluster::TRDClusterRoot *ptr is NULL "<<endl;
-#endif
-  }
+  } 
 #endif
 }
 
@@ -372,7 +367,7 @@ void AMSTRDSegment::_writeEl(){
   integer flag =    (IOPA.WriteAll%10==1)
                  || (checkstatus(AMSDBc::USED));
   if(Out(flag) ){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
    TRDSegmentNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdseg();
@@ -410,12 +405,15 @@ void AMSTRDSegment::_writeEl(){
 }
 
 void AMSTRDSegment::_copyEl(){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   TRDSegmentRoot *ptr = (TRDSegmentRoot*)_ptr;
   if (ptr) {
-    // AMSTRDCluster * _pCl[trdconst::maxhits];
     for (int i=0; i<_NHits; i++) {
+      #ifdef __WRITEROOTCLONES__
       if (_pCl[i]) ptr->fTRDCluster->Add(_pCl[i]->GetClonePointer());
+      #else
+      if (_pCl[i]) ptr->fTRDCluster.push_back(_pCl[i]->GetClonePointer());
+      #endif
     }
   } else {
     cout<<"AMSTRDSegment::_copyEl -I-  AMSTRDSegment::TRDSegmentRoot *ptr is NULL "<<endl;
@@ -536,7 +534,7 @@ void AMSTRDTrack::_writeEl(){
   integer flag =    (IOPA.WriteAll%10==1)
                  || (checkstatus(AMSDBc::USED));
   if(Out(flag) ){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   TRDTrackNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdtrk();
@@ -577,11 +575,15 @@ void AMSTRDTrack::_writeEl(){
 }
 
 void AMSTRDTrack::_copyEl(){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   TRDTrackRoot *ptr = (TRDTrackRoot*)_ptr;
   if (ptr) {
     for (int i=0; i<_BaseS._NSeg; i++) {
-      if (_BaseS._PSeg[i]) ptr->fTRDSegment->Add(_BaseS._PSeg[i]->GetClonePointer());
+     #ifdef __WRITEROOTCLONES__
+      if(_BaseS._PSeg[i])ptr->fTRDSegment->Add(_BaseS._PSeg[i]->GetClonePointer());
+     #else
+       if(_BaseS._PSeg[i])ptr->fTRDSegment.push_back(_BaseS._PSeg[i]->GetClonePointer()); 
+      #endif
     }
   } else {
     cout<<"AMSTRDTrack::_copyEl -I-  AMSTRDTrack::TRDTrackRoot *ptr is NULL "<<endl;

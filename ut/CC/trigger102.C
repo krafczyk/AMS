@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.18 2003/04/09 14:05:07 choumilo Exp $
+//  $Id: trigger102.C,v 1.19 2003/05/03 08:43:55 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -178,7 +178,7 @@ void Trigger2LVL1::_writeEl(){
   if (lvl1N->Nlvl1>=MAXLVL1) return;
 
 // Fill the ntuple
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   lvl1N->Mode[lvl1N->Nlvl1]=_LifeTime;

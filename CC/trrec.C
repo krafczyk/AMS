@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.144 2002/11/29 20:04:40 choutko Exp $
+//  $Id: trrec.C,v 1.145 2003/05/03 08:43:55 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -795,10 +795,9 @@ void AMSTrCluster::_writeEl(){
 
   if(AMSTrCluster::Out(flag) ){
     int i;
-#ifdef __WRITEROOTCLONES__
-     float amplitude[5];
+#ifdef __WRITEROOT__
+     float amplitude[5]={0,0,0,0,0};
      for(i=0;i<min(5,getnelem());i++)amplitude[i]=_pValues[i]; 
-     for(i=getnelem();i<5;i++) amplitude[i]=0;
      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this, amplitude);
 #endif
     TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
@@ -1144,7 +1143,7 @@ void AMSTrRecHit::_writeEl(){
                  || (IOPA.WriteAll%10==2 && !checkstatus(AMSDBc::AwayTOF));
 
   if(AMSTrRecHit::Out(flag) ){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 // Fill the ntuple 
@@ -1209,10 +1208,9 @@ void AMSTrRecHit::_writeEl(){
 }
 
 void AMSTrRecHit::_copyEl(){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   TrRecHitRoot02 *ptr = (TrRecHitRoot02*)_ptr;
   if (ptr) {
-    // AMSTrCluster * _Xcl; AMSTrCluster * _Xcl;
     if (_Xcl) ptr->fTrClusterX= _Xcl->GetClonePointer();
     if (_Ycl) ptr->fTrClusterY= _Ycl->GetClonePointer();
   } else {
@@ -2166,7 +2164,7 @@ for(int i=0;i<2;i++){
 void AMSTrTrack::_writeEl(){
   if(AMSTrTrack::Out(1)){
     int i;
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     // Root related part in ../CC/root.C 
     // TrTrackRoot02::TrTrackRoot02(AMSTrTrack *ptr)
     // no check for _AdvancedFitDone && _GeaneFitDone
@@ -2271,17 +2269,20 @@ void AMSTrTrack::_writeEl(){
   }
 }
 void AMSTrTrack::_copyEl(){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   TrTrackRoot02 *ptr = (TrTrackRoot02*)_ptr;
   if (ptr) {
     // AMSTrRecHit * _Pthit[trconst::maxlay];
     for (int i=0; i<_NHits; i++) {
-    if (_Pthit[i]) ptr->fTrRecHit->Add(_Pthit[i]->GetClonePointer());
+    #ifdef __WRITEROOTCLONES__
+      if(_Pthit[i]) ptr->fTrRecHit->Add(_Pthit[i]->GetClonePointer());
+     #else
+      if(_Pthit[i])ptr->fTrRecHit.push_back(_Pthit[i]->GetClonePointer());
+     #endif
     }
 } else {
   cout<<"AMSTrTrack::_copyEl -I-  AMSTrTrack::TrTrackRoot02 *ptr is NULL "<<endl;
 }
-
 #endif
 }
 

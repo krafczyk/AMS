@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.63 2003/04/07 08:48:35 choutko Exp $
+//  $Id: mccluster.C,v 1.64 2003/05/03 08:43:54 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -42,7 +42,7 @@ void AMSTRDMCCluster::_writeEl(){
   integer flag =    (IOPA.WriteAll%10==1)
                  || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED));
   if(AMSTRDMCCluster::Out(flag)){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   TRDMCClusterNtuple* TRDMCClusterN = AMSJob::gethead()->getntuple()->Get_trdclmc();
@@ -315,7 +315,7 @@ void AMSTrMCCluster::_writeEl(){
   
   if(AMSTrMCCluster::Out(flag)){
     int i;
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   TrMCClusterNtuple* TrMCClusterN = AMSJob::gethead()->getntuple()->Get_trclmc();
@@ -665,7 +665,7 @@ void AMSRichMCHit::_writeEl(){
 
   if(_status==Status_Fake) return; // Fake hit
 // Here we need a flag with the IOPA to write it or not
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
      int numgen = 0;
      if(cluster->NMC==0) numgen = RICHDB::nphgen;
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,numgen);
@@ -694,7 +694,7 @@ void AMSRichMCHit::_writeEl(){
 void AMSTOFMCCluster::_writeEl(){
 
   if(AMSTOFMCCluster::Out( IOPA.WriteAll%10==1)){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   TOFMCClusterNtuple* TOFMCClusterN = AMSJob::gethead()->getntuple()->Get_tofmc();
@@ -715,7 +715,7 @@ void AMSAntiMCCluster::_writeEl(){
 
 
   if(AMSAntiMCCluster::Out( IOPA.WriteAll%10==1)){
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 // fill the ntuple

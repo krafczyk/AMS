@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.46 2002/12/05 14:16:09 choutko Exp $
+//  $Id: beta.C,v 1.47 2003/05/03 08:43:53 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -672,8 +672,7 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
 void AMSBeta::_writeEl(){
 
   int i, k, pat;
-#ifdef __WRITEROOTCLONES__
-  // ntof _ptof _ptrack  moved to copyEl();
+#ifdef __WRITEROOT__
     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
   BetaNtuple02* BN = AMSJob::gethead()->getntuple()->Get_beta02();
@@ -724,19 +723,19 @@ void AMSBeta::_writeEl(){
 }
 
 void AMSBeta::_copyEl(){
-//
-//AMSBetaRoot02  _ptr 
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
  BetaRoot02 *bptr = (BetaRoot02*)_ptr;
  if (bptr) {
-  // AMSTrTrack * _ptrack;
-   //if (_ptrack) bptr->fTrTrack= (TrTrackRoot02*)_ptrack->GetClonePointer();
    if (_ptrack) bptr->fTrTrack= _ptrack->GetClonePointer();
-  // AMSTOFCluster * _pcluster[4]
+#ifndef __ROOTPOINTERS__
   for (int i=0; i<4; i++) {
-    //if (_pcluster[i]) bptr->fTOFCluster->Add((TOFClusterRoot*)_pcluster[i]->GetClonePointer());
    if (_pcluster[i]) bptr->fTOFCluster->Add(_pcluster[i]->GetClonePointer());
   }
+#else
+for (int i=0; i<4; i++) {
+if(_pcluster[i])bptr->fTOFCluster.push_back(_pcluster[i]->GetClonePointer());
+}
+#endif
  } else {
   cout<<"AMSBeta::_copyEl -I-  AMSBeta::BetaRoot02 *ptr is NULL "<<endl;
  }  

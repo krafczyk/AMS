@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.11 2003/04/23 09:41:02 choutko Exp $
+//  $Id: antirec02.C,v 1.12 2003/05/03 08:43:53 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -498,7 +498,7 @@ void AMSAntiCluster::_writeEl(){
 //
   if(AMSAntiCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
    int i;
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
 #endif
 // fill the ntuple

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.125 2003/01/27 14:31:51 choutko Exp $
+//  $Id: particle.C,v 1.126 2003/05/03 08:43:54 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -496,7 +496,7 @@ break;
   // ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
 
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)|| _ptrack->checkstatus(AMSDBc::ECALTRACK)))return;
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
 // Fill Root class
   float phi  =fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
   float phigl=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
