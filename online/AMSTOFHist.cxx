@@ -162,10 +162,15 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
   }
   TH1*dummy=new TH1();
   dummy=(TH1*)gAMSDisplay->GetRootFile()->Get("h5013");
-  _norm=dummy->GetEntries();
-  if(_norm==0)_norm=1;
+  if(dummy)
+    _norm=dummy->GetEntries();
+  else{
+    cout<<"I will not normalize histograms!"<<endl;
+    _norm=1;
+  }
   for(i=0;i<30;i++)
-    _fetched2[i]->Scale(1./_norm);
+    //    if(_fetched2[i])
+      _fetched2[i]->Scale(1./_norm);
   delete dummy;
 
 //   int start=5030;  // his edges
