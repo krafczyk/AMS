@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.62 2002/11/26 13:09:24 choutko Exp $
+//  $Id: trrec.h,v 1.63 2002/11/27 15:39:59 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -293,9 +293,13 @@ number _HTheta[2];
 number _HPhi[2];
 AMSPoint _HP0[2];
 number _Chi2MS;
-number _GChi2MS;
+number _PIErrRigidity;
 number _RidgidityMS;
-number _GRidgidityMS;
+number _PIRigidity;
+number _PITheta;
+number _PIPhi;
+AMSPoint _PIP0;
+
 void SimpleFit(AMSPoint err);
 void TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit);
 static void _Start(){TIMEX(_Time);}
@@ -356,30 +360,10 @@ AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD, number chi2FF, nu
 
 static integer Out(integer);
 number Fit(integer i=0, integer ipart=14);
-AMSTrTrack(const AMSTrTrack & o):AMSlink(o._status,o._next),_Pattern(o._Pattern),
-_NHits(o._NHits),_GeaneFitDone(o._GeaneFitDone),_FastFitDone(o._FastFitDone),
-_AdvancedFitDone(o._AdvancedFitDone),_Chi2StrLine(o._Chi2StrLine),
-_Chi2Circle(o._Chi2Circle),_CircleRidgidity(o._CircleRidgidity),
-_Chi2FastFit(o._Chi2FastFit),_Ridgidity(o._Ridgidity),
-_RidgidityMS(o._RidgidityMS),_GRidgidityMS(o._GRidgidityMS),
-_Chi2MS(o._Chi2MS),_GChi2MS(o._GChi2MS),
-_ErrRidgidity(o._ErrRidgidity),_Theta(o._Theta), _Phi(o._Phi),_P0(o._P0),
-_GChi2(o._GChi2), _GRidgidity(o._GRidgidity),_GErrRidgidity(o._GErrRidgidity),
-_GTheta(o._GTheta),_GPhi(o._GPhi),_GP0(o._GP0){
-int i;
-for( i=0;i<trconst::maxlay;i++)_Pthit[i]=o._Pthit[i];
-for(i=0;i<2;i++){
-  _HChi2[i]=o._HChi2[i];
-  _HRidgidity[i]=o._HRidgidity[i];
-  _HErrRidgidity[i]=o._HErrRidgidity[i];
-  _HTheta[i]=o._HTheta[i];
-  _HPhi[i]=o._HPhi[i];
-  _HP0[i]=o._HP0[i];
-} 
-}
 void SetPar(number rig, number theta, number phi, AMSPoint P0,integer icase=0){
  if(icase==0){_Ridgidity=rig;_Theta=theta;_Phi=phi;_P0=P0;}
- else{_GRidgidity=rig;_GTheta=theta;_GPhi=phi;_GP0=P0;}
+ else if(icase==1){_GRidgidity=rig;_GTheta=theta;_GPhi=phi;_GP0=P0;}
+ else {_PIRigidity=rig;_PITheta=theta;_PIPhi=phi;_PIP0=P0;}
 }
 ~AMSTrTrack(){};
 AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
@@ -427,12 +411,14 @@ void   setHitP(AMSTrRecHit* p, integer n) {if (n< trconst::maxlay)  _Pthit[n] = 
 integer TOFOK();
 integer getnhits() const {return _NHits;}
 number getgrid() const {return _GRidgidity;}
+number getpirid() const {return _PIRigidity;}
+number getepirid() const {return _PIErrRigidity;}
 number getegrid() const {return _GErrRidgidity;}
 number geterid() const {return _ErrRidgidity;}
 number getrid() const {return _Ridgidity;}
 number getchi2()const {return _Chi2FastFit;}
-number gettheta() const {return _Theta;}
-number getphi() const {return _Phi;}
+number gettheta(int icase=0) const {return (icase==0?_Theta:(icase==1?_GTheta:_PITheta));}
+number getphi(int icase=0) const {return (icase==0?_Phi:(icase==1?_GPhi:_PIPhi));}
 friend class AMSTrCalibFit;
 #ifdef __WRITEROOT__
  friend class TrTrackRoot02;

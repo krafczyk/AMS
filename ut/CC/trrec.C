@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.142 2002/11/15 16:08:46 choutko Exp $
+//  $Id: trrec.C,v 1.143 2002/11/27 15:39:51 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2120,9 +2120,12 @@ if(out[7] != 0)_Chi2MS=FLT_MAX;
 _RidgidityMS=out[5];
 }
 else if(fit==5){
-_GChi2MS=out[8];
-if(out[7] != 0)_GChi2MS=-out[7];
-_GRidgidityMS=out[5];
+_PIErrRigidity=out[8];
+if(out[7] != 0)_PIErrRigidity=-out[7];
+_PIRigidity=out[5];
+_PITheta=out[3];
+_PIPhi=out[4];
+_PIP0=AMSPoint(out[0],out[1],out[2]);
 }
 
 return _Chi2FastFit;
@@ -2255,9 +2258,9 @@ void AMSTrTrack::_writeEl(){
      for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][1][i]=0;
     }
     TrTN->FChi2MS[TrTN->Ntrtr]=(geant)_Chi2MS;
-    TrTN->PiErrRig[TrTN->Ntrtr]=(geant)_GChi2MS;
+    TrTN->PiErrRig[TrTN->Ntrtr]=(geant)_PIErrRigidity;
     TrTN->RidgidityMS[TrTN->Ntrtr]=(geant)_RidgidityMS;
-    TrTN->PiRigidity[TrTN->Ntrtr]=(geant)_GRidgidityMS;
+    TrTN->PiRigidity[TrTN->Ntrtr]=(geant)_PIRigidity;
     TrTN->Ntrtr++;
   }
 }
@@ -2402,10 +2405,13 @@ for(i=_NHits;i<trconst::maxlay;i++)_Pthit[i]=0;
  _GTheta=0;
  _GPhi=0;
  _GP0=0;
+ _PIP0=0;
  _Chi2MS=-1;
- _GChi2MS=-1;
+ _PIErrRigidity=-1;
  _RidgidityMS=0;
- _GRidgidityMS=0;
+ _PIRigidity=0;
+ _PITheta=0;
+ _PIPhi=0;
  for(i=0;i<2;i++){
  _HRidgidity[i]=0;
  _HErrRidgidity[i]=0;
@@ -3072,7 +3078,7 @@ AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD,
                        number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
                        number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, 
                        number chi2MS, number jchi2MS, number rigFMS, number grigms):
-_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_GChi2MS(jchi2MS),_RidgidityMS(rigFMS),_GRidgidityMS(grigms),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g){
+_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g){
  
 
 
