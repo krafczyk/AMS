@@ -1,3 +1,4 @@
+#  $Id: setup.doc,v 1.5 2001/01/22 17:00:58 vitali Exp $
 Geometrical setup is defined thru  AMSJob.Setupname datacard (see datacards.doc)
 
 

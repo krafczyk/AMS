@@ -1,3 +1,4 @@
+#  $Id: ntuple.doc,v 1.100 2001/01/22 17:00:56 vitali Exp $
 This is AMS01 ntuple description (frozen)
 Thanks to Juan's courtesy there is no more dumb ntuple, only
 clever one survived. No more nconvert.

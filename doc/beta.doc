@@ -1,3 +1,4 @@
+#  $Id: beta.doc,v 1.2 2001/01/22 17:00:54 vitali Exp $
 class AMSBeta: public AMSlink{   // Velocity Reconstruction
 protected:
  AMSTOFCluster * _pcluster[4];   // pointers to TOF clusters

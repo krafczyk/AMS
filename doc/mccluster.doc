@@ -1,3 +1,4 @@
+#  $Id: mccluster.doc,v 1.2 2001/01/22 17:00:56 vitali Exp $
 // TOF simulation   // temporary 
 
 class AMSTOFMCCluster: public AMSlink{  // TOF simulation class

@@ -1,3 +1,4 @@
+#  $Id: trid.doc,v 1.2 2001/01/22 17:00:59 vitali Exp $
 class AMSTrIdGeom{   //  Tracker Geometrical ID
 protected:
 integer _layer;    // layer   from 1 to 6

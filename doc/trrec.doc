@@ -1,3 +1,4 @@
+#  $Id: trrec.doc,v 1.4 2001/01/22 17:00:59 vitali Exp $
 AMS Tracker Reconstruction
 
 AMSTrCluster -> AMSTrRecHit -> AMSTrTrack

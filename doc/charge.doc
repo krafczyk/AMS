@@ -1,3 +1,4 @@
+#  $Id: charge.doc,v 1.5 2001/01/22 17:00:55 vitali Exp $
 const integer ncharge=10; // e,p,He... F
 class AMSCharge: public AMSlink{   // Charge calculation
 protected:

@@ -1,3 +1,4 @@
+#  $Id: corba.doc,v 1.5 2001/01/22 17:00:55 vitali Exp $
 Files:
 ../include/server.h
 ../include/server.idl

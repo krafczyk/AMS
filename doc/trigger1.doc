@@ -1,3 +1,4 @@
+#  $Id: trigger1.doc,v 1.4 2001/01/22 17:00:59 vitali Exp $
 class TriggerLVL1: public AMSlink{
 protected:
  integer _TriggerMode;

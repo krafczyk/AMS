@@ -1,3 +1,4 @@
+#  $Id: tofrec.doc,v 1.4 2001/01/22 17:00:59 vitali Exp $
 //====================================================================
 //  class for RawEvent hits (all digital data for given id are groupped)
 //

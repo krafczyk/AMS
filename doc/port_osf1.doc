@@ -1,3 +1,4 @@
+#  $Id: port_osf1.doc,v 1.2 2001/01/22 17:00:58 vitali Exp $
 Features found while porting AMS soft to AXP/SOF1
 0. sizeof(void*) =8
 1. All string operations (string.h)  blow system if one pointer==NULL

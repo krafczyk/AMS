@@ -1,3 +1,4 @@
+#  $Id: gvolume.doc,v 1.14 2001/01/22 17:00:56 vitali Exp $
 a) Add geant volume to mother volume:
 
 AMSgvolume mother; 

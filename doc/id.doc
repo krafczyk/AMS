@@ -1,3 +1,4 @@
+#  $Id: id.doc,v 1.2 2001/01/22 17:00:56 vitali Exp $
 AMS Identifier 
 
 implemented as integer id + character name[]

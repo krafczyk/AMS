@@ -1,3 +1,4 @@
+#  $Id: tofrawcluster.doc,v 1.2 2001/01/22 17:00:59 vitali Exp $
 class AMSTOFRawCluster: public AMSlink{   // TOF Raw Cluster
 protected:
  integer _status;  // status

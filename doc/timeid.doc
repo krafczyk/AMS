@@ -1,3 +1,4 @@
+#  $Id: timeid.doc,v 1.10 2001/01/22 17:00:58 vitali Exp $
 this is $AMSOffline/vdev/doc/timeid.C
 
 class AMSTimeID: public AMSNode {               
