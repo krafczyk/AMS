@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.38 2002/04/01 12:03:13 alexei Exp $
+# $Id: RemoteClient.pm,v 1.39 2002/04/02 17:51:32 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -838,7 +838,9 @@ sub Connect{
 
         if (defined $q->param("QTemp") and $q->param("QTemp") ne "Any") {
          $file = $q->param("QTemp");
-         print "<tr><td><font size=\"3\"><b>Job Template File :</b></td><td><b> $file</b></td></tr>\n";
+         $qtempany = 0;
+         $sql = "SELECT run, particle FROM runscat, Jobs WHERE jid=runscat.run AND jobname LIKE '%.$file' AND ";
+         print "<tr><td><font size=\"3\" color=\"red\"><b>Job Template File :</b></td><td><b> $file</b></td></tr>\n";
         }
         if (not defined $file) {
          if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
@@ -953,7 +955,7 @@ sub Connect{
       print "<INPUT TYPE=\"hidden\" NAME=\"NTCHAIN\" VALUE=\"$ntchain\">\n"; 
 
      }
-        $sql=$sql." TIMESTAMP != 0 ORDER BY particle, run ";
+        $sql=$sql." runscat.TIMESTAMP != 0 ORDER BY particle, run ";
       htmlTableEnd();
 #                  RUN          NUMBER       NOT NULL
 #  $particle       PARTICLE     NUMBER(10)
@@ -1026,7 +1028,7 @@ PART:
                   $submittime= localtime($submit);
               }
               if ($ntout eq "ALL" or $ntout eq "RUNS") {
-               print "<tr><td><b><font size=\"4\" color=$color> Job : $jobname , Run : $run, Particle : <i> $part </i>,  Submitted : $submittime </font></b></td></tr>\n";
+               print "<tr><td><b><font size=\"4\" color=$color> Job : <i>$jobname </i>, Run : <i>$run </i>, Particle : <i> $part </i>,  Submitted : <i> $submittime </i></font></b></td></tr>\n";
            }
        if ($ntout eq "SUMM") {
            if ($pold ne $part) {
@@ -1072,9 +1074,10 @@ PART:
         if (defined $r4->[0][0]) {
             foreach my $nt (@{$r4}) {
              my $filepath=$nt->[0];
+             my ($disk,$file) = split(/:/,$filepath);
              print("<TR><TD width = \"10\%\" align=\"Left\"> nt/chain </TD>
                        <TD width = \"20\%\" align=\"Center\"> $ntchainname </TD>
-                       <TD width = \"40\%\" align=\"Left\">   $filepath    </TD></TR>");
+                       <TD width = \"40\%\" align=\"Left\">   $file    </TD></TR>");
           }
         }
      htmlTableEnd();
@@ -1112,7 +1115,10 @@ PART:
          print "<BR><BR>\n";
            }
          }
-     }
+     } else {
+         print "<TR><TD><font color=\"magenta\"><B> Nothing Found for SQL request : </B></font></TD></TR>\n";
+         print "<TR><TD><i>$sql</i></td></tr>\n";
+       }
    } else {
            $self->ErrorPlus("Unrecognized SQL request.");
           }
@@ -1153,7 +1159,8 @@ PART:
    print "<font size=\"3\"><TR><TD><b>\n";
    print " This is an interface to the AMS MC02 Remote/Client Database </TD></TR> \n";
    print "<TR><TD> \n";
-   print "All comments (to <font color=\"green\"> alexei.klimentov\@cern.ch, vitali.choutko\@cern.ch </font>) appreciated (items in <font color=\"tomato\"> tomato </font> are not implemented yet). </TD></TR>\n";
+   print "All comments (to <font color=\"green\"> alexei.klimentov\@cern.ch, vitali.choutko\@cern.ch </font>) appreciated (items in <font color=\"tomato\"> tomato </font> are not implemented yet). Basic query keys are 
+in <font color=\"green\"> green </font>, advanced query keys are in <font color=\"blue\"> blue.</TD></TR>\n";
    print "</ul>\n";
    print "<font size=\"2\" color=\"black\">\n";
    print "<li> Catalogues are updated nightly.\n";
@@ -1172,10 +1179,10 @@ PART:
                $hash->{$cite->{filename}}=$cite->{filedesc};
              }
           }
-          print "<tr><td><b><font color=\"red\" size=2>Job Template</font></b>\n";
+          print "<tr><td><b><font color=\"green\" size=2>Job Template</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-          print "<tr valign=middle><td align=left><b><font color=\"tomato\" size=\"-1\"> File : </b></td> <td colspan=1>\n";
+          print "<tr valign=middle><td align=left><b><font size=\"-1\"> File : </b></td> <td colspan=1>\n";
           print "<select name=\"QTemp\" >\n";
           print "<option value=\"Any\">  </option>\n";
           foreach my $template (@tempnam) {
@@ -1209,7 +1216,7 @@ PART:
             print "</b></td></tr>\n";
         htmlTableEnd();
 # Run Parameters
-          print "<tr><td><b><font color=\"blue\" size=2>Run Parameters</font></b>\n";
+          print "<tr><td><b><font color=\"green\" size=2>Run Parameters</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
           print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
@@ -1223,13 +1230,13 @@ PART:
               }
           print "</select>\n";
           print "</b></td></tr>\n";
-            htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
-            htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
+            htmlTextField("Momentum min >=","number",7,1.,"QMomI","[GeV/c]");  
+            htmlTextField("Momentum max =<","number",7,200.,"QMomA","[GeV/c]");  
             htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
             htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
 # spectrum and focusing
-            print "<tr><td><b><font color=\"green\" size=2>Spectrum and Focusing</font></b>\n";
+            print "<tr><td><b><font color=\"blue\" size=2>Spectrum and Focusing</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             $ts=$self->{tsyntax};
@@ -1253,7 +1260,7 @@ PART:
               print "</b></td></tr>\n";
            htmlTableEnd();
 # geo magnetic cutoff
-            print "<tr><td><b><font color=\"magenta\" size=2>GeoMagnetic Cutoff</font></b>\n";
+            print "<tr><td><b><font color=\"blue\" size=2>GeoMagnetic Cutoff</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
