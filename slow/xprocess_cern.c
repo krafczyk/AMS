@@ -155,13 +155,20 @@ pid_t pid;
       }
       /* ---- check for disk space -------- */
       count[1]=-1;
-      if (j<7) 
+
+      if (j==6) 
+        i=j;
+
+      if (j<7) {
         sprintf(chbuf,"/usr/sue/bin/rsh %s df /dat0/local/amsdatantuple/ > %s",host_name[j],a_name);
+      }
       else 
         sprintf(chbuf,"df /Offline/ > %s",a_name);
-      system(chbuf);
+      er = system(chbuf);
+      if (er<0)
+        goto END_disk;
       er = stat(a_name,&stat_buf);
-      if (stat_buf.st_size>0) {
+      if (stat_buf.st_size>80) {
 	fp=fopen(a_name,"r");
 	if (fp==NULL) {
 	  puts("cannot open temp file tmp");
@@ -333,13 +340,13 @@ pid_t pid;
         sprintf(chbuf,"/usr/sue/bin/rsh %s cat /dat0/local/logs/run_prod.log > %s",host_name[j],a_name);
         system(chbuf);
         er = stat(a_name,&stat_buf);
-        if (er<0) {
-        puts("\acannot open /dat0/local/logs/run_prod.log file");
-        fl_set_object_label(stati_[j],"------");
-        for (i=0; i<6; i++) {
-          stat_loc[i][j]=0;
-        }
-        goto END_stat;
+        if ((er<0)||(stat_buf.st_size<10)) {
+          puts("\acannot open /dat0/local/logs/run_prod.log file");
+          fl_set_object_label(stati_[j],"------");
+          for (i=0; i<6; i++) {
+            stat_loc[i][j]=0;
+          }
+          goto END_stat;
         }
         fp=fopen(a_name,"r");
         while (!feof(fp)) {
