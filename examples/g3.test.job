@@ -8,7 +8,7 @@ if [ "$UNAME" = "AIX" ] ; then
 elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="DEC-cxx"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux"
+    MACHINE="linux/icc"
 elif [ "$UNAME" = "SunOS" ] ; then
     MACHINE="sunos"
 else

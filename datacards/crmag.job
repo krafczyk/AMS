@@ -9,7 +9,7 @@ elif [ "$UNAME" = "OSF1" ] ; then
 elif [ "$UNAME" = "HP-UX" ] ; then
     MACHINE="hpux"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux"
+    MACHINE="linux/icc"
 else
 echo $UNAME is not supported yet
 
@@ -17,7 +17,7 @@ fi
 
 
 
-../exe/$MACHINE/gbatch.exe <<!
+$AMSWD/exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14 
 MULS 1 

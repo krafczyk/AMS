@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.11 2002/11/08 15:43:30 choutko Exp $
+//  $Id: trddbc.h,v 1.12 2003/03/18 09:13:17 choutko Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -19,6 +19,7 @@ const uinteger maxhits=12;
 const uinteger maxlad=18;
 const uinteger maxco=2;
 const uinteger maxtube=16;
+const uinteger maxstrips=32;
 const uinteger TRDROTMATRIXNO=9001;
 }
 using trdconst::mtrdo;
@@ -42,6 +43,8 @@ private:
    static char* _ITubesMedia;
    static char* _RadiatorMedia;
    static char* _TubesBoxMedia;
+   static char* _SpacerMedia;
+   static char* _StripsMedia;
 
    // Quantities
     static uinteger   _TRDOctagonNo;
@@ -65,6 +68,9 @@ private:
     static const number  _TubeInnerDiameter;
     static const number  _TubeWallThickness;
     static const number  _TubeBoxThickness;
+    static const number  _ChamberThickness;
+    static const number  _StripsDim[3];
+    static const number  _StripsCoo[2];
     static const number  _LadderThickness;
     static const number  _BulkheadWidth;
     static const number  _CutoutThickness;
@@ -76,7 +82,7 @@ private:
     static const number  _ManifoldWidth;
     static const number  _BulkheadGap;
     static const integer _LadderOrientation[mtrdo][trdconst::maxlay];    
-    static const number  _SpacerWidth; 
+    static const number  _SpacerDim[4]; 
     static const integer _NumberSpacers[trdconst::maxtube];
 
  //Sizes    
@@ -85,6 +91,7 @@ private:
    static number    _LaddersDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
    static number    _CutoutsDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
    static number    _TubesDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];    
+   static number    _SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
    static number    _TubesBoxDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][10];    
    static number    _RadiatorDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
 
@@ -265,6 +272,9 @@ public:
     static  number  TubeInnerDiameter(){return _TubeInnerDiameter;}
     static  number  TubeWallThickness(){return _TubeWallThickness;}
     static  number  TubeBoxThickness(){return _TubeBoxThickness;}
+    static  number  ChamberThickness(){return _ChamberThickness;}
+    static  number  StripsDim(uinteger n){return n<sizeof(_StripsDim)/sizeof(_StripsDim[0])?_StripsDim[n]:0;}
+    static  number  StripsCoo(uinteger n){return n<sizeof(_StripsCoo)/sizeof(_StripsCoo[0])?_StripsCoo[n]:0;}
     static  number  LadderThickness(){return _LadderThickness;}
     static  number  BulkheadWidth(){return _BulkheadWidth;}
     static  number  CutoutThickness(){return _CutoutThickness;}
@@ -277,7 +287,8 @@ public:
     static  number  BulkheadGap(){return _BulkheadGap;}
     static  integer LadderOrientation(uinteger oct, uinteger lay){return lay<LayersNo(oct)?_LadderOrientation[oct][lay]:0;}     
     static  integer LadderShift(uinteger oct, uinteger lay,uinteger lad){return lad%2?-1:1;}
-    static number SpacerWidth(){return _SpacerWidth;}
+    static number SpacerWidth(){return _SpacerDim[0];}
+    static number SpacerDim(int n){return n<sizeof(_SpacerDim)/sizeof(_SpacerDim[0])?_SpacerDim[n]:-1;}
     static  integer NumberSpacers(uinteger tube){return tube<trdconst::maxtube?_NumberSpacers[tube]:0;}     
 
 
@@ -287,6 +298,7 @@ public:
    static number&    LaddersDimensions(uinteger toct, uinteger lay, uinteger lad, uinteger index);
    static number&    CutoutsDimensions(uinteger toct, uinteger lay, uinteger lad, uinteger index);
    static number&    TubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
+   static number&    SpacerDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index, uinteger spacerpart);    
    static number    ITubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
    static number&    TubesBoxDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index); 
    static number&    RadiatorDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);
@@ -301,9 +313,16 @@ public:
    static char* ITubesMedia(){return _ITubesMedia;}
    static char* RadiatorMedia(){return _RadiatorMedia;}
    static char* TubesBoxMedia(){return _TubesBoxMedia;}
+   static char* SpacerMedia(){return _SpacerMedia;}
+   static char* StripsMedia(){return _StripsMedia;}
    static char* LaddersMedia(){return _OctagonMedia[_NoTRDOctagons[0]];}
    static char* CutoutsMedia(){return _CutoutsMedia;}
    static uinteger nlay(){return trdconst::maxlay;}
+
+
+  static bool ThereIsSpacerAfterTube(uinteger tube){
+   return tube<trdconst::maxtube-1?(_NumberSpacers[tube+1]-_NumberSpacers[tube]>0):false;
+  }
 
 
   
@@ -320,4 +339,6 @@ private:
 static TRDDBcI trdI;
 
 
+
 #endif
+
