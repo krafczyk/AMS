@@ -3,7 +3,7 @@ module DPS{
    typedef unsigned long time;
   interface Client{
    enum AccessType{Any,LessThan,Self,AnyButSelf,GreaterThan};
-   enum RecordChange{Delete,Update,Create};
+   enum RecordChange{Delete,Update,Create,ClearCreate};
    enum ErrorType{Info,Warning,Error,Severe};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
    enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer,DBServer,ODBServer};
@@ -19,6 +19,13 @@ module DPS{
     ClientExiting Status;
     string Interface;
     };
+
+    exception DBProblem{
+     string message;
+    };
+
+
+
 
     boolean sendId(inout CID id, in time TimeOut);      
     void getId(out CID id);
@@ -170,11 +177,11 @@ module DPS{
     };
     typedef sequence<DSTInfo> DSTIS;
     long getDSTInfoS(in CID id, out DSTIS dsti);
-    void sendDSTInfo(in DSTInfo info, in RecordChange rc);
+    void sendDSTInfo(in DSTInfo info, in RecordChange rc)raises(DBProblem);
     typedef sequence<RunEvInfo> RES;
-    long getRunEvInfoS(in CID id, out RES res, inout unsigned long maxr); 
-    void getRunEvInfo(in CID id, out RunEvInfo rv, out DSTInfo dv);
-    void sendRunEvInfo(in RunEvInfo ri, in RecordChange rch);
+    long getRunEvInfoS(in CID id, out RES res, inout unsigned long maxr)raises(DBProblem); 
+    void getRunEvInfo(in CID id, out RunEvInfo rv, out DSTInfo dv)raises(DBProblem);
+    void sendRunEvInfo(in RunEvInfo ri, in RecordChange rch)raises(DBProblem);
 
     struct DST{
      time   Insert;
@@ -190,7 +197,7 @@ module DPS{
      string Name;
     };    
 
-    void sendDSTEnd(in CID id, in DST ne, in RecordChange re); 
+    void sendDSTEnd(in CID id, in DST ne, in RecordChange re)raises(DBProblem); 
     typedef sequence<DST> DSTS;
     long getDSTS(in CID id, out DSTS dsts);     
 
@@ -225,20 +232,20 @@ module DPS{
     void ping();
     boolean TypeExists(in DPS::Client::ClientType type);
 
-    long getACS(in CID id, out ACS acl, out unsigned long maxc);
-    void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc);
+    long getACS(in CID id, out ACS acl, out unsigned long maxc)raises(DBProblem);
+    void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc)raises(DBProblem);
 
-    long getNC(in CID id, out NCS acl);
+    long getNC(in CID id, out NCS acl)raises(DBProblem);
     void sendNC(in CID id, in NominalClient nc,in RecordChange rc);
-    long getNK(in CID id, out NCS acl);
+    long getNK(in CID id, out NCS acl)raises(DBProblem);
     void sendNK(in CID id, in NominalClient nc,in RecordChange rc);
 
-    long getNHS(in CID id, out NHS nhs);
+    long getNHS(in CID id, out NHS nhs)raises(DBProblem);
     void sendNH(in CID id, in NominalHost ah,in RecordChange rc);
     
 
-    long getAHS(in CID id, out AHS ahl);
-    void sendAH(in CID id, in ActiveHost ah,in RecordChange rc);
+    long getAHS(in CID id, out AHS ahl)raises(DBProblem);
+    void sendAH(in CID id, in ActiveHost ah,in RecordChange rc)raises(DBProblem);
     struct DB{
      string fs;
      float dbfree;
@@ -254,10 +261,6 @@ module DPS{
   };
   
   interface DBServer: Server, Producer{
-    exception DBProblem{
-     string message;
-    };
-
     string getDBFilePath(in CID id)raises(DBProblem);
     long getRunEvInfoSPerl(in CID id, out RES res, in unsigned long maxr,out unsigned long maxro)raises(DBProblem); 
     void sendACPerl(in CID id, in ActiveClient ac,in RecordChange rc)raises(DBProblem);

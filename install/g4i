@@ -1,4 +1,4 @@
-#  $Id: g4i,v 1.26 2001/01/22 17:32:51 choutko Exp $
+#  $Id: g4i,v 1.27 2001/02/21 12:45:35 choutko Exp $
 if $OS == "Linux"  then
 setenv LinuxBUG 0
 if $LinuxBUG == "1" then
@@ -24,6 +24,8 @@ setenv OSPACE_BASE_DIR /afs/cern.ch/sw/lhcxx/specific/dec/ObjectSpace/2.1/ToolKi
 setenv CLHEP_BASE_DIR  /afs/cern.ch/exp/ams/Offline/CLHEP/DEC-cxx 
 setenv OGLHOME /usr/local
 endif
+#for geant4 ex
+#setenv LD_LIBRARY_PATH= .:$CLHEP_BASE_DIR/lib:$OGLHOME/lib
 
 setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.3.0
 setenv G4LIB $G4INSTALL/lib

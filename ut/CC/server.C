@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.48 2001/02/19 15:20:01 choutko Exp $
+//  $Id: server.C,v 1.49 2001/02/21 12:45:34 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -106,6 +106,7 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
     switch (*pchar){
     case 'O':    // Oracle
       _Oracle=true;
+      if(pchar+1 && *(pchar+1) =='I')_OracleW=true;
     case 'D':    //debug
      _debug=atoi(++pchar);
      break;
@@ -1520,13 +1521,30 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
             break;
         }
        }
-// Reread everything in case of db-aware program
-     CORBA::Object_var obj=_defaultorb->string_to_object((const char *)((_refmap.begin())->second));
-     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
+   if(_parent->IsOracle()){
+// Reread(rewrite) everything in case of db-aware program
+     DPS::Server_var _svar;
+     DPS::DBServer_var _dbsvar;
+
+     CORBA::Object_var obj;
      for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
-     pcur->ReReadTables(_pvar);
+     if(pcur->getType()==DPS::Client::Server){
+       CORBA::Object_var obj=pcur->getdefaultorb()->string_to_object((const char *)((pcur->getrefmap().begin())->second));
+      _svar= DPS::Server::_narrow(obj);
+     }
+     if(pcur->getType()==DPS::Client::DBServer){
+       CORBA::Object_var obj=pcur->getdefaultorb()->string_to_object((const char *)((pcur->getrefmap().begin())->second));
+      _dbsvar= DPS::DBServer::_narrow(obj);
+     }
+   }
+     for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+     if(pcur->getType()!=DPS::Client::DBServer){
+      if(_parent->InitOracle())pcur->ReWriteTables(_dbsvar);
+      else pcur->ReReadTables(_svar);
    }
    }
+   }
+}
 }
 
 
@@ -4112,6 +4130,44 @@ for(int i=0;i<length;i++){
 
 }
 
+
+
+
+
+void AMSServerI::ReWriteTables( DPS::DBServer_ptr _pvar){
+
+//NominalClient
+
+for (NCLI li=_ncl.begin();li!=_ncl.end();++li){
+ DPS::Client::RecordChange rc= li==_ncl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendNC(cid,*li,rc);
+}  
+
+//ActiveClient
+
+for (ACLI li=_acl.begin();li!=_acl.end();++li){
+ DPS::Client::RecordChange rc= li==_acl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=(*li)->id;
+ _pvar->sendAC(cid,*li,rc);
+}  
+
+//ActiveHost
+
+for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
+ DPS::Client::RecordChange rc= li==_ahl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendAH(cid,*li,rc);
+}  
+
+
+}
+
+
+
+
 void Server_impl::ReReadTables( DPS::Server_ptr _pvar){
 
 DPS::Client::CID cid=_parent->getcid();
@@ -4175,6 +4231,61 @@ for(int i=0;i<length;i++){
 
 
 }
+
+
+
+
+
+
+void Server_impl::ReWriteTables( DPS::DBServer_ptr _pvar){
+
+//NominalClient
+
+for (NCLI li=_ncl.begin();li!=_ncl.end();++li){
+ DPS::Client::RecordChange rc= li==_ncl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendNC(cid,*li,rc);
+}  
+//NominalKiller
+
+for (NCLI li=_nki.begin();li!=_nki.end();++li){
+ DPS::Client::RecordChange rc= li==_nki.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendNK(cid,*li,rc);
+}  
+
+//ActiveClient
+
+for (ACLI li=_acl.begin();li!=_acl.end();++li){
+ DPS::Client::RecordChange rc= li==_acl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=(*li)->id;
+ _pvar->sendAC(cid,*li,rc);
+}  
+
+//ActiveHost
+
+for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
+ DPS::Client::RecordChange rc= li==_ahl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendAH(cid,*li,rc);
+}  
+//NominalHost
+
+for (NHLI li=_nhl.begin();li!=_nhl.end();++li){
+ DPS::Client::RecordChange rc= li==_nhl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendNH(cid,*li,rc);
+}  
+
+
+}
+
+
+
 
 
 void Producer_impl::ReReadTables( DPS::Server_ptr _svar){
@@ -4264,3 +4375,47 @@ DST_var vdst= new DST(dsts[i]);
 }
 
 }
+
+
+
+
+void Producer_impl::ReWriteTables( DPS::DBServer_ptr _pvar){
+
+//NominalClient
+
+for (NCLI li=_ncl.begin();li!=_ncl.end();++li){
+ DPS::Client::RecordChange rc= li==_ncl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendNC(cid,*li,rc);
+}  
+
+//ActiveClient
+
+for (ACLI li=_acl.begin();li!=_acl.end();++li){
+ DPS::Client::RecordChange rc= li==_acl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=(*li)->id;
+ _pvar->sendAC(cid,*li,rc);
+}  
+
+//ActiveHost
+
+for (AHLI li=_ahl.begin();li!=_ahl.end();++li){
+ DPS::Client::RecordChange rc= li==_ahl.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendAH(cid,*li,rc);
+}  
+
+//DSTInfo
+
+for (DSTILI li=_dstinfo.begin();li!=_dstinfo.end();++li){
+ DPS::Client::RecordChange rc= li==_dstinfo.begin()?DPS::Client::ClearCreate:DPS::Client::Create;
+ DPS::Client::CID cid=_parent->getcid();
+ cid.Type=getType();
+ _pvar->sendDSTInfo(*li,rc);
+}  
+
+
+}
+

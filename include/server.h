@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.33 2001/02/19 14:18:29 choutko Exp $
+//  $Id: server.h,v 1.34 2001/02/21 12:45:35 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -130,6 +130,7 @@ CORBA::ORB_ptr  getdefaultorb()const {return _defaultorb;}
  virtual void KillClients(const DPS::Client::CID &cid)=0;
  virtual AMSServerI * getServer()=0;
  virtual void ReReadTables(DPS::Server_ptr pvar);
+ virtual void ReWriteTables(DPS::DBServer_ptr pvar);
   void HostClientFailed(DPS::Client::ActiveHost_var & ahlv);
   void PropagateAC( DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
   bool getHostInfoSDB(const DPS::Client::CID & cid, DPS::Client::ActiveHost_var & ac);
@@ -218,6 +219,7 @@ public:
  void setInterface(const char * iface){_iface=iface;}
  AMSServerI * getServer(){return this;}
  virtual void ReReadTables(DPS::Server_ptr pvar);
+ virtual void ReWriteTables(DPS::DBServer_ptr pvar);
  virtual void UpdateDB(bool force=false);
  virtual void StartClients(const DPS::Client::CID &cid);
  virtual void CheckClients(const DPS::Client::CID &cid); 
@@ -321,6 +323,7 @@ public:
   void _PurgeQueue();
   void _init();
  virtual void ReReadTables(DPS::Server_ptr pvar);
+ virtual void ReWriteTables(DPS::DBServer_ptr pvar);
  virtual void UpdateDB(bool force=false);
  virtual void StartClients(const DPS::Client::CID &cid);
  virtual void CheckClients(const DPS::Client::CID &cid); 

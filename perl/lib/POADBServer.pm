@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.4 2001/02/09 13:08:50 choutko Exp $
+#  $Id: POADBServer.pm,v 1.5 2001/02/21 12:45:35 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -243,7 +243,16 @@ OUT:
                          untie %hash;
                          return;
       
-                     }
+             }
+             elsif($rc eq "ClearCreate"){
+                    $hash{rtb_maxr}=$ri->{uid}+1;
+                    $#{$ref->{rtb}}=0;
+                         $ref->{rtb}[$#{$ref->{rtb}}]=$ri;
+                         $hash{rtb}=$ref->{rtb};
+                         untie %hash;
+                         return;
+      
+             }
                          untie %hash;
               throw DPS::DBServer::DBProblem message=>"Unable to $rc the rtb $ri->{uid}";
           }
@@ -324,6 +333,14 @@ OUT:
                          return;
       
                      }
+             elsif($rc eq "ClearCreate"){
+                         $#{$ref->{dsts}}=0;
+                         $ref->{dsts}[$#{$ref->{dsts}}]=$ri;
+                         $hash{dsts}=$ref->{dsts};
+                         untie %hash;
+                         return;
+      
+                     }
                          untie %hash;
               throw DPS::DBServer::DBProblem message=>"Unable to $rc the dsts $ri->{uid}";
           }
@@ -397,6 +414,14 @@ OUT:
              }
              elsif($rc eq "Create"){
                          $#{$ref->{dsti}}=$#{$ref->{dsti}}+1;
+                         $ref->{dsti}[$#{$ref->{dsti}}]=$ri;
+                         $hash{dsti}=$ref->{dsti};
+                         untie %hash;
+                         return;
+      
+                     }
+             elsif($rc eq "ClearCreate"){
+                         $#{$ref->{dsti}}=0;
                          $ref->{dsti}[$#{$ref->{dsti}}]=$ri;
                          $hash{dsti}=$ref->{dsti};
                          untie %hash;
@@ -506,6 +531,16 @@ OUT:
                          return;
       
                      }
+             elsif($rc eq "ClearCreate"){
+                         $hash{$tag."_maxc"}=$cid->{uid};
+                         $#{$ref->{$tag}}=0;
+                         $ref->{$tag}[$#{$ref->{$tag}}]=$ri;
+                         $hash{$tag}=$ref->{$tag};
+                         my $ar=$hash{$tag};
+                         untie %hash;
+                         return;
+      
+                     }
                          untie %hash;
               throw DPS::DBServer::DBProblem  message=>"Unable to $rc the $tag $cid->{uid}";
           }
@@ -603,6 +638,14 @@ OUT:
                          return;
       
                      }
+             elsif($rc eq "ClearCreate"){
+                         $#{$ref->{$tag}}=0;
+                         $ref->{$tag}[$#{$ref->{$tag}}]=$ri;
+                         $hash{$tag}=$ref->{$tag};
+                         untie %hash;
+                         return;
+      
+                     }
                          untie %hash;
               throw DPS::DBServer::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
           }
@@ -677,6 +720,14 @@ OUT:
              }
              elsif($rc eq "Create"){
                          $#{$ref->{$tag}}=$#{$ref->{$tag}}+1;
+                         $ref->{$tag}[$#{$ref->{$tag}}]=$ri;
+                         $hash{$tag}=$ref->{$tag};
+                         untie %hash;
+                         return;
+      
+                     }
+             elsif($rc eq "ClearCreate"){
+                         $#{$ref->{$tag}}=0;
                          $ref->{$tag}[$#{$ref->{$tag}}]=$ri;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
