@@ -36,8 +36,8 @@ integer AMSVtx::build(integer refit){
 // First use tracks already reconstructed
    AMSTrTrack *ptr = (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);
    for (;ptr!=NULL && nfound<maxtracks;ptr = ptr->next()) {
+      //if (ptr->checkstatus(AMSDBc::FalseX)) continue;
       if (ptr->checkstatus(AMSDBc::WEAK)) continue;
-      if (ptr->checkstatus(AMSDBc::FalseX)) continue;
       if (ptr->checkstatus(AMSDBc::FalseTOFX)) continue;
       ptrack[nfound] = ptr;
       nfound++;

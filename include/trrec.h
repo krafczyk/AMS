@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.78 2004/07/14 13:51:01 alcaraz Exp $
+//  $Id: trrec.h,v 1.79 2004/07/16 15:40:31 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -183,6 +183,9 @@ integer operator < (AMSlink & o) const {
 inline integer Good() { 
   return ((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0) 
             && checkstatus(AMSDBc::AwayTOF )==0) && checkstatus(AMSDBc::GOOD);
+}
+inline integer Good_PI() { 
+  return ( (checkstatus(AMSDBc::AwayTOF)==0) && checkstatus(AMSDBc::GOOD));
 }
 static AMSTrRecHit* firstgood(integer pattern, integer index);
 AMSTrRecHit* nextgood();
