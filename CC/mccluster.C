@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.57 2002/11/14 13:18:27 glamanna Exp $
+//  $Id: mccluster.C,v 1.58 2003/02/04 15:18:16 delgadom Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -613,18 +613,22 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
   geant u1,u2,dummy,r;
 
   AMSRICHIdSoft current(channel);
+  
+  r=sqrt(current.getthreshold(mode)*current.getthreshold(mode)-2.*log(1.-RNDM(dummy)));
 
-  //  r=sqrt(current.getthreshold(mode)*current.getthreshold(mode)-2.*log(1.-RNDM(dummy)));
+  do{
+    geant par=RNDM(dummy)*6.28318595886;
+    u1=r*sin(par);
+    if(integer(u1)<current.getthreshold(1))
+      u1=r*cos(par);
+  }while(integer(u1)<current.getthreshold(1));
 
-  //  do{
-  //    u1=r*sin(RNDM(dummy)*6.28318595886);
-  //  }while(u1<current.getthreshold(1));
+  
+  //  do u1=current.getped(mode)+current.getsped(mode)*rnormx(); 
+  //  while(integer(u1)<=integer(current.getthreshold(1)*current.getsped(mode)+current.getped(mode)));
+  //  return u1;
 
-  do u1=current.getped(mode)+current.getsped(mode)*rnormx(); 
-  while(integer(u1)<=integer(current.getthreshold(1)*current.getsped(mode)+current.getped(mode)));
-  return u1;
-
-  //  return u1*current.getsped(mode)+current.getped(mode);
+  return u1*current.getsped(mode)+current.getped(mode);
 }
 
 
