@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.255 2003/09/04 10:24:48 choutko Exp $
+#  $Id: Mopt,v 1.256 2003/09/04 10:45:23 choutko Exp $
 #
 
 SHELL=/bin/sh
@@ -104,7 +104,7 @@ FFLAGS=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian
 FFLAGSn=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=     -I/usr/include  -I../include 
 LDFLAGS=    -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag $(ROOTLIBS) -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lkernlib 
-LDFLAGSSTATIC=    -non_shared   -L$(ROOTSYS)/lib -lRoot -lcrypt -lcxx -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321  -lmathlib -lpacklib -lkernlib -lshift -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da/  -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lkernlib -lm -lcxx -lm 
+LDFLAGSSTATIC=    -non_shared   -L$(ROOTSYS)/lib -lRoot  -lcxx -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321  -lmathlib -lpacklib -lkernlib -lshift -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da/  -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lkernlib -lm -lcxx -lm 
 SHLDFLAGS=    -lshift -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  $(ROOTLIBS) -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lkernlib 
 SOFLAGS =  -v -Wl,-expect_unresolved,* -shared
 #FLAGSSTATIC= -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved "*" -g0 -O1 
