@@ -1,4 +1,4 @@
-# $Id: root.perl,v 1.1 2003/12/11 16:14:44 choutko Exp $
+# $Id: root.perl,v 1.2 2003/12/11 20:04:45 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
@@ -52,7 +52,7 @@ while ( my $line = <FILEI>){
         }
         my @pat=split /\;/, $line;
         my $subpat=$pat[0];
-        if($subpat=~/\(/ or $subpat=~/\{/ or $subpat=~/\,/  or $subpat=~/\</  or $subpat=~/Info/ or $subpat=~/friend/){
+        if($subpat=~/\(/ or $subpat=~/\{/ or $subpat=~/\,/    or $subpat=~/Info/ or $subpat=~/friend/){
             next;
         }
         @pat=split / /, $subpat;
@@ -61,6 +61,15 @@ while ( my $line = <FILEI>){
         }
         my $Var=$pat[$#pat];
         my $var="\L$Var\E";
+        if($subpat=~/\</ and $subpat=~/vector/){
+# get type 
+        my @sp1=split /\</,$subpat;
+        my @sp2=split /\>/,$sp1[$#sp1];
+        my $type=$sp2[0];
+        my $output="$type $class\_$var(unsigned int j, unsigned int i){return ( p$Class\(i) && j<p$Class\(i)->$Var.size() )?p$Class\(i)->$Var\[j]:0;} \n";  
+        print FILEO $output;
+        }
+        elsif(!($subpat=~/\</)){
         my $type="";
         for my $i (0 ... $#pat-1){
             if($pat[$i]=~/ /){
@@ -100,6 +109,7 @@ while ( my $line = <FILEI>){
 #           print $output;
         }   
     }    
+}
 }
 }
 }

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.120 2003/12/11 16:14:28 choutko Exp $
+//  $Id: root.h,v 1.121 2003/12/11 20:04:39 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -289,6 +289,7 @@ public:
   EcalClusterR(){};
   EcalClusterR(Ecal1DCluster *ptr);
   friend class Ecal1DCluster;
+  friend class AMSEventR;
   /// \param number index in container
   /// \return human readable info about EcalClusterR
   char * Info(int number=-1){
@@ -334,6 +335,7 @@ public:
   Ecal2DClusterR(AMSEcal2DCluster *ptr);
 ClassDef(Ecal2DClusterR,1)       //Ecal2DClusterR
 friend class AMSEcal2DCluster;
+friend class AMSEventR;
 };
 
 
@@ -399,6 +401,7 @@ public:
   EcalShowerR(){};
   EcalShowerR(AMSEcalShower *ptr);
 friend class AMSEcalShower;
+friend class AMSEventR;
 
 ClassDef(EcalShowerR,1)       //EcalShowerR
 
@@ -512,6 +515,7 @@ public:
   RichRingR(){};
   RichRingR(AMSRichRing *ptr);
   friend class AMSRichRing;
+  friend class AMSEventR;
   /// \param number index in container
   /// \return human readable info about RichRingR
   char * Info(int number=-1){
@@ -599,6 +603,7 @@ public:
   TofClusterR(){};
   TofClusterR(AMSTOFCluster *ptr );
   friend class AMSTOFCluster;
+  friend class AMSEventR;
 ClassDef(TofClusterR,1)       //TofClusterR
 };
 
@@ -754,6 +759,7 @@ public:
   TrRecHitR(){};
   TrRecHitR(AMSTrRecHit *ptr);
   friend class AMSTrRecHit;
+  friend class AMSEventR;
 ClassDef(TrRecHitR,2)       //TrRecHitR
 };
 
@@ -823,6 +829,7 @@ public:
   } 
 ClassDef(TrTrackR,5)       //TrTrackR
 friend class AMSTrTrack;
+friend class AMSEventR;
 };
 
 /// TRDRawHitR structure
@@ -875,6 +882,7 @@ public:
   TrdClusterR(){};
   TrdClusterR(AMSTRDCluster *ptr);
   friend class AMSTRDCluster;
+  friend class AMSEventR;
   /// \param number index in container
   /// \return human readable info about TrdClusterR
   char * Info(int number=-1){
@@ -914,6 +922,7 @@ public:
   /// \return pointer to TrdClusterR object or 0
   TrdClusterR * pTrdCluster(unsigned int i);
   friend class AMSTRDSegment;
+  friend class AMSEventR;
   TrdSegmentR(){};
   TrdSegmentR(AMSTRDSegment *ptr);
   virtual ~TrdSegmentR(){};
@@ -963,6 +972,7 @@ public:
   return _Info;
   } 
   friend class AMSTRDTrack;
+  friend class AMSEventR;
 ClassDef(TrdTrackR,1)       //TrdTrackR
 };
 
@@ -1221,6 +1231,7 @@ public:
    BetaR(){};
    BetaR(AMSBeta *ptr);
    friend class AMSBeta;
+   friend class AMSEventR;
    virtual ~BetaR(){};
    ClassDef(BetaR,1)         //BetaR
 };
@@ -1270,7 +1281,7 @@ public:
   /// access function to RichRingR object used
   /// \return pointer to RichRingR object or 0
   RichRingR * pRichRing();
-
+   friend class AMSEventR;
    friend class AMSCharge;
   ChargeR(){};
   ChargeR(AMSCharge *ptr, float probtof[],int chintof[],
@@ -1316,6 +1327,7 @@ public:
   VertexR(){};
   VertexR(AMSVtx *ptr);
   friend class AMSVtx;
+  friend class AMSEventR;
   ClassDef(VertexR,3)         //VertexR
 };
 
@@ -1483,6 +1495,7 @@ public:
   ParticleR(){};
   ParticleR(AMSParticle *ptr, float phi, float phigl);
   friend class AMSParticle;
+  friend class AMSEventR;
   ClassDef(ParticleR,2)       //ParticleR
 };
 
