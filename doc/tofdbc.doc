@@ -3,25 +3,35 @@
 const integer SCMXBR=14; // max nmb of bars/layer
 const integer SCLRS=4; // nmb of layers in TOF-systems
 const integer SCBRS[SCLRS]={14,14,14,14}; // nmb of bars per layer (top->bot)
-const integer SCROTN=1000; // start nmb of abs. numbering of TOF rot. matrixes
+const integer SCROTN=2; // start nmb of abs. numbering of TOF rot. matrixes
 const integer SCBTPN=5;    //nmb of sc. bar types (different by length now)
 const integer SCCHMX=SCLRS*SCMXBR*2; //MAX scint. channels
 const integer SCBLMX=SCLRS*SCMXBR;   //MAX scint. bars*layers
 //MC
 const integer AMSDISL=500;//max length of distributions in AMSDistr class
 const integer SCANPNT=11; //scan points in MC/REC t/a-calibration 
-const integer SCTBMX=10000;//length of MC "flash-ADC" buffer
-const integer SCSBMX=500;//2*shaper_buffer_size(SHOUL BE ABOVE 2*9.3*tfall/shaptb) 
-const integer SCWORM=64;// Max.length (in 16-bits words) in bit-stream class
+const integer SCTBMX=5000;//length of MC "flash-ADC" buffer
+const integer SCSBMX=1200;//length of MC "shaper" buffer
+//                       (should be above SCTBMX*fadcb/shaptb+6.21*tfall/shaptb) 
+const integer SCWORM=128;// Max.length (in 16-bits words) in bit-stream class
 const integer SCBITM=SCWORM*16;// same in bits
 //DAQ/RECO
+const int16u SCPHBP=16384; // phase bit position in Reduced-format TDC word (15th bit)
+const int16u SCPHBPA=32768;// phase bit position in Raw-format address word (16th bit)
+const integer SCCRAT=8; // number of crates with TOF(+CTC/ANTI)-channels (S-crates)
+const integer SCSFET=4; // SFETs per crate
+const integer SCTOFC=4; // max. TOF-channels (each =4 TDC-channels) per SFET
+const integer SCTDCC=SCTOFC*4; // max. TDC-channels per SFET (4 tdcchan/tofch)
 const integer SCTHMX1=8;//max trigger hits( multpl.factor=2 for tr/ftdc/adc, =4 for stdc)
 const integer SCTHMX2=8;//max fast TDC (history) hits  
 const integer SCTHMX3=4;//max slow TDC (stretcher) hits
-const integer SCTHMX4=8;//max ADC (time_over_threshold) hits  
-const integer SCJSTA=20;   //size of Job-statistics array
-const integer SCCSTA=10;   //size of Channel-statistics array
-const integer SCACRFP=5;   // ref. points for 1-channel ampl. calibration
+const integer SCTHMX4=8;//max adc TDC (time_over_threshold) hits  
+const integer SCJSTA=25;   //size of Job-statistics array
+const integer SCCSTA=16;   //size of Channel-statistics array
+const integer SCBADB1=128; // status bit to mark counter with bad "history"
+const integer SCBADB2=256; // status bit to mark counter with only one_side measurement
+const integer SCBADB3=512; // ...  with bad t-meas.(don't use for tzcalibr/beta-meas)
+const integer SCIPAR=3;    // number of a(d)-integrator parameters
 //===========================================================================
 // 
 // --------------> Class for "time-stable"  parameters :
@@ -36,16 +46,19 @@ private:
   static geant _plnstr[15]; // sc. plane structure param.
 // MC/RECO constants:
   static geant _edep2ph;     // MC edep(Mev)-to-Photons convertion
-  static geant _fladctb;     // MC flash-ADC time binning (ns)
-  static geant _shaptb;      // MC shaper pulse time binning
-  static geant _shrtim;      // MC shaper pulse rise time (ns)
-  static geant _shftim;      // MC shaper pulse fall time (ns)
+  static geant _seresp;      // PMT single elec.responce (mV on 50 Ohm, MP=MEAN)
+  static geant _seresv;      // ........................ variations (relat to MP) 
+  static geant _fladctb;     // MC flash-ADC time-binning (ns)
+  static geant _shaptb;      // MC shaper pulse time-binning
+  static geant _shrtim;      // MC shaper pulse rise-time (ns)
+  static geant _shftim;      // MC shaper pulse fall-time (ns)
+  static geant _shctim;      // MC shaper pulse cut-time (gate width)(ns)
   static geant _tdcbin[4];   // pipe-line TDC binning for ftdc/stdc/adca/adcd
   static geant _trigtb;      // MC time-binning in logic(trig) pulse handling
   static geant _strflu;      // Stretcher "end-mark" time fluctuations (ns)
   static geant _daqpwd[15];  // MC DAQ-system pulse_widths/dead_times/...
-  static geant _di2anr;      // default(sim/rec of MC-data) dinode-to-anode signal ratio
-  static geant _strrat;      // default(------------------) stretcher ratio
+  static geant _di2anr;      // default(MC-data) dinode-to-anode signal ratio
+  static geant _strrat;      // default(-------) stretcher ratio
   static geant _strjit1;     // "start" signal jitter at stretcher input(ns) 
   static geant _strjit2;     // "stop"(FT) signal jitter at stretcher input(ns)
   static geant _ftdelf;      // FastTrigger (FT) fixed (by h/w) delay (ns)
@@ -54,10 +67,23 @@ private:
   static geant _fstdcd;      // Same hit(up-edge) relative delay of slow- wrt hist-TDC
   static geant _fatdcd;      // Same hit(up-edge) rel.delay of A(d)- wrt hist-TDC
   static integer _pbonup;    // set phase bit "on" for leading(up) edge (yes/no->1/0)
-  
-  
-  Some default values (may be changed in final version !) :
-  
+//
+//  =====> TOFDBc class variables definition :
+//
+integer TOFDBc::debug=1;
+//
+//
+//======> memory reservation for _brtype :
+// (real values are initialized from ext. geomconfig-file in amsgeom.c) 
+integer TOFDBc::_brtype[SCBLMX]={
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0
+};
+//
+// Initialize TOF geometry (defaults, REAL VALUES are read FROM geomconfig-file)
+//
 //---> bar lengthes (cm) for each of SCBTPN types :
 geant TOFDBc::_brlen[SCBTPN]={
   72.6,99.6,118.6,130.6,135.4
@@ -72,65 +98,69 @@ geant TOFDBc::_supstr[10]={
   -59.9,    //  =2    Z-coo    BOT           (TOP     )
    0.,0.,  //  =3,4  X/Y-shifts of TOP honeycomb centre in Mother r.s.
    0.,0.,  //  =5,6                BOT
-   10.,78.,//  =7,8  DZ/R-outer of both honeycomb supports
+   10.1,82.,//  =7,8  DZ/R-outer of both honeycomb supports
    0.,0.   //  =9,10 spare
 };
 //---> sc. plane design parameters:
 geant TOFDBc::_plnstr[15]={
   0.,0.,  // i=1,2  Z-gap between honeycomb and outer/inner scint. planes
-    1.25,  // i=3    Z-shift of even/odd bars in plane (0 -> flat plane)
-     0.6,  // i=4    X(Y)-overlaping(incl. sc_cover) of even/odd bars (0 for flat)
+    1.5,  // i=3    Z-shift of even/odd bars in plane (0 -> flat plane)
+     0.88,  // i=4    X(Y)-overlaping(incl. sc_cover) of even/odd bars (0 for flat)
      11., // i=5    sc. bar width
       1., // i=6    sc. bar thickness
-    0.05, // i=7    sc_cover thickness (carb.fiber)
+    0.07, // i=7    sc_cover thickness on "sc.thickness"(Carb.fiber+mylar?)
  10.,10.,2.5, // i=8-10 width/length/thickness (x/y/z) of PMT shielding box.
   5.,         // i=11 dist. in x-y plane from sc. edge to PMT box.
   0.7,        // i=12 Z-shift of sc.bar/PMT-box centers (depends on par. i=10)
-  0.,0.,0.    // i=13-15 spare
+  0.19,       // i=13 sc_cover thickness on "sc.width"(2xCarb.fiber+mylar?)
+  0.,0.    // i=14-15 spare
 };
 //---> Initialize TOF MC/RECO "time-stable" parameters :
 //
   geant TOFDBc::_edep2ph={8000.};// edep(Mev)-to-Photons convertion
-  geant TOFDBc::_fladctb=0.05;   // MC flash-ADC time binning (ns)
-  geant TOFDBc::_shaptb=2.;      // MC shaper pulse time binning
-  geant TOFDBc::_shrtim=0.5;     // MC shaper pulse rise time (ns)
-  geant TOFDBc::_shftim=50.;     // MC shaper pulse fall time (ns)
-  geant TOFDBc::_strflu=0.;   // Stretcher "end-mark" time fluctuations (ns)
+  geant TOFDBc::_seresp=1.45;    // PMT Single elec.responce (MP=Mean,mV)
+  geant TOFDBc::_seresv=0.8;     // PMT Single elec.responce variance(relative to Mean)
+  geant TOFDBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
+  geant TOFDBc::_shaptb=1.;      // MC shaper internal time binning (ns)
+  geant TOFDBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
+  geant TOFDBc::_shctim=600.;    // MC shaper pulse cut-time(gate width)(ns)
+  geant TOFDBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!
+  geant TOFDBc::_strflu=2.;    // Stretcher "end-mark" time fluctuations (ns)
   geant TOFDBc::_tdcbin[4]={
     1.,                            // pipe/line TDC binning for fast-tdc meas.
     1.,                            // pipe/line TDC binning for slow-tdc meas.
-    2.,                            // pipe/line TDC binning for adc-anode meas.
-    2.                             // pipe/line TDC binning for adc-dinode meas.
+    1.,                            // pipe/line TDC binning for adc-anode meas.
+    1.                             // pipe/line TDC binning for adc-dinode meas.
   };
   geant TOFDBc::_daqpwd[15]={
-    30.,       // pulse width of "z>=1" trig. signal (ns)
-    30.,       // pulse width of "z>1" trig. signal
-    30.,       // pulse width of "z>2" trig. signal
-    10.,       // double pulse resolution of fast(history) TDC (ns)
-    2000.,     // min. double pulse resolution of slow TDC (ns)
-    500.,      // dead time of anode TovT measurements (ns)
-    500.,      // dead time of dinode TovT measurements (ns)
-    2.,        // discr. dead time of "z>=1" trig. (ns)
-    2.,        // discr. dead time of "z>1" trig. (ns)
-    2.,        // discr. dead time of "z>2" trig. (ns)
-    0.05,      // fast discr.(comparator) internal accuracy(ns) + (?) to have exp.resol
-    0.5,       // min. pulse duration (ns) of fast discr.(comparator)
-    20.,       // pulse width of FT-signal (ns) 
-    0.,        // spare 
-    0.         // spare 
+    50.,    // (0)pulse width of "z>=1(FT)" trig. signal (ns) (anode)
+    50.,    // (1)pulse width of "z>1" trig. signal
+    50.,    // (2)pulse width of "z>2" trig. signal (dinode)
+    10.,    // (3)double pulse resolution of fast(history) TDC (ns)
+    2000.,  // (4)min. double pulse resolution of slow TDC (ns)
+    500.,   // (5)dead time of anode TovT measurements (ns)
+    500.,   // (6)dead time of dinode TovT measurements (ns)
+    2.,     // (7)dead time for making of "z>=1(FT)" trig. signal (ns)
+    2.,     // (8)dead time for making of "z>1" trig. (ns)
+    2.,     // (9)dead time for making of "z>2" trig. signal (ns)
+    0.05,   // (10)fast discr.(comparator) internal accuracy(ns) + (?) to have exp.resol
+    2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) (for dinode also)
+    18.,    // (12)(as dummy gap in s-TDC pulse)
+    10.36,  // (13)thresh.(pC) in A-integrator(TovT conversion) 
+    10.36   // (14)thresh.(pC) in D-integrator(TovT conversion) 
   };
-  geant TOFDBc::_trigtb=0.5;  // MC time-bin in logic(trig) pulse handling (ns)
-  geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (default,mc-data)
-  geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data)
-  geant TOFDBc::_strjit1=0.;  // "start"-pulse jitter at stretcher input
-  geant TOFDBc::_strjit2=0.;  // "stop"(FT)-pulse jitter at stretcher input
+  geant TOFDBc::_trigtb=0.25;  // MC time-bin in logic(trig) pulse handling (ns)
+  geant TOFDBc::_di2anr=0.2;  // dinode->anode signal ratio (def,mc-data) not used now !
+  geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data) not used now !
+  geant TOFDBc::_strjit1=0.035;  // "start"-pulse jitter at stretcher input
+  geant TOFDBc::_strjit2=0.035;  // "stop"(FT)-pulse jitter at stretcher input
   geant TOFDBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
-  geant TOFDBc::_ftdelf=20.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
-  geant TOFDBc::_ftdelm=100.; // FT max delay (allowed by stretcher logic) (ns)
-  geant TOFDBc::_fstdcd=5.;   // Same hit(up-edge) relative delay in fast-slow TDC
+  geant TOFDBc::_ftdelf=65.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
+  geant TOFDBc::_ftdelm=200.; // FT max delay (allowed by stretcher logic) (ns)
+  geant TOFDBc::_fstdcd=28.;   // Same hit(up-edge) relative delay in fast-slow TDC
   geant TOFDBc::_fatdcd=5.;   // Same hit(up-edge) relative delay in fast-A(D) TDC
   integer TOFDBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0) 
-   
+//   
 //===================================================================
 // 
 // --------------> Class for general "time-variable"  parameters :

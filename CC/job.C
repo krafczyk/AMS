@@ -638,7 +638,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
   TOFRECFFKEY.reprtf[2]=0; //(5) print flag for histograms
   TOFRECFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
-  TOFRECFFKEY.reprtf[4]=0; //(7) (spare)
+  TOFRECFFKEY.reprtf[4]=3102; //(7) if non-zero (LBBS) print stretcher T1/T2 for LBBS
 //
   TOFRECFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
@@ -756,7 +756,7 @@ void AMSJob::_rectcdata(){
   CTCRECFFKEY.reprtf[1]=0;//(4) DAQ-print (1/2->print for decoding/decoding+encoding)
   CTCRECFFKEY.reprtf[2]=0;//(5) spare
   CTCRECFFKEY.ftwin=100.;//(6) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
-  CTCRECFFKEY.q2pe=0.073;  //(7)
+  CTCRECFFKEY.q2pe=0.234;  //(7)
   CTCRECFFKEY.ft2edg=1;  //(8) 0/1-> 1/2 edges readout for FT signal
 //
   CTCRECFFKEY.ReadConstFiles=0;//(9)read const. from DB/myFiles (0/1)

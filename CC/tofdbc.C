@@ -1319,7 +1319,7 @@ void TOFJobStat::printstat(){
 }
 //------------------------------------------
 void TOFJobStat::bookhist(){
-  int i,j,k,ich,il,ib,ii,jj;
+  int i,j,k,ich,il,ib,ii,jj,ic,is;
   char htit1[60];
   char inum[11];
   char in[2]="0";
@@ -1386,8 +1386,34 @@ void TOFJobStat::bookhist(){
       HBOOK1(1136,"ANODE-tmp-reference in Crate-7",50,0.,100.,0.);
       HBOOK1(1137,"ANODE-tmp-reference in Crate-8",50,0.,100.,0.);
     }
-//    HBOOK1(1138,"W1,L4-B3-S1",50,0.,200.,0.);
-//    HBOOK1(1139,"W3,L1-B12-S2",60,0.,6000.,0.);
+    if(TOFRECFFKEY.reprtf[4]>0){ // Str.pulse width for selected channel
+      ich=TOFRECFFKEY.reprtf[4];// LBBS
+      ic=ich/10;//LBB
+      il=ic/100;
+      ib=ic%100;
+      is=ich%10;
+      strcpy(htit1,"Stretcher pulse width-1 for LBBS=");
+      in[0]=inum[il];
+      strcat(htit1,in);
+      in[0]=inum[ib/10];
+      strcat(htit1,in);
+      in[0]=inum[ib%10];
+      strcat(htit1,in);
+      in[0]=inum[is];
+      strcat(htit1,in);
+      HBOOK1(1138,htit1,50,0.,200.,0.);
+      strcpy(htit1,"Stretcher pulse width-3 for LBBS=");
+      in[0]=inum[il];
+      strcat(htit1,in);
+      in[0]=inum[ib/10];
+      strcat(htit1,in);
+      in[0]=inum[ib%10];
+      strcat(htit1,in);
+      in[0]=inum[is];
+      strcat(htit1,in);
+      HBOOK1(1139,htit1,60,0.,6000.,0.);
+    }
+//
     HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
 //    HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
 //    HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
@@ -1426,8 +1452,8 @@ void TOFJobStat::bookhist(){
       HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
     }
     if(TOFRECFFKEY.relogic[0]==3){ // TZSL-calibration
-      HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
-      HBOOK1(1501,"Particle beta(tracker)",80,0.8,1.,0.);
+      HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,24.,0.);
+      HBOOK1(1501,"Particle beta(tracker)",80,0.6,1.,0.);
       HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
       HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
       HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
@@ -1598,8 +1624,10 @@ void TOFJobStat::outp(){
              HPRINT(1136);
              HPRINT(1137);
            }
-//       HPRINT(1138);
-//       HPRINT(1139);
+         if(TOFRECFFKEY.reprtf[4]>0){
+           HPRINT(1138);
+           HPRINT(1139);
+         }
            HPRINT(1532);
 //           HPRINT(1533);
 //           HPRINT(1543);

@@ -40,7 +40,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u pbitn;
   int16u pbanti;
   int16u pbup,pbdn,pbup1,pbdn1;
-  int16u id,idd,idN,stat[2];
+  int16u id,idd,idN,stat[2],idr;
   number tsr[3],ths[2],fstd,t1,t2,t3,t4,dt;
   geant mtma[2],mtmd[2];
   int bad(1);
@@ -52,6 +52,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   pbitn=SCPHBP;
   pbanti=pbitn-1;
   status=1;//bad
+  idr=TOFRECFFKEY.reprtf[4];// chan-id for histogramming of stretcher w1/w3
 //
 // =============> check/correct logical "up/down" sequence :
 //
@@ -153,10 +154,10 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         dt=t2-t3;
         if(dt<5. || dt>24.)continue;//wrong "hole" width(w2), take next "4"
         dt=t1-t2;
-//      if(ilay==3 && ibar==2 && isid==0)HF1(1138,geant(dt),1.);
+        if(idr==idd)HF1(1138,geant(dt),1.);
         if(dt<10. || dt>200.)continue;//wrong "1st_pulse" width(w1), ...
         dt=t2-t4;
-//      if(ilay==0 && ibar==11 && isid==1)HF1(1139,geant(dt),1.);
+        if(idr==idd)HF1(1139,geant(dt),1.);
         if(dt<2000. || dt>6000.)continue;//wrong "2nd_pulse" width(w3), ...
 //
         stdc2[nhit]=stdc1[i];
