@@ -1,12 +1,12 @@
 
-CFLAGS=-I/usr/local/include -Wall -g
+CFLAGS=-I/usr/local/include  -g
 
 #CLFLAGS = -g1
 LDFLAGS=-L/usr/local/lib
 
 LOADLIBES=-lm -lamstcp
 
-CC=gcc
+CC=cxx
 
 OBJS =	Coo.c
 

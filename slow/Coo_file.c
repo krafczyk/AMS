@@ -155,20 +155,20 @@ NEW_FILES: /* look for new files in the directory */
       fread(&block_size,sizeof(int),1,fp);
       for (i=0; i<20; i++) 
 	fread(&k, sizeof(int),1,fp);
-      fread(&buffer.CASmsg,1,(block_size-20*4),fp);
+      fread(buffer.CASmsg,1,(block_size-20*4),fp);
 
 
       if (record_n>=Record_in_file) {
 	fclose(ftemp);
 	ftemp=fopen(temp_file,"r");
-	fread(&Data,Record_nbytes,1,ftemp);
+	fread(Data,Record_nbytes,1,ftemp);
 	fclose(ftemp);
 	pData = &Data[0];
 	crc = _CalcCRC(pData);
 	time(&cur_time);
 	sprintf(current_f_name,"%s/ShuttlePar.1.%d",Coo_db_dir,Umin);
 	fout=fopen(current_f_name,"w");
-	fwrite(&Data,1,Record_nbytes,fout);
+	fwrite(Data,1,Record_nbytes,fout);
 	fwrite(&crc,sizeof(time_t),1,fout);
 	fwrite(&cur_time,sizeof(time_t),1,fout);
 	fwrite(&Umin,sizeof(time_t),1,fout);
@@ -199,7 +199,7 @@ NEW_FILES: /* look for new files in the directory */
       q[3]=CASvalue((3333),8);
 
 	times = CAStime(10);   
-	utime = (time_t) (times) + Year1997;
+	utime = (time_t) (times) + Year1998;
 
       if ((Radius(Coo_M1950)<=.1) || (Radius(Vel_M1950)<=.1))
 	goto BEG;
@@ -273,14 +273,14 @@ NEW_FILES: /* look for new files in the directory */
       }
       fclose(ftemp);
       ftemp=fopen(temp_file,"r");
-      fread(&Data,Record_nbytes,1,ftemp);
+      fread(Data,Record_nbytes,1,ftemp);
       fclose(ftemp);
       pData = &Data[0];
       crc = _CalcCRC(pData);
       time(&cur_time);
       sprintf(current_f_name,"%s/ShuttlePar.1.%d",Coo_db_dir,cur_time);
       fout=fopen(current_f_name,"w");
-      fwrite(&Data,1,Record_nbytes,fout);
+      fwrite(Data,1,Record_nbytes,fout);
       fwrite(&crc,sizeof(time_t),1,fout);
       fwrite(&cur_time,sizeof(time_t),1,fout);
       fwrite(&Umin,sizeof(time_t),1,fout);

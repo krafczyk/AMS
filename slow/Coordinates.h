@@ -9,7 +9,7 @@
 #include <time.h>
 
 #define Year1997 852076800
-#define Year1998 883612800
+#define Year1998 883612800-86400
 #define Degr_Pi  0.017453292 /* Degrees ---> radians */ 
 #define AE       149597875.1 /* astronomical unit, km */
 #define Pi       3.141592654

@@ -35,7 +35,7 @@ int new_files_coming() {
   }
   else {
     fgets(chb80,80,last_f);
-    if (&chb80 == NULL) {
+    if (chb80 == NULL) {
       printf("ERROR:Coo_file: file %s corrupted. Stop\n",last_name);
       exit(0);
     }
