@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.25 2003/08/18 11:55:53 mdelgado Exp $
+//  $Id: richrec.h,v 1.26 2003/09/25 10:59:14 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -358,6 +358,7 @@ class RichRadiatorTile{
     y/=RICHDB::rad_length;
     x+=_number_of_rad_tiles/2.;
     y+=_number_of_rad_tiles/2.;
+    if(x<0 || y<0 || x>=_number_of_rad_tiles || y>=_number_of_rad_tiles) return -1;
     return int(x)*_number_of_rad_tiles+int(y);
   };
   static inline integer get_tile_kind(integer tile){
