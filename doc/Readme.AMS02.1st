@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.36 2002/09/20 12:42:28 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.37 2002/09/20 12:59:31 choutko Exp $          
 
 
 0. In the current version only AMS02-setup is supported.
@@ -98,20 +98,27 @@ VII.  Standalone version
 
          Case i:  You have an afs installed
            get an afs cern account   group va
-           
-
            klog{.krb} -pr username -cell cern.ch (see man klog for the details,           you may need type pagsh{.krb} before in some cases)
            setenv Offline /afs/cern.ch/exp/ams/Offline
            source $Offline/vdev/install/amsvar
+
            
+           
+or (preferably)
+
+           get an afs ams.cern account   (ask a.klimentov@cern.ch)
+           klog{.krb} -pr username -cell ams.cern.ch (see man klog for the details,           you may need type pagsh{.krb} before in some cases)
+           setenv Offline /afs/ams.cern.ch/Offline
+           source $Offline/vdev/install/amsvar
+            
  
          
 
          Case ii: You don't have afs installed
-          copy (using tar+gzip+ftp/scp) ams.cern.ch:/offline/vdev 
+          copy (using tar+gzip+ftp/scp) ams.cern.ch:/afs/ams.cern.ch/Offline/vdev 
           to somewhere on your computer.
           login in ams.cern.ch          
-          setenv Offline /offline
+          setenv Offline /afs/ams.cern.ch/Offline
           source $Offline/vdev/install/amsvar
           cd $AMSDataDir
           tar -cvf ~/ams.tar v4.00/*.dat 
