@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.89 2003/04/08 12:50:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.90 2003/04/08 13:29:33 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1873,6 +1873,17 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");  
             htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
            htmlTableEnd();
+            if ($self->{CCT} eq "remote") {
+             print "<tr><td>\n";
+             print "<b><font color=\"green\">MC Production Mode</font></b><BR>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Standalone </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> Client </b><BR>\n";
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+         }
             print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -1889,22 +1900,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
 #            }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
-            if ($self->{CCT} eq "remote") {
-             print "<tr><td>\n";
-             print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
-             print "<font color=\"green\" size=2>
-                  <i>(<b> STANDALONE</b>  mode if <b> Yes </b>, <BR>\n";
-             print "  communicate via <b> SERVER </b> if <b> NO</b>)
-                      </i></font></b>\n";
-             print "</td><td>\n";
-             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-             print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> No </b><BR>\n";
-#             print "<input type=\"checkbox\" name=\"STALONE\" value=\"No\"><b> Yes </b>";
-             print "</b></font></td></tr>\n";
-           htmlTableEnd();
-          }
+
           htmlTableEnd();
              if ($self->{CCT} ne "remote") {
                my $ntdir="Not Defined";
@@ -2000,20 +1996,6 @@ DDTAB:         $self->htmlTemplateTable(" ");
               print "<INPUT TYPE=\"radio\" NAME=\"RNO\" VALUE=\"101\" ><b> Objects </b><BR>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
-            print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
-            print "</td><td>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            print "<tr><td><font size=\"-1\"<b>\n";
-# Apr 1.2003 set default transfer to 'No' for both mode - remote/local
-#            if ($self->{CCT} eq "remote") {
-#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
-#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
-#            } else {
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
-#            }
-            print "</b></font></td></tr>\n";
-           htmlTableEnd();
             if ($self->{CCT} eq "remote") {
              print "<tr><td>\n";
              print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
@@ -2030,7 +2012,21 @@ DDTAB:         $self->htmlTemplateTable(" ");
 #             print "<input type=\"checkbox\" name=\"STALONE\" value=\"No\"><b> Yes </b>";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
-          }
+         }
+            print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+# Apr 1.2003 set default transfer to 'No' for both mode - remote/local
+#            if ($self->{CCT} eq "remote") {
+#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
+#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+#            } else {
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+#            }
+            print "</b></font></td></tr>\n";
+           htmlTableEnd();
             print "<tr><td><b><font color=\"red\">Spectrum and Focusing</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -2185,39 +2181,29 @@ DDTAB:         $self->htmlTemplateTable(" ");
               htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");  
               htmlTextField("Total  Real Time Required","number",3,10,"QTimeOut"," (days)");  
             htmlTableEnd();
+            if ($self->{CCT} eq "remote") {
+             print "<tr><td>\n";
+             print "<b><font color=\"green\">MC Production Mode</font></b><BR>\n";
+
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Standalone </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> Client </b><BR>\n";
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+         }
 # DST transfer
-             print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
+             print "<tr><td><b><font color=\"green\">DST Transfer Mode </font></b>\n";
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
 # Apr 1.2003 set default transfer to 'No' for both mode - remote/local
-#            if ($self->{CCT} eq "remote") {
-#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
-#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
-#            } else {
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Automatic </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> Manual </b><BR>\n";
 #            }
              print "</b></font></td></tr>\n";
             htmlTableEnd();
-            if ($self->{CCT} eq "remote") {
-             print "<tr><td>\n";
-             print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
-
-             print "<font color=\"green\" size=2>
-                  <i>(<b> STANDALONE</b>  mode if <b> Yes </b>, <BR>\n";
-             print "  communicate via <b> SERVER </b> if <b> NO</b>)
-                      </i></font></b>\n";
-
-             print "</td><td>\n";
-             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-             print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> No </b><BR>\n";
-#             print "<input type=\"checkbox\" name=\"STALONE\" value=\"No\"><b> Yes </b>";
-             print "</b></font></td></tr>\n";
-           htmlTableEnd();
-          }
            htmlTableEnd();
              if ($self->{CCT} ne "remote") {
                my $ntdir="Not Defined";
@@ -2253,7 +2239,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n"; 
            print "<br>\n";
-           print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit\"></br><br>        ";
+           print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit Request\"></br><br>        ";
            htmlReturnToMain();
            htmlBottom();
              }
