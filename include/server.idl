@@ -40,6 +40,14 @@ module DPS{
       
     void sendId(in CID id, in long Propagate, in long Error);      
    
+   enum HostStatus{NoResponse,LastClientFailed,OK};
+   struct ActiveHost{
+      string HostName;
+      HostStatus Status;
+      long ClientsProcessed;
+      long ClientsFailed;
+      time LastUpdate;
+   };
 
   };
  
@@ -155,15 +163,6 @@ module DPS{
     long    Clock;      
    };
    
-   enum HostStatus{Unknown,NoResponse,LastClientFailed,OK};
-   struct ActiveHost{
-      string HostName;
-      HostStatus Status;
-      long ClientsProcessed;
-      long ClientsFailed;
-      string UpTime;
-      time LastUpdate;
-   };
     typedef sequence<ActiveHost> AHS;
     void getAHL(out AHS ahl);
     void sendAHL(in AHS ahl, in long Propagate,in long Error);

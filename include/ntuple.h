@@ -13,6 +13,8 @@ protected:
   EventNtuple02 _event02;
   BetaNtuple _beta;
   ChargeNtuple _charge;
+  BetaNtuple02 _beta02;
+  ChargeNtuple02 _charge02;
   ParticleNtuple _part;
   ParticleNtuple02 _part02;
   TOFClusterNtuple _tof;
@@ -62,6 +64,8 @@ public:
   EventNtuple02* Get_event02() {return &_event02;}
   BetaNtuple* Get_beta() { return &_beta;}
   ChargeNtuple* Get_charge() { return &_charge;}
+  BetaNtuple02* Get_beta02() { return &_beta02;}
+  ChargeNtuple02* Get_charge02() { return &_charge02;}
   ParticleNtuple* Get_part() {return &_part;}
   ParticleNtuple02* Get_part02() {return &_part02;}
   TOFClusterNtuple* Get_tof() {return &_tof;}

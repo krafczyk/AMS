@@ -543,7 +543,7 @@ $(BIN)producer.o: 	 $(SCC)producer.C
 	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)server.o: 	 $(SCC)server.C
-	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
+	$(CC)  -c $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
 
 
 

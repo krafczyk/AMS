@@ -11,9 +11,12 @@
 #include <ecaldbc.h>
 class AMSNtuple;
 namespace root{
-const int MAXBETA    =   100;
-const int MAXCHARGE  =   100;
-const int MAXPART    =   50;
+const int MAXBETA    =   150;
+const int MAXBETA02    = 100;
+const int MAXCHARGE  =   150;
+const int MAXCHARGE02  = 100;
+const int MAXPART    =   100;
+const int MAXPART02    =  50;
 const int MAXTOF     =    20;
 const int MAXTOFRAW  =    20;
 const int MAXTOFMC   =   200;
@@ -161,6 +164,59 @@ ClassDef(BetaNtuple,1)       //BetaNtuple
 };
 
 #ifdef __WRITEROOT__
+class BetaNtuple02 : public TObject {
+#else
+class BetaNtuple02 {
+#endif
+public:
+  int Nbeta;
+  int Status[MAXBETA02];
+  int Pattern[MAXBETA02];
+  float Beta[MAXBETA02];
+  float BetaC[MAXBETA02];
+  float Error[MAXBETA02];
+  float ErrorC[MAXBETA02];
+  float Chi2[MAXBETA02];
+  float Chi2S[MAXBETA02];
+  int NTOF[MAXBETA02];
+  int pTOF[MAXBETA02][4];
+  int pTr[MAXBETA02];
+
+friend class AMSBeta;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(BetaNtuple02,1)       //BetaNtuple
+#endif
+};
+
+#ifdef __WRITEROOT__
+class ChargeNtuple02 : public TObject {
+#else
+class ChargeNtuple02 {
+#endif
+public:
+  int Ncharge;
+  int Status[MAXCHARGE02];
+  int BetaP[MAXCHARGE02];
+  int ChargeTOF[MAXCHARGE02];
+  int ChargeTracker[MAXCHARGE02];
+  float ProbTOF[MAXCHARGE02][4];
+  int ChInTOF[MAXCHARGE02][4];
+  float ProbTracker[MAXCHARGE02][4];
+  int ChInTracker[MAXCHARGE02][4];
+  float ProbAllTracker[MAXCHARGE02];
+  float TrunTOF[MAXCHARGE02];
+  float TrunTOFD[MAXCHARGE02];
+  float TrunTracker[MAXCHARGE02];
+
+friend class AMSCharge;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(ChargeNtuple02,1)       //ChargeNtuple
+#endif
+};
+
+#ifdef __WRITEROOT__
 class ChargeNtuple : public TObject {
 #else
 class ChargeNtuple {
@@ -238,28 +294,28 @@ class ParticleNtuple02 {
 #endif
 public:
   int Npart;
-  int   BetaP[MAXPART];
-  int   ChargeP[MAXPART];
-  int   TrackP[MAXPART];
-  int   Particle[MAXPART];
-  int   ParticleVice[MAXPART];
-  float Prob[MAXPART][2];
-  float FitMom[MAXPART];
-  float Mass[MAXPART];
-  float ErrMass[MAXPART];
-  float Momentum[MAXPART];
-  float ErrMomentum[MAXPART];
-  float Charge[MAXPART];
-  float Theta[MAXPART];
-  float Phi[MAXPART];
-  float ThetaGl[MAXPART];
-  float PhiGl[MAXPART];
-  float Coo[MAXPART][3];
-  float Cutoff[MAXPART];
-  float TOFCoo[MAXPART][4][3];
-  float AntiCoo[MAXPART][2][3];
-  float EcalCoo[MAXPART][2*ECSLMX][3];
-  float TrCoo[MAXPART][trconst::maxlay][3];
+  int   BetaP[MAXPART02];
+  int   ChargeP[MAXPART02];
+  int   TrackP[MAXPART02];
+  int   Particle[MAXPART02];
+  int   ParticleVice[MAXPART02];
+  float Prob[MAXPART02][2];
+  float FitMom[MAXPART02];
+  float Mass[MAXPART02];
+  float ErrMass[MAXPART02];
+  float Momentum[MAXPART02];
+  float ErrMomentum[MAXPART02];
+  float Charge[MAXPART02];
+  float Theta[MAXPART02];
+  float Phi[MAXPART02];
+  float ThetaGl[MAXPART02];
+  float PhiGl[MAXPART02];
+  float Coo[MAXPART02][3];
+  float Cutoff[MAXPART02];
+  float TOFCoo[MAXPART02][4][3];
+  float AntiCoo[MAXPART02][2][3];
+  float EcalCoo[MAXPART02][2*ECSLMX][3];
+  float TrCoo[MAXPART02][trconst::maxlay][3];
 friend class AMSParticle;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__

@@ -417,7 +417,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
 }
 else{
   ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
-  if (PN->Npart>=MAXPART) return;
+  if (PN->Npart>=MAXPART02) return;
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && _ptrack->checkstatus(AMSDBc::NOTRACK))return;
 // Fill the ntuple 
   PN->ChargeP[PN->Npart]=_pcharge->getpos();

@@ -104,6 +104,8 @@ if(NC){
  fbin.open(NC);
  if(fbin){
    _ncl= new DPS::Client::NominalClient();
+   if(fbin.get()=='#')fbin.ignore(1024,'\n');
+   else fbin.seekg(fbin.tellg()-sizeof(char));
    fbin>>_ncl->MaxClients>>_ncl->CPUNeeded>>_ncl->MemoryNeeded;
    char tmpbuf[1024];
    fbin>>tmpbuf;
@@ -124,6 +126,8 @@ if(RF){
  fbin.open(RF);
  if(fbin){
    int cur=0;
+   if(fbin.get()=='#')fbin.ignore(1024,'\n');
+   else fbin.seekg(fbin.tellg()-sizeof(char));
   while(!fbin.eof() && fbin.good()){ 
    DPS::Producer::RunEvInfo_var  re = new DPS::Producer::RunEvInfo();
     char tmpbuf[1024];
@@ -156,6 +160,8 @@ if(NS){
  fbin.open(NS);
  if(fbin){
    DPS::Client::NominalClient_var _ncl= new DPS::Client::NominalClient();
+   if(fbin.get()=='#')fbin.ignore(1024,'\n');
+   else fbin.seekg(fbin.tellg()-sizeof(char));
    fbin>>_ncl->MaxClients>>_ncl->CPUNeeded>>_ncl->MemoryNeeded;
    char tmpbuf[1024];
    fbin>>tmpbuf;
@@ -174,6 +180,8 @@ if(NH){
  ifstream fbin;
  fbin.open(NH);
  if(fbin){
+   if(fbin.get()=='#')fbin.ignore(1024,'\n');
+   else fbin.seekg(fbin.tellg()-sizeof(char));
   while(!fbin.eof() && fbin.good()){ 
    DPS::Server::NominalHost_var nh= new DPS::Server::NominalHost();
    char tmpbuf[1024];
@@ -195,6 +203,27 @@ if(NH){
 
 void Producer_impl::_init(){
 // here connect to servers
+ Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+ if(_pser){
+  typedef list<DPS::Server::NominalHost_var>::const_iterator NHLI;
+  typedef list<DPS::Server::NominalHost_var> NHL;
+  for(NHLI i=(_pser->getNHL()).begin();i!=(_pser->getNHL()).end();++i){
+   DPS::Client::ActiveHost_var ah= new DPS::Client::ActiveHost();
+   ah->HostName=CORBA::string_dup((*i)->HostName);
+   if(_pser->pingHost((const char*)(ah->HostName)))ah->Status=DPS::Client::OK; 
+   else ah->Status=DPS::Client::NoResponse; 
+   ah->ClientsProcessed=0;
+   ah->ClientsFailed=0;
+   time_t tt;
+   time(&tt);
+   ah->LastUpdate=tt;
+   _ahl.push_back(ah);
+  }
+ }
+ else{
+  cerr<<"Producer_impl::_init-F-UnableToConnectToServer"<<endl;
+  abort();
+ }
 }
 
 
@@ -268,6 +297,15 @@ DPS::Producer::RunEvInfo *  Producer_impl::getRunEvInfo(int p,int e) throw (CORB
   void Server_impl::ping()throw (CORBA::SystemException){
 }
 
+  bool Server_impl::pingHost(const char * host){
+   char tmpbuf[1024];
+   strcpy(tmpbuf,"ping -c 1 ");
+   strcat(tmpbuf,host);
+   return system(tmpbuf)==0;
+
+
+}
+
 
 void AMSServer::SystemCheck(){
 // Here run Start,Stop,Kill,Check Clients
@@ -288,6 +326,10 @@ void AMSServer::UpdateDB(){
 
 void Producer_impl::StartClients(){
 
+if(_acl.size()<_ncl->MaxClients && _acl.size()<_rq.size()){
+ // Check if there are some hosts to run on
+ 
+}
 
 }
 

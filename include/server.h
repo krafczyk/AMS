@@ -36,8 +36,12 @@ typedef  priority_queue<DPS::Producer::RunEvInfo_var,vector<DPS::Producer::RunEv
 DPS::Producer_mgr _ref;
 RunQueue _rq;
 typedef list<DPS::Client::ActiveClient_var> ACL;
+typedef list<DPS::Client::ActiveClient_var>::iterator ACLI;
 ACL  _acl;
 DPS::Client::NominalClient_var  _ncl;
+typedef list<DPS::Client::ActiveHost_var> AHL;
+typedef list<DPS::Client::ActiveHost_var>::iterator AHLI;
+AHL  _ahl;
 public:
  AMSServerI * getServer(){return up();}
  virtual void StartClients();
@@ -61,14 +65,14 @@ public:
 class Server_impl : public virtual POA_DPS::Server, public AMSServerI{
 protected:
 typedef list<DPS::Client::ActiveClient_var> ACL;
+typedef list<DPS::Client::ActiveClient_var>::iterator ACLI;
 ACL  _acl;
 DPS::Client::NominalClient_var _ncl;
-typedef list<DPS::Server::ActiveHost_var> AHL;
-AHL  _ahl;
 typedef list<DPS::Server::NominalHost_var> NHL;
 NHL  _nhl;
 DPS::Server_mgr _ref;
 public:
+ NHL & getNHL(){return _nhl;}
  AMSServerI * getServer(){return this;}
  virtual void StartClients();
  virtual void CheckClients(); 
@@ -85,6 +89,7 @@ public:
   void ping()throw (CORBA::SystemException);
   Server_impl(PortableServer::POA_ptr poa, char * NS=0, char* NH=0);
   ~Server_impl(){if(_down)_down->remove();}
+  bool pingHost(const char * host);
 };
 
 

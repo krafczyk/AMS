@@ -533,6 +533,9 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
 
 
 void AMSBeta::_writeEl(){
+
+if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+
   BetaNtuple* BN = AMSJob::gethead()->getntuple()->Get_beta();
 
   if (BN->Nbeta>=MAXBETA) return;
@@ -586,6 +589,67 @@ void AMSBeta::_writeEl(){
   }
 
   BN->Nbeta++;
+
+}
+else{
+
+  BetaNtuple02* BN = AMSJob::gethead()->getntuple()->Get_beta02();
+
+  if (BN->Nbeta>=MAXBETA02) return;
+
+// fill the ntuple 
+  BN->Status[BN->Nbeta]=_status;
+  BN->Pattern[BN->Nbeta]=_Pattern;  
+  BN->Beta[BN->Nbeta]=_Beta;
+  BN->BetaC[BN->Nbeta]=_BetaC;
+  BN->Error[BN->Nbeta]=_InvErrBeta;
+  BN->ErrorC[BN->Nbeta]=_InvErrBetaC;
+  BN->Chi2[BN->Nbeta]=_Chi2;
+  BN->Chi2S[BN->Nbeta]=_Chi2Space;
+  if(_Pattern ==0)BN->NTOF[BN->Nbeta]=4;
+  else if(_Pattern < 5)BN->NTOF[BN->Nbeta]=3;
+  else BN->NTOF[BN->Nbeta]=2;
+  int k;
+  for(k=BN->NTOF[BN->Nbeta];k<4;k++)BN->pTOF[BN->Nbeta][k]=0;
+  for(k=0;k<BN->NTOF[BN->Nbeta];k++){
+    BN->pTOF[BN->Nbeta][k]=_pcluster[k]->getpos();
+    int i,pat;
+    pat=_pcluster[k]->getntof()-1;
+    if(AMSTOFCluster::Out(IOPA.WriteAll%10==1)){
+      // Writeall
+      for(i=0;i<pat;i++){
+        AMSContainer *pc=AMSEvent::gethead()->getC("AMSTOFCluster",i);
+         #ifdef __AMSDEBUG__
+          assert(pc != NULL);
+         #endif
+         BN->pTOF[BN->Nbeta][k]+=pc->getnelem();
+      }
+    }                                                        
+    else {
+    //WriteUsedOnly
+      for(i=0;i<pat;i++){
+        AMSTOFCluster *ptr=(AMSTOFCluster*)AMSEvent::gethead()->getheadC("AMSTOFCluster",i);
+          while(ptr && ptr->checkstatus(AMSDBc::USED)){
+            BN->pTOF[BN->Nbeta][k]++;
+            ptr=ptr->next();
+          }
+      }
+    }
+
+
+
+    pat=_ptrack->getpattern();
+    if(_ptrack->checkstatus(AMSDBc::NOTRACK))BN->pTr[BN->Nbeta]=-1;
+    else BN->pTr[BN->Nbeta]=_ptrack->getpos();
+
+
+  }
+
+  BN->Nbeta++;
+
+
+}
+
 }
 
 void AMSBeta::_copyEl(){
