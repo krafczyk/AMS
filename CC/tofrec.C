@@ -935,6 +935,31 @@ void AMSTOFRawCluster::build(int &status){
 }
 //-----------------------------------------------------------------------
 void AMSTOFRawCluster::_writeEl(){
+
+  // fill the ntuple
+  if(AMSTOFRawCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+static TOFRawClusterNtuple TN;
+static integer init=0;
+if(init++==0){
+  //book the ntuple block
+  HBNAME(IOPA.ntuple,"TOFRawCl",TN.getaddress(),
+  "TOFRawCluster:I*4,TOFRStatus:I*4,tofrNtof:I*4,tofrPlane:I*4, tofrtovta(2):R*4, TOfrtovtd(2):R*4,tofrsdtm(2):R*4");
+
+}
+TN.Event()=AMSEvent::gethead()->getid();
+  TN.Status=_status;
+  TN.Ntof=_ntof;
+  TN.Plane=_plane;
+  for(int i=0;i<2;i++){
+    TN.tovta[i]=_tovta[i];
+    TN.tovtd[i]=_tovta[i];
+    TN.sdtm[i]=_sdtm[i];
+  }
+  HFNTB(IOPA.ntuple,"TOFRawCl");
+  }
+
+
+
 }
 //------
 

@@ -187,6 +187,19 @@ friend class AMSTOFCluster;
 
 };
 
+class TOFRawClusterNtuple: public AMSNtuple{
+private:
+int Status;
+int Ntof;
+int Plane;
+float tovta[2];
+float tovtd[2];
+float sdtm[2];
+
+friend class AMSTOFRawCluster;
+
+};
+
 class AntiClusterNtuple: public AMSNtuple{
 private:
 int Status;

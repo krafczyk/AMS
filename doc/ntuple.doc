@@ -226,7 +226,10 @@ Below there is a description of a converted ntuple.
  * I*4  * [0,1]       * LVL1     * nlvl1                 // lvl1trigger number
  * I*4  *             * LVL1     * LVL1Mode(nlvl1)       // mode
  * I*4  *             * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
+                                                         // low  16 bit  or
+                                                         // high 16 bit and
  * I*4  *             * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>1
+                                                         // -------------
 
  * I*4  *             * LVL1     * LVL1AntiPatt          // antipattern
 
@@ -244,6 +247,26 @@ Below there is a description of a converted ntuple.
  * I*4  * [0,500]     * TRRAWCL  * ntrraw                // trrawcl num
  * I*4  *             * TRRAWCL  * rawaddress(ntrraw)    // see TRCLUSTE Idsoft
  * I*4  *             * TRRAWCL  * rawlength(ntrraw)    //  rawcl length
+
+
+
+
+ * I*4  * [0,32]      * ANTIRAWC * nantiraw                  // antirawcl num
+ * I*4  *             * ANTIRAWC * antirawstatus(nantiraw)   // status
+ * I*4  *             * ANTIRAWC * antirawsector(nantiraw)   //sector 1-16
+ * I*4  *             * ANTIRAWC * antirawupdown(nantiraw)   //0 - up 1 -down
+ * R*4  *             * ANTIRAWC * antirawsignal(nantiraw)   // (mev)
+
+ * I*4  * [0,20]      * TOFRAWCL * ntofraw                   // tofrawclnum
+ * I*4  *             * TOFRAWCL * tofrstatus(ntofraw)       // status
+ * I*4  *             * TOFRAWCL * tofrplane(ntofraw)        // tof plane1-4
+ * I*4  *             * TOFRAWCL * tofrbar(ntofraw)          // tof bar 1-14
+ * R*4  *             * TOFRAWCL * tofrtovta(2,ntofraw)      // anode time 
+                                                             //over_thresh (ns)
+ * R*4  *             * TOFRAWCL * tofrtovtd(2,ntofraw)      // dinode time
+                                                             //over_thresh (ns)
+ * R*4  *             * TOFRAWCL * tofrsdtm(2,ntofraw)       // A-noncorrected
+                                                             //  side times
 
 
 

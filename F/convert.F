@@ -39,7 +39,8 @@
      + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCcharge,CTCbeta
      + ,Amplitude,CTCedep,PolePhi,ThetaS,PhiS,
      + AntiEdep,Anticoo,AntiErCoo,AntiMCXcoo,AntiMCtof,AntiMCedep,
-     +  LVL3Residual,LVL3Time,LVL3ELoss,CTCHitSignal
+     +  LVL3Residual,LVL3Time,LVL3ELoss,CTCHitSignal,
+     +  tofrtovta,tofrtovtd,tofrsdtm
      
       INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
      + ,betantof,betaptof
@@ -57,7 +58,8 @@
      +  AntiMCEvent,AntiMCIdsoft,AntiCluster, AntiSector, AntiStatus,
      +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow,
      +  Rawaddress,rawlength,trrawcluster,betaptr,
-     +  Antirawcluster,antirawstatus,antirawupdown,antirawsector
+     +  Antirawcluster,antirawstatus,antirawupdown,antirawsector,
+     +  tofrawcluster,tofrbar,tofrplane,tofrstatus
       
 *
 *
@@ -70,6 +72,7 @@
       parameter (maxch=10)
       parameter (maxpa=10)
       parameter(maxtof=20)
+      parameter(maxtofraw=20)
       parameter(maxtofmc=200)
       parameter(maxanti=16)
       parameter(maxantiraw=32)
@@ -117,6 +120,12 @@
      + TOFEdep(maxtof),
      + TOFTime(maxtof),TOFETime(maxtof),TOFCoo(3,maxtof),
      + TOFErCoo(3,maxtof)
+
+      common /TOFRawClusterC/ntofraw,
+     + TOFRStatus(maxtofraw),tofrplane(maxtofraw),
+     + tofrbar(maxtofraw),
+     + tofrtovta(2,maxtofraw),tofrtovtd(2,maxtofraw),
+     + tofrsdtm(2,maxtofraw)
 
       common /TOFMCClusterC/ntofmc,
      + TOFMCIdsoft(maxtofmc),
@@ -204,7 +213,7 @@
 
 
       character *64 cdet
-      parameter (ndet=20)
+      parameter (ndet=21)
       character *64 cblock(ndet)
       integer events(ndet),eof(ndet)
       common /quest/iquest(100)
@@ -240,6 +249,7 @@ c       write(*,*)' Starting converting'
        cblock(18)='CTCHIT'
        cblock(19)='TRRAWCL'
        cblock(20)='ANTIRAWC'
+       cblock(21)='TOFRAWCL'
 
        do idet=1,ndet
         open(40+idet,file=cblock(idet),status='old',
@@ -373,6 +383,15 @@ c       write(*,*)' Starting converting'
      + 'nantiraw[0,32],antirawstatus(nantiraw):I,'//
      + 'antirawsector(nantiraw):I,antirawupdown(nantiraw):I,'//
      + 'antirawsignal(nantiraw)')
+
+      call hbname(1,cblock(21),ntofraw,
+     + 'ntofraw[0,20],tofrstatus(ntofraw):I,'//
+     + 'tofrplane(ntofraw):I,tofrbar(ntofraw):I,'//
+     + 'tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),'//
+     + 'tofrsdtm(2,ntofraw)')
+
+
+
         runold=-1
         do i=1,ndet
           events(idet)=0
@@ -996,6 +1015,42 @@ c            write(*,*)' ntrrh eq 0 ', events
         
 
 
+
+        idet=21
+        lun=40+idet
+        ntofraw=1
+        do while(truth)
+           iostat=1
+           if(eof(idet).eq.0)read(lun,end=215)
+     +     ne,tofrstatus(ntofraw),tofrplane(ntofraw),tofrbar(ntofraw),
+     +     (tofrtovta(k,ntofraw),k=1,2),
+     +     (tofrtovtd(k,ntofraw),k=1,2),
+     +     (tofrsdtm(k,ntofraw),k=1,2)
+
+
+           goto 216
+ 215       eof(idet)=1
+ 216       continue
+          if(eof(idet).ne.0)then
+             events(idet)=0
+           else
+            if(events(idet).gt.ne)newrun=.true.
+            events(idet)=ne
+           endif              
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
+          if(eof(idet).eq.0)backspace lun
+           ntofraw=ntofraw-1
+           newrun=.false.
+          goto 200
+          else if (events(idet).lt.events(1))then
+              ntofraw=ntofraw-1
+         endif
+           ntofraw=min(ntofraw+1,maxtofraw)
+        enddo   
+ 200    continue
+        
+
+
 c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        call hfnt(1)
        enddo 
@@ -1056,7 +1111,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      + ,FChi2MS,GChi2MS,RidgidityMS,GRidgidityMS,Coo(3),Dir(3),Momentum
      + ,Mass,Charge,CTCCoo(3),CTCErCoo(3),CTCRawSignal,CTCSignal
      + ,CTCESignal,CTCMCXcoo(3),CTCMCXdir(3),CTCstep,CTCedep,CTCbeta,
-     +  lvl3residual,lvl3time,lvl3eloss,ctchitsignal
+     +  lvl3residual,lvl3time,lvl3eloss,ctchitsignal,
+     +  tofrtovta(2),tofrtovtd(2),tofrsdtm(2)
 
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
      + ,betantof,betaptof(4)
@@ -1074,7 +1130,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +  CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters,
      +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow,ctchit,
      +  rawhit,Rawaddress,rawstrip,rawlength,betaptr,trrawclusters,
-     +  Antirawcluster,antirawstatus,antirawupdown,antirawsector
+     +  Antirawcluster,antirawstatus,antirawupdown,antirawsector,
+     +  tofrawcluster,tofrbar,tofrplane,tofrstatus
 
 *
 *
@@ -1226,9 +1283,23 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      + antirawupdown,Antirawsignal
 
 
+*
+*    idet=21
+*
+
+
+
+
+      common /TOFRawClusterC/ntofraw,
+     + TOFRStatus,tofrplane,
+     + tofrbar,
+     + tofrtovta,tofrtovtd,
+     + tofrsdtm
+
+
 
       character *64 cdet
-      parameter (ndet=20)
+      parameter (ndet=21)
       character *64 cblock(ndet)
       integer events(10000),nevent
 *
@@ -1263,6 +1334,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        cblock(18)='CTCHIT'
        cblock(19)='TRRAWCL'
        cblock(20)='ANTIRAWC'
+       cblock(21)='TOFRAWCL'
        do idet=1,ndet
         open(21,file=cblock(idet),status='unknown',
      +  form='unformatted',position='append')
@@ -1309,6 +1381,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +  call hbname(1,cblock(idet),rawhit,'$SET') 
         if(cblock(idet).eq.'ANTIRAWC')
      +  call hbname(1,cblock(idet),nantiraw,'$SET') 
+        if(cblock(idet).eq.'TOFRAWCL')
+     +  call hbname(1,cblock(idet),ntofraw,'$SET') 
         do i=1,nmax
          if(i.eq.1)write(*,*)cblock(idet)(1:8),' Started'
          call hgntb(1,cblock(idet),i,ierr)
@@ -1402,6 +1476,12 @@ c         if(mod(i,10).eq.1)write(*,*)i
      + AntirawStatus,Antirawsector,
      + antirawupdown,Antirawsignal
 
+           else if( cblock(idet).eq.'TOFRAWCL')then          
+           write(21)ntofraw,
+     + TOFRStatus,tofrplane,
+     + tofrbar,
+     + tofrtovta,tofrtovtd,
+     + tofrsdtm
 
            else
             write(*,*)' Invalid cblock ',idet,' ',cblock(idet)

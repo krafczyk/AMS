@@ -44,18 +44,18 @@ Word03   bit 0-13     Layer4 P13-0  Left    Z=1
 Word04   bit 0-13     Layer3 P13-0  Left    Z=1
 Word05   bit 0-13     Layer2 P13-0  Left    Z=1
 Word06   bit 0-13     Layer1 P13-0  Left    Z=1
-Word07   bit 0-13     Layer4 P13-0  Right   Z=1
-Word08   bit 0-13     Layer3 P13-0  Right   Z=1
-Word09   bit 0-13     Layer2 P13-0  Right   Z=1
-Word10   bit 0-13     Layer1 P13-0  Right   Z=1
+Word07   bit 0-13     Layer4 N13-0  Right   Z=1
+Word08   bit 0-13     Layer3 N13-0  Right   Z=1
+Word09   bit 0-13     Layer2 N13-0  Right   Z=1
+Word10   bit 0-13     Layer1 N13-0  Right   Z=1
 Word11   bit 0-13     Layer4 P13-0  Left    Z>1
 Word12   bit 0-13     Layer3 P13-0  Left    Z>1
 Word13   bit 0-13     Layer2 P13-0  Left    Z>1
 Word14   bit 0-13     Layer1 P13-0  Left    Z>1
-Word15   bit 0-13     Layer4 P13-0  Right   Z>1
-Word16   bit 0-13     Layer3 P13-0  Right   Z>1
-Word17   bit 0-13     Layer2 P13-0  Right   Z>1
-Word18   bit 0-13     Layer1 P13-0  Right   Z>1
+Word15   bit 0-13     Layer4 N13-0  Right   Z>1
+Word16   bit 0-13     Layer3 N13-0  Right   Z>1
+Word17   bit 0-13     Layer2 N13-0  Right   Z>1
+Word18   bit 0-13     Layer1 N13-0  Right   Z>1
 
 
 b.Trig3 Event Format 
