@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.41 2002/03/26 21:21:58 choutko Exp $
+//  $Id: server.h,v 1.42 2002/06/12 15:20:32 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -68,6 +68,7 @@ typedef map<AString,CORBA::String_var>::iterator MSI;
 virtual void _PurgeQueue()=0;
 
   void _UpdateACT(const DPS::Client::CID & cid, DPS::Client::ClientStatus status);
+  void _UpdateHosts();
  public:
 // class Eqs :public unary_function<DPS::Client::ActiveClient,bool>{
  class Eqs{

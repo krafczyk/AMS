@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.85 2002/06/03 13:29:33 choutko Exp $
+//  $Id: server.C,v 1.86 2002/06/12 15:20:21 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -454,7 +454,7 @@ void AMSServerI::_UpdateACT(const DPS::Client::CID & cid, DPS::Client::ClientSta
 }
 
 void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc,DPS::Client::AccessType type, uinteger uid){
-         cout <<" entering Producer_impl::propagateac"<<endl;
+//         cout <<" entering Producer_impl::propagateac"<<endl;
 
   PropagateACDB(ac,rc);
 
@@ -496,7 +496,7 @@ nd"));
 */
    }
   } 
-         cout <<" exiting Producer_impl::propagateac"<<endl;
+//         cout <<" exiting Producer_impl::propagateac"<<endl;
   }   
 
 void AMSServerI::PropagateAH(const DPS::Client::CID & pid,DPS::Client::ActiveHost & ah,DPS::Client::RecordChange rc,DPS::Client::AccessType type, uinteger uid){
@@ -707,6 +707,24 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 }
 
 
+void AMSServerI::_UpdateHosts(){
+         for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+            int runcl=0;
+           for (ACLI j=_acl.begin();j!=_acl.end();++j){
+            if(!strcmp((const char *)(*i)->HostName, (const char *)(((*j)->id).HostName))){
+              runcl++;
+            }
+           }
+           if(runcl!=(*i)->ClientsRunning){
+            _parent->EMessage(AMSClient::print(*i,"ResettinHost "));
+            (*i)->ClientsRunning=runcl;
+             DPS::Client::CID cid=_parent->getcid();      
+             cid.Type=getType();
+             cid.Interface= (const char *) " "; 
+             PropagateAH(cid,(*i),DPS::Client::Update);
+           }
+         }
+}
 
 void Server_impl::StartClients(const DPS::Client::CID & pid){
 {
@@ -724,6 +742,7 @@ if(pcur->InactiveClientExists(getType()))return;
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 
 
+ _UpdateHosts();
 
  // Check if there are some hosts to run on
  DPS::Client::ActiveHost_var ahlv=new DPS::Client::ActiveHost();
@@ -1033,7 +1052,7 @@ if(_ahl.size())return;
 
 
   CORBA::Boolean Server_impl::sendId(DPS::Client::CID& cid, uinteger timeout) throw (CORBA::SystemException){
-cout <<" entering Server_impl::sendId"<<endl;
+//cout <<" entering Server_impl::sendId"<<endl;
 if(cid.Type==DPS::Client::Server){
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid){
@@ -1051,11 +1070,11 @@ if(cid.Type==DPS::Client::Server){
 #ifdef __AMSDEBUG__
         _parent->IMessage(AMSClient::print(cid,"Server_impl::sendId-I-RegClient") );
 #endif 
-cout <<" exiting Server_impl::sendId 1"<<endl;
+//cout <<" exiting Server_impl::sendId 1"<<endl;
        return true;
       }
      }
-cout <<" exiting Server_impl::sendId 2"<<endl;
+//cout <<" exiting Server_impl::sendId 2"<<endl;
      return false;
 }
 else if(cid.Type==DPS::Client::Monitor){
@@ -1074,13 +1093,13 @@ else if(cid.Type==DPS::Client::DBServer){
     }
 }
 }
-cout <<" exiting Server_impl::sendId 3"<<endl;
+//cout <<" exiting Server_impl::sendId 3"<<endl;
 
 }
 
 int Server_impl::getNC(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::SystemException){
 
-cout <<" entering Server_impl::getNC"<<endl;
+//cout <<" entering Server_impl::getNC"<<endl;
 
  if(_parent->DBServerExists()){
         Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
@@ -1123,7 +1142,7 @@ for(NCLI li=pser->getncl().begin();li!=pser->getncl().end();++li){
 }
 }
 acs=acv._retn();
-cout <<" exiting Server_impl::getNC"<<endl;
+//cout <<" exiting Server_impl::getNC"<<endl;
 
 return length;
 }
@@ -1310,7 +1329,7 @@ return 0;
 
    void Server_impl::sendAC(const DPS::Client::CID &  cid,   DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 
-cout <<" entering Server_impl::sendAC"<<endl;
+//cout <<" entering Server_impl::sendAC"<<endl;
 
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
@@ -1404,11 +1423,11 @@ cout <<" entering Server_impl::sendAC"<<endl;
     break;
     }
 }
-cout <<" exiting Server_impl::sendAC"<<endl;
+//cout <<" exiting Server_impl::sendAC"<<endl;
 }
    void Server_impl::sendAH(const DPS::Client::CID &  cid,  const DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 
-cout <<" entering Server_impl::sendAH"<<endl;
+//cout <<" entering Server_impl::sendAH"<<endl;
 
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
@@ -1442,7 +1461,7 @@ cout <<" entering Server_impl::sendAH"<<endl;
     break;
     }
 }
-cout <<" exiting Server_impl::sendAH"<<endl;
+//cout <<" exiting Server_impl::sendAH"<<endl;
 }
 
 
@@ -1483,7 +1502,7 @@ cout <<" exiting Server_impl::sendAH"<<endl;
 
 
 void Server_impl::Exiting(const CID & cid, const char * message, DPS::Client::ClientExiting status)throw (CORBA::SystemException){
-cout <<" entering Server_impl::Exiting"<<endl;
+//cout <<" entering Server_impl::Exiting"<<endl;
 // find and remove client
 if(cid.Type==DPS::Client::Server){
 _parent->IMessage(AMSClient::print(cid,message?message:"Server exiting"));
@@ -1494,7 +1513,7 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
    (*li)->id.Status=status;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Delete,DPS::Client::AnyButSelf,cid.uid);
-cout <<" exiting Server_impl::Exiting"<<endl;
+//cout <<" exiting Server_impl::Exiting"<<endl;
    return;
  }
 
@@ -1886,7 +1905,7 @@ if(RF){
  if(fbin){
    int cur=0;
   while(!fbin.eof() && fbin.good()){ 
-   if(fbin.get()=='#'){
+   if(fbin.get() =='#'){
       fbin.ignore(1024,'\n');
       continue;
    }
@@ -1895,7 +1914,9 @@ if(RF){
    re.uid=_RunID++;
     char tmpbuf[1024];
    fbin>>re.Run>>re.FirstEvent>>re.LastEvent>>re.TFEvent>>re.TLEvent>>re.Priority>>tmpbuf;
+    re.TLEvent+=60;
    if( fbin.eof() || !fbin.good())break;
+      fbin.ignore(1024,'\n');
    re.FilePath=(const char*)tmpbuf;
    if(re.LastEvent<re.FirstEvent)re.LastEvent=2000000000;
    if(!_parent->IsMC() || strstr((const char*)tmpbuf,"cern")){
@@ -2071,6 +2092,7 @@ if(pcur->InactiveClientExists(getType()))return;
  
 }
 
+ _UpdateHosts();
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
  // Check if there are some hosts to run on
  DPS::Client::ActiveHost_var ahlv=new DPS::Client::ActiveHost();
@@ -2373,7 +2395,7 @@ _pser->Lock(cid,DPS::Server::ClearCheckClient,getType(),_KillTimeOut);
 
 
 CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException){
-cout <<" entering Producer_impl::sendId"<<endl;
+//cout <<" entering Producer_impl::sendId"<<endl;
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid && (*j)->Status ==DPS::Client::Submitted){
        ((*j)->id).pid=cid.pid;
@@ -2392,7 +2414,7 @@ cout <<" entering Producer_impl::sendId"<<endl;
 #endif 
        DPS::Client::ActiveClient_var acv=*j;
        PropagateAC(acv, DPS::Client::Update);
-       cout <<" exiting Producer_impl::sendId 1"<<endl;
+//       cout <<" exiting Producer_impl::sendId 1"<<endl;
        return true;
       }
      }
@@ -2440,8 +2462,8 @@ cout <<" entering Producer_impl::sendId"<<endl;
        } 
        }     
        else _parent->EMessage(AMSClient::print(cid,"Producer_impl::sendId-E-RegClientNotFound "));
-         cid.uid=0;
-         cout <<" exiting Producer_impl::sendId 3"<<endl;
+//         cid.uid=0;
+//         cout <<" exiting Producer_impl::sendId 3"<<endl;
      return false;
 
 
@@ -2450,12 +2472,12 @@ cout <<" entering Producer_impl::sendId"<<endl;
 
 int Producer_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, DPS::Client::AccessType type, uinteger id, int selffirst)throw (CORBA::SystemException){
 
-         cout <<" entering Producer_impl::getARS"<<endl;
+         //cout <<" entering Producer_impl::getARS"<<endl;
 _UpdateACT(cid,DPS::Client::Active);
 
  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
  int iret=_pser->getARS(cid, arf,type,id,selffirst);
-         cout <<" exiting Producer_impl::getARS"<<endl;
+         //cout <<" exiting Producer_impl::getARS"<<endl;
  return iret; 
 
 }
@@ -2504,7 +2526,7 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
 
 
 int Producer_impl::getTDV(const DPS::Client::CID & cid,  TDVName & tdvname, TDVbody_out body)throw (CORBA::SystemException){
-         cout <<" entering Producer_impl::getTDV"<<endl;
+//         cout <<" entering Producer_impl::getTDV"<<endl;
 _UpdateACT(cid,DPS::Client::Active);
 
  if( _parent->IsOracle()){
@@ -2539,13 +2561,13 @@ _UpdateACT(cid,DPS::Client::Active);
    vbody->length(1);
   }
   body=vbody._retn();
-         cout <<" exiting Producer_impl::getTDV"<<endl;
+//         cout <<" exiting Producer_impl::getTDV"<<endl;
   return length;
  }
 }
 
 int Producer_impl::getSplitTDV(const DPS::Client::CID & cid,  unsigned int & pos,TDVName & tdvname, TDVbody_out body, TransferStatus & st)throw (CORBA::SystemException){
-         cout <<" entering Producer_impl::getSplitTDV"<<endl;
+//         cout <<" entering Producer_impl::getSplitTDV"<<endl;
 _UpdateACT(cid,DPS::Client::Active);
 
 
@@ -2598,7 +2620,7 @@ li->second->gettime(i,b,e);
   vbody->length(1);
  }
  body=vbody._retn();
-         cout <<" exiting Producer_impl::getSplitTDV"<<endl;
+//         cout <<" exiting Producer_impl::getSplitTDV"<<endl;
  return length;
 }
 }
@@ -2676,7 +2698,7 @@ catch (bad_alloc aba){
 
   
 int Producer_impl::getTDVTable(const DPS::Client::CID & cid, TDVName & tdvname, unsigned int id, TDVTable_out table)throw (CORBA::SystemException){
-         cout <<" entering Producer_impl::getTDVTable"<<endl;
+//         cout <<" entering Producer_impl::getTDVTable"<<endl;
 _UpdateACT(cid,DPS::Client::Active);
  if( _parent->IsOracle()){
      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
@@ -2724,7 +2746,7 @@ if(length==0){
  vtable->length(1);
 }
 table= vtable._retn();
-         cout <<" exiting Producer_impl::getTDVTable"<<endl;
+//         cout <<" exiting Producer_impl::getTDVTable"<<endl;
 return length;
 }
 }
@@ -2763,7 +2785,7 @@ cid=cvar._retn();
 }
 
  int Producer_impl::getRunEvInfoS(const DPS::Client::CID &cid, RES_out res, unsigned int & maxrun)throw (CORBA::SystemException){
-         cout <<" entering Producer_impl::getRunEvInfoS"<<endl;
+//         cout <<" entering Producer_impl::getRunEvInfoS"<<endl;
  
 RES_var acv= new RES();
 int length=0;
@@ -2780,13 +2802,13 @@ for(RLI li=_rl.begin();li!=_rl.end();++li){
 }
 }
 res=acv._retn();
-         cout <<" exiting Producer_impl::getRunEvInfoS"<<endl;
+//         cout <<" exiting Producer_impl::getRunEvInfoS"<<endl;
 return length;
 }
 
  int Producer_impl::getDSTInfoS(const DPS::Client::CID &cid, DSTIS_out res)throw (CORBA::SystemException){
  
-         cout <<" entering Producer_impl::getDSTInfoS"<<endl;
+//         cout <<" entering Producer_impl::getDSTInfoS"<<endl;
 DSTIS_var acv= new DSTIS();
 int length=0;
 length=_dstinfo.size();
@@ -2801,7 +2823,7 @@ for(DSTILI li=_dstinfo.begin();li!=_dstinfo.end();++li){
 }
 }
 res=acv._retn();
-         cout <<" exiting Producer_impl::getDSTInfoS"<<endl;
+//         cout <<" exiting Producer_impl::getDSTInfoS"<<endl;
 return length;
 }
 
@@ -2933,13 +2955,13 @@ if(dv->DieHard ==0){
    _parent->IMessage(AMSClient::print (cid,"New Run Asked by"));  
    _parent->IMessage(AMSClient::print(rv));
   }
- PropagateRun(rv, DPS::Client::Update);
+  PropagateRun(rv, DPS::Client::Update);
   uinteger smartfirst=getSmartFirst(rv->Run);
  if( smartfirst>rv->FirstEvent){
    rv->FirstEvent=smartfirst;
+   _parent->IMessage(AMSClient::print(rv,"Run First Event Modified"));
    if(smartfirst>rv->LastEvent){
    _parent->EMessage(AMSClient::print(rv,"***SMART PROBLEM***"));
-    
    }
   }
  }
@@ -2955,7 +2977,7 @@ _UpdateACT(cid,DPS::Client::Active);
 
 void Producer_impl::sendRunEvInfo(const  RunEvInfo & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 
-         cout <<" entering Producer_impl::sendRunEvInfo"<<endl;
+//         cout <<" entering Producer_impl::sendRunEvInfo"<<endl;
  RLI li=find_if(_rl.begin(),_rl.end(),REInfo_Eqs(ne));
  switch (rc){
  case DPS::Client::Update:
@@ -2977,12 +2999,12 @@ void Producer_impl::sendRunEvInfo(const  RunEvInfo & ne, DPS::Client::RecordChan
   }
   break;
 }
-         cout <<" exiting Producer_impl::sendRunEvInfo"<<endl;
+//         cout <<" exiting Producer_impl::sendRunEvInfo"<<endl;
 }
 
 void Producer_impl::sendDSTInfo(const  DSTInfo & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 
-         cout <<" entering Producer_impl::sendDSTInfo"<<endl;
+//         cout <<" entering Producer_impl::sendDSTInfo"<<endl;
 
  PropagateDSTInfoDB(ne,rc);
  DSTILI li=find_if(_dstinfo.begin(),_dstinfo.end(),DSTInfo_Eqs(ne));
@@ -3012,7 +3034,7 @@ void Producer_impl::sendDSTInfo(const  DSTInfo & ne, DPS::Client::RecordChange r
         _parent->EMessage(AMSClient::print(ne,"sendDSTInfo-Unknown rc value"));
 
 }
-         cout <<" exiting Producer_impl::sendDSTInfo"<<endl;
+//         cout <<" exiting Producer_impl::sendDSTInfo"<<endl;
 }
 
 
@@ -3038,7 +3060,7 @@ return length;
 
 void Producer_impl::sendCurrentInfo(const DPS::Client::CID & cid, const  CurrentInfo &ci, int propagate)throw (CORBA::SystemException){
 
-         cout <<" entering Producer_impl::sendCurrentInfo"<<endl;
+//         cout <<" entering Producer_impl::sendCurrentInfo"<<endl;
 
 RLI li=find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid));
 if(li !=_rl.end()){
@@ -3075,7 +3097,7 @@ else{
  _parent->EMessage(AMSClient::print(cid,"sendCurrentInfo-EUnable to find Run Record for Client"));
  _parent->EMessage(AMSClient::print(ci));
 }
-         cout <<" exiting Producer_impl::sendCurrentInfo"<<endl;
+//         cout <<" exiting Producer_impl::sendCurrentInfo"<<endl;
 }
 
 
@@ -3083,7 +3105,7 @@ else{
 
 
 void Producer_impl::sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
-         cout <<" exiting Producer_impl::sendDSTEnd"<<endl;
+//         cout <<" exiting Producer_impl::sendDSTEnd"<<endl;
 _UpdateACT(ci,DPS::Client::Active);
 if(_parent->Debug()){
   _parent->IMessage(AMSClient::print(ci,"senddstinfo get from "));
@@ -3101,7 +3123,7 @@ if(_parent->Debug()){
  }
  _dst.insert(make_pair(ne.Type,vne));
   if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Create,DPS::Client::AnyButSelf,_parent->getcid().uid);
-         cout <<" exiting Producer_impl::sendDSTEnd create"<<endl;
+//         cout <<" exiting Producer_impl::sendDSTEnd create"<<endl;
  break;
  case DPS::Client::Update:
  for(DSTLI li=b.first;li!=b.second;++li){
@@ -3110,7 +3132,7 @@ if(_parent->Debug()){
     case InProgress:
      (li->second)=vne;
       if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
-         cout <<" exiting Producer_impl::sendDSTEnd update"<<endl;
+//         cout <<" exiting Producer_impl::sendDSTEnd update"<<endl;
       return;
     default:
     _parent->EMessage(AMSClient::print(vne,"Update:DST Already Exists "));
@@ -3128,7 +3150,7 @@ if(_parent->Debug()){
   if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
       if(ci.Type!=DPS::Client::Server)PropagateDST((*li).second,rc,DPS::Client::AnyButSelf,_parent->getcid().uid);
      _dst.erase(li);
-         cout <<" exiting Producer_impl::sendDSTEnd delete"<<endl;
+//         cout <<" exiting Producer_impl::sendDSTEnd delete"<<endl;
      return;       
       
   }
@@ -3142,7 +3164,7 @@ if(_parent->Debug()){
 
 void Producer_impl::PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange rc, DPS::Client::AccessType type, uinteger uid){
 
-         cout <<" entering Producer_impl::propagaterun"<<endl;
+//         cout <<" entering Producer_impl::propagaterun"<<endl;
   PropagateRunDB(ri,rc);
 
   if(_ActivateQueue)_runqueue.push_back(RA(ri,rc));
@@ -3166,12 +3188,12 @@ void Producer_impl::PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange
    }
   } 
 
-         cout <<" exiting Producer_impl::propagaterun"<<endl;
+//         cout <<" exiting Producer_impl::propagaterun"<<endl;
 }
 
 void Producer_impl::PropagateDST(const DST & ri, DPS::Client::RecordChange rc, DPS::Client::AccessType type,uinteger uid){
 
-         cout <<" entering Producer_impl::propagatedst"<<endl;
+//         cout <<" entering Producer_impl::propagatedst"<<endl;
   PropagateDSTDB(ri,rc);
 
   if(_ActivateQueue)_dstqueue.push_back(DSTA(ri,rc));
@@ -3191,7 +3213,7 @@ void Producer_impl::PropagateDST(const DST & ri, DPS::Client::RecordChange rc, D
    catch (CORBA::SystemException &ex){
    }
   } 
-         cout <<" exiting Producer_impl::propagatedst"<<endl;
+//         cout <<" exiting Producer_impl::propagatedst"<<endl;
 
 }
 
@@ -3568,7 +3590,7 @@ uinteger Producer_impl::getSmartFirst(uinteger run){
   if(present[i]){
    first[i]=0;
    for(DSTLI li=dst[i].first;li!=dst[i].second;++li){
-    if((li->second)->Status ==Success && (li->second)->Run==run){
+    if(((li->second)->Status ==Success  || (li->second)->Status ==Validated) && (li->second)->Run==run){
      if(first[i]<((li->second)->LastEvent)+1)first[i]=((li->second)->LastEvent)+1;
     }
    }

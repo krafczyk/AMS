@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.112 2002/06/03 14:53:34 alexei Exp $
+//  $Id: particle.C,v 1.113 2002/06/12 15:20:20 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -754,10 +754,14 @@ void AMSParticle::_loc2gl(){
   AMSEvent::gethead()->getvelphi());
   AMSDir amsyg=amszg.cross(amsxg);
   number prod=amsxg.prod(amszg);
+  integer _errors=0;
   if(fabs(prod)>0.03 ){
    cerr<<"AMSParticle::_loc2gl-E-AMSGlobalCoosystemIllDefined "<<prod<<endl;
    AMSEvent::gethead()->_printEl(cerr);
-   AMSEvent::gethead()->seterror(2);
+   AMSEvent::gethead()->seterror(_errors++>100?3:2);
+  }
+  else{
+    _errors=0;
   }
   number cp=cos(pitch);
   number sp=sin(pitch);

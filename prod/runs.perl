@@ -1,13 +1,14 @@
 #!/usr/local/bin/perl -w
-$FILEO=">/afs/cern.ch/user/c/choutko/AMS/prod/RunTable";
+$FILEO=">/f0dat1/AMSDataDir/DataManagement/prod/RunTable";
     open FILEO or die "ups\n";
 print FILEO "# Run Ev_first Ev_last Time_Ev_first Time_Ev_last Prio  Path\n";
 while ($line=<@ARGV>){
     @runs=split '-',$line;
-    $FILEI="</afs/cern.ch/user/c/choutko/AMS/prod/sts91_runs.list";
+    $FILEI="</f2users/alexei/STS91/offruns/logs/sts91.runs";
     open FILEI or die "ups\n";
 LINE: while($line=<FILEI>){
     next LINE if $line =~ /^#/;
+    next LINE if $line =~/laser/;
     @args=split ' ',$line;
     if ($args[0] >= $runs[0] && $args[0] <= $runs[1]){
         $count=$args[2];

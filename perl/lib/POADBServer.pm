@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.10 2002/03/28 14:33:44 choutko Exp $
+#  $Id: POADBServer.pm,v 1.11 2002/06/12 15:20:37 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -126,6 +126,7 @@ OUT:
             foreach my $dst (@{$ref->{dsti}}){
                 if($dst->{HostName} =~ /^$host/){
                     $dv=$dst;
+                    warn "found dst $dst->{OutputDirPath}";
                     last;
                 }
             }

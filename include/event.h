@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.64 2002/06/03 14:53:42 alexei Exp $
+//  $Id: event.h,v 1.65 2002/06/12 15:20:32 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -228,6 +228,7 @@ void event();
 void seterror(uinteger error=1){_Error=error;}
 integer HasNoErrors(){return _Error==0;}
 integer HasNoCriticalErrors(){return _Error<2;}
+integer HasFatalErrors(){return _Error>=3;}
 //+
 uinteger getEvent() {return uinteger(_id);}
 static integer _checkUpdate();

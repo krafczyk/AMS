@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.53 2002/04/23 14:11:42 choutko Exp $
+# $Id: Monitor.pm,v 1.54 2002/06/12 15:20:37 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -197,6 +197,40 @@ sub ResetFailedRuns{
 
 
      }
+}
+}
+
+sub ResetHosts{
+ my $ref=shift;
+      for my $j (0 ... $#{$ref->{ahlp}}){
+        my %host=%{${$ref->{ahlp}}[$j]};
+        $host{Status}="OK";
+        $host{ClientsFailed}=0;
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}="Producer";
+                $arsref->sendAH(\%cid,\%host,"Update");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}="Producer";
+                $arsref->sendAH(\%cid,\%host,"Update");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+
+
 }
 }
 
@@ -1239,15 +1273,15 @@ sub sendback{
                 warn "sendback corba exc";
             };
         }
-        foreach $arsref (@{$ref->{ardref}}){
-            try{
-                $arsref->sendDSTInfo(\%nc,$action);
-                last;
-            }
-            catch CORBA::SystemException with{
-                warn "sendback corba exc";
-            };
-        }
+#        foreach $arsref (@{$ref->{ardref}}){
+#            try{
+#                $arsref->sendDSTInfo(\%nc,$action);
+#                last;
+#            }
+#            catch CORBA::SystemException with{
+#                warn "sendback corba exc";
+#            };
+#        }
     }elsif($name eq "PNtuple"){
         my $ref=$Monitor::Singleton;
         my %nc=%{${$ref->{dsts}}[$row]};

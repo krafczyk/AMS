@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.29 2002/02/20 18:00:25 choutko Exp $
+#  $Id: monitorUI.pm,v 1.30 2002/06/12 15:20:37 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -332,6 +332,7 @@ my @item_factory_entries = (
 	["/File/_Force Check",	"<alt>C",	6],
 	["/File/sep1",	undef,	0,	"<Separator>"],
 	["/File/_Reset Failed Runs",	"<alt>R",	7],
+	["/File/Reset _Hosts",	"<alt>H",	8],
 	["/File/sep1",	undef,	0,	"<Separator>"],
 	{
 		'path' => "/File/_Quit", 
@@ -1129,6 +1130,8 @@ sub item_factory_cb {
              $Monitor::Singleton->ForceCheck();
          }elsif($action==7){
              $Monitor::Singleton->ResetFailedRuns();
+         }elsif($action==8){
+             $Monitor::Singleton->ResetHosts();
          }
     }
 
