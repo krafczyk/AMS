@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.431 2002/12/06 14:43:18 choumilo Exp $
+// $Id: job.C,v 1.432 2002/12/06 15:50:07 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2371,16 +2371,16 @@ if((TFMCFFKEY.ReadConstFiles%100)/10==0 && !isRealData())end.tm_year=TFREFFKEY.y
     (void*)&TOFWScan::scmcscan[0],server,NeededByDefault));
     
   end.tm_year=TFREFFKEY.year[1];
-//----- 
-if(TFMCFFKEY.ReadConstFiles%10==0 && !isRealData()){
-
-  end.tm_year=TFREFFKEY.year[0]-1;//"MC Seeds" fromDB
+//-----
+if(!isRealData()){ 
+  if(TFMCFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//"MC Seeds" fromDB
     
   TID.add (new AMSTimeID(AMSID("TofbarcalMS",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFBrcalMS::scbrcal[0][0]),
     (void*)&TOFBrcalMS::scbrcal[0][0],server,NeededByDefault));
+    
+  end.tm_year=TFREFFKEY.year[1];
 }
-end.tm_year=TFREFFKEY.year[1];
  
 //
    
