@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.5 2001/01/24 09:33:16 choutko Exp $
+//  $Id: AMSR_Display.cxx,v 1.6 2001/06/25 20:14:05 kscholbe Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -123,7 +123,7 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
    // Create display canvas
 //   m_Canvas = new TCanvas("Canvas", (char*)title,14,47,740,650);
    m_Canvas = new AMSR_Canvas("Canvas", (Text_t*)title,resx,resy);
-   m_Canvas->SetEditable(kIsNotEditable);
+   m_Canvas->SetEditable(kFALSE);
 
    //
    // Create pads on the canvas
@@ -587,7 +587,7 @@ void AMSR_Display::Draw(Option_t *option)
 {
 //    Insert current event in graphics pad list
 
-   m_Canvas->SetEditable(kIsNotEditable);
+   m_Canvas->SetEditable(kFALSE);
 
    DrawTitle();
    AddParticleInfo();

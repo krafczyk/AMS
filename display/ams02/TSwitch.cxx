@@ -1,4 +1,4 @@
-//  $Id: TSwitch.cxx,v 1.2 2001/01/22 17:32:36 choutko Exp $
+//  $Id: TSwitch.cxx,v 1.3 2001/06/25 20:14:05 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -26,7 +26,7 @@ TSwitch::TSwitch(char * title, Bool_t *state, char * method,
    TVirtualPad * gPadSave = gPad;
    this->Draw();
    this->cd();
-   GetCanvas()->SetEditable(kIsNotEditable);
+   GetCanvas()->SetEditable(kFALSE);
 
 // Coord_t ycenter = (y1+y2)/2,
 //  butsize = (y2-y1)/3,
