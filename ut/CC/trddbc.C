@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.12 2001/03/26 18:07:22 kscholbe Exp $
+//  $Id: trddbc.C,v 1.13 2001/03/27 17:07:37 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -253,10 +253,13 @@ void TRDDBc::init(){
        }
 
 // For all these, subtract half-width from position of top of volume
+
+     // 835. is position of bottom of bottom carbon fiber ring
+
        switch(i){
-       case 4:    // bottom honeycomb
-                    // 835. is position of top of bottom honeycomb
-          coo[2]= 835./10.+OctagonDimensions(i,4);
+       case 4:    // bottom honeycomb... starts 1.5 mm below carbon
+	 //  fiber ring
+          coo[2]= (835.-1.5)/10.+OctagonDimensions(i,4);
           break;
 
        case 3:   // top honeycomb...need to check this
