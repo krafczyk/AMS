@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: stopParseJournalFiles.o.cgi,v 1.2 2004/03/12 16:40:49 alexei Exp $
+#  $Id: stopParseJournalFiles.o.cgi,v 1.3 2004/03/18 12:35:41 alexei Exp $
 use Gtk;
 use strict;
 
@@ -19,7 +19,7 @@ my $nocgi=1;
 my $html=new RemoteClient($nocgi);
 
 my $ok = $html->ConnectOnlyDB();
-   $ok = $html->stopParseJournalFiles();
+   $ok = $html->resetFilesProcessingFlag();
 
 
 
