@@ -1099,7 +1099,7 @@ void AMSTOFCluster::build(int &stat){
   geant ed;
   AMSPoint coo,ecoo;
   int i,j,il,ib,ilay,ibar,ill,ibb;
-  int nclust,cllay[SCLRS];
+  int nclust,cllay[SCLRS],nmemb;
 //-----
   stat=1; // bad
   for(i=0;i<SCLRS;i++)cllay[i]=0;
@@ -1161,6 +1161,7 @@ void AMSTOFCluster::build(int &stat){
       edepl=0.;
       cofg=0.;
       cofgl=0.;
+      nmemb=0;
       for(j=i-1;j<i+2;j++){// calc. clust. energy/COG-transv/COG-long
         ptrr=xptr[j];   
         if(ptrr){
@@ -1169,6 +1170,7 @@ void AMSTOFCluster::build(int &stat){
           ylocm=0.5*TOFDBc::brlen(ill,ibb);// neigbour bar length
           edep+=eplane[j];
           cofg+=eplane[j]*(j-i);// relative to "peak" bar
+          nmemb+=1;
           yloc=ptrr->gettimeD();
           if(fabs(yloc) > ylocm){
             if(yloc>0.)yloc=ylocm;//at bar edge
@@ -1225,6 +1227,8 @@ void AMSTOFCluster::build(int &stat){
 //
         if(((status & SCBADB2)>0)||((status & SCBADB3)>0))status|=AMSDBc::BAD; 
 //          bad=(peak bar is single-sided   or known problem with t-measurement)
+        if(nmemb>0)edep/=nmemb;// take average for multi-bar clusters
+//
         AMSEvent::gethead()->addnext(AMSID("AMSTOFCluster",ilay),
         new     AMSTOFCluster(status,ntof,barn,edep,coo,ecoo,time,etime));
 //

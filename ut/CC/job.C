@@ -757,7 +757,7 @@ void AMSJob::_rectcdata(){
   CTCRECFFKEY.reprtf[1]=0;//(4) DAQ-print (1/2->print for decoding/decoding+encoding)
   CTCRECFFKEY.reprtf[2]=0;//(5) spare
   CTCRECFFKEY.ftwin=100.;//(6) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
-  CTCRECFFKEY.q2pe=0.16;  //(7)
+  CTCRECFFKEY.q2pe=0.073;  //(7)
   CTCRECFFKEY.ft2edg=1;  //(8) 0/1-> 1/2 edges readout for FT signal
 //
   CTCRECFFKEY.ReadConstFiles=0;//(9)read const. from DB/myFiles (0/1)
