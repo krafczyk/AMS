@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.121 2001/04/04 21:48:54 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.122 2001/04/25 17:16:08 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2944,6 +2944,7 @@ uinteger status;
 integer nrot=TRDROTMATRIXNO; 
 AMSNode * cur;
 AMSNode * dau;
+AMSgvolume * daug4;
 AMSNode * oct[maxo];
  ostrstream ost(name,sizeof(name));
 
@@ -2995,8 +2996,15 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    //         cout <<name<<" "<<j<<" "<<
    //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
    //	   par[0]<<" "<<par[1]<<" "<<par[2]<<" "<<par[4]<<endl;
+
+#ifndef __G4AMS__
       dau=oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
       nrot++,name,"TRD1",par,4,coo,nrm,"ONLY",0,gid,1));
+#else
+      daug4 = 
+     (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
+      nrot++,name,"TRD1",par,4,coo,nrm,"BOOL",0,gid,1));
+#endif
 
       // Add the cutout daughters here
 
@@ -3017,10 +3025,16 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 		  for(ip=0;ip<3;ip++)
 		    par[ip]=TRDDBc::CutoutsDimensions(i,j,k,ip);
 
-		  // First one made is j=4, in bh 0
-		  //		  dau->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
-		  //		  0,name,"BOX",par,3,coo,nrm,"MANY", 
-		  //		  j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
+		  // First one made is j=4, in bulkhead 0
+		  
+#ifndef __G4AMS__
+		  dau->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
+			 0,name,"BOX",par,3,coo,nrm,"MANY", 
+			 j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
+#else
+		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
+#endif
+
 		}
 	    }
 	  }
