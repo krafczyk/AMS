@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.9 2002/03/12 08:17:26 alexei Exp $
+# $Id: RemoteClient.pm,v 1.10 2002/03/12 10:54:47 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1003,7 +1003,8 @@ sub Connect{
             print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
             print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
           print "<br>\n";
-          print "<input type=\"submit\" name=\"BasicForm\" value=\"Continue\"></br><br>        ";
+#          print "<input type=\"submit\" name=\"BasicForm\" value=\"Continue\"></br><br>        ";
+          print "<input type=\"submit\" name=\"BasicQuery\" value=\"Submit\"></br><br>        ";
           htmlReturnToMain();
           htmlFormEnd();
          htmlBottom();
@@ -1123,7 +1124,8 @@ sub Connect{
             print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
             print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
           print "<br>\n";
-          print "<input type=\"submit\" name=\"AdvancedForm\" value=\"Continue\"></br><br>        ";
+#          print "<input type=\"submit\" name=\"AdvancedForm\" value=\"Continue\"></br><br>        ";
+          print "<input type=\"submit\" name=\"AdvancedQuery\" value=\"Submit\"></br><br>        ";
           htmlReturnToMain();
           htmlFormEnd();
          htmlBottom();
@@ -1188,7 +1190,8 @@ sub Connect{
            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n"; 
            print "<br>\n";
-           print "<input type=\"submit\" name=\"ProductionForm\" value=\"Continue\"></br><br>        ";
+#           print "<input type=\"submit\" name=\"ProductionForm\" value=\"Continue\"></br><br>        ";
+           print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit\"></br><br>        ";
            htmlReturnToMain();
            htmlBottom();
              }
@@ -1470,13 +1473,13 @@ print qq`
             $self->{FinalMessage}=" Sorry  $query Query Not Yet Implemented";     
         }
           }
-         #$self->{FinalMessage}=" Your request was succsesfully sent to $self->{CEM}";     
-
         }
     }
 #MyQuery ends here
-    if ($self->{q}->param("BasicQuery") or $self->{q}->param("AdvancedQuery") or $self->{q}->param("ProductionQuery") or
-        $self->{q}->param("BasicForm") or $self->{q}->param("AdvancedForm") or $self->{q}->param("ProductionForm")){
+    if ($self->{q}->param("BasicQuery") or $self->{q}->param("AdvancedQuery") or 
+        $self->{q}->param("ProductionQuery") or
+        $self->{q}->param("BasicForm") or $self->{q}->param("AdvancedForm") or 
+        $self->{q}->param("ProductionForm")){
         $self->{read}=1;
 #  check par
         my $cem=lc($q->param("CEM"));
@@ -1487,9 +1490,8 @@ print qq`
             $self->ErrorPlus("Welcome $cem. Your account is not yet set up.
             Please try again later.");
         }
-
-#        $self->ErrorPlus(" $self->{CCA} $self->{CCT} $self->{CCID} $self->{CEM} $self->{CEMA} $self->{CEMID}");
-        if($self->{q}->param("BasicQuery") eq "Save" or $self->{q}->param("AdvancedQuery") eq "Save"  or $self->{q}->param("ProductionQuery") eq "Save"){
+        if($self->{q}->param("BasicQuery") eq "Save" or $self->{q}->param("AdvancedQuery") eq "Save"  or 
+           $self->{q}->param("ProductionQuery") eq "Save"){
             my $pass=$q->param("password");
             if($self->{CCT} ne "remote" or defined $pass){
             my $crypt=crypt($pass,"ams");
@@ -1648,24 +1650,23 @@ print qq`
              $self->ErrorPlus("TimeEnd $timend is out of range $date $month $year");
         }
          $timendu=timelocal(1,0,8,$date,$month,$year);
-        if($self->{q}->param("ProductionQuery")){
+        if($self->{q}->param("ProductionQuery") or $self->{q}->param("ProductionForm")  ){
           $timeout=$q->param("QTimeOut");
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>31){
              $self->ErrorPlus("Time  $evno is out of range (1,31) days. ");
           }
           $timeout=int($timeout*1.41*3600*24);
           $particleid= $q->param("QPart");
-        }
+      }
         else{
 #basic only
-       
         my $particle=$q->param("QPart");
          $particleid=$self->{tsyntax}->{particles}->{$particle};
      }
 # advanced only
         my ($setup,$trtype,$rootntuple,$rno,$spectrum,$focus,$cosmax,$geocutoff,$plane);
             my @cubes=();
-        if($self->{q}->param("AdvancedQuery")){
+        if($self->{q}->param("AdvancedQuery") or $self->{q}->param("AdvancedForm") ){
              $setup=$q->param("QSetup");
             if((not $setup =~ '^AMS02') and (not $setup=~'^AMSSHUTTLE')){
                 $self->ErrorPlus("Setup $setup does not exist. Only AMS02xxx or AMSSHUTTLEyyy  setup names allowed.");
@@ -1880,25 +1881,26 @@ print qq`
             $q->param($param,"Save");
             $q->param("FEM",$save);
              save_state($q,$save);
-                print $q->header( "text/html" ),
-                $q->start_html( "Welcome");
-                print $q->h1( "Below is the Script Example. Click Save if you wish to continue.");
-                print $q->start_form(-method=>"GET", 
-                -action=>$self->{Name});
-print qq`
-           <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem> 
-           <INPUT TYPE="hidden" NAME="FEM" VALUE=$save> 
-`;
-         print $q->textarea(-name=>"CCA",-default=>"$buf$tmpb",-rows=>30,-columns=>80);
-             print "<BR>";
+             htmlTop();
+             $self->htmlTemplateTable("Job Submit Script (click \"Save\" to continue)");
+          if($self->{CCT} eq "remote"){
+              print "<BR><TR><B><font color=magenta size= 4><i> the password is required </i></font></TR></B></BR>";
+         }
+#                print $q->header( "text/html" ),
+#                $q->start_html( "Welcome");
+#                print $q->h1( "Below is the Script Example. Click Save if you wish to continue.");
+#                print $q->start_form(-method=>"GET", 
+#                -action=>$self->{Name});
+          print "<input type=\"hidden\" name=\"CEM\" value=$cem>        ";
+          print "<input type=\"hidden\" name=\"FEM\" value=$save>        ";
+          print $q->textarea(-name=>"CCA",-default=>"$buf$tmpb",-rows=>30,-columns=>80);
+          print "<BR><TR>";
          if($self->{CCT} eq "local"){
-
-   print qq`
-Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
-`;
-}
-             print "<BR>";
+          print "Password :  <input type=\"password\" name=\"password\" value=\"\">  ";
+          print "<\TR><\BR>";
+         }
          print $q->submit(-name=>$param, -value=>"Save");
+         print htmlBottom();
          return 1;   
          }
          open(FILE,">".$root) or die "Unable to open file $root\n";  
@@ -1979,7 +1981,6 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
         my $subject="AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
                   my $message=$self->{tsyntax}->{headers}->{readme};
                   my $attach="$file2tar.gz,ams02mcscripts.tar.gz;$filedb,ams02mcdb.tar.gz";
-#                  my $attach="$file2tar.gz,ams02mcscripts.tar.gz";
          if ($self->{CCT} eq "remote"){
                   $self->sendmailmessage($address,$subject,$message,$attach);
                   my $i=unlink "$file2tar.gz";
@@ -1988,13 +1989,15 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
          $sql="Update Mails set requests=$totalreq where mid=$self->{CEMID}";
          $self->{sqlserver}->Update($sql);              
          $self->sendmailerror($subject," ");
-         $sql="select mid from Cites where cid=$self->{CCID}";
+         $sql="SELECT mid FROM Cites WHERE cid=$self->{CCID}";
          my $ret=$self->{sqlserver}->Query($sql);
          if(defined $ret->[0][0] && $ret->[0][0] != $self->{CEMID}){
-           $sql="select address from Mails where mid=$ret->[0][0]";
+           $sql="SELECT address FROM Mails WHERE mid=$ret->[0][0]";
            $ret=$self->{sqlserver}->Query($sql);
            if(defined $ret->[0][0]){
              $self->sendmailmessage($ret->[0][0],$subject," ");
+           } else {
+            $self->ErrorPlus("Unable to obtain mail address for MailId = $ret->[0][0] and Cite=$self->{CCID}");
            }           
          }
 #
@@ -2031,9 +2034,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                        unlink $file;
                      }
                   }                      
-                  $self->{FinalMessage}=" Your request was succsesfully sent to $self->{CEM}";     
-            
-        
+                  $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
     }
 
 
