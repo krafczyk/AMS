@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
 Myapp *theApp = new Myapp("App", &argc, argv);
-theApp->SetIdleTimer(6,"");
+theApp->SetIdleTimer(9,"");
 /*
 // Do drawing and all everything else you want
 TCanvas *c = new TCanvas("Picture", "The Alignment Geometry", 1024, 768);
