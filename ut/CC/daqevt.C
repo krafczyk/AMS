@@ -455,8 +455,10 @@ void DAQEvent::initO(integer run){
      char name[255];
      ostrstream ost(name,sizeof(name));
      if(ofnam[strlen(ofnam)-1]=='/')ost << ofnam<<run<<ends;
-     else ost << ofnam <<ends;
-    if(fbout)fbout.close();
+     //next line gives compiler error on gcc
+     // else ost << ofnam<<ends;
+     if(fbout)fbout.close();
+     if(ofnam[strlen(ofnam)-1]!='/')ost << ofnam<<ends;
     if((mode/10)%10 ==1)fbout.open(name,ios::out|binary|ios::noreplace);
     if((mode/10)%10 ==2)fbout.open(name,ios::out|binary|ios::app);
      if(fbout){ 
