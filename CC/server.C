@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.36 2001/02/02 16:22:47 choutko Exp $
+//  $Id: server.C,v 1.37 2001/02/02 17:37:35 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -439,12 +439,15 @@ if(_ActivateQueue){
 }
 }
 
-bool AMSServerI::InactiveClientExists(){
+bool AMSServerI::InactiveClientExists(DPS::Client::ClientType ctype){
 for(ACLI li= _acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Active){
 //   if(_parent->Debug())_parent->IMessage(AMSClient::print(*li," Inactive Client Found"));
    return true;
   }
+}
+if(getType() == DPS::Client::DBServer && getType()!=ctype){
+  if(_parent->DBServerExists() && !_acl.size())return true;
 }
 return false;
 }
@@ -641,7 +644,7 @@ void Server_impl::StartClients(const DPS::Client::CID & pid){
 if(!Master())return;
 RegisteredClientExists();
 for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
-if(pcur->InactiveClientExists())return;
+if(pcur->InactiveClientExists(getType()))return;
  
 }
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
@@ -1709,7 +1712,7 @@ void Producer_impl::StartClients(const DPS::Client::CID & pid){
 if(!Master())return;
 RegisteredClientExists();
 for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
-if(pcur->InactiveClientExists())return;
+if(pcur->InactiveClientExists(getType()))return;
  
 }
 
@@ -3177,10 +3180,9 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
  if(getType() == DBServer){
   RegisteredClientExists();
     for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
-    if(pcur->InactiveClientExists())return;
+    if(pcur->InactiveClientExists(getType()))return;
  
 }
-  if(getServer()->InactiveClientExists())return;
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   if(!_pser->Lock(pid,DPS::Server::StartClient,getType(),_StartTimeOut))return;
   bool freeslot=true;

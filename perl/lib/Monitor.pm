@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.24 2001/02/02 16:22:49 choutko Exp $
+# $Id: Monitor.pm,v 1.25 2001/02/02 17:37:36 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -893,6 +893,17 @@ sub sendback{
                 warn "sendback corba exc";
             };
         }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}=$nc{Type};
+                $arsref->sendNC(\%cid,\%nc,$action);
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
    }elsif($name eq "ProducerClient"){
         my $ref=$Monitor::Singleton;
         my %nc=%{${$ref->{ncl}}[$row]};
@@ -912,6 +923,17 @@ sub sendback{
                 my %cid=%{$ref->{cid}};
                 $cid{Type}=$nc{Type};
                 $arsref->sendNC(\%cid,\%nc,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}=$nc{Type};
+                $arsref->sendNC(\%cid,\%nc,$action);
+                last;
             }
             catch CORBA::SystemException with{
                 warn "sendback corba exc";
@@ -941,6 +963,17 @@ sub sendback{
                 warn "sendback corba exc";
             };
         }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}=$nc{Type};
+                $arsref->sendNK(\%cid,\%nc,$action);
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
     }elsif($name eq "Ntuple"){
         my $ref=$Monitor::Singleton;
         my %nc=%{${$ref->{dsti}}[$row]};
@@ -953,6 +986,15 @@ sub sendback{
         foreach $arsref (@{$ref->{arpref}}){
             try{
                 $arsref->sendDSTInfo(\%nc,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendDSTInfo(\%nc,$action);
+                last;
             }
             catch CORBA::SystemException with{
                 warn "sendback corba exc";
@@ -973,6 +1015,15 @@ sub sendback{
         foreach $arsref (@{$ref->{arpref}}){
             try{
                 $arsref->sendRunEvInfo(\%nc,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendRunEvInfo(\%nc,$action);
+                last;
             }
             catch CORBA::SystemException with{
                 warn "sendback corba exc";
@@ -1023,6 +1074,18 @@ FOUND2:
                 warn "sendback corba exc";
             };
         }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}="Server";
+                $arsref->sendNH(\%cid,\%nc,$action);
+                $arsref->sendAH(\%cid,\%ac,$action);
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
     }elsif($name eq "ProducerHost"){
         my $ref=$Monitor::Singleton;
         my %nc=%{${$ref->{nhl}}[$row]};
@@ -1064,6 +1127,19 @@ FOUND3:
                 $arsref->sendNH(\%cid,\%nc,$action);
                 $cid{Type}="Producer";
                 $arsref->sendAH(\%cid,\%ac,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}="Server";
+                $arsref->sendNH(\%cid,\%nc,$action);
+                $cid{Type}="Producer";
+                $arsref->sendAH(\%cid,\%ac,$action);
+                last;
             }
             catch CORBA::SystemException with{
                 warn "sendback corba exc";

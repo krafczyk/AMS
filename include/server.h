@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.27 2001/02/02 16:22:48 choutko Exp $
+//  $Id: server.h,v 1.28 2001/02/02 17:37:36 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -135,7 +135,7 @@ CORBA::ORB_ptr  getdefaultorb()const {return _defaultorb;}
   void PropagateAH(const DPS::Client::CID & cid, DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
   bool PropagateAHDB(const DPS::Client::CID & cid, DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc);
 
-  bool InactiveClientExists();
+  bool InactiveClientExists(DPS::Client::ClientType type);
   void RegisteredClientExists();
   AMSServerI * next(){return dynamic_cast<AMSServerI*>(AMSNode::next());}
   AMSServerI * prev(){return dynamic_cast<AMSServerI*>(AMSNode::prev());}

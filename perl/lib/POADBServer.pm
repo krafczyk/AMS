@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.1 2001/02/02 16:22:49 choutko Exp $
+#  $Id: POADBServer.pm,v 1.2 2001/02/02 17:37:36 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -489,8 +489,8 @@ OUT:
       
              }
              elsif($rc eq "Create"){
-                      if( not defined $hash{$tag."_maxc"} or $hash{$tag."_maxc"}<$ri->{uid}){
-                         $hash{$tag."_maxc"}=$ri->{uid};
+                      if( not defined $hash{$tag."_maxc"} or $hash{$tag."_maxc"}<$cid->{uid}){
+                         $hash{$tag."_maxc"}=$cid->{uid};
                      }
                          $#{$ref->{$tag}}=$#{$ref->{$tag}}+1;
                          $ref->{$tag}[$#{$ref->{$tag}}]=$ri;
@@ -607,7 +607,7 @@ OUT:
 
 sub sendGeneric{
     my $ref=$DBServer::Singleton;
-    my ($class,$cid,$ri,$rc,$tag)=@_;
+    my ($cid,$ri,$rc,$tag,$uid)=@_;
 #        my ($ok,%hash)=$ref->OpenDBFile();
 # need to explicitely open db file in every sub 
     my $ok=0;
@@ -647,10 +647,7 @@ OUT:
              if($rc eq "Update"){
                  for my $i (0 ... $#{$ref->{$tag}}){
                      my $arel=$ref->{$tag}[$i];
-                     $ri->{HostName}=~/^(.*?)(\.|$)/;
-                     my $m1=$1; 
-                     $arel->{HostName}=~/^(.*?)(\.|$)/;
-                         if($1 eq $m1){
+                     if($ri->{$uid} eq $arel->{$uid}){
                          $ref->{$tag}[$i]=$ri;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
@@ -662,10 +659,7 @@ OUT:
              elsif($rc eq "Delete"){
                  for my $i (0 ... $#{$ref->{$tag}}){
                      my $arel=$ref->{$tag}[$i];
-                     $ri->{HostName}=~/^(.*?)(\.|$)/;
-                     my $m1=$1; 
-                     $arel->{HostName}=~/^(.*?)(\.|$)/;
-                         if($1 eq $m1){
+                     if($ri->{$uid} eq $arel->{$uid}){
                          $ref->{$tag}[$i]=$ref->{$tag}[$#{$ref->{$tag}}];
                          $#{$ref->{$tag}}=$#{$ref->{$tag}}-1;
                          $hash{$tag}=$ref->{$tag};
@@ -689,5 +683,36 @@ OUT:
           else{
              throw DPS::Server::DBProblem message=>"Unable to Open DB File";
           } 
+}
+
+sub sendNC{
+    my $ref=$DBServer::Singleton;
+    my ($class,$cid,$ri,$rc)=@_;
+    my $tag;
+              if($cid->{Type} eq "Server"){
+               $tag="nsl";
+              }
+              elsif($cid->{Type} eq "Producer"){
+               $tag="ncl";
+              }
+    else{
+        return;
+    }      
+    sendGeneric($cid,$ri,$rc,$tag,"uid");
+}
+sub sendNK{
+    my $ref=$DBServer::Singleton;
+    my ($class,$cid,$ri,$rc)=@_;
+    my $tag;
+               $tag="nkl";
+    sendGeneric($cid,$ri,$rc,$tag,"uid");
+}
+
+sub sendNH{
+    my $ref=$DBServer::Singleton;
+    my ($class,$cid,$ri,$rc)=@_;
+    my $tag;
+               $tag="nhl";
+    sendGeneric($cid,$ri,$rc,$tag,"HostName");
 }
 
