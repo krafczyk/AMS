@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.26 2002/07/12 11:18:58 choutko Exp $
+//  $Id: dbserver.C,v 1.27 2003/10/26 14:20:27 choutko Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -22,7 +22,6 @@
 #ifdef __AMSORACLE__
 #include <oracle.h>
 #endif
-
 unsigned int TDVBufferLength = 50000000;
 
 
@@ -247,7 +246,7 @@ void  DBServer_impl::_init(){
   }
 
 
-   int  DBServer_impl::getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc){
+   int  DBServer_impl::getACS(const DPS::Client::CID &cid, DPS::Server::ACS_out acs, unsigned int & maxc){
 
      unsigned int status = 0;
      unsigned int type   = 0;
@@ -1977,7 +1976,7 @@ int  DBServer_impl::getNK(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)t
 }
 
 
-int  DBServer_impl::getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException){
+int  DBServer_impl::getACS(const DPS::Client::CID &cid, DPS::Client::ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException){
 }
 
 void  DBServer_impl::sendAC(const DPS::Client::CID &cid,  DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc)throw (CORBA::SystemException){
@@ -1995,67 +1994,67 @@ void  DBServer_impl::sendNC(const DPS::Client::CID &cid,  const DPS::Client::Nom
 void  DBServer_impl::sendNK(const DPS::Client::CID &cid,  const DPS::Client::NominalClient & nc,DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 }
 
-CORBA::Boolean  DBServer_impl::getDBSpace(const DPS::Client::CID &cid, const char * path, const char * addpath,DB_out db)throw (CORBA::SystemException){
+CORBA::Boolean  DBServer_impl::getDBSpace(const DPS::Client::CID &cid, const char * path, const char * addpath,DPS::Server::DB_out db)throw (CORBA::SystemException){
 }
 
-int  DBServer_impl::getNHS(const DPS::Client::CID &cid,NHS_out nhl)throw (CORBA::SystemException){
+int  DBServer_impl::getNHS(const DPS::Client::CID &cid,DPS::Client::NHS_out nhl)throw (CORBA::SystemException){
 }
 
-int  DBServer_impl::getAHS(const DPS::Client::CID &cid,AHS_out ahl)throw (CORBA::SystemException){
+int  DBServer_impl::getAHS(const DPS::Client::CID &cid,DPS::Client::AHS_out ahl)throw (CORBA::SystemException){
   //throw DBProblem((const char*)"Some Error");
 
 }
 
 
 
-int  DBServer_impl::getTDV(const DPS::Client::CID & cid,  TDVName & tdvname, TDVbody_out body)throw (CORBA::SystemException){
+int  DBServer_impl::getTDV(const DPS::Client::CID & cid,  DPS::Producer::TDVName & tdvname, DPS::Producer::TDVbody_out body)throw (CORBA::SystemException){
 }
 
-int  DBServer_impl::getSplitTDV(const DPS::Client::CID & cid, unsigned int & pos, TDVName & tdvname, TDVbody_out body, TransferStatus &st)throw (CORBA::SystemException){
+int  DBServer_impl::getSplitTDV(const DPS::Client::CID & cid, unsigned int & pos, DPS::Producer::TDVName & tdvname, DPS::Producer::TDVbody_out body, DPS::Producer::TransferStatus &st)throw (CORBA::SystemException){
 }
 
-void  DBServer_impl::sendTDV(const DPS::Client::CID & cid, const TDVbody & tdv, TDVName & tdvname )throw (CORBA::SystemException){
-}
-
-
-
-int  DBServer_impl::getTDVTable(const DPS::Client::CID & cid,TDVName & tdvname, unsigned int run, TDVTable_out table)throw (CORBA::SystemException){
+void  DBServer_impl::sendTDV(const DPS::Client::CID & cid, const DPS::Producer::TDVbody & tdv, DPS::Producer::TDVName & tdvname )throw (CORBA::SystemException){
 }
 
 
-int  DBServer_impl::getDSTInfoS(const DPS::Client::CID &cid, DSTIS_out res)throw (CORBA::SystemException){
+
+int  DBServer_impl::getTDVTable(const DPS::Client::CID & cid,DPS::Producer::TDVName & tdvname, unsigned int run, DPS::Producer::TDVTable_out table)throw (CORBA::SystemException){
 }
 
-int  DBServer_impl::getRun(const DPS::Client::CID &cid, const FPath & fpath, RUN_out run,TransferStatus & st)throw (CORBA::SystemException,DPS::DBServer::FailedOp){
-}
-int  DBServer_impl::getRunEvInfoS(const DPS::Client::CID &cid, RES_out res, unsigned int & maxrun)throw (CORBA::SystemException){
 
-
-
-
+int  DBServer_impl::getDSTInfoS(const DPS::Client::CID &cid, DPS::Producer::DSTIS_out res)throw (CORBA::SystemException){
 }
 
-void  DBServer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out rv, DSTInfo_out dv)throw (CORBA::SystemException){
+int  DBServer_impl::getRun(const DPS::Client::CID &cid, const DPS::Producer::FPath & fpath, DPS::Producer::RUN_out run,DPS::Producer::TransferStatus & st)throw (CORBA::SystemException,DPS::DBServer::FailedOp){
+}
+int  DBServer_impl::getRunEvInfoS(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int & maxrun)throw (CORBA::SystemException){
+
 
 
 
 }
 
+void  DBServer_impl::getRunEvInfo(const DPS::Client::CID &cid, DPS::Producer::RunEvInfo_out rv, DPS::Producer::DSTInfo_out dv)throw (CORBA::SystemException){
 
-int  DBServer_impl::getDSTS(const DPS::Client::CID & ci, DSTS_out dsts)throw (CORBA::SystemException){
+
+
+}
+
+
+int  DBServer_impl::getDSTS(const DPS::Client::CID & ci, DPS::Producer::DSTS_out dsts)throw (CORBA::SystemException){
 }
 int  DBServer_impl::getFreeHost(const DPS::Client::CID & ci, DPS::Client::ActiveHost_out host)throw (CORBA::SystemException){
 }
 
 
 
-void  DBServer_impl::sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+void  DBServer_impl::sendDSTEnd(const DPS::Client::CID & ci, const  DPS::Producer::DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 }
 
-void  DBServer_impl::sendDSTInfo(const  DSTInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+void  DBServer_impl::sendDSTInfo(const  DPS::Producer::DSTInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 }
 
-void  DBServer_impl::sendRunEvInfo(const  RunEvInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+void  DBServer_impl::sendRunEvInfo(const  DPS::Producer::RunEvInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 }
 
 
@@ -2069,12 +2068,12 @@ void DBServer_impl::clearAHS( DPS::Client::ClientType type)throw (CORBA::SystemE
 }
 void DBServer_impl::clearNHS()throw (CORBA::SystemException){
 }
-void DBServer_impl::clearDST( DSTType type)throw (CORBA::SystemException){
+void DBServer_impl::clearDST( DPS::Producer::DSTType type)throw (CORBA::SystemException){
 }
 void DBServer_impl::clearDSTI()throw (CORBA::SystemException){
 }
 
-void DBServer_impl::clearRunEvInfo( RunStatus status)throw (CORBA::SystemException){
+void DBServer_impl::clearRunEvInfo( DPS::Producer::RunStatus status)throw (CORBA::SystemException){
 }
 
 
@@ -2132,7 +2131,7 @@ char * DBServer_impl::getDBFilePath(const DPS::Client::CID &cid)throw (CORBA::Sy
 }
 
 
-int  DBServer_impl::getRunEvInfoSPerl(const DPS::Client::CID &cid, RES_out res, unsigned int  maxrun, unsigned int & m2)throw (CORBA::SystemException){
+int  DBServer_impl::getRunEvInfoSPerl(const DPS::Client::CID &cid, DPS::Producer::RES_out res, unsigned int  maxrun, unsigned int & m2)throw (CORBA::SystemException){
 }
 
 
@@ -2142,7 +2141,7 @@ void  DBServer_impl::sendACPerl(const DPS::Client::CID &cid, const  DPS::Client:
 
 
 
-int  DBServer_impl::getEnv(const DPS::Client::CID &cid, SS_out ss)throw (CORBA::SystemException){
+int  DBServer_impl::getEnv(const DPS::Client::CID &cid, DPS::Server::SS_out ss)throw (CORBA::SystemException){
 }
 
 void  DBServer_impl::setEnv(const DPS::Client::CID &cid,const char * env, const char *path)throw (CORBA::SystemException){
@@ -2150,18 +2149,18 @@ void  DBServer_impl::setEnv(const DPS::Client::CID &cid,const char * env, const 
 
 
 
-int  DBServer_impl::sendFile(const DPS::Client::CID &cid,  FPath & fpath, const  RUN & file,TransferStatus &st)throw (CORBA::SystemException,DPS::DBServer::FailedOp){
+int  DBServer_impl::sendFile(const DPS::Client::CID &cid,  DPS::Producer::FPath & fpath, const  DPS::Producer::RUN & file,DPS::Producer::TransferStatus &st)throw (CORBA::SystemException,DPS::DBServer::FailedOp){
 }
 
 
-void DBServer_impl::sendTDVUpdate(const DPS::Client::CID & cid,  const TDVName & tdvname )throw (CORBA::SystemException){
+void DBServer_impl::sendTDVUpdate(const DPS::Client::CID & cid,  const DPS::Producer::TDVName & tdvname )throw (CORBA::SystemException){
 }
 
 
 
 
 
-void  DBServer_impl::sendCurrentInfo(const DPS::Client::CID & cid, const  CurrentInfo &ci, int propagate)throw (CORBA::SystemException){
+void  DBServer_impl::sendCurrentInfo(const DPS::Client::CID & cid, const  DPS::Producer::CurrentInfo &ci, int propagate)throw (CORBA::SystemException){
 }
 
 

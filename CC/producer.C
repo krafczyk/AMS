@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.76 2003/09/26 11:06:15 choutko Exp $
+//  $Id: producer.C,v 1.77 2003/10/26 14:20:27 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -1099,7 +1099,7 @@ FMessage("AMSProducer::getinitTDV-F-tdvgetFailed",DPS::Client::CInAbort);
 }
 
 bool AMSProducer::getTDV(AMSTimeID * tdv, int id){
-//cout <<" trying to get tdv "<<tdv->getname()<<endl;
+cout <<" ttrying to get tdv "<<tdv->getname()<<endl;
 DPS::Producer::TDVbody * pbody;
 DPS::Producer::TDVName name;
 name.Name=tdv->getname();
@@ -1115,6 +1115,7 @@ name.Entry.End=e;
  int length=0;
  int suc=0;
  bool oncemore=false;
+ bool exhausted=false;
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   
@@ -1125,13 +1126,19 @@ again:
     suc++;
     break;
   }
-  catch  (CORBA::SystemException & a){
+  catch  (const CORBA::SystemException &  a){
+     cerr<< "Problems with TDV "<<endl;
+//     cerr<< "Problems with TDV "<< a._orbitcpp_get_repoid()<<endl;
+endl;
     _OnAir=false;
   }
  }
 if(!suc){
  if(oncemore){
- if(getior("GetIorExec"))goto again;
+ if(getior("GetIorExec") && !exhausted){
+    exhausted=true;
+    goto again;
+ }
   else FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
   return false;
  }
@@ -1147,11 +1154,9 @@ if(name.Success){
  int nb=tdv->CopyIn(vbody->get_buffer());
  if(nb){
   tdv->SetTime(name.Entry.Insert,name.Entry.Begin,name.Entry.End);
-  cout <<"  gettdv success "<<endl;
   return true;
  }
 }
-  cout <<"  gettdv failuire "<<endl;
 return false;
 }
 bool AMSProducer::getSplitTDV(AMSTimeID * tdv, int id){
@@ -1175,6 +1180,7 @@ name.Entry.End=e;
  uinteger totallength=0;
  while (st!=DPS::Producer::End){
  int suc=0;
+ bool exausted=false;
  again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   
@@ -1190,8 +1196,11 @@ name.Entry.End=e;
   }
 }
 if(!suc){
- if(getior("GetIorExec"))goto again;
- else FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
+ if(getior("GetIorExec")&& !exausted){
+   exausted=true;
+   goto again;
+}
+ else FMessage("AMSProducer::getSplitTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
  return false;
 }
 if(!totallength){
