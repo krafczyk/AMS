@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.25 2001/08/01 13:28:50 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.26 2001/09/04 13:21:08 choutko Exp $          
 
 
 
@@ -128,7 +128,9 @@ VII.  Standalone version
           i)   cernlib 
           ii) nag fortran library  
           iii) libamsut   (in /afs/cern.ch/exp/ams/Offline/lib)  
-
+          iv)  in case of linux installation
+               /usr/bin/dirent.h should be replaced by 
+               e.g. pcamsp1:/usr/bin/dirent.h
 
 VIII. Misc
 
@@ -164,7 +166,7 @@ c. SoftWare/DataAccess
 d.  Misc
     i)  you may need to override default shell limits to run offline program;
         recommended settings are (in c-shell) for ams-geant3 (geant4)
-        limit stack 8191
+        limit stack 32000
         limit data 256000 (512000) 
     ii) To creat Mgxint/dec-cxx cxx6.1 is needed (thanks to 6.2 bug)
     iii)daqevt.C must be compiled without -O switch with egcs compiler
@@ -177,4 +179,12 @@ f. The whole set of AMS01 public data ntuples is in /Offline/ntuples
 
 g. Geant4 related stuff in doc/g4.doc
 
+IX  AMS Event Display
+
+To run an ams event display
+
+source $Offline/vdev/install/amsvar
+$amsed02  ntuple_file
+
 Comments, questions to v.choutko@cern.ch
+

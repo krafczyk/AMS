@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.199 2001/08/10 12:59:46 choutko Exp $
+#  $Id: datacards.doc,v 1.200 2001/09/04 13:21:08 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -929,7 +929,7 @@ R 31   Chi22DMax(1000)    //  max chi2 for direction fit
 R 32   PosError1D(0.1)    //  Est error between cluster cofg and shower core (cm)
 R 33   Chi2Change2D(0.33) //  minimal chi2 rel change to remove higest resid hit in dir fit
 R 34   TranShowerSize2d(10) // transwersal shower size (cm) (to add orphaned clusters)
-R 35   SimpleRearLeak[4](0.01,0.94e-3,3.7,0.975e-3)  // parameters to correct rear leak (see EcalShower::EnergyFit)
+R 35   SimpleRearLeak[4](0.01,0.94e-3,3.7*0.8,0.975e-3)  // parameters to correct rear leak (see EcalShower::EnergyFit)
 R 39   CalorTransSize(32)  // trans calorimeter size (cm)     
 R 40   EMDirCorrection(1.035)  // em shower shape direction correction 
 

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.13 2001/08/10 12:59:46 choutko Exp $
+//  $Id: ecalrec.h,v 1.14 2001/09/04 13:21:08 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -314,6 +314,7 @@ static void gamfunr(number& xc, number & fc, EcalShower * ptr);
 void _AngleRes();
 number _Chi2Corr();
 void _EnergyRes();
+void _EnergyCorr();
 public:
 
 EcalShower(Ecal2DCluster *px, Ecal2DCluster *py);
