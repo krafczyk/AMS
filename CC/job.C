@@ -1976,7 +1976,10 @@ void AMSJob::_axendjob(){
           assert(pg!=NULL);
   }
 
-    if(isProduction())AMSEvent::_endofrun();
+    if(isProduction()){
+      AMSEvent::PosInRun++;
+      AMSEvent::_endofrun();
+    }
     AMSUser::EndJob(); 
 }
 
