@@ -130,7 +130,7 @@ void AMSAntiRawEvent::mc_build(int &stat){
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
   integer i,j,nup,ndown,sector,ierr,trflag(0),it,sta[2];
-  integer sbt,trpatt(0),lsbit(1);
+  integer sbt,trpatt,lsbit,hcount[4];
   int16u phbit,maxv,id,chsta,ntdca,tdca[ANAHMX],ntdct,tdct[ANAHMX],itt;
   number edep,ede,edept(0),time,z,c0,c1,tlev1,ftrig,t1,t2,dt,tovt;
   static number esignal[2][MAXANTI];
@@ -188,18 +188,31 @@ void AMSAntiRawEvent::mc_build(int &stat){
 //
   if(ANTIMCFFKEY.mcprtf)HF1(2000,edept,1.);
 //-----------------
-// create trigger pattern:
-//
+// create Anti-trigger pattern:
+//                         
+  for(i=0;i<4;i++)hcount[i]=0;
+  trpatt=0;
   for(i=0;i<MAXANTI;i++){
     up=esignal[0][i];
     down=esignal[1][i];
     antisccal[i].getstat(sta);// =0/1-> alive/dead
     antisccal[i].gettthr(thresh);
-    if((up>thresh[1] && sta[0]==0) || (down>thresh[0] && sta[1]==0)){// require OR of both ends
-      sbt=lsbit<<i;
-      trpatt|=sbt;
+    if((i<4)||(i>11)){ // <-- x>0
+      if(up>thresh[1] && sta[0]==0)hcount[3]+=1; // z>0
+      if(down>thresh[0] && sta[1]==0)hcount[2]+=1; // z<0
+    }
+    else{              // <-- x<0
+      if(up>thresh[1] && sta[0]==0)hcount[1]+=1; // z>0
+      if(down>thresh[0] && sta[1]==0)hcount[0]+=1; // z<0
     }
   }
+//
+  for(i=0;i<4;i++){
+    if(hcount[i]>3)hcount[i]=3;
+    trpatt|=hcount[i]<<(16+i*2);
+  }
+  trpatt|=(min(hcount[0],hcount[1])+min(hcount[2],hcount[3]));
+//
   AMSAntiRawEvent::setpatt(trpatt);// add trigger-pattern to AMSAntiRawEvent::
 //----------------
 // convert p.e.->TovT(ns)->TovT(TDCchan):
@@ -276,6 +289,7 @@ void AMSAntiRawEvent::mc_build(int &stat){
 }
 //---------------------------------------------------
 void AMSAntiRawCluster::build(int &status){
+//(this is still 1-sided object)
   int16u ntdca,tdca[ANAHMX*2],ntdct,tdct[ANAHMX*2];
   int16u id,idN,sta;
   int statdb[2];
