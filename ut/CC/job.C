@@ -232,7 +232,7 @@ TRMCFFKEY.thr2R[1]=1;
 TRMCFFKEY.neib[0]=1;
 TRMCFFKEY.neib[1]=1;
 TRMCFFKEY.CalcCmnNoise[0]=1;
-TRMCFFKEY.CalcCmnNoise[1]=1;
+TRMCFFKEY.CalcCmnNoise[1]=3;
 {
 int i,j,k;
 for(i=0;i<2;i++){
@@ -253,7 +253,7 @@ TRCALIB.RhoThrA=0.7;
 TRCALIB.RhoThrV=0.8;
 TRCALIB.BadChanThr[0]=3.3;
 TRCALIB.BadChanThr[1]=0.002;
-TRCALIB.Method=1;
+TRCALIB.Method=2;
 TRCALIB.Pass=1;
 TRCALIB.DPS=0;
 TRCALIB.UPDF=4;
@@ -563,7 +563,7 @@ TRFITFFKEY.pattern[21]=1;
   for( int k=22;k<42;k++)TRFITFFKEY.pattern[k]=0;
 }
 TRFITFFKEY.UseTOF=1;
-TRFITFFKEY.Chi2FastFit=1000;
+TRFITFFKEY.Chi2FastFit=2000;
 TRFITFFKEY.Chi2StrLine=20;
 TRFITFFKEY.Chi2Circle=20;
 TRFITFFKEY.ResCutFastFit=0.5;

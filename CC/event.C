@@ -85,13 +85,11 @@ _sitkinitrun();
 _sitofinitrun();
 _siantiinitrun();
 _sictcinitrun();
-_sitrdinitrun();
 }
 
 void AMSEvent::_reamsinitrun(){
 
 _retkinitrun();
-_retrdinitrun();
 _retofinitrun();
 _reantiinitrun();
 _rectcinitrun();
@@ -103,7 +101,6 @@ AMSUser::InitRun();
 void AMSEvent::_siamsinitevent(){
  _signinitevent();
  _sitkinitevent();
- _sitrdinitevent();
  _sitofinitevent();
  _siantiinitevent();
  _sictcinitevent();
@@ -113,7 +110,6 @@ void AMSEvent::_reamsinitevent(){
  _redaqinitevent();
  _retkinitevent();
  _retriginitevent();
- _retrdinitevent();
  _retofinitevent();
  _reantiinitevent();
  _rectcinitevent();
@@ -230,13 +226,9 @@ void AMSEvent::_sictcinitevent(){
   }
 }
 
-void AMSEvent::_sitrdinitevent(){
-}
 
 
 
-void AMSEvent::_retrdinitevent(){
-}
 
 
 void AMSEvent::_reantiinitevent(){
@@ -435,7 +427,6 @@ void AMSEvent::event(){
 //------------------------------------------------------------------
 void AMSEvent::_siamsevent(){
 _sitkevent(); 
-_sitrdevent();
 _sitofevent(); 
 _siantievent(); 
 _sictcevent(); 
@@ -453,14 +444,13 @@ void AMSEvent::_reamsevent(){
   _reantievent();
   _rectcevent(); 
   _retkevent(); 
-  _retrdevent(); 
+if(AMSJob::gethead()->isReconstruction() )_retrigevent();
   _reaxevent();
    AMSUser::Event();
 }
 
 void AMSEvent::_caamsinitevent(){
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkinitevent();
- if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CCerenkov)_cactcinitevent();
@@ -481,8 +471,6 @@ void AMSEvent::_catofinitevent(){
 void AMSEvent::_cantinitevent(){
 }
 
-void AMSEvent::_catrdinitevent(){
-}
 
 void AMSEvent::_caaxinitevent(){
 }
@@ -495,7 +483,6 @@ void AMSEvent::_caamsevent(){
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantievent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CCerenkov)_cactcevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkevent();
-  if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxevent();
 }
 
@@ -538,8 +525,6 @@ void AMSEvent::_catofevent(){
            TOFAMPLcalib::select();// event selection for TOF AMPL-calibration
 }
 //---------------------------------------------------------------------------
-void AMSEvent::_catrdevent(){
-}
 
 void AMSEvent::_cantievent(){
 }
@@ -589,9 +574,6 @@ AMSgObj::BookTimer.stop("RETKEVENT");
 
 }
 
-void AMSEvent::_retrdevent(){
-}
-//---------------------------------------------------------------------
 void AMSEvent::_reantievent(){
   integer trflag(0);
   TriggerLVL1 *ptr;
@@ -768,8 +750,6 @@ AMSgObj::BookTimer.stop("REAXEVENT");
 void AMSEvent::_sitkinitrun(){
 }
 
-void AMSEvent::_sitrdinitrun(){
-}
 
 void AMSEvent::_sitofinitrun(){
 }
@@ -791,8 +771,6 @@ void AMSEvent::_retkinitrun(){
   }
 }
 
-void AMSEvent::_retrdinitrun(){
-}
 
 void AMSEvent::_retofinitrun(){
 }
@@ -822,9 +800,6 @@ void AMSEvent:: _sitkevent(){
 #endif
 }
 
-void AMSEvent:: _sitrdevent(){
-}
-//---------------------------------------------------------------
 void AMSEvent:: _siantievent(){
   int stat;
   AMSgObj::BookTimer.start("SIANTIEVENT");
@@ -860,6 +835,19 @@ void AMSEvent:: _sitrigevent(){
   TriggerLVL3::build();
 
 }
+
+
+void AMSEvent:: _retrigevent(){
+  // Backup solution to "simulate" trigger 1 & 3 for rec data
+  
+  AMSContainer *pc= getC("TriggerLVL1",0);
+  if(pc && pc->getnelem()==0)TriggerLVL1::build();
+  pc= getC("TriggerLVL3",0);
+  if(pc && pc->getnelem()==0)TriggerLVL3::build();
+
+}
+
+
 //---------------------------------------------------------------
 void AMSEvent:: _sitofevent(){
   AMSContainer *p;

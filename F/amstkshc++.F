@@ -5982,7 +5982,7 @@ c        print *,' Fit failed ',ifail
              if(ims.eq.0.or.i.le.2)then
               fact(i)=0
              else
-              beta=max(init(7)/sqrt(init(7)**2+xmass**2),0.1)
+              beta=max(abs(init(7)/sqrt(init(7)**2+xmass**2)),0.1)
               fact(i)=(sms*chrg/init(7)/beta)**2/abs(init(6))
              endif
                if(icase.eq.1)then

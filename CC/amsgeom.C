@@ -1282,7 +1282,7 @@ ostrstream ost(name,sizeof(name));
          par[1]=AMSDBc::ssize_inactive(i,1)/2;
          par[2]=AMSDBc::silicon_z(i)/2;
          coo[0]=(2*k-1)*(AMSDBc::ssize_inactive(i,0)*AMSDBc::nsen(i+1,j+1)/2+
-         AMSDBc::halfldist(i+1)-par[0]);
+         AMSDBc::halfldist(i)-par[0]);
          coo[1]=(AMSDBc::nlad(i+1)-j)*AMSDBc::c2c(i)-
          (AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
          coo[2]=AMSDBc::zpos(i);
@@ -1304,6 +1304,9 @@ ostrstream ost(name,sizeof(name));
         integer status=1;
         if(TKDBc::update())TKDBc::SetLadder(i,j,k,status,coo,nrm,gid);
         else               TKDBc::GetLadder(i,j,k,status,coo,nrm);
+        //        if(i==5){
+        //          cout <<"Lad "<<j<<" "<<k<<" "<< coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
+        //        }
         lad[k]=(AMSgvolume*)dau->add(new AMSgvolume(
         "NONACTIVE_SILICON",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
        }

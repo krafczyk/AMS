@@ -46,7 +46,8 @@ void AMSTrRawCluster::expand(number *adc)const {
 AMSTrIdSoft id(_address);
   for (int i=0;i<_nelem;i++){
    id.upd(_strip+i);
-   adc[id.getstrip()]=_array[i]/id.getgain();
+   if(TRCALIB.LaserRun)adc[id.getstrip()]=_array[i]/id.getgain()/id.getlaser();
+   else adc[id.getstrip()]=_array[i]/id.getgain();
   }
 
 
@@ -318,9 +319,28 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
   for(ptr=p+1;ptr<p+n;ptr+=leng+3){
      leng=(*ptr)&255;
      AMSTrIdSoft id(ic,int16u(*(ptr+1)));
-     AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
-     AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
-     (int16*)ptr+2));
+     if(!id.dead() ){
+       if(id.teststrip(id.getstrip()+leng)){
+        AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+        AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
+        (int16*)ptr+2));
+       }
+        else {
+          // split into two clusters;
+        AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+        AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getmaxstrips(),
+        (int16*)ptr+2));
+        integer second=id.getstrip()+leng-id.getmaxstrips();
+        id.upd(0);
+         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+         AMSTrRawCluster(id.getaddr(),id.getstrip(),second,
+         (int16*)ptr+2+leng-second));
+          
+        }
+     }
+#ifdef __AMSDEBUG__
+     else cerr <<" AMSTrRawCluster::buildraw-E-Id.Dead "<<id.gethaddr()<<endl;
+#endif
      //     cout <<"br- "<<ic<<" "<<id.getaddr()<<" "
      //          <<id.getstrip()<<" "<<leng<<" "<<*((int16*)ptr+2)<<endl;
   }
@@ -590,6 +610,7 @@ void AMSTrRawCluster::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[
          vamax=j+maxva-idd.getstripa();
          integer avsig=0;
          geant cmn=0;
+         if(TRCALIB.Method==2){
          for (l=vamin;l<vamax;l++){
            idd.upd(l);
            idlocal[l-vamin]=id[l];
@@ -599,7 +620,7 @@ void AMSTrRawCluster::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[
          if(avsig>1)cmn=cmn/avsig;
          for(l=vamin;l<vamax;l++){
            idd.upd(l);
-           if(!idd.getsignsigraw() ){
+           if( !idd.getsignsigraw() ){
             geant cmn=0;
             geant avsig=0;
             for(int kk=0;kk<maxva;kk++){
@@ -616,6 +637,22 @@ void AMSTrRawCluster::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[
             id[l]+=-cmn;
            }
            else  id[l]+=-cmn;
+         }
+         }
+         else{
+         for (l=vamin;l<vamax;l++){
+           idd.upd(l);
+           if(idd.getsignsigraw())idlocal[avsig++]=id[l];
+         }
+         AMSsortNAGa(idlocal,avsig);
+         if(avsig>2*TRMCFFKEY.CalcCmnNoise[1]+1){
+           for(l=TRMCFFKEY.CalcCmnNoise[1];l<avsig-TRMCFFKEY.CalcCmnNoise[1];l++)cmn+=idlocal[l];
+           cmn=cmn/(avsig-2*TRMCFFKEY.CalcCmnNoise[1]);
+         }
+         for(l=vamin;l<vamax;l++)id[l]=id[l]-cmn;
+
+
+
          }
       }
       // Dynamically Update pedestals if needed

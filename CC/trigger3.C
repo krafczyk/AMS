@@ -17,6 +17,7 @@ void TriggerAuxLVL3::fill(){
 
 {
 
+  if(!AMSJob::gethead()->isReconstruction()){
   // AddNoise first ( a bit conservative)
   int i,j;
   integer ierr=0;
@@ -55,7 +56,7 @@ void TriggerAuxLVL3::fill(){
     }
     }  
   }
-
+  }
   for(int icl=0;icl<2;icl++){ 
    AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
    getheadC("AMSTrRawCluster",icl);

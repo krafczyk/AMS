@@ -497,7 +497,7 @@ integer AMSTrCluster::buildWeak(integer refit=0){
            else left++;
          }
          status=status | AMSTrCluster::WEAK;
-         if(adc[center]/id.getsig()<= TRCLFFKEY.Thr1R[side])_addnext(
+         if(id.getsig()!=0 && adc[center]/id.getsig()<= TRCLFFKEY.Thr1R[side])_addnext(
          id,status,left-center,right-center+1,sum,ssum,pos,rms,adc+left);
          status=status &  (~AMSTrCluster::WEAK);
            for (int j=left;j<right+1;j++){
@@ -1348,7 +1348,7 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 
 
 void AMSTrTrack::AdvancedFit(){
-  if(_Ridgidity < 0){
+    if(_Ridgidity < 0){
    if(TRFITFFKEY.FastTracking)Fit(0);
    if(_Pattern <22){
      Fit(1);

@@ -90,6 +90,7 @@ int16u _haddr;    // Hardware address
 int16u _crate;    // Crate no
 integer _VANumber; // from 0 to 5 (9)
 AMSTrIdGeom * _pid;
+static geant laser[6][2];
 static integer idsoft2linear[ms];
 static integer *status;
 static geant *peds;
@@ -133,6 +134,7 @@ inline geant getsig() const {return sigmas[idsoft2linear[_addr]+_strip];}
 inline geant getsigraw() const {return sigmaraws[idsoft2linear[_addr]+_strip];}
 inline geant getsignsigraw() const {return sigmaraws[idsoft2linear[_addr]+_strip]>0?1:0;}
 inline geant getgain() const {return gains[idsoft2linear[_addr]+_strip];}
+inline geant getlaser() const {return laser[_layer-1][_side];}
 inline geant getindnoise() const{return indnoise[idsoft2linear[_addr]+_strip];}
 integer getprob(geant r);
 virtual  geant getcmnnoise() const {return cmnnoise[_VANumber][_addr];}
@@ -164,6 +166,9 @@ AMSTrIdSoft & operator = (const AMSTrIdSoft &o);
 integer operator == (const AMSTrIdSoft &o);
 inline integer cmpt() const {return _layer+10*_drp+1000*_half+2000*_side+10000*_strip;}
 inline integer getmaxstrips(){return AMSDBc::NStripsDrp(_layer,_side);}
+inline integer teststrip(integer strip){
+return strip>=0 && strip <getmaxstrips();
+}
 inline void upd(integer strip){
 #ifdef __AMSDEBUG__
        if(_side==1)assert (strip>=0 && strip <getmaxstrips());

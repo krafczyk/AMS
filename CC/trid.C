@@ -84,6 +84,12 @@ number * AMSTrIdGeom::_swxyl[nl][2];
 number * AMSTrIdGeom::_swxy[nl][2];
 number * AMSTrIdGeom::_swxyRl[nl][2];
 number * AMSTrIdGeom::_swxyR[nl][2];
+geant AMSTrIdSoft::laser[6][2]={   1.,  1.,
+                                   1.,  1.,
+                                   2.,  2.,
+                                  10., 12.,
+                                  70., 90.,
+                                 200.,240.};                                 
 geant * AMSTrIdSoft::gains=0;
 geant * AMSTrIdSoft::peds=0;
 integer * AMSTrIdSoft::status=0;

@@ -133,11 +133,20 @@ integer DAQEvent::_EventOK(){
      if(ntot != _Length-2){
        cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
          _Length<<" Blocks say length is "<<ntot+2<<endl;
+       cerr <<" SubBlock dump follows"<<endl;
+     _pcur=_pData+2;
+     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
+       cerr <<" ID " <<*(_pcur+1)<<" Length "<< *(_pcur)+_OffsetL<<endl;
+   
        return 0;
      }
      else return 1;    
     }
-    else return -1;
+    else {
+      cout <<"DAQEvent::_EventOK-I-NonEventBlockFound-ID "<<_pData[1]<<" Length "<<
+        _Length<<endl;
+     return -1;
+    }
   }
   else return 0;
 }
