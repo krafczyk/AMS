@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.8 2002/03/28 14:33:43 choutko Exp $
+# $Id: DBServer.pm,v 1.9 2003/11/12 10:21:34 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -230,6 +230,7 @@ sub UpdateEverything{
          }
     }
          $cid{Type}="DBServer";
+     $length=0;
       ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
          if($length==0){
              $ref->{adbsl}=undef;
@@ -460,7 +461,11 @@ sub SendId{
                 warn "Exiting corba exc";
             };
         }
-    $ref->{myref}->sendACPerl($ref->{cid},$ref->{ac},"Update");
+      $ref->{myref}->sendACPerl($ref->{cid},$ref->{ac},"ClearCreate");
+#     catch DPS::DBProblem with{
+#         warn " DBProblem : Trying Create  \n";
+#         $ref->{myref}->sendACPerl($ref->{cid},$ref->{ac},"Create");
+#      }
     return 1;
 }
 
