@@ -250,7 +250,7 @@ public:
 
 class AMSTrTrack: public AMSlink{
 protected:
-AMSTrRecHit * _Pthit[6];
+AMSTrRecHit * _Pthit[nl];
 uinteger _Address;
 integer _Pattern;
 integer _NHits;
@@ -355,6 +355,7 @@ AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
 AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
 AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
   {init(  phit);}
+AMSTrTrack(AMSDir dir, AMSPoint point);
 void init( AMSTrRecHit * phit[]);
 static integer build(integer refit=0);
 static integer buildWeak(integer refit=0);

@@ -31,6 +31,7 @@ protected:
  static integer patconf[npatb][4];
 
 public:
+ ~AMSBeta();
  AMSBeta(): AMSlink(),_ptrack(0){for(int i=0;i<4;i++)_pcluster[i]=0;}
  AMSBeta(integer pattern, AMSTOFCluster * pcluster[4], AMSTrTrack * ptrack, number chi2s): 
          AMSlink(),_Pattern(pattern),_Chi2Space(chi2s),_ptrack(ptrack)
@@ -50,6 +51,8 @@ AMSTOFCluster * getpcluster(integer i){return i>=0 && i<4? _pcluster[i]:0;}
  void SimpleFit(integer nhit, number sleng[]);
 static integer _addnext(integer pat, integer nhit, number sleng[],
 AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number theta, number chi2s);
+static integer _addnext(integer pat, integer nhit, number sleng[],
+AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number chi2s);
 static AMSPoint Distance(AMSPoint coo, AMSPoint ecoo, AMSTrTrack *ptr,
                        number & sleng, number & theta);
 static integer build(integer refit=0);

@@ -78,6 +78,7 @@ public:
      static const integer CHARGEUSED;
      static const integer GOOD;
      static const integer BADINTERPOL;
+     static const integer NOTRACK;
 
 // machine dependent values
 

@@ -156,6 +156,11 @@ void       setpctc(AMSCTCCluster* p, int n)   { if (n>=0 && n < 2) _pctc[n] = p;
 integer    getgpart()               {return _GPart;}
 void       setgpart(integer gpart)  {_GPart = gpart;}
 //-
+~AMSParticle(){
+if(_ptrack && _ptrack->getpattern()<0){
+  delete _ptrack;
+  _ptrack=0;
+}
+}
 };
-
 #endif

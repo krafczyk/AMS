@@ -253,8 +253,9 @@ void AMSParticle::_writeEl(){
     PN->BetaP[PN->Npart]+=pc->getnelem();
   }
  
-  PN->TrackP[PN->Npart]=_ptrack->getpos();
   pat=_ptrack->getpattern();
+  if(_ptrack->checkstatus(AMSDBc::NOTRACK))PN->TrackP[PN->Npart]=-1;
+  else PN->TrackP[PN->Npart]=_ptrack->getpos();
   if(AMSTrTrack::Out(IOPA.WriteAll%10==1)){
     // Writeall
     for(i=0;i<pat;i++){
@@ -313,6 +314,9 @@ void AMSParticle::_writeEl(){
     }
       PN->TrCoo[PN->Npart][i][2]=_Local[i];
   }
+
+  PN->Cutoff[PN->Npart]=_CutoffMomentum;
+
 
 // New ATC association
   const integer maxh=100;
@@ -374,9 +378,10 @@ void AMSParticle::_writeEl(){
   float ATCbeta[MAXPART];
 */ 
 
+float atcbeta;
 atcrec_(AMSEvent::gethead()->getrun(), nhits, PN->CooCTC, ctchitlayer, ctchitcolumn, ctchitrow, ctchitsignal,  
         PN->ATCnbcel[PN->Npart], PN->ATCnbphe[PN->Npart],   PN->ATCidcel[PN->Npart],  PN->ATCdispm[PN->Npart], 
-        PN->ATCdaero[PN->Npart], PN->ATCstatu[PN->Npart], PN->ATCbeta[PN->Npart]); 
+        PN->ATCdaero[PN->Npart], PN->ATCstatu[PN->Npart], atcbeta); 
 
 // cout << "ATC debug" << PN->ATCnbcel[PN->Npart][1] << PN->ATCnbcel[PN->Npart][1] << endl;
 
@@ -517,7 +522,7 @@ void AMSParticle::refit(int fast){
           }
       }
     }
-    if(fast){
+    if(fast || _ptrack->checkstatus(AMSDBc::NOTRACK)){
       _loc2gl();
       return;
     }
@@ -665,9 +670,10 @@ void AMSParticle::_loc2gl(){
   number cl4=cl*cl*cl*cl;
   number mom=xfac*cl4/(sqrt(1.-chsgn*cth*cl3)+1)/(sqrt(1.-chsgn*cth*cl3)+1)*_Charge;
   _CutoffMomentum=chsgn*mom;
+/*
   integer rgcutoff=(int)(mom/_Charge*10+.5)<(1<<10)-1?(int)(mom/_Charge*10+.5):(1<<10)-1;
   _pbeta->setstatus(rgcutoff<<20);
-    
+*/    
           AMSgObj::BookTimer.stop("part::loc2gl");
 
 }

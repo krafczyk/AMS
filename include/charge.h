@@ -60,8 +60,9 @@ protected:
    static integer _chargeTOF[ncharge];
 public:
   AMSCharge *  next(){return (AMSCharge*)_next;}
-  AMSCharge(): AMSlink(),  _pbeta(0){}
-  AMSCharge(AMSBeta * pbeta, number trtr, number trtof, number trtofd): AMSlink(), _pbeta(pbeta), _TrMeanTracker(trtr),_TrMeanTOF(trtof),_TrMeanTOFD(trtofd){}
+  AMSCharge(): AMSlink(),  _pbeta(0),_iTracker(0){}
+  AMSCharge(AMSBeta * pbeta, number trtr, number trtof, number trtofd): AMSlink(), _pbeta(pbeta), _TrMeanTracker(trtr),_TrMeanTOF(trtof),_TrMeanTOFD(trtofd),
+_iTracker(0){}
   integer getvotedcharge(int & index);
   inline number getrmeantrk(){return _TrMeanTracker/2;}
   inline number getrmeantof(){return _TrMeanTOF;}

@@ -158,7 +158,8 @@ public:
   int   ATCdispm[MAXPART][2];
   int   ATCdaero[MAXPART][2];
   int   ATCstatu[MAXPART][2];
-  float ATCbeta[MAXPART];
+//  float ATCbeta[MAXPART];
+  float Cutoff[MAXPART];
   float CooCTC[MAXPART][2][3];
   float TOFCoo[MAXPART][4][3];
   float AntiCoo[MAXPART][2][3];

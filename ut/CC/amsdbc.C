@@ -26,6 +26,7 @@ const integer AMSDBc::GlobalDB=16384*2*2*2;
 const integer AMSDBc::CHARGEUSED=16384*2*2*2*2;
 const integer AMSDBc::GOOD      =16384*2*2*2*2*2;
 const integer AMSDBc::BADINTERPOL =16384*2*2*2*2*2*2;
+const integer AMSDBc::NOTRACK     =16384*2*2*2*2*2*2*2;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;

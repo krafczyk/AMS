@@ -214,7 +214,7 @@ integer AMSCharge::build(integer refit){
         if(nhitTracker<2){
           if(!weak && nallTracker) weak=1;
           else{
-            cerr<<"AMSCharge::build -E- nallTracker = 0"<<endl;
+//            cerr<<"AMSCharge::build -E- nallTracker = 0"<<endl;
             break;
           }
         }else break;
@@ -430,7 +430,7 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
     if(trkfit!=-1) failtrk=!FitTracker(-1,beta,bstatus,nhitTracker,pTrackerc,ETRK);
   }
   else{
-    cerr<<"AMSCharge::Fit -E- no Tracker hit found"<<endl;
+    //cerr<<"AMSCharge::Fit -E- no Tracker hit found"<<endl;
   }
 
   return !failtrk;

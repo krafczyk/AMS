@@ -41,6 +41,9 @@ AMSPoint&  operator =(integer o){_x=o;_y=o;_z=o;return *this;}
 AMSPoint&  operator =(number o){_x=o;_y=o;_z=o;return *this;}
 AMSPoint&  operator =(const AMSPoint & o){_x=o._x;_y=o._y;_z=o._z;return *this;}
 number prod(AMSPoint o)const{return (_x*o._x+_y*o._y+_z*o._z);}
+number dist(AMSPoint o)const{return sqrt((_x-o._x)*(_x-o._x)+
+                                         (_y-o._y)*(_y-o._y)+
+                                         (_z-o._z)*(_z-o._z));}
 number &  operator[](integer i){
   if(i<=0)return _x;else if(i==1)return _y; else return _z;}
 friend ostream &operator << (ostream &o, const  AMSPoint &b )

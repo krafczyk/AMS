@@ -3066,3 +3066,14 @@ uinteger AMSTrTrack::encodeaddress(integer ladder[2][6]){
    }
    return address;
 }
+
+AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point):AMSlink(0,0),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
+_Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
+ for(int i=0;i<nl;i++){
+  _Pthit[i]=0;
+ }
+ _Theta=dir.gettheta();
+ _Phi=dir.getphi();
+ _P0=point;
+}
