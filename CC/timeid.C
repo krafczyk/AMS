@@ -11,6 +11,9 @@
 #include <sys/dir.h>
 #include <trcalib.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/file.h>
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0, 
@@ -318,70 +321,112 @@ return strstr(entry->d_name,(char*)*_selectEntry)!=NULL;
 void AMSTimeID::_fillDB(const char *dir){
 for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
     _DataBaseSize=0;
-    AString fnam(getname());
-    fnam+= getid()==0?".0":".1";
-    _selectEntry=&fnam;
-    dirent ** namelist;
-    int nptr=scandir(dir,&namelist,&_select,NULL);     
-    if(nptr){
-     for(i=0;i<4;i++)_pDataBaseEntries[i]=new uinteger[nptr];
-     for(i=0;i<nptr;i++) {
-      int valid=0;
-      int kvalid=0;
-      for(int k=strlen((char*)fnam);k<namelist[i]->d_namlen-1;k++){
-       if((namelist[i]->d_name)[k]=='.' )valid++;
-       if((namelist[i]->d_name)[k]=='.')kvalid=k;
-      }
-      if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
-        sscanf((namelist[i]->d_name)+kvalid+1,"%d",
-                         _pDataBaseEntries[0]+_DataBaseSize);
-        fstream fbin;
-        AString ffile(dir);
-        ffile+=namelist[i]->d_name;
-        fbin.open((const char *)ffile,ios::in);
-        uinteger temp[3];
-        if(fbin){
-         fbin.seekg(fbin.tellg()+_Nbytes+sizeof(_CRC));
-         fbin.read((char*)temp,3*sizeof(temp[0]));
-         if(fbin.good()){
-           _convert(temp,3);
-           _pDataBaseEntries[1][_DataBaseSize]=temp[0];
-           _pDataBaseEntries[2][_DataBaseSize]=temp[1];
-           _pDataBaseEntries[3][_DataBaseSize]=temp[2];
-           _DataBaseSize++;
+    AString fmap(dir);
+    fmap+=getname();
+    fmap+=getid()==0?".0.map":".1.map";
+    fstream fbin;
+    struct stat statbuf_map;
+    struct stat statbuf_dir;
+    if(!stat((const char *)fmap,&statbuf_map) && !stat(dir,&statbuf_dir) &&
+      statbuf_dir.st_mtime <= statbuf_map.st_mtime ){
+       fbin.open(fmap,ios::in);
+       if(fbin){
+         fbin>>_DataBaseSize;
+         for(i=0;i<4;i++){
+           _pDataBaseEntries[i]=new uinteger[_DataBaseSize];
+           for(int k=0;k<_DataBaseSize;k++){
+             fbin>>_pDataBaseEntries[i][k];
+           }
          }
          fbin.close();
-        }
-                 
-      }
-      free(namelist[i]);
-     }
-     // sort
-     //AMSsortNAGa(_pDataBaseEntries[0],_DataBaseSize);
-     
-     uinteger **padd= new uinteger*[_DataBaseSize];
-     uinteger *tmp=  new uinteger[_DataBaseSize];
-#ifdef __AMSDEBUG__
-      assert(padd!=NULL && tmp!=NULL);
-#endif
-     for(i=0;i<_DataBaseSize;i++){
-        tmp[i]=_pDataBaseEntries[3][i];
-        padd[i]=tmp+i;
-     }
-     AMSsortNAG(padd,_DataBaseSize);
-     for(i=0;i<4;i++){
-      for(int k=0;k<_DataBaseSize;k++){
-        tmp[k]=_pDataBaseEntries[i][k];
-      }
-      for(k=0;k<_DataBaseSize;k++){
-       _pDataBaseEntries[i][k]=*(padd[k]);
-      }
-     }
-    delete[] padd;
-    delete[] tmp;
-    
-    free(namelist);
+       }
+       else cerr <<"AMSTimeID::_fillDB-S-CouldNot open map file "<<fmap<<endl; 
+       
     }
-    cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "<<fnam<<endl; 
+    else {
+      AString fnam(getname());
+      fnam+= getid()==0?".0":".1";
+      _selectEntry=&fnam;
+      dirent ** namelist;
+      int nptr=scandir(dir,&namelist,&_select,NULL);     
+      if(nptr){
+        for(i=0;i<4;i++)_pDataBaseEntries[i]=new uinteger[nptr];
+        for(i=0;i<nptr;i++) {
+          int valid=0;
+          int kvalid=0;
+          for(int k=strlen((char*)fnam);k<namelist[i]->d_namlen-1;k++){
+            if((namelist[i]->d_name)[k]=='.' )valid++;
+            if((namelist[i]->d_name)[k]=='.')kvalid=k;
+          }
+          if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
+            sscanf((namelist[i]->d_name)+kvalid+1,"%d",
+                   _pDataBaseEntries[0]+_DataBaseSize);
+            AString ffile(dir);
+            ffile+=namelist[i]->d_name;
+            fbin.open((const char *)ffile,ios::in);
+            uinteger temp[3];
+            if(fbin){
+              fbin.seekg(fbin.tellg()+_Nbytes+sizeof(_CRC));
+              fbin.read((char*)temp,3*sizeof(temp[0]));
+              if(fbin.good()){
+                _convert(temp,3);
+                _pDataBaseEntries[1][_DataBaseSize]=temp[0];
+                _pDataBaseEntries[2][_DataBaseSize]=temp[1];
+                _pDataBaseEntries[3][_DataBaseSize]=temp[2];
+                _DataBaseSize++;
+              }
+              fbin.close();
+            }
+            
+          }
+          free(namelist[i]);
+        }
+        // sort
+        //AMSsortNAGa(_pDataBaseEntries[0],_DataBaseSize);
+        
+        uinteger **padd= new uinteger*[_DataBaseSize];
+        uinteger *tmp=  new uinteger[_DataBaseSize];
+#ifdef __AMSDEBUG__
+        assert(padd!=NULL && tmp!=NULL);
+#endif
+        for(i=0;i<_DataBaseSize;i++){
+          tmp[i]=_pDataBaseEntries[3][i];
+          padd[i]=tmp+i;
+        }
+        AMSsortNAG(padd,_DataBaseSize);
+        for(i=0;i<4;i++){
+          for(int k=0;k<_DataBaseSize;k++){
+            tmp[k]=_pDataBaseEntries[i][k];
+          }
+          for(k=0;k<_DataBaseSize;k++){
+            _pDataBaseEntries[i][k]=*(padd[k]);
+          }
+        }
+        delete[] padd;
+        delete[] tmp;
+        
+        free(namelist);
+      }
+      // Rewrite map file;
+      fbin.open(fmap,ios::out|ios::trunc);
+      if(fbin){
+#ifdef __AMSDEBUG__
+        cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmap<<endl; 
+#endif
+        fbin<<_DataBaseSize<<endl;;
+        for(i=0;i<4;i++){
+          for(int k=0;k<_DataBaseSize;k++){
+            fbin<<_pDataBaseEntries[i][k]<<endl;
+          }
+        }
+        char cmd[255];
+        sprintf(cmd,"chmod g+w %s",(const char*)fmap);
+        system(cmd);
+        fbin.close();
+      }
+      else cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
+      cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "
+           <<getname()<<endl; 
+}
 
 }
