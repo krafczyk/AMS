@@ -2489,7 +2489,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    dau=oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
        nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
 #ifdef __G4AMS__
-   ((AMSgvolume*) dau)->Smartless()=1;
+//   ((AMSgvolume*) dau)->Smartless()=1;
 #endif
 //
 // Tubes & Radiators has no rotation matrix at the moment

@@ -17,6 +17,7 @@
 #include "G4Sphere.hh"
 #include "G4Trd.hh"
 #include "G4Polyhedra.hh"
+#include "G4BREPSolidPolyhedra.hh"
 #include "G4Polycone.hh"
 #include "G4PVPlacement.hh"
 #include "G4UserLimits.hh"
@@ -294,8 +295,10 @@ integer AMSgvolume::_Norp=0;
         z[i]=_par[4+3*i]*cm;
         rmin[i]=_par[5+3*i]*cm;
         rmax[i]=_par[6+3*i]*cm;
+        if(maxstep>rmax[i]-rmin[i])maxstep=rmax[i]-rmin[i];
        }       
        psolid=new G4Polyhedra(G4String(_name),_par[0]*degree,_par[1]*degree,int(_par[2]),nsurf,z,rmin,rmax);
+//       psolid=new G4BREPSolidPolyhedra(G4String(_name),_par[0]*degree,_par[1]*degree,int(_par[2]),nsurf,z[0],z,rmin,rmax);
        delete[] z;
        delete[] rmin;
        delete[] rmax;
@@ -372,7 +375,7 @@ integer AMSgvolume::_Norp=0;
      _pg4l= new G4LogicalVolume(psolid,_pgtmed->getpgmat()->getpamsg4m(),G4String(_name));    
      if(_pgtmed->IsSensitive()){
       _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
-      _pg4l->SetUserLimits(new G4UserLimits(2*maxstep*cm));
+//      _pg4l->SetUserLimits(new G4UserLimits(2*maxstep*cm));
      }
 // Add user limits 
      else {
