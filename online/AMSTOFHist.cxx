@@ -231,6 +231,8 @@ void AMSTOFHist::ShowSet(Int_t Set){
   Float_t cpos[14]={1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.,14.};
   Float_t epos[14]={.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01};
 
+  Width_t thick=2*TAttLine::GetLineWidth();
+
   if(Set==3){//Sides hits histograms
     Float_t y[14],ey[14];
     gPad->Divide(2,4);
@@ -241,10 +243,10 @@ void AMSTOFHist::ShowSet(Int_t Set){
 	sprintf(text,"Plane %1d-P hits",(i/2+1));
 	_fetched2[6+i/2]->SetLabelSize(0.1,"X"); // JL1 
 	_fetched2[6+i/2]->SetLabelSize(0.1,"Y"); // JL1 
-	_fetched2[6+i/2]->SetLineColor(3); // JL1 
+	_fetched2[6+i/2]->SetLineColor(3); // green
 	_fetched2[6+i/2]->Draw(); // JL1 
 	((TH1*)_fetched2[6+i/2])->SetTitle("");
-	_fetched2[18+i/2]->SetLineColor(4); // data
+	_fetched2[18+i/2]->SetLineColor(4); // blue
 	_fetched2[18+i/2]->Draw("same"); // data
       }
       else{
@@ -259,7 +261,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
       }
       TPaveText* box = new TPaveText(.25,.86,.75,1.,"NDC");
       box->AddText(text);
-      box->SetMargin(0.005);
+      //      box->SetMargin(0.005);
       box->Draw();
       gPad->Update();
       gPadSave->cd();
