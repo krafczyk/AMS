@@ -334,6 +334,8 @@ my @item_factory_entries = (
 		'action' => 5,
 		'type' => '<Item>'
 	},
+      ["/_Preferences",	undef,	0,	"<Branch>"],
+      ["/Preferences/_RegisteredToServers", "<alt>R",	2,	"<ToggleItem>"],
       ["/_Help",	undef,	0,	"<Item>"],
       ["/_About",	undef,	0,	"<Item>"],
                         );
@@ -739,7 +741,12 @@ sub Update{
          Warning();
          return;
      }else{
-       $monitorUI::Singleton->{statusbar}->push(1," Connected to Servers");
+       if($Monitor::Singleton->{registered}==0){      
+        $monitorUI::Singleton->{statusbar}->push(1," Connected to Servers");
+       }
+       else{
+        $monitorUI::Singleton->{statusbar}->push(1," Connected and Registered to Servers");
+       }
      }
 
 {
@@ -904,10 +911,25 @@ my $window  =   new Gtk::Widget    "Gtk::Window",
 sub item_factory_cb {
 	my ($widget, $action, @data) = @_;
         if($action==5){
+           if($Monitor::Singleton->{ok}){
+               if($Monitor::Singleton->{registered}){
+                 Monitor::Exiting();
+               }
+           }
             exit();
         }elsif($action==1){
           Update();
-        }
+         }elsif($action==2){
+           $Monitor::Singleton->{registered}=$Monitor::Singleton->{registered}==0?1:0;
+           if($Monitor::Singleton->{ok}){
+               if($Monitor::Singleton->{registered}){
+                 Monitor::SendId();
+               }
+               else{
+                 Monitor::Exiting();
+               }
+           }
+         }
 }
 
 sub create_frame{

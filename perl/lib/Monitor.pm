@@ -29,6 +29,7 @@ my %fields=(
      dsts=>undef,
      db=>undef,
      ok=>0,
+     registered=>0,
             );
 sub new{
     my $type=shift;
@@ -323,7 +324,7 @@ sub getior{
     my $ii=0;
     while (<FILE>){
         if (  $_ =~/^\d/){
-            if($ii>0){
+            if($ii>0 || 1){
             my @args=split ' ';
             $i=system "bpeek $args[0] >$fileo";
             if($i){
@@ -935,3 +936,33 @@ FOUND3:
 }
 
 
+sub Exiting{
+    my $ref=$Monitor::Singleton;
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $arsref->Exiting(\%cid,"Exiting ","CInExit");
+            }
+            catch CORBA::SystemException with{
+                warn "Exiting corba exc";
+            };
+        }
+}
+
+
+sub SendId{
+    my $ref=$Monitor::Singleton;
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                my $hash=\%cid;
+                my $ok=$arsref->sendId(\$hash,1000);
+                $ref->{cid}=$hash;
+            }
+            catch CORBA::SystemException with{
+                warn "Exiting corba exc";
+            };
+        }
+}

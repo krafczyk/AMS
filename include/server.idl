@@ -220,7 +220,7 @@ module DPS{
     boolean TypeExists(in DPS::Client::ClientType type);
 
     long getACS(in CID id, out ACS acl, inout unsigned long maxc);
-    void sendAC(in CID id, in ActiveClient ac,in RecordChange rc);
+    void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc);
 
     long getNC(in CID id, out NCS acl);
     void sendNC(in CID id, in NominalClient nc,in RecordChange rc);
@@ -243,7 +243,7 @@ module DPS{
    };
   interface Monitor: Client{
     void HostStatusChanged(in CID id, in ActiveHost ah);
-   
+    boolean ClientToKill(in CID id, in ActiveClient ac);    
   };
   
 };

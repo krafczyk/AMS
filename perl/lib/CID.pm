@@ -4,7 +4,7 @@ sub new{
     my $class=shift;
     my $self={
       HostName=>undef,
-      uid=>1,
+      uid=>0,
       pid=>$$,
       ppid=>0,
       Type=>"Monitor",
