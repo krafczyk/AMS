@@ -2,7 +2,7 @@
 #include <sys/stat.h>
 #include <ctype.h>
 #include "xform_proc_3x3.h"
-
+int lll;
 int open_log(int i, int mode);
 int open_elog(int i);
 int read_status();
@@ -128,6 +128,8 @@ pid_t pid;
         sprintf(ch,"rm %s",a_name);
         system(ch);
       END_stat:
+       lll=0;
+
       }
 
 
@@ -346,15 +348,13 @@ pid_t pid;
         conn=1;
         while ((!feof(fp))&&(conn)) {
 	  ch1=fgets(chh[nn],256,fp);
-          if (nn>25)
-            conn=0;
+          if (nn>25)conn=0;
           if (ch1!=NULL) { 
             ch2=strrchr(chh[nn],'.');
             if (ch2!=NULL) {
-              if (strcmp(ch2,".hbk\n")==0)
-                nn++;
+              if (strcmp(ch2,".hbk\n")==0)nn++;
             }
-            else nn--;
+            else if(nn>0)nn--;
           }
 	}
         fclose(fp);

@@ -38,13 +38,15 @@
                  amsyg(1)=amszg(2)*amsxg(3)-amszg(3)*amsxg(2)
                  amsyg(2)=amszg(3)*amsxg(1)-amszg(1)*amsxg(3) 
                  amsyg(3)=amszg(1)*amsxg(2)-amszg(2)*amsxg(1) 
-                 
                  cp=cos(pitch)  
                  sp=sin(pitch) 
                  cy=cos(yaw) 
                  sy=sin(yaw) 
                  cr=cos(roll) 
                  sr=sin(roll) 
+*
+* have to use U^T matrix here
+*
                  l1=cy*cp
                  m1=-sy
                  n1=cy*sp
@@ -57,15 +59,15 @@
 *
 *               ams local coo system
 *
-                 amsx(1)=-(l1*amsxg(1)+m1*amsyg(1)+n1*amszg(1)) 
-                 amsx(2)=-(l1*amsxg(2)+m1*amsyg(2)+n1*amszg(2)) 
-                 amsx(3)=-(l1*amsxg(3)+m1*amsyg(3)+n1*amszg(3)) 
-                 amsy(1)=-(l2*amsxg(1)+m2*amsyg(1)+n2*amszg(1)) 
-                 amsy(2)=-(l2*amsxg(2)+m2*amsyg(2)+n2*amszg(2)) 
-                 amsy(3)=-(l2*amsxg(3)+m2*amsyg(3)+n2*amszg(3)) 
-                 amsz(1)=l3*amsxg(1)+m3*amsyg(1)+n3*amszg(1) 
-                 amsz(2)=l3*amsxg(2)+m3*amsyg(2)+n3*amszg(2) 
-                 amsz(3)=l3*amsxg(3)+m3*amsyg(3)+n3*amszg(3) 
+                 amsx(1)=-(l1*amsxg(1)+l2*amsyg(1)+l3*amszg(1)) 
+                 amsx(2)=-(l1*amsxg(2)+l2*amsyg(2)+l3*amszg(2)) 
+                 amsx(3)=-(l1*amsxg(3)+l2*amsyg(3)+l3*amszg(3)) 
+                 amsy(1)=-(m1*amsxg(1)+m2*amsyg(1)+m3*amszg(1)) 
+                 amsy(2)=-(m1*amsxg(2)+m2*amsyg(2)+m3*amszg(2)) 
+                 amsy(3)=-(m1*amsxg(3)+m2*amsyg(3)+m3*amszg(3)) 
+                 amsz(1)=n1*amsxg(1)+n2*amsyg(1)+n3*amszg(1) 
+                 amsz(2)=n1*amsxg(2)+n2*amsyg(2)+n3*amszg(2) 
+                 amsz(3)=n1*amsxg(3)+n2*amsyg(3)+n3*amszg(3) 
 
 
                  dir(1)=sin(thetalocgl)*cos(philocgl)

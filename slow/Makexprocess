@@ -11,7 +11,7 @@ CC= gcc
 OBJS =	xprocess_cern.c
 
 xprocess: 
-	$(CC) $(CFLAGS) -o xprocess xprocess_cern.c $(LDFLAGS) $(LOADLIBES)
+	$(CC) $(CFLAGS) -o xprocess xprocess_3x3.c $(LDFLAGS) $(LOADLIBES)
 
 
 
