@@ -24,23 +24,24 @@ private:
 public:
   T error;
   safe_array(int size=0){
-    if(size==0) {_size=S;_origin=_org;} else {
+    if(size<=0) {_size=-S;_origin=_org;} else {
     _origin=new T[size];
     _size=size;}
   }
   ~safe_array(){
-    if(_origin!=_org)
+    if(_origin!=_org && _size>0){
       delete []_origin;
+    }
   };
 
   T& operator [](int pos){
-    if(pos>=_size || pos<0) {
-      cout << "RICH Safe array overflow. Request: "<<pos<<" of "<<_size<<endl;
+    if(pos>=abs(_size) || pos<0) {
+      cout << "RICH Safe array overflow. Request: "<<pos<<" of "<<abs(_size)<<endl;
       return error;
     }
     return *(_origin+pos);
   }
-  int size(){return _size;}
+  int size(){return abs(_size);}
 };
 
 typedef safe_array<geant,3> geant_small_array;
