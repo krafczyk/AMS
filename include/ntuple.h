@@ -31,6 +31,7 @@ private:
   int Run;
   int RunType;
   int Time[2];
+  int RawWords;
   float GrMedPhi;
   float RadS;
   float ThetaS;

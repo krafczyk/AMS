@@ -203,7 +203,7 @@ void AMSTrRawCluster::_writeEl(){
   if(id.getside()==0 && !checkstatus(AMSTrRawCluster::MATCHED)) return;
 
 // Fill the ntuple 
-  if(AMSTrRawCluster::Out( IOPA.WriteAll==1  )){
+  if(AMSTrRawCluster::Out( IOPA.WriteAll%10==1  )){
     TrN->address[TrN->Ntrraw]=_address+_strip*10000;
     TrN->s2n[TrN->Ntrraw]=_s2n;
     TrN->nelem[TrN->Ntrraw]=_nelem;

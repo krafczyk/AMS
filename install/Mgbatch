@@ -1063,6 +1063,7 @@ depend:
 ../bin/osf1/event.o: ../include/trcalib.h ../include/trigger1.h
 ../bin/osf1/event.o: ../include/trigger3.h ../include/antirec.h
 ../bin/osf1/event.o: ../include/antidbc.h ../include/user.h
+../bin/osf1/event.o: /usr/include/signal.h
 ../bin/osf1/cont.o: ../include/cont.h ../include/typedefs.h
 ../bin/osf1/cont.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/cont.o: /usr/include/cxx/iostream.h
@@ -1999,8 +2000,7 @@ depend:
 ../bin/osf1/timeid.o: /usr/include/sys/file.h /usr/include/sys/param.h
 ../bin/osf1/timeid.o: /usr/include/sys/machine/machparam.h
 ../bin/osf1/timeid.o: /usr/include/machine/endian.h
-../bin/osf1/timeid.o: /usr/include/sys/fcntl.h /usr/include/sys/dir.h
-../bin/osf1/timeid.o: /usr/include/dirent.h
+../bin/osf1/timeid.o: /usr/include/sys/fcntl.h /usr/include/dirent.h
 ../bin/osf1/io.o: /usr/include/sys/types.h /usr/include/standards.h
 ../bin/osf1/io.o: /usr/include/mach/machine/vm_types.h
 ../bin/osf1/io.o: /usr/include/sys/select.h /usr/include/sys/stat.h

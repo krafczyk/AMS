@@ -763,10 +763,10 @@ void AMSTrCluster::_writeEl(){
 
   if (TrN->Ntrcl>=MAXTRCL) return;
 
-// Fill the ntuple 
-  integer flag =    (IOPA.WriteAll==1)
-                 || (IOPA.WriteAll==0 && checkstatus(AMSDBc::USED))
-                 || (IOPA.WriteAll==2 && !checkstatus(AMSTrCluster::AwayTOF));
+// Fill the ntuple : check on IOPA.WriteAll%10 
+  integer flag =    (IOPA.WriteAll%10==1)
+                 || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
+                 || (IOPA.WriteAll%10==2 && !checkstatus(AMSTrCluster::AwayTOF));
 
   if(AMSTrCluster::Out(flag) ){
     TrN->Idsoft[TrN->Ntrcl]=_Id.cmpt();
@@ -1065,9 +1065,9 @@ void AMSTrRecHit::_writeEl(){
   if (THN->Ntrrh>=MAXTRRH) return;
 
 // Fill the ntuple 
-  integer flag =    (IOPA.WriteAll==1)
-                 || (IOPA.WriteAll==0 && checkstatus(AMSDBc::USED))
-                 || (IOPA.WriteAll==2 && !checkstatus(AMSTrRecHit::AwayTOF));
+  integer flag =    (IOPA.WriteAll%10==1)
+                 || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
+                 || (IOPA.WriteAll%10==2 && !checkstatus(AMSTrRecHit::AwayTOF));
 
   if(AMSTrRecHit::Out(flag) ){
     if(_Xcl)THN->pX[THN->Ntrrh]=_Xcl->getpos();
@@ -1075,7 +1075,7 @@ void AMSTrRecHit::_writeEl(){
     THN->pY[THN->Ntrrh]=_Ycl->getpos();
     int pat;
     pat=1;
-    if(AMSTrCluster::Out(IOPA.WriteAll==1)){
+    if(AMSTrCluster::Out(IOPA.WriteAll%10==1)){
       // Writeall
       for(int i=0;i<pat;i++){
           AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
@@ -1085,7 +1085,7 @@ void AMSTrRecHit::_writeEl(){
            THN->pY[THN->Ntrrh]+=pc->getnelem();
       }
     }                                                        
-    else if (AMSTrCluster::Out(IOPA.WriteAll==0)){
+    else if (AMSTrCluster::Out(IOPA.WriteAll%10==0)){
       //Write only USED hits
       for(int i=0;i<pat;i++){
         AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
@@ -1095,7 +1095,7 @@ void AMSTrRecHit::_writeEl(){
         }
       }
     }
-    else if (AMSTrCluster::Out(IOPA.WriteAll==2)){
+    else if (AMSTrCluster::Out(IOPA.WriteAll%10==2)){
       //Write only hits consistent with TOF
       for(int i=0;i<pat;i++){
         AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
@@ -2143,7 +2143,7 @@ void AMSTrTrack::_writeEl(){
      TrTN->pHits[TrTN->Ntrtr][k]=_Pthit[k]->getpos();
       int pat;
       pat=_Pthit[k]->getLayer()-1;
-      if (AMSTrRecHit::Out(IOPA.WriteAll==1)){
+      if (AMSTrRecHit::Out(IOPA.WriteAll%10==1)){
         // Writeall
         for(i=0;i<pat;i++){
           AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrRecHit",i);
@@ -2153,7 +2153,7 @@ void AMSTrTrack::_writeEl(){
            TrTN->pHits[TrTN->Ntrtr][k]+=pc->getnelem();
         }
       }                                                        
-      else if (AMSTrRecHit::Out(IOPA.WriteAll==0)){
+      else if (AMSTrRecHit::Out(IOPA.WriteAll%10==0)){
       //WriteUsedOnly
         for(i=0;i<pat;i++){
           AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
@@ -2163,7 +2163,7 @@ void AMSTrTrack::_writeEl(){
           }
         }
       }
-      else if (AMSTrRecHit::Out(IOPA.WriteAll==2)){
+      else if (AMSTrRecHit::Out(IOPA.WriteAll%10==2)){
       //WriteUsedOnly
         for(i=0;i<pat;i++){
           AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);

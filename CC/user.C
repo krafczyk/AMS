@@ -7,19 +7,14 @@
 #include <user.h>
 #include <trrec.h>
 #include <event.h>
+#include <daqevt.h>
 void AMSUser::InitJob(){
-
 }
 
 void AMSUser::InitRun(){
-
 }
 
 void AMSUser::InitEvent(){
-  // Example of how to reset builder for containter
-#ifdef __AMSDEBUG__
-  AMSEvent::gethead()->setbuilderC("AMSTrCluster",&AMSTrCluster::build);
-#endif
 }
 
 void AMSUser::Event(){

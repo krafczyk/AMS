@@ -467,8 +467,9 @@ void AMSEvent::_retkinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseTOFX",i),&AMSTrTrack::buildFalseTOFX,0));
 }
 
-void  AMSEvent::write(){
-  // Sort before by "Used" variable : AMSTrTrack & AMSTrCluster & AMSCTCCl
+void  AMSEvent::write(int trig){
+// Sort before by "Used" variable : 
+// AMSTrTrack & AMSTrCluster & AMSCTCCl
   AMSEvent::gethead()->getheadC("AMSCTCCluster",0,1); 
   AMSEvent::gethead()->getheadC("AMSCTCCluster",1,1); 
 
@@ -497,10 +498,20 @@ void  AMSEvent::write(){
       }
       else break;
     }
+    if(trig){
+// if event has been selected write it straight away
     AMSJob::gethead()->getntuple()->write();
+    }
+    else {
+// if event was not selected check if at least header should be written
+// in the ntuples
+      if((IOPA.WriteAll-IOPA.WriteAll%10)==10){
+      AMSJob::gethead()->getntuple()->reset();
+      AMSJob::gethead()->getntuple()->write();
+    }
+   }
   }
 }
-
 void  AMSEvent::printA(integer debugl){
 if(debugl < 2){
 _printEl(cout);
@@ -1234,11 +1245,13 @@ void AMSEvent::_printEl(ostream & stream){
 }
 
 void AMSEvent::_writeEl(){
-
+// Get event length
+  DAQEvent *myp=(DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
+  int nws=myp->getlength();
 // Fill the ntuple
   EventNtuple* EN = AMSJob::gethead()->getntuple()->Get_event();
-
   EN->Eventno=_id;
+  EN->RawWords=nws;
   EN->Run=_run;
   EN->RunType=_runtype;
   UCOPY(&_time,EN->Time,2*sizeof(integer)/4);

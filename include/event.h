@@ -157,7 +157,7 @@ static void  sethead(AMSEvent* head)
 { _Head=head;if(_Head)AMSEvent::EventMap.map(*_Head);}
 integer removeC();
 void Recovery();
-void write();
+void write(int trig);
 void copy();
 void printA(integer debugl=0);
 void event();

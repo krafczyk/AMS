@@ -382,12 +382,11 @@ extern "C" void guout_(){
         if(trigl==0)trig=0;
        }
      }
-
+// try to manipulate the conditions for writing....
    if(trig ){ 
-     AMSEvent::gethead()->write();
      AMSEvent::gethead()->copy();
    }
-
+     AMSEvent::gethead()->write(trig);
 #ifdef __DB_All__
 //+
    if(trig) {

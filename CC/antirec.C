@@ -421,7 +421,7 @@ void AMSAntiRawCluster::_writeEl(){
 
 // fill the ntuple
 
-  if(AMSAntiRawCluster::Out( IOPA.WriteAll==1 ||  checkstatus(AMSDBc::USED ))){
+  if(AMSAntiRawCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
     TN->Status[TN->Nantiraw]=_status;
     TN->Sector[TN->Nantiraw]=_sector;
     TN->UpDown[TN->Nantiraw]=_updown;
@@ -446,7 +446,7 @@ void AMSAntiCluster::_writeEl(){
   if (TN->Nanti>=MAXANTICL) return;
 
 // fill the ntuple
-  if(AMSAntiCluster::Out( IOPA.WriteAll==1 ||  checkstatus(AMSDBc::USED ))){
+  if(AMSAntiCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
     TN->Status[TN->Nanti]=_status;
     TN->Sector[TN->Nanti]=_sector;
     TN->Edep[TN->Nanti]=_edep;

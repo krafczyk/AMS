@@ -9,7 +9,7 @@ AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
   HBNT(_lun, name," ");
 
   HBNAME(_lun,"EventH",&_event.Eventno,
-  "eventno:I,run:I,runtype:I,time(2):I,GrMedPhi:R,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,Particles:I,Tracks:I,Betas:I,Charges:I,TrRecHits:I,TrClusters:I,TrRawClusters:I,TrMCClusters:I,TOFClusters:I,TOFMCClusters:I,CTCClusters:I,CTCMCClusters:I,AntiMCClusters:I,AntiClusters:I");
+  "eventno:I,run:I,runtype:I,time(2):I,RawWords:I,GrMedPhi:R,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,Particles:I,Tracks:I,Betas:I,Charges:I,TrRecHits:I,TrClusters:I,TrRawClusters:I,TrMCClusters:I,TOFClusters:I,TOFMCClusters:I,CTCClusters:I,CTCMCClusters:I,AntiMCClusters:I,AntiClusters:I");
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,100],betastatus(nbeta):I,betapattern(nbeta):I,beta(nbeta),betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta):I,betaptof(4,nbeta):I,betaptr(nbeta):I");
