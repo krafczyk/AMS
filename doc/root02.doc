@@ -1,4 +1,4 @@
-#  $Id: root02.doc,v 1.6 2003/05/19 10:48:12 choutko Exp $
+#  $Id: root02.doc,v 1.7 2003/07/14 07:47:11 choutko Exp $
 This is AMS02 Root File Description 
 
 
@@ -11,6 +11,6 @@ http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/latex/refman.pdf  (browsable pdf
 
 
 
-root version needed >= 3.05.04
+root version needed >= 3.05.05
 tested with: 
 /afs/cern.ch/exp/ams/Offline/root/Linux/v3.05.05gcc322

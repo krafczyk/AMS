@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.48 2003/07/08 16:30:35 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.49 2003/07/14 07:47:11 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -26,9 +26,9 @@ b) F77/F90 ( algorithmes only)
 c) Perl 
 
 IV. I/O
-a) CW ntuples
-b) root 
-c) Oracle DB
+a) RootFiles  (DST default)
+b) Ntuples (DST obsolete) 
+c) Oracle DB  (bookeeping etc)
 
 V. Documentation
 a) AMS Home Page at http://ams.cern.ch/AMS/analysis.html  -> SoftwareManagement
@@ -216,6 +216,9 @@ $amsedc   root_file
 
 
 X   Documentation
+
+    Ntuple doc:   doc/ntuple02.doc
+    Root   doc:   doc/root02.doc
     
     To see the latest changes in ams software please do :
 

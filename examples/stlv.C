@@ -49,7 +49,7 @@ class stlv : public AMSEventR {
    /// User Function called before starting the event loop.
    /// Book Histos
    virtual void    UBegin();
-   /// User Function called for selected entries only.
+   /// User Function called for all entries.
    /// Entry is the entry number in the current tree.
    /// Fills histograms.
    void    ProcessFill(Int_t entry);
@@ -105,7 +105,7 @@ void stlv::UBegin(){
 
 void stlv::ProcessFill(Int_t entry)
 {
-   // User Function called for selected entries only.
+   // User Function called for all entries .
    // Entry is the entry number in the current tree.
    // Fills histograms.
    

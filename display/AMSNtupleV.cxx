@@ -434,7 +434,8 @@ for(int i=0;i<ev->nParticle();i++){
   double rad_thick;
   const double rad_length=-3;
   const double n_aero=1.02998;
-  const double n_naf=1.336;
+  const double n_naf=1.33;
+  const double n_naf_Spread=0.01; 
   double refi;
    double rad_posz;
   if(fabs(ev->pParticle(i)->RichCoo[0][0])<11.3*3/2 && fabs(ev->pParticle(i)->RichCoo[0][1])<11.3*3/2){
