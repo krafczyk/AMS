@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.10 1999/11/24 13:15:27 choutko Exp $
+// $Id: g4physics.C,v 1.11 1999/11/25 14:04:05 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -646,6 +646,7 @@ void AMSG4Physics::ConstructHad()
 
 void AMSG4Physics::ConstructOp()
 {
+  G4cout << " Construction Optical Processes "<<endl;
   G4Cerenkov*   theCerenkovProcess = new G4Cerenkov("Cerenkov");
   G4OpAbsorption* theAbsorptionProcess = new G4OpAbsorption();
   G4OpRayleigh*   theRayleighScatteringProcess = new G4OpRayleigh();

@@ -527,12 +527,9 @@ integer AMSgvolume::_Nrm=0;
 
 void AMSgvolume::MakeG3Volumes(){
 
-//if(!strcmp(_name,"TRDR")){
-//  cout << " TRDR ok "<<endl;
-//}
 
-
-
+//ignore boolean volumes
+if(!strstr(_gonly,"BOO")){
 // Recursive Routine
 
   _Nlog++;
@@ -612,19 +609,15 @@ void AMSgvolume::MakeG3Volumes(){
      geant coo[3];
      _coo.getp(coo[0],coo[1],coo[2]);
      // check gonly;
-     char gonly[5];
-     if(strstr(_gonly,"BOO")){
-       strcpy(gonly,"MANY");
-     } 
-     else strcpy(gonly,_gonly);
      if(_posp){
-       GSPOSP(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,gonly,
+       GSPOSP(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,_gonly,
           _par,_npar);
      }
      else {
-      GSPOS(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,gonly);
+      GSPOS(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,_gonly);
      } 
     }
+ }
     if(down())down()->MakeG3Volumes();
     if(up() && next())next()->MakeG3Volumes();
      

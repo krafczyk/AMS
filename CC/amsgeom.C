@@ -2182,7 +2182,7 @@ integer nrot=501; // Temporary arbitary assignment
 //static AMSgvolume mother(0,0,AMSDBc::ams_name,"BOX",par,3,coo,nrm,"ONLY",
 //                         0,gid);  // temporary a dummy volume
 AMSNode * cur;
-AMSNode * dau;
+AMSgvolume * dau;
 int i;
 for ( i=0;i<TKDBc::nlay();i++){
 ostrstream ost(name,sizeof(name));
@@ -2200,7 +2200,6 @@ ostrstream ost(name,sizeof(name));
  nrm[2][1]=TKDBc::nrml(2,1,i); 
  nrm[2][2]=TKDBc::nrml(2,2,i); 
     int ii;
-    for ( ii=0;ii<5;ii++)par[ii]=TKDBc::layd(i,ii);
       gid=i+1;
       integer status=1;
       integer rgid;
@@ -2213,9 +2212,21 @@ ostrstream ost(name,sizeof(name));
           for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
          }
 #endif
-      dau=mother.add(new AMSgvolume(
-      "VACUUM",nrot++,name,"CONE",par,5,coo,nrm, "ONLY",0,gid,1));
+    int npar=3;
+    if(npar==5){
+     for ( ii=0;ii<npar;ii++)par[ii]=TKDBc::layd(i,ii);
+      dau=(AMSgvolume*)mother.add(new AMSgvolume(
+      "VACUUM",nrot++,name,"CONE",par,npar,coo,nrm, "ONLY",0,gid,1));
       //      cout <<" layer "<<i<<" "<<nrot<<endl;
+    }
+    else{
+      par[0]=TKDBc::layd(i,1);
+      par[1]=TKDBc::layd(i,2);
+      par[2]=TKDBc::layd(i,0);
+      dau=(AMSgvolume*)mother.add(new AMSgvolume(
+      "VACUUM",nrot++,name,"TUBE",par,npar,coo,nrm, "ONLY",0,gid,1));
+      //      cout <<" layer "<<i<<" "<<nrot<<endl;
+    }
       int j;
       for (j=0;j<TKDBc::nlad(i+1);j++){
        int k;
@@ -2258,6 +2269,28 @@ ostrstream ost(name,sizeof(name));
         if(par[0]>0)lad[k]=(AMSgvolume*)dau->add(new AMSgvolume(
         "NONACTIVE_SILICON",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
         else lad[k]=0; 
+        if(lad[k]){
+        ost.seekp(0);
+        ost << (k==0?"ELL":"ELR") << i+1<<ends;
+        par[0]=TKDBc::zelec(i,1)/2.;
+        par[1]=TKDBc::c2c(i)/2.;
+//        par[2]=TKDBc::zelec(i,0)/2;
+        par[2]=(dau->getpar(0)- TKDBc::zelec(i,2))/2;
+        coo[0]=lad[k]->getcoo(0)+(2*k-1)*(lad[k]->getpar(0)+par[0]);
+        coo[1]=(TKDBc::nlad(i+1)-j)*TKDBc::c2c(i)-
+        (TKDBc::nlad(i+1)+1)*TKDBc::c2c(i)/2.;
+        coo[2]=TKDBc::zelec(i,2)+par[2];
+        VZERO(nrm,9*sizeof(nrm[0][0])/4);
+        nrm[0][0]=1;
+        nrm[1][1]=1;
+        nrm[2][2]=1;
+        gid=i+1+10*(j+1);
+        cur=dau->add(new AMSgvolume(
+       "ELECTRONICS",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+        }
+
+
+
        }
 
     
@@ -2376,52 +2409,7 @@ ostrstream ost(name,sizeof(name));
        cur=dau->add(new AMSgvolume(
       "Tr_Honeycomb",nrot++,name,"TUBE",par,3,coo,nrm,"ONLY",1,gid,1));
 
-/*
-       // Now Elec Left
 
-       for ( j=0;j<TKDBc::nlad(i+1);j++){
-        ost.seekp(0);
-        ost << "ELL" << i+1<<ends;
-        par[0]=TKDBc::zelec(i,1)/2.;
-        par[1]=TKDBc::c2c(i)/2.;
-        par[2]=TKDBc::zelec(i,0)/2;
-        coo[0]=-TKDBc::nsen(i+1,j+1)*TKDBc::ssize_inactive(i,0)/2.-par[0];
-        coo[1]=(TKDBc::nlad(i+1)-j)*TKDBc::c2c(i)-
-        (TKDBc::nlad(i+1)+1)*TKDBc::c2c(i)/2.;
-        coo[2]=TKDBc::zelec(i,2)+par[2];
-        VZERO(nrm,9*sizeof(nrm[0][0])/4);
-        nrm[0][0]=1;
-        nrm[1][1]=1;
-        nrm[2][2]=1;
-        gid=i+1+10*(j+1);
-        cur=dau->add(new AMSgvolume(
-       "ELECTRONICS",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
-
-       }
-
-       // Now Elec R
-
-       for ( j=0;j<TKDBc::nlad(i+1);j++){
-        ost.seekp(0);
-        ost << "ELR" << i+1<<ends;
-        par[0]=TKDBc::zelec(i,1)/2.;
-        par[1]=TKDBc::c2c(i)/2.;
-        par[2]=TKDBc::zelec(i,0)/2;
-        coo[0]=+TKDBc::nsen(i+1,j+1)*TKDBc::ssize_inactive(i,0)/2.+par[0];
-        coo[1]=(TKDBc::nlad(i+1)-j)*TKDBc::c2c(i)-
-        (TKDBc::nlad(i+1)+1)*TKDBc::c2c(i)/2.;
-        coo[2]=TKDBc::zelec(i,2)+par[2];
-        VZERO(nrm,9*sizeof(nrm[0][0])/4);
-        nrm[0][0]=1;
-        nrm[1][1]=1;
-        nrm[2][2]=1;
-        gid=i+1+10*(j+1);
-        cur=dau->add(new AMSgvolume(
-       "ELECTRONICS",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
-        //        cout <<"elr "<<i<<" "<<j<<" "<<nrot<<endl;
-       }
-
-*/
 
 }
 
@@ -3480,7 +3468,7 @@ void richgeom02(AMSgvolume & mother)
 
 	    //	    AMSNode *lg;
 
-#ifdef __G4AMS__
+#ifdef __G4AMSX__
 
 	    AMSgvolume *lg;
 

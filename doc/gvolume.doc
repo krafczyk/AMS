@@ -55,4 +55,5 @@ d) G4 Boolean operations (subsample only)
    /    intersect
    all displacements/rotations for subs volumes are always with 
    respect to the 1st one
+   NB media,gid,rel parameters for addboolean volumes are dummy.
 
