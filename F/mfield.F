@@ -1,6 +1,6 @@
       subroutine readmfield
 #      include "mfield.h"
-      real hxy(3,3),x1(3)
+       real hxy(3,3),x1(3)
       if(iniok.eq.0)then
 *       
           write(*,*)'Opening field file...'

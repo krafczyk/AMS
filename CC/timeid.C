@@ -112,7 +112,7 @@ if (Time >= _Begin && Time <= _End){
 }
 else if(reenter <2){
   // try to read it from file ....
-  read(AMSDATADIR.amsdatadir,reenter);
+  read(AMSDATADIR.amsdatabase,reenter);
   return validate(Time,reenter+1);
 }
 else return 0;
@@ -151,7 +151,6 @@ void AMSTimeID::_InitTable(){
 integer AMSTimeID::write(char * dir){
 
 #ifndef __DB__
-
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
@@ -192,8 +191,6 @@ integer AMSTimeID::write(char * dir){
 
 
 integer AMSTimeID::read(char * dir, integer reenter){
-
-
 
   enum open_mode{binary=0x80};
     fstream fbin;

@@ -68,11 +68,16 @@ void AMSCommonsI::init(){
         AMSDATADIR.amsdlength<<endl;
        exit(1);  
     }
-    strcpy(AMSDATADIR.amsdatadir,gtv);
+      strcpy(AMSDATADIR.amsdatadir,gtv);
       strcat(AMSDATADIR.amsdatadir,"/");
       strcat(AMSDATADIR.amsdatadir,getversion());
       strcat(AMSDATADIR.amsdatadir,"/");
       AMSDATADIR.amsdlength=strlen(AMSDATADIR.amsdatadir);
+      strcpy(AMSDATADIR.amsdatabase,gtv);
+      strcat(AMSDATADIR.amsdatabase,"/");
+      strcat(AMSDATADIR.amsdatabase,"DataBase");
+      strcat(AMSDATADIR.amsdatabase,"/");
+      AMSDATADIR.amsdblength=strlen(AMSDATADIR.amsdatabase);
      
    }
    else {
@@ -84,6 +89,12 @@ void AMSCommonsI::init(){
       strcat(AMSDATADIR.amsdatadir,getversion());
       strcat(AMSDATADIR.amsdatadir,"/");
       AMSDATADIR.amsdlength=strlen(AMSDATADIR.amsdatadir);
+      strcpy(AMSDATADIR.amsdatabase,dt);
+      strcat(AMSDATADIR.amsdatabase,"/");
+      strcat(AMSDATADIR.amsdatabase,"DataBase");
+      strcat(AMSDATADIR.amsdatabase,"/");
+      AMSDATADIR.amsdblength=strlen(AMSDATADIR.amsdatabase);
+      
    }
   }
 }

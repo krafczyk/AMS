@@ -544,7 +544,9 @@ COMMON_BLOCK_DEF(TKFIELD_DEF,TKFIELD);
 class AMSDATADIR_DEF{
 public:
 integer amsdlength;
+integer amsdblength;
 char amsdatadir[128];
+char amsdatabase[128];
 };
 #define AMSDATADIR COMMON_BLOCK(AMSDATADIR,amsdatadir)
 COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);

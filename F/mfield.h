@@ -9,6 +9,7 @@
       integer isec(2),imin(2),ihour(2),iday(2),imon(2),iyear(2)
       common /tkfield/iniok,isec,imin,ihour,iday,imon,iyear,
      +                na,x,y,z,bx,by,bz,xyz,bdx,bdy,bdz
-      common /amsdatadir/amsdlength,amsdatadir
-      integer amsdlength
-      character *64 amsdatadir
+      common /amsdatadir/amsdlength,amsdblength,amsdatadir,
+     +                   amsdatabase
+      integer amsdlength,amsdblength
+      character *128 amsdatadir,amsdatabase

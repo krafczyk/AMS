@@ -1549,7 +1549,7 @@ if (AMSFFKEY.Update){
 
     AMSTimeID * offspring=(AMSTimeID*)TID.down();
     while(offspring){
-    if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatadir))
+    if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
       cerr <<"AMSJob::_timeinitjob-S-ProblemtoUpdate "<<*offspring;
     offspring=(AMSTimeID*)offspring->next();
     }

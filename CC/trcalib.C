@@ -931,7 +931,7 @@ void AMSTrIdCalib::_update(){
      (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
      while(offspring){
        if(offspring->UpdateMe())cout << " Starting to update "<<*offspring; 
-      if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatadir))
+      if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
       cerr <<"AMSJob::_timeinitjob-S-ProblemtoUpdate "<<*offspring;
       offspring=(AMSTimeID*)offspring->next();
      }
