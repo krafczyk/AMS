@@ -1,0 +1,23 @@
+
+As of 11 Dec 1997:
+
+
+Problem:
+.  Couldn't get lattitude/longitude when geometry is drawn.
+.  Couldn't define my own menubar
+
+
+Pending Requests:
+[Vitali]  Check segmentation violation
+[Vitali & Alexei K.]  Read Objectivity database
+
+
+Works to be done:
+.  Show AMS Logo
+.  Go to run/event  by request
+.  clean up THelix 
+.  show straight line for tracks/particles outside of magnetic field
+.  better GUI
+.  Highlight SiHits pointed by a track when the track is selected?
+.  Draw x-y-z axis on a smaller pad?
+.  Show world coordinates when possible?
