@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.81 2004/03/29 12:15:07 alcaraz Exp $
+//  $Id: root.C,v 1.82 2004/03/31 10:48:39 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2271,21 +2271,24 @@ AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(0),_NAME(name),_EVENT(N
 }
 
 AMSEventR* AMSChain::GetEvent(Int_t entry){
+      Int_t TreeNumberOld;
       if (_EVENT==NULL) {
            _EVENT = new AMSEventR;
            this->SetBranchAddress("ev.",&_EVENT);
            _EVENT->Head() = _EVENT;
            _EVENT->Tree() = NULL;
+           TreeNumberOld = -1;
       }
-      Int_t tree_entry = LoadTree(entry);
-      if (_EVENT->Tree() != GetTree()) {
+      _ENTRY = entry;
+      Int_t tree_entry = LoadTree(_ENTRY);
+      if (GetTreeNumber()!=TreeNumberOld) {
+            TreeNumberOld = GetTreeNumber();
             _EVENT->Tree() = GetTree();
             _EVENT->GetBranch(_EVENT->Tree());
       }
       if (_EVENT->ReadHeader(tree_entry)==false) {
               delete _EVENT; _EVENT = NULL;
       }
-      _ENTRY = entry;
       return _EVENT;
 };
 
