@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.11 2003/01/31 15:13:17 glamanna Exp $
+//  $Id: gamma.h,v 1.12 2003/02/10 10:08:28 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -191,8 +191,8 @@ static void RecoLeftRight(int & refitting, integer FLPAT[], double SLOPEf, doubl
                    int fir_planeR, int fir_planeL,
                    int las_planeR,int las_planeL,double & slr, double & qlr);
 
-// static void ResetXhits(int , double xl[], double yl[], double zl[], int , double xr[], double yr[], double zr[]);
- static void ResetXhits(int & resetting);
+
+ static void ResetXhits(int & resetting,double,double);
 //
 void HITRESEARCH(int pla, double RES_REF, AMSPoint P_0L2, AMSPoint P_0R2);
 static integer Out(integer);
