@@ -506,9 +506,15 @@ time(&tm);// tempor
             cerr<<"gukine-S-CouldNotOPenFile "<<fname<<endl;
             exit(1);
            }
+           
          }
         pdaq->SetEOFIn();    
+        GCFLAG.IEORUN=-2;
+      }
+      else if (GCFLAG.IEORUN==-2){
         GCFLAG.IEORUN=0;
+        AMSJob::gethead()->uhend();
+        AMSJob::gethead()->uhinit(pdaq->runno(),pdaq->eventno());
       }
       guout_();
       if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;
