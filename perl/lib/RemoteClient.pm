@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.246 2004/02/27 10:10:04 alexei Exp $
+# $Id: RemoteClient.pm,v 1.247 2004/02/27 17:17:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -36,6 +36,7 @@
 #                  validateRuns : verbose, cmd, web modes
 # Feb 23, 2004   : stopParseJournalFiles
 #                  decrease one sql query in updateRunCatalog
+# Feb 27, 2004   : checkDB add -i option
 #
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
@@ -8163,7 +8164,7 @@ sub deleteTimeOutJobs {
         $self->amsprint($jid,666);
         $self->amsprint($tsubmit,666);
         $self->amsprint($texpire,666);
-        $self->amsprint("TimeOut",666);
+        $self->amsprint("TimeOut",0);
         if ($webmode == 1) {print "</tr>\n";}
        }
      }
@@ -8586,6 +8587,7 @@ sub checkDB {
   my $HelpTxt = "
      checkDB compares DB and directories contents
      -d    - directory path (d:directory)
+     -i    - internal content of db, that none appears twice
      -p    - DST query word for Database (p:query)
      -crc  - calculate CRC and compare them 
      -o    - write output to file
@@ -8598,11 +8600,12 @@ sub checkDB {
 
   my $missed     = 0; # not found on disk
   my $zerolength = 0; # file size = 0
+  my $content    = 0; # internal DB content
   my $correct    = 0; # found in DB and on disk
   my $crcerror   = 0; # CRC doesn't match 
   my $notindb    = 0; # not found in db
   my $nfiles     = 0;
-  my $nupdate    = 50; # print statistics when $nupdate files are checked
+  my $nupdate    = 100; # print statistics when $nupdate files are checked
   $nTopDirFiles = 0;
   
   foreach my $chop  (@ARGV){
@@ -8611,9 +8614,13 @@ sub checkDB {
     } elsif ($chop =~/^-p:/) {
        $ntpath=unpack("x3 A*",$chop);
    }
+    if ($chop =~/^-i/) {
+        $content = 1;
+    }
+
     if ($chop =~/^-crc/) {
         $checkCRC = 1;
-        $nupdate  = 25;
+        $nupdate  = 50;
     }
     if ($chop =~/^-o:/) {
         $outputfile = unpack("x3 A*",$chop);
@@ -8629,7 +8636,8 @@ sub checkDB {
       return 1;
     }
    }
-   if ((not defined $topdir) && (not defined $ntpath)) {
+   
+   if ((not defined $topdir) && (not defined $ntpath) && $content==0) {
     print "$HelpTxt \n";
     return 1;
    }
@@ -8653,8 +8661,7 @@ sub checkDB {
       print "The output will be stored into $outputfile \n";
   }
 
- 
- if (defined $ntpath) {
+ if (defined $ntpath && $content == 0) {
     $sql = "SELECT COUNT(PATH) FROM ntuples WHERE PATH LIKE '%$ntpath%'";
     my $ret=$self->{sqlserver}->Query($sql);
     if(defined $ret->[0][0]){
@@ -8751,7 +8758,42 @@ sub checkDB {
   print "Total Files Checked : $nfiles not found in DB $notindb ";
   if ($checkCRC == 1) {print " CRC error : $crcerror";}
   print "\n";
-}
+} elsif ($content == 1) {
+    my $N  = 0;
+    my $Nd = 0;
+    $sql = "SELECT path, timestamp FROM NTUPLES ORDER BY path, timestamp";
+    if (defined $ntpath) {
+     $sql = "SELECT path, timestamp FROM ntuples WHERE PATH LIKE '%$ntpath%' ORDER BY path,timestamp";
+    }
+    if ($verbose == 1) {
+        print "$sql \n";
+    }
+    my $ret=$self->{sqlserver}->Query($sql);
+    if(not defined $ret->[0][0]){
+        $self->amsprint("checkDB - Table NTUPLES is empty",0);
+    } else {
+       foreach my $nt0 (@{$ret}){
+        $N++;
+        my $path0 = trimblanks($nt0->[0]);
+        my $t0    = $nt0->[1];
+        my $t1    = 0;
+        my $nn = 0;
+        foreach my $nt1 (@{$ret}) {
+          my $path1 = trimblanks($nt1->[0]);
+          $t1    = $nt1->[1];
+          if ($path1 =~ $path0) { 
+              $nn++;}
+        }
+        if ($nn == 0) {
+         print "check your program - $path0 ?? $nn \n";        
+        } elsif ($nn > 1) {
+          print "$path0 found $nn times. Timestamps : $t0, $t1 \n";
+          $Nd++;
+        }
+       }
+    }
+    print "Total Files $N, to be checked $Nd \n";
+ }
   return 1;
 }
 
