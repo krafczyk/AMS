@@ -926,3 +926,15 @@ bool AMSTRDTrack::IsHighGammaTrack(){
  }
  return hmul>threshold;
 }
+
+
+
+
+bool AMSTRDTrack::Veto(int last){
+ for (int i=0;i<_Base._NHits;i++){
+  if(_Base._PCluster[i]->getlayer()>last)return false;
+ }
+ return true;
+}
+
+

@@ -1,4 +1,4 @@
-//  $Id: amsdbc.h,v 1.32 2002/11/14 13:19:17 glamanna Exp $
+//  $Id: amsdbc.h,v 1.33 2002/11/14 14:07:25 choutko Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
@@ -37,38 +37,38 @@ static char * amsdatabase;
      static const char ams_name[129];
      static  geant ams_coo[3];
 //bits
-     static const integer AMBIG;
-     static const integer BAD;
-     static const integer USED;
-     static const integer DELETED;
-     static const integer RELEASED;
-     static const integer REFITTED;
-     static const integer WIDE;
-     static const integer BADHIS;
-     static const integer ONESIDE;
-     static const integer BADTIME;
-     static const integer NEAR;
-     static const integer WEAK;
-     static const integer AwayTOF;
-     static const integer FalseX;
-     static const integer FalseTOFX;
-     static const integer RECOVERED;
-     static const integer LocalDB;
-     static const integer GlobalDB;
-     static const integer CHARGEUSED;
-     static const integer GOOD;
-     static const integer BADINTERPOL;
-     static const integer NOTRACK;
-     static const integer AOVERFLOW;
-     static const integer LOWGCHUSED;
-     static const integer TRDTRACK;
-     static const integer LEAK;
-     static const integer CATLEAK;
-     static const integer JUNK;
-     static const integer ECALTRACK;
-     static const integer GAMMALEFT;
-     static const integer GAMMARIGHT;
-     static const integer TOFFORGAMMA;
+     static const uinteger AMBIG;
+     static const uinteger BAD;
+     static const uinteger USED;
+     static const uinteger DELETED;
+     static const uinteger RELEASED;
+     static const uinteger REFITTED;
+     static const uinteger WIDE;
+     static const uinteger BADHIS;
+     static const uinteger ONESIDE;
+     static const uinteger BADTIME;
+     static const uinteger NEAR;
+     static const uinteger WEAK;
+     static const uinteger AwayTOF;
+     static const uinteger FalseX;
+     static const uinteger FalseTOFX;
+     static const uinteger RECOVERED;
+     static const uinteger LocalDB;
+     static const uinteger GlobalDB;
+     static const uinteger CHARGEUSED;
+     static const uinteger GOOD;
+     static const uinteger BADINTERPOL;
+     static const uinteger NOTRACK;
+     static const uinteger AOVERFLOW;
+     static const uinteger LOWGCHUSED;
+     static const uinteger TRDTRACK;
+     static const uinteger LEAK;
+     static const uinteger CATLEAK;
+     static const uinteger JUNK;
+     static const uinteger ECALTRACK;
+     static const uinteger GAMMALEFT;
+     static const uinteger GAMMARIGHT;
+     static const uinteger TOFFORGAMMA;
 // machine dependent values
 
     static integer BigEndian;

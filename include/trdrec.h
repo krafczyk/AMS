@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.9 2002/07/16 05:43:23 kscholbe Exp $
+//  $Id: trdrec.h,v 1.10 2002/11/14 14:07:25 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include <trdid.h>
@@ -10,7 +10,7 @@
 class AMSTRDCluster: public AMSlink{
 protected:
 AMSPoint _Coo;   // Global Coordinates 
-integer _layer;  //  layer - as in trdidgeom
+integer _layer;  //  layer from 0 to 19 increasing with z 
 number _ClSizeR;       // tube radius
 number _ClSizeZ;      // tube 1/2 length
 AMSDir   _CooDir;      // Dir Cosinuses 
@@ -214,6 +214,7 @@ AMSPoint getCooStr()const {return _StrLine._Coo;}
 AMSDir getCooDirStr()const {return AMSDir(_StrLine._Theta,_StrLine._Phi);}
 AMSPoint getECooStr()const {return _StrLine._ErCoo;}
 bool IsEcalCandidate();
+bool Veto(int last);
 AMSTRDTrack *  next(){return (AMSTRDTrack*)_next;}
 integer operator < (AMSlink & o) const {
  

@@ -980,9 +980,9 @@ _LSQP2(FLPAT,H,esc_1,esc_2);
 
  for(int i=0;i<TKDBc::nlay();i++){
    FLPAT[i]=H[i].size();
-   cout << "FLPAT["<<i<<"] ="<<FLPAT[i]<<endl;
+//   cout << "FLPAT["<<i<<"] ="<<FLPAT[i]<<endl;
    if (FLPAT[i]>2) {
-     cout << "_LSQP2 didn't work ABANDON" <<endl;
+//     cout << "_LSQP2 didn't work ABANDON" <<endl;
      return 0;
    }
    //
@@ -1399,7 +1399,7 @@ pntLR->Fit(4,2);
     AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),pntLR);
     int done=0;
     pntLR->addtracks(done);
-    cout<<" done ------- = "<< done<< endl;
+//    cout<<" done ------- = "<< done<< endl;
 
 
   }// (init_R!=0 && init_L!=0)
@@ -1729,9 +1729,9 @@ void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag
 	z_fi[i]=z_fi3[i];
     }   
   }
-  for(int i=0;i<TKDBc::nlay();i++){
-    cout <<  "AFTER res_3..... z_fi[i] res_["<<i<<"] = "<<z_fi[i]<< " "<<  res_[i]<<endl;
-  }
+//  for(int i=0;i<TKDBc::nlay();i++){
+//    cout <<  "AFTER res_3..... z_fi[i] res_["<<i<<"] = "<<z_fi[i]<< " "<<  res_[i]<<endl;
+//  }
 
 
   // defining parameters of the poly2 fit
@@ -1780,7 +1780,7 @@ void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag
   while (SDW >= 0.32){
     if (N <= 2) SDW =0;
     if (N <= 2) break;
-    cout <<  "N = "<< N << endl;
+//    cout <<  "N = "<< N << endl;
     flag++;
     cur_max=_vdmax(res_cur,N);
 
@@ -1949,7 +1949,7 @@ void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag
     //NOW a new while loop on the lsq CHI2 = VAR
    
     while(VAR >= 0.2){
-      cout << "                    inside while of var "<<endl;
+//      cout << "                    inside while of var "<<endl;
       for(int i=0;i<(ja+1);i++){
 	//linear residuals of Y_centers
 	re_ce[i]=fabs(centro[i]-(B*z_gi[i]+A));
@@ -2471,7 +2471,7 @@ AMSPoint bo_hi;
    for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
      p_hi = p->getHit(); 
       if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
-       cout<< "*_____ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
+//       cout<< "*_____ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
       }
       p->clearstatus(AMSDBc::GAMMALEFT);
    }
@@ -2488,7 +2488,7 @@ AMSPoint bo_hi;
      p->clearstatus(AMSDBc::TOFFORGAMMA);
      p_hi = p->getHit(); 
      if (p->checkstatus(AMSDBc::GAMMALEFT) ){
-       cout<< "*+++++ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
+//       cout<< "*+++++ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
      }
    }
   }
@@ -2681,7 +2681,7 @@ lhi=0;
    for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
      p_hi = p->getHit(); 
       if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
-       cout<< "*_____ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
+//       cout<< "*_____ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
       }
       p->clearstatus(AMSDBc::GAMMARIGHT);
    }
@@ -2698,7 +2698,7 @@ lhi=0;
      p->clearstatus(AMSDBc::TOFFORGAMMA);
       p_hi = p->getHit(); 
      if (p->checkstatus(AMSDBc::GAMMARIGHT) ){
-       cout<< "*+++++ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
+//       cout<< "*+++++ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
      }
    }
   }
@@ -2953,7 +2953,7 @@ void AMSTrTrackGamma::_crHitLR(){
 }
 
 number AMSTrTrackGamma::Fit(integer fits, integer ipart){
-  cout << "WE are INSIDE  Fit("<<fits<<","<<ipart<<") "<< endl;
+//  cout << "WE are INSIDE  Fit("<<fits<<","<<ipart<<") "<< endl;
   // fit =0  fit pattern
   //NO // fit =1  fit 1st part if pat=0,1,2,3, ... etc  
   //NO // fit =2  fit 2nd half if pat=0,1,2,3  ... etc + interpolate to beg of 1st
@@ -3160,7 +3160,7 @@ _GP0MSR=AMSPoint(outR[0],outR[1],outR[2]);
 _GChi2MSL=outL[8];
 if(outL[7] != 0)_GChi2MSL=-outL[7];
 _GRidgidityMSL=outL[5];
- cout<< "JUAN ROUTINE outL[5] = "<<outL[5]<<endl;
+// cout<< "JUAN ROUTINE outL[5] = "<<outL[5]<<endl;
 // me
 _GThetaMSL=outL[3];
 _GPhiMSL=outL[4];
@@ -3316,7 +3316,7 @@ MYlsqp2::MYlsqp2(int M, double* xp, double* yp){
 }
 
 void MYlsqp2::make_param(){
-  cout<< "Make_nij L "<< L <<endl;  
+//  cout<< "Make_nij L "<< L <<endl;  
   n1[0]=L;
   n1[1]=sigma(x);
   n1[2]=sigma(x,x);

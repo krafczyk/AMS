@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.44 2002/11/14 13:18:25 glamanna Exp $
+//  $Id: amsdbc.C,v 1.45 2002/11/14 14:07:16 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
@@ -7,38 +7,38 @@
 //
 
 char* AMSDBc::amsdatabase=0;
-const integer AMSDBc::REFITTED=1;
-const integer AMSDBc::WIDE=2;
-const integer AMSDBc::AMBIG=4;
-const integer AMSDBc::RELEASED=8;
-const integer AMSDBc::BAD=16;
-const integer AMSDBc::USED=32;
-const integer AMSDBc::DELETED=64;
-const integer AMSDBc::BADHIS=128;
-const integer AMSDBc::ONESIDE=256;
-const integer AMSDBc::BADTIME=512;
-const integer AMSDBc::NEAR=1024;
-const integer AMSDBc::WEAK=2048;
-const integer AMSDBc::AwayTOF=4096;
-const integer AMSDBc::FalseX=8192;
-const integer AMSDBc::FalseTOFX=16384;
-const integer AMSDBc::RECOVERED=16384*2;
-const integer AMSDBc::LocalDB=16384*2*2;
-const integer AMSDBc::GlobalDB=16384*2*2*2;
-const integer AMSDBc::CHARGEUSED=16384*2*2*2*2;
-const integer AMSDBc::GOOD      =16384*2*2*2*2*2;
-const integer AMSDBc::BADINTERPOL =16384*2*2*2*2*2*2;
-const integer AMSDBc::NOTRACK     =16384*2*2*2*2*2*2*2;
-const integer AMSDBc::AOVERFLOW    =16384*2*2*2*2*2*2*2*2;
-const integer AMSDBc::TRDTRACK     =16384*2*2*2*2*2*2*2*2*2;
-const integer AMSDBc::LEAK         =16384*2*2*2*2*2*2*2*2*2*2;
-const integer AMSDBc::CATLEAK      =16384*2*2*2*2*2*2*2*2*2*2*2;
-const integer AMSDBc::JUNK         =16384*2*2*2*2*2*2*2*2*2*2*2*2;
-const integer AMSDBc::ECALTRACK    =16384*2*2*2*2*2*2*2*2*2*2*2*2*2;
-const integer AMSDBc::LOWGCHUSED   =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
-const integer AMSDBc::GAMMALEFT    =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
-const integer AMSDBc::GAMMARIGHT   =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
-const integer AMSDBc::TOFFORGAMMA  =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::REFITTED=1;
+const uinteger AMSDBc::WIDE=2;
+const uinteger AMSDBc::AMBIG=4;
+const uinteger AMSDBc::RELEASED=8;
+const uinteger AMSDBc::BAD=16;
+const uinteger AMSDBc::USED=32;
+const uinteger AMSDBc::DELETED=64;
+const uinteger AMSDBc::BADHIS=128;
+const uinteger AMSDBc::ONESIDE=256;
+const uinteger AMSDBc::BADTIME=512;
+const uinteger AMSDBc::NEAR=1024;
+const uinteger AMSDBc::WEAK=2048;
+const uinteger AMSDBc::AwayTOF=4096;
+const uinteger AMSDBc::FalseX=8192;
+const uinteger AMSDBc::FalseTOFX=16384;
+const uinteger AMSDBc::RECOVERED=16384*2;
+const uinteger AMSDBc::LocalDB=16384*2*2;
+const uinteger AMSDBc::GlobalDB=16384*2*2*2;
+const uinteger AMSDBc::CHARGEUSED=16384*2*2*2*2;
+const uinteger AMSDBc::GOOD      =16384*2*2*2*2*2;
+const uinteger AMSDBc::BADINTERPOL =16384*2*2*2*2*2*2;
+const uinteger AMSDBc::NOTRACK     =16384*2*2*2*2*2*2*2;
+const uinteger AMSDBc::AOVERFLOW    =16384*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::TRDTRACK     =16384*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::LEAK         =16384*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::CATLEAK      =16384*2*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::JUNK         =16384*2*2*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::ECALTRACK    =16384*2*2*2*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::LOWGCHUSED   =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::GAMMALEFT    =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::GAMMARIGHT   =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
+const uinteger AMSDBc::TOFFORGAMMA  =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;

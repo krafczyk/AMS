@@ -1,15 +1,19 @@
-#  $Id: Readme.AMS02.1st,v 1.39 2002/11/08 15:43:21 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.40 2002/11/14 14:07:25 choutko Exp $          
 
 
-0. In the current version only AMS02-setup is supported.
-   Please refer to  Readme.1st for AMS01 related questions.
+-I. In the current version only AMS02-setup is supported.
+    Please refer to  Readme.1st for AMS01 related questions.
 
 
+0.  Simulation tools: 
 
-I. The following hardware platforms are currently supported:
- Linux/gcc2.95.2, gcc3.0.2 
- DEC/OSF1/cxx6.2 
- Sun/SunOS5.7/Sun WorkShop 6 update 1 C++ 5.2     (geant3 only)
+    both geant3 and geant4  are supported. 
+    
+
+I. The following platforms are currently supported:
+ Linux             gcc2.95.3, gcc3.0.2 , icc/ifc v6.0
+ DEC/OSF1          cxx6.2++                                  (geant3 only)  
+ Sun/SunOS5.7      Sun WorkShop 6 update 1 C++ 5.2     
 
 
 II. Software management:
@@ -29,7 +33,7 @@ c) Oracle DB
 V. Documentation
 a) AMS Home Page at http://ams.cern.ch/AMS/analysis.html  -> SoftwareManagement
    and ref therein
-b) AMS02 VeryShort Home Page at  http://ams.cern.ch/AMS/Analysis/hpl3itp1/ams02.html
+b) AMS02 software  Home Page at  http://ams.cern.ch/AMS/Analysis/hpl3itp1/ams02.html
 c) files in doc subdirectory of AMS directory tree ( see VI. how to access) 
 d) 00index.txt file in each subdirectory
 e) AMS02 Software Status Report in
@@ -128,7 +132,7 @@ VII.  Standalone version
            tar -xvf ~/ams.tar
            setenv AMSDataDir mydir
              
-          Third party libraries you may want to install
+          Third party libraries you may need to install
           i)   cernlib 
           ii) nag fortran library  
           iii) libamsut   (in /afs/cern.ch/exp/ams/Offline/lib)  
@@ -143,29 +147,30 @@ VIII. Misc
 a. Accounts
 
    To get local/afs accounts on ams computers ask
-   Alexei.Klimentov@cern.ch                 ;
+   Alexei.Klimentov@cern.ch                 
    
 b. Disk space
-   AFS account can be as large as 300 mbytes
+    see a.
 
 c. SoftWare/DataAccess
 
-   setenv Offline   as:
-   /shift/shift51/data18/xv/choutko/Offline if on shift51
-   /Offline                                  ams alphas,pentiums
+   setenv Offline
+
+  /afs/ams.cern.ch/Offline                computers at cern cite
+                                           eg ams,pcamsf2,lxplus
    /afs/cern.ch/exp/ams/Offline              all others 
-                                            (e.g.rsplus,dxplus,hpplus)
+
+
 
    source $Offline/vdev/install/amsvar
 
-   vdev version is in $Offline/vdev  (v4.00 build 1)
+   vdev version is in $Offline/vdev  (v4.00 build xx)
 
    vdec/doc contains doc
 
-   AMSDataBase is in $AMSDataDir/DataBase 
+ 
 
-   http://ams.cern.ch/AMS/Analysis/hpl3itp1/prv3.job contains relevant datacards
-
+ 
 
 d.  Misc
     i)  you may need to override default shell limits to run offline program;

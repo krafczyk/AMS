@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.296 2002/11/14 13:18:26 glamanna Exp $
+//  $Id: event.C,v 1.297 2002/11/14 14:07:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1645,10 +1645,19 @@ void AMSEvent::_rerichevent(){
 void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
 //
-AMSgObj::BookTimer.start("TrTrackGamma");
-buildC("AMSTrTrackGamma");
-AMSgObj::BookTimer.stop("TrTrackGamma");
-
+  AMSTRDTrack *ptrd=(AMSTRDTrack*)getheadC("AMSTRDTrack",0); 
+  bool veto;
+  while(ptrd){
+    if(!(veto=ptrd->Veto(17))){
+     break;
+    }
+    ptrd=ptrd->next();
+  }
+if(veto){
+ AMSgObj::BookTimer.start("TrTrackGamma");
+  buildC("AMSTrTrackGamma");
+ AMSgObj::BookTimer.stop("TrTrackGamma");
+}
 #ifdef __AMSDEBUG__
 //if(AMSEvent::debug)AMSTrTrackGamma::print();
 #endif

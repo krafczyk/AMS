@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.64 2002/11/14 13:19:17 glamanna Exp $
+//  $Id: ntuple.h,v 1.65 2002/11/14 14:07:25 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -20,7 +20,7 @@ const int MAXTOFRAW  =    48;
 const int MAXTOFMC   =   200;
 const int MAXANTICL  =    16;
 const int MAXANTIRAW =    32;
-const int MAXANTIMC  =   200;
+const int MAXANTIMC  =   100;
 const int MAXTRCL    =   200;
 const int MAXTRRAW   =   300;
 const int MAXTRCLMC  =   200;
@@ -214,6 +214,7 @@ public:
   float Chi2Trans[MAXECSHOW];
 //  float TransProfile[MAXECSHOW][3];
   float SphericityEV[MAXECSHOW][3];
+  int   N2DCl[MAXECSHOW];
   int   p2DCl[MAXECSHOW][2];
 friend class EcalShower;
 friend class AMSNtuple;
@@ -266,6 +267,7 @@ public:
   int Plane[MAXECHITS];
   int Cell[MAXECHITS];
   float Edep[MAXECHITS];
+  float AttCor[MAXECHITS];
   float Coo[MAXECHITS][3];
   float ADC[MAXECHITS][3];
   float Ped[MAXECHITS][3];

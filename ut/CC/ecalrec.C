@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.69 2002/11/08 15:43:10 choutko Exp $
+//  $Id: ecalrec.C,v 1.70 2002/11/14 14:07:16 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -616,9 +616,14 @@ void AMSEcalHit::attcor(number coo){//you should add it to measured Edep
 //  ECcalib::ecpmcal[sl][pm].fastfr()=0.2;
 //  ECcalib::ecpmcal[sl][pm].alfast()=20;
 //  ECcalib::ecpmcal[sl][pm].alslow()=250;
+//    ECcalib::ecpmcal[sl][pm].fastfr()=0.15;
+//    ECcalib::ecpmcal[sl][pm].alfast()=13.3;
+//    ECcalib::ecpmcal[sl][pm].alslow()=205;
   attf0=ECcalib::ecpmcal[sl][pm].attf(hflen);
   attf=ECcalib::ecpmcal[sl][pm].attf(pmdist);//pmdist=[0,2*hflen]
   _attcor=_edep*(attf0/attf-1.);
+//  cout << " pmdist "<<pmdist<<" "<<hflen<<endl;
+
   _edep+=_attcor;
   setstatus(AMSDBc::REFITTED);
  }
@@ -673,6 +678,7 @@ void AMSEcalHit::_writeEl(){
     TN->Plane[TN->Necht]=_plane;
     TN->Cell[TN->Necht]=_cell;
     TN->Edep[TN->Necht]=_edep;
+    TN->AttCor[TN->Necht]=_attcor;
     if(_proj){ //<-- y-proj
       TN->Coo[TN->Necht][0]=_cool;
       TN->Coo[TN->Necht][1]=_coot;
@@ -1598,6 +1604,7 @@ void EcalShower::_writeEl(){
      for(int i=0;i<4;i++)TN->ParProfile[TN->Necsh][i]=_ProfilePar[i+_Direction*5];
      TN->Chi2Trans[TN->Necsh]=_TransFitChi2;
      for(int i=0;i<3;i++)TN->SphericityEV[TN->Necsh][i]=_SphericityEV[i];       
+     TN->N2DCl[TN->Necsh]  = _N2dCl;
      for(int i=0;i<2;i++)TN->p2DCl[TN->Necsh][i]=_pCl[i]->getpos();
     TN->Necsh++;
   }
@@ -1883,6 +1890,9 @@ void EcalShower::EnergyFit(){
 
   if(_ShowerMax==Maxrow-1 || _ShowerMax==0){
    setstatus(AMSDBc::CATLEAK);
+  }
+  else if(_ShowerMax==Maxrow-2 || _ShowerMax==1){
+   setstatus(AMSDBc::LEAK);
   }
   _AngleRes();
   _EnergyRes(); 
@@ -2234,8 +2244,8 @@ void EcalShower::_EnergyCorr(){
 //Try to take into account lower energy + adcoverflow
 //pure phenomelogical one, should be replaced by more smart one...
 if(_EnergyC){
- number minen=_EnergyC>2?_EnergyC:2;
- number lowencorr=1.0067-6.6e-2/pow(minen,0.5);
+ number minen=_EnergyC>1?_EnergyC:1;
+ number lowencorr=1.0009-2.7e-2/pow(minen,0.5);
  _EnergyC/=lowencorr;
  if(_EnergyC>2500){
   number maxen=_EnergyC>15000?15000:_EnergyC;
