@@ -449,6 +449,7 @@ public:
   geant Chi2FalseX;
   geant SearchRegTOF;
   integer FalseTOFXTracking;
+  integer AwayTOFTracking;
 };
 //
 
