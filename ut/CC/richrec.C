@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.52 2003/05/14 17:00:24 choutko Exp $
+//  $Id: richrec.C,v 1.53 2003/06/23 08:59:48 delgadom Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -186,7 +186,8 @@ void AMSRichRawEvent::_writeEl(){
 void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
                                   AMSDir direction,AMSDir direction_ref,
 				  geant betamin,geant betamax,
-				  geant *betas,geant index){
+				  geant *betas,geant index,
+				  int kind_of_tile=agl_kind){
 
   // Reconstruct the beta values for this hit. Assumes direction as unitary
   static const geant z=RICradpos-RICHDB::rad_height-RICHDB::foil_height-
@@ -228,7 +229,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   geant R=sqrt((origin[0]-x)*(origin[0]-x)+(origin[1]-y)*(origin[1]-y));
   geant theta=atan2(number(R),fabs(origin[2]-z));
   geant h=origin[2]-RICradpos+RICHDB::rad_height;
-  static const geant H=RICHDB::rich_height+RICHDB::foil_height+
+  geant H=RICHDB::rich_height+RICHDB::foil_height+
                        RICradmirgap+RIClgdmirgap
                        -RICHDB::foil_height;   // Correction due to high index
   geant n=index;
@@ -237,7 +238,13 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   integer time_out=0;
   geant delta=1,f,g;
 
-  while(delta>1e-5 && time_out<10){   /// WARNING HERE: IT SHOULT BE fabs???
+
+  if(kind_of_tile==naf_kind)
+    H+=RICHDB::foil_height;
+  // h+=sqrt((n*n-1)/(RICHDB::foil_index*RICHDB::foil_index-1))*RICHDB::foil_height/2;
+
+  //  while(delta>1e-5 && time_out<10){   /// WARNING HERE: IT SHOULT BE fabs???
+  while(fabs(delta)>1e-5 && time_out<5){
     f=R-h*u/sqrt(1-u*u)-
       H*u*n/sqrt(1-n*n*u*u);
     
@@ -418,7 +425,7 @@ AMSDir   AMSRichRing::_entrance_d=AMSDir(0,0);
 geant   AMSRichRing::_clarity=0.0113;
 geant   *AMSRichRing::_abs_len=0;
 geant   *AMSRichRing::_index_tbl=0;
-int     _kind_of_tile=0;
+int     AMSRichRing::_kind_of_tile=0;
 
 void AMSRichRing::build(){
   _Start();
@@ -584,6 +591,13 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
 	   (_index-1.)*(_index-1.))*
     _height/(RICHDB::rich_height+RICHDB::foil_height+
 			RICradmirgap+RIClgdmirgap)*40./2.;
+
+
+
+
+  if(_kind_of_tile==naf_kind) // For NaF they are understimated
+    {A*=3.44;B*=3.44;}
+
   
   
   // Reconstruction threshold: maximum beta admited
@@ -663,7 +677,7 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
     // Reconstruct one hit
     hit->reconstruct(dirp,refp,
 		     dird,refd,
-		     betamin,betamax,recs[actual],_index);
+		     betamin,betamax,recs[actual],_index,_kind_of_tile);
 
     hit->unsetbit(bit);
     
@@ -877,6 +891,9 @@ void AMSRichRing::CalcBetaError(){
 	   (_index-1.)*(_index-1.))*
     _height/(RICHDB::rich_height+RICHDB::foil_height+
                                    RICradmirgap+RIClgdmirgap)*40./2.;
+
+
+  if(_kind_of_tile==naf_kind){A*=3.44;B*=3.44;}
 
 
   _errorbeta=_used>0?

@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.21 2003/05/08 16:42:13 choutko Exp $
+//  $Id: richrec.h,v 1.22 2003/06/23 08:59:56 delgadom Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -83,7 +83,7 @@ public:
   static void mc_build();
   void reconstruct(AMSPoint,AMSPoint,AMSDir,AMSDir,geant,
 		   geant,
-                   geant *,geant);
+                   geant *,geant,int);
 
   integer reflexo(AMSPoint origin,AMSPoint *ref_point);
   geant inline dist(AMSPoint punto,AMSPoint plane){
@@ -171,7 +171,7 @@ static geant _Time;
   static geant   _clarity;
   static geant *_abs_len;
   static geant *_index_tbl;
-  static int _kind_of_title;
+  static int _kind_of_tile;
   
 
   // ALl the routines from Elisa
