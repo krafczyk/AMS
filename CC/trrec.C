@@ -828,7 +828,7 @@ number AMSTrCluster::_etacor(integer side, number eta) {
     for (i=0;i<5;i++) sum+=etack[i]*pow(eta,i);
     cor=etagk/sum;
   }
-cout<<" K side corrections applied. cor= "<<cor<<endl;
+// cout<<" K side corrections applied. cor= "<<cor<<endl;
   return cor;
 }
 
