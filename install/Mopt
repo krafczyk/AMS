@@ -17,7 +17,7 @@ endif
 ifeq  "$(shell uname)"  "OSF1" 
 CFLAGS=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I../include/stl -define_templates 
 CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I../include/stl -define_templates 
-FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian
+FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
 DFLAGS=  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
 LDFLAGS=  -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm
 CC=cxx

@@ -78,7 +78,8 @@ void DAQEvent::setfiles(char *ifile, char *ofile){
 void DAQEvent::buildDAQ(uinteger btype){
 DAQBlockType *fpl=_pBT[btype];
 if(fpl == NULL && btype){
-  cerr << "DAQEvent::build-S-NoSubdetectors in DAQ"<<endl;
+  static int init=0;
+  if(init++==0)cerr << "DAQEvent::build-S-NoSubdetectors in DAQ"<<endl;
   return;
 }
 integer ntot=0;

@@ -1,6 +1,6 @@
 setenv INUSE on
 setenv INUSE_PORT 79267
-set ARCH=alpha
+set ARCH=alpha3
 setenv INSIGHT /afs/cern.ch/pttools/Insure/insure
 setenv PATH $INSIGHT/bin.${ARCH}:$PATH
 if ( $?MANPATH ) then
