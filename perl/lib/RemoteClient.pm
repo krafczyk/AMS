@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.203 2003/07/25 12:26:57 alexei Exp $
+# $Id: RemoteClient.pm,v 1.204 2003/07/25 12:29:51 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4142,7 +4142,7 @@ print qq`
                $buf=~ s/$cn/$cn$ccc/;         
            }
        }
-         if (defined $rootntuple && i<2) {
+         if (defined $rootntuple && $i<2) {
           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
          }
 #       if ($self->{q}->param("ProductionQuery")) {
