@@ -31,8 +31,8 @@ private:
    geant StationRoll;
    geant StationSpeed;
    geant SunR;
-   geant SunTheta;
-   geant SunPhi;
+   geant VelTheta;
+   geant VelPhi;
    time_t Time;
   };
 uinteger _status;
@@ -47,8 +47,8 @@ geant _Pitch;
 geant _Roll;
 geant _StationSpeed;
 geant _SunRad; 
-geant _SunTheta; 
-geant _SunPhi; 
+geant _VelTheta; 
+geant _VelPhi; 
 time_t _time;
 uinteger _usec;
 static integer SRun;
@@ -129,12 +129,13 @@ AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
 uinteger usec,geant pole, geant stationT, geant stationP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0,geant SunT=0, geant SunP=0):AMSNode(id),_run(run),_status(0),
-_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_SunTheta(SunT),_SunPhi(SunP){_Head=this;}
+_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_VelTheta(SunT),_VelPhi(SunP){_Head=this;}
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
    _runtype(runtype), _time(time), _usec(usec),_status(0){
    _Head=this;
 }
 ~AMSEvent(){_Head=0;}
+void loc2gl();
 static void SetShuttlePar();
 static AMSEvent * gethead()  {return _Head;}
 static integer debug;
@@ -173,6 +174,8 @@ integer replace(AMSID id, AMSlink * p, AMSlink *prev);
 uinteger getrun() const{return _run;}
 uinteger  getstatus()const {return _status;}
 geant getpitch() const{return _Pitch;}
+geant getveltheta() const{return _VelTheta;}
+geant getvelphi() const{return _VelPhi;}
 geant getroll() const{return _Roll;}
 geant getyaw() const{return _Yaw;}
 uinteger& setrun() {return _run;}

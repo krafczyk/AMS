@@ -33,7 +33,7 @@ void AMSNtuple::init(){
   _Nentries=0;
   HBNT(_lun, getname()," ");
   HBNAME(_lun,"EventH",&_event.Eventno,
-  "eventno[0,10000000]:I,run:I,runtype:I,time(2):I,RawWords[0,32000]:I,GrMedPhi:R,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,Particles[0,100]:I,Tracks[0,100]:I,Betas[0,100]:I,Charges[0,100]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,100]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EventStatus:I");
+  "eventno[0,10000000]:I,run:I,runtype:I,time(2):I,RawWords[0,32000]:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,Particles[0,100]:I,Tracks[0,100]:I,Betas[0,100]:I,Charges[0,100]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,100]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EventStatus:I");
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,100],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
@@ -42,7 +42,7 @@ void AMSNtuple::init(){
     "ncharge[0,10],chargestatus(ncharge):I,chargebetap(ncharge)[-1,30000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,probtof(10,ncharge),probtracker(10,ncharge),truntof(ncharge),truntracker(ncharge)");
 
   HBNAME(_lun,"Particle",&_part.Npart,
-  "npart[0,10],pctcp(2,npart)[-1,30000]:I,pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),pcoo(3,npart),signalctc(2,npart),betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart),cootof(3,4,npart),cooanti(3,2,npart),cootr(3,6,npart)");
+  "npart[0,10],pctcp(2,npart)[-1,30000]:I,pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),signalctc(2,npart),betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart),cootof(3,4,npart),cooanti(3,2,npart),cootr(3,6,npart)");
 
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,100]:I,TOFEdep(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");

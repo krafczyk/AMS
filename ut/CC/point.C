@@ -26,3 +26,16 @@ void AMSDir::_copy(number u, number v, number w){
    }
   }
 }
+
+AMSDir::AMSDir(number theta, number phi){
+ _z=cos(theta);
+ _x=sin(theta)*cos(phi);
+ _y=sin(theta)*sin(phi);
+}
+
+AMSDir AMSDir::cross(const AMSDir & o){
+ number x=_y*o._z-_z*o._y;
+ number y=_z*o._x-_x*o._z;
+ number z=_x*o._y-_y*o._x;
+ return AMSDir(x,y,z);
+}

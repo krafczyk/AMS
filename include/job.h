@@ -227,7 +227,7 @@ AMSNtuple * getntuple(AMSID id=0);
 void data();
 void udata();
 void init();
-void uhinit(integer pass=0);
+void uhinit(integer run=0,integer pass=0);
 void urinit(integer pass=0);
 void uhend();
 AMSTimeID * gettimestructure();

@@ -16,16 +16,15 @@ Below there is a description of a  ntuple.
                                                     // (1) Unix time (sec)
                                                     // (2) usec time
 * I*4  *              * EVENTH   * rawwords         // Event Lenght in bytes
-* R*4  *              * EVENTH   * GrMedPhi         // Greenwich meridian phi 
-* R*4  *              * EVENTH   * RadS             // Shuttle Altitude ( Y2000 cm)
-* R*4  *              * EVENTH   * ThetaS           // Shuttle Lattitude (Y2000 rad)
-* R*4  *              * EVENTH   * PhiS             // Shuttle phi (Y2000 rad)
-* R*4  *              * EVENTH   * YawS             // Shuttle yaw (Y2000 rad) 
+* R*4  *              * EVENTH   * RadS             // Shuttle Altitude ( GTOD cm)
+* R*4  *              * EVENTH   * ThetaS           // Shuttle Lattitude (GTOD rad)
+* R*4  *              * EVENTH   * PhiS             // Shuttle phi (GTOD rad)
+* R*4  *              * EVENTH   * YawS             // Shuttle yaw (GTOD rad) 
 * R*4  *              * EVENTH   * PitchS           //         pitch
 * R*4  *              * EVENTH   * RollS            //         roll
-* R*4  *              * EVENTH   * VelocityS        // Shuttle speed (rad/sec) (+ if flying to north
-                                                    //                          - otherwise)
- 
+* R*4  *              * EVENTH   * VelocityS        // Shuttle speed (rad/sec) 
+* R*4  *              * EVENTH   * VelTheta         // speed theta (GTOD rad) 
+* R*4  *              * EVENTH   * VelPhi           // speed phi (GTOD rad) 
 
 * I*4  *              * EVENTH   * Particles        // No of Particles
 * I*4  *              * EVENTH   * Tracks           // No of Tracks                    

@@ -569,3 +569,7 @@ I 1  status[32](32*0)    //
                              [11] track quality
                              [12] shuttle geomag latitude
                                      
+
+MISC   // misc
+
+I 1 BTempCorrection(0)      // apply(1),not(0) temperature corrections to mfield

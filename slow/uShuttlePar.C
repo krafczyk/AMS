@@ -330,7 +330,7 @@ uint para,statu;
       block.StationTheta=blockNt.StThetaGTOD=d2f(Geo_G.Teta);
       block.StationPhi  =blockNt.StPhiGTOD=d2f(Geo_G.Phi);
       block.VelThetaGTOD=blockNt.VelThetaGTOD=d2f(Geo_G_Vel.Teta);
-      blockNt.VelPhiGTOD=blockNt.VelPhiGTOD=d2f(Geo_G_Vel.Phi);
+      block.VelPhiGTOD  =blockNt.VelPhiGTOD=d2f(Geo_G_Vel.Phi);
 			 blockNt.VelTheta=d2f(Geo_Vel.Teta);
 			 blockNt.VelPhi=d2f(Geo_Vel.Phi);
 
@@ -360,7 +360,7 @@ int updShuttle(ShuttlePar & record, int close){
         fout.write((char*)(&crc),sizeof(crc));
         time_t newi;
         time(&newi);
-        if(newi!=Insert)Insert=newi;
+        if(newi>Insert)Insert=newi;
         else Insert++;
         fout.write((char*)(&Insert),sizeof(Insert)); 
         fout.write((char*)(&(Array[0].Time)),sizeof(time_t)); 
@@ -401,7 +401,7 @@ int updShuttle(ShuttlePar & record, int close){
           fout.write((char*)(&crc),sizeof(crc));
           time_t newi;
           time(&newi);
-          if(newi!=Insert)Insert=newi;
+          if(newi>Insert)Insert=newi;
           else Insert++;
           fout.write((char*)(&Insert),sizeof(Insert)); 
           fout.write((char*)(&(Array[0].Time)),sizeof(time_t)); 

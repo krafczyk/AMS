@@ -1224,6 +1224,9 @@ void AMSJob::_caaxinitjob(){
 
 void AMSJob::_remfinitjob(){
 READMFIELD();
+if(MISCFFKEY.BTempCorrection){
+cout <<"AMSJob::_remfinitjob-I-Magnetic Field Temp Corrections will be used"<<endl; 
+}
 }
 
 
@@ -1324,6 +1327,7 @@ AMSgObj::BookTimer.book("RECTCEVENT");
 void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("REAXEVENT");
   AMSgObj::BookTimer.book("ReAxRefit");
+  AMSgObj::BookTimer.book("part::loc2gl");
   if(AMSFFKEY.Update){
     for(int i=0;i<gethead()->gettdvn();i++){
       if( strcmp(gethead()->gettdvc(i),"ChargeLkhd")==0 ){
@@ -1828,7 +1832,7 @@ void AMSJob::urinit(integer eventno){
 }
 
 
-void AMSJob::uhinit(integer eventno){
+void AMSJob::uhinit(integer run, integer eventno){
   if(IOPA.hlun){
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
@@ -1838,6 +1842,8 @@ void AMSJob::uhinit(integer eventno){
     integer rsize=8000;
     if(eventno){
       char event[80];  
+      sprintf(event,"%d",run);
+      strcat(filename,event);
       sprintf(event,".%d",eventno);
       strcat(filename,event);
     }

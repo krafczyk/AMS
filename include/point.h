@@ -51,11 +51,14 @@ void _copy(number x,number y,number z);
 public:
 AMSDir():AMSPoint(){};
 AMSDir(const AMSPoint& o){number x,y,z;o.getp( x,y,z);_copy(x,y,z);}
+AMSDir(number theta, number phi);
+number gettheta() const{return acos(_z);}
+number getphi() const{return atan2(_y,_x);}
 AMSDir(const AMSDir& o){_copy(o._x,o._y,o._z);}
 AMSDir(number x, number y,number z){_copy(x,y,z);}
 AMSDir(number x[]){_copy(x[0],x[1],x[2]);}
 void setd(number x,number y,number z){_copy(x,y,z);}
 void setd(number x[]){_copy(x[0],x[1],x[2]);}
-
+AMSDir cross(const AMSDir & o);
 };
 #endif

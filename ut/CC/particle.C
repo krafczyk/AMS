@@ -282,6 +282,8 @@ void AMSParticle::_writeEl(){
   PN->Charge[PN->Npart]=_Charge;
   PN->Theta[PN->Npart]=_Theta;
   PN->Phi[PN->Npart]=fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
+  PN->ThetaGl[PN->Npart]=_ThetaGl;
+  PN->PhiGl[PN->Npart]=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
   for(i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
   for(i=0;i<CTCDBc::getnlay();i++){
     PN->CTCP[PN->Npart][i]=_pctc[i]?_pctc[i]->getpos():0;
@@ -416,6 +418,7 @@ void AMSParticle::refit(){
           }
       }
     }
+    _loc2gl();
 
   if(_GPart !=14 ){
    if(_Charge >= 1.5 || fabs(_Mass-0.938)>1.5*_ErrMass){
@@ -432,7 +435,7 @@ void AMSParticle::refit(){
       integer itr;
       geant xmass,chrg,tlt7,uwb[1];
       integer nwb=0;
-      char chdum[21];
+      char chdum[21]="";
       GFPART(_GPart,chdum,itr,xmass,chrg,tlt7,uwb,nwb);
       _Mass=_Mass*fabs(fac);
       _ErrMass=_ErrMass*fabs(fac);
@@ -462,3 +465,57 @@ geant AMSParticle::_massP[19]={0.,0.106,0.5,0.938,1.8756,2.81,2.81,3.727,5.6,
 integer AMSParticle::_chargeP[10]={6,8,10,12,14,15,16,17,18,19};
 integer AMSParticle::_partP[20]={2,5,11,14,45,46,49,47,61,62,63,64,
                                               65,66,67,68,69,70,71,72};
+
+
+void AMSParticle::_loc2gl(){
+          AMSgObj::BookTimer.start("part::loc2gl");
+ // Get current station position from event bank
+  number polephi,theta,phi;
+
+  AMSEvent::gethead()->GetGeographicCoo(polephi, theta, phi);
+  geant pitch=AMSEvent::gethead()->getpitch();
+  geant roll=AMSEvent::gethead()->getroll();
+  geant yaw=AMSEvent::gethead()->getyaw();
+
+  AMSDir amszg(AMSDBc::pi/2-theta,phi);
+  AMSDir amsxg(AMSDBc::pi/2-AMSEvent::gethead()->getveltheta(),
+  AMSEvent::gethead()->getvelphi());
+  AMSDir amsyg=amszg.cross(amsxg);
+  number prod=amsxg.prod(amszg);
+  if(fabs(prod)>0.01){
+   cerr<<"AMSParticle::_loc2gl-E-AMSGlobalCoosystemIllDefined "<<prod<<endl;
+  }
+  number cp=cos(pitch);
+  number sp=sin(pitch);
+  number cy=cos(yaw);
+  number sy=sin(yaw);
+  number cr=cos(roll);
+  number sr=sin(roll);
+  number l1=cy*cp;
+  number m1=-sy;
+  number n1=cy*sp;
+  number l2=cr*sy*cp-sr*sp;
+  number m2=cr*cy;
+  number n2=cr*sy*sp+sr*cp;
+  number l3=-sr*sy*cp-cr*sp;
+  number m3=sr*cy;
+  number n3=-sr*sy*sp+cr*cp;
+  number amsx[3],amsy[3],amsz[3];
+  amsx[0]=l1*amsxg[0]+m1*amsyg[0]+n1*amszg[0];
+  amsx[1]=l1*amsxg[1]+m1*amsyg[1]+n1*amszg[1];
+  amsx[2]=l1*amsxg[2]+m1*amsyg[2]+n1*amszg[2];
+  amsy[0]=l2*amsxg[0]+m2*amsyg[0]+n2*amszg[0];
+  amsy[1]=l2*amsxg[1]+m2*amsyg[1]+n2*amszg[1];
+  amsy[2]=l2*amsxg[2]+m2*amsyg[2]+n2*amszg[2];
+  amsz[0]=l3*amsxg[0]+m3*amsyg[0]+n3*amszg[0];
+  amsz[1]=l3*amsxg[1]+m3*amsyg[1]+n3*amszg[1];
+  amsz[2]=l3*amsxg[2]+m3*amsyg[2]+n3*amszg[2];
+  AMSDir _dir(_Theta,_Phi);
+  number ue=_dir[0]*amsx[0]+_dir[1]*amsy[0]+_dir[2]*amsz[0];
+  number ve=_dir[0]*amsx[1]+_dir[1]*amsy[1]+_dir[2]*amsz[1];
+  number we=_dir[0]*amsx[2]+_dir[1]*amsy[2]+_dir[2]*amsz[2];
+  AMSDir global(ue,ve,we);
+  _ThetaGl=global.gettheta();
+  _PhiGl= global.getphi();
+          AMSgObj::BookTimer.stop("part::loc2gl");
+}

@@ -44,16 +44,19 @@ protected:
   number  _Charge;
   number  _Theta;
   number  _Phi;
+  number  _ThetaGl;
+  number  _PhiGl;
   AMSPoint _Coo;
   CTC    _Value[2];
   AMSPoint _TOFCoo[4];  
   AMSPoint _AntiCoo[2];  
   AMSPoint _TrCoo[6];  
+  void _loc2gl();
   void _copyEl();
   void _printEl(ostream & stream){ stream << " Mass "<<_Mass<<
   " Error Mass "<<_ErrMass<<" Momentum "<<_Momentum<<" ErrMomentum "<<
    _ErrMomentum<<" Charge "<<_Charge<<" Theta "<<_Theta<<" Phi"<<_Phi<<
-   " Coo "<<_Coo<<endl;}
+   " Coo "<<_Coo<<" ThetaGl "<<_ThetaGl<<" PhiGl "<<_PhiGl<<endl;}
  void _writeEl();
  static geant _massP[19];
  static integer _chargeP[10];

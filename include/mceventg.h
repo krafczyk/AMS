@@ -30,7 +30,7 @@ number PolePhiStatic;
 number PoleTheta;
 number EarthSpeed;
 number FlightTime;
-number Axis[3];
+AMSDir Axis;
 tm Begin;
 tm End;
 };

@@ -40,7 +40,6 @@ public:
   int RunType;
   int Time[2];
   int RawWords;
-  float GrMedPhi;
   float RadS;
   float ThetaS;
   float PhiS;
@@ -48,6 +47,8 @@ public:
   float Pitch;
   float Roll;
   float VelocityS;
+  float VelTheta;
+  float VelPhi;
   int Particles;
   int Tracks;
   int Betas;
@@ -137,6 +138,8 @@ public:
   float Charge[MAXPART];
   float Theta[MAXPART];
   float Phi[MAXPART];
+  float ThetaGl[MAXPART];
+  float PhiGl[MAXPART];
   float Coo[MAXPART][3];
   float Value[3][MAXPART][2];
   float CooCTC[MAXPART][2][3];

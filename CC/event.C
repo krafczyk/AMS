@@ -219,8 +219,11 @@ void AMSEvent::SetTimeCoo(integer rec){
     _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
     _StationRad=AMSmceventg::Orbit.AlphaAltitude;
     _SunRad=0;
-    _SunTheta=0;
-    _SunPhi=0;
+    // get velocity parameters from orbit par
+    AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
+    AMSDir ax2=ax1.cross(AMSmceventg::Orbit.Axis);
+    _VelTheta=AMSDBc::pi/2-ax2.gettheta();
+    _VelPhi=ax2.getphi();
   }
   else if(!AMSJob::gethead()->isSimulation() && rec){
     static integer hint=0;
@@ -253,8 +256,8 @@ void AMSEvent::SetTimeCoo(integer rec){
       _StationSpeed=Array[hint].StationSpeed;
       _StationRad=Array[hint].StationR;
       _SunRad=Array[hint].SunR;
-      _SunTheta=Array[hint].SunTheta;
-      _SunPhi=Array[hint].SunPhi;
+      _VelTheta=Array[hint].VelTheta;
+      _VelPhi=Array[hint].VelPhi;
     }
     else if(_time == Array[hint+1].Time){
       _NorthPolePhi=fmod(AMSmceventg::Orbit.PolePhiStatic+Array[hint+1].GrMedPhi+AMSDBc::twopi,AMSDBc::twopi);
@@ -266,8 +269,8 @@ void AMSEvent::SetTimeCoo(integer rec){
       _StationSpeed=Array[hint+1].StationSpeed;
       _StationRad=Array[hint+1].StationR;
       _SunRad=Array[hint+1].SunR;
-      _SunTheta=Array[hint+1].SunTheta;
-      _SunPhi=Array[hint+1].SunPhi;
+      _VelTheta=Array[hint+1].VelTheta;
+      _VelPhi=Array[hint+1].VelPhi;
     }
     else{
       //interpolation needed
@@ -280,8 +283,8 @@ void AMSEvent::SetTimeCoo(integer rec){
         _StationSpeed=Array[hint].StationSpeed+xsec/dt*(Array[hint+1].StationSpeed-Array[hint].StationSpeed);
         _StationRad=Array[hint].StationR+((Array[hint].StationR>=0)?xsec/dt*(Array[hint+1].StationR-Array[hint].StationR):0);
         _SunRad=Array[hint].SunR+xsec/dt*(Array[hint+1].SunR-Array[hint].SunR);
-        _SunTheta=Array[hint].SunTheta+xsec/dt*(Array[hint+1].SunTheta-Array[hint].SunTheta);
-        _SunPhi=Array[hint].SunPhi+xsec/dt*(Array[hint+1].SunPhi-Array[hint].SunPhi);
+        _VelTheta=Array[hint].VelTheta+xsec/dt*(Array[hint+1].VelTheta-Array[hint].VelTheta);
+        _VelPhi=Array[hint].VelPhi+xsec/dt*(Array[hint+1].VelPhi-Array[hint].VelPhi);
       }
       else {
         _Yaw=Array[hint].StationYaw;
@@ -290,11 +293,16 @@ void AMSEvent::SetTimeCoo(integer rec){
         _StationSpeed=Array[hint].StationSpeed;
         _StationRad=Array[hint].StationR;
         _SunRad=Array[hint].SunR;
-        _SunTheta=Array[hint].SunTheta;
-        _SunPhi=Array[hint].SunPhi;
+        _VelTheta=Array[hint].VelTheta;
+        _VelPhi=Array[hint].VelPhi;
       }
       _NorthPolePhi=fmod(AMSmceventg::Orbit.PolePhiStatic+Array[hint].GrMedPhi+
                          AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
+       // getorbit parameters from velocity
+        AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
+        AMSDir ax2(AMSDBc::pi/2-_VelTheta,_VelPhi);
+        AMSmceventg::Orbit.Axis=ax1.cross(ax2);
+        AMSmceventg::Orbit.AlphaTanThetaMax=tan(acos(AMSmceventg::Orbit.Axis[2]));
        number r= tan(Array[hint].StationTheta)/
          AMSmceventg::Orbit.AlphaTanThetaMax;
        if(r > 1 || r < -1){
@@ -551,7 +559,7 @@ void  AMSEvent::write(int trig){
       //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries){
         AMSJob::gethead()->uhend();
-        AMSJob::gethead()->uhinit(PosGlobal);
+        AMSJob::gethead()->uhinit(_run,getid()+1);
       }
     }        
   }
@@ -1331,14 +1339,16 @@ void AMSEvent::_writeEl(){
   EN->Run=_run;
   EN->RunType=_runtype;
   UCOPY(&_time,EN->Time,2*sizeof(integer)/4);
-  EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
+  //EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
   EN->ThetaS=_StationTheta;
-  EN->PhiS=_StationPhi;
+  EN->PhiS=_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic);
   EN->RadS=_StationRad;
   EN->Yaw=_Yaw;
   EN->Pitch=_Pitch;
   EN->Roll=_Roll;
   EN->VelocityS=_StationSpeed;
+  EN->VelTheta=_VelTheta;
+  EN->VelPhi=_VelPhi;
   integer  i,nc;
   AMSContainer *p;
   EN->Particles=0;
@@ -1754,8 +1764,8 @@ void AMSEvent::SetShuttlePar(){
     Array[i].StationRoll=0;
     Array[i].StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
     Array[i].SunR=0;
-    Array[i].SunTheta=0;
-    Array[i].SunPhi=0;
+    Array[i].VelTheta=0;
+    Array[i].VelPhi=0;
     Array[i].Time=mktime(&AMSmceventg::Orbit.Begin);
   }
 }
