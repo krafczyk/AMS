@@ -24,21 +24,24 @@
 ///  This is an example of user class to process AMS Root Files 
 /*!
  This class is derived from the AMSEventR class. \n
- The following members functions are called by the TTree::Process() functions: \n
-    UBegin():       called everytime a loop on the tree starts, \n
-                    a convenient place to create your histograms. \n
-    ProcessFill():  called in the entry loop for all entries \n
-    UTerminate():   called at the end of a loop on the tree,
-                    a convenient place to draw/fit your histograms. \n
 
-   To use this file, try the following session on your Tree T \n
+ The following member functions must be called by the user: \n
+    void UBegin():       called everytime a loop on the tree starts,
+                         a convenient place to create your histograms. \n
+    void UProcessFill(): called in the entry loop for all entries \n
+    void UTerminate():   called at the end of a loop on the tree,
+                         a convenient place to draw/fit your histograms. \n
+ 
+ The following member function is optional: \n
+    bool UProcessCut(): called in the entry loop to accept/reject an event \n
 
- Root > T->Process("stlv.C")  \n
- Root > T->Process("stlv.C","some options") \n
-  Root > T->Process("stlv.C+") \n
+   To use this file, try the following session on your Tree T: \n
+ Root > T->Process("stlv.C+") \n
  Root > T->Process("stlv.C++") \n
-
 */
+// Root > T->Process("stlv.C")  \n -> does not work for the time being
+// Root > T->Process("stlv.C","some options") \n -> does not work for the time being
+
 class stlv : public AMSEventR {
    public :
 

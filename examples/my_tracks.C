@@ -28,7 +28,7 @@
                         new_track.del_hit(track.pTrRecHit(j));
                   }
                   if (new_track.Fit()) {
-                    hrig->Fill(new_track.Rigidity-track.RigidityWithoutMS);
+                    hrig->Fill(new_track.Rigidity - track.RigidityWithoutMS);
                     //printf("Track number= %d, Old rig %f, New Rig %f\n"
                     //        , i, track.RigidityWithoutMS, new_track.Rigidity);
                   }
