@@ -762,6 +762,7 @@ void AMSEvent::_reantiinitevent(){
 
       AMSEvent::gethead()->add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiCluster",0),0));
+//
 }
 //=====================================================================
 void AMSEvent::_retofinitevent(){
@@ -809,9 +810,10 @@ void AMSEvent::_rectcinitevent(){
 }
 //=====================================================================
 void AMSEvent::_reecalinitevent(){
-  integer i,maxp;
+  integer i,maxp,maxc;
   AMSNode *ptr;
   maxp=2*ECALDBc::slstruc(3);// max SubCell-planes
+  maxc=4*ECALDBc::slstruc(3)*ECALDBc::slstruc(4);// max number of SubCell
   for(i=0;i<maxp;i++){// <-- book S-layer containers for EcalRawEvent
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
@@ -824,6 +826,10 @@ void AMSEvent::_reecalinitevent(){
   for(i=0;i<maxp;i++){// <-- book  SubCell-plane containers for EcalCluster
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalCluster",i),0));
+  }
+  for(i=0;i<maxc;i++){// <-- book  SubCell-plane containers for EcalCell
+    ptr=AMSEvent::gethead()->add (
+      new AMSContainer(AMSID("AMSContainer:AMSEcalCell",i),0));
   }
 }
 void AMSEvent::_resrdinitevent(){
@@ -1499,6 +1505,13 @@ void AMSEvent::_reecalevent(){
     }
     EcalJobStat::addre(3);
 //
+    AMSEcalCell::build(stat);// EcalHit->EcalCell
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("REECALEVENT");
+      return;
+    }
+    EcalJobStat::addre(4);
+//
   }
   else{    //                         ===> fast algorithm:
 //
@@ -2002,6 +2015,7 @@ void AMSEvent::_writeEl(){
   EN->AntiClusters=0;
   EN->AntiMCClusters=0;
   EN->EcalClusters=0;
+  EN->EcalCell=0;
   getmag(EN->ThetaM,EN->PhiM);
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSParticle",i);
@@ -2085,11 +2099,16 @@ void AMSEvent::_writeEl(){
    if(p) EN->AntiMCClusters+=p->getnelem();
    else break;
   }
-
  
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSEcalCluster",i);
    if(p) EN->EcalClusters+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSEcalCell",i);
+   if(p) EN->EcalCell+=p->getnelem();
    else break;
   }
 
