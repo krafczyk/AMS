@@ -204,4 +204,23 @@ void RICHDB::bookhist(){
 }
 
 
+char *RICHDB::name(char beg,int copy){
+  char code[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+  static char out[5]="P+++";
+  
 
+  if(copy>36*36*36){
+    cerr << "RICHDB::name: copy number too long" <<endl;
+    exit(1);
+  }
+
+  out[0]=beg;
+  out[1]=code[copy/1296];
+  copy%=1296;
+  out[2]=code[copy/36];
+  copy%=36;
+  out[3]=code[copy];
+  
+  return out;
+}
+  

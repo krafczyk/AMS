@@ -85,6 +85,7 @@ public:
   static geant y(integer pmt,integer window);
   static geant pmt_response(integer n_photons);
   static void bookhist();
+  static char *name(char beg,int copy);
 };
 
 #endif
