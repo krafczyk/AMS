@@ -400,6 +400,7 @@ COMMON_BLOCK_DEF(BETAFITFFKEY_DEF,BETAFITFFKEY);
 class CHARGEFITFFKEY_DEF {
 public:
   geant Thr;  // Threshold to refit
+  geant OneChargeThr;
 };
 //
 

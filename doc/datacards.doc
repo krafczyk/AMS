@@ -443,6 +443,7 @@ R16 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker
 
 CHARGEFIT
 R 1 Thr(1.)   // Refit charge if Fisher's criterium is satisfied(1.=67%,2.=95%)
+R 2 OneChargeThr(200.)   // votedcharge aux parameter
 
 
 TRCALIB    // trcaker calibration

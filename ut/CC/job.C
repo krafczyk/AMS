@@ -796,6 +796,7 @@ VBLANK(DAQCFFKEY.ofile,40);
 void AMSJob::_reaxdata(){
 // Fit beta & charge
 CHARGEFITFFKEY.Thr=1.;
+CHARGEFITFFKEY.OneChargeThr=200.;
 BETAFITFFKEY.pattern[0]=1;
 BETAFITFFKEY.pattern[1]=1;
 BETAFITFFKEY.pattern[2]=1;

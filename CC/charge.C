@@ -48,7 +48,7 @@ if(charge>3){
 }
 else if(charge==2 && _ProbTracker[2]*_ProbTOF[2]<0.025){
   // Probably charge ==1
-  if(_TrMeanTracker+_TrMeanTOF*10<100)charge=1;
+  if(_TrMeanTracker+_TrMeanTOF*20<CHARGEFITFFKEY.OneChargeThr)charge=1;
 }
 return charge;
 }
