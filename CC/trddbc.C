@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.38 2003/04/01 11:45:18 kscholbe Exp $
+//  $Id: trddbc.C,v 1.39 2003/04/03 17:53:03 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -296,7 +296,7 @@ const number  TRDDBc::_TubeWallThickness=72e-4;
 const number  TRDDBc::_TubeInnerDiameter=0.6;
 const number  TRDDBc::_TubeBoxThickness=(0.62-TRDDBc::_TubeInnerDiameter-2*TRDDBc::_TubeWallThickness)/2.;
 const number  TRDDBc::_ChamberThickness=0.04;
-const number  TRDDBc::_StripsDim[3]={9.2,0.03,0.6};
+const number  TRDDBc::_StripsDim[3]={9.48,0.03,0.6};
 const number  TRDDBc::_StripsCoo[2]={10.69,10.};
 const number  TRDDBc::_BulkheadWidth=0.3;
 const number  TRDDBc::_LadderThickness=2.9;
