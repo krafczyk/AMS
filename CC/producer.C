@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.46 2002/02/11 11:14:29 choutko Exp $
+//  $Id: producer.C,v 1.47 2002/02/20 17:59:26 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -36,7 +36,7 @@ else{
      _MT=true;
      break;
     case 'U':   //uid
-     uid=atoi(++pchar);
+     uid=atol(++pchar);
      break;
     case 'G':   //local
      _Local=false;
@@ -431,6 +431,15 @@ AString a=(const char*)_pid.HostName;
 a+=":";
 a+=name;
 ntend->Name=(const char *)a;
+a=AMSCommonsI::getversion();
+char tmp[80];
+sprintf(tmp,"%d",AMSCommonsI::getbuildno());
+a+="/build";
+a+=tmp;
+sprintf(tmp,"%d",AMSCommonsI::getosno());
+a+="/os";
+a+=tmp;
+ntend->Version=(const char*)a;
 ntend->Run=run;
 ntend->FirstEvent=first;
 ntend->Begin=begin;

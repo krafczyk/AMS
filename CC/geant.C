@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.104 2002/02/08 13:48:02 choutko Exp $
+//  $Id: geant.C,v 1.105 2002/02/20 17:59:26 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -328,7 +328,7 @@ extern "C" void initDB()
    char* jobname   = AMSJob::gethead()-> getname();
    char* setup     = AMSJob::gethead() -> getsetup();
    int   jobtype   = AMSJob::gethead() -> AMSJob::jobtype();
-   char* version   = AMSCommonsI::getversion();
+   const char* version   = AMSCommonsI::getversion();
 
    cout <<"_uginit -I- LMS init for job     "<<jobname<<endl;
    cout <<"                         setup   "<<setup<<endl;

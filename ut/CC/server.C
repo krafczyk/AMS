@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.78 2002/02/11 11:14:29 choutko Exp $
+//  $Id: server.C,v 1.79 2002/02/20 17:59:26 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -1890,7 +1890,7 @@ if(RF){
    re.cinfo.HostName=" ";
    RunEvInfo_var vre= new RunEvInfo(re);
    _rl.push_back(vre); 
-//    cout <<++cur<<" "<<re.Run<<endl;
+    cout <<++cur<<" "<<re.Run<<endl;
   }
  }
 else{
@@ -2654,6 +2654,18 @@ if(li!=_tid.end()){
       length++; 
     }
   }
+  else{
+    AString a("getTDVTable-S-RunNotFound ");
+    a+=(const char*)tdvname.Name;
+    _parent->EMessage((const char*)a);
+  }
+}
+else{
+    char tmp[80];
+    sprintf(tmp,"%d",id);
+    AString a("getTDVTable-S-TDVNameNotFound ");
+    a+=(const char*)tmp;
+    _parent->EMessage((const char*)a);
 }
 if(length==0){
  vtable->length(1);

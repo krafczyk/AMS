@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.20 2002/02/11 11:14:29 choutko Exp $
+//  $Id: client.C,v 1.21 2002/02/20 17:59:26 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -72,6 +72,7 @@ else{
       as+=iface;
      }
    }
+/*
    bool isdot=false;
    for (int i=0;i<as.length();i++){
     if (as[i]=='.'){
@@ -82,6 +83,7 @@ else{
    if(!isdot && !getdomainname(name,len)){
      as+=(const char*)name;
    }
+*/
   _pid.HostName=(const char*)as;
   return true;
 }

@@ -206,6 +206,7 @@ module DPS{
      DSTType Type;
      long   size;
      string Name;
+     string Version;
     };    
 
     void sendDSTEnd(in CID id, in DST ne, in RecordChange re)raises(DBProblem); 

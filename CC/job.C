@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.396 2002/02/12 08:43:46 choumilo Exp $
+// $Id: job.C,v 1.397 2002/02/20 17:59:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -711,7 +711,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.mon[0]=0;//(33)
   ECREFFKEY.mon[1]=0;//(34)
   ECREFFKEY.year[0]=101;//(35)
-  ECREFFKEY.year[1]=108;//(36)
+  ECREFFKEY.year[1]=110;//(36)
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
 // REUN-Calibration  parameters:
@@ -946,7 +946,7 @@ TRDMCFFKEY.day[1]=1;
 TRDMCFFKEY.mon[0]=0;
 TRDMCFFKEY.mon[1]=0;
 TRDMCFFKEY.year[0]=101;
-TRDMCFFKEY.year[1]=108;
+TRDMCFFKEY.year[1]=110;
 TRDMCFFKEY.GenerateConst=0;
 TRDMCFFKEY.NoiseLevel=0.01;
 TRDMCFFKEY.DeadLevel=0.015;
@@ -1275,7 +1275,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.mon[0]=0;
   TFREFFKEY.mon[1]=0;
   TFREFFKEY.year[0]=101;
-  TFREFFKEY.year[1]=108;
+  TFREFFKEY.year[1]=110;
   FFKEY("TFRE",(float*)&TFREFFKEY,sizeof(TFREFFKEY_DEF)/sizeof(integer),
   "MIXED");
 
@@ -1372,7 +1372,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.mon[0]=0;
   ATREFFKEY.mon[1]=0;
   ATREFFKEY.year[0]=101;
-  ATREFFKEY.year[1]=108;
+  ATREFFKEY.year[1]=110;
   FFKEY("ATRE",(float*)&ATREFFKEY,sizeof(ATREFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
   ATCAFFKEY.cfvers=2; // (01-99) vers.number NN for antiverlistNN.dat file
@@ -1600,10 +1600,10 @@ else{
   }
   if(strstr(getsetup(),"AMS02")){
    if(CCFFKEY.enddate%10000 < 2000){
-     CCFFKEY.enddate+=5;
-     CCFFKEY.begindate+=5;
+     CCFFKEY.enddate+=10;
+     CCFFKEY.begindate+=6;
      TRMCFFKEY.year[0]+=5;
-     TRMCFFKEY.year[1]+=5;
+     TRMCFFKEY.year[1]+=9;
    }
   }
 
