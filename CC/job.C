@@ -33,6 +33,7 @@
 #include <tofcalib.h>
 #include <trigger1.h>
 #include <trigger3.h>
+#include <bcorr.h>
 #include <trid.h>
 #include <trrawcluster.h>
 #include <daqevt.h>
@@ -1711,6 +1712,16 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
    
 }
 {
+  // Magnet Temperature data
+
+   tm begin=AMSmceventg::Orbit.End;
+   tm end=AMSmceventg::Orbit.Begin;
+   TID.add (new AMSTimeID(AMSID("MagnetTemperature",isRealData()),
+                         begin,end,
+                         MagnetVarp::getmagnettsize(),(void*)MagnetVarp::getmagnettp()));
+   
+}
+{
   // Scaler Data
 
    tm begin=AMSmceventg::Orbit.End;
@@ -2290,4 +2301,3 @@ return nobj;
 }
 
 #endif
-
