@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.216 2003/09/30 14:56:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.217 2003/10/02 10:11:15 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -16,7 +16,9 @@
 # Sep 2003      : outputpath and $ntdir = /disk/dir   for local disks
 #                                         /dir        for afs 
 #                 add MIPS column into Jobs table
-#                 
+# Oct 2003      : updateHostInfo and calculateMips functions
+#                 validateRuns is modified - add clock for local hosts
+#
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
 package RemoteClient;
@@ -33,7 +35,7 @@ use Time::Local;
 use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs updateHostInfo parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
 my     $bluebar      = '/AMS/icons/bar_blue.gif';
 my     $maroonbullet = '/AMS/icons/bullet_maroon.gif';
@@ -176,7 +178,7 @@ sub Init{
     $self->{cputypes}=\%cputypes;
 
 
-#syntax (momenta,perticles, ...
+#syntax (momenta,particles, ...
 
     my $tsyntax={};
     $self->{tsyntax}=$tsyntax;
@@ -954,13 +956,14 @@ sub ValidateRuns {
            my $cputime = sprintf("%.2f",$run->{cinfo}->{CPUTimeSpent});
            my $elapsed = sprintf("%.2f",$run->{cinfo}->{TimeSpent});
            my $host    = $run->{cinfo}->{HostName};
-
+# get list of local hosts
            $sql = "UPDATE jobs SET 
                                      EVENTS=$events,
                                      ERRORS=$errors,
                                      CPUTIME=$cputime,
                                      ELAPSED=$elapsed,
                                      HOST='$host',
+                                     MIPS=(SELECT clock FROM localhosts WHERE  NAME LIKE '$host%'),
                                      TIMESTAMP=$timenow  
                             WHERE JID = $run->{Run}";
           $self->{sqlserver}->Update($sql);
@@ -5163,6 +5166,229 @@ sub checkJobsTimeout {
  $self->htmlBottom();
 }
 
+sub updateHostInfo {
+
+# get nominal hosts list from CORBA server
+# delete obsolete hosts list from database
+# update status according to active hosts list
+
+    my $self = shift;
+    my $sql  = undef;
+
+    my $hid    = 1;
+    my $clock  = 0;
+    my $cpus   = 0;
+    my $face   = undef;
+    my $mem    = 0;
+    my $name   = undef;
+    my $os     = undef;
+    my $status = 'nominal';
+    if( not $self->Init()){
+        die "getHostInfo -F- Unable To Init";
+    }
+    if (not $self->ServerConnect()){
+        die "getHostInfo -F- Unable To Connect To Server";
+    }
+#
+    my $timestamp = time();
+# get list of nominal hosts from Server
+    if( not defined $self->{dbserver}->{nhl}){
+      DBServer::InitDBFile($self->{dbserver});
+    }
+    $sql = "DELETE LocalHosts";
+    $self->{sqlserver}->Update($sql);
+    print "$sql \n";
+
+    foreach my $h (@{$self->{dbserver}->{nhl}}){
+        $name  = $h->{HostName};
+        $clock = $h->{Clock};
+        $cpus  = $h->{CPUNumber};
+        $mem   = $h->{Memory};
+        $face  = $h->{Interface};
+        $os    = $h->{OS};
+        
+        $sql   = "INSERT INTO LocalHosts VALUES (
+                   $hid,
+                   '$name',
+                   '$os',
+                   $cpus,
+                   $mem,
+                   $clock,
+                   '$face',
+                   '$status',
+                   $timestamp)";
+        $self->{sqlserver}->Update($sql);
+        print "$sql \n";
+        $hid++;
+    }
+# get list of active hosts and update status
+    foreach my $h (@{$self->{dbserver}->{ahlp}}){
+        $name  = $h->{HostName};
+        $sql   = "Update LocalHosts set status='active' WHERE name='$name'";
+        $self->{sqlserver}->Update($sql);
+        print "$sql \n";
+    }
+
+}
+
+
+sub calculateMips {
+    my @directories=(
+     'aprotons',
+     'deuterons',
+     'electrons',
+     'gamma',
+     'positrons',
+     'protons',
+     'C',
+     'He');
+     
+    my $self   = shift;
+    my $sql    = undef;
+    my $jobname= undef;
+    my @names;
+    my @cpus;
+    my @elapsed;
+    my @events;
+    my @mips;
+    my @cpumean;
+    my @elapsedmean;
+    my @cpusigma;
+    my @elapsedsigma;
+    my @mipsmean;
+    my @mipssigma;
+    my @njobs;
+    my @particle;
+
+    my $n  = 0;
+#
+    my $timenow = time();
+#
+# get jobname and mips
+#
+    $sql = "SELECT 
+              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid 
+              FROM Jobs, Runs 
+              WHERE jobs.jid=runs.jid AND STATUS='Completed' AND jobs.mips>0 
+              ORDER BY jobs.jobname";
+    my $r0 = $self->{sqlserver}->Query($sql);
+    if (defined $r0->[0][0]) {
+     foreach my $job (@{$r0}){
+      $jobname=trimblanks($job->[0]);
+      my $cite   = undef;
+      my $jid    = undef;
+      my $jobtype= undef;
+      my $eventsj = undef;
+      my $cpusj   = undef;
+      my $elapsedj= undef;
+      my $mipsj   = undef;
+      my $partj   = 'xyz';
+      my $newjob  = 1;
+      my @junk    = split '\.',$jobname;
+      if ($#junk > 0) {
+         $cite        = $junk[0];
+         $jid         = $junk[1];
+         $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
+         $jobtype=trimblanks($jobtype);
+         $eventsj     = $job->[1];
+         $cpusj       = $job->[2];
+         $elapsedj    = $job->[3];
+         $mipsj       = $job->[4];
+         $jid         = $job->[5];
+         my $partj= $self->getJobParticleFromNTPath($jid);
+         my $i        = 0;
+         for ($i=0; $i<$#names+1; $i++) {
+             if ($names[$i] eq $jobtype && $particle[$i] eq $partj) {
+                 $events[$i] = $events[$i] + $eventsj;
+                 $cpus[$i]   = $cpus[$i]   + $cpusj;
+                 $elapsed[$i]= $elapsed[$i]+ $elapsedj;
+                 $mips[$i]   = $mips[$i]   + $mipsj;
+                 if ($eventsj > 0 && $mipsj > 0) {
+                  $mipsmean[$i]     = $mipsmean[$i] + ($cpusj*1000/$eventsj)/$mipsj;
+                 }
+                 if ($njobs[$i] > 0) {$njobs[$i]++;}
+                 $newjob  = 0;
+                 last;
+             }
+         }
+         if ($newjob == 1) {
+                 $names[$n]     = $jobtype;
+                 $events[$n]    = $eventsj;
+                 $cpus[$n]      = $cpusj;
+                 $elapsed[$n]   = $elapsedj;
+                 $mips[$n]      = $mipsj;
+                 $particle[$n]  = $partj;
+                 $njobs[$n]  = 1;
+                 if ($eventsj > 0 && $mipsj > 0) {
+                  $mipsmean[$n]     = ($cpusj/$eventsj)*1000/$mipsj;
+                 }
+                 $n++;
+             }
+     }
+  }
+
+    for (my $j=0; $j<$#names+1; $j++) {
+     $mipsmean[$j]    = $mipsmean[$j]/$njobs[$j];
+     $mipssigma[$j]   = 0;
+
+     if ($events[$j] > 0) {
+      if ($njobs[$j]>1) {
+       foreach my $job (@{$r0}){
+        $jobname=trimblanks($job->[0]);
+        my @junk    = split '\.',$jobname;
+        if ($#junk > 0) {
+         my $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
+         $jobtype=trimblanks($jobtype);
+         my $jid = $job->[5];
+         my $partj= $self->getJobParticleFromNTPath($jid);
+         if ($jobtype eq $names[$j] && $partj eq $particle[$j]) {
+           my $eventsj     = $job->[1];
+           my $cpusj       = $job->[2];
+           my $elapsedj    = $job->[3];
+           my $mipsj       = $job->[4];
+           if ($eventsj > 0 && $mipsj >0) {
+               $mipssigma[$j]    = ($mipsmean[$j] - ($cpusj/$eventsj)*1000/$mipsj)**2;
+           }
+       }
+     }
+    }
+   }
+  }
+ }
+ 
+    my $header =  sprintf("Jobs   Events  CPU[s] Elapsed[s] MIPS       <MIPS>      Particle      JobName\n");
+    print "$header";
+    foreach my $p (@directories) {
+     for (my $j=0; $j<$#names+1; $j++) {
+      if ($particle[$j] eq $p) { 
+       if ($events[$j] > 0 && $njobs[$j]>1) {
+         $mipssigma[$j] = sqrt($mipssigma[$j])/($njobs[$j]-1);
+       }
+       my $line = sprintf("%5.f %7.f %7.f %7.f %7.f %5.2f +/- %2.4f %10s  %20s \n",
+                        $njobs[$j],$events[$j],$cpus[$j],$elapsed[$j],$mips[$j],$mipsmean[$j],$mipssigma[$j],$particle[$j],$names[$j]);
+       print "$line";
+    }
+  }
+ }
+ }
+}
+
+sub getJobParticleFromNTPath {
+    my $self = shift;
+    my $jid  = shift;
+
+    my $particle='xyz';
+    my $sql = "SELECT path FROM ntuples WHERE jid = $jid";
+    my $r1 = $self->{sqlserver}->Query($sql);
+     if (defined $r1->[0][0]) {
+       my $path = $r1->[0][0];
+       my @junk = split '/',$path; # /disk/MC/AMS02/TrialPeriod/particle/jid/ntfile
+       if ($#junk > 0) {
+        $particle = trimblanks($junk[5]);
+    }
+   }
+    return $particle;
+}
 
 sub listAll {
     my $self = shift;

@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.59 2003/09/19 15:54:10 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.60 2003/10/02 10:11:14 alexei Exp $
 
 #
 #
@@ -27,6 +27,7 @@
 #          CPU, elapsed time, cite and host info into Job table
 #
 #  Apr 24, 2003. ak. Tables : Jobs, Runs, RNDM - add primary key
+#  Oct  2, 2003. ak. Table  : LocalHosts
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -140,7 +141,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet");
+    my @tables=("Filesystems", "Cites","LocalHosts","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -163,6 +164,17 @@ sub Create{
       state    INT,
       descr    VARCHAR(255),
       ghz      INT,
+      timestamp INT)",
+
+     "CREATE TABLE LocalHosts
+     (hid       INT NOT NULL ,
+      name      VARCHAR(64),
+      os        VARCHAR(64),
+      cpunumber INT,
+      memory    INT,
+      clock     INT,
+      interface VARCHAR(64),
+      status   VARCHAR(255),
       timestamp INT)",
 
      "CREATE TABLE Journals
