@@ -29,6 +29,7 @@ AMSgmat * getmat();        // Returns pointer to top of material tree
 
 AMSgtmed * getmed();       // Returns pointer to top of media tree
 
+AMSTimeID * gettimestructrure();  // Returns pointer to top of timeid tree
 
 
 

@@ -1,5 +1,5 @@
 #include <timeid.h>
-AMSTimeID::AMSTimeID(char * id, tm & begin, tm &end, 
+AMSTimeID::AMSTimeID(AMSID  id, tm & begin, tm &end, 
                      integer nbytes=0, void *pdata=0):AMSNode(id),_pData(pdata){
       _Nbytes=nbytes;
 #ifdef __AMSDEBUG__

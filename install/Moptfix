@@ -225,7 +225,7 @@ endif
 	$(CC) -c $(CFLAGS) ../CC/commons.C -o ..$(BIN)/commons.o
 
 depend: 	
-	makedepend -f Mcxxfix -- $(DFLAGS) -- $(FILES) -p..$(BIN)/
+	makedepend -f Moptfix -- $(DFLAGS) -- $(FILES) -p..$(BIN)/
 
 
         

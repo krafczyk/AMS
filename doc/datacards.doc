@@ -202,7 +202,7 @@ I 1 Pattern[19](5*1,14*0)
   //   18                   3456              4           off
 I20  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
                                   // Not use(0) TOF  for pattern No 16
-R21  Chi2FastFit(10)              // Max  chi2 for tkhmd;
+R21  Chi2FastFit(20)              // Max  chi2 for tkhmd;
 R22  Chi2StrLine(20)              // The same for Straight line fit
 R23  Chi2Circle(20)         // The same for Circle fit
 R24  ResCutFastFit(0.5)     // Max residual distance in cm between 
@@ -251,7 +251,7 @@ I 1 Pattern[9](5*1,4*0)
   //    6                   14                2           off
   //    7                   23                2           off
   //    8                   24                2           off
-R10 Chi2(3.)       //  Max acceptable chi2 for betafit
+R10 Chi2(10.)       //  Max acceptable chi2 for betafit
 R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
                            // Used also in TOF-track matching for pat # 16
 

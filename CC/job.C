@@ -617,7 +617,7 @@ void AMSJob::settrigger(char *setup, integer N, integer I,integer or){
 }
 
 void AMSJob::_timeinitjob(){
-static AMSTimeID TID("TDV:");
+static AMSTimeID TID(AMSID("TDV:",0));
 gethead()->addup( &TID);
 //
 // Magnetic Field Map
@@ -637,7 +637,7 @@ end.tm_hour=TKFIELD.ihour[1];
 end.tm_mday=TKFIELD.iday[1];
 end.tm_mon=TKFIELD.imon[1];
 end.tm_year=TKFIELD.iyear[1];
-TID.add (new AMSTimeID("MagneticFieldMap",
+TID.add (new AMSTimeID(AMSID("MagneticFieldMap",0),
    begin,end,sizeof(TKFIELD_DEF),(void*)&TKFIELD));
 }
 //
@@ -662,24 +662,24 @@ end.tm_mon=TRMCFFKEY.mon[1];
 end.tm_year=TRMCFFKEY.year[1];
 
 
-TID.add (new AMSTimeID("TrackerPedestals",
+TID.add (new AMSTimeID(AMSID("TrackerPedestals",0),
    begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::peds));
-TID.add (new AMSTimeID("TrackerGains",
+TID.add (new AMSTimeID(AMSID("TrackerGains",0),
    begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::gains));
-TID.add (new AMSTimeID("TrackerSigmas",
+TID.add (new AMSTimeID(AMSID("TrackerSigmas",0),
    begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::sigmas));
 // change deliberately one sigma;
 // AMSTrIdSoft::sigmas[1]=3.44;
-TID.add (new AMSTimeID("TrackerStatus",
+TID.add (new AMSTimeID(AMSID("TrackerStatus",0),
    begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::status));
-TID.add (new AMSTimeID("TrackerIndNoise",
+TID.add (new AMSTimeID(AMSID("TrackerIndNoise",0),
    begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::indnoise));
-TID.add (new AMSTimeID("TrackerCommonNoise",
+TID.add (new AMSTimeID(AMSID("TrackerCommonNoise",0),
    begin,end,sizeof(AMSTrIdSoft::cmnnoise[0])*ms,
    (void*)AMSTrIdSoft::cmnnoise));
 }
@@ -706,22 +706,22 @@ end.tm_year=AMSCharge::_year[1];
 
 
 
-TID.add (new AMSTimeID("ChargeLkhd1",
+TID.add (new AMSTimeID(AMSID("ChargeLkhd1",0),
    begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTracker[0][0]),
    (void*)AMSCharge::_lkhdTracker[0]));
-TID.add (new AMSTimeID("ChargeLkhd2",
+TID.add (new AMSTimeID(AMSID("ChargeLkhd2",0),
    begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTOF[0][0]),
    (void*)AMSCharge::_lkhdTOF[0]));
-TID.add (new AMSTimeID("ChargeLkhd3",
+TID.add (new AMSTimeID(AMSID("ChargeLkhd3",0),
    begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTOF[0]),
    (void*)AMSCharge::_lkhdStepTOF));
-TID.add (new AMSTimeID("ChargeLkhd4",
+TID.add (new AMSTimeID(AMSID("ChargeLkhd4",0),
    begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTracker[0]),
    (void*)AMSCharge::_lkhdStepTracker));
-TID.add (new AMSTimeID("ChargeLkhd5",
+TID.add (new AMSTimeID(AMSID("ChargeLkhd5",0),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTOF[0]),
    (void*)AMSCharge::_chargeTOF));
-TID.add (new AMSTimeID("ChargeLkhd6",
+TID.add (new AMSTimeID(AMSID("ChargeLkhd6",0),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTracker[0]),
    (void*)AMSCharge::_chargeTracker));
 

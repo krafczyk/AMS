@@ -31,7 +31,7 @@
 //
 
 
-//upool.h
+//utpool.h
 
 
 /
@@ -94,5 +94,45 @@
 // then use my_pool as UPool;
 //
 // Performance measured at cernsp 1.7 sec first then 0.9 sec for 60 mbytes alloc
+// prompt new[60 mbytes] 0.5 sec
+//
+
+
+
+apool.h             // This is the default
+
+//
+//  Universal  linear memory pool for any/all class(es).
+// Do NOT requires redefinition of new/delete operators.
+// To use it include the following  line in your .h or .C file:
+//#include <apool.h>
+//
+// There is predefined instance of AMSaPool called APool(512000),
+// compiled in apool.o
+//
+// Then to create an element of class T use e.g.
+// T* p=new(Apool.insert(sizeof(T))) T(...);
+// To delete the element use delete;
+//
+// The pool can be used also for non-class objects  e.g.
+//  void * p= Apool.insert(obj_size);
+//  UCOPY(&Obj,p,obj_size/4);
+// to delete the elements use udelete(p);
+// N.B. AMSaPool.udelete TRIES to release linear memory also
+// (not in case of AMSuPool)
+//
+// To release and/or delete  linear memory use
+// Apool.erase(k);
+// where k is the residual buffer capacity in bytes ; e.g.
+//erase(0) will release then delete all memory; erase(1000000) will release all
+//memory then delete the memory after 1000000 bytes.
+//
+// Instead of APool you can create and use your own instance of AMSaPool;
+//e.g.
+// AMSaPool my_pool(n); // n - initial buffer size in bytes
+// then use my_pool as APool;
+//
+// Performance measured at cernsp 1.7 sec first then 0.9 sec for 60 mbytes allo\
+c
 // prompt new[60 mbytes] 0.5 sec
 //

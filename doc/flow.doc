@@ -60,8 +60,9 @@ M A I N  ->      gbatch.C
  |    |   |
  |    |   |->_timeinitjob   Initialization time dependent vars
  |    |
- |    |   
- |    |->uhinit            Use histograms/ntuples
+ |    |->map               Map Job tree       
+|     |   
+ |    |->uhinit            Book histograms/ntuples
  |
  |
  |-> G R U N
