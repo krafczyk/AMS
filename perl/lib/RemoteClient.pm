@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.73 2003/04/02 14:30:01 alexei Exp $
+# $Id: RemoteClient.pm,v 1.74 2003/04/03 13:14:49 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -335,7 +335,7 @@ my %mv=(
            close FILE;
            $template->{filename}=$job;
            my @sbuf=split "\n",$buf;
-           my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND");
+           my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -376,7 +376,7 @@ my %mv=(
 #
 # subtract allocated events
                              $template->{TOTALEVENTS}-=$job->[2];
-#
+
                          }
                      }
                  }
@@ -2122,10 +2122,11 @@ DDTAB:         $self->htmlTemplateTable(" ");
               print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-              htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
-              htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
+              $q->param("QEv",0);
+              htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," sec");  
               htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
-              htmlTextField("Approximate Jobs Total Elapsed Time ","number",3,7,"QTimeOut"," (days)");  
+              htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");  
+              htmlTextField("Total  Real Time Required","number",3,10,"QTimeOut"," (days)");  
             htmlTableEnd();
 # DST transfer
              print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
@@ -2554,9 +2555,19 @@ print qq`
                 if(not defined $q->param("QPart")){
                     $q->param("QPart",$tmp->{PART});
                 }
+                if(not defined $q->param("QPart")){
+                    $q->param("QPart",$tmp->{PART});
+                }
+                if(not defined $q->param("QCPUPEREVENT")){
+                    $q->param("QCPUPEREVENT",$tmp->{CPUPEREVENTPERGHZ});
+                }
                 my $evno=$q->param("QEv");
                 if(not $evno =~/^\d+$/ or $evno <1 or $evno>$tmp->{TOTALEVENTS}){
-                    $q->param("QEv",$tmp->{TOTALEVENTS});
+                    $evno=$q->param("QCPUTime")*$q->param("QCPU")/1000./$tmp->{CPUPEREVENTPERGHZ};
+                    $evno=int($evno/1000)*1000*$q->param("QRun");                                     if($evno>$tmp->{TOTALEVENTS}){
+                        $evno=$tmp->{TOTALEVENTS};
+                    }
+                    $q->param("QEv",$evno);
                 }
                 last;
             }
