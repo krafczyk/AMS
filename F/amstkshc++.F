@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.66 2002/02/26 13:28:17 choutko Exp $
+*  $Id: amstkshc++.F,v 1.67 2002/06/06 14:41:03 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -241,6 +241,14 @@ CDECK  ID>, ABCR2.
 *
        REAL *4 TRIPA_T
        integer IFLAG_T
+*
+* reduce sigma by 2^2/3=0.63  if stranglet
+*          
+            if(ipart.eq.113)then
+             xfac=0.63
+            else
+             xfac=1
+            endif              
 
         TRIPA_T=0.0
         IFLAG_T=0
@@ -257,12 +265,12 @@ CDECK  ID>, ABCR2.
         call vzero(sigma_q(1,i),5)
          call abcross(1,a_p,a_t,z_p,z_t,p_p,
      +   st,se,sq)
-         sigma_t(i)=sigma_t(i)+st
+         sigma_t(i)=sigma_t(i)+st*xfac
          do j=1,3
-          sigma_el(j,i)=sigma_el(j,i)+se(j)
+          sigma_el(j,i)=sigma_el(j,i)+se(j)*xfac
          enddo
          do j=1,5
-          sigma_q(j,i)=sq(j)
+          sigma_q(j,i)=sq(j)*xfac
          enddo
 **** G.L. 2/2/00 *********
 *         
@@ -272,18 +280,22 @@ CDECK  ID>, ABCR2.
 
             IF (IFLAG_T.EQ.1) THEN  
              sigma_q(1,i)=0
-             sigma_t(i)=TRIPA_T
+             sigma_t(i)=TRIPA_T*xfac
             ENDIF
 
           endif ! ihvse(1).eq.2
 *
 ****************************
-        summ=sigma_q(1,i)+sigma_el(1,i)
+        summ=sigma_q(1,i)+sigma_el(1,i)*xfac
         if(summ.gt.sigma_t(i))then
 c         write(*,*)'ABCR2 - E - wrong sigma_tot',i,sigma_t(i),
 c     +  sigma_q(1,i),sigma_el(1,i)
          sigma_q(1,i)=0
         endif
+
+
+
+
         end
 
 CDECK  ID>, TRIPA. 
@@ -9109,9 +9121,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.66 2002/02/26 13:28:17 choutko Exp $
+* $Id: amstkshc++.F,v 1.67 2002/06/06 14:41:03 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.67  2002/06/06 14:41:03  choutko
+* *** empty log message ***
+*
 * Revision 1.66  2002/02/26 13:28:17  choutko
 * remote client rlated polishing
 *

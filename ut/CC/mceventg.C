@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.121 2002/06/03 14:53:34 alexei Exp $
+//  $Id: mceventg.C,v 1.122 2002/06/06 14:41:02 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -370,13 +370,12 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }
         else if (ipart ==14 ){
-          // a-la proton energy spec. (EGRET) per (m^2-sr-s-GeV) 
-          y=1.5e4/beta/pow(xrig,2.74);
+          y=1.7e4/beta/pow(xrig,2.77);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }    
         else if (ipart > 15 && ipart < 100){
           // He etc...
-          y=.5e4/beta/pow(xrig,2.68);
+          y=.252e4/beta/pow(xrig,2.74);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }    
         else if (ipart == 15 || ipart > 100){
