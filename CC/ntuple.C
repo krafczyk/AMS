@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.150 2003/11/07 17:35:06 alcaraz Exp $
+//  $Id: ntuple.C,v 1.151 2003/12/04 10:42:16 alcaraz Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -119,7 +119,7 @@ void AMSNtuple::init(){
   HBNAME(_lun,"TrMCClus",&_trclmc.Ntrclmc,
   "ntrclmc[0,200],IdsoftMC(ntrclmc),Itra(ntrclmc),Left(2,ntrclmc):I,Center(2,ntrclmc):I,Right(2,ntrclmc):I,ss(5,2,ntrclmc),xca(3,ntrclmc),xcb(3,ntrclmc),xgl(3,ntrclmc),summc(ntrclmc)");
   HBNAME(_lun,"TrRecHit",&_trrh02.Ntrrh,
-  "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[1,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
+  "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[1,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh),Bfield(3,ntrrh)");
 
   HBNAME(_lun,"Vertex",&_vtx02.Nvtx,
   "nvtx[0,3],vtxMomentum(nvtx):R,vtxErrMomentum(nvtx):R,vtxTheta(nvtx):R,vtxPhi(nvtx):R,vtxMass(nvtx):R,vtxCharge(nvtx)[-7,7]:I,vtxStatus(nvtx):I,vtxChi2(nvtx):R,vtxNdof(nvtx):I,vtxNtracks(nvtx)[0,7]:I,vtxPtrTrack(3,nvtx):I,vtxVertex(3,nvtx):R");

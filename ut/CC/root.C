@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.61 2003/11/07 17:35:07 alcaraz Exp $
+//  $Id: root.C,v 1.62 2003/12/04 10:42:16 alcaraz Exp $
 //
 
 #include <root.h>
@@ -1933,6 +1933,7 @@ TrRecHitR::TrRecHitR(AMSTrRecHit *ptr){
   DifoSum = ptr->_DifoSum;
   CofgX   = ptr->_cofgx;
   CofgY   = ptr->_cofgy;
+  for (int i=0; i<3; i++) Bfield[i] = ptr->_Bfield[i];
 #endif
 }
 

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.156 2003/12/03 16:14:18 alcaraz Exp $
+//  $Id: trrec.C,v 1.157 2003/12/04 10:42:17 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1205,6 +1205,7 @@ void AMSTrRecHit::_writeEl(){
 //    cout <<" cofgx "<<_cofgx<<" "<<this<<" "<<_Layer<<" "<<_cofgy<<endl;
     THN->CofgX[THN->Ntrrh]=_cofgx;
     THN->CofgY[THN->Ntrrh]=_cofgy;
+    for(i=0;i<3;i++)THN->Bfield[THN->Ntrrh][i]=_Bfield[i];
     THN->Ntrrh++;
   }
 }

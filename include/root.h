@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.117 2003/11/12 08:57:44 alcaraz Exp $
+//  $Id: root.h,v 1.118 2003/12/04 10:42:20 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -723,13 +723,14 @@ class TrRecHitR {
 static char _Info[255];
 public:
   unsigned int   Status;   ///< statusword \sa TrClusterR Status
-  int   Layer;    ///<Layer no 1-6 up-down
-  float Hit[3];   ///< cluster coordinates
-  float EHit[3];  ///< error to above
-  float Sum;      ///< Amplitude (x+y)
-  float DifoSum;  ///< (A_x-A_y)/(A_x+A_y)
-  float CofgX;    ///< local cfg x
-  float CofgY;    ///< local cfg y
+  int   Layer;             ///<Layer no 1-6 up-down
+  float Hit[3];            ///< cluster coordinates
+  float EHit[3];           ///< error to above
+  float Sum;               ///< Amplitude (x+y)
+  float DifoSum;           ///< (A_x-A_y)/(A_x+A_y)
+  float CofgX;             ///< local cfg x
+  float CofgY;             ///< local cfg y
+  float Bfield[3];         ///< magnetic field vector (kG)
 
 protected:
   int  fTrClusterX;   ///<x proj TrClusterR pointer
@@ -753,7 +754,7 @@ public:
   TrRecHitR(){};
   TrRecHitR(AMSTrRecHit *ptr);
   friend class AMSTrRecHit;
-ClassDef(TrRecHitR,1)       //TrRecHitR
+ClassDef(TrRecHitR,2)       //TrRecHitR
 };
 
 

@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.90 2003/11/07 17:35:22 alcaraz Exp $
+//  $Id: ntuple.h,v 1.91 2003/12/04 10:42:20 alcaraz Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -438,6 +438,7 @@ public:
   float DifoSum[MAXTRRH02];
   float CofgX[MAXTRRH02];
   float CofgY[MAXTRRH02];
+  float Bfield[MAXTRRH02][3];
 
 friend class AMSTrRecHit;
 friend class AMSNtuple;
