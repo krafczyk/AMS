@@ -1882,6 +1882,7 @@ void AMSJob::uhinit(integer run, integer eventno){
       strcat(filename,".hbk");
      }
     
+    cout <<"Trying to open histo file "<<filename<<endl;
     HROPEN(IOPA.hlun,"output",filename,"N",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<filename<<endl;

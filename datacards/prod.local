@@ -18,8 +18,8 @@ echo $UNAME is not supported yet
 fi
 RUN=$1
 EVENT=$2
-
-$Offline/vdev/exe/$MACHINE/gbatch.exe <<!
+cp $Offline/vdev/exe/$MACHINE/gbatch.exe $Offline/logs.local/gbatch.exe
+$Offline/logs.local/gbatch.exe <<!
 LIST
 KINE 14 
 MULS 1

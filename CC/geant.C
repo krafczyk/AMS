@@ -482,7 +482,31 @@ time(&tm);// tempor
 //      pdaq->runtype(),tm,pdaq->usec()))); // tempor introduced to read PC-made files
 //<------      
       AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
-      if(GCFLAG.IEORUN){
+      if(GCFLAG.IEORUN==2){
+      // if production 
+      // try to update the badrun list
+         if(AMSJob::gethead()->isProduction()){
+           char fname[256];
+           char * logdir = getenv("ProductionLogDirLocal");
+           if(logdir){
+            strcpy(fname,logdir);
+           }
+           else {
+             cerr<<"gukine-E-NoProductionLogDirLocalFound"<<endl;
+             strcpy(fname,"/Offline/local/logs");
+           }
+           strcat(fname,"/BadRunsList");
+           ofstream ftxt;
+           ftxt.open(fname,ios::app);
+           if(ftxt){
+            ftxt <<pdaq->runno()<<" "<<pdaq->eventno()<<endl;
+            ftxt.close();
+           }
+           else{
+            cerr<<"gukine-S-CouldNotOPenFile "<<fname<<endl;
+            exit(1);
+           }
+         }
         pdaq->SetEOFIn();    
         GCFLAG.IEORUN=0;
       }
