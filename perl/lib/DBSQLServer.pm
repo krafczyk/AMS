@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.16 2002/03/27 12:07:59 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.17 2002/03/28 10:18:34 alexei Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -105,13 +105,17 @@ sub Create{
 
     my @tables=("filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples","DataSets", "Environment");
     my @createtables=("    CREATE TABLE filesystems
-    (fid         CHAR(4) NOT NULL,
-     path    CHAR(255),
-     totalsize    INT,
-     occupied     INT,
-     free         INT,
-     allowed      INT,
-     modetype    CHAR(2))",
+    (fid         CHAR(4) NOT NULL,   # file system ID
+     host    VARCHAR(40),            # Host name
+     disk    VARCHAR(20),            # disk mount point
+     path    VARCHAR(255),           # DST directory path
+     totalsize    INT,               # disk size GB
+     occupied     INT,               #           GB
+     available    INT,               #           GB
+     allowed      INT,               #           GB
+     status   CHAR(40),              # Active, Dead, Full, -NFS, WaterMark
+     priority     INT,               # use first disks with highest priority
+     timestamp    INT)",             # last updated
      "CREATE TABLE Cites
      (cid      INT NOT NULL ,
       name     VARCHAR(64),

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.33 2002/03/27 13:21:44 alexei Exp $
+# $Id: RemoteClient.pm,v 1.34 2002/03/28 10:18:34 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -30,9 +30,11 @@ my %fields=(
         TempT=>[],
         MailT=>[],
         CiteT=>[],
+        FilesystemT=>[],
         AMSSoftwareDir=>undef,
         AMSDataDir=>undef,
         AMSProdDir=>undef,
+        AMSDSTOutputDir=>undef,
         CERN_ROOT=>undef,
         UploadsDir=>undef,
         LocalClientsDir=>"prod.log/scripts/",
@@ -51,9 +53,9 @@ my %fields=(
        arpref=>[],
        ardref=>[],
        dbfile=>undef,
-       scriptsOnly=>0,
-       senddb=>1,
-       sendaddon=>1,
+       scriptsOnly=>1,
+       senddb=>0,
+       sendaddon=>0,
             );
     my $self={
       %fields,
@@ -405,7 +407,17 @@ foreach my $file (@allfiles){
      }
      push @{$self->{MailT}}, $cite; 
  }
-
+# filesystems table
+     $sql="select * from Filesystems WHERE status='Active'";
+     ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
+     foreach my $row (@{$values}) {
+         my $fs={};
+         my $i =0;
+         foreach my $field (@{$fields}) {
+             $fs->{lc($field)}=$row->[$i++];
+         }
+         push @{$self->{FilesystemT}},$fs;
+     }
 
 #try to get ior
     $sql="select dbfilename,lastupdate,IORS,IORP from Servers where status='Active'";
@@ -1200,11 +1212,11 @@ sub Connect{
           print "</b></td></tr>\n";
             htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
             htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
-            htmlTextField("Total Events","number",7,1000000.,"QEv"," ");  
+            htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
             htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
             my ($rndm1,$rndm2) = $self->getrndm();
-            htmlTextField("rndm1","text",7,$rndm1,"QRNDM1"," ");  
-            htmlTextField("rndm2","text",7,$rndm2,"QRNDM2"," ");  
+            htmlTextField("rndm1","text",9,$rndm1,"QRNDM1"," ");  
+            htmlTextField("rndm2","text",9,$rndm2,"QRNDM2"," ");  
             htmlTextField("Begin Time","text",8,"01062005","QTimeB"," (ddmmyyyy)");  
             htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");  
             htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
@@ -1213,21 +1225,63 @@ sub Connect{
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+            if ($self->{CCT} eq "remote") {
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+            } else {
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+            }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
-            print "<tr><td>\n";
-            print "<b><font color=\"green\">Send ONLY scripts to client</font></b><BR>\n";
-            print "<font color=\"green\" size=2><i>(server sends to client ALL files including <BR>\n";
-            print "  EXE's [~7MB] if box NOT Checked)</i></font></b>\n";
-            print "</tr></td><td>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            print "<tr><td><font size=\"-1\"<b>\n";
-            print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
-            print "</b></font></td></tr>\n";
+            if ($self->{CCT} eq "remote") {
+             print "<tr><td>\n";
+             print "<b><font color=\"green\">Send ALL DB files to client</font></b><BR>\n";
+             print "<font color=\"green\" size=2>
+                  <i>(server sends to client <b> ALL  files </b> including EXE's [~7MB] if box  <BR>\n";
+             print "  <b> Checked </b>, and it sends <b> ONLY scripts </b> if box <b> NOT checked</b>)
+                      </i></font></b>\n";
+             print "</tr></td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
+             print "</b></font></td></tr>\n";
            htmlTableEnd();
+          }
           htmlTableEnd();
+             if ($self->{CCT} ne "remote") {
+               my $ntdir="Not Defined";
+               my $avail=0;
+               my $minspace = 30; # at least 30GB
+               foreach my $fs (@{$self->{FilesystemT}}){
+                 if ($fs->{available} > $avail and $fs->{available}>$minspace) {
+                   $avail = $fs->{available};
+                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                 }
+                } 
+               if ($avail > $minspace) {
+                $minspace = $avail/2;
+                foreach my $fs (@{$self->{FilesystemT}}){
+                 if ($fs->{available} > $minspace and $fs->{available} != $avail) {
+                   $avail = $fs->{available};
+                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                   goto DDTAB;
+                 }
+               }
+            }
+DDTAB:         $self->htmlTemplateTable(" ");
+               print "<tr><td>\n";
+               print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
+               print "</tr></td><td>\n";
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<tr><td><font size=\"-1\"<b>\n";
+               htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");  
+              print "</b></font></td></tr>\n";
+            htmlTableEnd();
+           htmlTableEnd();
+           }
+
+
             print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
             print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
           print "<br>\n";
@@ -1287,10 +1341,29 @@ sub Connect{
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+            if ($self->{CCT} eq "remote") {
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+            } else {
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+            }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
+            if ($self->{CCT} eq "remote") {
+             print "<tr><td>\n";
+             print "<b><font color=\"green\">Send ALL DB files to client</font></b><BR>\n";
+             print "<font color=\"green\" size=2>
+                  <i>(server sends to client <b> ALL  files </b> including EXE's [~7MB] if box  <BR>\n";
+             print "  <b> Checked </b>, and it sends <b> ONLY scripts </b> if box <b> NOT checked</b>)
+                      </i></font></b>\n";
+             print "</tr></td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+          }
             print "<tr><td><b><font color=\"red\">Spectrum and Focusing</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -1348,6 +1421,37 @@ sub Connect{
               print "</b></td></tr>\n";
            htmlTableEnd();
           htmlTableEnd();
+             if ($self->{CCT} ne "remote") {
+               my $ntdir="Not Defined";
+               my $avail=0;
+               my $minspace = 30; # at least 30GB
+               foreach my $fs (@{$self->{FilesystemT}}){
+                 if ($fs->{available} > $avail and $fs->{available}>$minspace) {
+                   $avail = $fs->{available};
+                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                 }
+                } 
+               if ($avail > $minspace) {
+                $minspace = $avail/2;
+                foreach my $fs (@{$self->{FilesystemT}}){
+                 if ($fs->{available} > $minspace and $fs->{available} != $avail) {
+                   $avail = $fs->{available};
+                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                   goto DDTAB;
+                 }
+               }
+            }
+DDTAB:         $self->htmlTemplateTable(" ");
+               print "<tr><td>\n";
+               print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
+               print "</tr></td><td>\n";
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<tr><td><font size=\"-1\"<b>\n";
+               htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");  
+              print "</b></font></td></tr>\n";
+            htmlTableEnd();
+           htmlTableEnd();
+           }
             print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
             print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
           print "<br>\n";
@@ -1399,7 +1503,7 @@ sub Connect{
               print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-              htmlTextField("Total Events","number",7,1000000.,"QEv"," ");  
+              htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
               htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
               htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
               htmlTextField("Approximate Jobs Total Elapsed Time ","number",3,7,"QTimeOut"," (days)");  
@@ -1409,15 +1513,64 @@ sub Connect{
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
+            if ($self->{CCT} eq "remote") {
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+            } else {
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+            }
              print "</b></font></td></tr>\n";
             htmlTableEnd();
+            if ($self->{CCT} eq "remote") {
+             print "<tr><td>\n";
+             print "<b><font color=\"green\">Send ALL DB files to client</font></b><BR>\n";
+             print "<font color=\"green\" size=2>
+                  <i>(server sends to client <b> ALL  files </b> including EXE's [~7MB] if box  <BR>\n";
+             print "  <b> Checked </b>, and it sends <b> ONLY scripts </b> if box <b> NOT checked</b>)
+                      </i></font></b>\n";
+             print "</tr></td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
+             print "</b></font></td></tr>\n";
            htmlTableEnd();
+          }
+           htmlTableEnd();
+             if ($self->{CCT} ne "remote") {
+               my $ntdir="Not Defined";
+               my $avail=0;
+               my $minspace = 30; # at least 30GB
+               foreach my $fs (@{$self->{FilesystemT}}){
+                 if ($fs->{available} > $avail and $fs->{available}>$minspace) {
+                   $avail = $fs->{available};
+                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                 }
+                } 
+               if ($avail > $minspace) {
+                $minspace = $avail/2;
+                foreach my $fs (@{$self->{FilesystemT}}){
+                 if ($fs->{available} > $minspace and $fs->{available} != $avail) {
+                   $avail = $fs->{available};
+                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                   goto DDTAB;
+                 }
+               }
+            }
+DDTAB:         $self->htmlTemplateTable(" ");
+               print "<tr><td>\n";
+               print "<b><font color=\"green\">Ntuples Output Path</font></b><BR>\n";
+               print "</tr></td><td>\n";
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<tr><td><font size=\"-1\"<b>\n";
+               htmlTextField(" ","text",80,$ntdir,"NTDIR"," ");  
+              print "</b></font></td></tr>\n";
+            htmlTableEnd();
+           htmlTableEnd();
+           }
            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n"; 
            print "<br>\n";
-#           print "<input type=\"submit\" name=\"ProductionForm\" value=\"Continue\"></br><br>        ";
            print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit\"></br><br>        ";
            htmlReturnToMain();
            htmlBottom();
@@ -1740,9 +1893,9 @@ print qq`
          my $sonly="No";
          $sonly=$q->param("SONLY");
          if ($sonly eq "Yes") {
-             $self->{scriptsOnly}=1;
-             $self->{senddb}=0;
-             $self->{sendaddon}=0;
+             $self->{scriptsOnly}=0;
+             $self->{senddb}=1;
+             $self->{sendaddon}=1;
          }
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
@@ -1807,6 +1960,7 @@ print qq`
         if(not defined $templatebuffer){
             $self->ErrorPlus("Could not find file for $template template.");
         }
+        
         my $a=1;
         my $b=2147483647000;
         my $rndm1=$q->param("QRNDM1");
@@ -1818,6 +1972,18 @@ print qq`
         if(not $rndm2 =~/^\d+$/ or $rndm2 <$a or $rndm2>$b){
              $self->ErrorPlus("RNDM2 $rndm1 is out of range ($a,$b)");
          
+        }
+        if ($self->{CCT} ne "remote") {
+         my $ntdir=$q->param("NTDIR");
+         if (not defined $ntdir) {
+             $self->ErrorPlus("The NTuples output directory NOT DEFINED");
+         } else {
+             if (not $ntdir =~ /\// or not $ntdir=~ /:/ ) {
+              $self->ErrorPlus("Invalid NTuples output directory : $ntdir");
+            } else {
+                $self->{AMSDSTOutputDir}=$ntdir;
+            }
+         }
         }
          my $pmin=$q->param("QMomI");
           my $pmax=$q->param("QMomA");
@@ -2761,6 +2927,7 @@ sub listAll {
        $self -> listJobs();
         $self -> listRuns();
           $self -> listNtuples();
+            $self -> listDisks();
     }
     htmlBottom();
 }
@@ -2813,6 +2980,43 @@ sub listCites {
      print_bar($bluebar,3);
      print "<p></p>\n";
 }
+sub listDisks {
+    my $self = shift;
+    my $hostold=>undef;
+     print "<b><h2><A Name = \"disks\"> </a></h2></b> \n";
+     print "<TR><B><font color=green size= 5><b><font color=green> Disks and Filesystems </font></b>";
+     print "<p>\n";
+     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+              print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     my $sql="SELECT host, disk, path, totalsize, occupied, available, status, timestamp 
+              FROM filesystems ORDER BY available DESC";
+     my $r3=$self->{sqlserver}->Query($sql);
+              print "<td><b><font color=\"blue\" >Filesystem </font></b></td>";
+              print "<td><b><font color=\"blue\" >GBytes </font></b></td>";
+              print "<td><b><font color=\"blue\" >Used [GB] </font></b></td>";
+              print "<td><b><font color=\"blue\" >Free [GB] </font></b></td>";
+              print "<td><b><font color=\"blue\" >Status </font></b></td>";
+     print_bar($bluebar,3);
+     if(defined $r3->[0][0]){
+      foreach my $dd (@{$r3}){
+          my $fs     = $dd->[0].":".$dd->[1].$dd->[2];
+          my $size   = $dd->[3];
+          my $used   = $dd->[4];
+          my $avail  = $dd->[5];
+          my $status   = $dd->[6];
+          print "<tr><font size=\"2\">\n";
+          my $color=statusColor($status);
+          print "<td><b> $fs </b></td><td align=middle><b> $size </td><td align=middle><b> $used </td><td align=middle><b> $avail </b></td>
+                 <td><font color=$color><b> $status </font></b></td>\n";
+          print "</font></tr>\n";
+      }
+  }
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+     print "<p></p>\n";
+}
+
 
 sub listMails {
     my $self = shift;
@@ -2852,42 +3056,50 @@ sub listMails {
      print "<p></p>\n";
 }
 
+
 sub listServers {
     my $self = shift;
-     print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
+    print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.o.cgi\"><b><font color=blue> MC Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
-     print "<p>\n";
-     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
-     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT dbfilename, status, createtime, lastupdate FROM servers";
-     my $r3=$self->{sqlserver}->Query($sql);
-              print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
-              print "<td><b><font color=\"blue\" >Started </font></b></td>";
-              print "<td><b><font color=\"blue\" >LastUpdate </font></b></td>";
-              print "<td><b><font color=\"blue\" >Status </font></b></td>";
-     print_bar($bluebar,3);
-     if(defined $r3->[0][0]){
-      foreach my $srv (@{$r3}){
-          my $name      = $srv->[0];
-          my $status    = $srv->[1];
-          my $starttime = EpochToDDMMYYHHMMSS($srv->[2]); 
-          my $lastupd   = $srv->[3];
-          my $lasttime  = EpochToDDMMYYHHMMSS($lastupd);
-          my $time      = time();
-          if ($time - $lasttime < $srvtimeout) {
-           print "<td><b> $name </td><td><b> $starttime </td><td><b> $lasttime </td><td><b> $status </td> </b>\n";
-          } else {
-           my $color = statusColor($status);
-           print "<td><b> $name </td><td><b> $starttime </td><td><b><font color=$color> $lasttime </font></td><td><b><font color=$color> $status </font></td> </b>\n";
-         } 
-          print "</font></tr>\n";
-      }
-  }
-       htmlTableEnd();
-      htmlTableEnd();
-     print_bar($bluebar,3);
-     print "<p></p>\n";
+    print "<p>\n";
+    print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+    print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+    my $sql="SELECT dbfilename, status, createtime, lastupdate FROM servers";
+    my $r3=$self->{sqlserver}->Query($sql);
+    print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
+    print "<td><b><font color=\"blue\" >Started </font></b></td>";
+    print "<td><b><font color=\"blue\" >LastUpdate </font></b></td>";
+    print "<td><b><font color=\"blue\" >Status </font></b></td>";
+    print_bar($bluebar,3);
+    my $deadserver = 0;
+    if(defined $r3->[0][0]){
+        foreach my $srv (@{$r3}){
+            my $name      = $srv->[0];
+            my $status    = $srv->[1];
+            my $starttime = EpochToDDMMYYHHMMSS($srv->[2]);
+            my $lastupd   = $srv->[3];
+            my $lasttime  = EpochToDDMMYYHHMMSS($lastupd);
+            my $time      = time();
+            if ($status eq 'Active' or $deadserver == 0) {
+             if ($time - $lasttime < $srvtimeout) {
+             print "<td><b> $name </td><td><b> $starttime </td><td><b> $lasttime </td><td><b> $status </td> </b>\n";
+             } else {
+             my $color = statusColor($status);
+             print "<td><b> $name </td><td><b> $starttime </td><td><b><font color=$color> $lasttime </font></td><td><b><font color=$color> $status </font></td> </b>\n";
+           }
+             print "</font></tr>\n";
+             if ($status eq 'Dead') { $deadserver++;}
+         }
+        }
+    }
+    htmlTableEnd();
+    htmlTableEnd();
+    print_bar($bluebar,3);
+    print "<p></p>\n";
 }
+
+
+
 
 sub listJobs {
     my $self = shift;
@@ -3129,6 +3341,8 @@ sub ht_Menus {
         <a href=\"#runs\"><b><font color=green> Runs </b></font></a>\n";
  print "<dt><img src=\"$purplebullet\">&#160;&#160;
         <a href=\"#ntuples\"><b><font color=green> Ntuples </b></font></a>\n";
+ print "<dt><img src=\"$purplebullet\">&#160;&#160;
+        <a href=\"#disks\"><b><font color=green> Disks and Filesystems \@CERN </b></font></a>\n";
  print "<dt><img src=\"$bluebullet\">&#160;&#160;
         <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\">
         <b><font color=green> Submit MC Job </b></font></a>\n";
@@ -3208,9 +3422,9 @@ sub statusColor {
                $color = "blue";
     } 
     elsif ($status eq "Active") {
-               $color = "blue";
+               $color = "green";
     } 
-    elsif ($status eq "Dead") {
+    elsif ($status eq "Dead" or $status eq "Unknown" or $status eq "ToBeRerun") {
                $color = "magenta";
     } 
     else {
