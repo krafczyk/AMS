@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.12 2003/06/17 08:11:18 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.13 2003/06/18 08:25:54 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -361,6 +361,7 @@ bool AMSOnDisplay::Fill(bool checkonly){
   int retcode=1;
   time_t timett1,timett2;
   time(&timett1);
+   int cur=0;
   for(int i=_Begin;i<_End;i++){
    int ret= m_ntuple->ReadOneEvent(i);
    if(ret<0){
@@ -369,10 +370,11 @@ bool AMSOnDisplay::Fill(bool checkonly){
    }
      _Begin++;
      time(&timett2);
-     if(timett2-timett1>0){
+     if(timett2-timett1>1 && (i-cur)>(_End-_Begin)/100){
          timett1=timett2;
          DrawRunInfo();
          m_Canvas->Update();
+         cur=i;
      }
 //     if(_Begin>=_End){
 //         _Begin=0;

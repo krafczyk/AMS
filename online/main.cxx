@@ -1,4 +1,5 @@
-//  $Id: main.cxx,v 1.14 2003/06/17 07:39:55 choutko Exp $
+//  $Id: main.cxx,v 1.15 2003/06/18 08:25:54 choutko Exp $
+#include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
 #include <TFile.h>
@@ -24,7 +25,12 @@
 #include "AMSAxAMSHist.h"
 #include "AMSGenHist.h"
 #include "main.h"
+#include <dirent.h>
+#include <TString.h>
+TString * Selector;
 extern void * gAMSUserFunction;
+void OpenChain(TChain & chain, char * filename);
+static int Selectsdir( const dirent * entry=0);
 void Myapp::HandleIdleTimer(){
   if(fDisplay)fDisplay->DispatchProcesses();
   SetReturnFromRun(1);
@@ -54,7 +60,8 @@ int main(int argc, char *argv[])
   
   printf("opening file %s...\n", filename);
   TChain chain("AMSRoot");
-  chain.Add(filename);
+  OpenChain(chain,filename); 
+//  chain.Add(filename);
   AMSNtupleR ntuple(&chain);
   int err=0;
   int argcc=1;
@@ -92,7 +99,7 @@ int main(int argc, char *argv[])
   amd->SetApplication(theApp);
   amd->Begin()=0;
   amd->Sample()=999;
-  theApp->SetIdleTimer(10,"");
+  theApp->SetIdleTimer(15,"");
    TVirtualHistPainter::SetPainter("THistPainter");
       for(;;){
         amd->Fill();
@@ -131,4 +138,73 @@ void (handler)(int sig){
    cerr <<" Process resumed"<<endl;
    break;
   }
+}
+
+
+void OpenChain(TChain & chain, char * filenam){
+//  
+//  root can;t cope with multiple wild card so we must do it ourselves
+//
+   char filename[255];
+   if(strlen(filenam)==0 || strlen(filenam)>sizeof(filename)-1){
+       cerr <<"OpenChain-F-InvalidFileName "<<filenam<<endl;
+       return;
+   }
+   if(filenam[0]!='/'){
+    strcpy(filename,"./");
+    strcat(filename,filenam);
+   }
+   else strcpy(filename,filenam);
+   bool go=false;
+   bool wildsubdir=false;
+   for(int i=strlen(filename)-1;i>=0;i--){
+     if(filename[i]=='/')go=true;
+     if(go && filename[i]=='*'){
+       wildsubdir=true;
+       break;
+     }
+   }
+   if(wildsubdir){
+    for(int i=0;i<strlen(filename);i++){
+     if (filename[i]=='*'){
+        for(int k=i-1;k>=0;k--){
+           if(filename[k]=='/'){
+              TString ts(filename,k+1);
+              for(int l=i+1;l<strlen(filename);l++){
+               if(filename[l]=='/'){
+                if(l-i-1>0)Selector= new TString(filename+i+1,l-i-1);
+                else Selector=0;
+               }
+                dirent ** namelistsubdir;
+                cout <<"  scanning "<<ts<<endl;
+                if(Selector)cout <<" sela "<<*Selector<<endl;
+                int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,NULL);
+                for( int nsd=0;nsd<nptrdir;nsd++){
+                  char fsdir[1023];
+                  strcpy(fsdir,ts.Data());
+                  strcat(fsdir,namelistsubdir[nsd]->d_name);
+                  strcat(fsdir,filename+l);
+                  cout << "found dir "<<fsdir<<endl;
+                  OpenChain(chain,fsdir);
+                } 
+                return;               
+               }
+              }
+             }                  
+           }
+        }
+      }
+    chain.Add(filename);
+}
+
+
+
+
+int Selectsdir(const dirent *entry){
+if(Selector){
+ TString a(entry->d_name);
+ TRegexp b(Selector->Data(),true);
+ return a.Contains(b);
+}
+else return entry->d_name[0]!='.';
 }
