@@ -27,7 +27,8 @@ Below there is a description of a  ntuple.
                                                     // * -1  if dir is from north to south
 * R*4  *              * EVENTH   * VelTheta         // speed theta (GTOD rad) 
 * R*4  *              * EVENTH   * VelPhi           // speed phi (GTOD rad) 
-
+* R*4  *              * EVENTH   * ThetaM           // Magnetic Lattitude
+* R*4  *              * EVENTH   * PhiM             // Magnetic Longitude
 * I*4  *              * EVENTH   * Particles        // No of Particles
 * I*4  *              * EVENTH   * Tracks           // No of Tracks                    
 * I*4  *              * EVENTH   * Betas            // No of Betas
@@ -43,7 +44,7 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
 * I*4  *              * EVENTH   * AntiClusters     // No of Amti clusters
 * I*4  *              * EVENTH   * EventStatus      // EventStatus (see status.doc)
-
+* R*4  *              * EVENTH   * Dummy[3]         // Dummies to be filled
 
 * I*4  * [0,10]       * BETA     * nbeta             // betas number
 * I*4  *              * BETA     * betastatus        // 4 - ambig
@@ -178,10 +179,13 @@ Below there is a description of a  ntuple.
 * I*4  * [0,20]       * TRTRACK  * ntrtr          // tracks number
 * I*4  *              * TRTRACK  * trstatus(ntrtr) // Status *)
 * I*4  *              * TRTRACK  * pattern(ntrtr)  // Pattern (datacards.doc)
+* I*4  *              * TRTRACK  * address(ntrtr)  // address (trrec.C buildaddress)
+
 * I*4  *              * TRTRACK  * nhits(ntrtr)    // number of hits 
 * I*4  *              * TRTRACK  * phits(6,ntrtr)  // pointers to trrechit
 * I*4  *              * TRTRACK  * FastFitDone(ntrtr) // != 0 if done
 * I*4  *              * TRTRACK  * GeaneFitDone(ntrtr) // != 0 if done
+* R*4  *              * TRTRACK  * Dbase(2,ntrtr)      // chi2_after/Chi2_before; dp/p from database if any
 * I*4  *              * TRTRACK  * AdvancedFitDone(ntrtr) --------------
 * R*4  *              * TRTRACK  * Chi2StrLine(ntrtr) // chi2 sz fit
 * R*4  *              * TRTRACK  * Chi2Circle(ntrtr) // chi2 circular fit
