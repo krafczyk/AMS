@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.66 2002/10/17 12:52:28 choutko Exp $
+//  $Id: ecalrec.C,v 1.67 2002/10/17 16:01:46 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -508,8 +508,8 @@ void AMSEcalHit::build(int &stat){
         fadc=radc[0];//use highCh.
         if(AMSJob::gethead()->isRealData() ){// tempor RealData Lch-corr.
         number ped=ph;
-        number a=1.2;
-        number b=1.2e-4;
+        number a=1.21;
+        number b=1.26e-4;
         number x1=1666;
         number x2=3766;
         if(radc[0]+ph<1666){
@@ -524,7 +524,7 @@ void AMSEcalHit::build(int &stat){
         fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
 	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
 //
-        if(AMSJob::gethead()->isRealData() && 0){// tempor RealData Lch-corr.
+        if(AMSJob::gethead()->isRealData() ){// tempor RealData Lch-corr.
 //      assume tri-angular  h/l correction;
 
         number ped=ph;
@@ -1590,6 +1590,11 @@ void EcalShower::_writeEl(){
     TN->AttLeak[TN->Necsh]=_AttLeak;
     TN->Orp2DEnergy[TN->Necsh]=_Orp2DEnergy;
      TN->Chi2Profile[TN->Necsh]=_ProfilePar[4+_Direction*5];
+     for(int i=0;i<4;i++){
+      if(_ProfilePar[i+_Direction*5] >FLT_MAX){
+         _ProfilePar[i+_Direction*5]=FLT_MAX;
+      }         
+     }
      for(int i=0;i<4;i++)TN->ParProfile[TN->Necsh][i]=_ProfilePar[i+_Direction*5];
      TN->Chi2Trans[TN->Necsh]=_TransFitChi2;
      for(int i=0;i<3;i++)TN->SphericityEV[TN->Necsh][i]=_SphericityEV[i];       
