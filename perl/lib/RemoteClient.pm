@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.189 2003/06/13 16:04:09 alexei Exp $
+# $Id: RemoteClient.pm,v 1.190 2003/06/15 09:57:30 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2463,7 +2463,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              my $run=(($cid-1)<<27)+1;
              my $time=time();
              my $citedesc = "new cite";
-             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0,'$citedesc',$time)";
+             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0,'$citedesc',$time,0)";
              $self->{sqlserver}->Update($sql);
 
             }
@@ -2545,7 +2545,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
                  $self->ErrorPlus("$error");
              }
              my $run=(($cid-1)<<27)+1;
-             $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0,'$newcitedesc',$time)";
+             $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0,'$newcitedesc',$time,0)";
              $self->{sqlserver}->Update($sql);
 # add responsible
              $sql="select MAX(mid) from Mails";

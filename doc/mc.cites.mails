@@ -1,5 +1,5 @@
 # 
-#                                                                         Last Edit : May 17, 2003
+#                                                                         Last Edit : Jun 15, 2003
 # MAILS
 #
 # address                          : name                    : R : CID: RS  : alias
@@ -30,24 +30,24 @@ alexandre.eline@cern.ch            : Alexandre Eline         : 0 :  1 : 0 : :
 #                                                                         Last Edit : Apr 23, 2003
 # CITES
 #
-# description                          : name     : CID : STAT : STATUS : Journal File Path
-#-----------------------------------------------------------------------------
-CERN                                   : cern     :  1  :  0   : local  : /f2users/scratch/MC :
-Test                                   : test     :  2  :  0   : remote : /f2users/scratch/MC :
-INFN Bologna                           : bolo     :  3  :  0   : remote : /f2users/scratch/MC : 
-ETH Zurich                             : ethz     :  4  :  0   : remote : /f2users/scratch/MC :
-INFN Milano                            : mila     :  5  :  0   : remote : /f2users/scratch/MC :
-Kyungpook Nat. Univ.                   : knu      :  6  :  0   : remote : /f2users/scratch/MC :
-CIEMAT Madrid                          : ciemat   :  7  :  0   : remote : /f2users/scratch/MC :
-Groupe d Astroparticules de Montpellier : gam     :  8  :  0   : remote : /f2users/scratch/MC :
-Universitaet  Karlsruhe                 : ekp     :  9  :  0   : remote : /f2users/scratch/MC :
-LIP Lisbon                              : lip     : 10  :  0   : remote : /f2users/scratch/MC :
-MIT                                     : mit     : 11  :  0   : remote : /f2users/scratch/MC :
-INFN and Univ. Perugia                  : perugia : 12  :  0   : remote : /f2users/scratch/MC :
-INFN and Univ. Siena                    : siena   : 13  :  0   : remote : /f2users/scratch/MC :
-Academia Sinica Taiwan                  : taiwan  : 14  :  0   : remote : /f2users/scratch/MC :
-IN2P3 Annecy                            : lyon    : 15  :  0   : remote : /f2users/scratch/MC :
-#----------------------------------------------------------------------------
+# description                          : name     : CID : STAT : STATUS : Journal File Path   : GHz :
+#----------------------------------------------------------------------------------------------------
+CERN                                   : cern     :  1  :  0   : local  : /f2users/scratch/MC : 12 :
+Test                                   : test     :  2  :  0   : remote : /f2users/scratch/MC : 12 :
+INFN Bologna                           : bolo     :  3  :  0   : remote : /f2users/scratch/MC :  6 :
+ETH Zurich                             : ethz     :  4  :  0   : remote : /f2users/scratch/MC : 20 :
+INFN Milano                            : mila     :  5  :  0   : remote : /f2users/scratch/MC : 35 :
+Kyungpook Nat. Univ.                   : knu      :  6  :  0   : remote : /f2users/scratch/MC :  6 :
+CIEMAT Madrid                          : ciemat   :  7  :  0   : remote : /f2users/scratch/MC : 27 :
+Groupe d Astroparticules de Montpellier : gam     :  8  :  0   : remote : /f2users/scratch/MC : 33 :
+Universitaet  Karlsruhe                 : ekp     :  9  :  0   : remote : /f2users/scratch/MC :  2 :
+LIP Lisbon                              : lip     : 10  :  0   : remote : /f2users/scratch/MC : 27 :
+MIT                                     : mit     : 11  :  0   : remote : /f2users/scratch/MC :  0 :
+INFN and Univ. Perugia                  : perugia : 12  :  0   : remote : /f2users/scratch/MC :  7 :
+INFN and Univ. Siena                    : siena   : 13  :  0   : remote : /f2users/scratch/MC : 20 :
+Academia Sinica Taiwan                  : taiwan  : 14  :  0   : remote : /f2users/scratch/MC : 47 :
+IN2P3 Annecy                            : lyon    : 15  :  0   : remote : /f2users/scratch/MC : 17 :
+#----------------------------------------------------------------------------------------------------
 #
 # FILESYSTEMS
 #

@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.53 2003/06/09 10:34:25 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.54 2003/06/15 09:57:30 alexei Exp $
 
 #
 #
@@ -425,15 +425,18 @@ my $sql;
      } 
    } else {
      if ($cites == 1) {
-       my ($description,$name,$cid,$stat,$status,$journal,@junk) = split ":",$line;
+      my ($description,$name,$cid,$stat,$status,$journal,$ghz,@junk) = split ":",$line;
        if (defined $description and defined $status) {
-         $description = trimblanks($description);
-         $name        = trimblanks($name);
-         $cid         = strtod($cid);
-         $stat        = strtod($stat);
-         $status      = trimblanks($status);
-         $journal     = trimblanks($journal);
-         $dbh->do("insert into Cites values($cid,$name,0,$status,$run,$stat,$description,$time)")
+
+         $description = trimblanks($description);    # cite description
+         $name        = trimblanks($name);           #      nickname
+         $cid         = strtod($cid);                #      id
+         $stat        = strtod($stat);               #      state   - Active/Blocked
+         $status      = trimblanks($status);         #      status  - Local/Remote
+         $journal     = trimblanks($journal);        #      journal file directory
+         $ghz         = strtod($ghz);                #      computing facility equiv in GHz
+
+         $dbh->do("insert into Cites values($cid,$name,0,$status,$run,$stat,$description,$time,$ghz)")
          or die "cannot do: ".$dbh->errstr();
          my $dirpath=$journal."/".$name;    
          $dbh->do("insert into journals values($cid,$dirpath,' ',0,$time)")    
