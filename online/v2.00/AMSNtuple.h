@@ -97,6 +97,7 @@ protected:
         Int_t ntrraw;
         Int_t rawaddress[maxtrraw];
         Int_t rawlength[maxtrraw];
+        Float_t s2n[maxtrraw];
         //RecHits
 
    Int_t           ntrrh;

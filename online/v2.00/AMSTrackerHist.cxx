@@ -10,7 +10,7 @@ AMSTrackerHist::AMSTrackerHist(Text_t * name, Text_t * title, Int_t maxset, Int_
 }
 
 void AMSTrackerHist::_Fill(){
- _m2filled=16+8+4;
+ _m2filled=16+8+4+2;
  _filled2= new TH1*[_m2filled];
  for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
  int crate[2]={32,72};
@@ -64,7 +64,13 @@ void AMSTrackerHist::_Fill(){
   _filled2[11]=new TH1F(name,title,6,-0.5 ,5.5);
   _filled2[11]->SetFillColor(22);
 
-
+   float bin=8./64.;
+  _filled2[28]=new TH1F("s2nK", "Seed signal/noise K side",64,-bin/2,8.-bin/2);
+  _filled2[28]->SetXTitle("S/N");
+  _filled2[28]->SetFillColor(23);
+  _filled2[29]=new TH1F("s2nS", "Seed signal/noise S side",64,-bin/2,8.-bin/2);
+  _filled2[29]->SetXTitle("S/N");
+  _filled2[29]->SetFillColor(23);
 }
 
 
@@ -126,6 +132,17 @@ gPadSave->cd();
 }
 break;
 case 2:
+gPad->Divide(2,1);
+for(i=0;i<2;i++){
+ gPad->cd(i+1);
+ gPad->SetLogx(gAMSDisplay->IsLogX());
+ gPad->SetLogy(gAMSDisplay->IsLogY());
+ gPad->SetLogz(gAMSDisplay->IsLogZ());
+ _filled2[28+i]->Draw();
+gPadSave->cd();
+}
+break;
+case 3:
 gPad->Divide(2,2);
 for(i=0;i<4;i++){
  gPad->cd(i+1);
@@ -136,7 +153,7 @@ for(i=0;i<4;i++){
 gPadSave->cd();
 }
 break;
-case 3:
+case 4:
 gPad->Divide(2,2);
 for(i=0;i<4;i++){
  gPad->cd(i+1);
@@ -149,7 +166,7 @@ for(i=0;i<4;i++){
 gPadSave->cd();
 }
 break;
-case 4:
+case 5:
 gPad->Divide(2,2);
 for(i=0;i<4;i++){
  gPad->cd(i+1);
@@ -186,6 +203,7 @@ void AMSTrackerHist::Fill(AMSNtuple * ntuple){
    int side= ir<2?0:1;
    int crate= (ir==0 || ir==2)?0:1;
    int iaddr=lay*10+lad;
+   _filled2[28+side]->Fill(ntuple->_Tracker.s2n[i]); 
     addr[crate][side][iaddr]++;
     //   _filled2[4+crate]->Fill(iaddr,1.,1.);
    n[side][crate]++;

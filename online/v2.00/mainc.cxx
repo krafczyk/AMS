@@ -87,7 +87,7 @@ out:
   AMSOnDisplay * amd= new AMSOnDisplay("AMSRoot Online Display",&f);
   AMSAntiHist  antih("ANTI","Anti counter Hists",1,1);
   amd->AddSubDet(antih);
-  AMSTrackerHist  trackerh("Tracker","Tracker  Hists",5,1);
+  AMSTrackerHist  trackerh("Tracker","Tracker  Hists",6,1);
   amd->AddSubDet(trackerh);
   AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",4,1);
   amd->AddSubDet(LVL1h);

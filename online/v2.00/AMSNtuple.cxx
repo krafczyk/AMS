@@ -65,6 +65,7 @@ ClassImp(AMSNtuple)
            _h1->SetBranchAddress("ntrraw",&_Tracker.ntrraw);
            _h1->SetBranchAddress("rawaddress",&_Tracker.rawaddress);
            _h1->SetBranchAddress("rawlength",&_Tracker.rawlength);
+           _h1->SetBranchAddress("s2n",&_Tracker.s2n);
 
 
             _h1->SetBranchAddress("ntrrh",&_Tracker.ntrrh);
