@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.4 2001/02/08 09:31:22 choutko Exp $
+//  $Id: dbserver.C,v 1.5 2001/02/08 10:32:03 choutko Exp $
 #include <dbserver.h>
 
 
@@ -51,10 +51,10 @@ for(int i=0;i<length;i++){
 
 }
 
-
-//functions to fill with oracle stuff
-//see algorithm examples in ~/AMS/perl/lib/POADBServer.pm
-
+//
+//  functions to fill with oracle stuff
+//  see  examples in ~/AMS/perl/lib/POADBServer.pm
+//  cid.Type should be used in general to discriminate between requests 
 
 void  DBServer_impl::_init(){
     // here oracle connect
