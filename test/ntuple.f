@@ -1,11 +1,14 @@
          include 'sc.inc'
         character *80 fdir
-        character *256 fname
+        character *256 fname,flist
          common /pawc/hm(4000000 )
-        fdir='/offline/user.local'
         call hlimit(4000000) 
          i=0
-         open(20,file='ntuple.names',status='old')
+         write(*,*)'ntuple list file name'
+         read(*,*)flist
+         write(*,*)'new ntuples dir'
+         read(*,*)fdir
+         open(20,file=flist,status='old')
 10         read(20,fmt='(a)',end=100,err=100)fname
          i=i+1
            call openold(fname)
