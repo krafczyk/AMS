@@ -141,13 +141,17 @@ extern "C" void uginit_(){
   GPIONS(4);
 #ifdef __DB__
    ooMode   mode;
+   ooMode   mrowmode;
    eventR = AMSFFKEY.Read;
    eventW = AMSFFKEY.Write;
    char* jobname = AMSJob::gethead()->getname();
    if (eventW > 0) mode = oocUpdate;
-   if (eventW < 1) mode = oocRead;
-//   cout <<"UGINIT -I- LMS init for job "<<jobname<<endl;
-   dbout.LMSInit(mode,jobname);
+   if (eventW < 1) {
+     mode = oocRead;
+     mrowmode = oocMROW;
+   }
+   if (dbg_prtout) cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
+   dbout.LMSInit(mode,mrowmode,jobname);
    readGeomDB();
 #else
    AMSgmat::amsmat();
@@ -388,7 +392,8 @@ extern "C" void uglast_(){
     ooStatus          rstatus;
     rstatus = dbout.Start(oocRead);
     rstatus = dbout.FindEventList(jobname,oocRead,listH);
-    //    if (rstatus == oocSuccess)  listH -> PrintMapStatistics(oocRead);
+    if (rstatus == oocSuccess && dbg_prtout !=0 )  
+                              listH -> PrintMapStatistics(oocRead);
     rstatus = dbout.Commit();
 //-
 #endif
@@ -430,7 +435,8 @@ Float_t                StartRealTime;
 Float_t                EndRealTime;
 
   integer nevents = GCFLAG.NEVENT;
-  ooMode   mode   = oocRead;
+  ooMode   mode     = oocRead;
+  ooMode   mrowmode = oocMROW;
   char* eventID   = NULL;
   char* jobname   = AMSJob::gethead()->getname();
   char* setup     = AMSJob::gethead() -> getsetup();
@@ -446,9 +452,8 @@ Float_t                EndRealTime;
    }
    if (run < 0)     run = 0;
    if ( (eventR/10)%2 != 1) {
-    rstatus = 
-            dbout.GetNEvents
-                     (jobname, eventID, run, eventNu, nevents, mode, eventR);
+    rstatus = dbout.GetNEvents
+            (jobname, eventID, run, eventNu, nevents, mode, mrowmode, eventR);
    } else {
     ReadStartEnd = 0; 
     integer nST = dbout.getNTransStart();
@@ -456,7 +461,7 @@ Float_t                EndRealTime;
     integer nAT = dbout.getNTransAbort();
     if ((readEvents == 0) || (nST == (nCT + nAT))) ReadStartEnd = 1;
     rstatus =dbout.Getmceventg
-                       (jobname, eventID, run, eventNu, mode, ReadStartEnd);
+              (jobname, eventID, run, eventNu, mode, mrowmode, ReadStartEnd);
     readEvents++;
    }
    if (rstatus == oocSuccess) {
