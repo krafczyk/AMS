@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.79 2004/02/19 17:28:55 alcaraz Exp $
+//  $Id: root.C,v 1.80 2004/02/20 09:47:58 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2215,13 +2215,8 @@ void AMSEventR::Begin(TTree *tree){
     cout <<"AMSEventR::Begin-I-WriteFileOpened "<<option<< endl;
    }
 
-   UBegin();     
    fService._w.Start(); 
-   
-   
-   
-   
-
+   UBegin();     
 }
 
 
@@ -2247,9 +2242,9 @@ void AMSEventR::Terminate()
 {
    // Function called at the end of the event loop.
    //_Tree->SetMakeClass(0);
+   UTerminate();
    fService._w.Stop();
    cout <<"AMSEventR::Terminate-I-CputimeSpent "<<fService._w.CpuTime()<<" sec"<<endl;
-   UTerminate();
    cout <<"AMSEventR::Terminate-I-Total/Bad "<<fService.TotalEv<<"/"<<fService.BadEv<<" events processed "<<endl;
    if(fService._pOut){
      fService._pOut->Write();
