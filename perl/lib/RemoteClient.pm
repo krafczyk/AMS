@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.113 2003/04/22 12:47:05 choutko Exp $
+# $Id: RemoteClient.pm,v 1.114 2003/04/22 12:52:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3412,6 +3412,14 @@ print qq`
                  else{
                    $message=$self->{tsyntax}->{headers}->{readmecorba};
                  }                
+        my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
+        my $note='please contact alexei.klimentov@cern.ch for details'; 
+        my $ret = $self->{sqlserver}->Query($sql);
+  
+        if (defined $ret->[0][0]) {
+         $note ="DST directory path : $ret->[0][0]/nt \n Journal files directory path : $ret->[0][0]/jou \n";
+         }         
+         $message=$message.$note;
                   my $attach;
        if ($self->{CCT} eq "remote"){
           if($self->{senddb}==1){
