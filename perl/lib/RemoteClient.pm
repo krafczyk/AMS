@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.261 2004/04/09 13:34:58 alexei Exp $
+# $Id: RemoteClient.pm,v 1.262 2004/04/20 09:58:30 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -38,16 +38,19 @@
 #                  decrease one sql query in updateRunCatalog
 #                : checkDB add -i option
 #
-# Mar  6, 2004   : if DST status is not 'Validated' in CloseDTS block, skip it
+# Mar     2004   : if DST status is not 'Validated' in CloseDTS block, skip it
 #                  if CRC=0 didn't check it either
-# Mar  9, 2004   : getHostsList sub, getDisks add MC[GB] - GB for MC's DSTs 
-# Mar 10, 2004   : listJobs, listNtuples, listRuns - modified to speed up output
-# Mar 12, 2004   : getHostsMips & updateHostsMips subs
+#                : getHostsList sub, getDisks add MC[GB] - GB for MC's DSTs 
+#                : listJobs, listNtuples, listRuns - modified to speed up output
+#                : getHostsMips & updateHostsMips subs
 #                  2 new tables cern_hosts and cpu_coeff
-# Mar 15, 2004   : argument list of fastntrd is modified, lastEvent is added
+#                : argument list of fastntrd is modified, lastEvent is added
 #                  implement timing (decrease number of logfiles, f.e. /tmp/cp.log
-# Mar 23, 2004   : always validate DSTs
+#                : always validate DSTs
 #                : $rmpromt option
+# Apr 15, 2004   : getRunInfo sub
+# Apr 18, 2004   : validateRuns - check number of events and errors if both = 0
+#                : mark run as 'Unchecked', even if server's status is 'Finished'
 #
 
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
@@ -68,7 +71,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getHostsList getHostsMips getOutputPath updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateHostsMips);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -1140,8 +1143,18 @@ sub ValidateRuns {
            my $elapsed = sprintf("%.2f",$run->{cinfo}->{TimeSpent});
            my $host    = $self->gethostname($run->{cinfo}->{HostName});
            
+           if ($events == 0 && $errors == 0 && $run->{Status} eq 'Finished') {
+               if ($webmode == 0 && $verbose == 1) {
+                print "Run ... $run->{Run}, Status ... $run->{Status}, Events... $events, Errors... $errors \n";
+                print "Set run=$run->{Run} status to Unchecked, Jobs tables not updated \n";
+               }
+               print FILEV "Run ... $run->{Run}, Status ... $run->{Status}, Events... $events, Errors... $errors \n";
+               print FILEV "Set run=$run->{Run} status to Unchecked, Jobs tables not updated \n";
+               $sql = "UPDATE runs SET STATUS='Unchecked' WHERE run=$run->{Run}";
+               $self->{sqlserver}->Update($sql);
+           } else {  # events && errors != 0
 # get list of local hosts
-           $sql = "UPDATE jobs SET 
+            $sql = "UPDATE jobs SET 
                                      EVENTS=$events,
                                      ERRORS=$errors,
                                      CPUTIME=$cputime,
@@ -1154,7 +1167,7 @@ sub ValidateRuns {
           print FILEV $sql;
 # validate ntuples
 # Find corresponding ntuples from server
-              foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
+             foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
               if(($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $
                   ntuple->{Run}== $run->{Run}){
                   $CheckedDSTs[0]++;
@@ -1329,11 +1342,12 @@ sub ValidateRuns {
            $warn = "Update RunCatalog table : $run->{Run}\n";
            print FILEV $warn;
           }
-     } # remote job
+      }# events != 0 && errors != 0
+     } # remote job             
     }  # job found
    }   # run->{Status} == 'Finished' || 'Failed'
   }    # loop for runs from 'server'
-
+      
   if ($webmode == 1) {
    $self->htmlBottom();
   }
@@ -5371,7 +5385,10 @@ sub checkJobsTimeout {
        my $sujet = "Job : $jid - expired";
        my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. 
                          \n Job will be removed from database (Not earlier than  : $deletetime).
-                         \n MC Production Team.";
+                         \n MC Production Team.
+                         \n ----------------------------------------------
+                         \n This message was generated by program.
+                         \n DO NOT reply using REPLY option of your mailer";
        $self->sendmailmessage($address,$sujet,$message);
 
         $self->amsprint($cite,666);
@@ -5527,7 +5544,7 @@ sub updateHostsMips {
     if ($chop =~/^-v/) {
      $verbose = 1;
     }
-    if ($chop =~/^-v/) {
+    if ($chop =~/^-u/) {
      $update = 1;
     }
     if ($chop =~/^-h/) {
@@ -9156,6 +9173,8 @@ sub getHostsList {
     my $ndays    = 0; # days of running
     my $p3ghz    = 0; # PIII 1 GHz equivalent
     my $p3ghzday = 0; #                       per day
+    my $ghz    = 0; # PIII 1 GHz equivalent
+    my $ghzday = 0; #                       per day
 
     my $CiteName = undef;
 
@@ -9221,15 +9240,17 @@ sub getHostsList {
          $totaljobs  = 0;
          $totalmips  = 0;
 
-         $sql  = "SELECT host, mips FROM Jobs WHERE host != 'host' and cid=$cid ORDER BY host";
+         $sql  = "SELECT host, mips, cputime FROM Jobs WHERE host != 'host' and cid=$cid ORDER BY host";
          $hl=$self->{sqlserver}->Query($sql);
          if (defined $hl->[0][0]) {
           foreach my $host (@{$hl}){
             my $hostname = trimblanks($host->[0]);
-            my $mips = 0;
+            my $mips    = 0;
+            my $cputime = 0;
             if (defined $host->[1]) {$mips = $host->[1];}
+            if (defined $host->[2]) {$cputime = $host->[2];}
             $totaljobs++;
-            $totalmips += $mips;
+            $totalmips += $mips*$cputime/1000.;
 
             $hostname = $self->gethostname($host->[0]);
 
@@ -9238,13 +9259,13 @@ sub getHostsList {
                 if ($comp =~ $hostname) {
                   $newcomp = 0;
                   $njobs[$#hostlist]++;   
-                  $nmips[$#hostlist] += $mips;
+                  $nmips[$#hostlist] += $totalmips;
                 }
             }
             if ($newcomp == 1) {
              push @hostlist, $hostname;
              $njobs[$#hostlist] = 1;
-             $nmips[$#hostlist] = $mips;
+             $nmips[$#hostlist] = $totalmips;
             }
           }
       }
@@ -9265,7 +9286,7 @@ sub getHostsList {
         }
         $cjobs[$cid]  = $totaljobs;
         $chosts[$cid] = $j;
-        $cmips[$cid]  = $totalmips;
+        $cmips[$cid]  = $totalmips/$totaldays/24/60/60;
 
         @hostlist =();
         @njobs    =();
@@ -9293,15 +9314,14 @@ sub getHostsList {
             $gbytes[$cite] = -1;
             print "Cite : $cnames[$cite] \n";
             print " Hosts : $chosts[$cite], Jobs : $cjobs[$cite],  GB : $sgb \n";
-            $p3ghz = $cmips[$cite]/1000;
-            if ($totaldays > 1) { 
-             $p3ghzday = $p3ghz/$totaldays;
-            } else {
-             $p3ghzday = $p3ghz;
-            } 
-            $p3ghz    = sprintf("%3.1f",$p3ghz);
-            $p3ghzday = sprintf("%3.1f",$p3ghzday);
-            print " Mips : $cmips[$cite], PIII 1GHz equivalent : $p3ghz or per day $p3ghzday \n";
+
+            $p3ghzday    = sprintf("%3.1f",$cmips[$cite]);
+            $p3ghz = sprintf("%3.1f",($cmips[$cite]*$totaldays));
+
+           $ghz    += $p3ghz;
+           $ghzday += $p3ghzday;
+
+            print " PIII 1GHz equivalent : $p3ghz or per day $p3ghzday \n";
             if ($shortlist == 0) {
              my $i = 0;
              my $j = 0;
@@ -9321,16 +9341,7 @@ sub getHostsList {
         print "---------------- Summary --------------------- \n";
         my $sgb = sprintf(" %6.1f",$totalgb);
         print "Active Cites : $nCites, Total Jobs : $nJobs, Hosts : $nHosts \n";
-        print "Total Mips : $nMips, Total GB: $sgb\n";
-        $p3ghz = $nMips/1000;
-        if ($totaldays > 1) { 
-         $p3ghzday = $p3ghz/$totaldays;
-        } else {
-         $p3ghzday = $p3ghz;
-        } 
-        $p3ghz    = sprintf("%3.1f",$p3ghz);
-        $p3ghzday = sprintf("%3.1f",$p3ghzday);
-        print "PIII 1GHz equiv : $p3ghz or per day $p3ghzday \n";
+        print "Total GB: $sgb, PIII 1GHz equiv : $ghz or per day $ghzday \n";
         print "----------------         --------------------- \n";
 
     } else {
@@ -9487,9 +9498,9 @@ sub printValidateStat {
       print "\n ",$l0,$l1,$l2;
       print FILEV "\n",$l0,$l1,$l2;
 
- my $totalGB = $gbDST[0]/1000;
+ my $totalGB = $gbDST[0]/1000/1000/1000;
  my $chGB = sprintf("Total GB %3.1f \n",$totalGB);
- print "$chGB";
+ print $chGB;
  my $ch0 = sprintf("Total Time %3.1f hours \n",$hours);
  my $ch1 = sprintf(" doCopy (calls, time) : %5d %3.1fh [cp file :%5d %3.1fh]; \n",$doCopyCalls, $doCopyTime/60/60, $copyCalls, $copyTime/60/60);
  my $ch2 = sprintf(" CRC (calls,time) : %5d, %3.1fh ; Validate (calls,time) : %5d, %3.3fh \n",
@@ -9511,4 +9522,87 @@ sub getDefByKey {
     }
 
  return $ret;
+}
+
+sub getRunInfo {
+
+ my $self = shift;
+
+
+ my $HelpTxt = "
+     validateRuns gets list of runs from production server 
+                  validates DSTs and copies them to final destination
+                  update Runs and NTuples DB tables
+     -c    - output will be produced as ASCII page (default)
+     -h    - print help
+     -r    - run number
+     -s    - get run info from server
+     -v    - verbose mode
+     ./getruninfo.cgi -c -v -r:102
+";
+
+ my $sql = undef;
+
+ my $dbinfo  = 0;
+ my $srvinfo = 1;
+ my $Run     = -1;
+
+   foreach my $chop  (@ARGV){
+    if ($chop =~/^-c/) {
+        $webmode = 0;
+    }
+    if ($chop =~/^-s/) {
+        $srvinfo = 1;
+    }
+    if($chop =~/^-r:/){
+       $Run=unpack("x3 A*",$chop);
+    } 
+    if ($chop =~/^-v/) {
+        $verbose = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
+
+ if ($dbinfo == 0 && $srvinfo == 0) {
+     print "getRunInfo -E- -d or -s flag should be defined \n";
+     return 1;
+ }
+
+ if ($Run == -1) {
+    print "getRunInfo -E- -r flag should be defined \n";
+     return 1;
+ }
+ 
+    if( not $self->Init()){
+        die "getRunInfo -F- Unable To Init";
+        
+    }
+    if ($verbose) {print "getRunInfo -I- Connect to Server \n";}
+    if (not $self->ServerConnect()){
+        die "getRunInfo -F- Unable To Connect To Server";
+    }
+    if ($verbose) {print "getRunInfo -I- Connected \n";}
+#
+# get list of runs from Server
+ if ($srvinfo == 1) {
+    if( not defined $self->{dbserver}->{rtb}){
+      DBServer::InitDBFile($self->{dbserver});
+    }
+  }
+    print "Get Info Run ... $Run \n";
+    foreach my $run (@{$self->{dbserver}->{rtb}}){
+        if ($run->{Run} == $Run) {
+            print "Run .....  $run->{Run} \n";
+            print "Status...  $run->{Status} \n";
+            print "Events...  $run->{cinfo}->{EventsProcessed} \n";
+            print "Errors...  $run->{cinfo}->{CriticalErrorsFound} \n";
+            print "CPUTime... $run->{cinfo}->{CPUTimeSpent} \n";
+            print "Elapsed... $run->{cinfo}->{TimeSpent} \n";
+            print "Host...    $run->{cinfo}->{HostName} \n";
+            last; 
+      }
+    }
 }
