@@ -8,6 +8,7 @@ extern "C" void btempcor_(float& factor) {
 
 // evaluate temperature
   float temp=MagnetVarp::getmeanmagnetmtemp();
+  if (temp<=0. || temp>=50.) return;
 
 // apply the correction
   const float dBdT=0.13e-2;
