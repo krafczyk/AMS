@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.56 2002/08/07 08:50:25 choutko Exp $
+# $Id: Monitor.pm,v 1.57 2003/05/06 16:02:56 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -842,6 +842,8 @@ if ($producer eq "Producer"){
 
 
 sub getruns{
+     sub prio{ $a->{Run} <=> $b->{Run};}
+     my @sortedrtb=sort prio @{$Monitor::Singleton->{rtb}};
     my @output=();
     my @text=();
     my @final_text=();
@@ -849,9 +851,9 @@ sub getruns{
      my $total_ev=0;
     my @sort=( "Failed","Processing", "Finished","Allocated", "Foreign","ToBeRerun");
     for my $j (0 ... $#sort){
-    for my $i (0 ... $#{$Monitor::Singleton->{rtb}}){
+    for my $i (0 ... $#sortedrtb){
      $#text=-1;
-     my $hash=$Monitor::Singleton->{rtb}[$i];
+     my $hash=$sortedrtb[$i];
      my $order;
      if($hash->{History} eq "Failed"){
          $order=$hash->{History};
