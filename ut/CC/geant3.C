@@ -348,8 +348,8 @@ extern "C" void gustep_(){
   }
 #endif
 #ifndef __BATCH__
-  GSXYZ();
-//GDCXYZ();
+//  GSXYZ();
+GDCXYZ();
 #endif
   }
   
