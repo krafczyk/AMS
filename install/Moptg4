@@ -94,9 +94,15 @@ FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 XLDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
+ifdef LinuxBUG
 CC=/usr/bin/g++  -D__NAMESPACE__ -D__G4AMS__
 FF=/usr/bin/g77
 LD=/usr/bin/g++
+else
+CC=g++  -D__NAMESPACE__ -D__G4AMS__
+FF=g77
+LD=g++
+endif
 TIMEL=
 
 endif

@@ -1,8 +1,15 @@
 if $OS == "Linux"  then
+setenv LinuxBUG 1
+if $LinuxBUG == "1" then
 setenv G4SYSTEM Linux-g++
+else
+setenv G4SYSTEM Linux-gcc2.95
+unsetenv LinuxBUG
+endif
 setenv G4USE_STL 1
 setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/1.5.0.0
 setenv OGLHOME /usr/Mesa
+
 endif
 
 if $OS == "OSF1" then
