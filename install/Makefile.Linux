@@ -11,7 +11,7 @@ ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
  RH9add=-pthread  /usr/lib/ctype-info.o
 endif
 
-ifeq "$(wildcard /usr/lib/ctype-info.cc)" ""
+ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=
 endif
 
