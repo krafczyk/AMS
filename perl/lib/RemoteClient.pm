@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.80 2003/04/04 13:20:42 choutko Exp $
+# $Id: RemoteClient.pm,v 1.81 2003/04/04 13:48:47 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2917,7 +2917,12 @@ print qq`
 # write readme file
         my $readme="$self->{UploadsDir}/README.$run";
         open(FILE,">".$readme) or die "Unable to open file $readme\n";
-        print FILE  $self->{tsyntax}->{headers}->{readme};
+        if($self->{dwldaddon}==1){
+         print FILE  $self->{tsyntax}->{headers}->{readmestandalone};
+        }
+        else{
+         print FILE  $self->{tsyntax}->{headers}->{readmecorba};
+        }
         close FILE;
          $file2tar="$self->{UploadsDir}/ams02mcscript.$run.tar";
         my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run"); 
@@ -3130,8 +3135,13 @@ print qq`
         my $frun=$run-$runno;
         my $lrun=$run-1;
         my $subject="AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
-                  my $message=$self->{tsyntax}->{headers}->{readme};
-                
+                 my $message;
+                 if($self->{dwldaddon}==1){
+                   $message=$self->{tsyntax}->{headers}->{readmestandalone};
+                 }
+                 else{
+                   $message=$self->{tsyntax}->{headers}->{readmecorba};
+                 }                
                   my $attach;
        if ($self->{CCT} eq "remote"){
           if($self->{senddb}==1){
