@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.301 2002/11/29 20:04:39 choutko Exp $
+//  $Id: event.C,v 1.302 2002/12/02 12:06:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1361,18 +1361,21 @@ AMSgObj::BookTimer.start("RETKEVENT");
   AMSgObj::BookTimer.start("TrTrack");
   
 
-  AMSTRDTrack *ptrd=(AMSTRDTrack*)getheadC("AMSTRDTrack",0); 
+  bool veto=true;
   bool hmul=false;
-  while(ptrd){
+  for( AMSTRDTrack *ptrd=(AMSTRDTrack*)getheadC("AMSTRDTrack",0);ptrd;ptrd=ptrd->next()){
     if(ptrd->IsHighGammaTrack()){
      hmul=true;
      break;
     }
-    ptrd=ptrd->next();
+    else if(!(veto=ptrd->Veto(17))){
+     break;
+    }
   }
+
 //   cout <<" ptrd "<<hmul<<endl;
   Trigger2LVL1 * ptr12= dynamic_cast<Trigger2LVL1*>(ptr1);
-  if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy() || TRFITFFKEY.LowMargin || hmul)){
+  if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy() || TRFITFFKEY.LowMargin || hmul  || veto)){
     AMSTrTrack::setMargin(1);
   }
   else{
@@ -1417,8 +1420,7 @@ AMSgObj::BookTimer.start("RETKEVENT");
   if(AMSEvent::debug)AMSTrTrack::print();
 #endif
   
-  //if(refit==0 && AMSTrTrack::RefitIsNeeded())_retkevent(1);
-  AMSgObj::BookTimer.stop("RETKEVENT");
+  //if(refit==0 && AMSTrTrack::RefitIsNeeded())  AMSgObj::BookTimer.stop("RETKEVENT");
 }
  else throw AMSLVL3Error("LVL3NotCreated");  
 }

@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.17 2002/11/30 10:29:31 glamanna Exp $
+//  $Id: gamma.C,v 1.18 2002/12/02 12:06:41 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -5110,7 +5110,8 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
     while(pbeta){
       if(!pbeta->getptrack()->checkstatus(AMSDBc::NOTRACK) &&
          !pbeta->getptrack()->checkstatus(AMSDBc::ECALTRACK) &&
-         !pbeta->getptrack()->checkstatus(AMSDBc::TRDTRACK)){
+         !pbeta->getptrack()->checkstatus(AMSDBc::TRDTRACK)  &&
+         !pbeta->getptrack()->checkstatus(AMSDBc::FalseTOFX)){
         _pbeta=pbeta;
          break;
       }
