@@ -45,10 +45,10 @@ for(int i=0;i<4;i++){
  gPad->SetLogz(gAMSDisplay->IsLogZ());
  if(_filled2[i]){
    ((TH1*)_filled2[i])->SetXTitle(" Paddle No");
-   _filled2[i]->Draw();
    _filled2[i]->SetFillColor(2);
-   _filled2[i+4]->Draw("SAME");
+   _filled2[i]->Draw();
    _filled2[i]->SetFillColor(42);
+   _filled2[i+4]->Draw("SAME");
  }
 gPadSave->cd();
 }
