@@ -1485,7 +1485,7 @@ C.    ------------------------------------------------------------------
 C.
               common /hvsec/ihvse(2)
       if(ipart.ge.32)then
-          if(ihvse(1).eq.1)call abdist
+          if(ihvse(1).eq.1.or.ihvse(1).eq.2)call abdist
       else
        if(ihadr.le.3)then
         CALL GPGHEI
@@ -1546,7 +1546,7 @@ C.    ------------------------------------------------------------------
 C.
               common /hvsec/ihvse(2)
       if(ipart.ge.32)then
-       if(ihvse(1).eq.1)call abufin
+       if(ihvse(1).eq.1.or.ihvse(1).eq.2)call abufin
       else
       if(ihadr.le.3)then
        CALL GHEISH
