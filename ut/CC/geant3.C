@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.65 2002/03/20 09:41:17 choumilo Exp $
+//  $Id: geant3.C,v 1.66 2002/03/26 13:08:33 mdelgado Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -391,7 +391,7 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
 
       if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0){
         GCTRAK.istop=2; // Absorb it
-        geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk-
+        geant xl=(AMSRICHIdGeom::pmt_pos(1,2)-RICHDB::cato_pos()+RICradpos-RICotherthk/2-
                    GCTRAK.vect[2])/GCTRAK.vect[5];
                  
         geant vect[3];
