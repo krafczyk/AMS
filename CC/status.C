@@ -16,9 +16,16 @@ ostream & AMSStatus::print(ostream & stream)const{
   return(AMSID::print(stream)  <<  " Status" << endl);
 }
 
-void AMSStatus::create(){
-  static AMSStatus tstatus("EventStatusTable");
-  AMSJob::gethead()->addup(&tstatus);
+AMSStatus* AMSStatus::create(int version){
+ if( version==0){ 
+   static AMSStatus tstatus("EventStatusTable",version);
+   return (AMSStatus*)AMSJob::gethead()->addup(&tstatus);
+ }
+else{
+   static AMSStatus tstatus("EventStatus2Table",version);
+   return (AMSStatus*)AMSJob::gethead()->addup(&tstatus);
+}
+
 }
 
 integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time){
@@ -39,7 +46,7 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time){
   return (_Nelem>=STATUSSIZE && timechanged ) || (run!=_Run && _Nelem>0) ;
 }
 
-void AMSStatus::adds(uinteger run, uinteger evt, uinteger status, time_t time){
+void AMSStatus::adds(uinteger run, uinteger evt, uinteger* status, time_t time){
   if(_Nelem==0  || isFull(run,evt,time)){
     _Nelem=0;
     _Run=run;
@@ -51,14 +58,18 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger status, time_t time){
   }
   _End=time;
   _Status[0][_Nelem]=evt;
-  _Status[1][_Nelem]=status;
+  _Status[1][_Nelem]=status[0];
   _Status[2][_Nelem]=((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->getoffset();
+  _Status[3][_Nelem]=status[1];
   _Nelem++;
 }
 
-void AMSStatus::updates(uinteger run, uinteger evt, uinteger status, time_t time){
+void AMSStatus::updates(uinteger run, uinteger evt, uinteger* status, time_t time){
   int out= AMSbins(_Status[0],evt,_Nelem);
-  if(out>0)_Status[1][out-1]=status;
+  if(out>0){
+    _Status[1][out-1]=status[0];
+    _Status[3][out-1]=status[1];
+  }
   else {
       cerr<<"AMSStatus::updates-E--NoMatchFoundRun "<<run<<" " <<evt<<endl;
       _Errors++;
@@ -68,12 +79,12 @@ void AMSStatus::updates(uinteger run, uinteger evt, uinteger status, time_t time
   }
 }
 
-uinteger AMSStatus::getstatus(uinteger evt, uinteger run){
+AMSStatus::statusI AMSStatus::getstatus(uinteger evt, uinteger run){
   uinteger one=1;
   if(_Run && run != _Run){
    cerr<<"AMSStatus::getstatus-E-WrongRun "<<run<<" Expected "<<_Run<<endl;
    _Errors++;
-   return (one<<31);
+   return statusI((one<<31),0);
   }
   // try hint +
   int out;
@@ -83,22 +94,22 @@ uinteger AMSStatus::getstatus(uinteger evt, uinteger run){
  if (out>0){
    _Hint=out;
    repeat=0;
-   return _Status[1][out-1]  ;
+   return statusI(_Status[1][out-1],_Status[3][out-1])  ;
  }
  else if(repeat<10  ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
    _Errors++;
    repeat++;
-   return (one<<31);
+   return statusI((one<<31),0);
  }
  else if(repeat==10 ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundLastMessage"<<out<<" "<<evt<<endl;
    _Errors++;
    repeat++;
-   return (one<<31);
+   return statusI((one<<31),0);
  }
  else {
-   return (one<<31);
+   return statusI((one<<31),0);
 }
 }
 
@@ -168,30 +179,30 @@ void AMSStatus::init(){
 
 
 integer AMSStatus::statusok(uinteger event, uinteger run){
-    uinteger status=getstatus(event,run);
+    statusI status=getstatus(event,run);
     return _statusok(status);
 }
 
-integer AMSStatus::_statusok(uinteger status){
+integer AMSStatus::_statusok(statusI status){
     uinteger one=1;
-    if(!(status & (one<<31))){    // Status exists
+    if(!(status[0] & (one<<31))){    // Status exists
       const int nsta=15;
       uinteger Status[nsta];
-      Status[0]=((status & ((1<<4)-1)));
-      Status[1]=((status>>4) & ((1<<1)-1));
-      Status[2]=((status>>5) & ((1<<3)-1));
-      Status[3]=((status>>8) & ((1<<1)-1));
-      Status[4]=((status>>9) & ((1<<1)-1));
-      Status[5]=((status>>10) & ((1<<5)-1));
-      Status[6]=((status>>15) & ((1<<2)-1));
-      Status[7]=((status>>17) & ((1<<2)-1));
-      Status[8]=((status>>19) & ((1<<2)-1));
-      Status[9]=((status>>21) & ((1<<2)-1));
-      Status[10]=((status>>23) & ((1<<2)-1));
-      Status[11]=((status>>25) & ((1<<2)-1));
-      Status[12]=((status>>27) & ((1<<2)-1));
-      Status[13]=((status>>29) & ((1<<1)-1));
-      Status[14]=((status>>30) & ((1<<1)-1));
+      Status[0]=((status[0] & ((1<<4)-1)));
+      Status[1]=((status[0]>>4) & ((1<<1)-1));
+      Status[2]=((status[0]>>5) & ((1<<3)-1));
+      Status[3]=((status[0]>>8) & ((1<<1)-1));
+      Status[4]=((status[0]>>9) & ((1<<1)-1));
+      Status[5]=((status[0]>>10) & ((1<<5)-1));
+      Status[6]=((status[0]>>15) & ((1<<2)-1));
+      Status[7]=((status[0]>>17) & ((1<<2)-1));
+      Status[8]=((status[0]>>19) & ((1<<2)-1));
+      Status[9]=((status[0]>>21) & ((1<<2)-1));
+      Status[10]=((status[0]>>23) & ((1<<2)-1));
+      Status[11]=((status[0]>>25) & ((1<<2)-1));
+      Status[12]=((status[0]>>27) & ((1<<2)-1));
+      Status[13]=((status[0]>>29) & ((1<<1)-1));
+      Status[14]=((status[0]>>30) & ((1<<1)-1));
         uinteger local=0;
       for(int i=0;i<nsta;i++){
         local=0;
@@ -231,7 +242,7 @@ integer AMSStatus::_statusok(uinteger status){
 integer AMSStatus::getnextok(){
  int skipped=0;
  for(int i=_Hint;i<_Nelem;i++){
-   if(_statusok(_Status[1][i])){
+   if(_statusok(statusI(_Status[1][i],_Status[3][i]))){
      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][i]);
      _Hint=i;
      return skipped;

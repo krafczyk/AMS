@@ -122,7 +122,7 @@ public:
   int AntiClusters;
   int EcalClusters;
   int EcalHits;
-  int EventStatus;
+  int EventStatus[2];
   
 friend class AMSEvent;
 friend class AMSNtuple;

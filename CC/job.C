@@ -2191,8 +2191,7 @@ AMSG4GeneratorInterface* & AMSJob::getg4generator(){
 AMSStatus * AMSJob::getstatustable(){
   static AMSStatus * _Head=0;
   if(!_Head){
-    AMSID id("EventStatusTable",0);
-    _Head= (AMSStatus*)AMSJob::JobMap.getp(id);
+    _Head=AMSStatus::create(!strstr(getsetup(),"AMSSHUTTLE") );
   }
   return _Head;
 }

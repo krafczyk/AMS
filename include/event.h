@@ -66,7 +66,7 @@ private:
  }
  };
 
-uinteger _status;
+uinteger _status[2];
 uinteger _run;
 uinteger _runtype;
 uinteger _Error;
@@ -200,11 +200,13 @@ void getmag(float & thetam, float & phim);
 AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
-uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_status(0),_VelTheta(VelT),_VelPhi(VelP),
-_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0){_Head=this;}
+uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_VelTheta(VelT),_VelPhi(VelP),
+_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0){_Head=this;_status[0]=0;_status[1]=0;}
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
-   _runtype(runtype), _time(time), _usec(usec),_status(0),_Error(0){
+   _runtype(runtype), _time(time), _usec(usec),_Error(0){
    _Head=this;
+   _status[0]=0;
+   _status[1]=0;
 }
 ~AMSEvent(){_Head=0;}
 void _printEl(ostream & stream);
@@ -250,7 +252,8 @@ static integer _checkUpdate();
 AMSlink * addnext(AMSID id, AMSlink * p);
 integer replace(AMSID id, AMSlink * p, AMSlink *prev);
 uinteger getrun() const{return _run;}
-uinteger  & getstatus() {return _status;}
+uinteger  * getstatus() {return _status;}
+void setstatus(uinteger   * status){_status[0]=status[0];_status[1]=status[1];}
 geant getpitch() const{return _Pitch;}
 geant getveltheta() const{return _VelTheta;}
 geant getvelphi() const{return _VelPhi;}

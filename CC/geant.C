@@ -141,7 +141,6 @@ void gams::UGINIT(){
    AMSgtmed::amstmed();
    AMSgvolume::amsgeom();
 #endif
-   AMSStatus::create();
   AMSJob::map();
   AMSJob::gethead()->init();
   if(!AMSJob::gethead()->isProduction())AMSJob::gethead()->uhinit();

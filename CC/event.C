@@ -1130,8 +1130,7 @@ void AMSEvent::event(){
    catch (AMSLVL3Error e){
      // No LVL3
    if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR())
-    getstatus()=AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())
-;
+    setstatus((AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())).getp());
    }
     if(AMSStatus::isDBWriteR()){
       AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());
@@ -2205,7 +2204,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   int nws=myp?myp->getlength():0;
 // Fill the ntuple
   EventNtuple* EN = AMSJob::gethead()->getntuple()->Get_event();
-  EN->EventStatus=getstatus();
+  EN->EventStatus=getstatus()[0];
   EN->Eventno=_id;
   EN->RawWords=nws<(1<<20)?nws:((1<<20)-1);
   EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
@@ -2331,7 +2330,8 @@ else{ // <------------------ AMS02
   int nws=myp?myp->getlength():0;
 // Fill the ntuple
   EventNtuple02* EN = AMSJob::gethead()->getntuple()->Get_event02();
-  EN->EventStatus=getstatus();
+  EN->EventStatus[0]=getstatus()[0];
+  EN->EventStatus[1]=getstatus()[1];
   EN->Eventno=_id;
   EN->RawWords=nws<(1<<20)?nws:((1<<20)-1);
   EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
@@ -2867,14 +2867,14 @@ AMSID AMSEvent::getTDVStatus(){
 
 
 void AMSEvent::_collectstatus(){
-  _status=0;
+ uinteger __status=0;
   {
     TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
     if(ptr){
       integer lvl3o=ptr->TrackerTrigger();
       integer prescale = lvl3o>=32?1:0;
       lvl3o=lvl3o%32;
-      _status=_status | lvl3o | (prescale<<4);
+      __status=__status | lvl3o | (prescale<<4);
       
     }
   }
@@ -2886,82 +2886,82 @@ void AMSEvent::_collectstatus(){
       AMSContainer *ptrc=getC("AMSParticle",0);
       npart=ptrc->getnelem();
       if(npart>3)npart=3;
-      _status= _status | (npart<<21);
+      __status= __status | (npart<<21);
       integer charge=ptr->getcharge()-1;
       if(charge>7)charge=7;
-      _status=_status | (charge<<5);
+      __status=__status | (charge<<5);
       number pmom=ptr->getmomentum();
       integer sign=pmom<0?0:1;
-      _status=_status | (sign<<8);
+      __status=__status | (sign<<8);
       sign=(ptr->getpbeta())->getbeta()<0?0:1;
-      _status=_status | (sign<<9);
+      __status=__status | (sign<<9);
       integer pat=(ptr->getptrack())->getpattern();
       if(pat>31)pat=31;
       if(pat<0)pat=31;
-      _status=_status | (pat<<10);
+      __status=__status | (pat<<10);
        pat=(ptr->getpbeta())->getpattern();
       integer spat=0;
       if(pat==0)spat==0;
       else if(pat<5)spat=1;
       else spat=2;
-      _status=_status | (spat<<15);       
+      __status=__status | (spat<<15);       
       number rig=fabs(pmom)/(charge+1);
       uinteger srig;
       if(rig<2)srig=0;
       else if(rig<8)srig=1;
       else if(rig<20)srig=2;
       else srig=3;
-      _status=_status | (srig<<23);
+      __status=__status | (srig<<23);
       uinteger trquality;
       if((ptr->getptrack())->checkstatus(AMSDBc::FalseTOFX))trquality=3;
       else if( (ptr->getptrack())->checkstatus(AMSDBc::FalseX))trquality=2;
       else if((ptr->getptrack())->checkstatus(AMSDBc::WEAK) )trquality=1;
       else trquality=0;   
-      _status=_status | (trquality<<25);
+      __status=__status | (trquality<<25);
        uinteger localdb=0;
        if((ptr->getptrack())->checkstatus(AMSDBc::LocalDB))localdb=1;
-      _status=_status | (localdb<<29);
+      __status=__status | (localdb<<29);
     }
     else if(ptr1){
       ptr=ptr1;     
       AMSContainer *ptrc=getC("AMSParticle",1);
       npart=ptrc->getnelem();
       if(npart>3)npart=3;
-      _status= _status | (npart<<21);
+      __status= __status | (npart<<21);
       integer charge=ptr->getcharge()-1;
       if(charge>7)charge=7;
-      _status=_status | (charge<<5);
+      __status=__status | (charge<<5);
       number pmom=ptr->getmomentum();
       integer sign=pmom<0?0:1;
-      _status=_status | (sign<<8);
+      __status=__status | (sign<<8);
       sign=(ptr->getpbeta())->getbeta()<0?0:1;
-      _status=_status | (sign<<9);
+      __status=__status | (sign<<9);
       integer pat=(ptr->getptrack())->getpattern();
       if(pat>31)pat=31;
       if(pat<0)pat=31;
-      _status=_status | (pat<<10);
+      __status=__status | (pat<<10);
        pat=(ptr->getpbeta())->getpattern();
       integer spat=0;
       if(pat==0)spat==0;
       else if(pat<5)spat=1;
       else spat=2;
-      _status=_status | (spat<<15);       
+      __status=__status | (spat<<15);       
       number rig=fabs(pmom)/(charge+1);
       uinteger srig;
       if(rig<2)srig=0;
       else if(rig<8)srig=1;
       else if(rig<20)srig=2;
       else srig=3;
-      _status=_status | (srig<<23);
+      __status=__status | (srig<<23);
       uinteger trquality;
       if((ptr->getptrack())->checkstatus(AMSDBc::FalseTOFX))trquality=3;
       else if( (ptr->getptrack())->checkstatus(AMSDBc::FalseX))trquality=2;
       else if((ptr->getptrack())->checkstatus(AMSDBc::WEAK) )trquality=1;
       else trquality=0;   
-      _status=_status | (trquality<<25);
+      __status=__status | (trquality<<25);
        uinteger localdb=0;
        if((ptr->getptrack())->checkstatus(AMSDBc::LocalDB))localdb=1;
-      _status=_status | (localdb<<29);
+      __status=__status | (localdb<<29);
     }
   }
   {
@@ -2971,13 +2971,13 @@ void AMSEvent::_collectstatus(){
       if(ptr)ctcl[i]=ptr->getnelem()>0?1:0;
     }
     integer ictc=ctcl[0]+ctcl[1];
-    _status=_status | (ictc<<17);
+    __status=__status | (ictc<<17);
   }
   {
       AMSContainer *ptr=getC("AMSAntiCluster",0);
       integer ncl=ptr->getnelem();
       if(ncl>3)ncl=3;
-      _status=_status | (ncl<<19);
+      __status=__status | (ncl<<19);
   }
      
   // Now collect geomag latitude 
@@ -2989,12 +2989,14 @@ void AMSEvent::_collectstatus(){
      else if(cosgm<0.5)icos=1;
      else if(cosgm<0.766)icos=2;
      else icos=3;
-      _status=_status | (icos<<27);
+      __status=__status | (icos<<27);
    
   // Now Set Event Error
      if(_Error==1){
-      _status=_status | (1<<30);
+      __status=__status | (1<<30);
     } 
+ _status[0]=__status;
+ _status[1]=0;
 }
 
 
@@ -3120,3 +3122,4 @@ integer AMSEvent::getselrun(integer i){
  if(_SelectedEvents)return _SelectedEvents[i].Run;
  else return -1;
 }
+
