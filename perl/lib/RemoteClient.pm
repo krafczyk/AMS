@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.114 2003/04/22 12:52:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.115 2003/04/22 17:42:12 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -132,6 +132,7 @@ sub Init{
      'Pentium IV Xeon'=>0.8,
      'Pentium IV'=>0.7,
      'AMD Duron'=>1.0,
+     'IN2P3 IBM 368'=>-0.125, 
      'AMD Athlon'=>1.15
                    );
 
@@ -2374,7 +2375,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               $q->param("QEv",0);
-              htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," sec");  
+              htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," seconds (Native)");  
               htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");  
               htmlTextField("Total  Real Time Required","number",3,10,"QTimeOut"," (days)");  
               my ($rid,$rndm1,$rndm2) = $self->getRID();
