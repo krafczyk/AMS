@@ -18,6 +18,7 @@ AMSTOFHist::AMSTOFHist(Text_t * name, Text_t * title, Int_t maxset, Int_t active
 void AMSTOFHist::_Fill(){
   _m2filled=8+4+2;
   _filled2= new TH1*[_m2filled];
+for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
   int i=0;
   _filled2[i]=new TH1F("ToF-1OR1"," TOF OR/AND Pattern Plane=1",14,0.5,14.5);
   _filled2[i]->SetXTitle(" Paddle No");

@@ -14,7 +14,7 @@ I 1  Jobtype(0)      // 1 - Reconstruction ( 0 Simulation)
                      // 700 - TRD Calibration 
                      // 800 - AMS Calibration 
                      // 900 - Reserved
-                     //1000 - Tracker Monitoring 
+                     //1000 - Tracker Monitoring
                      //2000 - TOF Monitoring 
                      //3000 - Anti Monitoring 
                      //4000 - Cerenkov Monitoring 
@@ -42,7 +42,7 @@ I 1    hlun(0)                   // lun number for ntuple file (=0 no output)
 I 2    hfile(160*' ')            // ntuple uutput file name
 I42    ntupleId(1)               // Ntuple Id
 I43    WriteAll(0)               // Flag to write all or  "used only" objects
-I44    SplitNtuple               // Max number events  in the ntuple
+R44    Portion(1.1)              // Procees event if RNDM(d)<Portion) 
 I45    TriggerC('AMSParticle')   // Container names, separated by
                                  // & or | to trigger write 
                                  // the ntuple and/or db

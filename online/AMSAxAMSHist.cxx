@@ -14,6 +14,7 @@ AMSAxAMSHist::AMSAxAMSHist(Text_t * name, Text_t * title, Int_t maxset, Int_t ac
 void AMSAxAMSHist::_Fill(){
 _m2filled=5+1;
 _filled2= new TH1*[_m2filled];
+for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
 int i=0;
 int color=18;
 _filled2[i]=new TH1F("Momentum","Momentum",200,-20.,20.);

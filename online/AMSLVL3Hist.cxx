@@ -13,6 +13,7 @@ AMSLVL3Hist::AMSLVL3Hist(Text_t * name, Text_t * title, Int_t maxset, Int_t acti
 void AMSLVL3Hist::_Fill(){
 _m2filled=6;
 _filled2= new TH1*[_m2filled];
+for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
 int i=0;
 _filled2[i]=new TH1F("LVL3Output","LVL3 Output",17,-0.5,16.5);
 _filled2[i]->SetXTitle("LVL3 Output");

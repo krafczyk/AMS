@@ -135,8 +135,8 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
    m_Canvas->cd();
    m_ObjInfoPad = new TPad("ObjInfoPad", "object info pad", 0.2, 0, 1, 0.05);
    m_ObjInfoPad->SetFillColor(0);
-   m_ObjInfoPad->SetBorderSize(1);
-   m_ObjInfoPad->SetBorderMode(2);
+   m_RunInfoPad->SetBorderSize(1);
+    m_ObjInfoPad->SetBorderMode(2);
    m_ObjInfoPad->Draw();
 
    
@@ -191,9 +191,9 @@ void AMSOnDisplay::DisplayButtons()
    m_ButtonPad->cd();
 
    Int_t butcolor = 33;
-   Float_t dbutton = 0.09;
-   Float_t y  = 1.0;
-   Float_t dy = 0.014;
+   Float_t dbutton = 0.085;
+   Float_t y  = 0.99;
+   Float_t dy = 0.01;
    Float_t x0 = 0.05;
    Float_t x1 = 0.95;
    TButton *button;
@@ -210,6 +210,10 @@ void AMSOnDisplay::DisplayButtons()
    button->Draw();
     y -= dbutton +dy;
     button = new TButton("Fill","gAMSDisplay->Filled()",x0,y-dbutton,x1,y);
+    button->SetFillColor(butcolor);
+    button->Draw();
+    y -= dbutton +dy;
+    button = new TButton("Reset","gAMSDisplay->Reset()",x0,y-dbutton,x1,y);
     button->SetFillColor(butcolor);
     button->Draw();
 
@@ -416,7 +420,8 @@ void AMSOnDisplay::Filled(){
    static TText * text=0;
    static char atext2[20]="Fill";
    static char atext1[20]="Filled";
-
+   sprintf(atext2,"Fill/%d",_Begin);
+   sprintf(atext1,"Filled/%d",_Begin);
    if (! text) {
 	if(filled%2)text = new TText(0.5, 0.5, atext1);
 	else text = new TText(0.5, 0.5, atext2);
@@ -435,17 +440,26 @@ void AMSOnDisplay::Filled(){
 
 Int_t AMSOnDisplay::Fill(){
   int retcode=0;
-  for(int i=_Begin;i<_Begin+_Sample;i++){
+  int _End=_Begin+_Sample;  
+  for(int i=_Begin;i<_End;i++){
    if(!m_ntuple->ReadOneEvent(i)){
      retcode=1;
      break;
    }
+     _Begin++;
      for(int j=0;j<_msubdet;j++){
       _subdet[j]->Fill(m_ntuple);
      }
   }
-    _Begin+=_Sample;
+    _Sample*=1.41;
   return retcode;
+}
+
+
+void AMSOnDisplay::Reset(){
+     for(int j=0;j<_msubdet;j++){
+      _subdet[j]->Reset();
+     }
 }
 
 

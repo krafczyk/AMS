@@ -8,6 +8,7 @@
 #include <timeid.h>
 #include <trid.h>
 #include <ntuple.h>
+const integer AMSTrRawCluster::MATCHED=1;
 integer AMSTrRawCluster::TestRawMode(){
   AMSTrIdSoft id(_address);
   int icmpt=id.gettdr();
@@ -195,7 +196,9 @@ if(init++==0){
   TrN.Event()=AMSEvent::gethead()->getid();
   TrN.address=_address+_strip*10000;
   TrN.nelem=_nelem;
-  HFNTB(IOPA.ntuple,"TrRawCl");
+   AMSTrIdSoft id(_address);
+   if(id.getside()==1 || checkstatus(AMSTrRawCluster::MATCHED))
+   HFNTB(IOPA.ntuple,"TrRawCl");
 }
 
 
@@ -622,6 +625,32 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
       
     }
   }
+
+  // Get rid of K without S 
+
+  for (int crate=0;crate<2;crate++){
+   AMSTrRawCluster *pk=(AMSTrRawCluster*)AMSEvent::gethead()->
+    getheadC("AMSTrRawCluster",crate);
+   AMSTrRawCluster *pb=pk;
+    while(pk){
+       AMSTrIdSoft idk(pk->_address);
+       if(idk.getside()==0){
+        AMSTrRawCluster *ps=pb;
+        while(ps){
+          AMSTrIdSoft ids(ps->_address);
+          if(ids.getside()==1 && ids.getdrp()==idk.getdrp()&& ids.getlayer()==idk.getlayer()){
+            pk->setstatus(AMSTrRawCluster::MATCHED);
+            break;
+          }
+          ps=ps->next();
+        }          
+       } 
+       pk=pk->next();
+    }             
+
+  }
+         
+
 
 }
 

@@ -25,7 +25,7 @@ void _copyEl();
 void _printEl(ostream & stream);
 void _writeEl();
 public:
-
+    static const integer MATCHED;
 //static int16 mkaddress(int16 strip, int16 va, int16 half, int16 icmpt, integer pedantic=0)
 //{return pedantic==0?strip | va<<6 | icmpt << 10 | half<<15:strip | va<<6 | icmpt << 10;}
 

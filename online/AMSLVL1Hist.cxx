@@ -14,6 +14,7 @@ AMSLVL1Hist::AMSLVL1Hist(Text_t * name, Text_t * title, Int_t maxset, Int_t acti
 void AMSLVL1Hist::_Fill(){
 _m2filled=8+4+2;
 _filled2= new TH1*[_m2filled];
+for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
 int i=0;
 _filled2[i++]=new TH1F("LVL1-1OR1"," Lvl1 OR/AND Pattern Plane=1",14,0.5,14.5);
 _filled2[i++]=new TH1F("LVL1-1OR2"," Lvl1 OR/AND Pattern Plane=2",14,0.5,14.5);

@@ -49,13 +49,14 @@ protected:
   Int_t            _Begin;
   Int_t            _Sample;
 public:
-
+   
                     AMSOnDisplay();
                     AMSOnDisplay(const char *title, TFile *file);
   virtual          ~AMSOnDisplay(){_Head=0;}
   virtual void      SetApplication(TApplication* papp){m_theapp=papp;}
   virtual void      DisplayButtons();
   virtual void      Draw(Option_t *option="");
+          void      Reset();
           void      DrawTitle(Option_t *option="");
           void      DrawRunInfo(Option_t *option="");
   AMSNtuple *       GetNtuple()const{return m_ntuple;}

@@ -1065,3 +1065,12 @@ integer TriggerLVL3::calcdaqlength(integer i){
   else return 0;
 }
 
+void TriggerLVL3::_printEl(ostream & stream){
+
+ stream << " Lvl3TriggerMode " << _TrackerTrigger<<endl;
+ for(int j=0;j<6;j++){
+  for(int i=0;i<_nhits[j];i++){
+    stream<<"Lvl3-Layer "<<j+1<<" hit "<<i<<" "<<_coo[j][i]<<endl;    
+  }
+ }
+}

@@ -12,6 +12,7 @@ AMSTrackerHist::AMSTrackerHist(Text_t * name, Text_t * title, Int_t maxset, Int_
 void AMSTrackerHist::_Fill(){
  _m2filled=16+8+4;
  _filled2= new TH1*[_m2filled];
+ for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
  int crate[2]={32,72};
  char scrate[3]="KS";
  int i=0;
@@ -21,11 +22,11 @@ void AMSTrackerHist::_Fill(){
  for(i=0;i<2;i++){
   sprintf(name,"N%c",scrate[i]); 
   sprintf(title ,"Number of Preclusters Side %c",scrate[i]); 
-  _filled2[i*2]=new TH1F(name,title,400,-0.5,399.5);
+  _filled2[i*2]=new TH1F(name,title,200,-0.5,199.5);
   _filled2[i*2]->SetFillColor(18);
   sprintf(name,"Length%c",scrate[i]); 
   sprintf(title ,"Length (Bytes) Side %c ",scrate[i]); 
-  _filled2[i*2+1]=new TH1F(name,title,200,0.,4000.);
+  _filled2[i*2+1]=new TH1F(name,title,200,0.,2000.);
   _filled2[i*2+1]->SetFillColor(19);
  }
   sprintf(name,"NumClPerL32K"); 

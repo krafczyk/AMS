@@ -659,8 +659,8 @@ TriggerLVL1 *ptr;
     ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
-//      AMSgObj::BookTimer.stop("RETOFEVENT");
-//      return;// "no h/w TOF-trigger"   tempor
+    AMSgObj::BookTimer.stop("RETOFEVENT");
+    return;// "no h/w TOF-trigger"   tempor
     }
     TOFJobStat::addre(1);
 //
@@ -1378,6 +1378,11 @@ void AMSEvent::_redaqinitevent(){
 }
 
 void AMSEvent::_redaqevent(){
+  geant d;
+  if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion){
+    // skip event
+     return;    
+  }
   //  Add Dummy for Copying ....
   addnext(AMSID("Dummy",0),new Test());
 

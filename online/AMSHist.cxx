@@ -24,3 +24,9 @@ AMSHist::~AMSHist(){
 
 void AMSHist::Fill(AMSNtuple *ntuple){
 }
+
+void AMSHist::Reset(){
+  for(int i=0;i<_m2filled;i++){
+   if(_filled2[i])_filled2[i]->Reset();
+  }
+}

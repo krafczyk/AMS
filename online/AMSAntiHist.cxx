@@ -16,6 +16,7 @@ void AMSAntiHist::_Fill(){
 
   _m2filled=16+4;
   _filled2= new TH1*[_m2filled];
+for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
   char name[80];
   char text[80];
   for(int i=0;i<16;i++){

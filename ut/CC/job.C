@@ -138,7 +138,7 @@ void AMSJob::_siamsdata(){
 IOPA.hlun=0;
 VBLANK(IOPA.hfile,40);
 IOPA.ntuple=1;
-IOPA.SplitNtuple=1;
+IOPA.Portion=1.1;
 IOPA.WriteAll=0;
 VBLANK(IOPA.TriggerC,40);
 VBLANK(AMSFFKEY.TDVC,400);
@@ -979,7 +979,8 @@ void AMSJob::_siamsinitjob(){
 }
 
 void AMSJob::_sitriginitjob(){
-
+  if(LVL1FFKEY.RebuildLVL1)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl1 Will be rebuild from TOF data; Original Trigger info will be lost"<<endl;
+  if(LVL3FFKEY.RebuildLVL3)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl3 will be rebuild from TOF data; Original Trigger info will be lost"<<endl;
      AMSgObj::BookTimer.book("LVL3");
      TriggerLVL3::init();  
 }
@@ -1901,6 +1902,7 @@ void AMSJob::_setorbit(){
   void AMSJob::_redaqinitjob(){
      AMSgObj::BookTimer.book("SIDAQ");
      AMSgObj::BookTimer.book("REDAQ");
+     if(IOPA.Portion<1. && isMonitoring())cout <<"AMSJob::_redaqinitjob()-W-Only about "<<IOPA.Portion*100<<"% events will be processed."<<endl; 
     if(!strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){    
      _setorbit();
     // Add subdetectors to daq
