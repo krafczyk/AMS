@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.66 2002/04/23 07:56:12 alexei Exp $
+//  $Id: gbatch.C,v 1.67 2002/07/23 14:35:13 alexei Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -9,15 +9,18 @@
 #include <commons.h>
 #include <geantnamespace.h>
 #include <producer.h>
+const int NWGEAN=10000000;
 const int NWPAW=1000000;
 
 #ifdef __ROOTA__
+struct PAWC_DEF{
+float q[NWPAW];
+};
 #else
 struct PAWC_DEF{
 float q[NWPAW];
 };
 #endif
-const int NWGEAN=10000000;
 struct GCBANK_DEF{
 float q[NWGEAN];
 };
@@ -27,6 +30,10 @@ COMMON_BLOCK_DEF(GCBANK_DEF,GCBANK);
 GCBANK_DEF GCBANK;
 
 #ifdef __ROOTA__
+// Jul 23, 02 Root version 3.03.07
+#define PAWC COMMON_BLOCK(PAWC,pawc)
+COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
+PAWC_DEF PAWC;
 #else
 #define PAWC COMMON_BLOCK(PAWC,pawc)
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
