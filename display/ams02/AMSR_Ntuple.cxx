@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.5 2001/06/25 20:15:55 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.6 2001/06/27 10:33:44 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -45,6 +45,7 @@
 //#include <TObjString.h>
 #include <TFile.h>
 #include <stdio.h>
+#include <iostream.h>
 
 PAWC_DEF PAWC;
 
@@ -57,6 +58,7 @@ TOFMCCLU_DEF blkTofmcclu;
 TRCLUSTE_DEF blkTrcluste;
 TRMCCLUS_DEF blkTrmcclus;
 TRRECHIT_DEF blkTrrechit;
+TRDCLMC_DEF blkTrdclmc;
 TRTRACK_DEF blkTrtrack;
 MCEVENTG_DEF blkMceventg;
 ANTICLUS_DEF blkAnticlus;
@@ -105,6 +107,7 @@ AMSR_Ntuple::AMSR_Ntuple(const char *name, const char *title)
    m_BlkTrcluste = &blkTrcluste;
    m_BlkTrmcclus = &blkTrmcclus;
    m_BlkTrrechit = &blkTrrechit;
+   m_BlkTrdclmc   = &blkTrdclmc;
    m_BlkTrtrack  = &blkTrtrack;
    m_BlkMceventg = &blkMceventg;
    m_BlkAnticlus = &blkAnticlus;
@@ -202,8 +205,18 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("Tofclusters", &m_BlkEventh->Tofclusters, "Tofclusters/i");
    m_Tree->Branch("Tofmcclusters", &m_BlkEventh->Tofmcclusters, "Tofmcclusters/i");
    m_Tree->Branch("Antimcclusters", &m_BlkEventh->Antimcclusters, "Antimcclusters/i");
+   m_Tree->Branch("Trdmcclusters", &m_BlkEventh->Trdmcclusters, "Trdmcclusters/i");
    m_Tree->Branch("Anticlusters", &m_BlkEventh->Anticlusters, "Anticlusters/i");
+   m_Tree->Branch("Ecalclusters", &m_BlkEventh->Ecalclusters, "Ecalclusters/i");
+   m_Tree->Branch("Ecalhits", &m_BlkEventh->Ecalhits, "Ecalhits/i");
+   m_Tree->Branch("Richmcclusters", &m_BlkEventh->Richmcclusters, "Richmcclusters/i");
+   m_Tree->Branch("Richits", &m_BlkEventh->Richits, "Richits/i");
+   m_Tree->Branch("TRDRawHits", &m_BlkEventh->TRDRawHits, "TRDRawHits/i");
+   m_Tree->Branch("TRDClusters", &m_BlkEventh->TRDClusters, "TRDClusters/i");
+   m_Tree->Branch("TRDSegments", &m_BlkEventh->TRDSegments, "TRDSegments/i");
+   m_Tree->Branch("TRDTracks", &m_BlkEventh->TRDTracks, "TRDTracks/i");
    m_Tree->Branch("Eventstatus", &m_BlkEventh->Eventstatus, "Eventstatus/I");
+
    m_Tree->Branch("nbeta", &m_BlkBeta->nbeta, "nbeta/I");
    m_Tree->Branch("betastatus", m_BlkBeta->betastatus, "betastatus[nbeta]/I");
    m_Tree->Branch("betapattern", m_BlkBeta->betapattern, "betapattern[nbeta]/i");
@@ -216,6 +229,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("betantof", m_BlkBeta->betantof, "betantof[nbeta]/i");
    m_Tree->Branch("betaptof", m_BlkBeta->betaptof, "betaptof[nbeta][4]/I");
    m_Tree->Branch("betaptr", m_BlkBeta->betaptr, "betaptr[nbeta]/I");
+
    m_Tree->Branch("ncharge", &m_BlkCharge->ncharge, "ncharge/I");
    m_Tree->Branch("chargestatus", m_BlkCharge->chargestatus, "chargestatus[ncharge]/I");
    m_Tree->Branch("chargebetap", m_BlkCharge->chargebetap, "chargebetap[ncharge]/I");
@@ -410,12 +424,14 @@ void AMSR_Ntuple::GetEvent(Int_t event)
       if (m_SameRead) HGNTF(m_MemID, event, ierr);
       else {
          if (m_Tree->GetListOfBranches() == 0)
+	{
             HGNT(m_MemID, event, ierr);
+	}	
          else {
             SetVarNames();
             HGNTV(m_MemID, m_VarNames, m_NVar, event, ierr);
-//	    for (int i=0; i<m_NVar; i++) 
-//	      printf("m_VarNames[%d]=%s\n",i,m_VarNames[i]);
+	    for (int i=0; i<m_NVar; i++) 
+	      printf("m_VarNames[%d]=%s\n",i,m_VarNames[i]);
          }
       }
       m_SameRead = kTRUE;
@@ -518,6 +534,7 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
    HBNAME(m_MemID, "EVENTH", &(m_BlkEventh->eventno), "$SET");
    HBNAME(m_MemID, "BETA", &(m_BlkBeta->nbeta), "$SET");
    HBNAME(m_MemID, "CHARGE", &(m_BlkCharge->ncharge), "$SET");
+   HBNAME(m_MemID, "TRDMCCL", &(m_BlkTrdclmc->ntrdclmc), "$SET");
    HBNAME(m_MemID, "PARTICLE", &(m_BlkParticle->npart), "$SET");
    HBNAME(m_MemID, "TOFCLUST", &(m_BlkTofclust->ntof), "$SET");
    HBNAME(m_MemID, "TOFMCCLU", &(m_BlkTofmcclu->ntofmc), "$SET");
@@ -622,6 +639,7 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("Antimcclusters", &m_BlkEventh->Antimcclusters);
    m_Tree->SetBranchAddress("Anticlusters", &m_BlkEventh->Anticlusters);
    m_Tree->SetBranchAddress("Eventstatus", &m_BlkEventh->Eventstatus);
+
    m_Tree->SetBranchAddress("nbeta", &m_BlkBeta->nbeta);
    m_Tree->SetBranchAddress("betastatus", m_BlkBeta->betastatus);
    m_Tree->SetBranchAddress("betapattern", m_BlkBeta->betapattern);
@@ -634,6 +652,7 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("betantof", m_BlkBeta->betantof);
    m_Tree->SetBranchAddress("betaptof", m_BlkBeta->betaptof);
    m_Tree->SetBranchAddress("betaptr", m_BlkBeta->betaptr);
+
    m_Tree->SetBranchAddress("ncharge", &m_BlkCharge->ncharge);
    m_Tree->SetBranchAddress("chargestatus", m_BlkCharge->chargestatus);
    m_Tree->SetBranchAddress("chargebetap", m_BlkCharge->chargebetap);
@@ -825,12 +844,12 @@ void AMSR_Ntuple::SetVarNames()
    int rows = sizeof(m_VarNames)/cols;
 
    TBranch *branch;
-   TObject *obj = objarray->First();
+   TObject* obj = objarray->First();
    m_NVar = 0;
 
    while (obj) {
       if (m_NVar >= rows) {
-	 Error("AMSR_Ntuple","index %d out of boud [%d]\n",m_NVar+1,rows);
+	 Error("AMSR_Ntuple","index %d out of bounds [%d]\n",m_NVar+1,rows);
 	 break;
       }
       branch = (TBranch*)obj;
@@ -838,7 +857,7 @@ void AMSR_Ntuple::SetVarNames()
       if (strlen(name) > cols) 
          Error("AMSR_Ntuple::SetVarNames","too long(>%d) name %s",cols,name);
       else strncpy(m_VarNames[m_NVar++], name, cols-1);
- 	*obj++;
+	obj = objarray->After(obj);
    }
 
 }
