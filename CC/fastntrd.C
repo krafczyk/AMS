@@ -19,6 +19,7 @@
 //          EventStatus=bad;                                     |
 //-----------------------------------------------------------------|
 //
+ int rootread(char * fname,int nevents,int iver);
  int main(int argc, char * argv[])
  {
 //
@@ -32,9 +33,10 @@
    if(argc>2){
      strcpy(fname,argv[1]);
      int nevents=atoi(argv[2]);
-      if(argv>3){
+      if(argc>3){
        int iot=atoi(argv[3]);
-        if(iot)root=.true.
+        if(iot)root=true;
+      }
      if(argc>4){
       verbose=true;
       iver=1;
@@ -43,9 +45,9 @@
       if(root){
        iflg=rootread(fname,nevents,iver);
       }
-     else {
+      else {
        iflg=IFNTREAD(fname,nevents,iver);
-     }
+      }
      if(iflg>=0){
 //       float proc;
 //       proc=float(iflg%128);

@@ -34,11 +34,11 @@ LIB=/lib/osf1
 TIMEL=
 endif
 ifeq  "$(shell uname)"  "Linux"
-CFLAGS=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
-CFLAGSn=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
+CFLAGS=     -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include -O2
 FFLAGS=   -fno-automatic -O -I../include
 DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
-LDFLAGS=  -static   -L/cern/pro/lib    -lpacklib -lmathlib -lkernlib  -lnsl -L/usr/local/lib    -lm  -lg2c 
+#LDFLAGS=  -static     -lnsl -L/usr/local/lib    -lm  -lg2c 
+LDFLAGS= -static -L$(ROOTSYS)/lib -lRootH -L/cern/pro/lib    -lpacklib -lmathlib -lkernlib  -lshift -lnsl -L/usr/local/lib    -lm   -lg2c -ldl -lfreetype
 CC=g++
 FF=g77
 LD=g++
@@ -53,7 +53,7 @@ CFLAGS=     -D__BATCH__   -D__HPUX__  -fhandle-exceptions  -I../include -I../inc
 CFLAGSn=     -D__BATCH__  -g   -fhandle-exceptions  -I../include -I../include/stl  
 FFLAGS=   -K +ppu  -I../include 
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
-LDFLAGS=  -g  -L/cern/pro/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lm -lg++ -lstdc++  -lcl -lisamstub -L/usr/local/lib/gcc-lib/hppa1.1-hp-hpux9.05/2.7.2 -lgcc 
+LDFLAGS=  -g  -L/cern/pro/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lm -lg++ -lstdc++  -lcl -lisamstub -L/usr/local/lib/gcc-lib/hppa1.1-hp-hpux9.05/2.7.2 -lgcc -lshift 
 CC=g++
 FF=f77
 LD=g++
@@ -67,9 +67,9 @@ endif
 #
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)fastntrd.C ../F/fntread.F
-OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o
-..$(EXE)/fastntrd.exe:	$(OBJECTS)
+FILES= $(SCC)fastntrd.C ../F/fntread.F $(SCC)root.C $(SCC)rootread.C
+OBJECTS= $(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o $(BIN)rootread.o $(BIN)rootdict_s.o
+..$(EXE)/fastntrd.exe:	$(BIN)fastntrd.o $(BIN)fntread.o $(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o $(BIN)rootread.o
 	$(LD) -v -o ..$(EXE)/fastntrd.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
 	chmod +x  ..$(EXE)/fastntrd.exe 
@@ -82,6 +82,20 @@ $(BIN)fastntrd.o:         $(SCC)fastntrd.C
 $(BIN)fntread.o:         ../F/fntread.F
 	$(FF) -c $(FFLAGS) ../F/fntread.F -o $(BIN)fntread.o
 
+$(BIN)root_rs.o:    	 $(SCC)root.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)root.C -o $(BIN)root_rs.o
+
+$(BIN)rootread.o:    	 $(SCC)rootread.C
+	$(CC) -c $(CFLAGS) -D__ROOTSHAREDLIBRARY__ $(SCC)rootread.C -o $(BIN)rootread.o
+
+$(BIN)rootdict_s.C:    ../include/linkdef.h  ../include/root_RVS.h ../include/root.h
+	@echo "Generating dictionary"
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict_s.C -c ../include/root_RVS.h ../include/linkdef.h
+	@echo "OK"
+
+$(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
+	$(CC) -c $(CFLAGS) $(BIN)rootdict_s.C -o $(BIN)rootdict_s.o 
+ 
 
 depend: 	
 	makedepend -f Mopt -- $(DFLAGS) -- $(FILES) -p$(BIN)

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.67 2003/05/08 13:10:25 choutko Exp $
+//  $Id: producer.C,v 1.68 2003/05/13 11:05:14 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -514,7 +514,7 @@ ntend->ErrorNumber=0;
 // add validation
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv("NtupleValidatorExec");
-if(IOPA.hlun && exedir && nve && AMSCommonsI::getosname()){
+if(exedir && nve && AMSCommonsI::getosname()){
  AString systemc(exedir);
   systemc+="/";
   systemc+=AMSCommonsI::getosname();
@@ -526,6 +526,7 @@ if(IOPA.hlun && exedir && nve && AMSCommonsI::getosname()){
   char tmp[80];
   sprintf(tmp,"%d",ntend->EventNumber);
   systemc+=tmp;
+  if(IOPA.WriteRoot)systemc+=" 1";
   int i=system(systemc);
   if( (i == 0xff00) || (i & 0xff)){
 // Unable To Check
