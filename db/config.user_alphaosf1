@@ -1,6 +1,6 @@
 INSTALL_DIR	= /usr/local/objectivity
 ARCH		= alphaosf1
 LS_HOST		= afl3u0.cern.ch
-FDID		= 9267
+FDID		= 19267
 BOOT		= ../db/boot/LOM
 PAGESIZE	= 8192

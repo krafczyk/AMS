@@ -34,8 +34,8 @@ C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 
 C npars ims 
   5     1   
-C          Nparticles 
-MCGEN 15=0 18=1
+C          Nparticles     Low energy spectrum
+MCGEN 15=0 18=1           20=1
 TOFMC 1=90.0e-12 3=0.05
 TRMC 12=10. 13=10.
 TOFREC 1=0.05 2=0.05

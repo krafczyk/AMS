@@ -222,6 +222,7 @@ public:
   geant albedocz;     //17
   integer npat;       //18
   integer run;
+  integer low;
 };
 //
 #define CCFFKEY COMMON_BLOCK(CCFFKEY,ccffkey)

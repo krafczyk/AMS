@@ -104,7 +104,8 @@ CCFFKEY.albedor=0.01;
 CCFFKEY.albedocz=0.05;
 CCFFKEY.npat=1;
 CCFFKEY.run=100;
-FFKEY("MCGEN",CCFFKEY.coo,19,"MIXED");
+CCFFKEY.low=0;
+FFKEY("MCGEN",CCFFKEY.coo,20,"MIXED");
 }
 //==========================================================================
 void AMSJob::_sitofdata(){

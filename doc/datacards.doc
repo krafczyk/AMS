@@ -79,7 +79,7 @@ R16 albedorate(0.01)              //assumed albedo relative rate
 R17 albedocz(0.05)                //assumed min cos(theta) for albedo 
 I18 npat(1)                       //number of particle to generate in one go
 I19 run(100)                      //run number
-
+I20 low(0)                        //normal(0) or low(1) spectrum if ipart=3
 
 KINE 
 1 IPART        // Geant particle id

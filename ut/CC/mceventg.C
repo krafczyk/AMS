@@ -32,7 +32,7 @@ else {
  else if(_ipart%100==63 || _ipart%100==64)id=20004;
  else if(_ipart%100==61 || _ipart%100==62)id=20003;
  else if(_ipart%100==47)id=20002;
- else if(_ipart==3)id=30001;   // special low energy electron background !!!!!!!
+ else if(_ipart==3 && CCFFKEY.low==1)id=30001;   // special low energy electron background !!!!!!!
  else id=20001;
  if(ini==0){
    ini=1;
