@@ -57,6 +57,7 @@ extern LMS* lms;
 #endif
 //-
 
+AMSNtuple* AMSJob::_pntuple=0;
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
@@ -155,6 +156,8 @@ UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
 IOPA.MaxNtupleEntries=100000;
+IOPA.WriteRoot=0;
+VBLANK(IOPA.rfile,40);
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 TRMFFKEY.OKAY=0;
 FFKEY("TERM",(float*)&TRMFFKEY,sizeof(TRMFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1143,6 +1146,9 @@ void AMSJob::_sitrdinitjob(){
 
 
 void AMSJob::_reamsinitjob(){
+AMSgObj::BookTimer.book("WriteEvent");
+ 
+
 _remfinitjob();
 _redaqinitjob();
 _retkinitjob();
@@ -1775,6 +1781,7 @@ _trdendjob();
 _dbendjob();
 _axendjob();
 uhend();
+delete _pntuple;
 
 
 
@@ -1797,9 +1804,29 @@ if(IOPA.hlun){
 }
 }
 
-void AMSJob::uhinit(integer eventno){
+void AMSJob::urinit(integer eventno){
+  if(IOPA.WriteRoot){
+    char rfile[161];
+    UHTOC(IOPA.rfile,40,rfile,160);  
+    char filename[256];
+    strcpy(filename,rfile);
+    integer iostat;
+    integer rsize=8000;
+    if(eventno){
+      char event[80];  
+      sprintf(event,".%d",eventno);
+      strcat(filename,event);
+    }
+    if(_pntuple)_pntuple->initR(filename);
+    else{
+        _pntuple = new AMSNtuple(filename);
+        gethead()->addup(_pntuple);
+    }
+  }
+}
 
-  
+
+void AMSJob::uhinit(integer eventno){
   if(IOPA.hlun){
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
@@ -1820,11 +1847,10 @@ void AMSJob::uhinit(integer eventno){
     else cout <<"Histo file "<<filename<<" opened."<<endl;
 
 // Open the n-tuple
-    static AMSNtuple * pntuple=0;
-    if(pntuple)pntuple->init();
+    if(_pntuple)_pntuple->init();
     else{
-        pntuple = new AMSNtuple(IOPA.ntuple,"AMS Ntuple");
-        gethead()->addup(pntuple);
+        _pntuple = new AMSNtuple(IOPA.ntuple,"AMS Ntuple");
+        gethead()->addup(_pntuple);
     }
   }
    HBOOK1(200101,"Number of Nois Hits x",100,-0.5,99.5,0.);

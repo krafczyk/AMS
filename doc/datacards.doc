@@ -63,6 +63,8 @@ I85    mode(0)                   // 4th vectors i/0 mode switch
                                  // 0 - nothing 1 -read 2 - write 3 - append
 I86   ffile(' ')                 // 4th vectors file name
 I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
+I127  WriteRoot(0)               // write (!0) or nott write(0) root file
+I128  rfile(160*' ')             // root file name
 //---------------------------------------------------------------------
 
 //Anti Simulation

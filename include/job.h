@@ -85,6 +85,7 @@ char _TDVC[maxtdv][maxtdvsize];
 integer _TDVN;
 
 static AMSJob* _Head;
+static AMSNtuple* _pntuple;
 void _init(){};
 void _sitrigdata();
 void _siamsdata();
@@ -228,6 +229,7 @@ void data();
 void udata();
 void init();
 void uhinit(integer pass=0);
+void urinit(integer pass=0);
 void uhend();
 AMSTimeID * gettimestructure();
 AMSTimeID * gettimestructure(const AMSID & id);

@@ -141,6 +141,7 @@ extern "C" void uginit_(){
   AMSJob::map();
   AMSJob::gethead()->init();
   AMSJob::gethead()->uhinit();
+  AMSJob::gethead()->urinit();
   AMSJob::map(1);
 #ifndef __BATCH__
 GDINIT();

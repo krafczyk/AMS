@@ -5,10 +5,10 @@ SHELL=/bin/sh
 
 
 ifeq  "$(shell uname)"  "AIX" 
-ROOTLIBS      = 
-CFLAGS= -D__AMSDEBUG__  -D__IBMAIX__ -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl -I../db
+ROOTLIBS      = -L$(ROOTSYS)/lib -lRoot -lCint 
+CFLAGS= -D__AMSDEBUG__  -D__IBMAIX__ -D__WRITEROOT__ -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl -I../db
 FFLAGS=   -g -I../include -qextname -qflttrap=overflow:underflow:zerodivide:invalid:inexact:enable -qfloat=nans -d
-DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
+DFLAGS=  -D__AMSDEBUG__  -g     -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
 LDFLAGS= -g -bloadmap:map  -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag  $(ROOTLIBS)
 SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
 CC=xlC
@@ -20,9 +20,9 @@ LIB=/lib/aix
 TIMEL=../bin/aix/timel.o
 endif
 ifeq  "$(shell uname)"  "OSF1" 
-ROOTLIBS      =
+ROOTLIBS      = -L$(ROOTSYS)/lib -lBase -lCint -lClib -lCont -lFunc -lGraf                 -lGraf3d -lHist -lHtml -lMeta -lMinuit -lNet -lPostscript   -lProof -lRint -lTree -lUnix -lZip
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
-CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include -I../include/stl -I../db -define_templates 
+CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__   -D__WRITEROOT__  -g     -I../include -I$(ROOTSYS)/include -I../include/stl -I../db -define_templates 
 FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
 LDFLAGS= -g -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag $(ROOTLIBS)
@@ -66,13 +66,26 @@ endif
 SHLD=..$(LIB)/ntuple.so
 
 FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/tofonline.C ../CC/antirec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcsim.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/ctccalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F ../F/e04ccf.f ../CC/trigger1.C  ../CC/trigger3.C ../CC/antidbc.C ../CC/daqevt.C ../CC/daqblock.C ../CC/astring.C ../CC/ins_dummy.C ../F/mfield.F ../F/egzav.F ../CC/tkdbc.C ../CC/ntuple.C ../CC/root.C ../CC/user.C ../CC/status.C ..root.C
-OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/tofonline.o ..$(BIN)/antirec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcsim.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/ctccalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o ..$(BIN)/trigger1.o ..$(BIN)/trigger3.o ..$(BIN)/antidbc.o ..$(BIN)/daqevt.o ..$(BIN)/daqblock.o ..$(BIN)/astring.o ..$(BIN)/ins_dummy.o  ..$(BIN)/mfield.o ..$(BIN)/egzav.o ..$(BIN)/tkdbc.o ..$(BIN)/ntuple.o ..$(BIN)/root.o ..$(BIN)/user.o ..$(BIN)/status.o 
+OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/tofonline.o ..$(BIN)/antirec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcsim.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/ctccalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o ..$(BIN)/trigger1.o ..$(BIN)/trigger3.o ..$(BIN)/antidbc.o ..$(BIN)/daqevt.o ..$(BIN)/daqblock.o ..$(BIN)/astring.o ..$(BIN)/ins_dummy.o  ..$(BIN)/mfield.o ..$(BIN)/egzav.o ..$(BIN)/tkdbc.o ..$(BIN)/ntuple.o ..$(BIN)/root.o ..$(BIN)/user.o ..$(BIN)/status.o ..$(BIN)/rootdict.o
 ..$(EXE)/gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS) ../F/timel.F -o ..$(BIN)/timel.o
 	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
 	chmod +x  ..$(EXE)/gbatch.exe 
 
+
+rootdict.C:         ../include/root_R.h
+	@echo "Generating dictionary"
+	@rootcint  -f rootdict.C -c ../include/root_R.h ../include/linkdef.h
+	@echo "OK"
+
+ntuple.so:         ..$(BIN)/root.o ..$(BIN)/rootdict.o
+	@echo "Making shared library
+	$(SHLDFLAGS) ..$(BIN)/root.o ..$(BIN)/rootdict.o -o ..$(LIB)/ntuple.so 
+	@echo "OK"
+
+..$(BIN)/rootdict.o:         rootdict.C
+	$(CC) -c $(CFLAGS) rootdict.C -o ..$(BIN)/rootdict.o 
 
 ..$(BIN)/gbatch.o:         ../CC/gbatch.C
 	$(CC) -c $(CFLAGS) ../CC/gbatch.C -o ..$(BIN)/gbatch.o

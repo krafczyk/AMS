@@ -128,6 +128,8 @@ integer TriggerC[40];
 integer mode;
 integer ffile[40];
 integer MaxNtupleEntries;
+integer WriteRoot;
+integer rfile[40];
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);

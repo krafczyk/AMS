@@ -500,6 +500,8 @@ void AMSEvent::_retkinitevent(){
 }
 
 void  AMSEvent::write(int trig){
+    AMSgObj::BookTimer.start("WriteEvent");
+  
 // Sort before by "Used" variable : 
 // AMSTrTrack & AMSTrCluster & AMSCTCCl
   AMSEvent::gethead()->getheadC("AMSCTCCluster",0,1); 
@@ -518,8 +520,8 @@ void  AMSEvent::write(int trig){
   AMSEvent::gethead()->getheadC("AMSTrRecHit",4,1); 
   AMSEvent::gethead()->getheadC("AMSTrRecHit",5,1); 
    
-  if(IOPA.hlun){
-    AMSJob::gethead()->getntuple()->reset();
+  if(IOPA.hlun || IOPA.WriteRoot){
+    AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
     _writeEl();
     AMSNode * cur;
     for (int i=0;;){
@@ -533,13 +535,15 @@ void  AMSEvent::write(int trig){
     if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
 // if event has been selected write it straight away
             AMSJob::gethead()->getntuple()->write(1);
+            AMSJob::gethead()->getntuple()->writeR();
     }
     else {
 // if event was not selected check if at least header should be written
 // in the ntuples
       if((IOPA.WriteAll/10)%10){
-      AMSJob::gethead()->getntuple()->reset();
+      AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
       AMSJob::gethead()->getntuple()->write();
+      AMSJob::gethead()->getntuple()->writeR();
     }
    }
     // check if one want to close ntuple 
@@ -553,6 +557,7 @@ void  AMSEvent::write(int trig){
   }
 
 
+    AMSgObj::BookTimer.stop("WriteEvent");
 
 }
 void  AMSEvent::printA(integer debugl){
