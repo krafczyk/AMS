@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.73 2003/07/25 14:53:59 choutko Exp $
+//  $Id: producer.C,v 1.74 2003/07/25 17:17:46 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -43,6 +43,7 @@ else{
      ClockCor=atol(++pchar)/100.;
      if(ClockCor>0 && ClockCor<5){
       AMSFFKEY.CpuLimit*=ClockCor;
+      if(ClockCor>1)GCTIME.TIMEND*=ClockCor;
       cout <<" AMSProducer::AMSProducer-I-CPULimitChangedTo "<<AMSFFKEY.CpuLimit<<endl;
      }
      break;
