@@ -1,7 +1,49 @@
-//  $Id: root.C,v 1.14 2001/08/01 15:18:31 kscholbe Exp $
+//  $Id: root.C,v 1.15 2001/08/24 15:53:48 kscholbe Exp $
 #include <root.h>
 #include <ntuple.h>
 #ifdef __WRITEROOT__
+EventNtuple::EventNtuple(){}
+EventNtuple02::EventNtuple02(){}
+BetaNtuple::BetaNtuple(){}
+BetaNtuple02::BetaNtuple02(){}
+ChargeNtuple::ChargeNtuple(){}
+ChargeNtuple02::ChargeNtuple02(){}
+ParticleNtuple::ParticleNtuple(){}
+ParticleNtuple02::ParticleNtuple02(){}
+TOFClusterNtuple::TOFClusterNtuple(){}
+TOFMCClusterNtuple::TOFMCClusterNtuple(){}
+TrClusterNtuple::TrClusterNtuple(){}
+TrMCClusterNtuple::TrMCClusterNtuple(){}
+TRDMCClusterNtuple::TRDMCClusterNtuple(){}
+TRDRawHitNtuple::TRDRawHitNtuple(){}
+TRDClusterNtuple::TRDClusterNtuple(){}
+TRDSegmentNtuple::TRDSegmentNtuple(){}
+TRDTrackNtuple::TRDTrackNtuple(){}
+TrRecHitNtuple::TrRecHitNtuple(){}
+TrRecHitNtuple02::TrRecHitNtuple02(){}
+TrTrackNtuple::TrTrackNtuple(){}
+TrTrackNtuple02::TrTrackNtuple02(){}
+MCEventGNtuple::MCEventGNtuple(){}
+MCEventGNtuple02::MCEventGNtuple02(){}
+MCTrackNtuple::MCTrackNtuple(){}
+CTCClusterNtuple::CTCClusterNtuple(){}
+CTCMCClusterNtuple::CTCMCClusterNtuple(){}
+AntiClusterNtuple::AntiClusterNtuple(){}
+ANTIMCClusterNtuple::ANTIMCClusterNtuple(){}
+LVL3Ntuple::LVL3Ntuple(){}
+LVL1Ntuple::LVL1Ntuple(){}
+LVL1Ntuple02::LVL1Ntuple02(){}
+CTCHitNtuple::CTCHitNtuple(){}
+TrRawClusterNtuple::TrRawClusterNtuple(){}
+AntiRawClusterNtuple::AntiRawClusterNtuple(){}
+TOFRawClusterNtuple::TOFRawClusterNtuple(){}
+EcalShowerNtuple::EcalShowerNtuple(){}
+EcalClusterNtuple::EcalClusterNtuple(){}
+Ecal2DClusterNtuple::Ecal2DClusterNtuple(){}
+EcalHitNtuple::EcalHitNtuple(){}
+RICMCNtuple::RICMCNtuple(){}
+RICEventNtuple::RICEventNtuple(){}
+RICRing::RICRing(){}
 ClassImp(AMSNtuple)
 ClassImp(EventNtuple)
 ClassImp(EventNtuple02)
