@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.73 2003/03/31 10:46:03 choutko Exp $
+//  $Id: gbatch.C,v 1.74 2003/05/08 13:10:25 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -9,8 +9,8 @@
 #include <commons.h>
 #include <geantnamespace.h>
 #include <producer.h>
-const int NWGEAN=12000000;
-const int NWPAW=1000000;
+const int NWGEAN=13000000;
+const int NWPAW=1200000;
 
 #ifdef __ROOTA__
 struct PAWC_DEF{

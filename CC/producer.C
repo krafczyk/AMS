@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.66 2003/05/08 08:34:52 choutko Exp $
+//  $Id: producer.C,v 1.67 2003/05/08 13:10:25 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -394,6 +394,78 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
      break;
     }
    }
+   int bend=0;
+   for (int i=a.length()-1;i>=0;i--){
+    if(a[i]=='/'){
+     bend=i+1;
+     break;
+    }
+   }
+   int bnt=bstart+strlen(getenv("NtupleDir"));
+   if(a.length()>bnt && a[bnt]=='/')bnt++;
+   
+
+
+
+// Move ntuple to the dest directory
+
+char *destdir=getenv("NtupleDestDir");
+if(destdir && strcmp(destdir,getenv("NtupleDir"))){
+ char *means=getenv("TransferBy");
+ AString fmake;
+ AString fcopy;
+ if(means && means[0]=='r' && means[1]=='f'){
+  fmake="rfmkdir -p ";
+  fcopy=means;
+  fcopy+=" ";
+ }
+ else if(means){
+  fmake+="mkdir -p ";
+  fcopy=means;
+  fcopy+=" ";
+ } 
+ else{
+  fmake="mkdir -p ";
+  fcopy="cp ";
+ }
+ fmake+=destdir;
+ fmake+='/';
+ for (int k=bnt;k<bend;k++)fmake+=a[k];
+ system((const char*)fmake);
+ fcopy+=(const char*)a(bstart);
+ fcopy+="  ";
+ fcopy+=destdir; 
+ fcopy+='/';
+ for (int k=bnt;k<bend;k++)fcopy+=a[k];
+ int ntry=5;
+ for(int j=0;j<ntry;j++){
+  sleep(1<<(j+1));
+  cout <<"SendNtupleEnd-I-StartCopyingDST "<<j<<" Try "<<(const char*)fcopy<<endl;
+  if(!system((const char*)fcopy)){
+   cout <<"SendNtupleEnd-I-CopiedDSTSuccesfully "<<j<<" Try "<<(const char*)fcopy<<endl;
+   if((_Solo || !(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO)) &&
+     !(means && means[0]=='r' && means[1]=='f')){
+    AString rm="rm -rf ";
+    rm+=a(bstart);
+    system((const char*)rm);
+    cout <<"SendNtupleEnd-I-DeletingDSTBy "<<(const char*)rm<<endl;
+    AString b="";
+    for(int k=0;k<bstart;k++)b+=a[k];
+    b+=destdir;
+    b+="/";
+    b+=a(bnt);
+    a=b;
+   }
+   break;
+  }
+ }
+}
+
+
+
+
+
+
     struct stat statbuf;
     stat((const char*)a(bstart), &statbuf);
     
@@ -1337,7 +1409,7 @@ _OnAir=false;
 char iort[1024];
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv(getiorvar);
-int maxtries=5;
+int maxtries=6;
 int delay=1;
 if(exedir && nve && AMSCommonsI::getosname()){
  char t1[1024];
