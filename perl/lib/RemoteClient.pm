@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.238 2004/01/30 09:13:34 alexei Exp $
+# $Id: RemoteClient.pm,v 1.239 2004/01/31 15:17:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -24,9 +24,18 @@
 # Jan 16 2004    : parsejournalfile : closedst block, do nothing if DST file status ne "Validated"
 # Jan 30 2004    : NFS, Web, CASTOR files access mode
 #                  TriggerLVl1 - default trigger type
+#                : sub checkDB -d   DirectoryPath
+#                              -p   DBPath
+#                              -crc do CRC check
+#                              -u   update DB
+#                              -o   print output to file
 #
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
+
+my $nTopDirFiles = 0;     # number of files in (input/output) dir 
+my @inputFiles;           # list of file names in input dir
+
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -40,8 +49,9 @@ use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
 use POSIX  qw(strtod);             
+use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsPerSite updateHostInfo parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB checkDB listAll listAllDisks listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsPerSite updateHostInfo parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
 my     $bluebar      = '/AMS/icons/bar_blue.gif';
 my     $maroonbullet = '/AMS/icons/bullet_maroon.gif';
@@ -1081,7 +1091,9 @@ sub ValidateRuns {
                                                 $ntuple->{size},
                                                 $status,
                                                 $outputpath,
-                                                $ntuple->{crc});
+                                                $ntuple->{crc},
+                                                $ntuple->{Insert},
+                                                1,0);
                             print FILE "insert : $run->{Run}, $outputpath, $status \n";
                             $copied++;
                             push @cpntuples, $fpath;
@@ -7436,7 +7448,8 @@ foreach my $block (@blocks) {
                                $dstsize,
                                $closedst[1],
                                $outputpath,
-                               $ntcrc); 
+                               $ntcrc,
+                               $timestamp, 1, 0); 
 
            print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
           push @cpntuples, $dstfile;
@@ -7966,19 +7979,22 @@ sub getRunStatus {
 sub insertNtuple {
   my $self     = shift;
 #
-  my $run      = shift;
-  my $version  = shift;
-  my $type     = shift;
-  my $jid      = shift;
-  my $fevent   = shift;
-  my $levent   = shift;
-  my $events   = shift;
-  my $errors   = shift;
-  my $timestamp= shift;
-  my $ntsize   = shift;
-  my $status   = shift;
-  my $path     = shift;
-  my $crc      = shift;
+  my $run      = shift;   # run id
+  my $version  = shift;   # production version
+  my $type     = shift;   # ROOT/NT
+  my $jid      = shift;   # job id
+  my $fevent   = shift;   # first event
+  my $levent   = shift;   # last event
+  my $events   = shift;   # total events
+  my $errors   = shift;   # total errors
+  my $timestamp= shift;   # insert time
+  my $ntsize   = shift;   # size MB 
+  my $status   = shift;   # status
+  my $path     = shift;   # full file path
+  my $crc      = shift;   # crc
+  my $crctime  = shift;   # last CRC calc time
+  my $crcflag  = shift;   # CRC flag
+  my $castortime = shift; # last castor copy time
 #
   my $sql      = undef;
   my $ret      = undef;
@@ -8013,7 +8029,8 @@ sub insertNtuple {
                                           $sizemb,
                                           '$status',
                                           '$path',
-                                           $crc)"; 
+                                           $crc, 
+                                           $crctime,$crcflag,$castortime)"; 
   $self->{sqlserver}->Update($sql);
 
 }
@@ -8234,4 +8251,190 @@ sub getHostsPerSite {
         }
        }
    }
+}
+
+sub inputList {
+    $inputFiles[$nTopDirFiles] = $File::Find::name;
+    $nTopDirFiles++;
+}
+
+
+sub checkDB {
+  my $self   = shift;
+  my $sql    = undef;
+
+# options
+  my $topdir = undef;
+  my $ntpath = undef;
+  my $outputfile = undef;
+  my $checkCRC = 0; # check CRC for files
+  my $updateDB = 0; # set last crc check time
+
+  my $HelpTxt = "
+     checkDB compares DB and directories contents
+     -d    - directory path
+     -p    - DST query word for Database
+     -crc  - calculate CRC and compare them 
+     -o    - write output to file
+     -h    - print help
+     -u    - update DB (valid only with -crc)
+     checkDB -d:/f2dah1/MC/AMS02/2004A/protons -crc
+";
+#
+
+  my $missed     = 0; # not found on disk
+  my $zerolength = 0; # file size = 0
+  my $correct    = 0; # found in DB and on disk
+  my $crcerror   = 0; # CRC doesn't match 
+  my $notindb    = 0; # not found in db
+  my $nfiles     = 0;
+
+  $nTopDirFiles = 0;
+
+  foreach my $chop  (@ARGV){
+    if($chop =~/^-d:/){
+       $topdir=unpack("x3 A*",$chop);
+    } elsif ($chop =~/^-p:/) {
+       $ntpath=unpack("x3 A*",$chop);
+   }
+    if ($chop =~/^-crc/) {
+        $checkCRC = 1;
+    }
+    if ($chop =~/^-o:/) {
+        $outputfile = unpack("x3 A*",$chop);
+    }
+    if ($chop =~/^-u/) {
+     $updateDB = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
+   if ((not defined $topdir) && (not defined $ntpath)) {
+    print "$HelpTxt \n";
+    return 1;
+   }
+   my $timenow = time();
+   print "***** checkDB is started : $timenow \n";
+   if (defined $topdir) {
+       print "  Files from directories $topdir will be checked \n";
+       print "  with DB content \n";
+   } elsif (defined $ntpath) {
+       print "  All DSTs with PATH like %$ntpath% will be checked \n";
+   }
+   if ($checkCRC == 1) {
+      print "  Files CRC will be calculated and to compare with ones stored in DB \n";
+  } else {
+      $updateDB = 0;
+  }
+  if ($updateDB == 1) {
+      print "  CRCTime and CRCFlag of NTUPLES Table will be updated \n";
+  }
+  if (defined ($outputfile)) {
+      print "The output will be stored into $outputfile \n";
+  }
+
+ 
+ if (defined $ntpath) {
+    $sql = "SELECT COUNT(PATH) FROM ntuples WHERE PATH LIKE '%/$ntpath%'";
+    my $ret=$self->{sqlserver}->Query($sql);
+    if(defined $ret->[0][0]){
+      if ($ret->[0][0] > 0) {
+        $nfiles = $ret->[0][0];
+        print "$nfiles DSTs matched to path like '$ntpath'\n";
+        print "start comparison \n";
+        $sql = "SELECT PATH, CRC FROM ntuples WHERE PATH LIKE '%/$ntpath%' ORDER BY RUN";
+        $ret=$self->{sqlserver}->Query($sql);
+        if(defined $ret->[0][0]){
+         foreach my $nt (@{$ret}){
+             my $filename = $nt->[0];
+             my $crc      = $nt->[1];
+             my $notfound = 0;
+             my $filesize    = (stat($filename))[7] or $notfound=1;
+             if ($notfound == 1) {
+              print "*not found* $filename \n";
+              $missed++;
+            } else {
+             if ($filesize > 0) {
+              if ($checkCRC == 1) {
+               my $rstatus = $self->calculateCRC($filename,$crc);
+               if ($rstatus == 1) {
+                $correct++;
+               } else {
+                 $rstatus = 0;
+                 $crcerror++;
+               }
+               if ($updateDB == 1) {
+                 my $timenow = time();
+                 $sql = "UPDATE ntuples SET crctime = $timenow, crcflag=$rstatus  
+                           WHERE path='$filename'";
+                 $self->{sqlserver}->Update($sql); 
+               }
+              }
+             } else {
+                 $zerolength++;
+                 print "*file size = $filesize* $filename \n";
+             }
+            }
+         }
+    }
+   } else {
+       print "NO  DSTs matched to path like '$ntpath'. Quit.\n";
+   }
+  } else {
+       print "NO  DSTs matched to path like '$ntpath'. Quit.\n";
+   }
+  } elsif (defined $topdir) {
+   find (\&inputList, $topdir);
+    my $i= 0;
+    my $nprint = 0;
+    while ($i <= $#inputFiles) {
+      
+      if (-d $inputFiles[$i]) {
+#          print "Directory : $inputFiles[$i] \n";
+      } else {
+          $nfiles++;
+          my $filename = trimblanks($inputFiles[$i]);
+          $sql = "SELECT PATH, CRC FROM NTUPLES WHERE PATH='$filename'";
+          my $ret=$self->{sqlserver}->Query($sql);
+          if(not defined $ret->[0][0]){
+              $notindb++;
+              print "* not in DB* $filename\n";
+          } else {
+           if ($checkCRC == 1) {
+              my $rstatus = $self->calculateCRC($ret->[0][0],$ret->[0][1]);
+              if ($rstatus == 1) {
+               $correct++;
+              } else {
+                $crcerror++;
+              }
+          }
+       }
+       $nprint++;
+          if ($nprint == 10) {
+              my $t = time();
+              my $l = localtime($t);
+           print "$l - Files Checked : $nfiles not found in DB $notindb CRC error : $crcerror \n";
+           $nprint = 0;
+          }
+      }
+      $i++;
+  }
+  print "Total Files Checked : $nfiles not found in DB $notindb ";
+  if ($checkCRC == 1) {print " CRC error : $crcerror";}
+  print "\n";
+}
+  return 1;
+}
+
+
+sub calculateCRC {
+  my $self      = shift;
+  my $filename  = shift;
+  my $crc       = shift;
+  my $crccmd    = "$self->{AMSSoftwareDir}/exe/linux/crc $filename  $crc";
+  my $rstatus   = system($crccmd);
+  $rstatus=($rstatus>>8);
+  return $rstatus;
 }

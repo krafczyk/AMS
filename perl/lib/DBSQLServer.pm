@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.62 2003/12/04 16:55:21 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.63 2004/01/31 15:17:21 alexei Exp $
 
 #
 #
@@ -28,6 +28,7 @@
 #
 #  Apr 24, 2003. ak. Tables : Jobs, Runs, RNDM - add primary key
 #  Oct  2, 2003. ak. Table  : LocalHosts
+#  Jan 31, 2004. ak. Table  : Ntuples add CRCtime, CRCflag, CASTORtime
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -241,19 +242,22 @@ sub Create{
          submit INT, 
          status VARCHAR(64))",
         "CREATE TABLE Ntuples
-        (run   INT NOT NULL,
-         version VARCHAR(64),
-         type  VARCHAR(64),
-         jid    INT,
-         FEvent INT,
-         LEvent INT,
-         NEvents INT,
+        (run        INT NOT NULL,
+         version    VARCHAR(64),
+         type       VARCHAR(64),
+         jid        INT,
+         FEvent     INT,
+         LEvent     INT,
+         NEvents    INT,
          NEventsErr INT,
-         timestamp   INT,
-         sizemb   INT,
-         status   VARCHAR(64),
-         path   VARCHAR(255),
-         crc INT)",
+         timestamp  INT,
+         sizemb     INT,
+         status     VARCHAR(64),
+         path       VARCHAR(255),
+         crc        INT,
+         crctime    INT,
+         crcflag    INT,
+         castortime INT)",
         "CREATE TABLE DataSets
          (did    INT NOT NULL,
           name   VARCHAR(255),
