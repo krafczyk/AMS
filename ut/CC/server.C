@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.100 2003/11/12 15:59:55 choutko Exp $
+//  $Id: server.C,v 1.101 2003/11/17 11:51:45 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -65,7 +65,6 @@ int main(int argc, char * argv[]){
    AMSServer::Singleton()->DumpIOR();
     AMSServer::Singleton()->Listening(1);
     for(;;){
-     usleep(AMSServer::Singleton()->getSleepTime());
      try{
       AMSServer::Singleton()->UpdateDB();
       AMSServer::Singleton()->SystemCheck();     
@@ -386,11 +385,16 @@ else{
 
 void AMSServer::Listening(int sleeptime){
 typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
+      int ntry=sleeptime*1000000/AMSServer::Singleton()->getSleepTime();
+      if(ntry<=0)ntry=1;
+      for(int itry=0;itry<ntry;itry++){
+      usleep(AMSServer::Singleton()->getSleepTime());
       for(MOI i=_orbmap.begin();i!=_orbmap.end();++i){
 //       if(sleeptime>0)sleep(sleeptime);
-//       ((*i).second)._orb->perform_work();
-        ((*i).second)._orb->run();
+        ((*i).second)._orb->perform_work();
+//         ((*i).second)._orb->run();
       }
+     }
 }
 
 void AMSServer::UpdateDB(bool force){
@@ -404,11 +408,11 @@ void AMSServer::SystemCheck(bool force){
 // Here run Start,Stop,Kill,Check Clients
 
 for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
- Listening();
+ Listening(1);
  if(!_GlobalError )pcur->StartClients(_pid);
- Listening();
+ Listening(1);
  if(!_GlobalError) pcur->CheckClients(_pid);
- Listening();
+ Listening(1);
  if(!_GlobalError)pcur->KillClients(_pid);
 }
 if(force)IMessage("ForceSystemCheckSuccessful");      
@@ -3693,13 +3697,13 @@ _UpdateACT(cid,DPS::Client::Active);
      char tmp[80];
      sprintf(tmp,"%d",cid.uid);
      fname+=tmp;
-     if(st==DPS::Producer::Begin){
+     if(st!=DPS::Producer::Continue){
       AString fmake="mkdir -p ";
       fmake+=fname;
-      system((const char*)fmake);
+      int i=system((const char*)fmake);
+      cout <<" Producer_impl::sendFile-I-MakingDirectory "<<fmake<<" result "<<i<<endl;
      }
      fname+="/";
-     
    }
    else throw DPS::Producer::FailedOp((const char*)"Server-F-AMSProdOutputDir NotDefined");
    fname+=(const char*)fpath.fname;
@@ -4284,12 +4288,12 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
     try{
       CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
-      CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
-      _parent->setdbfile(filepath);
       DPS::Client::CID tcid=cid;
       tcid.Type=getType();
       int ret=dvar->getFreeHostN(tcid);     
       if(ret){
+      CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
+      _parent->setdbfile(filepath);
       DPS::Client::AHS * pres;
       int length=dvar->getAHS(tcid, pres);
       DPS::Client::AHS_var res=pres; 

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.77 2003/10/26 14:20:27 choutko Exp $
+//  $Id: producer.C,v 1.78 2003/11/17 11:51:45 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -655,6 +655,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
        }
      }
      fpath.pos+=last;
+      if(st==DPS::Producer::Begin)st==DPS::Producer::Continue;
     }
      fbin.close();
      unlink( ((const char*)a(bstart)));
