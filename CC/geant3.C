@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.79 2003/04/03 12:34:09 kscholbe Exp $
+//  $Id: geant3.C,v 1.80 2003/04/25 16:38:05 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -860,10 +860,14 @@ AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
 
 // allow termination via time via datacard
 {  
-   float xx;
+   float xx,yy;
    TIMEX(xx);   
-   if(GCTIME.TIMEND < xx){
+   TIMEL(yy);   
+   if(GCTIME.TIMEND < xx || (yy>0 && yy<AMSFFKEY.CpuLimit) ){
     GCTIME.ITIME=1;
+   }
+   else{
+    
    }
 }
 }

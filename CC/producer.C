@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.63 2003/04/23 09:41:03 choutko Exp $
+//  $Id: producer.C,v 1.64 2003/04/25 16:38:05 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -103,7 +103,7 @@ void AMSProducer::sendid(){
 if (_Solo){
       _pid.Type=DPS::Producer::Standalone;
       _pid.StatusType=DPS::Producer::OneRunOnly;
-      LMessage(AMSClient::print(_pid,"StartingJob"));
+      LMessage(AMSClient::print(_pid,"JobStarted"));
       return;
 }
 
