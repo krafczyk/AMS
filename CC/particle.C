@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.139 2003/08/18 11:55:42 mdelgado Exp $
+//  $Id: particle.C,v 1.140 2003/09/05 08:23:58 mdelgado Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -467,8 +467,8 @@ void AMSParticle::richfit(){
    return;
  }
 
- // real_track->interpolate(AMSPoint(0,0,RICradpos),dir,_RichCoo[0],theta,phi,sleng);
- // real_track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
+ real_track->interpolate(AMSPoint(0,0,RICradpos),dir,_RichCoo[0],theta,phi,sleng);
+ real_track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
  
  
   //  cout <<"TEST DE RICHRING"<<endl;
