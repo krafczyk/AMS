@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.11 2003/05/08 16:42:14 choutko Exp $
+//  $Id: trdrec.h,v 1.12 2003/07/11 07:39:37 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include <trdid.h>
@@ -41,7 +41,7 @@ number getEHit(){return _ClSizeR;}
 number getHitL(){return _ClSizeZ;}
 uinteger getlayer()const {return _layer;}
 const AMSDir & getCooDir()const {return _CooDir;}
-const AMSPoint & getCoo()const {return _Coo;}
+ AMSPoint & getCoo() {return _Coo;}
 inline integer Good() { 
   return ((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0)
              && checkstatus(AMSDBc::GOOD));

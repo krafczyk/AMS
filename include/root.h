@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.98 2003/07/08 16:28:19 choutko Exp $
+//  $Id: root.h,v 1.99 2003/07/11 07:39:37 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -433,7 +433,7 @@ public:
     /// \param number index in container
   /// \return human readable info about RichHitR
   char * Info(int number=-1){
-    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f)",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2]);
+    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d ",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2],Status%2048,(Status>>30)%2?5:1,(Status>>31));
   return _Info;
   } 
 
