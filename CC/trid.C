@@ -241,32 +241,28 @@ void AMSTrIdSoft::init(){
      integer nc=0;
      integer idsoft;
      VZERO(idsoft2linear,ms*sizeof(integer)/4);
-     int i;
-     for ( i=0;i<AMSDBc::nlay();i++){
+     int i,k;
+     for(k=0;k<2;k++){
+      for ( i=0;i<AMSDBc::nlay();i++){
        int j;
        for ( j=0;j<AMSDBc::nlad(i+1);j++){
-         int k;
-         for ( k=0;k<2;k++){
            idsoft=AMSTrIdSoft(i+1,j+1,k,0).getaddr();
            idsoft2linear[idsoft]=num;
            num=num+AMSDBc::NStripsDrp(i+1,0);
            nc++;
-         }
        }
        for (j=0;j<AMSDBc::nlad(i+1);j++){
-         int k;
-         for ( k=0;k<2;k++){
            idsoft=AMSTrIdSoft(i+1,j+1,k,1).getaddr();
            idsoft2linear[idsoft]=num;
            num=num+AMSDBc::NStripsDrp(i+1,1);
            nc++;
-         }
        }
      }
      cout <<
      "AMSTrClusterInitPed-I-Total of " <<num<< " channels  and "<<
      nc<<" drps found."<<endl;
      status=new integer[num];
+     for(int l=0;l<num;l++)status[l]=AMSDBc::BAD;    // All are bad
      peds=new geant[num];
      gains=new geant[num];
      sigmas=new geant[num];
@@ -279,6 +275,7 @@ void AMSTrIdSoft::init(){
 
 
 
+     }
 }
 void AMSTrIdGeom::init(){
     integer i,j,k;

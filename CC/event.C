@@ -1129,6 +1129,8 @@ void AMSEvent::Recovery(){
 void AMSEvent::_redaqinitevent(){
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:DAQEvent",0),0));
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:DAQEvent",4),0));
 }
 
 void AMSEvent::_redaqevent(){
@@ -1148,6 +1150,9 @@ void AMSEvent::_redaqevent(){
    DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->
    getheadC("DAQEvent",0);
    if(pdaq)pdaq->buildRawStructures();
+   pdaq = (DAQEvent*)AMSEvent::gethead()->
+   getheadC("DAQEvent",4);
+   if(pdaq)pdaq->buildRawStructures();
   AMSgObj::BookTimer.stop("REDAQ");
 }
 
@@ -1158,6 +1163,14 @@ void AMSEvent::_sidaqevent(){
 DAQEvent *  pdaq = new DAQEvent();
 AMSEvent::gethead()->addnext(AMSID("DAQEvent",0), pdaq);      
 pdaq->buildDAQ();
+
+// H/K simulation 
+
+pdaq=new DAQEvent();
+AMSEvent::gethead()->addnext(AMSID("DAQEvent",4), pdaq);      
+pdaq->buildDAQ(4);
+
+
   AMSgObj::BookTimer.stop("SIDAQ");
 }
 
@@ -1169,10 +1182,23 @@ pdaq->buildDAQ();
 
 void AMSEvent::builddaq(integer i, integer length, int16u *p){
 
-*p= getdaqid();
+*p= getdaqid(0);
 *(p+1)=int16u(_Head->_run&65535);
 *(p+2)=int16u((_Head->_run>>16)&65535);
 *(p+3)=int16u(_Head->_runtype&65535);
+uinteger _event=uinteger(_Head->_id);
+*(p+4)=int16u(_event&65535);
+*(p+5)=int16u((_event>>16)&65535);
+*(p+6)=int16u(_Head->_time&65535);
+*(p+7)=int16u((_Head->_time>>16)&65535);
+*(p+8)=0;
+}
+void AMSEvent::buildTrackerHKdaq(integer i, integer length, int16u *p){
+
+*p= getdaqid(4);
+*(p+1)=int16u((_Head->_run+1)&65535);
+*(p+2)=int16u(((_Head->_run+1)>>16)&65535);
+*(p+3)=int16u(4&65535);
 uinteger _event=uinteger(_Head->_id);
 *(p+4)=int16u(_event&65535);
 *(p+5)=int16u((_event>>16)&65535);
@@ -1190,4 +1216,19 @@ void AMSEvent::buildraw(
   id=(*(p+4)) |  (*(p+5))<<16;
   time=(*(p+6)) |  (*(p+7))<<16;
 
+}
+
+
+integer AMSEvent::checkdaqid(int16u id){
+if(id==getdaqid(0))return 1;
+else if(id==getdaqid(4))return 5 ;
+else return 0;
+
+
+}
+
+integer AMSEvent::calcTrackerHKl(integer i){
+static integer init =0;
+if(!TRMCFFKEY.WriteHK || abs(++init-TRMCFFKEY.WriteHK-1) >1)return 0;
+return 1+2+1+2+3;
 }

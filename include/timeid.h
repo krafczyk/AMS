@@ -28,7 +28,8 @@ integer GetNbytes() const { return _Nbytes;}
 integer CopyOut(void *pdataNew);
 integer CopyIn(void *pdataNew);
 uinteger getCRC()const {return _CRC;}
-integer UpdateMe()const {return _UpdateMe;}
+void UpdCRC();
+integer & UpdateMe() {return _UpdateMe;}
 static const uinteger CRC32;
 void gettime(time_t & insert, time_t & begin, time_t & end) const;
 void SetTime (time_t insert, time_t begin, time_t end) ;

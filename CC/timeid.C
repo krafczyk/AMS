@@ -46,6 +46,10 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0,
 #endif
 }
 
+void AMSTimeID::UpdCRC(){
+_CRC=_CalcCRC();
+}
+
 void AMSTimeID::gettime(time_t & insert, time_t & begin, time_t & end) const{
 insert=_Insert;
 begin=_Begin;
@@ -80,6 +84,7 @@ integer AMSTimeID::CopyOut(void *pdata){
      *((uinteger*)pdata+i)=*(_pData+i);
     }
     *((uinteger*)pdata+n)=_CRC;
+    _UpdateMe=0;
     return _Nbytes;
   }
   else return 0;

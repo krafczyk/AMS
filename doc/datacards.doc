@@ -195,12 +195,14 @@ I20   hour[2](0,0)          // Validity time
 I22   day[2](1,1)           //
 I24   mon[2](0,0)           //
 I26   year[2](96,98)        //
-I28   CalcCmnNoise[2])(0,3) // Calc(1=1 or not 1=0 cmnnoise properly)
+I28   CalcCmnNoise[2])(1,3) // Calc(1=1 or not 1=0 cmnnoise properly)
 R30   thr1R[2](4.5,4.5)     // threshold (S/N) to save cluster
 R32   thr2R[2](1.,1.)       // threshold (S/N) to save hits in cluster
 I34   neib[2](2,2)          // number of neibours from one side
 I36   GenerateConst(0)      // generate/not generate tracker const
-I37   RawModeOn[2][2][32](0)// Raw Mode Tracker readout (half;side;tdrk,s+connector)
+I37   RawModeOn[2][2][32](0)// Raw Mode Tracker readout (half,side,tdr)
+I165  WriteHK(0)            // if > 0 and DAQC write mode will write the static
+                            // HK info after event # WriteHK 
 // MC particle generation
 
 MCGEN
@@ -433,3 +435,10 @@ I 1 mode(0)                         // 0 do nothing
                                     // mode/10 = 2 write daq (append)
 I 2 ifile[40]("")                   // input file name
 I42 ofile[40]("")                   // output file name
+
+
+
+BMAP   // Magnetic field control
+I 1 iniok(1)                       // 0 for update mag field
+
+

@@ -55,6 +55,7 @@ friend class DAQEvent;
 const integer nbtps=8;    // blocks num 
 class DAQEvent : public AMSlink{
 protected:
+integer _BufferOwner;
 integer _Checked;
 uinteger _Length;
 uinteger _Event;
@@ -68,18 +69,20 @@ static DAQBlockType * _pBT[nbtps];
 static const integer _OffsetL;
 integer _EventOK();
 integer _HeaderOK();
+uinteger _GetBlType(){return _pData[1]>>13;}
 void _convert();
 void _convertl(int16u & l16);
 integer _create(uinteger btype=0);
-uinteger _GetBlType(){return _pData[1]>>13;}
 void _copyEl();
 void _writeEl(){}
 void _printEl(ostream& o){}
 static integer _Buffer[512];
+static integer _BufferLock;
 public:
+uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
-_Time(0),_RunType(0){}
+_Time(0),_RunType(0),_BufferOwner(0){}
 uinteger & eventno(){return _Event;}
 uinteger & runno(){return _Run;}
 time_t   & time(){return _Time;}

@@ -205,6 +205,7 @@ TRMCFFKEY.mon[1]=0;
 TRMCFFKEY.year[0]=95;
 TRMCFFKEY.year[1]=99;
 TRMCFFKEY.GenerateConst=0;
+TRMCFFKEY.WriteHK=0;
 TRMCFFKEY.thr1R[0]=4.5;
 TRMCFFKEY.thr1R[1]=4.5;
 TRMCFFKEY.thr2R[0]=1;
@@ -703,6 +704,18 @@ void AMSJob::udata(){
     exit(1);  
    }
 #endif
+
+{
+  int i,j,k;
+  for(i=0;i<2;i++){
+    for(j=0;j<2;j++){
+      if(TRMCFFKEY.RawModeOn[i][j][31]==1){
+        for(k=0;k<31;k++)TRMCFFKEY.RawModeOn[i][j][k]=1;
+      }
+    }
+  }
+}
+
 
 const integer cl=161;
 char jobname[cl];
@@ -1280,20 +1293,30 @@ end.tm_mon=TRMCFFKEY.mon[1];
 end.tm_year=TRMCFFKEY.year[1];
 
 
-TID.add (new AMSTimeID(AMSID("TrackerPedestals",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel,
+TID.add (new AMSTimeID(AMSID("TrackerPedestals.l",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel/2,
    (void*)AMSTrIdSoft::peds));
-TID.add (new AMSTimeID(AMSID("TrackerGains",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel,
+TID.add (new AMSTimeID(AMSID("TrackerPedestals.r",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel/2,
+   (void*)(AMSTrIdSoft::peds+AMSTrIdSoft::_numel/2)));
+TID.add (new AMSTimeID(AMSID("TrackerGains.l",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel/2,
    (void*)AMSTrIdSoft::gains));
-TID.add (new AMSTimeID(AMSID("TrackerSigmas",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel,
+TID.add (new AMSTimeID(AMSID("TrackerGains.r",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel/2,
+   (void*)(AMSTrIdSoft::gains+AMSTrIdSoft::_numel/2)));
+TID.add (new AMSTimeID(AMSID("TrackerSigmas.l",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel/2,
    (void*)AMSTrIdSoft::sigmas));
-// change deliberately one sigma;
-// AMSTrIdSoft::sigmas[1]=3.44;
-TID.add (new AMSTimeID(AMSID("TrackerStatus",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel,
+TID.add (new AMSTimeID(AMSID("TrackerSigmas.r",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel/2,
+   (void*)(AMSTrIdSoft::sigmas+AMSTrIdSoft::_numel/2)));
+TID.add (new AMSTimeID(AMSID("TrackerStatus.l",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel/2,
    (void*)AMSTrIdSoft::status));
+TID.add (new AMSTimeID(AMSID("TrackerStatus.r",isRealData()),
+   begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel/2,
+   (void*)(AMSTrIdSoft::status+AMSTrIdSoft::_numel/2)));
 TID.add (new AMSTimeID(AMSID("TrackerCmnNoise",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::cmnnoise),
    (void*)AMSTrIdSoft::cmnnoise));
@@ -1436,6 +1459,15 @@ AMSTimeID * AMSJob::gettimestructure(){
      AMSNode *p=JobMap.getp(id);
      if(!p){
       cerr << "AMSJob::gettimestructe-F-no time structre found"<<endl;
+      exit(1);
+     }
+     else return  (AMSTimeID*)p;
+}
+
+AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
+     AMSNode *p=JobMap.getp(id);
+     if(!p){
+       cerr << "AMSJob::gettimestructe-F-no time structre found "<<id<<endl;
       exit(1);
      }
      else return  (AMSTimeID*)p;
@@ -1707,6 +1739,9 @@ void AMSJob::_setorbit(){
 //           Header
     DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcdaqlength,
     &AMSEvent::builddaq);
+//           Header Tracker HK
+    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcTrackerHKl,
+    &AMSEvent::buildTrackerHKdaq,4);
 }
 
 
@@ -1745,13 +1780,31 @@ void AMSJob::_setorbit(){
 
 }    
 
-} 
+
+{
+//           tracker H/K Static
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSid,&AMSTrRawCluster::updstatusS,4);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSid,&AMSTrRawCluster::updpedS,4);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigmaSid,&AMSTrRawCluster::updsigmaS,4);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
+    &AMSTrRawCluster::calcstatusSl,&AMSTrRawCluster::writestatusS,4);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
+    &AMSTrRawCluster::calcpedSl,&AMSTrRawCluster::writepedS,4);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
+    &AMSTrRawCluster::calcsigmaSl,&AMSTrRawCluster::writesigmaS,4);
+
+
+}    
+
+
+
+
+}
 else {
       cerr <<"AMSJob::_redaqinitjob-E-NoYetDAQFormat for "<<
       AMSJob::gethead()->getsetup()<<endl;
 }
-
-
 }
 
 

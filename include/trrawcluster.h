@@ -72,9 +72,28 @@ static void sitkdigi();
  static void builddaqRaw(integer i, integer n, int16u *p);
  static void buildrawRaw(integer n, int16u *p);
  integer TestRawMode();
-
-
-
+  // H/K data read
+  static integer checkstatusSid(int16u id) ;
+  static integer checkpedSid(int16u id) ;
+  static integer checksigmaSid(int16u id);
+  static void updstatusS(integer length,int16u *p); 
+  static void updpedS(integer length,int16u *p); 
+  static void updsigmaS(integer length,int16u *p); 
+  // H/K data simulate
+  static int16u getstatusSid(int i) ;
+  static int16u getpedSid(int i) ;
+  static int16u getsigmaSid(int i);
+  static integer getmaxblockS(){return 2;}
+  static void writestatusS(integer i, integer length,int16u *p); 
+  static void writepedS(integer i, integer length,int16u *p); 
+  static void writesigmaS(integer i, integer length,int16u *p); 
+  static integer calcstatusSl(int i);
+  static integer calcpedSl(int i);
+  static integer calcsigmaSl(int i);
+  // H/K TDV correspondance
+  static AMSID getTDVstatus(int i);
+  static AMSID getTDVped(int i);
+  static AMSID getTDVsigma(int i);
 };
 
 #endif

@@ -5,14 +5,16 @@
 #include <commons.h>
 
 integer DAQEvent::_Buffer[512];
+integer DAQEvent::_BufferLock=0;
 const integer lover=2;
 DAQEvent::~DAQEvent(){
-if(_Length*sizeof(_pData[0])>sizeof(_Buffer))UPool.udelete(_pData);
+shrink();
 }
 
 void DAQEvent::shrink(){
 
-if(_Length*sizeof(_pData[0])>sizeof(_Buffer))UPool.udelete(_pData);
+if(_pData && !_BufferOwner)UPool.udelete(_pData);
+if(_BufferOwner)_BufferLock=0;
 _pData=0;
 _Length=0;
 _pcur=0;
@@ -21,6 +23,7 @@ _Run=0;
 _RunType=0;
 _Time=0;
 _Checked=0;
+_BufferOwner=0;
 }
 
 DAQSubDet * DAQEvent::_pSD[nbtps]={0,0,0,0,0,0,0,0};
@@ -91,9 +94,12 @@ while(fpl){
 // Make array
 
 
-_Length=lover+ntot;
-
+if(ntot)_Length=lover+ntot;
 #ifdef __AMSDEBUG__
+if(_Length > 65535){
+  cerr<<"DAQEvent::buildDAQ-F-lengthToobig "<<_Length<<endl;
+  exit(1);
+}
 assert(sizeof(time_t) == sizeof(integer));
 #endif
 
@@ -152,7 +158,7 @@ integer DAQEvent::_HeaderOK(){
 
 
 void DAQEvent::buildRawStructures(){
-  if(_Checked ||(_EventOK()==1 && (_GetBlType()!=0 || _HeaderOK()))){
+  if(_Checked ||(_EventOK()==1 && (_HeaderOK()))){
    DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
    for(_pcur=_pData+lover;_pcur < _pData+_Length;_pcur=_pcur+*_pcur+_OffsetL){
@@ -179,14 +185,13 @@ void DAQEvent::buildRawStructures(){
 
 
 void DAQEvent::write(){
-
-   _convert();
-   fbout.write((unsigned char*)_pData,sizeof(_pData[0])*_Length);
-
+  if(_Length){
+    _convert();
+    fbout.write((unsigned char*)_pData,sizeof(_pData[0])*_Length);
    // Unfortunately we shoulf flush output for each event
    //
    fbout.flush();
-
+  }
 
 }
 
@@ -215,7 +220,7 @@ integer DAQEvent::read(){
      else break;
     }
     else break;  
-  }while(_EventOK()==0 || (_HeaderOK()==0 && _GetBlType()==0));
+  }while(_EventOK()==0 || (_HeaderOK()==0 ));
    return fbin.good() && !fbin.eof();
 }
 
@@ -353,13 +358,15 @@ DAQEventI::~DAQEventI(){
 }
 
 integer DAQEvent::_create(uinteger btype){
-#ifdef __AMSDEBUG__
-assert (_Length >0);
-#endif
 if(_pData)shrink();
-if(_Length*sizeof(_pData[0])> sizeof(_Buffer))
+if(_Length <=0 )return 0;
+if(_Length*sizeof(_pData[0])> sizeof(_Buffer) || _BufferLock)
 _pData= (int16u*)UPool.insert(sizeof(_pData[0])*_Length);
-else _pData=(int16u*)_Buffer;
+else {
+_pData=(int16u*)_Buffer;
+_BufferOwner=1;
+_BufferLock=1;
+}
 if(_pData){
  _pData[0]=_Length-_OffsetL;
  _pData[1]=btype<<13;  // Event ID

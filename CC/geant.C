@@ -465,7 +465,7 @@ static integer event=0;
       AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
       new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
       pdaq->runtype(),pdaq->time())));
-      AMSEvent::gethead()->addnext(AMSID("DAQEvent",0), pdaq);
+      AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
       guout_();
       if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;
       GCFLAG.IEVENT++;

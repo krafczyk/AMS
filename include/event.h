@@ -158,13 +158,16 @@ inline void printH(){
 }
 
 // Interface with DAQ
-static int16u  getdaqid(){return 0x200;}
-static integer checkdaqid(int16u id){return id==getdaqid();}
+static int16u  getdaqid(int btype){return 0x200 | btype <<13;}
+static integer checkdaqid(int16u id);
 static void buildraw(integer length, int16u *p, uinteger &run, uinteger &event,
 uinteger & runtype, time_t & time); 
 static integer getmaxblocks(){return 1;}
 static integer calcdaqlength(integer i){return 1+2+1+2+3;}
+static integer calcTrackerHKl(integer i);
 static void builddaq(integer i, integer length, int16u *p);
+static void buildTrackerHKdaq(integer i, integer length, int16u *p);
+
 
 
 };

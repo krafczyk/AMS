@@ -203,6 +203,7 @@ void data();
 void udata();
 void init();
 AMSTimeID * gettimestructure();
+AMSTimeID * gettimestructure(const AMSID & id);
 void printJ(ostream & stream);
 static integer debug;
 static void map(integer remap=0){remap==0?JobMap.map(*_Head):JobMap.remap();}
