@@ -15,9 +15,10 @@ endif
 endif
 
 GCINCS=-I$(PREF)/include/python2.2 -I$(AMSWD)/include -I$(ROOTSYS)/include
-LIBS=-L$(ROOTSYS)/lib -lCore -lCint -lHist -lTree -lMatrix -lMinuit \
+LIBS= $(AMSOBJDIR)/root_rs.o $(AMSOBJDIR)/rootdict_s.o \
+-L$(ROOTSYS)/lib -lCore -lCint -lHist -lTree -lMatrix -lMinuit \
 -lGraf -lGraf3d -lGpad -lGX11 -lGX11TTF -lGui -lHistPainter -lPostscript \
--lRint -lHtml $(AMSOBJDIR)/root_rs.o $(AMSOBJDIR)/rootdict_s.o
+-lRint -lHtml
 MYLIB=$(MY_OS)/_$(file).so
 MYPY=$(MY_OS)/$(file).py
 MYPYC=$(MY_OS)/$(file).pyc
