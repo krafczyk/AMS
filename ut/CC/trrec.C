@@ -18,6 +18,7 @@
 #include <ntuple.h>
 #include <cont.h>
 #include <tkdbc.h>
+#include <trigger3.h>
 
 
 
@@ -31,6 +32,7 @@ const integer AMSTrCluster::NEAR=2;
 const integer AMSTrCluster::REFITTED=4;
 const integer AMSTrCluster::WEAK=8;
 const integer AMSTrRecHit::FalseX=1;
+const integer AMSTrRecHit::FalseTOFX=2;
 
 integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       1,2,3,4,6,0,   // 12346   1
@@ -123,7 +125,7 @@ integer AMSTrTrack::patpoints[npat]=
                3,3,3,3,3,3,3,3,3,3,3,3,3,3};
 
 
-integer AMSTrCluster::build(integer refit=0){
+integer AMSTrCluster::build(integer refit){
   AMSlink * OriginalLast[2];
   integer OriginalNumber[2];
   AMSContainer * pct[2];
@@ -361,7 +363,7 @@ integer AMSTrCluster::build(integer refit=0){
 
 
 
-integer AMSTrCluster::buildWeak(integer refit=0){
+integer AMSTrCluster::buildWeak(integer refit){
   AMSlink * OriginalLast[2];
   integer OriginalNumber[2];
   AMSContainer * pct[2];
@@ -791,7 +793,7 @@ for(int i=0;i<2;i++){
 AMSTrRecHit * AMSTrRecHit::_Head[6]={0,0,0,0,0,0};
 
 
-integer AMSTrRecHit::build(integer refit=0){
+integer AMSTrRecHit::build(integer refit){
   if(refit){
     // Cleanup all  containers
     int i;
@@ -848,7 +850,7 @@ integer AMSTrRecHit::build(integer refit=0){
 
 
 
-integer AMSTrRecHit::buildWeak(integer refit=0){
+integer AMSTrRecHit::buildWeak(integer refit){
   if(refit){
    return -1;
   } 
@@ -906,7 +908,7 @@ integer AMSTrRecHit::buildWeak(integer refit=0){
  void AMSTrRecHit::_addnext(AMSgSen * pSen, integer status, integer layer, AMSTrCluster *x,
                             AMSTrCluster * y, const AMSPoint & hit,
                             const AMSPoint & ehit){
-    number s1,s2;
+    number s1=0,s2=0;
     if(x)s1=x->getVal();
     if(y)s2=y->getVal();
     if(x)x->setstatus(AMSDBc::USED);
@@ -957,7 +959,7 @@ if(init++==0){
     }
 
 
-  if(!checkstatus(AMSTrRecHit::FalseX) && 
+  if(!checkstatus(AMSTrRecHit::FalseX) && !checkstatus(AMSTrRecHit::FalseTOFX) &&
       ((_Xcl->getid()).getlayer() != _Layer) || 
      ((_Ycl->getid()).getlayer() != _Layer) ){
     cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
@@ -987,7 +989,7 @@ for(int i=0;i<6;i++){
 geant AMSTrTrack::_Time=0;
 
 
-integer AMSTrTrack::build(integer refit=0){
+integer AMSTrTrack::build(integer refit){
   integer NTrackFound=-1;
   // pattern recognition + fit
   if(refit){
@@ -1121,7 +1123,7 @@ return NTrackFound;
 
 
 
-integer AMSTrTrack::buildWeak(integer refit=0){
+integer AMSTrTrack::buildWeak(integer refit){
   integer NTrackFound=-1;
   // pattern recognition + fit
   if(refit){
@@ -1211,7 +1213,7 @@ return NTrackFound;
 
 
 
-integer AMSTrTrack::buildFalseX(integer refit=0){
+integer AMSTrTrack::buildFalseX(integer refit){
   integer NTrackFound=-1;
   // pattern recognition + fit
   if(refit){
@@ -2079,3 +2081,322 @@ if(init == 0){
 }
 return (WriteAll || status);
 }
+
+/* This function creates a false AMSTrRecHit for each S-AMSTrCluster */
+/* consistent with TOF information. The X coordinate is imposed from */
+/* the straight line fit to >=3 TOF planes in the XZ projection      */
+
+integer AMSTrTrack::makeFalseTOFXHits(){
+
+    int i;
+
+    TriggerLVL3 *plvl3;
+    plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+// LVL3 required if existing
+    if ( plvl3==NULL) {
+#ifdef __AMSDEBUG__
+      cout << "makeFalseTOFXHits: No Level3 Trigger existing" << endl;
+#endif
+      return 1;
+    }
+    if ( plvl3->skip() ) return 1;
+
+    AMSTOFCluster *phit[4], *ploop;
+
+// There should be one and only one AMSTOFCluster on planes 1, 4
+// according to LVL3 trigger
+    phit[0] = AMSTOFCluster::gethead(0);
+    if ( (phit[0] == NULL) || (phit[0]->next()) ) return 1;
+    phit[3] = AMSTOFCluster::gethead(3);
+    if ( (phit[3] == NULL) || (phit[3]->next()) ) return 1;
+
+// Initial straight line from planes 1 and 4 for ZX projection
+    number slope_x= (phit[3]->getcoo()[0] - phit[0]->getcoo()[0]) /
+               (phit[3]->getcoo()[2] - phit[0]->getcoo()[2]);
+    number intercept_x= phit[0]->getcoo()[0] - slope_x*phit[0]->getcoo()[2];
+
+// Look for the best AMSTOFCluster on plane 2 within errors
+// to improve the X prediction on the tracker
+    number resmax2=(number)TRFITFFKEY.SearchRegTOF;
+    phit[1]=NULL;
+    for (ploop = AMSTOFCluster::gethead(1); ploop ; ploop=ploop->next() ){
+      number resx2 = fabs(ploop->getcoo()[0] 
+                          - slope_x*ploop->getcoo()[2] - intercept_x);
+      if (resx2<resmax2) {
+        resmax2 = resx2;
+        phit[1] = ploop;
+      }
+    }
+
+// Look for the best AMSTOFCluster on plane 3 within errors
+// to improve the X prediction
+    number resmax3=(number)TRFITFFKEY.SearchRegTOF;
+    phit[2]=NULL;
+    for (ploop = AMSTOFCluster::gethead(2); ploop ; ploop=ploop->next() ){
+      number resx3 = fabs(ploop->getcoo()[0] 
+                          - slope_x*ploop->getcoo()[2] - intercept_x);
+      if (resx3<resmax3) {
+        resmax3 = resx3;
+        phit[2] = ploop;
+      }
+    }
+
+// We require at least 3 AMSTOFClusters
+    if ( (phit[1]==NULL) && (phit[2]==NULL) ) return 1;
+
+// Final Straight line parameters for the ZX plane 
+// (TOFCalib dependent, but we need accuracy)
+    number sw=0, sz=0, sx=0, sxz=0, szz=0;
+    for (i=0; i<4; i++){
+      if (phit[i]==NULL) continue;
+      number w = phit[i]->getecoo()[0]; if (w<=0.) continue; w = 1./w/w;
+      number x = phit[i]->getcoo()[0];
+      number z = phit[i]->getcoo()[2];
+      sw += w;
+      sx += x*w;
+      sz += z*w;
+      sxz += x*z*w;
+      szz += z*z*w;
+    }
+    number determinant = szz*sw-sz*sz;
+    slope_x = (sxz*sw-sx*sz)/determinant;
+    intercept_x = (szz*sx-sz*sxz)/determinant;
+    number covss = sw/determinant;
+    number covsi = -sz/determinant;
+    number covii = szz/determinant;
+
+// Straight line parameters for the ZY plane 
+// (Only planes 1,4 => TOFCalib independent, but robust and enough)
+    number slope_y= (phit[3]->getcoo()[1] - phit[0]->getcoo()[1]) /
+               (phit[3]->getcoo()[2] - phit[0]->getcoo()[2]);
+    number intercept_y= phit[0]->getcoo()[1] - slope_y*phit[0]->getcoo()[2];
+
+// Create Fake AMSTrRecHits on all tracker planes containing sensible Y clusters
+    AMSTrCluster *py;
+    for (py=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0);
+         py != NULL ; py=py->next()) {
+// Do nothing for cad clusters
+      if (py->checkstatus(AMSDBc::BAD) != 0) continue;
+// SoftId, approximate IdGeom and approximate gSensor
+      AMSTrIdSoft idsoft = py->getid();
+      integer layer = idsoft.getlayer();
+      integer ladder = idsoft.getdrp();
+      integer half = idsoft.gethalf();
+      integer sensor;
+      if (half==0) 
+                   sensor = 5; 
+      else 
+                   sensor = AMSDBc::nsen(layer,ladder) - 5;
+      AMSTrIdGeom idgeom(layer,ladder,sensor,0,0);
+      AMSgSen *psensor=(AMSgSen*)AMSJob::gethead()->getgeomvolume(idgeom.crgid());
+      idgeom.R2G(idsoft);
+// Get the approximate global y coordinate
+      AMSPoint glopos = psensor->str2pnt(0.,py->getcofg(1,&idgeom));
+// Impose the X global coordinate from TOF
+      glopos[0] = intercept_x + slope_x*glopos[2];
+// Do not use if it is far away from TOF prediction
+      if (fabs(glopos[1] - intercept_y - slope_y*glopos[2])
+                             > TRFITFFKEY.SearchRegTOF) continue;
+// Find now the right sensor number on the ladder
+// And do not use it if TOF prediction is far away from the ladder
+      AMSPoint sensor_size(   psensor->getpar(0)
+                              , psensor->getpar(1)
+                              , psensor->getpar(2));
+      if(idgeom.FindAtt(glopos,sensor_size)==0) continue;
+// Go to local coordinates to get a better global position
+      AMSPoint locpos = psensor->gl2loc(glopos);
+      glopos = psensor->str2pnt(locpos[0]+sensor_size[0],py->getcofg(1,&idgeom));
+// Error
+      AMSPoint gloerr;
+      gloerr[0] = sqrt(covii+2*glopos[2]*covsi+glopos[2]*glopos[2]*covss);
+      gloerr[1] = py->getecofg();
+      gloerr[2] = (number)TRCLFFKEY.ErrZ;
+
+// Create a new Fake hit with TOF on X
+      AMSTrRecHit::_addnext(
+        psensor,
+        AMSTrRecHit::FalseTOFX,
+        idsoft.getlayer(),
+        0,
+        py,
+        glopos,
+        gloerr );
+        // cout << "makeFalseTOFXHits: New Hit done at plane " << 
+        //           idsoft.getlayer() << glopos << gloerr << endl;
+    }
+    return 0;
+}
+
+integer AMSTrTrack::buildFalseTOFX(integer refit){
+  integer NTrackFound=-1;
+  // pattern recognition + fit
+  if(refit){
+    // Cleanup all track containers
+    int i;
+    for(i=0;;i++){
+      AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrTrack",i);
+      if(pctr)pctr->eraseC();
+      else break ;
+    }
+  } 
+  _RefitIsNeeded=0;
+  _Start();
+  // Add test here
+
+// Build Fake Clusters with TOF
+  integer hitstatus = makeFalseTOFXHits();
+  if (hitstatus!=0) return -1;
+   
+  { 
+    int xs=0; 
+    for (int kk=0;kk<6;kk++){
+      AMSTrRecHit * phit;
+      for (phit=AMSTrRecHit::gethead(kk); phit!=NULL; phit=phit->next()){
+        if (phit->getstatus()==AMSTrRecHit::FalseTOFX) {
+          xs++; 
+          break;
+        }
+      }
+    }
+    if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
+    else return -1;
+  }
+
+  for (int pat=0;pat<npat;pat++){
+    AMSTrRecHit * phit[6]={0,0,0,0,0,0};
+    if(TRFITFFKEY.pattern[pat]){
+      int fp=patpoints[pat]-1;    
+      // Try to make StrLine Fit
+      integer first=AMSTrTrack::patconf[pat][0]-1;
+      integer second=AMSTrTrack::patconf[pat][fp]-1;
+      phit[0]=AMSTrRecHit::gethead(first);
+      number par[2][2];
+      while( phit[0]){
+       if (phit[0]->getstatus()!=AMSTrRecHit::FalseTOFX){
+         phit[0] = phit[0]->next();
+         continue;
+       }
+       if(TRFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0){
+       phit[fp]=AMSTrRecHit::gethead(second);
+       while( phit[fp]){
+         if (phit[fp]->getstatus()!=AMSTrRecHit::FalseTOFX){
+           phit[fp] = phit[fp]->next();
+           continue;
+         }
+        if(TRFITFFKEY.FullReco || phit[fp]->checkstatus(AMSDBc::USED)==0){
+        par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
+        par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
+        if(NTrackFound<0)NTrackFound=0;
+        // Search for others
+        phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
+        while(phit[1]){
+         if (phit[1]->getstatus()!=AMSTrRecHit::FalseTOFX){
+           phit[1] = phit[1]->next();
+           continue;
+         }
+         if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
+          // Check if the point lies near the str line
+           if(AMSTrTrack::DistanceTOF(par,phit[1]))
+           {phit[1]=phit[1]->next();continue;}
+          if(AMSTrTrack::patpoints[pat] >3){         
+         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
+         while(phit[2]){
+          if (phit[2]->getstatus()!=AMSTrRecHit::FalseTOFX){
+            phit[2] = phit[2]->next();
+            continue;
+          }
+          // Check if the point lies near the str line
+          if(TRFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0){
+          if(AMSTrTrack::DistanceTOF(par,phit[2]))
+          {phit[2]=phit[2]->next();continue;}
+          if(AMSTrTrack::patpoints[pat] >4){         
+          phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
+          while(phit[3]){
+           if (phit[3]->getstatus()!=AMSTrRecHit::FalseTOFX){
+             phit[3] = phit[3]->next();
+             continue;
+           }
+           if(TRFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0){
+           if(AMSTrTrack::DistanceTOF(par,phit[3]))
+           {phit[3]=phit[3]->next();continue;}
+           if(AMSTrTrack::patpoints[pat]>5){
+           phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
+           while(phit[4]){
+             if (phit[4]->getstatus()!=AMSTrRecHit::FalseTOFX){
+               phit[4] = phit[4]->next();
+               continue;
+             }
+             if(TRFITFFKEY.FullReco || phit[4]->checkstatus(AMSDBc::USED)==0){
+              if(AMSTrTrack::DistanceTOF(par,phit[4]))
+              {phit[4]=phit[4]->next();continue;}
+                // 6 point combination found
+              if(AMSTrTrack::_addnext(pat,6,phit)){
+                  // cout << "FalseTOFX track found with 5 hits" << endl;
+                  NTrackFound++;
+                  goto out;
+              }                
+                
+             }
+            phit[4]=phit[4]->next();
+           }
+           }
+           else{  // 5 points only
+                // 5 point combination found
+             if(AMSTrTrack::_addnext(pat,5,phit)){
+                  // cout << "FalseTOFX track found with 5 hits" << endl;
+                  NTrackFound++;
+                  goto out;
+             }
+                
+           }
+           }
+           phit[3]=phit[3]->next();
+          }
+          }
+          else{       // 4 points only
+                // 4 point combination found
+                
+                if(AMSTrTrack::_addnext(pat,4,phit)){
+                  // cout << "FalseTOFX track found with 4 hits" << endl;
+                  NTrackFound++;
+                  goto out;
+                }                
+          }
+          }
+          phit[2]=phit[2]->next();
+          }
+          }
+          }
+         phit[1]=phit[1]->next();
+        }
+        }         
+        phit[fp]=phit[fp]->next();
+       }
+       }  
+out:
+       phit[0]=phit[0]->next();
+      }
+      
+    }
+  }
+return NTrackFound;
+}
+
+integer AMSTrTrack::DistanceTOF(number par[2][2], AMSTrRecHit *ptr){
+const integer freq=10;
+static integer trig=0;
+trig=(trig+1)%freq;
+           if(trig==0 && _CheckTime()>AMSFFKEY.CpuLimit){
+            throw AMSTrTrackError(" Cpulimit Exceeded ");
+           }
+
+   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0])/
+            sqrt(1+par[0][0]*par[0][0]) > TRFITFFKEY.SearchRegTOF ||
+          fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])/
+            sqrt(1+par[1][0]*par[1][0]) > TRFITFFKEY.SearchRegCircle;
+}
+

@@ -311,11 +311,13 @@ Tracker clusters:
 8 - "weak" cluster
  TrRecHits:
 1 - FalseX
+2 - FalseTOFX
 4 - Ambiguous hit (i.e. several tracks are used it)
 8 - At least one "weak" cluster
 
 Tracks:
 1 - FalseX
+2 - FalseTOFX
 
 **) Pointers to beta, charge, track, trrechit, trclusters are OK now
 

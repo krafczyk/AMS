@@ -293,6 +293,12 @@ void AMSTrIdGeom::R2Gx(integer stripx){
 
 }
 
+void AMSTrIdGeom::R2G(const AMSTrIdSoft &id){
+   integer strip = id.getstrip();
+   if (id.getside()==0) R2Gx(strip);
+   else R2Gy(strip);
+}
+
 
 AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
   static AMSTrIdGeom spid[20];

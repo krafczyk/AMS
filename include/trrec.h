@@ -109,8 +109,8 @@ number val[]);
 AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
 //default builder
-static integer build(integer refit);
-static integer buildWeak(integer refit);
+static integer build(integer refit=0);
+static integer buildWeak(integer refit=0);
 
 static void print();
 AMSTrCluster():AMSlink(){_NelemL=0; _NelemR=0;_pValues=0;};
@@ -130,6 +130,7 @@ integer operator < (AMSlink & o) const {
 class AMSTrRecHit: public AMSlink{
 public:
      static const integer FalseX;
+     static const integer FalseTOFX;
 protected:
 AMSgSen * _pSen;
 AMSTrCluster *_Xcl;
@@ -186,8 +187,8 @@ AMSTrRecHit(AMSgSen *p, integer good,integer layer, AMSTrCluster * xcl, AMSTrClu
             _pSen(p), _Layer(layer),_Xcl(xcl),
             _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs){};
 AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0){};
-static integer build(integer refit);
-static integer buildWeak(integer refit);
+static integer build(integer refit=0);
+static integer buildWeak(integer refit=0);
 static void print();
 static integer Out(integer);
 number getsum()const{return _Sum;}
@@ -275,6 +276,7 @@ static geant _Time;
 static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer Distance(number par[2][2], AMSTrRecHit *ptr);
+static integer DistanceTOF(number par[2][2], AMSTrRecHit *ptr);
 static integer patpoints[npat];
 static integer patconf[npat][6];
 static integer patmiss[npat][6];
@@ -317,9 +319,11 @@ AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]):
 AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
   {init(  phit);}
 void init( AMSTrRecHit * phit[]);
-static integer build(integer refit);
-static integer buildWeak(integer refit);
-static integer buildFalseX(integer refit);
+static integer build(integer refit=0);
+static integer buildWeak(integer refit=0);
+static integer buildFalseX(integer refit=0);
+static integer makeFalseTOFXHits();
+static integer buildFalseTOFX(integer refit=0);
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<6? _Pthit[i]:0;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 

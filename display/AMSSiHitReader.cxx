@@ -136,7 +136,7 @@ Bool_t AMSSiHitReader::Enabled(TObject * obj)
   AMSSiHit * hit = (AMSSiHit *) obj;
   Int_t status = hit->GetStatus();
   // debugger.Print("SiHit status = %d\n", status);
-  if ( DrawUsedHitsOnly && status != 32 ) return kFALSE;
+  if ( DrawUsedHitsOnly && !(status & 32) ) return kFALSE;
   else                                    return kTRUE;
 }
 

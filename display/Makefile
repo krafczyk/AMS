@@ -9,7 +9,7 @@ SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
                 /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
 
 CXX           =  cxx
-CXXFLAGS      =  -I$(ROOTSYS)/include -I/usr/include
+CXXFLAGS      =  -I$(ROOTSYS)/include -I/usr/include -I/usr/include/cxx
 OPT           = -g -DROOT10308
 NOOPT         = 
 LD            = cxx 

@@ -866,6 +866,7 @@ depend:
 ../bin/osf1/trrec.o: ../include/trrawcluster.h ../include/extC.h
 ../bin/osf1/trrec.o: ../include/tofrec.h ../include/tofdbc.h
 ../bin/osf1/trrec.o: ../include/ntuple.h ../include/tkdbc.h
+../bin/osf1/trrec.o: ../include/trigger3.h
 ../bin/osf1/uzstat.o: ../include/uzstat.h ../include/cern.h
 ../bin/osf1/uzstat.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/uzstat.o: /usr/include/standards.h
@@ -1166,7 +1167,7 @@ depend:
 ../bin/osf1/trrawcluster.o: /usr/include/sys/times.h
 ../bin/osf1/trrawcluster.o: ../include/daqevt.h ../include/extC.h
 ../bin/osf1/trrawcluster.o: ../include/mccluster.h ../include/ctcdbc.h
-../bin/osf1/trrawcluster.o: ../include/tofdbc.h
+../bin/osf1/trrawcluster.o: ../include/tofdbc.h ../include/ntuple.h
 ../bin/osf1/tofrec.o: ../include/point.h ../include/typedefs.h
 ../bin/osf1/tofrec.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/tofrec.o: /usr/include/cxx/iostream.h
@@ -1582,7 +1583,7 @@ depend:
 ../bin/osf1/tofdbc.o: /usr/include/machine/context.h
 ../bin/osf1/tofdbc.o: /usr/include/sys/procset.h ../include/mceventg.h
 ../bin/osf1/tofdbc.o: ../include/io.h /usr/include/sys/times.h
-../bin/osf1/tofdbc.o: ../include/daqevt.h
+../bin/osf1/tofdbc.o: ../include/daqevt.h ../include/tofcalib.h
 ../bin/osf1/ctcrec.o: ../include/point.h ../include/typedefs.h
 ../bin/osf1/ctcrec.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/ctcrec.o: /usr/include/cxx/iostream.h
@@ -2268,24 +2269,24 @@ depend:
 ../bin/osf1/user.o: /usr/include/cxx/fstream.hxx ../include/cern.h
 ../bin/osf1/user.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/user.o: ../include/geant321.h ../include/geant321g.h
-../bin/osf1/user.o: ../include/user.h ../include/trrec.h
+../bin/osf1/user.o: ../include/trid.h ../include/amsdbc.h
+../bin/osf1/user.o: ../include/amsstl.h /usr/include/math.h
 ../bin/osf1/user.o: ../include/upool.h /usr/include/cxx/new.h
-../bin/osf1/user.o: /usr/include/cxx/new.hxx ../include/apool.h
+../bin/osf1/user.o: /usr/include/cxx/new.hxx ../include/commons.h
+../bin/osf1/user.o: ../include/link.h ../include/apool.h
 ../bin/osf1/user.o: ../include/node.h ../include/id.h
 ../bin/osf1/user.o: /usr/include/cxx/strstream.h
 ../bin/osf1/user.o: /usr/include/cxx/strstream.hxx ../include/snode.h
-../bin/osf1/user.o: ../include/gsen.h ../include/gvolume.h
-../bin/osf1/user.o: ../include/amsdbc.h ../include/point.h
-../bin/osf1/user.o: /usr/include/math.h ../include/trid.h
-../bin/osf1/user.o: ../include/amsstl.h ../include/commons.h
-../bin/osf1/user.o: ../include/link.h ../include/job.h
-../bin/osf1/user.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/user.o: ../include/job.h ../include/gvolume.h
+../bin/osf1/user.o: ../include/point.h ../include/gmat.h
+../bin/osf1/user.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/user.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/user.o: /usr/include/cxx/generic.hxx
 ../bin/osf1/user.o: /usr/include/cxx/mutex.hxx ../include/amsgobj.h
 ../bin/osf1/user.o: ../include/uzstat.h ../include/timeid.h
 ../bin/osf1/user.o: /usr/include/time.h /usr/include/sys/timers.h
-../bin/osf1/user.o: /usr/include/sys/sysmisc.h ../include/cont.h
+../bin/osf1/user.o: /usr/include/sys/sysmisc.h ../include/trrec.h
+../bin/osf1/user.o: ../include/gsen.h ../include/cont.h
 ../bin/osf1/user.o: ../include/event.h /usr/include/sys/time.h
 ../bin/osf1/user.o: /usr/include/sys/signal.h
 ../bin/osf1/user.o: /usr/include/sys/siginfo.h
@@ -2293,4 +2294,4 @@ depend:
 ../bin/osf1/user.o: /usr/include/machine/context.h
 ../bin/osf1/user.o: /usr/include/sys/procset.h ../include/mceventg.h
 ../bin/osf1/user.o: ../include/io.h /usr/include/sys/times.h
-../bin/osf1/user.o: ../include/daqevt.h
+../bin/osf1/user.o: ../include/daqevt.h ../include/user.h

@@ -35,6 +35,7 @@ integer FindAtt(const AMSPoint & pnt,  AMSPoint  size);
 integer operator == (const AMSTrIdGeom &o);
 void R2Gx(integer stripx);
 void R2Gy(integer stripy);
+void R2G(const AMSTrIdSoft &id);
 number  getsize(integer side)const;
 number  getcofg(integer side, integer shift, integer & error)const;
 inline void upd(integer side,integer strip){

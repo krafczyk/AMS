@@ -343,6 +343,8 @@ void AMSEvent::_retkinitevent(){
 
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseX",i),&AMSTrTrack::buildFalseX,0));
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseTOFX",i),&AMSTrTrack::buildFalseTOFX,0));
 }
 
 void  AMSEvent::write(){
@@ -450,8 +452,8 @@ void AMSEvent::_reamsevent(){
   _retofevent();
   _reantievent();
   _rectcevent(); 
-  _retkevent(); 
 if(AMSJob::gethead()->isReconstruction() )_retrigevent();
+  _retkevent(); 
   _reaxevent();
    AMSUser::Event();
 }
@@ -554,23 +556,38 @@ AMSgObj::BookTimer.stop("TrRecHit");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrRecHit::print();
 #endif
+
 AMSgObj::BookTimer.start("TrTrack");
-if( (buildC("AMSTrTrack",refit)==0) && TRFITFFKEY.WeakTracking ){
- buildC("AMSTrClusterWeak",refit);
- buildC("AMSTrRecHitWeak",refit);
- if(buildC("AMSTrTrackWeak",refit)==0 && TRFITFFKEY.FalseXTracking){
-  
-  integer itrk=buildC("AMSTrTrackFalseX",refit);
-  if(itrk>0){
-       itrk=buildC("AMSTrTrack",refit);
-  }
+
+integer itrk=0;
+
+// Default reconstruction: 4S + 4K or more
+itrk = buildC("AMSTrTrack",refit);
+
+// Reconstruction with looser cuts on the K side
+if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.WeakTracking ){
+  buildC("AMSTrClusterWeak",refit);
+  buildC("AMSTrRecHitWeak",refit);
+  itrk = buildC("AMSTrTrackWeak",refit);
+}
+
+// Reconstruction of 4S + 3K
+if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
+  itrk=buildC("AMSTrTrackFalseX",refit);
+  if(itrk>0) itrk=buildC("AMSTrTrack",refit);
 #ifdef __AMSDEBUG__
   if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
-   
 #endif
- }
- 
 }
+
+// Reconstruction of 4S + TOF
+if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseTOFXTracking ){
+  itrk=buildC("AMSTrTrackFalseTOFX",refit);
+#ifdef __AMSDEBUG__
+  if (itrk>0) cout << "FalseTOFX - Track found "<< itrk << endl;
+#endif
+}
+ 
 AMSgObj::BookTimer.stop("TrTrack");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrTrack::print();
