@@ -13,7 +13,7 @@
 #                 TDV tables are modified, use indices instead of TDV name 
 #                 in tables, keep three tables with partitions for all TDVs
 #
-#                                                 Last Edit : March 2, 2001.
+#                                                 Last Edit : August 6, 2001.
 
 
 
@@ -46,7 +46,7 @@ ndataset  number(5)
 
 
 
-Table m_dataset_types
+Table m_datasetfiles
 ----------------------
 #
 # Datasets from m_datasets have different DST, NTUPLES, preselected NTUPLES,
@@ -91,7 +91,10 @@ Table m_tdv
       uinsert       number(24)   not null, insert time UNIX
       ubegin        number(24),            validity begin time UNIX
       uend          number(24),                     end
-      filepath      varchar(255) not null  path to TDV file
+      prodstat      number(5,0),  1/0 1 - production, 0 - not for the production
+      timestamp     number(24),  record insert time (UNIX)
+      dirpath       varchar(255) not null  path to TDV directory
+      filename      varchar(255) not null  TDV file name
 
      PARTITION by RANGE(ubegin)
     (PARTITION pre_STS91  VALUES LESS THAN (896824000),
@@ -109,16 +112,53 @@ Table m_tdv
 
 Table m_tdvdef
 --------------
-      idx           number(5,0)  not null,
-      tinsert       date         not null,
+      idx           number(5,0)   not null,
+      tinsert       date          not null,
       tbegin        date,
       tend          date,
-      uinsert       number(24)   not null,
+      uinsert       number(24)    not null,
       ubegin        number(24),
       uend          number(24),
-      filepath      varchar(255) not null
+      prodstat      number(5,0),  1/0 1 - production, 0 - not for the production
+      timestamp     number(24),   record insert time (UNIX)
+      dirpath       varchar(255), not null  path to TDV directory
+      filename      varchar(255)  not null  TDV file name
 
+Table m_tdv_blob
+--------------
+      idx        number(5,0)  not null,    index 
+      uinsert       number(24)   not null, insert time UNIX
+      ubegin        number(24),            validity begin time UNIX
+      uend          number(24),                     end
+      prodstat      number(5,0),  0/1/2 0 - not for the production
+                                        1 - valid for production
+                                        2 - just written to be confirmed
+      timestamp     number(24),  record insert time (UNIX)
+      tdv           blob
 
+     PARTITION by RANGE(ubegin)
+    (PARTITION pre_STS91  VALUES LESS THAN (896824000),
+     PARTITION STS91      VALUES LESS THAN (897688800),
+     PARTITION year_1998  VALUES LESS THAN (915145201),
+     PARTITION year_1999  VALUES LESS THAN (978303601),
+     PARTITION year_2000  VALUES LESS THAN (1009839601),
+     PARTITION year_2001  VALUES LESS THAN (1041462001),
+     PARTITION year_2002  VALUES LESS THAN (1072911601),
+     PARTITION year_2003  VALUES LESS THAN (1104534001),
+     PARTITION year_2004  VALUES LESS THAN (1136070001),
+     PARTITION year_2005  VALUES LESS THAN (1167606001),
+     PARTITION year_2006  VALUES LESS THAN (1199142001),
+     PARTITION year_2007  VALUES LESS THAN (1230764401)
+
+Table m_tdvdef_blob
+--------------
+      idx           number(5,0)   not null,
+      uinsert       number(24)    not null,
+      ubegin        number(24),
+      uend          number(24),
+      prodstat      number(5,0),  1/0 1 - production, 0 - not for the production
+      timestamp     number(24),   record insert time (UNIX)
+      tdv           blob
 
 Table m_runs_d :
 --------------
@@ -155,15 +195,41 @@ trigmask :  rules
             TOF : 4x4 && LEVEL3 : 
             (sub.detector ':' trigger ' AND '&&', OR '||')
  
+table m_mcruns_d
+--------------------------
+ NDATASET                        NOT NULL NUMBER(8)
+ RUN                             NOT NULL NUMBER(24)
+ RUNTYPE                                  VARCHAR2(255)
+ DAQTAG                                   VARCHAR2(7)
+ EVENTS                                   NUMBER(12)
+ PARTICLE                                 VARCHAR2(10)
+ ENERGYMIN                                NUMBER(8,1)
+ ENERGYMAX                                NUMBER(8,1)
+ SPECTRUM                                 VARCHAR2(255)
+ TRIGMASK                                 VARCHAR2(255)
+ POSITION                                 VARCHAR2(80)
+ PHI                                      NUMBER(5,2)
+ THETA                                    NUMBER(5,2)
+ X                                        NUMBER(6,2)
+ Y                                        NUMBER(6,2)
+ Z                                        NUMBER(6,2)
+ TIMEF                           NOT NULL DATE
+ TIMEL                           NOT NULL DATE
+ CDT                                      VARCHAR2(4)
+ RERUNFLAG                                NUMBER(4)
+ COMMENTS                                 VARCHAR2(255)
+ ERRORS                                   VARCHAR2(255)
+
+
+
 Table m_execs
 -------------
 EXE file description
 
  name      varchar(255)   // exec name
- path      varchar(255)   // official version
  id        number(20,0)   // id to refer
  version   number(10,2)   // version
- platform  number(5,0)    // platform id
+ platform  number(10,0)   // platform id
  compiler  number(10,0)   // compiler id
 
 Table m_platforms
@@ -192,15 +258,16 @@ m_prodinfo
 run                 number(24,0) run number NOT NULL
 idx                 number(24,0) run id     NOT NULL
 events              number(20,0) number of events in run
-fevent              number(20,0) run first event
-levent              number(20,0) run last event
+fevent              number(20,0) first event number
+levent              number(20,0) last event number
 eventsp             number(20,0) events processed
 lpevent             number(20,0) last processed event number
 CriticalErrors      number(10,0) critical errors
 Errors              number(10,0) errors
 CPUTime             number(20,4) cpu time (total)
-TimeSpent           number(20,4) elapsed time (total)  
-Status              number(5,0)      
+ElapsedTime         number(20,4) elapsed time (total)  
+Status              number(5,0)  run status
+prodid              number(20,0) production version and description
 HostId              number(5,0)
 timestamp           number(24,0)
 
@@ -219,11 +286,13 @@ Errors              number(10,0) errors
 CPUTime             number(20,4) cpu time (total)
 TimeSpent           number(20,4) elapsed time (total)  
 status         number(5,0), 
+
 execid         number(20,0)  program version and description  
+datacards      number(20,0)  datacards id
 hostid         number(6,0)   host id where program was executed
 timestamp      number(24,0)  record insertion time
 
-Table m_tags (? event time)
+Table m_tags 
 ------------------
 run            number(24,0) run number NOT NULL
 idx            number(24,0) run id NOT NULL
@@ -250,10 +319,11 @@ comments       varchar(255) comments
 
 Partition by RUN
 
-Table m_mcntuples :
------------------
-
+Table m_mcntuples_d :
+---------------------
+ndataset       number       dataset id
 run            number       run number
+ntupletype     number      
 filepath       varchar(255) path to ntuples file
 timestamp      date         ntuples production date
 version        number(6,2)  version of the production program
@@ -320,12 +390,17 @@ compiler  varchar2(40)       version of C++, Fortran compilers
 idx       number(6)          datacards idx from m_datacard_sets
 exefile   blob               exe file
 
-Table m_datacard_sets :
+Table m_datacards      :
+------------------
+name       varchar2(80)
+idx        number(10,0)
+tinsert   date    not null   insertion timestamp
+
+Table m_datacards_cards :
 -----------------------
 
-tinsert   date    not null   insertion timestamp
 idx       number(6)          datacards idx from m_datacard_sets
-datacards varchar2(3000)     datacards
+datacards varchar2(4000)     datacards
           
 
 
@@ -354,6 +429,8 @@ status         number(10,0)
 history        number(10,0)
 stime          number(24,0) submit for processing
 cuid           number(12,0)         
+timef          date         ascii time of first event
+stimea         date         ascii time when job was submitted
 timestamp      number(24,0) record insert time
 
 m_nominal_hosts
@@ -396,8 +473,10 @@ table m_active_clients
      lastupdate  number(24,0)    // 
      starttime   number(24,0)    // start time
      status      number(6,0)     // current status
+     starttimea  date            // ASCII start time
+     lasttime    date            // ASCII last update time
      timestamp   number(24,0)    // record insert time
-
+     
 table m_active_clients_ref
 -----------------------
      id          number          // client ID given by dbase server
@@ -419,16 +498,28 @@ table m_active_clients_id
 
 table m_active_hosts
 ---------------------
-id         number(5,0)   host id
+id         number(10,0)   host id
 interface  number(5,0)   interface
-status     number(5,0)   status
+status     number(6,0)   status
 active     number(5,0)   number of active clients
 allowed    number(5,0)   nominal number of clients
 processed  number(10,0)  number of processed clients 
 failed     number(10,0)  number of clients failed
 killed     number(10,0)  number of killed clients 
+lastfailed number(24,0)  time of last failure
 lastupdate number(24,0)  last reply from host
+lastuptime date          last update time
 timestamps number(24,0)  record insert time
+
+table m_hosts_duty
+------------------ host duty cycle
+id         number(10,0)   id
+status     number(6,0)    status
+acttime    number(24,0)   time in production (secs)
+downtime   number(24,0)   "marked" as inactive
+atimestamp number(24,0)   last time "active"
+dtimestamp number(24,0)   last time "down"
+
 
 table m_dst
 ----------------------
@@ -442,8 +533,9 @@ table m_dst
       events     number(20,0)      number of events
       status     number(6,0)       DST status
       type       number(6,0)       DST type
-      size       number(24,0)      size in ??
+      size       number(24,0)      size in MBytes
       name       varchar(1024)     name
+      lastuptime date 
       timestamp  number(24,0)
 
 table m_dstinfo
@@ -457,4 +549,49 @@ table m_dstinfo
       diehard    number(20,0),
       freespace  number(20,0),
       totalspace number(20,0)
+
+table m_prodinfo5
+-------------------------
+events              number(20,0) events processed
+CriticalErrors      number(10,0) critical errors
+Errors              number(10,0) errors
+CPUTime             number(20,4) cpu time (total)
+ElapsedTime         number(20,4) elapsed time (total)  
+timestamp           number(24,0)
+
+table m_hosts_duty
+--------------------------
+id                  number(10)  host id
+status              number(6)   host status from m_hoststatus
+acttime             number(24)  active time in seconds
+downtime            number(24)  downtime in seconds
+atimestamp          number(24)  acttime set time
+dtimestamp          number(24)  downtime set time
+timestamp           number(24)
+
+table m_computers
+--------------------------
+name                varchar(10) computer name
+id                  number(10)  computer id
+type                varchar(24) model
+ncpu                number(4,0) number of cpu's
+clock               number(6)   CPU clock in MHz
+ram                 number(6)   RAM in MByte
+sn                  varchar(24) serial number
+vendor              varchar(24) vendor
+inet                number(4)   number of networking interfaces
+purchased           date        purchased date
+cost                number(10)  cost in CHF
+
+table m_disks
+--------------------------
+hostid              number(10)   computer id
+name                varchar(10)  disk name (as in /etc/fstab)
+type                varchar(24)  disk type 
+size                number(10)   size in GB
+available           number(10)   available GB
+purchased           date         purchased date
+vendor              varchar(24) 
+cost                number(10)   cost in CHF
+dirs                varchar(255) directories
 

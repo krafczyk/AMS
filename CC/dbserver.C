@@ -1,11 +1,11 @@
-//  $Id: dbserver.C,v 1.23 2001/07/18 09:33:08 alexei Exp $
+//  $Id: dbserver.C,v 1.24 2001/08/07 07:20:18 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
 //  Mar,    2001. a.k. debugging   
 //  Jun,    2001. a.k. use amsdatadir as TDV file prefix                  
 //
-//  Last Edit : Jul 18, 2001. ak
+//  Last Edit : Jul 19, 2001. ak
 //
 
 #include <stdlib.h>
@@ -167,6 +167,7 @@ void  DBServer_impl::_init(){
    AMSoracle::resetProdInfoTable();
    AMSoracle::resetRunTable();
    AMSoracle::resetProdDSTTable();
+   AMSoracle::updateProductionJob();
    AMSoracle::commit();  
   }
 }

@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.13 2001/07/18 09:33:13 alexei Exp $
+//  $Id: oracle.h,v 1.14 2001/08/07 07:20:24 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -1233,6 +1233,7 @@ namespace AMSoracle {
   int updateRunTable(RunTable *rtable);
   int updateProdTable(ProdRun *rtable);
   int updateProdRun(ProdRun *prun);
+  int updateProductionJob();
 };
 
 #endif

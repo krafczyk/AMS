@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.12 2001/07/18 09:33:09 alexei Exp $
+//  $Id: oracle.pc,v 1.13 2001/08/07 07:20:18 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -3318,12 +3318,39 @@ int AMSoracle::initProductionJob()
        tid++;
 
    tinsert = time((time_t)0);
-
+   time_to_oracle(tinsert, ctimei);
    
    EXEC SQL INSERT INTO m_production
-             VALUES(1, :tid, :tinsert, 0, -1, -1, 'AMS01 Production test at CERN');
+             VALUES(1, 
+                    :tid, 
+                    :tinsert, 
+                    0, 
+                   -1, 
+                   -1, 
+                   :tinsert, 
+                   TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
+                   TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
+                   'AMS01 Production test at CERN');
 
 
+
+   return 1;
+}
+
+int AMSoracle::updateProductionJob() 
+{
+
+   EXEC SQL CONTEXT USE :ams_context;
+
+   EXEC SQL WHENEVER SQLERROR DO 
+               sql_nothing("ORACLE warning:AMSoracle::updateProductionJob");
+
+   tinsert = time((time_t)0);
+   time_to_oracle(tinsert, ctimei);
+
+   EXEC SQL UPDATE m_production SET 
+            timestamp  = :tinsert,
+            lastupdate = TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS');
 
    return 1;
 }
@@ -3511,24 +3538,14 @@ int AMSoracle::initActiveHostTable(const unsigned int hoststatus)
                              TO_DATE(:ctimei,'DD-MON-YYYY HH24:MI:SS'),
                              0,
                              :tinsert);
-       EXEC SQL SELECT id INTO :tid FROM m_hosts_duty WHERE 
-                       id = :nominalhost[i].id;
-       if (sqlca.sqlerrd[2] != 1) {
-        tdtimestamp = 0;
-        if (tstatus != statusok) {
-         EXEC SQL SELECT n INTO :statusok FROM m_hoststatus 
-                            WHERE status LIKE '%OK%';
-         tdtimestamp = tinsert+1;
-        }
         EXEC SQL INSERT INTO m_hosts_duty 
                        VALUES(:nominalhost[i].id,
                               :tstatus,
                               0,
                               0,
                               :tinsert,
-                              :tdtimestamp,
+                              0,
                               :tinsert);
-      }
      }
     }
    }
@@ -4293,7 +4310,7 @@ int AMSoracle::setActiveHostStatus(const unsigned int status,
                 timestamp = :tinsert
            WHERE type = :ttype and id = :thostid;
 
-  EXEC SQL COMMIT;
+  commit();
   rstatus = 1;
  }
  return rstatus;
@@ -5284,7 +5301,7 @@ int AMSoracle::insertDataCards(const char *scriptpath)
              VALUES(
                :tid,
                :datacards);
-     EXEC SQL COMMIT;
+     commit();
      rstatus = 1;
   } else {
     Fmessage("AMSoracle::insertDataCards",tname,"I");
@@ -5334,6 +5351,8 @@ void AMSoracle::commit()
 
     EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error: AMSoracle::commit");
   
+    updateProductionJob();
+
     EXEC SQL COMMIT WORK;
 
 }    
