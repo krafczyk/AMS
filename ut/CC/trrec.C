@@ -1336,6 +1336,10 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
            if(pthit[i]->checkstatus(AMSDBc::USED))
             pthit[i]->setstatus(AMSDBc::AMBIG);
            else pthit[i]->setstatus(AMSDBc::USED);
+           if(pthit[i]->checkstatus(AMSTrRecHit::FalseX))
+            ptrack->setstatus(AMSTrRecHit::FalseX);
+           if(pthit[i]->checkstatus(AMSTrRecHit::FalseTOFX))
+            ptrack->setstatus(AMSTrRecHit::FalseTOFX);
          }
           number dc[2];
           dc[0]=fabs(sin(ptrack->gettheta())*cos(ptrack->getphi()));
