@@ -116,13 +116,18 @@ LMS*                   lms;
 
 extern "C" void npq_();
 extern "C" void timest_(float & t);
-
-void gams::UGINIT(){
+#ifdef __CORBA__
+#include <producer.h>
+#endif 
+void gams::UGINIT(const char * ior){
   float zero=0;
   timest_(zero);
   cout.sync_with_stdio();   
   GINIT();
   new AMSJob();
+#ifdef __CORBA__
+  AMSjob::gethead()->add(new AMSProducer(ior);
+#endif
   AMSJob::gethead()->data();
   GFFGO();
    AMSJob::gethead()->udata();

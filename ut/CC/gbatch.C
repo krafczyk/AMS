@@ -30,8 +30,10 @@ void (handler)(int);
  namespace glconst{
   integer cpul=1;
  }
+#ifdef __CORBA__
+#include <producer.h>
+#endif
  main(int argc, char * argv[] ){
-      cout <<argv[argc-1]<<endl;
       using namespace gams;
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
@@ -44,7 +46,8 @@ void (handler)(int);
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
 try{
-    UGINIT();
+     
+    UGINIT(argv[argc-1]);
 #ifdef __G4AMS__
     if(MISCFFKEY.G4On)g4ams::G4RUN();
     else if(MISCFFKEY.G3On)GRUN();
