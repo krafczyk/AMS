@@ -1,7 +1,7 @@
-#  $Id: amsvar,v 1.33 2003/06/20 14:48:21 choutko Exp $
+#  $Id: amsvar,v 1.35 2003/07/08 16:30:40 choutko Exp $
 setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
-setenv ROOTSYS    /f2users/rdm/root
+#setenv ROOTSYS    /f2users/rdm/root
 #setenv ROOTSYS /f2users/alexei/ROOT/v3.05.03gcc
 #setenv ROOTSYS  /afs/cern.ch/sw/root/v3.05.05/rh73_gcc32/root
 set path=($ROOTSYS/bin $path . /usr/sbin  )
@@ -19,6 +19,7 @@ setenv RunsSummaryFile   $Offline/runs_STS91.log
 setenv SlowRateDataDir   $Offline/SlowRateDataDir
 setenv AMSGeoDir         $Offline/vdev/display/v2.00
 setenv amsed02           $Offline/vdev/display/ams02/$OS/bin/amsed      
+setenv amsedc           $Offline/vdev/display/amsedc
 setenv amsoffmon        $Offline/vdev/online/offmon      
 setenv amsoffmonc        $Offline/vdev/online/offmonc      
 setenv AMSICC 1

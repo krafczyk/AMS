@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.133 2003/05/14 17:00:24 choutko Exp $
+//  $Id: particle.C,v 1.134 2003/07/08 16:30:27 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -399,11 +399,11 @@ number theta, phi, sleng;
    if(d2<d3){
     if(d2<dist){
      dist=d2;
-     _TRDCoo=tmp;
+     _TRDCoo[0]=tmp;
      _ptrd=ptr;
     }
     else if(!_ptrd){
-     _TRDCoo=tmp;
+     _TRDCoo[0]=tmp;
     }
    }
    ptr=ptr->next();
@@ -417,14 +417,28 @@ number theta, phi, sleng;
    if(pa && pb){
     number z=0.5*(pa->loc2gl(AMSPoint(0,0,0))[2]+pb->loc2gl(AMSPoint(0,0,0))[2]);
    AMSPoint coo(0,0,z);
-   _ptrack->interpolate(coo,dir,_TRDCoo,theta,phi,sleng);
+   _ptrack->interpolate(coo,dir,_TRDCoo[0],theta,phi,sleng);
    }
    else {
    cerr << " trdfit-S- NoLayerFoundThenExpected " << pa<<" "<<pb<<endl ;
-   _TRDCoo=AMSPoint(0,0,0);
+   _TRDCoo[0]=AMSPoint(0,0,0);
    }
 
   }
+
+//add trdcoo2 on top of trd
+   AMSTRDIdGeom idb(TRDDBc::nlay()-1,0,0);
+   AMSgvolume *pb=AMSJob::gethead()->getgeomvolume(idb.crgid());
+   if(pb){
+    number z=pb->loc2gl(AMSPoint(0,0,0))[2]+2;
+   AMSPoint coo(0,0,z);
+   _ptrack->interpolate(coo,dir,_TRDCoo[1],theta,phi,sleng);
+   }
+   else {
+   cerr << " trdfit-S- NoLayerFoundThenExpected " <<pb<<endl ;
+   _TRDCoo[1]=AMSPoint(0,0,0);
+   }
+  
   }
 
 
@@ -589,7 +603,7 @@ break;
 
 
   PN->Cutoff[PN->Npart]=_CutoffMomentum;
-  for(int i=0;i<3;i++)PN->TRDCoo[PN->Npart][i]=_TRDCoo[i];
+  for(int i=0;i<3;i++)PN->TRDCoo[PN->Npart][i]=_TRDCoo[0][i];
   PN->Npart++;
 }
 

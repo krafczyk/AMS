@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.11 2003/06/19 13:00:12 choutko Exp $
+#  $Id: 00index.txt,v 1.12 2003/07/08 16:30:46 choutko Exp $
 
 =========================================================================
 
@@ -37,11 +37,11 @@ of AMS offline monitor into it.
 -------------------------------------------------------------------------
 3. Running the program
 ----------------------
-$AMSWD/offmon{c} path/xyz.root  where path/xyz.root is the ams root file
+$AMSWD/online/offmon{c} path/xyz.root  where path/xyz.root is the ams root file
 
 Note that multiple files may be read at once using wildcards, e.g.
 
-$AMSWD/offmon{c} "path/*.root"  
+$AMSWD/online/offmon{c} "path/*.root"  
 
 
 to run offmon (static) no root need to be installed.

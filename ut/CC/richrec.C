@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.54 2003/07/07 14:57:47 delgadom Exp $
+//  $Id: richrec.C,v 1.55 2003/07/08 16:30:27 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -163,7 +163,8 @@ void AMSRichRawEvent::_writeEl(){
 #ifdef __WRITEROOT__
     float x = channel.x();
     float y = channel.y();
-    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this, x, y);
+    float z = channel.z();
+    AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this,x,y,z);
 #endif
   RICEventNtuple* cluster=AMSJob::gethead()->getntuple()->Get_richevent();
   

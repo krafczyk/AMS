@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.454 2003/06/27 12:48:03 choumilo Exp $
+// $Id: job.C,v 1.455 2003/07/08 16:30:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -281,7 +281,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.tfhzlc=1;//(4)TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
 //                                              ->top(bot)OR/topAND/botAND/top(bot)AND 
 // ANTI :
-  TGL1FFKEY.nanti=20;//(5) max. fired ANTI-paddles 
+  TGL1FFKEY.nanti=2;//(5) max. fired ANTI-paddles 
 //
   TGL1FFKEY.RebuildLVL1=0;
 // 

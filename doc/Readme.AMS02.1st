@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.47 2003/05/05 09:14:18 alexei Exp $          
+#  $Id: Readme.AMS02.1st,v 1.48 2003/07/08 16:30:35 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -210,7 +210,9 @@ IX  AMS Event Display
 To run an ams event display
 
 source $Offline/vdev/install/amsvar
-$amsed02  ntuple_file
+$amsed02  ntuple_file     
+
+$amsedc   root_file
 
 
 X   Documentation

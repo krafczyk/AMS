@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.48 2003/06/23 14:20:02 isevilla Exp $
+//  $Id: root.C,v 1.49 2003/07/08 16:30:28 choutko Exp $
 //
 
 #include <root.h>
@@ -131,6 +131,20 @@ void* AMSEventR::vMCTrack=0;
 void* AMSEventR::vMCEventg=0;
 void* AMSEventR::vAux=0;
 
+
+char  AntiClusterR::_Info[255];
+char  TofClusterR::_Info[255];
+char  ParticleR::_Info[255];
+char TrRecHitR::_Info[255];
+char TrTrackR::_Info[255];
+char TrdTrackR::_Info[255];
+char TrdClusterR::_Info[255];
+char EcalClusterR::_Info[255];
+char EcalShowerR::_Info[255];
+char RichHitR::_Info[255];
+char RichRingR::_Info[255];
+char TrMCClusterR::_Info[255];
+char MCEventgR::_Info[255];
 
 
 TTree*     AMSEventR::_Tree=0;
@@ -1169,10 +1183,10 @@ void AMSEventR::AddAMSObject(AMSEcalShower *ptr)
   }
 }
 
-void AMSEventR::AddAMSObject(AMSRichRawEvent *ptr, float x, float y)
+void AMSEventR::AddAMSObject(AMSRichRawEvent *ptr, float x, float y, float z)
 {
   if (ptr) {
-  fRichHit.push_back(RichHitR(ptr,x,y));
+  fRichHit.push_back(RichHitR(ptr,x,y,z));
   ptr->SetClonePointer(fRichHit.size()-1);
   }  else {
     cout<<"AddAMSObject -E- AMSRichRawEvent ptr is NULL"<<endl;
@@ -1581,7 +1595,7 @@ EcalClusterR::EcalClusterR(Ecal1DCluster *ptr){
   Edep    = ptr->_EnergyC;
   SideLeak = ptr->_SideLeak;
   DeadLeak = ptr->_DeadLeak;
-  for (int i=0; i<3; i++) {Coo[i] = ptr->_Coo[i];}
+  for (int i=0; i<3; i++)Coo[i] = ptr->_Coo[i];
 #endif
 }
 
@@ -1742,7 +1756,8 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   }
   for (int i=0; i<8; i++)  Local[i] = ptr->_Local[i];
 
-  for (int i=0; i<3; i++) {TRDCoo[i] = ptr->_TRDCoo[i];}
+  for (int i=0; i<3; i++) {TRDCoo[0][i] = ptr->_TRDCoo[0][i];}
+  for (int i=0; i<3; i++) {TRDCoo[1][i] = ptr->_TRDCoo[1][i];}
   for (int i=0; i<2; i++) {
     for (int j=0; j<3; j++) {
       RichCoo[i][j] = ptr->_RichCoo[i][j];
@@ -1805,7 +1820,10 @@ TrdClusterR::TrdClusterR(AMSTRDCluster *ptr){
   Status = ptr->_status;
   Layer  = ptr->_layer;
   for (int i=0; i<3; i++) Coo[i]= ptr->_Coo[i];
-  for (int i=0; i<3; i++) CooDir[i]= ptr->_CooDir[i];
+  if(ptr->_CooDir[0]>0.9)Direction=0;
+  else Direction=1;
+  ClSizeR=ptr->_ClSizeR;
+  ClSizeZ=ptr->_ClSizeZ;
   Multip = ptr->_Multiplicity;
   HMultip= ptr->_HighMultiplicity;
   EDep   = ptr->_Edep;
@@ -1954,7 +1972,6 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   PiErrRig        = ptr->_PIErrRigidity;
   RigidityMS      = ptr->_RidgidityMS;
   PiRigidity      = ptr->_PIRigidity;
-
 #endif
 }
 
@@ -1972,15 +1989,16 @@ RichMCClusterR::RichMCClusterR(AMSRichMCHit *ptr, int _numgen){
 #endif
 }
 
-RichHitR::RichHitR(AMSRichRawEvent *ptr, float x, float y){
+RichHitR::RichHitR(AMSRichRawEvent *ptr, float x, float y, float z){
 #ifndef __ROOTSHAREDLIBRARY__
   if (ptr) {
    Channel = ptr->_channel;
    Counts  = ptr->_counts;
    Status  = ptr->_status;
    Npe     = ptr->getnpe();
-   X      = x;
-   Y      = y;
+   Coo[0]=x;
+   Coo[1]=y;
+   Coo[2]=z;
   } else {
     cout<<"RICEventR -E- AMSRichRawEvent ptr is NULL"<<endl;
   }

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.87 2003/06/27 12:48:03 choumilo Exp $
+//  $Id: ecalrec.C,v 1.88 2003/07/08 16:30:26 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -823,6 +823,7 @@ void AMSEcalHit::attcor(number coo){//correct measured _edep for atten.in fibers
   int sl=_plane/2;
   int pm=_cell/2;
   int rdir=1-2*(pm%2);
+  _cool=coo;
   if(_proj==1){//Y-proj hit
     coo=coo-ECALDBc::gendim(5);//convert coo(from X-proj) into ECAL coord.syst.
     hflen=ECALDBc::gendim(1)/2;
@@ -939,13 +940,11 @@ if(init == 0){
 }
 return (WriteAll || status);
 }
-//---------------------------------------------------
 
 
 
 
 
-//---------------------------------------------------
 void Ecal1DCluster::_writeEl(){
  //
  //
@@ -2750,6 +2749,7 @@ void AMSEcalShower::_AttCorr(){
          _AttLeak+=_pCl[i]->getpClust(j)->getphit(k)->getattcor();
          _NLinLeak+=_pCl[i]->getpClust(j)->getphit(k)->getedepc();
       }
+//      cout <<"  coo "<<_pCl[i]->getpClust(j)->getcoo()[0]<<" "<<_pCl[i]->getpClust(j)->getcoo()[1]<<" "<<_pCl[i]->getpClust(j)->getcoo()[2]<<" "<<endl;
     }
    }
 

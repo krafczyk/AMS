@@ -121,7 +121,7 @@ integer AMSTRDCluster::build(int rerun){
        }
          VZERO(adc,sizeof(adc)/sizeof(integer));
       }
-      else adc[ptr->getidsoft().gettube()]=ptr->Amp();
+      else adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
         ptr=ptr->next();
       }
     }
