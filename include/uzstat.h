@@ -1,4 +1,4 @@
-//  $Id: uzstat.h,v 1.9 2001/12/07 11:32:25 choutko Exp $
+//  $Id: uzstat.h,v 1.10 2003/03/04 13:09:25 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 // The "uztime L3" like package
@@ -60,6 +60,51 @@ public:
 
 
 
+class AMSStatErrNode: public AMSNode{
+
+friend class AMSStatErr;
+
+private:
+uinteger _entry;
+char _severity;
+public:
+AMSStatErrNode():AMSNode(0),_severity('I'),_entry(0){};
+AMSStatErrNode(char * name, uinteger severity ):AMSNode(name),_entry(0){
+  switch (severity){
+  case 0:
+   _severity='I';
+   break;
+  case 1:
+   _severity='W';
+   break;
+  case 2:
+   _severity='E';
+   break;
+  case 3:
+   _severity='S';
+   break;
+  case 4:
+   _severity='F';
+   break;
+  default:
+   _severity='I';
+  }
+}
+
+void _init(){};
+ostream & print(ostream & stream ) const;
+};
+
+
+
+class AMSStatErr: public AMSNodeMap{
+private:
+AMSStatErrNode Timer;
+public:
+AMSStatErr();
+~AMSStatErr();
+void book(char * name, char severity);
+void print(char * name, char *message=0, uinteger maxprint=10);
+void print();
+};
 #endif
-
-

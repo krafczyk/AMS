@@ -1,4 +1,4 @@
-//  $Id: amsgobj.C,v 1.4 2001/01/22 17:32:18 choutko Exp $
+//  $Id: amsgobj.C,v 1.5 2003/03/04 13:09:22 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <node.h>
@@ -8,4 +8,5 @@
 AMSNodeMap AMSgObj::GTrMatMap;
 AMSNodeMap AMSgObj::GTrMedMap;
 //AMSNodeMap AMSgObj::GVolMap;
-AMSStat  AMSgObj::BookTimer;
+AMSStat     AMSgObj::BookTimer;
+AMSStatErr  AMSgObj::Messages;

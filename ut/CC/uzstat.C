@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.10 2002/01/08 13:43:13 choutko Exp $
+//  $Id: uzstat.C,v 1.11 2003/03/04 13:09:23 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <uzstat.h>
@@ -122,4 +122,59 @@ return etime_(ar);
 #endif
 #endif
 
+}
+
+
+AMSStatErr::AMSStatErr():AMSNodeMap(){
+map(Timer);
+}
+AMSStatErr::~AMSStatErr(){
+print();
+Timer.remove();
+}
+void AMSStatErr::book(char *name, char severity){
+if( add(*(Timer.add(new AMSStatErrNode(name,severity))))==-1)
+cerr<<" AMSStatErr-Book-E-Name "<<name<<" already exists"<<endl;
+}
+
+void AMSStatErr::print(char *name, char *message, uinteger maxprint){
+AMSStatErrNode *p=(AMSStatErrNode*)getp(AMSID(name,0));
+if(p){
+    p->_entry=p->_entry+1;
+    if(p->_entry<=maxprint){
+     if(p->_severity=='I'){
+      cout <<name<<"-I-"<<message<<endl;
+     }
+     else{
+      cerr <<name<<"-"<<p->_severity<<"-"<<message<<endl;
+     }
+   }
+   if(p->_entry==maxprint){
+     cout <<"LastMessageFor "<<name<<" TooManyEntries"<<endl;
+   }
+   if(p->_severity=='F'){
+     abort();
+   }
+}
+else if(!( add(*(Timer.add(new AMSStatErrNode(name,message[0]))))==-1)){
+  print(name,message,maxprint);
+}
+}
+
+void AMSStatErr::print(){
+cout <<"           Name      Type     Entries        "<<endl;
+AMSNodeMap::print(1);
+}
+
+
+ostream & AMSStatErrNode::print(ostream &stream) const{
+static char *name=0;
+if(!name || strlen(name)<strlen(getname())){
+ delete name;
+ name=new char[strlen(getname())+1];
+}
+strcpy(name,getname());
+if(name && strlen(name)>15)name[14]='\0';
+
+return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_severity<<setw(12)<<_entry<<" "<<endl:stream;
 }
