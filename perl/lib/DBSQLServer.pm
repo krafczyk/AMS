@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.61 2003/12/04 10:42:59 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.62 2003/12/04 16:55:21 alexei Exp $
 
 #
 #
@@ -57,6 +57,8 @@ my %fields=(
      dbdefaultdriver=>"CSV:f_dir=",
      dbinit=>0,
              );
+
+my $MAX_RUN_POWER = 26;
 
 sub new{
     my $type=shift;
@@ -471,7 +473,7 @@ my $sql;
          $dbh->do("INSERT INTO journals VALUES($cid,'$dirpath',' ',0,$time)")    
          or die "cannot do: ".$dbh->errstr();    
          $n++;
-         $run=($n<<27)+1;
+         $run=($n<<$MAX_RUN_POWER)+1;
      }
     }
    } 

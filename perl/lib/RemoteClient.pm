@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.224 2003/12/04 11:49:13 alexei Exp $
+# $Id: RemoteClient.pm,v 1.225 2003/12/04 16:55:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -71,6 +71,7 @@ my     $validatecgiMySQL  ='/cgi-bin/mon/validate.mysql.cgi';
 my     $PrintMaxJobsPerCite = 25;
 
 my     $MAX_CITES       = 32; # maximum number of allowed cites
+my     $MAX_RUN_POWER   = 26; # 
 
 sub new{
     my $type=shift;
@@ -2650,13 +2651,13 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              $sql="select cid from Cites";
              $ret=$self->{sqlserver}->Query($sql);
              $cid=$ret->[$#{$ret}][0]+1;
-             if($cid>32){
+             if($cid>$MAX_CITES){
                  my $error=" Too many Cites. Your request will not be procedeed.";
                  $self->sendmailerror($error,"$cem");
                  $self->ErrorPlus("$error");
                  return;
              }
-             my $run=(($cid-1)<<26)+1;
+             my $run=(($cid-1)<<$MAX_RUN_POWER)+1;
              my $time=time();
              my $citedesc = "new cite";
              $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0,'$citedesc',$time,0)";
@@ -2742,7 +2743,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              }
 # 4.12.03 $MAX_CITES changed from 16 to 32
 #            my $run=(($cid-1)<<27)+1;
-             my $run=(($cid-1)<<26)+1;
+             my $run=(($cid-1)<<$MAX_RUN_POWER)+1;
              $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0,'$newcitedesc',$time,0)";
              $self->{sqlserver}->Update($sql);
 # add responsible
@@ -3944,7 +3945,7 @@ print qq`
             $run=$res->[0][0];
         }
 # 4.12.03             my $switch=1<<27;
-             my $switch=1<<26;
+             my $switch=1<<$MAX_RUN_POWER;
              my $max=$switch-1;    
              if (($run%$switch)+$runno >$max){
               foreach my $chop (@{$self->{MailT}}) {
@@ -5958,7 +5959,7 @@ sub listCites {
           my $status = $cite->[3];
           my $maxrun = $cite->[4];
 # 4.12.03          my $run=(($cid-1)<<27)+1;
-          my $run=(($cid-1)<<26)+1;
+          my $run=(($cid-1)<<$MAX_RUN_POWER)+1;
       
           my $r4 = undef;
 
