@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.285 2005/01/04 20:57:16 choutko Exp $
+# $Id: RemoteClient.pm,v 1.286 2005/01/05 08:21:18 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -9280,8 +9280,8 @@ sub printParserStat {
    print FILEV $ctt;
 
    for (my $i=0; $i<$nCheckedCite+1; $i++) {
-     print "\n";
-     my $cj = sprintf ("%-20.15s %-20.40s %-50.30s","Cite : $JouDirPath[$i]", "Latest Journal : $JouLastCheck[$i]", "New Files : $JournalFiles[$i] \n");
+     print " \n";
+     my $cj = sprintf ("%-20.15s %-20.40s %-50.30s","Cite : $JouDirPath[$i]", "Latest Journal : $JouLastCheck[$i]", "New Files : $JournalFiles[$i]");
      print $cj;
      print FILEV "\n",$cj;
      if ($JournalFiles[$i] > 0) {
@@ -9455,7 +9455,7 @@ sub getOutputPath {
        $outputpath = $outputdisk.$outputpath."/".$ActiveProductionSet;
       }
       $mtime = (stat $outputpath)[9];
-#      print "$outputpath, mtime ... $mtime \n";
+ #     print "$outputpath, mtime ... $mtime \n";
       if (defined $mtime) {
        if ($mtime != 0) { $gb = $disk->[2]; last;}
       }
