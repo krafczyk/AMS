@@ -67,7 +67,14 @@ else return _swxy[_layer-1][1][_stripy];
 number AMSTrIdGeom::getcofg(integer side,integer shift, integer readoutch, integer & error) const{
 if(side !=0)side=1;
 // get right strip
- readoutch+=shift;
+#ifdef __AMSDEBUG__
+integer rch=readoutch;
+if((readoutch+shift<0 || readoutch+shift>=TKDBc::NStripsDrp(_layer,side)) &&
+   (side!=0 || (_layer>0 && _layer<TKDBc::nlay()-1))){
+  cerr<<"AMSTridGeom::getcofg-E-ClusterProblem "<<side<<" "<<shift<<" "<<readoutch<<" "<<*this;
+}
+#endif
+ readoutch=(readoutch+shift+TKDBc::NStripsDrp(_layer,side))%TKDBc::NStripsDrp(_layer,side);
 if(side==1){
  // ok
 }
@@ -86,7 +93,7 @@ if(shift==0 && strip != (side==0?_stripx:_stripy)){
 }
 else if((strip -(side==0?_stripx:_stripy))*shift<0){
 #ifdef __AMSDEBUG__
-  cerr <<"AMSTrIdGeom::getcofg-W-ClusterGeomError "<<side<<" "<<strip<<" "<<" "<<shift<<" "<<*this;
+  cerr <<"AMSTrIdGeom::getcofg-W-ClusterGeomError "<<side<<" "<<strip<<" "<<readoutch<<" "<<rch<<" "<<shift<<" "<<*this;
 #endif
  error=1;
  return 0;
