@@ -53,12 +53,11 @@ AMS3DCluster.o: /pgm0/EventDisplay/root/include/TGeometry.h TSwitch.h
 AMS3DCluster.o: TRadioButton.h /pgm0/EventDisplay/root/include/TButton.h
 AMS3DCluster.o: /pgm0/EventDisplay/root/include/TText.h AMSCanvas.h
 AMS3DCluster.o: /pgm0/EventDisplay/root/include/TCanvas.h AMS3DCluster.h
-AMS3DCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
-AMS3DCluster.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
-AMS3DCluster.o: AMSMaker.h /usr/include/time.h
-AMS3DCluster.o: /usr/include/machine/machtime.h /usr/include/sys/timers.h
-AMS3DCluster.o: /usr/include/sys/sysmisc.h Debugger.h
-AMS3DCluster.o: /pgm0/EventDisplay/root/include/TObject.h
+AMS3DCluster.o: TMarkerS3DBox.h AMSRoot.h AMSHistBrowser.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
+AMS3DCluster.o: /usr/include/time.h /usr/include/machine/machtime.h
+AMS3DCluster.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
+AMS3DCluster.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
 AMSToFCluster.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
 AMSToFCluster.o: /usr/include/cxx/iostream.h /usr/include/cxx/iostream.hxx
 AMSToFCluster.o: /usr/include/cxx/cxxl.hxx /usr/include/cxx/cxxl_share.hxx
@@ -74,9 +73,9 @@ AMSToFCluster.o: /usr/include/sys/syslimits.h /usr/include/machine/machtime.h
 AMSToFCluster.o: /usr/include/sys/rt_limits.h /usr/include/limits.h
 AMSToFCluster.o: /usr/include/memory.h /usr/include/string.h
 AMSToFCluster.o: /usr/include/strings.h AMSToFCluster.h AMS3DCluster.h
-AMSToFCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
-AMSToFCluster.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
-AMSToFCluster.o: AMSMaker.h /usr/include/time.h /usr/include/sys/timers.h
+AMSToFCluster.o: TMarkerS3DBox.h AMSRoot.h AMSHistBrowser.h
+AMSToFCluster.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
+AMSToFCluster.o: /usr/include/time.h /usr/include/sys/timers.h
 AMSToFCluster.o: /usr/include/sys/sysmisc.h AMSVirtualDisplay.h
 AMSToFClusterReader.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
 AMSToFClusterReader.o: /usr/include/cxx/iostream.h
@@ -102,12 +101,9 @@ AMSToFClusterReader.o: AMSRoot.h AMSHistBrowser.h
 AMSToFClusterReader.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
 AMSToFClusterReader.o: /usr/include/time.h /usr/include/sys/timers.h
 AMSToFClusterReader.o: /usr/include/sys/sysmisc.h AMSToFCluster.h
-AMSToFClusterReader.o: AMS3DCluster.h
-AMSToFClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
-AMSToFClusterReader.o: AMSToFClusterReader.h
+AMSToFClusterReader.o: AMS3DCluster.h TMarkerS3DBox.h AMSToFClusterReader.h
 AMSAntiCluster.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
-AMSAntiCluster.o: AMSAntiCluster.h AMS3DCluster.h
-AMSAntiCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
+AMSAntiCluster.o: AMSAntiCluster.h AMS3DCluster.h TMarkerS3DBox.h AMSRoot.h
 AMSAntiCluster.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
 AMSAntiCluster.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
 AMSAntiCluster.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
@@ -125,12 +121,9 @@ AMSAntiClusterReader.o: /usr/include/sys/types.h
 AMSAntiClusterReader.o: /usr/include/mach/machine/vm_types.h
 AMSAntiClusterReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSAntiClusterReader.o: /usr/include/sys/sysmisc.h AMSAntiCluster.h
-AMSAntiClusterReader.o: AMS3DCluster.h
-AMSAntiClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
-AMSAntiClusterReader.o: AMSAntiClusterReader.h
+AMSAntiClusterReader.o: AMS3DCluster.h TMarkerS3DBox.h AMSAntiClusterReader.h
 AMSTrMCCluster.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
-AMSTrMCCluster.o: AMSTrMCCluster.h AMS3DCluster.h
-AMSTrMCCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
+AMSTrMCCluster.o: AMSTrMCCluster.h AMS3DCluster.h TMarkerS3DBox.h AMSRoot.h
 AMSTrMCCluster.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
 AMSTrMCCluster.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
 AMSTrMCCluster.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
@@ -161,9 +154,7 @@ AMSTrMCClusterReader.o: AMSRoot.h AMSHistBrowser.h
 AMSTrMCClusterReader.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
 AMSTrMCClusterReader.o: /usr/include/time.h /usr/include/sys/timers.h
 AMSTrMCClusterReader.o: /usr/include/sys/sysmisc.h AMSTrMCCluster.h
-AMSTrMCClusterReader.o: AMS3DCluster.h
-AMSTrMCClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
-AMSTrMCClusterReader.o: AMSTrMCClusterReader.h
+AMSTrMCClusterReader.o: AMS3DCluster.h TMarkerS3DBox.h AMSTrMCClusterReader.h
 AMSTrack.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h AMSTrack.h
 AMSTrack.o: THelix.h /pgm0/EventDisplay/root/include/TPolyLine3D.h
 AMSTrack.o: /pgm0/EventDisplay/root/include/TRotMatrix.h
@@ -179,8 +170,7 @@ AMSTrackReader.o: /pgm0/EventDisplay/root/include/TH1.h AMSTrack.h THelix.h
 AMSTrackReader.o: /pgm0/EventDisplay/root/include/TPolyLine3D.h
 AMSTrackReader.o: /pgm0/EventDisplay/root/include/TRotMatrix.h
 AMSSiHit.o: AMSSiHit.h /pgm0/EventDisplay/root/include/TObject.h
-AMSSiHit.o: AMS3DCluster.h /pgm0/EventDisplay/root/include/TMarker3DBox.h
-AMSSiHit.o: AMSRoot.h AMSHistBrowser.h
+AMSSiHit.o: AMS3DCluster.h TMarkerS3DBox.h AMSRoot.h AMSHistBrowser.h
 AMSSiHit.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
 AMSSiHit.o: /usr/include/time.h /usr/include/standards.h
 AMSSiHit.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
@@ -196,11 +186,9 @@ AMSSiHitReader.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
 AMSSiHitReader.o: /usr/include/mach/machine/vm_types.h
 AMSSiHitReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSSiHitReader.o: /usr/include/sys/sysmisc.h AMSSiHit.h AMS3DCluster.h
-AMSSiHitReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
-AMSSiHitReader.o: AMSSiHitReader.h
+AMSSiHitReader.o: TMarkerS3DBox.h AMSSiHitReader.h
 AMSCTCCluster.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
-AMSCTCCluster.o: AMSCTCCluster.h AMS3DCluster.h
-AMSCTCCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
+AMSCTCCluster.o: AMSCTCCluster.h AMS3DCluster.h TMarkerS3DBox.h AMSRoot.h
 AMSCTCCluster.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
 AMSCTCCluster.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
 AMSCTCCluster.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
@@ -218,9 +206,7 @@ AMSCTCClusterReader.o: /usr/include/sys/types.h
 AMSCTCClusterReader.o: /usr/include/mach/machine/vm_types.h
 AMSCTCClusterReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSCTCClusterReader.o: /usr/include/sys/sysmisc.h AMSCTCCluster.h
-AMSCTCClusterReader.o: AMS3DCluster.h
-AMSCTCClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
-AMSCTCClusterReader.o: AMSCTCClusterReader.h
+AMSCTCClusterReader.o: AMS3DCluster.h TMarkerS3DBox.h AMSCTCClusterReader.h
 AMSParticle.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h AMSRoot.h
 AMSParticle.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
 AMSParticle.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h

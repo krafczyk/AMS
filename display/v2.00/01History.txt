@@ -1,0 +1,73 @@
+1998.01.10	Ping Yeh
+  - Accept one command line argument in standalone version as the data file 
+    to read
+  - Merge with mods done by Vitali (AMSAntiCluster* and SelectEvent())
+
+1997.12.22	Ping Yeh
+  - A test of TFileSelectionDialog shows it is necessary to copy
+    MOTIF_FileSelectionDialog.cxx and TFileSelectionDialog.h locally
+    to make it work.  Otherwise it shows segmentation violation ---
+    an indication of mis-compiled library?
+
+1997.12.18	Ping Yeh
+  - Make the standalone version, but no way to select data file yet.
+
+1997.12.17	Ping Yeh
+  - Improve the algorithm of AMS3DCluster::DistancetoPrimitive().  Now use
+    d = cos(theta)*x + sin(theta)*y and   dmin < d < dmax for all 3 sets
+    of parallel line segments to determine whether mouse is inside the box.
+
+v1997.12.11	Ping Yeh
+  - Add "Two Views" mode per request of Vitali.  Currently those 2 views are
+    displayed side by side and they are both stretched.  But users can stretch
+    them back manually.
+  - Added the first "AMS" menu for printing PostScript with particle info
+    (This is tricky: event info is implemented with TGXW::DrawText() for
+     fast update, but then it can't be printed to PostScript.  For this
+     I added one "AMS" menu with only one item "save as canvas.ps", which
+     calls AMSCanvas::SaveCB() which in turn inserts particle info before
+     calling TPad::SaveAs(). )
+  - Added title "Alpha Magnetic Spectrometer".   
+  - default now is to show event status so user doesn't need to manually toggle
+  - now detector is not too small anymore by turning off "AMSG1"
+  - move run/event number to lower left corner and event status to
+    lower right corner.
+  - put a switch "Used Hits" (status 32) for tracker hits that are used 
+    in tracks.
+  - use Shuwei's hierarchy geometry tree (instead of g2root output which 
+    have almost all TNodes in the same level under AMSG1).
+
+
+v1997.12.07	Ping Yeh
+  - use root v1.03/08 ( with -IROOT10308 ).
+  - include geometry.
+  - prototype of Shuwei Ye's AMSKeyNode class to set color/visibility of
+    TNodes.
+  - create AMSCanvas class to learn more about TCanvas and do things specially
+    for AMS only.  Now it is almost dummy.
+  - create TRadioButton and TSwitch classes.
+  - 6 switches on the display to set on/off drawing of SiHit, ToFCluster,
+    CTCCluster, Track, Particle and geometry.
+  - can keep track of user's rotation of the view angle.  But it doesn't
+    work when geometry is drawn.  Need further understanding.
+  - Move AMSDisplay into libAMS.so and remove libAMSg.so so we have only
+    one library.
+
+
+1997.12.02 Ping Yeh	Keep m_ErrPosition[3] in AMSSiHit for real size
+			because the underlying size in AMS3DCluster need 
+			magnification for visual effects.
+1997.12.02 Ping Yeh	Implement class AMS3DCluster : public TMarker3DBox
+			to replace AMSFruit.  Now all cluster classes (ToF, 
+			SiHit, CTC) inherit AMS3DCluster.
+			AMS3DCluster::SetPoints(), 
+			AMS3DCluster::DistancetoPrimitive() are tested okay.
+1997.12.02 Ping Yeh	Increase MaxSiHits to 300.  When there are more SiHits
+			then allowed the display will go crazy.  It is for 
+			efficiency that I use TClonesArray which doesn't grow 
+			dynamically.
+1997.12.01 Ping Yeh	Add Debugger class
+1997.11.30 Ping Yeh	Fix THelix range bug (negative dt -> positive)
+			Background is changed to white for better printing
+1997.11.28 Ping Yeh	Show correct run number and event number
+1997.11.13 Ping Yeh	version 0 of prototype

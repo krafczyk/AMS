@@ -1,0 +1,27 @@
+
+As of 11 Dec 1997:
+
+
+
+Known bugs:
+.  Couldn't get lattitude/longitude when geometry is drawn.
+.  The axis is not drawn correctly when going to next event or previous event
+   until a click on the main display pad.
+
+
+Pending Requests:
+[Vitali]  Check segmentation violation
+[Vitali & Alexei Klimentov 1997.12.0x]  Read Objectivity database
+[Vitali 1997.12.17]  Save page to a file (have choices on filename)
+[Vitali 1997.12.17]  stand-alone execution with data file specified by argument
+[Vitali 1997.12.17]  more info about tracks   (Ping: probably need larger object info pad)
+
+Works to be done:
+.  Show AMS Logo
+.  Go to run/event  by request
+.  clean up THelix 
+.  show straight line for tracks/particles outside of magnetic field
+.  better GUI
+.  Highlight SiHits pointed by a track when the track is selected?
+.  Draw x-y-z axis on a smaller pad?
+.  Show world coordinates when possible?

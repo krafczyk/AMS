@@ -2,7 +2,7 @@
   gROOT->Reset();
   gSystem->Load("libAMS.so");
   debugger.Off();		// debugger.On() to turn on printing messages
-  TFile f("a.root");
+  TFile f("test.root");
 
   TTree * t = f.Get("h1");
   AMSRoot amsroot("AMS", "AMS Display");

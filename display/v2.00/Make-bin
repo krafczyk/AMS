@@ -1,0 +1,164 @@
+##### MACROS #####
+
+ROOTH         = TTree.h TFile.h TH1.h
+
+SRCS          = AMSRoot.cxx AMSMaker.cxx \
+		AMSAxis.cxx \
+		AMSGeometrySetter.cxx \
+		AMS3DCluster.cxx \
+		AMSToFCluster.cxx AMSToFClusterReader.cxx \
+		AMSAntiCluster.cxx AMSAntiClusterReader.cxx \
+		AMSTrMCCluster.cxx AMSTrMCClusterReader.cxx \
+		AMSTrack.cxx AMSTrackReader.cxx \
+		AMSSiHit.cxx AMSSiHitReader.cxx \
+		AMSCTCCluster.cxx AMSCTCClusterReader.cxx \
+		AMSParticle.cxx AMSParticleReader.cxx \
+		AMSVirtualDisplay.cxx \
+		AMSHistBrowser.cxx \
+		AMSCanvas.cxx \
+		AMSDisplay.cxx \
+		TRadioButton.cxx TSwitch.cxx Debugger.cxx 
+		# MySelectionDialog.cxx \
+		# MOTIF_DialogManager.cxx 
+		# AMSColorManager.cxx 
+
+HDRS          = TRadioButton.h TSwitch.h \
+		AMSAxis.h \
+		AMS3DCluster.h \
+		AMSMaker.h AMSHistBrowser.h AMSRoot.h \
+		AMSToFCluster.h AMSToFClusterReader.h \
+		AMSAntiCluster.h AMSAntiClusterReader.h \
+		AMSTrMCCluster.h AMSTrMCClusterReader.h \
+		AMSTrack.h AMSTrackReader.h \
+		AMSSiHit.h AMSSiHitReader.h \
+		AMSCTCCluster.h AMSCTCClusterReader.h \
+		AMSParticle.h AMSParticleReader.h \
+		AMSVirtualDisplay.h \
+		Debugger.h \
+		AMSCanvas.h \
+		AMSDisplay.h \
+		AMSGeometrySetter.h \
+                LinkDef.h
+		# MySelectionDialog.h \
+		# AMSColorManager.h 
+
+SRCSG         = # AMSDisplay.cxx 		# AMSFruit.cxx 
+
+HDRSG         = # AMSDisplay.h GLinkDef.h
+
+		# AMSFruit.h
+		# ATLFDisplay.h ATLFParticle.h ATLFFruit.h GLinkDef.h 
+                
+
+DICT          = AMSCint.cxx
+DICTH         = $(DICT:.cxx=.h)
+DICTO         = $(DICT:.cxx=.o)
+
+DICTG         = # AMSgCint.cxx
+DICTGH        = # $(DICTG:.cxx=.h)
+DICTGO        = # $(DICTG:.cxx=.o)
+
+MAIN          = main.cxx
+MAINO         = $(MAIN:.cxx=.o)
+
+MAINC          = mainc.cxx
+MAINOC         = $(MAINC:.cxx=.o)
+
+OBJS          = $(SRCS:.cxx=.o) $(DICTO)
+
+OBJSG         = # $(SRCSG:.cxx=.o) $(DICTGO)
+
+ALLDICT       = $(DICT) $(DICTH) $(DICTG) $(DICTGH)
+ALLSRCS       = $(SRCS) $(SRCSG) $(HDRS) $(HDRSG) $(ALLDICT) $(MAIN)
+ALLOBJS       = $(OBJS) $(OBJSG) $(MAINO)
+
+
+AMSLIB       = libAMS.a
+
+AMSSHAREDLIB = libAMS.so
+
+#AMSGLIB      = libAMSg.so
+
+AMSPRG       = amsed
+AMSPRGC       = amsedc
+
+
+
+##### TARGETS #####
+interprete:  $(AMSSHAREDLIB)
+
+standalone:  $(AMSPRG)
+
+realtime:  $(AMSPRGC)
+
+$(AMSLIB):     $(DICT) $(OBJS)
+		rm -f $(AMSLIB)
+# due to a bug in cxx/ld under osf3.xx, one cannot use cxx to generate
+# a shared library. One must use ld instead.
+		-$(SHLD) -o $(AMSLIB) $(OBJS)
+		chmod 555 $(AMSLIB)
+		@echo "$(AMSLIB) done with $(OBJS) linked in"
+
+#		-ld  -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved \
+# -g0 -O1 /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o \
+
+$(AMSSHAREDLIB):     $(DICT) $(OBJS)
+		rm -f $(AMSSHAREDLIB)
+# due to a bug in cxx/ld under osf3.xx, one cannot use cxx to generate
+# a shared library. One must use ld instead.
+		-$(SHLD) -o $(AMSSHAREDLIB)  $(OBJS) 
+		chmod 555 $(AMSSHAREDLIB)
+		@echo "$(AMSSHAREDLIB) done with $(OBJS) linked in"
+
+# -ld  -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved \
+# -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o \
+
+
+#$(AMSGLIB):    $(DICTG) $(OBJSG)
+#		rm -f $(AMSGLIB)
+# due to a bug in cxx/ld under osf3.xx, one cannot use cxx to generate
+# a shared library. One must use ld instead.
+#		ld  -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved \
+# -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o \
+# -o $(AMSGLIB)  $(OBJSG) -lcxxstd -lcxx -lexc -lots -lc
+#		chmod 555 $(AMSGLIB)
+#		@echo "$(AMSGLIB) done"
+
+#$(AMSPRG):     $(AMSLIB) $(MAINO)
+#		$(LD) $(LDFLAGS) $(MAINO) $(AMSLIB) $(PYTHIALIB) $(LIBS) \
+#		-o $(AMSPRG)
+#		@echo "$(AMSPRG) done"
+
+$(AMSPRG):	$(AMSSHAREDLIB) $(MAINO)
+		$(LD) $(LDFLAGS) $(MAINO) $(AMSSHAREDLIB) $(GLIBS) -o $(AMSPRG) 
+
+$(AMSPRGC):	$(AMSSHAREDLIB) $(MAINOC)
+		$(LD) $(LDFLAGS) $(MAINOC) $(AMSSHAREDLIB) $(GLIBS) -o $(AMSPRGC) 
+
+
+$(DICT):        $(HDRS)
+		@echo "Generating dictionary ..."
+		rootcint -f $(DICT) -c $(ROOTH) $(HDRS)
+
+$(DICTG):       $(HDRSG)
+		@echo "Generating display dictionary ..."
+		rootcint -f $(DICTG) -c $(HDRSG)
+
+$(DICTO):       $(DICT)
+		$(CXX) $(NOOPT) $(CXXFLAGS) -c $(DICT)
+
+$(DICTGO):      $(DICTG)
+		$(CXX) $(NOOPT) $(CXXFLAGS) -c $(DICTG)
+
+depend:
+		makedepend -fMake-depend -- $(CXXFLAGS) -- $(SRCS) $(SRCSG) \
+		$(MAIN)
+
+dist:
+		rm -f $(AMSPRG).tar.gz ; \
+		tar cvf $(AMSPRG).tar $(ALLSRCS) *.C Make* \
+		gzip $(AMSPRG).tar
+
+clean:
+		@rm -f $(ALLOBJS) $(ALLDICT)
+

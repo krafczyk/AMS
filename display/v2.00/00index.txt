@@ -1,0 +1,121 @@
+
+=========================================================================
+
+     Introduction  to  a  Prototype  Event  Display  Based  on  ROOT
+
+				Ping  Yeh
+		  	     Academia Sinica
+			       13 Nov 1997
+
+=========================================================================
+[minor updated on 1 Dec 1997 by Ping Yeh]
+[migrated into CVS repository on 16 Dec 1997 with help of Vitali Shoutko,
+ and a major modification of this document is done to reflect this]
+
+
+-------------------------------------------------------------------------
+1. Obtaining the program
+------------------------
+
+The program sources can be obtained by doing
+
+	cvs checkout AMS/display
+
+This will create AMS/display directory and put all source files
+of AMS event display into it.
+
+
+-------------------------------------------------------------------------
+2. Making the program
+---------------------
+
+This program is based on Rene Brun's ROOT and ATLFast program.  To build it,
+cd to AMS/display directory, then type 
+
+	gmake depend
+
+followed by
+
+	gmake standalone
+
+and all .cxx files are compiled and linked into a shared library called
+libAMS.so.  Please note that this has only been tested on alpha workstations
+running DEC/UNIX.
+
+
+-------------------------------------------------------------------------
+3. Running the program
+----------------------
+
+To run it, please make sure you have the environment to run ROOT.
+Only 3 things needs to be set:
+
+1. Environment variable ROOTSYS  should point to the ROOT directory.
+   (On boronams $ROOTSYS should be set to /pgm0/EventDisplay/root)
+2. .:$ROOTSYS/lib is added into Environment variables LD_LIBRARY_PATH.
+3. $ROOTSYS/bin is in your path.
+
+Then you are ready to go.
+Type h2root your_converted_ntuple_file_name your_preferred_name
+Type amsed your_preferred_name.
+
+There are 4 defined views:  top view, side view, front view, two combined
+"all views" and "two view".  In each view you have the freedom to change 
+the viewing angle by mouse, although it can be difficult sometimes.  
+Zooming in/out is not implemented yet.
+
+   You can go to next/previous event by pressing buttons in the window.
+
+   You can get some basic info about a displayed object (cluster, hit,
+track, particle,...etc) by pointing the mouse pointer at it unless you
+turn off [Options / Event Status].
+
+
+-------------------------------------------------------------------------
+4. Structure of the program
+---------------------------
+
+   All classes are derived directly or indirectly from ROOT base class
+TObject.   The highest level class is  AMSRoot  which should have only
+one instance.  A global pointer gAMSRoot is set to this instance when
+AMSRoot constructor is called.
+
+   There are several classes that represent parts of AMS data:
+AMSToFCluster, AMSSiHit, AMSCTCCluster, AMSTrack, and AMSParticle.  
+A list of such objects are created and maintained by "makers".  
+In this program since everything is read from input file instead 
+of being reconstructed, I call them "readers":  AMSToFClusterReader, 
+AMSSiHitReader, ... etc.
+
+   There are 4 classes related to displaying:  
+	AMSVirtualDisplay -- the interface class for displaying
+	AMSDisplay        -- the implementation of display
+	AMSFruit	  -- Responsible for drawing 3D-box-like objects
+	THelix		  -- Responsible for drawing helixes
+THelix class is a general helix.  Since it is not implemented in ROOT
+system yet, I wrote it by myself.  I've communicated with Rene Brun and
+it is possible to put it into ROOT releases in the future.
+
+   gAMSRoot holds a list of makers (or readers).  When an event is
+read in, it loops over all makers to draw their products.
+
+
+-------------------------------------------------------------------------
+4. Future Plan for the program
+------------------------------
+
+   There are still a large room for improvement.  The following is on
+my list:
+
+	1. Get geometry.
+	2. Show detailed information of an object when click right mouse
+	   button on it.
+	3. Put links between objects.  For example, a track should know
+	   which clusters or hits it passes through.
+	4. More user controls like disable/enable display of a certain
+	   type of objects, make histograms, ... etc.
+	5. Re-design the interface.  Especially the free rotation of
+	   viewing angle needs some work to make it better.  3 "knobs"
+	   for rotating in 3 different axes is a possible option.
+	6. Make a nice logo?
+

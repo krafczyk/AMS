@@ -11,8 +11,14 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <stdlib.h>
-#include "main.h"
+class Myapp : public TApplication{
 
+public:
+ void HandleIdleTimer();
+ Myapp(const char *appClassName,int *argc, char **argv):
+ TApplication(appClassName,argc, argv){};
+
+};
 
 void Myapp::HandleIdleTimer(){
 SetReturnFromRun(1);
@@ -44,7 +50,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
 
   debugger.Off();
   
-  char * filename = "test.root";		// default file name
+  char * filename = "realtime.root";		// default file name
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
@@ -63,23 +69,26 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
    cout <<""<<endl;
    amsroot.MakeTree("AMSTree", "AMS Display Tree");
    TFile fgeo("ams_group.root");
+   cout <<""<<endl;
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
-   cout <<""<<endl;
-       display.SetApplication(theApp);
-   cout <<""<<endl;
-   //display.SetView (kTwoView);
+       display.SetView (kTwoView);
       for(int i=1;;i++){
-       amsroot.Clear();
        if(!amsroot.GetEvent(i))break;;
           display.DrawEvent();
+          display.AddParticleInfo();
           display.GetCanvas()->Update();	// force it to draw
-          theApp->Run();
+              theApp->Run();
+              //              system("sleep 5");       
       }        
       return ;
   
 
 
+// Enter event loop
+  theApp->Run();
+
+  delete theApp;
 }
 //---------------------------------------
 
