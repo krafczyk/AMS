@@ -109,8 +109,8 @@ integer AMSCharge::build(integer refit){
            int good=!phit->checkstatus(AMSDBc::FalseX) && 
              !phit->checkstatus(AMSDBc::FalseTOFX);
            geant sum=phit->getsum();
-           _TrMeanTracker+=good?sum:2*sum;
-           if(smax<good?sum:2*sum)smax=good?sum:2*sum;
+           _TrMeanTracker+=phit->getsonly();
+           if(smax<phit->getsonly())smax=phit->getsonly();
            EdepTracker[nhitTracker]=AMSTrRawCluster::ADC2KeV()*
              (good?sum:2*sum)*pow(min(one,pbeta->getbeta()),2)*
              fabs(SenDir.prod(DTr));

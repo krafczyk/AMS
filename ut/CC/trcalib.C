@@ -442,7 +442,7 @@ HBOOK1(700000+10+2,"CmnNoise S Crate 72",660,-0.5,659.5,0.);
 }
 
 void AMSTrIdCalib::ntuple(integer s){
-  if(1){
+  if(IOPA.hlun){
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
     char filename[256];

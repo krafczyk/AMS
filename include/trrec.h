@@ -204,6 +204,7 @@ static integer buildWeak(integer refit=0);
 static void print();
 static integer Out(integer);
 number getsum()const{return _Sum;}
+number getsonly()const {return _Sum*(1-_DifoSum);}
 AMSgSen * getpsen()const{return _pSen;}
 inline  AMSPoint  getHit(){return _Hit;}
 inline  AMSPoint  getEHit(){return _EHit;}
