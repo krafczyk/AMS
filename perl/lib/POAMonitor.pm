@@ -1,5 +1,8 @@
 package POAMonitor;
 use Error qw(:try);
+use lib::monitorUI;
+use Gtk;
+use strict;
 @POAMonitor::ISA = qw(POA_DPS::Monitor);
 @POAMonitor::EXPORT =qw(new);
 sub new{
@@ -10,13 +13,29 @@ sub new{
 }
 
 
-sub HostStatusChanged{
-    my ($class,$cid,$ah)=@_;
-
+sub MonInfo{
+    my ($class,$cid,$message,$error,$timeout)=@_;
+    if(ref($monitorUI::Singleton)){
+     monitorUI::MonInfo($message,$error,$timeout);     
+    }
+    else{
+    }    
 }
-sub  ClientToKill{
-    my ($class,$cid,$ac)=@_;
-    
+sub  MonDialog{
+    my ($class,$cid,$message,$error,$timeout)=@_;
+    if(ref($monitorUI::Singleton)){
+        $monitorUI::Singleton->{queryanswer}=undef;
+       monitorUI::MonDialog($message,$error,$timeout);     
+        while (not defined $monitorUI::Singleton->{queryanswer}){
+        while (Gtk->events_pending()){
+             Gtk->main_iteration();
+         }
+#            sleep 1;
+    }
+        return $monitorUI::Singleton->{queryanswer};
+    }
+    else{
+    }    
     return 1;
 }
 

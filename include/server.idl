@@ -5,6 +5,7 @@ module DPS{
   interface Client{
    enum AccessType{Any,LessThan,Self,AnyButSelf,GreaterThan};
    enum RecordChange{Delete,Update,Create};
+   enum ErrorType{Info,Warning,Error,Severe};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
    enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer};
    enum ClientExiting{NOP,CInExit,SInExit,CInAbort,SInAbort,SInKill};
@@ -242,8 +243,8 @@ module DPS{
     boolean getDBSpace(in CID id, out DB db);   
    };
   interface Monitor: Client{
-    void HostStatusChanged(in CID id, in ActiveHost ah);
-    boolean ClientToKill(in CID id, in ActiveClient ac);    
+    void MonInfo(in CID id, in string message, in ErrorType error, in time timeout);
+    boolean MonDialog(in CID id, in string message, in ErrorType error, in time timeout);    
     void ping();
   };
   

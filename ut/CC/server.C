@@ -681,6 +681,8 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     (*i)->Status=DPS::Client::OK; 
     DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(ac);
     PropagateAC(acv,DPS::Client::Create);
+//      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+//      _pser->MonInfo("Started client ",DPS::Client::Info);
     }
     else{
      (*i)->Status=DPS::Client::LastClientFailed; 
@@ -688,6 +690,8 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
      AString a="StartClients-E-UnableToStartClient ";
      a+=submit;
      _parent->EMessage((const char *) a);
+      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+      _pser->MonInfo((const char *) a,DPS::Client::Error);
      
     }
      DPS::Client::CID cid;      
@@ -725,19 +729,24 @@ if(li!=_acl.end()){
     for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
       if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
        (*i)->Status=NoResponse;
-       _pser->MonitorHostNoResponse(*i);
+       _pser->MonInfo(AMSClient::print(*i,"No Response From: "),DPS::Client::Warning);
     }
 }  
    (*li)->id.Status=DPS::Client::SInKill;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Delete);
  }
- else if(_pser->MonitorSaysOkToKill(*li)){
+  else{
+   if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Update);
     //_pser->Kill((*li),SIGTERM,true);
+  }
+  else{
+    _UpdateACT((*li)->id,DPS::Client::Active);
+  }
  }
 }
 
@@ -1138,6 +1147,8 @@ return 0;
 
 void Server_impl::Exiting(const CID & cid, const char * message, DPS::Client::ClientExiting status)throw (CORBA::SystemException){
 _parent->IMessage(AMSClient::print(cid,message?message:"Server exiting"));
+Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+_pser->MonInfo(AMSClient::print(cid,message?message:" Server Exiting "),DPS::Client::Info);
 // find and remove client
 if(cid.Type==DPS::Client::Server){
 for( ACLI li=_acl.begin();li!=_acl.end();++li){
@@ -1690,6 +1701,8 @@ if(getServer()->InactiveClientExists())return;
      AString a="StartClients-E-UnableToStartClient ";
      a+=submit;
      _parent->EMessage((const char *)a);
+      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+      _pser->MonInfo((const char *) a,DPS::Client::Error);
     }
      DPS::Client::CID cid;      
       cid.Type=getType();
@@ -1735,7 +1748,7 @@ if(li!=_acl.end()){
     for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
       if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
        (*i)->Status=NoResponse;
-       _pser->MonitorHostNoResponse(*i);
+       _pser->MonInfo(AMSClient::print(*i,"No Response From: "),DPS::Client::Warning);
     }
 }  
 
@@ -1743,12 +1756,17 @@ if(li!=_acl.end()){
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Delete);
  }
- else if(_pser->MonitorSaysOkToKill(*li)){
+ else {
+   if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Update);
     _pser->Kill((*li),SIGHUP,true);
+  }
+  else{
+    _UpdateACT((*li)->id,DPS::Client::Active);
+  }
  }
 }
 
@@ -1833,6 +1851,8 @@ return _pser->getARS(cid, arf,type,id);
 
 void Producer_impl::Exiting(const CID & cid, const char * message, DPS::Client::ClientExiting status)throw (CORBA::SystemException){
 _parent->IMessage(AMSClient::print(cid,message?message:" Producer Exiting"));
+Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+_pser->MonInfo(AMSClient::print(cid,message?message:" Producer Exiting "),DPS::Client::Info);
 // find and remove client
 for( ACLI li=_acl.begin();li!=_acl.end();++li){
  if (cid.uid==((*li)->id).uid){
@@ -1851,6 +1871,8 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
       else      rv->Status=Failed;
        rv->cuid=0;
        _parent->EMessage(AMSClient::print(rv, " run Failed "));
+       Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+       _pser->MonInfo(AMSClient::print(rv, " Run Failed: "),DPS::Client::Error);
        PropagateRun(rv,DPS::Client::Update);
      }
     }
@@ -2538,6 +2560,8 @@ void Producer_impl::RunFailed(const DPS::Client::ActiveClient & acv){
       else      rv->Status=Failed;
        rv->cuid=0;
        _parent->EMessage(AMSClient::print(rv, " run Failed "));
+       Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+       _pser->MonInfo(AMSClient::print(rv, " Run Failed: "),DPS::Client::Error);
        PropagateRun(rv,DPS::Client::Update);
      }
     }
@@ -2874,7 +2898,7 @@ time(&tt);
 for(ACLI li=_acl.begin();li!=_acl.end();++li){
  // find clients with timeout
  if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+_KillTimeOut<tt){
-   if(_pser->PingClient(*li)){
+   if(PingClient(*li)){
     _UpdateACT((*li)->id,DPS::Client::Active);
    }
    else{
@@ -2923,16 +2947,18 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
 }
 
 }
-bool Server_impl::MonitorSaysOkToKill(const DPS::Client::ActiveClient & ac){
+bool Server_impl::MonDialog(const char * message, DPS::Client::ErrorType error){
+  unsigned long timeout=20;
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==DPS::Client::Monitor){
      for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+      try{
        CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[0].IOR);
        if(!CORBA::is_nil(obj)){
         DPS::Monitor_var _mvar=DPS::Monitor::_narrow(obj);
        if(!CORBA::is_nil(_mvar)){
         try{
-         CORBA::Boolean kill=_mvar->ClientToKill(_parent->getcid(),ac);
+         CORBA::Boolean kill=_mvar->MonDialog(_parent->getcid(),message,error,timeout);
          return kill;
         }
         catch (CORBA::SystemException &ex){
@@ -2940,23 +2966,30 @@ bool Server_impl::MonitorSaysOkToKill(const DPS::Client::ActiveClient & ac){
         }
        }
        }
+       }
+         catch (CORBA::SystemException &ex){
+         cerr<<" oops corba exc init mondialog"<<endl;
+         }
      }
+
      break;
     }
   }
   return true;
 }
 
-void Server_impl::MonitorHostNoResponse(const DPS::Client::ActiveHost & ah){
+void Server_impl::MonInfo(const char * message, DPS::Client::ErrorType error){
+  unsigned long timeout=20;
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==DPS::Client::Monitor){
      for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+      try{
        CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[0].IOR);
        if(!CORBA::is_nil(obj)){
         DPS::Monitor_var _mvar=DPS::Monitor::_narrow(obj);
        if(!CORBA::is_nil(_mvar)){
         try{
-         _mvar->HostStatusChanged(_parent->getcid(),ah);
+         _mvar->MonInfo(_parent->getcid(),message,error,timeout);
          return;
         }
         catch (CORBA::SystemException &ex){
@@ -2964,6 +2997,10 @@ void Server_impl::MonitorHostNoResponse(const DPS::Client::ActiveHost & ah){
         }
        }
        }
+       }
+         catch (CORBA::SystemException &ex){
+         cerr<<" oops corba exc init moninfo"<<endl;
+         }
      }
      break;
     }
@@ -2971,7 +3008,7 @@ void Server_impl::MonitorHostNoResponse(const DPS::Client::ActiveHost & ah){
   
 }
 
-bool Server_impl::PingClient(const DPS::Client::ActiveClient & ac){
+bool Client_impl::PingClient(const DPS::Client::ActiveClient & ac){
        if(ac.id.Type==DPS::Client::Monitor){
         try{
         CORBA::Object_var obj=_defaultorb->string_to_object((ac.ars)[0].IOR);

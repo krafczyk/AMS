@@ -182,6 +182,7 @@ public:
   void StartClients(const DPS::Client::CID &cid);
   void CheckClients(const DPS::Client::CID &cid);
   void KillClients(const DPS::Client::CID &cid);
+  bool PingClient(const DPS::Client::ActiveClient & ac);
   bool Master();
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
   void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
@@ -207,7 +208,6 @@ public:
  bool Master();
  integer Kill(const DPS::Client::ActiveClient & ac, int signal, bool self);
  bool PingServer(const DPS::Client::ActiveClient & ac);
- bool PingClient(const DPS::Client::ActiveClient & ac);
  bool Lock(const DPS::Client::CID & cid, OpType op, DPS::Client::ClientType type, int Time);
  void setInterface(const char * iface){_iface=iface;}
  AMSServerI * getServer(){return this;}
@@ -233,16 +233,15 @@ void _PurgeQueue();
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
    int getNHS(const DPS::Client::CID &cid,NHS_out nhl)throw (CORBA::SystemException);
    int getAHS(const DPS::Client::CID &cid,AHS_out ahl)throw (CORBA::SystemException);
-
+   
    void ping()throw (CORBA::SystemException);
    void sendCriticalOps(const DPS::Client::CID &cid, const CriticalOps & op)throw (CORBA::SystemException);
-   bool MonitorSaysOkToKill(const DPS::Client::ActiveClient & ac);
-   void MonitorHostNoResponse(const DPS::Client::ActiveHost & ah);
   bool pingHost(const char * host);
   CORBA::Boolean TypeExists(DPS::Client::ClientType type)throw (CORBA::SystemException);
 
   void StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordChange rc);
-
+  void MonInfo(const char * message, DPS::Client::ErrorType error);
+  bool MonDialog(const char * message, DPS::Client::ErrorType error);
 };
 
 

@@ -871,6 +871,112 @@ sub Update{
     warn "herehere ";
 }
 
+sub MonInfo{
+    my ($message,$error,$timeout)=@_;
+ my $s="\7";
+ print $s;
+
+my $window  =   new Gtk::Widget    "Gtk::Window",
+                "GtkWidget::has_focus"            =>      1,
+                "GtkWindow::type"                 =>      -toplevel,
+                "GtkWindow::title"                =>      "Server Message",
+                "GtkWindow::allow_grow"           =>      0,
+                "GtkWindow::modal"                =>      1,
+                "GtkWindow::window_position"             =>      -center,
+                "GtkWindow::allow_shrink"         =>      0,
+                "GtkContainer::border_width"      =>      10;
+
+   
+		$window->signal_connect( 'destroy', \&Gtk::Widget::destroyed, \$window );
+                
+                $window->realize();
+                my $box = new Gtk::VBox(1,0);
+                $window->add($box);
+		my $label_box = new Gtk::HBox 0, 0;
+                my ($book_closed, $book_closed_mask);
+                if($error eq "Error" or $error eq "Severe"){
+                 ($book_closed, $book_closed_mask) = create_from_xpm_d Gtk::Gdk::Pixmap( $window->window, undef, @red_xpm );
+             }elsif($error eq "Warning"){
+                 ($book_closed, $book_closed_mask) = create_from_xpm_d Gtk::Gdk::Pixmap( $window->window, undef, @yellow_xpm );
+             }elsif($error eq "Info"){
+                 ($book_closed, $book_closed_mask) = create_from_xpm_d Gtk::Gdk::Pixmap( $window->window, undef, @green_xpm );
+             }
+		my $pixwid = new Gtk::Pixmap $book_closed, $book_closed_mask;
+		$label_box->pack_start($pixwid, 0, 1, 0);
+		$pixwid->set_padding(3, 1);
+		my $label = new Gtk::Label $message;
+		$label_box->pack_start($label, 0, 1, 0);
+                $box->pack_start($label_box,0,1,0);
+
+        	my $button = new Gtk::Button( 'Close' );
+		$button->signal_connect( 'clicked', sub { 
+                   $window->destroy();} );
+                $box->pack_start($button,0,1,0);
+                my $popup=Gtk->timeout_add($timeout*1000, sub { 
+                   $button->clicked } );
+
+                show_all $window;
+    while (Gtk->events_pending()){
+           Gtk->main_iteration();
+       }
+}
+sub MonDialog{
+    my ($message,$error,$timeout)=@_;
+ my $s="\7";
+ print $s;
+
+my $window  =   new Gtk::Widget    "Gtk::Window",
+                "GtkWidget::has_focus"            =>      1,
+                "GtkWindow::type"                 =>      -toplevel,
+                "GtkWindow::title"                =>      "Server Query",
+                "GtkWindow::allow_grow"           =>      0,
+                "GtkWindow::modal"                =>      1,
+                "GtkWindow::window_position"             =>      -center,
+                "GtkWindow::allow_shrink"         =>      0,
+                "GtkContainer::border_width"      =>      10;
+
+   
+		$window->signal_connect( 'destroy', \&Gtk::Widget::destroyed, \$window );
+                
+                $window->realize();
+                my $box = new Gtk::VBox(1,0);
+                $window->add($box);
+		my $label_box = new Gtk::HBox 0, 0;
+                my ($book_closed, $book_closed_mask);
+                if($error eq "Error" or $error eq "Severe"){
+                 ($book_closed, $book_closed_mask) = create_from_xpm_d Gtk::Gdk::Pixmap( $window->window, undef, @red_xpm );
+             }elsif($error eq "Warning"){
+                 ($book_closed, $book_closed_mask) = create_from_xpm_d Gtk::Gdk::Pixmap( $window->window, undef, @yellow_xpm );
+             }elsif($error eq "Info"){
+                 ($book_closed, $book_closed_mask) = create_from_xpm_d Gtk::Gdk::Pixmap( $window->window, undef, @green_xpm );
+             }
+		my $pixwid = new Gtk::Pixmap $book_closed, $book_closed_mask;
+		$label_box->pack_start($pixwid, 0, 1, 0);
+		$pixwid->set_padding(3, 1);
+		my $label = new Gtk::Label $message;
+		$label_box->pack_start($label, 0, 1, 0);
+                $box->pack_start($label_box,0,1,0);
+
+
+                my $hbox = new Gtk::HBox(1,10);
+                $box->pack_start($hbox,0,1,0);
+        	my $buttony = new Gtk::Button( 'Yes' );
+		$buttony->signal_connect( 'clicked', sub { 
+                  $monitorUI::Singleton->{queryanswer}=1;
+                  $window->destroy } );
+                $hbox->pack_start($buttony,1,1,0);
+        	my $buttonn = new Gtk::Button( 'No' );
+		$buttonn->signal_connect( 'clicked', sub { 
+                  $monitorUI::Singleton->{queryanswer}=0;
+                  $window->destroy } );
+                $hbox->pack_start($buttonn,1,1,0);
+                my $popup=Gtk->timeout_add($timeout*1000,sub { 
+                   $buttony->clicked } );
+                show_all $window;
+    while (Gtk->events_pending()){
+           Gtk->main_iteration();
+       }
+}
 sub Warning(){
  my $s="\7";
  print $s;
