@@ -830,7 +830,7 @@ void  AMSEvent::write(int trig){
   AMSEvent::gethead()->getheadC("AMSTrRecHit",5,2); 
    
   if(IOPA.hlun || IOPA.WriteRoot){
-    AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
+    AMSJob::gethead()->getntuple()->reset(1);
     _writeEl();
     AMSNode * cur;
     for (int i=0;;){
@@ -843,20 +843,6 @@ void  AMSEvent::write(int trig){
     }
     if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
 // if event has been selected write it straight away
-       if(PosInRun>= (IOPA.WriteAll/1000)*1000){
-          // write only %IOPA.Portion if not antimatter or heavyion
-          geant d;
-          //if(AMSJob::gethead()->isProduction() && RNDM(d)>IOPA.Portion){
-          if(0){
-             // check if ap or heavy ion
-             AMSContainer *p=getC("AntiMatter");
-             if(!p->getnelem()){
-               p=getC("HeavyIon");
-               if(!p->getnelem())AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
-             } 
-             
-          }
-       }
             AMSJob::gethead()->getntuple()->write(1);
             AMSJob::gethead()->getntuple()->writeR();
     }
