@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.32 2003/03/25 11:46:12 choutko Exp $
+//  $Id: trddbc.C,v 1.33 2003/03/25 12:21:12 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -462,7 +462,7 @@ void TRDDBc::init(){
 
       // On drawing, 1600 is intersection with middle of bottom skin
       
-      OctagonDimensions(1,6)=1600./20.+1./10/cos(ang);   // rmax
+      OctagonDimensions(1,6)=1600./20.+1./10/cos(ang)-2./10*tan(ang);   // rmax
 
       // Top edge
       OctagonDimensions(1,8)=0;    // rmin
