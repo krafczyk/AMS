@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.29 2001/02/07 14:16:55 choutko Exp $
+//  $Id: producer.C,v 1.30 2001/02/08 09:31:22 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -838,7 +838,7 @@ float lt;
     double st=ft.time+ft.millitm/1000.;
 cerr <<"AMSPRoducer::Progressing "<<total<<" "<<lt<<" "<<xt<<" "<<AMSFFKEY.CpuLimit*2<<" "<<_cinfo.EventsProcessed<<" "<<st<<" "<<xte<<endl;
 TIMEX(lt);
- if(total>=0 && (lt-xt>AMSFFKEY.CpuLimit*2 || st-xte>AMSFFKEY.CpuLimit*100)){
+ if(total>=0 && total == _cinfo.EventsProcessed && (lt-xt>AMSFFKEY.CpuLimit*2 || st-xte>AMSFFKEY.CpuLimit*100)){
    total=-1;   
    return false;
  }

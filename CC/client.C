@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.14 2001/02/07 14:16:55 choutko Exp $
+//  $Id: client.C,v 1.15 2001/02/08 09:31:21 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -82,7 +82,7 @@ cerr<<message<<endl;
    if(_fbin){
      time_t tcur;
      time(&tcur);
-     _fbin<<" -F-  "<<ctime(&tcur)<<endl<<message << endl;
+     _fbin<<endl<<" -F-  "<<ctime(&tcur)<<endl<<message << endl;
    }
    AMSClientError a(message,res);
    Error()=a;
@@ -96,7 +96,7 @@ cerr<<message<<endl;
    if(_fbin){
      time_t tcur;
      time(&tcur);
-     _fbin <<" -E- "<<ctime(&tcur)<<endl<<message <<endl;
+     _fbin <<endl<<" -E- "<<ctime(&tcur)<<endl<<message <<endl;
    }
 }
 
@@ -107,7 +107,7 @@ cout<<message<<endl;
    if(_fbin){
      time_t tcur;
      time(&tcur);
-     _fbin <<" -I- "<<ctime(&tcur)<<endl<<message <<endl;
+     _fbin <<endl<<" -I- "<<ctime(&tcur)<<endl<<message <<endl;
    }
 }
 

@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.3 2001/02/07 14:16:55 choutko Exp $
+//  $Id: dbserver.C,v 1.4 2001/02/08 09:31:22 choutko Exp $
 #include <dbserver.h>
 
 
@@ -54,6 +54,13 @@ for(int i=0;i<length;i++){
 
 //functions to fill with oracle stuff
 //see algorithm examples in ~/AMS/perl/lib/POADBServer.pm
+
+
+void  DBServer_impl::_init(){
+    // here oracle connect
+}
+
+
 
 
   void  DBServer_impl::UpdateDB(bool force=false){
@@ -218,8 +225,6 @@ for(int i=0;i<length;i++){
 }
 
 
-void  DBServer_impl::_init(){
-}
 
 
    int  DBServer_impl::getEnv(const DPS::Client::CID &cid, SS_out ss){
