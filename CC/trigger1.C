@@ -38,7 +38,7 @@ void TriggerLVL1::build(){
 //
 //cout<<"LVL1:Tr_flag= "<<tofflag<<" tofpatt: "<<tofpatt[0]<<" "<<tofpatt[1]<<
 //                               " "<<tofpatt[2]<<" "<<tofpatt[3]<<endl;
-  if(ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti)
+  if(tofflag && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti)
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new TriggerLVL1(1,tofflag,tofpatt,antipatt));
 }

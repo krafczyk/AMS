@@ -173,7 +173,7 @@
      + LVL3NTrHits(mlvl3),LVL3NPat(mlvl3),
      + LVL3Pattern(2,mlvl3),LVL3Residual(2,mlvl3),LVL3Time(mlvl3)
 
-       common /LVL31/nlvl1,LVL1Mode(mlvl1),
+       common /LVL31/nlvl1,LVL1Mode(mlvl1),lvl1flag(mlvl1),
      + LVL1TOFPatt(4,mlvl1),LVL1AntiPatt(mlvl1)
 
 
@@ -328,7 +328,7 @@ c       write(*,*)' Starting converting'
      + 'LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R')
 
       call hbname(1,cblock(17),nlvl1,
-     + 'nlvl1[0,2],LVL1Mode(nlvl1),'//
+     + 'nlvl1[0,2],LVL1Mode(nlvl1),LVL1Flag(nlvl1),'//
      + 'LVL1TOFPatt(4,nlvl1),LVL1AntiPatt')
 
         runold=-1
@@ -828,7 +828,8 @@ c            write(*,*)' ntrrh eq 0 ', events
         do while(truth)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=175)
-     +     ne,lvl1mode(nlvl1),(lvl1tofpatt(k,nlvl1),k=1,4),
+     +     ne,lvl1mode(nlvl1),lvl1flag(nlvl1),
+     +     (lvl1tofpatt(k,nlvl1),k=1,4),
      +     lvl1antipatt(nlvl1)
 
            goto 176
@@ -1049,7 +1050,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
 *    idet=17
 *
 
-       common /LVL1C/lvl1event,LVL1mode,
+       common /LVL1C/lvl1event,LVL1mode,lvl1flag,
      + LVL1TOFpatt(4),lvl1antipatt
 
 
@@ -1200,7 +1201,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +      LVL3Residual,LVL3Time
 
            else if( cblock(idet).eq.'LVL1')then          
-            write(21)lvl1event,lvl1mode,
+            write(21)lvl1event,lvl1mode,lvl1flag,
      +      LVL1tofpatt,lvl1antipatt
 
 

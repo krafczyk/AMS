@@ -1291,7 +1291,8 @@ void AMSTOFRawEvent::mc_build(int &status)
   number t,t1,t2,t3,t4,tprev,ttrig1,ttrig3,dt,tlev1,tl1d,ftrig;
   geant charge,edep;
   int trcode,trcode3;
-  integer trflag(0),trpatt[SCLRS],trpatt3[SCLRS];
+  integer trflag(0),trpatt3[SCLRS];
+  integer trpatt[SCLRS]={0,0,0,0};
   integer it,it1,it2,it3,it4,it0;
   int16u phbit,maxv;
   static geant ftpw=TOFDBc::daqpwd(12);// FT-pulse width
