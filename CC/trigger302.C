@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.18 2002/05/21 09:03:43 alexei Exp $
+//  $Id: trigger302.C,v 1.19 2002/05/22 12:27:08 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -176,7 +176,8 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
   integer TriggerLVL302::_TrackerDRP2Layer[NTRHDRP][trid::ncrt];
   number TriggerLVL302::_stripsize=0.0055;
 integer TriggerLVL302::_TrackerOtherTDR[NTRHDRP][trid::ncrt];
-
+//
+  integer TriggerLVL302::_flowc[15];
 
 // ECAL
   geant TriggerLVL302::_ECgains[ECSLMX][ECPMSMX];
@@ -246,6 +247,8 @@ void TriggerLVL302::init(){
   }
  int i,j;
  integer ltop,lbot,planes,padspl[TOF2GC::SCLRS];
+//
+    for(i=0;i<15;i++)_flowc[i]=0;// clear prog.flow counters
 
     if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 // TOF
@@ -381,8 +384,10 @@ void TriggerLVL302::init(){
  _ECpmpsl=ECALDBc::slstruc(4);//pms/sl(36)
  _ECpmdz=ECALDBc::gendim(9)+2*ECALDBc::gendim(10);//PM-dz(1.85cm) 
  _ECpmz=ECALDBc::gendim(7);//1st sl front z-pos
- _ECcrz3=0.5*(TOF2DBc::getzsc(2,3)+TOF2DBc::getzsc(2,4));//z-pos TOF-3(X)(~ cm)
- _ECcrz4=0.5*(TOF2DBc::getzsc(3,3)+TOF2DBc::getzsc(3,4));//z-pos TOF-4(Y)(~ cm)
+// _ECcrz3=0.5*(TOF2DBc::getzsc(2,3)+TOF2DBc::getzsc(2,4));//z-pos TOF-3(X)(~ cm)
+// _ECcrz4=0.5*(TOF2DBc::getzsc(2,3)+TOF2DBc::getzsc(2,4));//z-pos TOF-4(Y)(~ cm)
+ _ECcrz3=_TrackerCooZ[trconst::maxlay-1];//z-pos last trk-layer(X)(~ cm)
+ _ECcrz4=_TrackerCooZ[trconst::maxlay-1];//z-pos last trk-layer(Y)(~ cm)
 //-----------------   
   
    
@@ -914,6 +919,45 @@ geant TriggerLVL302::Discriminator(integer nht){
 
    return max(LVL3FFKEY.TrMaxResidual[2],LVL3FFKEY.TrMaxResidual[0]-LVL3FFKEY.TrMaxResidual[1]*nht);
 }
+//-------------------------------------------------------------
+int TriggerLVL302::eccrosscheck(geant ect){
+//
+  geant dx,dy,xl,yl,xh,yh,xcut,ycut;
+  geant x0,y0;
+//
+  xl=_lowlimitX[trconst::maxlay-1];
+  xh=_upperlimitX[trconst::maxlay-1];
+  yl=_lowlimitY[trconst::maxlay-1];
+  yh=_upperlimitY[trconst::maxlay-1];
+  x0=0.5*(_lowlimitX[trconst::maxlay-1]+_upperlimitX[trconst::maxlay-1]);
+  y0=0.5*(_lowlimitY[trconst::maxlay-1]+_upperlimitY[trconst::maxlay-1]);
+//for "out-of-window distance" methode:
+//  if((_ECtofcr[0]-xl)<(xh-_ECtofcr[0]))dx=_ECtofcr[0]-xl;
+//  else dx=xh-_ECtofcr[0];
+//  if((_ECtofcr[1]-yl)<(yh-_ECtofcr[1]))dy=_ECtofcr[1]-yl;
+//  else dy=yh-_ECtofcr[1];
+  dx=_ECtofcr[0]-x0;//for "mid-of-window distance" methode
+  dy=_ECtofcr[1]-y0;
+  if(ECREFFKEY.reprtf[0]!=0){
+//    HF1(ECHISTR+45,dx,1.);
+//    HF1(ECHISTR+48,dy,1.);
+    HF1(ECHISTR+53,xh-xl,1.);
+    HF1(ECHISTR+54,yh-yl,1.);
+    HF1(ECHISTR+55,dx,1.);
+    HF1(ECHISTR+56,dy,1.);
+  }
+//  xcut=19.6+24.75/sqrt(ect);
+//  if(xcut>44)xcut=44;
+//  ycut=19.1+61.9/sqrt(ect);
+//  if(ycut>54)ycut=54;
+//  if(dx>-xcut && dy>-ycut)return(1);//match ok
+  xcut=27+42/sqrt(ect);
+  if(xcut>57)xcut=57;
+  ycut=27+47/sqrt(ect);
+  if(ycut>60)ycut=60;
+  if(fabs(dx)<xcut && fabs(dy)<ycut)return(1);//match ok
+  else return(0);
+}
 
 //-----------------------------------------------------------
   void TriggerLVL302::build(){
@@ -924,12 +968,14 @@ geant TriggerLVL302::Discriminator(integer nht){
     // Shuttle Now Station
 //tempor    
      AMSgObj::BookTimer.start("LVL3");
+     _flowc[0]+=1;
      Trigger2LVL1 * plvl1= 
        (Trigger2LVL1*)AMSEvent::gethead()->
        getheadC("TriggerLVL1",0);
      if(plvl1){
        int16 * ptr;
        number tt1,tt2;
+       _flowc[1]+=1;
        TriggerAuxLVL302 aux[trid::ncrt];
        for(int icrt=0;icrt<AMSTrIdSoft::ncrates();icrt++){
           aux[icrt].addnoisetk(icrt);
@@ -975,6 +1021,7 @@ geant TriggerLVL302::Discriminator(integer nht){
     plvl3->settofdir(0);//reset TOF-dir flag
 //
     if(plvl3->UseTOFTime()){// <--- generate/use TOF-dir info
+    _flowc[2]+=1;
     for(i=0;i<TOF2GC::SCLRS;i++){
       for(j=0;j<TOF2GC::SCMXBR;j++){
         tofrt[i][j]=0;
@@ -1002,7 +1049,9 @@ geant TriggerLVL302::Discriminator(integer nht){
 	  tofrt[i][j]+=_TOFTzero[i][j];//add calibration
 	}
 	else tofrt[i][j]=0;
-	if(tofrt[i][j]>toft[i])toft[i]=tofrt[i][j];
+	if(plvl1->checktofpattand(i,j)){//look at "lvl1-fired" paddles only
+	  if(tofrt[i][j]>toft[i])toft[i]=tofrt[i][j];//take max time (first in real time)
+	}
       }
     }
 //
@@ -1016,6 +1065,7 @@ geant TriggerLVL302::Discriminator(integer nht){
     else tbot=0;
 //
     if(ttop>0 && tbot>0){
+      _flowc[3]+=1;
       dt=ttop-tbot;
       if(TFREFFKEY.reprtf[2]!=0)HF1(1092,ttop-tbot,1.);
       if(dt>=1.5)plvl3->settofdir(1);
@@ -1046,14 +1096,17 @@ geant TriggerLVL302::Discriminator(integer nht){
     geant ecolx,ecoly;
     geant ech2x(-1),ech2y(-1);
     geant ectfcr[2]={999,999};
-    geant ecrtg[2]={0,0};
+    geant ecrtg[2]={999,999};
+    int ectrackok;
     int ncolx,ncoly;
-    plvl3->setecemag(0);//reset EC-emag flag
-    plvl3->setecmatc(0);//reset EC-match flag
-    plvl3->setectofcr(ectfcr,ecrtg);//reset EC-tof cross.
+    plvl3->setecemag(0);//reset EC-emag flag(noECactivity)
+    plvl3->setecmatc(0);//reset EC-match flag(noECTrack)
+    plvl3->setectofcr(ectfcr,ecrtg);//reset EC-track cross.point/slope
     ectot=0;
+    ectrackok=0;
 //
   if(plvl3->UseECEMinfo() || plvl3->UseECMATinfo()){// <--- use ECAL info
+      _flowc[4]+=1;
       for(int i=0;i<ECSLMX;i++){
         EClprof[i]=0;
 	for(int j=0;j<ECPMSMX;j++){
@@ -1100,6 +1153,7 @@ geant TriggerLVL302::Discriminator(integer nht){
       geant p2brat,p2frat;
       if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+31,geant(ectot),1.);
       if(ectot>=etcut){// >= Mip
+        _flowc[5]+=1;
         if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+32,geant(efrnt),1.);
 	if(efrnt<efrcut){
 	  plvl3->setecemag(-1);//nonEM
@@ -1141,6 +1195,7 @@ geant TriggerLVL302::Discriminator(integer nht){
 	  }
 	}
 	plvl3->setecemag(1);//EM + Etot>Esep2
+        _flowc[6]+=1;
       }//---> endof >=Mip check
  ecfin1:
       if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+39,geant(plvl3->getecemag()),1.);
@@ -1151,23 +1206,52 @@ geant TriggerLVL302::Discriminator(integer nht){
    geant ectx(0),ecty(0),ecx0(0),ecy0(0);
    geant eccrxe(0),eccrye(0),ectxe(0),ectye(0);
    number etl[ECSLMX];
-   number cel2,epm,els,epmin;
-   int npmcl[ECSLMX];
+   number cel2,epm,elsx,elsy,epmin;
+   geant epmmx,eclt;
+   int npmcl[ECSLMX],npmmx,pmin,pmax,pmngb;
+   geant ecnoisl(5);//to discrim. from noise(mev)
+   geant eshcut;
+   eshcut=ECALVarp::ecalvpar.rtcuts(4);//boundary-cut between "aver" and "peak" methods
 //
+   ectrackok=0;
    if(plvl3->UseECMATinfo()){//use EC-Match info
+   _flowc[7]+=1;
    if(ectot>=etcut){//>=MIP check
+      _flowc[8]+=1;
       ecogl=0;
-      els=0;
-      for(sl=0;sl<ECSLMX;sl++){//SL-loop to calc. coo/rms
+      elsx=0;
+      elsy=0;
+      for(sl=0;sl<ECSLMX;sl++){//<==== SL-loop to calc. coo/rms
         etl[sl]=0;
 	ecogt[sl]=0;
 	npmcl[sl]=0;
 	cel2=0;
 	crms[sl]=0;
-        if(EClprof[sl]<15)continue;//below MIP/sl energy-deposition.
-        epmin=0.08*EClprof[sl];
-	if(sl==0)epmin=0.2*EClprof[sl];//higher thr(to suppress low-en bremstr-hits) 
-        for(pm=0;pm<ECPMSMX;pm++){
+        epmmx=0;
+        for(pm=0;pm<ECPMSMX;pm++){//first find max.signal PM
+	  if(ECemap[sl][pm]>epmmx){
+	    npmmx=pm;//store max pm-signal in given SL
+	    epmmx=ECemap[sl][pm];
+	  }
+	}
+	if(epmmx<ecnoisl)continue;//use only layer with peak-signal > 5 mev(well above the noise)
+	epmin=ecnoisl;
+	if(sl<=1)pmngb=1;
+	else pmngb=2;
+	pmin=npmmx-pmngb;
+	if(pmin<0)pmin=0;
+	pmax=npmmx+pmngb;
+	if(pmax>ECPMSMX)pmax=ECPMSMX;
+	eclt=0;
+	for(pm=pmin;pm<pmax;pm++)eclt+=ECemap[sl][pm];// Peak-Cluster Etot
+	if(eclt/EClprof[sl]<=eshcut){//wide Edep distribution->use "Average" methode
+	  pmin=0;//redefine limits for "average" method
+	  pmax=ECPMSMX;
+          epmin=0.05*EClprof[sl];
+	  if(sl==0)epmin=0.15*EClprof[sl];//higher thr(to suppress low-en bremstr-hits)
+	  if(epmin<ecnoisl)epmin=ecnoisl; 
+	}
+        for(pm=pmin;pm<pmax;pm++){//<==== calc. cluster COG
 	  epm=ECemap[sl][pm];
 	  if(epm>epmin){
 	    etl[sl]+=epm;
@@ -1187,7 +1271,8 @@ geant TriggerLVL302::Discriminator(integer nht){
 	  if(sl%2==0)ecogt[sl]+=_ECpmy0;//tempor 1st sl->Y
 	  else ecogt[sl]+=_ECpmx0;
 	  ecogl+=(sl+1)*etl[sl];
-	  els+=etl[sl];
+	  if(sl%2==0)elsy+=etl[sl];
+	  else elsx+=etl[sl];
 	  if(ECREFFKEY.reprtf[0]!=0){
 	    if(sl==0)HF1(ECHISTR+41,geant(ecogt[sl]),1.);
 	    if(sl==1)HF1(ECHISTR+42,geant(ecogt[sl]),1.);
@@ -1199,15 +1284,16 @@ geant TriggerLVL302::Discriminator(integer nht){
 	}
       }//--->endof sl-loop
 //
-      if(els>0){//calc. z-cog(longit)
-        ecogl/=els;
+      if((elsx+elsy)>0){//calc. z-cog(longit)
+        ecogl/=(elsx+elsy);
 	ecogl=_ECpmz-_ECpmdz*(ecogl-0.5);//z-cog in cm
 	if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+40,geant(ecogl),1.);
       }
 //
 //---> linear fit in proj:
 //
-      geant fpnt,suz,sux,suxz,suz2,sud,sg2,ct,cz,ctsg,slim(15);
+      geant fpnt,suz,sux,suxz,suz2,sud,sg2,ct,cz,ctsg,slim(15),ass;
+      geant etlr[ECSLMX];
       fpnt=0;
       suz=0;
       sux=0;
@@ -1217,11 +1303,10 @@ geant TriggerLVL302::Discriminator(integer nht){
       for(sl=0;sl<ECSLMX;sl+=2){//for Y-proj
         ct=ecogt[sl];
 	ctsg=crms[sl];
-	sg2=ctsg*ctsg;
 	cz=_ECpmz-_ECpmdz*(sl+0.5);
-	slim=7;
-	if(sl<3)slim=4;
-	if(ctsg>0 && ctsg<slim){
+	if(ctsg>0){
+	  etlr[sl]=etl[sl]/elsy;//get relative energy dep.
+	  sg2=ctsg*ctsg/etlr[sl];
 	  fpnt+=1;
           sud+=1./sg2;
           sux+=ct/sg2;
@@ -1230,25 +1315,22 @@ geant TriggerLVL302::Discriminator(integer nht){
           suxz+=ct*cz/sg2;
 	}
       }
-      if(fpnt>=3){//calc. tan, cross, chi2
+      if(fpnt>=2){//calc. tan, cross, chi2
         ecty=(sud*suxz-sux*suz)/(sud*suz2-suz*suz);
         ecy0=(sux*suz2-suxz*suz)/(sud*suz2-suz*suz);
         ech2y=0;
+	if(fpnt>2){
         for(sl=0;sl<ECSLMX;sl+=2){//calc. chi2
 	  ctsg=crms[sl];
-	  slim=7;
-	  if(sl<3)slim=4;
-	  if(ctsg>0 && ctsg<slim){
-            ct=ecogt[sl];
+	  if(ctsg>0){
 	    cz=_ECpmz-_ECpmdz*(sl+0.5);
-            ech2y+=pow((ecy0+ecty*cz-ct)/ctsg,2);
+            ct=ecogt[sl];
+            ech2y+=etlr[sl]*pow((ecy0+ecty*cz-ct)/ctsg,2);
 	  }
         }
         ech2y/=geant(fpnt-2);
-	ectfcr[1]=ecty*_ECcrz4+ecy0;//Y-crossing with TOF-plane 4
-        eccrye=2.4+11.2/sqrt(ectot);//err.estim
-        if(eccrye>9)eccrye=9;
-        if(eccrye<3.8)eccrye=3.8;
+	}
+	ectfcr[1]=ecty*_ECcrz4+ecy0;//Y-cross with last trk-layer(was TOF4)
 	ecrtg[1]=ecty;
         if(ECREFFKEY.reprtf[0]!=0){
 	  HF1(ECHISTR+43,ech2y,1.);
@@ -1265,11 +1347,10 @@ geant TriggerLVL302::Discriminator(integer nht){
       for(sl=1;sl<ECSLMX-1;sl+=2){//for X-proj
         ct=ecogt[sl];
 	ctsg=crms[sl];
-	sg2=ctsg*ctsg;
 	cz=_ECpmz-_ECpmdz*(sl+0.5);
-	slim=7;
-	if(sl<3)slim=4;
-	if(ctsg>0 && ctsg<slim){
+	if(ctsg>0){
+	  etlr[sl]=etl[sl]/elsx;//get relative energy dep.
+	  sg2=ctsg*ctsg/etlr[sl];
 	  fpnt+=1;
           sud+=1./sg2;
           sux+=ct/sg2;
@@ -1278,43 +1359,37 @@ geant TriggerLVL302::Discriminator(integer nht){
           suxz+=ct*cz/sg2;
 	}
       }
-      if(fpnt>=3){//calc. tan, cross, chi2
+      if(fpnt>=2){//calc. tan, cross, chi2
         ectx=(sud*suxz-sux*suz)/(sud*suz2-suz*suz);
         ecx0=(sux*suz2-suxz*suz)/(sud*suz2-suz*suz);
         ech2x=0;
+	if(fpnt>2){
         for(sl=1;sl<ECSLMX-1;sl+=2){//calc. chi2
 	  ctsg=crms[sl];
-	  slim=7;
-	  if(sl<3)slim=4;
-	  if(ctsg>0 && ctsg<slim){
-            ct=ecogt[sl];
+	  if(ctsg>0){
 	    cz=_ECpmz-_ECpmdz*(sl+0.5);
-            ech2x+=pow((ecx0+ectx*cz-ct)/ctsg,2);
+            ct=ecogt[sl];
+            ech2x+=etlr[sl]*pow((ecx0+ectx*cz-ct)/ctsg,2);
 	  }
         }
         ech2x/=geant(fpnt-2);
-	ectfcr[0]=ectx*_ECcrz3+ecx0;//X-crossing with TOF-plane 3
-        eccrxe=2.97+6.69/sqrt(ectot);//err.estim
-        if(eccrxe>8.7)eccrxe=8.7;
-        if(eccrxe<3.8)eccrxe=3.8;
+	}
+	ectfcr[0]=ectx*_ECcrz3+ecx0;//X-crossing with last trk-layer(was TOF3)
 	ecrtg[0]=ectx;
         if(ECREFFKEY.reprtf[0]!=0){
 	  HF1(ECHISTR+46,ech2x,1.);
 	  HF1(ECHISTR+47,ectx,1.);
 	}
+        if(ech2x>=0 && ech2x<1.5 && ech2y>=0 && ech2y<2.){
+          _flowc[9]+=1;
+	  ectrackok=1;
+          plvl3->setecmatc(-1);//set EC-track flag to "noMatch"(but it may be reset later)
+          plvl3->setectofcr(ectfcr,ecrtg);//set x/y-cr.points and slopes(for ntuple)
+	}
       }
 //----
    }//endof >=MIP check
 //----
-   if(ech2x>0 && ech2x<3 && ech2y>0 && ech2y<3){
-     ectot/=1000;
-     plvl3->setectofcr(ectfcr,ecrtg);//set x/y-cr.points and slopes
-     plvl3->setecmatc(1);//tempor set EC-match flag here
-     if(ECREFFKEY.reprtf[0]!=0){
-       HF1(ECHISTR+45,ectfcr[1],1.);
-       HF1(ECHISTR+48,ectfcr[0],1.);
-     }
-   }
 //
   }//---> endof UseECMATinfo check
   }//---> endof UseECinfo check
@@ -1345,12 +1420,31 @@ geant TriggerLVL302::Discriminator(integer nht){
      if(plvl3->TRDAux._HMult && float(plvl3->TRDAux._HMult)/float(plvl3->TRDAux._NHits[0]+plvl3->TRDAux._NHits[1])>LVL3FFKEY.TRDHMulPart)plvl3->_TRDTrigger+=8;
     }
     if(plvl3->toftrdok() == 0) goto formed;
+    
+    
+    _flowc[10]+=1;
 
 
   //
   // now Tracker Part
   //   
   plvl3->preparetracker();
+//
+// ---> ECAL-TOF/TRD match ?
+//
+  int match(0);
+  if(plvl3->UseECMATinfo()){//use EC-Match info
+    if(ectrackok){
+      _flowc[11]+=1;
+      ectot/=1000;
+      match=plvl3->eccrosscheck(ectot);//check TOF/TRD/ECAL space matching
+      if(match){
+        plvl3->setecmatc(1);//set EC-match flag to "Match"
+        _flowc[12]+=1;
+      }
+    }
+  }
+//---
   integer crate;
   for(crate=0;crate<AMSTrIdSoft::ncrates();crate++){
    ptr=aux[crate].readtracker(1);  
@@ -1459,6 +1553,7 @@ geant TriggerLVL302::Discriminator(integer nht){
            HF1(-400001,float(plvl3->_Time),1.);
          }
          AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
+         _flowc[13]+=1;
        }
        else delete plvl3;
        AMSgObj::BookTimer.stop("LVL3");
@@ -1468,7 +1563,28 @@ geant TriggerLVL302::Discriminator(integer nht){
 
 
 
-
+void TriggerLVL302::printfc(){
+  printf("\n");
+  printf("    ====================== JOB LVL3-statistics ======================\n");
+  printf("\n");
+  printf(" LVL3-build entries         : % 6d\n",_flowc[0]);
+  printf(" LVL1 OK                    : % 6d\n",_flowc[1]);
+  printf(" TOF-dir build entries      : % 6d\n",_flowc[2]);
+  printf("     dir info found         : % 6d\n",_flowc[3]);
+  printf(" EC-EM/TRACK build entries  : % 6d\n",_flowc[4]);
+  printf("    fired(>=MIP)            : % 6d\n",_flowc[5]);
+  printf("    EM or HE(>20gev) found  : % 6d\n",_flowc[6]);
+  printf(" EC-TRACK-build entries     : % 6d\n",_flowc[7]);
+  printf("    fired(>=MIP)            : % 6d\n",_flowc[8]);
+  printf("    EC-track found          : % 6d\n",_flowc[9]);
+  printf(" TOF/TRD-path found         : % 6d\n",_flowc[10]);
+  printf("    +  EC-track found       : % 6d\n",_flowc[11]);
+  printf("    +  EC-track matched     : % 6d\n",_flowc[12]);
+  printf(" LVL3 OK                    : % 6d\n",_flowc[13]);
+  printf("\n");
+  printf("    =================================================================\n");
+  
+}
 
 
 
@@ -1816,10 +1932,10 @@ void TriggerLVL302::Finalize(){
   if((_TrackerTrigger>>3)&1 )_MainTrigger|=4096;
   if((_TRDTrigger>>3)&1 )_MainTrigger|=2048;
 //  bit 13 not set up
-  if(UseECEMinfo() && (_ECemag==0))_MainTrigger|=8192*2;
-  if(_ECemag==1)_MainTrigger|=8192*4;
-  if(UseECMATinfo() && _ECmatc==0)_MainTrigger|=8192*8;
-  if(_ECmatc==1)_MainTrigger|=8192*16;
+  if(UseECEMinfo() && (_ECemag==0))_MainTrigger|=8192*2;//no ECactivity
+  if(_ECemag==1)_MainTrigger|=8192*4;//ECelectromagneticity found
+  if(UseECMATinfo() && _ECmatc!=0)_MainTrigger|=8192*8;//ECtrack found
+  if(_ECmatc==1)_MainTrigger|=8192*16;//ECtrack matched with TOF/TRD path
 }
 
 

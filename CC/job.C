@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.405 2002/05/21 10:36:11 choutko Exp $
+// $Id: job.C,v 1.406 2002/05/22 12:27:07 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -592,8 +592,8 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.cuts[0]=5.;   // (19) mev/cell thresh. to create cluster(~2adc) 
   ECREFFKEY.cuts[1]=0.;   // (20)
   ECREFFKEY.cuts[2]=0.;   // (21)
-  ECREFFKEY.cuts[3]=0.;// (22)
-  ECREFFKEY.cuts[4]=0.;// (23)
+  ECREFFKEY.cuts[3]=0.;//    (22)
+  ECREFFKEY.cuts[4]=0.65;//  (23) LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 //
   ECREFFKEY.ReadConstFiles=1;//(24)read const. from DB/RawFiles (0/1)
 //
@@ -2587,6 +2587,9 @@ _dbendjob();
   cout <<"dbendjob finished"<<endl;
 _axendjob();
   cout <<"axendjob finished"<<endl;
+  
+ TriggerLVL302::printfc();
+ 
 #ifdef __CORBA__
 if(isSimulation())AMSProducer::gethead()->sendRunEndMC();
 #endif

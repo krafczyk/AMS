@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.13 2002/04/29 07:29:03 choumilo Exp $
+//  $Id: trigger302.h,v 1.14 2002/05/22 12:27:22 choumilo Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -57,11 +57,13 @@ class TriggerLVL302: public AMSlink{
 // Put everything in one class due to necessity to be as close to C as possible
 
 protected:
+ static integer _flowc[15];// prog.flow counters
+//
  uinteger _TriggerInputs;   //   0 Default
                             //   1  Doesnot Require TRD      
-                            //   2  Doesnot Require TOF Timing      
+                            //   2  Doesnot Require TOF Up/Down info      
                             //   4  Doesnot Require EC EM-info      
-                            //   8  Doesnot Require EC Match-info      
+                            //   8  Doesnot Require EC track-info      
 
  integer _TOFTrigger;       //  -1 No Matrix
                             //   0 Too Many Hits
@@ -95,8 +97,8 @@ protected:
                             // bit  2 Too Many Hits in TRD
                             // bit  3 Too Many Hits in TOF
                             // bit  4 No TRD Tracks found
-                            // bit  5 Upgoing event found
-                            // bit  6 No TOF Time Information found
+                            // bit  5 Upgoing event found by TOF
+                            // bit  6 TOF Up/Down Information not found
                             // bit  7 Positive Rigidity(Momentum) found
                             // bit  8 Ambigious Comb (A) found 
                             // bit  9 Ambigious Comb (B) found 
@@ -106,8 +108,8 @@ protected:
                             // bit  13 Prescaled event  (8192)
                             // bit  14 No EC activity (Etot<MIP)  
                             // bit  15 EC EM-object OR Etot>20gev  
-                            // bit  16 No EC-object for matching  
-                            // bit  17 EC/(TOF+TRD) matching OK 
+                            // bit  16 EC-track found  
+                            // bit  17 EC-track match TOF/TRD path 
 
 // TOF Time Part
  integer _TOFDirection;//(-1->up;+1->down;0->unknown)
@@ -116,9 +118,9 @@ protected:
 //
 // ECAL electromagneticity/track_matching Part
 //
- integer _ECemag;//(-1->NonEmag; 0->unknown; 1->Emag;)
- integer _ECmatc;//(0->unknown(noObject);-1->NoMatching;1->Matching)
- geant _ECtofcr[4];//x/y/tgx/tgy-cross. with tof-3/4
+ integer _ECemag;//(-1->NonEmag; 0->unknown(noECactivity); 1->Emag;)
+ integer _ECmatc;//(0->unknown(noECTrack);-1->NoMatching;1->Matching)
+ geant _ECtofcr[4];//x/y/tgx/tgy-cross. with bot.plane of Tracker
 
 
  
@@ -242,6 +244,8 @@ public:
 
  void Finalize();   // mke the MainTriggerOutput
 
+ static void printfc();// print prog.flow counters
+ 
 // Tracker Part
 
 
@@ -285,6 +289,7 @@ public:
  void setecmatc(integer d);
  integer getecmatc(){return _ECmatc;}
  void setectofcr(geant c[2], geant tg[2]);
+ int eccrosscheck(geant ec);
 
 
  // Interface with DAQ
