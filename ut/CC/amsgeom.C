@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.174 2003/04/20 16:51:50 schol Exp $
+//  $Id: amsgeom.C,v 1.175 2003/05/16 22:04:06 schol Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -56,7 +56,7 @@ using namespace amsgeom;
 //--------------------------------------------------
 void AMSgvolume::amsgeom(){
 AMSID amsid;
-geant par[10];
+geant par[11];
 geant parf[10];
 geant coo[3]={0,0,0};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
@@ -2007,7 +2007,7 @@ using trdconst::TRDROTMATRIXNO;
 
    TRDDBc::read();
 
-geant par[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+geant par[11]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 number inrm[3][3];
 char name[5];
