@@ -128,7 +128,6 @@ uinteger usec,geant pole, geant stationT, geant stationP, geant StationR=6660000
 _time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_SunTheta(SunT),_SunPhi(SunP){_Head=this;}
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
    _runtype(runtype), _time(time), _usec(usec){
-   SetTimeCoo();
    _Head=this;
 }
 ~AMSEvent(){_Head=0;}

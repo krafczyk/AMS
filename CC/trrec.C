@@ -148,7 +148,7 @@ integer AMSTrCluster::build(integer refit){
       OriginalLast[i]=pct[i]->getlast();
       Thr2R[i]=TRCLFFKEY.Thr2R[i];
       ThrClNel[i]=TRCLFFKEY.ThrClNEl[i];
-      TRCLFFKEY.Thr2R[i]=min((number)4.,Thr2R[i]*3.);
+      TRCLFFKEY.Thr2R[i]=min((number)3.,Thr2R[i]*3.);
       TRCLFFKEY.ThrClNEl[i]=min(5,ThrClNel[i]+2);
     }
   }
@@ -231,36 +231,46 @@ integer AMSTrCluster::build(integer refit){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
        if(!id.checkstatus(AMSDBc::BAD) && 
           adc[j]/id.getsig()>TRCLFFKEY.Thr3R[side]){
-        if(j-center<= -TRCLFFKEY.ThrClNEl[side]/2 && 
-           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
-           left++;
-           j++;
-           id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
-           if(j-center< 0 && 
+       }
+       else adc[j]=0;
+      }  
+
+      for (j=left;j<center;j++){
+       id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+        if(j-center< -1 && j-left==0 &&  
+           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]) {
+          left++;
+          continue;
+        }
+        if(j-center< 0 && j-left==0 &&
            adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
-            left++;
-            continue;
-           }
+          left++;
+          continue;
         }
-        if(j-center>= TRCLFFKEY.ThrClNEl[side]/2 && 
-           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
-           right--;
-           id.upd(j-1-TRCLFFKEY.ThrClNEl[side]/2);
-           if(j-1-center> 0 && 
-           adc[j-1]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
-            right--;
-           }
-           
-           continue;
+      }
+      integer ro=right;
+      for (j=right;j>center;j--){
+       id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+        if(j-center> 1 && j-right==0 &&  
+           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]) {
+          right--;
+          continue;
         }
+        if(j-center> 0 && j-right==0 &&
+           adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+          right--;
+          continue;
+        }
+      }
+
+      for (j=left;j<right+1;j++){
+       id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
-        if(j==right+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
+        if(j==ro+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
         ssum=ssum+pow(id.getsig(),2.);
         pos=pos+1*(j-center)*adc[j];
         rms=rms+pow(1*(j-center),2)*adc[j];
-       }
-       else adc[j]=0;
       }
        if(sum !=0){
         rms=sqrt(fabs(rms*sum-pos*pos))/sum; 
@@ -463,37 +473,47 @@ integer AMSTrCluster::buildWeak(integer refit){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
        if(!id.checkstatus(AMSDBc::BAD) && 
           adc[j]/id.getsig()>TRCLFFKEY.Thr3R[side]){
-        if(j-center<= -TRCLFFKEY.ThrClNEl[side]/2 && 
-           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
-           left++;
-           j++;
-           id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
-           if(j-center< 0 && 
+       }
+       else adc[j]=0;
+      }  
+
+      for (j=left;j<center;j++){
+       id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+        if(j-center< -1 && j-left==0   ) {
+          left++;
+          continue;
+        }
+        if(j-center< 0 && j-left==0 &&
            adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
-            left++;
-            continue;
-           }
+          left++;
+          continue;
         }
-        if(j-center>= TRCLFFKEY.ThrClNEl[side]/2 && 
-           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]){
-           right--;
-           id.upd(j-1-TRCLFFKEY.ThrClNEl[side]/2);
-           if(j-1-center> 0 && 
-           adc[j-1]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
-            right--;
-           }
-           
-           continue;
+      }
+      integer ro=right;
+      for (j=right;j>center;j--){
+       id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
+        if(j-center> 1 && j-right==0 ) {
+          right--;
+          continue;
         }
+        if(j-center> 0 && j-right==0 &&
+           adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+          right--;
+          continue;
+        }
+      }
+
+      for (j=left;j<right+1;j++){
+       id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
-        if(j==right+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
+        if(j==ro+1 && status==AMSTrCluster::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
         ssum=ssum+pow(id.getsig(),2.);
         pos=pos+1*(j-center)*adc[j];
         rms=rms+pow(1*(j-center),2)*adc[j];
-       }
-       else adc[j]=0;
       }
+
+
        if(sum !=0){
         rms=sqrt(fabs(rms*sum-pos*pos))/sum; 
         pos=pos/sum+1*0.5;

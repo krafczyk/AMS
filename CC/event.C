@@ -102,6 +102,7 @@ void AMSEvent::_init(){
    _validate(1);
 #endif
   }
+  SetTimeCoo();
 
 }
 
@@ -246,7 +247,7 @@ void AMSEvent::SetTimeCoo(){
         _Roll=Array[hint].StationRoll+xsec/dt*(Array[hint+1].StationRoll-Array[hint].StationRoll);
         _Pitch=Array[hint].StationPitch+xsec/dt*(Array[hint+1].StationPitch-Array[hint].StationPitch);
         _StationSpeed=Array[hint].StationSpeed+xsec/dt*(Array[hint+1].StationSpeed-Array[hint].StationSpeed);
-        _StationRad=Array[hint].StationR+xsec/dt*(Array[hint+1].StationR-Array[hint].StationR);
+        _StationRad=Array[hint].StationR+((Array[hint].StationR>=0)?xsec/dt*(Array[hint+1].StationR-Array[hint].StationR):0);
         _SunRad=Array[hint].SunR+xsec/dt*(Array[hint+1].SunR-Array[hint].SunR);
         _SunTheta=Array[hint].SunTheta+xsec/dt*(Array[hint+1].SunTheta-Array[hint].SunTheta);
         _SunPhi=Array[hint].SunPhi+xsec/dt*(Array[hint+1].SunPhi-Array[hint].SunPhi);

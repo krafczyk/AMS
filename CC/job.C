@@ -536,8 +536,8 @@ TRCLFFKEY.Thr1S[0] =15;
 TRCLFFKEY.Thr2S[0] =15;
 
 TRCLFFKEY.Thr2R[0] =1.;
-TRCLFFKEY.Thr2R[1] =1.;  // should be around 1 if ThrClNEl[1]=3;
-
+TRCLFFKEY.Thr2R[1] =3.;  // should be around 1 if ThrClNEl[1]=3;
+                         // should be around 3 if ThrClNEl[1]=5;
 TRCLFFKEY.Thr3R[0] =-2.;
 TRCLFFKEY.Thr3R[1] =-2.;
 
@@ -545,7 +545,7 @@ TRCLFFKEY.ThrClNMin[0]=1;
 TRCLFFKEY.ThrClNMin[1]=1;
 
 TRCLFFKEY.ThrClNEl[0]=3;
-TRCLFFKEY.ThrClNEl[1]=3;
+TRCLFFKEY.ThrClNEl[1]=5;
 
 TRCLFFKEY.ErrX=34.e-4;
 TRCLFFKEY.ErrY=20.e-4;
