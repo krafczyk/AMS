@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.18 2002/10/30 14:57:21 mdelgado Exp $
+//  $Id: richrec.h,v 1.19 2003/01/07 18:34:41 jorgec Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -238,6 +238,8 @@ public:
   number getbeta(){return _beta;}
   number geterrorbeta(){return _errorbeta;}
   number getquality(){return _quality;}
+  number getnpexp(){return _npexp;}
+  number getcollnpe(){return _collected_npe;}
 #ifdef __WRITEROOT__
 friend class RICRingRoot;
 #endif
