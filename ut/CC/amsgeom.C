@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.116 2001/03/06 16:36:59 choumilo Exp $
+//  $Id: amsgeom.C,v 1.117 2001/03/26 18:07:22 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2995,14 +2995,22 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 // Tubes & Radiators has no rotation matrix at the moment
 // This can be changed in any time
 //
+
+
+   // Radiators not radiators any more since now
+   // inner octagon is made of radiator ... just vacuum boxes for the bottom
+   // (and possibly other holes).
    ost.seekp(0);  
    ost << "TRDR"<<ends;
-   TRDDBc::GetRadiator(k,j,i,status,coo,nrm,rgid);
-   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::RadiatorDimensions(i,j,k,ip);
-   gid=i+mtrdo*j+mtrdo*maxlay*k+1;
-   dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
-      0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
-    
+   // Bottom layer has no radiator below the higher tubes
+   if (j==0)
+     {
+       TRDDBc::GetRadiator(k,j,i,status,coo,nrm,rgid);
+       for(ip=0;ip<3;ip++)par[ip]=TRDDBc::RadiatorDimensions(i,j,k,ip);
+       gid=i+mtrdo*j+mtrdo*maxlay*k+1;
+       dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
+	0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+     }
 //   ost.seekp(0);  
 //   ost << "TRDB"<<ends;
 //   TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
