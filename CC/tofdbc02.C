@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.23 2004/09/27 15:00:32 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.24 2004/10/08 12:02:42 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -1917,7 +1917,7 @@ void TOF2JobStat::printstat(){
   printf("   MC: fTDC stack overflows : % 6d\n",mccount[9]);
   printf("   MC: Stretch-TDC overflows: % 6d\n",mccount[6]);
   printf("   MC: AnodeH-ADC overflows : % 6d\n",mccount[7]);
-  printf("   MC: AnodeL-ADC overflows : % 6d\n",mccount[7]);
+  printf("   MC: AnodeL-ADC overflows : % 6d\n",mccount[13]);
   printf("   MC: DynodeH-ADC overflows: % 6d\n",mccount[8]);
   printf("   MC: DynodeL-ADC overflows: % 6d\n",mccount[10]);
   printf("   MC: MCGen FastSel OK     : % 6d\n",mccount[14]);

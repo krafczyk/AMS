@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.8 2004/09/27 15:00:32 choumilo Exp $
+//  $Id: tofuser02.C,v 1.9 2004/10/08 12:02:43 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>
@@ -184,6 +184,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 	  bad=0;
 	}
       }
+      if(!bad)break;//use 1st particle with good TRK-track
       ppart=ppart->next();
     } 
 //
@@ -203,7 +204,10 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       pcut[0]=TFCAFFKEY.plhec[0];
       pcut[1]=TFCAFFKEY.plhec[1];
     }
-    if(TFREFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
+    if(TFREFFKEY.reprtf[2]>0){
+      HF1(1500,geant(pmom),1.);
+      HF1(1516,geant(pmom),1.);
+    }
 //
     bad=0;
 //    if(pmom<=pcut[0] || pmom>=pcut[1])bad=1;// out of needed mom.range
@@ -350,7 +354,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 void TOF2User::InitJob(){
   int i;
   if(TFREFFKEY.reprtf[2]>0){
-    HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,16.,0.);
+    HBOOK1(1500,"Part.rigidity from tracker(gv)",100,0.,25.,0.);
     HBOOK1(1501,"Particle beta",80,-1.2,1.2,0.);
     HBOOK1(1511,"Particle betachi2",80,0.,16.,0.);
     HBOOK1(1512,"Particle betachi2S",80,0.,16.,0.);
@@ -366,6 +370,7 @@ void TOF2User::InitJob(){
     HBOOK1(1508,"Tracker-charge",10,0.,10.,0.);
     HBOOK2(1509,"TOF-ch vs Tracker-ch",10,0.,10.,10,0.,10.,0.);
     HBOOK1(1510,"Anti-hit part.index",50,0.,50.,0.);
+    HBOOK1(1516,"Part.rigidity from tracker(gv)",100,0.,1000.,0.);
     
     HBOOK1(1200,"LongCooDiff(Track-TofCl),L=1,Nmem=1",50,-10.,10.,0.);
     HBOOK1(1201,"LongCooDiff(Track-TofCl),L=2,Nmem=1",50,-10.,10.,0.);
@@ -449,6 +454,7 @@ void TOF2User::EndJob(){
   HPRINT(1504);
 //
   HPRINT(1500);
+  HPRINT(1516);
   HPRINT(1501);
   HPRINT(1511);
   HPRINT(1512);

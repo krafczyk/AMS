@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.16 2004/09/27 15:00:30 choumilo Exp $
+//  $Id: antirec02.C,v 1.17 2004/10/08 12:02:42 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -928,6 +928,7 @@ void Anti2RawEvent::builddaq(int16u blid, integer &len, int16u *p){
                         ->getheadC("Anti2RawEvent",0);
   for(tdcc=0;tdcc<ANTI2C::ANCHSF;tdcc++)ptlist[tdcc]=0;// clear pointer array
   nanti=0;
+  ic=0;
   len=ic;
 //
 #ifdef __AMSDEBUG__
@@ -962,7 +963,7 @@ void Anti2RawEvent::buildraw(int16u blid, integer &len, int16u *p){
   bias=len;
 //
 // decoding of block-id :
-//
+  ic=0;
       len=ic-len;//return pure Anti_data_length
 //
 //---------------
@@ -995,6 +996,7 @@ void Anti2RawEvent::buildraw(int16u blid, integer &len, int16u *p){
 int16u Anti2RawEvent::hw2swid(int16u a1, int16u a2){
   int16u swid,hwch;
 //
+  swid=0;
   return swid;
 }
 //-----------------------------------------------------------------------
@@ -1013,5 +1015,6 @@ int16u Anti2RawEvent::sw2hwid(int16u a1, int16u a2){
 #endif
 //
 //  cout<<"swch->hwid: "<<swch<<" "<<hwid<<endl;
+  hwid=0;
   return hwid;
 }

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.17 2004/09/27 15:01:00 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.18 2004/10/08 12:02:52 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -484,12 +484,14 @@ public:
     if(ipm==0)return(nml%10==0);// means good Dynode Hi-gain ipm-chan(1)
     if(ipm==1)return((nml%100)/10==0);// means good Dynode Hi-gain ipm-chan(2)
     if(ipm==2)return(nml/1000==0);// means good Dynode Hi-gain ipm-chan(3)
+    return(0);
   }
   bool DLchOK(int isd, int ipm){//ipm=0-2
     int nml=(status[isd]%1000);
     if(ipm==0)return(nml%10==0);// means good Dynode Lo-gain ipm-chan(1)
     if(ipm==1)return((nml%100)/10==0);// means good Dynode Lo-gain ipm-chan(2)
     if(ipm==2)return(nml/1000==0);// means good Dynode Lo-gain ipm-chan(3)
+    return(0);
   }
   bool SideOK(int isd){return(
                      ((status[isd]/1000000000)==0 || TFREFFKEY.relogic[1]>=1)
@@ -609,12 +611,14 @@ public:
     if(ipm==0)return(nml%10==0);// means good Dynode Hi-gain ipm-chan(1)
     if(ipm==1)return((nml%100)/10==0);// means good Dynode Hi-gain ipm-chan(2)
     if(ipm==2)return(nml/1000==0);// means good Dynode Hi-gain ipm-chan(3)
+    return(0);
   }
   bool DLchOK(int isd, int ipm){//ipm=0-2
     int nml=(status[isd]%1000);
     if(ipm==0)return(nml%10==0);// means good Dynode Lo-gain ipm-chan(1)
     if(ipm==1)return((nml%100)/10==0);// means good Dynode Lo-gain ipm-chan(2)
     if(ipm==2)return(nml/1000==0);// means good Dynode Lo-gain ipm-chan(3)
+    return(0);
   }
   bool SideOK(int isd){return(
                      ((status[isd]/1000000000)==0 || TFREFFKEY.relogic[1]>=1)
