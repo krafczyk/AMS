@@ -21,7 +21,11 @@ ifneq "$(wildcard /etc/redhat-release)" ""
 endif
 
 ifdef SLC3system
- CERN_LEVEL = 2004
+ ifndef AMSICC
+   CERN_LEVEL = 2004
+ else 
+   CERN_LEVEL = 2001
+ endif
  PACKLIB = packlib -lshift
 else
  CERN_LEVEL = 2001
