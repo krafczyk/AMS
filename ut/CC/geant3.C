@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.82 2003/05/22 12:01:59 mdelgado Exp $
+//  $Id: geant3.C,v 1.83 2003/07/10 17:27:50 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -735,6 +735,14 @@ GDCXYZ();
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
+/*
+AMSgvolume *p =AMSJob::gethead()->getgeomvolume(AMSID("OMIR",1));
+   for(int k=0;k<3;k++)cout<<p->getcooA(k)<<" ";
+   cout <<endl;
+   for(int k=0;k<5;k++)cout<<p->getpar(k)<<"  ";
+   cout <<endl;
+    abort();
+*/
 if(    AMSEvent::gethead()->HasNoCriticalErrors()){
   RICHDB::Nph()=0;
    try{

@@ -519,6 +519,17 @@ out:
         
     }
 }
+   //  Add proj coord to corr trd clusters
+    for(  AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);ptr;ptr=ptr->next()){
+      for(int i=0;i<ptr->_Base._NHits;i++){
+        int proj=ptr->_Base._PCluster[i]->getCooDir()[0]>0.9?0:1;
+        AMSDir dir(ptr->_Real._Theta,ptr->_Real._Phi);
+//        cout <<  proj<< "  "<<ptr->_Base._PCluster[i]->getCoo()[0]<<" "<<ptr->_Base._PCluster[i]->getCoo()[1]<<" ";
+        ptr->_Base._PCluster[i]->getCoo()[proj]=ptr->_Real._Coo[proj]+dir[proj]/dir[2]*(ptr->_Base._PCluster[i]->getCoo()[2]-ptr->_Real._Coo[2]);
+//        cout <<ptr->_Base._PCluster[i]->getCoo()[proj]<<endl;
+      }
+    }
+
 return NTrackFound;
 }
 

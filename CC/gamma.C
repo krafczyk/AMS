@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.49 2003/07/09 09:03:41 choutko Exp $
+//  $Id: gamma.C,v 1.50 2003/07/10 17:27:50 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -4050,6 +4050,11 @@ RecoXLeft(0,X3P,10000,DeltaRecoBottom,ifi,ila,RegStr0,lkfil,VAMAXL);
      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
      p_hi = p->getHit(); 
      if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
+       if(laa>sizeof(xa)/sizeof(xa[0])-1){
+         cout <<" AMSTrTrackGamma::RecoLeftRight-S-PLEASAEFIXME R "<<laa<<endl;
+        throw amsglobalerror("Problem in AMSTrTrackGamma",2);
+         break;
+       }
        za[laa]=p_hi[2];
        xa[laa]=p_hi[0];
        ya[laa]=p_hi[1];
