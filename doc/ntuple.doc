@@ -117,13 +117,13 @@ Below there is a description of a  ntuple.
 * I*4  *              * TOFCLUST * plane(ntof)         // Tof counter no
                                                        //1..4 up..down
 * I*4  *              * TOFCLUST * bar(ntof)           //  TOF bar no
+* I*4  *              * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
 * R*4  *              * TOFCLUST * TOFEdep(ntof)      // TOF energy loss(MeV) from Anode
 * R*4  *              * TOFCLUST * TOFEdepd(ntof)     // TOF energy loss(MeV) from Dynode
 * R*4  *              * TOFCLUST * TOFTime(ntof)      // TOF time (sec)
 * R*4  *              * TOFCLUST * TOFETime(ntof)     // Error in TOF time
 * R*4  *              * TOFCLUST * TOFCoo(3,ntof)     // TOF Coo (cm)
 * R*4  *              * TOFCLUST * TOFErCoo(3,ntof)   //
-* I*4  *              * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
 
 
 * I*4  * [0,200]      * TOFMCCLU * ntofmc            // TOF MC hits number
@@ -179,7 +179,9 @@ Below there is a description of a  ntuple.
 * R*4  *              * TRRECHIT * hitr(3,ntrrh) // gl 3dim coordinates
 * R*4  *              * TRRECHIT * ehitr(3,ntrrh) // error to above
 * R*4  *              * TRRECHIT * sumr(ntrrh)    // Amplitude
-* R*4  *              * TRRECHIT * difosum(ntrrh) (A_x-A_y)/(A_x+A_y)
+* R*4  *              * TRRECHIT * difosum(ntrrh) (A_x-A_y)/(A_x+A_y) 
+* R*4  *              * TRRECHIT * cofgx(ntrrh)   // local cofgx around max
+* R*4  *              * TRRECHIT * cofgy(ntrrh)   // localf cofgy around max
 
 
 * I*4  * [0,20]       * TRTRACK  * ntrtr          // tracks number
