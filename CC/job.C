@@ -186,7 +186,7 @@ void AMSJob::_sitrigdata(){
   LVL1FFKEY.nanti=2;// max. fired ANTI-paddles 
 //
   LVL1FFKEY.RebuildLVL1=0;
-  LVL1FFKEY.MaxScalersRate=25000;
+  LVL1FFKEY.MaxScalersRate=20000;
   LVL1FFKEY.MinLifeTime=0.015;
   FFKEY("LVL1",(float*)&LVL1FFKEY,sizeof(LVL1FFKEY_DEF)/sizeof(integer),"MIXED");
 
