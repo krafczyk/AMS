@@ -75,7 +75,7 @@ void (handler)(int sig){
       break;
   case SIGUSR1:
       cerr<< "New Run Forced"<<endl;
-      GCFLAG.IEORUN=2;
+      if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
       break;
   }
 }

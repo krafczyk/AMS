@@ -342,8 +342,8 @@ void AMSTrCalibFit::Fit(){
                                 &AMSTrCalibFit::monit;
       cout << "AMSTrCalibFit::Fit started for pattern "<<_Pattern<<" "<<_Algorithm<<" "<<    _PositionIter<<endl;
   // Fit Here
-    const integer mp=200;
-    static number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[2000];
+    const integer mp=100;
+    number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[2000];
   // number of parameters to fit
     integer npt=AMSTrCalibData::patpoints[_Algorithm][_Pattern];
     integer n=_NoActivePar;

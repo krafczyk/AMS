@@ -646,6 +646,7 @@ int DAQEvent::parser(char a[], char **& fname){
             fname[i]=new char[strlen(a)+strlen(namelist[i]->d_name)+1];
             strcpy(fname[i],a);
             strcat(fname[i],namelist[i]->d_name);
+//             cout << i<< "  "<< fname[i]<<endl;
             free(namelist[i]);
           }
           free(namelist);
@@ -742,8 +743,10 @@ for(int i=0;i<strlen(entry->d_name);i++){
  int e1;
  sscanf(entry->d_name,"%d",&e1);
  if(e1<SELECTFFKEY.Run)return 0;
- else return 1;
-
+ else {
+//     cout <<e1 << " "<<SELECTFFKEY.Run<<" "<<entry->d_name<<endl;
+     return 1;
+ }
 }
 
 #ifdef __HPUX__

@@ -451,7 +451,7 @@ R14 LowBetaThr(0.4)        // below this the refit will be done using pat #7
                               if possible 
 I15 FullReco(0)            // Allows(1) or not(0) share tofcl between particles
 R16 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker 
-I17 MassFromBetaRaw(1)  // get mass from raw or corrected beta(1/0)
+I17 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
 
 CHARGEFIT
 R 1 Thr(1.)   // Refit charge if Fisher's criterium is satisfied(1.=67%,2.=95%)
@@ -500,8 +500,8 @@ I6     MaxPatternsPerJob(99);
 R7     Cuts[10][2];    // Cuts (left - right), not yet completely defined
 I27 Algorithm(0)    // 0 - exect mom, 1 - mom from beta
 I28 ActiveParameters[6][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
-I54 GlobalFit(0)                   // global fit (1) local(0)
-
+I64 GlobalFit(0)                   // global fit (1) local(0)
+I65 EventsPerRun(1001)            
 
 
 LVL1    // LVL1 Trigger 

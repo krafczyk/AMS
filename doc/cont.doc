@@ -80,7 +80,8 @@ ptrN=ptr->next(); // ptrN points to next element now (=0 if no more)
 
 
 XXX *ptr=(XXX*)AMSEvent::gethead()->
- getheadC("XXX",k,1); // last 1 to sort; ptr points to 1st element now
+ getheadC("XXX",k,1 (2) ); // last 1 to sort; ptr points to 1st element now
+                    ^^^ force sort
 integer last;
 XXX * ptrN;
 ptrN=ptr->next(); // ptrN points to next element now 

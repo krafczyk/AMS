@@ -391,7 +391,7 @@ for( i=0;i<6;i++){
   TRALIG.ActiveParameters[i][4]=1;   // yaw    xy
   TRALIG.ActiveParameters[i][5]=1;   // roll   yz
 }
-
+  TRALIG.EventsPerRun=1001;
  FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
 
 
@@ -699,7 +699,7 @@ TRFITFFKEY.pattern[21]=1;
 TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;
 TRFITFFKEY.Chi2StrLine=9;
-TRFITFFKEY.Chi2Circle=5;
+TRFITFFKEY.Chi2Circle=3;
 TRFITFFKEY.ResCutFastFit=0.5;
 TRFITFFKEY.ResCutStrLine=0.5;
 TRFITFFKEY.ResCutCircle=0.5;
@@ -717,7 +717,7 @@ TRFITFFKEY.Chi2FalseX=3.;
 TRFITFFKEY.ForceFalseTOFX=1;
 TRFITFFKEY.FalseTOFXTracking=1;
 TRFITFFKEY.TOFTracking=1;
-TRFITFFKEY.ForceAdvancedFit=1;
+TRFITFFKEY.ForceAdvancedFit=0;
 
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
@@ -942,6 +942,7 @@ void AMSJob::udata(){
 
 
 
+
 {
   int i,j,k;
   for(i=0;i<2;i++){
@@ -1096,8 +1097,14 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::init();
 
 
-     // Select run stuff
-
+      // TraligGlobalFit
+     if(TRALIG.GlobalFit && TRALIG.MaxPatternsPerJob!=1){
+       cout <<"AMSJob::udata-I-GlobalFitRequested ";
+       TRALIG.MaxPatternsPerJob=1;
+       TRALIG.MaxEventsPerFit=499999;
+       TRALIG.MinEventsPerFit=999; 
+      cout <<"Parameters Changed "<<TRALIG.MaxEventsPerFit<<" "<<TRALIG.MinEventsPerFit<<endl;
+     }
 }
 
 
@@ -1909,6 +1916,26 @@ if(MISCFFKEY.BeamTest){
 }
 
 
+
+{
+  tm begin;
+  tm end;
+  AMSTrAligFit::InitDB();
+  if(AMSFFKEY.Update==90){
+    begin=AMSmceventg::Orbit.Begin;
+    end=AMSmceventg::Orbit.End;
+  }
+  else{
+     begin=AMSmceventg::Orbit.End;
+     end=AMSmceventg::Orbit.Begin;
+  }
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID("TrAligglDB",
+                          isRealData()),begin,end,AMSTrAligFit::gettraliggldbsize(),
+                          AMSTrAligFit::gettraliggldbp()));
+}
+
+
+
 if (AMSFFKEY.Update){
 
 #ifdef __DB__
@@ -2064,7 +2091,8 @@ void AMSJob::uhinit(integer run, integer eventno){
 void AMSJob::_tkendjob(){
   if(isCalibration() & CTracker){
     if(TRALIG.UpdateDB){
-       AMSTrAligFit::Test(1);  
+      if(!TRALIG.GlobalFit)AMSTrAligFit::Test(1);
+      else AMSTrAligFit::Testgl(1);
     }
   }
   if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){

@@ -36,6 +36,7 @@ public:
   }
 }
 };
+
 class AMSTrAligDB{
  public:
  uinteger Nentries;
@@ -44,7 +45,7 @@ AMSTrAligDB():Nentries(0){};
 };
 
 protected:
-
+integer  _NEntries;
 AMSPoint _Coo;
 AMSPoint _Angles;
 AMSDir _Dir[3];
@@ -52,13 +53,15 @@ void _a2m();
 static AMSTrAligDB _traldb;
 static AMSTrAligPar par[6];
 public:
-AMSTrAligPar():_Coo(0,0,0),_Angles(0,0,0){};
+AMSTrAligPar():_Coo(0,0,0),_Angles(0,0,0),_NEntries(0){};
 AMSTrAligPar(const AMSPoint & coo, const AMSPoint & angles);
 AMSTrAligPar(const AMSTrAligDBEntry * ptr, integer i);
 AMSPoint  getcoo()const {return _Coo;}
 AMSPoint  getang()const {return _Angles;}
 void setcoo(const AMSPoint & o) {_Coo=o;}
 void setpar(const AMSPoint & coo, const AMSPoint & angle);
+integer& NEntries(){return _NEntries;}
+integer      AddOne(){if(_NEntries>=0)_NEntries++;return _NEntries>=0;}
 AMSDir   getmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 AMSDir &  setmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 void updmtx(){_a2m();}
@@ -83,13 +86,15 @@ static AMSTrAligPar * getparp(){return par;}
 static void InitDB(){_traldb.Nentries=0;}
 static AMSTrAligPar * SearchDB(uinteger address, integer & found, number DB[2]);
 static void UpdateDB(uinteger address,  AMSTrAligPar o[], number _fcnb, number _fcna, number _pav, number _pav2  );
-static void UpdateDBgl();
 static void LockDB();
 static void UnlockDB();
 static void _lockunlock(integer lock);
 static integer DbIsNotLocked(integer sleep=2);
 static AMSTrAligDB * gettraligdbp(){ return & _traldb;}
 static integer gettraligdbsize(){ return sizeof(_traldb);}
+
+
+
 
 friend ostream &operator << (ostream &o, const  AMSTrAligPar &b )
   {return o<<" "<<b._Coo<<" "<<b._Angles<<" "<<b._Dir[0]<<" "<<b._Dir[1]<<" "<<b._Dir[2];}
@@ -126,6 +131,9 @@ friend class AMSTrAligFit;
 
 
 class AMSTrAligFit: public AMSNode{
+
+
+
 class TrAlig_def{
 public:
 integer Pattern;
@@ -137,6 +145,19 @@ geant Pfit;
 geant Pfitsig;
 geant Coo[6][3];
 geant Angle[6][3];
+};
+class TrAligg_def{
+public:
+integer Alg;
+int Layer;
+int Ladder;
+int Side;
+geant FCN;
+geant FCNI;
+geant Pfit;
+geant Pfitsig;
+geant Coo[3];
+geant Angle[3];
 };
 protected:
 uinteger _Address;
@@ -160,21 +181,29 @@ number _pfit;  //pointer to fitterd mom
 number _pfits;  //pointer to fitterd mom sigma
 AMSTrAligPar _pParC[6];
 static AMSTrAligPar _pPargl[17][2][6];
+static integer _gldb[nld][2][6];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
 static void alfungl(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
+static void UpdateDBgl();
 void _init(){};
 public:
   AMSTrAligFit *  next(){return (AMSTrAligFit*)_next;}           
 AMSTrAligFit();
 AMSTrAligFit(uinteger _Address, integer pattern, integer data, integer alg, integer nodeno);
+static integer glDBOK(integer layer, integer ladder, integer side);
+static integer * gettraliggldbp(){ return &(_gldb[0][0][0]);}
+static integer gettraliggldbsize(){return sizeof(_gldb);}
+static void InitDB();
 static void Test(int i=0);
 static void Testgl(int i=0);
+static AMSID getTDVGLDB();
 static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
 integer AddressOK(uinteger address, integer strict=0);
 void Fit();
 void Fitgl();
+void RebuildNoActivePar();
 void Anal();
 void Analgl();
 
