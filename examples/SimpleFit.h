@@ -2,7 +2,7 @@
  *  Usage:
  * 
  *        - Add this file to the list of "includes":  
- *              - #include <file:/afs/ams.cern.ch/Offline/vdev/examples/SimpleFit.h>
+ *              - #include <file:///afs/ams.cern.ch/Offline/vdev/examples/SimpleFit.h>
  * 
  *        - Constructors:
  *              - SimpleTrack new_track;
@@ -189,22 +189,22 @@ int SimpleTrack::SimpleFit(){
     }
 
   // F and G matrices
-    double d[2*MAXLAY][5];
+    const int idim = 5;
+    double d[2*MAXLAY][idim];
     for (int i=0;i<NHits;i++) {
       int ix = i;
       int iy = i+NHits;
-      for (int j=0;j<5;j++) { d[ix][j] = 0; d[iy][j] = 0;}
+      for (int j=0;j<idim;j++) { d[ix][j] = 0; d[iy][j] = 0;}
       d[ix][0] = 1.;
       d[iy][1] = 1.;
       for (int k=0;k<=i;k++) {
-   d[ix][2] += len[k];
-   d[iy][3] += len[k];
+        d[ix][2] += len[k];
+        d[iy][3] += len[k];
         for (int l=0;l<=k;l++) {
           if (l==k) {
             d[ix][4] += len[k]*len[k]*PathIntegral_x[k][0];
             d[iy][4] += len[k]*len[k]*PathIntegral_x[k][1];
-          }
-          else {
+          } else {
             d[ix][4] += len[k]*len[l]*PathIntegral_u[l][0];
             d[iy][4] += len[k]*len[l]*PathIntegral_u[l][1];
           }
@@ -213,8 +213,8 @@ int SimpleTrack::SimpleFit(){
     }
 
   // F*S_x*x + G*S_y*y
-    double dx[5];
-    for (int j=0;j<5;j++) {
+    double dx[idim];
+    for (int j=0;j<idim;j++) {
       dx[j] = 0.;
       for (int l=0;l<NHits;l++) {
         dx[j] += d[l][j]/sigma[l][0]/sigma[l][0]*hits[l][0];
@@ -223,10 +223,10 @@ int SimpleTrack::SimpleFit(){
     }
 
   // (F*S_x*F + G*S_y*G)
-    double Param[5];
-    double InvCov[5][5];
-    for (int j=0;j<5;j++) {
-      for (int k=0;k<5;k++) {
+    double Param[idim];
+    double InvCov[idim][idim];
+    for (int j=0;j<idim;j++) {
+      for (int k=0;k<idim;k++) {
         InvCov[j][k] = 0.;
         for (int l=0;l<NHits;l++) {
           InvCov[j][k] += d[l][j]/sigma[l][0]/sigma[l][0]*d[l][k];
@@ -236,29 +236,16 @@ int SimpleTrack::SimpleFit(){
     }
       
   // (F*S_x*F + G*S_y*G)**{-1}
-    int idim = 5;
     double determ = 0.0;
     TMatrixD RootCovariance = TMatrixD(idim,idim,(double*)InvCov," ");
     RootCovariance = RootCovariance.Invert(&determ);
-    // int ifail;
-    // INVERTMATRIX((double*)InvCov, idim, idim, ifail);
     if (determ<=0) return -2;
-    double* aux = RootCovariance.GetElements();
-    double Covariance[5][5];
-    int icount = 0;
-    for (int j=0;j<5;j++) {
-      for (int k=0;k<5;k++) {
-              Covariance[j][k] = *(aux+icount);
-              icount++;
-      }
-    }
-
 
   // Solution
-    for (int k=0;k<5;k++) {
+    for (int k=0;k<idim;k++) {
       Param[k] = 0.;
-      for (int i=0;i<5;i++) {
-        Param[k] += Covariance[k][i]*dx[i];
+      for (int i=0;i<idim;i++) {
+        Param[k] += RootCovariance(k,i)*dx[i];
       }
     }
 
@@ -266,7 +253,7 @@ int SimpleTrack::SimpleFit(){
     for (int l=0;l<NHits;l++) {
       double xl = hits[l][0]*1.e4;
       double yl = hits[l][1]*1.e4;
-      for (int k=0;k<5;k++) {
+      for (int k=0;k<idim;k++) {
         xl -= d[l][k]*Param[k]*1.e4;
         yl -= d[l+NHits][k]*Param[k]*1.e4;
       }
@@ -275,11 +262,11 @@ int SimpleTrack::SimpleFit(){
     }
 
   // Get Chi2/Ndof
-    if (Param[4]!=0.0 && Covariance[4][4]>0.0) {
+    if (Param[4]!=0.0 && RootCovariance(4,4)>0.0) {
         Chi2 /= (2.*NHits-5.);
         Chi2StrLine /= (NHits-2.);
         Rigidity = 2.997E-4/Param[4];
-        ErrRigidity = sqrt(Covariance[4][4])/2.997E-4;
+        ErrRigidity = sqrt(RootCovariance(4,4))/2.997E-4;
         Theta = atan2(1.,-sqrt(1-Param[2]*Param[2]-Param[3]*Param[3]));
         Phi = atan2(Param[3],Param[2]);
         P0[0] = Param[0];
