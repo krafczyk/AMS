@@ -89,7 +89,7 @@ void AMSGenHist::ShowSet(Int_t Set){
           if(Set==4){
             _fetched2[i]->Fit("vcg2","VR");
             double chi2=f2.GetChisquare();
-            if(chi2>500){
+            if(chi2>1500){
               choise=-1;
             }
             //if(chi2>200){
@@ -110,8 +110,11 @@ void AMSGenHist::ShowSet(Int_t Set){
             //if(choise==0)sprintf(text,"Input Rate (Hz) %f",f2.GetParameter(1)*1000);    
             //else sprintf(text,"Input Rate (Hz) %f",f3.GetParameter(1)*1000);    
             //  lf->AddText(text);
-            if(choise==-1)sprintf(text,"Output Rate (Hz) %f",1000/_fetched2[i]->GetMean());    
-            else if(choise==0)sprintf(text,"Output Rate (Hz) %f",1000*f2.GetParameter(1));    
+            if(choise==0){
+              sprintf(text,"Input Rate (Hz) %f",1000*f2.GetParameter(1));    
+              lf->AddText(text);
+            }
+              sprintf(text,"Output Rate (Hz) %f",1000/_fetched2[i]->GetMean());    
             lf->AddText(text);
             if(choise==1){
                 sprintf(text,"DAQ Speed (Hz) %f",2000/f4.GetParameter(1));    
