@@ -1,6 +1,6 @@
 // V. Choutko 15/6/97
 //
-// A.Klimentov June 21, 1997. eventlength(),    ! add functions
+// A.Klimentov June 21, 1997.                   ! add functions
 //                            sdetlength(id)    !
 //                            data(buff)        !
 //                            sdet(id)          !
@@ -109,8 +109,7 @@ static void addsubdetector(pid pgetid, pputdata pput, uinteger btype=0);
 static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget, uinteger btype=0);
 
 //+
-integer eventlength() {return _Length;}
-void    data(uint16 *buff) {memcpy(buff,_pData,eventlength()*2);}
+void    data(uint16 *buff) {memcpy(buff,_pData,getlength());}
 uint16  sdetlength(uint16 sdetid);
 integer sdet(uint16 sdetid);
 void    dump(uint16 sdetid); 

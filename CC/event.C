@@ -193,11 +193,8 @@ void AMSEvent::SetTimeCoo(){
   else {
     static integer hint=0;
     //get right record
-#ifdef __AMSDEBUG__
-    if(hint<sizeof(Array)/sizeof(Array[0])-1);
-#endif
     if( Array[hint].Time<=_time && 
-       _time<Array[hint+3>sizeof(Array)/sizeof(Array[0])?
+       _time<Array[hint+2>=sizeof(Array)/sizeof(Array[0])?
                   sizeof(Array)/sizeof(Array[0])-1:hint+2].Time){
       // got it
       if(_time>=Array[hint+1].Time)hint++;
@@ -226,6 +223,19 @@ void AMSEvent::SetTimeCoo(){
       _SunRad=Array[hint].SunR;
       _SunTheta=Array[hint].SunTheta;
       _SunPhi=Array[hint].SunPhi;
+    }
+    else if(_time == Array[hint+1].Time){
+      _NorthPolePhi=AMSmceventg::Orbit.PolePhiStatic+Array[hint+1].GrMedPhi;
+      _StationTheta=Array[hint+1].StationTheta;
+      _StationPhi=Array[hint+1].StationPhi;
+      _Yaw=Array[hint+1].StationYaw;
+      _Roll=Array[hint+1].StationRoll;
+      _Pitch=Array[hint+1].StationPitch;
+      _StationSpeed=Array[hint+1].StationSpeed;
+      _StationRad=Array[hint+1].StationR;
+      _SunRad=Array[hint+1].SunR;
+      _SunTheta=Array[hint+1].SunTheta;
+      _SunPhi=Array[hint+1].SunPhi;
     }
     else{
       //interpolation needed
@@ -273,7 +283,7 @@ void AMSEvent::SetTimeCoo(){
       number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
       if(phi < 0)phi=phi+AMSDBc::twopi;
       _StationTheta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*sin(phi));
-      _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
+      _StationPhi=fmod(phi+PhiZero,AMSDBc::twopi);
 
 
      

@@ -514,7 +514,7 @@ uint16  DAQEvent::sdetlength(uint16 sdetid) {
    l  = _pData[offset - 1];
    if (id == sdetid) return l;
    offset = offset  + l + 1;
-   if (offset > eventlength()) break;
+   if (offset > getlength()/sizeof(_pData[0])) break;
   }
   return -1;
 }  
@@ -529,7 +529,7 @@ integer DAQEvent::sdet(uint16 sdetid) {
    l  = _pData[offset-1];
    if (id == sdetid) return offset;
    offset = offset  + l + 1;
-   if (offset > eventlength()) break;
+   if (offset > getlength()/sizeof(_pData[0])) break;
   }
   return -1;
 }  
@@ -538,7 +538,7 @@ void DAQEvent::dump(uint16 sdetid) {
 // dump event
 // if sdetid == -1 dump whole event
 //
-  cout<<"run, event, length "<<runno()<<", "<<eventno()<<", "<<eventlength()
+  cout<<"run, event, length "<<runno()<<", "<<eventno()<<", "<<getlength()
       <<endl;
   enum {block_offset = 3};
   integer offset = block_offset;
@@ -559,7 +559,7 @@ void DAQEvent::dump(uint16 sdetid) {
       return;
     }
     offset = offset  + l + 1;
-    if (offset > eventlength()) break;
+    if (offset > getlength()/sizeof(_pData[0])) break;
    }
   }
 }  
