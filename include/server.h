@@ -165,6 +165,24 @@ void Exiting(const char * message=0);
 
 
 
+class Client_impl : public virtual POA_DPS::Client, public AMSServerI{
+protected:
+  void _init(){};
+  void _PurgeQueue(){};
+public:
+  Client_impl(DPS::Client::ClientType type=DPS::Client::Generic, const char* ctype="Generic",AMSClient * parent=0):POA_DPS::Client(),AMSServerI(AMSID(ctype,0),parent,type){};
+  Client_impl(DPS::Client::ClientType type, const char* ctype,DPS::Server_ptr _svar, DPS::Client::CID  cid,AMSClient * parent);
+  void UpdateDB(bool force){};
+  void StartClients(const DPS::Client::CID &cid);
+  void CheckClients(const DPS::Client::CID &cid);
+  void KillClients(const DPS::Client::CID &cid);
+  CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
+  void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
+   int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0)throw (CORBA::SystemException);
+ AMSServerI * getServer(){return up();}
+  void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
+};
+
 
 
 
@@ -173,7 +191,6 @@ class Server_impl : public virtual POA_DPS::Server, public AMSServerI{
 protected:
 AString _iface;
 NCL _nki;
-ACL _aml;
 OpType _clear(OpType type){ if(type==StartClient)return ClearStartClient;else if (type==KillClient)return ClearKillClient;else return ClearCheckClient;}
 public:
   Server_impl(uinteger i=0):POA_DPS::Server(),AMSServerI(AMSID("Server",++i),0,DPS::Client::Server){};

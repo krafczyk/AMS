@@ -213,11 +213,12 @@ else{
   _pser= new Server_impl(_orbmap,_pid,this,nserver,nhost,nkiller);
   if(rfile){  
    _pser->add(new Producer_impl(_orbmap,_pid,this,nproducer,rfile,ntuplestring,eventtagstring));
-   _pser->_init();
+  }  
+  _pser->add(new Client_impl(DPS::Client::Monitor,"Monitor",this));
+  _pser->_init();
   Server_impl * pser=dynamic_cast<Server_impl*>(_pser);
   pser->setInterface(niface);
   pser->StartSelf(_pid,DPS::Client::Create);
-  }  
   
  }
  else{
@@ -236,6 +237,8 @@ else{
           if(_svar->TypeExists(a.getType())){
               _pser->add(new Producer_impl(_orbmap,_svar,_pid,this));
           }
+           _pser->add(new Client_impl(DPS::Client::Monitor,"Monitor",_svar,_pid,this));
+
   Server_impl * pser=dynamic_cast<Server_impl*>(_pser);
   pser->setInterface(niface);
   pser->StartSelf(_pid,DPS::Client::Update);
@@ -837,37 +840,15 @@ if(cid.Type==DPS::Client::Server){
       }
      }
      return false;
-
 }
 else if(cid.Type==DPS::Client::Monitor){
-     DPS::Client::ActiveClient_var vac=new DPS::Client::ActiveClient();
-     if(cid.uid==0){
-      int mid=0;
-      for(ACLI j=_aml.begin();j!=_aml.end();++j){
-       mid=((*j)->id).uid;
-      }
-      cid.uid=mid+1;
-     } 
-      (vac->id).uid=cid.uid;
-      (vac->id).pid=cid.pid;
-      (vac->id).ppid=cid.ppid;
-      (vac->id).Type=cid.Type;
-      (vac->id).Interface=cid.Interface;
-       vac->Status=DPS::Client::Registered;
-       time_t tt;
-       time(&tt);
-       vac->LastUpdate=tt;
-       vac->Start=tt;
-     (vac->ars).length(1);
-     ((vac->ars)[0]).Interface=(const char *)("Dummy");
-     ((vac->ars)[0]).IOR=(const char *)(" ");
-     ((vac->ars)[0]).Type=DPS::Client::Generic;
-#ifdef __AMSDEBUG__
-        _parent->IMessage(AMSClient::print(cid,"Server_impl::sendId-I-RegClient") );
-#endif 
-         _aml.push_back(vac);
-       return true;
-      }
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+    if(pcur->getType()==cid.Type){
+      (dynamic_cast<Client_impl*>(pcur))->sendId(cid,timeout);
+      break;
+    }
+}
+}
 }
 
 int Server_impl::getNC(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::SystemException){
@@ -1169,17 +1150,15 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
 }
  _parent->EMessage(AMSClient::print(cid,"Server_impl::Exiting::No Such Client"));
 }
-else if(cid.Type==DPS::Client::Monitor){
-for( ACLI li=_aml.begin();li!=_aml.end();++li){
- if (cid.uid==((*li)->id).uid){
-        if(_parent->Debug())_parent->IMessage(AMSClient::print((*li),"Deleting Monitor "));
-   _aml.erase(li);
-   return;
- }
+else{
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+    if(pcur->getType()==cid.Type){
+      (dynamic_cast<Client_impl*>(pcur))->Exiting(cid,message,status);
+      break;
+    }
+}
+}
 
-}
- _parent->EMessage(AMSClient::print(cid,"Server_impl::Exiting::No Such Monitor"));
-}
 
 }
 
@@ -2809,4 +2788,96 @@ CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, DB_out dbo)t
    dbo=dbv._retn();
   }
   return true;
+}
+
+
+
+int Client_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, DPS::Client::AccessType type, uinteger id)throw (CORBA::SystemException){
+
+
+
+ Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+
+return _pser->getARS(cid, arf,type,id);
+
+}
+  CORBA::Boolean Client_impl::sendId(DPS::Client::CID& cid, uinteger timeout) throw (CORBA::SystemException){
+    _KillTimeOut=timeout;
+    if(cid.Type==DPS::Client::Monitor){
+     DPS::Client::ActiveClient_var vac=new DPS::Client::ActiveClient();
+      if(_acl.size()){
+       _Submit=((*(_acl.begin()))->id).uid;
+      }
+      else _Submit=0;
+     if(cid.uid==0){
+      cid.uid=++_Submit;
+     } 
+      (vac->id).uid=cid.uid;
+      (vac->id).pid=cid.pid;
+      (vac->id).ppid=cid.ppid;
+      (vac->id).Type=cid.Type;
+      (vac->id).Interface=cid.Interface;
+       vac->Status=DPS::Client::Registered;
+       time_t tt;
+       time(&tt);
+       vac->LastUpdate=tt;
+       vac->Start=tt;
+     (vac->ars).length(1);
+     ((vac->ars)[0]).Interface=(const char *)("Dummy");
+     ((vac->ars)[0]).IOR=(const char *)(" ");
+     ((vac->ars)[0]).Type=DPS::Client::Generic;
+#ifdef __AMSDEBUG__
+        _parent->IMessage(AMSClient::print(cid,"Client_impl::sendId-I-RegClient") );
+#endif 
+         _acl.push_front(vac);
+       return true;
+      }
+  }
+
+void Client_impl::getId(DPS::Client::CID_out  cid)throw (CORBA::SystemException){
+
+  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+   _pser->getId(cid);
+}
+
+Client_impl::Client_impl(DPS::Client::ClientType type, const char* ctype,DPS::Server_ptr _svar,DPS::Client::CID  cid,AMSClient * parent):POA_DPS::Client(),AMSServerI(AMSID(ctype,0),parent,type){
+
+DPS::Client::ACS * pacs;
+cid.Type=getType();
+int length=_svar->getACS(cid,pacs,_Submit);
+ACS_var acs=pacs;
+for(int i=0;i<length;i++){
+ DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
+ _acl.push_back(vac);
+}
+ cout <<"AML size "<<_acl.size()<<endl;
+
+}
+
+
+
+void Client_impl::StartClients(const DPS::Client::CID & pid){
+}
+
+void Client_impl::CheckClients(const DPS::Client::CID & pid){
+}
+
+void Client_impl::KillClients(const DPS::Client::CID & pid){
+}
+
+
+
+void Client_impl::Exiting(const CID & cid, const char * message, DPS::Client::ClientExiting status)throw (CORBA::SystemException){
+_parent->IMessage(AMSClient::print(cid,message?message:"Server exiting"));
+// find and remove client
+for( ACLI li=_acl.begin();li!=_acl.end();++li){
+ if (cid.uid==((*li)->id).uid){
+        if(_parent->Debug())_parent->IMessage(AMSClient::print((*li),"Deleting Client "));
+   _acl.erase(li);
+   return;
+
+}
+ _parent->EMessage(AMSClient::print(cid,"Server_impl::Exiting::No Such Client"));
+}
+
 }

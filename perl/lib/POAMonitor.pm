@@ -17,5 +17,4 @@ sub HostStatusChanged{
 package NominalHost;
 package NominalClient;
 package ActiveHost;
-package ActiveClient;
 

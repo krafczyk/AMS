@@ -4,11 +4,14 @@ use Error qw(:try);
 use Carp;
 use strict;
 use lib::CID;
+use lib::ActiveClient;
 use lib::POAMonitor;
 @Monitor::EXPORT= qw(new Update Connect);
 
 my %fields=(
      cid=>undef,
+     start=>undef,
+     ac=>undef,
      orb=>undef,
      root_poa=>undef,
      mypoamonitor=>undef,
@@ -36,6 +39,7 @@ sub new{
     my $self={
         %fields,
     };
+$self->{start}=time();
 $self->{cid}=new CID;    
 $self->{orb} = CORBA::ORB_init("orbit-local-orb");
 $self->{root_poa} = $self->{orb}->resolve_initial_references("RootPOA");
@@ -44,6 +48,7 @@ $self->{mypoamonitor}=new POAMonitor;
 my $id = $self->{root_poa}->activate_object($self->{mypoamonitor});
 $self->{myref}=$self->{root_poa}->id_to_reference ($id);
 $self->{myior} = $self->{orb}->object_to_string ($self->{myref});
+$self->{ac}= new ActiveClient($self->{myior},$self->{start},$self->{cid});
 
     my $mybless=bless $self,$type;
     if(ref($Monitor::Singleton)){
@@ -958,8 +963,13 @@ sub SendId{
             try{
                 my %cid=%{$ref->{cid}};
                 my $hash=\%cid;
-                my $ok=$arsref->sendId(\$hash,1000);
+                my ($ok,$ok2)=$arsref->sendId(\$hash,1000);
                 $ref->{cid}=$hash;
+                $ref->{ac}->{id}=$hash;
+                my %ac=%{$ref->{ac}};
+                my $hash_ac=\%ac;
+                $arsref->sendAC($hash,\$hash_ac,"Update");
+                $ref->{ac}=$hash_ac;
             }
             catch CORBA::SystemException with{
                 warn "Exiting corba exc";
