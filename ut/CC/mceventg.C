@@ -50,6 +50,10 @@ for(i=0;i<3;i++){
 }
 
 void AMSmceventg::gener(){
+     char cdir[256];
+    HCDIR(cdir,"R");
+    char hpawc[256]="//PAWC/GEN";
+    HCDIR (hpawc," ");
   if(CCFFKEY.low ==2){
     geant mom,themu,phimu,chmu,xmu,ymu,zmu;
     CMGENE(mom,themu,phimu,chmu,xmu,ymu,zmu);
@@ -100,6 +104,9 @@ else {
  if(_fixedpoint){
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
   _coo=_coorange[0];
+  char hp[9]="//PAWC";
+  HCDIR(hp," ");
+  HCDIR (cdir, " ");
   return;
  }
 
@@ -156,6 +163,9 @@ else {
 //if(_fixedplane == 0)_coo=_coo/2;
 }
   }
+  char hp[9]="//PAWC";
+  HCDIR(hp," ");
+  HCDIR (cdir, " ");
 }
 
 
@@ -212,6 +222,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   }
 
   if(AMSJob::gethead()->isSimulation()){
+    char cdir[256];
+    HCDIR(cdir,"R");
+    HMDIR("//PAWC/GEN","S");
     if(low ==2)ipart=5;
     char chp[22]="";
     integer itrtyp;
@@ -332,6 +345,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
 #ifdef __AMSDEBUG__
     //HPRINT(_hid);
 #endif
+     char hp[9]="//PAWC";
+     HCDIR(hp," ");
+     HCDIR (cdir, " ");
   }
 }
 
