@@ -254,19 +254,15 @@ CDECK  ID>, ABCR2.
         sigma_t(i)=0
         call vzero(sigma_el(1,i),3)
         call vzero(sigma_q(1,i),5)
-        do k=1,2
-         call abcross(k,a_p,a_t,z_p,z_t,p_p,
+         call abcross(1,a_p,a_t,z_p,z_t,p_p,
      +   st,se,sq)
-         sigma_t(i)=sigma_t(i)+st/2
+         sigma_t(i)=sigma_t(i)+st
          do j=1,3
-          sigma_el(j,i)=sigma_el(j,i)+se(j)/2
+          sigma_el(j,i)=sigma_el(j,i)+se(j)
          enddo
-         if(k.eq.1)then
          do j=1,5
           sigma_q(j,i)=sq(j)
          enddo
-         endif
-        enddo
 **** G.L. 2/2/00 *********
 *         
           if (ihvse(1).eq.2) then       
@@ -591,9 +587,9 @@ CDE, ABC.
        alpha_hh=rr*alpha_h+(1-rr)*alpha_h**0.5
        sigma_t=snn*a_h**alpha_hh*a_l**alpha_l
        sigma_t_2=144*(a_p**0.33334+a_t**0.33334-1.48)**2*snn/44
-       if(sigma_t_2.gt.sigma_t.and.a_p+a_t.gt.10)then
-        sigma_t=(sigma_t+sigma_t_2)/2.
-       endif
+c       if(sigma_t_2.gt.sigma_t.and.a_p+a_t.gt.10)then
+c        sigma_t=(sigma_t+sigma_t_2)/2.
+c       endif
 *
 * bnn
 *
