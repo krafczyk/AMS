@@ -1946,6 +1946,7 @@ void AMSJob::_axendjob(){
           assert(pg!=NULL);
   }
 
+    AMSEvent::_endofrun();
     AMSUser::EndJob(); 
 }
 

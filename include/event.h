@@ -119,7 +119,7 @@ void _validate(int i=0);
 void _collectstatus();
 
 void _startofrun();
-void _endofrun();
+static void _endofrun();
 
 //+
 void _validateDB();
@@ -209,7 +209,6 @@ static integer calcdaqlength(integer i){return 1+2+2+2+4;}
 static integer calcTrackerHKl(integer i);
 static void builddaq(integer i, integer length, int16u *p);
 static void buildTrackerHKdaq(integer i, integer length, int16u *p);
-
 
 friend class AMSJob;
 };

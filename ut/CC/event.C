@@ -86,7 +86,7 @@ void AMSEvent::_init(){
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
    cout <<" AMS-I-New Run "<<_run<<endl;
-   if (!SRun && AMSJob::gethead()->isProduction()) _startofrun();
+   if (AMSJob::gethead()->isProduction()) _startofrun();
    // get rid of crazy runs
    if(_run<TRMFFKEY.OKAY/10 && AMSJob::gethead()->isRealData()){
      cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
@@ -141,6 +141,7 @@ void AMSEvent::_init(){
   PosGlobal++;
 }
 
+
 void AMSEvent::_startofrun() {
  TIMEX(Tcpu0);
  T0 = time((time_t)0);
@@ -167,6 +168,7 @@ void AMSEvent::_endofrun() {
   int   events = -1;       /* events in file   */
   int   eventsp= PosInRun; /* events processed */
   char* host;              /* hostname         */
+  char* logdir;
   char  hh[12];
 
   int  found = 0;
@@ -180,10 +182,13 @@ void AMSEvent::_endofrun() {
   char ac[4]  = "aC";
   char comp[4];
 
+
   geant cputime = Tcpu1 - Tcpu0;
   strcpy(time1,ctime(&T0));
   for(int j=0; j<15; j++) time11[j] = time1[j+4];
   
+  logdir = getenv("ProductionLogDirLocal");
+ 
   if ((runs=fopen("/offline/runs_Aug.log","r"))==NULL)
     { 
       cout<<"Error - file /offruns/runs/runs_Aug.log not found "<<endl;
@@ -192,13 +197,20 @@ void AMSEvent::_endofrun() {
      while (fgets(line,255,runs)) {
        ptr[0] = strtok(line," ");
        for (int j=1; j<NSUBS; j++) ptr[j] = strtok(NULL," ");
-       if (_run == atoi(ptr[RUN])) {
+       if (SRun == atoi(ptr[RUN])) {
          found = 1;
          events = atoi(ptr[EVENTS]);
          break;
        }
      }
-     ofstream rfile("/offline/logs.local/run_prod.log",ios::out|ios::app);
+     char prodlogdir[256];
+     if (logdir) {
+      strcpy(prodlogdir,logdir);
+      strcat(prodlogdir,"/run_prod.log");
+     } else {
+      strcpy(prodlogdir,"/offline/logs.local/run_prod.log");
+     }
+     ofstream rfile(prodlogdir,ios::out|ios::app);
      rfile.setf(ios::dec);
      host = getenv("HOST");
 
@@ -208,9 +220,9 @@ void AMSEvent::_endofrun() {
      if (hh[1] == 'H' || hh[1] == 'h') strcpy(comp,ahe);
      if (hh[1] == 'C' || hh[1] == 'c') strcpy(comp,ac);
 
-     rfile<<setw(10)<<_run<<" "<<setw(7)<<events<<" "<<setw(7)<<eventsp<<" "
-          <<setw(7)<<T1-T0<<setw(7)<<cputime<<" "<<setw(16)<<time11
-          <<setw(7)<<comp<<endl;
+     rfile<<setw(10)<<SRun<<" "<<setw(7)<<events<<" "<<setw(7)
+          <<eventsp<<" "<<setw(7)<<T1-T0<<setw(7)<<cputime<<" "<<setw(16)
+          <<time11<<setw(7)<<comp<<endl;
 
       rfile.close();
     fclose(runs);
