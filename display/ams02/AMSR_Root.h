@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.h,v 1.3 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_Root.h,v 1.4 2001/06/26 13:18:49 kscholbe Exp $
 #ifndef AMSR_Root_H
 #define AMSR_Root_H
 
@@ -28,6 +28,7 @@
 #ifndef AMSR_Types_H
 #include "AMSR_Types.h"
 #endif
+#include <iostream.h>
 #include <time.h>
 
 class TBrowser;
@@ -165,6 +166,6 @@ public:
    ClassDef(AMSR_Root, 1)   //AMSR_Root control class
 };
 
-EXTERN AMSR_Root *gAMSR_Root;
+extern AMSR_Root *gAMSR_Root;
 
 #endif
