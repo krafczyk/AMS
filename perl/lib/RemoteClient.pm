@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.53 2002/07/18 08:14:28 alexei Exp $
+# $Id: RemoteClient.pm,v 1.54 2002/07/18 14:50:08 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -3118,6 +3118,15 @@ print qq`
                      }
                   }                      
 # check last download time
+# but first check local/remote cite
+      my $cite_status=>"remote";
+      $sql="SELECT Cites.status FROM Cites, Mails WHERE cites.cid=mails.cid  AND ADDRESS='$self->{CEM}'"; 
+      my $ret=$self->{sqlserver}->Query($sql);
+      if(defined $ret->[0][0]){
+        $cite_status= $ret->[0][0];
+      }
+# check last download time
+     if ($cite_status eq "remote") {
           my $uplt0 = 0;  #last upload
           my $uplt1 = 0;  # for filedb and filedb.att
           $sql="SELECT timeu1, timeu2 FROM Mails WHERE ADDRESS='$self->{CEM}'";
@@ -3141,9 +3150,8 @@ print qq`
         } else {
                   $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
       }             
-    }
-
-
+     } 
+}
 #here the default action
  if($self->{read}==0){
 
@@ -4379,4 +4387,3 @@ sub Color {
     }
     return $colors[$color];
 }
-
