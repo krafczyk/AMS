@@ -190,6 +190,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
          for (i=0;i<nhit;i++){
            if (pthit[i]->checkstatus(AMSDBc::AMBIG)) {
              pbeta->setstatus(AMSDBc::AMBIG);
+             break;
            }
          }
 
