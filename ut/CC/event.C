@@ -428,6 +428,7 @@ void AMSEvent::_signinitevent(){
     _VelPhi=ax2.getphi();
   }
   else if(AMSJob::gethead()->isSimulation() && rec){
+   static number StTheta=0;
     _Yaw=0;
     _Roll=0;
     _Pitch=0;
@@ -437,6 +438,11 @@ void AMSEvent::_signinitevent(){
     // get velocity parameters from orbit par
     AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
     AMSDir ax2=ax1.cross(AMSmceventg::Orbit.Axis);
+    if(ax1.prod(AMSmceventg::Orbit.Axis)>1e-5){
+     cerr<<"AMSEvent::SetTimeCoo-W-RedefinitionOfOrbit.AxisWillBeDone "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
+     AMSmceventg::UpdateOrbit(_StationTheta,_StationPhi,_StationTheta-StTheta>00?1:-1);
+     StTheta=_StationTheta;
+    }
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
   }

@@ -91,6 +91,7 @@ integer EarthModulation();
 static void setcuts( geant [],geant[],geant[],integer,geant,geant);
 static void setspectra(integer begind, integer begint, integer endd, 
 integer endt, integer ipart, integer low);
+static void UpdateOrbit(number theta,number phi, integer dir);
 static integer _hid;
 AMSmceventg *  next(){return (AMSmceventg*)_next;}
  // Interface with DAQ

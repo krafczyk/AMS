@@ -185,24 +185,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
   Orbit.PhiI=fmod(CCFFKEY.phi/AMSDBc::raddeg+AMSDBc::twopi,AMSDBc::twopi);
   Orbit.AlphaTanThetaMax=tan(MIR/AMSDBc::raddeg);
-  number r= tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
-  if(r > 1 || r < -1){
-    cerr <<"AMSMCEVENTG::setspectra-ThetaI too high "<<Orbit.ThetaI<<endl;
-    if(Orbit.ThetaI < 0 )Orbit.ThetaI = -MIR/AMSDBc::raddeg;
-    else Orbit.ThetaI= MIR/AMSDBc::raddeg;
-    cerr <<"AMSMCEVENTG::setspectra-ThetaI brought to "<<Orbit.ThetaI<<endl;
-    r=tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
-  }
-  Orbit.PhiZero=Orbit.PhiI-atan2(r,CCFFKEY.sdir*sqrt(1-r*r));
-  Orbit.Axis[0]=sin(MIR/AMSDBc::raddeg)*sin(Orbit.PhiZero);
-  Orbit.Axis[1]=-sin(MIR/AMSDBc::raddeg)*cos(Orbit.PhiZero);
-  Orbit.Axis[2]=cos(MIR/AMSDBc::raddeg);
-  AMSDir ax1(AMSDBc::pi/2-Orbit.ThetaI,Orbit.PhiI);
-  AMSDir ax2(AMSDBc::pi/2,Orbit.PhiZero);
-  if(ax1.prod(Orbit.Axis)>1.e-5){
-   cerr<<"AMSmceventg::setspectra-F-OrbitParametersWrong "<<ax1.prod(Orbit.Axis);
-  exit(1);
-  }
+  UpdateOrbit(Orbit.ThetaI,Orbit.PhiI,CCFFKEY.sdir);
   Orbit.AlphaSpeed=AMSDBc::twopi/90.8/60.;
   Orbit.AlphaAltitude=(6373+380)*1.e5;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
@@ -702,4 +685,29 @@ integer AMSmceventg::calcdaqlength(integer i){
  AMSContainer *p = AMSEvent::gethead()->getC("AMSmceventg");
  if(p)return 1+12*p->getnelem();
  else return 1;
+}
+
+void AMSmceventg::UpdateOrbit(number theta, number phi, integer sdir){
+  Orbit.ThetaI=theta;
+  Orbit.PhiI=phi;
+  number MIR=atan(Orbit.AlphaTanThetaMax);
+  number r= tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
+  if(r > 1 || r < -1){
+    cerr <<"AMSMCEVENTG::setspectra-ThetaI too high "<<Orbit.ThetaI<<endl;
+    if(Orbit.ThetaI < 0 )Orbit.ThetaI = -MIR;
+    else Orbit.ThetaI= MIR;
+    cerr <<"AMSMCEVENTG::setspectra-ThetaI brought to "<<Orbit.ThetaI<<endl;
+    r=tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
+  }
+  Orbit.PhiZero=Orbit.PhiI-atan2(r,sdir*sqrt(1-r*r));
+  Orbit.Axis[0]=sin(MIR)*sin(Orbit.PhiZero);
+  Orbit.Axis[1]=-sin(MIR)*cos(Orbit.PhiZero);
+  Orbit.Axis[2]=cos(MIR);
+  AMSDir ax1(AMSDBc::pi/2-Orbit.ThetaI,Orbit.PhiI);
+  AMSDir ax2(AMSDBc::pi/2,Orbit.PhiZero);
+  if(ax1.prod(Orbit.Axis)>1.e-5){
+   cerr<<"AMSmceventg::setspectra-F-OrbitParametersWrong "<<ax1.prod(Orbit.Axis);
+  exit(1);
+  }
+
 }
