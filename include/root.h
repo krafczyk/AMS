@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.92 2003/06/04 09:55:37 choutko Exp $
+//  $Id: root.h,v 1.93 2003/06/13 14:46:16 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -2229,6 +2229,76 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 
 
 
+       ///  Level1R accessor
+      ///  \return number of Level1R
+      unsigned int   NLevel1()  {
+        if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
+        return fLevel1.size();
+      }
+      ///  \return reference of Level1R Collection
+      vector<Level1R> & Level1()  {
+        if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
+         return  fLevel1;
+       }
+
+       ///  Level1R accessor
+       /// \param l index of Level1R Collection
+      ///  \return reference to corresponding Level1R element
+       Level1R &   Level1(unsigned int l) {
+        if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
+         return fLevel1.at(l);
+      }
+
+       ///  Level1R accessor
+       /// \param l index of Level1R Collection
+      ///  \return pointer to corresponding Level1R element
+      Level1R *   pLevel1(unsigned int l) {
+        if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
+        return l<fLevel1.size()?&(fLevel1[l]):0;
+      }
+
+
+
+
+
+
+       ///  Level3R accessor
+      ///  \return number of Level3R
+      unsigned int   NLevel3()  {
+        if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
+        return fLevel3.size();
+      }
+      ///  \return reference of Level3R Collection
+      vector<Level3R> & Level3()  {
+        if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
+         return  fLevel3;
+       }
+
+       ///  Level3R accessor
+       /// \param l index of Level3R Collection
+      ///  \return reference to corresponding Level3R element
+       Level3R &   Level3(unsigned int l) {
+        if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
+         return fLevel3.at(l);
+      }
+
+       ///  Level3R accessor
+       /// \param l index of Level3R Collection
+      ///  \return pointer to corresponding Level3R element
+      Level3R *   pLevel3(unsigned int l) {
+        if(fHeader.Level3s && fLevel3.size()==0)bLevel3->GetEntry(_Entry);
+        return l<fLevel3.size()?&(fLevel3[l]):0;
+      }
+
+
+
+
+
+
+
+
+
+
        ///  BetaR accessor
       ///  \return number of BetaR
       unsigned int   NBeta()  {
@@ -2256,6 +2326,14 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
         if(fHeader.Betas && fBeta.size()==0)bBeta->GetEntry(_Entry);
         return l<fBeta.size()?&(fBeta[l]):0;
       }
+
+
+
+
+
+
+
+
 
 
        ///  ChargeR accessor
