@@ -20,7 +20,6 @@
       TH1F* hrig = new TH1F ("hrig", "Momentum (GeV)", 50, -10., 10.);
       
       int ndata = ams.GetEntries();
-      cout << "We will process: " << ndata << " events" << endl;
       for (int entry=0; entry<ndata; entry++) {
             AMSEventR *pev = ams.GetEvent();
             if (pev==NULL) break;
