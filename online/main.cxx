@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.20 2004/01/30 12:47:40 choutko Exp $
+//  $Id: main.cxx,v 1.21 2004/01/30 13:01:31 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -159,6 +159,7 @@ void OpenChain(TChain & chain, char * filenam){
    TRegexp c("^http:",false);
    TRegexp d("^root:",false);
    TRegexp e("^rfio:",false);
+   TRegexp f("^/castor",false);
    bool wildsubdir=false;
    if(a.Contains(b)){
     TCastorFile f;
@@ -172,6 +173,10 @@ void OpenChain(TChain & chain, char * filenam){
    }
    else if(a.Contains(e)){
     strcpy(filename,filenam);
+   }
+   else if(a.Contains(f)){
+    strcpy(filename,"rfio:");
+    strcat(filename,filenam);
    }
    else{ 
     if(filenam[0]!='/'){
