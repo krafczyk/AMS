@@ -540,3 +540,71 @@ if(init == 0){
 }
 return (WriteAll || status);
 }
+
+
+// write some trmc cluster to daq files
+//only itra + xgl
+// V. Choutko 8-jul-1999
+
+
+integer AMSTrMCCluster::checkdaqid(int16u id){
+if(id==getdaqid())return 1;
+else return 0;
+}
+
+void AMSTrMCCluster::builddaq(integer i, integer length, int16u *p){
+  AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
+  getheadC("AMSTrMCCluster",0);
+ *p=getdaqid();
+while(ptr){ 
+ const uinteger c=65535;
+ *(p+1)=ptr->_itra;
+ integer big=10000;
+ for(int k=0;k<3;k++){
+ if(ptr->_xgl[k]+big<=0){
+  goto metka;
+ }
+ uinteger cd=(ptr->_xgl[k]+big)*10000;
+ *(p+3+2*k)=int16u(cd&c);
+ *(p+2+2*k)=int16u((cd>>16)&c);
+ }
+ p+=7;
+metka:
+ ptr=ptr->next();
+}
+
+}
+
+
+void AMSTrMCCluster::buildraw(integer n, int16u *p){
+ integer ip;
+ geant mom;
+ for(int16u *ptr=p+1;ptr<p+n;ptr+=7){ 
+  ip=*(ptr);
+  uinteger cdx=  (*(ptr+2)) | (*(ptr+1))<<16;  
+  uinteger cdy=  (*(ptr+4)) | (*(ptr+3))<<16;  
+  uinteger cdz=  (*(ptr+6)) | (*(ptr+5))<<16;  
+  AMSPoint coo(cdx/10000.-10000.,cdy/10000.-10000.,cdz/10000.-10000.);
+ //  cout <<ip<<" "<<coo<<endl;
+        AMSTrMCCluster *ptrhit=(AMSTrMCCluster*)AMSEvent::gethead()->addnext(AMSID("AMSTrMCCluster",0), new
+        AMSTrMCCluster(coo,ip));
+        if(ptrhit->IsNoise())ptrhit->setstatus(AMSDBc::AwayTOF);
+
+}
+
+} 
+
+integer AMSTrMCCluster::calcdaqlength(integer i){
+ AMSContainer *p = AMSEvent::gethead()->getC("AMSTrMCCluster");
+ int len=1; 
+ if(p){
+  AMSTrMCCluster *ptr=(AMSTrMCCluster*)AMSEvent::gethead()->
+  getheadC("AMSTrMCCluster",0);
+ while(ptr){ 
+  const integer big=10000;
+  if(ptr->_xgl[0]+big>0 && ptr->_xgl[1]+big>0 && ptr->_xgl[2]+big>0)len+=7; 
+  ptr=ptr->next();
+ }
+ }
+ return len;
+}

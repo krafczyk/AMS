@@ -529,7 +529,7 @@ void AMSParticle::refit(int fast){
     }
       geant dummy;
       integer dorefit=TRFITFFKEY.ForceAdvancedFit==1 ||
-      (TRFITFFKEY.ForceAdvancedFit==2 && RNDM(dummy)<IOPA.Portion) ||
+      (TRFITFFKEY.ForceAdvancedFit==2 ) ||
       !TRFITFFKEY.FastTracking;
   if(_GPart !=14 || dorefit){
         if(!_ptrack->AdvancedFitDone()){

@@ -173,6 +173,13 @@ public:
  (integer idsoft, AMSPoint xca, AMSPoint xcb, AMSPoint xgl, geant sum,integer itra):
   _idsoft(idsoft),_xca(xca),_xcb(xcb),_xgl(xgl),_sum(sum),_itra(itra)
  {_shower();_next=0;}
+
+ // Constructor for daq
+ AMSTrMCCluster
+ (AMSPoint xgl, integer itra):
+  _idsoft(0),_xca(0,0,0),_xcb(0,0,0),_xgl(xgl),_sum(0),_itra(itra)
+ {_next=0;}
+
  AMSTrMCCluster(){_next=0;};
  ~AMSTrMCCluster(){};
   AMSTrIdGeom getid();
@@ -200,5 +207,20 @@ public:
    friend class AMSTrMCClusterD;
 #endif
 //-
+
+
+ // Interface with DAQ
+
+
+ static int16u getdaqid(){return (15 <<9);}
+ static integer checkdaqid(int16u id);
+ static integer calcdaqlength(integer i);
+ static integer getmaxblocks(){return 1;}
+ static void builddaq(integer i, integer n, int16u *p);
+ static void buildraw(integer n, int16u *p);
+
+
+
+
 };
 #endif

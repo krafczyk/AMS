@@ -2499,6 +2499,12 @@ if(DAQCFFKEY.LCrateinDAQ ){
     DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
     &AMSmceventg::builddaq);
 
+    DAQEvent::addsubdetector(&AMSTrMCCluster::checkdaqid,&AMSTrMCCluster::buildraw);
+    DAQEvent::addblocktype(&AMSTrMCCluster::getmaxblocks,&AMSTrMCCluster::calcdaqlength,
+    &AMSTrMCCluster::builddaq);
+
+
+
     DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
     DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
     &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);

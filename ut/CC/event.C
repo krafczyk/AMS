@@ -365,7 +365,6 @@ AMSUser::InitRun();
 
 
 void AMSEvent::_siamsinitevent(){
- _sitkinitevent();
  _sitofinitevent();
  _siantiinitevent();
  _sictcinitevent();
@@ -373,6 +372,7 @@ void AMSEvent::_siamsinitevent(){
 
 void AMSEvent::_reamsinitevent(){
   _signinitevent();
+  _sitkinitevent();
  _redaqinitevent();
  _retkinitevent();
  _retriginitevent();
