@@ -559,7 +559,9 @@ void TOFJobStat::print(){
   printf("\n");
   printf("    ============ JOB TOF-statistics =============\n");
   printf("\n");
-  printf(" MC-entries              : % 6d\n",mccount[0]);
+  printf(" MC: entries             : % 6d\n",mccount[0]);
+  printf(" MC: TovT->RawEvent OK   : % 6d\n",mccount[1]);
+  printf(" MC: Ghits->RawCluster OK: % 6d\n",mccount[2]);
   printf(" RECO-entries            : % 6d\n",recount[0]);
   printf(" DAQ->RawEvent OK        : % 6d\n",recount[1]);
   printf(" RawEvent-validation OK  : % 6d\n",recount[2]);

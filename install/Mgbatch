@@ -577,7 +577,8 @@ depend:
 ../bin/aix/job.o: ../include/ctcrec.h ../include/trcalib.h
 ../bin/aix/job.o: ../include/particle.h ../include/ctc.h ../include/antidbc.h
 ../bin/aix/job.o: ../include/tofsim.h ../include/tofcalib.h
-../bin/aix/job.o: ../include/trigger3.h
+../bin/aix/job.o: ../include/trigger1.h ../include/trigger3.h
+../bin/aix/job.o: ../include/trrawcluster.h
 ../bin/aix/event.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/event.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
 ../bin/aix/event.o: /usr/include/string.h /usr/include/standards.h
@@ -1051,8 +1052,8 @@ depend:
 ../bin/aix/trigger1.o: ../include/mccluster.h ../include/gsen.h
 ../bin/aix/trigger1.o: ../include/trid.h ../include/amsstl.h
 ../bin/aix/trigger1.o: ../include/ctcdbc.h ../include/antidbc.h
-../bin/aix/trigger1.o: ../include/tofrec.h ../include/antirec.h
-../bin/aix/trigger1.o: ../include/ntuple.h
+../bin/aix/trigger1.o: ../include/tofrec.h ../include/tofsim.h
+../bin/aix/trigger1.o: ../include/antirec.h ../include/ntuple.h
 ../bin/aix/trigger3.o: ../include/trigger1.h ../include/link.h
 ../bin/aix/trigger3.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/trigger3.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
@@ -1112,3 +1113,17 @@ depend:
 ../bin/aix/daqevt.o: /usr/include/stdlib.h ../include/link.h
 ../bin/aix/daqevt.o: ../include/upool.h /usr/lpp/xlC/include/new.h
 ../bin/aix/daqevt.o: ../include/apool.h ../include/node.h ../include/snode.h
+../bin/aix/daqevt.o: /usr/lpp/xlC/include/fstream.h ../include/event.h
+../bin/aix/daqevt.o: ../include/job.h ../include/gvolume.h ../include/cern.h
+../bin/aix/daqevt.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/aix/daqevt.o: /usr/include/malloc.h ../include/hbook.h
+../bin/aix/daqevt.o: ../include/geant321.h ../include/geant321g.h
+../bin/aix/daqevt.o: ../include/amsdbc.h ../include/point.h
+../bin/aix/daqevt.o: /usr/include/math.h ../include/gmat.h
+../bin/aix/daqevt.o: /usr/lpp/xlC/include/iomanip.h
+../bin/aix/daqevt.o: /usr/lpp/xlC/include/generic.h ../include/amsgobj.h
+../bin/aix/daqevt.o: ../include/uzstat.h /usr/include/limits.h
+../bin/aix/daqevt.o: /usr/include/sys/limits.h ../include/timeid.h
+../bin/aix/daqevt.o: /usr/include/time.h ../include/cont.h
+../bin/aix/daqevt.o: /usr/include/sys/time.h ../include/mceventg.h
+../bin/aix/daqevt.o: ../include/io.h /usr/include/sys/times.h

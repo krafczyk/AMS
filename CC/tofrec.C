@@ -1,5 +1,7 @@
 // last modif. 10.12.96 by E.Choumilov - AMSTOFRawCluster::build added, 
 //                                       AMSTOFCluster::build modified.
+//              16.06.97   E.Choumilov - AMSTOFRawEvent::validate added
+//                                       AMSTOFRawCluster::sitofdigi modified for trigg.
 #include <point.h>
 #include <event.h>
 #include <amsgobj.h>
@@ -17,7 +19,8 @@
 //
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
 extern TOFVarp tofvpar;// TOF general parameters
-integer AMSTOFRawCluster::trpatt[SCLRS]={0,0,0,0};//just init. of statis var.
+integer AMSTOFRawCluster::trpatt[SCLRS]={0,0,0,0};//just init. of static var.
+integer AMSTOFRawCluster::trflag=0;
 //
 //
 //-----------------------------------------------------------------------
@@ -200,7 +203,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   }
 }
 //-----------------------------------------------------------------------
-void AMSTOFRawCluster::sitofdigi(){
+void AMSTOFRawCluster::sitofdigi(int &status){
   AMSTOFMCCluster * ptr=(AMSTOFMCCluster*)
   AMSEvent::gethead()->
    getheadC("AMSTOFMCCluster",0,1); // last 1  to test sorted container
@@ -215,6 +218,7 @@ void AMSTOFRawCluster::sitofdigi(){
   VZERO(xplane,SCMXBR*sizeof(number));
   VZERO(xz,SCMXBR*sizeof(number));
   geant x,y;
+  status=1;// bad
   while(ptr){
    integer ntof,plane,status;
    ntof=(ptr->idsoft)/100-1;//ilay
@@ -241,10 +245,13 @@ void AMSTOFRawCluster::sitofdigi(){
   geant dummy(-1);
   const number c=1.7e10; // eff. speed of light in scint.(cm/s)
   number latt=195.; // average light att. length (cm) in scint. bar
-  number trthr=0.4;// trig.threshold in Mev (=0.2MIP) (taken from the floor)
-  integer trpatt[SCLRS]={0,0,0,0};
+  number trthr=0.4;// trig.threshold(z>=1) in Mev (=0.2 MIP) (taken from the floor)
+  number trthr3=6.;// trig.threshold(z>2) in Mev (=3 MIPs) (taken from the floor)
+  integer ntrl(0),trpatt[SCLRS]={0,0,0,0};
+  integer ntrl3(0),trpatt3[SCLRS]={0,0,0,0};
+  integer trflag(0);
   integer bitp,lsbit(1);
-  int statdb[2];
+  int i,statdb[2];
   geant halfl;
   number enshar,ylon,edp[2];
   number ts1,ts2;
@@ -260,9 +267,15 @@ void AMSTOFRawCluster::sitofdigi(){
      edp[0]=enshar*xplane[kk][i]*exp(-(ylon+halfl)/latt);
      edp[1]=xplane[kk][i]-edp[0];
      scbrcal[kk][i].getbstat(statdb); // "alive" status from DB
-     if((edp[0]>trthr || statdb[0]>0) && (edp[1]>trthr || statdb[1]>0)){// AND !!!
+//      "z>=1" trigger :
+     if((edp[0]>trthr || statdb[0]>0) && (edp[1]>trthr || statdb[1]>0)){// 2-ends AND !!
        bitp=lsbit<<i;
        trpatt[kk]|=bitp;
+     }
+//      "z>2" trigger :
+     if((edp[0]>trthr3 || statdb[0]>0) && (edp[1]>trthr3 || statdb[1]>0)){// 2-ends AND !!
+       bitp=lsbit<<i;
+       trpatt3[kk]|=bitp;
      }
 // --->
      if(RNDM(dummy)< TOFMCFFKEY.TimeProbability2){
@@ -295,7 +308,30 @@ void AMSTOFRawCluster::sitofdigi(){
 
   }
   }
-  AMSTOFRawCluster::setpatt(trpatt);//add trigger pattern info
+  for(i=0;i<SCLRS;i++)if(trpatt[i]>0)ntrl+=1;// counts triggered (z>=1) layers
+  for(i=0;i<SCLRS;i++)if(trpatt3[i]>0)ntrl3+=1;// counts triggered (z>2) layers
+  if(TOFMCFFKEY.trlogic[1]==1){// h/w requirement ALL4
+    if(ntrl==4){
+      status=0;
+      trflag=1;
+    }
+    if(ntrl3==4){
+      status=0;
+      trflag=3;
+    }
+  }
+  else{                       // h/w requirement ANY3
+    if(ntrl>=3){
+      status=0;
+      trflag=1;
+    }
+    if(ntrl3>=3){
+      status=0;
+      trflag=3;
+    }
+  } 
+  AMSTOFRawCluster::settrfl(trflag);// set trig.flag 
+  AMSTOFRawCluster::setpatt(trpatt);//tempor: add trigger(z>=1) pattern 
 }
 //------
 void AMSTOFRawCluster::build(int &status){
@@ -388,7 +424,7 @@ void AMSTOFRawCluster::build(int &status){
 //
 //   --------> identify "corresponding" hit in fast TDC :
           scbrcal[ilay][ibar].gtstrat(strr);
-//   calculate f-TDC "start"-edge each-side times tm[2] (wrt lev1):
+//   calculate f-TDC "start"-edge (each-side) times tm[2] (wrt lev1):
           tm[0]=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);
           tm[1]=(stdc2[3]&pbanti)*TOFDBc::tdcbin(1);
 //
@@ -528,8 +564,10 @@ void AMSTOFRawCluster::build(int &status){
 //------------------------------------------------------
     ptr=ptr->next();// take next RawEvent hit
   }//                          ---- end of RawEvent hits loop ------->
-  AMSTOFRawEvent::getpatt(trpatt);//just copy trig.pattern to be compartible with
-  AMSTOFRawCluster::setpatt(trpatt);// fast algorithm.
+  AMSTOFRawEvent::getpatt(trpatt);//just copy trig.pattern/flag to be compartible 
+  AMSTOFRawCluster::setpatt(trpatt);// with fast algorithm.
+  integer trflag=AMSTOFRawEvent::gettrfl(); 
+  AMSTOFRawCluster::settrfl(trflag);
 //
 // now check min. multiplicity :
   int nbrch[SCLRS];

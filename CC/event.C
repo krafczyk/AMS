@@ -496,25 +496,25 @@ void AMSEvent::_reantievent(){
 }
 
 void AMSEvent::_retofevent(){
+integer trflag(0);
 int stat;
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
 //
     TOFJobStat::addre(0);
-    if(AMSJob::gethead()->isRealData()){
+    if(AMSJob::gethead()->isRealData()){// Real Event
       AMSgObj::BookTimer.start("TOF:DAQ->RwEv");
       AMSTOFRawEvent::re_build(stat);// DAQ-->RawEvent
       if(stat!=0)return;
       TOFJobStat::addre(1);
-      AMSTOFRawEvent::validate(stat);// RawEvent-->RawEvent
-      if(stat!=0)return;
-      TOFJobStat::addre(2);
       AMSgObj::BookTimer.stop("TOF:DAQ->RwEv");
     }
 //
     if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1){
 //                   ===> reco of events, simulated by fast MC :
 //
+      trflag=AMSTOFRawCluster::gettrfl();
+      if(trflag<=0)return;// "no h/w MC-trigger"
       AMSgObj::BookTimer.start("TOF:RwCl->Cl");
       AMSTOFCluster::build(stat);    // "RawCluster-->Cluster"
       if(stat!=0)return;
@@ -524,7 +524,13 @@ int stat;
     else{
 //                   ===> reco of real events or simulated by slow MC:
 //
+      if(!AMSJob::gethead()->isRealData()){ // MC-slow events
+        trflag=AMSTOFRawEvent::gettrfl();
+        if(trflag<=0)return;// "no h/w MC-trigger"
+      }
+      AMSgObj::BookTimer.start("TOF:validation");
       AMSTOFRawEvent::validate(stat);// RawEvent-->RawEvent
+      AMSgObj::BookTimer.stop("TOF:validation");
       if(stat!=0)return;
       TOFJobStat::addre(2);
       AMSgObj::BookTimer.start("TOF:RwEv->RwCl");
@@ -653,6 +659,7 @@ void AMSEvent:: _sitrigevent(){
 
 void AMSEvent:: _sitofevent(){
   AMSContainer *p;
+  int stat;
 //
   AMSgObj::BookTimer.start("SITOFDIGI");
   if(TOFMCFFKEY.fast==0){//           ===> slow algorithm:
@@ -662,12 +669,16 @@ void AMSEvent:: _sitofevent(){
    AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
 //
    AMSgObj::BookTimer.start("TOF:Tovt->RwEv");
-   AMSTOFRawEvent::mc_build(); // Tovt_hits-->RawEvent_hits
+   AMSTOFRawEvent::mc_build(stat); // Tovt_hits-->RawEvent_hits
    AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
+   if(stat!=0)return; // no MC-trigger
+   TOFJobStat::addmc(1);
   }
   else{    //                         ===> fast algorithm:
     TOFJobStat::addmc(0);
-    AMSTOFRawCluster::sitofdigi();//Geant_hit->RawCluster
+    AMSTOFRawCluster::sitofdigi(stat);//Geant_hit->RawCluster
+    if(stat!=0)return; // no MC-trigger
+    TOFJobStat::addmc(2);
   }
 
   AMSgObj::BookTimer.stop("SITOFDIGI");

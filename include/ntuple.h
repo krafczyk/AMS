@@ -271,6 +271,7 @@ friend class TriggerLVL3;
 class LVL1Ntuple: public AMSNtuple{
 private:
 int Mode;
+int TOFlag;
 int TOFPatt[4];
 int AntiPatt;
 friend class TriggerLVL1;

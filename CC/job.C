@@ -502,7 +502,7 @@ void AMSJob::_retofdata(){
 //
   TOFRECFFKEY.daqthr[0]=20.;//thresh(mV) for discr. of "z>=1"-trig (fast/slow_TDC) 
   TOFRECFFKEY.daqthr[1]=40.;//thresh(mV) for discr. of "z>1"-trig  
-  TOFRECFFKEY.daqthr[2]=100.;//thresh(mV) for discr. of "z>2"-trig  
+  TOFRECFFKEY.daqthr[2]=150.;//thresh(mV) for discr. of "z>2"-trig  
   TOFRECFFKEY.daqthr[3]=3.5;//thresh(pC) for anode Time_over_Thresh. discr.  
   TOFRECFFKEY.daqthr[4]=3.5;//thresh(pC) for dinode Time_over_Thresh. discr.
 //
@@ -921,6 +921,7 @@ AMSgObj::BookTimer.book("TrTrack");
 void AMSJob::_retofinitjob(){
     AMSgObj::BookTimer.book("RETOFEVENT");
     AMSgObj::BookTimer.book("TOF:DAQ->RwEv");
+    AMSgObj::BookTimer.book("TOF:validation");
     AMSgObj::BookTimer.book("TOF:RwEv->RwCl");
     AMSgObj::BookTimer.book("TOF:RwCl->Cl");
     if(TOFRECFFKEY.reprtf[2]!=0){ // Book reco-hist
