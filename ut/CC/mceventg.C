@@ -651,6 +651,7 @@ void AMSmceventg::_copyEl(){
   if(IOPA.mode ==2 || IOPA.mode==3){
   // write elem  for simple i/o
    integer run,event;
+   if (Primary()){
    run=AMSEvent::gethead()->getrun();
    event=AMSEvent::gethead()->getEvent();
    number pole,theta,phi;
@@ -661,6 +662,7 @@ void AMSmceventg::_copyEl(){
    AMSEvent::gethead()->getyaw(),AMSEvent::gethead()->getroll(),
    AMSEvent::gethead()->getpitch(),AMSEvent::gethead()->getangvel());
    io.write();
+  }
   }
 }
 
