@@ -369,7 +369,7 @@ void AMSParticle::refit(){
       if(_ErrMass>FLT_MAX)_ErrMass=FLT_MAX;
       if(_Momentum>FLT_MAX)_Momentum=FLT_MAX;
       if(_Momentum<-FLT_MAX)_Momentum=-FLT_MAX;
-      if(_ErrMomentum<FLT_MAX)_ErrMomentum=FLT_MAX;
+      if(_ErrMomentum>FLT_MAX)_ErrMomentum=FLT_MAX;
       integer oldpart=_GPart;
       pid();
       if(_GPart != oldpart){ 

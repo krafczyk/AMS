@@ -66,7 +66,7 @@ theApp->SetIdleTimer(5,"");
   amd->Init();
   amd->SetApplication(theApp);
   int Begin=0;
-  int Sample=200;
+  int Sample=1000;
       for(;;){
         amd->Fill(Begin,Sample);
         Begin+=Sample;

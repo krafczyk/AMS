@@ -60,10 +60,14 @@ Type offmon your_preferred_name.
 
 4. Relevant files
 
-a. *.h
-TCanvasImp.h          //aux
-TMotifCanvas.h        //aux
-TRadioButton.h        //aux
-TSwitch.h             //aux
-LinkDef.h             //aux
-main.h                //main
+TCanvasImp          //aux
+TMotifCanvas        //aux
+TRadioButton        //aux
+TSwitch             //aux
+LinkDef             //aux
+main                //main
+*Hist               // Subdet fetch/book/fill/draw 
+AMSHist             // abstract class for the *Hist
+AMSNtuple           // Ntuple def
+AMSDisplay          // Dispatcher
+AMSCanvas           // Canvas
