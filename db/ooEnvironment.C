@@ -12,7 +12,7 @@
  *
  *      Description:
  *
- *      RCSid = "$Id: ooEnvironment.C,v 1.1 1996/10/18 20:58:22 choutko Exp $"
+ *      RCSid = "$Id: ooEnvironment.C,v 1.1.1.1 1996/10/18 20:58:22 choutko Exp $"
  *
  ****************************************************************************
  */
