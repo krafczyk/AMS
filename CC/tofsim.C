@@ -13,6 +13,7 @@
 #include <tofdbc.h>
 #include <tofsim.h>
 #include <mccluster.h>
+#include <trigger3.h>
 //
 extern TOFVarp tofvpar;
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// calibration data
@@ -1190,7 +1191,7 @@ void AMSTOFTovt::mfun(int &np, number grad[], number &f, number x[]
 //
 number AMSTOFTovt::tr1time(int &trcode, integer toftrp[]){
   integer i1,i2,isds(0),first(0);
-  integer i,j,ilay,ibar,ntr,idd,id,idN,stat;
+  integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig;
   integer npdpl[SCLRS]={0,0,0,0};
   integer sbt,lsbit(1);
   number ttr[SCTHMX1];
@@ -1241,7 +1242,9 @@ number AMSTOFTovt::tr1time(int &trcode, integer toftrp[]){
                                   trbc=trbs[0] & trbs[1];// 2-sides AND
         else
                                   trbc=trbs[0] | trbs[1];// 2-sides OR
-//                                  
+//
+        intrig=TriggerLVL3::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
+        if(intrig<1)trbc.bitclr(1,0); // counter not in trigger !!!                                  
         trbl[ilay]=trbl[ilay] | trbc; // summing OR within the layer
         trbc.testbit(i1,i2);// bit-pattern of the fired counters in layer:
         if(i2>=i1){
@@ -1313,7 +1316,7 @@ number AMSTOFTovt::tr1time(int &trcode, integer toftrp[]){
 //
 number AMSTOFTovt::tr3time(int &trcode, integer toftrp[]){
   integer i1,i2,isds(0),first(0);
-  integer i,j,ilay,ibar,ntr,idd,id,idN,stat;
+  integer i,j,ilay,ibar,ntr,idd,id,idN,stat,intrig;
   integer npdpl[SCLRS]={0,0,0,0};
   integer sbt,lsbit(1);
   number ttr[SCTHMX1];
@@ -1364,6 +1367,8 @@ number AMSTOFTovt::tr3time(int &trcode, integer toftrp[]){
         else
                                   trbc=trbs[0] | trbs[1];// 2-sides OR
 //                                  
+        intrig=TriggerLVL3::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
+        if(intrig<1)trbc.bitclr(1,0); // counter not in trigger !!!                                  
         trbl[ilay]=trbl[ilay] | trbc; // summing OR within the layer
         trbc.testbit(i1,i2);// bit-pattern of the fired counters in layer:
         if(i2>=i1){

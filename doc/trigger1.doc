@@ -3,7 +3,7 @@ protected:
  integer _TriggerMode;
  integer _tofflag;   // =1/2/3 -> "z>=1"/"z>1"/"z>2"(+10 if it was 4-layer trigger) 
  integer _tofpatt[SCLRS];// TOF:  triggered paddles/layer pattern
- integer _antipatt;  // ANTI: triggered sectors pattern 
+ integer _antipatt;  // ANTI: triggered sectors pattern(bits 1-16->AND, bits 17-32->OR)
  void _copyEl(){}
  void _printEl(ostream & stream){ stream << " TriggerMode " << _TriggerMode<<endl;}
  void _writeEl();
