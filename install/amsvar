@@ -1,4 +1,4 @@
-setenv ROOTSYS $Offline/root
+setenv ROOTSYS $Offline/root/$OS
 set path=( $path . /usr/sbin $ROOTSYS/bin )
 setenv LD_LIBRARY_PATH .:$ROOTSYS/lib
 setenv CVSROOT $Offline/CVS
