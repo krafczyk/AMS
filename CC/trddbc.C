@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.46 2003/05/22 12:25:53 choutko Exp $
+//  $Id: trddbc.C,v 1.47 2003/12/16 16:09:54 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -2023,8 +2023,9 @@ void TRDDBc::init(){
 {
 
 // Rotatate spikes by 22.5 deg
-  number cr=cos(-22.5/180.*AMSDBc::pi);
-  number sr=sin(-22.5/180.*AMSDBc::pi);
+  number ang=22.5;
+  number cr=cos(ang/180.*AMSDBc::pi);
+  number sr=sin(ang/180.*AMSDBc::pi);
   number nrmr[3][3]={cr,sr,0,-sr,cr,0,0,0,1};
   for (int i=0;i<trdconst::maxspikes;i++){
   for (int iq=0;iq<4;iq++){
@@ -2035,6 +2036,7 @@ void TRDDBc::init(){
     }
    }
    for (int j=0;j<3;j++)_SpikesPar[i][iq][j]=coo[j];
+   for (int j=0;j<3;j++)cout <<" "<<_SpikesPar[i][iq][j]<<endl;
   }
 } 
 }
@@ -2083,8 +2085,8 @@ void TRDDBc::init(){
     _PipesNRM[5][3][2][2]=0;
 
 
-
-//  Assuming Mirroring of 4 quadrants  for pipes
+/*
+//  Assuming mirroring of 4 quadrants  for pipes
 
     for (int is=0;is<trdconst::maxpipes;is++){
      for(int i=0;i<4;i++){
@@ -2110,13 +2112,60 @@ void TRDDBc::init(){
        }
     }
   } 
+*/
+
+//  Assuming rotating of 4 quadrants  for pipes
+
+    for (int is=0;is<trdconst::maxpipes;is++){
+     for(int i=0;i<4;i++){
+       for(int k=0;k<7;k++)_PipesPar[is][i][k]=_PipesPar[is][3][k];
+       for (int k=0;k<3;k++){
+         for (int l=0;l<3;l++)_PipesNRM[is][i][k][l]=_PipesNRM[is][3][k][l];
+       }
+       number ang=0;
+       switch(i){
+         case 0:
+         ang=180.;
+         break;
+         case 1:
+          ang=-90.;
+         break;
+         case 2:
+          ang=90.;
+         break;
+       }
+  number cr=cos(ang/180.*AMSDBc::pi);
+  number sr=sin(ang/180.*AMSDBc::pi);
+  number nrmr[3][3]={cr,sr,0,-sr,cr,0,0,0,1};
+   geant coo[3]={0,0,0};  
+   number nrm[3][3]={0,0,0,0,0,0,0,0,0};
+   for (int j=0;j<3;j++){
+    for (int k=0;k<3;k++){
+     coo[j]+=_PipesPar[is][i][k]*nrmr[j][k];
+    }
+   }
+   for (int j=0;j<3;j++)_PipesPar[is][i][j]=coo[j];
+   for (int i1=0;i1<3;i1++){
+    for(int i2=0;i2<3;i2++){
+     for (int j=0;j<3;j++){
+       nrm[i1][i2]=nrm[i1][i2]+nrmr[i1][j]*_PipesNRM[is][i][j][i2];
+     }
+    }
+   }
+   for (int i1=0;i1<3;i1++){
+    for(int i2=0;i2<3;i2++){
+     _PipesNRM[is][i][i1][i2]=nrm[i1][i2];
+    }
+   }
+   }
+  } 
 
 
 {
 
 // Rotatate pipes by 22.5 deg
-  number cr=cos(-22.5/180.*AMSDBc::pi);
-  number sr=sin(-22.5/180.*AMSDBc::pi);
+  number cr=cos(22.5/180.*AMSDBc::pi);
+  number sr=sin(22.5/180.*AMSDBc::pi);
   number nrmr[3][3]={cr,sr,0,-sr,cr,0,0,0,1};
   for (int i=0;i<trdconst::maxpipes;i++){
   for (int iq=0;iq<4;iq++){
