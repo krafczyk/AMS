@@ -330,7 +330,20 @@ void AMSParticle::pid(){
     num=_chargeP[9];
 }
   _GPart=_partP[num]; 
-  if(_Momentum <0){
+  //Check AntiMatter
+  integer antimatter=0;
+  for( int patt=0;patt<npat;patt++){
+    AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
+      getheadC("AMSTrTrack",patt);
+    while(ptrack ){   
+      if(ptrack->getrid() <0 || ptrack->getgrid()<0){
+        antimatter=1;
+        break;
+      }
+      ptrack=ptrack->next();
+    }
+  }
+  if(antimatter || _Momentum <0){
    if(_GPart < 40 )_GPart++;
    else _GPart=_GPart+100;
    

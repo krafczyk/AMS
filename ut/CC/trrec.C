@@ -1594,92 +1594,94 @@ AMSgObj::BookTimer.start("TrFalseX");
              AMSTrIdGeom id(patmiss[pat][i],ladder,sensor,0,0);
              AMSgvolume* p= AMSJob::gethead()->getgeomvolume(id.crgid());
             if(p){
-             AMSPoint  P1;
-{ 
-             AMSDir pntdir(0,0,1.);
-             AMSPoint pntplane(p->getcooA(0),p->getcooA(1),p->getcooA(2));
-             number theta,phi,length;
-             ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length); 
-}
-             // Now 2nd pass : find corresponding ladder & sensor
-             AMSTrCluster * py=
-             (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
-             integer yfound=0;  
-             while(py){
-              AMSTrIdSoft idy=py->getid();
-              if(idy.getlayer()==id.getlayer()){
-                if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1))yfound++;
+              AMSPoint  P1;
+              
+              AMSTrCluster * py=
+                (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
+              integer yfound=0;  
+              while(py){
+                AMSTrIdSoft idy=py->getid();
+                if(idy.getlayer()==id.getlayer()){
+                  if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1))yfound++;
+                }
+                py=py->next();
               }
-              py=py->next();
-             }
-               
-             if(yfound){
-              AMSgSen * pls=0;
-              AMSPoint PS(p->getpar(0),p->getpar(1),p->getpar(2));
-              if(id.FindAtt(P1,PS))pls=(AMSgSen*) AMSJob::gethead()->getgeomvolume(id.crgid());
-              if(pls){
-                // Here Search for corresponding y-hit in the container 
-                AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
-                AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
-                number theta,phi,length;
-                ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length);
-                // Now check for the corr y-hit
+              
+              if(yfound){
                 
-                
-                py=
-                  (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
-                while(py){
-                  AMSTrIdSoft idy=py->getid();
-                  if(idy.getlayer()==id.getlayer() && abs(idy.getdrp()-id.getladder())<1){
-                    if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1)){
-                      //  Create False RawHit and put it in the corr container 
-                      AMSPoint loc=pls->gl2loc(P1);
-                      id.R2Gy(idy.getstrip());
-                      AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(1,&id)); 
-                      AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
-                                   TRFITFFKEY.SearchRegStrLine,TRFITFFKEY.SearchRegStrLine);
-                      if((hit-P1).abs() < Err){
-                        AMSTrRecHit::_addnext(pls,AMSTrRecHit::FalseX,id.getlayer(),0,py,hit,
-                                              AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
-                        pointfound++;
-                      } 
-                      
+                { 
+                  AMSDir pntdir(0,0,1.);
+                  AMSPoint pntplane(p->getcooA(0),p->getcooA(1),p->getcooA(2));
+                  number theta,phi,length;
+                  ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length); 
+                }
+                // Now 2nd pass : find corresponding ladder & sensor
+                AMSgSen * pls=0;
+                AMSPoint PS(p->getpar(0),p->getpar(1),p->getpar(2));
+                if(id.FindAtt(P1,PS))pls=(AMSgSen*) AMSJob::gethead()->getgeomvolume(id.crgid());
+                if(pls){
+                  // Here Search for corresponding y-hit in the container 
+                  AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
+                  AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
+                  number theta,phi,length;
+                  ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length);
+                  // Now check for the corr y-hit
+                  
+                  
+                  py=
+                    (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
+                  while(py){
+                    AMSTrIdSoft idy=py->getid();
+                    if(idy.getlayer()==id.getlayer() && abs(idy.getdrp()-id.getladder())<1){
+                      if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1)){
+                        //  Create False RawHit and put it in the corr container 
+                        AMSPoint loc=pls->gl2loc(P1);
+                        id.R2Gy(idy.getstrip());
+                        AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(1,&id)); 
+                        AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
+                                     TRFITFFKEY.SearchRegStrLine,TRFITFFKEY.SearchRegStrLine);
+                        if((hit-P1).abs() < Err){
+                          AMSTrRecHit::_addnext(pls,AMSTrRecHit::FalseX,id.getlayer(),0,py,hit,
+                                                AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
+                          pointfound++;
+                        } 
+                        
+                      }
+                    }
+                    py=py->next();
+                  }
+                  if(1){
+                    if(pointfound>0){
+#ifndef __UPOOL__
+                      delete ptrack;  
+#endif   
+                      AMSgObj::BookTimer.stop("TrFalseX");
+                      return 1;
+                    }
+                    else if(TRFITFFKEY.pattern[pat]){
+#ifdef __UPOOL__
+                      ptrack=new AMSTrTrack(track);
+#endif
+                      _addnextR(ptrack, pat, nhit, pthit);
+                      AMSgObj::BookTimer.stop("TrFalseX");
+                      return -1;
+                    }
+                    else {
+#ifndef __UPOOL__
+                      delete ptrack;  
+#endif   
+                      AMSgObj::BookTimer.stop("TrFalseX");
+                      return 0;
                     }
                   }
-                  py=py->next();
-                }
-                if(1){
-                  if(pointfound>0){
-#ifndef __UPOOL__
-                    delete ptrack;  
-#endif   
-                    AMSgObj::BookTimer.stop("TrFalseX");
-                    return 1;
-                  }
-                  else if(TRFITFFKEY.pattern[pat]){
-#ifdef __UPOOL__
-                    ptrack=new AMSTrTrack(track);
-#endif
-                    _addnextR(ptrack, pat, nhit, pthit);
-                    AMSgObj::BookTimer.stop("TrFalseX");
-                    return -1;
-                  }
-                  else {
-#ifndef __UPOOL__
-                    delete ptrack;  
-#endif   
-                    AMSgObj::BookTimer.stop("TrFalseX");
-                    return 0;
-                  }
                 }
               }
-             }
             }
 #ifdef __AMSDEBUG__
-             else  cerr <<" AMSTrTrack::_addnextFalseX-E-NoSensorsForPlaneFound "<<
-                patmiss[pat][i]<<endl;
+            else  cerr <<" AMSTrTrack::_addnextFalseX-E-NoSensorsForPlaneFound "<<
+                    patmiss[pat][i]<<endl;
 #endif
-          
+            
           }
           if(0){
             if(pointfound>0){
