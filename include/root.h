@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.99 2003/07/11 07:39:37 choutko Exp $
+//  $Id: root.h,v 1.100 2003/07/18 18:05:15 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -852,7 +852,7 @@ public:
   /// \param number index in container
   /// \return human readable info about TrdClusterR
   char * Info(int number=-1){
-   sprintf(_Info,"TRD Cluster No %d Layer %d Coo %5.1f,%5.1f,%5.1f  Mult  %d HMult %d E_{Dep}(Kev) %5.1f ",number,Layer,Coo[0], Coo[1], Coo[2],Multip,HMultip,EDep);
+   sprintf(_Info,"TRD Cluster No %d Layer %d TubeDir %s Coo %5.1f,%5.1f,%5.1f  Mult  %d HMult %d E_{Dep}(Kev) %5.1f ",number,Layer,(Direction==0?"x":"y"),Coo[0], Coo[1], Coo[2],Multip,HMultip,EDep);
    return _Info;
   }
 ClassDef(TrdClusterR,2)       //TrdClusterR
