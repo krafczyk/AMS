@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.75 2004/11/15 14:07:29 choutko Exp $
+//  $Id: daqevt.C,v 1.76 2005/02/18 11:02:21 alcaraz Exp $
 #include <stdio.h>
 #include <daqevt.h>
 #include <event.h>
@@ -692,7 +692,12 @@ int DAQEvent::parser(char a[], char **& fname){
       dirent ** namelist;
       AString fdir(a);
       
-      ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);     
+#ifdef __LINUXGNU__
+       ntot=scandir((const char *)fdir,&namelist,&_select,reinterpret_cast<int(*)(const void*, const void*)>(&_sort));
+#else
+       ntot=scandir((const char *)fdir,&namelist,&_select,&_sort);
+#endif
+
       if(ntot>0){
           fname =new char*[ntot];
           for(int i=0;i<ntot;i++){

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.148 2005/02/17 17:22:45 alcaraz Exp $
+//  $Id: root.h,v 1.149 2005/02/18 11:02:24 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -9,6 +9,9 @@
 
 #ifndef __AMSROOT__
 #define __AMSROOT__
+#include <list>
+#include <vector>
+#include <iostream>
 #include <TObject.h>
 #include <TTree.h>
 #include <TChain.h>
@@ -17,12 +20,12 @@
 #include <TROOT.h>
 #include <TBranch.h>
 #include <TMatrixD.h>
-#include <list>
-#include <vector>
-#include <iostream>
 #include <TStopwatch.h>
 #include <time.h>
 using namespace std;
+#ifdef __SLC3__
+char* operator+( std::streampos&, char* );
+#endif
 #ifndef __ROOTSHAREDLIBRARY__
 class AMSAntiCluster;
 class AMSAntiMCCluster;

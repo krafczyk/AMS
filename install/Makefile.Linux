@@ -15,7 +15,19 @@ ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
  RH9add=
 endif
 
-CERN_LEVEL = 2001
+SLC3system=
+ifneq "$(wildcard /etc/redhat-release)" ""
+ SLC3system := $(shell cat /etc/redhat-release | grep "Scientific Linux CERN")
+endif
+
+ifdef SLC3system
+ CERN_LEVEL = 2004
+ PACKLIB = packlib -lshift
+else
+ CERN_LEVEL = 2001
+ PACKLIB = packlib
+endif
+
 CERNDIR = /cern/$(CERN_LEVEL)
 CERNSRCDIR = /cern/$(CERN_LEVEL)
 
@@ -49,7 +61,7 @@ ifdef AMSICC
   SHLD=$(LIB)/ntuple.so
 
 else
-  CERNLIBS = -lpacklib -lmathlib -lkernlib
+  CERNLIBS = -l$(PACKLIB) -lmathlib -lkernlib
   SHIFTLIB = 
   CC=g++ -Wno-deprecated -mcpu=i686 
   FF=g77
@@ -71,7 +83,7 @@ ifeq ($(ARCH),linuxicc)
 endif
 
 ifdef AMSINT
-  CERNLIBS = -lpacklib -lmathlib -lkernlib
+  CERNLIBS = -l$(PACKLIB) -lmathlib -lkernlib
   SHIFTLIB = 
   CC=g++ -Wno-deprecated -mcpu=i686 
   FF=g77
@@ -82,7 +94,7 @@ ifdef AMSINT
   SHLD=$(LIB)/ntuple.so
 endif
 
-LDFLAGSI=    -static  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib  -lgeant321  -lpawlib -llapack3 -lpacklib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -lcrypto -ldl   -L$(AMSLIB) -lamsut -lkernlib -lg2c $(RH9add)
+LDFLAGSI=    -static  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib  -lgeant321  -lpawlib -llapack3 -l$(PACKLIB) -lgraflib -lgrafX11  -lmathlib -l$(PACKLIB) -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -lcrypto -ldl   -L$(AMSLIB) -lamsut -lkernlib -lg2c $(RH9add)
 
 LDFLAGSIDL=    -pthread -lORBit-2-cpp  
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit-2  -lgobject-2.0 -lgthread-2.0 -lgmodule-2.0 -ldl -lglib-2.0 -lORBit-imodule-2  -lnsl  
@@ -100,9 +112,13 @@ ifdef AMSPROFILE
 endif
 
 ifdef AMSDEBUG
-  CFLAGSB=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -I../db  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include $(PFLAGS)
+  CFLAGSB=    -D__AMSDEBUG__  -D__BATCH__ -D__LINUXGNU__ -g    -I../include  -I../db  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include $(PFLAGS)
 else
-  CFLAGSB=      -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include  $(PFLAGS)
+  CFLAGSB=      -D__BATCH__ -D__LINUXGNU__ -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include  $(PFLAGS)
+endif
+
+ifdef SLC3system
+  CFLAGSB+= -D__SLC3__
 endif
 
 ifdef AMSICC
@@ -159,27 +175,27 @@ SOFLAGS = -Wl,-shared,--allow-shlib-undefined
 ###
 ifdef AMSICC
 
-  #LDFLAGS=    -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib -L../lib/linux/icc  $(ROOTLIBS) -lamsut  -lkernlib -ldl
+  #LDFLAGS=    -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib -L../lib/linux/icc  $(ROOTLIBS) -lamsut  -lkernlib -ldl
   ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
 
-     LDFLAGS=      -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut  -lkernlib  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
+     LDFLAGS=      -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut  -lkernlib  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
 
-     LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -lmy2  -lPEPCF90 -lPOSF90 -lmy -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut   -lkernlib   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot -lcrypt  -lcrypto -ldl
+     LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -lmy2  -lPEPCF90 -lPOSF90 -lmy -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut   -lkernlib   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot -lcrypt  -lcrypto -ldl
 
   else
     # not 2.95
 
-    LDFLAGS=      -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut  -lkernlib  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib    -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
+    LDFLAGS=      -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut  -lkernlib  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib    -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
 
-    LDFLAGSSTATIC=  -static  -L/opt/intel/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321 -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L$(AMSICCLIB) -lamsut  -lkernlib $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90  -lPEPCF90 -lPOSF90 -lintrins -limf -L$(ROOTSYS)/lib -lRoot -lcrypt  -lcrypto -ldl -lfreetype $(RH9add)
+    LDFLAGSSTATIC=  -static  -L/opt/intel/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321 -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L$(AMSICCLIB) -lamsut  -lkernlib $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90  -lPEPCF90 -lPOSF90 -lintrins -limf -L$(ROOTSYS)/lib -lRoot -lcrypt  -lcrypto -ldl -lfreetype $(RH9add)
 
   endif
 
-  #LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90    -lPEPCF90 -lPOSF90  -limf -lirc  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl   -L$(AMSICCLIB) -lamsut   -lkernlib   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90 -limf -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
+  #LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90    -lPEPCF90 -lPOSF90  -limf -lirc  -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl   -L$(AMSICCLIB) -lamsut   -lkernlib   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90 -limf -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
 
-  #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut  -lkernlib -ldl
+  #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut  -lkernlib -ldl
 
-  #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -lcrypt  -lcrypto -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut  -lkernlib -ldl
+  #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -lcrypt  -lcrypto -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut  -lkernlib -ldl
 
 else
 # not AMSICC case
@@ -187,7 +203,7 @@ else
 # Need ROOTLIBS
   LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB) $(ROOTLIBS) -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lcrypt -lcrypto $(PFLAGS)
 
-  #LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lfreetype  $(RH9add)
+  #LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -l$(PACKLIB) -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl $(SHIFTLIB) -lfreetype  $(RH9add)
 
   LDFLAGSSTATIC=     -static -L$(ROOTSYS)/lib -lRoot -lcrypt -lcrypto -L$(CERNDIR)/lib   -lgeant321  $(CERNLIBS) -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSLIB)  -lamsut  -lkernlib -lg2c -ldl -lfreetype $(PFLAGS) $(RH9add)
 
