@@ -47,7 +47,7 @@ c) member functions:
   number getpar(integer i)
 
 
-d) G4 Boolean operations 
+d) G4 Boolean operations (subsample only)
    The following interface is provided:
    1st Boolean volume:
    AMSgvolume* pbool=(AMSgvolume*)mother->add(new AMSgvolume(.... gonly='BOOL'.....))
