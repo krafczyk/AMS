@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.262 2004/04/20 09:58:30 alexei Exp $
+# $Id: RemoteClient.pm,v 1.263 2004/04/26 13:58:07 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -71,7 +71,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateHostsMips);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -9135,6 +9135,7 @@ sub getOutputPath {
        $outputpath = $outputdisk.$outputpath."/".$ActiveProductionSet;
       }
       $mtime = (stat $outputpath)[9];
+#      print "$outputpath, mtime ... $mtime \n";
       if ($mtime != 0) { $gb = $disk->[2]; last;}
   }
      return $outputpath, $gb;
@@ -9259,13 +9260,13 @@ sub getHostsList {
                 if ($comp =~ $hostname) {
                   $newcomp = 0;
                   $njobs[$#hostlist]++;   
-                  $nmips[$#hostlist] += $totalmips;
+                  $nmips[$#hostlist] += $totalmips/60/60/24.;
                 }
             }
             if ($newcomp == 1) {
              push @hostlist, $hostname;
              $njobs[$#hostlist] = 1;
-             $nmips[$#hostlist] = $totalmips;
+             $nmips[$#hostlist] = $totalmips/60/60/24.;
             }
           }
       }
@@ -9605,4 +9606,398 @@ sub getRunInfo {
             last; 
       }
     }
+}
+
+sub getEventsLeft {
+ my $self = shift;
+
+
+ my $HelpTxt = "
+   getTotalEvents reads TOTALEVENTS from templates files in AMSSoftwareDir/DataSets
+                  query DB for corresponding finished jobs
+                  prints statistics
+     -c    - output will be produced as ASCII page (default)
+     -h    - print help
+     -v    - verbose mode
+     ./getruninfo.cgi -c -v -p:He
+";
+
+ my $sql = undef;
+
+ my $totalprocessed = 0; # processed events | TRIGGERS
+ my $totalrequested = 0; # requested events |
+ my $totalevents    = 0; #
+ my $TotalTotal     = 0; # TRIGGERS for all jobs
+ my $TotalProcessed = 0; #                       processed
+ my $TotalDataset   = 0; # TRIGGERS per dataset
+ my $TotalDatasetP  = 0; #                        processed
+ my $TotalDatasetC  = 0; # CPU per dataset
+ my $TotalDatasetM  = 0; # will be needed CPU per dataset
+ my $TotalMore      = 0; #                    for all datasets
+ my $TotalCPU       = 0; # CPU spent for all datasets
+ my $totalcpu       = 0; # CPU per job type
+ my $totalmore      = 0; # CPU needed for job type
+ my $cpuperevent    = 0; # CPU per event for particular job type
+
+ my $dataset={};
+
+
+   foreach my $chop  (@ARGV){
+    if ($chop =~/^-c/) {
+        $webmode = 0;
+    }
+    if ($chop =~/^-v/) {
+        $verbose = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
+
+
+    if ( not $self->Init()) {die "getTotalEvents -F- Unable To Init";}
+    if ($verbose)  {print "getTotalEvents -I- Connect to Server \n";}
+    if (not $self->ServerConnect()){
+        die "getTotalEvents -F- Unable To Connect To Server";}
+
+    if ($verbose) {print "getTotalEvents -I- Connected \n";}
+
+# get names from /afs/ams.cern.ch/AMSDataDir/DataManagement/
+    my $dir="$self->{AMSSoftwareDir}/DataSets";
+    opendir THISDIR ,$dir or die "unable to open $dir";
+    my @allfiles= readdir THISDIR;
+    closedir THISDIR;    
+#     if ($verbose) {print "Directory... $dir \n";}
+ 
+   foreach my $file (@allfiles){
+       $totalevents    = 0;
+       $totalrequested = 0;
+       $totalprocessed = 0;
+       $totalcpu       = 0;
+       $totalmore      = 0;
+
+       my $newfile="$dir/$file";
+        if(readlink $newfile or  $file =~/^\./){
+         next;
+        }
+       my @sta = stat $newfile;
+      if($sta[2]<32000){
+       my $line0 = sprintf("%15s %15s %10s %7s %8s %14s %16s %20s\n",
+                           "Total","Processed","% Events","CPU","more CPU","CPU per Event","Job Name","DataSet");
+       my $line1 = sprintf("%15s %15s %8s %10s %6s %14s %12s %20s\n",
+                           "Events","Events","done","days","days","calc  estim"," "," ");
+       print "$line0";
+       print "$line1";
+          $dataset={};
+          $dataset->{name}=$file;
+          $dataset->{jobs}=[];
+          $TotalDataset   = 0;
+          $TotalDatasetP  = 0;
+          $TotalDatasetC  = 0;
+          $TotalDatasetM  = 0;
+#       if ($verbose) {print "Directory... $newfile \n";}
+       opendir THISDIR, $newfile or die "unable to open $newfile";
+       my @jobs=readdir THISDIR;
+       closedir THISDIR;
+       foreach my $job (@jobs){
+       $totalcpu       = 0;
+       $totalmore      = 0;
+        if($job =~ /\.job$/){
+        if($job =~ /^\./){
+            next;
+        }
+           my $template={};
+           my $full="$newfile/$job";
+           my $buf;
+#           print "$file \n";
+           open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
+           read(FILE,$buf,1638400) or next;
+           close FILE;
+           my @sbuf=split "\n",$buf;
+           my @ent = ("TOTALEVENTS","CPUPEREVENTPERGHZ");
+           foreach my $e (@ent) {
+            foreach my $line (@sbuf){
+               if($line =~/$e=/){
+                   my @junk=split "$e=",$line;                 
+                   if ($e eq "TOTALEVENTS") {$totalevents=$junk[$#junk];}
+                   if ($e eq "CPUPEREVENTPERGHZ") {$cpuperevent = $junk[$#junk]};
+                   last;
+               }
+            }         
+        }
+#
+# get no of events
+#
+              my $sql="SELECT did FROM DataSets WHERE name='$dataset->{name}'";
+              my $ret=$self->{sqlserver}->Query($sql);
+              if( defined $ret->[0][0]){
+                 my $did=$ret->[0][0];    
+                 my $secperevent = $self->getMips($did,$job);
+                 if ($secperevent == 0) {$secperevent = $cpuperevent;}
+                 $sql = "SELECT SUM(triggers)   FROM Jobs, Runs, Cites  
+                  WHERE 
+                    Jobs.did  = $did AND 
+                    Jobs.jobname like '%$job' AND 
+                    Jobs.jid = Runs.jid AND  
+                    (Runs.status='Completed' OR Runs.status='Finished') AND 
+                    (Jobs.cid != Cites.cid AND
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+#                 print "$sql \n";
+                 my $r2= $self->{sqlserver}->Query($sql);
+                 $totalprocessed = 0;
+                 if(defined $r2->[0][0]){
+                     $totalprocessed = $r2->[0][0];
+                 }
+                 my $perc = 0;
+                 $totalmore = 0;
+                 if ($totalevents != 0) {
+                  $perc = sprintf("%2.1f",($totalprocessed*100/$totalevents));
+                 }
+                 $totalcpu         = $totalprocessed*$secperevent/24/60/60;
+                 $totalmore        = ($totalevents - $totalprocessed)*$secperevent/24/60/60;
+                 $TotalDataset    += $totalevents;
+                 $TotalDatasetP   += $totalprocessed;
+                 $TotalTotal      += $totalevents;
+                 $TotalProcessed  += $totalprocessed;
+                 $TotalCPU        += $totalcpu;
+                 $TotalMore       += $totalmore;
+                 $TotalDatasetC   += $totalcpu;
+                 $TotalDatasetM   += $totalmore;
+
+                 my $line = sprintf("%15d %15d %8s %10.1f %6.1f %8.3f %4.3f %25s %12s\n",
+                                    $totalevents,$totalprocessed,$perc, $totalcpu, $totalmore,
+                                    $secperevent,$cpuperevent,$job,$dataset->{name});
+                 print "$line";
+             }
+    }
+          
+    }           
+   }
+   my $perc = 0;
+    if ($TotalDataset != 0) {
+    $perc = sprintf("%2.1f",($TotalDatasetP*100/$TotalDataset));
+    }
+       my $cpud = sprintf("%6.1f",$TotalDatasetC);
+       my $cpum = sprintf("%6.1f",$TotalDatasetM);
+       my $perccpu = sprintf("%3.1f",($cpud*100/($cpum+$cpud)));
+       print "$dataset->{name} : Events : $TotalDataset , Processed : $TotalDatasetP , % Events : $perc, CPU : $cpud , $cpum, % CPU : $perccpu \n\n";
+   }
+   
+  my $perc = 0;
+  if ($TotalTotal != 0) {
+   $perc = sprintf("%2.1f",($TotalProcessed*100/$TotalTotal));
+  }
+
+  my $perccpu = sprintf("%3.1f",($TotalCPU*100/($TotalMore+$TotalCPU)));
+  print "Total Events : $TotalTotal, Processed : $TotalProcessed, % Events : $perc\n";
+  print "CPU : $TotalCPU days,  CPU more  : $TotalMore CPU days, % CPU : $perccpu \n";
+  
+}
+
+
+sub calculateMips {
+
+    my @directories=(
+     'aprotons',
+     'deuterons',
+     'electrons',
+     'electrons.nomf',
+     'gamma',
+     'nuclei',
+     'positrons',
+     'protons',
+     'C',
+     'He');
+     
+    my $self   = shift;
+
+    my $sql    = undef;
+    my $jobname= undef;
+
+    my @names;
+    my @cpus;
+    my @elapsed;
+    my @events;
+    my @mips;
+    my @cpumean;
+    my @elapsedmean;
+    my @cpusigma;
+    my @elapsedsigma;
+    my @mipsmean;
+    my @mipssigma;
+    my @njobs;
+    my @particle;
+
+    my $n  = 0;
+#
+    my $timenow = time();
+    my $ltime   = localtime($timenow);
+#
+    print "Start calculateMips : $ltime \n";
+ 
+# get jobname and mips
+#
+    $sql = "SELECT 
+              jobs.jobname, jobs.events, jobs.cputime, jobs.elapsed, jobs.mips, jobs.jid, 
+              runs.fevent, runs.levent, ntuples.path     
+              FROM Jobs, Runs, Ntuples  
+              WHERE jobs.jid=runs.jid AND runs.status='Completed' AND jobs.mips>0 AND runs.run=ntuples.run  
+              ORDER BY jid";
+    my $r0 = $self->{sqlserver}->Query($sql);
+    my $jidOld = 0;
+    if (defined $r0->[0][0]) {
+     foreach my $job (@{$r0}){
+      $jobname=trimblanks($job->[0]);
+      my $cite    = undef;
+      my $jid     = undef;
+      my $jobtype = undef;
+      my $eventsj = undef;
+      my $cpusj   = undef;
+      my $elapsedj= undef;
+      my $mipsj   = undef;
+      my $fevent  = undef;
+      my $levent  = undef;
+      my $path    = undef;
+      my $partj   = 'xyz';
+      my $newjob  = 1;
+      my @junk    = split '\.',$jobname;
+      if ($#junk > 0) {
+         $cite        = $junk[0];
+         $jid         = $junk[1];
+         if ($jid != $jidOld) { 
+          $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
+          $jobtype=trimblanks($jobtype);
+          $eventsj     = $job->[1];
+          $cpusj       = $job->[2];
+          $elapsedj    = $job->[3];
+          $mipsj       = $job->[4];
+          $jid         = $job->[5];
+          $fevent      = $job->[6];
+          $levent      = $job->[7];
+          $path        = $job->[8];
+
+          $eventsj    = $levent - $fevent + 1;
+
+
+          my $partj= $self->getJobParticleFromDSTPath($path);
+          my $i        = 0;
+          for ($i=0; $i<$#names+1; $i++) {
+             if ($names[$i] eq $jobtype && $particle[$i] eq $partj) {
+                 $events[$i] = $events[$i] + $eventsj;
+                 $cpus[$i]   = $cpus[$i]   + $cpusj;
+                 $elapsed[$i]= $elapsed[$i]+ $elapsedj;
+                 $mips[$i]   = $mips[$i]   + $mipsj;
+                 if ($eventsj > 0 && $mipsj > 0) {
+                  $mipsmean[$i]     = $mipsmean[$i] + ($cpusj*1000/$eventsj)/$mipsj;
+                 }
+                 if ($njobs[$i] > 0) {$njobs[$i]++;}
+                 $newjob  = 0;
+                 last;
+             }
+          }
+          if ($newjob == 1) {
+                 $names[$n]     = $jobtype;
+                 $events[$n]    = $eventsj;
+                 $cpus[$n]      = $cpusj;
+                 $elapsed[$n]   = $elapsedj;
+                 $mips[$n]      = $mipsj;
+                 $particle[$n]  = $partj;
+                 $njobs[$n]  = 1;
+                 if ($events[$n]>0 && $mipsj > 0) {
+                  $mipsmean[$n]     = ($cpusj/($events[$n]))*1000/$mipsj;
+                 }
+                 $n++;
+             }
+      }
+      $jidOld=$jid;
+     }
+  }
+    my $totaljobs = 0;
+    for (my $j=0; $j<$#names+1; $j++) {
+     $mipsmean[$j]    = $mipsmean[$j]/$njobs[$j];
+     $mipssigma[$j]   = 0;
+ 
+     if ($events[$j] > 0) {
+      if ($njobs[$j]>1) {
+       $totaljobs = $totaljobs + $njobs[$j];
+       foreach my $job (@{$r0}){
+        $jobname=trimblanks($job->[0]);
+        my @junk    = split '\.',$jobname;
+        if ($#junk > 0) {
+         my $jobtype     = $junk[2].'.'.$junk[3].'.'.$junk[4];     
+         $jobtype=trimblanks($jobtype);
+         my $path = $job->[8];
+         my $partj= $self->getJobParticleFromDSTPath($path);
+         if ($jobtype eq $names[$j] && $partj eq $particle[$j]) {
+           my $eventsj     = $job->[1];
+           my $cpusj       = $job->[2];
+           my $elapsedj    = $job->[3];
+           my $mipsj       = $job->[4];
+           my $jid         = $job->[5];
+           my $fevent      = $job->[6];
+           my $levent      = $job->[7];
+           $eventsj        = $levent - $fevent + 1;
+           if ($eventsj > 0 && $mipsj >0) {
+               $mipssigma[$j]    = ($mipsmean[$j] - ($cpusj*1000/$eventsj)/$mipsj)**2;
+           }
+       }
+     }
+    }
+   }
+  }
+ }
+ 
+    my $header =  sprintf("Jobs     Events     CPU[s]   Elapsed[s]   MIPS       <MIPS>       Particle        JobName\n");
+    print "$header";
+    foreach my $p (@directories) {
+     for (my $j=0; $j<$#names+1; $j++) {
+      if ($particle[$j] eq $p) { 
+       if ($events[$j] > 0 && $njobs[$j]>1) {
+         $mipssigma[$j] = sqrt($mipssigma[$j])/($njobs[$j]-1);
+       }
+       my $line = sprintf("%5.f %11.f %9.f %9.f %9.f %6.2f +/- %2.4f %12s  %20s \n",
+                        $njobs[$j],$events[$j],$cpus[$j],$elapsed[$j],$mips[$j],$mipsmean[$j],$mipssigma[$j],$particle[$j],$names[$j]);
+       print "$line";
+    }
+  }
+  }
+     print "\n Total Jobs : $totaljobs \n";
+ }
+}
+
+sub getMips {
+
+    my $self    = shift;
+    my $did     = shift;
+    my $dataset = shift;
+
+    my $events = 0;
+    my $cpu    = 0;
+    my $elapsed= 0;
+    my $mips   = 0;
+    my $mipsmean = 0;
+    my $njobs    = 0;
+
+ 
+    my $sql = "SELECT jobs.triggers, jobs.cputime, jobs.mips
+              FROM Jobs, Runs
+              WHERE jobs.did = $did AND jobs.jobname like '%$dataset' AND 
+                    jobs.jid=runs.jid AND 
+                    runs.status='Completed' AND jobs.mips>0 ";
+    my $r0 = $self->{sqlserver}->Query($sql);
+    if (defined $r0->[0][0]) {
+     foreach my $job (@{$r0}){
+         if ($job->[0] > 0 && $job->[1] > 0 && $job->[2] > 0) {
+         $events = $job->[0];
+         $cpu    = $job->[1];
+         $mips   = $job->[2];
+         $njobs++;
+         $mipsmean += $cpu*$mips/1000/$events;
+       }
+     }
+    }
+    if ($njobs > 0) {$mipsmean = $mipsmean/$njobs;}
+
+    return $mipsmean;
 }
