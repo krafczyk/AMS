@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.43 2002/05/16 11:07:25 alexei Exp $
+# $Id: RemoteClient.pm,v 1.44 2002/05/21 09:03:48 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1030,6 +1030,7 @@ PART:
               if ($ntout eq "ALL" or $ntout eq "RUNS") {
                print "<tr><td><b><font size=\"4\" color=$color> Job : <i>$jobname </i>, Run : <i>$run </i>, Particle : <i> $part </i>,  Submitted : <i> $submittime </i></font></b></td></tr>\n";
            }
+# oracle specific SUM, COUNT, MIN, MAX
        if ($ntout eq "SUMM") {
            if ($pold ne $part) {
             $plist=$plist." ".$part;

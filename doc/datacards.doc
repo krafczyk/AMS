@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.208 2002/04/03 11:04:58 choutko Exp $
+#  $Id: datacards.doc,v 1.209 2002/05/21 09:03:44 alexei Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -70,7 +70,8 @@ I85    mode(0)                   // 4th vectors i/0 mode switch
                                  // 10+ -> ascii file
 I86   ffile(' ')                 // 4th vectors file name
 I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
-I127  WriteRoot(0)               // write (!0) or nott write(0) root file
+I127  WriteRoot(0)               // write (!0) or not write(0) root file
+                                 // the value is used to set Root Compression Level
 I128  rfile(160*' ')             // root file name
 I168 MaxFileSize(150000000)      // max ntuplefilesize (bytes)
 

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.44 2002/04/17 12:42:13 choumilo Exp $
+//  $Id: ecalrec.C,v 1.45 2002/05/21 09:03:42 alexei Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -580,6 +580,28 @@ void AMSEcalHit::_writeEl(){
 
 // Fill the ntuple
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+#ifdef __WRITEROOTCLONES__
+      if(AMSJob::gethead()->getntuple()) {
+        int N=TN->Necht;
+     EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+     TClonesArray &clones =  *(ev02.Get_fecalhit());
+     float coo[3];
+    if(_proj){ //<-- y-proj
+      coo[0]=_cool;
+      coo[1]=_coot;
+    }
+    else{     //<-- x-proj
+      coo[0]=_coot;
+      coo[1]=_cool;
+    }
+    coo[2]=_cooz;
+    new (clones[N]) EcalHitRoot(
+                                        _status, _idsoft, _proj, _plane, 
+                                        _cell, _edep, coo);
+        N++;
+        AMSJob::gethead()->getntuple()->Get_event02()->Set_fNecalhit(N);
+      }
+#else
     TN->Status[TN->Necht]=_status;
     TN->Idsoft[TN->Necht]=_idsoft;
     TN->Proj[TN->Necht]=_proj;
@@ -595,6 +617,7 @@ void AMSEcalHit::_writeEl(){
       TN->Coo[TN->Necht][1]=_cool;
     }
     TN->Coo[TN->Necht][2]=_cooz;
+#endif
     TN->Necht++;
   }
 }
@@ -631,6 +654,54 @@ void Ecal1DCluster::_writeEl(){
 
 // Fill the ntuple
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+#ifdef __WRITEROOTCLONES__
+      if(AMSJob::gethead()->getntuple()) {
+        int N=TN->Neccl;
+        int   pleft;
+        float edep;
+        float coo[3];
+        int i;
+        if(checkstatus(AMSDBc::JUNK)){
+          edep=-_EnergyC;
+        }
+        else edep=_EnergyC;
+        for(i=0;i<3;i++) coo[i]=_Coo[i];
+      if(_NHits){
+       pleft=_pHit[0]->getpos();
+       if (AMSEcalHit::Out(IOPA.WriteAll%10==1)){
+        // Writeall
+        for(i=0;i<_plane;i++){
+          AMSContainer *pc=AMSEvent::gethead()->getC("AMSEcalHit",_plane);
+           #ifdef __AMSDEBUG__
+            assert(pc != NULL);
+           #endif
+           pleft+=pc->getnelem();
+        }
+      }
+      else{
+        // Writeall
+        for(int i=0;i<_plane;i++){
+          AMSEcalHit *ptr=(AMSEcalHit*)AMSEvent::gethead()->getheadC("AMSEcalHit",i);
+           while(ptr && ptr->checkstatus(AMSDBc::USED)){
+           pleft++;
+            ptr=ptr->next();
+           }
+         }
+     }
+      }
+     else pleft=-1;
+     EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+     TClonesArray &clones =  *(ev02.Get_fecalcluster());
+     new (clones[N]) EcalClusterRoot(
+                                        _status, _proj, _plane, 
+                                        _Left, _MaxCell, _Right,
+                                        edep, _SideLeak, _DeadLeak, coo,
+                                        pleft, _NHits);
+        N++;
+        AMSJob::gethead()->getntuple()->Get_event02()->Set_fNecalcluster(N);
+
+      }
+#else
     TN->Status[TN->Neccl]=_status;
     TN->Proj[TN->Neccl]=_proj;
     TN->Plane[TN->Neccl]=_plane;
@@ -673,6 +744,7 @@ void Ecal1DCluster::_writeEl(){
      }
       }
      else TN->pLeft[TN->Neccl]=-1;
+#endif
     TN->Neccl++;
 
   }
@@ -962,6 +1034,45 @@ void Ecal2DCluster::_writeEl(){
 
 // Fill the ntuple
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+      const int maxp=18;
+#ifdef __WRITEROOTCLONES__
+      if(AMSJob::gethead()->getntuple()) {
+       int N=TN->Nec2dcl;
+       int pcl[18];
+       for(int i=0;i<maxp;i++)pcl[i]=0;
+       int realp=min(_NClust,maxp);
+       for(int i=0;i<realp;i++) {
+          int pat=_pCluster[i]->getproj();
+          pcl[i]=_pCluster[i]->getpos();
+          if (Ecal1DCluster::Out(IOPA.WriteAll%10==1)){
+           for(int j=0;j<pat;j++){
+             AMSContainer *pc=AMSEvent::gethead()->getC("Ecal1DCluster",pat);
+             pcl[i]+=pc->getnelem();
+           }
+          }
+          else{
+           for(int j=0;j<pat;j++){
+          Ecal1DCluster *ptr=( Ecal1DCluster*)AMSEvent::gethead()->getheadC(" Ecal1DCluster",pat);
+           while(ptr && ptr->checkstatus(AMSDBc::USED)){
+            pcl[i]++;
+            ptr=ptr->next();
+           }
+          }
+          }
+       }
+
+       int status =getstatus();
+
+       EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+       TClonesArray &clones =  *(ev02.Get_fecal2dcluster());
+       new (clones[N]) Ecal2DClusterRoot(
+                                        status, _proj, _NClust, 
+                                        _EnergyC, _Coo, _Tan, _Chi2,
+                                        pcl);
+        N++;
+        AMSJob::gethead()->getntuple()->Get_event02()->Set_fNecal2dcluster(N);
+      }
+#else
     TN->Status[TN->Nec2dcl]=getstatus();
     TN->Proj[TN->Nec2dcl]=_proj;
     TN->Nmemb[TN->Nec2dcl]=_NClust;
@@ -974,7 +1085,6 @@ void Ecal2DCluster::_writeEl(){
     TN->Tan[TN->Nec2dcl]=_Tan;
     TN->Chi2[TN->Nec2dcl]=_Chi2;
 
-    const int maxp=18;
     for(int i=0;i<maxp;i++)TN->pCl[TN->Nec2dcl][i]=0;
     int realp=min(_NClust,maxp);
     for(int i=0;i<realp;i++) {
@@ -997,6 +1107,8 @@ void Ecal2DCluster::_writeEl(){
          }
 //        cout <<"pos "<<i<<" "<< TN->pCl[TN->Nec2dcl][i]<<endl;
         }
+
+#endif
     TN->Nec2dcl++;
   }
 }
@@ -1373,6 +1485,40 @@ void EcalShower::_writeEl(){
 
 // Fill the ntuple
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+#ifdef __WRITEROOTCLONES__
+    if(AMSJob::gethead()->getntuple()) {
+     int N= TN->Necsh;
+     float chi2profile = _ProfilePar[4+_Direction*5];
+     float parprofile[3];
+     float Dir[3];
+     float EMDir[3];
+     float Entry[3];
+     float Exit[3];
+     float CofG[3];
+     float Sphericity[3];
+     int   p2DCl[2];
+     for (int i=0; i<3; i++) {parprofile[i] = _ProfilePar[i+_Direction*5];}
+     for(int i=0;i<3;i++)Dir[i]=_Dir[i];
+     for(int i=0;i<3;i++)EMDir[i]=_EMDir[i];
+     for(int i=0;i<3;i++)Entry[i]=_EntryPoint[i];
+     for(int i=0;i<3;i++)Exit[i]=_ExitPoint[i];
+     for(int i=0;i<3;i++)CofG[i]=_CofG[i];
+     for(int i=0;i<3;i++)Sphericity[i]=_SphericityEV[i];       
+     for(int i=0;i<2;i++)p2DCl[i]=_pCl[i]->getpos();
+     EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+     TClonesArray &clones =  *(ev02.Get_fecalshower());
+     new (clones[N])  EcalShowerRoot(
+                    _status, Dir, EMDir, Entry,
+                    Exit, CofG, _Angle3DError, _AngleTrue3DChi2,
+                    _FrontEnergyDep, _EnergyC, _Energy3C, _Energy5C, _Energy9C,
+                    _ErrEnergyC, _DifoSum, _SideLeak, _RearLeak,
+                    _DeadLeak, _OrpLeak, _Orp2DEnergy,
+                    chi2profile, parprofile, _TransFitChi2,
+                    Sphericity, p2DCl);
+     N++;
+     AMSJob::gethead()->getntuple()->Get_event02()->Set_fNecalshower(N);
+    }
+#else
     TN->Status[TN->Necsh]=_status;
     for(int i=0;i<3;i++)TN->Dir[TN->Necsh][i]=_Dir[i];
     for(int i=0;i<3;i++)TN->EMDir[TN->Necsh][i]=_EMDir[i];
@@ -1394,12 +1540,11 @@ void EcalShower::_writeEl(){
     TN->OrpLeak[TN->Necsh]=_OrpLeak;
     TN->Orp2DEnergy[TN->Necsh]=_Orp2DEnergy;
      TN->Chi2Profile[TN->Necsh]=_ProfilePar[4+_Direction*5];
-     for(int i=0;i<4;i++)TN->ParProfile[TN->Necsh][i]=_ProfilePar[i+_Direction*5];       
+     for(int i=0;i<4;i++)TN->ParProfile[TN->Necsh][i]=_ProfilePar[i+_Direction*5];
      TN->Chi2Trans[TN->Necsh]=_TransFitChi2;
      for(int i=0;i<3;i++)TN->SphericityEV[TN->Necsh][i]=_SphericityEV[i];       
      for(int i=0;i<2;i++)TN->p2DCl[TN->Necsh][i]=_pCl[i]->getpos();
-
-
+#endif
     TN->Necsh++;
   }
 

@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.18 2002/05/21 09:03:47 alexei Exp $
+#  $Id: Mopt_Root.arrays,v 1.1 2002/05/21 09:03:47 alexei Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -107,7 +107,7 @@ SRC=$(BIN)
 INCLUDE=../include/
 IFLAGS= -I/usr/include -I$(SRC)
 ifdef AMSDEBUG
-CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -D__WRITEROOT__ -I$(ROOTSYS)/include
 CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
@@ -115,7 +115,7 @@ FFLAGS=   -fno-automatic -g -I../include
 FFLAGSn=   -fno-automatic -g -I../include  
 CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db  
 else
-CFLAGSB=      -D__BATCH__      -I../include    -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include
+CFLAGSB=      -D__BATCH__      -I../include    -D__WRITEROOT__ -I$(ROOTSYS)/include
 CFLAGSTOFSIM= $(CFLAGSB)     -O1   
 CFLAGSDAQ=    $(CFLAGSB) -O2
 CFLAGSn=      $(CFLAGSB) -O1

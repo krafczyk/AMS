@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.43 2002/03/20 09:41:15 choumilo Exp $
+//  $Id: beta.C,v 1.44 2002/05/21 09:03:42 alexei Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -647,11 +647,28 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
 
 
 void AMSBeta::_writeEl(){
-
   BetaNtuple02* BN = AMSJob::gethead()->getntuple()->Get_beta02();
 
   if (BN->Nbeta>=MAXBETA02) return;
 
+#ifdef __WRITEROOTCLONES__
+  if(AMSJob::gethead()->getntuple()) {
+    int N=BN->Nbeta;
+    int ntof = BN->NTOF[BN->Nbeta];
+    int ptof[4];
+    for (int i=0; i<4; i++) {ptof[i] = BN->pTOF[BN->Nbeta][i];}
+    int pTr = BN->pTr[BN->Nbeta];
+    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+    TClonesArray &clones =  *(ev02.Get_fbeta());
+     new (clones[N]) BetaRoot02(_status, _Pattern, _Beta, _BetaC,
+             _InvErrBeta, _InvErrBetaC, _Chi2, _Chi2Space,
+             ntof, ptof, pTr);
+    N++;
+    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNbeta(N);
+   } else {
+      cout<<"AMSBeta::_writeEl -W- cannot add to clones array"<<endl;
+   }
+#else
 // fill the ntuple 
   BN->Status[BN->Nbeta]=_status;
   BN->Pattern[BN->Nbeta]=_Pattern;  
@@ -696,6 +713,7 @@ void AMSBeta::_writeEl(){
     else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))BN->pTr[BN->Nbeta]=-1;
     else BN->pTr[BN->Nbeta]=_ptrack->getpos();
   }
+#endif
   BN->Nbeta++;
 }
 

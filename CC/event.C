@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.281 2002/04/10 10:35:47 choutko Exp $
+//  $Id: event.C,v 1.282 2002/05/21 09:03:42 alexei Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -180,6 +180,9 @@ void AMSEvent::_init(){
   SetTimeCoo(1);
   PosInRun++;
   PosGlobal++;
+#ifdef __WRITEROOTCLONES__
+  AMSJob::gethead()->getntuple()->createClones();
+#endif
 }
 
 

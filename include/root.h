@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.58 2002/04/29 07:29:03 choumilo Exp $
+//  $Id: root.h,v 1.59 2002/05/21 09:03:46 alexei Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -89,18 +89,260 @@ public:
   int TRDSegments;
   int TRDTracks;
   int EventStatus[2];
-  
+
+#ifdef __WRITEROOTCLONES__
+  int          fNbeta;
+  TClonesArray *fBeta; 
+
+  int          fNcharge; 
+  TClonesArray *fCharge;  
+
+  int          fNparticle; 
+  TClonesArray *fParticle;  
+
+  int          fNTOFcluster; 
+  TClonesArray *fTOFcluster;  
+
+  int          fNECALshower;
+  TClonesArray *fECALshower;
+
+  int          fNECALcluster;
+  TClonesArray *fECALcluster;
+
+  int          fNECAL2Dcluster;
+  TClonesArray *fECAL2Dcluster;
+
+  int          fNECALhit;
+  TClonesArray *fECALhit;
+
+  int          fNTOFMCcluster;
+  TClonesArray *fTOFMCcluster;
+
+  int          fNTrCluster;
+  TClonesArray *fTrCluster;
+
+  int          fNTrMCCluster;
+  TClonesArray *fTrMCCluster;
+
+  int          fNTRDMCCluster;
+  TClonesArray *fTRDMCCluster;
+
+  int          fNTRDrawhit;
+  TClonesArray *fTRDrawhit;
+
+  int          fNTRDcluster;
+  TClonesArray *fTRDcluster;
+
+  int          fNTRDsegment;
+  TClonesArray *fTRDsegment;
+
+  int          fNTRDtrack;
+  TClonesArray *fTRDtrack;
+
+  int          fNTRrechit;
+  TClonesArray *fTRrechit;
+
+  int          fNTRtrack;
+  TClonesArray *fTRtrack;
+
+  int          fNMCtrtrack;
+  TClonesArray *fMCtrtrack;
+
+  int          fNMCeventg;
+  TClonesArray *fMCeventg;
+
+  int          fNAntiCluster;
+  TClonesArray *fAntiCluster;
+
+  int          fNAntiMCCluster;
+  TClonesArray *fAntiMCCluster;
+
+  int          fNLVL3;
+  TClonesArray *fLVL3;
+
+  int          fNLVL1;
+  TClonesArray *fLVL1;
+
+  int          fNTrRawCluster;
+  TClonesArray *fTrRawCluster;
+
+  int          fNAntiRawCluster;
+  TClonesArray *fAntiRawCluster;
+
+  int          fNTOFRawCluster;
+  TClonesArray *fTOFRawCluster;
+
+  int          fNRICMC;
+  TClonesArray *fRICMC;
+
+  int          fNRICEvent;
+  TClonesArray *fRICEvent;
+
+  int          fNRICRing;
+  TClonesArray *fRICRing;
+
+  TClonesArray *Get_fbeta()  {return fBeta;}
+  int           Get_fNbeta() {return fNbeta;}
+  void          Set_fNbeta(int N) {fNbeta=N;}
+
+  TClonesArray *Get_fcharge()  {return fCharge;}
+  int           Get_fNcharge() {return fNcharge;}
+  void          Set_fNcharge(int N) {fNcharge=N;}
+
+  TClonesArray *Get_fparticle()  {return fParticle;}
+  int           Get_fNparticle() {return fNparticle;}
+  void          Set_fNparticle(int N) {fNparticle=N;}
+
+  TClonesArray *Get_ftofcluster()  {return fTOFcluster;}
+  int           Get_fNtofcluster() {return fNTOFcluster;}
+  void          Set_fNtofcluster(int N) {fNTOFcluster=N;}
+
+  TClonesArray *Get_fecalshower()  {return fECALshower;}
+  int           Get_fNecalshower() {return fNECALshower;}
+  void          Set_fNecalshower(int N) {fNECALshower=N;}
+
+  TClonesArray *Get_fecalcluster()  {return fECALcluster;}
+  int           Get_fNecalcluster() {return fNECALcluster;}
+  void          Set_fNecalcluster(int N) {fNECALcluster=N;}
+
+  TClonesArray *Get_fecal2dcluster()  {return fECAL2Dcluster;}
+  int           Get_fNecal2dcluster() {return fNECAL2Dcluster;}
+  void          Set_fNecal2dcluster(int N) {fNECAL2Dcluster=N;}
+
+  TClonesArray *Get_fecalhit()  {return fECALhit;}
+  int           Get_fNecalhit() {return fNECALhit;}
+  void          Set_fNecalhit(int N) {fNECALhit=N;}
+
+  TClonesArray *Get_ftofmccluster()  {return fTOFMCcluster;}
+  int           Get_fNtofmccluster() {return fNTOFMCcluster;}
+  void          Set_fNtofmccluster(int N) {fNTOFMCcluster=N;}
+
+  TClonesArray *Get_ftrcluster()  {return fTrCluster;}
+  int           Get_fNtrcluster() {return fNTrCluster;}
+  void          Set_fNtrcluster(int N) {fNTrCluster=N;}
+
+  TClonesArray *Get_ftrmccluster()  {return fTrMCCluster;}
+  int           Get_fNtrmccluster() {return fNTrMCCluster;}
+  void          Set_fNtrmccluster(int N) {fNTrMCCluster=N;}
+
+  TClonesArray *Get_ftrdmccluster()  {return fTRDMCCluster;}
+  int           Get_fNtrdmccluster() {return fNTRDMCCluster;}
+  void          Set_fNtrdmccluster(int N) {fNTRDMCCluster=N;}
+
+  TClonesArray *Get_ftrdrawhit()  {return fTRDrawhit;}
+  int           Get_fNtrdrawhit() {return fNTRDrawhit;}
+  void          Set_fNtrdrawhit(int N) {fNTRDrawhit=N;}
+
+  TClonesArray *Get_ftrdcluster()  {return fTRDcluster;}
+  int           Get_fNtrdcluster() {return fNTRDcluster;}
+  void          Set_fNtrdcluster(int N) {fNTRDcluster=N;}
+
+  TClonesArray *Get_ftrdsegment()  {return fTRDsegment;}
+  int           Get_fNtrdsegment() {return fNTRDsegment;}
+  void          Set_fNtrdsegment(int N) {fNTRDsegment=N;}
+
+  TClonesArray *Get_ftrdtrack()  {return fTRDtrack;}
+  int           Get_fNtrdtrack() {return fNTRDtrack;}
+  void          Set_fNtrdtrack(int N) {fNTRDtrack=N;}
+
+  TClonesArray *Get_ftrrechit()  {return fTRrechit;}
+  int           Get_fNtrrechit() {return fNTRrechit;}
+  void          Set_fNtrrechit(int N) {fNTRrechit=N;}
+
+  TClonesArray *Get_ftrtrack()  {return fTRtrack;}
+  int           Get_fNtrtrack() {return fNTRtrack;}
+  void          Set_fNtrtrack(int N) {fNTRtrack=N;}
+  void          Inc_fNtrtrack() {fNTRtrack++;}
+
+  TClonesArray *Get_fmctrtrack()  {return fMCtrtrack;}
+  int           Get_fNmctrtrack() {return fNMCtrtrack;}
+  void          Set_fNmctrtrack(int N) {fNMCtrtrack=N;}
+
+  TClonesArray *Get_fmceventg()  {return fMCeventg;}
+  int           Get_fNmeventg()  {return fNMCeventg;}
+  void          Set_fNmceventg(int N) {fNMCeventg=N;}
+
+  TClonesArray *Get_fanticluster()  {return fAntiCluster;}
+  int           Get_fNanticluser()  {return fNAntiCluster;}
+  void          Set_fNanticluster(int N) {fNAntiCluster=N;}
+
+  TClonesArray *Get_fantimccluster()  {return fAntiMCCluster;}
+  int           Get_fNantimccluser()  {return fNAntiMCCluster;}
+  void          Set_fNantimccluster(int N) {fNAntiMCCluster=N;}
+
+  TClonesArray *Get_flvl3()   {return fLVL3;}
+  int           Get_fNlvl3()  {return fNLVL3;}
+  void          Set_fNlvl3(int N) {fNLVL3=N;}
+
+  TClonesArray *Get_flvl1()   {return fLVL1;}
+  int           Get_fNlvl1()  {return fNLVL1;}
+  void          Set_fNlvl1(int N) {fNLVL1=N;}
+
+  TClonesArray *Get_ftrrawcluster()   {return fTrRawCluster;}
+  int           Get_fNtrrawcluster()  {return fNTrRawCluster;}
+  void          Set_fNtrrawcluster(int N) {fNTrRawCluster = N;}
+
+  TClonesArray *Get_fantirawcluster()   {return fAntiRawCluster;}
+  int           Get_fNantirawcluster()  {return fNAntiRawCluster;}
+  void          Set_fNantirawcluster(int N) {fNAntiRawCluster = N;}
+
+  TClonesArray *Get_ftofrawcluster()   {return fTOFRawCluster;}
+  int           Get_fNtofrawcluster()  {return fNTOFRawCluster;}
+  void          Set_fNtofrawcluster(int N) {fNTOFRawCluster = N;}
+
+  TClonesArray *Get_fricmc()   {return fRICMC;}
+  int           Get_fNricmc()  {return fNRICMC;}
+  void          Set_fNricmc(int N) {fNRICMC = N;}
+
+  TClonesArray *Get_fricevent()   {return fRICEvent;}
+  int           Get_fNricevent()  {return fNRICEvent;}
+  void          Set_fNricevent(int N) {fNRICEvent = N;}
+
+  TClonesArray *Get_fricring()   {return fRICRing;}
+  int           Get_fNricring()  {return fNRICRing;}
+  void          Set_fNricring(int N) {fNRICRing = N;}
+
+#endif
 #ifdef __WRITEROOT__
-  EventNtuple02();
+EventNtuple02();
 ClassDef(EventNtuple02,1)       //EventNtuple02
 #else
 friend class AMSEvent;
 friend class AMSNtuple;
 #endif
-
 };
 
+#ifdef __WRITEROOT__
+class BetaRoot02 : public TObject {
+#else
+class BetaRoot02  {
+#endif
+ public:
+  int Status;
+  int Pattern;
+  float Beta;
+  float BetaC;
+  float Error;
+  float ErrorC;
+  float Chi2;
+  float Chi2S;
+  int NTOF;
+  int pTOF[4];
+  int pTr;
 
+#ifdef __WRITEROOT__
+  ~BetaRoot02() {};
+   BetaRoot02();
+   BetaRoot02(int status, int pattern, float beta, float betaC, float ErrBeta,
+                float ErrBetaC, float chi2, float chi2S, int ntof, int ptof[],
+                int ptr);
+
+   ClassDef(BetaRoot02,1)       
+#else
+  friend class AMSBeta;
+  friend class AMSNtuple;
+#endif
+};
 
 #ifdef __WRITEROOT__
 class BetaNtuple02 : public TObject {
@@ -120,12 +362,43 @@ public:
   int NTOF[MAXBETA02];
   int pTOF[MAXBETA02][4];
   int pTr[MAXBETA02];
-
 #ifdef __WRITEROOT__
    BetaNtuple02();
    ClassDef(BetaNtuple02,1)       //BetaNtuple
 #else
 friend class AMSBeta;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class ChargeRoot02 : public TObject {
+#else
+class ChargeRoot02 {
+#endif
+public:
+  int Status;
+  int BetaP;
+  int ChargeTOF;
+  int ChargeTracker;
+  float ProbTOF[4];
+  int ChInTOF[4];
+  float ProbTracker[4];
+  int ChInTracker[4];
+  float ProbAllTracker;
+  float TrunTOF;
+  float TrunTOFD;
+  float TrunTracker;
+
+#ifdef __WRITEROOT__
+  ChargeRoot02();
+  ChargeRoot02(int status, int betap, int chargetof, int chargetr, float probtof[],
+               int chintof[], float probtr[], int chintr[], 
+               float proballtr, float truntof, float truntofd, float truntr);
+ClassDef(ChargeRoot02,1)       //ChargeRoot
+
+#else
+friend class AMSCharge;
 friend class AMSNtuple;
 #endif
 };
@@ -161,6 +434,63 @@ friend class AMSNtuple;
 };
 
 
+
+
+#ifdef __WRITEROOT__
+class ParticleRoot02 : public TObject {
+#else
+class ParticleRoot02 {
+#endif
+public:
+  int   BetaP;
+  int   ChargeP;
+  int   TrackP;
+  int   TRDP;
+  int   RICHP;
+  int   EcalP;
+  int   Particle;
+  int   ParticleVice;
+  float Prob[2];
+  float FitMom;
+  float Mass;
+  float ErrMass;
+  float Momentum;
+  float ErrMomentum;
+  float Beta;
+  float ErrBeta;
+  float Charge;
+  float Theta;
+  float Phi;
+  float ThetaGl;
+  float PhiGl;
+  float Coo[3];
+  float Cutoff;
+  float TOFCoo[4][3];
+  float AntiCoo[2][3];
+  float EcalCoo[3][3];
+  float TrCoo[8][3];
+  float TRDCoo[3];
+  float RichCoo[2][3];
+  float RichPath[2];
+  float RichLength;
+  ParticleRoot02();
+  ~ParticleRoot02(){};
+#ifdef __WRITEROOT__
+  ParticleRoot02(int betap, int chargep, int trackp, int trdp, int richp, int ecalp,
+                 int particle, int particlevice, float prob[], float fitmom, 
+                 float mass, float errmass, float momentum, float errmomentum,
+                 float beta, float errbeta, float charge, float theta, float phi,
+                 float thetagl, float phigl, float coo[], float cutoff, 
+                 float tofcoo[4][3], float anticoo[2][3], float ecalcoo[3][3], 
+                 float trcoo[8][3], float trdcoo[], float richcoo[2][3], 
+                 float richpath[], float richlength);
+
+  ClassDef(ParticleRoot02,1)       //ParticleNtuple
+#else
+friend class AMSParticle;
+friend class AMSNtuple;
+#endif
+};
 
 
 #ifdef __WRITEROOT__
@@ -241,6 +571,36 @@ friend class AMSTOFCluster;
 friend class AMSNtuple;
 #endif
 };
+
+#ifdef __WRITEROOT__
+class TOFClusterRoot : public TObject {
+#else
+class TOFClusterRoot {
+#endif
+public:
+  int Status;
+  int Layer;
+  int Bar;
+  int Nmemb;
+  float Edep;
+  float Edepd;
+  float Time;
+  float ErrTime;
+  float Coo[3];
+  float ErrorCoo[3];
+
+#ifdef __WRITEROOT__
+  TOFClusterRoot();
+  ~TOFClusterRoot(){};
+  TOFClusterRoot(int status, int layer, int bar, int nmemb, float edep, float edepd,
+                 float time, float errtime, float coo[], float errcoo[]);
+
+ClassDef(TOFClusterRoot,1)       //TOFClusterNtuple
+#else
+friend class AMSTOFCluster;
+friend class AMSNtuple;
+#endif
+};
 //--------------------------
 
 
@@ -285,6 +645,56 @@ friend class AMSNtuple;
 
 };
 
+#ifdef __WRITEROOT__
+class EcalShowerRoot : public TObject {
+#else
+class EcalShowerRoot {
+#endif
+public:
+  int   Status;
+  float Dir[3];
+  float EMDir[3];
+  float Entry[3];
+  float Exit[3];
+  float CofG[3];
+  float ErTheta;
+  float Chi2Dir;
+  float FirstLayerEdep;
+  float EnergyC;
+  float Energy3C[3];
+  float ErEnergyC;
+  float DifoSum;
+  float SideLeak;
+  float RearLeak;
+  float DeadLeak;
+  float OrpLeak;
+  float Orp2DEnergy;
+  float Chi2Profile;
+  float ParProfile[4];
+  float Chi2Trans;
+//  float TransProfile[3];
+  float SphericityEV[3];
+  int   p2DCl[2];
+#ifdef __WRITEROOT__
+  EcalShowerRoot();
+  ~EcalShowerRoot(){};
+  EcalShowerRoot(int status, float dir[], float emdir[], float entry[], 
+                 float exit[], float cofg[], float ertheta, float chi2dir,
+                 float firstlayeredep, float energyc, 
+                 float energy3c, float energy5c, float energy9c, 
+                 float erenergyc, float difosum, float sideleak, float rearleak,
+                 float deadleak, float orpleak, float orp2denergy, 
+                 float chi2profile, float  parprofile[], float chi2trans,
+                 float sphericityev[], int p2dcl[]);
+
+ClassDef(EcalShowerRoot,1)       //EcalShowerRoot
+#else
+friend class EcalShower;
+friend class AMSNtuple;
+#endif
+
+};
+
 
 
 #ifdef __WRITEROOT__
@@ -310,6 +720,38 @@ public:
 #ifdef __WRITEROOT__
   EcalClusterNtuple();
 ClassDef(EcalClusterNtuple,1)       //EcalClusterNtuple
+#else
+friend class Ecal1DCluster;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class EcalClusterRoot : public TObject {
+#else
+class EcalClusterRoot {
+#endif
+public:
+  int Status;
+  int Proj;
+  int Plane;
+  int Left;
+  int Center;
+  int Right;
+  float Edep;
+//  float RMS;
+  float SideLeak;
+  float DeadLeak;
+  float Coo[3];
+  int pLeft;
+  int NHits;
+#ifdef __WRITEROOT__
+  EcalClusterRoot();
+  ~EcalClusterRoot(){};
+  EcalClusterRoot(int status, int proj, int plane, int left, int center, int right,
+                  float edep, float sideleak, float deadleak, float coo[],
+                  int pleft, int nhits);
+ClassDef(EcalClusterRoot,1)       //EcalClusterRoot
 #else
 friend class Ecal1DCluster;
 friend class AMSNtuple;
@@ -343,6 +785,32 @@ friend class AMSNtuple;
 #endif
 };
 
+#ifdef __WRITEROOT__
+class Ecal2DClusterRoot : public TObject {
+#else
+class Ecal2DClusterRoot {
+#endif
+public:
+  int Status;
+  int Proj;
+  int Nmemb;
+  float Edep;
+  float Coo;
+  float Tan;
+  float Chi2;
+  int   pCl[18];
+#ifdef __WRITEROOT__
+  Ecal2DClusterRoot();
+  ~Ecal2DClusterRoot(){};
+  Ecal2DClusterRoot(int status, int proj, int nmemb, float edep, float coo,
+                    float tan, float chi2, int pcl[]);
+ClassDef(Ecal2DClusterRoot,1)       //Ecal2DClusterNtuple
+#else
+friend class Ecal2DCluster;
+friend class AMSNtuple;
+#endif
+};
+
 
 //--------------------------
 #ifdef __WRITEROOT__
@@ -368,6 +836,32 @@ friend class AMSEcalHit;
 friend class AMSNtuple;
 #endif
 };
+
+#ifdef __WRITEROOT__
+class EcalHitRoot : public TObject {
+#else
+class EcalHitRoot {
+#endif
+public:
+  int   Status;
+  int   Idsoft;
+  int   Proj;
+  int   Plane;
+  int   Cell;
+  float Edep;
+  float Coo[3];
+
+#ifdef __WRITEROOT__
+  EcalHitRoot();
+  ~EcalHitRoot(){};
+  EcalHitRoot(int status, int idsoft, int proj, int plane, int cell, 
+              float edep, float coo[]);
+ClassDef(EcalHitRoot,1)       //EcalHitNtuple
+#else
+friend class AMSEcalHit;
+friend class AMSNtuple;
+#endif
+};
 //-------------------------- 
 #ifdef __WRITEROOT__
 class TOFMCClusterNtuple : public TObject {
@@ -384,6 +878,28 @@ public:
 #ifdef __WRITEROOT__
   TOFMCClusterNtuple();
 ClassDef(TOFMCClusterNtuple,1)       //TOFMCClusterNtuple
+#else
+friend class AMSTOFMCCluster;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class TOFMCClusterRoot : public TObject {
+#else
+class TOFMCClusterRoot {
+#endif
+public:
+  int   Idsoft;
+  float Coo[3];
+  float TOF;
+  float Edep;
+
+#ifdef __WRITEROOT__
+  TOFMCClusterRoot();
+  ~TOFMCClusterRoot(){};
+  TOFMCClusterRoot(int idsoft, float coo[], float tof, float edep);
+ClassDef(TOFMCClusterRoot,1)       //TOFMCClusterRoot
 #else
 friend class AMSTOFMCCluster;
 friend class AMSNtuple;
@@ -417,6 +933,34 @@ ClassDef(TrClusterNtuple,1)       //TrClusterNtuple
 };
 
 #ifdef __WRITEROOT__
+class TrClusterRoot : public TObject {
+#else
+class TrClusterRoot {
+#endif
+public:
+  int Idsoft;
+  int Status;
+  int NelemL;
+  int NelemR;
+  float Sum;
+  float Sigma;
+  float Mean;
+  float RMS;
+  float ErrorMean;
+  float Amplitude[5];
+
+friend class AMSTrCluster;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+  ~TrClusterRoot(){};
+  TrClusterRoot();
+  TrClusterRoot(int idsoft, int status, int neleml, int nelemr, float sum,
+                float sigma, float mean, float rms, float errmean, float amlitude[]);
+ClassDef(TrClusterRoot,1)       //TrClusterRoot
+#endif
+};
+
+#ifdef __WRITEROOT__
 class TrMCClusterNtuple : public TObject {
 #else
 class TrMCClusterNtuple {
@@ -437,6 +981,35 @@ public:
 #ifdef __WRITEROOT__
   TrMCClusterNtuple();
 ClassDef(TrMCClusterNtuple,1)       //TrMCClusterNtuple
+#else
+friend class AMSTrMCCluster;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class TrMCClusterRoot : public TObject {
+#else
+class TrMCClusterRoot {
+#endif
+public:
+  int Idsoft;
+  int TrackNo;
+  int Left[2];
+  int Center[2];
+  int Right[2];
+  float SS[2][5];
+  float Xca[3];
+  float Xcb[3];
+  float Xgl[3];
+  float Sum;
+
+#ifdef __WRITEROOT__
+  TrMCClusterRoot();
+  ~TrMCClusterRoot(){};
+  TrMCClusterRoot(int idsoft, int trackno, int left[], int center[], int right[],
+                  float ss[2][5], float xca[], float xcb[], float xgl[], float sum);
+ClassDef(TrMCClusterRoot,1)       //TrMCClusterRoot
 #else
 friend class AMSTrMCCluster;
 friend class AMSNtuple;
@@ -468,6 +1041,33 @@ friend class AMSNtuple;
 #endif
 };
 
+#ifdef __WRITEROOT__
+class TRDMCClusterRoot : public TObject {
+#else
+class TRDMCClusterRoot {
+#endif
+public:
+  int   Layer;
+  int   Ladder;
+  int   Tube;
+  int   TrackNo;
+  float Edep;
+  float Ekin;
+  float Xgl[3];
+  float Step;
+ 
+#ifdef __WRITEROOT__
+  TRDMCClusterRoot();
+  ~TRDMCClusterRoot(){};
+  TRDMCClusterRoot(int layer, int ladder, int tube, int trackno, 
+                   float edep, float ekin, float xgl[], float step);
+ClassDef(TRDMCClusterRoot,1)       //TRDMCClusterRoot
+#else
+friend class AMSTRDMCCluster;
+friend class AMSNtuple;
+#endif
+};
+
 
 #ifdef __WRITEROOT__
 class TRDRawHitNtuple : public TObject {
@@ -483,6 +1083,27 @@ public:
 #ifdef __WRITEROOT__
   TRDRawHitNtuple();
 ClassDef(TRDRawHitNtuple,1)       //TRDRawHitNtuple
+#else
+friend class AMSTRDRawHit;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class TRDRawHitRoot : public TObject {
+#else
+class TRDRawHitRoot {
+#endif
+public:
+  int Layer;
+  int Ladder;
+  int Tube;
+  float Amp;
+#ifdef __WRITEROOT__
+  TRDRawHitRoot();
+  ~TRDRawHitRoot(){};
+  TRDRawHitRoot(int layer, int ladder, int tube, float amp);
+ClassDef(TRDRawHitRoot,1)       //TRDRawHitRoot
 #else
 friend class AMSTRDRawHit;
 friend class AMSNtuple;
@@ -515,6 +1136,33 @@ friend class AMSNtuple;
 #endif
 };
 
+#ifdef __WRITEROOT__
+class TRDClusterRoot : public TObject {
+#else
+class TRDClusterRoot {
+#endif
+public:
+  int   Status;
+  float Coo[3];
+  int   Layer;
+  float CooDir[3];
+  int   Multip;
+  int   HMultip;
+  float EDep;
+  int   pRawHit;
+ 
+#ifdef __WRITEROOT__
+  TRDClusterRoot();
+  ~TRDClusterRoot(){};
+  TRDClusterRoot(int status, float coo[], int layer, float coodir[], int multip, 
+                 int hmultip, float edep, int prawhit);
+ClassDef(TRDClusterRoot,1)       //TRDClusterRoot
+#else
+friend class AMSTRDCluster;
+friend class AMSNtuple;
+#endif
+};
+
 
 #ifdef __WRITEROOT__
 class TRDSegmentNtuple : public TObject {
@@ -538,6 +1186,36 @@ public:
 #ifdef __WRITEROOT__
   TRDSegmentNtuple();
 ClassDef(TRDSegmentNtuple,1)       //TRDSegmentNtuple
+#else
+friend class AMSTRDSegment;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class TRDSegmentRoot : public TObject {
+#else
+class TRDSegmentRoot{
+#endif
+public:
+  int   Status;
+  int   Orientation;
+  float FitPar[2];
+  float Chi2;
+  int   Pattern;
+  int   Nhits;
+#ifdef __WRITEROOT__
+  int PCl[12];
+#else
+  int PCl[trdconst::maxhits];
+#endif
+ 
+#ifdef __WRITEROOT__
+  TRDSegmentRoot();
+  ~TRDSegmentRoot(){};
+  TRDSegmentRoot(int status, int orientation, float fitpar[], float chi2,
+                 int pattern, int nhits, int pcl[]);
+ClassDef(TRDSegmentRoot,1)       //TRDSegmentRoot
 #else
 friend class AMSTRDSegment;
 friend class AMSNtuple;
@@ -576,6 +1254,39 @@ friend class AMSNtuple;
 #endif
 };
 
+#ifdef __WRITEROOT__
+class TRDTrackRoot : public TObject {
+#else
+class TRDTrackRoot {
+#endif
+public:
+  int   Status;
+  float Coo[3];
+  float ErCoo[3];
+  float Phi;
+  float Theta;
+  float Chi2;
+  int   NSeg;
+  int   Pattern;
+#ifdef __WRITEROOT__
+  int   pSeg[5];
+#else
+  int   pSeg[trdconst::maxseg];
+#endif
+ 
+#ifdef __WRITEROOT__
+  TRDTrackRoot();
+  ~TRDTrackRoot(){};
+  TRDTrackRoot(int status, float coo[], float ercoo[], float phi, float theta, 
+               float chi2, int nseg, int pattern, int pseg[]);
+
+ClassDef(TRDTrackRoot,1)       //TRDTrackRoot
+#else
+friend class AMSTRDTrack;
+friend class AMSNtuple;
+#endif
+};
+
 
 
 
@@ -600,6 +1311,35 @@ public:
 #ifdef __WRITEROOT__
   TrRecHitNtuple02();
 ClassDef(TrRecHitNtuple02,1)       //TrRecHitNtuple
+#else
+friend class AMSTrRecHit;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class TrRecHitRoot02 : public TObject {
+#else
+class TrRecHitRoot02 {
+#endif
+public:
+  int   pX;
+  int   pY;
+  int   Status;
+  int   Layer;
+  float Hit[3];
+  float EHit[3];
+  float Sum;
+  float DifoSum;
+  float CofgX;
+  float CofgY;
+
+#ifdef __WRITEROOT__
+  TrRecHitRoot02();
+  ~TrRecHitRoot02(){};
+  TrRecHitRoot02(int px, int py, int status, int layer, float hit[], float ehit[],
+                 float sum, float difosum, float cofgx, float cofgy);
+ClassDef(TrRecHitRoot02,1)       //TrRecHitRoot02
 #else
 friend class AMSTrRecHit;
 friend class AMSNtuple;
@@ -662,6 +1402,66 @@ friend class AMSNtuple;
 };
 
 #ifdef __WRITEROOT__
+class TrTrackRoot02 : public TObject {
+#else
+class TrTrackRoot02 {
+#endif
+public:
+  int Status;
+  int Pattern;
+  int Address;
+  int NHits;
+#ifdef __WRITEROOT__
+  int pHits[8];
+#else
+  int pHits[trconst::maxlay];
+#endif
+  float LocDBAver;
+  int   GeaneFitDone;
+  int   AdvancedFitDone;
+  float Chi2StrLine;
+  float Chi2Circle;
+  float CircleRidgidity;
+  float Chi2FastFit;
+  float Ridgidity;
+  float ErrRidgidity;
+  float Theta;
+  float Phi;
+  float P0[3];
+  float GChi2;
+  float GRidgidity;
+  float GErrRidgidity;
+  float HChi2[2];
+  float HRidgidity[2];
+  float HErrRidgidity[2];
+  float HTheta[2];
+  float HPhi[2];
+  float HP0[2][3];
+  float FChi2MS;
+  float PiErrRig;
+  float RidgidityMS;
+  float PiRigidity;
+
+#ifdef __WRITEROOT__
+  TrTrackRoot02();
+  ~TrTrackRoot02(){};
+  TrTrackRoot02(int status, int pattern, int address, int nhits, int phits[],
+                float locdbaver, int geanefitdone, int advancedfitdone, 
+                float chi2strline, float chi2circle, float circleridgidity,
+                float chi2fastfit, float ridgidity, float errridgidity,
+                float theta, float phi, float p0[], float gchi2, 
+                float gridgidity, float gerrridgidity,
+                float hchi2[], float hridgidity[], float herrridgidity[],
+                float htheta[], float hphi[], float hp0[2][3], 
+                float fchi2ms, float pierrrig, float ridgidityms, float pirigidity);
+ClassDef(TrTrackRoot02,1)       //TrTrackRoot02
+#else
+friend class AMSTrTrack;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
 class MCTrackNtuple : public TObject {
 #else
 class MCTrackNtuple {
@@ -675,6 +1475,24 @@ char  vname[MAXMCVOL][4];
 #ifdef __WRITEROOT__
  MCTrackNtuple();
 ClassDef(MCTrackNtuple,1)       //MCTrackNtuple
+#endif
+};
+
+#ifdef __WRITEROOT__
+class MCTrackRoot : public TObject {
+#else
+class MCTrackRoot {
+#endif
+public:
+float _radl;
+float _absl;
+float _pos[3];
+char  _vname[4];
+#ifdef __WRITEROOT__
+ MCTrackRoot();
+ ~MCTrackRoot(){};
+ MCTrackRoot(float radl, float absl, float pos[], char vname[]);
+ClassDef(MCTrackRoot,1)       //MCTrackRoot
 #endif
 };
 
@@ -697,6 +1515,32 @@ public:
 #ifdef __WRITEROOT__
   MCEventGNtuple02();
 ClassDef(MCEventGNtuple02,1)       //MCEventGNtuple
+#else
+friend class AMSmceventg;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class MCEventGRoot02 : public TObject {
+#else
+class MCEventGRoot02 {
+#endif
+public:
+  int Nskip;
+  int Particle;
+  float Coo[3];
+  float Dir[3];
+  float Momentum;
+  float Mass;
+  float Charge;
+
+#ifdef __WRITEROOT__
+  MCEventGRoot02();
+  ~MCEventGRoot02(){};
+  MCEventGRoot02(int nskip, int particle, float coo[], float dir[], 
+                 float momentum, float mass, float charge);
+ClassDef(MCEventGRoot02,1)       //MCEventGNtuple
 #else
 friend class AMSmceventg;
 friend class AMSNtuple;
@@ -728,6 +1572,29 @@ friend class AMSNtuple;
 };
 
 #ifdef __WRITEROOT__
+class AntiClusterRoot : public TObject {
+#else
+class AntiClusterRoot {
+#endif
+public:
+  int   Status;
+  int   Sector;
+  float Edep;
+  float Coo[3];   // R, phi, Z
+  float ErrorCoo[3];
+
+#ifdef __WRITEROOT__
+  AntiClusterRoot();
+  ~AntiClusterRoot(){};
+  AntiClusterRoot(int status, int sector, float edep, float coo[], float errorcoo[]);
+ClassDef(AntiClusterRoot,1)       //AntiClusterRoot
+#else
+friend class AMSAntiCluster;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
 class ANTIMCClusterNtuple : public TObject {
 #else
 class ANTIMCClusterNtuple {
@@ -748,7 +1615,65 @@ friend class AMSNtuple;
 #endif
 };
 
+#ifdef __WRITEROOT__
+class ANTIMCClusterRoot : public TObject {
+#else
+class ANTIMCClusterRoot {
+#endif
+public:
+  int   Idsoft;
+  float Coo[3];
+  float TOF;
+  float Edep;
 
+#ifdef __WRITEROOT__
+  ANTIMCClusterRoot();
+  ~ANTIMCClusterRoot(){};
+  ANTIMCClusterRoot(int idsoft, float coo[], float tof, float edep);
+ClassDef(ANTIMCClusterRoot,1)       //ANTIMCClusterRoot
+#else
+friend class AMSAntiMCCluster;
+friend class AMSNtuple;
+#endif
+};
+
+
+#ifdef __WRITEROOT__
+class LVL3Root02 : public TObject {
+#else
+class LVL3Root02 {
+#endif
+public:
+  int   TOFTr;
+  int   TRDTr;
+  int   TrackerTr;
+  int   MainTr;
+  int   Direction;
+  int   NTrHits;
+  int   NPatFound;
+  int   Pattern[2];
+  float Residual[2];
+  float Time;
+  float ELoss;
+  int   TRDHits;
+  int   HMult;
+  float TRDPar[2];
+  int   ECemag;
+  int   ECmatc;
+  float ECTOFcr[4];
+#ifdef __WRITEROOT__
+  LVL3Root02();
+  LVL3Root02(int toftr, unsigned int trdtr, unsigned int trackertr, unsigned int maintr,
+               int direction, int ntrhits, int npatfound, int pattern[],
+               double residual[], double ftime, double eloss, int trdhits, 
+               int hmult, float trdpar[], int ecemag, int ecematc, float ectofc[]);
+ ~LVL3Root02(){};
+ClassDef(LVL3Root02,1)       //LVL3Ntuple02
+#else
+friend class TriggerLVL302;
+friend class AMSNtuple;
+#endif
+};
 #ifdef __WRITEROOT__
 class LVL3Ntuple02 : public TObject {
 #else
@@ -808,6 +1733,33 @@ friend class AMSNtuple;
 #endif
 };
 
+#ifdef __WRITEROOT__
+class LVL1Root02 : public TObject {
+#else
+class LVL1Root02 {
+#endif
+public:
+  int   Mode;
+  int   TOFlag;
+  int   TOFPatt[4];
+  int   TOFPatt1[4];
+  int   AntiPatt;
+  int   ECALflag;
+  float ECALtrsum;
+
+#ifdef __WRITEROOT__
+  LVL1Root02();
+  ~LVL1Root02(){};
+  LVL1Root02(unsigned int mode, int tofflag, unsigned int tofpatt[], 
+             unsigned int tofpatt1[], 
+             unsigned int antipatt, unsigned int ecalflag, float ecaltrsum);
+ClassDef(LVL1Root02,1)       //LVL1Root02
+#else
+friend class Trigger2LVL1;
+friend class AMSNtuple;
+#endif
+};
+
 
 #ifdef __WRITEROOT__
 class TrRawClusterNtuple : public TObject {
@@ -829,6 +1781,26 @@ friend class AMSNtuple;
 };
 
 #ifdef __WRITEROOT__
+class TrRawClusterRoot : public TObject {
+#else
+class TrRawClusterRoot {
+#endif
+public:
+  int address;
+  int nelem;
+  float s2n;
+#ifdef __WRITEROOT__
+  TrRawClusterRoot();
+  ~TrRawClusterRoot(){};
+  TrRawClusterRoot(int _address, int _nelem, float _s2n);
+ClassDef(TrRawClusterRoot,1)       //TrRawClusterRoot
+#else
+friend class AMSTrRawCluster;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
 class AntiRawClusterNtuple : public TObject {
 #else
 class AntiRawClusterNtuple {
@@ -843,6 +1815,28 @@ public:
 #ifdef __WRITEROOT__
   AntiRawClusterNtuple();
 ClassDef(AntiRawClusterNtuple ,1)       //AntiRawClusterNtuple 
+#else
+friend class AMSAntiRawCluster;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class AntiRawClusterRoot : public TObject {
+#else
+class AntiRawClusterRoot {
+#endif
+public:
+  int   Status;
+  int   Sector;
+  int   UpDown;
+  float Signal;
+
+#ifdef __WRITEROOT__
+  AntiRawClusterRoot();
+  ~AntiRawClusterRoot(){};
+  AntiRawClusterRoot(int status, int sector, int updown, float signal);
+ClassDef(AntiRawClusterRoot ,1)       //AntiRawClusterRoot
 #else
 friend class AMSAntiRawCluster;
 friend class AMSNtuple;
@@ -877,6 +1871,36 @@ friend class AMSNtuple;
 #endif
 };
 
+#ifdef __WRITEROOT__
+class TOFRawClusterRoot : public TObject {
+#else
+class TOFRawClusterRoot {
+#endif
+public:
+  int   Status;
+  int   Layer;
+  int   Bar;
+  float tovta[2];
+  float tovtd[2];
+  float sdtm[2];
+  float edepa;
+  float edepd;
+  float time;
+  float cool;
+
+#ifdef __WRITEROOT__
+  TOFRawClusterRoot();
+  ~TOFRawClusterRoot(){};
+  TOFRawClusterRoot(int status, int layer, int bar, float _tovta[],
+                    float _tovtd[], float _sdtm[], float _edepa,
+                    float _edepd, float _time, float _cool);
+ClassDef(TOFRawClusterRoot ,1)       //TOFRawClusterRoot 
+#else
+friend class TOF2RawCluster;
+friend class AMSNtuple;
+#endif
+};
+
 
 #ifdef __WRITEROOT__
 class RICMCNtuple : public TObject {
@@ -894,6 +1918,30 @@ public:
 #ifdef __WRITEROOT__
   RICMCNtuple();
 ClassDef(RICMCNtuple,1)       // RICMCNtuple
+#else
+friend class AMSRichMCHit;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class RICMCRoot : public TObject {
+#else
+class RICMCRoot {
+#endif
+public:
+  int   id;            // Particle id.
+  float origin[3];     // Particle origin
+  float direction[3];  // Original direction
+  int   status;        // Status=10*number of reflections+(have it rayleigh?1:0)
+  int   numgen;        // Number of generated photons
+  int   eventpointer;  // Pointer to detected hit
+#ifdef __WRITEROOT__
+  RICMCRoot();
+  ~RICMCRoot(){};
+  RICMCRoot(int _id, float _origin[], float _direction[], int _status, int _numgen,
+            int _eventpointer);
+ClassDef(RICMCRoot,1)       // RICMCRoot
 #else
 friend class AMSRichMCHit;
 friend class AMSNtuple;
@@ -922,6 +1970,28 @@ friend class AMSNtuple;
 #endif
 };
 
+#ifdef __WRITEROOT__
+class RICEventRoot : public TObject {
+#else
+class RICEventRoot {
+#endif
+public:
+  int   channel;
+  int   adc;
+  float x;
+  float y;
+
+#ifdef __WRITEROOT__
+  RICEventRoot();
+  ~RICEventRoot(){};
+  RICEventRoot(int _channel, int _adc, float _x, float _y);
+ClassDef(RICEventRoot,1)       // RICEventRoot
+#else
+friend class AMSRichRawEvent;
+friend class AMSNtuple;
+#endif
+};
+
 
 #ifdef __WRITEROOT__
 class RICRing : public TObject {
@@ -942,6 +2012,33 @@ public:
 #ifdef __WRITEROOT__
   RICRing();
 ClassDef(RICRing,1)           // RICRing
+#else
+friend class AMSRichRing;
+friend class AMSNtuple;
+#endif
+}; 
+
+#ifdef __WRITEROOT__
+class RICRingRoot : public TObject {
+#else
+class RICRingRoot {
+#endif
+public:
+  int   track;
+  int   used;
+  int   mused;
+  float beta;
+  float errorbeta;
+  float quality;
+  int   Z;
+
+
+#ifdef __WRITEROOT__
+  RICRingRoot();
+  ~RICRingRoot(){};
+  RICRingRoot(int _track, int _used, int _mused, 
+              float _beta, float _errbeta, float _quality, float _z);
+ClassDef(RICRingRoot,1)           // RICRingRoot
 #else
 friend class AMSRichRing;
 friend class AMSNtuple;

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.109 2002/04/23 16:47:19 delgadom Exp $
+//  $Id: particle.C,v 1.110 2002/05/21 09:03:42 alexei Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -409,6 +409,129 @@ void AMSParticle::_writeEl(){
   ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
   if (PN->Npart>=MAXPART02) return;
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && (_ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK)|| _ptrack->checkstatus(AMSDBc::ECALTRACK)))return;
+#ifdef __WRITEROOTCLONES__
+  if(AMSJob::gethead()->getntuple()) {
+    int N=PN->Npart;
+
+// Fill Root class
+    int chargep;
+    int trdp;
+    int richp;
+    int ecalp;
+    int betap;
+    int trackp;
+    int particle     = _gpart[0];
+    int particlevice = _gpart[1];
+
+  if(_pcharge)chargep=_pcharge->getpos();
+  else chargep=-1;
+  if(_ptrd)trdp=_ptrd->getpos();
+  else trdp=-1;
+
+  if(_prich)richp=_prich->getpos();
+  else richp=-1;
+  if(_pShower)ecalp=_pShower->getpos();
+  else ecalp=-1;
+
+
+  if(_pbeta){
+      betap=_pbeta->getpos();
+      integer pat=_pbeta->getpattern();
+      for(int i=0;i<pat;i++){
+      AMSContainer *pc=AMSEvent::gethead()->getC("AMSBeta",i);
+      #ifdef __AMSDEBUG__
+        assert(pc != NULL);
+      #endif
+      betap+=pc->getnelem();
+       }
+  }
+   else betap=-1;
+ 
+  int pat=_ptrack->getpattern();
+  if(_ptrack->checkstatus(AMSDBc::NOTRACK))trackp=-1;
+  else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))trackp=-1;
+  else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))trackp=-1;
+  else trackp=_ptrack->getpos();
+
+  float phi  =fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
+  float phigl=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
+
+
+  float trcoo[8][3];
+  for(int i=0;i<TKDBc::nlay();i++){
+    for(int j=0;j<2;j++){
+      trcoo[i][j]=_TrCoo[i][j];
+    }
+      trcoo[i][2]=_Local[i];
+  }
+
+
+    float prob[2];
+    float coo[3];
+    float tofcoo[4][3]; 
+    float anticoo[2][3];
+    float ecalcoo[3][3];
+    float trdcoo[3]; 
+    float richcoo[2][3];
+    float richpath[2];
+
+  for(int i=0;i<3;i++)trdcoo[i]=_TRDCoo[i];
+  for(int i=0;i<3;i++)coo[i]=_Coo[i];
+  for(int i=0;i<4;i++){
+    for(int j=0;j<3;j++){
+      tofcoo[i][j]=_TOFCoo[i][j];
+    }
+  }
+
+    for(int i=0;i<2;i++){
+     for(int j=0;j<3;j++){
+      anticoo[i][j]=_AntiCoo[i][j];
+    }
+  }
+  for(int i=0;i<3;i++){ // ECAL-crossings
+    for(int j=0;j<3;j++){
+      ecalcoo[i][j]=_EcalSCoo[i][j];
+    }
+  }
+
+  for(int i=0;i<2;i++){
+    for(int j=0;j<3;j++){
+      richcoo[i][j]=_RichCoo[i][j];
+    }
+    richpath[i]=_RichPath[i];
+  }
+
+  float fitmom      = _fittedmom[0];
+  for (int i=0; i<2; i++) {prob[i] = _prob[i];}
+  float mass        = _Mass;
+  float errmass     = _ErrMass;
+  float momentum    = _Momentum;
+  float errmomentum =  _ErrMomentum;
+  float beta        =  _Beta;
+  float errbeta     =  _ErrBeta;
+  float charge      =  _Charge;
+  float theta       =  _Theta; 
+  float thetagl     =  _ThetaGl;
+  float cutoff      =  _CutoffMomentum;
+  float richlength  =  _RichLength;
+
+    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+    TClonesArray &clones =  *(ev02.Get_fparticle());
+    new (clones[N]) ParticleRoot02(
+                             betap, chargep, trackp, trdp, richp, ecalp,
+                             particle, particlevice, prob, fitmom, 
+                             mass, errmass, momentum, errmomentum,
+                             beta, errbeta, charge, theta, phi,
+                             thetagl, phigl,
+                             coo, cutoff, 
+                             tofcoo, anticoo, ecalcoo, trcoo, trdcoo,
+                             richcoo, richpath,richlength);
+    N++;
+    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNparticle(N);
+  } else {
+    cout<<"AMSBeta::_writeEl -W- cannot add to clones array"<<endl;
+  }
+#else
 // Fill the ntuple 
   if(_pcharge)PN->ChargeP[PN->Npart]=_pcharge->getpos();
   else PN->ChargeP[PN->Npart]=-1;
@@ -443,10 +566,9 @@ void AMSParticle::_writeEl(){
   PN->Particle[PN->Npart]=_gpart[0];
   PN->ParticleVice[PN->Npart]=_gpart[1];
   PN->FitMom[PN->Npart]=_fittedmom[0];
-  int i;
- for(i=0;i<2;i++){
-  PN->Prob[PN->Npart][i]=_prob[i];
- }
+  for(int i=0;i<2;i++){
+   PN->Prob[PN->Npart][i]=_prob[i];
+  }
   PN->Mass[PN->Npart]=_Mass;
   PN->ErrMass[PN->Npart]=_ErrMass;
   PN->Momentum[PN->Npart]=_Momentum;
@@ -456,31 +578,31 @@ void AMSParticle::_writeEl(){
   PN->Phi[PN->Npart]=fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
   PN->ThetaGl[PN->Npart]=_ThetaGl;
   PN->PhiGl[PN->Npart]=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
-  for(i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
-  for(i=0;i<4;i++){
+  for(int i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
+  for(int i=0;i<4;i++){
     for(int j=0;j<3;j++){
       PN->TOFCoo[PN->Npart][i][j]=_TOFCoo[i][j];
     }
   }
-  for(i=0;i<2;i++){
+  for(int i=0;i<2;i++){
     for(int j=0;j<3;j++){
       PN->AntiCoo[PN->Npart][i][j]=_AntiCoo[i][j];
 //      cout <<i<<" "<<j<<" "<<_AntiCoo[i][j]<<endl;
     }
   }
-  for(i=0;i<3;i++){ // ECAL-crossings
+  for(int i=0;i<3;i++){ // ECAL-crossings
     for(int j=0;j<3;j++){
       PN->EcalCoo[PN->Npart][i][j]=_EcalSCoo[i][j];
     }
   }
-  for(i=0;i<TKDBc::nlay();i++){
+  for(int i=0;i<TKDBc::nlay();i++){
     for(int j=0;j<2;j++){
       PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
     }
       PN->TrCoo[PN->Npart][i][2]=_Local[i];
   }
 
-  for(i=0;i<2;i++){
+  for(int i=0;i<2;i++){
     for(int j=0;j<3;j++){
       PN->RichCoo[PN->Npart][i][j]=_RichCoo[i][j];
     }
@@ -490,12 +612,9 @@ void AMSParticle::_writeEl(){
 
 
   PN->Cutoff[PN->Npart]=_CutoffMomentum;
-  for(i=0;i<3;i++)PN->TRDCoo[PN->Npart][i]=_TRDCoo[i];
-
-
-
+  for(int i=0;i<3;i++)PN->TRDCoo[PN->Npart][i]=_TRDCoo[i];
+#endif
   PN->Npart++;
-
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.57 2002/03/20 09:41:15 choumilo Exp $
+//  $Id: charge.C,v 1.58 2002/05/21 09:03:42 alexei Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -629,13 +629,43 @@ void AMSCharge::_writeEl(){
   ChargeNtuple02* CN = AMSJob::gethead()->getntuple()->Get_charge02();
 
   if (CN->Ncharge>=MAXCHARGE02) return;
-
+   int i,j;
+#ifdef __WRITEROOTCLONES__
+  if(AMSJob::gethead()->getntuple()) {
+    int N = CN->Ncharge;
+    float probtof[4];
+    int   chintof[4];
+    float probtr[4];
+    int   chintr[4];
+    float proballtr;
+  for(i=0; i<4; i++){
+    for(j=0; j<ncharge; j++){
+      if(_IndxTOF[j]==i){
+        probtof[i]=_ProbTOF[j];
+        chintof[i]=j+1;
+      }
+      if(_IndxTracker[j]==i){
+        probtr[i]=_ProbTracker[j];
+        chintr[i]=j+1;
+        if(!i) proballtr=_ProbAllTracker;
+      }
+    }
+  }
+    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+    TClonesArray &clones =  *(ev02.Get_fcharge());
+    new (clones[N]) ChargeRoot02(_status, _pbeta->getpos(), 
+                                 _ChargeTOF, _ChargeTracker, 
+                                 probtof, chintof, probtr, chintr, proballtr, 
+                                 _TrMeanTOF,_TrMeanTOFD, _TrMeanTracker); 
+    N++;
+    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNcharge(N);
+  }
+#else
 // Fill the ntuple
   CN->Status[CN->Ncharge]=_status;
   CN->BetaP[CN->Ncharge]=_pbeta->getpos();
   CN->ChargeTOF[CN->Ncharge]=_ChargeTOF;
   CN->ChargeTracker[CN->Ncharge]=_ChargeTracker;
-  int i,j;
   for(i=0; i<4; i++){
     for(j=0; j<ncharge; j++){
       if(_IndxTOF[j]==i){
@@ -652,8 +682,8 @@ void AMSCharge::_writeEl(){
   CN->TrunTOF[CN->Ncharge]=_TrMeanTOF;
   CN->TrunTOFD[CN->Ncharge]=_TrMeanTOFD;
   CN->TrunTracker[CN->Ncharge]=_TrMeanTracker;
+#endif
   CN->Ncharge++;
-
 }
 
 

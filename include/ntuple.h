@@ -1,9 +1,14 @@
-//  $Id: ntuple.h,v 1.51 2002/03/20 09:43:10 choumilo Exp $
+//  $Id: ntuple.h,v 1.52 2002/05/21 09:03:46 alexei Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
 #include <node.h>
 #include <root.h>
+
+const int NBRANCHES = 1;    // number of branches
+const int NCLONES   = 1;    // number of clones array
+
+
 #ifdef __WRITEROOT__
 class AMSNtuple : public TObject, public AMSNode{
 #else
@@ -46,7 +51,6 @@ protected:
 #ifdef __WRITEROOT__
   static TTree* _tree;  
   static TFile* _rfile;
-//  static TROOT _troot;
 #endif
   virtual void _init(){};
 
@@ -95,9 +99,10 @@ public:
   RICEventNtuple* Get_richevent() {return &_richevent;}
   RICRing* Get_ring(){return &_ring;}
 
-#ifdef __WRITEROOT__
-  //ClassDef(AMSNtuple ,1)       //AMSNtuple
-#endif
+  void createClones();
+  void clearClones();
+  void initRootfN();
+
 };
 
 #endif

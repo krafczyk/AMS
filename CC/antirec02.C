@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.4 2001/12/07 11:32:17 choutko Exp $
+//  $Id: antirec02.C,v 1.5 2002/05/21 09:03:42 alexei Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -374,10 +374,21 @@ void AMSAntiRawCluster::_writeEl(){
 // fill the ntuple
 
   if(AMSAntiRawCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+#ifdef __WRITEROOTCLONES__
+    if(AMSJob::gethead()->getntuple()) {
+      int N=TN->Nantiraw;
+      EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+      TClonesArray &clones =  *(ev02.Get_fantirawcluster());
+      new (clones[N]) AntiRawClusterRoot(_status, _sector, _updown, _signal);
+      N++;
+      AMSJob::gethead()->getntuple()->Get_event02()->Set_fNantirawcluster(N);
+    }
+#else
     TN->Status[TN->Nantiraw]=_status;
     TN->Sector[TN->Nantiraw]=_sector;
     TN->UpDown[TN->Nantiraw]=_updown;
     TN->Signal[TN->Nantiraw]=_signal;
+#endif
     TN->Nantiraw++;
   }
 }
@@ -399,12 +410,27 @@ void AMSAntiCluster::_writeEl(){
 
 // fill the ntuple
   if(AMSAntiCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+   int i;
+#ifdef __WRITEROOTCLONES__
+    if(AMSJob::gethead()->getntuple()) {
+     int N = TN->Nanti;
+     float coo[3];
+     float errorcoo[3];
+     for(i=0;i<3;i++)coo[i]=_coo[i];
+     for(i=0;i<3;i++)errorcoo[i]=_ecoo[i];
+     EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+     TClonesArray &clones =  *(ev02.Get_fanticluster());
+     new (clones[N]) AntiClusterRoot(_status, _sector, _edep, coo, errorcoo);
+     N++;
+     AMSJob::gethead()->getntuple()->Get_event02()->Set_fNanticluster(N);
+    }
+#else
     TN->Status[TN->Nanti]=_status;
     TN->Sector[TN->Nanti]=_sector;
     TN->Edep[TN->Nanti]=_edep;
-    int i;
     for(i=0;i<3;i++)TN->Coo[TN->Nanti][i]=_coo[i];
     for(i=0;i<3;i++)TN->ErrorCoo[TN->Nanti][i]=_ecoo[i];
+#endif
     TN->Nanti++;
   }
 }

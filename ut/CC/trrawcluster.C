@@ -1,4 +1,4 @@
-//  $Id: trrawcluster.C,v 1.59 2001/01/22 17:32:23 choutko Exp $
+//  $Id: trrawcluster.C,v 1.60 2002/05/21 09:03:43 alexei Exp $
 #include <trid.h>
 #include <trrawcluster.h>
 #include <extC.h>
@@ -254,15 +254,25 @@ void AMSTrRawCluster::_writeEl(){
   AMSTrIdSoft id(_address);
   if(id.getside()==0 && !checkstatus(AMSTrRawCluster::MATCHED)) return;
 
-// Fill the ntuple 
   if(AMSTrRawCluster::Out( IOPA.WriteAll%10==1  )){
+#ifdef __WRITEROOTCLONES__
+    if(AMSJob::gethead()->getntuple()) {
+      int N=TrN->Ntrraw;
+      int addr = _address+_strip*10000;
+      EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+      TClonesArray &clones =  *(ev02.Get_ftrrawcluster());
+      new (clones[N]) TrRawClusterRoot(addr, _nelem, _s2n);
+      N++;
+      AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtrrawcluster(N);
+    }
+#else
+// Fill the ntuple 
     TrN->address[TrN->Ntrraw]=_address+_strip*10000;
     TrN->s2n[TrN->Ntrraw]=_s2n;
     TrN->nelem[TrN->Ntrraw]=_nelem;
+#endif
     TrN->Ntrraw++;
   }
-
-
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.14 2002/04/10 10:35:48 choutko Exp $
+//  $Id: tofrec02.C,v 1.15 2002/05/21 09:03:42 alexei Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -1162,6 +1162,18 @@ void TOF2RawCluster::_writeEl(){
 
 // Fill the ntuple
   if(TOF2RawCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+#ifdef __WRITEROOTCLONES__
+  if(AMSJob::gethead()->getntuple()) {
+    int N=TN->Ntofraw;
+    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+    TClonesArray &clones =  *(ev02.Get_ftofrawcluster());
+    new (clones[N]) TOFRawClusterRoot(_status, _ntof, _plane, (float*)_adch,
+                                      (float*)_adcl, (float*)_sdtm, _edeph,
+                                      _edepl, _time, _timeD);
+    N++;
+    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtofrawcluster(N);
+  }
+#else
     TN->Status[TN->Ntofraw]=_status;
     TN->Layer[TN->Ntofraw]=_ntof;
     TN->Bar[TN->Ntofraw]=_plane;
@@ -1174,9 +1186,9 @@ void TOF2RawCluster::_writeEl(){
     TN->edepd[TN->Ntofraw]=_edepl;
     TN->time[TN->Ntofraw]=_time;
     TN->cool[TN->Ntofraw]=_timeD;
+#endif
     TN->Ntofraw++;
   }
-
 }
 //------
 
@@ -1197,6 +1209,24 @@ void AMSTOFCluster::_writeEl(){
 
 // Fill the ntuple
   if(AMSTOFCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+#ifdef __WRITEROOTCLONES__
+  if(AMSJob::gethead()->getntuple()) {
+    int N=TN->Ntof;
+    float coo[3];
+    float errcoo[3];
+    for (int i=0; i<3; i++) {
+      coo[i] = _Coo[i];
+      errcoo[i] = _ErrorCoo[i];
+    }
+    EventNtuple02 ev02 = *(AMSJob::gethead()->getntuple()->Get_event02());
+    TClonesArray &clones =  *(ev02.Get_ftofcluster());
+    new (clones[N]) TOFClusterRoot(_status, _ntof, _plane, _nmemb,
+                                _edep, _edepd, _time, _etime,
+                                coo, errcoo);
+    N++;
+    AMSJob::gethead()->getntuple()->Get_event02()->Set_fNtofcluster(N);
+  }
+#else
     TN->Status[TN->Ntof]=_status;
     TN->Layer[TN->Ntof]=_ntof;
     TN->Bar[TN->Ntof]=_plane;
@@ -1208,6 +1238,7 @@ void AMSTOFCluster::_writeEl(){
     int i;
     for(i=0;i<3;i++)TN->Coo[TN->Ntof][i]=_Coo[i];
     for(i=0;i<3;i++)TN->ErrorCoo[TN->Ntof][i]=_ErrorCoo[i];
+#endif
     TN->Ntof++;
   }
 }
