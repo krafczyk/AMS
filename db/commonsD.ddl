@@ -2,25 +2,28 @@
 // Objectivity version Oct 08, 1996 ak
 // Nov 12, 1996. ak. remove amsffkey and iopa from class definition
 //
-// Last Edit : Nov 12, 1996. ak.
+// Last Edit : Nov 26, 1996. ak.
 //
 
 #include <typedefs.h>
 #include <commons.h>
 
+declare (ooVArray, integer);
+
 class AMScommonsD : public ooObj {
 
 protected :
- TOFMCFFKEY_DEF   tofmcffkeyD;
- TOFRECFFKEY_DEF  tofrecffkeyD;
- CTCGEOMFFKEY_DEF ctcgeomffkeyD;
- CTCMCFFKEY_DEF   ctcmcffkeyD;
- CTCRECFFKEY_DEF  ctcrecffkeyD;
- TRMCFFKEY_DEF    trmcffkeyD;
- BETAFITFFKEY_DEF betafitffkeyD;
- TRFITFFKEY_DEF   trfitffkeyD;
- CCFFKEY_DEF      ccffkeyD;
- TRCLFFKEY_DEF    trclffkeyD;
+ 
+ ooVArray(integer) tofmcffkeyD;
+ ooVArray(integer) tofrecffkeyD;
+ ooVArray(integer) ctcgeomffkeyD;
+ ooVArray(integer) ctcmcffkeyD;
+ ooVArray(integer) ctcrecffkeyD;
+ ooVArray(integer) trmcffkeyD;
+ ooVArray(integer) betafitffkeyD;
+ ooVArray(integer) trfitffkeyD;
+ ooVArray(integer) ccffkeyD;
+ ooVArray(integer) trclffkeyD;
 
 //
 public:
@@ -30,5 +33,5 @@ public:
 AMScommonsD();
 //
 ooStatus CmpConstants();
+void     CopyConstants();
 };
-

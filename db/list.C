@@ -34,8 +34,9 @@
 //                   new function CopyEventHeader.
 //                   keep number of hits, clusters, tracks, etc per event
 // Nov    1996. ak.  modifications of Addamsdbc
+//                   AMScommonsD is modified
 //
-// last edit Nov 21, 1996, ak.
+// last edit Nov 26, 1996, ak.
 //
 //
 #include <iostream.h>
@@ -3137,7 +3138,6 @@ ooStatus AMSEventList::Addamsdbc()
        amsdbcH  = new(contH) AMSDBcD();
       }
 
-      integer deleteFlag = 0;
       commonsItr.scan(contH, mode);
       if (commonsItr.next()) {
        cout <<"AMSEventList::Addamsdbc -I- check commons"<<endl;
@@ -3145,18 +3145,11 @@ ooStatus AMSEventList::Addamsdbc()
        if (rstatus != oocSuccess) {
         cout <<"AMSEventList:: -W- commons are different, will be overwritten"
              <<endl;
-        commonsH = commonsItr;
-        deleteFlag = 1;
+        commonsItr -> CopyConstants();
        }
       } else {
        commonsH  = new(contH) AMScommonsD();
       }
-      if (deleteFlag == 1 && commonsH != NULL) {
-       deleteFlag = 0;
-       ooDelete(commonsH);
-       commonsH  = new(contH) AMScommonsD();
-      }       
-
 
       ctcdbcItr.scan(contH, mode);
       if (ctcdbcItr.next()) {
@@ -3280,29 +3273,33 @@ ooStatus AMSEventList::PrintListStatistics()
      ooItr(AMSEventD)       eventItr;                 
      ooHandle(AMSEventList) listH = ooThis();
 
-     cout<<"List: "<<_listName<<" of type : "<<_listType<<" with setup : "<<_Setup
-         <<" has "<<_nEvents<<" events"<<endl;
+     cout<<"List: "<<_listName<<" of type : "<<_listType<<" with setup : "
+         <<_Setup  <<" has "<<_nEvents<<" events"<<endl;
 
-     rstatus = eventItr.scan(listH,oocRead);
-     if (rstatus == oocSuccess) {
-      integer run     = 0;
-      integer nevents = 0;
-      while(eventItr.next()) {
-       integer r = eventItr -> RunNumber();
-       if (r == run) {
-        nevents++;
-       } else {
-        if (run != 0) cout<<"run "<<run<<", events "<<nevents<<endl;
-        run = r;
-        nevents = 1; 
+     if (!listH.isUpdated()) {
+      rstatus = eventItr.scan(listH,oocRead);
+      if (rstatus == oocSuccess) {
+       integer run     = 0;
+       integer nevents = 0;
+       while(eventItr.next()) {
+        integer r = eventItr -> RunNumber();
+        if (r == run) {
+         nevents++;
+        } else {
+         if (run != 0) cout<<"run "<<run<<", events "<<nevents<<endl;
+         run = r;
+         nevents = 1; 
+        }
        }
+        cout<<"run "<<run<<", events "<<nevents<<endl;
+      } else {
+        cout<<"AMSEventList::PrintListStatistics -E- scan failed "<<endl;
       }
-       cout<<"run "<<run<<", events "<<nevents<<endl;
      } else {
-       cout<<"AMSEventList::PrintListStatistics -E- scan failed "<<endl;
-     }
-
-      return rstatus;
+       cout <<"AMSEventList::PrintListStatistics -I- cannot provide more "
+            <<", list is opened in Update mode by another process"<<endl; 
+     }      
+   return rstatus;
 }
 
 ooBoolean AMSEventList::CheckListSstring(char* sstring) 

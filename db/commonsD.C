@@ -10,17 +10,90 @@
 //#include <commons.C>
 
 AMScommonsD::AMScommonsD() {
+  integer  i;
+  integer  l;
+  integer* buff;
 
-tofmcffkeyD   = TOFMCFFKEY;
-tofrecffkeyD  = TOFRECFFKEY;
-ctcmcffkeyD   = CTCMCFFKEY;
-ctcgeomffkeyD = CTCGEOMFFKEY;
-ctcrecffkeyD  = CTCRECFFKEY;
-trmcffkeyD    = TRMCFFKEY;
-betafitffkeyD = BETAFITFFKEY;
-trfitffkeyD   = TRFITFFKEY;
-ccffkeyD      = CCFFKEY;
-trclffkeyD    = TRCLFFKEY;
+  cout <<"AMScommonsD -I- constructor "<<endl;
+//tofmcffkey
+  l = sizeof(TOFMCFFKEY);
+  tofmcffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TOFMCFFKEY,l);
+  for (i=0; i<l/4; i++) { tofmcffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//tofrecffkey
+  l = sizeof(TOFRECFFKEY);
+  tofrecffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TOFRECFFKEY,l);
+  for (i=0; i<l/4; i++) { tofrecffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//ctcmcffkey
+  l = sizeof(CTCMCFFKEY);
+  ctcmcffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CTCMCFFKEY,l);
+  for (i=0; i<l/4; i++) { ctcmcffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//ctcgeomffkey
+  l = sizeof(CTCGEOMFFKEY);
+  ctcgeomffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CTCGEOMFFKEY,l);
+  for (i=0; i<l/4; i++) { ctcgeomffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//ctcrecffkey
+  l = sizeof(CTCRECFFKEY);
+  ctcrecffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CTCRECFFKEY,l);
+  for (i=0; i<l/4; i++) { ctcrecffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//trmcffkey
+  l = sizeof(TRMCFFKEY);
+  trmcffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRMCFFKEY,l);
+  for (i=0; i<l/4; i++) { trmcffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//betafitffkey
+  l = sizeof(BETAFITFFKEY);
+  betafitffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&BETAFITFFKEY,l);
+  for (i=0; i<l/4; i++) { betafitffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//trfitffkey
+  l = sizeof(TRFITFFKEY);
+  trfitffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRFITFFKEY,l);
+  for (i=0; i<l/4; i++) { trfitffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//ccffkey
+  l = sizeof(CCFFKEY);
+  ccffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CCFFKEY,l);
+  for (i=0; i<l/4; i++) { ccffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//trclffkey
+  l = sizeof(TRCLFFKEY);
+  trclffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRCLFFKEY,l);
+  for (i=0; i<l/4; i++) { trclffkeyD.set(i,buff[i]);}
+  delete [] buff;
 
 }
 
@@ -31,335 +104,196 @@ ooStatus AMScommonsD::CmpConstants() {
 //
  ooStatus rstatus = oocSuccess;
  integer  i;
+ integer  lm, ld;
+ integer* buff;
 
   cout<<"AMScommonsD::CmpConstants -I- started "<<endl;
+
   cout<<"AMScommonsD::CmpConstants -I- TOFMCFFKEY"<<endl;
-     if (tofmcffkeyD.TimeSigma != TOFMCFFKEY.TimeSigma) 
-      cout<<"tofmcffkeyD.TimeSigma "<<tofmcffkeyD.TimeSigma<<" "
-          <<TOFMCFFKEY.TimeSigma<<endl;
-     if (tofmcffkeyD.padl != TOFMCFFKEY.padl) 
-      cout<<"tofmcffkeyD.padl "<<tofmcffkeyD.padl<<" "
-          <<TOFMCFFKEY.padl<<endl;
-     if (tofmcffkeyD.Thr  != TOFMCFFKEY.Thr) 
-      cout<<"tofmcffkeyD.Thr  "<<tofmcffkeyD.Thr<<" "
-          <<TOFMCFFKEY.Thr<<endl;
-     if (tofmcffkeyD.edep2ph != TOFMCFFKEY.edep2ph) 
-      cout<<"tofmcffkeyD.edep2ph "<<tofmcffkeyD.edep2ph<<" "
-          <<TOFMCFFKEY.edep2ph<<endl;
-     if (tofmcffkeyD.pmqeff  != TOFMCFFKEY.pmqeff)  
-      cout<<"tofmcffkeyD.pmqeff  "<<tofmcffkeyD.pmqeff<<" "
-          <<TOFMCFFKEY.pmqeff<<endl;
-     if (tofmcffkeyD.trtspr  != TOFMCFFKEY.trtspr)  
-      cout<<"tofmcffkeyD.trtspr  "<<tofmcffkeyD.trtspr<<" "
-          <<TOFMCFFKEY.trtspr<<endl;
-     if (tofmcffkeyD.fladctb != TOFMCFFKEY.fladctb) 
-      cout<<"tofmcffkeyD.fladctb "<<tofmcffkeyD.fladctb<<" "
-          <<TOFMCFFKEY.fladctb<<endl;
-     if (tofmcffkeyD.shaptb  != TOFMCFFKEY.shaptb)  
-      cout<<"tofmcffkeyD.shaptb  "<<tofmcffkeyD.shaptb<<" "
-          <<TOFMCFFKEY.shaptb<<endl;
-     if (tofmcffkeyD.di2anr  != TOFMCFFKEY.di2anr)  
-      cout<<"tofmcffkeyD.di2anr  "<<tofmcffkeyD.di2anr<<" "
-          <<TOFMCFFKEY.di2anr<<endl;
-     if (tofmcffkeyD.shrtim  != TOFMCFFKEY.shrtim)  
-      cout<<"tofmcffkeyD.shrtim  "<<tofmcffkeyD.shrtim<<" "
-          <<TOFMCFFKEY.shrtim<<endl;
-     if (tofmcffkeyD.shftim  != TOFMCFFKEY.shftim)  
-      cout<<"tofmcffkeyD.shftim  "<<tofmcffkeyD.shftim<<" "
-          <<TOFMCFFKEY.shftim<<endl;
-     if (tofmcffkeyD.strrat  != TOFMCFFKEY.strrat)  
-      cout<<"tofmcffkeyD.strrat  "<<tofmcffkeyD.strrat<<" "
-          <<TOFMCFFKEY.strrat<<endl;
-     if (tofmcffkeyD.trigtb  != TOFMCFFKEY.trigtb)  
-      cout<<"tofmcffkeyD.trigtb  "<<tofmcffkeyD.trigtb<<" "
-          <<TOFMCFFKEY.trigtb<<endl;
-     if (tofmcffkeyD.mcprtf  != TOFMCFFKEY.mcprtf)  
-      cout<<"tofmcffkeyD.mcprtf  "<<tofmcffkeyD.mcprtf<<" "
-          <<TOFMCFFKEY.mcprtf<<endl;
-
-  for (i=0; i<2; i++) {
-    if (tofmcffkeyD.accdel[i]    != TOFMCFFKEY.accdel[i])  
-      cout<<"tofmcffkeyD.accdel "<<tofmcffkeyD.accdel[i]<<" "
-          <<TOFMCFFKEY.accdel[i]<<endl;
-    if (tofmcffkeyD.trlogic[i]   != TOFMCFFKEY.trlogic[i]) 
-      cout<<"tofmcffkeyD.trlogic "<<tofmcffkeyD.trlogic[i]<<" "
-          <<TOFMCFFKEY.trlogic[i]<<endl;
-    if (tofmcffkeyD.accdelmx[i]  != TOFMCFFKEY.accdelmx[i]) 
-      cout<<"tofmcffkeyD.accdelmx "<<tofmcffkeyD.accdelmx[i]<<" "
-          <<TOFMCFFKEY.accdelmx[i]<<endl;
-  }     
-
-  for (i=0; i<4; i++) {
-    if (tofmcffkeyD.tdcbin[i]    != TOFMCFFKEY.tdcbin[i]) {
-      cout<<"tofmcffkeyD.tdcbin[ "<<i<<"] "<<tofmcffkeyD.tdcbin[i]<<" "
-          <<TOFMCFFKEY.tdcbin[i]<<endl;
-   }
+  lm = sizeof(TOFMCFFKEY);
+  ld = tofmcffkeyD.size();
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- TOFMCFFKEY and tofmcffkeyD size are"
+        <<" not the same"<<endl;
+   goto tofrecffkey;
   }
-
-  for (i=0; i<5; i++) {
-    if (tofmcffkeyD.daqthr[i]    != TOFMCFFKEY.daqthr[i]) {
-      cout<<"tofmcffkeyD.daqthr[ "<<i<<"] "<<tofmcffkeyD.daqthr[i]<<" "
-          <<TOFMCFFKEY.daqthr[i]<<endl;
-   }
-  }
-
-  for (i=0; i<10; i++) {
-    if (tofmcffkeyD.daqpwd[i]    != TOFMCFFKEY.daqpwd[i]) {
-      cout<<"tofmcffkeyD.daqpwd "
-          <<tofmcffkeyD.daqpwd[i]<<" "<<TOFMCFFKEY.daqpwd[i]<<endl;
-   }
-  }
-
-tofrec:
-  cout<<"AMScommonsD::CmpConstants -I- TOFRECFFKEY  "<<endl;
-     if (tofrecffkeyD.Thr1 != TOFRECFFKEY.Thr1) 
-      cout<<"tofrecffkeyD.Thr1 "<<tofrecffkeyD.Thr1<<" "
-                                <<TOFRECFFKEY.Thr1<<endl;
-     if (tofrecffkeyD.ThrS != TOFRECFFKEY.ThrS) 
-      cout<<"tofrecffkeyD.ThrS "<<tofrecffkeyD.ThrS<<" "
-                                <<TOFRECFFKEY.ThrS<<endl;
-ctcgeom:
-     if (
-      (ctcgeomffkeyD.wallth != CTCGEOMFFKEY.wallth) ||
-      (ctcgeomffkeyD.agap   != CTCGEOMFFKEY.agap) ||
-      (ctcgeomffkeyD.wgap   != CTCGEOMFFKEY.wgap) ||
-      (ctcgeomffkeyD.wlsth  != CTCGEOMFFKEY.wlsth) ||
-      (ctcgeomffkeyD.supzc  != CTCGEOMFFKEY.supzc) ||
-      (ctcgeomffkeyD.aegden != CTCGEOMFFKEY.aegden) ||
-      (ctcgeomffkeyD.wlsden != CTCGEOMFFKEY.wlsden) ||
-      (ctcgeomffkeyD.nblk   != CTCGEOMFFKEY.nblk)   ||
-      (ctcgeomffkeyD.nwls   != CTCGEOMFFKEY.nwls) ) {
-      rstatus = oocError;
-      cout<<"AMScommonsD::CmpConstants -E- CTCGEOMFFKEY  are different "
-           <<" and will be set to DBASE values"<<endl;
-      CTCGEOMFFKEY = ctcgeomffkeyD;
-     if (ctcgeomffkeyD.wallth != CTCGEOMFFKEY.wallth) 
-       cout<<ctcgeomffkeyD.wallth<<" "<<CTCGEOMFFKEY.wallth<<endl;
-     if (ctcgeomffkeyD.agap   != CTCGEOMFFKEY.agap) 
-       cout<<ctcgeomffkeyD.agap<<" "<<CTCGEOMFFKEY.agap<<endl;
-     if (ctcgeomffkeyD.wgap   != CTCGEOMFFKEY.wgap) 
-       cout<<ctcgeomffkeyD.wgap<<" "<<CTCGEOMFFKEY.wgap<<endl;
-     if (ctcgeomffkeyD.wlsth  != CTCGEOMFFKEY.wlsth) 
-       cout<<ctcgeomffkeyD.wlsth<<" "<<CTCGEOMFFKEY.wlsth<<endl;
-     if (ctcgeomffkeyD.supzc  != CTCGEOMFFKEY.supzc) 
-       cout<<ctcgeomffkeyD.supzc<<" "<<CTCGEOMFFKEY.supzc<<endl;
-     if (ctcgeomffkeyD.aegden != CTCGEOMFFKEY.aegden) 
-       cout<<ctcgeomffkeyD.aegden<<" "<<CTCGEOMFFKEY.aegden<<endl;
-     if (ctcgeomffkeyD.wlsden != CTCGEOMFFKEY.wlsden) 
-       cout<<ctcgeomffkeyD.wlsden<<" "<<CTCGEOMFFKEY.wlsden<<endl;
-     if (ctcgeomffkeyD.nblk   != CTCGEOMFFKEY.nblk)   
-       cout<<ctcgeomffkeyD.nblk<<" "<<CTCGEOMFFKEY.nblk<<endl;
-     if (ctcgeomffkeyD.nwls   != CTCGEOMFFKEY.nwls) 
-       cout<<ctcgeomffkeyD.nwls<<" "<<CTCGEOMFFKEY.nwls<<endl;
-      goto ctcmc;
-  }
-  for (i=0; i<3; i++) {
-    if (
-         (ctcgeomffkeyD.agsize[i]    != CTCGEOMFFKEY.agsize[i]) ||
-         (ctcgeomffkeyD.hcsize[i]    != CTCGEOMFFKEY.hcsize[i]) ) {
-        cout<<"AMScommonsD::CmpConstants -W- CTCGEOMFFKEY  are different "
-            <<" and will be set to DBASE values"<<endl;
-        CTCGEOMFFKEY = ctcgeomffkeyD;
-         if (ctcgeomffkeyD.agsize[i]    != CTCGEOMFFKEY.agsize[i]) 
-          cout<<ctcgeomffkeyD.agsize[i]<<" "<<CTCGEOMFFKEY.agsize[i]<<endl;
-         if (ctcgeomffkeyD.hcsize[i]    != CTCGEOMFFKEY.hcsize[i]) 
-          cout<<ctcgeomffkeyD.hcsize[i]<<" "<<CTCGEOMFFKEY.hcsize[i]<<endl;
-        goto ctcmc;
+  buff = new integer[lm/4];
+  memcpy(buff,&TOFMCFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != tofmcffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- TOFMCFFKEY element "<<i
+        <<" is different "<<endl;
     }
   }
+  delete [] buff;
 
-ctcmc:
+tofrecffkey:
+  cout<<"AMScommonsD::CmpConstants -I- TOFRECFFKEY"<<endl;
+  lm = sizeof(TOFRECFFKEY);
+  ld = tofrecffkeyD.size();
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- TOFRECFFKEY and tofrecffkeyD size are"
+        <<" not the same"<<endl;
+   goto ctcmcffkey;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&TOFRECFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != tofrecffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- TOFRECFFKEY element "<<i
+        <<" is different "<<endl;
+    }
+  }
+  delete [] buff;
+
+ctcmcffkey:
   cout<<"AMScommonsD::CmpConstants -I- CTCMCFFKEY"<<endl;
-  for (i=0; i<2; i++) {
-     if (ctcmcffkeyD.Refraction[i]    != CTCMCFFKEY.Refraction[i]) 
-        cout<<"ctcmcffkeyD.Refraction["<<i<<"] "
-            <<ctcmcffkeyD.Refraction[i]<<" "<<CTCMCFFKEY.Refraction[i]<<endl;
-     if (ctcmcffkeyD.AbsLength[i]     != CTCMCFFKEY.AbsLength[i])  
-        cout<<"ctcmcffkeyD.AbsLength["<<i<<"] "
-            <<ctcmcffkeyD.AbsLength[i]<<" "<<CTCMCFFKEY.AbsLength[i]<<endl;
-     if (ctcmcffkeyD.Path2PhEl[i]     != CTCMCFFKEY.Path2PhEl[i]) 
-        cout<<"ctcmcffkeyD.Path2PhEl["<<i<<"] "
-            <<ctcmcffkeyD.Path2PhEl[i]<<" "<<CTCMCFFKEY.Path2PhEl[i]<<endl;
-    
+  lm = sizeof(CTCMCFFKEY);
+  ld = ctcmcffkeyD.size();
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- CTCMCFFKEY and ctcmcffkeyD size are"
+        <<" not the same"<<endl;
+   goto ctcgeomffkey;
   }
-
-
-  cout<<"AMScommonsD::CmpConstants -I- CTCRECFFKEY"<<endl;
-    if (ctcrecffkeyD.Thr1 != CTCRECFFKEY.Thr1) 
-      cout<<"ctcrecffkeyD.Thr1 "<<ctcrecffkeyD.Thr1<<" "
-                                <<CTCRECFFKEY.Thr1<<endl;
-    if (ctcrecffkeyD.ThrS != CTCRECFFKEY.ThrS) 
-      cout<<"ctcrecffkeyD.ThrS "<<ctcrecffkeyD.ThrS<<" "
-                                <<CTCRECFFKEY.ThrS<<endl;
-
-  cout<<"AMScommonsD::CmpConstants -I- TRMCFFKEY"<<endl;
-    if  (trmcffkeyD.alpha != TRMCFFKEY.alpha) 
-      cout<<"alpha "<<trmcffkeyD.alpha<<" "<<TRMCFFKEY.alpha<<endl;
-    if  (trmcffkeyD.beta  != TRMCFFKEY.beta) 
-      cout<<"beta  "<<trmcffkeyD.beta <<" "<<TRMCFFKEY.beta<<endl;
-    if  (trmcffkeyD.gamma != TRMCFFKEY.gamma) 
-      cout<<"gamma "<<trmcffkeyD.gamma<<" "<<TRMCFFKEY.gamma<<endl;
-    if  (trmcffkeyD.dedx2nprel != TRMCFFKEY.dedx2nprel) 
-      cout<<"dedx2nprel "<<trmcffkeyD.dedx2nprel<<" "
-          <<TRMCFFKEY.dedx2nprel<<endl;
-    if  (trmcffkeyD.fastswitch != TRMCFFKEY.fastswitch) 
-      cout<<"fastswitch "<<trmcffkeyD.fastswitch<<" "
-          <<TRMCFFKEY.fastswitch<<endl;
-   
-  for (i=0; i<2; i++) {
-         if (trmcffkeyD.ped[i]    != TRMCFFKEY.ped[i])   
-          cout<<"ped["<<i<<"] "<<trmcffkeyD.ped[i]<<" "
-              <<TRMCFFKEY.ped[i]<<endl;
-         if (trmcffkeyD.sigma[i]  != TRMCFFKEY.sigma[i]) 
-          cout<<"sigma[ "<<i<<"] "
-              <<trmcffkeyD.sigma[i]<<" "<<TRMCFFKEY.sigma[i]<<endl;
-         if (trmcffkeyD.gain[i]   != TRMCFFKEY.gain[i]) 
-          cout<<"gain["<<i<<"] "
-              <<trmcffkeyD.gain[i]<<" "<<TRMCFFKEY.gain[i]<<endl;
-         if (trmcffkeyD.thr[i]    != TRMCFFKEY.thr[i]) 
-          cout<<"thr["<<i<<"] "<<trmcffkeyD.thr[i]<<" "
-              <<TRMCFFKEY.thr[i]<<endl;
-         if (trmcffkeyD.neib[i]   != TRMCFFKEY.neib[i]) 
-          cout<<"neib["<<i<<"] "
-              <<trmcffkeyD.neib[i]<<" "<<TRMCFFKEY.neib[i]<<endl;
-         if (trmcffkeyD.cmn[i]    != TRMCFFKEY.cmn[i]) 
-          cout<<"cmn["<<i<<"] "
-              <<trmcffkeyD.cmn[i]<<" "<<TRMCFFKEY.cmn[i]<<endl;
-  }
-
-betafit:
-  cout<<"AMScommonsD::CmpConstants -I- BETAFITFFKEY"<<endl;
-  for (i=0; i<npatb; i++) {
-    if (betafitffkeyD.pattern[i]    != BETAFITFFKEY.pattern[i]) {
-      cout<<"pattern["<<i<<"] "<<betafitffkeyD.pattern[i]<<" "
-          <<BETAFITFFKEY.pattern[i]<<endl;
-   }
-  }
-  if (betafitffkeyD.Chi2    != BETAFITFFKEY.Chi2) {
-      cout<<"Chi2 "<<betafitffkeyD.Chi2<<" "<<BETAFITFFKEY.Chi2<<endl;
-   }
-  for (i=0; i<3; i++) {
-    if (betafitffkeyD.SearchReg[i]    != BETAFITFFKEY.SearchReg[i]) {
-      cout<<"pattern["<<i<<"] "<<betafitffkeyD.SearchReg[i]<<" "
-          <<BETAFITFFKEY.SearchReg[i]<<endl;
-   }
-  }
-
-trfit:
-
-  cout<<"AMScommonsD::CmpConstants -I- TRFITFFKEY"<<endl;
-  for (i=0; i<npat; i++) {
-    if (trfitffkeyD.pattern[i]    != TRFITFFKEY.pattern[i]) {
-      cout<<"pattern["<<i<<"] "<<trfitffkeyD.pattern[i]<<" "
-          <<TRFITFFKEY.pattern[i]<<endl;
-   }
-  }
-
-      if (trfitffkeyD.UseTOF         != TRFITFFKEY.UseTOF) 
-       cout<<"trfitffkeyD.UseTOF "<<trfitffkeyD.UseTOF
-           <<" "<<TRFITFFKEY.UseTOF<<endl;
-      if (trfitffkeyD.Chi2FastFit    != TRFITFFKEY.Chi2FastFit) 
-       cout<<"trfitffkeyD.Chi2FastFit "<<trfitffkeyD.Chi2FastFit
-           <<" "<<TRFITFFKEY.Chi2FastFit<<endl;
-      if (trfitffkeyD.Chi2StrLine    != TRFITFFKEY.Chi2StrLine) 
-        cout<<"trfitffkeyD.Chi2StrLine "<<trfitffkeyD.Chi2StrLine
-            <<" "<<TRFITFFKEY.Chi2StrLine<<endl;
-      if (trfitffkeyD.Chi2Circle     != TRFITFFKEY.Chi2Circle) 
-        cout<<"trfitffkeyD.Chi2Circle "<<trfitffkeyD.Chi2Circle
-            <<" "<<TRFITFFKEY.Chi2Circle<<endl;
-      if (trfitffkeyD.ResCutFastFit  != TRFITFFKEY.ResCutFastFit) 
-        cout<<"trfitffkeyD.ResCutFastFit "<<trfitffkeyD.ResCutFastFit
-            <<" "<<TRFITFFKEY.ResCutFastFit<<endl;
-      if (trfitffkeyD.ResCutStrLine  != TRFITFFKEY.ResCutStrLine) 
-        cout<<"trfitffkeyD.ResCutStrLine "<<trfitffkeyD.ResCutStrLine
-            <<" "<<TRFITFFKEY.ResCutStrLine<<endl;
-      if (trfitffkeyD.ResCutCircle   != TRFITFFKEY.ResCutCircle) 
-         cout<<"trfitffkeyD.ResCutCircle "<<trfitffkeyD.ResCutCircle
-             <<" "<<TRFITFFKEY.ResCutCircle<<endl;
-      if (trfitffkeyD.SearchRegStrLine   != TRFITFFKEY.SearchRegStrLine)
-         cout<<"trfitffkeyD.SearchRegStrLine "<<trfitffkeyD.SearchRegStrLine
-             <<" "<<TRFITFFKEY.SearchRegStrLine<<endl;
-      if (trfitffkeyD.SearchRegCircle   != TRFITFFKEY.SearchRegCircle)
-         cout<<"trfitffkeyD.SearchRegCircle "<<trfitffkeyD.SearchRegCircle
-             <<" "<<TRFITFFKEY.SearchRegCircle<<endl;
-      if (trfitffkeyD.RidgidityMin   != TRFITFFKEY.RidgidityMin) 
-         cout<<"trfitffkeyD.RidgidityMin "<<trfitffkeyD.RidgidityMin
-             <<" "<<TRFITFFKEY.RidgidityMin<<endl;
-
-  cout<<"AMScommonsD::CmpConstants -I- CCFFKEY"<<endl;
-      if (ccffkeyD.fixp     != CCFFKEY.fixp) 
-       cout<<" ccffkey.fixp "<<ccffkeyD.fixp<<" "<<CCFFKEY.fixp<<endl;
-      if (ccffkeyD.albedor  != CCFFKEY.albedor) 
-        cout<<" ccffkeyD.albedor "<<ccffkeyD.albedor<<" "<<CCFFKEY.albedor
-            <<endl;
-      if (ccffkeyD.albedocz != CCFFKEY.albedocz) 
-        cout<<" ccffkeyD.albedocz  "<<ccffkeyD.albedocz<<" "<<CCFFKEY.albedocz
-            <<endl;
-      if (ccffkeyD.npat     != CCFFKEY.npat)  
-        cout<<"ccffkeyD.npat "<<ccffkeyD.npat<<" "<<CCFFKEY.npat<<endl;
-
-  for(i=0; i<6; i++) {
-    if (ccffkeyD.coo[i]     != CCFFKEY.coo[i]) 
-      cout<<"ccffkey.coo["<<i<<"] "<<ccffkeyD.coo[i]
-          <<" "<<CCFFKEY.coo[i]<<endl;
-    if (ccffkeyD.dir[i]     != CCFFKEY.dir[i]) 
-      cout<<"ccffkey.dir["<<i<<"] "<<ccffkeyD.dir[i]
-          <<" "<<CCFFKEY.dir[i]<<endl;
-  }
-
-   for(i=0; i<2; i++) {
-    if( (ccffkeyD.momr[i]     != CCFFKEY.momr[i])) {
-      cout<<"ccffkey.momr["<<i<<"] "<<ccffkeyD.momr[i]<<" "
-          <<CCFFKEY.momr[i]<<endl;
+  buff = new integer[lm/4];
+  memcpy(buff,&CTCMCFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != ctcmcffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- CTCMCFFKEY element "<<i
+        <<" is different "<<endl;
     }
   }
+  delete [] buff;
 
-trcl:  
-  cout<<"AMScommonsD::CmpConstants -I- TRCLFFKEY"<<endl;
-  for(i=0; i<2; i++) {
-    if(trclffkeyD.ThrClA[i]     != TRCLFFKEY.ThrClA[i]) 
-      cout<<"trclffkeyD.ThrClA["<<i<<"] "<<trclffkeyD.ThrClA[i]<<" "
-                                        <<TRCLFFKEY.ThrClA[i]<<endl;
-    if (trclffkeyD.ThrClS[i]     != TRCLFFKEY.ThrClS[i]) 
-      cout<<"trclffkeyD.ThrClS["<<i<<"] "<<trclffkeyD.ThrClS[i]<<" "
-                                        <<TRCLFFKEY.ThrClS[i]<<endl; 
-    if (trclffkeyD.ThrClR[i]    != TRCLFFKEY.ThrClR[i]) 
-      cout<<"trclffkeyD.ThrClR["<<i<<"] "<<trclffkeyD.ThrClR[i]<<" "
-                                        <<TRCLFFKEY.ThrClR[i]<<endl; 
-    if (trclffkeyD.Thr1A[i]     != TRCLFFKEY.Thr1A[i]) 
-      cout<<"trclffkeyD.Thr1A["<<i<<"] "<<trclffkeyD.Thr1A[i]<<" "
-                                        <<TRCLFFKEY.Thr1A[i]<<endl;
-    if (trclffkeyD.Thr1S[i]     != TRCLFFKEY.Thr1S[i]) 
-      cout<<"trclffkeyD.Thr1S["<<i<<"] "<<trclffkeyD.Thr1S[i]<<" "
-                                        <<TRCLFFKEY.Thr1S[i]<<endl;
-    if (trclffkeyD.Thr1R[i]     != TRCLFFKEY.Thr1R[i]) 
-      cout<<"trclffkeyD.ThrC1R["<<i<<"] "<<trclffkeyD.Thr1R[i]<<" "
-                                        <<TRCLFFKEY.Thr1R[i]<<endl; 
-    if (trclffkeyD.Thr2A[i]     != TRCLFFKEY.Thr2A[i]) 
-      cout<<"trclffkeyD.Thr2A["<<i<<"] "<<trclffkeyD.Thr2A[i]<<" "
-                                        <<TRCLFFKEY.Thr2A[i]<<endl; 
-    if (trclffkeyD.Thr2S[i]     != TRCLFFKEY.Thr2S[i]) 
-      cout<<"trclffkeyD.Thr2S["<<i<<"] "<<trclffkeyD.Thr2S[i]<<" "
-                                        <<TRCLFFKEY.Thr2S[i]<<endl; 
-    if (trclffkeyD.Thr2R[i]     != TRCLFFKEY.Thr2R[i]) 
-      cout<<"trclffkeyD.Thr2R["<<i<<"] "<<trclffkeyD.Thr2R[i]<<" "
-                                        <<TRCLFFKEY.Thr2R[i]<<endl; 
-    if (trclffkeyD.Thr3R[i]     != TRCLFFKEY.Thr3R[i]) 
-      cout<<"trclffkeyD.Thr3R["<<i<<"] "<<trclffkeyD.Thr3R[i]<<" "
-                                        <<TRCLFFKEY.Thr3R[i]<<endl; 
-{  for(int k=0;k<6;k++){
-    if (trclffkeyD.CorFunParA[i][k]     != TRCLFFKEY.CorFunParA[i][k]) 
-      cout<<"trclffkeyD.CorFunParA["<<i<<" , "<<k<<
-      "] "<<trclffkeyD.CorFunParA[i][k]<<" " 
-       <<TRCLFFKEY.CorFunParA[i][k]<<endl; 
-}}
-{  for(int k=0;k<6;k++){
-    if (trclffkeyD.CorFunParB[i][k]     != TRCLFFKEY.CorFunParB[i][k]) 
-      cout<<"trclffkeyD.CorFunParB["<<i<<" , "<<k<<
-      "] "<<trclffkeyD.CorFunParB[i][k]<<" " 
-       <<TRCLFFKEY.CorFunParB[i][k]<<endl; 
-}}
+ctcgeomffkey:
+  cout<<"AMScommonsD::CmpConstants -I- CTCGEOMFFKEY"<<endl;
+  integer set_geom = 0;
+  lm = sizeof(CTCGEOMFFKEY);
+  ld = ctcgeomffkeyD.size();
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -E- CTCGEOMFFKEY and ctcgeomffkeyD size"
+        <<"  are not the same"<<endl;
+   rstatus = oocError;
+   goto cmpend;
   }
+
+   buff = new integer[lm/4];
+   memcpy(buff,&CTCGEOMFFKEY,lm);
+   for (i=0; i<ld; i++) {
+    if (buff[i] != ctcgeomffkeyD[i]) {
+     cout<<"AMScommonsD::CmpConstants -W- CTCGEOMFFKEY element "<<i
+         <<" is different "<<endl;
+     set_geom = 1;
+     }
+   }
+   delete [] buff;
+
+   if(set_geom != 0) {
+    set_geom = 0;
+    cout<<"AMScommonsD::CmpConstants -E- CTCGEOMFFKEY  are different "
+        <<" and will be set to DBASE values"<<endl;
+    buff = new integer[ld];
+    for (i=0; i< ld; i++) {buff[i] = ctcgeomffkeyD[i]; }
+    memcpy (&CTCGEOMFFKEY,buff,ld*4);
+    delete [] buff;
+   }
+
+ctcrecffkey:
+  cout<<"AMScommonsD::CmpConstants -I- TRMCFFKEY"<<endl;
+  lm = sizeof(TRMCFFKEY);
+  ld = trmcffkeyD.size();
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- TRMCFFKEY and trmcffkeyD size are"
+        <<" not the same"<<endl;
+   goto betafitffkey;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&TRMCFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != trmcffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- TRMCFFKEY element "<<i
+        <<" is different "<<endl;
+    }
+  }
+  delete [] buff;
+
+betafitffkey:
+  cout<<"AMScommonsD::CmpConstants -I- BETAFITFFKEY"<<endl;
+  lm = sizeof(BETAFITFFKEY);
+  ld = betafitffkeyD.size();
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- BETAFITFFKEY and betafitffkeyD "
+        <<" size are not the same"<<endl;
+   goto trfitffkey;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&BETAFITFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != betafitffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- BETAFITFFKEY element "<<i
+        <<" is different "<<endl;
+    }
+  }
+  delete [] buff;
+
+trfitffkey:
+  cout<<"AMScommonsD::CmpConstants -I- TRFITFFKEY"<<endl;
+  lm = sizeof(TRFITFFKEY);
+  ld = trfitffkeyD.size();
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- TRFITFFKEY and trfitffkeyD "
+        <<" size are not the same"<<endl;
+   goto ccffkey;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&TRFITFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != trfitffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- TRFITFFKEY element "<<i
+        <<" is different "<<endl;
+    }
+  }
+  delete [] buff;
+
+ccffkey:
+  cout<<"AMScommonsD::CmpConstants -I- CCFFKEY"<<endl;
+  lm = sizeof(CCFFKEY);
+  ld = ccffkeyD.size();
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- CCFFKEY and ccffkeyD "
+        <<" size are not the same"<<endl;
+   goto trclffkey;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&CCFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != ccffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- CCFFKEY element "<<i
+        <<" is different "<<endl;
+    }
+  }
+  delete [] buff;
+
+trclffkey:
+  cout<<"AMScommonsD::CmpConstants -I- TRCLFFKEY"<<endl;
+  lm = sizeof(TRCLFFKEY);
+  ld = trclffkeyD.size();
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- TRCLFFKEY and trclffkeyD "
+        <<" size are not the same"<<endl;
+   goto cmpend;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&TRCLFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != trclffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- TRCLFFKEY element "<<i
+        <<" is different "<<endl;
+    }
+  }
+  delete [] buff;
+
+cmpend:
 
   if (rstatus == oocError) 
       cout<<"AMScommonsD::CmpConstants -W- done, discrepancy found "<<endl;
@@ -367,4 +301,103 @@ trcl:
       cout<<"AMScommonsD::CmpConstants -I- done"<<endl;
 
 return rstatus;
+}
+
+void AMScommonsD::CopyConstants() {
+
+  integer  i;
+  integer  l, ld;
+  integer* buff;
+
+  cout <<"AMScommonsD -I- CopyConstants "<<endl;
+//tofmcffkey
+  l = sizeof(TOFMCFFKEY);
+  ld = tofmcffkeyD.size();
+  ld = ccffkeyD.size();
+  if (ld*4 != l) tofmcffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TOFMCFFKEY,l);
+  for (i=0; i<ld; i++) { tofmcffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//tofrecffkey
+  l = sizeof(TOFRECFFKEY);
+  ld = tofrecffkeyD.size();
+  if (ld*4 != l) tofrecffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TOFRECFFKEY,l);
+  for (i=0; i<ld; i++) { tofrecffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//ctcmcffkey
+  l = sizeof(CTCMCFFKEY);
+  ld = ctcmcffkeyD.size();
+  if(ld*4 != l) ctcmcffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CTCMCFFKEY,l);
+  for (i=0; i<ld; i++) { ctcmcffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//ctcgeomffkey
+  l = sizeof(CTCGEOMFFKEY);
+  ld = ctcgeomffkeyD.size();
+  if (ld*4 != l) ctcgeomffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CTCGEOMFFKEY,l);
+  for (i=0; i<ld; i++) { ctcgeomffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//ctcrecffkey
+  l = sizeof(CTCRECFFKEY);
+  ld = ctcrecffkeyD.size();
+  if (ld*4 != l) ctcrecffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CTCRECFFKEY,l);
+  for (i=0; i<ld; i++) { ctcrecffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//trmcffkey
+  l = sizeof(TRMCFFKEY);
+  ld = trmcffkeyD.size();
+  if (ld*4 != l) trmcffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRMCFFKEY,l);
+  for (i=0; i<ld; i++) { trmcffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//betafitffkey
+  l = sizeof(BETAFITFFKEY);
+  ld = betafitffkeyD.size();
+  if (ld*4 != l) betafitffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&BETAFITFFKEY,l);
+  for (i=0; i<ld; i++) { betafitffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//trfitffkey
+  l = sizeof(TRFITFFKEY);
+  ld = trfitffkeyD.size();
+  if (ld*4 != l) trfitffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRFITFFKEY,l);
+  for (i=0; i<l/4; i++) { trfitffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//ccffkey
+  l = sizeof(CCFFKEY);
+  ld = ccffkeyD.size();
+  if (ld*4 != l) ccffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CCFFKEY,l);
+  for (i=0; i<l/4; i++) { ccffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//trclffkey
+  l = sizeof(TRCLFFKEY);
+  ld = trclffkeyD.size();
+  if (ld*4 != l) trclffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRCLFFKEY,l);
+  for (i=0; i<l/4; i++) { trclffkeyD.set(i,buff[i]);}
+  delete [] buff;
 }

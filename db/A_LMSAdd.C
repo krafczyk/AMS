@@ -202,8 +202,8 @@ ooStatus LMS::FindEventList
                                    << listName << " exists" << endl;
          rstatus = oocSuccess;
         } else {
-	 cout << "LMS::FindEventList: - W - cannot find event list with name " 
-              << listName<< endl;
+	 cout << "LMS::FindEventList: - W - cannot find or open event list "
+              << " with name "<< listName<<", mode "<<mode<<endl;
         }          
 
         return rstatus;

@@ -81,8 +81,9 @@ class AMSEventList;
 //#include <typedefs.h>
 #include <A_LMS.h>
 
-implement (ooVArray, geant)  //;
-implement (ooVArray, number) //;
+implement (ooVArray, geant)   //;
+implement (ooVArray, number)  //;
+implement (ooVArray, integer) //;
 
 LMS	               dbout(oocUpdate);
 
@@ -145,6 +146,7 @@ extern "C" void uginit_(){
    char* jobname = AMSJob::gethead()->getname();
    if (eventW > 0) mode = oocUpdate;
    if (eventW < 1) mode = oocRead;
+   cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
    dbout.LMSInit(mode,jobname);
    readGeomDB();
 #else

@@ -1,7 +1,7 @@
 // May 29, 1996. ak.  Fill methods, objectivity first try
 // Oct 02, 1996. ak.  remove most of Fill subroutines
 //
-// last edit Oct 14, 1996, ak.
+// last edit Nov 26, 1996, ak.
 //
 
 #include <stdio.h>
@@ -181,7 +181,11 @@ void LMS::CheckConstants()
       if (commonsItr.next()) {
        cout <<"AMSEventList::CheckConstants -I- check commons"<<endl;
        rstatus = commonsItr -> CmpConstants();
-       rstatus = oocSuccess;
+       if (rstatus != oocSuccess) {
+        cout <<"AMSEventList::CheckConstants -E- Quit"<<endl;
+        rstatus = oocError;
+        goto error;
+       }
       } 
       ctcdbcItr.scan(contH, mode);
       if (ctcdbcItr.next()) {
