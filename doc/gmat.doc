@@ -52,7 +52,8 @@ class AMSgtmed : public AMSNode   // Geant Tracking Media
     geant _deemax;                        // max energy loss
     geant _epsil;                         // boundary crossing precision
     geant _stmin;                         // min step
-    geant _ubuf[1];                       // aux
+    integer _nwbuf;
+    geant * _ubuf;                       // aux
     geant _birks[3];                      // birks parameters (if any)   
     char _yb;                             // internal
 
@@ -66,3 +67,18 @@ class AMSgtmed : public AMSNode   // Geant Tracking Media
             geant stmin=-1 );   // ini ctor
 
     integer getmedia(){return _itmed;}   // return media no
+
+
+
+Geant3/trd package interface is made thru ubuf user words.
+
+trd aware media will have defined 4 to 5 user words:
+1st trd identifier == TRDMCFFKEY.g3trd;
+2st trd generation option == TRDMCFFKEY.mode (0 = Generation, Propagation and dedx from Aachen;
+                                              1 = Generation from Aachen, propagation and dedx from pai; 
+                                              2 = Generation from Garibyan, propagation and tracing from pai;
+3rd word   material type                      1 radiator
+                                              2 straw
+                                              3 gas
+                                              4+ reserved
+4+ word option dependent                       

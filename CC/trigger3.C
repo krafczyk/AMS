@@ -7,7 +7,7 @@
 #include <antirec.h>
 #include <trrawcluster.h>
 #include <ntuple.h>
-
+using namespace trconst;
 void TriggerAuxLVL3::fill(integer crate){
 
 
@@ -76,16 +76,16 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
   integer TriggerLVL3::_TOFStatus[SCLRS][SCMXBR];
   integer TriggerLVL3::_TOFOr[SCLRS][SCMXBR];
   integer TriggerLVL3::_TrackerStatus[NTRHDRP2];
-  integer TriggerLVL3::_TrackerAux[NTRHDRP][ncrt];
+  integer TriggerLVL3::_TrackerAux[NTRHDRP][trid::ncrt];
   integer TriggerLVL3::_TOFAux[SCLRS][SCMXBR];
   integer TriggerLVL3::_NTOF[SCLRS];
   geant TriggerLVL3::_TOFCoo[SCLRS][SCMXBR][3];
-  geant TriggerLVL3::_TrackerCoo[NTRHDRP][ncrt][3];
- geant TriggerLVL3::_TrackerDir[NTRHDRP][ncrt];
+  geant TriggerLVL3::_TrackerCoo[NTRHDRP][trid::ncrt][3];
+ geant TriggerLVL3::_TrackerDir[NTRHDRP][trid::ncrt];
   geant TriggerLVL3::_TrackerCooZ[maxlay];
-  integer TriggerLVL3::_TrackerDRP2Layer[NTRHDRP][ncrt];
+  integer TriggerLVL3::_TrackerDRP2Layer[NTRHDRP][trid::ncrt];
   number TriggerLVL3::_stripsize=0.0055;
-integer TriggerLVL3::_TrackerOtherTDR[NTRHDRP][ncrt];
+integer TriggerLVL3::_TrackerOtherTDR[NTRHDRP][trid::ncrt];
 
 
 
@@ -213,7 +213,7 @@ void TriggerLVL3::init(){
 #endif
       }
     }
-    for(i=0;i<ntdr;i++){
+    for(i=0;i<trid::ntdr;i++){
        for( int k=0;k<AMSTrIdSoft::ncrates();k++){
         AMSTrIdSoft id(k,i,1,0);
         if(!id.dead()){         
@@ -275,7 +275,7 @@ void TriggerLVL3::init(){
        }
     }
     int k;
-    for (i=0;i<ntdr;i++){
+    for (i=0;i<trid::ntdr;i++){
       for(k=0;k<AMSTrIdSoft::ncrates();k++){
        AMSTrIdSoft id(k,i,1,0);
        if(!id.dead())_TrackerDRP2Layer[i][k]=id.getlayer()-1;
@@ -506,7 +506,7 @@ geant TriggerLVL3::Discriminator(integer nht){
      if(plvl1){
        int16 * ptr;
        number tt1,tt2;
-       TriggerAuxLVL3 aux[ncrt];
+       TriggerAuxLVL3 aux[trid::ncrt];
        for(int icrt=0;icrt<AMSTrIdSoft::ncrates();icrt++)aux[icrt].fill(icrt);
        int idum;
        TriggerLVL3 *plvl3=0;

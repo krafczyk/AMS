@@ -1,6 +1,7 @@
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
+using namespace trdconst;
 char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 "TRDCarbonFiber","TRDHC","TRDFoam","VACUUM","TRDHC"};
 char * TRDDBc::_TubesMedia="TRDCapton";

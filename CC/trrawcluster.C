@@ -9,6 +9,7 @@
 #include <trid.h>
 #include <ntuple.h>
 #include <event.h>
+using trid::ntdr;
 const integer AMSTrRawCluster::MATCHED=1;
 integer AMSTrRawCluster::TestRawMode(){
   AMSTrIdSoft id(_address);

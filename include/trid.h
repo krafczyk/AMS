@@ -12,8 +12,11 @@
 #include <link.h>
 #include <job.h>
 #include <tkdbc.h>
+namespace trid{
+const integer ms=4000;
 const int ncrt=8;
 const int ntdr=32;
+}
 class AMSTrIdGeom{
 integer _layer;    // from 1 to TKDBc::nlay()
 integer _ladder;   // from 1 to TKDBc::nlad(_layer)
@@ -72,19 +75,16 @@ inline number strip2size(integer side) const{
 }
 
 static integer debug;
-static number *  _swxy[maxlay][2] ;  // strip size x,y
-static number *  _swxyl[maxlay][2];   // integral of strip size
+static number *  _swxy[trconst::maxlay][2] ;  // strip size x,y
+static number *  _swxyl[trconst::maxlay][2];   // integral of strip size
 //
 // we have to have yet different apporiach to real data
 //
-static number *  _swxyR[maxlay][2] ;  // strip size x,y
-static number *  _swxyRl[maxlay][2];   // integral of strip size
+static number *  _swxyR[trconst::maxlay][2] ;  // strip size x,y
+static number *  _swxyRl[trconst::maxlay][2];   // integral of strip size
 
 static void init();
 };
-namespace trid{
-const integer ms=4000;
-}
 class AMSTrIdSoft{
 protected:
 integer _dead;    // dead   if 1  ; alive otherwise
@@ -106,8 +106,8 @@ static char *   _TGa[2];
 static char *   _TSt[2];
 static char *   _TRM[2];
 static char *   _TCm;
-static uinteger _CrateNo[ncrt];
-static geant laser[maxlay][2];
+static uinteger _CrateNo[trid::ncrt];
+static geant laser[trconst::maxlay][2];
 static integer idsoft2linear[trid::ms];
 static integer *status;
 static geant *peds;
@@ -123,9 +123,9 @@ const static integer _VAChannels;
 void _check();
 void _mkhaddr();
 void _mkcrate();
- static integer _GetGeo[ncrt][ntdr][2][3];   // crate,tdrs,side ->
+ static integer _GetGeo[trid::ncrt][trid::ntdr][2][3];   // crate,tdrs,side ->
                                              //layer,ladder,half
- static integer _GetHard[maxlay][maxlad][2][3];     // layer,ladder,half ->
+ static integer _GetHard[trconst::maxlay][trconst::maxlad][2][3];     // layer,ladder,half ->
                                              // tdrs(0&1), crate
   
 
@@ -137,7 +137,7 @@ static void inittable(int setup);
 integer operator < (const AMSTrIdSoft & o)const;
 static uinteger ncrates() {return _ncrates;}
 static uinteger CrateNo(int i){return i>=0 && i<_ncrates? _CrateNo[i]:0;}
-static uinteger ndrp() {return _ncrates*ntdr;}
+static uinteger ndrp() {return _ncrates*trid::ntdr;}
 static inline integer getnchan() {return _numel;}
 inline integer dead() const {return _dead==1;}
 integer match(AMSTrIdGeom * pid);

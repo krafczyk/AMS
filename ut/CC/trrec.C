@@ -806,7 +806,7 @@ for(int i=0;i<2;i++){
 }
 }
 
-AMSTrRecHit * AMSTrRecHit::_Head[maxlay]={0,0,0,0,0,0,0,0};
+AMSTrRecHit * AMSTrRecHit::_Head[trconst::maxlay]={0,0,0,0,0,0,0,0};
 
 
 integer AMSTrRecHit::build(integer refit){
@@ -1395,7 +1395,7 @@ trig=(trig+1)%freq;
 
 
 
-integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[maxlay]){
+integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trconst::maxlay]){
 
 #ifdef __UPOOL__
     AMSTrTrack track(pat, nhit ,pthit);
@@ -1430,7 +1430,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[maxla
 
 
 
-void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrRecHit* pthit[maxlay]){
+void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrRecHit* pthit[trconst::maxlay]){
 
          int i;
          // Mark hits as USED
@@ -2345,7 +2345,7 @@ void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
 void AMSTrTrack::init(AMSTrRecHit * phit[] ){
 int i;
 for( i=0;i<_NHits;i++)_Pthit[i]=phit[i];
-for(i=_NHits;i<maxlay;i++)_Pthit[i]=0;
+for(i=_NHits;i<trconst::maxlay;i++)_Pthit[i]=0;
  _GChi2=-1;
  _GRidgidity=0;
  _GErrRidgidity=0;
@@ -2785,7 +2785,7 @@ void AMSTrTrack::_buildaddress(){
 
 }
 
-void AMSTrTrack::decodeaddress(integer ladder[2][maxlay], uinteger _Address){
+void AMSTrTrack::decodeaddress(integer ladder[2][trconst::maxlay], uinteger _Address){
    for(int i=0;i<TKDBc::nlay();i++){
     uinteger lad=(_Address/TKDBc::Cumulus(i+1))%(2*TKDBc::nlad(i+1)+1);
     ladder[0][i]=lad%(TKDBc::nlad(i+1)+1);
@@ -2801,8 +2801,8 @@ uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
 
     const int maxchld=21;
     static uinteger achld[maxchld];
-    integer lad[2][maxlay];    
-    integer lad1[2][maxlay];    
+    integer lad[2][trconst::maxlay];    
+    integer lad1[2][trconst::maxlay];    
     integer npt=0;
     decodeaddress(lad,address);
     int xnpt=0;
@@ -2846,7 +2846,7 @@ uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
 }
 
 
-uinteger AMSTrTrack::encodeaddress(integer ladder[2][maxlay]){
+uinteger AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
    uinteger address=0;
    for(int i=0;i<TKDBc::nlay();i++){
      address+= TKDBc::Cumulus(i+1)*(ladder[0][i]+ladder[1][i]*(TKDBc::nlad(i+1)+1));
@@ -2857,7 +2857,7 @@ uinteger AMSTrTrack::encodeaddress(integer ladder[2][maxlay]){
 AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point):AMSlink(0,0),
 _Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
 _Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
- for(int i=0;i<maxlay;i++){
+ for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
  }
  _Theta=dir.gettheta();
@@ -2912,7 +2912,7 @@ integer AMSTrTrack::_TrSearcherFalseTOFX(int icall){
 
 integer AMSTrTrack::pat=0;
 
-AMSTrRecHit* AMSTrTrack::phit[maxlay]={0,0,0,0,0,0,0,0};
+AMSTrRecHit* AMSTrTrack::phit[trconst::maxlay]={0,0,0,0,0,0,0,0};
 
 number AMSTrTrack::par[2][2];
 

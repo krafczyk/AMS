@@ -14,7 +14,9 @@ const uinteger maxlad=21;
 const uinteger maxtube=16;
 const uinteger TRDROTMATRIXNO=9001;
 }
-using namespace trdconst;
+using trdconst::mtrdo;
+using trdconst::maxo;
+using trdconst::TRDROTMATRIXNO;
 class TRDDBc{
 
 private:

@@ -18,7 +18,7 @@
 #include <commons.h>
 #include <stdlib.h>
 #include <ctcdbc.h>
-
+#include <trdid.h>
 //========================================================  
 class AMSTOFMCCluster: public AMSlink{
 public:
@@ -298,4 +298,66 @@ public:
 
 
 };
+
+
+
+
+
+
+
+class AMSTRDMCCluster: public AMSlink{
+protected:
+ AMSTRDIdGeom _idsoft;   // geant stray id
+ integer _itra;     // geant itra
+ AMSPoint _xgl;     // global coo (cm)
+ number   _edep;      // energy deposition (GeV)
+ number   _ekin;      // total particle energy
+ void _printEl(ostream & stream);
+ void _writeEl();
+ void _copyEl();
+ static integer _NoiseMarker;
+ static integer Out(integer);
+public:
+ // Constructor for noise &crosstalk
+ AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra):AMSlink(){};
+ // Constructor for geant track
+ AMSTRDMCCluster(integer idsoft , AMSPoint xgl, geant energy, geant edep, integer itra):AMSlink(),
+_idsoft(idsoft),_ekin(energy),_edep(edep),_itra(itra),_xgl(xgl){}
+
+ static void    sitrdhits(integer idsoft ,geant vect[],
+        geant destep, geant ekin, geant step,integer ipart);   
+
+ // Constructor for daq
+ AMSTRDMCCluster (AMSPoint xgl, integer itra): AMSlink(),
+  _idsoft(0),_xgl(xgl),_edep(0),_ekin(0),_itra(itra){}
+
+ AMSTRDMCCluster():AMSlink(){};
+ ~AMSTRDMCCluster(){};
+  integer IsNoise(){return _itra==_NoiseMarker;}
+  AMSPoint getHit(){return _xgl;}
+  static integer noisemarker(){return _NoiseMarker;}
+  
+  AMSTRDMCCluster *  next(){return (AMSTRDMCCluster*)_next;}
+ static void sitrdnoise(){};
+ static void init();
+ integer operator < (AMSlink & o)const{
+ return _idsoft.cmpt() < (((AMSTRDMCCluster*)(&o)) ->_idsoft).cmpt();}
+
+ // Interface with DAQ
+
+/*
+ static int16u getdaqid(){return (15 <<9);}
+ static integer checkdaqid(int16u id);
+ static integer calcdaqlength(integer i);
+ static integer getmaxblocks(){return 1;}
+ static void builddaq(integer i, integer n, int16u *p);
+ static void buildraw(integer n, int16u *p);
+*/
+
+
+
+};
+
+
+
 #endif

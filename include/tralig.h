@@ -193,7 +193,7 @@ number _pfitbefore;  //pointer to fitterd mom before
 number _pfits;  //pointer to fitterd mom sigma
 AMSTrAligPar _pParC[6];
 static AMSTrAligPar _pPargl[17][2][6];
-static gldb_def _gldb[maxlad][2][6];
+static gldb_def _gldb[trconst::maxlad][2][6];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);

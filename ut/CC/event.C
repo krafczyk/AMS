@@ -713,6 +713,8 @@ void AMSEvent::_sirichinitevent(){
 void AMSEvent::_sisrdinitevent(){
 }
 void AMSEvent::_sitrdinitevent(){
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTRDMCCluster",0),0));
 }
 
 
@@ -2138,6 +2140,7 @@ else{
   EN->TrClusters=0;
   EN->TrRawClusters=0;
   EN->TrMCClusters=0;
+  EN->TRDMCClusters=0;
   EN->TOFClusters=0;
   EN->TOFMCClusters=0;
   EN->AntiClusters=0;
@@ -2189,6 +2192,12 @@ else{
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrMCCluster",i);
    if(p) EN->TrMCClusters+=p->getnelem();
+   else break;
+  }
+ 
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTRDMCCluster",i);
+   if(p) EN->TRDMCClusters+=p->getnelem();
    else break;
   }
  

@@ -10,7 +10,6 @@ namespace trconst{
 const integer maxlay=8;
 const integer maxlad=17;
 }
-using namespace trconst;
 
 class AMSPoint;
 class TKDBc{
@@ -23,10 +22,10 @@ private:
  static TKDBc * _HeadLayer;
  static TKDBc * _HeadLadder[2];
  static TKDBc * _HeadMarker[2];
- static integer * _patconf[maxlay];
+ static integer * _patconf[trconst::maxlay];
  static integer * _patpoints;
- static integer * _patmiss[maxlay];
- static integer  _patd[maxlay]; 
+ static integer * _patmiss[trconst::maxlay];
+ static integer  _patd[trconst::maxlay]; 
  static integer * _patallow;
  static integer * _patallow2;
  static uinteger _Npat;
@@ -37,32 +36,32 @@ private:
  static integer _ReadOK; 
 // Tracker parameters
    static  integer _nlaysi;    // number of si layers
-   static  number   _layd[maxlay][5]; // pointer to supp plane
-   static  number   _xposl[maxlay];   // pointers to si layers pos
-   static  number   _yposl[maxlay];
-   static  number   _zposl[maxlay];
-   static  number   _nrml[maxlay][3][3];
-   static  integer  _nlad[maxlay];
-   static  integer  _nsen[maxlay][maxlad];
-   static  integer  _nhalf[maxlay][maxlad];
-   static  number   _zpos[maxlay];
-   static  number   _ssize_active[maxlay][2];
-   static  number   _ssize_inactive[maxlay][2];
-   static  integer  _nstripssen[maxlay][2];
-   static  integer  _nstripssenR[maxlay][2];
-   static  integer  _nstripsdrp[maxlay][2];
-   static  number   _silicon_z[maxlay];
-   static  number   _zelec[maxlay][3];
-   static  number   _c2c[maxlay];
-   static  number   _halfldist[maxlay];
-   static  number   _support_foam_w[maxlay];
-   static  number   _support_foam_tol[maxlay];
-   static  number   _support_hc_w[maxlay];
-   static  number   _support_hc_r[maxlay];
-   static  number   _support_hc_z[maxlay];
-   static  integer  _nladshuttle[maxlay][2];
-   static  integer  _boundladshuttle[maxlay][2];
-   static  number   _PlMarkerPos[maxlay][2][4][3];  // 1st wjb
+   static  number   _layd[trconst::maxlay][5]; // pointer to supp plane
+   static  number   _xposl[trconst::maxlay];   // pointers to si layers pos
+   static  number   _yposl[trconst::maxlay];
+   static  number   _zposl[trconst::maxlay];
+   static  number   _nrml[trconst::maxlay][3][3];
+   static  integer  _nlad[trconst::maxlay];
+   static  integer  _nsen[trconst::maxlay][trconst::maxlad];
+   static  integer  _nhalf[trconst::maxlay][trconst::maxlad];
+   static  number   _zpos[trconst::maxlay];
+   static  number   _ssize_active[trconst::maxlay][2];
+   static  number   _ssize_inactive[trconst::maxlay][2];
+   static  integer  _nstripssen[trconst::maxlay][2];
+   static  integer  _nstripssenR[trconst::maxlay][2];
+   static  integer  _nstripsdrp[trconst::maxlay][2];
+   static  number   _silicon_z[trconst::maxlay];
+   static  number   _zelec[trconst::maxlay][3];
+   static  number   _c2c[trconst::maxlay];
+   static  number   _halfldist[trconst::maxlay];
+   static  number   _support_foam_w[trconst::maxlay];
+   static  number   _support_foam_tol[trconst::maxlay];
+   static  number   _support_hc_w[trconst::maxlay];
+   static  number   _support_hc_r[trconst::maxlay];
+   static  number   _support_hc_z[trconst::maxlay];
+   static  integer  _nladshuttle[trconst::maxlay][2];
+   static  integer  _boundladshuttle[trconst::maxlay][2];
+   static  number   _PlMarkerPos[trconst::maxlay][2][4][3];  // 1st wjb
                                                     // 2nd hasan
    static uinteger factorial(uinteger n);
    static void InitPattern();
@@ -153,7 +152,7 @@ inline static  number  PlMarkerPos(int i,int j,int k,int l)
    inline static  number  yposl(integer i){return _yposl[i];}
    inline static  number  zposl(integer i){return _zposl[i];}
    inline static  number nrml(int i, int j, int k){return _nrml[k][i][j];}
-   inline static integer maxnlad(){return maxlad;}
+   inline static integer maxnlad(){return trconst::maxlad;}
    inline static  number  zpos(integer i){return _zpos[i];}
    inline static  number  halfldist(integer i){return _halfldist[i];}
    inline static number  ssize_active(integer ilay, integer side){

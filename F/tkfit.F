@@ -106,6 +106,15 @@ c      print*,'First: OUTpar= ', OUTpar
           IF (J.EQ.1) then
             ux = OUTPAR(3)
             uy = OUTPAR(4)
+* Iterate with initial angles if nonsense
+            if (ux**2+uy**2.ge.1.) THEN
+              unorm = sqrt(  (XM(1,2)-XM(1,1))**2
+     >             + (XM(2,2)-XM(2,1))**2
+     >             + (XM(3,2)-XM(3,1))**2)
+              OUTPAR(3) = (XM(1,2)-XM(1,1))/UNORM
+              OUTPAR(4) = (XM(2,2)-XM(2,1))/UNORM
+              GOTO 30
+            endif
             uz = -sqrt(1.-ux**2-uy**2)
             AL(1) = 0.
             XP(1,1) = OUTPAR(1)
@@ -113,6 +122,15 @@ c      print*,'First: OUTpar= ', OUTpar
           ELSE
             ux = ux + OUTPAR(5)*AL(J-1)*av(1,J-1)
             uy = uy + OUTPAR(5)*AL(J-1)*av(2,J-1)
+* Iterate with initial angles if nonsense
+            if (ux**2+uy**2.ge.1.) THEN
+              unorm = sqrt(  (XM(1,2)-XM(1,1))**2
+     >             + (XM(2,2)-XM(2,1))**2
+     >             + (XM(3,2)-XM(3,1))**2)
+              OUTPAR(3) = (XM(1,2)-XM(1,1))/UNORM
+              OUTPAR(4) = (XM(2,2)-XM(2,1))/UNORM
+              GOTO 30
+            endif
 c            print*,' ux, uy= ', ux, uy
             uz = -sqrt(1.-ux**2-uy**2)
             IF (OUTPAR(5).eq.0.) then

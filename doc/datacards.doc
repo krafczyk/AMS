@@ -682,3 +682,10 @@ I1 HISW(1)              // heavy ion mc switch (1== abpackage)
 I2 HISA(0)              // additional switch hisw dependent
 
 
+
+TRDMC
+I1 mode        //0: saveliev 1: saveliev+Pai 2: garibyan + Pai 
+I2 g3trd        // g3identifier for trd aware media
+R3 cor
+R4 alpha
+R5 beta

@@ -102,13 +102,16 @@ else{
 // Station
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,1000]:I,EcalClusters[0,5000]:I,EventStatus:I,EcalCell[0,10000]:I");
+"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,30000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,1000]:I,EcalClusters[0,500]:I,EventStatus:I,EcalCell[0,1000]:I");
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,150],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
 
   HBNAME(_lun,"Charge",&_charge.Ncharge,
     "ncharge[0,150],chargestatus(ncharge):I,chargebetap(ncharge)[-1,30000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,probtof(4,ncharge),chintof(4,ncharge)[0,100]:I,probtracker(4,ncharge),chintracker(4,ncharge)[0,100]:I,proballtracker(ncharge),truntof(ncharge),truntofd(ncharge),truntracker(ncharge)");
+
+  HBNAME(_lun,"TRDMCCl",&_trdclmc.Ntrdclmc,
+  "ntrdmccl[0,200],trdlayer(ntrdmccl)[0,20]:I,trdladder(ntrdmccl)[0,40]:I,trdtube(ntrdmccl)[0,100]:I,trdtrack(ntrdmccl)[0,1000]:I,trdedep(ntrdmccl),trdekin(ntrdmccl),trdxgl(3,ntrdmccl)");
 
   HBNAME(_lun,"Particle",&_part02.Npart,
   "npart[0,100],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cootr(3,8,npart)");
@@ -188,6 +191,7 @@ void AMSNtuple::reset(int full){
     if(_tofmc.Ntofmc)VZERO(&_tofmc,sizeof(_tofmc)/sizeof(integer));
     if(_trcl.Ntrcl)VZERO(&_trcl,sizeof(_trcl)/sizeof(integer));
     if(_trclmc.Ntrclmc)VZERO(&_trclmc,sizeof(_trclmc)/sizeof(integer));
+    if(_trdclmc.Ntrdclmc)VZERO(&_trdclmc,sizeof(_trdclmc)/sizeof(integer));
     if(_trrh.Ntrrh)VZERO(&_trrh,sizeof(_trrh)/sizeof(integer));
     if(_trtr.Ntrtr)VZERO(&_trtr,sizeof(_trtr)/sizeof(integer));
     if(_trtr02.Ntrtr)VZERO(&_trtr02,sizeof(_trtr02)/sizeof(integer));
@@ -215,6 +219,7 @@ void AMSNtuple::reset(int full){
    _ecalcell.Ncelle = 0;
    _tofmc.Ntofmc = 0;
    _trcl.Ntrcl = 0;
+   _trdclmc.Ntrdclmc=0;
     if(_trclmc.Ntrclmc)VZERO(&_trclmc,sizeof(_trclmc)/sizeof(integer));
    _trrh.Ntrrh = 0;
    _trtr.Ntrtr = 0;

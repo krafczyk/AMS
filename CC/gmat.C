@@ -79,13 +79,27 @@ void AMSgtmed::_init(){
   }
 #endif
   GSTMED(_itmed,_name,_pgmat->getmati(),_isvol,_ifield,_fieldm,_tmaxfd,
-  _stemax,_deemax,_epsil,_stmin,_ubuf,1);
+  _stemax,_deemax,_epsil,_stmin,_uwbuf,_nwbuf);
   if(_yb=='Y'){
    GSTPAR(_itmed,"BIRK1",_birks[0]);
    GSTPAR(_itmed,"BIRK2",_birks[1]);
    GSTPAR(_itmed,"BIRK3",_birks[2]);
   }
+  if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]!=0){
+   GSTPAR(_itmed,"STRA",1);
+   GSTPAR(_itmed,"CUTGAM",1.e-6);
+   if(IsSensitive())GSTPAR(_itmed,"CUTELE",1.e-6);
+  }
 }      
+void AMSgtmed::setubuf(int nwbuf,geant ubuf[]){
+ _nwbuf=nwbuf;
+ if(_nwbuf){
+   _uwbuf=new geant[_nwbuf];
+   if(_uwbuf){
+    for(int i=0;i<_nwbuf;i++)_uwbuf[i]=ubuf[i];
+   }
+ }
+}
 ostream & AMSgtmed::print(ostream & stream)const{
 return(AMSID::print(stream)  <<  " GSTMED" << endl);
 }
@@ -492,13 +506,35 @@ GSTPAR(GetLastMedNo(),"CUTELE",ECMCFFKEY.cutge);
 //----------------
 
 { // TRD Media by V. Choutko  seems to be also wrong
-
+geant uwbuf[5];
+integer nwbuf=5;
+uwbuf[0]=TRDMCFFKEY.g3trd;
+uwbuf[1]=TRDMCFFKEY.mode;
+if(TRDMCFFKEY.mode<2){
+uwbuf[3]=TRDMCFFKEY.cor;
+uwbuf[4]=0;
+}
+else{
+uwbuf[3]=TRDMCFFKEY.alpha;
+uwbuf[4]=TRDMCFFKEY.beta;
+}
 tmed.add (new AMSgtmed("TRDHC","TRDHC",0));
 tmed.add (new AMSgtmed("TRDCarbonFiber","TRDCarbonFiber",0));
-tmed.add (new AMSgtmed("TRDGas","XECF4_80/20",1));
+uwbuf[2]=3;
+AMSgtmed * pgas=new AMSgtmed("TRDGas","XECF4_80/20",1);
+pgas->setubuf(nwbuf,uwbuf);
+tmed.add (pgas);
+
 tmed.add (new AMSgtmed("TRDFoam","TRDFoam",0));
-tmed.add (new AMSgtmed("TRDCapton","MYLAR",0));
-tmed.add (new AMSgtmed("TRDRadiator","TRDRadiator",1));
+uwbuf[2]=2;
+AMSgtmed * pwall=new AMSgtmed("TRDCapton","MYLAR",0);
+pwall->setubuf(nwbuf,uwbuf);
+tmed.add (pwall);
+
+uwbuf[2]=1;
+AMSgtmed * prad=new AMSgtmed("TRDRadiator","TRDRadiator",0);
+prad->setubuf(nwbuf,uwbuf);
+tmed.add (prad);
 
 
 

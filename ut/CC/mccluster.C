@@ -12,6 +12,77 @@
 #include <ntuple.h>
 #include <richdbc.h>
 
+
+integer AMSTRDMCCluster::_NoiseMarker(555);
+
+void AMSTRDMCCluster::sitrdhits(
+integer idsoft , geant vect[],geant edep, geant ekin, geant step, integer itra ){
+
+
+        AMSPoint xgl(vect[0],vect[1],vect[2]);
+      AMSEvent::gethead()->addnext(AMSID("AMSTRDMCCluster",0),
+      new AMSTRDMCCluster(idsoft,xgl,ekin,edep,itra));
+
+
+
+}
+
+void AMSTRDMCCluster::_writeEl(){
+  TRDMCClusterNtuple* TRDMCClusterN = AMSJob::gethead()->getntuple()->Get_trdclmc();
+  
+  if (TRDMCClusterN->Ntrdclmc>=MAXTRDCLMC) return;
+
+  integer flag =    (IOPA.WriteAll%10==1)
+                 || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED));
+  if(AMSTRDMCCluster::Out(flag)){
+    TRDMCClusterN->Layer[TRDMCClusterN->Ntrdclmc]=_idsoft.getlayer();
+    TRDMCClusterN->Ladder[TRDMCClusterN->Ntrdclmc]=_idsoft.getladder();
+    TRDMCClusterN->Tube[TRDMCClusterN->Ntrdclmc]=_idsoft.gettube();
+    TRDMCClusterN->Edep[TRDMCClusterN->Ntrdclmc]=_edep;
+    TRDMCClusterN->Ekin[TRDMCClusterN->Ntrdclmc]=_ekin;
+    TRDMCClusterN->TrackNo[TRDMCClusterN->Ntrdclmc]=_itra;
+    for(int i=0;i<3;i++)TRDMCClusterN->Xgl[TRDMCClusterN->Ntrdclmc][i]=_xgl[i];
+    TRDMCClusterN->Ntrdclmc++;
+}   
+}
+
+void AMSTRDMCCluster::_copyEl(){
+}
+
+void AMSTRDMCCluster::_printEl(ostream & stream){
+stream <<"AMSTRDMCCluster "<<_idsoft<<" "
+ <<_edep<<" "<<_ekin<<" "<<_itra<<" "<<_xgl<<endl;
+}
+
+void AMSTRDMCCluster::init(){
+if(TRDMCFFKEY.mode<2){
+}
+else{
+cerr<< "AMSJob::_sitrdinitjob-F-Option "<<TRDMCFFKEY.mode<<" NotYetImplemented"<<endl;
+exit(1);
+}
+
+}
+
+
+integer AMSTRDMCCluster::Out(integer status){
+static integer init=0;
+static integer WriteAll=0;
+if(init == 0){
+ init=1;
+ integer ntrig=AMSJob::gethead()->gettriggerN();
+ for(int n=0;n<ntrig;n++){
+   if(strcmp("AMSTRDMCCluster",AMSJob::gethead()->gettriggerC(n))==0){
+     WriteAll=1;
+     break;
+   }
+ }
+}
+return (WriteAll || status);
+}
+
+
+
 integer AMSTrMCCluster::debug(1);
 integer AMSTrMCCluster::_ncha(100);
 geant   AMSTrMCCluster::_step(0.05);
@@ -719,3 +790,6 @@ integer AMSTrMCCluster::calcdaqlength(integer i){
  }
  return len;
 }
+
+
+

@@ -409,7 +409,11 @@ void AMSTimeID::_getDefaultEnd(uinteger time, time_t & end){
 
 AString * AMSTimeID::_selectEntry=0;
 
-integer AMSTimeID::_select(dirent *entry){
+integer AMSTimeID::_select(
+#ifndef __ALPHA__
+const 
+#endif
+dirent *entry){
 return strstr(entry->d_name,(char*)*_selectEntry)!=NULL;    
 }
 

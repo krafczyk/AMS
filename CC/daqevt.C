@@ -737,7 +737,11 @@ int DAQEvent::parser(char a[], char **& fname){
 
 
 
-integer DAQEvent::_select(dirent *entry){
+integer DAQEvent::_select(
+#ifndef __ALPHA__
+const
+#endif
+dirent *entry){
 for(int i=0;i<strlen(entry->d_name);i++){
  if(!isdigit((entry->d_name)[i]))return 0;
 }

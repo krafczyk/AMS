@@ -26,10 +26,20 @@
 #include <richdbc.h>
 extern "C" void gustep_(){
 
-integer NoSecondaryPlease=0;
 
 
   try{
+{
+   // TRD
+ int lvl=GCVOLU.nlevel-1;
+ if(GCTMED.isvol != 0 && GCVOLU.names[lvl][0]=='T' && GCVOLU.names[lvl][1]=='R'  && GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]=='T'){
+
+     AMSTRDMCCluster::sitrdhits(GCVOLU.number[lvl],GCTRAK.vect,
+        GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart);   
+
+} 
+}
+
 
   //  Tracker
   int lvl= GCVOLU.nlevel-1;  

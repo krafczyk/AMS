@@ -79,10 +79,11 @@ void _writeEl(){}
 void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
-static integer _select(dirent * entry=0);
 #ifndef __ALPHA__
+static integer _select(const dirent * entry=0);
 static int _sort(const dirent **e1, const dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #else
+static integer _select(dirent * entry=0);
 static int _sort(dirent ** e1,  dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #endif
 public:

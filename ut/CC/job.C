@@ -44,6 +44,7 @@
 #include <tralig.h>
 #include <status.h>
 #include <richdbc.h>
+#include <mccluster.h>
 //+
  integer        ntdvNames;               // number of TDV's types
  char*          tdvNameTab[maxtdv];      // TDV's nomenclature
@@ -623,6 +624,11 @@ void AMSJob::_siantidata(){
 //================================================================================
 
 void AMSJob::_sitrddata(){
+TRDMCFFKEY.mode=0;
+TRDMCFFKEY.g3trd=123654;
+TRDMCFFKEY.cor=0.68;
+TRDMCFFKEY.alpha=0;
+TRDMCFFKEY.beta=0;
 }
 
 void AMSJob::_sisrddata(){
@@ -1439,6 +1445,8 @@ void AMSJob::_sictcinitjob(){
 }
 
 void AMSJob::_sitrdinitjob(){
+
+ AMSTRDMCCluster::init();
 }
 void AMSJob::_sisrdinitjob(){
 }

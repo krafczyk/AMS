@@ -24,6 +24,7 @@
 #include <commons.h>
 #include <tkdbc.h>
 #include <richdbc.h>
+#include <trdid.h>
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_
@@ -2537,7 +2538,8 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    ost << "TRDW"<<ends;
    TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::TubesDimensions(i,j,k,ip);
-   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
+   AMSTRDIdGeom  tmp(j,k,l,i);
+   gid=tmp.cmpt();
    dau->add(new AMSgvolume(TRDDBc::TubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
    }

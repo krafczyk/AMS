@@ -33,6 +33,7 @@ const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 const int MAXRICMC   =   100;
 const int MAXRICHITS =   100;
+const int MAXTRDCLMC   =   200;
 
 #ifdef __WRITEROOT__
 class EventNtuple: public TObject {
@@ -112,6 +113,7 @@ public:
   int TOFClusters;
   int TOFMCClusters;
   int AntiMCClusters;
+  int TRDMCClusters;
   int AntiClusters;
   int EcalClusters;
   int EventStatus;
@@ -248,7 +250,7 @@ public:
   float Cutoff[MAXPART];
   float TOFCoo[MAXPART][4][3];
   float AntiCoo[MAXPART][2][3];
-  float TrCoo[MAXPART][maxlay][3];
+  float TrCoo[MAXPART][trconst::maxlay][3];
 friend class AMSParticle;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
@@ -393,6 +395,28 @@ ClassDef(TrMCClusterNtuple,1)       //TrMCClusterNtuple
 #endif
 };
 
+#ifdef __WRITEROOT__
+class TRDMCClusterNtuple : public TObject {
+#else
+class TRDMCClusterNtuple {
+#endif
+public:
+  int Ntrdclmc;
+  int Layer[MAXTRDCLMC];
+  int Ladder[MAXTRDCLMC];
+  int Tube[MAXTRDCLMC];
+  int TrackNo[MAXTRDCLMC];
+  float Edep[MAXTRDCLMC];
+  float Ekin[MAXTRDCLMC];
+  float Xgl[MAXTRDCLMC][3];
+ 
+friend class AMSTRDMCCluster;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(TRDMCClusterNtuple,1)       //TRDMCClusterNtuple
+#endif
+};
+
 
 #ifdef __WRITEROOT__
 class TrRecHitNtuple : public TObject {
@@ -478,7 +502,7 @@ public:
   int Pattern[MAXTRTR];
   int Address[MAXTRTR];
   int NHits[MAXTRTR];
-  int pHits[MAXTRTR][maxlay];
+  int pHits[MAXTRTR][trconst::maxlay];
   float LocDBAver[MAXTRTR];
   int GeaneFitDone[MAXTRTR];
   int AdvancedFitDone[MAXTRTR];

@@ -51,8 +51,8 @@ protected:
   CTC    _Value[2];
   AMSPoint _TOFCoo[4];  
   AMSPoint _AntiCoo[2];  
-  AMSPoint _TrCoo[maxlay];  
-  number   _Local[maxlay];
+  AMSPoint _TrCoo[trconst::maxlay];  
+  number   _Local[trconst::maxlay];
 
 // new
    

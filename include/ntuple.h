@@ -19,6 +19,7 @@ protected:
   TOFMCClusterNtuple _tofmc;
   TrClusterNtuple _trcl;
   TrMCClusterNtuple _trclmc;
+  TRDMCClusterNtuple _trdclmc;
   TrRecHitNtuple _trrh;
   TrTrackNtuple _trtr;
   TrTrackNtuple02 _trtr02;
@@ -64,6 +65,7 @@ public:
   TOFMCClusterNtuple* Get_tofmc() {return &_tofmc;}
   TrClusterNtuple* Get_trcl() {return &_trcl;}
   TrMCClusterNtuple* Get_trclmc() {return &_trclmc;}
+  TRDMCClusterNtuple* Get_trdclmc() {return &_trdclmc;}
   TrRecHitNtuple* Get_trrh() {return &_trrh;}
   TrTrackNtuple* Get_trtr() {return &_trtr;}
   TrTrackNtuple02* Get_trtr02() {return &_trtr02;}

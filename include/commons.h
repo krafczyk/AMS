@@ -151,6 +151,20 @@ geant hfnoise;     // high freq. noise
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
 //----------------------
+
+class TRDMCFFKEY_DEF{
+public:
+integer mode; // 0: saveliev 1: saveliev+Pai 2: garibyan + Pai
+integer g3trd;  // g3identifier for trd aware media
+float cor;     // saveliev parameter
+float alpha;    // garibyan pars
+float beta;    //  garibyan par
+};
+#define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
+COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);
+
+
+
 class ECMCFFKEY_DEF {
 public:
 integer fastsim;  //1/0-> fast/slow simulation

@@ -20,7 +20,7 @@ class AMSgmat : public AMSNode
   static void amsmat();
   friend class AMSgtmed;
   AMSgmat (): AMSNode(0),_pamsg4m(0){};
-  ~AMSgmat(){delete[] _a;_a=0;delete[] _z;_z=0;delete[] _w;_w=0;}
+  virtual ~AMSgmat(){delete[] _a;_a=0;delete[] _z;_z=0;delete[] _w;_w=0;}
   AMSgmat (const char name[], 
               geant a[] , geant z[], geant w[], integer npar, 
               geant rho, geant radl=0, geant absl=0, geant temp=0 ): 
@@ -98,7 +98,8 @@ class AMSgtmed : public AMSNode
  
  public:
   static void amstmed();
-  AMSgtmed (): AMSNode(0),_pgmat(0){};
+  virtual ~AMSgtmed(){delete [] _uwbuf;_uwbuf=0;}
+  AMSgtmed (): AMSNode(0),_pgmat(0),_uwbuf(0){};
   AMSgtmed (const char name[], const char matname[], 
               integer isvol=0 , char yb='N', geant birks[3]=0,
               integer ifield=1, geant fieldm=20, 
@@ -106,7 +107,7 @@ class AMSgtmed : public AMSNode
             geant deemax=-1, geant epsil=0.001,
             geant stmin=-1 ):
     _itmed(++_GlobalMedI),_isvol(isvol), _ifield(ifield),_fieldm(fieldm),_tmaxfd(tmaxfd),
-    _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_yb(yb),
+    _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_yb(yb),_nwbuf(0),_uwbuf(0),
     AMSNode(){
    _pgmat=AMSgmat::getpmat(matname); 
 #ifdef __AMSDEBUG__
@@ -114,9 +115,11 @@ class AMSgtmed : public AMSNode
 #endif
    setname(name);
    setid(0); 
+   
    if(birks)for(int i=0;i<3;i++)_birks[i]=birks[i];
    else     for(int i=0;i<3;i++)_birks[i]=0;
   }
+  void setubuf(int nwbuf, geant uwbuf[]);
   AMSgtmed * next(){return (AMSgtmed *)AMSNode::next();}
   AMSgtmed * prev(){return (AMSgtmed *)AMSNode::prev();}
   AMSgtmed * up(){return   (AMSgtmed *)AMSNode::up();}
@@ -149,9 +152,11 @@ class AMSgtmed : public AMSNode
    geant _deemax;
    geant _epsil;
    geant _stmin;
-   geant _ubuf[1];
+   integer _nwbuf;
+   geant * _uwbuf;
    geant _birks[3];
-   char _yb;   
+   char _yb;  
+     
    virtual ostream & print(ostream &)const;
 };
 #endif
