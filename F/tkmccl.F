@@ -1,8 +1,8 @@
            double precision function sitkfint2(a,b,av,dav,dlx)
             real *8 a,b,av,dav,dlx,dlmax,dlmin
-            real *8 fint_l,fint_r,fint_c,sitkfint_s
+            real *8 fint_l,fint_r,fint_c,sitkfints
             if(abs(dav)/dlx.le.0.01)then
-             sitkfint2=sitkfint_s(a-av,b-av)
+             sitkfint2=sitkfints(a-av,b-av)
             else
               dlmin=av-abs(dav)
               dlmax=av+abs(dav)
@@ -32,14 +32,14 @@
               endif
             endif
            end
-           double precision function sitkfint_s(a,b)
+           double precision function sitkfints(a,b)
             real *8 fdiff,a,b
             if(a.ge.0.and. b.ge.0)then
-             sitkfint_s=fdiff(a,0)-fdiff(b,0)
+             sitkfints=fdiff(a,0)-fdiff(b,0)
             else if(a.le.0.and.b.le.0)then
-             sitkfint_s=fdiff(b,0)-fdiff(a,0)
+             sitkfints=fdiff(b,0)-fdiff(a,0)
             else
-             sitkfint_s=2*fdiff(0.d0,0)-fdiff(a,0)-fdiff(b,0)
+             sitkfints=2*fdiff(0.d0,0)-fdiff(a,0)-fdiff(b,0)
             endif
            end
            function fint_c(a,b,c,d)

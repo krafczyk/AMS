@@ -8,7 +8,7 @@
 //
 #include <typedefs.h>
 extern "C" number rnormx();
-extern "C" number sitkfint_s_(number &,number &);
+extern "C" number sitkfints_(number &,number &);
 extern "C" number sitkfint2_(number&,number&,number&,number&,number&);
 extern "C" void uglast_();
 extern "C" void uginit_();

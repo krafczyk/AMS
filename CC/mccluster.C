@@ -161,8 +161,8 @@ for (integer k=0;k<2;k++){
        id.upd(k,ii);  // update geom id
        a1=id.strip2size(k)-e;
        a2=a1+id.getsize(k);
-//       _ss[k][ii-_left[k]]=_ss[k][ii-_left[k]]+TRMCFFKEY.delta[k]*sitkfint_s_(a1,a2);
-       _ss[k][ii-_left[k]]=_ss[k][ii-_left[k]]+TRMCFFKEY.delta[k]*sitkfint2_(a1,a2,0.,0.,1.);
+       _ss[k][ii-_left[k]]=_ss[k][ii-_left[k]]+TRMCFFKEY.delta[k]*sitkfints_(a1,a2);
+//       _ss[k][ii-_left[k]]=_ss[k][ii-_left[k]]+TRMCFFKEY.delta[k]*sitkfint2_(a1,a2,0.,0.,1.);
      }
     }
   }
