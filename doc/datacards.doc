@@ -1,5 +1,11 @@
 Datacards
 
+// Protection from some myst bug
+
+TERM 
+I 1  TRM(1234567890)     // Ok if == 1234567890 stop otherwise
+
+
 //General 
           
 AMSJOB  
