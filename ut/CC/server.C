@@ -229,7 +229,7 @@ cout<< " Exiting ...."<<(message?message:" ")<<endl;
 _ExitInProgress=true;
   Server_impl* pser=dynamic_cast<Server_impl*>(_pser);
     DPS::Client::ARS * pars;
-    int length=pser->getARS(_pid,pars);
+    int length=pser?pser->getARS(_pid,pars):0;
     DPS::Client::ARS_var arf=pars;
   for(int i=0;i<length;i++){
   try{

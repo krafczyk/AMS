@@ -2956,10 +2956,10 @@ void AMSJob::uhinit(integer run, integer eventno){
    strcpy(_ntuplefilename,(const char *)_hextname);
    AString mdir("mkdir -p ");
    mdir+=_ntuplefilename;
-   system((const char*)mdir);
     integer iostat;
     integer rsize=8000;
     if(eventno){
+      system((const char*)mdir);
       char event[80];  
       sprintf(event,"%d",run);
       strcat(_ntuplefilename,event);
