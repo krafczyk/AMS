@@ -1,4 +1,4 @@
-//  $Id: gvolume.C,v 1.48 2001/01/22 17:32:20 choutko Exp $
+//  $Id: gvolume.C,v 1.49 2001/03/05 10:51:18 choutko Exp $
 #include <gvolume.h>
 #include <math.h>
 #include <amsgobj.h>
@@ -159,10 +159,11 @@ void AMSgvolume::_init(){
       _gl2loc(cur,coo);
     _coo=coo;     
   }
-  if(*_nrmA == _UnitRM){
-   delete _nrmA;
-   _nrmA=&_UnitRM;
-  }
+       if(*_nrmA == _UnitRM && _nrmA !=&_UnitRM){
+       delete _nrmA;
+      _nrmA=&_UnitRM;
+     }
+
 }
 
 ostream & AMSgvolume::print(ostream & stream)const{

@@ -1,12 +1,14 @@
-//  $Id: ntuple.h,v 1.42 2001/03/02 10:40:56 choutko Exp $
+//  $Id: ntuple.h,v 1.43 2001/03/05 10:51:32 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
 #include <node.h>
 #include <root.h>
-
+#ifdef __WRITEROOT__
+class AMSNtuple : public TObject, public AMSNode{
+#else
 class AMSNtuple : public AMSNode{
-
+#endif
 protected:
   integer _lun;
   integer _Nentries;
@@ -57,6 +59,7 @@ public:
   ~AMSNtuple();
   AMSNtuple(integer lun, char* name);
   void init();
+  uinteger getrun();
   void reset(int i=0);
   void write(integer addentry=0);
   void writeR();
@@ -99,7 +102,9 @@ public:
   RICEventNtuple* Get_richevent() {return &_richevent;}
   RICRing* Get_ring(){return &_ring;}
 
-//ClassDef(AMSNtuple ,1)       //AMSNtuple
+#ifdef __WRITEROOT__
+ClassDef(AMSNtuple ,1)       //AMSNtuple
+#endif
 };
 
 #endif

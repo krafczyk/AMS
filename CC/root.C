@@ -1,6 +1,8 @@
-//  $Id: root.C,v 1.9 2001/02/28 19:07:01 kscholbe Exp $
+//  $Id: root.C,v 1.10 2001/03/05 10:51:18 choutko Exp $
 #include <root.h>
+#include <ntuple.h>
 #ifdef __WRITEROOT__
+ClassImp(AMSNtuple)
 ClassImp(EventNtuple)
 ClassImp(EventNtuple02)
 ClassImp(BetaNtuple)

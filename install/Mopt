@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.185 2001/03/02 10:40:57 choutko Exp $
+#  $Id: Mopt,v 1.186 2001/03/05 10:51:38 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -102,7 +102,7 @@ FFLAGS=   -fno-automatic -O -I../include
 FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
-LDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut  -lg2c
+LDFLAGS=  -static   -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut  -lg2c
 TIMEL=
 INCS= $(wildcard $(SRC)*.*h)    
 SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c 

@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.4 2001/03/02 10:41:01 choutko Exp $
+#  $Id: Mopt_Root,v 1.5 2001/03/05 10:51:42 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -28,10 +28,10 @@ EXE=../exe/aix/
 LIB=../lib/aix/
 TIMEL=
 endif
-ROOTLIBS      = -L$(ROOTSYS)/lib -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics
+ROOTLIBS      = -L$(ROOTSYS)/lib -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics 
+#ROOTLIBS      = $(shell root-config --libs)
 ifeq  "$(shell uname)"  "OSF1" 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
-#ROOTLIBS      = $(shell root-config --libs)
 ifdef AMSDEBUG
 O4=-g -D__AMSDEBUG__
 O4F=-g -D__AMSDEBUG__

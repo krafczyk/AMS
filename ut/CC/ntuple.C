@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.69 2001/03/02 11:09:11 choutko Exp $
+//  $Id: ntuple.C,v 1.70 2001/03/05 10:51:18 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -11,9 +11,6 @@ TFile* AMSNtuple::_rfile=0;
 #endif
 AMSNtuple::~AMSNtuple(){
 #ifdef __WRITEROOT__
-#ifdef __AMSDEBUG__
- if(_tree)_tree->Print();
-#endif
  if(_rfile){
    _rfile->Write();
    _rfile->Close();
@@ -188,40 +185,44 @@ else{
 }
 }
 void AMSNtuple::reset(int full){
-  if(full){
-    if(_beta.Nbeta)VZERO(&_beta,sizeof(_beta)/sizeof(integer));
-    if(_charge.Ncharge)VZERO(&_charge,sizeof(_charge)/sizeof(integer));
-    if(_beta02.Nbeta)VZERO(&_beta02,sizeof(_beta02)/sizeof(integer));
-    if(_charge02.Ncharge)VZERO(&_charge02,sizeof(_charge02)/sizeof(integer));
-    if(_part.Npart)VZERO(&_part,sizeof(_part)/sizeof(integer));
-    if(_part02.Npart)VZERO(&_part02,sizeof(_part02)/sizeof(integer));
-    if(_tof.Ntof)VZERO(&_tof,sizeof(_tof)/sizeof(integer));
-    if(_ecclust.Neccl)VZERO(&_ecclust,sizeof(_ecclust)/sizeof(integer));
-    if(_ecalhit.Necht)VZERO(&_ecalhit,sizeof(_ecalhit)/sizeof(integer));
-    if(_tofmc.Ntofmc)VZERO(&_tofmc,sizeof(_tofmc)/sizeof(integer));
-    if(_trcl.Ntrcl)VZERO(&_trcl,sizeof(_trcl)/sizeof(integer));
-    if(_trclmc.Ntrclmc)VZERO(&_trclmc,sizeof(_trclmc)/sizeof(integer));
-    if(_trdclmc.Ntrdclmc)VZERO(&_trdclmc,sizeof(_trdclmc)/sizeof(integer));
-    if(_trrh.Ntrrh)VZERO(&_trrh,sizeof(_trrh)/sizeof(integer));
-    if(_trrh02.Ntrrh)VZERO(&_trrh02,sizeof(_trrh02)/sizeof(integer));
-    if(_trtr.Ntrtr)VZERO(&_trtr,sizeof(_trtr)/sizeof(integer));
-    if(_trtr02.Ntrtr)VZERO(&_trtr02,sizeof(_trtr02)/sizeof(integer));
-    if(_mcg.Nmcg)VZERO(&_mcg,sizeof(_mcg)/sizeof(integer));
-    if(_mcg02.Nmcg)VZERO(&_mcg02,sizeof(_mcg02)/sizeof(integer));
-    if(_ctccl.Nctccl)VZERO(&_ctccl,sizeof(_ctccl)/sizeof(integer));
-    if(_ctcclmc.Nctcclmc)VZERO(&_ctcclmc,sizeof(_ctcclmc)/sizeof(integer));
-    if(_anti.Nanti)VZERO(&_anti,sizeof(_anti)/sizeof(integer));
-    if(_antimc.Nantimc)VZERO(&_antimc,sizeof(_antimc)/sizeof(integer));
-    if(_lvl3.Nlvl3)VZERO(&_lvl3,sizeof(_lvl3)/sizeof(integer));
-    if(_lvl1.Nlvl1 )VZERO(&_lvl1,sizeof(_lvl1)/sizeof(integer));
-    if(_lvl102.Nlvl1 )VZERO(&_lvl102,sizeof(_lvl102)/sizeof(integer));
-    if(_ctcht.Nctcht)VZERO(&_ctcht,sizeof(_ctcht)/sizeof(integer));
-    if(_trraw.Ntrraw)VZERO(&_trraw,sizeof(_trraw)/sizeof(integer));
-    if(_antiraw.Nantiraw)VZERO(&_antiraw,sizeof(_antiraw)/sizeof(integer));
-    if(_tofraw.Ntofraw)VZERO(&_tofraw,sizeof(_tofraw)/sizeof(integer));
-    if(_richmc.NMC)VZERO(&_richmc,sizeof(_richmc)/sizeof(integer));
-    if(_richevent.Nhits)VZERO(&_richevent,sizeof(_richevent)/sizeof(integer));
-    if(_ring.NRings)VZERO(&_ring,sizeof(_ring)/sizeof(integer));
+#ifdef __WRITEROOT__
+int sto=sizeof(TObject);
+#else
+int sto=0;
+#endif
+  if( full){
+    VZERO(&_beta.Nbeta,(sizeof(_beta)-sto)/sizeof(integer));
+    VZERO(&_beta02.Nbeta,(sizeof(_beta02)-sto)/sizeof(integer));
+    VZERO(&_charge02.Ncharge,(sizeof(_charge02)-sto)/sizeof(integer));
+    VZERO(&_part.Npart,(sizeof(_part)-sto)/sizeof(integer));
+    VZERO(&_part02.Npart,(sizeof(_part)-sto)/sizeof(integer));
+    VZERO(&_tof.Ntof,(sizeof(_tof)-sto)/sizeof(integer));
+    VZERO(&_ecclust.Neccl,(sizeof(_ecclust)-sto)/sizeof(integer));
+    VZERO(&_ecalhit.Necht,(sizeof(_ecalhit)-sto)/sizeof(integer));
+    VZERO(&_tofmc.Ntofmc,(sizeof(_tofmc)-sto)/sizeof(integer));
+    VZERO(&_trcl.Ntrcl,(sizeof(_trcl)-sto)/sizeof(integer));
+    VZERO(&_trclmc.Ntrclmc,(sizeof(_trclmc)-sto)/sizeof(integer));
+    VZERO(&_trdclmc.Ntrdclmc,(sizeof(_trdclmc)-sto)/sizeof(integer));
+    VZERO(&_trrh.Ntrrh,(sizeof(_trrh)-sto)/sizeof(integer));
+    VZERO(&_trrh02.Ntrrh,(sizeof(_trrh02)-sto)/sizeof(integer));
+    VZERO(&_trtr.Ntrtr,(sizeof(_trtr)-sto)/sizeof(integer));
+    VZERO(&_trtr02.Ntrtr,(sizeof(_trtr02)-sto)/sizeof(integer));
+    VZERO(&_mcg.Nmcg,(sizeof(_mcg)-sto)/sizeof(integer));
+    VZERO(&_mcg02.Nmcg,(sizeof(_mcg02)-sto)/sizeof(integer));
+    VZERO(&_ctccl.Nctccl,(sizeof(_ctccl)-sto)/sizeof(integer));
+    VZERO(&_ctcclmc.Nctcclmc,(sizeof(_ctcclmc)-sto)/sizeof(integer));
+    VZERO(&_anti.Nanti,(sizeof(_anti)-sto)/sizeof(integer));
+    VZERO(&_antimc.Nantimc,(sizeof(_antimc)-sto)/sizeof(integer));
+    VZERO(&_lvl3.Nlvl3,(sizeof(_lvl3)-sto)/sizeof(integer));
+    VZERO(&_lvl1.Nlvl1,(sizeof(_lvl1)-sto)/sizeof(integer));
+    VZERO(&_lvl102.Nlvl1,(sizeof(_lvl102)-sto)/sizeof(integer));
+    VZERO(&_ctcht.Nctcht,(sizeof(_ctcht)-sto)/sizeof(integer));
+    VZERO(&_trraw.Ntrraw,(sizeof(_trraw)-sto)/sizeof(integer));
+    VZERO(&_antiraw.Nantiraw,(sizeof(_antiraw)-sto)/sizeof(integer));
+    VZERO(&_tofraw.Ntofraw,(sizeof(_tofraw)-sto)/sizeof(integer));
+    VZERO(&_richmc.NMC,(sizeof(_richmc)-sto)/sizeof(integer));
+    VZERO(&_richevent.Nhits,(sizeof(_richevent)-sto)/sizeof(integer));
+    VZERO(&_ring.NRings,(sizeof(_ring)-sto)/sizeof(integer));
   }
   else{
    _beta.Nbeta= 0;
@@ -236,7 +237,7 @@ void AMSNtuple::reset(int full){
    _tofmc.Ntofmc = 0;
    _trcl.Ntrcl = 0;
    _trdclmc.Ntrdclmc=0;
-    if(_trclmc.Ntrclmc)VZERO(&_trclmc,sizeof(_trclmc)/sizeof(integer));
+    VZERO(&_trclmc.Ntrclmc,(sizeof(_trclmc)-sto)/sizeof(integer));
    _trrh.Ntrrh = 0;
    _trrh02.Ntrrh = 0;
    _trtr.Ntrtr = 0;
@@ -273,119 +274,45 @@ void AMSNtuple::endR(){
      _rfile->Close();
      delete _rfile;
    }
-   if(_tree)delete _tree;
-   _tree=0;
    _rfile=0;
 #endif
 }
 void AMSNtuple::initR(char* fname){
 #ifdef __WRITEROOT__
    cout << "Initializing tree...\n"<<endl;
+  _Nentries=0;
    static  TROOT dummy("S","S");
    if(_rfile){
      _rfile->Write();
      _rfile->Close();
-     delete _rfile;
+//     delete _rfile;
    }
-   if(_tree)delete _tree;
    _rfile= new TFile(fname,"RECREATE");
    if(!_rfile)throw amsglobalerror("UnableToOpenRootFile",3);
    _rfile->SetCompressionLevel(IOPA.WriteRoot);
-   _tree= new TTree("AMSRoot","AMS Ntuple Root");
 //   _tree->SetAutoSave(100000000);
-  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-    
-   void *pev1=(void*)&_event;
-   TBranch *b1=_tree->Branch("event", "EventNtuple",  &pev1, 64000,0); 
-   _tree->Fill();
-/* 
-
-   void *pev3=(void*)&_beta; 
-   TBranch *b3=_tree->Branch("beta", "BetaNtuple",  &pev3, 64000,1); 
-   void *pev5=(void*)&_charge;
-   TBranch *b5=_tree->Branch("charge", "ChargeNtuple",  &pev5, 64000,1);
-   void *pev7=(void*)&_part;
-   TBranch *b7=_tree->Branch("part", "ParticleNtuple",  &pev7, 64000,1);
-   void *pev8=(void*)&_tof;
-   TBranch *b8=_tree->Branch("tofcl", "TOFClusterNtuple",  &pev8, 64000,1);
-   void *pev9=(void*)&_tofmc;
-   TBranch *b9=_tree->Branch("tofmccl", "TOFMCClusterNtuple",  &pev9, 64000,1);
-   void *pev0=(void*)&_trcl;
-   TBranch *b0=_tree->Branch("trcl", "TrClusterNtuple",  &pev0, 64000,1);
-   void *peva=(void*)&_trclmc;
-   TBranch *ba=_tree->Branch("trclmc", "TrMCClusterNtuple",  &peva, 64000,1);
-   void *pevc=(void*)&_trrh;
-   TBranch *bc=_tree->Branch("trrh", "TrRecHitNtuple",  &pevc, 64000,1);
-   void *peve=(void*)&_trtr;
-   TBranch *be=_tree->Branch("trtr", "TrTrackNtuple",  &peve, 64000,1);
-   void *pevg=(void*)&_mcg;
-   TBranch *bg=_tree->Branch("mcg", "MCEventGNtuple",  &pevg, 64000,1);
-   void *pevh=(void*)&_ctccl;
-   TBranch *bh=_tree->Branch("ctccl", "CTCClusterNtuple",  &pevh, 64000,1);
-   void *pevi=(void*)&_ctcclmc;
-   TBranch *bi=_tree->Branch("ctcclmc", "CTCMCClusterNtuple",  &pevi, 64000,1);
-   void *pevj=(void*)&_anti;
-   TBranch *bj=_tree->Branch("anti", "AntiClusterNtuple",  &pevj, 64000,1);
-   void *pevk=(void*)&_antimc;
-   TBranch *bk=_tree->Branch("antimc", "ANTIMCClusterNtuple",  &pevk, 64000,1);
-   void *pevl=(void*)&_lvl3;
-   TBranch *bl=_tree->Branch("lvl3", "LVL3Ntuple",  &pevl, 64000,1);
-   void *pevm=(void*)&_lvl1;
-   TBranch *bm=_tree->Branch("lvl1", "LVL1Ntuple",  &pevm, 64000,1);
-   void *pevo=(void*)&_ctcht;
-   TBranch *bo=_tree->Branch("ctcht", "CTCHitNtuple",  &pevo, 64000,1);
-   void *pevp=(void*)&_trraw;
-   TBranch *bp=_tree->Branch("trraw", "TrRawClusterNtuple",  &pevp, 64000,1);
-   void *pevq=(void*)&_antiraw;
-   TBranch *bq=_tree->Branch("antiraw", "AntiRawClusterNtuple",  &pevq, 64000,1);
-   void *pevr=(void*)&_tofraw;
-   TBranch *br=_tree->Branch("tofraw", "TOFRawClusterNtuple",  &pevr, 64000,1);
-  }
-  else{
-    void *pev2=(void*)&_event02;
-   TBranch *b2=_tree->Branch("event02", "EventNtuple02",  &pev2, 64000,1); 
-   void *pev4=(void*)&_beta02;
-   TBranch *b4=_tree->Branch("beta02", "BetaNtuple02",  &pev4, 64000,1);
-   void *pev6=(void*)&_charge02;
-   TBranch *b6=_tree->Branch("charge02", "ChargeNtuple02",  &pev6, 64000,1);
-   void *pev77=(void*)&_part02;
-   TBranch *b77=_tree->Branch("part02", "ParticleNtuple02",  &pev77, 64000,1);
-   void *pevd=(void*)&_trrh02;
-   TBranch *bd=_tree->Branch("trrh", "TrRecHitNtuple02",  &pevd, 64000,1);
-   void *pevb=(void*)&_trdclmc;
-   TBranch *bb=_tree->Branch("trdclmc", "TRDMCClusterNtuple",  &pevb, 64000,1);
-   void *pevf=(void*)&_trtr02;
-   TBranch *bf=_tree->Branch("trtr02", "TrTrackNtuple02",  &pevf, 64000,1);
-   void *pevgg=(void*)&_mcg02;
-   TBranch *bgg=_tree->Branch("mcg02", "MCEventGNtuple02",  &pevgg, 64000,1);
-   void *pevs=(void*)&_ecclust;
-   TBranch *bs=_tree->Branch("ecalcl", "EcalClusterNtuple",  &pevs, 64000,1);
-   void *pevt=(void*)&_ecalhit;
-   TBranch *bt=_tree->Branch("ecalht", "EcalHitNtuple",  &pevt, 64000,1);
-   void *pevu=(void*)&_richmc;
-   TBranch *bu=_tree->Branch("ricmccl","RICMCNtuple",&pevu,64000,1);
-   void *pevv=(void*)&_richevent;
-   TBranch *bv=_tree->Branch("ricevent","RICEventNtuple",&pevv,64000,1);
-   void *pevw=(void*)&_ring;
-   TBranch *bw=_tree->Branch("ring","RICRing",&pevw,64000,1);  
-   void *pevn=(void*)&_lvl102;
-   TBranch *bn=_tree->Branch("lvl102", "LVL1Ntuple02",  &pevn, 64000,1);
-*/
-  }
-   cout <<"AMSNtuple::initR-I-OpenRootFile "<<fname<<" "<<_rfile<<" "<<_tree<<endl;
+   cout <<"AMSNtuple::initR-I-OpenRootFile "<<fname<<" "<<_rfile<<" "<<endl;
 #else
 cerr <<" RootFileOutput is Not supported in this version "<<endl;
 exit(1);
 #endif
+
 }
 void AMSNtuple::writeR(){
-
 #ifdef __WRITEROOT__
-  if(_tree){
-    _tree->Fill();
+char key[64];
     if(!_lun )_Nentries++;
-  }
+     sprintf(key,"%d",_Nentries);
+     Write(key);
 #endif
 }
 
 
+uinteger AMSNtuple::getrun(){
+  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+    return _event.Run;
+  }
+  else{
+    return _event02.Run;
+  }
+}

@@ -1,9 +1,10 @@
-//  $Id: linkdef.h,v 1.6 2001/02/28 21:31:13 kscholbe Exp $
+//  $Id: linkdef.h,v 1.7 2001/03/05 10:51:31 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class AMSNtuple;
 #pragma link C++ class BetaNtuple;
 #pragma link C++ class BetaNtuple02;
 #pragma link C++ class ChargeNtuple;
@@ -39,5 +40,4 @@
 #pragma link C++ class EcalHitNtuple;
 #pragma link C++ class EventNtuple;
 #pragma link C++ class EventNtuple02;
-
 #endif

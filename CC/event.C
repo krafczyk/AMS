@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.256 2001/03/02 10:40:52 choutko Exp $
+//  $Id: event.C,v 1.257 2001/03/05 10:51:17 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1020,8 +1020,7 @@ for(int il=0;il<TKDBc::nlay();il++){
     for (int i=0;;){
       cur=AMSEvent::EventMap.getid(i++);   // get one by one
       if(cur){
-        if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->
-        writeC();
+        if(strncmp(cur->getname(),"AMSContainer:",13)==0)((AMSContainer*)cur)->writeC();
       }
       else break;
     }
