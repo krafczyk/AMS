@@ -430,7 +430,6 @@ CCFFKEY.enddate=12061998;
 CCFFKEY.begintime=170000;
 CCFFKEY.endtime=220000;
 CCFFKEY.oldformat=0;
-
 CCFFKEY.sdir=1;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }

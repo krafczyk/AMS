@@ -485,7 +485,7 @@ time(&tm);// tempor
       if(GCFLAG.IEORUN==2){
       // if production 
       // try to update the badrun list
-         if(AMSJob::gethead()->isProduction()){
+         if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
            char fname[256];
            char * logdir = getenv("ProductionLogDirLocal");
            if(logdir){

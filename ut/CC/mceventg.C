@@ -110,42 +110,46 @@ else {
   }
   }
  } 
+
+  number xa=_coorange[0][0]>-AMSDBc::ams_size[0]/2?_coorange[0][0]:-AMSDBc::ams_size[0]/2;
+  number ya=_coorange[0][1]>-AMSDBc::ams_size[1]/2?_coorange[0][1]:-AMSDBc::ams_size[1]/2;
+  number za=_coorange[0][2]>-AMSDBc::ams_size[2]/2?_coorange[0][2]:-AMSDBc::ams_size[2]/2;
+  number xb=_coorange[1][0]<AMSDBc::ams_size[0]/2?_coorange[1][0]:AMSDBc::ams_size[0]/2;
+  number yb=_coorange[1][1]<AMSDBc::ams_size[1]/2?_coorange[1][1]:AMSDBc::ams_size[1]/2;
+  number zb=_coorange[1][2]<AMSDBc::ams_size[2]/2?_coorange[1][2]:AMSDBc::ams_size[2]/2;
+  number lx=xb-xa;
+  number ly=yb-ya;
+  number lz=zb-za;
  switch(curp){
  case 1:
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
-  _coo=AMSPoint(AMSDBc::ams_size[0]*(RNDM(d)-0.5),AMSDBc::ams_size[1]*(RNDM(d)-0.5),
-  AMSDBc::ams_size[2]/2);
+  _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
   break;
  case 2:  
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),cos(theta));
-  _coo=AMSPoint(AMSDBc::ams_size[0]*(RNDM(d)-0.5),AMSDBc::ams_size[1]*(RNDM(d)-0.5),
-  -AMSDBc::ams_size[2]/2);
+  _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),za);
   break;
  case 3:  
   _dir=AMSDir(-cos(theta),cos(phi)*sin(theta),sin(phi)*sin(theta));
-  _coo=AMSPoint(AMSDBc::ams_size[0]/2,AMSDBc::ams_size[1]*(RNDM(d)-0.5),
-  AMSDBc::ams_size[2]*(RNDM(d)-0.5));
+  _coo=AMSPoint(xb,ya+ly*RNDM(d),za+lz*RNDM(d));
   break;
  case 4:  
   _dir=AMSDir(cos(theta),cos(phi)*sin(theta),sin(phi)*sin(theta));
-  _coo=AMSPoint(-AMSDBc::ams_size[0]/2,AMSDBc::ams_size[1]*(RNDM(d)-0.5),
-  AMSDBc::ams_size[2]*(RNDM(d)-0.5));
+  _coo=AMSPoint(xa,ya+ly*RNDM(d),za+lz*RNDM(d));
   break;
  case 5:  
   _dir=AMSDir(cos(phi)*sin(theta),-cos(theta),sin(phi)*sin(theta));
-  _coo=AMSPoint(AMSDBc::ams_size[0]*(RNDM(d)-0.5),AMSDBc::ams_size[1]/2,
-  AMSDBc::ams_size[2]*(RNDM(d)-0.5));
+  _coo=AMSPoint(xa+lx*RNDM(d),yb,za+lz*RNDM(d));
   break;
  case 6:  
   _dir=AMSDir(cos(phi)*sin(theta),cos(theta),sin(phi)*sin(theta));
-  _coo=AMSPoint(AMSDBc::ams_size[0]*(RNDM(d)-0.5),-AMSDBc::ams_size[1]/2,
-  AMSDBc::ams_size[2]*(RNDM(d)-0.5));
+  _coo=AMSPoint(xa+lx*RNDM(d),ya,za+lz*RNDM(d));
   break;
  default:  
   cerr <<" AMSmceventg-F-plane problem "<<curp<<endl;
   exit(1);
  }
-if(_fixedplane == 0)_coo=_coo/2;
+//if(_fixedplane == 0)_coo=_coo/2;
 }
   }
 }
@@ -322,12 +326,21 @@ void AMSmceventg::setcuts(geant coo[6], geant dir[6],
     if(coo[0]>=coo[3] && coo[1]>=coo[4] && coo[2]>=coo[5])_fixedpoint=1;
     if(dir[0]>=dir[3] && dir[1]>=dir[4] && dir[2]>=dir[5])_fixeddir=1;
     number area[6];
-    area[0]=AMSDBc::ams_size[0]*AMSDBc::ams_size[1];
-    area[1]=AMSDBc::ams_size[0]*AMSDBc::ams_size[1];
-    area[2]=AMSDBc::ams_size[1]*AMSDBc::ams_size[2];
-    area[3]=AMSDBc::ams_size[1]*AMSDBc::ams_size[2];
-    area[4]=AMSDBc::ams_size[0]*AMSDBc::ams_size[2];
-    area[5]=AMSDBc::ams_size[0]*AMSDBc::ams_size[2];
+  number xa=_coorange[0][0]>-AMSDBc::ams_size[0]/2?_coorange[0][0]:-AMSDBc::ams_size[0]/2;
+  number ya=_coorange[0][1]>-AMSDBc::ams_size[1]/2?_coorange[0][1]:-AMSDBc::ams_size[1]/2;
+  number za=_coorange[0][2]>-AMSDBc::ams_size[2]/2?_coorange[0][2]:-AMSDBc::ams_size[2]/2;
+  number xb=_coorange[1][0]<AMSDBc::ams_size[0]/2?_coorange[1][0]:AMSDBc::ams_size[0]/2;
+  number yb=_coorange[1][1]<AMSDBc::ams_size[1]/2?_coorange[1][1]:AMSDBc::ams_size[1]/2;
+  number zb=_coorange[1][2]<AMSDBc::ams_size[2]/2?_coorange[1][2]:AMSDBc::ams_size[2]/2;
+  number lx=xb-xa;
+  number ly=yb-ya;
+  number lz=zb-za;
+    area[0]=lx*ly;
+    area[1]=lx*ly;
+    area[2]=ly*lz;
+    area[3]=ly*lz;
+    area[4]=lx*lz;
+    area[5]=lx*lz;
     int i;
     for ( i=1;i<6;i++)area[i]=area[i]+area[i-1];
     for ( i=0;i<6;i++)_planesw[i]=area[i]/area[5];
