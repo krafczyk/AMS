@@ -286,7 +286,7 @@ void CTCCCcal::build(){
     for(j=0;j<SCIPAR;j++){
       aip[j]=aipa[i][j];
     }
-    ftdl=TOFDBc::ftdelf();// tempor (as for TOF)
+    ftdl=96.;// (ns) tempor 
     ctcfcal[i]=CTCCCcal(i,nm,mem,sta,ftdl,q2pe,gn,aip);//create calibr. object
   }
 }

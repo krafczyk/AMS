@@ -86,6 +86,7 @@ void AMSAntiRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nhit+=1;
         tdca2[nhit]=tdca1[i+1];
         nhit+=1;
+        i+=1;//to bypass current 2 good hits
       }
       if(nhit<im){//something was wrong (bad sequence)
         ptr->puttdca(int16u(nhit),tdca2);// refill object with corrected data

@@ -1787,10 +1787,10 @@ void TOFSTRRcalib::init(){
   char htit1[60];
   char inum[11];
   char in[2]="0";
-  geant til[2]={30.,65.};// hist.limits for Tin
-  geant tih[2]={80.,115.};
-  geant tol[2]={1000.,4000.};// hist.limits for Tout
-  geant toh[2]={3000.,6000.};
+  geant til[2]={30.,25.};// hist.limits for Tin
+  geant tih[2]={80.,100.};
+  geant tol[2]={1000.,3500.};// hist.limits for Tout
+  geant toh[2]={3000.,5500.};
   integer mrf;
 //
   strcpy(inum,"0123456789");

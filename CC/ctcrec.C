@@ -72,6 +72,7 @@ void AMSCTCRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nhit+=1;
         tdca2[nhit]=tdca1[i+1];
         nhit+=1;
+        i+=1;//to bypass current 2 good hits
       }
       if(nhit<im){//something was wrong (bad sequence)
         ptr->puttdca(int16u(nhit),tdca2);// refill object with corrected data
@@ -96,6 +97,7 @@ void AMSCTCRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nhit+=1;
         tdct2[nhit]=tdct1[i+1];
         nhit+=1;
+        i+=1;//to bypass current 2 good hits
       }
       if(nhit<im){//something was wrong (bad sequence)
         ptr->puttdct(int16u(nhit),tdct2);// refill object with corrected data

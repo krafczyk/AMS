@@ -1346,7 +1346,7 @@ void AMSJob::_rectcinitjob(){
 AMSgObj::BookTimer.book("RECTCEVENT");
 // AMSCTCRawHit::init();
   if(CTCRECFFKEY.reprtf[0]>0){
-    HBOOK1(3000,"CTC total RECO raw signal(p.e.)",80,0.,80.,0.);
+    HBOOK1(3000,"CTC total RECO raw signal(p.e.)",80,0.,800.,0.);
     HBOOK1(3001,"CTC_channel: T_tdca-Ttdct (reco,ns)",80,-20.,220.,0.);
   }
 // ===> Clear JOB-statistics counters for SIM/REC :

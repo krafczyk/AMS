@@ -102,6 +102,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nhit+=1;
         ftdc2[nhit]=ftdc1[i+1];
         nhit+=1;
+        i+=1;//to bypass current 2 good edges
       }
       if(nhit<im){//something was wrong (overflow ?)
         ptr->putftdc(int16u(nhit),ftdc2);// refill object with corrected data
@@ -119,10 +120,10 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         pbdn1=(stdc1[i+2]&pbitn);//check p-bit of 1-st down-edge (come third)
         pbup1=(stdc1[i+3]&pbitn);//check p-bit of 1-st up-edge (come fourth)
         if(TOFDBc::pbonup()==1){
-          if(pbup==0||pbup1==0||pbdn!=0||pbdn1!=0)continue;//wrong sequence, take next "4"
+          if(pbup==0||pbup1==0||pbdn!=0||pbdn1!=0)continue;//wrong sequence, take next "4" 
         }
         else{
-          if(pbup!=0||pbup1!=0||pbdn==0||pbdn1==0)continue;//wrong  sequence, take next "4"
+          if(pbup!=0||pbup1!=0||pbdn==0||pbdn1==0)continue;//wrong  sequence, take next "4" 
         }
         stdc2[nhit]=stdc1[i];
         nhit+=1;
@@ -132,6 +133,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nhit+=1;
         stdc2[nhit]=stdc1[i+3];
         nhit+=1;
+        i+=3;// to bypass current 4 good edges
       }
       if(nhit<im){//something was wrong
         ptr->putstdc(int16u(nhit),stdc2);// refill object with corrected data
@@ -157,6 +159,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nhit+=1;
         adca2[nhit]=adca1[i+1];
         nhit+=1;
+        i+=1;//to bypass current 2 good edges
       }
       if(nhit<im){//something was wrong
         ptr->putadca(int16u(nhit),adca2);// refill object with corrected data
@@ -181,6 +184,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nhit+=1;
         adcd2[nhit]=adcd1[i+1];
         nhit+=1;
+        i+=1;//to bypass current 2 good edges
       }
       if(nhit<im){//something was wrong
         ptr->putadcd(int16u(nhit),adcd2);// refill object with corrected data
