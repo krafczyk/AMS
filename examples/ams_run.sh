@@ -30,7 +30,7 @@ OS=`uname`
 ARCH=`$ROOTSYS/bin/root-config --arch`
 
 if [ "$ARCH" = "linuxicc" ]; then
-   GC=/opt/intel/compiler70/ia32/bin/icc
+   GC="/opt/intel/compiler70/ia32/bin/icc -static -w"
    if [ ! -e "$GC" ]; then
       echo "You have no access to $GC."
       echo "Please use a Root version compiled with g++."
@@ -39,13 +39,13 @@ if [ "$ARCH" = "linuxicc" ]; then
    EXTRALIBS="-ldl -lcrypt"
    AMSLIB="${AMSWD}/lib/linux/icc/libntuple.a"
 elif [ "${OS}" = "Linux" ]; then
-   GC=g++
+   GC="g++ -static -w"
    EXTRALIBS="-ldl -lcrypt"
    AMSLIB="${AMSWD}/lib/linux/libntuple.a"
 elif [ "${OS}" = "OSF1" ]; then
-   GC=cxx
+   GC="cxx -w"
    EXTRALIBS="-lm"
-   AMSLIB="${AMSWD}/lib/linux/libntuple.a"
+   AMSLIB="${AMSWD}/lib/osf1/libntuple.a"
 else
   echo "This script only runs on Linux and on OSF1; EXIT"
   exit
@@ -67,7 +67,7 @@ echo -e "\n>>> COMPILING and LINKING: ${file}"
 SHELL=/bin/sh
 
 ${FILE_EXE}:	${file} ${AMSLIB}
-	${GC} -static -w ${INCS} -o ${FILE_EXE} ${file} ${AMSLIB} ${ROOTLIBS} ${EXTRALIBS}
+	${GC} ${INCS} -o ${FILE_EXE} ${file} ${AMSLIB} ${ROOTLIBS} ${EXTRALIBS}
 	chmod 755 ${FILE_EXE}
 
 ${AMSLIB}: 
