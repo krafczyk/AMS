@@ -403,7 +403,6 @@ extern "C" void uglast_(){
 #ifdef __DB__
      if (dbg_prtout) ooRunStatus();
 #endif
-       AMSgObj::BookTimer.print();
 }
 
 extern "C" void readDB(){

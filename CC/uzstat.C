@@ -8,6 +8,7 @@ AMSStat::AMSStat():AMSNodeMap(){
 map(Timer);
 }
 AMSStat::~AMSStat(){
+print();
 Timer.remove();
 }
 void AMSStat::book(char *name){
