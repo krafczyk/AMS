@@ -755,7 +755,9 @@ for(int i=0;i<strlen(entry->d_name);i++){
 
  int e1;
  sscanf(entry->d_name,"%d",&e1);
- if(e1<SELECTFFKEY.Run)return 0;
+// if(e1<SELECTFFKEY.Run)return 0;
+ if(e1<SELECTFFKEY.Run || (SELECTFFKEY.RunE>0 && e1>SELECTFFKEY.RunE))return 0;
+
  else {
      if(AMSEvent::getselrun(0)>0){
       for(int i=0;;i++){

@@ -28,6 +28,7 @@ public:
 integer Run;
 integer Event;
 integer File[40];
+integer RunE;
 };
 #define SELECTFFKEY COMMON_BLOCK(SELECTFFKEY,selectffkey)
 COMMON_BLOCK_DEF(SELECTFFKEY_DEF,SELECTFFKEY);
