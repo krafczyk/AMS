@@ -910,6 +910,10 @@ void ctcgeomAG(AMSgvolume & mother){
   // ix    = 0..1   x index inside supercell
   // iy    = 0..1   y index inside supercell
   //
+  // Changes by A.K.Gougas 1/05/97
+  // The Support structure is 60 mm thick, the PMT's of UPPER layer are
+  // in the support structure, the UPPER aerogel layer is close to the TOF
+  // (i.e. in both layers PMT's are "face-up")
 
    CTCDBc::setgeom(2);
 
@@ -945,7 +949,8 @@ void ctcgeomAG(AMSgvolume & mother){
     if(ilay==1){
      for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
      coo[0]=coo[1]=0.;
-     coo[2]=zr+0.5*CTCDBc::getupsize(2)+0.5*CTCDBc::getthcsize(2);
+//     coo[2]=zr+0.5*CTCDBc::getupsize(2)+0.5*CTCDBc::getthcsize(2);
+     coo[2]=zr+0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
      pLayer=mother.add(new AMSgvolume(
        "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000));
     }
@@ -1003,7 +1008,9 @@ void ctcgeomAG(AMSgvolume & mother){
             for(k=0;k<3;k++)parptf[k]=0.5*CTCDBc::getptfesize(k);
             cooptf[0]=coo[0]+parptf[0]*(2*ix-1);
             cooptf[1]=coo[1]+parptf[1]*(2*iy-1);
-            cooptf[2]=coo[2]+(3-2*ilay)*(-0.5*CTCDBc::getcellsize(2)+
+//            cooptf[2]=coo[2]+(3-2*ilay)*(-0.5*CTCDBc::getcellsize(2)+
+//            parptf[2]);
+            cooptf[2]=coo[2]-(-0.5*CTCDBc::getcellsize(2)+
             parptf[2]);
             char cvolptf[]="PTFU";
             cvolptf[3]=cdum[ilay-1][0];
@@ -1026,7 +1033,9 @@ void ctcgeomAG(AMSgvolume & mother){
             for(k=0;k<3;k++)parpmt[k]=0.5*CTCDBc::getpmtsize(k);
             coopmt[0]=cooptf[0];
             coopmt[1]=cooptf[1];
-            coopmt[2]=coo[2]+(3-2*ilay)*(0.5*CTCDBc::getcellsize(2)
+//            coopmt[2]=coo[2]+(3-2*ilay)*(0.5*CTCDBc::getcellsize(2)
+//            -parpmt[2]);  
+            coopmt[2]=coo[2]-(0.5*CTCDBc::getcellsize(2)
             -parpmt[2]);  
             char cvolpmt[]="PMTU";
             cvolpmt[3]=cdum[ilay-1][0];
