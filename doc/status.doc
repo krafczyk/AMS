@@ -116,12 +116,10 @@ error bit
 
 correspondance between bits & status datacards words:
 
-values 0123...etc --> 1 10 100 1000 
+values 0123...etc --> 1 10 100 1000    (in fact base ESTA 34)
                       0 in datacards means select everything
 
 
-error bit
-1 error
 
 
 N.B.

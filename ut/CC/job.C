@@ -127,6 +127,7 @@ void AMSJob::data(){
     for(int i=0;i<32;i++){
       STATUSFFKEY.status[i]=0;
     }
+        STATUSFFKEY.status[33]=10;
   }
   FFKEY("ESTATUS",(float*)&STATUSFFKEY,sizeof(STATUSFFKEY_DEF)/sizeof(integer),"MIXED");
 

@@ -128,6 +128,8 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
 
    // modify some sensors
    (_HeadSensor[621])._status=0;
+   (_HeadSensor[1286])._status=0;
+   (_HeadSensor[1287])._status=0;
    (_HeadSensor[1288])._status=0;
    (_HeadSensor[1407])._status=0;
    (_HeadSensor[1122])._nrm[0][0]=cos(1.5e-3);

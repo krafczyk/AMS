@@ -174,32 +174,35 @@ integer AMSStatus::_statusok(uinteger status){
     if(!(status & (1<<31))){    // Status exists
       const int nsta=15;
       uinteger Status[nsta];
-      Status[0]=((status & ((1<<4)-1)))+1;
-      Status[1]=((status>>4) & ((1<<1)-1))+1;
-      Status[2]=((status>>5) & ((1<<3)-1))+1;
-      Status[3]=((status>>8) & ((1<<1)-1))+1;
-      Status[4]=((status>>9) & ((1<<1)-1))+1;
-      Status[5]=((status>>10) & ((1<<5)-1))+1;
-      Status[6]=((status>>15) & ((1<<2)-1))+1;
-      Status[7]=((status>>17) & ((1<<2)-1))+1;
-      Status[8]=((status>>19) & ((1<<2)-1))+1;
-      Status[9]=((status>>21) & ((1<<2)-1))+1;
-      Status[10]=((status>>23) & ((1<<2)-1))+1;
-      Status[11]=((status>>25) & ((1<<2)-1))+1;
-      Status[12]=((status>>27) & ((1<<2)-1))+1;
-      Status[13]=((status>>29) & ((1<<1)-1))+1;
-      Status[14]=((status>>30) & ((1<<1)-1))+1;
-
+      Status[0]=((status & ((1<<4)-1)));
+      Status[1]=((status>>4) & ((1<<1)-1));
+      Status[2]=((status>>5) & ((1<<3)-1));
+      Status[3]=((status>>8) & ((1<<1)-1));
+      Status[4]=((status>>9) & ((1<<1)-1));
+      Status[5]=((status>>10) & ((1<<5)-1));
+      Status[6]=((status>>15) & ((1<<2)-1));
+      Status[7]=((status>>17) & ((1<<2)-1));
+      Status[8]=((status>>19) & ((1<<2)-1));
+      Status[9]=((status>>21) & ((1<<2)-1));
+      Status[10]=((status>>23) & ((1<<2)-1));
+      Status[11]=((status>>25) & ((1<<2)-1));
+      Status[12]=((status>>27) & ((1<<2)-1));
+      Status[13]=((status>>29) & ((1<<1)-1));
+      Status[14]=((status>>30) & ((1<<1)-1));
         uinteger local=0;
       for(int i=0;i<nsta;i++){
         local=0;
         if(STATUSFFKEY.status[i]==0)continue;
         else {
           uinteger st=STATUSFFKEY.status[i];
-          for (int j=0;j<10;j++){
-            uinteger stbit=(st%10)>0?1:0;
-            //            cout <<stbit <<" "<<j<<" "<<Status[i]<<" "<<i<<endl;
-            if((stbit<<j) & Status[i]){
+          uinteger nbit=32.*log(2.)/log(number(STATUSFFKEY.status[33]))+0.5;
+          for (int j=0;j<nbit;j++){
+            uinteger stbit=(st%STATUSFFKEY.status[33])>0?1:0;
+//            if(i==10)cout <<"qq "<<stbit <<" "<<j<<" "<<Status[i]<<" "<<i<<endl;
+            if((stbit<<j) & (1<<Status[i])){
+//              if(i==10){
+//               cout <<" got it "<<j<<" "<<stbit<<" "<<Status[i]<<endl;
+//              }
               local=1;
               break; 
             }
