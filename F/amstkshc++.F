@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.76 2003/11/12 08:57:39 alcaraz Exp $
+*  $Id: amstkshc++.F,v 1.77 2004/01/19 17:15:22 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -6051,6 +6051,7 @@ c              pinit=abs(pinit)
               n=npars
               tol=xtol
               ifail=0
+c              write(*,*)' calling tkhmd'
               call tkhmd(1+(ialgo/10)*10,n,x,f,tol,maxcal,ifail,er)
               if(ifail.eq.0)then
 *
@@ -6395,6 +6396,7 @@ c        print *,' Fit failed ',ifail
        out(9)=sqrt(ss(1,1,0))*abs(chrg)
 999         end
           subroutine tkhmd(icase,n,xc,fc,tol,mxcal,ifail,er)
+#      include "mfield.h"
           common /tkclearC/clear
           integer clear
 
@@ -6543,20 +6545,23 @@ c                xms(i)=fact(i)*(xp(3,i)-xp(3,i-1))**2*(i-2)*2  ! last 2 - tubes
               enddo
              enddo
             enddo
-           if(icase/10.ne.0)then
+           if(icase/10.ne.0.or.magstat.le.0)then
             do i=1,4
              gg(i,5)=0
              gg(5,i)=0
             enddo
-            
+            if(magstat.le.0)then
+              gg(5,5)=0.000001
+            endif
            endif
            call dsinv(5,gg(1,1),5,ifail)
            if(ifail.ne.0)then
-c             write(*,*) 'sinv gg ',ifail
+             write(*,*) 'sinv gg ',ifail
              goto 999
            endif
            er=sqrt(2*gg(5,5))
            dlt=(fc-fcb)/(fcb+2*npoint-5+1.e-3)
+c           write(*,*)' iter',er,fc,fcb,xc
            fcb=fc
            if(abs(dlt).le.tol)then
             ifail=0
@@ -6915,7 +6920,6 @@ CDECK  ID>, TKFUNXY.
           endif
            s=sqrt(1+dx**2+dy**2)
            call gufld(xx,h)
-
            call tkfld(xx,hxy)
            der(10,k)=s*((1+dy**2)*h(1)-dx*dy*h(2)-dx*h(3))
            der(9,k)=s*(dx*dy*h(1)-(1+dx**2)*h(2)+dy*h(3))
@@ -9138,9 +9142,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.76 2003/11/12 08:57:39 alcaraz Exp $
+* $Id: amstkshc++.F,v 1.77 2004/01/19 17:15:22 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.77  2004/01/19 17:15:22  choutko
+* add fitting without mf
+*
 * Revision 1.76  2003/11/12 08:57:39  alcaraz
 *        Reverting to previous state. It was a feature, not a bug. Changing
 *      then AMSVtx -> ErrMomentum is now the error on 1/Momentum sum.
