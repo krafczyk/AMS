@@ -1,4 +1,4 @@
-//  $Id: AMSR_TrackReader.cxx,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_TrackReader.cxx,v 1.3 2001/01/23 19:03:20 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -109,7 +109,7 @@ void AMSR_TrackReader::Make()
       t->m_NHits           = _ntuple->nhits[k];
       for (i=0; i<6; i++)
 	t->m_PHits[i]      = _ntuple->phits[k][i];
-      t->m_FastFitDone     = _ntuple->Fastfitdone[k];
+      //      t->m_FastFitDone     = _ntuple->Fastfitdone[k];
       t->m_GeaneFitDone    = _ntuple->Geanefitdone[k];
       t->m_AdvancedFitDone = _ntuple->Advancedfitdone[k];
       t->m_Chi2StrLine     = _ntuple->Chi2strline[k];
@@ -143,10 +143,10 @@ void AMSR_TrackReader::Make()
 //        t->m_GP0[i][j]     = _ntuple->hp0[k][i][j];
       }
 
-      t->m_FChi2MS         = _ntuple->fchi2ms[k];
-      t->m_GChi2MS         = _ntuple->gchi2ms[k];
+      //      t->m_FChi2MS         = _ntuple->fchi2ms[k];
+      // t->m_GChi2MS         = _ntuple->gchi2ms[k];
       t->m_RigidityMS      = _ntuple->ridgidityms[k];
-      t->m_GRigidityMS     = _ntuple->gridgidityms[k];
+      //      t->m_GRigidityMS     = _ntuple->gridgidityms[k];
 
       t->SetHelix();
    }

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.3 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.4 2001/01/23 19:02:53 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -247,16 +247,11 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("thetagl", m_BlkParticle->thetagl, "thetagl[npart]/F");
    m_Tree->Branch("phigl", m_BlkParticle->phigl, "phigl[npart]/F");
    m_Tree->Branch("pcoo", m_BlkParticle->pcoo, "pcoo[npart][3]/F");
-   m_Tree->Branch("atcnbcel", m_BlkParticle->atcnbcel, "atcnbcel[npart][2]/I");
-   m_Tree->Branch("atcnbphe", m_BlkParticle->atcnbphe, "atcnbphe[npart][2]/F");
-   m_Tree->Branch("atcidcel", m_BlkParticle->atcidcel, "atcidcel[npart][2]/I");
-   m_Tree->Branch("atcdispm", m_BlkParticle->atcdispm, "atcdispm[npart][2]/I");
-   m_Tree->Branch("atcdaero", m_BlkParticle->atcdaero, "atcdaero[npart][2]/I");
-   m_Tree->Branch("atcstatu", m_BlkParticle->atcstatu, "atcstatu[npart][2]/I");
-   m_Tree->Branch("atcbeta", m_BlkParticle->atcbeta, "atcbeta[npart]/F");
+   m_Tree->Branch("cutoff", m_BlkParticle->cutoff, "cutoff[npart]/F");
    m_Tree->Branch("cootof", m_BlkParticle->cootof, "cootof[npart][4][3]/F");
    m_Tree->Branch("cooanti", m_BlkParticle->cooanti, "cooanti[npart][2][3]/F");
-   m_Tree->Branch("cootr", m_BlkParticle->cootr, "cootr[npart][6][3]/F");
+   m_Tree->Branch("cooecal", m_BlkParticle->cooecal, "cooecal[npart][18][3]/F");
+   m_Tree->Branch("cootr", m_BlkParticle->cootr, "cootr[npart][8][3]/F");
    m_Tree->Branch("ntof", &m_BlkTofclust->ntof, "ntof/I");
    m_Tree->Branch("Tofstatus", m_BlkTofclust->Tofstatus, "Tofstatus[ntof]/I");
    m_Tree->Branch("plane", m_BlkTofclust->plane, "plane[ntof]/i");
@@ -311,8 +306,8 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("pattern", m_BlkTrtrack->pattern, "pattern[ntrtr]/i");
    m_Tree->Branch("address", m_BlkTrtrack->address, "address[ntrtr]/I");
    m_Tree->Branch("nhits", m_BlkTrtrack->nhits, "nhits[ntrtr]/i");
-   m_Tree->Branch("phits", m_BlkTrtrack->phits, "phits[ntrtr][6]/I");
-   m_Tree->Branch("Fastfitdone", m_BlkTrtrack->Fastfitdone, "Fastfitdone[ntrtr]/i");
+   m_Tree->Branch("phits", m_BlkTrtrack->phits, "phits[ntrtr][8]/I");
+   m_Tree->Branch("Locdbaver", m_BlkTrtrack->Locdbaver, "Locdbaver[ntrtr]/F");
    m_Tree->Branch("Geanefitdone", m_BlkTrtrack->Geanefitdone, "Geanefitdone[ntrtr]/i");
    m_Tree->Branch("Advancedfitdone", m_BlkTrtrack->Advancedfitdone, "Advancedfitdone[ntrtr]/i");
    m_Tree->Branch("Chi2strline", m_BlkTrtrack->Chi2strline, "Chi2strline[ntrtr]/F");
@@ -337,9 +332,9 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("hphi", m_BlkTrtrack->hphi, "hphi[ntrtr][2]/F");
    m_Tree->Branch("hp0", m_BlkTrtrack->hp0, "hp0[ntrtr][2][3]/F");
    m_Tree->Branch("fchi2ms", m_BlkTrtrack->fchi2ms, "fchi2ms[ntrtr]/F");
-   m_Tree->Branch("gchi2ms", m_BlkTrtrack->gchi2ms, "gchi2ms[ntrtr]/F");
+   m_Tree->Branch("pierrrig", m_BlkTrtrack->pierrrig, "pierrrig[ntrtr]/F");
    m_Tree->Branch("ridgidityms", m_BlkTrtrack->ridgidityms, "ridgidityms[ntrtr]/F");
-   m_Tree->Branch("gridgidityms", m_BlkTrtrack->gridgidityms, "gridgidityms[ntrtr]/F");
+   m_Tree->Branch("piridgidity", m_BlkTrtrack->piridgidity, "piridgidity[ntrtr]/F");
    m_Tree->Branch("nmcg", &m_BlkMceventg->nmcg, "nmcg/I");
    m_Tree->Branch("nskip", m_BlkMceventg->nskip, "nskip[nmcg]/I");
    m_Tree->Branch("Particle", m_BlkMceventg->Particle, "Particle[nmcg]/I");
@@ -370,11 +365,12 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("Lvl3time", m_BlkLvl3->Lvl3time, "Lvl3time[nlvl3]/F");
    m_Tree->Branch("Lvl3eloss", m_BlkLvl3->Lvl3eloss, "Lvl3eloss[nlvl3]/F");
    m_Tree->Branch("nlvl1", &m_BlkLvl1->nlvl1, "nlvl1/I");
-   m_Tree->Branch("Lvl1lifetime", m_BlkLvl1->Lvl1lifetime, "Lvl1lifetime[nlvl1]/I");
-   m_Tree->Branch("Lvl1flag", m_BlkLvl1->Lvl1flag, "Lvl1flag[nlvl1]/I");
+   m_Tree->Branch("mode", m_BlkLvl1->mode, "mode[nlvl1]/I");
+   m_Tree->Branch("Lvl1tofflag", m_BlkLvl1->Lvl1tofflag, "Lvl1tofflag[nlvl1]/I");
    m_Tree->Branch("Lvl1tofpatt", m_BlkLvl1->Lvl1tofpatt, "Lvl1tofpatt[nlvl1][4]/I");
    m_Tree->Branch("Lvl1tofpatt1", m_BlkLvl1->Lvl1tofpatt1, "Lvl1tofpatt1[nlvl1][4]/I");
    m_Tree->Branch("Lvl1antipatt", m_BlkLvl1->Lvl1antipatt, "Lvl1antipatt[nlvl1]/I");
+   m_Tree->Branch("ecalflag", m_BlkLvl1->ecalflag, "ecalflag[nlvl1]/I");
    m_Tree->Branch("ntrraw", &m_BlkTrrawcl->ntrraw, "ntrraw/I");
    m_Tree->Branch("rawaddress", m_BlkTrrawcl->rawaddress, "rawaddress[ntrraw]/I");
    m_Tree->Branch("rawlength", m_BlkTrrawcl->rawlength, "rawlength[ntrraw]/I");
@@ -669,15 +665,10 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("thetagl", m_BlkParticle->thetagl);
    m_Tree->SetBranchAddress("phigl", m_BlkParticle->phigl);
    m_Tree->SetBranchAddress("pcoo", m_BlkParticle->pcoo);
-   m_Tree->SetBranchAddress("atcnbcel", m_BlkParticle->atcnbcel);
-   m_Tree->SetBranchAddress("atcnbphe", m_BlkParticle->atcnbphe);
-   m_Tree->SetBranchAddress("atcidcel", m_BlkParticle->atcidcel);
-   m_Tree->SetBranchAddress("atcdispm", m_BlkParticle->atcdispm);
-   m_Tree->SetBranchAddress("atcdaero", m_BlkParticle->atcdaero);
-   m_Tree->SetBranchAddress("atcstatu", m_BlkParticle->atcstatu);
-   m_Tree->SetBranchAddress("atcbeta", m_BlkParticle->atcbeta);
+   m_Tree->SetBranchAddress("cutoff", m_BlkParticle->cutoff);
    m_Tree->SetBranchAddress("cootof", m_BlkParticle->cootof);
    m_Tree->SetBranchAddress("cooanti", m_BlkParticle->cooanti);
+   m_Tree->SetBranchAddress("cooecal", m_BlkParticle->cooecal);
    m_Tree->SetBranchAddress("cootr", m_BlkParticle->cootr);
    m_Tree->SetBranchAddress("ntof", &m_BlkTofclust->ntof);
    m_Tree->SetBranchAddress("Tofstatus", m_BlkTofclust->Tofstatus);
@@ -734,7 +725,7 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("address", m_BlkTrtrack->address);
    m_Tree->SetBranchAddress("nhits", m_BlkTrtrack->nhits);
    m_Tree->SetBranchAddress("phits", m_BlkTrtrack->phits);
-   m_Tree->SetBranchAddress("Fastfitdone", m_BlkTrtrack->Fastfitdone);
+   m_Tree->SetBranchAddress("Locdbaver", m_BlkTrtrack->Locdbaver);
    m_Tree->SetBranchAddress("Geanefitdone", m_BlkTrtrack->Geanefitdone);
    m_Tree->SetBranchAddress("Advancedfitdone", m_BlkTrtrack->Advancedfitdone);
    m_Tree->SetBranchAddress("Chi2strline", m_BlkTrtrack->Chi2strline);
@@ -759,9 +750,9 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("hphi", m_BlkTrtrack->hphi);
    m_Tree->SetBranchAddress("hp0", m_BlkTrtrack->hp0);
    m_Tree->SetBranchAddress("fchi2ms", m_BlkTrtrack->fchi2ms);
-   m_Tree->SetBranchAddress("gchi2ms", m_BlkTrtrack->gchi2ms);
+   m_Tree->SetBranchAddress("pierrrig", m_BlkTrtrack->pierrrig);
    m_Tree->SetBranchAddress("ridgidityms", m_BlkTrtrack->ridgidityms);
-   m_Tree->SetBranchAddress("gridgidityms", m_BlkTrtrack->gridgidityms);
+   m_Tree->SetBranchAddress("piridgidity", m_BlkTrtrack->piridgidity);
    m_Tree->SetBranchAddress("nmcg", &m_BlkMceventg->nmcg);
    m_Tree->SetBranchAddress("nskip", m_BlkMceventg->nskip);
    m_Tree->SetBranchAddress("Particle", m_BlkMceventg->Particle);
@@ -792,11 +783,12 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("Lvl3time", m_BlkLvl3->Lvl3time);
    m_Tree->SetBranchAddress("Lvl3eloss", m_BlkLvl3->Lvl3eloss);
    m_Tree->SetBranchAddress("nlvl1", &m_BlkLvl1->nlvl1);
-   m_Tree->SetBranchAddress("Lvl1lifetime", m_BlkLvl1->Lvl1lifetime);
-   m_Tree->SetBranchAddress("Lvl1flag", m_BlkLvl1->Lvl1flag);
+   m_Tree->SetBranchAddress("mode", m_BlkLvl1->mode);
+   m_Tree->SetBranchAddress("Lvl1tofflag", m_BlkLvl1->Lvl1tofflag);
    m_Tree->SetBranchAddress("Lvl1tofpatt", m_BlkLvl1->Lvl1tofpatt);
    m_Tree->SetBranchAddress("Lvl1tofpatt1", m_BlkLvl1->Lvl1tofpatt1);
    m_Tree->SetBranchAddress("Lvl1antipatt", m_BlkLvl1->Lvl1antipatt);
+   m_Tree->SetBranchAddress("ecalflag", m_BlkLvl1->ecalflag);
    m_Tree->SetBranchAddress("ntrraw", &m_BlkTrrawcl->ntrraw);
    m_Tree->SetBranchAddress("rawaddress", m_BlkTrrawcl->rawaddress);
    m_Tree->SetBranchAddress("rawlength", m_BlkTrrawcl->rawlength);
