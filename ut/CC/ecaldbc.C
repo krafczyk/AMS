@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.44 2002/12/16 14:13:10 choutko Exp $
+//  $Id: ecaldbc.C,v 1.45 2003/01/15 19:37:24 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -14,7 +14,7 @@
 //
 using namespace ecalconst;
 ECcalib ECcalib::ecpmcal[ECSLMX][ECPMSMX];// mem.reserv.for ECAL indiv.PMcell calib. param.
-ECcalibMS ECcalibMS::ecpmcal[ECSLMX][ECPMSMX];// tha same for MC-Seeds params
+ECcalibMS ECcalibMS::ecpmcal[ECSLMX][ECPMSMX];// the same for MC-Seeds params
 ECPMPeds ECPMPeds::pmpeds[ECSLMX][ECPMSMX];// ..........for ECAL peds,sigmas
 ECALVarp ECALVarp::ecalvpar;// .........................for ECAL general run-time param.  
 //-----------------------------------------------------------------------

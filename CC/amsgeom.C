@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.142 2002/11/08 15:43:09 choutko Exp $
+//  $Id: amsgeom.C,v 1.143 2003/01/15 19:37:24 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1088,8 +1088,10 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //
 // ------------> #3(inclined at +Y):
 //
- geant r3cy1=112.;// top/unner corner y-pos.(r of TRD  top honeycomb)
- geant r3cz1=152.;// top/inner corner z-pos(midd. of TRD top honeycomb)
+// geant r3cy1=112.;// top/unner corner y-pos.(r of TRD  top honeycomb)
+ geant r3cy1=120.9;// top/unner corner y-pos.(r of TRD  top honeycomb)
+// geant r3cz1=152.;// top/inner corner z-pos(midd. of TRD top honeycomb)
+ geant r3cz1=156.2;// top/inner corner z-pos(midd. of TRD top honeycomb)
  geant r3cy2=r1cy;// bot/inner corner y-pos.
  geant r3cz2=r11cz+r11dz/2.+r12dz;//bot/inner corner z-pos
  geant r3dz=2.1;// thickness
