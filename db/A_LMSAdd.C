@@ -7,8 +7,9 @@
 // Sep    , 1996. ak. Add Geometry, Materials and TMedia.
 //                    remove fRunNumber class member from list.ddl
 //                    set map per list, not map per dbase as before
+// Nov    , 1996. ak. exit, if Addamsdbc fails
 //
-// last edit Nov 10, 1996, ak.
+// last edit Nov 21, 1996, ak.
 //
 
 #include <stdio.h>
@@ -636,6 +637,7 @@ ooStatus   LMS::Addamsdbc(char* listName)
         }
     
         if(!listH -> Addamsdbc()) {
+         rstatus = oocError;
  	 strcpy(err_mess, "Cannot add amsdbc"); goto error; }
         }
        }
@@ -645,7 +647,8 @@ error:
         } else {
          cout <<"Addamsdbc:: Error "<<err_mess<<endl;
          rstatus = Abort();  // or Abort it
-         return oocError;
+         exit (1);
+         //return oocError;
         }
 
 	// Return the status (oocSuccess or oocError)

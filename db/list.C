@@ -33,8 +33,9 @@
 //                   AddEvent is modified (Find is moved to the upper level)
 //                   new function CopyEventHeader.
 //                   keep number of hits, clusters, tracks, etc per event
+// Nov    1996. ak.  modifications of Addamsdbc
 //
-// last edit Oct 31, 1996, ak.
+// last edit Nov 21, 1996, ak.
 //
 //
 #include <iostream.h>
@@ -167,6 +168,8 @@ ooItr(AMSgmatD)        gmatItr;                 // material
 ooItr(AMSgtmedD)       gtmedItr;                // tmedia
 ooItr(AMSmceventgD)    mceventgItr;             // mc event
 ooItr(AMSDBcD)         amsdbcItr;               // amsdbc
+ooItr(AMScommonsD)     commonsItr;              // commons
+ooItr(CTCDBcD)         ctcdbcItr;               // ctcdbc
 
 // lists
 
@@ -3117,20 +3120,55 @@ ooStatus AMSEventList::Addamsdbc()
     {
       contH = new(contName,1,0,0,databaseH) ooContObj;
       cout << "AMSEventList:: -I- Create container "<<contName<< endl;
+      amsdbcH  = new(contH) AMSDBcD();
+      commonsH = new(contH) AMScommonsD();
+      ctcdbcH  = new(contH) CTCDBcD();
     } else {
       cout << "AMSEventList:: -I- Found container "<<contName<< endl;
       amsdbcItr.scan(contH, mode);
       if (amsdbcItr.next()) {
-        cout <<"AMSEventList:: -W- container "<<contName<<" is not empty. "
-             <<" Quit"<<endl;
-        return oocSuccess;
+       cout <<"AMSEventList::Addamsdbc -I- check amsdbc"<<endl;
+       rstatus = amsdbcItr -> CmpConstants();
+       if (rstatus != oocSuccess) {
+        cout <<"AMSEventList:: -E- Quit. amsdbc comparison failed"<<endl;
+        return rstatus;
+       }
+      } else {
+       amsdbcH  = new(contH) AMSDBcD();
       }
+
+      integer deleteFlag = 0;
+      commonsItr.scan(contH, mode);
+      if (commonsItr.next()) {
+       cout <<"AMSEventList::Addamsdbc -I- check commons"<<endl;
+       rstatus = commonsItr -> CmpConstants();
+       if (rstatus != oocSuccess) {
+        cout <<"AMSEventList:: -W- commons are different, will be overwritten"
+             <<endl;
+        commonsH = commonsItr;
+        deleteFlag = 1;
+       }
+      } else {
+       commonsH  = new(contH) AMScommonsD();
+      }
+      if (deleteFlag == 1 && commonsH != NULL) {
+       deleteFlag = 0;
+       ooDelete(commonsH);
+       commonsH  = new(contH) AMScommonsD();
+      }       
+
+
+      ctcdbcItr.scan(contH, mode);
+      if (ctcdbcItr.next()) {
+       cout <<"AMSEventList::Addamsdbc -I- check ctcdbc"<<endl;
+       rstatus = ctcdbcItr -> CmpConstants();
+       if (rstatus != oocSuccess) {
+        cout <<"AMSEventList:: -W- Quit. ctcdbc comparison failed"<<endl;
+        return rstatus;
+       }
+      } 
     }
 
-     amsdbcH  = new(contH) AMSDBcD();
-     commonsH = new(contH) AMScommonsD();
-     ctcdbcH  = new(contH) CTCDBcD();
- 
   return oocSuccess;
 }
 

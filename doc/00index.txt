@@ -7,6 +7,7 @@ cont.doc            // Containers description
 ctcrec.doc          // Threshold cerenkov counter reconstruction
 datacards.doc       // datacards
 dbase_objy.doc      // Objectivity related information
+dbase_evol_log.doc  // evaluation log file
 event.doc           // event class
 flow.doc            // simulation flowchart
 gmat.doc            // material class
