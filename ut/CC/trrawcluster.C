@@ -403,28 +403,28 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
         (int16*)ptr+2,s2n));
 
         //cout <<" ok "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
-
-        /*            
-              static int jpa=0;
-              if(!jpa){
-               HBOOK1(501101,"diff",100,-18.,2.,0.);
-               jpa=1;
-              }
-              int16 snm=0;
-              int olds=id.getstrip();
-              for (int k=0;k<leng+1;k++){
-               id.upd(olds+k);
-               if(id.getsig() && (*((int16*)ptr+2+k))/id.getsig() > snm){
-                snm=*((int16*)ptr+2+k)/id.getsig();
-               }
-              }       
-              id.upd(olds);
-              if(1 || sn>snm){
-                cout <<sn<<" "<<snm<<" "<<id.getsig()<<" "<<id<<endl;
-              }
-              HF1(501101,float(sn-snm),1.);
-
-         */
+        if(AMSJob::gethead()->isMonitoring()){
+          
+          static int jpa=0;
+          if(!jpa){
+            HBOOK1(501101,"diff",200,-20.,20.,0.);
+            jpa=1;
+          }
+          float snm=0;
+          int olds=id.getstrip();
+          for (int k=0;k<leng+1;k++){
+            id.upd(olds+k);
+            if(id.getsig() && (*((int16*)ptr+2+k))/id.getsig() > snm){
+              snm=*((int16*)ptr+2+k)/id.getsig();
+            }
+          }       
+          id.upd(olds);
+          //if( 1 ||  sn>snm){
+          //cout <<sn<<" "<<snm<<" "<<id.getsig()<<" "<<id<<endl;
+          //}
+          HF1(501101,float(sn-snm),1.);
+          
+        }         
 
        }
         else {
