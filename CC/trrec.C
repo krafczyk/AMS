@@ -1249,7 +1249,7 @@ integer AMSTrTrack::build(integer refit){
                   goto out;
                 }                
 
-         }
+          }
          }
          phit[1]=phit[1]->next();
         }
@@ -1277,16 +1277,7 @@ integer AMSTrTrack::buildWeak(integer refit){
   } 
   _RefitIsNeeded=0;
   _Start();
-  // Add test here
    
-  { 
-    int xs=0; 
-    for (int kk=0;kk<6;kk++){
-    AMSTrRecHit * phit=AMSTrRecHit::gethead(kk);
-    if(phit)xs++;
-  }
-    if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
-  }
 
   for (int pat=7;pat<22;pat++){
     // Only 4 points patterns used
@@ -1357,27 +1348,13 @@ return NTrackFound;
 
 
 
-integer AMSTrTrack::buildFalseX(integer refit){
+integer AMSTrTrack::buildFalseX(integer patstart){
   integer NTrackFound=-1;
   // pattern recognition + fit
-  if(refit){
-   return NTrackFound;
-  } 
   _RefitIsNeeded=0;
   _Start();
-  // Add test here
-   
-  { 
-    int xs=0; 
-    for (int kk=0;kk<6;kk++){
-    AMSTrRecHit * phit=AMSTrRecHit::gethead(kk);
-    if(phit)xs++;
-  }
-    if(xs>2)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
-  }
 
-  for (int pat=22;pat<npat;pat++){
-    // Only 3 points patterns used
+  for (int pat=patstart;pat<npat;pat++){
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(1  || TRFITFFKEY.pattern[pat]){
       int fp=patpoints[pat]-1;    
@@ -1408,12 +1385,71 @@ integer AMSTrTrack::buildFalseX(integer refit){
           // Check if the point lies near the str line
            if(AMSTrTrack::Distance(par,phit[1]))
            {phit[1]=phit[1]->next();continue;}
-                // 3 point combination found
-                
-                if(AMSTrTrack::_addnextFalseX(pat,3,phit)){
-                  NTrackFound++;
+          // Check if the point lies near the str line
+           if(AMSTrTrack::Distance(par,phit[1]))
+           {phit[1]=phit[1]->next();continue;}
+          if(AMSTrTrack::patpoints[pat] >3){         
+         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
+         while(phit[2]){
+          // Check if the point lies near the str line
+          if(phit[2]->Good()){
+          if(AMSTrTrack::Distance(par,phit[2]))
+          {phit[2]=phit[2]->next();continue;}
+          if(AMSTrTrack::patpoints[pat] >4){         
+          phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
+          while(phit[3]){
+           if(phit[3]->Good()){
+           if(AMSTrTrack::Distance(par,phit[3]))
+           {phit[3]=phit[3]->next();continue;}
+           if(AMSTrTrack::patpoints[pat]>5){
+           phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
+           while(phit[4]){
+             if(phit[4]->Good()){
+              if(AMSTrTrack::Distance(par,phit[4]))
+              {phit[4]=phit[4]->next();continue;}
+                // 6 point combination found
+              if(AMSTrTrack::_addnext(pat,6,phit)){
                   goto out;
-                }
+              }                
+                
+             }
+            phit[4]=phit[4]->next();
+           }
+           }
+           else{  // 5 points only
+                // 5 point combination found
+             int f=AMSTrTrack::_addnextFalseX(pat,5,phit);
+             if(f){
+                  if(f>0)NTrackFound++;
+                  goto out;
+             }
+                
+           }
+           }
+           phit[3]=phit[3]->next();
+          }
+          }
+          else{       // 4 points only
+                // 4 point combination found
+            int f=AMSTrTrack::_addnextFalseX(pat,4,phit);
+                if(f){
+                  if(f>0)NTrackFound++;
+                  goto out;
+                }                
+          }
+          }
+          phit[2]=phit[2]->next();
+          }
+          }
+          else{       // 3 points only
+                // 3 point combination found
+            int f= AMSTrTrack::_addnextFalseX(pat,3,phit);
+                if(f){
+                  if(f)NTrackFound++;
+                  goto out;
+                }                
+
+          }
          }
          phit[1]=phit[1]->next();
         }
@@ -1472,7 +1508,27 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
        if( (  (ptrack->Fit(0) < 
             TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK()){
          if(!TRFITFFKEY.FastTracking)ptrack->AdvancedFit();
-         int i;   
+         // permanently add;
+#ifdef __UPOOL__
+          ptrack=new AMSTrTrack(track);
+#endif
+          _addnextR(ptrack, pat, nhit, pthit);
+          return 1;
+       }
+     }
+    }
+#ifndef __UPOOL__
+    delete ptrack;  
+#endif   
+    return 0;
+}
+
+
+
+
+void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrRecHit* pthit[6]){
+
+         int i;
          // Mark hits as USED
          for( i=0;i<nhit;i++){
            if(pthit[i]->checkstatus(AMSDBc::USED))
@@ -1499,25 +1555,15 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
            }
           }
          // permanently add;
-#ifdef __UPOOL__
-          ptrack=new AMSTrTrack(track);
-#endif
           AMSEvent::gethead()->addnext(AMSID("AMSTrTrack",pat),ptrack);
-          return 1;
-       }
-     }
-    }
-#ifndef __UPOOL__
-    delete ptrack;  
-#endif   
-    return 0;
 }
 
 
 
 
-integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
 
+integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
+AMSgObj::BookTimer.start("TrFalseX");
 #ifdef __UPOOL__
     AMSTrTrack track(pat, nhit ,pthit);
     AMSTrTrack *ptrack=   &track;
@@ -1572,46 +1618,60 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
               if(id.FindAtt(P1,PS))pls=(AMSgSen*) AMSJob::gethead()->getgeomvolume(id.crgid());
               if(pls){
                 // Here Search for corresponding y-hit in the container 
-              AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
-              AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
-              number theta,phi,length;
-              ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length);
-              // Now check for the corr y-hit
+                AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
+                AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
+                number theta,phi,length;
+                ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length);
+                // Now check for the corr y-hit
                 
-           
-             py=
-             (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
-             while(py){
-              AMSTrIdSoft idy=py->getid();
-              if(idy.getlayer()==id.getlayer() && abs(idy.getdrp()-id.getladder())<1){
-                if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1)){
-                  //  Create False RawHit and put it in the corr container 
-                   AMSPoint loc=pls->gl2loc(P1);
-                   id.R2Gy(idy.getstrip());
-                   AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(1,&id)); 
-                   AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
-                   TRFITFFKEY.SearchRegStrLine,TRFITFFKEY.SearchRegStrLine);
-                   if((hit-P1).abs() < Err){
-                   AMSTrRecHit::_addnext(pls,AMSTrRecHit::FalseX,id.getlayer(),0,py,hit,
-                   AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
-                   pointfound++;
-                   } 
-                           
+                
+                py=
+                  (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
+                while(py){
+                  AMSTrIdSoft idy=py->getid();
+                  if(idy.getlayer()==id.getlayer() && abs(idy.getdrp()-id.getladder())<1){
+                    if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1)){
+                      //  Create False RawHit and put it in the corr container 
+                      AMSPoint loc=pls->gl2loc(P1);
+                      id.R2Gy(idy.getstrip());
+                      AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(1,&id)); 
+                      AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
+                                   TRFITFFKEY.SearchRegStrLine,TRFITFFKEY.SearchRegStrLine);
+                      if((hit-P1).abs() < Err){
+                        AMSTrRecHit::_addnext(pls,AMSTrRecHit::FalseX,id.getlayer(),0,py,hit,
+                                              AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
+                        pointfound++;
+                      } 
+                      
+                    }
+                  }
+                  py=py->next();
                 }
-              }
-              py=py->next();
-             }
+                if(1){
+                  if(pointfound>0){
 #ifndef __UPOOL__
                     delete ptrack;  
 #endif   
-                    return (pointfound>0);
-
-                
+                    AMSgObj::BookTimer.stop("TrFalseX");
+                    return 1;
+                  }
+                  else if(TRFITFFKEY.pattern[pat]){
+#ifdef __UPOOL__
+                    ptrack=new AMSTrTrack(track);
+#endif
+                    _addnextR(ptrack, pat, nhit, pthit);
+                    AMSgObj::BookTimer.stop("TrFalseX");
+                    return -1;
+                  }
+                  else {
+#ifndef __UPOOL__
+                    delete ptrack;  
+#endif   
+                    AMSgObj::BookTimer.stop("TrFalseX");
+                    return 0;
+                  }
+                }
               }
-
-
-
-
              }
             }
 #ifdef __AMSDEBUG__
@@ -1620,18 +1680,38 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 #endif
           
           }
-
-
-
+          if(0){
+            if(pointfound>0){
+#ifndef __UPOOL__
+              delete ptrack;  
+#endif   
+              AMSgObj::BookTimer.stop("TrFalseX");
+              return 1;
+            }
+            else if(TRFITFFKEY.pattern[pat]){
+#ifdef __UPOOL__
+              ptrack=new AMSTrTrack(track);
+#endif
+              _addnextR(ptrack, pat, nhit, pthit);
+              AMSgObj::BookTimer.stop("TrFalseX");
+              return -1;
+            }
+            else {
+#ifndef __UPOOL__
+              delete ptrack;  
+#endif   
+              AMSgObj::BookTimer.stop("TrFalseX");
+              return 0;
+            }
+          }
         }
       }
      }
     }
-    
-        
 #ifndef __UPOOL__
     delete ptrack;  
 #endif   
+    AMSgObj::BookTimer.stop("TrFalseX");
     return 0;
 }
 

@@ -1179,6 +1179,7 @@ AMSgObj::BookTimer.book("TrCluster");
 AMSgObj::BookTimer.book("TrClusterRefit");
 AMSgObj::BookTimer.book("TrRecHit");
 AMSgObj::BookTimer.book("TrTrack");
+AMSgObj::BookTimer.book("TrFalseX");
 }
 //--------------------------------------------------------------------------
 //

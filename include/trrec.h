@@ -295,6 +295,7 @@ static geant _Time;
   void _writeEl();
 
 static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
+static void   _addnextR(AMSTrTrack* ptr, integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer Distance(number par[2][2], AMSTrRecHit *ptr);
 static integer DistanceTOF(number par[2][2], AMSTrRecHit *ptr);

@@ -584,27 +584,29 @@ if(!AMSJob::gethead()->isMonitoring() || (ptr && ptr->LVL3OK())){
   
   AMSgObj::BookTimer.start("TrTrack");
   
-  integer itrk=0;
+  integer itrk=1;
   
   // Default reconstruction: 4S + 4K or more
-  itrk = buildC("AMSTrTrack",refit);
-  
+  if(TRFITFFKEY.FalseXTracking && !TRFITFFKEY.FastTracking)
+    itrk = buildC("AMSTrTrackFalseX",0);
+  if(itrk)itrk=buildC("AMSTrTrack",refit);
   // Reconstruction with looser cuts on the K side
   if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.WeakTracking ){
     buildC("AMSTrClusterWeak",refit);
     buildC("AMSTrRecHitWeak",refit);
     itrk = buildC("AMSTrTrackWeak",refit);
   }
-  
-  // Reconstruction of 4S + 3K
-  if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
-    itrk=buildC("AMSTrTrackFalseX",refit);
-    if(itrk>0) itrk=buildC("AMSTrTrack",refit);
+
+  if(TRFITFFKEY.FastTracking){
+    // Reconstruction of 4S + 3K
+    if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
+      itrk=buildC("AMSTrTrackFalseX",22);
+      if(itrk>0) itrk=buildC("AMSTrTrack",refit);
 #ifdef __AMSDEBUG__
-    if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
+      if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
 #endif
+    }
   }
-  
   // Reconstruction of 4S + TOF
   if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseTOFXTracking ){
     itrk=buildC("AMSTrTrackFalseTOFX",refit);

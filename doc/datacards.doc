@@ -363,7 +363,7 @@ I54  FullReco(0)            // Use(1) or not use(0) "used "clusters to build
                             // tracks
 R55  MinRefitCos(0.7,0.5)      // min cos(tr angle) to refit track with wider
                             // clusters
-I57  FastTracking(0)        // Make(0) do not make(1) nonlinear fitting
+I57  FastTracking(1)        // Make(0) do not make(1) nonlinear fitting
 I58  WeakTracking(0)        // Make(1) do not make(0) weak clusters fitting
 I59  FalseXTracking(0)      // Make(1) do not make(0) 4y + 3x tracking
 R60  Chi2FalseX(10.)        // Max Chi2 for 3point combinations
