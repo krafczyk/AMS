@@ -931,7 +931,7 @@ void ctcgeomAG(AMSgvolume & mother){
 }
 
 void ctcgeomAGPlus(AMSgvolume & mother){
-  // 3 rad leangth ( 0.96 cm) of Tungsten added between 1 & 2 layers
+  // 3 rad leangth ( 1.05 cm) of Tungsten added between 1 & 2 layers
   // A. Gougas version   
   // modified by V.Choutko 24/04/97
   // The AGLx, PMTx and PTFx (x=L,U,E) volumes are now at the level 2 ( from 0)
@@ -987,9 +987,9 @@ void ctcgeomAGPlus(AMSgvolume & mother){
   strcpy(cdum[1],"LOWE");
   // Add Tungsten first
       for(i=0;i<2;i++)par[i]=0.5*CTCDBc::getupsize(i);
-      par[2]=0.48;
+      par[2]=1.05/2;
       coo[0]=coo[1]=5.5;
-      coo[2]=zr-0.5*CTCDBc::getthcsize(2)-0.5;   // for W
+      coo[2]=zr-0.5*CTCDBc::getthcsize(2)-0.55;   // for W
       pLayer=mother.add(new AMSgvolume(
        "TUNGSTEN",0,"AMPL","BOX ",par,3,coo,nrm,"ONLY",0,3000000));
   
@@ -1005,7 +1005,7 @@ void ctcgeomAGPlus(AMSgvolume & mother){
     else{
       for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
       coo[0]=coo[1]=5.5;
-      coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2)-1.;   // for W
+      coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2)-1.1;   // for W
       pLayer=mother.add(new AMSgvolume(
        "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
     }

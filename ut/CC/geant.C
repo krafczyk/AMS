@@ -474,7 +474,7 @@ static integer event=0;
       pdaq->runtype(),pdaq->time())));
       AMSEvent::gethead()->addnext(AMSID("DAQEvent",0), pdaq);
       guout_();
-      if(GCFLAG.IEOTRI)break;
+      if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;
       GCFLAG.IEVENT++;
     }
      GCFLAG.IEORUN=1;
