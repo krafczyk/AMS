@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.37 2003/02/05 14:12:52 choutko Exp $
+#  $Id: Mopt_Root,v 1.38 2003/03/10 12:19:34 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -90,9 +90,14 @@ ifeq  "$(shell uname)"  "Linux"
 ifdef AMSICC
 CERNDIR = /f2dat1/CERN/2002/icc
 NAGDIR  = /f2dat1/NagLib
-CC=/opt/intel/compiler60/ia32/bin/icc
+#CC=/opt/intel/compiler60/ia32/bin/icc
+#FF=/opt/intel/compiler60/ia32/bin/ifc
+#LD=/opt/intel/compiler60/ia32/bin/icc
+ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
 FF=/opt/intel/compiler60/ia32/bin/ifc
-LD=/opt/intel/compiler60/ia32/bin/icc
+else
+FF=/opt/intel/compiler70/ia32/bin/ifc
+endif
 BINMT=$(AMSWD)/bin/linux/icc/mt/
 BIN=$(AMSWD)/bin/linuxr/icc/
 EXE=$(AMSWD)/exe/linux/icc/
@@ -134,7 +139,7 @@ endif
 ifdef AMSDEBUG
 CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -I../db  -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include $(PFLAGS)
 else
-CFLAGSB=      -D__BATCH__  -I../include   -I../db  -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include  $(PFLAGS)
+CFLAGSB=      -D__BATCH__  -I../include    -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include  $(PFLAGS)
 endif
 
 ifdef AMSICC
@@ -173,8 +178,8 @@ CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db
 else
 CFLAGSTOFSIM= $(CFLAGSB)     -O1   
 CFLAGSDAQ=    $(CFLAGSB) -O2
-CFLAGSn=      $(CFLAGSB) -O1
-CFLAGS=      $(CFLAGSB) -O2
+CFLAGSn=      $(CFLAGSB) -O2
+CFLAGS=      $(CFLAGSB) -O3
 FFLAGS=   -fno-automatic -O3 -I../include $(PFLAGS)
 FFLAGSn=   -fno-automatic  -I../include
 endif
@@ -182,13 +187,15 @@ endif
 
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include  -I$(SRC)
 ifdef AMSICC
-LDFLAGS=      -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
 #LDFLAGS=    -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -lm  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib -L../lib/linux/icc  $(ROOTLIBS) -lamsut -ldl
 ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
+LDFLAGS=      -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
 LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -lmy2  -lPEPCF90 -lPOSF90 -lmy -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut     $(PFLAGS) -L/opt/intel/compiler60/ia32/lib  -L/opt/intel/compiler60/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
 else
-LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90    -lPEPCF90 -lPOSF90  -limf -lirc  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut     $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90 -limf -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
+LDFLAGS=      -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib    -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
+LDFLAGSSTATIC=  -static    -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl  -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut     $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90  -lPEPCF90 -lPOSF90 -lintrins  -limf -L$(ROOTSYS)/lib -lRoot -ldl 
 endif
+#LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90    -lPEPCF90 -lPOSF90  -limf -lirc  -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl   -L/afs/cern.ch/exp/ams/Offline/lib/linux/icc -lamsut     $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90 -limf -lPEPCF90 -lPOSF90 -lintrins   -L$(ROOTSYS)/lib -lRoot   -ldl
 #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut -ldl
 #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut -ldl
 else
@@ -281,16 +288,16 @@ OBJECTSA= $(BIN)gbatch_a.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)nod
 
 OBJECTSC= $(BIN)gbatch_c.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant_c.o $(BIN)geant3_c.o $(BIN)mceventg_r.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec_r.o $(BIN)trdsim_r.o $(BIN)trdrec_r.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job_c.o $(BIN)event_c.o $(BIN)cont.o $(BIN)trrawcluster_r.o $(BIN)mccluster_r.o $(BIN)rndm.o $(BIN)tofrec02_r.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02_r.o $(BIN)tofsim02_r.o $(BIN)beta_r.o $(BIN)charge_r.o $(BIN)particle_r.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)tofid.o $(BIN)timeid_c.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o  $(BIN)trigger102_r.o $(BIN)trigger302_r.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple_r.o $(BIN)root_r.o $(BIN)rootdict.o $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec_r.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec_r.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)flinit.o $(BIN)producer.o $(BIN)client.o $(BIN)fint_my.o $(BIN)ins_dummy.o
 
+static: $(EXE)gbatch_ra.exe
+
+$(EXE)gbatch_ra.exe:	$(OBJECTSA)
+	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch_ra.exe $(OBJECTSA) $(TIMEL) $(LDFLAGSSTATIC)
+
 standalone: $(EXE)/gbatch_r.exe
 
 
 $(EXE)/gbatch_r.exe:	$(OBJECTS)
 	$(LD) -v -o $(EXE)/gbatch_r.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
-
-static: $(EXE)gbatch_ra.exe
-
-$(EXE)gbatch_ra.exe:	$(OBJECTSA)
-	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch_ra.exe $(OBJECTSA) $(TIMEL) $(LDFLAGSSTATIC)
 
 
 producer: $(EXE)gbatch-orbit.exe
