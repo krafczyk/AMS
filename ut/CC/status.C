@@ -48,7 +48,7 @@ uinteger AMSStatus::getstatus(uinteger evt){
   AMSgObj::BookTimer.start("EventStatus");
   int out= AMSbins(_Status[0],evt,_Nelem);
   static int repeat=0;
- if(repeat<10 && out<=0){
+ if(repeat<10 && out<=0 ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFound "<<out<<" "<<evt<<" "<<_Nelem<<endl;
    repeat++;
    AMSgObj::BookTimer.stop("EventStatus");

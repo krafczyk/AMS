@@ -582,10 +582,10 @@ for (int i=0;;){
 }
 //------------------------------------------------------------------
 void AMSEvent::event(){
-  if(!AMSStatus::isDBUpdate()){
+    AMSgObj::BookTimer.start("EventStatus");
+  if(!AMSStatus::isDBUpdate() && STATUSFFKEY.status[32]){
     uinteger status=AMSJob::gethead()->getstatustable()->getstatus(getid());
     // compare status 
-    AMSgObj::BookTimer.start("EventStatus");
     if(!(status & (1<<32))){    // Status exists
       const int nsta=10;
       uinteger Status[nsta];
@@ -599,7 +599,6 @@ void AMSEvent::event(){
       Status[7]=((status>>17) & ((1<<2)-1))+1;
       Status[8]=((status>>19) & ((1<<2)-1))+1;
       Status[9]=((status>>21) & ((1<<2)-1))+1;
-      cout <<Status[3]-1<<" "<< STATUSFFKEY.status[3]<< endl;
         uinteger local=0;
       for(int i=0;i<nsta;i++){
         local=0;

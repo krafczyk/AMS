@@ -212,14 +212,9 @@ integer AMSTimeID::write(char * dir){
     fstream fbin;
     AString fnam(dir);
     fnam+=getname();
+    fnam+="/";
+    fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    //      if(AMSJob::gethead()->isCalibration()  & AMSJob::CTracker){
-    //        char name[255];
-    //        ostrstream ost(name,sizeof(name));
-    //        ost << "."<<AMSTrIdCalib::getrun()<<ends;
-    //        fnam+=name;     
-    //      }
-    //      else {
         char name[255];
         ostrstream ost(name,sizeof(name));
         ost << "."<<_Begin<<ends;
@@ -261,8 +256,9 @@ integer AMSTimeID::read(char * dir, integer reenter){
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
-    //cout <<run<<" "<<reenter<<" "<<getname()<<endl;
     if(run>0 && !reenter){
+     fnam+=getname();
+     fnam+="/";
      fnam+=getname();
      fnam+= getid()==0?".0":".1";
      char name[255];
@@ -405,13 +401,17 @@ int i;
 for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
     _DataBaseSize=0;
     AString fmap(dir);
+    AString fdir(dir);
+    fdir+=getname();
+    fdir+="/";
     fmap+=getname();
     fmap+=getid()==0?".0.map":".1.map";
     fstream fbin;
     struct stat statbuf_map;
     struct stat statbuf_dir;
-    if(!stat((const char *)fmap,&statbuf_map) && !stat(dir,&statbuf_dir) &&
-      statbuf_dir.st_mtime < statbuf_map.st_mtime ){
+    if(!stat((const char *)fmap,&statbuf_map) && 
+        !stat((const char *)fdir,&statbuf_dir) &&
+              statbuf_dir.st_mtime < statbuf_map.st_mtime ){
        fbin.open(fmap,ios::in);
        if(fbin){
          fbin>>_DataBaseSize;
@@ -431,7 +431,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
       fnam+= getid()==0?".0":".1";
       _selectEntry=&fnam;
       dirent ** namelist;
-      int nptr=scandir(dir,&namelist,&_select,NULL);     
+      int nptr=scandir((const char *)fdir,&namelist,&_select,NULL);     
       if(nptr){
         for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[nptr];
         for(i=0;i<nptr;i++) {
@@ -444,7 +444,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
           if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
             sscanf((namelist[i]->d_name)+kvalid+1,"%d",
                    _pDataBaseEntries[0]+_DataBaseSize);
-            AString ffile(dir);
+            AString ffile(fdir);
             ffile+=namelist[i]->d_name;
             fbin.open((const char *)ffile,ios::in);
             uinteger temp[3];

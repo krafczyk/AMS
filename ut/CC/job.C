@@ -830,6 +830,14 @@ void AMSJob::_retrddata(){
 
 
 void AMSJob::udata(){
+{
+        STATUSFFKEY.status[32]=0;
+            for(int i=0;i<32;i++){
+              STATUSFFKEY.status[32]=STATUSFFKEY.status[32] | 
+                                     STATUSFFKEY.status[i];
+            }
+}
+
 
   //#ifdef __MASSP__
   if(TRMFFKEY .OKAY!= 1234567890){
