@@ -314,10 +314,10 @@ uint para,statu;
 
       if (!nach) return -1;
 
-      block.StationTheta=blockNt.StationTheta=d2f(Geo.Teta);
-      block.StationPhi  =blockNt.StationPhi=d2f(Geo.Phi);
+                         blockNt.StationTheta=d2f(Geo.Teta);
+                         blockNt.StationPhi=d2f(Geo.Phi);
       block.StationR    =blockNt.StationR=d2f(Geo.R);
-      block.GrMedPhi    =blockNt.GrMedPhi=d2f(Greenw_Phi);
+      block.GrMedPhi=0.; blockNt.GrMedPhi=d2f(Greenw_Phi);
       block.StationYaw  =blockNt.StationYaw=d2f(Euler_LVLH.Yaw);
       block.StationPitch=blockNt.StationPitch=d2f(Euler_LVLH.Pitch);  
       block.StationRoll =blockNt.StationRoll=d2f(  Euler_LVLH.Roll);
@@ -325,8 +325,8 @@ uint para,statu;
       block.SunR        =blockNt.SunR=d2f(Solar.R);
       block.SunPhi      =blockNt.SunPhi=d2f(Solar.Phi);
       block.SunTheta    =blockNt.SunTheta=d2f(Solar.Teta);
-                         blockNt.StThetaGTOD=d2f(Geo_G.Teta);
-			 blockNt.StPhiGTOD=d2f(Geo_G.Phi);
+      block.StationTheta=blockNt.StThetaGTOD=d2f(Geo_G.Teta);
+      block.StationPhi  =blockNt.StPhiGTOD=d2f(Geo_G.Phi);
 			 blockNt.VelThetaGTOD=d2f(Geo_G_Vel.Teta);
 			 blockNt.VelPhiGTOD=d2f(Geo_G_Vel.Phi);
 			 blockNt.VelTheta=d2f(Geo_Vel.Teta);
