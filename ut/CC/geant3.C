@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.69 2002/06/03 14:53:34 alexei Exp $
+//  $Id: geant3.C,v 1.70 2002/07/14 12:33:03 kscholbe Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -120,7 +120,7 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
 
      AMSTRDMCCluster::sitrdhits(GCVOLU.number[lvl],GCTRAK.vect,
-        GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart);   
+        GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart,GCKINE.itra);   
 
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
 } 
@@ -717,9 +717,15 @@ try{
     for(integer i=0;i<CCFFKEY.npat;i++){
      GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
      AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
+
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
      genp->run(GCKINE.ikine);
+     if (CCFFKEY.npat>1 && TRDMCFFKEY.multiples==1){
+	 if (i>0){
+	     genp->gendelay();
+	   }
+       }
      //genp->_printEl(cout);
 
     }

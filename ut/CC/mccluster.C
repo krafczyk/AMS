@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.52 2002/06/03 14:53:34 alexei Exp $
+//  $Id: mccluster.C,v 1.53 2002/07/14 12:33:05 kscholbe Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -24,13 +24,13 @@ number AMSEcalMCHit::impoint[2];
 integer AMSTRDMCCluster::_NoiseMarker(555);
 
 void AMSTRDMCCluster::sitrdhits(
-integer idsoft , geant vect[],geant edep, geant ekin, geant step, integer itra ){
+integer idsoft , geant vect[],geant edep, geant ekin, geant step, integer ipart, integer itra ){
 
 
         AMSPoint xgl(vect[0],vect[1],vect[2]);
         AMSDir xvec(vect[3],vect[4],vect[5]);
       AMSEvent::gethead()->addnext(AMSID("AMSTRDMCCluster",0),
-      new AMSTRDMCCluster(idsoft,xgl,xvec,step,ekin,edep,itra));
+      new AMSTRDMCCluster(idsoft,xgl,xvec,step,ekin,edep,ipart,itra));
 
 
 

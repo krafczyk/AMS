@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.31 2002/06/03 14:53:43 alexei Exp $
+//  $Id: mccluster.h,v 1.32 2002/07/14 12:33:35 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -279,6 +279,7 @@ class AMSTRDMCCluster: public AMSlink{
 protected:
  AMSTRDIdGeom _idsoft;   // geant stray id
  integer _itra;     // geant itra
+ integer _ipart;     // geant itra
  AMSPoint _xgl;     // global coo (cm)
  number _step;      // track length (cm)
  number   _edep;      // energy deposition (GeV)
@@ -292,11 +293,11 @@ public:
  // Constructor for noise and crosstalk
  AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra):AMSlink(),_idsoft(id),_xgl(0,0,0),_step(0),_edep(energy),_itra(itra),_ekin(0){};
  // Constructor for geant track
- AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer itra):AMSlink(),
-_idsoft(idsoft),_ekin(energy),_edep(edep),_itra(itra),_step(step),_xgl(xgl){}
+ AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer ipart, integer itra):AMSlink(),
+_idsoft(idsoft),_ekin(energy),_edep(edep),_ipart(ipart),_itra(itra),_step(step),_xgl(xgl){}
 
  static void    sitrdhits(integer idsoft ,geant vect[],
-        geant destep, geant ekin, geant step,integer ipart);   
+        geant destep, geant ekin, geant step,integer ipart, integer itra);   
 
  // Constructor for daq
  AMSTRDMCCluster (AMSPoint xgl, integer itra): AMSlink(),
@@ -308,6 +309,7 @@ _idsoft(idsoft),_ekin(energy),_edep(edep),_itra(itra),_step(step),_xgl(xgl){}
   AMSPoint getHit(){return _xgl;}
   static integer noisemarker(){return _NoiseMarker;}
   geant getedep()const {return _edep;}
+  geant getitra()const {return _itra;}
   AMSTRDIdGeom getid()const {return _idsoft;}
   AMSTRDMCCluster *  next(){return (AMSTRDMCCluster*)_next;}
  static void sitrdnoise();

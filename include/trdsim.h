@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.4 2002/06/03 14:53:43 alexei Exp $
+//  $Id: trdsim.h,v 1.5 2002/07/14 12:33:35 kscholbe Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -8,6 +8,10 @@
 #include <link.h>
 #include <cont.h>
 
+namespace trdsim{
+const uinteger numvawf=32;
+}
+using trdsim::numvawf;
 
 class AMSTRDRawHit: public AMSlink {
 AMSTRDIdSoft _id;  
@@ -21,6 +25,10 @@ static bool _HardWareCompatibilityMode;
 
 public:
 
+ static number delay_sf_table[numvawf];
+ static number va_waveform[numvawf];
+static number delay_sf(number usec);
+ static void init_delay_table();
 static void lvl3CompatibilityAddress(int16u address,uinteger &udr, uinteger & ufe, uinteger & ute,uinteger & chan);
 static bool & HardWareCompatibilityMode(){return _HardWareCompatibilityMode;}
 AMSTRDRawHit( const AMSTRDIdSoft & id,uinteger amp):AMSlink(),_id(id),_Amp(amp){};

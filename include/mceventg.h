@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.37 2002/06/03 14:53:43 alexei Exp $
+//  $Id: mceventg.h,v 1.38 2002/07/14 12:33:35 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -76,6 +76,7 @@ AMSDir   _dir;
 number _mom;
 number _mass;
 number _charge;
+number _delay;
 integer _ipart;
 integer _seed[2];
 integer _nskip;
@@ -114,6 +115,7 @@ AMSmceventg( const AMSIO & io);
 ~AMSmceventg(){}
 void init(integer);
 void run(integer ipart);
+void run(integer ipart, integer ipat);
 void run();
 #ifdef __G4AMS__
 void runG4(integer ipart=0);
@@ -122,6 +124,9 @@ void InitSeed();
 void gener();
 integer fastcheck(geant x, geant y, geant z, geant the, geant phi);
 number getcharge()const {return _charge;}
+number getdelay()const {return _delay;}
+void setdelay(number delay){_delay=delay;}
+void gendelay();
 AMSDir getdir()const {return _dir;}
 number getmom()const {return _mom;}
 void setmom(number mom) { _mom=mom;}

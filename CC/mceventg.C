@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.122 2002/06/06 14:41:02 choutko Exp $
+//  $Id: mceventg.C,v 1.123 2002/07/14 12:33:05 kscholbe Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -26,6 +26,7 @@ integer  AMSmceventg::_fixedmom;
 number   AMSmceventg::_albedorate;
 number   AMSmceventg::_albedocz; 
 number   AMSmceventg::_planesw[6];
+
 
 AMSmceventg::AMSmceventg(const AMSIO & io){
 _nskip=io._nskip;
@@ -710,8 +711,19 @@ integer AMSmceventg::EarthModulation(){
   }
 }
   
-  void AMSmceventg::init(integer ipart){
+void AMSmceventg::gendelay(){
+
+  // Generate a random delay for a track between 0 and 10 microsecs
+
+  geant d(-1);
+  _delay=RNDM(d)*10.;
+
+}
+
+
+void AMSmceventg::init(integer ipart){
 _ipart=ipart;
+_delay = 0.;
 char chn[22]="";
 integer itr=0;
 geant amass=0;

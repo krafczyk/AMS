@@ -3,7 +3,9 @@
 #include <extC.h>
 #include <tofsim02.h>
 #include <ntuple.h>
+#include <mceventg.h>
 
+using namespace trdsim;
 void AMSTRDRawHit::lvl3CompatibilityAddress(int16u ptr,uinteger& udr, uinteger & ufe,uinteger& ute,uinteger& chan){
  chan = ptr & 15;
  ute = (ptr>>4) & 3;
@@ -11,18 +13,75 @@ void AMSTRDRawHit::lvl3CompatibilityAddress(int16u ptr,uinteger& udr, uinteger &
  udr = (ptr>>9) & 7;
 }
 
+number AMSTRDRawHit::delay_sf_table[numvawf];
+number AMSTRDRawHit::va_waveform[numvawf]={0.,-420.,-740.,-950.,-1080.,-1150.,-1180.,-1200.,-1180.,-1160., -1132., -1085., -1040., -1000., -960., -920., -878., -830., -790., -750., -700.,-650., -615., -583., -552., -510., -480., -440., -420., -400., -380., -360.};
+
+
+void AMSTRDRawHit::init_delay_table(){
+
+  // Initialize delay table based on VA waveform
+
+  number sumall=0;
+  for (int i=0;i<numvawf;i++){
+      sumall+=va_waveform[i];
+  }
+  for (int i=0;i<numvawf;i++){
+      number sum=0;
+      for (int j=i;j<numvawf;j++){
+	  sum+=va_waveform[j];
+	}
+      if (fabs(sumall)>0.){
+	delay_sf_table[i]=sum/sumall;
+      }
+    }
+}
+
+number AMSTRDRawHit::delay_sf(number usec){
+  // Returns scale factor for delay in microsecs
+  // Very simple table
+
+  if (usec>0. && usec <10.){
+    int index=(int)(31.*usec/10.);
+    return delay_sf_table[index];
+  }
+  else{
+    return 1.;
+  }
+}
+
 bool AMSTRDRawHit::_HardWareCompatibilityMode=false;
 void AMSTRDRawHit::sitrddigi(){
 
     AMSTRDMCCluster * ptr=
     (AMSTRDMCCluster*)AMSEvent::gethead()->getheadC("AMSTRDMCCluster",0,1);    
+
+    geant itrack=0;
     geant edep=0;
     while(ptr){
+
+      int i=0;
+      number delay=0.;
+      itrack=ptr->getitra();
+      // Get delay info for the track corresponding to this cluster
+      AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+      while(pmcg && i<itrack) {
+	// Get mcg for this track (at the beginning of the list)
+	if (pmcg){
+	  delay = pmcg->getdelay();
+	}
+        pmcg=pmcg->next();
+	i++;
+      }
+    
      edep+=ptr->getedep()*TRDMCFFKEY.GeV2ADC;
+     //Put in scale factor for delayed event
+     if (delay>0) edep *= AMSTRDRawHit::delay_sf(delay);
+
      if(ptr->testlast()){
            AMSTRDIdSoft idsoft(ptr->getid());
            number amp=(edep*idsoft.getgain()+idsoft.getped()+idsoft.getsig()*rnormx());
            if (amp>idsoft.overflow())amp=idsoft.overflow();
+
            if(amp-idsoft.getped()>TRDMCFFKEY.Thr1R*idsoft.getsig())
         AMSEvent::gethead()->addnext(AMSID("AMSTRDRawHit",idsoft.getcrate()),
         new AMSTRDRawHit(idsoft,(amp-idsoft.getped())*TRDMCFFKEY.f2i));
@@ -32,9 +91,8 @@ void AMSTRDRawHit::sitrddigi(){
      ptr=ptr->next();
     }
     int cl=AMSEvent::gethead()->getC("AMSTRDRawHit",0)->getnelem();
-//    cout <<"  ntrdclusters "<<AMSEvent::gethead()->getC("AMSTRDMCCluster",0)->getnelem()<<" "<<cl<<endl;
+
   if(TRDMCFFKEY.NoiseOn &&TOF2RawEvent::gettrfl())AMSTRDRawHit::sitrdnoise();
-//    cout <<"  noise "<<AMSEvent::gethead()->getC("AMSTRDRawHit",0)->getnelem()-cl<<endl;
 
 
 }
