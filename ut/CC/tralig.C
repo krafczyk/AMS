@@ -107,7 +107,8 @@ if(AMSFFKEY.Update){
         exit(1);
        }
 }
-   if (getdbentries()>= maxdbentries()){
+ //  if (getdbentries()>= maxdbentries()){
+   if (0){
      cerr<<"AMSTrAligPar::UpdateDB-E-DBIsFull "<<endl;
      return ;
    }
@@ -122,11 +123,15 @@ if(AMSFFKEY.Update){
      cerr<<"AMSTrAligPar::UpdateDB-E-ObjectAlreadyExists "<<address<<" "<<getdbentries()<<endl;
     }
     else if(out<=0){
-     *(getdbtopp()+getdbentries())=e;
-     incdbentries();
-     AMSsortNAGa(getdbtopp(),getdbentries());
-     cout<<"AMSTrAligPar::UpdateDB-I-NewEntryAdded "<<address<<" "<<getdbentries()<<endl;
-     
+     if(getdbentries()< maxdbentries()){
+      *(getdbtopp()+getdbentries())=e;
+      incdbentries();
+      AMSsortNAGa(getdbtopp(),getdbentries());
+      cout<<"AMSTrAligPar::UpdateDB-I-NewEntryAdded "<<address<<" "<<getdbentries()<<endl;
+    }
+    else{
+     cerr<<"AMSTrAligPar::UpdateDB-E-DBIsFull "<<endl;
+    }     
     }
     else{
      *(getdbtopp()+out-1)=e;
@@ -147,11 +152,15 @@ if(AMSFFKEY.Update){
      cerr<<"AMSTrAligPar::UpdateDB-E-ImpObjectAlreadyExists "<<pimplicit[i]<<" "<<getdbentries()<<endl;
     }
     else if(out<=0){
-     *(getdbtopp()+getdbentries())=ec;
-     incdbentries();
-     AMSsortNAGa(getdbtopp(),getdbentries());
-     cout<<"AMSTrAligPar::UpdateDB-I-NewImpEntryAdded "<<pimplicit[i]<<" "<<getdbentries()<<endl;
-     
+     if(getdbentries()< maxdbentries()){
+      *(getdbtopp()+getdbentries())=ec;
+      incdbentries();
+      AMSsortNAGa(getdbtopp(),getdbentries());
+      cout<<"AMSTrAligPar::UpdateDB-I-NewImpEntryAdded "<<pimplicit[i]<<" "<<getdbentries()<<endl;
+     }
+     else {
+      cerr<<"AMSTrAligPar::UpdateDB-E-DBIsFull "<<endl;
+     }     
     }
     else{
      *(getdbtopp()+out-1)=ec;

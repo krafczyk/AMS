@@ -161,6 +161,10 @@ integer operator < (AMSlink & o) const {
                    + 2*(p->checkstatus(AMSDBc::AwayTOF));
 
   if (ithis<iother)return 1;
+  else if(ithis==iother){
+   if(_Sum > p->_Sum)return 1;
+   else return 0;
+  }
   else return 0;
 
 
@@ -182,7 +186,7 @@ if(i>=0 && i <6)_Head[i]=(AMSTrRecHit*)head;
 
 static AMSTrRecHit * gethead(integer i=0){
    if(i>=0 && i<6){
-    if(!_Head[i])_Head[i]=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
+    if(!_Head[i])_Head[i]=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i,1);
     return _Head[i];
    }
    else {

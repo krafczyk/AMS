@@ -9,7 +9,7 @@
 #include <extC.h>
 #include <upool.h>
 #include <ntuple.h>
-
+extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
 
 integer AMSBeta::patconf[npatb][4]={  1,2,3,4,        // 1234  0
                                       1,2,3,0,        // 123   1
@@ -265,6 +265,22 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
  else _Chi2=0;
  _InvErrBeta=sqrt(1./e2)/sqrt(x2-xa*xa);   
  //if(_Chi2>0)_InvErrBeta*=sqrt(_Chi2);
+
+//  Corrected Beta
+
+
+  number xibme=fabs(1/_Beta); 
+  number z0=(xibme-1)/_InvErrBeta/sqrt(2.);
+  number zint=DERFC(z0);
+  number zprim=betacorr(zint,z0,0.5);
+  number xibcor=zprim*sqrt(2.)*_InvErrBeta+1;
+  _BetaC=1/xibcor;
+  if(_Beta<0)_BetaC*=-1;
+  number zprima=betacorr(zint,z0,1./6.);
+  number zprimb=betacorr(zint,z0,5./6.);
+  number xibcora=zprima*sqrt(2.)*_InvErrBeta+1;
+  number xibcorb=zprimb*sqrt(2.)*_InvErrBeta+1;
+  _InvErrBetaC=fabs(xibcorb-xibcora)/2;
 }
 
 
@@ -279,7 +295,9 @@ void AMSBeta::_writeEl(){
   BN->Status[BN->Nbeta]=_status;
   BN->Pattern[BN->Nbeta]=_Pattern;  
   BN->Beta[BN->Nbeta]=_Beta;
+  BN->BetaC[BN->Nbeta]=_BetaC;
   BN->Error[BN->Nbeta]=_InvErrBeta;
+  BN->ErrorC[BN->Nbeta]=_InvErrBetaC;
   BN->Chi2[BN->Nbeta]=_Chi2;
   BN->Chi2S[BN->Nbeta]=_Chi2Space;
   if(_Pattern ==0)BN->NTOF[BN->Nbeta]=4;
@@ -357,3 +375,17 @@ for( i=0;i<npatb;i++){
 
 
 void AMSBeta::_printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Beta "<<_Beta<<" ErrBeta" <<_InvErrBeta<<" Chi2 "<<_Chi2<<" Chi2S "<<_Chi2Space<<endl;}
+
+
+number AMSBeta::betacorr(number zint,number z0,number part){
+ number zmin=zint*part;
+ number zb=z0+1;
+ number x0;
+ integer ntry=0;
+ integer ntrymax=100;
+ while(DERFC(zb)>zmin && ntry++<ntrymax)zb=zb+1;
+ integer ierr;
+ rzerowrapper_(z0,zb,x0,zmin,ierr);
+ if(ierr || ntry>ntrymax)return 1;
+ else     return x0;
+}

@@ -85,7 +85,9 @@ public:
   int Status[MAXBETA];
   int Pattern[MAXBETA];
   float Beta[MAXBETA];
+  float BetaC[MAXBETA];
   float Error[MAXBETA];
+  float ErrorC[MAXBETA];
   float Chi2[MAXBETA];
   float Chi2S[MAXBETA];
   int NTOF[MAXBETA];

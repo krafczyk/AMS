@@ -52,7 +52,9 @@ Below there is a description of a  ntuple.
                                               
 * I*4  *              * BETA     * betapattern(nbeta) // beta pattern(beta.doc) 
 * R*4  *              * BETA     * beta(nbeta)       // velocity
+* R*4  *              * BETA     * betac(nbeta)       // corrected velocity
 * R*4  *              * BETA     * betaerror(nbeta)  // est error  1/velocity 
+* R*4  *              * BETA     * betaerrorc(nbeta)  // est error  1/corrected velocity 
 * R*4  *              * BETA     * betachi2(nbeta)   // chi2 of beta fit(time)
 * R*4  *              * BETA     * betachi2s(nbeta)  // chi2 of beta fit(space)
 * I*4  *              * BETA     * betantof(nbeta)   // number of tof planes

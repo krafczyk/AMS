@@ -19,11 +19,14 @@ protected:
  integer _Pattern;
  number _Beta ;
  number _InvErrBeta;
+ number _BetaC ;
+ number _InvErrBetaC;
  number _Chi2;
  number _Chi2Space;
  void _printEl(ostream & stream);
  void _copyEl();
  void _writeEl();
+ number betacorr(number zint,number z0, number part);
  static integer patpoints[npatb];
  static integer patconf[npatb][4];
 
@@ -39,8 +42,8 @@ public:
 AMSBeta *  next(){return (AMSBeta*)_next;}
 number getchi2()const{return _Chi2;}
 number getchi2S()const{return _Chi2Space;}
-number getbeta()const{return _Beta;}
-number getebeta()const{return _InvErrBeta;}
+number getbeta()const{return _BetaC;}
+number getebeta()const{return _InvErrBetaC;}
 integer getpattern()const{return _Pattern;}
 AMSTrTrack * getptrack()const {return _ptrack;}
 AMSTOFCluster * getpcluster(integer i){return i>=0 && i<4? _pcluster[i]:0;}
