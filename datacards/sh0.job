@@ -36,7 +36,7 @@ C RNDM 378697991 979972996
 RNDM 1835738002  1782627006
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='v204 AntiProtons '
-46='AMSSTATION'
+46='AMSSTATION CTCAnnecy'
 C Special HP-UX
 TIME 3=10000000
 END

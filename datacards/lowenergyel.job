@@ -28,7 +28,7 @@ C MSEL 1=0
 LOSS 1
 CUTS 1=0.0001 2=0.0001 3=0.001 4=0.001 5=0.001
 HADR 1
-TRIG 1000001
+TRIG 10000000
 DEBUG -1 10 1000
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 
@@ -37,13 +37,13 @@ C npars ims
 C          Nparticles     Low energy spectrum
 MCGEN 15=0 18=1           20=1
 TOFREC 1=0.05 2=0.05
-TRFIT 9=0 10=0 11=0 12=0 13=0 14=0 15=0 16=0 17=0 18=0 19=0 20=0 21=0 22=0 
-IOPA 1=3 2='el_new_aver.hbk' 44=6 45='AMSTrCluster|AMSTOFCluster|AMSParticle'
+TRMC 19=0
+IOPA 1=3 2='el.low.hbk'  
+45='AMSCTCMCCluster|AMSCTCCluster|AMSTrCluster|AMSTOFCluster'
 RNDM 378691291 979912346
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='Simulation v1.25 Electrons Spectrum'
+AMSJOB 1=0   2=0  3=50.   4=0  5=0   6='Electrons' 46='CTCAnnecy'
 C Special HP-UX
 TIME 3=10000000
 END
-
 !

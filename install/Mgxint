@@ -70,10 +70,4 @@ gxint.exe:	$(OBJECTS)
 depend: 	
 	makedepend -f Mgxint -- $(CFLAGS) -- $(FILES) -p..$(BIN)/
 
-
-
-
-
-        
-
 # DO NOT DELETE THIS LINE -- make depend depends on it.

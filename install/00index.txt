@@ -13,14 +13,20 @@ config.*  // configuration files for Objectivity. Moved to ../db
 
 To create standalone simulation program (without db) use:
 
- batch         clmake Mgbatch or Mopt
+ batch         clmake Mgbatch or Mopt *)
  interactive   clmake Mgxint  (batch program should be created first)
 
 
 Instructions how to create & run db connected batch simulation program
-are in read ../doc/dbase_objy.doc
+are in ../doc/dbase_objy.doc
 
 
 
 
 
+*) Makedepend doesnot work properly on alpha ( after OS upgrade).
+  The reasons are not yet unsderstood.
+  A workaround is remove first all object files from ../bin/osf1
+  and then compile/link as usual thru clmake.
+  
+  

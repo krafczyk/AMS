@@ -84,10 +84,11 @@ geant * AMSTrIdSoft::gains=0;
 geant * AMSTrIdSoft::peds=0;
 integer * AMSTrIdSoft::status=0;
 geant * AMSTrIdSoft::sigmas=0;
-geant * AMSTrIdSoft:: cmnnoise=0;
+geant * AMSTrIdSoft:: cmnnoise[10]={0,0,0,0,0,0,0,0,0,0};
 geant * AMSTrIdSoft:: indnoise=0;
 integer AMSTrIdSoft::_numel=0;
 integer AMSTrIdSoft::idsoft2linear[ms];
+const integer AMSTrIdSoft::_VAChannels=64;
 integer AMSTrIdSoft::getprob (geant r){
 integer iad=_strip+AMSbiel(&(indnoise[idsoft2linear[_addr]+_strip]),
 _strip>0? r+getindnoise(): r ,getmaxstrips()-_strip );
@@ -107,7 +108,8 @@ if(AMSTrIdSoft::debug){
   cerr <<"AMSTrIdSoft-ctor-strip out of bounds "<<_strip<<endl; 
   if(_half<0 || _half>1)
   cerr <<"AMSTrIdSoft-ctor-halfladder out of bounds "<<_half<<endl; 
-  
+  if(_VANumber <0 || _VANumber >AMSDBc::NStripsDrp(_layer,_side)/_VAChannels-1)  
+  cerr <<"AMSTrIdSoft-ctor-VANumber out of bounds "<<_VANumber<<endl; 
 }
 }
 integer AMSTrIdSoft::debug=1;
@@ -115,6 +117,7 @@ integer AMSTrIdSoft::debug=1;
 AMSTrIdSoft::AMSTrIdSoft(integer layer,integer drp,integer half, integer side, integer strip):
 _layer(layer),_drp(drp),_half(half),_side(side),_strip(strip),_pid(0){
 _addr=_layer+10*_drp+1000*_half+2000*_side;
+_VANumber=_strip/_VAChannels;
 #ifdef __AMSDEBUG__
 _check();
 #endif
@@ -127,6 +130,7 @@ AMSTrIdSoft & AMSTrIdSoft::operator = (const AMSTrIdSoft &o){
  _side=o._side;
  _strip=o._strip;
  _addr=o._addr;
+ _VANumber=o._VANumber;
  _pid=0;
    }
   return *this;
@@ -143,6 +147,7 @@ _half=(idsoft/1000)%2;
 _side=((idsoft/1000)%10)/2;
 _strip=(idsoft/10000)%1000;
 _addr=_layer+10*_drp+1000*_half+2000*_side;
+_VANumber=_strip/_VAChannels;
 _pid=0;
 #ifdef __AMSDEBUG__
 _check();
@@ -163,6 +168,7 @@ else{
     AMSDBc::NStripsSen(_layer,0)+idg._stripx;
   _strip=tot%AMSDBc::NStripsDrp(_layer,0);
 }
+_VANumber=_strip/_VAChannels;
 #ifdef __AMSDEBUG__
 _check();
 #endif
@@ -264,11 +270,14 @@ void AMSTrIdSoft::init(){
      peds=new geant[num];
      gains=new geant[num];
      sigmas=new geant[num];
-     cmnnoise= new geant[ms];
-     for(i=0;i<ms;i++)cmnnoise[i]=0;
+     for(i=0;i<10;i++){
+      cmnnoise[i]= new geant[ms];
+      assert( cmnnoise[i] != NULL);
+      for(int k=0;k<ms;k++)cmnnoise[i][k]=0;
+     }     
      indnoise=new geant[num];
      _numel=num;
-     assert(status && peds && gains && sigmas && cmnnoise && indnoise);
+     assert(status && peds && gains && sigmas && indnoise);
 
 
 

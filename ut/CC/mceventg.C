@@ -47,6 +47,7 @@ else {
  else if(_ipart%100==61 || _ipart%100==62)id=20003;
  else if(_ipart%100==47)id=20002;
  else if(_ipart==3 && CCFFKEY.low==1)id=30001;   // special low energy electron background !!!!!!!
+ else if(_ipart==15)id=120001;   // aprotons
  else id=20001;
  if(ini==0){
    ini=1;
@@ -55,7 +56,7 @@ else {
    HPRINT(id);
  }
  number ee=HRNDM1(id);
- ee=pow(10.,ee);
+ if(id != 120001)ee=pow(10.,ee);
  ee=ee/1000.;
   // _mom ; Not so evident ...
  if(_mass< 0.9)_mom=sqrt(ee*(ee+2*_mass));

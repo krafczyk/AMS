@@ -54,7 +54,18 @@ void AMSNodeMap::unmap(){
     _rehash(_mother);
         AMSsortNAG(_hash,_numo); 
     //    AMSsort(_hash,_numo); 
+        if(AMSNodeMap::debug){
+          //        Check for duplicalte elements
+         int nel;
+         for(nel=1;nel<_numo;nel++){
+           if(_hash[nel]==_hash[nel-1]){
+             cerr <<"AMSNodeMap::remap-E-duplicate element found "<<_hash[nel]
+                  <<endl;
+           } 
+         }
+        }
    }
+   
   } 
    integer AMSNodeMap::add(AMSNode & o){
     integer i;

@@ -23,6 +23,7 @@
 #include <ctcdbc.h>
 #include <timeid.h>
 #include <trcalib.h>
+#include <trigger.h>
 //
 //
 integer AMSEvent::debug=1;
@@ -177,6 +178,9 @@ void AMSEvent::_reaxinitevent(){
 
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AntiMatter",0),0));
+
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:Trigger",0),0));
 
 
 
@@ -460,6 +464,7 @@ AMSParticle::build();
 if(AMSEvent::debug)AMSParticle::print();
 #endif
 //
+Trigger::build();
 AMSgObj::BookTimer.stop("REAXEVENT");
 }
 

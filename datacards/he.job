@@ -40,7 +40,7 @@ IOPA 1=3 2='he.hbk'
 RNDM 37456991 979913496
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='v201 Helium  '
-46='CTCVer'
+46='CTCAnnecy'
 C Special HP-UX
 TIME 3=10000000
 END

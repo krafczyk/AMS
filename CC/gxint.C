@@ -3,6 +3,9 @@
 #include <iostream.h>
 #include <cern.h>
 #include <gvolume.h>
+#include <signal.h>
+#include <unistd.h>
+
 const int NWPAW=1000000;
 struct PAWC_DEF{
 float q[NWPAW];
@@ -20,8 +23,32 @@ GCBANK_DEF GCBANK;
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 PAWC_DEF PAWC;
 //
+void (handler)(int);
+
 main(){
+     *signal(SIGFPE, handler);
+     *signal(SIGCONT, handler);
+     *signal(SIGTERM, handler);
+     *signal(SIGINT, handler);
+     *signal(SIGQUIT, handler);
+
    AMSgvolume::debug=0;
   GPAW(NWGEAN,NWPAW);
 return 0;
+}
+
+void (handler)(int sig){
+  if(sig==SIGFPE)cerr <<" FPE intercepted"<<endl;
+  else if (sig==SIGTERM || sig==SIGINT){
+    cerr <<" SIGTERM intercepted"<<endl;
+    GCFLAG.IEORUN=1;
+    GCFLAG.IEOTRI=1;
+  }
+  else if(sig==SIGQUIT){
+    cerr <<" Process suspended"<<endl;
+     pause();
+  }
+  else if(sig==SIGCONT){
+    cerr <<" Process resumed"<<endl;
+  }
 }

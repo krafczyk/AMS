@@ -73,15 +73,17 @@ integer _side;    // 0=x 1=y
 integer _half;    // from 0 to 1
 integer _strip;   // from 0 to getmaxstrips()-1
 integer _addr;    // Calculated from the above
+integer _VANumber; // from 0 to 5 (9)
 AMSTrIdGeom * _pid;
 static integer idsoft2linear[ms];
 static integer *status;
 static geant *peds;
 static geant *gains;
 static geant *sigmas;
-static geant *cmnnoise;
+static geant *cmnnoise[10];
 static geant *indnoise;
 static integer _numel;
+const static integer _VAChannels;
 void _check();
 public:
 friend ostream &operator << (ostream &o, const  AMSTrIdSoft &b )
@@ -98,12 +100,12 @@ inline geant getsig() const {return sigmas[idsoft2linear[_addr]+_strip];}
 inline geant getgain() const {return gains[idsoft2linear[_addr]+_strip];}
 inline geant getindnoise() const{return indnoise[idsoft2linear[_addr]+_strip];}
 integer getprob(geant r);
-inline geant getcmnnoise() const {return cmnnoise[_addr];}
+inline geant getcmnnoise() const {return cmnnoise[_VANumber][_addr];}
 geant & setped()  {return peds[idsoft2linear[_addr]+_strip];}
 geant & setsig()  {return sigmas[idsoft2linear[_addr]+_strip];}
 geant & setgain() {return gains[idsoft2linear[_addr]+_strip];}
 geant & setindnoise() {return indnoise[idsoft2linear[_addr]+_strip];}
-geant & setcmnnoise()  {return cmnnoise[_addr];}
+geant & setcmnnoise()  {return cmnnoise[_VANumber][_addr];}
 void  setstatus(integer changer)  
 {status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] | changer;}
 friend class AMSTrIdGeom;
@@ -112,7 +114,8 @@ friend class AMSJob;
 AMSTrIdSoft(const AMSTrIdGeom &,integer side);
 AMSTrIdSoft():_pid(0){};
 AMSTrIdSoft( const AMSTrIdSoft& o):_layer(o._layer),_drp(o._drp),
-_half(o._half),_side(o._side),_strip(o._strip),_addr(o._addr),_pid(0){}
+_half(o._half),_side(o._side),_strip(o._strip),_addr(o._addr),
+_VANumber(o._VANumber),_pid(0){}
 AMSTrIdSoft(integer idsoft);
 AMSTrIdSoft(integer layer,integer drp,integer half,integer side,integer strip=0);
 AMSTrIdSoft & operator = (const AMSTrIdSoft &o);
@@ -128,6 +131,7 @@ inline void upd(integer strip){
 if(strip >=0 && strip < getmaxstrips())_strip=strip;
 else if(strip < 0)_strip=getmaxstrips()+strip;
 else              _strip=strip-getmaxstrips();
+_VANumber=_strip/_VAChannels;
 }
 inline integer getlayer() const {return _layer;}
 inline integer getdrp() const {return _drp;}

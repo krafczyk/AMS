@@ -263,7 +263,7 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.ydiv=4;
   CTCMCFFKEY.Refraction[0]=1.03;   // Refraction indexes
   CTCMCFFKEY.Refraction[1]=1.58;
-  CTCMCFFKEY.Path2PhEl[0]=20;   // Path to photoelectrons conv fact
+  CTCMCFFKEY.Path2PhEl[0]=25;   // Path to photoelectrons conv fact
   CTCMCFFKEY.Path2PhEl[1]=28;
   CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
   CTCMCFFKEY.AbsLength[1]=100;
@@ -951,9 +951,6 @@ TID.add (new AMSTimeID(AMSID("TrackerStatus",isRealData()),
 TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
    (void*)AMSTrIdSoft::indnoise));
-TID.add (new AMSTimeID(AMSID("TrackerCommonNoise",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::cmnnoise[0])*ms,
-   (void*)AMSTrIdSoft::cmnnoise));
 }
 //---------------------------------------
 //

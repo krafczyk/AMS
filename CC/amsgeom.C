@@ -97,7 +97,7 @@ AMSgtmed *p;
       "1/2ALUM",0,"ALT3","TUBE",par,3,coo,nrm, "ONLY",0,gid++));
     
       par[0]=112/2.;
-      par[1]=165./2.;
+      par[1]=165.6/2.;
       par[2]=0.75;
       coo[2]=-40.75;
       dau=mother.add(new AMSgvolume(
@@ -351,320 +351,12 @@ AMSgtmed *p;
 
 
 void ctcgeom(AMSgvolume & mother){
-extern void ctcgeomV(AMSgvolume &);
 extern void ctcgeomE(AMSgvolume &, integer iflag);
-extern void ctcgeomEOld(AMSgvolume &, integer iflag);
 extern void ctcgeomAG(AMSgvolume& );
-  // steering for ctc geom
-if(strstr(AMSJob::gethead()->getsetup(),"CTCSimple")){
-  ctcgeomV(mother);
-  cout<<" CTCGeom-I-Simplified readout for CTC selected"<<endl;
-}
-else if(strstr(AMSJob::gethead()->getsetup(),"CTCVer")){
-ctcgeomE(mother,1);
-  cout<<" CTCGeom-I-Vertical readout for CTC selected"<<endl;
-}
-else if(strstr(AMSJob::gethead()->getsetup(),"CTCAnnecy")){
 ctcgeomAG(mother);
   cout<<" CTCGeom-I-Annecy setup for CTC selected"<<endl;
 }
-else {
-  ctcgeomE(mother,0);
-  cout<<" CTCGeom-I-Horizontal readout for CTC selected"<<endl;
-}
-}
 
-void ctcgeomV(AMSgvolume & mother){
-  // V. Choutko version
-CTCDBc::setgeom(0);
-CTCDBc::setnwls(CTCDBc::getnblk());
- AMSID amsid;
- geant par[6]={0.,0.,0.,0.,0.,0.};
- number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
- number inrm[3][3];
- geant coo[3]={0.,0.,0.};
- integer gid=1;
- AMSNode * cur;
- AMSNode * dau;
- AMSgtmed *p;
-
-      //  CTC Box
-      geant AGsizeX=CTCDBc::getagsize(0);
-      geant AGsizeY=CTCDBc::getagsize(1);
-      geant AGsizeZ=CTCDBc::getagsize(2);
-      geant WSsizeZ=CTCDBc::getwlsth();
-
-      integer num=CTCDBc::getnblk();
-      integer i;
-
-      // Aerogel itself;
-      gid=100;
-      for (i=0;i<num;i++){
-       par[0]=((AGsizeX-CTCDBc::getwallth())/num-CTCDBc::getwallth())/2;
-       par[1]=AGsizeY/2;
-       par[2]=AGsizeZ/2;
-       coo[0]=-AGsizeX/2+CTCDBc::getwallth()+par[0]+
-       (AGsizeX-CTCDBc::getwallth())/num*i;
-       coo[1]=0;
-       coo[2]=CTCDBc::getsupzc()+WSsizeZ/2+AGsizeZ/2;
-       AMSNode *dau=mother.add(new AMSgvolume(
-       "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm, "ONLY",1,++gid));
-
-      }
-      // Support
- 
-      for (i=0;i<num;i++){
-       par[0]=CTCDBc::getwallth()/2;
-       par[1]=AGsizeY/2;
-       par[2]=AGsizeZ/2;
-       coo[0]=-AGsizeX/2+par[0]+(AGsizeX-CTCDBc::getwallth())/num*i;
-       coo[1]=0;
-        AMSNode *dau=mother.add(new AMSgvolume(
-        "CTC_WALL",0,"AGSP","BOX ",par,3,coo,nrm, "ONLY",1,++gid));
- 
-       }
- 
- 
-       // WLS
-       gid=200;
-       for (i=0;i<num;i++){
-        par[0]=AGsizeX/num/2;
-        par[1]=AGsizeY/2;
-        par[2]=WSsizeZ/2;
-        coo[0]=-AGsizeX/2+par[0]+(AGsizeX)/num*i;
-        coo[1]=0;
-        coo[2]=CTCDBc::getsupzc();
-        AMSNode *dau=mother.add(new AMSgvolume(
-        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm, "ONLY",1,++gid));
- 
-       }
- 
- 
- 
- 
- 
- }
-
-
-
-void ctcgeomEOld(AMSgvolume & mother, integer iflag){
-  // E. Choumilov version
-
-CTCDBc::setgeom(iflag);
-if(iflag==1)CTCDBc::setnwls(CTCDBc::getnblk()+1);
-geant par[6]={0.,0.,0.,0.,0.,0.};
-number nrm[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
-number dx,dy,dxag,dz,zc,zr,gp,gpw,wl,wls,gwls,step,xleft;
-char name1[10];
-char name2[10];
-geant coo[3];
-integer gid=0;
-integer nmed,nblk,nwls,i,ind,loop;
-AMSNode *cur;
-AMSNode *dau;
-AMSgtmed *p;
-AMSID amsid;
-//
-zr=CTCDBc::getsupzc();
-wl=CTCDBc::getwallth();
-wls=CTCDBc::getwlsth();
-gp=CTCDBc::getagap();
-gpw=gp+wl;
-gwls=CTCDBc::getwgap();
-//
-//          <-- create supporting honeyc. plate in mother
-gid=1;
-dx=0.5*CTCDBc::gethcsize(0);
-dy=0.5*CTCDBc::gethcsize(1);
-dz=0.5*CTCDBc::gethcsize(2);
-par[0]=dx;                
-par[1]=dy;
-par[2]=dz;
-coo[0]=0.;
-coo[1]=0.;
-coo[2]=zr-dz; // supp.plate center z-pos
-amsid=AMSID(0,"CTC_HONEYCOMB");  // set amsid for supp. plane
-p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
-if(p)nmed=p->getmedia();
-else{
-  cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
-  exit(1);
-    }
-dau=mother.add(new AMSgvolume(
-    nmed,0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,gid));
-//
-//--------------
-//
-//   <-- create bottom WLS-strips(for 0-type geom only) in mother
-//
-nwls=CTCDBc::getnwls();
-if(iflag==0){
-  dx=0.5*(CTCDBc::getagsize(0)+2.*gpw-(nwls-1)*gwls)/nwls; //half x-size
-  dy=0.5*CTCDBc::getagsize(1)+gpw;
-  dz=0.5*wls;
-  par[0]=dx;                
-  par[1]=dy;
-  par[2]=dz;
-  step=2.*dx+gwls;
-  xleft=-0.5*(CTCDBc::getagsize(0)+2.*gpw)+dx;
-  coo[1]=0.;
-  coo[2]=zr+gp+dz;// WLS center z-pos
-  for(i=0;i<nwls;i++){ // <---- loop over wls-strips ----
-    gid=201+i;
-    coo[0]=xleft+i*step;
-    amsid=AMSID(0,"CTC_WLS");  // set amsid for WLS
-    p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
-    if(p)nmed=p->getmedia();
-    else{
-      cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
-      exit(1);
-        }
-    dau=mother.add(new AMSgvolume(
-        nmed,0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid));
-  } // ----- end of wls-strips loop ----->
-}
-//--------------
-//
-//    <-- create outer aerogel-cover (made of WALL material) in mother
-gid=2;
-dx=0.5*(CTCDBc::getagsize(0)+2.*gpw);
-dy=0.5*(CTCDBc::getagsize(1)+2.*gpw);
-if(iflag==0)
-                dz=0.5*(CTCDBc::getagsize(2)+gpw+gp);//no bot refl.wall
-else
-                dz=0.5*(CTCDBc::getagsize(2)+2.*gpw);
-par[0]=dx;                
-par[1]=dy;
-par[2]=dz;
-coo[0]=0.;
-coo[1]=0.;
-if(iflag==0)
-  coo[2]=zr+gp+wls+dz;// box center z-pos(wls instead bot wall)
-else
-  coo[2]=zr+dz;// box center z-pos
-amsid=AMSID(0,"CTC_WALL");  // set amsid for WALL
-p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
-if(p)nmed=p->getmedia();
-else{
-  cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
-  exit(1);
-    }
-dau=mother.add(new AMSgvolume(
-    nmed,0,"WALL","BOX ",par,3,coo,nrm,"MANY",0,gid));
-//---
-//  <--- put into this box "dummy_media"("air") to get space for aerogel
-//
-gid=3;
-par[0]=dx-wl;                
-par[1]=dy-wl;
-if(iflag==0){
-  par[2]=dz-0.5*wl;
-  coo[2]=zr+gp+wls+dz-0.5*wl;
-}
-else{
-  par[2]=dz-wl;
-  coo[2]=zr+dz;
-}
-amsid=AMSID(0,"CTC_DUMMYMED");  // set amsid for dummy media("air")
-p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
-if(p)nmed=p->getmedia();
-else{
-  cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
-  exit(1);
-    }
-dau=mother.add(new AMSgvolume(
-    nmed,0,"DVOL","BOX ",par,3,coo,nrm,"MANY",0,gid));
-//--------------
-//
-//          <-- create pure aerogel-blocks in mother
-//
-nblk=CTCDBc::getnblk(); // number of aerog. blocks
-dy=0.5*CTCDBc::getagsize(1);
-dz=0.5*CTCDBc::getagsize(2);
-par[1]=dy;                
-par[2]=dz;
-coo[1]=0.;
-if(iflag==0){
-  dx=0.5*(CTCDBc::getagsize(0)-(nblk-1)*(wl+2.*gp))/nblk;// half x-size
-  dxag=dx;
-  par[0]=dx;
-  coo[2]=zr+gp+wls+gp+dz;// aerog. block center z-pos
-  step=2.*dx+2.*gp+wl;//x-dist between blocks centers
-  xleft=-0.5*CTCDBc::getagsize(0)+dx; // 1-st aerog.block center x-pos
-}
-else{
-  dx=0.5*(CTCDBc::getagsize(0)-(nblk-1)*(wls+2.*gp)-2.*(wls+gp))/nblk;
-  dxag=dx;
-  par[0]=dx;
-  coo[2]=zr+gpw+dz; 
-  step=2.*dx+2.*gp+wls;
-  xleft=-0.5*CTCDBc::getagsize(0)+wls+gp+dx; // add most left wls+gap
-}
-//
-for(i=0;i<nblk;i++){ // <---- loop over aerog. blocks ----
-  gid=101+i;
-  coo[0]=xleft+i*step;
-  amsid=AMSID(0,"CTC_AEROGEL");  // set amsid for AEROGEL BLOCK
-  p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
-  if(p)nmed=p->getmedia();
-  else{
-    cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
-    exit(1);
-      }
-  dau=mother.add(new AMSgvolume(
-      nmed,0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));
-} // ----- end of aerog. blocks loop ----->
-//--------------
-//
-//          <-- create separator walls(geo=0) or side WLS's(geo=1) in mother
-//
-dy=0.5*CTCDBc::getagsize(1)+gp;
-par[1]=dy;                
-coo[0]=0.;
-if(iflag==0){
-  dx=0.5*wl;// half x-size
-  dz=0.5*CTCDBc::getagsize(2)+gp;
-  par[0]=dx;
-  par[2]=dz;
-  coo[2]=zr+gp+wls+dz;// separator center z-pos
-  step=2.*dxag+2.*gp+wl;//x-dist between separator centers
-  xleft=-0.5*CTCDBc::getagsize(0)+2.*dxag+gp+dx; // 1-st separator center x-pos
-//                                       (between 1-st and 2-nd aerog.block)
-  ind=301;
-  loop=nblk-1;
-  strcpy(name1,"CTC_SEP");
-  strcpy(name2,"SEP ");
-}
-else{
-  dx=0.5*wls;
-  dz=0.5*CTCDBc::getagsize(2);
-  par[0]=dx;
-  par[2]=dz;
-  coo[2]=zr+wl+dz; 
-  step=2.*dxag+2.*gp+wls;
-  xleft=-0.5*CTCDBc::getagsize(0)+dx; // 1-st wls center x-pos
-//                                       (near the cover side wall)
-  ind=201;
-  loop=nblk+1;
-  strcpy(name1,"CTC_WLS");
-  strcpy(name2,"WLS ");
-}
-//
-for(i=0;i<loop;i++){ // <---- separators(WLS's) loop ----
-  gid=ind+i;
-  coo[0]=xleft+i*step;
-  amsid=AMSID(0,name1);  // set amsid for separators or WLS's
-  p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(amsid);
-  if(p)nmed=p->getmedia();
-  else{
-    cerr<<"CTCGEOM-F-NoSuchMedium "<<amsid;
-    exit(1);
-      }
-  dau=mother.add(new AMSgvolume(
-      nmed,0,name2,"BOX ",par,3,coo,nrm,"ONLY",1,gid));
-} // ----- end of separators(WLS's) loop ----->
-}
-//---------------------------------------------------------------
 
 void ctcgeomE(AMSgvolume & mother, integer iflag){
   // E. Choumilov version   ( New one )
@@ -1165,257 +857,9 @@ void ctcgeomAG(AMSgvolume & mother){
 void tkgeom(AMSgvolume &mother){
 
 
-  if(strstr(AMSJob::gethead()->getsetup(),"STRTUBES")){
-    cout<<" TKGeom-I-Tubes option selected"<<endl;
-AMSID amsid;
-geant xx[3]={0.9,0.2,0.2};
-geant  xnrm[3][3];
-geant par[6]={0.,0.,0.,0.,0.,0.};
-number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-number inrm[3][3];
-char name[5];
-geant coo[3]={0.,0.,0.};
-integer gid=0;
-integer nrot=500; // Temporary arbitary assignment
-//static AMSgvolume mother(0,0,AMSDBc::ams_name,"BOX",par,3,coo,nrm,"ONLY",
-//                         0,gid);  // temporary a dummy volume
-AMSNode * cur;
-AMSNode * dau;
-int i;
-for ( i=0;i<AMSDBc::nlay();i++){
-ostrstream ost(name,sizeof(name));
- ost << "STK"<<i+1<<ends;
- coo[0]=0;
- coo[1]=0;
- coo[2]=AMSDBc::zposl(i);
-    int ii;
-    for ( ii=0;ii<5;ii++)par[ii]=AMSDBc::layd(i,ii);
-      gid=i+1;
-      dau=mother.add(new AMSgvolume(
-      "VACUUM",++nrot,name,"CONE",par,5,coo,nrm, "MANY",0,gid));
-     int j;
-     for ( j=0;j<AMSDBc::nlad(i+1);j++){
-    nrot++;  
-    int k;
-    for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
-      ost.seekp(0);
-      ost << "SEN" << i+1<<ends;
-      par[0]=AMSDBc::ssize_inactive(i,0)/2;
-      par[1]=AMSDBc::ssize_inactive(i,1)/2;
-      par[2]=AMSDBc::silicon_z(i)/2;
-      coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[0][0]=1;
-      nrm[1][1]=1;
-      nrm[2][2]=1;
-#ifdef __AMSDEBUG__
-      if(i==5 && AMSgvolume::debug){
-       MTX(xnrm,xx);
-       int a1,a2;
-       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-      }
-#endif
-      //
-      //  Sensors notactive
-      //
-      gid=i+1+10*(j+1)+1000*(k+1)+100000;
-
-      if(AMSJob::gethead()->isSimulation() && 
-         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
-        // Change parameters
-        int kloc,lloc;
-        for(kloc=0;kloc<3;kloc++){
-          coo[kloc]+=TRCALIB.InitialCoo[i][kloc];
-          for(lloc=0;lloc<3;lloc++) 
-          xnrm[kloc][lloc]=nrm[kloc][lloc]+TRCALIB.InitialRM[i][kloc][lloc];
-        }
-        MTX2(nrm,xnrm);
-      }
-      cur=dau->add(new AMSgvolume(
-      "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
-      if(AMSJob::gethead()->isSimulation() && 
-         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
-        // restore parameters
-        int kloc,lloc;
-        for(kloc=0;kloc<3;kloc++){
-          coo[kloc]-=TRCALIB.InitialCoo[i][kloc];
-          for(lloc=0;lloc<3;lloc++) 
-          nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
-        }
-        ((AMSgvolume *)cur)->setcoo(coo);
-        ((AMSgvolume *)cur)->setnrm(nrm); 
-      }
-
-    }
-
-    if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
-       AMSDBc::activeladdshuttle(i+1,j+1)){  
-   
-    for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
-      ost.seekp(0);
-      ost << "SEA" << i+1<<ends;
-      par[0]=AMSDBc::ssize_active(i,0)/2;
-      par[1]=AMSDBc::ssize_active(i,1)/2;
-      par[2]=AMSDBc::silicon_z(i)/2;
-      coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[0][0]=1;
-      nrm[1][1]=1;
-      nrm[2][2]=1;
-#ifdef __AMSDEBUG__
-      if(i==5 && AMSgvolume::debug){
-       MTX(xnrm,xx);
-       int a1,a2;
-       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-      }
-#endif
-      //
-      //  Sensors active
-      //
-      gid=i+1+10*(j+1)+1000*(k+1);
-
-      if(AMSJob::gethead()->isSimulation() && 
-         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
-        // Change parameters
-        int kloc,lloc;
-        for(kloc=0;kloc<3;kloc++){
-          coo[kloc]+=TRCALIB.InitialCoo[i][kloc];
-          for(lloc=0;lloc<3;lloc++) 
-          xnrm[kloc][lloc]=nrm[kloc][lloc]+TRCALIB.InitialRM[i][kloc][lloc];
-        }
-        MTX2(nrm,xnrm);
-      }
-      cur=dau->add(new AMSgvolume(
-      "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
-      if(AMSJob::gethead()->isSimulation() && 
-         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
-        // restore parameters
-        int kloc,lloc;
-        for(kloc=0;kloc<3;kloc++){
-          coo[kloc]-=TRCALIB.InitialCoo[i][kloc];
-          for(lloc=0;lloc<3;lloc++) 
-          nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
-        }
-        ((AMSgvolume *)cur)->setcoo(coo);
-        ((AMSgvolume *)cur)->setnrm(nrm); 
-      }
 
 
-
-    }
-    }
-     }
-  for ( j=0;j<AMSDBc::nlad(i+1);j++){
-    nrot++;  
-      ost.seekp(0);
-      ost << "TUB" << i+1<<ends;
-      par[0]=AMSDBc::tube_inner_dia(i)/2;
-      par[1]=par[0]+AMSDBc::tube_w(i);
-      par[2]=AMSDBc::ssize_inactive(i,0)*AMSDBc::nsen(i+1,j+1)/2.;
-      coo[0]=0;
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[2][0]=1;
-      nrm[1][1]=1;
-      nrm[0][2]=1;
-#ifdef __AMSDEBUG__
-      if(i==5 && AMSgvolume::debug){
-       MTX(xnrm,xx);
-       int a1,a2;
-       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-         number tmp[3][3]; 
-       for(a1=0;a1<3;a1++){
-           tmp[a1][2]=nrm[a1][0];
-           tmp[a1][1]=nrm[a1][1];
-           tmp[a1][0]=nrm[a1][2];
-           
-       }
-       for(a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a1][a2]=tmp[a1][a2];
- 
-      }
-#endif
-      //
-      //  Tubes
-      //
-      gid=i+1+10*(j+1);
-      cur=dau->add(new AMSgvolume(
-      "CARBON",nrot,name,"TUBE",par,3,coo,nrm,"ONLY",1,gid));
-
-  }
-  for ( j=0;j<AMSDBc::nlad(i+1);j++){
-    nrot++;  
-      ost.seekp(0);
-      ost << "ELL" << i+1<<ends;
-      par[0]=AMSDBc::zelec(i,1)/2.;
-      par[1]=AMSDBc::tube_inner_dia(i)/2.;
-      par[2]=AMSDBc::zelec(i,0)/2;
-      coo[0]=-AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.-par[0];
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[0][0]=1;
-      nrm[1][1]=1;
-      nrm[2][2]=1;
-#ifdef __AMSDEBUG__
-      if(i==5 && AMSgvolume::debug){
-       MTX(xnrm,xx);
-       int a1,a2;
-       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-      }
-#endif
-      //
-      //  Elec L
-      //
-      gid=i+1+10*(j+1);
-      cur=dau->add(new AMSgvolume(
-      "ELECTRONICS",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
-
-  }
-  for ( j=0;j<AMSDBc::nlad(i+1);j++){
-    nrot++;  
-      ost.seekp(0);
-      ost << "ELR" << i+1<<ends;
-      par[0]=AMSDBc::zelec(i,1)/2;
-      par[1]=AMSDBc::tube_inner_dia(i)/2;
-      par[2]=AMSDBc::zelec(i,0)/2;
-      coo[0]=+AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.+par[0];
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[0][0]=1;
-      nrm[1][1]=1;
-      nrm[2][2]=1;
-#ifdef __AMSDEBUG__
-      if(i==5 && AMSgvolume::debug){
-       MTX(xnrm,xx);
-       int a1,a2;
-       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-      }
-#endif
-      //
-      //  Elec R
-      //
-      gid=i+1+10*(j+1);
-      cur=dau->add(new AMSgvolume(
-       "ELECTRONICS",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
-
-  }
-
-}
-
-  }
-
-
-
-
-  else {
-
-    cout<<" TKGeom-I-Planes option selected"<<endl;
+cout<<" TKGeom-I-Planes option selected"<<endl;
 
 
 AMSID amsid;
@@ -1570,10 +1014,10 @@ ostrstream ost(name,sizeof(name));
       ost << "PLA" << i+1<<ends;
       par[0]=AMSDBc::ssize_inactive(i,0)*AMSDBc::nsen(i+1,j+1)/2.;
       par[1]=AMSDBc::c2c(i)/2;
-      par[2]=AMSDBc::tube_w(i);     // not /2 ! (600 mkm)
+      par[2]=AMSDBc::support_w(i);     // not /2 ! (600 mkm)
       coo[0]=0;
       coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i)-AMSDBc::silicon_z(i)/2.-AMSDBc::tube_w(i);
+      coo[2]=AMSDBc::zpos(i)-AMSDBc::silicon_z(i)/2.-AMSDBc::support_w(i);
       VZERO(nrm,9*sizeof(nrm[0][0])/4);
       nrm[0][0]=1;
       nrm[1][1]=1;
@@ -1591,7 +1035,7 @@ ostrstream ost(name,sizeof(name));
       ost.seekp(0);
       ost << "ELL" << i+1<<ends;
       par[0]=AMSDBc::zelec(i,1)/2.;
-      par[1]=AMSDBc::tube_inner_dia(i)/2.;
+      par[1]=AMSDBc::c2c(i)/2.;
       par[2]=AMSDBc::zelec(i,0)/2;
       coo[0]=-AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.-par[0];
       coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
@@ -1620,7 +1064,7 @@ ostrstream ost(name,sizeof(name));
       ost.seekp(0);
       ost << "ELR" << i+1<<ends;
       par[0]=AMSDBc::zelec(i,1)/2;
-      par[1]=AMSDBc::tube_inner_dia(i)/2;
+      par[1]=AMSDBc::c2c(i)/2;
       par[2]=AMSDBc::zelec(i,0)/2;
       coo[0]=+AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.+par[0];
       coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
@@ -1646,19 +1090,17 @@ ostrstream ost(name,sizeof(name));
   }
 
 }
-
-  }
-
-
-
-
-
-
-
-
-
-
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1678,7 +1120,7 @@ AMSNode * dau;
 AMSgtmed *p;
       gid=1;
       par[0]=0.;
-      par[1]=82.5;
+      par[1]=82.8;
       par[2]=0.75;
       coo[2]=75.25;
       dau=mother.add(new AMSgvolume(
@@ -1686,10 +1128,10 @@ AMSgtmed *p;
       gid++;
 
       par[0]=18.;
-      par[1]=82.5;
-      par[2]=83.5;
-      par[3]=82.5;
-      par[4]=83.5;
+      par[1]=82.8;
+      par[2]=83.8;
+      par[3]=82.8;
+      par[4]=83.8;
       coo[2]=58.;
 
 
@@ -1698,10 +1140,10 @@ AMSgtmed *p;
       "TOF_SCINT",0,"PSH2","CONE",par,5,coo,nrm, "ONLY",0,gid++));
 
       par[0]=18.;
-      par[1]=82.5;
-      par[2]=83.5;
-      par[3]=82.5;
-      par[4]=83.5;
+      par[1]=82.8;
+      par[2]=83.4;
+      par[3]=82.8;
+      par[4]=83.4;
       coo[2]=-58.;
 
 

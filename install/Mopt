@@ -10,7 +10,7 @@ LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -l
 CC=xlC
 FF=xlf
 LD=xlC
-BIN=/bin/aix
+BIN=../bin/aix/
 EXE=/exe/aix
 TIMEL=../bin/aix/timel.o
 endif
@@ -23,7 +23,7 @@ LDFLAGS= -g -lUfor   -lfor -lFutil -lots -lm -L/cern/96a/lib  -lgeant321 -lmathl
 CC=cxx
 FF=f77
 LD=cxx
-BIN=/bin/osf1
+BIN=../bin/osf1/
 EXE=/exe/osf1
 TIMEL=../bin/osf1/timel.o
 endif
@@ -36,195 +36,199 @@ LDFLAGS=  -g  -L/cern/pro/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/af
 CC=g++
 FF=f77
 LD=g++
-BIN=/bin/hpux
+BIN=../bin/hpux/
 EXE=/exe/hpux
 TIMEL=
 endif
 #
 #
 #
-FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F ../F/e04ccf.f
-OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o
+SCC=../CC/
+FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C  $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)mceventg.C ../F/tkmccl.F $(SCC)rnormx.C  $(SCC)trid.C $(SCC)link.C $(SCC)trrec.C $(SCC)uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec.C $(SCC)tofsim.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc.C $(SCC)ctcrec.C $(SCC)ctcdbc.C $(SCC)tofcalib.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger.C
+OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)link.o $(BIN)trrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec.o $(BIN)tofsim.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc.o $(BIN)ctcrec.o $(BIN)ctcdbc.o $(BIN)tofcalib.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger.o
 gbatch.exe:	$(OBJECTS)
-	$(FF) -c $(FFLAGS) ../F/timel.F -o ..$(BIN)/timel.o
+	$(FF) -c $(FFLAGS) ../F/timel.F -o $(BIN)timel.o
 	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
 
 	chmod +x  ..$(EXE)/gbatch.exe 
 
 
-..$(BIN)/gbatch.o:         ../CC/gbatch.C
-	$(CC) -c $(CFLAGS) ../CC/gbatch.C -o ..$(BIN)/gbatch.o
+$(BIN)gbatch.o:         $(SCC)gbatch.C
+	$(CC) -c $(CFLAGS) $(SCC)gbatch.C -o $(BIN)gbatch.o
 
-..$(BIN)/job.o:    	 ../CC/job.C
-	$(CC) -c $(CFLAGS) ../CC/job.C -o ..$(BIN)/job.o
+$(BIN)job.o:    	 $(SCC)job.C
+	$(CC) -c $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
 
-..$(BIN)/event.o:    	 ../CC/event.C
-	$(CC) -c $(CFLAGS) ../CC/event.C -o ..$(BIN)/event.o
+$(BIN)event.o:    	 $(SCC)event.C
+	$(CC) -c $(CFLAGS) $(SCC)event.C -o $(BIN)event.o
 
-..$(BIN)/id.o:    	 ../CC/id.C
-	$(CC) -c $(CFLAGS) ../CC/id.C -o ..$(BIN)/id.o
+$(BIN)id.o:    	 $(SCC)id.C
+	$(CC) -c $(CFLAGS) $(SCC)id.C -o $(BIN)id.o
 
-..$(BIN)/cont.o:    	 ../CC/cont.C
-	$(CC) -c $(CFLAGS) ../CC/cont.C -o ..$(BIN)/cont.o
+$(BIN)cont.o:    	 $(SCC)cont.C
+	$(CC) -c $(CFLAGS) $(SCC)cont.C -o $(BIN)cont.o
 
-..$(BIN)/node.o:	         ../CC/node.C
-	$(CC) -c $(CFLAGS) ../CC/node.C -o ..$(BIN)/node.o
+$(BIN)trigger.o:    	 $(SCC)trigger.C
+	$(CC) -c $(CFLAGS) $(SCC)trigger.C -o $(BIN)trigger.o
 
-..$(BIN)/snode.o:          ../CC/snode.C
-	$(CC) -c $(CFLAGS) ../CC/snode.C -o ..$(BIN)/snode.o
+$(BIN)node.o:	         $(SCC)node.C
+	$(CC) -c $(CFLAGS) $(SCC)node.C -o $(BIN)node.o
 
-..$(BIN)/gvolume.o:        ../CC/gvolume.C
-	$(CC) -c $(CFLAGS) ../CC/gvolume.C -o ..$(BIN)/gvolume.o
+$(BIN)snode.o:          $(SCC)snode.C
+	$(CC) -c $(CFLAGS) $(SCC)snode.C -o $(BIN)snode.o
+
+$(BIN)gvolume.o:        $(SCC)gvolume.C
+	$(CC) -c $(CFLAGS) $(SCC)gvolume.C -o $(BIN)gvolume.o
            
-..$(BIN)/timeid.o:        ../CC/timeid.C
-	$(CC) -c $(CFLAGS) ../CC/timeid.C -o ..$(BIN)/timeid.o
+$(BIN)timeid.o:        $(SCC)timeid.C
+	$(CC) -c $(CFLAGS) $(SCC)timeid.C -o $(BIN)timeid.o
            
-..$(BIN)/tkmccl.o:         ../F/tkmccl.F
-	$(FF) -c $(FFLAGS) ../F/tkmccl.F -o ..$(BIN)/tkmccl.o
+$(BIN)tkmccl.o:         ../F/tkmccl.F
+	$(FF) -c $(FFLAGS) ../F/tkmccl.F -o $(BIN)tkmccl.o
 
-..$(BIN)/timel.o:         ../F/timel.F
-	$(FF) -c $(FFLAGS) ../F/timel.F -o ..$(BIN)/timel.o
+$(BIN)timel.o:         ../F/timel.F
+	$(FF) -c $(FFLAGS) ../F/timel.F -o $(BIN)timel.o
 
-..$(BIN)/rndm.o:         ../F/rndm.F
-	$(FF) -c $(FFLAGS) ../F/rndm.F -o ..$(BIN)/rndm.o
+$(BIN)rndm.o:         ../F/rndm.F
+	$(FF) -c $(FFLAGS) ../F/rndm.F -o $(BIN)rndm.o
 
-..$(BIN)/trafit.o:         ../F/trafit.F
-	$(FF) -c $(FFLAGS) ../F/trafit.F -o ..$(BIN)/trafit.o
+$(BIN)trafit.o:         ../F/trafit.F
+	$(FF) -c $(FFLAGS) ../F/trafit.F -o $(BIN)trafit.o
 
-..$(BIN)/txyfit.o:         ../F/txyfit.F
-	$(FF) -c $(FFLAGS) ../F/txyfit.F -o ..$(BIN)/txyfit.o
+$(BIN)txyfit.o:         ../F/txyfit.F
+	$(FF) -c $(FFLAGS) ../F/txyfit.F -o $(BIN)txyfit.o
 
-..$(BIN)/tszfit.o:         ../F/tszfit.F
-	$(FF) -c $(FFLAGS) ../F/tszfit.F -o ..$(BIN)/tszfit.o
+$(BIN)tszfit.o:         ../F/tszfit.F
+	$(FF) -c $(FFLAGS) ../F/tszfit.F -o $(BIN)tszfit.o
 
-..$(BIN)/tptcir.o:         ../F/tptcir.F
-	$(FF) -c $(FFLAGS) ../F/tptcir.F -o ..$(BIN)/tptcir.o
+$(BIN)tptcir.o:         ../F/tptcir.F
+	$(FF) -c $(FFLAGS) ../F/tptcir.F -o $(BIN)tptcir.o
 
-..$(BIN)/sgif.o:         ../F/sgif.F
-	$(FF) -c $(FFLAGS) ../F/sgif.F -o ..$(BIN)/sgif.o
+$(BIN)sgif.o:         ../F/sgif.F
+	$(FF) -c $(FFLAGS) ../F/sgif.F -o $(BIN)sgif.o
 
-..$(BIN)/tcircf.o:         ../F/tcircf.F
-	$(FF) -c $(FFLAGS) ../F/tcircf.F -o ..$(BIN)/tcircf.o
+$(BIN)tcircf.o:         ../F/tcircf.F
+	$(FF) -c $(FFLAGS) ../F/tcircf.F -o $(BIN)tcircf.o
 
-..$(BIN)/e04ccf.o:         ../F/e04ccf.f
-	$(FF) -c $(FFLAGS) ../F/e04ccf.f -o ..$(BIN)/e04ccf.o
+$(BIN)e04ccf.o:         ../F/e04ccf.f
+	$(FF) -c $(FFLAGS) ../F/e04ccf.f -o $(BIN)e04ccf.o
 
-..$(BIN)/mtx2.o:         ../F/mtx2.F
-	$(FF) -c $(FFLAGS) ../F/mtx2.F -o ..$(BIN)/mtx2.o
+$(BIN)mtx2.o:         ../F/mtx2.F
+	$(FF) -c $(FFLAGS) ../F/mtx2.F -o $(BIN)mtx2.o
 
-..$(BIN)/amstkshc++.o:            ../F/amstkshc++.F
-	$(FF) -c $(FFLAGS)     ../F/amstkshc++.F -o ..$(BIN)/amstkshc++.o
+$(BIN)amstkshc++.o:            ../F/amstkshc++.F
+	$(FF) -c $(FFLAGS)     ../F/amstkshc++.F -o $(BIN)amstkshc++.o
 
 ifeq  "$(shell uname)"  "HP-UX" 
 
-..$(BIN)/mtx.o:                   ../F/mtx77.F
-	f77 -c $(FFLAGS)      ../F/mtx77.F -o ..$(BIN)/mtx.o
+$(BIN)mtx.o:                   ../F/mtx77.F
+	f77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "AIX" 
 
-..$(BIN)/mtx.o:                   ../F/mtx.F
-	xlf90 -c $(FFLAGS)      ../F/mtx.F -o ..$(BIN)/mtx.o
+$(BIN)mtx.o:                   ../F/mtx.F
+	xlf90 -c $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
 endif
 
 ifeq  "$(shell uname)"  "OSF1" 
 
-..$(BIN)/mtx.o:                   ../F/mtx.F
-	f90 -c -free $(FFLAGS)      ../F/mtx.F -o ..$(BIN)/mtx.o
+$(BIN)mtx.o:                   ../F/mtx.F
+	f90 -c -free $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
 endif
 
-..$(BIN)/cern.o:	         ../CC/cern.C
-	$(CC) -c $(CFLAGS) ../CC/cern.C -o ..$(BIN)/cern.o
+$(BIN)cern.o:	         $(SCC)cern.C
+	$(CC) -c $(CFLAGS) $(SCC)cern.C -o $(BIN)cern.o
 
-..$(BIN)/amsdbc.o:         ../CC/amsdbc.C
-	$(CC) -c $(CFLAGS) ../CC/amsdbc.C -o ..$(BIN)/amsdbc.o
+$(BIN)amsdbc.o:         $(SCC)amsdbc.C
+	$(CC) -c $(CFLAGS) $(SCC)amsdbc.C -o $(BIN)amsdbc.o
 
-..$(BIN)/tofdbc.o:         ../CC/tofdbc.C
-	$(CC) -c $(CFLAGS) ../CC/tofdbc.C -o ..$(BIN)/tofdbc.o
+$(BIN)tofdbc.o:         $(SCC)tofdbc.C
+	$(CC) -c $(CFLAGS) $(SCC)tofdbc.C -o $(BIN)tofdbc.o
 
-..$(BIN)/tofcalib.o:         ../CC/tofcalib.C
-	$(CC) -c $(CFLAGS) ../CC/tofcalib.C -o ..$(BIN)/tofcalib.o
+$(BIN)tofcalib.o:         $(SCC)tofcalib.C
+	$(CC) -c $(CFLAGS) $(SCC)tofcalib.C -o $(BIN)tofcalib.o
 
-..$(BIN)/ctcdbc.o:         ../CC/ctcdbc.C
-	$(CC) -c $(CFLAGS) ../CC/ctcdbc.C -o ..$(BIN)/ctcdbc.o
+$(BIN)ctcdbc.o:         $(SCC)ctcdbc.C
+	$(CC) -c $(CFLAGS) $(SCC)ctcdbc.C -o $(BIN)ctcdbc.o
 
-..$(BIN)/gsen.o:	         ../CC/gsen.C
-	$(CC) -c $(CFLAGS) ../CC/gsen.C -o ..$(BIN)/gsen.o
+$(BIN)gsen.o:	         $(SCC)gsen.C
+	$(CC) -c $(CFLAGS) $(SCC)gsen.C -o $(BIN)gsen.o
 
-..$(BIN)/rnormx.o:         ../CC/rnormx.C
-	$(CC) -c $(CFLAGS) ../CC/rnormx.C -o ..$(BIN)/rnormx.o
+$(BIN)rnormx.o:         $(SCC)rnormx.C
+	$(CC) -c $(CFLAGS) $(SCC)rnormx.C -o $(BIN)rnormx.o
 
 
-..$(BIN)/point.o:	         ../CC/point.C
-	$(CC) -c $(CFLAGS) ../CC/point.C -o ..$(BIN)/point.o
+$(BIN)point.o:	         $(SCC)point.C
+	$(CC) -c $(CFLAGS) $(SCC)point.C -o $(BIN)point.o
 
-..$(BIN)/upool.o:	         ../CC/upool.C
-	$(CC) -c $(CFLAGS) ../CC/upool.C -o ..$(BIN)/upool.o
+$(BIN)upool.o:	         $(SCC)upool.C
+	$(CC) -c $(CFLAGS) $(SCC)upool.C -o $(BIN)upool.o
 
-..$(BIN)/apool.o:	         ../CC/apool.C
-	$(CC) -c $(CFLAGS) ../CC/apool.C -o ..$(BIN)/apool.o
+$(BIN)apool.o:	         $(SCC)apool.C
+	$(CC) -c $(CFLAGS) $(SCC)apool.C -o $(BIN)apool.o
 
-..$(BIN)/gmat.o:         	 ../CC/gmat.C
-	$(CC) -c $(CFLAGS) ../CC/gmat.C -o ..$(BIN)/gmat.o
+$(BIN)gmat.o:         	 $(SCC)gmat.C
+	$(CC) -c $(CFLAGS) $(SCC)gmat.C -o $(BIN)gmat.o
 
-..$(BIN)/amsgobj.o: 	 ../CC/amsgobj.C
-	$(CC) -c $(CFLAGS) ../CC/amsgobj.C -o ..$(BIN)/amsgobj.o
+$(BIN)amsgobj.o: 	 $(SCC)amsgobj.C
+	$(CC) -c $(CFLAGS) $(SCC)amsgobj.C -o $(BIN)amsgobj.o
 
-..$(BIN)/amsgeom.o: 	 ../CC/amsgeom.C
-	$(CC) -c $(CFLAGS) ../CC/amsgeom.C -o ..$(BIN)/amsgeom.o
+$(BIN)amsgeom.o: 	 $(SCC)amsgeom.C
+	$(CC) -c $(CFLAGS) $(SCC)amsgeom.C -o $(BIN)amsgeom.o
 
-..$(BIN)/geant.o: 	 ../CC/geant.C
-	$(CC) -c $(CFLAGS) ../CC/geant.C -o ..$(BIN)/geant.o
+$(BIN)geant.o: 	 $(SCC)geant.C
+	$(CC) -c $(CFLAGS) $(SCC)geant.C -o $(BIN)geant.o
 
-..$(BIN)/mceventg.o: 	 ../CC/mceventg.C
-	$(CC) -c $(CFLAGSn) ../CC/mceventg.C -o ..$(BIN)/mceventg.o
+$(BIN)mceventg.o: 	 $(SCC)mceventg.C
+	$(CC) -c $(CFLAGSn) $(SCC)mceventg.C -o $(BIN)mceventg.o
 
-..$(BIN)/mccluster.o: 	 ../CC/mccluster.C
-	$(CC) -c $(CFLAGS) ../CC/mccluster.C -o ..$(BIN)/mccluster.o
+$(BIN)mccluster.o: 	 $(SCC)mccluster.C
+	$(CC) -c $(CFLAGS) $(SCC)mccluster.C -o $(BIN)mccluster.o
 
-..$(BIN)/trrawcluster.o: 	 ../CC/trrawcluster.C
-	$(CC) -c $(CFLAGS) ../CC/trrawcluster.C -o ..$(BIN)/trrawcluster.o
+$(BIN)trrawcluster.o: 	 $(SCC)trrawcluster.C
+	$(CC) -c $(CFLAGS) $(SCC)trrawcluster.C -o $(BIN)trrawcluster.o
 
-..$(BIN)/trid.o: 	         ../CC/trid.C
-	$(CC) -c $(CFLAGS) ../CC/trid.C -o ..$(BIN)/trid.o
+$(BIN)trid.o: 	         $(SCC)trid.C
+	$(CC) -c $(CFLAGS) $(SCC)trid.C -o $(BIN)trid.o
 
-..$(BIN)/trrec.o: 	 ../CC/trrec.C
-	$(CC) -c $(CFLAGS) ../CC/trrec.C -o ..$(BIN)/trrec.o
+$(BIN)trrec.o: 	 $(SCC)trrec.C
+	$(CC) -c $(CFLAGS) $(SCC)trrec.C -o $(BIN)trrec.o
 
-..$(BIN)/trcalib.o: 	 ../CC/trcalib.C
-	$(CC) -c $(CFLAGS) ../CC/trcalib.C -o ..$(BIN)/trcalib.o
+$(BIN)trcalib.o: 	 $(SCC)trcalib.C
+	$(CC) -c $(CFLAGS) $(SCC)trcalib.C -o $(BIN)trcalib.o
 
-..$(BIN)/tofrec.o: 	         ../CC/tofrec.C
-	$(CC) -c $(CFLAGS) ../CC/tofrec.C -o ..$(BIN)/tofrec.o
+$(BIN)tofrec.o: 	         $(SCC)tofrec.C
+	$(CC) -c $(CFLAGS) $(SCC)tofrec.C -o $(BIN)tofrec.o
 
-..$(BIN)/tofsim.o: 	         ../CC/tofsim.C
-	$(CC) -c $(CFLAGS) ../CC/tofsim.C -o ..$(BIN)/tofsim.o
+$(BIN)tofsim.o: 	         $(SCC)tofsim.C
+	$(CC) -c $(CFLAGS) $(SCC)tofsim.C -o $(BIN)tofsim.o
 
-..$(BIN)/ctcrec.o: 	         ../CC/ctcrec.C
-	$(CC) -c $(CFLAGS) ../CC/ctcrec.C -o ..$(BIN)/ctcrec.o
+$(BIN)ctcrec.o: 	         $(SCC)ctcrec.C
+	$(CC) -c $(CFLAGS) $(SCC)ctcrec.C -o $(BIN)ctcrec.o
 
-..$(BIN)/beta.o: 	         ../CC/beta.C
-	$(CC) -c $(CFLAGS) ../CC/beta.C -o ..$(BIN)/beta.o
+$(BIN)beta.o: 	         $(SCC)beta.C
+	$(CC) -c $(CFLAGS) $(SCC)beta.C -o $(BIN)beta.o
 
-..$(BIN)/charge.o: 	         ../CC/charge.C
-	$(CC) -c $(CFLAGS) ../CC/charge.C -o ..$(BIN)/charge.o
+$(BIN)charge.o: 	         $(SCC)charge.C
+	$(CC) -c $(CFLAGS) $(SCC)charge.C -o $(BIN)charge.o
 
-..$(BIN)/particle.o: 	         ../CC/particle.C
-	$(CC) -c $(CFLAGS) ../CC/particle.C -o ..$(BIN)/particle.o
+$(BIN)particle.o: 	         $(SCC)particle.C
+	$(CC) -c $(CFLAGS) $(SCC)particle.C -o $(BIN)particle.o
 
-..$(BIN)/link.o: 	         ../CC/link.C
-	$(CC) -c $(CFLAGS) ../CC/link.C -o ..$(BIN)/link.o
+$(BIN)link.o: 	         $(SCC)link.C
+	$(CC) -c $(CFLAGS) $(SCC)link.C -o $(BIN)link.o
 
-..$(BIN)/uzstat.o: 	 ../CC/uzstat.C
-	$(CC) -c $(CFLAGS) ../CC/uzstat.C -o ..$(BIN)/uzstat.o
+$(BIN)uzstat.o: 	 $(SCC)uzstat.C
+	$(CC) -c $(CFLAGS) $(SCC)uzstat.C -o $(BIN)uzstat.o
 
-..$(BIN)/io.o: 	 ../CC/io.C
-	$(CC) -c $(CFLAGS) ../CC/io.C -o ..$(BIN)/io.o
+$(BIN)io.o: 	 $(SCC)io.C
+	$(CC) -c $(CFLAGS) $(SCC)io.C -o $(BIN)io.o
 
-..$(BIN)/commons.o: 	 ../CC/commons.C
-	$(CC) -c $(CFLAGS) ../CC/commons.C -o ..$(BIN)/commons.o
+$(BIN)commons.o: 	 $(SCC)commons.C
+	$(CC) -c $(CFLAGS) $(SCC)commons.C -o $(BIN)commons.o
 
 depend: 	
-	makedepend -f Mopt -- $(DFLAGS) -- $(FILES) -p..$(BIN)/
+	makedepend -f Mopt -- $(DFLAGS) -- $(FILES) -p$(BIN)
 
 
         
@@ -943,7 +947,7 @@ depend:
 ../bin/osf1/../CC/event.o: ../include/charge.h ../include/particle.h
 ../bin/osf1/../CC/event.o: ../include/ctc.h ../include/tofsim.h
 ../bin/osf1/../CC/event.o: ../include/tofcalib.h ../include/ntuple.h
-../bin/osf1/../CC/event.o: ../include/trcalib.h
+../bin/osf1/../CC/event.o: ../include/trcalib.h ../include/trigger.h
 ../bin/osf1/../CC/cont.o: ../include/cont.h ../include/typedefs.h
 ../bin/osf1/../CC/cont.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/../CC/cont.o: /usr/include/cxx/iostream.h
@@ -1663,3 +1667,51 @@ depend:
 ../bin/osf1/../CC/trcalib.o: /usr/include/cxx/fstream.hxx ../include/beta.h
 ../bin/osf1/../CC/trcalib.o: ../include/ctcrec.h ../include/charge.h
 ../bin/osf1/../CC/trcalib.o: ../include/ctc.h
+../bin/osf1/../CC/trigger.o: ../include/trigger.h ../include/link.h
+../bin/osf1/../CC/trigger.o: ../include/typedefs.h /usr/include/assert.h
+../bin/osf1/../CC/trigger.o: /usr/include/standards.h
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/iostream.h
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/iostream.hxx
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/cxxl.hxx
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/cxxl_share.hxx
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/messages.hxx
+../bin/osf1/../CC/trigger.o: /usr/include/stddef.h /usr/include/stdio.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/seek.h /usr/include/va_list.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/types.h
+../bin/osf1/../CC/trigger.o: /usr/include/mach/machine/vm_types.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/select.h /usr/include/getopt.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/limits.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/machine/machlimits.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/syslimits.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/machine/machtime.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/rt_limits.h
+../bin/osf1/../CC/trigger.o: /usr/include/limits.h /usr/include/memory.h
+../bin/osf1/../CC/trigger.o: /usr/include/string.h /usr/include/strings.h
+../bin/osf1/../CC/trigger.o: ../include/upool.h /usr/include/cxx/new.h
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/new.hxx ../include/apool.h
+../bin/osf1/../CC/trigger.o: ../include/node.h ../include/id.h
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/strstream.h
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/strstream.hxx
+../bin/osf1/../CC/trigger.o: /usr/include/stdlib.h ../include/snode.h
+../bin/osf1/../CC/trigger.o: ../include/event.h ../include/job.h
+../bin/osf1/../CC/trigger.o: ../include/gvolume.h ../include/cern.h
+../bin/osf1/../CC/trigger.o: ../include/cfortran.h ../include/hbook.h
+../bin/osf1/../CC/trigger.o: ../include/geant321.h ../include/geant321g.h
+../bin/osf1/../CC/trigger.o: ../include/amsdbc.h ../include/point.h
+../bin/osf1/../CC/trigger.o: /usr/include/math.h ../include/gmat.h
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/iomanip.h
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/iomanip.hxx
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/generic.hxx
+../bin/osf1/../CC/trigger.o: /usr/include/cxx/mutex.hxx ../include/amsgobj.h
+../bin/osf1/../CC/trigger.o: ../include/uzstat.h ../include/timeid.h
+../bin/osf1/../CC/trigger.o: /usr/include/time.h /usr/include/sys/timers.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/sysmisc.h ../include/cont.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/time.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/signal.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/siginfo.h
+../bin/osf1/../CC/trigger.o: /usr/include/machine/signal.h
+../bin/osf1/../CC/trigger.o: /usr/include/machine/context.h
+../bin/osf1/../CC/trigger.o: /usr/include/sys/procset.h
+../bin/osf1/../CC/trigger.o: ../include/mccluster.h ../include/gsen.h
+../bin/osf1/../CC/trigger.o: ../include/trid.h ../include/amsstl.h
+../bin/osf1/../CC/trigger.o: ../include/commons.h ../include/ctcdbc.h
