@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.75 2003/12/09 16:15:06 alcaraz Exp $
+//  $Id: trrec.h,v 1.76 2003/12/10 15:06:48 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -192,6 +192,14 @@ static AMSTrRecHit* firstgood_FalseX(integer pattern, integer index);
 AMSTrRecHit* nextgood_FalseX();
 static AMSTrRecHit* firstgood_FalseX_path(integer pattern, integer index, number par[2][3]);
 AMSTrRecHit* nextgood_FalseX_path(number par[2][3]);
+static AMSTrRecHit* firstgood_WEAK(integer pattern, integer index);
+AMSTrRecHit* nextgood_WEAK();
+static AMSTrRecHit* firstgood_WEAK_path(integer pattern, integer index, number par[2][3]);
+AMSTrRecHit* nextgood_WEAK_path(number par[2][3]);
+static AMSTrRecHit* firstgood_FalseTOFX(integer pattern, integer index);
+AMSTrRecHit* nextgood_FalseTOFX();
+static AMSTrRecHit* firstgood_FalseTOFX_path(integer pattern, integer index, number par[2][3]);
+AMSTrRecHit* nextgood_FalseTOFX_path(number par[2][3]);
 static integer markAwayTOFHits();
 integer is_in_path(number par[2][3]){
    return fabs(par[0][1]+par[0][0]*_Hit[2]-_Hit[0]) < TRFITFFKEY.SearchRegStrLine*par[0][2]
@@ -402,12 +410,14 @@ AMSTrTrack(AMSDir dir, AMSPoint point,number rig=10000000,number errig=10000000)
 AMSTrTrack(number theta, number phi, AMSPoint point);
 void init( AMSTrRecHit * phit[]);
 static integer build(integer refit=0);
-static integer buildWeak(integer refit=0);
 static integer buildPathIntegral(integer refit=0);
+static integer buildWeak(integer refit=0);
+static integer buildWeakPathIntegral(integer refit=0);
 static integer buildFalseX(integer refit=0);
 static integer buildFalseXPathIntegral(integer refit=0);
 static integer makeFalseTOFXHits();
 static integer buildFalseTOFX(integer refit=0);
+static integer buildFalseTOFXPathIntegral(integer refit=0);
 static integer _MarginPatternsNeeded;
 static integer _min_layers_with_different_hits;
 static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
@@ -454,6 +464,8 @@ AMSTrTrack* CloneIt();
 static AMSTrTrack* remove_track(AMSTrTrack* ptrack);
 integer next_combination(int index_min, int index_max, number par[2][3]);
 integer next_combination_FalseX(int index_min, int index_max, number par[2][3]);
+integer next_combination_WEAK(int index_min, int index_max, number par[2][3]);
+integer next_combination_FalseTOFX(int index_min, int index_max, number par[2][3]);
 friend class AMSVtx;
 friend class AMSTrCalibFit;
 #ifdef __WRITEROOT__

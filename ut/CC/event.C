@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.325 2003/12/09 16:15:03 alcaraz Exp $
+//  $Id: event.C,v 1.326 2003/12/10 15:06:45 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -969,9 +969,13 @@ void AMSEvent::_retkinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseTOFX",i),&AMSTrTrack::buildFalseTOFX,0));
 
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrack_PathIntegral",i),&AMSTrTrack::buildPathIntegral,0));
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrackWeak_PathIntegral",i),&AMSTrTrack::buildWeakPathIntegral,0));
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseX_PathIntegral",i),&AMSTrTrack::buildFalseXPathIntegral,0));
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSTrTrack_PathIntegral",i),&AMSTrTrack::buildPathIntegral,0));
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseTOFX_PathIntegral",i),&AMSTrTrack::buildFalseTOFXPathIntegral,0));
 
   ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSVtx",0),&AMSVtx::build,0));

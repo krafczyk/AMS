@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.160 2003/12/09 16:15:03 alcaraz Exp $
+//  $Id: trrec.C,v 1.161 2003/12/10 15:06:46 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1537,6 +1537,215 @@ integer AMSTrTrack::buildWeak(integer refit){
   _RefitIsNeeded=0;
   _Start();
    
+
+  for (pat=0;pat<TKDBc::npat();pat++){
+    // Only 4 points patterns used
+      int fp=TKDBc::patpoints(pat)-1;    
+    if(TKDBc::patallow(pat) && fp<=TKDBc::nlay()-3){
+      // Try to make StrLine Fit
+      integer first=TKDBc::patconf(pat,0)-1;
+      integer second=TKDBc::patconf(pat,fp)-1;
+      phit[0]=AMSTrRecHit::gethead(first);
+      while( phit[0]){
+       if(phit[0]->Good() && phit[0]->checkstatus(AMSDBc::WEAK)==0){
+       phit[fp]=AMSTrRecHit::gethead(second);
+       while( phit[fp]){
+        if(phit[fp]->Good() && phit[fp]->checkstatus(AMSDBc::WEAK)==0){
+        par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
+        par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
+        // Search for others
+        if(NTrackFound<0)NTrackFound=0;
+        // Search for others
+        //  add try due to icc bug
+        try{
+        integer npfound=_TrSearcher(1);
+        if(npfound){
+           NTrackFound++;
+         goto out;
+        }
+        }
+        catch (...){
+         throw;
+        }
+
+        }         
+        phit[fp]=phit[fp]->next();
+       }
+       }  
+out:
+       phit[0]=phit[0]->next();
+      }
+      
+    }
+  }
+return NTrackFound;
+}
+
+
+integer AMSTrTrack::buildWeakPathIntegral(integer refit){
+  {
+    int nrh=0;
+    for(int i=0;i<TKDBc::nlay();i++){
+     nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
+    }
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
+    AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+    TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
+      if(!ptr302 || ptr302->skip()){
+       AMSEvent::gethead()->seterror();
+       return 0;
+      }
+    }
+  }
+
+  integer NTrackFound=-1;
+  // pattern recognition + fit
+  if(refit){
+   return NTrackFound;
+  } 
+  _RefitIsNeeded=0;
+  _Start();
+   
+  static AMSTrRecHit * phit[trconst::maxlay];
+  number gers=0.03;
+  AMSPoint hit_err = AMSPoint(gers,gers,gers);
+      
+  while (1) {
+
+      if (NTrackFound>=Vtxconst::maxtr) break;
+
+      AMSTrTrack* ptrack = NULL;
+	AMSTrTrack ptest;
+      number minchi2 = TRFITFFKEY.Chi2WithoutMS;
+
+      for (int pat=0;pat<TKDBc::npat();pat++){
+            if (!TKDBc::patallow(pat)) continue;
+            int fp=TKDBc::patpoints(pat)-1;    
+            if (fp>TKDBc::nlay()-3) continue;
+
+            ptest._NHits = fp+1;
+            ptest._Pattern = pat;
+            for (phit[0]=AMSTrRecHit::firstgood_WEAK(pat,0);
+                              phit[0]; phit[0]=phit[0]->nextgood_WEAK()){
+               ptest._Pthit[0] = phit[0];
+               AMSPoint x0 = phit[0]->getHit();
+               for (phit[fp]=AMSTrRecHit::firstgood_WEAK(pat,fp);
+                              phit[fp]; phit[fp]=phit[fp]->nextgood_WEAK()){
+
+                  // Skip whole pattern if not hits in the relevant layers
+                  for (int ilay=1;ilay<fp;ilay++){
+                        if (AMSTrRecHit::firstgood_WEAK(pat,ilay)==NULL) {
+                              goto next_pattern;
+                        }
+                  }
+
+                  if (_NoMoreTime()) { 
+                        remove_track(ptrack); 
+#ifdef __AMSDEBUG__
+                        cout << " Cpulimit Exceeded!!!! " << endl;
+#endif
+                        throw AMSTrTrackError(" Cpulimit Exceeded ");
+                        return NTrackFound;
+	            }
+
+                  // Parameters to check distance to a straight line
+                  ptest._Pthit[fp] = phit[fp];
+                  AMSPoint xp = phit[fp]->getHit();
+	            number par[2][3];
+                  par[0][0]=(xp[0] - x0[0])/(xp[2] - x0[2]);
+                  par[0][1]=x0[0] - par[0][0]*x0[2];
+                  par[0][2]=sqrt(1+par[0][0]*par[0][0]);
+                  par[1][0]=(xp[1] - x0[1])/(xp[2] - x0[2]);
+                  par[1][1]=x0[1] - par[1][0]*x0[2];
+                  par[1][2]=sqrt(1+par[1][0]*par[1][0]);
+       
+                  // Initial hit choice on intermediate layers
+                  if (NTrackFound<0) NTrackFound = 0;
+                  for (int ilay=1;ilay<fp;ilay++){
+                        phit[ilay]=AMSTrRecHit::firstgood_WEAK_path(pat,ilay,par);
+                        if (phit[ilay]==NULL) goto next_fp;
+                        ptest._Pthit[ilay] = phit[ilay];
+                  }
+
+                  // Get the combination with the best chi2_per_dof
+
+                  while(1){
+                        ptest.SimpleFit(hit_err);
+                        number chi2_per_dof = ptest.getchi2withoutMS();
+	                  if (chi2_per_dof<minchi2 && chi2_per_dof>0){
+                              minchi2 = chi2_per_dof;
+                              ptrack = ptest.CloneIt();
+	                  }  
+
+                        // Try next combination of hits
+                        // Stop when done
+                        if (_NoMoreTime()) { 
+                              remove_track(ptrack); 
+#ifdef __AMSDEBUG__
+                              cout << " Cpulimit Exceeded!!!! " << endl;
+#endif
+                              throw AMSTrTrackError(" Cpulimit Exceeded ");
+                              return NTrackFound;
+	                  }
+
+                        // Break when no more intermediate hit combinations
+                        if ( !ptest.next_combination_WEAK(1,fp-1,par) ) {
+                              break;
+                        }
+
+                  }
+next_fp:
+            continue;
+               }
+
+            }
+
+next_pattern:
+            // Best track hopefully found; add next ptrack if succesful
+            if (ptrack){ 
+               // Get pattern and hits
+               int pat = ptrack->getpattern();
+               int nhits = ptrack->getnhits();
+               for (int i=0;i<nhits;i++){
+                     phit[i] = ptrack->getphit(i);
+               }
+               // Fit track; add it to the container list
+               ptrack->Fit(0);
+               ptrack->Fit(5,2);
+               if (_addnext(pat, nhits, phit)) {
+                     NTrackFound++;
+#ifdef __AMSDEBUG__
+                     cout << " AMSTrTrack tracking>>>>>> " << endl;
+                     cout << "### Run " << AMSEvent::gethead()->getrun();
+                     cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
+                     cout << "# hits " << nhits;
+                     cout << " chi2/ndof: " << ptrack->getchi2withoutMS() << endl;
+                     for (int i=0;i<ptrack->getnhits();i++){
+                           cout << "        " << ptrack->getphit(i)->getHit()[0];
+                           cout << ", " << ptrack->getphit(i)->getHit()[1];
+                           cout << ", " << ptrack->getphit(i)->getHit()[2];
+                           cout << endl;
+                     }
+#endif
+               } else {
+                     remove_track(ptrack); 
+               }
+   
+            } else {
+
+               // Get out if nothing has been found
+               return NTrackFound;
+
+            }
+
+
+      }
+
+  }
 
   for (pat=0;pat<TKDBc::npat();pat++){
     // Only 4 points patterns used
@@ -3219,6 +3428,197 @@ out:
 return NTrackFound;
 }
 
+integer AMSTrTrack::buildFalseTOFXPathIntegral(integer refit){
+  {
+    int nrh=0;
+    for(int i=0;i<TKDBc::nlay();i++){
+     nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
+    }
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
+    AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+    TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
+      if(!ptr302 || ptr302->skip()){
+       AMSEvent::gethead()->seterror();
+       return 0;
+      }
+    }
+  }
+
+  integer NTrackFound=-1;
+  // pattern recognition + fit
+  if(refit){
+    // Cleanup all track containers
+    int i;
+    for(i=0;;i++){
+      AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrTrack",i);
+      if(pctr)pctr->eraseC();
+      else break ;
+    }
+  } 
+  _RefitIsNeeded=0;
+  _Start();
+  // Add test here
+
+// Build Fake Clusters with TOF
+  integer hitstatus = makeFalseTOFXHits();
+  if (hitstatus!=0) return -1;
+   
+  { 
+    int xs=0; 
+    for (int kk=0;kk<TKDBc::nlay();kk++){
+      AMSTrRecHit * pphit;
+      for (pphit=AMSTrRecHit::gethead(kk); pphit!=NULL; pphit=pphit->next()){
+        if (pphit->Good() && pphit->checkstatus(AMSDBc::FalseTOFX)) {
+          xs++; 
+          break;
+        }
+      }
+    }
+    if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
+    else return -1;
+  }
+
+  static AMSTrRecHit * phit[trconst::maxlay];
+  number gers=0.03;
+  AMSPoint hit_err = AMSPoint(gers,gers,gers);
+      
+  integer ThreePointNotWanted=0;
+
+  while (1) {
+
+      if (NTrackFound>=Vtxconst::maxtr) break;
+
+      AMSTrTrack* ptrack = NULL;
+	AMSTrTrack ptest;
+      number minchi2 = TRFITFFKEY.Chi2WithoutMS;
+
+      for (int pat=0;pat<TKDBc::npat();pat++){
+            if(!TKDBc::patallow(pat)) continue;
+            if(TKDBc::patpoints(pat)==3 && ThreePointNotWanted)continue;
+
+            int fp=TKDBc::patpoints(pat)-1;    
+            ptest._NHits = fp+1;
+            ptest._Pattern = pat;
+            for (phit[0]=AMSTrRecHit::firstgood_FalseTOFX(pat,0);
+                              phit[0]; phit[0]=phit[0]->nextgood_FalseTOFX()){
+               ptest._Pthit[0] = phit[0];
+               AMSPoint x0 = phit[0]->getHit();
+               for (phit[fp]=AMSTrRecHit::firstgood_FalseTOFX(pat,fp);
+                              phit[fp]; phit[fp]=phit[fp]->nextgood_FalseTOFX()){
+
+                  // Skip whole pattern if not hits in the relevant layers
+                  for (int ilay=1;ilay<fp;ilay++){
+                        if (AMSTrRecHit::firstgood_FalseTOFX(pat,ilay)==NULL) {
+                              goto next_pattern;
+                        }
+                  }
+
+                  if (_NoMoreTime()) { 
+                        remove_track(ptrack); 
+#ifdef __AMSDEBUG__
+                        cout << " Cpulimit Exceeded!!!! " << endl;
+#endif
+                        throw AMSTrTrackError(" Cpulimit Exceeded ");
+                        return NTrackFound;
+	            }
+
+                  // Parameters to check distance to a straight line
+                  ptest._Pthit[fp] = phit[fp];
+                  AMSPoint xp = phit[fp]->getHit();
+	            number par[2][3];
+                  par[0][0]=(xp[0] - x0[0])/(xp[2] - x0[2]);
+                  par[0][1]=x0[0] - par[0][0]*x0[2];
+                  par[0][2]=sqrt(1+par[0][0]*par[0][0]);
+                  par[1][0]=(xp[1] - x0[1])/(xp[2] - x0[2]);
+                  par[1][1]=x0[1] - par[1][0]*x0[2];
+                  par[1][2]=sqrt(1+par[1][0]*par[1][0]);
+       
+                  // Initial hit choice on intermediate layers
+                  if (NTrackFound<0) NTrackFound = 0;
+                  for (int ilay=1;ilay<fp;ilay++){
+                        phit[ilay]=AMSTrRecHit::firstgood_FalseTOFX_path(pat,ilay,par);
+                        if (phit[ilay]==NULL) goto next_fp;
+                        ptest._Pthit[ilay] = phit[ilay];
+                  }
+
+                  // Get the combination with the best chi2_per_dof
+
+                  while(1){
+                        ptest.SimpleFit(hit_err);
+                        number chi2_per_dof = ptest.getchi2withoutMS();
+	                  if (chi2_per_dof<minchi2 && chi2_per_dof>0){
+                              minchi2 = chi2_per_dof;
+                              ptrack = ptest.CloneIt();
+	                  }  
+
+                        // Try next combination of hits
+                        // Stop when done
+                        if (_NoMoreTime()) { 
+                              remove_track(ptrack); 
+#ifdef __AMSDEBUG__
+                              cout << " Cpulimit Exceeded!!!! " << endl;
+#endif
+                              throw AMSTrTrackError(" Cpulimit Exceeded ");
+                              return NTrackFound;
+	                  }
+
+                        // Break when no more intermediate hit combinations
+                        if ( !ptest.next_combination_FalseTOFX(1,fp-1,par) ) {
+                              break;
+                        }
+
+                  }
+next_fp:
+            continue;
+               }
+
+            }
+
+next_pattern:
+            // Best track hopefully found; add next ptrack if succesful
+            if (ptrack){ 
+               // Get pattern and hits
+               int pat = ptrack->getpattern();
+               int nhits = ptrack->getnhits();
+               for (int i=0;i<nhits;i++){
+                     phit[i] = ptrack->getphit(i);
+               }
+               // Fit track; add it to the container list
+               ptrack->Fit(0);
+               ptrack->Fit(5,2);
+               if (_addnext(pat, nhits, phit)) {
+                     if(nhits>4) ThreePointNotWanted=1;
+                     NTrackFound++;
+#ifdef __AMSDEBUG__
+                     cout << " AMSTrTrack tracking>>>>>> " << endl;
+                     cout << "### Run " << AMSEvent::gethead()->getrun();
+                     cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
+                     cout << "# hits " << nhits;
+                     cout << " chi2/ndof: " << ptrack->getchi2withoutMS() << endl;
+                     for (int i=0;i<ptrack->getnhits();i++){
+                           cout << "        " << ptrack->getphit(i)->getHit()[0];
+                           cout << ", " << ptrack->getphit(i)->getHit()[1];
+                           cout << ", " << ptrack->getphit(i)->getHit()[2];
+                           cout << endl;
+                     }
+#endif
+               } else {
+                     remove_track(ptrack); 
+               }
+   
+            } else {
+
+               // Get out if nothing has been found
+               return NTrackFound;
+
+            }
+
+
+      }
+
+  }
+}
+
 integer AMSTrTrack::DistanceTOF(number par[2][3], AMSTrRecHit *ptr){
 /*
 const integer freq=10;
@@ -3787,6 +4187,198 @@ AMSTrRecHit* AMSTrRecHit::nextgood_FalseX_path(number par[2][3]){
          if (!phit->Good()) continue;
          if (phit->checkstatus(AMSDBc::WEAK)) continue;
          if (phit->checkstatus(AMSDBc::FalseX)) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         if (!phit->is_in_path(par)) continue;
+         break;
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+integer AMSTrTrack::next_combination_FalseTOFX(
+                int index_min, int index_max, number par[2][3]){
+         if (index_min<0) return 0;
+         if (index_max>=TKDBc::patpoints(_Pattern)) return 0;
+	   int index_run = index_min;
+next_index:
+         _Pthit[index_run] = _Pthit[index_run]->nextgood_FalseTOFX_path(par);
+         if (!_Pthit[index_run]){
+	       if (index_run>=index_max) return 0;
+             _Pthit[index_run] = AMSTrRecHit::firstgood_path(_Pattern,index_run,par);
+             index_run++;
+	       goto next_index;
+         }
+
+	   return 1;
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::firstgood_FalseTOFX(integer pattern, integer index){
+
+	 integer layer = TKDBc::patconf(pattern,index)-1;
+       AMSTrRecHit* phit = AMSTrRecHit::gethead(layer);
+
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->checkstatus(AMSDBc::FalseTOFX)) continue;
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         break;
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::firstgood_FalseTOFX_path(integer pattern, integer index,number par[2][3]){
+
+	 integer layer = TKDBc::patconf(pattern,index)-1;
+       AMSTrRecHit* phit = AMSTrRecHit::gethead(layer);
+
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->checkstatus(AMSDBc::FalseTOFX)) continue;
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         if (!phit->is_in_path(par)) continue;
+         break;
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::nextgood_FalseTOFX(){
+
+       AMSTrRecHit* phit = this;
+
+       if (phit) phit = phit->next();
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->checkstatus(AMSDBc::FalseTOFX)) continue;
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         break;
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::nextgood_FalseTOFX_path(number par[2][3]){
+
+       AMSTrRecHit* phit = this;
+       
+       if (phit) phit = phit->next();
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->checkstatus(AMSDBc::FalseTOFX)) continue;
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         if (!phit->is_in_path(par)) continue;
+         break;
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+integer AMSTrTrack::next_combination_WEAK(
+                int index_min, int index_max, number par[2][3]){
+         if (index_min<0) return 0;
+         if (index_max>=TKDBc::patpoints(_Pattern)) return 0;
+	   int index_run = index_min;
+next_index:
+         _Pthit[index_run] = _Pthit[index_run]->nextgood_WEAK_path(par);
+         if (!_Pthit[index_run]){
+	       if (index_run>=index_max) return 0;
+             _Pthit[index_run] = AMSTrRecHit::firstgood_path(_Pattern,index_run,par);
+             index_run++;
+	       goto next_index;
+         }
+
+	   return 1;
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::firstgood_WEAK(integer pattern, integer index){
+
+	 integer layer = TKDBc::patconf(pattern,index)-1;
+       AMSTrRecHit* phit = AMSTrRecHit::gethead(layer);
+
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->checkstatus(AMSDBc::WEAK)) continue;
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         break;
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::firstgood_WEAK_path(integer pattern, integer index,number par[2][3]){
+
+	 integer layer = TKDBc::patconf(pattern,index)-1;
+       AMSTrRecHit* phit = AMSTrRecHit::gethead(layer);
+
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->checkstatus(AMSDBc::WEAK)) continue;
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         if (!phit->is_in_path(par)) continue;
+         break;
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::nextgood_WEAK(){
+
+       AMSTrRecHit* phit = this;
+
+       if (phit) phit = phit->next();
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->checkstatus(AMSDBc::WEAK)) continue;
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         break;
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::nextgood_WEAK_path(number par[2][3]){
+
+       AMSTrRecHit* phit = this;
+       
+       if (phit) phit = phit->next();
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->checkstatus(AMSDBc::WEAK)) continue;
+         if (!phit->Good()) continue;
          if (phit->checkstatus(AMSDBc::USED) 
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
