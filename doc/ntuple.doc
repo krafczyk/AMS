@@ -328,9 +328,11 @@ Below there is a description of a  ntuple.
  * I*4  *             * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>1
                                                          // -------------
 
- * I*4  *             * LVL1     * LVL1AntiPatt          // antipattern
+ * I*4  *             * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
                                                          16-23 bits  
                                                          as in daqevt.doc 
+ * I*4  *             * LVL1     * LVL1ECALflag(nlvl1)   // ecalflag(AMS02:1->MIP,2->EM-obj,+10->HiEnergy
+                                                           object(ANTI-count. have to be not in the trigger)
                                                       
  * I*4  * [0,50]      * CTCHIT   * nctcht                // CTC Hits number
  * I*4  *             * CTCHIT   * CTChitStatus(nctcht)  //  ----  status

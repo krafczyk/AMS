@@ -32,6 +32,7 @@ protected:
   ANTIMCClusterNtuple _antimc;
   LVL3Ntuple _lvl3;
   LVL1Ntuple _lvl1;
+  LVL1Ntuple02 _lvl102;
   CTCHitNtuple _ctcht;
   TrRawClusterNtuple _trraw;
   AntiRawClusterNtuple _antiraw;
@@ -80,6 +81,7 @@ public:
   ANTIMCClusterNtuple* Get_antimc() {return &_antimc;}
   LVL3Ntuple* Get_lvl3() {return &_lvl3;}
   LVL1Ntuple* Get_lvl1() {return &_lvl1;}
+  LVL1Ntuple02* Get_lvl102() {return &_lvl102;}
   CTCHitNtuple* Get_ctcht() {return &_ctcht;}
   TrRawClusterNtuple* Get_trraw() {return &_trraw;}
   AntiRawClusterNtuple* Get_antiraw() {return &_antiraw;}

@@ -23,7 +23,7 @@ void Trigger2LVL1::build(){
   integer tofflag(0);
   integer nanti=0;
   integer antipatt=0;
-  integer ectrigfl=0;
+  uinteger ectrigfl=0;
   if(!AMSJob::gethead()->isReconstruction()){// <---- MC
     tofflag=TOF2RawEvent::gettrfl();
     TOF2RawEvent::getpatt(tofpatt);
@@ -76,8 +76,25 @@ void Trigger2LVL1::build(){
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   // mark default as error here
   integer tm=floor(TOF2Varp::tofvpar.getmeantoftemp(0));   
-     if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData() )AMSEvent::gethead()->seterror();
-  if(tofflag>0 && ntof >=TGL1FFKEY.ntof && nanti <= TGL1FFKEY.nanti && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
+     if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData() )
+                                                     AMSEvent::gethead()->seterror();
+//
+// set combined (tof+anti+ecal)trigger flag(tempor. solution for e,p !)
+//
+  int tofok(0),antiok(0),comtrok(0);
+  if(tofflag>0 && ntof >=TGL1FFKEY.ntof)tofok=1;
+  if(nanti <= TGL1FFKEY.nanti)antiok=1;
+  if(ectrigfl%10>1){// <--- "e-m" energy in ECAL
+    comtrok=tofok;
+  }
+  else{//           <--- "MIP" 
+    comtrok=tofok*antiok;
+  }
+//  if(tofok==1 && ectrigfl>0)comtrok=1;// tempor(for tests)
+//  else comtrok=0;
+//cout<<"comtr="<<comtrok<<"tof/anti/ec="<<tofok<<" "<<antiok<<" "<<ectrigfl<<endl;
+//
+  if(comtrok>0 && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new Trigger2LVL1(lifetime*1000+tm*10000,tofflag,tofpatt,antipatt,ectrigfl));
   }
@@ -107,7 +124,7 @@ integer Trigger2LVL1::checktofpattand(integer tof, integer paddle){
 
 void Trigger2LVL1::_writeEl(){
 
-  LVL1Ntuple* lvl1N = AMSJob::gethead()->getntuple()->Get_lvl1();
+  LVL1Ntuple02* lvl1N = AMSJob::gethead()->getntuple()->Get_lvl102();
 
   if (lvl1N->Nlvl1>=MAXLVL1) return;
 
@@ -118,6 +135,7 @@ void Trigger2LVL1::_writeEl(){
   for(i=0;i<4;i++)lvl1N->TOFPatt[lvl1N->Nlvl1][i]=_tofpatt[i];
   for(i=0;i<4;i++)lvl1N->TOFPatt1[lvl1N->Nlvl1][i]=_tofpatt1[i];
   lvl1N->AntiPatt[lvl1N->Nlvl1]=_antipatt;
+  lvl1N->ECALflag[lvl1N->Nlvl1]=_ecalflag;
   lvl1N->Nlvl1++;
 
 }

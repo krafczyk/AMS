@@ -26,7 +26,6 @@
 //
 // mem.reservation for some static arrays:
 //
-extern TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];// peds/sigmas/.. data
 integer TOF2RawCluster::trpatt[TOF2GC::SCLRS]={0,0,0,0};//just init. of static var.
 integer TOF2RawCluster::trflag=0;
 uinteger TOF2RawEvent::StartRun(0);
@@ -103,7 +102,7 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
     stat[isid]=ptr->getstat();
     edep=ptr->getedep();//tempor
     charge=ptr->getcharg();
-    scbrped[ilay][ibar].getped(peds);// get peds(s1-h/l,s2-h/l sequence)
+    TOFBPeds::scbrped[ilay][ibar].getped(peds);// get peds(s1-h/l,s2-h/l sequence)
 //
     if(stat[isid] == 0){ // still no sense(?) ( =0 upto now by definition)
 //       fill working arrays for given side:
@@ -504,7 +503,7 @@ void TOF2RawCluster::build(int &ostatus){
     stat[isid]=ptr->getstat();
 //    if(stat[isid] == 0){  
     TOF2Brcal::scbrcal[ilay][ibar].getbstat(statdb); // "alive" status from DB
-    if(statdb[isid] >= 0){  // channel alive(no severe problems), read out it
+    if(statdb[isid] == 0){  // side(both PM's) alive(no severe problems), read out it
       hwid=TOF2RawEvent::sw2hwid(ilay,ibar,isid);
       crat=hwid/100-1;
       slnu=1;//sequential number of slot with temp. (only 1 exists) 
@@ -725,7 +724,7 @@ void TOF2RawCluster::build(int &ostatus){
             tm[0]=0;
             ama[0]=0.;
             tmr[0]=0.;
-            scbrped[ilay][ibar].getped(peds);// get peds(s1-h/l,s2-h/l sequence)
+            TOFBPeds::scbrped[ilay][ibar].getped(peds);// get peds(s1-h/l,s2-h/l sequence)
             if(smty[0]==1){// good(3-measurement) side, but matching/history may not be good
               t4=(stdc1[0]&pbanti)*TOF2DBc::tdcbin(1);// 4-th edge of str-info
               t2=(stdc1[2]&pbanti)*TOF2DBc::tdcbin(1);// 2-nd edge of str-info
@@ -1057,24 +1056,24 @@ void TOF2RawCluster::build(int &ostatus){
         HF1(1526,edepa[0],1.); //layer=0 Anode-reconstructed Edep
         HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
         HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
-      }
-      HF1(1533,tdiff[0],1.);//layer=1
-      HF1(1554,tdiff[1],1.);//layer=2
-      HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
-      HF1(1545,clong[1],1.);//Y-coord(loc.r.s.)
-      HF1(1546,clong[2],1.);//Y-coord(loc.r.s.)
-      HF1(1547,clong[3],1.);//Y-coord(loc.r.s.)
-      HF1(1560,tcorr[0],1.);// L=1,corr.time
-      HF1(1561,tcorr[1],1.);// L=2,corr.time
-      HF1(1562,tcorr[2],1.);// L=3,corr.time
-      HF1(1563,tcorr[3],1.);// L=4,corr.time
-      if(AMSJob::gethead()->isSimulation()){
-        geant tch;
-        charg[0]=pch1[0];
-        charg[1]=pch2[0];
-        tch=charg[0]+charg[1];
-        HF1(1071,tch,1.);
-        HF1(1072,tch,1.);
+        HF1(1533,tdiff[0],1.);//layer=1
+        HF1(1554,tdiff[1],1.);//layer=2
+        HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
+        HF1(1545,clong[1],1.);//Y-coord(loc.r.s.)
+        HF1(1546,clong[2],1.);//Y-coord(loc.r.s.)
+        HF1(1547,clong[3],1.);//Y-coord(loc.r.s.)
+        HF1(1560,tcorr[0],1.);// L=1,corr.time
+        HF1(1561,tcorr[1],1.);// L=2,corr.time
+        HF1(1562,tcorr[2],1.);// L=3,corr.time
+        HF1(1563,tcorr[3],1.);// L=4,corr.time
+        if(AMSJob::gethead()->isSimulation()){
+          geant tch;
+          charg[0]=pch1[0];
+          charg[1]=pch2[0];
+          tch=charg[0]+charg[1];
+          HF1(1071,tch,1.);
+          HF1(1072,tch,1.);
+        }
       }
   }
 }

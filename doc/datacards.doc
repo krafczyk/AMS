@@ -97,7 +97,7 @@ R 8 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
 //
 I 9 ReadConstFiles(0)     // read const. from DB/myFiles (0/1)
 //  
-I 10-21                    // sec,min,hour,day,mon,year fro DB update
+I 10-21                    // sec,min,hour,day,mon,year for DB update
 
 // Anti Calibration
 
@@ -231,7 +231,7 @@ I 13   mcprtf(0)                // print MC-hist. if !=0
     ECAL simulation:
     
 ECMC
-I 1    fastsim(0)                // =1 for fast(non-accurate) simulation
+I 1    fastsim(0)                // =1 for fast(non-accurate) simulation(missing now)
 I 1    mcprtf(0)                 // =1 to print MC-histograms
 R 1    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
 

@@ -319,6 +319,7 @@ class EcalHitNtuple {
 public:
   int Necht;
   int Status[MAXECHITS];
+  int Idsoft[MAXECHITS];
   int Proj[MAXECHITS];
   int Plane[MAXECHITS];
   int Cell[MAXECHITS];
@@ -738,6 +739,28 @@ friend class TriggerLVL1;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
 ClassDef(LVL1Ntuple,1)       //LVL1Ntuple
+#endif
+};
+
+
+#ifdef __WRITEROOT__
+class LVL1Ntuple02 : public TObject {
+#else
+class LVL1Ntuple02 {
+#endif
+public:
+  int Nlvl1;
+  int Mode[MAXLVL1];
+  int TOFlag[MAXLVL1];
+  int TOFPatt[MAXLVL1][4];
+  int TOFPatt1[MAXLVL1][4];
+  int AntiPatt[MAXLVL1];
+  int ECALflag[MAXLVL1];
+
+friend class Trigger2LVL1;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(LVL1Ntuple02,1)       //LVL1Ntuple02
 #endif
 };
 

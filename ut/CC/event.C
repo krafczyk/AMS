@@ -1509,7 +1509,7 @@ int stat;
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
       AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no LVL1-trigger"   
+      return;// "no TOF-trigger"   
     }
     TOFJobStat::addre(1);
 //
@@ -1561,7 +1561,7 @@ int stat;
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
       AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no LVL1-trigger"   
+      return;// "no TOF LVL1-trigger"   
     }
     TOF2JobStat::addre(1);
 //
@@ -1645,7 +1645,8 @@ void AMSEvent::_rectcevent(){
 }
 //========================================================================
 void AMSEvent::_reecalevent(){
-  integer trflag(0);
+  integer tofflg(0);
+  uinteger ecalflg(0);
   Trigger2LVL1 *ptr;
   int stat;
 //
@@ -1653,10 +1654,13 @@ void AMSEvent::_reecalevent(){
 //
   EcalJobStat::addre(0);
   ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-  if(ptr)trflag=ptr->gettoflg();
-  if(trflag<=0){
+  if(ptr){
+    tofflg=ptr->gettoflg();
+    ecalflg=ptr->getecflg();
+  }
+  if(ecalflg<=0){
     AMSgObj::BookTimer.stop("REECALEVENT");
-    return;// "no LVL1 trigger"   
+    return;// "no ECAL trigger"   
   }
   EcalJobStat::addre(1);
   if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:

@@ -15,7 +15,6 @@
 #include <mccluster.h>
 #include <trigger3.h>
 //
-extern TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];// peds/sigmas/.. data
 TOF2Scan TOF2Scan::scmcscan[TOF2GC::SCBLMX];
 //
 integer TOF2RawEvent::trpatt[TOF2GC::SCLRS]={0,0,0,0};
@@ -768,8 +767,8 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
   fdaqt0=0.1*daqt0;// lowered threshold to select "working" part of pulse(m.b. loose some charge !!!)
   daqt1=TOF2Varp::tofvpar.daqthr(1); // fast discr. thresh. for z>=1 (FT) branch
   TOF2Brcal::scbrcal[ilay][ibar].getahlr(ahlr);//get high/low(a2d) ratio
-  scbrped[ilay][ibar].getped(peds);//get peds
-  scbrped[ilay][ibar].getsig(sigs);//get sigmas
+  TOFBPeds::scbrped[ilay][ibar].getped(peds);//get peds
+  TOFBPeds::scbrped[ilay][ibar].getsig(sigs);//get sigmas
   adccf=TOF2Brcal::scbrcal[ilay][ibar].getadccf();
   daqt2=TOF2Varp::tofvpar.daqthr(2)*ahlr[isid];//dinode discr.("Z>2") thresh., multipl. by a2d ratio
   lhr=1./ahlr[isid];//low/high(d2a) ratio
@@ -1565,7 +1564,7 @@ void TOF2RawEvent::mc_build(int &status)
       id=idd/10;// short id=LBB
       ibar=id%100-1;
       TOF2Brcal::scbrcal[ilay][ibar].gtstrat(strr);// get str-ratios for two sides
-      scbrped[ilay][ibar].getped(peds);// get peds
+      TOFBPeds::scbrped[ilay][ibar].getped(peds);// get peds
       isd=idd%10-1;
       str=strr[isd][0];// str-ratio for given TovT-hit
       offs=strr[isd][1];// offset in str-ratio for given TovT-hit

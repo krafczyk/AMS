@@ -98,7 +98,7 @@ void AMSNtuple::init(){
   "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
   }
 else{
-// Station
+// -----> Station :
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
 "eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EcalClusters[0,50]:I,EcalHits[0,500]:I,EventStatus(2):I");
@@ -122,7 +122,7 @@ else{
   "neccl[0,50],EcalStatus(neccl):I,EcalProj(neccl)[0,1]:I,EcalPlane(neccl)[0,20]:I,EcalNmemb(neccl)[0,72]:I,EcalEdep(neccl),EcalCoo(3,neccl),EcalErrCoo(3,neccl)");
 //
   HBNAME(_lun,"EcalHits",&_ecalhit.Necht,
-  "necht[0,500],EchtStatus(necht):I,EchtProj(necht)[0,1]:I,EchtPlane(necht)[0,20]:I,EchtCell(necht)[0,80]:I,EchtEdep(necht),EchtCoo(3,necht)");
+  "necht[0,500],EchtStatus(necht):I,EchtIdsoft(necht):I,EchtProj(necht)[0,1]:I,EchtPlane(necht)[0,20]:I,EchtCell(necht)[0,80]:I,EchtEdep(necht),EchtCoo(3,necht)");
 //
   HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
   "ntofmc[0,200],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");
@@ -152,8 +152,8 @@ else{
   HBNAME(_lun,"LVL3",&_lvl3.Nlvl3,
   "nlvl3[0,2],LVL3TOFTr(nlvl3)[-1,10],LVL3AntiTr(nlvl3)[0,10],LVL3TrackerTr(nlvl3),LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pattern(2,nlvl3)[-1,250],LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R");
 
-  HBNAME(_lun,"LVL1",&_lvl1.Nlvl1,
-  "nlvl1[0,2],LVL1LifeTime(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1)");
+  HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
+ "nlvl1[0,2],LVL1LifeTime(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1)");
 
 
   HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
@@ -201,6 +201,7 @@ void AMSNtuple::reset(int full){
     if(_antimc.Nantimc)VZERO(&_antimc,sizeof(_antimc)/sizeof(integer));
     if(_lvl3.Nlvl3)VZERO(&_lvl3,sizeof(_lvl3)/sizeof(integer));
     if(_lvl1.Nlvl1 )VZERO(&_lvl1,sizeof(_lvl1)/sizeof(integer));
+    if(_lvl102.Nlvl1 )VZERO(&_lvl102,sizeof(_lvl102)/sizeof(integer));
     if(_ctcht.Nctcht)VZERO(&_ctcht,sizeof(_ctcht)/sizeof(integer));
     if(_trraw.Ntrraw)VZERO(&_trraw,sizeof(_trraw)/sizeof(integer));
     if(_antiraw.Nantiraw)VZERO(&_antiraw,sizeof(_antiraw)/sizeof(integer));
@@ -231,6 +232,7 @@ void AMSNtuple::reset(int full){
    _antimc.Nantimc = 0;
    _lvl3.Nlvl3 = 0;
    _lvl1.Nlvl1 = 0;
+   _lvl102.Nlvl1 = 0;
    _ctcht.Nctcht = 0;
    _trraw.Ntrraw = 0;
    _antiraw.Nantiraw = 0;

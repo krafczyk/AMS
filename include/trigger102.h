@@ -31,11 +31,11 @@ protected:
  }; 
  static Scalers _scaler;
  uinteger _LifeTime;
- integer _tofflag;   // =0/1/2/3 -> "no_trig"/"z>=1"/"z>1"/"z>2" 
+ integer _tofflag;   // =0/1/2/3 -> "no_FastTrig"/"z>=1"/"z>1"/"z>2" 
  uinteger _tofpatt[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern
  uinteger _tofpatt1[TOF2GC::SCLRS];// TOF:  triggered paddles/layer pattern for z>1
- uinteger _antipatt;  // ANTI: triggered sectors pattern
- uinteger _ecalflag;  // ECAL trigger-flag 
+ uinteger _antipatt; //ANTI: triggered sectors pattern
+ uinteger _ecalflag; //EC trig-flag(0->Empty,1->MIP,2->LowEnergyEMobject,+10->HighEdep in EC) 
  void _copyEl(){}
  void _printEl(ostream & stream){ stream << " LifeTime " << float(_LifeTime)/1000.<<endl;}
  void _writeEl();

@@ -11,9 +11,9 @@
 #include <tofrec02.h>
 #include <tofcalib02.h>
 //
-TOF2Varp TOF2Varp::tofvpar; // TOF general parameters (not const in time !)
-TOF2Brcal TOF2Brcal::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// TOF individual sc.bar parameters 
-TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];// TOF-bar pedestals/sigmas/...
+TOF2Varp TOF2Varp::tofvpar; // mem.reserv. TOF general parameters 
+TOF2Brcal TOF2Brcal::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// mem.reserv. TOF indiv.bar param. 
+TOFBPeds TOFBPeds::scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];//mem.reserv. TOF-bar pedestals/sigmas/...
 TOF2Varp::TOF2Temperature TOF2Varp::tftt;
 //-----------------------------------------------------------------------
 //  =====> TOF2DBc class variables definition :
@@ -334,7 +334,7 @@ geant TOF2DBc::_plnstr[15]={
     for(i=0;i<2;i++){ahlcr[i]=hlr[i];}
     adccf=a2q;
   }
-//  TOF2Brcal class functions :
+//  ================= TOF2Brcal class functions ======================= :
 //
 void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //
@@ -375,7 +375,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //
   strcpy(inum,"0123456789");
 //
-// ---> read list of calibration-versions  (menu-file) :
+// ---> read list of calibration-type-versions  list (menu-file) :
 //
   integer cfvn;
   cfvn=TFCAFFKEY.cfvers%1000;
@@ -847,7 +847,7 @@ void TOF2Brcal::td2ctd(number tdo, number amf[2], int hlf,
 }
 //==========================================================================
 //
-void TOFBPeds::build(){// create scbrcal-objects for each sc.bar
+void TOFBPeds::build(){// create TOFBPeds-objects for each sc.bar
 //
   int i,j,ila,ibr,cnum,brt;
   integer sid;
@@ -862,12 +862,12 @@ void TOFBPeds::build(){// create scbrcal-objects for each sc.bar
   strcpy(name,"tof2peds");
   if(AMSJob::gethead()->isMCData())           // for MC-event
   {
-    cout <<" TOFBPeds_build: peds-calib. for MC-events selected."<<endl;
+    cout <<" TOFBPeds_build: default MC peds-file is used..."<<endl;
     strcat(name,"mc");
   }
   else                                       // for Real events
   {
-    cout <<" TOFBPeds_build: apeds-calib. for Real-events selected."<<endl;
+    cout <<" TOFBPeds_build: default RealData peds-file is used..."<<endl;
     strcat(name,"rl");
   }
   strcat(name,".dat");
@@ -883,7 +883,7 @@ void TOFBPeds::build(){// create scbrcal-objects for each sc.bar
 //
   for(ila=0;ila<TOF2GC::SCLRS;ila++){   // <-------- loop over layers
   for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
-    cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-55)
+    cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-47)
     for(i=0;i<4;i++)icfile >> cpeds[cnum][i];// sequence: side1(h,l),side2(h,l)
     for(i=0;i<4;i++)icfile >> csigs[cnum][i];// sequence: side1(h,l),side2(h,l)
   } // --- end of bar loop --->
@@ -896,7 +896,7 @@ void TOFBPeds::build(){// create scbrcal-objects for each sc.bar
   for(ibr=0;ibr<TOF2GC::SCMXBR;ibr++){  // <-------- loop over bar in layer
     brt=TOF2DBc::brtype(ila,ibr);
     if(brt==0)continue; // skip missing counters
-    cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-55)
+    cnum=ila*TOF2GC::SCMXBR+ibr; // sequential counter numbering(0-47)
     sid=100*(ila+1)+(ibr+1);
     for(i=0;i<4;i++)peds[i]=cpeds[cnum][i];// from ext.file
     for(i=0;i<4;i++)sigs[i]=csigs[cnum][i];// from ext.file

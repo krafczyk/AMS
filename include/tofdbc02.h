@@ -378,9 +378,9 @@ class TOF2Brcal{
 //
 private:
   integer softid;  // LBB
-  integer status[2]; // each side status (!=0/0->problems/ok)
-  geant gaina[2]; // A-chain gain(PMT mainly)| (side-1/2; relative to some
-  geant gaind[2]; // D-chain gain(PMT mainly)| reference bar of given type)
+  integer status[2]; // 2-sides status,each number as LR(L->PM1,R->PM2)(!=0/0->problems/ok)
+  geant gaina[2]; // A-chain gain(PMT mainly)| (side-1/2; relative to some 
+  geant gaind[2]; // D-chain gain(PMT mainly)|       reference bar of given type)
   geant asatl;  // anode_chain saturation limit(mev)(incl. PM,Shaper,...)
 //                  (i.e. below use anode data, above  - dinode data)
   geant tthr;   // Time-discr. threshold (mV)
@@ -390,7 +390,7 @@ private:
   geant slope; // slope for T vs (1/sqrt(Qa1)+1/sqrt(Qa2))
   geant slops[2];// indiv.slopes for Ts vs 1/Qs
   geant yctdif;// two ends time difference at counter center (ns)
-  geant td2pos[2];// t_diff->position conv. factor(=Vlight,cm/ns) and error(cm)
+  geant td2pos[2];// t_diff->position conv. factors(=Vlight,cm/ns) and coo-error(cm))
 // for (at least) reference bar (in each bar type group) :
   geant mip2q;// 2-sides A-signal(pC/Mev) (at Y=0.)
   integer nscanp;// real number of scant points
@@ -462,7 +462,7 @@ public:
   static void build();
 };
 //===================================================================
-// class to store TOF_bar peds/sigmas/...  :
+// class to store TOF_bar peds/sigmas  :
 class TOFBPeds{
 //
 private:
@@ -471,9 +471,9 @@ private:
   geant sigs[4]; // ped.sigmas .............................
 //
 public:
+  static TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   TOFBPeds(){};
-  TOFBPeds(integer _sid, geant _peds[4], geant _sigs[4]){
-    softid=_sid;
+  TOFBPeds(integer _sid, geant _peds[4], geant _sigs[4]):softid(_sid){
     for(int i=0;i<4;i++){
       peds[i]=_peds[i];
       sigs[i]=_sigs[i];

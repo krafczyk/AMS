@@ -231,14 +231,40 @@ I 13   mcprtf(0)                // print MC-hist. if !=0
     ECAL simulation:
     
 ECMC
-I 1    fastsim(0)                // =1 for fast(non-accurate) simulation
+I 1    fastsim(0)                // =1 for fast(non-accurate) simulation(missing now)
 I 1    mcprtf(0)                 // =1 to print MC-histograms
 R 1    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
 
     ECAL reconstruction:
 
 ECRE
-I 1    reprtf[0](0)              // =1 to print Reco-histograms    
+I 1    reprtf[0](0)            // =1 to print Reco-histograms    
+I 2    reprtf[1](0)            // =1 to print profiles for first 5 events    
+I 3    reprtf[2](0)            // =1 spare
+I 4    relogic[0](0)           // 1/0->write/not EcalHits into Ntuple
+...................            //    spares
+R 9    thresh[0](2)            // HighGain-chan. readout threshold(ADCch)    
+R 10   thresh[1](120)          // Anode(high-ch,tot) "mip"-trig.thresh(mev tempor)     
+R 11   thresh[2](300)          // ............ ,1st 4X0) "elec"-trig.thresh(mev tempor)    
+R 12   thresh[3](8000)         // Anode(high-ch,tot) "HighEnergy"-trig.thresh(mev tempor)     
+R 13   thresh[4](2)            // LowGain-chan. readout thershold(ADCch)    
+R 14   thresh[5](8000)         // energy upp.limit for action of cut below (mev tempor)   
+R 15   thresh[6](0.15)         // cut on Etail/Epeak (add. to #11 for "electromagneticity")
+R 19   cuts[0](5)              // mev/cell threshold for cluster search(~2adc)
+.....................          // spares
+I (24) ReadConstFiles(1)       // read calib/status param. from DB/RawFiles (0/1)
+R (25) sec[0]=0;               // cards below are used as validity time when need to write
+R (26)sec[1]=0;                // to DB new calibration/status parameters
+R (27)min[0]=0;                //
+R (28)min[1]=0;                //
+R (29)hour[0]=0;               //
+R (30)hour[1]=0;               //
+R (31)day[0]=1;                //
+R (32)day[1]=1;                //
+R (33)mon[0]=0;                //
+R (34)mon[1]=0;                //
+R (35)year[0]=101;             //
+R (36)year[1]=108;             //
 //--------------------------------------------------------------------------------
 
     RICH simulation

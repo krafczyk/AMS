@@ -1865,11 +1865,11 @@ C.
       if(ipart.ge.32)then
           if(ihvse(1).eq.1.or.ihvse(1).eq.2)call abdist
       else
-       if(ihadr.gt.3)then
-        CALL GPGHEI
-       else
-        call fldist
-       endif
+        if(ihadr.ge.3)then
+          CALL GPGHEI
+        else
+         call fldist
+        endif
       endif
 C
       END
@@ -1926,11 +1926,11 @@ C.
       if(ipart.ge.32)then
        if(ihvse(1).eq.1.or.ihvse(1).eq.2)call abufin
       else
-      if(ihadr.gt.3)then
-       CALL GHEISH
-      else
-       call flufin
-      endif
+        if(ihadr.ge.3)then
+          CALL GHEISH
+        else
+          call flufin
+        endif
       endif
       RETURN
       END

@@ -8,8 +8,9 @@
 #include <iostream.h>
 #include <fstream.h>
 //
-ECcalib ecpmcal[ECSLMX][ECPMSMX];// ECAL individual PMcell calib. parameters
-extern ECALVarp ecalvpar;// ECAL general run-time param.  
+ECcalib ECcalib::ecpmcal[ECSLMX][ECPMSMX];// mem.reserv.for ECAL indiv.PMcell calib. param.
+ECPMPeds ECPMPeds::pmpeds[ECSLMX][ECPMSMX];// ..........for ECAL peds,sigmas
+ECALVarp ECALVarp::ecalvpar;// .........................for ECAL general run-time param.  
 //-----------------------------------------------------------------------
 //  =====> ECALDBc class variables definition :
 //
@@ -47,8 +48,8 @@ geant ECALDBc::_rdcell[10]={
 integer ECALDBc::_slstruc[6]={
     1,           // i=1   1st super-layer projection(0->X, 1->Y)
    10,           // i=2   numb. of fiber-layers per super-layer
-   9,            //  =3   numb. of super-layers (X+Y)
-   36,           //  =4   numb. of PMT's per super-layer (in X(Y))
+   9,            //  =3   real numb. of super-layers (X+Y)
+   36,           //  =4   real numb. of PMT's per super-layer (in X(Y))
    1,1           //  =5-6 readout dir. in X/Y-proj (=1/-1->+/-) for the 1st PM-cell.  
 };
 //
@@ -74,8 +75,8 @@ integer ECALDBc::_nfibpcl[ECFLSMX]={ // real fibers per layer in PMcell
    12,12,12,12,12,12,12,12,12,12
 };
 //
-geant ECALDBc::_mev2adc=0.39; // MC: Emeas(MeV)->ADCchan conv.factor (adc/mev)
-geant ECALDBc::_mev2mev=33.3; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50gev) 
+geant ECALDBc::_mev2mev=34.33; // MC: Geant dE/dX(MeV)->Emeas(MeV) conv.factor(at 8gev)
+int ECALDBc::_scalef=2;// MC/Data scale factor in used in ADC->DAQ-value
 //
 //  member functions :
 //
@@ -180,9 +181,6 @@ geant ECALDBc::_mev2mev=33.3; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50gev
     return _nfibpcl[i-1];
   }
 //
-  geant ECALDBc::mev2adc(){return _mev2adc;}
-  geant ECALDBc::mev2mev(){return _mev2mev;}
-//
 //---
 // fiberID(SSLLFFF) to cellID(SSPPC) conversion
 // ("digital" design - no fiber_edep division between neigb.pixels/pmts)
@@ -202,7 +200,7 @@ geant ECALDBc::_mev2mev=33.3; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50gev
   }
 //---
   number ECALDBc::segarea(number r, number ds){//segment area fraction (wrt full disk)
-//                                    r-radious, ds-horde_displacement(from cemter)
+//                                    r-radious, ds-horde_displacement(from center)
     number sina,cs,sn,a;
     if(ds>=r)return(0.);
     cs=ds/r;
@@ -554,13 +552,13 @@ void EcalJobStat::printstat(){
   printf("\n");
   printf("    ====================== ECAL JOB-statistics ======================\n");
   printf("\n");
-  printf(" MC: entries                     : % 6d\n",mccount[0]);
-  printf(" MC: MCHits->RawEvent(ECTrig) OK : % 6d\n",mccount[1]);
-  printf(" RECO-entries(LVL1+LVL3 ok)      : % 6d\n",recount[0]);
-//  printf(" H/W trigger OK                  : % 6d\n",recount[1]);
-  printf(" Validation OK                   : % 6d\n",recount[2]);
-  printf(" RawEvent->EcalHit OK            : % 6d\n",recount[3]);
-  printf(" EcalHit->EcalCluster OK         : % 6d\n",recount[4]);
+  printf(" MC: entries                       : % 6d\n",mccount[0]);
+  printf(" MC: MCHits->RawEvent(Trigfl>0) OK : % 6d\n",mccount[1]);
+  printf(" RECO-entries                      : % 6d\n",recount[0]);
+  printf(" ECAL trigger(trigfl>0) OK         : % 6d\n",recount[1]);
+  printf(" Validation OK                     : % 6d\n",recount[2]);
+  printf(" RawEvent->EcalHit OK              : % 6d\n",recount[3]);
+  printf(" EcalHit->EcalCluster OK           : % 6d\n",recount[4]);
   printf("\n\n");
 //
 }
@@ -575,23 +573,24 @@ void EcalJobStat::bookhist(){
   maxcl=2*ECPMSMX;//MAX SubCells per plane
   strcpy(inum,"0123456789");
     if(ECREFFKEY.reprtf[0]!=0){ // Book reco-hist
-      HBOOK1(ECHIST+10,"ECAL: RawEvent-hits number",80,0.,400.,0.);
-      HBOOK1(ECHIST+11,"ECAL: RawEvent-hits value(tot,adc)",200,0.,100000.,0.);
-      HBOOK1(ECHIST+12,"ECAL: RawEvent-hits value(tot,adc)",100,0.,500.,0.);
-      HBOOK1(ECHIST+13,"EcalHit-hits number",80,0.,160.,0.);
-      HBOOK1(ECHIST+14,"EcalHit-hits value(tot,Mev)",200,0.,1000000,0.);
-      HBOOK1(ECHIST+15,"EcalHit-hits value(tot,Mev)",100,0.,1000,0.);
-      HBOOK1(ECHIST+16,"ECAL: RawEvent-hits value(adc)",200,0.,10000.,0.);
-      HBOOK1(ECHIST+17,"ECAL: RawEvent-hits value(adc)",100,0.,100.,0.);
-      HBOOK1(ECHIST+18,"EcalClusters per event",60,0.,120.,0.);
+      HBOOK1(ECHISTR+10,"ECAL: RawEvent-hits number",80,0.,400.,0.);
+      HBOOK1(ECHISTR+11,"ECAL: RawEvent-hits value(tot,adc,gain-corr)",200,0.,100000.,0.);
+      HBOOK1(ECHISTR+12,"ECAL: RawEvent-hits value(tot,adc,gain-corr)",100,0.,500.,0.);
+      HBOOK1(ECHISTR+13,"EcalHit-hits number",80,0.,160.,0.);
+      HBOOK1(ECHISTR+14,"EcalHit-hits value(tot,Mev)",200,0.,100000,0.);
+      HBOOK1(ECHISTR+15,"EcalHit-hits value(tot,Mev)",100,0.,1000,0.);
+      HBOOK1(ECHISTR+16,"ECAL: RawEvent-hits value(adc,gain-corr)",200,0.,10000.,0.);
+      HBOOK1(ECHISTR+17,"ECAL: RawEvent-hits value(adc,gain-corr)",100,0.,100.,0.);
+      HBOOK1(ECHISTR+18,"EcalClusters per event",60,0.,120.,0.);
       if(ECREFFKEY.reprtf[1]==1){//<--- to store t-profiles, z-prof
-        HBOOK1(ECHIST+19,"T-prof in plane 8(X)",maxcl,1.,geant(maxcl+1),0.);
-        HBOOK1(ECHIST+20,"T-prof in plane 9(Y)",maxcl,1.,geant(maxcl+1),0.);
-        HBOOK1(ECHIST+21,"Z-profile",maxpl,1.,geant(maxpl+1),0.);
+        HBOOK1(ECHISTR+19,"T-prof in plane 8(X)",maxcl,1.,geant(maxcl+1),0.);
+        HBOOK1(ECHISTR+20,"T-prof in plane 9(Y)",maxcl,1.,geant(maxcl+1),0.);
+        HBOOK1(ECHISTR+21,"Z-profile",maxpl,1.,geant(maxpl+1),0.);
       }
-      HBOOK1(ECHIST+22,"EcalCluster value(tot,Mev)",200,0.,1000000,0.);
-      HBOOK1(ECHIST+23,"EcalCluster value(tot,Mev)",100,0.,50000,0.);
-      HBOOK1(ECHIST+24,"Z-profile(average)",maxpl,1.,geant(maxpl+1),0.);
+      HBOOK1(ECHISTR+22,"EcalCluster value(tot,Mev)",200,0.,1000000,0.);
+      HBOOK1(ECHISTR+23,"EcalCluster value(tot,Mev)",100,0.,50000,0.);
+      HBOOK1(ECHISTR+24,"Z-profile(average)",maxpl,1.,geant(maxpl+1),0.);
+      HBOOK1(ECHISTR+30,"ECAL: Trigger flag(validate)",10,0.,10.,0.);
     }
 //
 }
@@ -599,30 +598,35 @@ void EcalJobStat::bookhist(){
 void EcalJobStat::bookhistmc(){
     if(ECMCFFKEY.mcprtf!=0){ // Book mc-hist
       HBOOK1(ECHIST+1,"Geant-hits number",100,0.,5000.,0.);
-      HBOOK1(ECHIST+2,"MC-dE/dX-hits value(tot,MeV)",100,0.,500,0.);
-      HBOOK1(ECHIST+3,"MC-dE/dX-hits value(+att,tot,MeV)",100,0.,500.,0.);
-      HBOOK1(ECHIST+4,"MC-Emeas(tot,MeV)",200,0.,1000000.,0.);
-      HBOOK1(ECHIST+5,"MC-Emeas(tot,MeV)",100,0.,50000.,0.);
-      HBOOK1(ECHIST+6,"Aver. geant-time (ns)",80,0.,40.,0.);
+      HBOOK1(ECHIST+2,"ECAL-MC: GeantdE/dX-hits value(tot,MeV)",100,0.,500,0.);
+      HBOOK1(ECHIST+3,"ECAL-MC: GeantdE/dX-hits value(+att,tot,MeV)",100,0.,500.,0.);
+      HBOOK1(ECHIST+4,"ECAL-MC: GeantEmeas(prim.electron)(AnodeTot,MeV)",400,0.,20000.,0.);
+      HBOOK1(ECHIST+5,"ECAL-MC: Dyn.hit value(tempor 4xAnodE/a2dr,i.e.in mev",100,0.,100.,0.);
+      HBOOK1(ECHIST+6,"ECAL-MC: 4xA-hit/D-hit ratio",50,0.,50.,0.);
+      HBOOK1(ECHIST+7,"ECAL-MC: 1ST 4X0 signal(mev)",100,0.,2000.,0.);
+      HBOOK1(ECHIST+8,"ECAL-MC: Tail2Peak Ratio",50,0.,1.,0.);
+      HBOOK1(ECHIST+9,"ECAL-MC: Trigger flag(mctrigger)",30,0.,30.,0.);
+      
     }
 }
 //----------------------------
 void EcalJobStat::outp(){
     if(ECREFFKEY.reprtf[0]!=0){ // print RECO-hists
-      HPRINT(ECHIST+10);
-      HPRINT(ECHIST+11);
-      HPRINT(ECHIST+12);
-      HPRINT(ECHIST+13);
-      HPRINT(ECHIST+14);
-      HPRINT(ECHIST+15);
-      HPRINT(ECHIST+16);
-      HPRINT(ECHIST+17);
-      HPRINT(ECHIST+18);
-      HPRINT(ECHIST+22);
-      HPRINT(ECHIST+23);
+      HPRINT(ECHISTR+10);
+      HPRINT(ECHISTR+11);
+      HPRINT(ECHISTR+12);
+      HPRINT(ECHISTR+13);
+      HPRINT(ECHISTR+14);
+      HPRINT(ECHISTR+15);
+      HPRINT(ECHISTR+16);
+      HPRINT(ECHISTR+17);
+      HPRINT(ECHISTR+18);
+      HPRINT(ECHISTR+22);
+      HPRINT(ECHISTR+23);
       if(recount[2]>0)for(int i=0;i<2*ECSLMX;i++)zprofa[i]/=geant(recount[2]);
-      HPAK(ECHIST+24,zprofa);
-      HPRINT(ECHIST+24);
+      HPAK(ECHISTR+24,zprofa);
+      HPRINT(ECHISTR+24);
+      HPRINT(ECHISTR+30);
     }
 }
 //----------------------------
@@ -634,26 +638,200 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+4);
       HPRINT(ECHIST+5);
       HPRINT(ECHIST+6);
+      HPRINT(ECHIST+7);
+      HPRINT(ECHIST+8);
+      HPRINT(ECHIST+9);
     }
 }
 //==========================================================================
 //  ECcalib class functions :
 //
 void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
-int isl,ipm;
-integer sid,sta;
-geant chgain=1.;
-geant scgain[4]={1.,1.,1.,1.};
-geant adc2mevf;
+  int i,isl,ipm,isc,cnum;
+  integer sid,sta[4],endflab;
+  geant pmrg,scrg[4],h2lr[4],a2m,a2dr;
+  integer slmx,pmmx;
+  integer scmx=4;// max.SubCells(pixels) in PM
+  slmx=ECSLMX;//max.S-layers
+  pmmx=ECPMSMX;//max.PM's in S-layer
+  cout<<endl<<"ECcalib::build: total PMs="<<ECPMSL<<endl;
 //
-//    tempor filling by def. values :
+  char fname[80];
+  char name[80];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  char in[2]="0";
+  char inum[11];
+  int ctyp,ntypes,mcvern[10],rlvern[10];
+  int mcvn,rlvn,dig;
 //
-  for(isl=0;isl<ECALDBc::slstruc(3);isl++){
-    for(ipm=0;ipm<ECALDBc::slstruc(4);ipm++){
+  integer status[ECPMSL][4];
+  geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL],adc2mev;
+//
+  strcpy(inum,"0123456789");
+//
+// ---> read list of calibration-type-versions list (menu-file) :
+//
+  integer cfvn;
+  cfvn=ECCAFFKEY.cfvers%1000;
+  strcpy(name,"ecalcvlist");// basic name for file of cal-files list 
+  dig=cfvn/100;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=(cfvn%100)/10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=cfvn%10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  strcat(name,".dat");
+//
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"ECcalib::build: Open file  "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
+  if(!vlfile){
+    cerr <<"ECcalib_build:: missing verslist-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(i=0;i<ntypes;i++){
+    vlfile >> mcvern[i];// first number - for mc
+    vlfile >> rlvern[i];// second number - for real
+  }
+  vlfile.close();
+//
+//------------------------------
+//
+//   --->  Read status/energy-calibration file :
+//
+  ctyp=1;//1st type of calibration (really may be single)
+  strcpy(name,"ecalencf");
+  mcvn=mcvern[ctyp-1]%1000;
+  rlvn=rlvern[ctyp-1]%1000;
+  if(AMSJob::gethead()->isMCData()) //      for MC-event
+  {
+       cout <<" ECcalib_build: MC:energy-calibration is used"<<endl;
+       dig=mcvn/100;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=(mcvn%100)/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=mcvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers1);
+  }
+  else                              //      for Real events
+  {
+       cout <<" TOF2Brcal_build: REAL:energy-calibration is used"<<endl;
+       dig=rlvn/100;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=(rlvn%100)/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=rlvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers2);
+  }
+//
+  strcat(name,".dat");
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"ECcalib::build: Open file : "<<fname<<'\n';
+  ifstream encfile(fname,ios::in); // open  file for reading
+  if(!encfile){
+    cerr <<"ECcalib_build: missing status/energy-calibration file "<<fname<<endl;
+    exit(1);
+  }
+//
+// ---> read PM-status:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        encfile >> status[cnum][isc];
+      }
+    }
+  } 
+//
+// ---> read PM(sum of 4 SubCells) relative(to some Ref.PM) gains
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      encfile >> pmrgn[cnum];
+    }
+  }
+//
+// ---> read PM-SubCell relative gains:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        encfile >> pmscgn[cnum][isc];
+      }
+    }
+  }
+//
+// ---> read PM-SubCell hi2low ratious:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        encfile >> sch2lr[cnum][isc];
+      }
+    }
+  }
+//
+// ---> read PM anode(sum of 4-SubCells)-to-Dynode ratious:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      encfile >> an2dyr[cnum];
+    }
+  } 
+//
+// ---> read common(hope) adc2mev convertion factor:
+//
+  encfile >> adc2mev;
+//
+// ---> read endfile-label:
+//
+  encfile >> endflab;
+//
+  encfile.close();
+  if(endflab==12345){
+    cout<<"ECcalib::build: calibration file is successfully read !"<<endl;
+  }
+  else{cout<<"ECcalib::build: exit on ERROR(problems while reading of calib.file)"<<endl;
+    exit(1);
+  }
+    
+//------------------------------
+//
+//   
+//
+  for(isl=0;isl<slmx;isl++){
+    for(ipm=0;ipm<pmmx;ipm++){
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(32)
       sid=(ipm+1)+100*(isl+1);
-      sta=0;
-      adc2mevf=1./ECALDBc::mev2adc();//tempor. Later from calibration procedure
-      ecpmcal[isl][ipm]=ECcalib(sid,sta,chgain,scgain,adc2mevf);
+      for(isc=0;isc<4;isc++)sta[isc]=status[cnum][isc];
+      pmrg=pmrgn[cnum];
+      for(isc=0;isc<4;isc++)scrg[isc]=pmscgn[cnum][isc];
+      for(isc=0;isc<4;isc++)h2lr[isc]=sch2lr[cnum][isc];
+      a2dr=an2dyr[cnum];
+      a2m=adc2mev;
+      ecpmcal[isl][ipm]=ECcalib(sid,sta,pmrg,scrg,h2lr,a2dr,a2m);
     }
   }
 }  
@@ -661,9 +839,106 @@ geant adc2mevf;
 //==========================================================================
 //  ECALVarp class functions :
 //
-void ECALVarp::init(geant daqth[5], geant cuts[5]){
+void ECALVarp::init(geant daqth[10], geant cuts[5]){
 
     int i;
-    for(i=0;i<5;i++)_daqthr[i]=daqth[i];
+    for(i=0;i<10;i++)_daqthr[i]=daqth[i];
     for(i=0;i<5;i++)_cuts[i]=cuts[i];
 }
+//==========================================================================
+//
+void ECPMPeds::build(){// create TOFBPeds-objects for each sc.bar
+//
+  int i,isl,ipm,isc,cnum;
+  integer sid,endflab(0);
+  char fname[80];
+  char name[80];
+  geant pedh[4],sigh[4],pedl[4],sigl[4];
+  geant pmpedh[ECPMSL][4],pmsigh[ECPMSL][4],pmpedl[ECPMSL][4],pmsigl[ECPMSL][4];
+  integer slmx,pmmx;
+  integer scmx=4;// max.SubCells(pixels) in PM
+  slmx=ECSLMX;//max.S-layers
+  pmmx=ECPMSMX;//max.PM's in S-layer
+//
+//   --->  Read high/low pedestals file :
+//
+  strcpy(name,"ecalpeds");
+  if(AMSJob::gethead()->isMCData())           // for MC-event
+  {
+    cout <<" ECPMPeds_build: default MC peds-file is used..."<<endl;
+    strcat(name,"mc");
+  }
+  else                                       // for Real events
+  {
+    cout <<" ECPMPeds_build: default RealData peds-file is used..."<<endl;
+    strcat(name,"rl");
+  }
+  strcat(name,".dat");
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"Open file : "<<fname<<'\n';
+  ifstream icfile(fname,ios::in); // open pedestals-file for reading
+  if(!icfile){
+    cerr <<"ECPMPeds_build: missing default pedestals-file "<<fname<<endl;
+    exit(1);
+  }
+//
+// ---> read HighGain peds/sigmas:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        icfile >> pmpedh[cnum][isc];
+      }
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        icfile >> pmsigh[cnum][isc];
+      }
+    }
+  } 
+//
+// ---> read LowGain peds/sigmas:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        icfile >> pmpedl[cnum][isc];
+      }
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        icfile >> pmsigl[cnum][isc];
+      }
+    }
+  } 
+//
+// ---> read EndFileLabel :
+//
+  icfile >> endflab;
+//
+  icfile.close();
+//
+  if(endflab==12345){
+    cout<<"ECPMPeds::build: Peds-file is successfully read !"<<endl;
+  }
+  else{cout<<"ECPMPeds::build: exit on ERROR(problems while reading of peds-file)"<<endl;
+    exit(1);
+  }
+//---------------------------------------------
+//
+  for(isl=0;isl<slmx;isl++){
+    for(ipm=0;ipm<pmmx;ipm++){
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      sid=(ipm+1)+100*(isl+1);
+      for(isc=0;isc<4;isc++)pedh[isc]=pmpedh[cnum][isc];
+      for(isc=0;isc<4;isc++)sigh[isc]=pmsigh[cnum][isc];
+      for(isc=0;isc<4;isc++)pedl[isc]=pmpedl[cnum][isc];
+      for(isc=0;isc<4;isc++)sigl[isc]=pmsigl[cnum][isc];
+      pmpeds[isl][ipm]=ECPMPeds(sid,pedh,sigh,pedl,sigl);
+    }
+  }
+}
+//
+//==========================================================================

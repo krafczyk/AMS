@@ -15,13 +15,23 @@
 #include <ecaldbc.h>
 #include <ecalrec.h>
 #include <mccluster.h>
+#include <trigger102.h>
 #include <trigger3.h>
 //
-extern ECcalib ecpmcal[ECSLMX][ECPMSMX];// ECAL indiv.channel calibration data
-extern ECALVarp ecalvpar;// ECAL run-time parameters
-integer AMSEcalRawEvent::trigfl=0;// just memory reservation/initialization for static
+uinteger AMSEcalRawEvent::trigfl=0;// just memory reservation/initialization for static
 //----------------------------------------------------
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
+  uinteger ecalflg;
+  integer tofflg;
+  Trigger2LVL1 *ptr;
+//
+  ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ptr){
+    tofflg=ptr->gettoflg();
+    ecalflg=ptr->getecflg();
+    HF1(ECHIST+30,geant(ecalflg),1.);
+  }
+//
   stat=0;
 }
 //----------------------------------------------------
@@ -29,9 +39,16 @@ void AMSEcalRawEvent::mc_build(int &stat){
   int i,j,k;
   integer fid,cid,cidar[4],nhits,nraw,il,pm,sc,proj,rdir;
   number x,y,z,coo,hflen,pmdis,edep,edepr,edept,edeprt,emeast,time,timet(0.);
-  number attf,ww[4],sum[ECPMSMX][4];
+  number attf,ww[4],anen,dyen;
+  number sum[ECPMSMX][4],pmtmap[ECSLMX][ECPMSMX],pmlprof[ECSLMX];
+  integer zhitmap[ECSLMX];
+  integer adch,adcm,adcl;
+  geant radc,a2dr,h2lr,mev2adc,pmrgn,scgn;
+  geant pedh[4],pedl[4],sigh[4],sigl[4];
   AMSEcalMCHit * ptr;
-  integer id,sta,adc,adctot;
+  integer id,sta,adc[2];
+  number dyresp,dyrespt;// dynode resp. in mev(~mV) (for trigger)
+  number an4resp,an4respt;// (for trigger)
 //
   stat=1;//bad
   trigfl=0;//reset tigger-flag
@@ -40,13 +57,21 @@ void AMSEcalRawEvent::mc_build(int &stat){
   emeast=0.;
   nhits=0;
   nraw=0;
-  adctot=0;
+  an4respt=0;
+  dyrespt=0;
   timet=0.;
+  for(il=0;il<ECSLMX;il++){
+    pmlprof[il]=0.;
+    zhitmap[il]=0;
+    for(i=0;i<ECPMSMX;i++)pmtmap[il][i]=0.;
+  }
+//
   for(il=0;il<ECALDBc::slstruc(3);il++){ // <-------------- super-layer loop
     ptr=(AMSEcalMCHit*)AMSEvent::gethead()->
                getheadC("AMSEcalMCHit",il,0);
-    for(i=0;i<ECALDBc::slstruc(4);i++)for(k=0;k<4;k++)sum[i][k]=0.;
-    while(ptr){ // <--- geant-hits loop in superlayer:
+    for(i=0;i<ECALDBc::slstruc(4);i++)
+                                     for(k=0;k<4;k++)sum[i][k]=0.;
+    while(ptr){ // <------------------- geant-hits loop in superlayer:
       nhits+=1;
       fid=ptr->getid();//SSLLFFF
       edep=ptr->getedep()*1000;// MeV(dE/dX)
@@ -93,52 +118,122 @@ void AMSEcalRawEvent::mc_build(int &stat){
       }// -----> end of the coupled PM's loop
 //
         ptr=ptr->next(); 
-    } // ---------------> end of hit-loop in superlayer
+    } // ---------------> end of geant-hit-loop in superlayer
 //
-    for(i=0;i<ECALDBc::slstruc(4);i++){ // <-- create RawEvent objects from this S-layer
-      for(k=0;k<4;k++){
-        edepr=sum[i][k]*ECALDBc::mev2mev();//dE/dX(Mev)->Emeas(Mev)
+    for(i=0;i<ECALDBc::slstruc(4);i++){ // <------- loop over PM's in this(il) S-layer
+      a2dr=ECcalib::ecpmcal[il][i].an2dyr();//take some param.from DB
+      mev2adc=1./ECcalib::ecpmcal[il][i].adc2mev();
+      pmrgn=ECcalib::ecpmcal[il][i].pmrgain();
+      ECPMPeds::pmpeds[il][i].getpedh(pedh);
+      ECPMPeds::pmpeds[il][i].getsigh(sigh);
+      ECPMPeds::pmpeds[il][i].getpedl(pedl);
+      ECPMPeds::pmpeds[il][i].getsigl(sigl);
+//
+      an4resp=0;//PM Anode-resp(4cells,tempor in mev)
+      dyresp=0;//PM Dynode-resp(tempor in mev)
+      anen=0.;
+      dyen=0.;
+      for(k=0;k<4;k++){//<--- loop over 4-subcells in PM
+        h2lr=ECcalib::ecpmcal[il][i].hi2lowr(k);//PM subcell high2/low ratio from DB
+	scgn=ECcalib::ecpmcal[il][i].pmscgain(k);//PM SubCell relative(to average) gain from DB
+        edepr=sum[i][k]*ECALDBc::mev2mev();//Geant_dE/dX(Mev)->Emeas(Mev)
 	emeast+=edepr;
-	adc=integer(edepr*ECALDBc::mev2adc());//Emeas(Mev)->Emeas(adc) ("digitization")
-	adctot+=adc;
-        if(adc>=ecalvpar.daqthr(0)){// use only hits above DAQ-readout threshold
-	  if(adc>=65536)adc=65536;//"ADC-saturation (16 bit)"
+	anen+=edepr;
+	dyen+=edepr;
+// ---------> digitization+DAQ-scaling:
+// High-gain channel:
+	radc=edepr*pmrgn*scgn*mev2adc+pedh[k]+sigh[k]*rnormx();//Em(mev)->Em(adc)+noise
+	adch=floor(radc);//"digitization"
+	if(adch>=4095)adch=4095;//"ADC-saturation (12 bit)"
+	radc=number(adch)-pedh[k];// ped-subtraction
+        if(radc>=ECALVarp::ecalvpar.daqthr(0)){// use only hits above DAQ-readout threshold
+	  adch=floor(radc*ECALDBc::scalef());//DAQ scaling
+	}
+	else{ adch=0;}
+// Low-gain channel:
+	radc=edepr*pmrgn*scgn*mev2adc/h2lr+pedl[k]+sigl[k]*rnormx();//Em(mev)->Em/h2lr(adc)+noise
+	adcl=floor(radc);//"digitization")
+	if(adcl>=4095)adcl=4095;//"ADC-saturation (12 bit)"
+	radc=number(adcl)-pedl[k];// ped-subtraction
+        if(radc>=ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
+	  adcl=floor(radc*ECALDBc::scalef());//DAQ scaling
+	}
+	else{ adcl=0;}
+// <---------
+	if(adch>0 || adcl>0){
 	  nraw+=1;
-	  id=(k+1)+10*(i+1)+1000*(il+1);
+	  id=(k+1)+10*(i+1)+1000*(il+1);// SSPPC
 	  sta=0;
+	  adc[0]=adch;
+	  adc[1]=adcl;
           AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",il), new
                                              AMSEcalRawEvent(id,sta,adc));
 	}
-      }
-    }
+      }//<---- end of PMSubcell-loop
 //
-  } // ---> end of super-layer loop
+      an4resp=anen;//tempor! anode resp(true mev ~ mV !!!)(later to add some factor to conv. to mV)
+      dyresp=dyen/a2dr;//tempor! dynode resp(false mev ~ real mV !!!)
+      an4respt+=an4resp;
+      dyrespt+=dyresp;
+      if(ECMCFFKEY.mcprtf==1){
+        HF1(ECHIST+5,geant(dyresp),1.);
+        if(dyresp>0.)HF1(ECHIST+6,geant(an4resp/dyresp),1.);
+      }
+//            arrays for trigger study:
+      pmtmap[il][i]=an4resp;//tempor 4xAnode-resp(later dynode-resp)
+      pmlprof[il]+=an4resp;// 
+//
+    }//-------> end of PM-loop in superlayer
+//
+  } // ------------> end of super-layer loop
+//
+//                          <--- some variables for "electromagneticity" calc.
+  geant e4x0,epeaka,etaila,rrr;
+  e4x0=pmlprof[0]+pmlprof[1];//energy in 1st 4X0's(sl1+sl2) of Z-profile
+  epeaka=(pmlprof[1]+pmlprof[2])/2.;//aver.energy in peak(sl2+sl3) of Z-profile
+  etaila=pmlprof[ECALDBc::slstruc(3)-1];//aver.energy in tail(sl9 now) ...
+  rrr=0.;
+  if(epeaka>0.)rrr=etaila/epeaka;
+  if(rrr>0.99)rrr=0.99;
 //
   if(ECMCFFKEY.mcprtf==1){
     HF1(ECHIST+1,geant(nhits),1.);
     HF1(ECHIST+2,geant(edept),1.);
     HF1(ECHIST+3,geant(edeprt),1.);
     HF1(ECHIST+4,geant(emeast),1.);
-    HF1(ECHIST+5,geant(emeast),1.);
-    if(edeprt>0.)HF1(ECHIST+6,geant(timet/edeprt),1.);
+    HF1(ECHIST+7,e4x0,1.);
+    HF1(ECHIST+8,rrr,1.);
   }
-//  ---> set trigger flag:
-  if(adctot>ecalvpar.daqthr(1)){
-    if(adctot<ecalvpar.daqthr(2))trigfl=1;// MIP
-    else if(adctot<ecalvpar.daqthr(3))trigfl=2;// Low-energy EM-object
-    else trigfl=3;// High-energy EM-object
+//  ---> create ECAL H/W-trigger(Ec<MIP,Ec>=MIP"em-type",HighEn in EC):
+//
+  if(an4respt>ECALVarp::ecalvpar.daqthr(1)){
+    trigfl=1;// at least MIP (some non-zero activity in EC)
+    if(e4x0>ECALVarp::ecalvpar.daqthr(2)){
+      trigfl=2;// EM-object !
+      if(an4respt<ECALVarp::ecalvpar.daqthr(5) &&
+                       rrr>ECALVarp::ecalvpar.daqthr(6))trigfl=1;//non EM-object !
+    }
+    if(an4respt>ECALVarp::ecalvpar.daqthr(3))trigfl+=10;// High-energy in EC
   }
-  if(trigfl>0)stat=0;
+  if(trigfl==0)return;//No signal in ECAL
+  stat=0;
+//
+//---
+  if(ECMCFFKEY.mcprtf==1)HF1(ECHIST+9,geant(trigfl),1.);
+  return;
 }
 //---------------------------------------------------
 void AMSEcalHit::build(int &stat){
   int i,j,k;
-  integer sta,status,dbstat,padc,id,idd,isl,pmc,subc,nraw,nhits;
-  integer proj,plane,cell,icont;
-  number edep,adct,emeast,coot,cool,cooz; 
+  integer sta,status,dbstat,padc[2],id,idd,isl,pmc,subc,nraw,nhits;
+  integer proj,plane,cell,icont,adcmx;
+  number radc[2],edep,adct,fadc,emeast,coot,cool,cooz; 
+  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr;
+  integer ovfl[2]={0,0};
   AMSEcalRawEvent * ptr;
 //
   stat=1;//bad
+  adcmx=4095.;
   nhits=0;
   nraw=0;
   adct=0.;
@@ -153,24 +248,40 @@ void AMSEcalHit::build(int &stat){
       idd=id/10;
       subc=id%10-1;//SubCell(0-3)
       pmc=idd%100-1;//PMCell(0-...)
-      padc=ptr->getpadc();
-      status=ptr->getstatus();//status of hit (used,recoverd,....)
-      edep=padc*ecpmcal[isl][pmc].getchg()*ecpmcal[isl][pmc].getscg(subc);//gain corr.
+      ptr->getpadc(padc);
+      ECPMPeds::pmpeds[isl][pmc].getpedh(pedh);
+      ECPMPeds::pmpeds[isl][pmc].getsigh(sigh);
+      ECPMPeds::pmpeds[isl][pmc].getpedl(pedl);
+      ECPMPeds::pmpeds[isl][pmc].getsigl(sigl);
+      h2lr=ECcalib::ecpmcal[isl][pmc].hi2lowr(subc);
+      radc[0]=number(padc[0])/ECALDBc::scalef();//DAQ-format-->ADC-high-chain
+      radc[1]=number(padc[1])/ECALDBc::scalef();//DAQ-format-->ADC-low-chain
+      if(radc[0]>0.)if((adcmx-(radc[0]+pedh[subc]))<4.*sigh[subc])ovfl[0]=1;// mark as ADC-Overflow
+      if(radc[1]>0.)if((adcmx-(radc[1]+pedl[subc]))<4.*sigl[subc])ovfl[1]=1;// mark as ADC-Overflow
+// take decision which chain to use for energy calc.(Hi or Low):
+      sta=0;
+      if(radc[0]>0. && ovfl[0]==0)fadc=radc[0];
+      else if(radc[1]>0. && ovfl[1]==0){
+        fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
+	if(ovfl[1]==1)sta|=(65536*64);// mark overflow status bit
+      }
+      else fadc=0.;
+      edep=fadc/ECcalib::ecpmcal[isl][pmc].pmrgain()
+                                    /ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//gain corr.
       if(ECREFFKEY.reprtf[0]==1){
-        HF1(ECHIST+16,geant(edep),1.);
-        HF1(ECHIST+17,geant(edep),1.);
+        HF1(ECHISTR+16,geant(edep),1.);
+        HF1(ECHISTR+17,geant(edep),1.);
       }
       adct+=edep;//tot.adc
-      edep=edep*ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
+      edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
       emeast+=edep;//tot.Mev
-      dbstat=ecpmcal[isl][pmc].getstat();//status from DB (0=ok)
-      if(dbstat==0){// use only good(according DB) channels
+      dbstat=ECcalib::ecpmcal[isl][pmc].getstat(subc);//status from DB (0=ok)
+      if(dbstat>=0 && fadc>0.){// use only good(according DB) channels
         nhits+=1;
         ECALDBc::getscinfoa(isl,pmc,subc,proj,plane,cell,coot,cool,cooz);// get SubCell info
 	icont=plane;//container number for storing of EcalHits(= plane number)
-	sta=0;//tempor
         AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",icont), new
-                       AMSEcalHit(sta,proj,plane,cell,edep,coot,cool,cooz));
+                       AMSEcalHit(sta,id,padc,proj,plane,cell,edep,coot,cool,cooz));
       }
       ptr=ptr->next();  
     } // ---> end of RawEvent-hits loop in superlayer
@@ -178,12 +289,12 @@ void AMSEcalHit::build(int &stat){
   } // ---> end of super-layer loop
 //
   if(ECREFFKEY.reprtf[0]==1){
-    HF1(ECHIST+10,geant(nraw),1.);
-    HF1(ECHIST+11,geant(adct),1.);
-    HF1(ECHIST+12,geant(adct),1.);
-    HF1(ECHIST+13,geant(nhits),1.);
-    HF1(ECHIST+14,geant(emeast),1.);
-    HF1(ECHIST+15,geant(emeast),1.);
+    HF1(ECHISTR+10,geant(nraw),1.);
+    HF1(ECHISTR+11,geant(adct),1.);
+    HF1(ECHISTR+12,geant(adct),1.);
+    HF1(ECHISTR+13,geant(nhits),1.);
+    HF1(ECHISTR+14,geant(emeast),1.);
+    HF1(ECHISTR+15,geant(emeast),1.);
   }
   if(nhits>0)stat=0;
 }
@@ -205,7 +316,7 @@ void AMSEcalCluster::build(int &stat){
   nhits=0;
   nclus=0;
   eclust=0.;
-  edepthr=ecalvpar.rtcuts(0);//thresh.(mev/cell) for EcalHit(~2.adc, at mip/pl=5adc(m.p.))
+  edepthr=ECALVarp::ecalvpar.rtcuts(0);//thresh.(mev/cell) for EcalHit(~2.adc, at mip/pl=5adc(m.p.))
   maxpl=2*ECALDBc::slstruc(3);//real planes
   maxcl=2*ECALDBc::slstruc(4);//real SubCells per plane
   ecogz=0.01;//(cm) hope not more
@@ -277,17 +388,17 @@ void AMSEcalCluster::build(int &stat){
 //
     if(ECREFFKEY.reprtf[1]==1){//<--- print t-profiles
       if(ipl==7){
-	if(nprz<5){
-          HPAK(ECHIST+19,tprof);
-	  HPRINT(ECHIST+19);
-	  HRESET(ECHIST+19," ");
+	if(nprz<9){
+          HPAK(ECHISTR+19,tprof);
+	  HPRINT(ECHISTR+19);
+	  HRESET(ECHISTR+19," ");
 	}
       }
       if(ipl==8){
-	if(nprz<5){
-          HPAK(ECHIST+20,tprof);
-	  HPRINT(ECHIST+20);
-	  HRESET(ECHIST+20," ");
+	if(nprz<9){
+          HPAK(ECHISTR+20,tprof);
+	  HPRINT(ECHISTR+20);
+	  HRESET(ECHISTR+20," ");
 	}
       }
     }
@@ -295,18 +406,18 @@ void AMSEcalCluster::build(int &stat){
   } // --------> end of SubCell-planes loop
 //
   if(ECREFFKEY.reprtf[1]==1){//<--- print z-profiles
-    if(nprz<5){
-      HPAK(ECHIST+21,zprof);
-      HPRINT(ECHIST+21);
-      HRESET(ECHIST+21," ");
+    if(nprz<9){
+      HPAK(ECHISTR+21,zprof);
+      HPRINT(ECHISTR+21);
+      HRESET(ECHISTR+21," ");
       nprz+=1;
     }
   }
 //  
   if(ECREFFKEY.reprtf[0]==1){
-    HF1(ECHIST+18,geant(nclus),1.);
-    HF1(ECHIST+22,geant(eclust),1.);
-    HF1(ECHIST+23,geant(eclust),1.);
+    HF1(ECHISTR+18,geant(nclus),1.);
+    HF1(ECHISTR+22,geant(eclust),1.);
+    HF1(ECHISTR+23,geant(eclust),1.);
   }
   if(nclus>0)stat=0;
 }
@@ -359,6 +470,7 @@ void AMSEcalHit::_writeEl(){
 // Fill the ntuple
   if(AMSEcalHit::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
     TN->Status[TN->Necht]=_status;
+    TN->Idsoft[TN->Necht]=_idsoft;
     TN->Proj[TN->Necht]=_proj;
     TN->Plane[TN->Necht]=_plane;
     TN->Cell[TN->Necht]=_cell;

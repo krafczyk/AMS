@@ -198,13 +198,29 @@ COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);
 //---
 class ECREFFKEY_DEF {
 public:
-integer reprtf[3];   //reco print-flags
-integer relogic[5];  //reco logic-flags
-geant thresh[5];       //Time dependent DAQ-thresholds (trig.thresh.,...)
-geant cuts[5];       // ........ RECO cuts (clust.thr.,...)
+  integer reprtf[3];   //reco print-flags
+  integer relogic[5];  //reco logic-flags
+  geant thresh[10];       //Time dependent DAQ-thresholds (trig.thresh.,...)
+  geant cuts[5];       // ........ RECO cuts (clust.thr.,...)
+  integer ReadConstFiles;
+//
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
 };
 #define ECREFFKEY COMMON_BLOCK(ECREFFKEY,ecreffkey)
 COMMON_BLOCK_DEF(ECREFFKEY_DEF,ECREFFKEY);
+//---
+class ECCAFFKEY_DEF {
+public:
+  integer cfvers;// 1-999 -> vers.number for ecalcvlistNNN.dat file
+  integer cafdir;// 0/1->use officical/private directory for calib.files
+};
+#define ECCAFFKEY COMMON_BLOCK(ECCAFFKEY,eccaffkey)
+COMMON_BLOCK_DEF(ECCAFFKEY_DEF,ECCAFFKEY);
 //===================================================================
 class TKGEOMFFKEY_DEF{
 public:
@@ -422,7 +438,7 @@ geant plhec[2];//low/high cuts on tracker mom. for earth calibration
 geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
 integer tofcoo;// 0/1-> use transv/longit coord. from TOF
 integer dynflg;// 0/1-> use stand/special(Contin's) dynode calibr.
-integer cfvers;// 1-99 -> vers.number for tofverslistNN.dat file
+integer cfvers;// 1-999 -> vers.number for tofverslistNN.dat file
 integer cafdir;// 0/1->use officical/private directory for calib.files
 integer mcainc;// to swich on/off A-integr. calibr. in MC
 geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!) 

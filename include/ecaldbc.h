@@ -13,6 +13,7 @@
 #include <iostream.h>
 #include <fstream.h>
 #include <job.h>
+#include <math.h>
 //
 // ECAL global constants definition
 //
@@ -20,10 +21,12 @@ const integer ECFLSMX=10; // max. fiber-layers per S-layer
 const integer ECFBCMX=12; // max. fibers per layer in PMcell
 const integer ECSLMX=9; // max. S(uper)-layers
 const integer ECPMSMX=36; // max. PMCell(PM's) per S-layer
+const integer ECPMSL=ECSLMX*ECPMSMX;// Max. total PM's in all S-layers
 const integer ECFBLMX=500;// max. fibers per layer
 const integer ECROTN=10000; // geant numbering of ECAL rot. matr.(starting from...)
 const integer ECJSTA=10; // max size of counter-array for job statistics
-const integer ECHIST=2000;// Ecal histogram number(starting from...) 
+const integer ECHIST=2000;// MCEcal histogram number(starting from...) 
+const integer ECHISTR=2100;// REEcal histogram number(starting from...) 
 //
 //geometry :
 //
@@ -47,8 +50,8 @@ private:
 //                          7/8->X(Y)-pitch of PM's; fiber glue thickness(in radious)
 //                          9/10-> spare
 //
-  static geant _mev2adc; // MC: Emeasured-MeV->ADCchan conv.factor (adc/mev)
-  static geant _mev2mev; // MC: dE/dX-MeV->Em-Mev conv.factor 
+  static geant _mev2mev; // MC: GeantEdep(MeV)->Emeasured(Mev) conv.factor 
+  static integer _scalef;  // MC/Data: scale factor used for digitization in DAQ-system
 // 
   static integer _nfibpl[2];// num.of fibers per odd/even(1st/2nd) elementary layer in s-layer
   static integer _slstruc[6];//1->1st super-layer projection(0->X, 1->Y);
@@ -69,8 +72,8 @@ public:
   static geant gendim(integer i);
   static geant fpitch(integer i);
   static geant rdcell(integer i);
-  static geant mev2adc();
-  static geant mev2mev();
+  static geant mev2mev(){return _mev2mev;}
+  static integer scalef(){return _scalef;}
   static integer nfibpl(integer i);
   static integer slstruc(integer i);
   static integer fibcgr(integer i, integer j);
@@ -104,12 +107,16 @@ private:
 public:
   static geant zprofa[2*ECSLMX];// average profile
   static void clear();
-  inline static void addmc(int i){
-    assert(i>=0 && i< ECJSTA);
+  static void addmc(int i){
+    #ifdef __AMSDEBUG__
+      assert(i>=0 && i< ECJSTA);
+    #endif
     mccount[i]+=1;
   }
-  inline static void addre(int i){
-    assert(i>=0 && i< ECJSTA);
+  static void addre(int i){
+    #ifdef __AMSDEBUG__
+      assert(i>=0 && i< ECJSTA);
+    #endif
     recount[i]+=1;
   }
   static void printstat();
@@ -126,20 +133,29 @@ class ECcalib{
 //
 private:
   integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
-  integer _status;  // (!=0/0->problems/ok)
-  geant _chgain;    // common HV-gain of 4 SubCells in PMCell (wrt ref)
-  geant _scgain[4]; // relat. gain of SubCells
-  geant _adc2mev;   // ADCchannel->Emeas(MeV) conv. factor (mev/adc)
+  integer _status[4];  //4-SubCells each as HL(H->Hch,L->Lch) (H(L)=0/!=0->ok/problems)
+  geant _pmrgain;    // PM relative(to ref.PM) gain (if A=(sum of 4 SubCells) pmrgain = Agiven/Aref)
+  geant _scgain[4]; // relative(to averaged) gain of 4 SubCells(highGain chain)(average_of_four=1 !!!)
+  geant _hi2lowr[4]; // ratio of gains of high- and low-chains (for each of 4 SubCells)
+  geant _an2dyr;    // 4xAnode_pixel/dynode signal ratio
+  geant _adc2mev;   // Global(hope) Signal(ADCchannel)->Emeas(MeV) conv. factor (MeV/ADCch)
 public:
+  static ECcalib ecpmcal[ECSLMX][ECPMSMX];
   ECcalib(){};
-  ECcalib(integer sid, integer sta, geant chg, geant scg[4], geant conv):
-  _softid(sid),_status(sta),_chgain(chg),_adc2mev(conv){
-    for(int i=0;i<4;i++)_scgain[i]=scg[i];
+  ECcalib(integer sid, integer sta[4], geant pmg, geant scg[4], geant h2lr[4], geant a2dr,
+       geant conv):_softid(sid),_pmrgain(pmg),_an2dyr(a2dr),_adc2mev(conv){
+    for(int i=0;i<4;i++){
+      _status[i]=sta[i];
+      _scgain[i]=scg[i];
+      _hi2lowr[i]=h2lr[i];
+    }
   };
-  integer getstat(){return _status;}
-  geant getchg(){return _chgain;}
-  geant getscg(int i){return _scgain[i];}
+  integer getstat(int i){return _status[i];}
+  geant pmrgain(){return _pmrgain;}
+  geant pmscgain(int i){return _scgain[i];}
+  geant hi2lowr(integer subc){return _hi2lowr[subc];}
   geant adc2mev(){return _adc2mev;}
+  geant an2dyr(){return _an2dyr;}
   static void build();
 };
 //
@@ -149,26 +165,32 @@ class ECALVarp {
 //
 private:
 // ---> ECAL DAQ-system thresholds :
-  geant _daqthr[5];   // DAQ-system thresholds
-          // (0) -> indiv.channel readout threshold(ADCch)
-	  // (1) -> Tot.adc low cut for "MIP"-trigger(ADCch)  
-	  // (2) -> Tot.adc high cut for "MIP"-trigger(ADCch)  
-	  // (3) -> Tot.adc low cut for "High"-trigger(ADCch)
-	  // (4) -> spare  
-// ---> Run-Time Cuts :
+  geant _daqthr[10];   // DAQ-system thresholds
+          // (0) -> indiv. high-channel readout threshold(ADCch)
+	  // (1) -> Anode(high)-sum(~mV) low cut for "MIP"-trigger(mev tempor)  
+	  // (2) ->                      high cut for "MIP"-trigger(mev tempor)  
+	  // (3) ->                      low cut for "High"-trigger(mev tempor)
+	  // (4) -> indiv. low-channel readout threshold(ADCch)  
+	  // (5) -> indiv. dynode thresh. for trigger  
+	  // (6) -> spare  
+	  // (7) ->   
+	  // (8) ->   
+	  // (9) ->   
+// ---> RECO Run-Time Cuts :
   geant _cuts[5];                    
           //  (0)  -> cut for cluster search(mev)
           //  (1)  -> 
 public:
+  static ECALVarp ecalvpar;
   ECALVarp(){};
 // member functions :
 //
-  void init(geant daqthr[5], geant cuts[5]);
+  void init(geant daqthr[10], geant cuts[5]);
 //
   geant daqthr(int i){;
     #ifdef __AMSDEBUG__
       if(ECALDBc::debug){
-        assert(i>=0 && i<5);
+        assert(i>=0 && i<10);
       }
     #endif
     return _daqthr[i];}
@@ -181,6 +203,44 @@ public:
     #endif
     return _cuts[i];}
 //
+};
+//===================================================================
+// class to store ECAL PM-peds/sigmas  :
+class ECPMPeds{
+//
+private:
+  integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
+  geant _pedh[4]; // ped for high-channel of 4 SubCells(pixels)(in ADCchannels)
+  geant _pedl[4]; // ped for low-channel of 4 SubCells(pixels)
+  geant _sigh[4]; // sigma for high-channel of 4 SubCells(pixels)
+  geant _sigl[4]; // sigma for high-channel of 4 SubCells(pixels)
+//
+public:
+  static ECPMPeds pmpeds[ECSLMX][ECPMSMX];
+  ECPMPeds(){};
+  ECPMPeds(integer sid, geant pedh[4], geant sigh[4],
+                         geant pedl[4], geant sigl[4]):_softid(sid){
+    for(int i=0;i<4;i++){
+      _pedh[i]=pedh[i];
+      _sigh[i]=sigh[i];
+      _pedl[i]=pedl[i];
+      _sigl[i]=sigl[i];
+    }
+  };
+  void getpedh(geant pedh[4]){
+    for(int i=0;i<4;i++)pedh[i]=_pedh[i];
+  }
+  void getpedl(geant pedl[4]){
+    for(int i=0;i<4;i++)pedl[i]=_pedl[i];
+  }
+  void getsigh(geant sigh[4]){
+    for(int i=0;i<4;i++)sigh[i]=_sigh[i];
+  }
+  void getsigl(geant sigl[4]){
+    for(int i=0;i<4;i++)sigl[i]=_sigl[i];
+  }
+  integer getsid(){return _softid;}
+  static void build();
 };
 //
 #endif

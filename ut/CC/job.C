@@ -120,8 +120,6 @@ const uinteger AMSJob::Monitoring=(AMSJob::MTracker)+
                                   (AMSJob::MAll);
 const uinteger AMSJob::Production=4096*64;
 //
-extern TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];// TOF peds/sigmas/... 
-ECALVarp ecalvpar;// ECAL general run-time parameters
 extern CTCCCcal ctcfcal[CTCCCMX];//  CTC calibr. objects
 
 
@@ -602,31 +600,57 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.cutge=0.001; // cutgam=cutele cut for EC_radiator
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
-//===============================================================================
+//---------------------------
 void AMSJob::_reecaldata(){
   ECREFFKEY.reprtf[0]=0;     // (1) print_hist flag (0/1->no/yes)
   ECREFFKEY.reprtf[1]=0;     // (2) print_prof flag (0/1->no/yes)
   ECREFFKEY.reprtf[2]=0;     // (3) spare
 //
-  ECREFFKEY.relogic[0]=0;    // (4) 1/0->write/not EcalHits into Ntuple(if requested)
+  ECREFFKEY.relogic[0]=0;    // (4) 1/0->write/not EcalHits into Ntuple
   ECREFFKEY.relogic[1]=0;    // (5) spare
   ECREFFKEY.relogic[2]=0;    // (6) spare
   ECREFFKEY.relogic[3]=0;    // (7) spare
   ECREFFKEY.relogic[4]=0;    // (8) spare
 //
 // Run-time DAQ-thresholds(time dependent):
-  ECREFFKEY.thresh[0]=2.;     // (9) readout chan. thershold(ADCch)
-  ECREFFKEY.thresh[1]=50.;   // (10) "mip"-trig.thresh(low)(ADCch)
-  ECREFFKEY.thresh[2]=300.;  // (11) "mip"-trig.thresh(high)(ADCch)
-  ECREFFKEY.thresh[3]=2000.; // (12) "high"-trig.thresh(low)(ADCch)
-  ECREFFKEY.thresh[4]=0.;     // (13) spare 
+  ECREFFKEY.thresh[0]=2.;     // (9)  Anode(High-chan) readout threshold(ADCch)
+  ECREFFKEY.thresh[1]=120.;   // (10) Anode(high,tot) "mip"-trig.thresh(mev tempor)
+  ECREFFKEY.thresh[2]=300.;   // (11) ... 1st 4X0) "elec"-trig.thresh(mev tempor)
+  ECREFFKEY.thresh[3]=8000.;  // (12) Anode(high)-sum "el-high-en"-trig.thresh(mev tempor)
+  ECREFFKEY.thresh[4]=2.;     // (13) Low-chan. readout thershold(ADCch)
+  ECREFFKEY.thresh[5]=8000.;  // (14) energy upp.limit for action of cut below (mev tempor)  
+  ECREFFKEY.thresh[6]=0.15;   // (15) cut on Etail/Epeak (add. to #11 for "electromagneticity")
+  ECREFFKEY.thresh[7]=0.;     // (16) 
+  ECREFFKEY.thresh[8]=0.;     // (17) 
+  ECREFFKEY.thresh[9]=0.;     // (18) 
 // Run-time RECO-thresholds(time dependent):
-  ECREFFKEY.cuts[0]=5.;   // (14) mev/cell thresh. to create cluster(~2adc) 
-  ECREFFKEY.cuts[1]=0.;   // (15)
-  ECREFFKEY.cuts[2]=0.;
-  ECREFFKEY.cuts[3]=0.;
-  ECREFFKEY.cuts[4]=0.;
+  ECREFFKEY.cuts[0]=5.;   // (19) mev/cell thresh. to create cluster(~2adc) 
+  ECREFFKEY.cuts[1]=0.;   // (20)
+  ECREFFKEY.cuts[2]=0.;   // (21)
+  ECREFFKEY.cuts[3]=0.;// (22)
+  ECREFFKEY.cuts[4]=0.;// (23)
+//
+  ECREFFKEY.ReadConstFiles=1;//(24)read const. from DB/RawFiles (0/1)
+//  
+  ECREFFKEY.sec[0]=0;//(25) 
+  ECREFFKEY.sec[1]=0;//(26)
+  ECREFFKEY.min[0]=0;//(27)
+  ECREFFKEY.min[1]=0;//(28)
+  ECREFFKEY.hour[0]=0;//(29)
+  ECREFFKEY.hour[1]=0;//(30)
+  ECREFFKEY.day[0]=1;//(31)
+  ECREFFKEY.day[1]=1;//(32)
+  ECREFFKEY.mon[0]=0;//(33)
+  ECREFFKEY.mon[1]=0;//(34)
+  ECREFFKEY.year[0]=101;//(35)
+  ECREFFKEY.year[1]=108;//(36)
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
+//
+// Calibration parameter defaults:
+//
+  ECCAFFKEY.cfvers=1; // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
+  ECCAFFKEY.cafdir=0; // (2) 0/1-> use official/private directory for calibr.files
+FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
 
@@ -1050,7 +1074,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[8]=0.;// (26) spare
   TFREFFKEY.cuts[9]=0.;// (27) 
 //
-  TFREFFKEY.ReadConstFiles=1;//(28)read const. from DB/myFiles (0/1)
+  TFREFFKEY.ReadConstFiles=1;//(28)read const. from DB/RawFiles (0/1)
 //  
   TFREFFKEY.sec[0]=0;//(29) 
   TFREFFKEY.sec[1]=0;
@@ -2007,7 +2031,7 @@ void AMSJob::_retof2initjob(){
     TOFBPeds::build();
   }
 //-------------------------
-  else{ // Constants will be taken from DB (TDV)
+  else{ // Constants will be taken from DB(TDV)->this is normal run mode !!!
     TFREFFKEY.year[1]=TFREFFKEY.year[0]-1;    
   }
 // 
@@ -2060,19 +2084,30 @@ void AMSJob::_reecalinitjob(){
 //
     AMSgObj::BookTimer.book("REECALEVENT");
 //
+    ECALDBc::getscinfoa(0,0,0,pr,pl,cell,ct,cl,cz);// <--- init. PMCell-readout tables
+//
     EcalJobStat::clear();// Clear JOB-statistics counters for SIM/REC
 //
     EcalJobStat::bookhist();// Book histograms for REC
 //
+  if(ECREFFKEY.ReadConstFiles){// Calibr.constants will be taken from ext.files 
 //-----------
 // ===> create common parameters (ecalvpar structure) fr.data-cards :
 //
-    ecalvpar.init(ECREFFKEY.thresh, ECREFFKEY.cuts);//daqthr/cuts reading
+    ECALVarp::ecalvpar.init(ECREFFKEY.thresh, ECREFFKEY.cuts);//daqthr/cuts reading
 //
 //-----------
-    ECcalib::build(); // <--- create ecpmcal-calib-objects 
+ // ===> create ecpmcal-calib-objects:
+    ECcalib::build(); 
+//-------------------------
+// ===> create EC-SubCell peds/sigs ECcalib structure):
+//
+    ECPMPeds::build();
+  }
 //-----------
-    ECALDBc::getscinfoa(0,0,0,pr,pl,cell,ct,cl,cz);// <--- init. readout tables
+  else{ // Constants will be taken from DB(TDV)
+    ECREFFKEY.year[1]=ECREFFKEY.year[0]-1;    
+  } 
 }
 //===================================================================
 void AMSJob::_rectcinitjob(){
@@ -2238,7 +2273,7 @@ void AMSJob::settdv(char *setup, integer N){
   }
   _TDVN=N+1;
 }
-
+//==========================================================
 void AMSJob::_timeinitjob(){
 AMSgObj::BookTimer.book("TDV");
 #ifdef __DB__
@@ -2353,7 +2388,7 @@ end.tm_year=TRMCFFKEY.year[1];
 
 //---------------------------------------
 //
-//   TOF : calibration parameters for all sc.bars
+//   TOF : TDV-reservation for calibration parameters of all sc.bars
 //
 {
  tm begin;
@@ -2390,8 +2425,8 @@ end.tm_year=TRMCFFKEY.year[1];
     (void*)&TOF2Scan::scmcscan[0]));
    
   TID.add (new AMSTimeID(AMSID("Tofpeds",isRealData()),
-    begin,end,TOF2GC::SCBLMX*sizeof(scbrped[0][0]),
-    (void*)&scbrped[0][0]));
+    begin,end,TOF2GC::SCBLMX*sizeof(TOFBPeds::scbrped[0][0]),
+    (void*)&TOFBPeds::scbrped[0][0]));
  }
 //
  else{   
@@ -2426,7 +2461,7 @@ end.tm_year=TRMCFFKEY.year[1];
 }
 //---------------------------------------
 //
-//   ANTI : calibration parameters for all sc.sectors
+//   ANTI : TDV-resetvation for calibration parameters of all sc.sectors
 //
 {
  tm begin;
@@ -2483,6 +2518,45 @@ end.tm_year=TRMCFFKEY.year[1];
 //    (void*)&ANTIVarp::antivpar));
  }   
 }
+//---------------------------------------
+//
+//   ECAL : TDV-reservation for calibration parameters of all PM's:
+//
+{
+ if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+  tm begin;
+  tm end;
+  begin.tm_isdst=0;
+  end.tm_isdst=0;
+ 
+  begin.tm_sec=ECREFFKEY.sec[0];
+  begin.tm_min=ECREFFKEY.min[0];
+  begin.tm_hour=ECREFFKEY.hour[0];
+  begin.tm_mday=ECREFFKEY.day[0];
+  begin.tm_mon=ECREFFKEY.mon[0];
+  begin.tm_year=ECREFFKEY.year[0];
+
+  end.tm_sec=ECREFFKEY.sec[1];
+  end.tm_min=ECREFFKEY.min[1];
+  end.tm_hour=ECREFFKEY.hour[1];
+  end.tm_mday=ECREFFKEY.day[1];
+  end.tm_mon=ECREFFKEY.mon[1];
+  end.tm_year=ECREFFKEY.year[1];
+
+  TID.add (new AMSTimeID(AMSID("Ecalpmcalib",isRealData()),
+     begin,end,ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
+                                  (void*)&ECcalib::ecpmcal[0][0]));
+//
+  TID.add (new AMSTimeID(AMSID("Ecalvpar",isRealData()),
+     begin,end,sizeof(ECALVarp::ecalvpar),
+                                      (void*)&ECALVarp::ecalvpar));
+   
+//  TID.add (new AMSTimeID(AMSID("Ecalpeds",isRealData()),
+//    begin,end,ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
+//    (void*)&ECPMPeds::pmpeds[0][0]));
+ }
+}
+//
 //-----------------------------------------
 //
 //   CTC : calibration parameters for all combinations
@@ -2569,7 +2643,7 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
 
 
 }
-
+//---------------------------
 {
   // TOF Temperature data
 
@@ -2588,6 +2662,7 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
                          TOFVarp::tofvpar.gettoftsize(),(void*)TOFVarp::tofvpar.gettoftp()));
    }   
 }
+//-----------------------------
 {
   // Magnet Temperature data
 
@@ -2598,6 +2673,7 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
                          MagnetVarp::getmagnettsize(),(void*)MagnetVarp::getmagnettp()));
    
 }
+//-----------------------------
 {
   // Scaler Data
 
@@ -2615,7 +2691,7 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
    }
    
 }
-
+//-----------------------------
 {
   tm begin;
   tm end;
@@ -2718,7 +2794,7 @@ if (AMSFFKEY.Update){
 }
 
 }
-
+//===============================================================================
 
 AMSTimeID * AMSJob::gettimestructure(){
       AMSID id("TDV:",0);    
@@ -3288,7 +3364,7 @@ if(DAQCFFKEY.SCrateinDAQ){
 }    
 
 if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
-{
+ {
 
   if(DAQCFFKEY.OldFormat || !isRealData()){
 // special tracker ped/sigma calc
@@ -3305,17 +3381,17 @@ if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProce
     if(TRMCFFKEY.GenerateConst){
     //Tracker ped/sigma etc ( "Event" mode)
 
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
-    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
+      DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
+      DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
+      DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
+      DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
+      DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
 
 
     }
   }
 
-}
+ }
 }
 else {
 
