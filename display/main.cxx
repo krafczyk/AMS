@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.21 2003/07/16 12:36:49 choutko Exp $
+//  $Id: main.cxx,v 1.22 2004/01/29 10:44:52 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -18,6 +18,7 @@
 #include "main.h"
 #include <dirent.h>
 #include <TString.h>
+#include <TCastorFile.h>
 TString * Selector;
 extern void * gAMSUserFunction;
 void OpenChain(TChain & chain, char * filename);
@@ -143,19 +144,35 @@ void OpenChain(TChain & chain, char * filenam){
        cerr <<"OpenChain-F-InvalidFileName "<<filenam<<endl;
        return;
    }
-   if(filenam[0]!='/'){
+   TString a(filenam);
+   TRegexp b("^castor:",false);
+   TRegexp c("^http:",false);
+   TRegexp d("^root:",false);
+   bool wildsubdir=false;
+   if(a.Contains(b)){
+    TCastorFile f;
+    strcpy(filename,filenam);
+   }
+   else if(a.Contains(c)){
+    strcpy(filename,filenam);
+   }
+   else if(a.Contains(d)){
+    strcpy(filename,filenam);
+   }
+   else{ 
+    if(filenam[0]!='/'){
     strcpy(filename,"./");
     strcat(filename,filenam);
    }
    else strcpy(filename,filenam);
    bool go=false;
-   bool wildsubdir=false;
    for(int i=strlen(filename)-1;i>=0;i--){
      if(filename[i]=='/')go=true;
      if(go && filename[i]=='*'){
        wildsubdir=true;
        break;
      }
+   }
    }
    if(wildsubdir){
     for(int i=0;i<strlen(filename);i++){

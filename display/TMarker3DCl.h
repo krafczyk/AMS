@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl.h,v 1.3 2003/07/18 11:54:39 choutko Exp $
+//  $Id: TMarker3DCl.h,v 1.4 2004/01/29 10:44:52 choutko Exp $
 
 #ifndef ROOT_TMarker3DCl
 #define ROOT_TMarker3DCl
@@ -50,8 +50,8 @@ protected:
     Float_t  fDx;              // half length in x
     Float_t  fDy;              // half length in y
     Float_t  fDz;              // half length in z
-    vector<Float_t> fProfileX;
-    vector<Float_t> fProfileY;
+    vector<float> fProfileX;
+    vector<float> fProfileY;
     Int_t fNx;                //  number of hits along X
     Int_t fNy;                //  number of hits along Y
     Bool_t fShowProfileX;     //  Draw cluster (true) or simple box (false) in X                            
