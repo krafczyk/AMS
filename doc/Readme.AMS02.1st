@@ -1,4 +1,5 @@
-#  $Id: Readme.AMS02.1st,v 1.26 2001/09/04 13:21:08 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.27 2001/09/14 10:29:54 choutko Exp $          
+
 
 
 
@@ -83,17 +84,17 @@ b) As a developper :
 
 
 
-VII.  Standalone version   
+VII.  Standalone version  
 
-      If you want to run the ams software on your local computer
-      below are some hints:
+       a. Standalone version is NOT supported, 
+           though some moderate help in installing is granted. 
+       b. Some knowledge of programming language and/or
+          unix system commands is apriori assumed.
 
-              
+       c. Hints to install AMS software on remote computer:              
 
          Case i:  You have an afs installed
            get an afs cern account   group va
-           
-            
            
 
            klog{.krb} -pr username -cell cern.ch (see man klog for the details,           you may need type pagsh{.krb} before in some cases)
