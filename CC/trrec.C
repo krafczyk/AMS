@@ -795,6 +795,7 @@ void AMSTrCluster::_writeEl(){
     TrN->RMS[TrN->Ntrcl]=_Rms;
     TrN->ErrorMean[TrN->Ntrcl]=_ErrorMean;
     for(int i=0;i<min(5,getnelem());i++)TrN->Amplitude[TrN->Ntrcl][i]=_pValues[i]; 
+    for(i=min(5,getnelem());i<5;i++)TrN->Amplitude[TrN->Ntrcl][i]=0;
     TrN->Ntrcl++;
   }
 }
