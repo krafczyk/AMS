@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.143 2003/05/01 10:06:55 alexei Exp $
+# $Id: RemoteClient.pm,v 1.144 2003/05/01 11:59:28 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -17,7 +17,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout parseJournalFiles ValidateRuns updateAllRunCatalog);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -1988,7 +1988,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "<i><b>cite : </td><td><input type=\"text\" size=18 value=$cite name=\"CCA\" onFocus=\"this.blur()\"></i>\n";
             print "</b></font></td></tr>\n";
             print "</TABLE>\n";
-             print "<tr><td><b><font color=\"blue\" size=\"3\">Datasets</font></b>\n";
+             print "<tr><td><b><font color=\"blue\" size=\"3\">Datasets </font><font color=\"tomato\" size=\"3\"> (MC PRODUCTION)</font></b>\n";
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
@@ -2013,6 +2013,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "</b></font></td></tr>\n";
             print "</TABLE>\n";
             print "</TABLE>\n";
+
+            print "<TR><TD><font color=\"green\" size=\"3\"> Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
           
           print "<p>\n";
           print "<br>\n";
@@ -4788,6 +4790,7 @@ sub listStat {
     my $jobsreq    = 0;
     my $jobsdone   = 0;
     my $jobsfailed = 0;
+    my $jobstimeout= 0;
     my $trigreq    = 0;
     my $trigdone   = 0;  
     my $timestart  = 0;
@@ -4819,11 +4822,17 @@ sub listStat {
               if ($status eq 'Finished' || $status eq 'Completed') { 
                   $jobsdone++;
                   $trigdone = $trigdone + $trig;}
-              if ($status eq 'Failed' || $status eq 'TimeOut' || $status eq 'Unchecked')   
+              if ($status eq 'Failed' || $status eq 'Unchecked')   
                 { $jobsfailed++;}
           }
       }
- 
+    $sql = "SELECT COUNT(jid) FROM Runs WHERE status='TimeOut'";
+    my $r5 = $self->{sqlserver}->Query($sql);
+    if (defined $r5->[0][0]) {
+         $jobstimeout = $r5->[0][0];
+         $jobsreq     += $jobstimeout;
+     }
+
                $sql="SELECT MAX(Jobs.timestamp) FROM Jobs, Cites 
                             WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
                $r3=$self->{sqlserver}->Query($sql);
@@ -4843,6 +4852,7 @@ sub listStat {
                print "<td align=center><b><font color=\"blue\">Jobs </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Jobs</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Jobs </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Jobs </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Events</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Total </font></b></td>";
@@ -4852,6 +4862,7 @@ sub listStat {
                print "<td align=center><b><font color=\"blue\">Started </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Finished </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Failed </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >TimeOut </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Requested </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Processed </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >NTuples</font></b></td>";
@@ -4882,6 +4893,7 @@ sub listStat {
                   <td align=center><b><font color=$color> $jobsreq </font></td></b>
                   <td align=center><b><font color=$color> $jobsdone </font></b></td>
                   <td align=center><b><font color=$color> $jobsfailed </font></td></b>
+                  <td align=center><b><font color=$color> $jobstimeout </font></td></b>
                   <td align=center><b><font color=$color> $reqevents </font></td></b>
                   <td align=center><b><font color=$color> $donevents </font></b></td>
                   <td align=center><b><font color=$color> $nntuples </font></b></td>
@@ -5575,7 +5587,7 @@ sub PrintDownloadTable {
      print "<br><br>";
     } else {
      print "<br><font size=\"4\">
-           $file  filedb files (tar.gz)</a>
+           filedb files (tar.gz)</a>
            </font>";
      my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
@@ -5600,7 +5612,7 @@ sub PrintDownloadTable {
       print "<br><br>\n";
      } else {
       print "<br><font size=\"4\">
-           $file   filedb att.files (tar.gz)</a>
+           filedb att.files (tar.gz)</a>
            </font>\n";
       $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
       print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
@@ -5612,7 +5624,7 @@ sub PrintDownloadTable {
            <a href=load.cgi?$self->{UploadsHREF}/$file>  bbftp files (tar.gz) - <i> optional </i></a>
            </font>";
      my $dtime=EpochToDDMMYYHHMMSS($self->{FileBBFTPTimestamp});
-     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+     print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>";
     }
     print "</TD></TR>\n";
@@ -6540,4 +6552,65 @@ sub updateRunCatalog {
     }
 }
 
+sub deleteTimeOutJobs {
 
+    my $self = shift;
+
+    $self->htmlTop();
+
+    if( not $self->Init()){
+        die "deleteTimeoutJobs -F- Unable To Init";
+#        
+    }
+    if (not $self->ServerConnect()){
+        die "deleteTimeOutJobs -F- Unable To Connect To Server";
+    }
+#
+    my $sql  = undef;
+    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
+                 cites.name, mails.name FROM jobs, cites, mails, runs  
+               WHERE Jobs.jid = Runs.jid AND  
+                     Jobs.cid = Cites.cid AND 
+                     Jobs.mid = Mails.mid AND 
+                     Runs.status = 'TimeOut'";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+    htmlTable("Jobs below will be deleted from the database");
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<td><b><font color=\"blue\">Cite </font></b></td>";
+     print "<td><b><font color=\"blue\" >JobID </font></b></td>";
+     print "<td><b><font color=\"blue\" >Submitted</font></b></td>";
+     print "<td><b><font color=\"blue\" >Expired</font></b></td>";
+     print "<td><b><font color=\"blue\" >Status</font></b></td>";
+     print "<td><b><font color=\"blue\" >Owner</font></b></td>";
+     print "</tr>\n";
+     print_bar($bluebar,3);
+        foreach my $job (@{$ret}) {
+            my $jid = $job->[0];
+            my $timestamp    = $job->[1];
+            my $timeout      = $job->[2];
+            my $tsubmit      = EpochToDDMMYYHHMMSS($timestamp);
+            my $texpire      = EpochToDDMMYYHHMMSS($timestamp+$timeout);
+            my $mid          = $job->[3];
+            my $cid          = $job->[4];
+            my $cite         = $job->[5];
+            my $owner        = $job->[6];
+           
+            $sql = "DELETE Ntuples WHERE jid=$jid";
+            $self->{sqlserver}->Update($sql);
+            $sql = "DELETE Jobs WHERE jid=$jid";
+            $self->{sqlserver}->Update($sql);
+        print "<td><b><font color=\"black\">$cite </font></b></td>";
+        print "<td><b><font color=\"black\">$jid </font></b></td>";
+        print "<td><b><font color=\"black\">$tsubmit </font></b></td>";
+        print "<td><b><font color=\"black\">$texpire </font></b></td>";
+        print "<td><b><font color=\"red\">TimeOut </font></b></td>";
+        print "<td><b><font color=\"black\">$owner </font></b></td>";
+        print "</tr>\n";
+ 
+        }
+      htmlTableEnd();
+     htmlTableEnd();
+    }   
+    $self->htmlBottom();
+}
