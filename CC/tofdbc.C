@@ -1560,10 +1560,10 @@ void TOFJobStat::outp(){
          HPRINT(1114);
          for(i=0;i<SCLRS;i++){
            for(j=0;j<SCMXBR;j++){
+             ich=SCMXBR*i+j;
              HPRINT(1140+ich);
              dedx[j]=0.;
              dedxe[j]=0.;
-             ich=SCMXBR*i+j;
              dedx[j]=HSTATI(1140+ich,1," ",0);
              dedxe[j]=HSTATI(1140+ich,2," ",0);
            }

@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <tofcalib.h>
 #include <daqblock.h>
+#include <ctccalib.h>
 #include <ntuple.h>
 #include <ctcdbc.h>
 #include <timeid.h>
@@ -539,6 +540,7 @@ for(i=0;i<2;i++){
 }
 
 void AMSEvent::_cactcevent(){
+//  CTCGAINcalib::select();// event selection for CTC GAIN-calibration
 }
 //---------------------------------------------------------------------------
 void AMSEvent::_catofevent(){
