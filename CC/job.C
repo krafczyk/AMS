@@ -187,7 +187,7 @@ void AMSJob::_sitrigdata(){
 // these are additional requir. to "hardware"-defined TOFMCFFKEY.trlogic[]
   LVL1FFKEY.ntof=3;// min. fired TOF-planes
 // ANTI :
-  LVL1FFKEY.nanti=2;// max. fired ANTI-paddles 
+  LVL1FFKEY.nanti=20;// max. fired ANTI-paddles 
 //
   LVL1FFKEY.RebuildLVL1=0;
   LVL1FFKEY.MaxScalersRate=20000;

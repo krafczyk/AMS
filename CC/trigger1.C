@@ -172,7 +172,8 @@ void TriggerLVL1::builddaq(integer i, integer n, int16u *p){
    }
 
   // Word 2 Z > 1
-  if(ptr->_tofflag>1)*(p+2)=*(p+2) | (1<<4);
+  if(ptr->_tofflag==3)*(p+2)=*(p+2) | (1<<4);
+  if(ptr->_tofflag>10)*(p+2)=*(p+2) | (1<<5);
 
   // Words 3-10  
        *(p+3)=int16u(ptr->_tofpatt[3]);
@@ -302,6 +303,7 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   z= tofp[0] || tofp[1] || tofp[2] || tofp[3]?1:0; 
   //z=1;
   if(*(p+2) & (1<<4))z=3;
+  if(*(p+2) & (1<<5))z+=10;
   //anti
   uinteger xneg= (((*(p+1) >> 8) & 3) & ((*(p+1) >> 10) & 3)); 
   uinteger xpos= (((*(p+1) >> 12) & 3) & ((*(p+1) >> 14) & 3)); 
