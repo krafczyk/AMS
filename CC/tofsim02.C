@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.12 2001/09/19 08:56:55 choumilo Exp $
+//  $Id: tofsim02.C,v 1.13 2001/11/30 16:47:04 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 #include <tofdbc02.h>
 #include <iostream.h>
@@ -311,7 +311,7 @@ void TOF2Tovt::build()
 //
   if(first++==0){
     AMSmceventg::SaveSeeds();
- //   AMSmceventg::PrintSeeds(cout);
+//    AMSmceventg::PrintSeeds(cout);
     AMSmceventg::SetSeed(0);
 //    cout <<" first in"<<endl;
     seres=TOF2DBc::seresp();

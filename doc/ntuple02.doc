@@ -1,7 +1,5 @@
-#  $Id: ntuple02.doc,v 1.26 2001/11/19 14:39:22 choutko Exp $
-This is AMS02 Ntuple Description
-
-
+#  $Id: ntuple02.doc,v 1.27 2001/11/30 16:47:12 choutko Exp $
+This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
 
 
 
@@ -359,30 +357,63 @@ This is AMS02 Ntuple Description
 * I*4  *           * ECALSHOW * ecshpcl(2,necsh)  pointers to 2d clusters
 
 
+ * I*4  * [0,2]        * LVL3     * nlvl3             // lvl3trigger number 
+ * U*4  * [-1,254]     * LVL3     * LVL3TOF(nlvl3)    // TOF Trigger
+                                                      // -1 if rejected by matrix trigger,
+                                                      //   0 Too Many Hits
+                                                      //   1  tof 0  1 cluster or 2 cluster
+                                                      //   2  tof 1  -----
+                                                      //   4  tof 2  -----
+                                                      //   8  tof 3  -----
+                                                      //   16  tof 0  2 cluster
+                                                      //   32  tof 1  -----
+                                                      //   64  tof 2  -----
+                                                      //   128  tof 3  -----
+
+ * U*4  * [0,10]       * LVL3     * LVL3TRD(nlvl3)   // TRD Trigger
+                                                     //   0  Nothing found
+                                                     //   bit 0:  Segment x found
+                                                     //   bit 1:  segment y found
+                                                     //   bit 2: too many hits found  
+                                                     //   bit 3: high gamma event found 
 
 
- * I*4  * [0,2]    * LVL3     * nlvl3              // lvl3trigger number 
- * I*4  *          * LVL3     * LVL3TOFTr(nlvl3)   // TOF Trigger
-                                      // -1 if rejected by matrix trigger,
-                                      // 0 if rejected by adj hits, 1 otherwise
- * I*4  *          * LVL3     * LVL3AntiTr(nlvl3)  // Anti Trigger  not used now
- * I*4  *          * LVL3     * LVL3TrackerTr(nlvl3)  // TrackerTrigger
-                                                      // 0  - initial state
-                                                      // 1  - reject (p)
-                                                      // 2  - Too many hits 
-                                                      // 3  - No comb found
-                                                      // 4  - >=2 comb found
-                                                      // 5  - Reserved
-                                                      // 6  - Reserved
-                                                      // 7  - Accept (ap)
-                                                      //+8  - Heavy Ion 
-                                                      //+32 - Prescaled evts
- * I*4  *          * LVL3     * LVL3NTrHits(nlvl3)    // Number Tr Hits
- * I*4  *          * LVL3     * LVL3NPat(nlvl3)       // Number "Tracks" found
- * I*4  *          * LVL3     * LVL3Pattern(2,nlvl3)  // Pattern no
- * R*4  *          * LVL3     * LVL3Residual(2,nlvl3) // Aver Residual (cm)
- * R*4  *          * LVL3     * LVL3Time(nlvl3)       // Alg Time (sec)
- * R*4  *          * LVL3     * LVL3ELoss(nlvl3)      // Aver energy loss
+ * U*4  * [0,10]       * LVL3     * LVL3TRD(nlvl3)   // TRD Trigger
+ * U*4  * [0,15]       * LVL3     * LVL3Tr(nlvl3)   //  Tracker  Trigger
+                            // 0  - initial state
+                            // 1  - No Tr Tracks found
+                            // 2  - Too Many Hits in Tracker
+                            // 3  - Positive Rigidity found
+                            // 4  - Ambigious Comb found 
+                            // 5  - Negative Rigidity(Momentum) found
+                            // + 8   // Heavy Ion (Tracker)
+ * I*4  *              * LVL3     * LVL3Main(nlvl3)   //Main Trigger
+                            // bit  0 No Tr Tracks found
+                            // bit  1 No TRD Tracks found
+                            // bit  2 Too Many Hits in Tracker
+                            // bit  3 Too Many Hits in TRD
+                            // bit  4 Too Many Hits in TOF
+                            // bit  5 No TOF Time Information found
+                            // bit  6 Positive Rigidity(Momentum) found
+                            // bit  7 Ambigious Comb found 
+                            // bit  8  Negative Rigidity(Momentum) found
+                            // bit  9   Heavy Ion (Tracker)
+                            // bit  10  High Gamma (TRD)  
+                            // bit  11 Prescaled event  
+ * I*4  * [-1,1]       * LVL3     * LVL3Dir(nlvl3)   //Particle Direction
+                                                     // -1 Up
+                                                     // 0 Unknown
+                                                     // 1 Down
+ * U*4  * [0,1000]     * LVL3     * LVL3NTrHits(nlvl3) // Number Tr Hits
+ * U*4  * [0,10]       * LVL3     * LVL3NPat(nlvl3) // Number "Tracks" found
+ * I*4  * [-1,250]     * LVL3     * LVL3Pat(2,nlvl3) // Pattern no
+ * R*4  *              * LVL3     * LVL3Res(2,nlvl3) // Aver Residual (cm)
+ * R*4  *              * LVL3     * LVL3Time(nlvl3) // Alg Time (sec)
+ * R*4  *              * LVL3     * LVL3ELoss(nlvl3) // Aver energy loss
+ * U*4  * [0,31]       * LVL3     * LVL3TRDHits(nlvl3) // trd hits no
+ * U*4  * [0,31]       * LVL3     * LVL3HMult(nlvl3)  // trd hemnergy hits no
+ * R*4  *              * LVL3     * LVL3TRDPar(2,nlvl3) // trd tan x,y
+
 
 
  * I*4  * [0,1]    * LVL1     * nlvl1                 // lvl1trigger number
@@ -410,11 +441,11 @@ This is AMS02 Ntuple Description
  * R*4  *          * TRRAWCL  * s2n(ntrraw)           // s/n for seed
 
 
- * I*4  * [0,32]   * ANTIRAWC * nantiraw                  // antirawcl num
- * I*4  *          * ANTIRAWC * antirawstatus(nantiraw)   // status
- * I*4  *          * ANTIRAWC * antirawsector(nantiraw)   //sector 1-16
- * I*4  *          * ANTIRAWC * antirawupdown(nantiraw)   //0 - up 1 -down
- * R*4  *          * ANTIRAWC * antirawsignal(nantiraw)   // (mev)
+ * I*4  * [0,32]   * ANTIRAWC * naraw                  // antirawcl num
+ * I*4  *          * ANTIRAWC * arawstatus(naraw)   // status
+ * I*4  *          * ANTIRAWC * arawsector(naraw)   //sector 1-16
+ * I*4  *          * ANTIRAWC * arawupdown(naraw)   //0 - up 1 -down
+ * R*4  *          * ANTIRAWC * arawsignal(naraw)   // (mev)
 
 
  * I*4  * [0,20]   * TOFRAWCL * ntofraw                 // tofrawclnum (used)

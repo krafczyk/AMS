@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.89 2001/11/20 10:28:47 choutko Exp $
+//  $Id: ntuple.C,v 1.90 2001/11/30 16:47:04 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -175,8 +175,8 @@ else{
   HBNAME(_lun,"AntiMCCl",&_antimc.Nantimc,
   "nantimc[0,200],AntiMCIdsoft(nantimc):I,AntiMCXcoo(3,nantimc),AntiMCtof(nantimc),AntiMCedep(nantimc)");
 
-  HBNAME(_lun,"LVL3",&_lvl3.Nlvl3,
-  "nlvl3[0,2],LVL3TOFTr(nlvl3)[-1,10],LVL3AntiTr(nlvl3)[0,10],LVL3TrackerTr(nlvl3),LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pattern(2,nlvl3)[-1,250],LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R");
+  HBNAME(_lun,"LVL3",&_lvl302.Nlvl3,
+  "nlvl3[0,2],LVL3TOF(nlvl3)[-1,254],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,31],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R");
 
   HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
  "nlvl1[0,2],mode(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1)");
@@ -184,7 +184,7 @@ else{
   "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
 
   HBNAME(_lun,"AntiRawC",&_antiraw.Nantiraw,
-  "nantiraw[0,32],antirawstatus(nantiraw):I,antirawsector(nantiraw)[0,100]:I,antirawupdown(nantiraw)[0,7]:I,antirawsignal(nantiraw)");
+  "naraw[0,32],arawstatus(naraw):I,arawsector(naraw)[0,100]:I,arawupdown(naraw)[0,7]:I,arawsignal(naraw)");
 
   HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,
   "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
@@ -242,6 +242,7 @@ int sto=0;
     VZERO(&_anti.Nanti,(sizeof(_anti)-sto)/sizeof(integer));
     VZERO(&_antimc.Nantimc,(sizeof(_antimc)-sto)/sizeof(integer));
     VZERO(&_lvl3.Nlvl3,(sizeof(_lvl3)-sto)/sizeof(integer));
+    VZERO(&_lvl302.Nlvl3,(sizeof(_lvl302)-sto)/sizeof(integer));
     VZERO(&_lvl1.Nlvl1,(sizeof(_lvl1)-sto)/sizeof(integer));
     VZERO(&_lvl102.Nlvl1,(sizeof(_lvl102)-sto)/sizeof(integer));
     VZERO(&_ctcht.Nctcht,(sizeof(_ctcht)-sto)/sizeof(integer));
@@ -282,6 +283,7 @@ int sto=0;
    _anti.Nanti = 0;
    _antimc.Nantimc = 0;
    _lvl3.Nlvl3 = 0;
+   _lvl302.Nlvl3 = 0;
    _lvl1.Nlvl1 = 0;
    _lvl102.Nlvl1 = 0;
    _ctcht.Nctcht = 0;
@@ -429,8 +431,8 @@ void AMSNtuple::initR(char* fname){
    TBranch *bj=_tree->Branch("anti.", "AntiClusterNtuple",  &pevj, 64000,1);
    static void *pevk=(void*)&_antimc;
    TBranch *bk=_tree->Branch("antimc.", "ANTIMCClusterNtuple",  &pevk, 64000,1);
-   static void *pevl=(void*)&_lvl3;
-   TBranch *bl=_tree->Branch("lvl3.", "LVL3Ntuple",  &pevl, 64000,1);
+   static void *pevl=(void*)&_lvl302;
+   TBranch *bl=_tree->Branch("lvl302.", "LVL3Ntuple02",  &pevl, 64000,1);
   }
    cout <<"AMSNtuple::initR-I-OpenRootFile "<<fname<<" "<<_rfile<<" "<<endl;
 #else

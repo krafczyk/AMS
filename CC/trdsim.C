@@ -3,6 +3,15 @@
 #include <extC.h>
 #include <tofsim.h>
 #include <ntuple.h>
+
+void AMSTRDRawHit::lvl3CompatibilityAddress(int16u ptr,uinteger& udr, uinteger & ufe,uinteger& ute,uinteger& chan){
+ chan = ptr & 15;
+ ute = (ptr>>4) & 3;
+ ufe = (ptr>>6) & 7;
+ udr = (ptr>>9) & 7;
+}
+
+bool AMSTRDRawHit::_HardWareCompatibilityMode=false;
 void AMSTRDRawHit::sitrddigi(){
 
     AMSTRDMCCluster * ptr=

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.386 2001/11/20 10:28:46 choutko Exp $
+// $Id: job.C,v 1.387 2001/11/30 16:47:03 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -286,12 +286,12 @@ void AMSJob::_sitrigdata(){
 
   LVL3FFKEY.MinTOFPlanesFired=3;
   LVL3FFKEY.UseTightTOF=1;
-  LVL3FFKEY.TrTOFSearchReg=9.;
+  LVL3FFKEY.TrTOFSearchReg=6.;
   LVL3FFKEY.TrMinResidual=0.03;
   LVL3FFKEY.TrMaxResidual[0]=1.2;
   LVL3FFKEY.TrMaxResidual[1]=0.2;
   LVL3FFKEY.TrMaxResidual[2]=0.3;
-  LVL3FFKEY.TrMaxHits=20;
+  LVL3FFKEY.TrMaxHits=27;
   LVL3FFKEY.Splitting=0.04;
   LVL3FFKEY.NRep=1;
   LVL3FFKEY.Accept=0;
@@ -299,6 +299,7 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.NoK=1;
   LVL3FFKEY.TrHeavyIonThr=200;
   LVL3FFKEY.SeedThr=-32;
+  LVL3FFKEY.Stat=0;
   FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //----------
@@ -953,6 +954,8 @@ TRDCLFFKEY.Thr1A=0.33;
 TRDCLFFKEY.Thr1R=6;
 TRDCLFFKEY.Thr1H=5.9;
 TRDCLFFKEY.MaxHitsInCluster=3;
+LVL3FFKEY.TRDHMulThr=TRDCLFFKEY.Thr1H/TRDCLFFKEY.ADC2KeV*TRDMCFFKEY.f2i;
+LVL3FFKEY.TRDHMulPart=0.249;
 FFKEY("TRDCL",(float*)&TRDCLFFKEY,sizeof(TRDCLFFKEY_DEF)/sizeof(integer),"MIXED");
 
 }
@@ -1673,6 +1676,7 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::inittable(2);
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
+        AMSTRDIdSoft::inittable();
     }
     else {
       cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<

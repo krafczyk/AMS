@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.162 2001/11/19 13:28:45 choumilo Exp $
+//  $Id: commons.h,v 1.163 2001/11/30 16:47:13 choutko Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -100,6 +100,9 @@ integer RebuildLVL3;
 integer NoK;
 geant TrHeavyIonThr;
 integer SeedThr;
+integer TRDHMulThr;
+geant  TRDHMulPart;
+integer Stat;
 };
 #define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
 COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);

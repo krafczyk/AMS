@@ -1,5 +1,6 @@
-*  $Id: rndm.F,v 1.8 2001/08/02 16:42:47 choutko Exp $
+*  $Id: rndm.F,v 1.9 2001/11/30 16:47:11 choutko Exp $
              function rndm(dummy)
+             
              data i/0/
              real *4 r(2)
              call grndm(r,1)

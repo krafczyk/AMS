@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.134 2001/11/19 13:28:27 choumilo Exp $
+//  $Id: amsgeom.C,v 1.135 2001/11/30 16:47:02 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -3717,8 +3717,8 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 //   ((AMSgvolume*) dau)->Smartless()=1;
 #endif
 //
-// Tubes & Radiators has no rotation matrix at the moment
-// This can be changed in any time
+// Tubes & Radiators have no rotation matrix at the moment
+// This can be changed at any time
 //
 
    // Radiators not radiators any more since now

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.203 2001/11/19 13:28:44 choumilo Exp $
+#  $Id: datacards.doc,v 1.204 2001/11/30 16:47:12 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -593,8 +593,9 @@ I12 RebuildLVL3(2)                   // rebuild/not rebuild(0) lvl3 in reconstru
 I13 NoK(1)                           // NotMatch(1) Match(0) S & K in lvl3
 R14 TrHeavyIonThr(200)               // Heavy Ion threshold (trunc mean)
 I15 SeedThr(32)                      // S/N *8 threshold for seed 
-
-
+I16 TRDHmultThr(4720)                // 5.9 kev
+R17 TRDHMultPart(0.249)              //  part of hits with energy>5.9 kev
+I18 Stat(0)                          // book,fill some histos
 L3EXP   // LVL3 Expert 
 
 I 1 NEvents(1024)                       // Number of Events in Sequence 

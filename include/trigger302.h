@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.3 2001/11/19 14:39:23 choutko Exp $
+//  $Id: trigger302.h,v 1.4 2001/11/30 16:47:13 choutko Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -16,9 +16,14 @@ namespace trigger302const{
 const integer NTRHDRP=trid::ntdr;
 const integer NTRHDRP2=trid::ntdr*trid::ncrt;
 const integer maxtr=10000;
-const integer maxtrd=1000;
 const integer maxtof=1000;
 const integer maxtrpl=10;
+const integer TRDIN=1;
+const integer TOFIN=2;
+const integer maxufe=20;
+const integer maxhitstrd=12;
+const integer maxtrd=maxufe*maxhitstrd;
+const integer matrixsize=60;
 };
 //
 class TriggerAuxLVL302{
@@ -50,38 +55,61 @@ protected:
  uinteger _TriggerInputs;   //   0 Default
                             //   1  Doesnot Require TRD      
                             //   2  Doesnot Require TOF Timing      
- integer _TOFTrigger;
- uinteger _AntiTrigger;
- uinteger _TRDTrigger;
- uinteger _TrackerTrigger;
- uinteger _MainTrigger;     // 0  - initial state
+
+ integer _TOFTrigger;       //  -1 No Matrix
+                            //   0 Too Many Hits
+                            //   1  tof 0  1 cluster or 2 cluster
+                            //   2  tof 1  -----
+                            //   4  tof 2  -----
+                            //   8  tof 3  -----
+                            //   16  tof 0  2 cluster
+                            //   32  tof 1  -----
+                            //   64  tof 2  -----
+                            //   128  tof 3  -----
+
+ uinteger _TRDTrigger;      //   0  Nothing found
+                            //   bit 0:  Segment x found
+                            //   bit 1:  segment y found
+                            //   bit 2: too many hits found  
+                            //   bit 3: high gamma event found 
+
+ uinteger _TrackerTrigger;  // 0  - initial state
                             // 1  - No Tr Tracks found
-                            // 2  - No TRD Tracks found
-                            // 3  - Too Many Hits in Tracker/TRD/TOF
-                            // 4  - No TOF Time Information found
-                            // 5  - Positive Rigidity(Momentum) found
-                            // 6  - Ambigious Comb found 
-                            // 7  - Negative Rigidity(Momentum) found
-                            // + 8   // High Gamma (TRD)  
-                            // + 16   // High Ion (Tracker)
-                            // + 32  //  Prescaled event  
+                            // 2  - Too Many Hits in Tracker
+                            // 3  - Positive Rigidity found
+                            // 4  - Ambigious Comb found 
+                            // 5  - Negative Rigidity(Momentum) found
+                            // + 8   // Heavy Ion (Tracker)
+
+ uinteger _MainTrigger;     //  0  - initial state
+                            // bit  0 No Tr Tracks found
+                            // bit  1 No TRD Tracks found
+                            // bit  2 Too Many Hits in Tracker
+                            // bit  3 Too Many Hits in TRD
+                            // bit  4 Too Many Hits in TOF
+                            // bit  5 No TOF Time Information found
+                            // bit  6 Positive Rigidity(Momentum) found
+                            // bit  7 Ambigious Comb found 
+                            // bit  8  Negative Rigidity(Momentum) found
+                            // bit  9   Heavy Ion (Tracker)
+                            // bit  10  High Gamma (TRD)  
+                            // bit  11 Prescaled event  
 
 // TOF Time Part
 //
 // EC to define
 //
 
-// Trd PART
-integer _TRDHits; // number of good hits
-integer _TRDTracks; // number of trd tracks
-integer _TRDHMult;   // number of clusters with energy > thr 
 
+
+ 
 // Tracker Part
  integer _NTrHits;      // Total number of "good" hits
  integer _NPatFound;    // Number of "tracks" found
  integer _Pattern[2];
  number _Residual[2];      // Discriminators
  number _TrEnergyLoss;
+
 
 
 // Tracker Aux Part
@@ -94,6 +122,10 @@ integer _TRDHMult;   // number of clusters with energy > thr
  geant _upperlimitY[trconst::maxlay];
  geant _lowlimitX[trconst::maxlay];
  geant _upperlimitX[trconst::maxlay];
+ geant _upperlimitTOF[2][trconst::maxlay];
+ geant _lowlimitTOF[2][trconst::maxlay];
+ geant _upperlimitTRD[2][trconst::maxlay];
+ geant _lowlimitTRD[2][trconst::maxlay];
  geant coou, dscr,cood,a,b,s,r;
  geant resid[trconst::maxlay-2],zmean,factor,amp[trconst::maxlay];
  static integer _TOFPattern[TOFGC::MAXPAD][TOFGC::MAXPAD];
@@ -116,7 +148,50 @@ integer _TRDHMult;   // number of clusters with energy > thr
 
 
 // Trd Aux Part
+  class TRDAux{
+   public:
+    number _Par[2][6];    // fit parameters: t=par[0]*(z-par[2])+par[1]
+                          //                   par[3] == error(par[0])
+   bool _SegmentFound[2];
+   integer _NHits[2]; // number of good hits
+   integer _HMult;   // number of clusters with energy > thr 
 
+    integer _nufe;
+    integer  _lasthaddr;
+    uinteger _haddrs[trigger302const::maxufe];
+    uinteger _nhits[trigger302const::maxufe];
+    int16u _coo[trigger302const::maxufe][trigger302const::maxhitstrd][3];  // ute,tube,amp  ( X 8 ?)
+    geant   _DistrMatrix[2][trigger302const::matrixsize][trigger302const::matrixsize];
+static    geant _CooLimits[2];
+static    geant _CooBinSize;
+static    geant _TanLimits[2];
+static    geant _TanBinSize;
+static uinteger _Dir[trdid::nufe][trdid::nudr][trdid::ncrt];
+static geant _Coo[trdid::nufe][trdid::nudr][trdid::ncrt][3];
+static geant _CooZ[trdid::nute][trdconst::maxtube];
+static geant _CooT[trdid::nute][trdconst::maxtube];
+
+static geant _IncMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
+static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst::maxtube];
+   TRDAux():_HMult(0),_nufe(-1),_lasthaddr(-1){
+    for(int i=0;i<2;i++){_SegmentFound[i]=false;_NHits[i]=0;}
+    for(int i=0;i<trigger302const::matrixsize;i++){
+     for(int j=0;j<trigger302const::matrixsize;j++){
+     _DistrMatrix[0][i][j]=0;
+     _DistrMatrix[1][i][j]=0;
+    }
+   }
+}
+  integer addnewhit(uinteger crate, uinteger udr, uinteger ufe,uinteger ute, uinteger tube, int16u amp);
+  void build();
+  };  
+  TRDAux TRDAux;
+
+
+ //TOFTime Part
+   integer _Direction;            //  -1 Up
+                                  //  0  Unknwn
+                                  //  1 Down
 
 //  Tof Aux Part
 
@@ -129,15 +204,19 @@ integer _TRDHMult;   // number of clusters with energy > thr
  void _writeEl();
  number _Time;          // Time to process event
 
-
 public:
- TriggerLVL302();
- TriggerLVL302(integer tra, integer tof, integer anti,integer ntr, integer npat,
- integer pat[], number res[], number time, number eloss);
- integer tofok();
+ TriggerLVL302(bool tofin=true, bool trdin=true);
+
+ void Finalize();   // mke the MainTriggerOutput
+
+// Tracker Part
+
+
+ integer toftrdok();
  integer TOFOK(){return _TOFTrigger==1;}
  uinteger & TrackerTrigger(){ return _TrackerTrigger;}
- integer TrackerTriggerS(); 
+ uinteger & TRDTrigger(){ return _TRDTrigger;}
+ integer MainTrigger(); 
  integer LVL3OK();
  integer LVL3HeavyIon(){return (_TrackerTrigger & 8) || (_TrEnergyLoss>600);}
  static integer TOFOr(uinteger paddle,uinteger plane);
@@ -154,10 +233,19 @@ public:
  static void build();
  static void init();
  static geant Discriminator(integer nht);
-//
-#ifdef __DB__
-   friend class Triggerlvl3D;
-#endif
+
+ //TRD Part
+
+ bool UseTRD(){return (_TriggerInputs&trigger302const::TRDIN)==0;}
+
+
+ //TOFTime Part
+   
+ bool UseTOFTime(){return (_TriggerInputs&trigger302const::TOFIN) ==0;}
+
+
+
+
  // Interface with DAQ
 
        static integer checkdaqid(int16u id);

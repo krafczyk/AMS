@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.2 2001/11/19 14:39:22 choutko Exp $
+//  $Id: trdsim.h,v 1.3 2001/11/30 16:47:13 choutko Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -17,8 +17,12 @@ void _init(){};
 void _copyEl();
 void _printEl(ostream & stream);
 void _writeEl();
+static bool _HardWareCompatibilityMode;
 
 public:
+
+static void lvl3CompatibilityAddress(int16u address,uinteger &udr, uinteger & ufe, uinteger & ute,uinteger & chan);
+static bool & HardWareCompatibilityMode(){return _HardWareCompatibilityMode;}
 AMSTRDRawHit( const AMSTRDIdSoft & id,uinteger amp):AMSlink(),_id(id),_Amp(amp){};
 uinteger getid() const {return _id.cmpt();}
 static integer Out(integer status);
@@ -26,12 +30,16 @@ AMSTRDIdSoft & getidsoft()  {return _id;}
 number  Amp(){return number(_Amp)/TRDMCFFKEY.f2i;} 
 integer operator < (AMSlink & o) const {
   AMSTRDRawHit * p= dynamic_cast<AMSTRDRawHit*>(&o);
-
+ if(_HardWareCompatibilityMode){
+  return !p || _id.gethaddr()<p->_id.gethaddr();
+ }
+ else{
   if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
   else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0
 ;
-
+ 
   else return !p || _id.cmpta() < p->_id.cmpta();
+ }
 }
 
  AMSTRDRawHit *  next(){return (AMSTRDRawHit*)_next;}   

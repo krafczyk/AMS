@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.50 2001/11/19 14:39:22 choutko Exp $
+//  $Id: root.h,v 1.51 2001/11/30 16:47:13 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -1063,6 +1063,36 @@ public:
 ClassDef(LVL3Ntuple,1)       //LVL3Ntuple
 #else
 friend class TriggerLVL3;
+friend class AMSNtuple;
+#endif
+};
+
+#ifdef __WRITEROOT__
+class LVL3Ntuple02 : public TObject {
+#else
+class LVL3Ntuple02 {
+#endif
+public:
+  int Nlvl3;
+  int TOFTr[MAXLVL3];
+  int TRDTr[MAXLVL3];
+  int TrackerTr[MAXLVL3];
+  int MainTr[MAXLVL3];
+  int Direction[MAXLVL3];
+  int NTrHits[MAXLVL3];
+  int NPatFound[MAXLVL3];
+  int Pattern[MAXLVL3][2];
+  float Residual[MAXLVL3][2];
+  float Time[MAXLVL3];
+  float ELoss[MAXLVL3];
+  int   TRDHits[MAXLVL3];
+  int   HMult[MAXLVL3];
+  float TRDPar[MAXLVL3][2];
+#ifdef __WRITEROOT__
+  LVL3Ntuple02();
+ClassDef(LVL3Ntuple02,1)       //LVL3Ntuple02
+#else
+friend class TriggerLVL302;
 friend class AMSNtuple;
 #endif
 };

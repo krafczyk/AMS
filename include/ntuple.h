@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.49 2001/09/02 12:48:25 kscholbe Exp $
+//  $Id: ntuple.h,v 1.50 2001/11/30 16:47:13 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -41,6 +41,7 @@ protected:
   AntiClusterNtuple _anti;
   ANTIMCClusterNtuple _antimc;
   LVL3Ntuple _lvl3;
+  LVL3Ntuple02 _lvl302;
   LVL1Ntuple _lvl1;
   LVL1Ntuple02 _lvl102;
   CTCHitNtuple _ctcht;
@@ -103,6 +104,7 @@ public:
   AntiClusterNtuple* Get_anti() {return &_anti;}
   ANTIMCClusterNtuple* Get_antimc() {return &_antimc;}
   LVL3Ntuple* Get_lvl3() {return &_lvl3;}
+  LVL3Ntuple02* Get_lvl302() {return &_lvl302;}
   LVL1Ntuple* Get_lvl1() {return &_lvl1;}
   LVL1Ntuple02* Get_lvl102() {return &_lvl102;}
   CTCHitNtuple* Get_ctcht() {return &_ctcht;}

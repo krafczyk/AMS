@@ -13,7 +13,7 @@ integer AMSTRDCluster::build(int rerun){
     VZERO(adc,sizeof(adc)/sizeof(integer));
     for (int n=0;n<AMSTRDIdSoft::ncrates();n++){
      AMSTRDRawHit * ptr=
-     (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",n,1);  
+     (AMSTRDRawHit*)AMSEvent::gethead()->getheadC("AMSTRDRawHit",n,2);  
      while(ptr){
        AMSTRDIdSoft id(ptr->getidsoft());
        integer ilay=id.getlayer();
