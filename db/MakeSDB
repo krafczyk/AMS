@@ -257,13 +257,13 @@ clean:
 #                       #
 #########################
 
- $(BIN_DB)geantDB.o:         ../CC/geant.C
+ $(BIN_DB)geantDB.o:         ../CC/geant.C dbS.h
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../CC/geant.C \
                                                 -o $(BIN_DB)geantDB.o
- $(BIN_DB)jobDB.o:         ../CC/job.C
+ $(BIN_DB)jobDB.o:         ../CC/job.C dbS.h
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../CC/job.C \
                                                 -o $(BIN_DB)jobDB.o
- $(BIN_DB)eventDB.o:         ../CC/event.C
+ $(BIN_DB)eventDB.o:         ../CC/event.C dbS.h
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../CC/event.C \
                                                 -o $(BIN_DB)eventDB.o
  $(BIN_DB)dbS_TDV.o:   dbS_TDV.C

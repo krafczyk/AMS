@@ -69,7 +69,7 @@ private:
        ooHandle(ooDBObj)    _slowdbH;     // slow control and H/K dbase
        ooHandle(ooDBObj)    _tagdbH;      // handle to geometry dbase
        ooHandle(ooDBObj)    _tdvdbH;      // handle to tdv dbase
-
+       ooHandle(AMSdbs)     _dbTabH;      // handle to database catalog
 
 public:
 // Constructor & Destructor
@@ -92,7 +92,6 @@ public:
         void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode);
 	ooStatus	ReadMaterial();
 	ooStatus	ReadTMedia();
-	ooStatus	ReadAllTDV();
 	ooStatus	ReadTDV(char* name, time_t I, time_t B, time_t E, 
                                 uinteger* buff);
 
@@ -132,6 +131,7 @@ public:
   inline ooHandle(ooDBObj)&    slowdb()     {return _slowdbH;}
   inline ooHandle(ooDBObj)&    tagdb()      {return _tagdbH;}
   inline ooHandle(ooDBObj)&    tdvdb()      {return _tdvdbH;}
+  inline ooHandle(AMSdbs)&     Tabdb()      {return _dbTabH;}
 
         integer         nTransStart()  { return _transStart;}
         integer         nTransCommit() { return _transCommit;}

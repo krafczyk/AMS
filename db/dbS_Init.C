@@ -16,7 +16,7 @@
 // June  , 1997 ak.  dbase size limitation, dbcatalog, db paths
 // Oct   , 1997 ak.  tdv database
 //
-// last edit Oct 13, 1997, ak.
+// last edit Oct 14, 1997, ak.
 //
 
 #include <stdio.h>
@@ -65,7 +65,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
     ContainersC(_catdbH, dbTabH);
     if (dbTabH == NULL) 
                       Fatal("ClusteringInit: catalog of databases not found");
- 
+    _dbTabH = dbTabH;
     
     if (setup()) {
      // get db path name
@@ -105,9 +105,9 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
        Message("ClusteringInit : cannot find container ");
        if (mode != oocUpdate) 
         Fatal("ClusteringInit: cannot create container in Read mode");
-       dbH = dbTabH -> currentDB(dbsetup);
-       int size = (dbTabH -> dbsize(dbsetup));
-       if (size/1000 > maxSetupDBSize*1000) {
+        dbH = dbTabH -> currentDB(dbsetup);
+        int size = (dbTabH -> dbsize(dbsetup));
+        if (size/1000 > maxSetupDBSize*1000) {
         cout<<"ClusteringInit : current setup database size "
                                                 <<size/1000<<" KBytes"<<endl;
         Message("ClusteringInit: create new setup database ");
@@ -126,54 +126,49 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      //
      // get db path name
      integer ntdvdbs = dbTabH -> size(dbtdv);
+     integer createContainer = 1;
      cout<<"ClusteringInit :: tdv database(s) found "<<ntdvdbs<<endl;
 
-     if (ntdvdbs < 1) {
-
-      cptr = getenv("AMS_TDVDB_Path");
-      if ( cptr ) 
-       dbpathname =StrDup(cptr);
-      else 
-       dbpathname =StrDup(AMSdbs::pathNameTab[dbtdv]);
-      cout<<"ClusteringInit: TDVDB path "<<AMSdbs::pathNameTab[dbtdv]<<endl;
-      dbH = db("TDV-0",dbpathname);
-      if (dbH == NULL) Fatal ("ClusteringInit:: _tdvdbH is NULL");
-      dbTabH -> newDB(dbtdv, dbH);
-      ntdvdbs = 1;
-      delete [] dbpathname;
-
-     } else {
-
-      // check the TDV container and database size 
-      contName = StrCat("Time_Var_",_setup);
-      cout<<"ClusteringInit -I- check container "<<contName<<endl;
-      int jj = 0;
-      for (int j = 0; j < ntdvdbs; j++) {
-       dbH = dbTabH -> getDB(dbtdv,j);
-       if (contH.exist(dbH, contName, mode)) {
-        jj = 1;
-        break;
-       }
-      } 
-      if (jj == 0) {
-       Message("ClusteringInit : cannot find container ");
-       if (mode != oocUpdate) 
-        Fatal("ClusteringInit: cannot create container in Read mode");
-       dbH = dbTabH -> currentDB(dbtdv);
-       int size = (dbTabH -> dbsize(dbtdv));
-       if (size/1000 > maxTDVDBSize*1000) {
-        cout<<"ClusteringInit : current tdv database size "
-                                                <<size/1000<<" KBytes"<<endl;
-        Message("ClusteringInit: create new TDV database ");
-        if(dbTabH -> extend(dbtdv)) 
+     contName = StrDup("Time_Dep_Var");
+     if (ntdvdbs < 1) {  // no TDV databases found
+       cptr = getenv("AMS_TDVDB_Path");
+       if ( cptr ) 
+        dbpathname =StrDup(cptr);
+       else 
+        dbpathname =StrDup(AMSdbs::pathNameTab[dbtdv]);
+       cout<<"ClusteringInit: TDVDB path "<<AMSdbs::pathNameTab[dbtdv]<<endl;
+       dbH = db("TDV-0",dbpathname);
+       if (dbH == NULL) Fatal ("ClusteringInit:: _tdvdbH is NULL");
+       dbTabH -> newDB(dbtdv, dbH);
+       ntdvdbs = 1;
+       delete [] dbpathname;
+     } else {            // there are TDV databases
+      int size = dbTabH -> dbsize(dbtdv);
+      if (size/1000 > maxTDVDBSize*1000) {
+       if(dbTabH -> extend(dbtdv)) {
          Message("ClusteringInit:: new TDV database created ");
-        else 
-         Fatal("ClusteringInit: cannot extend TDV database");
-       } // if size < MaxTDVDBSize
+         dbH = dbTabH -> currentDB(dbtdv);
+       } else {
+         Fatal("ClusteringInit:: cannot extend TDV database");
+       }
+      } else {        // dbsize < limit
+       cout<<"ClusteringInit -I- check container "<<contName<<endl;
        dbH = dbTabH -> currentDB(dbtdv);
-      } // if container not found
-      if(contName)   delete [] contName;
-     }   
+       //if (contH.exist(dbH, contName, mode)) createContainer = 0;
+      }
+     }
+     if (createContainer == 1) {
+      createContainer = 0;
+      if (mode == oocUpdate) {
+       Message("ClusteringInit: create container");
+       int status = Container(dbH, contName, contH);
+       if (status == -1) Fatal("ClusteringTDV: Failed to create container");
+      } else {
+       Warning("ClusteringInit:: TDV container not found");
+       Warning("ClusteringInit:: container cannot be created in Read mode");
+      }
+     }
+     if(contName)   delete [] contName;
      _tdvdbH = dbH;
     }
 

@@ -4,7 +4,7 @@
 // Sep 17, 1997. ak. don't write timeid to files in dbase version
 // Oct  1, 1997. ak. add FindTheBestTDV, FillTDVTable functions
 //                       
-// Last Edit : Oct 10, 1997. ak. 
+// Last Edit : Oct 14, 1997. ak. 
 //
 #include <amsgobj.h>
 #include <cern.h>
@@ -1822,6 +1822,7 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
 
   for (int i=0; i<ntdvNames; i++) {
     if(strcmp(name,tdvNameTab[i]) == 0) {
+     if(_ptr_start[i] > -1 && _ptr_end[i] > -1) {
        integer  ptr = -1;
        time_t   insert = 0;
        for (int j=_ptr_start[i]; j<_ptr_end[i]; j++) {
@@ -1858,6 +1859,9 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
          cerr <<"time "<<asctime(localtime(&timeV))<<endl;
        }
     break;
+     } else {
+       cout<<"AMSJob::FindTheBestTDV -W- no TDV for "<<name<<endl;
+     }
     }
   }
 #endif

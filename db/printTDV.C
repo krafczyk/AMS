@@ -1,7 +1,7 @@
 //           
 // Sep 17, 1997 ak. print content of TDV
 //
-// Last Edit : Sep 24, 1997. 
+// Last Edit : Oct 14, 1997. 
 //
 #include <iostream.h>
 #include <strstream.h>
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
  char*                  dbase = "TDV";
  char*                  printMode = "S";
  char*                  cptr;
- char*                  contName = "Time_Var";
+ char*                  contName = "Time_Dep_Var";
 
  time_t                 insert;
  time_t                 begin;
@@ -193,6 +193,8 @@ int main(int argc, char** argv)
  ooHandle(ooContObj)    contH;
  ooItr(ooContObj)       contItr;
  ooItr(AMSTimeIDD)      tdvItr;
+ 
+ int                    i, j;
 
  cptr = getenv("OO_FD_BOOT");
  if (!cptr) Fatal("environment OO_FD_BOOT in undefined");
@@ -231,7 +233,7 @@ int main(int argc, char** argv)
  integer ntdvdbs = dbTabH -> size(dbtdv);
 
  integer nobj = 0;
- for (int j = 0; j < ntdvdbs; j++) {
+ for (j = 0; j < ntdvdbs; j++) {
   dbH = dbTabH -> getDB(dbtdv,j);
   if (!dbH) Fatal ("Pointer to selected dbase is NULL");
   if (contH.exist(dbH, contName, oocRead)) {
@@ -253,45 +255,46 @@ int main(int argc, char** argv)
    }
   }
  }
- cout <<"found "<<nobj<<" TDV objects"<<endl;
+ cout <<"found "<<nobj<<" TDV objects in "<<ntdvdbs<<" files"<<endl;
  tdv = new tdv_time[nobj];
  int jj = 0;
- for (j = 0; j < ntdvdbs; j++) {
-  if (contH.exist(dbH, contName, oocRead)) {
-    rstatus = tdvItr.scan(contH, oocRead);
-  } else {
+ int jj_start;
+ for (i=0; i<ntdv; i++) {
+  jj_start = jj;
+  char name[80];
+  char pred[100];
+  strcpy(name,tdvnames[i]);
+  (void) sprintf(pred,"_name=~%c%s%c",'"',name,'"');
+  cout<<"TDV : search for "<<pred<<endl;
+  ptr_start[i] = -1;
+  ptr_end[i]   = -1;
+  for (j = 0; j < ntdvdbs; j++) {
+   dbH = dbTabH -> getDB(dbtdv,j);
+   if (!contH.exist(dbH, contName, oocRead)) {
     rstatus = contItr.scan(dbH,oocNoOpen);
     if (rstatus != oocSuccess) Fatal("database scan failed");
     while (contItr.next()) {
      contH = contItr;
-     if (strstr(contH.name(),contName) != NULL) {
-      rstatus = tdvItr.scan(contH, oocRead);
-      for (int i=0; i<ntdv; i++) {
-       char name[80];
-       char pred[100];
-       strcpy(name,tdvnames[i]);
-       (void) sprintf(pred,"_name=~%c%s%c",'"',name,'"');
-       cout<<"TDV : search for "<<pred<<endl;
-       rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
-       if (rstatus != oocSuccess) Fatal("container scan failed");
-       ptr_start[i] = jj;       
-       while (tdvItr.next()) {
-        //cout <<tdvItr -> getname()<<endl;
-        tdvItr -> GetTime(insert, begin, end);
-        tdv[jj]._insert = insert;
-        tdv[jj]._begin  = begin;
-        tdv[jj]._end    = end;
-        tdv[jj]._size   = tdvItr -> getsize();
-        jj++;
-        ptr_end[i] = jj;
-       }
-      }
-     }
+     if (strstr(contH.name(),contName) != NULL) break;
     }
    }
+   rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
+   if (rstatus != oocSuccess) Fatal("container scan failed");
+    while (tdvItr.next()) {
+     tdvItr -> GetTime(insert, begin, end);
+     tdv[jj]._insert = insert;
+     tdv[jj]._begin  = begin;
+     tdv[jj]._end    = end;
+     tdv[jj]._size   = tdvItr -> getsize();
+     jj++;
+     ptr_end[i] = jj;
+    }
+   if (ptr_end[i] > 0) ptr_start[i] = jj_start;
   }
+ }
+
  lms.Commit();
- for (int i=0; i< ntdv; i++) {
+ for (i=0; i< ntdv; i++) {
    cout<<tdvnames[i]<<", found "<<ptr_end[i]-ptr_start[i]<<" objects"<<endl;
    for (int j=ptr_start[i];j<ptr_end[i];j++) {
      cout<<"i/b/e "<<asctime(localtime(&tdv[j]._insert))
@@ -299,11 +302,11 @@ int main(int argc, char** argv)
          <<"      "<<asctime(localtime(&tdv[j]._end))<<endl;
    }
  }
- integer size;
- for (i=0; i<ntdv; i++) {
-  char name[80];
-  strcpy(name,tdvnames[i]);
-  FindTheBestTDV(name,900140000,size,insert,begin,end);
- }
+ // integer size;
+ // for (i=0; i<ntdv; i++) {
+ //  char name[80];
+ //  strcpy(name,tdvnames[i]);
+ //  FindTheBestTDV(name,900140000,size,insert,begin,end);
+ // }
 }
 
