@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.213 2002/04/10 10:36:08 choutko Exp $
+#  $Id: Mopt,v 1.214 2002/04/11 14:17:53 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -122,7 +122,7 @@ OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o
 OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
 OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
 OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
-OBJECTSEAUXMT=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client_mt.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver_mt.o
+OBJECTSEAUXMT=$(BIN)id_mt.o $(BIN)node_mt.o $(BIN)astring_mt.o $(BIN)client_mt.o  $(BIN)amsdbc_mt.o $(BIN)timeid_mt.o  $(BIN)apool_mt.o $(BIN)snode_mt.o $(BIN)dbserver_mt.o
 OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL) 
 OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT) 
 
@@ -232,7 +232,7 @@ OBJECTCOMT=$(BINMT)server-stubs.o $(BINMT)server-skels.o $(BINMT)server-common.o
 OBJECTCL= $(BIN)server-cpp-stubs.o $(BIN)server-cpp-common.o
 OBJECTCLMT= $(BINMT)server-cpp-stubs.o $(BINMT)server-cpp-common.o
 OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver.o
-OBJECTSEAUXMT=$(BIN)id.o $(BIN)node.o $(BIN)astring.o $(BIN)client_mt.o  $(BIN)amsdbc.o $(BIN)timeid.o  $(BIN)apool.o $(BIN)snode.o $(BIN)dbserver_mt.o
+OBJECTSEAUXMT=$(BIN)id_mt.o $(BIN)node_mt.o $(BIN)astring_mt.o $(BIN)client_mt.o  $(BIN)amsdbc_mt.o $(BIN)timeid_mt.o  $(BIN)apool_mt.o $(BIN)snode_mt.o $(BIN)dbserver_mt.o
 OBJECTSE=  $(BIN)server-cpp-skels.o   $(OBJECTCL) 
 OBJECTSEMT=  $(BINMT)server-cpp-skels.o   $(OBJECTCLMT) 
 endif
@@ -320,6 +320,9 @@ $(BIN)daqs2block.o:    	 $(SCC)daqs2block.C
 $(BIN)astring.o:    	 $(SCC)astring.C
 	$(CC) -c $(CFLAGS) $(SCC)astring.C -o $(BIN)astring.o
 
+$(BIN)astring_mt.o:    	 $(SCC)astring.C
+	$(CC) -c $(CFLAGS) $(SCC)astring.C -o $(BIN)astring_mt.o
+
 $(BIN)event.o:    	 $(SCC)event.C
 	$(CC) -c $(CFLAGS) $(SCC)event.C -o $(BIN)event.o
 
@@ -334,6 +337,9 @@ $(BIN)root.o:    	 $(SCC)root.C
 
 $(BIN)id.o:    	 $(SCC)id.C
 	$(CC) -c $(CFLAGS)  $(SCC)id.C -o $(BIN)id.o
+
+$(BIN)id_mt.o:    	 $(SCC)id.C
+	$(CC) -c $(CFLAGS)  $(SCC)id.C -o $(BIN)id_mt.o
 
 $(BIN)bcorr.o:    	 $(SCC)bcorr.C
 	$(CC) -c $(CFLAGS) $(SCC)bcorr.C -o $(BIN)bcorr.o
@@ -352,14 +358,23 @@ $(BIN)trigger302.o:    	 $(SCC)trigger302.C
 $(BIN)node.o:	         $(SCC)node.C
 	$(CC) -c $(CFLAGS) $(SCC)node.C -o $(BIN)node.o
 
+$(BIN)node_mt.o:	         $(SCC)node.C
+	$(CC) -c $(CFLAGS) $(SCC)node.C -o $(BIN)node_mt.o
+
 $(BIN)snode.o:          $(SCC)snode.C
 	$(CC) -c $(CFLAGS) $(SCC)snode.C -o $(BIN)snode.o
+
+$(BIN)snode_mt.o:          $(SCC)snode.C
+	$(CC) -c $(CFLAGS) $(SCC)snode.C -o $(BIN)snode_mt.o
 
 $(BIN)gvolume.o:        $(SCC)gvolume.C
 	$(CC) -c $(CFLAGS) $(SCC)gvolume.C -o $(BIN)gvolume.o
            
 $(BIN)timeid.o:        $(SCC)timeid.C
 	$(CC) -c $(CFLAGS) $(SCC)timeid.C -o $(BIN)timeid.o
+           
+$(BIN)timeid_mt.o:        $(SCC)timeid.C
+	$(CC) -c $(CFLAGS) $(SCC)timeid.C -o $(BIN)timeid_mt.o
            
 $(BIN)status.o:        $(SCC)status.C
 	$(CC) -c $(CFLAGS) $(SCC)status.C -o $(BIN)status.o
@@ -446,6 +461,9 @@ $(BIN)cern.o:	         $(SCC)cern.C
 $(BIN)amsdbc.o:         $(SCC)amsdbc.C
 	$(CC) -c $(CFLAGS) $(SCC)amsdbc.C -o $(BIN)amsdbc.o
 
+$(BIN)amsdbc_mt.o:         $(SCC)amsdbc.C
+	$(CC) -c $(CFLAGS) $(SCC)amsdbc.C -o $(BIN)amsdbc_mt.o
+
 $(BIN)tkdbc.o:         $(SCC)tkdbc.C
 	$(CC) -c $(CFLAGS)  $(SCC)tkdbc.C -o $(BIN)tkdbc.o
 
@@ -476,6 +494,9 @@ $(BIN)upool.o:	         $(SCC)upool.C
 
 $(BIN)apool.o:	         $(SCC)apool.C
 	$(CC) -c $(CFLAGS)  $(SCC)apool.C -o $(BIN)apool.o
+
+$(BIN)apool_mt.o:	         $(SCC)apool.C
+	$(CC) -c $(CFLAGS)  $(SCC)apool.C -o $(BIN)apool_mt.o
 
 $(BIN)gmat.o:         	 $(SCC)gmat.C
 	$(CC) -c $(CFLAGS) $(SCC)gmat.C -o $(BIN)gmat.o

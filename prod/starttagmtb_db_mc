@@ -1,2 +1,2 @@
 source $AMSDataDir/DataManagement/prod/AMSProdVar
-bsub -q linux_server -m pcamsf0 -o $AMSProdDir/logs/Server.1.log $AMSProdDir/prod/starttagmt_db_mc $1 $2
+nice -20    $AMSProdDir/prod/starttagmt_db_mc $1 $2 1>$AMSProdDir/logs/Server.1.log 2>&1 &

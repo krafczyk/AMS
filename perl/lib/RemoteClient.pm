@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.41 2002/04/10 10:36:17 choutko Exp $
+# $Id: RemoteClient.pm,v 1.42 2002/04/11 14:17:56 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -210,7 +210,7 @@ my %mv=(
      $self->{$key}=$ret->[0][0];
  }
     else{    
-     $self->{$key}="/home/httpd/cgi-bin/AMS02MCUploads";
+     $self->{$key}="/var/www/cgi-bin/AMS02MCUploads";
     }
      $key='AMSSoftwareDir';
      $sql="select myvalue from Environment where mykey='".$key."'";
@@ -2863,7 +2863,7 @@ print qq`
           print "<BR><TR>";
          if($self->{CCT} eq "local"){
           print "Password :  <input type=\"password\" name=\"password\" value=\"\">  ";
-          print "<\TR><\BR>";
+          print "<TR><BR>";
          }
          print $q->submit(-name=>$param, -value=>"Save");
          print htmlBottom();
