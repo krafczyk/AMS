@@ -3,6 +3,7 @@
 // Aug 08, 1996. ak. First try with Objectivity
 //                   Add _id and _name. The order of variables is changed
 // Mar 25, 1997. ak. _rel member of class gvolume
+// July 01, 1997. ah. CmpGeometry method defined 
 //
 // Last Edit : Mar 25, 1997. ak.
 // 
@@ -14,6 +15,7 @@
 #include <typedefs.h>
 #include <point.h>
 #include <gvolume.h>
+#include <db_comm.h>
 
 class AMSgvolumeD : public ooObj 
 {
@@ -76,5 +78,6 @@ class AMSgvolumeD : public ooObj
  inline void    setUp(integer pos)   {_posU = pos;}
  inline void    setDown(integer pos) {_posD = pos;}
  inline integer getContPos()         {return _ContPos;}
+ ooStatus CmpGeometry(integer id, AMSgvolume* p);
 
 };

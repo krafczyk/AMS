@@ -14,6 +14,7 @@
 // Mar  18, 1997. ak. Getmceventg and GetNEvents are modified
 //                    setup moved to AMSsetupDB
 // May  05, 1997. ak. separate file for setup
+// July 01, 1997. ah. CmpGeometry method implemented
 //
 // last edit May 08, 1997, ak.
 //
@@ -173,6 +174,9 @@ ooStatus LMS::WriteGeometry()
      i++;
      cur -> setContPos(i);
      geometryH = new(contGeometryH) AMSgvolumeD(id, cur, name, i);
+     rstatus = geometryH -> CmpGeometry(id, cur);
+     if(rstatus != oocSuccess)
+     Fatal("AddGeometry : comparison failed, please write new setup");
      geometryHT[i-1] = geometryH;
   } else {
       break;

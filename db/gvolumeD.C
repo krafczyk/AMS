@@ -1,6 +1,7 @@
 // Aug 08, 1996. ak. First try with Objectivity. Method file for AMSgvolume
 // Oct 12, 1996. ak. coo copy is modified.
 // Mar 25, 1997. ak. new class member _rel
+// July 01,1997. ah. new method CmpGeometry added 
 //                 
 // Last Edit : Mar 25, 1996. ak.
 // 
@@ -58,4 +59,89 @@ void AMSgvolumeD::getnrm(number* nbuff0) {
                                UCOPY( &_nrm, nbuff0, sizeof(number)*3*3/4); }
 void AMSgvolumeD::getinrm(number* nbuff0) { 
                               UCOPY( &_inrm, nbuff0, sizeof(number)*3*3/4); }
+ooStatus AMSgvolumeD::CmpGeometry(integer id, AMSgvolume* p)
+{
+  ooStatus rstatus = oocSuccess;
+  if (dbg_prtout) cout <<"AMSgvolumeD::CmpGeometry -I- compare "<<_name<<endl;
 
+  if (_id != id) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- id is different "<<_id<<", "<<id<<endl;
+   return oocError;
+  }
+  if (_matter != p->_matter) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _matter is different "<<_matter<<", "<<p->_matter<<endl;
+   return oocError;
+  }
+  if (_rotmno != p->_rotmno) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _rotmno is different "<<_rotmno<<", "<<p->_rotmno<<endl;
+   return oocError;
+  }
+  if (_posp != p->_posp) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _posp is different "<<_posp<<", "<<p->_posp<<endl;
+   return oocError;
+  }
+  if (_gid != p->_gid) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _gid is different "<<_gid<<", "<<p->_gid<<endl;
+   return oocError;
+  }
+  if (_npar != p->_npar) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _npar is different "<<_npar<<", "<<p->_npar<<endl;
+   return oocError;
+  }
+  else {
+   for (integer i=0; i<_npar; i++) {
+  if (_par[i] != p->_par[i]) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _par[i] is different "<<_par[i]<<", "<<p->_par[i]<<endl;
+   return oocError;
+   } //end of inner if loop
+                                   } //end of for loop
+  }//end of _npar if
+
+  if (_rel != p->_rel) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _rel is different "<<_rel<<", "<<p->_rel<<endl;
+   return oocError;
+  }
+   if (strcmp(_gonly, p->_gonly) !=0) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _gonly[i] is different "<<_gonly<<", "
+                                                               <<p->_gonly<<endl;
+   return oocError;
+  } //end of inner if loop
+
+   if (strcmp(_shape, p->_shape) !=0) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _shape[i] is different "<<_shape<<", "
+                                                               <<p->_shape<<endl;
+   return oocError;
+  } //end of inner if loop
+
+
+  if (_coo == p->_cooA)  {
+                        }
+                   else {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _coo is different "<<_coo<<", "<<p->_cooA<<endl;
+   return oocError;
+                        }
+for (integer j=0; j<3; j++) {
+ for (integer k=0; k<3; k++) {
+  if (_nrm[j][k] != p->_nrm[j][k]) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _nrm[i][j] is different " <<_nrm[j][k]<<","
+                                                                 <<p->_nrm[j][k]<<endl;
+   return oocError;
+  } //end of inner if loop
+
+  if (_inrm[j][k] != p->_inrm[j][k]) {
+   cout<<"AMSgvolumeD::CmpGeometry -E- _inrm[i][j] is different " <<_inrm[j][k]<<", "
+                                                                  <<p->_inrm[j][k]<<endl;
+   return oocError;
+  } //end of inner if loop
+                             } //end of k for loop
+                            }  //end of j for loop
+
+      if (_ContPos != p->_ContPos) {
+          cout<<"AMSgvolumeD::CmpGeometry -E- _ContPos is different " <<_ContPos<<", "
+                                                                      <<p->_ContPos<<endl;
+   return oocError;
+   } //end of inner if loop
+
+
+ return rstatus;
+}

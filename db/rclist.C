@@ -58,6 +58,7 @@
 //                   leave only methods for reconstructed objects
 //
 // Jun 01, 1997. ak. add anticlusters
+// July 01, 1997. ah. USED flag used to write only USED hits etc
 //
 // last edit Jun 01, 1997, ak.
 //
@@ -268,6 +269,8 @@ ooStatus      AMSEventList::AddTrCluster(
                    <<AMSEvent::gethead()->getC("AMSTrCluster",N)->getnelem()
                    <<" for AMSTrCluster Cont "<<N<<endl;
         while ( p != NULL) {
+         if(p->checkstatus(AMSDBc::USED))
+        {
          clusterH = new(contClusterH[N]) AMSTrClusterD(p);
          number*    pValues;
          number     pvalues[100];
@@ -294,6 +297,7 @@ ooStatus      AMSEventList::AddTrCluster(
         p -> setContPos(tclusters);
         clusterH -> setPosition(tclusters);
         listH -> incNClusters(N);
+       }//end of USED test
         p = p -> next();
        }
         return rstatus;
@@ -331,6 +335,8 @@ ooStatus      AMSEventList::
            return oocSuccess;
         }
         while ( p != NULL) {
+        if(p->checkstatus(AMSDBc::USED))
+         {
          layerH = new(contTrLayerH[N]) AMSTrRecHitD(p);
          AMSgSen* pSen = p -> getpsen();
          integer gid  = pSen -> getid();
@@ -353,6 +359,7 @@ ooStatus      AMSEventList::
          if (dbg_prtout) cout<<"AddTrRecHit -I- add hit pos "<<p->getpos()
                              <<" ContPos "<<p -> getContPos()
                              <<", Layer "<< p -> getLayer()<<endl;;
+        }//end of USED test
          p = p -> next();
         }
         return rstatus;
@@ -442,6 +449,8 @@ ooStatus      AMSEventList::AddTrTrack(ooHandle(AMSeventD) & eventH)
            AMSTrTrack* p = (AMSTrTrack*)AMSEvent::gethead() -> 
                                                  getheadC("AMSTrTrack",i);
            while (p != NULL) {
+           if(p->checkstatus(AMSDBc::USED))
+            {
             trackH = new(contTrackH) AMSTrTrackD(p);
             tracks++;
             p -> setContPos(tracks);
@@ -459,6 +468,7 @@ ooStatus      AMSEventList::AddTrTrack(ooHandle(AMSeventD) & eventH)
                     <<", layer "<<p->getphit(j)->getLayer() <<endl;
               }
             }
+           }//end of USED
             p = p -> next();
            }
           }
@@ -486,6 +496,8 @@ ooStatus AMSEventList::LinkTrackHitD(ooHandle(AMSeventD)& eventH)
           AMSTrTrack* p = (AMSTrTrack*)AMSEvent::gethead() -> 
                                                  getheadC("AMSTrTrack",i);
         while ( p != NULL) {
+          if(p->checkstatus(AMSDBc::USED))
+          {
           integer  posT    = p -> getContPos();     // position of track
           char pred[32];
           (void) sprintf(pred,"_Position=%d",posT);
@@ -519,6 +531,7 @@ ooStatus AMSEventList::LinkTrackHitD(ooHandle(AMSeventD)& eventH)
            }  // pH   != NULL
            if (layer == 6) break;
           }   // end of layers scan
+          }  //end of USED
          p = p -> next();
         }
        }
@@ -725,6 +738,8 @@ ooStatus      AMSEventList::AddCTCCluster(ooHandle(AMSeventD)& eventH)
          AMSCTCCluster * p = (AMSCTCCluster*)AMSEvent::gethead() ->
                                                getheadC("AMSCTCCluster",icnt);
          while ( p != NULL) {
+          if(p->checkstatus(AMSDBc::USED))
+          {
           ctcclusterH = new(contCTCClusterH) AMSCTCClusterD(p);
           rstatus = eventH -> add_pCTCCluster(ctcclusterH);
           if (rstatus != oocSuccess) {
@@ -736,6 +751,7 @@ ooStatus      AMSEventList::AddCTCCluster(ooHandle(AMSeventD)& eventH)
           p -> setContPos(ctccl);
           ctcclusterH -> setPosition(ctccl);
           listH  -> incNCTCClusters();
+          } //end of USED
           p = p -> next();
          }
         }
@@ -860,6 +876,8 @@ ooStatus      AMSEventList::
         AMSTrRecHit* p = (AMSTrRecHit*)AMSEvent::gethead() -> 
                                                    getheadC("AMSTrRecHit",N);
         while ( p != NULL) {
+         if(p->checkstatus(AMSDBc::USED))
+         {
          integer  posH    = p -> getContPos();     // position of hit 
          for (integer j=0; j<2; j++) {
           AMSTrCluster* pC = p -> getClusterP(j);  // pointer to assoc cluster
@@ -892,6 +910,7 @@ ooStatus      AMSEventList::
            if (dbg_prtout) cout <<"AMSEventList:LinkHitClusterD:  hit "<<posH
                                 <<" point to cluster NULL"<<endl;}
          } 
+         } //end of USED
          p = p -> next();
         }
         return rstatus;
@@ -980,6 +999,8 @@ ooStatus      AMSEventList::AddAntiCluster(ooHandle(AMSeventD) & eventH)
                                                  getheadC("AMSAntiCluster",0);
           integer i = 0;
           while ( p != NULL) {
+          if(p->checkstatus(AMSDBc::USED))
+           {
            AMSAntiClusterD   anticluster;
            AMSAntiClusterD  *pD;
            pD = &anticluster;
@@ -988,6 +1009,7 @@ ooStatus      AMSEventList::AddAntiCluster(ooHandle(AMSeventD) & eventH)
            i++;
            listH  -> incNAntiClusters();
            eventH -> incAntiClusters();
+           } //end of USED
            p = p -> next();
           }
          } else { 

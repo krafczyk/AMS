@@ -17,12 +17,13 @@ class opiDummyDeclaration;
 #include <typedefs.h>
 #include <point.h>
 #include <gvolume.h>
+#include <db_comm.h>
 
 #ifndef GVOLUME_D_REF_H
 #include "gvolumeD_ref.h"
 #endif
 
-#line 18 "gvolumeD.ddl"
+#line 20 "gvolumeD.ddl"
 class AMSgvolumeD : public ooObj { 
 
 
@@ -84,6 +85,7 @@ inline void setPrev(integer pos) { _posP = pos; }
 inline void setUp(integer pos) { _posU = pos; }
 inline void setDown(integer pos) { _posD = pos; }
 inline integer getContPos() { return _ContPos; }
+ooStatus CmpGeometry(integer, AMSgvolume *); 
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -117,7 +119,7 @@ inline integer getContPos() { return _ContPos; }
     static void ooAssocRegister();
     ooRef(AMSgvolumeD)& ooThis(ooRef(AMSgvolumeD)& objId, ooMode aMode = oocNoOpen) const;
     AMSgvolumeD(ooInternalObj iobj);
-#line 80 "gvolumeD.ddl"
+#line 83 "gvolumeD.ddl"
 }; 
 
 #endif /* !defined(GVOLUME_D_H) */
