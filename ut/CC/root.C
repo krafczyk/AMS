@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.30 2002/12/06 14:43:19 choumilo Exp $
+//  $Id: root.C,v 1.31 2002/12/17 22:30:09 schol Exp $
 //  Last Edit : Nov 19, 2002. A.Klimentov
 //              check Root classes
 //              ? TrGammaRoot02 - commented
@@ -382,11 +382,11 @@ TOFRawClusterRoot::TOFRawClusterRoot(TOF2RawCluster *ptr)
   Status = ptr->_status;
   Layer  = ptr->_ntof;
   Bar    = ptr->_plane;
-  for (int i=0; i<2; i++) tovta[i]=ptr->_adch[i];
-  for (int i=0; i<2; i++) tovtd[i]=ptr->_adcl[i];
+  for (int i=0; i<2; i++) tovta[i]=ptr->_adca[i];
+  for (int i=0; i<2; i++) tovtd[i]=ptr->_adcd[i];
   for (int i=0; i<2; i++) sdtm[i] =ptr->_sdtm[i];
-  edepa  = ptr->_edeph;
-  edepd  = ptr->_edepl;
+  edepa  = ptr->_edepa;
+  edepd  = ptr->_edepd;
   time   = ptr->_time;
   cool   = ptr->_timeD;
 }
