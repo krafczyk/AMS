@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.2 1999/10/29 11:49:44 choutko Exp $
+// $Id: g4physics.C,v 1.3 1999/11/01 09:53:06 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -654,6 +654,15 @@ void AMSG4Physics::SetCuts()
   //  " G4VUserPhysicsList::SetCutsWithDefault" method sets 
   //   the default cut value for all particle types 
   SetCutsWithDefault();   
+#ifdef __AMSDEBUG__
+  theParticleIterator->reset();
+  while( (*theParticleIterator)() ){
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
+    G4String particleName = particle->GetParticleName();
+    cout <<particleName<<" Length Cuts "<<particle->GetLengthCuts()*mm<<endl;
+  }
+#endif  
 }
 
 void AMSG4Physics::ConstructAllBosons()

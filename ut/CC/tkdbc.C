@@ -985,12 +985,12 @@ const number  support_hc_z[_nlay]={-3.052,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
    UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
    const number layd[_nlay][5]={
                                5.3,0.,75., 0.,75.,
-                               5.,0.,54.0,0.,54.0, 
-                               5.,0.,54.0,0.,54.0, 
-                               5.,0.,54.0,0.,54.0, 
-                               5.,0.,54.0,0.,54.0, 
-                               5.,0.,54.0,0.,54.0, 
-                               5.,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
+                               1.92,0.,54.0,0.,54.0, 
                                5.3,0.,75. ,0.,75.};
    UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
    const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
@@ -1105,14 +1105,14 @@ const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
 const number  support_foam_tol[_nlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
    UCOPY(support_foam_tol,_support_foam_tol,sizeof(support_foam_tol)/sizeof(integer));
 // support hc width;
-const number  support_hc_w[_nlay]={4.,0.8,0.8,0.8,0.8,0.8,0.8,4.};
+const number  support_hc_w[_nlay]={4.,0.85,0.85,0.85,0.85,0.85,0.85,4.};
    UCOPY(support_hc_w,_support_hc_w,sizeof(support_hc_w)/sizeof(integer));
 // support hc radius;
 const number  support_hc_r[_nlay]={71.5,53.6,53.6,53.6,53.6,53.6,53.6,71.5};
    UCOPY(support_hc_r,_support_hc_r,sizeof(support_hc_r)/sizeof(integer));
 // support hc z;
 // hc_z = -(hc_w/2+(0.5+5.02+5)/10)
-const number  support_hc_z[_nlay]={-3.052,-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-3.052};
+const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.477,-3.052};
    UCOPY(support_hc_z,_support_hc_z,sizeof(support_hc_z)/sizeof(integer));
 
 

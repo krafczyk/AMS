@@ -81,7 +81,9 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
 else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  magnetgeom02(mother);
  tofgeom02(mother);
+#ifndef __G4AMS__ 
  antigeom02(mother);
+#endif
  pshgeom02(mother);
  tkgeom02(mother);
 #ifndef __G4AMS__ 
@@ -2192,7 +2194,7 @@ ostrstream ost(name,sizeof(name));
          }
 #endif
       dau=mother.add(new AMSgvolume(
-      "VACUUM",nrot++,name,"CONE",par,5,coo,nrm, "MANY",0,gid,1));
+      "VACUUM",nrot++,name,"CONE",par,5,coo,nrm, "ONLY",0,gid,1));
       //      cout <<" layer "<<i<<" "<<nrot<<endl;
       int j;
       for (j=0;j<TKDBc::nlad(i+1);j++){
