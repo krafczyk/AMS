@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.6 2002/06/03 14:53:34 alexei Exp $
+//  $Id: antirec02.C,v 1.7 2003/03/18 09:04:06 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -25,11 +25,10 @@ using namespace std;
 //
 //
  integer Anti2RawEvent::trpatt=0;
- integer AMSAntiRawCluster::_trpatt=0;
 //----------------------------------------------------
 void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
-  int16u ntdca[2],tdca1[ANTI2C::ANAHMX*2],tdca2[ANTI2C::ANAHMX*2];
-  int16u ntdct[2],tdct1[ANTI2C::ANAHMX*2],tdct2[ANTI2C::ANAHMX*2];
+  int16u nadca[2],adca1[ANTI2C::ANAHMX];
+  int16u ntdct[2],tdct1[ANTI2C::ANTHMX*2],tdct2[ANTI2C::ANTHMX*2];
   int16u pbitn;
   int16u pbanti;
   int16u pbup,pbdn,pbup1,pbdn1;
@@ -43,26 +42,25 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
   pbitn=TOF2GC::SCPHBP;// as for TOF
   pbanti=pbitn-1;
   status=1;//bad
-  bad=1;// means no good atdc sequences
+  bad=0;// means both Charge and History measurements are present
 //
 // =============> check/correct logical "up/down" sequence :
 //
   ptr=(Anti2RawEvent*)AMSEvent::gethead()
                         ->getheadC("Anti2RawEvent",0,1);//last 1 to sort
   isds=0;
-  if(ptr>0){
 //
 #ifdef __AMSDEBUG__
   if(ATREFFKEY.reprtf[1]>=1)
   cout<<endl<<"=======> Anti::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
-//                             <---- loop over ANTI RawEvent hits -----
-  while(ptr){
+//                             
+  while(ptr){//<---- loop over ANTI RawEvent hits
 #ifdef __AMSDEBUG__
     if(ATREFFKEY.reprtf[1]>=1)ptr->_printEl(cout);
 #endif
-    id=ptr->getid();// BBS
-    sector=id/10-1;//0-15
+    id=ptr->getid();// BBarSide
+    sector=id/10-1;//bar 0-7
     isid=id%10-1;//0-1 (top/bot)
     chnum=sector*2+isid;//channels numbering
     stat[isid]=ptr->getstat();
@@ -70,334 +68,419 @@ void Anti2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //       fill working arrays for given side:
       isds+=1;
       ANTI2JobStat::addch(chnum,5);
-//---> check A-TDC :
-      ntdca[isid]=ptr->gettdca(tdca1);
+//
+//-----> check Charge-ADC :
+//
+      nadca[isid]=ptr->getadca(adca1);
+      im=nadca[isid];
+      if(im==0)ANTI2JobStat::addch(chnum,6);
+      if(im>1)ANTI2JobStat::addch(chnum,7);
+      nhit=im;
+      if(nhit==0)bad=1;//no charge measurement
+//
+//-----> check Hist-TDC :
+//
+      ntdct[isid]=ptr->gettdct(tdct1);
       nhit=0;
-      im=ntdca[isid];
-      for(i=0;i<im;i++)tdca2[i]=0;
+      im=ntdct[isid];
+      for(i=0;i<im;i++)tdct2[i]=0;
       for(i=0;i<im-1;i++){// find all correct pairs of up/down bits settings
-        pbdn=(tdca1[i]&pbitn);//check p-bit of down-edge (come first)
-        pbup=(tdca1[i+1]&pbitn);//check p-bit of up-edge (come second)
+        pbdn=(tdct1[i]&pbitn);//check p-bit of down-edge (come first, LIFO mode !!!)
+        pbup=(tdct1[i+1]&pbitn);//check p-bit of up-edge (come second)
         if(TOF2DBc::pbonup()==1){
           if(pbup==0 || pbdn!=0)continue;//wrong sequence, take next pair
         }
         else{
           if(pbup!=0 || pbdn==0)continue;//wrong  sequence, take next pair
         }
-        tdca2[nhit]=tdca1[i];
-        nhit+=1;
-        tdca2[nhit]=tdca1[i+1];
-        nhit+=1;
-        i+=1;//to bypass current 2 good hits
-      }
-      if(nhit<im){//something was wrong (bad sequence)
-        ptr->puttdca(int16u(nhit),tdca2);// refill object with corrected data
-        ANTI2JobStat::addch(chnum,6);
-      }
-      if(nhit>0)bad=0;//at least one good sequence
-//---> check FT-TDC :
-      ntdct[isid]=ptr->gettdct(tdct1);
-      nhit=0;
-      im=ntdct[isid];
-      for(i=0;i<im;i++)tdct2[i]=0;
-      for(i=0;i<im;i++){// find correct(up) edges(FT-channel has only up-edges)
-        pbup=(tdct1[i]&pbitn);//check p-bit of current edge
-        if(TOF2DBc::pbonup()==1){
-          if(pbup==0)continue;//wrong(down) edge, take next one
-        }
-        else{
-          if(pbup!=0)continue;//wrong(up) edge, take next one
-        }
         tdct2[nhit]=tdct1[i];
         nhit+=1;
+        tdct2[nhit]=tdct1[i+1];
+        nhit+=1;
+        i+=1;//to bypass current 2 good edges
       }
-      if(nhit<im){//something was wrong (bad sequence)
+      if(nhit<im){//something was wrong (lost edge, overflow ?)
         ptr->puttdct(int16u(nhit),tdct2);// refill object with corrected data
-        ANTI2JobStat::addch(chnum,7);
+        ANTI2JobStat::addch(chnum,8);
       }
+      if(nhit==0)bad=1;//no history measurement
 //-----      
-    } 
+    }//--->endof stat check 
 //
 //---------------
     ptr=ptr->next();// take next RawEvent hit
-  }//  ---- end of RawEvent hits loop ------->
+  }//----> endof RawEvent hits loop
 //
-  }// end of ptr>0 check
 //
-  if(bad==0)status=0;//good anti-event(was good tdca sequence)
+  if(bad==0)status=0;//good anti-event(were ADC+TDC measurements)
 }
 //----------------------------------------------------
 void Anti2RawEvent::mc_build(int &stat){
   geant up(0),down(0),slope[2],athr[2],tau,q2pe;
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
-  integer i,j,nup,ndown,sector,ierr,trflag(0),it,sta[2];
-  uinteger ectrfl(0);
-  integer sbt,trpatt,lsbit,hcount[4];
-  int16u phbit,maxv,id,chsta,ntdca,tdca[ANTI2C::ANAHMX],ntdct,tdct[ANTI2C::ANAHMX],itt;
-  number edep,ede,edept(0),time,z,c0,c1,tlev1,ftrig,t1,t2,dt,tovt;
-  static number esignal[2][ANTI2C::MAXANTI];
-  static number tsignal[2][ANTI2C::MAXANTI];
-  VZERO(esignal,2*ANTI2C::MAXANTI*sizeof(esignal[0][0])/sizeof(geant));
-  VZERO(tsignal,2*ANTI2C::MAXANTI*sizeof(tsignal[0][0])/sizeof(geant));
+  int i,j,ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,trflag(0),it,sta[2];
+  int ibmn[2],ibmx[2],nsides(0);
+  uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
+  int16u atrpat[2]={0,0};
+  int16u phbit,maxv,id,chsta,nadca,adca[ANTI2C::ANAHMX];
+  int16u nhtdch,htdc[2*ANTI2C::ANTHMX],itt;
+  number edep,ede,edept(0),time,z,tlev1,ftrig,t1,t2,dt;
+  number fadcb[2][ANTI2C::ANFADC+1];
+  geant hdthr,tdthr,gain[2],fladcb,htdcb,htdpr,hdmn;
+  geant ped,sig,am,amp,tm,tmp,tmd1u,tmd1d,td1b1u,td1b1d,tmark;
+  int upd1,upd11,stackof;
+  integer nhtdc,iamp,ncoinc,ncoinct(0);
+  number esignal[2][ANTI2C::MAXANTI];
+  number htup[ANTI2C::ANTHMX],htdw[ANTI2C::ANTHMX];
   AMSAntiMCCluster * ptr;
+  AMSAntiMCCluster * ptrN;
+  static integer nshap=10;//length of (light+PMT)-pulse(in bins=ANTI2DBc::fadcbw())
+  static number pshape[10]={0.02,0.1,0.6,1.,0.7,0.47,0.27,0.13,0.07,0.01};//real pulse shape
+//(result of time-dispersion of original light flash due to pmt and light collection) 
 //
-  trpatt=0;
+  VZERO(esignal,2*ANTI2C::MAXANTI*sizeof(esignal[0][0])/sizeof(geant));
   stat=1;//bad
+  fladcb=ANTI2DBc::fadcbw();//flash-adc bin-width
+  htdcb=ANTI2DBc::htdcbw();//hist-tdc bin width
+  htdpr=ANTI2DBc::htdcdr();//h-tdc double pulse resol.
+  hdmn=ANTI2DBc::hdpdmn();//h-discr. min. pulse-duration
   trflag=TOF2RawEvent::gettrfl();
   Anti2RawEvent::setpatt(trpatt);// reset trigger-pattern in Anti2RawEvent::
-  if(trflag>0){// use FT from TOF
-    ftrig=TOF2RawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
+//
+  if(TGL1FFKEY.trtype!=10){//<==== NotExternalTrigger"
+//
+    if(trflag>0){// use FT from TOF
+      ftrig=TOF2RawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
+      tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+    }
+    else{// have to use FT from ECAL
+      ectrfl=AMSEcalRawEvent::gettrfl(); 
+      if(ectrfl<=0)return;//no EC trigger also -> no chance to digitize ANTI
+      ftrig=AMSEcalRawEvent::gettrtm();
+      tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+    }
+//
+  }//===>ednof "NotExtTrig" check
+//
+  else{//<=== ExtTrigger
+    geant ttrig1=0.;//tempor (true ExtTrigSignal-time)
+    ftrig=ttrig1+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
     tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
   }
-  else{// have to use FT from ECAL
-    ectrfl=AMSEcalRawEvent::gettrfl(); 
-    if(ectrfl<=0)return;//no EC trigger also -> no chance to digitize ANTI
-    ftrig=AMSEcalRawEvent::gettrtm();
-    tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
-  }
-  stat=0;// ok
-  c0=exp(-ATMCFFKEY.PMulZPos/ATMCFFKEY.LZero);
-  c1=0.5*ANTI2DBc::scleng();
+//-----------
+  geant padl=0.5*ANTI2DBc::scleng();
   phbit=TOF2GC::SCPHBP;// phase bit position as for TOF !!!
-  maxv=phbit-1;// max. number
+  maxv=phbit-1;// max possible TDC value (16383)
   ptr=(AMSAntiMCCluster*)AMSEvent::gethead()->
                getheadC("AMSAntiMCCluster",0,1); // last 1  to test sorted container
 //
   edept=0.;
+  ncoinct=0;
+  for(i=0;i<=ANTI2C::ANFADC;i++){//reset MC Flash-ADC buffer
+    fadcb[0][i]=0.;
+    fadcb[1][i]=0.;
+  }
+  nupt=0;
+  ndownt=0;
+  ibmn[0]=ANTI2C::ANFADC;//up limit
+  ibmn[1]=ANTI2C::ANFADC;
+  ibmx[0]=0;
+  ibmx[1]=0;
+//-------------
+  AMSContainer *cptr;
+  cptr=AMSEvent::gethead()->getC("AMSAntiMCCluster",0);//MC container-pointer
+  ii=0;
+  if(cptr)ii+=cptr->getnelem();
+  if(ATMCFFKEY.mcprtf)HF1(2607,geant(ii),1.);
+//----
   while(ptr){ // <--- geant-hits loop:
     sector=ptr->getid();
-    ede=ptr->getedep()*1000;
-    edept+=ede;
-    edep=ede*ANTI2Pcal::antisccal[sector-1].getmip();// Edep Mev -> p.e.
+    ede=ptr->getedep();
+    edep=ede*1000;
+    edept+=edep;
     z=ptr->getcoo(2);
     time=(1.e+9)*(ptr->gettime());// geant-hit time in ns
-    eup=0.5*edep*exp(z/ATMCFFKEY.LZero);// one side signal(pe)
-    edown=0.5*edep*exp(-z/ATMCFFKEY.LZero);
-    up+=eup;
-    down+=edown;
-    tup+=(time+(c1-z)/ATMCFFKEY.LSpeed)*eup;
-    tdown+=(time+(c1+z)/ATMCFFKEY.LSpeed)*edown;
-// 
-    if(ptr->testlast()){// next or last id (sector)
-      POISSN(up,nup,ierr); 
-      POISSN(down,ndown,ierr); 
+//
+    eup=0.5*edep*exp(z/ATMCFFKEY.LZero)
+       *ANTI2Pcal::antisccal[sector-1].getmev2pe(1);// aver. up-side(+z) signal(pe)
+//                                                  (relat.gains are applied later)
+    POISSN(eup,nup,ierr);//real number of up-side p.e's
+    nupt+=nup; 
+    tup=(time+(padl-z)/ATMCFFKEY.LSpeed)
+       +ANTI2Pcal::antisccal[sector-1].gettzer();//delay due to clf-extender
+    j=integer(floor(tup/ANTI2DBc::fadcbw()));//time-bin number
+    if(j<ibmn[1])ibmn[1]=j;//min.bin
+    for(i=0;i<nshap;i++){//"dispersion"
+      ii=i+j;
+      if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//ovfl-bin
+      fadcb[1][ii]+=nup*pshape[i];
+    }
+    if(ii>ibmx[1])ibmx[1]=ii;//max.bin
+//
+    edown=0.5*edep*exp(-z/ATMCFFKEY.LZero)
+         *ANTI2Pcal::antisccal[sector-1].getmev2pe(0);//aver. down-side(-z) signal(pe)
+    POISSN(edown,ndown,ierr);//real number of down-side p.e's
+    ndownt+=ndown; 
+    tdown=(time+(padl+z)/ATMCFFKEY.LSpeed)
+         +ANTI2Pcal::antisccal[sector-1].gettzer();//delay due to clf-extender
+    j=integer(floor(tdown/ANTI2DBc::fadcbw()));
+    if(j<ibmn[0])ibmn[0]=j;//min.bin
+    for(i=0;i<nshap;i++){//"dispersion"
+      ii=i+j;
+      if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;
+      fadcb[0][ii]+=ndown*pshape[i];
+    }
+    if(ii>ibmx[0])ibmx[0]=ii;//max.bin
+//--------------
+    ptrN=ptr->next();     
+    sectorN=0;
+    if(ptrN)sectorN=ptrN->getid(); //next hit sector-number
+//
+    if(sectorN != sector){//<--- next(last) sector: create signals for current sector
 #ifdef __AMSDEBUG__
       assert(sector >0 && sector <= ANTI2C::MAXANTI);
 #endif
-      esignal[0][sector-1]=nup; // save number of p.e.'s in buffer
-      esignal[1][sector-1]=ndown;
-      if(up>0)tsignal[0][sector-1]=tup/up; // averaged up_side time (ns)
-      if(down>0)tsignal[1][sector-1]=tdown/down; // averaged down_side time (ns)
-      up=0;
-      down=0;
-      tup=0.;
-      tdown=0.;
-    } 
-   ptr=ptr->next();  
-  } // ---> end of geant-hits loop
+    ANTI2Pcal::antisccal[sector-1].getgain(gain);//2-sides gains
+    hdthr=ANTI2Pcal::antisccal[sector-1].getathr();//hist-discr thresh(pe's)
+    esignal[1][sector-1]=nupt*gain[1]; // save tot.number of p.e.'s in buffer
+    esignal[0][sector-1]=ndownt*gain[0];
 //
-  if(ATMCFFKEY.mcprtf)HF1(2000,edept,1.);
-//-----------------
-// create Anti-trigger pattern:
-//                         
-  for(i=0;i<4;i++)hcount[i]=0;
-  trpatt=0;
-  for(i=0;i<ANTI2C::MAXANTI;i++){
-    up=esignal[0][i];
-    down=esignal[1][i];
-    ANTI2Pcal::antisccal[i].getstat(sta);// =0/1-> alive/dead
-    ANTI2Pcal::antisccal[i].gettthr(thresh);
-    if((i<4)||(i>11)){ // <-- x>0
-      if(up>thresh[1] && sta[0]==0)hcount[3]+=1; // z>0
-      if(down>thresh[0] && sta[1]==0)hcount[2]+=1; // z<0
-    }
-    else{              // <-- x<0
-      if(up>thresh[1] && sta[0]==0)hcount[1]+=1; // z>0
-      if(down>thresh[0] && sta[1]==0)hcount[0]+=1; // z<0
-    }
-  }
+//--->upply threshold to flash-adc signal to get times
 //
-  for(i=0;i<4;i++){
-    if(hcount[i]>3)hcount[i]=3;
-    trpatt|=hcount[i]<<(16+i*2);
-  }
-  trpatt|=(min(hcount[0],hcount[1])+min(hcount[2],hcount[3]));
+    for(j=0;j<2;j++){//<---------------- side loop(down->up)
+      ncoinc=0;
+      id=sector*10+j+1;//BBS (BB=paddle, S=side(1->down,2->up))
 //
-  Anti2RawEvent::setpatt(trpatt);// add trigger-pattern to Anti2RawEvent::
-//----------------
-// convert p.e.->TovT(ns)->TovT(TDCchan):
+//--->loop over flash-adc buffer,upply threshold to signal to get times
 //
-  tau=ANTI2DBc::shprdt();
-  for (j=0;j<ANTI2C::MAXANTI;j++){ // <--- sector loop
-    ANTI2Pcal::antisccal[j].gettthr(athr);// threshold in TovT(p.e.!!!)
-    q2pe=ANTI2Pcal::antisccal[j].getq2pe();//Q->pe conv.factor (pe/pC)
-    for (i=0;i<2;i++){ // <--- top/bot loop
-      edep=esignal[i][j]; // p.e.
-      time=tsignal[i][j]; // ns
-      tovt=0;
-      ede=edep/q2pe;// convert signal pe->pC 
-      ANTI2Pcal::antisccal[j].q2t2q(0,i,tovt,ede);// Q(pC)->TovT(ns)(threshold is applied automatically !)
-      if(tovt>0){ // non-zero hit -> create pulse/TDCA/TDCT
-        t1=time;// TovT-pulse up-edge (ns) abs.time
-        t2=time+tovt;// TovT-pulse down-edge (ns) abs.time
+      hdthr/=gain[j];//to avoid multiplying by gain of each buffer ampl.
+      nhtdc=0;
+      upd1=0; //up/down flag for discr-1
+      tmd1u=-9999.;//up-time of discr-1
+      tmd1d=-9999.;//down-time of discr-1
 //
-        dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
-        it=integer(dt/ANTI2DBc::tdcabw());
-        if(it>maxv){
-          cout<<"ANTI2RawEvent_mc: warning : down-time out of range"<<endl;
+      upd11=0;//up/down flag for hist-TDC(branche-1 of discr-1)
+      td1b1u=-9999.;//discr1_branch1(hist-TDC) up-time
+      td1b1d=-9999.;// ......................down-time
+      stackof=0;//stack overfl.flag
+      amp=0.;
+      tmp=fladcb*ibmn[j];
+      tm=tmp;
+      if(ibmx[j]==ANTI2C::ANFADC){
+        ANTI2JobStat::addmc(1);
+#ifdef __AMSDEBUG__
+        cout<<"AntiRawEvent::mc_build-W: Flash-TDC buffer ovfl,id/PElast="
+	                                <<id<<" "<<fadcb[j][ibmx[j]]<<endl;
+#endif
+	ibmx[j]=ANTI2C::ANFADC-1;//don't use overflow-bin
+      }
+//====>
+      for(i=ibmn[j];i<=ibmx[j];i++){//<--- flash-adc buffer loop
+        tm+=fladcb;
+        am=fadcb[j][i];//instant ampl. from flash-adc buffer
+//----------
+// discr-1(anode,fast comparator for h-TDC ) up/down setting with LOW thr.:
+        if(am>=hdthr){
+          if(upd1 ==0){
+            tmd1u=tmp+fladcb*(hdthr-amp)/(am-amp);// up time of discr.1(bin-width compencated)
+            tmark=tmd1u;// no  t-dispersion by discr.itself
+            upd1=1;
+          }
+        }
+        else{
+          if(upd1!=0 && (tm-tmd1u)>hdmn){ // down time (+min.duration check)
+            upd1=0;
+            tmd1d=tm;
+          }
+        }
+//----------
+        amp=am;// store ampl to use as "previous" one in next i-loop
+        tmp=tm;// .......
+//----------
+//--->try set all branches of discr  when it is up:
+// 
+        if(upd1>0){
+//"history-TDC branche" :        
+          if(upd11==0){
+            if((tm-td1b1d)>htdpr){ //dead-time(=h_TDC dbl.resol ?)-check
+              upd11=1;  // set flag for h-TDC branch
+              td1b1u=tmark;//store up-time
+            }
+          }
+	}//<-- end of discr-1 up-check     
+//
+//----------
+//--->try reset all branches:
+//
+//"history-TDC branche:
+        if(upd11==1){ 
+          if(upd1==0 || i==(ANTI2C::ANFADC-1)){//reset "h-TDC" if discr-1 down, or out-of-time 
+            upd11=0;
+            td1b1d=tm;
+	    for(ii=nhtdc-1;ii>=0;ii--){//move up/down-times in the LIFO-stack
+	      if(ii+1<ANTI2C::ANTHMX){
+	        htup[ii+1]=htup[ii];
+	        htdw[ii+1]=htdw[ii];
+	      }
+	    }
+	    htup[0]=td1b1u;//write latest up-time
+	    htdw[0]=td1b1d;//write latest down-time
+            if(nhtdc<ANTI2C::ANTHMX)nhtdc+=1;
+            else{
+              if(stackof==0){//1st stack ovfl for given id
+                ANTI2JobStat::addmc(2);
+#ifdef __AMSDEBUG__
+	        cout<<"AntiRawEvent::mc_build-W: h-TDC stack ovfl,id="<<id<<endl;
+#endif
+	      }
+	      stackof=1;
+            }
+          }
+        }
+      }//--->endof flash-adc buffer loop
+//-------------
+      bool anchok=(ANTIPeds::anscped[sector-1].PedStOK(j) &&
+                  ANTI2Pcal::antisccal[sector-1].CalStOK(j));//Chan-OK
+//
+//---> Create charge raw-hits:
+//
+      geant adc2pe=ANTI2Pcal::antisccal[sector-1].getadc2pe();
+      geant daqthr=ANTI2Pcal::antisccal[sector-1].getdqthr();//DAQ-readout thresh(adc-ch)    
+      ped=ANTIPeds::anscped[sector-1].apeda(j);// in adc-chan. units(float)
+      sig=ANTIPeds::anscped[sector-1].asiga(j);
+      if(ATMCFFKEY.mcprtf)HF1(2602+j,geant(esignal[j][sector-1]),1.);
+      amp=esignal[j][sector-1]/adc2pe;//pe -> ADC-ch
+      amp=amp+ped+sig*rnormx();// adc+ped(no "integerization")
+      iamp=integer(floor(amp));//go to real ADC-channels("integerization")
+      if(iamp>TOF2GC::SCADCMX){//check ADC-overflow
+        ANTI2JobStat::addmc(3);
+#ifdef __AMSDEBUG__
+        cout<<"ANTI2RawEvent_mcbuld-W: ADC-range overflow,id="<<id<<endl;
+#endif
+        iamp=TOF2GC::SCADCMX;
+      }
+      amp=number(iamp)-ped;// subtract pedestal (loose "integerization" !)
+      if(ATMCFFKEY.mcprtf)HF1(2604+j,amp,1.);
+      nadca=0;
+      if(amp>daqthr*sig){// DAQ readout threshold check
+	iamp=floor(amp*ANTI2DBc::daqscf()+0.5);// floatADC -> internal DAQ bins
+        itt=int16u(iamp);
+        adca[nadca]=itt;
+        nadca+=1;
+      }
+//
+//---> Create history raw-hits:
+//
+      if(ATMCFFKEY.mcprtf)HF1(2606,geant(nhtdc),1.);
+      nhtdch=0;
+      for(i=0;i<nhtdc;i++){//        <--- htdc-hits loop ---
+        ii=i;// htup/dw have LIFO readout order(1st elem = last stored(first read))
+        t1=htup[ii];
+        t2=htdw[ii];
+        dt=tlev1-t2;// follow LIFO mode of readout : down-edge - first hit
+        it=integer(floor(dt/ANTI2DBc::htdcbw())); // conv. to hist-TDC binning
+        if(it>maxv){//out of range
+          ANTI2JobStat::addmc(4);
+#ifdef __AMSDEBUG__
+          cout<<"ANTI2RawEvent_mcbuild-W : Hist-TDC overflow(down edge) !!!"<<'\n';
+#endif
           it=maxv;
         }
         itt=int16u(it);
         if(!TOF2DBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-        tdca[0]=itt;
-//
-        dt=tlev1-t1;// now take first(up)-edge 
-        it=integer(dt/ANTI2DBc::tdcabw());
-        if(it>maxv){
-          cout<<"ANTI2RawEvent_mc: warning : up-time out of range"<<endl;
+        htdc[nhtdch]=itt;
+        nhtdch+=1;
+        dt=tlev1-t1;// follow LIFO mode of readout : leading(up) edge - second
+        it=integer(floor(dt/ANTI2DBc::htdcbw())); // conv. to hist-TDC binning
+        if(it>maxv){//out of range
           it=maxv;
         }
         itt=int16u(it);
         if(TOF2DBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-        tdca[1]=itt;
-//--------
-        tovt=ANTI2DBc::ftpulw();// FTrigger pulse width in ns
-        t1=ftrig;// FT-pulse up-edge (ns) abs.time
-//        t2=t1+tovt;// FT-pulse down-edge (ns) abs.time
+        htdc[nhtdch]=itt;
+        nhtdch+=1;
+      }//--- end of htdc-hits loop --->
 //
-//        dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
-//        it=integer(dt/ANTI2DBc::tdcabw());
-//        if(it>maxv){
-//          cout<<"ANTI2RawEvent_mc: warning : FT-down-time out of range"<<endl;
-//          it=maxv;
-//        }
-//        itt=int16u(it);
-//        if(!TOF2DBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-//        tdct[0]=itt;
+//----> create RawEvent-object and store trig-patt:
 //
-        dt=tlev1-t1;// now take first(up)-edge (only 1 edge for FT in SFEA !!!)
-        it=integer(dt/ANTI2DBc::tdcabw());
-        if(it>maxv){
-          cout<<"ANTI2RawEvent_mc: warning : FT-up-time out of range"<<endl;
-          it=maxv;
-        }
-        itt=int16u(it);
-        if(TOF2DBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-//        tdct[1]=itt;
-        tdct[0]=itt;
-//--------
-        ntdca=2;
-//        ntdct=2;
-        ntdct=1;
-        id=int16u(10*(j+1)+i+1);//BBS (Bar/Side)
+      if(anchok && nadca>0 && nhtdch>0){
         chsta=0;// good
+	id=sector*10+j+1;//BBarSide(BBS)
+//cout<<"MCFillRaw:id="<<id<<" nadc/ntdc="<<nadca<<" "<<nhtdch<<" nhtdc="<<nhtdc<<endl;
+//for(int ih=0;ih<nadca;ih++)cout<<adca[ih]<<" ";
+//cout<<endl;
+//for(int ih=0;ih<nhtdch;ih++)cout<<htdc[ih]<<" ";
+//cout<<endl;
         AMSEvent::gethead()->addnext(AMSID("Anti2RawEvent",0),
-                     new Anti2RawEvent(id,chsta,ntdca,tdca,ntdct,tdct));
-      }// ---> end of TovT>0 check
-    }// ---> end of top/bot loop
-  }// ---> end of sector loop
-}
-//---------------------------------------------------
-void AMSAntiRawCluster::build2(int &status){
-//(this is still 1-sided object)
-  int16u ntdca,tdca[ANTI2C::ANAHMX*2],ntdct,tdct[ANTI2C::ANAHMX*2];
-  int16u id,idN,sta;
-  int statdb[2];
-  int16u pbitn;
-  int16u pbanti;
-  integer i,j,jmax,sector,isid,isds,stat,chnum;
-  number fttm,atm,dt,signal,qs;
-  geant ftdel[2],athr[2],slope[2],twin,tau,q2pe;
-  Anti2RawEvent *ptr;
+                       new Anti2RawEvent(id,chsta,nadca,adca,nhtdch,htdc));
+	t2=ftrig-TOF2Varp::tofvpar.ftdelf();
+	for(i=0;i<nhtdc;i++){// check each up-time coinc.with FT
+          t1=htup[i];
+	  dt=t2-t1;
+	  if(nhtdc==1 && ATMCFFKEY.mcprtf>0)HF1(2601,geant(dt),1.);
+	  if(fabs(dt)<ATREFFKEY.ftwin){//found FT-coinc. in window
+	    ncoinc+=1;
+	  }
+	}
+	if(ncoinc){
+	  atrpat[j]|=1<<(sector-1);//set bit
+	  ncoinct+=1;
+	}
+      }
+//------------
+    }//--->endof side loop
 //
-  ptr=(Anti2RawEvent*)AMSEvent::gethead()
-                                    ->getheadC("Anti2RawEvent",0);
-  pbitn=TOF2GC::SCPHBP;//phase bit position as for TOF
-  pbanti=pbitn-1;// mask to avoid it.
-  status=0;// good
-  twin=ATREFFKEY.ftwin;
-  tau=ANTI2DBc::shprdt();
-  isds=0;
-  ntdca=0;
-  ntdct=0;
-  while(ptr){ // <--- RawEvent hits loop
-    id=ptr->getid();
-    sector=id/10-1;
-    isid=id%10-1;
-    sta=ptr->getstat();
-    chnum=sector*2+isid;//channels numbering
-    ANTI2Pcal::antisccal[sector].getstat(statdb); // "alive" status from DB
-    ANTI2Pcal::antisccal[sector].getftd(ftdel); // FTrig delay wrt ADCA-hit
-    q2pe=ANTI2Pcal::antisccal[sector].getq2pe();// q(pC)->pe conv.factor
-    if(statdb[isid] == 0){  // channel alive
-//channel statistics :
-      ANTI2JobStat::addch(chnum,0); 
-      ntdca=ptr->gettdca(tdca);
-      if(ntdca>0)ANTI2JobStat::addch(chnum,1);
-      if(ntdca==2)ANTI2JobStat::addch(chnum,2);
-//
-      ntdct=ptr->gettdct(tdct);
-      if(ntdct>0)ANTI2JobStat::addch(chnum,3);
-      if(ntdct==1)ANTI2JobStat::addch(chnum,4);
-//--------
-      signal=0.;
-//<--- Use first (last on TDC input) FT-single_hit(1-edge signal !!!) as true hit 
-      fttm=(pbanti&tdct[0])*ANTI2DBc::tdcabw();//FT-up_egde(ns)(from 1st single-hit))
-      jmax=ntdca/2;// dbl_hits
-      for(j=0;j<jmax;j++){ // <--- TDCA-dbl_hit loop
-        atm=(pbanti&tdca[2*j+1])*ANTI2DBc::tdcabw();//TDCA-up_egde(ns)(2nd in readout)
-        dt=atm-fttm;//should be >0 due to "common stop" mode
-        if(ATREFFKEY.reprtf[0])HF1(2501,geant(dt),1.);
-        if(fabs(dt-ftdel[isid])<twin){//correlated FT and ADCA hits -> sum energy(p.e.)
-          dt=((pbanti&tdca[2*j+1])-(pbanti&tdca[2*j]))*ANTI2DBc::tdcabw();// TovT in ns
-          ANTI2Pcal::antisccal[sector].q2t2q(1,isid,dt,qs);// TovT->q(pC)
-          signal+=qs*q2pe;//  summing Edep in p.e.
-        }
-      }// ---> end of TDCA-hit loop
-// create AntiRawCluster object :
-      stat=integer(sta); 
-      if(signal>0)AMSEvent::gethead()->addnext(AMSID("AMSAntiRawCluster",isid),
-                                new AMSAntiRawCluster(stat,sector+1,isid,signal));
-//    
+    nupt=0;
+    ndownt=0;
+    ibmn[0]=ANTI2C::ANFADC;
+    ibmn[1]=ANTI2C::ANFADC;
+    ibmx[0]=0;
+    ibmx[1]=0;
+    for(i=0;i<=ANTI2C::ANFADC;i++){//reset MC Flash-ADC buffer
+      fadcb[0][i]=0.;
+      fadcb[1][i]=0.;
     }
+    }//------------------> endof next(last) sector check 
+    ptr=ptr->next();
+//  
+  } // ---> end of geant-hits loop
 //
-    ptr=ptr->next();// take next RawEvent hit
-  }// ---> end of RawEvent hits loop
-}
-//---------------------------------------------------
-void AMSAntiRawCluster::_writeEl(){
-
-
-  if(AMSAntiRawCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
-#ifdef __WRITEROOTCLONES__
-      AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
-#endif
-// fill the ntuple
-  AntiRawClusterNtuple* TN=AMSJob::gethead()->getntuple()->Get_antiraw();
-
-    if (TN->Nantiraw>=MAXANTIRAW) return;
-    TN->Status[TN->Nantiraw]=_status;
-    TN->Sector[TN->Nantiraw]=_sector;
-    TN->UpDown[TN->Nantiraw]=_updown;
-    TN->Signal[TN->Nantiraw]=_signal;
-    TN->Nantiraw++;
+  if(ATMCFFKEY.mcprtf)HF1(2600,edept,1.);
+  if(ncoinct>0)ANTI2JobStat::addmc(5);
+//----------------------
+//----> create Anti-trigger pattern:
+//(bits 1-16->sector's OR; 17-24->4trig.counters)
+//                         
+  for(i=0;i<4;i++)hcount[i]=0;
+  trpatt=0;//reset patt.
+  for(i=0;i<ANTI2C::MAXANTI;i++){
+    cbit=lsbit<<i;
+    if((i<2)||(i>5)){ // <-- x>0
+      if(atrpat[1]&cbit)hcount[3]+=1; // z>0
+      if(atrpat[0]&cbit)hcount[2]+=1; // z<0
+    }
+    else{              // <-- x<0
+      if(atrpat[1]&cbit)hcount[1]+=1; // z>0
+      if(atrpat[0]&cbit)hcount[0]+=1; // z<0
+    }
+    if(atrpat[0]&cbit>0 || atrpat[1]&cbit>0)trpatt|=cbit;//two side OR
   }
+//
+  for(i=0;i<4;i++){//add 4 trig.counters
+    if(hcount[i]>3)hcount[i]=3;
+    trpatt|=hcount[i]<<(16+i*2);
+  }
+//
+  Anti2RawEvent::setpatt(trpatt);// add trigger-pattern to Anti2RawEvent::
+  if(trpatt!=0 || edept>0)stat=0;//found anti activity
+//
 }
-
-void AMSAntiRawCluster::_copyEl(){
-}
-
-
-void AMSAntiRawCluster::_printEl(ostream & stream){
-  stream <<"AMSAntiRawCluster "<<_sector<<" "<<_updown<<" "<<_signal<<endl;
-}
-
-
-
+//
+//===========================================================================
+//
 void AMSAntiCluster::_writeEl(){
-
-
+//
   if(AMSAntiCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
    int i;
 #ifdef __WRITEROOTCLONES__
@@ -408,107 +491,252 @@ void AMSAntiCluster::_writeEl(){
     if (TN->Nanti>=MAXANTICL) return;
     TN->Status[TN->Nanti]=_status;
     TN->Sector[TN->Nanti]=_sector;
+    TN->Ntimes[TN->Nanti]=_ntimes;
+    TN->Npairs[TN->Nanti]=_npairs;
+    for(i=0;i<_ntimes;i++)TN->Times[TN->Nanti][i]=_times[i];;
+    for(i=0;i<_ntimes;i++)TN->Timese[TN->Nanti][i]=_etimes[i];;
     TN->Edep[TN->Nanti]=_edep;
     for(i=0;i<3;i++)TN->Coo[TN->Nanti][i]=_coo[i];
     for(i=0;i<3;i++)TN->ErrorCoo[TN->Nanti][i]=_ecoo[i];
     TN->Nanti++;
   }
 }
-
-
-
+//---
 void AMSAntiCluster::_copyEl(){
 }
-
-
+//---
 void AMSAntiCluster::_printEl(ostream & stream){
-  stream <<"AMSAntiCluster "<<_status<<" "<<_sector<<" "<<_edep<<" "<<_coo<<  " "<<_ecoo<<endl;
+  stream <<"AMSAntiCluster: sta/sect= "<<_status<<" "<<_sector
+         <<" ntm/npr="<<_ntimes<<" "<<_npairs
+         <<" time1,2"<<_times[0]<<" "<<_times[1]
+         <<" etime1,2"<<_etimes[0]<<" "<<_etimes[1]
+         <<" Edep"<<_edep<<" Coo/err"<<_coo<<  " "<<_ecoo<<endl;
 }
-
-
- 
+//--
 void AMSAntiCluster::print(){
 AMSContainer *p =AMSEvent::gethead()->getC("AMSAntiCluster",0);
  if(p)p->printC(cout);
 }
-
-//===========================================================================
-
-
-
-void AMSAntiCluster::build2(){
-    static number counter[2][ANTI2C::MAXANTI];
-    number edept(0);
-    VZERO(counter,2*ANTI2C::MAXANTI*sizeof(counter[0][0])/sizeof(geant));
-    int i,j;
-    for(i=0;i<2;i++){ 
-     AMSAntiRawCluster *ptr=(AMSAntiRawCluster*)AMSEvent::gethead()->
-     getheadC("AMSAntiRawCluster",i);
-     while(ptr){
-      integer sector=ptr->getsector()-1;
-      #ifdef __AMSDEBUG__
-       assert(sector >=0 && sector < ANTI2C::MAXANTI);
-      #endif
-      counter[i][sector]=counter[i][sector]+ptr->getsignal();
-      ptr=ptr->next();
-     }
-    }
-    for (j=0;j<ANTI2C::MAXANTI;j++){
-     number sup=counter[0][j];
-     number sdown=counter[1][j];
-     if(sup>0 || sdown>0)ANTI2JobStat::addbr(j,0);// have signal on any side
 //
-     if(sup+sdown > ATREFFKEY.ThrS){
-      ANTI2JobStat::addbr(j,1);// total signal above the threshold
-      AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ANTS",j+1));
-      #ifdef __AMSDEBUG__
-       assert (pg != NULL);
-      #endif     
-      //
-      // Geometry dependent
-      // Should be changed if not "TUBS"
-      //
-      number par[5];
-      for(i=0;i<5;i++)par[i]=pg->getpar(i);
-      number r=(par[0]+par[1])/2;
-      number er=(par[1]-par[0])/2;
-      number phi=(par[3]+par[4])/2;
-      number ephi=(par[4]-par[3])/2;
-      number delta=(sup-sdown)/(sup+sdown);
-      number z;
-      if(delta > -1. && delta < 1.)z=ATMCFFKEY.LZero/2*log((1.+delta)/(1.-delta));
-      else if (delta >=1)z=par[2];
-      else z=-par[2];
-      number edep=(sup+sdown)/ANTI2Pcal::antisccal[j].getmip()  // p.e.->Mev
-      *2/(exp(z/ATMCFFKEY.LZero)+exp(-z/ATMCFFKEY.LZero));// useless(low z-accur)
-      edept+=edep;
-      number ddelta=1/sqrt(sup+sdown);
-      number z1,z2;
-      number d1=delta+ddelta;
-      if(d1 >=1)z1=par[2];      
-      else if(d1 <=-1)z1=-par[2];      
-      else z1=ATMCFFKEY.LZero/2*log((1.+d1)/(1.-d1));
-      number d2=delta-ddelta;
-      if(d2 <=-1)z2=-par[2];      
-      else if(d2 >=1)z2=par[2];      
-      else z2=ATMCFFKEY.LZero/2*log((1.+d2)/(1.-d2));
-      number ez=fabs(z1-z2)/2;
-      AMSPoint coo(r,phi,z);
-      AMSPoint ecoo(er,ephi,ez);
-      integer status=0;
-      if (sup ==0 || sdown == 0)status=AMSDBc::BAD;
-      AMSEvent::gethead()->addnext(AMSID("AMSAntiCluster",0),
-      new     AMSAntiCluster(status,j+1,edep,coo,ecoo));
-
+//=============================
+//
+void AMSAntiCluster::build2(){
+//(combine 2-sides of single paddle)
+  bool anchok;
+  int16u nadca,adca[ANTI2C::ANAHMX],ntdct,tdct[ANTI2C::ANTHMX*2];
+  int16u id,idN,sta;
+  int16u pbitn;
+  int16u pbanti;
+  number edep[2],uptm[2][ANTI2C::ANTHMX],edep2,ass,zc,erz,erfi,err;
+  integer nuptm[2];
+  integer i,j,jmax,sector,isid,nsds,isdn[2],stat,chnum,n1,n2,i1min,i2min;
+  number zcoo[2*ANTI2C::ANTHMX],times[2*ANTI2C::ANTHMX],etimes[2*ANTI2C::ANTHMX];
+  number edept,t1,t2,t1mn,t2mn,dt,z1,z2;
+  integer ntimes,npairs,nclust(0),nclustp(0),status(0);
+  geant ftdel[2],padlen,padrad,padfi,paddfi,zcer1,zcer2,ped,sig,dtmin;
+  Anti2RawEvent *ptr;
+  Anti2RawEvent *ptrN;
+//
+  ptr=(Anti2RawEvent*)AMSEvent::gethead()
+                  ->getheadC("Anti2RawEvent",0);// already sorted after validation
+//
+  pbitn=TOF2GC::SCPHBP;//phase bit position as for TOF
+  pbanti=pbitn-1;// mask to avoid it.
+  padlen=ANTI2DBc::scleng();
+  padrad=ANTI2DBc::scradi()+0.5*ANTI2DBc::scinth();
+  paddfi=360./ANTI2C::MAXANTI;
+  zcer1=ATREFFKEY.zcerr1;//Z-coo err. for true pair case
+  nsds=0;
+  nadca=0;
+  ntdct=0;
+  edept=0.;
+  edep[0]=0;
+  edep[1]=0;
+  while(ptr){ // <------ RawEvent hits loop
+    id=ptr->getid();//BBS
+    sector=id/10-1;
+    isid=id%10-1;
+    chnum=sector*2+isid;//channels numbering
+    anchok=(ANTIPeds::anscped[sector].PedStOK(isid) &&
+                  ANTI2Pcal::antisccal[sector].CalStOK(isid));//Chan-DBStat OK
+    if(anchok){// <--- channel alive
+//channel statistics :
+      ANTI2JobStat::addch(chnum,0); 
+      nadca=ptr->getadca(adca);
+      if(nadca>0)ANTI2JobStat::addch(chnum,1);
+      if(nadca==1)ANTI2JobStat::addch(chnum,2);
+//
+      ntdct=ptr->gettdct(tdct);
+      if(ntdct>0)ANTI2JobStat::addch(chnum,3);
+      if(ntdct==2)ANTI2JobStat::addch(chnum,4);
+      isdn[nsds]=isid+1;
+//DAQ-ch-->edep(mev):
+      ped=ANTIPeds::anscped[sector-1].apeda(isid);//adc-chan
+      sig=ANTIPeds::anscped[sector-1].asiga(isid);//adc-ch sigmas
+      edep[nsds]=number(adca[0])/ANTI2DBc::daqscf()       //DAQ-ch-->ADC-ch
+                /ANTI2Pcal::antisccal[sector].sgain(isid)//gain correction
+                *ANTI2Pcal::antisccal[sector].getadc2pe() //ADC-ch-->p.e.
+                /ANTI2Pcal::antisccal[sector].getmev2pe(isid); //p.e.-->Edep(Mev)
+//cout<<"    decoded edep="<<edep[nsds]<<endl; 
+//TDC-ch-->time(ns):
+      nuptm[nsds]=0;
+      for(i=0;i<ntdct;i++){
+        if(i%2==1){//use up-edges (i=1,3,...)
+         uptm[nsds][nuptm[nsds]]=(pbanti&tdct[i])*ANTI2DBc::htdcbw()    //TDC-ch-->ns
+	                        +ANTI2Pcal::antisccal[sector].gettzer();//compens.tzero
+//cout<<"    decoded Up-time="<<uptm[nsds][nuptm[nsds]]<<endl;
+         nuptm[nsds]+=1;
+        }
+      }
+//
+      nsds+=1;
+    }//--->endof alive-check
+//--------
+    ptrN=ptr->next();
+    idN=0;
+    if(ptrN)idN=(ptrN->getid())/10; //next hit short_id (BBS)
+//
+    if(idN != id/10){//next hit is new sector: create 2-sides signal for current sect
+      padfi=paddfi*(0.5+sector);//current paddle phi
+      erfi=paddfi/sqrt(12.);
+      err=ANTI2DBc::scinth()/sqrt(12.);
+      ntimes=0;
+      npairs=0;
+      edep2=0;
+      if(edep[0]>0 || edep[1]>0)ANTI2JobStat::addbr(sector,0);
+//                                                   <-------- case1=2sides:
+      if(nsds==2){
+//                        <-- search for true SideTime-pairs(giving best zcoo):
+	n1=nuptm[0];
+	n2=nuptm[1];
+	while(n1>0 && n2>0){//<-- try next pair ?
+	  dtmin=9999.;
+	  for(int i1=0;i1<nuptm[0];i1++){//<-- combinations loop
+	    t1=uptm[0][i1];
+	    if(t1<0)continue;
+	    for(int i2=0;i2<nuptm[1];i2++){
+	      t2=uptm[1][i2];
+	      if(t2<0)continue;
+              dt=fabs(t1-t2);
+	      if(dt<dtmin){
+	        dtmin=dt;
+	        i1min=i1;
+		i2min=i2;
+	      }
+	    }
+	  }//-->endof combin. loop
+	  t1=uptm[0][i1min];//best pair
+	  t2=uptm[1][i2min];
+//
+	  zc=-0.5*(t1-t2)*ATMCFFKEY.LSpeed;//abs.Z(neglect by possible ANTI Z-shift)
+	  if(fabs(zc)<(0.5*padlen+3*zcer1)){//match found(Zc is within paddle size)
+	    if(zc>0.5*padlen)zc=0.5*padlen;
+	    if(zc<-0.5*padlen)zc=-0.5*padlen;
+	    zcoo[npairs]=zc;
+	    times[npairs]=0.5*(t1+t2);
+	    etimes[npairs]=zcer1/ATMCFFKEY.LSpeed;
+	    npairs+=1;
+	    n1-=1;
+	    n2-=1;
+	    uptm[0][i1min]=-1;//mark used hit(all times are positive)
+	    uptm[1][i2min]=-1;
+	  }
+	  else break;//next pair will be bad(because current one was the best) 
+//
+	}//-->endof "try next pair" 
+//
+        if(npairs==1){//imply, that single Edep correlated with this single pair
+	  zc=zcoo[0];
+	  edep2=(edep[0]+edep[1])
+               *2/(exp(zc/ATMCFFKEY.LZero)+exp(-zc/ATMCFFKEY.LZero));
+	  erz=zcer1;
+	}
+	else{//npair=0,>1; not possible to associate single Edep and time
+//        (to have something, let us calc.zc using Edep(is) assimetry)
+          ass=(edep[1]-edep[0])/(edep[1]+edep[0]);
+          zc=ATMCFFKEY.LZero/2*log((1.+ass)/(1.-ass));
+          edep2=(edep[0]+edep[1])
+          *2/(exp(zc/ATMCFFKEY.LZero)+exp(-zc/ATMCFFKEY.LZero));
+          number ddelta=1/sqrt(edep[1]+edep[0]);
+          number z1,z2;
+          number d1=ass+ddelta;
+          if(d1 >=1)z1=0.5*padlen;      
+          else if(d1 <=-1)z1=-0.5*padlen;      
+          else z1=ATMCFFKEY.LZero/2*log((1.+d1)/(1.-d1));
+          number d2=ass-ddelta;
+          if(d2 <=-1)z2=-0.5*padlen;      
+          else if(d2 >=1)z2=0.5*padlen;      
+          else z2=ATMCFFKEY.LZero/2*log((1.+d2)/(1.-d2));
+          erz=fabs(z1-z2)/2;
+	}
+	ntimes+=npairs;
+//
+      }//--->endof 2s-case
+//                                                  <--------- case1=1side:
+      if(nsds==1){
+        isid=isdn[nsds];//=1,2
+        edep2=edep[nsds]*2;//rough estimation to compensate missing side
+	zc=0.;
+	erz=padlen/sqrt(12.);
+        status|=TOFGC::SCBADB2;// set bit for one-side paddles
+        if(isid==2)status|=TOFGC::SCBADB4;// set missing-side bit(s=2 if set)
+      }//--->endof 1s-case
+      if(ATREFFKEY.reprtf[0] && nsds==2)HF1(2508,geant(edep2),1.);
+//---
+      if(nsds>0 && edep2>ATREFFKEY.Edthr){//non-empty paddle -> create object
+        for(i=0;i<nsds;i++){// add all unpaired times
+	  for(j=0;j<nuptm[i];j++){
+	    t1=uptm[i][j];
+	    if(t1>0){
+	      times[ntimes]=t1;
+	      etimes[ntimes]=padlen/sqrt(12.)/ATMCFFKEY.LSpeed;
+	      ntimes+=1;
+	    }
+	  }
+	}
+//
+        AMSPoint coo(padrad,padfi,zc);
+        AMSPoint ecoo(err,erfi,erz);
+        ANTI2JobStat::addbr(sector,1);
+//
+//cout<<"   FillClustSect="<<sector+1<<" nsds/ntimes/npair="<<nsds<<" "<<ntimes<<" "<<npairs<<endl;
+//cout<<"     edep2="<<edep2<<" coo="<<coo<<" err="<<ecoo<<endl;
+//for(i=0;i<ntimes;i++)cout<<" times="<<times[i]<<" err="<<etimes[i]<<endl;
+        AMSEvent::gethead()->addnext(AMSID("AMSAntiCluster",0),
+         new AMSAntiCluster(status,sector+1,ntimes,npairs,times,etimes,edep2,coo,ecoo));
+//
+	nclust+=1;
+	if(npairs>0)nclustp+=1;
+        edept+=edep2;
+        if(ATREFFKEY.reprtf[0]){
+          HF1(2502,geant(ntimes),1.);
+          HF1(2503,geant(npairs),1.);
+          if(npairs==1)HF1(2504,geant(zc),1.);
+	  if(nsds==2 && npairs!=1)HF1(2505,geant(zc),1.);
+          HF1(2506,geant(sector+1),1.);
+        }
+      }//--->endof non-empty paddle check
       
-     }
-    }
-    if(ATREFFKEY.reprtf[0])HF1(2500,geant(edept),1.);
+//
+      nsds=0;
+      nadca=0;
+      ntdct=0;
+      edep[0]=0;
+      edep[1]=0;
+    }//--->endof next sector check
+//---
+    ptr=ptr->next();// take next RawEvent hit
+  }//------>endof RawEvent hits loop
+//
+  if(ATREFFKEY.reprtf[0]){
+    HF1(2500,geant(edept),1.);
+    HF1(2501,geant(nclust),1.);
+    HF1(2507,geant(nclustp),1.);
+  }
+//
 }
 
-
-
-
+//===============================
 
 integer AMSAntiCluster::Out(integer status){
   static integer init=0;
@@ -518,22 +746,6 @@ integer AMSAntiCluster::Out(integer status){
     integer ntrig=AMSJob::gethead()->gettriggerN();
     for(int n=0;n<ntrig;n++){
       if(strcmp("AMSAntiCluster",AMSJob::gethead()->gettriggerC(n))==0){
-        WriteAll=1;
-        break;
-      }
-    }
-  }
-  return (WriteAll || status);
-}
-
-integer AMSAntiRawCluster::Out(integer status){
-  static integer init=0;
-  static integer WriteAll=1;
-  if(init == 0){
-    init=1;
-    integer ntrig=AMSJob::gethead()->gettriggerN();
-    for(int n=0;n<ntrig;n++){
-      if(strcmp("AMSAntiRawCluster",AMSJob::gethead()->gettriggerC(n))==0){
         WriteAll=1;
         break;
       }
@@ -568,7 +780,7 @@ integer Anti2RawEvent::calcdaqlength(int16u blid){
     antic=hwid%100-1;
     crate=hwid/100-1;
     if(crate==rcrat){
-      nhits+=ptr->getntdca();// counts hits (edges) of TDCA
+      nhits+=ptr->getnadca();// counts hits (edges) of TDCA
       nzchn+=ptr->getnzchn();// counts nonzero TDC-channels (only TDCA)
     } 
 //
@@ -674,7 +886,7 @@ void Anti2RawEvent::builddaq(int16u blid, integer &len, int16u *p){
           for(i=0;i<ntdct;i++)tdc[i]=tdct[i];// FT measurement
         }
         ptr=ptlist[tdcc];// =0 for FT (sw2hwid-function should provide that)
-        if(ptr>0)ntdc=ptr->gettdca(tdc);// TDCA measurement
+        if(ptr>0)ntdc=ptr->getadca(tdc);// TDCA measurement
         if(ntdc>0){
           htmsk|=mskb;
           shft=nzch%4;// hit-counter position in the hit-counters word (0-3)
@@ -725,7 +937,7 @@ void Anti2RawEvent::builddaq(int16u blid, integer &len, int16u *p){
           for(i=0;i<ntdct;i++)tdc[i]=tdct[i];// FT measurement to write-buffer
         }
         ptr=ptlist[tdcc];
-        if(ptr>0)ntdc=ptr->gettdca(tdc);// ANTI-meas. to write-buffer
+        if(ptr>0)ntdc=ptr->getadca(tdc);// ANTI-meas. to write-buffer
         if(ntdc>0){
           for(i=0;i<ntdc;i++){
             adr=adrw;

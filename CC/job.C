@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.441 2003/03/06 15:25:32 choumilo Exp $
+// $Id: job.C,v 1.442 2003/03/18 09:04:07 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -765,13 +765,10 @@ void AMSJob::_sianti2data(){
   ATGEFFKEY.stthic=0.12;   // thickness of supp. tube
   
 //---
-  ATMCFFKEY.mcprtf=0;     // print_hist flag (0/1->no/yes)
-  ATMCFFKEY.SigmaPed=1;   // ped.distribution width (p.e)
-  ATMCFFKEY.MeV2PhEl=20.; // Mev->Ph.el. MC conv.nfactor (pe/Mev)(= 2side_signal(pe)/Eloss(mev)
-//                                                                  measured at center)
-  ATMCFFKEY.LZero=120;    // attenuation length for one-side signal (cm)
-  ATMCFFKEY.PMulZPos=43.;  // PM-position(=Ltot/2)-is taken later from geometry in siantiinitjob
-  ATMCFFKEY.LSpeed=17.;   // Eff. light speed in anti-paddle (cm/ns)
+  ATMCFFKEY.mcprtf=0;     // (1)print_hist flag (0/1->no/yes)
+  ATMCFFKEY.LZero=120;    // (2)attenuation length for one-side signal (cm)
+  ATMCFFKEY.LSpeed=17.;   // (3)Eff. light speed in anti-paddle (cm/ns)
+  ATMCFFKEY.ReadConstFiles=1;//(4)P(Peds), P=0/1-> read from DB/RawFiles
 //---
   FFKEY("ATGE",(float*)&ATGEFFKEY,sizeof(ATGEFFKEY_DEF)/sizeof(integer),
   "MIXED");
@@ -1088,13 +1085,13 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.reprtf[0]=0;//(1) Reco print_hist flag (0/1->no/yes)
   ATREFFKEY.reprtf[1]=0;//(2) DAQ-print (1/2->print for decoding/decoding+encoding)
   ATREFFKEY.reprtf[2]=0;//(3)spare
-  ATREFFKEY.ThrS=6;//(4) threshold to create Cluster object (p.e.)
-  ATREFFKEY.PhEl2MeV=0.05;//(5) reco conv. Phel->Mev(Mev/pe)( =Elos/2sides_signal measured at center)
-  ATREFFKEY.dtthr=3.; //(6) trig.discr.theshold (same for all sides now) (p.e.'s for now)
-  ATREFFKEY.dathr=6.; //(7) Amplitude(charge) discr.threshold(...) (p.e.)
-  ATREFFKEY.ftwin=100.;//(8) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT) 
+  ATREFFKEY.Edthr=0.1;    //(4) threshold to create Cluster(Paddle) object (mev)
+  ATREFFKEY.zcerr1=10.;//(5) Err(cm).in longit.coord. when 2-sides times are known 
+  ATREFFKEY.daqthr=3.;   //(6) daq readout thresh. in SigmaPed units
+  ATREFFKEY.dathr=2.;  //(7) Amplitude discr.threshold in hist-TDC branch (p.e.)
+  ATREFFKEY.ftwin=50.;//(8) t-window(+-ns) for Hist-TDC hit coinc.with FT(used now in MC!) 
 //
-  ATREFFKEY.ReadConstFiles=1;//(9)read const. from DB/myFiles (0/1)
+  ATREFFKEY.ReadConstFiles=11;//(9)PC(Peds,CalConst), P(C)=0/1-> read from DB/RawFiles
 //  
   ATREFFKEY.sec[0]=0;//(10) 
   ATREFFKEY.sec[1]=0;//(11)
@@ -1110,8 +1107,8 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.year[1]=110;
   FFKEY("ATRE",(float*)&ATREFFKEY,sizeof(ATREFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
-  ATCAFFKEY.cfvers=2; //(1) (01-99) vers.number NN for antiverlistNN.dat file
-  ATCAFFKEY.cafdir=1;// (2)  0/1-> use official/private directory for calibr.files
+  ATCAFFKEY.cfvers=3; //(1) (001-999) vers.number NN for antiverlistNN.dat file
+  ATCAFFKEY.cafdir=0;// (2)  0/1-> use official/private directory for calibr.files
   FFKEY("ATCA",(float*)&ATCAFFKEY,sizeof(ATCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //========================================================================
@@ -1730,8 +1727,18 @@ void AMSJob::_rerichinitjob(){
 //-----------------------------------------------------------------------
 void AMSJob::_sianti2initjob(){
   AMSgObj::BookTimer.book("SIANTIEVENT");
+  if(ATMCFFKEY.ReadConstFiles>0 && !isRealData()){//(P) MCPeds from ext.files
+    ANTIPeds::mcbuild();//create sc.bar anscped-objects
+  }
   if(ATMCFFKEY.mcprtf){
-    HBOOK1(2000,"ANTI_counters total energy (geant,Mev)",60,0.,30.,0.); 
+    HBOOK1(2600,"ANTI-MC: Counters Etot (geant,Mev)",60,0.,30.,0.); 
+    HBOOK1(2601,"ANTI-MC: FTime(wo delay)-SideTime(SingleHits,ns)",80,-80.,80.,0.); 
+    HBOOK1(2602,"ANTI-MC: DownSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
+    HBOOK1(2603,"ANTI-MC: UpSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
+    HBOOK1(2604,"ANTI-MC: DownSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 
+    HBOOK1(2605,"ANTI-MC: UpSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 
+    HBOOK1(2606,"ANTI-MC: NtdcUp/Down-pairs per side ",16,0.,16.,0.); 
+    HBOOK1(2607,"ANTI-MC: NumbOfMC-hits per event ",80,0.,320.,0.); 
   }
 }
 //-----------------------------------------------------------------------
@@ -1944,18 +1951,28 @@ void AMSJob::_reanti2initjob(){
 //
     AMSgObj::BookTimer.book("REANTIEVENT");
     if(ATREFFKEY.reprtf[0]>0){
-      HBOOK1(2500,"ANTI_counters total  energy(reco,Mev)",80,0.,16.,0.);
-      HBOOK1(2501,"ANTI_bar: T_tdca-T_tdct(reco,ns)",80,-20.,220.,0.);
+      HBOOK1(2500,"ANTI-REC: EtotSectors(Mev)",80,0.,40.,0.);
+      HBOOK1(2501,"ANTI-REC: NumbOfSectors",16,0.,16.,0.);
+      HBOOK1(2502,"ANTI-REC: Total Time-hits per sector",16,0.,16.,0.);
+      HBOOK1(2503,"ANTI-REC: MadeOfPair-TimeHits per sector",16,0.,16.,0.);
+      HBOOK1(2504,"ANTI-REC: Sector Z-coo(cm,1Pair)",60,-60.,60.,0.);
+      HBOOK1(2505,"ANTI-REC: Sector Z-coo(cm, 2sided but pairs!=1)",60,-60.,60.,0.);
+      HBOOK1(2506,"ANTI-REC: Sector appearance frequency",16,1.,17.,0.);
+      HBOOK1(2507,"ANTI-REC: NumbOfPairedSectors",16,0.,16.,0.);
+      HBOOK1(2508,"ANTI-REC: Edep per sector(mev,2sided)",80,0.,20.,0.);
     }
 //
     ANTI2JobStat::clear();
 //-----------
-  if(ATREFFKEY.ReadConstFiles){// Constants will be taken from ext.files
+//
+  if(ATREFFKEY.ReadConstFiles/10>0 && isRealData()){// (PC) RDPeds from ext.files
+//
+    ANTIPeds::build();//create sc.bar anscped-objects
+  }
+// 
+  if(ATREFFKEY.ReadConstFiles%10>0){//(PC)CalibConst(MC/RD) from ext.files
      ANTI2Pcal::build();//create calibr.objects(antisccal-objects for each sector)
   }
-  else{ // Constants will be taken from DB (TDV)
-    ATREFFKEY.year[1]=ATREFFKEY.year[0]-1;    
-  } 
 }
 //============================================================================================
 void AMSJob::_reecalinitjob(){
@@ -2413,10 +2430,27 @@ if(!isRealData()){
   end.tm_mday=ATREFFKEY.day[1];
   end.tm_mon=ATREFFKEY.mon[1];
   end.tm_year=ATREFFKEY.year[1];
-
+//---------
+//atre->PC,atmc->P
+if(ATREFFKEY.ReadConstFiles%10==0)end.tm_year=ATREFFKEY.year[0]-1;//Calib.fromDB
+//
   TID.add (new AMSTimeID(AMSID("Antisccal2",isRealData()),
      begin,end,ANTI2C::MAXANTI*sizeof(ANTI2Pcal::antisccal[0]),
-                                  (void*)&ANTI2Pcal::antisccal[0],server,NeededByDefault));
+                         (void*)&ANTI2Pcal::antisccal[0],server,NeededByDefault));
+//
+  end.tm_year=ATREFFKEY.year[1];
+//---------
+if(ATREFFKEY.ReadConstFiles/10==0 &&
+    isRealData())end.tm_year=ATREFFKEY.year[0]-1;//Real data Peds.fromDB
+if(ATMCFFKEY.ReadConstFiles==0 &&
+   !isRealData())end.tm_year=ATREFFKEY.year[0]-1;//MC data Peds.fromDB
+//
+  TID.add (new AMSTimeID(AMSID("Antipeds",isRealData()),
+    begin,end,ANTI2C::MAXANTI*sizeof(ANTIPeds::anscped[0]),
+                            (void*)&ANTIPeds::anscped[0],server,NeededByDefault));
+//
+  end.tm_year=ATREFFKEY.year[1];
+//---------
 //
 // TID.add (new AMSTimeID(AMSID("Antivpar2",isRealData()),
 //    begin,end,sizeof(ANTI2Varp::antivpar),
@@ -3029,11 +3063,25 @@ void AMSJob::_anti2endjob(){
     ANTI2JobStat::print();
   }
   if(isSimulation() && ATMCFFKEY.mcprtf>0){
-    HPRINT(2000);
+    HPRINT(2600);
+    HPRINT(2601);
+    HPRINT(2602);
+    HPRINT(2603);
+    HPRINT(2604);
+    HPRINT(2605);
+    HPRINT(2606);
+    HPRINT(2607);
   }
   if(ATREFFKEY.reprtf[0]>0){
     HPRINT(2500);
     HPRINT(2501);
+    HPRINT(2507);
+    HPRINT(2502);
+    HPRINT(2503);
+    HPRINT(2504);
+    HPRINT(2505);
+    HPRINT(2506);
+    HPRINT(2508);
   }
 }
 //-----------------------------------------------------------------------

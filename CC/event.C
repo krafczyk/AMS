@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.307 2003/02/04 15:02:03 choutko Exp $
+//  $Id: event.C,v 1.308 2003/03/18 09:04:06 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1216,7 +1216,6 @@ void AMSEvent::_reamsevent(){
     return;
   }
   _retof2event();
-  _reanti2event();
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();
   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
     _retrdevent();
@@ -1224,6 +1223,7 @@ void AMSEvent::_reamsevent(){
     _rerichevent();
    _reecalevent();
   }
+  _reanti2event();
   _reaxevent();
    AMSUser::Event();
    AMSgObj::BookTimer.stop("REAMSEVENT");  
@@ -1442,7 +1442,7 @@ void AMSEvent::_reanti2event(){
       toftrigfl=ptr->gettoflg();
       ectrigfl=ptr->getecflg();
     }
-    if(toftrigfl<=0 && ectrigfl<=0){
+    if(toftrigfl<=0 && ectrigfl<=0 && TGL1FFKEY.trtype!=10){
       AMSgObj::BookTimer.stop("REANTIEVENT");
       return;// "no TOF/EC in LVL1-trigger"
     }
@@ -1457,16 +1457,9 @@ void AMSEvent::_reanti2event(){
     }
     ANTI2JobStat::addre(2);
 //
-    AMSAntiRawCluster::build2(stat);// RawEvent->RawCluster
-    if(stat!=0){
-      AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;
-    }
-    ANTI2JobStat::addre(3);
 //
-//
-  AMSAntiCluster::build2();// RawCluster->Cluster
-  ANTI2JobStat::addre(4);
+  AMSAntiCluster::build2();// RawEvent->Cluster
+  ANTI2JobStat::addre(3);
 // 
   #ifdef __AMSDEBUG__
    if(AMSEvent::debug)AMSAntiCluster::print();
@@ -1486,7 +1479,7 @@ int stat;
       toftrigfl=ptr->gettoflg();
       ectrigfl=ptr->getecflg();
     }
-    if(toftrigfl<=0 && ectrigfl<=0){
+    if(toftrigfl<=0 && ectrigfl<=0 && TGL1FFKEY.trtype!=10){
       AMSgObj::BookTimer.stop("RETOFEVENT");
       return;// "no TOF/EC in LVL1-trigger"
     }   
@@ -1536,7 +1529,7 @@ void AMSEvent::_reecalevent(){
   integer tofflg(0);
   uinteger ecalflg(0);
   Trigger2LVL1 *ptr;
-  int stat;
+  int stat(0);
 //
   AMSgObj::BookTimer.start("REECALEVENT");
 //
@@ -1553,6 +1546,7 @@ void AMSEvent::_reecalevent(){
   EcalJobStat::addre(1);
   if(ECMCFFKEY.fastsim==0){//           ===> slow algorithm:
 //
+    stat=0;
     AMSEcalRawEvent::validate(stat);// EcalRawEvent->EcalRawEvent
     if(stat!=0){
       AMSgObj::BookTimer.stop("REECALEVENT");
@@ -1560,6 +1554,7 @@ void AMSEvent::_reecalevent(){
     }
     EcalJobStat::addre(2);
 //
+    stat=0;
     AMSEcalHit::build(stat);// EcalRawEvent->EcalHit
     if(stat!=0){
       AMSgObj::BookTimer.stop("REECALEVENT");
@@ -1867,9 +1862,9 @@ void AMSEvent:: _sianti2event(){
     Anti2RawEvent::mc_build(stat);// Geant_hit->RawEvent
     if(stat!=0){
       AMSgObj::BookTimer.stop("SIANTIEVENT");
-      return;// no FTrigger from TOF - skip the rest
+      return;// 
     }
-    ANTI2JobStat::addmc(1);
+    ANTI2JobStat::addmc(6);
 //
 //
 #ifdef __AMSDEBUG__

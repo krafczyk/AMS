@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.181 2003/03/06 15:25:45 choumilo Exp $
+//  $Id: commons.h,v 1.182 2003/03/18 09:04:18 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -392,11 +392,11 @@ COMMON_BLOCK_DEF(ATGEFFKEY_DEF,ATGEFFKEY);
 class ATMCFFKEY_DEF {
 public:
 integer mcprtf;// hist. print flag
-geant SigmaPed;
-geant MeV2PhEl;
 geant LZero;
-geant PMulZPos;
 geant LSpeed;
+//
+integer ReadConstFiles;
+//
 };
 #define ATMCFFKEY COMMON_BLOCK(ATMCFFKEY,atmcffkey)
 COMMON_BLOCK_DEF(ATMCFFKEY_DEF,ATMCFFKEY);
@@ -404,11 +404,11 @@ COMMON_BLOCK_DEF(ATMCFFKEY_DEF,ATMCFFKEY);
 class ATREFFKEY_DEF {
 public:
   integer reprtf[3];//  print flag
-  geant ThrS; // threshold (p.e) to create Cluster-object
-  geant PhEl2MeV;
-  geant dtthr; // trig.discr.theshold (same for all sides now) (p.e.'s for now)
-  geant dathr; // Amplitude(charge) discr.threshold(...) (p.e.)
-  geant ftwin; // time_window in true TDCA-hits search (ns) 
+  geant Edthr; // threshold (mev) to create Cluster-object
+  geant zcerr1;// long.coo error(when 2-sides times are known) 
+  geant daqthr; //DAQ-readout threshold(SigmaPed units) 
+  geant dathr; // Amplitude discr.threshold fir hist-TDC branch (p.e.)
+  geant ftwin; // t-window(ns) for Hist-TDC hit coinc.with FT 
 //
   integer ReadConstFiles;
 //

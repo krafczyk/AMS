@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.152 2003/03/14 13:37:51 choutko Exp $
+//  $Id: amsgeom.C,v 1.153 2003/03/18 09:04:05 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1037,8 +1037,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant r13dx=184.9;//section 13(top) width(Should match to us1x1 !!!)
  geant r1dy=2.6;//thickness
  geant r13dz=58.;//height
-// geant r1cy=(173.5+r1dy/2.);//Y0
- geant r1cy=(173.5+r1dy/2.+0.5);//Y0
+ geant r1cy=(173.5+0.5+r1dy/2.);//Y0 ("0.5 is my corr.to avoid intersection with ISS)
  geant r1cx=0.;//X0 
  geant r13cz=81.5;//Z0
 //

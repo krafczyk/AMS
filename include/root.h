@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.73 2003/01/07 18:38:47 jorgec Exp $
+//  $Id: root.h,v 1.74 2003/03/18 09:04:18 choumilo Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -17,7 +17,6 @@ const int NClassAMS = 50;
 #ifdef __WRITEROOT__
 class AMSAntiCluster;
 class AMSAntiMCCluster;
-class AMSAntiRawCluster;
 class AMSBeta;
 class AMSCharge;
 class AMSEvent;
@@ -128,7 +127,6 @@ public:
   TClonesArray *fLVL3;
   TClonesArray *fLVL1;
   TClonesArray *fTrRawCluster;
-  TClonesArray *fAntiRawCluster;
   TClonesArray *fTOFRawCluster;
   TClonesArray *fRICMC;
   TClonesArray *fRICEvent;
@@ -141,7 +139,6 @@ void Set(AMSEvent *ptr, int rawwords);
 ~EventRoot02(){};
 void         AddAMSObject(AMSAntiCluster *ptr);
 void         AddAMSObject(AMSAntiMCCluster *ptr);
-void         AddAMSObject(AMSAntiRawCluster *ptr);
 void         AddAMSObject(AMSBeta *ptr);
 void         AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
                           float probtr[], int chintr[], float probrc[], 
@@ -661,6 +658,10 @@ class AntiClusterRoot : public TObject {
 public:
   int   Status;
   int   Sector;
+  int   Ntimes;
+  int   Npairs;
+  float Times[2*ANTI2C::ANTHMX];
+  float Timese[2*ANTI2C::ANTHMX];
   float Edep;
   float Coo[3];   // R, phi, Z
   float ErrorCoo[3];
@@ -739,18 +740,6 @@ public:
 ClassDef(TrRawClusterRoot,1)       //TrRawClusterRoot
 };
 
-class AntiRawClusterRoot : public TObject {
-public:
-  int   Status;
-  int   Sector;
-  int   UpDown;
-  float Signal;
-
-  AntiRawClusterRoot();
-  ~AntiRawClusterRoot(){};
-  AntiRawClusterRoot(AMSAntiRawCluster *ptr);
-ClassDef(AntiRawClusterRoot ,1)       //AntiRawClusterRoot
-};
 
 class TOFRawClusterRoot : public TObject {
 public:

@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.75 2003/01/22 11:32:12 choutko Exp $
+//  $Id: ntuple.h,v 1.76 2003/03/18 09:04:18 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -6,6 +6,7 @@
 #include <tkdbc.h>
 #include <trddbc.h>
 #include <ecaldbc.h>
+#include <antidbc02.h>
 #include <root.h>
 
 const int NBRANCHES = 1;    // number of branches
@@ -18,8 +19,7 @@ const int MAXPART02    =  10;
 const int MAXTOF     =    48;
 const int MAXTOFRAW  =    48;
 const int MAXTOFMC   =   100;
-const int MAXANTICL  =    16;
-const int MAXANTIRAW =    32;
+const int MAXANTICL  =    8;
 const int MAXANTIMC  =   100;
 const int MAXTRCL    =   200;
 const int MAXTRRAW   =   300;
@@ -527,6 +527,10 @@ public:
   int Nanti;
   int Status[MAXANTICL];
   int Sector[MAXANTICL];
+  int   Ntimes[MAXANTICL];
+  int   Npairs[MAXANTICL];
+  float Times[MAXANTICL][2*ANTI2C::ANTHMX];
+  float Timese[MAXANTICL][2*ANTI2C::ANTHMX];
   float Edep[MAXANTICL];
   float Coo[MAXANTICL][3];   // R, phi, Z
   float ErrorCoo[MAXANTICL][3];
@@ -598,17 +602,6 @@ friend class AMSTrRawCluster;
 friend class AMSNtuple;
 };
 
-class AntiRawClusterNtuple {
-public:
-  int Nantiraw;
-  int Status[MAXANTIRAW];
-  int Sector[MAXANTIRAW];
-  int UpDown[MAXANTIRAW];
-  float Signal[MAXANTIRAW];
-
-friend class AMSAntiRawCluster;
-friend class AMSNtuple;
-};
 
 class TOFRawClusterNtuple {
 public:
@@ -708,7 +701,6 @@ protected:
   LVL3Ntuple02 _lvl302;
   LVL1Ntuple02 _lvl102;
   TrRawClusterNtuple _trraw;
-  AntiRawClusterNtuple _antiraw;
   TOFRawClusterNtuple _tofraw;
   EcalClusterNtuple _ecclust;
   Ecal2DClusterNtuple _ec2dclust;
@@ -760,7 +752,6 @@ public:
   LVL3Ntuple02* Get_lvl302() {return &_lvl302;}
   LVL1Ntuple02* Get_lvl102() {return &_lvl102;}
   TrRawClusterNtuple* Get_trraw() {return &_trraw;}
-  AntiRawClusterNtuple* Get_antiraw() {return &_antiraw;}
   TOFRawClusterNtuple* Get_tofraw() {return &_tofraw;}
   EcalClusterNtuple* Get_ecclust() {return &_ecclust;}
   Ecal2DClusterNtuple* Get_ec2dclust() {return &_ec2dclust;}

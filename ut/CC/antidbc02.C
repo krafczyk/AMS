@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.5 2002/10/15 12:44:16 choumilo Exp $
+//  $Id: antidbc02.C,v 1.6 2003/03/18 09:04:06 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //
 #include <typedefs.h>
@@ -13,6 +13,7 @@
 #include <antirec02.h>
 //
 ANTI2Pcal ANTI2Pcal::antisccal[ANTI2C::MAXANTI];// init array of antipaddles calibr. objects
+ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. ANTI-paddles pedestals/sigmas
 //
 //======> just memory reservation for ANTI2DBc class variables:
 // (real values are initialized at run-time from data cards in setgeom() or in...)
@@ -27,9 +28,12 @@ ANTI2Pcal ANTI2Pcal::antisccal[ANTI2C::MAXANTI];// init array of antipaddles cal
   geant ANTI2DBc::_stleng=0.;
   geant ANTI2DBc::_stthic=0.;
 //
-  geant ANTI2DBc::_tdcabw=1.;  // bin width in TovT TDC (ns)
-  geant ANTI2DBc::_shprdt=50.; // shaper(integrator) decay time (ns)
-  geant ANTI2DBc::_ftpulw=30.; // FTrigger pulse width (ns)
+  geant ANTI2DBc::_fadcbw=1.;//Flash-ADC bin width(ns)
+  geant ANTI2DBc::_htdcdr=10.;//Hist-discrim. double pulse resolution(ns)
+  geant ANTI2DBc::_htdcbw=1.;  // bin width in Hist-TDC (ns)
+  integer ANTI2DBc::_daqscf=2; //daq scaling factor for charge
+  geant ANTI2DBc::_ftcoinw=50.;//not used
+  geant ANTI2DBc::_hdpdmn=2.;// hist-discrim. min pulse duration
 //
 //  ANTI2DBc class member functions :
 //
@@ -39,12 +43,15 @@ ANTI2Pcal ANTI2Pcal::antisccal[ANTI2C::MAXANTI];// init array of antipaddles cal
   geant ANTI2DBc::wrapth(){return _wrapth;}
   geant ANTI2DBc::groovr(){return _groovr;}
   geant ANTI2DBc::pdlgap(){return _pdlgap;}
-  geant ANTI2DBc::stradi(){return _stradi;}
-  geant ANTI2DBc::stleng(){return _stleng;}
+  geant ANTI2DBc::stradi(){return _stradi;};
+  geant ANTI2DBc::stleng(){return _stleng;};
   geant ANTI2DBc::stthic(){return _stthic;}
-  geant ANTI2DBc::tdcabw(){return _tdcabw;}
-  geant ANTI2DBc::shprdt(){return _shprdt;}
-  geant ANTI2DBc::ftpulw(){return _ftpulw;}
+  geant ANTI2DBc::fadcbw(){return _fadcbw;}
+  geant ANTI2DBc::htdcdr(){return _htdcdr;}
+  geant ANTI2DBc::htdcbw(){return _htdcbw;}
+  integer ANTI2DBc::daqscf(){return _daqscf;}
+  geant ANTI2DBc::ftcoinw(){return _ftcoinw;}
+  geant ANTI2DBc::hdpdmn(){return _hdpdmn;}
 //
   void ANTI2DBc::setgeom(){ //get parameters from data cards (for now)
     _scradi=ATGEFFKEY.scradi;
@@ -68,26 +75,19 @@ ANTI2Pcal ANTI2Pcal::antisccal[ANTI2C::MAXANTI];// init array of antipaddles cal
 // ANTI2Pcal class member functions:
 //
 void ANTI2Pcal::build(){ // fill array of objects with data
-  integer i,j,k,ip,cnum,nrch,ibr,isd;
-  int16u swid,crat,sfea,antic;
+  integer i,j,k,ip,cnum,ibr,isd;
   integer sta[2]={0,0}; // all  are alive as default
   integer status[ANTI2C::MAXANTI][2];
-  geant tthr[2]; // trigger threshold for one side.(p.e. for now)
-  geant athr[2]; // TovT threshold for one side.(p.e.)
-  geant q2pe=1.;//tempor q(pC)->pe conv.factor (pe/pC)
-  geant mip2q;   // conv.factor for Mev->pe (Pe/Mev)
+  geant athr; // hist-discr threshold(p.e.)
+  geant dqthr;//daq-readout thresh(adc-ch)
   geant gain[2],gains[ANTI2C::MAXANTI][2];
-  geant ftdl[2];// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
-  geant ipara[ANTI2C::ANCHMX][ANTI2C::ANIPAR];// the same number of integr. parameters as for TOF
+  geant m2p[2],mev2pe[ANTI2C::MAXANTI][2];
+  geant ftdl[2],ftdel[ANTI2C::MAXANTI][2];
+  geant t0,tzer[ANTI2C::MAXANTI],a2p,adc2pe[ANTI2C::MAXANTI];
   char fname[80];
   char name[80];
   char vers1[3]="mc";
   char vers2[3]="rl";
-  geant aip[2][ANTI2C::ANIPAR]={// default
-    {50.,62.6,1.3},
-    {50.,62.6,1.3}
-  }; 
-// (def.param. for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs))
 //------------------------------
   char in[2]="0";
   char inum[11];
@@ -95,22 +95,24 @@ void ANTI2Pcal::build(){ // fill array of objects with data
   int mcvn,rlvn,dig;
 //
   strcpy(inum,"0123456789");
-  nrch=2*ANTI2C::ANCHCH;// real number of anti-ch per SFEA (2chip*4chan)
 //
 // ---> read cal.file-versions file :
 //
   integer cfvn;
-  cfvn=ATCAFFKEY.cfvers%100;
+  cfvn=ATCAFFKEY.cfvers%1000;
   strcpy(name,"antiverlist");
-  dig=cfvn/10;
+  dig=cfvn/100;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=(cfvn%100)/10;
   in[0]=inum[dig]; 
   strcat(name,in);
   dig=cfvn%10;
   in[0]=inum[dig]; 
   strcat(name,in);
   strcat(name,".dat");
-  strcpy(fname,AMSDATADIR.amsdatadir);
-//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/antica/");//tempor
+  if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
   cout<<"ANTI2Pcal::build: Open file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed verslist-file for reading
@@ -127,74 +129,19 @@ void ANTI2Pcal::build(){ // fill array of objects with data
 //
 //---------------------------------------------
 //
-//   --->  Read integrator parameters calibr. file :
-//
- ctyp=1;
- strcpy(name,"antiincal");
- mcvn=mcvern[ctyp-1]%100;
- rlvn=rlvern[ctyp-1]%100;
- if(AMSJob::gethead()->isMCData())           // for MC-event
- {
-   cout <<" ANTI2Pcal_build: integrator-calibration for MC-events selected."<<endl;
-   dig=mcvn/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=mcvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers1);
- }
- else                                       // for Real events
- {
-   cout <<" ANTI2Pcal_build: integrator-calibration for Real-events selected."<<endl;
-   dig=rlvn/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers2);
- }
- strcat(name,".dat");
-   strcpy(fname,AMSDATADIR.amsdatadir);    
-// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/antica/");//tempor
- strcat(fname,name);
- cout<<"Open file : "<<fname<<'\n';
- ifstream icfile(fname,ios::in); // open integrator_param-file for reading
- if(!icfile){
-   cerr <<"ANTI2Pcal_build: missing integrator_param-file "<<fname<<endl;
-   exit(1);
- }
-//
- for(i=0;i<ANTI2C::ANCRAT;i++){ //<--- crate loop (0-max7)
-   icfile >> crat;// crate-number
-   for(j=0;j<ANTI2C::ANSFEA;j++){ //<--- SFEA card loop (0)
-     icfile >> sfea;// sfea-number
-     for(k=0;k<nrch;k++){ //<--- real anti-chan. loop (0-max15)
-       icfile >> antic; // antic-number(tdc-ch numbering accross sfea)
-       swid=Anti2RawEvent::hw2swid(crat-1,antic-1);//BBS
-       if(swid==0)continue;// non-existing antic 
-       ibr=swid/10-1;
-       isd=swid%10-1;
-       cnum=2*ibr+isd;
-       for(ip=0;ip<ANTI2C::ANIPAR;ip++)icfile >> ipara[cnum][ip];//read anode parameters
-     }
-   }
- }
- icfile.close();
-//
-//---------------------------------------------
-//
 //   --->  Read abs_normalization/gain/status calib. file :
 //
- ctyp=2;
- strcpy(name,"antiancal");
- mcvn=mcvern[ctyp-1]%100;
- rlvn=rlvern[ctyp-1]%100;
+ ctyp=1;
+ strcpy(name,"anticpf");
+ mcvn=mcvern[ctyp-1]%1000;
+ rlvn=rlvern[ctyp-1]%1000;
  if(AMSJob::gethead()->isMCData())           // for MC-event
  {
-   cout <<" ANTI2Pcal_build: abs.norm/gain/stat-calib. for MC-events selected."<<endl;
-   dig=mcvn/10;
+   cout <<" ANTI2Pcal_build: status/calib.const for MC-events "<<endl;
+   dig=mcvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(mcvn%100)/10;
    in[0]=inum[dig];
    strcat(name,in);
    dig=mcvn%10;
@@ -204,8 +151,11 @@ void ANTI2Pcal::build(){ // fill array of objects with data
  }
  else                                       // for Real events
  {
-   cout <<" ANTI2Pcal_build: abs.norm/gain/stat-calib. for Real-events selected."<<endl;
-   dig=rlvn/10;
+   cout <<" ANTI2Pcal_build: status/calib.const for Real-events"<<endl;
+   dig=rlvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(rlvn%100)/10;
    in[0]=inum[dig];
    strcat(name,in);
    dig=rlvn%10;
@@ -214,23 +164,27 @@ void ANTI2Pcal::build(){ // fill array of objects with data
    strcat(name,vers2);
  }
  strcat(name,".dat");
-   strcpy(fname,AMSDATADIR.amsdatadir);    
-// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/antica/");//tempor
+ if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+ if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
  strcat(fname,name);
- cout<<"Open file : "<<fname<<'\n';
+ cout<<"ANTI2Pcal_build:Open file : "<<fname<<'\n';
  ifstream acfile(fname,ios::in); // open abs.norm/gain/stat-file for reading
  if(!acfile){
-   cerr <<"ANTI2Pcal_build: missing abs.norm/gain/status file "<<fname<<endl;
+   cerr <<"ANTI2Pcal_build: missing status/calib.const file "<<fname<<endl;
    exit(1);
  }
 //
- acfile >> mip2q;// read mip2q factor (p.e/mev)
- acfile >> q2pe; // read q2pe factor (p.e./pC)
  for(i=0;i<ANTI2C::MAXANTI;i++){
-   acfile >> gains[i][0];
    acfile >> status[i][0];
-   acfile >> gains[i][1];
+   acfile >> mev2pe[i][0];
+   acfile >> gains[i][0];
+   acfile >> ftdel[i][0];
    acfile >> status[i][1];
+   acfile >> mev2pe[i][1];
+   acfile >> gains[i][1];
+   acfile >> ftdel[i][1];
+   acfile >> adc2pe[i];// read adc->pe factor (p.e/adc_ch)
+   acfile >> tzer[i]; // read Hist-time delay(ns, mainly due to clear fiber length)
  }
 //
  acfile.close();
@@ -238,60 +192,160 @@ void ANTI2Pcal::build(){ // fill array of objects with data
 //----------------------------------------------------------------------
 // create ANTI2Pcal objects:
 //
-  if(AMSJob::gethead()->isMCData()){ //            =====> For MC data:
+    athr=ATREFFKEY.dathr; // take Hist-discr threshold from DataCard
+    dqthr=ATREFFKEY.daqthr;//DAQ-readout-threshold from DataCard
+//
     for(i=0;i<ANTI2C::MAXANTI;i++){
-      tthr[0]=ATREFFKEY.dtthr; // take trig. threshold from data card for now
-      tthr[1]=ATREFFKEY.dtthr; // take trig. threshold from data card for now
-      athr[0]=ATREFFKEY.dathr; // take TovT threshold from data card for now
-      athr[1]=ATREFFKEY.dathr; // take TovT threshold from data card for now
-      for(ip=0;ip<ANTI2C::ANIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
-      for(ip=0;ip<ANTI2C::ANIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
-      gain[0]=gains[i][0];// gain from file
-      gain[1]=gains[i][1];
-      sta[0]=status[i][0];// alive status from file
+      gain[0]=gains[i][0];// Relat. gain from CalibOutput-file(usage is not clear now,
+      gain[1]=gains[i][1];// because depends on calib.procedure for mev2pe-parameter)
+      sta[0]=status[i][0];// alive status from CalibOutput-file
       sta[1]=status[i][1];
-      ftdl[0]=TOF2DBc::ftdelf();// tempor (as for TOF)
-      ftdl[1]=TOF2DBc::ftdelf();// tempor
-      antisccal[i]=ANTI2Pcal(i,sta,tthr,athr,ftdl,mip2q,q2pe,
-                                         gain,aip);// create ANTI2Pcal object
+      ftdl[0]=ftdel[i][0];//True hist-hit delay wrt FT from CalibOutput-file(not used now)
+      ftdl[1]=ftdel[i][1];
+      m2p[0]=mev2pe[i][0];// mev->pe conv.factor(incl.clfib.atten. and may be PM-gain)
+      m2p[1]=mev2pe[i][1];
+      t0=tzer[i];//ClfFiber+Cable delay from CalibOutput-file
+      a2p=adc2pe[i];//adc->pe conv.factor from CalibOutput-file
+//
+      antisccal[i]=ANTI2Pcal(i,sta,athr,ftdl,m2p,gain,a2p,
+                                                 dqthr,t0);// create ANTI2Pcal object
     }
-  }
-//---------------------------------------------------------------------
-  else{ //                                         =====> For Real Data :
-    for(i=0;i<ANTI2C::MAXANTI;i++){
-      tthr[0]=ATREFFKEY.dtthr; // take trig. threshold from data card for now
-      tthr[1]=ATREFFKEY.dtthr; // take trig. threshold from data card for now
-      athr[0]=ATREFFKEY.dathr; // take TovT threshold from data card for now
-      athr[1]=ATREFFKEY.dathr; // take TovT threshold from data card for now
-      for(ip=0;ip<ANTI2C::ANIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
-      for(ip=0;ip<ANTI2C::ANIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
-      gain[0]=gains[i][0];// gain from file
-      gain[1]=gains[i][1];
-      sta[0]=status[i][0];// alive status from file
-      sta[1]=status[i][1];
-      ftdl[0]=TOF2DBc::ftdelf();// tempor (as for TOF)
-      ftdl[1]=TOF2DBc::ftdelf();// tempor
-      antisccal[i]=ANTI2Pcal(i,sta,tthr,athr,ftdl,mip2q,q2pe,
-                                         gain,aip);// create ANTI2Pcal object
-    }
-  }
+//
 }
-//----
-void ANTI2Pcal::q2t2q(int cof, int sdf, number &tovt, number &q){  
-// Q(pC) <-> Tovt(ns) to use in sim./rec. programs (cof=0/1-> Q->Tovt/Tovt->Q)
-//                                                 (sdf=0/1-> bar side 1/2   )
-  number qoffs,shft,qthr;
-  shft=aipar[sdf][0];
-  qthr=exp(aipar[sdf][1]/shft);//to match old parametrization
-  qoffs=aipar[sdf][2];
-// 
-  if(cof==0){ // q->tovt
-    if(q>qoffs)tovt=shft*log((q-qoffs)/qthr);
-    if(tovt<0.)tovt=0.;
+//
+//==========================================================================
+//
+void ANTIPeds::mcbuild(){// create MC ANTIPeds-objects for each counter
+//
+  int i,j,is;
+  integer sid;
+  char fname[80];
+  char name[80];
+  integer asta[ANTI2C::MAXANTI][2];// array of counter stat
+  geant aped[ANTI2C::MAXANTI][2];// array of counter peds
+  geant asig[ANTI2C::MAXANTI][2];// array of counter sigmas
+  integer stata[2];
+  geant peda[2],siga[2];
+//
+//
+//   --->  Read  pedestals file :
+//
+  strcpy(name,"antiped");
+  cout <<" ANTIPeds_mcbuild: COPY of current RealData peds-file is used..."<<endl;
+  strcat(name,"mc");
+// ---> check setup:
+//
+  if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    cout<<" ANTIPEDS-I-AMS02 setup selected."<<endl;
   }
-  else{       // tovt->q
-    q=qoffs+qthr*exp(tovt/shft);
+  else
+  {
+        cout <<" ANTIPeds:mcbuild-E-Unknown setup !!!"<<endl;
+        exit(10);
   }
+//
+  strcat(name,".dat");
+  if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"Open file : "<<fname<<'\n';
+  ifstream icfile(fname,ios::in); // open pedestals-file for reading
+  if(!icfile){
+    cerr <<"ANTIPeds_mcbuild: missing MC default pedestals-file "<<fname<<endl;
+    exit(1);
+  }
+//
+//---> Read anode stats/peds/sigs:
+//
+  for(is=0;is<ANTI2C::MAXANTI;is++){  // <---- loop over sectors
+    for(i=0;i<2;i++)icfile >> asta[is][i];// sequence: side1,side2
+    for(i=0;i<2;i++)icfile >> aped[is][i];
+    for(i=0;i<2;i++)icfile >> asig[is][i];
+  } // ---> endof sectors loop
+//
+//
+  icfile.close();
+//---------------------------------------------
+//   ===> fill ANTIPeds bank :
+//
+  for(is=0;is<ANTI2C::MAXANTI;is++){  // <--- loop over sectors
+    sid=(is+1);
+    for(i=0;i<2;i++){
+      stata[i]=asta[is][i];
+      peda[i]=aped[is][i];
+      siga[i]=asig[is][i];
+    }
+//
+    anscped[is]=ANTIPeds(sid,stata,peda,siga);
+//
+  } // ---> endof sector loop
+}
+//==========================================================================
+//
+void ANTIPeds::build(){//tempor solution for RealData peds. 
+//
+  int i,j,is;
+  integer sid;
+  char fname[80];
+  char name[80];
+  integer asta[ANTI2C::MAXANTI][2];// array of counter stat
+  geant aped[ANTI2C::MAXANTI][2];// array of counter peds
+  geant asig[ANTI2C::MAXANTI][2];// array of counter sigmas
+  integer stata[2];
+  geant peda[2],siga[2];
+//
+//
+//   --->  Read  pedestals file :
+//
+  strcpy(name,"antiped");
+  cout <<" ANTIPeds_build: Current RealData peds-file is used..."<<endl;
+  strcat(name,"rl");
+// ---> check setup:
+//
+  if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    cout<<" ANTIPEDS-I-AMS02 setup selected."<<endl;
+  }
+  else
+  {
+        cout <<" ANTIPeds:build-E-Unknown setup !!!"<<endl;
+        exit(10);
+  }
+//
+  strcat(name,".dat");
+  if(ATCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ATCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"Open file : "<<fname<<'\n';
+  ifstream icfile(fname,ios::in); // open pedestals-file for reading
+  if(!icfile){
+    cerr <<"ANTIPeds_build: missing real pedestals file "<<fname<<endl;
+    exit(1);
+  }
+//
+//---> Read anode stats/peds/sigs:
+//
+  for(is=0;is<ANTI2C::MAXANTI;is++){  // <---- loop over sectors
+    for(i=0;i<2;i++)icfile >> asta[is][i];// sequence: side1,side2
+    for(i=0;i<2;i++)icfile >> aped[is][i];
+    for(i=0;i<2;i++)icfile >> asig[is][i];
+  } // ---> endof sectors loop
+//
+//
+  icfile.close();
+//---------------------------------------------
+//   ===> fill ANTIPeds bank :
+//
+  for(is=0;is<ANTI2C::MAXANTI;is++){  // <--- loop over sectors
+    sid=(is+1);
+    for(i=0;i<2;i++){
+      stata[i]=asta[is][i];
+      peda[i]=aped[is][i];
+      siga[i]=asig[is][i];
+    }
+//
+    anscped[is]=ANTIPeds(sid,stata,peda,siga);
+//
+  } // ---> endof sector loop
 }
 //=====================================================================  
 //
@@ -311,14 +365,18 @@ void ANTI2JobStat::print(){
   printf("    ============ JOB ANTI2-statistics =============\n");
   printf("\n");
   printf(" MC: entries             : % 6d\n",mccount[0]);
-  printf(" MC: Ghits->RawEvent OK  : % 6d\n",mccount[1]);
+  printf(" MC: Ghits->RawEvent OK  : % 6d\n",mccount[6]);
+  printf(" MC: Flash-ADC buff.ovfl : % 6d\n",mccount[1]);
+  printf(" MC: Hist-TDC stack ovfl : % 6d\n",mccount[2]);
+  printf(" MC: ADC range ovfl      : % 6d\n",mccount[3]);
+  printf(" MC: H-TDC range ovfl    : % 6d\n",mccount[4]);
+  printf(" MC: FT/Anti coincidence : % 6d\n",mccount[5]);
   printf(" RECO-entries            : % 6d\n",recount[0]);
   printf(" Lev-1 trigger OK        : % 6d\n",recount[1]);
   printf(" Usage of TOF in LVL1    : % 6d\n",recount[5]);
   printf(" Usage of EC  in LVL1    : % 6d\n",recount[6]);
   printf(" RawEvent-validation OK  : % 6d\n",recount[2]);
-  printf(" RawEvent->RawCluster OK : % 6d\n",recount[3]);
-  printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);
+  printf(" RawEvent->Cluster OK    : % 6d\n",recount[3]);
   printf("\n\n");
 //
   printf("==========> Bars reconstruction report :\n\n");
@@ -340,7 +398,7 @@ void ANTI2JobStat::print(){
 //
   printf("===========> Channels validation report :\n\n");
 //
-  printf("H/w-status OK (validation) :\n\n");
+  printf("Validation entries :\n\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;
       printf(" % 6d",chcount[ic][5]);
@@ -352,7 +410,7 @@ void ANTI2JobStat::print(){
     }
     printf("\n\n");
 //
-  printf("Anode-TovT TDC wrong up/down sequence (percentage) :\n");
+  printf("Missing Charge-ADC Hit (percentage) :\n");
   printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;
@@ -369,7 +427,7 @@ void ANTI2JobStat::print(){
     }
     printf("\n\n");
 //
-  printf("FTrigger TDC wrong up/down sequence (percentage) :\n");
+  printf("Multiple Charge-ADC Hits(percentage) :\n");
   printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;
@@ -382,13 +440,30 @@ void ANTI2JobStat::print(){
       ic=ib*2+1;
       rc=geant(chcount[ic][5]);
       if(rc>0.)rc=100.*geant(chcount[ic][7])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+//
+  printf("Hist-TDC wrong up/down sequence (percentage) :\n");
+  printf("\n");
+    for(ib=0;ib<ANTI2C::MAXANTI;ib++){
+      ic=ib*2;
+      rc=geant(chcount[ic][5]);
+      if(rc>0.)rc=100.*geant(chcount[ic][8])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<ANTI2C::MAXANTI;ib++){
+      ic=ib*2+1;
+      rc=geant(chcount[ic][5]);
+      if(rc>0.)rc=100.*geant(chcount[ic][8])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");
 //
   printf("============> Channels reconstruction report :\n\n");
 //
-  printf("H/w-status OK :\n\n");
+  printf("DB-statusOK hit found :\n\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;
       printf(" % 6d",chcount[ic][0]);
@@ -400,7 +475,7 @@ void ANTI2JobStat::print(){
     }
     printf("\n\n");
 //
-  printf("TDCA 'ON' (wrt total):\n");
+  printf("ADC-ch 'ON' (wrt total):\n");
   printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;
@@ -417,7 +492,7 @@ void ANTI2JobStat::print(){
     }
     printf("\n\n");
 //
-  printf("TDCA '1 hit' (wrt total):\n");
+  printf("ADC-ch '1 hit' (wrt total):\n");
   printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;
@@ -434,7 +509,7 @@ void ANTI2JobStat::print(){
     }
     printf("\n\n");
 //
-  printf("TDCT 'ON' (wrt total):\n");
+  printf("TDC-ch 'ON' (wrt total):\n");
   printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;
@@ -452,7 +527,7 @@ void ANTI2JobStat::print(){
     printf("\n\n");
 //
 //
-  printf("TDCT '1 hit' (wrt total):\n");
+  printf("TDC-ch '1 hit' (wrt total):\n");
   printf("\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       ic=ib*2;

@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.16 2002/06/03 14:53:34 alexei Exp $
+//  $Id: trigger102.C,v 1.17 2003/03/18 09:04:07 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -39,7 +39,10 @@ void Trigger2LVL1::build(){
 // ANTI :
     integer cbt,lsbit(1);
     antipatt=Anti2RawEvent::getpatt();
-    nanti=antipatt&255;
+    for(i=0;i<ANTI2C::MAXANTI;i++){
+      cbt=1<<i;
+      if((antipatt&cbt)>0)nanti+=1;//counts fired+FTcoinc paddles(2ends are ORed in antipatt)
+    }
 // ECAL :
     ectrigfl=AMSEcalRawEvent::gettrfl();
     ectrsum=AMSEcalRawEvent::gettrsum();
@@ -116,7 +119,8 @@ void Trigger2LVL1::build(){
   else if(TGL1FFKEY.trtype==5)comtrok=zge2ptr; 
   else if(TGL1FFKEY.trtype==6)comtrok=elpotr; 
   else if(TGL1FFKEY.trtype==7)comtrok=photr; 
-  else if(TGL1FFKEY.trtype==8)comtrok=(tofok || ecok); 
+  else if(TGL1FFKEY.trtype==8)comtrok=(tofok || ecok);
+  else if(TGL1FFKEY.trtype==10)comtrok=(1>0); 
   else{
     cout<<"Trigger2LVL1::build Error: unknown trigger type "<<TGL1FFKEY.trtype<<endl;
     exit(10);
@@ -126,7 +130,8 @@ void Trigger2LVL1::build(){
 //
   if(comtrok && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(lifetime*1000+tm*10000,tofflag,ttrpatt,antipatt,ectrigfl,ectrsum));
+          new Trigger2LVL1(floor(lifetime*1000)+tm*10000,tofflag,ttrpatt,
+	                                                antipatt,ectrigfl,ectrsum));
   }
   else if(AMSJob::gethead()->isRealData() && sumsc>=TGL1FFKEY.MaxScalersRate && lifetime<=TGL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   
@@ -374,7 +379,7 @@ void Trigger2LVL1::buildraw(integer n, int16u *p){
   // mark default as error here
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData())AMSEvent::gethead()->seterror();
   if(z>0 && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
-  Trigger2LVL1(lifetime*1000+tm*10000,z,tofp,tofp1,antip,ecflg,ectrsum));
+  Trigger2LVL1(integer(lifetime*1000)+tm*10000,z,tofp,tofp1,antip,ecflg,ectrsum));
   else if(AMSJob::gethead()->isRealData() && sumsc>=TGL1FFKEY.MaxScalersRate && lifetime<=TGL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   // ---> TOF Online histograms
   if(AMSJob::gethead()->isMonitoring() & 

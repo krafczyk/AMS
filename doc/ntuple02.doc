@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.57 2002/12/06 14:43:38 choumilo Exp $
+#  $Id: ntuple02.doc,v 1.58 2003/03/18 09:04:17 choumilo Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -175,7 +175,7 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
                                                    //                      from Anode
 * R*4  *           * TOFCLUST * TOFEdepd(ntof)     // TOF energy loss (MeV)
                                                    //                      from Dynode
-* R*4  *           * TOFCLUST * TOFTime(ntof)      // TOF time (sec)
+* R*4  *           * TOFCLUST * TOFTime(ntof)      // TOF time (sec, wrt FastTrig-time)
 * R*4  *           * TOFCLUST * TOFETime(ntof)     // Error in TOF time
 * R*4  *           * TOFCLUST * TOFCoo(3,ntof)     // TOF Coo (cm)
 * R*4  *           * TOFCLUST * TOFErCoo(3,ntof)   //
@@ -307,13 +307,17 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 * I*4  *         *              * MCTRACK  * vname(nmct) // volume name coded as  integer
 
 
+* I*4  * [0,8]     * ANTICLUS * nanti              //Number of active sectors(0-8)
+* I*4  *           * ANTICLUS * AntiStatus(nanti)  //Bit"256"->1sideSector;"1024"->s2 missing if set
+* U*4  * [0,8]     * ANTICLUS * AntiSector(nanti)  //Sector number(1-8)   |        s1 missing if not
+* U*4  * [0,16]    * ANTICLUS * AnNtimes(nanti)    //Number of time-hits(1st come paired ones)
+* U*4  * [0,8]     * ANTICLUS * AnNpairs(nanti)    //Numb.of time-hits, made of 2 side-times(paired)
+* R*4  *           * ANTICLUS * AnTimes(16,nanti)  //Time-hits(ns, wrt LEV1trig-time)
+* R*4  *           * ANTICLUS * AnTimesE(16,nanti) //Time-hits errors(ns)
+* R*4  *           * ANTICLUS * AntiEdep(nanti)    //Edep(mev)
+* R*4  *           * ANTICLUS * AntiCoo(3,nanti)   //R(cm),Phi(degr),Z(cm)-coordinates
+* R*4  *           * ANTICLUS * AntiErCoo(3,nanti) //Their errors
 
-* I*4  * [0,16]    * ANTICLUS * nanti                 // Anti clusters number
-* I*4  *           * ANTICLUS * AntiStatus(nanti)     // Status
-* I*4  *           * ANTICLUS * AntiSector(nanti)     // Sector no(1-16)
-* R*4  *           * ANTICLUS * AntiEdep(nanti)       // Energy dep (MeV)   
-* R*4  *           * ANTICLUS * AntiCoo(3,nanti)      // Coo (cm)
-* R*4  *           * ANTICLUS * AntiErCoo(3,nanti)    // Err to Coo
 
 
 * I*4  * [0,200]   * ANTIMCCL * nantimc               // MC Anti hits number
@@ -321,8 +325,6 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 * R*4  *           * ANTIMCCL * AMCXcoo(3,nantimc) // coo
 * R*4  *           * ANTIMCCL * AMCtof(nantimc)    // Tof
 * R*4  *           * ANTIMCCL * AMCedep(nantimc)   // energy dep (GeV)
-
-
 
 
 * I*4  * [0,1296]  * ECALHITS * necht              // ECAL hits number
@@ -504,12 +506,6 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * I*4  *          * TRRAWCL  * rawlength(ntrraw)     // rawcl length
  * R*4  *          * TRRAWCL  * s2n(ntrraw)           // s/n for seed
 
-
- * I*4  * [0,32]   * ANTIRAWC * naraw                  // antirawcl num
- * I*4  *          * ANTIRAWC * arawstatus(naraw)   // status
- * I*4  *          * ANTIRAWC * arawsector(naraw)   //sector 1-16
- * I*4  *          * ANTIRAWC * arawupdown(naraw)   //0 - up 1 -down
- * R*4  *          * ANTIRAWC * arawsignal(naraw)   // (mev)
 
 
  * I*4  * [0,48]   * TOFRAWCL * ntofraw                 // tofrawclnum (used)

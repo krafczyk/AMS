@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.3 2002/06/03 14:53:42 alexei Exp $
+//  $Id: antirec02.h,v 1.4 2003/03/18 09:04:18 choumilo Exp $
 //
 // May 29   1997. V. Choutko primitive version
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
@@ -17,17 +17,17 @@ private:
   static integer trpatt; // bits 1-16-> 2-side-AND, bits 17-32-> 2-side-OR
   int16u idsoft; // BBS (Bar/Side)
   int16u status; // status (0/1/... -> alive/dead/...)
-  int16u ntdca; // number of anode TovT_pulse hits (edges)
-  int16u tdca[ANTI2C::ANAHMX*2];// anode TovT_pulse hits (edge time is in TDC-channels)
-  int16u ntdct; // number of Fast_Trig time hits (edges)
-  int16u tdct[ANTI2C::ANAHMX*2];// Fast_Trig edges (edge time is in TDC-channels)
+  int16u nadca; // number of anode pulse-charge hits 
+  int16u adca[ANTI2C::ANAHMX];// anode pulse-charge hits(ADC-chan)
+  int16u ntdct; // number of History-TDC hits (edges)
+  int16u tdct[ANTI2C::ANTHMX*2];// Hist-TDC edges (edge time is in TDC-channels)
 public:
-  Anti2RawEvent(int16u _idsoft, int16u _status, int16u _ntdca, int16u _tdca[],
+  Anti2RawEvent(int16u _idsoft, int16u _status, int16u _nadca, int16u _adca[],
                   int16u _ntdct, int16u _tdct[]):idsoft(_idsoft),status(_status)
   {
     int i;
-    ntdca=_ntdca;
-    for(i=0;i<ntdca;i++)tdca[i]=_tdca[i];
+    nadca=_nadca;
+    for(i=0;i<nadca;i++)adca[i]=_adca[i];
     ntdct=_ntdct;
     for(i=0;i<ntdct;i++)tdct[i]=_tdct[i];
   };
@@ -39,17 +39,17 @@ public:
 //
   int16u getid() const {return idsoft;}
   int16u getstat() const {return status;}
-  int16u getntdca(){return ntdca;}
-  int16u getnzchn(){if(ntdca>0)return(1);
+  int16u getnadca(){return nadca;}
+  int16u getnzchn(){if(nadca>0)return(1);
                           else return(0);}
 //
-  int16u gettdca(int16u arr[]){
-  for(int i=0;i<ntdca;i++)arr[i]=tdca[i];
-  return ntdca;
+  int16u getadca(int16u arr[]){
+  for(int i=0;i<nadca;i++)arr[i]=adca[i];
+  return nadca;
   }
-  void puttdca(int16u nelem, int16u arr[]){
-    ntdca=nelem;
-    for(int i=0;i<ntdca;i++)tdca[i]=arr[i];
+  void putadca(int16u nelem, int16u arr[]){
+    nadca=nelem;
+    for(int i=0;i<nadca;i++)adca[i]=arr[i];
   }
 //
   int16u gettdct(int16u arr[]){
@@ -82,8 +82,8 @@ protected:
 void _printEl(ostream &stream){
   int i;
   stream <<"Anti2RawEvent: id="<<dec<<idsoft<<endl;
-  stream <<"ntdca="<<dec<<ntdca<<endl;
-  for(i=0;i<ntdca;i++)stream <<hex<<tdca[i]<<endl;
+  stream <<"nadca="<<dec<<nadca<<endl;
+  for(i=0;i<nadca;i++)stream <<hex<<adca[i]<<endl;
   stream <<"ntdct="<<dec<<ntdct<<endl;
   for(i=0;i<ntdct;i++)stream <<hex<<tdct[i]<<endl;
   stream <<dec<<endl<<endl;
@@ -92,65 +92,58 @@ void _writeEl(){};
 void _copyEl(){};
 //
 };
-//---------------------------------------
-class AMSAntiRawCluster: public AMSlink{
-protected:
- static integer _trpatt;
- integer _sector;    // number of sector 1-16
- integer _updown;    // 0 - up 1 -down
-  number _signal;     // number of ph electrons
-
- void _copyEl();
- void _printEl(ostream & stream);
- void _writeEl();
-public:
-  static void setpatt(integer patt){
-    _trpatt=patt;
-  }
- integer getstatus() const{return _status;}
- integer getsector()const {return _sector;}
- integer getupdown()const {return _updown;}
- number getsignal()const {return _signal;}
- AMSAntiRawCluster(integer status, integer sector, integer updown, 
- number signal):
-   AMSlink(status,0), _sector(sector),_updown(updown),_signal(signal){}
- AMSAntiRawCluster *  next(){return (AMSAntiRawCluster*)_next;}
- static void siantidigi();//  MCCluster->RawCluster
- static void build(int &stat);// AMSAntiRawEvent->RawCluster
- static void build2(int &stat);// Anti2RawEvent->RawCluster
- static void siantinoise(number cc1[], number cc2[],integer max);
- static integer Out(integer);
-#ifdef __WRITEROOT__
- friend class AntiRawClusterRoot;
-#endif
-};
-
 //===================================================================
 class AMSAntiCluster: public AMSlink{
 protected:
  integer _sector;  // Sector number 1 - MAXANTI+1
- number _edep;   // cluster total energy deposition (MeV)
+ integer _ntimes;  //number of time-hits
+ integer _npairs;  //number of true(paired) time-hits
+ number  _times[ANTI2C::ANTHMX*2];//time-hits(ns)
+ number  _etimes[ANTI2C::ANTHMX*2];// approx.time errors(ns)
+ number _edep;    // SectorEdep (MeV)
  AMSPoint _coo;   // R, phi , Z
- AMSPoint _ecoo; // Error to _coo 
+ AMSPoint _ecoo;  // Error to _coo 
  void _copyEl();
  void _printEl(ostream & stream);
  void _writeEl();
 public:
 
-static integer Out(integer);
-AMSID crgid(int kk=0){
-return AMSID("ANTS",_sector);
-}
-
-
+ static integer Out(integer);
+ AMSID crgid(int kk=0){
+   return AMSID("ANTS",_sector);
+ }
+//
+ AMSAntiCluster(integer status, integer sector, integer ntimes,
+                integer npairs, number times[ANTI2C::ANTHMX*2], 
+                number etimes[ANTI2C::ANTHMX*2],number edep, 
+		AMSPoint coo, AMSPoint ecoo):
+                            AMSlink(status,0), _sector(sector),
+		               _ntimes(ntimes),_npairs(npairs),
+                             _edep(edep),_coo(coo),_ecoo(ecoo){
+    for(int i=0;i<_ntimes;i++){
+      _times[i]=times[i];
+      _etimes[i]=etimes[i];
+    }
+ }
+//
+ AMSAntiCluster(integer status, integer sector):
+                AMSlink(status,0), _sector(sector),_ntimes(0),_npairs(0),
+		_edep(0),_coo(0,0,0),_ecoo(0,0,0){}
+//
+ AMSAntiCluster *  next(){return (AMSAntiCluster*)_next;}
+//
  integer getsector()const {return _sector;}
  number getedep()const {return _edep;}
- AMSAntiCluster(integer status, integer sector, number edep, AMSPoint coo, AMSPoint ecoo):
-   AMSlink(status,0), _sector(sector),_edep(edep),_coo(coo),_ecoo(ecoo){}
- AMSAntiCluster(integer status, integer sector):
-   AMSlink(status,0), _sector(sector),_edep(0),_coo(0,0,0),_ecoo(0,0,0){}
- AMSAntiCluster *  next(){return (AMSAntiCluster*)_next;}
- static void build(); 
+//
+ integer gettimes(number arr[]){
+   for(int i=0;i<_ntimes;i++)arr[i]=_times[i];
+   return _ntimes;
+ }
+ integer getntimes(){return _ntimes;}
+ number gettime(int i){return _times[i];}
+ number getetime(int i){return _etimes[i];}
+ integer getnpairs(){return _npairs;}
+//
  static void build2(); 
  static void print();
 #ifdef __DB__

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.132 2003/02/17 15:56:23 choutko Exp $
+//  $Id: ntuple.C,v 1.133 2003/03/18 09:04:07 choumilo Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -138,7 +138,7 @@ void AMSNtuple::init(){
   "nmct[0,150],radl(nmct),absl(nmct),pos(3,nmct),vname(nmct):I");
 
   HBNAME(_lun,"AntiClus",&_anti.Nanti,
-  "nanti[0,16],AntiStatus(nanti):I,AntiSector(nanti)[0,100]:I,AntiEdep(nanti),AntiCoo(3,nanti),AntiErCoo(3,nanti)");
+ "nanti[0,8],AntiStatus(nanti):I,AntiSector(nanti)[0,8]:I,AnNtimes(nanti)[0,16]:I,AnNpairs(nanti)[0,8]:I,AnTimes(16,nanti),AnTimesE(16,nanti),AntiEdep(nanti),AntiCoo(3,nanti),AntiErCoo(3,nanti)");
 
   HBNAME(_lun,"AntiMCCl",&_antimc.Nantimc,
   "nantimc[0,100],AMCIdsoft(nantimc):I,AMCXcoo(3,nantimc),AMCtof(nantimc),AMCedep(nantimc)");
@@ -152,8 +152,6 @@ void AMSNtuple::init(){
   HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
   "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
 
-  HBNAME(_lun,"AntiRawC",&_antiraw.Nantiraw,
-  "naraw[0,32],arawstatus(naraw):I,arawsector(naraw)[0,100]:I,arawupdown(naraw)[0,7]:I,arawsignal(naraw)");
 
   HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,
   "ntofraw[0,48],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,4]:I,tofrbar(ntofraw)[0,12]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
@@ -212,7 +210,6 @@ void AMSNtuple::reset(int full){
    _lvl302.Nlvl3 = 0;
    _lvl102.Nlvl1 = 0;
    _trraw.Ntrraw = 0;
-   _antiraw.Nantiraw = 0;
    _tofraw.Ntofraw = 0;
    _richmc.NMC=0;
    _richevent.Nhits=0;

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.21 2003/03/06 15:25:32 choumilo Exp $
+//  $Id: tofsim02.C,v 1.22 2003/03/18 09:04:07 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
@@ -1566,6 +1566,10 @@ void TOF2RawEvent::mc_build(int &status)
 //
   trflag=0;
   TOF2RawEvent::settrfl(trflag);// reset  TOF-trigger flag
+  TOF2RawEvent::setpatt(trpatt);// reset  TOF-trigger pattern
+//-----
+  if(TGL1FFKEY.trtype!=10){//<=== not external trigger
+//
   ttrig1=TOF2Tovt::tr1time(trcode,trpatt);//get abs.trig1(FT"z>=1") signal time/patt
   if(trcode>=0){// <---- use own(TOF) FT 
     status=0;
@@ -1600,10 +1604,18 @@ void TOF2RawEvent::mc_build(int &status)
     TOF2RawEvent::setpatt(trpatt);//set toftrigger pattern
     ectrfl=AMSEcalRawEvent::gettrfl(); 
     if(ectrfl<=0)return;//no EC trigger also -> no chance to digitize TOF
-    ftrig=AMSEcalRawEvent::gettrtm();
+    ftrig=AMSEcalRawEvent::gettrtm();//(already include fixed delay = TOF-delay)
     tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
   }
-  
+//
+  }//===> endof "NotExtTrigger" check
+//-----
+  else{//<==== external trigger
+    ttrig1=0.;//tempor (true ExtTrigSignal-time)
+    ftrig=ttrig1+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
+    tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+  }
+//-----  
 //
   for(ilay=0;ilay<TOF2GC::SCLRS;ilay++){// <--- layers loop (Tovt containers) ---
     ptr=(TOF2Tovt*)AMSEvent::gethead()->

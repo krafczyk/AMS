@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.222 2003/02/04 15:02:12 choutko Exp $
+#  $Id: datacards.doc,v 1.223 2003/03/18 09:04:17 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -561,7 +561,8 @@ I 1 trtype(0)          //TriggerType:
 			   //5->Z>=2 particles trigger  TOF(tofflag>2)
 			   //6->e+- particles trigger (TOF + EC(ectrflag%10>=2)=softEM)
 			   //7->Photon trigger (EC(ectrflag=3) only), i.e.(EM+HighEnergy) 
-			   //8->unbiased#4 trigger (TOF || EC(ectrflag>0)) 
+			   //8->unbiased#4 trigger (TOF || EC(ectrflag>0))
+			  //10->External (Replace FT(TOF/EC)-signal, under construction...) 
 			   // Note: ECAL "HighEnergy" threshold(to have ECflag=1,2,3 or 11,12,13)
 			   // is defined in ECRE 12 (in mev);
 			   // ECflag=1->"MIP"(Et>=MIP && NoSoft(hard)EM-requirement)
@@ -842,15 +843,16 @@ R 8 stleng(86.)    // (ams02)length of supp. tube
 R 9 stthic(0.12)   // thickness of supp. tube
 
 
+
  AMS02 Anti Simulation
 
 ATMC
 I 1   mcprtf(0)           // MC-hist print flag
-R 2   SigmaPed(1.)        // Noise sigma in p.e.
-R 3   MeV2PhEl(20)        // conversion mev ->p.e. 
-R 4   LZero(120.)         // light attenuation length in scint.(cm)
-R 5   PMulZPos(0)         // redefined later (PMT-position wrt counter center)
-R 6   Lspeed(17)          // eff. speed of the light in anti paddle (cm/ns)
+R 2   LZero(120.)         // light attenuation length in scint.(cm)
+R 3   Lspeed(17)          // eff. speed of the light in anti paddle (cm/ns)
+I 4   ReadConstFiles=1;   // P(Peds), P=0/1-> read Peds from DB/RawFiles
+
+
 
  AMS02 Anti Reconstruction
 
@@ -859,13 +861,13 @@ ATRE
 I 1 reprtf[0] (0)         // RECO-hist print flag
 I 2       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding
 I 3       [2] (0)         // spare
-R 4 ThrS(5)               // Threshold in p.e. on Cluster creation
-R 5 PhEl2MeV(0.05)        // Conversion p.e. -> mev
-R 6 dtthr(3)              // discr.threshold(pe) to create trigger signal
-R 7 dathr(6)              // ..................... TovT measurement (ADCA)
-R 8 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
+R 4 Edthr(0.1)            // Threshold(mev) for Cluster(Sector) creation
+R 5 zcerr1(10.)           // ZCoordError(cm) for "paired" sector
+R 6 daqthr(3)             // DAQ-readout theshold(in PedSigmas)
+R 7 dathr(2)              // History-discriminator theshold(pe)
+R 8 ftwin(50)            //  time-window(+-ns) to have coincidence with FastTrig
 //
-I 9 ReadConstFiles(1)     // read const. from DB/myFiles (0/1)
+I 9 ReadConstFiles(11);  //PC(Peds,CalibConst), P(C)=0/1-> read from DB/RawFiles
 //  
 I 10 sec[0](0)             // cards below are used as validity time when need to write
 I 11 sec[1](0)             // to DB new calibration/status parameters
