@@ -169,12 +169,17 @@ void AMSEvent::_endofrun() {
   int   eventsp= PosInRun; /* events processed */
   char* host;              /* hostname         */
   char* logdir;
+  char* logsum;
+
   char  hh[12];
 
   int  found = 0;
 
   char line[256];
   char *ptr[NSUBS];
+
+  char prodlogdir[256];
+  char logsumf[256];
 
   char he[4]  = "He";
   char ahe[4] = "aHe";
@@ -186,12 +191,17 @@ void AMSEvent::_endofrun() {
   geant cputime = Tcpu1 - Tcpu0;
   strcpy(time1,ctime(&T0));
   for(int j=0; j<15; j++) time11[j] = time1[j+4];
+
+  logsum = getenv("RunsSummaryFile");
+  if (logsum) 
+    strcpy(logsumf,logsum);
+  else
+    strcpy(logsumf,"/offline/runs_Aug.log");
   
-  logdir = getenv("ProductionLogDirLocal");
- 
-  if ((runs=fopen("/offline/runs_Aug.log","r"))==NULL)
+  if ((runs=fopen(logsumf,"r"))==NULL)
     { 
-      cout<<"Error - file /offruns/runs/runs_Aug.log not found "<<endl;
+      cout<<"AMSEvent::_endofrun -W- file "<<logsumf
+          <<" not found or cannot be opened"<<endl;
     } else {
      found = 0;
      while (fgets(line,255,runs)) {
@@ -203,7 +213,7 @@ void AMSEvent::_endofrun() {
          break;
        }
      }
-     char prodlogdir[256];
+     logdir = getenv("ProductionLogDirLocal");
      if (logdir) {
       strcpy(prodlogdir,logdir);
       strcat(prodlogdir,"/run_prod.log");
