@@ -229,13 +229,13 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.hcsize[0]=165.;  // supp. honeycomb plate X-size
   CTCGEOMFFKEY.hcsize[1]=165.;  // supp. honeycomb plate Y-size
   CTCGEOMFFKEY.hcsize[2]=5.;    // supp. honeycomb plate Z-size
-  CTCGEOMFFKEY.supzc=-89.0;     // supp. honeycomb plate front face Z-pos
+  CTCGEOMFFKEY.supzc=-89.4;     // supp. honeycomb plate front face Z-pos
   CTCGEOMFFKEY.aegden=0.125;    // aerogel density
   CTCGEOMFFKEY.wlsden=1.03;     // WLS density
   CTCGEOMFFKEY.nblk=1;          // number of aer. blocks (X-div.)(=1 for solid)
   CTCGEOMFFKEY.nwls=1;          // number of wls blocks
   CTCGEOMFFKEY.ptfx=0.025;      // PTFE thickness in cm
-  CTCGEOMFFKEY.thcsize[0]=130.; //
+  CTCGEOMFFKEY.thcsize[0]=150.; //
   CTCGEOMFFKEY.thcsize[1]=110.; // Support structure dimensions (cm)
   CTCGEOMFFKEY.thcsize[2]=6.;   //
   CTCGEOMFFKEY.upper[0]=116.2;  //
