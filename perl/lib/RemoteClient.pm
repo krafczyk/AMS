@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.76 2003/04/03 14:15:09 choutko Exp $
+# $Id: RemoteClient.pm,v 1.77 2003/04/04 06:42:20 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1845,12 +1845,11 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
            htmlTableEnd();
             if ($self->{CCT} eq "remote") {
              print "<tr><td>\n";
-             print "<b><font color=\"green\">Send ALL DB files to client</font></b><BR>\n";
+             print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
              print "<font color=\"green\" size=2>
-                  <i>(server sends to client <b> ALL  files </b> including EXE's [~7MB] if box  <BR>\n";
-             print "  <b> Checked </b>, and it sends <b> ONLY scripts </b> if box <b> NOT checked</b>)
+                  <i>(<b>NO </b> communication via  <b> CORBA server </b> if box  <BR>\n";
+             print "  <b> Checked </b>, and  <b> USE CORBA SERVER </b> if box <b> NOT checked</b>)
                       </i></font></b>\n";
-#             print "</tr></td><td>\n";
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
@@ -1969,12 +1968,11 @@ DDTAB:         $self->htmlTemplateTable(" ");
            htmlTableEnd();
             if ($self->{CCT} eq "remote") {
              print "<tr><td>\n";
-             print "<b><font color=\"green\">Send ALL DB files to client</font></b><BR>\n";
+             print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
              print "<font color=\"green\" size=2>
-                  <i>(server sends to client <b> ALL  files </b> including EXE's [~7MB] if box  <BR>\n";
-             print "  <b> Checked </b>, and it sends <b> ONLY scripts </b> if box <b> NOT checked</b>)
+                  <i>(<b>NO </b> communication via  <b> CORBA server </b> if box  <BR>\n";
+             print "  <b> Checked </b>, and  <b> USE CORBA SERVER </b> if box <b> NOT checked</b>)
                       </i></font></b>\n";
-#             print "</tr></td><td>\n";
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
@@ -2145,12 +2143,11 @@ DDTAB:         $self->htmlTemplateTable(" ");
             htmlTableEnd();
             if ($self->{CCT} eq "remote") {
              print "<tr><td>\n";
-             print "<b><font color=\"green\">Send ALL DB files to client</font></b><BR>\n";
+             print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
              print "<font color=\"green\" size=2>
-                  <i>(server sends to client <b> ALL  files </b> including EXE's [~7MB] if box  <BR>\n";
-             print "  <b> Checked </b>, and it sends <b> ONLY scripts </b> if box <b> NOT checked</b>)
+                  <i>(<b>NO </b> communication via  <b> CORBA server </b> if box  <BR>\n";
+             print "  <b> Checked </b>, and  <b> USE CORBA SERVER </b> if box <b> NOT checked</b>)
                       </i></font></b>\n";
-#             print "</tr></td><td>\n";
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
@@ -3193,7 +3190,7 @@ print qq`
           $sql="SELECT timeu1, timeu2 FROM Mails WHERE ADDRESS='$self->{CEM}'";
           my $retime=$self->{sqlserver}->Query($sql);
           if(defined $retime->[0][0]){
-          foreach my $uplt (@{$ret}){
+          foreach my $uplt (@{$retime}){
            $uplt0    = $uplt->[0];
            $uplt1    = $uplt->[1];
           }
@@ -4395,7 +4392,7 @@ sub Download {
     print "<TABLE border=0 cellspacing=0 cellpadding=0>\n";
     print "<br><b><font color=\"blue\" size=\"4\"> $self->{CEM} </b></font>\n";
     my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBLastLoad});
-    print "<br><font color=\"green\" size=\"4\"><b><i> Last downloaded  : </i></font><b> $dtime </b>\n";
+    print "<br><font color=\"green\" size=\"4\"><b><i> Last downloaded  : </i></font><b> $dtime (</b>\n";
     $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
     print "<br><font color=\"green\" size=\"4\"><b><i>Files updated    : </i></font><b> $dtime </b>\n";
     print "<br><font color=\"red\" size=\"5\"><b><i> It is absolutely mandatory to download files</b></i></font>\n";
