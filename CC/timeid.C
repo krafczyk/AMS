@@ -259,7 +259,14 @@ integer AMSTimeID::read(char * dir, integer reenter){
 
   // first get a run no from dbase
   integer dflt=0;
-  integer run=_getDBRecord(AMSEvent::gethead()->gettime());
+  time_t asktime;
+  if(AMSEvent::gethead()){
+   asktime=AMSEvent::gethead()->gettime();
+  }
+  else{
+   asktime=(_Begin+_End)/2;
+  }
+  integer run=_getDBRecord(asktime);
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
@@ -305,7 +312,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
        _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
        _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
        _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
-       if(dflt)_getDefaultEnd(AMSEvent::gethead()->gettime(),_End);
+       if(dflt)_getDefaultEnd(asktime,_End);
        cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
 #ifdef __AMSDEBUG__
        cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;

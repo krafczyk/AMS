@@ -303,8 +303,9 @@ void _crHit();
 inline  AMSPoint  getHit(int i){return _Hit[i];}
 inline  AMSPoint  getEHit(int i){return _EHit[i];}
 void _buildaddress();
-void decodeaddress();
-
+static void decodeaddress(integer ladder[2][6], uinteger address);
+static uinteger  encodeaddress(integer lad[2][6]);
+static uinteger * getchild(uinteger address, uinteger &nchild);
 public:
   integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
@@ -315,6 +316,8 @@ integer operator < (AMSlink & o) const {
 }
   friend class AMSTrAligFit;
   friend class AMSTrAligData;
+  friend class AMSTrAligPar;
+
 uinteger getaddress(){return _Address;}
 void   AdvancedFit(int forced=0);
 integer getpattern()const{return _Pattern;}

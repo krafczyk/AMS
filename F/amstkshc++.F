@@ -5567,6 +5567,11 @@ CDECK  ID>, TKFITG.
                ialgkeep=ialg
            endif
             call gfpart(ipart,cnn,itrt7,xmass,chrg,tlt7,uwb,nwb)
+*
+*            new 2 lines 
+*
+             truecharge=chrg
+             if(chrg.lt.0)chrg=-chrg
              if(imskeep.ne.0)then
               ims=imsa
              endif
@@ -5624,10 +5629,11 @@ c              pinit=abs(pinit)
 * Smoothing
 *
 c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
+
                 x(5)=x(5)*chrg/abs(chrg)
               endif
              else if(ialg.eq.2.or.ialg.eq.3)then
-             call tkfitge(npt,xhits,ysigma,ynormal,chrg,
+             call tkfitge(npt,xhits,ysigma,ynormal,truecharge,
      +       ipart,out,ialg-1)
              goto 999
            else

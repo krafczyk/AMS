@@ -15,12 +15,19 @@ public:
 class AMSTrAligDBEntry{
 public:
  uinteger address;
+ uinteger status;  // 0 if implicit
+                   // 1++ if explicit
+ 
  geant coo[6][3];
  geant angle[6][3];
+ geant chi2b; // before
+ geant chi2a; // after
+ geant pav;       // rel pmom
+ geant pav2;      // pmom sigma 
  int operator < (const AMSTrAligDBEntry&o) const{ return address<o.address;}
  int operator == (const AMSTrAligDBEntry&o) const{ return address==o.address;}
  AMSTrAligDBEntry(uinteger _address=0):address(_address){};
- AMSTrAligDBEntry(uinteger _address,  AMSTrAligPar o[6]):address(_address){
+ AMSTrAligDBEntry(uinteger _address,  uinteger _status, AMSTrAligPar o[6], number _fcnb, number _fcna, number _pav, number _pav2):address(_address),status(_status),chi2b(_fcnb), chi2a(_fcna),pav(_pav),pav2(_pav2){
   for(int i=0;i<6;i++){
    for(int k=0;k<3;k++){
     coo[i][k]=o[i].getcoo()[k];
@@ -32,7 +39,7 @@ public:
 class AMSTrAligDB{
  public:
  uinteger Nentries;
- AMSTrAligPar::AMSTrAligDBEntry arr[10000];
+ AMSTrAligPar::AMSTrAligDBEntry arr[15000];
 AMSTrAligDB():Nentries(0){};
 };
 
@@ -70,12 +77,16 @@ return AMSTrAligPar(_Coo/o,_Angles/o);
 }
 static integer  getdbentries(){return  _traldb.Nentries;}
 static void  incdbentries(){  _traldb.Nentries++;}
-static integer maxdbentries(){return 10000;}
+static integer maxdbentries(){return 15000;}
 static AMSTrAligDBEntry * getdbtopp(){return _traldb.arr;}
 static AMSTrAligPar * getparp(){return par;}
 static void InitDB(){_traldb.Nentries=0;}
 static AMSTrAligPar * SearchDB(uinteger address, integer & found);
-static integer UpdateDB(uinteger address, AMSTrAligPar o[]  );
+static void UpdateDB(uinteger address,  AMSTrAligPar o[], number _fcnb, number _fcna, number _pav, number _pav2  );
+static void LockDB();
+static void UnlockDB();
+static void _lockunlock(integer lock);
+static integer DbIsNotLocked(integer sleep=2);
 static AMSTrAligDB * gettraligdbp(){ return & _traldb;}
 static integer gettraligdbsize(){ return sizeof(_traldb);}
 
@@ -96,6 +107,8 @@ friend class  AMSTrAligPar;
 class AMSTrAligData{
 protected:
   integer _NHits;
+  integer _Pattern;
+  uinteger _Address;
   AMSPoint * _Hits;
   AMSPoint * _EHits;
   integer _Pid;
@@ -104,7 +117,7 @@ protected:
   
 public:
 AMSTrAligData():_NHits(0),_Hits(0),_EHits(0),_Pid(0),
-_InvRigidity(0),_ErrInvRigidity(0){};
+_InvRigidity(0),_ErrInvRigidity(0), _Pattern(0), _Address(0){};
 void Init(AMSParticle * ptr, AMSmceventg * pgen);
 friend class AMSTrAligFit;
 ~AMSTrAligData(){ delete [] _Hits; delete[] _EHits;}
@@ -127,8 +140,10 @@ geant Angle[6][3];
 protected:
 uinteger _Address;
 integer  _Pattern; 
-integer _PlaneNo[36];
-integer _ParNo[36];
+integer* _PlaneNo;
+integer* _ParNo;
+integer* _LadderNo;
+integer* _HalfNo;
 integer _NoActivePar;
 integer _PositionData;
 integer _NData;
@@ -143,9 +158,11 @@ number _fcnI;   // pointer to fcns;
 number _pfit;  //pointer to fitterd mom
 number _pfits;  //pointer to fitterd mom sigma
 AMSTrAligPar _pParC[6];
+static AMSTrAligPar _pPargl[17][2][6];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
+static void alfungl(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
 void _init(){};
 public:
   AMSTrAligFit *  next(){return (AMSTrAligFit*)_next;}           
@@ -153,7 +170,9 @@ AMSTrAligFit();
 AMSTrAligFit(uinteger _Address, integer pattern, integer data, integer alg, integer nodeno);
 static void Test(int i=0);
 static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
+integer AddressOK(uinteger address, integer strict=0);
 void Fit();
+void Fitgl();
 void Anal();
 uinteger getaddress(){ return _Address;}
 ~AMSTrAligFit();

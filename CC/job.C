@@ -363,15 +363,24 @@ for(int i=0;i<6;i++){
  TRALIG.UpdateDB=0;
  TRALIG.MaxPatternsPerJob=50;
  TRALIG.MaxEventsPerFit=9999;
- TRALIG.MinEventsPerFit=99;
+ TRALIG.MinEventsPerFit=999;
  for(i=0;i<9;i++){
   TRALIG.Cuts[i][0]=0;
   TRALIG.Cuts[i][1]=0;
 }
   TRALIG.Cuts[0][1]=1;      // chi2 cut for alg=0
-  TRALIG.Cuts[1][0]=0.998;   // cos  cut for alg =0 
-  TRALIG.Cuts[2][0]=0.2;
-  TRALIG.Cuts[2][1]=5;
+  TRALIG.Cuts[1][0]=0.992;   // cos  cut for alg =0 
+  TRALIG.Cuts[2][0]=0.5;     //rel mom cut
+  TRALIG.Cuts[2][1]=2;
+  TRALIG.Cuts[3][0]=0;      // beta cut
+  TRALIG.Cuts[3][1]=1.4;    
+  TRALIG.Cuts[4][0]=0;      // beta pattern cut
+  TRALIG.Cuts[4][1]=0;    
+  TRALIG.Cuts[5][0]=0.5;      // mass cut
+  TRALIG.Cuts[5][1]=2.0;    
+  TRALIG.Cuts[6][0]=0.;         // betaerror cut
+  TRALIG.Cuts[6][1]=0.04;   
+
 TRALIG.Algorithm=0;
 for( i=0;i<6;i++){
   TRALIG.ActiveParameters[i][0]=1;   // x
@@ -707,6 +716,8 @@ TRFITFFKEY.Chi2FalseX=3.;
 TRFITFFKEY.ForceFalseTOFX=1;
 TRFITFFKEY.FalseTOFXTracking=1;
 TRFITFFKEY.TOFTracking=1;
+TRFITFFKEY.ForceAdvancedFit=1;
+
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }

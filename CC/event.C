@@ -424,7 +424,7 @@ void AMSEvent::_signinitevent(){
           break;
         }
       }
-      if(hint>=sizeof(Array)/sizeof(Array[0])-1)hint=sizeof(Array)/sizeof(Array[0])-2;
+      if(hint>=sizeof(Array)/sizeof(Array[0]))hint=sizeof(Array)/sizeof(Array[0])-1;
     }
     
     
@@ -568,7 +568,7 @@ void AMSEvent::_regnevent(){
           break;
         }
       }
-      if(hintb>=sizeof(ArrayB)/sizeof(ArrayB[0])-1)hintb=sizeof(ArrayB)/sizeof(ArrayB[0])-2;
+      if(hintb>=sizeof(ArrayB)/sizeof(ArrayB[0]))hintb=sizeof(ArrayB)/sizeof(ArrayB[0])-1;
     }
     integer chint;
     if(_time < ArrayB[hintb].Time){
@@ -580,9 +580,14 @@ void AMSEvent::_regnevent(){
      
      if(ArrayB[chint].RunTag%32768!= AMSEvent::gethead()->getruntype()%32768){
         seterror();
+        int chinta, chintb;
+        if (chint>0)chinta=chint-1;
+        else chinta=chint;
+        if (chint<59)chintb=chint+1;
+        else chintb=59;
         cerr<<"Event & BeamPar disagree event says runtype = "<<hex<<
         AMSEvent::gethead()->getruntype()%32768<<" BeamPar says "<<hex<<
-        ArrayB[chint].RunTag<<" "<<dec<<chint<<" "<< ArrayB[chint].Time<<" ok"<< endl;
+        ArrayB[chint].RunTag<<" "<<dec<<chint<<" "<<_time <<" "<<ArrayB[chint].Time<<" "<<ArrayB[chinta].Time<<" "<<ArrayB[chintb].Time<< endl;
      }
       
       geant mom(ArrayB[chint].Mom);

@@ -1590,7 +1590,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
           
        if( (  (ptrack->Fit(0) < 
             TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK()){
-             ptrack->AdvancedFit();
+             ptrack->AdvancedFit(TRFITFFKEY.ForceAdvancedFit &&  !AMSJob::gethead()->isMonitoring());
          // permanently add;
 #ifdef __UPOOL__
           ptrack=new AMSTrTrack(track);
@@ -1804,7 +1804,7 @@ AMSgObj::BookTimer.start("TrFalseX");
 
 
 void AMSTrTrack::AdvancedFit(int forced){
-   if( forced || _Ridgidity < 0){
+   if( (forced || _Ridgidity < 0) && !(AMSJob::gethead()->isCalibration() & AMSJob::CTracker) ){
     if(_Pattern <22){
       Fit(1);
       Fit(2);
@@ -2896,14 +2896,65 @@ void AMSTrTrack::_buildaddress(){
 
 }
 
-void AMSTrTrack::decodeaddress(){
-   integer ladder[2][6];
-   cout <<" Address "<<_Address<<endl;
+void AMSTrTrack::decodeaddress(integer ladder[2][6], uinteger _Address){
    for(int i=0;i<6;i++){
     uinteger lad=(_Address/AMSDBc::Cumulus(i+1))%(2*AMSDBc::nlad(i+1)+1);
     ladder[0][i]=lad%(AMSDBc::nlad(i+1)+1);
     ladder[1][i]=lad/(AMSDBc::nlad(i+1)+1);
-    cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
+    //cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
    }
-  
+}
+
+uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
+    const int maxchld=21;
+    static uinteger achld[maxchld];
+    integer lad[2][6];    
+    integer lad1[2][6];    
+    integer npt=0;
+    decodeaddress(lad,address);
+    int xnpt=0;
+    for(int i=0;i<6;i++){
+     if(lad[0][i])xnpt++;
+    }
+    nchild=0;
+    if(xnpt>=5){
+     for(i=0;i<6;i++){
+      if(lad[0][i]){
+       int tmp=lad[0][i];
+       lad[0][i]=0;
+       achld[nchild++]=encodeaddress(lad);     
+       lad[0][i]=tmp;
+      }
+     }
+     if(xnpt==6){
+      for(i=0;i<6;i++){
+       int tmpi=lad[0][i];
+       lad[0][i]=0;
+       for(int j=i+1;j<6;j++){
+        int tmpj=lad[0][j];
+        lad[0][j]=0;
+        achld[nchild++]=encodeaddress(lad);     
+        lad[0][j]=tmpj;
+        if(nchild>maxchld){
+         cerr<< "AMSTrTrack::getchild-F-TooManyChilds "<<nchild<<endl;
+         exit(1);         
+        }
+       }
+       lad[0][i]=tmpi;
+      }
+     }
+     return achld; 
+    }
+    else{
+     return 0;
+    } 
+}
+
+
+uinteger AMSTrTrack::encodeaddress(integer ladder[2][6]){
+   uinteger address=0;
+   for(int i=0;i<6;i++){
+     address+= AMSDBc::Cumulus(i+1)*(ladder[0][i]+ladder[1][i]*(AMSDBc::nlad(i+1)+1));
+   }
+   return address;
 }

@@ -436,7 +436,8 @@ void AMSParticle::refit(int fast){
     if(fast)return;
 
   if(_GPart !=14 ){
-   if(_Charge >= 1.5 || fabs(_Mass-0.938)>1.5*_ErrMass){
+     if(1){
+   //if(_Charge >= 1.5 || fabs(_Mass-0.938)>1.5*_ErrMass){
         if(!_ptrack->AdvancedFitDone()){
           _ptrack->AdvancedFit(1);
         }

@@ -1341,12 +1341,13 @@ void AMSTOFCluster::build(int &stat){
       yloc=ptr->gettimeD();// get yloc/err for "peak" bar
       eyloc=ptr->getetimeD();
       ylocm=0.5*barl;// limit on max. long. coord.
+      status=ptr->getstatus();//may be !=0(bad history/t_meas or single-sided)
       if(fabs(yloc) > ylocm){//out of bar size
         eyloc=barl/sqrt(12.);
         if(yloc>0.)yloc=ylocm;//at bar edge
         else yloc=-ylocm;
+        status|=AMSDBc::BAD; 
       }
-      status=ptr->getstatus();//may be !=0(bad history/t_meas or single-sided)
       edep=0.;
       edepl=0.;
       cofg=0.;

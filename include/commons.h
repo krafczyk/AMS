@@ -488,6 +488,8 @@ public:
   integer ForceFalseTOFX;
   integer FalseTOFXTracking;
   integer TOFTracking;
+  integer ForceAdvancedFit;
+
 };
 //
 
