@@ -1,9 +1,203 @@
 // Author G.LAMANNA 13-Sept-2002
 
-//#include <ecalrec.h>
+#ifndef __AMSTRGAMMA__
+#define __AMSTRGAMMA__
+
+
 #include <typedefs.h>
 #include <iostream.h>
 #include <math.h>
+#include <upool.h>
+#include <apool.h>
+#include <gsen.h>
+#include <trid.h>
+#include <link.h>
+#include <commons.h>
+#include <cont.h>
+#include <event.h>
+#include <iomanip>
+#include <vector>
+
+
+
+
+
+class AMSTrTrackGamma: public AMSlink{
+protected:
+
+
+
+AMSTrTrack * _pntTrL;
+AMSTrTrack * _pntTrR;
+
+AMSTrRecHit * _PRight[trconst::maxlay];
+AMSTrRecHit * _PLeft[trconst::maxlay];
+//
+integer _GammaStatus;
+integer _NhRight; // 
+integer _NhLeft;
+//
+integer _FastFitDoneR;
+integer _GeaneFitDoneR;
+integer _FastFitDoneL;
+integer _GeaneFitDoneL;
+//
+AMSPoint _HRIGH[trconst::maxlay];
+AMSPoint _EHRIGH[trconst::maxlay];
+AMSPoint _HLEFT[trconst::maxlay];
+AMSPoint _EHLEFT[trconst::maxlay];
+////////
+//!
+number _Chi2FastFitLR;
+//!
+number _Chi2FastFitR;
+number _RidgidityR;
+number _ErrRidgidityR;
+number _ThetaR;
+number _PhiR;
+AMSPoint _P0R;
+//...
+number _Chi2FastFitL;
+number _RidgidityL;
+number _ErrRidgidityL;
+number _ThetaL;
+number _PhiL;
+AMSPoint _P0L;
+////
+number _GChi2R;
+number _GRidgidityR;    //  Ridgidity or momentum if (geanefitdone != 14)
+number _GErrRidgidityR; //  err of  see above
+number _GThetaR;
+number _GPhiR;
+AMSPoint _GP0R;
+//
+number _GChi2L;
+number _GRidgidityL;    //  Ridgidity or momentum if (geanefitdone != 14)
+number _GErrRidgidityL; //  err of  see above
+number _GThetaL;
+number _GPhiL;
+AMSPoint _GP0L;
+///////
+number _Chi2MSR;
+number _GChi2MSR;//JUAN
+number _RidgidityMSR;
+number _GRidgidityMSR;//JUAN
+//...
+number _Chi2MSL;
+number _GChi2MSL;//JUAN
+number _RidgidityMSL;
+number _GRidgidityMSL;//JUAN
+number _GThetaMSR;
+number _GPhiMSR;
+AMSPoint _GP0MSR;
+number _GThetaMSL;
+number _GPhiMSL;
+AMSPoint _GP0MSL;
+/////
+number _PGAMM;
+number _MGAM;
+AMSPoint _VE1;
+AMSPoint _VE2;
+number _PhTheta;
+number _PhPhi;
+number _Gacosd;
+
+/*
+// to fulfill the AMSTrTrack members
+uinteger _AddressLR;
+integer _PatternLR;
+integer _AdvancedFitDoneLR;
+number _DbaseLR[2];
+number _Chi2StrLineLR;
+number _Chi2CircleLR;
+number _CircleRidgidityLR;
+number _HChi2LR[2];
+number _HRidgidityLR[2];
+number _HErrRidgidityLR[2];
+number _HThetaLR[2];
+number _HPhiLR[2];
+AMSPoint _HP0LR[2];
+*/
+
+
+void _printEl(ostream & stream){ stream << " Pattern ************************" <<endl;}
+void _copyEl();
+void _writeEl();
+void _crHitLR();
+inline  AMSPoint  getHleft(int i, int dir=0){return _HLEFT[dir==0?i:_NhLeft-1-i];}
+inline  AMSPoint  getEHleft(int i){return _EHLEFT[i];}
+inline  AMSPoint  getHright(int i, int dir=0){return _HRIGH[dir==0?i:_NhRight-1-i];}
+inline  AMSPoint  getEHright(int i){return _EHRIGH[i];}
+//_____-
+static void _LeftRight(AMSTrRecHit * p, vector<double>, integer , number, integer &, const AMSPoint &, const AMSPoint &);
+//-----
+public:
+static void _Combi(integer&, integer, integer);
+static void _Averes(number&, number&, vector<double>, integer, integer);
+static void _Cente(number&, number&, vector<double>, integer, integer, number, number);
+static vector<double> _TK1YRemoveTRD2TOF(vector<double>, integer);
+static void _LSQP2(integer FLPAT[], vector<double> H[], integer, integer);
+static void _LookOneEight(integer FLPAT[], vector<double> H[]);
+static void _SingleHit(integer FLPAT[], double CE[], integer );
+inline static void _intercept(double X1,double Y1,double Z1,double X2,double Y2,double Z2,double& MX,double& QX,double& MY,double& QY){
+  // slope in XZ : MX
+    MX = (X2-X1)/(Z2-Z1);
+  // intercept in XZ : QX 
+    QX = X1- (Z1*(X2-X1))/(Z2-Z1); 
+  // slope in YZ : MY
+   MY = (Y2-Y1)/(Z2-Z1);
+  // intercept in YZ : QY 
+    QY = Y1- (Z1*(Y2-Y1))/(Z2-Z1);}
+inline static void _DISTANCE(double X,double Y,double Z,double MX,double QX,double MY,double QY,double& Str,double& Circ){        
+   Str = QX + MX*Z - X/sqrt(1+pow(MX,2));
+   Circ= QY + MY*Z - Y/sqrt(1+pow(MY,2));} 
+
+static integer build(integer refit=0);
+AMSTrTrackGamma (integer nhitL, integer nhitR, AMSTrRecHit* phL[], AMSTrRecHit* phR[], integer stat);
+//proviamo
+AMSTrTrackGamma (number Chi2, number Rigi, number Erigi, number Thetaff, number Phiff, AMSPoint X0);
+number Fit(integer i=0, integer ipart=3);
+void PAIR2GAMMA(int&, int&);
+void addtracks(int&);
+void _MyVertex(double n_L[],double n_R[], double VE_1[], double VE_2[]);
+void LR_RES_STUDY3(integer [], double [], int & );
+void LR_RES_MINI(int &, double zed[],  double [], double );
+static void dlsqp2me(integer M, double v[], double w[], double & a0, double & a1, double & a2, double & chi);
+static void dlinearme(integer M, double v[], double w[], double & a0, double & a1, double & chi);
+double _vdmax(double v[], int size);
+double _vdmin(double v[], int size);
+void interpolate(int which, AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
+                 number & theta, number & phi, number & length);
+//
+static void RecoLeftRight(int refitting, integer FLPAT[],double SLOPEf, double INTERf,double x_starf,
+                   double z_starf,int fbotf,int ftopf,
+                   double firR,double lasR,double firL,double lasL,
+                   int fir_planeR, int fir_planeL,
+                   int las_planeR,int las_planeL);
+//
+void HITRESEARCH(int pla, double RES_REF, AMSPoint P_0L2, AMSPoint P_0R2);
+static integer Out(integer);
+AMSTrTrackGamma (const AMSTrTrackGamma & o):AMSlink(o._status,o._next),_GammaStatus(o._GammaStatus),_NhRight(o._NhRight),_NhLeft(o._NhLeft),
+_FastFitDoneR(o._FastFitDoneR),_GeaneFitDoneR(o._GeaneFitDoneR),_FastFitDoneL(o._FastFitDoneL),_GeaneFitDoneL(o._GeaneFitDoneL),
+_Chi2MSR(o._Chi2MSR),_GChi2MSR(o._GChi2MSR),_RidgidityMSR(o._RidgidityMSR),_GRidgidityMSR(o._GRidgidityMSR),
+_GThetaMSR(o._GThetaMSR),_GPhiMSR(o._GPhiMSR),_GP0MSR(o._GP0MSR),
+_Chi2MSL(o._Chi2MSL),_GChi2MSL(o._GChi2MSL),_RidgidityMSL(o._RidgidityMSL),_GRidgidityMSL(o._GRidgidityMSL),
+_GThetaMSL(o._GThetaMSL),_GPhiMSL(o._GPhiMSL),_GP0MSL(o._GP0MSL),
+_PGAMM(o._PGAMM),_MGAM(o._MGAM),_VE1(o._VE1),_PhTheta(o._PhTheta),_PhPhi(o._PhPhi){
+int i;
+for( i=0;i<trconst::maxlay;i++)_PLeft[i]=o._PLeft[i];
+for( i=0;i<trconst::maxlay;i++)_PRight[i]=o._PRight[i];
+}
+~AMSTrTrackGamma(){};
+AMSTrTrackGamma *  next(){return (AMSTrTrackGamma*)_next;}
+//
+void getFFParam(number&  Chi2, number& Rigi, number&  Erigi, 
+number&  Thetaff, number & Phiff, AMSPoint&  X0)const ; 
+#ifdef __WRITEROOT__
+ friend class TrGammaRoot02;
+#endif
+
+};
 
 
 
@@ -26,15 +220,12 @@ public:
    MY = (Y2-Y1)/(Z2-Z1);
   // intercept in YZ : QY 
     QY = Y1- (Z1*(Y2-Y1))/(Z2-Z1);}
- //void intercept(double, double, double, double, double, double, double& , double& , double& , double& );
  void _getTofMul(int, int mul[], double&);
  void _getEcalMul(int, int nn[], number&);
  void TopSplash(double&);
  void Check_TRD_TK1(int,vector<double>,int jj[]);
  void makeEC_out(number&, int&);
- // void makeTOF_out(int&);
  void Lines_Top_Bottom(int&);
- //
  void getParRoadXZ(int& bott, int& topp, double& x_ss, double& z_ss, double& SLL, double& INTT)const;
 };
 
@@ -82,3 +273,5 @@ class MYlsqp2{
   double _getC();
   double _getSDW(); 
 };
+
+#endif

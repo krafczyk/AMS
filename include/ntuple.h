@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.63 2002/10/30 14:57:21 mdelgado Exp $
+//  $Id: ntuple.h,v 1.64 2002/11/14 13:19:17 glamanna Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -26,6 +26,7 @@ const int MAXTRRAW   =   300;
 const int MAXTRCLMC  =   200;
 const int MAXTRRH02    =   666;
 const int MAXTRTR02    =   100;
+const int MAXPAIR02    =   2;
 const int MAXMCG02     =    100;
 const int MAXECSHOW =    5;
 const int MAXECCLUST =    60;
@@ -418,6 +419,27 @@ friend class AMSTrRecHit;
 friend class AMSNtuple;
 };
 
+class TrGamma{
+public:
+  int Ngam;
+  float Pgam[MAXPAIR02];
+  float Thetagam[MAXPAIR02];
+  float Phigam[MAXPAIR02];
+  float Vert[MAXPAIR02][3];
+  int GammaStatus[MAXPAIR02];
+  int PtrLeft[MAXPAIR02];
+  int PtrRight[MAXPAIR02];
+  float Jthetal[MAXPAIR02];
+  float Jphil[MAXPAIR02];
+  float Jthetar[MAXPAIR02];
+  float Jphir[MAXPAIR02];
+  float Jp0l[MAXPAIR02][3];
+  float Jp0r[MAXPAIR02][3];
+
+
+friend class AMSTrTrackGamma;
+friend class AMSNtuple;
+};
 
 class TrTrackNtuple02 {
 public:
@@ -663,6 +685,7 @@ protected:
   TRDTrackNtuple _trdtrk;
   TRDRawHitNtuple _trdht;
   TrRecHitNtuple02 _trrh02;
+  TrGamma _tpai02;
   TrTrackNtuple02 _trtr02;
   MCTrackNtuple _mct;// tempor 02??
   MCEventGNtuple02 _mcg02;
@@ -714,6 +737,7 @@ public:
   TRDTrackNtuple* Get_trdtrk() {return &_trdtrk;}
   TRDRawHitNtuple* Get_trdht() {return &_trdht;}
   TrRecHitNtuple02* Get_trrh02() {return &_trrh02;}
+  TrGamma* Get_tpai02() {return &_tpai02;}
   TrTrackNtuple02* Get_trtr02() {return &_trtr02;}
   MCTrackNtuple* Get_mct() {return &_mct;}
   MCEventGNtuple02* Get_mcg02() {return &_mcg02;}

@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.59 2002/06/03 14:53:43 alexei Exp $
+//  $Id: trrec.h,v 1.60 2002/11/14 13:19:18 glamanna Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -27,7 +27,9 @@
 #include <commons.h>
 #include <cont.h>
 #include <event.h>
+#include <vector>
 
+using namespace std;
 
 class Test: public AMSlink{
 protected:
@@ -180,6 +182,8 @@ inline integer Good() {
 }
 static integer markAwayTOFHits();
 
+static void _markDouble(vector<double>& , integer );
+
 AMSTrRecHit *  next(){return (AMSTrRecHit*)_next;}
 
 void resethash(integer i, AMSlink *head){
@@ -252,6 +256,8 @@ public:
  AMSTrTrackError(char * name);
  char * getmessage();
 };
+
+
 
 class AMSTrTrack: public AMSlink{
 protected:
@@ -345,6 +351,9 @@ integer operator < (AMSlink & o) const {
 uinteger getaddress(){return _Address;}
 void   AdvancedFit();
 integer getpattern()const{return _Pattern;}
+AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD, number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, number chi2G, number rigG, number erigG, number chi2MS, number jchi2MS, number rigFMS, number grigms);
+
+
 static integer Out(integer);
 number Fit(integer i=0, integer ipart=14);
 AMSTrTrack(const AMSTrTrack & o):AMSlink(o._status,o._next),_Pattern(o._Pattern),

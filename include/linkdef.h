@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.18 2002/08/15 12:22:52 schol Exp $
+//  $Id: linkdef.h,v 1.19 2002/11/14 13:19:17 glamanna Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -24,6 +24,7 @@
 #pragma link C++ class TRDSegmentRoot+;
 #pragma link C++ class TRDTrackRoot+;
 #pragma link C++ class TrRecHitRoot02+;
+#pragma link C++ class TrGammaRoot02;
 #pragma link C++ class TrTrackRoot02+;
 #pragma link C++ class MCTrackRoot+;
 #pragma link C++ class MCEventGRoot02+;

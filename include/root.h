@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.66 2002/10/30 14:57:21 mdelgado Exp $
+//  $Id: root.h,v 1.67 2002/11/14 13:19:18 glamanna Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -40,6 +40,7 @@ class AMSTrCluster;
 class AMSTrMCCluster;
 class AMSTrRawCluster;
 class AMSTrTrack;
+class AMSTrTrackGamma;
 class AMSTrRecHit;
 class Ecal1DCluster;
 class Ecal2DCluster;
@@ -118,6 +119,7 @@ public:
   TClonesArray *fTRDsegment;
   TClonesArray *fTRDtrack;
   TClonesArray *fTRrechit;
+  TClonesArray *fTrGamma;
   TClonesArray *fTRtrack;
   TClonesArray *fMCtrtrack;
   TClonesArray *fMCeventg;
@@ -161,6 +163,7 @@ void         AddAMSObject(AMSTrCluster *ptr, float ampl[]);
 void         AddAMSObject(AMSTrMCCluster *ptr);
 void         AddAMSObject(AMSTrRawCluster *ptr, int addr);
 void         AddAMSObject(AMSTrTrack *ptr);
+void         AddAMSObject(AMSTrGamma *ptr);
 void         AddAMSObject(Ecal1DCluster *ptr);
 void         AddAMSObject(Ecal2DCluster  *ptr);
 void         AddAMSObject(EcalShower  *ptr);
@@ -349,7 +352,7 @@ public:
   float Edep;
   float Coo;
   float Tan;
-  float Chi2;
+ float Chi2;
 
   TRefArray *fEcal1DCluster;
 
@@ -533,6 +536,32 @@ public:
   TrRecHitRoot02(AMSTrRecHit *ptr);
 ClassDef(TrRecHitRoot02,1)       //TrRecHitRoot02
 };
+
+class TrGammaRoot02 : public TObject {
+public:
+  int Ngam;
+  float Pgam;
+  float Thetagam;
+  float Phigam;
+  float Vert[3];
+  int GammaStatus;
+  int PtrLeft;
+  int PtrRight;
+  float Jthetal;
+  float Jphil;
+  float Jthetar;
+  float Jphir;
+  float Jp0l[3];
+  float Jp0r[3];
+
+  TRefArray *fTrTrack;
+  TrGammaRoot02();
+  ~TrGammaRoot02();
+  TrGammaRoot02(AMSTrTrackGamma *ptr);
+
+ClassDef(TrGammaRoot02,1)       //TrGammaRoot02
+};
+
 
 class TrTrackRoot02 : public TObject {
 public:
