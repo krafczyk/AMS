@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.39 2003/04/11 09:30:33 glamanna Exp $
+//  $Id: gamma.C,v 1.40 2003/04/30 13:28:27 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -5733,6 +5733,8 @@ for(int i=0;i<trdconst::maxlay;i++){
 
 
 
+
+
 void XZLine_TOF::Lines_Top_Bottom(int& out){
 
   double DM34,DM14,DM24,DM12;
@@ -5887,9 +5889,9 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
   }
 
   ///////////
-  if (LL[0] >= 1 && LL[1] >= 1 ){
-  lb1=0;
-  lb2=0;
+  if (LL[0] >= 1 && LL[1] >= 1 && M1.size() > 0 && M2.size()> 0){
+  lb1=-1;
+  lb2=-1;
   DM12=10000;
   for (int i=0;i<M1.size();i++){
    for (int j=0;j<M2.size();j++){
@@ -5901,6 +5903,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
      }
    }
   }
+
    out=1;
       fbot=0;
       ftop=1;
@@ -5909,7 +5912,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
       SLOPE=M1[lb1];
       INTER=Q1[lb1];
       if (fabs(x2t[lb2]-(M1[lb1]*z2t[lb2]+Q1[lb1])) > 3 || 
-          (z2t[lb2]-z1t[lb1] !=0 && fabs(M1[lb1]-((x2t[lb2]-x1t[lb1])/(z2t[lb2]-z1t[lb1]))) > 0.25)){
+          fabs(M1[lb1]-((x2t[lb2]-x1t[lb1])/(z2t[lb2]-z1t[lb1]))) > 0.25){
         fbot=1;
         ftop=0;
         x_star=x1b[lb1];
@@ -5918,17 +5921,16 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
         INTER=Q1[lb1];
       }
 
-
   }
   //-----  
   //Now OPTION 2
   if (LL[1] ==0 && LL[0] != 0){
    if (LL[0] == 1 && LL[3] !=0 ){
      //*
-     if (LL[2] !=0){
+     if (LL[2] !=0 && M13.size()> 0 && M14.size()>0){
      DM34=10000;
-     lb13=0;
-     lb14=0;
+     lb13=-1;
+     lb14=-1;
      for (int i=0;i<M13.size();i++){
        for (int j=0;j<M14.size();j++){
         DI34=fabs((M13[i])-(M14[j]));
@@ -5941,7 +5943,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
      }
      } //LL[2] !=0
      //**
-     if (LL[2] ==1){
+     if (LL[2] ==1 && M13.size()> 0 && M14.size()>0){
    out=1;
       fbot=0;
       ftop=1;
@@ -5958,7 +5960,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
      }
      //**
     if (LL[2] >1 || LL[2] ==0){
-      if (LL[3] ==1){
+      if (LL[3] ==1 && M14.size()>0){
     out=1;
       fbot=0;
       ftop=1;
@@ -5968,10 +5970,10 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
       SLOPE=M14[0];
       INTER=Q14[0]; 
       }
-      if (LL[3] >1){
+      if (LL[3] >1 && M14.size()>0){
         DM14=10000;
-        lb14=0;
-        lb11=0;
+        lb14=-1;
+        lb11=-1;
      for (int i=0;i<(M14.size()-1);i++){
        for (int j=(i+1);j<M14.size();j++){
         DI44=fabs((M14[i])-(M14[j]));
@@ -6008,10 +6010,10 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
  if (LL[0] ==0 && LL[1] != 0){
    if (LL[1] == 1 && LL[3] !=0){
      //*
-     if (LL[2] !=0){
+     if (LL[2] !=0 && M23.size() > 0 && M24.size()> 0){
        DM34=10000;
-       lb23=0;
-       lb24=0;
+       lb23=-1;
+       lb24=-1;
      for (int i=0;i<M23.size();i++){
        for (int j=0;j<M24.size();j++){
         DI24=fabs((M23[i])-(M24[j]));
@@ -6024,7 +6026,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
      }
      } //LL[2] !=0
      //**
-     if (LL[2] ==1){
+     if (LL[2] ==1 && M23.size() > 0 && M24.size()> 0){
    out=1;
       fbot=0;
       ftop=1;
@@ -6041,7 +6043,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
      }
      //**
     if (LL[2] >1 || LL[2] ==0){
-      if (LL[3] ==1){
+      if (LL[3] ==1 && M24.size()> 0){
     out=1;
       fbot=0;
       ftop=1;
@@ -6051,10 +6053,10 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
       SLOPE=M24[0];
       INTER=Q24[0]; 
       }
-      if (LL[3] >1){
+      if (LL[3] >1 && M24.size()> 0){
         DM24=10000;
-        lb14=0;
-        lb11=0;
+        lb14=-1;
+        lb11=-1;
      for (int i=0;i<(M24.size()-1);i++){
        for (int j=(i+1);j<M24.size();j++){
         DI44=fabs((M24[i])-(M24[j]));
@@ -6089,7 +6091,6 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
 
 
 }
-
 
 
 void XZLine_TOF::getParRoadXZ(int& bott, int& topp, double& x_ss, double& z_ss, double& SLL, double& INTT)const
