@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.76 2003/04/03 10:15:59 kscholbe Exp $
+//  $Id: root.h,v 1.77 2003/04/07 12:46:38 kscholbe Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -451,7 +451,7 @@ public:
   int   Ladder;
   int   Tube;
   int   ParticleNo;
-  int   TrackNo;
+  //  int   TrackNo;
   float Edep;
   float Ekin;
   float Xgl[3];
