@@ -1201,7 +1201,7 @@ void AMSJob::_redaqdata(){
 DAQCFFKEY.mode=0;
 DAQCFFKEY.OldFormat=0;
 DAQCFFKEY.LCrateinDAQ=1;
-DAQCFFKEY.SCrateinDAQ=1;
+DAQCFFKEY.SCrateinDAQ=-1;
 DAQCFFKEY.NoRecAtAll=0;
 DAQCFFKEY.TrFormatInDAQ=3;
 VBLANK(DAQCFFKEY.ifile,40);
@@ -1382,7 +1382,10 @@ else{
   cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
   exit(1);
 }
-
+  if(DAQCFFKEY.SCrateinDAQ<0){
+   if(strstr(getsetup(),"AMS02"))DAQCFFKEY.SCrateinDAQ=0;
+   else DAQCFFKEY.SCrateinDAQ=1; 
+  }
   if(strstr(getsetup(),"AMS02")){
    if(CCFFKEY.enddate%10000 < 2000){
      CCFFKEY.enddate+=5;
