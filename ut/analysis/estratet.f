@@ -1,9 +1,8 @@
-      subroutine estrate(theta1,phi1,phigr1)
+      subroutine estratet(phi1,time)
 *
 *     input   
-*     phigr1 phi of Greenwich (degree) ( 0 usually)
-*     theta1 theta (degree, 90==pole)     
 *     pheta1 pheta (degree)     
+*     time in sec from beg of orbit (theta=0) 
 *
 
       integer init
@@ -76,11 +75,29 @@
 
       endif
              estrat=0
-             phigr=phigr1/180.*3.1415926
              thetam=78.6/180.*3.1415926
-             phim=290.6/180.*3.1415926
-             theta=theta1/180.*3.1415926
-             phi=phi1/180.*3.1415926-phigr
+             phim2=290.6/180.*3.1415926
+             theta2=0;
+             phi2=phi1/180.*3.1415926
+*
+* Estimate phi,theta after time sec
+*
+             twopi=2*3.1415926
+             aspeed=twopi/90.8/60
+             espeed=twopi/24/60/60
+             phim=phim2+espeed*time;
+             if(phim>twopi)phim=phim-twopi
+             t2=(tan(51.8/180*3.1415926))**2
+             philocal=0; 
+             philocal=philocal+aspeed*time
+             do while(philocal>twopi)
+              philocal=philocal-twopi
+             enddo
+             phi=atan2(sin (philocal),cos(philocal)*sqrt(1+t2))
+             theta=atan(t2**0.5*sin(phi))
+             phi=phi+phi2
+             if(phi>twopi)phi=phi-twopi
+             if(phi<0)phi=phi+twopi
              inter=0
              do l=1,2
               xsum=hsum(7000+l*100+2)/10.
@@ -118,7 +135,8 @@
              estrat=estrat+rate 
           
              enddo
-             write(*,*)'rate ',theta1,phi1,estrat
+             write(*,*)'rate ',theta*180/3.141592,phi*180/3.141592,
+     +        phim*180/3.1415926,estrat
 
       end
 

@@ -18,7 +18,6 @@ fi
 RUN=$1
 EVENT=$2
 TRIG=$3
-cd /usr/users/vitali/AMS/datacards
 ../exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14 

@@ -143,7 +143,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
                              integer enddate, integer endtime, 
                               integer ipart,  integer low){
 
-  const number MIR=51.65;
+  const number MIR=51.8;
   Orbit.Begin.tm_year  =  begindate%10000-1900;
   Orbit.Begin.tm_mon = (begindate/10000)%100-1;
   Orbit.Begin.tm_mday   = (begindate/1000000)%100;
@@ -179,7 +179,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.Axis[0]=-sin(MIR/AMSDBc::raddeg)*cos(Orbit.PhiZero);
   Orbit.Axis[1]=-sin(MIR/AMSDBc::raddeg)*sin(Orbit.PhiZero);
   Orbit.Axis[2]=cos(MIR/AMSDBc::raddeg);
-  Orbit.AlphaSpeed=AMSDBc::twopi/92.36/60.;
+  Orbit.AlphaSpeed=AMSDBc::twopi/90.8/60.;
   Orbit.AlphaAltitude=666000000;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
   Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
@@ -351,6 +351,9 @@ integer AMSmceventg::EarthModulation(){
   number polephi,theta,phi;
   
   AMSEvent::gethead()->GetGeographicCoo(polephi, theta, phi);
+  geant pitch=AMSEvent::gethead()->getpitch();
+  geant roll=AMSEvent::gethead()->getroll();
+  geant yaw=AMSEvent::gethead()->getyaw();
   //
   // direction to magnetic field
   //
@@ -373,18 +376,42 @@ integer AMSmceventg::EarthModulation(){
   // particle dir in global system
   // AMS x along the shuttle/station flight
   //
+  number amsxg[3],amsyg[3],amszg[3];
+  amszg[0]=up;
+  amszg[1]=vp;
+  amszg[2]=wp;
+  amsyg[0]=Orbit.Axis[0];
+  amsyg[1]=Orbit.Axis[1];
+  amsyg[2]=Orbit.Axis[2];
+  amsxg[0]=amsyg[1]*amszg[2]-amsyg[2]*amszg[1];
+  amsxg[1]=amsyg[2]*amszg[0]-amsyg[0]*amszg[2];
+  amsxg[2]=amsyg[0]*amszg[1]-amsyg[1]*amszg[0];
+
   number amsx[3],amsy[3],amsz[3];
-  amsz[0]=up;
-  amsz[1]=vp;
-  amsz[2]=wp;
-  amsy[0]=Orbit.Axis[0];
-  amsy[1]=Orbit.Axis[1];
-  amsy[2]=Orbit.Axis[2];
-  amsx[0]=amsy[1]*amsz[2]-amsy[2]*amsz[1];
-  amsx[1]=amsy[2]*amsz[0]-amsy[0]*amsz[2];
-  amsx[2]=amsy[0]*amsz[1]-amsy[1]*amsz[0];
-
-
+  number c1=cos(pitch); 
+  number s1=sin(pitch);
+  number c2=cos(yaw);
+  number s2=sin(yaw);
+  number c3=cos(roll);
+  number s3=sin(roll);
+  number l1=c2*c3-c1*s2*s3;
+  number m1=s2*c3+c1*c2*s3;
+  number n1=s1*s3;
+  number l2=-c2*s3-c1*s2*c3;
+  number m2=-s2*s3+c1*c2*c3;
+  number n2=s1*c3;
+  number l3=s1*s2;
+  number m3=-s1*c2;
+  number n3=c1;
+  amsx[0]=l1*amsxg[0]+m1*amsyg[0]+n1*amszg[0];
+  amsx[1]=l1*amsxg[1]+m1*amsyg[1]+n1*amszg[1];
+  amsx[2]=l1*amsxg[2]+m1*amsyg[2]+n1*amszg[2];
+  amsy[0]=l2*amsxg[0]+m2*amsyg[0]+n2*amszg[0];
+  amsy[1]=l2*amsxg[1]+m2*amsyg[1]+n2*amszg[1];
+  amsy[2]=l2*amsxg[2]+m2*amsyg[2]+n2*amszg[2];
+  amsz[0]=l3*amsxg[0]+m3*amsyg[0]+n3*amszg[0];
+  amsz[1]=l3*amsxg[1]+m3*amsyg[1]+n3*amszg[1];
+  amsz[2]=l3*amsxg[2]+m3*amsyg[2]+n3*amszg[2];
   number ue=_dir[0]*amsx[0]+_dir[1]*amsy[0]+_dir[2]*amsz[0];
   number ve=_dir[0]*amsx[1]+_dir[1]*amsy[1]+_dir[2]*amsz[1];
   number we=_dir[0]*amsx[2]+_dir[1]*amsy[2]+_dir[2]*amsz[2];

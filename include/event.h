@@ -168,6 +168,9 @@ static integer _checkUpdate();
 integer addnext(AMSID id, AMSlink * p);
 integer replace(AMSID id, AMSlink * p, AMSlink *prev);
 uinteger getrun() const{return _run;}
+geant getpitch() const{return _Pitch;}
+geant getroll() const{return _Roll;}
+geant getyaw() const{return _Yaw;}
 uinteger& setrun() {return _run;}
 uinteger getruntype() const{return _runtype;}
 uinteger& setruntype() {return _runtype;}

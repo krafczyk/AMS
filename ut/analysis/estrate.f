@@ -1,4 +1,11 @@
-      subroutine estrate(inter,theta1,phi1)
+      subroutine estrate(theta1,phi1,phigr1)
+*
+*     input   
+*     phigr1 phi of Greenwich (degree) ( 0 usually)
+*     theta1 theta (degree, 90==pole)     
+*     pheta1 pheta (degree)     
+*
+
       integer init
       real modul
            real aa(4),zz(4)
@@ -69,10 +76,12 @@
 
       endif
              estrat=0
+             phigr=phigr1/180.*3.1415926
              thetam=78.6/180.*3.1415926
-             phim=229./180.*3.1415926
+             phim=290.6/180.*3.1415926
              theta=theta1/180.*3.1415926
-             phi=phi1/180.*3.1415926
+             phi=phi1/180.*3.1415926-phigr
+             inter=0
              do l=1,2
               xsum=hsum(7000+l*100+2)/10.
               um=sin(pi/2-thetam)*cos(phim)
