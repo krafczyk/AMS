@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.175 2002/09/20 09:30:41 choutko Exp $
+//  $Id: commons.h,v 1.176 2002/10/01 15:53:52 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -254,7 +254,22 @@ geant safext;     // Extention(cm) of EC transv.size when TFMC 13=2 is used
 geant mev2pes;
 geant pmseres;
 geant mev2adcd;
-geant an2dyr;     
+geant an2dyr;
+geant pedh; //Ped-HiCh    
+geant pedvh;//ch-to-ch variation(%)     
+geant pedl; //Ped-LoCh    
+geant pedvl;//ch-to-ch variations(%)
+geant pedsh;//PedSig-HiCh     
+geant pedsvh;//ch-to-ch variation(%)     
+geant pedsl;//PedSig-LoCh    
+geant pedsvl;//ch-to-ch variation(%)
+integer generpeds;     
+integer sec[2];
+integer min[2];
+integer hour[2];
+integer day[2];
+integer mon[2];
+integer year[2];
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);

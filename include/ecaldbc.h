@@ -1,14 +1,15 @@
-//  $Id: ecaldbc.h,v 1.21 2002/09/27 15:17:43 choutko Exp $
+//  $Id: ecaldbc.h,v 1.22 2002/10/01 15:53:54 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
 #ifndef __ECALDBC__
 #define __ECALDBC__
+#include <amsdbc.h>
 //
 // ECAL global constants definition
 //
 namespace ecalconst{
-const integer ECRT=2;      //  ecal crates no
+const integer ECRT=2;      // number of ecal crates 
 const integer ECFLSMX=10; // max. fiber-layers per S-layer
 const integer ECFBCMX=12; // max. fibers per layer in PMcell
 const integer ECSLMX=9; // max. S(uper)-layers
@@ -151,7 +152,7 @@ class ECcalib{
 //
 private:
   integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
-  integer _status[4];  //4-SubCells each as HL(H->Hch,L->Lch) (H(L)=0/!=0->ok/problems)
+  integer _status[4];  //4-SubCells calib.status(MN->Hch/Lch, M(N)=0/../9->OK/../DEAD) 
   geant _pmrgain;    // PM relative(to ref.PM) gain (if A=(sum of 4 SubCells) pmrgain = Agiven/Aref)
   geant _scgain[4]; // relative(to averaged) gain of 4 SubCells(highGain chain)(average_of_four=1 !!!)
   geant _hi2lowr[4]; // ratio of gains of high- and low-chains (for each of 4 SubCells)
@@ -173,6 +174,8 @@ public:
     }
   };
   integer & getstat(int i){return _status[i];}
+  bool HCHisBad(int i){ return (_status[i]%100)/10>=9;}
+  bool LCHisBad(int i){ return _status[i]%10>=9;}
   geant pmrgain(){return _pmrgain;}
   geant pmscgain(int i){return _scgain[i];}
   geant &hi2lowr(integer subc){return _hi2lowr[subc];}
@@ -236,6 +239,8 @@ class ECPMPeds{
 //
 private:
   integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
+  uinteger _staH[4];//HighGainChannel status
+  uinteger _staL[4];//LowGainChannel status
   geant _pedh[4]; // ped for high-channel of 4 SubCells(pixels)(in ADCchannels)
   geant _pedl[4]; // ped for low-channel of 4 SubCells(pixels)
   geant _sigh[4]; // sigma for high-channel of 4 SubCells(pixels)
@@ -246,21 +251,24 @@ private:
 public:
   static ECPMPeds pmpeds[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   ECPMPeds(){};
-  ECPMPeds(integer sid, geant pedh[4], geant sigh[4],
-                         geant pedl[4], geant sigl[4]):_softid(sid),_pedd(),_sigd(0){
+  ECPMPeds(integer sid, uinteger stah[4], uinteger stal[4], geant pedh[4], geant sigh[4],
+                           geant pedl[4], geant sigl[4]):_softid(sid),_pedd(),_sigd(0){
     for(int i=0;i<4;i++){
       _pedh[i]=pedh[i];
       _sigh[i]=sigh[i];
       _pedl[i]=pedl[i];
       _sigl[i]=sigl[i];
-      
+      _staH[i]=stah[i];
+      _staL[i]=stal[i]; 
     }
   };
-  geant &ped(uinteger chan, uinteger gain)  {return gain==0?_pedh[chan<4?chan:0]:  _pedl[chan<4?chan:0];}  
-  geant & sig(uinteger chan, uinteger gain)  {return gain==0?_sigh[chan<4?chan:0]:  _sigl[chan<4?chan:0];}  
+  geant &ped(uinteger chan, uinteger gain)  {return gain==0?_pedh[chan<4?chan:0]:_pedl[chan<4?chan:0];}  
+  geant & sig(uinteger chan, uinteger gain)  {return gain==0?_sigh[chan<4?chan:0]:_sigl[chan<4?chan:0];}
+  uinteger &sta(uinteger chan, uinteger gain){return gain==0?_staH[chan<4?chan:0]:_staL[chan<4?chan:0];}
   geant &ped()  {return _pedd;}
   geant &sig()  {return _sigd;}
-
+  bool HCHisBad(uinteger chan){return _staH[chan]&AMSDBc::BAD>0;}
+  bool LCHisBad(uinteger chan){return _staL[chan]&AMSDBc::BAD>0;}
   void getpedh(geant pedh[4]){
     for(int i=0;i<4;i++)pedh[i]=_pedh[i];
   }
@@ -275,6 +283,7 @@ public:
   }
   integer getsid(){return _softid;}
   static void build();
+  static void mcbuild();
 };
 //
 #endif

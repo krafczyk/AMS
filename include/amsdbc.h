@@ -1,4 +1,4 @@
-//  $Id: amsdbc.h,v 1.30 2001/08/10 12:59:46 choutko Exp $
+//  $Id: amsdbc.h,v 1.31 2002/10/01 15:53:52 choumilo Exp $
 // Author V. Choutko 24-may-1996
 #ifndef __AMSDBC__
 #define __AMSDBC__
@@ -60,6 +60,7 @@ static char * amsdatabase;
      static const integer BADINTERPOL;
      static const integer NOTRACK;
      static const integer AOVERFLOW;
+     static const integer LOWGCHUSED;
      static const integer TRDTRACK;
      static const integer LEAK;
      static const integer CATLEAK;

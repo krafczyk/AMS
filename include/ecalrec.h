@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.26 2002/09/26 14:07:00 choutko Exp $
+//  $Id: ecalrec.h,v 1.27 2002/10/01 15:53:54 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -69,7 +69,7 @@ public:
 
 //  TDV
 
-static    AMSID    getTDVped() {return AMSID("Ecalpeds",AMSJob::gethead()->isRealData());}
+static    AMSID  getTDVped() {return AMSID("Ecalpeds",AMSJob::gethead()->isRealData());}
 static    AMSID  getTDVstatus(){return AMSID("EcalStatus",AMSJob::gethead()->isRealData());}
 static    AMSID  getTDVcalib(){return AMSID("Ecalpmcalib",AMSJob::gethead()->isRealData());}
 static    AMSID  getTDVvpar(){return AMSID("Ecalvpar",AMSJob::gethead()->isRealData());}
@@ -89,7 +89,7 @@ class AMSEcalHit: public AMSlink{
 private:
 //integer _status; // status (0/1/... -> alive/dead/...) (It is really in AMSlink !!!)
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
-  geant _adc[2]; //raw adc's for later calibration (ovfl-suppressed, in DAQ-scale !)
+  geant _adc[2]; //raw adc's for later calibration (ovfl-suppressed, DAQ-scale -> ADC converted!)
   integer _proj;   //projection (0->X, 1->Y)
   integer _plane;  //continious numbering of planes through 2 projections(0,...)
   integer _cell;   // numbering in plane(0,...)
