@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.150 2005/03/05 16:56:57 alcaraz Exp $
+//  $Id: root.h,v 1.151 2005/03/05 17:25:29 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -203,7 +203,7 @@ public:
   char * Info(){
                          double cp=cos(Pitch);
                          double sp=sin(Pitch);
-                         double cy=cos(Yaw);
+                         //double cy=cos(Yaw);
                          double sy=sin(Yaw);
                          double cr=cos(Roll);
                          double sr=sin(Roll);
@@ -213,6 +213,7 @@ public:
   return _Info;
   }
 
+  virtual ~HeaderR(){};
   ClassDef(HeaderR,2)       //HeaderR
 };
 
@@ -246,6 +247,7 @@ pm1(at -x/y)>> ----- >> pm36(at +x/y) \n
 
   EcalHitR(AMSEcalHit *ptr);
   EcalHitR(){};
+  virtual ~EcalHitR(){};
 ClassDef(EcalHitR,1)       //EcalHitR
 };
 
@@ -302,6 +304,7 @@ public:
     sprintf(_Info,"EcalCluster No %d Layer=%d Proj=%d Coo=(%5.2f,%5.2f,%5.2f) E_{Dep}(MeV)=%5.2f Multip=%d",number,Plane,Proj,Coo[0],Coo[1],Coo[2],Edep,NEcalHit());
   return _Info;
   } 
+  virtual ~EcalClusterR(){};
 ClassDef(EcalClusterR,1)       //EcalClusterR
 };
 
@@ -339,6 +342,7 @@ public:
 
   Ecal2DClusterR(){};
   Ecal2DClusterR(AMSEcal2DCluster *ptr);
+  virtual ~Ecal2DClusterR(){};
 ClassDef(Ecal2DClusterR,1)       //Ecal2DClusterR
 friend class AMSEcal2DCluster;
 friend class AMSEventR;
@@ -409,6 +413,7 @@ public:
 friend class AMSEcalShower;
 friend class AMSEventR;
 
+  virtual ~EcalShowerR(){};
 ClassDef(EcalShowerR,1)       //EcalShowerR
 
 };
@@ -450,6 +455,7 @@ public:
   TofRawClusterR(){};
   TofRawClusterR(TOF2RawCluster *ptr);
 
+  virtual ~TofRawClusterR(){};
   ClassDef(TofRawClusterR ,3)       //TofRawClusterR
 };
 
@@ -503,6 +509,7 @@ public:
   TofClusterR(AMSTOFCluster *ptr );
   friend class AMSTOFCluster;
   friend class AMSEventR;
+  virtual ~TofClusterR(){};
 ClassDef(TofClusterR,1)       //TofClusterR
 };
 
@@ -534,6 +541,7 @@ public:
     sprintf(_Info,"Anticluster No %d Sector=%d R=%5.2f#pm%5.2f #Phi=%5.2f#pm%5.2f Z=%5.2f#pm%5.2f E_{Dep}(MeV)=%7.3g",number,Sector,Coo[0],ErrorCoo[0],Coo[1],ErrorCoo[1],Coo[2],ErrorCoo[2],Edep);
   return _Info;
   } 
+  virtual ~AntiClusterR(){};
 ClassDef(AntiClusterR,1)       //AntiClusterR
 };
 
@@ -552,6 +560,7 @@ public:
 
   TrRawClusterR(){};
   TrRawClusterR(AMSTrRawCluster *ptr);
+  virtual ~TrRawClusterR(){};
 ClassDef(TrRawClusterR,1)       //TrRawClusterR
 };
 
@@ -612,6 +621,7 @@ public:
 
   TrClusterR(){};
   TrClusterR(AMSTrCluster *ptr);
+  virtual ~TrClusterR(){};
 ClassDef(TrClusterR,1)       //TrClusterR
 };
 
@@ -659,6 +669,7 @@ public:
   TrRecHitR(AMSTrRecHit *ptr);
   friend class AMSTrRecHit;
   friend class AMSEventR;
+  virtual ~TrRecHitR(){};
 ClassDef(TrRecHitR,2)       //TrRecHitR
 };
 
@@ -726,6 +737,7 @@ public:
     sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%o",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
   return _Info;
   } 
+  virtual ~TrTrackR(){};
 ClassDef(TrTrackR,5)       //TrTrackR
 friend class AMSTrTrack;
 friend class AMSEventR;
@@ -776,6 +788,7 @@ public:
   return _Info;
   } 
 
+  virtual ~RichHitR(){};
 ClassDef(RichHitR,2)       // RichHitR
 };
 
@@ -849,6 +862,7 @@ public:
     sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
     return _Info;
   } 
+  virtual ~RichRingR(){};
   ClassDef(RichRingR,6)           // RichRingR
 }; 
 
@@ -868,6 +882,7 @@ public:
   TrdRawHitR(){};
   TrdRawHitR(AMSTRDRawHit *ptr);
 
+  virtual ~TrdRawHitR(){};
 ClassDef(TrdRawHitR,1)       //TrdRawHitR
 };
 
@@ -909,6 +924,7 @@ public:
    sprintf(_Info,"TRD Cluster No %d Layer %d TubeDir %s Coo %5.1f,%5.1f,%5.1f  Mult  %d HMult %d E_{Dep}(Kev) %5.1f ",number,Layer,(Direction==0?"x":"y"),Coo[0], Coo[1], Coo[2],Multip,HMultip,EDep);
    return _Info;
   }
+  virtual ~TrdClusterR(){};
 ClassDef(TrdClusterR,2)       //TrdClusterR
 };
 
@@ -993,6 +1009,7 @@ public:
   } 
   friend class AMSTRDTrack;
   friend class AMSEventR;
+  virtual ~TrdTrackR(){};
 ClassDef(TrdTrackR,1)       //TrdTrackR
 };
 
@@ -1052,6 +1069,7 @@ public:
     sprintf(_Info,"TrLevel1: TofFlag %s, Z %d, AntiFired %d, EcalFlag  %s %s, EcalSum %5.1f GeV",TofFlag%10==0?"4/4":"3/4",TofFlag/10>0?2:1,antif,IsECHighEnergy()?"High":"Low",IsECEMagEnergy()?" EMag ":" ",EcalTrSum);
   return _Info;
   }
+  virtual ~Level1R(){};
 ClassDef(Level1R,1)       //Level1R
 };
 
@@ -1203,6 +1221,7 @@ public:
     sprintf(_Info,"TrLevel3: %s",infol);
   return _Info;
   }
+  virtual ~Level3R(){};
 ClassDef(Level3R,1)       //Level3R
 };
 
@@ -1307,6 +1326,7 @@ public:
   ChargeR(AMSCharge *ptr, float probtof[],int chintof[],
                float probtr[], int chintr[], 
                float probrc[], int chinrc[], float proballtr);
+  virtual ~ChargeR(){};
 ClassDef(ChargeR,1)       //ChargeR
 
 };
@@ -1348,6 +1368,7 @@ public:
   VertexR(AMSVtx *ptr);
   friend class AMSVtx;
   friend class AMSEventR;
+  virtual ~VertexR(){};
   ClassDef(VertexR,3)         //VertexR
 };
 
@@ -1518,6 +1539,7 @@ public:
   ParticleR(AMSParticle *ptr, float phi, float phigl);
   friend class AMSParticle;
   friend class AMSEventR;
+  virtual ~ParticleR(){};
   ClassDef(ParticleR,2)       //ParticleR
 };
 
@@ -1535,6 +1557,7 @@ public:
 
   AntiMCClusterR(){};
   AntiMCClusterR(AMSAntiMCCluster *ptr);
+  virtual ~AntiMCClusterR(){};
 ClassDef(AntiMCClusterR,1)       //AntiMCClusterR
 };
 
@@ -1570,6 +1593,7 @@ public:
     sprintf(_Info,"TrMCCluster No %d PId=%d Coo=(%5.2f,%5.2f,%5.2f), Ampl(Mev)=%5.2f",number,TrackNo,Xgl[0],Xgl[1],Xgl[2],Sum*1000);
   return _Info;
   } 
+  virtual ~TrMCClusterR(){};
 ClassDef(TrMCClusterR,1)       //TrMCClusterR
 };
 
@@ -1587,6 +1611,7 @@ public:
   float Edep;    ///< energy dep mev
   TofMCClusterR(){};
   TofMCClusterR(AMSTOFMCCluster *ptr);
+  virtual ~TofMCClusterR(){};
 ClassDef(TofMCClusterR,1)       //TOFMCClusterRoot
 };
 
@@ -1609,6 +1634,7 @@ public:
  
   TrdMCClusterR(){};
   TrdMCClusterR(AMSTRDMCCluster *ptr);
+  virtual ~TrdMCClusterR(){};
 ClassDef(TrdMCClusterR,1)       //TrdMCClusterR
 };
 
@@ -1661,6 +1687,7 @@ NOTE: The information of the mother is only available if RICCONT=1 in
   int   fRichHit;      ///< Pointer to detected hit
   RichMCClusterR(){};
   RichMCClusterR(AMSRichMCHit *ptr, int _numgen);
+  virtual ~RichMCClusterR(){};
   ClassDef(RichMCClusterR,1)       // RichMCClusterR
 };
 
@@ -1683,6 +1710,7 @@ char  VolName[5];  ///< Volume name
 
  MCTrackR(){};
  MCTrackR(AMSmctrack *ptr);
+  virtual ~MCTrackR(){};
 ClassDef(MCTrackR,1)       //MCTrackR
 };
 
@@ -1716,6 +1744,7 @@ public:
     sprintf(_Info,"McParticle No %d Pid=%d Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f Momentum(Gev)=%7.2g Mass=%7.2g Q=%4.0f",number,Particle,Coo[0],Coo[1],Coo[2],acos(Dir[2]),atan2(Dir[1],Dir[0]),Momentum,Mass,Charge);
   return _Info;
   } 
+  virtual ~MCEventgR(){};
 ClassDef(MCEventgR,1)       //MCEventgR
 };
 
