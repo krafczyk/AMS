@@ -31,6 +31,7 @@ class AMSToFClusterReader;
 class AMSTrackReader;
 class AMSSiHitReader;
 class AMSCTCClusterReader;
+class AMSAntiClusterReader;
 class AMSParticleReader;
 //class ATLFElectronMaker;
 //class ATLFMuonMaker;
@@ -58,6 +59,7 @@ private:
    AMSTrackReader      *m_TrackMaker;        //Pointer to TrackMaker
    AMSSiHitReader      *m_SiHitMaker;        //Pointer to SiHitMaker
    AMSCTCClusterReader *m_CTCClusterMaker;   //Pointer to ToFClusterMaker
+   AMSAntiClusterReader *m_AntiClusterMaker;   //Pointer to ToFClusterMaker
    AMSParticleReader   *m_ParticleMaker;     //Pointer to ParticleMaker
 
 // AMSMCMaker          *m_MCMaker;           //Pointer to MCMaker
@@ -85,6 +87,7 @@ public:
    virtual           ~AMSRoot();
    virtual void       Browse(TBrowser *b);
    virtual void       GetEvent(Int_t event=1);      // *MENU*
+   virtual void       SelectEvent();      // *MENU*
    virtual void       Init(TTree * h1=0);           //Initialize to read from h1
    virtual void       Finish();                     //Finish a run
    AMSVirtualDisplay *Display() {return m_Display;}
@@ -110,6 +113,7 @@ public:
    AMSToFClusterReader *ToFClusterMaker() {return m_ToFClusterMaker;}
    AMSTrackReader      *TrackMaker()      {return m_TrackMaker;}
    AMSSiHitReader      *SiHitMaker()      {return m_SiHitMaker;}
+   AMSAntiClusterReader *AntiClusterMaker() {return m_AntiClusterMaker;}
    AMSCTCClusterReader *CTCClusterMaker() {return m_CTCClusterMaker;}
    AMSParticleReader   *ParticleMaker()   {return m_ParticleMaker;}
 // AMSMCMaker         *MCMaker()         {return m_MCMaker;}

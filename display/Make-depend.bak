@@ -10,7 +10,8 @@ AMSRoot.o: /pgm0/EventDisplay/root/include/TClonesArray.h AMSRoot.h
 AMSRoot.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
 AMSRoot.o: AMSMaker.h AMSToFClusterReader.h AMSTrackReader.h
 AMSRoot.o: /pgm0/EventDisplay/root/include/TH1.h AMSSiHitReader.h
-AMSRoot.o: AMSCTCClusterReader.h AMSParticleReader.h AMSVirtualDisplay.h
+AMSRoot.o: AMSCTCClusterReader.h AMSAntiClusterReader.h AMSParticleReader.h
+AMSRoot.o: AMSVirtualDisplay.h
 AMSMaker.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
 AMSMaker.o: /pgm0/EventDisplay/root/include/TTree.h
 AMSMaker.o: /pgm0/EventDisplay/root/include/TList.h
@@ -94,6 +95,20 @@ AMSCTCClusterReader.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
 AMSCTCClusterReader.o: AMSCTCCluster.h AMS3DCluster.h
 AMSCTCClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
 AMSCTCClusterReader.o: AMSCTCClusterReader.h
+AMSAntiCluster.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSAntiCluster.o: AMSAntiCluster.h AMS3DCluster.h
+AMSAntiCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
+AMSAntiCluster.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSAntiCluster.o: AMSMaker.h AMSVirtualDisplay.h
+AMSAntiClusterReader.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSAntiClusterReader.o: /pgm0/EventDisplay/root/include/TRandom.h
+AMSAntiClusterReader.o: /pgm0/EventDisplay/root/include/TClonesArray.h
+AMSAntiClusterReader.o: /pgm0/EventDisplay/root/include/TMCParticle.h
+AMSAntiClusterReader.o: AMSRoot.h AMSHistBrowser.h
+AMSAntiClusterReader.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
+AMSAntiClusterReader.o: AMSAntiCluster.h AMS3DCluster.h
+AMSAntiClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
+AMSAntiClusterReader.o: AMSAntiClusterReader.h
 AMSParticle.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h AMSRoot.h
 AMSParticle.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
 AMSParticle.o: AMSMaker.h AMSTrack.h THelix.h

@@ -26,7 +26,7 @@ LOSS  1
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 HADR 1
 TRIG 200
-DEBUG -1 10 100
+DEBUG -1 10 1
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 
 C npars ims 
@@ -39,7 +39,7 @@ RNDM 197683093 1356123257
 TOFMC 13=1
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0      3=50.   4=1  5=0 6='v203a' 
+AMSJOB 1=0   2=1      3=50.   4=1  5=0 6='v203a' 
 C Special HP-UX
 TIME 3=10000000
 TERM 1=1234567890

@@ -2,7 +2,7 @@
   gROOT->Reset();
   gSystem->Load("libAMS.so");
   debugger.Off();		// debugger.On() to turn on printing messages
-  TFile f("t66.root");
+  TFile f("mc.root");
 //TFile f("vitali_old.root");
 //TFile f("run26.3.5.40.cls.root");
   TTree * t = f.Get("h1");
@@ -12,8 +12,17 @@
 
   TFile fgeo("ams_group.root");
   TGeometry * geo = fgeo.Get("ams");
-  AMSDisplay display("AMSRoot Event Display", geo);
+  AMSDisplay * amd= new AMSDisplay("AMSRoot Event Display", geo);
+   amsroot.GetEvent(0);
+   amd->ShowNextEvent(-1);
 
-  amsroot.GetEvent(0);
-  display.ShowNextEvent(0);
+
+
+
 }
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
-// AMS Silicon Tracker Hit Reader class.                                //
+// AMS Anti Counter Cluster Reader class.                               //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -12,45 +12,38 @@
 #include <TMCParticle.h>
 
 #include "AMSRoot.h"
-#include "AMSSiHit.h"
-#include "AMSSiHitReader.h"
+#include "AMSAntiCluster.h"
+#include "AMSAntiClusterReader.h"
 
 
-ClassImp(AMSSiHitReader)
+ClassImp(AMSAntiClusterReader)
 
 
 
 //
 // struct to read data from tree converted from ntuple
 //
-static const Int_t MaxSiHits = 300;
-
 static struct {
-   Int_t           ntrrh;
-   Int_t           px[MaxSiHits];
-   Int_t           py[MaxSiHits];
-   Int_t           statusr[MaxSiHits];
-   Int_t           Layer[MaxSiHits];
-   Float_t         hitr[MaxSiHits][3];
-   Float_t         ehitr[MaxSiHits][3];
-   Float_t         sumr[MaxSiHits];
-   Float_t         difosum[MaxSiHits];
+   Int_t           nanti;
+   Int_t           AntiStatus[20];
+   Int_t           AntiSector[20];
+   Float_t         AntiCoo[20][3];
+   Float_t         AntiErCoo[20][3];
+   Float_t         AntiSignal[20];
 } _ntuple;
 
 
 //_____________________________________________________________________________
-AMSSiHitReader::AMSSiHitReader(const char *name, const char *title)
+AMSAntiClusterReader::AMSAntiClusterReader(const char *name, const char *title)
                  : AMSMaker(name,title)
 {
-   // Construct an AMSSiHitReader
+   // Construct an AMSAntiClusterReader
    //
 
-   m_Fruits     = new TClonesArray("AMSSiHit",MaxSiHits,kFALSE);
-   m_BranchName = "SiliconHits";
+   m_Fruits     = new TClonesArray("AMSAntiCluster",8,kFALSE);
+   m_BranchName = "AntiClusters";
    m_Nclusters  = 0;
 //   m_Ncells     = 0;
-
-   DrawUsedHitsOnly = kFALSE;
 
    //
    // Mark that we want to save things
@@ -60,7 +53,7 @@ AMSSiHitReader::AMSSiHitReader(const char *name, const char *title)
 }
 
 //_____________________________________________________________________________
-void AMSSiHitReader::Init(TTree * h1)
+void AMSAntiClusterReader::Init(TTree * h1)
 {
 //////////////////////////////////////////////////////////
 //   This file is modified from automatically generated 
@@ -71,21 +64,19 @@ void AMSSiHitReader::Init(TTree * h1)
 // Set branch addresses
 //
    if ( h1 != 0 ) {
-     h1->SetBranchAddress("ntrrh",&_ntuple.ntrrh);
-     h1->SetBranchAddress("px",_ntuple.px);
-     h1->SetBranchAddress("py",_ntuple.py);
-     h1->SetBranchAddress("statusr",_ntuple.statusr);
-     h1->SetBranchAddress("Layer",_ntuple.Layer);
-     h1->SetBranchAddress("hitr",_ntuple.hitr);
-     h1->SetBranchAddress("ehitr",_ntuple.ehitr);
-     h1->SetBranchAddress("sumr",_ntuple.sumr);
-     h1->SetBranchAddress("difosum",_ntuple.difosum);
-   }
+     h1->SetBranchAddress("nanti",&_ntuple.nanti);
+     h1->SetBranchAddress("Antistatus",_ntuple.AntiStatus);
+     h1->SetBranchAddress("Antisector",_ntuple.AntiSector);
+     h1->SetBranchAddress("Anticoo",_ntuple.AntiCoo);
+     h1->SetBranchAddress("Antiercoo",_ntuple.AntiErCoo);
+     h1->SetBranchAddress("Antiedep",_ntuple.AntiSignal);
 
+     debugger.Print("AMSAntiClusterReader::Init(): branch address set\n");
+   }
 }
 
 //_____________________________________________________________________________
-void AMSSiHitReader::Finish()
+void AMSAntiClusterReader::Finish()
 {
 // Function called when maker for all events have been called
 // close histograms... etc.
@@ -93,67 +84,51 @@ void AMSSiHitReader::Finish()
 }
 
 //_____________________________________________________________________________
-void AMSSiHitReader::Make()
+void AMSAntiClusterReader::Make()
 {
 // Make the branch in result tree
 //
 
    Int_t k;
 
-
 //........................................................
 //....Store clusters in Root ClonesArray
 //........................................................
+//   m_Ncells    = ncells;
    m_Nclusters = 0;		// it will be accumulated by AddCluster()
-   debugger.Print("AMSSiHitReader::Make(): making %d clusters.\n",
-	  _ntuple.ntrrh);
-   for (k=0; k<_ntuple.ntrrh; k++) {
-      AddCluster(_ntuple.statusr[k],
-                 _ntuple.Layer[k],
-                 _ntuple.px[k],
-                 _ntuple.py[k],
-                &_ntuple.hitr[k][0],
-                &_ntuple.ehitr[k][0],
-                 _ntuple.sumr[k],
-                 _ntuple.difosum[k]);
+   debugger.Print("AMSAntiClusterReader::Make(): making %d clusters.\n",
+	  _ntuple.nanti);
+   for (k=0; k<_ntuple.nanti; k++) {
+      AddCluster(_ntuple.AntiStatus[k],
+                 _ntuple.AntiSector[k],
+                 _ntuple.AntiSignal[k],
+                &_ntuple.AntiCoo[k][0],
+                &_ntuple.AntiErCoo[k][0]);
    }
 
-   debugger.Print("AMSSiHitReader::Make(): %d clusters made.\n", m_Nclusters);
+   debugger.Print("AMSAntiClusterReader::Make(): %d clusters made.\n", m_Nclusters);
 }
 
 //_____________________________________________________________________________
-void AMSSiHitReader::PrintInfo()
+void AMSAntiClusterReader::PrintInfo()
 {
    AMSMaker::PrintInfo();
 }
 
+/*
 //_____________________________________________________________________________
-Bool_t AMSSiHitReader::Enabled(TObject * obj)
+Bool_t AMSAntiClusterReader::Enabled(TObject * obj)
 {
-  //
-  // a hit with status 32 have a track passing through
-  //
-  AMSSiHit * hit = (AMSSiHit *) obj;
-  Int_t status = hit->GetStatus();
-  // debugger.Print("SiHit status = %d\n", status);
-  if ( DrawUsedHitsOnly && status != 32 ) return kFALSE;
-  else                                    return kTRUE;
+   return kTRUE;		// no discrimation on CTC Clusters
 }
+*/
 
 //_____________________________________________________________________________
-void  AMSSiHitReader::AddCluster(Int_t status, Int_t plane, Int_t px, Int_t py,
-                             Float_t * hit, Float_t * errhit,
-                             Float_t ampl, Float_t asym,
-                             TObjArray * tracks)
+void  AMSAntiClusterReader::AddCluster(Int_t status, Int_t sector, 
+                             Float_t signal, 
+                             Float_t * coo, Float_t * ercoo,
+                             Int_t ntracks, TObjArray * tracks)
 {
-Float_t errhitA[3];
-Float_t hitA[3];
-errhitA[0]=errhit[0];
-errhitA[1]=errhit[1];
-errhitA[2]=ampl/10000;
-hitA[0]=hit[0];
-hitA[1]=hit[1];
-hitA[2]=hit[2]+ampl/30;
 //            Add a new cluster to the list of clusters
 
  //Note the use of the "new with placement" to create a new cluster object.
@@ -165,14 +140,24 @@ hitA[2]=hit[2]+ampl/30;
  //   by the new cluster parameters.
  // This technique should save a huge amount of time otherwise spent
  // in the operators new and delete.
-
+  // Convert to other coo system
+  Float_t cooA[3];
+  Float_t ercooA[3];
+  cooA[0]=coo[0]*cos(coo[1]/180.*3.14159);
+  cooA[1]=coo[0]*sin(coo[1]/180.*3.14159);
+  cooA[2]=coo[2];
+  ercooA[0]=ercoo[0]*cos(coo[1]/180.*3.14159);
+  ercooA[1]=ercoo[0]*sin(coo[1]/180.*3.14159);
+  ercooA[2]=ercoo[2];
    TClonesArray &clusters = *(TClonesArray*)m_Fruits;
-   new(clusters[m_Nclusters++]) AMSSiHit(status, plane, px, py, 
-	hitA, errhitA, ampl, asym, tracks);
+   debugger.Print("--- AMSAntiClusterReader: will add a cluster at %0lx\n", clusters[m_Nclusters]);
+   new(clusters[m_Nclusters++]) AMSAntiCluster(status, sector, 
+	signal,cooA, ercooA, ntracks, tracks);
+
 }
 
 //_____________________________________________________________________________
-void AMSSiHitReader::RemoveCluster(const Int_t cluster)
+void AMSAntiClusterReader::RemoveCluster(const Int_t cluster)
 {
    TClonesArray &clusters = *(TClonesArray*)m_Fruits;
    clusters.RemoveAt(cluster);
@@ -181,7 +166,7 @@ void AMSSiHitReader::RemoveCluster(const Int_t cluster)
 }
 
 //_____________________________________________________________________________
-void AMSSiHitReader::Clear(Option_t *option)
+void AMSAntiClusterReader::Clear(Option_t *option)
 {
 //    Reset Cluster Maker
 

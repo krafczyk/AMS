@@ -30,6 +30,8 @@ extern "C" void G__set_cpp_environmentAMSCint() {
   G__add_compiledheader("AMSSiHitReader.h");
   G__add_compiledheader("AMSCTCCluster.h");
   G__add_compiledheader("AMSCTCClusterReader.h");
+  G__add_compiledheader("AMSAntiCluster.h");
+  G__add_compiledheader("AMSAntiClusterReader.h");
   G__add_compiledheader("AMSParticle.h");
   G__add_compiledheader("AMSParticleReader.h");
   G__add_compiledheader("AMSVirtualDisplay.h");
@@ -2494,6 +2496,186 @@ static int G__AMSCTCClusterReader_wAAMSCTCClusterReader_1_2(G__value *result7,ch
 }
 
 
+/* AMSAntiClusterReader */
+static int G__AMSAntiClusterReader_AMSAntiClusterReader_0_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   AMSAntiClusterReader *p;
+   if(G__getaryconstruct()) p=new AMSAntiClusterReader[G__getaryconstruct()];
+   else                    p=new AMSAntiClusterReader;
+      result7->obj.i = (long)p;
+      result7->ref = (long)p;
+      result7->type = 'u';
+      result7->tagnum = G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader);
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_AMSAntiClusterReader_1_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   AMSAntiClusterReader *p;
+      p = new AMSAntiClusterReader((const char*)G__int(libp->para[0]),(const char*)G__int(libp->para[1]));
+      result7->obj.i = (long)p;
+      result7->ref = (long)p;
+      result7->type = 'u';
+      result7->tagnum = G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader);
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_Init_3_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   switch(libp->paran) {
+   case 1:
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->Init((TTree*)G__int(libp->para[0]));
+      break;
+   case 0:
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->Init();
+      break;
+   }
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_Finish_4_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->Finish();
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_Make_5_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->Make();
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_PrintInfo_6_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->PrintInfo();
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_AddCluster_7_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   switch(libp->paran) {
+   case 7:
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->AddCluster(
+(Int_t)G__int(libp->para[0]),(Int_t)G__int(libp->para[1])
+,(Float_t)G__double(libp->para[2]),(Float_t*)G__int(libp->para[3])
+,(Float_t*)G__int(libp->para[4]),(Int_t)G__int(libp->para[5])
+,(TObjArray*)G__int(libp->para[6]));
+      break;
+   case 6:
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->AddCluster((Int_t)G__int(libp->para[0]),(Int_t)G__int(libp->para[1])
+,(Float_t)G__double(libp->para[2]),(Float_t*)G__int(libp->para[3])
+,(Float_t*)G__int(libp->para[4]),(Int_t)G__int(libp->para[5]));
+      break;
+   case 5:
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->AddCluster((Int_t)G__int(libp->para[0]),(Int_t)G__int(libp->para[1])
+,(Float_t)G__double(libp->para[2]),(Float_t*)G__int(libp->para[3])
+,(Float_t*)G__int(libp->para[4]));
+      break;
+   }
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_RemoveCluster_8_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->RemoveCluster((const Int_t)G__int(libp->para[0]));
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_Clear_9_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   switch(libp->paran) {
+   case 1:
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->Clear((Option_t*)G__int(libp->para[0]));
+      break;
+   case 0:
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->Clear();
+      break;
+   }
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_DeclFileName_0_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,67,(long)((AMSAntiClusterReader*)(G__getstructoffset()))->DeclFileName());
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_DeclFileLine_1_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,105,(long)((AMSAntiClusterReader*)(G__getstructoffset()))->DeclFileLine());
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_ImplFileName_2_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,67,(long)((AMSAntiClusterReader*)(G__getstructoffset()))->ImplFileName());
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_ImplFileLine_3_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,105,(long)((AMSAntiClusterReader*)(G__getstructoffset()))->ImplFileLine());
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_Class_Version_4_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,115,(long)((AMSAntiClusterReader*)(G__getstructoffset()))->Class_Version());
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_Class_5_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,85,(long)((AMSAntiClusterReader*)(G__getstructoffset()))->Class());
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_Dictionary_6_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->Dictionary();
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_IsA_7_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,85,(long)((AMSAntiClusterReader*)(G__getstructoffset()))->IsA());
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_ShowMembers_8_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->ShowMembers(*(TMemberInspector*)libp->para[0].ref,(char*)G__int(libp->para[1]));
+   return(1);
+}
+
+static int G__AMSAntiClusterReader_Streamer_9_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiClusterReader*)(G__getstructoffset()))->Streamer(*(TBuffer*)libp->para[0].ref);
+   return(1);
+}
+
+// automatic copy constructor
+static int G__AMSAntiClusterReader_AMSAntiClusterReader_0_2(G__value *result7,char *funcname,struct G__param *libp,int hash)
+{
+   AMSAntiClusterReader *p;
+   if(1!=libp->paran) ;
+   p=new AMSAntiClusterReader(*(AMSAntiClusterReader*)G__int(libp->para[0]));
+   result7->obj.i = (long)p;
+   result7->ref = (long)p;
+   result7->type = 'u';
+   result7->tagnum = G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader);
+   return(1);
+}
+
+// automatic destructor
+static int G__AMSAntiClusterReader_wAAMSAntiClusterReader_1_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   if(G__getaryconstruct())
+     if(G__PVOID==G__getgvp())
+       delete[] (AMSAntiClusterReader *)(G__getstructoffset());
+     else
+       for(int i=G__getaryconstruct()-1;i>=0;i--)
+         ((AMSAntiClusterReader *)((G__getstructoffset())+sizeof(AMSAntiClusterReader)*i))->~AMSAntiClusterReader();
+   else if(G__PVOID==G__getgvp()) delete (AMSAntiClusterReader *)(G__getstructoffset());
+   else ((AMSAntiClusterReader *)(G__getstructoffset()))->~AMSAntiClusterReader();
+   return(1);
+}
+
+
 /* AMSParticleReader */
 static int G__AMSParticleReader_AMSParticleReader_0_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    AMSParticleReader *p;
@@ -2954,7 +3136,13 @@ static int G__AMSRoot_GetEvent_5_0(G__value *result7,char *funcname,struct G__pa
    return(1);
 }
 
-static int G__AMSRoot_Init_6_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_SelectEvent_6_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSRoot*)(G__getstructoffset()))->SelectEvent();
+   return(1);
+}
+
+static int G__AMSRoot_Init_7_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    switch(libp->paran) {
    case 1:
       G__setnull(result7);
@@ -2968,18 +3156,18 @@ static int G__AMSRoot_Init_6_0(G__value *result7,char *funcname,struct G__param 
    return(1);
 }
 
-static int G__AMSRoot_Finish_7_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Finish_8_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSRoot*)(G__getstructoffset()))->Finish();
    return(1);
 }
 
-static int G__AMSRoot_Display_8_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Display_9_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->Display());
    return(1);
 }
 
-static int G__AMSRoot_Draw_9_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Draw_0_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    switch(libp->paran) {
    case 1:
       G__setnull(result7);
@@ -2993,7 +3181,7 @@ static int G__AMSRoot_Draw_9_0(G__value *result7,char *funcname,struct G__param 
    return(1);
 }
 
-static int G__AMSRoot_Paint_0_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Paint_1_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    switch(libp->paran) {
    case 1:
       G__setnull(result7);
@@ -3007,7 +3195,7 @@ static int G__AMSRoot_Paint_0_1(G__value *result7,char *funcname,struct G__param
    return(1);
 }
 
-static int G__AMSRoot_Clear_1_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Clear_2_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    switch(libp->paran) {
    case 1:
       G__setnull(result7);
@@ -3021,99 +3209,104 @@ static int G__AMSRoot_Clear_1_1(G__value *result7,char *funcname,struct G__param
    return(1);
 }
 
-static int G__AMSRoot_IsFolder_2_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_IsFolder_3_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,98,(long)((AMSRoot*)(G__getstructoffset()))->IsFolder());
    return(1);
 }
 
-static int G__AMSRoot_PrintInfo_3_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_PrintInfo_4_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSRoot*)(G__getstructoffset()))->PrintInfo();
    return(1);
 }
 
-static int G__AMSRoot_GetVersion_4_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_GetVersion_5_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSRoot*)(G__getstructoffset()))->GetVersion());
    return(1);
 }
 
-static int G__AMSRoot_GetVersionDate_5_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_GetVersionDate_6_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSRoot*)(G__getstructoffset()))->GetVersionDate());
    return(1);
 }
 
-static int G__AMSRoot_RunNum_6_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_RunNum_7_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSRoot*)(G__getstructoffset()))->RunNum());
    return(1);
 }
 
-static int G__AMSRoot_EventNum_7_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_EventNum_8_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSRoot*)(G__getstructoffset()))->EventNum());
    return(1);
 }
 
-static int G__AMSRoot_Event_8_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Event_9_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSRoot*)(G__getstructoffset()))->Event());
    return(1);
 }
 
-static int G__AMSRoot_Mode_9_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Mode_0_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSRoot*)(G__getstructoffset()))->Mode());
    return(1);
 }
 
-static int G__AMSRoot_Tree_0_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Tree_1_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->Tree());
    return(1);
 }
 
-static int G__AMSRoot_GetInput_1_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_GetInput_2_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->GetInput());
    return(1);
 }
 
-static int G__AMSRoot_Makers_2_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Makers_3_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->Makers());
    return(1);
 }
 
-static int G__AMSRoot_Maker_3_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Maker_4_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->Maker((const char*)G__int(libp->para[0])));
    return(1);
 }
 
-static int G__AMSRoot_ToFClusterMaker_4_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_ToFClusterMaker_5_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->ToFClusterMaker());
    return(1);
 }
 
-static int G__AMSRoot_TrackMaker_5_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_TrackMaker_6_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->TrackMaker());
    return(1);
 }
 
-static int G__AMSRoot_SiHitMaker_6_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_SiHitMaker_7_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->SiHitMaker());
    return(1);
 }
 
-static int G__AMSRoot_CTCClusterMaker_7_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_AntiClusterMaker_8_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->AntiClusterMaker());
+   return(1);
+}
+
+static int G__AMSRoot_CTCClusterMaker_9_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->CTCClusterMaker());
    return(1);
 }
 
-static int G__AMSRoot_ParticleMaker_8_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_ParticleMaker_0_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->ParticleMaker());
    return(1);
 }
 
-static int G__AMSRoot_SetDefaultParameters_9_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_SetDefaultParameters_1_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSRoot*)(G__getstructoffset()))->SetDefaultParameters();
    return(1);
 }
 
-static int G__AMSRoot_SetEvent_0_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_SetEvent_2_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    switch(libp->paran) {
    case 1:
       G__setnull(result7);
@@ -3127,7 +3320,7 @@ static int G__AMSRoot_SetEvent_0_3(G__value *result7,char *funcname,struct G__pa
    return(1);
 }
 
-static int G__AMSRoot_SetMode_1_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_SetMode_3_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    switch(libp->paran) {
    case 1:
       G__setnull(result7);
@@ -3141,13 +3334,13 @@ static int G__AMSRoot_SetMode_1_3(G__value *result7,char *funcname,struct G__par
    return(1);
 }
 
-static int G__AMSRoot_SetDisplay_2_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_SetDisplay_4_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSRoot*)(G__getstructoffset()))->SetDisplay((AMSVirtualDisplay*)G__int(libp->para[0]));
    return(1);
 }
 
-static int G__AMSRoot_Make_3_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Make_5_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    switch(libp->paran) {
    case 1:
       G__setnull(result7);
@@ -3161,7 +3354,7 @@ static int G__AMSRoot_Make_3_3(G__value *result7,char *funcname,struct G__param 
    return(1);
 }
 
-static int G__AMSRoot_MakeTree_4_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_MakeTree_6_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    switch(libp->paran) {
    case 2:
       G__setnull(result7);
@@ -3179,13 +3372,13 @@ static int G__AMSRoot_MakeTree_4_3(G__value *result7,char *funcname,struct G__pa
    return(1);
 }
 
-static int G__AMSRoot_FillTree_5_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_FillTree_7_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSRoot*)(G__getstructoffset()))->FillTree();
    return(1);
 }
 
-static int G__AMSRoot_SortDown_6_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_SortDown_8_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    switch(libp->paran) {
    case 4:
       G__setnull(result7);
@@ -3201,61 +3394,61 @@ static int G__AMSRoot_SortDown_6_3(G__value *result7,char *funcname,struct G__pa
    return(1);
 }
 
-static int G__AMSRoot_DeclFileName_7_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_DeclFileName_9_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,67,(long)((AMSRoot*)(G__getstructoffset()))->DeclFileName());
    return(1);
 }
 
-static int G__AMSRoot_DeclFileLine_8_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_DeclFileLine_0_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSRoot*)(G__getstructoffset()))->DeclFileLine());
    return(1);
 }
 
-static int G__AMSRoot_ImplFileName_9_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_ImplFileName_1_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,67,(long)((AMSRoot*)(G__getstructoffset()))->ImplFileName());
    return(1);
 }
 
-static int G__AMSRoot_ImplFileLine_0_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_ImplFileLine_2_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSRoot*)(G__getstructoffset()))->ImplFileLine());
    return(1);
 }
 
-static int G__AMSRoot_Class_Version_1_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Class_Version_3_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,115,(long)((AMSRoot*)(G__getstructoffset()))->Class_Version());
    return(1);
 }
 
-static int G__AMSRoot_Class_2_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Class_4_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->Class());
    return(1);
 }
 
-static int G__AMSRoot_Dictionary_3_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Dictionary_5_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSRoot*)(G__getstructoffset()))->Dictionary();
    return(1);
 }
 
-static int G__AMSRoot_IsA_4_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_IsA_6_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSRoot*)(G__getstructoffset()))->IsA());
    return(1);
 }
 
-static int G__AMSRoot_ShowMembers_5_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_ShowMembers_7_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSRoot*)(G__getstructoffset()))->ShowMembers(*(TMemberInspector*)libp->para[0].ref,(char*)G__int(libp->para[1]));
    return(1);
 }
 
-static int G__AMSRoot_Streamer_6_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_Streamer_8_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSRoot*)(G__getstructoffset()))->Streamer(*(TBuffer*)libp->para[0].ref);
    return(1);
 }
 
 // automatic copy constructor
-static int G__AMSRoot_AMSRoot_7_4(G__value *result7,char *funcname,struct G__param *libp,int hash)
+static int G__AMSRoot_AMSRoot_9_4(G__value *result7,char *funcname,struct G__param *libp,int hash)
 {
    AMSRoot *p;
    if(1!=libp->paran) ;
@@ -3268,7 +3461,7 @@ static int G__AMSRoot_AMSRoot_7_4(G__value *result7,char *funcname,struct G__par
 }
 
 // automatic destructor
-static int G__AMSRoot_wAAMSRoot_8_4(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSRoot_wAAMSRoot_0_5(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    if(G__getaryconstruct())
      if(G__PVOID==G__getgvp())
        delete[] (AMSRoot *)(G__getstructoffset());
@@ -3962,6 +4155,170 @@ static int G__AMSCTCCluster_wAAMSCTCCluster_4_2(G__value *result7,char *funcname
          ((AMSCTCCluster *)((G__getstructoffset())+sizeof(AMSCTCCluster)*i))->~AMSCTCCluster();
    else if(G__PVOID==G__getgvp()) delete (AMSCTCCluster *)(G__getstructoffset());
    else ((AMSCTCCluster *)(G__getstructoffset()))->~AMSCTCCluster();
+   return(1);
+}
+
+
+/* AMSAntiCluster */
+static int G__AMSAntiCluster_AMSAntiCluster_0_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   AMSAntiCluster *p;
+   if(G__getaryconstruct()) p=new AMSAntiCluster[G__getaryconstruct()];
+   else                    p=new AMSAntiCluster;
+      result7->obj.i = (long)p;
+      result7->ref = (long)p;
+      result7->type = 'u';
+      result7->tagnum = G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster);
+   return(1);
+}
+
+static int G__AMSAntiCluster_AMSAntiCluster_1_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   AMSAntiCluster *p;
+      p = new AMSAntiCluster(
+(Int_t)G__int(libp->para[0]),(Int_t)G__int(libp->para[1])
+,(Float_t)G__double(libp->para[2]),(Float_t*)G__int(libp->para[3])
+,(Float_t*)G__int(libp->para[4]),(Int_t)G__int(libp->para[5])
+,(TObjArray*)G__int(libp->para[6]));
+      result7->obj.i = (long)p;
+      result7->ref = (long)p;
+      result7->type = 'u';
+      result7->tagnum = G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster);
+   return(1);
+}
+
+static int G__AMSAntiCluster_GetObjectInfo_3_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,67,(long)((AMSAntiCluster*)(G__getstructoffset()))->GetObjectInfo((Int_t)G__int(libp->para[0]),(Int_t)G__int(libp->para[1])));
+   return(1);
+}
+
+static int G__AMSAntiCluster_Paint_4_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   switch(libp->paran) {
+   case 1:
+      G__setnull(result7);
+      ((AMSAntiCluster*)(G__getstructoffset()))->Paint((Option_t*)G__int(libp->para[0]));
+      break;
+   case 0:
+      G__setnull(result7);
+      ((AMSAntiCluster*)(G__getstructoffset()))->Paint();
+      break;
+   }
+   return(1);
+}
+
+static int G__AMSAntiCluster_Clear_5_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   switch(libp->paran) {
+   case 1:
+      G__setnull(result7);
+      ((AMSAntiCluster*)(G__getstructoffset()))->Clear((Option_t*)G__int(libp->para[0]));
+      break;
+   case 0:
+      G__setnull(result7);
+      ((AMSAntiCluster*)(G__getstructoffset()))->Clear();
+      break;
+   }
+   return(1);
+}
+
+static int G__AMSAntiCluster_GetStatus_6_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,105,(long)((AMSAntiCluster*)(G__getstructoffset()))->GetStatus());
+   return(1);
+}
+
+static int G__AMSAntiCluster_GetSector_7_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,105,(long)((AMSAntiCluster*)(G__getstructoffset()))->GetSector());
+   return(1);
+}
+
+static int G__AMSAntiCluster_GetSignal_8_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letdouble(result7,102,(double)((AMSAntiCluster*)(G__getstructoffset()))->GetSignal());
+   return(1);
+}
+
+static int G__AMSAntiCluster_GetTracks_9_0(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,85,(long)((AMSAntiCluster*)(G__getstructoffset()))->GetTracks());
+   return(1);
+}
+
+static int G__AMSAntiCluster_Is3D_0_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,98,(long)((AMSAntiCluster*)(G__getstructoffset()))->Is3D());
+   return(1);
+}
+
+static int G__AMSAntiCluster_DeclFileName_1_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,67,(long)((AMSAntiCluster*)(G__getstructoffset()))->DeclFileName());
+   return(1);
+}
+
+static int G__AMSAntiCluster_DeclFileLine_2_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,105,(long)((AMSAntiCluster*)(G__getstructoffset()))->DeclFileLine());
+   return(1);
+}
+
+static int G__AMSAntiCluster_ImplFileName_3_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,67,(long)((AMSAntiCluster*)(G__getstructoffset()))->ImplFileName());
+   return(1);
+}
+
+static int G__AMSAntiCluster_ImplFileLine_4_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,105,(long)((AMSAntiCluster*)(G__getstructoffset()))->ImplFileLine());
+   return(1);
+}
+
+static int G__AMSAntiCluster_Class_Version_5_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,115,(long)((AMSAntiCluster*)(G__getstructoffset()))->Class_Version());
+   return(1);
+}
+
+static int G__AMSAntiCluster_Class_6_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,85,(long)((AMSAntiCluster*)(G__getstructoffset()))->Class());
+   return(1);
+}
+
+static int G__AMSAntiCluster_Dictionary_7_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiCluster*)(G__getstructoffset()))->Dictionary();
+   return(1);
+}
+
+static int G__AMSAntiCluster_IsA_8_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__letint(result7,85,(long)((AMSAntiCluster*)(G__getstructoffset()))->IsA());
+   return(1);
+}
+
+static int G__AMSAntiCluster_ShowMembers_9_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiCluster*)(G__getstructoffset()))->ShowMembers(*(TMemberInspector*)libp->para[0].ref,(char*)G__int(libp->para[1]));
+   return(1);
+}
+
+static int G__AMSAntiCluster_Streamer_0_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+      G__setnull(result7);
+      ((AMSAntiCluster*)(G__getstructoffset()))->Streamer(*(TBuffer*)libp->para[0].ref);
+   return(1);
+}
+
+// automatic copy constructor
+static int G__AMSAntiCluster_AMSAntiCluster_1_2(G__value *result7,char *funcname,struct G__param *libp,int hash)
+{
+   AMSAntiCluster *p;
+   if(1!=libp->paran) ;
+   p=new AMSAntiCluster(*(AMSAntiCluster*)G__int(libp->para[0]));
+   result7->obj.i = (long)p;
+   result7->ref = (long)p;
+   result7->type = 'u';
+   result7->tagnum = G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster);
+   return(1);
+}
+
+// automatic destructor
+static int G__AMSAntiCluster_wAAMSAntiCluster_2_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+   if(G__getaryconstruct())
+     if(G__PVOID==G__getgvp())
+       delete[] (AMSAntiCluster *)(G__getstructoffset());
+     else
+       for(int i=G__getaryconstruct()-1;i>=0;i--)
+         ((AMSAntiCluster *)((G__getstructoffset())+sizeof(AMSAntiCluster)*i))->~AMSAntiCluster();
+   else if(G__PVOID==G__getgvp()) delete (AMSAntiCluster *)(G__getstructoffset());
+   else ((AMSAntiCluster *)(G__getstructoffset()))->~AMSAntiCluster();
    return(1);
 }
 
@@ -4743,6 +5100,22 @@ extern "C" void G__cpp_setup_inheritanceAMSCint() {
        G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSCTCClusterReader),G__get_linked_tagnum(&G__AMSCintLN_TObject),(long)G__Lpbase-(long)G__Lderived,1,0);
      }
    }
+   if(0==G__getnumbaseclass(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader))) {
+     AMSAntiClusterReader *G__Lderived;
+     G__Lderived=(AMSAntiClusterReader*)0x1000;
+     {
+       AMSMaker *G__Lpbase=(AMSMaker*)G__Lderived;
+       G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader),G__get_linked_tagnum(&G__AMSCintLN_AMSMaker),(long)G__Lpbase-(long)G__Lderived,1,1);
+     }
+     {
+       TNamed *G__Lpbase=(TNamed*)G__Lderived;
+       G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader),G__get_linked_tagnum(&G__AMSCintLN_TNamed),(long)G__Lpbase-(long)G__Lderived,1,0);
+     }
+     {
+       TObject *G__Lpbase=(TObject*)G__Lderived;
+       G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader),G__get_linked_tagnum(&G__AMSCintLN_TObject),(long)G__Lpbase-(long)G__Lderived,1,0);
+     }
+   }
    if(0==G__getnumbaseclass(G__get_linked_tagnum(&G__AMSCintLN_AMSParticleReader))) {
      AMSParticleReader *G__Lderived;
      G__Lderived=(AMSParticleReader*)0x1000;
@@ -4869,6 +5242,30 @@ extern "C" void G__cpp_setup_inheritanceAMSCint() {
      {
        TAttFill *G__Lpbase=(TAttFill*)G__Lderived;
        G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSCTCCluster),G__get_linked_tagnum(&G__AMSCintLN_TAttFill),(long)G__Lpbase-(long)G__Lderived,1,0);
+     }
+   }
+   if(0==G__getnumbaseclass(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster))) {
+     AMSAntiCluster *G__Lderived;
+     G__Lderived=(AMSAntiCluster*)0x1000;
+     {
+       AMS3DCluster *G__Lpbase=(AMS3DCluster*)G__Lderived;
+       G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster),G__get_linked_tagnum(&G__AMSCintLN_AMS3DCluster),(long)G__Lpbase-(long)G__Lderived,1,1);
+     }
+     {
+       TMarker3DBox *G__Lpbase=(TMarker3DBox*)G__Lderived;
+       G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster),G__get_linked_tagnum(&G__AMSCintLN_TMarker3DBox),(long)G__Lpbase-(long)G__Lderived,1,0);
+     }
+     {
+       TObject *G__Lpbase=(TObject*)G__Lderived;
+       G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster),G__get_linked_tagnum(&G__AMSCintLN_TObject),(long)G__Lpbase-(long)G__Lderived,1,0);
+     }
+     {
+       TAttLine *G__Lpbase=(TAttLine*)G__Lderived;
+       G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster),G__get_linked_tagnum(&G__AMSCintLN_TAttLine),(long)G__Lpbase-(long)G__Lderived,1,0);
+     }
+     {
+       TAttFill *G__Lpbase=(TAttFill*)G__Lderived;
+       G__inheritance_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster),G__get_linked_tagnum(&G__AMSCintLN_TAttFill),(long)G__Lpbase-(long)G__Lderived,1,0);
      }
    }
    if(0==G__getnumbaseclass(G__get_linked_tagnum(&G__AMSCintLN_AMSParticle))) {
@@ -5219,6 +5616,17 @@ static void G__setup_memvarAMSCTCClusterReader(void) {
 }
 
 
+   /* AMSAntiClusterReader */
+static void G__setup_memvarAMSAntiClusterReader(void) {
+   G__tag_memvar_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader));
+   { AMSAntiClusterReader *p; p=(AMSAntiClusterReader*)0x1000;
+   G__memvar_setup((void*)NULL,105,0,0,-1,G__defined_typename("Int_t"),-1,4,"m_Nclusters=",0,(char*)NULL);
+   G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,-2,4,"fgIsA=",0,(char*)NULL);
+   }
+   G__tag_memvar_reset();
+}
+
+
    /* AMSParticleReader */
 static void G__setup_memvarAMSParticleReader(void) {
    G__tag_memvar_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSParticleReader));
@@ -5258,6 +5666,7 @@ static void G__setup_memvarAMSRoot(void) {
    G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_AMSTrackReader),-1,-1,4,"m_TrackMaker=",0,"Pointer to TrackMaker");
    G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_AMSSiHitReader),-1,-1,4,"m_SiHitMaker=",0,"Pointer to SiHitMaker");
    G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_AMSCTCClusterReader),-1,-1,4,"m_CTCClusterMaker=",0,"Pointer to ToFClusterMaker");
+   G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader),-1,-1,4,"m_AntiClusterMaker=",0,"Pointer to ToFClusterMaker");
    G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_AMSParticleReader),-1,-1,4,"m_ParticleMaker=",0,"Pointer to ParticleMaker");
    G__memvar_setup((void*)NULL,117,0,0,G__get_linked_tagnum(&G__AMSCintLN_AMSHistBrowser),-1,-1,4,"m_HistBrowser=",0,"Object to Browse Maker histograms");
    G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_AMSVirtualDisplay),-1,-1,4,"m_Display=",0,"!Pointer to Event display object");
@@ -5357,6 +5766,21 @@ static void G__setup_memvarAMSCTCCluster(void) {
    G__memvar_setup((void*)NULL,102,0,0,-1,G__defined_typename("Float_t"),-1,4,"m_RawSignal=",0,"Raw signal");
    G__memvar_setup((void*)NULL,102,0,0,-1,G__defined_typename("Float_t"),-1,4,"m_Signal=",0,"Corrected signal");
    G__memvar_setup((void*)NULL,102,0,0,-1,G__defined_typename("Float_t"),-1,4,"m_ErrSignal=",0,"Error of the above");
+   G__memvar_setup((void*)NULL,105,0,0,-1,G__defined_typename("Int_t"),-1,4,"m_NTracks=",0,"number of tracks in m_Tracks;");
+   G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_TObjArray),-1,-1,4,"m_Tracks=",0,"Tracks that pass this cluster");
+   G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,-2,4,"fgIsA=",0,(char*)NULL);
+   }
+   G__tag_memvar_reset();
+}
+
+
+   /* AMSAntiCluster */
+static void G__setup_memvarAMSAntiCluster(void) {
+   G__tag_memvar_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster));
+   { AMSAntiCluster *p; p=(AMSAntiCluster*)0x1000;
+   G__memvar_setup((void*)NULL,105,0,0,-1,G__defined_typename("Int_t"),-1,4,"m_Status=",0,"Status word");
+   G__memvar_setup((void*)NULL,105,0,0,-1,G__defined_typename("Int_t"),-1,4,"m_Sector=",0,"Plane number (1...4 : up ... down)");
+   G__memvar_setup((void*)NULL,102,0,0,-1,G__defined_typename("Float_t"),-1,4,"m_Signal=",0,"Edep in MeV");
    G__memvar_setup((void*)NULL,105,0,0,-1,G__defined_typename("Int_t"),-1,4,"m_NTracks=",0,"number of tracks in m_Tracks;");
    G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_TObjArray),-1,-1,4,"m_Tracks=",0,"Tracks that pass this cluster");
    G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,-2,4,"fgIsA=",0,(char*)NULL);
@@ -5912,6 +6336,41 @@ static void G__setup_memfuncAMSCTCClusterReader(void) {
    G__tag_memfunc_reset();
 }
 
+static void G__setup_memfuncAMSAntiClusterReader(void) {
+   /* AMSAntiClusterReader */
+   G__tag_memfunc_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader));
+   G__memfunc_setup("AMSAntiClusterReader",1954,G__AMSAntiClusterReader_AMSAntiClusterReader_0_0,105,G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("AMSAntiClusterReader",1954,G__AMSAntiClusterReader_AMSAntiClusterReader_1_0,105,G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader),-1,0,2,1,1,0,
+"C - - 0 - name C - - 0 - title",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Init",404,G__AMSAntiClusterReader_Init_3_0,121,-1,-1,0,1,1,1,0,"U 'TTree' - 0 0 tree",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Finish",609,G__AMSAntiClusterReader_Finish_4_0,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Make",382,G__AMSAntiClusterReader_Make_5_0,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("PrintInfo",921,G__AMSAntiClusterReader_PrintInfo_6_0,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("AddCluster",1003,G__AMSAntiClusterReader_AddCluster_7_0,121,-1,-1,0,7,1,1,0,
+"i - 'Int_t' 0 - status i - 'Int_t' 0 - sector "
+"f - 'Float_t' 0 - signal F - 'Float_t' 0 - coo "
+"F - 'Float_t' 0 - ercoo i - 'Int_t' 0 0 ntracks "
+"U 'TObjArray' - 0 0 tracks",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("RemoveCluster",1360,G__AMSAntiClusterReader_RemoveCluster_8_0,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 - cluster",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Clear",487,G__AMSAntiClusterReader_Clear_9_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("DeclFileName",1145,G__AMSAntiClusterReader_DeclFileName_0_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("DeclFileLine",1152,G__AMSAntiClusterReader_DeclFileLine_1_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileName",1171,G__AMSAntiClusterReader_ImplFileName_2_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileLine",1178,G__AMSAntiClusterReader_ImplFileLine_3_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class_Version",1339,G__AMSAntiClusterReader_Class_Version_4_1,115,-1,G__defined_typename("Version_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class",502,G__AMSAntiClusterReader_Class_5_1,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Dictionary",1046,G__AMSAntiClusterReader_Dictionary_6_1,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("IsA",253,G__AMSAntiClusterReader_IsA_7_1,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("ShowMembers",1132,G__AMSAntiClusterReader_ShowMembers_8_1,121,-1,-1,0,2,1,1,0,
+"u 'TMemberInspector' - 1 - insp C - - 0 - parent",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Streamer",835,G__AMSAntiClusterReader_Streamer_9_1,121,-1,-1,0,1,1,1,0,"u 'TBuffer' - 1 - b",(char*)NULL,(void*)NULL,1);
+   // automatic copy constructor
+   G__memfunc_setup("AMSAntiClusterReader",1954,G__AMSAntiClusterReader_AMSAntiClusterReader_0_2,(int)('i'),G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader),-1,0,1,1,1,0,"u 'AMSAntiClusterReader' - 1 - -",(char*)NULL,(void*)NULL,0);
+   // automatic destructor
+   G__memfunc_setup("~AMSAntiClusterReader",2080,G__AMSAntiClusterReader_wAAMSAntiClusterReader_1_2,(int)('y'),-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__tag_memfunc_reset();
+}
+
 static void G__setup_memfuncAMSParticleReader(void) {
    /* AMSParticleReader */
    G__tag_memfunc_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSParticleReader));
@@ -5999,55 +6458,57 @@ static void G__setup_memfuncAMSRoot(void) {
 "C - - 0 - name C - - 0 \"The AMS Display with Root\" title",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("Browse",626,G__AMSRoot_Browse_4_0,121,-1,-1,0,1,1,1,0,"U 'TBrowser' - 0 - b",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("GetEvent",802,G__AMSRoot_GetEvent_5_0,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 1 event","*MENU*",(void*)NULL,1);
-   G__memfunc_setup("Init",404,G__AMSRoot_Init_6_0,121,-1,-1,0,1,1,1,0,"U 'TTree' - 0 0 h1","Initialize to read from h1",(void*)NULL,1);
-   G__memfunc_setup("Finish",609,G__AMSRoot_Finish_7_0,121,-1,-1,0,0,1,1,0,"","Finish a run",(void*)NULL,1);
-   G__memfunc_setup("Display",726,G__AMSRoot_Display_8_0,85,G__get_linked_tagnum(&G__AMSCintLN_AMSVirtualDisplay),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Draw",398,G__AMSRoot_Draw_9_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option","*MENU*",(void*)NULL,1);
-   G__memfunc_setup("Paint",508,G__AMSRoot_Paint_0_1,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("Clear",487,G__AMSRoot_Clear_1_1,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("IsFolder",792,G__AMSRoot_IsFolder_2_1,98,-1,G__defined_typename("Bool_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("PrintInfo",921,G__AMSRoot_PrintInfo_3_1,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("GetVersion",1030,G__AMSRoot_GetVersion_4_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("GetVersionDate",1412,G__AMSRoot_GetVersionDate_5_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("RunNum",613,G__AMSRoot_RunNum_6_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("EventNum",818,G__AMSRoot_EventNum_7_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Event",514,G__AMSRoot_Event_8_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Mode",389,G__AMSRoot_Mode_9_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Tree",400,G__AMSRoot_Tree_0_2,85,G__get_linked_tagnum(&G__AMSCintLN_TTree),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("GetInput",816,G__AMSRoot_GetInput_1_2,85,G__get_linked_tagnum(&G__AMSCintLN_TTree),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Makers",611,G__AMSRoot_Makers_2_2,85,G__get_linked_tagnum(&G__AMSCintLN_TList),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Maker",496,G__AMSRoot_Maker_3_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSMaker),-1,0,1,1,1,0,"C - - 0 - name",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("ToFClusterMaker",1499,G__AMSRoot_ToFClusterMaker_4_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSToFClusterReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("TrackMaker",997,G__AMSRoot_TrackMaker_5_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSTrackReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("SiHitMaker",977,G__AMSRoot_SiHitMaker_6_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSSiHitReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("CTCClusterMaker",1452,G__AMSRoot_CTCClusterMaker_7_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSCTCClusterReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("ParticleMaker",1316,G__AMSRoot_ParticleMaker_8_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSParticleReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("SetDefaultParameters",2053,G__AMSRoot_SetDefaultParameters_9_2,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("SetEvent",814,G__AMSRoot_SetEvent_0_3,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 1 event",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("SetMode",689,G__AMSRoot_SetMode_1_3,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 0 mode",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("SetDisplay",1026,G__AMSRoot_SetDisplay_2_3,121,-1,-1,0,1,1,1,0,"U 'AMSVirtualDisplay' - 0 - display",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Make",382,G__AMSRoot_Make_3_3,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 0 i",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("MakeTree",782,G__AMSRoot_MakeTree_4_3,121,-1,-1,0,2,1,1,0,
+   G__memfunc_setup("SelectEvent",1122,G__AMSRoot_SelectEvent_6_0,121,-1,-1,0,0,1,1,0,"","*MENU*",(void*)NULL,1);
+   G__memfunc_setup("Init",404,G__AMSRoot_Init_7_0,121,-1,-1,0,1,1,1,0,"U 'TTree' - 0 0 h1","Initialize to read from h1",(void*)NULL,1);
+   G__memfunc_setup("Finish",609,G__AMSRoot_Finish_8_0,121,-1,-1,0,0,1,1,0,"","Finish a run",(void*)NULL,1);
+   G__memfunc_setup("Display",726,G__AMSRoot_Display_9_0,85,G__get_linked_tagnum(&G__AMSCintLN_AMSVirtualDisplay),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Draw",398,G__AMSRoot_Draw_0_1,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option","*MENU*",(void*)NULL,1);
+   G__memfunc_setup("Paint",508,G__AMSRoot_Paint_1_1,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Clear",487,G__AMSRoot_Clear_2_1,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("IsFolder",792,G__AMSRoot_IsFolder_3_1,98,-1,G__defined_typename("Bool_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("PrintInfo",921,G__AMSRoot_PrintInfo_4_1,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("GetVersion",1030,G__AMSRoot_GetVersion_5_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("GetVersionDate",1412,G__AMSRoot_GetVersionDate_6_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("RunNum",613,G__AMSRoot_RunNum_7_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("EventNum",818,G__AMSRoot_EventNum_8_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Event",514,G__AMSRoot_Event_9_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Mode",389,G__AMSRoot_Mode_0_2,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Tree",400,G__AMSRoot_Tree_1_2,85,G__get_linked_tagnum(&G__AMSCintLN_TTree),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("GetInput",816,G__AMSRoot_GetInput_2_2,85,G__get_linked_tagnum(&G__AMSCintLN_TTree),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Makers",611,G__AMSRoot_Makers_3_2,85,G__get_linked_tagnum(&G__AMSCintLN_TList),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Maker",496,G__AMSRoot_Maker_4_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSMaker),-1,0,1,1,1,0,"C - - 0 - name",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ToFClusterMaker",1499,G__AMSRoot_ToFClusterMaker_5_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSToFClusterReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("TrackMaker",997,G__AMSRoot_TrackMaker_6_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSTrackReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("SiHitMaker",977,G__AMSRoot_SiHitMaker_7_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSSiHitReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("AntiClusterMaker",1630,G__AMSRoot_AntiClusterMaker_8_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("CTCClusterMaker",1452,G__AMSRoot_CTCClusterMaker_9_2,85,G__get_linked_tagnum(&G__AMSCintLN_AMSCTCClusterReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ParticleMaker",1316,G__AMSRoot_ParticleMaker_0_3,85,G__get_linked_tagnum(&G__AMSCintLN_AMSParticleReader),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("SetDefaultParameters",2053,G__AMSRoot_SetDefaultParameters_1_3,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("SetEvent",814,G__AMSRoot_SetEvent_2_3,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 1 event",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("SetMode",689,G__AMSRoot_SetMode_3_3,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 0 mode",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("SetDisplay",1026,G__AMSRoot_SetDisplay_4_3,121,-1,-1,0,1,1,1,0,"U 'AMSVirtualDisplay' - 0 - display",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Make",382,G__AMSRoot_Make_5_3,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 0 i",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("MakeTree",782,G__AMSRoot_MakeTree_6_3,121,-1,-1,0,2,1,1,0,
 "C - - 0 \"AMS Event\" name C - - 0 \"AMSRoot tree\" title",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("FillTree",791,G__AMSRoot_FillTree_5_3,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("SortDown",832,G__AMSRoot_SortDown_6_3,121,-1,-1,0,4,1,1,0,
+   G__memfunc_setup("FillTree",791,G__AMSRoot_FillTree_7_3,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("SortDown",832,G__AMSRoot_SortDown_8_3,121,-1,-1,0,4,1,1,0,
 "i - 'Int_t' 0 - n F - 'Float_t' 0 - a "
 "I - 'Int_t' 0 - index b - 'Bool_t' 0 kTRUE down",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("DeclFileName",1145,G__AMSRoot_DeclFileName_7_3,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("DeclFileLine",1152,G__AMSRoot_DeclFileLine_8_3,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("ImplFileName",1171,G__AMSRoot_ImplFileName_9_3,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("ImplFileLine",1178,G__AMSRoot_ImplFileLine_0_4,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Class_Version",1339,G__AMSRoot_Class_Version_1_4,115,-1,G__defined_typename("Version_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Class",502,G__AMSRoot_Class_2_4,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Dictionary",1046,G__AMSRoot_Dictionary_3_4,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("IsA",253,G__AMSRoot_IsA_4_4,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("ShowMembers",1132,G__AMSRoot_ShowMembers_5_4,121,-1,-1,0,2,1,1,0,
+   G__memfunc_setup("DeclFileName",1145,G__AMSRoot_DeclFileName_9_3,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("DeclFileLine",1152,G__AMSRoot_DeclFileLine_0_4,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileName",1171,G__AMSRoot_ImplFileName_1_4,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileLine",1178,G__AMSRoot_ImplFileLine_2_4,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class_Version",1339,G__AMSRoot_Class_Version_3_4,115,-1,G__defined_typename("Version_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class",502,G__AMSRoot_Class_4_4,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Dictionary",1046,G__AMSRoot_Dictionary_5_4,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("IsA",253,G__AMSRoot_IsA_6_4,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("ShowMembers",1132,G__AMSRoot_ShowMembers_7_4,121,-1,-1,0,2,1,1,0,
 "u 'TMemberInspector' - 1 - insp C - - 0 - parent",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("Streamer",835,G__AMSRoot_Streamer_6_4,121,-1,-1,0,1,1,1,0,"u 'TBuffer' - 1 - b",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Streamer",835,G__AMSRoot_Streamer_8_4,121,-1,-1,0,1,1,1,0,"u 'TBuffer' - 1 - b",(char*)NULL,(void*)NULL,1);
    // automatic copy constructor
-   G__memfunc_setup("AMSRoot",645,G__AMSRoot_AMSRoot_7_4,(int)('i'),G__get_linked_tagnum(&G__AMSCintLN_AMSRoot),-1,0,1,1,1,0,"u 'AMSRoot' - 1 - -",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("AMSRoot",645,G__AMSRoot_AMSRoot_9_4,(int)('i'),G__get_linked_tagnum(&G__AMSCintLN_AMSRoot),-1,0,1,1,1,0,"u 'AMSRoot' - 1 - -",(char*)NULL,(void*)NULL,0);
    // automatic destructor
-   G__memfunc_setup("~AMSRoot",771,G__AMSRoot_wAAMSRoot_8_4,(int)('y'),-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("~AMSRoot",771,G__AMSRoot_wAAMSRoot_0_5,(int)('y'),-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__tag_memfunc_reset();
 }
 
@@ -6200,6 +6661,42 @@ static void G__setup_memfuncAMSCTCCluster(void) {
    G__memfunc_setup("AMSCTCCluster",1181,G__AMSCTCCluster_AMSCTCCluster_3_2,(int)('i'),G__get_linked_tagnum(&G__AMSCintLN_AMSCTCCluster),-1,0,1,1,1,0,"u 'AMSCTCCluster' - 1 - -",(char*)NULL,(void*)NULL,0);
    // automatic destructor
    G__memfunc_setup("~AMSCTCCluster",1307,G__AMSCTCCluster_wAAMSCTCCluster_4_2,(int)('y'),-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__tag_memfunc_reset();
+}
+
+static void G__setup_memfuncAMSAntiCluster(void) {
+   /* AMSAntiCluster */
+   G__tag_memfunc_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster));
+   G__memfunc_setup("AMSAntiCluster",1359,G__AMSAntiCluster_AMSAntiCluster_0_0,105,G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("AMSAntiCluster",1359,G__AMSAntiCluster_AMSAntiCluster_1_0,105,G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster),-1,0,7,1,1,0,
+"i - 'Int_t' 0 - status i - 'Int_t' 0 - sector "
+"f - 'Float_t' 0 - signal F - 'Float_t' 0 - coo "
+"F - 'Float_t' 0 - ercoo i - 'Int_t' 0 - ntracks "
+"U 'TObjArray' - 0 - tracks",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("GetObjectInfo",1283,G__AMSAntiCluster_GetObjectInfo_3_0,67,-1,-1,0,2,1,1,0,
+"i - 'Int_t' 0 - px i - 'Int_t' 0 - py",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Paint",508,G__AMSAntiCluster_Paint_4_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Clear",487,G__AMSAntiCluster_Clear_5_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("GetStatus",932,G__AMSAntiCluster_GetStatus_6_0,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("GetSector",912,G__AMSAntiCluster_GetSector_7_0,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("GetSignal",894,G__AMSAntiCluster_GetSignal_8_0,102,-1,G__defined_typename("Float_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("GetTracks",904,G__AMSAntiCluster_GetTracks_9_0,85,G__get_linked_tagnum(&G__AMSCintLN_TObjArray),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Is3D",307,G__AMSAntiCluster_Is3D_0_1,98,-1,G__defined_typename("Bool_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("DeclFileName",1145,G__AMSAntiCluster_DeclFileName_1_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("DeclFileLine",1152,G__AMSAntiCluster_DeclFileLine_2_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileName",1171,G__AMSAntiCluster_ImplFileName_3_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileLine",1178,G__AMSAntiCluster_ImplFileLine_4_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class_Version",1339,G__AMSAntiCluster_Class_Version_5_1,115,-1,G__defined_typename("Version_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class",502,G__AMSAntiCluster_Class_6_1,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Dictionary",1046,G__AMSAntiCluster_Dictionary_7_1,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("IsA",253,G__AMSAntiCluster_IsA_8_1,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("ShowMembers",1132,G__AMSAntiCluster_ShowMembers_9_1,121,-1,-1,0,2,1,1,0,
+"u 'TMemberInspector' - 1 - insp C - - 0 - parent",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Streamer",835,G__AMSAntiCluster_Streamer_0_2,121,-1,-1,0,1,1,1,0,"u 'TBuffer' - 1 - b",(char*)NULL,(void*)NULL,1);
+   // automatic copy constructor
+   G__memfunc_setup("AMSAntiCluster",1359,G__AMSAntiCluster_AMSAntiCluster_1_2,(int)('i'),G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster),-1,0,1,1,1,0,"u 'AMSAntiCluster' - 1 - -",(char*)NULL,(void*)NULL,0);
+   // automatic destructor
+   G__memfunc_setup("~AMSAntiCluster",1485,G__AMSAntiCluster_wAAMSAntiCluster_2_2,(int)('y'),-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__tag_memfunc_reset();
 }
 
@@ -6392,6 +6889,7 @@ G__linked_taginfo G__AMSCintLN_AMSToFClusterReader = { "AMSToFClusterReader" , 9
 G__linked_taginfo G__AMSCintLN_AMSTrackReader = { "AMSTrackReader" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_AMSSiHitReader = { "AMSSiHitReader" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_AMSCTCClusterReader = { "AMSCTCClusterReader" , 99 , -1 };
+G__linked_taginfo G__AMSCintLN_AMSAntiClusterReader = { "AMSAntiClusterReader" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_AMSParticleReader = { "AMSParticleReader" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_AMSVirtualDisplay = { "AMSVirtualDisplay" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_AMSRoot = { "AMSRoot" , 99 , -1 };
@@ -6399,6 +6897,7 @@ G__linked_taginfo G__AMSCintLN_AMSToFCluster = { "AMSToFCluster" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_AMSTrack = { "AMSTrack" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_AMSSiHit = { "AMSSiHit" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_AMSCTCCluster = { "AMSCTCCluster" , 99 , -1 };
+G__linked_taginfo G__AMSCintLN_AMSAntiCluster = { "AMSAntiCluster" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_AMSParticle = { "AMSParticle" , 99 , -1 };
 G__linked_taginfo G__AMSCintLN_EAMSView = { "EAMSView" , 101 , -1 };
 G__linked_taginfo G__AMSCintLN_Debugger = { "Debugger" , 99 , -1 };
@@ -6424,6 +6923,7 @@ extern "C" void G__cpp_setup_tagtableAMSCint() {
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSTrackReader),sizeof(AMSTrackReader),-1,0,"AMSRoot TrackReader",G__setup_memvarAMSTrackReader,G__setup_memfuncAMSTrackReader);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSSiHitReader),sizeof(AMSSiHitReader),-1,0,"AMS Time of Flight Cluster Maker",G__setup_memvarAMSSiHitReader,G__setup_memfuncAMSSiHitReader);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSCTCClusterReader),sizeof(AMSCTCClusterReader),-1,0,"AMS Time of Flight Cluster Maker",G__setup_memvarAMSCTCClusterReader,G__setup_memfuncAMSCTCClusterReader);
+   G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiClusterReader),sizeof(AMSAntiClusterReader),-1,0,"AMS Time of Flight Cluster Maker",G__setup_memvarAMSAntiClusterReader,G__setup_memfuncAMSAntiClusterReader);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSParticleReader),sizeof(AMSParticleReader),-1,0,"AMSRoot Particle Reader",G__setup_memvarAMSParticleReader,G__setup_memfuncAMSParticleReader);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSVirtualDisplay),sizeof(AMSVirtualDisplay),-1,19,"Virtual base class for ATLFast event display",G__setup_memvarAMSVirtualDisplay,G__setup_memfuncAMSVirtualDisplay);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSRoot),sizeof(AMSRoot),-1,0,"AMSRoot control class",G__setup_memvarAMSRoot,G__setup_memfuncAMSRoot);
@@ -6431,6 +6931,7 @@ extern "C" void G__cpp_setup_tagtableAMSCint() {
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSTrack),sizeof(AMSTrack),-1,0,"AMSRoot track class",G__setup_memvarAMSTrack,G__setup_memfuncAMSTrack);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSSiHit),sizeof(AMSSiHit),-1,0,"AMS Time of Flight Cluster",G__setup_memvarAMSSiHit,G__setup_memfuncAMSSiHit);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSCTCCluster),sizeof(AMSCTCCluster),-1,0,"AMS Time of Flight Cluster",G__setup_memvarAMSCTCCluster,G__setup_memfuncAMSCTCCluster);
+   G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSAntiCluster),sizeof(AMSAntiCluster),-1,0,"AMS Time of Flight Cluster",G__setup_memvarAMSAntiCluster,G__setup_memfuncAMSAntiCluster);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSParticle),sizeof(AMSParticle),-1,0,"AMSRoot track class",G__setup_memvarAMSParticle,G__setup_memfuncAMSParticle);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_Debugger),sizeof(Debugger),-1,0,"Debug message printing class",G__setup_memvarDebugger,G__setup_memfuncDebugger);
    G__tagtable_setup(G__get_linked_tagnum(&G__AMSCintLN_AMSCanvas),sizeof(AMSCanvas),-1,0,"AMS canvas control class",G__setup_memvarAMSCanvas,G__setup_memfuncAMSCanvas);
@@ -6462,7 +6963,7 @@ class G__cpp_setup_initAMSCint {
 G__cpp_setup_initAMSCint G__cpp_setup_initializerAMSCint;
 
 //
-// File generated by rootcint at Mon Jan  5 10:57:22 1998.
+// File generated by rootcint at Fri Jan  9 19:39:21 1998.
 // Do NOT change. Changes will be lost next time file is generated
 //
 
@@ -6910,6 +7411,42 @@ void AMSCTCClusterReader::ShowMembers(TMemberInspector &R__insp, char *R__parent
 }
 
 //______________________________________________________________________________
+TBuffer &operator>>(TBuffer &buf, AMSAntiClusterReader *&obj)
+{
+   // Read a pointer to an object of class AMSAntiClusterReader.
+
+   obj = (AMSAntiClusterReader *) buf.ReadObject(AMSAntiClusterReader::Class());
+   return buf;
+}
+
+//______________________________________________________________________________
+void AMSAntiClusterReader::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class AMSAntiClusterReader.
+
+   if (R__b.IsReading()) {
+      Version_t R__v = R__b.ReadVersion();
+      AMSMaker::Streamer(R__b);
+      R__b >> m_Nclusters;
+   } else {
+      R__b.WriteVersion(AMSAntiClusterReader::IsA());
+      AMSMaker::Streamer(R__b);
+      R__b << m_Nclusters;
+   }
+}
+
+//______________________________________________________________________________
+void AMSAntiClusterReader::ShowMembers(TMemberInspector &R__insp, char *R__parent)
+{
+   // Inspect the data members of an object of class AMSAntiClusterReader.
+
+   TClass *R__cl  = AMSAntiClusterReader::IsA();
+   Int_t   R__ncp = strlen(R__parent);
+   R__insp.Inspect(R__cl, R__parent, "m_Nclusters", &m_Nclusters);
+   AMSMaker::ShowMembers(R__insp, R__parent);
+}
+
+//______________________________________________________________________________
 TBuffer &operator>>(TBuffer &buf, AMSParticleReader *&obj)
 {
    // Read a pointer to an object of class AMSParticleReader.
@@ -7004,6 +7541,7 @@ void AMSRoot::ShowMembers(TMemberInspector &R__insp, char *R__parent)
    R__insp.Inspect(R__cl, R__parent, "*m_TrackMaker", &m_TrackMaker);
    R__insp.Inspect(R__cl, R__parent, "*m_SiHitMaker", &m_SiHitMaker);
    R__insp.Inspect(R__cl, R__parent, "*m_CTCClusterMaker", &m_CTCClusterMaker);
+   R__insp.Inspect(R__cl, R__parent, "*m_AntiClusterMaker", &m_AntiClusterMaker);
    R__insp.Inspect(R__cl, R__parent, "*m_ParticleMaker", &m_ParticleMaker);
    m_HistBrowser.ShowMembers(R__insp, strcat(R__parent,"m_HistBrowser.")); R__parent[R__ncp] = 0;
    R__insp.Inspect(R__cl, R__parent, "*m_Display", &m_Display);
@@ -7311,6 +7849,54 @@ void AMSCTCCluster::ShowMembers(TMemberInspector &R__insp, char *R__parent)
    R__insp.Inspect(R__cl, R__parent, "m_RawSignal", &m_RawSignal);
    R__insp.Inspect(R__cl, R__parent, "m_Signal", &m_Signal);
    R__insp.Inspect(R__cl, R__parent, "m_ErrSignal", &m_ErrSignal);
+   R__insp.Inspect(R__cl, R__parent, "m_NTracks", &m_NTracks);
+   R__insp.Inspect(R__cl, R__parent, "*m_Tracks", &m_Tracks);
+   AMS3DCluster::ShowMembers(R__insp, R__parent);
+}
+
+//______________________________________________________________________________
+TBuffer &operator>>(TBuffer &buf, AMSAntiCluster *&obj)
+{
+   // Read a pointer to an object of class AMSAntiCluster.
+
+   obj = (AMSAntiCluster *) buf.ReadObject(AMSAntiCluster::Class());
+   return buf;
+}
+
+//______________________________________________________________________________
+void AMSAntiCluster::Streamer(TBuffer &R__b)
+{
+   // Stream an object of class AMSAntiCluster.
+
+   if (R__b.IsReading()) {
+      Version_t R__v = R__b.ReadVersion();
+      AMS3DCluster::Streamer(R__b);
+      R__b >> m_Status;
+      R__b >> m_Sector;
+      R__b >> m_Signal;
+      R__b >> m_NTracks;
+      R__b >> m_Tracks;
+   } else {
+      R__b.WriteVersion(AMSAntiCluster::IsA());
+      AMS3DCluster::Streamer(R__b);
+      R__b << m_Status;
+      R__b << m_Sector;
+      R__b << m_Signal;
+      R__b << m_NTracks;
+      R__b << m_Tracks;
+   }
+}
+
+//______________________________________________________________________________
+void AMSAntiCluster::ShowMembers(TMemberInspector &R__insp, char *R__parent)
+{
+   // Inspect the data members of an object of class AMSAntiCluster.
+
+   TClass *R__cl  = AMSAntiCluster::IsA();
+   Int_t   R__ncp = strlen(R__parent);
+   R__insp.Inspect(R__cl, R__parent, "m_Status", &m_Status);
+   R__insp.Inspect(R__cl, R__parent, "m_Sector", &m_Sector);
+   R__insp.Inspect(R__cl, R__parent, "m_Signal", &m_Signal);
    R__insp.Inspect(R__cl, R__parent, "m_NTracks", &m_NTracks);
    R__insp.Inspect(R__cl, R__parent, "*m_Tracks", &m_Tracks);
    AMS3DCluster::ShowMembers(R__insp, R__parent);

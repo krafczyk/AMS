@@ -181,6 +181,7 @@
 #include "AMSTrackReader.h"
 #include "AMSSiHitReader.h"
 #include "AMSCTCClusterReader.h"
+#include "AMSAntiClusterReader.h"
 #include "AMSParticleReader.h"
 
 //#include "AMSMCMaker.h"
@@ -238,6 +239,7 @@ AMSRoot::AMSRoot() : TNamed("AMSRoot","The AMS Display with Root")
    m_ToFClusterMaker = 0;
    m_SiHitMaker      = 0;
    m_CTCClusterMaker = 0;
+   m_AntiClusterMaker = 0;
    m_TrackMaker      = 0;
    m_ParticleMaker   = 0;
 
@@ -273,6 +275,12 @@ AMSRoot::AMSRoot(const char *name, const char *title)
 // (in AMSRoot constructor)
 // Note that the order in which makers are added to the list of makers 
 // is important ---  makers will be processed in this order !!
+
+   m_AntiClusterMaker  = new AMSAntiClusterReader("AntiClusterReader",
+			    "Read AMSRoot Anti Counter Clusters");
+   m_Makers->Add(m_AntiClusterMaker);
+
+
 
    m_CTCClusterMaker  = new AMSCTCClusterReader("CTCClusterReader",
 			    "Read AMSRoot Cerenkov Threshold Counter Clusters");
@@ -338,11 +346,13 @@ void AMSRoot::GetEvent(Int_t event)
    //
 
    if (event<0) return;
-
+   //   cout << " Select Event No : ";
+   //   cin >> event;
+   //   cin.ignore(INT_MAX,'\n');
    //    Read event in input tree
    if (m_Input) {
      debugger.Print("AMSRoot::GetEvent(): doing m_Input->GetEvent(%d)\n", event);
-     m_Input->GetEvent(event);
+          m_Input->GetEvent(event);
    }
 
    //
@@ -361,6 +371,46 @@ void AMSRoot::GetEvent(Int_t event)
    // For data this is read in automatically
    m_Event = event;
 }
+
+
+void AMSRoot::SelectEvent()
+{
+   // Get one event into the result tree
+   //
+   int event;
+   int mev;
+     cout << " Select Event No : ";
+      cin >> event;
+      cin.ignore(INT_MAX,'\n');
+      if(event<=0)event=1;
+   //    Read event in input tree
+   if (m_Input) {
+     debugger.Print("AMSRoot::GetEvent(): doing m_Input->GetEvent(%d)\n", event);
+     for (int i=0;i<event;i++){
+          m_Input->GetEvent(i);
+          if(m_EventNum  >= event)break;          
+     }
+      cout <<m_EventNum <<" event selected."<<endl;
+     mev=i;
+   }
+   //
+   // Make them into the result tree
+   //
+   TIter next(m_Makers);
+   AMSMaker *maker;
+   while (maker = (AMSMaker*)next()) {
+      debugger.Print("starting Maker %s...\n", maker->GetName());
+      maker->Make();
+   }
+
+   //
+   // Keep a record of current event number
+   //
+   // For data this is read in automatically
+   m_Event = mev;
+}
+
+
 
 //_____________________________________________________________________________
 void AMSRoot::Init(TTree * h1)

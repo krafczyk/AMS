@@ -18,6 +18,8 @@
 #pragma link C++ class AMSSiHitReader;
 #pragma link C++ class AMSCTCCluster;
 #pragma link C++ class AMSCTCClusterReader;
+#pragma link C++ class AMSAntiCluster;
+#pragma link C++ class AMSAntiClusterReader;
 //#pragma link C++ class AMSMCMaker;
 //#pragma link C++ class AMSClusterMaker;
 //#pragma link C++ class AMSElectronMaker;

@@ -212,7 +212,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    // m_TrigPad->Range(0,0,dxtr,dytr);
    m_TrigPad->cd();
 
-   TSwitch * sw[7];
+   TSwitch * sw[8];
    AMSMaker * maker;
 
    Float_t y = 1.0, dy = 0.10, height=0.10;
@@ -236,17 +236,22 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
 
+   maker = (AMSMaker *) gAMSRoot->AntiClusterMaker();
+   sw[4] = new TSwitch("Anti Clusters", &(maker->DrawFruits), 
+			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
+   y -= dy;
+
    maker = (AMSMaker *) gAMSRoot->TrackMaker();
-   sw[4] = new TSwitch("Tracks", &(maker->DrawFruits), 
+   sw[5] = new TSwitch("Tracks", &(maker->DrawFruits), 
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
 
    maker = (AMSMaker *) gAMSRoot->ParticleMaker();
-   sw[5] = new TSwitch("Particles", &(maker->DrawFruits), 
+   sw[6] = new TSwitch("Particles", &(maker->DrawFruits), 
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
 
-   sw[6] = new TSwitch("Geometry", &m_DrawGeometry, 
+   sw[7] = new TSwitch("Geometry", &m_DrawGeometry, 
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
 
 
@@ -310,8 +315,13 @@ void AMSDisplay::DisplayButtons()
    Float_t dy = 0.014;
    Float_t x0 = 0.05;
    Float_t x1 = 0.95;
-
    TButton *button;
+   char *but0 = "gAMSRoot->Display()->ShowNextEvent(0)";
+   button = new TButton("Select",but0,x0,y-dbutton,x1,y);
+   button->SetFillColor(38);
+   button->Draw();
+
+   y -= dbutton +dy;
    char *but1 = "gAMSRoot->Display()->ShowNextEvent(1)";
    button = new TButton("Next",but1,x0,y-dbutton,x1,y);
    button->SetFillColor(38);
@@ -891,10 +901,19 @@ void AMSDisplay::ShowNextEvent(Int_t delta)
        gAMSRoot->Clear();
        gAMSRoot->GetEvent(new_event); 
      }
-   }
+  }
+  else {
+       gAMSRoot->Clear();
+       gAMSRoot->SelectEvent(); 
+  }
   m_Pad->cd(); 
   Draw();
 }
+
+
+
+
+
 
 //______________________________________________________________________________
 void AMSDisplay::SizeParticles() const
