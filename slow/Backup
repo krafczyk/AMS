@@ -3,4 +3,4 @@
         export DirFrom
         export  DirTo
         cp /Offline/vdev/slow/backup /Offline/logs.local/backup
-        /Offline/logs.local/backup/backup  1>/Offline/logs.local/backup1.log 2>/Offline/logs.local/backup1.e.log&
+        /Offline/logs.local/backup  1>/Offline/logs.local/backup1.log 2>/Offline/logs.local/backup1.e.log&
