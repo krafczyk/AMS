@@ -26,18 +26,23 @@ if ARGV.size==0
 else
       $myfiles = TkVariable.new(ARGV.join(" "))
 end
+$cutmin = TkVariable.new("-1.e10<")
+$cutmax = TkVariable.new("!=0")
 
 TkRoot.new {
   title "AMS INSPECTOR"
   background "black"
 }
 
-showfiles = TkLabel.new {
-  files_line_by_line = $myfiles.to_s.gsub(/ /,"\n")
-  text "AMS INSPECTOR\n\n CURRENT FILE(s):\n#{files_line_by_line}\n"
-  background "black"
-  foreground "white"
-  pack
+$showfiles = TkLabel.new {
+   files_line_by_line = $myfiles.to_s.gsub(/ /,"\n")
+   text "AMS INSPECTOR\n\n =====CURRENT FILE(S)=====\n" +\
+        "#{files_line_by_line}\n" + \
+        "\n ======CURRENT CUTS=======\n" + \
+   "#{$cutmin.to_s} variable_in_plot \t\t\t variable_in_plot #{$cutmax.to_s}\n"
+   background "black"
+   foreground "white"
+   pack
 }
 
 framefile = TkFrame.new {
@@ -55,12 +60,19 @@ mainframe = TkFrame.new {
       borderwidth 20
 }
 
-$cutmin = TkVariable.new("-1.e10<")
-$cutmax = TkVariable.new("!=0")
-
-def AMSPLOT(v,fil)
+def amsplot(v,fil)
    varfinal = "$AMSDir/ut/amsplot '" + $cutmin.to_s + v + $cutmax.to_s + "' " + fil.to_s + " 2> /dev/null"
    fork{`#{varfinal}`}
+end
+
+def topinfo_update
+   files_line_by_line = $myfiles.to_s.gsub(/ /,"\n")
+   $showfiles.configure(
+   "text"=>"AMS INSPECTOR\n\n =====CURRENT FILE(S)=====\n" +\
+        "#{files_line_by_line}\n" + \
+        "\n ======CURRENT CUTS=======\n" + \
+   "#{$cutmin.to_s} variable_in_plot \t\t\t variable_in_plot #{$cutmax.to_s}\n"
+   )
 end
 
 labelfile = TkLabel.new(framefile) {
@@ -75,10 +87,7 @@ selfile = TkEntry.new(framefile,:textvariable=>$myfiles) {
       foreground "black"
       relief "sunken"
       width 70
-      bind('Return') {
-        files_line_by_line = $myfiles.to_s.gsub(/ /,"\n")
-        showfiles.configure("text"=>"AMS INSPECTOR\n\n CURRENT FILE(s):\n#{files_line_by_line}\n")
-      }
+      bind('Return',proc{topinfo_update})
 }
 selfile.pack(:side=>:left, :fill=>:both, :expand=>true)
 
@@ -95,12 +104,12 @@ cut0 = TkEntry.new(frame0,:textvariable=>$cutmin) {
       foreground "black"
       relief "sunken"
       width 10
-      bind('Return'){}
+      bind('Return',proc{topinfo_update})
 }
 cut0.pack(:side=>:left,:fill=>:both, :expand=>true)
 
 label1 = TkLabel.new(frame0) {
-  text "VARIABLE"
+  text "variable_in_plot"
   background "black"
   foreground "white"
 }
@@ -111,7 +120,7 @@ cut1 = TkEntry.new(frame0,:textvariable=>$cutmax) {
       foreground "black"
       relief "sunken"
       width 10
-      bind('Return'){}
+      bind('Return',proc{topinfo_update})
 }
 cut1.pack(:side=>:left,:fill=>:both, :expand=>true)
 
@@ -226,7 +235,7 @@ for line in root_h_file
                       if current_class != "Header"
                         var = "# of " + current_class + "'s"
                         var0 = "n" + current_class 
-                        add(:command,:background=>mycol2,:label=>var,:command=>proc{AMSPLOT(var0,$myfiles)})
+                        add(:command,:background=>mycol2,:label=>var,:command=>proc{topinfo_update; amsplot(var0,$myfiles)})
                       end
                       variables.each { |var|
                         var2 = current_class + "." + var 
@@ -235,7 +244,7 @@ for line in root_h_file
                         else
                               lab = var
                         end
-                        add(:command,:background=>mycol2,:label=>lab,:command=>proc{AMSPLOT(var2,$myfiles)})
+                        add(:command,:background=>mycol2,:label=>lab,:command=>proc{topinfo_update; amsplot(var2,$myfiles)})
                       }
                   }
                   pack(:side=>:left,:padx=>10)
