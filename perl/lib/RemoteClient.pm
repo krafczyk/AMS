@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.32 2002/03/27 12:17:37 choutko Exp $
+# $Id: RemoteClient.pm,v 1.33 2002/03/27 13:21:44 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1217,6 +1217,16 @@ sub Connect{
             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
+            print "<tr><td>\n";
+            print "<b><font color=\"green\">Send ONLY scripts to client</font></b><BR>\n";
+            print "<font color=\"green\" size=2><i>(server sends to client ALL files including <BR>\n";
+            print "  EXE's [~7MB] if box NOT Checked)</i></font></b>\n";
+            print "</tr></td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+            print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
+            print "</b></font></td></tr>\n";
+           htmlTableEnd();
           htmlTableEnd();
             print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
             print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
@@ -1719,13 +1729,6 @@ print qq`
 
                 }
         }
-         my $sonly="No";
-         $sonly=$q->param("SONLY");
-         if ($sonly eq "Yes") {
-             $self->{scriptsOnly}=1;
-             $self->{senddb}=0;
-             $self->{sendaddon}=0;
-         }
          my $filename=$q->param("FEM");
          $q=get_state($filename);          
          if(not defined $q){
@@ -1734,6 +1737,13 @@ print qq`
          $self->{q}=$q;
          unlink $filename;
         }
+         my $sonly="No";
+         $sonly=$q->param("SONLY");
+         if ($sonly eq "Yes") {
+             $self->{scriptsOnly}=1;
+             $self->{senddb}=0;
+             $self->{sendaddon}=0;
+         }
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
         my $template=undef;
@@ -2186,7 +2196,6 @@ print qq`
          }
           print "<input type=\"hidden\" name=\"CEM\" value=$cem>        ";
           print "<input type=\"hidden\" name=\"FEM\" value=$save>        ";
-          print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\">Send scripts ONLY (<i>server sends to client ALL files including EXE's [~7MB] if box NOT Checked)</i>";
           print "<p></p>\n";
           print $q->textarea(-name=>"CCA",-default=>"$buf$tmpb",-rows=>30,-columns=>80);
           print "<BR><TR>";
@@ -2677,6 +2686,7 @@ sub htmlTop {
     print "Content-type: text/html\n\n";
     print "<HTML>\n";
     print "<HEAD><TITLE>Search </TITLE></HEAD>\n";
+    print "<body bgcolor=cornsilk text=black link=#007746 vlink=navy alink=tomato>\n";
 }
 
 sub htmlBottom {
