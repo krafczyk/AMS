@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.14 2003/07/18 14:49:29 choutko Exp $
+#  $Id: Makefile,v 1.15 2003/09/04 10:26:31 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -11,7 +11,7 @@ NOOPTC         = -g
 LD            = g++
 LDFLAGS       = -g 
 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 
 
 LIBS          =  $(ROOTLIBS) -lm -ldl
 GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d -lGui -lGpad -lGX11  -lTree -lRint -lPostscript -lMatrix -lPhysics  -lHistPainter -lMinuit -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -lXpm -lm -ldl 
