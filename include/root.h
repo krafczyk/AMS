@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.97 2003/07/08 13:34:38 isevilla Exp $
+//  $Id: root.h,v 1.98 2003/07/08 16:28:19 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -234,6 +234,7 @@ ClassDef(EcalHitR,1)       //EcalHitR
    \author v.choutko@cern.ch
 */
 class EcalClusterR {
+static char _Info[255];
 public:
   int Status;    ///<  Statusword
                  /*!< valid values are:\n
@@ -273,6 +274,12 @@ public:
   EcalClusterR(){};
   EcalClusterR(Ecal1DCluster *ptr);
   friend class Ecal1DCluster;
+  /// \param number index in container
+  /// \return human readable info about EcalClusterR
+  char * Info(int number=-1){
+    sprintf(_Info,"EcalCluster No %d Layer=%d Proj=%d Coo=(%5.2f,%5.2f,%5.2f) E_{Dep}(MeV)=%5.2f Multip=%d",number,Plane,Proj,Coo[0],Coo[1],Coo[2],Edep,NEcalHit());
+  return _Info;
+  } 
 ClassDef(EcalClusterR,1)       //EcalClusterR
 };
 
@@ -325,6 +332,7 @@ friend class AMSEcal2DCluster;
 
 
 class EcalShowerR {
+static char _Info[255];
 public:
   int   Status;    ///< status word \sa EcalHitR status
   float Dir[3];    ///< direction cos array 
@@ -365,6 +373,12 @@ public:
   /// \param i index of fEcal2DCluster vector
   /// \return pointer to Ecal2DClusterR object  or 0
   Ecal2DClusterR * pEcal2DCluster(unsigned int i);
+  /// \param number index in container
+  /// \return human readable info about EcalShowerR
+  char * Info(int number=-1){
+    sprintf(_Info,"EcalShower No %d Energy=%7.3g#pm%5.2g  #theta=%4.2f #phi=%4.2f Coo=(%5.2f,%5.2f,%5.2f) #chi^{2}=%7.3g Asymm=%4.2f Leak_{Side,Rear,Dead,Att,NonLin,Orp}=(%4.2f,%4.2f,%4.2f,%4.2f,%4.2f,%4.2f) Max=%4.2f",number, EnergyC,ErEnergyC,acos(Dir[2]),atan2(Dir[1],Dir[0]),CofG[0],CofG[1],CofG[2],Chi2Dir,DifoSum,SideLeak,RearLeak,DeadLeak,AttLeak,NLinLeak,Orp2DEnergy/(EnergyC+1e-10),ParProfile[1]);
+  return _Info;
+  } 
 
 
   EcalShowerR(){};
@@ -385,6 +399,7 @@ ClassDef(EcalShowerR,1)       //EcalShowerR
 */
 
 class RichHitR {
+static char _Info[255];
 public:
   unsigned int Status;   ///< statusword
                          /*!<
@@ -411,12 +426,18 @@ public:
   int   Channel;    ///<  channel number  
   int   Counts;     ///< ADC counts above the pedestal
   float Npe;        ///< ADC counts above the pedestal/gain of the channel 
-  float X;         ///<  X pos. of the channel  
-  float Y;         ///<  Y pos. of the channel
+  float Coo[3];         ///<  Hit coordinates
 
   RichHitR(){};
-  RichHitR(AMSRichRawEvent *ptr, float x, float y);
-ClassDef(RichHitR,1)       // RichHitR
+  RichHitR(AMSRichRawEvent *ptr, float x, float y, float z);
+    /// \param number index in container
+  /// \return human readable info about RichHitR
+  char * Info(int number=-1){
+    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f)",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2]);
+  return _Info;
+  } 
+
+ClassDef(RichHitR,2)       // RichHitR
 };
 
 
@@ -428,6 +449,7 @@ ClassDef(RichHitR,1)       // RichHitR
 */
 
 class RichRingR {
+static char _Info[255];
 public:
 
   unsigned int Status;     ///< status word
@@ -465,6 +487,12 @@ public:
   RichRingR(){};
   RichRingR(AMSRichRing *ptr);
   friend class AMSRichRing;
+  /// \param number index in container
+  /// \return human readable info about RichRingR
+  char * Info(int number=-1){
+    sprintf(_Info,"RichRing No %d N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,Used,UsedM,Beta,ErrorBeta,Chi2,NpExp,NpCol);
+  return _Info;
+  } 
   ClassDef(RichRingR,1)           // RichRingR
 }; 
 
@@ -502,6 +530,8 @@ public:
 */
 
 class TofClusterR {
+protected:
+static char _Info[255];
 public:
   int Status;   ///< Statusword
                 /*!<
@@ -535,7 +565,12 @@ public:
   /// \return pointer to TofRawClusterR object or 0
   TofRawClusterR * pTofRawCluster(unsigned int i);
 
-
+  /// \param number index in container
+  /// \return human readable info about TofClusterR
+  char * Info(int number=-1){
+    sprintf(_Info,"ToF Cluster No %d S%dB%d: time=%3.1f#pm%3.1f, E_{Dep}(MeV)=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.1f,%5.1f,%5.1f)",number,Layer,Bar,Time*1.e9,ErrTime*1.e9,Coo[0],Coo[1],Coo[2],ErrorCoo[0],ErrorCoo[1],ErrorCoo[2]);
+  return _Info;
+  } 
   TofClusterR(){};
   TofClusterR(AMSTOFCluster *ptr );
   friend class AMSTOFCluster;
@@ -550,6 +585,7 @@ ClassDef(TofClusterR,1)       //TofClusterR
 
 */
 class AntiClusterR {
+static char _Info[255];
 public:
   int   Status;   ///< Statusword Bit"256"->1sideSector;"1024"->s2 missing if set  s1 missing if not
   int   Sector;   ///< //Sector number(1-8)
@@ -563,6 +599,12 @@ public:
 
   AntiClusterR(){};
   AntiClusterR(AMSAntiCluster *ptr);
+  /// \param number index in container
+  /// \return human readable info about AnticlusterR
+  char * Info(int number=-1){
+    sprintf(_Info,"Anticluster No %d Sector=%d Coo=(%5.2f,%5.2f,%5.2f)#pm(%5.2f,%5.2f,%5.2f) E_{Dep}(MeV)=%7.3g",number,Sector,Coo[0],Coo[1],Coo[2],ErrorCoo[0],ErrorCoo[1],ErrorCoo[2],Edep);
+  return _Info;
+  } 
 ClassDef(AntiClusterR,1)       //AntiClusterR
 };
 
@@ -653,6 +695,7 @@ ClassDef(TrClusterR,1)       //TrClusterR
 */
 
 class TrRecHitR {
+static char _Info[255];
 public:
   int   Status;   ///< statusword \sa TrClusterR Status
   int   Layer;    ///<Layer no 1-6 up-down
@@ -675,6 +718,12 @@ public:
   /// \param  xy = 'x' for x projection, any other for y projection
   /// \return pointer to TrClusterR TrClusterR object in TrClusterR collection or 0
   TrClusterR * pTrCluster(char xy);
+  /// \param number index in container
+  /// \return human readable info about TrRecHitR
+  char * Info(int number=-1){
+   sprintf(_Info,"TrRecHit no %d Layer %d Ampl=%4.1f, at (%5.1f,%5.1f,%5.1f)#pm(%5.3f,%5.3f,%5.3f, asym=%4.1f, status=%x)",number,Layer,Sum,Hit[0],Hit[1],Hit[2],EHit[0],EHit[1],EHit[2],DifoSum,Status);
+     return _Info;
+}
 
   TrRecHitR(){};
   TrRecHitR(AMSTrRecHit *ptr);
@@ -691,6 +740,7 @@ ClassDef(TrRecHitR,1)       //TrRecHitR
 */
 
 class TrTrackR {
+static char _Info[255];
 public:
   int Status;   ///< statusword \sa TrClusterR
   int Pattern;  ///< see datacards.doc
@@ -725,6 +775,9 @@ public:
   protected:
   vector<int> fTrRecHit;
   public:
+  /// select good tracks (i.e. tracks having x & y hits from tracker)
+  /// \return true if good false otherwise
+   bool IsGood()const {return !(Status & 16384) && AdvancedFitDone!=0;}
   /// access function to TrRecHitR objects used
   /// \return number of TrRecHitR used
   int NTrRecHit()const {return fTrRecHit.size();}
@@ -736,6 +789,12 @@ public:
   /// \param i index of fTrRecHit vector
   /// \return pointer to TrRecHitR object  or 0
   TrRecHitR * pTrRecHit(unsigned int i);
+  /// \param number index in container
+  /// \return human readable info about TrTrackR
+  char * Info(int number=-1){
+    sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%d",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
+  return _Info;
+  } 
 ClassDef(TrTrackR,1)       //TrTrackR
 friend class AMSTrTrack;
 };
@@ -766,14 +825,18 @@ ClassDef(TrdRawHitR,1)       //TrdRawHitR
 */
 
 class TrdClusterR {
+static char _Info[255];
 public:
   int   Status;    ///< statusword
   float Coo[3];    ///<cluster coo (cm)
   int   Layer;     ///<Layer 0(bottom)...19(top) 
-  float CooDir[3]; ///<cluster directional cos (z == along the tube) 
+  int   Direction; ///<  0 == along x  1 == along y
+  float ClSizeR;    ///< Tube Radius
+  float ClSizeZ;    ///< Tube 1/2 Length
   int   Multip;    ///< multiplicity
   int   HMultip;   ///< multiplicity above threshold (5.9 kev)
   float EDep;      ///< energy dposition (kev)
+
   protected:
   int fTrdRawHit;   ///< pointer to trdrawhit with max ampl
   public:
@@ -786,7 +849,13 @@ public:
   TrdClusterR(){};
   TrdClusterR(AMSTRDCluster *ptr);
   friend class AMSTRDCluster;
-ClassDef(TrdClusterR,1)       //TrdClusterR
+  /// \param number index in container
+  /// \return human readable info about TrdClusterR
+  char * Info(int number=-1){
+   sprintf(_Info,"TRD Cluster No %d Layer %d Coo %5.1f,%5.1f,%5.1f  Mult  %d HMult %d E_{Dep}(Kev) %5.1f ",number,Layer,Coo[0], Coo[1], Coo[2],Multip,HMultip,EDep);
+   return _Info;
+  }
+ClassDef(TrdClusterR,2)       //TrdClusterR
 };
 
 /// TRDSegmentR structure
@@ -833,6 +902,7 @@ ClassDef(TrdSegmentR,1)       //TrdSegmentR
 */
 
 class TrdTrackR {
+static char _Info[255];
 public:
   int   Status;  ///< statusword
   float Coo[3];  ///< trac coo (cm)
@@ -857,6 +927,15 @@ public:
   TrdSegmentR * pTrdSegment(unsigned int i);
   TrdTrackR(AMSTRDTrack *ptr);
   TrdTrackR(){};
+  /// \param number index in container
+  /// \return human readable info about TrdTrackR
+  char * Info(int number=-1){
+    int np=0;
+    for(int i=0;i<NTrdSegment();i++)np+=pTrdSegment(i)->NTrdCluster();
+ 
+    sprintf(_Info,"TrdTrack No %d Coo=(%5.2f,%5.2f,%5.2f)#pm((%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g N_{Hits}=%d",number,Coo[0],Coo[1],Coo[2],ErCoo[0],ErCoo[1],ErCoo[2],Theta,Phi,Chi2,np);
+  return _Info;
+  } 
   friend class AMSTRDTrack;
 ClassDef(TrdTrackR,1)       //TrdTrackR
 };
@@ -1164,6 +1243,8 @@ public:
    
    
 class ParticleR {
+private:
+static char _Info[255];
 public:
   int Status;   ///< status word (not really used at the moment)
   int   Particle;     ///< voted particle id a-la geant3 (not really reliable)
@@ -1201,7 +1282,7 @@ endif
   float AntiCoo[2][3]; ///< track extrapol in anti
   float EcalCoo[3][3]; ///< track extrapol in ecal (enter, cofg, exit)
   float TrCoo[8][3];  ///< track extrapol in tracker planes
-  float TRDCoo[3];    ///< track extrapol in trd (center)
+  float TRDCoo[2][3];    ///< track extrapol in trd (center,top)
   float RichCoo[2][3];  ///< track extrapol in rich (radiator_pos, pmt_pos)
   float RichPath[2];    ///<  Estimated fraction  of ring photons  within RICH acceptance (direct and reflected ones  respectively) for beta=1
   float RichPathBeta[2]; ///<  Estimated fraction  of ring photons  within RICH acceptance (direct and reflected ones  respectively) for beta Beta
@@ -1266,10 +1347,30 @@ public:
   /// \return pointer to VertexR object or 0
       VertexR * pVertex();
 
+  char * pType(){
+   static char type[63];
+   if(pTrTrack()){
+     strcpy(type,"Tr");
+   }
+   else strcpy(type,"");
+      if(pBeta())strcat(type,"Tof");
+      if(pTrdTrack())strcat(type,"Trd");
+      if(pRichRing())strcat(type,"Rich");
+      if(pEcalShower())strcat(type,"Ecal");
+      if(pVertex())strcat(type,"Vertex");
+   return type;
+  }
+
+  /// \param number index in container
+  /// \return human readable info about ParticleR
+  char * Info(int number=-1){
+   sprintf(_Info," Particle %s No %d Id=%d p=%7.3g#pm%6.2g M=%7.3g#pm%6.2g #theta=%4.2f #phi=%4.2f Q=%2.0f  #beta=%6.3f#pm%6.3f",pType(),number,Particle,Momentum,ErrMomentum,Mass,ErrMass,Theta,Phi,Charge,Beta,ErrBeta);
+   return _Info;
+  }
   ParticleR(){};
   ParticleR(AMSParticle *ptr, float phi, float phigl);
   friend class AMSParticle;
-  ClassDef(ParticleR,1)       //ParticleR
+  ClassDef(ParticleR,2)       //ParticleR
 };
 
 /// AntiMCCluster structure
@@ -1295,6 +1396,7 @@ ClassDef(AntiMCClusterR,1)       //AntiMCClusterR
    \author v.choutko@cern.ch
 */
 class TrMCClusterR {
+static char _Info[255];
 public:
   int Idsoft;   ///< idsoft
                /*!<
@@ -1314,6 +1416,12 @@ public:
 
   TrMCClusterR(){};
   TrMCClusterR(AMSTrMCCluster *ptr);
+  /// \param number index in container
+  /// \return human readable info about TrMCClusterR
+  char * Info(int number=-1){
+    sprintf(_Info,"TrMCCluster No %d PId=%d Coo=(%5.2f,%5.2f,%5.2f), Ampl(Mev)=%5.2f",number,TrackNo,Xgl[0],Xgl[1],Xgl[2],Sum*1000);
+  return _Info;
+  } 
 ClassDef(TrMCClusterR,1)       //TrMCClusterR
 };
 
@@ -1436,6 +1544,7 @@ ClassDef(MCTrackR,1)       //MCTrackR
    \author v.choutko@cern.ch
 */
 class MCEventgR {
+static char _Info[255];
 public:
   int Nskip;      ///<  reserved
   int Particle;   ///< geant3 particle id
@@ -1453,6 +1562,12 @@ public:
   float Charge;    ///< charge (signed)
   MCEventgR(){};
   MCEventgR(AMSmceventg *ptr);
+  /// \param number index in container
+  /// \return human readable info about McEventgR
+  char * Info(int number=-1){
+    sprintf(_Info,"McParticle No %d Pid=%d Coo=(%5.2f,%5.2f,%5.2f) #theta=%4.2f #phi=%4.2f Momentum(Gev)=%7.2g Mass=%7.2g Q=%4.0f",number,Particle,Coo[0],Coo[1],Coo[2],acos(Dir[2]),atan2(Dir[1],Dir[0]),Momentum,Mass,Charge);
+  return _Info;
+  } 
 ClassDef(MCEventgR,1)       //MCEventgR
 };
 
@@ -1641,6 +1756,10 @@ public:
 
 int Version() const {return fHeader.Version/4;} ///< \return producer version number
 int OS() const {return fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun )
+
+unsigned int Run() const {return fHeader.Run;} ///< \return Run number
+unsigned int Event() const {return fHeader.Event;} ///< \return Event number
+char * Time() const {return ctime((time_t*)&(fHeader.Time[0]));} ///< \return  Time
 
 int   nEcalHit()const { return fHeader.EcalHits;} ///< \return number of EcalHitR elements (fast)              
 int   nEcalCluster()const { return fHeader.EcalClusters;} ///< \return number of EcalClusterR elements (fast)
@@ -2278,7 +2397,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
        ///  Level1R accessor
        /// \param l index of Level1R Collection
       ///  \return pointer to corresponding Level1R element
-      Level1R *   pLevel1(unsigned int l) {
+      Level1R *   pLevel1(unsigned int l=0) {
         if(fHeader.Level1s && fLevel1.size()==0)bLevel1->GetEntry(_Entry);
         return l<fLevel1.size()?&(fLevel1[l]):0;
       }
@@ -2704,7 +2823,7 @@ void         AddAMSObject(AMSTrTrackGamma *ptr);
 void         AddAMSObject(AMSParticle *ptr, float phi, float phigl);
 void         AddAMSObject(AMSRichMCHit *ptr, int numgen);
 void         AddAMSObject(AMSRichRing *ptr);
-void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y);
+void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y, float z);
 void         AddAMSObject(AMSTOFCluster *ptr);
 void         AddAMSObject(AMSTOFMCCluster *ptr);
 void         AddAMSObject(AMSTrRecHit *ptr);

@@ -1,0 +1,106 @@
+
+=========================================================================
+
+     Introduction  to  a  Prototype  Event  Display  Based  on  ROOT
+
+				Ping  Yeh
+		  	     Academia Sinica
+			       13 Nov 1997
+
+=========================================================================
+[major updated on 17 Aug 1998 by Shuwei YE]
+[minor updated on 1 Dec 1997 by Ping Yeh]
+[migrated into CVS repository on 16 Dec 1997 with help of Vitali Shoutko,
+ and a major modification of this document is done to reflect this]
+
+
+-------------------------------------------------------------------------
+0. Introduction
+---------------
+   Main features: 3D, rotate with mouse, 
+
+
+   Data format: root
+
+   Requirements: X-window, ROOT, CERNLIB.
+
+   System: only test on Linux 7.3 & root 3.05.05 
+
+   Status: still on development.
+
+
+-------------------------------------------------------------------------
+1. Obtaining the program
+------------------------
+
+The program sources can be obtained by doing
+
+	cvs checkout AMS  (cvs update)
+
+This will create AMS/display directory and put all source files
+of AMS event display into it.
+
+
+-------------------------------------------------------------------------
+2. Making the program
+---------------------
+        cd display
+        setenv AMSWD  {your scratch dir}
+        mkdir $AMSWD/online
+	gmake standalone  (static version of the program called amsed)
+	gmake osdepend    (using dynamic (shared) libraries called amsedc)
+
+
+
+-------------------------------------------------------------------------
+3. Running the program
+----------------------
+$AMSWD/display/amsed{c} path/xyz.root  where path/xyz.root is the ams root file
+
+Note that multiple files may be read at once using wildcards, e.g.
+
+$AMSWD/display/amsed{c} "path/*.root"  
+
+
+to run amsed (static) no root need to be installed.
+however ROOTSYS var MUST be set to any dummy var e.g.
+setenv ROOTSYS dummy.
+for some (old) XwindowsSystems  text characters might be improperly drawn or even not seen.  setenv OffmonNoTTF might help.
+
+to run amsedc (dynamic) program, path to the root dir should be set up
+via ROOTSYS as usual (source /offline/vdev/install/amsvar). 
+Dynamic  program allows user to load/run his/her own selection program via AMSNtupleSelect.C.   Just modify AMSNtupleSelect.C according
+the desired selection then click on "Load UF" button.
+Please note the amsedc should be relinked in case opsys is not rh7.3  
+
+
+
+-------------------------------------------------------------------------
+4. Future Plan for the program
+------------------------------
+
+   There are still a large room for improvement.  The following is on
+my list:
+
+
+1.    Move to new TGeoManager instead of TGeometry
+2.    Draw Rich Rings
+3.    Add some more objects (by user req)
+4.    Add Zooming by mouse   
+
+
+
+
+5. Relevant files
+
+LinkDef             //aux
+main                //main
+AMSNtupleV          // read root, make graphics objects
+AMSDisplay          // Main GUI Class
+ControlFrame        // Control Frame
+AMSR_GeometrySetter  //  geometry setter (obsolete, should be replaced
+                     //  with new TGeoManager package 
+TGRunEventDialog    //   popup dialog for run/event 
+AMSR_Axis           //  aux class to draw axis
+AMSNtupleSelect.C   //  user selection function
+

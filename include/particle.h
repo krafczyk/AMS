@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.46 2003/05/12 13:11:24 choutko Exp $
+//  $Id: particle.h,v 1.47 2003/07/08 16:28:19 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -61,7 +61,7 @@ protected:
   AMSPoint _EcalCoo[2*ecalconst::ECSLMX];  
   AMSPoint _EcalSCoo[3];
   AMSPoint _TrCoo[trconst::maxlay];  
-  AMSPoint _TRDCoo;  
+  AMSPoint _TRDCoo[2];  
   AMSPoint _RichCoo[2];
   number   _RichPath[2];
   number   _RichPathBeta[2];
@@ -121,7 +121,8 @@ public:
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
     }    
-     _TRDCoo=AMSPoint(0,0,0);
+     _TRDCoo[0]=AMSPoint(0,0,0);
+     _TRDCoo[1]=AMSPoint(0,0,0);
  }
   AMSParticle(AMSBeta * pbeta, AMSCharge * pcharge, AMSTrTrack * ptrack,
   number beta, number ebeta,number mass, number errmass, number momentum, number errmomentum,

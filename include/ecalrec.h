@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.37 2003/05/09 16:00:15 choutko Exp $
+//  $Id: ecalrec.h,v 1.38 2003/07/08 16:28:18 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -191,11 +191,18 @@ public:
 
   Ecal1DCluster(integer status, integer proj, integer pl, integer left, integer right, integer max, number en,number en3, number en5, number en9, number leak, number dead,AMSPoint coo, number w, number rms, AMSEcalHit * ptr[]): AMSlink(status,0),_proj(proj), _plane(pl),_Energy3C(en3),_Energy5C(en5),_Energy9C(en9),_EnergyC(en),_SideLeak(leak),_DeadLeak(dead),_Coo(coo),_MaxCell(max),_Left(left),_Right(right),_Weight(w),_RMS(rms){
 _NHits=0;
+number cool=0;
+number edep=0;
 for(int i=_Left;i<=_Right;i++){
- if(ptr && ptr[i])_pHit[_NHits++]=ptr[i];
+ if(ptr && ptr[i]){
+  _pHit[_NHits++]=ptr[i];
+  cool+=ptr[i]->getcool()*ptr[i]->getedep();
+  edep+=ptr[i]->getedep();
+ }
 }
+ cool/=edep+1.e-10;
+ _Coo[1-proj]=cool;
 }
-
   ~Ecal1DCluster(){};
   Ecal1DCluster * next(){return (Ecal1DCluster*)_next;}
 //
