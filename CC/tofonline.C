@@ -293,7 +293,7 @@ void AMSTOFRawEvent::tofonlinefill1(integer ilay, integer ibar, integer isid,
   // Time Expansion
   scbrcal[ilay-1][ibar-1].gtstrat(strat);
   off=strat[isid-1][1]; // offset of time str.
-  str=(geant(num)-off)/geant(den); // Time Expansion
+  str = den==0?FLT_MAX:(geant(num)-off)/geant(den); // Time Expansion
   hisID=STRSTART+(ilay-1)*30+(14-ibar)+dir*14;
   HFF1(hisID,nIDhis[hisID-5000],geant(str),1.);
 

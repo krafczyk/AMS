@@ -1792,3 +1792,146 @@ void AMSTOFRawEvent::mc_build(int &status)
   } //                               --- end of layer loop --->
 }
 //================================================================
+
+
+
+
+
+AMSTOFTovt::AMSTOFTovt(integer _ids, integer _sta, number _charga, number _tedep,
+  integer _ntr1, number _ttr1[], integer _ntr3, number _ttr3[],
+  integer _nftdc, number _tftdc[], number _tftdcd[], integer _nstdc, number _tstdc[],
+  integer _nadca, number _tadca[], number _tadcad[],
+           integer _nadcd, number _tadcd[], number _tadcdd[]):
+  idsoft(_ids),status(_sta)
+  {
+    int i;
+    ntr1=_ntr1;
+    for(i=0;i<ntr1;i++)ttr1[i]=_ttr1[i];
+    ntr3=_ntr3;
+    for(i=0;i<ntr3;i++)ttr3[i]=_ttr3[i];
+    charga=_charga;
+    tedep=_tedep;
+    nftdc=_nftdc;
+    for(i=0;i<nftdc;i++){
+      tftdc[i]=_tftdc[i];
+      tftdcd[i]=_tftdcd[i];
+    }
+    nstdc=_nstdc;
+    for(i=0;i<nstdc;i++)tstdc[i]=_tstdc[i];
+    nadca=_nadca;
+    for(i=0;i<nadca;i++){
+      tadca[i]=_tadca[i];
+      tadcad[i]=_tadcad[i];
+    }
+    nadcd=_nadcd;
+    for(i=0;i<nadcd;i++){
+      tadcd[i]=_tadcd[i];
+      tadcdd[i]=_tadcdd[i];
+    }
+  }
+
+integer AMSTOFTovt::gettr1(number arr[]){
+  for(int i=0;i<ntr1;i++)arr[i]=ttr1[i];
+  return ntr1;
+}
+integer AMSTOFTovt::gettr3(number arr[]){
+  for(int i=0;i<ntr3;i++)arr[i]=ttr3[i];
+  return ntr3;
+}
+integer AMSTOFTovt::getftdc(number arr1[], number arr2[]){
+  int i;
+  for(i=0;i<nftdc;i++){
+    arr1[i]=tftdc[i];
+    arr2[i]=tftdcd[i];
+  }
+  return nftdc;
+}
+integer AMSTOFTovt::getstdc(number arr[]){
+  for(int i=0;i<nstdc;i++)arr[i]=tstdc[i];
+  return nstdc;
+}
+integer AMSTOFTovt::getadca(number arr1[], number arr2[]){
+  for(int i=0;i<nadca;i++){
+    arr1[i]=tadca[i];
+    arr2[i]=tadcad[i];
+  }
+  return nadca;
+}
+integer AMSTOFTovt::getadcd(number arr1[], number arr2[]){
+  for(int i=0;i<nadcd;i++){
+    arr1[i]=tadcd[i];
+    arr2[i]=tadcdd[i];
+  }
+  return nadcd;
+}
+
+
+
+
+
+AMSTOFRawEvent::AMSTOFRawEvent(int16u _ids, int16u _sta, geant _charge, geant _edep,
+   int16u _nftdc, int16u _ftdc[],
+   int16u _nstdc, int16u _stdc[], int16u _nadca, int16u _adca[],
+   int16u _nadcd, int16u _adcd[]):idsoft(_ids),status(_sta)
+   {
+     int i;
+     nftdc=_nftdc;
+     for(i=0;i<nftdc;i++)ftdc[i]=_ftdc[i];
+     nstdc=_nstdc;
+     for(i=0;i<nstdc;i++)stdc[i]=_stdc[i];
+     nadca=_nadca;
+     for(i=0;i<nadca;i++)adca[i]=_adca[i];
+     nadcd=_nadcd;
+     for(i=0;i<nadcd;i++)adcd[i]=_adcd[i];
+     charge=_charge;
+     edep=_edep;
+   }
+
+integer AMSTOFRawEvent::getnztdc(){
+  integer nz(0);
+  if(nftdc>0)nz+=1;
+  if(nstdc>0)nz+=1;
+  if(nadca>0)nz+=1;
+  if(nadcd>0)nz+=1;
+  return nz;
+}
+
+int16u AMSTOFRawEvent::getftdc(int16u arr[]){
+  for(int i=0;i<nftdc;i++)arr[i]=ftdc[i];
+  return nftdc;
+}
+
+void AMSTOFRawEvent::putftdc(int16u nelem, int16u arr[]){
+  nftdc=nelem;
+  for(int i=0;i<nftdc;i++)ftdc[i]=arr[i];
+}
+
+int16u AMSTOFRawEvent::getstdc(int16u arr[]){
+  for(int i=0;i<nstdc;i++)arr[i]=stdc[i];
+  return nstdc;
+}
+
+void AMSTOFRawEvent::putstdc(int16u nelem, int16u arr[]){
+  nstdc=nelem;
+  for(int i=0;i<nstdc;i++)stdc[i]=arr[i];
+}
+
+int16u AMSTOFRawEvent::getadca(int16u arr[]){
+  for(int i=0;i<nadca;i++)arr[i]=adca[i];
+  return nadca;
+}
+
+void AMSTOFRawEvent::putadca(int16u nelem, int16u arr[]){
+  nadca=nelem;
+  for(int i=0;i<nadca;i++)adca[i]=arr[i];
+}
+
+int16u AMSTOFRawEvent::getadcd(int16u arr[]){
+  for(int i=0;i<nadcd;i++)arr[i]=adcd[i];
+  return nadcd;
+}
+
+void AMSTOFRawEvent::putadcd(int16u nelem, int16u arr[]){
+  nadcd=nelem;
+  for(int i=0;i<nadcd;i++)adcd[i]=arr[i];
+}

@@ -245,7 +245,6 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
       int num,den,nedges[4];
       number Atovt,Dtovt;
       int his[SCTHMX2*2],tdc[SCTHMX3*4],ano[SCTHMX4*2],dyn[SCTHMX4*2];     
-
       idd=ptr->getid();
       id=idd/10;// short id=LBB, where L=1,4 BB=1,14
       ilay=id/100;
@@ -253,16 +252,11 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
       isid=idd%10;
  
       nedges[0]=int (ptr->getftdc(ftdc1)); // History
+      VZERO(stdc1,SCTHMX3*4/2);
       nedges[1]=int (ptr->getstdc(stdc1)); // Time Exp.
       nedges[2]=int (ptr->getadca(adca1)); // Anode
       nedges[3]=int (ptr->getadcd(adcd1)); // Dynode
 
-//       for(int pippo=0;pippo<nedges[1];pippo++)
-// 	tdc[pippo]=int (ftdc1[pippo]&pbitn);
-//       for(pippo=0;pippo<nedges[2];pippo++)
-// 	ano[pippo]=int (adca1[pippo]&pbitn);
-//       for(pippo=0;pippo<nedges[3];pippo++)
-// 	dyn[pippo]=int (adcd1[pippo]&pbitn);
 //
 //      Eventually choose the right 2 edges for Anode and Dynode,
 //      before calculating Atovt and Dtovt
@@ -274,7 +268,6 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
       tsr[2]=(stdc1[0]&pbanti)*TOFDBc::tdcbin(1);
       num=tsr[1]-tsr[2]; // Time Exp. =
       den=tsr[0]-tsr[1]; //    (num - offset)/den
-
       AMSTOFRawEvent::tofonlinefill1(ilay,ibar,isid, // coord. 1-4,1-14,1-2
 		     nedges,         // array of numbers of edges 
 		     num,den,        // ~ time stretcher ratio
@@ -907,6 +900,7 @@ void AMSTOFRawCluster::build(int &status){
   HF1(1110,geant(isum),1.);// tot.number of layers
   if(TOFRECFFKEY.reprtf[2]>0 || 
      (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
+
     for(i=0;i<SCLRS;i++)if(nbrch[i]>0)HF1(1111,geant(i+1),1.);// layer appear. freq.
   }
   if(isum>=2)conf=0;
