@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.96 2003/06/26 13:13:43 choumilo Exp $
+//  $Id: root.h,v 1.97 2003/07/08 13:34:38 isevilla Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -98,6 +98,10 @@ class EventNtuple02{};
   general info   (public)
 
   shuttle/iss parameters  public)
+  (this includes:
+   ISS -z axis (LVLH) pointing direction in external reference frame
+   AMS z axis (according to 12 degree tilt in roll) in external reference frame
+  The reference frames are the equatorial and galactic frames, which are fixed to the sky and not to the Earth. More info in upcoming AMS note)     
 
   object counters, aka arrays dimensions (protected, access via coo functions)
  \sa AMSEventR 
@@ -136,7 +140,7 @@ class HeaderR{
    float VelPhi;       ///< ISS speed phi (GTOD rad)  
    float ThetaM;        ///< magnetic (calculated for an eccentric dipole coo system) theta  rad
    float PhiM;          ///< magnetic (calculated for an eccentric dipole coo system)phi  rad
-
+   // pointing direction in equatorial and galactic systems
    float ISSEqAsc; ///<(ISN) ISS pointing direction (equat. right ascension)
    float ISSEqDec; ///<(ISN) ISS pointing direction (equat. declination)
    float ISSGalLat; ///<(ISN) ISS pointing direction (gal. latitude)
