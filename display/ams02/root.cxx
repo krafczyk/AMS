@@ -1,5 +1,5 @@
-//  $Id: root.cxx,v 1.1 2001/08/21 13:11:19 kscholbe Exp $
-#include "AMSR_Rootclasses.h"
+//  $Id: root.cxx,v 1.2 2001/08/23 21:05:55 kscholbe Exp $
+/*#include "AMSR_Rootclasses.h"
 ClassImp(EventNtuple02)
 ClassImp(BetaNtuple02)
 ClassImp(ChargeNtuple02)
@@ -30,4 +30,4 @@ ClassImp(Ecal2DClusterNtuple)
 ClassImp(EcalHitNtuple)
 ClassImp(RICMCNtuple)
 ClassImp(RICEventNtuple)
-ClassImp(RICRing)
+ClassImp(RICRing) */

@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.4 2001/08/21 13:11:18 kscholbe Exp $
+//  $Id: main.cxx,v 1.5 2001/08/23 21:05:55 kscholbe Exp $
 
 
 //--------------------------------------------------------------------------
@@ -108,9 +108,6 @@ main(int argc, char *argv[])
   //AMSR_Root
   //-------
   AMSR_Root amsroot("AMS", "AMS Display");
-
-//  gROOT->LoadMacro("amsmc.sl"); 	
-
 
   //
   //Get the Geometry from the ROOT file

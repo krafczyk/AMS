@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.10 2001/08/19 12:42:43 kscholbe Exp $
+//  $Id: AMSR_Display.cxx,v 1.11 2001/08/23 21:05:48 kscholbe Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -1008,6 +1008,10 @@ void AMSR_Display::DrawView(Float_t theta, Float_t phi, Int_t index)
      if(node)node->SetVisibility(vis);
      node=m_Geometry->GetNode("STK_L6_HONEYCOMB");
      if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L7_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
+     node=m_Geometry->GetNode("STK_L8_HONEYCOMB");
+     if(node)node->SetVisibility(vis);
 //     m_Geometry->Draw();  // without option "same" will create a new TView
      m_Geometry->Draw("same");
 //     view->SetRange(-800.0, -800.0, -520.0, 800.0, 800.0, 520.0);
@@ -1353,6 +1357,9 @@ void AMSR_Display::ShowNextEvent(Int_t delta)
 
    Int_t current_event = gAMSR_Root->Event();
    Int_t new_event     = current_event + delta;
+   debugger.Print("AMSR_Display::ShowNextEvent current, delta =%d/%d\n", current_event,delta);
+
+
    if ( new_event >= 0 ) {
       gAMSR_Root->GetEvent(new_event);
       m_Pad->cd(); Draw();

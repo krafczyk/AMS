@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.h,v 1.9 2001/08/21 13:11:17 kscholbe Exp $
+//  $Id: AMSR_Ntuple.h,v 1.10 2001/08/23 21:05:48 kscholbe Exp $
 #ifndef AMSR_Ntuple_H
 #define AMSR_Ntuple_H
 
@@ -95,7 +95,7 @@ class AMSR_Ntuple : public TNamed {
    TOFRAWCL_DEF *m_BlkTofrawcl;
    ECALSHOWER_DEF  *m_Blkecsh;
 
-   EventNtuple02* evt;
+   /*   EventNtuple02* evt;
    BetaNtuple02* beta;
    ChargeNtuple02* charge;
    ParticleNtuple02* part;
@@ -113,7 +113,7 @@ class AMSR_Ntuple : public TNamed {
    AntiClusterNtuple* anti;
    ANTIMCClusterNtuple* antimc;
    LVL3Ntuple* lvl3;
-   LVL1Ntuple02* lvl1;
+   LVL1Ntuple02* lvl1; */
 #endif
    
  protected:

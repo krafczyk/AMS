@@ -4,7 +4,7 @@
 #define __AMSR_Rootclasses_H
 
 #include <TObject.h>
-
+/*
 const int MAXBETA02    = 50;
 const int MAXCHARGE02  = 30;
 const int MAXPART02    =  20;
@@ -562,7 +562,7 @@ public:
   int Z[MAXTRTR02];
 
 ClassDef(RICRing,1)
-}; 
+};  */
 
 #endif
 

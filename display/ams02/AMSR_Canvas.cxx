@@ -1,4 +1,4 @@
-//  $Id: AMSR_Canvas.cxx,v 1.4 2001/08/04 21:25:12 kscholbe Exp $
+//  $Id: AMSR_Canvas.cxx,v 1.5 2001/08/23 21:05:47 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -478,9 +478,13 @@ void AMSR_Canvas::OpenFileCB()
   //If no IdleTimer set, show the first event of the file
   //
   if ( disp->IdleTime() <= 0 || disp->IdleCommand() == 0 )
-     disp->ShowNextEvent(0);
+	{    debugger.Print("AMSR_Canvas::OpenFileCB calling ShowNextEvent\n");
+
+     disp->ShowNextEvent(0);}
+   debugger.Print("AMSR_Canvas::OpenFileCB draw event\n");	
   disp->DrawEvent();
   disp->GetCanvas()->Update();        // force it to draw
+   debugger.Print("AMSR_Canvas::OpenFileCB updated\n");	
 
   return;
 

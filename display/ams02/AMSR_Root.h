@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.h,v 1.7 2001/08/18 20:01:47 kscholbe Exp $
+//  $Id: AMSR_Root.h,v 1.8 2001/08/23 21:05:48 kscholbe Exp $
 #ifndef AMSR_Root_H
 #define AMSR_Root_H
 
@@ -122,7 +122,7 @@ public:
    Int_t          RunNum()         {return m_RunNum;}
    char*          GetTime()         {return ctime(m_Time);}
    Int_t          EventNum()       {return m_EventNum;}
-   Int_t          Event()          {return m_Event;}
+   Int_t          Event()          {return (m_Event?m_Event:0);}
    Int_t          NEvent()         {return m_NEvent;}
    Int_t          Mode()           {return m_Mode;}
    TTree         *Tree()           {return m_Tree;}

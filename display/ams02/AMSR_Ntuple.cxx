@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.19 2001/08/21 13:11:17 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.20 2001/08/23 21:05:48 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -471,7 +471,7 @@ void AMSR_Ntuple::GetEvent(Int_t event)
 
 	  m_Tree->GetEvent(event);
 	
-	  memcpy(&m_BlkEventh->eventno,&evt->Eventno,sizeof(EVENTH_DEF));
+/*	  memcpy(&m_BlkEventh->eventno,&evt->Eventno,sizeof(EVENTH_DEF));
 	  memcpy(&m_BlkBeta->nbeta,&beta->Nbeta,sizeof(BETA_DEF));
 	  memcpy(&m_BlkCharge->ncharge,&charge->Ncharge,sizeof(CHARGE_DEF));
 	  memcpy(&m_BlkParticle->npart,&part->Npart,sizeof(PARTICLE_DEF));
@@ -489,12 +489,10 @@ void AMSR_Ntuple::GetEvent(Int_t event)
 	  memcpy(&m_BlkAnticlus->nanti,&anti->Nanti,sizeof(ANTICLUS_DEF));
 	  memcpy(&m_BlkAntimccl->nantimc,&antimc->Nantimc,sizeof(ANTIMCCL_DEF));
 	  memcpy(&m_BlkLvl3->nlvl3,&lvl3->Nlvl3,sizeof(LVL3_DEF));
-	  memcpy(&m_BlkLvl1->nlvl1,&lvl1->Nlvl1,sizeof(LVL1_DEF));
+	  memcpy(&m_BlkLvl1->nlvl1,&lvl1->Nlvl1,sizeof(LVL1_DEF)); */
 
-//	  m_BlkEventh->run = evt->Run;
 
 	  debugger.Print("AMSR_Ntuple::GetEvent:event run nbeta %d %d %d %d\n",m_BlkEventh->eventno,m_BlkEventh->run,m_BlkBeta->nbeta,m_BlkParticle->npart);
-	  debugger.Print("AMSR_Ntuple::GetEvent:ntrdcl %d \n",trdcl->Ntrdcl);
 
 	}
 
@@ -707,7 +705,7 @@ void AMSR_Ntuple::SetTreeAddress()
    //
 
 
-   evt=0; beta=0; charge=0; part=0;
+/*   evt=0; beta=0; charge=0; part=0;
    tofcl=0; tofmccl=0; trcl=0; trclmc=0;
    trrh=0; trdclmc=0; trdcl=0; trtr=0; trdtrk=0;
    ecalsh=0; mcg=0; anti=0; antimc=0; lvl3=0; lvl1=0;
@@ -730,9 +728,9 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("anti", &anti);
    m_Tree->SetBranchAddress("antimc", &antimc);
    m_Tree->SetBranchAddress("lvl3", &lvl3);
-   m_Tree->SetBranchAddress("lvl102", &lvl1);
+   m_Tree->SetBranchAddress("lvl102", &lvl1); */
 
-  /*
+  
    m_Tree->SetBranchAddress("event02.Eventno", &m_BlkEventh->eventno);
    m_Tree->SetBranchAddress("event02.Run", &m_BlkEventh->run);
    m_Tree->SetBranchAddress("event02.RunType", &m_BlkEventh->runtype);
@@ -843,7 +841,7 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("tofcl.ErrorCoo[20][3]", m_BlkTofclust->Tofercoo);
 
 
-   m_Tree->SetBranchAddress("tofmccl.tofmc", &m_BlkTofmcclu->ntofmc);
+   m_Tree->SetBranchAddress("tofmccl.Ntofmc", &m_BlkTofmcclu->ntofmc);
    m_Tree->SetBranchAddress("tofmccl.Idsoft[200]", m_BlkTofmcclu->Tofmcidsoft);
    m_Tree->SetBranchAddress("tofmccl.Coo[200][3]", m_BlkTofmcclu->Tofmcxcoo);
    m_Tree->SetBranchAddress("tofmccl.TOF[200]", m_BlkTofmcclu->Tofmctof);
@@ -983,7 +981,7 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("lvl102.TOFPatt[2][4]", m_BlkLvl1->Lvl1tofpatt);
    m_Tree->SetBranchAddress("lvl102.TOFPatt1[2][4]", m_BlkLvl1->Lvl1tofpatt1);
    m_Tree->SetBranchAddress("lvl102.AntiPatt[2]", m_BlkLvl1->Lvl1antipatt);
-   m_Tree->SetBranchAddress("lvl102.ECALflag[2]", m_BlkLvl1->ecalflag);  */
+   m_Tree->SetBranchAddress("lvl102.ECALflag[2]", m_BlkLvl1->ecalflag);   
 
 
 /* These not written to Root file at the moment
