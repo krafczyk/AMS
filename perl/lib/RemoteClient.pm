@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.198 2003/07/24 10:56:30 alexei Exp $
+# $Id: RemoteClient.pm,v 1.199 2003/07/24 11:58:13 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3028,7 +3028,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
 
             $self->printJobParamFormatDST();
 
-            print "<tr><td><b><font color=\"green\">DST file wrtie mode</font></b>\n";
+            print "<tr><td><b><font color=\"green\">DST file write mode</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
@@ -4095,6 +4095,9 @@ print qq`
                $buf=~ s/$cn/$cn$ccc/;         
            }
        }
+       if ($self->{q}->param("ProductionQuery")) {
+          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
+        }
          if($i > 1){
             my $rid=1; 
             ($rid,$rndm1,$rndm2) = $self->getrndm($dataset);
