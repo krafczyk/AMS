@@ -337,8 +337,14 @@ void AMSEvent::_siamsinitrun(){
 _sitkinitrun();
 _sitofinitrun();
 _siantiinitrun();
+if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+_siecalinitrun();
+_sitrdinitrun();
+_sisrdinitrun();
+}
+else {
 _sictcinitrun();
-if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_siecalinitrun();
+}
 }
 
 
@@ -362,8 +368,14 @@ if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
 _retkinitrun();
 _retofinitrun();
 _reantiinitrun();
+if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+_reecalinitrun();
+_resrdinitrun();
+_retrdinitrun();
+}
+else{
 _rectcinitrun();
-if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_reecalinitrun();
+}
 _reaxinitrun();
 AMSUser::InitRun();
 }
@@ -372,8 +384,14 @@ AMSUser::InitRun();
 void AMSEvent::_siamsinitevent(){
  _sitofinitevent();
  _siantiinitevent();
+ if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+_siecalinitevent();
+_sitrdinitevent();
+_sisrdinitevent();
+}
+else{
  _sictcinitevent();
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_siecalinitevent();
+}
 }
 
 void AMSEvent::_reamsinitevent(){
@@ -384,8 +402,14 @@ void AMSEvent::_reamsinitevent(){
  _retriginitevent();
  _retofinitevent();
  _reantiinitevent();
+ if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+_reecalinitevent();
+_retrdinitevent();
+_resrdinitevent();
+}
+else{
  _rectcinitevent();
- if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_reecalinitevent();
+}
  _reaxinitevent();
 }
 
@@ -673,6 +697,10 @@ void AMSEvent::_siecalinitevent(){
   }
 }
 
+void AMSEvent::_sisrdinitevent(){
+}
+void AMSEvent::_sitrdinitevent(){
+}
 
 
 void AMSEvent::_sitofinitevent(){
@@ -774,6 +802,10 @@ void AMSEvent::_reecalinitevent(){
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
   }
+}
+void AMSEvent::_resrdinitevent(){
+}
+void AMSEvent::_retrdinitevent(){
 }
 //=====================================================================
 void AMSEvent::_reaxinitevent(){
@@ -1017,7 +1049,11 @@ void AMSEvent::event(){
     _siantievent(); 
     _sictcevent(); 
     _sitkevent(); 
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_siecalevent(); 
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+      _siecalevent(); 
+      _sitrdevent(); 
+      _sisrdevent(); 
+      }
     _sitrigevent(); 
     if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
   }
@@ -1052,8 +1088,14 @@ void AMSEvent::_reamsevent(){
   if(DAQCFFKEY.NoRecAtAll)return;
   _retofevent();
   _reantievent();
-  _rectcevent(); 
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_reecalevent();
+  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    _reecalevent();
+    _retrdevent();
+    _resrdevent();
+  }
+  else {
+    _rectcevent(); 
+  } 
 if(AMSJob::gethead()->isReconstruction() )_retrigevent();
   _retkevent(); 
   _reaxevent();
@@ -1391,6 +1433,20 @@ void AMSEvent::_reecalevent(){
 //
   AMSgObj::BookTimer.stop("REECALEVENT");
 }
+void AMSEvent::_retrdevent(){
+//
+  AMSgObj::BookTimer.start("RETRDEVENT");
+//
+//
+  AMSgObj::BookTimer.stop("RETRDEVENT");
+}
+void AMSEvent::_resrdevent(){
+//
+  AMSgObj::BookTimer.start("RESRDEVENT");
+//
+//
+  AMSgObj::BookTimer.stop("RESRDEVENT");
+}
 //========================================================================
 void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
@@ -1460,6 +1516,10 @@ void AMSEvent::_sictcinitrun(){
 
 void AMSEvent::_siecalinitrun(){
 }
+void AMSEvent::_sitrdinitrun(){
+}
+void AMSEvent::_sisrdinitrun(){
+}
 
 void AMSEvent::_retkinitrun(){
   // Warning if TRFITFFKEY.FastTracking is on...
@@ -1486,6 +1546,10 @@ void AMSEvent::_rectcinitrun(){
 }
 
 void AMSEvent::_reecalinitrun(){
+}
+void AMSEvent::_retrdinitrun(){
+}
+void AMSEvent::_resrdinitrun(){
 }
 
 void AMSEvent::_reaxinitrun(){
@@ -1536,6 +1600,10 @@ void AMSEvent:: _siantievent(){
   AMSgObj::BookTimer.stop("SIANTIEVENT");
 }
 //----------------------------------------------------------------
+void AMSEvent:: _sitrdevent(){
+}
+void AMSEvent:: _sisrdevent(){
+}
 void AMSEvent:: _siecalevent(){
   int stat;
   AMSgObj::BookTimer.start("SIECALEVENT");

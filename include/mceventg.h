@@ -86,6 +86,9 @@ AMSmceventg( const AMSIO & io);
 void init(integer);
 void run(integer ipart);
 void run();
+#ifdef __G4AMS__
+void runG4(integer ipart=0);
+#endif
 void InitSeed();
 void gener();
 number getcharge()const {return _charge;}

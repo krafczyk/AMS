@@ -74,6 +74,7 @@ const uinteger AMSJob::CCerenkov=32;
 const uinteger AMSJob::CMagnet=64;
 const uinteger AMSJob::CRICH=128;
 const uinteger AMSJob::CTRD=256;
+const uinteger AMSJob::CSRD=32;       // Same as cerenkov 
 const uinteger AMSJob::CAMS=512;
 const uinteger AMSJob::MTracker=1024;
 const uinteger AMSJob::MTOF=2048;
@@ -183,6 +184,7 @@ _sitofdata();
 _siantidata();
 _siecaldata();
 _sitrddata();
+_sisrddata();
 _sictcdata();
 _sitrigdata();
 }
@@ -592,6 +594,9 @@ void AMSJob::_siantidata(){
 void AMSJob::_sitrddata(){
 }
 
+void AMSJob::_sisrddata(){
+}
+
 void AMSJob:: _reamsdata(){
 _remfdata();
 _retkdata();
@@ -599,6 +604,7 @@ _retofdata();
 _reantidata();
 _reecaldata();
 _retrddata();
+_resrddata();
 _rectcdata();
 _reaxdata();
 _redaqdata();
@@ -948,6 +954,8 @@ FFKEY("CHARGEFIT",(float*)&CHARGEFITFFKEY,sizeof(CHARGEFITFFKEY_DEF)/sizeof(inte
 
 void AMSJob::_retrddata(){
 }
+void AMSJob::_resrddata(){
+}
 
 
 
@@ -1246,6 +1254,7 @@ void AMSJob::_siamsinitjob(){
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_siecalinitjob();
   _siantiinitjob();
   _sitrdinitjob();
+  _sisrdinitjob();
   _sictcinitjob();
   _sitriginitjob();
 }
@@ -1385,6 +1394,8 @@ void AMSJob::_sictcinitjob(){
 
 void AMSJob::_sitrdinitjob(){
 }
+void AMSJob::_sisrdinitjob(){
+}
 
 
 void AMSJob::_reamsinitjob(){
@@ -1396,9 +1407,14 @@ _redaqinitjob();
 _retkinitjob();
 _retofinitjob();
 _reantiinitjob();
-if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_reecalinitjob();
+if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+_reecalinitjob();
 _retrdinitjob();
+_resrdinitjob();
+}
+else{
 _rectcinitjob();
+}
 _reaxinitjob();
 
 AMSUser::InitJob();
@@ -1408,6 +1424,7 @@ if(isCalibration() & CTracker)_catkinitjob();
 if(isCalibration() & CTOF)_catofinitjob();
 if(isCalibration() & CAnti)_cantinitjob();
 if(isCalibration() & CTRD)_catrdinitjob();
+if(isCalibration() & CSRD)_casrdinitjob();
 if(isCalibration() & CCerenkov)_cactcinitjob();
 if(isCalibration() & CAMS)_caaxinitjob();
 }
@@ -1456,6 +1473,8 @@ void AMSJob::_catofinitjob(){
 }
 //---------------------------------------------------------------------
 void AMSJob::_catrdinitjob(){
+}
+void AMSJob::_casrdinitjob(){
 }
 
 void AMSJob::_cactcinitjob(){
@@ -1653,6 +1672,10 @@ if (AMSJob::gethead()->isMonitoring()) {
 }
 
 void AMSJob::_retrdinitjob(){
+AMSgObj::BookTimer.book("RETRDEVENT"); 
+}
+void AMSJob::_resrdinitjob(){
+AMSgObj::BookTimer.book("RESRDEVENT"); 
 }
 
 AMSgvolume * AMSJob::getgeom(AMSID id){
@@ -2185,6 +2208,8 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 }
 _trdendjob();
   cout <<"trdendjob finished"<<endl;
+_srdendjob();
+  cout <<"srdendjob finished"<<endl;
 _dbendjob();
   cout <<"dbendjob finished"<<endl;
 _axendjob();
@@ -2362,6 +2387,10 @@ void AMSJob::_ecalendjob(){
 }
 //-----------------------------------------------------------------------
 void AMSJob::_trdendjob(){
+
+}
+
+void AMSJob::_srdendjob(){
 
 }
 
