@@ -84,6 +84,6 @@ void init();
 AMSTimeID * gettimestructure();
 void printJ(ostream & stream);
 static integer debug;
-static void map(){JobMap.map(*_Head);}
+static void map(integer remap=0){remap==0?JobMap.map(*_Head):JobMap.remap();}
 };
 #endif

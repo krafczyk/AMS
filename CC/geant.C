@@ -159,8 +159,9 @@ extern "C" void uginit_(){
    AMSgmat::amsmat();
    AMSgvolume::amsgeom();
 #endif
-  AMSJob::gethead()->init();
   AMSJob::map();
+  AMSJob::gethead()->init();
+  AMSJob::map(1);
 #ifndef __BATCH__
 GDINIT();
 #endif
@@ -313,10 +314,8 @@ extern "C" void guout_(){
       UPool.erase(0);
       return;
    }
-#ifdef __AMSDEBUG__
       if(GCFLAG.IEVENT%GCFLAG.ITEST==0)
       AMSEvent::gethead()->printA(AMSEvent::debug);
-#endif
      integer trig;
      if(AMSJob::gethead()->gettriggerOr()){
       trig=0;
