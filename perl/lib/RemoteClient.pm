@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.34 2002/03/28 10:18:34 alexei Exp $
+# $Id: RemoteClient.pm,v 1.35 2002/03/28 12:59:43 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1544,7 +1544,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $avail and $fs->{available}>$minspace) {
                    $avail = $fs->{available};
-                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                   $ntdir = $fs->{disk}.$fs->{path};
                  }
                 } 
                if ($avail > $minspace) {
@@ -1552,7 +1552,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                 foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $minspace and $fs->{available} != $avail) {
                    $avail = $fs->{available};
-                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                   $ntdir = $fs->{disk}.$fs->{path};
                    goto DDTAB;
                  }
                }
@@ -1978,7 +1978,7 @@ print qq`
          if (not defined $ntdir) {
              $self->ErrorPlus("The NTuples output directory NOT DEFINED");
          } else {
-             if (not $ntdir =~ /\// or not $ntdir=~ /:/ ) {
+             if (not $ntdir =~ /\// or $ntdir=~ /:/ ) {
               $self->ErrorPlus("Invalid NTuples output directory : $ntdir");
             } else {
                 $self->{AMSDSTOutputDir}=$ntdir;
@@ -2982,21 +2982,31 @@ sub listCites {
 }
 sub listDisks {
     my $self = shift;
-    my $hostold=>undef;
+    my $lastupd=>undef; 
+    my $sql;
+    $sql="SELECT MAX(timestamp) FROM filesystems";
+    my $r4=$self->{sqlserver}->Query($sql);
+    foreach my $tnt (@{$r4}){
+              $lastupd = localtime($tnt->[0]);
+    }
+
      print "<b><h2><A Name = \"disks\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><b><font color=green> Disks and Filesystems </font></b>";
+     if (defined $lastupd) {
+      print "<font color=green size=3><b><i> (Checked : $lastupd) </i></b></font>";
+     }
      print "<p>\n";
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT host, disk, path, totalsize, occupied, available, status, timestamp 
-              FROM filesystems ORDER BY available DESC";
-     my $r3=$self->{sqlserver}->Query($sql);
               print "<td><b><font color=\"blue\" >Filesystem </font></b></td>";
               print "<td><b><font color=\"blue\" >GBytes </font></b></td>";
               print "<td><b><font color=\"blue\" >Used [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Free [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
      print_bar($bluebar,3);
+     $sql="SELECT host, disk, path, totalsize, occupied, available, status, timestamp 
+              FROM filesystems ORDER BY available DESC";
+     my $r3=$self->{sqlserver}->Query($sql);
      if(defined $r3->[0][0]){
       foreach my $dd (@{$r3}){
           my $fs     = $dd->[0].":".$dd->[1].$dd->[2];
