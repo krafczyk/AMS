@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.288 2005/02/04 12:58:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.289 2005/02/04 14:22:56 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5084,7 +5084,16 @@ sub getior{
 }
 sub getior2{
     my $ref=shift;
-    my $file ="/tmp/DumpIOR".".$ref->{DataMC}";
+    my $file=$ref->{AMSDataDir}."/prod.log/DumpIOR".".$ref->{DataMC}";
+    open(FILE,"<".$file) or return undef;
+            while (<FILE>){
+                if (/^IOR:/){
+                    close(FILE);
+                    return $_;
+                }
+            }
+            close(FILE);
+    $file ="/tmp/DumpIOR".".$ref->{DataMC}";
     open(FILE,"<".$file) or return undef;
             while (<FILE>){
                 if (/^IOR:/){
