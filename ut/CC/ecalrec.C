@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.61 2002/10/04 07:14:51 choutko Exp $
+//  $Id: ecalrec.C,v 1.62 2002/10/04 15:43:36 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -83,8 +83,8 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 	}
         ovfl[0]=0;
         ovfl[1]=0;
-        if(radc[0]>0.)if((ECADCMX[0]-(radc[0]+ph))<=0)ovfl[0]=1;// mark as ADC-Overflow
-        if(radc[1]>0.)if((ECADCMX[1]-(radc[1]+pl))<=0)ovfl[1]=1;// mark as ADC-Overflow
+        if(radc[0]>0.)if((ECADCMX[0]-(radc[0]+ph))<=1)ovfl[0]=1;// mark as ADC-Overflow
+        if(radc[1]>0.)if((ECADCMX[1]-(radc[1]+pl))<=1)ovfl[1]=1;// mark as ADC-Overflow
         if(radc[0]>0. && ovfl[0]==0 && radc[1]>0)ECREUNcalib::fill_2(isl,pmc,subc,radc);//<--- fill 
         ptr=ptr->next();  
       } // ---> end of RawEvent-hits loop in superlayer
@@ -249,7 +249,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adch)-pedh[k];// ped-subtraction
 	else radc=number(adch);//no ped-subtr.
         if(radc>=sigh[k]*ECALVarp::ecalvpar.daqthr(0)){// use only hits above DAQ-readout threshold
-	  adch=floor(radc*ECALDBc::scalef());//DAQ scaling
+	  adch=floor(radc*ECALDBc::scalef()+1/ECALDBc::scalef());//DAQ scaling
 	}
 	else{ adch=0;}
 // Low-gain channel:
@@ -269,7 +269,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adcl)-pedl[k];// ped-subtraction
 	else radc=number(adcl);//no ped-subtr.
         if(radc>=sigl[k]*ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
-	  adcl=floor(radc*ECALDBc::scalef());//DAQ scaling
+	  adcl=floor(radc*ECALDBc::scalef()+1/ECALDBc::scalef());//DAQ scaling
 	}
 	else{ adcl=0;}
 // <---------
@@ -306,7 +306,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adcd)-pedd;// ped-subtraction
 	else radc=number(adcd);//no ped-subtr.
         if(radc>=ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
-	  adcd=floor(radc*ECALDBc::scalef());//DAQ scaling
+	  adcd=floor(radc*ECALDBc::scalef()+1/ECALDBc::scalef());//DAQ scaling
 	}
 	else{ adcd=0;}
 //
@@ -499,8 +499,8 @@ void AMSEcalHit::build(int &stat){
       }
       ovfl[0]=0;
       ovfl[1]=0;
-      if(radc[0]+ph>=ECADCMX[0])ovfl[0]=1;// mark as ADC-Overflow
-      if(radc[1]+pl>=ECADCMX[1])ovfl[1]=1;// mark as ADC-Overflow
+      if(radc[0]+ph>=ECADCMX[0]-1)ovfl[0]=1;// mark as ADC-Overflow
+      if(radc[1]+pl>=ECADCMX[1]-1)ovfl[1]=1;// mark as ADC-Overflow
 // take decision which chain to use for energy calc.(Hi or Low):
       sta=0;
       fadc=0.;
