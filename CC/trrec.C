@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.177 2004/11/23 17:30:07 choutko Exp $
+//  $Id: trrec.C,v 1.178 2004/12/02 13:42:43 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3606,7 +3606,7 @@ integer AMSTrTrack::_TrSearcherFalseX(int icall){
 
 bool AMSTrTrack::_NoMoreTime(){
 static unsigned int count=0;
-if(! AMSCommonsI::remote() || (count++)%512==0 ){
+if( (count++)%512==0 ){
  return _TimeLimit>0? _CheckTime()>_TimeLimit: _CheckTime()>AMSFFKEY.CpuLimit;
 }
 else return false;

@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.12 2004/11/23 17:30:07 choutko Exp $
+//  $Id: uzstat.C,v 1.13 2004/12/02 13:42:44 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <uzstat.h>
@@ -124,11 +124,12 @@ if(!AMSCommonsI::remote()){
   count++;
 }
 else if((count++)%128==0){
-  clock_t clicks = clock();
-  ltime=( (float) clicks / CLOCKS_PER_SEC );
+// clock_t clicks = clock();
+//  ltime=( (float) clicks / CLOCKS_PER_SEC );
+ltime=etime_(ar);
 }
 
-if((count)%4095==0){
+if((count)%2048==0){
        ifstream fbin;
         fbin.open("/proc/self/where");
         if(fbin){
@@ -139,6 +140,8 @@ if((count)%4095==0){
           AMSCommonsI::setremote(true);
          }
          else{
+           if(AMSCommonsI::remote())cout <<"AMSTimeID::validate-I-Local Client Detected "<<endl;
+
            AMSCommonsI::setremote(false); 
         }
         }
