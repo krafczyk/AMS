@@ -2,136 +2,118 @@
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-AMSRoot.o: Debugger.h /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSRoot.o: /usr0/users/pyeh/root/v1.03/08/include/TROOT.h
-AMSRoot.o: /usr0/users/pyeh/root/v1.03/08/include/TTree.h
-AMSRoot.o: /usr0/users/pyeh/root/v1.03/08/include/TBrowser.h
-AMSRoot.o: /usr0/users/pyeh/root/v1.03/08/include/TClonesArray.h AMSRoot.h
-AMSRoot.o: AMSHistBrowser.h /usr0/users/pyeh/root/v1.03/08/include/TNamed.h
+AMSRoot.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSRoot.o: /pgm0/EventDisplay/root/include/TROOT.h
+AMSRoot.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSRoot.o: /pgm0/EventDisplay/root/include/TBrowser.h
+AMSRoot.o: /pgm0/EventDisplay/root/include/TClonesArray.h AMSRoot.h
+AMSRoot.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
 AMSRoot.o: AMSMaker.h AMSToFClusterReader.h AMSTrackReader.h
-AMSRoot.o: /usr0/users/pyeh/root/v1.03/08/include/TH1.h AMSSiHitReader.h
+AMSRoot.o: /pgm0/EventDisplay/root/include/TH1.h AMSSiHitReader.h
 AMSRoot.o: AMSCTCClusterReader.h AMSParticleReader.h AMSVirtualDisplay.h
-AMSMaker.o: Debugger.h /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSMaker.o: /usr0/users/pyeh/root/v1.03/08/include/TTree.h
-AMSMaker.o: /usr0/users/pyeh/root/v1.03/08/include/TList.h
-AMSMaker.o: /usr0/users/pyeh/root/v1.03/08/include/TClonesArray.h
-AMSMaker.o: /usr0/users/pyeh/root/v1.03/08/include/TBrowser.h AMSMaker.h
-AMSMaker.o: AMSRoot.h AMSHistBrowser.h
-AMSMaker.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h
-AMSColorManager.o: /usr0/users/pyeh/root/v1.03/08/include/TGXW.h
-AMSColorManager.o: /usr0/users/pyeh/root/v1.03/08/include/TCanvas.h
-AMSColorManager.o: /usr0/users/pyeh/root/v1.03/08/include/TButton.h
-AMSColorManager.o: AMSColorManager.h
-AMSColorManager.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h
-AMSGeometrySetter.o: /usr0/users/pyeh/root/v1.03/08/include/TNode.h
-AMSGeometrySetter.o: /usr0/users/pyeh/root/v1.03/08/include/TDialogCanvas.h
-AMSGeometrySetter.o: Debugger.h
-AMSGeometrySetter.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSGeometrySetter.o: TSwitch.h /usr0/users/pyeh/root/v1.03/08/include/TPad.h
-AMSGeometrySetter.o: TRadioButton.h
-AMSGeometrySetter.o: /usr0/users/pyeh/root/v1.03/08/include/TButton.h
-AMSGeometrySetter.o: /usr0/users/pyeh/root/v1.03/08/include/TText.h
+AMSMaker.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSMaker.o: /pgm0/EventDisplay/root/include/TTree.h
+AMSMaker.o: /pgm0/EventDisplay/root/include/TList.h
+AMSMaker.o: /pgm0/EventDisplay/root/include/TClonesArray.h
+AMSMaker.o: /pgm0/EventDisplay/root/include/TBrowser.h AMSMaker.h AMSRoot.h
+AMSMaker.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSColorManager.o: /pgm0/EventDisplay/root/include/TGXW.h
+AMSColorManager.o: /pgm0/EventDisplay/root/include/TCanvas.h
+AMSColorManager.o: /pgm0/EventDisplay/root/include/TButton.h
+AMSColorManager.o: AMSColorManager.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSGeometrySetter.o: /pgm0/EventDisplay/root/include/TNode.h
+AMSGeometrySetter.o: /pgm0/EventDisplay/root/include/TDialogCanvas.h
+AMSGeometrySetter.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSGeometrySetter.o: TSwitch.h /pgm0/EventDisplay/root/include/TPad.h
+AMSGeometrySetter.o: TRadioButton.h /pgm0/EventDisplay/root/include/TButton.h
+AMSGeometrySetter.o: /pgm0/EventDisplay/root/include/TText.h
 AMSGeometrySetter.o: AMSGeometrySetter.h
-AMSGeometrySetter.o: /usr0/users/pyeh/root/v1.03/08/include/TGeometry.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TROOT.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TMath.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TView.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TPad.h AMSDisplay.h
+AMSGeometrySetter.o: /pgm0/EventDisplay/root/include/TGeometry.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TROOT.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TMath.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TView.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TPad.h AMSDisplay.h
 AMS3DCluster.o: AMSVirtualDisplay.h AMSGeometrySetter.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TGeometry.h TSwitch.h
-AMS3DCluster.o: TRadioButton.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TButton.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TText.h AMSCanvas.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TCanvas.h
-AMS3DCluster.o: AMSColorManager.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h
-AMS3DCluster.o: AMS3DCluster.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TMarker3DBox.h
-AMS3DCluster.o: AMSRoot.h AMSHistBrowser.h AMSMaker.h Debugger.h
-AMS3DCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSToFCluster.o: Debugger.h /usr0/users/pyeh/root/v1.03/08/include/TObject.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TGeometry.h TSwitch.h
+AMS3DCluster.o: TRadioButton.h /pgm0/EventDisplay/root/include/TButton.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TText.h AMSCanvas.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TCanvas.h AMSColorManager.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TNamed.h AMS3DCluster.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
+AMS3DCluster.o: AMSHistBrowser.h AMSMaker.h Debugger.h
+AMS3DCluster.o: /pgm0/EventDisplay/root/include/TObject.h
+AMSToFCluster.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
 AMSToFCluster.o: AMSToFCluster.h AMS3DCluster.h
-AMSToFCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TMarker3DBox.h
-AMSToFCluster.o: AMSRoot.h AMSHistBrowser.h
-AMSToFCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h AMSMaker.h
-AMSToFCluster.o: AMSVirtualDisplay.h
-AMSToFClusterReader.o: Debugger.h
-AMSToFClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSToFClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TRandom.h
-AMSToFClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TClonesArray.h
-AMSToFClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TMCParticle.h
+AMSToFCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
+AMSToFCluster.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSToFCluster.o: AMSMaker.h AMSVirtualDisplay.h
+AMSToFClusterReader.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSToFClusterReader.o: /pgm0/EventDisplay/root/include/TRandom.h
+AMSToFClusterReader.o: /pgm0/EventDisplay/root/include/TClonesArray.h
+AMSToFClusterReader.o: /pgm0/EventDisplay/root/include/TMCParticle.h
 AMSToFClusterReader.o: AMSRoot.h AMSHistBrowser.h
-AMSToFClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h
-AMSToFClusterReader.o: AMSMaker.h AMSToFCluster.h AMS3DCluster.h
-AMSToFClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TMarker3DBox.h
+AMSToFClusterReader.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
+AMSToFClusterReader.o: AMSToFCluster.h AMS3DCluster.h
+AMSToFClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
 AMSToFClusterReader.o: AMSToFClusterReader.h
-AMSTrack.o: Debugger.h /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSTrack.o: AMSTrack.h THelix.h
-AMSTrack.o: /usr0/users/pyeh/root/v1.03/08/include/TPolyLine3D.h
-AMSTrack.o: /usr0/users/pyeh/root/v1.03/08/include/TRotMatrix.h
-AMSTrackReader.o: Debugger.h /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSTrackReader.o: /usr0/users/pyeh/root/v1.03/08/include/TClonesArray.h
-AMSTrackReader.o: /usr0/users/pyeh/root/v1.03/08/include/TMCParticle.h
-AMSTrackReader.o: AMSRoot.h AMSHistBrowser.h
-AMSTrackReader.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h AMSMaker.h
-AMSTrackReader.o: AMSTrackReader.h
-AMSTrackReader.o: /usr0/users/pyeh/root/v1.03/08/include/TH1.h AMSTrack.h
-AMSTrackReader.o: THelix.h
-AMSTrackReader.o: /usr0/users/pyeh/root/v1.03/08/include/TPolyLine3D.h
-AMSTrackReader.o: /usr0/users/pyeh/root/v1.03/08/include/TRotMatrix.h
-AMSSiHit.o: AMSSiHit.h /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSSiHit.o: AMS3DCluster.h
-AMSSiHit.o: /usr0/users/pyeh/root/v1.03/08/include/TMarker3DBox.h AMSRoot.h
-AMSSiHit.o: AMSHistBrowser.h /usr0/users/pyeh/root/v1.03/08/include/TNamed.h
-AMSSiHit.o: AMSMaker.h AMSVirtualDisplay.h Debugger.h
-AMSSiHitReader.o: Debugger.h /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSSiHitReader.o: /usr0/users/pyeh/root/v1.03/08/include/TRandom.h
-AMSSiHitReader.o: /usr0/users/pyeh/root/v1.03/08/include/TClonesArray.h
-AMSSiHitReader.o: /usr0/users/pyeh/root/v1.03/08/include/TMCParticle.h
-AMSSiHitReader.o: AMSRoot.h AMSHistBrowser.h
-AMSSiHitReader.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h AMSMaker.h
-AMSSiHitReader.o: AMSSiHit.h AMS3DCluster.h
-AMSSiHitReader.o: /usr0/users/pyeh/root/v1.03/08/include/TMarker3DBox.h
+AMSTrack.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h AMSTrack.h
+AMSTrack.o: THelix.h /pgm0/EventDisplay/root/include/TPolyLine3D.h
+AMSTrack.o: /pgm0/EventDisplay/root/include/TRotMatrix.h
+AMSTrackReader.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSTrackReader.o: /pgm0/EventDisplay/root/include/TClonesArray.h
+AMSTrackReader.o: /pgm0/EventDisplay/root/include/TMCParticle.h AMSRoot.h
+AMSTrackReader.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSTrackReader.o: AMSMaker.h AMSTrackReader.h
+AMSTrackReader.o: /pgm0/EventDisplay/root/include/TH1.h AMSTrack.h THelix.h
+AMSTrackReader.o: /pgm0/EventDisplay/root/include/TPolyLine3D.h
+AMSTrackReader.o: /pgm0/EventDisplay/root/include/TRotMatrix.h
+AMSSiHit.o: AMSSiHit.h /pgm0/EventDisplay/root/include/TObject.h
+AMSSiHit.o: AMS3DCluster.h /pgm0/EventDisplay/root/include/TMarker3DBox.h
+AMSSiHit.o: AMSRoot.h AMSHistBrowser.h
+AMSSiHit.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
+AMSSiHit.o: AMSVirtualDisplay.h Debugger.h
+AMSSiHitReader.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSSiHitReader.o: /pgm0/EventDisplay/root/include/TRandom.h
+AMSSiHitReader.o: /pgm0/EventDisplay/root/include/TClonesArray.h
+AMSSiHitReader.o: /pgm0/EventDisplay/root/include/TMCParticle.h AMSRoot.h
+AMSSiHitReader.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSSiHitReader.o: AMSMaker.h AMSSiHit.h AMS3DCluster.h
+AMSSiHitReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
 AMSSiHitReader.o: AMSSiHitReader.h
-AMSCTCCluster.o: Debugger.h /usr0/users/pyeh/root/v1.03/08/include/TObject.h
+AMSCTCCluster.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
 AMSCTCCluster.o: AMSCTCCluster.h AMS3DCluster.h
-AMSCTCCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TMarker3DBox.h
-AMSCTCCluster.o: AMSRoot.h AMSHistBrowser.h
-AMSCTCCluster.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h AMSMaker.h
-AMSCTCCluster.o: AMSVirtualDisplay.h
-AMSCTCClusterReader.o: Debugger.h
-AMSCTCClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSCTCClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TRandom.h
-AMSCTCClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TClonesArray.h
-AMSCTCClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TMCParticle.h
+AMSCTCCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
+AMSCTCCluster.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSCTCCluster.o: AMSMaker.h AMSVirtualDisplay.h
+AMSCTCClusterReader.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSCTCClusterReader.o: /pgm0/EventDisplay/root/include/TRandom.h
+AMSCTCClusterReader.o: /pgm0/EventDisplay/root/include/TClonesArray.h
+AMSCTCClusterReader.o: /pgm0/EventDisplay/root/include/TMCParticle.h
 AMSCTCClusterReader.o: AMSRoot.h AMSHistBrowser.h
-AMSCTCClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h
-AMSCTCClusterReader.o: AMSMaker.h AMSCTCCluster.h AMS3DCluster.h
-AMSCTCClusterReader.o: /usr0/users/pyeh/root/v1.03/08/include/TMarker3DBox.h
+AMSCTCClusterReader.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
+AMSCTCClusterReader.o: AMSCTCCluster.h AMS3DCluster.h
+AMSCTCClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
 AMSCTCClusterReader.o: AMSCTCClusterReader.h
-AMSParticle.o: Debugger.h /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSParticle.o: AMSRoot.h AMSHistBrowser.h
-AMSParticle.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h AMSMaker.h
-AMSParticle.o: AMSTrack.h THelix.h
-AMSParticle.o: /usr0/users/pyeh/root/v1.03/08/include/TPolyLine3D.h
-AMSParticle.o: /usr0/users/pyeh/root/v1.03/08/include/TRotMatrix.h
-AMSParticle.o: AMSParticle.h
-AMSParticle.o: /usr0/users/pyeh/root/v1.03/08/include/TClonesArray.h
-AMSParticleReader.o: Debugger.h
-AMSParticleReader.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSParticleReader.o: /usr0/users/pyeh/root/v1.03/08/include/TClonesArray.h
-AMSParticleReader.o: /usr0/users/pyeh/root/v1.03/08/include/TMCParticle.h
-AMSParticleReader.o: AMSRoot.h AMSHistBrowser.h
-AMSParticleReader.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h
-AMSParticleReader.o: AMSMaker.h AMSParticleReader.h AMSParticle.h
+AMSParticle.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h AMSRoot.h
+AMSParticle.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSParticle.o: AMSMaker.h AMSTrack.h THelix.h
+AMSParticle.o: /pgm0/EventDisplay/root/include/TPolyLine3D.h
+AMSParticle.o: /pgm0/EventDisplay/root/include/TRotMatrix.h AMSParticle.h
+AMSParticle.o: /pgm0/EventDisplay/root/include/TClonesArray.h
+AMSParticleReader.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSParticleReader.o: /pgm0/EventDisplay/root/include/TClonesArray.h
+AMSParticleReader.o: /pgm0/EventDisplay/root/include/TMCParticle.h AMSRoot.h
+AMSParticleReader.o: AMSHistBrowser.h
+AMSParticleReader.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
+AMSParticleReader.o: AMSParticleReader.h AMSParticle.h
 AMSVirtualDisplay.o: AMSVirtualDisplay.h
-AMSHistBrowser.o: /usr0/users/pyeh/root/v1.03/08/include/TBrowser.h AMSRoot.h
-AMSHistBrowser.o: AMSHistBrowser.h
-AMSHistBrowser.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h AMSMaker.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TROOT.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TMotifCanvas.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TControlBar.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TMenuBar.h
+AMSHistBrowser.o: /pgm0/EventDisplay/root/include/TBrowser.h AMSRoot.h
+AMSHistBrowser.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSHistBrowser.o: AMSMaker.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TROOT.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMotifCanvas.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TControlBar.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenuBar.h
 AMSCanvas.o: /usr/include/Xm/RowColumn.h /usr/include/Xm/Xm.h
 AMSCanvas.o: /usr/include/X11/Intrinsic.h /usr/include/X11/Xlib.h
 AMSCanvas.o: /usr/include/sys/types.h /usr/include/standards.h
@@ -148,53 +130,51 @@ AMSCanvas.o: /usr/include/X11/ICE/ICElib.h /usr/include/X11/ICE/ICE.h
 AMSCanvas.o: /usr/include/X11/Xatom.h /usr/include/Xm/XmStrDefs.h
 AMSCanvas.o: /usr/include/X11/StringDefs.h /usr/include/Xm/VirtKeys.h
 AMSCanvas.o: /usr/include/Xm/VendorS.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TMenuToggle.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenuToggle.h
 AMSCanvas.o: /usr/include/Xm/ToggleBG.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TContextMenu.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TMenu.h AMSRoot.h
-AMSCanvas.o: AMSHistBrowser.h /usr0/users/pyeh/root/v1.03/08/include/TNamed.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TContextMenu.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenu.h AMSRoot.h
+AMSCanvas.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
 AMSCanvas.o: AMSMaker.h AMSDisplay.h AMSVirtualDisplay.h AMSGeometrySetter.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TGeometry.h TSwitch.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TPad.h TRadioButton.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TButton.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TText.h AMSCanvas.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TCanvas.h
-AMSCanvas.o: AMSColorManager.h AMSCanvasImp.h Debugger.h
-AMSCanvas.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TROOT.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TButton.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TCanvas.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TView.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TArc.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TText.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TPaveLabel.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TPaveText.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TList.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TDiamond.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TNode.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TTUBE.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TMath.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/X3DBuffer.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/DllImport.h AMSDisplay.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TGeometry.h TSwitch.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TPad.h TRadioButton.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TButton.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TText.h AMSCanvas.h
+AMSCanvas.o: /pgm0/EventDisplay/root/include/TCanvas.h AMSColorManager.h
+AMSCanvas.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TROOT.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TButton.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TCanvas.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TView.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TArc.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TText.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPaveLabel.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPaveText.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TList.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TDiamond.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TNode.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TTUBE.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TMath.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/X3DBuffer.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/DllImport.h AMSDisplay.h
 AMSDisplay.o: AMSVirtualDisplay.h AMSGeometrySetter.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TGeometry.h TSwitch.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TPad.h TRadioButton.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TGeometry.h TSwitch.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TPad.h TRadioButton.h
 AMSDisplay.o: AMSCanvas.h AMSColorManager.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TNamed.h AMSRoot.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TNamed.h AMSRoot.h
 AMSDisplay.o: AMSHistBrowser.h AMSMaker.h AMSSiHitReader.h Debugger.h
-AMSDisplay.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-TRadioButton.o: /usr0/users/pyeh/root/v1.03/08/include/TCanvas.h
-TRadioButton.o: /usr0/users/pyeh/root/v1.03/08/include/TInterpreter.h
-TRadioButton.o: TRadioButton.h
-TRadioButton.o: /usr0/users/pyeh/root/v1.03/08/include/TButton.h
-TRadioButton.o: /usr0/users/pyeh/root/v1.03/08/include/TText.h Debugger.h
-TRadioButton.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
-TSwitch.o: /usr0/users/pyeh/root/v1.03/08/include/TCanvas.h
-TSwitch.o: /usr0/users/pyeh/root/v1.03/08/include/TMath.h TSwitch.h
-TSwitch.o: /usr0/users/pyeh/root/v1.03/08/include/TPad.h TRadioButton.h
-TSwitch.o: /usr0/users/pyeh/root/v1.03/08/include/TButton.h
-TSwitch.o: /usr0/users/pyeh/root/v1.03/08/include/TText.h Debugger.h
-TSwitch.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
+AMSDisplay.o: /pgm0/EventDisplay/root/include/TObject.h
+TRadioButton.o: /pgm0/EventDisplay/root/include/TCanvas.h
+TRadioButton.o: /pgm0/EventDisplay/root/include/TInterpreter.h TRadioButton.h
+TRadioButton.o: /pgm0/EventDisplay/root/include/TButton.h
+TRadioButton.o: /pgm0/EventDisplay/root/include/TText.h Debugger.h
+TRadioButton.o: /pgm0/EventDisplay/root/include/TObject.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TCanvas.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TMath.h TSwitch.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TPad.h TRadioButton.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TButton.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TText.h Debugger.h
+TSwitch.o: /pgm0/EventDisplay/root/include/TObject.h
 Debugger.o: /usr/include/stdio.h /usr/include/standards.h
 Debugger.o: /usr/include/sys/seek.h /usr/include/va_list.h
 Debugger.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
@@ -202,4 +182,4 @@ Debugger.o: /usr/include/sys/select.h /usr/include/getopt.h
 Debugger.o: /usr/include/sys/limits.h /usr/include/sys/machine/machlimits.h
 Debugger.o: /usr/include/sys/syslimits.h /usr/include/sys/machine/machtime.h
 Debugger.o: /usr/include/sys/rt_limits.h /usr/include/stdarg.h Debugger.h
-Debugger.o: /usr0/users/pyeh/root/v1.03/08/include/TObject.h
+Debugger.o: /pgm0/EventDisplay/root/include/TObject.h

@@ -51,6 +51,7 @@ integer AMSEvent::SRun=0;
 void AMSEvent::_init(){
   // check old run & 
   if(_run != SRun){
+   _validate();
    cout <<" AMS-I-New Run "<<_run<<endl;
    DAQEvent::initO(_run);
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
@@ -770,6 +771,12 @@ void AMSEvent::_retkinitrun(){
     "Wrong results will be produced if applied to normal particles."<<endl
     <<" "<<endl;
   }
+  for (int half=0;half<2;half++){
+    for(int side=0;side<2;side++){
+      cout <<"AMSEvent::_retkevent-I-"<<AMSTrIdCalib::CalcBadCh(half,side)<<
+      " bad channels found for half "<<half<<" and side "<<side<<endl;
+    }
+  }
 }
 
 
@@ -1207,9 +1214,11 @@ while(offspring){
   //          delete[] tmp;
 #endif
   if(offspring->validate(_time)){
+#ifdef __AMSDEBUG__
     cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" "<<offspring->getid()<<
       " validated. ("<<nb-sizeof(uinteger)<<" bytes ) CRC = "<<
       offspring->getCRC()<<endl;                                              
+#endif
    }
     else {
       cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated."<<endl;

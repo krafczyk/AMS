@@ -535,7 +535,7 @@ int DAQEvent::parser(char a[], char **& fname){
      break;
     }
   }
-  cout << " kl "<<kl<<endl;
+  //  cout << " kl "<<kl<<endl;
   {
   int coma=kl-1;
   for(int i=kl;i<strlen(a)+1;i++){

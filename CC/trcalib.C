@@ -482,6 +482,22 @@ void AMSTrIdCalib::_hist(){
 
 }
 
+integer AMSTrIdCalib::CalcBadCh(integer half, integer side){
+   int badch=0;
+     for(int i=0;i<AMSDBc::nlay();i++){
+       for(int j=0;j<AMSDBc::nlad(i+1);j++){
+        AMSTrIdSoft id(i+1,j+1,half,side,0);
+        if(id.dead())continue;
+        for(int m=0;m<AMSDBc::NStripsDrp(i+1,side);m++){
+         id.upd(m);
+         if(id.checkstatus(AMSDBc::BAD))badch++;  
+        }
+       }
+     }
+     return badch;
+}
+
+
 
 void AMSTrIdCalib::_calc(){
 #ifdef __AMSBADLIST__

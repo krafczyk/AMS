@@ -87,9 +87,9 @@ $(AMSLIB):     $(DICT) $(OBJS) $(AMSGLIB)
 		rm -f $(AMSLIB)
 # due to a bug in cxx/ld under osf3.xx, one cannot use cxx to generate
 # a shared library. One must use ld instead.
-		ld  -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved \
- -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o \
- -o $(AMSLIB)  $(OBJS) -lcxxstd -lcxx -lexc -lots -lc
+		cxx   -expect_unresolved \
+ -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o  \
+ -o $(AMSLIB)  $(ROOTLIBS) $(OBJS)  -lcxxstd -lcxx -lexc -lots -lc -lm $(ROOTLIBS)
 		chmod 555 $(AMSLIB)
 		@echo "$(AMSLIB) done with $(OBJS) linked in"
 
@@ -97,8 +97,8 @@ $(AMSGLIB):    $(DICTG) $(OBJSG)
 		rm -f $(AMSGLIB)
 # due to a bug in cxx/ld under osf3.xx, one cannot use cxx to generate
 # a shared library. One must use ld instead.
-		ld  -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved \
- -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o \
+		cxx  -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved \
+ -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o  \
  -o $(AMSGLIB)  $(OBJSG) -lcxxstd -lcxx -lexc -lots -lc
 		chmod 555 $(AMSGLIB)
 		@echo "$(AMSGLIB) done"

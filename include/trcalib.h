@@ -147,6 +147,7 @@ static time_t _CurTime;
 static uinteger _CurRun;
 
 public:
+static integer CalcBadCh(integer half, integer side);
 static uinteger getrun(){return _CurRun;}
 AMSTrIdCalib():AMSTrIdSoft(){};
 AMSTrIdCalib(const AMSTrIdSoft & o):AMSTrIdSoft(o){};
