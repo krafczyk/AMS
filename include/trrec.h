@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.73 2003/12/04 11:10:53 alcaraz Exp $
+//  $Id: trrec.h,v 1.74 2003/12/09 14:31:44 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -399,6 +399,7 @@ AMSTrTrack(number theta, number phi, AMSPoint point);
 void init( AMSTrRecHit * phit[]);
 static integer build(integer refit=0);
 static integer buildWeak(integer refit=0);
+static integer buildPathIntegral(integer refit=0);
 static integer buildFalseX(integer refit=0);
 static integer makeFalseTOFXHits();
 static integer buildFalseTOFX(integer refit=0);

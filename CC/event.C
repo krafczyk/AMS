@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.323 2003/12/02 16:35:44 alcaraz Exp $
+//  $Id: event.C,v 1.324 2003/12/09 14:31:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -968,6 +968,9 @@ void AMSEvent::_retkinitevent(){
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseTOFX",i),&AMSTrTrack::buildFalseTOFX,0));
 
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrack_PathIntegral",i),&AMSTrTrack::buildPathIntegral,0));
+
   ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSVtx",0),&AMSVtx::build,0));
 
@@ -1400,7 +1403,6 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
      break;
     }
   }
-
 //   cout <<" ptrd "<<hmul<<endl;
   Trigger2LVL1 * ptr12= dynamic_cast<Trigger2LVL1*>(ptr1);
   if(ptr12 && (ptr12->IsECHighEnergy() || ptr12->IsECEMagEnergy() || TRFITFFKEY.LowMargin || hmul  || veto)){
@@ -1410,6 +1412,10 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
    AMSTrTrack::setMargin(0);
   }
   integer itrk=1;
+
+
+   if(TRFITFFKEY.OldTracking && !veto){
+     //  Old Stuff
   
   // Default reconstruction: 4S + 4K or more
   if(TRFITFFKEY.FalseXTracking && !TRFITFFKEY.FastTracking)
@@ -1442,6 +1448,44 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
     if (itrk>0) cout << "FalseTOFX - Track found "<< itrk << endl;
 #endif
   }
+ }
+ else{
+  //
+  // New (JA) Stuff
+  //
+    // Default reconstruction: 4S + 4K or more
+  if(TRFITFFKEY.FalseXTracking && !TRFITFFKEY.FastTracking)
+    itrk = buildC("AMSTrTrackFalseX",TKDBc::nlay());
+  if(itrk>0)itrk=buildC("AMSTrTrack_PathIntegral",refit);
+  // Reconstruction with looser cuts on the K side
+  if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.WeakTracking ){
+    buildC("AMSTrClusterWeak",refit);
+    buildC("AMSTrRecHitWeak",refit);
+    itrk = buildC("AMSTrTrackWeak",refit);
+  }
+
+  if(TRFITFFKEY.FastTracking){
+    // Reconstruction of 4S + 3K
+    if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
+      itrk=buildC("AMSTrTrackFalseX",TKDBc::nlay()-3);
+      if(itrk>0)itrk=buildC("AMSTrTrack_PathIntegral",refit);
+#ifdef __AMSDEBUG__
+      if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
+#endif
+    }
+  }
+  // Reconstruction of 4S + TOF
+  int flag =    (itrk<=0 && TRFITFFKEY.FalseTOFXTracking)
+             || (TRFITFFKEY.FullReco && TRFITFFKEY.FalseTOFXTracking)
+             || TRFITFFKEY.ForceFalseTOFX;
+  if ( flag) {
+    itrk=buildC("AMSTrTrackFalseTOFX",refit);
+#ifdef __AMSDEBUG__
+    if (itrk>0) cout << "FalseTOFX - Track found "<< itrk << endl;
+#endif
+  }
+
+ }
   
   AMSgObj::BookTimer.stop("TrTrack");
 #ifdef __AMSDEBUG__

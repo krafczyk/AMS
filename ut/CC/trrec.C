@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.158 2003/12/04 11:10:50 alcaraz Exp $
+//  $Id: trrec.C,v 1.159 2003/12/09 14:31:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1233,7 +1233,105 @@ geant AMSTrTrack::_Time=0;
 geant AMSTrTrack::_TimeLimit=0;
 
 
+
 integer AMSTrTrack::build(integer refit){
+
+  {
+    int nrh=0;
+    for(int i=0;i<TKDBc::nlay();i++){
+     nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
+    }
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
+    AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+    TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
+//      cout <<" nrh "<<nrh<<" "<<ptr302->skip()<<" "<<ptr302->MainTrigger()<<endl;
+//      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
+      if(!ptr302 || ptr302->skip()){ //tempor
+       AMSEvent::gethead()->seterror();
+       return 0;
+      }
+    }
+  }
+
+  integer NTrackFound=-1;
+  // pattern recognition + fit
+  if(refit){
+    // Cleanup all track containers
+    int i;
+    for(i=0;;i++){
+      AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrTrack",i);
+      if(pctr)pctr->eraseC();
+      else break ;
+    }
+  } 
+  _RefitIsNeeded=0;
+  _Start();
+  // Add test here
+   
+  { 
+    int xs=0; 
+    for (int kk=0;kk<TKDBc::nlay();kk++){
+    AMSTrRecHit * phit=AMSTrRecHit::gethead(kk);
+    if(phit)xs++;
+  }
+    if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
+  }
+
+  for (pat=0;pat<TKDBc::npat();pat++){
+    if(!TKDBc::patallow(pat) && !_MarginPatternsNeeded)continue;
+    if(TKDBc::patallowFalseX(pat)){
+      int fp=TKDBc::patpoints(pat)-1;    
+      // Try to make StrLine Fit
+      integer first=TKDBc::patconf(pat,0)-1;
+      integer second=TKDBc::patconf(pat,fp)-1;
+      phit[0]=AMSTrRecHit::gethead(first);
+      while( phit[0]){
+       if(phit[0]->Good()){
+       phit[fp]=AMSTrRecHit::gethead(second);
+       while( phit[fp]){
+        if(phit[fp]->Good()){
+        par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
+        par[0][2]=sqrt(1+par[0][0]*par[0][0]);
+        par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
+        par[1][2]=sqrt(1+par[1][0]*par[1][0]);
+        if(NTrackFound<0)NTrackFound=0;
+        // Search for others
+        //  add try due to icc bug
+        try{
+        integer npfound=_TrSearcher(1);
+        if(npfound){
+           NTrackFound++;
+         if(TKDBc::patallow(pat)){
+            // we don't want three points any more
+            _MarginPatternsNeeded=0;
+         }
+         goto out;
+        }
+        }
+        catch (...){
+         throw;
+        }
+        }         
+        phit[fp]=phit[fp]->next();
+       }
+       }  
+out:
+       phit[0]=phit[0]->next();
+      }
+      
+    }
+  }
+return NTrackFound;
+}
+
+
+
+
+integer AMSTrTrack::buildPathIntegral(integer refit){
 
   {
     int nrh=0;

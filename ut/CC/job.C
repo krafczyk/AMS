@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.460 2003/12/04 11:10:50 alcaraz Exp $
+// $Id: job.C,v 1.461 2003/12/09 14:31:26 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1020,6 +1020,7 @@ TRFITFFKEY.MaxTrRecHitsPerLayer=50;
 TRFITFFKEY.LowMargin=0;
 TRFITFFKEY.OnlyGammaVtx=0;
 TRFITFFKEY.UseGeaneFitting=1;
+TRFITFFKEY.OldTracking=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }

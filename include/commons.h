@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.191 2003/11/07 17:35:22 alcaraz Exp $
+//  $Id: commons.h,v 1.192 2003/12/09 14:31:44 choutko Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -650,6 +650,7 @@ public:
   integer LowMargin;
   integer OnlyGammaVtx;
   integer UseGeaneFitting; // Use Geane(1) or Yale (0) fitting method
+  integer OldTracking;  //Use Old (VC) or new (JA) pattern recognition
 };
 //
 
