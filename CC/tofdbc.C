@@ -1823,7 +1823,7 @@ void TOFJobStat::outpmc(){
 
 
 geant TOFVarp::getmeantoftemp(int crate){
-
+geant tsum=0;
 switch (crate){
 case 1:
 return float(tftt.tofav[0])/10.;
@@ -1851,7 +1851,6 @@ return float(tftt.tofav[7])/10.;
 break;
 case 0:
 int i;
-geant tsum=0;
 for(i=0;i<8;i++){
  tsum+=tftt.tofav[i]/10.;
 }
