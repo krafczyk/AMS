@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.253 2004/03/10 15:00:25 alexei Exp $
+# $Id: RemoteClient.pm,v 1.254 2004/03/11 09:09:34 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -64,7 +64,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsList getOutputPath updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsList getOutputPath updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -5597,6 +5597,24 @@ sub listAll {
     htmlBottom();
 }
 
+sub listShort {
+    my $self = shift;
+    my $show = shift;
+    htmlTop();
+    $self->ht_init();
+    if ($show eq 'all') {
+     $self -> colorLegend();
+    }
+    
+    $self -> listProductionSetPeriods();
+    $self -> listStat();
+     $self -> listCites();
+      $self -> listMails();
+       $self -> listServers();
+        $self -> listDisks();
+    htmlBottom();
+}
+
 sub listMin {
     my $self = shift;
     my $show = shift;
@@ -5825,14 +5843,6 @@ sub listStat {
       if (defined $ret->[0][1]) {
        $lastupd=localtime($ret->[0][1]);
       }
-# last job timestamp
-#      $sql="SELECT MAX(Jobs.timestamp) FROM Jobs, Cites 
-#                 WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
-#      $ret=$self->{sqlserver}->Query($sql);
-#      if (defined $ret->[0][0]) {
-#       $lastupd=localtime($ret->[0][0]);
-#      }
-#
 
 # running (active jobs)
       $sql = "SELECT COUNT(jobs.jid), SUM(triggers) FROM Jobs, Cites WHERE 
@@ -6173,7 +6183,6 @@ sub listDisks {
               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               print "<td><b><font color=\"blue\" >Filesystem </font></b></td>";
               print "<td><b><font color=\"blue\" >GBytes </font></b></td>";
-              print "<td><b><font color=\"blue\" >Used [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >MC [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Free [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
@@ -6209,7 +6218,6 @@ sub listDisks {
           my $color=statusColor($status);
           print "<td><b> $fs </b></td>
                  <td align=middle><b> $size </td>
-                 <td align=middle><b> $used </td>
                  <td align=middle><b> $usedGBMC </td>
                  <td align=middle><b> $avail </b></td>
                  <td><font color=$color><b> $status </font></b></td>\n";
