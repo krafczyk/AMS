@@ -194,9 +194,8 @@ Below there is a description of a  ntuple.
 
 * I*4  *              * TRTRACK  * nhits(ntrtr)    // number of hits 
 * I*4  *              * TRTRACK  * phits(6,ntrtr)  // pointers to trrechit
-* R*4  *              * TRTRACK  * LocDbAver      // rel mom from testbeam
+* R*4  *              * TRTRACK  * LocDbAver(ntrtr) // rel mom from testbeam
 * I*4  *              * TRTRACK  * GeaneFitDone(ntrtr) // != 0 if done
-* R*4  *              * TRTRACK  * Dbase(2,ntrtr)      // chi2_after/Chi2_before; dp/p from database if any
 * I*4  *              * TRTRACK  * AdvancedFitDone(ntrtr) --------------
 * R*4  *              * TRTRACK  * Chi2StrLine(ntrtr) // chi2 sz fit
 * R*4  *              * TRTRACK  * Chi2Circle(ntrtr) // chi2 circular fit
@@ -366,7 +365,9 @@ Below there is a description of a  ntuple.
 14 - FalseX, x-coordinate built but not measured (Trck)  (status&8192  !=0)
 15 - FalseTOFX, x-coordinates from TOF (Trck)            (status&16384 !=0)
 16 - 4th tof plane was recovered using tracker           (status&32768 !=0)
-
+17 - LocalDB was used to align track                     (status&65536 !=0)
+18 - GlobalDB was used to align the track                (status&(65536*2)!=0)
+19 - ????
 
 **) AMS global system definition :
 GTOD
