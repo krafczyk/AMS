@@ -128,7 +128,7 @@ if(_create(btype) ){
 
 integer DAQEvent::_EventOK(){
 
-  const int tofidL = 0x1401;
+  const int tofidL = 0x1400;
   const int tofidR = 0x15C1;
 
   const int trkidL = 0x1680;

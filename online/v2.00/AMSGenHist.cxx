@@ -40,6 +40,8 @@ void AMSGenHist::_Fetch(){
     sprintf(text,"h%6d",ii);
       _fetched2[i]=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
       if(_fetched2[i]){
+        _fetched2[i]->SetXTitle("Bytes*2");
+        _fetched2[i]->SetFillColor(41);
       }
     }
 }
@@ -61,7 +63,6 @@ void AMSGenHist::ShowSet(Int_t Set){
 	gPad->SetLogy(gAMSDisplay->IsLogY());
 	gPad->SetLogz(gAMSDisplay->IsLogZ());
         if (_fetched2[i]) {
-          _fetched2[i]->SetFillColor(41);
           _fetched2[i]->Draw();
         }
 	gPadSave->cd();
