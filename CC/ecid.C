@@ -2,6 +2,7 @@
 using namespace ecalconst;
  integer AMSECIdSoft::_GetGeo[ecalconst::ECRT][ecalconst::ECPMSL][2];   // slayer,pmtno
  integer AMSECIdSoft::_GetHard[ecalconst::ECSLMX][ecalconst::ECPMSMX][2];     // crate, hchan
+ int16 AMSECIdSoft::_GetPix[4][2];
 
 AMSECIdSoft::AMSECIdSoft(int16 crate, int16 haddr, int16 channelh):_channelh(channelh),_crate(crate),_dead(0),_haddr(haddr){
 
@@ -27,52 +28,37 @@ _haddr=_GetHard[_sl][_pmtno][1];
 _channels2h();
 if(_crate<0)_dead=1;
 }
-
+//----------
 void AMSECIdSoft::_channelh2s(){
  if(_channelh==4){
    _channel=0;
  }
  else{
-  if(_pmtno%2==1){
-    switch (_channelh%4){
-     case 0:
-       _channel=2;
-       break;
-     case 1:
-       _channel=3;
-       break;
-     case 2:
-       _channel=1;
-       break;
-     case 3:
-       _channel=0;
-       break;
-  }
- }
- else{
-    switch (_channelh%4){
-     case 0:
-       _channel=3;
-       break;
-     case 1:
-       _channel=2;
-       break;
-     case 2:
-       _channel=0;
-       break;
-     case 3:
-       _channel=1;
-       break;
-  }
+   if(_pmtno%2==0)_channel=_GetPix[_channelh][1]-1;
+   else _channel=_GetPix[_channelh][0]-1;
  }
 }
+//----------
+void AMSECIdSoft::_channels2h(){//my(softw)->hw pixel_number conversion
+ if(_pmtno%2==0)_channelh=_GetPix[_channel][0]-1;
+ else _channelh=_GetPix[_channel][1]-1;
 }
-
-void AMSECIdSoft::_channels2h(){
- _channelh=-1;  //not yet implemented
-}
-
+//----------
+//----------
+//
 void AMSECIdSoft::inittable(){
+//
+// Pixel number conversion:
+//
+    _GetPix[0][0]=3;//hw=F(sw) for pm1
+    _GetPix[1][0]=4;
+    _GetPix[2][0]=2;
+    _GetPix[3][0]=1;
+    _GetPix[0][1]=_GetPix[1][0];//hw=F(sw) for pm2
+    _GetPix[1][1]=_GetPix[0][0];
+    _GetPix[2][1]=_GetPix[3][0];
+    _GetPix[3][1]=_GetPix[2][0];
+//
      for(int i=0;i<ECRT;i++){
        for( int j=0;j<ECPMSL;j++){
          for(int l=0;l<2;l++)_GetGeo[i][j][l]=-1;

@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.23 2002/09/04 09:11:12 choumilo Exp $
+//  $Id: trigger302.C,v 1.24 2002/10/01 15:53:40 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -120,7 +120,7 @@ void TriggerAuxLVL302::fillecal(){
 //
   AMSEcalRawEvent *ptr;
 //
-  for(int isl=0;isl<ECALDBc::slstruc(3);isl++){ // <-------------- super-layer loop
+  for(int isl=0;isl<AMSECIdSoft::ncrates();isl++){ // <-------------- crates loop
     ptr=(AMSEcalRawEvent*)AMSEvent::gethead()
                         ->getheadC("AMSEcalRawEvent",isl,0);
 //(for MC i use "daq-decoded" class AMSEcalRawEvent as input)  
@@ -389,8 +389,8 @@ void TriggerLVL302::init(){
      _ECgains[isl][ipm]=1;
    }
  }
- _ECadc2mev=2.35;
- _ECh2lrat=16;
+ _ECadc2mev=1.175;
+ _ECh2lrat=36;
  _ECpedsig=2;//max. Ped's sigma
  _ECpmdx=ECALDBc::rdcell(7);//transv.pitch(1.8cm)
  _ECpmx0=ECALDBc::gendim(5);//EC-center X-shift
@@ -1139,7 +1139,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
 	al=number(*(ptr+2))/ECALDBc::scalef();//DAQ-format-->ADC(don't need for real algor)
 	amp=0;
 	if(ah>0){//(some readout thresh. is assumed to be done on prev. stages of readout)
-	  if(ah<(number(ECADCMX)-5*_ECpedsig))amp=ah;// no ovfl
+	  if(ah<(number(ECADCMX)-3*_ECpedsig))amp=ah;// no ovfl
 	  else{
 	    if(al>0)amp=al*_ECh2lrat;
 	  }

@@ -2137,9 +2137,11 @@ for(int i=0;i<ECPMSMX;i++){
      _ADCMax[i][j][k][l]=0;
      _ADC2[i][j][k][l]=0;
     }
-     ECcalib::ecpmcal[j][i].getstat(k)=0;
+     ECPMPeds::pmpeds[j][i].sta(k,0)=0;
+     ECPMPeds::pmpeds[j][i].sta(k,1)=0;
      if(i==1 && j==5){
-     ECcalib::ecpmcal[j][i].getstat(k)=-1;
+       ECPMPeds::pmpeds[j][i].sta(k,0)|=AMSDBc::BAD;
+       ECPMPeds::pmpeds[j][i].sta(k,1)|=AMSDBc::BAD;
      }
    }
   }
@@ -2171,6 +2173,7 @@ for(int i=0;i<ECPMSMX;i++){
   for(int k=0;k<4;k++){
     for(int l=0;l<2;l++){
        ECPMPeds::pmpeds[j][i].ped(k,l)=4095;
+       ECPMPeds::pmpeds[j][i].sta(k,l)=0;
    }
      if(i==0 && j==0 && k==0 )cout <<" hi2lowr **** "<<ECcalib::ecpmcal[j][i].hi2lowr(k)<<" "<<ECcalib::ecpmcal[j][i].adc2mev()<<" "<<ECcalib::ecpmcal[j][i].an2dyr()<<endl;
      ECcalib::ecpmcal[j][i].hi2lowr(k)=36;
@@ -2242,7 +2245,7 @@ void AMSECIdCalib::getaverage(){
                 ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sig(id.getchannel(),g)=id.getADC2(g);
                 // update status
                 if(id.getADC(g)>4000){
-                 ECcalib::ecpmcal[id.getslay()][id.getpmtno()].getstat(id.getchannel())=-1;
+                 ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sta(id.getchannel(),g)|=AMSDBc::BAD;
                  bad++;
                 }                
               }
@@ -2253,7 +2256,7 @@ void AMSECIdCalib::getaverage(){
               }
              }
              else if(id.getped(g)<0){
-                 ECcalib::ecpmcal[id.getslay()][id.getpmtno()].getstat(id.getchannel())=-1;
+                 ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sta(id.getchannel(),g)|=AMSDBc::BAD;
                  bad++;
              }
             }
@@ -2324,7 +2327,7 @@ void AMSECIdCalib::getaverage(){
           ECCALIB.Ped=id.getADC(g);
           ECCALIB.ADCMax=id.getADCMax(g);
           ECCALIB.Sigma=id.getADC2(g);
-          ECCALIB.BadCh=ECcalib::ecpmcal[i][j].getstat(k)<0;
+          ECCALIB.BadCh=ECPMPeds::pmpeds[j][i].sta(k,g) & AMSDBc::BAD>0;
           HFNT(IOPA.ntuple);
          }
         }

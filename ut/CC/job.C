@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.417 2002/09/30 14:57:32 choutko Exp $
+// $Id: job.C,v 1.418 2002/10/01 15:53:39 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -561,7 +561,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.fast=0;       //(13) 0/1/2->off/on fast generation in mceventg.C(2-> EC requirement)
   TFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
   TFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
-  TFMCFFKEY.adsimpl=0;    //(16) not used now
+  TFMCFFKEY.adsimpl=0;    //(16) 1/0->use/not simple Anode-TovT simulation(not used now)
   TFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
   TFMCFFKEY.hfnoise=5.;   //(18) high freq. noise .......   
 FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -581,12 +581,35 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) spare
   ECMCFFKEY.mev2mev=32.5;   //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
-  ECMCFFKEY.mev2adc=0.44;   //(7) Emeas(MeV)->ADCch factor(MIP-m.p. -> 5th channel)
+  ECMCFFKEY.mev2adc=0.88;   //(7) Emeas(MeV)->ADCch factor(MIP-m.p. -> 5th channel)
   ECMCFFKEY.safext=0.;      //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
   ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)
   ECMCFFKEY.pmseres=0.8;    //(10)PM single-electron spectrum resolution
   ECMCFFKEY.mev2adcd=1.576; //(11)Dynode Emeas(MeV)->ADCch factor(MIP-m.p. -> 2nd channel)
-  ECMCFFKEY.an2dyr=10.;     //(12) Anode/dynode ratio
+  ECMCFFKEY.an2dyr=25.;     //(12) Anode/dynode ratio
+  ECMCFFKEY.pedh=150;       //(13)Ped-HiCh    
+  ECMCFFKEY.pedvh=30;       //(14)ch-to-ch variation(%)     
+  ECMCFFKEY.pedl=150;       //(15)Ped-LoCh    
+  ECMCFFKEY.pedvl=30;       //(16)ch-to-ch variations(%)
+  ECMCFFKEY.pedsh=0.55;     //(17)PedSig-HiCh     
+  ECMCFFKEY.pedsvh=30;      //(18)ch-to-ch variation(%)     
+  ECMCFFKEY.pedsl=0.55;     //(19)PedSig-LoCh    
+  ECMCFFKEY.pedsvl=30;      //(20)ch-to-ch variation(%)
+//     
+  ECMCFFKEY.generpeds=1;//(21)1/0->generate_def_PedS/read_them_from_DB
+// 
+  ECMCFFKEY.sec[0]=0;//(22) 
+  ECMCFFKEY.sec[1]=0;//(23)
+  ECMCFFKEY.min[0]=0;//(24)
+  ECMCFFKEY.min[1]=0;//(25)
+  ECMCFFKEY.hour[0]=0;//(26)
+  ECMCFFKEY.hour[1]=0;//(27)
+  ECMCFFKEY.day[0]=1;//(28)
+  ECMCFFKEY.day[1]=1;//(29)
+  ECMCFFKEY.mon[0]=0;//(30)
+  ECMCFFKEY.mon[1]=0;//(31)
+  ECMCFFKEY.year[0]=101;//(32)
+  ECMCFFKEY.year[1]=110;//(33)
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
@@ -602,11 +625,11 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.relogic[4]=0;    // (8) spare
 //
 // Run-time DAQ-thresholds(time dependent):
-  ECREFFKEY.thresh[0]=2.;     // (9)  Anode(High-chan) readout threshold(ADCch)
+  ECREFFKEY.thresh[0]=3.;     // (9)  Anode(High-chan) readout threshold(in sigmas)
   ECREFFKEY.thresh[1]=120.;   // (10) Anode(high,tot) "mip"-trig.thresh(mev tempor)
   ECREFFKEY.thresh[2]=500.;   // (11) ... 1st 3SL "em"-trig.thresh(mev tempor)
   ECREFFKEY.thresh[3]=3000.;  // (12) Anode(high,tot) min.Et-cut to be "HighEnergy"(mev tempor)
-  ECREFFKEY.thresh[4]=2.;     // (13) Low-chan. readout thershold(ADCch)
+  ECREFFKEY.thresh[4]=3.;     // (13) Low-chan. readout thershold(in sigmas)
   ECREFFKEY.thresh[5]=10000.; // (14) energy upp.limit for action of cut below (mev tempor)  
   ECREFFKEY.thresh[6]=3.5;    // (15) min Epeak/Ebase (add. to #11 for "electromagneticity")
   ECREFFKEY.thresh[7]=1.;     // (16) min Epeak/Efron .....................................
@@ -655,7 +678,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 //
 // REUN-Calibration  parameters:
 // RLGA/FIAT part:
-  ECCAFFKEY.cfvers=2;     // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
+  ECCAFFKEY.cfvers=4;     // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
   ECCAFFKEY.cafdir=0;     // (2) 0/1-> use official/private directory for calibr.files
   ECCAFFKEY.truse=1;      // (3) (1)/0-> use He4/proton tracks for calibration
   ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 
@@ -986,11 +1009,11 @@ void AMSJob::_retof2data(){
   TFREFFKEY.relogic[3]=0;//(11) 0/1-> use new/old parametrization for TOF integrators 
   TFREFFKEY.relogic[4]=0;//(12) spare RECO logic flag
 //
-  TFREFFKEY.daqthr[0]=30.;//(13)Fast discr. thresh(30mV) for fast/slow_TDC 
-  TFREFFKEY.daqthr[1]=100.;//(14)Fast discr. thresh(100mV) for FT-trigger (z>=1)  
-  TFREFFKEY.daqthr[2]=150.;//(15)thresh(mV) for discr. of "z>1"-trig  
+  TFREFFKEY.daqthr[0]=30.;//(13)Anode low discr.thresh(30mV) for fast/slow_TDC 
+  TFREFFKEY.daqthr[1]=100.;//(14)Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
+  TFREFFKEY.daqthr[2]=150.;//(15)Anode superhigh discr.thresh(mV) for  "z>2"-trig  
   TFREFFKEY.daqthr[3]=1.;//(16)H(L)-ADC-readout threshold in DAQ (in ADC-channels)    
-  TFREFFKEY.daqthr[4]=0.;//(17)spare
+  TFREFFKEY.daqthr[4]=1.;//(17)Thresh(pC) for anode-integrator
 //
   TFREFFKEY.cuts[0]=40.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
   TFREFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
@@ -1000,7 +1023,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[5]=40.;//(23) sTDC-delay wrt fTDC
   TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=8.;// (25) internal longit.coo matching cut ...Not used (spare)
-  TFREFFKEY.cuts[8]=0.;// (26) spare
+  TFREFFKEY.cuts[8]=50.;//(26) sTDC-delay wrt anodeTDC 
   TFREFFKEY.cuts[9]=0.;// (27) 
 //
   TFREFFKEY.ReadConstFiles=1;//(28)read const. from DB/RawFiles (0/1)
@@ -1055,7 +1078,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.dynflg=0; // (27)  not used now
   TFCAFFKEY.cfvers=3; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
-  TFCAFFKEY.mcainc=0;// (30) not used now
+  TFCAFFKEY.mcainc=0;// (30) =1->Anode-integrators calibration(MC only)(not used now)
   TFCAFFKEY.tofbetac=0.6;// (31) if nonzero->low beta cut (own TOF measurements !!!)
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -1655,6 +1678,14 @@ void AMSJob::_siecalinitjob(){
 // ===> Book histograms for MC :
 //
     EcalJobStat::bookhistmc();
+//
+// ===> Generate pedestals is requested, otherwise take them from DB
+  if(ECMCFFKEY.generpeds>0){
+    ECPMPeds::mcbuild();
+  }
+  else{
+    ECMCFFKEY.year[1]=ECMCFFKEY.year[0]-1;    
+  }
 }
 
 void AMSJob::_sirichinitjob(){
@@ -1959,7 +1990,9 @@ if(isRealData() && !(isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<=0
 //-------------------------
 // ===> create EC-SubCell peds/sigs ECcalib structure):
 //
-    ECPMPeds::build();
+//    if(isRealData){
+//      ECPMPeds::build();
+//    }
   }
 //-----------
   else{ // Constants will be taken from DB(TDV)

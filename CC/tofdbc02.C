@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.15 2002/09/04 09:11:12 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.16 2002/10/01 15:53:40 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -76,7 +76,7 @@ geant TOF2DBc::_plnstr[20]={
   geant TOF2DBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
   geant TOF2DBc::_shaptb=1.;      // MC shaper internal time binning (ns)
   geant TOF2DBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
-  geant TOF2DBc::_shctim=400.;    // MC max integration time(max.gate width)(ns)
+  geant TOF2DBc::_shctim=400.;    // MC max integration time(max.gate width)(ns) fot Anode TovT
   geant TOF2DBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!don't need now
   geant TOF2DBc::_strflu=1.5;     // Stretcher "end-mark" time fluctuations (ns)
   geant TOF2DBc::_tdcbin[4]={

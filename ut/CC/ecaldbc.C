@@ -1,6 +1,8 @@
-//  $Id: ecaldbc.C,v 1.37 2002/05/22 12:27:06 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.38 2002/10/01 15:53:39 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
+#include <cern.h>
+#include <extC.h>
 #include <math.h>
 #include <commons.h>
 #include <job.h>
@@ -271,6 +273,11 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
 //
 //input: isl->S-layer(0-...);pmc->PMCell(0-...);sc->SubCell(0-3)
 //output:pr->Proj(0-X,1-Y);pl->Plane(0-..);cell->0-...;ct/l/z-coord. in AMS.r.s
+//
+//  PmCells/SubCells(pixels) numbering:
+//                |0|1|
+// PM1(at -X/Y)>> ----- >>PM36(at +X/Y)
+//                |2|3|
 //
   void ECALDBc::getscinfoa(integer isl, integer pmc, integer sc,
          integer &pr, integer &pl, integer &cell, number &ct, number &cl, number &cz){
@@ -1356,14 +1363,16 @@ void ECALVarp::init(geant daqth[10], geant cuts[5]){
 }
 //==========================================================================
 //
-void ECPMPeds::build(){// create TOFBPeds-objects for each sc.bar
+void ECPMPeds::build(){// create ECPeds-objects for each cell
 //
   int i,isl,ipm,isc,cnum;
   integer sid,endflab(0);
   char fname[80];
   char name[80];
   geant pedh[4],sigh[4],pedl[4],sigl[4];
+  uinteger stah[4],stal[4];
   geant pmpedh[ECPMSL][4],pmsigh[ECPMSL][4],pmpedl[ECPMSL][4],pmsigl[ECPMSL][4];
+  uinteger pmstah[ECPMSL][4],pmstal[ECPMSL][4];
   integer slmx,pmmx;
   integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
@@ -1420,6 +1429,10 @@ void ECPMPeds::build(){// create TOFBPeds-objects for each sc.bar
         cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
         icfile >> pmsigh[cnum][isc];
       }
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        icfile >> pmstah[cnum][isc];
+      }
     }
   } 
 //
@@ -1434,6 +1447,10 @@ void ECPMPeds::build(){// create TOFBPeds-objects for each sc.bar
       for(ipm=0;ipm<pmmx;ipm++){  
         cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
         icfile >> pmsigl[cnum][isc];
+      }
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        icfile >> pmstal[cnum][isc];
       }
     }
   } 
@@ -1456,13 +1473,67 @@ void ECPMPeds::build(){// create TOFBPeds-objects for each sc.bar
     for(ipm=0;ipm<pmmx;ipm++){
       cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
       sid=(ipm+1)+100*(isl+1);
+      for(isc=0;isc<4;isc++)stah[isc]=pmstah[cnum][isc];
+      for(isc=0;isc<4;isc++)stal[isc]=pmstal[cnum][isc];
       for(isc=0;isc<4;isc++)pedh[isc]=pmpedh[cnum][isc];
       for(isc=0;isc<4;isc++)sigh[isc]=pmsigh[cnum][isc];
       for(isc=0;isc<4;isc++)pedl[isc]=pmpedl[cnum][isc];
       for(isc=0;isc<4;isc++)sigl[isc]=pmsigl[cnum][isc];
-      pmpeds[isl][ipm]=ECPMPeds(sid,pedh,sigh,pedl,sigl);
+      pmpeds[isl][ipm]=ECPMPeds(sid,stah,stal,pedh,sigh,pedl,sigl);
     }
   }
+}
+//==========================================================================
+//
+void ECPMPeds::mcbuild(){// create default ECPeds-objects(MC) for each cell
+//
+  int i,isl,ipm,isc,cnum;
+  integer sid,endflab(0);
+  geant pedh[4],sigh[4],pedl[4],sigl[4];
+  uinteger stah[4],stal[4];
+  geant pmpedh[ECPMSL][4],pmsigh[ECPMSL][4],pmpedl[ECPMSL][4],pmsigl[ECPMSL][4];
+  uinteger pmstah[ECPMSL][4],pmstal[ECPMSL][4];
+  integer slmx,pmmx;
+  integer scmx=4;// max.SubCells(pixels) in PM
+  slmx=ECSLMX;//max.S-layers
+  pmmx=ECPMSMX;//max.PM's in S-layer
+//
+// ---> create High(Low)Gain peds/sigmas/sta:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        pmpedh[cnum][isc]=ECMCFFKEY.pedh*(1+0.01*ECMCFFKEY.pedvh*rnormx());
+	if(pmpedh[cnum][isc]<1)pmpedh[cnum][isc]=1;
+        pmsigh[cnum][isc]=ECMCFFKEY.pedsh*(1+0.01*ECMCFFKEY.pedsvh*rnormx());
+	if(pmsigh[cnum][isc]<0.1)pmsigh[cnum][isc]=0.1;
+        pmstah[cnum][isc]=0;
+//
+        pmpedl[cnum][isc]=ECMCFFKEY.pedl*(1+0.01*ECMCFFKEY.pedvl*rnormx());
+	if(pmpedl[cnum][isc]<1)pmpedl[cnum][isc]=1;
+        pmsigl[cnum][isc]=ECMCFFKEY.pedsl*(1+0.01*ECMCFFKEY.pedsvl*rnormx());
+	if(pmsigl[cnum][isc]<0.1)pmsigl[cnum][isc]=0.1;
+        pmstal[cnum][isc]=0;
+      }
+    }
+  } 
+//---------------
+//
+  for(isl=0;isl<slmx;isl++){
+    for(ipm=0;ipm<pmmx;ipm++){
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      sid=(ipm+1)+100*(isl+1);
+      for(isc=0;isc<4;isc++)stah[isc]=pmstah[cnum][isc];
+      for(isc=0;isc<4;isc++)stal[isc]=pmstal[cnum][isc];
+      for(isc=0;isc<4;isc++)pedh[isc]=pmpedh[cnum][isc];
+      for(isc=0;isc<4;isc++)sigh[isc]=pmsigh[cnum][isc];
+      for(isc=0;isc<4;isc++)pedl[isc]=pmpedl[cnum][isc];
+      for(isc=0;isc<4;isc++)sigl[isc]=pmsigl[cnum][isc];
+      pmpeds[isl][ipm]=ECPMPeds(sid,stah,stal,pedh,sigh,pedl,sigl);
+    }
+  }
+  cout<<"ECPMPeds::MCbuild: Default peds/sigmas are created !"<<endl; 
 }
 //
 //==========================================================================

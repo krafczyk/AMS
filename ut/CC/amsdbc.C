@@ -1,4 +1,4 @@
-//  $Id: amsdbc.C,v 1.42 2001/08/10 12:59:38 choutko Exp $
+//  $Id: amsdbc.C,v 1.43 2002/10/01 15:53:38 choumilo Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
@@ -35,6 +35,7 @@ const integer AMSDBc::LEAK         =16384*2*2*2*2*2*2*2*2*2*2;
 const integer AMSDBc::CATLEAK      =16384*2*2*2*2*2*2*2*2*2*2*2;
 const integer AMSDBc::JUNK         =16384*2*2*2*2*2*2*2*2*2*2*2*2;
 const integer AMSDBc::ECALTRACK    =16384*2*2*2*2*2*2*2*2*2*2*2*2*2;
+const integer AMSDBc::LOWGCHUSED   =16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;
