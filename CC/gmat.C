@@ -85,10 +85,14 @@ void AMSgtmed::_init(){
    GSTPAR(_itmed,"BIRK2",_birks[1]);
    GSTPAR(_itmed,"BIRK3",_birks[2]);
   }
+  if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>1){
+   GSTPAR(_itmed,"CUTGAM",1.01e-6);
+  }
   if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]!=0){
-   GSTPAR(_itmed,"STRA",1);
-   GSTPAR(_itmed,"CUTGAM",4e-6);
-   if(IsSensitive())GSTPAR(_itmed,"CUTELE",60.e-6);
+   if(IsSensitive()){
+    GSTPAR(_itmed,"CUTELE",2.e-6);
+    GSTPAR(_itmed,"STRA",1);
+   }
   }
 }      
 void AMSgtmed::setubuf(int nwbuf,geant ubuf[]){

@@ -3,6 +3,7 @@ Mopt      // makefile to gmake geant batch
 Mgxint    // makefile to gmake geant interactive  g3
 Moptg4    // makefile to gmake g4 batch
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
+          // setenv O4 1   super-opt option (alpha only)
           // setenv AMSWD to some tmp dir is  recommended
 Moptg4i    // makefile to gmake geant interactive  g4
 

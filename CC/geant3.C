@@ -33,17 +33,15 @@ extern "C" void gustep_(){
 // TRD here
 //
  AMSgObj::BookTimer.start("TrdRadiationGen");
-  if(TRDMCFFKEY.mode <2) {
+  if(TRDMCFFKEY.mode <3) {
     //saveliev
     simtrd_(TRDMCFFKEY.g3trd);
+    trphoton_(TRDMCFFKEY.g3trd);
+    simde_(TRDMCFFKEY.g3trd);
   }
   else{
     // garibyan
    
-  }
-  if(TRDMCFFKEY.mode==0){
-   trphoton_(TRDMCFFKEY.g3trd);
-   simde_(TRDMCFFKEY.g3trd);
   }
  AMSgObj::BookTimer.stop("TrdRadiationGen");
 
