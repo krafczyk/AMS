@@ -82,7 +82,9 @@ static number *  _swxyRl[maxlay][2];   // integral of strip size
 
 static void init();
 };
+namespace trid{
 const integer ms=4000;
+}
 class AMSTrIdSoft{
 protected:
 integer _dead;    // dead   if 1  ; alive otherwise
@@ -106,13 +108,13 @@ static char *   _TRM[2];
 static char *   _TCm;
 static uinteger _CrateNo[ncrt];
 static geant laser[maxlay][2];
-static integer idsoft2linear[ms];
+static integer idsoft2linear[trid::ms];
 static integer *status;
 static geant *peds;
 static geant *gains;
 static geant *sigmas;
 static geant *sigmaraws;
-static geant cmnnoise[10][ms];
+static geant cmnnoise[10][trid::ms];
 static geant *indnoise;
 static uinteger * rhomatrix;
 static integer _numel;

@@ -6,6 +6,7 @@
 #include <commons.h>
 #include <amsstl.h>
 #include <stdio.h>
+using trid::ms;
 AMSID AMSTrIdGeom::crgid() const{
          static char name[5];
          static ostrstream ost(name,sizeof(name));

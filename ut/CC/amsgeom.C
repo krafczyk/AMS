@@ -2700,7 +2700,65 @@ void ecalgeom02(AMSgvolume & mother){
   cout<<"AMSGEOM: ECAL-geometry done!"<<endl;
 }
 //------------------------------------------------------------
+#include <srddbc.h>
 void srdgeom02(AMSgvolume & mother){
+using srdconst::maxo;
+using srdconst::SRDROTMATRIXNO;
+   SRDDBc::read();
+
+geant par[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number inrm[3][3];
+char name[5];
+geant coo[3]={0.,0.,0.};
+integer gid(0);
+uinteger rgid(0);
+uinteger status;
+integer nrot=SRDROTMATRIXNO; 
+AMSNode * cur;
+AMSNode * dau;
+AMSNode * oct[maxo];
+ ostrstream ost(name,sizeof(name));
+int i;
+for ( i=0;i<SRDDBc::VolumesNo();i++){
+ ost.seekp(0);  
+ ost << "SRD"<<i<<ends;
+ SRDDBc::GetVolume(i,status,coo,nrm,rgid);
+ gid=i+1;
+ int ip;
+ for(ip=0;ip<3;ip++)par[ip]=SRDDBc::VolumeDimensions(i,ip);
+       oct[i]=mother.add(new AMSgvolume(SRDDBc::VolumeMedia(i),
+       nrot++,name,"BOX",par,3,coo,nrm, "ONLY",1,gid,1));
+}
+
+for(i=0;i<SRDDBc::XtallColNo();i++){
+ for(int j=0;j<SRDDBc::XtallRowNo();j++){
+   ost.seekp(0);  
+   ost << "SRDX"<<ends;
+   SRDDBc::GetXtall(i,j,status,coo,nrm,rgid);
+   for(int ip=0;ip<3;ip++)par[ip]=SRDDBc::XtallDimensions(i,j,ip);
+   gid=j+SRDDBc::XtallRowNo()*i+1;
+   oct[0]->add(new AMSgvolume(SRDDBc::XtallMedia(),
+      0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0?1:-1,gid,1));    
+ }
+}
+
+
+for(i=0;i<SRDDBc::PMTColNo();i++){
+ for(int j=0;j<SRDDBc::PMTRowNo();j++){
+   ost.seekp(0);  
+   ost << "SRDP"<<ends;
+   SRDDBc::GetPMT(i,j,status,coo,nrm,rgid);
+   for(int ip=0;ip<3;ip++)par[ip]=SRDDBc::PMTDimensions(i,j,ip);
+   gid=j+SRDDBc::PMTRowNo()*i+1;
+//   cout <<i<<" "<<j<<" "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<
+//   " "<<par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
+   oct[2]->add(new AMSgvolume(SRDDBc::PMTMedia(),
+      0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0?1:-1,gid,1));    
+ }
+}
+cout <<"amsgeom::srdgeom02-I-SRDGeometryDone"<<endl;
+
 }
 
 void richgeom02(AMSgvolume & mother)

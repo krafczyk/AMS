@@ -10,7 +10,7 @@ const int NWPAW=1000000;
 struct PAWC_DEF{
 float q[NWPAW];
 };
-const int NWGEAN=5000000;
+const int NWGEAN=7000000;
 struct GCBANK_DEF{
 float q[NWGEAN];
 };

@@ -343,6 +343,17 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
 
 }
 
+// SRD Materials - almost certainly wrong
+{
+  // Wave length shifter -pure scintillator ?
+
+   // Xtall (YAlO3)
+  geant z[]={39,13,8};
+  geant a[]={88.9,27.,16.};
+  geant w[]={1,1,3};
+  mat.add (new AMSgmat("YAlO3",a,z,w,3,5.55));
+
+}
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPMATE(0);
 #endif
@@ -429,7 +440,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
   tmed.add (new AMSgtmed("RICH RAD","RICH_AEROGEL",0));   //32
   tmed.add (new AMSgtmed("RICH MIRRORS","RICH_MIRRORS",0));//33
   tmed.add (new AMSgtmed("RICH WALLS","RICH_WALLS",0)); //34
-  tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",0));   //35
+  tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",1));   //35
 }
 //---------------
 //  ECAL media
@@ -459,6 +470,14 @@ tmed.add (new AMSgtmed("TRDCapton","MYLAR",0));
 tmed.add (new AMSgtmed("TRDRadiator","TRDRadiator",1));
 
 
+
+}
+
+{
+  //SRD Media
+tmed.add (new AMSgtmed("SRDWLS","SCINT",1));
+tmed.add (new AMSgtmed("SRDXtall","YAlO3",1));
+tmed.add (new AMSgtmed("SRDPMT","PMT_WINDOW",1));
 
 }
 

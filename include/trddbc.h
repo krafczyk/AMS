@@ -120,7 +120,7 @@ public:
    // Public function to get Quantities
    static uinteger   TRDOctagonNo(){return _TRDOctagonNo;}
    static uinteger   PrimaryOctagonNo(){return _PrimaryOctagonNo;}
-   static integer   GetPrimaryOctagon(uinteger oct){return oct<OctagonNo()?_PrimaryOctagon[oct]:-1;}
+   static integer   GetPrimaryOctagon(uinteger oct){return oct<OctagonNo()?integer(_PrimaryOctagon[oct]):-1;}
    static uinteger   NoTRDOctagons(uinteger oct){return oct<TRDOctagonNo()?_NoTRDOctagons[oct]:0;}
    static uinteger   OctagonNo(){return _OctagonNo;}
    static  uinteger  LayersNo(uinteger toct){return toct<TRDOctagonNo()?_LayersNo[toct]:0;}

@@ -1,5 +1,7 @@
 #include <geant4.h>
 #include <job.h>
+#include <event.h>
+#include <trrec.h>
 #include <g4physics.h>
 #include "G4FieldManager.hh"
 #include "G4ChordFinder.hh"
@@ -15,7 +17,6 @@
 #include "G4ThreeVector.hh"
 #include "G4Event.hh"
 #include "G4PVPlacement.hh"
-
 
 void g4ams::G4INIT(){
  
@@ -132,7 +133,11 @@ _particleGun[_cpart].SetParticlePosition(G4ThreeVector(Pos[0]*cm,Pos[1]*cm,Pos[2
 
 void AMSG4GeneratorInterface::GeneratePrimaries(G4Event* anEvent)
 {
-  for(G4int ipart=0;ipart<_cpart;ipart++)_particleGun[ipart].GeneratePrimaryVertex(anEvent);
+  cout <<"GeneratePrimar"<<endl;
+  for(G4int ipart=0;ipart<_cpart;ipart++){
+     _particleGun[ipart].GeneratePrimaryVertex(anEvent);
+     cout <<_cpart<<endl;
+  }
 }
 
 
@@ -141,13 +146,183 @@ delete[] _particleGun;
 }
 
 
-void  AMSG4EventAction::BeginOfEventAction(const G4Event*){
+void  AMSG4EventAction::BeginOfEventAction(const G4Event* G4Event){
+
+static integer event=0;
 
 AMSJob::gethead()->getg4generator()->Reset();
-//gukine_();
 
+
+// create new event & initialize it
+  if(AMSJob::gethead()->isSimulation()){
+    AMSgObj::BookTimer.start("GEANTTRACKING");
+   if(IOPA.mode !=1 ){
+    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+    new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
+    for(integer i=0;i<CCFFKEY.npat;i++){
+    AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
+    if(genp){
+     AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+     genp->runG4(GCKINE.ikine);
+    }
+    }
+   }
+   else {
+    AMSIO io;
+    if(io.read()){
+     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+     new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),io.getnsec(),
+     io.getpolephi(),io.getstheta(),io.getsphi(),io.getveltheta(),
+     io.getvelphi(),io.getrad(),io.getyaw(),io.getpitch(),io.getroll(),io.getangvel())));
+     AMSmceventg* genp=new AMSmceventg(io);
+     if(genp){
+      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+      genp->runG4();
+      //genp->_printEl(cout);
+     }
+    }
+    else{
+     GCFLAG.IEORUN=1;
+     GCFLAG.IEOTRI=1;
+     return;
+    }   
+   }
+  }
+  else {
+    //
+    // read daq    
+    //
+    DAQEvent * pdaq=0;
+    for(;;){
+      pdaq = new DAQEvent();
+      if(!(pdaq->read()))break;
+      AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+      new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
+      pdaq->runtype(),pdaq->time(),pdaq->usec())));
+//      pdaq->runtype(),tm,pdaq->usec()))); // tempor introduced to read PC-made files
+//<------      
+      AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
+      if(GCFLAG.IEORUN==2){
+      // if production 
+      // try to update the badrun list
+         if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
+           char fname[256];
+           char * logdir = getenv("ProductionLogDirLocal");
+           if(logdir){
+            strcpy(fname,logdir);
+           }
+           else {
+             cerr<<"gukine-E-NoProductionLogDirLocalFound"<<endl;
+             strcpy(fname,"/Offline/local/logs");
+           }
+           strcat(fname,"/BadRunsList");
+           ofstream ftxt;
+           ftxt.open(fname,ios::app);
+           if(ftxt){
+            ftxt <<pdaq->runno()<<" "<<pdaq->eventno()<<endl;
+            ftxt.close();
+           }
+           else{
+            cerr<<"gukine-S-CouldNotOPenFile "<<fname<<endl;
+            exit(1);
+           }
+           
+         }
+        pdaq->SetEOFIn();    
+        GCFLAG.IEORUN=-2;
+      }
+      else if (GCFLAG.IEORUN==-2){
+        GCFLAG.IEORUN=0;
+      //  AMSJob::gethead()->uhend();
+      //  AMSJob::gethead()->uhinit(pdaq->runno(),pdaq->eventno());
+      }
+      EndOfEventAction(G4Event);
+      if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;
+      GCFLAG.IEVENT++;
+    }
+     GCFLAG.IEORUN=1;
+     GCFLAG.IEOTRI=1;
+     return; 
+  }   
 }
+
+
+
 void  AMSG4EventAction::EndOfEventAction(const G4Event*){
 
-GCFLAG.IEVENT++;
+   if(AMSJob::gethead()->isSimulation())
+   AMSgObj::BookTimer.stop("GEANTTRACKING");
+
+   try{
+          if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
+   }
+   catch (AMSuPoolError e){
+     cerr << e.getmessage()<<endl;
+     AMSEvent::gethead()->Recovery();
+      return;
+   }
+   catch (AMSaPoolError e){
+     cerr << e.getmessage()<<endl;
+     AMSEvent::gethead()->Recovery();
+      return;
+   }
+   catch (AMSTrTrackError e){
+     cerr << e.getmessage()<<endl;
+     cerr <<"Event dump follows"<<endl;
+     AMSEvent::gethead()->_printEl(cerr);
+     UPool.Release(0);
+     AMSEvent::gethead()->remove();
+     UPool.Release(1);
+     AMSEvent::sethead(0);
+      UPool.erase(0);
+      return;
+   }
+      if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
+         GCFLAG.IEVENT==GCFLAG.NEVENT)
+      AMSEvent::gethead()->printA(AMSEvent::debug);
+     integer trig;
+     if(AMSJob::gethead()->gettriggerOr()){
+      trig=0;
+     integer ntrig=AMSJob::gethead()->gettriggerN();
+       for(int n=0;n<ntrig;n++){
+        for(int i=0; ;i++){
+         AMSContainer *p=AMSEvent::gethead()->
+         getC(AMSJob::gethead()->gettriggerC(n),i);
+         if(p)trig+=p->getnelem();
+         else break;
+        }
+       }
+     }
+     else{
+      trig=1;
+     integer ntrig=AMSJob::gethead()->gettriggerN();
+       for(int n=0;n<ntrig;n++){
+        integer trigl=0;
+        for(int i=0; ;i++){
+         AMSContainer *p=AMSEvent::gethead()->
+         getC(AMSJob::gethead()->gettriggerC(n),i);
+         if(p)trigl+=p->getnelem();
+         else break;
+        }
+        if(trigl==0)trig=0;
+       }
+     }
+// try to manipulate the conditions for writing....
+   if(trig ){ 
+     AMSEvent::gethead()->copy();
+   }
+     AMSEvent::gethead()->write(trig);
+
+     UPool.Release(0);
+   AMSEvent::gethead()->remove();
+     UPool.Release(1);
+   AMSEvent::sethead(0);
+   UPool.erase(2000000);
+
+   GCFLAG.IEVENT++;
+   if(GCFLAG.IEVENT==GCFLAG.NEVENT){
+    GCFLAG.IEOTRI=1;
+    GCFLAG.IEORUN=1;
+   }
+   if(GCFLAG.IEOTRI)G4RunManager::GetRunManager()->AbortRun();
 }

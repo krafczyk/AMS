@@ -226,8 +226,8 @@
 ../bin/Linux-g++/gmat.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
 ../bin/Linux-g++/gmat.o: /usr/include/stdio_lim.h ../include/hbook.h
 ../bin/Linux-g++/gmat.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/gmat.o: ../include/amsdbc.h ../include/snode.h
-../bin/Linux-g++/gmat.o: ../include/upool.h ../include/amsgobj.h
+../bin/Linux-g++/gmat.o: ../include/amsdbc.h ../include/amsgobj.h
+../bin/Linux-g++/gmat.o: ../include/snode.h ../include/upool.h
 ../bin/Linux-g++/gmat.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/gmat.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/gmat.o: /usr/include/local_lim.h
@@ -310,7 +310,8 @@
 ../bin/Linux-g++/amsgeom.o: ../include/timeid.h ../include/astring.h
 ../bin/Linux-g++/amsgeom.o: ../include/status.h ../include/ctcdbc.h
 ../bin/Linux-g++/amsgeom.o: ../include/antidbc.h ../include/ecaldbc.h
-../bin/Linux-g++/amsgeom.o: ../include/tkdbc.h
+../bin/Linux-g++/amsgeom.o: ../include/tkdbc.h ../include/trddbc.h
+../bin/Linux-g++/amsgeom.o: ../include/srddbc.h
 ../bin/Linux-g++/geant.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/Linux-g++/geant.o: /usr/include/features.h
 ../bin/Linux-g++/geant.o: /usr/include/sys/cdefs.h
@@ -444,6 +445,15 @@
 ../bin/Linux-g++/geant4.o: /usr/include/posix2_lim.h
 ../bin/Linux-g++/geant4.o: ../include/timeid.h ../include/astring.h
 ../bin/Linux-g++/geant4.o: ../include/commons.h ../include/status.h
+../bin/Linux-g++/geant4.o: ../include/event.h /usr/include/link.h
+../bin/Linux-g++/geant4.o: /usr/include/elf.h /usr/include/elfclass.h
+../bin/Linux-g++/geant4.o: ../include/cont.h /usr/include/sys/time.h
+../bin/Linux-g++/geant4.o: /usr/include/timebits.h
+../bin/Linux-g++/geant4.o: ../include/mceventg.h ../include/io.h
+../bin/Linux-g++/geant4.o: /usr/include/sys/times.h ../include/daqevt.h
+../bin/Linux-g++/geant4.o: ../include/trrec.h ../include/apool.h
+../bin/Linux-g++/geant4.o: ../include/gsen.h ../include/trid.h
+../bin/Linux-g++/geant4.o: ../include/amsstl.h ../include/tkdbc.h
 ../bin/Linux-g++/geant4.o: ../include/g4physics.h
 ../bin/Linux-g++/g4physics.o: ../include/g4physics.h ../include/node.h
 ../bin/Linux-g++/g4physics.o: ../include/typedefs.h
@@ -2180,6 +2190,22 @@
 ../bin/Linux-g++/tkdbc.o: ../include/beta.h ../include/ctcrec.h
 ../bin/Linux-g++/tkdbc.o: ../include/ctcdbc.h ../include/ctcsim.h
 ../bin/Linux-g++/tkdbc.o: ../include/charge.h ../include/ctc.h
+../bin/Linux-g++/trddbc.o: ../include/trddbc.h ../include/typedefs.h
+../bin/Linux-g++/trddbc.o: /usr/include/assert.h
+../bin/Linux-g++/trddbc.o: /usr/include/features.h
+../bin/Linux-g++/trddbc.o: /usr/include/sys/cdefs.h
+../bin/Linux-g++/trddbc.o: /usr/include/gnu/stubs.h ../include/amsdbc.h
+../bin/Linux-g++/trddbc.o: /usr/include/math.h /usr/include/huge_val.h
+../bin/Linux-g++/trddbc.o: /usr/include/mathcalls.h
+../bin/Linux-g++/trddbc.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/srddbc.o: ../include/srddbc.h ../include/typedefs.h
+../bin/Linux-g++/srddbc.o: /usr/include/assert.h
+../bin/Linux-g++/srddbc.o: /usr/include/features.h
+../bin/Linux-g++/srddbc.o: /usr/include/sys/cdefs.h
+../bin/Linux-g++/srddbc.o: /usr/include/gnu/stubs.h ../include/amsdbc.h
+../bin/Linux-g++/srddbc.o: /usr/include/math.h /usr/include/huge_val.h
+../bin/Linux-g++/srddbc.o: /usr/include/mathcalls.h
+../bin/Linux-g++/srddbc.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
 ../bin/Linux-g++/ntuple.o: ../include/commons.h ../include/cern.h
 ../bin/Linux-g++/ntuple.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/Linux-g++/ntuple.o: /usr/include/features.h

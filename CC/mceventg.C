@@ -579,6 +579,7 @@ _mass=amass;
 _charge=charge;
   }
 
+
   void AMSmceventg::run(integer ipart){
    init(ipart);
    geant plab[3],vertex[3];
@@ -814,3 +815,24 @@ void orbit::UpdateAxis(number vt, number vp, number t, number p){
   AMSDir ax2(AMSDBc::pi/2-vt,vp);
   Axis=ax1.cross(ax2);
 }
+
+#ifdef __G4AMS__
+#include <geant4.h>
+  void AMSmceventg::runG4(integer ipart){
+  if(ipart){
+   init(ipart);
+    do{
+      gener();
+    }while(!accept());
+    // Set seed
+   GRNDMQ(_seed[0],_seed[1],0,"G");
+   AMSJob::gethead()->getg4generator()->SetParticleGun(ipart,_mom,_coo,_dir);
+  }
+  else{
+   if(acceptio()){
+    AMSJob::gethead()->getg4generator()->SetParticleGun(_ipart,_mom,_coo,_dir);
+   }   
+  }
+}
+
+#endif
