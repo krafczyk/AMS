@@ -500,6 +500,11 @@ COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);
 
 class TRCALIB_DEF{
 public:
+integer CalibProcedureNo;
+                                // Proc # 1 starts here
+integer EventsPerCheck;
+geant PedAccRequired[2]; 
+                                // Proc # 2 starts here
 integer EventsPerIteration[2];
 integer NumberOfIterations[2];
                                  // Select Cut

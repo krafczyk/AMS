@@ -12,7 +12,7 @@ I 1  Jobtype(0)      // 1 - Reconstruction ( 0 Simulation)
                      // 500 - Magnet Calibration 
                      // 600 - RICH Calibration 
                      // 700 - TRD Calibration 
-                     // 800 - TAMS Calibration 
+                     // 800 - AMS Calibration 
                      // 900 - Reserved
                      // 
 I 2  Debug(1)        // 0 - Off   ; 1 - On
@@ -370,15 +370,17 @@ R 1 Thr(1.)   // Refit charge if Fisher's criterium is satisfied(1.=67%,2.=95%)
 
 
 TRCALIB    // trcaker calibration
-
-I 1 EventsPerIteration[2](100,100)    // Events in one bunch
-I 3 NumberOfIterations[2](200,200)    // number of bunches
-R 5 BetaCut[2][2](0.7,10.,1.,10.)    // Beta limits
-R 9 HitsRatioCut[2](2.5,2.5)          // Hit Ratio Limits
-R11 MomentumCut[2][2](-inf,inf,3,inf) // momentum ----------
-R15 Chi2Cut[2](3.,3.)                 // chi2 ---------------
-R17 InitialCoo[6][3](0)               // Coordinates displacement
-R35 InitialRM[6][3][3](0)             // Rot Matrix --------
+I 1 CalibProcedureNo(1)               // 1 - sigma/ped calc; 2 - treacker alignment 
+I 2 EventsPerCheck(100)               // checking frequency
+R 3 PedAccRequired[2](0.1,0.07)        // Average ped acc in ADC channels 
+I 5 EventsPerIteration[2](100,100)    // Events in one bunch
+I 7 NumberOfIterations[2](200,200)    // number of bunches
+R 9 BetaCut[2][2](0.7,10.,1.,10.)    // Beta limits
+R13 HitsRatioCut[2](2.5,2.5)          // Hit Ratio Limits
+R15 MomentumCut[2][2](-inf,inf,3,inf) // momentum ----------
+R19 Chi2Cut[2](3.,3.)                 // chi2 ---------------
+R21 InitialCoo[6][3](0)               // Coordinates displacement
+R39 InitialRM[6][3][3](0)             // Rot Matrix --------
 };
 
 

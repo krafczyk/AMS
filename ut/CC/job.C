@@ -224,6 +224,10 @@ for(i=0;i<2;i++){
 }
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
+TRCALIB.CalibProcedureNo=1;
+TRCALIB.EventsPerCheck=100;
+TRCALIB.PedAccRequired[0]=0.12;
+TRCALIB.PedAccRequired[1]=0.09;
 TRCALIB.EventsPerIteration[0]=100;
 TRCALIB.EventsPerIteration[1]=100;
 TRCALIB.NumberOfIterations[0]=200;
@@ -999,6 +1003,10 @@ if(isCalibration() & CAMS)_caaxinitjob();
 void AMSJob::_catkinitjob(){
 AMSgObj::BookTimer.book("CalTrFill");
 AMSgObj::BookTimer.book("CalTrFit");
+if(TRCALIB.CalibProcedureNo == 1){
+  AMSTrIdCalib::initcalib();
+}
+else if(TRCALIB.CalibProcedureNo == 2){
 int i,j;
 for(i=0;i<2;i++){
   for(j=0;j<tkcalpat;j++){
@@ -1006,7 +1014,7 @@ for(i=0;i<2;i++){
     AMSTrCalibFit(j,TRCALIB.EventsPerIteration[i],TRCALIB.NumberOfIterations[i],i));
   }
 }
-
+}
 }
 //---------------------------------------------------------------------
 void AMSJob::_catofinitjob(){
@@ -1758,6 +1766,18 @@ void AMSJob::_setorbit(){
                            &DAQSBlock::buildblock);
 }    
 
+if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
+{
+
+// special tracker ped/sigma calc
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPed);
+
+
+}
+}
+else {
+
 {
 //           tracker reduced
 
@@ -1796,7 +1816,7 @@ void AMSJob::_setorbit(){
 
 }    
 
-
+}
 
 
 }

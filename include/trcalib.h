@@ -1,4 +1,3 @@
-
 // Author V. Choutko 4-mar-1997
 
 #ifndef __AMSTRCALIB__
@@ -8,6 +7,7 @@
 #include <link.h>
 #include <point.h>
 #include <particle.h>
+#include <trid.h>
 class AMSTrCalibPar{
 protected:
 AMSPoint _Coo;
@@ -110,6 +110,37 @@ AMSTrCalibPar * getparM(integer layer, integer ladder, integer sensor);
 AMSTrCalibPar * getparS(integer layer, integer ladder, integer sensor);
 
 };
+
+
+class AMSTrIdCalib : public AMSTrIdSoft{
+protected:
+static integer * _Count;
+static number  * _ADC;
+static number *_ADCMax;
+static number * _ADC2;
+static integer  _CmnNoiseC[10][ms];
+static geant  _CmnNoise[10][ms];
+static void _calc();
+static void _hist();
+static void _update();
+static void _clear();
+public:
+AMSTrIdCalib():AMSTrIdSoft(){};
+AMSTrIdCalib(const AMSTrIdSoft & o):AMSTrIdSoft(o){};
+static void initcalib();
+static void check();
+static void buildSigmaPed(integer n, int16u* p);
+inline getcount() const {return _Count[getchannel()];}
+geant getcmnnoise() const {return _CmnNoise[_VANumber][_addr];}
+void updcmnnoise(geant cmn){(_CmnNoise[_VANumber][_addr])+=cmn;}
+void updcmnnoiseC(){(_CmnNoiseC[_VANumber][_addr])++;}
+void updADC(geant ped){(_ADC[getchannel()])+=ped;}
+void updADC2(geant ped){(_ADC2[getchannel()])+=ped*ped;}
+void updADCMax(geant ped){if(_ADCMax[getchannel()]<ped)
+                           _ADCMax[getchannel()]=ped;}
+void updcounter(){(_Count[getchannel()])++;}
+};
+
 
 
 #endif

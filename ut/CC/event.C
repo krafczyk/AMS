@@ -437,8 +437,10 @@ void AMSEvent::_caamsinitevent(){
 }
 
 void AMSEvent::_catkinitevent(){
-  AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSTrCalibration",0),0));
+  if(TRCALIB.CalibProcedureNo == 2){
+   AMSEvent::gethead()->add (
+   new AMSContainer(AMSID("AMSContainer:AMSTrCalibration",0),0));
+  }
 }
 
 void AMSEvent::_catofinitevent(){
@@ -463,6 +465,10 @@ void AMSEvent::_caamsevent(){
 
 void AMSEvent::_catkevent(){
   AMSgObj::BookTimer.start("CalTrFill");
+  if(TRCALIB.CalibProcedureNo == 1){
+    AMSTrIdCalib::check();
+  }
+  else if(TRCALIB.CalibProcedureNo == 2){
 int i,j;
 for(i=0;i<2;i++){
   for(j=0;j<tkcalpat;j++){
@@ -473,6 +479,7 @@ for(i=0;i<2;i++){
     }
   }
 }
+  }
   AMSgObj::BookTimer.stop("CalTrFill");
 
 }

@@ -66,7 +66,7 @@ static void init();
 };
 const integer ms=4000;
 class AMSTrIdSoft{
-private:
+protected:
 integer _layer;   // from 1 to 6
 integer _drp;     // from 1 to AMSDBc::nlad(_layer)
 integer _side;    // 0=x 1=y
@@ -91,8 +91,9 @@ friend ostream &operator << (ostream &o, const  AMSTrIdSoft &b )
 static void init();
 integer operator < (const AMSTrIdSoft & o)const;
 
-inline integer getnchan()const {return _numel;}
+static inline integer getnchan() {return _numel;}
 inline integer getaddr() const {return _addr;}
+inline integer getchannel() const { return idsoft2linear[_addr]+_strip;}
 inline integer checkstatus(integer checker) const 
 {return status[idsoft2linear[_addr]+_strip] & checker;}
 inline geant getped() const {return peds[idsoft2linear[_addr]+_strip];}
@@ -100,7 +101,7 @@ inline geant getsig() const {return sigmas[idsoft2linear[_addr]+_strip];}
 inline geant getgain() const {return gains[idsoft2linear[_addr]+_strip];}
 inline geant getindnoise() const{return indnoise[idsoft2linear[_addr]+_strip];}
 integer getprob(geant r);
-inline geant getcmnnoise() const {return cmnnoise[_VANumber][_addr];}
+virtual  geant getcmnnoise() const {return cmnnoise[_VANumber][_addr];}
 geant & setped()  {return peds[idsoft2linear[_addr]+_strip];}
 geant & setsig()  {return sigmas[idsoft2linear[_addr]+_strip];}
 geant & setgain() {return gains[idsoft2linear[_addr]+_strip];}
@@ -143,7 +144,6 @@ inline integer getva()const {return _side==0? _VANumber+10:_VANumber;}
 AMSTrIdGeom *  getidgeom()     {return _pid;}
 AMSTrIdGeom * ambig(const AMSTrIdSoft &, integer & nambig) ;
                      
-                                                      
 static integer debug;
 };
 class AMSTrIdSoftI{

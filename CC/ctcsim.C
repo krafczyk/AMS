@@ -50,10 +50,13 @@ void AMSCTCRawHit::sictcdigi(){
   integer nrow=CTCDBc::getny()*2;
   integer ncol=CTCDBc::getnx(icnt+1)*2;
   geant * Tmp= (geant*)UPool.insert(sizeof(geant)*nrow*ncol);
+  geant * TmpT= (geant*)UPool.insert(sizeof(geant)*nrow*ncol);
    ptr=(AMSCTCMCCluster*)AMSEvent::gethead()->
    getheadC("AMSCTCMCCluster",icnt,1); // last 1  to test sorted container
    VZERO(Tmp,sizeof(geant)*nrow*ncol/4);
+   VZERO(TmpT,sizeof(geant)*nrow*ncol/4);
    geant value=0;     
+   geant time=0;
    while(ptr){
     integer det=ptr->getdetno()-1;
 #ifdef __AMSDEBUG__
@@ -64,13 +67,16 @@ void AMSCTCRawHit::sictcdigi(){
     if(z>0)Response=z;
     else Response=0;
     value+=CTCMCFFKEY.Path2PhEl[det]*ptr->getstep()*Response*ptr->getcharge2();
+    time+=ptr->gettime() * CTCMCFFKEY.Path2PhEl[det]*ptr->getstep()*Response*ptr->getcharge2();
     if( ptr->testlast()){
       integer ind=ptr->getcolno()-1+(ptr->getrowno()-1)*ncol;
 #ifdef __AMSDEBUG__
    assert(ind >=0 && ind<nrow*ncol);
 #endif
       Tmp[ind]+=value;
+      TmpT[ind]+=value>0?time/value:time;
       value=0;
+      time=0;
     }            
 
    ptr=ptr->next();  
@@ -80,10 +86,11 @@ void AMSCTCRawHit::sictcdigi(){
      if(Tmp[i]>0){
       POISSN(Tmp[i],ival,ierr);
       AMSEvent::gethead()->addnext(AMSID("AMSCTCRawHit",icnt),
-      new AMSCTCRawHit(0,i/ncol+1,icnt+1,ival,i%ncol+1));
+      new AMSCTCRawHit(0,i/ncol+1,icnt+1,ival,TmpT[i],i%ncol+1));
      }      
     }
    UPool.udelete(Tmp); 
+   UPool.udelete(TmpT); 
   }
 
   
