@@ -1,0 +1,11 @@
+gmake // builds the _AMS.so module library and the AMS.py file
+
+gmake install // installs _AMS.so, AMS.py and the compiled module AMS.pyc 
+              // in the system 
+              // (you will need superuser privileges to use this)
+
+gmake clean   // Clean up the directory (if you want to start from scratch)
+
+ams_example.py // analysis example 
+               // the line with "sys.path.append..." is necessary if
+               // no "gmake install" has been done

@@ -1,0 +1,86 @@
+#!/bin/bash
+
+file="AMS"
+
+#Python2.2 test
+PREF=`which python2.2 2> /dev/null`
+if [ -x "$PREF" ]; then
+      echo "Python2.2 accessible ... yes"
+else
+      echo "Python2.2 accessible ... no"
+      exit
+fi
+
+#ROOT test
+if [ -n "$ROOTSYS" ]; then
+      echo "\$ROOTSYS defined ... yes"
+else
+      echo "\$ROOTSYS defined ... no"
+fi
+
+#AMSDir test
+if [ ! -n "$AMSWD" ]; then
+  export AMSWD=".."
+fi
+
+#SWIG test
+swig_exe="/afs/ams.cern.ch/tools/swig/bin/swig"
+SWIG=`${swig_exe} -version 2>&1`
+SWIG=`echo $SWIG | awk '{print $3}'`
+SWIG=${SWIG//./ }
+V1=`echo $SWIG | awk '{print $1}'`
+V2=`echo $SWIG| awk '{print $2}'`
+V3=`echo $SWIG | awk '{print $3}'`
+if [ ! -n "$V3" ]; then 
+      V3="0"
+fi
+if [ $V1 -gt 1 ]; then
+      SWIG=${swig_exe}
+      echo "SWIG accessible ... yes"
+elif [ $V1 -eq 1 -a $V2 -gt 3 ]; then
+      SWIG=${swig_exe}
+      echo "SWIG accessible ... yes"
+elif [ $V1 -eq 1 -a $V2 -eq 3 -a $V3 -ge 20 ]; then
+      SWIG=${swig_exe}
+      echo "SWIG accessible ... yes"
+else
+      echo "SWIG accessible ... no"
+      echo "SWIG version must be higher than 1.3.20"
+      exit
+fi
+
+root_includes=`cat USE_THESE_ROOT_CLASSES`
+
+rm -f ${file}.h
+for arg in $root_includes; do
+      if [ "$arg" = "TROOT.h" ]; then
+            cat $ROOTSYS/include/TROOT.h | grep -v "operator new" >> ${file}.h
+      else
+            cat $ROOTSYS/include/$arg >> ${file}.h
+      fi
+done
+
+cat $ROOTSYS/include/TSelector.h >> ${file}.h
+      
+#AMSDir="/afs/ams.cern.ch/Offline/vdev"
+
+cat <<EOF >> ${file}.h
+#define __WRITEROOT__
+#define __ROOTPOINTERS__
+#define __ROOTSHAREDLIBRARY__
+EOF
+
+cat $AMSWD/include/root.h >> ${file}.h
+
+echo -e "\nWrapping ROOT+AMS classes ... \n"
+command="$SWIG -c++ -python ${file}.i"
+echo -e "\n>>>>>>> $command" ; $command 2>&1 | grep -v "Warning"
+
+command="correct_${file}_wrap.py"
+echo -e "\n>>>>>>> $command" ; $command
+
+echo -e "\nAMSRoot object files ... \n"
+command="cd $AMSWD/install"
+echo -e "\n>>>>>>> $command" ; $command
+command="gmake shared"
+echo -e "\n>>>>>>> $command" ; $command
