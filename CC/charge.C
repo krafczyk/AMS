@@ -36,7 +36,6 @@ integer AMSCharge::getvotedcharge(){
 int i;
 number mp=0;
 integer charge=0;
-if(_ChargeTracker>5)return _ChargeTracker;
 for(i=0;i<ncharge;i++){
   if(mp<_ProbTOF[i]*_ProbTracker[i]){
     mp=_ProbTOF[i]*_ProbTracker[i];
