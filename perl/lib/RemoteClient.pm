@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.64 2002/08/23 09:55:27 alexei Exp $
+# $Id: RemoteClient.pm,v 1.65 2002/09/18 17:21:11 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1392,11 +1392,37 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
 
 
 #Initial Request (just e-mail)
-
-    if ($self->{q}->param("RemoteClientEmail")){
+# UserRegistration 
+    if ($self->{q}->param("UserRegistration")){
      $self->{read}=1;
-     my $cem=$self->{q}->param("CEM");
-     if(validate_email_address($cem)){
+      htmlTop();
+        $self->htmlTemplateTable("AMS MC02 User Registration Form");
+          print "<tr><td><b><font color=\"red\">User Info</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+           htmlTextField("First and Last Name","text",24,"' '","CNA","(Santa Klaus)");  
+           htmlTextField("e-mail address","text",24,"' '","CEM","(name\@mail.domain)");  
+           print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cite : </b></td> <td colspan=1>\n";
+          print "<select name=\"CCA\" >\n";
+          my @cite=();
+          foreach my $cite (@{$self->{CiteT}}){
+             print "<option value=\"$cite->{name}\"> $cite->{name} </option>\n";
+         }
+          print "</select>\n";
+          print "</b></td></tr>\n";
+         htmlTableEnd();
+        htmlTableEnd();
+        print "<input type=\"submit\" name=\"MyRegister\" value=\"Submit\"></br><br>\n";
+       htmlReturnToMain();
+      htmlFormEnd();
+     htmlBottom();
+ }
+# UserRegistration ends here
+    if ($self->{read} != 1) {
+     if ($self->{q}->param("RemoteClientEmail")){
+      $self->{read}=1;
+      my $cem=$self->{q}->param("CEM");
+      if(validate_email_address($cem)){
         if ($self->findemail($cem)){
             my $sql="SELECT cid FROM Mails WHERE address='$cem'";
             my $ret=$self->{sqlserver}->Query($sql);
@@ -1462,10 +1488,10 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             $self->ErrorPlus("Client e-mail $cem not exist. Check spelling or do registration.");
         }
      } else {
-            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.");
-        }
+            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid (1).");
+     }
  }
-
+}
     if ($self->{q}->param("Registration")){
         $self->{read}=1;
         my $cem=lc($self->{q}->param("CEM"));
@@ -1538,7 +1564,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
          $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";     
         }
     }else{
-            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.");
+            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid. (2)");
         }
        }  
     }
@@ -1619,38 +1645,12 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             $self->ErrorPlus("Seems $addcite is already registered.");
         }
        }else{
-            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.");
+            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid. (3)");
         }
        }  
     }
 # CiteRegistration ends here
 
-# UserRegistration 
-    if ($self->{q}->param("UserRegistration")){
-     $self->{read}=1;
-      htmlTop();
-        $self->htmlTemplateTable("AMS MC02 User Registration Form");
-          print "<tr><td><b><font color=\"red\">User Info</font></b>\n";
-          print "</td><td>\n";
-          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-           htmlTextField("First and Last Name","text",24,"' '","CNA","(Santa Klaus)");  
-           htmlTextField("e-mail address","text",24,"' '","CEM","(name\@mail.domain)");  
-           print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cite : </b></td> <td colspan=1>\n";
-          print "<select name=\"CCA\" >\n";
-          my @cite=();
-          foreach my $cite (@{$self->{CiteT}}){
-             print "<option value=\"$cite->{name}\"> $cite->{name} </option>\n";
-         }
-          print "</select>\n";
-          print "</b></td></tr>\n";
-         htmlTableEnd();
-        htmlTableEnd();
-        print "<input type=\"submit\" name=\"MyRegister\" value=\"Submit\"></br><br>\n";
-       htmlReturnToMain();
-      htmlFormEnd();
-     htmlBottom();
- }
-# UserRegistration ends here
     if ($self->{q}->param("MyRegister")){
         $self->{read}=1;
         my $cem=lc($self->{q}->param("CEM"));
@@ -1740,7 +1740,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
          $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";     
         }
     }else{
-            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.");
+            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.(4)");
         }
        }  
     }
