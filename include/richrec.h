@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.22 2003/06/23 08:59:56 delgadom Exp $
+//  $Id: richrec.h,v 1.23 2003/07/18 19:56:30 delgadom Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -155,6 +155,12 @@ static geant _Time;
   number  _collected_npe;  // Number of collected photoelectrons
   number  _probkl;      // kolgomorov probability of the ring
 
+  number _theta;
+  number _errortheta;
+  number _radpos[3];
+  number _pmtpos[3];
+
+
   number  _npexpg;       // Number of expected photons for Z=1
   number  _npexpr;       // Number of expected photons for Z=1
   number  _npexpb;       // Number of expected photons for Z=1
@@ -166,6 +172,10 @@ static geant _Time;
   static number _height; // Radiator height
   static AMSPoint _entrance_p;  // Entrance point in the radiator 
   static AMSDir   _entrance_d;  // Entrance direction
+
+  static AMSPoint _emission_p;
+  static AMSDir   _emission_d;
+
   // Those guys necessary to compute the number of 
   // expected photons for Z=1
   static geant   _clarity;
@@ -230,6 +240,27 @@ public:
     CalcBetaError();
     if(build_charge)
       ReconRingNpexp();
+
+    AMSPoint pnt;
+    number theta,phi,length;
+    
+    //    track->interpolate(AMSPoint(0.,0.,RICradpos-RICHDB::rad_height+_mean_height[_kind-1][0]),
+    //		       AMSDir(0.,0.,-1.),pnt,theta,phi,length);
+
+    _radpos[0]=_emission_p[0];
+    _radpos[1]=_emission_p[1];
+    _radpos[2]=_emission_p[2];
+    
+    _theta=acos(1/_beta/_index);
+    _errortheta=_errorbeta/_beta/tan(_theta);
+
+    track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()),AMSDir(0.,0.,-1.),pnt,theta,phi,length);
+    
+    _pmtpos[0]=pnt[0];
+    _pmtpos[1]=pnt[1];
+    _pmtpos[2]=pnt[2];
+
+
   };
   ~AMSRichRing(){};
   AMSRichRing * next(){return (AMSRichRing*)_next;}

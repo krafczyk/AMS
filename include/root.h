@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.100 2003/07/18 18:05:15 choutko Exp $
+//  $Id: root.h,v 1.101 2003/07/18 19:56:30 delgadom Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -473,6 +473,11 @@ public:
   float Prob;       ///< probability to be a good ring
   float NpExp;      ///< number of expected photoelectrons for Z=1 charge
   float NpCol;      ///< number of collected photoelectrons 
+  float Theta;      ///< Recontructed emission angle
+  float ErrorTheta; ///< Error of the reconstructed emission angle
+  float TrRadPos[3];///< Mean emission point of the Cerenkov photons
+  float TrPMTPos[3];///< Intersection point of the track with the PMT plane
+
 
   protected:
   int fTrTrack;   ///< index of  TrTrackR  in collection

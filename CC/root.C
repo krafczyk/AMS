@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.50 2003/07/16 15:51:38 choutko Exp $
+//  $Id: root.C,v 1.51 2003/07/18 19:56:23 delgadom Exp $
 //
 
 #include <root.h>
@@ -2030,7 +2030,13 @@ RichRingR::RichRingR(AMSRichRing *ptr) {
     NpCol= ptr->_collected_npe;
     NpExp     = ptr->_npexp;
     Prob    = ptr->_probkl;
-   
+    Theta   =ptr->_theta;
+    ErrorTheta  =ptr->_errortheta;
+    for(int i=0;i<3;i++){
+      TrRadPos[i]  = ptr->_radpos[i];
+      TrPMTPos[i]  = ptr->_pmtpos[i];
+    }
+    
 
   } else {
     cout<<"RICRingR -E- AMSRichRing ptr is NULL"<<endl;

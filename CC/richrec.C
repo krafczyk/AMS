@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.55 2003/07/08 16:30:27 choutko Exp $
+//  $Id: richrec.C,v 1.56 2003/07/18 19:56:23 delgadom Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -423,9 +423,12 @@ number AMSRichRing::_index=1.05;
 number AMSRichRing::_height=3.;
 AMSPoint AMSRichRing::_entrance_p=AMSPoint(0,0,0);
 AMSDir   AMSRichRing::_entrance_d=AMSDir(0,0);
+AMSPoint AMSRichRing::_emission_p=AMSPoint(0,0,0);
+AMSDir   AMSRichRing::_emission_d=AMSDir(0,0);
 geant   AMSRichRing::_clarity=0.0113;
 geant   *AMSRichRing::_abs_len=0;
 geant   *AMSRichRing::_index_tbl=0;
+
 int     AMSRichRing::_kind_of_tile=0;
 
 void AMSRichRing::build(){
@@ -629,6 +632,10 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
   dird=crossed_tile.getemissiondir();
   refp=crossed_tile.getemissionpoint(1);
   refd=crossed_tile.getemissiondir(1);
+
+
+  _emission_p=dirp;
+  _emission_d=dird;
 
 
   /******************** The prvious line substitutes this code*/
@@ -863,7 +870,18 @@ void AMSRichRing::_writeEl(){
   cluster->collected_npe[cluster->NRings]=_collected_npe;
   cluster->probkl[cluster->NRings]=_probkl;
 
-/*
+  /*
+  cluster->theta[cluster->NRings]=_theta;
+  cluster->errortheta[cluster->NRings]=_errortheta;
+  cluster->tr_pos_rad[cluster->NRings][0]=_radpos[0];
+  cluster->tr_pos_rad[cluster->NRings][1]=_radpos[1];
+  cluster->tr_pos_rad[cluster->NRings][2]=_radpos[2];
+
+  cluster->tr_pos_pmt[cluster->NRings][0]=_pmtpos[0];
+  cluster->tr_pos_pmt[cluster->NRings][1]=_pmtpos[1];
+  cluster->tr_pos_pmt[cluster->NRings][2]=_pmtpos[2];
+
+
   cluster->npexpg[cluster->NRings]=_npexpg;
   cluster->npexpr[cluster->NRings]=_npexpr;
   cluster->npexpb[cluster->NRings]=_npexpb;
