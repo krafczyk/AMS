@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.87 2004/05/13 08:50:53 choutko Exp $
+//  $Id: producer.C,v 1.88 2004/11/09 09:58:08 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -503,6 +503,16 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
     rm+=a(bstart);
     system((const char*)rm);
     cout <<"SendNtupleEnd-I-DeletingDSTBy "<<(const char*)rm<<endl;
+     struct statfs buffer;
+     int fail=statfs((const char*)destdir, &buffer);
+    if(fail){
+      _ntend->FreeSpace=-1;
+      _ntend->TotalSpace=-1;
+    }
+    else{
+     _ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
+     _ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+    }
     AString b="";
     for(int k=0;k<bstart;k++)b+=a[k];
     b+=destdir;
@@ -786,6 +796,17 @@ ntend->ErrorNumber=0;
 ntend->Status=DPS::Producer::InProgress;
 ntend->Type=type;
 ntend->size=0;
+     struct statfs buffer;
+     int fail=statfs((const char *)name, &buffer);
+    if(fail){
+      _ntend->FreeSpace=-1;
+      _ntend->TotalSpace=-1;
+    }
+    else{
+     _ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
+     _ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+    }
+
 
 
 LMessage(AMSClient::print(*ntend,"OpenDST"));
@@ -836,6 +857,19 @@ ntend->Status=DPS::Producer::InProgress;
 
 ntend->Insert=statbuf.st_ctime;
 ntend->size=statbuf.st_size/1024./1024.+0.5;
+
+
+     struct statfs buffer;
+     int fail=statfs((const char*)a(bstart), &buffer);
+    if(fail){
+      _ntend->FreeSpace=-1;
+      _ntend->TotalSpace=-1;
+    }
+    else{
+     _ntend->FreeSpace= (buffer.f_bavail*(buffer.f_bsize/1024.));
+     _ntend->TotalSpace= (buffer.f_blocks*(buffer.f_bsize/1024.));
+    }
+
 
 UpdateARS();
 
