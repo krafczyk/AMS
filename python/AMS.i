@@ -7,6 +7,9 @@
 %apply int *INPUT { int *argc };
 %apply int *OUTPUT { int *error, int *iret };
 %apply unsigned int *OUTPUT { unsigned int *found };
+%apply int &INOUT { int & };
+%apply float &INOUT { float & };
+%apply double &INOUT { double & };
 
 %typemap(in) Float_t * {
   /* Check if is a list */

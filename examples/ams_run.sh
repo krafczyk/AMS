@@ -54,7 +54,7 @@ echo -e "\n>>> COMPILING and LINKING: ${file}"
 SHELL=/bin/sh
 
 ${file}.exe:	${file}
-	${GC} ${INCS} -o ${FILE_EXE} ${file} ${ROOTLIBS} ${EXTRALIBS} ${AMSOBJS}
+	${GC} ${INCS} -o ${FILE_EXE} ${file} ${AMSOBJS} ${ROOTLIBS} ${EXTRALIBS}
 	chmod 755 ${FILE_EXE}
 
 !
