@@ -190,8 +190,10 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.Axis[1]=-sin(MIR/AMSDBc::raddeg)*sin(Orbit.PhiZero);
   Orbit.Axis[2]=cos(MIR/AMSDBc::raddeg);
   Orbit.AlphaSpeed=AMSDBc::twopi/92.36/60.;
+  Orbit.AlphaAltitude=666000000;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
   Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
+  Orbit.PolePhiStatic=290.6/AMSDBc::raddeg;
   Orbit.PoleTheta=78.6/AMSDBc::raddeg;
   Orbit.Nskip=0;
   Orbit.Ntot=AMSIO::getntot();

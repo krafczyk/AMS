@@ -52,7 +52,8 @@ GCKINE_DEF GCKINE;
 // TKFIELD_DEF TKFIELD;
 // AMSDATADIR_DEF AMSDATADIR
 
-char AMSCommonsI::_version[]="v2.15";
+char AMSCommonsI::_version[]="v2.16";
+integer AMSCommonsI::_build=1;
 
 AMSCommonsI::AMSCommonsI(){
   init();

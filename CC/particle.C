@@ -16,7 +16,7 @@
 #include <amsstl.h>
 #include <ctcdbc.h>
 #include <ntuple.h>
-
+#include <antirec.h>
 integer sign(number a){
 if(a>=0)return 1;
 else return -1;
@@ -85,9 +85,13 @@ integer AMSParticle::build(integer refit){
           mass,emass,momentum,emomentum,charge,theta,phi,coo);
           ptrack->setstatus(AMSDBc::USED);
           ppart->pid();
+           
+          AMSgObj::BookTimer.start("ReAxRefit");
           ppart->refit();
           ppart->ctcfit();
           ppart->toffit();
+          ppart->antifit();
+          AMSgObj::BookTimer.stop("ReAxRefit");
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",0),ppart);
           }
         }
@@ -205,6 +209,27 @@ for(kk=0;kk<4;kk++){
 
 
 
+void AMSParticle::antifit(){
+number theta, phi, sleng;
+for(int kk=0;kk<2;kk++){
+   AMSAntiCluster d(0,1);
+   AMSgvolume *p=AMSJob::gethead()->getgeomvolume(d.crgid());
+   if(p){
+      AMSPoint coo(p->getcooA(0),p->getcooA(1),p->getcooA(2));
+      number rad=(p->getpar(0)+p->getpar(1))/2.;
+      AMSDir dir(p->getnrmA(2,0),p->getnrmA(2,1),p->getnrmA(2,2));
+     _ptrack->interpolateCyl(coo,dir,rad,2*kk-1,_AntiCoo[kk],theta,phi,sleng);
+   }
+   else {
+   cerr << " antifit-S- No sector no " << kk+1<<endl ;
+   _AntiCoo[kk]=AMSPoint(0,0,0);
+   }
+
+}
+}
+
+
+
 
 
 
@@ -270,6 +295,16 @@ void AMSParticle::_writeEl(){
   for(i=0;i<4;i++){
     for(int j=0;j<3;j++){
       PN->TOFCoo[PN->Npart][i][j]=_TOFCoo[i][j];
+    }
+  }
+  for(i=0;i<2;i++){
+    for(int j=0;j<3;j++){
+      PN->AntiCoo[PN->Npart][i][j]=_AntiCoo[i][j];
+    }
+  }
+  for(i=0;i<6;i++){
+    for(int j=0;j<3;j++){
+      PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
     }
   }
 
@@ -354,6 +389,11 @@ void AMSParticle::pid(){
 
 }
 void AMSParticle::refit(){
+    for(int layer=0;layer<nl;layer++){
+       number theta,phi;
+      _ptrack->intercept(_TrCoo[layer],layer,theta,phi);
+    }
+
   if(_GPart !=14 ){
    if(_Charge >= 1.5 || fabs(_Mass-0.938)>1.5*_ErrMass){
       if(_Charge>=1.5){

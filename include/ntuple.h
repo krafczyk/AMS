@@ -31,9 +31,14 @@ private:
   int Run;
   int RunType;
   int Time[2];
-  float PolePhi;
+  float GrMedPhi;
+  float RadS;
   float ThetaS;
   float PhiS;
+  float Yaw;
+  float Pitch;
+  float Roll;
+  float VelocityS;
   int Particles;
   int Tracks;
   int Betas;
@@ -104,7 +109,8 @@ private:
   float Value[3][MAXPART][2];
   float CooCTC[MAXPART][2][3];
   float TOFCoo[MAXPART][4][3];
-
+  float AntiCoo[MAXPART][2][3];
+  float TrCoo[MAXPART][6][3];
 friend class AMSParticle;
 friend class AMSNtuple;
 };

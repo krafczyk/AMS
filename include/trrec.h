@@ -303,6 +303,7 @@ static integer patconf[npat][6];
 static integer patmiss[npat][6];
 static integer _RefitIsNeeded;
 public:
+  integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
 integer operator < (AMSlink & o) const {
   AMSTrTrack * p= (AMSTrTrack*)(&o);
@@ -350,6 +351,9 @@ static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<6? _Pthit[i]:0;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
                  number & theta, number & phi, number & length);
+void interpolateCyl(AMSPoint  pnt,  AMSDir dir, number rad, number idir, 
+                    AMSPoint & P1, number & theta, number & phi, 
+                    number & length);
 void getParFastFit(number&  Chi2, number& Rid, number&  Err, 
 number&  Theta, number & Phi, AMSPoint&  X0)const ; 
 

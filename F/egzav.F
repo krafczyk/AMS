@@ -36,7 +36,7 @@ C
 *
       EMININ=0.1
       EMINOU=0.1
-      ZMIN=90
+      ZMIN=360
       RADIUS=110
       CALL INCONS
 *

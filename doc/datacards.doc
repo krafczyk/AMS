@@ -1,4 +1,4 @@
-Datacards
+/Datacards
 
 // Protection from some myst bug
 
@@ -238,7 +238,7 @@ I22   day[2](1,1)           //
 I24   mon[2](0,0)           //
 I26   year[2](96,98)        //
 I28   CalcCmnNoise[2])(1,3) // Calc(1=1 or not 1=0 cmnnoise properly)
-R30   thr1R[2](4.5,4.5)     // threshold (S/N) to save cluster
+R30   thr1R[2](2.75,3.5)     // threshold (S/N) to save cluster
 R32   thr2R[2](1.,1.)       // threshold (S/N) to save hits in cluster
 I34   neib[2](2,2)          // number of neibours from one side
 I36   GenerateConst(0)      // generate/not generate tracker const
@@ -317,7 +317,7 @@ R13 Thr2A[2](4,3)      // Lower limit for ampl for other hits in cluster
 R15 Thr2S[2](15,10)       // Upper limit for sigma for other hits in cluster 
 R17 Thr2R[2](1.,1.)   // Lower limit for a/sigma for other  hits in cluster
 R19 Thr3R[2](-2.,-2.)   // Reserved
-I21 ThrClNMin[2](1,2)   // Min Number of hits satisfied the above limits
+I21 ThrClNMin[2](1,1)   // Min Number of hits satisfied the above limits
 I23 ThrClNEl[2](3,3)    // total number hits in the cluster
 R25 ThrDSide(1)         // Upper threshold to (A_x-A_y)/(A_x+A_y)
 R26 ErrX(30e-4)         // Assumed Error in X dir
@@ -381,7 +381,7 @@ I54  FullReco(0)            // Use(1) or not use(0) "used "clusters to build
                             // tracks
 R55  MinRefitCos(0.7,0.5)   // min cos(tr angle) to refit track with wider
                             // clusters
-I57  FastTracking(1)        // Make(0) do not make(1) nonlinear fitting
+I57  FastTracking(1)        // 0-1-2 faster-faster-faster
 I58  WeakTracking(1)        // Make(1) do not make(0) weak clusters fitting
 I59  FalseXTracking(1)      // Make(1) do not make(0) 4y + 3x tracking
 R60  Chi2FalseX(10.)        // Max Chi2 for 3point combinations
@@ -444,10 +444,10 @@ R 3 PedAccRequired[2](0.1,0.07)        // Average ped acc in ADC channels
 I 5 Validity[2](1800,5400)              // +- Validity (sec)
 R 7 RhoThrA(0.7)                       // Av corcoef
 R 8 RhoThrV(0.8)                       // channel corcoef
-I 9 Method(1)                        
+I 9 Method(2)                        
 R10 BadChThr[2];                       // up,p
 I12 Pass;                              // pass
-I13 DPS;                               // Dynamic pedestal subtraction off(0)
+I13 DPS(1);                               // Dynamic pedestal subtraction off(0)
                                        // on ( >0)
 I14 UPDF;                               // Dynamic pedestal update freq
 I15 LaserRun(0)

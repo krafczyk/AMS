@@ -34,13 +34,14 @@ extern void pshgeom(AMSgvolume &);
 extern void ctcgeom(AMSgvolume &);
 AMSID amsid;
 geant par[3];
+geant coo[3]={0,0,0};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=1;
       par[0]=AMSDBc::ams_size[0]/2;
       par[1]=AMSDBc::ams_size[1]/2;
       par[2]=AMSDBc::ams_size[2]/2;
       // to be able rotate ams as a whole
-static AMSgvolume false_mother("VACUUM",0,AMSDBc::ams_name,"BOX",par,3,AMSDBc::ams_coo,nrm,"ONLY",  0,gid);  // AMS false mother volume
+static AMSgvolume false_mother("VACUUM",0,AMSDBc::ams_name,"BOX",par,3,coo,nrm,"ONLY",  0,gid);  // AMS false mother volume
 static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,AMSDBc::ams_nrm,"ONLY",  0,gid);  // AMS mother volume
 AMSJob::gethead()->addup( &false_mother);
 false_mother.add(&mother);

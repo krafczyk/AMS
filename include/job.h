@@ -172,7 +172,7 @@ static realorbit Orbit;
 AMSJob(AMSID id=0,uinteger jobtype=0):AMSNode(id),_jobtype(jobtype)
 {_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
 _TDVC[0][0]='\0',_TDVN=0;cout <<
-"AMS Software version "<<AMSCommonsI::getversion()<<endl;}
+"AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::getbuildno()<<endl;}
 ~AMSJob();
 static AMSJob* gethead(){return _Head;}
 static AMSJob * & sethead(){return _Head;}

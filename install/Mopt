@@ -919,11 +919,11 @@ depend:
 ../bin/osf1/uzstat.o: /usr/include/machine/signal.h
 ../bin/osf1/uzstat.o: /usr/include/machine/context.h
 ../bin/osf1/uzstat.o: /usr/include/sys/procset.h
-../bin/osf1/tptcir.o: ../F/trfitcl.h
-../bin/osf1/trafit.o: ../F/trfitcl.h
-../bin/osf1/tcircf.o: ../F/trfitcl.h
-../bin/osf1/tszfit.o: ../F/trfitcl.h
-../bin/osf1/txyfit.o: ../F/trfitcl.h
+../bin/osf1/../F/tptcir.o: ../F/trfitcl.h
+../bin/osf1/../F/trafit.o: ../F/trfitcl.h
+../bin/osf1/../F/tcircf.o: ../F/trfitcl.h
+../bin/osf1/../F/tszfit.o: ../F/trfitcl.h
+../bin/osf1/../F/txyfit.o: ../F/trfitcl.h
 ../bin/osf1/job.o: ../include/amsgobj.h ../include/node.h
 ../bin/osf1/job.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/job.o: /usr/include/standards.h /usr/include/cxx/iostream.h
@@ -1550,7 +1550,8 @@ depend:
 ../bin/osf1/particle.o: ../include/beta.h ../include/ctcrec.h
 ../bin/osf1/particle.o: ../include/ctcdbc.h ../include/ctcsim.h
 ../bin/osf1/particle.o: ../include/particle.h ../include/ctc.h
-../bin/osf1/particle.o: ../include/mccluster.h
+../bin/osf1/particle.o: ../include/mccluster.h ../include/antirec.h
+../bin/osf1/particle.o: ../include/antidbc.h
 ../bin/osf1/commons.o: ../include/commons.h ../include/cern.h
 ../bin/osf1/commons.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/commons.o: /usr/include/standards.h
@@ -2349,7 +2350,7 @@ depend:
 ../bin/osf1/daqblock.o: ../include/tofsim.h ../include/antidbc.h
 ../bin/osf1/daqblock.o: ../include/antirec.h ../include/ctcdbc.h
 ../bin/osf1/daqblock.o: ../include/ctcrec.h ../include/ctcsim.h
-../bin/osf1/mfield.o: ../F/mfield.h
+../bin/osf1/../F/mfield.o: ../F/mfield.h
 ../bin/osf1/tkdbc.o: ../include/tkdbc.h ../include/typedefs.h
 ../bin/osf1/tkdbc.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/tkdbc.o: /usr/include/cxx/iostream.h

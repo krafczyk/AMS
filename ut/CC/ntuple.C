@@ -9,7 +9,7 @@ AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
   HBNT(_lun, name," ");
 
   HBNAME(_lun,"EventH",&_event.Eventno,
-  "eventno:I,run:I,runtype:I,time(2):I,PolePhi:R,ThetaS:R,PhiS:R,Particles:I,Tracks:I,Betas:I,Charges:I,TrRecHits:I,TrClusters:I,TrRawClusters:I,TrMCClusters:I,TOFClusters:I,TOFMCClusters:I,CTCClusters:I,CTCMCClusters:I,AntiMCClusters:I,AntiClusters:I");
+  "eventno:I,run:I,runtype:I,time(2):I,GrMedPhi:R,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,Particles:I,Tracks:I,Betas:I,Charges:I,TrRecHits:I,TrClusters:I,TrRawClusters:I,TrMCClusters:I,TOFClusters:I,TOFMCClusters:I,CTCClusters:I,CTCMCClusters:I,AntiMCClusters:I,AntiClusters:I");
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,100],betastatus(nbeta):I,betapattern(nbeta):I,beta(nbeta),betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta):I,betaptof(4,nbeta):I,betaptr(nbeta):I");
@@ -18,7 +18,7 @@ AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
     "ncharge[0,10],chargestatus(ncharge):I,chargebetap(ncharge):I,chargetof(ncharge):I,chargetracker(ncharge):I,probtof(7,ncharge),probtracker(7,ncharge)");
 
   HBNAME(_lun,"Particle",&_part.Npart,
-  "npart[0,10],pctcp(2,npart):I,pbetap(npart):I,pchargep(npart):I,ptrackp(npart):I,pid(npart):I,pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),pcoo(3,npart),signalctc(2,npart),betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart),cootof(3,4,npart)");
+  "npart[0,10],pctcp(2,npart):I,pbetap(npart):I,pchargep(npart):I,ptrackp(npart):I,pid(npart):I,pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),pcoo(3,npart),signalctc(2,npart),betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart),cootof(3,4,npart),cooanti(3,2,npart),cootr(3,6,npart)");
 
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof):I,bar(ntof):I,TOFEdep(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");

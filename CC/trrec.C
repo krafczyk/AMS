@@ -2228,6 +2228,7 @@ void AMSTrTrack::_writeEl(){
     TrTN->RidgidityMS[TrTN->Ntrtr]=(geant)_RidgidityMS;
     TrTN->GRidgidityMS[TrTN->Ntrtr]=(geant)_GRidgidityMS;
     TrTN->Ntrtr++;
+
   }
 }
 
@@ -2271,6 +2272,64 @@ void AMSTrTrack::interpolate(AMSPoint  pntplane, AMSDir dirplane,AMSPoint & P1,
   point[5]=dirplane[2];
   geant slength;
   TKFITPAR(init, charge,  point,  out,  m55, slength);
+  P1[0]=out[0];
+  P1[1]=out[1];
+  P1[2]=out[2];
+  theta=acos(out[5]);
+  phi=atan2(out[4],out[3]);
+  length=slength;  
+}
+
+void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
+                                number CylRadius, number idir, AMSPoint & P1,
+                                number & theta, number & phi, number & length){
+
+  // interpolates track to cylinder (Cylpar = x_cen,y_cen, radius)
+  //in the direction idir  
+  // and calculates the track parameters(P1,theta,phi) and total track length
+
+  geant out[7];
+  static number m55[5][5];
+  geant init[7];
+  geant point[7];
+  geant charge=1;
+  point[0]=CylCenter[0];
+  point[1]=CylCenter[1];
+  point[2]=CylCenter[2];
+  point[3]=CylAxis[0];
+  point[4]=CylAxis[1];
+  point[5]=CylAxis[2];
+  point[6]=CylRadius;
+  geant slength;
+  number s2=(CylCenter-_P0).prod(CylCenter-_P0);
+  number s1=(CylCenter-_P0).prod(CylAxis);
+  number sdist=CylRadius-sqrt(s2-s1*s1);
+  if(sdist<0){
+    // interpolate to 2nd ladder first;
+   integer ok=intercept(P1,2,theta,phi);
+   AMSDir dir(idir*sin(theta)*cos(phi),
+             idir*sin(theta)*sin(phi),
+             idir*cos(theta));
+   init[0]=P1[0];
+   init[1]=P1[1];
+   init[2]=P1[2];
+   init[3]=dir[0];
+   init[4]=dir[1];
+   init[5]=dir[2];
+  }
+  else {
+   AMSDir dir(idir*sin(_Theta)*cos(_Phi),
+             idir*sin(_Theta)*sin(_Phi),
+             idir*cos(_Theta));
+   init[0]=_P0[0];
+   init[1]=_P0[1];
+   init[2]=_P0[2];
+   init[3]=dir[0];
+   init[4]=dir[1];
+   init[5]=dir[2];
+  }
+   init[6]=_Ridgidity;
+   TKFITPARCYL(init, charge,  point,  out,  m55, slength);
   P1[0]=out[0];
   P1[1]=out[1];
   P1[2]=out[2];
@@ -2665,3 +2724,33 @@ trig=(trig+1)%freq;
             sqrt(1+par[1][0]*par[1][0]) > TRFITFFKEY.SearchRegCircle;
 }
 
+
+integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number &phi){
+  AMSTrRecHit * phit=AMSTrRecHit::gethead(layer);
+  if(phit){
+    AMSgSen *pls=phit->getpsen();
+    AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
+    AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
+    number length;
+    interpolate(pntplane,pntdir,P1,theta,phi,length);
+  }    
+  else{
+    // no hits but still track extrap needed
+    AMSTrIdGeom g(layer+1,8,4,0,0);    // reference
+    AMSgvolume *pls =AMSJob::gethead()->getgeomvolume(g.crgid());
+    if(pls){
+      AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
+      AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
+      number length;
+      interpolate(pntplane,pntdir,P1,theta,phi,length);
+    }
+    else {
+      cerr <<"AMSTrTrack::intercept-E-NoGeomVolumeFound"<<g.crgid()<<endl;
+      P1=0;
+      theta=0;
+      phi=0;
+      return 0;
+    }
+  }
+  return 1;
+}

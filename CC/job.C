@@ -256,8 +256,8 @@ TRMCFFKEY.year[0]=95;
 TRMCFFKEY.year[1]=99;
 TRMCFFKEY.GenerateConst=0;
 TRMCFFKEY.WriteHK=0;
-TRMCFFKEY.thr1R[0]=4.5;
-TRMCFFKEY.thr1R[1]=4.5;
+TRMCFFKEY.thr1R[0]=2.75;
+TRMCFFKEY.thr1R[1]=3.5;
 TRMCFFKEY.thr2R[0]=1;
 TRMCFFKEY.thr2R[1]=1;
 TRMCFFKEY.neib[0]=1;
@@ -286,7 +286,7 @@ TRCALIB.BadChanThr[0]=3.3;
 TRCALIB.BadChanThr[1]=0.002;
 TRCALIB.Method=2;
 TRCALIB.Pass=1;
-TRCALIB.DPS=0;
+TRCALIB.DPS=1;
 TRCALIB.UPDF=4;
 TRCALIB.PrintBadChList=0;
 TRCALIB.EventsPerIteration[0]=100;
@@ -543,7 +543,7 @@ TRCLFFKEY.Thr3R[0] =-2.;
 TRCLFFKEY.Thr3R[1] =-2.;
 
 TRCLFFKEY.ThrClNMin[0]=1;
-TRCLFFKEY.ThrClNMin[1]=2;
+TRCLFFKEY.ThrClNMin[1]=1;
 
 TRCLFFKEY.ThrClNEl[0]=3;
 TRCLFFKEY.ThrClNEl[1]=3;
@@ -1284,6 +1284,7 @@ AMSgObj::BookTimer.book("RECTCEVENT");
 
 void AMSJob::_reaxinitjob(){
 AMSgObj::BookTimer.book("REAXEVENT");
+AMSgObj::BookTimer.book("ReAxRefit");
 if(AMSFFKEY.Update)AMSCharge::init();
 
 

@@ -144,54 +144,51 @@ void AMSEvent::SetTimeCoo(){
 
   // Allocate time & define the geographic coordinates
   if(AMSJob::gethead()->isSimulation()){
-   static number dtime=AMSmceventg::Orbit.FlightTime/
-   (GCFLAG.NEVENT+1-GCFLAG.IEVENT);
-   number t2=
-   AMSmceventg::Orbit.AlphaTanThetaMax*AMSmceventg::Orbit.AlphaTanThetaMax;
-   static number curtime=0;
-   static number theta=AMSmceventg::Orbit.ThetaI;
-   static number philocal=
-   atan2(sin(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero)*sqrt(1+t2),
-   cos(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero));
-   static number pole=AMSmceventg::Orbit.PolePhi;
-   geant dd; 
-   int i;
-   number xsec=0;
-   for(i=0;i<AMSmceventg::Orbit.Nskip+1;i++)
-   xsec+=-dtime*log(RNDM(dd)+1.e-30);
-   curtime+=xsec;
-   pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
-   philocal=fmod(philocal+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
-   number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
-   if(phi < 0)phi=phi+AMSDBc::twopi;
-   theta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*
-        sin(phi));
-   _time=integer(mktime(&AMSmceventg::Orbit.Begin)+curtime);
-   _usec=(curtime-integer(curtime))*1000000;
-   _NorthPolePhi=pole;
-   _StationTheta=theta;
-   _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
-   GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
-   AMSmceventg::Orbit.Nskip=0;        
-   AMSmceventg::Orbit.Ntot++;
+    static number dtime=AMSmceventg::Orbit.FlightTime/
+      (GCFLAG.NEVENT+1-GCFLAG.IEVENT);
+    number t2=
+      AMSmceventg::Orbit.AlphaTanThetaMax*AMSmceventg::Orbit.AlphaTanThetaMax;
+    static number curtime=0;
+    static number theta=AMSmceventg::Orbit.ThetaI;
+    static number philocal=
+      atan2(sin(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero)*sqrt(1+t2),
+            cos(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero));
+    static number pole=AMSmceventg::Orbit.PolePhi;
+    geant dd; 
+    int i;
+    number xsec=0;
+    for(i=0;i<AMSmceventg::Orbit.Nskip+1;i++)
+      xsec+=-dtime*log(RNDM(dd)+1.e-30);
+    curtime+=xsec;
+    pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
+    philocal=fmod(philocal+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
+    number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
+    if(phi < 0)phi=phi+AMSDBc::twopi;
+    theta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*
+               sin(phi));
+    _time=integer(mktime(&AMSmceventg::Orbit.Begin)+curtime);
+    _usec=(curtime-integer(curtime))*1000000;
+    _NorthPolePhi=pole;
+    _StationTheta=theta;
+    _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
+    GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
+    AMSmceventg::Orbit.Nskip=0;        
+    AMSmceventg::Orbit.Ntot++;
+    _Yaw=0;
+    _Roll=0;
+    _Pitch=0;
+    _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
+    _StationRad=AMSmceventg::Orbit.AlphaAltitude;
   }
   else {
-   number t2=
-   AMSJob::Orbit.AlphaTanThetaMax*AMSJob::Orbit.AlphaTanThetaMax;
-
-   number xsec=difftime(_time,AMSJob::Orbit.Begin);
-   _NorthPolePhi=fmod(AMSJob::Orbit.PolePhi+
-   AMSJob::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
-
-   number phil=
-   atan2(sin(AMSJob::Orbit.PhiI-AMSJob::Orbit.PhiZero)*sqrt(1+t2),
-   cos(AMSJob::Orbit.PhiI-AMSJob::Orbit.PhiZero));
-
-   phil=fmod(phil+AMSJob::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
-   number phi=atan2(sin(phil),cos(phil)*sqrt(1+t2));
-   if(phi < 0)phi=phi+AMSDBc::twopi;
-   _StationTheta=atan(AMSJob::Orbit.AlphaTanThetaMax*sin(phi));
-   _StationPhi=fmod(phi+AMSJob::Orbit.PhiZero,AMSDBc::twopi);
+    _NorthPolePhi=AMSmceventg::Orbit.PolePhiStatic;
+    _StationTheta=0;
+    _StationPhi=0;
+    _Yaw=0;
+    _Roll=0;
+    _Pitch=0;
+    _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
+    _StationRad=AMSmceventg::Orbit.AlphaAltitude;
   }
 }
 
@@ -1143,9 +1140,14 @@ void AMSEvent::_writeEl(){
   EN->Run=_run;
   EN->RunType=_runtype;
   UCOPY(&_time,EN->Time,2*sizeof(integer)/4);
-  EN->PolePhi=_NorthPolePhi;
+  EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
   EN->ThetaS=_StationTheta;
   EN->PhiS=_StationPhi;
+  EN->RadS=_StationRad;
+  EN->Yaw=_Yaw;
+  EN->Pitch=_Pitch;
+  EN->Roll=_Roll;
+  EN->VelocityS=_StationSpeed;
   integer  i,nc;
   AMSContainer *p;
   EN->Particles=0;

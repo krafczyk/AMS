@@ -13,13 +13,18 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * run              // run no
 * I*4  *              * EVENTH   * runtype          //
 * I*4  *              * EVENTH   * time(2)          // Event time
-* R*4  *              * EVENTH   * PolePhi          // North Magnetic Pole coo
-* R*4  *              * EVENTH   * ThetaS           // Shuttle Theta coo
-* R*4  *              * EVENTH   * PhiS             // Shuttle phi coo
+* R*4  *              * EVENTH   * GrMedPhi         // Greenwich meridian phi 
+* R*4  *              * EVENTH   * RadS             // Shuutle Altitude (cm)
+* R*4  *              * EVENTH   * ThetaS           // Shuttle Theta (rad)
+* R*4  *              * EVENTH   * PhiS             // Shuttle phi (rad)
+* R*4  *              * EVENTH   * YawS             // Shuttle Euler angle psi (rad) 
+* R*4  *              * EVENTH   * PitchS           // ------------------  theta
+* R*4  *              * EVENTH   * RollS            // ------------------  phi
+* R*4  *              * EVENTH   * VelocityS        // Shuutle speed (rad/sec)
 
 
 * I*4  *              * EVENTH   * Particles        // No of Particles
-* I*4  *              * EVENTH   * Tracks           // No of Tracks                      
+* I*4  *              * EVENTH   * Tracks           // No of Tracks                    
 * I*4  *              * EVENTH   * Betas            // No of Betas
 * I*4  *              * EVENTH   * Charges          // No of Charges
 * I*4  *              * EVENTH   * TrRecHits        // No of 3 dim trackerpoints
@@ -80,13 +85,15 @@ Below there is a description of a  ntuple.
 * R*4  *              * PARTICLE * signalctc(2,npart)  // ctcsignal(s)
 * R*4  *              * PARTICLE * betactc(2,npart)   // ctc beta            
 * R*4  *              * PARTICLE * errorbetactc(2,npart)   // ctcerror beta
-* R*4  *              * PARTICLE * cooctc(3,2,npart)    // tracker extrapol
-                                                        // at ctc
-* R*4  *              * PARTICLE * cootof(3,4,npart)    // tracker extrapol
-                                                        // at tof
+* R*4  *              * PARTICLE * cooctc(3,2,npart)    // tracker extrapol   in ctc
+* R*4  *              * PARTICLE * cootof(3,4,npart)    // tracker extrapol   in tof
+* R*4  *              * PARTICLE * cooanti(3,2,npart)   // tracker extrapol   in anti
+* R*4  *              * PARTICLE * cootr(3,6,npart)     // tracker extrapol   in tr
 
 
-                                                       // extrapolated into ctc
+
+
+
 * I*4  * [0,20]       * TOFCLUST * ntof                // TOF clusters number
 * I*4  *              * TOFCLUST * TOFStatus(ntof)  // Status: 0->ok 
                                                     // bit 4 - ambig

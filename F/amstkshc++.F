@@ -6219,6 +6219,165 @@ c          call dmm55(beg(1,1),m55,dum)
           call dmm55(xmat(1,1,1),m55,dum)
           call ucopy(dum,m55,50)
           end
+
+CDECK  ID>, TKFITPARCYL.   
+         subroutine tkfitparcyl(init,chrg,point,out,m55,stept)
+
+*
+* Input init(7) x0,y0,z0,nx,ny,nz,p
+*       point(7) = coo_cyl, axis_cyl, radius_cyl
+*       yn(3)
+*
+* Output out(7)
+*        m55(5,5)
+*         stept
+        parameter (maxmat=100)
+        real *8  m55(5,5),dum(5,5),xmat(5,5,maxmat)
+         real *4 init(7),point(6),out(7)
+         real *4 vin(7),der(10)
+
+              common /tkgdef$/tmaxf,smax,fieldmm,cconv,
+     +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
+     +        bound,scale,cfld,sms,pii
+              real *4 tmaxf,smax,fieldmm,bound(2,6),cfld,pii,cconv,
+     +        scale(6)
+              common/tftime$/timer(100,2),xtime
+              common /tkcorr$/
+     +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
+              real *8 xxn,vpar2,vpar,vxy
+          stept=0
+          idir=1
+          stepa=0
+          imat=0
+          sfield=cfld*abs(init(7)/chrg)
+          call ucopy(init(1),vin(1),7)
+          call ucopy(init(1),out(1),7)
+           s1=(point(1)-out(1))**2+
+     +       (point(2)-out(2))**2+
+     +       (point(3)-out(3))**2
+          s2=(point(1)-out(1))*point(4)+
+     +       (point(2)-out(2))*point(5)+
+     +       (point(3)-out(3))*point(6)
+          sdist=point(7)-sqrt(s1-s2**2)
+          if(sdist.lt.0)then
+           stept=1.e10
+           write(*,*)'tkfitparcyl-E-outside of cyl',sdist,point(7)
+           return
+          endif
+         step=0
+         ich=0
+         nit=0
+         za=out(3)
+100       continue
+          nit=nit+1
+          if(nit.gt.nitm)goto 200
+          if(imat.gt.maxmat)goto 200
+          s1=(point(1)-out(1))**2+
+     +       (point(2)-out(2))**2+
+     +       (point(3)-out(3))**2
+          s2=(point(1)-out(1))*point(4)+
+     +       (point(2)-out(2))*point(5)+
+     +       (point(3)-out(3))*point(6)
+          sdist=point(7)-sqrt(s1-s2**2)
+          sd2=out(4)*point(4)+out(5)*point(5)+out(6)*point(6)
+          sd1=sqrt(abs(1-sd2**2))
+          
+          sdist=sdist/(sd1+1.e-10)
+c          stepa=stepa+step
+          if(min(sfield,smax)
+     +     -stepa.le.0.or.abs(sdist).lt.cconv)then
+           h=out(3)-za
+           imat=imat+1
+           if(abs(h).gt.steps)then
+           call tkfunxy(vin(1),out(1),der(1))
+           dfx=der(1)*h*chrg/init(7)
+           dfy=der(2)*h*chrg/init(7)
+           dfxp=der(3)*h*chrg/init(7)
+           dfyp=der(4)*h*chrg/init(7)
+           dgx=der(5)*h*chrg/init(7)
+           dgy=der(6)*h*chrg/init(7)
+           dgxp=der(7)*h*chrg/init(7)
+           dgyp=der(8)*h*chrg/init(7)
+           fm=der(9)
+           gm=der(10)
+           xmat(1,1,imat)=1+0.5*h*dfx
+           xmat(1,2,imat)=h+0.5*h*dfxp
+           xmat(1,3,imat)=0.5*h*dfy
+           xmat(1,4,imat)=0.5*h*dfyp
+           xmat(1,5,imat)=fm*h**2/2.
+           xmat(2,1,imat)=dfx
+           xmat(2,2,imat)=1+dfxp
+           xmat(2,3,imat)=dfy
+           xmat(2,4,imat)=dfyp
+           xmat(2,5,imat)=h*fm
+           xmat(3,1,imat)=0.5*h*dgx
+           xmat(3,2,imat)=0.5*h*dgxp
+           xmat(3,3,imat)=1+0.5*h*dgy
+           xmat(3,4,imat)=h+0.5*h*dgyp
+           xmat(3,5,imat)= 0.5*h**2*gm
+           xmat(4,1,imat)= dgx
+           xmat(4,2,imat)= dfxp
+           xmat(4,3,imat)= dgy
+           xmat(4,4,imat)= 1+dgyp
+           xmat(4,5,imat)= h*gm
+           xmat(5,1,imat)= 0
+           xmat(5,2,imat)= 0
+           xmat(5,3,imat)= 0
+           xmat(5,4,imat)= 0
+           xmat(5,5,imat)= 1
+           else
+            call vzero(xmat(1,1,imat),50)
+            do ix=1,5
+             xmat(ix,ix,imat)=1
+            enddo
+           endif
+c          stepa=0
+          za=out(3)
+
+          endif
+          call ucopy(out(1),vin(1),7)
+          if(abs(sdist).lt.cconv)goto 200
+          if(sdist.lt.0)then
+           idir=-idir
+           sdist=-sdist
+           ich=ich+1
+           do k=4,6
+            vin(k)=-vin(k)
+           enddo
+          endif
+          step=min(smax,sfield,sdist,sfield-stepa,smax-stepa)
+          stept=stept+step*idir
+          if(step.gt.steps)then
+           call grkuta(chrg,step,vin,out)
+          else
+            out(1)=vin(1)+step*vin(4)
+            out(2)=vin(2)+step*vin(5)
+            out(3)=vin(3)+step*vin(6)
+            call ucopy(vin(4),out(4),3)
+          endif
+          goto 100
+200       continue
+          if(mod(ich,2).ne.0)then
+           do k=4,6
+            out(k)=-out(k)
+           enddo
+          endif
+c         call vzero(beg(1,1),50)
+c          do i=1,5
+c            beg(i,i)=1
+c          enddo
+c          do i=imat,1,-1
+c           call dmm55(beg,xmat(1,1,i),dum)
+c           call ucopy(dum(1,1),beg(1,1),50)
+c          enddo
+
+c          call dmm55(beg(1,1),m55,dum)
+          call dmm55(xmat(1,1,1),m55,dum)
+          call ucopy(dum,m55,50)
+          end
+
+
+
 CDECK  ID>, TKFUNXY.
           subroutine tkfunxy(in,out,derl)
           common /tkclear$/clear

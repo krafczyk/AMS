@@ -22,9 +22,17 @@ class AMSEvent: public AMSNode{
 private:
 uinteger _run;
 uinteger _runtype;
-number _NorthPolePhi;
-number _StationTheta;
-number _StationPhi;
+geant _StationRad;    //cm 
+geant _StationTheta; 
+geant _StationPhi;   
+geant _NorthPolePhi;
+geant _Yaw;
+geant _Pitch;
+geant _Roll;
+geant _StationSpeed;
+geant _SunRad; 
+geant _SunTheta; 
+geant _SunPhi; 
 time_t _time;
 uinteger _usec;
 static integer SRun;
@@ -100,9 +108,8 @@ void _findC(AMSID & id);
 AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
-uinteger usec,number pole, number stationT, number stationP ):AMSNode(id),_run(run),
-_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),
-_StationTheta(stationT){_Head=this;}
+uinteger usec,geant pole, geant stationT, geant stationP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0,geant SunT=0, geant SunP=0):AMSNode(id),_run(run),
+_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_SunTheta(SunT),_SunPhi(SunP){_Head=this;}
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
    _runtype(runtype), _time(time), _usec(usec){
    SetTimeCoo();
