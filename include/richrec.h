@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.9 2001/09/02 12:48:25 kscholbe Exp $
+//  $Id: richrec.h,v 1.10 2001/09/11 08:07:21 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -145,6 +145,7 @@ public:
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 
   static void build();
+  static void rebuild(AMSTrTrack *ptrack);
   AMSTrTrack* gettrack(){return _ptrack;}
   integer getused(){return _used;}
   integer getcharge(){return _charge;}

@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.20 2001/08/08 14:34:14 choutko Exp $
+#  $Id: ntuple02.doc,v 1.21 2001/09/11 08:07:21 choutko Exp $
 This is AMS02 Ntuple Description
 
 
@@ -533,7 +533,7 @@ NOTES:
 21 - Track->Trladder interpol was done on plane level    (status&(65536*16)!=0)
 22 - Track was created using TOF only                    (status&(65536*32)!=0)
 23 - Object Overflow                                     (status&(65536*64)!=0)
-
+26 - CATLEAK  (Ecal only)                               (status&(65536*256)!=0) 
 
 **) AMS global system definition: GTOD
 
