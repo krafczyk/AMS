@@ -423,7 +423,13 @@ void AMSParticle::pid(){
     _emom=_emom*_emom;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
     geant chi2=f;
-    prob[i]=PROB(chi2,1)*_pcharge->getprobcharge(chrg);
+    prob[i]=PROB(chi2,1);
+    //linux bug
+    if(fabs(prob[i])>10.){
+      cerr<<"AMSPArticle::pid-E-Proberror " <<chi2<<" " <<prob[i]<<endl;
+     prob[i]=0;
+    }
+    prob[i]*=_pcharge->getprobcharge(chrg);
     if(ifail)prob[i]=0;
     if(x[0]!=0)pfit[i]=1./fabs(x[0]);
     else pfit[i]=FLT_MAX;
