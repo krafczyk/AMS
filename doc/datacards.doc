@@ -476,6 +476,7 @@ I41 ofile[40]("")                   // output file name
 I82 OldFormat(0)                    // old(0) new(1) format
 I83 LCrateinDAQ(1)                  // in(1) out(0) of DAQ
 I84 SCrateinDAQ(1)                  // in(1) out(0) of DAQ
+I85 RunChanger                     // Tmp fix to run no problem
 
 BMAP   // Magnetic field control
 I 1 iniok(1)                       // 0 for update mag field

@@ -1,0 +1,106 @@
+Dear AMS User, 
+below are some (useful) info to make you more familiar  with AMS software.
+
+
+I. The following hardware platfoorms are fully(F) or partly(P) supported:
+a) IBM/AIX/xlC    (F)
+b) DEC/OSF1/cxx   (F)
+c) HP-UX/g++2.7.2 (P)     ! Dbase version is not supported
+d) SGI/IRIX/g++2.7.2 (P)  ! Dbase version is not supported
+
+II. Software management:
+    cvs  ( Concurrent Version System)
+    described in detail in http://wwwcn1.cern.ch/asd/cvs/index.html
+
+III. Programming languagues:
+a) C++  (general framework, data structures, methods, algorithmes, i/o etc)
+b) F77/F90 ( algorithmes only)
+
+IV. I/O
+a) Objectivity database
+b) CW ntuples
+
+
+V. Documentation
+I) AMS Home Page at http:/hpl3tri1.cern.ch/analysis.html (AwMwSw 19980402)
+II) Other hints at
+a) http://hpl3itp1.cern.ch:8081/AMS.html and referencies therein
+b) http://hpl3itp1.cern.ch:8081/amsc++.ps  
+c) http://hpl3itp1.cern.ch:8081/overview.ps  
+d) files in doc subdirectory of AMS directory tree ( see VI. how to access) 
+e) 00index.txt file in each subdirectory
+   
+
+
+VI. Access to AMS software
+
+a) As a user:
+
+Method I : Pick up the //hpl3itp1.cern.ch:8081/ams.tar.gz file
+          gzip -d then tar -xvf it. You will get an AMS directory tree.
+          (see VII. for standalone environment)          
+
+Method II(Recommended): Get an account on some eth-z computers  
+                        (ask Alexei.Klimentov@cern.ch to do that).
+                        The last released version of the AMS software is in
+                        /pgm0/Offline/tag directory on boron
+                        /Offprod/tag directory on helium
+                        
+                        current (20-dec-1998) tag == v2.13
+                                    
+                        Development version is in 
+                        /pgm0/Offline/vdev   directory    (boron)                
+                        /Offprod/vdev   directory (helium)                   
+
+b) As a developper :
+
+  i)You should have an  account on eth-z computers (see above how to get it)
+  ii)You should be a member of "simu" group on eth-z computers
+  (ask Vitaly.Choutko@cern.ch about it)                                                
+  iiii) define following variables in your shell:
+                  setenv CVSROOT /pgm0/Offline/CVS (/Offprod/CVS)
+                  setenv EDITOR {put your fav editor here}
+                  setenv CVSEDITOR {put your fav editor here}
+                  setenv AMSDataDir /pgm0/Offline/AMSDataDir (/Offprod/AMSDataDir)
+
+   iv) cvs checkout AMS   // creates a local copy of AMS files (latest revision)
+                          // You will be able to update/commit 
+
+         To add new files/directories:
+         cvs add file
+
+         To remove it:
+         rm file
+         cvs remove file
+
+         To make the changes available to others (update CVS master rep) :
+         cvs commit   // Please ensure the files you changed at least compilable :)
+                      // Please not change the makefiles in install dir,
+                      // create your own instead
+            
+          To synchronize your local copy with cvs rep:
+          cvs update -d 
+
+
+
+
+VII.  Standalone version 
+
+If you have neither account on cernsp nor afs server,
+   below are some hints how to build the standalone version of AMS 
+   (without dbase):
+
+a) Set up CERN libraries 
+   eq. -L/cern/95a/lib  -lgeant321  -lpacklib -lmathlib -lkernlib
+
+b) copy files from /afs/cern.ch/user/c/choutko/public/data
+   or  AMS.html("Data files for standalone version")
+   to <your preferred dir>  
+
+c) setenv AMSDataDir  <your preferred dir>
+
+
+
+
+
+Comments, questions to shoutko@vxcern.cern.ch
