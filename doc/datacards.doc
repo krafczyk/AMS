@@ -457,7 +457,6 @@ R14 LowBetaThr(0.4)        // below this the refit will be done using pat #7
 I15 FullReco(0)            // Allows(1) or not(0) share tofcl between particles
 R16 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker 
 I17 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
-R18 GSIBetaCorr(1.)     // Special GSI Beta Correction
 
 CHARGEFIT
 I 1 NmembMax(3)          // maximum number of members for TOF clusters
