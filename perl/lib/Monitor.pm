@@ -31,6 +31,7 @@ my %fields=(
      dsti=>undef,
      dsts=>undef,
      db=>undef,
+     env=>undef,
      rn=>undef,
      ok=>0,
      registered=>0,
@@ -136,6 +137,13 @@ sub UpdateEverything{
          }
          else {
              $ref->{nkl}=$ahl;
+         }
+        ($length,$ahl)=$arsref->getEnv(\%cid);
+         if($length==0){
+             $ref->{env}=undef;
+         }
+         else {
+             $ref->{env}=$ahl;
          }
          my $path="AMSDataDir";
          my $addpath="/DataBase/";
@@ -772,7 +780,14 @@ int($hash->{CPUNeeded}*10)/10,
          $hash->{SubmitCommand}, $hash->{HostName}, $hash->{LogInTheEnd},$hash;
          push @output, [@text];   
      }
-    }
+ }elsif( $name eq "setEnv"){
+     for my $i (0 ... $#{$Monitor::Singleton->{nkl}}){
+         $#text=-1;
+         my $hash=$Monitor::Singleton->{env}[$i];
+         my @text = split '\=',$hash;
+         push @output, [@text];   
+     }
+ }
     return @output;
 
 }
@@ -954,7 +969,7 @@ my %ac;
           $ac{Interface}=$nc{Interface};
           goto FOUND3;
          }
-      }
+        }
            %ac=%{${$ref->{ahlp}}[0]};
           $ac{ClientsAllowed}=shift @data;
           $ac{Status}=shift @data;
@@ -979,7 +994,21 @@ FOUND3:
                 warn "sendback corba exc";
             };
         }
-    }
+      }elsif($name eq "setEnv"){
+        my $ref=$Monitor::Singleton;
+                my $env=shift @data;
+                my $path=shift @data;
+                foreach my $arsref (@{$ref->{arsref}}){
+                try{
+                 my %cid=%{$ref->{cid}};
+                 $cid{Type}="Server";
+                 $arsref->setEnv(\%cid,$env,$path);
+                }
+                catch CORBA::SystemException with{
+                 warn "sendback corba exc";
+                };
+            }
+      }
 }
 
 

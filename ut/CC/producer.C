@@ -1,9 +1,9 @@
+#include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
 #include <cern.h>
 #include <commons.h> 
 #include <stdio.h>
-#include <unistd.h>
 #include <iostream.h>
 #include <event.h>
 #include <job.h>
@@ -272,6 +272,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
      fpath.pos+=last;
     }
      fbin.close();
+     unlink( ((const char*)a(bstart)));
       a=(const char*)_pid.HostName;
      a+=":REMOTE:";
      a+=(const char*)fpath.fname;
@@ -419,9 +420,7 @@ catch  (CORBA::SystemException & a){}
 
 void AMSProducer::sendRunEnd(DAQEvent::InitResult res){
 if(_dstinfo->Mode ==DPS::Producer::LILO || _dstinfo->Mode==DPS::Producer::LIRO){
-AString command="rm -f ";
-command+=DAQEvent::getfile();
-system(command);
+unlink( DAQEvent::getfile());
 }
 _cinfo.Status= (res==DAQEvent::OK)?DPS::Producer::Finished: DPS::Producer::Failed;
 

@@ -1,4 +1,3 @@
-
 #pragma prefix "ams.cern.ch"
 module DPS{
    typedef unsigned long time;
@@ -217,7 +216,9 @@ module DPS{
      ClientType Type;
      unsigned long id; 
     };
-
+    typedef sequence<string> SS;
+    long getEnv(in CID id, out SS ss);
+    void setEnv(in CID id, in string env, in string path);
     void sendCriticalOps(in CID id, in CriticalOps op);
     void ping();
     boolean TypeExists(in DPS::Client::ClientType type);

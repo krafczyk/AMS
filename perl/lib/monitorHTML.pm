@@ -133,6 +133,7 @@ sub Update{
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ServerClient" >Server Nominal Client<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ServerHost" >Server Nominal Host<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="Killer" >Server Nominal Killer<BR>
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="setEnv" >Server Environment Vars<BR>
 Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
 `;
         print $q->submit(-name=>"Control", -value=>"SubmitRequest");
@@ -345,6 +346,12 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
             "Submit",
             "HostName",
            "LogInTheEnd",
+                 );
+}elsif( $name eq "setEnv"){
+    $#titles=-1;
+        @titles=(
+          "Environment Var",
+          "Path",
                  );
 }
     for my $i (0 ... $#output){

@@ -233,7 +233,8 @@ void _PurgeQueue();
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
    int getNHS(const DPS::Client::CID &cid,NHS_out nhl)throw (CORBA::SystemException);
    int getAHS(const DPS::Client::CID &cid,AHS_out ahl)throw (CORBA::SystemException);
-   
+   int getEnv(const DPS::Client::CID &cid, SS_out ss)throw (CORBA::SystemException);
+   void setEnv(const DPS::Client::CID &cid,const char * env, const char *path)throw (CORBA::SystemException);
    void ping()throw (CORBA::SystemException);
    void sendCriticalOps(const DPS::Client::CID &cid, const CriticalOps & op)throw (CORBA::SystemException);
   bool pingHost(const char * host);

@@ -1094,6 +1094,11 @@ sub update_list{
         $list_item->{clist}=undef;
         $s1->add($list_item);
         $list_item->show;
+        $list_item = new Gtk::ListItem "set Environment";
+        $list_item->{name}="setEnv";
+        $list_item->{clist}=undef;
+        $s1->add($list_item);
+        $list_item->show;
     }
     $s1->show();
 
@@ -1193,6 +1198,12 @@ sub show_sample{
             "Submit",
             "HostName",
            "LogInTheEnd",
+             );                        
+    }elsif( $name eq "setEnv"){
+        $#titles=-1;
+        @titles=(
+          "Environment Var", 
+          "Path",
              );                        
     }
 		my $clist = new_with_titles Gtk::CList(@titles);

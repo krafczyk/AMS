@@ -306,7 +306,11 @@ if(_Type!=Client){
        _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
        _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
 //       if(dflt)_getDefaultEnd(asktime,_End);
-         if(run==0)_Insert=1;
+         if(run==0){
+          _Insert=1;
+          _Begin=1;
+          _End=INT_MAX-1;
+         }
        cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
 #ifdef __AMSDEBUG__
        cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
@@ -343,8 +347,8 @@ _Insert=_pDataBaseEntries[1][index];
 _Begin=_pDataBaseEntries[2][index];
 _End=_pDataBaseEntries[3][index];
 }
-return AMSProducer::gethead()->getTDV(this,run);
-//return AMSProducer::gethead()->getSplitTDV(this,run);
+//return AMSProducer::gethead()->getTDV(this,run);
+return AMSProducer::gethead()->getSplitTDV(this,run);
 }
 #endif
 }

@@ -3154,3 +3154,42 @@ bool Client_impl::Master(){
 return _pser->Master();
 }
 
+void Server_impl::setEnv(const CID & cid, const char * env, const char *path)throw (CORBA::SystemException){
+  setenv(env,path,1);
+
+if(!strcmp(env,"AMSDataDir")){
+   AString amsdatadir(path); 
+   amsdatadir+="/DataBase/";
+     if(AMSDBc::amsdatabase)delete[] AMSDBc::amsdatabase;
+     AMSDBc::amsdatabase=new char[strlen((const char*)amsdatadir)+1];
+     strcpy(AMSDBc::amsdatabase,(const char *)amsdatadir);
+     _parent->IMessage("Server_impl::setEnv-I-DataBaseRedefined");
+}
+     AString message("Server_impl::setEnv-I-Redefined ");
+     message+=env;
+     message+=" to ";
+     message+=path;
+     _parent->IMessage((const char*)message);
+}
+
+int Server_impl::getEnv(const CID & cid, SS_out ss)throw (CORBA::SystemException){
+char ** e1;
+int length=0;
+for (e1=__environ;*e1;e1++){
+ if((*e1)[0]=='A' && (*e1)[1]=='M' &&(*e1)[2]=='S'){
+  length++;
+ }
+}
+SS_var vss= new SS();
+if(length==0)vss->length(1);
+else vss->length(length);
+length=0;
+for (e1=__environ;*e1;e1++){
+ if((*e1)[0]=='A' && (*e1)[1]=='M'  &&(*e1)[2]=='S'){
+  vss[length]=(const char*)(*e1);
+  length++;
+ }
+}
+ ss=vss._retn();
+ return length;
+}
