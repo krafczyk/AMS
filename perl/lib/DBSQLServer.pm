@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.30 2002/08/07 13:27:47 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.31 2002/08/09 12:38:15 alexei Exp $
 
 #
 #
@@ -304,9 +304,13 @@ sub Create{
      $run=(3<<27)+1;
    $dbh->do("insert into Cites values(4,'ethz',0,
             'remote',$run,0,'ETH Zurich',$time)")or die "cannot do: ".$dbh->errstr();    
+     $run=(4<<27)+1;
    $dbh->do("insert into Cites values(5,'mila',0,
             'remote',$run,0,'INFN Milano',$time)")or die "cannot do: ".$dbh->errstr();    
-     $run=(4<<27)+1;
+     $run=(5<<27)+1;
+   $dbh->do("insert into Cites values(6,'knu',0,
+            'remote',$run,0,'Kyungpook Nat. Univ.',$time)")or die "cannot do: ".$dbh->errstr();    
+     $run=(6<<27)+1;
   } else {
     warn "Table Cites has $cnt entries. Not initialized";
  }
@@ -400,6 +404,9 @@ sub Create{
     $address='evgueni.choumilov@cern.ch';
     $alias='e.choumilov@cern.ch'; 
   $dbh->do("insert into Mails values(7,'$address','$alias','Eugeni Choumilov',0,0,2,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
+    $address='gnkim@knu.ac.kr';
+    $alias='guinyun.kim@cern.ch'; 
+  $dbh->do("insert into Mails values(8,'$address','$alias','Guinyun Kim',1,0,6,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
     $time=time();
     warn $time;
 #find responsible
