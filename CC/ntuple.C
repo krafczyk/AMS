@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.122 2002/11/19 17:15:28 alexei Exp $
+//  $Id: ntuple.C,v 1.123 2002/11/26 11:53:50 choutko Exp $
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
@@ -72,7 +72,7 @@ void AMSNtuple::init(){
 
   HBNAME(_lun,"Particle",&_part02.Npart,
  
-"npart[0,10],pbetap(npart)[-1,254]:I,pchargep(npart)[-1,254]:I,ptrackp(npart)[-1,254]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pecalp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart),coorich(3,2,npart),pathrich(2,npart):R,pathrichb(2,npart):R,lengthrich(npart):R,trdlikelihood(npart):R,local(8,npart):R");
+"npart[0,10],pbetap(npart)[-1,254]:I,pchargep(npart)[-1,254]:I,ptrackp(npart)[-1,254]:I,ptrdp(npart)[-1,254]:I,pvertp(npart)[-1,2]:I,prichp(npart)[-1,254]:I,pecalp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart),coorich(3,2,npart),pathrich(2,npart):R,pathrichb(2,npart):R,lengthrich(npart):R,trdlikelihood(npart):R,local(8,npart):R");
 //
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
  
@@ -101,7 +101,7 @@ void AMSNtuple::init(){
   "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[1,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
 
 
-   HBNAME(_lun,"TrGamma",&_tpai02.Ngam,
+   HBNAME(_lun,"Vertex",&_tpai02.Ngam,
    "ngam[0,2],trgmom(ngam):R,trgerrmom(ngam),trgTheta(ngam):R,trgPhi(ngam):R,trgmass(ngam),trgVert(3,ngam):R,trgdist(ngam),trgcharge(ngam)[-2,2]:I,trgStatus(ngam):I,trgpLeft(ngam)[-1,254]:I,trgpRight(ngam)[-1,254]:I,Jthetal(ngam):R,Jphil(ngam):R,Jthetar(ngam):R,Jphir(ngam):R,Jp0l(3,ngam):R,Jp0r(3,ngam):R");
 
   HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.71 2002/11/20 12:34:59 choutko Exp $
+//  $Id: ecalrec.C,v 1.72 2002/11/26 11:53:49 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -763,7 +763,7 @@ void Ecal1DCluster::_writeEl(){
       if (AMSEcalHit::Out(IOPA.WriteAll%10==1)){
         // Writeall
         for(i=0;i<_plane;i++){
-          AMSContainer *pc=AMSEvent::gethead()->getC("AMSEcalHit",_plane);
+          AMSContainer *pc=AMSEvent::gethead()->getC("AMSEcalHit",i);
            #ifdef __AMSDEBUG__
             assert(pc != NULL);
            #endif
@@ -1140,13 +1140,13 @@ void Ecal2DCluster::_writeEl(){
           TN->pCl[TN->Nec2dcl][i]=_pCluster[i]->getpos();
           if (Ecal1DCluster::Out(IOPA.WriteAll%10==1)){
            for(int j=0;j<pat;j++){
-             AMSContainer *pc=AMSEvent::gethead()->getC("Ecal1DCluster",pat);
+             AMSContainer *pc=AMSEvent::gethead()->getC("Ecal1DCluster",j);
              TN->pCl[TN->Nec2dcl][i]+=pc->getnelem();
            }
           }
           else{
            for(int j=0;j<pat;j++){
-          Ecal1DCluster *ptr=( Ecal1DCluster*)AMSEvent::gethead()->getheadC(" Ecal1DCluster",pat);
+          Ecal1DCluster *ptr=( Ecal1DCluster*)AMSEvent::gethead()->getheadC(" Ecal1DCluster",j);
            while(ptr && ptr->checkstatus(AMSDBc::USED)){
             TN->pCl[TN->Nec2dcl][i]++;
             ptr=ptr->next();

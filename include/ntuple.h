@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.68 2002/11/19 13:55:49 choutko Exp $
+//  $Id: ntuple.h,v 1.69 2002/11/26 11:54:00 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -134,6 +134,7 @@ public:
   int   ChargeP[MAXPART02];
   int   TrackP[MAXPART02];
   int   TRDP[MAXPART02];
+  int   VertexP[MAXPART02];
   int   RICHP[MAXPART02];
   int   EcalP[MAXPART02];
   int   Particle[MAXPART02];

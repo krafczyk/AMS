@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.6 2002/11/15 16:08:51 choutko Exp $
+//  $Id: gamma.h,v 1.7 2002/11/26 11:54:00 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -185,6 +185,16 @@ static void RecoLeftRight(int refitting, integer FLPAT[],double SLOPEf, double I
 //
 void HITRESEARCH(int pla, double RES_REF, AMSPoint P_0L2, AMSPoint P_0R2);
 static integer Out(integer);
+integer getcharge() const{return _Charge;}
+AMSTrTrack * getpleft() const {return _pntTrL;}
+AMSTrTrack * getpright() const {return _pntTrR;}
+
+number getmass() const {return _MGAM;}
+number getmom() const{return _PGAMM;}
+number gettheta() const{return _PhTheta;}
+number getphi() const{ return _PhPhi;}
+number geterrmom() const{ return _ErrPGAMM;} 
+AMSPoint getvert()const {return _Vertex;}
 ~AMSTrTrackGamma(){};
 AMSTrTrackGamma *  next(){return (AMSTrTrackGamma*)_next;}
 //

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.119 2002/11/20 12:34:59 choutko Exp $
+//  $Id: particle.C,v 1.120 2002/11/26 11:53:51 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -22,6 +22,7 @@
 #include <ecalrec.h>
 #include <mceventg.h>
 #include <ecalrec.h>
+#include <gamma.h> 
 
 // Normalized TRD probabilities (preliminary)
 number AMSParticle::trdpspect[30]={
@@ -81,6 +82,25 @@ integer AMSParticle::build(integer refit){
 out:
        pcharge=pcharge->next();
       }
+
+//    Make vertex particle(gamma) only if charge==0
+
+      AMSTrTrackGamma *pvert=(AMSTrTrackGamma*)AMSEvent::gethead()->getheadC("AMSTrTrackGamma",0);   
+// VC pvert
+         if(pvert)pvert=pvert->next();
+
+         if(pvert && pvert->getcharge()==0){    
+          ppart=new AMSParticle(pvert);
+          pvert->setstatus(AMSDBc::USED);
+          ppart->pid();
+          AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
+           partfound++;
+
+
+      }       
+
+
+
 
       if(!partfound){
 //      Make ECAL Particle if exists from the highest available ecals
@@ -377,7 +397,7 @@ number theta, phi, sleng;
     else if(!_ptrd){
      _TRDCoo=tmp;
     }
-   } 
+   }
    ptr=ptr->next();
   }
   if(_ptrd)_ptrd->setstatus(AMSDBc::USED);
@@ -468,6 +488,8 @@ void AMSParticle::_writeEl(){
   else PN->ChargeP[PN->Npart]=-1;
   if(_ptrd)PN->TRDP[PN->Npart]=_ptrd->getpos();
   else PN->TRDP[PN->Npart]=-1;
+  if(_pvert)PN->VertexP[PN->Npart]=_pvert->getpos();
+  else PN->VertexP[PN->Npart]=-1;
 
   if(_prich)PN->RICHP[PN->Npart]=_prich->getpos();
   else PN->RICHP[PN->Npart]=-1;
@@ -493,6 +515,7 @@ void AMSParticle::_writeEl(){
   if(_ptrack->checkstatus(AMSDBc::NOTRACK))PN->TrackP[PN->Npart]=-1;
   else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))PN->TrackP[PN->Npart]=-1;
   else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))PN->TrackP[PN->Npart]=-1;
+  else if(_ptrack->checkstatus(AMSDBc::GAMMALEFT) && _ptrack->checkstatus(AMSDBc::GAMMARIGHT))PN->TrackP[PN->Npart]=-1;
   else PN->TrackP[PN->Npart]=_ptrack->getpos();
   PN->Particle[PN->Npart]=_gpart[0];
   PN->ParticleVice[PN->Npart]=_gpart[1];
@@ -578,8 +601,17 @@ void AMSParticle::pid(){
  &AMSParticle::alfun;
  void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=
  &AMSParticle::monit;
-
-
+   if(_Charge==0){
+    
+    _GPart=1;  // photon
+    _gpart[0]=1;  // photon
+    _gpart[1]=0;  // nothing
+    _fittedmom[0]=_Momentum;
+    _fittedmom[1]=0;
+    _prob[0]=1;
+    _prob[1]=0;
+    return;
+   }
   const int maxp=38;
   number prob[maxp];
   number pfit[maxp];
@@ -710,7 +742,7 @@ AMSgObj::BookTimer.start("ReTKRefit");
       if(_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1)
       setstatus(AMSDBc::BADINTERPOL);
 // Change theta,phi,coo 
-      if(beta>0 && layer==0){
+      if(beta>=0 && layer==0){
           _Theta=theta;
           _Phi=phi;
           _Coo=_TrCoo[0];
@@ -720,7 +752,7 @@ AMSgObj::BookTimer.start("ReTKRefit");
            _Phi+=AMSDBc::pi;
           }
      }       
-      else if(beta<=0 && layer==TKDBc::nlay()-1){
+      else if(beta<0 && layer==TKDBc::nlay()-1){
           _Theta=theta;    
          // change theta according to beta
           _Phi=phi;
@@ -731,7 +763,7 @@ AMSgObj::BookTimer.start("ReTKRefit");
           }
       }
     }
-    if(fast || _ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK) || _ptrack->checkstatus(AMSDBc::ECALTRACK)){
+    if(fast || _ptrack->checkstatus(AMSDBc::NOTRACK) || _ptrack->checkstatus(AMSDBc::TRDTRACK) || _ptrack->checkstatus(AMSDBc::ECALTRACK) || (_ptrack->checkstatus(AMSDBc::GAMMALEFT) && _ptrack->checkstatus(AMSDBc::GAMMARIGHT))){
       _loc2gl();
        AMSgObj::BookTimer.stop("ReTKRefit");  
       return;
@@ -885,7 +917,7 @@ void AMSParticle::_loc2gl(){
 
   number cth=ue*uv+ve*vv+we*wv;
   number xfac=57.576*EarthR/rgm*EarthR/rgm;
-  number chsgn=_Momentum/fabs(_Momentum);
+  number chsgn=_Momentum>0?1:-1;
   number cl3=cl*cl*cl;
   number cl4=cl*cl*cl*cl;
   number mom=xfac*cl4/(sqrt(1.-chsgn*cth*cl3)+1)/(sqrt(1.-chsgn*cth*cl3)+1)*_Charge;
@@ -905,4 +937,77 @@ void AMSParticle::alfun(integer & n , number xc[], number &fc, AMSParticle *p){
  fc=(fabs(xc[0])-p->_mom)/p->_emom*(fabs(xc[0])-p->_mom)+
    (sqrt(1+xc[0]*xc[0]*p->_mass)-zbeta)/p->_ebeta*
    (sqrt(1+xc[0]*xc[0]*p->_mass)-zbeta);
+}
+
+
+AMSParticle::AMSParticle(AMSTrTrackGamma *pvert):_pvert(pvert),_ptrack(0),
+_ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
+    int i;
+    for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2;i++)_RichCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2;i++)_RichPath[i]=0.;
+    for(i=0;i<2;i++)_RichPathBeta[i]=0.;
+    _RichLength=0.;
+    for(i=0;i<TKDBc::nlay();i++){
+     _TrCoo[i]=AMSPoint(0,0,0);
+     _Local[i]=0;
+    }
+
+    _Charge=pvert->getcharge();
+    _Mass=pvert->getmass();
+    _Momentum=pvert->getmom();
+    _ErrMomentum=pvert->geterrmom();
+    _Theta=pvert->gettheta();
+    _Phi=pvert->getphi();
+    _Coo=pvert->getvert();
+    _ErrMass=_ErrMomentum/_Momentum*_Mass;
+
+//   find beta
+         
+  for(int patb=0; patb<npatb; patb++){
+    AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
+    while(pbeta){
+      if(pbeta->getptrack()->checkstatus(AMSDBc::GAMMALEFT)){
+        _Beta=pbeta->getbeta();
+        _pbeta=pbeta;
+        _ErrBeta=pbeta->getebeta()*_Beta*_Beta;
+        break;
+      }
+      else if(pbeta->getptrack()->checkstatus(AMSDBc::GAMMARIGHT)){
+        _Beta=pbeta->getbeta();
+        _pbeta=pbeta;
+        _ErrBeta=pbeta->getebeta()*_Beta*_Beta;
+        break;
+      }
+      
+      pbeta=pbeta->next();
+    }
+    if(_pbeta)break;
+  }
+
+  if(!_pbeta){
+  for(int patb=0; patb<npatb; patb++){
+    AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
+    while(pbeta){
+      if(pbeta->getptrack()->checkstatus(AMSDBc::NOTRACK)){
+        _Beta=pbeta->getbeta();
+        _pbeta=pbeta;
+        _ErrBeta=pbeta->getebeta()*_Beta*_Beta;
+        break;
+      }
+      
+      pbeta=pbeta->next();
+    }
+    if(_pbeta)break;
+  }
+ }
+
+// make false track
+           _ptrack=new AMSTrTrack(_Theta,_Phi,_Coo);
+           _ptrack->setstatus(AMSDBc::GAMMALEFT); 
+           _ptrack->setstatus(AMSDBc::GAMMARIGHT); 
+
 }

@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.8 2002/11/20 12:34:59 choutko Exp $
+//  $Id: gamma.C,v 1.9 2002/11/26 11:53:50 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -789,7 +789,6 @@ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN, in
 	   }
 	   //the CEN has been found in Single Hit, then:
           if (CEN != 10000 && p_hi[1]>CEN){
-	    pre->clearstatus(AMSDBc::GAMMARIGHT);
 	    pre->clearstatus(AMSDBc::GAMMALEFT);
             pre->setstatus(AMSDBc::GAMMARIGHT);
 #ifdef __AMSDEBUG__
@@ -798,7 +797,6 @@ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN, in
 	  }
           if (CEN != 10000 && p_hi[1]<=CEN){
 	    pre->clearstatus(AMSDBc::GAMMARIGHT);
-	    pre->clearstatus(AMSDBc::GAMMALEFT);
             pre->setstatus(AMSDBc::GAMMALEFT);
 
 #ifdef __AMSDEBUG__
@@ -813,7 +811,6 @@ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN, in
          if (p_hi[1]==HH[k]){
           if (p_hi[1]>CEN){
             status=pre->getstatus();
-            pre->clearstatus(AMSDBc::GAMMARIGHT);
 	    pre->clearstatus(AMSDBc::GAMMALEFT); 
             pre->setstatus(AMSDBc::GAMMARIGHT);
             status=pre->getstatus(); 
@@ -823,7 +820,6 @@ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN, in
 	  } 
           if (p_hi[1]<=CEN){
             pre->clearstatus(AMSDBc::GAMMARIGHT);
-	    pre->clearstatus(AMSDBc::GAMMALEFT);
             pre->setstatus(AMSDBc::GAMMALEFT);
 	    //        
 #ifdef __AMSDEBUG__
@@ -1465,7 +1461,7 @@ if(AMSTrTrackGamma::Out(1)){
 
 
 TrTN->Pgam[TrTN->Ngam]=_PGAMM;
-TrTN->ErrPgam[TrTN->Ngam]=_ErrPGAMM;
+TrTN->ErrPgam[TrTN->Ngam]=_ErrPGAMM>FLT_MAX?FLT_MAX:_ErrPGAMM;
 TrTN->Massgam[TrTN->Ngam]=_MGAM;
 TrTN->Thetagam[TrTN->Ngam]=_PhTheta;
 TrTN->Phigam[TrTN->Ngam]=_PhPhi;
@@ -1477,12 +1473,8 @@ TrTN->Charge[TrTN->Ngam]=_Charge;
 TrTN->GammaStatus[TrTN->Ngam]=_status;
 //
 
-TrTN->PtrLeft[TrTN->Ngam]=-1;
-if(_pntTrL->checkstatus(AMSDBc::NOTRACK))TrTN->PtrLeft[TrTN->Ngam]=-1;
-if(_pntTrL->checkstatus(AMSDBc::GAMMALEFT))TrTN->PtrLeft[TrTN->Ngam]=_pntTrL->getpos();
-TrTN->PtrRight[TrTN->Ngam]=-1;
-if(_pntTrR->checkstatus(AMSDBc::NOTRACK))TrTN->PtrRight[TrTN->Ngam]=-1;
-if(_pntTrR->checkstatus(AMSDBc::GAMMARIGHT))TrTN->PtrRight[TrTN->Ngam]=_pntTrR->getpos();
+TrTN->PtrLeft[TrTN->Ngam]=_pntTrL->getpos();
+TrTN->PtrRight[TrTN->Ngam]=_pntTrR->getpos();
 
 
 TrTN->Jthetal[TrTN->Ngam]=(geant)_GThetaMSL;
@@ -2814,7 +2806,6 @@ void AMSTrTrackGamma::addtracks(int & done){
 _pntTrL =  new AMSTrTrack(_NhLeft, _PLeft, _FastFitDoneL, _GeaneFitDoneL, _Chi2FastFitL, _RidgidityL,  _ErrRidgidityL,  _ThetaL,  _PhiL,  _P0L, _GChi2L,  _GRidgidityL,  _GErrRidgidityL, _GThetaMSL, _GPhiMSL, _GP0MSL,_Chi2MSL,  _GChi2MSL,  _RidgidityMSL,  _GRidgidityMSL);
 
       _pntTrL->clearstatus(AMSDBc::GAMMARIGHT);
-      _pntTrL->clearstatus(AMSDBc::GAMMALEFT);
       _pntTrL->setstatus(AMSDBc::GAMMALEFT);
  // permanently add;
   AMSEvent::gethead()->addnext(AMSID("AMSTrTrack",0),_pntTrL);
@@ -2822,7 +2813,7 @@ _pntTrL =  new AMSTrTrack(_NhLeft, _PLeft, _FastFitDoneL, _GeaneFitDoneL, _Chi2F
 
 _pntTrR =  new AMSTrTrack(_NhRight, _PRight, _FastFitDoneR, _GeaneFitDoneR, _Chi2FastFitR, _RidgidityR,  _ErrRidgidityR,  _ThetaR,  _PhiR,  _P0R, _GChi2R,  _GRidgidityR,  _GErrRidgidityR, _GThetaMSR, _GPhiMSR, _GP0MSR,_Chi2MSR,  _GChi2MSR,  _RidgidityMSR,  _GRidgidityMSR);
 
-    _pntTrR->clearstatus(AMSDBc::GAMMARIGHT);
+    _pntTrR->clearstatus(AMSDBc::GAMMALEFT);
     _pntTrR->setstatus(AMSDBc::GAMMARIGHT);
  // permanently add;
   AMSEvent::gethead()->addnext(AMSID("AMSTrTrack",0),_pntTrR);
@@ -4132,6 +4123,45 @@ void XZLine_TOF::Check_TRD_TK1(int Num, vector<double> HH, int jj[]){
 void AMSTrTrackGamma::_ConstructGamma(){
 
 
+//  Find if there are some tracks already fitted
+
+  
+    AMSBeta *_pbeta=0;
+  for(int patb=0; patb<npatb; patb++){
+    AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
+    while(pbeta){
+      if(pbeta->getptrack()->checkstatus(AMSDBc::GAMMALEFT)){
+        _pbeta=pbeta;
+        break;
+      }
+      else if(pbeta->getptrack()->checkstatus(AMSDBc::GAMMARIGHT)){
+        _pbeta=pbeta;
+        break;
+      }
+      pbeta=pbeta->next();
+    }
+    if(_pbeta)break;
+  }
+  if(!_pbeta){
+  for(int patb=0; patb<npatb; patb++){
+    AMSBeta *pbeta=(AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
+    while(pbeta){
+      if(!pbeta->getptrack()->checkstatus(AMSDBc::NOTRACK) &&
+         !pbeta->getptrack()->checkstatus(AMSDBc::ECALTRACK) &&
+         !pbeta->getptrack()->checkstatus(AMSDBc::TRDTRACK)){
+        _pbeta=pbeta;
+         break;
+      }
+       pbeta=pbeta->next();
+    }
+    if(_pbeta)break;
+  }
+  }
+  if(_pbeta){
+    _pbeta->getptrack()->AdvancedFit();
+    if(_pbeta->getptrack()->getrid()*_pntTrL->getrid()>0)_pntTrL=_pbeta->getptrack();
+    else if(_pbeta->getptrack()->getrid()*_pntTrR->getrid()>0)_pntTrR=_pbeta->getptrack();
+  }
 
    if((_FastFitDoneL && _FastFitDoneR) ){
 
@@ -4143,7 +4173,7 @@ void AMSTrTrackGamma::_ConstructGamma(){
  AMSPoint p1L,p1R;
  number thetaL,phiL,local;
  number thetaR,phiR;
- if(_pntTrL->intercept(p1L,lay,thetaL,phiL,local,1) && _pntTrR->intercept(p1R,lay,thetaR,phiR,local,1)){
+ if(_pntTrL->intercept(p1L,lay,thetaL,phiL,local,_pntTrL->getpattern()<0?1:0) && _pntTrR->intercept(p1R,lay,thetaR,phiR,local,_pntTrR->getpattern()<0?1:0)){
   
   AMSDir dirL(thetaL,phiL);
   AMSDir dirR(thetaR,phiR);
@@ -4157,7 +4187,8 @@ void AMSTrTrackGamma::_ConstructGamma(){
     AMSPoint alpha=dirL.crossp(dirR);
     AMSPoint beta=dirL.crossp(p1L-p1R);
     number t=alpha.prod(beta)/alpha.prod(alpha);
-    if(t>0)t=0;   // min vertex 
+//    if(t>0)t=0;   // min vertex 
+//     t=0;
     _P0R=p1R+dirR*t;
     _P0L=p1L+dirL*t;
     AMSPoint dc=p1L-_P0R;
@@ -4169,10 +4200,12 @@ void AMSTrTrackGamma::_ConstructGamma(){
 
     AMSDir dir(0,0,-1);
     number length;
-    _pntTrL->interpolate(_Vertex,dir,_P0L,thetaL,phiL,length,1);    
-    _pntTrR->interpolate(_Vertex,dir,_P0R,thetaR,phiR,length,1);    
-    _pntTrL->SetPar(_pntTrL->getgrid(),thetaL,phiL,_P0L,1);
-    _pntTrR->SetPar(_pntTrR->getgrid(),thetaR,phiR,_P0R,1);
+    _pntTrL->interpolate(_Vertex,dir,_P0L,thetaL,phiL,length,_pntTrL->getpattern()<0?1:0);    
+    _pntTrR->interpolate(_Vertex,dir,_P0R,thetaR,phiR,length,_pntTrR->getpattern()<0?1:0);    
+    if(_pntTrL->getpattern()<0)_pntTrL->SetPar(_pntTrL->getgrid(),thetaL,phiL,_P0L,1);
+    else _pntTrL->SetPar(_pntTrL->getrid(),thetaL,phiL,_P0L);
+    if(_pntTrR->getpattern()<0)_pntTrR->SetPar(_pntTrR->getgrid(),thetaR,phiR,_P0R,1);
+    else _pntTrR->SetPar(_pntTrR->getrid(),thetaR,phiR,_P0R);
     dirL=AMSDir(thetaL,phiL);
     dirR=AMSDir(thetaR,phiR);
     if (dirL[2]>0)dirL=dirL*(-1);
@@ -4180,7 +4213,7 @@ void AMSTrTrackGamma::_ConstructGamma(){
 
 //  set gamma parameters  (assuming direction for top to bottom)
     _Charge=(_pntTrL->getgrid()>0?1:-1)+(_pntTrR->getgrid()>0?1:-1);
-    AMSPoint pge=dirR*fabs(_GRidgidityMSR)+dirL*fabs(_GRidgidityMSL);
+    AMSPoint pge=dirR*fabs(_pntTrR->getgrid())+dirL*fabs(_pntTrL->getgrid());
     number err_1=pow(_ErrRidgidityL*_RidgidityL*_RidgidityL,2)+pow(_ErrRidgidityR*_RidgidityR*_RidgidityR,2);
    AMSPoint p1=dirR*fabs(_RidgidityR)+dirL*fabs(_RidgidityL);
    number err_2=p1.norm()-pge.norm();
