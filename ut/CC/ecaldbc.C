@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.24 2001/07/18 15:44:53 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.25 2001/07/23 09:57:43 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -362,6 +362,22 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     }
 // 
 }
+//----------------
+// this function return Cell abs.coo: Ctransv/Clongit/Cz->ico=0/1/2;
+// plane:0-...; cell:0-...; coo: in cm
+  number ECALDBc::CellCoo(integer plane, integer cell, integer ico){
+    integer isl,pmc,sc,pr,pl,cel;
+    number ct,cl,cz,coo(0);
+    isl=plane/2;
+    pmc=cell/2;
+    if(plane%2==0)sc=cell%2;
+    else sc=cell%2+2;
+    ECALDBc::getscinfoa(isl, pmc, sc, pr, pl, cel, ct, cl, cz);
+    if(ico==0)coo=ct;
+    if(ico==1)coo=cl;
+    if(ico==2)coo=cz;
+    return coo;
+  }
 //==========================================================================
 //
 //   EcalJobStat static variables definition (memory reservation):
@@ -1104,6 +1120,18 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
     }
   }
 }  
+//
+//==========================================================================
+integer ECcalib::BadCell(integer plane, integer cell){
+  integer sl,pm,sc,dbsta;
+  sl=plane/2;
+  pm=cell/2;
+  if(plane%2==0)sc=cell%2;
+  else sc=cell%2+2;
+  dbsta=ecpmcal[sl][pm].getstat(sc);
+  if(dbsta<0)return(1);
+  else return(0);
+}
 //
 //==========================================================================
 //  ECALVarp class functions :

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.65 2001/07/18 15:44:53 choumilo Exp $
+//  $Id: gmat.C,v 1.66 2001/07/23 09:57:43 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -405,10 +405,10 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
                                    8.9/rraden, 39.4/rraden));// low dens.AL 
 }
 {
-  geant a[]={12.01,26.98,63.55};//C+Al+Cu
-  geant z[]={6.,13.,29.};
-  geant w[]={30.,50.,20.};//prop. by weight
-  geant craden=0.2;// abs. density of crate
+  geant a[]={28.08,26.98,63.55};//Si+Al+Cu
+  geant z[]={14.,13.,29.};
+  geant w[]={10.,50.,40.};//prop. by weight
+  geant craden=0.49;// abs. density of crate(g/cm3)
   mat.add (new AMSgmat("CRATEMAT1",a,z,w,3,craden));
 }
 {

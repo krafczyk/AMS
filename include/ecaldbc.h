@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.13 2001/05/17 12:10:32 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.14 2001/07/23 09:57:44 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -69,6 +69,7 @@ public:
   static void getscinfoa(integer i, integer j, integer k,
          integer &pr, integer &pl, integer &ce, number &ct, number &cl, number &cz);
   static number segarea(number r, number ds);
+  static number CellCoo(integer plane, integer cell, integer icoo);
 	 
 	 
 //  
@@ -175,6 +176,7 @@ public:
   geant alslow(){return _lslow;}
   geant fastfr(){return _fastf;}
   static void build();
+  static integer BadCell(integer plane, integer cell);
 };
 //
 //===========================================================================

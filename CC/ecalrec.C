@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.25 2001/07/18 15:44:53 choumilo Exp $
+//  $Id: ecalrec.C,v 1.26 2001/07/23 09:57:43 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -438,7 +438,7 @@ void AMSEcalHit::build(int &stat){
         if(ovfl[0]==1){
 	  if(ovfl[1]==1){
             fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
-	    sta|=(65536*64);// mark overflow status bit
+	    sta|=AMSDBc::AOVERFLOW;// set overflow status bit
 	  }
 	}
       }
@@ -452,7 +452,8 @@ void AMSEcalHit::build(int &stat){
       edep=edep*ECcalib::ecpmcal[isl][pmc].adc2mev();// ADCch->Emeasured(MeV)
       emeast+=edep;//tot.Mev
       dbstat=ECcalib::ecpmcal[isl][pmc].getstat(subc);//status from DB (<0->bad,0->ok,>0->limited)
-      if(dbstat>=0 && fadc>0.){// use only good(according DB) channels
+      if(fadc>0.){// store hit
+        if(dbstat<0)sta|=AMSDBc::BAD;// set BAD bit if hit is bad according to DB
         nhits+=1;
         ECALDBc::getscinfoa(isl,pmc,subc,proj,plane,cell,coot,cool,cooz);// get SubCell info
 	icont=plane;//container number for storing of EcalHits(= plane number)

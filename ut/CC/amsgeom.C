@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.127 2001/07/18 15:44:53 choumilo Exp $
+//  $Id: amsgeom.C,v 1.128 2001/07/23 09:57:42 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2460,7 +2460,7 @@ AMSNode * cur;
      geant tancon,coscon;
      geant conang=27.;    //flange angl(degr,wrt horizont)
      geant casr1=55.75;    //vac.case inner radious
-     geant casr2=132.5;    //vac.case outer radious
+     geant casr2=134.;    //vac.case outer radious
      geant cylit=0.3;     //inner cyl. thickness
      geant cylot=0.2;     //outer cyl. thickness
      geant flant=0.2;     //flange thickness
@@ -2582,6 +2582,28 @@ AMSNode * cur;
      gid=1;
      cur=coil->add(new AMSgvolume(
           "MVACMED",0,"MDH2","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//coil-2 hole
+//
+// -----> inter-fixation of dipole and return coils:
+//
+     geant drfrmn=casr1+cylit+1.5;//inner radious of fixation
+     geant drfrmx=dcxpos-dcxth/2.-1.5;//outer .......
+     geant drfdz=dczhs-dczth+1.;//z half size(to cover hole of dipole coil)
+     geant drfopang=55.;//half opening angle(degr)
+     par[0]=drfrmn;
+     par[1]=drfrmx;
+     par[2]=drfdz;
+     par[3]=360.-drfopang;
+     par[4]=360.+drfopang;
+     coo[0]=0.;
+     coo[1]=0.;
+     coo[2]=0.;
+     gid=1;
+     cur=mivol->add(new AMSgvolume(
+        "MVCASEMED",0,"DRF1","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//dip/ret.coil fix.1
+     par[3]=180.-drfopang;
+     par[4]=180.+drfopang;
+     cur=mivol->add(new AMSgvolume(
+        "MVCASEMED",0,"DRF2","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//dip/ret.coil fix.2
 //
 // -----> liq.helium vessel + helium/vacuum:
 //
@@ -2927,8 +2949,9 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //----> bar-1 type(attached to magnet top + TOF/TRD interface):
  geant us1dz=18.;
  geant us1dx=12.;
- geant us1x1=100.-us1dx/2.;//inner(wrt AMS "0") edge x-pos
- geant us1y1=94.;// ...y-pos(This and above shoud be compat.with casr2 in magnet geom)
+ geant us1x1=99.5-us1dx/2.;//inner(wrt AMS "0") edge x-pos
+ geant us1y1=99.5;// ...y-pos(together with us1x1 are defined by attach to VC
+//                             at R=140.7cm and angle 45 degr.)                            
  geant us1z1=msfz1-us1dz;// z-pos to match with M-structure frame z-position
  geant us1x2=us1x1;// outer edge x-pos
  geant us1y2=188.;//             y-pos
@@ -3043,7 +3066,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant us4dx=12.;
  geant us4dz=12.;
  geant us4r1=107.5;//radial pos. of bar low end(center)(check matching with low frame z-top)
- geant us4r2=132.5;//radial pos. of bar high end(center)(check matching with casr2 in magn)
+ geant us4r2=140.7;//radial pos. of bar high end(center)
  geant us4z1=-134.;//                                  ................................
  geant us4z2=-83.;//                                   ................................
  geant us4dy=sqrt(pow(us4r2-us4r1,2)+pow(us4z2-us4z1,2));
