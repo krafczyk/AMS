@@ -232,7 +232,11 @@ void AMSCharge::print(){
 
 
 void AMSCharge::init(){
-AMSCommonsI cmni();
+#ifdef __ALPHA__
+  // yet another dec cxx compiler bug
+  AMSCommonsI cmni;
+  cmni.init();
+#endif
 geant v[3],x[3];
 GUFLD(x,v);
 int i,j;

@@ -29,11 +29,14 @@ GCTRAK_DEF GCTRAK;
 GCKINE_DEF GCKINE;
 
 // Fortran commons
-//TKFIELD_DEF TKFIELD;
-//AMSDATADIR_DEF AMSDATADIR
+// TKFIELD_DEF TKFIELD;
+// AMSDATADIR_DEF AMSDATADIR
 
 
 AMSCommonsI::AMSCommonsI(){
+  init();
+}
+void AMSCommonsI::init(){ 
   if(_Count++==0){
    char dt[128]="/afs/cern.ch/user/c/choutko/public/data/";
    char* gtv=getenv("AMSDataDir");
@@ -52,5 +55,4 @@ AMSCommonsI::AMSCommonsI(){
    }
   }
 }
-
 integer AMSCommonsI::_Count=0;

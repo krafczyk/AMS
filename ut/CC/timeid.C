@@ -1,5 +1,7 @@
 #include <timeid.h>
 #include <job.h>
+uinteger * AMSTimeID::Table=0;
+const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0, 
                      void *pdata=0):
            AMSNode(id),_pData(pdata),_UpdateMe(0){
@@ -16,7 +18,7 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0,
       _Begin=mktime(&begin); 
       _End=mktime(&end); 
       _Insert=_Begin;
-      _Nbytes+=sizeof(integer);
+      _Nbytes+=sizeof(uinteger);
       _CRC=_CalcCRC();
       int i;
       for(i=0;i<AMSJob::gethead()->gettdvn();i++){
@@ -61,13 +63,8 @@ integer AMSTimeID::CopyIn(void *pdata){
     for(i=0;i<n;i++){
      *((integer*)_pData+i)=*((integer*)pdata+i);
     }
-    _CRC=*((integer*)pdata+n);
-    if(_CRC != _CalcCRC()){
-      cerr<<"AMSTimeID::CopyIn-E-CRC Error "<<getname()<<" "<<_CRC<<" "
-      <<_CalcCRC()<<endl;
-      exit(1);
-    }
-    else return _Nbytes;
+    _CRC=*((uinteger*)pdata+n);
+    return _Nbytes;
   }
   else return 0;
 }
@@ -79,7 +76,7 @@ integer AMSTimeID::CopyOut(void *pdata){
     for(i=0;i<n;i++){
      *((integer*)pdata+i)=*((integer*)_pData+i);
     }
-    *((integer*)pdata+n)=_CRC;
+    *((uinteger*)pdata+n)=_CRC;
     return _Nbytes;
   }
   else return 0;
@@ -88,16 +85,38 @@ integer AMSTimeID::CopyOut(void *pdata){
 
 
 integer AMSTimeID::validate(time_t & Time){
-if (Time >= _Begin && Time <= _End)return 1;
+if (Time >= _Begin && Time <= _End){
+  if(_CRC == _CalcCRC())return 1;
+  else {
+      cerr<<"AMSTimeID::CopyIn-S-CRC Error "<<getname()<<" Old CRC "
+      <<_CRC<<" New CRC "   <<_CalcCRC()<<endl;
+  }
+ return 0;
+}
 else return 0;
 }
 
-integer AMSTimeID::_CalcCRC(){
- integer crc=0;
+uinteger AMSTimeID::_CalcCRC(){
+ _InitTable();
+ uinteger crc=0xffffffff;;
  int i;
-    integer n=_Nbytes/sizeof(integer)-1;
+    integer n=_Nbytes-sizeof(uinteger);
     for(i=0;i<n;i++){
-     crc=crc ^ *((integer*)_pData+i);
+      crc=(crc<<8) ^ Table[crc>>24] ^ *((unsigned char*)_pData+i);
     }
-  return crc;
+  return ~crc;
+}
+
+void AMSTimeID::_InitTable(){
+  if(!Table){
+    Table=new uinteger[255];
+    assert(Table!=NULL);
+    integer i,j;
+    uinteger crc;
+    for(i=0;i<256;i++){
+      crc=i<<24;
+      for(j=0;j<8;j++)crc=crc&0x80000000 ? (crc<<1)^CRC32: crc<<1;
+      Table[i]=crc;
+    }  
+  }
 }

@@ -842,15 +842,16 @@ AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=(AMSTimeID*)ptid->down();
 while(offspring){
   integer nb=offspring->GetNbytes();
-  char * tmp =new char[nb];
-  assert(tmp !=NULL);
-  integer ncp=offspring->CopyOut((void*)tmp);
-  ncp=offspring->CopyIn((void*)tmp);
-  
-  delete[] tmp;
+#ifdef __AMSDEBUG__
+  //    char * tmp =new char[nb];
+  //    assert(tmp !=NULL);
+  //    integer ncp=offspring->CopyOut((void*)tmp);
+  //    ncp=offspring->CopyIn((void*)tmp);
+  //    delete[] tmp;
+#endif
   if(offspring->validate(_time)){
     cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<
-      " validated. ("<<ncp<<" bytes )"<<endl;
+      " validated. ("<<nb-sizeof(uinteger)<<" bytes )"<<endl;
   }
     else {
       cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated."<<endl;

@@ -782,7 +782,7 @@ AMSTimeID * AMSJob::gettimestructure(){
       AMSID id("TDV:",0);    
      AMSNode *p=JobMap.getp(id);
      if(!p){
-      cerr << "AMSJob::gettimestructer-F-no time structre found"<<endl;
+      cerr << "AMSJob::gettimestructe-F-no time structre found"<<endl;
       exit(1);
      }
      else return  (AMSTimeID*)p;

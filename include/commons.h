@@ -315,6 +315,7 @@ COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);
 class AMSCommonsI{
 public:
 AMSCommonsI();
+void init();
 private:
 static integer _Count;
 };
