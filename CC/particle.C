@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.140 2003/09/05 08:23:58 mdelgado Exp $
+//  $Id: particle.C,v 1.141 2003/09/19 11:45:25 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -444,7 +444,6 @@ void AMSParticle::richfit(){
  number theta, phi, sleng;
  AMSTrTrack *real_track=_ptrack;
 
- if(real_track==0) return;   // No track (included for safety reason)
 
  if(real_track->checkstatus(AMSDBc::TOFFORGAMMA)){ // MAKE RICH VTX PARTICLE AWARE
    _prich=0;
@@ -464,7 +463,6 @@ void AMSParticle::richfit(){
        }
      }
    }
-   return;
  }
 
  real_track->interpolate(AMSPoint(0,0,RICradpos),dir,_RichCoo[0],theta,phi,sleng);
