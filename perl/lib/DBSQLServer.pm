@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.9 2002/03/13 14:59:27 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.10 2002/03/14 09:22:56 alexei Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -11,6 +11,7 @@ use Fcntl;
 use POSIX qw(tmpnam);
 use MLDBM qw(DB_File Storable);
 use DBI;
+use Time::localtime;
 
 @DBSQLServer::EXPORT= qw(new Connect QueryAll Query Update set_oracle_env);
 my %fields=(
@@ -140,7 +141,9 @@ sub Create{
       mid      INT,
       status   VARCHAR(255),
       maxrun   INT,
-      state    INT)",
+      state    INT,
+      descr    VARCHAR(255),
+      timestamp INT)",
       "CREATE TABLE Mails
       (mid INT NOT NULL PRIMARY KEY,
        address VARCHAR(255),
@@ -150,7 +153,8 @@ sub Create{
        rserver INT,
        cid     INT,
        status  VARCHAR(16),
-       requests INT)",
+       requests INT,
+       timestamp INT)",
       "CREATE TABLE Jobs 
       (jid     INT NOT NULL,
        jobname VARCHAR(255),
@@ -261,18 +265,19 @@ sub Create{
         $cnt = $ret->[0];
     }
   if ($cnt == 0) {
+   my $time=time();
    my $run=110;
    $dbh->do("insert into Cites values(1,'cern',0,
-            'local',$run,0)")or die "cannot do: ".$dbh->errstr();    
+            'local',$run,0,'CERN',$time)")or die "cannot do: ".$dbh->errstr();    
      $run=(1<<27)+1;
    $dbh->do("insert into Cites values(2,'test',0,
-            'remote',$run,0)")or die "cannot do: ".$dbh->errstr();    
+            'remote',$run,0,'Test',$time)")or die "cannot do: ".$dbh->errstr();    
      $run=(2<<27)+1;
    $dbh->do("insert into Cites values(3,'bolo',0,
-            'remote',$run,0)")or die "cannot do: ".$dbh->errstr();    
+            'remote',$run,0,'INFN Bologna',$time)")or die "cannot do: ".$dbh->errstr();    
      $run=(3<<27)+1;
    $dbh->do("insert into Cites values(4,'ethz',0,
-            'remote',$run,0)")or die "cannot do: ".$dbh->errstr();    
+            'remote',$run,0,'ETH Zurich',$time)")or die "cannot do: ".$dbh->errstr();    
   } else {
     warn "Table Cites has $cnt entries. Not initialized";
  }
@@ -285,23 +290,24 @@ sub Create{
     }
    if ($cnt == 0) {
     my $address='v.choutko@cern.ch';           
-    my $alias='vitali.choutko@cern.ch';        
-   $dbh->do("insert into Mails values(1,'$address','$alias','Vitali Choutko',1,1,1,'Active',0)")or die "cannot do: ".$dbh->errstr();    
+    my $alias='vitali.choutko@cern.ch';
+    my $time = time();        
+   $dbh->do("insert into Mails values(1,'$address','$alias','Vitali Choutko',1,1,1,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
      $address='vitali@afl3u1.cern.ch';        
-   $dbh->do("insert into Mails values(2,'$address',NULL,'Vitali Choutko',1,0,2,'Active',0)")or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("insert into Mails values(2,'$address',NULL,'Vitali Choutko',1,0,2,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
      $address='a.klimentov@cern.ch';        
      $alias='alexei.klimentov@cern.ch';
-   $dbh->do("insert into Mails values(3,'$address','$alias','Alexei Klimentov',1,1,1,'Active',0)")or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("insert into Mails values(3,'$address','$alias','Alexei Klimentov',1,1,1,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
      $address='biland@particle.phys.ethz.ch';
      $alias='adrian.biland@cern.ch';      
-  $dbh->do("insert into Mails values(4,'$address','$alias','Adrian Biland',1,0,4,'Active',0)")or die "cannot do: ".$dbh->errstr();    
+  $dbh->do("insert into Mails values(4,'$address','$alias','Adrian Biland',1,0,4,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
     $address='diego.casadei@bo.infn.it';
     $alias='diego.casadei@cern.ch'; 
-  $dbh->do("insert into Mails values(5,'$address','$alias','Diego Casadei',1,0,3,'Active',0)")or die "cannot do: ".$dbh->errstr();    
+  $dbh->do("insert into Mails values(5,'$address','$alias','Diego Casadei',1,0,3,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
     $address='evgueni.choumilov@cern.ch';
     $alias='e.choumilov@cern.ch'; 
-  $dbh->do("insert into Mails values(6,'$address','$alias','Eugeni Choumilov',0,0,2,'Active',0)")or die "cannot do: ".$dbh->errstr();    
-  my $time=time();
+  $dbh->do("insert into Mails values(6,'$address','$alias','Eugeni Choumilov',0,0,2,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+    $time=time();
     warn $time;
 #find responsible
     $sql="select cid from Cites";

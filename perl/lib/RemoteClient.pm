@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.17 2002/03/13 18:07:35 alexei Exp $
+# $Id: RemoteClient.pm,v 1.18 2002/03/14 09:22:56 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -898,7 +898,9 @@ sub Connect{
                  $self->ErrorPlus("$error");
              }
              my $run=(($cid-1)<<27)+1;
-             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0)";
+             my $time=time();
+             my $citedesc = "new cite";
+             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0,'$citedesc',$time)";
              $self->{sqlserver}->Update($sql);
 
             }
@@ -906,7 +908,8 @@ sub Connect{
             $ret=$self->{sqlserver}->Query($sql);
             my $mid=$ret->[$#{$ret}][0]+1;
             my $resp=$newcite;
-            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0)";
+            my $time=time();
+            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time)";
             $self->{sqlserver}->Update($sql);
             if($newcite){
                 $sql="update Cites set mid=$mid where cid=$cid";
@@ -969,6 +972,7 @@ sub Connect{
             if(not defined $cid){
 # add cite
              $newcite=1;
+             my $time=time();
              $sql="SELECT MAX(cid) FROM Cites";
              $ret=$self->{sqlserver}->Query($sql);
              $cid=$ret->[0][0]+1;
@@ -978,14 +982,14 @@ sub Connect{
                  $self->ErrorPlus("$error");
              }
              my $run=(($cid-1)<<27)+1;
-             $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0)";
+             $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0,'$newcitedesc',$time)";
              $self->{sqlserver}->Update($sql);
 # add responsible
              $sql="select MAX(mid) from Mails";
              $ret=$self->{sqlserver}->Query($sql);
              my $mid=$ret->[0][0]+1;
              my $resp=1;
-             $sql="INSERT INTO Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0)";
+             $sql="INSERT INTO Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time)";
             $self->{sqlserver}->Update($sql);
 # add responsible info to Cites
              $sql="UPDATE Cites SET mid=$mid WHERE cid=$cid";
@@ -1015,7 +1019,7 @@ sub Connect{
           print "<select name=\"CCA\" >\n";
           my @cite=();
           foreach my $cite (@{$self->{CiteT}}){
-             print "<option value=\" $cite->{name} \">$cite->{name} </option>\n";
+             print "<option value=\"$cite->{name}\"> $cite->{name} </option>\n";
          }
           print "</select>\n";
           print "</b></td></tr>\n";
@@ -1070,7 +1074,7 @@ sub Connect{
          print $q->submit(-name=>"MyRegister", -value=>"Submit");
          print $q->reset(-name=>"Reset");
          print $q->end_form;
-            
+# real registration            
         }elsif($self->{q}->param("MyRegister") eq "Submit"){
             my $name=$self->{q}->param("CNA");
             if(not defined $name or $name eq ""){
@@ -1097,37 +1101,22 @@ sub Connect{
         }
 
 # build up the corr entries in the database
-            
+                        
 # check if cite exist
             my $sql="select cid from Cites where name='$cite'";
             my $ret=$self->{sqlserver}->Query($sql);
             my $cid=$ret->[0][0];
             my $newcite=0;
             if(not defined $cid){
-             $newcite=1;
-             $sql="select cid from Cites";
-             $ret=$self->{sqlserver}->Query($sql);
-             $cid=$ret->[$#{$ret}][0]+1;
-             if($cid>16){
-                 my $error=" Too many Cites. Your request will not be procedeed.";
-                 $self->sendmailerror($error,"$cem");
-                 $self->ErrorPlus("$error");
-             }
-             my $run=(($cid-1)<<27)+1;
-             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0)";
-             $self->{sqlserver}->Update($sql);
-
+             $self->ErrorPlus("Unknown Cite : '$cite', Please register it");
             }
-            $sql="select mid from Mails";
+            $sql="SELECT MAX(mid) FROM Mails";
             $ret=$self->{sqlserver}->Query($sql);
-            my $mid=$ret->[$#{$ret}][0]+1;
-            my $resp=($responsible eq "Yes" or $newcite)?1:0;
-            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0)";
+            my $mid=$ret->[0][0]+1;
+            my $resp=0;
+            my $time=time();
+            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time)";
             $self->{sqlserver}->Update($sql);
-            if($newcite){
-                $sql="update Cites set mid=$mid where cid=$cid";
-                $self->{sqlserver}->Update($sql);
-            }
          $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";     
         }
     }else{
@@ -1923,7 +1912,8 @@ print qq`
             $self->ErrorPlus($mes);
         }
         else{
-            $sql="update Cites set state=1 where name='$self->{CCA}'";
+            my $time = time();
+            $sql="update Cites set state=1, timestamp=$time where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
             $run=$res->[0][0];
         }
@@ -2093,7 +2083,8 @@ print qq`
          "$self->{AMSDataDir}/$self->{LocalClientsDir}/$script";
          if($self->{q}->param("AdvancedQuery") eq "Submit" or $self->{q}->param("BasicQuery") eq "Submit" or $self->{q}->param("ProductionQuery") eq "Submit"){
 # add one more check here using save state
-            $sql="update Cites set state=0 where name='$self->{CCA}'";
+            my $time = time();
+            $sql="update Cites set state=0, timestamp=$time  where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
              my $save="$self->{UploadsDir}/$self->{CCA}.$run.$self->{CEMID}save";
              my $param=$self->{q}->param("AdvancedQuery")?"AdvancedQuery":($self->{q}->param("ProductionQuery")?"ProductionQuery":"BasicQuery");
@@ -2205,7 +2196,8 @@ print qq`
                   my $i=unlink "$file2tar.gz";
          }
          my $totalreq=$self->{CEMR}+$runno;
-         $sql="Update Mails set requests=$totalreq where mid=$self->{CEMID}";
+         my $time=time();
+         $sql="Update Mails set requests=$totalreq, timestamp=$time where mid=$self->{CEMID}";
          $self->{sqlserver}->Update($sql);              
          $self->sendmailerror($subject," ");
          $sql="SELECT mid FROM Cites WHERE cid=$self->{CCID}";
@@ -2233,7 +2225,8 @@ print qq`
         else{
             $self->ErrorPlus("Unable To Communicate With Server");
         }
-             $sql="update Cites set state=0, maxrun=$run where name='$self->{CCA}'";
+           $time=time();
+           $sql="update Cites set state=0, maxrun=$run, timestamp=$time where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
             
         foreach my $cite (@{$self->{CiteT}}){
@@ -2408,7 +2401,8 @@ sub InfoPlus{
 sub ErrorPlus{
     my $ref=shift;
     if(defined $ref->{CCA} and defined $ref->{sqlserver}){
-       my $sql="update Cites set state=0 where name='$ref->{CCA}'";
+       my $time=time();
+       my $sql="update Cites set state=0, timestamp=$time where name='$ref->{CCA}'";
        $ref->{sqlserver}->Update($sql);
     }
     Warning::error($ref->{q},shift);
@@ -2667,7 +2661,7 @@ sub listAll {
     my $self = shift;
     my $show = shift;
     htmlTop();
-    ht_init();
+    $self->ht_init();
     if ($show eq 'all') {
      ht_Menus();
      $self -> colorLegend();
@@ -2689,7 +2683,7 @@ sub listCites {
     print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
      htmlTable("MC02 Cites");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT cid, name, status, maxrun FROM Cites";
+     my $sql="SELECT cid, descr, name, status, maxrun FROM Cites";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
               print "<td><b><font color=\"blue\" >ID </font></b></td>";
@@ -2700,15 +2694,18 @@ sub listCites {
      if(defined $r3->[0][0]){
       foreach my $cite (@{$r3}){
           my $cid    = $cite->[0];
-          my $name   = $cite->[1];
-          my $status = $cite->[2];
-          my $maxrun = $cite->[3];
+          my $descr  = $cite->[1];
+          my $name   = $cite->[2];
+          my $status = $cite->[3];
+          my $maxrun = $cite->[4];
           my $run=(($cid-1)<<27)+1;
-          $sql="SELECT COUNT(jid) FROM Jobs WHERE cid=$cid";
+          $sql="SELECT jobs.jid, runs.jid, jobs.cid  
+                FROM Runs, Jobs  
+                WHERE jobs.jid=runs.jid AND cid=$cid";
           my $r4=$self->{sqlserver}->Query($sql);
           my $jobs = 0;
           foreach my $cnt (@{$r4}){
-              $jobs = $cnt->[0];
+              $jobs++;
           }
           $sql="SELECT SUM(requests) FROM Mails WHERE cid=$cid";
           $r4=$self->{sqlserver}->Query($sql);
@@ -2717,7 +2714,7 @@ sub listCites {
               $reqs = $cnt->[0];
           }
           print "<tr><font size=\"2\">\n";
-          print "<td><b> $name </td><td><b> $cid </td><td><b> $status </td>
+          print "<td><b> $descr ($name) </td><td><b> $cid </td><td><b> $status </td>
                  <td><b> $jobs </td></b><td><b> $reqs </b></td>\n";
           print "</font></tr><p></p>\n";
       }
@@ -2732,11 +2729,10 @@ sub listCites {
 sub listMails {
     my $self = shift;
      print "<b><h2><A Name = \"mails\"> </a></h2></b> \n";
-     htmlTable("MC02 Contacts");
+     htmlTable("MC02 Authorized Users");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-#     my $sql="SELECT address, name, rsite, requests FROM Mails ORDER BY name";
      my $sql="SELECT address, mails.name, rsite, requests, mails.cid, cites.cid, 
-              cites.name FROM  mails, cites WHERE cites.cid=mails.cid 
+              cites.name, mails.status FROM  mails, cites WHERE cites.cid=mails.cid 
               ORDER BY cites.name";
 
      my $r3=$self->{sqlserver}->Query($sql);
@@ -2745,6 +2741,7 @@ sub listMails {
               print "<td><b><font color=\"blue\" >e-mail </font></b></td>";
               print "<td><b><font color=\"blue\" >Responsible </font></b></td>";
               print "<td><b><font color=\"blue\" >Requests </font></b></td>";
+              print "<td><b><font color=\"blue\" >Status </font></b></td>";
      print_bar($bluebar,3);
      if(defined $r3->[0][0]){
       foreach my $mail (@{$r3}){
@@ -2752,10 +2749,11 @@ sub listMails {
           my $email  = $mail->[0];
           my $req    = $mail->[3];
           my $cite   = $mail->[6];
+          my $status   = $mail->[7];
           my $resp   = 'no';
           if ($mail->[2] == 1) { $resp = 'yes';}
           print "<tr><font size=\"2\">\n";
-          print "<td><b> $cite </td><td><b> $name </b></td><td><b> [$email] </td><td><b> $resp </td><td><b> $req </td> </b>\n";
+          print "<td><b> $cite </td><td><b> $name </b></td><td><b> [$email] </td><td><b> $resp </td><td><b> $req </b></td><td><b> $status </b></td>\n";
           print "</font></tr>\n";
       }
   }
@@ -2787,7 +2785,7 @@ sub listServers {
           my $lastupd   = $srv->[3];
           my $starttime = EpochToDDMMYYHHMMSS($srv->[2]); 
           my $lasttime  = EpochToDDMMYYHHMMSS($lastupd);
-          my $time      = DDMMYYHHMMSSToEpoch();
+          my $time      = time();
           if ($time - $lasttime < $srvtimeout) {
            print "<td><b> $name </td><td><b> $starttime </td><td><b> $lasttime </td><td><b> $status </td> </b>\n";
           } else {
@@ -2922,20 +2920,24 @@ sub listNtuples {
 }
 
 sub ht_init{
-
+  my $self = shift;
   print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">
-         <tr bgcolor=\"#ffdc9f\">\n";
-   print "<Body BGCOLOR=\"#ffff66\">\n";
+         <tr bgcolor=\"#ffff9f\">\n";
+   print "<Body BGCOLOR=\"#ffffd0\">\n";
    print "<tr bgcolor=\"#ffff66\"><td align=center colspan=3>
           <font size=\"+2\" color=\"ff0066\"> <b>\n";
    print "AMS MC PRODUCTION STATUS \n";
    print "</b></font></td></tr>\n";
    print "</TR></TABLE>\n";
 #
-   my $time = localtime;
+   my $time; 
    print "<p></p>\n";
    print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-   print "<tr><td width=100% align=\"right\"><b>Updated $time </b></td><tr>\n";
+   $time = localtime;
+   print "<tr><td width=100% align=\"right\"><b>Page Update :  $time </b></td><tr>\n";
+   my $dbtime = $self->lastDBUpdate();
+   my $time= EpochToDDMMYYHHMMSS($dbtime); 
+   print "<tr><td width=100% align=\"right\"><b>Last DB Update : $time </b></td><tr>\n";
    print "</table><p></p>\n";
 #
 }
@@ -2998,3 +3000,20 @@ sub ht_Menus {
         <a href=\"#ntuples\"><b><font color=green> Ntuples </b></font></a>\n";
 }
 
+sub lastDBUpdate {
+     my $self = shift;
+     my $lastupd =0;
+     my $sql="SELECT MAX(cites.timestamp), MAX(mails.timestamp), 
+                     MAX(servers.lastupdate), MAX(jobs.time), 
+                     MAX(runs.submit), MAX(ntuples.timestamp) 
+              FROM cites, mails, servers, jobs, runs, ntuples";
+     my $ret=$self->{sqlserver}->Query($sql);
+     if(defined $ret->[0][0]){
+      foreach my $time (@{$ret}){
+        if($time->[0]>$lastupd){
+          $lastupd=$time->[0];
+        }
+    }
+  }
+  return $lastupd;
+ }
