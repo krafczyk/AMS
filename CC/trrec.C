@@ -2211,8 +2211,8 @@ void AMSTrTrack::_writeEl(){
      for(i=0;i<2;i++)TrTN->HErrRidgidity[TrTN->Ntrtr][i]=(geant)_HErrRidgidity[i];
      for(i=0;i<2;i++)TrTN->HTheta[TrTN->Ntrtr][i]=(geant)_HTheta[i];
      for(i=0;i<2;i++)TrTN->HPhi[TrTN->Ntrtr][i]=(geant)_HPhi[i];
-     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][1][i]=(geant)_HP0[0][i];
-     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][2][i]=(geant)_HP0[1][i];
+     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][0][i]=(geant)_HP0[0][i];
+     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][1][i]=(geant)_HP0[1][i];
     }
     else{
      for(i=0;i<2;i++)TrTN->HChi2[TrTN->Ntrtr][i]=-1;
@@ -2220,8 +2220,8 @@ void AMSTrTrack::_writeEl(){
      for(i=0;i<2;i++)TrTN->HErrRidgidity[TrTN->Ntrtr][i]=0;
      for(i=0;i<2;i++)TrTN->HTheta[TrTN->Ntrtr][i]=0;
      for(i=0;i<2;i++)TrTN->HPhi[TrTN->Ntrtr][i]=0;
+     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][0][i]=0;
      for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][1][i]=0;
-     for(i=0;i<3;i++)TrTN->HP0[TrTN->Ntrtr][2][i]=0;
     }
     TrTN->FChi2MS[TrTN->Ntrtr]=(geant)_Chi2MS;
     TrTN->GChi2MS[TrTN->Ntrtr]=(geant)_GChi2MS;
