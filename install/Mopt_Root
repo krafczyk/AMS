@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.29 2002/09/24 07:16:21 choutko Exp $
+#  $Id: Mopt_Root,v 1.30 2002/11/11 12:00:13 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -138,18 +138,22 @@ CFLAGSB=      -D__BATCH__  -I../include   -I../db  -D__WRITEROOT__ -D__WRITEROOT
 endif
 
 ifdef AMSICC
+ifeq "$(shell g++ -v 2>&1 | grep -c 2.95)" "2"
+CFLAGS+= -D_GCCIFC_
+CFLAGSB+= -D_GCCIFC_
+endif
+
 #PFLAGS+=  -D__ICC__ -tpp6 -mp1 -xi
 ifdef AMSDEBUG
-CFLAGS=      $(CFLAGSB)
+CFLAGS=      $(CFLAGSB)  
 CFLAGSTOFSIM= $(CFLAGS)
-CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
 FFLAGS=     -fp_port  -g -I../include   $(PFLAGS)
 FFLAGSn=    -fp_port   -g -I../include   $(PFLAGS)
 FFLAGS=     -D__ICC__ -tpp6 -mp1 -xi -fp_port  -g -I../include   $(PFLAGS)
 FFLAGSn=    -D__ICC__ -tpp6 -mp1 -xi -fp_port   -g -I../include   $(PFLAGS)
 else
-CFLAGSTOFSIM= $(CFLAGSB)     -O1
+CFLAGSTOFSIM= $(CFLAGSB)     -O1 _
 CFLAGSDAQ=    $(CFLAGSB) -O2
 CFLAGSn=      $(CFLAGSB) -O2
 CFLAGS=      $(CFLAGSB) -O3
@@ -184,8 +188,8 @@ LDFLAGSSTATIC=  -static  -L$(ROOTSYS)/lib -lRoot   -L/opt/intel/compiler60/ia32/
 #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut -ldl
 #LDFLAGSSTATIC=  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -L/opt/intel/compiler60/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -L../lib/linux/icc  -lamsut -ldl
 else
-LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl
-LDFLAGSSTATIC=      -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -lamsut  -lg2c -ldl
+LDFLAGS=     -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux $(ROOTLIBS) -lamsut  -lg2c -ldl -lshift
+LDFLAGSSTATIC=      -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux  -lamsut  -lg2c -ldl -lshift
 endif
 TIMEL=
 INCS= $(wildcard $(SRC)*.*h)
