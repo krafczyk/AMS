@@ -1,8 +1,9 @@
-#  $Id: amsvar,v 1.20 2001/01/22 17:32:51 choutko Exp $
+#  $Id: amsvar,v 1.21 2001/03/30 09:53:17 choutko Exp $
  setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
 set path=( $path . /usr/sbin $ROOTSYS/bin )
 setenv LD_LIBRARY_PATH .:$ROOTSYS/lib
 setenv CVSROOT $Offline/CVS
+setenv CVSROOT :pserver:amscvs@ams.cern.ch:/amsdat2/SW/cvsroot
 setenv AMSDataDir $Offline/AMSDataDir
 setenv EDITOR  emacs
 setenv CVSEDITOR  emacs

@@ -1,9 +1,8 @@
-#  $Id: Readme.AMS02.1st,v 1.21 2001/01/22 17:00:54 vitali Exp $          
-Last Updated 15-jun-2000
+#  $Id: Readme.AMS02.1st,v 1.22 2001/03/30 09:53:10 choutko Exp $          
 
 I. The following hardware platforms are currently supported:
- DEC/OSF1/cxx6.2
- Linux/gcc2.95.2   
+ DEC/OSF1/cxx6.2 and above
+ Linux/gcc2.95.2 and above  
 
 II. Software management:
     cvs  ( Concurrent Version System)
@@ -12,12 +11,12 @@ II. Software management:
 III. Programming languagues:
 a) C++  (general framework, data structures, methods, algorithmes, i/o etc)
 b) F77/F90 ( algorithmes only)
+c) Perl 
 
 IV. I/O
-a) Objectivity database   (Support diconnected at the moment)
-b) CW ntuples
-c) root 
-
+a) CW ntuples
+b) root 
+c) Oracle DB
 
 V. Documentation
 a) AMS Home Page at http://ams.cern.ch/AMS/analysis.html  -> SoftwareManagement
@@ -36,17 +35,31 @@ a) As a user:
   ii)            ams software is in $Offline/vdev
   iii)           source $Offline/vdev/install/amsvar 
                         to setup AMS related variables
+  
 
 b) As a developper :
 
   i)Get an account on  some ams computer (see VIII)
-  ii)You should be a member of amsdev group on ams computers
-  (ask Vitaly.Choutko@cern.ch about it)                                       
   iii)           source $Offline/vdev/install/amsvar 
                  to setup AMS related variables
-  iv ) cvs checkout AMS  
-                         
+        
+  iv) Get a password for cvs server by
+      log in ams.cern.ch
+      cat ~ams/cvsams/.cvsams
 
+   v)cvs login 
+     cvs checkout AMS  
+                         
+          To synchronize your local copy with cvs rep:
+          cvs update -d 
+
+
+
+         To make the changes available to others (update CVS master rep) :
+         You should be a member of amsdev group on ams computers
+         ask Vitaly.Choutko@cern.ch about the procedure                                       
+         cvs commit// Please ensure the files you changed at least compilable :)
+            
          To add new files/directories:
          cvs add file
 
@@ -54,13 +67,6 @@ b) As a developper :
          rm file
          cvs remove file
 
-         To make the changes available to others (update CVS master rep) :
-         cvs commit   // Please ensure the files you changed at least compilable :)
-                      // Please not change the makefiles in install dir,
-                      // create your own instead
-            
-          To synchronize your local copy with cvs rep:
-          cvs update -d 
 
 
 
@@ -151,5 +157,12 @@ d.  Misc
     ii) To creat Mgxint/dec-cxx cxx6.1 is needed (thanks to 6.2 bug)
     iii)daqevt.C must be compiled without -O switch with egcs compiler
 
+
+e. AMS01 and eventually AMS02 Data/MC  may be retrieved via
+   http://ams.cern.ch/AMS/Computing/dbquery.html
+
+f. The whole set of AMS01 public data ntuples is in /Offline/ntuples
+
+g. Geant4 realted stuff in doc/g4.doc
 
 Comments, questions to v.choutko@cern.ch
