@@ -547,7 +547,6 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
 void AMSJob::_sitofdata(){
- cout<<"Read TOF1 si-data cards..."<<endl;
   TOFMCFFKEY.TimeSigma=1.71e-10; //(1) side time resolution(sec,/1.41=121ps) 
   TOFMCFFKEY.TimeSigma2=4.5e-10;//(2)
   TOFMCFFKEY.TimeProbability2=0.035;//(3)
@@ -573,7 +572,6 @@ FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED"
 //-----------
 //
 void AMSJob::_sitof2data(){
- cout<<"Read TOF2 si-data cards..."<<endl;
   TFMCFFKEY.TimeSigma=1.71e-10; //(1) side time resolution(sec,/1.41=121ps) 
   TFMCFFKEY.TimeSigma2=4.5e-10;//(2)
   TFMCFFKEY.TimeProbability2=0.035;//(3)
@@ -970,7 +968,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.mon[0]=0;
   TOFRECFFKEY.mon[1]=0;
   TOFRECFFKEY.year[0]=96;
-  TOFRECFFKEY.year[1]=105;
+  TOFRECFFKEY.year[1]=101;
   FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),
   "MIXED");
 
@@ -1062,8 +1060,8 @@ void AMSJob::_retof2data(){
   TFREFFKEY.day[1]=1;
   TFREFFKEY.mon[0]=0;
   TFREFFKEY.mon[1]=0;
-  TFREFFKEY.year[0]=96;
-  TFREFFKEY.year[1]=105;
+  TFREFFKEY.year[0]=101;
+  TFREFFKEY.year[1]=108;
   FFKEY("TFRE",(float*)&TFREFFKEY,sizeof(TFREFFKEY_DEF)/sizeof(integer),
   "MIXED");
 
@@ -1130,7 +1128,7 @@ void AMSJob::_reantidata(){
   ANTIRECFFKEY.mon[0]=0;
   ANTIRECFFKEY.mon[1]=0;
   ANTIRECFFKEY.year[0]=96;
-  ANTIRECFFKEY.year[1]=105;
+  ANTIRECFFKEY.year[1]=101;
   FFKEY("ANRE",(float*)&ANTIRECFFKEY,sizeof(ANTIRECFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
   ANTICAFFKEY.cfvers=2; // (01-99) vers.number NN for antiverlistNN.dat file
@@ -1159,8 +1157,8 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.day[1]=1;
   ATREFFKEY.mon[0]=0;
   ATREFFKEY.mon[1]=0;
-  ATREFFKEY.year[0]=96;
-  ATREFFKEY.year[1]=105;
+  ATREFFKEY.year[0]=101;
+  ATREFFKEY.year[1]=108;
   FFKEY("ATRE",(float*)&ATREFFKEY,sizeof(ATREFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
   ATCAFFKEY.cfvers=2; // (01-99) vers.number NN for antiverlistNN.dat file

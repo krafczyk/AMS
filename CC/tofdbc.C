@@ -314,12 +314,12 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  geant rlo[TOF1GC::SCANPNT];// relat.(to Y=0) light output
  integer lps=1000;
  geant ef1[TOF1GC::SCANPNT],ef2[TOF1GC::SCANPNT];
- integer i1,i2,sta[2];
+ integer i1,i2,sta[2],stat[TOF1GC::SCBLMX][2];
  geant r,eff1,eff2;
  integer sid,brt;
  geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2][2];
  geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF1GC::SCLRS][TOF1GC::SCMXBR];
- geant tzerf[TOF1GC::SCLRS][TOF1GC::SCMXBR],tdiff[TOF1GC::SCBLMX],stat[TOF1GC::SCBLMX][2];
+ geant tzerf[TOF1GC::SCLRS][TOF1GC::SCMXBR],tdiff[TOF1GC::SCBLMX];
  geant slops[2],slops1[TOF1GC::SCLRS][TOF1GC::SCMXBR],slops2[TOF1GC::SCLRS][TOF1GC::SCMXBR];
  geant strf[TOF1GC::SCBLMX][2],strof[TOF1GC::SCBLMX][2];
  geant an2di[TOF1GC::SCBLMX][2],gaina[TOF1GC::SCBLMX][2],gaind[TOF1GC::SCBLMX][2],m2q[TOF1GC::SCBTPN];

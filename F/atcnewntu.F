@@ -132,7 +132,7 @@
             stop                                                             
          endif                                                               
          idummy = 1                                                          
-      endif                                                                  
+      endif   
 * --- extrapolation                                                          
       a(1) = (cooctc(1,1,1)-cooctc(1,2,1))/                                  
      +       (cooctc(3,1,1)-cooctc(3,2,1))                                   
@@ -142,7 +142,7 @@
       b(2) =  cooctc(2,1,1) - a(2)*cooctc(3,1,1)                             
 * --- cells acrossed                                                         
       nbcel1 = 0                                                             
-      icelldum = 0                                                           
+      icelldum = 0
       do zuser=zup1st+0.05,zlo1st-0.05,-0.1                                  
          if (zuser.lt.zlo1st .or. zuser.gt.zup1st) then                      
             icellnb = -1                                                     
@@ -187,7 +187,7 @@
       enddo                                                                  
 *                                                                            
       nbcel2 = 0                                                             
-      icelldum = 0                                                           
+      icelldum = 0
       do zuser=zup2nd+0.05,zlo2nd-0.05,-0.1                                  
          if (zuser.lt.zlo2nd .or. zuser.gt.zup2nd) then                      
             icellnb = -1                                                     

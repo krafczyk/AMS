@@ -29,8 +29,8 @@ namespace TOFGC{
   const integer SCBADB5=2048; // set if missing side was recovered (when B2 is set)
   const integer SCBADB6=4096; // set if no aTDC/sTDC matching on any alive side
   const integer SCBADB7=8192; // set if no dTDC/sTDC matching .................
-  const integer MAXPLN=4;//  max.planes (ams01 || ams02)
-  const integer MAXPAD=14;// max.paddles/plane (ams01 || ams02)
+  const integer MAXPLN=4;//  max.planes (max of ams01 and ams02)
+  const integer MAXPAD=14;// max.paddles/plane (max of ams01 and ams02)
 }
 //-----
 // TOF2 global constants definition

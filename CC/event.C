@@ -2008,7 +2008,7 @@ void AMSEvent::_sirichevent(){
 void AMSEvent:: _sitrigevent(){
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     Trigger2LVL1::build();
-    TriggerLVL3::build();
+    TriggerLVL3::build2();
   }
   else{
     TriggerLVL1::build();
@@ -2023,7 +2023,7 @@ void AMSEvent:: _retrigevent(){
   
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 //   if(TGL1FFKEY.RebuildLVL1)Trigger2LVL1::build();
-//   if(LVL3FFKEY.RebuildLVL3)TriggerLVL3::build();
+//   if(LVL3FFKEY.RebuildLVL3)TriggerLVL3::build2();
   }
   else{
 //   if(LVL1FFKEY.RebuildLVL1)TriggerLVL1::build();

@@ -97,6 +97,8 @@ protected:
  integer _nmemb; // number of TOFRawCluster members(1-3)
  AMSlink * _mptr[3]; // list of pointers to member
 //                               starting from "peak" member
+ static integer _planes; // real number of planes
+ static integer _padspl[TOFGC::MAXPLN]; // real number of paddles/plane
  
  void _copyEl();
  void _printEl(ostream & stream);
@@ -111,6 +113,8 @@ public:
 
  static integer Out(integer);
  static void init();
+ static integer planes(){return _planes;}
+ static integer padspl(integer npl){return _padspl[npl];}
  AMSID crgid(integer i=0);
  integer getntof()const {return _ntof;}
  integer getplane()const {return _plane;}

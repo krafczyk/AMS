@@ -1,3 +1,5 @@
+#include <tofdbc02.h>
+#include <tofdbc.h>
 #include <point.h>
 #include <event.h>
 #include <amsgobj.h>
@@ -6,12 +8,10 @@
 #include <mccluster.h>
 #include <math.h>
 #include <extC.h>
-#include <tofdbc02.h>
-#include <tofdbc.h>
-#include <tofsim02.h>
-#include <tofsim.h>
 #include <trrec.h>
+#include <tofrec02.h>
 #include <tofrec.h>
+#include <antirec02.h>
 #include <antirec.h>
 #include <particle.h>
 #include <daqblock.h>
@@ -26,7 +26,8 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
   integer i,ilay,ibar,nbrl[TOF1GC::SCLRS],brnl[TOF1GC::SCLRS],bad,status,sector,nanti(0);
   integer il,ib,ix,iy,chan;
   geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc;
-  number ama[2],amd[2],coo[TOF1GC::SCLRS],coot[TOF1GC::SCLRS],cstr[TOF1GC::SCLRS],dx,dy;
+  number coo[TOF1GC::SCLRS],coot[TOF1GC::SCLRS],cstr[TOF1GC::SCLRS],dx,dy;
+  number ama[2],amd[2];
   number tovta1[TOF1GC::SCLRS],tovta2[TOF1GC::SCLRS],tovtd1[TOF1GC::SCLRS],tovtd2[TOF1GC::SCLRS];
   geant elosa[TOF1GC::SCLRS],elosd[TOF1GC::SCLRS];
   number am1[TOF1GC::SCLRS],am2[TOF1GC::SCLRS],am1d[TOF1GC::SCLRS],am2d[TOF1GC::SCLRS],am[2],eanti(0),eacl;
@@ -44,6 +45,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
                            getheadC("AMSTOFRawCluster",0);
   ptra=(AMSAntiCluster*)AMSEvent::gethead()->
                            getheadC("AMSAntiCluster",0);
+//
 //----
   Runum=AMSEvent::gethead()->getrun();// current run number
   TOFJobStat::addre(21);
@@ -61,10 +63,10 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
         tovta2[ilay]=ama[1];
         tovtd1[ilay]=amd[0];
         tovtd2[ilay]=amd[1];
-        scbrcal[ilay][ibar].ama2q(ama,am);// anode convert to charge
+        TOFBrcal::scbrcal[ilay][ibar].ama2q(ama,am);// high(anode)-ADC convert to charge
         am1[ilay]=am[0];
         am2[ilay]=am[1];
-        scbrcal[ilay][ibar].amd2q(amd,am);// dynode convert to charge
+        TOFBrcal::scbrcal[ilay][ibar].amd2q(amd,am);// low(dynode)-ADC convert to charge
         am1d[ilay]=am[0];
         am2d[ilay]=am[1];
         nbrl[ilay]+=1;
@@ -85,7 +87,7 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
 // -----> check Anti-counter :
   eanti=0;
   nanti=0;
-  while (ptra){ // <--- loop over AMSANTIRawCluster hits
+  while (ptra){ // <--- loop over AMSANTICluster hits
     status=ptra->getstatus();
     if(status==0){ //select only good hits
       sector=(ptra->getsector())-1;
@@ -98,7 +100,6 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
   }// --- end of hits loop --->
   if(TOFRECFFKEY.reprtf[2]>0)HF1(1505,geant(nanti),1.);
 //
-//  if(eanti>eacut)return;// remove events with big signal in Anti
   if(nanti>1)return;// remove events with >1 sector(e>ecut) in Anti
   TOFJobStat::addre(22);
   if(bad==1)return; // remove events with bars/layer != 1
@@ -203,12 +204,6 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
 //
 //--------> find beta from TOF :
 //
-    if(TOFRECFFKEY.relogic[2]!=0 || (AMSJob::gethead()->isRealData()!=0
-                                     && Runum>896888674 && Runum<900000000)){
-      sigt[3]=0.16;// for good+FalseX
-      if((status&16384)!=0)sigt[3]=0.248;//for FalseTOFX
-    }
-    else sigt[3]=0.121;
 //
     trle[0]=0.;
     trle[1]=trlr[0]-trlr[1];//1->2
@@ -245,54 +240,19 @@ void TOFUser::Event(){  // some processing when all subd.info is redy (+accros)
     if(chsq>6. || betof<0.3)return;//cut on chi2/beta
 //
     geant td13,td24;
-    td13=tdif[2]*146.6/trle[2];// normalized to 146.6cm distance
-    td24=(ltim[1]-ltim[3])*146.6/(trle[3]-trle[1]);// normalized to 146.6cm distance
+    geant zpl1,zpl2,trlnor;
+    zpl1=TOFDBc::supstr(1)+TOFDBc::supstr(7)+
+        (TOFDBc::plnstr(6)+2.*TOFDBc::plnstr(7))/2.+TOFDBc::plnstr(3)/2.;//z-l1-middl
+    zpl2=TOFDBc::supstr(1)-
+        (TOFDBc::plnstr(6)+2.*TOFDBc::plnstr(7))/2.-TOFDBc::plnstr(3)/2.;//z-l2-middl
+    trlnor=zpl1+zpl2;//z-dist. L1-L3(L2-L4)
+    td13=tdif[2]*trlnor/trle[2];// normalized to fix(~125cm) distance
+    td24=(ltim[1]-ltim[3])*trlnor/(trle[3]-trle[1]);// normalized to fix(~125cm) distance
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1504,(td13-td24),1.);
 //
     HF1(1507,geant(chargeTOF),1.);
     HF1(1508,geant(chargeTracker),1.);
     HF2(1509,geant(chargeTracker),geant(chargeTOF),1.);
-//
-    geant *pntr[TOF1GC::SCLRS];
-    geant avera[4],averd[2];
-//    if(betof>0.9){ // dE/dX only relativistic particles
-//      for(il=0;il<TOF1GC::SCLRS;il++){
-//        HF1(5001+il,sqrt(elosa[il]/1.8),1.);
-//        HF1(5011+il,sqrt(elosd[il]/1.8),1.);
-//      }
-//                  ---> look at truncated averages :
-//      for(il=0;il<TOF1GC::SCLRS;il++)pntr[il]=&elosa[il];//pointers to layer edep's 
-//      AMSsortNAG(pntr,TOF1GC::SCLRS);//sort in increasing order
-//      avera[0]=(*pntr[0]);// lowest
-//      avera[1]=avera[0]+(*pntr[1]);// sum of 2 lowest
-//      avera[2]=avera[1]+(*pntr[2]);//        3 lowest
-//      avera[3]=avera[2]+(*pntr[3]);// average
-//      avera[1]/=2.;
-//      avera[2]/=3.;
-//      avera[3]/=4.;
-//      if(elosd[2]<=0.)elosd[2]=9999.;
-//      if(elosd[3]<=0.)elosd[3]=9999.;
-//      averd[0]=0.;
-//      averd[1]=0.;
-//      if(elosd[2]<9999. || elosd[3]<9999.){
-//        averd[0]=elosd[2];// lowest of 2 dynodes(l=3,4)
-//        if(elosd[2]>elosd[3])averd[0]=elosd[3];
-//      }
-//      if(elosd[2]<9999. && elosd[3]<9999.)averd[1]=(elosd[2]+elosd[3])/2.;
-//      for(il=0;il<TOF1GC::SCLRS;il++)HF1(5005+il,avera[il],1.);
-//      if(averd[0]>0.)HF1(5015,averd[0],1.);
-//      if(averd[1]>0.)HF1(5016,averd[1],1.);
-//      if(avera[0]>0.)HF1(5020,log(avera[0])/2.303,1.);
-//      if(avera[1]>0.)HF1(5021,log(avera[1])/2.303,1.);
-//      if(avera[2]>0.)HF1(5022,log(avera[2])/2.303,1.);
-//      if(averd[0]>0.)HF1(5023,log(averd[0])/2.303,1.);
-//      HF1(5030,sqrt(avera[0]/1.8),1.);// eff.Z
-//      HF1(5031,sqrt(avera[1]/1.8),1.);
-//      HF1(5032,sqrt(avera[2]/1.8),1.);
-//      HF1(5033,sqrt(avera[3]/1.8),1.);
-//      if(averd[0]>0.)HF1(5034,sqrt(averd[0]/1.8),1.);
-//      if(averd[1]>0.)HF1(5035,sqrt(averd[1]/1.8),1.);
-//    }
 //
     return;
 //

@@ -5,6 +5,7 @@
 //              26.06.97   E.Choumilov - DAQ decoding/encoding added
 //
 #include <tofdbc02.h>
+#include <tofdbc.h>
 #include <point.h>
 #include <event.h>
 #include <amsgobj.h>
@@ -23,14 +24,16 @@
 #include <ntuple.h>
 #include <time.h>
 //
-void AMSTOFCluster::init(){
-}
+// mem.reservation for some static arrays:
+//
 extern TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];// peds/sigmas/.. data
 integer TOF2RawCluster::trpatt[TOF2GC::SCLRS]={0,0,0,0};//just init. of static var.
 integer TOF2RawCluster::trflag=0;
 uinteger TOF2RawEvent::StartRun(0);
 time_t TOF2RawEvent::StartTime(0);
 AMSTOFCluster * AMSTOFCluster::_Head[4]={0,0,0,0};
+integer AMSTOFCluster::_planes=0;
+integer AMSTOFCluster::_padspl[TOFGC::MAXPLN]={0,0,0,0};
 //
 //
 //-----------------------------------------------------------------------
@@ -1227,6 +1230,19 @@ AMSContainer *p =AMSEvent::gethead()->getC("AMSTOFCluster",i);
 
 //===========================================================================
 //
+void AMSTOFCluster::init(){
+  int i;
+  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    _planes=TOF2GC::SCLRS;
+    for(i=0;i<_planes;i++)_padspl[i]=TOF2GC::SCBRS[i];
+  }
+  else{
+    _planes=TOF1GC::SCLRS;
+    for(i=0;i<_planes;i++)_padspl[i]=TOF1GC::SCBRS[i];
+  }
+
+}
+//---------------------------------------------------------------------------
 void AMSTOFCluster::build2(int &stat){
   TOF2RawCluster *ptr; 
   TOF2RawCluster *ptrr; 

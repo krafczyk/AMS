@@ -346,12 +346,12 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  geant rlo[TOF2GC::SCANPNT];// relat.(to Y=0) light output
  integer lps=1000;
  geant ef1[TOF2GC::SCANPNT],ef2[TOF2GC::SCANPNT];
- integer i1,i2,sta[2];
+ integer i1,i2,sta[2],stat[TOF2GC::SCBLMX][2];
  geant r,eff1,eff2;
  integer sid,brt;
  geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2][2];
  geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF2GC::SCLRS][TOF2GC::SCMXBR];
- geant tzerf[TOF2GC::SCLRS][TOF2GC::SCMXBR],tdiff[TOF2GC::SCBLMX],stat[TOF2GC::SCBLMX][2];
+ geant tzerf[TOF2GC::SCLRS][TOF2GC::SCMXBR],tdiff[TOF2GC::SCBLMX];
  geant slops[2],slops1[TOF2GC::SCLRS][TOF2GC::SCMXBR],slops2[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  geant strf[TOF2GC::SCBLMX][2],strof[TOF2GC::SCBLMX][2];
  geant an2di[TOF2GC::SCBLMX][2],gaina[TOF2GC::SCBLMX][2],gaind[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
@@ -1626,12 +1626,12 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1061,"Geant-Edep(mev) in layer-1",80,0.,240.,0.);
       HBOOK1(1062,"Geant-Edep(mev) in layer-3",80,0.,24.,0.);
       HBOOK1(1063,"Geant-Edep(mev) in layer-3",80,0.,240.,0.);
-      HBOOK1(1070,"SIMU: PM-1 charge(pC,id=107,s1)",80.,0.,400.,0.);
+      HBOOK1(1070,"SIMU: PM-1 charge(pC,id=107,s1)",80,0.,400.,0.);
       HBOOK1(1071,"SIMU: s1+s2 pulse-charge(pC),L-1",80,0.,160.,0.);
       HBOOK1(1072,"SIMU: s1+s2 pulse-charge(pC),L-1",80,0.,1600.,0.);
       HBOOK1(1073,"SIMU: pm1 pulse-hight(mV,id=107,s1)",80,0.,1000.,0.);
-      HBOOK1(1074,"SIMU: pm1 ADC(+noise(ped))(H-chan,id=107,s1)",100.,0.,500.,0.);
-      HBOOK1(1075,"SIMU: pm1 ADC(+noise(ped))(L-chan,id=107,s1)",100.,0.,100.,0.);
+      HBOOK1(1074,"SIMU: pm1 ADC(+noise(ped))(H-chan,id=107,s1)",100,0.,500.,0.);
+      HBOOK1(1075,"SIMU: pm1 ADC(+noise(ped))(L-chan,id=107,s1)",100,0.,100.,0.);
     }
 }
 //----------------------------

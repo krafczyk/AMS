@@ -14,6 +14,8 @@
 #include <particle.h>
 #include <mccluster.h>
 #include <amsstl.h>
+#include <tofrec02.h>
+#include <tofrec.h>
 #include <ctcdbc.h>
 #include <ntuple.h>
 #include <antirec02.h>
