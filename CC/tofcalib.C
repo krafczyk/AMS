@@ -715,8 +715,8 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
       ptr->gettovta(ama);// raw TovT (ns)
       ptr->getsdtm(sdtm);// get raw side-times(ns)
       tmsd[ilay]=0.5*(sdtm[0]-sdtm[1]);// by definition
-      scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,tmsdc[ilay]);//A-corrected time_diff
-//      tmsdc[ilay]=tmsd[ilay];// uncomment to use raw side-times
+//      scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,tmsdc[ilay]);//A-corrected time_diff
+      tmsdc[ilay]=tmsd[ilay];// uncomment to use raw side-times
     }
     ptr=ptr->next();
   }// --- end of hits loop --->
@@ -1789,7 +1789,7 @@ void TOFSTRRcalib::init(){
   char in[2]="0";
   geant til[2]={30.,25.};// hist.limits for Tin
   geant tih[2]={80.,100.};
-  geant tol[2]={1000.,3500.};// hist.limits for Tout
+  geant tol[2]={1000.,2000.};// hist.limits for Tout
   geant toh[2]={3000.,5500.};
   integer mrf;
 //
@@ -1888,7 +1888,7 @@ void TOFSTRRcalib::outp(){
     for(j=idtol[0];j<idtol[1];j++){//<-- Tout bin loop
       nev=number(nevnt[ic][j]);
       co=(number(j)+0.5)*SCSRCTB;// mid. of Tout bin
-      if(nev>25.){ // min. 25 events
+      if(nev>10.){ // min. 25 events
         t=dtin[ic][j]/nev; // get mean
         tq=dtinq[ic][j]/nev; // mean square
         dis=tq-t*t;// rms**2
@@ -2122,7 +2122,7 @@ void TOFAVSDcalib::fit(){
     for(j=0;j<SCACHB;j++){//<-- Tout bin loop
       nevf=number(nevdyn[i][j]);
       co=(number(j)+0.5)*SCACBW;// mid. of TovT-anode bin
-      if(nevf>25.){ // min. 25 events
+      if(nevf>10.){ // min. 10 events
         t=dtdyn[i][j]/nevf; // get mean
         tq=dtdyn2[i][j]/nevf; // mean square
         dis=tq-t*t;// rms**2

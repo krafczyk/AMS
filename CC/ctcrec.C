@@ -78,7 +78,6 @@ void AMSCTCRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         ptr->puttdca(int16u(nhit),tdca2);// refill object with corrected data
         CTCJobStat::addch(chnum,1);
       }
-      if(nhit>0)bad=0;//at least one good TDCA-sequence
 //---> check FT-TDC :
       ntdct=ptr->gettdct(tdct1);
       nhit=0;
@@ -103,6 +102,7 @@ void AMSCTCRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         ptr->puttdct(int16u(nhit),tdct2);// refill object with corrected data
         CTCJobStat::addch(chnum,2);
       }
+      if(nhit>0)bad=0;//at least one good TDCT-sequence
 //-----      
     }// ---> end of status check 
 //

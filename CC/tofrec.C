@@ -464,6 +464,7 @@ void AMSTOFRawCluster::build(int &status){
       if(nstdc[isid]==4)TOFJobStat::addch(chnum,6);
       if(nadca[isid]==2)TOFJobStat::addch(chnum,7);
       if(nadcd[isid]==2)TOFJobStat::addch(chnum,8);
+      if(nftdc[isid]>=2 && nstdc[isid]>=4 && nadca[isid]>=2)TOFJobStat::addch(chnum,9);
     } 
 //
     ptrN=ptr->next();
@@ -489,7 +490,7 @@ void AMSTOFRawCluster::build(int &status){
           TOFJobStat::addbr(brnum,1);
           isds=smty[0]+smty[1];// redefine side-counter as good side counter
           sta=0;
-          if(isds==1)sta|=SCBADB2;// set bit for counter with one good side-measurements
+          if(isds==1)sta|=SCBADB2;// set bad-bit for counter with only one-side measurements
           scbrcal[ilay][ibar].gtstrat(strat);
           strr[0]=strat[0][0];// strr.for s-1
           strr[1]=strat[1][0];// .........s-2
@@ -499,35 +500,41 @@ void AMSTOFRawCluster::build(int &status){
 //--------------> identify "corresponding"(to sTDC) hit in fast TDC :
 //
 // --> calculate s-TDC "start"-edge (each-side) times tm[2] (wrt lev1):
-          if(smty[0]>0)tm[0]=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);
+          if(smty[0]>0)tm[0]=number((stdc1[3]&pbanti)*TOFDBc::tdcbin(1));//last(in real time) s-tdc hit
           else tm[0]=0; 
-          if(smty[1]>0)tm[1]=(stdc2[3]&pbanti)*TOFDBc::tdcbin(1);
+          if(smty[1]>0)tm[1]=number((stdc2[3]&pbanti)*TOFDBc::tdcbin(1));
           else tm[1]=0; 
-// --> hist. for "ideal"(both-sided single hit) bar :
-          if(TOFRECFFKEY.reprtf[2]>0 && isds==2 && nftdc[0] ==2 && nftdc[1]==2){
-            tf=(ftdc1[1]&pbanti)*TOFDBc::tdcbin(0);//2-nd hit is leading(up)-edge
-            dt=tf-tm[0];
-            HF1(1100,geant(dt),1.);//hist. the same hit f/s-TDC difference
-            tf=(ftdc2[1]&pbanti)*TOFDBc::tdcbin(0);
-            dt=tf-tm[1];
-            HF1(1100,geant(dt),1.);
-            dt=(int(ftdc1[1]&pbanti)-int(ftdc1[0]&pbanti))
+// --> hist. for single history/slow-hit bars :
+          if(TOFRECFFKEY.reprtf[2]>0){
+            if(smty[0]>0 && nftdc[0]==2 && nstdc[0]==4){
+              tf=number((ftdc1[1]&pbanti)*TOFDBc::tdcbin(0));//2-nd hit is leading(up)-edge
+              dt=tf-tm[0];
+              HF1(1100,geant(dt),1.);//hist. the same hit f/s-TDC difference
+              dt=(int(ftdc1[1]&pbanti)-int(ftdc1[0]&pbanti))
                                          *TOFDBc::tdcbin(0);//f-TDC inp.pulse width
-            HF1(1103,geant(dt),1.);
-            dt=(int(ftdc2[1]&pbanti)-int(ftdc2[0]&pbanti))
+              HF1(1103,geant(dt),1.);
+            }
+            if(smty[1]>0 && nftdc[1]==2 && nstdc[1]==4){
+              tf=number((ftdc2[1]&pbanti)*TOFDBc::tdcbin(0));
+              dt=tf-tm[1];
+              HF1(1100,geant(dt),1.);
+              dt=(int(ftdc2[1]&pbanti)-int(ftdc2[0]&pbanti))
                                          *TOFDBc::tdcbin(0);//f-TDC inp.pulse width
-            HF1(1103,geant(dt),1.);
+              HF1(1103,geant(dt),1.);
+            }
           }
-// --> loop over f-TDC hits (up-edges):
+// --> loop over f-TDC hits (up-edges) to find f-tdc hit, coresponding s-tdc hit (MATCHING):
           tmf[0]=-1.;
           tmf[1]=-1.;
           itmf[0]=0;
           itmf[1]=0;
-          fstd=scbrcal[ilay][ibar].gtfstrd(); // diff. in f/s same-hit delay
+          fstd=number(scbrcal[ilay][ibar].gtfstrd()); // diff. in f/s same-hit delay
           if(smty[0]>0){
             for(i=0;i<nftdc[0];i+=2){ // side-1
-              tf=(ftdc1[i+1]&pbanti)*TOFDBc::tdcbin(0);//take up-edge(2-nd) of f-TDC
-              if(fabs(tf-tm[0]-fstd) < tofvpar.fstdw()){
+              tf=number((ftdc1[i+1]&pbanti)*TOFDBc::tdcbin(0));//take up-edge(2-nd) of f-TDC
+              dt=tf-tm[0]-fstd;
+              if(TOFRECFFKEY.reprtf[2]>0)HF1(1115,geant(dt),1.);
+              if(fabs(dt) < tofvpar.fstdw()){
                 tmf[0]=tf;
                 itmf[0]=i+1;
               }
@@ -535,8 +542,10 @@ void AMSTOFRawCluster::build(int &status){
           }                          
           if(smty[1]>0){
             for(i=0;i<nftdc[1];i+=2){ // side-2
-              tf=(ftdc2[i+1]&pbanti)*TOFDBc::tdcbin(0);
-              if(fabs(tf-tm[1]-fstd) < tofvpar.fstdw()){
+              tf=number((ftdc2[i+1]&pbanti)*TOFDBc::tdcbin(0));
+              dt=tf-tm[1]-fstd;
+              if(TOFRECFFKEY.reprtf[2]>0)HF1(1115,geant(dt),1.);
+              if(fabs(dt) < tofvpar.fstdw()){
                 tmf[1]=tf;
                 itmf[1]=i+1;
               }
@@ -545,7 +554,7 @@ void AMSTOFRawCluster::build(int &status){
 //---
           reject=0;
           if((tmf[0]<0. && smty[0]==1) ||
-             (tmf[1]<0. && smty[1]==1))reject=1;//no f-/s-TDC matching on each of the alive side
+             (tmf[1]<0. && smty[1]==1))reject=1;// NO f/s-TDC MATCHING on any of the alive(3-meas) side
 //
 //-----------> do "befor"/"after"-hit presence test for each of the good(upto now) sides :
 //
@@ -585,13 +594,15 @@ void AMSTOFRawCluster::build(int &status){
 //
             if(reject==1)sta|=SCBADB1;// set bit "time-history problem" on any alive side
             if(reject==0)TOFJobStat::addbr(brnum,2);// statistics on "good time-history"
+            if(reject==0 && isds==2)TOFJobStat::addbr(brnum,3);// statistics on 2-sided(2x3meas)
+//                                                               "good time-history"
 //
 // --> prepare fine resolution side-times(using stretcher info):
 //
             tm[0]=0;
             ama[0]=0;
             amf[0]=0;
-            if(smty[0]==1){// good side
+            if(smty[0]==1){// good(3-measurement) side, but matching/hist0ry may not be good
               t4=(stdc1[0]&pbanti)*TOFDBc::tdcbin(1);// 4-th edge of str-info
               t2=(stdc1[2]&pbanti)*TOFDBc::tdcbin(1);// 2-nd edge of str-info
               t1=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);// 1-st edge of str-info
@@ -605,7 +616,7 @@ void AMSTOFRawCluster::build(int &status){
             tm[1]=0;
             ama[1]=0;
             amf[1]=0;
-            if(smty[1]==1){// good(complete) side, but matching/hist may not be good
+            if(smty[1]==1){// good(3-measurement) side, but matching/hist may not be good
               t4=(stdc2[0]&pbanti)*TOFDBc::tdcbin(1);// 4-th edge of str-info
               t2=(stdc2[2]&pbanti)*TOFDBc::tdcbin(1);// 2-nd edge of str-info
               t1=(stdc2[3]&pbanti)*TOFDBc::tdcbin(1);// 1-st edge of str-info
@@ -702,7 +713,7 @@ void AMSTOFRawCluster::build(int &status){
 //
 // ---> now check min. multiplicity and make some histograms :
 //
-  int nbrch[SCLRS],conf(0);
+  int nbrch[SCLRS],conf(-1),isum(0);
   int il,ib,ix,iy;
   geant x[2],y[2],zx[2],zy[2],zcb[SCLRS],tgx,tgy,cosi;
   number trlen13,trlen24;
@@ -711,17 +722,55 @@ void AMSTOFRawCluster::build(int &status){
     nbrch[i]=0;
     if(nbrl[i]>0)nbrch[i]=1;
   }
-  if((nbrch[0]+nbrch[1])<1 || (nbrch[2]+nbrch[3])<1)return; // remove low layer-mult.
-  status=0;
+  for(i=0;i<SCLRS;i++)isum+=nbrch[i];
+  HF1(1110,geant(isum),1.);// tot.number of layers
+  for(i=0;i<SCLRS;i++)if(nbrch[i]>0)HF1(1111,geant(i+1),1.);// layer appearence frequency
+  if(isum>=2)conf=0;
+  if(isum>=3){
+    for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
+  }
+  if(isum==4)conf=5;
+  HF1(1112,geant(conf),1.);
 //
-// -> make hist. for 4 x 1bar(2-sided) events:
+  if((nbrch[0]+nbrch[1])>=1 && (nbrch[2]+nbrch[3])>=1)status=0; // good event
+// 
+// --->same multtipl. checks for single bar layers:
 //
-  bad=0;
-  for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
-  if(bad)return;// not 4x1hit event
-  bad=0;
-  for(i=0;i<SCLRS;i++)if(isdsl[i] != 2)bad=1;
-  if(bad)return;// not all bars are two-sided 
+  for(i=0;i<SCLRS;i++){
+    nbrch[i]=0;
+    if(nbrl[i]==1)nbrch[i]=1;
+  }
+  isum=0;
+  conf=-1;
+  for(i=0;i<SCLRS;i++)isum+=nbrch[i];
+  if(isum>=2)conf=0;
+  if(isum>=3){
+    for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
+  }
+  if(isum==4)conf=5;
+  HF1(1113,geant(conf),1.);
+// 
+// --->same multtipl. checks for single 2-sided bar layers:
+//
+  for(i=0;i<SCLRS;i++){
+    nbrch[i]=0;
+    if(nbrl[i]==1 && isdsl[i]==2)nbrch[i]=1;
+  }
+  isum=0;
+  conf=-1;
+  for(i=0;i<SCLRS;i++)isum+=nbrch[i];
+  if(isum>=2)conf=0;
+  if(isum>=3){
+    for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
+  }
+  if(isum==4)conf=5;
+  HF1(1114,geant(conf),1.);
+//
+  if(status!=0)return;//remove bad events
+//
+// -> make hist. only for 4layer x 1bar(2-sided) events:
+//
+  if(conf != 5)return;
 //  
 // -> find track length using scint-made transv.coord :
   ix=0;

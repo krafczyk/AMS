@@ -3,7 +3,8 @@
 // ANTI Geometry E. Choumilov 2-06-1997 
 // Passive Shield Geometry V. Choutko 22-jul-1996
 // CTC (Cherenkov Thresh. Counter) geometry E.Choumilov 26-sep-1996
-// ATC (Aerogel Threshold Cerenkov) geometry A.K.Gougas 14-Mar-1997 
+// ATC (Aerogel Threshold Cerenkov) geometry A.K.Gougas 14-Mar-1997
+// 
 //
 #include <typedefs.h>
 #include <node.h>

@@ -615,8 +615,8 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.daqthr[3]=0.;//spare  
   TOFRECFFKEY.daqthr[4]=0.;//spare
 //
-  TOFRECFFKEY.cuts[0]=5.;//t-window(ns) for "the same hit" search in f/s_tdc
-  TOFRECFFKEY.cuts[1]=50.;//"befor"-cut in time history (ns)(max.PMT-pulse length?)
+  TOFRECFFKEY.cuts[0]=20.;//t-window(ns) for "the same hit" search in f/s_tdc
+  TOFRECFFKEY.cuts[1]=15.;//"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TOFRECFFKEY.cuts[2]=400.;//"after"-cut in time history (ns)(max. shaper integr.time?)
   TOFRECFFKEY.cuts[3]=0.;// spare
   TOFRECFFKEY.cuts[4]=0.;
@@ -1165,11 +1165,17 @@ void AMSJob::_retofinitjob(){
     AMSgObj::BookTimer.book("TOF:RwEv->RwCl");
     AMSgObj::BookTimer.book("TOF:RwCl->Cl");
     if(TOFRECFFKEY.reprtf[2]!=0){ // Book reco-hist
-      HBOOK1(1100,"The same hit (Tf-Ts),(ns)",80,-40.,40.,0.);
+      HBOOK1(1100,"Fast-Slow hit time-difference(single hist/slow-hit measurements)",80,0.,80.,0.);
       HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
-      HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,160.,0.);
+      HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
       HBOOK1(1103,"Time_history:inp.pulse width(ns)",80,0.,80.,0.);
       HBOOK1(1104,"Anode TovT:inp.pulse width(ns)",80,0.,320.,0.);
+      HBOOK1(1110,"RawClusterLevel:Total fired layers per event",5,0.,5.,0.);
+      HBOOK1(1111,"RawClusterLevel:Layer appearence frequency",5,0.,5.,0.);
+      HBOOK1(1112,"RawClusterLevel:Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
+      HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
+      HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
+      HBOOK1(1115,"Fast-Slow hit time-difference(all hist/slow-hit meas.",80,-40.,120.,0.);
       HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1530,"L=3,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
@@ -1761,10 +1767,16 @@ void AMSJob::_tofendjob(){
          HPRINT(1542);
          if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
            HPRINT(1100);
+           HPRINT(1115);
            HPRINT(1101);
            HPRINT(1102);
            HPRINT(1103);
            HPRINT(1104);
+           HPRINT(1110);
+           HPRINT(1111);
+           HPRINT(1112);
+           HPRINT(1113);
+           HPRINT(1114);
            HPRINT(1526);
            HPRINT(1527);
            HPRINT(1528);

@@ -906,7 +906,8 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
           nhits[tdcc]+=1;
         }
         else{
-          cout<<"ANTI:RawFmt:read_error: more 16 hits in h/w channel "<<tdcc<<endl;
+          cout<<"ANTI:RawFmt:read_warning: > 16 hits in channel: crate= "<<crate<<" sfet="<<sfet
+                              <<" chip="<<chip<<" chipch="<<chc<<endl;
         }
       }
 //

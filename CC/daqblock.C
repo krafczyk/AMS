@@ -170,6 +170,12 @@ void DAQSBlock::buildraw(integer len, int16u *p){
     cout<<endl;
   }
 //
+//---> ANTI decoding:
+  if(lent<len && (msk&2)>0){
+    dlen=lent;//bias to first Anti_data_word (=1+TOF_data_length+CTC_data_length)
+    AMSAntiRawEvent::buildraw(blid, dlen, p);
+    lent+=dlen;
+  }
 //---> CTC decoding:
   if(lent<len && (msk&4)>0){
     dlen=lent;//bias to first CTC_data_word (=1+TOF_data_length)
@@ -177,12 +183,6 @@ void DAQSBlock::buildraw(integer len, int16u *p){
     lent+=dlen;
   }
 //
-//---> ANTI decoding:
-  if(lent<len && (msk&2)>0){
-    dlen=lent;//bias to first Anti_data_word (=1+TOF_data_length+CTC_data_length)
-    AMSAntiRawEvent::buildraw(blid, dlen, p);
-    lent+=dlen;
-  }
 //---
 #ifdef __AMSDEBUG__
   if(lent != len){

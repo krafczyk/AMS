@@ -101,9 +101,9 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_strjit1=0.025;  // "start"-pulse jitter at stretcher input
   geant TOFDBc::_strjit2=0.025;  // "stop"(FT)-pulse jitter at stretcher input
   geant TOFDBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
-  geant TOFDBc::_ftdelf=45.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
+  geant TOFDBc::_ftdelf=65.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
   geant TOFDBc::_ftdelm=100.; // FT max delay (allowed by stretcher logic) (ns)
-  geant TOFDBc::_fstdcd=5.;   // Same hit(up-edge) relative delay in fast-slow TDC
+  geant TOFDBc::_fstdcd=28.;   // Same hit(up-edge) relative delay in fast-slow TDC
   geant TOFDBc::_fatdcd=5.;   // Same hit(up-edge) relative delay in fast-A(D) TDC
   integer TOFDBc::_pbonup=1;  // set phase-bit for leading(up) edge (yes/no->1/0) 
 //
@@ -668,7 +668,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     tzer=tzerf[ila][ibr];//was read from ext. file
     tdif=tdiff[cnum];//was read from ext. file 
     td2p[0]=speedl;//mean speed of the light was read from external file
-    td2p[1]=3.2; // error on longit. coord. measurement(cm)
+    td2p[1]=3.2; // tempor error on longit. coord. measurement(cm)
     for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
     for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
@@ -1002,7 +1002,7 @@ void TOFJobStat::print(){
 //
   printf("==========> Bars reconstruction report :\n\n");
 //
-  printf("Bar H/w-2-sides status OK :\n\n");
+  printf("Bar H/w-status OK (at least 1 side is found) :\n\n");
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR+ib;
@@ -1011,7 +1011,7 @@ void TOFJobStat::print(){
     printf("\n\n");
   }
 //
-  printf("In-Bar mult. 'OK' :\n\n");
+  printf("Bar 3-measurements found (at least for 1 side) :\n\n");
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR+ib;
@@ -1022,12 +1022,23 @@ void TOFJobStat::print(){
     printf("\n\n");
   }
 //
-  printf("In-Bar history 'OK' :\n\n");
+  printf("Bar 1-side history 'OK' (for each of the EXISTING 3-measurements sides) :\n\n");
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][2])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Bar 2-sides history 'OK'(if there are 2x3meas. with good history) :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][3])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
@@ -1196,6 +1207,25 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][8])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("3-measurements(S-tds + F-tdc + A-tdc) :\n");
+  printf("\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][9])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][9])/rc;
       printf("% 5.3f",rc);
     }
     printf("\n\n");
