@@ -373,13 +373,13 @@ c                   cuts(8)=.true.
 *
 * Cerenkov cuts
 *
-                    xll=-59.
+                    xll=-57.
                     xlr=58.
-                    yll=-46.
-                    ylr=46.
+                    yll=-38.
+                    ylr=43.
                     xx=0
-                    do i=1,nctccl
-                     xx=xx+ctcrawsignal(i)
+                    do i=1,nctcht
+                     xx=xx+ctchitsignal(i)
                     enddo
                     cuts(9)=cuts(9).and.
      +              cooctc(1,1,1).gt.xll.and.
@@ -389,7 +389,7 @@ c                   cuts(8)=.true.
                     call hf1(970,xx,1.)
                     if(cuts(9))call hf1(972,xx,1.)
                     call hf2(971,cooctc(1,1,1),cooctc(2,1,1),1.)
-                    cuts(9)=cuts(9).and.xx.lt.1   
+                    cuts(9)=cuts(9).and.xx.lt.0.5   
                     if(cuts(9))then
                     do i=1,ntrclmc
                      call hf1(702,float(itra(i)),1.)
@@ -429,8 +429,8 @@ c                   cuts(8)=.true.
                     if(igg.eq.2)call hf1(1973,pmass(1),1.)
                     if(pmass(1).gt.0.5.and.pmass(1).lt.3.)then
                      rke=(momentum(1)**2+0.88)**0.5-0.938
-                     call hf1(1014,rke,1.)
-                     call hf1(1013,rke,1.)
+                     if(ig.eq.2)call hf1(1014,rke,1.)
+                     if(ig.eq.2)call hf1(1013,rke,1.)
 c                     write(*,*)eventno,run,r,momentum(1),
 c     +               gridgidity(iptr),
 c     +               hridgidity(1,iptr),hridgidity(2,iptr),pmass(1)
@@ -454,16 +454,16 @@ c     +               betachi2(pbetap(1))
                     call hf1(1962,pmom(1),1.)
                     rke=(pmom(1)**2+0.88)**0.5-0.938
                     ig=mod(ig+1,5)
-                    call hf1(1972,rke,1.)
-                    call hf1(1963,momentum(1),1.)
-                    call hf1(1964,pmom(1)/momentum(1),1.)
-                    call hf1(1965,charge(1),1.)
-                    call hf1(1966,beta(1),1.)
-                    call hf1(1967,pmass(1),1.)
-                    call hf1(1968,pmass(1),1.)
-                    call hf1(1969,panti,1.)
-                    call hf1(1912,float(tofclusters),1.)
-                    call hf1(1970,betachi2(pbetap(1)),1.)
+                      call hf1(1972,rke,1.)
+                      call hf1(1963,momentum(1),1.)
+                      call hf1(1964,pmom(1)/momentum(1),1.)
+                      call hf1(1965,charge(1),1.)
+                      call hf1(1966,beta(1),1.)
+                      call hf1(1967,pmass(1),1.)
+                      call hf1(1968,pmass(1),1.)
+                      call hf1(1969,panti,1.)
+                      call hf1(1912,float(tofclusters),1.)
+                      call hf1(1970,betachi2(pbetap(1)),1.)
                     do i=1,ntrclmc
                      call hf1(1702,float(itra(i)),1.)
 c                     write(*,*)itra(i) 
