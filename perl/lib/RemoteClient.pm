@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.239 2004/01/31 15:17:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.240 2004/02/02 09:56:28 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2186,7 +2186,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 # 
       if ($accessmode eq "NFS") {
          foreach my $run (@runs){
-          my $sql = "SELECT path From Ntuples WHERE Run=$run";
+          my $sql = "SELECT path From Ntuples WHERE Run=$run AND CRCFLAG=1";
           my $r1=$self->{sqlserver}->Query($sql);
           foreach my $path (@{$r1}) {
            $path=trimblanks($path->[0]);
@@ -2216,7 +2216,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       }
      } elsif ($accessmode eq "HTTP") {
          foreach my $run (@runs){
-          my $sql = "SELECT path From Ntuples WHERE Run=$run";
+          my $sql = "SELECT path From Ntuples WHERE Run=$run AND CRCFLAG=1";
           my $r1=$self->{sqlserver}->Query($sql);
           foreach my $path (@{$r1}) {
            $path=trimblanks($path->[0]);
@@ -2228,7 +2228,7 @@ CheckCite:            if (defined $q->param("QCite")) {
       }
      } elsif ($accessmode eq "CASTOR") {
          foreach my $run (@runs){
-          my $sql = "SELECT path From Ntuples WHERE Run=$run";
+          my $sql = "SELECT path From Ntuples WHERE Run=$run AND CRCFLAG=1 AND CASTORTIME != 0";
           my $r1=$self->{sqlserver}->Query($sql);
           foreach my $path (@{$r1}) {
            $path=trimblanks($path->[0]);
