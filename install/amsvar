@@ -1,4 +1,4 @@
-#  $Id: amsvar,v 1.46 2004/02/11 13:25:29 choutko Exp $
+#  $Id: amsvar,v 1.47 2004/02/22 15:37:55 choutko Exp $
 setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
 #setenv ROOTSYS    /f2users/rdm/root
@@ -17,7 +17,7 @@ setenv AMSMCNtuplesDir   $Offline/amsmcntuplesdir
 setenv ProductionLogDirLocal $Offline/logs.local
 setenv RunsSummaryFile   $Offline/runs_STS91.log
 setenv SlowRateDataDir   $Offline/SlowRateDataDir
-setenv AMSGeoDir         $Offline/vdev/display/v2.00
+setenv AMSGeoDir         $Offline/vdev/display/
 setenv amsed            $Offline/vdev/display/amsed
 setenv amsedc           $Offline/vdev/display/amsedc
 setenv offmon        $Offline/vdev/online/offmon      
