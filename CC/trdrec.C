@@ -454,7 +454,7 @@ _Start();
      nrh+= (AMSEvent::gethead()->getC("AMSTRDSegment",i))->getnelem();
     }
     if(nrh>=TRDFITFFKEY.MaxSegAllowed){
-      cout <<" Two many segments "<<nrh<<endl;
+      cout <<" Too many segments "<<nrh<<endl;
      TriggerLVL3 *plvl3;
      plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
       if(!plvl3 || plvl3->skip()){

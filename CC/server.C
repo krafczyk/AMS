@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.63 2001/06/01 09:35:50 choutko Exp $
+//  $Id: server.C,v 1.64 2001/06/06 16:12:13 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -777,6 +777,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
      submit+=" ";
      submit+=(const char*)((*cli)->LogPath);  
      submit+="Server.";
+     sprintf(tmp,"%d",_Submit+1);
      submit+=tmp;
      submit+=".log ";
     }
@@ -848,6 +849,7 @@ if(!_pser->Lock(pid,DPS::Server::KillClient,getType(),_KillTimeOut))return;
 
 ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
 if(li!=_acl.end()){
+   if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
  //kill by -9 here
    if(_parent->Debug())_parent->EMessage(AMSClient::print(*li, " KILL -9"));
     int iret=_pser->Kill((*li),SIGKILL,true);
@@ -856,6 +858,11 @@ if(li!=_acl.end()){
     }
     DPS::Client::ActiveClient_var acv=*li;
     PropagateAC(acv,DPS::Client::Delete);
+  }
+  else{
+    _UpdateACT((*li)->id,DPS::Client::Active);
+  }
+
 }
  li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::TimeOut));
 if(li!=_acl.end()){
@@ -872,7 +879,7 @@ if(li!=_acl.end()){
    PropagateAC(acv,DPS::Client::Delete);
  }
   else{
-   if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
+   if(1 || _pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
@@ -2063,6 +2070,7 @@ if(!_pser->Lock(pid,DPS::Server::KillClient,getType(),_KillTimeOut))return;
 
 ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
 if(li!=_acl.end()){
+   if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
  //kill by -9 here
  
    if(_parent->Debug())_parent->EMessage(AMSClient::print(*li, " KILL -9"));
@@ -2073,6 +2081,11 @@ if(li!=_acl.end()){
 
     DPS::Client::ActiveClient_var acv=*li;
     PropagateAC(acv,DPS::Client::Delete);
+  }
+  else{
+    _UpdateACT((*li)->id,DPS::Client::Active);
+  }
+
 }
  li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::TimeOut));
 if(li!=_acl.end()){
@@ -2090,7 +2103,7 @@ if(li!=_acl.end()){
    PropagateAC(acv,DPS::Client::Delete);
  }
  else {
-   if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
+   if(1 || _pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
