@@ -101,7 +101,6 @@ TVirtualPad * gp1=gPad;
  gPad->cd(2);
  gPad->SetLogx(gAMSDisplay->IsLogX());
  gPad->SetLogy(gAMSDisplay->IsLogY());
- gPad->SetLogz(gAMSDisplay->IsLogZ());
  _filled2[5]->Draw();
 }
 

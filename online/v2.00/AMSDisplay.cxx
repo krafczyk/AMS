@@ -27,6 +27,7 @@
 #include "TSwitch.h"
 #include "Debugger.h"
 #include "AMSNtuple.h"
+#include "ControlFrame.h"
 AMSOnDisplay * gAMSDisplay;
 
 ClassImp(AMSOnDisplay)
@@ -44,6 +45,7 @@ AMSOnDisplay::AMSOnDisplay() : TObject()
    m_logy=kFALSE;
    m_logz=kFALSE;
    m_theapp=0;
+   m_ControlFrame=0;
    _msubdet=0;
    _Head=this;   
    _cursubdet=0;
@@ -84,7 +86,7 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
    m_Canvas->cd();
 
 
-   Float_t xsep = 0.2;
+   Float_t xsep = 0.0;
    //
    // Create title pad
    // ----------------------------
@@ -102,6 +104,7 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
    m_Pad->SetFillColor(0);	//white 
    m_Pad->SetBorderSize(2);
    m_Pad->Draw();
+   /*   
    //
    // Create button pad
    // ----------------------------
@@ -124,31 +127,31 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
    //
    // Create Run info pad
    // ----------------------------
-   m_RunInfoPad = new TPad("RunInfoPad", "run info pad", 0, 0.0, 0.2, 0.1);
+   m_RunInfoPad = new TPad("RunInfoPad", "run info pad", 0, 0.0, xsep, 0.1);
    m_RunInfoPad->SetFillColor(0);
    m_RunInfoPad->SetBorderSize(1);
    m_RunInfoPad->SetBorderMode(1);
    m_RunInfoPad->Draw();
+   */
    //
    // Create object info pad
    // ----------------------------
    m_Canvas->cd();
-   m_ObjInfoPad = new TPad("ObjInfoPad", "object info pad", 0.2, 0, 1, 0.05);
+   m_ObjInfoPad = new TPad("ObjInfoPad", "object info pad", xsep, 0, 1, 0.05);
    m_ObjInfoPad->SetFillColor(0);
-   m_RunInfoPad->SetBorderSize(1);
-    m_ObjInfoPad->SetBorderMode(2);
+   m_ObjInfoPad->SetBorderSize(1);
+   m_ObjInfoPad->SetBorderMode(2);
    m_ObjInfoPad->Draw();
 
-   
 
 
 }
  void AMSOnDisplay::Init(){  // Create user interface control pad
 
    m_Canvas->cd();
-   DisplayButtons();
+   //DisplayButtons();
 
-
+   /*
    // Create switch pad
    m_TrigPad->cd();
 
@@ -175,9 +178,13 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
     y -= dy;
 
    } 
+   */
    Draw();
    m_Canvas->cd();
    m_Canvas->Update();
+   
+   // Create Controlframe
+   m_ControlFrame= new AMSControlFrame(gClient->GetRoot(), m_Canvas->fTheCanvas, 400, 200);
 
 }
 
@@ -279,7 +286,7 @@ void AMSOnDisplay::DrawTitle(Option_t *option)
 }
 
 
-
+/*
 //_____________________________________________________________________________
 void AMSOnDisplay::DrawRunInfo(Option_t *option)
 {
@@ -324,12 +331,43 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
    gPadSave->cd();
 }
 
+*/
+
+void AMSOnDisplay::DrawRunInfo(Option_t *option)
+{
+
+   const int kTMAX = 160;
+   static TText * text=0;
+   static TText * text1=0;
+   static char atext[kTMAX];
+
+   TVirtualPad * gPadSave = gPad;
+   m_ObjInfoPad->cd();
+
+   sprintf(atext,"                                               Run %d          %s",m_ntuple->GetRun(),m_ntuple->GetTime());
+   for (Int_t i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
+   atext[kTMAX-1] = 0;
+
+   if (! text) {
+	text = new TText(0.04, 0.38, atext);
+   }
+   else
+	text->SetText(0.04, 0.38,atext);
+
+   text->SetTextFont(7);
+   text->SetTextAlign(12);
+   text->SetTextSize(0.6);
+   text->Draw();
+
+   gPadSave->cd();
+}
 
 
 
-void AMSOnDisplay::StartStop(){
+
+void AMSOnDisplay::StartStop(char *buf){
+  if(buf)buf[0]='\0';
   if(!m_theapp)return;
-  gPad->Clear();
   static int state=0;
   state=(state+1)%2;
    static TText * text=0;
@@ -348,9 +386,14 @@ void AMSOnDisplay::StartStop(){
     else m_theapp->SetIdleTimer(18,"");
    text->SetTextAlign(22);
    text->SetTextSize(0.55);
-   text->Draw();
-
-
+   if(!buf){
+    gPad->Clear();
+    text->Draw();
+   }
+   else {
+	if(state%2)strcpy(buf, atext1);
+	else strcpy(buf,atext2);
+   }
 }
 
 void AMSOnDisplay::AddSubDet(  AMSHist & subdet){
@@ -411,11 +454,11 @@ void AMSOnDisplay::DispatchProcesses(){
    change=Dispatch(_cursubdet);
 }
 
-void AMSOnDisplay::Filled(){
+void AMSOnDisplay::Filled(char *buf){
+  if(buf)buf[0]='\0';
   static int filled=0;
   if(filled)return;
    filled=Fill();
-  gPad->Clear();
   static int state=0;
    static TText * text=0;
    static char atext2[20]="Fill";
@@ -432,8 +475,14 @@ void AMSOnDisplay::Filled(){
    }
    text->SetTextAlign(22);
    text->SetTextSize(0.55);
-   text->Draw();
-
+   if(!buf){
+    gPad->Clear();
+    text->Draw();
+   }
+   else {
+	if(filled%2)strcpy(buf,atext1);
+	else strcpy(buf,atext2);
+   }
 }
 
 

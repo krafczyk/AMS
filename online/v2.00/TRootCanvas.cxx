@@ -730,7 +730,7 @@ Bool_t TRootCanvas::ProcessMessage(Long_t msg, Long_t parm1, Long_t)
                  AMSCanvas::SaveParticleCB();
                  break;
                case kSaveAsgif:
-                 AMSCanvas::SaveParticleCB();
+                 AMSCanvas::SaveParticleGIF();
                  break;
                case kSaveAsprint:
                  AMSCanvas::PrintCB();

@@ -12,6 +12,7 @@
 #include <TApplication.h>
 #include "AMSCanvas.h"
 #include "AMSHist.h"
+#include "ControlFrame.h"
 class AMSNtuple;
 class TCanvas;
 class TPad;
@@ -31,6 +32,7 @@ protected:
   Bool_t           m_logx;
   Bool_t           m_logy;
   Bool_t           m_logz;
+  AMSControlFrame        *m_ControlFrame;               //Pointer to the display canvas
   AMSCanvas        *m_Canvas;               //Pointer to the display canvas
   TPad             *m_TrigPad;              //Pointer to the trigger pad 
   TPad             *m_ButtonPad;            //Pointer to the buttons pad
@@ -68,16 +70,16 @@ public:
   TPad              *GetObjInfoPad() { return m_ObjInfoPad; }
   TPad              *GetRunInfoPad() { return m_RunInfoPad; }
   TPad              *GetTitlePad() { return m_TitlePad; }
-  void               StartStop();
+  void               StartStop(char * buf=0);
   Int_t             getMaxSubDet(){return _msubdet;}
-  Bool_t   IsLogX()const {return m_logx;}
-  Bool_t   IsLogY()const {return m_logy;} 
-  Bool_t   IsLogZ()const {return m_logz;} 
+  Bool_t   & IsLogX() {return m_logx;}
+  Bool_t   & IsLogY() {return m_logy;} 
+  Bool_t   & IsLogZ() {return m_logz;} 
   static AMSOnDisplay * GetAMSDisplay(){return _Head;}
   Int_t & Begin(){ return _Begin;}
   Int_t & Sample(){ return _Sample;}
   void Init();
-  void Filled();
+  void Filled(char *buf=0);
   Int_t Fill();
   Int_t Dispatch(Int_t subdet, Int_t set=-1);
   void DispatchProcesses();

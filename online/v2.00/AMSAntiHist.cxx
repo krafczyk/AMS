@@ -95,7 +95,7 @@ void AMSAntiHist::ShowSet(Int_t Set){
       gPad->cd(i-init+1);
       //gPad->SetLogx(gAMSDisplay->IsLogX());
       //gPad->SetLogy(gAMSDisplay->IsLogY());
-      gPad->SetLogz(gAMSDisplay->IsLogZ());
+      //gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_fetched2[i]){
 	_fetched2[i]->Draw();
 	char text[80];

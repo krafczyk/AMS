@@ -12,7 +12,6 @@
 #include <TControlBar.h>
 #include <TContextMenu.h>
 
-//#include "MySelectionDialog.h"
 
 #include <TText.h>
 

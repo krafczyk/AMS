@@ -95,8 +95,6 @@ case 0:
     gPad->Divide(2,2);
     for(i=0;i<4;i++){
       gPad->cd(i+1);
-      gPad->SetLogx(gAMSDisplay->IsLogX());
-      gPad->SetLogy(gAMSDisplay->IsLogY());
       gPad->SetLogz(gAMSDisplay->IsLogZ());
       if(_filled2[i+8]){
 	_filled2[i+8]->Draw("LEGO");
@@ -113,8 +111,6 @@ case 0:
     _filled2[12]->Draw();
     gPadSave->cd();
     gPad->cd(2);
-    gPad->SetLogx(gAMSDisplay->IsLogX());
-    gPad->SetLogy(gAMSDisplay->IsLogX());
     gPad->SetLogz(gAMSDisplay->IsLogZ());
     _filled2[13]->Draw("SURF2");
     break;
@@ -134,8 +130,6 @@ case 0:
     }
     gPadSave->cd();
     gPad->cd(2);
-    gPad->SetLogx(gAMSDisplay->IsLogX());
-    gPad->SetLogy(gAMSDisplay->IsLogY());
     gPad->SetLogz(1);
     _filled2[18]->Draw("SURF2");
     gPadSave->cd();
