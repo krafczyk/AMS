@@ -372,6 +372,20 @@ Below there is a description of a  ntuple.
  * R*4  *             * TOFRAWCL * tofrtm(ntofraw)        // Time (ns)
  * R*4  *             * TOFRAWCL * tofrcoo(ntofraw)       // Long.coord.(cm)
 
+ * I*4  * [0,100]     * RICMCCL  * nsignals               // Number of signals in the PMTs including noise
+ * I*4  *             * RICMCCL  * sid(nsignals)          // Geant3 code of the particle producing the signal (-666 if it's noise)
+ * I*4  *             * RICMCCL  * RICchannel(nsignals)   // Channel nb. of the signal
+ * I*4  *             * RICMCCL  * signal(nsignals)       // ADC counts associated
+ * R*4  *             * RICMCCL  * RICx(nsignals)         // X coordinate of the channel
+ * R*4  *             * RICMCCL  * RICy(nsignals)         // Y coordinate of the channel
+ * R*4  *             * RICMCCL  * origin(3,nsignals)     // Generation point of the particle producing the signal
+ * R*4  *             * RICMCCL  * direction(3,nsignals)  // Original direction of the particle producing the signal
+
+ * I*4  * [0,100]     * RICEVENT * Rhits                  // Number of hits
+ * I*4  *             * RICEVENT * Rchannel(Rhits)        // Channel
+ * I*4  *             * RICEVENT * Radc(Rhits)            // ADC counts
+ * R*4  *             * RICEVENT * Rx(Rhits)              // X position of the channel
+ * R*4  *             * RICEVENT * Ry(Rhits)              // Y position of the channel
 
 
 
