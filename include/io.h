@@ -26,15 +26,18 @@ AMSIO():_run(0),_event(0){};
 AMSIO(integer run, integer event, time_t time,integer ipart, integer seed[], AMSPoint coo,
 AMSDir dir, number mom);
 ~AMSIO(){};
+ friend ostream &operator << (ostream &o, const AMSIO &b );
+void convert();   
 integer getrun() const { return _run;}
 integer getevent() const { return _event;}
+integer getpid() const {return _ipart;}
 time_t gettime() const {return _time;}
 integer read();
 static void setfile(char *f);
 void write();
 static char * fnam;
 static fstream fbin;
-static void init(integer mode);
+static void init(integer mode, integer format=0);
 friend class AMSmceventg;
 };
 

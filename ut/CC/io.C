@@ -19,7 +19,7 @@ void AMSIO::setfile(char *f){
   }
 }
 
-void AMSIO::init(integer mode){
+void AMSIO::init(integer mode,integer format){
   enum open_mode{binary=0x80};
 
   if(fnam){
@@ -29,23 +29,39 @@ void AMSIO::init(integer mode){
           // read one by one 
           AMSIO io;
           integer ipos=0;
-          while(fbin.good() && !fbin.eof()){
-           fbin.read( (char*)&io,sizeof(io));
+          integer iposr=0;
+          integer runold=0;
+          integer pidold=0;
+          integer ok=1;
+          while(ok){
+           ok=io.read();
+           if(format==1 && (io.getrun()!=runold || ok==0)){
+             if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
+                          " events with pid = "<<pidold<<endl;
+             //            if(ok)cout <<io<<endl;
+             iposr=0;
+             pidold=io.getpid();
+             runold=io.getrun();
+           }
            ipos++;
+           iposr++;
            if(io.getrun() == SELECTFFKEY.Run && io.getevent() >= 
              SELECTFFKEY.Event)break; 
           }
           // pos back if fbin.good
-          if(fbin.good() && !fbin.eof()){
+          if(ok){
             fbin.seekg(fbin.tellg()-sizeof(io));
-            cout<<"AMSIO-init-I-Selected Run = "<<SELECTFFKEY.Run<<
+            cout<<"AMSIO::init-I-Selected Run = "<<SELECTFFKEY.Run<<
               " Event = "<<io.getevent()<< " Position = "<<ipos<<endl;
           }
+          if(format==1)cout<<"AMSIO::init-I-Total of "<<ipos-1
+             <<" events have been read."<<endl;
           else {
-            cerr <<"AMSIO::init-F-Failed to select Run = "<<SELECTFFKEY.Run<<
-              " Event >= "<<SELECTFFKEY.Event<endl;
+            if(format==0)cerr <<"AMSIO::init-F-Failed to select Run = "<<SELECTFFKEY.Run<<
+              " Event >= "<<SELECTFFKEY.Event<<endl;
             exit(1);
           }
+          return;
         }
     }
     else fbin.open(fnam,ios::out|binary|ios::app);
@@ -60,10 +76,12 @@ void AMSIO::init(integer mode){
   }
 }
 void AMSIO::write(){
+   convert();
    fbin.write((char*)this,sizeof(*this));
 }
 integer AMSIO::read(){
    fbin.read((char*)this,sizeof(AMSIO));
+   convert();
    return fbin.good() && !fbin.eof();
 }
 
@@ -76,4 +94,27 @@ AMSIOI::~AMSIOI(){
   if(--_Count==0){
    if(AMSIO::fbin)AMSIO::fbin.close();
   }
+}
+ostream & operator << (ostream &o, const AMSIO &b ){
+  return o<<b._run<<b._event<<b._time<<b._ipart<<b._coo[0]<<
+  b._coo[1]<<b._coo[2]<<b._dir[0]<<b._dir[1]<<b._dir[2]<<b._mom;
+}   
+
+void AMSIO::convert(){
+#ifndef __ALPHA__
+  // Dec alpha has no convert to big endian...
+  unsigned char tmp;
+  unsigned char *pc = (unsigned char*)this;
+  int i;
+  int n=sizeof(*this)/sizeof(integer);
+  for(i=0;i<n;i++){
+    tmp=*pc;
+    *pc=*(pc+3);
+    *(pc+3)=tmp;
+    tmp=*(pc+1);
+    *(pc+1)=*(pc+2);
+    *(pc+2)=tmp;
+    pc=pc+sizeof(integer);
+  }    
+#endif
 }
