@@ -77,12 +77,34 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v3.00";
-integer AMSCommonsI::_build=949;
+uinteger AMSCommonsI::_build=950;
+uinteger AMSCommonsI::_os=0;
 AMSCommonsI::AMSCommonsI(){
   init();
 }
 void AMSCommonsI::init(){ 
   if(_Count++==0){
+   char* gtvb=getenv("BINTYPE");
+   char* gtvh=getenv("HOSTTYPE");
+   if(gtvb && gtvh){
+     if(strstr(gtvh,"alpha") && strstr(gtvb,"OSF")){
+      cout <<"AMSCommonsI-I-HardwareIdentifiedAs alpha-OSF"<<endl;
+      _os=1;
+     }
+     else if(strstr(gtvh,"i386") && strstr(gtvb,"Linux")){
+      cout <<"AMSCommonsI-I-HardwareIdentifiedAs i386-linux"<<endl;
+      _os=2;
+     }
+     else {
+      _os=0;
+      cerr<<"AMSCommonsI-E-CouldNotMap "<<gtvh <<" "<<gtvb <<endl;
+      cerr<<"Production Job Would Be Aborted"<<endl;
+     }
+   }
+   else{
+    cerr<<"AMSCommonsI-F-either $BINTYPE or $HOSTTYPE not defined "<<endl;
+    abort();
+   }
    char dt[128]="/afs/cern.ch/exp/ams/Offline/AMSDataDir";
    char* gtv=getenv("AMSDataDir");
    if(gtv && strlen(gtv)>0){

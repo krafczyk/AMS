@@ -2234,7 +2234,8 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   EventNtuple* EN = AMSJob::gethead()->getntuple()->Get_event();
   EN->EventStatus=getstatus()[0];
   EN->Eventno=_id;
-  EN->RawWords=nws<(1<<20)?nws:((1<<20)-1);
+  EN->RawWords=nws<(1<<18)?nws:((1<<18)-1);
+  EN->RawWords+=(AMSCommonsI::getosno())<<18;
   EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
   EN->Run=_run;
   EN->RunType=_runtype;
@@ -2361,7 +2362,8 @@ else{ // <------------------ AMS02
   EN->EventStatus[0]=getstatus()[0];
   EN->EventStatus[1]=getstatus()[1];
   EN->Eventno=_id;
-  EN->RawWords=nws<(1<<20)?nws:((1<<20)-1);
+  EN->RawWords=nws<(1<<18)?nws:((1<<18)-1);
+  EN->RawWords+=(AMSCommonsI::getosno())<<18;
   EN->RawWords+=(AMSCommonsI::getbuildno())<<20;
   EN->Run=_run;
   EN->RunType=_runtype;

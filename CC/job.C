@@ -2845,7 +2845,7 @@ if(_Head){
  exit(1);
 }
 else _Head=this;
-cout <<"AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::getbuildno()<<endl;
+cout <<"AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::getbuildno()<<"/"<<AMSCommonsI::getosno()<<endl;
 }
 
 AMSJob::~AMSJob(){

@@ -1,11 +1,4 @@
-This is AMS01 ntuple description (frozen)
-Thanks to Juan's courtesy there is no more dumb ntuple, only
-clever one survived. No more nconvert.
-
-Below there is a description of a  ntuple.
-
-(!) New : Record Length = 8000
-
+This is AMS02 Ntuple Description
 
  ********************************************
 * Type *    Range     *  Block   *  Name    *
@@ -17,16 +10,18 @@ Below there is a description of a  ntuple.
                                                     // (1) Unix time (sec)
                                                     // (2) usec time
 * I*4  *              * EVENTH   * rawwords         // Event Lenght in bytes 
-                                                    // (20 low bits, program 
-                                                    // version (12 high bits)
- 
-* R*4  *              * EVENTH   * RadS             // Shuttle Altitude (I2000 cm)
-* R*4  *              * EVENTH   * ThetaS           // Shuttle Lattitude (GTOD rad)
-* R*4  *              * EVENTH   * PhiS             // Shuttle phi (GTOD rad)
-* R*4  *              * EVENTH   * YawS             // Shuttle yaw (LVLH rad) 
+                                                    // (18 low bits)
+                                                    // OS specifics ********)
+                                                    // (2 int bit)
+                                                    // program version 
+                                                    // (12 high bits)
+* R*4  *              * EVENTH   * RadS             // ISS Altitude (I2000 cm)
+* R*4  *              * EVENTH   * ThetaS           // ISS Lattitude (GTOD rad)
+* R*4  *              * EVENTH   * PhiS             // ISS phi (GTOD rad)
+* R*4  *              * EVENTH   * YawS             // ISS yaw (LVLH rad) 
 * R*4  *              * EVENTH   * PitchS           //         pitch
 * R*4  *              * EVENTH   * RollS            //         roll
-* R*4  *              * EVENTH   * VelocityS        // Shuttle speed (rad/sec)
+* R*4  *              * EVENTH   * VelocityS        // ISS speed (rad/sec)
 * R*4  *              * EVENTH   * VelTheta         // speed theta (GTOD rad) 
 * R*4  *              * EVENTH   * VelPhi           // speed phi (GTOD rad) 
 * R*4  *              * EVENTH   * ThetaM           // Magnetic Latitude ***)
@@ -46,7 +41,9 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * CTCMCClusters    // No of Cerenkov MC hits
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
 * I*4  *              * EVENTH   * AntiClusters     // No of Anti clusters
-* I*4  *              * EVENTH   * EventStatus      // EventStatus (see status.doc)
+* I*4  *              * EVENTH   * EcalClusters     // No of ECAL Clusters
+* I*4  *              * EVENTH   * EcalHits         // No of ECAL Hits
+* I*4  *              * EVENTH   * EventStatus(2)   // EventStatus (see status.doc)
 
 
 * I*4  * [0,10]       * BETA     * nbeta              // betas number
@@ -247,29 +244,6 @@ Below there is a description of a  ntuple.
 * R*4  *              * MCEVENTG * charge(nmcg) // charge
 
 
-* I*4  * [0,20]       * CTCCLUST * nctccl             // cerenkov clusters number
-* I*4  *              * CTCCLUST * CTCStatus(nctccl)  // Status *)
-* I*4  *              * CTCCLUST * CTCLayer(nctccl)   // layer no
-* R*4  *              * CTCCLUST * ctccoo(3,nctccl)   // coords
-* R*4  *              * CTCCLUST * ctcercoo(3,nctccl) // errors to above
-* R*4  *              * CTCCLUST * ctcrawsignal(nctccl) // raw signals
-* R*4  *              * CTCCLUST * ctcsignal(nctccl)  // corrected ones
-* R*4  *              * CTCCLUST * ctcesignal(nctccl) // error to above
-
-
-* I*4  * [0,200]      * CTCMCCLU * nctcclmc    // cerenkov mc hits number
-* I*4  *              * CTCMCCLU * CTCMCIdsoft(nctcclmc) // Idsoft
-                                                         // Ask E. Choumilov
-                                                         // if needed
-                                                         //
-* R*4  *              * CTCMCCLU * CTCMCXcoo(3,nctcclmc) // coords
-* R*4  *              * CTCMCCLU * CTCMCXdir(3,nctcclmc) // dir cos
-* R*4  *              * CTCMCCLU * CTCstep(nctcclmc)     // step size (cm)
-* R*4  *              * CTCMCCLU * ctccharge(nctcclmc)   // particle charge
-* R*4  *              * CTCMCCLU * ctcbeta(nctcclmc)     // velocity
-* R*4  *              * CTCMCCLU * ctcedep(nctcclmc)     // energy dep (MeV)
-
-
 * I*4  * [0,16]       * ANTICLUS * nanti                 // Anti clusters number
 * I*4  *              * ANTICLUS * AntiStatus(nanti)     // Status
 * I*4  *              * ANTICLUS * AntiSector(nanti)     // Sector no(1-16)
@@ -283,6 +257,23 @@ Below there is a description of a  ntuple.
 * R*4  *              * ANTIMCCL * AntiMCedep(nantimc)   // energy dep (GeV)
 
 
+* I*4  * [0,50]       * ECALCLUS * neccl               // ECAL clusters number
+* I*4  *              * ECALCLUS * EcclStatus(neccl)   // Status: 
+* I*4  *              * ECALCLUS * EcclProj(neccl)     // projection (0-x,1-y)
+* I*4  *              * ECALCLUS * EcclPlane(neccl)    // ECAL plane number (0,...)
+* R*4  *              * ECALCLUS * EcclEdep(neccl)     // ECAL measured energy (MeV)
+* R*4  *              * ECALCLUS * EcclCoo(3,neccl)    // ECAL Coo (cm)
+* R*4  *              * ECALCLUS * EcclErrCoo(3,neccl) // ECAL Error Coo
+* I*4  * [0,10]       * ECALCLUS * EcclNmemb(neccl)    // Number of hits in cluster
+
+
+* I*4  * [0,500]      * ECALHITS * necht               // ECAL hits number
+* I*4  *              * ECALHITS * EchtStatus(necht)   // Status: 
+* I*4  *              * ECALHITS * EchtProj(necht)     // projection (0-x,1-y)
+* I*4  *              * ECALHITS * EchtPlane(necht)    // ECAL plane number (0,...)
+* I*4  *              * ECALHITS * EchtCell(necht)     // ECAL Cell number (0,...)
+* R*4  *              * ECALHITS * EchtEdep(necht)     // ECAL measured energy (MeV)
+* R*4  *              * ECALHITS * EchtCoo(3,necht)    // ECAL Coo (cm)
 
 
  * I*4  * [0,2]       * LVL3     * nlvl3                 // lvl3trigger number 
@@ -324,14 +315,12 @@ Below there is a description of a  ntuple.
  * I*4  *             * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
                                                          // 16-23 bits  
                                                          // as in daqevt.doc 
+ * I*4  *             * LVL1     * LVL1ECALflag(nlvl1)   // ecalflag (AMS02: 1->MIP,
+                                                         // 2->EM-obj, +10->HiEnergy
+                                                         // object (ANTI-count. have
+                                                         // to be not in the trigger)
 
 
- * I*4  * [0,50]      * CTCHIT   * nctcht                // CTC Hits number
- * I*4  *             * CTCHIT   * CTChitStatus(nctcht)  //  ----  status
- * I*4  *             * CTCHIT   * CTChitLayer(nctcht)   //        layer  
- * I*4  *             * CTCHIT   * ctchitcolumn(nctcht)  //        column(x)
- * I*4  *             * CTCHIT   * ctchitrow(nctcht)     //        row(y)   
- * R*4  *             * CTCHIT   * ctchitsignal(nctcht)  //        signal (pe)
 
 
  * I*4  * [0,500]     * TRRAWCL  * ntrraw                // trrawcl num
@@ -363,6 +352,28 @@ Below there is a description of a  ntuple.
  * R*4  *             * TOFRAWCL * tofrcoo(ntofraw)       // Long.coord.(cm)
 
 
+ * I*4  * [0,100]     * RICMCCL  * nsignals           // Number of signals in
+                                                      // the PMTs including noise
+ * I*4  *             * RICMCCL  * sid(nsignals)      // Geant3 code of the particle
+                                                      // producing the signal
+                                                      // (-666 if it's noise)
+ * R*4  *             * RICMCCL  * origin(3,nsignals)    // Generation point of the 
+                                                         // particle producing 
+                                                         // the signal (geant3 only)
+ * R*4  *             * RICMCCL  * direction(3,nsignals) // Original direction of 
+                                                         // the particle producing 
+                                                         // the signal (geant3 only)
+ * I*4  *             * RICMCCL  * RICstatus(nsignals)   // Signal status *******)
+ * I*4  *             * RICMCCL  * nphgen                // Number of cerenkov
+                                                         // photons generated
+                                                         // in radiator
+ * I*4  *             * RICMCCL  * phit(nsignals)        // Pointer to the
+                                                         // hit if sid=50 or -666
+ * I*4  * [0,100]     * RICEVENT * Rhits                 // Number of hits
+ * I*4  *             * RICEVENT * Rchannel(Rhits)       // Channel
+ * I*4  *             * RICEVENT * Radc(Rhits)           // ADC counts
+ * R*4  *             * RICEVENT * Rx(Rhits)             // X pos. of the channel
+ * R*4  *             * RICEVENT * Ry(Rhits)             // Y pos. of the channel
 
 
 
@@ -398,7 +409,7 @@ Below there is a description of a  ntuple.
 GTOD
 
 
-***) Shuttle coordinates in an eccentric dipole coordinate system where
+***) ISS coordinates in an eccentric dipole coordinate system where
      GEOMz=-d, GEOMy=GEOMz x S  (d: dipole direction, S: geographic South)
 
 
@@ -495,5 +506,10 @@ No Cerenkov photon:
 
 NOTE: The information of the mother is only available if RICCONT=1 in the datacards
 
+********)
 
+0      Unknown
+1      alpha-osf 
+2      i386-linux
+3      reserved for futire candidate
 

@@ -906,12 +906,14 @@ class AMSCommonsI{
 private:
  static integer _Count;
  static char _version[6];
- static integer _build;
+ static uinteger _build;
+ static uinteger _os;
 public:
  AMSCommonsI();
  void init();
  static char * getversion(){return _version;}
  static integer getbuildno()  {return _build;}
+ static integer getosno()  {return _os;}
 };
 static AMSCommonsI cmnI;
 
