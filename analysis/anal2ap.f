@@ -24,60 +24,69 @@
 *--   Ntuple Variable Declarations
 *
 
-      REAL PolePhi,ThetaS,PhiS,beta(10),betaerror(10),betachi2(10)
-     + ,chargebetap(10),probtof(7,10),probtracker(7,10),pmass(10)
+      REAL PolePhi,ThetaS,PhiS,beta(100),betaerror(100),betachi2(100)
+     + ,betachi2s(100),probtof(7,10),probtracker(7,10),pmass(10)
      + ,perrmass(10),pmom(10),perrmom(10),pcharge(10),ptheta(10)
      + ,pphi(10),pcoo(3,10),signalctc(2,10),betactc(2,10)
-     + ,errorbetactc(2,10),cooctc(3,2,10),TOFEdep(20),TOFTime(20)
-     + ,TOFETime(20),TOFCoo(3,20),TOFErCoo(3,20),TOFMCXcoo(3,200)
-     + ,TOFMCtof(200),TOFMCedep(200),Sumt(50),Sigmat(50),Meant(50)
-     + ,RMSt(50),ErrorMeant(50),Amplitude(5,50),ss(5,2,200),xca(3,200)
-     + ,xcb(3,200),xgl(3,200),summc(200),hitr(3,200),ehitr(3,200)
-     + ,sumr(200),difosum(200),Chi2StrLine(20),Chi2Circle(20)
-     + ,CircleRidgidity(20),Chi2FastFit(20),Ridgidity(20)
-     + ,ErrRidgidity(20),Theta(20),phi(20),p0(3,20),gchi2(20)
-     + ,gridgidity(20),gerrridgidity(20),gtheta(20),gphi(20),gp0(3,20)
-     + ,hchi2(2,20),HRidgidity(2,20),HErrRidgidity(2,20),htheta(2,20)
-     + ,hphi(2,20),hp0(3,2,20),fchi2ms(20),gchi2ms(20),ridgidityms(20)
-     + ,gridgidityms(20),coo(3,20),dir(3,20),momentum(20),mass(20)
-     + ,charge(20),ctccoo(3,20),ctcercoo(3,20),ctcrawsignal(20)
-     + ,ctcsignal(20),ctcesignal(20),CTCMCXcoo(3,200),CTCMCXdir(3,200)
-     + ,CTCstep(200)
-      REAL ctccharge(200),ctcbeta(200),ctcedep(200),AntiEdep(16)
-     + ,AntiCoo(3,16),AntiErCoo(3,16),AntiMCXcoo(3,200),AntiMCtof(200)
-     + ,AntiMCedep(200),LVL3Residual(2,2),LVL3Time(2),ctchitsignal(50)
+     + ,errorbetactc(2,10),cooctc(3,2,10),cootof(3,4,10),TOFEdep(20)
+     + ,TOFTime(20),TOFETime(20),TOFCoo(3,20),TOFErCoo(3,20)
+     + ,TOFMCXcoo(3,200),TOFMCtof(200),TOFMCedep(200),Sumt(200)
+     + ,Sigmat(200),Meant(200),RMSt(200),ErrorMeant(200)
+     + ,Amplitude(5,200),ss(5,2,200),xca(3,200),xcb(3,200),xgl(3,200)
+     + ,summc(200),hitr(3,500),ehitr(3,500),sumr(500),difosum(500)
+     + ,Chi2StrLine(20),Chi2Circle(20),CircleRidgidity(20)
+     + ,Chi2FastFit(20),Ridgidity(20),ErrRidgidity(20),Theta(20),phi(20)
+     + ,p0(3,20),gchi2(20),gridgidity(20),gerrridgidity(20),gtheta(20)
+     + ,gphi(20),gp0(3,20),hchi2(2,20),HRidgidity(2,20)
+     + ,HErrRidgidity(2,20),htheta(2,20),hphi(2,20),hp0(3,2,20)
+     + ,fchi2ms(20),gchi2ms(20),ridgidityms(20),gridgidityms(20)
+     + ,coo(3,20),dir(3,20),momentum(20),mass(20),charge(20)
+     + ,ctccoo(3,20),ctcercoo(3,20),ctcrawsignal(20),ctcsignal(20)
+     + ,ctcesignal(20)
       INTEGER eventno,run,runtype,time(2),Particles,Tracks,Betas,Charges
-     + ,TrRecHits,TrClusters,TrMCClusters,TOFClusters,TOFMCClusters
-     + ,CTCClusters,CTCMCClusters,AntiMCClusters,AntiClusters,nbeta
-     + ,betapattern(10),ncharge,chargetof(10),chargetracker(10),npart
-     + ,pctcp(2,10),pbetap(10),pchargep(10),ptrackp(10),pid(10),ntof
-     + ,TOFStatus(20),plane(20),bar(20),ntofmc,TOFMCIdsoft(200),ntrcl
-     + ,Idsoft(50),Statust(50),NelemL(50),NelemR(50),ntrclmc
+     + ,TrRecHits,TrClusters,TrRawClusters,TrMCClusters,TOFClusters
+     + ,TOFMCClusters,CTCClusters,CTCMCClusters,AntiMCClusters
+     + ,AntiClusters,nbeta,betastatus(100),betapattern(100)
+     + ,betantof(100),betaptof(4,100),betaptr(100),ncharge
+     + ,chargestatus(10),chargebetap(10),chargetof(10),chargetracker(10)
+     + ,npart,pctcp(2,10),pbetap(10),pchargep(10),ptrackp(10),pid(10)
+     + ,ntof,TOFStatus(20),plane(20),bar(20),ntofmc,TOFMCIdsoft(200)
+     + ,Ntrcl,Idsoft(200),Statust(200),NelemL(200),NelemR(200),ntrclmc
      + ,IdsoftMC(200),Itra(200),Left(2,200),Center(2,200),Right(2,200)
-     + ,ntrrh,px(200),py(200),statusr(200),Layer(200),ntrtr,trstatus(20)
+     + ,ntrrh,px(500),py(500),statusr(500),Layer(500),ntrtr,trstatus(20)
      + ,pattern(20),nhits(20),phits(6,20),FastFitDone(20)
      + ,GeaneFitDone(20),AdvancedFitDone(20),nmcg,nskip(20),Particle(20)
      + ,nctccl,CTCStatus(20),CTCLayer(20),nctcclmc,CTCMCIdsoft(200)
      + ,nanti,AntiStatus(16),AntiSector(16),nantimc,AntiMCIdsoft(200)
      + ,nlvl3,LVL3TOFTr(2),LVL3AntiTr(2),LVL3TrackerTr(2),LVL3NTrHits(2)
-     + ,LVL3NPat(2),LVL3Pattern(2,2),nlvl1,LVL1Mode(1),LVL1Flag(1)
-     + ,LVL1TOFPatt(4,1),LVL1AntiPatt(1),nctcht,CTChitStatus(50)
-     + ,CTChitLayer(50),ctchitcolumn(50),ctchitrow(50)
+     + ,LVL3NPat(2),LVL3Pattern(2,2),nlvl1,LVL1Mode(2),LVL1Flag(2)
+     + ,LVL1TOFPatt(4,2),LVL1TOFPatt1(4,2),LVL1AntiPatt(2),nctcht
+     + ,CTChitStatus(50)
+      REAL CTCMCXcoo(3,200),CTCMCXdir(3,200),CTCstep(200),ctccharge(200)
+     + ,ctcbeta(200),ctcedep(200),AntiEdep(16),AntiCoo(3,16)
+     + ,AntiErCoo(3,16),AntiMCXcoo(3,200),AntiMCtof(200),AntiMCedep(200)
+     + ,LVL3Residual(2,2),LVL3Time(2),LVL3ELoss(2),ctchitsignal(50)
+     + ,antirawsignal(32),tofrtovta(2,20),tofrtovtd(2,20),tofrsdtm(2,20)
+      INTEGER CTChitLayer(50),ctchitcolumn(50),ctchitrow(50),ntrraw
+     + ,rawaddress(500),rawlength(500),nantiraw,antirawstatus(32)
+     + ,antirawsector(32),antirawupdown(32),ntofraw,tofrstatus(20)
+     + ,tofrplane(20),tofrbar(20)
 *
       COMMON /PAWCR4/ eventno,run,runtype,time,PolePhi,ThetaS,PhiS
-     + ,Particles,Tracks,Betas,Charges,TrRecHits,TrClusters,TrMCClusters
-     + ,TOFClusters,TOFMCClusters,CTCClusters,CTCMCClusters
-     + ,AntiMCClusters,AntiClusters,nbeta,betapattern,beta,betaerror
-     + ,betachi2,ncharge,chargebetap,chargetof,chargetracker,probtof
-     + ,probtracker,npart,pctcp,pbetap,pchargep,ptrackp,pid,pmass
-     + ,perrmass,pmom,perrmom,pcharge,ptheta,pphi,pcoo,signalctc,betactc
-     + ,errorbetactc,cooctc,ntof,TOFStatus,plane,bar,TOFEdep,TOFTime
-     + ,TOFETime,TOFCoo,TOFErCoo,ntofmc,TOFMCIdsoft,TOFMCXcoo,TOFMCtof
-     + ,TOFMCedep,ntrcl,Idsoft,Statust,NelemL,NelemR,Sumt,Sigmat,Meant
-     + ,RMSt,ErrorMeant,Amplitude,ntrclmc,IdsoftMC,Itra,Left,Center
-     + ,Right,ss,xca,xcb,xgl,summc,ntrrh,px,py,statusr,Layer,hitr,ehitr
-     + ,sumr,difosum,ntrtr,trstatus,pattern,nhits,phits,FastFitDone
-     + ,GeaneFitDone,AdvancedFitDone,Chi2StrLine,Chi2Circle
+     + ,Particles,Tracks,Betas,Charges,TrRecHits,TrClusters
+     + ,TrRawClusters,TrMCClusters,TOFClusters,TOFMCClusters,CTCClusters
+     + ,CTCMCClusters,AntiMCClusters,AntiClusters,nbeta,betastatus
+     + ,betapattern,beta,betaerror,betachi2,betachi2s,betantof,betaptof
+     + ,betaptr,ncharge,chargestatus,chargebetap,chargetof,chargetracker
+     + ,probtof,probtracker,npart,pctcp,pbetap,pchargep,ptrackp,pid
+     + ,pmass,perrmass,pmom,perrmom,pcharge,ptheta,pphi,pcoo,signalctc
+     + ,betactc,errorbetactc,cooctc,cootof,ntof,TOFStatus,plane,bar
+     + ,TOFEdep,TOFTime,TOFETime,TOFCoo,TOFErCoo,ntofmc,TOFMCIdsoft
+     + ,TOFMCXcoo,TOFMCtof,TOFMCedep,Ntrcl,Idsoft,Statust,NelemL,NelemR
+     + ,Sumt,Sigmat,Meant,RMSt,ErrorMeant,Amplitude,ntrclmc,IdsoftMC
+     + ,Itra,Left,Center,Right,ss,xca,xcb,xgl,summc,ntrrh,px,py,statusr
+     + ,Layer,hitr,ehitr,sumr,difosum,ntrtr,trstatus,pattern,nhits,phits
+     + ,FastFitDone,GeaneFitDone,AdvancedFitDone,Chi2StrLine,Chi2Circle
      + ,CircleRidgidity,Chi2FastFit,Ridgidity,ErrRidgidity,Theta,phi,p0
      + ,gchi2,gridgidity,gerrridgidity,gtheta,gphi,gp0,hchi2,HRidgidity
      + ,HErrRidgidity,htheta,hphi,hp0,fchi2ms,gchi2ms,ridgidityms
@@ -87,9 +96,12 @@
      + ,ctccharge,ctcbeta,ctcedep,nanti,AntiStatus,AntiSector,AntiEdep
      + ,AntiCoo,AntiErCoo,nantimc,AntiMCIdsoft,AntiMCXcoo,AntiMCtof
      + ,AntiMCedep,nlvl3,LVL3TOFTr,LVL3AntiTr,LVL3TrackerTr,LVL3NTrHits
-     + ,LVL3NPat,LVL3Pattern,LVL3Residual,LVL3Time,nlvl1,LVL1Mode
-     + ,LVL1Flag,LVL1TOFPatt,LVL1AntiPatt,nctcht,CTChitStatus
-     + ,CTChitLayer,ctchitcolumn,ctchitrow,ctchitsignal
+     + ,LVL3NPat,LVL3Pattern,LVL3Residual,LVL3Time,LVL3ELoss,nlvl1
+     + ,LVL1Mode,LVL1Flag,LVL1TOFPatt,LVL1TOFPatt1,LVL1AntiPatt,nctcht
+     + ,CTChitStatus,CTChitLayer,ctchitcolumn,ctchitrow,ctchitsignal
+     + ,ntrraw,rawaddress,rawlength,nantiraw,antirawstatus,antirawsector
+     + ,antirawupdown,antirawsignal,ntofraw,tofrstatus,tofrplane,tofrbar
+     + ,tofrtovta,tofrtovtd,tofrsdtm
 
 *
 *
@@ -111,9 +123,9 @@
       parameter(nchy=642)
       data init/0/
       if(init.eq.0)then
-        trigacc=0.3
+        trigacc=0.34
         if(trigacc.lt.0.5)then
-         open(20,file='pos_default.dat',form='formatted')
+         open(20,file='pos.dat',form='formatted')
         else
          open(20,file='pos.07.dat',form='formatted')
         endif
@@ -147,7 +159,8 @@
          call hbook1(454,'chi k',100,0.,100.,0.)
          call hbook1(455,'chi h',100,0.,200.,0.)
          call hbook1(456,'chi h',100,0.,200.,0.)
-         call hbook1(461,'theta diff',200,-0.02,0.02,0.)
+         call hbook1(461,'theta diff',200,-0.002,0.002,0.)
+         call hbook1(1461,'theta diff',200,-3.,3.,0.)
          call hbook1(462,'beta chi2',200,0.,10.,0.)         
          call hbook1(501,'phi diff',200,-0.05,0.05,0.)
          call hbook1(601, 'p1/p2',200,0.,3.,0.)
@@ -291,14 +304,14 @@
        call hf1(11,float(trclusters),1.)
        call hf1(12,float(tofclusters),1.)
        if(trigger.eq.1)call hf1(15,float(tofclusters),1.)
-       cuts(1)=trclusters.lt.50.and.trrechits.lt.200.and.
+       cuts(1)=trclusters.lt.200.and.trrechits.lt.500.and.
      +  tracks.lt.20.and.trigger.eq.1
        iptr=ptrackp(1)
        call hf1(21,float(iptr),1.)
        if(cuts(1))then
-        r=float(trclusters)/nhits(iptr)
+        r=float(ntrcl)/nhits(iptr)
         call hf1(101,r,1.)
-        cuts(2)=r.lt.2.5
+        cuts(2)=r.lt.8.
         if(cuts(2))then
          cuts(3)=chi2circle(iptr).lt.2.5.and.
      +   chi2fastfit(iptr).lt.10.
@@ -325,6 +338,7 @@
                call hf1(456,gchi2ms(iptr),1.)
                if(advancedfitdone(iptr).ne.0..and.
      +         hchi2(1,iptr).lt.1.e10.and.hchi2(2,iptr).lt.1.e10)then
+                 call hf1(1461,htheta(2,iptr)-htheta(1,iptr),1.)
                  call hf1(461,htheta(2,iptr)-htheta(1,iptr),1.)
                  call hf1(462,betachi2(pbetap(1)),1.)
                  cuts(5)=abs(htheta(2,iptr)-htheta(1,iptr)).lt.
