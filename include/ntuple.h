@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.70 2002/11/29 20:04:59 choutko Exp $
+//  $Id: ntuple.h,v 1.71 2002/12/06 14:43:39 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -17,7 +17,7 @@ const int MAXCHARGE02  = 30;
 const int MAXPART02    =  10;
 const int MAXTOF     =    48;
 const int MAXTOFRAW  =    48;
-const int MAXTOFMC   =   200;
+const int MAXTOFMC   =   100;
 const int MAXANTICL  =    16;
 const int MAXANTIRAW =    32;
 const int MAXANTIMC  =   100;
@@ -269,6 +269,7 @@ public:
   int Plane[MAXECHITS];
   int Cell[MAXECHITS];
   float Edep[MAXECHITS];
+  float EdCorr[MAXECHITS];
   float AttCor[MAXECHITS];
   float Coo[MAXECHITS][3];
   float ADC[MAXECHITS][3];

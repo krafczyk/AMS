@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.18 2002/09/04 09:11:12 choumilo Exp $
+//  $Id: tofsim02.C,v 1.19 2002/12/06 14:43:22 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
@@ -18,6 +18,7 @@
 #include <trigger302.h>
 #include <mceventg.h>
 #include <ecalrec.h>
+#include <tofid.h>
 //
 TOFWScan TOFWScan::scmcscan[TOF2GC::SCBLMX];
 //
@@ -323,7 +324,7 @@ void TOF2Tovt::build()
   geant bnw,bwid; 
   integer warr[TOFGC::AMSDISL]; 
   int i,i0,j,jj,jm,k,stat(0),nelec,ierr(0),lbn,nbm;
-  int status[2];
+  int status[2]={0,0};
   integer nhitl[TOF2GC::SCLRS];
   geant edepl[TOF2GC::SCLRS],edepb;
   geant dummy(-1);
@@ -469,12 +470,10 @@ void TOF2Tovt::build()
       continue;
     }
     TOFWScan::scmcscan[cnum].getybin(idivx,y,i1,i2,r);//y-bin # 
-    TOF2Brcal::scbrcal[ilay][ibar].getbstat(status);//get status of two ends (from DB)
     nel0=de*convr;// -> photons
 //
-// PM-1 actions --->
+// PM(side=1) actions --->
 //
-  if(status[0]>=0){// alive side
     eff=TOFWScan::scmcscan[cnum].getef1(idivx,r,i1,i2);//eff for PM-1
     rgn=TOFWScan::scmcscan[cnum].getgn1(idivx,r,i1,i2);//gain for PM-1
     nel=nel0*eff;// mean total number of photoelectrons
@@ -507,11 +506,9 @@ void TOF2Tovt::build()
       }
       }
     } // >>>----- end of PM-1 loop ------>
-  }
 //
-// PM-2 actions --->
+// PM(side=2) actions --->
 //
-  if(status[1]>=0){// alive side
     eff=TOFWScan::scmcscan[cnum].getef2(idivx,r,i1,i2);//eff for PM-2
     rgn=TOFWScan::scmcscan[cnum].getgn2(idivx,r,i1,i2);//gain for PM-2
     nel=nel0*eff;// mean total number of photoelectrons
@@ -544,7 +541,6 @@ void TOF2Tovt::build()
       }
       }
     } // >>>----- end of PM-2 loop ------>
-  }
 //-----------------------------------
 //      ptrN=ptr->next();
 //      idN=0; 
@@ -555,8 +551,7 @@ void TOF2Tovt::build()
         edepb*=1000.;// --->MeV
 	if(edepb>0.)TOF2JobStat::addmc(4);//count fired bars
         if(edepb>TFMCFFKEY.Thr){// process only bar with Edep>Ethr
-// PM-1 loop to apply pulse shape :
-        if(status[0]>=0){// alive side
+// PM(side=1) loop to apply pulse shape :
           am0=fabs(TFMCFFKEY.blshift*rnormx());//base line shift simulation
           idd=id*10+1;//LBBS
           for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice[i]=am0;
@@ -572,10 +567,8 @@ void TOF2Tovt::build()
           TOF2Tovt::totovt(idd,edepb,tslice);// Tovt-obj for side(PM)-1
           if(TFMCFFKEY.mcprtf[1] != 0)
                         TOF2Tovt::displ_a(idd,20,tslice);//print PMT pulse
-        }
 //        
-// PM-2 loop to apply pulse shape :
-        if(status[1]>=0){// alive side
+// PM(side=2) loop to apply pulse shape :
           am0=fabs(TFMCFFKEY.blshift*rnormx());//base line shift simulation
           idd=id*10+2;
           for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice[i]=am0;
@@ -591,8 +584,7 @@ void TOF2Tovt::build()
           TOF2Tovt::totovt(idd,edepb,tslice);// Tovt-obj for side(PM)-2
           if(TFMCFFKEY.mcprtf[1] != 0)
                         TOF2Tovt::displ_a(idd,20,tslice);//print PMT pulse
-        }
-        }// ---> end of edep check
+        }// ---> end of counter Edep check
 //
         for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice1[i]=0.;//clear flash ADC arrays for next bar
         for(i=0;i<TOF2GC::SCTBMX+1;i++)tslice2[i]=0.;
@@ -605,9 +597,9 @@ void TOF2Tovt::build()
   if(TFMCFFKEY.mcprtf[2]!=0){
     for(i=0;i<TOF2GC::SCLRS;i++)HF1(1050+i,geant(nhitl[i]),1.);
     HF1(1060,1000.*edepl[0],1.);
-    HF1(1061,1000.*edepl[0],1.);
+    HF1(1061,1000.*edepl[1],1.);
     HF1(1062,1000.*edepl[2],1.);
-    HF1(1063,1000.*edepl[2],1.);
+    HF1(1063,1000.*edepl[3],1.);
   }
 
 //
@@ -689,44 +681,6 @@ void TOF2Tovt::inipsh(integer &nbn, geant arr[])
 }
 //--------------------------------------------------------------------------
 //
-// function below creates shaper stand. pulse shape array arr[] with bin=shaptb :
-// (this array is shaper responce to 1pC injection with duration=shaptb;
-//  shaper rise/fall times are shrtim<<shftim; nbn is array length,defined as
-//  boundary where charge becomes less than 0.0005 of initial value(~7.1*Tfall)
-//
-void TOF2Tovt::inishap(integer &nbn, geant arr[])
-{
-  geant tr,tf,tmb,tmax,toti,rest,t1,t2,anr;
-  integer i,imax,j,ifl(0);
-  tr=TOF2DBc::shrtim();
-  tf=TOF2DBc::shftim();// tempor->change later to tf from TOF2Brcal::scbrcal-obj
-  tmb=TOF2DBc::shaptb();
-  imax=600;// max range
-  arr[0]=1.-exp(-tmb/tr);// fast charge (neglect by discharge !)
-  for(i=1;i<imax;i++){ // <--- time loop ---
-    t1=i*tmb;
-    arr[i]=arr[0]*exp(-t1/tf);
-    if(arr[i]<(0.0005*arr[0])){
-      nbn=i+1;
-      if(TFMCFFKEY.mcprtf[0] != 0){
-        printf("Shaper pulse shape ready : nbins=% 3d\n",nbn);
-        for(j=1;j<=nbn;j++){
-          if(j%10 != 0)
-                       printf("% 4.2e",arr[j-1]);
-          else
-                       printf("% 4.2e\n",arr[j-1]);
-        }
-        if(nbn%10 !=0)printf("\n");
-      }
-      return;
-    }
-  } // --- end if time loop --->
-  cerr<<"TOF2Tovt-ini_shaper-Fatal: pulse tail out of range !"<<'\n';
-  cerr<<"tr/tf= "<<tr<<" "<<tf<<" nbins="<<i<<'\n';
-  exit(1);
-}
-//--------------------------------------------------------------------------
-//
 // function below simulate PMT saturation, it returns nonsat. factor <=1. :
 //
 geant TOF2Tovt::pmsatur(const geant am){
@@ -765,68 +719,34 @@ void TOF2Tovt::displ_a(const int id, const int mf, const geant arr[]){
 }
 //--------------------------------------------------------------------------
 //
-// function to display SHAPER pulse ( array arr[]) :
-//
-void TOF2Tovt::displ_as(const int id, const int mf, const geant arr[]){
-  integer i;
-  static integer ifrs(0);
-  geant tm,a(0.);
-  static geant tb,tbi;
-  if(ifrs++==0){
-    tb=geant(mf)*TOF2DBc::shaptb();
-    tbi=TOF2DBc::shaptb();
-    HBOOK1(1001,"Shaper pulse (MC)",80,0.,80*tb,0.);
-  }
-  cout<<"SHP:counter-id = "<<id<<" (LBBS, L-layer, BB-bar, S-side)"<<'\n';
-  HRESET(1001," ");
-  for(i=1;i<=TOF2GC::SCSBMX;i++){
-    if(i%mf==0){
-      a+=arr[i-1];
-      tm=i*tbi-0.5*tb;
-      HF1(1001,tm,a/geant(mf));
-      a=0.;
-    }
-    else{
-      a+=arr[i-1];
-    }
-  }
-  HPRINT(1001);
-  return ;
-}
-//--------------------------------------------------------------------------
-//
 void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
 {
   integer i,j,ij,ilay,ibar,isid,id,_sta,stat(0);
   geant tm,a,am,am0,amd,tmp,amp,amx,amxq;
   geant iq0,it0,itau;
-  integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadch,_nadcl;
+  integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadca,_nadcd,_nadcdl;
   number _ttr1[TOF2GC::SCTHMX1],_ttr2[TOF2GC::SCTHMX1],_ttr3[TOF2GC::SCTHMX1];
   number _tftdc[TOF2GC::SCTHMX2],_tftdcd[TOF2GC::SCTHMX2];
   number _tstdc[TOF2GC::SCTHMX3];
-  number _adch[TOF2GC::SCTHMX4],_adcl[TOF2GC::SCTHMX4];
+  number _adca[TOF2GC::SCTHMX4],_adcd[TOF2GC::SCTHMX4],_adcdl[TOF2GC::SCTHMX4];
   number tovt,aqin;
   int upd1,upd2,upd3; // up/down flags for 3 fast discr. (z>=1;z>1;z>2)
   int upd11,upd12,upd13,upd21,upd31;
   int updsh;
   int imax,imin;
-  geant ahlr[2],lhr;
+  geant a2dr[2],dh2lr[2],adc2q;
+  static geant a2ds[2],dh2ls[2],adc2qs;
   geant tshd,tshup,charge,saturf;
   geant td1b1,td1b2,td1b2d,td1b3;
   geant td2b1,td3b1;
   geant tmd1u,tmd1d,tmd3u,tmd3d,tbn,w,bo1,bo2,bn1,bn2,tmark;
-  geant tshap1[TOF2GC::SCSBMX+1]; // temporary shaper pulse array
-  geant tshap2[TOF2GC::SCSBMX+1]; // temporary shaper pulse array
   static integer first=0;
   static integer nshbn,mxcon,mxshc,mxshcg;
   static geant fladcb,shapb,cconv;
   geant daqt0,daqt1,daqt2,daqt3,daqt4,fdaqt0;
   static geant daqp0,daqp2,daqp3,daqp4,daqp5,daqp6,daqp7,daqp8,daqp9,daqp10;
   static geant daqp11,daqp12;
-  geant adccf;
-  geant peds[4],sigs[4],noise,rrr;
   number adcs;
-  static geant shplsh[600];  // Shaper standard pulse shape array
 //
   id=idd/10;// LBB
   isid=idd%10-1;// side
@@ -834,9 +754,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
   ibar=id%100-1;
 //
   if(first++==0){
-    TOF2Tovt::inishap(nshbn,shplsh); // prepare Shaper stand. pulse shape arr.
-    cout<<"TOF2Tovt::build:shaper stand.pulse length="<<nshbn<<endl;
-    fladcb=TOF2DBc::fladctb();          // and other time-stable parameters
+    fladcb=TOF2DBc::fladctb();          //prepare some time-stable parameters
     shapb=TOF2DBc::shaptb();
     cconv=fladcb/50.; // for mV->pC (50 Ohm load)
     daqp0=TOF2DBc::daqpwd(0);//max(=min now) duration of FT(Z>=1) trig.pulse
@@ -850,16 +768,11 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
     daqp10=TOF2DBc::daqpwd(10);// intrinsic t-dispersion of comparator(on low thr.outp)
     daqp11=TOF2DBc::daqpwd(11);// min.duration time of comparator(..................)
   }
-// time-dependent parameters !!! :
-  daqt0=TOF2Varp::tofvpar.daqthr(0); // fast discr. thresh. for slow/fast TDC branch
+// time-dependent parameters(threshols mainly) !!! :
+  daqt0=TOF2Varp::tofvpar.daqthr(0); // fast discr. thresh(low) for slow/fast TDC branch
   fdaqt0=0.1*daqt0;// lowered threshold to select "working" part of pulse(m.b. loose some charge !!!)
-  daqt1=TOF2Varp::tofvpar.daqthr(1); // fast discr. thresh. for z>=1 (FT) branch
-  TOF2Brcal::scbrcal[ilay][ibar].getahlr(ahlr);//get high/low(a2d) ratio
-  TOFBPeds::scbrped[ilay][ibar].getped(peds);//get peds
-  TOFBPeds::scbrped[ilay][ibar].getsig(sigs);//get sigmas
-  adccf=TOF2Brcal::scbrcal[ilay][ibar].getadccf();
-  daqt2=TOF2Varp::tofvpar.daqthr(2)*ahlr[isid];//dinode discr.("Z>2") thresh., multipl. by a2d ratio
-  lhr=1./ahlr[isid];//low/high(d2a) ratio
+  daqt1=TOF2Varp::tofvpar.daqthr(1); // fast discr. thresh(high) for Z>=1 (FT) branch
+  daqt2=TOF2Varp::tofvpar.daqthr(2);//fast discr. thresh(VeryHigh) for "Z>2"   
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
 //
@@ -1049,138 +962,62 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
         charge=charge*fladcb/50.; // get total charge (pC)
         saturf=TOF2Tovt::pmsatur(charge);//true charge reduction fact. due to satur.
         if(TFMCFFKEY.mcprtf[2]!=0){
-          if(idd==1071)HF1(1073,amx,1.);// ampl.spectrum for ref.bar
-	  if(idd==1071)HF1(1070,float(charge),1.);
+          if(idd==1041)HF1(1073,amx,1.);// ampl.spectrum for ref.bar
+	  if(idd==1041)HF1(1070,float(charge),1.);
 	}
 //**************************************************************************
-        number ped,sig;
-        _nadch=0;
-        _nadcl=0;
-	ped=peds[2*isid];// in adc-chann. units(float)
-	sig=sigs[2*isid];
-	noise=sig*rnormx();// in ADC-channels
-        aqin=number(charge)+noise*adccf;// signal+noise in pC
-        TOF2Brcal::scbrcal[ilay][ibar].q2t2q(0,isid,0,adcs,aqin);// high q->adc-chan(no "integerization") 
+        number ped,sig,gain;
+        _nadca=0;
+        _nadcd=0;
+        _nadcdl=0;
+        aqin=number(charge);// anode signal in pC (ref.bar !)
+	aqin*=TOFBrcalMS::scbrcal[ilay][ibar].getagain(isid);//in current bars("seed" gains)
+//anode:
+	ped=TOFBPeds::scbrped[ilay][ibar].apeda(isid);// in adc-chann. units(float)
+	sig=TOFBPeds::scbrped[ilay][ibar].asiga(isid);
+        TOFBrcalMS::scbrcal[ilay][ibar].q2a2q(0,isid,0,adcs,aqin);// A(pC)->Aadc(no "integerization") 
 	if(TFMCFFKEY.mcprtf[2]!=0)
-	                          if(idd==1071)HF1(1074,float(adcs),1.);
+	                          if(idd==1041)HF1(1074,float(adcs),1.);
 	if(adcs>0.){
-          _adch[_nadch]=adcs+ped;// ADC channels+ped(no "integerization")
-          _nadch+=1;
+          _adca[_nadca]=adcs+ped+sig*rnormx();// Aadc+ped(no "integerization")
+          _nadca+=1;
         }
-	ped=peds[1+2*isid];
-	sig=sigs[1+2*isid];
-        TOF2Brcal::scbrcal[ilay][ibar].q2t2q(0,isid,1,adcs,aqin);// low q->adc-chan(no "integerization")
-//  (assume noise as sitting only at PM load-resistor ! So use the same aqin=charge+noise) 
+//dynode(h):
+	ped=TOFBPeds::scbrped[ilay][ibar].apedd(isid);
+	sig=TOFBPeds::scbrped[ilay][ibar].asigd(isid);
+        TOFBrcalMS::scbrcal[ilay][ibar].q2a2q(0,isid,1,adcs,aqin);// A(pC)->D(h)adc(no "integerization")
 	if(TFMCFFKEY.mcprtf[2]!=0)
-	                          if(idd==1071)HF1(1075,float(adcs),1.);
+	                          if(idd==1041)HF1(1075,float(adcs),1.);
 	if(adcs>0.){
-          _adcl[_nadcl]=adcs+ped;// ADC channels+ped(no "integerization")
-          _nadcl+=1;
+          _adcd[_nadcd]=adcs+ped+sig*rnormx();// D(h)adc+ped(no "integerization")
+          _nadcd+=1;
+        }
+//dynode(l):
+	ped=TOFBPeds::scbrped[ilay][ibar].apeddl(isid);
+	sig=TOFBPeds::scbrped[ilay][ibar].asigdl(isid);
+        TOFBrcalMS::scbrcal[ilay][ibar].q2a2q(0,isid,2,adcs,aqin);// A(pC)->D(l)adc(no "integerization")
+	if(TFMCFFKEY.mcprtf[2]!=0)
+	                          if(idd==1041)HF1(1064,float(adcs),1.);
+	if(adcs>0.){
+          _adcdl[_nadcdl]=adcs+ped+sig*rnormx();// D(l)adc+ped(no "integerization")
+          _nadcdl+=1;
         }
 //
 //------------------------------
 // now create/fill TOF2Tovt object (id=idd) with above digi-data:
-      if(_nftdc>0 && _nstdc>0){ 
+      if(_ntr1>0){// if counter_side FT-signal exists->create object 
         _sta=0;    
         stat=0;
         if(AMSEvent::gethead()->addnext(AMSID("TOF2Tovt",ilay), new
              TOF2Tovt(idd,_sta,charge,edepb,
              _ntr1,_ttr1,_ntr3,_ttr3,
              _nftdc,_tftdc,_tftdcd,_nstdc,_tstdc,
-             _nadch,_adch,_nadcl,_adcl)))stat=1;
+             _nadca,_adca,_nadcd,_adcd,_nadcdl,_adcdl
+	                                             )))stat=1;
       }
-        return;
 //
+      return;
 //
-}
-//---------------------------------------------------------------------
-void TOF2Tovt::aintfit(){
-  int i,ier;  
-  int ifit[TOF2GC::SCIPAR];
-  char pnam[TOF2GC::SCIPAR][6],pnm[6];
-  number argl[10];
-  int iargl[10];
-  number start[TOF2GC::SCIPAR],pstep[TOF2GC::SCIPAR],plow[TOF2GC::SCIPAR],phigh[TOF2GC::SCIPAR];
-  strcpy(pnam[0],"dtime");
-  strcpy(pnam[1],"tzero");
-  strcpy(pnam[2],"offst");
-  start[0]=64.;
-  start[1]=145.;
-  start[2]=2.;
-   pstep[0]=5.;
-   pstep[1]=10.;
-   pstep[2]=1.;
-  plow[0]=10.;
-  plow[1]=1.;
-  plow[2]=0.;
-   phigh[0]=100.;
-   phigh[1]=500.;
-   phigh[2]=9.;
-  for(i=0;i<TOF2GC::SCIPAR;i++)ifit[1]=1;
-// ------------> initialize parameters for Minuit:
-  MNINIT(5,6,6);
-  MNSETI("MC A-integrator calibration for TOF-system");
-  for(i=0;i<TOF2GC::SCIPAR;i++){
-    strcpy(pnm,pnam[i]);
-    ier=0;
-    MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
-    if(ier!=0){
-      cout<<"MC A-int. calib: Param-init problem for par-id="<<pnam[i]<<'\n';
-      exit(10);
-    }
-    argl[0]=number(i+1);
-    if(ifit[i]==0){
-      ier=0;
-      MNEXCM(mfun,"FIX",argl,1,ier,0);
-      if(ier!=0){
-        cout<<"MC A-int. calib: Param-fix problem for par-id="<<pnam[i]<<'\n';
-        exit(10);
-      }
-    }
-  }
-//----
-  cout<<"MC A-int. calib: found "<<ievent<<"  events !!!"<<endl;
-  if(ievent>100){
-    cout<<"MC A-int. calib: start minimization ..."<<endl;  
-    argl[0]=0.;
-    ier=0;
-    MNEXCM(mfun,"MINIMIZE",argl,0,ier,0);
-    if(ier!=0){
-      cout<<"MC A-int. calib: MINIMIZE problem !"<<'\n';
-      exit(10);
-    }  
-    MNEXCM(mfun,"MINOS",argl,0,ier,0);
-    if(ier!=0){
-      cout<<"MC A-int. calib: MINOS problem !"<<'\n';
-      exit(10);
-    }
-    argl[0]=number(3);
-    ier=0;
-    MNEXCM(TOF2Tovt::mfun,"CALL FCN",argl,1,ier,0);
-    if(ier!=0){
-      cout<<"MC A-int. calib: final CALL_FCN problem !"<<'\n';
-      exit(10);
-    }
-  }
-}
-//-----
-// This is standard Minuit FCN :
-void TOF2Tovt::mfun(int &np, number grad[], number &f, number x[]
-                                                        , int &flg, int &dum){
-  int i,j;
-  number ff;
-  f=0.;
-  for(i=0;i<ievent;i++){
-    ff=itovts[i]-(x[0]*log(icharg[i]-x[2])-x[1]);
-    f+=(ff*ff);
-  }
-  if(flg==3){
-    f=sqrt(f/number(ievent));
-    cout<<"MC A-integrator: funct/events="<<f<<endl;
-    for(i=0;i<TOF2GC::SCIPAR;i++){
-      cout<<" np/par="<<i<<" "<<x[i]<<endl;
-    }
-  }
 }
 //
 //---------------------------------------------------------------------
@@ -1698,14 +1535,15 @@ void AMSBitstr::display(char comment[]){
 void TOF2RawEvent::mc_build(int &status)
 {
   integer i,j,jj,ilay,last,ibar,id,idd,iddN,isd,_sta,stat(0);
-  integer nftdc,nstdc,nadch,nadcl;
-  int16u _nftdc,_nstdc,_nadch,_nadcl,itt;
+  integer nftdc,nstdc,nadca,nadcd,nadcdl;
+  int16u _nftdc,_nstdc,_nadca,_nadcd,_nadcdl,itt;
   number  tftdc[TOF2GC::SCTHMX2],tftdcd[TOF2GC::SCTHMX2],tstdc[TOF2GC::SCTHMX3];
-  number tadch[TOF2GC::SCTHMX4],tadcl[TOF2GC::SCTHMX4];
-  int16u  ftdc[TOF2GC::SCTHMX2*2],stdc[TOF2GC::SCTHMX3*4],adch[TOF2GC::SCTHMX4],adcl[TOF2GC::SCTHMX4];
+  number tadca[TOF2GC::SCTHMX4],tadcd[TOF2GC::SCTHMX4],tadcdl[TOF2GC::SCTHMX4];
+  int16u  ftdc[TOF2GC::SCTHMX2*2],stdc[TOF2GC::SCTHMX3*4];
+  int16u adca[TOF2GC::SCTHMX4],adcd[TOF2GC::SCTHMX4],adcdl[TOF2GC::SCTHMX4];
   number t,t1,t2,t3,t4,tprev,ttrig1,ttrig3,dt,tlev1,tl1d,ftrig,ecftrig;
   geant charge,edep,strr[2][2],str,offs;
-  geant peds[4],daqt1,rrr;
+  geant daqt1,rrr;
   number pedv,amp;
   integer iamp;
   int trcode,trcode3;
@@ -1770,8 +1608,7 @@ void TOF2RawEvent::mc_build(int &status)
       idd=ptr->getid();// LBBS
       id=idd/10;// short id=LBB
       ibar=id%100-1;
-      TOF2Brcal::scbrcal[ilay][ibar].gtstrat(strr);// get str-ratios for two sides
-      TOFBPeds::scbrped[ilay][ibar].getped(peds);// get peds
+      TOFBrcalMS::scbrcal[ilay][ibar].gtstrat(strr);// get "MC Seed"str-ratios for two sides
       isd=idd%10-1;
       str=strr[isd][0];// str-ratio for given TovT-hit
       offs=strr[isd][1];// offset in str-ratio for given TovT-hit
@@ -1781,6 +1618,7 @@ void TOF2RawEvent::mc_build(int &status)
 //
       nftdc=ptr->getftdc(tftdc,tftdcd);// get number and times of fast-TDC hits
       _nftdc=0;
+    if(TOFBrcalMS::scbrcal[ilay][ibar].FchOK(isd)){//F-ch alive in "MC Seeds" DB
       tl1d=tlev1+TOF2Varp::tofvpar.sftdcd();// just to simulate sTDC delay wrt fTDC
       for(j=0;j<nftdc;j++){//        <--- ftdc-hits loop ---
         jj=nftdc-j-1;// LIFO readout mode (last stored - first read)
@@ -1807,9 +1645,11 @@ void TOF2RawEvent::mc_build(int &status)
         ftdc[_nftdc]=itt;
         _nftdc+=1;
       }//--- end of ftdc-hits loop --->
+    }//--> end of alive check
 //------------
       nstdc=ptr->getstdc(tstdc);// get number and times of slow-TDC hits
       _nstdc=0;
+    if(TOFBrcalMS::scbrcal[ilay][ibar].SchOK(isd)){//S-ch alive in "MC Seeds" DB
       for(j=0;j<nstdc;j++){//       <--- stdc-hits loop ---
         jj=nstdc-j-1;// LIFO readout mode (last stored - first read)
         t1=tstdc[jj]+rnormx()*TOF2DBc::strjit1();//"start"-signal time + jitter
@@ -1866,52 +1706,85 @@ void TOF2RawEvent::mc_build(int &status)
           _nstdc+=1;
         }
       }//--- end of stdc-hits loop --->
+    }//--> end of alive check
 //----------------
-      _nadch=0;
-      pedv=peds[2*isd];
-      nadch=ptr->getadch(tadch);// get number and counts of high(anode)-ADC hits
-      for(j=0;j<nadch;j++){// <--- adch-hits loop ---
-        jj=nadch-j-1;// LIFO readout mode (last stored - first read)
-	amp=tadch[jj];// here charge is quantized by "adccf" but not "integerized"
+//anode:
+      _nadca=0;
+    if(TOFBrcalMS::scbrcal[ilay][ibar].AchOK(isd)){//A-ch alive in "MC Seeds" DB
+      pedv=TOFBPeds::scbrped[ilay][ibar].apeda(isd);
+      nadca=ptr->getadca(tadca);// get number and counts of high(anode)-ADC hits
+      for(j=0;j<nadca;j++){// <--- adca-hits loop ---
+        jj=nadca-j-1;// LIFO readout mode (last stored - first read)
+	amp=tadca[jj];// here charge is quantized by "adc2q" but not "integerized"
         iamp=integer(floor(amp));//go to real ADC-channels("integerization")
         if(iamp>TOF2GC::SCADCMX){
-          cout<<"TOF2RawEvent::mc_build warning: high ADC overflow,id="<<idd<<'\n';
+          cout<<"TOF2RawEvent::mc_build warning: anode ADC overflow,id="<<idd<<'\n';
           iamp=TOF2GC::SCADCMX;
         }
 	amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
 	if(amp>daqt1){// DAQ readout threshold
-	  iamp=integer(floor(amp/TOF2DBc::tdcbin(2)));// again "integerization" but to DAQ binning
+	  iamp=floor(amp/TOF2DBc::tdcbin(2)+0.5);// floatADC -> int DAQ bins
           itt=int16u(iamp);
-          adch[_nadch]=itt;
-          _nadch+=1;
+          adca[_nadca]=itt;
+          _nadca+=1;
 	}
-      }//--- end of adch-hits loop --->
+      }//--- end of adca-hits loop --->
+    }//--> end of alive check
 //--------------------
-      _nadcl=0;
-      pedv=peds[1+2*isd];
-      nadcl=ptr->getadcl(tadcl);// get number and counts of high(anode)-ADC hits
-      for(j=0;j<nadcl;j++){// <--- adch-hits loop ---
-        jj=nadcl-j-1;// LIFO readout mode (last stored - first read)
-	amp=tadcl[jj];
-        iamp=integer(floor(amp));
+//dynode(h):
+      _nadcd=0;
+    if(TOFBrcalMS::scbrcal[ilay][ibar].HchOK(isd)){//H-ch alive in "MC Seeds" DB
+      pedv=TOFBPeds::scbrped[ilay][ibar].apedd(isd);
+      nadcd=ptr->getadcd(tadcd);// get number and counts of high(anode)-ADC hits
+      for(j=0;j<nadcd;j++){// <--- adcd-hits loop ---
+        jj=nadcd-j-1;// LIFO readout mode (last stored - first read)
+	amp=tadcd[jj];// here charge is quantized by "adc2q" but not "integerized"
+        iamp=integer(floor(amp));//go to real ADC-channels("integerization")
         if(iamp>TOF2GC::SCADCMX){
-          cout<<"TOF2RawEvent::mc_build warning: low ADC overflow, id="<<idd<<'\n';
+          cout<<"TOF2RawEvent::mc_build warning: dynode(h) ADC overflow,id="<<idd<<'\n';
           iamp=TOF2GC::SCADCMX;
         }
-	amp=number(iamp)-pedv;// subtr. pedestal (loose quantization !)
+	amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
 	if(amp>daqt1){// DAQ readout threshold
-	  iamp=integer(floor(amp/TOF2DBc::tdcbin(2)));// in DAQ binning
+	  iamp=floor(amp/TOF2DBc::tdcbin(2)+0.5);// floatADC -> DAQ bins
           itt=int16u(iamp);
-          adcl[_nadcl]=itt;
-          _nadcl+=1;
+          adcd[_nadcd]=itt;
+          _nadcd+=1;
 	}
-      }//--- end of adch-hits loop --->
-//
+      }//--- end of adcd-hits loop --->
+    }//--> end of alive check
+//---------------------
+//dynode(l):
+      _nadcdl=0;
+    if(TOFBrcalMS::scbrcal[ilay][ibar].LchOK(isd)){//L-ch alive in "MC Seeds" DB
+      pedv=TOFBPeds::scbrped[ilay][ibar].apeddl(isd);
+      nadcdl=ptr->getadcdl(tadcdl);// get number and counts of high(anode)-ADC hits
+      for(j=0;j<nadcdl;j++){// <--- adcdl-hits loop ---
+        jj=nadcdl-j-1;// LIFO readout mode (last stored - first read)
+	amp=tadcdl[jj];// here charge is quantized by "adc2q" but not "integerized"
+        iamp=integer(floor(amp));//go to real ADC-channels("integerization")
+        if(iamp>TOF2GC::SCADCMX){
+          cout<<"TOF2RawEvent::mc_build warning: dynode(h) ADC overflow,id="<<idd<<'\n';
+          iamp=TOF2GC::SCADCMX;
+        }
+	amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
+	if(amp>daqt1){// DAQ readout threshold
+	  iamp=floor(amp/TOF2DBc::tdcbin(2)+0.5);// floatADC -> DAQ bins
+          itt=int16u(iamp);
+          adcdl[_nadcdl]=itt;
+          _nadcdl+=1;
+	}
+      }//--- end of adca-hits loop --->
+    }//--> end of alive check
+//---------------------
 //     ---> create/fill RawEvent-object :
       stat=0;
       if(AMSEvent::gethead()->addnext(AMSID("TOF2RawEvent",0), new
            TOF2RawEvent(idd,_sta,charge,edep,_nftdc,ftdc,_nstdc,stdc,
-                               _nadch,adch,_nadcl,adcl)))stat=1;
+                                                         _nadca,adca,
+			                                 _nadcd,adcd,
+			                                _nadcdl,adcdl
+			                                             )))stat=1;
 //
       ptr=ptr->next();// take next Tovt-hit
 // 
@@ -1928,8 +1801,9 @@ void TOF2RawEvent::mc_build(int &status)
 TOF2Tovt::TOF2Tovt(integer _ids, integer _sta, number _charga, number _tedep,
   integer _ntr1, number _ttr1[], integer _ntr3, number _ttr3[],
   integer _nftdc, number _tftdc[], number _tftdcd[], integer _nstdc, number _tstdc[],
-  integer _nadch, number _adch[],
-  integer _nadcl, number _adcl[]):
+  integer _nadca, number _adca[],
+  integer _nadcd, number _adcd[],
+  integer _nadcdl, number _adcdl[]):
   idsoft(_ids),status(_sta)
   {
     int i;
@@ -1946,13 +1820,17 @@ TOF2Tovt::TOF2Tovt(integer _ids, integer _sta, number _charga, number _tedep,
     }
     nstdc=_nstdc;
     for(i=0;i<nstdc;i++)tstdc[i]=_tstdc[i];
-    nadch=_nadch;
-    for(i=0;i<nadch;i++){
-      adch[i]=_adch[i];
+    nadca=_nadca;
+    for(i=0;i<nadca;i++){
+      adca[i]=_adca[i];
     }
-    nadcl=_nadcl;
-    for(i=0;i<nadcl;i++){
-      adcl[i]=_adcl[i];
+    nadcd=_nadcd;
+    for(i=0;i<nadcd;i++){
+      adcd[i]=_adcd[i];
+    }
+    nadcdl=_nadcdl;
+    for(i=0;i<nadcdl;i++){
+      adcdl[i]=_adcdl[i];
     }
   }
 
@@ -1976,17 +1854,23 @@ integer TOF2Tovt::getstdc(number arr[]){
   for(int i=0;i<nstdc;i++)arr[i]=tstdc[i];
   return nstdc;
 }
-integer TOF2Tovt::getadch(number arr[]){
-  for(int i=0;i<nadch;i++){
-    arr[i]=adch[i];
+integer TOF2Tovt::getadca(number arr[]){
+  for(int i=0;i<nadca;i++){
+    arr[i]=adca[i];
   }
-  return nadch;
+  return nadca;
 }
-integer TOF2Tovt::getadcl(number arr[]){
-  for(int i=0;i<nadcl;i++){
-    arr[i]=adcl[i];
+integer TOF2Tovt::getadcd(number arr[]){
+  for(int i=0;i<nadcd;i++){
+    arr[i]=adcd[i];
   }
-  return nadcl;
+  return nadcd;
+}
+integer TOF2Tovt::getadcdl(number arr[]){
+  for(int i=0;i<nadcdl;i++){
+    arr[i]=adcdl[i];
+  }
+  return nadcdl;
 }
 
 
@@ -1995,18 +1879,23 @@ integer TOF2Tovt::getadcl(number arr[]){
 
 TOF2RawEvent::TOF2RawEvent(int16u _ids, int16u _sta, geant _charge, geant _edep,
    int16u _nftdc, int16u _ftdc[],
-   int16u _nstdc, int16u _stdc[], int16u _nadch, int16u _adch[],
-   int16u _nadcl, int16u _adcl[]):idsoft(_ids),status(_sta)
+   int16u _nstdc, int16u _stdc[],
+   int16u _nadca, int16u _adca[],
+   int16u _nadcd, int16u _adcd[],
+   int16u _nadcdl, int16u _adcdl[]
+   ):idsoft(_ids),status(_sta)
    {
      int i;
      nftdc=_nftdc;
      for(i=0;i<nftdc;i++)ftdc[i]=_ftdc[i];
      nstdc=_nstdc;
      for(i=0;i<nstdc;i++)stdc[i]=_stdc[i];
-     nadch=_nadch;
-     for(i=0;i<nadch;i++)adch[i]=_adch[i];
-     nadcl=_nadcl;
-     for(i=0;i<nadcl;i++)adcl[i]=_adcl[i];
+     nadca=_nadca;
+     for(i=0;i<nadca;i++)adca[i]=_adca[i];
+     nadcd=_nadcd;
+     for(i=0;i<nadcd;i++)adcd[i]=_adcd[i];
+     nadcdl=_nadcdl;
+     for(i=0;i<nadcdl;i++)adcdl[i]=_adcdl[i];
      charge=_charge;
      edep=_edep;
    }
@@ -2015,8 +1904,9 @@ integer TOF2RawEvent::getnztdc(){
   integer nz(0);
   if(nftdc>0)nz+=1;
   if(nstdc>0)nz+=1;
-  if(nadch>0)nz+=1;
-  if(nadcl>0)nz+=1;
+  if(nadca>0)nz+=1;
+  if(nadcd>0)nz+=1;
+  if(nadcdl>0)nz+=1;
   return nz;
 }
 
@@ -2040,24 +1930,35 @@ void TOF2RawEvent::putstdc(int16u nelem, int16u arr[]){
   for(int i=0;i<nstdc;i++)stdc[i]=arr[i];
 }
 
-int16u TOF2RawEvent::getadch(int16u arr[]){
-  for(int i=0;i<nadch;i++)arr[i]=adch[i];
-  return nadch;
+int16u TOF2RawEvent::getadca(int16u arr[]){
+  for(int i=0;i<nadca;i++)arr[i]=adca[i];
+  return nadca;
 }
 
-void TOF2RawEvent::putadch(int16u nelem, int16u arr[]){
-  nadch=nelem;
-  for(int i=0;i<nadch;i++)adch[i]=arr[i];
+void TOF2RawEvent::putadca(int16u nelem, int16u arr[]){
+  nadca=nelem;
+  for(int i=0;i<nadca;i++)adca[i]=arr[i];
 }
 
-int16u TOF2RawEvent::getadcl(int16u arr[]){
-  for(int i=0;i<nadcl;i++)arr[i]=adcl[i];
-  return nadcl;
+
+int16u TOF2RawEvent::getadcd(int16u arr[]){
+  for(int i=0;i<nadcd;i++)arr[i]=adcd[i];
+  return nadcd;
 }
 
-void TOF2RawEvent::putadcl(int16u nelem, int16u arr[]){
-  nadcl=nelem;
-  for(int i=0;i<nadcl;i++)adcl[i]=arr[i];
+void TOF2RawEvent::putadcd(int16u nelem, int16u arr[]){
+  nadcd=nelem;
+  for(int i=0;i<nadcd;i++)adcd[i]=arr[i];
+}
+
+int16u TOF2RawEvent::getadcdl(int16u arr[]){
+  for(int i=0;i<nadcdl;i++)arr[i]=adcdl[i];
+  return nadcdl;
+}
+
+void TOF2RawEvent::putadcdl(int16u nelem, int16u arr[]){
+  nadcdl=nelem;
+  for(int i=0;i<nadcdl;i++)adcdl[i]=arr[i];
 }
 //--------------
 integer TOF2RawEvent::lvl3format(int16 *ptr, integer rest){
@@ -2074,11 +1975,11 @@ integer TOF2RawEvent::lvl3format(int16 *ptr, integer rest){
   ilay=id/100-1;
   ibar=id%100-1;
   isid=idsoft%10-1;
+  AMSTOFIds tofid(ilay,ibar,isid,1);//mtyp=1 to find crate/slot for needed slowTDC
   nrwt=0;
-  TOF2Brcal::scbrcal[ilay][ibar].getbstat(statdb); // "alive" status from DB
-  if(statdb[isid] == 0){  // side(both PM's) alive(no severe problems), read out it
-    hwid=TOF2RawEvent::sw2hwid(ilay,ibar,isid);
-    crat=hwid/100-1;
+  if(TOF2Brcal::scbrcal[ilay][ibar].SideOK(isid)){ // side OK(F&S&A), read out it
+    hwid=tofid.gethwid();//CSRR(Crate|Slot|Readout_channel)
+    crat=hwid/1000-1;
     for(i=0;i<nstdc-3;i++){// <--- find all correct 4's of up/down bits settings
       pbdn=(stdc[i]&pbitn);//check p-bit of 2-nd down-edge (come first, LIFO mode !!!)
       pbup=(stdc[i+1]&pbitn);//check p-bit of 2-nd up-edge (come second)

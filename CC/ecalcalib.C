@@ -516,7 +516,289 @@ void ECREUNcalib::select(){
   if(sta)return;
   EcalJobStat::addca(7);
 }
-//----------------------------
+//-----------------------------------------------------------
+void ECREUNcalib::makeToyRLGAfile(){
+  int i,j,k,bad;
+  integer sl,pm,sc,pmsl,lb,npmx,slpmc;
+  integer pmslr,refsl,refpm;
+  char inum[11];
+  char in[2]="0";
+//
+  strcpy(inum,"0123456789");
+  npmx=ECALDBc::slstruc(4);//numb.of PM's/sl
+  char fname[80];
+  char frdate[30];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  integer cfvn;
+  int dig;
+  geant pmrg,pxrg[4],hi2lr,a2dr;
+//
+//--> create RLGA output file(PM/SubCell rel.gains,Hi2Low-ratios,An2Dyn-ratios):
+//    for "MC-Seeds"
+// 
+  integer endfm(12345);
+  strcpy(inum,"0123456789");
+  cfvn=ECCAFFKEY.cfvers%1000;
+  strcpy(fname,"ecalrlga");
+  dig=cfvn/100;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  dig=(cfvn%100)/10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  dig=cfvn%10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  strcat(fname,vers2);
+  strcat(fname,".cof");
+//---
+    ofstream tcfile(fname,ios::out|ios::trunc);
+    if(!tcfile){
+      cerr<<"ECREUNcalib:error opening RLGA-file for output"<<fname<<endl;
+      exit(8);
+    }
+    cout<<"Open file for ToyRLGA-calibration output(MC-Seeds) "<<fname<<endl;
+//---
+    cout<<"Pixels/Dynode status will be written(MC-Seeds) !"<<endl;
+    tcfile.setf(ios::fixed);
+    tcfile << endl;
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(sc=0;sc<4;sc++){
+        tcfile.width(3);
+        tcfile.precision(2);// precision for status
+        for(pm=0;pm<npmx;pm++){
+          pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+          tcfile <<0<<" ";//all pixels are good
+        }
+        tcfile << endl;
+      }
+      tcfile.width(3);
+      tcfile.precision(2);// precision for status
+      for(pm=0;pm<npmx;pm++){
+        pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+        tcfile <<0<<" ";//all dynodes are good
+      }
+      tcfile << endl;
+      tcfile << endl;
+    }
+    tcfile << endl;
+    cout<<"...done!"<<endl;
+//---
+    cout<<"PM RelGains will be written(MC-Seeds) !"<<endl;
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      tcfile.width(5);
+      tcfile.precision(2);// precision for PM Rel.gain
+      for(pm=0;pm<npmx;pm++){
+        pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+	pmrg=1.+0.2*rnormx();
+	if(pmrg>2)pmrg=2;
+	if(pmrg<0.3)pmrg=0.3;
+	pmrgain[pmsl]=pmrg;
+        tcfile <<pmrgain[pmsl]<<" ";
+      }
+      tcfile << endl;
+    }
+    tcfile << endl;
+    tcfile << endl;
+    cout<<"...done!"<<endl;
+//
+//--- create pixel rel.gains:
+    geant spxrg;
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(pm=0;pm<npmx;pm++){
+        pmsl=pm+ECPMSMX*sl;//sequential numbering
+        spxrg=0;
+        for(sc=0;sc<4;sc++){
+	  pxrg[sc]=1.+0.05*rnormx();//5%
+	  spxrg+=pxrg[sc];
+	}
+        for(sc=0;sc<4;sc++)pxrgain[pmsl][sc]=4*pxrg[sc]/spxrg;//normalise
+      }
+    }
+//---    
+    cout<<"Pixel RelGains will be written(MC-Seeds) !"<<endl;
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(sc=0;sc<4;sc++){
+        tcfile.width(5);
+        tcfile.precision(2);// precision for Pixel rel.gain
+        for(pm=0;pm<npmx;pm++){
+          pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+          tcfile <<pxrgain[pmsl][sc]<<" ";
+        }
+        tcfile << endl;
+      }
+      tcfile << endl;
+    }
+    tcfile << endl;
+    cout<<"...done!"<<endl;
+//---
+    cout<<"Pixel Hi/Low Gain ratios will be written(MC-Seeds) !"<<'\n';
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(sc=0;sc<4;sc++){
+        tcfile.width(4);
+        tcfile.precision(1);// precision for Hi/Low ratio
+        for(pm=0;pm<npmx;pm++){
+          pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+	  hi2lr=36*(1.+0.05*rnormx());//5%
+	  hi2lowr[pmsl][sc]=hi2lr;
+          tcfile <<hi2lowr[pmsl][sc]<<" ";
+        }
+        tcfile << endl;
+      }
+      tcfile << endl;
+    }
+    tcfile << endl;
+    cout<<"...done!"<<endl;
+//
+    cout<<"PM Anode/Dynode ratios will be written !"<<'\n';
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      tcfile.width(4);
+      tcfile.precision(1);// precision for PM Anode/Dynode ratio
+      for(pm=0;pm<npmx;pm++){
+        pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+	a2dr=25*(1.+0.05*rnormx());//5%
+	an2dynr[pmsl]=a2dr;
+        tcfile <<an2dynr[pmsl]<<" ";
+      }
+      tcfile << endl;
+    }
+    tcfile << endl;
+//
+    tcfile <<" "<<endfm<<endl;
+    tcfile << endl;
+//
+    cout<<"...done!"<<endl;
+    tcfile << endl<<"======================================================"<<endl;
+    tcfile << endl<<" Toy RLGA-file for MC-Seeds is done !"<<endl;
+    tcfile.close();
+    cout<<"ECREUNcalib: Toy RLGA-file for MC-Seeds closed !"<<endl;
+//------------------------
+  strcpy(fname,"ecalrlga");
+  dig=cfvn/100;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  dig=(cfvn%100)/10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  dig=cfvn%10;
+  in[0]=inum[dig];
+  strcat(fname,in);
+  strcat(fname,vers1);
+  strcat(fname,".cof");
+//
+    ofstream tcfile1(fname,ios::out|ios::trunc);
+    if(!tcfile1){
+      cerr<<"ECREUNcalib:error opening RLGA-file for output"<<fname<<endl;
+      exit(8);
+    }
+    cout<<"Open file for ToyRLGA-calibration output(MC-calib) "<<fname<<endl;
+//---
+    cout<<"Pixels/Dynodes status will be written(MC-calib) !"<<endl;
+    tcfile1.setf(ios::fixed);
+    tcfile1 << endl;
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(sc=0;sc<4;sc++){
+        tcfile1.width(3);
+        tcfile1.precision(2);// precision for status
+        for(pm=0;pm<npmx;pm++){
+          pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+          tcfile1 <<0<<" ";//all are good
+        }
+        tcfile1 << endl;
+      }
+      tcfile1.width(3);
+      tcfile1.precision(2);// precision for status
+      for(pm=0;pm<npmx;pm++){
+        pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+        tcfile1 <<0<<" ";//all dynodes are good
+      }
+      tcfile1 << endl;
+      tcfile1 << endl;
+    }
+    tcfile1 << endl;
+    cout<<"...done!"<<endl;
+//---
+    cout<<"PM RelGains will be written(MC-calib) !"<<endl;
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      tcfile1.width(5);
+      tcfile1.precision(2);// precision for PM Rel.gain
+      for(pm=0;pm<npmx;pm++){
+        pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+        tcfile1 <<pmrgain[pmsl]*(1.+0.02*rnormx())<<" ";//2% calib.accuracy
+      }
+      tcfile1 << endl;
+    }
+    tcfile1 << endl;
+    tcfile1 << endl;
+    cout<<"...done!"<<endl;
+//
+//--- create pixel rel.gains:
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(pm=0;pm<npmx;pm++){
+        pmsl=pm+ECPMSMX*sl;//sequential numbering
+	spxrg=0;
+        for(sc=0;sc<4;sc++){
+	  pxrg[sc]=pxrgain[pmsl][sc]*(1.+0.02*rnormx());//2% calib.accuracy
+	  spxrg+=pxrg[sc];
+	}
+	for(sc=0;sc<4;sc++)pxrgain[pmsl][sc]=4*pxrg[sc]/spxrg;//normalise
+      }
+    }
+//---    
+    cout<<"Pixel RelGains will be written(MC-calib) !"<<endl;
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(sc=0;sc<4;sc++){
+        tcfile1.width(5);
+        tcfile1.precision(2);// precision for Pixel rel.gain
+        for(pm=0;pm<npmx;pm++){
+          pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+          tcfile1 <<pxrgain[pmsl][sc]<<" ";
+        }
+        tcfile1 << endl;
+      }
+      tcfile1 << endl;
+    }
+    tcfile1 << endl;
+    cout<<"...done!"<<endl;
+//
+    cout<<"Pixel Hi/Low Gain ratios will be written(MC-calib) !"<<'\n';
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      for(sc=0;sc<4;sc++){
+        tcfile1.width(4);
+        tcfile1.precision(1);// precision for Hi/Low ratio
+        for(pm=0;pm<npmx;pm++){
+          pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+          tcfile1 <<hi2lowr[pmsl][sc]*(1.+0.01*rnormx())<<" ";//1% calib.accuracy
+        }
+        tcfile1 << endl;
+      }
+      tcfile1 << endl;
+    }
+    tcfile1 << endl;
+//
+    cout<<"PM Anode/Dynode ratios will be written(MC-calib) !"<<'\n';
+    for(sl=0;sl<ECALDBc::slstruc(3);sl++){
+      tcfile1.width(4);
+      tcfile1.precision(1);// precision for PM Anode/Dynode ratio
+      for(pm=0;pm<npmx;pm++){
+        pmsl=pm+ECPMSMX*sl;//sequential numbering of PM's over all superlayers
+        tcfile1 <<an2dynr[pmsl]*(1.+0.01*rnormx())<<" ";//1% calib.accuracy
+      }
+      tcfile1 << endl;
+    }
+    tcfile1 << endl;
+//
+    tcfile1 <<" "<<endfm<<endl;
+    tcfile1 << endl;
+//
+    cout<<"...done!"<<endl;
+    tcfile1 << endl<<"======================================================"<<endl;
+    tcfile1 << endl<<" Toy RLGA-file for MC-calib is done !"<<endl;
+    tcfile1.close();
+    cout<<"ECREUNcalib: Toy RLGA-file for MC-calib closed !"<<endl;
+}
+//----------------------------------------------------------------------------
 void ECREUNcalib::mfit(){
 //
   int i,j,k,bad;
@@ -1177,7 +1459,6 @@ void ECREUNcalib::mfit(){
         tcfile <<" "<<an2dynr[pmsl];
       }
       tcfile << endl;
-      cout<<endl;
     }
     tcfile << endl;
 //
@@ -2337,8 +2618,8 @@ void AMSECIdCalib::getaverage(){
               }
               else{
                 // update pedestals & sigmas here
-                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].ped()=id.getADC(g);
-                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sig()=id.getADC2(g);
+                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].pedd()=id.getADC(g);
+                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sigd()=id.getADC2(g);
               }
              }
              else if(id.getped(g)<0){

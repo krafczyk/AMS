@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.16 2002/10/01 15:53:40 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.17 2002/12/06 14:43:20 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -14,6 +14,7 @@
 //
 TOF2Varp TOF2Varp::tofvpar; // mem.reserv. TOF general parameters 
 TOF2Brcal TOF2Brcal::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// mem.reserv. TOF indiv.bar param. 
+TOFBrcalMS TOFBrcalMS::scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];// the same for "MC Seeds" 
 TOFBPeds TOFBPeds::scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];//mem.reserv. TOF-bar pedestals/sigmas/...
 TOF2Varp::TOF2Temperature TOF2Varp::tftt;
 //-----------------------------------------------------------------------
@@ -375,10 +376,10 @@ geant TOF2DBc::_plnstr[20]={
   geant TOF2DBc::trigtb(){return _trigtb;}
 //===============================================================================
   TOF2Brcal::TOF2Brcal(integer sid, integer sta[2], geant gna[2], geant gnd[2],
-           geant asl, geant tth, geant stra[2][2], geant fstd, geant t0,  
-           geant sl, geant sls[2], geant tdiff, geant td2p[2], geant mip,
-           integer nsp, geant ysc[], geant relo[], geant upar[5], geant hlr[2],
-	   geant a2q){
+           geant a2d[2], geant asl, geant tth, geant stra[2][2], geant fstd,  
+           geant t0, geant sl, geant sls[2], geant tdiff, geant td2p[2], geant mip,
+           integer nsp, geant ysc[], geant relo[], geant upar[2*TOF2GC::SCPROFP], 
+	   geant hlr[2], geant a2q){
     softid=sid;
     status[0]=sta[0];
     status[1]=sta[1];
@@ -386,6 +387,8 @@ geant TOF2DBc::_plnstr[20]={
     gaina[1]=gna[1];
     gaind[0]=gnd[0];
     gaind[1]=gnd[1];
+    a2dr[0]=a2d[0];
+    a2dr[1]=a2d[1];
     asatl=asl;
     tthr=tth;
     strat[0][0]=stra[0][0];
@@ -407,9 +410,9 @@ geant TOF2DBc::_plnstr[20]={
       yscanp[i]=ysc[i];
       relout[i]=relo[i];
     }
-    for(i=0;i<5;i++){unipar[i]=upar[i];}
-    for(i=0;i<2;i++){ahlcr[i]=hlr[i];}
-    adccf=a2q;
+    for(i=0;i<2*TOF2GC::SCPROFP;i++)unipar[i]=upar[i];
+    for(i=0;i<2;i++){dh2lr[i]=hlr[i];}
+    adc2qf=a2q;
   }
 //  ================= TOF2Brcal class functions ======================= :
 //
@@ -423,14 +426,15 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  geant ef1[TOF2GC::SCANPNT],ef2[TOF2GC::SCANPNT];
  integer i1,i2,sta[2],stat[TOF2GC::SCBLMX][2];
  geant r,eff1,eff2;
- integer sid,brt;
- geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2][2];
+ integer sid,brt,endflab;
+ geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2][2],dh2l[2];
  geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl,lspeeda[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  geant tzerf[TOF2GC::SCLRS][TOF2GC::SCMXBR],tdiff[TOF2GC::SCBLMX];
  geant slops[2],slops1[TOF2GC::SCLRS][TOF2GC::SCMXBR],slops2[TOF2GC::SCLRS][TOF2GC::SCMXBR];
  geant strf[TOF2GC::SCBLMX][2],strof[TOF2GC::SCBLMX][2];
  geant an2di[TOF2GC::SCBLMX][2],gaina[TOF2GC::SCBLMX][2],gaind[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
  geant aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP],apr[2*TOF2GC::SCPROFP],hblen;
+ geant a2drf[TOF2GC::SCBLMX][2];
  geant p1s1,p2s1,p3s1,p4s1,p1s2,p2s2,p3s2,p4s2,nom,denom; 
  char fname[80];
  char name[80];
@@ -443,8 +447,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //                                 of anode measurements
 //---> TovT-electronics calibration for MC:
 //
- geant ahlr[2]={10.,10.};
- geant cahlr[TOF2GC::SCBLMX][2];// array of counter hi/lo ch. ratious from ext.file
+ geant dh2lr[TOF2GC::SCBLMX][2];//buff.for dynode hi-to-low ratios 
 //------------------------------
   char in[2]="0";
   char inum[11];
@@ -453,11 +456,11 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 //
   strcpy(inum,"0123456789");
 //
-// ---> read list of calibration-type-versions  list (menu-file) :
+// ---> read file with the list of version numbers for all needed calib.files :
 //
   integer cfvn;
-  cfvn=TFCAFFKEY.cfvers%1000;
-  strcpy(name,"tof2cvlist");// basic name for file of cal-files list 
+  cfvn=TFCAFFKEY.cfvers%1000;//vers.list-file version number 
+  strcpy(name,"tof2cvlist");// basic name for vers.list-file  
   dig=cfvn/100;
   in[0]=inum[dig]; 
   strcat(name,in);
@@ -472,10 +475,10 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"TOF2Brcal::build: Open file  "<<fname<<'\n';
-  ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
+  cout<<"TOF2Brcal::build: Opening vers.list-file  "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in);
   if(!vlfile){
-    cerr <<"TOF2Brcal_build:: missing verslist-file "<<fname<<endl;
+    cerr <<"TOF2Brcal_build:: missing vers.list-file "<<fname<<endl;
     exit(1);
   }
   vlfile >> ntypes;// total number of calibr. file types in the list
@@ -484,18 +487,157 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
     vlfile >> rlvern[i];// second number - for real
   }
   vlfile.close();
+//------------------------------------------------
 //
+//   --->  Prepare to read tof-channels calib-status file :
+//
+ ctyp=2;//line# corresponding calib-status parameters file
+ strcpy(name,"tof2stcf");
+ mcvn=mcvern[ctyp-1]%1000;
+ rlvn=rlvern[ctyp-1]%1000;
+ if(AMSJob::gethead()->isMCData())           // for MC-data
+ {
+   cout <<" TOF2Brcal_build: TOF-channels status for MC-data are requested"<<endl;
+   dig=mcvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(mcvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=mcvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers1);
+ }
+ else                                       // for Real-data
+ {
+   cout <<" TOF2Brcal_build: TOF-channels status for Real-data are requested"<<endl;
+   dig=rlvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(rlvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+ }
+   strcat(name,".dat");
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"Opening file : "<<fname<<'\n';
+   ifstream stfile(fname,ios::in); // open file for reading
+   if(!stfile){
+     cerr <<"TOF2Brcal_build: missing TOF-channels status-file "<<fname<<endl;
+     exit(1);
+   }
 //------------------------------
+//   --->  Read TOF-channels status values:
 //
-//   --->  Read lspeed/tdiffs calibration file :
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+     for(int ipr=0;ipr<2;ipr++){
+       stfile >> stat[cnum][ipr];//stat(s1),stat(s2)
+     }
+     cnum+=1; // sequential counter numbering(0-...)
+   } // --- end of bar loop --->
+   } // --- end of layer loop --->
+//
+   stfile >> endflab;//read endfile-label
+//
+   stfile.close();
+//
+   if(endflab==12345){
+     cout<<"TOF2Brcal_build: TOF-calib status file is successfully read !"<<endl;
+   }
+   else{cout<<"TOF2Brcal_build: ERROR(problems with TOF-calib status file)"<<endl;
+     exit(1);
+   }
+//
+//------------------------------------------------- 
+//
+//   --->  Prepare to read stretcher_ratios/offs file :
 //
  ctyp=3;
+ strcpy(name,"tof2srcf");
+ mcvn=mcvern[ctyp-1]%1000;
+ rlvn=rlvern[ctyp-1]%1000;
+ if(AMSJob::gethead()->isMCData())           // for MC-data
+ {
+   cout <<" TOF2Brcal_build: str_ratio/offs params for MC-data are requested"<<endl;
+   dig=mcvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(mcvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=mcvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers1);
+ }
+ else                                       // for Real-data
+ {
+   cout <<" TOF2Brcal_build: str_ratio/offs params for Real-data are requested"<<endl;
+   dig=rlvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(rlvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+ }
+   strcat(name,".dat");
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"Open file : "<<fname<<'\n';
+   ifstream scfile(fname,ios::in); // open file for reading
+   if(!scfile){
+     cerr <<"TOF2Brcal_build: missing str_ratio/offsets file "<<fname<<endl;
+     exit(1);
+   }
+//-----------------> read str_ratios/offsets:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+     scfile >> strf[cnum][0];
+     scfile >> strof[cnum][0];
+     scfile >> strf[cnum][1];
+     scfile >> strof[cnum][1];
+     cnum+=1; // sequential counter numbering(0-...)
+   } // --- end of bar loop --->
+   } // --- end of layer loop --->
+//
+   scfile >> endflab;//read endfile-label
+//
+   scfile.close();
+//
+   if(endflab==12345){
+     cout<<"TOF2Brcal_build: TOF-str_ratio/offs file is successfully read !"<<endl;
+   }
+   else{cout<<"TOF2Brcal_build: ERROR(problems with TOF-str_ratio/offs file)"<<endl;
+     exit(1);
+   }
+//
+//--------------------------------------------------
+//
+//   --->  Prepare to read lspeed/tdiffs calibration file :
+//
+ ctyp=4;
  strcpy(name,"tof2tdcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData()) //      for MC-event
+ if(AMSJob::gethead()->isMCData()) //      for MC-data
  {
-       cout <<" TOF2Brcal_build: MC-Tdif-calibration is used"<<endl;
+       cout <<" TOF2Brcal_build: TOF Lspeed/Tdiffs for MC-data are requested"<<endl;
        dig=mcvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -507,9 +649,9 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
        strcat(name,in);
        strcat(name,vers1);
  }
- else                              //      for Real events
+ else                              //      for Real-data
  {
-       cout <<" TOF2Brcal_build: REAL-Tdif-calibration is used"<<endl;
+       cout <<" TOF2Brcal_build: TOF Lspeed/Tdiffs for Real-data are requested"<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -533,7 +675,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
    exit(1);
  }
 //
-// ---> read Lspeed/Tdiffs:
+// ------------------------> read Lspeed/Tdiffs:
 //
  if(lsflg){// read bar indiv.Lspeed
    for(ila=0;ila<TOF2DBc::getnplns();ila++){   
@@ -551,18 +693,28 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
      cnum+=1; // sequential counters numbering(0-...)
    }
  }
- tdcfile.close();
-//------------------------------
 //
-//   --->  Read slewing_slope/tzeros calibration file :
+   tdcfile >> endflab;//read endfile-label
 //
- ctyp=4;
+   tdcfile.close();
+//
+   if(endflab==12345){
+     cout<<"TOF2Brcal_build: TOF Lspeed/Tdiffs file is successfully read !"<<endl;
+   }
+   else{cout<<"TOF2Brcal_build: ERROR(problems with TOF Lspeed/Tdiffs file)"<<endl;
+     exit(1);
+   }
+//-----------------------------------------------------
+//
+//   --->  Prepare to read slewing_slope/tzeros calibration file :
+//
+ ctyp=5;
  strcpy(name,"tof2tzcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData()) //      for MC-event
+ if(AMSJob::gethead()->isMCData()) //      for MC-data
  {
-       cout <<" TOF2Brcal_build: MC-T0-calibration is used"<<endl;
+       cout <<" TOF2Brcal_build: Slewing/T0-params for MC-data are requested"<<endl;
        dig=mcvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -574,9 +726,9 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
        strcat(name,in);
        strcat(name,vers1);
  }
- else                              //      for Real events
+ else                              //      for Real-data
  {
-       cout <<" TOF2Brcal_build: REAL-T0-calibration is used"<<endl;
+       cout <<" TOF2Brcal_build: Slewing/T0-params for MC-data are requested"<<endl;
        dig=rlvn/100;
        in[0]=inum[dig];
        strcat(name,in);
@@ -596,91 +748,40 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  cout<<"Open file : "<<fname<<'\n';
  ifstream tzcfile(fname,ios::in); // open  file for reading
  if(!tzcfile){
-   cerr <<"TOF2Brcal_build: missing Tzero/Slope(s)-file "<<fname<<endl;
+   cerr <<"TOF2Brcal_build: missing TOF Slewing/T0-params file "<<fname<<endl;
    exit(1);
  }
 //
-// ---> read Slope/Tzero's:
+// --------------------------> read Slewing/Tzero's:
  tzcfile >> slpf;
  for(ila=0;ila<TOF2DBc::getnplns();ila++){ 
    for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){
      tzcfile >> tzerf[ila][ibr];
    } 
  }
- tzcfile.close();
 //
-//-------------------------------------------- 
+   tzcfile >> endflab;//read endfile-label
 //
-//   --->  Read stretcher_ratio/status file :
+   tzcfile.close();
 //
- ctyp=2;
- strcpy(name,"tof2srcf");
- mcvn=mcvern[ctyp-1]%1000;
- rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData())           // for MC-event
- {
-   cout <<" TOF2Brcal_build: str_ratio/status data for MC-events are selected."<<endl;
-   dig=mcvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(mcvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=mcvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers1);
- }
- else                                       // for Real events
- {
-   cout <<" TOF2Brcal_build: str_ratio-calib. for Real-events selected."<<endl;
-   dig=rlvn/100;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=(rlvn%100)/10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   dig=rlvn%10;
-   in[0]=inum[dig];
-   strcat(name,in);
-   strcat(name,vers2);
- }
-   strcat(name,".dat");
-   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
-   strcat(fname,name);
-   cout<<"Open file : "<<fname<<'\n';
-   ifstream scfile(fname,ios::in); // open str_ratio-file for reading
-   if(!scfile){
-     cerr <<"TOF2Brcal_build: missing str_ratio/status-file "<<fname<<endl;
+   if(endflab==12345){
+     cout<<"TOF2Brcal_build: TOF Slewing/T0-params file is successfully read !"<<endl;
+   }
+   else{cout<<"TOF2Brcal_build: ERROR(problems with TOF Slewing/T0-params file)"<<endl;
      exit(1);
    }
-//---> read str_ratio/status:
+//-------------------------------------------------------
 //
-   cnum=0;
-   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
-   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-     scfile >> strf[cnum][0];
-     scfile >> strof[cnum][0];
-     scfile >> stat[cnum][0];
-     scfile >> strf[cnum][1];
-     scfile >> strof[cnum][1];
-     scfile >> stat[cnum][1];
-     cnum+=1; // sequential counter numbering(0-...)
-   } // --- end of bar loop --->
-   } // --- end of layer loop --->
-   scfile.close();
-//---------------------------------------------
+//   --->Prepare to read anodes relat.gains, anode/dynode(hichan) ratios,
+//             dynode hi/low-ratios, mip2q and A-profile param. calib.file :
 //
-//   --->  Read hi/low-ratios, gains, mip2q and A-profile param. calib.file :
-//
- ctyp=5;
+ ctyp=6;
  strcpy(name,"tof2chcf");
  mcvn=mcvern[ctyp-1]%1000;
  rlvn=rlvern[ctyp-1]%1000;
- if(AMSJob::gethead()->isMCData())           // for MC-event
+ if(AMSJob::gethead()->isMCData())           // for MC-data
  {
-   cout <<" TOF2Brcal_build: hilow_ratio/gain-calib. for MC-events selected."<<endl;
+   cout <<" TOF2Brcal_build: dE/dX_calib-params for MC-data are requested"<<endl;
    dig=mcvn/100;
    in[0]=inum[dig];
    strcat(name,in);
@@ -692,9 +793,9 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
    strcat(name,in);
    strcat(name,vers1);
  }
- else                                       // for Real events
+ else                                       // for Real-data
  {
-   cout <<" TOF2Brcal_build: hilow_ratio/gain/mip2q-calib. for Real-events selected."<<endl;
+   cout <<" TOF2Brcal_build: dE/dX_calib-params for Real-data are requested"<<endl;
    dig=rlvn/100;
    in[0]=inum[dig];
    strcat(name,in);
@@ -711,25 +812,13 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
    if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
    strcat(fname,name);
    cout<<"Open file : "<<fname<<'\n';
-   ifstream gcfile(fname,ios::in); // open hi_low_r/gain/mip2q-file for reading
+   ifstream gcfile(fname,ios::in); // open file for reading
    if(!gcfile){
-     cerr <<"TOF2Brcal_build: missing hi_low_r/gain/mip2q-file "<<fname<<endl;
+     cerr <<"TOF2Brcal_build: missing  "<<fname<<endl;
      exit(1);
    }
-// ---> read hi/low-ratios:
 //
-   cnum=0;
-   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
-     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
-       gcfile >> cahlr[cnum+ibr][0];
-     }
-     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2 
-       gcfile >> cahlr[cnum+ibr][1];
-     }
-     cnum+=TOF2DBc::getbppl(ila);
-   } // --- end of layer loop --->
-//
-// ---> read gains(anode):
+// ----------------> read anode relat.gains:
 //
    cnum=0;
    for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
@@ -742,19 +831,58 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
      cnum+=TOF2DBc::getbppl(ila);
    } // --- end of layer loop --->
 //
-// ---> read mip2q's:
+// ----------------> read anode/dynode(hichan) ratios:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
+       gcfile >> a2drf[cnum+ibr][0];
+     }
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2
+       gcfile >> a2drf[cnum+ibr][1];
+     }
+     cnum+=TOF2DBc::getbppl(ila);
+   } // --- end of layer loop --->
+//
+// ----------------> read dynode hi/low-ratios:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
+       gcfile >> dh2lr[cnum+ibr][0];
+     }
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2 
+       gcfile >> dh2lr[cnum+ibr][1];
+     }
+     cnum+=TOF2DBc::getbppl(ila);
+   } // --- end of layer loop --->
+//
+// ----------------> read mip2q's:
 //
    for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){  // <-------- loop over bar-types
      gcfile >> m2q[ibt];
    }
 //
-// ---> read A-prof. parameters:
+// ----------------> read A-prof. parameters:
 //
    for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){  // <-------- loop over bar-types
      for(i=0;i<2*TOF2GC::SCPROFP;i++)gcfile >> aprofp[ibt][i];
    }
 //
+// ----------------> read average(tempor) Anode adc2q factor:
+//
+   gcfile >> a2q;
+// ---------------->
+   gcfile >> endflab;//read endfile-label
+//
    gcfile.close();
+//
+   if(endflab==12345){
+     cout<<"TOF2Brcal_build: dE/dX_calib-params file is successfully read !"<<endl;
+   }
+   else{cout<<"TOF2Brcal_build: ERROR(problems with dE/dX_calib-params file)"<<endl;
+     exit(1);
+   }
 //   
 //---------------------------------------------
 //   ===> fill TOFBrcal bank :
@@ -814,11 +942,12 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
     } 
     else td2p[0]=speedl;//average speed of the light from external file
     td2p[1]=TOF2Varp::tofvpar.lcoerr();//error on longit. coord. measurement(cm)
-    ahlr[0]=cahlr[cnum][0];// from ext.file
-    ahlr[1]=cahlr[cnum][1];
-    a2q=TOF2DBc::adc2q();//ADCch->Q generic factor from MC
-    scbrcal[ila][ibr]=TOF2Brcal(sid,sta,gna,gnd,asatl,tth,strat,fstrd,tzer,slope,
-                               slops,tdif,td2p,mip2q,nsp,scp,rlo,apr,ahlr,a2q);
+    a2dr[0]=a2drf[cnum][0];//an/dyn(hichan) ratios from ext.file
+    a2dr[1]=a2drf[cnum][1];
+    dh2l[0]=dh2lr[cnum][0];// dyn.hi/low ratios from ext.file
+    dh2l[1]=dh2lr[cnum][1];
+    scbrcal[ila][ibr]=TOF2Brcal(sid,sta,gna,gnd,a2dr,asatl,tth,strat,fstrd,tzer,
+                      slope,slops,tdif,td2p,mip2q,nsp,scp,rlo,apr,dh2l,a2q);
 //
     cnum+=1;// solid sequential numbering of all counter(0->33)
   } // --- end of bar loop --->
@@ -827,11 +956,40 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
 }
 //-----------------------------------------------------------------------
 //
-geant TOF2Brcal::adc2mip(int hlf, number amf[2]){ // side ADC(ch) -> Etot(Mev)
+void TOF2Brcal::q2a2q(int cof, int sdf, int hlf, number &adc, number &q){  
+// Q(pC) <-> ADC(ch,float) to use in sim./rec. programs (cof=0/1-> Q->ADC/ADC->Q)
+//                                                      (sdf=0/1-> bar side 1/2 )
+//                                                      (hlf=0/1/2-> for An/Dh/Dl)
+//
+  if(cof==0){ // <=== Q->ADCch
+    if(hlf==0){//      <-- for anode
+      adc=q/adc2qf;
+    }
+    else if(hlf==1){// <-- for Dynode(high)
+      adc=q/adc2qf/a2dr[sdf];//q->Aadc->Dadc(hi)
+    }
+    else{//            <-- for Dynode(low)
+      adc=q/adc2qf/a2dr[sdf]/dh2lr[sdf];//q->Aadc->Dadc(hi)->Dadc(lo)
+    }
+  }
+  else{       // <=== ADCch->Q
+    if(hlf==0){//      <-- for anode
+      q=adc*adc2qf;
+    }
+    else if(hlf==1){// <-- for Dynode(high)
+      q=adc*a2dr[sdf]*adc2qf;//Dadc->Aadc->q
+    }
+    else{//            <-- for Dynode(low)
+      q=adc*dh2lr[sdf]*a2dr[sdf]*adc2qf;//Dadc(lo)->Dadc(hi)->Aadc->q
+    }
+  }
+}
+//------
+geant TOF2Brcal::adc2mip(int hlf, number amf[2]){ // side1+2 ADC(ch) -> Etot(Mev)
   number q(0),qt(0);
   for(int isd=0;isd<2;isd++){
     if(status[isd]>=0){
-      q2t2q(1,isd,hlf,amf[isd],q);//ADC->Q
+      q2a2q(1,isd,hlf,amf[isd],q);//ADC->Q
       qt+=(q/gaina[isd]);// Q->Q_gain_corrected
     }
   }
@@ -844,30 +1002,7 @@ void TOF2Brcal::adc2q(int hlf, number amf[2], number qs[2]){// side ADC(ch) -> Q
   for(int isd=0;isd<2;isd++){
     qs[isd]=0.;
     if(status[isd]>=0){
-      q2t2q(1,isd,hlf,amf[isd],qs[isd]);//ADC->Q
-    }
-  }
-}
-//------
-void TOF2Brcal::q2t2q(int cof, int sdf, int hlf, number &adc, number &q){  
-// Q(pC) <-> ADC(ch,float) to use in sim./rec. programs (cof=0/1-> Q->ADC/ADC->Q)
-//                                                 (sdf=0/1-> bar side 1/2   )
-//                                             (hlf=0/1-> for high(anode)/low(dinode))
-//
-  if(cof==0){ // Q->ADCch
-    if(hlf==0){//     <-- for hi_chan(anode)
-      adc=q/adccf;
-    }
-    else{//           <-- for low_ch(dynode)
-      adc=q/adccf/ahlcr[sdf];
-    }
-  }
-  else{       // ADCch->Q
-    if(hlf==0){//       for hi_chan(anode)
-      q=adc*adccf;
-    }
-    else{//             for low_ch(dynode)
-      q=adc*adccf*ahlcr[sdf];
+      q2a2q(1,isd,hlf,amf[isd],qs[isd]);//ADC->Q
     }
   }
 }
@@ -893,7 +1028,7 @@ geant TOF2Brcal::tm2t(number tmf[2], number amf[2], int hlf){//(2-sides_times/AD
   number time,qs,uv(0);
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
-      q2t2q(1,isd,hlf,amf[isd],qs);// ADCch->Q
+      q2a2q(1,isd,hlf,amf[isd],qs);// ADCch->Q
       uv+=slops[isd]/sqrt(qs);// summing slops/sqrt(Q), works sl.better
     }
   }
@@ -916,7 +1051,7 @@ void TOF2Brcal::tmd2p(number tmf[2], number amf[2], int hlf,
   number coo,qs,uv(0);
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
-      q2t2q(1,isd,hlf,amf[isd],qs);// ADCch->Q
+      q2a2q(1,isd,hlf,amf[isd],qs);// ADCch->Q
       uv+=(1-2*isd)*slops[isd]/sqrt(qs);// subtr slops/sqrt(Q)
     }
   }
@@ -932,37 +1067,381 @@ void TOF2Brcal::td2ctd(number tdo, number amf[2], int hlf,
   number qs,uv(0);
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
-      q2t2q(1,isd,hlf,amf[isd],qs);// ADCch->Q
+      q2a2q(1,isd,hlf,amf[isd],qs);// ADCch->Q
       uv+=(1-2*isd)*slops[isd]/sqrt(qs);// subtr slops/sqrt(Q)
     }
   }
   tdc=tdo+slope*uv;
 }
+//===============================================================================
+  TOFBrcalMS::TOFBrcalMS(integer sid, integer sta[2], geant gna[2],
+           geant a2d[2], geant stra[2][2], geant hlr[2], geant a2q){
+    softid=sid;
+    status[0]=sta[0];
+    status[1]=sta[1];
+    gaina[0]=gna[0];
+    gaina[1]=gna[1];
+    a2dr[0]=a2d[0];
+    a2dr[1]=a2d[1];
+    strat[0][0]=stra[0][0];
+    strat[0][1]=stra[0][1];
+    strat[1][0]=stra[1][0];
+    strat[1][1]=stra[1][1];
+    for(int i=0;i<2;i++){dh2lr[i]=hlr[i];}
+    adc2qf=a2q;
+  }
+//  ================= TOFBrcalMS class("MC Seeds") functions ======================= :
+//
+void TOFBrcalMS::build(){// create scbrcal-objects for each sc.bar
+//
+ integer i,j,k,ila,ibr,ip,ibrm,isd,isp,nsp,ibt,cnum,dnum,mult;
+ integer lps=1000;
+ integer i1,i2,sta[2],stat[TOF2GC::SCBLMX][2];
+ geant r,eff1,eff2;
+ integer sid,brt,endflab;
+ geant gna[2],a2dr[2],strat[2][2],dh2l[2];
+ geant strf[TOF2GC::SCBLMX][2],strof[TOF2GC::SCBLMX][2];
+ geant an2di[TOF2GC::SCBLMX][2],gaina[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
+ geant aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP],hblen;
+ geant a2drf[TOF2GC::SCBLMX][2];
+ geant dh2lr[TOF2GC::SCBLMX][2];//buff.for dynode hi-to-low ratios 
+ char fname[80];
+ char name[80];
+ geant a2q,td2p[2];
+ char vers1[3]="mc";
+ char vers2[3]="rl";
+ int mrfp;
+//------------------------------
+  char in[2]="0";
+  char inum[11];
+  int ctyp,ntypes,mcvern[10],rlvern[10];
+  int mcvn,rlvn,dig;
+//
+  strcpy(inum,"0123456789");
+//
+// ---> read file with the list of version numbers for all needed calib.files :
+//
+  integer cfvn;
+  cfvn=TFCAFFKEY.cfvers%1000;//vers.list-file version number 
+  strcpy(name,"tof2cvlist");// basic name for vers.list-file  
+  dig=cfvn/100;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=(cfvn%100)/10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=cfvn%10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  strcat(name,".dat");
+//
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"TOFBrcalMS::build: Opening vers.list-file  "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in);
+  if(!vlfile){
+    cerr <<"TOFBrcalMS_build:: missing vers.list-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(i=0;i<ntypes;i++){
+    vlfile >> mcvern[i];// first number - for mc
+    vlfile >> rlvern[i];// second number - for real
+  }
+  vlfile.close();
+//------------------------------------------------
+//
+//   ---> Prepare to read tof-chan RealData calib-status file(used as "MC Seed") :
+//
+ ctyp=2;//line# corresponding calib-status parameters file
+ strcpy(name,"tof2stcf");
+ mcvn=mcvern[ctyp-1]%1000;
+ rlvn=rlvern[ctyp-1]%1000;
+   cout <<" TOFBrcalMS_build: TOF-ch Real-data status file is requested"<<endl;
+   dig=rlvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(rlvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+//
+   strcat(name,".dat");
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"Opening file : "<<fname<<'\n';
+   ifstream stfile(fname,ios::in); // open file for reading
+   if(!stfile){
+     cerr <<"TOFBrcalMS_build: missing TOF-channels RealData status-file "<<fname<<endl;
+     exit(1);
+   }
+//------------------------------
+//   --->  Read TOF-channels status values:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+     for(int ipr=0;ipr<2;ipr++){
+       stfile >> stat[cnum][ipr];//stat(s1),stat(s2)
+     }
+     cnum+=1; // sequential counter numbering(0-...)
+   } // --- end of bar loop --->
+   } // --- end of layer loop --->
+//
+   stfile >> endflab;//read endfile-label
+//
+   stfile.close();
+//
+   if(endflab==12345){
+     cout<<"TOFBrcalMS_build: TOF RealData calib-status file is successfully read !"<<endl;
+   }
+   else{cout<<"TOFBrcalMS_build: ERROR(problems with TOF RealData calib-status file)"<<endl;
+     exit(1);
+   }
+//
+//------------------------------------------------- 
+//
+//   ---> Prepare to read RealData stretcher_ratios/offs file(used as "MC Seeds") :
+//
+ ctyp=3;
+ strcpy(name,"tof2srcf");
+ mcvn=mcvern[ctyp-1]%1000;
+ rlvn=rlvern[ctyp-1]%1000;
+   cout <<" TOFBrcalMS_build: str_ratio/offs params for Real-data are requested"<<endl;
+   dig=rlvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(rlvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+//
+   strcat(name,".dat");
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"Open file : "<<fname<<'\n';
+   ifstream scfile(fname,ios::in); // open file for reading
+   if(!scfile){
+     cerr <<"TOFBrcalMS_build: missing RealData str_ratio/offsets file "<<fname<<endl;
+     exit(1);
+   }
+//-----------------> read str_ratios/offsets:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+     scfile >> strf[cnum][0];
+     scfile >> strof[cnum][0];
+     scfile >> strf[cnum][1];
+     scfile >> strof[cnum][1];
+     cnum+=1; // sequential counter numbering(0-...)
+   } // --- end of bar loop --->
+   } // --- end of layer loop --->
+//
+   scfile >> endflab;//read endfile-label
+//
+   scfile.close();
+//
+   if(endflab==12345){
+     cout<<"TOFBrcal_buildMS: TOF RealData str_ratio/offs file is successfully read !"<<endl;
+   }
+   else{cout<<"TOFBrcalMS_build: ERROR(problems with TOF RealData str_ratio/offs file)"<<endl;
+     exit(1);
+   }
+//
+//-------------------------------------------------------
+//
+//   --->Prepare to read anodes relat.gains, anode/dynode(hichan) ratios,
+//             dynode hi/low-ratios, adc2qf RealData calib.file(used as "MC Seeds") :
+//
+ ctyp=6;
+ strcpy(name,"tof2chcf");
+ mcvn=mcvern[ctyp-1]%1000;
+ rlvn=rlvern[ctyp-1]%1000;
+   cout <<" TOFBrcalMS_build: dE/dX calib-params for Real-data are requested"<<endl;
+   dig=rlvn/100;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=(rlvn%100)/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+//
+   strcat(name,".dat");
+   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+   strcat(fname,name);
+   cout<<"Open file : "<<fname<<'\n';
+   ifstream gcfile(fname,ios::in); // open file for reading
+   if(!gcfile){
+     cerr <<"TOFBrcalMS_build: missing  "<<fname<<endl;
+     exit(1);
+   }
+//
+// ----------------> read anode relat.gains:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
+       gcfile >> gaina[cnum+ibr][0];
+     }
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2
+       gcfile >> gaina[cnum+ibr][1];
+     }
+     cnum+=TOF2DBc::getbppl(ila);
+   } // --- end of layer loop --->
+//
+// ----------------> read anode/dynode(hichan) ratios:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
+       gcfile >> a2drf[cnum+ibr][0];
+     }
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2
+       gcfile >> a2drf[cnum+ibr][1];
+     }
+     cnum+=TOF2DBc::getbppl(ila);
+   } // --- end of layer loop --->
+//
+// ----------------> read dynode hi/low-ratios:
+//
+   cnum=0;
+   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-1
+       gcfile >> dh2lr[cnum+ibr][0];
+     }
+     for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // read side-2 
+       gcfile >> dh2lr[cnum+ibr][1];
+     }
+     cnum+=TOF2DBc::getbppl(ila);
+   } // --- end of layer loop --->
+//
+// ----------------> read mip2q's:
+//
+   for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){  // <-------- loop over bar-types
+     gcfile >> m2q[ibt];
+   }
+//
+// ----------------> read A-prof. parameters:
+//
+   for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){  // <-------- loop over bar-types
+     for(i=0;i<2*TOF2GC::SCPROFP;i++)gcfile >> aprofp[ibt][i];
+   }
+//
+// ----------------> read average(tempor) Anode adc2q factor:
+//
+   gcfile >> a2q;
+// ---------------->
+   gcfile >> endflab;//read endfile-label
+//
+   gcfile.close();
+//
+   if(endflab==12345){
+     cout<<"TOFBrcalMS_build: dE/dX RealData calib-params file is successfully read !"<<endl;
+   }
+   else{cout<<"TOFBrcalMS_build: ERROR(problems with dE/dX RealData calib-params file)"<<endl;
+     exit(1);
+   }
+//   
+//---------------------------------------------
+//   ===> fill TOFBrcal bank :
+//
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+    brt=TOF2DBc::brtype(ila,ibr);
+    hblen=0.5*TOF2DBc::brlen(ila,ibr);
+    gna[0]=gaina[cnum][0];
+    gna[1]=gaina[cnum][1];
+//
+    sid=100*(ila+1)+(ibr+1);
+    strat[0][0]=strf[cnum][0];//stretcher param. from ext.file
+    strat[1][0]=strf[cnum][1];
+    strat[0][1]=strof[cnum][0];
+    strat[1][1]=strof[cnum][1];
+    sta[0]=stat[cnum][0];
+    sta[1]=stat[cnum][1];
+    a2dr[0]=a2drf[cnum][0];//an/dyn(hichan) ratios from ext.file
+    a2dr[1]=a2drf[cnum][1];
+    dh2l[0]=dh2lr[cnum][0];// dyn.hi/low ratios from ext.file
+    dh2l[1]=dh2lr[cnum][1];
+    scbrcal[ila][ibr]=TOFBrcalMS(sid,sta,gna,a2dr,strat,dh2l,a2q);
+//
+    cnum+=1;// solid sequential numbering of all counter(0->33)
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
+//
+}
+//-----------------------------------------------------------------------
+//
+void TOFBrcalMS::q2a2q(int cof, int sdf, int hlf, number &adc, number &q){  
+// Q(pC) <-> ADC(ch,float) to use in sim./rec. programs (cof=0/1-> Q->ADC/ADC->Q)
+//                                                      (sdf=0/1-> bar side 1/2 )
+//                                                      (hlf=0/1/2-> for An/Dh/Dl)
+//
+  if(cof==0){ // <=== Q->ADCch
+    if(hlf==0){//      <-- for anode
+      adc=q/adc2qf;
+    }
+    else if(hlf==1){// <-- for Dynode(high)
+      adc=q/adc2qf/a2dr[sdf];//q->Aadc->Dadc(hi)
+    }
+    else{//            <-- for Dynode(low)
+      adc=q/adc2qf/a2dr[sdf]/dh2lr[sdf];//q->Aadc->Dadc(hi)->Dadc(lo)
+    }
+  }
+  else{       // <=== ADCch->Q
+    if(hlf==0){//      <-- for anode
+      q=adc*adc2qf;
+    }
+    else if(hlf==1){// <-- for Dynode(high)
+      q=adc*a2dr[sdf]*adc2qf;//Dadc->Aadc->q
+    }
+    else{//            <-- for Dynode(low)
+      q=adc*dh2lr[sdf]*a2dr[sdf]*adc2qf;//Dadc(lo)->Dadc(hi)->Aadc->q
+    }
+  }
+}
 //==========================================================================
 //
-void TOFBPeds::build(){// create TOFBPeds-objects for each sc.bar
+void TOFBPeds::mcbuild(){// create MC TOFBPeds-objects for each sc.bar
 //
   int i,j,ila,ibr,cnum,brt;
   integer sid;
   char fname[80];
   char name[80];
-  geant cpeds[TOF2GC::SCBLMX][4];// array of counter peds
-  geant csigs[TOF2GC::SCBLMX][4];// array of counter sigmas
-  geant peds[4],sigs[4];
+  integer asta[TOF2GC::SCBLMX][2];// array of counter stat
+  geant aped[TOF2GC::SCBLMX][2];// array of counter peds
+  geant asig[TOF2GC::SCBLMX][2];// array of counter sigmas
+  integer dsta[TOF2GC::SCBLMX][2];
+  geant dped[TOF2GC::SCBLMX][2];
+  geant dsig[TOF2GC::SCBLMX][2];
+  integer dlsta[TOF2GC::SCBLMX][2];
+  geant dlped[TOF2GC::SCBLMX][2];
+  geant dlsig[TOF2GC::SCBLMX][2];
+  integer stata[2],statd[2],statdl[2];
+  geant peda[2],siga[2],pedd[2],sigd[2],peddl[2],sigdl[2];
 //
-//   --->  Read high/low pedestals file :
+ if((TFMCFFKEY.ReadConstFiles%100)/10==1){//<---read peds from Copy of RealDataFile
 //
-  strcpy(name,"tof2ped");
-  if(AMSJob::gethead()->isMCData())           // for MC-event
-  {
-    cout <<" TOFBPeds_build: default MC peds-file is used..."<<endl;
-    strcat(name,"mc");
-  }
-  else                                       // for Real events
-  {
-    cout <<" TOFBPeds_build: default RealData peds-file is used..."<<endl;
-    strcat(name,"rl");
-  }
+//   --->  Read  pedestals file :
+//
+  strcpy(name,"tofped");
+  cout <<" TOFBPeds_mcbuild: COPY of current RealData peds-file is used..."<<endl;
+  strcat(name,"mc");
 // ---> check setup:
 //
   char vers1[4]="12p";
@@ -970,18 +1449,144 @@ void TOFBPeds::build(){// create TOFBPeds-objects for each sc.bar
   if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     cout<<" TOFPEDS-I-AMS02 setup selected."<<endl;
     if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
-      cout <<" TOFPEDS-I-TOF:12PAD setup selected."<<endl;
+      cout <<" TOFPeds:mcbuild-I-TOF:12PAD setup selected."<<endl;
       strcat(name,vers1);
     }
     else{
-      cout <<" TOFPEDS-I-TOF:8PAD setup selected."<<endl;
+      cout <<" TOFBPeds:mcbuild-I-TOF:8/8/10/8 PADS setup is used..."<<endl;
       strcat(name,vers2);
     }
 	  
   }
   else
   {
-        cout <<" TOFGeom-E-Unknown setup !!!"<<endl;
+        cout <<" TOFPeds:mcbuild-E-Unknown setup !!!"<<endl;
+        exit(10);
+  }
+//
+  strcat(name,".dat");
+  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"Open file : "<<fname<<'\n';
+  ifstream icfile(fname,ios::in); // open pedestals-file for reading
+  if(!icfile){
+    cerr <<"TOFBPeds_mcbuild: missing default pedestals-file "<<fname<<endl;
+    exit(1);
+  }
+//---> Read anode:
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+    for(i=0;i<2;i++)icfile >> asta[cnum][i];// sequence: side1,side2
+    for(i=0;i<2;i++)icfile >> aped[cnum][i];
+    for(i=0;i<2;i++)icfile >> asig[cnum][i];
+    cnum+=1;// sequential counter numbering(0-...)
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
+//
+//---> Read dynode(high):
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+    for(i=0;i<2;i++)icfile >> dsta[cnum][i];// sequence: side1,side2
+    for(i=0;i<2;i++)icfile >> dped[cnum][i];
+    for(i=0;i<2;i++)icfile >> dsig[cnum][i];
+    cnum+=1;// sequential counter numbering(0-...)
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
+//
+//---> Read dynode(low):
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+    for(i=0;i<2;i++)icfile >> dlsta[cnum][i];// sequence: side1,side2
+    for(i=0;i<2;i++)icfile >> dlped[cnum][i];
+    for(i=0;i<2;i++)icfile >> dlsig[cnum][i];
+    cnum+=1;// sequential counter numbering(0-...)
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
+//
+  icfile.close();
+ }
+//
+ else{
+   cerr <<"TOFBPeds_mcbuild:-E-unknown mode for MC-peds creation !"<<endl;
+   exit(10);
+ }
+//---------------------------------------------
+//   ===> fill TOFBPeds bank :
+//
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+    brt=TOF2DBc::brtype(ila,ibr);
+    sid=100*(ila+1)+(ibr+1);
+    for(i=0;i<2;i++){
+      stata[i]=asta[cnum][i];
+      peda[i]=aped[cnum][i];
+      siga[i]=asig[cnum][i];
+	
+      statd[i]=dsta[cnum][i];
+      pedd[i]=dped[cnum][i];
+      sigd[i]=dsig[cnum][i];
+	
+      statdl[i]=dlsta[cnum][i];
+      peddl[i]=dlped[cnum][i];
+      sigdl[i]=dlsig[cnum][i];
+    }
+//
+    scbrped[ila][ibr]=TOFBPeds(sid,stata,peda,siga,statd,pedd,sigd,statdl,peddl,sigdl);
+//
+    cnum+=1;
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
+}
+//==========================================================================
+//
+void TOFBPeds::build(){// tempor solution for RealData peds.
+//
+  int i,j,ila,ibr,cnum,brt;
+  integer sid;
+  char fname[80];
+  char name[80];
+  integer asta[TOF2GC::SCBLMX][2];// array of counter stat
+  geant aped[TOF2GC::SCBLMX][2];// array of counter peds
+  geant asig[TOF2GC::SCBLMX][2];// array of counter sigmas
+  integer dsta[TOF2GC::SCBLMX][2];
+  geant dped[TOF2GC::SCBLMX][2];
+  geant dsig[TOF2GC::SCBLMX][2];
+  integer dlsta[TOF2GC::SCBLMX][2];
+  geant dlped[TOF2GC::SCBLMX][2];
+  geant dlsig[TOF2GC::SCBLMX][2];
+  integer stata[2],statd[2],statdl[2];
+  geant peda[2],siga[2],pedd[2],sigd[2],peddl[2],sigdl[2];
+//
+//
+//   --->  Read pedestals file :
+//
+  strcpy(name,"tofped");
+  cout <<" TOFBPeds_build: current RealData peds-file is used..."<<endl;
+  strcat(name,"rl");
+// ---> check setup:
+//
+  char vers1[4]="12p";
+  char vers2[4]="8p";
+  if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    cout<<" TOFPEDS-I-AMS02 setup selected."<<endl;
+    if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
+      cout <<" TOFPeds:build-I-TOF:12PAD setup selected."<<endl;
+      strcat(name,vers1);
+    }
+    else{
+      cout <<" TOFBPeds:build-I-TOF:8/8/10/8 PADS setup is used..."<<endl;
+      strcat(name,vers2);
+    }
+	  
+  }
+  else
+  {
+        cout <<" TOFPeds:build-E-Unknown setup !!!"<<endl;
         exit(10);
   }
 //
@@ -995,15 +1600,39 @@ void TOFBPeds::build(){// create TOFBPeds-objects for each sc.bar
     cerr <<"TOFBPeds_build: missing default pedestals-file "<<fname<<endl;
     exit(1);
   }
-//
+//---> Read anode:
   cnum=0;
   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
-    for(i=0;i<4;i++)icfile >> cpeds[cnum][i];// sequence: side1(h,l),side2(h,l)
-    for(i=0;i<4;i++)icfile >> csigs[cnum][i];// sequence: side1(h,l),side2(h,l)
+    for(i=0;i<2;i++)icfile >> asta[cnum][i];// sequence: side1,side2
+    for(i=0;i<2;i++)icfile >> aped[cnum][i];
+    for(i=0;i<2;i++)icfile >> asig[cnum][i];
     cnum+=1;// sequential counter numbering(0-...)
   } // --- end of bar loop --->
   } // --- end of layer loop --->
+//
+//---> Read dynode(high):
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+    for(i=0;i<2;i++)icfile >> dsta[cnum][i];// sequence: side1,side2
+    for(i=0;i<2;i++)icfile >> dped[cnum][i];
+    for(i=0;i<2;i++)icfile >> dsig[cnum][i];
+    cnum+=1;// sequential counter numbering(0-...)
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
+//
+//---> Read dynode(low):
+  cnum=0;
+  for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
+  for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
+    for(i=0;i<2;i++)icfile >> dlsta[cnum][i];// sequence: side1,side2
+    for(i=0;i<2;i++)icfile >> dlped[cnum][i];
+    for(i=0;i<2;i++)icfile >> dlsig[cnum][i];
+    cnum+=1;// sequential counter numbering(0-...)
+  } // --- end of bar loop --->
+  } // --- end of layer loop --->
+//
   icfile.close();
 //---------------------------------------------
 //   ===> fill TOFBPeds bank :
@@ -1013,11 +1642,23 @@ void TOFBPeds::build(){// create TOFBPeds-objects for each sc.bar
   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
     brt=TOF2DBc::brtype(ila,ibr);
     sid=100*(ila+1)+(ibr+1);
-    for(i=0;i<4;i++)peds[i]=cpeds[cnum][i];// from ext.file
-    for(i=0;i<4;i++)sigs[i]=csigs[cnum][i];// from ext.file
-    scbrped[ila][ibr]=TOFBPeds(sid,peds,sigs);
+    for(i=0;i<2;i++){
+      stata[i]=asta[cnum][i];
+      peda[i]=aped[cnum][i];
+      siga[i]=asig[cnum][i];
+	
+      statd[i]=dsta[cnum][i];
+      pedd[i]=dped[cnum][i];
+      sigd[i]=dsig[cnum][i];
+	
+      statdl[i]=dlsta[cnum][i];
+      peddl[i]=dlped[cnum][i];
+      sigdl[i]=dlsig[cnum][i];
+    }
 //
-  cnum+=1;
+    scbrped[ila][ibr]=TOFBPeds(sid,stata,peda,siga,statd,pedd,sigd,statdl,peddl,sigdl);
+//
+    cnum+=1;
   } // --- end of bar loop --->
   } // --- end of layer loop --->
 }
@@ -1119,16 +1760,16 @@ void TOF2JobStat::printstat(){
 //
   printf("===========> Channels validation report :\n\n");
 //
-  printf("H/w-status OK (validation) :\n\n");
+  printf("Validation entries per channel:\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
-      printf(" % 6d",chcount[ic][11]);
+      printf(" % 6d",chcount[ic][12]);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
-      printf(" % 6d",chcount[ic][11]);
+      printf(" % 6d",chcount[ic][12]);
     }
     printf("\n\n");
   }
@@ -1138,15 +1779,15 @@ void TOF2JobStat::printstat(){
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
-      rc=geant(chcount[ic][11]);
-      if(rc>0.)rc=100.*geant(chcount[ic][12])/rc;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
-      rc=geant(chcount[ic][11]);
-      if(rc>0.)rc=100.*geant(chcount[ic][12])/rc;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");
@@ -1157,53 +1798,72 @@ void TOF2JobStat::printstat(){
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
-      rc=geant(chcount[ic][11]);
-      if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
-      rc=geant(chcount[ic][11]);
-      if(rc>0.)rc=100.*geant(chcount[ic][13])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n\n");
-  }
-//
-  printf("A-TDC wrong up/down sequence (percentage) :\n");
-  printf("\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
-      rc=geant(chcount[ic][11]);
+      rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][14])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
-      rc=geant(chcount[ic][11]);
+      rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][14])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
 //
-  printf("D-TDC wrong up/down sequence (percentage) :\n");
+  printf("Problems with AnodeADC (percentage) :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
-      rc=geant(chcount[ic][11]);
+      rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][15])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
-      rc=geant(chcount[ic][11]);
+      rc=geant(chcount[ic][12]);
       if(rc>0.)rc=100.*geant(chcount[ic][15])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Problems with DynodeADC(h) (percentage) :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][16])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][16])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Problems with DynodeADC(l) (percentage) :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][17])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][12]);
+      if(rc>0.)rc=100.*geant(chcount[ic][17])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");
@@ -1214,7 +1874,7 @@ void TOF2JobStat::printstat(){
 //
   printf("==========> Bars reconstruction report :\n\n");
 //
-  printf("Bar H/w-status OK (at least 1 side is found) :\n\n");
+  printf("RawEvent bar(at least 1side) entries :\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR+ib;
@@ -1223,7 +1883,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Bar 3-measurements found (at least for 1 side) :\n\n");
+  printf("Bars fraction with 3meas(Ftdc & Stdc & Aadc) (at least 1 side) :\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR+ib;
@@ -1234,7 +1894,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Bar 1-side history 'OK' (for each of the EXISTING 3-measurements sides) :\n\n");
+  printf("Bar fraction with at least 1-side history 'OK' (2x3+1x3-meas.bars ) :\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR+ib;
@@ -1245,7 +1905,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Bar 2-sides history 'OK'(if there are 2x3meas. with good history) :\n\n");
+  printf("Bar fraction with 2-sides history 'OK'(2x3meas. bars) :\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR+ib;
@@ -1256,31 +1916,10 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Bar a/s-TDC matching 'OK' on alive sides :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR+ib;
-      rc=geant(brcount[ic][0]);
-      if(rc>0.)rc=geant(brcount[ic][4])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n\n");
-  }
-//
-  printf("Bar d/s-TDC matching 'OK' on alive sides :\n\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR+ib;
-      rc=geant(brcount[ic][0]);
-      if(rc>0.)rc=geant(brcount[ic][5])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n\n");
-  }
 //---------------------------------------------------------
   printf("============> Channels reconstruction report :\n\n");
 //
-  printf("H/w-status OK :\n\n");
+  printf("RawEvent channel entries :\n\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
@@ -1351,7 +1990,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Dinode-ADC 'ON' :\n");
+  printf("Dynode-ADC 'ON' :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -1365,6 +2004,25 @@ void TOF2JobStat::printstat(){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][4])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Dynode(l)-ADC 'ON' :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][5])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][5])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");
@@ -1376,14 +2034,14 @@ void TOF2JobStat::printstat(){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
-      if(rc>0.)rc=geant(chcount[ic][5])/rc;
+      if(rc>0.)rc=geant(chcount[ic][6])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
-      if(rc>0.)rc=geant(chcount[ic][5])/rc;
+      if(rc>0.)rc=geant(chcount[ic][6])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");
@@ -1395,25 +2053,6 @@ void TOF2JobStat::printstat(){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
       ic=il*TOF2GC::SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
-      if(rc>0.)rc=geant(chcount[ic][6])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n");
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
-      rc=geant(chcount[ic][0]);
-      if(rc>0.)rc=geant(chcount[ic][6])/rc;
-      printf("% 5.2f",rc);
-    }
-    printf("\n\n");
-  }
-//
-  printf("Anode-ADC '1 hit' :\n");
-  printf("\n");
-  for(il=0;il<TOF2GC::SCLRS;il++){
-    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
-      ic=il*TOF2GC::SCMXBR*2+ib*2;
-      rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][7])/rc;
       printf("% 5.2f",rc);
     }
@@ -1427,7 +2066,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("Dinode-ADC '1 hit' :\n");
+  printf("(Stds & Ftdc & Aadc) ON :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -1446,7 +2085,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("3-measurements(S-tds + F-tdc + A-tdc) :\n");
+  printf("Anode-adc overflows :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -1465,7 +2104,7 @@ void TOF2JobStat::printstat(){
     printf("\n\n");
   }
 //
-  printf("High(anode)-channel overflows :\n");
+  printf("DynodeH-adc overflows :\n");
   printf("\n");
   for(il=0;il<TOF2GC::SCLRS;il++){
     for(ib=0;ib<TOF2GC::SCMXBR;ib++){
@@ -1479,6 +2118,25 @@ void TOF2JobStat::printstat(){
       ic=il*TOF2GC::SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][10])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("DynodeL-adc overflows :\n");
+  printf("\n");
+  for(il=0;il<TOF2GC::SCLRS;il++){
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][11])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n");
+    for(ib=0;ib<TOF2GC::SCMXBR;ib++){
+      ic=il*TOF2GC::SCMXBR*2+ib*2+1;
+      rc=geant(chcount[ic][0]);
+      if(rc>0.)rc=geant(chcount[ic][11])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");
@@ -1502,8 +2160,9 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
     HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,160.,0.);
     HBOOK1(1103,"Time_history: TovT(ns)",80,0.,120.,0.);
-    HBOOK1(1104,"High(anode) ADC(ch) signals",100,0.,1000.,0.);
-    HBOOK1(1105,"Low(dinode) ADC(ch) signals",100,0.,100.,0.);
+    HBOOK1(1104,"Anode ADC(ch) signals",100,0.,1000.,0.);
+    HBOOK1(1105,"Dynode(h) ADC(ch) signals",100,0.,1000.,0.);
+    HBOOK1(1106,"Dynode(l) ADC(ch) signals",100,0.,1000.,0.);
     HBOOK1(1108,"Time-hist hit(2edges) multiplicity(all chan)",20,0.,20.,0.);
     HBOOK1(1110,"RawClusterLevel:Total fired layers per event",5,0.,5.,0.);
     HBOOK1(1111,"RawClusterLevel:Layer appearence frequency",4,0.5,4.5,0.);
@@ -1511,20 +2170,22 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
     HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
     HBOOK1(1115,"Fast-Slow hit time-difference(ALL hist/slow-hit meas.",80,-40.,120.,0.);
-    HBOOK1(1116,"dEdX vs bar (norm.inc.,L=1)",14,0.,14.,0.);
-    HBOOK1(1117,"dEdX vs bar (norm.inc.,L=2)",14,0.,14.,0.);
-    HBOOK1(1118,"dEdX vs bar (norm.inc.,L=3)",14,0.,14.,0.);
-    HBOOK1(1119,"dEdX vs bar (norm.inc.,L=4)",14,0.,14.,0.);
-    HBOOK1(1095,"Side time diff",50,-5.,5.,0.);
-    HBOOK1(1096,"Time diff",50,-5.,5.,0.);
-    HBOOK1(1097,"Coord. diff",50,-15.,15.,0.);
-    HBOOK1(1098,"Edep. diff",50,-5.,5.,0.);
+    HBOOK1(1116,"dEdX vs bar (norm.inc.,L=1)",10,0.,10.,0.);
+    HBOOK1(1117,"dEdX vs bar (norm.inc.,L=2)",10,0.,10.,0.);
+    HBOOK1(1118,"dEdX vs bar (norm.inc.,L=3)",10,0.,10.,0.);
+    HBOOK1(1119,"dEdX vs bar (norm.inc.,L=4)",10,0.,10.,0.);
+//    HBOOK1(1095,"Side time diff",50,-5.,5.,0.);// 1095-8 are not used now
+//    HBOOK1(1096,"Time diff",50,-5.,5.,0.);
+//    HBOOK1(1097,"Coord. diff",50,-15.,15.,0.);
+//    HBOOK1(1098,"Edep. diff",50,-5.,5.,0.);
     HBOOK1(1092,"TOF:Ttop-Tbot(LVL3)",50,-12.5,12.5,0.);
     if(TFREFFKEY.reprtf[2]>1){
-      HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
-      HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
-      HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
-      HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
+      HBOOK1(1526,"L=1,Ed_anode(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
+      HBOOK1(1527,"L=3,Ed_anode(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
+      HBOOK1(1528,"L=1,Ed_dynode(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
+      HBOOK1(1529,"L=3,Ed_dynode(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
+      HBOOK1(1530,"L=1,Ed_dynodeL(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
+      HBOOK1(1531,"L=3,Ed_dynodeL(mev),pcorr,1b/lay evnt",80,0.,24.,0.);
       for(il=0;il<TOF2GC::SCLRS;il++){
         for(ib=0;ib<TOF2GC::SCMXBR;ib++){
     	  strcpy(htit1,"dE/dX (norm.inc) for bar(LBB) ");
@@ -1541,7 +2202,7 @@ void TOF2JobStat::bookhist(){
         }
       }
     }
-    if(TFREFFKEY.reprtf[2]>1){
+    if(TFREFFKEY.reprtf[2]>2){
       HBOOK1(1120,"STR-tmp-reference in Crate-1",50,1980.,2030.,0.);
       HBOOK1(1121,"STR-tmp-reference in Crate-2",50,1940.,1990.,0.);
       HBOOK1(1122,"STR-tmp-reference in Crate-3",50,1940.,1990.,0.);
@@ -1589,16 +2250,6 @@ void TOF2JobStat::bookhist(){
 //
     HBOOK1(1532,"T1-T3(ns,NormIncidence,1b/L evnt)",80,1.,9.,0.);
 //
-    HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
-    HBOOK1(1554,"L=2,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
-    HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-    HBOOK1(1545,"L=2,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-    HBOOK1(1546,"L=3,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-    HBOOK1(1547,"L=4,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-    HBOOK1(1560,"Bar-time(corected),L=1",80,60.,80.,0.);
-    HBOOK1(1561,"Bar-time(corected),L=2",80,60.,80.,0.);
-    HBOOK1(1562,"Bar-time(corected),L=3",80,55.,75.,0.);
-    HBOOK1(1563,"Bar-time(corected),L=4",80,55.,75.,0.);
 
     HBOOK1(1534,"T2-T4(ns,NormIncidence,1b/L evnt)",80,1.,9.,0.);
     HBOOK1(1544,"(T1-T3)-(T2-T4),(ns,1b/L evnt)",80,-4.,4.,0.);
@@ -1726,7 +2377,7 @@ void TOF2JobStat::bookhist(){
       for(il=0;il<TOF2GC::SCLRS;il++){
 	for(ib=0;ib<TOF2GC::SCMXBR;ib++){
 	  for(i=0;i<2;i++){
-	    strcpy(htit1,"FTDC/STDC/ATDC/DTDC multipl. for chan(LBBS) ");
+	    strcpy(htit1,"FTDC/STDC/AADC/DADC/DLADC multipl. for chan(LBBS) ");
 	    in[0]=inum[il+1];
 	    strcat(htit1,in);
 	    ii=(ib+1)/10;
@@ -1738,7 +2389,7 @@ void TOF2JobStat::bookhist(){
 	    in[0]=inum[i+1];
 	    strcat(htit1,in);
 	    ich=2*TOF2GC::SCMXBR*il+2*ib+i;
-	    HBOOK1(1300+ich,htit1,80,0.,80.,0.);
+	    HBOOK1(1300+ich,htit1,100,0.,100.,0.);
 	  }
 	}
       }
@@ -1753,15 +2404,16 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1052,"Geant-hits in layer-3",80,0.,80.,0.);
       HBOOK1(1053,"Geant-hits in layer-4",80,0.,80.,0.);
       HBOOK1(1060,"Geant-Edep(mev) in layer-1",80,0.,24.,0.);
-      HBOOK1(1061,"Geant-Edep(mev) in layer-1",80,0.,240.,0.);
+      HBOOK1(1061,"Geant-Edep(mev) in layer-2",80,0.,24.,0.);
       HBOOK1(1062,"Geant-Edep(mev) in layer-3",80,0.,24.,0.);
-      HBOOK1(1063,"Geant-Edep(mev) in layer-3",80,0.,240.,0.);
-      HBOOK1(1070,"SIMU: PM-1 charge(pC,id=107,s1)",80,0.,400.,0.);
+      HBOOK1(1063,"Geant-Edep(mev) in layer-4",80,0.,24.,0.);
+      HBOOK1(1070,"SIMU: PM-1 charge(pC,id=104,s1)",80,0.,400.,0.);
       HBOOK1(1071,"SIMU: s1+s2 pulse-charge(pC),L-1",80,0.,160.,0.);
       HBOOK1(1072,"SIMU: s1+s2 pulse-charge(pC),L-1",80,0.,1600.,0.);
-      HBOOK1(1073,"SIMU: pm1 pulse-hight(mV,id=107,s1)",80,0.,1000.,0.);
-      HBOOK1(1074,"SIMU: pm1 ADC(+noise(ped))(H-chan,id=107,s1)",100,0.,500.,0.);
-      HBOOK1(1075,"SIMU: pm1 ADC(+noise(ped))(L-chan,id=107,s1)",100,0.,100.,0.);
+      HBOOK1(1073,"SIMU: pm1 pulse-hight(mV,id=104,s1)",80,0.,1600.,0.);
+      HBOOK1(1074,"SIMU: pm1 Aadc(no peds)(id=104,s1)",100,0.,500.,0.);
+      HBOOK1(1075,"SIMU: pm1 Dadc(h)(no peds)(id=104,s1)",100,0.,100.,0.);
+      HBOOK1(1064,"SIMU: pm1 Dadc(l)(no peds)(id=104,s1)",100,0.,100.,0.);
       HBOOK1(1076,"ECTrigFlag when TOFTrflag OK",20,0.,20.,0.);
       HBOOK1(1077,"TOFFTTime-ECFTTime",100,-50.,50.,0.);
       HBOOK1(1078,"Out-of-width hit",50,0.,5.,0.);
@@ -1792,20 +2444,23 @@ void TOF2JobStat::outp(){
          HPRINT(1108);
          HPRINT(1104);
          HPRINT(1105);
+         HPRINT(1106);
          HPRINT(1110);
          HPRINT(1111);
          HPRINT(1112);
          HPRINT(1113);
          HPRINT(1114);
-         HPRINT(1095);
-         HPRINT(1096);
-         HPRINT(1097);
-         HPRINT(1098);
+//         HPRINT(1095);
+//         HPRINT(1096);
+//         HPRINT(1097);
+//         HPRINT(1098);
          HPRINT(1092);
          if(TFREFFKEY.reprtf[2]>1){
-           HPRINT(1529);
            HPRINT(1526);
+           HPRINT(1527);
            HPRINT(1528);
+           HPRINT(1529);
+           HPRINT(1530);
            HPRINT(1531);
            for(i=0;i<TOF2GC::SCLRS;i++){
              for(j=0;j<TOF2GC::SCMXBR;j++){
@@ -1821,7 +2476,7 @@ void TOF2JobStat::outp(){
              HPRINT(1116+i);
            }
          }
-           if(TFREFFKEY.reprtf[2]>1){
+           if(TFREFFKEY.reprtf[2]>2){
              HPRINT(1120);
              HPRINT(1121);
              HPRINT(1122);
@@ -1844,16 +2499,6 @@ void TOF2JobStat::outp(){
            HPRINT(1139);
          }
            HPRINT(1532);
-           HPRINT(1533);
-           HPRINT(1554);
-           HPRINT(1543);
-           HPRINT(1545);
-           HPRINT(1546);
-           HPRINT(1547);
-	   HPRINT(1560);
-	   HPRINT(1561);
-	   HPRINT(1562);
-	   HPRINT(1563);
            HPRINT(1544);
            HPRINT(1534);
          if(TFREFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
@@ -1997,6 +2642,7 @@ void TOF2JobStat::outpmc(){
          HPRINT(1073);
          HPRINT(1074);
          HPRINT(1075);
+         HPRINT(1064);
          HPRINT(1076);
          HPRINT(1077);
          HPRINT(1078);

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.29 2002/12/05 03:05:10 schol Exp $
+//  $Id: root.C,v 1.30 2002/12/06 14:43:19 choumilo Exp $
 //  Last Edit : Nov 19, 2002. A.Klimentov
 //              check Root classes
 //              ? TrGammaRoot02 - commented
@@ -626,6 +626,7 @@ EcalHitRoot::EcalHitRoot(AMSEcalHit *ptr)
   Plane  = ptr->_plane;
   Cell   = ptr->_cell;
   Edep   = ptr->_edep;
+  EdCorr = ptr->_edepc;
   if (Proj) {
    Coo[0]= ptr->_cool;
    Coo[1]= ptr->_coot;

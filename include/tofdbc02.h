@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.11 2002/10/15 12:44:26 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.12 2002/12/06 14:43:40 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -6,12 +6,12 @@
 //
 #ifndef __TOF2DBC__
 #define __TOF2DBC__
+#include <typedefs.h>
 #include <cern.h>
 #include <commons.h>
 #include <amsdbc.h>
 #include <extC.h>
 #include <string.h>
-#include <typedefs.h>
 #include <stdlib.h>
 #include <iostream.h>
 #include <fstream.h>
@@ -47,14 +47,15 @@ const integer SCANPNT=15; //max scan points in MC/REC t/a-calibration
 const integer SCANTDL=400;//scan time distribution max.length(should be SCANTDL<AMSDISL) 
 const integer SCANWDS=10; //max. width-divisions in the sc.paddle scan
 const integer SCTBMX=5000;//length of MC "flash-ADC" buffer
-const integer SCSBMX=1200;//length of MC "shaper" buffer
-//                       (should be above SCTBMX*fadcb/shaptb+6.21*tfall/shaptb)
 // 
 //DAQ
 const int16u SCPHBP=16384; // phase bit position in Reduced-format TDC word (15th bit)
 const int16u SCPHBPA=32768;// phase bit position in Raw-format address word (16th bit)
 const int16u SCADCMX=4095;// MAX. value in ADC (12bits-1)
 const integer SCCRAT=8; // number of crates with TOF(+CTC/ANTI)-channels (S-crates)
+const integer SCSLOT=6;// number of slots per crate(max)
+const integer SCRDCH=12;// number of readout channels (outp) per slot(card)(max)
+const integer SCMTYP=5;// number of measurement types(max)
 const integer SCSFET=4; // SFETs per crate
 const integer SCTOFC=4; // max. TOF-channels (each =4 TDC-channels) per SFET
 const integer SCTDCC=SCTOFC*4; // max. TDC-channels per SFET (4 tdcchan/tofch)
@@ -68,10 +69,9 @@ const integer DAQSTMX=DAQSBLK*DAQSTSC*DAQSTCS;// max. temp. channels
 const integer SCTHMX1=8;//max trigger hits( multpl.factor=2 for tr/ftdc/adc, =4 for stdc)
 const integer SCTHMX2=8;//max fast TDC (history) hits  
 const integer SCTHMX3=4;//max slow TDC (stretcher) hits
-const integer SCTHMX4=8;//max adc TDC (time_over_threshold) hits  
+const integer SCTHMX4=1;//max adca(anode)/adcd/adcdl hits  
 const integer SCJSTA=35;   //size of Job-statistics array
-const integer SCCSTA=16;   //size of Channel-statistics array
-const integer SCIPAR=3;    // number of a(d)-integrator parameters
+const integer SCCSTA=18;   //size of Channel-statistics array
 const integer SCPROFP=4;//max. parameters/side in A-profile(Apm<->Yloc) fit
 //
 //      Calibration:
@@ -115,10 +115,10 @@ private:
   static geant _seresv;      // ........................ variations (relat to MP)
   static geant _adc2q;       // generic ADCch->Q conv. factor (pC/chan) 
   static geant _fladctb;     // MC flash-ADC time-binning (ns)
-  static geant _shaptb;      // MC shaper pulse time-binning
-  static geant _shrtim;      // MC shaper pulse rise-time (ns)
-  static geant _shftim;      // MC shaper pulse fall-time (ns)
-  static geant _shctim;      // MC shaper pulse cut-time (gate width)(ns)
+  static geant _shaptb;      // not used
+  static geant _shrtim;      // not used
+  static geant _shftim;      // not used
+  static geant _shctim;      // not used
   static geant _tdcbin[4];   // TDC binning for ftdc/stdc, supl.DAQ binning for ADC
   static geant _trigtb;      // MC time-binning in logic(trig) pulse handling
   static geant _strflu;      // Stretcher "end-mark" time fluctuations (ns)
@@ -131,7 +131,7 @@ private:
   static geant _ftdelm;      // FT max delay (allowed by stretcher logic) (ns)
   static geant _accdel;      // Lev-1 signal delay with respect to FT (ns)
   static geant _fstdcd;      // Same hit(up-edge) relative delay of slow- wrt hist-TDC
-  static geant _fatdcd;      // Same hit(up-edge) rel.delay of A(d)- wrt hist-TDC
+  static geant _fatdcd;      // not used
   static integer _pbonup;    // set phase bit "on" for leading(up) edge (yes/no->1/0)
 //
 public:  
@@ -318,30 +318,31 @@ private:
 //          =34 -> TOF reco with EC in LVL1
 //------
   static integer chcount[TOF2GC::SCCHMX][TOF2GC::SCCSTA];//channel statistics
-//                              [0] -> h/w-status="ON" frequency 
+//                              [0] -> RawEvent channel entries  
 //                              [1] -> "FTDC-ON"  (Nftdc>0)
 //                              [2] -> "STDC-ON"  (Nstdc>0)
 //                              [3] -> "ADCA-ON"  (Nadca>0)
 //                              [4] -> "ADCD-ON"  (Nadcd>0)
-//                              [5] -> "FTDC-1hit"  (Nftdc=1)
-//                              [6] -> "STDC-1hit"  (Nstdc=1)
-//                              [7] -> "ADCA-1hit"  (Nadca=1)
-//                              [8] -> "ADCD-1hit"  (Nadcd=1)
-//                              [9] -> "3-measurements"
+//                              [5] -> "ADCDl-ON"  (Nadcdl>0)
+//                              [6] -> "FTDC-1hit"  (Nftdc=1)
+//                              [7] -> "STDC-1hit"  (Nstdc=1)
+//                              [8] -> "(F&S&A)-ON "
+//                              [9] -> "Anode-adc overflow "
+//                              [10] -> "DynodeH-adc overflow "
+//                              [11] -> "DynodeL-adc overflow "
 //
-//                             [11] -> "h/w-ok frequency (validate)"
-//                             [12] -> "bad up/down sequence in hist-TDC"
-//                             [13] -> "bad up/down sequence in slow-TDC"
-//                             [14] -> "bad up/down sequence in A-TDC"
-//                             [15] -> "bad up/down sequence in D-TDC"
+//                             [12] -> "Validate entries/channel"
+//                             [13] -> "bad up/down sequence in hist-TDC"
+//                             [14] -> "bad up/down sequence in slow-TDC"
+//                             [15] -> "problems in AnodeADC"
+//                             [16] -> "problems in DynodeADC(h)"
+//                             [17] -> "problems in DynodeADC(l)"
 //------
   static integer brcount[TOF2GC::SCBLMX][TOF2GC::SCCSTA];// bar statistics
-//                               [0] -> h/w-status="ON" frequency
+//                               [0] -> RawEvent Bar(at least 1side) entries
 //                               [1] -> "multipl-OK"
 //                               [2] -> "history-OK"
 //                               [3] -> "2-sided history-OK"
-//                               [4] -> "a/s-TDC matching OK"
-//                               [5] -> "d/s-TDC matching OK"
 //------
   static integer scdaqbc1[TOF2GC::SCCRAT][2];// scDAQ-block appearence frequecy  (for fmt=0/1->raw/red)
   static integer scdaqbc2[TOF2GC::SCCRAT][2];// scDAQ-block appearence frequecy(non-empty)
@@ -396,9 +397,11 @@ class TOF2Brcal{
 //
 private:
   integer softid;  // LBB
-  integer status[2]; // 2-sides status,each number as LR(L->PM1,R->PM2)(!=0/0->problems/ok)
+  integer status[2]; //2-sides cal.status FSAHL -> Anode(FastTDC/SlowTDC/AnodeADC-channel
+//                     and Dynode(High/Low gain channel), =0/1->OK/Bad)
   geant gaina[2]; // A-chain gain(PMT mainly)| (side-1/2; relative to some 
-  geant gaind[2]; // D-chain gain(PMT mainly)|       reference bar of given type)
+  geant gaind[2]; // not used now      |       reference bar of given type)
+  geant a2dr[2];  // anode-to-dynode(high-gain chan) signal ratio (in unsatur. region)
   geant asatl;  // anode_chain saturation limit(mev)(incl. PM,Shaper,...)
 //                  (i.e. below use anode data, above  - dinode data)
   geant tthr;   // Time-discr. threshold (mV)
@@ -416,8 +419,9 @@ private:
   geant relout[TOF2GC::SCANPNT]; // Relative(to Y=0) 2-Sides(sum) Light output
 //(if some PMTs in some bar are dead, curve should be MC-calc. or measured)  
 //
-  geant ahlcr[2]; // Amplitude high/low channel ratio (side-1,2)
-  geant adccf; // ADCch->Q generic conv.factor(pC/ch)
+  geant dh2lr[2]; // Dynode high/low channel ratio (side-1,2)
+  geant adc2qf; // Average(tempor) Anode ADCch->Q conv.factor(pC/ch)
+//  (for dynodes this factor is not required because included into a2dr or dh2lr factors)
 //
   geant unipar[2*TOF2GC::SCPROFP];// responce uniformity parameters (for ref.bars)
 //
@@ -425,15 +429,35 @@ private:
 public:
   static TOF2Brcal scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   TOF2Brcal(){};
-  TOF2Brcal(integer sid, integer sta[2], geant gna[2], geant gnd[2],
+  TOF2Brcal(integer sid, integer sta[2], geant gna[2], geant gnd[2], geant a2d[2],
            geant asl, geant tth, geant stra[2][2], geant fstd, 
            geant t0, geant sl, geant sls[2], geant tdiff, geant td2p[2],
            geant mip, integer nscp, geant ysc[], geant relo[], geant upar[], 
-           geant ahlr[2],geant acf);
+           geant dh2l[2], geant a2q);
   void getbstat(int sta[]){
     sta[0]=status[0];
     sta[1]=status[1];
   }
+//
+  bool FchOK(int isd){
+    return((status[isd]%100000)/10000==0);// means good FastTDC chan(anode)
+  }
+  bool SchOK(int isd){
+    return((status[isd]%10000)/1000==0);// means good SlowTDC chan(anode)
+  }
+  bool AchOK(int isd){
+    return((status[isd]%1000)/100==0);// means good Anode chan
+  }
+  bool HchOK(int isd){
+    return((status[isd]%100)/10==0);// means good HiGainADC chan(dynode)
+  }
+  bool LchOK(int isd){
+    return(status[isd]%10==0);// means good LowGainADC chan(dynode)
+  }
+  bool SideOK(int isd){return(
+                     ((status[isd]%100000)/10000==0 || TFREFFKEY.relogic[1]>=1)
+                   && (status[isd]%10000)/1000==0 && (status[isd]%1000)/100==0);}
+//
   void gtstrat(geant str[2][2]){
     str[0][0]=strat[0][0];
     str[0][1]=strat[0][1];
@@ -446,7 +470,7 @@ public:
   geant gettdif(){return yctdif;}
   geant getslope(){return slope;}
   geant gettzero(){return tzero;}
-  geant getadccf(){return adccf;}
+  geant getadc2q(){return adc2qf;}
   void getslops(geant sls[2]){
     sls[0]=slops[0];
     sls[1]=slops[1];
@@ -455,19 +479,27 @@ public:
     gn[0]=gaina[0];
     gn[1]=gaina[1];
   }
+  geant getagain(int isd){
+    return gaina[isd];
+  }
   void getgaind(geant gn[2]){
     gn[0]=gaind[0];
     gn[1]=gaind[1];
   }
+  void geta2dr(geant a2d[2]){
+    a2d[0]=a2dr[0];
+    a2d[1]=a2dr[1];
+  }
   void getupar(geant upar[]){
     for(int i=0;i<2*TOF2GC::SCPROFP;i++){upar[i]=unipar[i];}
   }
-  void getahlr(geant hlr[2]){
-    for(int i=0;i<2;i++){hlr[i]=ahlcr[i];}
+  void getdh2lr(geant hlr[2]){
+    for(int i=0;i<2;i++){hlr[i]=dh2lr[i];}
   }
-  void q2t2q(int cof, int sdf,int adf, number &t, number &q); //Q(pC)<->ADC(chan)
-  geant adc2mip(int hlf, number am[2]); // measured ampl.(ADCch) -> (mev)
-  void  adc2q(int hlf, number am[2],number qs[2]);// meas. ampl.(ADCch)->Q(pC)
+  
+  void q2a2q(int cof, int sdf,int adf, number &adc, number &q); //Q(pC)<->ADC(chan)
+  geant adc2mip(int hlf, number am[2]); // measured s1+s2 ampl.(ADCch) -> (mev)
+  void  adc2q(int hlf, number am[2],number qs[2]);// meas. side ampl.(ADCch)->Q(pC)
   geant poscor(geant point); // position correction 
   geant tm2t(number tm[2], number am[2], int hlf); // raw times(ns)/ampl(ns) -> Time (ns)
   geant tm2tr(number tm[2]); // tempor(lv3-games), raw times(ns) -> Non_ampl_corrected_Time (ns)
@@ -481,28 +513,146 @@ public:
   static void build();
 };
 //===================================================================
-// class to store TOF_bar peds/sigmas  :
+// class to store another set of MC TOF2_bar calibration constants
+//  to use them as "MC Seeds" for simulation   :
+class TOFBrcalMS{
+//
+private:
+  integer softid;  // LBB
+  integer status[2]; //2-sides cal.status FSAHL -> Anode(FastTDC/SlowTDC/AnodeADC-channel
+//                     and Dynode(High/Low gain channel), =0/1->OK/Bad)
+  geant gaina[2]; // A-chain gain(PMT mainly)| (side-1/2; relative to some 
+//                                                     reference bar of given type)
+  geant a2dr[2];  // anode-to-dynode(high-gain chan) signal ratio (in unsatur. region)
+  geant strat[2][2];  // Stretcher param.[side 1/2][par.1(ratio)/2(offs)]
+  geant dh2lr[2]; // Dynode high/low channel ratio (side-1,2)
+  geant adc2qf; // Average(tempor) Anode ADCch->Q conv.factor(pC/ch)
+//  (for dynodes this factor is not required because included into a2dr or dh2lr factors)
+//
+//
+public:
+  static TOFBrcalMS scbrcal[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+  TOFBrcalMS(){};
+  TOFBrcalMS(integer sid, integer sta[2], geant gna[2], geant a2d[2],
+           geant stra[2][2], geant dh2l[2], geant a2q);
+//
+  void getbstat(int sta[]){
+    sta[0]=status[0];
+    sta[1]=status[1];
+  }
+//
+  bool FchOK(int isd){
+    return((status[isd]%100000)/10000==0);// means good FastTDC chan(anode)
+  }
+  bool SchOK(int isd){
+    return((status[isd]%10000)/1000==0);// means good SlowTDC chan(anode)
+  }
+  bool AchOK(int isd){
+    return((status[isd]%1000)/100==0);// means good Anode chan
+  }
+  bool HchOK(int isd){
+    return((status[isd]%100)/10==0);// means good HiGainADC chan(dynode)
+  }
+  bool LchOK(int isd){
+    return(status[isd]%10==0);// means good LowGainADC chan(dynode)
+  }
+  bool SideOK(int isd){return(
+                     ((status[isd]%100000)/10000==0 || TFREFFKEY.relogic[1]==2)
+                   && (status[isd]%10000)/1000==0 && (status[isd]%1000)/100==0);}
+//
+  void gtstrat(geant str[2][2]){
+    str[0][0]=strat[0][0];
+    str[0][1]=strat[0][1];
+    str[1][0]=strat[1][0];
+    str[1][1]=strat[1][1];
+  }
+  geant getadc2q(){return adc2qf;}
+  void getgaina(geant gn[2]){
+    gn[0]=gaina[0];
+    gn[1]=gaina[1];
+  }
+  geant getagain(int isd){
+    return gaina[isd];
+  }
+  void geta2dr(geant a2d[2]){
+    a2d[0]=a2dr[0];
+    a2d[1]=a2dr[1];
+  }
+  void getdh2lr(geant hlr[2]){
+    for(int i=0;i<2;i++){hlr[i]=dh2lr[i];}
+  }
+  
+  void q2a2q(int cof, int sdf,int adf, number &adc, number &q); //Q(pC)<->ADC(chan)
+  static void build();
+};
+//===================================================================
+// class to store TOF_bar anode/dynode peds/sigmas  :
 class TOFBPeds{
 //
 private:
   integer softid;  // LBB
-  geant peds[4]; // peds for side1(high/low)/side2(high/low)
-  geant sigs[4]; // ped.sigmas .............................
+  integer stata[2];//status for side1/2 anodes =0/1->ok/bad
+  integer statd[2];//status for side1/2 dynodes(high gain ch) =0/1->ok/bad
+  integer statdl[2];//status for side1/2 dynodes(low gain ch) =0/1->ok/bad
+  geant peda[2]; // anode peds for side1/2
+  geant siga[2]; // anode ped.sigmas .............................
+  geant pedd[2]; // dynode(hi) peds for side1/2
+  geant sigd[2]; // dynode(hi)ped.sigmas .............................
+  geant peddl[2]; // dynode(low) peds for side1/2
+  geant sigdl[2]; // dynode(low) ped.sigmas .............................
 //
 public:
   static TOFBPeds scbrped[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   TOFBPeds(){};
-  TOFBPeds(integer _sid, geant _peds[4], geant _sigs[4]):softid(_sid){
-    for(int i=0;i<4;i++){
-      peds[i]=_peds[i];
-      sigs[i]=_sigs[i];
+  TOFBPeds(integer _sid,
+           integer _stata[2],
+           geant _peda[2], geant _siga[2],
+           integer _statd[2],
+           geant _pedd[2], geant _sigd[2],
+	   integer _statdl[2],
+           geant _peddl[2], geant _sigdl[2]
+  ):softid(_sid){
+    for(int i=0;i<2;i++){
+      stata[i]=_stata[i];
+      statd[i]=_statd[i];
+      statdl[i]=_statdl[i];
+      peda[i]=_peda[i];
+      siga[i]=_siga[i];
+      pedd[i]=_pedd[i];
+      sigd[i]=_sigd[i];
+      peddl[i]=_peddl[i];
+      sigdl[i]=_sigdl[i];
     }
   };
-  void getped(geant _peds[4]){
-    for(int i=0;i<4;i++)_peds[i]=peds[i];
+  bool PedAchOK(int isd){return stata[isd]==0;}
+  bool PedHchOK(int isd){return statd[isd]==0;}
+  bool PedLchOK(int isd){return statdl[isd]==0;}
+  geant &apeda(int isd)  {return peda[isd];}  
+  geant &asiga(int isd)  {return siga[isd];}
+  geant &apedd(int isd)  {return pedd[isd];}  
+  geant &asigd(int isd)  {return sigd[isd];}
+  geant &apeddl(int isd)  {return peddl[isd];}  
+  geant &asigdl(int isd)  {return sigdl[isd];}
+  
+  void getpeda(geant _ped[2]){
+    for(int i=0;i<2;i++)_ped[i]=peda[i];
   };
-  void getsig(geant _sigs[4]){
-    for(int i=0;i<4;i++)_sigs[i]=sigs[i];
+  void getsiga(geant _sig[2]){
+    for(int i=0;i<2;i++)_sig[i]=siga[i];
+  };
+  
+  void getpedd(geant _ped[2]){
+    for(int i=0;i<2;i++)_ped[i]=pedd[i];
+  };
+  void getsigd(geant _sig[2]){
+    for(int i=0;i<2;i++)_sig[i]=sigd[i];
+  };
+  
+  void getpeddl(geant _ped[2]){
+    for(int i=0;i<2;i++)_ped[i]=peddl[i];
+  };
+  void getsigdl(geant _sig[2]){
+    for(int i=0;i<2;i++)_sig[i]=sigdl[i];
   };
   static void build();
   static void mcbuild();

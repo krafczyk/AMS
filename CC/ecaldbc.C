@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.41 2002/10/17 12:52:27 choutko Exp $
+//  $Id: ecaldbc.C,v 1.42 2002/12/06 14:43:15 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -14,6 +14,7 @@
 //
 using namespace ecalconst;
 ECcalib ECcalib::ecpmcal[ECSLMX][ECPMSMX];// mem.reserv.for ECAL indiv.PMcell calib. param.
+ECcalibMS ECcalibMS::ecpmcal[ECSLMX][ECPMSMX];// tha same for MC-Seeds params
 ECPMPeds ECPMPeds::pmpeds[ECSLMX][ECPMSMX];// ..........for ECAL peds,sigmas
 ECALVarp ECALVarp::ecalvpar;// .........................for ECAL general run-time param.  
 //-----------------------------------------------------------------------
@@ -424,7 +425,7 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
 integer EcalJobStat::mccount[ECJSTA];
 integer EcalJobStat::recount[ECJSTA];
 integer EcalJobStat::cacount[ECJSTA];
-integer EcalJobStat::srcount[10];
+integer EcalJobStat::srcount[20];
 geant EcalJobStat::zprmc1[ECSLMX];// mc-hit average Z-profile(SL-layers) 
 geant EcalJobStat::zprmc2[ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
 geant EcalJobStat::zprofa[2*ECSLMX];// average Z-profile(scPlanes) 
@@ -438,7 +439,7 @@ void EcalJobStat::clear(){
   for(i=0;i<ECJSTA;i++)mccount[i]=0;
   for(i=0;i<ECJSTA;i++)recount[i]=0;
   for(i=0;i<ECJSTA;i++)cacount[i]=0;
-  for(i=0;i<10;i++)srcount[i]=0;
+  for(i=0;i<20;i++)srcount[i]=0;
   for(i=0;i<ECSLMX;i++)zprmc1[i]=0;
   for(i=0;i<ECSLMX;i++)zprmc2[i]=0;
   for(i=0;i<2*ECSLMX;i++)zprofa[i]=0;
@@ -465,6 +466,9 @@ void EcalJobStat::printstat(){
   printf(" Validation OK                     : % 6d\n",recount[2]);
   printf(" RawEvent->EcalHit OK              : % 6d\n",recount[3]);
   printf(" EcalHit->EcalCluster OK           : % 6d\n",recount[4]);
+  number rrr(0);
+  if(recount[3]>0)rrr=number(srcount[10])/number(recount[3]);
+  printf(" Saturated PMTs per EcalHitOK-event: % 6.4f\n",rrr);
   printf("\n\n");
   if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){
     printf("    ============== RLGA/FIAT part of REUN_Clibration-statistics ===============\n");
@@ -508,11 +512,11 @@ void EcalJobStat::bookhist(){
   strcpy(inum,"0123456789");
     if(ECREFFKEY.reprtf[0]!=0){ // Book reco-hist
       HBOOK1(ECHISTR+10,"ECRE: RawEvent-hits number",80,0.,400.,0.);
-      HBOOK1(ECHISTR+11,"ECRE: RawEvent-hits value(tot,adc,gain-corr)",200,0.,100000.,0.);
-      HBOOK1(ECHISTR+12,"ECRE: RawEvent-hits value(tot,adc,gain-corr)",100,0.,500.,0.);
+      HBOOK1(ECHISTR+11,"ECRE: RawEvent-hits ADCtot(gain-corr)",200,0.,100000.,0.);
+      HBOOK1(ECHISTR+12,"ECRE: RawEvent-hits ADCtot(gain-corr)",100,0.,500.,0.);
       HBOOK1(ECHISTR+13,"ECRE: EcalHit-hits number",80,0.,160.,0.);
-      HBOOK1(ECHISTR+14,"ECRE: EcalHit-hits value(tot,Mev)",200,0.,200000,0.);
-      HBOOK1(ECHISTR+15,"ECRE: EcalHit-hits value(tot,Mev)",100,0.,1000,0.);
+      HBOOK1(ECHISTR+14,"ECRE: EcalHit-hits Etot(NoDynCorr,Mev)",200,0.,200000,0.);
+      HBOOK1(ECHISTR+15,"ECRE: EcalHit-hits DyCorrectionEn(tot,Mev)",100,0.,100000,0.);
       HBOOK1(ECHISTR+16,"ECRE: RawEvent-hits value(adc,gain-corr)",200,0.,10000.,0.);
       HBOOK1(ECHISTR+17,"ECRE: RawEvent-hits value(adc,gain-corr)",100,0.,100.,0.);
       HBOOK1(ECHISTR+18,"ECRE: EcalClust per event",60,0.,120.,0.);
@@ -526,7 +530,7 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);
       HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
       HBOOK1(ECHISTR+30,"ECRE: Trigger flag(validate)",30,0.,30.,0.);
-      HBOOK1(ECHISTR+31,"ECLVL3: Etot(mev)",100,0.,5000.,0.);
+      HBOOK1(ECHISTR+31,"ECLVL3: Etot(mev)",100,0.,100000.,0.);
       HBOOK1(ECHISTR+32,"ECLVL3: Efront",80,0.,1600.,0.);
       HBOOK1(ECHISTR+33,"ECLVL3: Epeak/Ebase",80,0.,40.,0.);
       HBOOK1(ECHISTR+34,"ECLVL3: Epeak/Efront",80,0.,40.,0.);
@@ -727,14 +731,14 @@ void EcalJobStat::bookhist(){
 void EcalJobStat::bookhistmc(){
     if(ECMCFFKEY.mcprtf!=0){ // Book mc-hist
       HBOOK1(ECHIST+1,"Geant-hits number",100,0.,5000.,0.);
-      HBOOK1(ECHIST+2,"ECMC: GeantdE/dX-hits value(tot,MeV)",100,0.,500,0.);
-      HBOOK1(ECHIST+3,"ECMC: GeantdE/dX-hits value(+att,tot,MeV)",100,0.,500.,0.);
-      HBOOK1(ECHIST+4,"ECMC: GeantEmeas(prim.electron)(AnodeTot,MeV)",400,0.,200000.,0.);
-      HBOOK1(ECHIST+5,"ECMC: Dyn.hit value(mev)",100,0.,10.,0.);
-      HBOOK1(ECHIST+6,"ECMC: 4xA-hit/D-hit ratio",50,0.,50.,0.);
+      HBOOK1(ECHIST+2,"ECMC: GeantdE/dX-hits Etot(MeV)",100,0.,500,0.);
+      HBOOK1(ECHIST+3,"ECMC: GeantdE/dX-hits Etot(+FiberAtt,MeV)",100,0.,500.,0.);
+      HBOOK1(ECHIST+4,"ECMC: GeantEvisTot(after mev2mev+NpeFluct)",200,0.,200000.,0.);
+      HBOOK1(ECHIST+5,"ECMC: Indiv.Dynode signals(FTinput, mev)",100,0.,50.,0.);
+      HBOOK1(ECHIST+6,"ECMC: 4xA/D(FT)-signal ratio",50,0.,10.,0.);
       HBOOK1(ECHIST+7,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       HBOOK1(ECHIST+8,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
-      HBOOK1(ECHIST+9,"ECMC: Etot(trig.sum,mev)",200,0.,200000.,0.);
+      HBOOK1(ECHIST+9,"ECMC: Etot(DynodeTrigSum,mev)",200,0.,100000.,0.);
       HBOOK1(ECHIST+10,"ECMC: 1ST 3SL signal(mev)",80,0.,1600.,0.);
       HBOOK1(ECHIST+11,"ECMC: Epk/Ebase Ratio(F,LE)",80,0.,40.,0.);
       HBOOK1(ECHIST+12,"ECMC: Ebase",80,0.,800.,0.);
@@ -745,6 +749,11 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+17,"ECMC: Transv.Width(proj2,L-cuts,LE)",80,0.,80.,0.);
       HBOOK1(ECHIST+18,"ECMC: Etot(trig.sum,L-cuts,mev)",100,0.,20000.,0.);
       HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag",30,0.,30.,0.);
+      HBOOK1(ECHIST+20,"ECMC: Tot.Anode charge(4subc.sum, pC)",100,0.,20.,0.);
+      HBOOK1(ECHIST+21,"ECMC: Max TotAnodeCharge(4subc.sum, pC)",100,0.,1000.,0.);
+      HBOOK1(ECHIST+22,"ECMC: Max ADC-H(No ovfl.limit)",100,0.,4100.,0.);
+      HBOOK1(ECHIST+23,"ECMC: Max ADC-L(No ovfl.limit)",100,0.,4100.,0.);
+      HBOOK1(ECHIST+24,"ECMC: Max ADC-D(No ovfl.limit)",100,0.,4100.,0.);
     }
 }
 //----------------------------
@@ -979,6 +988,11 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+2);
       HPRINT(ECHIST+3);
       HPRINT(ECHIST+4);
+      HPRINT(ECHIST+20);
+      HPRINT(ECHIST+21);
+      HPRINT(ECHIST+22);
+      HPRINT(ECHIST+23);
+      HPRINT(ECHIST+24);
       HPRINT(ECHIST+5);
       HPRINT(ECHIST+6);
       if(mccount[1]>0){
@@ -1007,9 +1021,9 @@ void EcalJobStat::outpmc(){
 //==========================================================================
 //  ECcalib class functions :
 //
-void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
+void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
   int i,isl,ipm,isc,cnum;
-  integer sid,sta[4],endflab;
+  integer sid,sta[4],stad,endflab;
   geant pmrg,scrg[4],h2lr[4],a2m,a2dr,lfs,lsl,ffr;
   integer slmx,pmmx;
   integer scmx=4;// max.SubCells(pixels) in PM
@@ -1026,7 +1040,7 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
   int ctyp,ntypes,mcvern[10],rlvern[10];
   int mcvn,rlvn,dig;
 //
-  integer status[ECPMSL][4];
+  integer status[ECPMSL][4],statusd[ECPMSL];
   geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL],adc2mev;
   geant lfast[ECPMSL],lslow[ECPMSL],fastf[ECPMSL];
 //
@@ -1118,8 +1132,12 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
     for(isc=0;isc<4;isc++){   
       for(ipm=0;ipm<pmmx;ipm++){  
         cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
-        rlgfile >> status[cnum][isc];
+        rlgfile >> status[cnum][isc];//pixel's status
       }
+    }
+    for(ipm=0;ipm<pmmx;ipm++){
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        rlgfile >> statusd[cnum];//dynode's status
     }
   } 
 //
@@ -1326,7 +1344,8 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
     for(ipm=0;ipm<pmmx;ipm++){
       cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(32)
       sid=(ipm+1)+100*(isl+1);
-      for(isc=0;isc<4;isc++)sta[isc]=status[cnum][isc];
+      for(isc=0;isc<4;isc++)sta[isc]=status[cnum][isc];//anode pixels
+      stad=statusd[cnum];//dynode
       pmrg=pmrgn[cnum];
       for(isc=0;isc<4;isc++)scrg[isc]=1/(pmrg*pmscgn[cnum][isc]);
 //(1/(..) ->  to have mult. instead of dev. in RECO(for speed); pmrg included
@@ -1337,7 +1356,288 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
       lsl=lslow[cnum];
       ffr=fastf[cnum];
       a2m=adc2mev;
-      ecpmcal[isl][ipm]=ECcalib(sid,sta,pmrg,scrg,h2lr,a2dr,lfs,lsl,ffr,a2m);
+      ecpmcal[isl][ipm]=ECcalib(sid,sta,stad,pmrg,scrg,h2lr,a2dr,lfs,lsl,ffr,a2m);
+    }
+  }
+}
+//---------------
+number ECcalib::pmsatf1(int dir,number q){//simulate PM-anode saturation, i.e. Qmeas/Qin
+//(imply satur.origin as voltage drop on last devider resistor,i.e. depends on TOTAL
+// PM charge(4xSubc. peak current)); dir=0/1->(Qin->Qmeas)/(Qmeas->Qin)
+//                                return Qmeas/Qin(dir=0) or  Qin/Qmeas(dir=1)
+  int npnt=11;
+  int i;
+  geant qin[11]={750.,800.,900.,1000.,1250.,1500.,2000.,3000.,4000.,6000.,10000.};
+  geant qme[11]={750.,785.,854., 920.,1071.,1210.,1450.,1835.,2125.,2507., 2747.};
+  if(dir==0){//Qin->Qmeas
+     if(q<=qin[0])return 1;
+     else if(q>=qin[npnt-1])return qme[npnt-1]/q;
+     else{
+       for(i=1;i<npnt;i++){
+         if(q<qin[i])break;
+       }
+       return (qme[i-1]+(qme[i]-qme[i-1])*(q-qin[i-1])/(qin[i]-qin[i-1]))/q;//r=Qme/Qin<1
+     }
+  }
+  else if(dir==1){//Qmeas->Qin
+    if(q<=qme[0])return 1;
+    else if(q>(0.95*qme[npnt-1])){
+      cout<<"ECcalib::pmsatf1:Qmeas saturation !"<<endl;
+      return -qin[npnt-1]/q;//r=Qin/Qmeas
+    }
+    else{
+      for(i=1;i<npnt;i++){
+         if(q<qme[i])break;
+      }
+      return (qin[i-1]+(qin[i]-qin[i-1])*(q-qme[i-1])/(qme[i]-qme[i-1]))/q;//r=Qin/Qmeas>1
+    }
+  }
+  else{
+    cerr<<"ECcalib::pmsatf1: wrong dir parameter "<<dir<<endl;
+    return 0;
+    exit(10);
+  }
+}  
+//==========================================================================
+//  ECcalibMS class functions :
+//
+void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
+  int i,isl,ipm,isc,cnum;
+  integer sid,sta[4],stad,endflab;
+  geant pmrg,scrg[4],h2lr[4],a2m,a2dr,lfs,lsl,ffr;
+  integer slmx,pmmx;
+  integer scmx=4;// max.SubCells(pixels) in PM
+  slmx=ECSLMX;//max.S-layers
+  pmmx=ECPMSMX;//max.PM's in S-layer
+  cout<<endl<<"ECcalibMS::build: total PMs="<<ECPMSL<<endl;
+//
+  char fname[80];
+  char name[80];
+  char vers2[3]="rl";
+  char in[2]="0";
+  char inum[11];
+  int ctyp,ntypes,mcvern[10],rlvern[10];
+  int mcvn,rlvn,dig;
+//
+  integer status[ECPMSL][4],statusd[ECPMSL];
+  geant pmrgn[ECPMSL],pmscgn[ECPMSL][4],sch2lr[ECPMSL][4],an2dyr[ECPMSL],adc2mev;
+  geant lfast[ECPMSL],lslow[ECPMSL],fastf[ECPMSL];
+//
+  strcpy(inum,"0123456789");
+//
+// ---> read list of calibration-type-versions list (menu-file) :
+//
+  integer cfvn;
+  cfvn=ECCAFFKEY.cfvers%1000;
+  strcpy(name,"ecalcvlist");// basic name for file of cal-files list 
+  dig=cfvn/100;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=(cfvn%100)/10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=cfvn%10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  strcat(name,".dat");
+//
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"ECcalibMS::build: Open file  "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
+  if(!vlfile){
+    cerr <<"ECcalibMS_build:: missing verslist-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(i=0;i<ntypes;i++){
+    vlfile >> mcvern[i];// first number - for mc
+    vlfile >> rlvern[i];// second number - for real
+  }
+  vlfile.close();
+//
+//------------------------------
+//
+//   --->  Read Latest RealData status/rel.gains calib. file(to use as MC-Seed) :
+//
+  ctyp=1;//1st type of calibration 
+  strcpy(name,"ecalrlga");
+  mcvn=mcvern[ctyp-1]%1000;
+  rlvn=rlvern[ctyp-1]%1000;
+// 
+       cout <<" ECcalibMS_build: RealData RLGA-calib file have to be read"<<endl;
+       dig=rlvn/100;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=(rlvn%100)/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=rlvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers2);
+//
+  strcat(name,".dat");
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"ECcalibMS::build: Open file : "<<fname<<'\n';
+  ifstream rlgfile(fname,ios::in); // open  file for reading
+  if(!rlgfile){
+    cerr <<"ECcalibMS_build: missing RealData stat/rel.gains file "<<fname<<endl;
+    exit(1);
+  }
+//
+// ---> read PM-status:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        rlgfile >> status[cnum][isc];//pixel's status
+      }
+    }
+    for(ipm=0;ipm<pmmx;ipm++){
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        rlgfile >> statusd[cnum];//dynode's status
+    }
+  } 
+//
+// ---> read PM(sum of 4 SubCells) relative(to some Ref.PM) gains
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      rlgfile >> pmrgn[cnum];
+    }
+  }
+//
+// ---> read PM-SubCell relative gains:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        rlgfile >> pmscgn[cnum][isc];
+      }
+    }
+  }
+//
+// ---> read PM-SubCell hi2low ratious:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(isc=0;isc<4;isc++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        rlgfile >> sch2lr[cnum][isc];
+      }
+    }
+  }
+//
+// ---> read PM anode(sum of 4-SubCells)-to-Dynode ratious:
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      rlgfile >> an2dyr[cnum];
+    }
+  }
+// ---> read endfile-label:
+//
+  rlgfile >> endflab;
+//
+  rlgfile.close();
+  if(endflab==12345){
+    cout<<"ECcalibMS::build: RealData RLGA-calib file is successfully read !"<<endl;
+  }
+  else{cout<<"ECcalibMS::build: Problems while reading RealData RLGA-calib.file"<<endl;
+    exit(1);
+  }
+//==================================================================
+//
+//   --->  Read latest RealData fiber-attenuation calib. file(used as MC-Seeds) :
+//
+  ctyp=2;//2nd type of calibration 
+  strcpy(name,"ecalfiat");
+  mcvn=mcvern[ctyp-1]%1000;
+  rlvn=rlvern[ctyp-1]%1000;
+       cout <<" ECcalibMS_build: RealData FIAT-calib file have to be read"<<endl;
+       dig=rlvn/100;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=(rlvn%100)/10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       dig=rlvn%10;
+       in[0]=inum[dig];
+       strcat(name,in);
+       strcat(name,vers2);
+//
+  strcat(name,".dat");
+  if(ECCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+  if(ECCAFFKEY.cafdir==1)strcpy(fname,"");
+  strcat(fname,name);
+  cout<<"ECcalibMS::build: Open file : "<<fname<<'\n';
+  ifstream fatfile(fname,ios::in); // open  file for reading
+  if(!fatfile){
+    cerr <<"ECcalibMS_build: missing RealData fiber_att.calib file "<<fname<<endl;
+    exit(1);
+  }
+//
+// ---> read PM-fibers att.parameters(Latt_fast/Latt_slow/Fast_fraction): 
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      fatfile >> lfast[cnum];
+    }
+  }
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      fatfile >> lslow[cnum];
+    }
+  }
+//
+  for(isl=0;isl<slmx;isl++){   
+    for(ipm=0;ipm<pmmx;ipm++){  
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      fatfile >> fastf[cnum];
+    }
+  }
+// ---> read endfile-label:
+//
+  fatfile >> endflab;
+//
+  fatfile.close();
+  if(endflab==12345){
+    cout<<"ECcalibMS::build: RealData FIAT-calib file is successfully read !"<<endl;
+  }
+  else{cout<<"ECcalibMS::build: Problems while reading RealData FIAT-calib.file)"<<endl;
+    exit(1);
+  }
+//------------------------------
+//
+//   
+//
+  for(isl=0;isl<slmx;isl++){
+    for(ipm=0;ipm<pmmx;ipm++){
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(32)
+      sid=(ipm+1)+100*(isl+1);
+      for(isc=0;isc<4;isc++)sta[isc]=status[cnum][isc];//anode pixels
+      stad=statusd[cnum];//dynode
+      pmrg=pmrgn[cnum];
+      for(isc=0;isc<4;isc++)scrg[isc]=1/(pmrg*pmscgn[cnum][isc]);
+//(1/(..) ->  to have mult. instead of dev. in RECO(for speed); pmrg included
+//  in pmscgn because in simu/reco product of pmrg*pmscgn is used really(or pmrg alone)
+      for(isc=0;isc<4;isc++)h2lr[isc]=sch2lr[cnum][isc];
+      a2dr=an2dyr[cnum];
+      lfs=lfast[cnum];
+      lsl=lslow[cnum];
+      ffr=fastf[cnum];
+      ecpmcal[isl][ipm]=ECcalibMS(sid,sta,stad,pmrg,scrg,h2lr,a2dr,lfs,lsl,ffr);
     }
   }
 }  
@@ -1358,10 +1658,11 @@ void ECPMPeds::build(){// create ECPeds-objects for each cell
   integer sid,endflab(0);
   char fname[80];
   char name[80];
-  geant pedh[4],sigh[4],pedl[4],sigl[4];
-  uinteger stah[4],stal[4];
+  geant pedh[4],sigh[4],pedl[4],sigl[4],pedd,sigd;
+  uinteger stah[4],stal[4],stad;
   geant pmpedh[ECPMSL][4],pmsigh[ECPMSL][4],pmpedl[ECPMSL][4],pmsigl[ECPMSL][4];
-  uinteger pmstah[ECPMSL][4],pmstal[ECPMSL][4];
+  geant pmpedd[ECPMSL],pmsigd[ECPMSL];
+  uinteger pmstah[ECPMSL][4],pmstal[ECPMSL][4],pmstad[ECPMSL];
   integer slmx,pmmx;
   integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
@@ -1444,6 +1745,23 @@ void ECPMPeds::build(){// create ECPeds-objects for each cell
     }
   } 
 //
+// ---> read Dynode peds/sigmas:
+//
+  for(isl=0;isl<slmx;isl++){   
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        icfile >> pmpedd[cnum];
+      }
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        icfile >> pmsigd[cnum];
+      }
+      for(ipm=0;ipm<pmmx;ipm++){  
+        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+        icfile >> pmstad[cnum];
+      }
+  } 
+//
 // ---> read EndFileLabel :
 //
   icfile >> endflab;
@@ -1468,7 +1786,7 @@ void ECPMPeds::build(){// create ECPeds-objects for each cell
       for(isc=0;isc<4;isc++)sigh[isc]=pmsigh[cnum][isc];
       for(isc=0;isc<4;isc++)pedl[isc]=pmpedl[cnum][isc];
       for(isc=0;isc<4;isc++)sigl[isc]=pmsigl[cnum][isc];
-      pmpeds[isl][ipm]=ECPMPeds(sid,stah,stal,pedh,sigh,pedl,sigl);
+      pmpeds[isl][ipm]=ECPMPeds(sid,stah,stal,stad,pedh,sigh,pedl,sigl,pedd,sigd);
     }
   }
 }
@@ -1478,21 +1796,23 @@ void ECPMPeds::mcbuild(){// create default ECPeds-objects(MC) for each cell
 //
   int i,isl,ipm,isc,cnum;
   integer sid,endflab(0);
-  geant pedh[4],sigh[4],pedl[4],sigl[4];
-  uinteger stah[4],stal[4];
+  geant pedh[4],sigh[4],pedl[4],sigl[4],pedd,sigd;
+  uinteger stah[4],stal[4],stad;
   geant pmpedh[ECPMSL][4],pmsigh[ECPMSL][4],pmpedl[ECPMSL][4],pmsigl[ECPMSL][4];
+  geant pmpedd[ECPMSL],pmsigd[ECPMSL];
   uinteger pmstah[ECPMSL][4],pmstal[ECPMSL][4];
+  uinteger pmstad[ECPMSL];
   integer slmx,pmmx;
   integer scmx=4;// max.SubCells(pixels) in PM
   slmx=ECSLMX;//max.S-layers
   pmmx=ECPMSMX;//max.PM's in S-layer
 //
-// ---> create High(Low)Gain peds/sigmas/sta:
+// ---> create High(Low,dynode)Gain peds/sigmas/sta:
 //
   for(isl=0;isl<slmx;isl++){   
-    for(isc=0;isc<4;isc++){   
       for(ipm=0;ipm<pmmx;ipm++){  
-        cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      cnum=isl*pmmx+ipm; // sequential PM numbering(0 - SL*PMperSL)(324)
+      for(isc=0;isc<4;isc++){   
         pmpedh[cnum][isc]=ECMCFFKEY.pedh*(1+0.01*ECMCFFKEY.pedvh*rnormx());
 	if(pmpedh[cnum][isc]<1)pmpedh[cnum][isc]=1;
         pmsigh[cnum][isc]=ECMCFFKEY.pedsh*(1+0.01*ECMCFFKEY.pedsvh*rnormx());
@@ -1505,6 +1825,11 @@ void ECPMPeds::mcbuild(){// create default ECPeds-objects(MC) for each cell
 	if(pmsigl[cnum][isc]<0.1)pmsigl[cnum][isc]=0.1;
         pmstal[cnum][isc]=0;
       }
+      pmpedd[cnum]=ECMCFFKEY.pedd*(1+0.01*ECMCFFKEY.peddv*rnormx());
+      if(pmpedd[cnum]<1)pmpedd[cnum]=1;
+      pmsigd[cnum]=ECMCFFKEY.pedds*(1+0.01*ECMCFFKEY.peddsv*rnormx());
+      if(pmsigd[cnum]<0.1)pmsigd[cnum]=0.1;
+      pmstad[cnum]=0;
     }
   } 
 //---------------
@@ -1519,7 +1844,10 @@ void ECPMPeds::mcbuild(){// create default ECPeds-objects(MC) for each cell
       for(isc=0;isc<4;isc++)sigh[isc]=pmsigh[cnum][isc];
       for(isc=0;isc<4;isc++)pedl[isc]=pmpedl[cnum][isc];
       for(isc=0;isc<4;isc++)sigl[isc]=pmsigl[cnum][isc];
-      pmpeds[isl][ipm]=ECPMPeds(sid,stah,stal,pedh,sigh,pedl,sigl);
+      pedd=pmpedd[cnum];
+      sigd=pmsigd[cnum];
+      stad=pmstad[cnum];
+      pmpeds[isl][ipm]=ECPMPeds(sid,stah,stal,stad,pedh,sigh,pedl,sigl,pedd,sigd);
     }
   }
   cout<<"ECPMPeds::MCbuild: Default peds/sigmas are created !"<<endl; 

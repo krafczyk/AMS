@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.6 2002/09/04 09:11:35 choumilo Exp $
+//  $Id: tofsim02.h,v 1.7 2002/12/06 14:43:40 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #ifndef __AMSTOF2SIM__
 #define __AMSTOF2SIM__
@@ -239,7 +239,7 @@ private:
 static number itovts[TOF2GC::SCMCIEVM];
 static number icharg[TOF2GC::SCMCIEVM];
 static integer ievent;
-integer idsoft;  // as in AMSTOFPhel
+integer idsoft;  // LBBS
 integer status; // channel is alive/dead/ ... --> 0/1/...
 number charga;  // total anode charge (pC)
 number tedep;   // total Edep(mev)
@@ -252,17 +252,20 @@ number tftdc[TOF2GC::SCTHMX2];  // up-time of pulses going to fast(history) TDC
 number tftdcd[TOF2GC::SCTHMX2]; // down-time ..., TDC dbl. resol. already taken into account
 integer nstdc;
 number tstdc[TOF2GC::SCTHMX3];  // store up-times of pulses going to slow(stretcher) TDC
-integer nadch;
-number adch[TOF2GC::SCTHMX4];  // store ADC-counts(float) for high_gain channel(anode)
-integer nadcl;
-number adcl[TOF2GC::SCTHMX4];  // store ADC-counts(float) for low_gain channel(dinode)
+integer nadca;
+number adca[TOF2GC::SCTHMX4];  // store ADC-counts(float) for Anode channel
+integer nadcd;
+number adcd[TOF2GC::SCTHMX4];  // store ADC-counts(float) for Dynode high_gain channel
+integer nadcdl;
+number adcdl[TOF2GC::SCTHMX4];  // store ADC-counts(float) for Dynode low_gain channel
 //
 public:
 TOF2Tovt(integer _ids, integer _sta, number _charga, number _tedep,
   integer _ntr1, number _ttr1[], integer _ntr3, number _ttr3[],
   integer _nftdc, number _tftdc[], number _tftdcd[], integer _nstdc, number _tstdc[],
-  integer _nadch, number _adch[],
-  integer _nadcl, number _adcl[]);
+  integer _nadca, number _adca[],
+  integer _nadcd, number _adcd[],
+  integer _nadcdl, number _adcdl[]);
 //
 ~TOF2Tovt(){};
 TOF2Tovt * next(){return (TOF2Tovt*)_next;}
@@ -273,20 +276,17 @@ integer gettr1(number arr[]);
 integer gettr3(number arr[]);
 integer getftdc(number arr1[], number arr2[]);
 integer getstdc(number arr[]);
-integer getadch(number arr[]);
-integer getadcl(number arr[]);
+integer getadca(number arr[]);
+integer getadcd(number arr[]);
+integer getadcdl(number arr[]);
 integer getstat(){return status;}
 static void inipsh(integer &nbn, geant arr[]);
-static void inishap(integer &nbn, geant arr[]);
 static geant pmsatur(const geant am);
 static void displ_a(const int id, const int mf, const geant arr[]);
-static void displ_as(const int id, const int mf, const geant arr[]);
 static number tr1time(int &trcode,integer arr[]);//to get "z>=1" trigger time/code/patt 
 static number tr3time(int &trcode,integer arr[]);//to get "z>2" trigger time/code/patt 
 static void build();
 static void totovt(integer id, geant edep, geant tslice[]);//flash_ADC_array->Tovt
-static void aintfit();
-static void mfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
 //
 protected:
 void _printEl(ostream &stream){stream <<"TOF2Tovt: "<<idsoft<<endl;}
@@ -367,10 +367,12 @@ private:
  int16u ftdc[TOF2GC::SCTHMX2*2]; // fast "tdc" hits (2 edges, in TDC channels)
  int16u nstdc;         // number of slow "tdc" hits
  int16u stdc[TOF2GC::SCTHMX3*4]; // slow "tdc" hits (4 edges,in TDC channels)
- int16u nadch;         // number of high-gain-channel(anode) ADC hits
- int16u adch[TOF2GC::SCTHMX4]; // high-gain-channel ADC hits (in DAQ-bin units !)
- int16u nadcl;         // number of low-gain-channel(anode) ADC hits
- int16u adcl[TOF2GC::SCTHMX4]; // low-gain-channel ADC hits (in DAQ-bin units !)
+ int16u nadca;         // number of Anode  ADC hits
+ int16u adca[TOF2GC::SCTHMX4]; // Anode ADC hits (in DAQ-bin units !)
+ int16u nadcd;         // number of Dynode high-gain-channel ADC hits
+ int16u adcd[TOF2GC::SCTHMX4]; // Dynode high-gain-channel ADC hits (in DAQ-bin units !)
+ int16u nadcdl;         // number of Dynode low-gain-channel ADC hits
+ int16u adcdl[TOF2GC::SCTHMX4]; // Dynode low-gain-channel ADC hits (in DAQ-bin units !)
  geant charge;         // for MC : tot. anode charge (pC)
  geant edep;           // for MC : tot. edep in bar (mev)
 //
@@ -378,8 +380,9 @@ public:
  TOF2RawEvent(int16u _ids, int16u _sta, geant _charge, geant _edep,
    int16u _nftdc, int16u _ftdc[],
    int16u _nstdc, int16u _stdc[],
-   int16u _nadch, int16u _adch[],
-   int16u _nadcl, int16u _adcl[]);
+   int16u _nadca, int16u _adca[],
+   int16u _nadcd, int16u _adcd[],
+   int16u _nadcdl, int16u _adcdl[]);
  ~TOF2RawEvent(){};
  TOF2RawEvent * next(){return (TOF2RawEvent*)_next;}
 
@@ -390,7 +393,7 @@ public:
  int16u getstat() const {return status;}
  geant getcharg(){return charge;}
  geant getedep(){return edep;}
- integer gettoth(){return integer(nftdc+nstdc+nadch+nadcl);}
+ integer gettoth(){return integer(nftdc+nstdc+nadca+nadcd+nadcdl);}
 
 
  integer getnztdc();
@@ -400,12 +403,15 @@ public:
  int16u getstdc(int16u arr[]);
  int16u getnstdc(){return nstdc;}
  void putstdc(int16u nelem, int16u arr[]);
- int16u getadch(int16u arr[]);
- int16u getnadch(){return nadch;}
- void putadch(int16u nelem, int16u arr[]);
- int16u getadcl(int16u arr[]);
- int16u getnadcl(){return nadcl;}
- void putadcl(int16u nelem, int16u arr[]);
+ int16u getadca(int16u arr[]);
+ int16u getnadca(){return nadca;}
+ void putadca(int16u nelem, int16u arr[]);
+ int16u getadcd(int16u arr[]);
+ int16u getnadcd(){return nadcd;}
+ void putadcd(int16u nelem, int16u arr[]);
+ int16u getadcdl(int16u arr[]);
+ int16u getnadcdl(){return nadcdl;}
+ void putadcdl(int16u nelem, int16u arr[]);
  integer lvl3format(int16 * ptr, integer rest);
 
 
@@ -444,10 +450,12 @@ protected:
   for(i=0;i<nftdc;i++)stream <<hex<<ftdc[i]<<endl;
   stream <<"nstdc="<<dec<<nstdc<<endl;
   for(i=0;i<nstdc;i++)stream <<hex<<stdc[i]<<endl;
-  stream <<"nadch="<<dec<<nadch<<endl;
-  for(i=0;i<nadch;i++)stream <<hex<<adch[i]<<endl;
-  stream <<"nadcl="<<dec<<nadcl<<endl;
-  for(i=0;i<nadcl;i++)stream <<hex<<adcl[i]<<endl;
+  stream <<"nadca="<<dec<<nadca<<endl;
+  for(i=0;i<nadca;i++)stream <<hex<<adca[i]<<endl;
+  stream <<"nadcd="<<dec<<nadcd<<endl;
+  for(i=0;i<nadcd;i++)stream <<hex<<adcd[i]<<endl;
+  stream <<"nadcdl="<<dec<<nadcdl<<endl;
+  for(i=0;i<nadcdl;i++)stream <<hex<<adcdl[i]<<endl;
   stream <<dec<<endl<<endl;
  }
  void _writeEl(){};

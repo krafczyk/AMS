@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.31 2002/10/17 12:52:40 choutko Exp $
+//  $Id: ecalrec.h,v 1.32 2002/12/06 14:43:39 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -18,27 +18,19 @@ class AMSEcalRawEvent: public AMSlink{
 private:
   static uinteger trigfl; // =1/2/3... -> "mip/low/high, =0->no trig.
   static number trigtm; // ECAL FT abs. time
-  static geant trsum;// Trigger sum(dynodes,gev)
+  static geant trsum;// Trigger sum(dynodes,tempor in gev)
+  static integer dynadc[ecalconst::ECSLMX][ecalconst::ECPMSMX];//dynode adc's (ped-subtracted, daq-scale)
   AMSECIdSoft _id;  // real id soft
   integer _gain; // 0: High, 1: Low, 2: Both  3:Dynode 
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
-  integer _padc[3];//  pulse hights (ADC-channels)[HighGain,LowGain, Dynode]
+  integer _padc[3];//  pulse hights (ADC-channels in DAQscale)[HighGain,LowGain, Dynode]
 public:
 
   AMSEcalRawEvent(integer idsoft, integer status,  
         int padc[2]):AMSlink(status,0),_gain(2),_idsoft(idsoft),_id(idsoft){
         for(int i=0;i<2;i++)_padc[i]=padc[i];
         _padc[2]=0;
-             //add dynode if any
-            for(AMSEcalRawEvent*   ptrd=(AMSEcalRawEvent*)AMSEvent::gethead()->
-                       getheadC("AMSEcalRawEventD",_id.getcrate(),1);ptrd;ptrd=ptrd->next()){
-             if(*ptrd == *this){
-              //dynode found
-             _padc[2]=floor((ptrd->getpadc(2)-_id.getpedd()+1/ECALDBc::scalef())*ECALDBc::scalef());
-             break;
-            }
-         }
-        }
+  }
 
 
   AMSEcalRawEvent(const AMSECIdSoft & id,int16u dynode,int16u gain,int16u adc);
@@ -71,16 +63,21 @@ public:
   int16 getslay(){return _idsoft/1000-1;}
 //
   static void mc_build(int &stat);
+  static void BeamTestLinCorr(int gain,integer id,number radc[2],geant ped[2],number &fadc);
   static void validate(int &stat);
   static void settrfl(uinteger trfl){trigfl=trfl;}
   static uinteger gettrfl(){return trigfl;}
   static number gettrtm(){return trigtm;}
   static geant gettrsum(){return trsum;}
+  static integer getadcd(int is, int pm){return dynadc[is][pm];}
+  static void init(){for(int i=0;i<ecalconst::ECSLMX;i++)
+                     for(int j=0;j<ecalconst::ECPMSMX;j++)
+		     dynadc[i][j]=0;}
 //
 // interface with DAQ :
 //
  static integer checkdaqid(int16u id);
- static void buildraw(integer n, int16u *p);
+// static void buildraw(integer n, int16u *p);
  static void buildrawRaw(integer n, int16u *p);
  static integer getmaxblocks(){return AMSECIdSoft::ncrates();}
  static int16u getdaqid(int i);
@@ -91,6 +88,7 @@ public:
 static    AMSID  getTDVped() {return AMSID("Ecalpeds",AMSJob::gethead()->isRealData());}
 static    AMSID  getTDVstatus(){return AMSID("EcalStatus",AMSJob::gethead()->isRealData());}
 static    AMSID  getTDVcalib(){return AMSID("Ecalpmcalib",AMSJob::gethead()->isRealData());}
+static    AMSID  getTDVcalibMS(){return AMSID("EcalpmcalibMS",AMSJob::gethead()->isRealData());}
 static    AMSID  getTDVvpar(){return AMSID("Ecalvpar",AMSJob::gethead()->isRealData());}
 protected:
   void _printEl(ostream &stream){
@@ -113,6 +111,7 @@ private:
   integer _plane;  //continious numbering of planes through 2 projections(0,...)
   integer _cell;   // numbering in plane(0,...)
   number  _edep;
+  number  _edepc;//value(added to _edep)) used to correct for PM-saturation(type-1 -> devider) 
   number  _coot;   //transv.coord.
   number  _cool;   //long.coord.
   number  _cooz;
@@ -122,11 +121,12 @@ public:
   friend class EcalHitRoot;
 #endif
   AMSEcalHit(integer status, integer id, integer adc[3], integer proj, integer plane, integer cell,
-         number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(id),
-	 _proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz),_attcor(0)
+         number edep, number ecorr, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(id),
+	 _proj(proj), _plane(plane),_cell(cell),_edep(edep),_edepc(ecorr),_coot(coot),_cool(cool),_cooz(cooz),_attcor(0)
 	 {for(int i=0;i<3;i++)_adc[i]=adc[i]/ECALDBc::scalef();}
   AMSEcalHit(integer status, integer proj, integer plane, integer cell,
-         number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(0),_proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz),_attcor(0)
+         number edep,  number coot, number cool, number cooz):AMSlink(status,0),
+	 _idsoft(0),_proj(proj), _plane(plane),_cell(cell),_edep(edep),_edepc(0),_coot(coot),_cool(cool),_cooz(cooz),_attcor(0)
 	 {for(int i=0;i<3;i++)_adc[i]=0;};
   ~AMSEcalHit(){};
   AMSEcalHit * next(){return (AMSEcalHit*)_next;}
@@ -144,6 +144,7 @@ public:
   integer getplane(){return _plane;}
   integer getcell(){return _cell;}
   number getedep(){return _edep;}
+  number getedepc(){return _edepc;}
   number &edep(){return _edep;}
   number getcoot(){return _coot;}
   number getcool(){return _cool;}
@@ -158,7 +159,7 @@ protected:
   void _printEl(ostream &stream){
     int i;
     stream <<"AMSEcalHit: Proj/Plane/cell= "<<_proj<<" "<<_plane<<" "<<_cell<<endl;
-    stream <<"Status="<<hex<<_status<<dec<<" id="<<_idsoft<<"  Edep="<<_edep<<endl; 
+    stream <<"Status="<<hex<<_status<<dec<<" id="<<_idsoft<<"  Edep="<<_edep<<" EdCorr="<<_edepc<<endl; 
     stream <<"Coot/l/z= "<<_coot<<" "<<_cool<<" "<<_cooz<<endl;
     stream <<dec<<endl<<endl;
   }

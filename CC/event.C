@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.303 2002/12/05 14:16:09 choutko Exp $
+//  $Id: event.C,v 1.304 2002/12/06 14:43:16 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -827,8 +827,8 @@ void AMSEvent::_reecalinitevent(){
   for(i=0;i<AMSECIdSoft::ncrates();i++){// <-- book crate type containers for EcalRawEvent
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
-      AMSEvent::gethead()->add (
-      new AMSContainer(AMSID("AMSContainer:AMSEcalRawEventD",i),0));
+//      AMSEvent::gethead()->add (
+//      new AMSContainer(AMSID("AMSContainer:AMSEcalRawEventD",i),0));
 
   }
 //
@@ -838,7 +838,7 @@ void AMSEvent::_reecalinitevent(){
   }
 
 
-
+  AMSEcalRawEvent::init();
 
   for(i=0;i<2;i++){// <-- book  proj
       AMSEvent::gethead()->add (

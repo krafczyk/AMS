@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.7 2002/06/03 14:53:43 alexei Exp $
+//  $Id: tofrec02.h,v 1.8 2002/12/06 14:43:40 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -22,10 +22,12 @@ protected:
  integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
  integer _plane;   //  number of sc. bar in given plane(1->...)
  number _z;        // z coord of sc.bar
- number _adch[2]; // high(anode) ADC for 2 sides (ADC-chan in float)
- number _adcl[2]; // low(dinode) ADC for 2 sides (ADC-chan in float)
- number _edeph;    // reco. via high(anode) channel (no angle correction)
- number _edepl;    // reco. via low(dinode) channel (..................)
+ number _adca[2]; // Anode ADC for 2 sides (ADC-chan in float)
+ number _adcd[2]; // Dynode(h) ADC for 2 sides (ADC-chan in float)
+ number _adcdl[2]; // Dynode(l) ADC for 2 sides (ADC-chan in float)
+ number _edepa;    // reco. via Anode channel (no angle correction)
+ number _edepd;    // reco. via Dynode(h) channel (..................)
+ number _edepdl;    // reco. via Dynode(l) channel (..................)
  number _sdtm[2];  // A-noncorrected side times (ns, for TZSL-calibr) 
  number _time;   // A-corrected time=0.5*(t1+t2) (ns);
  number _timeD; // Y-coo(long)/(cm,loc.r.s,A-corrected) calc.from 0.5(t1-t2)
@@ -42,27 +44,35 @@ public:
  number gettime()const {return _time;}
  number gettimeD()const {return _timeD;}
  number getetimeD()const {return _etimeD;}
- number getedeph()const {return _edeph;}
- number getedepl()const {return _edepl;}
+ number getedepa()const {return _edepa;}
+ number getedepd()const {return _edepd;}
+ number getedepdl()const {return _edepdl;}
  number getz()const {return _z;}
  TOF2RawCluster(integer status, integer xy, integer plane, 
-   number z, number adch[2], number adcl[2], number de, number ded, 
+   number z, number adca[2], number adcd[2], number adcdl[2],
+   number de, number ded, number dedl, 
    number sdtm[2], number time, number timed, number etimed):
-   AMSlink(status,0), _ntof(xy),_plane(plane),_z(z),_edeph(de),
-   _edepl(ded), _time(time), _timeD(timed), _etimeD(etimed){
+   AMSlink(status,0), _ntof(xy),_plane(plane),_z(z),
+   _edepa(de), _edepd(ded), _edepdl(dedl),
+   _time(time), _timeD(timed), _etimeD(etimed){
    for(int i=0;i<2;i++){
-     _adch[i]=adch[i];
-     _adcl[i]=adcl[i];
+     _adca[i]=adca[i];
+     _adcd[i]=adcd[i];
+     _adcdl[i]=adcdl[i];
      _sdtm[i]=sdtm[i];
    }
  }
- void getadch(number adch[2]){
-   adch[0]=_adch[0];
-   adch[1]=_adch[1];
+ void getadca(number adc[2]){
+   adc[0]=_adca[0];
+   adc[1]=_adca[1];
  }
- void getadcl(number adcl[2]){
-   adcl[0]=_adcl[0];
-   adcl[1]=_adcl[1];
+ void getadcd(number adc[2]){
+   adc[0]=_adcd[0];
+   adc[1]=_adcd[1];
+ }
+ void getadcdl(number adc[2]){
+   adc[0]=_adcdl[0];
+   adc[1]=_adcdl[1];
  }
  void getsdtm(number sdtm[2]){
    sdtm[0]=_sdtm[0];
@@ -80,7 +90,6 @@ public:
  }
  static void settrfl(integer trfl){trflag=trfl;}
  static integer gettrfl(){return trflag;}
- static void sitofdigi(int &);// tempor. MCCluster->RawCluster
  static void build(int &);   // RawEvent->RawCluster
 #ifdef __WRITEROOT__
  friend class TOFRawClusterRoot;
@@ -93,7 +102,7 @@ protected:
  integer _ntof;  // TOF plane number where cluster was found(1->) 
  integer _plane; // bar number of the "peak" bar in cluster(1->)  
  number _edep;   // clust. Etot/nmemb (MeV) (continious through high-to-low chan)
- number _edepd;  // clust. Etot/nmemb (MeV) via low(dinode)
+ number _edepd;  // clust. Etot/nmemb (MeV) via 1st not overflowed dynode
  number _time;   // average cluster time (sec)
  number _etime;  // error on cluster time (sec)
  AMSPoint _Coo;  // cluster center of gravity coordinates (cm)

@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.6 2002/09/04 09:11:11 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.7 2002/12/06 14:43:19 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <typedefs.h>
@@ -416,12 +416,12 @@ void TOF2TZSLcalib::select(){  // calibr. event selection
       if((status&TOFGC::SCBADB2)==0 || (status&TOFGC::SCBADB5)!=0){// 2-sided or recovered
       ilay=(ptr->getntof())-1;
       ibar=(ptr->getplane())-1;
-      ptr->getadch(ama);
-      TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// convert high-adc to charge
+      ptr->getadca(ama);
+      TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// convert anode-adc to charge
       qtotl[ilay]=am[0]+am[1];
       qsd1[ilay]=am[0];
       qsd2[ilay]=am[1];
-      ptr->getadcl(amd);
+      ptr->getadcd(amd);
       ptr->getsdtm(tm);// raw side-times(A-noncorrected)
       ltim[ilay]=ptr->gettime();// get ampl-corrected time
       nbrl[ilay]+=1;
@@ -856,9 +856,9 @@ void TOF2TDIFcalib::select(){ // ------> event selection for TDIF-calibration
       ibar=(ptr->getplane())-1;
       nbrl[ilay]+=1;
       brnl[ilay]=ibar;
-      ptr->getadch(ama);//use  HighADC-channel(raw adc) for calibr.(Most are mu or Pr)
+      ptr->getadca(ama);//use  AnodeADC for calibr.(Most are mu or Pr)
       if(ama[0]>0 && ama[1]>0){
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// convert high(anode)-adc to charge
+        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// convert anode-adc to charge
         qsd1[ilay]=am[0];
         qsd2[ilay]=am[1];
         ptr->getsdtm(sdtm);// get raw side-times(ns)
@@ -1498,13 +1498,13 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
     status=ptr->getstatus();
     ilay=(ptr->getntof())-1;
     ibar=(ptr->getplane())-1;
-    ptr->getadch(ama);// get high(anode)-adc (for 2 sides)
-    ptr->getadcl(amd);// get low(dinode)-adc
-    TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// convert high(anode)-adc to charge
+    ptr->getadca(ama);// get anode-adc (for 2 sides)
+    ptr->getadcd(amd);// get dynode(h)-adc
+    TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// convert anode-adc to charge
     am1[ilay]=am[0];//charge(pC)
     am2[ilay]=am[1];
-    edepa=ptr->getedeph();//energy in High-gain channel(prev calibration !)
-    edepd=ptr->getedepl();//energy in Low-gain channel
+    edepa=ptr->getedepa();//energy in Anode channel(prev calibration !)
+    edepd=ptr->getedepd();//energy in Dynode(h) channel
     edep[ilay]+=edepa;
     if(edepa>0. && edepd>0.){// fill arrays for AVSD-calibration
       ainp[0]=geant(ama[0]);//ADC-channels !!!
@@ -3478,6 +3478,7 @@ void TOF2AVSDcalib::init(){ // ----> initialization for AVSD-calibration
 //-------------------------------------------
 //            ---> program to fill TovT-arrays:
 void TOF2AVSDcalib::filltovt(integer chan, geant adch, geant adcl){
+//( called from TOFRawEvent::validate)
 //
   integer ic;
 //

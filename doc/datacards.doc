@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.217 2002/12/05 18:43:37 delgadom Exp $
+#  $Id: datacards.doc,v 1.218 2002/12/06 14:43:37 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -563,7 +563,7 @@ I 1 trtype(0)          //TriggerType:
 			   //8->unbiased#4 trigger (TOF || EC(ectrflag>0)) 
 			   // Note: ECAL "HighEnergy" threshold(to have ECflag=1,2,3 or 11,12,13)
 			   // is defined in ECRE 12 (in mev);
-			   // ECflag=1->"MIP"(Et>=MIP && NoSoftEM)
+			   // ECflag=1->"MIP"(Et>=MIP && NoSoft(hard)EM-requirement)
 			   //       =2->soft"electromagneticity"(SoftEM=Efront-cut->OK)
 			   //       =3->hard"electromagneticity"(HardEM=
 			                SoftEM +(width-cut->OK || VeryHighEnergy),

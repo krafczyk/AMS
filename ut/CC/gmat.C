@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.77 2002/11/08 15:43:10 choutko Exp $
+//  $Id: gmat.C,v 1.78 2002/12/06 14:43:18 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -305,14 +305,19 @@ mat.add (new AMSgmat("VACUUMTOFA",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
   geant w[]={8.,8.};
   mat.add (new AMSgmat("TOFSCINT",a,z,w,2,1.032));
 }
+{
 // ---> AL honeycomb structure for TOF :
-mat.add (new AMSgmat( "TOF_AL_HONEYC",26.98, 13., 0.04, 600., 2660.));
+geant relden=0.085/2.7;
+mat.add (new AMSgmat( "TOF_AL_HONEYC",26.98,13.,2.7*relden, 8.9/relden,39.4/relden));
 // ---> effective material for PMT-boxes (low dens.(1:10) iron):
-mat.add (new AMSgmat("TOF_LOW_DENS_Fe",55.85,26.,0.787,17.6,168.));
-// ---> low density(1.3 eff) carbon (carb.fiber+mylar) for TOF sc_cover :
-mat.add (new AMSgmat("TOFCARBONF", 12.01, 6., 1.3 , 33., 66.));
-// ---> low density(1.3 eff) carbon (carb.fiber+mylar) for ANTI supp.tube :
-mat.add (new AMSgmat("ANTICARBONF", 12.01, 6., 1.3 , 33., 66.));
+      relden=0.787/7.87;//(1:10)
+mat.add (new AMSgmat("TOF_LOW_DENS_Fe",55.85,26.,7.87*relden,1.76/relden,16.8/relden));
+// ---> low density(1.8 eff) carbon (carb.fiber) for TOF covers :
+      relden=1.8/2.265;
+mat.add (new AMSgmat("TOFCARBONF",12.01,6.,2.265*relden,18.8/relden,38.1/relden));
+// ---> low density(1.8 eff) carbon (carb.fiber) for ANTI supp.tube :
+mat.add (new AMSgmat("ANTICARBONF",12.01,6.,2.265*relden,18.8/relden,38.1/relden));
+}
 {  
 // ---> LG-plexiglass(C5H8O2):
   geant a[]={12.01,1.01,16.0};

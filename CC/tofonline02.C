@@ -1,4 +1,4 @@
-//  $Id: tofonline02.C,v 1.2 2001/01/22 17:32:22 choutko Exp $
+//  $Id: tofonline02.C,v 1.3 2002/12/06 14:43:20 choumilo Exp $
 // Author D. Casadei 21 Feb 1998
 // TOF Online histograms booking
 #include <job.h>
@@ -282,14 +282,14 @@ void TOF2RawEvent::tofonlinefill1(integer ilay, integer ibar, integer isid,
 
   // Anode and dynode charge spectra (pC)
   if(nedges[2]){
-    TOF2Brcal::scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),0,Atovt,q);
+    TOF2Brcal::scbrcal[ilay-1][ibar-1].q2a2q(1,int(isid-1),0,Atovt,q);
     hisID=ANODESTART+(ilay-1)*30+(14-ibar)+dir*14;
     if(q>FLT_MAX)q=FLT_MAX-1;
     else if(q<-FLT_MAX)q=-FLT_MAX+1;
     HFF1(hisID,nIDhis[hisID-5000],geant(q),1.);
   }
   if(nedges[3]){
-    TOF2Brcal::scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),1,Dtovt,q);
+    TOF2Brcal::scbrcal[ilay-1][ibar-1].q2a2q(1,int(isid-1),1,Dtovt,q);
     if(q>FLT_MAX)q=FLT_MAX-1;
     else if(q<-FLT_MAX)q=-FLT_MAX+1;
     hisID=DYNODESTART+(ilay-1)*30+(14-ibar)+dir*14;

@@ -1,4 +1,4 @@
-//  $Id: ecid.h,v 1.10 2002/10/14 10:49:06 choutko Exp $
+//  $Id: ecid.h,v 1.11 2002/12/06 14:43:39 choumilo Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include <typedefs.h>
@@ -44,6 +44,9 @@ bool HCHisBad(){return ECPMPeds::pmpeds[getslay()][getpmtno()].HCHisBad(getchann
 bool LCHisBad(){return ECPMPeds::pmpeds[getslay()][getpmtno()].LCHisBad(getchannel())
                  || ECcalib::ecpmcal[getslay()][getpmtno()].LCHisBad(getchannel());}
 		 
+bool DCHisBad(){return ECPMPeds::pmpeds[getslay()][getpmtno()].DCHisBad()
+                 || ECcalib::ecpmcal[getslay()][getpmtno()].DCHisBad();}
+		 
 int16 getcrate(){return _crate;}
 int16 getchannel(){return _channel;}
 int16 getslay(){return _sl;}
@@ -53,8 +56,8 @@ int16 getpmtno(){return _pmtno;}
 geant getped(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].ped(getchannel(),gain):0;}
 geant getsig(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].sig(getchannel(),gain):0;}
 integer getsta(int16u gain){return gain<2?ECPMPeds::pmpeds[getslay()][getpmtno()].sta(getchannel(),gain):0;}
-geant getpedd(){return ECPMPeds::pmpeds[getslay()][getpmtno()].ped();}
-geant getsigd(){return ECPMPeds::pmpeds[getslay()][getpmtno()].sig();}
+geant getpedd(){return ECPMPeds::pmpeds[getslay()][getpmtno()].pedd();}
+geant getsigd(){return ECPMPeds::pmpeds[getslay()][getpmtno()].sigd();}
 geant gethi2lowr(){return ECcalib::ecpmcal[getslay()][getpmtno()].hi2lowr(getchannel());}
 geant getan2dyr(){return ECcalib::ecpmcal[getslay()][getpmtno()].an2dyr();}
 geant getadc2mev(){return ECcalib::ecpmcal[getslay()][getpmtno()].adc2mev();}

@@ -53,6 +53,7 @@ class ECREUNcalib {
     static void fill_2(integer,integer,integer,number a[2]);
     static void mfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
     static void mfit();
+    static void makeToyRLGAfile();
     static void select();
     static void selecte();
     static void mfite();

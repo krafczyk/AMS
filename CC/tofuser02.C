@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.5 2002/09/04 09:11:12 choumilo Exp $
+//  $Id: tofuser02.C,v 1.6 2002/12/06 14:43:22 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>
@@ -26,10 +26,12 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   integer il,ib,ix,iy,chan;
   geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc;
   number coo[TOF2GC::SCLRS],coot[TOF2GC::SCLRS],cstr[TOF2GC::SCLRS],dx,dy;
-  number ama[2],amd[2];
-  number adch1[TOF2GC::SCLRS],adch2[TOF2GC::SCLRS],adcl1[TOF2GC::SCLRS],adcl2[TOF2GC::SCLRS];
-  geant elosa[TOF2GC::SCLRS],elosd[TOF2GC::SCLRS];
+  number ama[2],amd[2],amdl[2];
+  number adca1[TOF2GC::SCLRS],adca2[TOF2GC::SCLRS],adcd1[TOF2GC::SCLRS],adcd2[TOF2GC::SCLRS];
+  number adcdl1[TOF2GC::SCLRS],adcdl2[TOF2GC::SCLRS];
+  geant elosa[TOF2GC::SCLRS],elosd[TOF2GC::SCLRS],elosdl[TOF2GC::SCLRS];
   number am1[TOF2GC::SCLRS],am2[TOF2GC::SCLRS],am1d[TOF2GC::SCLRS],am2d[TOF2GC::SCLRS],am[2],eanti(0),eacl;
+  number am1dl[TOF2GC::SCLRS],am2dl[TOF2GC::SCLRS];
   geant ainp[2],dinp[2],cinp;
   number ltim[TOF2GC::SCLRS],tdif[TOF2GC::SCLRS],trle[TOF2GC::SCLRS],trlr[TOF2GC::SCLRS];
   number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof,lflgt;
@@ -56,22 +58,29 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     ibar=(ptr->getplane())-1;
     if((status&TOFGC::SCBADB1)==0 && (status&TOFGC::SCBADB3)==0){ //"good_history/good_strr" hits
       if((status&TOFGC::SCBADB2)==0 || (status&TOFGC::SCBADB5)!=0){// 2-sided or recovered
-        ptr->getadch(ama);// get raw high(anode)-ampl(ADC-ch)
-        ptr->getadcl(amd);// get raw low(dinode)-ampl(ADC-ch)
-        adch1[ilay]=ama[0];
-        adch2[ilay]=ama[1];
-        adcl1[ilay]=amd[0];
-        adcl2[ilay]=amd[1];
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// high(anode)-ADC convert to charge
+        ptr->getadca(ama);// Anode-ampl(ADC-ch)
+        ptr->getadcd(amd);// Dynode(h)-ampl(ADC-ch)
+        ptr->getadcdl(amdl);// Dynode(l)-ampl(ADC-ch)
+        adca1[ilay]=ama[0];
+        adca2[ilay]=ama[1];
+        adcd1[ilay]=amd[0];
+        adcd2[ilay]=amd[1];
+        adcdl1[ilay]=amdl[0];
+        adcdl2[ilay]=amdl[1];
+        TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// Anode-ADC convert to charge
         am1[ilay]=am[0];
         am2[ilay]=am[1];
-        TOF2Brcal::scbrcal[ilay][ibar].adc2q(1,amd,am);// low(dynode)-ADC convert to charge
+        TOF2Brcal::scbrcal[ilay][ibar].adc2q(1,amd,am);// dynode(h)-ADC convert to charge
         am1d[ilay]=am[0];
         am2d[ilay]=am[1];
+        TOF2Brcal::scbrcal[ilay][ibar].adc2q(2,amdl,am);// dynode(l)-ADC convert to charge
+        am1dl[ilay]=am[0];
+        am2dl[ilay]=am[1];
         nbrl[ilay]+=1;
         brnl[ilay]=ibar;
-        elosa[ilay]=ptr->getedeph();
-        elosd[ilay]=ptr->getedepl();
+        elosa[ilay]=ptr->getedepa();
+        elosd[ilay]=ptr->getedepd();
+        elosdl[ilay]=ptr->getedepdl();
         coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff
         ltim[ilay]=ptr->gettime();// get ampl-corrected time
       }

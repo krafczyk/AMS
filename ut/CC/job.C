@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.430 2002/12/02 12:06:41 choutko Exp $
+// $Id: job.C,v 1.431 2002/12/06 14:43:18 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -53,6 +53,7 @@
 #include <producer.h>
 #include <trdid.h>
 #include <ecid.h>
+#include <tofid.h>
 #ifdef __DB__
 //+
  integer        ntdvNames;               // number of TDV's types
@@ -561,32 +562,12 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.fast=0;       //(13) 0/1/2->off/on fast generation in mceventg.C(2-> EC requirement)
   TFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
   TFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
-  TFMCFFKEY.adsimpl=0;    //(16) 1/0->use/not simple Anode-TovT simulation(not used now)
+  TFMCFFKEY.adsimpl=0;    //(16) 1/0->use/not simple Anode-TovT simulation
   TFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
   TFMCFFKEY.hfnoise=5.;   //(18) high freq. noise .......   
-  TFMCFFKEY.pedh=100;     //(19)Ped-HiCh    
-  TFMCFFKEY.pedvh=10;     //(20)ch-to-ch variation(%)     
-  TFMCFFKEY.pedl=100;     //(21)Ped-LoCh    
-  TFMCFFKEY.pedvl=10;     //(22)ch-to-ch variations(%)
-  TFMCFFKEY.pedsh=0.5;    //(23)PedSig-HiCh     
-  TFMCFFKEY.pedsvh=10;    //(24)ch-to-ch variation(%)     
-  TFMCFFKEY.pedsl=0.5;    //(25)PedSig-LoCh    
-  TFMCFFKEY.pedsvl=10;    //(26)ch-to-ch variation(%)
 //     
-  TFMCFFKEY.generpeds=1;  //(27)1/0->generate_def_PedS/read_them_from_DB
-// 
-  TFMCFFKEY.sec[0]=0;     //(28) 
-  TFMCFFKEY.sec[1]=0;     //(29)
-  TFMCFFKEY.min[0]=0;     //(30)
-  TFMCFFKEY.min[1]=0;     //(31)
-  TFMCFFKEY.hour[0]=0;    //(32)
-  TFMCFFKEY.hour[1]=0;    //(33)
-  TFMCFFKEY.day[0]=1;     //(34)
-  TFMCFFKEY.day[1]=1;     //(35)
-  TFMCFFKEY.mon[0]=0;     //(36)
-  TFMCFFKEY.mon[1]=0;     //(37)
-  TFMCFFKEY.year[0]=101;  //(38)
-  TFMCFFKEY.year[1]=110;  //(39)
+  TFMCFFKEY.ReadConstFiles=0;//(19)PTS(P=PedsMC,T=TimeDistr,S=barcalibSeeds);P(T,S)=0/1->DB/RawFiles
+//
 FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -598,41 +579,36 @@ FFKEY("MAGS",(float*)&MAGSFFKEY,sizeof(MAGSFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
 void AMSJob::_siecaldata(){
-  ECMCFFKEY.fastsim=0.;     //(1) 1/0-> fast/slow simulation algorithm(missing fast TBD)
+  ECMCFFKEY.fastsim=0;     //(1) 1/0-> fast/slow simulation algorithm(missing fast TBD)
   ECMCFFKEY.mcprtf=0;       //(2) print_hist flag (0/1->no/yes)
   ECMCFFKEY.cutge=0.001;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) spare
-  ECMCFFKEY.mev2mev=32.5;   //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
-  ECMCFFKEY.mev2adc=0.88;   //(7) Emeas(MeV)->ADCch factor(MIP-m.p. -> 5th channel)
+  ECMCFFKEY.mev2mev=59.27;  //(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)
+  ECMCFFKEY.mev2adc=0.873;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->10th channel)(...)
   ECMCFFKEY.safext=0.;      //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
-  ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)
+  ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)(8000*0.0344*0.2)
   ECMCFFKEY.pmseres=0.8;    //(10)PM single-electron spectrum resolution
-  ECMCFFKEY.mev2adcd=1.576; //(11)Dynode Emeas(MeV)->ADCch factor(MIP-m.p. -> 2nd channel)
-  ECMCFFKEY.an2dyr=25.;     //(12) Anode/dynode ratio
-  ECMCFFKEY.pedh=150;       //(13)Ped-HiCh    
-  ECMCFFKEY.pedvh=30;       //(14)ch-to-ch variation(%)     
-  ECMCFFKEY.pedl=150;       //(15)Ped-LoCh    
-  ECMCFFKEY.pedvl=30;       //(16)ch-to-ch variations(%)
-  ECMCFFKEY.pedsh=0.55;     //(17)PedSig-HiCh     
-  ECMCFFKEY.pedsvh=30;      //(18)ch-to-ch variation(%)     
-  ECMCFFKEY.pedsl=0.55;     //(19)PedSig-LoCh    
-  ECMCFFKEY.pedsvl=30;      //(20)ch-to-ch variation(%)
+  ECMCFFKEY.adc2q=0.045;    //(11)Anode(H,L) ADCch->Q(pC) conv.factor(pC/adc)
+  ECMCFFKEY.fendrf=0.3;     //(12) fiber end-cut reflection factor(incl.termocomp.layer)
+  ECMCFFKEY.physa2d=6.;     //(13) physical an/dyn ratio(mv/mv) 
+  ECMCFFKEY.hi2low=36.;     //(14) not used now 
+  ECMCFFKEY.sbcgn=1.;       //(15) not used now 
+  ECMCFFKEY.pedh=150;       //(16)Ped-HiCh    
+  ECMCFFKEY.pedvh=30;       //(17)ch-to-ch variation(%)     
+  ECMCFFKEY.pedl=150;       //(18)Ped-LoCh    
+  ECMCFFKEY.pedvl=30;       //(19)ch-to-ch variations(%)
+  ECMCFFKEY.pedsh=0.55;     //(20)PedSig-HiCh     
+  ECMCFFKEY.pedsvh=30;      //(21)ch-to-ch variation(%)     
+  ECMCFFKEY.pedsl=0.55;     //(22)PedSig-LoCh    
+  ECMCFFKEY.pedsvl=30;      //(23)ch-to-ch variation(%)
+  ECMCFFKEY.pedd=150;       //(24)Ped-DyCh    
+  ECMCFFKEY.peddv=30;       //(25)ch-to-ch variation(%)     
+  ECMCFFKEY.pedds=0.55;     //(26)PedSig-DyCh    
+  ECMCFFKEY.peddsv=30;      //(27)ch-to-ch variation(%)
 //     
-  ECMCFFKEY.generpeds=0;//(21)1/0->generate_def_PedS/read_them_from_DB
-// 
-  ECMCFFKEY.sec[0]=0;//(22) 
-  ECMCFFKEY.sec[1]=0;//(23)
-  ECMCFFKEY.min[0]=0;//(24)
-  ECMCFFKEY.min[1]=0;//(25)
-  ECMCFFKEY.hour[0]=0;//(26)
-  ECMCFFKEY.hour[1]=0;//(27)
-  ECMCFFKEY.day[0]=1;//(28)
-  ECMCFFKEY.day[1]=1;//(29)
-  ECMCFFKEY.mon[0]=0;//(30)
-  ECMCFFKEY.mon[1]=0;//(31)
-  ECMCFFKEY.year[0]=101;//(32)
-  ECMCFFKEY.year[1]=110;//(33)
+  ECMCFFKEY.ReadConstFiles=0;//(28)CP=CalibrPeds:C=1/0->ReadCalibFile/ReadFromDB
+//                                          P=1/0->GeneratePeds/ReadFromDB
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------
@@ -665,7 +641,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.cuts[3]=0.;//    (22)
   ECREFFKEY.cuts[4]=0.65;//  (23) LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 //
-  ECREFFKEY.ReadConstFiles=0;//(24)read const. from DB/RawFiles (0/1)
+  ECREFFKEY.ReadConstFiles=0;//(24)read Calib.const(MC or RD) from DB/RawFiles (0/1)
 //
   ECREFFKEY.Thr1DSeed=10;
   ECREFFKEY.Thr1DRSeed=0.18;
@@ -1048,7 +1024,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[8]=50.;//(26) sTDC-delay wrt anodeTDC 
   TFREFFKEY.cuts[9]=0.;// (27) 
 //
-  TFREFFKEY.ReadConstFiles=1;//(28)read const. from DB/RawFiles (0/1)
+  TFREFFKEY.ReadConstFiles=0;//(28) PC(P=Peds-files,C=BarCalib);P(C)=0/1->read from DB/RawFiles
 //  
   TFREFFKEY.sec[0]=0;//(29) 
   TFREFFKEY.sec[1]=0;
@@ -1098,7 +1074,7 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.dynflg=0; // (27)  not used now
-  TFCAFFKEY.cfvers=3; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
+  TFCAFFKEY.cfvers=4; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TFCAFFKEY.mcainc=0;// (30) =1->Anode-integrators calibration(MC only)(not used now)
   TFCAFFKEY.tofbetac=0.6;// (31) if nonzero->low beta cut (own TOF measurements !!!)
@@ -1198,7 +1174,7 @@ void AMSJob::_retrddata(){
 void AMSJob::_resrddata(){
 }
 
-
+//-----------------------------
 
 void AMSJob::udata(){
 
@@ -1421,7 +1397,7 @@ if(AMSFFKEY.Update){
        AMSRICHIdSoft::Init();
        AMSTRDIdSoft::inittable();
        AMSECIdSoft::inittable();
-
+       AMSTOFIds::inittable();
     }
     else {
       cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
@@ -1691,10 +1667,22 @@ void AMSJob::_sitof2initjob(){
     AMSgObj::BookTimer.book("TovtPM2sloopscmcscan");
     AMSgObj::BookTimer.book("TovtPM2sloopsum");
     AMSgObj::BookTimer.book("TovtOther");
+//---------(.ReadConstFiles card convention : tfmc->PTS, tfre->PC)
+  if((TFMCFFKEY.ReadConstFiles%100)/10==1
+              || TFREFFKEY.ReadConstFiles%10==1){//MC-Time-Distr from ext.files
+//  
+    TOFWScan::build();//create scmcscan-objects (MC Bars Time/Eff-distributions)
+  }
+  if(TFMCFFKEY.ReadConstFiles%10==1 && !isRealData()){
+    TOFBrcalMS::build();//create sc.bar "MC Seeds" scbrcal-objects
+  }
+//---------
+  if((TFMCFFKEY.ReadConstFiles%1000)/100>0 && !isRealData()){//MCPeds from ext.files
+    TOFBPeds::mcbuild();//create sc.bar scbrped-objects
+  }
+//---------
 //
-// ===> Book histograms for MC :
-//
-   TOF2JobStat::bookhistmc();
+   TOF2JobStat::bookhistmc();//Book histograms for MC
 }
 //----------------------------------------------------------------------------------------
 void AMSJob::_siecalinitjob(){
@@ -1709,16 +1697,22 @@ void AMSJob::_siecalinitjob(){
 //
     EcalJobStat::bookhistmc();
 //
-// ===> Generate pedestals if requested, otherwise take them from DB
-  if(ECMCFFKEY.generpeds>0){
-    cout <<"_siecalinitjob: prepare default pedestals ..."<<endl;
-    ECPMPeds::mcbuild();
+//    ECREUNcalib::makeToyRLGAfile();//tempor
+//
+// ===> Generate MC-pedestals if requested, otherwise they will be taken from DB
+  if(!isRealData()){
+    if(ECMCFFKEY.ReadConstFiles%10>0){//P
+      cout <<"_siecalinitjob: prepare default MC-pedestals ..."<<endl;
+      ECPMPeds::mcbuild();
+    }
+    if((ECMCFFKEY.ReadConstFiles%100)/10>0){//C(only seeds)
+      cout <<"_siecalinitjob: read MC-Seeds calibr.const file..."<<endl;
+      ECcalibMS::build();
+    }
   }
-  else if(isSimulation()){
-    ECREFFKEY.year[1]=ECREFFKEY.year[0]-1;    
-  }
+//
 }
-
+//-----------------------------------------------------------------------
 void AMSJob::_sirichinitjob(){
   AMSgObj::BookTimer.book("SIRICH");
   RICHDB::bookhist();
@@ -1921,31 +1915,20 @@ void AMSJob::_retof2initjob(){
 // ===> Book histograms for REC :
 //
     TOF2JobStat::bookhist();
+//
+//-------------------------
 // 
-  if(TFREFFKEY.ReadConstFiles){// Constants will be taken from ext.files
+  if(TFREFFKEY.ReadConstFiles%10>0){//(PC) Calib.Const/DaqThr/Cuts  from ext.files/Dcards
 //
-//-----------
-// ===> create common parameters (tofvpar structure) fr.data-cards :
+    TOF2Varp::tofvpar.init(TFREFFKEY.daqthr, TFREFFKEY.cuts);//create DaqThr/RecoCuts-obj
 //
-    TOF2Varp::tofvpar.init(TFREFFKEY.daqthr, TFREFFKEY.cuts);//daqthr/cuts reading
-//
-//-----------
-//     ===> create indiv. sc.bar scmcscan-objects (MC t/eff-distributions) 
-//
-    TOFWScan::build();
-//
-//-------------------------
-// ===> create indiv. sc.bar parameters (sc.bar scbrcal-objects) fr.ext.files:
-//
-    TOF2Brcal::build();
-//-------------------------
-// ===> create sc.bar peds/sigs (sc.bar scbrped-objects) fr.ext.files:
-//
-    TOFBPeds::build();
+    TOF2Brcal::build();//create sc.bar scbrcal-objects
   }
 //-------------------------
-  else{ // Constants will be taken from DB(TDV)->this is normal run mode !!!
-    TFREFFKEY.year[1]=TFREFFKEY.year[0]-1;    
+//
+  if((TFREFFKEY.ReadConstFiles%100)/10>0 && isRealData()){// RealDataPeds from ext.files
+//
+    TOFBPeds::build();//create sc.bar scbrped-objects
   }
 // 
 //-----------
@@ -1976,29 +1959,23 @@ void AMSJob::_reecalinitjob(){
 
 // setup - data type dep init
 if(ECREFFKEY.SimpleRearLeak[0]<0){
-if(isRealData() ){
-  ECREFFKEY.SimpleRearLeak[0]=0.015;
-  ECREFFKEY.SimpleRearLeak[1]=0.99e-3;
-  ECREFFKEY.SimpleRearLeak[2]=3.6;
-  ECREFFKEY.SimpleRearLeak[3]=1.045e-3;
-  for (int i=0;i<4;i++)cout <<" RearLeak["<<i<<"]="<<ECREFFKEY.SimpleRearLeak[i]<<endl;
-}
-else{
-for(int k=0;k<4;k++){
- if( ECREFFKEY.SimpleRearLeak[k]<0) ECREFFKEY.SimpleRearLeak[k]*=-1;
-}
-  for (int i=0;i<4;i++)cout <<" RearLeak["<<i<<"]="<<ECREFFKEY.SimpleRearLeak[i]<<endl;
-}
-}
-
-
-
-if( isRealData() &&  !(isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<=0){
-  ECREFFKEY.year[1]=ECREFFKEY.year[0]-1;
+  if(isRealData() ){
+    ECREFFKEY.SimpleRearLeak[0]=0.015;
+    ECREFFKEY.SimpleRearLeak[1]=0.99e-3;
+    ECREFFKEY.SimpleRearLeak[2]=3.6;
+    ECREFFKEY.SimpleRearLeak[3]=1.045e-3;
+    for (int i=0;i<4;i++)cout <<" RearLeak["<<i<<"]="<<ECREFFKEY.SimpleRearLeak[i]<<endl;
   }
-  else if(ECREFFKEY.year[1]>=ECREFFKEY.year[0]){
-    ECREFFKEY.ReadConstFiles=1;
+  else{
+    for(int k=0;k<4;k++){
+      if( ECREFFKEY.SimpleRearLeak[k]<0) ECREFFKEY.SimpleRearLeak[k]*=-1;
+    }
+    for (int i=0;i<4;i++)cout <<" RearLeak["<<i<<"]="<<ECREFFKEY.SimpleRearLeak[i]<<endl;
   }
+}
+
+
+
 
 
   integer pr,pl,cell;
@@ -2015,26 +1992,23 @@ if( isRealData() &&  !(isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<
 //
     EcalJobStat::bookhist();// Book histograms for REC
 //
-  if(ECREFFKEY.ReadConstFiles){// Calibr.constants will be taken from ext.files 
+  if(ECREFFKEY.ReadConstFiles>0){//C(MC+RD) Calibr.constants/Cuts/Thresh will be taken from ext.files 
 //-----------
-// ===> create common parameters (ecalvpar structure) fr.data-cards :
+// ===> create Cuts/Thresh parameters (ecalvpar structure) fr.data-cards :
 //
-    ECALVarp::ecalvpar.init(ECREFFKEY.thresh, ECREFFKEY.cuts);//daqthr/cuts reading
+    ECALVarp::ecalvpar.init(ECREFFKEY.thresh, ECREFFKEY.cuts);
 //
-//-----------
- // ===> create ecpmcal-calib-objects:
+// ===> create ecpmcal-calib-objects:
+//
     ECcalib::build(); 
 //-------------------------
-// ===> create EC-SubCell peds/sigs ECcalib structure):
+// ===> create EC-SubCell peds/sigs (ECPMPeds structure):
 //
 //    if(isRealData){
 //      ECPMPeds::build();
 //    }
   }
 //-----------
-  else if(!(isCalibration() & CEcal)){ // Constants will be taken from DB(TDV)
-    ECREFFKEY.year[1]=ECREFFKEY.year[0]-1;    
-  } 
 }
 //===================================================================
 
@@ -2092,11 +2066,11 @@ if (AMSJob::gethead()->isMonitoring()) {
                         "Length (words) Level3 block "};
 
   int nchans[nids] ={100,
-                    100.,100.,100.,100.,100.,100.,100.,100.,
-                    1000.,1000.,
-                    800.,800.,
-                    800.,800.,
-                    100., 100.};
+                    100,100,100,100,100,100,100,100,
+                    1000,1000,
+                    800,800,
+                    800,800,
+                    100, 100};
                     
   for (int i=0; i<nids; i++) {
      int hid  = 300000 + ids[i];
@@ -2365,7 +2339,10 @@ end.tm_year=TRDMCFFKEY.year[1];
   end.tm_mday=TFREFFKEY.day[1];
   end.tm_mon=TFREFFKEY.mon[1];
   end.tm_year=TFREFFKEY.year[1];
-
+//-----
+//tfre->PC,tfmc->PTS
+if(TFREFFKEY.ReadConstFiles%10==0)end.tm_year=TFREFFKEY.year[0]-1;//Calib.fromDB
+  
   TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
     (void*)&TOF2Brcal::scbrcal[0][0],server,NeededByDefault));
@@ -2373,14 +2350,38 @@ end.tm_year=TRDMCFFKEY.year[1];
   TID.add (new AMSTimeID(AMSID("Tofvpar2",isRealData()),
     begin,end,sizeof(TOF2Varp::tofvpar),
     (void*)&TOF2Varp::tofvpar,server,NeededByDefault));
-   
-  TID.add (new AMSTimeID(AMSID("Tofmcscans2",isRealData()),
-    begin,end,TOF2GC::SCBLMX*sizeof(TOFWScan::scmcscan[0]),
-    (void*)&TOFWScan::scmcscan[0],server,NeededByDefault));
-   
+    
+  end.tm_year=TFREFFKEY.year[1];
+//----- 
+if((TFREFFKEY.ReadConstFiles%100)/10==0 &&
+    isRealData())end.tm_year=TFREFFKEY.year[0]-1;//Real data Peds.fromDB
+if((TFMCFFKEY.ReadConstFiles%1000)/100==0 &&
+     !isRealData())end.tm_year=TFREFFKEY.year[0]-1;//MC data Peds.fromDB
+    
   TID.add (new AMSTimeID(AMSID("Tofpeds",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFBPeds::scbrped[0][0]),
     (void*)&TOFBPeds::scbrped[0][0],server,NeededByDefault));
+   
+  end.tm_year=TFREFFKEY.year[1];
+//----- 
+if((TFMCFFKEY.ReadConstFiles%100)/10==0 && !isRealData())end.tm_year=TFREFFKEY.year[0]-1;//MCTimeDistr.fromDB
+
+  TID.add (new AMSTimeID(AMSID("Tofmcscans2",0),
+    begin,end,TOF2GC::SCBLMX*sizeof(TOFWScan::scmcscan[0]),
+    (void*)&TOFWScan::scmcscan[0],server,NeededByDefault));
+    
+  end.tm_year=TFREFFKEY.year[1];
+//----- 
+if(TFMCFFKEY.ReadConstFiles%10==0 && !isRealData()){
+
+  end.tm_year=TFREFFKEY.year[0]-1;//"MC Seeds" fromDB
+    
+  TID.add (new AMSTimeID(AMSID("TofbarcalMS",isRealData()),
+    begin,end,TOF2GC::SCBLMX*sizeof(TOFBrcalMS::scbrcal[0][0]),
+    (void*)&TOFBrcalMS::scbrcal[0][0],server,NeededByDefault));
+}
+end.tm_year=TFREFFKEY.year[1];
+ 
 //
    
 }
@@ -2524,18 +2525,37 @@ end.tm_year=TRDMCFFKEY.year[1];
   end.tm_mday=ECREFFKEY.day[1];
   end.tm_mon=ECREFFKEY.mon[1];
   end.tm_year=ECREFFKEY.year[1];
+//--------
+//ecre->C; ecmc->CP
+if(ECREFFKEY.ReadConstFiles==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib.fromDB
 
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
      begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
                                   (void*)&ECcalib::ecpmcal[0][0],server));
-//
+				  
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVvpar(),
      begin,end,sizeof(ECALVarp::ecalvpar),
                                       (void*)&ECALVarp::ecalvpar,server));
-   
+  end.tm_year=ECREFFKEY.year[1];
+//--------
+if(!isRealData()){//Create "MC.Seeds" TDV only for MC-run.    
+  cout<<"AMSJob::_timeinitjob:create ECcalibMS-TDV"<<endl;
+  if((ECMCFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib"MC.Seeds" fromDB
+	     
+  TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalibMS(),
+     begin,end,ecalconst::ECPMSL*sizeof(ECcalibMS::ecpmcal[0][0]),
+                                  (void*)&ECcalibMS::ecpmcal[0][0],server));
+  end.tm_year=ECREFFKEY.year[1];
+}
+//--------
+if(ECMCFFKEY.ReadConstFiles%10==0 &&
+             !isRealData())end.tm_year=ECREFFKEY.year[0]-1;//MC Peds fromDB
+	     
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVped(),
     begin,end,ecalconst::ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
-    (void*)&ECPMPeds::pmpeds[0][0],server));
+                                    (void*)&ECPMPeds::pmpeds[0][0],server));
+  end.tm_year=ECREFFKEY.year[1];
+//--------
 }
 //
 //---------------------------------------

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.70 2002/11/19 17:15:36 alexei Exp $
+//  $Id: root.h,v 1.71 2002/12/06 14:43:40 choumilo Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -376,6 +376,7 @@ public:
   int   Plane;
   int   Cell;
   float Edep;
+  float EdCorr;
   float AttCor;
   float Coo[3];
   float ADC[3];

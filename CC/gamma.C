@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.22 2002/12/06 09:36:28 choutko Exp $
+//  $Id: gamma.C,v 1.23 2002/12/06 14:43:17 choumilo Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -1039,11 +1039,11 @@ integer AMSTrTrackGamma::build(integer refit){
   uinteger evn=AMSEvent::gethead()->getEvent();
   uinteger Run=AMSEvent::gethead()->getrun();
 
-  //#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
   cout << "  #####   #####  #####  Run "<<Run<< " "<< "Event " <<evn <<endl;
   AMSmceventg::PrintSeeds(cout);
   //  cout << " ##### Nuser which should correspond to ntrrh =   " << Nuser <<endl;
-  //#endif
+#endif
 */
   for(int i=0;i<TKDBc::nlay();i++){
    AMSTrRecHit::_markDouble(H[i],i);

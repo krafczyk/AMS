@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.27 2002/10/17 12:52:40 choutko Exp $
+//  $Id: ecaldbc.h,v 1.28 2002/12/06 14:43:39 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -102,7 +102,7 @@ private:
   static integer cacount[ecalconst::ECJSTA];// event passed CALIB-cut "i"
 //          i=0 -> entries
 //          i=1 ->
-  static integer srcount[10];// service counters 
+  static integer srcount[20];// service counters 
 public:
   static geant zprmc1[ecalconst::ECSLMX];// mc-hit average Z-profile(SL-layers) 
   static geant zprmc2[ecalconst::ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
@@ -131,7 +131,7 @@ public:
   }
   static void addsr(int i){
     #ifdef __AMSDEBUG__
-      assert(i>=0 && i< 10);
+      assert(i>=0 && i< 20);
     #endif
     srcount[i]+=1;
   }
@@ -149,14 +149,15 @@ public:
 };
 //
 //===========================================================================
-// ---------------> Class to store ECAL calibration constants :
+// ---------------> Class to store ECAL calibration(MC/RealData) constants :
 //
 class ECcalib{
 //
 private:
   integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
-  integer _status[4];  //4-SubCells calib.status(MN->Hch/Lch, M(N)=0/../9 -> OK/../DEAD) 
-  geant _pmrgain;    // PM relative(to ref.PM) gain (if A=(sum of 4 SubCells) pmrgain = Agiven/Aref)
+  integer _status[4];  //4-SubCells calib.status(MN->Hch/Lch, M(N)=0/1 -> OK/BAD)
+  integer _statusd;//  calib.status of Dynode(=0/1->OK/BAD) 
+  geant _pmrgain;    // PM relative(to ref.PM) gain (if A=(sum of 4 SubCells) pmrgain = A/Aref)
   geant _scgain[4]; // relative(to averaged) gain of 4 SubCells(highGain chain)(average_of_four=1 !!!)
   geant _hi2lowr[4]; // ratio of gains of high- and low-chains (for each of 4 SubCells)
   geant _an2dyr;    // 4xAnode_pixel/dynode signal ratio
@@ -167,9 +168,10 @@ private:
 public:
   static ECcalib ecpmcal[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   ECcalib(){};
-  ECcalib(integer sid, integer sta[4], geant pmg, geant scg[4], geant h2lr[4], geant a2dr,
-       geant lfs, geant lsl, geant fsf, geant conv):
-       _softid(sid),_pmrgain(pmg),_an2dyr(a2dr),_lfast(lfs),_lslow(lsl),_fastf(fsf),_adc2mev(conv){
+  ECcalib(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
+       geant a2dr, geant lfs, geant lsl, geant fsf, geant conv):
+       _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_lfast(lfs),
+       _lslow(lsl),_fastf(fsf),_adc2mev(conv){
     for(int i=0;i<4;i++){
       _status[i]=sta[i];
       _scgain[i]=scg[i];
@@ -179,10 +181,59 @@ public:
   integer & getstat(int i){return _status[i];}
   geant &pmrgain(){return _pmrgain;}
   geant &pmscgain(int i){return _scgain[i];}
-  bool HCHisBad(int i){ return (_status[i]%100)/10>=9;}
-  bool LCHisBad(int i){ return _status[i]%10>=9;}
+  bool HCHisBad(int i){ return (_status[i]%100)/10>0;}
+  bool LCHisBad(int i){ return _status[i]%10>0;}
+  bool DCHisBad(){ return _statusd%10>0;}
   geant &hi2lowr(integer subc){return _hi2lowr[subc];}
   geant & adc2mev(){return _adc2mev;}
+  geant &an2dyr(){return _an2dyr;}
+  geant& alfast(){return _lfast;}
+  geant& alslow(){return _lslow;}
+  geant& fastfr(){return _fastf;}
+  geant attfdir(geant pmd){ return((1-_fastf)*exp(-pmd/_lslow)+_fastf*exp(-pmd/_lfast));}
+  geant attfrfl(geant pmd, geant hflen){
+    return ((1-_fastf)*exp(-(2*hflen-pmd)/_lslow)+_fastf*exp(-(2*hflen-pmd)/_lfast))
+	  *((1-_fastf)*exp(-2*hflen/_lslow)+_fastf*exp(-2*hflen/_lfast))*ECMCFFKEY.fendrf;
+  }
+  static void build();
+  static number pmsatf1(int dir, number q);
+};
+//===========================================================================
+// ---------------> Class to store ECAL calibration(MC-Seeds) constants :
+//
+class ECcalibMS{
+//
+private:
+  integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
+  integer _status[4];  //4-SubCells calib.status(MN->Hch/Lch, M(N)=0/1 -> OK/BAD)
+  integer _statusd;//  calib.status of Dynode(=0/1->OK/BAD) 
+  geant _pmrgain;    // PM relative(to ref.PM) gain (if A=(sum of 4 SubCells) pmrgain = A/Aref)
+  geant _scgain[4]; // relative(to averaged) gain of 4 SubCells(highGain chain)(average_of_four=1 !!!)
+  geant _hi2lowr[4]; // ratio of gains of high- and low-chains (for each of 4 SubCells)
+  geant _an2dyr;    // 4xAnode_pixel/dynode signal ratio
+  geant _lfast;// att.length(short comp.)
+  geant _lslow;// att.length(long comp.)
+  geant _fastf;// percentage of short comp.
+public:
+  static ECcalibMS ecpmcal[ecalconst::ECSLMX][ecalconst::ECPMSMX];
+  ECcalibMS(){};
+  ECcalibMS(integer sid, integer sta[4], integer stad, geant pmg, geant scg[4], geant h2lr[4], 
+       geant a2dr, geant lfs, geant lsl, geant fsf):
+       _softid(sid),_statusd(stad), _pmrgain(pmg),_an2dyr(a2dr),_lfast(lfs),
+       _lslow(lsl),_fastf(fsf){
+    for(int i=0;i<4;i++){
+      _status[i]=sta[i];
+      _scgain[i]=scg[i];
+      _hi2lowr[i]=h2lr[i];
+    }
+  };
+  integer & getstat(int i){return _status[i];}
+  geant &pmrgain(){return _pmrgain;}
+  geant &pmscgain(int i){return _scgain[i];}
+  bool HCHisBad(int i){ return (_status[i]%100)/10>0;}
+  bool LCHisBad(int i){ return _status[i]%10>0;}
+  bool DCHisBad(){ return _statusd%10>0;}
+  geant &hi2lowr(integer subc){return _hi2lowr[subc];}
   geant &an2dyr(){return _an2dyr;}
   geant& alfast(){return _lfast;}
   geant& alslow(){return _lslow;}
@@ -244,6 +295,7 @@ private:
   integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
   uinteger _staH[4];//HighGainChannel status
   uinteger _staL[4];//LowGainChannel status
+  uinteger _stad;//Dynode channel status
   geant _pedh[4]; // ped for high-channel of 4 SubCells(pixels)(in ADCchannels)
   geant _pedl[4]; // ped for low-channel of 4 SubCells(pixels)
   geant _sigh[4]; // sigma for high-channel of 4 SubCells(pixels)
@@ -254,8 +306,11 @@ private:
 public:
   static ECPMPeds pmpeds[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   ECPMPeds(){};
-  ECPMPeds(integer sid, uinteger stah[4], uinteger stal[4], geant pedh[4], geant sigh[4],
-                           geant pedl[4], geant sigl[4]):_softid(sid),_pedd(),_sigd(0){
+  ECPMPeds(integer sid, uinteger stah[4], uinteger stal[4], uinteger stad,
+                           geant pedh[4], geant sigh[4],
+                           geant pedl[4], geant sigl[4],
+			   geant pedd, geant sigd)
+			   :_softid(sid),_stad(stad),_pedd(pedd),_sigd(sigd){
     for(int i=0;i<4;i++){
       _pedh[i]=pedh[i];
       _sigh[i]=sigh[i];
@@ -268,10 +323,12 @@ public:
   geant &ped(uinteger chan, uinteger gain)  {return gain==0?_pedh[chan<4?chan:0]:_pedl[chan<4?chan:0];}  
   geant & sig(uinteger chan, uinteger gain)  {return gain==0?_sigh[chan<4?chan:0]:_sigl[chan<4?chan:0];}
   uinteger &sta(uinteger chan, uinteger gain){return gain==0?_staH[chan<4?chan:0]:_staL[chan<4?chan:0];}
-  geant &ped()  {return _pedd;}
-  geant &sig()  {return _sigd;}
+  geant &pedd()  {return _pedd;}
+  geant &sigd()  {return _sigd;}
+  uinteger &stad()  {return _stad;}
   bool HCHisBad(uinteger chan){return (_staH[chan]&AMSDBc::BAD)!=0;}
   bool LCHisBad(uinteger chan){return (_staL[chan]&AMSDBc::BAD)!=0;}
+  bool DCHisBad(){return (_stad&AMSDBc::BAD)!=0;}
   void getpedh(geant pedh[4]){
     for(int i=0;i<4;i++)pedh[i]=_pedh[i];
   }
