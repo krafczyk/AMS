@@ -1,6 +1,7 @@
-//  $Id: trigger302.C,v 1.7 2001/12/03 13:33:14 choutko Exp $
+//  $Id: trigger302.C,v 1.8 2001/12/04 10:36:19 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
+#include <tofsim02.h>
 #include <tofdbc.h>
 #include <trigger102.h>
 #include <trigger1.h>
@@ -88,6 +89,31 @@ void TriggerAuxLVL302::filltrd(integer crate){
    AMSTRDRawHit::HardWareCompatibilityMode()=false;
 
 }
+//------------------------------------------------
+void TriggerAuxLVL302::filltof(){
+//
+// fillTOF
+//
+  TOF2RawEvent *ptr;
+//
+  ptr=(TOF2RawEvent*)AMSEvent::gethead()
+                        ->getheadC("TOF2RawEvent",0,1);//last 1 to sort
+//(for MC i use "daq-decoded" class TOF2RawEvent as input)  
+  while(ptr){
+    _ltr+=ptr->lvl3format(_ptr+_ltr,maxtr-_ltr);//filling TriggerAuxLVL3
+    ptr=ptr->next();
+//
+  }
+}
+//
+//---
+//
+int16 *  TriggerAuxLVL302::readtof(integer begin){
+  if(begin)_ctr=0;
+  else if (_ctr < _ltr)_ctr=_ctr+3;
+  return _ctr < _ltr ? _ptr+_ctr : 0;
+}
+//------------------------------------------------
 
 
 
@@ -113,6 +139,7 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
 
   integer TriggerLVL302::_TOFPattern[TOFGC::MAXPAD][TOFGC::MAXPAD];
   integer TriggerLVL302::_TOFStatus[TOFGC::MAXPLN][TOFGC::MAXPAD];
+  integer TriggerLVL302::_TOFTzero[TOFGC::MAXPLN][TOFGC::MAXPAD];
   integer TriggerLVL302::_TOFOr[TOFGC::MAXPLN][TOFGC::MAXPAD];
   integer TriggerLVL302::_TrackerStatus[NTRHDRP2];
   integer TriggerLVL302::_TrackerAux[NTRHDRP][trid::ncrt];
@@ -146,7 +173,7 @@ integer TriggerLVL302::_TrackerOtherTDR[NTRHDRP][trid::ncrt];
 
 
 TriggerLVL302::TriggerLVL302(bool tofin, bool trdin ):_TRDTrigger(0),_TOFTrigger(0),_MainTrigger(0),
-_TrackerTrigger(0),_NPatFound(0),_Time(0),_NTrHits(0),_TrEnergyLoss(0),_TriggerInputs(0),TRDAux(),_Direction(0){
+_TrackerTrigger(0),_NPatFound(0),_Time(0),_NTrHits(0),_TrEnergyLoss(0),_TriggerInputs(0),TRDAux(),_TOFDirection(0){
   
   if(!trdin)_TriggerInputs =_TriggerInputs | TRDIN; 
   if(!tofin)_TriggerInputs =_TriggerInputs | TOFIN; 
@@ -162,7 +189,6 @@ VZERO(_TrackerAux,AMSTrIdSoft::ndrp());
 VZERO(_nhits,sizeof(_nhits)/sizeof(integer));
 
 }
-
 
 
 
@@ -243,8 +269,45 @@ void TriggerLVL302::init(){
         }
         else cerr <<"TriggerLVL302-Init-S-TOFVolumeNotFound"<<AMSID("TOFS",100*(j+1)+i+1);
       }
-    }  
-   
+    }
+//----------------  
+//
+// ---> read TOF T0's calibration for direction algorithm:
+//
+ char fname[80];
+ char name[80];
+ char vers1[3]="mc";
+ char vers2[3]="rl";
+ strcpy(name,"TOFTZLVL3.AMS02");
+ if(AMSJob::gethead()->isMCData()) //      for MC-event
+ {
+       cout <<" TriggerLVL302_build: MC-tofT0-calibration is used"<<endl;
+       strcat(name,vers1);
+ }
+ else                              //      for Real events
+ {
+       cout <<" TriggerLVL302_build: REAL-tofT0-calibration is used"<<endl;
+       strcat(name,vers2);
+ }
+//
+ if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+ if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+ strcat(fname,name);
+ cout<<"Open file : "<<fname<<'\n';
+ ifstream tzcfile(fname,ios::in); // open  file for reading
+ if(!tzcfile){
+   cerr <<"TriggerLVL302_build: missing TOFTzero-file "<<fname<<endl;
+   exit(1);
+ }
+//
+// ---> read Tzero's:
+ for(int ila=0;ila<TOF2GC::SCLRS;ila++){ 
+   for(int ibr=0;ibr<TOF2GC::SCMXBR;ibr++){
+     tzcfile >> _TOFTzero[ila][ibr];
+   } 
+ }
+ tzcfile.close();
+//-----------------   
   
    
 
@@ -595,6 +658,10 @@ void TriggerLVL302::addtof(int16 plane, int16 paddle){
   }
 
 }
+//----
+void TriggerLVL302::settofdir(int dir){
+  _TOFDirection=dir;
+}
 //----------------------------------------------------------------
   integer TriggerLVL302::toftrdok(){ 
 // Now we allow 1tof  at top and 1tof  at botton if no trd 
@@ -786,33 +853,84 @@ geant TriggerLVL302::Discriminator(integer nht){
         auxtrd[icrt].filltrd(icrt);
        }
 
-
-
-
-
-
-       int idum;
+//
+//---> fill tof:  
+//
+       TriggerAuxLVL302 auxtof;
+       auxtof.filltof();
+//
+//===> create LVL3-object:
+//
+       int idum,i,j;
        TriggerLVL302 *plvl3=0;
        tt1=HighResTime();
        for(idum=0;idum<LVL3FFKEY.NRep;idum++){
-        delete plvl3;
-        plvl3 = new TriggerLVL302();  
-
-
-
-      
-
-
-    //
-    // Start here the lvl3 algorithm
-    //    
-
-
-
-    //
-    // first TOF Part
-    //
-    int i,j;
+         delete plvl3;
+         plvl3 = new TriggerLVL302();  
+//
+//-----------> START the lvl3 algorithm:
+//
+//===> 1st: read TOF raw-time data, define part.direction:
+//
+    geant tofrt[TOF2GC::SCLRS][TOF2GC::SCMXBR],toft[TOF2GC::SCLRS];
+    geant ttop,tbot,dt;
+    int16 ntofrt[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+    int16 idd,id,il,ib,is;
+    plvl3->settofdir(0);//reset TOF-dir flag
+//
+    if(plvl3->UseTOFTime()){// <--- generate/use TOF-dir info
+    for(i=0;i<TOF2GC::SCLRS;i++){
+      for(j=0;j<TOF2GC::SCMXBR;j++){
+        tofrt[i][j]=0;
+        ntofrt[i][j]=0;
+      }
+    }
+//
+    ptr=auxtof.readtof(1);
+    while(ptr){
+      idd=*(ptr+1);//SoftID=LBBS 
+      id=idd/10;// short id=LBB, where L=1,4 BB=1,12
+      il=id/100-1;
+      ib=id%100-1;
+      is=idd%10-1;
+      tofrt[il][ib]+=(*(ptr+2))*TOF2DBc::tdcbin(1);//raw side-time(ns)
+      ntofrt[il][ib]+=1;
+      ptr=auxtof.readtof();//to take next
+    }
+//       
+    for(i=0;i<AMSTOFCluster::planes();i++){
+      toft[i]=0;
+      for(j=0;j<AMSTOFCluster::padspl(i);j++){
+        if(ntofrt[i][j]==2){
+	  tofrt[i][j]/=2;
+	  tofrt[i][j]+=_TOFTzero[i][j];//add calibration
+	}
+	else tofrt[i][j]=0;
+	if(tofrt[i][j]>toft[i])toft[i]=tofrt[i][j];
+      }
+    }
+//
+    if(toft[0]>0 && toft[1]>0)ttop=(toft[0]+toft[1])/2;
+    else if(toft[0]>0)ttop=toft[0];
+    else if(toft[1]>0)ttop=toft[1];
+    else ttop=0;
+    if(toft[2]>0 && toft[3]>0)tbot=(toft[2]+toft[3])/2;
+    else if(toft[2]>0)tbot=toft[2];
+    else if(toft[3]>0)tbot=toft[3];
+    else tbot=0;
+//
+    if(ttop>0 && tbot>0){
+      dt=ttop-tbot;
+      if(TFREFFKEY.reprtf[2]!=0)HF1(1092,ttop-tbot,1.);
+      if(dt>=1.5)plvl3->settofdir(1);
+      else if(dt<-1.5)plvl3->settofdir(-1);
+      else plvl3->settofdir(0);
+    }
+    }//---> endof UseTOFTime() check
+//---------
+//
+//===> 2nd: accumulate patterns of TOF fired paddles:
+//
     for(i=0;i<AMSTOFCluster::planes();i++){
       for(j=0;j<AMSTOFCluster::padspl(i);j++){
         if(plvl1->checktofpattand(i,j) ||
@@ -821,6 +939,11 @@ geant TriggerLVL302::Discriminator(integer nht){
         }
       }
     }
+//
+//===> 3rd: check that TOF criteria OK:
+//
+    if(plvl3->TOFOK() == 0) goto formed;//bad?
+//----------------------------------------
 
 
 
@@ -989,7 +1112,7 @@ void TriggerLVL302::_writeEl(){
   lvl3N->TRDTr[lvl3N->Nlvl3]=_TRDTrigger;
   lvl3N->TrackerTr[lvl3N->Nlvl3]=_TrackerTrigger;
   lvl3N->MainTr[lvl3N->Nlvl3]=_MainTrigger;
-  lvl3N->Direction[lvl3N->Nlvl3]=_Direction;
+  lvl3N->Direction[lvl3N->Nlvl3]=_TOFDirection;
   lvl3N->NTrHits[lvl3N->Nlvl3]=_NTrHits;
   lvl3N->NPatFound[lvl3N->Nlvl3]=_NPatFound;
   lvl3N->Residual[lvl3N->Nlvl3][0]=_Residual[0];
@@ -1268,13 +1391,13 @@ void TriggerLVL302::Finalize(){
   if(_TrackerTrigger%8==2 )_MainTrigger|=4;
   if(_TRDTrigger==4)_MainTrigger|=8;
   if(_TOFTrigger==0)_MainTrigger|=16;
-  if((_Direction==0)  && UseTOFTime())_MainTrigger|= 32;
-  if((_Direction==-1) )_MainTrigger|= 64;
-  if(_TrackerTrigger%8==3  && _Direction==-1)_MainTrigger|=1024;
+  if((_TOFDirection==0)  && UseTOFTime())_MainTrigger|= 32;
+  if((_TOFDirection==-1) )_MainTrigger|= 64;
+  if(_TrackerTrigger%8==3  && _TOFDirection==-1)_MainTrigger|=1024;
   else if(_TrackerTrigger%8==3)_MainTrigger|=128;
   if(_TrackerTrigger%8==4 )_MainTrigger|=256;
   if(_TrackerTrigger%8==5 )_MainTrigger|=512;
-  if(_TrackerTrigger%8==6 && _Direction==-1)_MainTrigger|=128;
+  if(_TrackerTrigger%8==6 && _TOFDirection==-1)_MainTrigger|=128;
   else if(_TrackerTrigger%8==6)_MainTrigger|=1024;
   if((_TrackerTrigger>>3)&1 )_MainTrigger|=2048;
   if((_TRDTrigger>>3)&1 )_MainTrigger|=4096;

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.36 2001/11/19 14:39:22 choutko Exp $
+//  $Id: ecalrec.C,v 1.37 2001/12/04 10:36:17 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -316,7 +316,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       dyrespt+=dyresp;
       if(ECMCFFKEY.mcprtf==1){
         HF1(ECHIST+5,geant(dyresp),1.);
-        if(dyresp>0.)HF1(ECHIST+6,geant(an4resp/dyresp),1.);
+        if(dyresp>3*sigd/mev2adc)HF1(ECHIST+6,geant(an4resp/dyresp),1.);
       }
 //            arrays for trigger study:
       pmtmap[il][i]=an4resp;//tempor 4xAnode-resp(later dynode-resp)

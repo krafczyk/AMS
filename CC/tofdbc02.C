@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.10 2001/09/11 12:57:04 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.11 2001/12/04 10:36:18 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -820,6 +820,15 @@ geant TOF2Brcal::tm2t(number tmf[2], number amf[2], int hlf){//(2-sides_times/AD
   return geant(time); 
 }
 //-----
+geant TOF2Brcal::tm2tr(number tmf[2]){//tempor, same for raw times(lv3-games)
+  number time(0);
+  if(status[0]>=0 && status[1]>=0){
+//    time=0.5*(tmf[0]+tmf[1]);
+    time=0.5*(tmf[0]+tmf[1])+tzero;
+  }
+  return geant(time); 
+}
+//-----
 void TOF2Brcal::tmd2p(number tmf[2], number amf[2], int hlf,
                               geant &co, geant &eco){//(time-diff)->loc.coord/err(cm)
   number coo,qs,uv(0);
@@ -1403,6 +1412,7 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1096,"Time diff",50,-5.,5.,0.);
     HBOOK1(1097,"Coord. diff",50,-15.,15.,0.);
     HBOOK1(1098,"Edep. diff",50,-5.,5.,0.);
+    HBOOK1(1092,"TOF:Ttop-Tbot(LVL3)",50,-12.5,12.5,0.);
     if(TFREFFKEY.reprtf[2]>1){
       HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
@@ -1668,6 +1678,8 @@ void TOF2JobStat::outp(){
          HPRINT(1096);
          HPRINT(1097);
          HPRINT(1098);
+         HPRINT(1092);
+         HPRINT(1093);
          if(TFREFFKEY.reprtf[2]>1){
            HPRINT(1529);
            HPRINT(1526);

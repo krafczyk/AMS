@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.9 2001/09/19 08:56:55 choumilo Exp $
+//  $Id: tofrec02.C,v 1.10 2001/12/04 10:36:18 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -935,6 +935,7 @@ void TOF2RawCluster::build(int &ostatus){
   }
 //
   if(ostatus!=0)return;//remove bad events
+//
   if(conf != 5)return;//use only 1bar/layer,4-layer events for next processing
 //
 //--------------> try to recover 1-sided counters

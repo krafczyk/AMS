@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.275 2001/11/19 13:28:28 choumilo Exp $
+//  $Id: event.C,v 1.276 2001/12/04 10:36:18 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1253,14 +1253,14 @@ void AMSEvent::event(){
      }
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       _sitof2event();//important to call after siecalevent to have FT from EC
-      _sianti2event();//from EC in case of absence FT from TOF
+      _sianti2event();//                           in case of absence FT from TOF
     }
     else{
       _sitofevent();
       _siantievent();
     } 
     _sitkevent(); 
-    _sitrigevent(); 
+    _sitrigevent();//create lev1/lev3 trig.object 
     _sidaqevent(); //DAQ-simulation 
   AMSgObj::BookTimer.stop("SIAMSEVENT");
   }

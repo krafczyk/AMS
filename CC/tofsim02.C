@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.13 2001/11/30 16:47:04 choutko Exp $
+//  $Id: tofsim02.C,v 1.14 2001/12/04 10:36:19 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #include <tofdbc02.h>
 #include <iostream.h>
@@ -898,7 +898,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
 //        
 // branch-3 "slow TDC logic" :        
             if(upd13==0){
-              if((tmd1u-td1b3)>daqp4){ // "buzy" check for f-TDC channel
+              if((tmd1u-td1b3)>daqp4){ // "buzy" check for s-TDC channel
                 upd13=1;  // set flag for branch s-TDC,if ready 
                 if(_nstdc<TOF2GC::SCTHMX3){
                   td1b3=tm;
@@ -1982,3 +1982,62 @@ void TOF2RawEvent::putadcl(int16u nelem, int16u arr[]){
   nadcl=nelem;
   for(int i=0;i<nadcl;i++)adcl[i]=arr[i];
 }
+//--------------
+integer TOF2RawEvent::lvl3format(int16 *ptr, integer rest){
+  integer ilay,ibar,isid;
+  int i,j,nrwt;
+  int statdb[2];
+  int16u pbitn,pbanti,pbup,pbdn,pbup1,pbdn1,hwid,crat;
+  int16u id,rwt[10];
+  int16 rawt;
+//
+  pbitn=TOF2GC::SCPHBP;//phase bit position
+  pbanti=pbitn-1;// mask to avoid it.
+  id=idsoft/10;// short id=LBB, where L=1,4 BB=1,12
+  ilay=id/100-1;
+  ibar=id%100-1;
+  isid=idsoft%10-1;
+  nrwt=0;
+  TOF2Brcal::scbrcal[ilay][ibar].getbstat(statdb); // "alive" status from DB
+  if(statdb[isid] == 0){  // side(both PM's) alive(no severe problems), read out it
+    hwid=TOF2RawEvent::sw2hwid(ilay,ibar,isid);
+    crat=hwid/100-1;
+    for(i=0;i<nstdc-3;i++){// <--- find all correct 4's of up/down bits settings
+      pbdn=(stdc[i]&pbitn);//check p-bit of 2-nd down-edge (come first, LIFO mode !!!)
+      pbup=(stdc[i+1]&pbitn);//check p-bit of 2-nd up-edge (come second)
+      pbdn1=(stdc[i+2]&pbitn);//check p-bit of 1-st down-edge (come third)
+      pbup1=(stdc[i+3]&pbitn);//check p-bit of 1-st up-edge (come fourth)
+      if(TOF2DBc::pbonup()==1){
+        if(pbup==0||pbup1==0||pbdn!=0||pbdn1!=0)continue;//wrong sequence, take next "4" 
+      }
+      else{
+        if(pbup!=0||pbup1!=0||pbdn==0||pbdn1==0)continue;//wrong  sequence, take next "4" 
+      }
+      if(nrwt<10)rwt[nrwt]=(stdc[i+3]&pbanti);//1-st up-edge (in real time)
+      nrwt+=1;
+//
+      i+=3;// to go to next 4 good edges
+    }//--->endof correct 4's of up/down bits settings search
+//---  
+  }// --->endof DBstat check
+//---
+  if(nrwt>0){
+    if (rest < 3) return 0;
+    rawt=rwt[0];//use last 1st edge t-measurement from last(real time) "4's"
+    *(ptr)=hwid;
+    *(ptr+1)=idsoft;
+    *(ptr+2)=rawt;
+    return 3; 
+  }
+  else return 0; 
+}
+
+
+
+
+
+
+
+
+
+

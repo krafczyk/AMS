@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.5 2001/09/11 12:57:06 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.6 2001/12/04 10:36:30 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -455,6 +455,7 @@ public:
   void  adc2q(int hlf, number am[2],number qs[2]);// meas. ampl.(ADCch)->Q(pC)
   geant poscor(geant point); // position correction 
   geant tm2t(number tm[2], number am[2], int hlf); // raw times(ns)/ampl(ns) -> Time (ns)
+  geant tm2tr(number tm[2]); // tempor(lv3-games), raw times(ns) -> Non_ampl_corrected_Time (ns)
   void tmd2p(number tm[2], number am[2], int hlf,
        geant &pos, geant &epos); // raw times/ampl -> Position/err(cm) along counter
   void td2ctd(number tdo, number am[2], int hlf, number &tdn);// time_diff(ns)->corrected(by ampl) one 

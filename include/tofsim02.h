@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.4 2001/01/22 17:32:45 choutko Exp $
+//  $Id: tofsim02.h,v 1.5 2001/12/04 10:36:30 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #ifndef __AMSTOF2SIM__
 #define __AMSTOF2SIM__
@@ -312,6 +312,7 @@ public:
  int16u getadcl(int16u arr[]);
  int16u getnadcl(){return nadcl;}
  void putadcl(int16u nelem, int16u arr[]);
+ integer lvl3format(int16 * ptr, integer rest);
 
 
 

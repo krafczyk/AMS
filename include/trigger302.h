@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.5 2001/12/03 13:33:21 choutko Exp $
+//  $Id: trigger302.h,v 1.6 2001/12/04 10:36:30 choumilo Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -38,7 +38,7 @@ class TriggerAuxLVL302{
   void addnoisetk(integer crate);
   void filltk(integer crate);
   void filltrd(integer crate);
-  void filltof(integer crate);
+  void filltof();
   int16 * readtracker(integer begin=0);
   int16 * readtrd(integer begin=0);
   int16 * readtof(integer begin=0);
@@ -99,6 +99,9 @@ protected:
                             // bit  13 Prescaled event  
 
 // TOF Time Part
+ integer _TOFDirection;//(-1->up;+1->down;0->unknown)
+//
+
 //
 // EC to define
 //
@@ -132,7 +135,6 @@ protected:
  geant coou, dscr,cood,a,b,s,r;
  geant resid[trconst::maxlay-2],zmean,factor,amp[trconst::maxlay];
  static integer _TOFPattern[TOFGC::MAXPAD][TOFGC::MAXPAD];
- static integer _TOFStatus[TOFGC::MAXPLN][TOFGC::MAXPAD];
  static integer _TOFOr[TOFGC::MAXPLN][TOFGC::MAXPAD];
  static integer _TrackerStatus[trigger302const::NTRHDRP2];
  static integer _TrackerAux[trigger302const::NTRHDRP][trid::ncrt];
@@ -191,13 +193,11 @@ static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst:
   TRDAux TRDAux;
 
 
- //TOFTime Part
-   integer _Direction;            //  -1 Up
-                                  //  0  Unknwn
-                                  //  1 Down
 
 //  Tof Aux Part
 
+ static integer _TOFStatus[TOFGC::MAXPLN][TOFGC::MAXPAD];
+ static integer _TOFTzero[TOFGC::MAXPLN][TOFGC::MAXPAD];
 
 
 
@@ -226,6 +226,7 @@ public:
  static integer TOFInFastTrigger(uinteger paddle, uinteger plane);
  void preparetracker();
  void addtof(int16 plane, int16 paddle);
+ void settofdir(int d);
  geant getlowlimitY(integer layer){return _lowlimitY[layer];} 
  geant getupperlimitY(integer layer){return _upperlimitY[layer];}
  geant getlowlimitX(integer layer){return _lowlimitX[layer];} 
