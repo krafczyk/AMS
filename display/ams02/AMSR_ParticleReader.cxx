@@ -1,4 +1,4 @@
-//  $Id: AMSR_ParticleReader.cxx,v 1.5 2001/08/10 16:18:50 choutko Exp $
+//  $Id: AMSR_ParticleReader.cxx,v 1.6 2001/08/20 18:36:58 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -93,6 +93,7 @@ void AMSR_ParticleReader::Make()
    TRTRACK_DEF *track_ntp = (gAMSR_Root->GetNtuple())->m_BlkTrtrack;
 
    m_NParticles = _ntuple->npart;
+
    //   m_NParticles=0;
    debugger.Print("AMSR_ParticleReader::Make(): making %d particles.\n", m_NParticles);
    TClonesArray &particles = *(TClonesArray*)m_Fruits;

@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.12 2001/08/18 20:01:47 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.13 2001/08/20 18:36:58 kscholbe Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -254,7 +254,7 @@ struct TRDTRK_DEF {
   float chi2[NTRDTRK];
   int ns[NTRDTRK];
   int pat[NTRDTRK];
-  int ps[5][NTRDTRK];
+  int ps[NTRDTRK][5];
 };
 #define blkTrdtrk COMMON_BLOCK(TRDTRK,trdtrk)
 COMMON_BLOCK_DEF(TRDTRK_DEF,blkTrdtrk);

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.cxx,v 1.6 2001/08/18 20:01:47 kscholbe Exp $
+//  $Id: AMSR_Root.cxx,v 1.7 2001/08/20 18:36:59 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -412,8 +412,8 @@ Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
     char treeName[10];
     int  ntpID       = m_Ntuple->GetNextID();
     sprintf(treeName,"h%d",ntpID);
-    TTree * tNew = (TTree *)fNew->Get(treeName);
-//    TTree * tNew = (TTree *)fNew->Get("h1");
+//    TTree * tNew = (TTree *)fNew->Get(treeName);
+    TTree * tNew = (TTree *)fNew->Get("AMSRoot");
     if (! tNew) {
       return 2;
     }
@@ -511,8 +511,12 @@ Bool_t AMSR_Root::GetEvent(Int_t event)
    m_Ntuple->GetEvent(event);
    m_RunNum   = m_Ntuple->GetRunNum();
    m_EventNum = m_Ntuple->GetEvtNum();
+
    m_Mode     = m_Ntuple->GetRunType();
    m_Ntuple->GetRunTime(m_Time);
+
+   debugger.Print("AMSR_Root::GetEvent(): run,event %d %d %d\n", m_RunNum,m_EventNum,m_Mode);
+
 
    //
    // clear the makers first before making it

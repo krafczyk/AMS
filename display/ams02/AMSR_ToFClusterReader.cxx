@@ -1,4 +1,4 @@
-//  $Id: AMSR_ToFClusterReader.cxx,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_ToFClusterReader.cxx,v 1.3 2001/08/20 18:36:59 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -76,6 +76,9 @@ void AMSR_ToFClusterReader::Make()
    debugger.Print("AMSR_ToFClusterReader::Make(): making %d clusters.\n",
 	  _ntuple->ntof);
    for (k=0; k<_ntuple->ntof; k++) {
+   debugger.Print("AMSR_ToFClusterReader::Make(): making cluster %d %d.\n",
+	  k,_ntuple->plane[k]);
+
       AddCluster(_ntuple->Tofstatus[k],
                  _ntuple->plane[k],
                  _ntuple->bar[k],

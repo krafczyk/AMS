@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.2 2001/01/22 17:32:36 choutko Exp $
+//  $Id: main.cxx,v 1.3 2001/08/20 18:36:59 kscholbe Exp $
 
 
 //--------------------------------------------------------------------------
@@ -48,6 +48,7 @@ main(int argc, char *argv[])
   //
   //  Turn off the debugger printings by default
   //
+
   debugger.Off();
 
   Int_t idleSec = 5;  //default IdleTimer in seconds
@@ -107,6 +108,9 @@ main(int argc, char *argv[])
   //AMSR_Root
   //-------
   AMSR_Root amsroot("AMS", "AMS Display");
+
+//  gROOT->LoadMacro("amsmc.sl"); 	
+
 
   //
   //Get the Geometry from the ROOT file

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.16 2001/08/18 20:01:46 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.17 2001/08/20 18:36:58 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -43,6 +43,7 @@
 #include <TTree.h>
 //#include <TClonesArray.h>
 //#include <TObjString.h>
+#include "Debugger.h"
 #include <TFile.h>
 #include <stdio.h>
 #include <iostream.h>
@@ -463,7 +464,12 @@ void AMSR_Ntuple::GetEvent(Int_t event)
    //
    if (event<0 || event>=m_Entries) return;
    
-   if (m_DataFileType == kRootFile) m_Tree->GetEvent(event);
+   if (m_DataFileType == kRootFile) 
+	{
+	  debugger.Print("AMSR_Ntuple::GetEvent:getting event %d\n",event);
+
+	  m_Tree->GetEvent(event);
+	}
 
    else if (m_DataFileType == kNtupleFile) {
 
@@ -645,6 +651,10 @@ void AMSR_Ntuple::SetTree(TTree *t)
 
       m_Tree    = t;
       m_Entries = m_Tree->GetEntries();
+	   debugger.Print("AMSR_Ntuple::SetTree(): no of entries %d\n",
+          m_Entries);
+
+
       SetTreeAddress();
       m_DataFileType = kRootFile;
 
@@ -664,228 +674,290 @@ void AMSR_Ntuple::SetTreeAddress()
    //
 
    if (m_Tree == 0) return;
-   
+
    //
    //Set branch addresses
    //
-   m_Tree->SetBranchAddress("eventno", &m_BlkEventh->eventno);
-   m_Tree->SetBranchAddress("run", &m_BlkEventh->run);
-   m_Tree->SetBranchAddress("runtype", &m_BlkEventh->runtype);
-   m_Tree->SetBranchAddress("time", m_BlkEventh->time);
-   m_Tree->SetBranchAddress("Rawwords", &m_BlkEventh->Rawwords);
-   m_Tree->SetBranchAddress("Rads", &m_BlkEventh->Rads);
-   m_Tree->SetBranchAddress("Thetas", &m_BlkEventh->Thetas);
-   m_Tree->SetBranchAddress("Phis", &m_BlkEventh->Phis);
-   m_Tree->SetBranchAddress("Yaws", &m_BlkEventh->Yaws);
-   m_Tree->SetBranchAddress("Pitchs", &m_BlkEventh->Pitchs);
-   m_Tree->SetBranchAddress("Rolls", &m_BlkEventh->Rolls);
-   m_Tree->SetBranchAddress("Velocitys", &m_BlkEventh->Velocitys);
-   m_Tree->SetBranchAddress("Veltheta", &m_BlkEventh->Veltheta);
-   m_Tree->SetBranchAddress("Velphi", &m_BlkEventh->Velphi);
-   m_Tree->SetBranchAddress("Thetam", &m_BlkEventh->Thetam);
-   m_Tree->SetBranchAddress("Phim", &m_BlkEventh->Phim);
-//   m_Tree->SetBranchAddress("Particles", &m_BlkEventh->Particles);
-   m_Tree->SetBranchAddress("Tracks", &m_BlkEventh->Tracks);
-//   m_Tree->SetBranchAddress("Betas", &m_BlkEventh->Betas);
-//   m_Tree->SetBranchAddress("Charges", &m_BlkEventh->Charges);
-   m_Tree->SetBranchAddress("Trrechits", &m_BlkEventh->Trrechits);
-   m_Tree->SetBranchAddress("Trclusters", &m_BlkEventh->Trclusters);
-   m_Tree->SetBranchAddress("Trrawclusters", &m_BlkEventh->Trrawclusters);
-   m_Tree->SetBranchAddress("Trmcclusters", &m_BlkEventh->Trmcclusters);
-   m_Tree->SetBranchAddress("Tofclusters", &m_BlkEventh->Tofclusters);
-   m_Tree->SetBranchAddress("Tofmcclusters", &m_BlkEventh->Tofmcclusters);
-   m_Tree->SetBranchAddress("Antimcclusters", &m_BlkEventh->Antimcclusters);
-   m_Tree->SetBranchAddress("Anticlusters", &m_BlkEventh->Anticlusters);
-   m_Tree->SetBranchAddress("Eventstatus", &m_BlkEventh->Eventstatus);
 
-   m_Tree->SetBranchAddress("nbeta", &m_BlkBeta->nbeta);
-   m_Tree->SetBranchAddress("betastatus", m_BlkBeta->betastatus);
-   m_Tree->SetBranchAddress("betapattern", m_BlkBeta->betapattern);
-   m_Tree->SetBranchAddress("beta", m_BlkBeta->beta);
-   m_Tree->SetBranchAddress("betac", m_BlkBeta->betac);
-   m_Tree->SetBranchAddress("betaerror", m_BlkBeta->betaerror);
-   m_Tree->SetBranchAddress("betaerrorc", m_BlkBeta->betaerrorc);
-   m_Tree->SetBranchAddress("betachi2", m_BlkBeta->betachi2);
-   m_Tree->SetBranchAddress("betachi2s", m_BlkBeta->betachi2s);
-   m_Tree->SetBranchAddress("betantof", m_BlkBeta->betantof);
-   m_Tree->SetBranchAddress("betaptof", m_BlkBeta->betaptof);
-   m_Tree->SetBranchAddress("betaptr", m_BlkBeta->betaptr);
 
-   m_Tree->SetBranchAddress("ncharge", &m_BlkCharge->ncharge);
-   m_Tree->SetBranchAddress("chargestatus", m_BlkCharge->chargestatus);
-   m_Tree->SetBranchAddress("chargebetap", m_BlkCharge->chargebetap);
-   m_Tree->SetBranchAddress("chargetof", m_BlkCharge->chargetof);
-   m_Tree->SetBranchAddress("chargetracker", m_BlkCharge->chargetracker);
-   m_Tree->SetBranchAddress("probtof", m_BlkCharge->probtof);
-   m_Tree->SetBranchAddress("chintof", m_BlkCharge->chintof);
-   m_Tree->SetBranchAddress("probtracker", m_BlkCharge->probtracker);
-   m_Tree->SetBranchAddress("chintracker", m_BlkCharge->chintracker);
-   m_Tree->SetBranchAddress("proballtracker", m_BlkCharge->proballtracker);
-   m_Tree->SetBranchAddress("truntof", m_BlkCharge->truntof);
-   m_Tree->SetBranchAddress("truntofd", m_BlkCharge->truntofd);
-   m_Tree->SetBranchAddress("truntracker", m_BlkCharge->truntracker);
-   m_Tree->SetBranchAddress("npart", &m_BlkParticle->npart);
-   m_Tree->SetBranchAddress("pbetap", m_BlkParticle->pbetap);
-   m_Tree->SetBranchAddress("pchargep", m_BlkParticle->pchargep);
-   m_Tree->SetBranchAddress("ptrackp", m_BlkParticle->ptrackp);
-   m_Tree->SetBranchAddress("pid", m_BlkParticle->pid);
-   m_Tree->SetBranchAddress("pidvice", m_BlkParticle->pidvice);
-   m_Tree->SetBranchAddress("probpid", m_BlkParticle->probpid);
-   m_Tree->SetBranchAddress("fitmom", m_BlkParticle->fitmom);
-   m_Tree->SetBranchAddress("pmass", m_BlkParticle->pmass);
-   m_Tree->SetBranchAddress("perrmass", m_BlkParticle->perrmass);
-   m_Tree->SetBranchAddress("pmom", m_BlkParticle->pmom);
-   m_Tree->SetBranchAddress("perrmom", m_BlkParticle->perrmom);
-   m_Tree->SetBranchAddress("pcharge", m_BlkParticle->pcharge);
-   m_Tree->SetBranchAddress("ptheta", m_BlkParticle->ptheta);
-   m_Tree->SetBranchAddress("pphi", m_BlkParticle->pphi);
-   m_Tree->SetBranchAddress("thetagl", m_BlkParticle->thetagl);
-   m_Tree->SetBranchAddress("phigl", m_BlkParticle->phigl);
-   m_Tree->SetBranchAddress("pcoo", m_BlkParticle->pcoo);
-   m_Tree->SetBranchAddress("cutoff", m_BlkParticle->cutoff);
-   m_Tree->SetBranchAddress("cootof", m_BlkParticle->cootof);
-   m_Tree->SetBranchAddress("cooanti", m_BlkParticle->cooanti);
-   m_Tree->SetBranchAddress("cooecal", m_BlkParticle->cooecal);
-   m_Tree->SetBranchAddress("cootr", m_BlkParticle->cootr);
-   m_Tree->SetBranchAddress("ntof", &m_BlkTofclust->ntof);
-   m_Tree->SetBranchAddress("Tofstatus", m_BlkTofclust->Tofstatus);
-   m_Tree->SetBranchAddress("plane", m_BlkTofclust->plane);
-   m_Tree->SetBranchAddress("bar", m_BlkTofclust->bar);
-   m_Tree->SetBranchAddress("nmemb", m_BlkTofclust->nmemb);
-   m_Tree->SetBranchAddress("Tofedep", m_BlkTofclust->Tofedep);
-   m_Tree->SetBranchAddress("Tofedepd", m_BlkTofclust->Tofedepd);
-   m_Tree->SetBranchAddress("Toftime", m_BlkTofclust->Toftime);
-   m_Tree->SetBranchAddress("Tofetime", m_BlkTofclust->Tofetime);
-   m_Tree->SetBranchAddress("Tofcoo", m_BlkTofclust->Tofcoo);
-   m_Tree->SetBranchAddress("Tofercoo", m_BlkTofclust->Tofercoo);
-   m_Tree->SetBranchAddress("ntofmc", &m_BlkTofmcclu->ntofmc);
-   m_Tree->SetBranchAddress("Tofmcidsoft", m_BlkTofmcclu->Tofmcidsoft);
-   m_Tree->SetBranchAddress("Tofmcxcoo", m_BlkTofmcclu->Tofmcxcoo);
-   m_Tree->SetBranchAddress("Tofmctof", m_BlkTofmcclu->Tofmctof);
-   m_Tree->SetBranchAddress("Tofmcedep", m_BlkTofmcclu->Tofmcedep);
-   m_Tree->SetBranchAddress("Ntrcl", &m_BlkTrcluste->Ntrcl);
-   m_Tree->SetBranchAddress("Idsoft", m_BlkTrcluste->Idsoft);
-   m_Tree->SetBranchAddress("Statust", m_BlkTrcluste->Statust);
-   m_Tree->SetBranchAddress("Neleml", m_BlkTrcluste->Neleml);
-   m_Tree->SetBranchAddress("Nelemr", m_BlkTrcluste->Nelemr);
-   m_Tree->SetBranchAddress("Sumt", m_BlkTrcluste->Sumt);
-   m_Tree->SetBranchAddress("Sigmat", m_BlkTrcluste->Sigmat);
-   m_Tree->SetBranchAddress("Meant", m_BlkTrcluste->Meant);
-   m_Tree->SetBranchAddress("Rmst", m_BlkTrcluste->Rmst);
-   m_Tree->SetBranchAddress("Errormeant", m_BlkTrcluste->Errormeant);
-   m_Tree->SetBranchAddress("Amplitude", m_BlkTrcluste->Amplitude);
-   m_Tree->SetBranchAddress("ntrclmc", &m_BlkTrmcclus->ntrclmc);
-   m_Tree->SetBranchAddress("Idsoftmc", m_BlkTrmcclus->Idsoftmc);
-   m_Tree->SetBranchAddress("Itra", m_BlkTrmcclus->Itra);
-   m_Tree->SetBranchAddress("Left", m_BlkTrmcclus->Left);
-   m_Tree->SetBranchAddress("Center", m_BlkTrmcclus->Center);
-   m_Tree->SetBranchAddress("Right", m_BlkTrmcclus->Right);
-   m_Tree->SetBranchAddress("ss", m_BlkTrmcclus->ss);
-   m_Tree->SetBranchAddress("xca", m_BlkTrmcclus->xca);
-   m_Tree->SetBranchAddress("xcb", m_BlkTrmcclus->xcb);
-   m_Tree->SetBranchAddress("xgl", m_BlkTrmcclus->xgl);
-   m_Tree->SetBranchAddress("summc", m_BlkTrmcclus->summc);
-   m_Tree->SetBranchAddress("ntrrh", &m_BlkTrrechit->ntrrh);
-   m_Tree->SetBranchAddress("px", m_BlkTrrechit->px);
-   m_Tree->SetBranchAddress("py", m_BlkTrrechit->py);
-   m_Tree->SetBranchAddress("statusr", m_BlkTrrechit->statusr);
-   m_Tree->SetBranchAddress("Layer", m_BlkTrrechit->Layer);
-   m_Tree->SetBranchAddress("hitr", m_BlkTrrechit->hitr);
-   m_Tree->SetBranchAddress("ehitr", m_BlkTrrechit->ehitr);
-   m_Tree->SetBranchAddress("sumr", m_BlkTrrechit->sumr);
-   m_Tree->SetBranchAddress("difosum", m_BlkTrrechit->difosum);
-   m_Tree->SetBranchAddress("cofgx", m_BlkTrrechit->cofgx);
-   m_Tree->SetBranchAddress("cofgy", m_BlkTrrechit->cofgy);
-   m_Tree->SetBranchAddress("ntrtr", &m_BlkTrtrack->ntrtr);
-   m_Tree->SetBranchAddress("trstatus", m_BlkTrtrack->trstatus);
-   m_Tree->SetBranchAddress("pattern", m_BlkTrtrack->pattern);
-   m_Tree->SetBranchAddress("address", m_BlkTrtrack->address);
-   m_Tree->SetBranchAddress("nhits", m_BlkTrtrack->nhits);
-   m_Tree->SetBranchAddress("phits", m_BlkTrtrack->phits);
-   m_Tree->SetBranchAddress("Locdbaver", m_BlkTrtrack->Locdbaver);
-   m_Tree->SetBranchAddress("Geanefitdone", m_BlkTrtrack->Geanefitdone);
-   m_Tree->SetBranchAddress("Advancedfitdone", m_BlkTrtrack->Advancedfitdone);
-   m_Tree->SetBranchAddress("Chi2strline", m_BlkTrtrack->Chi2strline);
-   m_Tree->SetBranchAddress("Chi2circle", m_BlkTrtrack->Chi2circle);
-   m_Tree->SetBranchAddress("Circleridgidity", m_BlkTrtrack->Circleridgidity);
-   m_Tree->SetBranchAddress("Chi2fastfit", m_BlkTrtrack->Chi2fastfit);
-   m_Tree->SetBranchAddress("Ridgidity", m_BlkTrtrack->Ridgidity);
-   m_Tree->SetBranchAddress("Errridgidity", m_BlkTrtrack->Errridgidity);
-   m_Tree->SetBranchAddress("Theta", m_BlkTrtrack->Theta);
-   m_Tree->SetBranchAddress("phi", m_BlkTrtrack->phi);
-   m_Tree->SetBranchAddress("p0", m_BlkTrtrack->p0);
-   m_Tree->SetBranchAddress("gchi2", m_BlkTrtrack->gchi2);
-   m_Tree->SetBranchAddress("gridgidity", m_BlkTrtrack->gridgidity);
-   m_Tree->SetBranchAddress("gerrridgidity", m_BlkTrtrack->gerrridgidity);
-//   m_Tree->SetBranchAddress("gtheta", m_BlkTrtrack->gtheta);
-//   m_Tree->SetBranchAddress("gphi", m_BlkTrtrack->gphi);
-//   m_Tree->SetBranchAddress("gp0", m_BlkTrtrack->gp0);
-   m_Tree->SetBranchAddress("hchi2", m_BlkTrtrack->hchi2);
-   m_Tree->SetBranchAddress("Hridgidity", m_BlkTrtrack->Hridgidity);
-   m_Tree->SetBranchAddress("Herrridgidity", m_BlkTrtrack->Herrridgidity);
-   m_Tree->SetBranchAddress("htheta", m_BlkTrtrack->htheta);
-   m_Tree->SetBranchAddress("hphi", m_BlkTrtrack->hphi);
-   m_Tree->SetBranchAddress("hp0", m_BlkTrtrack->hp0);
-   m_Tree->SetBranchAddress("fchi2ms", m_BlkTrtrack->fchi2ms);
-   m_Tree->SetBranchAddress("pierrrig", m_BlkTrtrack->pierrrig);
-   m_Tree->SetBranchAddress("ridgidityms", m_BlkTrtrack->ridgidityms);
-   m_Tree->SetBranchAddress("piridgidity", m_BlkTrtrack->piridgidity);
-   m_Tree->SetBranchAddress("nmcg", &m_BlkMceventg->nmcg);
-   m_Tree->SetBranchAddress("nskip", m_BlkMceventg->nskip);
-   m_Tree->SetBranchAddress("Particle", m_BlkMceventg->Particle);
-   m_Tree->SetBranchAddress("coo", m_BlkMceventg->coo);
-   m_Tree->SetBranchAddress("dir", m_BlkMceventg->dir);
-   m_Tree->SetBranchAddress("momentum", m_BlkMceventg->momentum);
-   m_Tree->SetBranchAddress("mass", m_BlkMceventg->mass);
-   m_Tree->SetBranchAddress("charge", m_BlkMceventg->charge);
-   m_Tree->SetBranchAddress("nanti", &m_BlkAnticlus->nanti);
-   m_Tree->SetBranchAddress("Antistatus", m_BlkAnticlus->Antistatus);
-   m_Tree->SetBranchAddress("Antisector", m_BlkAnticlus->Antisector);
-   m_Tree->SetBranchAddress("Antiedep", m_BlkAnticlus->Antiedep);
-   m_Tree->SetBranchAddress("Anticoo", m_BlkAnticlus->Anticoo);
-   m_Tree->SetBranchAddress("Antiercoo", m_BlkAnticlus->Antiercoo);
-   m_Tree->SetBranchAddress("nantimc", &m_BlkAntimccl->nantimc);
-   m_Tree->SetBranchAddress("Antimcidsoft", m_BlkAntimccl->Antimcidsoft);
-   m_Tree->SetBranchAddress("Antimcxcoo", m_BlkAntimccl->Antimcxcoo);
-   m_Tree->SetBranchAddress("Antimctof", m_BlkAntimccl->Antimctof);
-   m_Tree->SetBranchAddress("Antimcedep", m_BlkAntimccl->Antimcedep);
-   m_Tree->SetBranchAddress("nlvl3", &m_BlkLvl3->nlvl3);
-   m_Tree->SetBranchAddress("Lvl3toftr", m_BlkLvl3->Lvl3toftr);
-   m_Tree->SetBranchAddress("Lvl3antitr", m_BlkLvl3->Lvl3antitr);
-   m_Tree->SetBranchAddress("Lvl3trackertr", m_BlkLvl3->Lvl3trackertr);
-   m_Tree->SetBranchAddress("Lvl3ntrhits", m_BlkLvl3->Lvl3ntrhits);
-   m_Tree->SetBranchAddress("Lvl3npat", m_BlkLvl3->Lvl3npat);
-   m_Tree->SetBranchAddress("Lvl3pattern", m_BlkLvl3->Lvl3pattern);
-   m_Tree->SetBranchAddress("Lvl3residual", m_BlkLvl3->Lvl3residual);
-   m_Tree->SetBranchAddress("Lvl3time", m_BlkLvl3->Lvl3time);
-   m_Tree->SetBranchAddress("Lvl3eloss", m_BlkLvl3->Lvl3eloss);
-   m_Tree->SetBranchAddress("nlvl1", &m_BlkLvl1->nlvl1);
-   m_Tree->SetBranchAddress("mode", m_BlkLvl1->mode);
-   m_Tree->SetBranchAddress("Lvl1tofflag", m_BlkLvl1->Lvl1tofflag);
-   m_Tree->SetBranchAddress("Lvl1tofpatt", m_BlkLvl1->Lvl1tofpatt);
-   m_Tree->SetBranchAddress("Lvl1tofpatt1", m_BlkLvl1->Lvl1tofpatt1);
-   m_Tree->SetBranchAddress("Lvl1antipatt", m_BlkLvl1->Lvl1antipatt);
-   m_Tree->SetBranchAddress("ecalflag", m_BlkLvl1->ecalflag);
-   m_Tree->SetBranchAddress("ntrraw", &m_BlkTrrawcl->ntrraw);
-   m_Tree->SetBranchAddress("rawaddress", m_BlkTrrawcl->rawaddress);
-   m_Tree->SetBranchAddress("rawlength", m_BlkTrrawcl->rawlength);
-   m_Tree->SetBranchAddress("s2n", m_BlkTrrawcl->s2n);
-   m_Tree->SetBranchAddress("nantiraw", &m_BlkAntirawc->nantiraw);
-   m_Tree->SetBranchAddress("antirawstatus", m_BlkAntirawc->antirawstatus);
-   m_Tree->SetBranchAddress("antirawsector", m_BlkAntirawc->antirawsector);
-   m_Tree->SetBranchAddress("antirawupdown", m_BlkAntirawc->antirawupdown);
-   m_Tree->SetBranchAddress("antirawsignal", m_BlkAntirawc->antirawsignal);
-   m_Tree->SetBranchAddress("ntofraw", &m_BlkTofrawcl->ntofraw);
-   m_Tree->SetBranchAddress("tofrstatus", m_BlkTofrawcl->tofrstatus);
-   m_Tree->SetBranchAddress("tofrplane", m_BlkTofrawcl->tofrplane);
-   m_Tree->SetBranchAddress("tofrbar", m_BlkTofrawcl->tofrbar);
-   m_Tree->SetBranchAddress("tofrtovta", m_BlkTofrawcl->tofrtovta);
-   m_Tree->SetBranchAddress("tofrtovtd", m_BlkTofrawcl->tofrtovtd);
-   m_Tree->SetBranchAddress("tofrsdtm", m_BlkTofrawcl->tofrsdtm);
-   m_Tree->SetBranchAddress("tofreda", m_BlkTofrawcl->tofreda);
-   m_Tree->SetBranchAddress("tofredd", m_BlkTofrawcl->tofredd);
-   m_Tree->SetBranchAddress("tofrtm", m_BlkTofrawcl->tofrtm);
-   m_Tree->SetBranchAddress("tofrcoo", m_BlkTofrawcl->tofrcoo);
+   m_Tree->SetBranchAddress("event02.Eventno", &m_BlkEventh->eventno);
+   m_Tree->SetBranchAddress("event02.Run", &m_BlkEventh->run);
+   m_Tree->SetBranchAddress("event02.RunType", &m_BlkEventh->runtype);
+   m_Tree->SetBranchAddress("event02.Time[2]", m_BlkEventh->time);
+   m_Tree->SetBranchAddress("event02.RawWords", &m_BlkEventh->Rawwords);
+   m_Tree->SetBranchAddress("event02.RadS", &m_BlkEventh->Rads);
+   m_Tree->SetBranchAddress("event02.ThetaS", &m_BlkEventh->Thetas);
+   m_Tree->SetBranchAddress("event02.PhiS", &m_BlkEventh->Phis);
+   m_Tree->SetBranchAddress("event02.Yaw", &m_BlkEventh->Yaws);
+   m_Tree->SetBranchAddress("event02.Pitch", &m_BlkEventh->Pitchs);
+   m_Tree->SetBranchAddress("event02.Roll", &m_BlkEventh->Rolls);
+   m_Tree->SetBranchAddress("event02.VelocityS", &m_BlkEventh->Velocitys);
+   m_Tree->SetBranchAddress("event02.VelTheta", &m_BlkEventh->Veltheta);
+   m_Tree->SetBranchAddress("event02.VelPhi", &m_BlkEventh->Velphi);
+   m_Tree->SetBranchAddress("event02.ThetaM", &m_BlkEventh->Thetam);
+   m_Tree->SetBranchAddress("event02.PhiM", &m_BlkEventh->Phim);
+   m_Tree->SetBranchAddress("event02.Tracks", &m_BlkEventh->Tracks);
+   m_Tree->SetBranchAddress("event02.TrRecHits", &m_BlkEventh->Trrechits);
+   m_Tree->SetBranchAddress("event02.TrClusters", &m_BlkEventh->Trclusters);
+   m_Tree->SetBranchAddress("event02.TrRawClusters", &m_BlkEventh->Trrawclusters);
+   m_Tree->SetBranchAddress("event02.TrMCClusters", &m_BlkEventh->Trmcclusters);
+   m_Tree->SetBranchAddress("event02.TOFClusters", &m_BlkEventh->Tofclusters);
+   m_Tree->SetBranchAddress("event02.TOFMCClusters", &m_BlkEventh->Tofmcclusters);
+   m_Tree->SetBranchAddress("event02.AntiMCClusters", &m_BlkEventh->Antimcclusters);
+   m_Tree->SetBranchAddress("event02.TRDMCClusters", &m_BlkEventh->Trdmcclusters);
+   m_Tree->SetBranchAddress("event02.AntiClusters", &m_BlkEventh->Anticlusters);
+   m_Tree->SetBranchAddress("event02.EcalClusters", &m_BlkEventh->Ecalclusters);
+   m_Tree->SetBranchAddress("event02.EcalHits", &m_BlkEventh->Ecalhits);
+   m_Tree->SetBranchAddress("event02.RICMCClusters", &m_BlkEventh->Richmcclusters);
+   m_Tree->SetBranchAddress("event02.RICHits", &m_BlkEventh->Richits);
+   m_Tree->SetBranchAddress("event02.TRDRawHits", &m_BlkEventh->TRDRawHits);
+   m_Tree->SetBranchAddress("event02.TRDClusters", &m_BlkEventh->TRDClusters);
+   m_Tree->SetBranchAddress("event02.TRDSegments", &m_BlkEventh->TRDSegments);
+   m_Tree->SetBranchAddress("event02.TRDTracks", &m_BlkEventh->TRDTracks);
+   m_Tree->SetBranchAddress("event02.EventStatus[2]", m_BlkEventh->Eventstatus);  
+
+   m_Tree->SetBranchAddress("beta02.Nbeta", &m_BlkBeta->nbeta);
+   m_Tree->SetBranchAddress("beta02.Status[50]", m_BlkBeta->betastatus);
+   m_Tree->SetBranchAddress("beta02.Pattern[50]", m_BlkBeta->betapattern);
+   m_Tree->SetBranchAddress("beta02.Beta[50]", m_BlkBeta->beta);
+   m_Tree->SetBranchAddress("beta02.BetaC[50]", m_BlkBeta->betac);
+   m_Tree->SetBranchAddress("beta02.Error[50]", m_BlkBeta->betaerror);
+   m_Tree->SetBranchAddress("beta02.ErrorC[50]", m_BlkBeta->betaerrorc);
+   m_Tree->SetBranchAddress("beta02.Chi2[50]", m_BlkBeta->betachi2);
+   m_Tree->SetBranchAddress("beta02.Chi2S[50]", m_BlkBeta->betachi2s);
+   m_Tree->SetBranchAddress("beta02.NTOF[50]", m_BlkBeta->betantof);
+   m_Tree->SetBranchAddress("beta02.pTOF[50][4]", m_BlkBeta->betaptof);
+   m_Tree->SetBranchAddress("beta02.pTr[50]", m_BlkBeta->betaptr);
+
+
+   m_Tree->SetBranchAddress("charge02.Ncharge", &m_BlkCharge->ncharge);
+   m_Tree->SetBranchAddress("charge02.Status[30]", m_BlkCharge->chargestatus);
+   m_Tree->SetBranchAddress("charge02.BetaP[30]", m_BlkCharge->chargebetap);
+   m_Tree->SetBranchAddress("charge02.ChargeTOF[30]", m_BlkCharge->chargetof);
+   m_Tree->SetBranchAddress("charge02.ChargeTracker[30]", m_BlkCharge->chargetracker);
+   m_Tree->SetBranchAddress("charge02.ProbTOF[30][4]", m_BlkCharge->probtof);
+   m_Tree->SetBranchAddress("charge02.ChInTOF[30][4]", m_BlkCharge->chintof);
+   m_Tree->SetBranchAddress("charge02.ProbTracker[30][4]", m_BlkCharge->probtracker);
+   m_Tree->SetBranchAddress("charge02.ChInTracker[30][4]", m_BlkCharge->chintracker);
+   m_Tree->SetBranchAddress("charge02.ProbAllTracker[30]", m_BlkCharge->proballtracker);
+   m_Tree->SetBranchAddress("charge02.TrunTOF[30]", m_BlkCharge->truntof);
+   m_Tree->SetBranchAddress("charge02.TrunTOFD[30]", m_BlkCharge->truntofd);
+   m_Tree->SetBranchAddress("charge02.TrunTracker[30]", m_BlkCharge->truntracker);
+
+   m_Tree->SetBranchAddress("part02.Npart", &m_BlkParticle->npart);
+   m_Tree->SetBranchAddress("part02.BetaP[20]", m_BlkParticle->pbetap);
+   m_Tree->SetBranchAddress("part02.ChargeP[20]", m_BlkParticle->pchargep);
+   m_Tree->SetBranchAddress("part02.TrackP[20]", m_BlkParticle->ptrackp);
+   m_Tree->SetBranchAddress("part02.TRDP[20]", m_BlkParticle->ptrd);
+   m_Tree->SetBranchAddress("part02.RICHP[20]", m_BlkParticle->prich);
+   m_Tree->SetBranchAddress("part02.EcalP[20]", m_BlkParticle->pecal);
+   m_Tree->SetBranchAddress("part02.Particle[20]", m_BlkParticle->pid);
+   m_Tree->SetBranchAddress("part02.ParticleVice[20]", m_BlkParticle->pidvice);
+   m_Tree->SetBranchAddress("part02.Prob[20][2]", m_BlkParticle->probpid);
+   m_Tree->SetBranchAddress("part02.FitMom[20]", m_BlkParticle->fitmom);
+   m_Tree->SetBranchAddress("part02.Mass[20]", m_BlkParticle->pmass);
+   m_Tree->SetBranchAddress("part02.ErrMass[20]", m_BlkParticle->perrmass);
+   m_Tree->SetBranchAddress("part02.Momentum[20]", m_BlkParticle->pmom);
+   m_Tree->SetBranchAddress("part02.ErrMomentum[20]", m_BlkParticle->perrmom);
+   m_Tree->SetBranchAddress("part02.Beta[20]", m_BlkParticle->pbeta);
+   m_Tree->SetBranchAddress("part02.ErrBeta[20]", m_BlkParticle->perrbeta);
+   m_Tree->SetBranchAddress("part02.Charge[20]", m_BlkParticle->pcharge);
+   m_Tree->SetBranchAddress("part02.Theta[20]", m_BlkParticle->ptheta);
+   m_Tree->SetBranchAddress("part02.Phi[20]", m_BlkParticle->pphi);
+   m_Tree->SetBranchAddress("part02.ThetaGl[20]", m_BlkParticle->thetagl);
+   m_Tree->SetBranchAddress("part02.PhiGl[20]", m_BlkParticle->phigl);
+   m_Tree->SetBranchAddress("part02.Coo[20][3]", m_BlkParticle->pcoo);
+   m_Tree->SetBranchAddress("part02.Cutoff[20]", m_BlkParticle->cutoff);
+   m_Tree->SetBranchAddress("part02.TOFCoo[20][4][3]", m_BlkParticle->cootof);
+   m_Tree->SetBranchAddress("part02.AntiCoo[20][2][3]", m_BlkParticle->cooanti);
+   m_Tree->SetBranchAddress("part02.EcalCoo[20][3][3]", m_BlkParticle->cooecal);
+   m_Tree->SetBranchAddress("part02.TrCoo[20][8][3]", m_BlkParticle->cootr);
+   m_Tree->SetBranchAddress("part02.TRDCoo[20][3]", m_BlkParticle->cootrd);
+
+
+
+   m_Tree->SetBranchAddress("tofcl.Ntof", &m_BlkTofclust->ntof);
+   m_Tree->SetBranchAddress("tofcl.Status[20]", m_BlkTofclust->Tofstatus);
+   m_Tree->SetBranchAddress("tofcl.Layer[20]", m_BlkTofclust->plane);
+   m_Tree->SetBranchAddress("tofcl.Bar[20]", m_BlkTofclust->bar);
+   m_Tree->SetBranchAddress("tofcl.Nmemb[20]", m_BlkTofclust->nmemb);
+   m_Tree->SetBranchAddress("tofcl.Edep[20]", m_BlkTofclust->Tofedep);
+   m_Tree->SetBranchAddress("tofcl.Edepd[20]", m_BlkTofclust->Tofedepd);
+   m_Tree->SetBranchAddress("tofcl.Time[20]", m_BlkTofclust->Toftime);
+   m_Tree->SetBranchAddress("tofcl.ErrTime[20]", m_BlkTofclust->Tofetime);
+   m_Tree->SetBranchAddress("tofcl.Coo[20][3]", m_BlkTofclust->Tofcoo);
+   m_Tree->SetBranchAddress("tofcl.ErrorCoo[20][3]", m_BlkTofclust->Tofercoo);
+
+
+   m_Tree->SetBranchAddress("tofmccl.tofmc", &m_BlkTofmcclu->ntofmc);
+   m_Tree->SetBranchAddress("tofmccl.Idsoft[200]", m_BlkTofmcclu->Tofmcidsoft);
+   m_Tree->SetBranchAddress("tofmccl.Coo[200][3]", m_BlkTofmcclu->Tofmcxcoo);
+   m_Tree->SetBranchAddress("tofmccl.TOF[200]", m_BlkTofmcclu->Tofmctof);
+   m_Tree->SetBranchAddress("tofmccl.Edep[200]", m_BlkTofmcclu->Tofmcedep);
+
+   m_Tree->SetBranchAddress("trcl.Ntrcl", &m_BlkTrcluste->Ntrcl);
+   m_Tree->SetBranchAddress("trcl.Idsoft[200]", m_BlkTrcluste->Idsoft);
+   m_Tree->SetBranchAddress("trcl.Status[200]", m_BlkTrcluste->Statust);
+   m_Tree->SetBranchAddress("trcl.NelemL[200]", m_BlkTrcluste->Neleml);
+   m_Tree->SetBranchAddress("trcl.NelemR[200]", m_BlkTrcluste->Nelemr);
+   m_Tree->SetBranchAddress("trcl.Sum[200]", m_BlkTrcluste->Sumt);
+   m_Tree->SetBranchAddress("trcl.Sigma[200]", m_BlkTrcluste->Sigmat);
+   m_Tree->SetBranchAddress("trcl.Mean[200]", m_BlkTrcluste->Meant);
+   m_Tree->SetBranchAddress("trcl.RMS[200]", m_BlkTrcluste->Rmst);
+   m_Tree->SetBranchAddress("trcl.ErrorMean[200]", m_BlkTrcluste->Errormeant);
+   m_Tree->SetBranchAddress("trcl.Amplitude[200][5]", m_BlkTrcluste->Amplitude);
+
+
+   m_Tree->SetBranchAddress("trclmc.Ntrclmc", &m_BlkTrmcclus->ntrclmc);
+   m_Tree->SetBranchAddress("trclmc.Idsoft[200]", m_BlkTrmcclus->Idsoftmc);
+   m_Tree->SetBranchAddress("trclmc.TrackNo[200]", m_BlkTrmcclus->Itra);
+   m_Tree->SetBranchAddress("trclmc.Left[200][2]", m_BlkTrmcclus->Left);
+   m_Tree->SetBranchAddress("trclmc.Center[200][2]", m_BlkTrmcclus->Center);
+   m_Tree->SetBranchAddress("trclmc.Right[200][2]", m_BlkTrmcclus->Right);
+   m_Tree->SetBranchAddress("trclmc.SS[200][2][5]", m_BlkTrmcclus->ss);
+   m_Tree->SetBranchAddress("trclmc.Xca[200][3]", m_BlkTrmcclus->xca);
+   m_Tree->SetBranchAddress("trclmc.Xcb[200][3]", m_BlkTrmcclus->xcb);
+   m_Tree->SetBranchAddress("trclmc.Xgl[200][3]", m_BlkTrmcclus->xgl);
+   m_Tree->SetBranchAddress("trclmc.Sum[200]", m_BlkTrmcclus->summc);
+
+   m_Tree->SetBranchAddress("trrh02.Ntrrh", &m_BlkTrrechit->ntrrh);
+   m_Tree->SetBranchAddress("trrh02.pX[666]", m_BlkTrrechit->px);
+   m_Tree->SetBranchAddress("trrh02.pY[666]", m_BlkTrrechit->py);
+   m_Tree->SetBranchAddress("trrh02.Status[666]", m_BlkTrrechit->statusr);
+   m_Tree->SetBranchAddress("trrh02.Layer[666]", m_BlkTrrechit->Layer);
+   m_Tree->SetBranchAddress("trrh02.Hit[666][3]", m_BlkTrrechit->hitr);
+   m_Tree->SetBranchAddress("trrh02.EHit[666][3]", m_BlkTrrechit->ehitr);
+   m_Tree->SetBranchAddress("trrh02.Sum[666]", m_BlkTrrechit->sumr);
+   m_Tree->SetBranchAddress("trrh02.DifoSum[666]", m_BlkTrrechit->difosum);
+   m_Tree->SetBranchAddress("trrh02.CofgX[666]", m_BlkTrrechit->cofgx);
+   m_Tree->SetBranchAddress("trrh02.CofgY[666]", m_BlkTrrechit->cofgy);
+
+   m_Tree->SetBranchAddress("trtr02.Ntrtr", &m_BlkTrtrack->ntrtr);
+   m_Tree->SetBranchAddress("trtr02.Status[100]", m_BlkTrtrack->trstatus);
+   m_Tree->SetBranchAddress("trtr02.Pattern[100]", m_BlkTrtrack->pattern);
+   m_Tree->SetBranchAddress("trtr02.Address[100]", m_BlkTrtrack->address);
+   m_Tree->SetBranchAddress("trtr02.NHits[100]", m_BlkTrtrack->nhits);
+   m_Tree->SetBranchAddress("trtr02.pHits[100][8]", m_BlkTrtrack->phits);
+   m_Tree->SetBranchAddress("trtr02.LocDBAver[100]", m_BlkTrtrack->Locdbaver);
+   m_Tree->SetBranchAddress("trtr02.GeaneFitDone[100]", m_BlkTrtrack->Geanefitdone);
+   m_Tree->SetBranchAddress("trtr02.AdvancedFitDone[100]", m_BlkTrtrack->Advancedfitdone);
+   m_Tree->SetBranchAddress("trtr02.Chi2StrLine[100]", m_BlkTrtrack->Chi2strline);
+   m_Tree->SetBranchAddress("trtr02.Chi2Circle[100]", m_BlkTrtrack->Chi2circle);
+   m_Tree->SetBranchAddress("trtr02.CircleRidgidity[100]", m_BlkTrtrack->Circleridgidity);
+   m_Tree->SetBranchAddress("trtr02.Chi2FastFit[100]", m_BlkTrtrack->Chi2fastfit);
+   m_Tree->SetBranchAddress("trtr02.Ridgidity[100]", m_BlkTrtrack->Ridgidity);
+   m_Tree->SetBranchAddress("trtr02.ErrRidgidity[100]", m_BlkTrtrack->Errridgidity);
+   m_Tree->SetBranchAddress("trtr02.Theta[100]", m_BlkTrtrack->Theta);
+   m_Tree->SetBranchAddress("trtr02.Phi[100]", m_BlkTrtrack->phi);
+   m_Tree->SetBranchAddress("trtr02.P0[100][3]", m_BlkTrtrack->p0);
+   m_Tree->SetBranchAddress("trtr02.GChi2[100]", m_BlkTrtrack->gchi2);
+   m_Tree->SetBranchAddress("trtr02.GRidgidity[100]", m_BlkTrtrack->gridgidity);
+   m_Tree->SetBranchAddress("trtr02.GErrRidgidity[100]", m_BlkTrtrack->gerrridgidity);
+//   m_Tree->SetBranchAddress("trtr02.GTheta[100]", m_BlkTrtrack->gtheta);
+//   m_Tree->SetBranchAddress("trtr02.GPhi[100]", m_BlkTrtrack->gphi);
+//   m_Tree->SetBranchAddress("trtr02.GP0[100][3]", m_BlkTrtrack->gp0);
+   m_Tree->SetBranchAddress("trtr02.HChi2[100][2]", m_BlkTrtrack->hchi2);
+   m_Tree->SetBranchAddress("trtr02.HRidgidity[100][2]", m_BlkTrtrack->Hridgidity);
+   m_Tree->SetBranchAddress("trtr02.HErrRidgidity[100][2]", m_BlkTrtrack->Herrridgidity);
+   m_Tree->SetBranchAddress("trtr02.HTheta[100][2]", m_BlkTrtrack->htheta);
+   m_Tree->SetBranchAddress("trtr02.HPhi[100][2]", m_BlkTrtrack->hphi);
+   m_Tree->SetBranchAddress("trtr02.HP0[100][2][3]", m_BlkTrtrack->hp0);
+   m_Tree->SetBranchAddress("trtr02.FChi2MS[100]", m_BlkTrtrack->fchi2ms);
+   m_Tree->SetBranchAddress("trtr02.PiErrRig[100]", m_BlkTrtrack->pierrrig);
+   m_Tree->SetBranchAddress("trtr02.RidgidityMS[100]", m_BlkTrtrack->ridgidityms);
+   m_Tree->SetBranchAddress("trtr02.PiRigidity[100]", m_BlkTrtrack->piridgidity);
+
+
+   m_Tree->SetBranchAddress("trdcl.Ntrdcl", &m_BlkTrdcl->ntrdcl);
+   m_Tree->SetBranchAddress("trdcl.Status[100]", m_BlkTrdcl->status);
+   m_Tree->SetBranchAddress("trdcl.Coo[100][3]", m_BlkTrdcl->coo);
+   m_Tree->SetBranchAddress("trdcl.Layer[100]", m_BlkTrdcl->layer);
+   m_Tree->SetBranchAddress("trdcl.CooDir[100][3]", m_BlkTrdcl->coodir);
+   m_Tree->SetBranchAddress("trdcl.Multip[100]", m_BlkTrdcl->multip);
+   m_Tree->SetBranchAddress("trdcl.HMultip[100]", m_BlkTrdcl->hmultip);
+   m_Tree->SetBranchAddress("trdcl.EDep[100]", m_BlkTrdcl->edep);
+   m_Tree->SetBranchAddress("trdcl.pRawHit[100]", m_BlkTrdcl->prawhit);
+
+   m_Tree->SetBranchAddress("trdtrk.Ntrdtrk", &m_BlkTrdtrk->ntrdtrk);
+   m_Tree->SetBranchAddress("trdtrk.Status[40]", m_BlkTrdtrk->status);
+   m_Tree->SetBranchAddress("trdtrk.Coo[40][3]", m_BlkTrdtrk->coo);
+   m_Tree->SetBranchAddress("trdtrk.ErCoo[40][3]", m_BlkTrdtrk->ercoo);
+   m_Tree->SetBranchAddress("trdtrk.Phi[40]", m_BlkTrdtrk->phi);
+   m_Tree->SetBranchAddress("trdtrk.Theta[40]", m_BlkTrdtrk->theta);
+   m_Tree->SetBranchAddress("trdtrk.Chi2[40]", m_BlkTrdtrk->chi2);
+   m_Tree->SetBranchAddress("trdtrk.NSeg[40]", m_BlkTrdtrk->ns);
+   m_Tree->SetBranchAddress("trdtrk.Pattern[40]", m_BlkTrdtrk->pat);
+   m_Tree->SetBranchAddress("trdtrk.pSeg[40][5]", m_BlkTrdtrk->ps);
+
+
+   m_Tree->SetBranchAddress("mcg02.Nmcg", &m_BlkMceventg->nmcg);
+   m_Tree->SetBranchAddress("mcg02.Nskip[100]", m_BlkMceventg->nskip);
+   m_Tree->SetBranchAddress("mcg02.Particle[100]", m_BlkMceventg->Particle);
+   m_Tree->SetBranchAddress("mcg02.Coo[100][3]", m_BlkMceventg->coo);
+   m_Tree->SetBranchAddress("mcg02.Dir[100][3]", m_BlkMceventg->dir);
+   m_Tree->SetBranchAddress("mcg02.Momentum[100]", m_BlkMceventg->momentum);
+   m_Tree->SetBranchAddress("mcg02.Mass[100]", m_BlkMceventg->mass);
+   m_Tree->SetBranchAddress("mcg02.Charge[100]", m_BlkMceventg->charge);
+
+   m_Tree->SetBranchAddress("anti.Nanti", &m_BlkAnticlus->nanti);
+   m_Tree->SetBranchAddress("anti.Status[16]", m_BlkAnticlus->Antistatus);
+   m_Tree->SetBranchAddress("anti.Sector[16]", m_BlkAnticlus->Antisector);
+   m_Tree->SetBranchAddress("anti.Edep[16]", m_BlkAnticlus->Antiedep);
+   m_Tree->SetBranchAddress("anti.Coo[16][3]", m_BlkAnticlus->Anticoo);
+   m_Tree->SetBranchAddress("anti.ErrorCoo[16][3]", m_BlkAnticlus->Antiercoo);
+
+   m_Tree->SetBranchAddress("antimc.Nantimc", &m_BlkAntimccl->nantimc);
+   m_Tree->SetBranchAddress("antimc.Idsoft[200]", m_BlkAntimccl->Antimcidsoft);
+   m_Tree->SetBranchAddress("antimc.Coo[200][3]", m_BlkAntimccl->Antimcxcoo);
+   m_Tree->SetBranchAddress("antimc.TOF[200]", m_BlkAntimccl->Antimctof);
+   m_Tree->SetBranchAddress("antimc.Edep[200]", m_BlkAntimccl->Antimcedep);
+
+   m_Tree->SetBranchAddress("lvl3.Nlvl3", &m_BlkLvl3->nlvl3);
+   m_Tree->SetBranchAddress("lvl3.TOFTr[2]", m_BlkLvl3->Lvl3toftr);
+   m_Tree->SetBranchAddress("lvl3.AntiTr[2]", m_BlkLvl3->Lvl3antitr);
+   m_Tree->SetBranchAddress("lvl3.TrackerTr[2]", m_BlkLvl3->Lvl3trackertr);
+   m_Tree->SetBranchAddress("lvl3.NTrHits[2]", m_BlkLvl3->Lvl3ntrhits);
+   m_Tree->SetBranchAddress("lvl3.NPatFound[2]", m_BlkLvl3->Lvl3npat);
+   m_Tree->SetBranchAddress("lvl3.Pattern[2][2]", m_BlkLvl3->Lvl3pattern);
+   m_Tree->SetBranchAddress("lvl3.Residual[2][2]", m_BlkLvl3->Lvl3residual);
+   m_Tree->SetBranchAddress("lvl3.Time[2]", m_BlkLvl3->Lvl3time);
+   m_Tree->SetBranchAddress("lvl3.ELoss[2]", m_BlkLvl3->Lvl3eloss);
+
+   m_Tree->SetBranchAddress("lvl102.Nlvl1", &m_BlkLvl1->nlvl1);
+   m_Tree->SetBranchAddress("lvl102.Mode[2]", m_BlkLvl1->mode);
+   m_Tree->SetBranchAddress("lvl102.TOFlag[2]", m_BlkLvl1->Lvl1tofflag);
+   m_Tree->SetBranchAddress("lvl102.TOFPatt[2][4]", m_BlkLvl1->Lvl1tofpatt);
+   m_Tree->SetBranchAddress("lvl102.TOFPatt1[2][4]", m_BlkLvl1->Lvl1tofpatt1);
+   m_Tree->SetBranchAddress("lvl102.AntiPatt[2]", m_BlkLvl1->Lvl1antipatt);
+   m_Tree->SetBranchAddress("lvl102.ECALflag[2]", m_BlkLvl1->ecalflag);  */
+
+
+/* These not written to Root file at the moment
+
+
+   m_Tree->SetBranchAddress("Ntrraw", &m_BlkTrrawcl->ntrraw);
+   m_Tree->SetBranchAddress("address[300]", m_BlkTrrawcl->rawaddress);
+   m_Tree->SetBranchAddress("nelem[300]", m_BlkTrrawcl->rawlength);
+   m_Tree->SetBranchAddress("s2n[300]", m_BlkTrrawcl->s2n);
+
+   m_Tree->SetBranchAddress("Nantiraw", &m_BlkAntirawc->nantiraw);
+   m_Tree->SetBranchAddress("Status[32]", m_BlkAntirawc->antirawstatus);
+   m_Tree->SetBranchAddress("Sector[32]", m_BlkAntirawc->antirawsector);
+   m_Tree->SetBranchAddress("UpDown[32]", m_BlkAntirawc->antirawupdown);
+   m_Tree->SetBranchAddress("Signal[32]", m_BlkAntirawc->antirawsignal); 
+
+   m_Tree->SetBranchAddress("Ntofraw", &m_BlkTofrawcl->ntofraw);
+   m_Tree->SetBranchAddress("Status[20]", m_BlkTofrawcl->tofrstatus);
+   m_Tree->SetBranchAddress("Layer[20]", m_BlkTofrawcl->tofrplane);
+   m_Tree->SetBranchAddress("Bar[20]", m_BlkTofrawcl->tofrbar);
+   m_Tree->SetBranchAddress("tovta[20][2]", m_BlkTofrawcl->tofrtovta);
+   m_Tree->SetBranchAddress("tovtd[20][2]", m_BlkTofrawcl->tofrtovtd);
+   m_Tree->SetBranchAddress("sdtm[20][2]", m_BlkTofrawcl->tofrsdtm);
+   m_Tree->SetBranchAddress("edepa[20]", m_BlkTofrawcl->tofreda);
+   m_Tree->SetBranchAddress("edepd[20]", m_BlkTofrawcl->tofredd);
+   m_Tree->SetBranchAddress("time[20]", m_BlkTofrawcl->tofrtm);
+   m_Tree->SetBranchAddress("cool[20]", m_BlkTofrawcl->tofrcoo);   */
+
 }
 
 //_____________________________________________________________________________

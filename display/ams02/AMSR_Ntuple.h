@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.h,v 1.7 2001/08/18 20:01:46 kscholbe Exp $
+//  $Id: AMSR_Ntuple.h,v 1.8 2001/08/20 18:36:58 kscholbe Exp $
 #ifndef AMSR_Ntuple_H
 #define AMSR_Ntuple_H
 
@@ -93,6 +93,7 @@ class AMSR_Ntuple : public TNamed {
    ANTIRAWC_DEF *m_BlkAntirawc;
    TOFRAWCL_DEF *m_BlkTofrawcl;
    ECALSHOWER_DEF  *m_Blkecsh;
+
 #endif
    
  protected:
