@@ -31,6 +31,7 @@ void convert();
 integer getrun() const { return _run;}
 integer getevent() const { return _event;}
 integer getpid() const {return _ipart;}
+void setpid(integer pid)  {_ipart=pid;}
 time_t gettime() const {return _time;}
 integer read();
 void close(){ fbin.close();}

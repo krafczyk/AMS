@@ -17,7 +17,7 @@
 #include <link.h>
 #include <commons.h>
 #include <stdlib.h>
-
+#include <ctcdbc.h>
 
 
 // MC bank for TOF & anti  - skeleton only
@@ -106,8 +106,12 @@ public:
  ~AMSCTCMCCluster(){};
  inline integer getid() const{return _idsoft;}
  inline integer getbarno() const{ return _idsoft%1000;}
- inline integer getdetno() const{ return _idsoft/10000;}
- inline integer getlayno() const{ return (_idsoft/1000)%10;}
+ inline integer getdetno() const{ return CTCDBc::getgeom()<2?_idsoft/10000:
+        ((_idsoft/10)%10)%2+1;}
+ inline integer getlayno() const{ return CTCDBc::getgeom()<2?(_idsoft/1000)%10:
+ _idsoft/1000000;}
+ inline integer getrowno() const{return (_idsoft/2)%2+1+2*((_idsoft/1000)%10-1);}
+ inline integer getcolno() const{return (_idsoft-1)%2+1+2*((_idsoft/100)%10-1);}
  inline number  getbeta() const { return _beta;}
  inline number  getstep() const { return _step;}
  inline number  getedep() const { return _edep;}
@@ -115,8 +119,7 @@ public:
  inline AMSPoint  getcoo() const { return _xcoo;}
  inline AMSDir  getdir() const { return _xdir;}
  integer operator < (AMSlink & o)const{
-   return _idsoft < ((AMSCTCMCCluster*)(&o)) ->_idsoft ;
- }
+   return _idsoft < ((AMSCTCMCCluster*)(&o)) ->_idsoft;}
  static void sictchits(integer idsoft , geant vect[],geant charge, geant step,
  geant getot, geant edep);
   AMSCTCMCCluster *  next(){return (AMSCTCMCCluster*)_next;}

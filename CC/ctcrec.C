@@ -12,15 +12,45 @@
 #include <ntuple.h>
 AMSCTCRawCluster::CTCMap * AMSCTCRawCluster::_pMap=0;
 AMSCTCRawCluster::CTCMap * AMSCTCRawCluster::GetMap(integer i){return _pMap+i-1;}
-AMSID AMSCTCRawCluster::crgid(integer i){
-    if(i==0)return AMSID("AGEL",10000+1000*_layer+_bar);
-    else return AMSID("WLS ",20000+1000*_layer+_bar);
+AMSID AMSCTCRawCluster::crgid(integer imat){
+    integer geom=CTCDBc::getgeom();
+    if(geom < 2){  
+     if(imat==0)return AMSID("AGEL",10000+1000*_layer+_row);
+     else return AMSID("WLS ",20000+1000*_layer+_row);
+    }
+    else {
+      //      imat == 0   // agl
+      //      imat == 1   // pmt
+      //      imat == 2   // ptf
+      integer y=(_row+1)/2;
+      integer x=(_column+1)/2;
+      integer iy=(_row+1)%2;
+      integer ix=(_column+1)%2;      
+      
+     integer id=1000000*_layer+1000*y+100*x+2*iy+ix+1;
+      if(imat==2){
+       if(_layer==1)return AMSID("PTFU",id+10);     
+       else         return AMSID("PTFL",id+10);     
+      }
+      else if(imat==0){
+       if(_layer==1)return AMSID("AGLU",id+20);     
+       else         return AMSID("AGLL",id+20);     
+      }
+      else if(imat==1){
+       if(_layer==1)return AMSID("PMTU",id+30);     
+       else         return AMSID("PMTL",id+30);     
+      }
+      else{
+        cerr <<"AMSCTCRawCluster::crgid-F-Invalid media par "<<imat<<endl;
+        exit(1);
+      }
+    }
 }
   void AMSCTCRawCluster::init(){
     integer geom=CTCDBc::getgeom();
-    _pMap=new CTCMap[CTCDBc::getnagel()];
-    assert(_pMap != NULL);
-    if(geom == 0){
+     if(geom == 0){
+      _pMap=new CTCMap[CTCDBc::getnagel()];
+      assert(_pMap != NULL);
       // horizontal readout
       if(CTCDBc::getnwls() > CTCDBc::getnagel()){
         cerr << "AMSCTCRawCluster::init-F-Invalid nwls/nblk "<<CTCDBc::getnwls()<<" "<<
@@ -58,6 +88,8 @@ AMSID AMSCTCRawCluster::crgid(integer i){
     }
     }
     else if (geom==1){    // Vertical one
+     _pMap=new CTCMap[CTCDBc::getnagel()];
+     assert(_pMap != NULL);
       integer ia;
       for(ia=1;ia<CTCDBc::getnagel()+1;ia++){
         (_pMap+ia-1)->l=(ia+1)/2;
@@ -66,15 +98,10 @@ AMSID AMSCTCRawCluster::crgid(integer i){
         (_pMap+ia-1)->b=0;
       }
     }
-     else if(geom==2){    //AG one
-      integer ia;
-      for(ia=1;ia<CTCDBc::getnagel()+1;ia++){
-        (_pMap+ia-1)->l=ia;
-        (_pMap+ia-1)->r=ia;
-        (_pMap+ia-1)->a=1;
-        (_pMap+ia-1)->b=0;
-      }
-     }
+    else if (geom==2){  // Annecy fast
+
+
+    }     
     else {
      cerr <<"AMSCTCRawCluster::init-F-Geom "<<geom<<" is not supported."<<endl;
      exit(1);
@@ -83,6 +110,7 @@ AMSID AMSCTCRawCluster::crgid(integer i){
 
 void AMSCTCRawCluster::sictcdigi(){
   AMSgObj::BookTimer.start("SICTCDIGI");
+  if(CTCDBc::getgeom()<2){
   AMSCTCMCCluster * ptr;
   geant * TmpA= (geant*)UPool.insert(sizeof(geant)*CTCDBc::getnagel());
   geant * TmpB= (geant*)UPool.insert(sizeof(geant)*CTCDBc::getnwls());
@@ -194,6 +222,52 @@ void AMSCTCRawCluster::sictcdigi(){
   }
   UPool.udelete(TmpA); 
   UPool.udelete(TmpB); 
+}
+else {
+  AMSCTCMCCluster * ptr;
+  integer nrow=CTCDBc::getny()*2;
+  integer ncol=CTCDBc::getnx()*2;
+  geant * Tmp= (geant*)UPool.insert(sizeof(geant)*nrow*ncol);
+  int icnt;
+  for(icnt=0;icnt<CTCDBc::getnlay();icnt++){
+   ptr=(AMSCTCMCCluster*)AMSEvent::gethead()->
+   getheadC("AMSCTCMCCluster",icnt,1); // last 1  to test sorted container
+   VZERO(Tmp,sizeof(geant)*nrow*ncol/4);
+   geant value=0;     
+   while(ptr){
+    integer det=ptr->getdetno()-1;
+#ifdef __AMSDEBUG__
+    assert (det >=0 && det<2);
+#endif
+    number z=1.-1./pow(CTCMCFFKEY.Refraction[det],2.)/pow(ptr->getbeta(),2.);
+    number Response;
+    if(z>0)Response=z;
+    else Response=0;
+    value+=CTCMCFFKEY.Path2PhEl[det]*ptr->getstep()*Response*ptr->getcharge2();
+    if( ptr->testlast()){
+      integer ind=ptr->getcolno()-1+(ptr->getrowno()-1)*ncol;
+#ifdef __AMSDEBUG__
+   assert(ind >=0 && ind<nrow*ncol);
+#endif
+      Tmp[ind]+=value;
+      value=0;
+    }            
+
+   ptr=ptr->next();  
+   }
+    for(int i=0;i<nrow*ncol;i++){
+     integer ierr,ival;
+     if(Tmp[i]>0){
+      POISSN(Tmp[i],ival,ierr);
+      AMSEvent::gethead()->addnext(AMSID("AMSCTCRawCluster",0),
+      new AMSCTCRawCluster(0,i/ncol+1,icnt+1,ival,i%ncol+1));
+     }      
+    }
+  }
+   UPool.udelete(Tmp); 
+}
+  
+
   AMSgObj::BookTimer.stop("SICTCDIGI");
 }
 
@@ -206,7 +280,7 @@ void AMSCTCRawCluster::_copyEl(){
 
 
 void AMSCTCRawCluster::_printEl(ostream & stream){
-  stream <<"AMSCTCRawCluster  "<<_bar<<" "<<" "<<_layer<<" "<<_signal<<endl;
+  stream <<"AMSCTCRawCluster  "<<_row<<" "<<" "<<_layer<<" "<<_signal<<endl;
 }
 
 void AMSCTCCluster::_writeEl(){
@@ -257,25 +331,26 @@ for(i=0;;i++){
 
 
 void AMSCTCCluster::build(){
-for(integer kk=0;kk<CTCDBc::getnlay();kk++){
-AMSCTCRawCluster *ptr=(AMSCTCRawCluster*)AMSEvent::gethead()->
-getheadC("AMSCTCRawCluster",0);
-integer const maxpl=100;
-static number xplane[maxpl];
-static integer xstatus[maxpl];
-VZERO(xplane,maxpl*sizeof(number)/4);
-VZERO(xplane,maxpl*sizeof(integer)/4);
-while (ptr){
-  if(ptr->getlayno()==kk+1){
-   integer plane=ptr->getbarno();
+if(CTCDBc::getgeom()<2){
+ for(integer kk=0;kk<CTCDBc::getnlay();kk++){
+  AMSCTCRawCluster *ptr=(AMSCTCRawCluster*)AMSEvent::gethead()->
+  getheadC("AMSCTCRawCluster",0);
+  integer const maxpl=200;
+  static number xplane[maxpl];
+  static integer xstatus[maxpl];
+  VZERO(xplane,maxpl*sizeof(number)/4);
+  VZERO(xplane,maxpl*sizeof(integer)/4);
+  while (ptr){
+    if(ptr->getlayno()==kk+1){
+    integer plane=ptr->getbarno();
 #ifdef __AMSDEBUG__
-   assert(plane>0 && plane < maxpl-1);
+    assert(plane>0 && plane < maxpl-1);
 #endif
-   xplane[plane]+=ptr->getsignal();
-   xstatus[plane]+=ptr->getstatus();
+    xplane[plane]+=ptr->getsignal();
+    xstatus[plane]+=ptr->getstatus();
+   }
+   ptr=ptr->next();
   }
- ptr=ptr->next();
-}
 
 for (int i=0;i<maxpl;i++){ 
  if(xplane[i] > CTCRECFFKEY.Thr1 && xplane[i]>= xplane[i-1] 
@@ -316,7 +391,7 @@ for (int i=0;i<maxpl;i++){
           zsize=p0->getpar(2);
     }
   AMSPoint ecoo(xsize,ysize,zsize);
-  if(edep>TOFRECFFKEY.ThrS){
+  if(edep>CTCRECFFKEY.ThrS){
     //    cout << cofg <<endl;
    AMSEvent::gethead()->addnext(AMSID("AMSCTCCluster",kk),
    new     AMSCTCCluster(status,kk+1,cofg,ecoo,edep,sqrt(edep)));
@@ -327,6 +402,86 @@ for (int i=0;i<maxpl;i++){
   }
  }    
 }
+}
+}
+else {
+ for(integer kk=0;kk<CTCDBc::getnlay();kk++){
+  AMSCTCRawCluster *ptr=(AMSCTCRawCluster*)AMSEvent::gethead()->
+  getheadC("AMSCTCRawCluster",0);
+  integer const maxpl=100;
+  static number xplane[maxpl];
+  static integer xstatus[maxpl];
+  VZERO(xplane,maxpl*sizeof(number)/4);
+  while (ptr){
+   if(ptr->getlayno()==kk+1){
+    integer plane=2*CTCDBc::getnx()*(ptr->getrowno()-1)+ptr->getcolno()-1;
+#ifdef __AMSDEBUG__
+    assert(plane>=0 && plane < maxpl);
+#endif
+    xplane[plane]+=ptr->getsignal();
+    xstatus[plane]+=ptr->getstatus();
+   }
+   ptr=ptr->next();
+  }
+  addnew(xstatus,xplane,maxpl,kk+1);
+ }
+}
+}
+
+void AMSCTCCluster::addnew(integer xstatus[],number xplane[],integer maxpl,integer layer){
+number smax=0;
+integer imax=-1;
+for (int i=0;i<maxpl;i++){ 
+ if(xplane[i] > smax){
+  smax=xplane[i];
+  imax=i;
+ }
+}
+if(imax >0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
+  number edep=0;
+  AMSPoint cofg(0,0,0);
+  number xsize=1000;
+  number ysize=1000;
+  number zsize=1000;
+  integer status=xstatus[imax];
+  integer row=imax/CTCDBc::getnx()/2+1;
+  integer col=imax%(CTCDBc::getnx()*2)+1;
+  int i,j;
+  for(i=-1;i<2;i++){ 
+   for(j=-1;j<2;j++){
+    integer k=col-1+j+(row-1+i)*CTCDBc::getnx()*2;
+    if(k>=0 && k<maxpl && xplane[k]>0){
+     AMSCTCRawCluster d(0,row+i,layer,0,col+j);
+     AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
+     if(p){
+      cofg=cofg+p->loc2gl(AMSPoint(0,0,0))*xplane[k];
+      edep+=xplane[k];
+     }
+     else cerr << "AMSCTCCluster::build-S-GeomVolumeNotFound "<<row-1+i<<" "<<col-1+j<<endl;
+    }  
+   }
+  }
+  if(edep>0)cofg=cofg/edep;
+  // GetTypical Error Size - 
+  AMSCTCRawCluster d(0,1,1,0,1);
+  AMSgvolume *p0= AMSJob::gethead()->getgeomvolume(d.crgid(0));
+  if(p0 ){
+          xsize=p0->getpar(0);
+          ysize=p0->getpar(1);
+          zsize=p0->getpar(2)*2;
+  }
+  AMSPoint ecoo(xsize,ysize,zsize);
+  if(edep>TOFRECFFKEY.ThrS){
+   AMSEvent::gethead()->addnext(AMSID("AMSCTCCluster",layer-1),
+   new     AMSCTCCluster(status,layer,cofg,ecoo,edep,sqrt(edep)));
+   for(i=-1;i<2;i++){ 
+    for(j=-1;j<2;j++){
+      integer k=col-1+j+(row-1+i)*CTCDBc::getnx()*2;
+      if(k>=0 && k<maxpl && xplane[k]>0)xplane[k]=0;
+    }
+   }
+   addnew(xstatus,xplane,maxpl,layer);
+  }
 }
 }
 

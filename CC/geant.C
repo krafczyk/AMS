@@ -241,7 +241,7 @@ extern "C" void gustep_(){
 //-------------------------------------
 
 
-  // CTC
+  // CTC old
 
   if(GCVOLU.nlevel >1 && GCKINE.charge != 0  && GCTRAK.destep != 0 && 
   GCTMED.isvol != 0 && 
@@ -249,6 +249,18 @@ extern "C" void gustep_(){
    GCVOLU.names[1][2]=='E' && GCVOLU.names[1][3]=='L') ||
    (GCVOLU.names[1][0]== 'W' && GCVOLU.names[1][1]=='L' && 
    GCVOLU.names[1][2]=='S' && GCVOLU.names[1][3]==' ') ))
+
+     AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
+     GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep);
+
+  // CTC Annecy fast
+
+  if(GCVOLU.nlevel >2 && GCKINE.charge != 0  && GCTRAK.destep != 0 && 
+  GCTMED.isvol != 0 && 
+  ((GCVOLU.names[2][0]== 'A' && GCVOLU.names[2][1]=='G' && 
+   GCVOLU.names[2][2]=='L') ||
+   (GCVOLU.names[2][0]== 'P' && GCVOLU.names[2][1]=='M' && 
+   GCVOLU.names[2][2]=='T' ) ))
 
      AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
      GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep);

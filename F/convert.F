@@ -38,7 +38,7 @@
      + ,Mass,Charge,CTCCoo,CTCErCoo,CTCRawSignal,CTCSignal
      + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCcharge,CTCbeta
      + ,Amplitude,CTCedep
-      INTEGER EventNo,Run,RunType,Time ,BetaEvent,BetaPattern
+      INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft

@@ -4,10 +4,12 @@ amsgobj.C // AMS global vars ( Will disappear eventually)
 apool.C   // Advanced memory pool (superior to upool)
 arr.C     // Fortran like 1 to 4 dim array (template)
 beta.C    // velocity
+catio.C   // concatenate io files
 cern.C    // CERNLIB prototypes
 charge.C  // Charge measurement 
 commons.C // Fortran COMMON Blocks definitions
 cont.C    // Universal container
+convert.C // Utility to convert ntuples
 ctcdbc.C  // Various constants & parameters (geometry most) for CTC
 event.C   // Event class code
 gbatch.C  // Main for Geant batch
@@ -24,6 +26,7 @@ mceventg.C  // MC generator class
 node.C    // Also famous AMSNode
 particle.C  // Particle class
 point.C   // Just 3dim point
+readio.C  // read io files
 rnormx.C  // rannor
 snode.C   // Map
 tofdbc.C  // Various constants & parameters (geometry most) for TOF

@@ -80,7 +80,7 @@ return CTCGEOMFFKEY.hcsize[index];
 void CTCDBc::setgeom(integer iflag){
 _geomId=iflag;
   if(iflag==2){
-   CTCDBc::setnlay(1);
+   CTCDBc::setnlay(2);
    CTCMCFFKEY.Edep2Phel[1]=0;
   }
   else if(iflag==1){

@@ -461,8 +461,8 @@ void AMSJob::_retofdata(){
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 void AMSJob::_rectcdata(){
-  CTCRECFFKEY.Thr1=1.5;
-  CTCRECFFKEY.ThrS=3;
+  CTCRECFFKEY.Thr1=1.;
+  CTCRECFFKEY.ThrS=1.;
   FFKEY("CTCREC",(float*)&CTCRECFFKEY,sizeof(CTCRECFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
