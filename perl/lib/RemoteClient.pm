@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.258 2004/03/18 12:36:23 alexei Exp $
+# $Id: RemoteClient.pm,v 1.259 2004/03/18 18:28:17 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7002,7 +7002,7 @@ sub parseJournalFiles {
   }
 # set flag
    my $timenow = time();
-   $self->initFilesProcessing();
+   $self->initFilesProcessingFlag();
 #
     $self->set_root_env();
 
@@ -8997,10 +8997,13 @@ sub getHostsList {
     my $totalmips  = 0;
     my $totalgb    = 0;
 
-    my $nCites = 0;
-    my $nHosts = 0;
-    my $nJobs  = 0;
-    my $nMips  = 0;
+    my $nCites   = 0;
+    my $nHosts   = 0;
+    my $nJobs    = 0; # jobs per cite
+    my $nMips    = 0; # mips per cite
+    my $ndays    = 0; # days of running
+    my $p3ghz    = 0; # PIII 1 GHz equivalent
+    my $p3ghzday = 0; #                       per day
 
     my $CiteName = undef;
 
@@ -9031,6 +9034,12 @@ sub getHostsList {
     }
    }
 
+    my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays();
+    my $lt = localtime($prodstart);
+    my $lu = localtime($prodlastupd);
+    my $ld = sprintf("%3.1f",$totaldays);
+    print "\n \n ************** Production Started : $lt (Last Updated $lu) \n";
+    print "  ******************     Production time : $ld days \n";
     if (defined $CiteName) {
      $sql = "SELECT cid, name FROM CITES WHERE name='$CiteName'";
     } else {
@@ -9092,9 +9101,18 @@ sub getHostsList {
         $nJobs  += $totaljobs;
         $nMips  += $totalmips;
         $nHosts += $j;
-        print "\n";
+        print "\n \n ";
         my $sgb = sprintf(" %6.1f",$gbytes[$cid]);
-        print "Cite : $cid, $name , Hosts : $j, Jobs : $totaljobs Mips : $totalmips, GB : $sgb";
+        print "Cite : $cid, $name , Hosts : $j, Jobs : $totaljobs Mips : $totalmips, GB : $sgb \n";
+        $p3ghz = $totalmips/1000;
+        if ($totaldays > 1) { 
+         $p3ghzday = $p3ghz/$totaldays;
+        } else {
+         $p3ghzday = $p3ghz;
+        } 
+        $p3ghz    = sprintf("%3.1f",$p3ghz);
+        $p3ghzday = sprintf("%3.1f",$p3ghzday);
+        print " PIII 1GHz equivalent : $p3ghz or per day $p3ghzday \n";
          my $i = 0;
          $j = 0;
          foreach my $comp (@hostlist) {
@@ -9109,7 +9127,17 @@ sub getHostsList {
         print "\n";
         print "---------------- Summary --------------------- \n";
         my $sgb = sprintf(" %6.1f",$totalgb);
-        print "Active Cites : $nCites, Total Jobs : $nJobs, Hosts : $nHosts Mips : $nMips GB: $sgb\n";
+        print "Active Cites : $nCites, Total Jobs : $nJobs, Hosts : $nHosts \n";
+        print "Total Mips : $nMips, Total GB: $sgb\n";
+        $p3ghz = $nMips/1000;
+        if ($totaldays > 1) { 
+         $p3ghzday = $p3ghz/$totaldays;
+        } else {
+         $p3ghzday = $p3ghz;
+        } 
+        $p3ghz    = sprintf("%3.1f",$p3ghz);
+        $p3ghzday = sprintf("%3.1f",$p3ghzday);
+        print "PIII 1GHz equiv : $p3ghz or per day $p3ghzday \n";
         print "----------------         --------------------- \n";
 
     } else {
@@ -9203,3 +9231,29 @@ sub gethostname {
 
     return $name;
 }
+
+sub getRunningDays {
+
+    my $self = shift;
+    
+    my $sql;
+    my $ret;
+    my $timestart = 0;
+    my $lastupd   = 0;
+    my $timepassed= 0;
+    my $timenow   = time();
+# first job timestamp
+      $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
+                WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
+      $ret=$self->{sqlserver}->Query($sql);
+      if (defined $ret->[0][0]) {
+       $timestart = $ret->[0][0];
+       $timepassed = ($timenow - $timestart)/60/60/24;
+      }
+      if (defined $ret->[0][1]) {
+       $lastupd=$ret->[0][1];
+      }
+
+
+    return $timestart, $lastupd, $timepassed;
+  }
