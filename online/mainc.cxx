@@ -93,7 +93,7 @@ out:
   amd->Begin()=0;
   amd->Sample()=990;
       for(;;){
-        amd->Filled();
+        amd->Fill();
         amd->DispatchProcesses();  
         theApp->Run();
 
