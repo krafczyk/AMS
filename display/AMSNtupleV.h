@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.2 2003/07/09 08:42:46 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.3 2003/07/09 14:56:34 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -15,7 +15,6 @@
 #include <THelix.h>
 #include "../online/AMSNtuple.h"
 #include "AMSDisplay.h"
-
 class AMSDrawI{
 public:
 int fRef;   ///<  Reference to corr in element in stlvector
@@ -168,8 +167,8 @@ if(pcl){
   SetDirection(0,0);
 }
    SetLineWidth(size);
-   SetLineColor(6);             // purple
-   SetFillColor(6);
+   SetLineColor(9);             // purple
+   SetFillColor(9);
    SetFillStyle(1001);          // solid filling (not working now....)
 
 }
@@ -409,11 +408,7 @@ class RichRingV: public TPolyLine3D, public AMSDrawI{
 protected:
 public:
 RichRingV():AMSDrawI(NULL,-1),TPolyLine3D(){};
-RichRingV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
- RichRingR *pcl=ev->pRichRing(ref);
-if(pcl){
-}
-}
+RichRingV(AMSEventR *ev,int ref);
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pRichRing(fRef)->Info(fRef):0;}
 
 

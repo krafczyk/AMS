@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.6 2003/07/08 16:17:33 choutko Exp $
+#  $Id: Makefile,v 1.7 2003/07/09 14:56:34 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -23,8 +23,7 @@ SRCS          = AMSDisplay.cxx \
                 AMSNtupleV.cxx \
                 AMSR_GeometrySetter.cxx \
                 TGRunEventDialog.cxx \
-                AMSR_Axis.cxx  \
-                ControlFrame.cxx 
+                AMSR_Axis.cxx  
 HDRS          =   \
                 ../include/root_RVS.h\
 		ControlFrame.h \
@@ -50,8 +49,7 @@ MAINOC         = $(MAINC:.cxx=.o)
 OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
 OBJSR          = $(PREFIX)root.o 
 OBJSN         =   $(PREFIX)AMSNtuple.o
-#OBJSC          = $(PREFIX)ControlFrame.o
-OBJSC          = 
+OBJSC          = $(PREFIX)ControlFrame.o
 
 ALLDICT       = $(DICT) $(DICTH) 
 ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
@@ -116,10 +114,10 @@ clean:
 ##### RULES #####
 
 $(ALLOBJS): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
-#$(OBJSC): $(PREFIX)%.o : %.cxx 
-#	$(CXX) $(OPTC) $(CXXFLAGS) -c $(<)  -o $(@)
+$(OBJSC): $(PREFIX)%.o : %.cxx 
+	$(CXX) $(OPTC) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSR): $(PREFIX)%.o : ../CC/%.C 
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.9 2003/07/09 08:42:46 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.10 2003/07/09 14:56:34 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -53,6 +53,7 @@ private:
    bool m_idle;                              // idleing
    TApplication *m_theapp;                   //  application
    TGeometry          *m_Geometry;	     //Pointer to the geometry
+   AMSR_GeometrySetter          *m_geosetter;	     //Pointer to the geometry
    int m_selected;                         //  Selected focus
    Bool_t              m_DrawParticles;        //Flag True if particles to be drawn
    Bool_t              m_DrawGeometry;         //Draw geometry?

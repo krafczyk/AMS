@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.18 2003/07/08 16:17:33 choutko Exp $
+//  $Id: main.cxx,v 1.19 2003/07/09 14:56:34 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -29,9 +29,8 @@ void Myapp::HandleIdleTimer(){
    fDisplay->ShowNextEvent(1);
    StartIdleing();
   }
-  SetReturnFromRun(1);
-  
-  Terminate();
+//  SetReturnFromRun(1);
+//Terminate();
   cout <<"exiting handler"<<endl;
 }
 
@@ -95,15 +94,10 @@ int main(int argc, char *argv[])
   AMSDisplay * amd= new AMSDisplay("AMSRoot Offline Display",geo,&ntuple);
   amd->SetApplication(theApp);
   amd->Init();
-  theApp->SetIdleTimer(1,"");
-        theApp->Run(1);
    theApp->SetDisplay(amd);  
     theApp->RemoveIdleTimer();
     amd->DrawEvent();
-     for(;;){
-        theApp->Run(1);
-        cout <<" qq"<<endl;
-      }        
+    theApp->Run();
       return 0;
   
 

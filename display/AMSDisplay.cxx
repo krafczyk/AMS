@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.20 2003/07/09 08:42:45 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.21 2003/07/09 14:56:33 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -388,6 +388,7 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
    gPad->SetFillColor(10);	//white for easy printing
    TView *view=gPad->GetView();
    if(  m_PrevView!=m_View){
+    m_geosetter->UpdateGeometry(m_View);
     gPad->Clear();
 
     // add itself to the list
@@ -471,7 +472,7 @@ void AMSDisplay::SetGeometry(TGeometry * geo){
 
    if (m_Geometry!=0 && m_Geometry!=geo) delete m_Geometry;
    m_Geometry = geo;
-   new AMSR_GeometrySetter(geo);
+   m_geosetter=new AMSR_GeometrySetter(geo);
 }
 
 
@@ -484,7 +485,7 @@ void AMSDisplay::SetView(EAMSR_View newView){
    switch (m_View) {
      case kFrontView:  DrawView(90,0,0);   break;
      case kSideView:   DrawView(90,-90,0); break;
-     case kTopView:    DrawView(0,0,0);    break;
+     case kTopView:    DrawView(0,0,0); break;
      case kAllView:    DrawAllViews();  break;
      case kTwoView:    DrawFrontAndSideViews();  break;
      default:          DrawView(90,0,0);   break;
@@ -606,7 +607,7 @@ int  AMSDisplay::ReLoad(){
 
 void AMSDisplay::StartStop(bool setidle){
   m_idle=setidle;
-  if(m_idle)m_theapp->SetIdleTimer(11,"");
+  if(m_idle)m_theapp->SetIdleTimer(10,"");
   else  m_theapp->RemoveIdleTimer();
 }
 
@@ -748,19 +749,19 @@ void AMSDisplay::SetFocus(int selected){
    fCooCur[1][2]=-60; 
    break;
   case 5:   //RICH
-   fCooCur[0][0]=-50; 
-   fCooCur[0][1]=-50; 
+   fCooCur[0][0]=-45; 
+   fCooCur[0][1]=-45; 
    fCooCur[0][2]=-130; 
-   fCooCur[1][0]=50; 
-   fCooCur[1][1]=50; 
+   fCooCur[1][0]=45; 
+   fCooCur[1][1]=45; 
    fCooCur[1][2]=-110; 
    break;
   case 6:   //ECAL
-   fCooCur[0][0]=-40; 
-   fCooCur[0][1]=-40; 
+   fCooCur[0][0]=-35; 
+   fCooCur[0][1]=-35; 
    fCooCur[0][2]=-160; 
-   fCooCur[1][0]=40; 
-   fCooCur[1][1]=40; 
+   fCooCur[1][0]=35; 
+   fCooCur[1][1]=35; 
    fCooCur[1][2]=-125; 
    break;
  }

@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.1 2003/07/08 16:20:38 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.3 2003/07/09 14:56:34 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -11,7 +11,6 @@
 #include <TNode.h>
 #include <TDialogCanvas.h>
 #include <iostream.h>
-#include "TSwitch.h"
 #include "AMSR_GeometrySetter.h"
 #include "TList.h"
 
@@ -113,18 +112,25 @@ AMSR_GeometrySetter::AMSR_GeometrySetter(TGeometry * geo)
 
           TNode *first=(TNode*)m_Geometry->GetListOfNodes()->First();
           TObjLink *lnk = first->GetListOfNodes()->FirstLink();
-          recur(lnk);          
+          recur(lnk,"TRDT");          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDW");          
 }
 
 
-void    AMSR_GeometrySetter::recur(TObjLink *lnk){
+void    AMSR_GeometrySetter::recur(TObjLink *lnk, char *exclude, bool what){
          while (lnk) {       
           TNode * obj=(TNode*)lnk->GetObject();              
           const char * name=obj->GetName();
-          if(strlen(name)>3 && name[0]=='T'&& name[1]=='R' && name[2]=='D' && (name[3]=='T' || name[3]=='W')){
-           obj->SetVisibility(0);
+          bool off=true;
+          for(int k=0;k<strlen(exclude);k++){
+           if(strlen(name)<strlen(exclude) || name[k]!=exclude[k]){
+            off=false;
+            break;
           }
-          if(obj->GetListOfNodes())recur(obj->GetListOfNodes()->FirstLink()); 
+          }
+          if(off)obj->SetVisibility(what);
+          if(obj->GetListOfNodes())recur(obj->GetListOfNodes()->FirstLink(),exclude,what); 
           lnk = lnk->Next();                                 
          }  
 }
@@ -183,3 +189,35 @@ void AMSR_GeometrySetter::CheckVisibility(char * name)
 
 
 
+void AMSR_GeometrySetter::UpdateGeometry(EAMSR_View mview){
+  if(mview==kTopView){
+          TNode *first=(TNode*)m_Geometry->GetListOfNodes()->First();
+          TObjLink *lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"T");          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"EL");          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"L");          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"ST");          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RAD");          
+  }
+  else{
+          TNode *first=(TNode*)m_Geometry->GetListOfNodes()->First();
+          TObjLink *lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"T",true);          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"EL",true);          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"L",true);          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"ST",true);          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RAD",true);          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDT");          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDW");          
+  }
+}

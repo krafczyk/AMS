@@ -291,7 +291,7 @@ if(type==kall || type==kusedonly || type==krichrings){
  fRichRingV.clear();
  if(gAMSDisplay->DrawObject(krichrings)){
   for(int i=0;i<NRichRing();i++){
-  // if(!gAMSDisplay->DrawUsedOnly() || ((pRichRing(i)->Status)/32)%2)fRichRingV.push_back( RichRingV(this,i));
+   if( (!gAMSDisplay->DrawUsedOnly() || (pRichRing(i)->Status)/32)%2)fRichRingV.push_back( RichRingV(this,i));
   }
  }
 }
@@ -398,4 +398,59 @@ while(ReadOneEvent(entry++)!=-1){
  if(Run() == run && Event()>=event)return true;
 }
 return false;
+}
+
+
+#include "TRotation.h"
+
+
+RichRingV::RichRingV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
+ RichRingR *pcl=ev->pRichRing(ref);
+//
+// at the moment only rich rings ass with particles will be drawn
+//
+//  This should go to RichRingR  as soon as the latter will be updated
+//  (added theta, radiator etc) by Carlos
+//
+
+for(int i=0;i<ev->nParticle();i++){
+ if( ev->pParticle(i)->iRichRing() == ref){
+  const int npoint=360/5;
+  float array[3*npoint];
+  const double n_aero=1.02998;
+  const double n_naf=1.33;
+  double refi;
+  if(fabs(ev->pParticle(i)->RichCoo[0][0])<11.3/2 && fabs(ev->pParticle(i)->RichCoo[0][1])<11.3/2)refi=n_naf;
+  else refi=n_aero;
+  double    cc=1./ev->pRichRing(ref)->Beta/refi;
+  if(cc<1){
+   double theta=acos(cc);
+    TVector3 z(ev->pParticle(i)->RichCoo[1][0]-ev->pParticle(i)->RichCoo[0][0],ev->pParticle(i)->RichCoo[1][1]-ev->pParticle(i)->RichCoo[0][1],ev->pParticle(i)->RichCoo[1][2]-ev->pParticle(i)->RichCoo[0][2]);
+    TRotation r;
+    r.SetZAxis(z);
+   for( int k=0;k<npoint;k++){
+    double phi=k*2*3.1415926/npoint;
+    double u=sin(theta)*cos(phi);
+    double v=sin(theta)*sin(phi);
+    double w=cos(theta);
+    TVector3 ray(u,v,w);
+    ray.Transform(r);
+    array[k*3+0]=ev->pParticle(i)->RichCoo[0][0]+ray.X()/ray.Z()*(ev->pParticle(i)->RichCoo[1][2]-ev->pParticle(i)->RichCoo[0][2]+3.2);
+    array[k*3+1]=ev->pParticle(i)->RichCoo[0][1]+ray.Y()/ray.Z()*(ev->pParticle(i)->RichCoo[1][2]-ev->pParticle(i)->RichCoo[0][2]+3.2);
+    array[k*3+2]=ev->pParticle(i)->RichCoo[1][2]+3.2;
+//    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<endl;
+   }   
+   SetPolyLine(npoint,array);
+   SetLineColor(6);
+   int size=gAMSDisplay->Focus()==0?2:1;
+   SetLineWidth(size*2);
+   SetLineStyle(1);
+   return;
+  }
+  else{
+   cerr<<"RichRingV-E-ProblemWithRefIndex "<<refi<<" "<<ev->pRichRing(ref)->Beta<<" "<<cc<<endl;
+  }
+  break;
+ }
+}
 }

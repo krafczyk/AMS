@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.h,v 1.1 2003/07/08 16:20:38 choutko Exp $
+//  $Id: AMSR_GeometrySetter.h,v 1.3 2003/07/09 14:56:34 choutko Exp $
 #ifndef AMSR_GeometrySetter_H
 #define AMSR_GeometrySetter_H
 
@@ -13,7 +13,6 @@
 #ifndef ROOT_TGeometry_H
 #include <TGeometry.h>
 #endif
-#include "TSwitch.h"
 #include "TList.h"
 //
 // AMS Geometry:
@@ -41,7 +40,7 @@
 // So I chose to let AMSR_Geometry have a pointer to a TGeometry that
 // is read from a root file.
 
-
+#include "AMSDisplay.h"
 enum EVisibility {
   kDrawImmediateSonsOnly = -4,
   kDrawLeavesOnly        = -3,
@@ -55,7 +54,7 @@ enum EVisibility {
 
 
 struct AMSR_GeoToggle {  
-  char * name;  EVisibility vis; TSwitch * sw;  // TNode * node;
+  char * name;  EVisibility vis; void * sw;  // TNode * node;
 };
 
 static const Int_t nToggle=6;
@@ -63,15 +62,15 @@ static const Int_t nToggle=6;
 class AMSR_GeometrySetter {
 
 protected:
-   void recur(TObjLink * lnk);
+   void recur(TObjLink * lnk, char *name,bool what=false);
    static AMSR_GeoToggle m_Toggle[];
    TGeometry   *m_Geometry;	// pointer to the geometry
 
 public:
                 AMSR_GeometrySetter();
                 AMSR_GeometrySetter(TGeometry * geo);
-   virtual            ~AMSR_GeometrySetter() {}
-
+   virtual            ~AMSR_GeometrySetter() {};
+   void            UpdateGeometry(EAMSR_View mview);
    void		TurnOn(char * name);
    void		TurnOnWithSons(char * name);
    void		TurnOff(char * name);
