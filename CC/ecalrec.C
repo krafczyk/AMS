@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.53 2002/09/26 08:04:16 choutko Exp $
+//  $Id: ecalrec.C,v 1.54 2002/09/26 12:29:34 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -608,6 +608,8 @@ void AMSEcalHit::_writeEl(){
       TN->Coo[TN->Necht][1]=_cool;
     }
     TN->Coo[TN->Necht][2]=_cooz;
+    TN->ADC[TN->Necht][0]=_adc[0];
+    TN->ADC[TN->Necht][1]=_adc[1];
     TN->Necht++;
   }
 }
@@ -2311,8 +2313,14 @@ void AMSEcalRawEvent::TestThreshold(){
  AMSECIdSoft id(_idsoft);
  _padc[0]=_padc[0]-id.getped(0);
  _padc[1]=_padc[1]-id.getped(1);
+// if(id.getslay()==5 && id.getpmtno()==1 ){
+//   cout <<" chan "<<id.getchannel()<<" "<<_padc[0]<<" "<<_padc[1]<<" "<<id.getped(0)<<" "<<id.getped(1)<<endl;
+// }
  if((_padc[0]> id.getsig(0)*HighThr) ||  (_padc[0]> LowAmp && _padc[0]> id.getsig(0)*LowThr)){
 // ok
+   if(_padc[0]==0){
+    cerr<<"  zero found "<<id.getsig(0)<<endl;
+   }
 }
  else setstatus(AMSDBc::DELETED);;
 }

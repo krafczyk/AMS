@@ -33,7 +33,7 @@ void AMSECIdSoft::_channelh2s(){
    _channel=0;
  }
  else{
-  if(_pmtno%2==0){
+  if(_pmtno%2==1){
     switch (_channelh%4){
      case 0:
        _channel=2;

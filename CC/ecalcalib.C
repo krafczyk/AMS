@@ -2138,6 +2138,9 @@ for(int i=0;i<ECPMSMX;i++){
      _ADC2[i][j][k][l]=0;
     }
      ECcalib::ecpmcal[j][i].getstat(k)=0;
+     if(i==1 && j==5){
+     ECcalib::ecpmcal[j][i].getstat(k)=-1;
+     }
    }
   }
 }

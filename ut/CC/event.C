@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.290 2002/09/26 06:52:46 choutko Exp $
+//  $Id: event.C,v 1.291 2002/09/26 12:29:35 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -380,6 +380,9 @@ if(AMSJob::gethead()->isProduction() ){
  if(!SRun){
   HDELET(0);
   AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
+ }
+ else if(AMSJob::gethead()->isRealData()){
+   AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
  }
  else{
 #ifdef __CORBA__
