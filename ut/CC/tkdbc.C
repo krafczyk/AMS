@@ -412,7 +412,7 @@ const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
 const number  support_foam_tol[_nlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
    UCOPY(support_foam_tol,_support_foam_tol,sizeof(support_foam_tol)/sizeof(integer));
 // support hc width;
-const number  support_hc_w[_nlay]={4.,0.8,0.8,0.8,0.8,0.8,0.75,4.};
+const number  support_hc_w[_nlay]={4.,0.8,0.8,0.8,0.8,0.8,0.8,4.};
    UCOPY(support_hc_w,_support_hc_w,sizeof(support_hc_w)/sizeof(integer));
 // support hc radius;
 const number  support_hc_r[_nlay]={71.5,53.6,53.6,53.6,53.6,53.6,53.6,71.5};
