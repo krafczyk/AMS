@@ -123,13 +123,15 @@ protected:
   geant _counts;      // ADC counts for this hits
   AMSPoint _origin;   // Particle origin (if applicable)
   AMSPoint _direction;// Particle direction in the origin (if applicable)
-
-
+  geant _angle;       // Entrance angle in the LG
+  integer _status;    // photon status
+  integer _hit;       // associated hit
 
 public:
 
-  AMSRichMCHit(integer id,integer channel,geant counts,AMSPoint origin,AMSPoint direction) :
-    AMSlink(),_id(id),_channel(channel),_counts(counts),_origin(origin),_direction(direction){};
+  AMSRichMCHit(integer id,integer channel,geant counts,AMSPoint origin,AMSPoint direction,integer status) :
+    AMSlink(),_id(id),_channel(channel),_counts(counts),_origin(origin),_direction(direction),
+    _status(status),_hit(-1){};
   AMSRichMCHit():AMSlink(),_counts(0){};
   ~AMSRichMCHit(){};
 
@@ -140,9 +142,9 @@ public:
   integer operator < (AMSlink & o)const{
     return _channel < ((AMSRichMCHit*)(&o)) ->_channel;}
 
-  static void sirichhits(integer id, integer pmt,geant position[],geant origin[],geant momentum[]);
+  static void sirichhits(integer id, integer pmt,geant position[],geant origin[],geant momentum[],integer status);
   static void noisyhit(integer channel); // Add noise
-  static geant adc_hit();   // Compute the adc counts
+  static geant adc_hit(integer n);   // Compute the adc counts
   static geant adc_empty();
   static geant noise();
   integer getid() const {return _id;}
@@ -150,6 +152,9 @@ public:
   geant getcounts() const {return _counts;}
   const AMSPoint & getorigin(){return _origin;}
   const AMSPoint & getdirection(){return  _direction;}
+  integer getstatus() const {return _status;}
+  integer gethit() const {return _hit;}
+  void puthit(integer n) {_hit=n;};
 };
 
 

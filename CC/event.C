@@ -51,6 +51,7 @@
 #include <ecaldbc.h>
 #include <ecalrec.h>
 #include <richrec.h>
+#include <richdbc.h>
 #include <geantnamespace.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -725,6 +726,11 @@ void AMSEvent::_siecalinitevent(){
 void AMSEvent::_sirichinitevent(){
   AMSNode *ptr;
   ptr=AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSRichMCHit",0),0));
+  if(!ptr) cout << "AMSEvent::_sirichinitevent() No container Error" <<endl;
+  RICHDB::nphgen=0;
+  RICHDB::nphbas=0;
+  RICHDB::numrefm=0;
+  RICHDB::numrayl=0;
 }
 
 void AMSEvent::_sisrdinitevent(){
@@ -1703,8 +1709,18 @@ void AMSEvent::_retrdevent(){
   AMSgObj::BookTimer.stop("RETRDEVENT");
 }
 void AMSEvent::_rerichevent(){
+  integer trflag(0);
+  Trigger2LVL1 *ptr;
+  int stat;
 //
   AMSgObj::BookTimer.start("RERICH");
+//
+  ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+  if(ptr)trflag=ptr->gettoflg();
+  if(trflag<=0){
+    AMSgObj::BookTimer.stop("RERICH");
+    return;// "no LVL1 trigger"   
+  }
 //
 //
   AMSgObj::BookTimer.stop("RERICH");
@@ -1936,6 +1952,10 @@ void AMSEvent:: _siecalevent(){
 void AMSEvent::_sirichevent(){
   AMSgObj::BookTimer.start("SIRICH");
   AMSRichRawEvent::mc_build();
+  AMSPoint r(0,0,0);
+  AMSPoint u(0,0,0);
+  AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
+                               new AMSRichMCHit(Noise,0,0,r,u,Status_Fake));
   AMSgObj::BookTimer.stop("SIRICH");
 }
 
@@ -2374,6 +2394,8 @@ else{ // <------------------ AMS02
   EN->AntiMCClusters=0;
   EN->EcalClusters=0;
   EN->EcalHits=0;
+  EN->RICMCClusters=0;//CJM
+  EN->RICHits=0;//CJM
   getmag(EN->ThetaM,EN->PhiM);
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSParticle",i);
@@ -2463,8 +2485,19 @@ else{ // <------------------ AMS02
    if(p) EN->EcalHits+=p->getnelem();
    else break;
   }
-  
 
+  for(i=0;;i++){//CJM
+   p=AMSEvent::gethead()->getC("AMSRichMCHit",i);
+   if(p) EN->RICMCClusters+=p->getnelem()-1; //Due to fake hit
+   else break;
+  }
+
+  for(i=0;;i++){//CJM
+   p=AMSEvent::gethead()->getC("AMSRichRawEvent",i);
+   if(p) EN->RICHits+=p->getnelem();
+   else break;
+  }
+  
 }
 }
 

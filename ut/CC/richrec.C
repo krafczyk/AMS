@@ -15,11 +15,13 @@
 //#include <vector>
 //#include <valarray>
 void AMSRichRawEvent::mc_build(){
-  // Add noise...
 
-  geant mean_noisy=integer(RICnwindows*RICHDB::total*RICHDB::prob_noisy);
+  // Add noise...
+  geant mean_noisy=RICnwindows*RICHDB::total*RICHDB::prob_noisy;
   int dummy1;
   integer n_noisy;
+  integer hitn=1;
+
 
   POISSN(mean_noisy,n_noisy,dummy1);
 
@@ -33,47 +35,46 @@ void AMSRichRawEvent::mc_build(){
 
   // Construct event: channel signals
 
-  
-  char with_noise=0; // flag to add the noise
-  geant signal=0;
+   int nhits=0;
+   int nnoisy=0;
+   geant signal=0;
 
-  // Fill it with the values stored on AMSRichMCHit
-  for(AMSRichMCHit* hits=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",0,1);
-      hits;hits=hits->next())
-    {
+   for(AMSRichMCHit* hits=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",0,1);hits;hits=hits->next()){ // loop on signals
+   
       uinteger channel=hits->getchannel();
-      
+
+
       if(channel>=RICnwindows*RICHDB::total){
-          cerr<< "AMSRichRawEvent::mc_build-ChannelNoError "<<channel<<endl;
+         cerr<< "AMSRichRawEvent::mc_build-ChannelNoError "<<channel<<endl;
           break;
       }
+      hits->puthit(hitn); // To construct the pointer list
 
+//      if(hits->getid()!=Noise && hits->getid()!=Cerenkov_photon)
+//          continue;    
 
-      switch(hits->getid()){
-      case Noise:
-	with_noise=1;
-	signal+=hits->getcounts();
-	break;
-      case Cerenkov_photon:
-	signal+=hits->getcounts();    
-	break;
-      }
-      if(hits->testlast()){
-        integer adc=integer(signal+(with_noise?0:AMSRichMCHit::adc_empty()));
-	signal=0;
-	with_noise=0;
+      if(hits->getid()==Cerenkov_photon) nhits++; //else nnoisy++;
+      if(hits->getid()==Noise) nnoisy++;
 
-        if(adc>RICHDB::sigma_ped*RICHDB::c_ped+RICHDB::ped){// So we get a signal
- 
-    	 AMSEvent::gethead()->
-	  addnext(AMSID("AMSRichRawEvent",0), 
-          new AMSRichRawEvent(channel,adc));
-      
-  
+      if(hits->testlast()){ // last signal in the hit so construct it
+        if(nnoisy>0) signal=AMSRichMCHit::noise(); 
+          else if(nhits>0) signal=AMSRichMCHit::adc_empty();
+        signal+=AMSRichMCHit::adc_hit(nhits);
+        nnoisy=0;
+        nhits=0;
+        if(integer(signal)>=integer(RICHDB::c_ped)+integer(RICHDB::ped)){
+         AMSEvent::gethead()->addnext(AMSID("AMSRichRawEvent",0),
+          new AMSRichRawEvent(channel,integer(signal)));
+          hitn++;
+          signal=0;
+        } else {
+       for(AMSRichMCHit* clean=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",0,1);clean;clean=clean->next()){
+         if(clean->gethit()==hitn) clean->puthit(0);
+         if(clean->gethit()==-1) break;
+       }
 	}
       }
-    }
-
+   }
 }
 
 

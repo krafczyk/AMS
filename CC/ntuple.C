@@ -101,7 +101,8 @@ else{
 // -----> Station :
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EcalClusters[0,50]:I,EcalHits[0,500]:I,EventStatus(2):I");
+"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EcalClusters[0,50]:I,EcalHits[0,500]:I,"
+"RICMCClusters[0,10000]:I,RICHits[0,10000]:I,EventStatus(2):I"); //CJM
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,150],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
@@ -166,9 +167,9 @@ else{
   "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
 
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
-  	 "nsignals[0,100],sid(nsignals):I,RICchannel(nsignals):I,"
-  	 "signal(nsignals):I,RICx(nsignals),RICy(nsignals),"
-  	 "origin(3,nsignals),direction(3,nsignals)");
+  	 "nsignals[0,100],sid(nsignals):I,"
+  	 "origin(3,nsignals),direction(3,nsignals),RICstatus(nsignals):I,"
+         "nphgen:I,phit(nsignals):I");
 
   HBNAME(_lun,"RICEvent",&_richevent.Nhits,
     	 "Rhits[0,100]:I,Rchannel(Rhits):I,Radc(Rhits):I,"

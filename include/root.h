@@ -122,6 +122,8 @@ public:
   int AntiClusters;
   int EcalClusters;
   int EcalHits;
+  int RICMCClusters;//CJM
+  int RICHits;//CJM
   int EventStatus[2];
   
 friend class AMSEvent;
@@ -853,15 +855,13 @@ class RICMCNtuple : public TObject {
 class RICMCNtuple {
 #endif
 public:
-  int NMC;
-  int id[MAXRICMC];
-  int channel[MAXRICMC];
-  int adc[MAXRICMC];
-  float x[MAXRICMC];
-  float y[MAXRICMC];
-  float origin[MAXRICMC][3];
-  float direction[MAXRICMC][3];
-
+  int NMC;                     // Number of detected photons
+  int id[MAXRICMC];            // Particle id.
+  float origin[MAXRICMC][3];   // Particle origin
+  float direction[MAXRICMC][3];// Original direction
+  int status[MAXRICMC];        // Status=10*number of reflections+(have it rayleigh?1:0)
+  int numgen;                  // Number of generated photons
+  int eventpointer[MAXRICMC];  // Pointer to detected hit
 friend class AMSRichMCHit;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__

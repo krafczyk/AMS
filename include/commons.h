@@ -909,6 +909,14 @@ public:
 static AMSCommonsI cmnI;
 
 
+class
+RICGTKOV_DEF{
+public:
+geant usrcla;
+};
+
+#define RICGTKOV COMMON_BLOCK(RICGTKOV,gtckovext)
+COMMON_BLOCK_DEF(RICGTKOV_DEF,RICGTKOV);
 
 
 

@@ -1,6 +1,7 @@
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
+#include <richdbc.h>
 #include <mccluster.h>
 #include <daqevt.h>
 #include <mceventg.h>
@@ -818,6 +819,44 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
        AMSEcalMCHit::siecalhits(PrePV->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
      }
 //------------------------------------------------------------------
+// CJM : RICH (preliminary and slow version)
+// No rayleigh simulation yet. Some counters not updated
+//
+   if(PrePV->GetName()[0]=='R' && PrePV->GetName()[1]=='A' &&
+      PrePV->GetName()[2]=='D' && PrePV->GetName()[3]==' '){
+     if(GCKINE.ipart==Cerenkov_photon && GCTRAK.inwvol==1 &&
+        GCTRAK.vect[5]<0){ //Provisional
+         if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1;
+        RICHDB::nphgen++;
+     }
+   }
+    
+   if(PrePV->GetName()[0]=='C' && PrePV->GetName()[1]=='A' &&
+      PrePV->GetName()[2]=='T' && PrePV->GetName()[3]=='O'){
+
+     if(GCKINE.ipart==Cerenkov_photon){ //Noisy Cerenkov not handled
+        geant dummy[3]={0.,0.,0.};
+        GCTRAK.istop=2;
+        AMSRichMCHit::sirichhits(GCKINE.ipart,
+                                 PrePV->GetCopyNo()-1,
+                                 GCTRAK.vect,
+                                 dummy,
+                                 dummy,
+                                 0);
+     } else {
+        geant dummy[3]={0.,0.,0.};
+        AMSRichMCHit::sirichhits(GCKINE.ipart,
+                                 PrePV->GetCopyNo()-1,
+                                 GCTRAK.vect,
+                                 dummy,       
+                                 dummy,       
+                                 0);
+    }
+   }            
+
+// end of RICH
+//----------------------------------------------------------------
+
   } // <--- end of "try" ---
 //
    catch (AMSuPoolError e){

@@ -242,9 +242,12 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
   geant w[]={1.,2.};
 
   mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,.7368));  
-}
+} 
+// Aerogel density extracted from J Phys D 27(1994)414
+// Case: Pure aerogel
 
-{ // Mirrors: plexiglass
+
+{ // Mirrors: plexiglass: Used for the light guides
   geant a[]={12.01,1.01,16.0};
   geant z[]={6.,1.,8.};
   geant w[]={5.,8.,2.};
@@ -273,7 +276,12 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
 
   // Magnetic shielding
   mat.add (new AMSgmat("RICH_BSHIELD",55.85,26.,0.787,17.6,168.));
+
+  // NEW! Outer mirror
+
+  mat.add (new AMSgmat("RICH_MIRROR",29.98,13.,1.35,17.8,74.4));
 }
+
 
 
 
@@ -475,22 +483,20 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
   geant dummy[RICmaxentries];
   integer iw;
   
-  for(iw=0;iw<44;iw++)
+  for(iw=0;iw<RICHDB::entries;iw++)
     {
       p[iw]=2*3.1415926*197.327e-9/RICHDB::wave_length[iw]; // Photon momentum in GeV
       dummy[iw]=1;
     }
+
+// Radiator
   
   tmed.add (new AMSgtmed("RICH RAD","RICH_AEROGEL",0));   //32
   GSCKOV(GetLastMedNo(),RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index);
   
-  tmed.add (new AMSgtmed("RICH MIRRORS","RICH_MIRRORS",0));//33
-  for(iw=0;iw<RICHDB::entries;iw++)
-    abs_l[iw]=1.-0.9; // Reflectivity=90%
-  index[0]=0;         // The mirror is a metal
-  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+// PMT window
   
-  tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",1));   //35
+  tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",1));   //35  
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1e5;
@@ -499,20 +505,54 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
   GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
 
 
-  tmed.add (new AMSgtmed("RICH CARBON","RICH_CARBONF",0));
+  geant xustep=200.;
+  for(iw=0;iw<RICHDB::entries;iw++){
+    xustep=xustep+(800.-200.)/geant(RICHDB::entries);
+    p[iw]=2*3.1415926*197.327e-9/xustep;
+  }
+
+
+// LG mirrors
+
+  tmed.add (new AMSgtmed("RICH MIRRORS","RICH_MIRRORS",0));//33
   for(iw=0;iw<RICHDB::entries;iw++)
-      abs_l[iw]=1.; 
-  index[0]=0;
+    abs_l[iw]=1.-0.92; // Reflectivity=92%
+  index[0]=0;          // This behaves like metal
   GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+  
+// Outer mirror
+
+  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
+  for(iw=0;iw<RICHDB::entries;iw++)
+    abs_l[iw]=1.-0.90; // Reflectivity=90%   
+  index[0]=0;          // The mirror is a metal
+  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+
+
+// Aerogel support structure
+
+  tmed.add (new AMSgtmed("RICH CARBON","RICH_CARBONF",0));
+  for(iw=0;iw<RICHDB::entries;iw++){
+      abs_l[iw]=1.; 
+      index[iw]=0.;}
+  GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+
+// Absorber
 
   tmed.add (new AMSgtmed("RICH WALLS","RICH_WALLS",0));
   GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
 
+// B shields
+
   tmed.add (new AMSgtmed("RICH SHIELD","RICH_BSHIELD",0));
   GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index); 
 
+// Electronics
+
   tmed.add (new AMSgtmed("RICH GLUE","RICH_WALLS",1));
   GSCKOV(GetLastMedNo(),RICHDB::entries,p,abs_l,dummy,index);
+
+// transparent vaccum
 
   for(iw=0;iw<RICHDB::entries;iw++)
     {

@@ -46,6 +46,7 @@ extern "C" void gustep_(){
 // cout <<GCKINE.ipart<<" "<<GCTRAK.vect[2]<<" "<<GCTRAK.getot<<" "<<GCTMED.numed<<endl;
 //}
 
+  for(integer i=0;i<GCKING.ngkine;GCKING.iflgk[i++]=1);
 
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){
@@ -85,6 +86,7 @@ extern "C" void gustep_(){
   }
 #endif
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("TrdRadiationGen");
+
 
   try{
 {
@@ -275,62 +277,98 @@ extern "C" void gustep_(){
   }
 #endif
 
-    // Deal with Cerenkov photons
+    // RICH simulation code
+
+    if(GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='I' &&
+       GCVOLU.names[lvl][2]=='C' && GCVOLU.names[lvl][3]=='H' &&
+       GCKINE.ipart==Cerenkov_photon){
+      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+
+      for(integer i=0;i<GCTRAK.nmec;i++)
+       if(GCTRAK.lmec[i]==106) RICHDB::numrefm++;
+      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
+    }
+
+
+    if(GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='A' &&
+     GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]==' '){
+      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+
+      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0)
+       for(integer i=0;i<GCTRAK.nmec;i++)
+          if(GCTRAK.lmec[i]==1999) RICHDB::numrayl++;
+        
+      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep==0){
+	RICHDB::numrayl=0;
+	RICHDB::numrefm=0;
+
+        if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1; 
+//          else RICHDB::nphgen++; 
+         RICHDB::nphgen++;
+          
+
+      }
+
+      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
+    } 
+
+    if(GCTRAK.inwvol==1 && GCVOLU.names[lvl][0]=='P' &&
+       GCVOLU.names[lvl][1]=='M' && GCVOLU.names[lvl][2]=='T' &&
+       GCVOLU.names[lvl][3]=='B'){
+      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
+    }
+    
 
 
     if(GCVOLU.names[lvl][0]=='C' && GCVOLU.names[lvl][1]=='A' &&
-     GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O' && 
-     GCTRAK.inwvol==1)
-    {
+       GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O' && 
+       GCTRAK.inwvol==1){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-      switch(GCKINE.ipart)
-	{
-        case 50: // Cerenkov photons
-	  {	
-	    integer i;
-	    geant wl=2*3.1415926*197.327e-9/GCTRAK.vect[6];
-
-	    GCTRAK.istop=1; // Absorb it
 
 
-             for(i=0;i<RICHDB::entries;i++)
-                if(RICHDB::wave_length[i]>wl &&
-                   RICHDB::wave_length[i+1]<wl) break;
-	      // linear interpolation of eff: it's good because the bining is 
-	      // small enough
-	      
-	      geant dummy=0;
-	      geant ieff=(RICHDB::eff[i+1]-RICHDB::eff[i])*
-		(wl-RICHDB::wave_length[i])/
-		(RICHDB::wave_length[i+1]-RICHDB::wave_length[i])
-		+RICHDB::eff[i];
-	      geant rnumber=RNDM(dummy);
-	      
-	      if(100*rnumber<ieff) // Detected!!!
-		{ 
-		  AMSRichMCHit::sirichhits(GCKINE.ipart,
-					   GCVOLU.number[lvl-1]-1,
-					   GCTRAK.vect,
-					   GCKINE.vert,
-					   GCKINE.pvert);
-		}
+      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep==0){
 
-	  break;
-}	
-	 
+        GCTRAK.istop=1;
 
-	default:
-	  AMSRichMCHit::sirichhits(GCKINE.ipart,
-				   GCVOLU.number[lvl-1]-1,
-				   GCTRAK.vect,
-				   GCKINE.vert,
-				   GCKINE.pvert);
-				   
-	  break;
-   	}
+        if(RICHDB::detcer(GCTRAK.vect[6])) {
+          GCTRAK.istop=2;
+          AMSRichMCHit::sirichhits(GCKINE.ipart,
+                                   GCVOLU.number[lvl-1]-1,
+                                   GCTRAK.vect,
+                                   GCKINE.vert,
+                                   GCKINE.pvert,
+                                   Status_Window-
+                                   (GCKINE.itra!=1?100:0));
+        }
+      }
+
+
+
+      if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep!=0){
+        GCTRAK.istop=2; // Absorb it
+        AMSRichMCHit::sirichhits(GCKINE.ipart,
+                		 GCVOLU.number[lvl-1]-1,
+				 GCTRAK.vect,
+			       	 GCKINE.vert,
+				 GCKINE.pvert,
+                                 (GCKINE.itra!=1?100:0)+
+                                 RICHDB::numrefm*10+
+                                 (RICHDB::numrayl>0?Status_Rayleigh:0));
+      }else if(GCTRAK.nstep!=0){	 
+        AMSRichMCHit::sirichhits(GCKINE.ipart,
+				 GCVOLU.number[lvl-1]-1,
+				 GCTRAK.vect,
+				 GCKINE.vert,
+				 GCKINE.pvert,
+                                 Status_No_Cerenkov-
+                                 (GCKINE.itra!=1?100:0));
+      }				   
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
     }
+
    
+
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){
     cerr<<" h " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
@@ -368,11 +406,10 @@ GDCXYZ();
     GCTRAK.istop =1;
    }
   if(trig==0 && freq>1)AMSgObj::BookTimer.stop("GUSTEP");
-//     cout <<" gustep out"<<endl;
+   //  cout <<" gustep out"<<endl;
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
-//cout << "guout in "<<endl;
 #ifdef __DB__
    if (dbg_prtout != 0 && eventR > DBWriteGeom) {
      cout <<"guout_: read event of type "<<AMSJob::gethead() -> eventRtype()

@@ -47,47 +47,46 @@ geant RICHDB::eff[RICmaxentries]={1.296, 1.476, 1.717, 1.853, 2.041, 2.324, 2.64
 				  13.682,11.509,10.555, 8.321, 7.153, 6.282, 6.148, 4.953};
 
 
-integer RICHDB::n_rows[2]={10,9};
+integer RICHDB::n_rows[2]={10,8};
 
-integer RICHDB::n_pmts[15][2]={{11,9},{11,8},{11,7},{11,7},{11,6},{11,5},
-			       {10,4},{10,3},{10,1},{9,0}};
+integer RICHDB::n_pmts[15][2]={{11,7},{11,8},{11,7},{11,6},{11,5},{11,4},
+			       {10,3},{10,2},{10,0},{8,0}};
 
+integer RICHDB::offset[15][2]={{0,1},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+                               {0,0},{0,0},{1,0}};
 
 geant RICHDB::pmt_p[RICmaxpmts][2];
 
 
 integer RICHDB::entries=RICmaxentries;
-geant RICHDB::top_radius=63.6;
-geant RICHDB::bottom_radius=80;
-geant RICHDB::height=50;
-geant RICHDB::hole_radius=40;
+geant RICHDB::top_radius=60.0;
+geant RICHDB::bottom_radius=67.;
+geant RICHDB::height=45.4;
+geant RICHDB::hole_radius=31.5;
 geant RICHDB::inner_mirror_height=50;
-geant RICHDB::rad_radius=63.6;
+geant RICHDB::rad_clarity=0.011;
+geant RICHDB::rad_radius=60.0;
 geant RICHDB::rad_height=2;
 geant RICHDB::rad_tile_size=15;
-geant RICHDB::lg_height=3;
-geant RICHDB::lg_tile_size=3;
+geant RICHDB::lg_height=3.31;
+geant RICHDB::lg_tile_size=3.1;  // NEW! Called lg_length in the standalone version
 integer RICHDB::total=0;
 
-geant RICHDB::ped=-0.2888;      // Values extracted from A. Contin talk
+geant RICHDB::ped=0.;           // Values from A. Contin talk
 geant RICHDB::sigma_ped=0.5335; // January 11 1999
-geant RICHDB::peak=22.75;
+geant RICHDB::peak=23.04;
 geant RICHDB::sigma_peak=12.10;
-geant RICHDB::c_ped=4.;         // N of sigmas for the detection treshold 
-geant RICHDB::prob_noisy=0.5*DERFC(RICHDB::c_ped/sqrt(2.));
+geant RICHDB::c_ped=2.;           // N od ADC counts for detection threshold
+geant RICHDB::prob_noisy=1-FREQ(RICHDB::c_ped/RICHDB::sigma_ped);
+
+integer RICHDB::nphgen=0;
+integer RICHDB::nphbas=0;
+integer RICHDB::numrefm=0;
+integer RICHDB::numrayl=0;
 
 
 void RICHDB::bookhist(){
-#ifdef __AMSDEBUG__
-  // Number of hits detected
-  HBOOK1(RIChistos+0,"Number of hits",99.,1.,200.,0);
-  // Charge detected for good ones
-  HBOOK1(RIChistos+1.,"ADC counts",100.,-10.,300.,0);
-  //
-  HBOOK1(RIChistos+2.,"ADC counts",50.,-10.,10.,0);
-#endif
 }
-
 
 /// Now Some functions for the rich geometry
 
@@ -96,7 +95,12 @@ geant RICHDB::total_height()
   return RICGEOM.height+ // Expanxion length
     RICGEOM.radiator_height+
     RICGEOM.light_guides_height+
-    RICpmtlength+RICeleclength; // This is the manufacturer height
+    RICshiheight; // NEW!!
+}
+
+geant RICHDB::pmtb_height() // NEW!
+{
+  return RICpmtlength+RICeleclength+RICGEOM.light_guides_height;
 }
 
 geant RICHDB::mirror_pos()
@@ -109,22 +113,23 @@ geant RICHDB::rad_pos()
   return total_height()/2-RICGEOM.radiator_height/2;
 }
 
-geant RICHDB::pmt_pos()
+geant RICHDB::pmt_pos() // In RICH
 {
   return total_height()/2-RICGEOM.radiator_height-RICGEOM.height-
     (RICpmtlength+RICeleclength)/2-RICGEOM.light_guides_height/2;
 }
 
-geant RICHDB::elec_pos()
+geant RICHDB::elec_pos() // In PMT box
 {
   return (RICpmtlength+RICeleclength)/2 // 7(=electronics+phototube length)/2
     -RICGEOM.light_guides_height/2-RICotherthk/2-
     RICpmtlength/2; 
 }
 
-geant RICHDB::cato_pos()
+geant RICHDB::cato_pos() // In PMT box
 {
-  return (RICpmtlength+RICeleclength)/2-RICGEOM.light_guides_height/2-RICotherthk/2;
+  return (RICpmtlength+RICeleclength)/2
+    -RICGEOM.light_guides_height/2-RICotherthk/2;
 }
 
 geant RICHDB::lg_pos()
@@ -134,12 +139,12 @@ geant RICHDB::lg_pos()
 
 geant RICHDB::lg_mirror_angle(integer i)
 {
-  if(i==1)
-    return atan2(RICGEOM.light_guides_length/2-RICpmtshield-RICcatolength/2,
+  if(i==1) // NEW!
+    return atan2(RICGEOM.light_guides_length/2-RICcatolength/2,
 			 RICGEOM.light_guides_height)*180/3.1415926;
 
-  if(i==2) 
-    return atan2((RICGEOM.light_guides_length/2-RICpmtshield-RICcatolength/2)/2,
+  if(i==2) // NEW!
+    return atan2((RICGEOM.light_guides_length/2-RICcatolength/2)/2,
 		 RICGEOM.light_guides_height)*180/3.1415926;
 
   return 0;
@@ -148,10 +153,12 @@ geant RICHDB::lg_mirror_angle(integer i)
 geant RICHDB::lg_mirror_pos(integer i)
 {
   if(i==1)
-    return RICcatolength/2-RIClgthk/2+RICGEOM.light_guides_height/2*tan(lg_mirror_angle(1)*3.1415926/180);
+    return RICcatolength/2-RIClgthk/2+RICGEOM.light_guides_height/2
+      *tan(lg_mirror_angle(1)*3.1415926/180);
   
   if(i==2)
-   return (RICcatolength/2-RIClgthk/2)/2+RICGEOM.light_guides_height/2*tan(lg_mirror_angle(2)*3.1415926/180);
+   return (RICcatolength/2-RIClgthk/2)/2+RICGEOM.light_guides_height/2
+     *tan(lg_mirror_angle(2)*3.1415926/180);
 
   return 0;
 }
@@ -182,3 +189,26 @@ geant RICHDB::y(integer channel)
 
 
 
+integer RICHDB::detcer(geant photen)
+{
+   integer upper=-1,i;
+
+   for(i=1;i<RICHDB::entries;i++) 
+     if(2*3.1415926*197.327e-9/RICHDB::wave_length[i]>=photen)
+        {upper=i;break;}
+
+   if(upper==-1) return 0;
+   i=upper;
+
+   geant xufact=RICHDB::eff[i]-RICHDB::eff[i-1];
+   xufact/=2*3.1415926*197.327e-9*(1/RICHDB::wave_length[i]-1/RICHDB::wave_length[i-1]);
+
+   geant deteff=RICHDB::eff[i-1]+(photen-2*3.1415926*197.327e-9/RICHDB::wave_length[i-1])*xufact;
+
+   geant dummy=0;
+   geant ru=RNDM(dummy);
+
+   if(100*ru<deteff) return 1;
+   return 0;
+}
+   

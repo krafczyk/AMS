@@ -490,21 +490,13 @@ void AMSEcalMCHit::_writeEl(){
 
 void AMSRichMCHit::sirichhits(integer id,
 			      integer pmt, geant position[], // used to compute channel
-			      geant origin[],geant momentum[])
+			      geant origin[],geant momentum[],integer status)
 {
   AMSPoint r(origin[0],origin[1],origin[2]);
   AMSPoint u(momentum[0],momentum[1],momentum[2]);
   geant adc;
 
-  switch(id){
-  case Noise:
-    adc=AMSRichMCHit::adc_empty();
-    break;
-  case Cerenkov_photon:
-    adc=AMSRichMCHit::adc_hit();
-    break;
-  }
-
+  adc=0;
 
   if(pmt>RICHDB::total || pmt<0){
     cerr<<"AMSRichMCHit::sirichhits-ErrorNoPMT " << pmt<<endl;
@@ -519,7 +511,7 @@ void AMSRichMCHit::sirichhits(integer id,
 
   AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
 			       new AMSRichMCHit(id,channel,adc,
-						r,u));
+						r,u,status));
 }
 
 
@@ -527,16 +519,16 @@ void AMSRichMCHit::noisyhit(integer channel){
   AMSPoint r(0,0,0);
   AMSPoint u(0,0,0);
   AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
-			       new AMSRichMCHit(Noise,channel,AMSRichMCHit::noise(),r,u));
+			       new AMSRichMCHit(Noise,channel,AMSRichMCHit::noise(),r,u,Status_Noise));
 }
 
 
-geant AMSRichMCHit::adc_hit(){ // ADC counts fo a hit
+geant AMSRichMCHit::adc_hit(integer n){ // ADC counts for a set of hits
   geant u1,u2,dummy,r;
  
   r=sqrt(-2.*log(1.-RNDM(dummy)));
   u1=r*sin(RNDM(dummy)*6.28318595886);   // This constant should be moved
-  return u1*RICHDB::sigma_peak+RICHDB::peak;
+  return u1*RICHDB::sigma_peak*sqrt(n)+n*RICHDB::peak;
 }
 
 geant AMSRichMCHit::adc_empty(){ // ADC count without a hit
@@ -550,12 +542,12 @@ geant AMSRichMCHit::adc_empty(){ // ADC count without a hit
 
 geant AMSRichMCHit::noise(){ // ADC counts above the pedestal
   geant u1,u2,dummy,r;
-
-  r=sqrt(RICHDB::c_ped*RICHDB::c_ped-2.*log(1.-RNDM(dummy)));
+  r=sqrt(RICHDB::c_ped*RICHDB::c_ped/RICHDB::sigma_ped/RICHDB::sigma_ped
+         -2.*log(1.-RNDM(dummy)));
  
   do{
     u1=r*sin(RNDM(dummy)*6.28318595886);
-  }while(u1<RICHDB::c_ped);
+  }while(u1<RICHDB::c_ped/RICHDB::sigma_ped);
  
   return u1*RICHDB::sigma_ped+RICHDB::ped;
 }
@@ -568,20 +560,23 @@ void AMSRichMCHit::_writeEl(){
 
   if(cluster->NMC>=MAXRICMC) return; 
 
+  if(cluster->NMC==0)
+    cluster->numgen=RICHDB::nphgen;
+  if(_status==Status_Fake) return; // Fake hit
 // Here we need a flag with the IOPA to write it or not
 
   cluster->id[cluster->NMC]=_id;
-  cluster->channel[cluster->NMC]=_channel;
-  cluster->adc[cluster->NMC]=int(_counts);
-  cluster->x[cluster->NMC]=RICHDB::x(_channel);
-  cluster->y[cluster->NMC]=RICHDB::y(_channel);
   cluster->origin[cluster->NMC][0]=_origin[0];
   cluster->origin[cluster->NMC][1]=_origin[1];
   cluster->origin[cluster->NMC][2]=_origin[2];
   cluster->direction[cluster->NMC][0]=_direction[0];
   cluster->direction[cluster->NMC][1]=_direction[1];
   cluster->direction[cluster->NMC][2]=_direction[2];
+  cluster->status[cluster->NMC]=_status;
+  cluster->eventpointer[cluster->NMC]=_hit;
   cluster->NMC++;
+
+
 
 }
 

@@ -391,18 +391,18 @@ Below there is a description of a  ntuple.
  * I*4  *             * RICMCCL  * sid(nsignals)      // Geant3 code of the particle
                                                       // producing the signal
                                                       // (-666 if it's noise)
- * I*4  *             * RICMCCL  * RICchannel(nsignals) // Channel nb. of the signal
- * I*4  *             * RICMCCL  * signal(nsignals)     // ADC counts associated
- * R*4  *             * RICMCCL  * RICx(nsignals)       // X coord. of the channel
- * R*4  *             * RICMCCL  * RICy(nsignals)       // Y coord. of the channel
  * R*4  *             * RICMCCL  * origin(3,nsignals)    // Generation point of the 
                                                          // particle producing 
-                                                         // the signal
+                                                         // the signal (geant3 only)
  * R*4  *             * RICMCCL  * direction(3,nsignals) // Original direction of 
                                                          // the particle producing 
-                                                         // the signal
-
-
+                                                         // the signal (geant3 only)
+ * I*4  *             * RICMCCL  * RICstatus(nsignals)   // Signal status *******)
+ * I*4  *             * RICMCCL  * nphgen                // Number of cerenkov
+                                                         // photons generated
+                                                         // in radiator
+ * I*4  *             * RICMCCL  * phit(nsignals)        // Pointer to the
+                                                         // hit if sid=50 or -666
  * I*4  * [0,100]     * RICEVENT * Rhits                 // Number of hits
  * I*4  *             * RICEVENT * Rchannel(Rhits)       // Channel
  * I*4  *             * RICEVENT * Radc(Rhits)           // ADC counts
@@ -517,3 +517,25 @@ in sensor length units;
 
 
                            
+*******) For geant4 this value is 0. For geant 3it has several meanings:
+
+Cerenkov photon generated in radiator:
+
+    ricstatus = 100*(mother of Cerenkov if secondary?1:0)+10*(number of
+                reflections in mirror) + (photon suffered rayleigh
+                scattering?1:0)
+
+PMT noise:
+
+    ricstatus = -1
+
+
+Cerenkov photon generated in PMT window:
+
+    ricstatus = -(2+100*(mother of Cerenkov if secondary?1:0))
+
+No Cerenkov photon:
+
+    ricstatus = -(3+100*(mother of Cerenkov if secondary?1:0))
+
+
