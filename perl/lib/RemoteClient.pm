@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.126 2003/04/25 11:11:38 alexei Exp $
+# $Id: RemoteClient.pm,v 1.127 2003/04/25 11:15:27 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3548,6 +3548,7 @@ print qq`
                $buf=~ s/$cn/$cn$ccc/;         
            }
        }
+         my $rid;
          if($i > 1){
             ($rid,$rndm1,$rndm2) = $self->getrndm();
          }
@@ -4414,7 +4415,6 @@ sub checkJobsTimeout {
                WHERE runs.jid = $jid AND 
                      runs.status != 'Completed' AND
                      mails.mid = $mid";
-         print "$sql \n";
          my $r4=$self->{sqlserver}->Query($sql); 
          if (defined $r4->[0][0]) {
               my $address = $r4->[0][1].",alexei.klimentov\@cern.ch";
@@ -5524,7 +5524,7 @@ sub statusColor {
     my $status = shift;
     my $color  = "magenta";
 
-    if ($status eq "Finished" or $status eq "OK" or $status eq "Validated") {
+    if ($status eq "Finished" or $status eq "OK" or $status eq "Validated" or $status eq "Completed") {
                $color  = "green";
     }
     elsif ($status eq "Success") {
