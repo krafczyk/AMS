@@ -21,7 +21,7 @@ DELTA=$2
 UNIFORM=$3
 ../exe/$MACHINE/gbatch.exe <<!
 LIST
-KINE 14 
+KINE 1 
 MULS 1 
 C MSEL 1=0
 LOSS  1
@@ -36,7 +36,7 @@ C npars ims
 C          Nparticles 
 MCGEN  1=-1. 2=-1. 3=120.  4=-1. 5=-1. 6=120. 
   7=0. 8=0. 9=-1. 10=0. 11=0.   
- 12=-1.  13=100. 14=100. 15=1 18=1 19=102004 
+ 12=-1.  13=100. 14=200. 15=1 18=1 19=102004 20=4
 IOPA 1=3 2='prv3.hbk' 43=1 
 45='TriggerLVL1     '
 RNDM 191473093 131623257

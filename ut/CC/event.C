@@ -916,12 +916,9 @@ void  AMSEvent::write(int trig){
   AMSEvent::gethead()->getheadC("AMSTrCluster",1,2); 
   AMSEvent::gethead()->getheadC("AMSTrTrack",0,2); 
  
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",0,2); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",1,2); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",2,2); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",3,2); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",4,2); 
-  AMSEvent::gethead()->getheadC("AMSTrRecHit",5,2); 
+for(int il=0;il<TKDBc::nlay();il++){
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",il,2); 
+}
    
   if(IOPA.hlun || IOPA.WriteRoot){
     AMSJob::gethead()->getntuple()->reset(1);
@@ -1957,7 +1954,7 @@ void AMSEvent::_printEl(ostream & stream){
 void AMSEvent::_writeEl(){
 // Get event length
   DAQEvent *myp=(DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0);
-  int nws=myp->getlength();
+  int nws=myp?myp->getlength():0;
 // Fill the ntuple
   EventNtuple* EN = AMSJob::gethead()->getntuple()->Get_event();
   EN->EventStatus=getstatus();

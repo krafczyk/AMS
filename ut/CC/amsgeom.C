@@ -3528,7 +3528,6 @@ void amsgeom::richgeom02(AMSgvolume & mother)
         ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
        
-     } // PMT put. Now we're going for the light-guides
 
     
     coo[2]=3.5;
@@ -3542,141 +3541,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 	    
     geant d2=(.875-RIClgthk/2)/2+RICGEOM.light_guides_height/2*tan(a2*3.1415926/180);	
 
-#ifdef __G4AMS__
-    if(MISCFFKEY.G4On){
-      if(copia==2 && i==0){
-
-      AMSgvolume *mirror;
-
-      par[0]=RICGEOM.light_guides_height/2;
-      par[1]=a1;
-      par[2]=90;
-      par[3]=RIClgthk/2;
-      par[4]=0.875;
-      par[5]=0.875;
-      par[6]=0;
-      par[7]=RIClgthk/2;
-      par[8]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[9]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[10]=0;
-
-      coo[0]=0;
-      coo[1]=d1;
       
-      mirror=dynamic_cast<AMSgvolume*>
-	(lig->add(new AMSgvolume("RICH MIRRORS",
-				0,
-				"MIRA",
-				"TRAP",
-				par,
-				11,
-				coo,
-				nrm,
-				"BOOL",
-				0,
-				 (copia-2)+1,
-				rel)));
-      coo[0]=-d1;
-      coo[1]=0;
-	   
-      mirror->addboolean("TRAP",par,11,coo,nrma,'+');
-
-      par[0]=RICGEOM.light_guides_height/2;
-      par[1]=a2;
-      par[2]=90;
-      par[3]=RIClgthk/2;
-      par[4]=0.875;
-      par[5]=0.875;
-      par[6]=0;
-      par[7]=RIClgthk/2;
-      par[8]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[9]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[10]=0;
-      
-      coo[0]=0;
-      coo[1]=d2;
-      
-      mirror->addboolean("TRAP",par,11,coo,nrm,'+');
-
-      coo[0]=-d2;
-      coo[1]=0;
-	
-      mirror->addboolean("TRAP",par,11,coo,
-		     nrma,  // Rotated 90 degrees
-		     '+');
-
-
-      par[0]=RICGEOM.light_guides_height/2;;
-      par[1]=0;
-      par[2]=90;
-      par[3]=RIClgthk/2;
-      par[4]=0.875;
-      par[5]=0.875;
-      par[6]=0;
-      par[7]=RIClgthk/2;
-      par[8]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[9]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[10]=0;
-      
-      coo[0]=0;
-      coo[1]=0;
-      
-      mirror->addboolean("TRAP",par,11,coo,nrm,'+');
-
-      mirror->addboolean("TRAP",par,11,coo,nrma,'+');
-
-
-      par[0]=RICGEOM.light_guides_height/2;
-      par[1]=a1;
-      par[2]=270;
-      par[3]=RIClgthk/2;
-      par[4]=0.875;
-      par[5]=0.875;
-      par[6]=0;
-      par[7]=RIClgthk/2;
-      par[8]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[9]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[10]=0;
-      
-      coo[0]=0;
-      coo[1]=-d1;
-	
-      mirror->addboolean("TRAP",par,11,coo,nrm,'+');
-
-      coo[0]=d1;
-      coo[1]=0;
-	
-      mirror->addboolean("TRAP",par,11,coo,nrma,'+');	    
-      
-      par[0]=RICGEOM.light_guides_height/2;;
-      par[1]=a2;
-      par[2]=270;
-      par[3]=RIClgthk/2;
-      par[4]=0.875;
-      par[5]=0.875;
-      par[6]=0;
-      par[7]=RIClgthk/2;
-      par[8]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[9]=RICGEOM.light_guides_length/2-RICotherthk;
-      par[10]=0;
-      
-      coo[0]=0;
-      coo[1]=-d2;
-	
-      mirror->addboolean("TRAP",par,11,coo,nrm,'+');
-
-      coo[0]=d2;
-      coo[1]=0;
-	
-      mirror->addboolean("TRAP",par,11,coo,nrma,'+');
-
-   }   
-    }
-    else if(MISCFFKEY.G3On){
-      
-#else
-      
-      if(copia==2 && i==0){
 
 	  par[0]=RICGEOM.light_guides_height/2;
 	  par[1]=a1;
@@ -3703,9 +3568,12 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrm,
 				       "ONLY", // This seems to be safe
 				       0,
-				       1,
+				       2*(copia-2)+1,
 				       rel));
 	    
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
 	  coo[0]=-d1;
 	  coo[1]=0;
 
@@ -3719,11 +3587,14 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrma,
 				       "ONLY",
 				       0,
-				       2,
+				       2*(copia-2)+2,
 				       rel));
 
 
 	  
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
 	  par[0]=RICGEOM.light_guides_height/2;
 	  par[1]=a2;
 	  par[2]=90;
@@ -3749,10 +3620,13 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrm,  
 				       "ONLY",
 				       0,
-				       1,
+				       2*(copia-2)+1,
 				       rel));
 	  coo[0]=-d2;
 	  coo[1]=0;
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
 
 	  dummy=lig->add(new AMSgvolume("RICH MIRRORS",
 				       RICnrot,
@@ -3764,7 +3638,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrma,  // Rotated 90 degrees
 				       "ONLY",
 				       0,
-				       2,
+				       2*(copia-2)+2,
 				       rel));
 	    
 	    
@@ -3783,6 +3657,9 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 	  coo[0]=0;
 	  coo[1]=0;
 
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
 	  dummy=lig->add(new AMSgvolume("RICH MIRRORS",
 				       0,
 				       "MIRC",
@@ -3793,10 +3670,13 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrm,  // Rotated 90 degrees
 				       "ONLY",
 				       0,
-				       1,
+				       2*(copia-2)+1,
 				       rel));
 
 	  
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
 	  dummy=lig->add(new AMSgvolume("RICH MIRRORS",
 				       RICnrot,
 				       "MIRC",
@@ -3807,9 +3687,12 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrma,  // Rotated 90 degrees
 				       "ONLY",
 				       0,
-				       2,
+				       2*(copia-2)+2,
 				       rel));
 
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
 
 	  par[0]=RICGEOM.light_guides_height/2;
 	  par[1]=a1;
@@ -3836,10 +3719,13 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrm,
 				       "ONLY",
 				       0,
-				       1,
+				       2*(copia-2)+1,
 				       rel));
 
 
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
 	  coo[0]=d1;
 	  coo[1]=0;
 	 
@@ -3853,11 +3739,14 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrma,
 				       "ONLY",
 				       0,
-				       2,
+				       2*(copia-2)+2,
 				       rel));
 	    
 	    
 
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
 
 		    
 	  par[0]=RICGEOM.light_guides_height/2;;
@@ -3885,9 +3774,12 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrm,  // Rotated 90 degrees
 				       "ONLY",
 				       0,
-				       1,
+				       2*(copia-2)+1,
 				       rel));
 	    
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
 	  coo[0]=d2;
 	  coo[1]=0;
 	  
@@ -3901,15 +3793,14 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				       nrma,  // Rotated 90 degrees
 				       "ONLY",
 				       0,
-				       2,
+				       2*(copia-2)+2,
 				       rel));
 
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
       }
 
-#endif	
-#ifdef __G4AMS__
-    }
-#endif   
     
 
 

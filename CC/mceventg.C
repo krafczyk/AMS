@@ -187,7 +187,7 @@ else {   // <--- random dir
   break;
  default:  
   cerr <<" AMSmceventg-F-plane problem "<<curp<<endl;
-  exit(1);
+  abort();
  }
 //if(_fixedplane == 0)_coo=_coo/2;
 }
@@ -372,9 +372,10 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
          cerr<<"AMSmceventg::setspectra-F-NoPrimarySpectraDefinedForParticle "<<ipart<<endl;
          exit(1);
         }
-        HF1(_hid,xm,y);
-        HF1(_hid+1,xm,y);
-      }
+        else return;
+         HF1(_hid,xm,y);
+         HF1(_hid+1,xm,y);
+       }
     }
 #ifdef __AMSDEBUG__
     //HPRINT(_hid);

@@ -25,11 +25,14 @@ class AMSgvolume : public AMSNode {
       integer operator !=(const _amsrm & o) const{
         for(int i=0;i<3;i++){
          for(int j=0;j<3;j++){
-           if(_nrm[i][j]!=o._nrm[i][j])return 0;
+           if(_nrm[i][j]!=o._nrm[i][j])return 1;
          }
         }
-        return 1;
+        return 0;
   
+      }
+      integer operator ==(const _amsrm & o) const{
+        return !(*this!=o);
       }
 
     }; 

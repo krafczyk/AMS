@@ -148,7 +148,7 @@ void AMSgvolume::_init(){
       _gl2loc(cur,coo);
     _coo=coo;     
   }
-  if(!(*_nrmA != _UnitRM)){
+  if(*_nrmA == _UnitRM){
    delete _nrmA;
    _nrmA=&_UnitRM;
   }

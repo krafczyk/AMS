@@ -20,6 +20,9 @@
 #include "G4ThreeVector.hh"
 #include "G4Event.hh"
 #include "G4PVPlacement.hh"
+#include "G4Exception.hh"
+#include "G4StateManager.hh"
+#include "G4ApplicationState.hh"
 #ifdef G4VIS_USE
 #include <g4visman.h>
 #endif
@@ -62,10 +65,11 @@ G4RunManager * pmgr = new G4RunManager();
 }
 void g4ams::G4RUN(){
 // Initialize GEANT3
-
+    
+    GCFLAG.IEVENT=1;
     TIMEL(GCTIME.TIMINT);
 #ifndef G4VIS_USE
- G4RunManager::GetRunManager()->BeamOn(GCFLAG.NEVENT);
+   G4RunManager::GetRunManager()->BeamOn(GCFLAG.NEVENT-GCFLAG.IEVENT+1);
 #endif
 }
 
@@ -246,7 +250,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
    AMSgObj::BookTimer.stop("GEANTTRACKING");
 
    try{
-          if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
+          if(anEvent && AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
    }
    catch (AMSuPoolError e){
      cerr << e.getmessage()<<endl;
@@ -510,7 +514,9 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 
 */
  
-
+ 
+//     geant d;
+//     if(RNDM(d)<1.e-3)G4Exception("qq");
      // Checking if Volume is sensitive one 
     G4StepPoint * PostPoint = Step->GetPostStepPoint();
     G4VPhysicalVolume * PostPV = PostPoint->GetPhysicalVolume();
@@ -714,13 +720,16 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //
      if(PrePV->GetName()[0]== 'A' && PrePV->GetName()[1]=='N' &&
        PrePV->GetName()[2]=='T' && PrePV->GetName()[3]=='S' && GCTRAK.destep>0.){
-//cout<<"... in ANTI: numv="<<PrePV->GetCopyNo()<<endl;
        dee=GCTRAK.destep;
-//       GBIRK(dee);
        AMSAntiMCCluster::siantihits(PrePV->GetCopyNo(),GCTRAK.vect,
                                                    dee,GCTRAK.tofg);
      }// <--- end of "in ANTS"
-//------------------------------------------------------------------
+
+// -----> ECAL 1.0-version by E.C.
+     if(PrePV->GetName()[0]== 'E' && PrePV->GetName()[1]=='C' & PrePV->GetName()[2]=='F' && PrePV->GetName()[3]=='C' && GCTRAK.destep>0.){
+       AMSEcalMCHit::siecalhits(PrePV->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tof\
+g);
+      }
   } // <--- end of "try" ---
 //
    catch (AMSuPoolError e){
