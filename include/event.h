@@ -37,6 +37,7 @@ private:
   };
   class BeamPar{
    public:
+    uinteger RunTag;   // runTag
     time_t Time;     // UNIX sec, of the manipulator PC
     float X;     //cm, the beam cross in AMS coo system
     float Y;     //cm

@@ -545,6 +545,13 @@ void AMSEvent::SetTimeCoo(integer rec){
      chint=hintb;
     }
     else chint=hintb+1;
+     // check the runtag
+     if(ArrayB[chint].RunTag!= AMSEvent::gethead()->getruntype()){
+        seterror();
+        cerr<<"Event & BeamPar disagree event says runtype = "<<hex<<
+        AMSEvent::gethead()->getruntype()<<" BeamPar says "<<hex<<
+        ArrayB[chint].RunTag<<endl;
+     } 
      geant mom(ArrayB[chint].Mom);
      integer part(ArrayB[chint].Pid);
      AMSDir dir(ArrayB[chint].Theta,ArrayB[chint].Phi);

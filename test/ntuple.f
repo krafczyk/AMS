@@ -1,5 +1,6 @@
          include 'sc.inc'
-        character *80 fdir
+                 common /maxevC/fdir,maxev
+                 character *256 fdir
         character *256 fname,flist
          common /pawc/hm(4000000 )
         call hlimit(4000000) 
@@ -7,12 +8,15 @@
          write(*,*)'ntuple list file name'
          read(*,*)flist
          write(*,*)'new ntuples dir'
-         read(*,*)fdir
+         read(*,fmt='(a)')fdir
+         write(*,*)fdir
+         write(*,*)'max out'
+         read(*,*)maxev
          open(20,file=flist,status='old')
 10         read(20,fmt='(a)',end=100,err=100)fname
          i=i+1
            call openold(fname)
-           call readold(fdir,1)
+           call readold(1)
          goto 10           
 100     continue
         if(i.gt.0)then
@@ -23,9 +27,8 @@
         endif
         end
 
-        subroutine readold(fdir,fast)
+        subroutine readold(fast)
          include 'sc.inc'
-          character *(*) fdir     
           integer ipos,iposw
           data iposw /0/
           integer fast,userok
@@ -53,7 +56,7 @@
              if(fast.eq.1)call hgnt(1,ipos,ierr)
              iposw=iposw+1
              if(mod(iposw,1000).eq.1)write(*,*)ipos,iposw
-             call writenew(fdir,iposw,run,eventno)
+             call writenew(iposw,run,eventno)
              call hcdir( '//input',' ')
              newwrite=1
             endif
@@ -61,16 +64,17 @@
             goto 10
            endif
         end
-        subroutine writenew(fdir,iposw,runl,eventl)
-         character *(*) fdir
+        subroutine writenew(iposw,runl,eventl)
+                 common /maxevC/fdir,maxev
+                 character *256 fdir
           integer runl,eventl
          include 'sc.inc'
          if(iposw.eq.1)then
-          call opennew(fdir,runl,eventl)
+          call opennew(runl,eventl)
          endif
          call hcdir( '//output',' ')
          call hfnt(2)
-         if(iposw.gt.100000)then
+         if(iposw.gt.maxev)then
             call hrout(0,ic,' ')
             call hrend('output')
             close(2)
@@ -137,12 +141,14 @@
 
         end
 
-        subroutine opennew(fdir,runl,eventl)
+        subroutine opennew(runl,eventl)
+                 common /maxevC/fdir,maxev
+                 character *256 fdir
         include 'sc.inc'    
         integer runl,eventl
-        character*(*) fdir
         character *256 fname
         length=1
+         write(*,*)fdir,len(fdir)
         do i=len(fdir),1,-1
           if(fdir(i:i).ne.' ')then
             length=i
@@ -277,7 +283,7 @@
      +  'LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R')
 
          CALL HBNAME(lun,'LVL1',Nlvl1,
-     +  'nlvl1[0,2],LVL1LifeTime(nlvl1)[0,1023],'//
+     +  'nlvl1[0,2],LVL1LifeTime(nlvl1),'//
      +  'LVL1Flag(nlvl1)[-10,10],LVL1TOFPatt(4,nlvl1),'//
      +  'LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1)')
 
