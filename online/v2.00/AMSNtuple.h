@@ -149,7 +149,7 @@ protected:
 public:
 AMSNtuple(TFile * file);
 Int_t EventNo()const {return _Event.EventNo;}
-Int_t GetRun()const {return _Event.Run;}
+Int_t GetRun()const {return _Event.Time;}
 //char* GetTime()const {return ctime(&_Event.Time);}
 char* GetTime()const {return ctime(&_Event.Run);}
 Int_t ReadOneEvent(int event){return _h1?_h1->GetEvent(event):0;}
