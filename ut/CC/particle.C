@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.94 2001/05/17 22:13:53 choutko Exp $
+//  $Id: particle.C,v 1.95 2001/06/01 09:35:49 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -611,15 +611,20 @@ void AMSParticle::pid(){
     _beta=1/fabs(_pbeta->getbeta());
     _ebeta=_pbeta->getebeta();
     _ebeta=_ebeta*_ebeta;
-    if(_prich ){
+    if(_prich  ){
      number b1=1./_prich->getbeta();
      number b2=_prich->geterrorbeta()*b1*b1;
      b2=b2*b2;
-     _beta=(_beta/_ebeta+b1/b2)/(1/_ebeta+1/b2);
-     _ebeta=1./(1/_ebeta+1/b2);
-     _Beta=_pbeta->getbeta()<0?-1/_beta:1/_beta;
-     _ErrBeta=sqrt(_ebeta)/_Beta/_Beta;
-     _calcmass(_Momentum,_ErrMomentum,_Beta,_ErrBeta,_Mass,_ErrMass);
+     if(abs(b1-_beta)<1.4*sqrt(b2+_ebeta) || _beta<RICHDB::rad_index){
+      _beta=(_beta/_ebeta+b1/b2)/(1/_ebeta+1/b2);
+      _ebeta=1./(1/_ebeta+1/b2);
+      _Beta=_pbeta->getbeta()<0?-1/_beta:1/_beta;
+      _ErrBeta=sqrt(_ebeta)/_Beta/_Beta;
+      _calcmass(_Momentum,_ErrMomentum,_Beta,_ErrBeta,_Mass,_ErrMass);
+     }
+     else{
+      cerr<<"RICH & TOF Disagree TOF Says velocity is "<<1/_beta<<" RICH "<<1/b1<<endl;
+     }
     }
     int i;
   for (i=0;i<maxp;i++){

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.62 2001/05/30 07:38:59 choutko Exp $
+//  $Id: server.C,v 1.63 2001/06/01 09:35:50 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -2542,7 +2542,6 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro,D
  }
 
  cout <<" Master getrunevinfo "<<_parent->getcid().uid<<endl;
- _UpdateACT(cid,DPS::Client::Active);
 
 
   DSTInfo_var dv =new DSTInfo();
