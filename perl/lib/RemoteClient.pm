@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.174 2003/05/17 12:18:26 alexei Exp $
+# $Id: RemoteClient.pm,v 1.175 2003/05/20 14:24:56 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3997,6 +3997,19 @@ print qq`
           print FILE "export ExeDir=$self->{AMSSoftwareDir}/exe \n";
           print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
       }
+#
+# check here custom/generic
+#
+         if(defined $q->param("JST") and  $q->param("JST") eq 'C'){
+             my $sdir="$self->{AMSSoftwareDir}/scripts/";
+             my $newfile=$sdir."$self->{CCA}"; 
+             open(FILEI,"<".$newfile) or die " Unable to find script file $newfile ";
+             my $sbuf;
+             read(FILEI,$sbuf,16384);
+             close FILEI; 
+             $buf=~ s/export/$sbuf\nexport/;
+         }
+
          print FILE $buf;
          print FILE $tmpb;
          close FILE;
