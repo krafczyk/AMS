@@ -7,10 +7,11 @@ sys.path.append("/afs/ams.cern.ch/Offline/vdev/python/linux")
 
 from AMS import *
 
-app = TRint("", 0, [])
+#app = TRint("", 0, [])
 
 ams = AMSChain()
 ams.Add("/f2users/choutko/g3v1g3.root")
+#ams.Add("http://pcamsf0.cern.ch/f2dah1/MC/AMS02/2004A/protons/el.pl1.10200/738197524.0000001.root")
 
 hrig = TH1F("hrig", "Momentum (GeV)", 50, -10., 10.)
 
@@ -23,8 +24,8 @@ for entry in range(ndata):
       part = ev.Particle(i)
       hrig.Fill(part.Momentum) 
 
-hrig.Draw()
+#hrig.Draw()
 
 print "We have processed %d events" % ndata
 
-app.Run()
+#app.Run()
