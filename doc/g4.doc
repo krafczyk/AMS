@@ -1,6 +1,6 @@
 -------
 Platform:
-linux-g++(egcs only, no gcc2.95.2) and dec-cxx >= v6.2
+linux-g++ and dec-cxx >= v6.2
 
 -------
 Installer:
@@ -83,7 +83,7 @@ CC/gmat.C    << new geant4  constructors
 Status (geant4.3.0):
 
 
-Tracking is ok for dec/cxx, memory leak for linux/gcc2.95.2,
+Tracking is ok for dec/cxx, ok  for linux/gcc2.95.2,
                             ok for          linux/egcs.1.1.2
 
 interactive version ok

@@ -1,5 +1,5 @@
 if $OS == "Linux"  then
-setenv LinuxBUG 1
+setenv LinuxBUG 0
 if $LinuxBUG == "1" then
 setenv G4SYSTEM Linux-g++
 else
