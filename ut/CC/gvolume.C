@@ -21,6 +21,7 @@
 #include "G4PVPlacement.hh"
 #include "G4UserLimits.hh"
 #include <geant4.h>
+#include "G4VisAttributes.hh"
 #endif
 integer AMSgvolume::debug=0;
 AMSgvolume::_amsrm AMSgvolume::_UnitRM;
@@ -233,6 +234,7 @@ integer AMSgvolume::_Norp=0;
       else{
         // Here the headache
         _pg4rm= new AMSG4RotationMatrix(_nrm->_nrm);
+        _pg4rm->invert();
       }
     }
 
@@ -248,7 +250,7 @@ integer AMSgvolume::_Norp=0;
        }
      }
      else if (shape =="TUBE"){
-       psolid=new G4Tubs(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm,0*degree,360*degree);
+       psolid=new G4Tubs(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm,0*degree,360.*degree);
        for(int par=0;par<_npar;par++){
          if(maxstep>_par[par] && _par[par]>0)maxstep=_par[par];
        }
@@ -370,18 +372,21 @@ integer AMSgvolume::_Norp=0;
      _pg4l= new G4LogicalVolume(psolid,_pgtmed->getpgmat()->getpamsg4m(),G4String(_name));    
      if(_pgtmed->IsSensitive()){
       _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
+      _pg4l->SetUserLimits(new G4UserLimits(2*maxstep*cm));
      }
 // Add user limits 
      else {
       _pg4l->SetUserLimits(new G4UserLimits(maxstep*cm));
      }    
      _pg4l->SetSmartless(_smartless);
+//     cout <<" smart "<<getname()<<" "<<_pg4l->GetSmartless()<<endl;
 
    }
     // Now placement 
     
-    _pg4v=new G4PVPlacement(_pg4rm,G4ThreeVector(_coo[0]*cm,_coo[1]*cm,_coo[2]*cm),G4String(_name),_pg4l,up()?up()->_pg4v:0,false,_gid);
-    
+    _pg4v=new G4PVPlacement(up()?_pg4rm:0,G4ThreeVector(_coo[0]*cm,_coo[1]*cm,_coo[2]*cm),G4String(_name),_pg4l,up()?up()->_pg4v:0,false,_gid);
+    if(!up())_pg4l-> SetVisAttributes (G4VisAttributes::Invisible);
+    else if(!(up()->up()))_pg4l-> SetVisAttributes (G4VisAttributes::Invisible);
     if(!up() && _Norp){
        // fatal logic error
        cerr<< " AMSgvolume::_MakeG4Volumes-F-LogicErrorAmbigWorldVolume for "<<
@@ -462,6 +467,24 @@ void AMSgvolume::MakeG4Volumes(){
      
 }
 
+int AMSgvolume::VolumeHasSameG4AttributesAs(AMSgvolume* o ){
+if(strcmp(getname(),o->getname()))return 0;
+for (int i=0;i<_npar;i++){
+ if(getpar(i)!= o->getpar(i))return 0;
+}
+if(strcmp(_shape,o->_shape))return 0;
+if(strcmp(_gonly,o->_gonly))return 0;
+if(_pgtmed != o->_pgtmed)return 0;
+if(strstr(_gonly,"BOO")){
+ if(_gonly[3]=='L'){
+  return offspring()->VolumeHasSameG4AttributesAs(o->offspring());
+ }
+  else {
+  return next() && o->next()?next()->VolumeHasSameG4AttributesAs(o->next()):0;
+  }
+}
+return 1;
+}
 
 #endif
 
@@ -475,16 +498,6 @@ return 1;
 
 }
 
-int AMSgvolume::VolumeHasSameG4AttributesAs(AMSgvolume* o ){
-if(strcmp(getname(),o->getname()))return 0;
-for (int i=0;i<_npar;i++){
- if(getpar(i)!= o->getpar(i))return 0;
-}
-if(strcmp(_shape,o->_shape))return 0;
-if(strcmp(_gonly,o->_gonly))return 0;
-if(_pgtmed != o->_pgtmed)return 0;
-return 1;
-}
 
 int AMSgvolume::VolumeHasSameG3AttributesAs(AMSgvolume* o ){
 if(strcmp(getname(),o->getname()))return 0;

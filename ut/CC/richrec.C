@@ -30,12 +30,13 @@ void AMSRichRawEvent::mc_build(){
 
   hits=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",0);
   while(hits){
-    if(hits->getkind()!=0) continue; // Don't kwnow how to treat others
-    integer pmt=integer(hits->getid()/10000);
-    integer window=integer(hits->getid()%10000);
-
-    n_hits[pmt][window]++;
-
+//    if(hits->getkind()!=0) continue; // Don't kwnow how to treat others
+    if(!hits->getkind()){
+     integer pmt=integer(hits->getid()/10000);
+     integer window=integer(hits->getid()%10000);
+ 
+     n_hits[pmt][window]++;
+    }
     hits=hits->next();
     
   }

@@ -87,16 +87,21 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  cout <<" AMSGeom-I-AMS02 setup selected."<<endl;
  magnetgeom02(mother);
  tofgeom02(mother);
-#ifndef  __G4AMS__
- antigeom02(mother);
- pshgeom02(mother);
-#endif
  tkgeom02(mother);
-#ifndef __G4AMS__ 
- richgeom02(mother);
- ecalgeom02(mother);
+
+#ifdef  __G4AMS__
+if(!G4FFKEY.UniformMagField){
  trdgeom02(mother);
  srdgeom02(mother);
+ ecalgeom02(mother);
+}
+#else
+ trdgeom02(mother);
+ srdgeom02(mother);
+ ecalgeom02(mother);
+ antigeom02(mother);
+ pshgeom02(mother);
+ richgeom02(mother);
 #endif
 }
 else{ 
@@ -355,7 +360,6 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
     gid=2000+100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
     amsid.getname(),nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
-    
   }      //   <<<============= end of sc. bars loop ==========
 }   //   <<<============= end of sc. planes loop =============
 }
@@ -505,8 +509,10 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
     if(ip==1||ip==3)coo[2]=co[2]-TOFDBc::plnstr(12);
 //                                   <=== create pmt1-box
     gid=1000+100*(ip+1)+ib+1;
+/*
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+*/
 //-----
     if(TOFDBc::plrotm(ip)==0){
       coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
@@ -518,8 +524,10 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
     }
 //                                   <=== create pmt2-box
     gid=2000+100*(ip+1)+ib+1;
+/*
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+*/
 //
   }      //   <<<============= end of sc. bars loop ==========
 }   //   <<<============= end of sc. planes loop =============
@@ -1792,7 +1800,7 @@ ostrstream ost(name,sizeof(name));
        "VACUUM",nrot++,name,"TUBE",par,3,coo,nrm,"ONLY",1,gid,1));
         }
 
-
+/*
        // Now Elec Left
 
        for ( j=0;j<TKDBc::nlad(i+1);j++){
@@ -1837,7 +1845,7 @@ ostrstream ost(name,sizeof(name));
         //        cout <<"elr "<<i<<" "<<j<<" "<<nrot<<endl;
        }
 
-
+*/
 
 }
 }
@@ -2360,7 +2368,7 @@ ostrstream ost(name,sizeof(name));
        cur=dau->add(new AMSgvolume(
       "Tr_Honeycomb",nrot++,name,"TUBE",par,3,coo,nrm,"ONLY",1,gid,1));
 
-
+/*
        // Now Elec Left
 
        for ( j=0;j<TKDBc::nlad(i+1);j++){
@@ -2405,7 +2413,7 @@ ostrstream ost(name,sizeof(name));
         //        cout <<"elr "<<i<<" "<<j<<" "<<nrot<<endl;
        }
 
-
+*/
 
 }
 
@@ -2480,6 +2488,9 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 //   par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
    dau=oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
        nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
+#ifdef __G4AMS__
+   ((AMSgvolume*) dau)->Smartless()=1;
+#endif
 //
 // Tubes & Radiators has no rotation matrix at the moment
 // This can be changed in any time
@@ -2491,15 +2502,15 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    gid=i+mtrdo*j+mtrdo*maxlay*k+1;
    dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
       0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
-/*
-   ost.seekp(0);  
-   ost << "TRDB"<<ends;
-   TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
-   for(ip=0;ip<10;ip++)par[ip]=TRDDBc::TubesBoxDimensions(i,j,k,ip);
-   gid=i+mtrdo*j+mtrdo*maxlay*k+1;
-   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
-        0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
-*/
+    
+//   ost.seekp(0);  
+//   ost << "TRDB"<<ends;
+//   TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
+//   for(ip=0;ip<10;ip++)par[ip]=TRDDBc::TubesBoxDimensions(i,j,k,ip);
+//   gid=i+mtrdo*j+mtrdo*maxlay*k+1;
+//   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
+//        0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+
    int l;
    for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
    ost.seekp(0);  
@@ -2520,7 +2531,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
    }
-
   }
  }
 }

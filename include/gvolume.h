@@ -90,6 +90,7 @@ class AMSgvolume : public AMSNode {
    amsg4pv * & pg4v()  {return _pg4v;}
   G4LogicalVolume * & pg4l()  {return _pg4l;}
   amsg4rm * & pg4rm() {return _pg4rm;}
+  int VolumeHasSameG4AttributesAs(AMSgvolume *pvo );
 #endif
 static  integer & getNlv()  {return _Nlog;}
 static  integer & getNpv()  {return _Nph;}
@@ -98,7 +99,6 @@ static  integer & getNrm()  {return _Nrm;}
   static uinteger & GlobalRotMatrixNo(){return _GlobalRotMatrixNo;}
   int VolumeHasSameRotationMatrixAs(AMSgvolume *pvo );
   int VolumeHasSameG3AttributesAs(AMSgvolume *pvo );
-  int VolumeHasSameG4AttributesAs(AMSgvolume *pvo );
   AMSgvolume (char matter[], integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
