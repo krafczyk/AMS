@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.42 2001/05/23 14:37:23 choutko Exp $
+//  $Id: root.h,v 1.43 2001/07/12 16:19:29 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -329,7 +329,10 @@ public:
   float Cutoff[MAXPART02];
   float TOFCoo[MAXPART02][4][3];
   float AntiCoo[MAXPART02][2][3];
-  float EcalCoo[MAXPART02][2*ECSLMX][3];
+  float EcalCoo[MAXPART02][3][3];
+  float EcalTot[MAXPART02];
+  float EcalTotC[MAXPART02];
+  float EcalShowerMax[MAXPART02];
   float TrCoo[MAXPART02][trconst::maxlay][3];
   float TRDCoo[MAXPART02][3];
 friend class AMSParticle;

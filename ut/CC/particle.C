@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.98 2001/06/14 08:48:10 choutko Exp $
+//  $Id: particle.C,v 1.99 2001/07/12 16:19:18 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -274,22 +274,71 @@ for(int kk=0;kk<2;kk++){
 
 
 void AMSParticle::ecalfit(){
-AMSDir dir(0,0,1.);
-AMSPoint coo;
-number theta, phi, sleng;
-AMSEcalCluster * ptr;   
-integer maxpl,ipl;
-maxpl=2*ECALDBc::slstruc(3);
-for(ipl=0;ipl<maxpl;ipl++){ //loop over containers(planes)
-  ptr=(AMSEcalCluster*)AMSEvent::gethead()->getheadC("AMSEcalCluster",ipl,0);
-  if(ptr){
-    coo=ptr->getcoo();//use only first cluster in container(really need only Z-coo)
-    _ptrack->interpolate(coo,dir,_EcalCoo[ipl],theta,phi,sleng);
-  }
-  else { // no clusters in this plane -> put "0"
-    _EcalCoo[ipl]=AMSPoint(0,0,0);
+
+{
+// Fit to first & last ecal planes as well as to shower max ( or 1/2 if no sho)
+
+AMSPoint cofg(0,0,0);
+_ECalTot=0;
+_ECalTotC=0;
+_ECalShowerMax=0;
+number ecalmax=0;
+for(int ipl=0;ipl<2*ECALDBc::slstruc(3);ipl++){ //loop over containers(planes)
+ AMSEcalCluster* ptr=(AMSEcalCluster*)AMSEvent::gethead()->getheadC("AMSEcalCluster",ipl,0);
+  number ecal=0;
+  while(ptr){
+   ecal+=ptr->getedep();
+   if(ecal>ecalmax){
+     ecalmax=ecal;
+     _ECalShowerMax=ipl;
+   }
+   _ECalTot+=ptr->getedep();
+   cofg=cofg+ptr->getcoo()*ptr->getedep();
+   ptr=ptr->next();
   }
 }
+  integer pr,pl,ce;
+  number cl,ct;
+  number EcalFirstPlaneZ,EcalLastPlaneZ;
+  ECALDBc::getscinfoa(0,0,0,pr,pl,ce,ct,cl,EcalFirstPlaneZ);
+  ECALDBc::getscinfoa(ECALDBc::slstruc(3)-1,2,0,pr,pl,ce,ct,cl,EcalLastPlaneZ);
+  if(_ECalTot){
+    cofg=cofg/_ECalTot;
+  }
+  else{
+   cofg=AMSPoint(0,0,(EcalFirstPlaneZ+EcalLastPlaneZ)/2);
+  }
+AMSDir dir(0,0,1.);
+number theta, phi, sleng;
+    _ptrack->interpolate(AMSPoint(0,0,EcalFirstPlaneZ),dir,_EcalSCoo[0],theta,phi,sleng);
+    _ptrack->interpolate(cofg,dir,_EcalSCoo[1],theta,phi,sleng);
+    _ptrack->interpolate(AMSPoint(0,0,EcalLastPlaneZ),dir,_EcalSCoo[2],theta,phi,sleng);
+
+}
+
+//special Eugeni's calibration
+
+if(AMSJob::gethead()->isCalibration() & AMSJob::CEcal){
+ AMSDir dir(0,0,1.);
+ AMSPoint coo;
+ number theta, phi, sleng;
+ AMSEcalCluster * ptr;   
+ integer maxpl,ipl;
+ maxpl=2*ECALDBc::slstruc(3);
+ for(ipl=0;ipl<maxpl;ipl++){ //loop over containers(planes)
+   ptr=(AMSEcalCluster*)AMSEvent::gethead()->getheadC("AMSEcalCluster",ipl,0);
+   if(ptr){
+     coo=ptr->getcoo();//use only first cluster in container(really need only Z-coo)
+     _ptrack->interpolate(coo,dir,_EcalCoo[ipl],theta,phi,sleng);
+   }
+   else { // no clusters in this plane -> put "0"
+     _EcalCoo[ipl]=AMSPoint(0,0,0);
+   }
+ }
+}
+
+
+
 }
 
 void AMSParticle::trdfit(){
@@ -565,11 +614,14 @@ else{
 //      cout <<i<<" "<<j<<" "<<_AntiCoo[i][j]<<endl;
     }
   }
-  for(i=0;i<2*ECSLMX;i++){ // ECAL-crossings
+  for(i=0;i<3;i++){ // ECAL-crossings
     for(int j=0;j<3;j++){
-      PN->EcalCoo[PN->Npart][i][j]=_EcalCoo[i][j];
+      PN->EcalCoo[PN->Npart][i][j]=_EcalSCoo[i][j];
     }
   }
+  PN->EcalTot[PN->Npart]=_ECalTot/1000;
+  PN->EcalTotC[PN->Npart]=_ECalTotC/1000;
+  PN->EcalShowerMax[PN->Npart]=_ECalShowerMax;
   for(i=0;i<TKDBc::nlay();i++){
     for(int j=0;j<2;j++){
       PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];

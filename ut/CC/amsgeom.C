@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.125 2001/07/05 17:15:43 choutko Exp $
+//  $Id: amsgeom.C,v 1.126 2001/07/12 16:19:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2661,8 +2661,59 @@ AMSgtmed *p;
 }
 void amsgeom::ussgeom(AMSgvolume & mother){
 //
+AMSID amsid;
+geant par[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number inrm[3][3];
+integer nrot=400;
+char name[5];
+geant coo[3]={0.,0.,0.};
+integer gid=0;
+AMSNode * cur;
+AMSNode * dau;
+AMSgtmed *p;
+      gid=1;
+
+// Low quadrant
+        
+   par[0]=45;   //  phi angle
+   par[1]=360;   // open angle
+   par[2]=4;     // quadrant
+   par[3]=2;
+   par[4]=-4.5*2.54/2;
+   par[5]=(78.67/2-11.79)*2.54-4.5*2.54/2;
+   par[6]=par[5]+4.5*2.54;
+   par[7]=-par[4];
+   par[8]=par[5];
+   par[9]=par[6];
+   coo[0]=0;
+   coo[1]=0;
+   coo[2]=-136+par[4];
+   mother.add(new AMSgvolume("USSALLOY",nrot++,"USS1","PGON",par,10,coo,nrm,"ONLY",0,gid++,1));
 
 
+// Low Triangle ( two para)
+
+   coo[0]=-(par[5]+par[6])/2/2;
+   coo[1]=-(par[5]+par[6])/2;
+   coo[2]=coo[2]+par[4];
+   par[0]=4.5*2.54/2;
+   par[1]=4.5*2.54/2;
+   par[2]=4.5*2.54/2 * 3.6;
+   coo[0]=-par[6]+par[2]+par[0];   //  implicit 45 deg assumption
+   par[3]=0;
+   par[4]=45;
+   par[5]=180;
+
+   coo[2]=coo[2]-par[2];
+
+   mother.add(new AMSgvolume("USSALLOY",nrot++,"USS3","PARA",par,6,coo,nrm,"ONLY",0,gid++,1));
+
+   coo[0]=-coo[0];
+   par[5]=0;
+
+
+   mother.add(new AMSgvolume("USSALLOY",nrot++,"USS2","PARA",par,6,coo,nrm,"ONLY",0,gid++,1));
 }
 
 void amsgeom::tkgeom02(AMSgvolume & mother){

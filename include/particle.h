@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.30 2001/05/16 15:24:17 choutko Exp $
+//  $Id: particle.h,v 1.31 2001/07/12 16:19:28 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -60,6 +60,10 @@ protected:
   AMSPoint _TOFCoo[4];  
   AMSPoint _AntiCoo[2];  
   AMSPoint _EcalCoo[2*ECSLMX];  
+  AMSPoint _EcalSCoo[3];
+  number   _ECalTot;  
+  number   _ECalTotC;  
+  number   _ECalShowerMax;  
   AMSPoint _TrCoo[trconst::maxlay];  
   AMSPoint _TRDCoo;  
   number   _Local[trconst::maxlay];
@@ -104,6 +108,10 @@ public:
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2*ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
+    _ECalTot=0;
+    _ECalTotC=0;
+    _ECalShowerMax=0;
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
@@ -126,6 +134,10 @@ public:
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2*ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
+    _ECalTot=0;
+    _ECalTotC=0;
+    _ECalShowerMax=0;
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.77 2001/05/23 14:37:21 choutko Exp $
+//  $Id: ntuple.C,v 1.78 2001/07/12 16:19:18 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -134,7 +134,7 @@ else{
 
   HBNAME(_lun,"Particle",&_part02.Npart,
  
-"npart[0,20],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,18,npart),cootr(3,8,npart),cootrd(3,npart)");
+"npart[0,20],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),ecaltot(npart),ecaltotc(npart),ecalshowermax(npart),cootr(3,8,npart),cootrd(3,npart)");
 //
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");

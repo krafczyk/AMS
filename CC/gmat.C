@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.63 2001/05/24 08:31:38 kscholbe Exp $
+//  $Id: gmat.C,v 1.64 2001/07/12 16:19:18 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -443,6 +443,7 @@ else{
 
 
 tmed.add (new AMSgtmed("1/2ALUM","ALUMINIUM",0));
+tmed.add (new AMSgtmed("USSALLOY","ALUMINIUM",0));
 tmed.add (new AMSgtmed("ACTIVE_SILICON","SILICON",1));
 tmed.add (new AMSgtmed("NONACTIVE_SILICON","SILICON"));
 tmed.add (new AMSgtmed("CARBON","CARBON",0));

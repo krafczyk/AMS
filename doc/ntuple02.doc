@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.15 2001/05/29 13:30:28 choutko Exp $
+#  $Id: ntuple02.doc,v 1.16 2001/07/12 16:19:28 choutko Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -120,11 +120,15 @@ This is AMS02 Ntuple Description
 * R*4  *           * PARTICLE * cutoff(npart)     // geomag cutoff in GeV/c
 * R*4  *           * PARTICLE * cootof(3,4,npart) // tracker extrapol in tof
 * R*4  *           * PARTICLE * cooanti(3,2,npart)// tracker extrapol in anti
-* R*4  *           * PARTICLE * cooecal(3,18,npart)// tracker extrapol in 
-						   // each of 18 ECAL planes,
-						   // cooecal(3,ipl,npart)=0
-						   // if no cluster found in
-						   // plane ipl)
+* R*4  *           * PARTICLE * cooecal(3,3,npart)// tracker extrapol to  
+						   // first,showermax,last
+						   // ecal planes
+* R*4  *           * PARTICLE * ecaltot(npart)     // uncorrected ecal edep
+* R*4  *           * PARTICLE * ecaltotc(npart)     // corrected ecal edep
+                                                    // not filled yet
+ 
+* R*4  *           * PARTICLE * ecalshowermax(npart)// just plain max at the moment
+                                                    // should be extracted from fit
 * R*4  *           * PARTICLE * cootr(3,8,npart)  // tracker extrapol in
 						  // tracker *****)
 * R*4  *           * PARTICLE * cootrd(3,npart)  // trd extrapol in the middle
