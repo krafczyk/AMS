@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.32 2002/04/17 12:42:27 choumilo Exp $
+#  $Id: ntuple02.doc,v 1.33 2002/04/19 15:57:41 delgadom Exp $
 This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
 
 
@@ -132,6 +132,8 @@ This is AMS02 Ntuple Description (to open:  paw; nt/chain ChainName FileName)
 * R*4  *           * PARTICLE * cootr(3,8,npart)  // tracker extrapol in
 						  // tracker *****)
 * R*4  *           * PARTICLE * cootrd(3,npart)  // trd extrapol in the middle
+* R*4  *           * PARTICLE * coorich(3,2,npart)  //rich extrapol in radiator
+						    // and PMT array
 
 * I*4  * [0,20]    * TOFCLUST * ntof             // TOF clusters number
 * I*4  *           * TOFCLUST * TOFStatus(ntof)  // Status: 
@@ -608,12 +610,21 @@ Cerenkov photon generated in PMT window:
 
     ricstatus = -(2+100*(mother of Cerenkov if secondary?1:0))
 
+
+Cerenkov photon generated in light guide:
+   
+    ricstatus = -(5+100*(mother of Cerenkov if secondary?1:0)) 
+
+
 No Cerenkov photon:
 
     ricstatus = -(3+100*(mother of Cerenkov if secondary?1:0))
 
+
+
 NOTE: The information of the mother is only available if RICCONT=1 in
       the datacards
+
 
 ********)
 
