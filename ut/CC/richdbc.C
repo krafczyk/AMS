@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.35 2003/03/20 10:16:01 delgadom Exp $
+//  $Id: richdbc.C,v 1.36 2003/07/18 19:30:17 delgadom Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -509,8 +509,7 @@ geant RICHDB::mean_height(){
 
 
 #include <trrec.h>
-
-
+#include <richrec.h>
 geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 			    geant &length,geant beta){
 
@@ -522,11 +521,24 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 
   // Obtain the track parameters
 
-  AMSDir dir(0,0,1);
-  AMSPoint r;
-  number mean_z=RICHDB::mean_height();
-  ptrack->interpolate(AMSPoint(0,0,RICradpos-RICHDB::rad_height+mean_z),dir,r,theta,phi,sleng);
 
+  RichRadiatorTile crossed_tile(ptrack);
+  AMSDir dir(0,0);
+  AMSPoint r;  
+
+  geant rad_index=crossed_tile.getindex();
+  geant rad_height=crossed_tile.getheight();
+  r=crossed_tile.getemissionpoint();
+  dir=crossed_tile.getemissiondir();
+  
+  /***************************************
+
+  AMSDir dir2(0,0,-1);
+  AMSPoint r2;
+
+
+  number mean_z=RICHDB::mean_height();
+  ptrack->interpolate(AMSPoint(0,0,RICradpos-RICHDB::rad_height+mean_z),dir2,r2,theta,phi,sleng);
 
 
   // Simple approx. WITHOUT BORDER EFFECTS
@@ -534,14 +546,26 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 
   // Put it in local frame
 
-
   theta=twopi/2.-theta;
   phi=twopi/2.-phi;
-  AMSDir u(theta,phi);
+  AMSDir u2(theta,phi);
+  u2[2]*=-1;
+  r2[2]=RICHDB::rad_height-mean_z;
 
 
   u[2]*=-1;
   r[2]=RICHDB::rad_height-mean_z;
+
+
+  ***************************/
+
+  theta=twopi/2.-dir.gettheta();
+  phi=twopi/2.-dir.getphi();
+  AMSDir u(theta,phi);
+  
+  r[2]-=RICradpos-RICHDB::rad_height+rad_height;
+  u[2]*=-1;
+
 
 #ifdef __AMSDEBUG__
   //  cout <<"Theta and phi "<<theta<<" "<<phi<<endl;
@@ -554,17 +578,17 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 
   //Init
   geant kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
-  geant ac=RICHDB::rad_height+RICHDB::foil_height-RICHDB::top_radius/kc;
+  geant ac=rad_height+RICHDB::foil_height-RICHDB::top_radius/kc;
   direct=0;
   reflected=0;
-
+  
 
   for(phi=0;phi<twopi;phi+=twopi/NPHI){
     geant cc,sc,cp,sp,cn,sb,f,sn;
     geant r0[3],u0[3],r1[3],u1[3],r2[3],u2[3],n[3],r3[3];
 
 
-    cc=1./beta/RICHDB::rad_index; 
+    cc=1./beta/rad_index; 
     sc=sqrt(1-cc*cc);
     cp=cos(phi);
     sp=sin(phi);
@@ -582,7 +606,7 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
       u0[2]=cc;}
 
     
-    geant l=(RICHDB::rad_height-r0[2])/u0[2];
+    geant l=(rad_height-r0[2])/u0[2];
     
     for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
     if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
@@ -596,11 +620,12 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 
     // Radiator->foil refraction
 
-    if(RICHDB::rad_index*sn>RICHDB::foil_index) continue;
-    f=sqrt(1-(RICHDB::rad_index/RICHDB::foil_index*sn)*
-	   (RICHDB::rad_index/RICHDB::foil_index*sn))-
-      RICHDB::rad_index/RICHDB::foil_index*cn;
-    for(i=0;i<3;i++) u1[i]=RICHDB::rad_index/RICHDB::foil_index*u0[i]+f*n[i];
+    if(rad_index*sn>RICHDB::foil_index) continue;
+    f=sqrt(1-(rad_index/RICHDB::foil_index*sn)*
+	   (rad_index/RICHDB::foil_index*sn))-
+      rad_index/RICHDB::foil_index*cn;
+
+    for(i=0;i<3;i++) u1[i]=rad_index/RICHDB::foil_index*u0[i]+f*n[i];
 
     // Propagate to foil end
     l=RICHDB::foil_height/u1[2];
@@ -655,7 +680,7 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
     f=2*(u1[0]*n[0]+u1[1]*n[1]+u1[2]*n[2]);
     for(i=0;i<3;i++) u2[i]=u1[i]-f*n[i];
 
-    l=(RICHDB::rich_height+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
+    l=(RICHDB::rich_height+rad_height+RICHDB::foil_height-r2[2])/u2[2];
     for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
 
     //    maxxy=fabs(r3[0])>fabs(r3[1])?fabs(r3[0]):fabs(r3[1]);
