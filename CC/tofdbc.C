@@ -95,8 +95,8 @@ geant TOFDBc::_plnstr[15]={
     0.      // spare 
   };
   geant TOFDBc::_trigtb=0.25;  // MC time-bin in logic(trig) pulse handling (ns)
-  geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (default,mc-data)
-  geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data)
+  geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (def,mc-data) not used now !
+  geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data) not used now !
   geant TOFDBc::_strjit1=0.025;  // "start"-pulse jitter at stretcher input
   geant TOFDBc::_strjit2=0.025;  // "stop"(FT)-pulse jitter at stretcher input
   geant TOFDBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
@@ -305,7 +305,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  integer sid,brt;
  geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2];
  geant slope,fstrd,tzer,tdif,mip2q,speedl;
- geant tzerf[SCLRS][SCMXBR],slpf,strf[SCBLMX][2],tdiff[SCBLMX];
+ geant tzerf[SCLRS][SCMXBR],slpf,strf[SCBLMX][2],tdiff[SCBLMX],stat[SCBLMX][2];
  geant an2di[SCBLMX][2],gaina[SCBLMX][2],gaind[SCBLMX][2],m2q[SCBTPN];
  geant ipara[SCCHMX][SCIPAR]; 
  geant ipard[SCCHMX][SCIPAR]; 
@@ -331,13 +331,13 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //------------------------------
   char in[2]="0";
   char inum[11];
-  char verlst[20]="verslist.dat";
+  char verlst[20]="tofverslist.dat";
   int ctyp,ntypes,mcvern[10],rlvern[10];
   int mcvn,rlvn,dig;
 //
   strcpy(inum,"0123456789");
 //
-// ---> read versions file :
+// ---> read file-versions file :
 //
   strcpy(fname,AMSDATADIR.amsdatadir);
 //  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
@@ -416,22 +416,22 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
 //-------------------------------------------- 
 //
-//   --->  Read stretcher-ratio calib.file :
+//   --->  Read stretcher_ratio/status file :
 //
  ctyp=2;
- strcpy(name,"srcalib");
+ strcpy(name,"srscalib");
  mcvn=mcvern[ctyp-1]%100;
  rlvn=rlvern[ctyp-1]%100;
  if(AMSJob::gethead()->isMCData())           // for MC-event
  {
-   cout <<" TOFBrcal_build: str_ratio-calib. for MC-events selected."<<endl;
-   for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
-   for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
-     cnum=ila*SCMXBR+ibr; // sequential counters numbering(0-55)
-     strf[cnum][0]=TOFDBc::strrat();// const.,fixed = MC-default
-     strf[cnum][1]=TOFDBc::strrat();
-   } // --- end of bar loop --->
-   } // --- end of layer loop --->
+   cout <<" TOFBrcal_build: str_ratio/status data for MC-events are selected."<<endl;
+   dig=rlvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers1);
  }
  else                                       // for Real events
  {
@@ -443,6 +443,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    in[0]=inum[dig];
    strcat(name,in);
    strcat(name,vers2);
+ }
    strcat(name,".dat");
    strcpy(fname,AMSDATADIR.amsdatadir);    
 //   strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");
@@ -450,18 +451,21 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    cout<<"Open file : "<<fname<<'\n';
    ifstream scfile(fname,ios::in); // open str_ratio-file for reading
    if(!scfile){
-     cerr <<"TOFBrcal_build: missing str_ratio-file "<<fname<<endl;
+     cerr <<"TOFBrcal_build: missing str_ratio/status-file "<<fname<<endl;
      exit(1);
    }
+//---> read str_ratio/status:
+//
    for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
    for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
      cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
      scfile >> strf[cnum][0];
+     scfile >> stat[cnum][0];
      scfile >> strf[cnum][1];
+     scfile >> stat[cnum][1];
    } // --- end of bar loop --->
    } // --- end of layer loop --->
    scfile.close();
- }
 //---------------------------------------------
 //
 //   --->  Read a2d-ratios, gains and mip2q's calib.file :
@@ -599,65 +603,12 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //---------------------------------------------
 //   ===> fill TOFBrcal bank :
 //
- if(AMSJob::gethead()->isMCData()){ //            =====> For MC data:
-//
   for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
   for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
     brt=TOFDBc::brtype(ila,ibr);
     if(brt==0)continue; // skip missing counters
     cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
     scmcscan[cnum].getscp(scp);//read scan-points from scmcscan-object
-// read from file or DB:
-    gna[0]=gaina[cnum][0];
-    gna[1]=gaina[cnum][1];
-    gnd[0]=gna[0];// tempor
-    gnd[1]=gna[1];
-    tth=tofvpar.daqthr(0); // (mV), time-discr. threshold
-    qath=tofvpar.daqthr(3); // (pC) thresh. at shaper inp.(anode) (may be diff.
-//              from tofvpar.daqthr(3) in reality !!!, but proportional to him)
-    qdth=tofvpar.daqthr(4); // ...................        (dinode) ................
-    mip2q=m2q[brt-1];//(pC/mev),dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
-    a2dr[0]=1./TOFDBc::di2anr();// anode_to_dinode signal ratio from MC
-    a2dr[1]=1./TOFDBc::di2anr();// same for side-2
-    fstrd=TOFDBc::fstdcd();//(ns),same hit(up-edge) relat.delay in fast-slow TDC
-    mrfp=SCANPNT/2+1;
-    scmcscan[cnum].getefarr(ef1,ef2);//read eff1/2 from scmcscan-object
-    for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
-      rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
-    }
-  //
-    sid=100*(ila+1)+(ibr+1);
-    strat[0]=strf[cnum][0];
-    strat[1]=strf[cnum][1];
-    slope=slpf;//was read from ext. file
-    tzer=tzerf[ila][ibr];//was read from ext. file
-    tdif=tdiff[cnum];//was read from ext. file 
-    td2p[0]=speedl;//mean speed of the light was read from external file
-    td2p[1]=1.3; // error on longit. coord. measurement(cm)
-    sta[0]=0;//status ok, really should be taken from slow-control data or manually
-    sta[1]=0;
-    for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
-    for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
-    for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
-    for(ip=0;ip<SCIPAR;ip++)dip[1][ip]=ipard[2*cnum+1][ip];
-    
-    scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,qath,qdth,a2dr,asatl,tth,
-                              strat,fstrd,tzer,slope,tdif,td2p,mip2q,scp,rlo,
-                              aip,dip);
-//
-  } // --- end of bar loop --->
-  } // --- end of layer loop --->
-//
- } // <--- end of MC branch --
-//--------------------------------------
- else{ //                                       =====> For Real Data :
-//
-  for(ila=0;ila<SCLRS;ila++){   // <-------- loop over layers
-  for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
-    brt=TOFDBc::brtype(ila,ibr);
-    if(brt==0)continue; // skip missing counters
-    cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
-    scmcscan[cnum].getscp(scp);//read sc.point from scmcscan-object
 // read from file or DB:
     gna[0]=gaina[cnum][0];
     gna[1]=gaina[cnum][1];
@@ -678,20 +629,20 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     }
   //
     sid=100*(ila+1)+(ibr+1);
-    strat[0]=strf[cnum][0];
+    strat[0]=strf[cnum][0];//from ext.file
     strat[1]=strf[cnum][1];
+    sta[0]=stat[cnum][0];
+    sta[1]=stat[cnum][1];
     slope=slpf;//was read from ext. file
     tzer=tzerf[ila][ibr];//was read from ext. file
     tdif=tdiff[cnum];//was read from ext. file 
     td2p[0]=speedl;//mean speed of the light was read from external file
-    td2p[1]=1.3; // error on longit. coord. measurement(cm)
-    sta[0]=0;//status ok, really should be taken from slow-control data or manually
-    sta[1]=0;
+    td2p[1]=1.6; // error on longit. coord. measurement(cm)
     for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
     for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[1][ip]=ipard[2*cnum+1][ip];
-
+    
     scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,qath,qdth,a2dr,asatl,tth,
                               strat,fstrd,tzer,slope,tdif,td2p,mip2q,scp,rlo,
                               aip,dip);
@@ -699,9 +650,9 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
   } // --- end of bar loop --->
   } // --- end of layer loop --->
 //
- } // <--- end of REAL branch --
 }
-//------------------------------------------------------------
+//-----------------------------------------------------------------------
+//
 geant TOFBrcal::ama2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
   number q(0),qt(0);
   for(int isd=0;isd<2;isd++){
@@ -779,29 +730,44 @@ geant TOFBrcal::poscor(geant point){
 //------
 geant TOFBrcal::tm2t(number tmf[2], number amf[2]){//(2-sides_times/Tovt)->Time (ns)
   geant shft;
-  number time;
+  number time,qs,uv(0);
   shft=TOFDBc::shftim();
-  time=0.5*(tmf[0]+tmf[1])+tzero
-                     +slope*(exp(-amf[0]/shft)+exp(-amf[1]/shft));
+  for(int isd=0;isd<2;isd++){
+    q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
+    uv+=(exp(aipar[isd][1]/aipar[isd][0]))/qs;// summing Qthr/Q
+  }
+  uv=exp(-amf[0]/shft)+exp(-amf[1]/shft);// old parametrization
+  time=0.5*(tmf[0]+tmf[1])+tzero+slope*uv;
   return geant(time); 
 }
 //-----
 void TOFBrcal::tmd2p(number tmf[2], number amf[2],
                               geant &co, geant &eco){//(time-diff)->loc.coord/err(cm)
   geant shft;
-  number time,coo;
+  number time,coo,qs,uv(0);
   shft=TOFDBc::shftim();
-  coo=-(0.5*(tmf[0]-tmf[1])+slope*(exp(-amf[0]/shft)-exp(-amf[1]/shft))-yctdif);  
+  for(int isd=0;isd<2;isd++){
+    q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
+    uv+=(1-2*isd)*(exp(aipar[isd][1]/aipar[isd][0]))/qs;// subtr Qthr/Q
+  }
+  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
+  coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);  
 //common "-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2
   co=td2pos[0]*geant(coo);//coo(ns)->cm                    
   eco=td2pos[1];
 }
 //-----
 void TOFBrcal::td2ctd(number tdo, number amf[2],
-                              number &tdn){//td0=0.5*(t[0]-t[1])->tdn (A-corrected)
+                              number &tdc){//td0=0.5*(t[0]-t[1])->tdc (A-corrected)
   geant shft;
+  number qs,uv(0);
   shft=TOFDBc::shftim();
-  tdn=tdo+slope*(exp(-amf[0]/shft)-exp(-amf[1]/shft));
+  for(int isd=0;isd<2;isd++){
+    q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
+    uv+=(1-2*isd)*(exp(aipar[isd][1]/aipar[isd][0]))/qs;// subtr Qthr/Q
+  }
+  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
+  tdc=tdo+slope*uv;
 }
 //==========================================================================
 //
@@ -839,46 +805,13 @@ void TOFJobStat::print(){
   printf(" Entries to STRR-calibr. : % 6d\n",recount[15]);
   printf(" Entries to TDIF-calibr. : % 6d\n",recount[17]);
   printf(" TDIF: multiplicity OK   : % 6d\n",recount[18]);
-  printf(" TDIF: matching OK       : % 6d\n",recount[19]);
+//  printf(" TDIF: matching OK       : % 6d\n",recount[19]);
   printf("\n\n");
 //
   if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1)return;
+  if(TOFRECFFKEY.reprtf[0]==0)return;
 //
-  printf("==========> Bars reconstruction report :\n\n");
-//
-  printf("Bar H/w-2-sides status OK :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR+ib;
-      printf(" % 6d",brcount[ic][0]);
-    }
-    printf("\n\n");
-  }
-//
-  printf("In-Bar mult. 'OK' :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR+ib;
-      rc=geant(brcount[ic][0]);
-      if(rc>0.)rc=geant(brcount[ic][1])/rc;
-      printf("% 5.3f",rc);
-    }
-    printf("\n\n");
-  }
-//
-  printf("In-Bar history 'OK' :\n\n");
-  for(il=0;il<SCLRS;il++){
-    for(ib=0;ib<SCMXBR;ib++){
-      ic=il*SCMXBR+ib;
-      rc=geant(brcount[ic][0]);
-      if(rc>0.)rc=geant(brcount[ic][2])/rc;
-      printf("% 5.3f",rc);
-    }
-    printf("\n\n");
-  }
-//
-
-if(TOFRECFFKEY.reprtf[0]==0)return;
+//----------------------------------------------------------
 //
   printf("===========> Channels validation report :\n\n");
 //
@@ -972,7 +905,42 @@ if(TOFRECFFKEY.reprtf[0]==0)return;
     printf("\n\n");
   }
 //
-//------------------------------------------------------
+//----------------------------------------------------------
+  if(TOFRECFFKEY.relogic[0]==1)return;// no reco for strr-calibr
+//
+  printf("==========> Bars reconstruction report :\n\n");
+//
+  printf("Bar H/w-2-sides status OK :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR+ib;
+      printf(" % 6d",brcount[ic][0]);
+    }
+    printf("\n\n");
+  }
+//
+  printf("In-Bar mult. 'OK' :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][1])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("In-Bar history 'OK' :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][2])/rc;
+      printf("% 5.3f",rc);
+    }
+    printf("\n\n");
+  }
+//---------------------------------------------------------
   printf("============> Channels reconstruction report :\n\n");
 //
   printf("H/w-status OK :\n\n");

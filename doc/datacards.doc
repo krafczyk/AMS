@@ -95,12 +95,12 @@ I 15   birks(1)            // apply or not birks correction
 TOFREC
 R 1   Thresh(0.45)        // Thresh(mev) on "peak" bar Elos in clustering procedure
 R 2   Thresh(0.9)         // Thresh(mev) on total cluster energy ...................
-I 3   Print-flag(0)       // spare
+I 3   Print-flag(0)       // 0/1->not/print_ALL_job_statistics_tables
 I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding 
 I 5   Print-flag(0)       // print RECO-histograms (if=1)
 I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
 I 7   Print-flag(0)       // spare
-I 8   RECO logic-flag(0)  // Normal/TZSL/AMPL/Stretch_ratio-calibr_run(if=0/1/2/3)
+I 8   RECO logic-flag(0)  // Normal/Stretch_ratio/TDIF/TZSL/AMPL-calibr_run(if=0/1/2/3/4)
 I 9   RECO logic-flag(0)  // spare
 I 10  RECO logic-flag(0)  // spare
 I 11  RECO logic-flag(0)  // spare

@@ -121,7 +121,7 @@ void AMSCTCRawEvent::mc_build(int &stat){//to build from CTCRawHit
   number sig,tm,signal[CTCCCMX],timesig[CTCCCMX],sigtot(0);
   number t1,t2,dt,tlev1,ftrig,tovt;
   int16u phbit,maxv,id,chsta,ntdca,tdca[CTCEPMX],ntdct,tdct[CTCEPMX],itt;
-  geant ftdel,q2pe;
+  geant ftdel,q2pe,gain;
   AMSCTCRawHit *ptr;
 //
 //----------
@@ -176,12 +176,15 @@ void AMSCTCRawEvent::mc_build(int &stat){//to build from CTCRawHit
       dbs=1;// status fr. DB (0/1->alive/not)
       for(j=0;j<nmemb;j++){
         gid=mblst[j];       //LXXY=LCCR
-        if(gid==gidg)dbs=ctcfcal[combn].getmstat(j);// status from DB
+        if(gid==gidg){
+          dbs=ctcfcal[combn].getmstat(j);// memb.status from DB
+          gain=ctcfcal[combn].getgain(j);// memb.gain from DB
+        }
       }
       if(dbs==0){// sum signals/times for alive cells (geo-channels)
         sig=ptr->getsignal();//signal in p.e.
         tm=(1.e+9)*(ptr->gettime());// time in ns
-        signal[combn]+=sig;
+        signal[combn]+=(sig*gain);// sum gain-"incorrected" signal
         timesig[combn]+=tm*sig;
       }
       ptr=ptr->next();
@@ -264,7 +267,7 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
   integer nmemb,mblist[CTCCMMX],mbstat[CTCCMMX],ngmem,status;
   integer jmax,chnum,i,j,gid,row,col,layer;
   number atm,fttm,dt,q,signal,msignal,totsig;
-  geant twin,ftdel,q2pe;
+  geant twin,ftdel,q2pe,gain;
   AMSCTCRawEvent *ptr;
 //
   ptr=(AMSCTCRawEvent*)AMSEvent::gethead()
@@ -277,13 +280,20 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
   ntdca=0;
   ntdct=0;
   totsig=0;
-  while(ptr){ // <--- RawEvent hits loop
+  while(ptr){ // <--- RawEvent hits(readout-channels) loop
     id=ptr->getid();// comb. number
     chnum=integer(id-1);
     nmemb=ctcfcal[chnum].getmembers(mblist);// memb.list (LXXY's) 
     for(i=0;i<nmemb;i++)mbstat[i]=ctcfcal[chnum].getmstat(i);// memb.status fr.DB
     ngmem=0;
-    for(i=0;i<nmemb;i++)if(mbstat[i]==0)ngmem+=1;// count alive members
+    gain=0;
+    for(i=0;i<nmemb;i++){
+      if(mbstat[i]==0){ 
+        ngmem+=1;// count alive members
+        gain+=(ctcfcal[chnum].getgain(i));// add gains for averaging
+      }
+    }
+    if(ngmem>0)gain=gain/geant(ngmem);// readout-channel average gain
     status=0;
     if(ngmem==0)status=1;//bad according to DB (all members are bad)
     if(status==1){
@@ -314,15 +324,15 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
         if(fabs(dt-ftdel)<twin){//correlated FT and ADCA hits -> sum energy(pC)
           dt=((pbanti&tdca[2*j+1])-(pbanti&tdca[2*j]))*CTCDBc::tdcabw();// TovT in ns
           ctcfcal[chnum].q2t2q(1,dt,q);// TovT(ns)->Q(pC)
-          signal+=(q*q2pe);// Q(pC)-> Signal(pe), sum up TDCA-hits (true)
+          signal+=(q*q2pe);// Q(pC)-> Signal(pe) and sum up TDCA-hits (true)
         }
       }// ---> end of TDCA-hit loop
-      totsig+=signal;
+      totsig+=signal/gain;
 //
 // create CTCRawHit objects :
 //
     if(ngmem>0 && signal>0){ // good comb.channel
-      msignal=signal/number(ngmem);//signal per good member
+      msignal=signal/number(ngmem)/gain;//gain-corrected signal per good member
       for(i=0;i<nmemb;i++){
         gid=mblist[i];//LXXY=LCCR
         layer=gid/1000;

@@ -124,31 +124,75 @@ void CTCCCcal::build(){
   integer ncomb,nmem[CTCCCMX];
   integer mem[CTCCMMX],memb[CTCCCMX][CTCCMMX];
   integer sta[CTCCMMX],stat[CTCCCMX][CTCCMMX];
-  geant gn,gain[CTCCCMX];
-  geant q2pe=1.;//tempor q(pC)->pe conv.factor (pe/pC)
+  geant gn[CTCCMMX],gain[CTCCCMX][CTCCMMX];
+  geant q2pe=0.2;//tempor q(pC)->pe conv.factor (pe/pC)
   geant ftdl;// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
   char fname[80];
   char name[80];
   char vers1[3]="mc";
   char vers2[3]="rl";
-  geant aip[3]={50.,62.6,1.3};
+  geant aipa[CTCCCMX][SCIPAR];
+  geant aip[SCIPAR]={50.,62.6,1.3};
 //      ( def.param. for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs))
 //------------------------------------
-// ------> read conf.combinations file:
-  strcpy(name,"ctconf");
- if(AMSJob::gethead()->isMCData()) //      for MC-event
- {
-       cout <<" CTCCCcal_build: MC-config.file is used"<<endl;
-       strcat(name,vers1);
- }
- else                              //      for Real events
- {
-       cout <<" CTCCCcal_build: REAL-config.file is used"<<endl;
-       strcat(name,vers2);
- }
+  char in[2]="0";
+  char inum[11];
+  char verlst[20]="ctcverslist.dat";
+  int ctyp,ntypes,mcvern[10],rlvern[10];
+  int mcvn,rlvn,dig;
 //
- strcat(name,".dat");
- strcpy(fname,AMSDATADIR.amsdatadir);    
+  strcpy(inum,"0123456789");
+//
+// ---> read versions file :
+//
+  strcpy(fname,AMSDATADIR.amsdatadir);
+//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/ctcca/");//tempor
+  strcat(fname,verlst);
+  cout<<"CTCCCcal::build: Open file  "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in); // open needed verslist-file for reading
+  if(!vlfile){
+    cerr <<"CTCCCcal_build:: missing verslist-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(i=0;i<ntypes;i++){
+    vlfile >> mcvern[i];// first number - for mc
+    vlfile >> rlvern[i];// second number - for real
+  }
+  vlfile.close();
+//
+//---------------------------------------------
+//
+// ------> read config/gain file:
+  ctyp=1;
+  strcpy(name,"ctcconfg");
+  mcvn=mcvern[ctyp-1]%100;
+  rlvn=rlvern[ctyp-1]%100;
+  if(AMSJob::gethead()->isMCData()) //      for MC-event
+  {
+    cout <<" CTCCCcal_build: MC-config/gain file is used"<<endl;
+    dig=mcvn/10;
+    in[0]=inum[dig];
+    strcat(name,in);
+    dig=mcvn%10;
+    in[0]=inum[dig];
+    strcat(name,in);
+    strcat(name,vers1);
+  }
+  else                              //      for Real events
+  {
+    cout <<" CTCCCcal_build: REAL-config/gain file is used"<<endl;
+    dig=rlvn/10;
+    in[0]=inum[dig];
+    strcat(name,in);
+    dig=rlvn%10;
+    in[0]=inum[dig];
+    strcat(name,in);
+    strcat(name,vers2);
+  }
+//
+  strcat(name,".dat");
+  strcpy(fname,AMSDATADIR.amsdatadir);    
 //  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/ctcca/");//tempor
   strcat(fname,name);
   cout<<"Open file : "<<fname<<'\n';
@@ -157,24 +201,82 @@ void CTCCCcal::build(){
    cerr <<"CTCCCcal_build: Error opening  "<<fname<<endl;
    exit(1);
   }
-  ctccfile >> ncomb; // real number of combinations
+  ctccfile >> ncomb; // real number of combinations(readout channels)
   for(i=0;i<ncomb;i++){// <-- comb. loop
     ctccfile >> nm; // number of members
     nmem[i]=nm;
     for(j=0;j<nm;j++){// <-- memb. loop
-      ctccfile >> memb[i][j];// member (LXY=LCR)
+      ctccfile >> memb[i][j];// member (LXXY=LCCR)
       ctccfile >> stat[i][j];// status 
+      ctccfile >> gain[i][j];// gain 
     }
   }
 //--------------------------------------------------
 // -------> read integrator parameters file :
+//
+ ctyp=2;
+ strcpy(name,"ctcincal");
+ mcvn=mcvern[ctyp-1]%100;
+ rlvn=rlvern[ctyp-1]%100;
+ if(AMSJob::gethead()->isMCData())           // for MC-event
+ {
+   cout <<" CTCCCcal_build: integrator-calibration for MC-events selected."<<endl;
+   dig=mcvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=mcvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers1);
+ }
+ else                                       // for Real events
+ {
+   cout <<" CTCCCcal_build: integrator-calibration for Real-events selected."<<endl;
+   dig=rlvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+ }
+ strcat(name,".dat");
+   strcpy(fname,AMSDATADIR.amsdatadir);    
+// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/ctcca/");//tempor
+ strcat(fname,name);
+ cout<<"Open file : "<<fname<<'\n';
+ ifstream icfile(fname,ios::in); // open integrator_param-file for reading
+ if(!icfile){
+   cerr <<"CTCCCcal_build: missing integrator_param-file "<<fname<<endl;
+   exit(1);
+ }
+  icfile >> nm; // number of combinations in integr.file
+  if(nm != ncomb){
+    cerr <<"CTCCCcal_build: comb/integr.file mismatch(readout-channels number !)"<<endl; 
+    exit(1);
+  }
+  for(i=0;i<ncomb;i++){// <-- comb. loop
+    for(j=0;j<SCIPAR;j++){// <-- param. loop
+      icfile >> aipa[i][j];// 
+    }
+  }
+//
 //--------------------------------------------------
 // -------> now create calibr. objects:
   for(i=0;i<ncomb;i++){
     nm=nmem[i];
-    gn=1.;//tempor. (later from calibr.file)
-    for(j=0;j<nm;j++)mem[j]=memb[i][j];
-    for(j=0;j<nm;j++)sta[j]=stat[i][j];
+    for(j=0;j<nm;j++){
+      mem[j]=memb[i][j];
+    }
+    for(j=0;j<nm;j++){
+      sta[j]=stat[i][j];
+    }
+    for(j=0;j<nm;j++){
+      gn[j]=gain[i][j];
+    }
+    for(j=0;j<SCIPAR;j++){
+      aip[j]=aipa[i][j];
+    }
     ftdl=TOFDBc::ftdelf();// tempor (as for TOF)
     ctcfcal[i]=CTCCCcal(i,nm,mem,sta,ftdl,q2pe,gn,aip);//create calibr. object
   }

@@ -1104,10 +1104,10 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1527,"L=3,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
-      HBOOK1(1532,"(T1-T3)(ns),corr,ideal evnt",50,3.,6.,0.);
+      HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",50,3.,6.,0.);
       HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
       HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-      HBOOK1(1534,"(T2-T4)(ns),corr,ideal evnt",50,3.,6.,0.);
+      HBOOK1(1534,"(T2-T4)(ns),corr,trl-normalized,ideal evnt",50,3.,6.,0.);
       HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",50,-2.,2.,0.);
       HBOOK1(1545,"(T1-T4),(ns),uncorr,ideal evnt",50,3.5,6.5,0.);
       HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
@@ -1143,8 +1143,9 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
         HBOOK1(1505,"Qmax ratio",80,0.,16.,0.);
         HBOOK1(1507,"T0-difference inside bar-types 5",80,-0.4,0.4,0.);
-        HBOOK2(1502,"Layer-1,T vs exp(-A)",50,0.,0.2,50,5.,10.,0.);
-        HBOOK2(1504,"Layer-3,T vs exp(-A)",50,0.,0.2,50,0.,5.,0.);
+        HBOOK2(1502,"Layer-1,T vs exp(-TovT)",50,0.,0.2,50,5.,10.,0.);
+        HBOOK2(1514,"Layer-1,T vs Qthr/Q",50,0.,0.2,50,5.,10.,0.);
+        HBOOK2(1504,"Layer-3,T vs exp(-TovT)",50,0.,0.2,50,0.,5.,0.);
         HBOOK1(1508,"T1-T3, not A-corrected",80,2.5,7.3,0.);
         HBOOK1(1509,"T2-T4, not A-corrected",80,3.5,8.3,0.);
         HBOOK1(1510,"L-1 PM-1 slow-time,A-noncor,calib.events",80,50.,60.,0.);
@@ -1677,9 +1678,10 @@ void AMSJob::_tofendjob(){
          HPRINT(1506);
          if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
            HPRINT(1502);
+           HPRINT(1514);
+           HPRINT(1504);
            HPRINT(1503);
            HPRINT(1505);
-           HPRINT(1504);
            HPRINT(1200);
            HPRINT(1201);
            HPRINT(1202);

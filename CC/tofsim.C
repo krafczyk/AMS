@@ -1374,7 +1374,7 @@ void AMSTOFRawEvent::mc_build(int &status)
   number tadca[SCTHMX4],tadcad[SCTHMX4],tadcd[SCTHMX4],tadcdd[SCTHMX4];
   int16u  ftdc[SCTHMX2*2],stdc[SCTHMX3*4],adca[SCTHMX4*2],adcd[SCTHMX4*2];
   number t,t1,t2,t3,t4,tprev,ttrig1,ttrig3,dt,tlev1,tl1d,ftrig;
-  geant charge,edep;
+  geant charge,edep,strr[2],str;
   int trcode,trcode3;
   integer trflag(0),trpatt3[SCLRS];
   integer trpatt[SCLRS]={0,0,0,0};
@@ -1418,9 +1418,12 @@ void AMSTOFRawEvent::mc_build(int &status)
     ptr=(AMSTOFTovt*)AMSEvent::gethead()->
                                getheadC("AMSTOFTovt",ilay,0);
     while(ptr){// <--- Tovt-hits loop in layer ---
-      idd=ptr->getid();
+      idd=ptr->getid();// LBBS
       id=idd/10;// short id=LBB
-      isd=idd%10;
+      ibar=id%100-1;
+      scbrcal[ilay][ibar].gtstrat(strr);// get str-ratios for two sides
+      isd=idd%10-1;
+      str=strr[isd];// str-ratio for given TovT-hit
       _sta=ptr->getstat();
       charge=ptr->getcharg();
       edep=ptr->getedep();
@@ -1460,7 +1463,7 @@ void AMSTOFRawEvent::mc_build(int &status)
         t1=tstdc[jj]+rnormx()*TOFDBc::strjit1();//"start"-signal time + jitter
         t2=ftrig+rnormx()*TOFDBc::strjit2();//"stop"-signal = ftrig + jitter
         t3=t2+ftpw;//"dummy"-signal time (fixed delay = FT_coinc-pulse width)
-        t4=t2+(t2-t1)*TOFDBc::strrat()+rnormx()*TOFDBc::strflu();//"end-mark"-signal + fluct 
+        t4=t2+(t2-t1)*str+rnormx()*TOFDBc::strflu();//"end-mark"-signal + fluct 
         dt=ftrig-t1;// total FT-delay wrt t1
         if(dt<=TOFDBc::ftdelm()){ // check max. delay of "fast-trigger" signal
           it0=integer((tlev1-TOFDBc::fstdcd())/TOFDBc::tdcbin(1));//sTDC is delayed wrt fTDC

@@ -966,7 +966,7 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
     int16u tstw,tstb;
     for(i=0;i<len;i++){
       tstw=*(p+i+bias);
-      cout<<hex<<tstw<<"  |"<<dec;
+      cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
       for(j=0;j<16;j++){
         tstb=(1<<(15-j));
         if((tstw&tstb)!=0)cout<<"x"<<"|";

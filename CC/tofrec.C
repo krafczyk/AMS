@@ -658,38 +658,65 @@ void AMSTOFRawCluster::build(int &status){
   } //                ---- end of RawEvent hits loop ------->
 //
 //
-// now check min. multiplicity :
+// ---> now check min. multiplicity and make some histograms :
+//
   int nbrch[SCLRS],conf(0);
+  int il,ib,ix,iy;
+  geant x[2],y[2],zx[2],zy[2],zcb[SCLRS],tgx,tgy,cosi;
+  number trlen13,trlen24;
+//
   for(i=0;i<SCLRS;i++){
     nbrch[i]=0;
     if(nbrl[i]>0)nbrch[i]=1;
   }
   if((nbrch[0]+nbrch[1])<1 || (nbrch[2]+nbrch[3])<1)return; // remove low layer-mult.
   status=0;
-  if(TOFRECFFKEY.reprtf[2]>0){// some hist. for bars/layer=1 events)
-    bad=0;
-    for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
-    if(bad==0){
-      for(i=4;i<=9;i++){// central(btyp=5) counters
-        if(brnl[0]==i && brnl[1]==i && brnl[2]==i && brnl[3]==i)conf=1;
-      }
+//
+// -> make hist. for 4x1hit events:
+//
+  bad=0;
+  for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
+  if(bad)return;// not 4x1hit event
+//  
+// -> find track length using scint-made transv.coord :
+  ix=0;
+  iy=0;
+  for(il=0;il<SCLRS;il++){
+    ib=brnl[il];
+    zcb[il]=TOFDBc::getzsc(il,ib);
+    if(TOFDBc::plrotm(il)==0){// unrotated (X-meas) planes
+      x[ix]=TOFDBc::gettsc(il,ib);
+      zx[ix]=zcb[il];
+      ix+=1;
+    }
+    else{                    // rotated (Y-meas) planes
+      y[iy]=TOFDBc::gettsc(il,ib);
+      zy[iy]=zcb[il];
+      iy+=1;
+    }
+  }
+  tgx=(x[0]-x[1])/(zx[0]-zx[1]);
+  tgy=(y[0]-y[1])/(zy[0]-zy[1]);
+  cosi=sqrt(1.+tgx*tgx+tgy*tgy);// this is 1/cos(theta) !!!
+  trlen13=(zcb[0]-zcb[2])*cosi;//1->3
+  trlen24=(zcb[1]-zcb[3])*cosi;//2->4
+//
+  if(TOFRECFFKEY.reprtf[2]>0){
       HF1(1529,edepa[0],1.); //layer=0 Anode-reconstructed Edep
       HF1(1526,edepa[0],1.); //layer=0 Anode-reconstructed Edep
       HF1(1530,edepa[2],1.); //layer=2 Anode-reconstructed Edep
       HF1(1527,edepa[2],1.); //layer=2 Anode-reconstructed Edep
       HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
       HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
-      td13=tcorr[0]-tcorr[2];
-      td24=tcorr[1]-tcorr[3];
+      td13=(tcorr[0]-tcorr[2])*116./trlen13;// tormalized to 116cm distance
+      td24=(tcorr[1]-tcorr[3])*116./trlen24;// tormalized to 116cm distance
       td14=tuncorr[0]-tuncorr[3];
       HF1(1532,td13,1.);//ToF for L0->L2
       HF1(1534,td24,1.);//ToF for L1->L3
       HF1(1545,td14,1.);//uncorr.ToF for L1->L4
-      if(conf==1){
-        HF1(1533,tdiff[0],1.);//layer=0
-        HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
-        HF1(1544,(td13-td24),1.);
-      }
+      HF1(1533,tdiff[0],1.);//layer=0
+      HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
+      HF1(1544,(td13-td24),1.);
       if(AMSJob::gethead()->isSimulation()){
         geant tch;
         charg[0]=pch1[0];
@@ -698,8 +725,6 @@ void AMSTOFRawCluster::build(int &status){
         HF1(1071,tch,1.);
         HF1(1072,tch,1.);
       }
-    }
-    
   }
 }
 //-----------------------------------------------------------------------
@@ -1510,7 +1535,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
     int16u tstw,tstb;
     for(i=0;i<len;i++){
       tstw=*(p+i+bias);
-      cout<<hex<<tstw<<"  |"<<dec;
+      cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
       for(j=0;j<16;j++){
         tstb=(1<<(15-j));
         if((tstw&tstb)!=0)cout<<"x"<<"|";

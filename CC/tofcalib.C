@@ -333,7 +333,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   integer i,ilay,ibar,nbrl[SCLRS],brnl[SCLRS],bad,status,sector,conf;
   number tm[2],am[2],ama[2],amd[2],time,timeD,tamp,edepa,edepd,relt;
   number coo[SCLRS],trp1[SCLRS],trp2[SCLRS],arp1[SCLRS],arp2[SCLRS];
-  number shft,ftdel,qtotl[SCLRS],eanti(0),meanq,rr,qmax;
+  number shft,ftdel,qtotl[SCLRS],qsd1[SCLRS],qsd2[SCLRS],eanti(0),meanq,rr,qmax;
   number eacut=1;// cut on E-anti (mev)
   number qrcut=10.;// cut on max/mean-charge ratio
   geant strr[2];
@@ -358,6 +358,8 @@ void TOFTZSLcalib::select(){  // calibr. event selection
       ptr->gettovta(ama);
       scbrcal[ilay][ibar].ama2q(ama,am);// convert side-TovT to charge
       qtotl[ilay]=am[0]+am[1];
+      qsd1[ilay]=am[0];
+      qsd2[ilay]=am[1];
       ptr->gettovtd(amd);
       ptr->getsdtm(tm);// raw side-times(A-noncorrected)
       nbrl[ilay]+=1;
@@ -406,8 +408,11 @@ void TOFTZSLcalib::select(){  // calibr. event selection
 //------>
     number t1,t2,t3,t4,t13,t24;
     conf=0;
-    if(brnl[0]==7 && brnl[1]==7 && brnl[2]==7 && brnl[3]==7)
-                                       conf=1;//sel. bar config. 7777
+    if((brnl[0]==7 && brnl[1]==7 && brnl[2]==7 && brnl[3]==7)
+     ||(brnl[0]==9 && brnl[1]==9 && brnl[2]==9 && brnl[3]==9)
+     ||(brnl[0]==5 && brnl[1]==5 && brnl[2]==5 && brnl[3]==5)
+     ||(brnl[0]==3 && brnl[1]==3 && brnl[2]==3 && brnl[3]==3)
+    )conf=1;//sel. bar config. 4x(2n+1)
        ilay=0; //        <-- some hist. for calibration run
     shft=TOFDBc::shftim();
     ftdel=TOFDBc::ftdelf();
@@ -424,7 +429,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
       HF1(1511,geant(tm[1]),1.);
       HF1(1512,geant(ama[0]),1.);
       HF1(1513,geant(ama[1]),1.);
-      HF2(1502,geant(tamp),geant(relt),1.);
+      if(conf==1)HF2(1502,geant(tamp),geant(relt),1.);
     }
        ilay=1;
     tm[0]=trp1[ilay];
@@ -474,7 +479,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     number the,phi,rid,err,trl;
     int il,ib,ix,iy;
     geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cosc,cosi,cost;
-    number ram[4],dum[3],tld[3],tdi[3],trlr[SCLRS],trlen[SCLRS-1];
+    number ram[4],ramm[4],dum[3],tld[3],tdi[3],trlr[SCLRS],trlen[SCLRS-1];
     number ctran,coot[SCLRS],cstr[SCLRS],dx,dy;
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
@@ -608,9 +613,30 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     tdi[1]=t1-t3;
     tdi[2]=t1-t4;
     for(i=0;i<SCLRS;i++)ram[i]=exp(-arp1[i]/shft)+exp(-arp2[i]/shft);
-    dum[0]=ram[1]-ram[0];
-    dum[1]=ram[2]-ram[0];
-    dum[2]=ram[3]-ram[0];
+//
+//---> more accurate (?) parametrization of T-TovT dependence : 
+    geant shflt[2],tzr[2],qathr[2];
+    for(i=0;i<SCLRS;i++){
+      shflt[0]=scbrcal[i][brnl[i]].getaipar(0,0);
+      shflt[1]=scbrcal[i][brnl[i]].getaipar(1,0);
+      tzr[0]=scbrcal[i][brnl[i]].getaipar(0,1);
+      tzr[1]=scbrcal[i][brnl[i]].getaipar(1,1);
+      qathr[0]=exp(tzr[0]/shflt[0]);
+      qathr[1]=exp(tzr[1]/shflt[1]);
+      ramm[i]=(qathr[0]/qsd1[i]+qathr[1]/qsd2[i]);
+    }
+    ilay=0;
+    tm[0]=trp1[ilay];
+    tm[1]=trp2[ilay];
+    time=0.5*(tm[0]+tm[1]);
+    relt=time-ftdel;// subtract FT fix.delay
+    if(TOFRECFFKEY.reprtf[2]>0){
+      if(conf==1)HF2(1514,geant(ramm[ilay]),geant(relt),1.);
+    }
+//-----
+    for(i=0;i<3;i++)dum[i]=ram[i+1]-ram[0];
+//    for(i=0;i<3;i++)dum[i]=ramm[i+1]-ram[0];
+//
     if(TOFCAFFKEY.caltyp==0)betm=TOFCAFFKEY.bmeanpr;// tempor! better use measured one ?
     else betm=TOFCAFFKEY.bmeanmu;
 //
@@ -686,8 +712,8 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
       ptr->gettovta(ama);// raw TovT (ns)
       ptr->getsdtm(sdtm);// get raw side-times(ns)
       tmsd[ilay]=0.5*(sdtm[0]-sdtm[1]);// by definition
-//      scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,tmsdc[ilay]);//corrected(by ampl) time_diff
-      tmsdc[ilay]=tmsd[ilay];
+      scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,tmsdc[ilay]);//A-corrected time_diff
+//      tmsdc[ilay]=tmsd[ilay];
     }
     ptr=ptr->next();
   }// --- end of hits loop --->
@@ -763,7 +789,7 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
   number bin,len,co,t,dis,sig,sli,meansl(0),bintot(0),speedl;
   number sl[SCBLMX],t0[SCBLMX],sumc,sumc2,sumt,sumt2,sumct,sumid,chi2[SCBLMX];
   geant td[SCTDBM];
-  char fname[80]="tdfcalib.dat";
+  char fname[80]="tdlvcalib.dat";
 //
   HPRINT(1600);
   HPRINT(1601);

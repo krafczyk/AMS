@@ -1,4 +1,4 @@
-// 0.0 version 2.07.97 E.Choumilov
+// 1.0 version 2.07.97 E.Choumilov
 
 #include <typedefs.h>
 #include <iostream.h>
@@ -19,9 +19,10 @@
 //
 integer DAQSBlock::format=1; // default format (reduced), redefined by data card
 //
-int16u DAQSBlock::subdmsk[DAQSBLK]={7,7,1,5,7,7,1,5};//defaul mask(lsbit->msbit: tof/anti/ctc)
+int16u DAQSBlock::subdmsk[DAQSBLK]={7,7,1,5,7,7,1,5};
+// ( mask of detectors in given block(each number: lsbit->msbit => tof/anti/ctc))
 //
-int16u DAQSBlock::slotadr[DAQSSLT]={0,1,2,5,6,7};// h/w address of slots (card-ID's)
+int16u DAQSBlock::slotadr[DAQSSLT]={0,1,2,3,4,5};// h/w address of slots (card-ID's)
 //
 int16u DAQSBlock::sblids[DAQSFMX][DAQSBLK]=  //valid S-block_id's for each format
   {
@@ -48,23 +49,23 @@ number DAQSBlock::rwtemp[DAQSTMX]={0,0,0,0,0,0,0,0, // just mem. reservation
 // functions for S-blocks class:
 //
 integer DAQSBlock::isSFET(int16u slota){
-  if(slota==0 || slota==1 || slota==2 || slota==5)return(1);
+  if(slota==0 || slota==1 || slota==2 || slota==3)return(1);
   else return(0);
 }
 //
 integer DAQSBlock::isSFETT(int16u slota){
   if(slota==1)return(1);
-  else if(slota==5)return(2);
+  else if(slota==3)return(2);
   else return(0);
 }
 //
 integer DAQSBlock::isSFEA(int16u slota){
-  if(slota==6)return(1);
+  if(slota==4)return(1);
   else return(0);
 }
 //
 integer DAQSBlock::isSFEC(int16u slota){
-  if(slota==7)return(1);
+  if(slota==5)return(1);
   else return(0);
 }
 //
@@ -93,10 +94,24 @@ void DAQSBlock::buildraw(integer len, int16u *p){
 #ifdef __AMSDEBUG__
   if(TOFRECFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
     cout<<"-----------------------------------------------------------"<<endl;
-    cout<<"DAQ::decoding: block_id="<<hex<<blid<<dec<<endl; 
-    cout<<"  block_type="<<btyp<<" node_type="<<ntyp<<endl;
-    cout<<"  node_address(crate)="<<naddr<<" data_type(fmt)="<<dtyp<<endl;
-    cout<<"  block_length="<<len<<endl<<endl;
+    cout<<"   DAQSBlock:decoding: block_id="<<hex<<blid<<dec<<endl; 
+    cout<<"          block_type="<<btyp<<" node_type="<<ntyp<<endl;
+    cout<<"          node_address(crate)="<<naddr<<" data_type(fmt)="<<dtyp<<endl;
+    cout<<"          block_length="<<len<<endl<<endl;
+//
+    cout<<"  Block hex/binary dump follows :"<<endl<<endl;
+    int16u tstw,tstb;
+    for(i=0;i<len;i++){
+      tstw=*(p+i);
+      cout<<hex<<setw(4)<<tstw<<"  |"<<dec;
+      for(j=0;j<16;j++){
+        tstb=(1<<(15-j));
+        if((tstw&tstb)!=0)cout<<"x"<<"|";
+        else cout<<" "<<"|";
+      }
+      cout<<endl;
+    }
+    cout<<dec<<endl<<endl;
   }
 #endif
 //

@@ -9,6 +9,7 @@
 #include <fstream.h>
 #include <tofdbc.h>
 #include <antidbc.h>
+#include <antirec.h>
 //
 ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
 //
@@ -59,19 +60,166 @@ ANTIPcal antisccal[MAXANTI];// create empty array of antipaddles calibr. objects
 // ANTIPcal class member functions:
 //
 void ANTIPcal::build(){ // fill array of objects with data
-  integer i,j;
-  integer sta[2]={0,0}; // all  are alive for now
+  integer i,j,k,ip,cnum,nrch,ibr,isd;
+  int16u swid,crat,sfea,antic;
+  integer sta[2]={0,0}; // all  are alive as default
+  integer status[MAXANTI][2];
   geant tthr[2]; // trigger threshold for one side.(p.e. for now)
   geant athr[2]; // TovT threshold for one side.(p.e.)
   geant q2pe=1.;//tempor q(pC)->pe conv.factor (pe/pC)
   geant mip2q;   // conv.factor for Mev->pe (Pe/Mev)
-  geant gain[2];
+  geant gain[2],gains[MAXANTI][2];
   geant ftdl[2];// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
-  geant aip[2][3]={
+  geant ipara[ANCHMX][SCIPAR];// the same number of integr. parameters as for TOF
+  char fname[80];
+  char name[80];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  geant aip[2][SCIPAR]={// default
     {50.,62.6,1.3},
     {50.,62.6,1.3}
   }; 
 // (def.param. for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs))
+//------------------------------
+  char in[2]="0";
+  char inum[11];
+  char verlst[20]="antiverslist.dat";
+  int ctyp,ntypes,mcvern[10],rlvern[10];
+  int mcvn,rlvn,dig;
+//
+  strcpy(inum,"0123456789");
+  nrch=2*ANCHCH;// real number of anti-ch per SFEA (2chip*4chan)
+//
+// ---> read versions file :
+//
+  strcpy(fname,AMSDATADIR.amsdatadir);
+//  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/antica/");//tempor
+  strcat(fname,verlst);
+  cout<<"ANTIPcal::build: Open file  "<<fname<<'\n';
+  ifstream vlfile(fname,ios::in); // open needed verslist-file for reading
+  if(!vlfile){
+    cerr <<"ANTIPcal_build:: missing verslist-file "<<fname<<endl;
+    exit(1);
+  }
+  vlfile >> ntypes;// total number of calibr. file types in the list
+  for(i=0;i<ntypes;i++){
+    vlfile >> mcvern[i];// first number - for mc
+    vlfile >> rlvern[i];// second number - for real
+  }
+  vlfile.close();
+//
+//---------------------------------------------
+//
+//   --->  Read integrator parameters calibr. file :
+//
+ ctyp=1;
+ strcpy(name,"antiincal");
+ mcvn=mcvern[ctyp-1]%100;
+ rlvn=rlvern[ctyp-1]%100;
+ if(AMSJob::gethead()->isMCData())           // for MC-event
+ {
+   cout <<" ANTIPcal_build: integrator-calibration for MC-events selected."<<endl;
+   dig=mcvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=mcvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers1);
+ }
+ else                                       // for Real events
+ {
+   cout <<" ANTIPcal_build: integrator-calibration for Real-events selected."<<endl;
+   dig=rlvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+ }
+ strcat(name,".dat");
+   strcpy(fname,AMSDATADIR.amsdatadir);    
+// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/antica/");//tempor
+ strcat(fname,name);
+ cout<<"Open file : "<<fname<<'\n';
+ ifstream icfile(fname,ios::in); // open integrator_param-file for reading
+ if(!icfile){
+   cerr <<"ANTIPcal_build: missing integrator_param-file "<<fname<<endl;
+   exit(1);
+ }
+//
+ for(i=0;i<ANCRAT;i++){ //<--- crate loop (0-max7)
+   icfile >> crat;// crate-number
+   for(j=0;j<ANSFEA;j++){ //<--- SFEA card loop (0)
+     icfile >> sfea;// sfea-number
+     for(k=0;k<nrch;k++){ //<--- real anti-chan. loop (0-max15)
+       icfile >> antic; // antic-number
+       swid=AMSAntiRawEvent::hw2swid(crat-1,antic-1);//BBS
+       if(swid==0)continue;// non-existing antic 
+       ibr=swid/10-1;
+       isd=swid%10-1;
+       cnum=2*ibr+isd;
+       for(ip=0;ip<SCIPAR;ip++)icfile >> ipara[cnum][ip];//read anode parameters
+     }
+   }
+ }
+ icfile.close();
+//
+//---------------------------------------------
+//
+//   --->  Read abs_normalization/gain/status calib. file :
+//
+ ctyp=2;
+ strcpy(name,"antiancal");
+ mcvn=mcvern[ctyp-1]%100;
+ rlvn=rlvern[ctyp-1]%100;
+ if(AMSJob::gethead()->isMCData())           // for MC-event
+ {
+   cout <<" ANTIPcal_build: abs.norm/gain/stat-calib. for MC-events selected."<<endl;
+   dig=mcvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=mcvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers1);
+ }
+ else                                       // for Real events
+ {
+   cout <<" ANTIPcal_build: abs.norm/gain/stat-calib. for Real-events selected."<<endl;
+   dig=rlvn/10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   dig=rlvn%10;
+   in[0]=inum[dig];
+   strcat(name,in);
+   strcat(name,vers2);
+ }
+ strcat(name,".dat");
+   strcpy(fname,AMSDATADIR.amsdatadir);    
+// strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/antica/");//tempor
+ strcat(fname,name);
+ cout<<"Open file : "<<fname<<'\n';
+ ifstream acfile(fname,ios::in); // open abs.norm/gain/stat-file for reading
+ if(!acfile){
+   cerr <<"ANTIPcal_build: missing abs.norm/gain/status file "<<fname<<endl;
+   exit(1);
+ }
+//
+ acfile >> mip2q;// read mip2q factor (p.e/mev)
+ acfile >> q2pe; // read q2pe factor (p.e./pC)
+ for(i=0;i<MAXANTI;i++){
+   acfile >> gains[i][0];
+   acfile >> status[i][0];
+   acfile >> gains[i][1];
+   acfile >> status[i][1];
+ }
+//
+ acfile.close();
+//
+//----------------------------------------------------------------------
+// create ANTIPcal objects:
 //
   if(AMSJob::gethead()->isMCData()){ //            =====> For MC data:
     for(i=0;i<MAXANTI;i++){
@@ -79,9 +227,13 @@ void ANTIPcal::build(){ // fill array of objects with data
       tthr[1]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
       athr[0]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
       athr[1]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
-      mip2q=ANTIMCFFKEY.MeV2PhEl; // (pe/mev)
-      gain[0]=1.; // tempor
-      gain[1]=1.;
+      for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
+      for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
+//      mip2q=ANTIMCFFKEY.MeV2PhEl; // (pe/mev)
+      gain[0]=gains[i][0];// gain from file
+      gain[1]=gains[i][1];
+      sta[0]=status[i][0];// alive status from file
+      sta[1]=status[i][1];
       ftdl[0]=TOFDBc::ftdelf();// tempor (as for TOF)
       ftdl[1]=TOFDBc::ftdelf();// tempor
       antisccal[i]=ANTIPcal(i,sta,tthr,athr,ftdl,mip2q,q2pe,
@@ -95,9 +247,13 @@ void ANTIPcal::build(){ // fill array of objects with data
       tthr[1]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
       athr[0]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
       athr[1]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
-      mip2q=1./ANTIRECFFKEY.PhEl2MeV; // (pe/mev)
-      gain[0]=1.; // tempor
-      gain[1]=1.;
+      for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
+      for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
+//      mip2q=1./ANTIRECFFKEY.PhEl2MeV; // (pe/mev)
+      gain[0]=gains[i][0];// gain from file
+      gain[1]=gains[i][1];
+      sta[0]=status[i][0];// alive status from file
+      sta[1]=status[i][1];
       ftdl[0]=TOFDBc::ftdelf();// tempor (as for TOF)
       ftdl[1]=TOFDBc::ftdelf();// tempor
       antisccal[i]=ANTIPcal(i,sta,tthr,athr,ftdl,mip2q,q2pe,
