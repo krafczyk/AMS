@@ -262,7 +262,237 @@ number PlMarkerPos1[_nlay][2][4][3];
          else _patallow2[cpat]=0;
       }
    }
+else if (strstr(AMSJob::gethead()->getsetup(),"AMS02a")){
+    int i;
+    _nlaysi=8;
+    const integer _nlay=8;
+
+   const integer  nstripssen[_nlay][2]={
+                                               224,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               224,640};
+   UCOPY(nstripssen,_nstripssen,sizeof(nstripssen)/sizeof(integer));
+   const integer  nstripssenR[_nlay][2]={
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284};
+   UCOPY(nstripssenR,_nstripssenR,sizeof(nstripssenR)/sizeof(integer));
+   const integer  nstripsdrp[_nlay][2]={384,640,384,640,384,640,384,640,384,640,
+                                               384,640,384,640,384,640};
+   UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
+   const number layd[_nlay][5]={
+                               5.,0.,54., 0.,54.,
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54. ,0.,54.};
+   UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
+   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
+   UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
+   const number  xposl[_nlay]={0,0,0,0,0,0,0};
+   UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
+   const number  yposl[_nlay]={0,0,0,0,0,0,0};
+   UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
+   const number  zposl[_nlay]={45.015,29.185,25.315,1.935,-1.935,-25.315,-29.185,-45.015};
+   UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
+   const number nrml[_nlay][3][3]={
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1};
+   UCOPY(nrml,_nrml,sizeof(nrml)/sizeof(integer));
+   const integer nlad[_nlay]={14,14,14,14,14,14,14,14};
+   UCOPY(nlad,_nlad,sizeof(nlad)/sizeof(integer));
+   const integer nsen[_nlay][maxlad]={
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0};
+   UCOPY(nsen,_nsen,sizeof(nsen)/sizeof(integer));
+   const integer nhalf[_nlay][maxlad]={
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0};
+   UCOPY(nhalf,_nhalf,sizeof(nhalf)/sizeof(integer));
+   const number  zpos[_nlay]={0,0,0,0,0,0,0,0};
+   UCOPY(zpos,_zpos,sizeof(zpos)/sizeof(integer));
+   const number  ssize_active[_nlay][2]={3.9884,7.062,3.9884,7.062,
+                       3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
+   UCOPY(ssize_active,_ssize_active,sizeof(ssize_active)/sizeof(integer));
+   const number  ssize_inactive[_nlay][2]={4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045};
+   UCOPY(ssize_inactive,_ssize_inactive,sizeof(ssize_inactive)/sizeof(integer));
+   const number  silicon_z[_nlay]={0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03};
+   UCOPY(silicon_z,_silicon_z,sizeof(silicon_z)/sizeof(integer));
+   const number  zelec[_nlay][3]={
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015 };
+   UCOPY(zelec,_zelec,sizeof(zelec)/sizeof(integer));
+   const integer nladshuttle[_nlay][2]={14,12,
+                                        14,12,
+                                        14,12,
+                                        14,12,
+                                        14,12,
+                                        14,12,
+                                        14,12,
+                                        14,12};
+   UCOPY(nladshuttle,_nladshuttle,sizeof(nladshuttle)/sizeof(integer));
+   const integer boundladshuttle[_nlay][2]={1,2,
+                                         1,2,
+                                         1,2,
+                                         1,2,
+                                         1,2,
+                                         1,2,
+                                         1,2,
+                                         1,2};
+   UCOPY(boundladshuttle,_boundladshuttle,sizeof(boundladshuttle)/sizeof(integer));
+
+// center to center for ladders
+const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
+   UCOPY(c2c,_c2c,sizeof(c2c)/sizeof(integer));
+// support foam width;
+const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
+   UCOPY(support_foam_w,_support_foam_w,sizeof(support_foam_w)/sizeof(integer));
+const number  support_foam_tol[_nlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
+   UCOPY(support_foam_tol,_support_foam_tol,sizeof(support_foam_tol)/sizeof(integer));
+// support hc width;
+const number  support_hc_w[_nlay]={0.8,0.8,0.8,0.8,0.8,0.8,0.8,0.8};
+   UCOPY(support_hc_w,_support_hc_w,sizeof(support_hc_w)/sizeof(integer));
+// support hc radius;
+const number  support_hc_r[_nlay]={53.6,53.6,53.6,53.6,53.6,53.6,53.6,53.6};
+   UCOPY(support_hc_r,_support_hc_r,sizeof(support_hc_r)/sizeof(integer));
+// support hc z;
+// hc_z = -(hc_w/2+(0.5+5.02+5)/10)
+const number  support_hc_z[_nlay]={-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.452};
+   UCOPY(support_hc_z,_support_hc_z,sizeof(support_hc_z)/sizeof(integer));
+
+
+   // initialize patterns
+      InitPattern();
+      int cpat;
+      for(cpat=0;cpat<npat();cpat++){
+         //ams02
+         if(_patpoints[cpat]>4)_patallow[cpat]=1;
+         else _patallow[cpat]=0;
+         if(_patpoints[cpat]>3)_patallow2[cpat]=1;
+         else _patallow2[cpat]=0;
+      }
+
+// Add disabling
+// wanted all 8, all 7  1 + 8
+// 6: no (23) (45) (67) 8*7/2-3 = 25
+// 5: 1 (2,3) (4,5) (6,7) 8  (8) 
+// total of 42 patterns allowed
+      for(cpat=0;cpat<npat();cpat++){
+         //ams02
+         if(_patpoints[cpat]==6){
+            if((_patmiss[nlay()-2][cpat]==2 && _patmiss[nlay()-1][cpat]==3) || 
+               (_patmiss[nlay()-2][cpat]==3 && _patmiss[nlay()-1][cpat]==2))
+               _patallow[cpat]=0;
+            if((_patmiss[nlay()-2][cpat]==4 && _patmiss[nlay()-1][cpat]==5) || 
+               (_patmiss[nlay()-2][cpat]==5 && _patmiss[nlay()-1][cpat]==4))
+               _patallow[cpat]=0;
+            if((_patmiss[nlay()-2][cpat]==6 && _patmiss[nlay()-1][cpat]==7) || 
+               (_patmiss[nlay()-2][cpat]==7 && _patmiss[nlay()-1][cpat]==6))
+               _patallow[cpat]=0;
+         }
+         else if(_patpoints[cpat]==5){
+            if(_patmiss[nlay()-3][cpat]==1 || _patmiss[nlay()-2][cpat]==1 || 
+               _patmiss[nlay()-1][cpat]==1)_patallow[cpat]=0;
+            if(_patmiss[nlay()-3][cpat]==8 || _patmiss[nlay()-2][cpat]==8 || 
+               _patmiss[nlay()-1][cpat]==8)_patallow[cpat]=0;
+            if(_patallow[cpat]){
+             for(int k=_patpoints[cpat];k<nlay();k++){
+              if(_patmiss[k][cpat]==2){
+                for(int kk=_patpoints[cpat];kk<nlay();kk++){
+                  if(_patmiss[kk][cpat]==3){
+                   _patallow[cpat]=0;
+                   break;
+                  }
+                }   
+              }
+              if(_patmiss[k][cpat]==4){
+                for(int kk=_patpoints[cpat];kk<nlay();kk++){
+                  if(_patmiss[kk][cpat]==5){
+                   _patallow[cpat]=0;
+                   break;
+                  }
+                }   
+              }
+              if(_patmiss[k][cpat]==6){
+                for(int kk=_patpoints[cpat];kk<nlay();kk++){
+                  if(_patmiss[kk][cpat]==7){
+                   _patallow[cpat]=0;
+                   break;
+                  }
+                }   
+              }
+
+             }
+            }
+       }
+      }
+
+
+
+
+   }
    else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+
     int i;
     _nlaysi=8;
     const integer _nlay=8;
@@ -490,8 +720,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
       }
 
 
-
-   }
+}
    else{ 
      cerr <<" AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
       exit(1);

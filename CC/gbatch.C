@@ -29,7 +29,12 @@ GCBANK_DEF GCBANK;
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 PAWC_DEF PAWC;
 
-
+struct QUEST_DEF{
+int q[100];
+};
+#define QUEST COMMON_BLOCK(QUEST,quest)
+COMMON_BLOCK_DEF(QUEST_DEF,QUEST);
+QUEST_DEF QUEST;
 
 
 PROTOCCALLSFSUB0(UGINIT,uginit)
@@ -57,6 +62,7 @@ main(){
     cout.sync_with_stdio();
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
+    QUEST.q[9]=64000;
     UGINIT();
     GRUN();
     UGLAST();

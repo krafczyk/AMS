@@ -689,7 +689,7 @@ TRFITFFKEY.ResCutCircle=0.5;
 TRFITFFKEY.SearchRegFastFit=1;
 TRFITFFKEY.SearchRegStrLine=0.25;
 TRFITFFKEY.SearchRegCircle=1.5;
-TRFITFFKEY.RidgidityMin=0.2;
+TRFITFFKEY.RidgidityMin=0.1;
 TRFITFFKEY.FullReco=0;
 TRFITFFKEY.MinRefitCos[0]=0.7;
 TRFITFFKEY.MinRefitCos[1]=0.5;
@@ -2162,7 +2162,7 @@ void AMSJob::uhinit(integer run, integer eventno){
      }
     
     cout <<"Trying to open histo file "<<filename<<endl;
-    HROPEN(IOPA.hlun,"output",filename,"NP",rsize,iostat);
+    HROPEN(IOPA.hlun,"output",filename,"NPQ",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<filename<<endl;
     }
