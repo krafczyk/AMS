@@ -3,7 +3,7 @@ using namespace ecalconst;
  integer AMSECIdSoft::_GetGeo[ecalconst::ECRT][ecalconst::ECPMSL][2];   // slayer,pmtno
  integer AMSECIdSoft::_GetHard[ecalconst::ECSLMX][ecalconst::ECPMSMX][2];     // crate, hchan
 
-AMSECIdSoft::AMSECIdSoft(int16 crate, int16 haddr, int16 channelh):_channelh(channelh),_crate(crate),_dead(0){
+AMSECIdSoft::AMSECIdSoft(int16 crate, int16 haddr, int16 channelh):_channelh(channelh),_crate(crate),_dead(0),_haddr(haddr){
 
 _sl=_GetGeo[crate%ECRT][haddr%ECPMSMX][0];
 _pmtno=_GetGeo[crate%ECRT][haddr%ECPMSMX][1];
@@ -26,9 +26,39 @@ void AMSECIdSoft::_channelh2s(){
    _channel=0;
  }
  else{
-  cerr<<" ecalidsoft _channelh2s not yet implemented"<<endl;
-  abort;
+  if(_pmtno%2==0){
+    switch (_channelh%4){
+     case 0:
+       _channel=2;
+       break;
+     case 1:
+       _channel=3;
+       break;
+     case 2:
+       _channel=1;
+       break;
+     case 3:
+       _channel=0;
+       break;
+  }
  }
+ else{
+    switch (_channelh%4){
+     case 0:
+       _channel=3;
+       break;
+     case 1:
+       _channel=2;
+       break;
+     case 2:
+       _channel=0;
+       break;
+     case 3:
+       _channel=1;
+       break;
+  }
+ }
+}
 }
 
 void AMSECIdSoft::_channels2h(){

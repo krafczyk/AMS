@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.49 2002/09/24 07:15:29 choutko Exp $
+//  $Id: ecalrec.C,v 1.50 2002/09/24 15:18:15 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -2209,48 +2209,57 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
   int leng=0;
   int16u * ptr;
   int count=0; 
-  for(ptr=p+1;ptr<p+n-1;ptr++){  
+  int dynode=0;
+  int dead=0;
+  for(ptr=p+1;ptr<p+n;ptr++){  
    int16u pmt=count%36;
-            int16u anode=(*ptr)& 1;
-            int16u channel=((*ptr)>>1)&3;
-            int16u gain=((*ptr)>>3)&1;
-            int16u value=( (*ptr)>>4); 
+            int16u anode=(*ptr>>15)& 1;
+            int16u channel=((*ptr)>>12)&3;
+            int16u gain=((*ptr)>>14)&1;
+            int16u value=( (*ptr))&4095; 
             if(!anode){
                channel=4;
                gain=0;
             }
-            AMSECIdSoft id(ic,pmt,channel);
+  
+           AMSECIdSoft id(ic,pmt,channel);
+       if(id.dead()){
+         dead++;
+       }
+
        if(!id.dead()){
-         if(anode){
-           AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",ic), new
+//           cout <<id.makeshortid()<<" "<<gain<<" "<<channel<<" "<<anode<<" "<<value<<endl;
+        if(anode){
+            AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",ic), new
           AMSEcalRawEvent(id,1-anode,1-gain,value));
          }
          else{
 //  put here dynode related class
+          dynode++; 
          }
        }    
    count++;               
   }
-
+   cout <<" Total of "<<count <<" "<<dynode<<" "<<dead<<" for crate "<<ic<<endl;
 //  add two adc together
-       AMSContainer * pct=AMSEvent::gethead()->getC("AMSEcalRawEvent",ic);
+       AMSEcalRawEvent *ptro=0;
+      AMSContainer * pct=AMSEvent::gethead()->getC("AMSEcalRawEvent",ic);
       for(AMSEcalRawEvent* ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                        getheadC("AMSEcalRawEvent",ic,1);ptr;ptr=ptr->next()){
 
         
-       AMSEcalRawEvent *ptro=0;
-       if(ptr->testlast()){
+        if(ptr->testlast()){
          if(ptro){
            if(ptr->getgain() <2 && ptro->getgain()<2 && ptr->getgain() !=ptro->getgain()){
            ptr->setgain(2);
            ptr->setadc(ptro->getadc(ptro->getgain()),ptro->getgain());
            pct->removeEl(ptro,1);
           }
-         
           else{
-            cerr<<"AMSEcalRawEvent::buildraw-S-FormatError "<<ptro->getgain()<<" "<<ptr->getgain()<<endl;
+            cerr<<"AMSEcalRawEvent::buildraw-S-FormatError "<<ptro->getgain()<<" "<<ptr->getgain()<<" "<<ptr->getid()<<endl;
          }        
-       }
+         ptro=0;         
+       } 
        else{
             cerr<<"AMSEcalRawEvent::buildraw-E-No2ndGainFound "<<ptr->getid()<<endl;
        }
