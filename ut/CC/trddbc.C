@@ -24,7 +24,7 @@ uinteger   TRDDBc::_NumberLadders=0;
 
 const number  TRDDBc::_TubeWallThickness=75e-4;
 const number  TRDDBc::_TubeInnerDiameter=0.6;
-const number  TRDDBc::_TubeBoxThickness=(0.62-TRDDBc::_TubeInnerDiameter-TRDDBc::_TubeWallThickness)/2.;
+const number  TRDDBc::_TubeBoxThickness=(0.62-TRDDBc::_TubeInnerDiameter-2*TRDDBc::_TubeWallThickness)/2.;
 const number  TRDDBc::_LadderThickness=2.9;
 const integer TRDDBc::_LadderOrientation[mtrdo][maxlay]={0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0};   // 0 -x 1 -y    
 number TRDDBc::_OctagonDimensions[maxo][10]; 
@@ -216,13 +216,13 @@ void TRDDBc::init(){
         }
        }
       }
-      
+      const number Safety=0;
       // now radiators etc   
       for(i=0;i<TRDOctagonNo();i++){
        for(j=0;j<LayersNo(i);j++){
         for(k=0;k<LaddersNo(i,j);k++){
           RadiatorDimensions(i,j,k,0)=LaddersDimensions(i,j,k,0);
-          RadiatorDimensions(i,j,k,1)=LaddersDimensions(i,j,k,1)-(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness())/2;
+          RadiatorDimensions(i,j,k,1)=LaddersDimensions(i,j,k,1)-(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness()+2*Safety)/2;
           RadiatorDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2);
           TubesDimensions(i,j,k,0)=TubeInnerDiameter()/2;          
           TubesDimensions(i,j,k,1)=(TubeInnerDiameter()+2*TubeWallThickness())/2;
@@ -234,7 +234,7 @@ void TRDDBc::init(){
        for(j=0;j<LayersNo(i);j++){
         for(k=0;k<LaddersNo(i,j);k++){
          coo[0]=coo[2]=0;
-         coo[1]=LaddersDimensions(i,j,k,1)-RadiatorDimensions(i,j,k,1);
+         coo[1]=LaddersDimensions(i,j,k,1)-RadiatorDimensions(i,j,k,1)-Safety;
          SetRadiator(k,j,i,status,coo,unitnrm,gid);
          for(int l=0;l<TubesNo(i,j,k);l++){
            coo[0]=-LaddersDimensions(i,j,k,0)+(TubesDimensions(i,j,k,1)+TubeBoxThickness())*(1+2*l);
