@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.10 2001/06/19 09:57:01 alexei Exp $
+//  $Id: oracle.h,v 1.11 2001/07/02 18:25:08 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -12,7 +12,7 @@
 //              Feb    , 2001. Active CLients, hosts.
 //              Jun   7, 2001. gettdvbody add amsdatadir
 //
-// Last Edit : June 14, 2001
+// Last Edit : June 20, 2001
 //
 
 
@@ -36,6 +36,10 @@ const int NROWSMAX = 2000;         // insert by min(NROWSMAX,events)
 const int MAXRUNS  = 2000;         //
 const int MAXRUNTABLESIZE = 2000;  // return not more than MAXRUNTABLESIZE
                                    // matching to the query 
+const int TBdeleted       = -2;    // TDV is marked to be deleted
+const int TBbad           = -1;    // TDV is marked as bad
+const int TBprod          =  1;    //               as production
+
 
 namespace AMSoracle {
 
@@ -76,6 +80,11 @@ namespace AMSoracle {
      const int  getid() {return idx;}
      const char *getname() {return name;}
      long getsize() { return nbytes;}
+     void print() {
+      cout<<"i/b/e "<<utimei<<" / "<<utimeb<<" / "<<utimee<<endl;
+     }
+
+     void setid(int id) {idx = id;}
      long setsize(long size) { nbytes = size;}
      void setfilepath(const char *fpath) {
        if (fpath && strlen(fpath) < MAXFILENAMELENGTH) {
@@ -110,7 +119,7 @@ namespace AMSoracle {
       end    = te;
     }
     void print() {
-      cout<<insert<<" "<<begin<<" / "<<end<<endl;
+      cout<<"i/b/e "<<insert<<" / "<<begin<<" / "<<end<<endl;
     }
     void printa() {
       cout<<ctime(&insert)<<ctime(&begin)<<ctime(&end)<<endl;
@@ -929,11 +938,12 @@ namespace AMSoracle {
 
 
   void Fmessage(const char *subr, const char *text, const char *errcode);
-  int  addtdvname(char *tdvnameS, int datamc);
+  int  addtdvname(const char *tdvnameS, int datamc, int &id);
   int  checktdvname(char *name, char *tablename);
   int  cleanRunTable(const unsigned int runstatus);
   void commit();
-  int  counttdv(char *name, int datamc, long timef, long timel); 
+  int  counttdv(const char *name, int datamc, long timef, long timel); 
+  int  counttdvlob(const char *name, int datamc, long timef, long timel); 
   int  createtdvtable(char *tablename);
 
   int  deleteActiveClient(const unsigned int type);
@@ -983,7 +993,8 @@ namespace AMSoracle {
   int  findDSTInfo(const unsigned int uid);
   int  findNominalClient(const unsigned int id, unsigned int type); 
 
-  int  finddeftdv(char *tablename, int datamc, TDVutime *utime);
+  int  finddeftdv(const char *tdvname, int datamc, TDVutime *utime);
+  int  finddeftdvlob(const char *tdvname, int datamc, TDVrec *tdvrec);
   unsigned int  findHost(const char *host);
 
   int  findActiveHost(const char *host);
@@ -1002,10 +1013,13 @@ namespace AMSoracle {
                         bool &flag);
   int  findrun(unsigned int  crun, long &utimef, long &utimel);
   unsigned int findrun(unsigned int  runid);
-  int  findtdv(char *name, int datamc, long utimef, long utimel, int &ntdvs, TDVutime *utime); 
+  int  findtdv(const char *name, int datamc, long utimef, long utimel, 
+               int &ntdvs, TDVutime *utime); 
+  int  findtdvlob(const char *name, int datamc, long utimef, long utimel, 
+                  int &ntdvs, TDVutime *utime); 
   int  findtag(EventTag *tag); 
   int  findtdv(char *name, int datamc, long timeb, long timee, int deftable, long &timei);
-  unsigned int  findtdvname(char *tdvnameS, int datamc);
+  unsigned int  findtdvname(const char *tdvnameS, int datamc);
   unsigned int getActiveClientNextId(const unsigned int ctype);
   unsigned int getNominalClientNextId(const unsigned int ctype);
   int getNominalHostId(const char *hostname);
@@ -1152,11 +1166,13 @@ namespace AMSoracle {
   int  inserttag(EventTag *tag, int events);
   int  inserttags(EventTag *tag, int events);
   int  inserttdv(TDVrec *tdv, int flag);
+  int  inserttdvlob(TDVrec *tdv, int flag, int buflng, unsigned int *buff);
   int  MakeQuery();
   int  oracle_connect();
   int  readtdv(char *filepath, long tdvsize, unsigned int *pdata);
   int  RunsToBeRerun();
   int  RunsProcessing();
+  int  settdvstat(int id, long insert, long begin, long end, int prodstat);
   void sql_error(char *msg);
   void sql_nothing(char *msg);
   void sql_notfound(char *msg);

@@ -1,12 +1,13 @@
-//  $Id: dbserver.C,v 1.20 2001/06/19 09:56:50 alexei Exp $
+//  $Id: dbserver.C,v 1.21 2001/07/02 18:25:04 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
 //  Mar,    2001. a.k. debugging   
 //  Jun,    2001. a.k. use amsdatadir as TDV file prefix                  
 //
-//  Last Edit : Jun 19, 2001. ak
+//  Last Edit : Jun 20, 2001. ak
 //
+
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -296,7 +297,7 @@ void  DBServer_impl::_init(){
     }
    if (nclients < 1) {
      cout<<"DBServer_impl::getACS -I- cannot get ActiveProcess information for "
-         <<_parent->CT2string(cid.Type)<< " on "<<(const char *)hostname<<endl;     
+         <<_parent->CT2string(cid.Type)<< " on "<<hostname<<endl;     
      acv -> length(1);
      nclients = 0;
      maxc = 0;
@@ -878,21 +879,67 @@ void  DBServer_impl::_init(){
                                const TDVbody & tdv, TDVName & tdvname )
 {
 
-
+ AMSoracle::TDVrec   *tdvrec = 0;
+ AMSoracle::TDVutime *tdvutime=0;
+ uinteger *pdata = 0;
+ integer  tdvid;
   
-tdvname.Success=false;
-time_t i,b,e;
-time_t tminsert, tmbegin, tmend;
-
-i=tdvname.Entry.Insert;
-b=tdvname.Entry.Begin;
-e=tdvname.Entry.End;
-
-tminsert = i;
-tmbegin  = b;
-tmend    = e;
+ tdvname.Success=false;
 
 
+ if (tdvname.Name) {
+   cout<<"tdvname "<<tdvname.Name<<endl;
+   tdvid = AMSoracle::findtdvname(tdvname.Name, tdvname.DataMC);
+   if (tdvid == 0) {
+     if (AMSoracle::addtdvname(tdvname.Name, tdvname.DataMC, tdvid) !=1) {
+       cout<<"DBServer_impl::sendTDV -E- failled to add "<<tdvname.Name
+           <<" "<<tdvname.DataMC<<" to m_tdv_names table "<<endl;
+     }
+   }
+   cout<<"tdvid "<<tdvid<<endl;
+   if (tdvid) {
+    tdvrec   = new AMSoracle::TDVrec;
+    tdvrec -> setid(tdvid);
+    tdvrec -> setname(tdvname.Name, tdvname.DataMC);
+    tdvrec -> utime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
+    cout<<tdvname.Name<<" "<< tdvname.DataMC<<endl;
+    int ntdvs = AMSoracle::counttdvlob(tdvname.Name, tdvname.DataMC, 
+                                       tdvname.Entry.Begin, tdvname.Entry.End);
+     if (ntdvs > 0) {
+      tdvutime = new AMSoracle::TDVutime[ntdvs];
+      if (AMSoracle::findtdvlob(tdvname.Name, tdvname.DataMC, 
+                                tdvname.Entry.Begin, tdvname.Entry.End,
+                                ntdvs, tdvutime) == 1) {
+        for (int i=0; i<ntdvs; i++) {
+          if (tdvname.Entry.Insert > tdvutime[i].insert) {
+            if (tdvname.Entry.Begin <= tdvutime[i].begin &&
+                tdvname.Entry.End   >= tdvutime[i].end) {
+                AMSoracle::settdvstat(tdvid, 
+                                      tdvutime[i].insert, tdvutime[i].begin, 
+                                      tdvutime[i].end, TBdeleted);
+                cout<<"DBServer_impl::sendTDV -I- TDV is marked TBdeleted"<<endl;
+                cout<<"i/b/e "<<tdvutime[i].insert<<" " 
+                              <<tdvutime[i].begin<<" "
+                              <<tdvutime[i].end<<endl;
+
+            }
+          }
+        }
+      }
+      delete [] tdvutime;
+     }
+                cout<<"tdv TBinserted "<<endl;
+                cout<<"i/b/e "<<tdvname.Entry.Insert<<" " 
+                              <<tdvname.Entry.Begin<<" "
+                              <<tdvname.Entry.End<<endl;
+      int length = tdv.length();
+      pdata = new uinteger[length];
+      AMSoracle::inserttdvlob(tdvrec,tdvname.Entry.id, length, pdata); 
+      AMSoracle::commit();
+   }
+   if (pdata)  delete [] pdata;
+   if (tdvrec) delete tdvrec;
+}
 
   //
   // tdvbody for EventTag aka EVentStatusTable
@@ -940,7 +987,7 @@ tmend    = e;
        if(AMSoracle::getprodruns(trun, prun)) {
         for (int r=0; r<Nr; r++) {
           cout<<"sendTDV -I- found run "<<endl;
-          prun[i].print();
+          prun[r].print();
           if (prun[r].fevent >= fevent && prun[r].levent <= levent) {
             AMSoracle::deleteProdRun(prun[r].idx);  // delete run from m_prodruns
             AMSoracle::deletetags(prun[r].idx);     // and all assoc. tags 

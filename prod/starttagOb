@@ -1,8 +1,8 @@
-AMSProdDir=/f0dat0/local/vdev
+AMSProdDir=/f0dah0/users/alexei/AMS
 export AMSProdDir
-AMSDataDir=/t0dat1/local/AMSDataDir
+AMSDataDir=/f0dat0/local/AMSDataDir
 export AMSDataDir
-AMSProdOutputDir=/f0dat1/local/amsdatantuple/rn
+AMSProdOutputDir=/f0dah0/local/amsdatantuple/tmp/aa
 export AMSProdOutputDir
 AMSProdPerl=$AMSProdDir/perl
 export AMSProdPerl

@@ -1,7 +1,7 @@
 # hostname mode updatefreq dsttype dstoutputdir  
-defaulthost 0 200 0 /f0dah1/local/amsdatantuple/tmp/vc
-pcamsf0     0 400 0 /f0dah0/local/amsdatantuple/tmp/vc
-pcamsp0     0 200 0 /p0dat4/local/amsdatantuple/tmp/vc
-pcamsf1     0 200 0 /f1dah0/local/amsdatantuple/tmp/vc
-pcamsf3     0 200 0 /f3dah0/local/amsdatantuple/tmp/vc
-pcamst0     0 200 0 /t0dah0/local/amsdatantuple/tmp/vc
+defaulthost 0 200 0 /f0dah1/local/amsdatantuple/aa
+pcamsf0     0 400 0 /f0dah0/local/amsdatantuple/tmp/aa
+pcamsp0     0 200 0 /p0dat4/local/amsdatantuple/tmp/aa
+pcamsf1     0 200 0 /f1dah0/local/amsdatantuple/tmp/aa
+pcamsf3     0 200 0 /f3dah0/local/amsdatantuple/tmp/aa
+pcamst0     0 200 0 /t0dah0/local/amsdatantuple/aa

@@ -1,5 +1,8 @@
-#  $Id: Mopt_oracleMT,v 1.2 2001/06/06 15:02:12 alexei Exp $
+#  $Id: Mopt_oracleMT,v 1.3 2001/07/02 18:25:12 alexei Exp $
 include $(ORACLE_HOME)/precomp/lib/env_precomp.mk
+PROG++INCLUDE = /usr/local/include/g++
+OCIINCLUDE = $(ORACLE_HOME)/rdbms/demo
+OCIPUBINCLUDE = $(ORACLE_HOME)/rdbms/public
 PROCPPFLAGS= code=cpp $(CPLUS_SYS_INCLUDE)
 PROINCLUDE=$(I_SYM). $(I_SYM)$(PRECOMPHOME)public $(I_SYM)$(RDBMSHOME)public $(I_SYM)$(RDBMSHOME)demo $(I_SYM)$(PLSQLHOME)public $(I_SYM)$(NETWORKHOME)public
 
@@ -627,7 +630,7 @@ $(BIN)mys.o: 	 $(SCC)mys.c
 
 
 $(BIN)oracle.o: 	 $(SCC)oracle.pc
-	$(PROC) $(PROCPPFLAGS) CPP_SUFFIX="C" INCLUDE=$(INCLUDE) iname=$(SCC)oracle.pc oname=$(BIN)oracle.C
+	$(PROC) $(PROCPPFLAGS) CPP_SUFFIX="C" INCLUDE=$(INCLUDE) INCLUDE=$(PROG++INCLUDE) INCLUDE=$(OCIINCLUDE) INCLUDE=$(OCIPUBINCLUDE) iname=$(SCC)oracle.pc oname=$(BIN)oracle.C
 
 	$(CPLUSPLUS) -w  -c -fpermissive $(PROINCLUDE) $(CFLAGS) $(BIN)oracle.C -o $(BIN)oracle.o
 
