@@ -59,9 +59,9 @@ void AMSParticle::SetHelix(){
 
    Double_t Bfield = -0.15*0.95;	// in minus-x direction of AMS
      THelix::SetHelix(m_Position[0], m_Position[1], m_Position[2], 
-		      m_Momentum * TMath::Sin(m_Theta) * TMath::Cos(m_Phi),
-		      m_Momentum * TMath::Sin(m_Theta) * TMath::Sin(m_Phi),
-		      m_Momentum * TMath::Cos(m_Theta),
+		      m_Charge*m_Momentum * TMath::Sin(m_Theta) * TMath::Cos(m_Phi),
+		      m_Charge*m_Momentum * TMath::Sin(m_Theta) * TMath::Sin(m_Phi),
+		      m_Charge*m_Momentum * TMath::Cos(m_Theta),
 		      0.3*Bfield/100,
 		      -120.0, 120.0, kHelixX,
 		      -1.0, 0.0, 0.0);
