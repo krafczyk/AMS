@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.170 2003/05/15 16:47:13 alexei Exp $
+# $Id: RemoteClient.pm,v 1.171 2003/05/15 17:27:23 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1362,6 +1362,9 @@ sub Connect{
     }
  ; 
 
+#
+ my    $insertjobsql = undef;
+#
 #understand parameters
 
         $self->{read}=0;
@@ -3968,9 +3971,19 @@ print qq`
          if ($q->param("STALONE") eq "No") {
           my $stalone  = "CLIENT";
          }
-         my $sql="INSERT INTO Jobs VALUES
-         ($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',
-                   $ctime,'$nickname',' ',' ',0,0,0,0,'$stalone')";
+         $insertjobsql="INSERT INTO Jobs VALUES
+                             ($run,
+                              '$script',
+                              $self->{CEMID},
+                              $self->{CCID},
+                              $did,
+                              $ctime,
+                              $evts,
+                              $timeout,
+                              '$buf$tmpb',
+                              $ctime,
+                              '$nickname',
+                               ' ',' ',0,0,0,0,'$stalone')";
 #         $self->{sqlserver}->Update($sql);
 #
 #creat corresponding runevinfo
@@ -4031,8 +4044,9 @@ print qq`
               $self->ErrorPlus("Unable to gzip  $file2tar");
           }
         }     
-        $self->{sqlserver}->Update($sql);
-
+        if (defined $insertjobsql) {
+         $self->{sqlserver}->Update($insertjobsql);
+        }
         my $address=$self->{CEM};
         my $frun=$run-$runno;
         my $lrun=$run-1;
@@ -7301,12 +7315,8 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=1 128=\" CHECKED><b> ROOT </b><BR>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\"><b> NTUPLE </b>\n";
-<<<<<<< RemoteClient.pm
-=======
             print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=2 128=\" CHECKED><b> ROOT </b><BR>\n";
->>>>>>> 1.169
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\"><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
 }
