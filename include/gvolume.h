@@ -98,10 +98,16 @@ static  integer & getNrm()  {return _Nrm;}
   number getpar(integer i)const {return i>=0 && i<_npar ? _par[i]:0;}
   AMSPoint gl2loc(AMSPoint);  // conversion global->local
   AMSPoint loc2gl(AMSPoint);  // conversion global->local
+  AMSgvolume * next(){return dynamic_cast<AMSgvolume*>(AMSNode::next());}
+  AMSgvolume * prev(){return dynamic_cast<AMSgvolume*>(AMSNode::prev());}
+  AMSgvolume * up(){return   dynamic_cast<AMSgvolume*>(AMSNode::up());}
+  AMSgvolume * down(){return dynamic_cast<AMSgvolume*>(AMSNode::down());}
+/*
   AMSgvolume * next(){return (AMSgvolume *)AMSNode::next();}
   AMSgvolume * prev(){return (AMSgvolume *)AMSNode::prev();}
   AMSgvolume * up(){return   (AMSgvolume *)AMSNode::up();}
   AMSgvolume * down(){return (AMSgvolume *)AMSNode::down();}
+*/
   static integer debug;
   static geant dgeant;
 //+

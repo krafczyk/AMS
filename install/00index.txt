@@ -1,35 +1,22 @@
-Cgbatch   // compile +link user file for AMS batch
-Cgxint    // compile +link user file for geant interactive
-Makelib   // makefile to gmake amslib
-Mgbatch   // makefile to gmake geant batch     
+Mopt      // makefile to gmake geant batch 
+          // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
 Mgxint    // makefile to gmake geant interactive  
-Mopt      // makefile to gmake geant batch optimized
-clmake    // Clever Make ; use e.g. clmake Mgbatch
-MakeDB    // makefile, to make AMS+DB. Moved to ../db
-Mreadio   // readio makefile  
-InitDB    // makefile, to make database init exe, to create all containers 
-config.*  // configuration files for Objectivity. Moved to ../db
+Moptg4    // makefile to gmake g4 batch
+          // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
+          // setenv AMSWD to some tmp dir is  recommended
+
 
 To create standalone simulation/reconstruction program (without db) use:
 
-either ( if developper == use cvs before)
- batch         clmake Mgbatch or Mopt *)
- interactive   clmake Mgxint  (batch program should be created first)
-
-or (user == use of $AMSDataDir../vdev only) 
- batch         Cgbatch user or  $AMSDataDir../vdev/exe/osf1/gbatch.exe 
- interactive   $AMSDataDir../vdev/exe/osf1/gxint.exe 
-
-
-Instructions how to create & run db connected batch simulation program
-are in ../doc/dbase_objy.doc
+ batch                   gmake -if Mopt (Moptg4)
+ interactive(g3 only )   gmake -if  Mgxint  (batch program should be created first)
 
 
 
-New
-----
 
-Moptg4    // makefile to ams02+geant4 use gmake -if Moptg4 to build exec
+
+
+
 
 
 

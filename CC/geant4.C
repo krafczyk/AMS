@@ -339,7 +339,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
      if(G4FFKEY.BFOrder){
       G4ChordFinder *pchord;
       G4Mag_EqRhs* fEquation = new G4Mag_UsualEqRhs(pf);
-      const G4double stepMinimum = 0.01e-2 * mm;
+      const G4double stepMinimum = 1.e-4 * cm;
       if(G4FFKEY.BFOrder ==3){
         pchord=new G4ChordFinder(pf,stepMinimum,new G4SimpleHeum(fEquation));
       }
@@ -521,25 +521,25 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
     if(PostPV){
 //      cout << "Stepping  "<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0;
-    GCTRAK.destep=Step->GetTotalEnergyDeposit()*GeV;
+    GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;
     if(GCTMED.isvol){
-      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
+//      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
      // gothering some info and put it into geant3 commons
 
      G4StepPoint * PrePoint = Step->GetPreStepPoint();
      G4VPhysicalVolume * PrePV = PrePoint->GetPhysicalVolume();
      GCTRAK.inwvol= PostPV != PrePV;
-     GCTRAK.step=Step->GetStepLength()*cm;
-     GCTRAK.vect[0]=PostPoint->GetPosition().x()*cm; 
-     GCTRAK.vect[1]=PostPoint->GetPosition().y()*cm; 
-     GCTRAK.vect[2]=PostPoint->GetPosition().z()*cm; 
+     GCTRAK.step=Step->GetStepLength()/cm;
+     GCTRAK.vect[0]=PostPoint->GetPosition().x()/cm; 
+     GCTRAK.vect[1]=PostPoint->GetPosition().y()/cm; 
+     GCTRAK.vect[2]=PostPoint->GetPosition().z()/cm; 
      GCTRAK.vect[3]=PostPoint->GetMomentumDirection().x(); 
      GCTRAK.vect[4]=PostPoint->GetMomentumDirection().y(); 
      GCTRAK.vect[5]=PostPoint->GetMomentumDirection().z(); 
-     GCTRAK.getot=PostPoint->GetTotalEnergy()*GeV;
-     GCTRAK.gekin=PostPoint->GetKineticEnergy()*GeV;
+     GCTRAK.getot=PostPoint->GetTotalEnergy()/GeV;
+     GCTRAK.gekin=PostPoint->GetKineticEnergy()/GeV;
      GCTRAK.vect[6]=GCTRAK.getot*PostPoint->GetBeta();
-     GCTRAK.tofg=PostPoint->GetGlobalTime()*second;
+     GCTRAK.tofg=PostPoint->GetGlobalTime()/second;
      G4Track * Track = Step->GetTrack();
 
 /* 
@@ -622,10 +622,88 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
   // Tracker
      if(GCTRAK.destep && GrandMother && GrandMother->GetName()[0]=='S' 
      &&  GrandMother->GetName()[1]=='T' && GrandMother->GetName()[2]=='K'){
-       cout <<" tracker "<<endl;
+//       cout <<" tracker "<<endl;
       AMSTrMCCluster::sitkhits(PostPV->GetCopyNo(),GCTRAK.vect,
       GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
      }
+
+  //TOF
+
+
+  if(PostPV->GetName()[0]== 'T' &&PostPV->GetName()[1]=='O' &&
+     PostPV->GetName()[2]=='F' &&PostPV->GetName()[3]=='S'){
+      geant t,x,y,z;
+      char name[5]="dumm";
+      char media[21]="dummy_media         ";
+      geant de,dee,dtr2,div,tof;
+      static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
+      geant trcut2(0.1);// Max. transv.shift (0.316cm)**2
+      geant vect[3],dx,dy,dz,dt;
+      int i,nd,numv,iprt,numl,numvp;
+      static int numvo(-999),iprto(-999);
+
+
+    iprt=GCKINE.ipart;
+    numv=PostPV->GetCopyNo();
+    x=GCTRAK.vect[0];
+    y=GCTRAK.vect[1];
+    z=GCTRAK.vect[2];
+    t=GCTRAK.tofg;
+    de=GCTRAK.destep;
+    if(GCTRAK.inwvol==1){// new volume or track : store param.
+      iprto=iprt;
+      numvo=numv;
+      xpr=x;
+      ypr=y;
+      zpr=z;
+      tpr=t;
+    }
+    else{
+      if(iprt==iprto && numv==numvo && de!=0.){// same part. in the same volume
+        dx=(x-xpr);
+        dy=(y-ypr);
+        dz=(z-zpr);
+        dt=(t-tpr);
+        dtr2=dx*dx+dy*dy;
+//
+        if(dtr2>trcut2){// too big transv. shift: subdivide step
+          nd=integer(sqrt(dtr2/trcut2));
+          nd+=1;
+          dx=dx/geant(nd);
+          dy=dy/geant(nd);
+          dz=dz/geant(nd);
+          dt=dt/geant(nd);
+          GCTRAK.destep=de/geant(nd);
+          for(i=1;i<=nd;i++){//loop over subdivisions
+            vect[0]=xpr+dx*(i-0.5);
+            vect[1]=ypr+dy*(i-0.5);
+            vect[2]=zpr+dz*(i-0.5);
+            tof=tpr+dt*(i-0.5);
+            dee=GCTRAK.destep;
+            //if(TOFMCFFKEY.birks)GBIRK(dee);
+            AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
+          }
+        }
+        else{
+          vect[0]=xpr+0.5*dx;
+          vect[1]=ypr+0.5*dy;
+          vect[2]=zpr+0.5*dz;
+          tof=tpr+0.5*dt;
+          dee=GCTRAK.destep;
+          if(TOFMCFFKEY.birks)GBIRK(dee);
+          AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
+        }// end of "big step" test
+//
+        xpr=x;
+        ypr=y;
+        zpr=z;
+        tpr=t;
+      }// end of "same part/vol, de>0"
+    }// end of new volume test
+  }// end of "in TOFS"
+
+
+
   }
    catch (AMSuPoolError e){
     cerr << "GUSTEP  "<< e.getmessage();

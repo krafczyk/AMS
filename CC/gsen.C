@@ -1,7 +1,9 @@
 #include <gsen.h>
 #include <trid.h>
 integer AMSgSen::getsenstrip(AMSPoint & loc){
-
+#ifdef __AMSDEBUG__
+  AMSPoint tmp=loc;
+#endif
   AMSPoint size=AMSPoint(_par[0],_par[1],_par[2]);
   loc=gl2loc(loc);
   loc=loc+size;

@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.5 1999/11/10 19:41:32 choutko Exp $
+// $Id: g4physics.C,v 1.6 1999/11/16 10:41:19 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -737,9 +737,10 @@ void AMSG4Physics::ConstructAllShortLiveds()
  }
 
  G4int AMSG4Physics::G4toG3(const G4String & particle){
-   int found=AMSbins(_pg4tog3,AMSIDs((const char*)(particle)),_Ng3tog4);
+   AMSIDs ids((const char*)(particle));
+   int found=AMSbins(_pg4tog3,ids,_Ng3tog4);
    if(found>0){
-    return _pg3tog4[found-1].getid();
+    return _pg4tog3[found-1].getid();
    }
    else if(GetVerboseLevel()){
      cerr<<"AMSG4Physics::G4toG3-I-NoG3ParticleFoundFor"<<(const char *)(particle)<<endl;
@@ -869,8 +870,8 @@ for(ipart=0;ipart<1000;ipart++){
      AMSsortNAGa(_pg3tog4, _Ng3tog4);
      AMSsortNAGa(_pg4tog3, _Ng3tog4);
 #ifdef __AMSDEBUG__
-  cout << "G3toG4 Conversion Table:"<<endl;
-  for(int ipt=0;ipt<_Ng3tog4;ipt++)cout<<_pg3tog4[ipt];
+  cout << "G4toG3 Conversion Table:"<<endl;
+  for(int ipt=0;ipt<_Ng3tog4;ipt++)cout<<_pg4tog3[ipt];
 #endif
 
 

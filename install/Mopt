@@ -4,10 +4,17 @@ SHELL=/bin/sh
 ifeq  "$(shell uname)"  "AIX" 
 SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
 ROOTLIBS=
+ifdef AMSDEBUG
+CFLAGS= -D__AMSDEBUG__  -D__IBMAIX__ -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl -I../db
+CFLAGSTOFSIM=   -D__BATCH__ -g   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include -I../include/stl
+CFLAGSn=   -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl
+FFLAGS=   -g -I../include -qextname -qflttrap=overflow:underflow:zerodivide:invalid:inexact:enable -qfloat=nans -d
+else
 CFLAGS=   -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include -I../include/stl
 CFLAGSTOFSIM=   -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include -I../include/stl
 CFLAGSn=   -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl
 FFLAGS=    -I../include -O -qextname 
+endif
 DFLAGS=  -D__AMSDEBUG__     -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
 LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag $(ROOTLIBS)
 CC=xlC
@@ -21,16 +28,24 @@ endif
 ifeq  "$(shell uname)"  "OSF1" 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
 ROOTLIBS =
+ifdef AMSDEBUG
+CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGSTOFSIM= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGSn= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian 
+else
 CFLAGS=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -tlocal 
 CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -tlocal 
 CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -tlocal 
 FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
-DFLAGS=  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
+endif
+DFLAGS=     -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
 LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm 
 CC=cxx -D__NAMESPACE__
 ifeq "$(shell cxx -V | grep -c 6.1)" "1"
-CC=cxx -D__NAMESPACE__ -oldcxx
+CC=cxx -D__NAMESPACE__  -nostdnew
 #CC=cxx -D__NAMESPACE__ -nostdnew 
+#CC=cxx -D__NAMESPACE__ -oldcxx
 endif
 ifeq "$(shell cxx -V | grep -c 5.5)" "1"
 CC=cxx
@@ -43,11 +58,18 @@ LIB=/lib/osf1
 TIMEL=../bin/osf1/timel.o
 endif
 ifeq  "$(shell uname)"  "Linux"
+ifdef AMSDEBUG
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db 
+CFLAGSTOFSIM=      -D__BATCH__ -g      -I../include   -I../db
+CFLAGSn=      -D__BATCH__  -g   -I../include   -I../db
+FFLAGS=   -fno-automatic -g -I../include  
+else
 CFLAGS=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
 CFLAGSTOFSIM=      -D__BATCH__ -O1      -I../include -I../include/stl  -I../db
 CFLAGSn=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
 FFLAGS=   -fno-automatic -O -I../include
-DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
+endif
+DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include
 LDFLAGS=  /cern/pro/lib/lnblnk_.o  -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln  -L/usr/local/lib  -lf2c  -lm
 CC=g++ -D__NAMESPACE__
 FF=g77
@@ -59,10 +81,17 @@ TIMEL=
 endif
 
 ifeq  "$(shell uname)"  "HP-UX" 
+ifdef AMSDEBUG
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -D__HPUX__ -g   -fhandle-exceptions  -I../include -I../include/stl  -I../db 
+CFLAGSTOFSIM=     CFLAGS
+CFLAGSn=     CFLAGS
+FFLAGS=   -K +ppu -g -I../include 
+else
 CFLAGS=     -D__BATCH__   -D__HPUX__  -fhandle-exceptions  -I../include -I../include/stl  
 CFLAGSTOFSIM=     CFLAGS
 CFLAGSn=     -D__BATCH__  -g   -fhandle-exceptions  -I../include -I../include/stl  
 FFLAGS=   -K +ppu  -I../include 
+endif
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
 LDFLAGS=  -g  -L/cern/pro/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lm -lg++ -lstdc++  -lcl -lisamstub -L/usr/local/lib/gcc-lib/hppa1.1-hp-hpux9.05/2.7.2 -lgcc 
 CC=g++ -D__NAMESPACE__

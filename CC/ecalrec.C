@@ -309,6 +309,7 @@ void AMSEcalCluster::_writeEl(){
     int i;
     for(i=0;i<3;i++)TN->Coo[TN->Necal][i]=_Coo[i];
     for(i=0;i<3;i++)TN->ErrCoo[TN->Necal][i]=_ErrorCoo[i];
+//    for(i=0;i<3;i++)cout <<TN->ErrCoo[TN->Necal][i]<<" "<<_ErrorCoo[i]<<endl;
     TN->Necal++;
   }
 }

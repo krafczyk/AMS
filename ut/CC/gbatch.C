@@ -29,17 +29,17 @@ void (handler)(int);
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
     UGINIT();
-#ifdef __G4AMS__
 try{
+#ifdef __G4AMS__
     if(MISCFFKEY.G4On)g4ams::G4RUN();
     else if(MISCFFKEY.G3On)GRUN();
+#else
+    GRUN();
+#endif
 } 
 catch (std::bad_alloc a){
  cerr <<"catch-F-NoMemoryAvailable "<<endl;
 }
-#else
-    GRUN();
-#endif
     UGLAST();
     
 return 0;
