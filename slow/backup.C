@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <sys/dir.h>
 #include <string.h>
-int DELETE,DELCOPY,COPY,MKDIR;
+int DELETE,DELCOPY,COPY,MKDIR,TOUCHED;
 int AMSbi(char *a[], char * obj, int i);
 int _sort(dirent ** d1, dirent ** d2);
 int _select(dirent *d1);
@@ -44,6 +44,7 @@ char *dir1, *dir2;
     DELCOPY=0;
     MKDIR=0;
     COPY=0;
+    TOUCHED=0;
     dir1=getenv("DirFrom");
     if (dir1==NULL) {
       puts("backup-F-setenv DirFrom and try again.Stop");
@@ -63,10 +64,11 @@ char *dir1, *dir2;
     }
     else {
      cout<<"backup-I-SuccAt  "<<ctime(&Time)<<endl; 
-     cout <<"COPY: "<<COPY<<endl;
-     cout <<"MKDIR: "<<MKDIR<<endl;
-     cout <<"DELCOPY: "<<DELCOPY<<endl;
-     cout <<"DELETE: "<<DELETE<<endl;
+     cout <<"COPIED: "<<COPY<<endl;
+     cout <<"MKDIRED: "<<MKDIR<<endl;
+     cout <<"DELCOPIED: "<<DELCOPY<<endl;
+     cout <<"DELETED: "<<DELETE<<endl;
+     cout <<"TOUCHED: "<<TOUCHED<<endl;
 
     }
     sleep(delay);
@@ -178,6 +180,13 @@ int backup(char * dir1, char * dir2, int erase){
                     COPY++;
                     
                    }
+               }
+               else {
+                   // touch copies
+                   strcpy(buf,"touch ");
+                   strcat(buf,buf2);
+                   system(buf);
+                   TOUCHED++;
                } 
             }
         }
