@@ -41,15 +41,15 @@ if [ "$ARCH" = "linuxicc" ]; then
       echo "Please use a Root version compiled with g++."
       exit
    fi
-   EXTRALIBS="-ldl -lcrypt"
+   EXTRALIBS="-lshift -ldl -lcrypt"
    AMSLIB="${AMSWD}/lib/linux/icc/libntuple.a"
 elif [ "${OS}" = "Linux" ]; then
    GC="g++ -static -w"
-   EXTRALIBS="-ldl -lcrypt"
+   EXTRALIBS="-lshift -ldl -lcrypt"
    AMSLIB="${AMSWD}/lib/linux/libntuple.a"
 elif [ "${OS}" = "OSF1" ]; then
    GC="cxx -non_shared -w"
-   EXTRALIBS="-lcxx -lm"
+   EXTRALIBS="-lshift -lcxx -lm"
    AMSLIB="${AMSWD}/lib/osf1/libntuple.a"
 else
   echo "This script only runs on Linux and on OSF1; EXIT"

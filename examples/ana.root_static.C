@@ -1,6 +1,10 @@
 #include <root.h>
 #include "TFile.h"
 #include "TH1F.h"
+/* NEEDED FOR CASTOR FILES 
+#include "TRFIOFile.h"
+*/
+
 
 int main(){
 
@@ -10,8 +14,11 @@ int main(){
       // THIS SHOULD WORK NICELY WITH Web files:
       //ams.Add("http://pcamsf0.cern.ch/f2dah1/MC/AMS02/2004A/protons/el.pl1.10200/738197524.0000001.root");
 
-      // IT DOES NOT WORK WITH RFIO files yet !!
-      //ams.Add("rfio:/castor/cern.ch/ams/MC/AMS02/2004A/protons/el.pl1.10200/738197524.0000001.root");
+      /* NEEDED FOR CASTOR FILES
+      char chfile[256] = "rfio:/castor/cern.ch/ams/MC/AMS02/2004A/protons/el.pl1.10200/738197524.0000001.root";
+      new TRFIOFile(chfile);
+      ams.Add(chfile);
+      */
 
       TFile* hfile = new TFile ("amstest.root", "RECREATE"); 
 
