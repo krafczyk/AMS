@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.66 2004/03/12 16:37:18 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.67 2004/06/02 09:16:32 alexei Exp $
 
 #
 #
@@ -30,6 +30,7 @@
 #  Oct  2, 2003. ak. Table  : LocalHosts
 #  Jan 31, 2004. ak. Table  : Ntuples add CRCtime, CRCflag, CASTORtime
 #  Feb 23, 2004. ak. Table  : FilesProcessing
+#  May 19, 2004. ak. Table  : MC_RemoteDSTPath,  MC_DSTCopy
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -145,7 +146,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","LocalHosts","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet","FilesProcessing");
+    my @tables=("Filesystems", "Cites","LocalHosts","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet","FilesProcessing","RemoteCopy");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -259,6 +260,14 @@ sub Create{
          crctime    INT,
          crcflag    INT,
          castortime INT)",
+        "CREATE TABLE MC_DST_Copy
+          (
+           run       int not null,
+           path      VARCHAR(128),
+           prefix    VARCHAR(128),
+           copytime  INT,
+           cite      VARCHAR(64),
+           timestamp INT)",
         "CREATE TABLE DataSets
          (did    INT NOT NULL,
           name   VARCHAR(255),

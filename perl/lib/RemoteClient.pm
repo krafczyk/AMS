@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.267 2004/05/17 12:49:09 alexei Exp $
+# $Id: RemoteClient.pm,v 1.268 2004/06/02 09:16:32 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -56,6 +56,9 @@
 #                : don't validate run if status != 'Finished' 
 #                : journal files : CRC/crc
 #                 
+# June 2, 2004   :  Jean Jacquemier & Alexei Klimentov : updateCopyStatus
+#
+
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
 
@@ -74,7 +77,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -10510,3 +10513,175 @@ sub getMips {
 
     return $mipsmean;
 }
+
+sub updateCopyStatus {
+
+#
+# v1.0 :MC DST copy update Data Base 
+# Features: Update CERN data base with 
+# copied DST to other AMS site (AMS02 MC simulation)
+#
+# May 2004.
+# Authors  Jean Jacquemier & Alexei Klimentov
+#
+#
+
+
+my $HelpTxt = "
+     updateCopyStatus updates information about DST's copied to 
+                      from CERN 
+     -c    - cite nickname, like in  ~MC/scratch directory tree
+     -d    - debug mode
+     -f    - full path to ASCII file
+     -h    - print help
+     -r    - run number
+     -t    - unixtimestamp (default:curent time)
+     -u    - update DB (default noUpdate)
+     -v    - verbose mode
+     perl updateCopyStatus.pl -c:lyon -r:402658148 -t:1085672830
+     perl  updateCopyStatus.pl -f:/f2users/scratch/MC/lyon/local/cp.last -c:lyon
+";
+
+   my $self       = shift;
+
+   my $cite      = undef;
+   my $run       = undef;
+   my $filename  = undef;
+   my $timestamp = undef;
+
+   my $debug     = 0;
+   my $update    = 0;
+
+  foreach my $chop  (@ARGV){
+    if ($chop =~/^-c:/) {
+      $cite=unpack("x3 A*",$chop);
+    }
+    if ($chop =~/^-f:/) {
+      $filename=unpack("x3 A*",$chop);
+    }
+    if ($chop =~/^-r:/) {
+      $run=unpack("x3 A*",$chop);
+    }
+    if ($chop =~/^-t:/) {
+      $timestamp=unpack("x3 A*",$chop);
+    }
+    if ($chop =~/^-u/) {
+        $update = 1;
+    }
+    if ($chop =~/^-v/) {
+        $verbose = 1;
+    }
+
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+}
+
+
+if (not defined $cite) {
+    print "updateCopyStatus -Error- Cite is not defined not defined. Exit \n";
+    return 1;
+} else {
+    if ($verbose) {print "Cite ... $cite \n";}
+}
+
+if (not defined $filename && not defined $run) {
+    print "updateCopyStatus -Error- File name or/and Run number are not defined. Exit \n";
+    return 1;
+} else {
+    if ($filename) {
+     if ($verbose) {print "File... $filename \n";}
+     my $filesize    = (stat($filename))[7];
+     if ($filesize < 1) {
+         print "updateCopyStatus -Error- File is not accessible or have 0 length. Exit \n";
+         return 1;
+     }
+    } else {
+         if ($run && $verbose) {
+          print "Run ... $run \n";
+         }
+     }
+}
+
+if (not defined $timestamp) {
+    $timestamp = time();
+ }
+if ($verbose) { 
+ print "Unix time ... $timestamp \n";
+
+ if ($update) {
+    print "DB will be updated \n";
+ } else {
+    print "----- NO DB UPDATE --------------\n";
+ }
+}   
+
+
+open(HISTORY,"$filename");
+while(<HISTORY>)
+{
+	my $comma = index($_,",");
+	my $run_num = substr($_,0,$comma-1);
+	my $old_comma = $comma;
+
+	$comma = index($_,",",$old_comma+1);
+	my $site_prefix = substr($_,$old_comma+1,$comma-$old_comma-1);
+	$old_comma = $comma;
+
+	$comma = index($_,",",$old_comma+1);
+	my $file_path = substr($_,$old_comma+1,$comma-$old_comma-1);
+	$old_comma = $comma;
+
+	$comma = index($_,",",$old_comma+1);
+	my $unixtime = substr($_,$old_comma+1);
+        
+        if ($verbose) {
+	 print "Run, Cite, File, Time... $run_num, $site_prefix, $file_path, $unixtime \n";
+        }
+        if ($update ==1) {
+ 	 $self->updateMCDSTCopy($run_num,$cite,$site_prefix,$file_path,$unixtime);
+        }
+}
+ close HISTORY;
+ return 1;
+}
+
+
+
+sub updateMCDSTCopy {
+    my $self = shift;
+    my $run  = shift;
+    my $cite = shift;
+    my $cite_prefix = shift;
+    my $filepath = shift;
+    my $unixtime  = shift;
+
+    $cite     = trimblanks($cite);
+    $filepath = trimblanks($filepath);
+
+    my $sql = "SELECT path FROM NTUPLES WHERE PATH like '%$filepath'";
+    my $ret=$self->{sqlserver}->Query($sql);
+ 
+    if( defined $ret->[0][0]){
+     $sql = "DELETE MC_DST_Copy WHERE PATH='$filepath' AND CITE='$cite'";
+     $self->{sqlserver}->Update($sql);
+
+      my $timestamp = time();
+
+     $sql = "INSERT INTO MC_DST_Copy VALUES($run,
+                                            '$filepath',
+                                            '$cite_prefix',
+                                            $unixtime,
+                                            '$cite',
+                                            $timestamp);";
+    $self->{sqlserver}->Update($sql); 
+  } else {
+     print "updateRemoteCopy -W- could not find DST with path : $filepath \n";
+     print "updateRemoteCopy -W- NO DB UPDATE \n";
+  }
+ return 1;
+}
+
+
+

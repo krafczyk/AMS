@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.8 2004/04/26 13:58:00 alexei Exp $
+#  $Id: 00index.txt,v 1.9 2004/06/02 09:16:24 alexei Exp $
 #
 castor.cmp                  //  compare content of two directories
 castor.cp                   //  copy local directory tree to CASTOR
@@ -23,3 +23,4 @@ validate.cgi                //  validate NTuples
 validate.mysql.cgi          //                  using MySQL
 validate.o.cgi              //                  using Oracle
 updatemops.cgi              //  prints and updates MIPS column in cern_hosts DB table
+updateMCDSTCopy.cgi         //  update MC_DST_COPY table according to ASCII files with list of copied DSTs
