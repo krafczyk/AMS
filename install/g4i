@@ -1,14 +1,14 @@
 if $OS == "Linux"  then
- setenv G4SYSTEM Linux-g++
+setenv G4SYSTEM Linux-g++
 setenv G4USE_STL 1
 setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/new
 setenv OGLHOME /usr/Mesa
 endif
 
 if $OS == "OSF1" then
-  setenv G4SYSTEM "DEC-cxx"
+setenv G4SYSTEM "DEC-cxx"
 setenv G4USE_OSPACE 1
-setenv OSPACEDIR /afs/cern.ch/sw/lhcxx/specific/dec/ObjectSpace/2.1/ToolKit
+setenv OSPACE_BASE_DIR /afs/cern.ch/sw/lhcxx/specific/dec/ObjectSpace/2.1/ToolKit
 setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/pro
 setenv OGLHOME /usr/local
 endif
