@@ -54,7 +54,7 @@ void AMSNtuple::init(){
   "necal[0,50],EcalStatus(necal):I,EcalProj(necal)[0,1]:I,EcalPlane(necal)[0,20]:I,EcalNmemb(necal)[0,25]:I,EcalEdep(necal),EcalCoo(3,necal),EcalErrCoo(3,necal)");
 //
   HBNAME(_lun,"EcalCell",&_ecalcell.Ncelle,
-  "ncelle[0,1000],EcalEdepCell(ncelle),EcalEdepAtt(ncelle),EcalSuperLayer(ncelle)[0,7]:I,,EcalPhotomultiplier(ncelle)[0,35]:I,EcalSubCell(ncelle)[0,3]:I");
+  "ncelle[0,300],EcalEdepCell(ncelle),EcalEdepAtt(ncelle),EcalSuperLayer(ncelle)[0,7]:I,,EcalPhotomultiplier(ncelle)[0,35]:I,EcalSubCell(ncelle)[0,3]:I");
 //
   HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
   "ntofmc[0,200],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");
@@ -172,7 +172,7 @@ else{
   "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
 
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
-  	 "nsignals[0,200],sid(nsignals):I,RICchannel(nsignals):I,"
+  	 "nsignals[0,100],sid(nsignals):I,RICchannel(nsignals):I,"
   	 "signal(nsignals):I,RICx(nsignals),RICy(nsignals),"
   	 "origin(3,nsignals),direction(3,nsignals)");
 

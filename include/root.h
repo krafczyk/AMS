@@ -28,10 +28,10 @@ const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;
 const int MAXCTCCLMC =   200;
 const int MAXECCLUST =    50;
-const int MAXECELL   =  1000; 
+const int MAXECELL   =  300; 
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
-const int MAXRICMC   =   200;
+const int MAXRICMC   =   100;
 const int MAXRICHITS =   100;
 
 #ifdef __WRITEROOT__
