@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.13 2002/01/08 13:43:51 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.14 2002/02/08 15:36:53 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -19,13 +19,19 @@ my %fields=(
             CAC=>undef,
             DB=>undef,
             Control=>undef,
+            Name=>"/cgi-bin/mon/monitor.cgi",
             );
     my $type=shift;
     my $self={
         %fields,
     };
 
-
+foreach my $chop  (@ARGV){
+    if($chop =~/^-m/){
+        $self->{Name}="/cgi-bin/mon/monmc.cgi";
+    }
+}
+#warn $self->{Name};
     $self->{q}=new CGI;
 
 #open FILE,">/tmp/query" or die $!;
@@ -111,7 +117,7 @@ sub Update{
     print $q->h1( "Connected To Servers Succesfully" );
     if($ref->{read}==0){
         print $q->start_form(-method=>"GET", 
-          -action=>"/cgi-bin/mon/monitor.cgi");
+          -action=>$monitorHTML::Singleton->{Name});
         print $q->p ("Monitor:");
    print qq`
 <INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="PAH" CHECKED>Producer Active Hosts<BR>
@@ -125,7 +131,7 @@ sub Update{
         print $q->submit(-value=>"SubmitRequest", -name=>"Monitor");
         print $q->end_form();
         print $q->start_form(-method=>"GET", 
-          -action=>"/cgi-bin/mon/monitor.cgi");
+          -action=>$monitorHTML::Singleton->{Name});
         print $q->p ("Control:");
    print qq`
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerActiveClient" CHECKED>Producer Active Client<BR>
@@ -400,7 +406,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
 }
     for my $i (0 ... $#output){
         print $q->start_form(-method=>"GET", 
-          -action=>"/cgi-bin/mon/monitor.cgi");
+          -action=>$monitorHTML::Singleton->{Name});
         my @text=@{$output[$i]};
         my $string="";
      for my $j (0...$#titles){

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.44 2002/02/08 13:48:54 choutko Exp $
+# $Id: Monitor.pm,v 1.45 2002/02/08 15:36:53 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -69,6 +69,12 @@ $self->{ac}= new ActiveClient($self->{myior},$self->{start},$self->{cid});
 
 foreach my $chop  (@ARGV){
     if($chop =~/^-m/){
+        $self->{DataMC}=0;
+    }
+}
+    my $mc=shift;
+    if(defined $mc){
+    if($mc =~/^-m/){
         $self->{DataMC}=0;
     }
 }
@@ -511,7 +517,7 @@ sub getior{
     return getior2();      
 }
 sub getior2{
-    my $file ="/tmp/DumpIOR".".$Monitor::Singleton->{MC}";
+    my $file ="/tmp/DumpIOR".".$Monitor::Singleton->{DataMC}";
     open(FILE,"<".$file) or return undef;
             while (<FILE>){
                 if (/^IOR:/){

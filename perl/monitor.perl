@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: monitor.perl,v 1.7 2002/02/08 13:48:46 choutko Exp $
+#  $Id: monitor.perl,v 1.8 2002/02/08 15:36:49 choutko Exp $
 
 use Error qw(:try);
 use Gtk;
@@ -15,6 +15,10 @@ use lib::monitorUI;
 
 
 # activate poa and get self ior
+
+
+#my $mc="-m";
+#unshift @ARGV, $mc;
 
 my $monitor=new Monitor();
 
