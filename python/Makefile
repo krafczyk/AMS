@@ -21,8 +21,6 @@ PYTHONPY=$(PREF)/lib/python2.2/$(file).py
 PYTHONPYC=$(PREF)/lib/python2.2/$(file).pyc
 
 all : $(MYPY) $(MYLIB)
-	cd $(MY_OS)
-	python2.2 -c "import py_compile; py_compile.compile('$(MYPY)')"
       
 install : $(PYTHONLIB) $(PYTHONPY)
 	cp -f $(MYPYC) $(PYTHONPYC)
@@ -36,6 +34,8 @@ $(PYTHONPY) : $(MYPY)
 $(MYPY) : 
 	./configure
 	mv -f $(file).py $(MYPY)
+	cd $(MY_OS)
+	python2.2 -c "import py_compile; py_compile.compile('$(MYPY)')"
 
 $(MYLIB) : $(file)_wrapnew.o
 	$(GC) -shared $(file)_wrapnew.o -o $(MYLIB) $(LIBS)

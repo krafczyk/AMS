@@ -12,8 +12,8 @@ endif
 GCINCS=-I$(INC_DIR) -I$(AMSWD)/include -I$(ROOTSYS)/include
 LIBS=-L$(ROOTSYS)/lib -lCore -lCint -lHist -lTree -lMatrix -lMinuit \
 -lGraf -lGraf3d -lGpad -lGX11 -lGX11TTF -lGui -lHistPainter -lPostscript \
--lRint -lHtml $(AMSDir)/bin/linux/icc/root_rs.o \
-$(AMSDir)/bin/linux/icc/rootdict_s.o
+-lRint -lHtml $(AMSWD)/bin/linux/icc/root_rs.o \
+$(AMSWD)/bin/linux/icc/rootdict_s.o
 MYLIB=$(MY_OS)/$(file).so
 RUBYLIB=$(LIB_DIR)/$(file).so
 
