@@ -80,7 +80,6 @@ private:
    AMSVirtualDisplay   *m_Display;         //!Pointer to Event display object
 
    void                 CommonConstruct();   //Common part of all constructors
-
 public:
                       AMSRoot();
                       AMSRoot(const char *name, const char *title="The AMS Display with Root");

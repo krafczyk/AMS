@@ -60,7 +60,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
    display.SetView (kTwoView);
    display.ShowNextEvent(-1);
    display.GetCanvas()->Update();	// force it to draw
-
+   
 
   
 

@@ -8,7 +8,6 @@
 #include <unistd.h>		// for getpid()
 #include <stdlib.h>
 #include <TROOT.h>
-
 #ifndef ROOT_TMotifCanvas
 #include <TMotifCanvas.h>
 #endif
@@ -70,7 +69,9 @@
 
 
 MenuDesc_t AMSCanvas::fgAMSFilePane[] = {
-   { kAction, "Save As canvas.ps", SaveParticleCB, NULL },
+   { kAction, "Save As Run.Event.ps", SaveParticleCB, NULL },
+   { kAction, "Save As Run.Event.gif", SaveParticleGIF, NULL },
+   { kAction, "Print",PrintCB, NULL },
    { kAction, "Open data file", OpenFileCB, NULL },
    { kEnd },
 };
@@ -518,9 +519,19 @@ void AMSCanvas::SaveParticleCB(Widget wid, XtPointer cd, XtPointer pointer)
 {
    AddParticleInfo();
    AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
-   disp->GetCanvas()->SaveAs();
+   char fnam[255];
+   sprintf(fnam, "%u.%u.ps",gAMSRoot->RunNum(),gAMSRoot->EventNum());
+   disp->GetCanvas()->SaveAs(fnam);
    disp->GetCanvas()->Update();		// refresh the screen
-   system("lpr Canvas.ps");
+}
+void AMSCanvas::SaveParticleGIF(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   AddParticleInfo();
+   AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
+   char fnam[255];
+   sprintf(fnam, "%u.%u.gif",gAMSRoot->RunNum(),gAMSRoot->EventNum());
+   disp->GetCanvas()->SaveAs(fnam);
+   disp->GetCanvas()->Update();		// refresh the screen
 }
 
 
@@ -566,9 +577,12 @@ void AMSCanvas::PrintCB(Widget wid, XtPointer cd, XtPointer pointer)
    AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
    pid_t pid = getpid();
    char filename[80];
-   sprintf(filename, "/tmp/AMSDisplay.%d", pid);
+   sprintf(filename, "/tmp/AMSDisplay.%u.ps",pid);
    disp->GetCanvas()->SaveAs(filename);
-//   execlp("lp
+   disp->GetCanvas()->Update();		// refresh the screen
+   char cmd[255];
+   sprintf(cmd, "lpr /tmp/AMSDisplay.%u.ps",pid);
+   system(cmd);
 }
 
 

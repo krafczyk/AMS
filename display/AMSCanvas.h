@@ -52,6 +52,7 @@ public:
    //
    static   void      OpenFileCB(Widget, XtPointer, XtPointer);
    static   void      SaveParticleCB(Widget, XtPointer, XtPointer);
+   static   void      SaveParticleGIF(Widget, XtPointer, XtPointer);
    static   void      PrintCB(Widget, XtPointer, XtPointer);
 
 
