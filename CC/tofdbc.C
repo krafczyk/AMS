@@ -109,7 +109,7 @@ geant TOFDBc::_plnstr[15]={
   void TOFDBc::readgconf(integer fn[3]){
     int i;
     char fname[80];
-    char name[12];
+    char name[19];
     char vers1[3]="11";// tempor !!! (should be 01)
     char vers2[3]="02";
     UHTOC(fn,4,name,12);

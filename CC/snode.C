@@ -110,13 +110,13 @@ void AMSNodeMap::unmap(){
  AMSNode * AMSNodeMap::getp  (  const AMSID& id, char hint ) const {
 
    
-    integer i= AMSbsi(_hash,*(AMSNode*)&id,_numo, hint);
+    integer i= AMSbsi((AMSID**)_hash,id,_numo, hint);
     if(i<0)return 0;
     else return _hash[i];
  }
  integer AMSNodeMap::getpos  (  const AMSID& id, char hint ) const {
    
-    return AMSbsi(_hash,*(AMSNode*)&id,_numo, hint);
+    return AMSbsi((AMSID**)_hash,id,_numo, hint);
  }
 void AMSNodeMap::print (int init){
 AMSNode * cur;

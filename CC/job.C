@@ -611,45 +611,40 @@ void AMSJob::_retrddata(){
 
 
 void AMSJob::udata(){
-char jobname[160];
-char setupname[160];
-char triggername[160];
-char tdvname[1600];
-char ffile[160];
-char ifile[160];
-char ofile[160];
-UHTOC(DAQCFFKEY.ifile,40,ifile,160);
-UHTOC(DAQCFFKEY.ofile,40,ofile,160);
-UHTOC(AMSFFKEY.Jobname,40,jobname,160);
-UHTOC(AMSFFKEY.Setupname,40,setupname,160);
-UHTOC(IOPA.ffile,40,ffile,160);
-UHTOC(IOPA.TriggerC,40,triggername,160);
-jobname[159]='\0';
-setupname[159]='\0';
-triggername[159]='\0';
-ffile[159]='\0';
-ifile[159]='\0';
-ofile[159]='\0';
+const integer cl=161;
+char jobname[cl];
+char setupname[cl];
+char triggername[cl];
+char tdvname[1601];
+char ffile[cl];
+char ifile[cl];
+char ofile[cl];
+UHTOC(DAQCFFKEY.ifile,cl/sizeof(integer),ifile,cl-1);
+UHTOC(DAQCFFKEY.ofile,cl/sizeof(integer),ofile,cl-1);
+UHTOC(AMSFFKEY.Jobname,cl/sizeof(integer),jobname,cl-1);
+UHTOC(AMSFFKEY.Setupname,cl/sizeof(integer),setupname,cl-1);
+UHTOC(IOPA.ffile,cl/sizeof(integer),ffile,cl-1);
+UHTOC(IOPA.TriggerC,cl/sizeof(integer),triggername,cl-1);
 int i;
 
 //+
-for (i=158; i>0; i--) {        // should be at least 1 char
+for (i=cl-2; i>0; i--) {        // should be at least 1 char
  if(jobname[i] == ' ') jobname[i]='\0';
  else break;
 }
-for (i=158; i>=0; i--) {
+for (i=cl-2; i>=0; i--) {
  if(setupname[i] == ' ') setupname[i]='\0';
  else break;
 }
-for (i=158; i>=0; i--) {
+for (i=cl-2; i>=0; i--) {
  if(ffile[i] == ' ') ffile[i]='\0';
  else break;
 }
-for (i=158; i>=0; i--) {
+for (i=cl-2; i>=0; i--) {
  if(ifile[i] == ' ') ifile[i]='\0';
  else break;
 }
-for (i=158; i>=0; i--) {
+for (i=cl-2; i>=0; i--) {
  if(ofile[i] == ' ') ofile[i]='\0';
  else break;
 }
@@ -665,9 +660,9 @@ else{
   exit(1);
 }
 {
-int len=160;
+int len=cl-1;
 
-for(i=158;i>=0;i--){
+for(i=cl-2;i>=0;i--){
    if(triggername[i]==' '){
     triggername[i]='\0';
     len=i+1;
@@ -716,10 +711,9 @@ if(AMSFFKEY.Write > 0 && AMSFFKEY.Write%2==0)AMSFFKEY.Write++;
 // TDV
 if(AMSFFKEY.Update){
  UHTOC(AMSFFKEY.TDVC,400,tdvname,1600);
- tdvname[1599]='\0';
  {
  int len=1600;
- for(i=1598;i>=0;i--){
+ for(i=1599;i>=0;i--){
     if(tdvname[i]==' '){
      tdvname[i]='\0';
      len=i+1;

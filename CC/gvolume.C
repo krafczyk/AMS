@@ -179,7 +179,7 @@ void AMSgvolume::_init(){
    }
    if(newr){
     geant r[3],sph,cth,cph,sth,theta[3],phi[3];
-    integer rt;
+    integer rt=0;
     for (int j=0;j<3;j++){
     for (int k=0;k<3;k++) r[k]=_nrm[k][j];
      GFANG(r, cth,  sth, cph, sph,  rt);
