@@ -256,7 +256,7 @@ $(BIN)trid.o: 	         $(SCC)trid.C
 	$(CC) -c $(CFLAGS) $(SCC)trid.C -o $(BIN)trid.o
 
 $(BIN)trrec.o: 	 $(SCC)trrec.C
-	$(CC) -c $(CFLAGSn) $(SCC)trrec.C -o $(BIN)trrec.o
+	$(CC) -c $(CFLAGS) $(SCC)trrec.C -o $(BIN)trrec.o
 
 $(BIN)trcalib.o: 	 $(SCC)trcalib.C
 	$(CC) -c $(CFLAGS) $(SCC)trcalib.C -o $(BIN)trcalib.o
@@ -289,7 +289,7 @@ $(BIN)charge.o: 	         $(SCC)charge.C
 	$(CC) -c $(CFLAGS) $(SCC)charge.C -o $(BIN)charge.o
 
 $(BIN)particle.o: 	         $(SCC)particle.C
-	$(CC) -c $(CFLAGSn) $(SCC)particle.C -o $(BIN)particle.o
+	$(CC) -c $(CFLAGS) $(SCC)particle.C -o $(BIN)particle.o
 
 $(BIN)link.o: 	         $(SCC)link.C
 	$(CC) -c $(CFLAGS) $(SCC)link.C -o $(BIN)link.o
