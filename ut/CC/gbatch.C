@@ -84,7 +84,7 @@ using namespace glconst;
    break;
   case SIGXCPU:
     if(cpul){
-       cerr <<" Cpu limit exceeded"<<endl;
+       cerr <<" Job Cpu limit exceeded"<<endl;
        cpul=0;
        GCFLAG.IEORUN=1;
        GCFLAG.IEOTRI=1;

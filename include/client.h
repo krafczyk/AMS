@@ -31,7 +31,8 @@ protected:
  static char _streambuffer[1024]; 
  static ostrstream _ost;
 public:
-AMSClient(int debug=0):_debug(debug),_error(" "),_ExitInProgress(false){}
+AMSClient(int debug=0):_debug(debug),_error(" "),_ExitInProgress(false)
+{_pid.Status=DPS::Client::NOP;}
 virtual ~AMSClient(){};
 AMSClientError & Error(){return _error;}
 int  Debug() const{return _debug;}

@@ -171,7 +171,8 @@ int failure=0;
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
-    (*li)->sendCurrentInfo(_pid,_cinfo);
+    (*li)->sendCurrentInfo(_pid,_cinfo,0);
+    break;
    }
   }
   catch  (CORBA::SystemException & a){
@@ -332,7 +333,7 @@ UpdateARS();
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
-    (*li)->sendCurrentInfo(_pid,_cinfo);
+    (*li)->sendCurrentInfo(_pid,_cinfo,0);
      return;
    }
   }

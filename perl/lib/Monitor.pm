@@ -27,6 +27,8 @@ my %fields=(
      rtb=>undef,
      dsti=>undef,
      dsts=>undef,
+     db=>undef,
+     ok=>0,
             );
 sub new{
     my $type=shift;
@@ -52,26 +54,34 @@ return $mybless;
 
 sub Connect{
  my $ref=shift;
- my $ior= shift @ARGV;
- unshift @ARGV, $ior;
+     $ref->{ok}=0;
+ my $ior=getior();
+ if(not defined $ior){ 
+  $ior= shift @ARGV;
+  unshift @ARGV, $ior;
+ }
+ if( not defined $ior){
+  return $ref->{ok};
+ } 
  chomp $ior;
  my $tm={};
  try{
   $tm = $ref->{orb}->string_to_object($ior);
+  $ref->{arsref}=[$tm];
+     $ref->{ok}=1;
  }
  catch CORBA::MARSHAL with{
-     croak "MARSHAL Error "."\n";
+     carp "MARSHAL Error "."\n";
  }
  catch CORBA::COMM_FAILURE with{
-     croak "Commfailure Error "."\n";
+     carp "Commfailure Error "."\n";
  }
  catch CORBA::SystemException with{
-     croak "SystemException Error "."\n";
+     carp "SystemException Error "."\n";
  };
- $ref->{arsref}=[$tm];
- 
+ return $ref->{ok};
 
-}
+ }
 
 sub UpdateEverything{
  my $ref=shift;
@@ -119,7 +129,8 @@ sub UpdateEverything{
              $ref->{nkl}=$ahl;
          }
 
-
+         my ($ok, $dhl)=$arsref->getDBSpace(\%cid);
+         $ref->{db}=$dhl;
          $cid{Type}="Producer";
        ($length,$ahl)=$arsref->getAHS(\%cid);
          if($length==0){
@@ -142,19 +153,19 @@ sub UpdateEverything{
          else {
              $ref->{ncl}=$ahl;
          }
-         last;
+         goto NEXT;
      }
      catch CORBA::SystemException with{
      };
  }
-
+       return 0;
+NEXT:
  foreach $arsref (@{$ref->{arpref}}){
      my $length;
      my $ahl;
      try{
          my %cid=%{$ref->{cid}};
          $cid{Type}="Producer";
-
 
          my $maxr=0;
         ($length,$ahl)=$arsref->getRunEvInfoS(\%cid, \$maxr);
@@ -164,6 +175,8 @@ sub UpdateEverything{
          else {
              $ref->{rtb}=$ahl;
          }
+
+
         ($length,$ahl)=$arsref->getDSTInfoS(\%cid);
          if($length==0){
              $ref->{dsti}=undef;
@@ -171,6 +184,7 @@ sub UpdateEverything{
          else {
              $ref->{dsti}=$ahl;
          }
+         
         ($length,$ahl)=$arsref->getDSTS(\%cid);
          if($length==0){
              $ref->{dsts}=undef;
@@ -178,25 +192,36 @@ sub UpdateEverything{
          else {
              $ref->{dsts}=$ahl;
          }
-         last;
+
+         goto LAST;
      }
      catch CORBA::SystemException with{
      };
  }
 
-
+  return 0; 
+LAST:
+ return 1;
+}
+sub DESTROY{
+    my $self=shift;
+    warn "DESTROYING $self";
 }
 
 sub UpdateARS{
  my $ref=shift;
  my $arsref;
+ if(not $ref->{ok}){
+     return 0;
+ }
  foreach $arsref (@{$ref->{arsref}}){
      try{
          my %cid=%{$ref->{cid}};
          $cid{Type}="Server";
       my ($length,$pars)=$arsref->getARS(\%cid,"Any",0);
          if($length==0 ){
-            croak "updars returns zero \n";
+            carp "updars returns zero \n";
+            return 0;
         }
         for(;;){
              my $old=shift @{$ref->{arsref}};
@@ -227,7 +252,8 @@ sub UpdateARS{
          ($length,$pars)=$arsref->getARS(\%cid,"Any",0);
 
          if($length==0 ){
-            croak "updars returns zero \n";
+            carp "updars returns zero \n";
+            return 0;
         }
         for(;;){
              my $old=shift @{$ref->{arpref}};
@@ -260,13 +286,18 @@ sub UpdateARS{
      carp "getars oops SystemException Error "."\n";
  };
  }
-         print "updars exited";
+ return 1;
 }
 
 sub Update{
     my  $ref=$Monitor::Singleton;
-    $ref->UpdateARS();
-    $ref->UpdateEverything();
+    my $ok=$ref->UpdateARS();
+    if (not $ok){
+        $ref->Connect() or return ($ref, 0);
+        $ref->UpdateARS() or return ($ref, 0);
+    }
+    $ok=$ref->UpdateEverything();
+    return ($ref,$ok);
 }
 
 sub Update2{
@@ -277,3 +308,69 @@ sub Update2{
     }
 }
 
+
+sub getior{
+    my $file ="/tmp/o";
+    my $fileo ="/tmp/oo";
+    my $i=system "bjobs -q linux_server >$file" ;
+    if($i){
+        return undef;
+    }
+    open(FILE,"<".$file) or return undef;
+    while (<FILE>){
+        if ($_ =~/^\d/){
+            my @args=split ' ';
+            $i=system "bpeek $args[0] >$fileo";
+            if($i){
+                next;
+            }
+            open(FILEO,"<".$fileo) or next;
+            while (<FILEO>){
+                if (/^IOR:/){
+                    close(FILEO);
+                    return $_;
+                }
+            }
+            close(FILEO);
+        }
+    }
+
+    close(FILE);
+}
+
+sub getdbok{
+    my @output=();
+    my @text=();
+    push @text, $Monitor::Singleton->{db}->{fs};
+    push @text, int $Monitor::Singleton->{db}->{dbtotal};
+    push @text, int $Monitor::Singleton->{db}->{dbfree};
+    push @text, int $Monitor::Singleton->{db}->{dbfree}/$Monitor::Singleton->{db}->{dbtotal}*100;
+    if($text[1]<0 or $text[2]<0 or $text[2]<200){
+      push @text ,1;
+  }elsif($text[2]<100){
+      push @text ,2;
+  }else{
+      push @text ,0;
+  }
+    push @output, [@text];
+    my $i;
+    for $i (0 ... $#{$Monitor::Singleton->{dsti}}){
+     $#text=-1;
+     my $hash=$Monitor::Singleton->{dsti}[$i];
+     my $string=$hash->{HostName}.":".$hash->{OutputDirPath};
+    push @text, $string;
+    push @text, int $hash->{TotalSpace}/1024;           
+    push @text, int $hash->{FreeSpace}/1024;           
+    push @text, int $hash->{FreeSpace}/$hash->{TotalSpace}*100;           
+    if($text[1]<0 or $text[2]<0 or $text[2]<2000){
+      push @text ,1;
+  }elsif($text[2]<1000){
+      push @text ,2;
+  }else{
+      push @text ,0;
+  }
+    push @output, [@text];
+ }
+
+    return @output;
+}

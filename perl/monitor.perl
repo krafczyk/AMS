@@ -19,24 +19,24 @@ use lib::monitorUI;
 
 my $monitor=new Monitor();
 
-
 #get ior from server and connect to
 
-$monitor->Connect();
-$monitor->Update();
+my $ok=$monitor->Connect();
 
 #Activate GTK
 
 my $window=new monitorUI;
-Gtk->timeout_add(60000,\&Monitor::Update);
-
-
-
 
 
 
 #show window and run orbit
 
+ if($ok){
+  $window->Update();
+ }
  $window->{window}->show_all;
+if(not $ok){
+  monitorUI::Warning();
+}
  $monitor->{orb}->run();
 # Gtk->main();

@@ -135,7 +135,7 @@ module DPS{
       RunStatus Status;
       string HostName;
     }; 
-    void sendCurrentInfo(in CID id,in CurrentInfo ci); 
+    void sendCurrentInfo(in CID id,in CurrentInfo ci, in long propagate); 
 
     struct DSTInfo{
      unsigned long uid;
@@ -229,7 +229,13 @@ module DPS{
 
     long getAHS(in CID id, out AHS ahl);
     void sendAH(in CID id, inout ActiveHost ah,in RecordChange rc);
-    boolean getDBSpace(in CID id, inout float Free, inout float Total);   
+    struct DB{
+     string fs;
+     float dbfree;
+     float dbtotal;
+     float bs;
+    };
+    boolean getDBSpace(in CID id, out DB db);   
    };
   interface Monitor: Client{
     void HostStatusChanged(in CID id, in ActiveHost ah);

@@ -8,4 +8,6 @@ package main;
 my $window=new monitorUI;
 
 $window->{window}->show_all;
+monitorUI::Warning();
+
 Gtk->main;

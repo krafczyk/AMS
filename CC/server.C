@@ -54,6 +54,7 @@ int main(int argc, char * argv[]){
    return 1;
   } 
    AMSServer::Singleton()->IMessage("Initialization Completed");
+   AMSServer::Singleton()->DumpIOR();
     for(;;){
      try{
       AMSServer::Singleton()->UpdateDB();
@@ -256,7 +257,7 @@ void AMSServer::Listening(int sleeptime){
 typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
       for(MOI i=_orbmap.begin();i!=_orbmap.end();++i){
        if(sleeptime>0)sleep(sleeptime);
-       (i->second)._orb->perform_work();
+       ((*i).second)._orb->perform_work();
       }
 }
 
@@ -332,6 +333,8 @@ void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordC
       _parent->EMessage(AMSClient::print(ac,"PropagateAC-getARS retrurns 0"));
   }
 //  cout <<"propagateAC - getars returns "<<length<<endl;
+  time_t tt;
+  time(&tt);
   for(int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
@@ -339,7 +342,7 @@ void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordC
     _pvar->sendAC(ac.id,ac,rc);
    }
    catch (CORBA::SystemException &ex){
-     cerr<<"oops corba exc found for "<<i<<endl;
+     cerr<<"oops corba exc found for "<<i<<" "<<ctime(&tt)<< endl;
    }
   } 
   }   
@@ -356,6 +359,8 @@ void AMSServerI::PropagateAH(const DPS::Client::CID & pid,DPS::Client::ActiveHos
       _parent->EMessage(AMSClient::print(ah,"PropagateAC-getARS retrurns 0"));
   }
 //  cout <<"propagateAC - getars returns "<<length<<endl;
+  time_t tt;
+  time(&tt);
   for(int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
@@ -363,7 +368,7 @@ void AMSServerI::PropagateAH(const DPS::Client::CID & pid,DPS::Client::ActiveHos
     _pvar->sendAH(pid,ah,rc);
    }
    catch (CORBA::SystemException &ex){
-     cerr<<"oops corba exc found for "<<i<<endl;
+     cerr<<"oops corba exc found for "<<i<<" "<<ctime(&tt)<<endl;
    }
   } 
   }   
@@ -391,6 +396,7 @@ if(_ActivateQueue){
 bool AMSServerI::InactiveClientExists(){
 for(ACLI li= _acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Active){
+//   if(_parent->Debug())_parent->IMessage(AMSClient::print(*li," Inactive Client Found"));
    return true;
   }
 }
@@ -652,8 +658,8 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
      ac.id.Interface=(*i)->Interface;
      (ac.id).uid=_Submit+1;
      ac.id.Type=getType();
-     ac.id.pid=0;
      ac.id.ppid=0;
+     ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
      time_t tt;
      time(&tt);
@@ -935,7 +941,7 @@ return length;
 
 
 int Server_impl::getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException){
-
+//_parent->IMessage(AMSClient::print(cid," type "));
 ACS_var acv= new ACS();
 int length=0;
 for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down()){
@@ -950,13 +956,14 @@ acv->length(length);
 length=0;
 for(ACLI li=pser->getacl().begin();li!=pser->getacl().end();++li){
  acv[length++]=*li;
+// _parent->IMessage(AMSClient::print(acv[length-1],"getacs"));
 }
 }
 acs=acv._retn();
 return length;
 }
 }
-
+return 0;
 
 }
 
@@ -1588,6 +1595,7 @@ if(getServer()->InactiveClientExists())return;
      ac.id.pid=0;
      ac.id.ppid=0;
      ac.id.Type=getType();
+     ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
      time_t tt;
      time(&tt);
@@ -1975,6 +1983,19 @@ DPS::Client::ARS_var arf=pars;
     _pvar->getRunEvInfo(cid,ro,dso);
     return;
   }
+   catch (CORBA::TRANSIENT &tr){
+    _parent->EMessage(AMSClient::print(cid,"Transient Error Occurs"));
+    sleep(1);    
+    try{
+     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+     DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
+     _pvar->getRunEvInfo(cid,ro,dso);
+    }
+    catch (CORBA::SystemException &ex){
+     _parent->EMessage(AMSClient::print(cid,"Transient Error Persists"));
+     // Have to Kill Servers Here
+    }
+   }
     catch (CORBA::SystemException &ex){
      // Have to Kill Servers Here
    }
@@ -2082,7 +2103,7 @@ else{
 acv->length(length);
 length=0;
 for(DSTLI li=_dst.begin();li!=_dst.end();++li){
- acv[length++]=*(li->second);
+ acv[length++]=(*li).second;
 }
 }
 dsts=acv._retn();
@@ -2090,7 +2111,8 @@ return length;
 }
 
 
-void Producer_impl::sendCurrentInfo(const DPS::Client::CID & cid, const  CurrentInfo &ci)throw (CORBA::SystemException){
+void Producer_impl::sendCurrentInfo(const DPS::Client::CID & cid, const  CurrentInfo &ci, int propagate)throw (CORBA::SystemException){
+
 
 RLI li=find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid));
 if(li !=_rl.end()){
@@ -2226,8 +2248,10 @@ if(!resultdone){
 
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   float dbfree,dbtotal;
-  _pser->getDBSpace(_parent->getcid(),dbfree,dbtotal);
-  cout <<" DBSpace Free "<<dbfree <<" Kb out of Total "<<dbtotal<<endl;
+  DPS::Server::DB* db;
+  _pser->getDBSpace(_parent->getcid(),db);
+  DPS::Server::DB_var dbv=db;
+  cout <<" DBSpace Free "<<dbv->dbfree <<" Mb out of Total "<<dbv->dbtotal<<endl;
 {
   for(DSTILI li= _dstinfo.begin();li!=_dstinfo.end();++li){
     _parent->IMessage(AMSClient::print((*li),"DiskSpace Info"));
@@ -2285,6 +2309,8 @@ cid.Type=getType();
 DPS::Client::ARS * pars;
 int length=getARS(cid,pars,DPS::Client::LessThan,_parent->getcid().uid);
 DPS::Client::ARS_var arf=pars;
+  time_t tt;
+  time(&tt);
  for(int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
@@ -2295,7 +2321,7 @@ DPS::Client::ARS_var arf=pars;
    }
   }
     catch (CORBA::SystemException &ex){
-     cerr<<" Master oops corba exc for "<<i<<" "<<length<<endl;
+     cerr<<" Master oops corba exc for "<<i<<" "<<length<<" "<<ctime(&tt)<<endl;
    }
  }
 return true;
@@ -2433,6 +2459,10 @@ bool Server_impl::PingServer(const DPS::Client::ActiveClient & ac){
      _pvar->ping();
      return true;
      }
+   }
+   catch (CORBA::TRANSIENT &tr){
+    _parent->EMessage(AMSClient::print(ac,"Transient Error Occurs"));
+    return true;    
    }
    catch (CORBA::SystemException &ex){
    }
@@ -2577,17 +2607,20 @@ void Server_impl::sendNC(const DPS::Client::CID &  cid, const  DPS::Client::Nomi
 }
 
 #include <sys/statfs.h>
-CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, float & Free, float &Total)throw (CORBA::SystemException){
+CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, DB_out dbo)throw (CORBA::SystemException){
 
-
+   DB_var dbv= new DB();
    AString amsdatadir; 
    char* gtv=getenv("AMSDataDir");
    if(gtv && strlen(gtv)>0){
      amsdatadir=gtv;
    }
    else{
-   Free=-1;
-   Total=-1;
+   dbv->fs=(const char *)" Unknown";
+   dbv->dbfree=-1;
+   dbv->dbtotal=-1;
+   dbv->bs=-1;
+   dbo=dbv._retn();
    return false;
   }
     
@@ -2595,13 +2628,19 @@ CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, float & Free
   struct statfs buffer;
   int fail=statfs((const char*)amsdatadir,&buffer); 
   if(fail){
-   Free=-1;
-   Total=-1;
+   dbv->fs=(const char *)amsdatadir;
+   dbv->dbfree=-1;
+   dbv->dbtotal=-1;
+   dbv->bs=-1;
+   dbo=dbv._retn();
    return false;
   }
   else{
-   Free= (buffer.f_bavail*(buffer.f_bsize/1024.));
-   Total= (buffer.f_blocks*(buffer.f_bsize/1024.));
+   dbv->fs=(const char *)amsdatadir;
+   dbv->dbfree= (buffer.f_bavail*(buffer.f_bsize/1024./1024.));
+   dbv->dbtotal= (buffer.f_blocks*(buffer.f_bsize/1024/1024.));
+   dbv->bs=1024*1024;
+   dbo=dbv._retn();
   }
   return true;
 }

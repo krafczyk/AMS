@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.16 2000/09/06 16:09:35 choutko Exp $
+// $Id: g4physics.C,v 1.17 2000/12/14 15:09:25 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -840,7 +840,7 @@ void AMSG4Physics::ConstructAllShortLiveds()
 
 
 
-   char* AMSG4Physics::G3toG4(G4int pid){
+   const char* AMSG4Physics::G3toG4(G4int pid){
 
    int found=AMSbins(_pg3tog4,AMSIDi(pid),_Ng3tog4);
    if(found>0){

@@ -188,7 +188,7 @@ void _PurgeQueue();
    void sendAC(const DPS::Client::CID &cid,  DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
    void sendAH(const DPS::Client::CID &cid,  DPS::Client::ActiveHost & ah,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
    void sendNC(const DPS::Client::CID &cid,  const DPS::Client::NominalClient & nc,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
-   CORBA::Boolean getDBSpace(const DPS::Client::CID &cid, float & Free, float &total)throw (CORBA::SystemException);
+   CORBA::Boolean getDBSpace(const DPS::Client::CID &cid, DB_out db)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
    int getNHS(const DPS::Client::CID &cid,NHS_out nhl)throw (CORBA::SystemException);
    int getAHS(const DPS::Client::CID &cid,AHS_out ahl)throw (CORBA::SystemException);
@@ -298,7 +298,7 @@ public:
 
   int getDSTS(const DPS::Client::CID & ci, DSTS_out dsts)throw (CORBA::SystemException);
 
-  void sendCurrentInfo(const DPS::Client::CID & ci, const  CurrentInfo &ci)throw (CORBA::SystemException);
+  void sendCurrentInfo(const DPS::Client::CID & ci, const  CurrentInfo &ci, int propagate)throw (CORBA::SystemException);
 
   void sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException);
 
