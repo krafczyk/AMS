@@ -2356,8 +2356,9 @@ void AMSEvent::setfile(char file[]){
   }
 }
 
+extern "C" void geocoor_(const number & gt, const number &gp, const number &gr, geant &mt, geant &mp, geant &mr);
 void AMSEvent::getmag(float & thetam, float & phim){
  // to be done
- thetam=0;
- phim=0;
+ geant drad;
+ geocoor_(_StationTheta,_StationPhi,_StationRad/100000.,thetam,phim,drad);    
 }

@@ -42,8 +42,8 @@ public:
 AMSBeta *  next(){return (AMSBeta*)_next;}
 number getchi2()const{return _Chi2;}
 number getchi2S()const{return _Chi2Space;}
-number getbeta()const{return _BetaC;}
-number getebeta()const{return _InvErrBetaC;}
+number getbeta()const{return (checkstatus(AMSDBc::BAD)|| BETAFITFFKEY.MassFromBetaRaw)?_Beta:_BetaC;}
+number getebeta()const{return (checkstatus(AMSDBc::BAD)|| BETAFITFFKEY.MassFromBetaRaw)?_InvErrBeta:_InvErrBetaC;}
 integer getpattern()const{return _Pattern;}
 AMSTrTrack * getptrack()const {return _ptrack;}
 AMSTOFCluster * getpcluster(integer i){return i>=0 && i<4? _pcluster[i]:0;}

@@ -82,7 +82,7 @@ Below there is a description of a  ntuple.
 * I*4  *              * PARTICLE * pchargep(npart)   // pointer to charge
 * I*4  *              * PARTICLE * ptrackp(npart)    // pointer to track
 * I*4  *              * PARTICLE * pid(npart)        // Geant Particle Id
-* R*4  *              * PARTICLE * pmass(npart)      // particle mass
+* R*4  *              * PARTICLE * pmass(npart)      // particle mass 
 * R*4  *              * PARTICLE * perrmass(npart)   // error in particle mass
 * R*4  *              * PARTICLE * pmom(npart)       // particle momentum
                                                      //  (signed)

@@ -382,10 +382,14 @@ number AMSBeta::betacorr(number zint,number z0,number part){
  number zb=z0+1;
  number x0;
  integer ntry=0;
- integer ntrymax=100;
+ integer ntrymax=255;
  while(DERFC(zb)>zmin && ntry++<ntrymax)zb=zb+1;
  integer ierr;
  rzerowrapper_(z0,zb,x0,zmin,ierr);
- if(ierr || ntry>ntrymax)return 1;
+ if(ierr || ntry>ntrymax){
+  cerr<<"AMSBeta::betacorr-E-UnableToCorrectBeta "<<zint<<" "<<z0<<" "<<part<<" "<<ierr<<" "<<ntry<<endl;
+  setstatus(AMSDBc::BAD);
+  return 1;
+ }
  else     return x0;
 }

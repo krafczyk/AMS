@@ -416,6 +416,7 @@ public:
                            // using 2 & 3 (comb # 7)i
   integer FullReco;
   geant Chi2S;  // Max acceptable chi2 for space fit
+  integer MassFromBetaRaw;
 };
 //
 
