@@ -36,11 +36,11 @@ if [ "$ARCH" = "linuxicc" ]; then
       echo "Please use a Root version compiled with g++."
       exit
    fi
-   EXTRALIBS="-ldl -lcrypt -rdynamic"
+   EXTRALIBS="-ldl -lcrypt"
    AMSLIB="${AMSWD}/lib/linux/icc/libntuple.a"
 elif [ "${OS}" = "Linux" ]; then
    GC=g++
-   EXTRALIBS="-ldl -lcrypt -rdynamic"
+   EXTRALIBS="-ldl -lcrypt"
    AMSLIB="${AMSWD}/lib/linux/libntuple.a"
 elif [ "${OS}" = "OSF1" ]; then
    GC=cxx
@@ -67,7 +67,7 @@ echo -e "\n>>> COMPILING and LINKING: ${file}"
 SHELL=/bin/sh
 
 ${FILE_EXE}:	${file} ${AMSLIB}
-	${GC} -w ${INCS} -o ${FILE_EXE} ${file} ${AMSLIB} ${ROOTLIBS} ${EXTRALIBS}
+	${GC} -static -w ${INCS} -o ${FILE_EXE} ${file} ${AMSLIB} ${ROOTLIBS} ${EXTRALIBS}
 	chmod 755 ${FILE_EXE}
 
 ${AMSLIB}: 

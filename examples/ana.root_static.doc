@@ -4,9 +4,11 @@
  *    - To compile it, link it and run it, you can use (both on Linux and on
  *      Alphas) the ams_run.sh script: 
  *                   - ams_run.sh ana.root_static.C
+ *
  *    - Note that the program is prepared to be run in batch mode. Linking
  *      with additional object files is required in order to see interactive 
- *      graphics.
+ *
+ *    - Also, it does not work with RFIO files for the time being.
  *
  *  \include ana.root_static.C
  */ 

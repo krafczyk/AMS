@@ -36,9 +36,9 @@
     bool UProcessCut(): called in the entry loop to accept/reject an event \n
 
    To use this file, try the following session on your Tree T: \n
- Root > T->Process("stlv.C+") \n -> compile library if not up to date
- Root > T->Process("stlv.C++") \n -> force always compilation
- Root > T->Process("stlv.C")  \n -> non-compiled (interpreted) mode
+ Root > T->Process("stlv.C+") -> compile library if not up to date \n
+ Root > T->Process("stlv.C++") -> force always compilation \n
+ Root > T->Process("stlv.C")  -> non-compiled (interpreted) mode \n
 */
 
 class stlv : public AMSEventR {
