@@ -1,5 +1,6 @@
 #pragma prefix "ams.cern.ch"
 module DPS{
+
    typedef unsigned long time;
     exception DBProblem{
        string message;

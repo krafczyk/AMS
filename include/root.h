@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.113 2003/10/17 17:14:45 alcaraz Exp $
+//  $Id: root.h,v 1.114 2003/10/26 14:21:26 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -836,7 +836,7 @@ public:
     sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%d",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
   return _Info;
   } 
-ClassDef(TrTrackR,2)       //TrTrackR
+ClassDef(TrTrackR,3)       //TrTrackR
 friend class AMSTrTrack;
 };
 

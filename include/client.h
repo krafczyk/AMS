@@ -1,12 +1,12 @@
-//  $Id: client.h,v 1.22 2003/07/25 14:54:03 choutko Exp $
+//  $Id: client.h,v 1.23 2003/10/26 14:21:26 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
 #include <astring.h>
 #include <list>
 #include <fstream.h>
-#include <server-cpp-stubs.hh>
-#include <orb/orbitcpp_exception.hh>
+#include <server-cpp-stubs.h>
+//#include <orb/orbitcpp_exception.h>
 #include <strstream.h>
 class AMSClientError{
 protected:
