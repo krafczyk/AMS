@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.2 2001/01/22 17:32:45 choutko Exp $
+//  $Id: tofcalib02.h,v 1.3 2002/09/04 09:11:34 choumilo Exp $
 #include <typedefs.h>
 #include <tofdbc02.h>  
 //  Some classes for calibrations. E.Choumilov
@@ -92,12 +92,15 @@ public:
 //  class to manipulate with AMPL-calibration data :
 class TOF2AMPLcalib {
 private:
-  static number ambin[TOF2GC::SCBTBN][TOF2GC::SCACMX];// 2_sides-signals for each ref_bar/bin/event
-  static integer nevenb[TOF2GC::SCBTBN];// numb.of events accum. per ref_bar/bin for ambin
+  static number ambin1[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s1-signals for each ref_bar/bin/event
+  static integer nevenb1[TOF2GC::SCBTBN];// s1 events accum. per ref_bar/bin for ambin
+  static number ambin2[TOF2GC::SCBTBN][TOF2GC::SCACMX];// s2-signals for each ref_bar/bin/event
+  static integer nevenb2[TOF2GC::SCBTBN];// s2 events accum. per ref_bar/bin for ambin
   static number amchan[TOF2GC::SCCHMX][TOF2GC::SCACMX];// side-signals for each channel/event
   static integer nevenc[TOF2GC::SCCHMX];// numb.of events accum. per channel for amchan
   static geant gains[TOF2GC::SCCHMX];//trunc. mean ch.signals ("0" impact) relat. to ref.ones
-  static geant btamp[TOF2GC::SCBTBN];// trunc. mean. bar-signals for each bin(ref.bars) 
+  static geant btamp[2][TOF2GC::SCBTBN];// MostProb bar-signals for each side/bin(ref.bars) 
+  static geant ebtamp[2][TOF2GC::SCBTBN];// Error in MostProb  for each side/bin(ref.bars) 
   static integer rbls[TOF2GC::SCBTPN];// list of ref. bars (diff. by bar type)(LBB)
   static geant profb[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// profile bins width(counting from "-" side)
   static geant profp[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// bin middle-point values
@@ -110,10 +113,13 @@ private:
   static number arefb[TOF2GC::SCBTPN][TOF2GC::SCACMX];// tot-signals for each ref_bar/event
   static integer nrefb[TOF2GC::SCBTPN];// numb.of events accum. per ref_bar
   static geant fpar[10];// parameters to fit
-  static integer nbinr;// working arrays for A-profile fit
+  static integer nbinr;// working var. for A-profile fit
+  static integer iside;// working var. for A-profile fit
+  static geant fun2nb;// working var. for  fit
   static number mcharge[TOF2GC::SCPRBM]; 
   static number mcoord[TOF2GC::SCPRBM];
-  static number aprofp[TOF2GC::SCBTPN][TOF2GC::SCPROFP];// A-profile parameters(ref.bars)
+  static number emchar[TOF2GC::SCPRBM];
+  static number aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP];// A-profile parameters(ref.bars)
   static number clent;//bar-length (to exchange with FCN)
   static integer cbtyp;//bar-type  (....................)
 //

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.5 2001/12/04 10:36:30 choumilo Exp $
+//  $Id: tofsim02.h,v 1.6 2002/09/04 09:11:35 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #ifndef __AMSTOF2SIM__
 #define __AMSTOF2SIM__
@@ -68,11 +68,12 @@ public:
   geant getbini(){ return bini;}
 };
 //=====================================================================
-//             <--- class to deal with MC t-calibration scans
+//         <--- class for MC single width-dvision t/eff-distributions
 class TOF2Scan{
 //
 private:
-  integer nscpnts;      // real number of scan point
+  int nscpnts;      // real number of scan points in given w-division
+  int indsp[TOF2GC::SCANPNT]; //array of long.scan-points indexes(refered to wdiv=1)
   geant scanp[TOF2GC::SCANPNT]; //array of longit. scan points
   geant eff1[TOF2GC::SCANPNT];  //effic. for -X side PMT
   geant eff2[TOF2GC::SCANPNT];  //effic. for +X side PMT
@@ -81,15 +82,15 @@ private:
   TOFTpoints tdist1[TOF2GC::SCANPNT];// t-points arrays for -X side
   TOFTpoints tdist2[TOF2GC::SCANPNT];// t-points arrays for +X side
 public:
-  static TOF2Scan scmcscan[TOF2GC::SCBLMX];
   TOF2Scan(){};
-  TOF2Scan(const integer nscp, const geant _scanp[], 
+  TOF2Scan(const integer nscp, const int _indsp[], const geant _scanp[], 
                          const geant _eff1[], const geant _eff2[],
                          const geant _rgn1[], const geant _rgn2[],
                          const TOFTpoints _tdist1[], const TOFTpoints _tdist2[])
   {
     nscpnts=nscp;
     int i,j,k;
+    for(i=0;i<nscp;i++)indsp[i]=_indsp[i];
     for(i=0;i<nscp;i++)scanp[i]=_scanp[i];
     for( j=0;j<nscp;j++)eff1[j]=_eff1[j];
     for( k=0;k<nscp;k++)eff2[k]=_eff2[k];
@@ -98,11 +99,14 @@ public:
     for(int l=0;l<nscp;l++)tdist1[l]=_tdist1[l];
     for(int m=0;m<nscp;m++)tdist2[m]=_tdist2[m];
   };
-static void build();
-void getxbin(const geant , int &, int &, geant &);// calc. indexes of X-position
+void getybin(const geant , int &, int &, geant &);// calc. indexes of Y-position
 //
 void getscp(geant scp[]){
   for(int i=0;i<nscpnts;i++)scp[i]=scanp[i];
+}
+//
+void getidsp(int iscp[]){
+  for(int i=0;i<nscpnts;i++)iscp[i]=indsp[i];
 }
 //
 void getefarr(geant ef1[], geant ef2[]){
@@ -130,10 +134,100 @@ geant getgn2(const geant r, const int i1, const int i2){
   else{return (rgn2[i1]+(rgn2[i2]-rgn2[i1])*r);}
 }
 //-------
-//get time distr. array for closest (to X) scan point and correction time
-//    Need getxbin to be called first !!!
-geant gettm1(geant r, int i1, int i2);    
-geant gettm2(geant r, int i1, int i2);    
+//get PM time using t-distr. arrays for closest (to Y) sc.points
+//    Need getybin to be called first !!!
+geant gettm1(const geant r, const int i1, const int i2);    
+geant gettm2(const geant r, const int i1, const int i2);    
+//  
+};
+//=====================================================================
+//        <--- general class for counter MC-scan(width+leng.scan.points)
+class TOFWScan{
+//
+private:
+  int nwdivs; // real number of width-divisions
+  geant divxl[TOF2GC::SCANWDS];//division xlow
+  geant divxh[TOF2GC::SCANWDS];//division xhigh
+  TOF2Scan wscan[TOF2GC::SCANWDS];//array of single-division scans
+public:
+  static TOFWScan scmcscan[TOF2GC::SCBLMX];
+  TOFWScan(){};
+  TOFWScan(const int nwdvs, const geant _dxl[], const geant _dxh[], 
+                         const TOF2Scan  _sdsc[])
+  {
+    nwdivs=nwdvs;
+    int i;
+    for(i=0;i<nwdvs;i++){
+      divxl[i]=_dxl[i];
+      divxh[i]=_dxh[i];
+      wscan[i]=_sdsc[i];
+    }
+  };
+//
+  int getndivs(){
+    return(nwdivs);
+  }
+//
+  integer getnscp(int id){// get length array of scan-points for wdiv=id
+    return wscan[id].getnscp();
+  }
+//
+  void getscp(int id, geant scp[]){// get array of scan-points(wdiv=id)
+    wscan[id].getscp(scp);
+  }
+//
+  void getidsp(int id, int iscp[]){// get array of scan-points indexes(wdiv=id)
+    wscan[id].getidsp(iscp);
+  }
+//
+//   Func.to calc.X(width)-division index for given X(counter local r.s)
+//
+  int getwbin(const geant x){
+    int div(0);
+    if((divxl[0]-x)>0.01)return(-1);
+    if((x-divxh[nwdivs-1])>0.01)return(-1);
+    if(x<divxl[0])return(div);
+    if(x>=divxl[nwdivs-1])return(nwdivs-1);
+    for(int i=0;i<nwdivs-1;i++){
+      if(x>=divxl[i] && x<divxl[i+1])div=i; 
+    }
+    return(div);
+  }
+//
+//   Func. to calc.Y-pos indexes for division div:
+//
+  void getybin(const int div, const geant y, int &i1, int &i2, geant &r){
+    wscan[div].getybin(y, i1, i2, r);
+  }
+//
+//   Func. to calc. pm1/pm2 eff for division div:
+//
+  geant getef1(const int div, const geant r, const int i1, const int i2){
+    return(wscan[div].getef1(r, i1, i2));
+  }
+  geant getef2(const int div, const geant r, const int i1, const int i2){
+    return(wscan[div].getef2(r, i1, i2));
+  }
+//
+//   Func. to calc. pm1/pm2 gain for division div:
+//
+  geant getgn1(const int div, const geant r, const int i1, const int i2){
+    return(wscan[div].getgn1(r, i1, i2));
+  }
+  geant getgn2(const int div, const geant r, const int i1, const int i2){
+    return(wscan[div].getgn2(r, i1, i2));
+  }
+//
+//   Func. to calc. pm1/pm2 times for division div:
+//
+  geant gettm1(const int div, const geant r, const int i1, const int i2){
+    return(wscan[div].gettm1(r, i1, i2));
+  }
+  geant gettm2(const int div, const geant r, const int i1, const int i2){
+    return(wscan[div].gettm2(r, i1, i2));
+  }
+//
+  static void build();
 //  
 };
 //=========================================================================== 

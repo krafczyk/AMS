@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.9 2002/04/10 10:06:02 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.10 2002/09/04 09:11:35 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -35,19 +35,21 @@ namespace TOFGC{
 // TOF2 global constants definition
 namespace TOF2GC{
 //geometry :
-const integer SCMXBR=12; // max nmb of bars/layer
+const integer SCMXBR=10; // max nmb of bars/layer
 const integer SCLRS=4; // max nmb of layers in TOF-systems
 const integer SCROTN=2; // start nmb of abs. numbering of TOF rot. matrixes
-const integer SCBTPN=10;    //nmb of sc. bar types (different by length now)
+const integer SCBTPN=11; //Real nmb of sc. bar types (different by length now)
 const integer SCCHMX=SCLRS*SCMXBR*2; //MAX scint. channels
 const integer SCBLMX=SCLRS*SCMXBR;   //MAX scint. bars*layers
 //MC
 const integer TOFPNMX=1000;// max integral-bins  in TOFTpoints class
-const integer SCANPNT=20; //max scan points in MC/REC t/a-calibration
+const integer SCANPNT=15; //max scan points in MC/REC t/a-calibration
 const integer SCANTDL=400;//scan time distribution max.length(should be SCANTDL<AMSDISL) 
+const integer SCANWDS=10; //max. width-divisions in the sc.paddle scan
 const integer SCTBMX=5000;//length of MC "flash-ADC" buffer
 const integer SCSBMX=1200;//length of MC "shaper" buffer
-//                       (should be above SCTBMX*fadcb/shaptb+6.21*tfall/shaptb) 
+//                       (should be above SCTBMX*fadcb/shaptb+6.21*tfall/shaptb)
+// 
 //DAQ
 const int16u SCPHBP=16384; // phase bit position in Reduced-format TDC word (15th bit)
 const int16u SCPHBPA=32768;// phase bit position in Raw-format address word (16th bit)
@@ -70,7 +72,7 @@ const integer SCTHMX4=8;//max adc TDC (time_over_threshold) hits
 const integer SCJSTA=35;   //size of Job-statistics array
 const integer SCCSTA=16;   //size of Channel-statistics array
 const integer SCIPAR=3;    // number of a(d)-integrator parameters
-const integer SCPROFP=5;//max. parameters in A-profile fit
+const integer SCPROFP=4;//max. parameters/side in A-profile(Apm<->Yloc) fit
 //
 //      Calibration:
 // TDIF
@@ -79,7 +81,7 @@ const integer SCTDBM=17; //max. number of coord. bins for TDIF-calibration
 const integer SCACMX=2000;// max. number of accum. events per channel(or bin)
 const integer SCPRBM=17;//max.bins for Ampl-profile along the counter
 const integer SCBTBN=SCBTPN*SCPRBM;// max. bar_types(i.e.ref.bars) * max.bins
-const integer SCELFT=5;     // max. number of param. for dE/dX fit
+const integer SCELFT=4;     // max. number of param. for dE/dX fit
 const integer SCMCIEVM=2000;//max. events for MC A-integrator calibration 
 // AVSD
 const integer SCACHB=500;//max.bins in adch for "adcl vs adch" fit
@@ -103,9 +105,10 @@ private:
   static integer _planes;                // real TOF planes
   static integer _bperpl[TOF2GC::SCLRS]; // real bars per plane
   static geant _brlen[TOF2GC::SCBTPN]; // bar lengthes for SCBTPN types
-  static geant _lglen[TOF2GC::SCBTPN]; // light-guide lengthes for SCBTPN types
-  static geant _supstr[10]; // supp. structure parameters
-  static geant _plnstr[15]; // sc. plane structure param.
+  static geant _lglen[TOF2GC::SCBTPN]; // eff.light-guide lengthes for SCBTPN types
+  static geant _outcp[TOF2GC::SCLRS][4]; // outer counters param(wid/xc/yc/lgw) vs layer
+  static geant _supstr[12]; // supporting structure parameters
+  static geant _plnstr[20]; // sc. plane structure parameters
 // MC/RECO constants:
   static geant _edep2ph;     // MC edep(Mev)-to-Photons convertion
   static geant _seresp;      // PMT single elec.responce (mV on 50 Ohm, MP=MEAN)
@@ -159,9 +162,13 @@ public:
     return _planes;
   }
 //
-  static geant supstr(integer i);
+  static geant supstr(int i);
 //
-  static geant plnstr(integer i);
+  static geant plnstr(int i);
+//
+  static geant outcp(int i, int j);
+//
+//
 //   function to get Z-position of scint. bar=ib in layer=il
   static geant getzsc(integer il, integer ib);
 // function to get transv. position of scint. bar=ib in layer=il
@@ -278,6 +285,7 @@ private:
 //          i=0 -> entries
 //          i=1 => TovT->RawEvent OK
 //          i=2 => Ghits->RawCluster OK
+//          i=3 => Out-of-volume hit
   static integer recount[TOF2GC::SCJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
 //          i=1 -> H/W TOF-trigger OK
@@ -394,7 +402,7 @@ private:
   geant asatl;  // anode_chain saturation limit(mev)(incl. PM,Shaper,...)
 //                  (i.e. below use anode data, above  - dinode data)
   geant tthr;   // Time-discr. threshold (mV)
-  geant strat[2][2];  // Stratcher param.[side 1/2][par.1(ratio)/2(offs)]
+  geant strat[2][2];  // Stretcher param.[side 1/2][par.1(ratio)/2(offs)]
   geant fstrd;  // same hit time difference between fast/slow TDC (ns)
   geant tzero;  // T0 (ns)
   geant slope; // slope for T vs (1/sqrt(Qa1)+1/sqrt(Qa2))
@@ -403,7 +411,7 @@ private:
   geant td2pos[2];// t_diff->position conv. factors(=Vlight,cm/ns) and coo-error(cm))
 // for (at least) reference bar (in each bar type group) :
   geant mip2q;// 2-sides A-signal(pC/Mev) (at Y=0.)
-  integer nscanp;// real number of scant points
+  integer nscanp;// real number of scant points(long wdiv)
   geant yscanp[TOF2GC::SCANPNT]; // Y-positions of the scan points(bar type depend)
   geant relout[TOF2GC::SCANPNT]; // Relative(to Y=0) 2-Sides(sum) Light output
 //(if some PMTs in some bar are dead, curve should be MC-calc. or measured)  
@@ -411,7 +419,7 @@ private:
   geant ahlcr[2]; // Amplitude high/low channel ratio (side-1,2)
   geant adccf; // ADCch->Q generic conv.factor(pC/ch)
 //
-  geant unipar[5];// responce uniformity parameters (along the ref.bars)
+  geant unipar[2*TOF2GC::SCPROFP];// responce uniformity parameters (for ref.bars)
 //
 //
 public:
@@ -420,7 +428,7 @@ public:
   TOF2Brcal(integer sid, integer sta[2], geant gna[2], geant gnd[2],
            geant asl, geant tth, geant stra[2][2], geant fstd, 
            geant t0, geant sl, geant sls[2], geant tdiff, geant td2p[2],
-           geant mip, integer nscp, geant ysc[], geant relo[], geant upar[5], 
+           geant mip, integer nscp, geant ysc[], geant relo[], geant upar[], 
            geant ahlr[2],geant acf);
   void getbstat(int sta[]){
     sta[0]=status[0];
@@ -451,8 +459,8 @@ public:
     gn[0]=gaind[0];
     gn[1]=gaind[1];
   }
-  void getupar(geant upar[5]){
-    for(int i=0;i<5;i++){upar[i]=unipar[i];}
+  void getupar(geant upar[]){
+    for(int i=0;i<2*TOF2GC::SCPROFP;i++){upar[i]=unipar[i];}
   }
   void getahlr(geant hlr[2]){
     for(int i=0;i<2;i++){hlr[i]=ahlcr[i];}

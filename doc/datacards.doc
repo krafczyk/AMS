@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.212 2002/08/07 08:50:04 choutko Exp $
+#  $Id: datacards.doc,v 1.213 2002/09/04 09:11:28 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -562,14 +562,17 @@ I 1 trtype(0)          //TriggerType:
 			   //4->Z>=1 particles trigger (TOF+ANTI)
 			   //5->Z>=2 particles trigger  TOF(tofflag>2)
 			   //6->e+- particles trigger (TOF + EC(ectrflag%10>=2)=softEM)
-			   //7->Photon trigger (EC(ectrflag=13) only), i.e.(EM+HighEnergy) 
+			   //7->Photon trigger (EC(ectrflag=3) only), i.e.(EM+HighEnergy) 
 			   //8->unbiased#4 trigger (TOF || EC(ectrflag>0)) 
 			   // Note: ECAL "HighEnergy" threshold(to have ECflag=1,2,3 or 11,12,13)
 			   // is defined in ECRE 12 (in mev);
-			   // ECflag=1->MIP
-			   //       =2->soft"electromagneticity"(Efront-cut OK)
-			   //       =3->    "electromagneticity"(All EM-cuts OK)
-			   // above+10-> high energy
+			   // ECflag=1->"MIP"(Et>=MIP && NoSoftEM)
+			   //       =2->soft"electromagneticity"(SoftEM=Efront-cut->OK)
+			   //       =3->hard"electromagneticity"(HardEM=
+			                SoftEM +(width-cut->OK || VeryHighEnergy),
+					          VeryHighEnergy means >= ECRE 14)
+			   // above+10-> high energy(> ECRE 12)
+			   
 I 2 ntof(2)                           // min number of tof planes in trig
 I 3 nanti(20)                         // max number of anti counters in trig
 I 4 RebuildLVL1(0)                   // Rebuild or not lvl1 if reconstruction

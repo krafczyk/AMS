@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.57 2002/07/17 10:48:48 delgadom Exp $
+//  $Id: ntuple.h,v 1.58 2002/09/04 09:11:34 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -15,8 +15,8 @@ namespace root{
 const int MAXBETA02    = 50;
 const int MAXCHARGE02  = 30;
 const int MAXPART02    =  10;
-const int MAXTOF     =    40;
-const int MAXTOFRAW  =    40;
+const int MAXTOF     =    48;
+const int MAXTOFRAW  =    48;
 const int MAXTOFMC   =   200;
 const int MAXANTICL  =    16;
 const int MAXANTIRAW =    32;
@@ -174,6 +174,7 @@ public:
   int Layer[MAXTOF];
   int Bar[MAXTOF];
   int Nmemb[MAXTOF];
+  int P2memb[MAXTOF][3];
   float Edep[MAXTOF];
   float Edepd[MAXTOF];
   float Time[MAXTOF];

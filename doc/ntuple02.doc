@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.44 2002/08/19 11:19:16 mdelgado Exp $
+#  $Id: ntuple02.doc,v 1.45 2002/09/04 09:11:32 choumilo Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -152,7 +152,7 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 						   // particle within rich radiator
 * R*4  *           * PARTICLE * trdlikelihood (npart) // TRD likelihood
 
-* I*4  * [0,20]    * TOFCLUST * ntof             // TOF clusters number
+* I*4  * [0,48]    * TOFCLUST * ntof             // TOF clusters number
 * I*4  *           * TOFCLUST * TOFStatus(ntof)  // Status: 
                                                  // bit 4 - ambig
                                                  // bit 128 -> problems with
@@ -162,10 +162,12 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
                                                  //         on one of the sides
                                                  // bit 2048 -> recovered from 
                                                  // 1-sided (bit256 also set)
-* I*4  *           * TOFCLUST * plane(ntof)        // Tof layer no
-                                                   // 1..4 up..down
-* I*4  *           * TOFCLUST * bar(ntof)          // TOF bar no
-* I*4  *           * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
+* I*4  *           * TOFCLUST * TOFpln(ntof)        // Tof plane(layer) no
+                                                   // 1..4 up->down
+* I*4  *           * TOFCLUST * TOFbar(ntof)       // TOF bar no (1-12)
+* I*4  *           * TOFCLUST * TOFmem(ntof)       // Members(bars)/cluster(max.3,
+                                                      for current version <=2)
+* I*4  *  [0,48]   * TOFCLUST * TOFp2m(3,ntof)     // Pointers to RawClust.members(bars)
 * R*4  *           * TOFCLUST * TOFEdep(ntof)      // TOF energy loss (MeV)
                                                    // from Anode
 * R*4  *           * TOFCLUST * TOFEdepd(ntof)     // TOF energy loss (MeV)
@@ -305,13 +307,14 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 
 
 
-* I*4  * [0,500]   * ECALHITS * necht              // ECAL hits number
+* I*4  * [0,1296]  * ECALHITS * necht              // ECAL hits number
 * I*4  *           * ECALHITS * EchtStatus(necht)  // Status: 
 * I*4  *           * ECALHITS * EchtIdsoft(necht)  // SSPPC(SupLayer/PM/subCell)
 * I*4  *           * ECALHITS * EchtProj(necht)    // projection (0-x,1-y)
 * I*4  *           * ECALHITS * EchtPlane(necht)   // ECAL plane number (0,...)
 * I*4  *           * ECALHITS * EchtCell(necht)    // ECAL Cell number (0,...)
 * R*4  *           * ECALHITS * EchtEdep(necht)    // ECAL measured energy (MeV)
+                                                      (e+- energy normalization)  
 * R*4  *           * ECALHITS * EchtCoo(3,necht)   // ECAL Coo (cm)
 
 
@@ -450,7 +453,8 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * I*4  * [0,1]    * LVL1     * nlvl1                 // lvl1trigger number
 
  * I*4  *          * LVL1     * mode(nlvl1)           // 
- * I*4  *          * LVL1     * LVL1Flag(nlvl1)       // z from trigger +4/4?10:0
+ * I*4  *          * LVL1     * LVL1Flag(nlvl1)       // =0/1/3->NoTofTrig/z>=1/z>2
+                                                      // +10, if TofTrig with all 4counters
  * I*4  *          * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
                                                       // 0-13 bit  or
                                                       // 16-29    and
@@ -483,7 +487,7 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * R*4  *          * ANTIRAWC * arawsignal(naraw)   // (mev)
 
 
- * I*4  * [0,20]   * TOFRAWCL * ntofraw                 // tofrawclnum (used)
+ * I*4  * [0,48]   * TOFRAWCL * ntofraw                 // tofrawclnum (used)
  * I*4  *          * TOFRAWCL * tofrstatus(ntofraw)     // status
  * I*4  *          * TOFRAWCL * tofrplane(ntofraw)      // tof plane1-4
  * I*4  *          * TOFRAWCL * tofrbar(ntofraw)        // tof bar 1-14
