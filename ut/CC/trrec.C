@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.135 2002/01/09 18:38:11 choutko Exp $
+//  $Id: trrec.C,v 1.136 2002/01/11 16:09:35 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3078,11 +3078,17 @@ integer AMSTrTrack::_TrSearcher(int icall){
            if( _NoMoreTime()){
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
-
+            const int freq=1000 ;
+            int trig=0;
            phit[icall]=AMSTrRecHit::gethead(TKDBc::patconf(pat,icall)-1);
            while(phit[icall]){
 //             cout <<icall<<" "<<phit[icall]<<" "<<pat<<endl;
              if(phit[icall]->Good() && !Distance(par,phit[icall])){
+              if(++trig%freq ==0){
+                           if( _NoMoreTime()){
+                           throw AMSTrTrackError(" Cpulimit Exceeded ");
+           }
+              }
               if(TKDBc::patpoints(pat) >icall+2){         
                 return _TrSearcher(++icall); 
               }                
@@ -3141,11 +3147,17 @@ integer AMSTrTrack::_TrSearcherFalseX(int icall){
            if( _NoMoreTime()){
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
-
+           const int freq=1000;
+           int trig=0;
            phit[icall]=AMSTrRecHit::gethead(TKDBc::patconf(pat,icall)-1);
            while(phit[icall]){
 //             cout <<icall<<" "<<phit[icall]<<" "<<pat<<endl;
              if(phit[icall]->Good() &&   phit[icall]->checkstatus(AMSDBc::FalseX)==0 && !Distance(par,phit[icall]) ){
+                            if(++trig%freq ==0){
+                           if( _NoMoreTime()){
+                           throw AMSTrTrackError(" Cpulimit Exceeded ");
+           }
+              }
               if(TKDBc::patpoints(pat) >icall+2){         
                 integer iret=_TrSearcherFalseX(++icall); 
                 return iret;

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.68 2001/12/10 18:24:24 choutko Exp $
+//  $Id: daqevt.C,v 1.69 2002/01/11 16:09:33 choutko Exp $
 #include <stdio.h>
 #include <daqevt.h>
 #include <event.h>
@@ -333,7 +333,11 @@ integer DAQEvent::read(){
   enum open_mode{binary=0x80};
   do{
     if(fbin.eof()){
-      fbin.close();
+#ifdef __ALPHA__ 
+ fbin.close();
+#else
+      if(fbin.is_open())fbin.close();
+#endif
       integer Run,Event;
       char * fnam=_getNextFile(Run, Event);
      if(fnam){
@@ -364,7 +368,11 @@ integer DAQEvent::read(){
       integer Run,Event;
       char * fnam=_getNextFile(Run, Event);
      if(fnam){
-     fbin.close();
+#ifdef __ALPHA__ 
+ fbin.close();
+#else
+     if(fbin.is_open())fbin.close();
+#endif
      for(;;){
       fbin.open(fnam,ios::in);
       if(fbin){ 
@@ -412,7 +420,11 @@ DAQEvent::InitResult DAQEvent::init(){
   integer Run,Event;
     char * fnam=_getNextFile(Run, Event);
     if(fnam){
-    fbin.close();
+#ifdef __ALPHA__ 
+ fbin.close();
+#else
+    if(fbin.is_open())fbin.close();
+#endif
     fbin.open(fnam,ios::in);
     if(fbin){ 
     if(Run){
@@ -558,8 +570,16 @@ DAQEventI::DAQEventI(){
 }
 DAQEventI::~DAQEventI(){
   if(--_Count==0){
-    if(DAQEvent::fbin)DAQEvent::fbin.close();
-    if(DAQEvent::fbout)DAQEvent::fbout.close();
+#ifdef __ALPHA__ 
+ DAQEvent::fbin.close();
+#else
+    if(DAQEvent::fbin.is_open())DAQEvent::fbin.close();
+#endif
+#ifdef __ALPHA__ 
+ DAQEvent::fbout.close();
+#else
+    if(DAQEvent::fbout.is_open())DAQEvent::fbout.close();
+#endif
   }
 }
 

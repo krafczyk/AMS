@@ -1,8 +1,8 @@
-#  $Id: g4.doc,v 1.22 2002/01/09 18:38:28 choutko Exp $
+#  $Id: g4.doc,v 1.23 2002/01/11 16:09:44 choutko Exp $
 -------
 Platform:
 linux-gcc2.95 
-
+dec/cxx 6.2
 -------
 Installer:
 

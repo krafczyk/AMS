@@ -1,4 +1,4 @@
-//  $Id: bcorr.C,v 1.4 2001/01/22 17:32:18 choutko Exp $
+//  $Id: bcorr.C,v 1.5 2002/01/11 16:09:33 choutko Exp $
 #include <event.h>
 #include <bcorr.h>
 #include <commons.h>
@@ -16,8 +16,8 @@ extern "C" void btempcor_(float& factor) {
   if (temp<=0. || temp>=50.) return;
 
 // apply the correction
-  const float dBdT=0.13e-2;
-  const float TETH=18.5;
+  const float dBdT=0.13e-3;
+  const float TETH=185;
   factor = 1.-dBdT*(temp-TETH);
 
 //  static int oldevent = -1;

@@ -1,4 +1,4 @@
-//  $Id: bcorr.h,v 1.2 2001/01/22 17:32:42 choutko Exp $
+//  $Id: bcorr.h,v 1.3 2002/01/11 16:09:45 choutko Exp $
 #ifndef __AMSMFIELD__
 #define __AMSMFIELD__
 #include <typedefs.h>
@@ -24,7 +24,7 @@ public:
 //
   static MagnetTemperature * getmagnettp(){return &mgtt;}
   static integer getmagnettsize(){return sizeof(mgtt);}
-  static geant getmeanmagnetmtemp(){return (float)mgtt.mtemp/10.;}
+  static geant getmeanmagnetmtemp(){return (float)mgtt.mtemp;}
   static geant getmeanmagnetstemp(int sensor){return (float)mgtt.stemp[sensor]/10.;}
 };
 

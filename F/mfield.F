@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.12 2001/01/22 17:32:25 choutko Exp $
+*  $Id: mfield.F,v 1.13 2002/01/11 16:09:42 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3)
@@ -60,15 +60,136 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
           enddo
           call timex(st1)
           write(*,*)'Finished in ',st1-st0, ' sec'
-
+c          call rmf2
       endif
       end
 
+c      subroutine rmf2
+c#      include "mfield.h"
+c*
+c* Initialization for E01
+c*
+c          write(*,*)'x ',x
+c          write(*,*)'y ',y
+c          write(*,*)'z ',z
+c          write(*,*)'Calculating E01GTF parameters'
+c        call timex(st0)
+c      do k=1,nz
+c       do j=1,ny
+c        do i=1,nx
+c         l=i+(j-1)*nx+(k-1)*nx*ny
+c         xe(l)=x(i)
+c         ye(l)=y(j)
+c         ze(l)=z(k)
+c         bxe(l)=bx(i,j,k)         
+c         bye(l)=by(i,j,k)         
+c         bze(l)=bz(i,j,k)         
+c        enddo
+c       enddo
+c      enddo
+c      nq=0
+c      nw=0
+c      ifail=0
+c      write(*,*)'x started'
+c      call e01tgf(mmax,xe,ye,ze,bxe,nw,nq,iqx,liq,rqx,lrq,ifail)
+c      write(*,*)'x finished'
+c      do i=1,mmax
+c        tmp1=rqx(i)
+c        tmp2=rqx(i)-tmp1
+c        rqxr(1,i)=tmp1
+c        rqxr(2,i)=tmp2
+c      enddo
+c      nq=0
+c      nw=0
+c      ifail=0
+c      call e01tgf(mmax,xe,ye,ze,bye,nw,nq,iqy,liq,rqy,lrq,ifail)
+c      write(*,*)'y finished'
+c      do i=1,mmax
+c        tmp1=rqy(i)
+c        tmp2=rqy(i)-tmp1
+c        rqyr(1,i)=tmp1
+c        rqyr(2,i)=tmp2
+c      enddo
+c      nq=0
+c      nw=0
+c      ifail=0
+c      call e01tgf(mmax,xe,ye,ze,bze,nw,nq,iqz,liq,rqz,lrq,ifail)
+c      do i=1,mmax
+c        tmp1=rqz(i)
+c        tmp2=rqz(i)-tmp1
+c        rqzr(1,i)=tmp1
+c        rqzr(2,i)=tmp2
+c      enddo
+c          call timex(st1)
+c          write(*,*)'Finished in ',st1-st0, ' sec'
+c      aa=0.1
+c      call hbook1(-701,'dr',100,-aa,aa,0.)
+c      call hbook2(-702,'drxy',50,-aa*100,aa*100,50,-aa*100,
+c     +aa*100,0.)
+c      call hbook1(-703,'dr',100,-aa,aa,0.)
+c      call hbook2(-704,'drxy',50,-aa*100,aa*100,50,-aa*100,
+c     +aa*100,0.)
+c      call hbook1(-705,'dr',100,-aa,aa,0.)
+c      call hbook2(-706,'drxy',50,-aa*100,aa*100,50,-aa*100,
+c     +aa*100,0.)
+c      call hbook1(-801,'dr',100,-aa,aa,0.)
+c      call hbook2(-802,'drxy',50,-aa*100,aa*100,50,-aa*100,
+c     +aa*100,0.)
+c      call hbook1(-803,'dr',100,-aa,aa,0.)
+c      call hbook2(-804,'drxy',50,-aa*100,aa*100,50,-aa*100,
+c     +aa*100,0.)
+c      call hbook1(-805,'dr',100,-aa,aa,0.)
+c      call hbook2(-806,'drxy',50,-aa*100,aa*100,50,-aa*100,
+c     +aa*100,0.)
+c      call hbook1(-901,'dr',100,-aa,aa,0.)
+c      call hbook2(-902,'drxy',50,-aa*100,aa*100,50,-aa*100,
+c     +aa*100,0.)
+c      call hbook1(-903,'dr',100,-aa,aa,0.)
+c      call hbook2(-904,'drxy',50,-aa*100,aa*100,50,-aa*100,
+c     +aa*100,0.)
+c      call hbook1(-905,'dr',100,-aa,aa,0.)
+c      call hbook2(-906,'drxy',50,-aa*100,aa*100,50,-aa*100,
+c     +aa*100,0.)
+c      end
 
-
+c      subroutine rmf3
+c#      include "mfield.h"
+c*
+c* Initialization for E01
+c*
+c      do k=1,nz
+c       do j=1,ny
+c        do i=1,nx
+c         l=i+(j-1)*nx+(k-1)*nx*ny
+c         xe(l)=x(i)
+c         ye(l)=y(j)
+c         ze(l)=z(k)
+c         bxe(l)=bx(i,j,k)         
+c         bye(l)=by(i,j,k)         
+c         bze(l)=bz(i,j,k)         
+c        enddo
+c       enddo
+c      enddo
+c      do i=1,mmax
+c        tmp1=rqxr(1,i)
+c        tmp2=rqxr(2,i)
+c        rqx(i)=tmp1
+c        rqx(i)=rqx(i)+tmp2
+c        tmp1=rqyr(1,i)
+c        tmp2=rqyr(2,i)
+c        rqy(i)=tmp1
+c        rqy(i)=rqy(i)+tmp2
+c        tmp1=rqzr(1,i)
+c        tmp2=rqzr(2,i)
+c        rqz(i)=tmp1
+c        rqz(i)=rqz(i)+tmp2
+c      enddo
+c      end
       SUBROUTINE GUFLD(VV,B)
 *     ======================
 #      include "mfield.h"
+      data init/0/ 
+      data hint/0,0,0/
       DIMENSION B(3),VV(3),AVV(3)
         if(abs(vv(1)).gt.x(nx).or.abs(vv(2)).gt.y(ny).or.
      +    abs(vv(3)).gt.z(nz))then
@@ -92,13 +213,58 @@ C
 *
 * Special trick if need
 *        
-       CALL BZCORR(xfac)
-       avv(3)=abs(vv(3))*xfac
-
-        b(1) = FINT(3,avv(1),NA(1),xyz(1),Bx(1,1,1))
-        b(2) = FINT(3,avv(1),NA(1),xyz(1),By(1,1,1))
-        b(3) = FINT(3,avv(1),NA(1),xyz(1),Bz(1,1,1))
-
+        CALL BZCORR(xfac)
+        avv(3)=abs(vv(3))*xfac
+c        if(iniok.eq.1)then
+c          b(1) = FINT(3,avv(1),NA(1),xyz(1),Bx(1,1,1))
+c          b(2) = FINT(3,avv(1),NA(1),xyz(1),By(1,1,1))
+c          b(3) = FINT(3,avv(1),NA(1),xyz(1),Bz(1,1,1))
+          call fint_my(3,avv(1),NA(1),xyz(1),
+     +    Bx(1,1,1),By(1,1,1),Bz(1,1,1),b(1),hint(1))
+c        else
+c         u(1)=avv(1)
+c         v(1)=avv(2)
+c         w(1)=avv(3)
+c         ifail=-1
+c         call  e01thf(mmax,xe,ye,ze,bxe,iqx,liq,rqx,lrq,1,
+c     +   u,v,w,q,qx,qy,qz,ifail)
+c         if(ifail.ne.0)then
+c          write(*,*)' e01thf failed on x ',ifail
+c          b(1) = FINT(3,avv(1),NA(1),xyz(1),Bx(1,1,1))
+c         else
+cc          dr=b(1)-q(1)
+cc          call hf1(-701,dr,1.)
+cc          dr=q(1)
+cc          call hf2(-702,b(1),dr,1.)
+c          b(1) = q(1)
+c         endif
+c         ifail=-1
+c         call  e01thf(mmax,xe,ye,ze,bye,iqy,liq,rqy,lrq,1,
+c     +   u,v,w,q,qx,qy,qz,ifail)
+c         if(ifail.ne.0)then
+c          write(*,*)' e01thf failed on y ',ifail
+c          b(2) = FINT(3,avv(1),NA(1),xyz(1),By(1,1,1))
+c         else
+cc          dr=b(2)-q(1)
+cc          call hf1(-801,dr,1.)
+cc          dr=q(1)
+cc          call hf2(-802,b(2),dr,1.)
+c          b(2) = q(1)
+c         endif
+c         ifail=-1
+c         call  e01thf(mmax,xe,ye,ze,bze,iqz,liq,rqz,lrq,1,
+c     +   u,v,w,q,qx,qy,qz,ifail)
+c         if(ifail.ne.0)then
+c          write(*,*)' e01thf failed on z ',ifail
+c          b(3) = FINT(3,avv(1),NA(1),xyz(1),Bz(1,1,1))
+c         else
+cc          dr=b(3)-q(1)
+cc          call hf1(-901,dr,1.)
+cc          dr=q(1)
+cc          call hf2(-902,b(3),dr,1.)
+c          b(3) = q(1)
+c         endif
+c        endif
         CALL BTEMPCOR (factor)
         b(1) = b(1) * factor
         b(2) = b(2)*sx*sy * factor
@@ -111,6 +277,7 @@ C
       SUBROUTINE TKFLD(XX,HXY)
 *     ========================
 #      include "mfield.h"
+       
           real xx(3),axx(3),hxy(3,3)
          if(abs(xx(1)).gt.x(nx).or.abs(xx(2)).gt.y(ny).or.
      +    abs(xx(3)).gt.z(nz))then
@@ -130,13 +297,78 @@ C
           enddo
           CALL BZCORR(xfac)
           axx(3)=abs(xx(3))*xfac
+c          if(iniok.eq.1)then
 
-          hxy(1,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,1))
-          hxy(2,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdy(1,1,1,1))
-          hxy(3,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdz(1,1,1,1))
-          hxy(1,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,2))
-          hxy(2,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdy(1,1,1,2))
-          hxy(3,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdz(1,1,1,2))
+c           hxy(1,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,1))
+c           hxy(2,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdy(1,1,1,1))
+c           hxy(3,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdz(1,1,1,1))
+c           hxy(1,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,2))
+c           hxy(2,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdy(1,1,1,2))
+c           hxy(3,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdz(1,1,1,2))
+c           call fint_my(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,1),
+c     +     Bdy(1,1,1,1),Bdz(1,1,1,1),hxy(1,1),hint(1))
+c           call fint_my(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,2),
+c     +     Bdy(1,1,1,2),Bdz(1,1,1,2),hxy(1,2),hint(1))
+           call fint_my_2(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,1),
+     +     Bdy(1,1,1,1),Bdz(1,1,1,1),Bdx(1,1,1,2),
+     +     Bdy(1,1,1,2),Bdz(1,1,1,2),hxy(1,1),hint(1))
+c          else
+c           u(1)=axx(1)
+c           v(1)=axx(2)
+c           w(1)=axx(3)
+c           ifail=-1
+c           call  e01thf(mmax,xe,ye,ze,bxe,iqx,liq,rqx,lrq,1,
+c     +     u,v,w,q,qx,qy,qz,ifail)
+c           if(ifail.ne.0)then
+c            write(*,*)' e01thf failed on xd ',ifail
+c            hxy(1,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,1))
+c            hxy(1,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,2))
+c          else
+cc           d1=qx(1)
+cc           d2=qy(1)
+cc           call hf1(-703,d1-hxy(1,1),1.)
+cc           call hf1(-705,d2-hxy(1,2),1.)
+cc           call hf2(-704,d1,hxy(1,1),1.)
+cc           call hf2(-706,d2,hxy(1,2),1.)
+c           hxy(1,1)=qx(1)
+c           hxy(1,2)=qy(1)
+c          endif
+c          ifail=-1
+c          call  e01thf(mmax,xe,ye,ze,bye,iqy,liq,rqy,lrq,1,
+c     +    u,v,w,q,qx,qy,qz,ifail)
+c          if(ifail.ne.0)then
+c           write(*,*)' e01thf failed on yd ',ifail
+c            hxy(2,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdy(1,1,1,1))
+c            hxy(2,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdy(1,1,1,2))
+c          else
+cc            d1=qx(1)
+cc            d2=qy(1)
+cc            call hf1(-803,d1-hxy(2,1),1.)
+cc            call hf1(-805,d2-hxy(2,2),1.)
+cc            call hf2(-804,d1,hxy(2,1),1.)
+cc            call hf2(-806,d2,hxy(2,2),1.)
+c           hxy(2,1)=qx(1)
+c           hxy(2,2)=qy(1)
+c          endif
+c          ifail=-1
+c          call  e01thf(mmax,xe,ye,ze,bze,iqz,liq,rqz,lrq,1,
+c     +    u,v,w,q,qx,qy,qz,ifail)
+c          if(ifail.ne.0)then
+c           write(*,*)' e01thf failed on zd ',ifail
+c            hxy(3,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdz(1,1,1,1))
+c            hxy(3,2) = FINT(3,aXx(1),NA(1),xyz(1),Bdz(1,1,1,2))
+c          else
+cc            d1=qx(1)
+cc            d2=qy(1)
+cc            call hf1(-903,d1-hxy(3,1),1.)
+cc            call hf1(-905,d2-hxy(3,2),1.)
+cc            call hf2(-904,d1,hxy(3,1),1.)
+cc            call hf2(-906,d2,hxy(3,2),1.)
+c           hxy(3,1)=qx(1)
+c           hxy(3,2)=qy(1)
+c          endif
+c         endif
+
 
           CALL BTEMPCOR (factor)
 

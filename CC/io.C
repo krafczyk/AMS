@@ -1,4 +1,4 @@
-//  $Id: io.C,v 1.26 2001/12/10 18:24:25 choutko Exp $
+//  $Id: io.C,v 1.27 2002/01/11 16:09:34 choutko Exp $
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
@@ -104,7 +104,11 @@ void AMSIO::init(integer mode,integer format){
             cout << " Last Random Number "<<seed0<<" "<<seed1<<" "   <<endl;
              cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
              cout << " Time "<<ctime(&time)<<endl;
-             fbin.close();
+#ifdef __ALPHA__ 
+ fbin.close();
+#else
+             if(fbin.is_open())fbin.close();
+#endif
           }
           else  exit(1);
           }
@@ -133,7 +137,11 @@ void AMSIO::init(integer mode,integer format){
              ok=io.read();
              otheta=io.getstheta()*AMSDBc::raddeg;
              ok=io.read();
-             fbin.close();
+#ifdef __ALPHA__ 
+ fbin.close();
+#else
+             if(fbin.is_open())fbin.close();
+#endif
              if(ok){
               time_t time;
               number theta,phi,pole;
@@ -259,7 +267,11 @@ AMSIOI::AMSIOI(){
 }
 AMSIOI::~AMSIOI(){
   if(--_Count==0){
-   if(AMSIO::fbin)AMSIO::fbin.close();
+#ifdef __ALPHA__ 
+ AMSIO::fbin.close();
+#else
+   if(AMSIO::fbin.is_open())AMSIO::fbin.close();
+#endif
   }
 }
 ostream & operator << (ostream &o, const AMSIO &b ){

@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.56 2002/01/09 18:38:54 choutko Exp $
+#  $Id: Moptg4,v 1.57 2002/01/11 16:09:50 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -31,10 +31,11 @@ FOUND = $(findstring $(OS),$(SUPPORTED))
 ifeq  "$(shell uname)"  "OSF1" 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
 ROOTLIBS =
+CPPFLAGS+= -std ansi
 ifdef AMSDEBUG
-CFLAGS4=        -D__BATCH__ -g -D__AMSDEBUG__    -I../include     $(CPPFLAGS)
-CFLAGS4P=        -D__BATCH__    -g -D__AMSDEBUG__   -I../include     $(CPPFLAGS)
-CFLAGS4O1=       -D__USE_STD_IOSTREAM -D__BATCH__    -g -D__AMSDEBUG__   -I../include    $(CPPFLAGS)
+CFLAGS4=        -D__BATCH__ --g -D__AMSDEBUG__    -I../include     $(CPPFLAGS)
+CFLAGS4P=        -D__BATCH__     -g -D__AMSDEBUG__   -I../include     $(CPPFLAGS)
+CFLAGS4O1=        -D__BATCH__    -g -D__AMSDEBUG__   -I../include    $(CPPFLAGS)
 CFLAGS=  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include
 CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__  -D__AMSDEBUG__ -g     -I../include -I$(ROOTSYS)/include  
 CFLAGSn=  -D__BATCH__ -D__ALPHA__ -D__AMSDEBUG__ -g     -I../include -I$(ROOTSYS)/include  
@@ -59,11 +60,11 @@ ifdef G4USE_OSPACE
 CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew  -timplicit_local -DOS_OSF1_4 -DOS_NEW_CHECK -DOS_STL_ASSERT -DOS_NO_WSTRING -DOS_NO_ALLOCATORS -D__NO_EDG_EXCEPTION_CLASSES
 CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee  -nostdnew   -timplicit_local 
 else
-CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee  -D__USE_STD_IOSTREAM -timplicit_local 
-CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee  -D__USE_STD_IOSTREAM -timplicit_local 
+CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee  -std ansi -D__USE_STD_IOSTREAM -timplicit_local 
+CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee  -std ansi -D__USE_STD_IOSTREAM -timplicit_local 
 endif
 endif
-XLDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
+XLDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
 ifeq "$(shell cxx -V | grep -c 5.5)" "1"
 CC=cxx
 endif

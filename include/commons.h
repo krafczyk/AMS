@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.165 2001/12/20 13:11:35 mdelgado Exp $
+//  $Id: commons.h,v 1.166 2002/01/11 16:09:45 choutko Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -892,6 +892,7 @@ COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
 const integer nx=41;
 const integer ny=41;
 const integer nz=130;
+
 class TKFIELD_DEF{
 public:
 integer mfile[40];
@@ -917,7 +918,24 @@ geant bdz[2][nz][ny][nx];
 };
 #define TKFIELD COMMON_BLOCK(TKFIELD,tkfield)
 COMMON_BLOCK_DEF(TKFIELD_DEF,TKFIELD);
+/*
+const integer mmax=nx*ny*nz;
+const integer lrq=10*mmax+7;
+const integer liq=2*mmax+1;
 
+class TKFIELDADDON_DEF{
+public:
+int    iqx[liq];
+int    iqy[liq];
+int    iqz[liq];
+geant  rqx[lrq][2];
+geant  rqy[lrq][2];
+geant  rqz[lrq][2];
+
+};
+#define TKFIELDADDON COMMON_BLOCK(TKFIELDADDON,tkfieldaddon)
+COMMON_BLOCK_DEF(TKFIELDADDON_DEF,TKFIELDADDON);
+*/
 class AMSDATADIR_DEF{
 public:
 integer amsdlength;
