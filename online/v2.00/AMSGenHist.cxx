@@ -53,16 +53,20 @@ void AMSGenHist::_Fetch(){
 void AMSGenHist::ShowSet(Int_t Set){
 
   TF1 f1("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0.4,10);
-  TF1 f2("vcg2","[0]*exp(-x*[1])",0.4,100);
+  TF1 f2("vcg2","[0]*exp(-x*[1])",0.4,80);
   TF1 f3("vcg3","[0]*exp(-x*[1])",0.4,2.0);
+  TF1 f4("vcg4","[0]*exp(-(x-[1])/[2]*(x-[1])/[2]/2)",3.,10);
   int choise=0;
-  f1.SetParameter(0,100.);
+  f1.SetParameter(0,500.);
   f1.SetParameter(1,0.7);
-  f1.SetParameter(2,10.);
+  f1.SetParameter(2,100.);
   f1.SetParameter(3,6.);
   f1.SetParameter(4,1.);
   f2.SetParameter(0,100.);
   f2.SetParameter(1,0.7);
+  f4.SetParameter(0,100.);
+  f4.SetParameter(1,6.);
+  f4.SetParameter(2,1.);
   // f1.SetParameter(5,1.);
   //  f1.SetParameter(6,0.2);
 
@@ -87,10 +91,12 @@ void AMSGenHist::ShowSet(Int_t Set){
             double chi2=f2.GetChisquare();
             if(chi2>200){
               choise=1;
+            _fetched2[i]->Fit("vcg4","VR");
             _fetched2[i]->Fit("vcg3","VR");
             _fetched2[i]->Fit("vcg","VR");
             double chi2_2=f1.GetChisquare();
             if(chi2_2>chi2)choise=0;
+            else if(chi2_2<500)choise=2;
             } 
           }
           _fetched2[i]->Draw();
@@ -104,6 +110,10 @@ void AMSGenHist::ShowSet(Int_t Set){
             sprintf(text,"Output Rate (Hz) %f",1000/_fetched2[i]->GetMean());    
             lf->AddText(text);
             if(choise==1){
+                sprintf(text,"DAQ Speed (Hz) %f",2000/f4.GetParameter(1));    
+                lf->AddText(text);
+            }
+            if(choise==2){
                 sprintf(text,"DAQ Speed (Hz) %f",2000/f1.GetParameter(3));    
                 lf->AddText(text);
             }
