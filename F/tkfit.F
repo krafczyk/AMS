@@ -209,6 +209,7 @@ c        END DO
 c          PRINT*,'**************************************'
           PRINT*,' ER2 Covariance Matrix is Singular !!!'
 c          PRINT*,'**************************************'
+          outpar(5)=0
           GOTO 999
         ENDIF
 
@@ -254,6 +255,7 @@ c        DO JJ = 1, NPOINTS
 c          PRINT*,'JJ, ER2Y= ', JJ
 c     >       , (ER2(JJ+NPOINTS,KK+NPOINTS),KK=1,NPOINTS)
 c        END DO
+          outpar(5)=0
           GOTO 999
         ELSE
 c          DO J = 1, 5
@@ -273,6 +275,8 @@ c        PRINT*,' OUTpar= ', OUTpar
          endif
 30    continue
       ierr=2
+      OUTPAR(5)=OUTPAR(5)/2.997E-4
+      OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
       write(*,*)'tkfita-Error-TooManyIterations'
       goto 999
  998  continue

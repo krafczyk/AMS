@@ -219,7 +219,7 @@ Below there is a description of a  ntuple.
 * R*4  *              * TRTRACK  * hphi(2,ntrtr) // ------ phis
 * R*4  *              * TRTRACK  * hp0(3,2,ntrtr) // ------- coords
 * R*4  *              * TRTRACK  * fchi2ms(ntrtr) // fast chi2 mscat off
-* R*4  *              * TRTRACK  * pirigerr(ntrtr) // PathInt err(1/rig)
+* R*4  *              * TRTRACK  * pirigerr(ntrtr) // PathInt err(1/rig) (<0 means fit wan not succesful)
 * R*4  *              * TRTRACK  * ridgidityms(ntrtr) // fast rigidity mscat off
 * R*4  *              * TRTRACK  * pirigidity(ntrtr) // PathInt rigidity
 * I*4  * [0,20]       * MCEVENTG * nmcg // Number of input particles in MC gen

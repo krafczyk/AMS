@@ -1986,7 +1986,7 @@ _RidgidityMS=out[5];
 }
 else if(fit==5){
 _GChi2MS=out[8];
-if(out[7] != 0)_GChi2MS=-1;
+if(out[7] != 0)_GChi2MS=-out[7];
 _GRidgidityMS=out[5];
 }
 
