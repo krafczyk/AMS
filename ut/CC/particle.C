@@ -19,6 +19,7 @@
 #include <antirec.h>
 #include <mceventg.h>
 
+
 extern "C" void atcrec_(const integer & run, integer & nctcht, geant cooctc[1][2][3], int la[], int co[], int ro[], geant sig[],
                    int atcnbcel[], geant atcnbphe[], int atcidcel[], int atcdispm[], int atcdaero[], int atcstatu[], float & atcbeta);
 
@@ -67,7 +68,9 @@ integer AMSParticle::build(integer refit){
           AMSgObj::BookTimer.start("ReAxRefit");
            ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
           if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
-           ppart->ctcfit();
+           if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+            ppart->ctcfit();
+           }
            ppart->toffit();
            ppart->antifit();
           }
@@ -247,8 +250,11 @@ for(int kk=0;kk<2;kk++){
 
 
 void AMSParticle::_writeEl(){
-  ParticleNtuple* PN = AMSJob::gethead()->getntuple()->Get_part();
 
+
+if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+
+  ParticleNtuple* PN = AMSJob::gethead()->getntuple()->Get_part();
   if (PN->Npart>=MAXPART) return;
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && _ptrack->checkstatus(AMSDBc::NOTRACK))return;
 // Fill the ntuple 
@@ -369,7 +375,6 @@ void AMSParticle::_writeEl(){
   float ATCbeta[MAXPART];
 */ 
 
-if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
  float atcbeta;
  atcrec_(AMSEvent::gethead()->getrun(), nhits, PN->CooCTC, ctchitlayer, ctchitcolumn, ctchitrow, ctchitsignal,  
          PN->ATCnbcel[PN->Npart], PN->ATCnbphe[PN->Npart],   PN->ATCidcel[PN->Npart],  PN->ATCdispm[PN->Npart], 
@@ -377,20 +382,73 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
  
  // cout << "ATC debug" << PN->ATCnbcel[PN->Npart][1] << PN->ATCnbcel[PN->Npart][1] << endl;
  
-}
-else{
- for(int kk=0;kk<2;kk++){
- PN->ATCnbcel[PN->Npart][kk]=0;
- PN->ATCnbphe[PN->Npart][kk]=0;
- PN->ATCidcel[PN->Npart][kk]=0;
- PN->ATCdispm[PN->Npart][kk]=0;
- PN->ATCstatu[PN->Npart][kk]=0;
- }
-}
  //next
 
   PN->Npart++;
 }
+else{
+  ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
+  if (PN->Npart>=MAXPART) return;
+  if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && _ptrack->checkstatus(AMSDBc::NOTRACK))return;
+// Fill the ntuple 
+  PN->ChargeP[PN->Npart]=_pcharge->getpos();
+  PN->BetaP[PN->Npart]=_pbeta->getpos();
+  integer pat=_pbeta->getpattern();
+  int i;
+  for(i=0;i<pat;i++){
+    AMSContainer *pc=AMSEvent::gethead()->getC("AMSBeta",i);
+    #ifdef __AMSDEBUG__
+      assert(pc != NULL);
+    #endif
+    PN->BetaP[PN->Npart]+=pc->getnelem();
+  }
+ 
+  pat=_ptrack->getpattern();
+  if(_ptrack->checkstatus(AMSDBc::NOTRACK))PN->TrackP[PN->Npart]=-1;
+  else PN->TrackP[PN->Npart]=_ptrack->getpos();
+  PN->Particle[PN->Npart]=_gpart[0];
+  PN->ParticleVice[PN->Npart]=_gpart[1];
+  PN->FitMom[PN->Npart]=_fittedmom[0];
+ for(i=0;i<2;i++){
+  PN->Prob[PN->Npart][i]=_prob[i];
+ }
+  PN->Mass[PN->Npart]=_Mass;
+  PN->ErrMass[PN->Npart]=_ErrMass;
+  PN->Momentum[PN->Npart]=_Momentum;
+  PN->ErrMomentum[PN->Npart]=_ErrMomentum;
+  PN->Charge[PN->Npart]=_Charge;
+  PN->Theta[PN->Npart]=_Theta;
+  PN->Phi[PN->Npart]=fmod(_Phi+AMSDBc::twopi,AMSDBc::twopi);
+  PN->ThetaGl[PN->Npart]=_ThetaGl;
+  PN->PhiGl[PN->Npart]=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
+  for(i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
+  for(i=0;i<4;i++){
+    for(int j=0;j<3;j++){
+      PN->TOFCoo[PN->Npart][i][j]=_TOFCoo[i][j];
+    }
+  }
+  for(i=0;i<2;i++){
+    for(int j=0;j<3;j++){
+      PN->AntiCoo[PN->Npart][i][j]=_AntiCoo[i][j];
+//      cout <<i<<" "<<j<<" "<<_AntiCoo[i][j]<<endl;
+    }
+  }
+  for(i=0;i<6;i++){
+    for(int j=0;j<2;j++){
+      PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
+    }
+      PN->TrCoo[PN->Npart][i][2]=_Local[i];
+  }
+
+  PN->Cutoff[PN->Npart]=_CutoffMomentum;
+
+
+
+  PN->Npart++;
+
+}
+}
+
 
 void AMSParticle::_copyEl(){
 }

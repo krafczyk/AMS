@@ -2266,8 +2266,9 @@ delete _pntuple;
 #ifdef __G4AMS__
 if(MISCFFKEY.G4On){
 // due to infinite geant4 destructors
-
+#ifndef G4VIS_USE
 delete &(AMSgObj::BookTimer);
+#endif
 exit(0);
 }
 #endif

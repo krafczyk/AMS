@@ -13,6 +13,7 @@ protected:
   BetaNtuple _beta;
   ChargeNtuple _charge;
   ParticleNtuple _part;
+  ParticleNtuple02 _part02;
   TOFClusterNtuple _tof;
   TOFMCClusterNtuple _tofmc;
   TrClusterNtuple _trcl;
@@ -52,6 +53,7 @@ public:
   BetaNtuple* Get_beta() { return &_beta;}
   ChargeNtuple* Get_charge() { return &_charge;}
   ParticleNtuple* Get_part() {return &_part;}
+  ParticleNtuple02* Get_part02() {return &_part02;}
   TOFClusterNtuple* Get_tof() {return &_tof;}
   TOFMCClusterNtuple* Get_tofmc() {return &_tofmc;}
   TrClusterNtuple* Get_trcl() {return &_trcl;}

@@ -118,7 +118,7 @@ void AMSG4VisManager::create(){
  // User interactions
     G4UImanager * UI = G4UImanager::GetUIpointer();  
     _pses = new G4UIterminal;
-    UI->ApplyCommand("/control/execute prerun.g4mac");    
+//    UI->ApplyCommand("/control/execute prerun.g4mac");    
     _pses->SessionStart();
 
 }

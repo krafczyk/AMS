@@ -174,6 +174,41 @@ ClassDef(ParticleNtuple,1)       //ParticleNtuple
 #endif
 };
 
+#ifdef __WRITEROOT__
+class ParticleNtuple02 : public TObject {
+#else
+class ParticleNtuple02 {
+#endif
+public:
+  int Npart;
+  int   BetaP[MAXPART];
+  int   ChargeP[MAXPART];
+  int   TrackP[MAXPART];
+  int   Particle[MAXPART];
+  int   ParticleVice[MAXPART];
+  float Prob[MAXPART][2];
+  float FitMom[MAXPART];
+  float Mass[MAXPART];
+  float ErrMass[MAXPART];
+  float Momentum[MAXPART];
+  float ErrMomentum[MAXPART];
+  float Charge[MAXPART];
+  float Theta[MAXPART];
+  float Phi[MAXPART];
+  float ThetaGl[MAXPART];
+  float PhiGl[MAXPART];
+  float Coo[MAXPART][3];
+  float Cutoff[MAXPART];
+  float TOFCoo[MAXPART][4][3];
+  float AntiCoo[MAXPART][2][3];
+  float TrCoo[MAXPART][maxlay][3];
+friend class AMSParticle;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(ParticleNtuple02,1)       //ParticleNtuple
+#endif
+};
+
 //-------------------------
 #ifdef __WRITEROOT__
 class TOFClusterNtuple : public TObject {

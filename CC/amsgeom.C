@@ -106,7 +106,7 @@ if(!G4FFKEY.UniformMagField){
  ecalgeom02(mother);
  antigeom02(mother);
  pshgeom02(mother);
- richgeom02(mother);
+ //richgeom02(mother);
 #endif
 }
 else{ 
