@@ -1,4 +1,4 @@
-//  $Id: id.C,v 1.16 2001/01/22 17:32:20 choutko Exp $
+//  $Id: id.C,v 1.17 2005/02/25 10:58:55 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <id.h>
@@ -36,17 +36,6 @@ if(name){
  _name=new char[strlen(name)+1];
  if(_name)strcpy(_name,name);
  else{
-#ifdef __AMSDEBUG__
-  _name=(char*)name;
-  // Set Error
-  ResetError();
-  _error=_pull;
-  ostrstream ost(_error,sizeof(_error));
-  ost << *this<<ends;
-   ost.seekp(0); 
-  // for debug only
-  cerr <<_error;
-#endif
   _name=0;
 
  }

@@ -155,12 +155,12 @@ ifdef AMSICC
 else
 #AMSICC not set
   ifdef AMSDEBUG
+    CFLAGS=      $(CFLAGSB)  
     CFLAGSTOFSIM= $(CFLAGSB)
     CFLAGSn=      $(CFLAGSB)
     CFLAGSDAQ=    $(CFLAGSB)
     FFLAGS=   -fno-automatic -g -I../include  $(PFLAGS)
     FFLAGSn=   -fno-automatic -g -I../include $(PFLAGS) 
-    CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db  
   else
     CFLAGSTOFSIM= $(CFLAGSB)     -O1   
     CFLAGSDAQ=    $(CFLAGSB) -O2 
