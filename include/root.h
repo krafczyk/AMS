@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.145 2004/02/22 15:36:21 choutko Exp $
+//  $Id: root.h,v 1.146 2004/03/31 15:25:52 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3030,8 +3030,9 @@ ClassDef(AMSEventR,2)       //AMSEventR
 class AMSChain : public TChain {
 private:
       AMSEventR* _EVENT;
-      unsigned int _ENTRY;
+      Int_t _ENTRY;
       const char* _NAME;
+      Int_t _TREENUMBER;
 
 public:
       AMSChain(const char* name="AMSRoot"); ///< Default constructor
@@ -3042,7 +3043,7 @@ public:
       AMSEventR* GetEvent(Int_t run, Int_t ev); ///<Get AMSEventR with run number "run" and event number "ev"
       void Rewind() {_ENTRY=0;}; ///<Rewind the chain (go back to first entry)
 
-      unsigned int Entry(); ///<Get the current entry number
+      Int_t Entry(); ///<Get the current entry number
       AMSEventR* pEvent(); ///<Get the current event pointer
       const char* ChainName(); ///<Get the name of the tree
 

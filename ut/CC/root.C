@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.82 2004/03/31 10:48:39 alcaraz Exp $
+//  $Id: root.C,v 1.83 2004/03/31 15:25:51 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2267,22 +2267,20 @@ void AMSEventR::UProcessFill(){
 void AMSEventR::UTerminate(){
 }
 
-AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(0),_NAME(name),_EVENT(NULL){
+AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(0),_NAME(name),_EVENT(NULL),_TREENUMBER(-1){
 }
 
 AMSEventR* AMSChain::GetEvent(Int_t entry){
-      Int_t TreeNumberOld;
       if (_EVENT==NULL) {
            _EVENT = new AMSEventR;
            this->SetBranchAddress("ev.",&_EVENT);
            _EVENT->Head() = _EVENT;
            _EVENT->Tree() = NULL;
-           TreeNumberOld = -1;
       }
       _ENTRY = entry;
       Int_t tree_entry = LoadTree(_ENTRY);
-      if (GetTreeNumber()!=TreeNumberOld) {
-            TreeNumberOld = GetTreeNumber();
+      if (GetTreeNumber()!=_TREENUMBER) {
+            _TREENUMBER = GetTreeNumber();
             _EVENT->Tree() = GetTree();
             _EVENT->GetBranch(_EVENT->Tree());
       }
@@ -2308,7 +2306,7 @@ AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
       return _EVENT;
 };
 
-unsigned int AMSChain::Entry() {return _ENTRY;};
+Int_t AMSChain::Entry() {return _ENTRY;};
 AMSEventR* AMSChain::pEvent() {return _EVENT;};
 const char* AMSChain::ChainName() {return _NAME;};
 
