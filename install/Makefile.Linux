@@ -21,6 +21,7 @@ ifneq "$(wildcard /etc/redhat-release)" ""
 endif
 
 ifdef SLC3system
+ RH9add=-pthread
  ifndef AMSICC
    CERN_LEVEL = 2004
  else 
