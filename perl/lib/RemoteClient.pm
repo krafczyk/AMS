@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.148 2003/05/05 09:14:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.149 2003/05/05 12:28:59 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -960,18 +960,6 @@ sub ValidateRuns {
                $sql = "DELETE ntuples WHERE run=$run->{Run}";
                $self->{sqlserver}->Update($sql);
                $runupdate = "UPDATE runs SET ";
-               $sql = "SELECT dirpath FROM journals WHERE cid=-1";
-               my $r0 = $self->{sqlserver}->Query($sql);
-               if (defined $r0->[0][0]) { 
-                my $junkdir = $r0->[0][0];
-                foreach my $ntuple (@cpntuples) {
-                 my $cmd="mv $ntuple $junkdir/";
-                 system($cmd);
-                }
-                htmlText("Validation failed : moves ntuples to  ",$junkdir);
-               } else {
-                htmlText("Validation failed : cannot get junkdir  ",$sql);
-               }
            }
           $sql = $runupdate." STATUS='$status' WHERE run=$run->{Run}";
           $self->{sqlserver}->Update($sql);
@@ -4550,10 +4538,11 @@ sub checkJobsTimeout {
          $r4=$self->{sqlserver}->Query($sql); 
          if (defined $r4->[0][0]) {
              $jobstatus = $r4->[0][1];
-             if ($jobstatus eq "Processing" ||
+             if ($jobstatus eq 'Failed'     ||
+                 $jobstatus eq "Finished"    ||
                  $jobstatus eq "Foreign"    ||
-                 $jobstatus eq "Unchecked"  ||
-                 $jobstatus eq "Failed") {
+                 $jobstatus eq "Processing" ||
+                 $jobstatus eq "Unchecked")  {
                $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
                $self->{sqlserver}->Update($sql); 
                $tmoutflag = 1;
@@ -4570,7 +4559,7 @@ sub checkJobsTimeout {
                          \n Job will be removed from database.
                          \n Not earlier than  : $deletetime.
                          \n MC Production Team.";
-       $self->sendmailmessage($address,$sujet,$message);
+        $self->sendmailmessage($address,$sujet,$message);
 
         print "<td><b><font color=\"black\">$cite </font></b></td>";
         print "<td><b><font color=\"black\">$jid </font></b></td>";
@@ -6475,6 +6464,17 @@ foreach my $block (@blocks) {
     $self->{sqlserver}->Update($sql);
     print FILE "$sql \n";
     $runupdate = "UPDATE runs SET ";
+    $sql = "SELECT dirpath FROM journals WHERE cid=-1";
+    my $ret=$self->{sqlserver}->Query($sql);
+     if( defined $ret->[0][0]){
+      my $junkdir = $ret->[0][0];   
+      foreach my $ntuple (@cpntuples) {
+       my $cmd="mv  $ntuple $junkdir/";
+       print FILE "$cmd\n";
+       system($cmd);
+      }
+      print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
+    }
 }
   $sql = $runupdate." STATUS='$status' WHERE run=$run";
   $self->{sqlserver}->Update($sql);
@@ -6624,6 +6624,7 @@ sub deleteTimeOutJobs {
       DBServer::InitDBFile($self->{dbserver});
     }
 #
+    htmlTable("Jobs below will be deleted from the database");
 
     my $sql  = undef;
     $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
@@ -6634,7 +6635,6 @@ sub deleteTimeOutJobs {
                      Runs.status = 'TimeOut'";
     my $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
-    htmlTable("Jobs below will be deleted from the database");
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<td><b><font color=\"blue\">Cite </font></b></td>";
      print "<td><b><font color=\"blue\" >JobID </font></b></td>";
@@ -6645,7 +6645,7 @@ sub deleteTimeOutJobs {
      print "</tr>\n";
      print_bar($bluebar,3);
         foreach my $job (@{$ret}) {
-            my $jid = $job->[0];
+            my $jid          = $job->[0];
             my $timestamp    = $job->[1];
             my $timeout      = $job->[2];
             my $tsubmit      = EpochToDDMMYYHHMMSS($timestamp);
@@ -6675,7 +6675,68 @@ sub deleteTimeOutJobs {
  
         }
       htmlTableEnd();
-     htmlTableEnd();
-    }   
+    }
+
+
+#
+# delete jobs without runs
+#
+
+    my $timedelete = time() - 2*60*60;
+    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
+                 cites.name FROM jobs, cites 
+          WHERE jobs.timestamp+jobs.timeout < $timedelete  AND 
+                jobs.cid=cites.cid"; 
+    my $r3=$self->{sqlserver}->Query($sql);
+    if( defined $r3->[0][0]){
+      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+      print "<td><b><font color=\"blue\">Cite </font></b></td>";
+      print "<td><b><font color=\"blue\" >JobID </font></b></td>";
+      print "<td><b><font color=\"blue\" >Submitted</font></b></td>";
+      print "<td><b><font color=\"blue\" >Expired</font></b></td>";
+      print "<td><b><font color=\"blue\" >Owner</font></b></td>";
+      print "</tr>\n";
+      foreach my $job (@{$r3}){
+            my $jid          = $job->[0];
+            my $timestamp    = $job->[1];
+            my $timeout      = $job->[2];
+            my $tsubmit      = EpochToDDMMYYHHMMSS($timestamp);
+            my $texpire      = EpochToDDMMYYHHMMSS($timestamp+$timeout);
+            my $mid          = $job->[3];
+            my $cite         = $job->[5];
+
+         my $owner = "xyz";
+         $sql = "SELECT mails.name, mails.address FROM Mails 
+                 WHERE mails.mid=$mid";
+         my $r4 = $self->{sqlserver}->Query($sql);
+         if (defined $r4->[0][0]) {
+            $owner   = $r4->[0][0];
+          }
+
+         $sql="SELECT runs.run, runs.status 
+                FROM runs 
+                WHERE runs.jid = $jid";
+         $r4=$self->{sqlserver}->Query($sql); 
+         if (not defined $r4->[0][0]) {
+           
+            $sql = "DELETE Ntuples WHERE jid=$jid";
+            $self->{sqlserver}->Update($sql);
+            $sql = "DELETE Jobs WHERE jid=$jid";
+            $self->{sqlserver}->Update($sql);
+
+        print "<td><b><font color=\"black\">$cite </font></b></td>";
+        print "<td><b><font color=\"black\">$jid </font></b></td>";
+        print "<td><b><font color=\"black\">$tsubmit </font></b></td>";
+        print "<td><b><font color=\"black\">$texpire </font></b></td>";
+        print "<td><b><font color=\"red\">TimeOut </font></b></td>";
+        print "</tr>\n";
+       }
+     }
+      htmlTableEnd();
+    htmlTableEnd();
+   }
+
+
+    htmlTableEnd();
     $self->htmlBottom();
 }
