@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.153 2003/03/18 09:04:05 choumilo Exp $
+//  $Id: amsgeom.C,v 1.154 2003/03/18 09:11:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1982,6 +1982,7 @@ using trdconst::maxlad;
 using trdconst::maxo;
 using trdconst::mtrdo;
 using trdconst::maxtube;
+using trdconst::maxstrips;
 using trdconst::TRDROTMATRIXNO;
 
    TRDDBc::read();
@@ -2154,14 +2155,44 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
        dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
 	0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
      }
-//   ost.seekp(0);  
-//   ost << "TRDB"<<ends;
-//   TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
-//   for(ip=0;ip<10;ip++)par[ip]=TRDDBc::TubesBoxDimensions(i,j,k,ip);
-//   gid=i+mtrdo*j+mtrdo*maxlay*k+1;
-//   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
-//        0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
 
+     //strips
+   ost.seekp(0);  
+   ost << "TRDB"<<ends;
+   TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::StripsDim(ip)/2;
+   coo[0]=TRDDBc::StripsCoo(0);
+   number spacing=TRDDBc::StripsCoo(1);
+   for(l=0;fabs(coo[0])-par[0]<TRDDBc::LaddersDimensions(i,j,k,0);l+=4){
+    gid=maxstrips*maxlad*maxlay*i+maxstrips*maxlad*j+maxstrips*k+l+1;  //assume strips<maxtube here;
+   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid++,1));    
+   coo[0]=-coo[0];
+   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid++,1));    
+    coo[1]-=TRDDBc::TubesBoxDimensions(i,j,k,3);
+   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid++,1));    
+    coo[0]=-coo[0];
+   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",-1,gid,1));    
+
+    coo[0]+=spacing;
+    coo[1]+=TRDDBc::TubesBoxDimensions(i,j,k,3);
+  }
+/*
+     //chamber 
+   ost.seekp(0);  
+   ost << "TRDB"<<ends;
+   for(ip=0;ip<10;ip++)par[ip]=TRDDBc::TubesBoxDimensions(i,j,k,ip);
+   gid=i+(mtrdo+1)*j+(mtrdo+1)*maxlay*k+1;
+   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+   gid=TRDDBc::TRDOctagonNo()+(mtrdo+1)*j+(mtrdo+1)*maxlay*k+1;
+   coo[1]-=par[3];
+   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
+        0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+*/
    int l;
    for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
    ost.seekp(0);  
@@ -2191,9 +2222,52 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
    }
+
+// spacers
+
+   for(l=0;l< TRDDBc::TubesNo(i,j,k)-1;l++){
+   if(TRDDBc::ThereIsSpacerAfterTube(l)){
+    ost.seekp(0);  
+    ost << "TRDE"<<ends;
+
+   TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
+   coo[0]+=TRDDBc::TubesDimensions(i,j,k,1);
+
+       // inner part
+   
+   
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::SpacerDimensions(i,j,k,ip,0);
+   coo[0]+=par[0];
+   gid=maxtube*maxlad*maxlay*i+maxtube*maxlad*j+maxtube*k+l+1;
+   dau->add(new AMSgvolume(TRDDBc::SpacerMedia(),
+      0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+
+   //top part
+
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::SpacerDimensions(i,j,k,ip,1);
+   gid=maxtube*maxlad*maxlay*TRDDBc::TRDOctagonNo()+maxtube*maxlad*j+maxtube*k+l+1;
+   coo[1]+=(TRDDBc::SpacerDim(1)+TRDDBc::SpacerDim(3))/2;    // quite ugly 
+   dau->add(new AMSgvolume(TRDDBc::SpacerMedia(),
+      0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+
+
+   //bottom part
+
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::SpacerDimensions(i,j,k,ip,1);
+   gid=maxtube*maxlad*maxlay*TRDDBc::TRDOctagonNo()*(TRDDBc::TRDOctagonNo()+1)+maxtube*maxlad*j+maxtube*k+l+1;
+   coo[1]-=(TRDDBc::SpacerDim(1)+TRDDBc::SpacerDim(3));    // quite ugly 
+   dau->add(new AMSgvolume(TRDDBc::SpacerMedia(),
+      0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+
+   }
+   }
+
+
   }
  }
 }
+
+
 
 {
 //  Now Xe Rad Spikes

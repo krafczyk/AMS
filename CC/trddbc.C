@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.23 2003/03/12 15:29:34 choutko Exp $
+//  $Id: trddbc.C,v 1.24 2003/03/18 09:11:43 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -16,6 +16,8 @@ char * TRDDBc::_TubesMedia="TRDCapton";
 char * TRDDBc::_ITubesMedia="TRDGas";
 char * TRDDBc::_RadiatorMedia="VACUUM";  // Really hole in radiator
 char * TRDDBc::_TubesBoxMedia="TRDFoam";
+char * TRDDBc::_SpacerMedia="TRDCarbonFiber";
+char * TRDDBc::_StripsMedia="TRDCarbonFiber";
 
 //
 //      NB
@@ -288,9 +290,12 @@ uinteger   TRDDBc::_NumberCutouts=0;
 uinteger   TRDDBc::_NumberBulkheads=0;
 
 
-const number  TRDDBc::_TubeWallThickness=75e-4;
+const number  TRDDBc::_TubeWallThickness=72e-4;
 const number  TRDDBc::_TubeInnerDiameter=0.6;
 const number  TRDDBc::_TubeBoxThickness=(0.62-TRDDBc::_TubeInnerDiameter-2*TRDDBc::_TubeWallThickness)/2.;
+const number  TRDDBc::_ChamberThickness=0.04;
+const number  TRDDBc::_StripsDim[3]={0.6,9.2,0.03};
+const number  TRDDBc::_StripsCoo[2]={10.69,10.};
 const number  TRDDBc::_BulkheadWidth=0.3;
 const number  TRDDBc::_LadderThickness=2.9;
 //      changed by VC 12-03-2002
@@ -310,7 +315,7 @@ const number TRDDBc::_BulkheadGap = 0.78; // Gap between ladders at bulkhead
 
 const integer TRDDBc::_LadderOrientation[mtrdo][maxlay]={0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0};   // 0 -x 1 -y    
 
-const number TRDDBc::_SpacerWidth = 0.03;
+const number TRDDBc::_SpacerDim[4] = {0.03,0.4,0.09,0.1};
 // Spacers preceding
 const integer TRDDBc::_NumberSpacers[maxtube]={0,1,1,1,2,2,2,3,3,4,4,4,5,5,5,6};
 number TRDDBc::_OctagonDimensions[maxo][10]; 
@@ -318,6 +323,7 @@ number TRDDBc::_BulkheadsDimensions[mtrdo][maxbulk][4];
 number TRDDBc::_CutoutsDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_LaddersDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_TubesDimensions[mtrdo][maxlay][maxlad][3];    
+number TRDDBc::_SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
 number TRDDBc::_TubesBoxDimensions[mtrdo][maxlay][maxlad][10];    
 number TRDDBc::_RadiatorDimensions[mtrdo][maxlay][maxlad][3];
 
@@ -338,7 +344,7 @@ void TRDDBc::init(){
     for(i=0;i<TRDOctagonNo();i++){
      for(j=0;j<LayersNo(i);j++){
       for(k=0;k<LaddersNo(i,j);k++){
-       _TubesNo[i][j][k]=16;
+       _TubesNo[i][j][k]=maxtube;
       }
      }
     }
@@ -1199,8 +1205,12 @@ void TRDDBc::init(){
 	  RadiatorDimensions(i,j,k,1)/= 2.;
 
 
+
           // length
           RadiatorDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2);
+
+
+
 
 	  // width
           TubesDimensions(i,j,k,0)=TubeInnerDiameter()/2;          
@@ -1210,6 +1220,26 @@ void TRDDBc::init(){
 
 //        (Manifold (???)  added by VC (probably wrong) 12-03-2003
           TubesDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2)-ManifoldLength();
+
+
+//       SpacerDimensions
+//
+         // inner part
+         SpacerDimensions(i,j,k,0,0)=SpacerDim(0)/2;
+         SpacerDimensions(i,j,k,1,0)=SpacerDim(1)/2;
+         SpacerDimensions(i,j,k,2,0)=LaddersDimensions(i,j,k,2);
+         // outer part
+         SpacerDimensions(i,j,k,0,1)=SpacerDim(2)/2;
+         SpacerDimensions(i,j,k,1,1)=SpacerDim(3)/2;
+         SpacerDimensions(i,j,k,2,1)=LaddersDimensions(i,j,k,2);
+
+//  Chamber Dimensions
+	  // width
+          TubesBoxDimensions(i,j,k,0)=maxtube*(TubesDimensions(i,j,k,1)*2+TubeBoxThickness())/2+_NumberSpacers[maxtube-1]*SpacerWidth()/2;      
+	  // height
+          TubesBoxDimensions(i,j,k,1)=ChamberThickness()/2;
+          TubesBoxDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2);
+          TubesBoxDimensions(i,j,k,3)=TubesDimensions(i,j,k,1)*2+TubeBoxThickness()+ChamberThickness();
         }
        }
       }
@@ -1291,6 +1321,12 @@ void TRDDBc::init(){
 	       coo[1]= -WirePosition();
 	     }
            SetTube(l,k,j,i,status,coo,unitnrm,gid);
+           if(l==0){
+              //set tube box
+                coo[0]=0;             
+                coo[1]=coo[1]+TubesDimensions(i,j,k,1)+TubeBoxThickness()/2+ChamberThickness()/2;             
+              SetTubeBox(k,j,i,status,coo,unitnrm,gid);
+           }
          }
         }
        }
@@ -2487,6 +2523,7 @@ void TRDDBc::SetTubeBox(uinteger ladder, uinteger layer,uinteger oct,
 }
 
 
+
 void TRDDBc::GetTubeBox(uinteger ladder, uinteger layer, uinteger oct,
                           uinteger & status, geant coo[],number nrm[3][3],
                           uinteger &gid){
@@ -2523,6 +2560,7 @@ void TRDDBc::SetTube(uinteger tube,uinteger ladder, uinteger layer,uinteger oct,
 }
 
 
+
 void TRDDBc::GetTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct,
                           uinteger & status, geant coo[],number nrm[3][3],
                           uinteger &gid){
@@ -2541,6 +2579,9 @@ void TRDDBc::GetTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct
    }
 
 }
+
+
+
 
 uinteger TRDDBc::_check(uinteger oct,uinteger layer,uinteger ladder, uinteger tube){
  if(oct>=TRDOctagonNo()){
@@ -2603,6 +2644,15 @@ _check(toct,lay,lad);
 assert(index<sizeof(_TubesDimensions)/sizeof(_TubesDimensions[0][0][0][0])/mtrdo/maxlay/maxlad);
 #endif
 return _TubesDimensions[toct][lay][lad][index];
+}
+
+number & TRDDBc::SpacerDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index, uinteger spacerpart){  //spacerpart: 0 -inner
+#ifdef __AMSDEBUG__
+_check(toct,lay,lad);
+assert(index<sizeof(_SpacerDimensions)/sizeof(_TubesDimensions[0][0][0][0][0])/mtrdo/maxlay/maxlad/2);
+assert(spacerpart<2);
+#endif
+return _SpacerDimensions[toct][lay][lad][index][spacerpart];
 }
 
 number & TRDDBc::LaddersDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index){

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.79 2003/02/14 15:18:13 choumilo Exp $
+//  $Id: gmat.C,v 1.80 2003/03/18 09:11:42 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -566,6 +566,10 @@ else{
  }
  pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);
  uwbuf[2]=6;
+ pvac->setubuf(nwbuf,uwbuf);
+ tmed.add (pvac );
+ pvac=new AMSgtmed("COPPERTRD","COPPER",0);
+ uwbuf[2]=10;
  pvac->setubuf(nwbuf,uwbuf);
  tmed.add (pvac );
 }
