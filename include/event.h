@@ -156,6 +156,7 @@ void _retofevent();
 void _reantievent();
 void _reecalevent();
 void _retrigevent();
+void _rerichevent();
 void _rectcevent();
 void _retrdevent();
 void _resrdevent();

@@ -1133,7 +1133,10 @@ void AMSEvent::_reamsevent(){
   if(DAQCFFKEY.NoRecAtAll)return;
   _retofevent();
   _reantievent();
+if(AMSJob::gethead()->isReconstruction() )_retrigevent();
+  _retkevent(); 
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    _rerichevent();
     _reecalevent();
     _retrdevent();
     _resrdevent();
@@ -1141,8 +1144,6 @@ void AMSEvent::_reamsevent(){
   else {
     _rectcevent(); 
   } 
-if(AMSJob::gethead()->isReconstruction() )_retrigevent();
-  _retkevent(); 
   _reaxevent();
    AMSUser::Event();
 }
@@ -1515,6 +1516,13 @@ void AMSEvent::_retrdevent(){
 //
   AMSgObj::BookTimer.stop("RETRDEVENT");
 }
+void AMSEvent::_rerichevent(){
+//
+  AMSgObj::BookTimer.start("RERICH");
+//
+//
+  AMSgObj::BookTimer.stop("RERICH");
+}
 void AMSEvent::_resrdevent(){
 //
   AMSgObj::BookTimer.start("RESRDEVENT");
@@ -1721,7 +1729,9 @@ void AMSEvent:: _siecalevent(){
 
 
 void AMSEvent::_sirichevent(){
+  AMSgObj::BookTimer.start("SIRICH");
   AMSRichRawEvent::mc_build();
+  AMSgObj::BookTimer.stop("SIRICH");
 }
 
 

@@ -191,12 +191,12 @@ _sictcdata();
 _sitrigdata();
 
 // RICH data
-_siricdata();
+_sirichdata();
 
 }
 
 
-void AMSJob::_siricdata(){
+void AMSJob::_sirichdata(){
   RICGEOM.top_radius=63.6;
   RICGEOM.bottom_radius=74;
   RICGEOM.hole_radius=33;
@@ -1283,7 +1283,7 @@ void AMSJob::_siamsinitjob(){
   _sitofinitjob();
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     _siecalinitjob();
-    _siricinitjob();
+    _sirichinitjob();
   }
   _siantiinitjob();
   _sitrdinitjob();
@@ -1402,8 +1402,13 @@ void AMSJob::_siecalinitjob(){
     EcalJobStat::bookhistmc();
 }
 
-void AMSJob::_siricinitjob(){
+void AMSJob::_sirichinitjob(){
+  AMSgObj::BookTimer.book("SIRICH");
   RICHDB::bookhist();
+}
+
+void AMSJob::_rerichinitjob(){
+  AMSgObj::BookTimer.book("RERICH");
 }
 
 //---------------------------------------------------------------------------------------
@@ -1449,6 +1454,7 @@ _reantiinitjob();
 if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 _reecalinitjob();
 _retrdinitjob();
+_rerichinitjob();
 _resrdinitjob();
 }
 else{
