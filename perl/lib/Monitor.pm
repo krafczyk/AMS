@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.77 2004/06/28 13:25:19 choutko Exp $
+# $Id: Monitor.pm,v 1.78 2004/09/21 11:54:23 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1900,7 +1900,9 @@ FoundRun2:
 
 
 
-sub RestoreRuns3{
+sub RestoreRuns{
+#  in case if runs are in scripts, but not in server
+#
  my $ref=shift;
  my $dir;
  my $maxrun=0;
@@ -1921,7 +1923,7 @@ my @allfiles= readdir THISDIR;
 closedir THISDIR;
 
 
-for my $run (582...581){
+for my $run (825...850){
 foreach my $file (@allfiles){
     if ($file =~/^cern\.$run/){
                my %rdst; 
@@ -1974,7 +1976,7 @@ foreach my $file (@allfiles){
                      my $date=int($timbeg/1000000)%100;
                      $rdst{TLEvent}=timelocal(1,0,8,$date,$month,$year);
                      warn " Run $run completed $rdst{Status} $rdst{uid} \n";
-                      if($maxrun<=100){
+                      if($maxrun<=1000){
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
@@ -2006,7 +2008,7 @@ fr3:
 }
 }
 
-
+return
 
  my $joudir="/f2users/scratch/MC/cern/jou/MCProducer/";
 opendir THISDIR ,$joudir or die "unable to open $joudir";
@@ -2192,7 +2194,7 @@ FoundRun:
 }
 }
 
-sub RestoreRuns{
+sub RestoreRuns_no{
  my $ref=shift;
  my $dir;
  my $maxrun=0;

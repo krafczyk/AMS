@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.275 2004/08/05 09:19:08 alexei Exp $
+# $Id: RemoteClient.pm,v 1.276 2004/09/21 11:54:24 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4306,12 +4306,15 @@ print qq`
             $self->ErrorPlus("unable to retreive db version from db");
         }
         my $dbversion=$ret->[0][0];
+           $dbversion="v3.00";
         my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
+       if($dbversion=~/v4/){
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.flux $self->{UploadsDir}/$dbversion";
+       }
         $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion";
         if($i){
               $self->ErrorPlus("Unable to tar $self->{UploadsDir} $dbversion to $filen");
@@ -4362,6 +4365,8 @@ print qq`
         my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$run";
         my $i=system "mkdir -p $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap $self->{UploadsDir}/DataBase";
+           my $dbversion="v3.00";
+           if($dbversion =~/v4/){
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Anti* $self->{UploadsDir}/DataBase";
@@ -4373,6 +4378,51 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Ecal* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/TRD* $self->{UploadsDir}/DataBase";
         $i=system "tar -C$self->{UploadsDir} -h -cf $filen DataBase";
+    }
+           else{
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "mkdir $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerCmnNoise/895964400 $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerCmnNoise/896828400/ $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerCmnNoise/896914800/ $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerCmnNoise/897260400/ $self->{UploadsDir}/DataBase/TrackerCmnNoise";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.r/895964400/ $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.r/896828400/ $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.r/896914800/ $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.r/897260400/ $self->{UploadsDir}/DataBase/TrackerSigmas.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.l/895964400/ $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.l/896828400/ $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.l/896914800/ $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerSigmas.l/897260400/ $self->{UploadsDir}/DataBase/TrackerSigmas.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.r/895964400/ $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.r/896828400/ $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.r/896914800/ $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.r/897260400/ $self->{UploadsDir}/DataBase/TrackerPedestals.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.l/895964400/ $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.l/896828400/ $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.l/896914800/ $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerPedestals.l/897260400/ $self->{UploadsDir}/DataBase/TrackerPedestals.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.r/895964400/ $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.r/896828400/ $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.r/896914800/ $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.r/897260400/ $self->{UploadsDir}/DataBase/TrackerStatus.r";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.l/895964400/ $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.l/896828400/ $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.l/896914800/ $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerStatus.l/897260400/ $self->{UploadsDir}/DataBase/TrackerStatus.l";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/TrackerG* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Anti* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/C* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase"; 
+        $i=system "tar -C$self->{UploadsDir} -h -cf $filen DataBase";
+           }
         if($i){
               $self->ErrorPlus("Unable to tar $self->{UploadsDir} DataBase to $filen");
          }
