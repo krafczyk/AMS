@@ -1,4 +1,4 @@
-//  $Id: dbserver.h,v 1.7 2001/06/14 08:48:20 choutko Exp $
+//  $Id: dbserver.h,v 1.8 2002/02/08 13:48:27 choutko Exp $
 #ifndef __AMSDBSERVER__
 #define __AMSDBSERVER__
 #include <server.h>
@@ -58,7 +58,7 @@ public:
   DPS::Producer::DSTStatus   unsi2DSTS(unsigned int a);
   int getDSTInfoS(const DPS::Client::CID &cid, DSTIS_out res);
   int getRun(const DPS::Client::CID &cid, const FPath & fpath, RUN_out run,TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
-  int sendFile(const DPS::Client::CID &cid, const FPath & fpath, const  RUN & file,TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
+  int sendFile(const DPS::Client::CID &cid,  FPath & fpath, const  RUN & file,TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
   int getRunEvInfoS(const DPS::Client::CID &cid, RES_out res, unsigned int & maxrun);
   int getRunEvInfoSPerl(const DPS::Client::CID &cid, RES_out res, unsigned int  maxrun, unsigned  int &maxrun1);
   char * getDBFilePath(const DPS::Client::CID &cid);
@@ -76,6 +76,14 @@ public:
     void clearDST( DPS::Producer::DSTType type);
     void clearDSTI();
     void clearRunEvInfo( DPS::Producer::RunStatus status);
+   void sendNHS(const DPS::Client::CID &cid,const NHS & nhl)throw (CORBA::SystemException){};
+   void sendAHS(const DPS::Client::CID &cid,const AHS & ahl)throw (CORBA::SystemException){};
+  void sendNCS(const DPS::Client::CID &cid, const DPS::Client::NCS & nc)throw (CORBA::SystemException){};
+  void sendNKS(const DPS::Client::CID &cid, const DPS::Client::NCS & nc)throw (CORBA::SystemException){};
+  void sendRunEvInfoS(const DPS::Client::CID &cid, const RES & res, unsigned int  maxrun)throw (CORBA::SystemException){};
+  void sendDSTInfoS(const DPS::Client::CID &cid, const DSTIS & res)throw (CORBA::SystemException){};
+  void sendDSTS(const DPS::Client::CID & ci, const DSTS & dsts)throw (CORBA::SystemException){};
+
   }; 
 
 

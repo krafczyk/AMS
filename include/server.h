@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.39 2001/06/26 15:07:27 choutko Exp $
+//  $Id: server.h,v 1.40 2002/02/08 13:48:27 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -116,6 +116,7 @@ public:
 
 CORBA::ORB_ptr  getdefaultorb()const {return _defaultorb;}
   uinteger getmaxcl() const {return _Submit;}
+  void setmaxcl(uinteger maxcl)  {_Submit=maxcl;}
   void addone(){++_Submit;}
  COL & getcol(){return _col;}
   ACL & getacl(){return _acl;}
@@ -229,6 +230,8 @@ void _PurgeQueue();
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
   void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
   int getNC(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)throw (CORBA::SystemException);
+  void sendNCS(const DPS::Client::CID &cid, const DPS::Client::NCS & nc)throw (CORBA::SystemException);
+  void sendNKS(const DPS::Client::CID &cid, const DPS::Client::NCS & nc)throw (CORBA::SystemException);
   int getNK(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)throw (CORBA::SystemException);
    int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0, int selffirst=0)throw (CORBA::SystemException);
    bool ARSaux(DPS::Client::AccessType type,uinteger id,uinteger compare);
@@ -241,7 +244,9 @@ void _PurgeQueue();
    CORBA::Boolean getDBSpace(const DPS::Client::CID &cid, const char * path, const char * addpath,DB_out db)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
    int getNHS(const DPS::Client::CID &cid,NHS_out nhl)throw (CORBA::SystemException);
+   void sendNHS(const DPS::Client::CID &cid,const NHS & nhl)throw (CORBA::SystemException);
    int getAHS(const DPS::Client::CID &cid,AHS_out ahl)throw (CORBA::SystemException);
+   void sendAHS(const DPS::Client::CID &cid, const AHS & ahl)throw (CORBA::SystemException);
    int getEnv(const DPS::Client::CID &cid, SS_out ss)throw (CORBA::SystemException);
    void setEnv(const DPS::Client::CID &cid,const char * env, const char *path)throw (CORBA::SystemException);
    CORBA::Boolean AdvancedPing()throw (CORBA::SystemException);
@@ -345,10 +350,12 @@ public:
 
 
   int getDSTInfoS(const DPS::Client::CID &cid, DSTIS_out res)throw (CORBA::SystemException);
+  void sendDSTInfoS(const DPS::Client::CID &cid, const DSTIS & res)throw (CORBA::SystemException);
   void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
   int getRun(const DPS::Client::CID &cid, const FPath & fpath, RUN_out run,TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
-  int sendFile(const DPS::Client::CID &cid, const FPath & fpath, const  RUN & file,TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
+  int sendFile(const DPS::Client::CID &cid,  FPath & fpath, const  RUN & file,TransferStatus & st)throw (CORBA::SystemException,DPS::Producer::FailedOp);
   int getRunEvInfoS(const DPS::Client::CID &cid, RES_out res, unsigned int & maxrun)throw (CORBA::SystemException);
+  void sendRunEvInfoS(const DPS::Client::CID &cid, const RES & res, unsigned int  maxrun)throw (CORBA::SystemException);
    void getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out rv, DSTInfo_out dv)throw (CORBA::SystemException);
 
   void sendRunEvInfo(const  RunEvInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
@@ -356,6 +363,7 @@ public:
   void sendDSTInfo(const  DSTInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
 
   int getDSTS(const DPS::Client::CID & ci, DSTS_out dsts)throw (CORBA::SystemException);
+  void sendDSTS(const DPS::Client::CID & ci, const DSTS & dsts)throw (CORBA::SystemException);
 
   void sendCurrentInfo(const DPS::Client::CID & ci, const  CurrentInfo &ci, int propagate)throw (CORBA::SystemException);
 
@@ -388,10 +396,11 @@ public:
 class REInfo_find: public unary_function<RunEvInfo,bool>{
 DPS::Client::CID _cid;
 RunStatus _rs;
+bool _status;
 public:
- explicit REInfo_find(const DPS::Client::CID & cid, RunStatus rs):_cid(cid),_rs(rs){}
+ explicit REInfo_find(const DPS::Client::CID & cid, RunStatus rs, bool permanent=true):_cid(cid),_rs(rs),_status(permanent){}
  bool operator()(const RunEvInfo & a){
-  return a.Status==ToBeRerun && a.History==_rs && (_rs==ToBeRerun || strcmp((const char *) _cid.HostName, (const char *) a.cinfo.HostName));
+  return (a.Status==ToBeRerun ||  !_status) && (a.History==_rs || a.History==Foreign) && (_rs==ToBeRerun || strcmp((const char *) _cid.HostName, (const char *) a.cinfo.HostName)) && (_status ||  (_cid.uid==a.Run && (a.Status==Allocated || a.Status==Foreign)) );
 }
 };
 class REInfo_process: public unary_function<RunEvInfo,bool>{
@@ -421,6 +430,13 @@ DPS::Client::CID _cid;
 public:
  explicit REInfo_EqsClient(const DPS::Client::CID & cid):_cid(cid){}
  bool operator()(const RunEvInfo & a){return a.cuid== _cid.uid;}
+};
+
+class REInfo_EqsClient2: public unary_function<RunEvInfo,bool>{
+DPS::Client::CID _cid;
+public:
+ explicit REInfo_EqsClient2(const DPS::Client::CID & cid):_cid(cid){}
+ bool operator()(const RunEvInfo & a){return _cid.uid!=0 && a.Status != Allocated && a.Status!=Foreign && a.cuid== _cid.uid;}
 };
 
 

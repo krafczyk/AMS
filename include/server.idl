@@ -20,6 +20,7 @@ module DPS{
     unsigned long pid;
     unsigned long ppid;
     ClientType   Type;
+    ClientStatusType StatusType;
     ClientExiting Status;
     string Interface;
     };
@@ -109,7 +110,7 @@ module DPS{
  
   interface Producer: Client{
     enum TransferStatus{Begin,Continue,End};
-    enum RunStatus{ToBeRerun, Failed,Processing, Finished, Unknown};
+    enum RunStatus{ToBeRerun, Failed,Processing, Finished, Unknown, Allocated,Foreign};
     enum DSTStatus{Success,InProgress,Failure};
     enum RunMode{RILO,LILO,RIRO,LIRO};
     enum DSTType{Ntuple,EventTag,RootFile};
@@ -184,9 +185,11 @@ module DPS{
     };
     typedef sequence<DSTInfo> DSTIS;
     long getDSTInfoS(in CID id, out DSTIS dsti);
+    void sendDSTInfoS(in CID id, in DSTIS dsti);
     void sendDSTInfo(in DSTInfo info, in RecordChange rc)raises(DBProblem);
     typedef sequence<RunEvInfo> RES;
     long getRunEvInfoS(in CID id, out RES res, inout unsigned long maxr)raises(DBProblem); 
+    void sendRunEvInfoS(in CID id, in RES res, in unsigned long maxr); 
     void getRunEvInfo(in CID id, out RunEvInfo rv, out DSTInfo dv)raises(DBProblem);
     void sendRunEvInfo(in RunEvInfo ri, in RecordChange rch)raises(DBProblem);
 
@@ -207,6 +210,7 @@ module DPS{
     void sendDSTEnd(in CID id, in DST ne, in RecordChange re)raises(DBProblem); 
     typedef sequence<DST> DSTS;
     long getDSTS(in CID id, out DSTS dsts);     
+    void sendDSTS(in CID id, in DSTS dsts);     
 
     typedef sequence<octet> RUN;
     exception FailedOp{
@@ -217,7 +221,7 @@ module DPS{
      unsigned long pos;
     };  
     long getRun(in CID id, in FPath fpath ,out RUN run,  inout TransferStatus st) raises(FailedOp);      
-    long sendFile(in CID id, in FPath fpath ,in RUN run,  inout TransferStatus st) raises(FailedOp);      
+    long sendFile(in CID id, inout FPath fpath ,in RUN run,  inout TransferStatus st) raises(FailedOp);      
     
   };
 
@@ -246,20 +250,23 @@ module DPS{
      string message;
     };
     */
-
     long getACS(in CID id, out ACS acl, out unsigned long maxc)raises(DBProblem);
     void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc)raises(DBProblem);
 
     long getNC(in CID id, out NCS acl)raises(DBProblem);
     void sendNC(in CID id, in NominalClient nc,in RecordChange rc);
+    void sendNCS(in CID id, in NCS acl);
     long getNK(in CID id, out NCS acl)raises(DBProblem);
+    void sendNKS(in CID id, in NCS acl);
     void sendNK(in CID id, in NominalClient nc,in RecordChange rc);
 
     long getNHS(in CID id, out NHS nhs)raises(DBProblem);
+    void sendNHS(in CID id, in NHS nhs);
     void sendNH(in CID id, in NominalHost ah,in RecordChange rc);
     
 
     long getAHS(in CID id, out AHS ahl)raises(DBProblem);
+    void sendAHS(in CID id, in AHS ahl);
     void sendAH(in CID id, in ActiveHost ah,in RecordChange rc)raises(DBProblem);
     struct DB{
      string fs;

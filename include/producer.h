@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.14 2001/07/05 17:15:46 choutko Exp $
+//  $Id: producer.h,v 1.15 2002/02/08 13:48:27 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -15,6 +15,8 @@ PList _plist;
 static AMSProducer * _Head;
 bool _OnAir;
 bool _FreshMan;
+bool _Local;
+bool _RemoteDST;
 DPS::Producer::CurrentInfo _cinfo;
 DPS::Producer::DST   _ntend[2];  // 0 - ntuple 1 -root
 DPS::Producer::DST   _evtag;
@@ -30,6 +32,7 @@ AMSProducer(int argc,  char * argv[], int debug) throw (AMSClientError);
 static AMSProducer* gethead(){return _Head;}
 DPS::Producer::DST * getdst(DPS::Producer::DSTType type);
 bool & OnAir(){return _OnAir;}
+bool  IsLocal(){return _Local;}
 void AddEvent();
 void UpdateARS();
 void getRunEventInfo();
@@ -42,6 +45,7 @@ void sendNtupleStart(DPS::Producer::DSTType type,const char * name,int run, int 
 void sendNtupleUpdate(DPS::Producer::DSTType type);
 void sendNtupleEnd(DPS::Producer::DSTType type,int entries, int last, time_t end, bool suc);
 void sendRunEnd(DAQEvent::InitResult res);
+void sendRunEndMC();
 void sendEventTagEnd(const char *name, uinteger run,time_t insert, time_t begin,time_t end,uinteger first,uinteger last,integer nelem, bool fail);  
 void sendEventTagBegin(const char * name,uinteger run,uinteger first);  
 bool getTDV(AMSTimeID * tdv, int id);

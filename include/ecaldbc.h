@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.16 2002/01/17 14:33:51 choutko Exp $
+//  $Id: ecaldbc.h,v 1.17 2002/02/08 13:48:27 choutko Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -10,7 +10,7 @@
 namespace ecalconst{
 const integer ECFLSMX=10; // max. fiber-layers per S-layer
 const integer ECFBCMX=12; // max. fibers per layer in PMcell
-const integer ECSLMX=8; // max. S(uper)-layers
+const integer ECSLMX=9; // max. S(uper)-layers
 const integer ECPMSMX=36; // max. PMCell(PM's) per S-layer
 const integer ECPMSL=ECSLMX*ECPMSMX;// Max. total PM's in all S-layers
 const integer ECFBLMX=500;// max. fibers per layer
