@@ -178,12 +178,12 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    // Create User Communicator Pad
 
 
-   m_Canvas->cd();
-   m_UCPad = new TPad("UserComPad", "User Communication Pad", 0.2, 0, 1, 0.05);
-   m_UCPad->SetFillColor(0);
-   m_UCPad->SetBorderSize(1);
-   m_UCPad->SetBorderMode(2);
-   m_UCPad->Draw();
+   //   m_Canvas->cd();
+   //   m_UCPad = new TPad("UserComPad", "User Communication Pad", 0.2, 0, 1, 0.05);
+   //   m_UCPad->SetFillColor(0);
+   //   m_UCPad->SetBorderSize(1);
+   //   m_UCPad->SetBorderMode(2);
+   //   m_UCPad->Draw();
 
 
 
