@@ -1,4 +1,5 @@
-//  $Id: gamma.C,v 1.4 2002/11/14 15:38:02 choutko Exp $
+//  $Id: gamma.C,v 1.5 2002/11/14 17:38:58 choutko Exp $
+// Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
 //
@@ -35,6 +36,7 @@
 #include <ecaldbc.h>
 #include <ecalcalib.h>
 #include <cern.h>
+#include <point.h>
 using namespace std;
 using namespace ecalconst;
 
@@ -1393,6 +1395,9 @@ if (nleft >=3 && nright >= 3){
 pntLR->Fit(0,2);
 pntLR->Fit(3,2);
 pntLR->Fit(4,2);
+int counting=0;
+int plusminus=0;
+pntLR->PAIR2GAMMA(counting,plusminus);
 }
 
     AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),pntLR);
@@ -1445,6 +1450,8 @@ if(AMSTrTrackGamma::Out(1)){
 
 
 TrTN->Pgam[TrTN->Ngam]=_PGAMM;
+TrTN->ErrPgam[TrTN->Ngam]=_ErrPGAMM;
+TrTN->Massgam[TrTN->Ngam]=_MGAM;
 TrTN->Thetagam[TrTN->Ngam]=_PhTheta;
 TrTN->Phigam[TrTN->Ngam]=_PhPhi;
  if (_VE1[2] >= _VE2[2]){
@@ -1463,14 +1470,14 @@ TrTN->PtrRight[TrTN->Ngam]=-1;
 if(_pntTrR->checkstatus(AMSDBc::NOTRACK))TrTN->PtrRight[TrTN->Ngam]=-1;
 if(_pntTrR->checkstatus(AMSDBc::GAMMARIGHT))TrTN->PtrRight[TrTN->Ngam]=_pntTrR->getpos();
 
-//
+/*
 TrTN->Jthetal[TrTN->Ngam]=(geant)_GThetaMSL;
 TrTN->Jphil[TrTN->Ngam]=(geant)_GPhiMSL;
 TrTN->Jthetar[TrTN->Ngam]=(geant)_GThetaMSR;
 TrTN->Jphir[TrTN->Ngam]=(geant)_GPhiMSR;
 for(i=0;i<3;i++)TrTN->Jp0l[TrTN->Ngam][i]=(geant)_GP0MSL[i];
 for(i=0;i<3;i++)TrTN->Jp0r[TrTN->Ngam][i]=(geant)_GP0MSR[i];
-
+*/
 TrTN->Ngam++;
 
 }
@@ -2816,7 +2823,6 @@ void AMSTrTrackGamma::PAIR2GAMMA(int & counting, int & plusminus){
   double ppiu;
   double n_L[3];
   double n_R[3];
-  double p3[3];
   if (_GRidgidityMSR * _GRidgidityMSL < 0){
     pmeno=(_GRidgidityMSR<0)?_GRidgidityMSR:_GRidgidityMSL;
     ppiu=(_GRidgidityMSR<0)?_GRidgidityMSL:_GRidgidityMSR;
@@ -2842,25 +2848,39 @@ void AMSTrTrackGamma::PAIR2GAMMA(int & counting, int & plusminus){
  n_R[1]=sin(_GThetaMSR)*sin(_GPhiMSR);
  n_R[2]=-sqrt(1-pow(n_R[0],2)-pow(n_R[1],2));
 
- p3[0]=(fabs(_GRidgidityMSR)*(fabs(sin(_GThetaMSR)*cos(_GPhiMSR)))) + (fabs(_GRidgidityMSL)*(fabs(sin(_GThetaMSL)*cos(_GPhiMSL))));       // =p1x+p2x
- p3[1]=(fabs(_GRidgidityMSR)*(fabs(sin(_GThetaMSR)*sin(_GPhiMSR)))) + (fabs(_GRidgidityMSL)*(fabs(sin(_GThetaMSL)*sin(_GPhiMSL))));       // =p1y+p2y
- p3[2]=fabs(_GRidgidityMSR)*fabs(cos(_GThetaMSR)) + fabs(_GRidgidityMSL)*fabs(cos(_GThetaMSL)); // =p1z+p2z
+//  changed by VC
 
-_PGAMM=sqrt(pow(p3[0],2) + pow(p3[1],2) + pow(p3[2],2));
-_PhTheta=acos(p3[2]/_PGAMM);
+  AMSDir RDir(_GThetaMSR,_GPhiMSR);
+  AMSDir LDir(_GThetaMSL,_GPhiMSL);
+  AMSPoint p3=RDir*fabs(_GRidgidityMSR)+LDir*fabs(_GRidgidityMSL);
+ 
+   if(_FastFitDoneL && _FastFitDoneR){
+    number err_1=pow(_ErrRidgidityL*_RidgidityL*_RidgidityL,2)+pow(_ErrRidgidityR*_RidgidityR*_RidgidityR,2);
+
+   AMSPoint p1=RDir*fabs(_RidgidityR)+LDir*fabs(_RidgidityL);
+   number err_2=p1.norm()-p3.norm();
+    _PGAMM=(p3.norm()+p1.norm())/2;
+    _ErrPGAMM=sqrt(err_2*err_2+err_1);
+   }
+   else{
+    _PGAMM=p3.norm();
+    _ErrPGAMM=sqrt(pow(_GErrRidgidityL*_GRidgidityMSL*_GRidgidityMSL,2)+pow(_GErrRidgidityR*_GRidgidityMSR*_GRidgidityMSR,2));
+   }   
+_PhTheta=AMSDir(p3).gettheta();
 if(_PhTheta<AMSDBc::pi/2)_PhTheta=AMSDBc::pi-_PhTheta;
-_PhPhi=atan2(p3[1]/_PGAMM,p3[0]/_PGAMM);
+_PhPhi=AMSDir(p3).getphi();
+number ca=RDir.prod(LDir);
+ _MGAM=sqrt(fabs(2*fabs(_GRidgidityMSR)*fabs(_GRidgidityMSL)*(1-ca)));
+//cout << "phphi "<<_PhPhi<<" "<<_MGAM<<" "<<_PGAMM<<" "<<_ErrPGAMM<<endl;
+
+
 // Get opening angle of converting photons through the scalar product
  number cosd=0;
  // cosd=n_R[0]*n_L[0]+n_R[1]*n_L[1]+n_R[2]*n_L[2]; 
  // if(fabs(cosd) <= 1){
  //_Gacosd=acos(cosd);
  // }
- // INVARIANT MASS        
- //_MGAM=sqrt(fabs(2*fabs(_GRidgidityMSR)*fabs(_GRidgidityMSL)*(1-cosd)));
- // we do not have to depend on MC
 _Gacosd=0;
-_MGAM=0;
 
 // finally the vertex:
 double VE_1[3];

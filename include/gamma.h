@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.4 2002/11/14 15:37:39 choutko Exp $
+//  $Id: gamma.h,v 1.5 2002/11/14 17:39:01 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -96,6 +96,7 @@ number _GPhiMSL;
 AMSPoint _GP0MSL;
 /////
 number _PGAMM;
+number _ErrPGAMM;   //error  to pgam
 number _MGAM;
 AMSPoint _VE1;
 AMSPoint _VE2;
