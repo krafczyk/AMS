@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.191 2003/06/17 15:09:06 choutko Exp $
+# $Id: RemoteClient.pm,v 1.192 2003/06/17 15:09:49 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20,6 +20,8 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
+use POSIX  qw(strtod);             
+
 @RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
@@ -103,7 +105,12 @@ my %fields=(
        scriptsOnly=>1,
        senddb=>0,
        sendaddon=>0,
-       dwldaddon=>0
+       dwldaddon=>0,
+       ProductionVersion=>undef,
+       Version=>-1,
+       Build=>-1,
+       OS=>-1,
+       ScriptFileDir=>'XYZ'
             );
     my $self={
       %fields,
@@ -1841,10 +1848,24 @@ sub Connect{
           }
          print "<tr><td><font size=\"3\" color=\"green\"><b>Output Format : </b></td><td><b> $outform</b></td></tr>\n";
          print "<tr><td><font size=\"3\" color=\"green\"><b>DSTs Type : </b></td><td><b> $dsttype</b></td></tr>\n";
+        my $scriptfile = "XYZ";
+        my $dirstructure = "XYZ";
+        $self->{ScriptFileDir} = "XYZ";
+        if (defined $q->param("SCRIPT")) {
+          $scriptfile   = trimblanks($q->param("SCRIPT"));
+          if ($scriptfile ne '') {
+           $dirstructure = $q->param("DIRSTR");         
+          print "<tr><td><font size=\"3\" color=$color><b>Script path : </b></td><td><b> $scriptfile</b></td></tr>\n";
+         } else {
+          my $scriptfile = "XYZ";
+         }
+        }
 
       print "<INPUT TYPE=\"hidden\" NAME=\"NTOUT\" VALUE=\"$ntout\">\n"; 
       print "<INPUT TYPE=\"hidden\" NAME=\"NTCHAIN\" VALUE=\"$ntchain\">\n"; 
       print "<INPUT TYPE=\"hidden\" NAME=\"DST\" VALUE=\"$dstformat\">\n";
+      print "<INPUT TYPE=\"hidden\" NAME=\"SCRIPT\" VALUE=\"$scriptfile\">\n";
+      print "<INPUT TYPE=\"hidden\" NAME=\"DIRSTR\" VALUE=\"$dirstructure\">\n";
 
      }
         $sql=$sql." runcatalog.TIMESTAMP != 0 ORDER BY PART, RUN ";
@@ -1875,7 +1896,7 @@ sub Connect{
     htmlBottom();
   } elsif ($self->{q}->param("queryDB") eq "DoQuery") {
       htmlTop();
-      my $sql=>undef;
+      my $sql=undef;
       my $ntout="ALL";
       my $dstformat="ALL";
       my $totalev=0;
@@ -1884,14 +1905,32 @@ sub Connect{
       my $maxtm  = 0;
       my $totaljobs= 0;
       my $plist=" ";
-      my $pold=>undef;
+      my $pold=undef;
+      my $scriptfile=undef;
+      my $dirstructure=0;
+
+      my $timenow = time();
+      $timenow = EpochToDDMMYYHHMMSS($timenow);
+
       if (defined $q->param("SQLQUERY")) {
         $sql = $q->param("SQLQUERY");
         if (defined $q->param("NTOUT")) {
          $ntout=$q->param("NTOUT");
          if (defined $q->param("DST")) {
           $dstformat = $q->param("DST");
-         } 
+         }
+         if (defined $q->param("SCRIPT")) {
+          if ($q->param("SCRIPT") eq "XYZ" and 
+              $q->param("DIRSTR") eq "XYZ") {
+             $dirstructure=-1;
+          } else {
+           $scriptfile   = $q->param("SCRIPT"); 
+           if ($q->param("DIRSTR") eq "HIER") {
+               $dirstructure = 1;
+           }
+           $self->scriptfile($scriptfile,0,0);
+          }
+         }
         }
              if ($ntout eq "RUNS") {
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -1899,7 +1938,7 @@ sub Connect{
                print "<td><b><font color=\"blue\">Job </font></b></td>";
                print "<td><b><font color=\"blue\" >Run </font></b></td>";
                print "<td><b><font color=\"blue\" >Job Submit Time </font></b></td>\n";
-              print "</tr>\n";
+               print "</tr>\n";
            }
 
        my $ret=$self->{sqlserver}->Query($sql);
@@ -1910,6 +1949,7 @@ sub Connect{
              my $run=$r->[0];
              my $particleid=$r->[1];
              my $part=>undef;
+
              $sql="SELECT jobname, runs.submit FROM Jobs, Runs 
                      WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run ORDER BY Runs.run";
              if (defined $dstformat) {
@@ -2007,6 +2047,9 @@ sub Connect{
              print("<TR><TD width = \"10\%\" align=\"Left\"> nt/chain </TD>
                        <TD width = \"20\%\" align=\"Center\"> $ntchainname </TD>
                        <TD width = \"40\%\" align=\"Left\">   $file    </TD></TR>");
+            if ($dirstructure >=0 && defined $scriptfile) {
+              $self->$scriptfile($file,$dirstructure,7);
+             }
           }
         }
       htmlTableEnd();
@@ -2032,22 +2075,29 @@ sub Connect{
                my $r4=$self->{sqlserver}->Query($sql);
                if (defined $r4->[0][0]) {
                  foreach my $nt (@{$r4}){
+                  my $path  = trimblanks($nt->[0]);
                   my $timel =localtime($nt->[3]);
                   my ($wday,$mon,$day,$time,$year) = split " ",$timel;
                   my $status=$nt->[4];
                   my $color=statusColor($status);
-                  print "<td><b> $nt->[0] </td></b><td><b> $nt->[1] </td>
+                  print "<td><b> $path    </td></b><td><b> $nt->[1] </td>
                          <td><b> $nt->[2] </b></td>
                          <td><b> $nt->[5] </b></td>
                          <td><b> $mon $day, $time, $year </b></td> 
                          <td align=middle><b><font color=$color> $status </font></b></td> \n";
                   print "</font></tr>\n";
+                  if ($dirstructure >=0 && defined $scriptfile) {
+                   $self->scriptfile($path,$dirstructure,7);
+                  } 
               }
              }
             htmlTableEnd();
          print "<BR><BR>\n";
       }   
      }
+    }
+    if ($dirstructure >=0 && defined $scriptfile) {
+     $self->scriptfile(' ',0,7)
     }
    } else {
          print "<TR><TD><font color=\"magenta\"><B> Nothing Found for SQL request : </B></font></TD></TR>\n";
@@ -2255,6 +2305,15 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
    print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"DST\" VALUE=\"NTUPLE\"> Only NTuples;\n";
    print "<INPUT TYPE=\"radio\" NAME=\"DST\" VALUE=\"ROOT\"> Only RootFiles \n";
    print "</b><p><br>\n";
+   print "<TR></TR>\n";
+   print "<font size=3> Create script file to set links to selected DST files in your working directory.\n";
+   print "<br>Directory structure can be hierarchical : <i><b>mydir/MC/AMS02/DataSet/particle/job/</i> or linear : <i><b>mydir/dstfile </i>\n";
+   print "<br><font color=blue> be sure that apache server has 'write' access to script file path</font>\n";
+   print "<TR></TR><br>\n";
+   print "<b><font color=green> Script path : </font><INPUT TYPE=\"text\" name=\"SCRIPT\">  ";
+   print "<b><font color=green> Directory Structure : </font><INPUT TYPE=\"radio\" name=\"DIRSTR\" VALUE=\"HIER\"> Hierarchical";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"DIRSTR\" VALUE=\"LINEAR\" CHECKED> Linear;\n";
+   print "<TR></TR>\n";
      print "<p><br>\n";
      print "<input type=\"submit\" name=\"queryDB\" value=\"Submit\">        ";
      print "<input type=\"reset\" name=\"queryDB\" value=\"Reset\"></br><br>        ";
@@ -6406,6 +6465,8 @@ sub parseJournalFiles {
     }
     $self->set_root_env();
 
+    $self->getProductionVersion();
+
  $sql = "SELECT begin FROM productionset WHERE STATUS='Active'";
  $ret = $self->{sqlserver}->Query($sql);
  if(not defined $ret->[0][0]){
@@ -6578,7 +6639,6 @@ my $status = undef;   # Run status
 
     my @blocks =  split "-I-TimeStamp",$buf;
 
-use POSIX  qw(strtod);             
 
      my @cpntuples   =();
      my @mvntuples   =();
@@ -6921,6 +6981,11 @@ foreach my $block (@blocks) {
       my $jobid    =$closedst[10];
       my $ntcrc    =$closedst[6];
       my $nttype   =$closedst[2];
+      my $version  =$closedst[4];
+
+     if ($self->checkDSTVersion($version) != 1) {
+      print "------------ Check DST; Version : $version / Min production version : $self->{Version} \n";
+     }
 
       $levent += $closedst[12]-$closedst[11]+1;
       my $i = 0;
@@ -7671,4 +7736,117 @@ sub set_URL {
     $validatecgi      =$cgi."/validate.o.cgi";
     $validatecgiMySQL =$cgi."/validate.mysql.cgi";
 
+}
+
+sub getProductionVersion {
+#
+# production set version
+# v4.00/build78/os2
+#
+    my $self = shift;
+   
+    my $sql     = undef;
+    my $ret     = undef;
+    my $version = 0;
+    my $vbuild  = 0;
+    my $os      = undef;
+
+    $sql = "SELECT version FROM ProductionSet WHERE STATUS='Active'";
+    my $r0 = $self->{sqlserver}->Query($sql);
+    if (defined $r0->[0][0]) {
+     my @junk = split '/',$r0->[0][0];
+      $junk[0] =~ s/v//;
+      $junk[1] =~ s/build//;      
+      $junk[2] =~ s/os//;
+      $self->{ProductionVersion}=$r0->[0][0];
+      $self->{Version}=strtod($junk[0]);
+      $self->{Build}  =strtod($junk[1]);
+      $self->{OS}     =strtod($junk[2]);
+ }
+}
+
+sub checkDSTVersion  {
+
+    my $self = shift;
+    my $dstv = shift;
+
+    my $rstatus = 1; 
+
+    if (defined $self->{ProductionVersion} && 
+        $self->{Version} >=0 &&
+        $self->{Build}  >=0  &&
+        $self->{OS}     >=0) {
+
+      my @junk = split '/',$dstv;
+      $junk[0] =~ s/v//;
+      $junk[1] =~ s/build//;      
+      $junk[2] =~ s/os//;
+      my $version=strtod($junk[0]);
+      my $build  =strtod($junk[1]);
+      my $os     =strtod($junk[2]);
+
+      if ($version < $self->{Version} ||
+          $build   < $self->{Build}) {
+          $rstatus = 0;
+      }      
+  }
+    return $rstatus;
+}
+
+sub scriptfile {
+    my $self         = shift;
+    my $file         = shift;
+    my $dirstructure = shift;
+    my $flag         = shift;
+    my $subdir       = undef;
+    my $oldsubdir    = $self->{ScriptFileDir};
+    my $subdir       = undef;
+    
+    if ($flag == 0) {
+# open new file
+           my $timenow = time();
+           open(SCRIPTFILE,">".$file) or die "Unable to open file $file\n";
+           print SCRIPTFILE "#!/bin/csh \n";
+           print SCRIPTFILE "# \n";
+           print SCRIPTFILE "# Set links to selected DST files \n";
+           print SCRIPTFILE "# Script path : $file, Directory structure : $dirstructure \n";
+           print SCRIPTFILE "# cd mydir \n";
+           print SCRIPTFILE "# cp $file mydir \n";
+           print SCRIPTFILE "# chmod 755 $file \n";
+           print SCRIPTFILE "# ./$file \n";
+           print SCRIPTFILE "# Last Edit : $timenow \n";
+           print SCRIPTFILE "# \n";
+       } elsif ($flag == 1) {
+# write to file
+      } elsif ($flag == 7) {
+# dirpath
+          my $path = $file;
+          if ($path =~ m/:/) {
+           print SCRIPTFILE "# no link : $path \n";
+          } else {
+            if ($dirstructure == 0) {
+             print SCRIPTFILE "ln -s $path \n";
+            } else {
+             my @junk   = split '/',$path;
+             # junk[0] - disk name - skip it
+             if ($#junk > 1) {
+              $subdir = $junk[2];
+              for (my $i=3; $i<$#junk; $i++) {
+               $subdir = $subdir."/".$junk[$i];
+              }
+              if (defined $subdir) {
+               if ($oldsubdir ne $subdir) {
+                print SCRIPTFILE "/bin/mkdir -p $subdir \n";
+               }
+               $self->{ScriptFileDir} = $subdir;
+               $subdir = $subdir."/";
+               print SCRIPTFILE "ln -s $path $subdir \n"; 
+              }
+             }         
+         }
+        }
+      } elsif ($flag == 777) {
+# close file
+           close SCRIPTFILE;
+       }
 }

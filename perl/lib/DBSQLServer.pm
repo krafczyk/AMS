@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.54 2003/06/15 09:57:30 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.55 2003/06/17 15:09:49 alexei Exp $
 
 #
 #
@@ -248,6 +248,7 @@ sub Create{
           begin      int,
           end        int,
           status     char(10),
+          version    char(64),
           description VARCHAR(255))",
         "CREATE TABLE DataSetFiles 
          (did        INT NOT NULL,
@@ -384,6 +385,7 @@ my $sql;
                                                 1049891834,
                                                 1054891834,
                                                 'Finished',
+                                                'v4.00/build78/os2',
                                                 '1st try of distributed MC production')") 
            or die    "cannot do: ".$dbh->errstr();    
      $dbh->do("insert into ProductionSet values(2,
@@ -391,6 +393,7 @@ my $sql;
                                                 1055135834,
                                                 0,
                                                 'Active',
+                                                'v4.00/build79/os2',
                                                 'MC production stress test')") 
            or die    "cannot do: ".$dbh->errstr();    
  }
