@@ -185,20 +185,25 @@ void AMSEvent::_endofrun() {
   char ahe[4] = "aHe";
   char c[4]   = "C";
   char ac[4]  = "aC";
+  char p0[4]  = "P0";
+  char p1[4]  = "P1";
   char comp[4];
 
 
-  geant cputime = Tcpu1 - Tcpu0;
-  strcpy(time1,ctime(&T0));
-  for(int j=0; j<15; j++) time11[j] = time1[j+4];
-
-  logsum = getenv("RunsSummaryFile");
-  if (logsum) 
-    strcpy(logsumf,logsum);
-  else
-    strcpy(logsumf,"/offline/runs_Aug.log");
   
-  if ((runs=fopen(logsumf,"r"))==NULL)
+  geant cputime = Tcpu1 - Tcpu0;
+
+  if (SRun > 0) {
+   strcpy(time1,ctime(&T0));
+   for(int j=0; j<15; j++) time11[j] = time1[j+4];
+
+   logsum = getenv("RunsSummaryFile");
+   if (logsum) 
+     strcpy(logsumf,logsum);
+   else
+     strcpy(logsumf,"/offline/runs_Aug.log");
+  
+   if ((runs=fopen(logsumf,"r"))==NULL)
     { 
       cout<<"AMSEvent::_endofrun -W- file "<<logsumf
           <<" not found or cannot be opened"<<endl;
@@ -229,15 +234,20 @@ void AMSEvent::_endofrun() {
      if (hh[0] == 'C' || hh[0] == 'c') strcpy(comp,c);
      if (hh[1] == 'H' || hh[1] == 'h') strcpy(comp,ahe);
      if (hh[1] == 'C' || hh[1] == 'c') strcpy(comp,ac);
+     if (hh[0] == 'P' || hh[0] == 'p') {
+       if (hh[6] == '0') strcpy(comp,p0);
+       if (hh[6] == '1') strcpy(comp,p1);
+     }
 
+     int  icputime = cputime;
      rfile<<setw(10)<<SRun<<" "<<setw(7)<<events<<" "<<setw(7)
-          <<eventsp<<" "<<setw(7)<<T1-T0<<setw(7)<<cputime<<" "<<setw(16)
+          <<eventsp<<" "<<setw(7)<<T1-T0<<setw(7)<<icputime<<" "<<setw(16)
           <<time11<<setw(7)<<comp<<endl;
 
       rfile.close();
     fclose(runs);
     }
-
+  } // if SRun != 0
 }
 
 void AMSEvent::_siamsinitrun(){
