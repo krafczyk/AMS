@@ -109,12 +109,12 @@ void * AMSaPool::insert(size_t st){
       }
 }
  void AMSaPool::_grow(size_t st){
-  _Nblocks++;
 #ifdef __AMSDEBUG__
 #endif 
   if(_head==0) {
      _Nreq++;
      _head =new dlink();
+     _Nblocks++;
      _head->_length=_size > st ? st*(_size/st): st; 
      _head->_address = new char[_head->_length];
      _free=(void*)(_head->_address);
@@ -123,6 +123,7 @@ void * AMSaPool::insert(size_t st){
   }
   else if(_head->_next==0){
    _head->_next=new dlink;
+   _Nblocks++;
    if(_head->_next==0){
     _free=0;
     return; 
@@ -149,6 +150,7 @@ void * AMSaPool::insert(size_t st){
      if(_MinNodes>poolMap.getnum())_MinNodes=poolMap.getnum();
      if(_MaxNodes<poolMap.getnum())_MaxNodes=poolMap.getnum();
 #endif
+//     cout <<"  nblocks before "<<_Nblocks<<endl;
      poolMap.unmap();
      _Totalbl+=_Nreq;
      if(_Minbl>_Nreq)_Minbl=_Nreq;
@@ -158,15 +160,18 @@ void * AMSaPool::insert(size_t st){
      if(_Count)cerr <<"AMSaPool::erase-S-Objects-Exist "<<_Count<<endl;
      if(_head){
        tol=(tol+_size/2)/_size;
+//       cout <<" tol "<<tol<<endl;
        while(_head->_prev)_head=_head->_prev;       
        dlink *gl=_head;
        for(int i=0;i<tol;i++){
          if(_head){
+//            cout <<" nu head "<<i<<endl;
            _head=_head->_next;
          }
        }              
        if(_head==gl){
          _head->_erase(_Nblocks);
+//         cout <<" erase called "<<endl;
          _head=0;
          _free=0;
 #ifdef __AMSDEBUG__
@@ -178,12 +183,14 @@ void * AMSaPool::insert(size_t st){
 #endif         
        }
        else{
+//        if(_head)cout <<"erase called "<<endl;
         if(_head)_head->_erase(_Nblocks);
         _head=gl;
         _free=(void*)(_head->_address);
        }
      }
      _lc=0;
+//      cout << " nblovks after " <<_Nblocks<<endl;
    }
 
 void AMSaPool::udelete(void *p){
@@ -253,3 +260,11 @@ void AMSaPool::StHandler(){
     ostream & AMSNodePool::print(ostream &o)const{
     return(o <<_name << "  id = "<<_id << endl);
 }
+
+ void AMSaPool::dlink::_erase(integer &nbl ){
+  nbl--;
+//  cout <<" erase ... "<<nbl<<endl;
+  while(_next)_next->_erase(nbl);
+  if(_prev)_prev->_next=0;
+  delete this;
+ }

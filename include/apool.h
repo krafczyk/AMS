@@ -81,8 +81,7 @@ class AMSaPool {
  char * _address;
  dlink():_prev(0),_next(0),_length(0),_address(0){}
  ~dlink(){delete[] _address;_address=0;}
- void _erase(integer &nbl )
- {while(_next)_next->_erase(nbl);if(_prev)_prev->_next=0;nbl--;delete this;}
+ void _erase(integer &nbl );
  };
 private: 
  integer * _LRS;
