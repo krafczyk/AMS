@@ -60,8 +60,27 @@ To be done
 F/rndm.F  <-- heprandom
 
 
--------------
-That's all folks.
+
+
+
+Status:
+
+
+Tracking is o.k. now except looping in osf1 with our field
+uniform field everywhere
+
+interactive version is working now
+
+geometry tested: tof,tracker,trd,srd,magnet
+
+will be tested : ecal
+
+explicit coding needed due to many qual : anti, rich
+
+g4ams boolean interface is released (but not tested)
+
+
+
 
 
 

@@ -13,7 +13,6 @@ To create standalone simulation/reconstruction program (without db) use:
  interactive(g3 )   gmake -if  Mgxint  (batch program should be created first)
  interactive(g4 )   gmake -if  Moptg4i  
 
-nb OGLIX doesn't work on alpha
 
 
 

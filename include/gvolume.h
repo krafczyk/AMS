@@ -14,6 +14,7 @@
 #include <point.h>
 #include <gmat.h>
 #include <geantnamespace.h>
+class G4VSolid;
 class AMSgvolume : public AMSNode {
  protected:
     class _amsrm{
@@ -32,9 +33,13 @@ class AMSgvolume : public AMSNode {
       }
 
     }; 
+#ifdef __G4AMS__
     amsg4pv * _pg4v;
     G4LogicalVolume * _pg4l;
     amsg4rm * _pg4rm;
+    AMSgvolume *_offspring;
+    integer _smartless;
+#endif
     AMSgtmed* _pgtmed;
    static uinteger _GlobalRotMatrixNo;
    static integer _LastRotMatrixOutOfOrder;
@@ -65,15 +70,26 @@ class AMSgvolume : public AMSNode {
  static integer _Nrm;
 #ifdef __G4AMS__
  static amsg4rm* _pg4rmU;    // unity rot matrix
- void _MakeG4Volumes();
+ G4VSolid* _MakeG4Volumes();
  static integer _Norp;
 #endif
-  AMSgvolume():AMSNode(0),_npar(0),_par(0),_shape(0),_nrm(0),_nrmA(0),_pg4v(0),_pg4l(0),_pg4rm(0), _pgtmed(0){};
+#ifdef __G4AMS__
+  AMSgvolume():AMSNode(0),_npar(0),_par(0),_shape(0),_nrm(0),_nrmA(0),_pg4v(0),_pg4l(0),_pg4rm(0), _pgtmed(0),_offspring(0),_smartless(2){};
+#else
+  AMSgvolume():AMSNode(0),_npar(0),_par(0),_shape(0),_nrm(0),_nrmA(0), _pgtmed(0){};
+#endif
  public:
   ~AMSgvolume();
  void MakeG3Volumes();
 #ifdef __G4AMS__
  void MakeG4Volumes();
+  AMSgvolume* offspring(){return _offspring;}
+  integer & Smartless(){return _smartless;}
+  void addboolean(AMSgvolume *p);
+  void removeboolean();
+   amsg4pv * & pg4v()  {return _pg4v;}
+  G4LogicalVolume * & pg4l()  {return _pg4l;}
+  amsg4rm * & pg4rm() {return _pg4rm;}
 #endif
 static  integer & getNlv()  {return _Nlog;}
 static  integer & getNpv()  {return _Nph;}
@@ -83,9 +99,6 @@ static  integer & getNrm()  {return _Nrm;}
   int VolumeHasSameRotationMatrixAs(AMSgvolume *pvo );
   int VolumeHasSameG3AttributesAs(AMSgvolume *pvo );
   int VolumeHasSameG4AttributesAs(AMSgvolume *pvo );
-   amsg4pv * & pg4v()  {return _pg4v;}
-  G4LogicalVolume * & pg4l()  {return _pg4l;}
-  amsg4rm * & pg4rm() {return _pg4rm;}
   AMSgvolume (char matter[], integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 

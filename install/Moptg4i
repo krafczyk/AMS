@@ -55,7 +55,7 @@ CP1F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew -timplicit_local -DOS_OSF1_4 -
 CP2F=-D__NAMESPACE__  -D__G4AMS__ -ieee -nostdnew -timplicit_local 
 endif
 XLDFLAGS=      -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm   
-LD=cxx -ieee -nostdnew
+LD=cxx -L/usr/local/lib -L/usr/lib
 ifeq "$(shell cxx -V | grep -c 5.5)" "1"
 CC=cxx
 LD=cxx

@@ -7,6 +7,9 @@
 #include "G4LogicalVolume.hh"
 #include "G4ThreeVector.hh"
 #include "G4VSolid.hh"
+#include "G4UnionSolid.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4IntersectionSolid.hh"
 #include "G4Box.hh"
 #include "G4Tubs.hh"
 #include "G4Cons.hh"
@@ -55,7 +58,10 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
            integer posp,integer gid, integer rel) :
-     _npar(npar), _posp(posp),_rotmno(rotmno),_pg4v(0),_pg4l(0),_pg4rm(0),
+     _npar(npar), _posp(posp),_rotmno(rotmno),
+#ifdef __G4AMS__
+   _pg4v(0),_pg4l(0),_pg4rm(0),_offspring(0),_smartless(2),
+#endif
      _gid(abs(gid)),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
       _pgtmed= (AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(0,matter));
       if(_pgtmed)_matter=_pgtmed->getmedia();
@@ -179,17 +185,61 @@ AMSPoint AMSgvolume::loc2gl(AMSPoint xv){
 }
 
 #ifdef __G4AMS__
+
+void AMSgvolume::removeboolean(){
+// remove all boolean
+   if(up() && up()->offspring()){
+     if(next())next()->removeboolean();
+     if(!prev()){
+        up()->_offspring=0;
+     }
+     delete this;
+   } 
+
+}
+
+void AMSgvolume::addboolean(AMSgvolume * ptr){
+
+  AMSgvolume *cur;
+  cur=_offspring;
+  if(cur){
+   while(cur->next())cur=cur->next();
+   cur->_next=ptr;
+   ptr->_prev=cur;
+  }
+  else{
+   _offspring=ptr;
+   ptr->_prev=0;
+  }
+  ptr->_up=this;
+  ptr->_init();
+
+
+}
+
  amsg4rm * AMSgvolume::_pg4rmU=0;
 integer AMSgvolume::_Norp=0;
- void AMSgvolume::_MakeG4Volumes(){
+ G4VSolid* AMSgvolume::_MakeG4Volumes(){
 
     // This is main routine for geant4 like volumes
     // Quite boring
-    // ok first create solid - and here is a nightmare.
+
+    //  rotmatrix if necessary
+    if (!_pg4rm){
+      //check if zero
+      if(!_rotmno){
+         _pg4rm=0;
+      }
+      else{
+        // Here the headache
+        _pg4rm= new AMSG4RotationMatrix(_nrm->_nrm);
+      }
+    }
+
     number maxstep=DBL_MAX;
+     G4VSolid * psolid=0;
     if(!_pg4l){
      G4String shape(_shape);
-     G4VSolid * psolid;
      if( shape == "BOX "){
 //     cout <<_par[0]<<" "<<_par[1]<<" "<<_par[2]<<" "<<_name<<" "<<_id<<endl;
        psolid=new G4Box(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm);
@@ -267,30 +317,69 @@ integer AMSgvolume::_Norp=0;
        cerr<<" AMSgvolume::G3ToG4Interface-F-NoSuchShapeYet "<<_shape<<endl;
        exit(1);
      }
-     // Now logical volume
-     _pg4l= new G4LogicalVolume(psolid,_pgtmed->getpgmat()->getpamsg4m(),G4String(_name));    
-     if(_pgtmed->IsSensitive())_pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
-// Add user limits 
-     else _pg4l->SetUserLimits(new G4UserLimits(maxstep*cm));
-    }
-    // now rotmatrix if necessary
-    if (!_pg4rm){
-      //check if zero
-      if(!_rotmno){
-         _pg4rm=0;
-      }
-      else{
-        // Here the headache
-        _pg4rm= new AMSG4RotationMatrix(_nrm->_nrm);
-      }
-    }
-    // Now placement 
-    
+
+
+
      //Check For MANY
     if(G4String(_gonly) !="ONLY"){
-     cerr<<"AMSgvolume::_MakeG4Volumes-F-MANYIsNotAllowedInG4 "<<_name<<" "<<_gid<<endl;
-     exit(1);
-    }    
+      if(strstr(_gonly,"BOO")){
+         // check if it the last one
+         if(_gonly[3]=='L' && !offspring()){
+          cerr<<" AMSgvolume::AMSG4Interface-F-TheOnlyBooleanVolumeIsNotAllowed"<<endl;
+          exit(1);
+         }
+         else{
+           AMSgvolume *cur=offspring();
+           G4String name(getname());
+           while (cur){
+            G4VSolid *ps=cur->_MakeG4Volumes();
+            G4ThreeVector trans(cur->getcoo(0),cur->getcoo(1),cur->getcoo(2));
+             name+=G4String(cur->_gonly[3]);
+             name+=G4String(cur->getname());
+            if(cur->_gonly[3]=='+'){
+             psolid=new G4UnionSolid(name,psolid,ps,cur->_pg4rm,trans);
+            }           
+            else if(cur->_gonly[3]=='-'){
+             psolid=new G4SubtractionSolid(name,psolid,ps,cur->_pg4rm,trans);
+            }           
+            else if(cur->_gonly[3]=='/'){
+             psolid=new G4IntersectionSolid(name,psolid,ps,cur->_pg4rm,trans);
+            }           
+            else {
+             cerr<<"AMSgvolume::AMSG4Interface-F-BooleanOpIsNotDefined "<<cur->_gonly<<endl;
+             exit(1);
+            }
+            cur=cur->next();
+           }   
+           // delete volumes
+           if(offspring()){
+            offspring()->removeboolean();
+           }
+           return psolid;
+         }
+         
+      }
+      else{
+       cerr<<"AMSgvolume::_MakeG4Volumes-F-MANYIsNotAllowedInG4 "<<_name<<" "<<_gid<<endl;
+       exit(1);
+      }
+    }  
+
+
+     // Now logical volume
+     _pg4l= new G4LogicalVolume(psolid,_pgtmed->getpgmat()->getpamsg4m(),G4String(_name));    
+     if(_pgtmed->IsSensitive()){
+      _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
+     }
+// Add user limits 
+     else {
+      _pg4l->SetUserLimits(new G4UserLimits(maxstep*cm));
+     }    
+     _pg4l->SetSmartless(_smartless);
+
+   }
+    // Now placement 
+    
     _pg4v=new G4PVPlacement(_pg4rm,G4ThreeVector(_coo[0]*cm,_coo[1]*cm,_coo[2]*cm),G4String(_name),_pg4l,up()?up()->_pg4v:0,false,_gid);
     
     if(!up() && _Norp){
@@ -301,8 +390,7 @@ integer AMSgvolume::_Norp=0;
     }
     else if(!up())_Norp++;
 
-
-    // now Sensitive (if any)
+    return psolid;
 
 }
 
@@ -393,6 +481,7 @@ for (int i=0;i<_npar;i++){
  if(getpar(i)!= o->getpar(i))return 0;
 }
 if(strcmp(_shape,o->_shape))return 0;
+if(strcmp(_gonly,o->_gonly))return 0;
 if(_pgtmed != o->_pgtmed)return 0;
 return 1;
 }
@@ -517,4 +606,7 @@ void AMSgvolume::MakeG3Volumes(){
     if(up() && next())next()->MakeG3Volumes();
      
 }
+
+
+
 
