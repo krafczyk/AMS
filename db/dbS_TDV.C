@@ -104,32 +104,38 @@ ooStatus   LMS::AddAllTDV()
        id = p -> getid();
        name = p -> getname();
        uinteger crc  = pp -> getCRC();
+       pp -> gettime(insert, begin, end);
        char pred[100];
        (void) sprintf(pred,"_id=%d && _name=~%c%s%c",id,'"',name,'"');
        cout<<"AddTDV : search for "<<pred<<endl;
+       integer object = 0;
        tdvItr.scan(contH, Mode(), oocAll, pred);
        while (tdvItr.next() ) {
+         object++;
          uinteger crcd = tdvItr -> getCRC();
          tdvItr -> GetTime(insertd, begind, endd);
-         pp -> gettime(insert, begin, end);
-         if (crc != crcd) {
-          if (begind == begin && endd == endd) {
+          if (crc != crcd) {
+          if (begind == begin && endd == end) {
+           cout<<"AddTDV -I- object "<<object<<endl;
            Message("AddTDV : CRC is different, but begin/end are the same");
            Message("AddTDV : delete the old object and add the new one");
            tdvH = tdvItr;
            ooDelete(tdvH);
           } else {
-           Message("AddTDV : CRC, begin/end are different, do update later");
+           cout<<"AddTDV -I- object "<<object<<endl;
+           Message("AddTDV : CRC, begin/end are different, add object later");
           }
          } else {
-          if (begind == begin && endd == endd) {
+          if (begind == begin && endd == end) {
+           cout<<"AddTDV -I- object "<<object<<endl;
            Message
            ("AddTDV: Begin/End time and CRC are the same. Do nothing");
            pp -> UpdateMe() = 0;     // reset UpdateMe
+           break;
           } else {
+           cout<<"AddTDV -I- object "<<object<<endl;
            Message
-           ("AddTDV: CRC is the same, but Begin/End time is different");
-           Message("AddTDV: do update later");
+           ("AddTDV: CRC is the same, but Begin/End are different, add object");
           }
          }
        } // iterate over all obj with pred for the container and reset 
