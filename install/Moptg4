@@ -18,19 +18,43 @@ EXE=/exe/aix
 LIB=/lib/aix
 TIMEL=../bin/aix/timel.o
 endif
-ifeq  "$(shell uname)"  "OSF1"
-CFLAGS=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
-CFLAGSTOFSIM=      -D__BATCH__ -O2      -I../include -I../include/stl  -I../db
-CFLAGSn=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
+ifeq  "$(shell uname)"  "OSF1" 
+SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
+ROOTLIBS =
+CFLAGS=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -define_templates 
+CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -define_templates 
+CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I$(ROOTSYS)/include -I../include/stl -define_templates 
 FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
-DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
-LDFLAGS=    -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots   -lm
-CC=g++ -D__NAMESPACE__
+DFLAGS=  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
+LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm 
+CC=cxx -D__NAMESPACE__
+ifeq "$(shell cxx -V | grep -c 6.1)" "1"
+CC=cxx -D__NAMESPACE__ -oldcxx
+#CC=cxx -D__NAMESPACE__ -nostdnew 
+endif
+ifeq "$(shell cxx -V | grep -c 5.5)" "1"
+CC=cxx
+endif
 FF=f77
+LD=cxx
+BIN=../bin/osf1/
+EXE=/exe/osf1
+LIB=/lib/osf1
+TIMEL=../bin/osf1/timel.o
+endif
+ifeq  "$(shell uname)"  "Linux"
+CFLAGS=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
+CFLAGSTOFSIM=      -D__BATCH__ -O1      -I../include -I../include/stl  -I../db
+CFLAGSn=      -D__BATCH__  -O2    -I../include -I../include/stl  -I../db
+FFLAGS=   -fno-automatic -O -I../include
+DFLAGS=    -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
+LDFLAGS=  /cern/pro/lib/lnblnk_.o  -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln  -L/usr/local/lib  -lf2c  -lm
+CC=g++ -D__NAMESPACE__
+FF=g77
 LD=g++
-BIN=../bin/osf1g++/
-EXE=/exe/osf1g++
-LIB=/lib/osf1g++
+BIN=../bin/linux/
+EXE=/exe/linux
+LIB=/lib/linux
 TIMEL=
 endif
 
