@@ -232,7 +232,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
   Float_t cpos[14]={1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.,14.};
   Float_t epos[14]={.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01};
 
-  Width_t thick=2*TAttLine::GetLineWidth();
+  //  Width_t thick=2*TAttLine::GetLineWidth();
 
   if(Set==3){//Sides hits histograms
     Float_t y[14],ey[14];
