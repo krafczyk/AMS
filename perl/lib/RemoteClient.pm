@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.81 2003/04/04 13:48:47 choutko Exp $
+# $Id: RemoteClient.pm,v 1.82 2003/04/04 14:02:43 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3141,6 +3141,7 @@ print qq`
                  }
                  else{
                    $message=$self->{tsyntax}->{headers}->{readmecorba};
+                   
                  }                
                   my $attach;
        if ($self->{CCT} eq "remote"){
