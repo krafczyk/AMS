@@ -83,6 +83,9 @@ Below there is a description of a  ntuple.
 * I*4  *              * PARTICLE * pchargep(npart)   // pointer to charge
 * I*4  *              * PARTICLE * ptrackp(npart)    // pointer to track
 * I*4  *              * PARTICLE * pid(npart)        // Geant Particle Id
+* I*4  *              * PARTICLE * pidvice(npart)    // Geant vice-Particle Id
+* R*4  *              * PARTICLE * probpid(2,npart)    // probabilities 
+* R*4  *              * PARTICLE * fitmom(npart)     //  fitted mom for pid
 * R*4  *              * PARTICLE * pmass(npart)      // particle mass 
 * R*4  *              * PARTICLE * perrmass(npart)   // error in particle mass
 * R*4  *              * PARTICLE * pmom(npart)       // particle momentum
@@ -182,7 +185,8 @@ Below there is a description of a  ntuple.
 * R*4  *              * TRRECHIT * ehitr(3,ntrrh) // error to above
 * R*4  *              * TRRECHIT * sumr(ntrrh)    // Amplitude
 * R*4  *              * TRRECHIT * difosum(ntrrh) (A_x-A_y)/(A_x+A_y)
-
+* R*4  *              * TRRECHIT * cofgx           //local cfg x
+* R*4  *              * TRRECHIT * cofgy           //local cfg y
 
 * I*4  * [0,20]       * TRTRACK  * ntrtr          // tracks number
 * I*4  *              * TRTRACK  * trstatus(ntrtr) // Status *)
