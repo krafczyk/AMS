@@ -2761,104 +2761,79 @@ cout <<"amsgeom::srdgeom02-I-SRDGeometryDone"<<endl;
 
 }
 
+
 void richgeom02(AMSgvolume & mother)
 {
-  // RICH geometry by Carlos Delgado (CIEMAT) based on the official RICH 
-  // simulation by Fernando Barao et al. MAterials and media defined in gmat.C
+  // New Rich Geometry by Carlos Delgado (CIEMAT)
 
-  // AMSID amsid; // Not used
-  geant par[6]={0.,0.,0.,0.,0.,0.};
-  char name[5]="RICH";
-  geant coo[3]={0.,0.,0.};
-  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-  integer gid=0,flag=1;
-  //  AMSNode * cur; // Not used
-  AMSNode * dau;
-  //  AMSgtmed *p;  // Not used
+  AMSNode *rich;
+  AMSNode *dummy;
+  geant par[11],coo[3];
+  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz}
+  number nrma[3][3]={0,-1,0,1,0,0,0,0,1}; // Rotated 90 degrees
+  integer gid=1,  
+          rel=1, 
+          posp=0,
+          nrot=30001; // Numbre of the 90 degrees rotation
+
   
-  
-  // Now I define all the parameters here so any further modification may be
-  // performed fast and easily
-
-  //geant offset=-83.999-0.5; // Distance from the coordinates origin to top of
-                            // rich... I don't know this value yet.
-  
-  geant offset=-91.500;
-
-  // -83.999 from 0 to radiator -.5 because there is a black wall 
-  // The omnipresent - is due to the reference system Z grows from the PMT to 
-  // the radiator
+  // Define the RICH volume
 
 
+  par[0]=0;
+  par[1]=90;
+  par[2]=31;
+  coo[0]=0;
+  coo[1]=0;
+  coo[2]=-103.66;
 
-  geant thk=0.5; // Everything thickness
-
-  geant hrad=2;  //Radiator height
-  geant rrad=50; //Radiator radius
-  
-  geant h=50;    // Cone height
-  geant R=80;    // Larger radius
-  geant r=40;    // smaller radius
-
-
+  rich=mother.add(new AMSgvolume("VACUUM",
+				0,
+				"RICH",
+				"TUBE",
+				par,
+				3,
+				coo,
+				nrm,
+				"ONLY",
+				posp,
+				gid,
+				rel));
+				
+  // Inside RICH put all the elements
 
   // Radiator
 
-  par[0]=0;   
-  par[1]=rrad; // radius
-  par[2]=hrad/2.;  // h/2
+  par[0]=0;
+  par[1]=63.6;
+  par[2]=1;
+
+  coo[2]=30;  
   
-  coo[2]=offset-par[2];
-
-
-  dau=mother.add(new AMSgvolume("RICH RAD",  // Material: Aerogel in the future
-				0,         // No rotation
+  dummy=rich->add(new AMSgvolume("RICH RAD", // Material: Aerogel in the future
+				0,          // No rotation
 				"RAD ",     // Name 
-				"TUBE",    // Shape
-				par,       // Geant parameters
-				3,         // # of parameters
-				coo,       // coordinates 
-				nrm,       // Matrix of normals
+				"TUBE",     // Shape
+				par,        // Geant parameters
+				3,          // # of parameters
+				coo,        // coordinates 
+				nrm,        // Matrix of normals
 				"ONLY",    
-				0,
-				gid++,
-				flag));
-
+				posp,
+				gid,
+				rel));
   
-  // Inside conical mirror
+  // Lateral walls
 
-  par[0]=h/2.;  // height
-  par[3]=0;     // Inside radius at the vertex
-  par[4]=0;     // Outside radius at the vertex
-  par[1]=r-thk;// Inside radius at the bottom (0.5cm of thickness)
-  par[2]=r;    // Outside radius at the bottom
+  par[0]=25;
+  par[1]=80;
+  par[2]=80+.5;
+  par[3]=63.6; 
+  par[4]=63.6+.5;
 
-  coo[2]=offset-hrad-par[0];
+  coo[2]=4;
 
-  dau=mother.add(new AMSgvolume("RICH MIRRORS",  // Material
-				0,         // No rotation
-				"IMIR",     // Name 
-				"CONE",    // Shape
-				par,       // Geant parameters
-				5,         // # of parameters
-				coo,       // coordinates 
-				nrm,       // Matrix of normals
-				"ONLY",    
-				0,
-				gid++,
-				flag));
-
-  // Outside mirror
-
-  par[0]=h/2.;     // height
-  par[3]=rrad;     // Inside radius at the vertex
-  par[4]=rrad+thk; // Outside radius at the vertex
-  par[1]=R;        // Inside radius at the bottom (0.5cm of thickness)
-  par[2]=R+thk;    // Outside radius at the bottom
-
-  coo[2]=offset-hrad-par[0];
-
-  dau=mother.add(new AMSgvolume("RICH MIRRORS",  // Material
+  dummy=rich->add(new AMSgvolume("RICH MIRRORS",  // Material
 				0,         // No rotation
 				"OMIR",     // Name 
 				"CONE",    // Shape
@@ -2867,125 +2842,528 @@ void richgeom02(AMSgvolume & mother)
 				coo,       // coordinates 
 				nrm,       // Matrix of normals
 				"ONLY",    
-				0,
-				gid++,
-				flag));
+				posp,
+				gid,
+				rel));
+  
+  // Inner mirror... maybe it won't exist in the future
+  
+  
+
+  par[0]=25;  
+  par[3]=0;   
+  par[4]=0.5;     
+  par[1]=40-.5;
+  par[2]=40;   
+
+  dummy=rich->add(new AMSgvolume("RICH MIRRORS",  // Material
+				 0,         // No rotation
+				 "IMIR",     // Name 
+				 "CONE",    // Shape
+				 par,       // Geant parameters
+				 5,         // # of parameters
+				 coo,       // coordinates 
+				 nrm,       // Matrix of normals
+				 "ONLY",    
+				 posp,
+				 gid,
+				 rel));
+  
+
+  /*************************************************/
+
+  // The PMT array geometry... first version
+
+
+  // Here we define one PMTBOX and we fill it
+
+
+
+  // It is necessary to add the electronics and the 
+  // to group the PMTs in 2x4 arrays.
+
+
+  geant xedge=1.5,yedge=1.5,lg,cl;
+  integer copia=1,paredes=1,espejosh=1,espejosv=1;
+  posp=1;
+  AMSNode *p;
+
+#define SQR(x) ((x)*(x))
+
+
+  do{
+    lg=SQR(xedge+1.5)+SQR(yedge+1.5);
+    cl=SQR(xedge-1.5)+SQR(yedge-1.5);
+
+    if(lg>SQR(40) && cl<SQR(80)) // Put a PMT here
+      {
+	coo[0]=xedge;
+	coo[1]=yedge;
+	coo[2]=-31+5;
+	par[0]=1.5;
+	par[1]=1.5;
+	par[2]=5;
+	
+	// Put the box
+
+	p=rich->add(new AMSgvolume("VACUUM",
+				  0,
+				  "PMTB",   // Defined and filled above
+				  "BOX",
+				  par,
+				  3,
+				  coo,
+				  nrm,      
+				  "ONLY",    
+				  posp,
+				  copia++,
+				  rel));
+	// Fill the box:
+
+	if(copia==2) // Only once.
+	  {
+	    
+	    // SHIELDING: We use the TOF_PMT_BOX material... to be changed in
+	    // the future
+
+	    
+	    par[0]=1.5;
+	    par[1]=0.05;
+	    par[2]=5;
+	    coo[0]=0;
+	    coo[1]=1.5-0.05;
+	    coo[2]=0;
+	    
+	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+				       0,
+				       "SHI1",
+				       "BOX",
+				       par,
+				       3,
+				       coo,
+				       nrm,
+				       "ONLY",
+				       posp,
+				       1,
+				       rel));
+	    
+	    coo[1]*=-1;
+	    
+	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+				       0,
+				       "SHI1",
+				       "BOX",
+				       par,
+				       3,
+				       coo,
+				       nrm,
+				       "ONLY",
+				       posp,
+				       2,
+				       rel));
+	    
+	    par[0]=.05;
+	    par[1]=1.5-.1;
+	    coo[0]=1.5-.05;
+	    coo[1]=0;
+	    
+	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+				       0,
+				       "SHI2",
+				       "BOX",
+				       par,
+				       3,
+				       coo,
+				       nrm,
+				       "ONLY",
+				       posp,
+				       1,
+				       rel));
+	    
+	    coo[0]*=-1;
+
+	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+				       0,
+				       "SHI2",
+				       "BOX",
+				       par,
+				       3,
+				       coo,
+				       nrm,
+				       "ONLY",
+				       posp,
+				       2,
+				       rel));
+	       
+			 
+	    // Photocatode: 
+
+	    par[0]=0.875;
+	    par[1]=0.875;
+	    par[2]=0.05;
+
+	    coo[0]=0;
+	    coo[1]=0;
+	    coo[2]=5-3-.05;
+	    
+	    dummy=p->add(new AMSgvolume("RICH PMTS",
+					0,
+					"CATO",
+					"BOX",
+					par,
+					3,
+					coo,
+					nrm,
+					"ONLY",
+					posp,
+					1,
+					rel));
+	    
+
+	    // Glue
+
+	    par[0]=1.5-.1;
+	    par[1]=1.5-.1;
+	    par[2]=(4.5-.1)/2;
+
+	    coo[0]=0;
+	    coo[1]=0;
+	    coo[2]=5-3-.1-par[2];
+
+	    dummy=p->add(new AMSgvolume("RICH WALLS",
+					0,
+					"GLUE",
+					"BOX",
+					par,
+					3,
+					coo,
+					nrm,
+					"ONLY",
+					posp,
+					1,
+					rel));
+
+	    
+
+
+	    // ELECTRONICS: to be added in the future
+
+
+	    // Light guides: It is quite complicated, so it uses 
+	    // the "MANY" flag... I will change this in the future
+
+
+	    AMSNode *lg;
+
+	    par[0]=1.5-.1;
+	    par[1]=1.5-.1;
+	    par[2]=1.5;
+
+	    coo[0]=0;
+	    coo[1]=0;
+	    coo[2]=5-1.5;
+
+	    lg=p->add(new AMSgvolume("VACUUM",
+				     0,
+				     "LGBO",
+				     "BOX",
+				     par,
+				     3,
+				     coo,
+				     nrm,
+				     "ONLY",
+				     posp,
+				     1,
+				     rel));
+
+
+
+
+	    // 5 mirrors
+
+	    par[0]=1.5;
+	    par[1]=9.926245;
+	    par[2]=90;
+	    par[3]=0.025;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=0.025;
+	    par[8]=1.5-0.1;
+	    par[9]=1.5-0.1;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=1.1125;
+	    coo[2]=0;
+
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 0,
+					 "MIRA",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrm,
+					 "MANY",
+					 posp,
+					 1,
+					 rel));
+	    
+	    
+	    cout << "RICH: LG1 finished" <<endl;
+	    
+
+	    
+	    par[0]=1.5;
+	    par[1]=5.000645;
+	    par[2]=90;
+	    par[3]=0.025;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=0.025;
+	    par[8]=1.5-0.1;
+	    par[9]=1.5-0.1;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=.54375;
+	    coo[2]=0;
+
+
+
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 0,
+					 "MIRB",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrm,  // Rotated 90 degrees
+					 "MANY",
+					 posp,
+					 1,
+					 rel));
+	    
+	    cout << "RICH: LG2 finished" <<endl;  
+	    
+
+	    par[0]=1.5;
+	    par[1]=0;
+	    par[2]=90;
+	    par[3]=0.025;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=0.025;
+ 	    par[8]=1.5-0.1;
+	    par[9]=1.5-0.1;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=0;
+	    coo[2]=0;
+
+
+
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 0,
+					 "MIRC",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrm,  // Rotated 90 degrees
+					 "MANY",
+					 posp,
+					 1,
+					 rel));
+	    
+	    cout << "RICH: LG3 finished" <<endl;
+
+
+	    par[0]=1.5;
+	    par[1]=9.926245;
+	    par[2]=270;
+	    par[3]=0.025;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=0.025;
+	    par[8]=1.5-0.1;
+	    par[9]=1.5-0.1;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=-1.1125;
+	    coo[2]=0;
+
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 0,
+					 "MIRD",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrm,
+					 "MANY",
+					 posp,
+					 1,
+					 rel));
+	    
+
+	    cout << "RICH: LG4 finished" <<endl;
+
+
+	    
+	    par[0]=1.5;
+	    par[1]=5.000645;
+	    par[2]=270;
+	    par[3]=0.025;
+	    par[4]=0.875;
+	    par[5]=0.875;
+	    par[6]=0;
+	    par[7]=0.025;
+	    par[8]=1.5-0.1;
+	    par[9]=1.5-0.1;
+	    par[10]=0;
+
+	    coo[0]=0;
+	    coo[1]=-.54375;
+	    coo[2]=0;
+
+
+
+	    dummy=lg->add(new AMSgvolume("RICH MIRRORS",
+					 0,
+					 "MIRE",
+					 "TRAP",
+					 par,
+					 11,
+					 coo,
+					 nrm,  // Rotated 90 degrees
+					 "MANY",
+					 posp,
+					 1,
+					 rel));
+	    
+	    cout << "RICH: LG5 finished" <<endl;
+	    
+
+
+	    // And now put the other 5 copies
+
+	   
+	    par[0]=1.5-.1;
+	    par[1]=1.5-.1;
+	    par[2]=1.5;
+
+	    coo[0]=0;
+	    coo[1]=0;
+	    coo[2]=5-1.5;
+
+	    dummy=p->add(new AMSgvolume("VACUUM",
+					nrot,
+					"LGBO",
+					"BOX",
+					par,
+					3,
+					coo,
+					nrma,
+					"ONLY",
+					posp,
+					2,
+					rel)); 
+
+
+
+	    cout<< "RICH: LG finished" << endl;
+
+	    
+	  }
+      
+	// Here we add the other 3 parts
+	
+	coo[0]=-xedge;
+	coo[1]=yedge;
+	coo[2]=-31+5;
+	par[0]=1.5;
+	par[1]=1.5;
+	par[2]=5;
+	
+	// Put the box
+	
+	p=rich->add(new AMSgvolume("VACUUM",
+				   0,
+				   "PMTB",   // Defined and filled above
+				   "BOX",
+				   par,
+				   3,
+				   coo,
+				   nrm,      
+				   "ONLY",    
+				   posp,
+				   copia++,
+				   rel));
+	
+	
+	
+	coo[0]=xedge;
+	coo[1]=-yedge;
+	coo[2]=-31+5;
+	par[0]=1.5;
+	par[1]=1.5;
+	par[2]=5;
+	
+	// Put the box
+
+	p=rich->add(new AMSgvolume("VACUUM",
+				  0,
+				  "PMTB",   // Defined and filled above
+				  "BOX",
+				  par,
+				  3,
+				  coo,
+				  nrm,      
+				  "ONLY",    
+				  posp,
+				  copia++,
+				  rel));	
+	    
+	coo[0]=-xedge;
+	coo[1]=-yedge;
+	coo[2]=-31+5;
+	par[0]=1.5;
+	par[1]=1.5;
+	par[2]=5;
+	
+	// Put the box
+
+	p=rich->add(new AMSgvolume("VACUUM",
+				  0,
+				  "PMTB",   // Defined and filled above
+				  "BOX",
+				  par,
+				  3,
+				  coo,
+				  nrm,      
+				  "ONLY",    
+				  posp,
+				  copia++,
+				  rel));      
+
+
+      }
     
-  // PMTs 
+    xedge+=3.;
+    
+    if(xedge>80) {xedge=1.5;yedge+=3;}
+    
+  }while(yedge<80);
 
-  par[0]=r;
-  par[1]=R;
-  par[2]=thk/2;
+  cout<< "RICH geometry finished" << endl;
 
-  coo[2]=offset-hrad-h-par[2];
-
-  dau=mother.add(new AMSgvolume("RICH PMTS",  // Material
-				0,         // No rotation
-				"PMTS",     // Name 
-				"TUBE",    // Shape
-				par,       // Geant parameters
-				3,         // # of parameters
-				coo,       // coordinates 
-				nrm,       // Matrix of normals
-				"ONLY",    
-				0,
-				gid++,
-				flag));
-
-
-  // And now some black walls... probably they will be remove in the future
-  
-  // Radiator lateral wall
-
-  par[0]=rrad;
-  par[1]=rrad+thk;
-  par[2]=hrad/2+thk/2;
-
-  coo[2]=offset-hrad+par[2];
-
-  
-  dau=mother.add(new AMSgvolume("RICH WALLS",  // Material: ? in the future
-				0,         // No rotation
-				"WALO",     // Name 
-				"TUBE",    // Shape
-				par,       // Geant parameters
-				3,         // # of parameters
-				coo,       // coordinates 
-				nrm,       // Matrix of normals
-				"ONLY",    
-				0,
-				gid++,
-				flag));
-
-  // On the top
-
-  par[0]=0;
-  par[1]=rrad;
-  par[2]=thk/2;
-
-  coo[2]=offset+par[2];
-
-
-  dau=mother.add(new AMSgvolume("RICH WALLS",  // Material: ? in the future
-				0,         // No rotation
-				"WALT",     // Name 
-				"TUBE",    // Shape
-				par,       // Geant parameters
-				3,         // # of parameters
-				coo,       // coordinates 
-				nrm,       // Matrix of normals
-				"ONLY",    
-				0,
-				gid++,
-				flag));
-
-  // On the bottom: added to simulate PMTS
-
-  par[0]=r;
-  par[1]=R+thk;
-  par[2]=thk/2;
-
-  coo[2]=offset-hrad-h-thk-par[2];
-
-  dau=mother.add(new AMSgvolume("RICH WALLS",  // Material: ? in the future
-				0,         // No rotation
-				"WALB",     // Name 
-				"TUBE",    // Shape
-				par,       // Geant parameters
-				3,         // # of parameters
-				coo,       // coordinates 
-				nrm,       // Matrix of normals
-				"ONLY",    
-				0,
-				gid++,
-				flag)); 
-
-  // SECOND WALL ON THE BOTTOM
-
-
-  par[0]=R;
-  par[1]=R+thk;
-  par[2]=thk/2;
-
-  coo[2]=offset-hrad-h-par[2];
-
-  dau=mother.add(new AMSgvolume("RICH WALLS",  // Material: ? in the future
-				0,         // No rotation
-				"WABB",     // Name 
-				"TUBE",    // Shape
-				par,       // Geant parameters
-				3,         // # of parameters
-				coo,       // coordinates 
-				nrm,       // Matrix of normals
-				"ONLY",    
-				0,
-				gid++,
-				flag)); 
-  
-}
-
-
-
-
+}  
 
 
