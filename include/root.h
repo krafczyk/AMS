@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.125 2004/01/06 16:13:23 choutko Exp $
+//  $Id: root.h,v 1.126 2004/01/07 17:31:15 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1365,8 +1365,8 @@ public:
       -# Velocity set to +-1 depend on shower ditection
       -# Two particles are in fact created with charg set to +-1
      - Particle based on VertexR (i.e. converted photon candidate or electron/positron ):
-      _# fTrTrack set to -1
-      _# fVertex set up
+      -# fTrTrack set to -1
+      -# fVertex set up
       -# Charge set to 0 or +-1 
       -# Velocity may or may not be set depending on fBeta index
 
@@ -1905,7 +1905,7 @@ public:
 // Some functions for inter root
 //
 #ifdef __ROOTSHAREDLIBRARY__
-#include <root_methods.h>
+#include "root_methods.h"
 #endif
 
 
