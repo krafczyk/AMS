@@ -1,4 +1,4 @@
-//  $Id: AMSNtuple.h,v 1.5 2003/06/17 07:39:54 choutko Exp $
+//  $Id: AMSNtuple.h,v 1.6 2003/06/20 15:09:00 choutko Exp $
 #ifndef __AMSNtuple__
 #define __AMSNtuple__
 #include <TChain.h>
@@ -27,8 +27,8 @@ int fEntries;
 //bool fTimerDone;
 public:
 AMSNtupleR(TChain * chain);
-Int_t EventNo()const {return Event();}
-Int_t GetRun()const {return Run();}
+Int_t EventNo()const {return fHeader.Event;}
+Int_t GetRun()const {return fHeader.Run;}
 char* GetTime()const {return ctime((time_t*)&fHeader.Time[0]);}
 int ReadOneEvent(int event);
 int & Entries() {return fEntries;} 
