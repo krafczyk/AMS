@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.19 2004/03/12 16:37:18 choutko Exp $
+#  $Id: POADBServer.pm,v 1.20 2004/04/14 15:57:22 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -970,7 +970,12 @@ sub getACS{
 
             sub Clock { 
                 if($a->{Status} eq $b->{Status}){
-                    return $b->{Clock}<=>$a->{Clock};
+                    if($b->{Clock} == $a->{Clock}){
+                        return $b->{ClientsAllowed}-$b->{ClientsRunning} <=> $a->{ClientsAllowed}-$a->{ClientsRunning};
+                    }
+                    else{  
+                     return $b->{Clock}<=>$a->{Clock};
+                    }
                 }
                 elsif($a->{Status} ne $b->{Status}){
                     if($b->{Status} eq "OK"){
@@ -1172,11 +1177,11 @@ OUT:
          if($run->{Status} eq "ToBeRerun"){
           $runstorerun=$runstorerun+1;
           $runstotal=$runstotal+1;
+         }
            if($run->{Status} eq "Processing"){
             $runstotal=$runstotal+1;
            }
          }
-        }
 #        warn "b getfreehost $#{$ref->{acl}}+1  $runstorerun";
         if($#{$ref->{acl}}+1 <$runstotal and $runstorerun>0){
         my @sortedahl=sort Clock @{$ref->{ahlp}};
