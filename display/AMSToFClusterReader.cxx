@@ -164,9 +164,18 @@ void  AMSToFClusterReader::AddCluster(Int_t status, Int_t plane, Int_t bar,
  // in the operators new and delete.
 
   //cout << "ene "<<energy<<endl;
+   Float_t cooA[3];
+   Float_t ercooA[3];
+   cooA[0]=coo[0];
+   cooA[1]=coo[1];
+   cooA[2]=coo[2];
+   ercooA[0]=ercoo[0];
+   ercooA[1]=ercoo[1];
+   ercooA[2]=energy/2;
+
    TClonesArray &clusters = *(TClonesArray*)m_Fruits;
    new(clusters[m_Nclusters++]) AMSToFCluster(status, plane, bar, 
-	energy, time, ertime, coo, ercoo, ncells, npart, ntracks, tracks);
+	energy, time, ertime, cooA, ercooA, ncells, npart, ntracks, tracks);
 }
 
 //_____________________________________________________________________________

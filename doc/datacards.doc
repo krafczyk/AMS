@@ -379,10 +379,10 @@ I 1 Pattern[9](5*1,4*0)
   //    2                   124               3           on
   //    3                   134               3           on
   //    4                   234               3           on
-  //    5                   13                2           off
-  //    6                   14                2           off
+  //    5                   13                2           on
+  //    6                   14                2           on
   //    7                   23                2           on
-  //    8                   24                2           off
+  //    8                   24                2           on
 R10 Chi2(10.)       //  Max acceptable chi2 for betafit
 R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
                            // Used also in TOF-track matching for pat # 16

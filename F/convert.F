@@ -69,9 +69,9 @@
       parameter(maxtofmc=200)
       parameter(maxanti=16)
       parameter(maxantimc=200)
-      parameter(maxtrcl=50)
+      parameter(maxtrcl=100)
       parameter(maxtrclmc=200)
-      parameter(maxtrrh=200)
+      parameter(maxtrrh=400)
       parameter(maxtrtr=20)
       parameter(maxmcg=20)
       parameter(maxctccl=20)
@@ -268,7 +268,7 @@ c       write(*,*)' Starting converting'
      + 'TOFMCedep(ntofmc)')
       
       call hbname(1,cblock(7), ntrcl,
-     + 'ntrcl[0,50],Idsoft(ntrcl):I,Statust(ntrcl):I,'//
+     + 'ntrcl[0,100],Idsoft(ntrcl):I,Statust(ntrcl):I,'//
      + 'NelemL(ntrcl):I,NelemR(ntrcl):I,'//
      + 'Sumt(ntrcl),Sigmat(ntrcl),'//
      + 'Meant(ntrcl):R,RMSt(ntrcl),ErrorMeant(ntrcl),'//
@@ -283,7 +283,7 @@ c       write(*,*)' Starting converting'
      + 'xgl(3,ntrclmc),summc(ntrclmc)')
 
       call hbname(1,cblock(9),ntrrh,
-     + 'ntrrh[0,200],px(ntrrh):I,py(ntrrh):I,'//
+     + 'ntrrh[0,400],px(ntrrh):I,py(ntrrh):I,'//
      + 'statusr(ntrrh):I,Layer(ntrrh):I,'//
      + 'hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh)')
 

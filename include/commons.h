@@ -43,6 +43,7 @@ integer ofile[40];
 integer OldFormat;
 integer LCrateinDAQ;
 integer SCrateinDAQ;
+integer RunChanger;
 };
 #define DAQCFFKEY COMMON_BLOCK(DAQCFFKEY,daqcffkey)
 COMMON_BLOCK_DEF(DAQCFFKEY_DEF,DAQCFFKEY);

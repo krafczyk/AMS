@@ -8,23 +8,14 @@
 main(){
 time_t Time;
 tm begin;
-begin.tm_sec=10;
-begin.tm_min=20;
-begin.tm_hour=10;
-begin.tm_mday=2;
-begin.tm_mon=1;
-begin.tm_year=96;
+begin.tm_sec=0;
+begin.tm_min=0;
+begin.tm_hour=1;
+begin.tm_mday=1;
+begin.tm_mon=0;
+begin.tm_year=98;
 Time=mktime(&begin);
 cout <<ctime(&Time)<<endl;
-Time+=1500.5;
-cout <<ctime(&Time)<<endl;
-Time+=.3;
-cout <<ctime(&Time)<<endl;
-Time+=.7;
-cout <<ctime(&Time)<<endl;
-Time+=1;
-cout <<ctime(&Time)<<endl;
-Time=1;
-cout <<ctime(&Time)<<endl;
+cout <<Time<<endl;
 return 0;
 }

@@ -168,6 +168,18 @@ integer DAQEvent::_HeaderOK(){
       //      cout << "Run "<<_Run<<" Event "<<_Event<<" RunType "<<_RunType<<endl;
       //      cout <<ctime(&_Time)<<" usec "<<_usec<<endl;
 #endif
+      // fix against event 0
+      if(_Event==0)return 0;
+      // fix against crazy run;
+      if(_Run==305419896 && DAQCFFKEY.RunChanger>0){
+        time_t tm=time()-DAQCFFKEY.RunChanger;
+        DAQCFFKEY.RunChanger=-tm;        
+      }
+      if(_Run==305419896 && DAQCFFKEY.RunChanger<0){
+        time_t tm=time()-DAQCFFKEY.RunChanger;
+        _Run=-DAQCFFKEY.RunChanger;
+      }
+            
       return 1;
     }
   }

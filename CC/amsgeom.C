@@ -684,6 +684,8 @@ void ctcgeomAG(AMSgvolume & mother){
   // The Support structure is 60 mm thick, the PMT's of UPPER layer are
   // in the support structure, the UPPER aerogel layer is close to the TOF
   // (i.e. in both layers PMT's are "face-up")
+  // modified by V. Choutko 11/1/98
+  // Change Geom setup to conform the reality
 
    CTCDBc::setgeom(2);
 
@@ -726,7 +728,8 @@ void ctcgeomAG(AMSgvolume & mother){
     }
     else{
       for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
-      coo[0]=coo[1]=5.5;
+      coo[0]=-5.5;
+      coo[1]=5.5;
       coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
       pLayer=mother.add(new AMSgvolume(
        "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
@@ -750,9 +753,9 @@ void ctcgeomAG(AMSgvolume & mother){
         for(k=0;k<3;k++)par[k]=0.5*CTCDBc::getcellsize(k);
         for(k=0;k<3;k++)pay[k]=0.5*CTCDBc::getygapsize(k);
         coo[0]=(CTCDBc::getnx()-1)*(par[0]+parwal[0]);
-        coo[0]-=(par[0]+parwal[0])*2*j;
+        coo[0]-=(par[0]+parwal[0])*2*(CTCDBc::getnx()-1-j);
         coo[1]=(CTCDBc::getny()-1)*(par[1]+pay[1]);
-        coo[1]-=(par[1]+pay[1])*2*i;
+        coo[1]-=(par[1]+pay[1])*2*(CTCDBc::getny()-1-i);
         coo[2]=0.;
         coy[0]=coo[0];
         coy[1]=coo[1]-par[1]-pay[1];
@@ -825,7 +828,8 @@ void ctcgeomAG(AMSgvolume & mother){
   for(ilay=2;ilay<3;ilay++){
     if(ilay==1){
      for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
-     coo[0]=coo[1]=0.;
+     coo[0]=0;
+     coo[1]=0.;
      coo[2]=zr+0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
      pLayer=mother.add(new AMSgvolume(
        "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000));
@@ -833,7 +837,7 @@ void ctcgeomAG(AMSgvolume & mother){
     else{
       par[0]= 0.25*CTCDBc::getcellsize(0)+0.5*CTCDBc::getwallsize(0);
       for(i=1;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
-      coo[0]=5.5-0.5*CTCDBc::getupsize(0)-0.25*CTCDBc::getcellsize(0)-
+      coo[0]=-5.5+0.5*CTCDBc::getupsize(0)+0.25*CTCDBc::getcellsize(0)+
       CTCDBc::getwallsize(0);
       coo[1]=5.5;
       coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
@@ -866,7 +870,7 @@ void ctcgeomAG(AMSgvolume & mother){
 //        coo[0]-=(par[0]+parwal[0])*2;
         coo[0]=0.;
         coo[1]=(CTCDBc::getny()-1)*(par[1]+pay[1]);
-        coo[1]-=(par[1]+pay[1])*2*i;
+        coo[1]-=(par[1]+pay[1])*2*(CTCDBc::getny()-1-i);
         coo[2]=0.;
         coy[0]=coo[0];
         coy[1]=coo[1]-par[1]-pay[1];

@@ -668,7 +668,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     tzer=tzerf[ila][ibr];//was read from ext. file
     tdif=tdiff[cnum];//was read from ext. file 
     td2p[0]=speedl;//mean speed of the light was read from external file
-    td2p[1]=1.6; // error on longit. coord. measurement(cm)
+    td2p[1]=3.2; // error on longit. coord. measurement(cm)
     for(ip=0;ip<SCIPAR;ip++)aip[0][ip]=ipara[2*cnum][ip];
     for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
