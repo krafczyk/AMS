@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.59 2003/02/10 16:36:29 delgadom Exp $
+//  $Id: mccluster.C,v 1.60 2003/02/11 10:17:04 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -616,24 +616,40 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
   
   int loops=0;
   do{
-    r=sqrt(current.getthreshold(mode)*current.getthreshold(mode)-2.*log(1.-RNDM(dummy)));
+    float limit=int(current.getthreshold(mode)*current.getsped(mode))+1;
+    r=sqrt(limit*limit-2.*log(1.-RNDM(dummy)));
     geant par=RNDM(dummy)*6.28318595886;
     u1=r*sin(par);
-    if(integer(u1)<current.getthreshold(mode))
+    if(u1<current.getthreshold(mode)*current.getsped(mode))
       u1=r*cos(par);
     loops++;
+
+#ifdef __AMSDEBUG__
+    if(loops>10){
+      cout <<"Looping..."<<loops<<endl;
+    }
+#endif
+
+
     if(loops>100){
       cout<<"AMSRichMCHit::noise--too many loops"<<endl; 
       return current.getthreshold(mode)*current.getsped(mode)+current.getped(mode)+1.;
     }
-  }while(integer(u1)<integer(current.getthreshold(mode)));
+  }while(integer(u1+current.getped(mode))<integer(current.getthreshold(mode)*current.getsped(mode)+current.getped(mode)));
 
   
   //  do u1=current.getped(mode)+current.getsped(mode)*rnormx(); 
   //  while(integer(u1)<=integer(current.getthreshold(1)*current.getsped(mode)+current.getped(mode)));
   //  return u1;
 
-  return u1*current.getsped(mode)+current.getped(mode);
+  //  return u1*current.getsped(mode)+current.getped(mode);
+
+#ifdef __AMSDEBUG__
+  cout <<"Returning "<<u1<<" limit at "<<current.getsped(mode)*current.getthreshold(mode) <<endl;
+#endif
+
+
+  return u1+current.getped(mode);
 }
 
 
