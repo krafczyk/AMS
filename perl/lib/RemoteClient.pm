@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.125 2003/04/25 11:09:18 choutko Exp $
+# $Id: RemoteClient.pm,v 1.126 2003/04/25 11:11:38 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -758,6 +758,7 @@ sub ValidateRuns {
    my $bad      =0; 
    my $unchecked=0; 
    my @cpntuples   =();
+   my @cmplruns    =();
    my @cpruns      =();
 #
     if( not $self->Init()){
@@ -895,6 +896,7 @@ sub ValidateRuns {
 #                           $self->{sqlserver}->Update($sql);
                             $copied++;
                             push @cpntuples, $fpath;
+                            push @cmplruns, $run->{Run};
                            }
                           }
                       }
@@ -965,6 +967,11 @@ sub ValidateRuns {
           my $cmd="rm $cpnt";
           print "$cmd \n";
       }
+       foreach my $run (@cmplruns) {
+           $sql = "UPDATE runs SET runs.status = 'Complete' WHERE run=$run";
+#           $self->{sqlserver}->Update($sql); 
+           print "$sql\n";
+       }
        foreach my $run (@cpruns) {
 #         DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete");
            print "DBServer::sendRunEvInfo(dbserver,$run->{Run},\"Delete\"); \n";
@@ -2337,8 +2344,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
           print "<select name=\"QPart\" >\n";
               my $ts=$self->{tsyntax};
-              my %hash=%{$ts->{particles}};
-              my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
+              %hash=%{$ts->{particles}};
+              @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
               foreach my $particle (@keysa) {
                 print "<option value=\"$particle\">$particle </option>\n";
               }
@@ -2348,8 +2355,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
             htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
             htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
-            my ($rid,$rndm1,$rndm2) = $self->getRID();
 
+            my ($rid,$rndm1,$rndm2) = $self->getRID();
             htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
             htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
             htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");  
@@ -2459,8 +2466,8 @@ DDTAB:         $self->htmlTemplateTable(" ");
               print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
               print "<select name=\"QPart\" >\n";
               my $ts=$self->{tsyntax};
-              my %hash=%{$ts->{particles}};
-              my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
+              %hash=%{$ts->{particles}};
+              @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
               foreach my $particle (@keysa) {
                 print "<option value=\"$particle\">$particle </option>\n";
               }
@@ -3420,7 +3427,7 @@ print qq`
               $self->ErrorPlus("Unable to tar flukaaf.dat to $filen ");
           }
 
-         my $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
           if($i){
               $self->ErrorPlus("Unable to tar $nv to $filen ");
           }
@@ -3662,7 +3669,7 @@ print qq`
     if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
          $tmpb =~ s/'/''/g;
     }
-         my $ctime=time();
+         $ctime=time();
          my $nickname = $q->param("QNick");
          my $stalone  = "STANDALONE";
          if ($q->param("STALONE") eq "No") {
@@ -3725,9 +3732,9 @@ print qq`
                  else{
                    $message=$self->{tsyntax}->{headers}->{readmecorba};
                  }                
-        my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
+        $sql = "SELECT dirpath FROM journals WHERE cid=$self->{CCID}";
         my $note='please contact alexei.klimentov@cern.ch for details'; 
-        my $ret = $self->{sqlserver}->Query($sql);
+        $ret = $self->{sqlserver}->Query($sql);
   
         if (defined $ret->[0][0]) {
          $note ="DST directory path : $ret->[0][0]/nt \n Journal files directory path : $ret->[0][0]/jou \n";
@@ -4178,7 +4185,7 @@ sub getRID() {
            $maxrun=$res->[0][0];
         }
         $sql="select rid,rndm1,rndm2 from RNDM where rid=$maxrun";
-        my $res=$self->{sqlserver}->Query($sql);
+        $res=$self->{sqlserver}->Query($sql);
         if( not defined $res->[0][0] ){
           my $big=2147483647;
           my $rndm1=int (rand $big);
@@ -4209,7 +4216,7 @@ sub getrndm(){
             $maxrun=$res->[0][0];
         }
         $sql="select rid,rndm1,rndm2 from RNDM where rid=$maxrun";
-        my $res=$self->{sqlserver}->Query($sql);
+        $res=$self->{sqlserver}->Query($sql);
         if( not defined $res->[0][0] ){
           my $big=2147483647;
           my $rndm1=int (rand $big);
@@ -4366,24 +4373,51 @@ sub trimblanks {
 sub checkJobsTimeout {
     my $self = shift;
     my $lastupd=>undef; 
+    my $pset=>undef;
+
     my $sql;
     my $timenow = time();
+#
+# 1st update runs.status from 'Finished'/'Failed' to 'Completed' if 
+# at least one DST is copied to final destination 
+#
+# get production set path
+    $sql = "SELECT NAME FROM ProductionSet WHERE STATUS='Active'";
+    my $r0 = $self->{sqlserver}->Query($sql);
+    if (defined $r0->[0][0]) {
+     $pset=trimblanks($r0->[0][0]);
+     $sql = "SELECT runs.run FROM runs WHERE runs.status != 'Completed'";
+     my $r1=$self->{sqlserver}->Query($sql);
+     if( defined $r1->[0][0]){
+      foreach my $r (@{$r1}){
+       my $run= $r -> [0];
+       $sql="SELECT run FROM ntuples WHERE path LIKE '%$pset%' AND run=$run";
+       my $r2=$self->{sqlserver}->Query($sql);
+       if( defined $r2->[0][0]){
+           $sql="UPDATE runs SET runs.status='Completed' WHERE run=$run";
+           $self->{sqlserver}->Update($sql); 
+       }
+      }
+     }
+    }
+#
     $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid FROM jobs 
           WHERE jobs.timestamp+jobs.timeout < $timenow"; 
-    my $r4=$self->{sqlserver}->Query($sql);
-    if( defined $r4->[0][0]){
-     foreach my $job (@{$r4}){
+    my $r3=$self->{sqlserver}->Query($sql);
+    if( defined $r3->[0][0]){
+     foreach my $job (@{$r3}){
          my $jid          = $job->[0];
          my $timestamp    = $job->[1];
          my $timeout      = $job->[2];
          my $mid          = $job->[3];
-         $sql="SELECT run FROM runs WHERE jid = $jid AND status != 'Finished'";
-         my $r3=$self->{sqlserver}->Query($sql); 
-         if (not defined $r3->[0][0]) {
-          $sql="SELECT address FROM mails WHERE mid = $mid";
-          my $r2=$self->{sqlserver}->Query($sql);
-          if (defined $r2->[0][0]) {
-              my $address = $r2->[0][0].",alexei.klimentov\@cern.ch";
+         $sql="SELECT runs.run, mails.address FROM runs, mails 
+               WHERE runs.jid = $jid AND 
+                     runs.status != 'Completed' AND
+                     mails.mid = $mid";
+         print "$sql \n";
+         my $r4=$self->{sqlserver}->Query($sql); 
+         if (defined $r4->[0][0]) {
+              my $address = $r4->[0][1].",alexei.klimentov\@cern.ch";
               my $sujet = "Job : $jid - expired";
               my $submittime = localtime($timestamp);
               my $timeouttime= localtime($timestamp+$timeout);
@@ -4395,10 +4429,10 @@ sub checkJobsTimeout {
               $self->sendmailmessage($address,$sujet,$message);
 #              print "$address : $sujet : $message ";
           }
-      }
      }
  }
 }
+
 
 sub listAll {
     my $self = shift;
@@ -4787,9 +4821,9 @@ sub listDisksAMS {
     my $lastupd=>undef; 
     my $sql;
     $sql="SELECT MAX(timestamp) FROM m_nominal_disks";
-    my $r4=$self->{sqlserver}->Query($sql);
-    if( defined $r4->[0][0]){
-      $lastupd=localtime($r4->[0][0]);
+    my $r0=$self->{sqlserver}->Query($sql);
+    if( defined $r0->[0][0]){
+      $lastupd=localtime($r0->[0][0]);
      }
      print "<b><h2><A Name = \"disks\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><b><font color=green> Disks and Filesystems </font></b>";
@@ -4914,9 +4948,9 @@ sub listDisks {
     my $lastupd=>undef; 
     my $sql;
     $sql="SELECT MAX(timestamp) FROM Filesystems";
-    my $r4=$self->{sqlserver}->Query($sql);
-    if( defined $r4->[0][0]){
-      $lastupd=localtime($r4->[0][0]);
+    my $r0=$self->{sqlserver}->Query($sql);
+    if( defined $r0->[0][0]){
+      $lastupd=localtime($r0->[0][0]);
      }
      print "<b><h2><A Name = \"disks\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><b><font color=green> Disks and Filesystems </font></b>";
