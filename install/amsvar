@@ -8,7 +8,7 @@ setenv CVSEDITOR  emacs
 setenv RunsDir $Offline/RunsDir
 setenv AMSDataNtuplesDir $Offline/amsdatantuplesdir
 setenv AMSMCNtuplesDir   $Offline/amsmcntuplesdir
-setenv ProductionLogDirLocal $Offline/logs.local/run_prod.log
+setenv ProductionLogDirLocal $Offline/logs.local
 setenv RunsSummaryFile   $Offline/runs_Aug.log
 setenv SlowRateDataDir   $Offline/SlowRateDataDir
 setenv AMSGeoDir         $Offline/vdev/display/v2.00
