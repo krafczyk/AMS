@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.21 2003/04/07 08:49:14 choutko Exp $
+//  $Id: client.h,v 1.22 2003/07/25 14:54:03 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -53,7 +53,7 @@ int getmaxdb()const{return _MaxDBProcesses;}
 bool IsOracle() const {return _Oracle;}
 bool IsOraperl() const {return _Oraperl;}
 bool MT() const { return _MT;} 
-bool IsMC() const { return _MC;} 
+bool IsMC() const { return _MC;}
 bool & GlobalError(){return _GlobalError;}
 uinteger & LastServiceTime(){return _LastServiceTime;}
 bool InitOracle()     const {return _OracleW;}

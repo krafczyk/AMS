@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.5 2003/07/11 07:37:06 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.6 2003/07/25 14:54:01 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -225,6 +225,7 @@ void AMSR_GeometrySetter::UpdateGeometry(EAMSR_View mview){
           recur(lnk,"TOPR");          
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"TRDW");
+/*
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"STK");
           lnk = first->GetListOfNodes()->FirstLink();
@@ -243,6 +244,7 @@ void AMSR_GeometrySetter::UpdateGeometry(EAMSR_View mview){
           recur(lnk,"RA4");
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"US");
+*/
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"TRDI");
           lnk = first->GetListOfNodes()->FirstLink();

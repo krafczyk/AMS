@@ -1,4 +1,4 @@
-//  $Id: AMSAxAMSHist.cxx,v 1.7 2003/06/17 07:39:53 choutko Exp $
+//  $Id: AMSAxAMSHist.cxx,v 1.8 2003/07/25 14:54:14 choutko Exp $
 #include <iostream.h>
 #include "AMSNtuple.h"
 #include "AMSDisplay.h"
@@ -20,57 +20,73 @@ int color=18;
 
 AddSet("Set 0");
 
-_filled.push_back(new TH1F("Momentum","Momentum",200,-20.,20.));
+_filled.push_back(new TH1F("AxAMS_0_00","Momentum",200,-200.,200.));
 _filled[_filled.size()-1]->SetXTitle("Momentum (GeV)");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("Abs(Momentum)","Abs(Momentum)",100,0.,20.));
+_filled.push_back(new TH1F("AxAMS_0_01","Abs(Momentum)",100,0.,200.));
 _filled[_filled.size()-1]->SetXTitle("Abs(Momentum) (GeV)");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("Charge","Charge",20,0.5,10.5));
+_filled.push_back(new TH1F("AxAMS_0_02","Charge",20,-0.5,19.5));
 _filled[_filled.size()-1]->SetXTitle("Charge");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("Velocity","Velocity",240,-1.2,1.2));
-_filled[_filled.size()-1]->SetXTitle("Velocity");
+_filled.push_back(new TH1F("AxAMS_0_03","Velocity",240,-1.2,1.2));
+_filled[_filled.size()-1]->SetXTitle("#beta");
 _filled[_filled.size()-1]->SetFillColor(color++);
 
 AddSet("Set 1");
 
 
-_filled.push_back(new TH1F("Mass","Mass",200,0.01,10.01));
+_filled.push_back(new TH1F("AxAMS_1_04","Mass",200,0.01,10.01));
 _filled[_filled.size()-1]->SetXTitle("Mass");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH2F("Log(Momentum) vs Velocity","Momentum vs Velocity",100,-5.,5.,
+_filled.push_back(new TH2F("AxAMS_1_05","Momentum vs Velocity",100,-5.,5.,
 100,0.6,1.1));
 _filled[_filled.size()-1]->SetXTitle("Log(Momentum) Log(GeV)");
 _filled[_filled.size()-1]->SetYTitle("Velocity");
 
-_filled.push_back(new TProfile("TrackerRes","Tracker delta_p/p vs p",100,0.,20.,0.,1000.));
+_filled.push_back(new TProfile("AxAMS_1_06","Tracker `D#?p!/p vs p",100,0.,20.,0.,1000.));
 _filled[_filled.size()-1]->SetXTitle("Momentum (GeV)");
-_filled[_filled.size()-1]->SetYTitle("Resolution dp/p (%)");
+_filled[_filled.size()-1]->SetYTitle("#sigma #frac{#Delta p}{p} (%)");
 _filled[_filled.size()-1]->SetFillColor(color++);
 
 AddSet("BeamProfile");
 
 
-_filled.push_back(new TH1F("XCoo","XCoo",400,-40.,40.));
+_filled.push_back(new TH1F("AxAMS_2_07","XCoo",400,-40.,40.));
 _filled[_filled.size()-1]->SetXTitle("X Coo  (cm) at Z=72 cm");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("YCoo","YCoo",400,-40.,40.));
+_filled.push_back(new TH1F("AxAMS_2_08","YCoo",400,-40.,40.));
 _filled[_filled.size()-1]->SetXTitle("Y Coo  (cm) at Z=72 cm");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("Theta","Theta",360,0.,180.));
-_filled[_filled.size()-1]->SetXTitle("Theta (Deg)");
+_filled.push_back(new TH1F("AxAMS_2_09","Theta",360,0.,180.));
+_filled[_filled.size()-1]->SetXTitle("#Theta (deg)");
 _filled[_filled.size()-1]->SetFillColor(color++);
-_filled.push_back(new TH1F("Phi","Phi",360,0.,360.));
-_filled[_filled.size()-1]->SetXTitle("Phi (Deg");
+_filled.push_back(new TH1F("AxAMS_2_10","Phi",360,0.,360.));
+_filled[_filled.size()-1]->SetXTitle("#Phi (deg)");
 _filled[_filled.size()-1]->SetFillColor(color++);
 
 
 AddSet("ReconstructionEfficiency");
 
-_filled.push_back(new TH1F("NPart","NPart",10,-0.5,9.5));
+_filled.push_back(new TH1F("AxAMS_3_11","NPart",10,-0.5,9.5));
 _filled[_filled.size()-1]->SetXTitle("Number of Rec Particles");
 _filled[_filled.size()-1]->SetFillColor(color++);
+
+
+
+AddSet("MC");
+
+_filled.push_back(new TH1F("AxAMS_4_12","Measured Momentum / Generated Momentum",200,0.001,4.));
+_filled[_filled.size()-1]->SetXTitle("#frac{Momentum_{Measured}}{Momentum_{Generated}}");
+_filled[_filled.size()-1]->SetFillColor(color++);
+_filled.push_back(new TH1F("AxAMS_4_13","Measured Velocity -Generated Velocity",200,-1.,1.));
+_filled[_filled.size()-1]->SetXTitle("#beta_{Measured}-#beta_{Generated}");
+_filled[_filled.size()-1]->SetFillColor(color++);
+_filled.push_back(new TH2F("AxAMS_4_14","Measured Charge vs Generated Charge",21,-1.5,19.5,21,-1.5,19.5));
+_filled[_filled.size()-1]->SetXTitle("Q_{Measured}");
+_filled[_filled.size()-1]->SetYTitle("Q_{Generated}");
+_filled[_filled.size()-1]->SetFillColor(color++);
+
 }
 
 
@@ -148,7 +164,29 @@ case 3:
  gPad->SetLogy(gAMSDisplay->IsLogY());
  gPad->SetLogz(gAMSDisplay->IsLogZ());
  _filled[11]->Draw();
-
+break;
+case 4:
+gPad->Divide(2,1);
+ gPad->cd(1);
+TVirtualPad * gp1=gPad; 
+ gPad->Divide(1,2);
+ gPad->cd(1);
+ gPad->SetLogx(gAMSDisplay->IsLogX());
+ gPad->SetLogy(gAMSDisplay->IsLogY());
+ gPad->SetLogz(gAMSDisplay->IsLogZ());
+ _filled[12]->Draw();
+ gp1->cd();
+ gPad->cd(2);
+ gPad->SetLogx(gAMSDisplay->IsLogX());
+ gPad->SetLogy(gAMSDisplay->IsLogY());
+ gPad->SetLogz(gAMSDisplay->IsLogZ());
+ _filled[13]->Draw();
+ gPadSave->cd();
+ gPad->cd(2);
+// gPad->SetLogx(gAMSDisplay->IsLogX());
+// gPad->SetLogy(gAMSDisplay->IsLogY());
+ _filled[14]->Draw("COL");
+break;
 
 }
 
@@ -174,6 +212,15 @@ void AMSAxAMSHist::Fill(AMSNtupleR * ntuple){
     _filled[8]->Fill(ntuple->pParticle(0)->TOFCoo[0][1],1.);
     _filled[9]->Fill(ntuple->pParticle(0)->Theta*180./3.1415926,1.);
     _filled[10]->Fill(ntuple->pParticle(0)->Phi*180./3.1415926,1.);
+     if(ntuple->nMCEventg()>0){		
+        MCEventgR mc_ev=ntuple->MCEventg(0);
+        double xm = log(mc_ev.Momentum);
+        double beta=1/sqrt(1-(mc_ev.Mass)/(mc_ev.Momentum)*(mc_ev.Mass)/(mc_ev.Momentum));
+         _filled[12]->Fill(mc_ev.Momentum/(fabs(ntuple->pParticle(0)->Momentum)+1e-20),1);
+         _filled[13]->Fill(ntuple->pParticle(0)->Beta-beta,1);
+        double charge=ntuple->pParticle(0)->Charge;
+        if(ntuple->pParticle(0)->Momentum<0)charge=-charge;
+        ((TH2F*)_filled[14])->Fill(charge,mc_ev.Charge,1);
+      }  
   }
-  
 }

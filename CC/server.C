@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.92 2003/06/20 14:48:00 choutko Exp $
+//  $Id: server.C,v 1.93 2003/07/25 14:53:59 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -2166,6 +2166,7 @@ if(pcur->InactiveClientExists(getType()))return;
      ((ac.ars)[0]).uid=0;
     if(_parent->IsMC()){
       // find run from very beginning, as whole script path depend on it
+        ac.id.StatusType=DPS::Client::OneRunOnly;
         RunEvInfo_var   reinfo;
         DSTInfo_var   dstinfo;
         getRunEvInfo(ac.id,reinfo,dstinfo);      
@@ -2237,6 +2238,9 @@ if(pcur->InactiveClientExists(getType()))return;
     submit+=uid;
     if(_parent->MT())submit+=" -M";
     if(_parent->Debug())submit+=" -D1";
+    int corfac=70000/(ahlv)->Clock;
+    sprintf(uid," -C%d",corfac);
+    submit+=uid;
     submit+=" -A";
      submit+=getenv("AMSDataDir");
     if((*cli)->LogInTheEnd){

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.72 2003/06/20 14:47:59 choutko Exp $
+//  $Id: producer.C,v 1.73 2003/07/25 14:53:59 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -23,6 +23,7 @@ if(_Head){
 else{
  char * ior=0;
  uinteger uid=0;
+ float ClockCor=1;
  for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
     pchar++;
     switch (*pchar){
@@ -37,6 +38,13 @@ else{
      break;
     case 'U':   //uid
      uid=atol(++pchar);
+     break;
+    case 'C':   //correction factor to computer clock 
+     ClockCor=atol(++pchar)/100.;
+     if(ClockCor>0 && ClockCor<5){
+      AMSFFKEY.CpuLimit*=ClockCor;
+      cout <<" AMSProducer::AMSProducer-I-CPULimitChangedTo "<<AMSFFKEY.CpuLimit<<endl;
+     }
      break;
     case 'G':   //local
      _Local=false;
