@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.18 2002/12/05 18:41:34 delgadom Exp $
+//  $Id: richgeom.C,v 1.19 2003/03/12 09:33:57 delgadom Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -544,7 +544,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   // Write the selected geometry
 
   cout <<"RICH geometry version dated:"<<VERSION<<endl;
-
+  //  if(RICCONTROL.fast_simulation) cout<<"RICH fast simulation"<<endl;
 #ifdef __AMSDEBUG__
 
   RICHDB::dump();
@@ -559,10 +559,12 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 
   par[0]=RICHDB::total_height()/2.;
   par[1]=0.;
-  par[2]=RICHDB::total_height()*(RICHDB::bottom_radius-RICHDB::top_radius)/
-    RICHDB::rich_height+RICHDB::top_radius+1.;
+  //    par[2]=RICHDB::total_height()*(RICHDB::bottom_radius-RICHDB::top_radius)/
+  //      RICHDB::rich_height+RICHDB::top_radius+1.;
+  par[2]=RICHDB::top_radius+1.+sqrt(2.)*RICHDB::rad_length;
   par[3]=0.;
-  par[4]=RICHDB::top_radius+1.;
+  //  par[4]=RICHDB::top_radius+1.;
+  par[4]=RICHDB::top_radius+1.+sqrt(2.)*RICHDB::rad_length;
 
   coo[0]=0;
   coo[1]=0;
@@ -714,6 +716,16 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   rad1=0;
   rad2=0;
 
+  //  integer radblista[40]={84, 7,100,17,27,
+  //                    1,94, 74,16,85,
+  //                   93, 8, 99,73,63,
+  //                   28, 6, 38,95, 2,
+  //                   18,26, 15, 9,92,
+  //                   75,83, 86,39,46,
+  //                   62,96, 55,98, 5,
+  //			 3, 4, 54,47,97};
+
+
   for(int n=0;n<RichRadiatorTile::get_number_of_tiles()*RichRadiatorTile::get_number_of_tiles();
       n++){
     if(RichRadiatorTile::get_tile_kind(n)==agl_kind){
@@ -727,7 +739,12 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       coo[1]=RichRadiatorTile::get_tile_y(n);
       coo[2]=RICHDB::total_height()/2-RICHDB::rad_pos();
  
-      
+
+      //      int malo;
+      //      malo=0;
+      //      for(int kk=0;kk<40;kk++) if(copia1==radblista[kk]) malo=1;
+	
+      //      if(malo){
       rad1=rich->add(new AMSgvolume("RICH CARBON",
 				   0,
 				   "RADB",
@@ -745,6 +762,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       if(MISCFFKEY.G4On)
 	Put_rad((AMSgvolume *)rad1,copia1-1);
 #endif
+      //      }else copia1++;
 
 
     }else if(RichRadiatorTile::get_tile_kind(n)==naf_kind){
@@ -1153,12 +1171,19 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   par[1]=par[0];
   par[2]=RICHDB::pmtb_height()/2;  
 
+  //  integer pmtblista[16]={31,371,121,461,541,631,291,201,149,319,489,659,170,680,510,340};
+
   for(int copia=0;copia<pmts.getpmtnb();copia++){
     coo[0]=AMSRICHIdGeom::pmt_pos(copia,0);
     coo[1]=AMSRICHIdGeom::pmt_pos(copia,1);
     coo[2]=RICHDB::total_height()/2+AMSRICHIdGeom::pmt_pos(copia,2);
 
 
+    //    integer malo;
+    //    malo=0;
+    //    for(int kk=0;kk<16;kk++)if(pmtblista[kk]==copia+1)malo=1;
+
+    //    if(malo){
     lig=rich->add(new AMSgvolume("RICH VACUUM",
 				 0,
 				 "PMTB",
@@ -1176,7 +1201,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       if(MISCFFKEY.G4On)
 	Put_pmt((AMSgvolume *)lig,copia+1);
 #endif
-
+      //  }
   }
 
 
