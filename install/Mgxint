@@ -37,11 +37,11 @@ EXE=/exe/hpux
 TIMEL=
 endif
 ifeq  "$(shell uname)"  "Linux"
-CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db 
-CFLAGSTOFSIM=      -D__BATCH__ -g      -I../include   -I../db
-CFLAGSn=      -D__BATCH__  -g   -I../include   -I../db
+CFLAGS=    -D__AMSDEBUG__      -I../include   -I../db 
+CFLAGSTOFSIM=             -I../include   -I../db
+CFLAGSn=           -I../include   -I../db
 FFLAGS=   -fno-automatic -g -I../include  
-CFLAGSDAQ=      -D__BATCH__  -g     -I../include 
+CFLAGSDAQ=         -I../include 
 LDFLAGS=    -static -L/cern/pro/lib  -lgeant321  -lpawlib -lpacklib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl   -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
 CC=g++ -D__NAMESPACE__
 FF=g77
