@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.4 2001/09/11 12:57:02 choumilo Exp $
+//  $Id: antidbc02.C,v 1.5 2002/10/15 12:44:16 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //
 #include <typedefs.h>
@@ -78,12 +78,12 @@ void ANTI2Pcal::build(){ // fill array of objects with data
   geant mip2q;   // conv.factor for Mev->pe (Pe/Mev)
   geant gain[2],gains[ANTI2C::MAXANTI][2];
   geant ftdl[2];// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
-  geant ipara[ANTI2C::ANCHMX][TOF2GC::SCIPAR];// the same number of integr. parameters as for TOF
+  geant ipara[ANTI2C::ANCHMX][ANTI2C::ANIPAR];// the same number of integr. parameters as for TOF
   char fname[80];
   char name[80];
   char vers1[3]="mc";
   char vers2[3]="rl";
-  geant aip[2][TOF2GC::SCIPAR]={// default
+  geant aip[2][ANTI2C::ANIPAR]={// default
     {50.,62.6,1.3},
     {50.,62.6,1.3}
   }; 
@@ -177,7 +177,7 @@ void ANTI2Pcal::build(){ // fill array of objects with data
        ibr=swid/10-1;
        isd=swid%10-1;
        cnum=2*ibr+isd;
-       for(ip=0;ip<TOF2GC::SCIPAR;ip++)icfile >> ipara[cnum][ip];//read anode parameters
+       for(ip=0;ip<ANTI2C::ANIPAR;ip++)icfile >> ipara[cnum][ip];//read anode parameters
      }
    }
  }
@@ -244,8 +244,8 @@ void ANTI2Pcal::build(){ // fill array of objects with data
       tthr[1]=ATREFFKEY.dtthr; // take trig. threshold from data card for now
       athr[0]=ATREFFKEY.dathr; // take TovT threshold from data card for now
       athr[1]=ATREFFKEY.dathr; // take TovT threshold from data card for now
-      for(ip=0;ip<TOF2GC::SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
-      for(ip=0;ip<TOF2GC::SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
+      for(ip=0;ip<ANTI2C::ANIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
+      for(ip=0;ip<ANTI2C::ANIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
       gain[0]=gains[i][0];// gain from file
       gain[1]=gains[i][1];
       sta[0]=status[i][0];// alive status from file
@@ -263,8 +263,8 @@ void ANTI2Pcal::build(){ // fill array of objects with data
       tthr[1]=ATREFFKEY.dtthr; // take trig. threshold from data card for now
       athr[0]=ATREFFKEY.dathr; // take TovT threshold from data card for now
       athr[1]=ATREFFKEY.dathr; // take TovT threshold from data card for now
-      for(ip=0;ip<TOF2GC::SCIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
-      for(ip=0;ip<TOF2GC::SCIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
+      for(ip=0;ip<ANTI2C::ANIPAR;ip++)aip[0][ip]=ipara[2*i][ip];// int.param.from file
+      for(ip=0;ip<ANTI2C::ANIPAR;ip++)aip[1][ip]=ipara[2*i+1][ip];
       gain[0]=gains[i][0];// gain from file
       gain[1]=gains[i][1];
       sta[0]=status[i][0];// alive status from file

@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.25 2002/10/03 08:10:36 choutko Exp $
+//  $Id: trigger302.C,v 1.26 2002/10/15 12:44:17 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -129,7 +129,7 @@ void TriggerAuxLVL302::fillecal(){
       ptr=ptr->next();
 //
     }
-  } // ---> end of super-layer loop
+  } // ---> end of cr loop
 }
 //------------
 //
@@ -391,7 +391,7 @@ void TriggerLVL302::init(){
  }
  _ECadc2mev=1.175;
  _ECh2lrat=36;
- _ECpedsig=2;//max. Ped's sigma
+ _ECpedsig=2;//do not need now
  _ECpmdx=ECALDBc::rdcell(7);//transv.pitch(1.8cm)
  _ECpmx0=ECALDBc::gendim(5);//EC-center X-shift
  _ECpmy0=ECALDBc::gendim(6);//EC-center Y-shift
@@ -1139,7 +1139,7 @@ int TriggerLVL302::eccrosscheck(geant ect){
 	al=number(*(ptr+2))/ECALDBc::scalef();//DAQ-format-->ADC(don't need for real algor)
 	amp=0;
 	if(ah>0){//(some readout thresh. is assumed to be done on prev. stages of readout)
-	  if(ah<(number(ECADCMX[0])-0*_ECpedsig))amp=ah;// no ovfl
+	  if(ah<number(ECADCMX[0]))amp=ah;// no ovfl
 	  else{
 	    if(al>0)amp=al*_ECh2lrat;
 	  }

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.39 2002/10/03 16:24:33 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.40 2002/10/15 12:44:17 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -56,7 +56,7 @@ integer ECALDBc::_slstruc[6]={
    10,           // i=2   numb. of fiber-layers per super-layer
    9,            //  =3   real numb. of super-layers (X+Y)
    36,           //  =4   real numb. of PMT's per super-layer (in X(Y))
-   1,1           //  =5-6 readout dir. in X/Y-proj (=1/-1->+/-) for the 1st PM-cell.  
+  -1,1           //  =5-6 readout dir. in X/Y-proj (=1/-1->along/oppos Y/X-axes) for 1st PM  
 };
 //
 integer ECALDBc::_nfibpl[2]={
@@ -511,7 +511,7 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+11,"ECRE: RawEvent-hits value(tot,adc,gain-corr)",200,0.,100000.,0.);
       HBOOK1(ECHISTR+12,"ECRE: RawEvent-hits value(tot,adc,gain-corr)",100,0.,500.,0.);
       HBOOK1(ECHISTR+13,"ECRE: EcalHit-hits number",80,0.,160.,0.);
-      HBOOK1(ECHISTR+14,"ECRE: EcalHit-hits value(tot,Mev)",200,0.,100000,0.);
+      HBOOK1(ECHISTR+14,"ECRE: EcalHit-hits value(tot,Mev)",200,0.,200000,0.);
       HBOOK1(ECHISTR+15,"ECRE: EcalHit-hits value(tot,Mev)",100,0.,1000,0.);
       HBOOK1(ECHISTR+16,"ECRE: RawEvent-hits value(adc,gain-corr)",200,0.,10000.,0.);
       HBOOK1(ECHISTR+17,"ECRE: RawEvent-hits value(adc,gain-corr)",100,0.,100.,0.);
@@ -729,12 +729,12 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+1,"Geant-hits number",100,0.,5000.,0.);
       HBOOK1(ECHIST+2,"ECMC: GeantdE/dX-hits value(tot,MeV)",100,0.,500,0.);
       HBOOK1(ECHIST+3,"ECMC: GeantdE/dX-hits value(+att,tot,MeV)",100,0.,500.,0.);
-      HBOOK1(ECHIST+4,"ECMC: GeantEmeas(prim.electron)(AnodeTot,MeV)",400,0.,20000.,0.);
+      HBOOK1(ECHIST+4,"ECMC: GeantEmeas(prim.electron)(AnodeTot,MeV)",400,0.,200000.,0.);
       HBOOK1(ECHIST+5,"ECMC: Dyn.hit value(mev)",100,0.,10.,0.);
       HBOOK1(ECHIST+6,"ECMC: 4xA-hit/D-hit ratio",50,0.,50.,0.);
       HBOOK1(ECHIST+7,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       HBOOK1(ECHIST+8,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
-      HBOOK1(ECHIST+9,"ECMC: Etot(trig.sum,mev)",100,0.,20000.,0.);
+      HBOOK1(ECHIST+9,"ECMC: Etot(trig.sum,mev)",200,0.,200000.,0.);
       HBOOK1(ECHIST+10,"ECMC: 1ST 3SL signal(mev)",80,0.,1600.,0.);
       HBOOK1(ECHIST+11,"ECMC: Epk/Ebase Ratio(F,LE)",80,0.,40.,0.);
       HBOOK1(ECHIST+12,"ECMC: Ebase",80,0.,800.,0.);

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.64 2002/10/14 10:49:00 choutko Exp $
+//  $Id: ecalrec.C,v 1.65 2002/10/15 12:44:17 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -198,7 +198,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //
     for(i=0;i<npmmx;i++){ // <------- loop over PM's in this(il) S-layer
       a2dr=ECMCFFKEY.an2dyr;// MC anode/dynode gains ratio
-      mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 5th channel
+      mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 10th channel
 //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
       mev2adcd=ECMCFFKEY.mev2adcd;// same for dynode
       geant pmrgn=ECcalib::ecpmcal[il][i].pmrgain();// PM gain(wrt ref. one)
@@ -548,8 +548,8 @@ void AMSEcalHit::build(int &stat){
 //         cout <<" case 2 "<<fadc<<" "<<mfadc<<endl;
          fadc=mfadc;
         }
-       }
- }
+        }
+      }
       else if(ovfl[1]==1 && !ids.LCHisBad()){
             fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
 	    sta|=AMSDBc::AOVERFLOW;// set overflow status bit
@@ -593,6 +593,29 @@ void AMSEcalHit::build(int &stat){
   if(nhits>0)stat=0;
 }
 
+//---------------------------------------------------
+number AMSEcalHit::attcor(number coo){//you should add it to measured Edep
+// coo is longit.coord(i.e. from other projection) in mother ref.syst. !!!
+  geant pmdist,hflen,attf,attf0;
+  int sl=_plane/2;
+  int pm=_cell/2;
+  int rdir=1-2*(pm%2);
+  if(_proj==1){//Y-proj hit
+    coo=coo-ECALDBc::gendim(5);//convert coo(from X-proj) into ECAL coord.syst.
+    hflen=ECALDBc::gendim(1)/2;
+    rdir=rdir*ECALDBc::slstruc(6);//=1/-1 -> along/opposit X-axes
+  }
+  else{//X-proj hit
+    coo=coo-ECALDBc::gendim(6);//convert coo(from Y-proj) into ECAL coord.syst.
+    hflen=ECALDBc::gendim(2)/2;
+    rdir=rdir*ECALDBc::slstruc(5);//=1/-1 -> along/opposit Y-axes
+  }
+  pmdist=coo+hflen;
+  if(rdir<0)pmdist=2*hflen-pmdist;
+  attf0=ECcalib::ecpmcal[sl][pm].attf(hflen);
+  attf=ECcalib::ecpmcal[sl][pm].attf(pmdist);//pmdist=[0,2*hflen]
+  return(_edep*(attf0/attf-1));
+}
 //---------------------------------------------------
 integer Ecal1DCluster::Out(integer status){
 static integer init=0;
