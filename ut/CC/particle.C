@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.123 2002/12/05 18:41:31 delgadom Exp $
+//  $Id: particle.C,v 1.124 2003/01/22 11:32:00 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -71,6 +71,7 @@ integer AMSParticle::build(integer refit){
           ppart=new AMSParticle(pbeta, pcharge, ptrack,
           beta,ebeta,mass,emass,momentum,emomentum,charge,theta,phi,coo);
           ptrack->setstatus(AMSDBc::USED);
+          
           AMSgObj::BookTimer.start("ReAxPid");
           ppart->pid();
           AMSgObj::BookTimer.stop("ReAxPid");
@@ -481,6 +482,15 @@ void AMSParticle::richfit(){
 
 
 void AMSParticle::_writeEl(){
+// get used status bit if some funny thingy present
+for (Test * ploop = (Test*)AMSEvent::gethead()->getheadC("Test",0); ploop ; ploop=ploop->next() ){
+if(ploop->getpid()==GCKINE.ikine){
+ setstatus(AMSDBc::USED);
+ _Coo=ploop->getcoo();
+break;
+}
+}
+
   // Root related part ../CC/root.C 
   // ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
 
@@ -495,6 +505,7 @@ void AMSParticle::_writeEl(){
   ParticleNtuple02* PN = AMSJob::gethead()->getntuple()->Get_part02();
   if (PN->Npart>=MAXPART02) return;
 // Fill the ntuple 
+  PN->Status[PN->Npart]=_status;
   if(_pcharge)PN->ChargeP[PN->Npart]=_pcharge->getpos();
   else PN->ChargeP[PN->Npart]=-1;
   if(_ptrd)PN->TRDP[PN->Npart]=_ptrd->getpos();

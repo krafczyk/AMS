@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.74 2003/01/21 16:37:26 alexei Exp $
+//  $Id: ntuple.h,v 1.75 2003/01/22 11:32:12 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -134,6 +134,7 @@ friend class AMSNtuple;
 class ParticleNtuple02 {
 public:
   int Npart;
+  int   Status[MAXPART02];
   int   BetaP[MAXPART02];
   int   ChargeP[MAXPART02];
   int   TrackP[MAXPART02];

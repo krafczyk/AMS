@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.27 2003/01/20 08:07:53 glamanna Exp $
+//  $Id: gamma.C,v 1.28 2003/01/22 11:31:59 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -1078,7 +1078,6 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
    uinteger evn=AMSEvent::gethead()->getEvent();
    uinteger Run=AMSEvent::gethead()->getrun();
    
-   AMSmceventg::PrintSeeds(cout);
    
    for(int i=0;i<TKDBc::nlay();i++){
      AMSTrRecHit::_markDouble(H[i],i);

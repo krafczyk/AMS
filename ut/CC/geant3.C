@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.74 2002/10/30 14:57:09 mdelgado Exp $
+//  $Id: geant3.C,v 1.75 2003/01/22 11:31:59 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -113,6 +113,36 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
 */
 
   try{
+{
+ // special rads
+ int lvl=GCVOLU.nlevel-1;
+ if(GCVOLU.names[lvl][0]=='R' &&
+GCVOLU.names[lvl][1]=='A'  && GCVOLU.names[lvl][3]=='T' && (
+GCVOLU.names[lvl][2]=='3' )){
+static AMSgvolume *pvol3=0;
+if(!pvol3)pvol3=AMSJob::gethead()->getgeomvolume(AMSID("RA3T",1));
+AMSPoint loc=pvol3->gl2loc(AMSPoint(GCTRAK.vect));
+AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
+
+}
+else  if(GCVOLU.names[lvl][0]=='R' &&
+GCVOLU.names[lvl][1]=='A'  && GCVOLU.names[lvl][3]=='T' && (
+GCVOLU.names[lvl][2]=='4' )){
+static AMSgvolume *pvol4=0;
+if(!pvol4)pvol4=AMSJob::gethead()->getgeomvolume(AMSID("RA4T",1));
+AMSPoint loc=pvol4->gl2loc(AMSPoint(GCTRAK.vect));
+AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
+
+}
+
+
+}
+
+
+
+
+
+
 {
    // TRD
  int lvl=GCVOLU.nlevel-1;

@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.19 2003/01/07 18:34:41 jorgec Exp $
+//  $Id: richrec.h,v 1.20 2003/01/22 11:32:12 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -138,6 +138,11 @@ class AMSRichRing: public AMSlink{
 friend class AMSTrTrack;
 #endif
 private:
+
+static void _Start(){TIMEX(_Time);}
+static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
+static bool _NoMoreTime(){return _CheckTime()>AMSFFKEY.CpuLimit;}
+static geant _Time;
 
   AMSTrTrack* _ptrack;
   integer _used;        // number of hits used

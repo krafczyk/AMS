@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.64 2002/11/29 20:05:00 choutko Exp $
+//  $Id: trrec.h,v 1.65 2003/01/22 11:32:12 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -34,11 +34,17 @@ using namespace std;
 class Test: public AMSlink{
 protected:
  integer _pid;
+ AMSPoint _coo;
  void _copyEl(){}
  void _printEl(ostream & stream){}
  void _writeEl(){}
 public:
  Test(integer pid=0):_pid(pid){}
+ Test(integer pid, AMSPoint coo):_pid(pid),_coo(coo){}
+  integer getpid()const {return _pid;}
+  AMSPoint getcoo()const {return _coo;}
+  Test *  next(){return (Test*)_next;}
+
 };
 
 

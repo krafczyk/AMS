@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.43 2002/12/05 18:41:36 delgadom Exp $
+//  $Id: richrec.C,v 1.44 2003/01/22 11:32:00 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -420,7 +420,7 @@ geant   *AMSRichRing::_index_tbl=0;
 int     _kind_of_tile=0;
 
 void AMSRichRing::build(){
-
+  _Start();
   // Build all the tracks 
   
   AMSTrTrack *track;
@@ -1128,7 +1128,16 @@ void RichRadiatorTile::_compute_mean_height(geant *index,
 #define ESC(x,y) ((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
 #define MOD(x) sqrt(ESC(x,x))
 
+
+geant AMSRichRing::_Time=0;
+
 void AMSRichRing::ReconRingNpexp(geant window_size){ // Number of sigmas used 
+const integer freq=10;
+static integer trig=0;
+trig=(trig+1)%freq;
+           if(trig==0 && _NoMoreTime()){
+            throw amsglobalerror(" AMSRichRing::ReconRingNpexp-E-Cpulimit Exceeded ");
+           }
 
   AMSPoint local_pos=_entrance_p;
   AMSDir   local_dir=_entrance_d;
@@ -1214,8 +1223,8 @@ void AMSRichRing::ReconRingNpexp(geant window_size){ // Number of sigmas used
 
 
 #ifdef __AMSDEBUG__
-  cout <<"NEXPG "<<nexpg<<endl<<"NEXPR "<<nexpr<<endl<<"nexpb "<<nexpb<<endl
-       <<"nexp "<<nexp<<endl;
+//  cout <<"NEXPG "<<nexpg<<endl<<"NEXPR "<<nexpr<<endl<<"nexpb "<<nexpb<<endl
+//       <<"nexp "<<nexp<<endl;
 
   HF1(123000,nexpg,1.);
   HF1(123001,nexpr,1.);
