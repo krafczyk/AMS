@@ -1,4 +1,4 @@
-#  $Id: amsvar,v 1.41 2003/10/26 14:19:11 choutko Exp $
+#  $Id: amsvar,v 1.43 2003/10/29 15:25:58 choutko Exp $
 setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
 #setenv ROOTSYS    /f2users/rdm/root

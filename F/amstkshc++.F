@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.72 2003/03/18 09:12:55 choutko Exp $
+*  $Id: amstkshc++.F,v 1.73 2003/10/29 15:24:43 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -6080,6 +6080,9 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
               out(8)=ierr
               out(9)=erig
               goto 999
+             else if(ialg.eq.5)then
+              call rkms_rig(npt,layer,xhits,ysigma,ipart,1/x(5),out)
+              out(8)=0
            else
             ifail=1
            endif
@@ -9134,9 +9137,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.72 2003/03/18 09:12:55 choutko Exp $
+* $Id: amstkshc++.F,v 1.73 2003/10/29 15:24:43 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.73  2003/10/29 15:24:43  choutko
+* *** empty log message ***
+*
 * Revision 1.72  2003/03/18 09:12:55  choutko
 * write down ascii mfield derivatives while creating mf record
 *
