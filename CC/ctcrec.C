@@ -737,7 +737,7 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 // decoding of block-id :
 //
   crate=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
-c  dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
+//  dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
   dtyp=(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
 #ifdef __AMSDEBUG__
   if(CTCRECFFKEY.reprtf[1]>=1){
