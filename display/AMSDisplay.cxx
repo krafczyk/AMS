@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.34 2003/10/02 12:29:16 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.35 2003/12/18 12:21:53 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -661,7 +661,7 @@ int  AMSDisplay::ReLoad(){
         if(!CC){
           setenv("CC","g++",0);
         }
-        char cmd[]="$CC -I$ROOTSYS/include -c AMSNtupleSelect.C";
+        char cmd[]="$CC -I$ROOTSYS/include -I../include -c AMSNtupleSelect.C";
         int $i=system(cmd);
         if(!$i){
          char cmd1[]="ld -init fgSelect  -shared AMSNtupleSelect.o -o libuser.so";
