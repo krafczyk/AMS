@@ -328,6 +328,7 @@ sub getior{
     my $fileo ="/tmp/oo."."$pid";
     my $i=system "bjobs -q linux_server >$file" ;
     if($i){
+        unlink $file;
         return undef;
     }
     open(FILE,"<".$file) or return undef;
@@ -343,20 +344,17 @@ sub getior{
             open(FILEO,"<".$fileo) or next;
             while (<FILEO>){
                 if (/^IOR:/){
-                    close(FILE);
-                    close(FILEO);
+                    close (FILEO);
+                    unlink $file,$fileo;
                     return $_;
                 }
             }
-            close(FILEO);
         }
         $ii++;
         }
     }
-
-    close(FILE);
-    system "rm -f $file";
-    system "rm -f $fileo";
+    close (FILEO);
+    unlink $file,$fileo;
     return undef;
 }
 sub getior2{
@@ -642,6 +640,8 @@ sub getntuples{
          else{
              push @text,0;
          }
+     }elsif($hash->{Status} eq "Failure"){
+         push @text, 1;
      }else{
          push @text, 0;
      }

@@ -2548,6 +2548,7 @@ break;
 
 
 void Producer_impl::RunFailed(const DPS::Client::ActiveClient & acv){
+   uinteger Run=0;
    RLI li=find_if(_rl.begin(),_rl.end(),REInfo_EqsClient((acv.id)));
     if(li!=_rl.end()){
      if((*li)->Status == Processing){
@@ -2559,12 +2560,24 @@ void Producer_impl::RunFailed(const DPS::Client::ActiveClient & acv){
       }
       else      rv->Status=Failed;
        rv->cuid=0;
+       Run=rv->Run;
        _parent->EMessage(AMSClient::print(rv, " run Failed "));
        Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
        _pser->MonInfo(AMSClient::print(rv, " Run Failed: "),DPS::Client::Error);
        PropagateRun(rv,DPS::Client::Update);
      }
     }
+
+for(DSTLI ni=_dst.begin();ni!=_dst.end();++ni){
+ if( ((*ni).second)->Run==Run){
+  ((*ni).second)->Status=Failure;
+   
+  PropagateDST((*ni).second,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
+
+ }
+}
+
+
 
 }
 
@@ -2646,6 +2659,18 @@ IMessage("DumpIOR");
 IMessage((const char*)li->first);
 IMessage((const char*)li->second);
 }
+
+ ofstream fbin;
+ fbin.open("/tmp/DumpIOR");
+ if(fbin){
+ for(map<AString,CORBA::String_var>::iterator li=_pser->getrefmap().begin();li!=_pser->getrefmap().end();++li){
+ fbin <<((const char*)li->first)<<endl;
+ fbin<<((const char*)li->second)<<endl;
+ }
+ fbin.close();
+ }
+ else EMessage(" Unable To Open /tmp/DumpIOR File");
+
 }
 
 
