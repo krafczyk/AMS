@@ -326,6 +326,7 @@ int stat;
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
 //
+  if(TOFMCFFKEY.fast==0){
   TOFJobStat::addre(0);
   if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Reconstruction){
     AMSgObj::BookTimer.start("TOF:DAQ->RwEv");
@@ -347,6 +348,8 @@ int stat;
   if(stat!=0)return;
   TOFJobStat::addre(6);
 //
+  }
+  else AMSTOFCluster::build();
   #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSTOFCluster::print();
   #endif
@@ -576,16 +579,18 @@ void AMSEvent:: _sitofevent(){
   AMSContainer *p;
 //
   AMSgObj::BookTimer.start("SITOFDIGI");
-  AMSgObj::BookTimer.start("TOF:Ghit->Tovt");
-  TOFJobStat::addmc(0);
-  AMSTOFTovt::build(); // Geant_hits-->Tovt_hits
-  AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
+  if(TOFMCFFKEY.fast==0){
+   AMSgObj::BookTimer.start("TOF:Ghit->Tovt");
+   TOFJobStat::addmc(0);
+   AMSTOFTovt::build(); // Geant_hits-->Tovt_hits
+   AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
 //
-  AMSgObj::BookTimer.start("TOF:Tovt->RwEv");
-  AMSTOFRawEvent::mc_build(); // Tovt_hits-->RawEvent_hits
-//  AMSTOFRawCluster::sitofdigi();
-  AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
-//
+   AMSgObj::BookTimer.start("TOF:Tovt->RwEv");
+   AMSTOFRawEvent::mc_build(); // Tovt_hits-->RawEvent_hits
+   AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
+  }
+  else AMSTOFRawCluster::sitofdigi();
+
   AMSgObj::BookTimer.stop("SITOFDIGI");
 #ifdef __AMSDEBUG__
   //  p =getC("AMSTOFRawEvent",0);

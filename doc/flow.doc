@@ -122,15 +122,20 @@ M A I N  ->      gbatch.C
  |        |    |   |                          
  |        |    |   |->_sitrdevent     Simulate TRD
  |        |    |   |->_sitofevent     Simulate TOF
+ |        |    |   |       |
+ |        |    |   |       |->AMSTOFTovt::build()        Geant_hts-->Tovt_hts
+ |        |    |   |       |->AMSTOFRawEvent::mc_build() Tovt_hts-->RawEvt_hts
+ |        |    |   |
  |        |    |   |->_sictcevent     Simulate CTC
- |        |    |   |     |
- |        |    |         |->AMSTOFMCCluster::sitofdigi      Digitization
+ |        |    |   |     
+ |        |    |         
  |        |    |
  |        |    |->_reamsevent         Reconstruct event
  |        |        |     
  |        |        |->_retofevent     Reconstruct TOF
  |        |        |     |
- |        |        |     |->AMSTOFCluster::build        Make clusters
+ |        |        |     |->AMSTOFRawCluster::build;   RawEvent-->RawCluster
+ |        |        |     |->AMSTOFCluster::build;      RawCluster-->Cluster
  |        |        |
  |        |        |->_retkevent      reconstruct Tracker
  |        |        |     |
@@ -153,8 +158,10 @@ M A I N  ->      gbatch.C
  |        |              |   |->Fit                Likelihood Fit
  |        |              | 
  |        |              |->AMSParticle::build     Final reconstruction
- |        |                  |->pid                Particle Identification
- |        |                  |->refit              Refitting Trajectory
+ |        |              |   |->pid                Particle Identification
+ |        |              |   |->refit              Refitting Trajectory
+ |        |              |
+ |        |              |->TOFTZSLcalib::select();event selection for TOF TZSL-calibration
  |        |       
  |        |->AMSEvent::write         Write event output to ntuple
  |        |       

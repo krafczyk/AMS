@@ -552,6 +552,100 @@ void AMSTOFCluster::build(int &stat){
 }
 //===============================================================================
 
+
+
+
+
+
+void AMSTOFCluster::build(){
+  for(integer kk=1;kk<5;kk++){
+    AMSTOFRawCluster *ptr=(AMSTOFRawCluster*)AMSEvent::gethead()->
+getheadC("AMSTOFRawCluster",0);
+integer const maxpl=22;
+static number xplane[maxpl];
+static AMSTOFRawCluster * xptr[maxpl];
+VZERO(xplane,maxpl*sizeof(number)/4);
+VZERO(xptr,maxpl*sizeof(AMSTOFRawCluster*)/4);
+while (ptr){
+  if(ptr->getntof()==kk){
+   integer plane=ptr->getplane();
+#ifdef __AMSDEBUG__
+   assert(plane>0 && plane < maxpl-1);
+#endif
+   xplane[plane]=ptr->getedep();
+   xptr[plane]=ptr;
+  }
+ ptr=ptr->next();
+}
+
+for (int i=0;i<maxpl;i++){ 
+ if(xplane[i] > TOFRECFFKEY.Thr1 && xplane[i]>= xplane[i-1] 
+    && xplane[i]>= xplane[i+1] ){
+ ptr=xptr[i];
+#ifdef __AMSDEBUG__
+ assert(ptr!=NULL);
+#endif
+ integer ntof,plane,status;
+ number time,edep,cofg,timed;
+ AMSPoint coo,ecoo;
+ plane=i;
+ ntof=ptr->getntof();
+ timed=ptr->gettimeD();
+ status=ptr->getstatus();
+ edep=0;
+ cofg=0;
+ for(int j=i-1;j<i+2;j++){
+   edep+=xplane[j];
+   cofg+=xplane[j]*(j-i);   
+ }
+ time=ptr->gettime();
+ if(edep>TOFRECFFKEY.ThrS){
+   number etime, etimed;
+#if 1  // change to zero when Eugeni  writes a proper code
+     etime=TOFMCFFKEY.TimeSigma;
+     etimed=TOFMCFFKEY.TimeSigma*sqrt(2.);
+#else
+     // Eugeni code here
+#endif
+ 
+   coo[2]=ptr->getz()+0.5;
+   coo[0]=0;
+   coo[1]=0;
+   ecoo[2]=10000;   // big
+   const number c=2.99792e10;
+   integer ix;
+   if(ntof==1)ix=1;
+   else if (ntof==2)ix=0;
+   else if (ntof==3)ix=0;
+   else             ix=1;
+   integer iy;
+   if(ntof==1)iy=0;
+   else if (ntof==2)iy=1;
+   else if (ntof==3)iy=1;
+   else             iy=0;
+
+   coo[ix]=timed/2*c;
+   ecoo[ix]=etimed/2*c;
+   float padl=TOFDBc::plnstr(5);
+   coo[iy]=cofg/edep*padl+TOFDBc::gettsc(ntof-1,i-1);
+   ecoo[iy]=padl/2.7;
+   AMSEvent::gethead()->addnext(AMSID("AMSTOFCluster",ntof-1),
+   new     AMSTOFCluster(status,ntof,plane,edep,coo,ecoo,time,etime));
+   xplane[i-1]=0;
+   xplane[i]=0;
+   xplane[i+1]=0; 
+   i=0;
+ }
+ }    
+ 
+}
+  }
+}
+
+
+
+
+
 integer AMSTOFCluster::Out(integer status){
 static integer init=0;
 static integer WriteAll=0;

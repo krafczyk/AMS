@@ -163,6 +163,7 @@ void AMSTOFTovt::build()
     ibtyp=TOFDBc::brtype(ilay,ibar)-1;
     scmcscan[ibtyp].getxbin(y,i1,i2,r);//y-bin # (longit.(x !)-coord. in LTRANS )
     nel0=de*convr;
+      AMSgObj::BookTimer.start("TovtPM1loop");
 // PM-1 actions --->
     eff=scmcscan[ibtyp].getef1(r,i1,i2);//eff for PM-1
     nel=nel0*eff;// mean number of photoelectrons
@@ -187,6 +188,8 @@ void AMSTOFTovt::build()
       }
     } // >>>----- end of PM-1 loop ------>
 //
+      AMSgObj::BookTimer.stop("TovtPM1loop");
+      AMSgObj::BookTimer.start("TovtPM2loop");
 // PM-2 actions --->
     eff=scmcscan[ibtyp].getef2(r,i1,i2);//eff for PM-2
     nel=nel0*eff;// mean number of photoelectrons
@@ -211,7 +214,9 @@ void AMSTOFTovt::build()
       }
     } // >>>----- end of PM-2 loop ------>
 //-----------------------------------
+      AMSgObj::BookTimer.stop("TovtPM2loop");
       ptrN=ptr->next();
+      AMSgObj::BookTimer.start("TovtOther");
       idN=0; 
       if(ptrN)idN=ptrN->getid();// id of the next G-hit
       if(idN != id){ // --> last or new bar -> create Tovt-objects :
@@ -231,6 +236,7 @@ void AMSTOFTovt::build()
         edepb=0.;// clear Edep
       }
 //
+      AMSgObj::BookTimer.stop("TovtOther");
     ptr=ptr->next();
   }// ------ end of geant hits loop ---->
 //
@@ -241,6 +247,7 @@ void AMSTOFTovt::build()
     HF1(1062,1000.*edepl[2],1.);
     HF1(1063,1000.*edepl[2],1.);
   }
+
 //
 }
 //=========================================================================

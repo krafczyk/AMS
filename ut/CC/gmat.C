@@ -4,7 +4,7 @@
 #include <snode.h>
 #include <amsgobj.h>
 #include <job.h>
-integer AMSgmat::debug=1;
+integer AMSgmat::debug=0;
 void AMSgmat::_init(){
   if(_npar == 1)   GSMATE(_imate,_name,_a[0],_z[0],_rho,_radl,_absl,_ubuf,1);
 

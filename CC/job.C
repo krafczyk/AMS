@@ -125,6 +125,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[4]=0;     // spare
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // spare 
+  TOFMCFFKEY.fast=1;
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=======================================================================================
@@ -429,9 +430,17 @@ void AMSJob::_signinitjob(){
 }
 //========================================================================
 void AMSJob::_sitofinitjob(){
+  if(TOFMCFFKEY.fast==1)cout <<"_sitofinit-I-Fast/Crude TOF simulation algorithm selected."<<endl;
+ else cout <<"_sitofinit-I-Slow/Accurate TOF simulation algorithm selected."<<endl;
      AMSgObj::BookTimer.book("SITOFDIGI");
      AMSgObj::BookTimer.book("TOF:Ghit->Tovt");
      AMSgObj::BookTimer.book("TOF:Tovt->RwEv");
+     AMSgObj::BookTimer.book("TovtPM1loop");
+     AMSgObj::BookTimer.book("TovtPM2loop");
+     AMSgObj::BookTimer.book("TovtPM2sloopscpmesp");
+     AMSgObj::BookTimer.book("TovtPM2sloopscmcscan");
+     AMSgObj::BookTimer.book("TovtPM2sloopsum");
+     AMSgObj::BookTimer.book("TovtOther");
     if(TOFMCFFKEY.mcprtf[2]!=0){ // Book mc-hist
       HBOOK1(1050,"Geant-hits in layer-1",80,0.,80.,0.);
       HBOOK1(1051,"Geant-hits in layer-2",80,0.,80.,0.);

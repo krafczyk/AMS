@@ -38,7 +38,9 @@ I 6   Print-flag(0)       // to print histograms if=1
 I 7   Print-flag(0)       // spare        
 I 8   Print-flag(0)       // spare
 I 9   Trig.logic-flag(0)  // to use AND/OR(if=1) for two side PMTs logic signals        
-I 10  Trig.logic-flag(0)  // spare        
+I10   Trig.logic-flag(0)  // spare        
+I11   fast(1)             //  fast/slow algorithm switch 
+
 
 // TOF Reconstruction
 
