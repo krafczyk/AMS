@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.7 2002/11/19 15:54:47 choutko Exp $
+//  $Id: gamma.C,v 1.8 2002/11/20 12:34:59 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -687,7 +687,7 @@ void AMSTrTrackGamma::_Averes(number& AVER, number& SAVER, vector<double> HH, in
     }
   }    
   SI=sqrt(SUM/(Com-1));
-  SAVER=SI/(sqrt(Com));
+  SAVER=SI/(sqrt(number(Com)));
  }
 }
 
@@ -728,7 +728,7 @@ void AMSTrTrackGamma::_Cente(number& CEN, number& SCEN, vector<double> HH, integ
    }
   }
   SI=sqrt(DSUM/(nde-1));
-  SCEN=SI/(sqrt(nde));
+  SCEN=SI/(sqrt(double(nde)));
   }
  }
 }

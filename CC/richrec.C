@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.41 2002/11/08 14:25:06 delgadom Exp $
+//  $Id: richrec.C,v 1.42 2002/11/20 12:35:00 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -225,7 +225,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   // Compute the initial guess and auxiliar values
   
   geant R=sqrt((origin[0]-x)*(origin[0]-x)+(origin[1]-y)*(origin[1]-y));
-  geant theta=atan2(R,fabs(origin[2]-z));
+  geant theta=atan2(number(R),fabs(origin[2]-z));
   geant h=origin[2]-RICradpos+RICHDB::rad_height;
   static const geant H=RICHDB::rich_height+RICHDB::foil_height+
                        RICradmirgap+RIClgdmirgap
@@ -250,7 +250,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   }
 
   if(u>=0 && u<=1){ // Theta has been reconstructed 
-    geant phi=atan2(y-origin[1],x-origin[0]);
+    geant phi=atan2(geant(y-origin[1]),geant(x-origin[0]));
     betas[0]=direction[0]*cos(phi)*u+
       direction[1]*sin(phi)*u-direction[2]*sqrt(1-u*u);
     betas[0]=1/index/betas[0];

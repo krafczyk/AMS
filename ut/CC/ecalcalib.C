@@ -695,7 +695,7 @@ void ECREUNcalib::mfit(){
 //
   for(i=0;i<ECPMSL;i++){// <--- PM*SL loop
     pm=i%ECPMSMX+1;
-    sl=floor(i/ECPMSMX)+1;
+    sl=floor(number(i)/ECPMSMX)+1;
     sum4=0.;
     nof4=0;
     for(j=0;j<4;j++){// <--- 4 subcell loop

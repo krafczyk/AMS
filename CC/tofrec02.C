@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.18 2002/11/19 17:15:29 alexei Exp $
+//  $Id: tofrec02.C,v 1.19 2002/11/20 12:35:00 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -1348,7 +1348,7 @@ void AMSTOFCluster::build2(int &stat){
       cle=ptr->getetimeD();
       clm=0.5*barl;// limit on max. long. coord.
       ct=TOF2DBc::gettsc(il,ib);   //transv.pos. of  bar
-      cte=barw/sqrt(12);
+      cte=barw/sqrt(12.);
       status=ptr->getstatus();//may be !=0(bad history/t_meas or single-sided)
       edep=eplane[ib];
       edepd=edplane[ib];
@@ -1368,7 +1368,7 @@ void AMSTOFCluster::build2(int &stat){
           etime=2.05*TFMCFFKEY.TimeSigma/sqrt(2.);//tempor(still no Tracker info)
         }
         else{
-          etime=(1.e-9)*barl/speedl/sqrt(12);//(sec !!!)for single-sided counters
+          etime=(1.e-9)*barl/speedl/sqrt(12.);//(sec !!!)for single-sided counters
         }
 	ok=0;//means bar with time meas.problems 
       }
@@ -1382,7 +1382,7 @@ void AMSTOFCluster::build2(int &stat){
         clne=ptrn->getetimeD();
         clnm=0.5*barl;// limit on max. long. coord.
         ctn=TOF2DBc::gettsc(il,ib+1);   //transv.pos. of  bar
-        ctne=barw/sqrt(12);
+        ctne=barw/sqrt(12.);
         statusn=ptrn->getstatus();//may be !=0(bad history/t_meas or single-sided)
         edepn=eplane[ib+1];
         edepdn=edplane[ib+1];
@@ -1408,7 +1408,7 @@ void AMSTOFCluster::build2(int &stat){
 	    cle=cle/sqrt(2.);
 	    cl=0.5*(cl+cln);
 	    cte=(TOF2DBc::plnstr(3)+TOF2DBc::plnstr(4)
-	                           +TOF2DBc::plnstr(6))/sqrt(12);//max.estim(overlap+v.gap+thickn)
+	                           +TOF2DBc::plnstr(6))/sqrt(12.);//max.estim(overlap+v.gap+thickn)
 	    ct=0.5*(ct+ctn);
 	    cz=0.5*(cz+czn);
 	    if(edep<edepn)barn=ib+2;//use bar-number for cluster from highest edep bar 

@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.32 2002/10/30 14:57:10 mdelgado Exp $
+//  $Id: richdbc.C,v 1.33 2002/11/20 12:34:59 choutko Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -310,13 +310,13 @@ geant RICHDB::lg_mirror_angle(integer i)
 {
 
   if(i==1) // NEW!
-    return atan2(lg_length/2.-
-       (lg_bottom_length/2.+RIClgthk_bot/2.),
+    return atan2(geant(lg_length/2.-
+       (lg_bottom_length/2.+RIClgthk_bot/2.)),
         lg_height)*180./3.1415926;
 
   if(i==2) // NEW!
-    return atan2(lg_length/4.-
-        (RIClgthk_bot+inner_pixel),
+    return atan2(geant(lg_length/4.-
+        (RIClgthk_bot+inner_pixel)),
          lg_height)*180./3.1415926;
 
 

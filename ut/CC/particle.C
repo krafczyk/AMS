@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.118 2002/11/19 13:55:43 choutko Exp $
+//  $Id: particle.C,v 1.119 2002/11/20 12:34:59 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -625,7 +625,7 @@ void AMSParticle::pid(){
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,maxcal,ifail,this);
     geant chi2=f;
     prob[i]=PROB(chi2,1);
-    prob[i]*=_pcharge->getprobcharge(chrg);
+    prob[i]*=_pcharge->getprobcharge(int(chrg));
     //linux bug
     if(ifail)prob[i]=0;
     if(fabs(prob[i])>2.){

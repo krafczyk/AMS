@@ -1,7 +1,7 @@
 #include"richid.h"
 #include"commons.h"
 #include "job.h"
-
+#include <fstream.h>
 
 geant *AMSRICHIdGeom::_pmt_p[3]={0,0,0};
 integer *AMSRICHIdGeom::_pmt_orientation=0;
@@ -244,7 +244,7 @@ AMSRICHIdGeom::AMSRICHIdGeom(integer pmtnb,geant x,geant y){
   //  cout<<"nx and ny according to new routine "<<nx<<" "<<ny<<endl;
 #endif
 
-  integer channel=RICnwindows*pmtnb+integer(sqrt(RICnwindows))*
+  integer channel=RICnwindows*pmtnb+integer(sqrt(number(RICnwindows)))*
     ny+nx;
 //    integer(y)+integer(x);
   
@@ -368,7 +368,7 @@ integer AMSRICHIdGeom::get_channel_from_top(geant x,geant y){
   //  if(int(y)*integer(sqrt(RICnwindows))+int(x)>15 || 
   //       int(y)*integer(sqrt(RICnwindows))+int(x)<0) {cout <<"ERRORRRRRR"<<endl;exit(1);}
 
-  return int(y)*integer(sqrt(RICnwindows))+int(x);
+  return int(y)*integer(sqrt(number(RICnwindows)))+int(x);
   
 
   
@@ -386,14 +386,14 @@ geant AMSRICHIdGeom::x(){
 
 // WARNING This to be mapped to the new setup
 
-  geant x=(2*(_pixel%integer(sqrt(RICnwindows)))-3)*
+  geant x=(2*(_pixel%integer(sqrt(number(RICnwindows))))-3)*
     RICHDB::lg_length/8.+*(_pmt_p[0]+_pmt);
 
 #ifdef __AMSDEBUG__
   /*  if(x>1e6){
     cout<<endl<<"--------"<<endl
 	<<"PMT position in x "<<*(_pmt_p[0]+_pmt)<<endl
-	<<"Factor "<<2*(_pixel%integer(sqrt(RICnwindows)))-3<<endl
+	<<"Factor "<<2*(_pixel%integer(sqrt(number(RICnwindows))))-3<<endl
 	<<"--------"<<endl;
 	}*/
 #endif
@@ -402,7 +402,7 @@ geant AMSRICHIdGeom::x(){
 }
 
 geant AMSRICHIdGeom::y(){
-  geant y=(2*(_pixel/integer(sqrt(RICnwindows)))-3)*
+  geant y=(2*(_pixel/integer(sqrt(number(RICnwindows))))-3)*
     RICHDB::lg_length/8.+*(_pmt_p[1]+_pmt);
 
   return y;

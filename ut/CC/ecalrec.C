@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.70 2002/11/14 14:07:16 choutko Exp $
+//  $Id: ecalrec.C,v 1.71 2002/11/20 12:34:59 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -249,7 +249,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adch)-pedh[k];// ped-subtraction
 	else radc=number(adch);//no ped-subtr.
         if(radc>=sigh[k]*ECALVarp::ecalvpar.daqthr(0)){// use only hits above DAQ-readout threshold
-	  adch=floor(radc*ECALDBc::scalef()+1/ECALDBc::scalef());//DAQ scaling
+	  adch=floor(radc*ECALDBc::scalef()+0.5/ECALDBc::scalef());//DAQ scaling
 	}
 	else{ adch=0;}
 // Low-gain channel:
@@ -269,7 +269,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adcl)-pedl[k];// ped-subtraction
 	else radc=number(adcl);//no ped-subtr.
         if(radc>=sigl[k]*ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
-	  adcl=floor(radc*ECALDBc::scalef()+1/ECALDBc::scalef());//DAQ scaling
+	  adcl=floor(radc*ECALDBc::scalef()+0.5/ECALDBc::scalef());//DAQ scaling
 	}
 	else{ adcl=0;}
 // <---------
@@ -306,7 +306,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adcd)-pedd;// ped-subtraction
 	else radc=number(adcd);//no ped-subtr.
         if(radc>=ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
-	  adcd=floor(radc*ECALDBc::scalef()+1/ECALDBc::scalef());//DAQ scaling
+	  adcd=floor(radc*ECALDBc::scalef()+0.5/ECALDBc::scalef());//DAQ scaling
 	}
 	else{ adcd=0;}
 //
@@ -2109,8 +2109,8 @@ if(p->_iflag==3){
     number x2=p->_Ez[i]-p->_Ez[0]+dz*(j+1)/nint;
 //    number f3=x1>0?pow(x1,xc[1]*xc[2])*exp(-xc[2]*x1):0;
 //    number f4=x2>0?pow(x2,xc[1]*xc[2])*exp(-xc[2]*x2):0;
-    number f1=x1>0?exp(min(log(FLT_MAX/2),-xc[2]*x1+xc[1]*xc[2]*log(x1))):0;
-    number f2=x2>0?exp(min(log(FLT_MAX/2),-xc[2]*x2+xc[1]*xc[2]*log(x2))):0;
+    number f1=x1>0?exp(min(number(log(FLT_MAX/2)),-xc[2]*x1+xc[1]*xc[2]*log(x1))):0;
+    number f2=x2>0?exp(min(number(log(FLT_MAX/2)),-xc[2]*x2+xc[1]*xc[2]*log(x2))):0;
 //    cout<<" f4/f2 "<<f4/f2<<endl;
     edep+= (f1+f2)*0.5;
     p->_Et+=edep*dz/nint;
@@ -2571,7 +2571,7 @@ void AMSEcalRawEvent::buildrawRaw(integer n, int16u *p){
               if(idk.getcrate()==ic){             
             int padc[2];
             for(int l=0;l<2;l++){
-              padc[l]=floor((tmp[l][i][k]+1/ECALDBc::scalef())*ECALDBc::scalef());
+              padc[l]=floor((tmp[l][i][k]+0.5/ECALDBc::scalef())*ECALDBc::scalef());
               if(padc[l]<0)padc[l]=0;
             }
               AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",ic), new
@@ -2606,7 +2606,7 @@ void AMSEcalRawEvent::TestThreshold(){
  float x1=_padc[1]-id.getped(1);
  if((x0> id.getsig(0)*HighThr) ||  (x0> LowAmp && x0> id.getsig(0)*HighThr/3)){
    for(int i=0;i<2;i++){
-      _padc[i]=floor((_padc[i]-id.getped(i)+1/ECALDBc::scalef())*ECALDBc::scalef());
+      _padc[i]=floor((_padc[i]-id.getped(i)+0.5/ECALDBc::scalef())*ECALDBc::scalef());
       if(_padc[i]<0)_padc[i]=0;
    }
    //add dynode if any
@@ -2615,7 +2615,7 @@ void AMSEcalRawEvent::TestThreshold(){
        if(*ptrd == *this){
 //       cout <<"  dynodes found****"<<ptrd->getpadc(2)<<endl;;
         //dynode found
-         _padc[2]=floor((ptrd->getpadc(2)-id.getpedd()+1/ECALDBc::scalef())*ECALDBc::scalef());
+         _padc[2]=floor((ptrd->getpadc(2)-id.getpedd()+0.5/ECALDBc::scalef())*ECALDBc::scalef());
          break;
        }
      }
@@ -2623,7 +2623,7 @@ void AMSEcalRawEvent::TestThreshold(){
 }
 else if((x1> id.getsig(1)*HighThr*2) && x1> LowAmp ){// tempor (HighThr->LowThr ?)
    for(int i=0;i<2;i++){
-      _padc[i]=floor((_padc[i]-id.getped(i)+1/ECALDBc::scalef())*ECALDBc::scalef
+      _padc[i]=floor((_padc[i]-id.getped(i)+0.5/ECALDBc::scalef())*ECALDBc::scalef
 ());
       if(_padc[i]<0)_padc[i]=0;
    //add dynode if any
@@ -2631,7 +2631,7 @@ else if((x1> id.getsig(1)*HighThr*2) && x1> LowAmp ){// tempor (HighThr->LowThr 
                        getheadC("AMSEcalRawEventD",_id.getcrate(),1);ptrd;ptrd=ptrd->next()){
         if(*ptrd == *this){
           //dynode found
-         _padc[2]=floor((ptrd->getpadc(2)-id.getpedd()+1/ECALDBc::scalef())*ECALDBc::scalef());
+         _padc[2]=floor((ptrd->getpadc(2)-id.getpedd()+0.5/ECALDBc::scalef())*ECALDBc::scalef());
          break;
        }
      }
