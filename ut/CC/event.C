@@ -2162,7 +2162,7 @@ void AMSEvent::_collectstatus(){
       uinteger singeo;
       if(ptr->getsinmagmer()<0)singeo=0;
       else singeo=1;
-      _status=_status | (trquality<<29);
+      _status=_status | (singeo<<29);
     }
   }
   {
