@@ -1129,7 +1129,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
         do i=1,nmax
          if(i.eq.1)write(*,*)cblock(idet)(1:8),' Started'
          call hgntb(1,cblock(idet),i,ierr)
-         if(ierr.eq.1)then
+         if(ierr.eq.1.or.(ierr.eq.2.and. cblock(idet).eq.'EVENTH')
+     +   )then
           if( cblock(idet).eq.'EVENTH')then
             write(*,*)' Last Run&Event # ',run,eventno
           endif
