@@ -13,18 +13,19 @@ ooStatus	LMS::PrintList(ooMode mode)
         ooItr(AMSEventList)    listItr;
         
 
-        rstatus = Start(mode);
+        if (mode == oocRead) rstatus = Start(mode, oocMROW);
+        if (mode != oocRead) rstatus = Start(oocRead);
         if (rstatus != oocSuccess) return rstatus;
 
         _databaseH = _session -> DefaultDatabase();
 
-        rstatus = listItr.scan(_databaseH, mode);
+        rstatus = listItr.scan(_databaseH, oocNoOpen);
         if (rstatus == oocSuccess) {
-          while (listItr.next()) {
-            listItr -> PrintListStatistics();
-          }
+         while (listItr.next()) {
+          listItr -> PrintListStatistics();
+         }
         } else {
-          cout<<"LMS::PrintList-E- scan operation failed"<<endl;
+         cout<<"LMS::PrintList-E- scan operation failed"<<endl;
         }
 
         if (rstatus != oocSuccess) {

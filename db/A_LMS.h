@@ -6,8 +6,9 @@
 //                  remove fRunNumber class memeber from list.ddl
 // Oct  02, 1996 ak merge GetEvent&GetMCEvent, GetNevents&GetNMCEvents
 //                  add eventR, eventW flags
+// Nov  27, 1996 ak MROW mode 
 //
-// Last Edit Oct 25, 1996. ak.
+// Last Edit Nov 27, 1996. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -114,6 +115,7 @@ public:
 	ooStatus	DeleteSetup(char* setup);
 
         ooStatus        Start(ooMode mode); // start a transaction
+        ooStatus        Start(ooMode mode, ooMode mrowmode); // + mrowmode
         ooStatus        Commit();           // commit a transaction
         ooStatus        Abort();            // abort a transaction
         integer         getTransLevel();    // checking for an active

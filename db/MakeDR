@@ -67,11 +67,6 @@ endif
 #                       #
 #########################
 
-BOOTF=../db/boot/LOM
-BOOT =../db/boot/LOM
-#BOOT=/dbase/dbcopy/AMS/db/boot/LOM
-#BOOT=/dbase/newV/AMS/db/boot/LOM
-#BOOT=/dbase/old/AMS/db/boot/LOM
 #include config.user
 include config.$(ARCH)
 #########################
@@ -80,7 +75,7 @@ include config.$(ARCH)
 #                       #
 #########################
 
-LMS	= $(EXE)lmsA
+LMS	= $(EXE)deleteRun
 
 #########################
 #                       #
@@ -145,10 +140,10 @@ SCHEMA_METHOD_OBJS      =  $(BIN_DB)eventD.o  $(BIN_DB)list.o \
 # Program Source        #
 #                       #
 #########################
-
 ifeq  "$(shell uname)"  "OSF1"
 
-LMS_SRCS	= A_LMS.C   \
+LMS_SRCS	= deleteRun.C \
+                  A_LMS.C   \
 		  A_LMSAdd.C \
 		  A_LMSFill.C \
 		  A_LMSMenu.C \
@@ -158,7 +153,8 @@ LMS_SRCS	= A_LMS.C   \
                   ooStats.C        \
                   cxxfix.C          
 
-LMS_OBJS	= $(BIN_DB)A_LMS.o   \
+LMS_OBJS	= $(BIN_DB)deleteRun.o \
+                  $(BIN_DB)A_LMS.o   \
 		  $(BIN_DB)A_LMSAdd.o \
 		  $(BIN_DB)A_LMSFill.o \
 		  $(BIN_DB)A_LMSMenu.o \
@@ -171,25 +167,25 @@ endif
 
 ifeq  "$(shell uname)"  "AIX"
 
-LMS_SRCS	= A_LMS.C   \
+LMS_SRCS	= deleteRun.C \
+                  A_LMS.C   \
 		  A_LMSAdd.C \
 		  A_LMSFill.C \
 		  A_LMSMenu.C \
 		  A_LMSDelete.C \
 		  A_LMSPrint.C \
                   ooSession.C     \
-                  ooStats.C        \
-                  ../CC/geant.C          
+                  ooStats.C        
 
-LMS_OBJS	= $(BIN_DB)A_LMS.o   \
+LMS_OBJS	= $(BIN_DB)deleteRun.o \
+                  $(BIN_DB)A_LMS.o   \
 		  $(BIN_DB)A_LMSAdd.o \
 		  $(BIN_DB)A_LMSFill.o \
 		  $(BIN_DB)A_LMSMenu.o \
 		  $(BIN_DB)A_LMSDelete.o \
 		  $(BIN_DB)A_LMSPrint.o \
                   $(BIN_DB)ooSession.o     \
-                  $(BIN_DB)ooStats.o        \
-                  $(BIN_DB)geantDB.o
+                  $(BIN_DB)ooStats.o        
 endif
 
 #########################
@@ -246,17 +242,15 @@ DB_OBJS	= $(SCHEMA_OBJS) $(SCHEMA_METHOD_OBJS) $(LMS_OBJS)
 
 OBJECT_LIBS	= $(LIB_DIR)/liboo.a
 SRC             = ../CC
-
 ifeq  "$(shell uname)"  "OSF1"
-
-GEANT_OBJS= $(BIN)/gbatch.o $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o   $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o  $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o \
+GEANT_OBJS= $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o   $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o  $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o \
 $(BIN)/ctcdbc.o $(BIN)/tofsim.o $(BIN)/timel.o
 
 endif
 
 ifeq  "$(shell uname)"  "AIX"
 
-GEANT_OBJS= $(BIN)/gbatch.o $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/upool.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o  $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o $(BIN)/trrec.o $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/tofsim.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/apool.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o
+GEANT_OBJS= $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/upool.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o  $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o $(BIN)/trrec.o $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/tofsim.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/apool.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o
 
 endif
 
@@ -268,9 +262,11 @@ $(LMS): $(DB_OBJS)
 	$(LD) $(LD_FLAGS) -o $(LMS) $(DB_OBJS) $(GEANT_OBJS) $(OBJECT_LIBS) \
         $(GLIBS)
 
+ifeq  "$(shell uname)"  "OSF1"
 	chmod +x $(LMS)
 	rm    ../db/cxxfix.C
 	rm    $(BIN_DB)cxxfix.o
+endif
 
 #########################
 #                       #
@@ -279,7 +275,7 @@ $(LMS): $(DB_OBJS)
 #########################
 
 $(BOOT):
-	$(OONEWFD) -fdlocalpath $(BOOTF).FDDB -pagesize $(PAGESIZE) -lockserverhost $(LS_HOST)  -fdnumber $(FDID) $(BOOT)
+	$(OONEWFD) -fdlocalpath $(BOOT).FDDB -pagesize $(PAGESIZE) -lockserverhost $(LS_HOST)  -fdnumber $(FDID) $(BOOT)
 
 .ddl.h: 
 	$(OODDL) -D__DECCXX $(INCLUDES) $*.ddl $(BOOT)
@@ -304,13 +300,9 @@ clean:
 
 ifeq  "$(shell uname)"  "OSF1"
 ../db/cxxfix.C:        
-	cat  ../CC/geant.C > ../db/cxxfix.C
 	cat $(SRC)/trrec.C >> ../db/cxxfix.C
 	cat $(SRC)/apool.C >> ../db/cxxfix.C
 	cat $(SRC)/upool.C >> ../db/cxxfix.C
- $(BIN_DB)cxxfix.o:         ../db/cxxfix.C
-	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/cxxfix.C \
-                                                -o $(BIN_DB)cxxfix.o
 endif
 
 ifeq  "$(shell uname)"  "AIX"
@@ -607,12 +599,6 @@ endif
  $(BIN_DB)A_LMSDelete.o:  eventD.ddl  eventD.h  eventD_ref.h  A_LMS.h  \
                           ooSession.h  ooStats.h  list.ddl  list.h  list_ref.h
 
- $(BIN_DB)A_LMSPrint.o:   A_LMSPrint.C
-	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/A_LMSPrint.C \
-                                                -o $(BIN_DB)A_LMSPrint.o
- $(BIN_DB)A_LMSPrint.o:  eventD.ddl  eventD.h  eventD_ref.h  A_LMS.h  \
-                          ooSession.h  ooStats.h  list.ddl  list.h  list_ref.h
-
 
  $(BIN_DB)ooSession.o:   ooSession.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ooSession.C \
@@ -622,4 +608,8 @@ endif
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ooStats.C \
                                                 -o $(BIN_DB)ooStats.o
  $(BIN_DB)ooStats.o:        ooStats.h
+
+ $(BIN_DB)deleteRun.o:   deleteRun.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+          ../db/deleteRun.C -o $(BIN_DB)deleteRun.o
 

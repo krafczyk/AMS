@@ -85,6 +85,27 @@ ooStatus LMS::Start(ooMode mode)   // start a transaction
         return rstatus;
 }
 
+ooStatus LMS::Start(ooMode mode, ooMode mrowmode)   // start a transaction
+{
+  ooStatus rstatus = oocError;
+
+  if (_session -> getTransLevel() != 0) {
+     cout << "LMS::Start -W- start a transaction, while one is active" << endl;
+     cout << "LMS::Start -I- transaction nesting level "
+          <<_session -> getTransLevel()<<endl;
+  }  
+        rstatus = _session -> StartTransaction(mode, mrowmode);
+	if (rstatus != oocSuccess) {
+	 cerr << "LMS::Start - Error - Cannot start a transaction." << endl;
+	 cerr << "LMS::Start - Quit" << endl;
+         exit(1);
+	} else {
+          //cout << "LMS::Start -I- start a transaction." << endl;
+           _transStart++;
+        }
+        return rstatus;
+}
+
 ooStatus LMS::Commit()            // commit a transaction
 {
   ooStatus rstatus = oocError;
