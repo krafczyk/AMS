@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.4 2002/03/12 08:17:26 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.5 2002/03/12 11:18:34 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -61,7 +61,7 @@ foreach my $chop  (@ARGV){
     if(defined $dir and $self->{dbdriver} =~ m/CSV/){
         $self->{dbfile}=$dir.'/'.$self->{dbfile};
     }        
-    elsif(not defined $dir){
+    elsif($self->{dbdriver} =~ m/CSV/){
         die "DBSQL Server AMSDataDir Not Defined";
     }
 
@@ -124,7 +124,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples","DataSets");
+    my @tables=("filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples","DataSets", "Environment");
     my @createtables=("    CREATE TABLE filesystems
     (fid         CHAR(4) NOT NULL,
      path    CHAR(255),
@@ -227,6 +227,14 @@ sub Create{
  }
 
 # initialize 
+    $dbh->do("insert into Environment values('AMSDataDir','/f2dat1/AMS01/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
+    $dbh->do("insert into Environment values('CERN_ROOT','/cern/2001')") or die "cannot do: ".$dbh->errstr();     
+    $dbh->do("insert into Environment values('UploadsDir','/home/httpd/cgi-bin/AMS02MCUploads')") or die "cannot do: ".$dbh->errstr();     
+    $dbh->do("insert into Environment values('AMSSoftwareDir','DataManagement')") or die "cannot do: ".$dbh->errstr();     
+    $dbh->do("insert into Environment values('DataSets','DataSets')") or die "cannot do: ".$dbh->errstr();     
+    $dbh->do("insert into Environment values('gbatch','exe/linux/gbatch-orbit.exe')") or die "cannot do: ".$dbh->errstr();     
+    $dbh->do("insert into Environment values('filedb','ams02mcdb.tar')") or die "cannot do: ".$dbh->errstr();     
+    $dbh->do("insert into Environment values('dbversion','v3.00')") or die "cannot do: ".$dbh->errstr();     
     my $run=110;
   $dbh->do("insert into Cites values(1,'cern',0,
             'local',$run,0)")or die "cannot do: ".$dbh->errstr();    

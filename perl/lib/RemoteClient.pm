@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.10 2002/03/12 10:54:47 alexei Exp $
+# $Id: RemoteClient.pm,v 1.11 2002/03/12 11:18:34 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -375,14 +375,14 @@ foreach my $file (@allfiles){
 
 
  my $ior=$self->getior();
- if(not defined $ior){ 
+if(not defined $ior){ 
 
   foreach my $chop  (@ARGV){
     if($chop =~/^-I/){
         $ior=unpack("x1 A*",$chop);
     }
   }
- }
+}
     if(defined $ior ){
       chomp $ior;
       if($self->{IOR} ne $ior){
@@ -397,7 +397,6 @@ foreach my $file (@allfiles){
 }
 
 sub ServerConnect{
-
     my $ref = shift;
 $ref->{cid}=new CID;    
 $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
@@ -682,7 +681,7 @@ sub Connect{
             if (not defined $cid) {
               $self->ErrorPlus("Unknown cite for user $cem. Check spelling.");
             }
-            $sql="SELECT rSite FROM Mails WHERE address='$cem' AND cid=$cid";
+            $sql="SELECT rsite FROM Mails WHERE address='$cem' AND cid=$cid";
             $ret=$self->{sqlserver}->Query($sql);
             my $resp = $ret->[0][0];
             $sql="SELECT name FROM Mails WHERE address='$cem' AND cid=$cid";
@@ -768,7 +767,7 @@ sub Connect{
               }
         my $sendsuc=undef;
         foreach my $chop (@{$self->{MailT}}) {
-              if($chop->{rServer}==1){
+              if($chop->{rserver}==1){
                   my $address=$chop->{address};
                   my $subject="AMS02 MC User Registration Request ";
                   my $message=" E-Mail: $cem \n Name: $name \n Cite: $cite \n Responsible: $responsible"; 
@@ -877,7 +876,7 @@ sub Connect{
               }
         my $sendsuc=undef;
         foreach my $chop (@{$self->{MailT}}) {
-              if($chop->{rServer}==1){
+              if($chop->{rserver}==1){
                   my $address=$chop->{address};
                   my $subject="AMS02 MC User Registration Request ";
                   my $message=" E-Mail: $cem \n Name: $name \n Cite: $cite \n Responsible: $responsible"; 
@@ -1707,7 +1706,7 @@ print qq`
         if( not defined $res->[0][0]){
             my $mes="Cite $self->{CCA} does not exist or locked";
               foreach my $chop (@{$self->{MailT}}) {
-              if($chop->{rServer}==1){
+              if($chop->{rserver}==1){
                   my $address=$chop->{address};
                   my $message=" see subject";
                   $self->sendmailmessage($address,$mes,$message);
@@ -1725,7 +1724,7 @@ print qq`
              my $max=$switch-1;    
              if (($run%$switch)+$runno >$max){
               foreach my $chop (@{$self->{MailT}}) {
-              if($chop->{rServer}==1){
+              if($chop->{rserver}==1){
                   my $address=$chop->{address};
                   my $subject="AMS02MC Request Form: run Capacity Exceeded for Cite $self->{CCA} $run";
                   my $message=" see subject";
@@ -1740,7 +1739,7 @@ print qq`
 
         if (not $self->ServerConnect()){
         foreach my $chop (@{$self->{MailT}}) {
-              if($chop->{rServer}==1){
+              if($chop->{rserver}==1){
                   my $address=$chop->{address};
                   $self->sendmessage($address,"unable to connect to servers by $self->{CEM}"," "); 
                   last;
@@ -1920,17 +1919,17 @@ print qq`
          $buf=~s/\(/\\\(/g;
          $buf=~s/\)/\\\)/g;
          $buf=~s/\'/\\'/g;
-# 12.03.02 ak.
-         $buf =~ s/'/''/g;
-#
+    if($self->{dbdriver} =~ m/Oracle/){
+            $buf =~ s/'/''/g;
+     }
          $tmpb=~s/\"/\\\"/g;
          $tmpb=~s/\(/\\\(/g;
          $tmpb=~s/\)/\\\)/g;
          $tmpb=~s/\$/\\\$/g;
          $tmpb=~s/\'/\\'/g;
-# 12.03.02 ak.
+    if($self->{dbdriver} =~ m/Oracle/){
          $tmpb =~ s/'/''/g;
-#
+    }
          my $ctime=time();
          my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb')";
          $self->{sqlserver}->Update($sql);
@@ -1999,7 +1998,7 @@ print qq`
            } else {
             $self->ErrorPlus("Unable to obtain mail address for MailId = $ret->[0][0] and Cite=$self->{CCID}");
            }           
-         }
+       }
 #
 # Add files to server
 #                    
@@ -2204,6 +2203,7 @@ sub findemail(){
                 $self->{CEMA}=$chop->{status};
                 $self->{CEMID}=$chop->{mid};
                 $self->{CEMR}=$chop->{requests};
+                $self->{CCR}=$chop->{rsite};
                 foreach my $cite (@{$self->{CiteT}}){
                     if($chop->{cid} eq $cite->{cid}){
                         $self->{CCA}=$cite->{name};
@@ -2220,6 +2220,7 @@ sub findemail(){
                 $self->{CEMA}=$chop->{status};
                 $self->{CEMID}=$chop->{mid};
                 $self->{CEMR}=$chop->{requests};
+                $self->{CCR}=$chop->{rsite};
                 foreach my $cite (@{$self->{CiteT}}){
                     if($chop->{cid} eq $cite->{cid}){
                         $self->{CCA}=$cite->{name};
@@ -2278,7 +2279,7 @@ sub validate_email_address {
 sub sendmailerror{
     my ($self,$subject,$message) = @_;
        foreach my $chop (@{$self->{MailT}}) {
-              if($chop->{rServer}==1){
+              if($chop->{rserver}==1){
                   my $address=$chop->{address};
                   $self->sendmailmessage($address,$subject,$message);
                   last;
