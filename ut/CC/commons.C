@@ -45,7 +45,7 @@ AMSCommonsI::AMSCommonsI(){
    }
    else {
      cout<<"AMSCommonsI-W-AMSDataDir variable is not defined."<<endl;
-     cout <<" AMSCommonsI-W-Default value "<<
+     cout <<"AMSCommonsI-W-Default value "<<
         dt<< " will be used."<<endl;
       strcpy(AMSDATADIR.amsdatadir,dt);
       AMSDATADIR.amsdlength=strlen(dt);

@@ -6121,10 +6121,12 @@ CDECK  ID>, TKFUNXY.
           subroutine tkfunxy(in,out,derl)
           common /tkclear$/clear
           integer clear
+          data clear/1/
           real der(10,2),derl(*)
            real *4 in(*),out(*),xx(3),h(3),hxy(3,3)
-          if(clear.eq.2)then
-           call ucopy( der(1,2),der(1,1),10)
+           if(clear.le.0)clear=1
+           if(clear.eq.2)then
+            call ucopy( der(1,2),der(1,1),10)
           endif
           do k=clear,2
           if(k.eq.1)then
