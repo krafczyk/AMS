@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.27 2001/02/07 14:17:01 choutko Exp $
+# $Id: Monitor.pm,v 1.28 2001/02/07 16:16:57 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -729,17 +729,17 @@ sub getntuples{
          if($hash->{Status} eq $sort[$j]){
      my $ctime=localtime($hash->{Insert});
      push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$hash->{size},$hash->{Status};
-     if ($hash->{Status} eq "InProgress"){
          my $dt=time()-$hash->{Insert};
-         if($dt>3600*12){
+     if ($hash->{Status} eq "InProgress"){
+         if($dt>3600*12 && $dt<3600*24){
              push @text,2;
-         }elsif($dt>3600*6){
+         }elsif($dt>3600*6 && $dt<3600*24){
              push @text,1;
          }
          else{
              push @text,0;
          }
-     }elsif($hash->{Status} eq "Failure"){
+     }elsif($hash->{Status} eq "Failure" && $dt<3600*24){
          push @text, 1;
      }else{
          push @text, 0;

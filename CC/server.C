@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.39 2001/02/07 14:16:56 choutko Exp $
+//  $Id: server.C,v 1.40 2001/02/07 16:16:56 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -1832,7 +1832,7 @@ if(pcur->InactiveClientExists(getType()))return;
      ((ac.ars)[0]).Type=DPS::Client::Generic;
      ((ac.ars)[0]).uid=0;
     (ahlv)->Status=DPS::Client::OK; 
-     DPS::Client::CID cid;      
+     DPS::Client::CID cid=_parent->getcid();      
       cid.Type=getType();
       cid.Interface= (const char *) " "; 
     PropagateAH(cid,(ahlv),DPS::Client::Update);
@@ -1844,7 +1844,7 @@ if(pcur->InactiveClientExists(getType()))return;
     else{
      (ahlv)->Status=DPS::Client::LastClientFailed; 
      ((ahlv)->ClientsFailed)++; 
-     DPS::Client::CID cid;      
+     DPS::Client::CID cid=_parent->getcid();      
       cid.Type=getType();
       cid.Interface= (const char *) " "; 
     PropagateAH(cid,(ahlv),DPS::Client::Update);
@@ -3640,7 +3640,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       return;
      }
      catch (CORBA::SystemException &ex){
-      cerr<<" oops corba error during dbserver" <<endl;
+      cerr<<" oops corba error during updatadbfile" <<endl;
      }
     }
    }
@@ -3692,7 +3692,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        retry=! retry;    
      }
      catch (CORBA::SystemException &ex){
-      cerr<<" oops corba error during dbserver" <<endl;
+      cerr<<" oops corba error during getfreehost" <<endl;
      }
     }
     if(!retry)return 0;
@@ -3751,7 +3751,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        retry=! retry;    
      }
      catch (CORBA::SystemException &ex){
-      cerr<<" oops corba error during dbserver" <<endl;
+      cerr<<" oops corba error during getrunevinfo" <<endl;
      }
     }
     if(!retry)return 0;
@@ -3785,7 +3785,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        retry=! retry;    
      }
      catch (CORBA::SystemException &ex){
-      cerr<<" oops corba error during dbserver" <<endl;
+      cerr<<" oops corba error during sendrunevinfo" <<endl;
      }
     }
     if(!retry)return 0;
@@ -3819,7 +3819,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        retry=! retry;    
      }
      catch (CORBA::SystemException &ex){
-      cerr<<" oops corba error during dbserver" <<endl;
+      cerr<<" oops corba error during senddstend" <<endl;
      }
     }
     if(!retry)return 0;
@@ -3852,7 +3852,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        retry=! retry;    
      }
      catch (CORBA::SystemException &ex){
-      cerr<<" oops corba error during dbserver" <<endl;
+      cerr<<" oops corba error during senddstinfo" <<endl;
      }
     }
     if(!retry)return 0;
@@ -3946,7 +3946,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        retry=! retry;    
      }
      catch (CORBA::SystemException &ex){
-      cerr<<" oops corba error during dbserver" <<endl;
+      cerr<<" oops corba error during sendac" <<endl;
      }
     }
     if(!retry)return 0;
@@ -3982,7 +3982,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        retry=! retry;    
      }
      catch (CORBA::SystemException &ex){
-      cerr<<" oops corba error during dbserver" <<endl;
+      cerr<<" oops corba error during sendah" <<endl;
      }
     }
     if(!retry)return 0;
