@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.8 2001/06/14 09:23:04 alexei Exp $
+//  $Id: oracle.pc,v 1.9 2001/06/19 09:56:51 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -20,7 +20,7 @@
 //                             prefix to TDV file
 //              June 13, 2001  m_tdv, m_tdv_def
 //
-// Last Edit : June 14, 2001
+// Last Edit : June 19, 2001
 //
 
 #include <iostream.h>
@@ -41,7 +41,7 @@
 
 
 
-
+#include <oci.h>
 #include <sqlca.h>
 #include <oraca.h>
 
@@ -53,6 +53,17 @@ const int MAXDSTARRAYSIZE   = 100;
 
 EXEC SQL BEGIN DECLARE SECTION;
 //
+
+#define TDVBufferLength 50000000
+
+unsigned char TDVbuffer[TDVBufferLength];
+
+
+OCIBlobLocator *blob;
+
+unsigned int amt;       // number of bytes read from TDV BLOB
+unsigned int offset = 1;    // offset read from TDV BLOB
+
   char     userpass[32];
 
 
@@ -62,6 +73,7 @@ EXEC SQL BEGIN DECLARE SECTION;
   unsigned int    tuint;
   int             tplat;
 
+  
 
 //
 // TDVs
@@ -759,6 +771,93 @@ int  AMSoracle::gettdvbody(TDVrec *tdv, unsigned int *pdata)
  } else {
   cout<<"AMSoracle::gettdvbody -E- TDV name or/and filepath is invalid"<<endl;
  }
+
+ return rstat;
+
+}
+
+int  AMSoracle::gettdvLOB(TDVrec *tdv, int deftable, unsigned int *pdata)
+//  
+// get TDV body for the given i/b/e time
+//
+// replace /offline/AMSDataDir/DataBase by amsdatadir
+//
+{
+ 
+ int rstat = 0;
+ 
+ EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error: AMSoracle::gettdvLOB");
+
+   strcpy(tdvname,tdv -> getname());
+   suppressCR(tdvname);
+   suppressBlanks(tdvname);
+
+   if (tdv -> datamc != 0) {
+       tdatamc = 1;
+   } else {
+       tdatamc = tdv -> datamc;  
+   }
+
+  tdv -> getutime(uinsert, ubegin, uend);
+
+
+  EXEC SQL VAR TDVbuffer is RAW(TDVBufferLength);
+  EXEC SQL ALLOCATE :blob;
+
+  if (deftable == M_TDVDEF) {
+   EXEC SQL SELECT ubegin, uend
+            INTO    :ubegin, :uend
+            FROM  m_tdvdef_blob, m_tdv_names 
+            WHERE 
+                  m_tdvdef_blob.idx = m_tdv_names.idx AND
+                  m_tdv_names.name = :tdvname AND 
+                  m_tdv_names.datamc = :tdatamc AND
+                  m_tdvdef_blob.prodstat = 1;
+   if (sqlca.sqlerrd[2] == 1) {
+    EXEC SQL SELECT tdv 
+           INTO :blob 
+           FROM m_tdvdef_blob, m_tdv_names 
+           WHERE
+                   m_tdvdef_blob.prodstat = 1       AND
+                   m_tdvdef_blob.idx = m_tdv_names.idx AND
+                   m_tdv_names.name = :tdvname AND 
+                   m_tdv_names.datamc = :tdatamc;
+  }  
+ } else {
+   EXEC SQL SELECT tdv 
+           INTO :blob 
+           FROM m_tdv_blob, m_tdv_names 
+           WHERE
+                   uinsert = :uinsert AND
+                   ubegin  = :ubegin  AND
+                   uend    = :uend    AND
+                   prodstat = 1       AND 
+                   m_tdv_blob.idx = m_tdv_names.idx AND
+                   m_tdv_names.name = :tdvname      AND 
+                   m_tdv_names.datamc = :tdatamc;
+ }
+   if (sqlca.sqlerrd[2] == 1) {
+      EXEC SQL LOB OPEN :blob READ ONLY;
+      amt = TDVBufferLength;
+      EXEC SQL LOB READ :amt FROM :blob AT :offset INTO :TDVbuffer;
+      if (amt < TDVBufferLength) {
+         memcpy(pdata,TDVbuffer,amt);
+         tdv -> nbytes = amt;
+         rstat = 1;
+      } else {
+       cout<<"gettdvLOB -E- invalid BLOB size "<<amt<<endl;
+      }
+      EXEC SQL LOB CLOSE :blob;
+      if(deftable == M_TDVDEF) tdv -> utime(1, ubegin, uend);
+    } else {
+       cout<<"gettdvLOB -E- TDV not found "<<sqlca.sqlerrd[2]<<endl;
+       cout<<"gettdvLOB -E- with i/b/e "
+           <<uinsert<<", "<<ubegin<<", "<<uend<<endl;
+    }
+
+
+   EXEC SQL FREE :blob;
+
 
  return rstat;
 

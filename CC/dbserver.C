@@ -1,11 +1,11 @@
-//  $Id: dbserver.C,v 1.19 2001/06/14 09:23:04 alexei Exp $
+//  $Id: dbserver.C,v 1.20 2001/06/19 09:56:50 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
 //  Mar,    2001. a.k. debugging   
 //  Jun,    2001. a.k. use amsdatadir as TDV file prefix                  
 //
-//  Last Edit : Jun 8, 2001. ak
+//  Last Edit : Jun 19, 2001. ak
 //
 #include <stdlib.h>
 #include <server.h>
@@ -22,6 +22,7 @@
 #include <oracle.h>
 #endif
 
+unsigned int TDVBufferLength = 50000000;
 
 
   DBServer_impl::DBServer_impl(const map<AString, AMSServer::OrbitVars> & mo,  const DPS::Client::CID & cid,AMSClient * parent):POA_DPS::DBServer(),AMSServerI(AMSID("DBServer",0),parent,DPS::Client::DBServer){
@@ -710,23 +711,40 @@ void  DBServer_impl::_init(){
 
   int  DBServer_impl::getTDV(const DPS::Client::CID & cid,  TDVName & tdvname, TDVbody_out body)
 {
-
- int length=0;
- TDVbody_var vbody=new TDVbody();
- AString   amsdatadir;
- char *gtv=getenv("AMSDataDir");
- if (gtv && strlen(gtv)>0) {
-   amsdatadir = gtv;
- } else {
-   _parent -> FMessage("AMSDataDirNotDefined",DPS::Client::CInAbort);
- }
+  int BLOBflag = 0;
+  int length =  0;
   int  rstat = -1;
   unsigned int *pdata = 0;
-  AMSoracle::TDVrec   *tdv = 0;
-  tdvname.Success=false;
-  tdv = new AMSoracle::TDVrec;
-  tdv -> setname(tdvname.Name, tdvname.DataMC);
-  tdv -> utime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
+
+ TDVbody_var vbody=new TDVbody();
+
+ AMSoracle::TDVrec   *tdv = 0;
+
+ tdvname.Success=false;
+
+ tdv = new AMSoracle::TDVrec;
+ tdv -> setname(tdvname.Name, tdvname.DataMC);
+ tdv -> utime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
+
+ if (BLOBflag) {
+   length = TDVBufferLength/sizeof(uinteger);
+   vbody->length(length);
+   if (AMSoracle::gettdvLOB(tdv, tdvname.Entry.id, vbody->get_buffer()) ==1) {
+    if (tdvname.Entry.id == 0)     
+     tdv -> getutime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
+    int nbytes = tdv -> getsize();
+    length = nbytes/sizeof(uinteger);
+    length = length - 3; // i/b/e
+    tdvname.Success=true;
+   }
+ } else {
+  AString   amsdatadir;
+  char *gtv=getenv("AMSDataDir");
+  if (gtv && strlen(gtv)>0) {
+    amsdatadir = gtv;
+  } else {
+    _parent -> FMessage("AMSDataDirNotDefined",DPS::Client::CInAbort);
+  }
   tdv -> setdirpath((const char *)amsdatadir);
   rstat = AMSoracle::gettdv(tdv, 1);
   if (rstat != 1) {
@@ -755,7 +773,7 @@ void  DBServer_impl::_init(){
     cout<<"           i/b/e               "<<tdvname.Entry.Insert<<"/"
         <<tdvname.Entry.Begin<<"/"<<tdvname.Entry.End<<endl;
   }
-
+ }
  if(tdvname.Success){
   vbody->length(length);
   memcpy(vbody->get_buffer(),pdata,length*sizeof(*pdata)-3);
@@ -776,50 +794,56 @@ void  DBServer_impl::_init(){
 {
  st=Continue;
 
- AString   amsdatadir;
- char *gtv=getenv("AMSDataDir");
- if (gtv && strlen(gtv)>0) {
-   amsdatadir = gtv;
- } else {
-   _parent -> FMessage("AMSDataDirNotDefined",DPS::Client::CInAbort);
- }
-
 
  int length=0;
+ int BLOBflag = 1;
 
-
-
- TDVbody_var vbody= new TDVbody();
+ TDVbody_var vbody = new TDVbody();
 
   int rstat = -1;
-  unsigned int *pdata = 0;
   AMSoracle::TDVrec   *tdv = 0;
   tdvname.Success=false;
   tdv = new AMSoracle::TDVrec;
+
   tdv -> setname(tdvname.Name, tdvname.DataMC);
-  tdv -> setdirpath((const char*)amsdatadir);
-  if (tdvname.Entry.id != 0)     
-     tdv -> utime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
-  else {
+  tdv -> utime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
+
+ if (BLOBflag) {
+   length = TDVBufferLength/sizeof(uinteger);
+   vbody->length(length);
+   if (AMSoracle::gettdvLOB(tdv, tdvname.Entry.id, vbody->get_buffer()) ==1) {
+    if (tdvname.Entry.id == 0)     
+     tdv -> getutime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
+    int nbytes = tdv -> getsize();
+    length = nbytes/sizeof(uinteger);
+    length = length - 3; // i/b/e
+    tdvname.Success=true;
+   }
+  } else {
+    AString   amsdatadir;
+     char *gtv=getenv("AMSDataDir");
+     if (gtv && strlen(gtv)>0) {
+        amsdatadir = gtv;
+     } else {
+        _parent -> FMessage("AMSDataDirNotDefined",DPS::Client::CInAbort);
+     }
+      tdv -> setdirpath((const char*)amsdatadir);
       char dirpath[1024];
       strcpy(dirpath,(const char *)amsdatadir);
-      strcat(dirpath,"/DataBase/");
+      if (tdvname.Entry.id == 0) strcat(dirpath,"/DataBase/");
       tdv -> setdirpath(dirpath);
-  }
-  rstat = AMSoracle::gettdv(tdv, tdvname.Entry.id);
-  if (rstat == 1) {
+  if (AMSoracle::gettdv(tdv, tdvname.Entry.id) == 1) {
    if (tdvname.Entry.id == 0)     
     tdv -> getutime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
     int nbytes = tdv -> getsize();
     length = nbytes/sizeof(uinteger);
-    //    cout <<" length "<<length<<endl;;
     vbody->length(length);
-      if ( AMSoracle::gettdvbody(tdv, vbody->get_buffer()) == 1) {
-        //        AMSTimeID::_convert(pdata,length);
+    if ( AMSoracle::gettdvbody(tdv, vbody->get_buffer()) == 1) {
         length = length - 3; // i/b/e
         tdvname.Success=true;
-      }
     }
+  }
+ }
   const int maxs=500000;
  if(tdvname.Success){
 
@@ -962,9 +986,6 @@ tmend    = e;
  const int maxTDVnamelength = 256;
  
  char tname[maxTDVnamelength];
-
- // static  long utimef;
- // static  long utimel;
 
  long utimef;
  long utimel;

@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.9 2001/06/14 09:23:09 alexei Exp $
+//  $Id: oracle.h,v 1.10 2001/06/19 09:57:01 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -73,6 +73,7 @@ namespace AMSoracle {
      
      const char *getfilepath() {return filepath;}
      const char *getdirpath()  {return dirpath;}
+     const int  getid() {return idx;}
      const char *getname() {return name;}
      long getsize() { return nbytes;}
      long setsize(long size) { nbytes = size;}
@@ -1037,8 +1038,9 @@ namespace AMSoracle {
   unsigned int  getHostId(unsigned int cid);
   void gettablename(char *tdvn);
   int  getTableSize(const char *table);
-  int  gettdvbody(TDVrec *tdv, unsigned int *pdata);
   int  gettdv(TDVrec *tdv, int deftable);
+  int  gettdvLOB(TDVrec *tdv, int deftable, unsigned int *pdata);
+  int  gettdvbody(TDVrec *tdv, unsigned int *pdata);
   int  decHostClientsActive(unsigned int clientId, unsigned int ctype);
   int  incHostClientsActive(unsigned int clientId, unsigned int ctype);
   int  incHostClientsFailed(unsigned int clientId, unsigned int ctype);

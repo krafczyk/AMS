@@ -17,8 +17,8 @@ echo $UNAME is not supported yet
 
 fi
 source $Offline/vdev/install/AMSProduction
-cp $AMSProdDir/exe/$MACHINE/$AMSProducerExec $Offline/logs.local/$AMSProducerExec
-$Offline/logs.local/$AMSProducerExec $1 $2 $3 $4 $5<<!
+cp /f0dah0/users/alexei/AMS/exe/$MACHINE/gbatch-orbit.exe.oracle /dat0/logs.local/gbatch-orbit.exe.oracle
+/dat0/logs.local/gbatch-orbit.exe.oracle $1 $2 $3 $4 $5<<!
 LIST
 KINE 14 
 MULS 1
