@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.51 2003/07/18 19:56:23 delgadom Exp $
+//  $Id: root.C,v 1.52 2003/07/22 09:21:18 delgadom Exp $
 //
 
 #include <root.h>
@@ -1064,8 +1064,8 @@ fEcalCluster.reserve(MAXECCLUST);
 fEcal2DCluster.reserve(MAXEC2DCLUST);
 fEcalShower.reserve(MAXECSHOW);
 
-fRichHit.reserve(MAXRICHRIN);
-fRichRing.reserve(MAXRICHITS);
+fRichHit.reserve(MAXRICHITS);
+fRichRing.reserve(MAXRICHRIN);
 
 fTofRawCluster.reserve(MAXTOFRAW);
 fTofCluster.reserve(MAXTOF);
