@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.3 2001/01/24 09:33:16 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -50,7 +50,7 @@ AMSR_GeoToggle AMSR_GeometrySetter::m_Toggle[] = {
   { "TRD11602",              kDrawSonsOnly, NULL },
   { "TRD21613",              kDrawNone, NULL },
   { "RICH1",              kDrawImmediateSonsOnly, NULL },
-  { "ECMO1",              kDrawSonsOnly, NULL },
+  { "ECMO1",              kDrawImmediateSonsOnly, NULL },
   { "ECEB31",              kDrawNone,     NULL },
   { "ECEB42",              kDrawNone,     NULL },
   { "ECEB53",              kDrawNone,     NULL },

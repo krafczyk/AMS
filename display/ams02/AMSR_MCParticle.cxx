@@ -1,4 +1,4 @@
-//  $Id: AMSR_MCParticle.cxx,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_MCParticle.cxx,v 1.3 2001/01/24 09:33:16 choutko Exp $
 #include <iostream.h>
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -33,7 +33,7 @@ AMSR_MCParticle::AMSR_MCParticle(Int_t status, Int_t pattern)
 
 void AMSR_MCParticle::SetHelix(){
 
-   Double_t Bfield = -0.15*0.95;	// in minus-x direction of AMS
+   Double_t Bfield = -0.9;
    Double_t P[3];
    Double_t V[3];
    Double_t Range[2]={-120.,120.};

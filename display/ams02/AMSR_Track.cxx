@@ -1,4 +1,4 @@
-//  $Id: AMSR_Track.cxx,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_Track.cxx,v 1.3 2001/01/24 09:33:16 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -23,7 +23,7 @@ AMSR_Track::AMSR_Track(Int_t status, Int_t pattern)
 //_____________________________________________________________________________
 void AMSR_Track::SetHelix()
 {
-   Double_t Bfield = -0.15*0.95;	// in minus-x direction of AMS
+   Double_t Bfield = -0.9;	// in minus-x direction of AMS
    Double_t P0[3];
    Double_t V0[3];
    Double_t Axis[3]={-1,0,0};

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.4 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_Display.cxx,v 1.5 2001/01/24 09:33:16 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -55,7 +55,7 @@ AMSR_Display::AMSR_Display() : AMSR_VirtualDisplay()
      fCooDef[0][2]=-100.;
      fCooDef[1][0]=70.;
      fCooDef[1][1]=70.;
-     fCooDef[1][2]=120.;
+     fCooDef[1][2]=100.;
      ResetCoo();
 
 //   m_theapp=0;
