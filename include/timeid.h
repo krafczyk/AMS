@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.25 2001/01/22 17:32:44 choutko Exp $
+//  $Id: timeid.h,v 1.26 2001/06/14 08:48:21 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>
@@ -30,7 +30,7 @@ uinteger _CRC;       // Control Sum
 integer _Nbytes;   // Number of bytes in _pData
 uinteger * _pData;      // pointer to data
 integer _DataBaseSize;
-uinteger * _pDataBaseEntries[5];  // Run Insert Begin End SortedBeg
+uinteger * _pDataBaseEntries[5];  // Insert Insert Begin End SortedBeg
 uinteger _CalcCRC();
 void _init(){};
 static void _InitTable();

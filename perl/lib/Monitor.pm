@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.37 2001/06/11 14:02:00 choutko Exp $
+# $Id: Monitor.pm,v 1.38 2001/06/14 08:48:29 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -105,6 +105,21 @@ sub Connect{
  return $ref->{ok};
 
  }
+
+sub ForceCheck{
+ my $ref=shift;
+ my $arsref;
+ foreach $arsref (@{$ref->{arsref}}){
+     my $length;
+     my $ahl;
+     try{
+         $arsref->SystemCheck();
+     }
+     catch CORBA::SystemException with{
+         print "SystemCheckFailed.\n";
+     };
+ }
+}
 
 sub UpdateEverything{
  my $ref=shift;
@@ -553,7 +568,9 @@ sub getactivehosts{
      my $err=0;
      my $cerr=0;
      my $cpu=0;
+     my $cpup=0;
      my $time=0;
+     my $timep=0;
      my $total=0;
      my $tevt=0;
      for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
@@ -569,6 +586,10 @@ sub getactivehosts{
                $err+=$rdstc->{ErrorsFound};
                $cpu+=$rdstc->{CPUTimeSpent};
                $time+=$rdstc->{TimeSpent};
+               if($rdst->{Status} eq "Processing"){
+                 $cpup+=$rdstc->{CPUTimeSpent};
+                 $timep+=$rdstc->{TimeSpent};
+               }
            }
        }
    }
@@ -590,7 +611,7 @@ sub getactivehosts{
           last;
       }
   }
-    my $effic=$time==0?0:int ($cpu*100*$proc/$cpunumber/$time); 
+    my $effic=$time==0?0:int ($cpu*100*$proc/$cpunumber/($time)); 
      $totproc+=$proc;
      $totcpu+=$cpunumber;
   push @text, $cpuper/1000., $effic/100.;

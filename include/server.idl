@@ -1,4 +1,4 @@
- #pragma prefix "ams.cern.ch"
+#pragma prefix "ams.cern.ch"
 module DPS{
    typedef unsigned long time;
   interface Client{
@@ -231,6 +231,7 @@ module DPS{
     void setEnv(in CID id, in string env, in string path);
     void sendCriticalOps(in CID id, in CriticalOps op);
     void ping();
+    oneway void SystemCheck();
     boolean AdvancedPing();
     boolean TypeExists(in DPS::Client::ClientType type);
 

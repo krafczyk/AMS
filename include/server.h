@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.37 2001/06/11 14:01:48 choutko Exp $
+//  $Id: server.h,v 1.38 2001/06/14 08:48:20 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -170,7 +170,7 @@ void DumpIOR();
 static AMSServer* & Singleton(){return _Head;};
 void Listening(int sleeptime=0);
 void UpdateDB(bool force=false);
-void SystemCheck();
+void SystemCheck(bool force=false);
 void Exiting(const char * message=0);
 ~AMSServer(){Exiting();if(_pser)delete _pser;}
 };
@@ -246,6 +246,7 @@ void _PurgeQueue();
    void setEnv(const DPS::Client::CID &cid,const char * env, const char *path)throw (CORBA::SystemException);
    CORBA::Boolean AdvancedPing()throw (CORBA::SystemException);
    void ping()throw (CORBA::SystemException);
+   void SystemCheck()throw (CORBA::SystemException);
    void sendCriticalOps(const DPS::Client::CID &cid, const CriticalOps & op)throw (CORBA::SystemException);
   bool pingHost(const char * host);
   CORBA::Boolean TypeExists(DPS::Client::ClientType type)throw (CORBA::SystemException);

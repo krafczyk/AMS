@@ -1,4 +1,4 @@
-//  $Id: dbserver.h,v 1.6 2001/06/11 14:01:48 choutko Exp $
+//  $Id: dbserver.h,v 1.7 2001/06/14 08:48:20 choutko Exp $
 #ifndef __AMSDBSERVER__
 #define __AMSDBSERVER__
 #include <server.h>
@@ -36,6 +36,7 @@ public:
    int getEnv(const DPS::Client::CID &cid, SS_out ss);
    void setEnv(const DPS::Client::CID &cid,const char * env, const char *path);
    void ping()throw (CORBA::SystemException);
+   void SystemCheck()throw (CORBA::SystemException){};
    CORBA::Boolean AdvancedPing()throw (CORBA::SystemException){};
    void sendCriticalOps(const DPS::Client::CID &cid, const CriticalOps & op){};
   CORBA::Boolean TypeExists(DPS::Client::ClientType type);

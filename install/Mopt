@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.197 2001/05/07 08:32:30 choutko Exp $
+#  $Id: Mopt,v 1.198 2001/06/14 08:48:26 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -612,10 +612,17 @@ $(SERVERMT):          $(OBJECTCOMT) $(OBJECTSEMT) $(OBJECTSEAUXMT) $(BIN)server_
 
 CLIENT=$(EXE)gbatch-orbit.exe
 
+CLIENTMT=$(EXE)gbatch-orbit-mt.exe
+
 producer:	$(CLIENT)
 
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC)
 	$(LD) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGS)
+
+producermt:	$(CLIENTMT)
+
+$(CLIENTMT):          $(OBJECTCOMT) $(OBJECTCLMT) $(OBJECTSC)
+	$(LD) -v -o $(CLIENTMT) $(OBJECTSC)  $(OBJECTCLMT) $(OBJECTCOMT) $(LDFLAGSSTATICIDLMT) $(TIMEL) $(LDFLAGS)
 
 $(OBJECTSE):         $(SRCSCPP)
 	$(CPP)  -fpermissive  -c $(CFLAGS) $(SRCSCPP) 
