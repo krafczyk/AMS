@@ -965,6 +965,7 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
             if(mtyp==1)tdca[nzcch][i]=hits[hwch][i];
             if(mtyp==2)tdct[i]=hits[hwch][i];
           } //                      --> end of hit loop
+          ntdct=0;
           if(mtyp==1)ntdca[nzcch]=nhit;
           if(mtyp==2)ntdct=nhit;
           if(mtyp==1){

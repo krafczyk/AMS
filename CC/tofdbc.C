@@ -319,7 +319,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  geant an2di[SCBLMX][2],gaina[SCBLMX][2],gaind[SCBLMX][2],m2q[SCBTPN];
  geant ipara[SCCHMX][SCIPAR]; 
  geant ipard[SCCHMX][SCIPAR];
- geant aprofp[SCBTPN][SCPROFP],hblen,p1,p2,p3,p4,p5,nom,denom; 
+ geant aprofp[SCBTPN][SCPROFP],apr[SCPROFP],hblen,p1,p2,p3,p4,p5,nom,denom; 
  char fname[80];
  char name[80];
  geant td2p[2];
@@ -719,6 +719,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
       }
     }
     else{// pos.correction for Real
+      for(i=0;i<5;i++)apr[i]=aprofp[brt-1][i];
       p1=aprofp[brt-1][0];
       p2=aprofp[brt-1][1];
       p3=aprofp[brt-1][2];
@@ -760,7 +761,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     if(aip[1][0]==0.)sta[1]=-1;
     scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,a2dr,asatl,tth,
                               strat,fstrd,tzer,slope,slops,tdif,td2p,mip2q,scp,rlo,
-                              aip,dip);
+                              aip,dip,apr);
 //
   } // --- end of bar loop --->
   } // --- end of layer loop --->
@@ -970,7 +971,7 @@ void TOFJobStat::printstat(){
   printf(" RawCluster->Cluster OK  : % 6d\n",recount[4]);
   printf(" Entries to TZSl-calibr. : % 6d\n",recount[6]);
   printf(" TZSl: multiplicity OK   : % 6d\n",recount[7]);
-  printf(" TZSl: no interactions   : % 6d\n",recount[8]);
+  printf(" TZSl: no Anti,Albd,Spks : % 6d\n",recount[8]);
   printf(" TZSl: Tracker mom. OK   : % 6d\n",recount[9]);
   printf(" TZSl: TOF-Tr.match. OK  : % 6d\n",recount[10]);
   printf(" TZSl: TOF-self.match. OK: % 6d\n",recount[20]);
@@ -1124,6 +1125,28 @@ void TOFJobStat::printstat(){
       ic=il*SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][3])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Bar a/s-TDC matching 'OK' on alive sides :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][4])/rc;
+      printf("% 5.2f",rc);
+    }
+    printf("\n\n");
+  }
+//
+  printf("Bar d/s-TDC matching 'OK' on alive sides :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR+ib;
+      rc=geant(brcount[ic][0]);
+      if(rc>0.)rc=geant(brcount[ic][5])/rc;
       printf("% 5.2f",rc);
     }
     printf("\n\n");
@@ -1333,6 +1356,8 @@ void TOFJobStat::bookhist(){
     HBOOK1(1105,"Anode-Slow hit time-difference(single an/slow-hit measurements)",80,-40.,120.,0.);
     HBOOK1(1106,"Dynode-Slow hit time-difference(single dyn/slow-hit measurements)",80,-40.,120.,0.);
     HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,1.,1001.,0.);
+    HBOOK1(1108,"True anode hit position(0=nomatch,1=last in time)",16,0.,16.,0.);
+    HBOOK1(1109,"True dynode hit position(0=nomatch,1=last in time)",16,0.,16.,0.);
     HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
     HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
     HBOOK1(1103,"Time_history: TovT(ns)",80,0.,80.,0.);
@@ -1347,6 +1372,10 @@ void TOFJobStat::bookhist(){
     HBOOK1(1117,"dEdX vs bar (norm.inc.,L=2)",14,0.,14.,0.);
     HBOOK1(1118,"dEdX vs bar (norm.inc.,L=3)",14,0.,14.,0.);
     HBOOK1(1119,"dEdX vs bar (norm.inc.,L=4)",14,0.,14.,0.);
+    HBOOK1(1095,"Side time diff",50,-5.,5.,0.);
+    HBOOK1(1096,"Time diff",50,-5.,5.,0.);
+    HBOOK1(1097,"Coord. diff",50,-15.,15.,0.);
+    HBOOK1(1098,"Edep. diff",50,-5.,5.,0.);
     if(TOFRECFFKEY.reprtf[2]>1){
       HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,16.,0.);
       HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,80.,0.);
@@ -1453,7 +1482,11 @@ void TOFJobStat::bookhist(){
     }
     if(TOFRECFFKEY.relogic[0]==3){ // TZSL-calibration
       HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,24.,0.);
-      HBOOK1(1501,"Particle beta(tracker)",80,0.6,1.,0.);
+      HBOOK1(1501,"Particle beta(tracker)",80,0.8,1.,0.);
+      HBOOK1(1504,"Particle beta(tracker)",80,0.2,1.,0.);
+      HBOOK1(1502,"Particle beta(tof,no angle-corr)",80,0.4,1.2,0.);
+      HBOOK1(1220,"Chisq (tof-beta-fit)",50,0.,10.,0.);
+      HBOOK1(1221,"Particle beta(tof,mom-cut,angle-corr)",80,0.4,1.2,0.);
       HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
       HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
       HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
@@ -1491,9 +1524,9 @@ void TOFJobStat::bookhist(){
       HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
       HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
       HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
-      HBOOK1(1204,"Mass**2",80,-1.6,3.2,0.);
-      HBOOK1(1207,"Mass**2 for beta<0.92",80,-1.6,3.2,0.);
-      HBOOK1(1208,"Ptr/impl.mass",80,0.,16.,0.);
+      HBOOK1(1204,"Mass**2",80,-1.,19.,0.);
+      HBOOK1(1207,"Mass**2 for beta<0.92",80,-1.,19.,0.);
+      HBOOK1(1208,"Ptr/impl.mass",80,0.,24.,0.);
       HBOOK1(1205,"Chisq (tof-beta-fit)",50,0.,10.,0.);
       HBOOK1(1206,"Tzer (tof-beta-fit)",50,-2.5,2.5,0.);
       HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
@@ -1578,6 +1611,8 @@ void TOFJobStat::outp(){
          HPRINT(1105);
          HPRINT(1106);
          HPRINT(1107);
+         HPRINT(1108);
+         HPRINT(1109);
          HPRINT(1101);
          HPRINT(1102);
          HPRINT(1103);
@@ -1587,6 +1622,10 @@ void TOFJobStat::outp(){
          HPRINT(1112);
          HPRINT(1113);
          HPRINT(1114);
+         HPRINT(1095);
+         HPRINT(1096);
+         HPRINT(1097);
+         HPRINT(1098);
          if(TOFRECFFKEY.reprtf[2]>1){
            HPRINT(1529);
            HPRINT(1526);
@@ -1648,6 +1687,10 @@ void TOFJobStat::outp(){
        if(TOFRECFFKEY.relogic[0]==3){// for TZSL-calibr. runs
          HPRINT(1500);
          HPRINT(1501);
+         HPRINT(1504);
+         HPRINT(1502);
+         HPRINT(1220);
+         HPRINT(1221);
          HPRINT(1506);
            HPRINT(1514);
            HPRINT(1503);
@@ -1829,7 +1872,7 @@ void TOFVarp::init(geant daqth[5], geant cuts[10]){
            geant a2dr[2], geant asl, geant tth,  
            geant stra[2][2], geant fstd, geant t0, geant sl, geant sls[2],
             geant tdiff, geant td2p[2], geant mip, geant ysc[], geant relo[],
-           geant aip[2][SCIPAR], geant dip[2][SCIPAR]){
+           geant aip[2][SCIPAR], geant dip[2][SCIPAR], geant upar[5]){
     softid=sid;
     status[0]=sta[0];
     status[1]=sta[1];
@@ -1865,6 +1908,7 @@ void TOFVarp::init(geant daqth[5], geant cuts[10]){
       dipar[0][i]=dip[0][i];
       dipar[1][i]=dip[1][i];
     }
+    for(i=0;i<5;i++){unipar[i]=upar[i];}
   }
 
 TOFVarp::TOFTemperature TOFVarp::tftt;

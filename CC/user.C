@@ -6,9 +6,11 @@
 #include <stdio.h>
 #include <user.h>
 #include <trrec.h>
+#include <tofrec.h>
 #include <event.h>
 #include <daqevt.h>
 void AMSUser::InitJob(){
+  TOFUser::InitJob();
 }
 
 void AMSUser::InitRun(){
@@ -18,10 +20,12 @@ void AMSUser::InitEvent(){
 }
 
 void AMSUser::Event(){
+  TOFUser::Event();
 }
 
 
 void AMSUser::EndJob(){
+  TOFUser::EndJob();
 }
 
 

@@ -367,7 +367,7 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
 void AMSJob::_sitofdata(){
-  TOFMCFFKEY.TimeSigma=1.7e-10; //(1) side time resolution(sec) 
+  TOFMCFFKEY.TimeSigma=1.71e-10; //(1) side time resolution(sec) 
   TOFMCFFKEY.TimeSigma2=4.5e-10;//(2)
   TOFMCFFKEY.TimeProbability2=0.035;//(3)
   TOFMCFFKEY.padl=10.5;        //(4) sc. bar transv. step ........................
@@ -668,7 +668,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.daqthr[3]=0.;//(16)spare  
   TOFRECFFKEY.daqthr[4]=0.;//(17)spare
 //
-  TOFRECFFKEY.cuts[0]=26.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
+  TOFRECFFKEY.cuts[0]=40.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
   TOFRECFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TOFRECFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
   TOFRECFFKEY.cuts[3]=2.;//(21) error in longitudinal coordinate (single TOF bar)
@@ -676,7 +676,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.cuts[5]=40.;//(23) sTDC-delay wrt fTDC
   TOFRECFFKEY.cuts[6]=35.;//(24) sTDC-delay wrt aTDC
   TOFRECFFKEY.cuts[7]=0.;// (25) sTDC-delay wrt dTDC 
-  TOFRECFFKEY.cuts[8]=26.;//(26) gate for a/s-TDC
+  TOFRECFFKEY.cuts[8]=40.;//(26) gate for a/s-TDC
   TOFRECFFKEY.cuts[9]=40.;//(27) gate for d/s-TDC
 //
   TOFRECFFKEY.ReadConstFiles=0;//(28)read const. from DB/myFiles (0/1)
@@ -713,10 +713,10 @@ void AMSJob::_retofdata(){
 //
 // AMPL-calibration:
   TOFCAFFKEY.truse=1; // (12) 1/-1-> to use/not tracker
-  TOFCAFFKEY.plhc[0]=1.;// (13) track mom. low limit(gev/c) for space calibr
+  TOFCAFFKEY.plhc[0]=2.8;// (13) track mom. low limit(gev/c) for space calibr
   TOFCAFFKEY.plhc[1]=100.;// (14) track mom. high limit(gev/c) ..............
   TOFCAFFKEY.minev=50;// (15)min.events needed for measurement in channel or bin
-  TOFCAFFKEY.trcut=0.90;// (16) cut to use for "truncated average" calculation
+  TOFCAFFKEY.trcut=0.75;// (16) cut to use for "truncated average" calculation
   TOFCAFFKEY.refbid[0]=201;//(17) ref.bar id's list (LBB) for btype=1->5
   TOFCAFFKEY.refbid[1]=202; 
   TOFCAFFKEY.refbid[2]=103; 
@@ -732,6 +732,7 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.cfvers=1; // (28) 1-99 -> vers.number for tofverlistNN.dat file
   TOFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TOFCAFFKEY.mcainc=0;// (30) 0/1-> off/on A-integr. calibration in MC
+  TOFCAFFKEY.tofbetac=0.8;// (31) if nonzero->low beta cut (own TOF measurements !!!)
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
@@ -772,7 +773,7 @@ void AMSJob::_rectcdata(){
   CTCRECFFKEY.reprtf[1]=0;//(4) DAQ-print (1/2->print for decoding/decoding+encoding)
   CTCRECFFKEY.reprtf[2]=0;//(5) spare
   CTCRECFFKEY.ftwin=100.;//(6) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
-  CTCRECFFKEY.q2pe=0.234;  //(7)
+  CTCRECFFKEY.q2pe=0.327;  //(7)
   CTCRECFFKEY.ft2edg=1;  //(8) 0/1-> 1/2 edges readout for FT signal
 //
   CTCRECFFKEY.ReadConstFiles=0;//(9)read const. from DB/myFiles (0/1)
@@ -1584,6 +1585,7 @@ end.tm_year=TOFRECFFKEY.year[1];
 TID.add (new AMSTimeID(AMSID("Tofbarcal1",isRealData()),
    begin,end,SCBLMX*sizeof(scbrcal[0][0]),
    (void*)&scbrcal[0][0]));
+
    
 TID.add (new AMSTimeID(AMSID("Tofvpar",isRealData()),
    begin,end,sizeof(TOFVarp),

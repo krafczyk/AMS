@@ -1,5 +1,6 @@
 // Author V. Choutko 4-june-1996
- 
+// 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
+//
 #include <beta.h>
 #include <commons.h>
 #include <math.h>
@@ -150,6 +151,18 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 #else
     AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack,c2s);
 #endif
+//----> recover 1-sided TOFRawCluster/TOFClusters using track info 
+    int nh;
+    integer status;
+    if(!ptrack->checkstatus(AMSDBc::FalseTOFX)){ 
+     for(nh=0;nh<nhit;nh++){
+      status=pthit[nh]->getstatus();
+      if((status&SCBADB2)!=0 && (status&SCBADB5)!=0){//tempor  use now only TOF-recovered
+        pthit[nh]->recovers(ptrack);
+      }
+     }
+    }
+//---->
     pbeta->SimpleFit(nhit, sleng);
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 && fabs(pbeta->getbeta())<1.41){
       // Mark Track as used
@@ -190,7 +203,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
          for (i=0;i<nhit;i++){
            if (pthit[i]->checkstatus(AMSDBc::AMBIG)) {
              pbeta->setstatus(AMSDBc::AMBIG);
-             break;
+             break;  
            }
          }
 

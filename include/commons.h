@@ -269,6 +269,8 @@ integer dynflg;// 0/1-> use stand/special(Contin's) dynode calibr.
 integer cfvers;// 1-99 -> vers.number for tofverslistNN.dat file
 integer cafdir;// 0/1->use officical/private directory for calib.files
 integer mcainc;// to swich on/off A-integr. calibr. in MC
+geant tofbetac;// if !=0 -> low beta cut (own TOF measurement !!!) 
+//                to use when previous calibration suppose to be good enought
 };
 #define TOFCAFFKEY COMMON_BLOCK(TOFCAFFKEY,tofcaffkey)
 COMMON_BLOCK_DEF(TOFCAFFKEY_DEF,TOFCAFFKEY);
