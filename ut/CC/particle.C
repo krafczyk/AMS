@@ -534,7 +534,7 @@ void AMSParticle::refit(int fast){
           _ptrack->AdvancedFit(1);
         }
 
-    if(_Mass > 0){
+    if(1){
      _ptrack->Fit(_pbeta->getbeta()>0?3:-3,_GPart);
      if(_ptrack->GeaneFitDone()){
       number fac=_ptrack->getgrid()*_Charge/_Momentum/sign(_pbeta->getbeta());

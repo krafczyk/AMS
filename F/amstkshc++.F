@@ -6749,7 +6749,7 @@ C            ENDDO
             CALL DSINV(5,WW(1,1,JSTOP),5,IFAIL)
 c            ifail=1
             IF ( IFAIL.NE.0 )  THEN
-                PRINT *,'DSINV IFAIL',IFAIL,' AT PLANE ',JSTOP
+c                PRINT *,'DSINV IFAIL',IFAIL,' AT PLANE ',JSTOP
                 CALL VZERO(WW(1,1,JSTOP),50)
             ENDIF
 *
@@ -6766,7 +6766,7 @@ c            ifail=1
      +                  CC(1,1,JSTOP),CC(2,1,JSTOP))
           CALL DSINV(5,CC(1,1,JSTOP),5,IFAIL)
           IF ( IFAIL.NE.0 )  THEN
-              PRINT *,'CC DSINV IFAIL',IFAIL,' AT PLANE ',JSTOP
+c              PRINT *,'CC DSINV IFAIL',IFAIL,' AT PLANE ',JSTOP
               CALL VZERO(CC(1,1,JSTOP),50)
 c              CALL ucopy(cc(1,1,0),CC(1,1,JSTOP),50)
               IFAFT = 1
@@ -7173,7 +7173,7 @@ C            ENDDO
             CALL UCOPY(WW(1,1,JSTOP),WI(1,1,JSTOP),50)
             CALL DSINV(5,WW(1,1,JSTOP),5,IFAIL)
             IF ( IFAIL.NE.0 )  THEN
-                PRINT *,'DSINV IFAIL',IFAIL,' AT PLANE ',JSTOP
+c                PRINT *,'DSINV IFAIL',IFAIL,' AT PLANE ',JSTOP
                 CALL VZERO(WW(1,1,JSTOP),50)
                 IFAFT = 1
 c                GOTO 999
@@ -7196,7 +7196,7 @@ c                GOTO 999
      +                  CC(1,1,JSTOP),CC(2,1,JSTOP))
           CALL DSINV(5,CC(1,1,JSTOP),5,IFAIL)
           IF ( IFAIL.NE.0 )  THEN
-              PRINT *,'CC DSINV IFAIL',IFAIL,' AT PLANE ',JSTOP
+c              PRINT *,'CC DSINV IFAIL',IFAIL,' AT PLANE ',JSTOP
               CALL VZERO(CC(1,1,JSTOP),50)
 c              CALL ucopy(cc(1,1,0),CC(1,1,JSTOP),50)
               IFAFT = 1
