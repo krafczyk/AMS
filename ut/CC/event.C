@@ -180,6 +180,9 @@ void AMSEvent::_endofrun() {
  time_t T1;
  char   time1[26];
  char   time11[17];
+ time_t Td;
+ char   time0[26];
+ char   time00[17];
 
  T1 = time((time_t)0);
  TIMEX(Tcpu1);
@@ -221,6 +224,11 @@ void AMSEvent::_endofrun() {
    for(int j=0; j<15; j++) time11[j] = time1[j+4];
    time11[15] = '\0';
 
+   Td = SRun;
+   strcpy(time0,ctime(&Td));
+   for(j=0; j<15; j++) time00[j] = time0[j+4];
+   time00[15] = '\0';
+
    logsum = getenv("RunsSummaryFile");
    if (logsum) 
      strcpy(logsumf,logsum);
@@ -261,7 +269,7 @@ void AMSEvent::_endofrun() {
       if (hh[1] == 'H' || hh[1] == 'h') strcpy(comp,ahe);
       if (hh[1] == 'C' || hh[1] == 'c') strcpy(comp,ac);
       if (hh[0] == 'A' || hh[0] == 'a') 
-                                        if (hh[6] == '1') strcpy(comp,u1);
+                                        if (hh[5] == '1') strcpy(comp,u1);
       if (hh[0] == 'P' || hh[0] == 'p') {
        if (hh[6] == '0') strcpy(comp,p0);
        if (hh[6] == '1') strcpy(comp,p1);
