@@ -10,6 +10,8 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <TCanvas.h>
+#include "TRootCanvas.h"
+#include <TGCanvas.h>
 
 
 
@@ -19,9 +21,9 @@ private:
             void      DrawEventStatus(Int_t event, Int_t px, Int_t py, TObject *selected);
 
 protected:
-   static TCanvas * fTheCanvas;
 
 public:
+   static TRootCanvas * fTheCanvas;
    static   void      AddParticleInfo();
                       AMSCanvas() : TCanvas()  {}
                       AMSCanvas(Text_t *name, Text_t *title="The AMS Display with Root", Int_t ww=700, Int_t wh=550);

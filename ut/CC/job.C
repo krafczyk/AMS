@@ -1613,7 +1613,7 @@ void AMSJob::uhinit(integer pass){
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
     integer iostat;
-    integer rsize=1024;
+    integer rsize=8000;
     HROPEN(IOPA.hlun,"output",hfile,"N",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<hfile<<endl;

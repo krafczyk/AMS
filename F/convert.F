@@ -225,7 +225,7 @@
 *
 c       iquest(10)=128000
 c       write(*,*)' Starting converting'
-       call HROPEN(4,'output',fnam,'N',1024,iostat)
+       call HROPEN(4,'output',fnam,'N',8000,iostat)
        if(iostat.ne.0)then
         write(*,*)'Unable to open output file ',fnam
         stop
@@ -1312,7 +1312,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
 *
 *--   Enter user code here
 *
-       call HROPEN(4,'input',fnam,' ',1024,iostat)
+       call HROPEN(4,'input',fnam,' ',8000,iostat)
        if(iostat.ne.0)then
         write(*,*)'Unable to open input file ',fnam
         stop

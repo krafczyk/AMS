@@ -30,7 +30,7 @@
 
 
 
-TCanvas * AMSCanvas::fTheCanvas = 0;
+TRootCanvas * AMSCanvas::fTheCanvas = 0;
 
 
 ClassImp(AMSCanvas)
@@ -66,7 +66,7 @@ AMSCanvas::AMSCanvas(Text_t *name, Text_t *title, Int_t ww, Int_t wh)
     return;
   }
   else {
-    fTheCanvas = (TCanvas *) fCanvasImp;
+    fTheCanvas = (TRootCanvas *) fCanvasImp;
     printf("fTheCanvas = %lx in AMSCanvas::AMSCanvas()\n", fTheCanvas);
   }
 

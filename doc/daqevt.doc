@@ -20,11 +20,11 @@ EL      - low 16bits of total event length -1
 EID     - upper 6 bit of total event length, then 0x0 if event data
 HL      - header ==general run length - 1
 HID     - header id = 1 << 9;
-Run     - run number 32bit
-AuxR    - run type   32bit
-Evt     - event number 32bit
-Time(1) - time 32bit unix format (number of sec from epoch==1970)
-Time(2) - number of  usec
+Run(1:2)     - run number 32bit
+AuxR(1:2)    - run type   32bit
+Evt(1:2)     - event number 32bit
+Time(1:2) - time 32bit unix format (number of sec from epoch==1970)
+Time(3:4) - number of  usec
 LSubDBl - length of subdet block (LVL1,LVL3,TOF,Anti,Tracker,CTC)-1
 IDSubDBl- id sub det block see below
 

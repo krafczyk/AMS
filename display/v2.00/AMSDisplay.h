@@ -9,6 +9,25 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+
+#include <TGXW.h>
+#include <TGClient.h>
+#include <TGFrame.h>
+#include <TGIcon.h>
+#include <TGLabel.h>
+#include <TGButton.h>
+#include <TGTextEntry.h>
+#include <TGMsgBox.h>
+#include <TGMenu.h>
+#include <TGCanvas.h>
+#include <TGComboBox.h>
+#include <TGTab.h>
+#include <TGSlider.h>
+#include <TGFileDialog.h>
+
+
+
+
 #include <TApplication.h>
 #ifndef AMSVirtualDisplay_H
 #include "AMSVirtualDisplay.h"

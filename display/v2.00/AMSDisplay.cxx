@@ -339,8 +339,8 @@ void AMSDisplay::DisplayButtons()
 
    Int_t butcolor = 33;
    Float_t dbutton = 0.08;
-   Float_t y  = 0.97;
-   Float_t dy = 0.011;
+   Float_t y  = 0.98;
+   Float_t dy = 0.010;
    Float_t x0 = 0.05;
    Float_t x1 = 0.95;
    TButton *button;
@@ -409,7 +409,9 @@ void AMSDisplay::DisplayButtons()
    button = new TButton("Print",but9,x0,y-dbutton,x1,y);
    button->SetFillColor(butcolor);
    button->Draw();
-
+   TGTextBuffer* fbtext;
+   TGTextEntry *ftext   = new TGTextEntry(m_Canvas->fTheCanvas, fbtext=new TGTextBuffer(100));
+   (m_Canvas->fTheCanvas)->AddFrame(ftext, new TGLayoutHints(kLHintsBottom));
 /*
    y -= dbutton +dy;
    char *but8 = "gAMSRoot->Display()->DrawViewX3D()";

@@ -109,6 +109,7 @@ extern G__linked_taginfo G__AMSCintLN_AMSCTCCluster;
 extern G__linked_taginfo G__AMSCintLN_AMSParticle;
 extern G__linked_taginfo G__AMSCintLN_EAMSView;
 extern G__linked_taginfo G__AMSCintLN_Debugger;
+extern G__linked_taginfo G__AMSCintLN_TRootCanvas;
 extern G__linked_taginfo G__AMSCintLN_AMSCanvas;
 extern G__linked_taginfo G__AMSCintLN_AMSGeoToggle;
 extern G__linked_taginfo G__AMSCintLN_AMSGeometrySetter;
