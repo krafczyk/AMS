@@ -423,6 +423,7 @@ protected:
 public:
 
   AMSNtuple(integer lun, char* name);
+  void init();
   void reset();
   void write(integer addentry=0);
   integer getentries(){return _Nentries;}

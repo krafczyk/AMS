@@ -1821,10 +1821,7 @@ void AMSJob::uhinit(integer eventno){
 
 // Open the n-tuple
     static AMSNtuple * pntuple=0;
-    if(pntuple){
-        delete pntuple;
-        pntuple = new AMSNtuple(IOPA.ntuple,"AMS Ntuple");
-    }
+    if(pntuple)pntuple->init();
     else{
         pntuple = new AMSNtuple(IOPA.ntuple,"AMS Ntuple");
         gethead()->addup(pntuple);

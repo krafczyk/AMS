@@ -111,7 +111,11 @@ void AMSNodeMap::unmap(){
 
    
     integer i= AMSbsi((AMSID**)_hash,id,_numo, hint);
-    if(i<0)return 0;
+
+    if(i<0){
+//       cerr <<"AMSNodeMap::getp-S-PointerNotFound "<<id<<endl;
+       return 0;
+    }
     else return _hash[i];
  }
  integer AMSNodeMap::getpos  (  const AMSID& id, char hint ) const {

@@ -3,11 +3,13 @@
 #include <ntuple.h>
 
 AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
-  _Nentries=0;
   _lun = lun;
+  init();
+}
 
-  HBNT(_lun, name," ");
-
+void AMSNtuple::init(){
+  _Nentries=0;
+  HBNT(_lun, getname()," ");
   HBNAME(_lun,"EventH",&_event.Eventno,
   "eventno:I,run:I,runtype:I,time(2):I,RawWords[0,1000000]:I,GrMedPhi:R,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,1000]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,100000]:I,AntiClusters[0,1000]:I,EventStatus:I");
 
@@ -72,7 +74,6 @@ AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
   "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,10]:I,tofrbar(ntofraw)[0,100]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw)");
 
 }
-
 void AMSNtuple::reset(){
 //  _event.Eventno = 0;
   _beta.Nbeta = 0;
