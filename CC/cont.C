@@ -1,4 +1,4 @@
-//  $Id: cont.C,v 1.8 2002/11/29 20:04:39 choutko Exp $
+//  $Id: cont.C,v 1.9 2003/05/02 09:28:07 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <cont.h>
@@ -118,3 +118,17 @@ UPool.udelete(arr);
 }
 
 
+
+void AMSContainer::eraseC(){
+  //
+  // Deletes all cont elements
+  // 
+  AMSlink *next=0;
+  for(AMSlink *ptr=_Head;ptr;ptr=next){
+    next=ptr->_next;
+    delete ptr;
+  }
+  _BuildSuccess=0;
+  _Head=_Last=0;
+  _nelem=0;
+}

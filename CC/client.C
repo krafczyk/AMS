@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.24 2003/04/23 09:41:02 choutko Exp $
+//  $Id: client.C,v 1.25 2003/05/02 09:28:07 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -261,7 +261,7 @@ return _streambuffer;
 
 
 ostream & AMSClient::print(const DPS::Producer::CurrentInfo & a, ostream & o){
-return o<<" , Host " <<a.HostName <<" , EventsProcessed "<<a.EventsProcessed<<" , LastEvent "<<a.LastEventProcessed<<" , Errors "<<a.ErrorsFound<<" , CPU "<<a.CPUTimeSpent<<" , Elapsed "<<a.TimeSpent<<" , CPU/Event "<<a.CPUTimeSpent/(a.EventsProcessed+1)<<" , Status "<<RS2string(a.Status);
+return o<<" , Host " <<a.HostName <<" , Run "<<a.Run<<" , EventsProcessed "<<a.EventsProcessed<<" , LastEvent "<<a.LastEventProcessed<<" , Errors "<<a.ErrorsFound<<" , CPU "<<a.CPUTimeSpent<<" , Elapsed "<<a.TimeSpent<<" , CPU/Event "<<a.CPUTimeSpent/(a.EventsProcessed+1)<<" , Status "<<RS2string(a.Status);
 }
 
 char * AMSClient::CS2string(DPS::Client::ClientStatus a){

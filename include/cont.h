@@ -1,4 +1,4 @@
-//  $Id: cont.h,v 1.12 2001/12/10 18:24:32 choutko Exp $
+//  $Id: cont.h,v 1.13 2003/05/02 09:28:13 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSCONTAINER__
@@ -34,10 +34,10 @@ _Last(0),_Head(0),_sorted(0){}
 AMSContainer(AMSID id,pBuilder pb,integer nelem=0):
 AMSNode(id),_nelem(nelem),_BuildSuccess(0),_pb(pb),
 _Last(0),_Head(0),_sorted(0){}
-void eraseC(){if(_Head)_Head->_erase();delete _Head;_BuildSuccess=0;_Head=_Last=0;_nelem=0;}
-void printC(ostream & stream){_printEl(stream);if(_Head)_Head->_print(stream);}
-void writeC(){if(_Head)_Head->_write();}
-void copyC(){if(_Head)_Head->_copy();}
+void eraseC();
+void printC(ostream & stream){_printEl(stream);for( AMSlink *ptr=_Head;ptr;ptr=ptr->_next)ptr->_printEl(stream);}
+void writeC(){for(AMSlink *ptr=_Head;ptr;ptr=ptr->_next)ptr->_writeEl();}
+void copyC(){for(AMSlink *ptr=_Head;ptr;ptr=ptr->_next)ptr->_copyEl();}
 void addnext(AMSlink* ptr);
 void replaceEl(AMSlink* ptr, AMSlink* prev);
 void removeEl(AMSlink* prev, integer restore=1);

@@ -1,4 +1,4 @@
-//  $Id: link.h,v 1.12 2002/11/29 20:04:59 choutko Exp $
+//  $Id: link.h,v 1.13 2003/05/02 09:28:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 04, 1996. add _ContPos
@@ -18,10 +18,6 @@ protected:
  uinteger _status;
  integer _pos;
  TObject *_ptr; 
-  virtual void _erase();
-  virtual void _print(ostream & stream);
-  virtual void _write();
-  virtual void _copy();
   virtual void _copyEl()=0;
   virtual void _printEl(ostream &stream)=0;
   virtual void _writeEl()=0;
@@ -48,7 +44,6 @@ public:
   void * operator new(size_t t) {return UPool.insert(t);}
   void operator delete(void *p)
    {UPool.udelete(p);p=0;}
-  void erase(){_erase();delete this;} 
   inline AMSlink*  next(){return _next;}
   AMSlink*  next(integer & last);
   virtual integer   testlast();
