@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 // by TRint (which inherits from TApplication) you will be able
 // to execute CINT commands once in the eventloop (via Run()).
 Myapp *theApp = new Myapp("App", &argc, argv);
-theApp->SetIdleTimer(15,"");
+theApp->SetIdleTimer(12,"");
 
   debugger.Off();
   

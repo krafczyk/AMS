@@ -165,12 +165,14 @@ void AMSTOFHist::_Fetch(){
       sprintf(text,"h%d",i);
       temp=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
       if(temp){
-      }
-      else{
-	cerr<<"AMSTOFHist::_Fetch-E-NoHisFound "<<text<<endl;
-      }    
       _anode[index]=temp->GetMean();
       _anorms[index]=temp->GetRMS();
+      }
+      else{
+      _anode[index]=0;
+      _anorms[index]=0;
+	cerr<<"AMSTOFHist::_Fetch-E-NoHisFound "<<text<<endl;
+      }    
       index++;
     }
     start+=step;
@@ -183,12 +185,14 @@ void AMSTOFHist::_Fetch(){
       sprintf(text,"h%d",i);
       temp=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
       if(temp){
-      }
-      else{
-	cerr<<"AMSTOFHist::_Fetch-E-NoHisFound "<<text<<endl;
-      }    
       _dynode[index]=temp->GetMean();
       _dynrms[index]=temp->GetRMS();
+      }
+      else{
+      _dynode[index]=0;
+      _dynrms[index]=0;
+	cerr<<"AMSTOFHist::_Fetch-E-NoHisFound "<<text<<endl;
+      }    
       index++;
     }
     start+=step;
@@ -201,12 +205,14 @@ void AMSTOFHist::_Fetch(){
       sprintf(text,"h%d",i);
       temp=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
       if(temp){
-      }
-      else{
-	cerr<<"AMSTOFHist::_Fetch-E-NoHisFound "<<text<<endl;
-      }    
       _stretch[index]=temp->GetMean();
       _strrms[index]=temp->GetRMS();
+      }
+      else{
+      _stretch[index]=0;
+      _strrms[index]=0;
+	cerr<<"AMSTOFHist::_Fetch-E-NoHisFound "<<text<<endl;
+      }    
       index++;
     }
     start+=step;
@@ -223,7 +229,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
   Float_t cpos[14]={1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.,14.};
   Float_t epos[14]={.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01,.01};
 
-  if(Set==0){//Sides hits histograms
+  if(Set==3){//Sides hits histograms
     Float_t y[14],ey[14];
     gPad->Divide(2,4);
     TVirtualPad * gPadSave = gPad;
@@ -231,21 +237,25 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPad->cd(i+1);
       if((i%2)==0){
 	sprintf(text,"Plane %1d-P hits",(i/2+1));
-	_fetched2[6+i/2]->Draw(); // JL1 
-	((TH1*)_fetched2[6+i/2])->SetXTitle(text);
+	if(_fetched2[6+i/2]){
+          _fetched2[6+i/2]->Draw(); // JL1 
+          ((TH1*)_fetched2[6+i/2])->SetXTitle(text);
 	_fetched2[18+i/2]->Draw("same"); // data
+        }
       }  
       else{
 	sprintf(text,"Plane %1d-N hits",(i/2+1));
-	_fetched2[10+i/2]->Draw(); // JL1 
+        if(_fetched2[10+i/2]){
+ 	_fetched2[10+i/2]->Draw(); // JL1 
 	((TH1*)_fetched2[10+i/2])->SetXTitle(text);
 	_fetched2[22+i/2]->Draw("same"); // data
+        }
       }      
       gPad->Update();
       gPadSave->cd();
     }
   }
-  else if(Set==1){//AND hits
+  else if(Set==4){//AND hits
     gPad->Divide(2,2);
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<4;i++){
@@ -259,7 +269,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPadSave->cd();
     }
   }
-  else if(Set==2){//Choumilov hists
+  else if(Set==5){//Choumilov hists
     gPad->Divide(2,3);
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<6;i++){
@@ -283,7 +293,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPadSave->cd();
     }
   }
-  else if(Set==3){//Anode charge
+  else if(Set==6){//Anode charge
     Float_t y[14],ey[14];
     gPad->Divide(2,4);
     TVirtualPad * gPadSave = gPad;
@@ -305,7 +315,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPadSave->cd();
     }
   }
-  else if(Set==4){//Dynode charge
+  else if(Set==7){//Dynode charge
     Float_t y[14],ey[14];
     gPad->Divide(2,4);
     TVirtualPad * gPadSave = gPad;
@@ -327,7 +337,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPadSave->cd();
     }
   }
-  else if(Set==5){//Stretching Ratio
+  else if(Set==8){//Stretching Ratio
     Float_t y[14],ey[14];
     gPad->Divide(2,4);
     TVirtualPad * gPadSave = gPad;
@@ -349,7 +359,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPadSave->cd();
     }
   }
-  else if(Set==6){
+  else if(Set==0){
     gPad->Divide(2,2);
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<4;i++){
@@ -362,7 +372,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPadSave->cd();
     }
   }
-  else if(Set==7){
+  else if(Set==1){
     gPad->Divide(2,2);
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<4;i++){
@@ -374,7 +384,7 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPadSave->cd();
     }
   }
-  else if(Set==8){
+  else if(Set==2){
     gPad->Divide(1,2);
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<2;i++){

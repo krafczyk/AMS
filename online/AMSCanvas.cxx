@@ -85,15 +85,15 @@ MenuDesc_t AMSCanvas::fgAMSFileTracker[] = {
 };
 
 MenuDesc_t AMSCanvas::fgAMSFileTOF[] = {
-   { kAction, "Side Occupancies",        TOFSet0CB, NULL },
-   { kAction, "Counter Occupancies",     TOFSet1CB, NULL },
-   { kAction, "High Level informations", TOFSet2CB, NULL },
-   { kAction, "Anode Charge Spectra",    TOFSet3CB, NULL },
-   { kAction, "Dynode Charge Spectra",   TOFSet4CB, NULL },
-   { kAction, "Time Stretcher Ratios",   TOFSet5CB, NULL },
-   { kAction, "Occupancies Distibutions ",  TOFSet6CB, NULL },
-   { kAction, "Mean Amplitudes Distributions ",  TOFSet7CB, NULL },
-   { kAction, "NTof/Amplitud Distributions ",  TOFSet8CB, NULL },
+   { kAction, "Occupancies Distibutions ",  TOFSet0CB, NULL },
+   { kAction, "Mean Amplitudes Distributions ",  TOFSet1CB, NULL },
+   { kAction, "NTof/Amplitud Distributions ",  TOFSet2CB, NULL },
+   { kAction, "Side Occupancies",        TOFSet3CB, NULL },
+   { kAction, "Counter Occupancies",     TOFSet4CB, NULL },
+   { kAction, "High Level informations", TOFSet5CB, NULL },
+   { kAction, "Anode Charge Spectra",    TOFSet6CB, NULL },
+   { kAction, "Dynode Charge Spectra",   TOFSet7CB, NULL },
+   { kAction, "Time Stretcher Ratios",   TOFSet8CB, NULL },
    { kEnd },
 };
 
