@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.60 2003/10/17 17:13:38 alcaraz Exp $
+//  $Id: root.C,v 1.61 2003/11/07 17:35:07 alcaraz Exp $
 //
 
 #include <root.h>
@@ -1945,8 +1945,8 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
   GeaneFitDone    = ptr->_GeaneFitDone;
   AdvancedFitDone = ptr->_AdvancedFitDone;
   Chi2StrLine     = ptr->_Chi2StrLine;
-  Chi2Circle      = ptr->_Chi2Circle;
-  CircleRigidity  = ptr->_CircleRidgidity;
+  Chi2WithoutMS   = ptr->_Chi2WithoutMS;
+  RigidityWithoutMS  = ptr->_RigidityWithoutMS;
   Chi2FastFit     = ptr->_Chi2FastFit;
   Rigidity        = ptr->_Ridgidity;
   ErrRigidity     = ptr->_ErrRidgidity;
@@ -2112,10 +2112,6 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
 
    TrRecHitR* TrTrackR::pTrRecHit(unsigned int i){
      return (AMSEventR::Head() && i<fTrRecHit.size())?AMSEventR::Head()->pTrRecHit(fTrRecHit[i]):0;
-   }
-
-   TrTrackR* TrTrackR::pTrClone(unsigned int i){
-     return (AMSEventR::Head() && i<fTrClone.size())?AMSEventR::Head()->pTrTrack(fTrClone[i]):0;
    }
 
    TrdRawHitR* TrdClusterR::pTrdRawHit(){

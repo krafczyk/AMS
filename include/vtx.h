@@ -19,7 +19,7 @@
 
 // Global namespace Vtxconst
 namespace Vtxconst{
-	  const integer maxtr=2;
+	  const integer maxtr=3;
 }
 
 // Begin AMSVtx CLASS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -66,19 +66,6 @@ protected:
   void _copyEl();
   void _writeEl();
   static integer Out(integer);
-  static void _StartTiming(){ TIMEX(_TimeInit); }
-  static bool _NoMoreTime(){
-	    float timeNow;
-	    TIMEX(timeNow);
-	    return timeNow-_TimeInit > AMSFFKEY.CpuLimit;
-  }
-
-// AMSVtx Protected Parameters
-  static number chi2cut;
-  static integer minimum_number_of_layers;
-  static integer min_layers_with_different_hits;
-  static float _TimeInit;
-  static bool InTofPath;
 
 public:
 
@@ -92,18 +79,6 @@ public:
 // AMSVtx Public Methods
   AMSVtx * next(){return (AMSVtx*)_next;}
   static integer build(integer refit=0);
-  static AMSTrTrack* copy_track(AMSTrTrack* ptr);
-  static AMSTrTrack* remove_track(AMSTrTrack* ptrack);
-  static number Test(AMSTrTrack* ptrack);
-  static AMSTrTrack * next_track();
-  static AMSTrRecHit * firstgood(integer pattern, integer index);
-  static AMSTrRecHit * nextgood(integer pattern, AMSTrRecHit* phit);
-  static AMSTrRecHit * firstgood_path(integer pattern, integer index,number par[2][3]);
-  static AMSTrRecHit * nextgood_path(integer pattern, AMSTrRecHit* phit,number par[2][3]);
-  static integer next_combination(AMSTrTrack& ptrack, int index_min, 
-                  int index_max, number par[2][3]);
-  static integer Use_for_vtx(AMSTrRecHit* phit, integer pattern);
-  static integer Inside_Road(number par[2][3], AMSTrRecHit *ptr);
   void print(){_printEl(cout);}
 
 // AMSVtx Set data

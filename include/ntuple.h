@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.89 2003/07/25 16:47:47 alcaraz Exp $
+//  $Id: ntuple.h,v 1.90 2003/11/07 17:35:22 alcaraz Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -476,8 +476,8 @@ public:
   int GeaneFitDone[MAXTRTR02];
   int AdvancedFitDone[MAXTRTR02];
   float Chi2StrLine[MAXTRTR02];
-  float Chi2Circle[MAXTRTR02];
-  float CircleRidgidity[MAXTRTR02];
+  float Chi2WithoutMS[MAXTRTR02];
+  float RigidityWithoutMS[MAXTRTR02];
   float Chi2FastFit[MAXTRTR02];
   float Ridgidity[MAXTRTR02];
   float ErrRidgidity[MAXTRTR02];

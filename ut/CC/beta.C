@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.53 2003/10/10 16:03:56 alcaraz Exp $
+//  $Id: beta.C,v 1.54 2003/11/07 17:35:05 alcaraz Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -67,7 +67,9 @@ integer AMSBeta::build(integer refit){
             if (!ptrack->checkstatus(AMSDBc::FalseTOFX)) continue;
        }
 
-       if(!BETAFITFFKEY.FullReco && ptrack->checkstatus(AMSDBc::USED)) continue;
+       if(        !BETAFITFFKEY.FullReco 
+               && ptrack->checkstatus(AMSDBc::USED)
+               && ptrack->checkstatus(AMSDBc::TOFFORGAMMA)==0) continue;
        AMSTOFCluster * phit[4]={0,0,0,0};
        number sleng[4];
 

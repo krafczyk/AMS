@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.153 2003/10/29 15:24:37 choutko Exp $
+//  $Id: trrec.C,v 1.154 2003/11/07 17:35:07 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -24,6 +24,7 @@
 #include <tralig.h>
 #include <mccluster.h>
 #include <trdrec.h>
+#include <vtx.h>
 //
 
 using namespace std;
@@ -32,7 +33,7 @@ using namespace std;
 
 integer AMSTrTrack::_RefitIsNeeded=0;
 integer AMSTrTrack::_MarginPatternsNeeded=0;
-
+integer AMSTrTrack::_min_layers_with_different_hits=3;
 
 integer AMSTrCluster::build(integer refit){
   AMSlink * OriginalLast[2];
@@ -1265,65 +1266,140 @@ integer AMSTrTrack::build(integer refit){
   { 
     int xs=0; 
     for (int kk=0;kk<TKDBc::nlay();kk++){
-    AMSTrRecHit * phit=AMSTrRecHit::gethead(kk);
-    if(phit)xs++;
-  }
+            AMSTrRecHit * phit=AMSTrRecHit::gethead(kk);
+            if(phit)xs++;
+    }
     if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
   }
 
-  for (pat=0;pat<TKDBc::npat();pat++){
-    if(!TKDBc::patallow(pat) && !_MarginPatternsNeeded)continue;
-    if(TKDBc::patallowFalseX(pat)){
-      int fp=TKDBc::patpoints(pat)-1;    
-      // Try to make StrLine Fit
-      integer first=TKDBc::patconf(pat,0)-1;
-      integer second=TKDBc::patconf(pat,fp)-1;
-      phit[0]=AMSTrRecHit::gethead(first);
-      while( phit[0]){
-       if(phit[0]->Good()){
-       phit[fp]=AMSTrRecHit::gethead(second);
-       while( phit[fp]){
-        if(phit[fp]->Good()){
-        par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
-               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
-        par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
-        par[0][2]=sqrt(1+par[0][0]*par[0][0]);
-        par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
-               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
-        par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
-        par[1][2]=sqrt(1+par[1][0]*par[1][0]);
-        if(NTrackFound<0)NTrackFound=0;
-        // Search for others
-        //  add try due to icc bug
-        try{
-        integer npfound=_TrSearcher(1);
-        if(npfound){
-           NTrackFound++;
-         if(TKDBc::patallow(pat)){
-            // we don't want three points any more
-            _MarginPatternsNeeded=0;
-         }
-         goto out;
-        }
-        }
-        catch (...){
-         throw;
-        }
-        }         
-        phit[fp]=phit[fp]->next();
-       }
-       }  
-out:
-       phit[0]=phit[0]->next();
-      }
+  static AMSTrRecHit * phit[trconst::maxlay];
+  number gers=0.03;
+  AMSPoint hit_err = AMSPoint(gers,gers,gers);
       
-    }
+  while (1) {
+
+      if (NTrackFound>=Vtxconst::maxtr) break;
+
+      AMSTrTrack* ptrack = NULL;
+      number minchi2 = TRFITFFKEY.Chi2WithoutMS;
+
+      for (int pat=0;pat<TKDBc::npat();pat++){
+            if(!TKDBc::patallow(pat) && !_MarginPatternsNeeded)continue;
+            if(!TKDBc::patallowFalseX(pat)) continue;
+
+            // First and last layers
+            int fp=TKDBc::patpoints(pat)-1;    
+            for (phit[0]=AMSTrRecHit::firstgood(pat,0);
+                              phit[0]; phit[0]=phit[0]->nextgood()){
+               for (phit[fp]=AMSTrRecHit::firstgood(pat,fp);
+                              phit[fp]; phit[fp]=phit[fp]->nextgood()){
+
+                  if (_NoMoreTime()) { 
+                        remove_track(ptrack); 
+#ifdef __AMSDEBUG__
+                        cout << " Cpulimit Exceeded!!!! " << endl;
+#endif
+                        throw AMSTrTrackError(" Cpulimit Exceeded ");
+                        return NTrackFound;
+	            }
+
+                  // Parameters to check distance to a straight line
+	            number par[2][3];
+                  par[0][0]=(phit[fp]->getHit()[0] - phit[0]->getHit()[0])/
+                        (phit[fp]->getHit()[2] - phit[0]->getHit()[2]);
+                  par[0][1]=phit[0]->getHit()[0] - par[0][0]*phit[0]->getHit()[2];
+                  par[0][2]=sqrt(1+par[0][0]*par[0][0]);
+                  par[1][0]=(phit[fp]->getHit()[1] - phit[0]->getHit()[1])/
+                        (phit[fp]->getHit()[2] - phit[0]->getHit()[2]);
+                  par[1][1]=phit[0]->getHit()[1] - par[1][0]*phit[0]->getHit()[2];
+                  par[1][2]=sqrt(1+par[1][0]*par[1][0]);
+       
+                  // Initial hit choice on intermediate layers
+                  if (NTrackFound<0) NTrackFound = 0;
+	            int nhits_in_path = 0;
+                  for (int ilay=1;ilay<fp;ilay++){
+                        phit[ilay]=AMSTrRecHit::firstgood_path(pat,ilay,par);
+                        if (phit[ilay]==NULL) break;
+	                  nhits_in_path++;
+                  }
+	            if (nhits_in_path != fp-1) continue;
+
+                  // Get the combination with the best chi2_per_dof
+	            number chi2_per_dof;
+
+	            AMSTrTrack ptest = AMSTrTrack(pat, fp+1, phit);
+                  while(1){
+                        ptest.SimpleFit(hit_err);
+                        chi2_per_dof = ptest.getchi2withoutMS();
+	                  if (chi2_per_dof<minchi2 && chi2_per_dof>0){
+                              minchi2 = chi2_per_dof;
+                              ptrack = ptest.CloneIt();
+	                  }  
+
+                        // Try next combination of hits
+                        // Stop when done
+                        if (_NoMoreTime()) { 
+                              remove_track(ptrack); 
+#ifdef __AMSDEBUG__
+                              cout << " Cpulimit Exceeded!!!! " << endl;
+#endif
+                              throw AMSTrTrackError(" Cpulimit Exceeded ");
+                              return NTrackFound;
+	                  }
+
+                        // Break when no more intermediate hit combinations
+                        if ( !ptest.next_combination(1,fp-1,par) ) break;
+
+                  }
+               }
+
+            }
+
+            // Wait for next pattern only if the number of hits is the same...
+            if (ptrack && pat+1<TKDBc::npat()) {
+                  if (TKDBc::patpoints(pat+1)<TKDBc::patpoints(pat)) break;
+            }
+
+      }
+
+      // Best track hopefully found; return ptrack if succesful
+      if (ptrack){ 
+            // Get pattern and hits
+            int pat = ptrack->getpattern();
+            int nhits = ptrack->getnhits();
+            for (int i=0;i<nhits;i++){
+                  phit[i] = ptrack->getphit(i);
+            }
+            // Fit track; add it to the container list
+            ptrack->Fit(0);
+            ptrack->Fit(5,2);
+            AMSTrTrack::_addnextR(ptrack, pat, nhits, phit);
+            NTrackFound++;
+#ifdef __AMSDEBUG__
+            cout << " AMSTrTrack tracking>>>>>> " << endl;
+            cout << "### Run " << AMSEvent::gethead()->getrun();
+            cout << " Event " << AMSEvent::gethead()->getEvent() << endl;
+            cout << "# hits " << nhits;
+            cout << " chi2/ndof: " << ptrack->getchi2withoutMS() << endl;
+            for (int i=0;i<ptrack->getnhits();i++){
+                  cout << "        " << ptrack->getphit(i)->getHit()[0];
+                  cout << ", " << ptrack->getphit(i)->getHit()[1];
+                  cout << ", " << ptrack->getphit(i)->getHit()[2];
+                  cout << endl;
+            }
+#endif
+
+      } else {
+
+            // Get out if nothing has been found
+            remove_track(ptrack); 
+            return NTrackFound;
+
+      }
+
   }
-return NTrackFound;
+
 }
-
-
-
 
 integer AMSTrTrack::buildWeak(integer refit){
   {
@@ -1506,10 +1582,10 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trcon
 #endif
 
     number gers=0.03;
-    ptrack->SimpleFit(AMSPoint(gers,gers,gers));
+    ptrack->VerySimpleFit(AMSPoint(gers,gers,gers));
     if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){
-     if(ptrack->_Chi2Circle< TRFITFFKEY.Chi2Circle && 
-      fabs(ptrack->_CircleRidgidity)>TRFITFFKEY.RidgidityMin ){
+     if(ptrack->_Chi2WithoutMS< TRFITFFKEY.Chi2WithoutMS && 
+      fabs(ptrack->_RigidityWithoutMS)>TRFITFFKEY.RidgidityMin ){
           
        if( (  (ptrack->Fit(0) < 
             TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK() ){
@@ -1545,6 +1621,19 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
             ptrack->setstatus(AMSDBc::WEAK);
            if(pthit[i]->checkstatus(AMSDBc::FalseTOFX))
             ptrack->setstatus(AMSDBc::FalseTOFX);
+           // Mark also hits sharing the same cluster in the bending plane
+           AMSTrCluster* py = pthit[i]->getClusterP(1);
+           if (py){
+             AMSTrRecHit* paux = AMSTrRecHit::gethead(pthit[i]->getLayer()-1);
+             while (paux) {
+                  if (py==paux->getClusterP(1) && paux!=pthit[i]) {
+                        if(paux->checkstatus(AMSDBc::USED))
+                                paux->setstatus(AMSDBc::AMBIG);
+                        else paux->setstatus(AMSDBc::USED);
+                  }
+                  paux = paux->next();
+             }
+           }
          }
 
           number dc[2];
@@ -1578,10 +1667,10 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 #endif
 
     number gers=0.03;
-    ptrack->SimpleFit(AMSPoint(gers,gers,gers));
+    ptrack->VerySimpleFit(AMSPoint(gers,gers,gers));
     if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){
-     if(ptrack->_Chi2Circle< TRFITFFKEY.Chi2Circle && 
-      fabs(ptrack->_CircleRidgidity)>TRFITFFKEY.RidgidityMin ){
+     if(ptrack->_Chi2WithoutMS< TRFITFFKEY.Chi2WithoutMS && 
+      fabs(ptrack->_RigidityWithoutMS)>TRFITFFKEY.RidgidityMin ){
       if( (  (ptrack->Fit(0) < TRFITFFKEY.Chi2FalseX))
            && ptrack->TOFOK()){
         // Here we should add at least one point and fit 
@@ -1798,8 +1887,209 @@ void AMSTrTrack::SimpleFit(){
  SimpleFit(ehit);
 }
 
-
 void AMSTrTrack::SimpleFit(AMSPoint ehit){
+
+// Consistency check on the number of hits
+  if (_NHits<3 || _NHits>trconst::maxlay) {
+    _Chi2WithoutMS = FLT_MAX;
+    _Chi2StrLine = FLT_MAX;
+#ifdef __AMSDEBUG__
+    cout << " In SimpleFit, nhits= " << _NHits << endl;
+#endif
+    return;
+  }
+
+// Get hit positions and uncertainties
+// Scale errors (we will use sigmas in microns)
+  AMSPoint hits[trconst::maxlay];
+  AMSPoint sigma[trconst::maxlay];
+  for (int i=0;i<_NHits;i++){
+    hits[i] = _Pthit[i]->getHit();
+    sigma[i] = ehit*1.e4;
+#ifdef __AMSDEBUG__
+//    cout << " i, hits, sigma: " << i << ",";
+//    for (int j=0;j<3;j++){ cout << " " << hits[i][j];}
+//    for (int j=0;j<3;j++){ cout << " " << 1.e-4*sigma[i][j];}
+//    cout << endl;
+#endif
+  }
+
+// Lenghts
+  float len[trconst::maxlay];
+  for (int i=0;i<_NHits;i++){
+    if (i==0){
+      len[i] = 0.;
+    }
+    else {
+      len[i] = sqrt( (hits[i][0]-hits[i-1][0])*(hits[i][0]-hits[i-1][0])
+                    +(hits[i][1]-hits[i-1][1])*(hits[i][1]-hits[i-1][1])
+                    +(hits[i][2]-hits[i-1][2])*(hits[i][2]-hits[i-1][2]) );
+    }
+  }
+
+// Calculate path integrals
+  number PathIntegral_x[trconst::maxlay][3];
+  number PathIntegral_u[trconst::maxlay][3];
+
+  for (int i=0;i<_NHits;i++){
+
+    for (int j=0;j<3;j++){
+        PathIntegral_x[i][j] = 0.;
+        PathIntegral_u[i][j] = 0.;
+    }
+    if (i==0) continue;
+
+    integer ntot=int((fabs(hits[i][2]-hits[i-1][2])+0.5)/2.);
+    if (ntot<2) {
+            ntot=2;
+    } else {
+            if ((ntot%2)==1) ntot++;
+    }
+
+#ifdef __AMSDEBUG__
+//    cout << " i, i, ntot: " << i-1 << ", " << i << ", " << ntot <<endl;
+#endif
+
+    for (int l=0;l<=ntot;l++){
+      number alpha = float(l)/ntot;
+
+	number fact;
+      if (l==0 || l==ntot) {
+        fact = 1.;
+	}
+      else if ((l%2)==1) {
+        fact = 4.;
+	}
+      else {
+        fact = 2.;
+	}
+
+      geant x[3], u[3], b[3];
+      for (int j=0;j<3;j++){
+        x[j] = hits[i-1][j] + alpha*(hits[i][j]-hits[i-1][j]);
+        u[j] = (hits[i][j]-hits[i-1][j])/len[i];
+      }
+      GUFLD(x,b);
+
+      PathIntegral_x[i][0] += fact*(1.-alpha)*(u[1]*b[2]-u[2]*b[1]);
+      PathIntegral_x[i][1] += fact*(1.-alpha)*(u[2]*b[0]-u[0]*b[2]);
+      PathIntegral_x[i][2] += fact*(1.-alpha)*(u[0]*b[1]-u[1]*b[0]);
+
+      PathIntegral_u[i][0] += fact*(u[1]*b[2]-u[2]*b[1]);
+      PathIntegral_u[i][1] += fact*(u[2]*b[0]-u[0]*b[2]);
+      PathIntegral_u[i][2] += fact*(u[0]*b[1]-u[1]*b[0]);
+    }
+
+    number fact3 = 3.*ntot;
+    PathIntegral_x[i][0] /= fact3;
+    PathIntegral_x[i][1] /= fact3;
+    PathIntegral_x[i][2] /= fact3;
+    PathIntegral_u[i][0] /= fact3;
+    PathIntegral_u[i][1] /= fact3;
+    PathIntegral_u[i][2] /= fact3;
+  }
+
+// F and G matrices
+  number d[2*trconst::maxlay][5];
+  for (int i=0;i<_NHits;i++) {
+    int ix = i;
+    int iy = i+_NHits;
+    for (int j=0;j<5;j++) { d[ix][j] = 0; d[iy][j] = 0;}
+    d[ix][0] = 1.;
+    d[iy][1] = 1.;
+    for (int k=0;k<=i;k++) {
+	d[ix][2] += len[k];
+	d[iy][3] += len[k];
+      for (int l=0;l<=k;l++) {
+        if (l==k) {
+          d[ix][4] += len[k]*len[k]*PathIntegral_x[k][0];
+          d[iy][4] += len[k]*len[k]*PathIntegral_x[k][1];
+        }
+        else {
+          d[ix][4] += len[k]*len[l]*PathIntegral_u[l][0];
+          d[iy][4] += len[k]*len[l]*PathIntegral_u[l][1];
+        }
+	}
+    }
+  }
+
+// F*S_x*x + G*S_y*y
+  number dx[5];
+  for (int j=0;j<5;j++) {
+    dx[j] = 0.;
+    for (int l=0;l<_NHits;l++) {
+      dx[j] += d[l][j]/sigma[l][0]/sigma[l][0]*hits[l][0];
+      dx[j] += d[l+_NHits][j]/sigma[l][1]/sigma[l][1]*hits[l][1];
+    }
+  }
+
+// (F*S_x*F + G*S_y*G)
+  
+  number Param[5];
+  number Covariance[5][5];
+  for (int j=0;j<5;j++) {
+    for (int k=0;k<5;k++) {
+      Covariance[j][k] = 0.;
+      for (int l=0;l<_NHits;l++) {
+        Covariance[j][k] += d[l][j]/sigma[l][0]/sigma[l][0]*d[l][k];
+        Covariance[j][k] += d[l+_NHits][j]/sigma[l][1]/sigma[l][1]*d[l+_NHits][k];
+      } 
+    }
+  }
+        
+// (F*S_x*F + G*S_y*G)**{-1}
+  int ifail;
+  int idim = 5;
+  INVERTMATRIX((double*)Covariance, idim, idim, ifail);
+  if (ifail) {
+    _Chi2WithoutMS = FLT_MAX;
+    _Chi2StrLine = FLT_MAX;
+#ifdef __AMSDEBUG__
+    cout << " What ?? Singular matrix!!" << endl;
+#endif
+    return;
+  }
+
+// Solution
+  for (int k=0;k<5;k++) {
+    Param[k] = 0.;
+    for (int i=0;i<5;i++) {
+      Param[k] += Covariance[k][i]*dx[i];
+    }
+  }
+  
+// Chi2 (xl and yl in microns, since sigmas are in microns too)
+  _Chi2WithoutMS = 0.;
+  _Chi2StrLine = 0.;
+  for (int l=0;l<_NHits;l++) {
+    number xl = hits[l][0]*1.e4;
+    number yl = hits[l][1]*1.e4;
+    for (int k=0;k<5;k++) {
+      xl -= d[l][k]*Param[k]*1.e4;
+      yl -= d[l+_NHits][k]*Param[k]*1.e4;
+    }
+    _Chi2WithoutMS += xl/sigma[l][0]/sigma[l][0]*xl + yl/sigma[l][1]/sigma[l][1]*yl;
+    _Chi2StrLine += xl/sigma[l][0]/sigma[l][0]*xl;
+  }
+
+// Return Chi2/Ndof
+  if (Param[4]!=0.0) {
+      _Chi2WithoutMS /= (2.*_NHits-5.);
+      _Chi2StrLine /= (_NHits-2.);
+      _RigidityWithoutMS = 2.997E-4/Param[4];
+  } else {
+      _Chi2WithoutMS = FLT_MAX;
+      _Chi2StrLine = FLT_MAX;
+#ifdef __AMSDEBUG__
+      cout << " What ?? Param=0!!" << endl;
+#endif
+      return;
+  }
+
+}
+
+
+void AMSTrTrack::VerySimpleFit(AMSPoint ehit){
 
 integer ifit=0;
 integer npt=_NHits;
@@ -1835,80 +2125,12 @@ for (int i=0;i<npt;i++){
 
 TRAFIT(ifit,x,y,wxy,z,ssz,npt,resxy,ressz,iflag,spcor,work,chixy,chiz,xmom,
        exmom,p0,dip,phis);
-if(iflag/1000 == 0)_Chi2Circle=chixy;
-else _Chi2Circle=FLT_MAX;
+if(iflag/1000 == 0)_Chi2WithoutMS=chixy;
+else _Chi2WithoutMS=FLT_MAX;
 if(iflag%1000 ==0)_Chi2StrLine=chiz;
 else _Chi2StrLine=FLT_MAX;
-_CircleRidgidity=xmom;
-//if(TRFITFFKEY.FastTracking){
-//  // Fill fastfit here
-//  _Ridgidity=_CircleRidgidity; 
-//  _ErrRidgidity=exmom;
-//  //  _P0[0]=p0[0];
-//  //  _P0[1]=p0[1];
-//  //  _P0[2]=p0[2];
-//  _P0[0]=_Pthit[1]->getHit()[0];
-//  _P0[1]=_Pthit[1]->getHit()[1];
-//  _P0[2]=_Pthit[1]->getHit()[2];
-//
-//  _Theta=dip;
-//  // _Phi=phis;
-//  _Phi=atan2(_Pthit[2]->getHit()[1]-_Pthit[0]->getHit()[1],
-//             _Pthit[2]->getHit()[0]-_Pthit[0]->getHit()[0]);
-//
-//}
+_RigidityWithoutMS=xmom;
 }
-
-void AMSTrTrack::TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit){
-
-integer ifit=0;
-integer npt=_NHits+ntof;
-const integer maxhits=14;
-assert (npt<maxhits && _NHits>2 && ntof>2);
-geant x[maxhits];
-geant y[maxhits];
-geant wxy[maxhits];
-geant z[maxhits];
-geant ssz[maxhits];
-geant ressz[maxhits];
-geant resxy[2*maxhits];
-geant spcor[maxhits];
-number work[maxhits];
-geant chixy;
-geant chiz;
-geant xmom,dip,phis,exmom;
-integer iflag=0;
-geant p0[3];
-int i;
-for (i=0;i<_NHits;i++){
- z[i]=_Pthit[i]->getHit()[0];
- x[i]=_Pthit[i]->getHit()[1];
- y[i]=_Pthit[i]->getHit()[2];
- wxy[i]= (_Pthit[i]->getEHit()[1] * _Pthit[i]->getEHit()[1]+
-          _Pthit[i]->getEHit()[2] * _Pthit[i]->getEHit()[2]);
- wxy[i]= 1/wxy[i];
- ssz[i]= _Pthit[i]->getEHit()[0];
- ssz[i]= 1/ssz[i]; 
-}
-for (i=0;i<ntof;i++){
- z[_NHits+i] = tofhit[0];
- x[_NHits+i] = tofhit[1];
- y[_NHits+i] = tofhit[2];
- wxy[_NHits+i] = (etofhit[1]*etofhit[1] + etofhit[2]*etofhit[2]);
- wxy[_NHits+i] = 1/wxy[_NHits+i];
- ssz[_NHits+i] = etofhit[0];
- ssz[_NHits+i] = 1/ssz[_NHits+i]; 
-}
-
-TRAFIT(ifit,x,y,wxy,z,ssz,npt,resxy,ressz,iflag,spcor,work,chixy,chiz,xmom,
-       exmom,p0,dip,phis);
-if(iflag/1000 == 0)_Chi2Circle=chixy;
-else _Chi2Circle=FLT_MAX;
-if(iflag%1000 ==0)_Chi2StrLine=chiz;
-else _Chi2StrLine=FLT_MAX;
-_CircleRidgidity=xmom;
-}
-
 
 number AMSTrTrack::Fit(integer fits, integer ipart){
 
@@ -2139,8 +2361,8 @@ void AMSTrTrack::getParFastFit(number&  Chi2, number& Rid, number&  Err,
 number&  Theta, number&  Phi, AMSPoint&  X0)const
 {Chi2=_Chi2FastFit;Rid=_Ridgidity;Theta=_Theta;Phi=_Phi;X0=_P0;Err=_ErrRidgidity;}
 
-void AMSTrTrack::getParSimpleFit(number & Chi2xy, number &Chi2sz, number & Rid)const
-{Chi2xy=_Chi2Circle;Chi2sz=_Chi2StrLine;Rid=_CircleRidgidity;}
+void AMSTrTrack::getParSimpleFit(number & Chi2_3D, number &Chi2sz, number & Rid)const
+{Chi2_3D=_Chi2WithoutMS;Chi2sz=_Chi2StrLine;Rid=_RigidityWithoutMS;}
 
 void AMSTrTrack::getParAdvancedFit(number&   GChi2, number&  GRid, number&  GErr,
 number&  GTheta, number&  GPhi, AMSPoint&  GP0,
@@ -2222,8 +2444,8 @@ void AMSTrTrack::_writeEl(){
     TrTN->GeaneFitDone[TrTN->Ntrtr]=_GeaneFitDone;
     TrTN->AdvancedFitDone[TrTN->Ntrtr]=_AdvancedFitDone;
     TrTN->Chi2StrLine[TrTN->Ntrtr]=geant(_Chi2StrLine);
-    TrTN->Chi2Circle[TrTN->Ntrtr]=geant(_Chi2Circle);
-    TrTN->CircleRidgidity[TrTN->Ntrtr]=(geant)_CircleRidgidity;
+    TrTN->Chi2WithoutMS[TrTN->Ntrtr]=geant(_Chi2WithoutMS);
+    TrTN->RigidityWithoutMS[TrTN->Ntrtr]=(geant)_RigidityWithoutMS;
     TrTN->Chi2FastFit[TrTN->Ntrtr]=(geant)_Chi2FastFit;
     TrTN->Ridgidity[TrTN->Ntrtr]=(geant)_Ridgidity;
     TrTN->ErrRidgidity[TrTN->Ntrtr]=(geant)_ErrRidgidity;
@@ -2271,9 +2493,6 @@ void AMSTrTrack::_copyEl(){
 TrTrackR & trr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrTrack(_vpos);
     for (int i=0; i<_NHits; i++) {
       if(_Pthit[i])trr.fTrRecHit.push_back(_Pthit[i]->GetClonePointer());
-    }
-    for (int i=0; i<_NAmbiguous; i++) {
-      if(_PtAmbiguous[i])trr.fTrClone.push_back(_PtAmbiguous[i]->GetClonePointer());
     }
 #endif
 }
@@ -2407,7 +2626,6 @@ void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
 void AMSTrTrack::init(AMSTrRecHit * phit[] ){
 int i;
 for( i=0;i<_NHits;i++)_Pthit[i]=phit[i];
-for( i=0;i<trtrackconst::maxambig;i++)_PtAmbiguous[i]=0;
 for(i=_NHits;i<trconst::maxlay;i++)_Pthit[i]=0;
  _GChi2=-1;
  _GRidgidity=0;
@@ -2953,13 +3171,10 @@ uinteger AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
 }
 
 AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig):AMSlink(0,0),
-_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_NAmbiguous(0),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
 _Ridgidity(rig),_ErrRidgidity(errig),_Chi2FastFit(1000000){
  for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
- }
- for(int i=0;i<trtrackconst::maxambig;i++){
-  _PtAmbiguous[i]=0;
  }
  _Theta=dir.gettheta();
  _Phi=dir.getphi();
@@ -2967,13 +3182,10 @@ _Ridgidity(rig),_ErrRidgidity(errig),_Chi2FastFit(1000000){
 }
 
 AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point):AMSlink(0,0),
-_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_NAmbiguous(0),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
 _Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
  for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
- }
- for(int i=0;i<trtrackconst::maxambig;i++){
-  _PtAmbiguous[i]=0;
  }
  _Theta=theta;
  _Phi=phi;
@@ -3094,16 +3306,12 @@ AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD,
                        number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
                        number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, 
                        number chi2MS, number jchi2MS, number rigFMS, number grigms):
-_NHits(nht),_NAmbiguous(0),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g){
+_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g){
  
- for(int i=0;i<trtrackconst::maxambig;i++){
-  _PtAmbiguous[i]=0;
- }
-
   for(int i=0;i<2;i++)_Dbase[i]=0;
   _Chi2StrLine=0;
-_Chi2Circle=0;
-_CircleRidgidity=0;
+_Chi2WithoutMS=0;
+_RigidityWithoutMS=0;
 
 for(int i=0;i<2;i++) _HChi2[i]=0;
 for(int i=0;i<2;i++) _HRidgidity[i]=0;
@@ -3120,67 +3328,133 @@ for(int i=0;i<_NHits;i++)_Pthit[i]=pht[i];
 
 }
          
-///////////////////////////////////////////////////////////////////////////////
-bool AMSTrTrack::is_similar_to(AMSTrTrack* ptr_old){  
+///////////////////////////////////////////////////////////
+AMSTrTrack* AMSTrTrack::CloneIt(){
 
-  if (ptr_old==NULL) return false;
-   
-// Current track
-  int nhits_new = _NHits;
-  AMSTrCluster * pshit_new[trconst::maxlay];
-  for (int j=0;j<nhits_new;j++) 
-          pshit_new[j] = _Pthit[j]->getClusterP(1);
-
-// Compare with "old" track
-  int nhits_old = ptr_old->getnhits();
-  AMSTrCluster *pshit_old[trconst::maxlay];
-  for (int k=0; k<nhits_old; k++) 
-          pshit_old[k] = ptr_old->getphit(k)->getClusterP(1);
-
-// All S hits of one track must be contained in the other track
-  if (nhits_old<nhits_new) {
-     for (int k=0; k<nhits_old; k++){
-       for (int j=0; j<nhits_new; j++){
-          if (pshit_old[k]==pshit_new[j]) goto next_oldhit;
-       }
-       return false;   // At least one hit is missing: they are NOT similar
-next_oldhit:
-       continue;
-     }
-        
-  } else {
-     for (int j=0; j<nhits_new; j++){
-       for (int k=0; k<nhits_old; k++){
-          if (pshit_old[k]==pshit_new[j]) goto next_newhit;
-       }
-       return false;   // At least one hit is missing: they are NOT similar
-next_newhit:
-       continue;
-     }
+  static AMSTrTrack* ptrout = NULL;
+  if (this) {
+          ptrout = new AMSTrTrack(_Pattern, _NHits, _Pthit);
+          ptrout->_Chi2WithoutMS = _Chi2WithoutMS;
+          ptrout->_Chi2StrLine = _Chi2StrLine;
+          ptrout->_RigidityWithoutMS = _RigidityWithoutMS;
   }
-     
-// If we arrived here it is because both tracks are similar
-  return true;
+  return ptrout;
 
 }
 
-///////////////////////////////////////////////////////////////////////////////
-void AMSTrTrack::build_ambiguity_lists(){  
-
-    // NOTE: SORTING IS ABSOLUTELY MANDATORY IN THIS METHOD !!
-    AMSTrTrack *ptr = (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,2);
-    while (ptr) {
-      ptr->_NAmbiguous = 0;
-      for(int i=0;i<trtrackconst::maxambig;i++) ptr->_PtAmbiguous[i]=NULL;
-      AMSTrTrack* pnext = ptr->next();
-      while (pnext) {
-         if (ptr->is_similar_to(pnext)) {
-             pnext->setstatus(AMSDBc::AMBIG);
-             ptr->addAmbiguous(pnext);
-         }
-         pnext = pnext->next();
+///////////////////////////////////////////////////////////
+AMSTrTrack* AMSTrTrack::remove_track(AMSTrTrack* ptrack){
+  if (ptrack) {
+    for(int i=0;;i++){
+      AMSContainer *pctr=AMSEvent::gethead()->getC("AMSTrTrack",i);
+      if(pctr==NULL) break;
+      for (AMSlink* ptr=pctr->gethead(); ptr!=NULL; ptr=ptr->next()){
+        if (ptr->next()==ptrack) {
+          pctr->removeEl(ptr,1);
+          break; 
+        }
       }
-      ptr = ptr->next();
-    }               
+    }
+  }
+  delete ptrack;
+  ptrack = NULL;
+  return ptrack;
 
 }
+
+///////////////////////////////////////////////////////////
+integer AMSTrTrack::next_combination(
+                int index_min, int index_max, number par[2][3]){
+         if (index_min<0) return 0;
+         if (index_max>=TKDBc::patpoints(_Pattern)) return 0;
+	   int index_run = index_min;
+next_index:
+         _Pthit[index_run] = _Pthit[index_run]->nextgood_path(par);
+         if (!_Pthit[index_run]){
+	       if (index_run>=index_max) return 0;
+             _Pthit[index_run] = AMSTrRecHit::firstgood_path(_Pattern,index_run,par);
+             index_run++;
+	       goto next_index;
+         }
+
+	   return 1;
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::firstgood(integer pattern, integer index){
+
+	 integer layer = TKDBc::patconf(pattern,index)-1;
+       AMSTrRecHit* phit = AMSTrRecHit::gethead(layer);
+
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         break;
+         phit=phit->next();
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::firstgood_path(integer pattern, integer index,number par[2][3]){
+
+	 integer layer = TKDBc::patconf(pattern,index)-1;
+       AMSTrRecHit* phit = AMSTrRecHit::gethead(layer);
+
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         if (!phit->is_in_path(par)) continue;
+         break;
+         phit=phit->next();
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::nextgood(){
+
+       AMSTrRecHit* phit = this;
+
+       if (phit) phit = phit->next();
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         break;
+         phit=phit->next();
+       }
+
+       return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+AMSTrRecHit* AMSTrRecHit::nextgood_path(number par[2][3]){
+
+       AMSTrRecHit* phit = this;
+       
+       if (phit) phit = phit->next();
+       for (;phit!=NULL;phit=phit->next()) {
+         if (!phit->Good()) continue;
+         if (phit->checkstatus(AMSDBc::USED) 
+            && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
+                                                            continue;
+         if (!phit->is_in_path(par)) continue;
+         break;
+         phit=phit->next();
+       }
+
+       return phit;
+
+}
+

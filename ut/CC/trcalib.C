@@ -1,4 +1,4 @@
-//  $Id: trcalib.C,v 1.53 2002/07/18 13:45:46 choutko Exp $
+//  $Id: trcalib.C,v 1.54 2003/11/07 17:35:07 alcaraz Exp $
 #include <trcalib.h>
 #include <event.h>
 #include <math.h>
@@ -170,11 +170,11 @@ integer  AMSTrCalibData::Select(integer alg, integer pattern){
              || ((pycl->getid()).gethalf()!=TRCALIB.Ladder[il-1]%10))return 0; 
             }           
            }      
-            number chi2xy, chi2z, rid;
-           ptr->getParSimpleFit(chi2xy,chi2z,rid);
+            number chi2_3d, chi2z, rid;
+           ptr->getParSimpleFit(chi2_3d,chi2z,rid);
             number cth=cos(ppart->gettheta())*cos(dir.gettheta())+
             sin(ppart->gettheta())*sin(dir.gettheta())*cos(ppart->getphi()-dir.getphi());
-            if(chi2xy<1. && cth > TRCALIB.HitsRatioCut[alg] &&
+            if(chi2_3d<1. && cth > TRCALIB.HitsRatioCut[alg] &&
                ppart->getmomentum()>momentum*TRCALIB.MomentumCut[alg][0] &&
                ppart->getmomentum()<momentum*TRCALIB.MomentumCut[alg][1]  ){
               if(Init(ppart->getpbeta(),ppart->getptrack(),pmcg,pattern,alg)){

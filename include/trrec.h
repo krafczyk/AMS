@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.70 2003/10/17 17:14:45 alcaraz Exp $
+//  $Id: trrec.h,v 1.71 2003/11/07 17:35:23 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -183,7 +183,15 @@ inline integer Good() {
   return ((TRFITFFKEY.FullReco!=0 || checkstatus(AMSDBc::USED)==0) 
             && checkstatus(AMSDBc::AwayTOF )==0) && checkstatus(AMSDBc::GOOD);
 }
+static AMSTrRecHit* firstgood(integer pattern, integer index);
+AMSTrRecHit* nextgood();
+static AMSTrRecHit* firstgood_path(integer pattern, integer index, number par[2][3]);
+AMSTrRecHit* nextgood_path(number par[2][3]);
 static integer markAwayTOFHits();
+integer is_in_path(number par[2][3]){
+   return fabs(par[0][1]+par[0][0]*_Hit[2]-_Hit[0]) < 3.*TRFITFFKEY.SearchRegStrLine*par[0][2] 
+       && fabs(par[1][1]+par[1][0]*_Hit[2]-_Hit[1]) < TRFITFFKEY.SearchRegCircle*par[1][2];
+}
 
 static void _markDouble(vector<double>& , integer );
 
@@ -258,11 +266,6 @@ public:
 };
 
 
-// Global namespace Vtxconst
-namespace trtrackconst{
-        const integer maxambig=5;
-}
-
 class AMSTrTrack: public AMSlink{
 protected:
 AMSTrRecHit * _Pthit[trconst::maxlay];
@@ -276,8 +279,8 @@ AMSPoint _Hit[trconst::maxlay];
 AMSPoint _EHit[trconst::maxlay];
 number _Dbase[2];
 number _Chi2StrLine;
-number _Chi2Circle;
-number _CircleRidgidity;
+number _Chi2WithoutMS;
+number _RigidityWithoutMS;
 number _Chi2FastFit;
 number _Ridgidity;
 number _ErrRidgidity;
@@ -304,19 +307,17 @@ number _PITheta;
 number _PIPhi;
 AMSPoint _PIP0;
 number _PIChi2;
-integer _NAmbiguous;
-AMSTrTrack * _PtAmbiguous[trtrackconst::maxambig];
 
 void SimpleFit(AMSPoint err);
-void TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit);
+void VerySimpleFit(AMSPoint err);
 static void _Start(){TIMEX(_Time);}
 static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
 
 static bool _NoMoreTime();
 static geant _Time;
 static geant _TimeLimit;
-  void _printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Rigidity (Circ)" << 
-  _CircleRidgidity <<" Rigidity (Fast) "<<_Ridgidity <<" Chi2Fast " << 
+  void _printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Rigidity (no MS)" << 
+  _RigidityWithoutMS <<" Rigidity (Fast) "<<_Ridgidity <<" Chi2Fast " << 
   _Chi2FastFit << " ThetaFast "<<_Theta<<" PhiFast "<<_Phi<<endl;}
   void _copyEl();
   void _writeEl();
@@ -330,7 +331,7 @@ static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static void   _addnextR(AMSTrTrack* ptr, integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer Distance(number par[2][3], AMSTrRecHit *ptr){
-   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > TRFITFFKEY.SearchRegStrLine*par[0][2] ||
+   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > 3.*TRFITFFKEY.SearchRegStrLine*par[0][2] ||
           fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])
            > TRFITFFKEY.SearchRegCircle*par[1][2];
 
@@ -389,7 +390,7 @@ void SetPar(number rig, number theta, number phi, AMSPoint P0,integer icase=0){
 ~AMSTrTrack(){};
 AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
 AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
-AMSlink(0,0),_NAmbiguous(0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
+AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
   {init(  phit);}
 AMSTrTrack(AMSDir dir, AMSPoint point,number rig=10000000,number errig=10000000);
 AMSTrTrack(number theta, number phi, AMSPoint point);
@@ -400,6 +401,7 @@ static integer buildFalseX(integer refit=0);
 static integer makeFalseTOFXHits();
 static integer buildFalseTOFX(integer refit=0);
 static integer _MarginPatternsNeeded;
+static integer _min_layers_with_different_hits;
 static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
@@ -421,8 +423,7 @@ number&  GTheta, number&  GPhi, AMSPoint&  GP0,
 number HChi2[2], number HRid[2], number HErr[2], number HTheta[2], 
 number HPhi[2], AMSPoint  HP0[2] ) const;
 
-AMSTrTrack() {_Pattern = -1; _NHits   = -1; _NAmbiguous = 0;
-   for (int i=0; i<trtrackconst::maxambig; i++) _PtAmbiguous[i] = NULL;
+AMSTrTrack() {_Pattern = -1; _NHits   = -1; 
    for (int i=0; i<trconst::maxlay; i++) _Pthit[i] = NULL; }
 void   setHitP(AMSTrRecHit* p, integer n) {if (n< trconst::maxlay)  _Pthit[n] = p;}
 //-
@@ -438,12 +439,12 @@ number getchi2()const {return _Chi2FastFit;}
 number gettheta(int icase=0) const {return (icase==0?_Theta:(icase==1?_GTheta:_PITheta));}
 number getphi(int icase=0) const {return (icase==0?_Phi:(icase==1?_GPhi:_PIPhi));}
 number getpichi2() const {return _PIChi2;}
+number getchi2StrLine() const {return _Chi2StrLine;}
+number getchi2withoutMS() const {return _Chi2WithoutMS;}
 AMSPoint getpiP0() const {return _PIP0;}
-void addAmbiguous(AMSTrTrack* ptrack){if (_NAmbiguous<trtrackconst::maxambig) _PtAmbiguous[_NAmbiguous++]=ptrack;}
-integer getNAmbiguous(){return _NAmbiguous;}
-AMSTrTrack * getAmbiguous(integer i){return (i>=0 && i<_NAmbiguous)? _PtAmbiguous[i]:0;}
-bool is_similar_to(AMSTrTrack* ptr);
-static void build_ambiguity_lists();
+AMSTrTrack* CloneIt();
+static AMSTrTrack* remove_track(AMSTrTrack* ptrack);
+integer next_combination(int index_min, int index_max, number par[2][3]);
 friend class AMSVtx;
 friend class AMSTrCalibFit;
 #ifdef __WRITEROOT__

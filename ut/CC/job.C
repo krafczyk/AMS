@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.458 2003/10/29 15:24:36 choutko Exp $
+// $Id: job.C,v 1.459 2003/11/07 17:35:06 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -993,7 +993,7 @@ TRFITFFKEY.UseTRD=1;
 TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;
 TRFITFFKEY.Chi2StrLine=10;
-TRFITFFKEY.Chi2Circle=5;
+TRFITFFKEY.Chi2WithoutMS=5;
 TRFITFFKEY.ResCutFastFit=0.5;
 TRFITFFKEY.ResCutStrLine=0.5;
 TRFITFFKEY.ResCutCircle=0.5;
@@ -1018,6 +1018,7 @@ TRFITFFKEY.ThrClR[0]=0.;
 TRFITFFKEY.ThrClR[1]=0.;
 TRFITFFKEY.MaxTrRecHitsPerLayer=50;
 TRFITFFKEY.LowMargin=0;
+TRFITFFKEY.OnlyGammaVtx=0;
 TRFITFFKEY.UseGeaneFitting=1;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();

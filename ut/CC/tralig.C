@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.28 2001/12/07 11:32:19 choutko Exp $
+//  $Id: tralig.C,v 1.29 2003/11/07 17:35:07 alcaraz Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -915,12 +915,12 @@ integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, intege
         if(ppart->getmomentum()<0)recharge=-recharge;
         if(recharge==charge){
            AMSTrTrack *ptr=ppart->getptrack();              
-           number chi2xy, chi2z, rid;
-           ptr->getParSimpleFit(chi2xy,chi2z,rid);
+           number chi2_3d, chi2z, rid;
+           ptr->getParSimpleFit(chi2_3d,chi2z,rid);
            number cth=cos(ppart->gettheta())*cos(dir.gettheta())+
            sin(ppart->gettheta())*sin(dir.gettheta())*cos(ppart->getphi()-dir.getphi());
            
-                   if(chi2xy<TRALIG.Cuts[0][1] && cth > TRALIG.Cuts[1][0] &&
+                   if(chi2_3d<TRALIG.Cuts[0][1] && cth > TRALIG.Cuts[1][0] &&
                       fabs(ppart->getmomentum())>momentum*TRALIG.Cuts[2][0] &&
                       fabs(ppart->getmomentum())<momentum*TRALIG.Cuts[2][1]  ){
                       if(beta>TRALIG.Cuts[3][0] && beta< TRALIG.Cuts[3][1]){    
@@ -949,14 +949,14 @@ integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, intege
              static int tot6=0;
              static int tot7=0;
            AMSTrTrack *ptr=ppart->getptrack();              
-           number chi2xy, chi2z, rid;
-           ptr->getParSimpleFit(chi2xy,chi2z,rid);
+           number chi2_3d, chi2z, rid;
+           ptr->getParSimpleFit(chi2_3d,chi2z,rid);
            number cth=cos(ppart->gettheta())*cos(dir.gettheta())+
            sin(ppart->gettheta())*sin(dir.gettheta())*cos(ppart->getphi()-dir.getphi());
            
-                  //cout <<"tot2 "<<++tot2<<" "<<chi2xy<<" "<<cth;
+                  //cout <<"tot2 "<<++tot2<<" "<<chi2_3d<<" "<<cth;
                     //cout <<" "<<ppart->getmomentum()<<" "<<momentum<<endl;
-                   if(chi2xy<TRALIG.Cuts[0][1] && cth > TRALIG.Cuts[1][0] &&
+                   if(chi2_3d<TRALIG.Cuts[0][1] && cth > TRALIG.Cuts[1][0] &&
                       fabs(ppart->getmomentum())>momentum*TRALIG.Cuts[2][0] &&
                       fabs(ppart->getmomentum())<momentum*TRALIG.Cuts[2][1]  ){
                   //cout <<"tot3 "<<++tot3<<" "<<beta<<" "<<endl;

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.115 2003/10/29 15:25:18 choutko Exp $
+//  $Id: root.h,v 1.116 2003/11/07 17:35:22 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -774,8 +774,8 @@ public:
   int   GeaneFitDone; ///<  != 0 if done
   int   AdvancedFitDone;  ///< != 0 if done
   float Chi2StrLine;  ///< chi2 sz fit
-  float Chi2Circle;  ///< chi2 circular fit
-  float CircleRigidity;  ///< circular rigidity
+  float Chi2WithoutMS;  ///< chi2 circular fit
+  float RigidityWithoutMS;  ///< circular rigidity
   float Chi2FastFit;    ///< chi2 fast nonl fit
   float Rigidity;  ///< fast nonl rigidity
   float ErrRigidity;  ///<err to 1/above
@@ -798,24 +798,8 @@ public:
   TrTrackR(AMSTrTrack *ptr);
   protected:
   vector<int> fTrRecHit;
-  vector<int> fTrClone;
   public:
   TrTrackR(){};
-  /// Check if Track is a Clone of Another track
-   /// \ return true if so
-  bool IsTrClone(){return Status & 4;}
-   /// Check if Track Has Clone(s)
-  /// access function to TrTrack Clone objects used
-   /// \return number of TrTrack Clones used
-  int NTrClones(){return fTrClone.size();}
-  /// access function to TrTrack Clone objects used
-  /// \param i index of fTrClone vector
-  /// \return index of TrClone object in collection or -1
-  int iTrClone(unsigned int i) const{return i<fTrClone.size()?fTrClone[i]:-1;}
-  /// access function to TrTrack Clone  objects   
-  /// \param i index of fTrClone vector
-  /// \return pointer to TrClone object  or 0
-  TrTrackR *pTrClone(unsigned int i);
  /// select good tracks (i.e. tracks having x & y hits from tracker)
   /// \return true if good false otherwise
    bool IsGood()const {return !(Status & 16384) && AdvancedFitDone!=0;}
@@ -836,7 +820,7 @@ public:
     sprintf(_Info,"TrTrack No %d RigFast=%7.3g#pm%6.2g RigPath=%7.3g #theta=%4.2f #phi=%4.2f #chi^{2}=%7.3g Points=%d Patttern=%d HalfRig=(%7.3g,%7.3g) Status=%d",number,Rigidity,ErrRigidity*Rigidity*Rigidity,PiRigidity,Theta,Phi,Chi2FastFit,NTrRecHit(),Pattern,HRigidity[0],HRigidity[1],Status);
   return _Info;
   } 
-ClassDef(TrTrackR,4)       //TrTrackR
+ClassDef(TrTrackR,5)       //TrTrackR
 friend class AMSTrTrack;
 };
 
