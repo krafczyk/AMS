@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.75 2001/12/18 17:34:21 choutko Exp $
+//  $Id: server.C,v 1.76 2002/01/08 13:43:13 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -816,6 +816,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
      ac.id.ppid=0;
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
+     ac.StatusType=DPS::Client::Permanent;
      time_t tt;
      time(&tt);
      ac.LastUpdate=tt;     
@@ -1075,7 +1076,7 @@ int Server_impl::getNC(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::Sy
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
           return _pvar->getNC(cid,acs);
        }
-       catch(DPS::DBServer::DBProblem &dbl){
+       catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        }
        catch (CORBA::SystemException &ex){
@@ -1124,7 +1125,7 @@ int Server_impl::getNK(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::Sy
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
           return _pvar->getNK(cid,acs);
        }
-       catch(DPS::DBServer::DBProblem &dbl){
+       catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        }
        catch (CORBA::SystemException &ex){
@@ -1246,7 +1247,7 @@ int Server_impl::getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int &
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
           return _pvar->getACS(cid,acs,maxc);
        }
-       catch(DPS::DBServer::DBProblem &dbl){
+       catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        }
        catch (CORBA::SystemException &ex){
@@ -1327,6 +1328,9 @@ return 0;
             break;
        case DPS::Client::CInAbort:
         HostClientFailed(*i); 
+        break;
+       case DPS::Client::SInAbort:
+        HostClientFailed(*i);
         break;
        case DPS::Client::SInKill:
         HostClientFailed(*i); 
@@ -1486,7 +1490,7 @@ int Server_impl::getNHS(const DPS::Client::CID &cid, NHS_out acs)throw (CORBA::S
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
           return _pvar->getNHS(cid,acs);
        }
-       catch(DPS::DBServer::DBProblem &dbl){
+       catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        }
        catch (CORBA::SystemException &ex){
@@ -1539,7 +1543,7 @@ int Server_impl::getAHS(const DPS::Client::CID &cid, AHS_out acs)throw (CORBA::S
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
           return _pvar->getAHS(cid,acs);
        }
-       catch(DPS::DBServer::DBProblem &dbl){
+       catch(DPS::DBProblem &dbl){
         _parent->EMessage((const char*)dbl.message); 
        }
        catch (CORBA::SystemException &ex){
@@ -1664,6 +1668,7 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
      DPS::Client::ActiveClient as;
      as.id= cid;
      as.Status=DPS::Client::Active;
+     as.StatusType=DPS::Client::Permanent;
      time_t tt;
      time(&tt);
      as.LastUpdate=tt;     
@@ -2096,6 +2101,7 @@ if(pcur->InactiveClientExists(getType()))return;
      ac.id.Type=getType();
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
+     ac.StatusType=DPS::Client::Permanent;
      time_t tt;
      time(&tt);
      ac.LastUpdate=tt;     
@@ -2173,12 +2179,15 @@ if(li!=_acl.end()){
       if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
        (*i)->Status=NoResponse;
        _pser->MonInfo(AMSClient::print(*i,"No Response From: "),DPS::Client::Warning);
+      _parent->EMessage(AMSClient::print(*i,"  No Response from "));
+      break;
     }
-}  
+} 
+      (*li)->id.Status=DPS::Client::SInKill;
+      DPS::Client::ActiveClient_var acv=*li;
+      PropagateAC(acv,DPS::Client::Update);
+//    PropagateAC(acv,DPS::Client::Delete);
 
-   (*li)->id.Status=DPS::Client::SInKill;
-   DPS::Client::ActiveClient_var acv=*li;
-   PropagateAC(acv,DPS::Client::Delete);
  }
  else {
    if(1 || _pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
@@ -2318,7 +2327,7 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
        PropagateRun(rv,DPS::Client::Update);
      }
     }
-
+  
    return;
  }
 
@@ -2652,8 +2661,19 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro,D
  cout <<" Master getrunevinfo "<<_parent->getcid().uid<<endl;
 
 
+   
   DSTInfo_var dv =new DSTInfo();
+  dv->DieHard=0;
   RunEvInfo_var rv=new RunEvInfo(); 
+     for(ACLI j=_acl.begin();j!=_acl.end();++j){
+     if((*j)->id.uid==cid.uid){
+       if((*j)->StatusType == DPS::Client::OneRunOnly){
+        dv->DieHard=1;
+       }
+       break;  
+     }
+    }
+  if(dv->DieHard==0){
 
  if(_parent->DBServerExists()){
 
@@ -2725,8 +2745,10 @@ if(dv->DieHard ==0){
    }
   }
  }
+}
 ro=rv._retn();
 dso=dv._retn();
+
 _UpdateACT(cid,DPS::Client::Active);
 
 }
@@ -2767,6 +2789,7 @@ void Producer_impl::sendDSTInfo(const  DSTInfo & ne, DPS::Client::RecordChange r
   else {
         DSTInfo_var vac= new DSTInfo(ne);
         replace_if(li,_dstinfo.end(),DSTInfo_Eqs(ne),vac);
+        _parent->IMessage(AMSClient::print(*li," Updated DSTInfo " ));
   }
   break;
  case DPS::Client::Create:
@@ -3681,6 +3704,7 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
      ac.id.pid=pid;;
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
+     ac.StatusType=DPS::Client::Permanent;
      time_t tt;
      time(&tt);
      ac.LastUpdate=tt;     
@@ -3973,11 +3997,11 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       }
       DPS::Client::ActiveHost *pre;
       int ret=dvar->getFreeHost(tcid,pre);     
-        cout <<"  get free host "<<AMSClient::print(*pre," ");
+//        cout <<"  get free host "<<AMSClient::print(*pre," ");
       prv=pre;
       return ret;
      }
-     catch(DPS::DBServer::DBProblem &dbl){
+     catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        sleep (2);
        retry=! retry;    
@@ -4036,7 +4060,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       pdv=pde;
       return 1;
      }
-     catch(DPS::DBServer::DBProblem &dbl){
+     catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        sleep (2);
        retry=! retry;    
@@ -4075,7 +4099,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       dvar->sendRunEvInfo(ri,rc);
       return 1;
      }
-     catch(DPS::DBServer::DBProblem &dbl){
+     catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        sleep (2);
        retry=! retry;    
@@ -4109,7 +4133,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       dvar->sendDSTEnd(_parent->getcid(),ri,rc);
       return 1;
      }
-     catch(DPS::DBServer::DBProblem &dbl){
+     catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        sleep (2);
        retry=! retry;    
@@ -4142,7 +4166,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       dvar->sendDSTInfo(ri,rc);
       return 1;
      }
-     catch(DPS::DBServer::DBProblem &dbl){
+     catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        sleep (2);
        retry=! retry;    
@@ -4241,7 +4265,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       return 1;
 
      }
-     catch(DPS::DBServer::DBProblem &dbl){
+     catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        sleep (2);
        retry=! retry;    
@@ -4278,7 +4302,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       cout <<"   database modified "<<endl; 
       return 1;
      }
-     catch(DPS::DBServer::DBProblem &dbl){
+     catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
        sleep (2);
        retry=! retry;    

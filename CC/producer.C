@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.43 2001/12/18 17:34:21 choutko Exp $
+//  $Id: producer.C,v 1.44 2002/01/08 13:43:12 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -199,7 +199,7 @@ if(_OnAir){
   EMessage("AMSProducer::sendCurrentrunInfo-W-AlreadyOnAir ");
  return;
 }
-cout <<" sendcurrentinfo start "<<endl;
+//cout <<" sendcurrentinfo start "<<endl;
 int failure=0;
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
@@ -221,7 +221,7 @@ if(force){
   if(IOPA.hlun)sendNtupleUpdate(DPS::Producer::Ntuple);
   else if(IOPA.WriteRoot)sendNtupleUpdate(DPS::Producer::RootFile);
 }
-cout <<" sendcurrentinfo end "<<endl;
+//cout <<" sendcurrentinfo end "<<endl;
 }
 
 void AMSProducer::getASL(){

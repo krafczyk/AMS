@@ -1,4 +1,4 @@
-//  $Id: uzstat.C,v 1.9 2001/01/22 17:32:24 choutko Exp $
+//  $Id: uzstat.C,v 1.10 2002/01/08 13:43:13 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <uzstat.h>
@@ -74,9 +74,12 @@ return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry*_freq<<" "<<se
  <<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum*_freq<<endl:stream;
 }
 
+#include <sys/time.h>
 extern "C" number HighResTime(){
 
  static float ar[2];
+
+#ifdef __ALPHAOLD__
  static number ETimeLast;
  static timeval  TPSLast;
  static struct timezone  TZ;
@@ -84,8 +87,6 @@ extern "C" number HighResTime(){
  static integer init=0;
 
   const number TRes=0.002;
-
-#ifdef __ALPHAOLD__
 
 if(init++ ==0){
 gettimeofday(&TPSLast,&TZ);
@@ -113,7 +114,12 @@ return ETimeLast;
 }
 
 #else
+#ifdef sun
+ hrtime_t nsec=gethrtime();
+  return double(nsec)*1e-9;
+#else
 return etime_(ar);
+#endif
 #endif
 
 }

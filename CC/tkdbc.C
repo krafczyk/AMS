@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.32 2001/12/18 17:34:21 choutko Exp $
+//  $Id: tkdbc.C,v 1.33 2002/01/08 13:43:13 choutko Exp $
 #include <tkdbc.h>
 #include <amsdbc.h>
 #include <astring.h>
@@ -953,7 +953,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
 }
 
 
-   else if (strstr(AMSJob::gethead()->getsetup(),"AMS02C")){
+   else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 
     int i;
     _nlaysi=8;
@@ -998,7 +998,8 @@ const number  support_hc_z[_nlay]={-3.052,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
    UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
    const number  yposl[_nlay]={0,0,0,0,0,0,0};
    UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
-   const number  zposl[_nlay]={54.515,29.435,25.565,1.935,-1.935,-25.565,-29.435,-54.515};
+   const number  zposl[_nlay]={54.515,29.185,25.315,1.685,-2.185,-25.315,-29.185,-54.515};
+//   const number  zposl[_nlay]={54.515,29.435,25.565,1.935,-1.935,-25.565,-29.435,-54.515};
 //   const number  zposl[_nlay]={51.015,32.,28.,2.,-2.,-28.,-32.,-51.015};
    UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
    const number nrml[_nlay][3][3]={
@@ -1414,7 +1415,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 
 
 }
-   else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+   else if (strstr(AMSJob::gethead()->getsetup(),"AMS02C")){
 
     int i;
     _nlaysi=8;

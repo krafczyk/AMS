@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.58 2001/10/15 11:14:52 choutko Exp $
+//  $Id: geant3.C,v 1.59 2002/01/08 13:43:12 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -70,9 +70,9 @@ if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
   static integer freq=10;
   static integer trig=0;
   trig=(trig+1)%freq;
-  if(trig==0 && freq>1)AMSgObj::BookTimer.start("GUSTEP");
+//  if(trig==0 && freq>1)AMSgObj::BookTimer.start("GUSTEP");
   if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit){
-    if(freq>1)AMSgObj::BookTimer.stop("GUSTEP");
+//    if(freq>1)AMSgObj::BookTimer.stop("GUSTEP");
     freq=1;
     GCTRAK.istop =1;
     return;
@@ -467,7 +467,7 @@ GDCXYZ();
     cerr << "GUSTEP  "<< e.getmessage()<<endl;
      AMSEvent::gethead()->seterror(2);
    }
-  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("GUSTEP");
+//  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("GUSTEP");
    //  cout <<" gustep out"<<endl;
 
 }
