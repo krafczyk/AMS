@@ -74,15 +74,24 @@ frame .top.t1 -borderwidth 10
 frame .top.t2 -borderwidth 10
 frame .top.t3 -borderwidth 10
 frame .top.t4 -borderwidth 10
-pack .top.t1 .top.t2 .top.t3 .top.t4 -side top
+frame .top.t5 -borderwidth 10
+frame .top.t6 -borderwidth 10
+pack .top.t1 .top.t5 .top.t6 .top.t2 .top.t3 .top.t4 -side top
 
-# Subframe ".top.t1" contains all buttons, horizontally from left to right
+# Buttons, horizontally from left to right
 button .top.t1.exit -background green -text Exit -font $XFONTS_BUTTONS -command exit
-set make [button .top.t1.make -background cyan -text "Create gbatch.exe" -font $XFONTS_BUTTONS -command AMSMake]
-button .top.t1.root -background cyan -text "Create Root Library" -font $XFONTS_BUTTONS -command AMSRoot
-button .top.t1.clean -background red -text "Make Clean" -font $XFONTS_BUTTONS -command AMSClean 
-button .top.t1.update -background green -text "CVS Update" -font $XFONTS_BUTTONS -command AMSUpdate
-pack .top.t1.exit .top.t1.update .top.t1.make .top.t1.root .top.t1.clean -side left -padx 10 -fill x
+pack .top.t1.exit -side left -padx 20 -fill x
+
+set make [button .top.t5.make -background cyan -text "Create gbatch.exe" -font $XFONTS_BUTTONS -command AMSMake]
+button .top.t5.root -background cyan -text "Create Root Library" -font $XFONTS_BUTTONS -command AMSRoot
+button .top.t5.ruby -background cyan -text "Create Ruby Library" -font $XFONTS_BUTTONS -command AMSRuby
+button .top.t5.python -background cyan -text "Create Python Library" -font $XFONTS_BUTTONS -command AMSPython
+pack .top.t5.make .top.t5.root .top.t5.ruby .top.t5.python -side left -padx 10 -fill x
+
+button .top.t6.update -background coral -text "CVS Update" -font $XFONTS_BUTTONS -command AMSUpdate
+button .top.t6.cleanlibs -background coral -text "Clean Libraries" -font $XFONTS_BUTTONS -command AMSCleanLibs
+button .top.t6.clean -background coral -text "Clean All" -font $XFONTS_BUTTONS -command AMSClean
+pack .top.t6.update .top.t6.cleanlibs .top.t6.clean -side left -padx 30 -fill x
 
 # Subframe ".top.t2" contains text entries 
 # (to edit files)
@@ -381,7 +390,7 @@ proc AMSUpdate {} {
   }
 }
 
-# Command to be executed when the ".top.t1.root" button is pressed
+# Command to be executed when the ".top.t5.root" button is pressed
 # a) gmake shared -f Mopt; output is shown in the log zone ".t.log"
 proc AMSRoot {} {
   global RootInput log AMSDir
@@ -404,7 +413,53 @@ proc AMSRoot {} {
   }
 }
 
-# Command to be executed when the ".top.t1.clean" button is pressed
+# Command to be executed when the ".top.t5.ruby" button is pressed
+# a) gmake; output is shown in the log zone ".t.log"
+proc AMSRuby {} {
+  global RubyInput log AMSDir
+  set command "bash -c \"cd $AMSDir/ruby; gmake\""
+  if {[catch {open "|$command |& cat"} RubyInput]} {
+        $log insert end $RubyInput\n
+  } else {
+      $log insert end "> Executing: $command ... \n"
+      fileevent $RubyInput readable {
+        if {[eof $RubyInput]} {
+          catch {close $RubyInput}
+          $log insert end "\n< [pwd] >"
+          $log see end
+        } else {
+                gets $RubyInput line
+                $log insert end \n$line
+                $log see end
+        }
+      }
+  }
+}
+
+# Command to be executed when the ".top.t5.python" button is pressed
+# a) gmake; output is shown in the log zone ".t.log"
+proc AMSPython {} {
+  global PythonInput log AMSDir
+  set command "bash -c \"cd $AMSDir/python; gmake\""
+  if {[catch {open "|$command |& cat"} PythonInput]} {
+        $log insert end $RubyInput\n
+  } else {
+      $log insert end "> Executing: $command ... \n"
+      fileevent $PythonInput readable {
+        if {[eof $PythonInput]} {
+          catch {close $PythonInput}
+          $log insert end "\n< [pwd] >"
+          $log see end
+        } else {
+                gets $PythonInput line
+                $log insert end \n$line
+                $log see end
+        }
+      }
+  }
+}
+
+# Command to be executed when the ".top.t6.clean" button is pressed
 # a) gmake -if Mopt clean; output is shown in the log zone ".t.log"
 proc AMSClean {} {
   global CleanInput log AMSDir
@@ -420,6 +475,28 @@ proc AMSClean {} {
           $log see end
         } else {
                 gets $CleanInput line
+                $log insert end \n$line
+                $log see end
+        }
+      }
+  }
+}
+# Command to be executed when the ".top.t6.cleanlibs" button is pressed
+# Output is shown in the log zone ".t.log"
+proc AMSCleanLibs {} {
+  global CleanLibsInput log AMSDir
+  set command "bash -c \"cd $AMSDir/install; gmake cleanlibs\""
+  if {[catch {open "|$command |& cat"} CleanLibsInput]} {
+        $log insert end $CleanLibsInput\n
+  } else {
+      $log insert end "> Executing: $command ... \n"
+      fileevent $CleanLibsInput readable {
+        if {[eof $CleanLibsInput]} {
+          catch {close $CleanLibsInput}
+          $log insert end "\n< [pwd] >"
+          $log see end
+        } else {
+                gets $CleanLibsInput line
                 $log insert end \n$line
                 $log see end
         }
