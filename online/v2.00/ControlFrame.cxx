@@ -238,7 +238,7 @@ AMSControlFrame::~AMSControlFrame(){
    AddFrame(fMenuBar, fMenuBarLayout);
    const int tggcolor=3;
    const int tgbcolor=7;
-   const int tgccolor=150;
+   const int tgccolor=2;
 
    // Create Group frames
    //  TGCompositeFrame * f2 = new TGCompositeFrame(this, 80, 40, kHorizontalFrame| kSunkenFrame);
