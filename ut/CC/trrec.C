@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.125 2001/01/22 17:32:23 choutko Exp $
+//  $Id: trrec.C,v 1.126 2001/02/12 10:32:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1465,6 +1465,7 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
   // pattern recognition + fit
   _RefitIsNeeded=0;
   _Start();
+ AMSgObj::BookTimer.start("TrFalseX");
 
   for (pat=0;pat<npat;pat++){
     if(TKDBc::patpoints(pat)<=nptmin && TKDBc::patallowFalseX(pat)){
@@ -1487,9 +1488,7 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
         // Search for others
         if(NTrackFound<0)NTrackFound=0;
 
-        AMSgObj::BookTimer.start("TrFalseX");
         integer npfound=_TrSearcherFalseX(1);
-        AMSgObj::BookTimer.stop("TrFalseX");
         if(npfound){
            if(npfound>0)NTrackFound++;
            goto out;
@@ -1505,6 +1504,7 @@ out:
       
     }
   }
+        AMSgObj::BookTimer.stop("TrFalseX");
 return NTrackFound;
 }
 
@@ -3030,6 +3030,10 @@ _Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
 
 
 integer AMSTrTrack::_TrSearcher(int icall){
+           if( _NoMoreTime()){
+            throw AMSTrTrackError(" Cpulimit Exceeded ");
+           }
+
            phit[icall]=AMSTrRecHit::gethead(TKDBc::patconf(pat,icall)-1);
            while(phit[icall]){
 //             cout <<icall<<" "<<phit[icall]<<" "<<pat<<endl;
@@ -3051,9 +3055,12 @@ integer AMSTrTrack::_TrSearcher(int icall){
 
 }
 integer AMSTrTrack::_TrSearcherFalseTOFX(int icall){
+           if( _NoMoreTime()){
+            throw AMSTrTrackError(" Cpulimit Exceeded ");
+           }
            phit[icall]=AMSTrRecHit::gethead(TKDBc::patconf(pat,icall)-1);
            while(phit[icall]){
-             if(phit[icall]->Good() && phit[icall]->checkstatus(AMSDBc::FalseTOFX) && !DistanceTOF(par,phit[icall])){
+             if(phit[icall]->Good() &&  phit[icall]->checkstatus(AMSDBc::FalseTOFX) && !DistanceTOF(par,phit[icall])){
               if(TKDBc::patpoints(pat) >icall+2){         
                 integer iret=_TrSearcherFalseTOFX(++icall); 
                 return iret;
@@ -3086,10 +3093,14 @@ number AMSTrTrack::par[2][2];
 
 
 integer AMSTrTrack::_TrSearcherFalseX(int icall){
+           if( _NoMoreTime()){
+            throw AMSTrTrackError(" Cpulimit Exceeded ");
+           }
+
            phit[icall]=AMSTrRecHit::gethead(TKDBc::patconf(pat,icall)-1);
            while(phit[icall]){
 //             cout <<icall<<" "<<phit[icall]<<" "<<pat<<endl;
-             if(phit[icall]->Good() && phit[icall]->checkstatus(AMSDBc::FalseX)==0 && !Distance(par,phit[icall])){
+             if(phit[icall]->Good() &&   phit[icall]->checkstatus(AMSDBc::FalseX)==0 && !Distance(par,phit[icall]) ){
               if(TKDBc::patpoints(pat) >icall+2){         
                 integer iret=_TrSearcherFalseX(++icall); 
                 return iret;
