@@ -24,6 +24,7 @@
 #include <trrec.h>
 #include <daqevt.h>
 #include <iostream.h>
+#include <richdbc.h>
 extern "C" void gustep_(){
 //if(GCKINE.ipart==50)cout <<"vlalalalalalalala"<<endl;
 //    cout <<"    ----> in gustep "<<endl;
@@ -176,23 +177,6 @@ extern "C" void gustep_(){
      GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O' && 
      GCTRAK.inwvol==1)
     {
-      geant eff[]={1.296, 1.476, 1.717, 1.853, 2.041, 2.324, 2.646, 3.214, 3.504,
-		   3.904, 4.350, 5.171, 5.518, 6.420, 7.153, 8.143, 9.271,10.330,
-		   11.509,12.280,13.981,15.244,16.984,18.122,19.337,20.191,20.633,
-		   20.633,20.633,20.633,20.633,20.010,18.923,17.355,16.266,14.918, 
-		   13.682,11.509,10.555, 8.321, 7.153, 6.282, 6.148, 4.953};
-      
-      geant wave_l[]={608.696, 605.797, 602.899, 600.000, 595.652, 591.304,
-		      585.507, 578.261, 573.913, 568.116, 563.768, 556.522,
-		      550.725, 543.478, 536.232, 528.986, 520.739, 511.594,
-		      502.899, 494.203, 482.609, 471.014, 459.42,  447.826,
-		      431.884, 426.087, 404.348, 391.304, 376.812, 369.565,
-		      355.012, 340.58,  328.986, 314.493, 304.348, 295.304, 
-		      288.406, 284.058, 279.71,  275.812, 272.464, 270.014,
-		      268.116, 266.667};
-      
-
-
       switch(GCKINE.ipart)
 	{
 	case 0:
@@ -200,17 +184,22 @@ extern "C" void gustep_(){
 {	  // Do all the job: compute if the particle is detected
 	  // using the detection eff(iciency) array and put it in the
 	  // mccluster
-
+          integer i;
 	  geant wl=2*3.1415926*197.327e-9/GCTRAK.vect[6];
-	  if(wl<wave_l[0] && wl>wave_l[43]){
-	    for(integer i=0;i<44;i++)
-	      if(wave_l[i]>wl && wave_l[i+1]<wl) break;
+	  if(wl<RICHDB::wave_length[0] && 
+	     wl>RICHDB::wave_length[RICHDB::entries]){
+	    for(i=0;i<RICHDB::entries;i++)
+	      if(RICHDB::wave_length[i]>wl && 
+		 RICHDB::wave_length[i+1]<wl) break;
 	    
 	    // linear interpolation of eff: it's good because the bining is 
 	    // small enough
 
-	    geant dummy;
-	    geant ieff=(eff[i+1]-eff[i])*(wl-wave_l[i])/(wave_l[i+1]-wave_l[i])+eff[i];
+	    geant dummy=0;
+	    geant ieff=(RICHDB::eff[i+1]-RICHDB::eff[i])*
+	      (wl-RICHDB::wave_length[i])/
+	      (RICHDB::wave_length[i+1]-RICHDB::wave_length[i])
+	      +RICHDB::eff[i];
 	    geant rnumber=RNDM(dummy);
 
 	    if(100*rnumber<ieff) // Detected!!!
