@@ -1084,6 +1084,9 @@ void AMSTrRawCluster::buildrawParameters(integer n, int16u *p){
          int16u haddr=(conn<<10) | (tdrs <<12);
          AMSTrIdSoft idd(ic,haddr);
          if(!idd.dead()){
+#ifndef __AMSDEBUG__
+         if(tdrn==0)
+#endif
            cout <<"For id "<<idd;
          }
        }
@@ -1106,6 +1109,9 @@ void AMSTrRawCluster::buildrawParameters(integer n, int16u *p){
           int16u haddr=(10<<6) |( conn<<10) | (tdrk <<13);
           AMSTrIdSoft idd(ic,haddr);
          if(!idd.dead()){
+#ifndef __AMSDEBUG__
+         if(tdrn==16)
+#endif
            cout <<"For id "<<idd;
          }
        }
@@ -1160,10 +1166,18 @@ void AMSTrRawCluster::buildrawParameters(integer n, int16u *p){
         "First strip of region u2,2(0)",
         "First strip of region o2,2(0)"
       }; 
-      for(int kl=0;kl<40;kl++){
-        cout <<descr[kl]<<" "<<*(ptr+2+kl)<<endl;
+#ifndef __AMSDEBUG__
+      if(tdrn==0 || tdrn==16){
+#endif 
+        for(int kl=0;kl<40;kl++){
+          cout <<descr[kl]<<" "<<*(ptr+2+kl)<<endl;
+        }
+        cout <<" "<<endl;                    
+        
+#ifndef __AMSDEBUG__
       }
-      cout <<" "<<endl;                    
+#endif 
+
      ptr+=rl;
      
     }
