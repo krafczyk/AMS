@@ -2540,13 +2540,13 @@ C.    ------------------------------------------------------------------
          NSTOUT=NSTOUT+1
          IF(MOD(NSTOUT,5).EQ.0) THEN
             EPSCUR=NSTOUT*EPSMAC
-            WRITE(CHMAIL,10000)ITRA,ISTAK,NTMULT,NAPART
-10000          FORMAT(' *** ERTRGO *** Boundary loop: track ',
-     +         I4,' stack ',I4,' NTMULT ',I5,1X,5A4)
-            CALL GMAIL(1,0)
-            WRITE(CHMAIL,10100) EPSCUR
-10100          FORMAT('                Precision now set to ',G10.3)
-            CALL GMAIL(0,1)
+c            WRITE(CHMAIL,10000)ITRA,ISTAK,NTMULT,NAPART
+c10000          FORMAT(' *** ERTRGO *** Boundary loop: track ',
+c     +         I4,' stack ',I4,' NTMULT ',I5,1X,5A4)
+c            CALL GMAIL(1,0)
+c            WRITE(CHMAIL,10100) EPSCUR
+c10100          FORMAT('                Precision now set to ',G10.3)
+c            CALL GMAIL(0,1)
          ENDIF
       ELSE
          NSTOUT = 0
