@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.16 2003/06/18 15:36:58 choutko Exp $
+//  $Id: main.cxx,v 1.17 2003/06/19 13:00:13 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -177,7 +177,6 @@ void OpenChain(TChain & chain, char * filenam){
                 else Selector=0;
                 dirent ** namelistsubdir;
                 cout <<"  scanning "<<ts<<" "<<Selector<<" l "<<l<<" "<<i<<endl;
-                if(Selector)cout <<" sela "<<*Selector<<endl;
                 int nptrdir=scandir(ts.Data(),&namelistsubdir,Selectsdir,NULL);
                 for( int nsd=0;nsd<nptrdir;nsd++){
                   char fsdir[1023];

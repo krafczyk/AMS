@@ -1,4 +1,4 @@
-//  $Id: AMSNtuple.cxx,v 1.5 2003/06/17 07:39:54 choutko Exp $
+//  $Id: AMSNtuple.cxx,v 1.6 2003/06/19 13:00:13 choutko Exp $
 #include <stdlib.h>
 #include <iostream.h>
 #include "AMSNtuple.h"
@@ -13,7 +13,8 @@ ClassImp(AMSNtupleR)
   if(chain){
     Init(chain);
     fEntries=chain->GetEntries();
-    if(fEntries>0 && chain->GetTree()){
+    cout <<" AMSNtupleR-I-EntriesFound "<<fEntries<<endl;
+    if(fEntries>0 && chain->GetTree() && fEntries!=1234567890){
      
 //     chain->GetTree()->SetTimerInterval();
 //     Int_t interval = chain->GetTree()->GetTimerInterval();

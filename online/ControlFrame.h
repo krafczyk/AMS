@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.h,v 1.2 2003/06/18 15:36:58 choutko Exp $
+//  $Id: ControlFrame.h,v 1.3 2003/06/19 13:00:13 choutko Exp $
 #ifndef __CONTROLFRAME__
 #define __CONTROLFRAME__
 #include <stdlib.h>
@@ -10,6 +10,7 @@
 #include <TGIcon.h>
 #include <TGLabel.h>
 #include <TGButton.h>
+#include <TGButtonGroup.h>
 #include <TGTextEntry.h>
 #include <TGMsgBox.h>
 #include <TGMenu.h>
@@ -25,10 +26,11 @@ using namespace std;
 
 class AMSControlFrame : public TGTransientFrame {
 protected:
-  TGGroupFrame *_pbutfr, *_pcontrolfr, *_pcombofr, *_plogfr, *_pcyclefr;
-  TGRadioButton *_plogx[2];
-  TGRadioButton *_plogy[2];
-  TGRadioButton *_plogz[2];
+  TGGroupFrame *_pbutfr, *_pcontrolfr, *_pcombofr, *_pcyclefr;
+  TGGroupFrame* _plogfr;
+  TGCheckButton *_plogx;
+  TGCheckButton *_plogy;
+  TGCheckButton *_plogz;
   vector<TGCheckButton *> _pcycle;
   vector<TGTextButton *> _pbutton;
   vector<TGTextButton *> _pcontrol;

@@ -1,10 +1,11 @@
-#  $Id: Makefile,v 1.5 2003/06/18 16:54:42 choutko Exp $
+#  $Id: Makefile,v 1.6 2003/06/19 13:00:13 choutko Exp $
 
 PLATFORM      =  Linux
 
 CXX           =  g++ -Wno-deprecated
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
 OPT           = -O2
+OPTC          = -O0
 NOOPT         = -g
 LD            = g++
 LDFLAGS       = -g 
@@ -30,7 +31,7 @@ SRCS          = AMSDisplay.cxx \
                 AMSLVL3Hist.cxx\
                 AMSAxAMSHist.cxx\
                 AMSGenHist.cxx\
-                AMSNtuple.cxx  ControlFrame.cxx\
+                AMSNtuple.cxx \
 
 HDRS          =   \
                 ../include/root_RVS.h\
@@ -63,7 +64,7 @@ MAINOC         = $(MAINC:.cxx=.o)
 
 OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
 OBJSR          = $(PREFIX)root.o
-
+OBJSC          = $(PREFIX)ControlFrame.o
 
 ALLDICT       = $(DICT) $(DICTH) 
 ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
@@ -89,13 +90,13 @@ osdepend:  $(AMSPRGC)
 
 
 
-$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR)
-		$(LD)  -static  $(LDFLAGS) $(ALLOBJS) $(OBJSR)  $(DICTO)  $(LIBS)  \
+$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) $(OBJSC)
+		$(LD)  -static  $(LDFLAGS) $(ALLOBJS) $(OBJSR)  $(OBJSC) $(DICTO)  $(LIBS)  \
 		-o $(@) 
 		@echo "$(AMSPRG) done"
 
-$(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR)
-		$(LD) -rdynamic $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR)   $(LIBS) -o $(AMSPRGC) 
+$(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)
+		$(LD) -rdynamic $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR) $(OBJSC)   $(LIBS) -o $(AMSPRGC) 
 
 
 $(DICT):        $(HDRS)
@@ -130,13 +131,16 @@ clean:
 ##### RULES #####
 
 $(ALLOBJS): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
+
+$(OBJSC): $(PREFIX)%.o : %.cxx 
+	$(CXX) $(OPTC) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSR): $(PREFIX)%.o : ../CC/%.C 
-	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(DICTO): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(NOOPT) $(CXXFLAGS)  -c $(<)  -o $(@)
+	$(CXX) $(OPT) $(CXXFLAGS)  -c $(<)  -o $(@)
 
 
 ##### DEPENDENCIES #####

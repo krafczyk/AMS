@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.10 2003/06/18 16:43:27 choutko Exp $
+#  $Id: 00index.txt,v 1.11 2003/06/19 13:00:12 choutko Exp $
 
 =========================================================================
 
@@ -73,5 +73,5 @@ AMSHist             // abstract class for the *Hist
 AMSNtuple           // Ntuple def
 AMSDisplay          // Main GUI Class & Dispatcher
 ControlFrame        // Control Frame
- AMSNtupleSelect.C   //  user selection function
+AMSNtupleSelect.C   //  user selection function
 

@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.3 2003/06/18 16:37:20 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.4 2003/06/19 13:00:13 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
@@ -45,29 +45,14 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       }
       if(parm1/100 == 5){
 	switch(parm1%10){
-	case 2:
-	  _plogx[0]->SetState(kButtonUp);
-	  gAMSDisplay->IsLogX()=kTRUE;
-	  break;
 	case 1:
-	  _plogx[1]->SetState(kButtonUp);
-	  gAMSDisplay->IsLogX()=kFALSE;
+          gAMSDisplay->IsLogX()=_plogx->GetState();
 	  break;
-	case 4:
-	  _plogy[0]->SetState(kButtonUp);
-	  gAMSDisplay->IsLogY()=kTRUE;
+	case 2:
+          gAMSDisplay->IsLogY()=_plogy->GetState();
 	  break;
 	case 3:
-	  _plogy[1]->SetState(kButtonUp);
-	  gAMSDisplay->IsLogY()=kFALSE;
-	  break;
-	case 6:
-	  _plogz[0]->SetState(kButtonUp);
-	  gAMSDisplay->IsLogZ()=kTRUE;
-	  break;
-	case 5:
-	  _plogz[1]->SetState(kButtonUp);
-	  gAMSDisplay->IsLogZ()=kFALSE;
+          gAMSDisplay->IsLogZ()=_plogz->GetState();
 	  break;
 	  
 	}
@@ -155,9 +140,9 @@ AMSControlFrame::~AMSControlFrame(){
   for(int i=0;i<_pcontrol.size();i++)delete _pcontrol[i];
   for(int i=0;i<_pbutton.size();i++)delete _pbutton[i];    
   for(int i=0;i<_pcycle.size();i++)delete _pcycle[i];    
-  for(int i=0;i<2;i++)delete _plogx[i];    
-  for(int i=0;i<2;i++)delete _plogy[i];    
-  for(int i=0;i<2;i++)delete _plogz[i];    
+  delete _plogx;    
+  delete _plogy;
+  delete _plogz;
   delete fL1;
   delete fL2;
   delete fL3;
@@ -256,18 +241,18 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     wattr.fMask = kWABackPixel | kWAEventMask;
     wattr.fBackgroundPixel = tggcolor;
     wattr.fEventMask = kExposureMask;
+    
     gVirtualX->ChangeWindowAttributes(_pcyclefr->GetId(), &wattr);
+//     const TString a("Scale");
+//    _plogfr= new TGButtonGroup(this, 1,3,0,0,a);
     _plogfr= new TGGroupFrame(this, new TGString("Scale"));
-    wattr.fMask = kWABackPixel | kWAEventMask;
-    wattr.fBackgroundPixel = tggcolor;
-    wattr.fEventMask = kExposureMask;
-    gVirtualX->ChangeWindowAttributes(_plogfr->GetId(), &wattr);
+    _plogfr->ChangeBackground(tggcolor);
     
     fL1 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 0, 0, 2, 2);
     fL2 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
     fL3 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 0,0,0,0);
     fL4 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
-    fL5 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX , 0,0,0,0);
+    fL5 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX , 1,1,1,1);
     
    
     for(i=0;i<fSubDetMenu.size();i++){
@@ -286,25 +271,20 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
       wattr.fEventMask = kExposureMask;
       gVirtualX->ChangeWindowAttributes(_pcycle[i]->GetId(), &wattr);
     }
-    _plogx[0]=new TGRadioButton(_plogfr,"LinX",501);
-    _plogx[1]=new TGRadioButton(_plogfr,"LogX",502);
-    _plogy[0]=new TGRadioButton(_plogfr,"LinY",503);
-    _plogy[1]=new TGRadioButton(_plogfr,"LogY",504);
-    _plogz[0]=new TGRadioButton(_plogfr,"LinZ",505);
-    _plogz[1]=new TGRadioButton(_plogfr,"LogZ",506);
-    for(i=0;i<2;i++){
+    _plogx=new TGCheckButton(_plogfr,"LogX",501);
+    _plogy=new TGCheckButton(_plogfr,"LogY",502);
+    _plogz=new TGCheckButton(_plogfr,"LogZ",503);
       wattr.fMask = kWABackPixel | kWAEventMask;
       wattr.fBackgroundPixel = tggcolor;
       wattr.fEventMask = kExposureMask;
-      gVirtualX->ChangeWindowAttributes(_plogx[i]->GetId(), &wattr);
-      gVirtualX->ChangeWindowAttributes(_plogy[i]->GetId(), &wattr);
-      gVirtualX->ChangeWindowAttributes(_plogz[i]->GetId(), &wattr);
-    }
+      gVirtualX->ChangeWindowAttributes(_plogx->GetId(), &wattr);
+      gVirtualX->ChangeWindowAttributes(_plogy->GetId(), &wattr);
+      gVirtualX->ChangeWindowAttributes(_plogz->GetId(), &wattr);
     for(i=0;i<_pbutton.size();i++)_pbutton[i]->Associate(this);
     for(i=0;i<_pbutton.size();i++)_pcycle[i]->Associate(this);
-    for(i=0;i<2;i++)_plogx[i]->Associate(this);   
-    for(i=0;i<2;i++)_plogy[i]->Associate(this);   
-    for(i=0;i<2;i++)_plogz[i]->Associate(this);   
+    _plogx->Associate(this);   
+    _plogy->Associate(this);   
+    _plogz->Associate(this);   
     for(i=0;i<gAMSDisplay->getMaxSubDet();i++){
       if((gAMSDisplay->getSubDet(i))->IsActive())_pcycle[i]->SetState(kButtonDown);
     }
@@ -337,12 +317,9 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
 
 
     for(i=0;i<_pcycle.size();i++)_pcyclefr->AddFrame(_pcycle[i],fL1);
-    for(i=0;i<2;i++)_plogfr->AddFrame(_plogx[i],fL1);
-    for(i=0;i<2;i++)_plogfr->AddFrame(_plogy[i],fL1);
-    for(i=0;i<2;i++)_plogfr->AddFrame(_plogz[i],fL1);
-    _plogx[0]->SetState(kButtonDown);   
-    _plogy[0]->SetState(kButtonDown);   
-    _plogz[0]->SetState(kButtonDown);   
+    _plogfr->AddFrame(_plogx,fL1);
+    _plogfr->AddFrame(_plogy,fL1);
+    _plogfr->AddFrame(_plogz,fL1);
     
     
     AddFrame(_pcontrolfr,fL5);

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.15 2003/06/18 16:37:20 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.16 2003/06/19 13:00:12 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -198,7 +198,7 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
    m_ObjInfoPad->cd();
    m_ObjInfoPad->Clear();
    atext[0]=0;
-   sprintf(atext,"Run %d   EventsProcessed %d OutOf %d %s",m_ntuple->GetRun(),_Begin,m_ntuple->Entries(),m_ntuple->GetTime());
+   sprintf(atext,"Run %d   EventsProcessed %d / %d %s",m_ntuple->GetRun(),_Begin,m_ntuple->Entries(),m_ntuple->GetTime());
 
    if (! text) {
 	text = new TText(0.5, 0.38, atext);
@@ -377,7 +377,7 @@ bool AMSOnDisplay::Fill(bool checkonly){
    }
      _Begin++;
      time(&timett2);
-     if(timett2-timett1>0 && (i-cur)>(_End-_Begin)/100){
+     if(timett2-timett1>0 && (i-cur)>(_End)/100){
          timett1=timett2;
          if(!(_Begin%GetScale())){
            DrawRunInfo();
@@ -465,8 +465,8 @@ void AMSOnDisplay::PrintCB()
    pid_t pid = getpid();
    char filename[80];
    sprintf(filename, "/tmp/AMSOnDisplay.%u.ps",pid);
-   gAMSDisplay->GetCanvas()->SaveAs(filename);
-   gAMSDisplay->GetCanvas()->Update();          // refresh the screen
+   GetCanvas()->SaveAs(filename);
+   GetCanvas()->Update();          // refresh the screen
    char cmd[255];
    sprintf(cmd, "lpr /tmp/AMSOnDisplay.%u.ps",pid);
    system(cmd);
@@ -485,8 +485,12 @@ void AMSOnDisplay::ReSizeCanvas(Long_t zoom, bool draw){
     UInt_t h=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCheight();
     UInt_t wz=w*m_scale/scaleprev;
     UInt_t hz=h*m_scale/scaleprev;
-//    cout <<" hw"<<w<<" "<<h<<" "<<wz<<" "<<hz<<" "<<m_scale<<" "<<scaleprev<<endl;
     m_Canvas->SetCanvasSize(wz,hz);
     scaleprev=m_scale;      
+//  move canvas say at the center
+//
+    TGCanvas* frf=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCanvasWindow();
+    frf->SetHsbPosition(wz*(1.-1./m_scale)/2);
+    frf->SetVsbPosition(hz*(1.-1./m_scale)/2);
 }
 }
