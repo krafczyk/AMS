@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.161 2003/12/10 15:06:46 alcaraz Exp $
+//  $Id: trrec.C,v 1.162 2004/01/20 16:13:46 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2425,20 +2425,30 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
   }
 
   for (int i=1;i<_NHits;i++){
+     
+    if (MAGSFFKEY.magstat>0) {
 
-    number u[3], bave[3];
-    for (int j=0;j<3;j++){
-        u[j] = (hits[i][j]-hits[i-1][j])/len[i];
-        bave[j] = (b[i-1][j]+b[i][j])/2;
+      number u[3], bave[3];
+      for (int j=0;j<3;j++){
+          u[j] = (hits[i][j]-hits[i-1][j])/len[i];
+          bave[j] = (b[i-1][j]+b[i][j])/2;
+      }
+
+      PathIntegral_x[i][0] = (u[1]*b[i-1][2]-u[2]*b[i-1][1])/2;
+      PathIntegral_x[i][1] = (u[2]*b[i-1][0]-u[0]*b[i-1][2])/2;
+      PathIntegral_x[i][2] = (u[0]*b[i-1][1]-u[1]*b[i-1][0])/2;
+
+      PathIntegral_u[i][0] = u[1]*bave[2]-u[2]*bave[1];
+      PathIntegral_u[i][1] = u[2]*bave[0]-u[0]*bave[2];
+      PathIntegral_u[i][2] = u[0]*bave[1]-u[1]*bave[0];
+
+    } else {
+      for (int j=0;j<3;j++){
+        PathIntegral_x[i][j] = 0.;
+        PathIntegral_u[i][j] = 0.;
+      }
+
     }
-
-    PathIntegral_x[i][0] = (u[1]*b[i-1][2]-u[2]*b[i-1][1])/2;
-    PathIntegral_x[i][1] = (u[2]*b[i-1][0]-u[0]*b[i-1][2])/2;
-    PathIntegral_x[i][2] = (u[0]*b[i-1][1]-u[1]*b[i-1][0])/2;
-
-    PathIntegral_u[i][0] = u[1]*bave[2]-u[2]*bave[1];
-    PathIntegral_u[i][1] = u[2]*bave[0]-u[0]*bave[2];
-    PathIntegral_u[i][2] = u[0]*bave[1]-u[1]*bave[0];
 
   }
 
@@ -2453,16 +2463,17 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
     for (int k=0;k<=i;k++) {
 	d[ix][2] += len[k];
 	d[iy][3] += len[k];
-      for (int l=0;l<=k;l++) {
-        if (l==k) {
-          d[ix][4] += len[k]*len[k]*PathIntegral_x[k][0];
-          d[iy][4] += len[k]*len[k]*PathIntegral_x[k][1];
-        }
-        else {
-          d[ix][4] += len[k]*len[l]*PathIntegral_u[l][0];
-          d[iy][4] += len[k]*len[l]*PathIntegral_u[l][1];
-        }
-	}
+      if (MAGSFFKEY.magstat>0) {
+         for (int l=0;l<=k;l++) {
+            if (l==k) {
+                  d[ix][4] += len[k]*len[k]*PathIntegral_x[k][0];
+                  d[iy][4] += len[k]*len[k]*PathIntegral_x[k][1];
+            } else {
+                  d[ix][4] += len[k]*len[l]*PathIntegral_u[l][0];
+                  d[iy][4] += len[k]*len[l]*PathIntegral_u[l][1];
+            }
+	   }
+      }
     }
   }
 
@@ -2493,7 +2504,13 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
 // (F*S_x*F + G*S_y*G)**{-1}
   int ifail;
   int idim = 5;
-  INVERTMATRIX((double*)Covariance, idim, idim, ifail);
+  int idim_eff;
+  if (MAGSFFKEY.magstat>0) {
+      idim_eff = 5;
+  } else {
+      idim_eff = 4;
+  }
+  INVERTMATRIX((double*)Covariance, idim, idim_eff, ifail);
   if (ifail) {
     _Chi2WithoutMS = FLT_MAX;
     _Chi2StrLine = FLT_MAX;
@@ -2504,11 +2521,11 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
   }
 
 // Solution
-  for (int k=0;k<5;k++) {
-    Param[k] = 0.;
-    for (int i=0;i<5;i++) {
-      Param[k] += Covariance[k][i]*dx[i];
-    }
+ for (int k=0;k<idim_eff;k++) {
+      Param[k] = 0.;
+      for (int i=0;i<idim_eff;i++) {
+            Param[k] += Covariance[k][i]*dx[i];
+      }
   }
   
 // Chi2 (xl and yl in microns, since sigmas are in microns too)
@@ -2517,7 +2534,7 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
   for (int l=0;l<_NHits;l++) {
     number xl = hits[l][0]*1.e4;
     number yl = hits[l][1]*1.e4;
-    for (int k=0;k<5;k++) {
+    for (int k=0;k<idim_eff;k++) {
       xl -= d[l][k]*Param[k]*1.e4;
       yl -= d[l+_NHits][k]*Param[k]*1.e4;
     }
@@ -2526,13 +2543,18 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
   }
 
 // Return Chi2/Ndof
-  if (Param[4]!=0.0) {
+  if (MAGSFFKEY.magstat <= 0) {
+      _Chi2WithoutMS /= (2.*_NHits-4.);
+      _Chi2StrLine /= (_NHits-2.);
+      _RigidityWithoutMS = FLT_MAX;
+  } else if (Param[4]!=0.0) {
       _Chi2WithoutMS /= (2.*_NHits-5.);
       _Chi2StrLine /= (_NHits-2.);
       _RigidityWithoutMS = 2.997E-4/Param[4];
   } else {
       _Chi2WithoutMS = FLT_MAX;
       _Chi2StrLine = FLT_MAX;
+      _RigidityWithoutMS = FLT_MAX;
 #ifdef __AMSDEBUG__
       cout << " What ?? Param=0!!" << endl;
 #endif

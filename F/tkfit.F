@@ -55,6 +55,8 @@
       data tol/1.e-5/
       data prec /5.e-3/ ! precision of the algorithm in MV
 *
+#      include "mfield.h"
+*
 ***---------------------------------------------------------------
 *
 c      write(*,*)imscat,xmass,iplanez,exm
@@ -64,8 +66,10 @@ c      write(*,*)imscat,xmass,iplanez,exm
         GOTO 999
       ENDIF
 
+      IF (magstat.LE.0) IMSCAT = 0
+
       do 20 ipl = 1, NPOINTS
-        if (ipl.EQ.1) then
+        if (ipl.EQ.1 .or. magstat.gt.0) then
           DO i=1,3
             axx(i,ipl) = 0.
             av(i,ipl) = 0.
@@ -132,7 +136,8 @@ C F and G matrices
           DO K = 1, J
             D(JX,3) = D(JX,3) + AL(K)
             D(JY,4) = D(JY,4) + AL(K)
-            DO L = 1, K
+            IF (magstat.gt.0) THEN
+             DO L = 1, K
               IF (L.EQ.K) THEN
                 D(JX,5) = D(JX,5) + AL(K)*AL(K)*axx(1,k)
                 D(JY,5) = D(JY,5) + AL(K)*AL(K)*axx(2,k)
@@ -140,7 +145,8 @@ C F and G matrices
                 D(JX,5) = D(JX,5) + AL(K)*AL(L)*av(1,l)
                 D(JY,5) = D(JY,5) + AL(K)*AL(L)*av(2,l)
               ENDIF
-            END DO
+             END DO
+            ENDIF
           END DO
         END DO
 
@@ -233,7 +239,12 @@ c          PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
         END DO
         
 C (F*S_x*F + G*S_y*G)**{-1}
-        CALL DINV (5, DD, 5, IDAUX, IFAIL)
+        IF (magstat.gt.0) THEN
+          IDIM_EFF = 5
+        ELSE
+          IDIM_EFF = 4
+        ENDIF
+        CALL DINV (5, DD, IDIM_EFF, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
           PRINT*,' DD Covariance Matrix is Singular !!!'
           outpar(5)=0
@@ -241,15 +252,16 @@ C (F*S_x*F + G*S_y*G)**{-1}
         ENDIF
 
 C Solution
-        DO K = 1, 5
+        DO K = 1, IDIM_EFF
           OUTPAR(K) = 0.
-          DO I = 1, 5
+          DO I = 1, IDIM_EFF
             OUTPAR(K) = OUTPAR(K) + DD(K,I)*DX(I)
           END DO
         END DO
 c        PRINT*,' OUTpar= ', OUTpar
 
 C Convergence criteria
+        IF (magstat.LE.0) GOTO 998
         deltatol = abs(outpar5-outpar(5))/2.997e-4
         deltaprec = deltatol*(outpar(5)/2.997e-4)**2
         IF (     IMSCAT.EQ.0 
@@ -263,7 +275,7 @@ C Convergence criteria
 C Too many iterations and no convergence
       write(*,*)'tkfita-Error-TooManyIterations'
 C Final Chi2
-      NDOF = 2*NPOINTS-5
+      NDOF = 2*NPOINTS-IDIM_EFF
       CHI2 = 0.
       DO L = 1, NPOINTS
         XL = XM(1,L)
@@ -293,19 +305,19 @@ C Convert rigidity to GV
 C Everything OK
 c      write(*,*)'qq ',iter
 C Final Chi2
-      NDOF = 2*NPOINTS-5
+      NDOF = 2*NPOINTS-IDIM_EFF
       CHI2 = 0.
       DO L = 1, NPOINTS
         XL = XM(1,L)
         YL = XM(2,L)
-        DO K = 1, 5
+        DO K = 1, IDIM_EFF
           XL = XL - D(L,K)*OUTPAR(K)
           YL = YL - D(L+NPOINTS,K)*OUTPAR(K)
         END DO
         DO J = 1, NPOINTS
           XJ = XM(1,J)
           YJ = XM(2,J)
-          DO K = 1, 5
+          DO K = 1, IDIM_EFF
             XJ = XJ - D(J,K)*OUTPAR(K)
             YJ = YJ - D(J+NPOINTS,K)*OUTPAR(K)
           END DO
@@ -314,8 +326,10 @@ C Final Chi2
         END DO
       END DO
 C Convert rigidity to GV
-      OUTPAR(5)=OUTPAR(5)/2.997E-4
-      OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
+      IF (magstat.GT.0) THEN
+            OUTPAR(5)=OUTPAR(5)/2.997E-4
+            OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
+      ENDIF
       IERR = 0
 
 999   CONTINUE
