@@ -76,7 +76,7 @@ geant AMSTOFScan::getef2(const geant r, const int i1, const int i2)
 // function to create AMSTOFScan objects for all sc. bars :
 void AMSTOFScan::build()
 {
-//                                  <-- first read t-distr.map-file
+//                                  <-- first read t-distr. map-file
     int i,ic;
     int brfnam[SCBLMX];
     char fname[80];
@@ -171,8 +171,8 @@ void AMSTOFTovt::build()
 //      <--- prepare PM single electron pulse height distribution:
   static geant arr[19]={5.,20.,39.7,46.5,52.3,54.6,52.7,47.6,40.7,
                           32.5,23.9,16.7,11.,7.,4.5,3.,1.5,1.,0.5};
-  static AMSDistr scpmsesp(19,0.,0.909,arr);// p/h spectrum ready
-//                   ( scale in mV@50ohm to have 5mV as m.p. value!!!)
+  static AMSDistr scpmsesp(19,0.,0.253,arr);// p/h spectrum ready
+//                   ( scale in mV@50ohm to have 1.39mV as m.p. value!!!)
 //
   integer i1,i2,id,idN,idd,ibar,ilay,ibtyp,cnum;
   static geant tslice1[SCTBMX+1]; //  flash ADC array for side-1
@@ -196,7 +196,7 @@ void AMSTOFTovt::build()
 //
   if(first++==0){
     AMSTOFTovt::inipsh(npshbn,pmplsh); // prepare PM s.e. pulse shape arr.
-    HBOOK1(1111,"Single electron spectrum,mV",50,0.,25.,0.);
+    HBOOK1(1111,"Single electron spectrum,mV",65,0.,13.,0.);
     for(i=0;i<1000;i++){
       rnd=RNDM(dummy);
       am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum

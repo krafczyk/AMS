@@ -180,19 +180,20 @@ M A I N  ->      gbatch.C
  |        |    |          |   |->pid                Particle Identification
  |        |    |          |   |->refit              Refitting Trajectory
  |        |    |          |
- |        |    |          |->TOFTZSLcalib::select() Event selection for 
- |        |    |                                    TOF TZSL-calibration
+ |        |    |           
+ |        |    |                                    
  |        |    |
  |        |    |
  |        |    |->_caamsevent           Calibration
  |        |    |     |
  |        |          |->_catofevent      TOF
- |        |          |
- |        |          |
+ |        |          |      |
+ |        |          |      |->TOFTZSLcalib::select() Event selection for
+ |        |          |                                TOF TZSL-calibration
  |        |          |->_cactcevent       Cerenkov
  |        |          |
  |        |          | 
- |        |          |->catofevent        Tracker 
+ |        |          |->catkevent        Tracker 
  |        |          |     |
  |        |          |     |->AMSTrCalibFit::Test
  |        |          |     |->AMSTrCalibFit::Fit

@@ -99,8 +99,8 @@ geant ThrS;  // limit on sum
   geant daqthr[5];// daq thresholds
   geant cuts[10];// cuts 
   integer config[3];// geometry-configuration generic file-name (max 11 letters)
-  integer tzerca[3];// T0,slope,str-ratio calib.parameters gen. file-name
-  integer spare1[3];// spare f.n
+  integer tzerca[3];// T0,slope calib.parameters gen. file-name
+  integer strrca[3];// stretcher-ratio calib. file-name
   integer spare2[3];// spare f.n
   integer sec[2];
   integer min[2];
@@ -114,6 +114,7 @@ COMMON_BLOCK_DEF(TOFRECFFKEY_DEF,TOFRECFFKEY);
 //===================================================================
 class TOFCAFFKEY_DEF {
 public:
+// TZSL-calibration :
 geant pcut[2];//low/high limits on momentum of calibr. events
 geant bmean;// mean proton velocity in this mom. range
 geant tzref[2];// def. T0 for two reference counters
@@ -122,6 +123,10 @@ geant fixstr;// def. for inverse (<1) stratcher ratio
 integer idref[2];// LBB for two ref.counter 
 integer ifsl;// 0/1 to fix/release slope param.
 integer ifstr;// 0/1 to fix/release str. param
+// AMPL-calibration :
+integer truse;// 1/0 to use/not tracker
+geant plhc[2];//low/high limits on tracker mom. of calibr.events
+integer refbid[20];//ref. id's list to use for longit. uniformity meas.
 };
 #define TOFCAFFKEY COMMON_BLOCK(TOFCAFFKEY,tofcaffkey)
 COMMON_BLOCK_DEF(TOFCAFFKEY_DEF,TOFCAFFKEY);

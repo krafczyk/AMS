@@ -106,16 +106,16 @@ void AMSTOFRawCluster::build(int &status){
   int16u id,idd,idN,stat[2];
   number zc,ama[2],amd[2],qtota,qtotd,tmf[2],time,coo,ecoo;//input to RawCluster Constr
   number tm[2],tf,dt,fstd;
-  number amf[2],timeD,strr,tamp;
+  number amf[2],timeD,tamp;
   number charg[2];
-  geant co,eco,point,brlm,pcorr,td2p,etd2p,clong[SCLRS];
+  geant co,eco,point,brlm,pcorr,td2p,etd2p,clong[SCLRS],strr[2];
   AMSTOFRawEvent *ptr;
   AMSTOFRawEvent *ptrN;
   integer nbrl[SCLRS],brnl[SCLRS];
   int bad;
 // some variables for histogramming:
   geant tch,pch1[SCLRS],pch2[SCLRS];
-  geant edepa[SCLRS],edepd[SCLRS],tcorr[SCLRS],tdiff[SCLRS];
+  geant edepa[SCLRS],edepd[SCLRS],tcorr[SCLRS],tdiff[SCLRS],td13,td24;
 //
   ptr=(AMSTOFRawEvent*)AMSEvent::gethead()
                                     ->getheadC("AMSTOFRawEvent",0);
@@ -178,8 +178,9 @@ void AMSTOFRawCluster::build(int &status){
           && nftdc[0] >0 && nftdc[1] >0){
           TOFJobStat::addbr(brnum,1);
 //   --------> identify "corresponding" hit in fast TDC :
-          tm[0]=stdc1[0]*TOFDBc::tdcbin(1)/scbrcal[ilay][ibar].gtstrat();
-          tm[1]=stdc2[0]*TOFDBc::tdcbin(1)/scbrcal[ilay][ibar].gtstrat();
+          scbrcal[ilay][ibar].gtstrat(strr);
+          tm[0]=stdc1[0]*TOFDBc::tdcbin(1)/strr[0];
+          tm[1]=stdc2[0]*TOFDBc::tdcbin(1)/strr[1];
           tmf[0]=-1.;
           tmf[1]=-1.;
           if(TOFRECFFKEY.reprtf[2]>0 && nftdc[0] ==1 && nftdc[1]==1){// histogr.
@@ -280,7 +281,7 @@ void AMSTOFRawCluster::build(int &status){
 //------
             if(TOFRECFFKEY.relogic[0]<=1){// ====> Normal and TZSL_calib reconstruction :
 //        Calc. longit. coord/err and position corr. to signal :
-              scbrcal[ilay][ibar].tmd2p(tmi,am,co,eco);// get corrected coord/err
+              scbrcal[ilay][ibar].tmd2p(tmi,am,co,eco);// get A-corrected loc.coord/err
               brlm=0.5*TOFDBc::brlen(ilay,ibar)+3.*eco;//limit on max. coord
               if(fabs(co) > brlm){   //means "coord. is more than counter half length"
                 pcorr=scbrcal[ilay][ibar].poscor(0.);// take position corr. as for "0"
@@ -293,7 +294,7 @@ void AMSTOFRawCluster::build(int &status){
               am[1]=adca2[0];
               qtota=scbrcal[ilay][ibar].ama2mip(am)
                                              /pcorr; //an-tot Edep(mev) with corrections
-              ama[0]=am[0]*TOFDBc::tdcbin(2);// just TDC_counts->ns
+              ama[0]=am[0]*TOFDBc::tdcbin(2);//TDC_counts->ns for later use in calib.prog.
               ama[1]=am[1]*TOFDBc::tdcbin(2);
 //        Find counter time corrected by anode TovT :
               time=scbrcal[ilay][ibar].tm2t(tmi,am); // time with corrections
@@ -306,16 +307,16 @@ void AMSTOFRawCluster::build(int &status){
                 am[1]=adcd2[0];
                 qtotd=scbrcal[ilay][ibar].amd2mip(am)
                                               /pcorr;//di-tot Edep(mev) with corrections
-                amd[0]=am[0]*TOFDBc::tdcbin(3);// raw amplitudes(ns) needed
-                amd[1]=am[1]*TOFDBc::tdcbin(3);// for later calibration
+                amd[0]=am[0]*TOFDBc::tdcbin(3);// raw amplitudes(ns), needed
+                amd[1]=am[1]*TOFDBc::tdcbin(3);//    for later calibration
               } 
-              tmf[0]=tmi[0]*TOFDBc::tdcbin(1);// raw times(ns) needed
-              tmf[1]=tmi[i]*TOFDBc::tdcbin(1);// for later calibration
+              tmf[0]=tmi[0]*TOFDBc::tdcbin(1);// raw times(ns), needed
+              tmf[1]=tmi[i]*TOFDBc::tdcbin(1);//                for later calibration
               nbrl[ilay]+=1;
-              edepa[ilay]=qtota;// store some number for histogramming
+              edepa[ilay]=qtota;// store some number for histogramming :
               edepd[ilay]=qtotd;
               tcorr[ilay]=time;
-              tdiff[ilay]=0.5*(tmf[0]-tmf[1])/scbrcal[ilay][ibar].gtstrat();// raw time-diff.(ns)
+              tdiff[ilay]=0.5*(tmf[0]/strr[0]-tmf[1]/strr[1]);// layer raw time-diff.(ns) 
               pch1[ilay]=charg[0];
               pch2[ilay]=charg[1];
               brnl[ilay]=ibar;
@@ -354,10 +355,13 @@ void AMSTOFRawCluster::build(int &status){
       HF1(1527,edepa[2],1.); //layer=2 Anode-reconstructed Edep
       HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
       HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
-      HF1(1532,(tcorr[0]-tcorr[2]),1.);//ToF for L0->L2
-      HF1(1534,(tcorr[1]-tcorr[3]),1.);//ToF for L1->L3
+      td13=tcorr[0]-tcorr[2];
+      td24=tcorr[1]-tcorr[3];
+      HF1(1532,td13,1.);//ToF for L0->L2
+      HF1(1534,td24,1.);//ToF for L1->L3
+      HF1(1544,(td13-td24),1.);
       HF1(1533,tdiff[0],1.);//layer=0
-      HF1(1543,clong[0],1.);
+      HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
       if(AMSJob::gethead()->isSimulation()){
         geant tch;
         charg[0]=pch1[0];
@@ -509,7 +513,7 @@ void AMSTOFCluster::build(int &stat){
        ptrr=xptr[j];   
        if(ptrr){
         edep+=eplane[j];
-        cofg+=eplane[j]*(j-i);//relative to "peak" bar
+        cofg+=eplane[j]*(j-i);// relative to "peak" bar
         yloc=ptrr->gettimeD();
         if(fabs(yloc) < ylocm){
          edepl+=eplane[j];
@@ -544,16 +548,16 @@ void AMSTOFCluster::build(int &stat){
         plrot=TOFDBc::plrotm(ilay);     // =0/1-unrotated/rotated TOF-plane
         c0=TOFDBc::gettsc(ilay,ibar);   //transv.pos. of "peak" bar
         ct=cofg/edep*bars+c0;           //cluster abs. transv. coord.
-        cl=cofgl/edepl;    //cluster abs.longit. coord.(neglect counter's long.shift) 
-//    Calculate 2-D coordinates of cluster COG according to plane rotation mask:
+        cl=cofgl/edepl;    //cluster longit.coord.(Y-loc) 
+//    Calculate abs. 2-D coordinates of cluster COG according to plane rotation mask:
         if(plrot==0){ // non-rotated plane
           coo[0]=ct;//clust. X-coord.
           ecoo[0]=bars/2.7;// 2.7 for security
-          coo[1]=cl;//clust. Y-coord.
+          coo[1]=cl;//clust. abs.Y-coord.(neglect counter's long.shift)
           ecoo[1]=1.5*eyloc;// 1.5 for security
         }
         else{ // rotated plane
-          coo[0]=-cl;//rotated plane has yloc=-xabs
+          coo[0]=-cl;//abs.X-coord(yloc=-xabs and neglect counter's long.shift)
           ecoo[0]=1.5*eyloc;
           coo[1]=ct;
           ecoo[1]=bars/2.7;

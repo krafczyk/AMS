@@ -321,12 +321,12 @@ for (int i=0;;){
 void AMSEvent::event(){
    if(AMSJob::gethead()->isSimulation())_siamsevent();
       _reamsevent();
-      if(AMSJob::gethead()->isCalibration())_caamsevent();  
+      if(AMSJob::gethead()->isCalibration())_caamsevent();
 }
 
 void AMSEvent::_siamsevent(){
 _sitkevent(); 
-_sitrdevent(); 
+_sitrdevent();
 _sitofevent(); 
 _sictcevent(); 
 }
@@ -438,9 +438,8 @@ int stat;
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
 //
-  if(TOFMCFFKEY.fast==0){// ===> slow(accurate) algorithm:
     TOFJobStat::addre(0);
-    if(AMSJob::gethead()->isRealData()  ){
+    if(AMSJob::gethead()->isRealData()){
       AMSgObj::BookTimer.start("TOF:DAQ->RwEv");
       AMSTOFRawEvent::re_build(stat);// DAQ-->RawEvent
       AMSgObj::BookTimer.stop("TOF:DAQ->RwEv");
@@ -448,27 +447,31 @@ int stat;
       TOFJobStat::addre(1);
     }
 //
-    AMSgObj::BookTimer.start("TOF:RwEv->RwCl");
-    AMSTOFRawCluster::build(stat); // RawEvent-->RawCluster
-    AMSgObj::BookTimer.stop("TOF:RwEv->RwCl");
-    if(stat!=0)return;
-    TOFJobStat::addre(5);
+    if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1){
+//                   ===> reco of events, simulated by fast MC :
 //
-    AMSgObj::BookTimer.start("TOF:RwCl->Cl");
-    AMSTOFCluster::build(stat);    // RawCluster-->Cluster
-    AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
-    if(stat!=0)return;
-    TOFJobStat::addre(6);
+      AMSgObj::BookTimer.start("TOF:RwCl->Cl");
+      AMSTOFCluster::build(stat);    // "RawCluster-->Cluster"
+      if(stat!=0)return;
+      TOFJobStat::addre(6);
+      AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
+    }
+    else{
+//                   ===> reco of real events or simulated by slow MC:
 //
-  }
-  else{  //               ===> fast algorithm:
-    TOFJobStat::addre(0);
-    AMSgObj::BookTimer.start("TOF:RwCl->Cl");
-    AMSTOFCluster::build(stat);    // "RawCluster-->Cluster"
-    if(stat!=0)return;
-    TOFJobStat::addre(6);
-    AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
-  }
+      AMSgObj::BookTimer.start("TOF:RwEv->RwCl");
+      AMSTOFRawCluster::build(stat); // RawEvent-->RawCluster
+      AMSgObj::BookTimer.stop("TOF:RwEv->RwCl");
+      if(stat!=0)return;
+      TOFJobStat::addre(5);
+//
+      AMSgObj::BookTimer.start("TOF:RwCl->Cl");
+      AMSTOFCluster::build(stat);    // RawCluster-->Cluster
+      AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
+      if(stat!=0)return;
+      TOFJobStat::addre(6);
+    }
+//
   #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSTOFCluster::print();
   #endif

@@ -22,8 +22,8 @@
 #include <trcalib.h>
 #include <tofdbc.h>
 #include <tofsim.h>
-#include <tofcalib.h>
 #include <tofrec.h>
+#include <tofcalib.h>
 
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
@@ -406,10 +406,13 @@ TRFITFFKEY.FastTracking=0;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }
+//-----------------------------------------------------------------------------
 void AMSJob::_retofdata(){
-  char cfname[12]="geomconf";//generic geomconfig-file name (max 11 letters)
+  char cfname[12]="geomconf";//geomconfig-file generic name (max 11 letters)
 //                          (version #01/02-> shuttle/Alpha will be added autom.)
-  char tzslsr[12]="tzcalib01";//generic t0,slope,str-ratio file-name(max.11 lett)
+  char tzslop[12]="tzcalib02";//t0,slope-file generic name(max.11 lett)
+//                           (mc/rl->MC/Real will be added automatically)
+  char strrat[12]="srcalib01";//stretcher_ratio-file generic name(max.11 lett)
 //                           (mc/rl->MC/Real will be added automatically)
 // 
   TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy
@@ -421,17 +424,17 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.reprtf[3]=0; // RECO print flag 
   TOFRECFFKEY.reprtf[4]=0; // RECO print flag
 //
-  TOFRECFFKEY.relogic[0]=0;// 0/1 -> normal/calibr. run. 
+  TOFRECFFKEY.relogic[0]=0;// 0/1/2/3 ->normal/TZSL-/AMPL-/Stretcher-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[2]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[3]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[4]=0;// RECO logic flag
 //
-  TOFRECFFKEY.daqthr[0]=40.;//thresh(mV) for discr. of "z>=1"-trig (fast/slow_TDC) 
-  TOFRECFFKEY.daqthr[1]=100.;//thresh(mV) for discr. of "z>1"-trig  
-  TOFRECFFKEY.daqthr[2]=200.;//thresh(mV) for discr. of "z>2"-trig  
-  TOFRECFFKEY.daqthr[3]=10.;//thresh(pC) for anode Time_over_Thresh. discr.  
-  TOFRECFFKEY.daqthr[4]=10.;//thresh(pC) for dinode Time_over_Thresh. discr.
+  TOFRECFFKEY.daqthr[0]=20.;//thresh(mV) for discr. of "z>=1"-trig (fast/slow_TDC) 
+  TOFRECFFKEY.daqthr[1]=40.;//thresh(mV) for discr. of "z>1"-trig  
+  TOFRECFFKEY.daqthr[2]=100.;//thresh(mV) for discr. of "z>2"-trig  
+  TOFRECFFKEY.daqthr[3]=3.5;//thresh(pC) for anode Time_over_Thresh. discr.  
+  TOFRECFFKEY.daqthr[4]=3.5;//thresh(pC) for dinode Time_over_Thresh. discr.
 //
   TOFRECFFKEY.cuts[0]=5.;//t-window(ns) for "the same hit" search in f/s_tdc
   TOFRECFFKEY.cuts[1]=50.;//"befor"-cut in time history (ns)
@@ -446,7 +449,9 @@ void AMSJob::_retofdata(){
 //
   UCTOH(cfname,TOFRECFFKEY.config,4,12);
 //
-  UCTOH(tzslsr,TOFRECFFKEY.tzerca,4,12);
+  UCTOH(tzslop,TOFRECFFKEY.tzerca,4,12);
+//  
+  UCTOH(strrat,TOFRECFFKEY.strrca,4,12);
 //  
   TOFRECFFKEY.sec[0]=0; 
   TOFRECFFKEY.sec[1]=0;
@@ -463,20 +468,30 @@ void AMSJob::_retofdata(){
   FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),"MIXED");
 //-----------------------
 //    defaults for calibration:
-//
+// TZSL-calibration:
   TOFCAFFKEY.pcut[0]=8.;// track mom. low limit (gev/c)
   TOFCAFFKEY.pcut[1]=25.;// track mom. high limit
   TOFCAFFKEY.bmean=0.996;// mean prot. velocity 
   TOFCAFFKEY.tzref[0]=6.;// T0 for ref. counters
   TOFCAFFKEY.tzref[1]=6.;// T0 for ref. counters
   TOFCAFFKEY.fixsl=3.2;// def. slope
-  TOFCAFFKEY.fixstr=0.025;// def. inv. stratcher ratio
+  TOFCAFFKEY.fixstr=1./TOFDBc::strrat();// def. inv. stratcher ratio from TOFDBc
   TOFCAFFKEY.idref[0]=108;//LBB for first ref. counter (if non zero)
   TOFCAFFKEY.idref[1]=0;//LBB for second ref. counter (if nonzero)
   TOFCAFFKEY.ifsl=1;// 0/1 to fix/release slope param.
   TOFCAFFKEY.ifstr=0;// 0/1 to fix/release str.ratio param.
+// AMPL-calibration:
+  TOFCAFFKEY.truse=1; // 1/0 to use/not tracker
+  TOFCAFFKEY.plhc[0]=0.8;// track mom. low limit(gev/c)
+  TOFCAFFKEY.plhc[1]=8.;// track mom. high limit(gev/c)
+  TOFCAFFKEY.refbid[0]=101;//ref.bar id list (LBB) for btype=1->5
+  TOFCAFFKEY.refbid[1]=102; 
+  TOFCAFFKEY.refbid[2]=103; 
+  TOFCAFFKEY.refbid[3]=104; 
+  TOFCAFFKEY.refbid[4]=108; 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
+//----------------------------------------------------------------------------------
 void AMSJob::_rectcdata(){
   CTCRECFFKEY.Thr1=1.;
   CTCRECFFKEY.ThrS=1.;
@@ -671,6 +686,7 @@ void AMSJob::_signinitjob(){
   CCFFKEY.enddate, CCFFKEY.endtime, GCKINE.ikine,CCFFKEY.low);
 
 }
+//----------------------------------------------------------------------------------------
 void AMSJob::_sitofinitjob(){
   if(TOFMCFFKEY.fast==1)cout <<"_sitofinit-I-Fast/Crude TOF simulation algorithm selected."<<endl;
   else cout <<"_sitofinit-I-Slow/Accurate TOF simulation algorithm selected."<<endl;
@@ -693,14 +709,15 @@ void AMSJob::_sitofinitjob(){
       HBOOK1(1061,"Geant-Edep(mev) in layer-1",80,0.,240.,0.);
       HBOOK1(1062,"Geant-Edep(mev) in layer-3",80,0.,24.,0.);
       HBOOK1(1063,"Geant-Edep(mev) in layer-3",80,0.,240.,0.);
-      HBOOK1(1070,"Log(PulseTotCharge(pC)),Sd-1,L-1",50,0.,10.,0.);
-      HBOOK1(1071,"Total bar pulse-charge(pC),L-1",80,100.,1700.,0.);
-      HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,1000.,17000.,0.);
+      HBOOK1(1070,"Log(PulseTotCharge(pC)),Sd-1,L-1",60,1.,10.,0.);
+      HBOOK1(1071,"Total bar pulse-charge(pC),L-1",80,0.,1600.,0.);
+      HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,0.,16000.,0.);
     }
-//------------------------------------------------
+//--------------
     AMSTOFScan::build();// create scmcscan-objects for all sc. bars,
                         // using MC t/eff-distributions from ext. files
 }
+//----------------------------------------------------------------------------------
 void AMSJob::_sictcinitjob(){
      AMSgObj::BookTimer.book("SICTCDIGI");
      AMSCTCRawCluster::init();
@@ -741,7 +758,11 @@ for(i=0;i<2;i++){
 void AMSJob::_catofinitjob(){
  if(TOFRECFFKEY.relogic[0]==1){
    TOFTZSLcalib::init();// TOF TzSl-calibr.
-   cout<<"TOFTZSLcalib-init done !"<<'\n';
+   cout<<"TOFTZSLcalib-init done !!!"<<'\n';
+ }
+ if(TOFRECFFKEY.relogic[0]==2){
+   TOFAMPLcalib::init();// TOF AMPL-calibr.
+   cout<<"TOFAMPLcalib-init done !!!"<<'\n';
  }
 }
 //---------------------------------------------------------------------
@@ -761,6 +782,7 @@ AMSgObj::BookTimer.book("TrClusterRefit");
 AMSgObj::BookTimer.book("TrRecHit");
 AMSgObj::BookTimer.book("TrTrack");
 }
+//--------------------------------------------------------------------------
 void AMSJob::_retofinitjob(){
     AMSgObj::BookTimer.book("RETOFEVENT");
     AMSgObj::BookTimer.book("TOF:DAQ->RwEv");
@@ -777,9 +799,10 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
       HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
       HBOOK1(1532,"(T1-T3)(ns),corr,ideal evnt",50,3.,6.,0.);
-      HBOOK1(1533,"L=1,side1/2 Tdiff(ns),ideal evnt",100,-4.,0.,0.);
-      HBOOK1(1543,"L=1,longit.coordinate,ideal evnt",100,-50.,50.,0.);
+      HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
+      HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
       HBOOK1(1534,"(T2-T4)(ns),corr,ideal evnt",50,3.,6.,0.);
+      HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",50,-2.,2.,0.);
       HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
       HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
       HBOOK1(1537,"L=1,TOF Eclust(mev)",80,0.,240.,0.);
@@ -815,45 +838,40 @@ void AMSJob::_retofinitjob(){
          HBOOK1(1524,"Layer-4 PM-1 a-ampl,noncor",80,50.,290.,0.);
          HBOOK1(1525,"Layer-4 PM-2 a-ampl,noncor",80,50.,290.,0.);
       }
+      if(TOFRECFFKEY.relogic[0]==2){
+        HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
+        HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+        HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
+        HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
+        HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
+        HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
+        HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
+        HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
+        HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
+        HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
+        HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
+        HBOOK1(1216,"Cos_tr",50,-1.,1.,0.);
+        HBOOK1(1217,"Cos_sc",50,-1.,1.,0.);
+// hist.# 1220-1239 are reserved for imp.point distr.(later in TOFAMPLcalib.init()
+        HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,480.,0.);        
+        HBOOK1(1251,"Ref.bar(type=5) Q-distr.(s=2,centre)",80,0.,480.,0.);        
+      }
     }
 //-----------
 //     ===> Clear JOB-statistics counters for SIM/REC :
 //
     TOFJobStat::clear();
-//-------------------------
-// ===> create tofvpar structure :
+//-----------
+//     ===> create common parameters (tofvpar structure) :
 //
  tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
 //-------------------------
-//                ===> create scbrcal structures :
-// 
- integer i,j,ila,ibr,ibrm,isp,nsp,ibt,cnum,dnum,mult;
-//
- geant scp[SCANPNT];
- geant rlo[SCANPNT];// relat.(to Y=0) light output
- integer lps=1000;
- geant ef1[SCANPNT],ef2[SCANPNT];
- integer i1,i2,sta[2];
- geant r,eff1,eff2;
- integer sid,brt;
- geant gna[2],gnd[2],qath,qdth,a2dr,tth,strat;
- geant slope,fstrd,tzer,mip2q;
- geant tzerf[SCLRS][SCMXBR],slpf,strf; 
- char fname[80];
- char name[80];
- geant asatl=20.;//(mev,~10MIPs),if E-dinode(1-end) higher - use it instead
-//                                 of anode measurements
- geant td2p[2]={16.9,1.8};// tempor timeD->coord conv.factor(cm/ns) and error(cm)
-//  
-//
-//   ---> Read tzero/slope/str_ratio calib.file :
-//-----------
-//     ===> create tofvpar structure :
+//     ===> create indiv. parameters (scbrcal-objects for each sc. bar) :
 //
     TOFBrcal::build(); 
 //-----------
 }
-//====================================================================
+//-------------------------------------------------------------------------------
 void AMSJob::_rectcinitjob(){
 AMSgObj::BookTimer.book("RECTCEVENT");
 }
@@ -1141,6 +1159,7 @@ void AMSJob::_tofendjob(){
          HPRINT(1540);
          HPRINT(1541);
          HPRINT(1542);
+         HPRINT(1544);
          if(TOFRECFFKEY.relogic[0]==1){// for calibr. runs
            HPRINT(1500);
            HPRINT(1501);
@@ -1168,6 +1187,24 @@ void AMSJob::_tofendjob(){
            HPRINT(1524);
            HPRINT(1525);
            TOFTZSLcalib::mfit();
+         }
+         if(TOFRECFFKEY.relogic[0]==2){// for calibr. runs
+           HPRINT(1506);
+           HPRINT(1500);
+           HPRINT(1200);
+           HPRINT(1201);
+           HPRINT(1202);
+           HPRINT(1203);
+           HPRINT(1210);
+           HPRINT(1211);
+           HPRINT(1212);
+           HPRINT(1213);
+           HPRINT(1215);
+           HPRINT(1216);
+           HPRINT(1217);
+           HPRINT(1250);
+           HPRINT(1251);
+           TOFAMPLcalib::fit();
          }
        }
 }
