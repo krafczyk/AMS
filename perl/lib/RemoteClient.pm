@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.294 2005/02/14 11:10:02 alexei Exp $
+# $Id: RemoteClient.pm,v 1.295 2005/02/14 14:47:28 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1109,7 +1109,13 @@ sub ValidateRuns {
     }
     if ($verbose && $webmode==0) {print "ValidateRuns -I- Connected \n";}
 #
-   $self->initFilesProcessingFlag();
+# check flag
+     my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
+     if ($rflag == 1) {
+         $self->amsprint("ValidateRuns -E- Processing flag = $rflag, $procstarttime. Stop validation.",0);
+         return 1;
+     }
+     $self->initFilesProcessingFlag();
 #
     if ($verbose && $webmode==0) {print "ValidateRuns -I- Start Validation \n";}
     $vdir=$self->getValidationDir();
@@ -1163,13 +1169,13 @@ sub ValidateRuns {
     }
 
     foreach my $run (@{$self->{dbserver}->{rtb}}){
- # check flag
+#
+# check jobs processing flag if -1 stop processing
      my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
-     if ($rflag != 0) {
-         $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
+     if ($rflag == -1) {
+         $self->amsprint("Processing flag = $rflag, $procstarttime. Stop Validation.",0);
          return 1;
      }
-     $self->initFilesProcessingFlag();
 #
      $timenow = time();
      $CheckedRuns[0]++;
@@ -7528,7 +7534,7 @@ sub parseJournalFiles {
 
 # check flag
      my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
-     if ($rflag != 0) {
+     if ($rflag == 1) {
          $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
          return 1;
      }
@@ -7680,6 +7686,13 @@ sub parseJournalFiles {
                                  $ntdir);
          $JournalFiles[$nCheckedCite]++;
        }
+#
+# check jobs processing flag if -1 stop processing
+     my ($rflag, $procstarttime) = $self->getFilesProcessingFlag();
+     if ($rflag == -1) {
+         $self->amsprint("Processing flag = $rflag, $procstarttime. Stop parseJournalFiles.",0);
+         last;
+     }
    }
    if ($webmode == 1) {
     htmlTableEnd();
@@ -7697,7 +7710,8 @@ sub parseJournalFiles {
       $sql = "UPDATE journals SET timestamp=$timenow WHERE cid=$cid";
      }
     $self->{sqlserver}->Update($sql); 
-   }
+  }
+#
   }
  } else {
      $self->amsprint("parseJournalFile - Warning - table Journals is empty",0);
@@ -9402,9 +9416,12 @@ sub printParserStat {
  $totalGB = $totalGB/1000;
  my $chGB = sprintf("%3.1f",$totalGB);
  my $summ =  "Total : Runs $totalRuns ($totalRunsBad), DSTs $totalDSTs ($totalDSTsBad), GB $chGB \n";
- print $summ;
- my $ch0 = sprintf("Total Time %3.1f hours \n",$hours);
- my $ch1 = sprintf(" doCopy (calls, time) : %5d %3.1fh [cp file :%5d %3.1fh]; \n",$doCopyCalls, $doCopyTime/60/60, $copyCalls, $copyTime/60/60);
+ print "\n",$summ;
+ my $ch0   = sprintf("Total Time %3.1f hours \n",$hours);
+ my $mbits = 0;
+ if ($doCopyTime > 0) { 
+     $mbits = $chGB*8*1000/$doCopyTime;}
+ my $ch1 = sprintf(" doCopy (calls, time, Mbit/s) : %5d %3.1fh %3.1f [cp file :%5d %3.1fh]; \n",$doCopyCalls, $doCopyTime/60/60, $mbits, $copyCalls, $copyTime/60/60);
  my $ch2 = sprintf(" CRC (calls,time) : %5d, %3.1fh ; Validate (calls,time) : %5d, %3.3fh \n",
                    $crcCalls, $crcTime/60/60,$fastntCalls, $fastntTime/60/60 );
  print $ch0,$ch1,$ch2,$lastline;
@@ -9434,7 +9451,7 @@ sub updateFilesProcessing {
     }
     my $sql = "UPDATE FilesProcessing SET Cites=$nCites, Active=$nActiveCites, JOU=$nJournalFiles,
                                           GOOD=$nGoodRuns, Failed=$nFailedRuns, GoodDSTS=$nGoodDSTs,
-                                          BadDSTS = $nBadDSTs, Timestamp=$timenow";
+                                          BadDSTS = $nBadDSTs, Flag = 0, Timestamp=$timenow";
     $self->{sqlserver}->Update($sql); 
 }
 
@@ -9513,7 +9530,7 @@ sub resetFilesProcessingFlag {
     }
 
    my $timenow = time();
-   my $sql = "update FilesProcessing set flag = 0, timestamp=$timenow";
+   my $sql = "update FilesProcessing set flag = -1, timestamp=$timenow";
    $self->{sqlserver}->Update($sql); 
 
 }
