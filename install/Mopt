@@ -9,11 +9,13 @@ CFLAGS= -D__AMSDEBUG__  -D__IBMAIX__ -D__BATCH__ -g   -I../include -I$(ROOTSYS)/
 CFLAGSTOFSIM=   -D__BATCH__ -g   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include 
 CFLAGSn=   -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include 
 FFLAGS=   -g -I../include -qextname -qflttrap=overflow:underflow:zerodivide:invalid:inexact:enable -qfloat=nans -d
+FFLAGSn=   -g -I../include -qextname -qflttrap=overflow:underflow:zerodivide:invalid:inexact:enable -qfloat=nans -d
 else
 CFLAGS=   -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include 
 CFLAGSTOFSIM=   -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I$(ROOTSYS)/include
 CFLAGSn=   -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include 
 FFLAGS=    -I../include -O -qextname 
+FFLAGSn=    -I../include -O -qextname 
 endif
 DFLAGS=  -D__AMSDEBUG__     -I/usr/include -I/usr/lpp/xlC/include -I../include 
 LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag $(ROOTLIBS)  
@@ -46,6 +48,7 @@ CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   -$(O4)     -I../include -I$(ROOTSYS)/i
 CFLAGSn=   -D__BATCH__ -D__ALPHA__   -$(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 CFLAGSDAQ= $(CFLAGS)
 FFLAGS=   -$(O4F) -I../include  -d -static -nofor_main -convert big_endian 
+FFLAGSn=   -$(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=     -I/usr/include  -I../include  
 LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm
 CC=cxx 
@@ -71,6 +74,7 @@ CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
 FFLAGS=   -fno-automatic -g -I../include  
+FFLAGSn=   -fno-automatic -g -I../include  
 else
 CFLAGSB=      -D__BATCH__      -I../include   -I../db  
 CFLAGSTOFSIM= $(CFLAGSB)     -O1   
@@ -78,6 +82,7 @@ CFLAGSDAQ=    $(CFLAGSB) -O2
 CFLAGSn=      $(CFLAGSB) -O2
 CFLAGS=      $(CFLAGSB) -O2
 FFLAGS=   -fno-automatic -O -I../include
+FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include
 LDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
@@ -97,6 +102,7 @@ CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
 FFLAGS=   -qextname -g -I../include  -d
+FFLAGSn=   -qextname -g -I../include  -d
 else
 CFLAGSB=      -D__BATCH__      -I../include   -I../db  
 CFLAGSTOFSIM= $(CFLAGSB)     -O1   
@@ -104,6 +110,7 @@ CFLAGSDAQ=    $(CFLAGSB)
 CFLAGSn=      $(CFLAGSB) -O2
 CFLAGS=      $(CFLAGSB) -O2
 FFLAGS=   -qextname -qsave -O -I../include
+FFLAGSn=   -qextname -qsave -O -I../include
 endif
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include
 LDFLAGS=       -lxlf90 -lxlf    -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag     -L/afs/cern.ch/exp/ams/Offline/lib/aix -lamsut
@@ -122,11 +129,13 @@ CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -D__HPUX__ -g   -fhandle-exceptions  -I.
 CFLAGSTOFSIM=     CFLAGS
 CFLAGSn=     CFLAGS
 FFLAGS=   -K +ppu -g -I../include 
+FFLAGSn=   -K +ppu -g -I../include 
 else
 CFLAGS=     -D__BATCH__   -D__HPUX__  -fhandle-exceptions  -I../include 
 CFLAGSTOFSIM=     CFLAGS
 CFLAGSn=     -D__BATCH__  -g   -fhandle-exceptions  -I../include 
 FFLAGS=   -K +ppu  -I../include 
+FFLAGSn=   -K +ppu  -I../include 
 endif
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include  -I/usr/local/lib/g++-include
 LDFLAGS=  -g  -L/cern/pro/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lm -lg++ -lstdc++  -lcl -lisamstub -L/usr/local/lib/gcc-lib/hppa1.1-hp-hpux9.05/2.7.2 -lgcc 
@@ -219,7 +228,7 @@ $(BIN)atcnewntu.o:         ../F/atcnewntu.F
 	$(FF) -c $(FFLAGS) ../F/atcnewntu.F -o $(BIN)atcnewntu.o
 
 $(BIN)egzav.o:         ../F/egzav.F
-	$(FF) -c $(FFLAGS) ../F/egzav.F -o $(BIN)egzav.o
+	$(FF) -c $(FFLAGSn) ../F/egzav.F -o $(BIN)egzav.o
 
 $(BIN)timel.o:         ../F/timel.F
 	$(FF) -c $(FFLAGS) ../F/timel.F -o $(BIN)timel.o

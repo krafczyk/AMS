@@ -1,4 +1,4 @@
-setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
+ setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/pro
 set path=( $path . /usr/sbin $ROOTSYS/bin )
 setenv LD_LIBRARY_PATH .:$ROOTSYS/lib
 setenv CVSROOT $Offline/CVS
@@ -14,4 +14,6 @@ setenv SlowRateDataDir   $Offline/SlowRateDataDir
 setenv AMSGeoDir         $Offline/vdev/display/v2.00
 setenv amsed             $Offline/vdev/display/v2.00/$OS/bin/amsed
 limit core 0
+limit data 256000
+limit stack 8192
 

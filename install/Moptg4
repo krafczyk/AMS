@@ -38,6 +38,7 @@ CFLAGS=  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include
 CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__  -D__AMSDEBUG__ -g     -I../include -I$(ROOTSYS)/include  
 CFLAGSn=  -D__BATCH__ -D__ALPHA__ -D__AMSDEBUG__ -g     -I../include -I$(ROOTSYS)/include  
 FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian -fpe2
+FFLAGSn=   -g -I../include  -d -static -nofor_main -convert big_endian -fpe2
 DFLAGS=  -g   -I/usr/include  -I../include  -I/usr/include/cxx
 else
 CFLAGS4=          -D__BATCH__ -O     -I../include     $(CPPFLAGS)
@@ -47,6 +48,7 @@ CFLAGS=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include
 CFLAGSTOFSIM=  -D__BATCH__ -D__ALPHA__   -O4     -I../include -I$(ROOTSYS)/include  
 CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I$(ROOTSYS)/include  
 FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
+FFLAGSn=   -O -I../include  -d -static -nofor_main -convert big_endian -fpe2
 DFLAGS=  -g   -I/usr/include  -I../include  -I/usr/include/cxx
 endif
 CFLAGSDAQ=$(CFLAGS)
@@ -77,6 +79,7 @@ CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -pipe -fno-for-scope -DGNU_GCC
 CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include   -I../db
 CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include   -I../db
 FFLAGS=   -fno-automatic -g -I../include
+FFLAGSn=   -fno-automatic -g -I../include
 CFLAGSDAQ=      -D__BATCH__  -g     -I../include   -I../db
 else
 CFLAGS=      -D__BATCH__  -O2    -I../include   -I../db
@@ -87,6 +90,7 @@ CFLAGSTOFSIM=      -D__BATCH__ -O1      -I../include   -I../db
 CFLAGSDAQ=      -D__BATCH__       -I../include   -I../db
 CFLAGSn=      -D__BATCH__  -O2    -I../include   -I../db
 FFLAGS=   -fno-automatic -O -I../include
+FFLAGSn=   -fno-automatic  -I../include
 endif
 DFLAGS=    -g   -I/usr/local/include/g++  -I../include 
 XLDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib -lnag -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/lib/linux -lamsut -lg2c
@@ -186,7 +190,7 @@ $(BIN)atcnewntu.o:         ../F/atcnewntu.F
 	$(FF) -c $(FFLAGS) ../F/atcnewntu.F -o $(BIN)atcnewntu.o
 
 $(BIN)egzav.o:         ../F/egzav.F
-	$(FF) -c $(FFLAGS) ../F/egzav.F -o $(BIN)egzav.o
+	$(FF) -c $(FFLAGSn) ../F/egzav.F -o $(BIN)egzav.o
 
 $(BIN)timel.o:         ../F/timel.F
 	$(FF) -c $(FFLAGS) ../F/timel.F -o $(BIN)timel.o
