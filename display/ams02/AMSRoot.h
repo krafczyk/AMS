@@ -1,4 +1,4 @@
-//  $Id: AMSRoot.h,v 1.3 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSRoot.h,v 1.4 2001/06/25 20:18:45 kscholbe Exp $
 #ifndef AMSRoot_H
 #define AMSRoot_H
 
@@ -161,6 +161,6 @@ public:
    ClassDef(AMSRoot, 1)   //AMSRoot control class
 };
 
-EXTERN AMSRoot *gAMSRoot;
+extern AMSRoot *gAMSRoot;
 
 #endif

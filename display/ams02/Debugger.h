@@ -1,4 +1,4 @@
-//  $Id: Debugger.h,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: Debugger.h,v 1.3 2001/06/25 20:18:45 kscholbe Exp $
 #ifndef DEBUGGER_H
 #define DEBUGGER_H
 
@@ -25,7 +25,7 @@ public:
 };
 
 #ifndef __CINT__
-EXTERN Debugger debugger;
+extern Debugger debugger;
 #endif
 
 #endif
