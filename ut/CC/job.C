@@ -179,6 +179,7 @@ void AMSJob::_sitrigdata(){
 void AMSJob::_sitkdata(){
 TKGEOMFFKEY.ReadGeomFromFile=1;
 TKGEOMFFKEY.WriteGeomToFile=0;
+TKGEOMFFKEY.UpdateGeomFile=0;
 FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
 "MIXED");
 TRMCFFKEY.alpha=220;

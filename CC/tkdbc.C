@@ -96,20 +96,105 @@ if(iftxt.eof() ){
 else {
  _ReadOK=1;
  cout <<"TKDBc::read-I-"<<active<<" active sensors have been read"<<endl;
+ updatef();
 }
 }
 else {
   cerr <<" TKDBc::read-E-File not exists "<<fnam <<endl;
 }
+
+
 }
 
 
-void TKDBc::write(){
-if( _ReadOK || !TKGEOMFFKEY.WriteGeomToFile)return;
+void TKDBc::updatef(){
+char dum;
+number rdum;
+if(!TKGEOMFFKEY.UpdateGeomFile)return;
+AString fnam="../../metro/wjb/results.my";
+ifstream iftxt((const char *)fnam,ios::in);
+if(iftxt){
+  
+
+  //
+  // first manually plane Z-positions
+  // 
+  
+   (_HeadLayer[0])._coo[2]= 50.949;
+   (_HeadLayer[1])._coo[2]=  29.2141;
+   (_HeadLayer[2])._coo[2]= 7.78935;
+   (_HeadLayer[3])._coo[2]= -7.78935;
+   (_HeadLayer[4])._coo[2]= -29.14585;
+   (_HeadLayer[5])._coo[2]=  -50.99;
+
+   //Now modify some sensors
+   (_HeadSensor[621])._status=0;
+   (_HeadSensor[1288])._status=0;
+   (_HeadSensor[1407])._status=0;
+   (_HeadSensor[1122])._nrm[0][0]=cos(1.5e-3);
+   (_HeadSensor[1122])._nrm[1][0]=sin(1.5e-3);
+   (_HeadSensor[1122])._nrm[0][1]=-sin(1.5e-3);
+   (_HeadSensor[1122])._nrm[1][1]=cos(1.5e-3);
+
+
+   // Now read Markers
+   {
+   iftxt >>dum>>dum>>dum>>dum>>dum>>dum>>dum;
+   int i;
+   for(i=0;i<AMSDBc::nlay();i++){
+     for(int k=0;k<4;k++){
+       for(int l=0;l<2;l++)iftxt>>(_HeadMarker[0][i*4+k])._coo[l];
+       iftxt >> rdum ;   // Don't want z at the moment
+     }
+   }
+
+   } 
+   // now Ladders
+   integer nladders=0;
+   {
+   integer ilay,ilad,ihalf,istat;
+   for(;;){
+     iftxt >> dum>>dum>>dum>>dum>>dum>>dum;
+     iftxt >> ilay >> ilad >> ihalf>>istat;
+     integer numl=getnumd(ilay-1,ilad-1);
+     (_HeadLadder[ihalf][numl])._status=istat;
+     for(int i=0;i<3;i++)iftxt >> (_HeadLadder[ihalf][numl])._coo[i];
+     number xy,zx,zy;
+     iftxt >> xy >> zx >> zy;
+     number cx=sqrt(1.-(xy*xy+zx*zx));
+     number cy=sqrt(1.-(xy*xy+zy*zy));
+     number cz=sqrt(1.-(zx*zx+zy*zy));
+      (_HeadLadder[ihalf][numl])._nrm[0][0]=cx;
+      (_HeadLadder[ihalf][numl])._nrm[1][0]=xy;
+      (_HeadLadder[ihalf][numl])._nrm[2][0]=zx;
+      (_HeadLadder[ihalf][numl])._nrm[0][1]=-xy;
+      (_HeadLadder[ihalf][numl])._nrm[1][1]=cy;
+      (_HeadLadder[ihalf][numl])._nrm[2][1]=zy;
+      (_HeadLadder[ihalf][numl])._nrm[0][2]=-zx;
+      (_HeadLadder[ihalf][numl])._nrm[1][2]=-zy;
+      (_HeadLadder[ihalf][numl])._nrm[2][2]=cz;
+     nladders++;
+     if(iftxt.eof())break;
+   }
+
+   }
+   cout <<"TKDBc::update-I-GeomFileUpdated for "<<nladders<<" ladders"<<endl;
+   write(1);
+}
+else {
+  cerr <<"TKDBc::update-E-CouldNotOpenFile "<<fnam<<endl;
+}
+}
+
+void TKDBc::write(integer update){
+if( (_ReadOK || !(TKGEOMFFKEY.WriteGeomToFile)) && !TKGEOMFFKEY.UpdateGeomFile)return;
 AString fnam(AMSDATADIR.amsdatadir);
 fnam+="TKGeom_";
 fnam+=AMSJob::gethead()->getsetup();
-ofstream iftxt((const char *)fnam,ios::out|ios::noreplace);
+if(update)fnam+=".update";
+ofstream iftxt;
+if(update)iftxt.open((const char *)fnam,ios::out|ios::trunc);
+else iftxt.open((const char *)fnam,ios::out|ios::noreplace);
 if(iftxt){
   // Write file
  int i,j,k,l,idum;

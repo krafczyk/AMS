@@ -139,6 +139,7 @@ class TKGEOMFFKEY_DEF{
 public:
   integer ReadGeomFromFile;
   integer WriteGeomToFile;
+  integer UpdateGeomFile;
 };
 #define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
 COMMON_BLOCK_DEF(TKGEOMFFKEY_DEF,TKGEOMFFKEY);

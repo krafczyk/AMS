@@ -418,31 +418,31 @@ void AMSTrIdSoft::inittable(){
 
         //     integer AMSTrIdSoft::_GetHard[nl][nld][2][3];     
 
-  _GetHard[0][6][0][2]=0;            //crate
-  _GetHard[0][6][0][0]=7 | 3<<3;     //side x
-  _GetHard[0][6][0][1]=3 | 6<<2;     //side y
+  _GetHard[0][10][0][2]=0;            //crate
+  _GetHard[0][10][0][0]=7 | 3<<3;     //side x
+  _GetHard[0][10][0][1]=3 | 6<<2;     //side y
 
-  _GetHard[0][7][0][2]=0;            //crate
-  _GetHard[0][7][0][0]=6 | 3<<3;     //side x
-  _GetHard[0][7][0][1]=2 | 6<<2;     //side y
+  _GetHard[0][9][0][2]=0;            //crate
+  _GetHard[0][9][0][0]=6 | 3<<3;     //side x
+  _GetHard[0][9][0][1]=2 | 6<<2;     //side y
 
   _GetHard[0][8][0][2]=0;            //crate
   _GetHard[0][8][0][0]=5 | 3<<3;     //side x
   _GetHard[0][8][0][1]=1 | 6<<2;     //side y
 
-  _GetHard[0][9][0][2]=0;            //crate
-  _GetHard[0][9][0][0]=4 | 3<<3;     //side x
-  _GetHard[0][9][0][1]=0 | 6<<2;     //side y
+  _GetHard[0][7][0][2]=0;            //crate
+  _GetHard[0][7][0][0]=4 | 3<<3;     //side x
+  _GetHard[0][7][0][1]=0 | 6<<2;     //side y
 
 
-  _GetHard[0][6][1][2]=1;            //crate
-  _GetHard[0][6][1][0]=4 | 3<<3;     //side x
-  _GetHard[0][6][1][1]=0 | 6<<2;     //side y
+  _GetHard[0][10][1][2]=1;            //crate
+  _GetHard[0][10][1][0]=4 | 3<<3;     //side x
+  _GetHard[0][10][1][1]=0 | 6<<2;     //side y
 
 
-  _GetHard[0][7][1][2]=1;            //crate
-  _GetHard[0][7][1][0]=5 | 3<<3;     //side x
-  _GetHard[0][7][1][1]=1 | 6<<2;     //side y
+  _GetHard[0][9][1][2]=1;            //crate
+  _GetHard[0][9][1][0]=5 | 3<<3;     //side x
+  _GetHard[0][9][1][1]=1 | 6<<2;     //side y
 
 
   _GetHard[0][8][1][2]=1;            //crate
@@ -450,9 +450,9 @@ void AMSTrIdSoft::inittable(){
   _GetHard[0][8][1][1]=2 | 6<<2;     //side y
 
 
-  _GetHard[0][9][1][2]=1;            //crate
-  _GetHard[0][9][1][0]=7 | 3<<3;     //side x
-  _GetHard[0][9][1][1]=3 | 6<<2;     //side y
+  _GetHard[0][7][1][2]=1;            //crate
+  _GetHard[0][7][1][0]=7 | 3<<3;     //side x
+  _GetHard[0][7][1][1]=3 | 6<<2;     //side y
 
   // Layer 2
 
@@ -551,95 +551,95 @@ void AMSTrIdSoft::inittable(){
   // layer 4
 
 
-  _GetHard[3][5][0][2]=0;            //crate
-  _GetHard[3][5][0][0]=5 | 1<<3;     //side x
-  _GetHard[3][5][0][1]=1 | 2<<2;     //side y
-
-  _GetHard[3][6][0][2]=0;            //crate
-  _GetHard[3][6][0][0]=3 | 1<<3;     //side x
-  _GetHard[3][6][0][1]=3 | 3<<2;     //side y
+  _GetHard[3][8][0][2]=0;            //crate
+  _GetHard[3][8][0][0]=5 | 1<<3;     //side x
+  _GetHard[3][8][0][1]=1 | 2<<2;     //side y
 
   _GetHard[3][7][0][2]=0;            //crate
-  _GetHard[3][7][0][0]=1 | 1<<3;     //side x
-  _GetHard[3][7][0][1]=1 | 3<<2;     //side y
+  _GetHard[3][7][0][0]=3 | 1<<3;     //side x
+  _GetHard[3][7][0][1]=3 | 3<<2;     //side y
 
-  _GetHard[3][8][0][2]=0;            //crate
-  _GetHard[3][8][0][0]=7 | 0<<3;     //side x
-  _GetHard[3][8][0][1]=3 | 0<<2;     //side y
+  _GetHard[3][6][0][2]=0;            //crate
+  _GetHard[3][6][0][0]=1 | 1<<3;     //side x
+  _GetHard[3][6][0][1]=1 | 3<<2;     //side y
 
-  _GetHard[3][4][1][2]=1;            //crate
-  _GetHard[3][4][1][0]=5 | 0<<3;     //side x
-  _GetHard[3][4][1][1]=1 | 0<<2;     //side y
-
-  _GetHard[3][5][1][2]=1;            //crate
-  _GetHard[3][5][1][0]=7 | 0<<3;     //side x
-  _GetHard[3][5][1][1]=3 | 0<<2;     //side y
-
-  _GetHard[3][6][1][2]=1;            //crate
-  _GetHard[3][6][1][0]=1 | 1<<3;     //side x
-  _GetHard[3][6][1][1]=1 | 3<<2;     //side y
-
-  _GetHard[3][7][1][2]=1;            //crate
-  _GetHard[3][7][1][0]=3 | 1<<3;     //side x
-  _GetHard[3][7][1][1]=3 | 3<<2;     //side y
-
-  _GetHard[3][8][1][2]=1;            //crate
-  _GetHard[3][8][1][0]=5 | 1<<3;     //side x
-  _GetHard[3][8][1][1]=1 | 2<<2;     //side y
+  _GetHard[3][5][0][2]=0;            //crate
+  _GetHard[3][5][0][0]=7 | 0<<3;     //side x
+  _GetHard[3][5][0][1]=3 | 0<<2;     //side y
 
   _GetHard[3][9][1][2]=1;            //crate
-  _GetHard[3][9][1][0]=7 | 1<<3;     //side x
-  _GetHard[3][9][1][1]=3 | 2<<2;     //side y
+  _GetHard[3][9][1][0]=5 | 0<<3;     //side x
+  _GetHard[3][9][1][1]=1 | 0<<2;     //side y
+
+  _GetHard[3][8][1][2]=1;            //crate
+  _GetHard[3][8][1][0]=7 | 0<<3;     //side x
+  _GetHard[3][8][1][1]=3 | 0<<2;     //side y
+
+  _GetHard[3][7][1][2]=1;            //crate
+  _GetHard[3][7][1][0]=1 | 1<<3;     //side x
+  _GetHard[3][7][1][1]=1 | 3<<2;     //side y
+
+  _GetHard[3][6][1][2]=1;            //crate
+  _GetHard[3][6][1][0]=3 | 1<<3;     //side x
+  _GetHard[3][6][1][1]=3 | 3<<2;     //side y
+
+  _GetHard[3][5][1][2]=1;            //crate
+  _GetHard[3][5][1][0]=5 | 1<<3;     //side x
+  _GetHard[3][5][1][1]=1 | 2<<2;     //side y
+
+  _GetHard[3][4][1][2]=1;            //crate
+  _GetHard[3][4][1][0]=7 | 1<<3;     //side x
+  _GetHard[3][4][1][1]=3 | 2<<2;     //side y
 
   // layer 5
 
-  _GetHard[4][4][0][2]=0;            //crate
-  _GetHard[4][4][0][0]=6 | 1<<3;     //side x
-  _GetHard[4][4][0][1]=2 | 2<<2;     //side y
-
-  _GetHard[4][5][0][2]=0;            //crate
-  _GetHard[4][5][0][0]=4 | 1<<3;     //side x
-  _GetHard[4][5][0][1]=0 | 2<<2;     //side y
-
-  _GetHard[4][6][0][2]=0;            //crate
-  _GetHard[4][6][0][0]=2 | 1<<3;     //side x
-  _GetHard[4][6][0][1]=2 | 3<<2;     //side y
-
-  _GetHard[4][7][0][2]=0;            //crate
-  _GetHard[4][7][0][0]=0 | 1<<3;     //side x
-  _GetHard[4][7][0][1]=0 | 3<<2;     //side y
+  _GetHard[4][9][0][2]=0;            //crate
+  _GetHard[4][9][0][0]=6 | 1<<3;     //side x
+  _GetHard[4][9][0][1]=2 | 2<<2;     //side y
 
   _GetHard[4][8][0][2]=0;            //crate
-  _GetHard[4][8][0][0]=6 | 0<<3;     //side x
-  _GetHard[4][8][0][1]=2 | 0<<2;     //side y
+  _GetHard[4][8][0][0]=4 | 1<<3;     //side x
+  _GetHard[4][8][0][1]=0 | 2<<2;     //side y
 
-  _GetHard[4][9][0][2]=0;            //crate
-  _GetHard[4][9][0][0]=4 | 0<<3;     //side x
-  _GetHard[4][9][0][1]=0 | 0<<2;     //side y
+  _GetHard[4][7][0][2]=0;            //crate
+  _GetHard[4][7][0][0]=2 | 1<<3;     //side x
+  _GetHard[4][7][0][1]=2 | 3<<2;     //side y
 
-  _GetHard[4][4][1][2]=1;            //crate
-  _GetHard[4][4][1][0]=4 | 0<<3;     //side x
-  _GetHard[4][4][1][1]=0 | 0<<2;     //side y
+  _GetHard[4][6][0][2]=0;            //crate
+  _GetHard[4][6][0][0]=0 | 1<<3;     //side x
+  _GetHard[4][6][0][1]=0 | 3<<2;     //side y
 
-  _GetHard[4][5][1][2]=1;            //crate
-  _GetHard[4][5][1][0]=6 | 0<<3;     //side x
-  _GetHard[4][5][1][1]=2 | 0<<2;     //side y
+  _GetHard[4][5][0][2]=0;            //crate
+  _GetHard[4][5][0][0]=6 | 0<<3;     //side x
+  _GetHard[4][5][0][1]=2 | 0<<2;     //side y
 
-  _GetHard[4][6][1][2]=1;            //crate
-  _GetHard[4][6][1][0]=0 | 1<<3;     //side x
-  _GetHard[4][6][1][1]=0 | 3<<2;     //side y
-
-  _GetHard[4][7][1][2]=1;            //crate
-  _GetHard[4][7][1][0]=2 | 1<<3;     //side x
-  _GetHard[4][7][1][1]=2 | 3<<2;     //side y
-
-  _GetHard[4][8][1][2]=1;            //crate
-  _GetHard[4][8][1][0]=4 | 1<<3;     //side x
-  _GetHard[4][8][1][1]=0 | 2<<2;     //side y
+  _GetHard[4][4][0][2]=0;            //crate
+  _GetHard[4][4][0][0]=4 | 0<<3;     //side x
+  _GetHard[4][4][0][1]=0 | 0<<2;     //side y
 
   _GetHard[4][9][1][2]=1;            //crate
-  _GetHard[4][9][1][0]=6 | 1<<3;     //side x
-  _GetHard[4][9][1][1]=2 | 2<<2;     //side y
+  _GetHard[4][9][1][0]=4 | 0<<3;     //side x
+  _GetHard[4][9][1][1]=0 | 0<<2;     //side y
+
+  _GetHard[4][8][1][2]=1;            //crate
+  _GetHard[4][8][1][0]=6 | 0<<3;     //side x
+  _GetHard[4][8][1][1]=2 | 0<<2;     //side y
+
+  _GetHard[4][7][1][2]=1;            //crate
+  _GetHard[4][7][1][0]=0 | 1<<3;     //side x
+  _GetHard[4][7][1][1]=0 | 3<<2;     //side y
+
+  _GetHard[4][6][1][2]=1;            //crate
+  _GetHard[4][6][1][0]=2 | 1<<3;     //side x
+  _GetHard[4][6][1][1]=2 | 3<<2;     //side y
+
+  _GetHard[4][5][1][2]=1;            //crate
+  _GetHard[4][5][1][0]=4 | 1<<3;     //side x
+  _GetHard[4][5][1][1]=0 | 2<<2;     //side y
+
+  _GetHard[4][4][1][2]=1;            //crate
+  _GetHard[4][4][1][0]=6 | 1<<3;     //side x
+  _GetHard[4][4][1][1]=2 | 2<<2;     //side y
 
   // layer 6
 

@@ -31,6 +31,7 @@ private:
    static const number  _c2c[nl];
    static const number  _halfldist[nl];
    static const number  _support_foam_w[nl];
+   static const number  _support_foam_tol[nl];
    static const number  _support_hc_w[nl];
    static const number  _support_hc_r[nl];
    static const number  _support_hc_z[nl];
@@ -95,6 +96,7 @@ inline static  number  PlMarkerPos(int i,int j,int k,int l)
    }
    inline static number  c2c(integer i){return _c2c[i];}
    inline static number support_foam_w(integer i){return _support_foam_w[i];}
+   inline static number support_foam_tol(integer i){return _support_foam_tol[i];}
    inline static number support_hc_w(integer i){return _support_hc_w[i];}
    inline static number support_hc_r(integer i){return _support_hc_r[i];}
    inline static number support_hc_z(integer i){return _support_hc_z[i];}

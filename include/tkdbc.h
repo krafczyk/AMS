@@ -26,7 +26,8 @@ public:
  static integer getnumd(integer layer, integer ladder);
  static void init();
  static void read();
- static void write();
+ static void write(integer update = 0);
+ static void updatef();
  static integer GetStatus(integer layer, integer ladder, integer sensor){
                 return _HeadSensor[getnum(layer,ladder,sensor)]._status;
  }

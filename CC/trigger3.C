@@ -294,7 +294,7 @@ void TriggerLVL3::init(){
               }
           }
           if(nfs==0){
-             cerr <<"Trigger3::Init-F-no sensors found for layer "<<i+1<<endl;
+             cerr <<"Trigger3::Init-F-no sensors found for DRP "<<i+1<<endl;
              exit(1);
           }
           else{
