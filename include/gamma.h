@@ -1,3 +1,4 @@
+//  $Id: gamma.h,v 1.4 2002/11/14 15:37:39 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__

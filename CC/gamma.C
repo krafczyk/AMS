@@ -1,4 +1,4 @@
-// Author G.Lamanna 13-November-2002
+//  $Id: gamma.C,v 1.4 2002/11/14 15:38:02 choutko Exp $
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
 //
