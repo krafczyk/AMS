@@ -441,7 +441,7 @@ I62  FalseTOFXTracking(1)   // Try(1) or do not try(0) 4y + TOF tracking
 I63  TOFTracking(1)         // Filter out(1) or not(0) hits inconsistent with TOF
                             // before tracking
 
-I64  ForceAdvencedFit(2)    // Force(1) or not advanced fit for all particles
+I64  ForceAdvencedFit(1)    // Force(1) or not advanced fit for all particles
 
 R65  ThrClA[2](0,0)         // mark trreccl good if ampl > ThrClA
 R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
@@ -583,7 +583,7 @@ R 5 TrMaxResidual[3](0.9,0.1,0.2)     // Max Residuals to keep event (cm)
 I 8 TrMaxHits(20)                      // Max Number of hits in Tracker
 R 9 Splitting(0.04)                    // Min distance between hits
 I10 Nrep(1)                            // Aux no of rep to calc lvl3 time
-I11 Accept(1)                        // Min value of lvl3 trigger to accept
+I11 Accept(0)                        // Min value of lvl3 trigger to accept
 I12 RebuildLVL3(2)                   // rebuild/not rebuild(0) lvl3 in reconstruction
 I13 NoK(1)                           // NotMatch(1) Match(0) S & K in lvl3
 R14 TrHeavyIonThr(200)               // Heavy Ion threshold (trunc mean)

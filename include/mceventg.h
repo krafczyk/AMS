@@ -78,7 +78,9 @@ integer getseed(integer i)const{return (i>=0 && i<2) ? _seed[i]: 0;}
 void setseed(integer seed[2]){_seed[0]=seed[0];_seed[1]=seed[1];}
 static integer fixedmom(){return _fixedmom;}
 static integer fixeddir(){return _fixeddir;}
+static void FillMCInfo();
 static integer debug;
+static integer Out(integer status=0);
 AMSmceventg(integer ip, geant mom, const AMSPoint & coo, const AMSDir & dir, integer nskip=0);
 AMSmceventg(integer seed[2]){_next=0;_nskip=0;setseed(seed);}
 AMSmceventg( const AMSIO & io);

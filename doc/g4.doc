@@ -54,7 +54,6 @@ CC/gmat.C    << new geant4  constructors
 To be done
 
 <User cuts a-la geant4>
-<geant4 geom boolean constructor>
 
 
 F/rndm.F  <-- heprandom

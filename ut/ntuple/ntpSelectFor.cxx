@@ -326,7 +326,7 @@ inline void FileContainer::SetScan(char* dir, char *ext)
       if (ext != 0) selectExt = ext;
 #ifdef __AIX__
       m_Entries  = scandir(dir, &m_Namelist,
-                           (int(*)())mySelect, (int(*)())alphasort);
+                           mySelect, alphasort);
 #else
       m_Entries  = scandir(dir, &m_Namelist, mySelect, alphasort);
 #endif

@@ -1440,7 +1440,7 @@ c         write(*,*)iqi,(sela+sqel)/fsig
          END IF
       ELSE
 c           goto 888
-            call abinelset(vect)
+            call abinelset(vect,ipart)
             if(ihvse(2).eq.1)then
             ISTOP = 1
             DESTEP = DESTEP + GETOT
@@ -8235,11 +8235,11 @@ CDECK  ID>, DUMMY.
       iquest(10)=64000
       end
 
-      subroutine abinelset(acoo)
+      subroutine abinelset(acoo,ipart)
          implicit none
          real acoo(7),coo(7)
          common /abinelseti/iset,coo
-         integer iset,i
+         integer iset,i,ipart
          data iset/0/
          if(iset.ne.0)then
 c           write(*,*)'abinelsetlogicerroralreadyset'
@@ -8248,7 +8248,8 @@ c           write(*,*)'abinelsetlogicerroralreadyset'
           coo(i)=acoo(i)
          enddo
          endif
-         iset=iset-1
+         iset=ipart
+c         iset=iset-1
        end
        subroutine abinelget(isett,acoo)
          implicit none

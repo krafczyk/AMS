@@ -468,6 +468,39 @@ struct GCMATE_DEF {
 COMMON_BLOCK_DEF(GCMATE_DEF,GCMATE);
 
 
+
+/*
+      PARAMETER (MXGKIN=100)
+      COMMON/GCKING/KCASE,NGKINE,GKIN(5,MXGKIN),
+     +                           TOFD(MXGKIN),IFLGK(MXGKIN)
+      INTEGER       KCASE,NGKINE ,IFLGK,MXPHOT,NGPHOT
+      REAL          GKIN,TOFD,XPHOT
+C
+      PARAMETER (MXPHOT=800)
+      COMMON/GCKIN2/NGPHOT,XPHOT(11,MXPHOT)
+C
+      COMMON/GCKIN3/GPOS(3,MXGKIN)
+      REAL          GPOS
+
+*/
+
+struct GCKING_DEF{
+int kcase;
+int ngkine;
+float gkin[100][5];
+float tofd[100];
+int iflgk[100];
+};
+#define GCKING COMMON_BLOCK(GCKING,gcking)
+COMMON_BLOCK_DEF(GCKING_DEF,GCKING);
+
+struct GCKIN3_DEF{
+float GPOS[100][3];
+};
+
+#define GCKIN3 COMMON_BLOCK(GCKIN3,gckin3)
+COMMON_BLOCK_DEF(GCKIN3_DEF,GCKIN3);
+
 struct GCKINE_DEF{
 integer ikine;
 float pkine[10];

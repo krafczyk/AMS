@@ -20,6 +20,7 @@ protected:
   TrMCClusterNtuple _trclmc;
   TrRecHitNtuple _trrh;
   TrTrackNtuple _trtr;
+  TrTrackNtuple02 _trtr02;
   MCEventGNtuple _mcg;
   CTCClusterNtuple _ctccl;
   CTCMCClusterNtuple _ctcclmc;
@@ -62,6 +63,7 @@ public:
   TrMCClusterNtuple* Get_trclmc() {return &_trclmc;}
   TrRecHitNtuple* Get_trrh() {return &_trrh;}
   TrTrackNtuple* Get_trtr() {return &_trtr;}
+  TrTrackNtuple02* Get_trtr02() {return &_trtr02;}
   MCEventGNtuple* Get_mcg() {return &_mcg;}
   CTCClusterNtuple* Get_ctccl() { return &_ctccl;}
   CTCMCClusterNtuple* Get_ctcclmc() {return &_ctcclmc;}

@@ -15,6 +15,7 @@ C      CALL HBOOK1(12,  'NTRTR', 12, -1, 5, 0.)
 C      CALL HBOOK1(13,  'NBETA', 12, -1, 5, 0.)
 C      CALL HBOOK1(103, '[b](v/c)', 120, -1.2, 1.2, 0.)
 * 
+       call HROPEN(44,'output','posn.hbk','NP',1024,iostat)      
       RETURN
       END
 
@@ -27,7 +28,7 @@ C**------------- BLOCK DATA VARDATA ---------------------------------C
 *-----------------------------------------------------------
       INCLUDE 'usrcom.inc'
 *-user may change following
-      DATA NVAR/1/, VARLIS(1)/'EVENTSTATUS'/
+      DATA NVAR/0/, VARLIS(1)/'EVENTSTATUS'/
 C      DATA NVAR/5/,VARLIS/
 C     &  'NBETA','BETA', 'NPART', 'NTRTR', 'NHITS', 217*' '/
 *-end of user change
@@ -82,13 +83,8 @@ C     &  'NBETA','BETA', 'NPART', 'NTRTR', 'NHITS', 217*' '/
 *
 *-- Comment the following in case you do not want to write selectd events
 *--  into new ntuples
-*
-* Requires events with pmom<0 or pcharge>1
-*
-      USRCUT =0
-      if(mod(eventstatus/1048576/2,4).gt.0.and.
-     +(mod(eventstatus/32,8).gt.0.or.mod(eventstatus/256,2).eq.0))
-     +usrcut=1
+      icut=aprf(-1)
+      USRCUT =icut
       if(usrcut.ne.0)then
         notzero=notzero+1
       else
@@ -126,3 +122,54 @@ C      CALL HPRINT(0)
 
 
 
+      integer FUNCTION aprf(isig)
+      INCLUDE 'cwncom.inc'
+         integer patmiss(6,22)
+         data patmiss/                0,0,0,0,0,0,   ! 123456  0
+     +                                0,0,0,0,0,5,   ! 12346   1
+     +                                0,0,0,0,0,4,   ! 12356   2
+     +                                0,0,0,0,0,3,   ! 12456   3
+     +                                0,0,0,0,0,2,   ! 13456   4
+     +                                0,0,0,0,0,6,   ! 12345   5
+     +                                0,0,0,0,0,1,   ! 23456   6
+     +                                0,0,0,0,5,6,   ! 1234    7
+     +                                0,0,0,0,4,6,   ! 1235    8
+     +                                0,0,0,0,4,5,   ! 1236    9
+     +                                0,0,0,0,3,6,   ! 1245   10
+     +                                0,0,0,0,3,5,   ! 1246   11
+     +                                0,0,0,0,3,4,   ! 1256   12
+     +                                0,0,0,0,2,6,   ! 1345   13
+     +                                0,0,0,0,2,5,   ! 1346   14
+     +                                0,0,0,0,2,4,   ! 1356   15
+     +                                0,0,0,0,2,3,   ! 1456   16
+     +                                0,0,0,0,1,6,   ! 2345   17
+     +                                0,0,0,0,1,5,   ! 2346   18
+     +                                0,0,0,0,1,4,   ! 2356   19
+     +                                0,0,0,0,1,3,   ! 2456   20
+     +                                0,0,0,0,1,2/   ! 3456   21
+
+      integer pm
+      logical cut
+      aprf=0
+      
+*
+*    Basic cuts
+*
+c      call hf1(2,float(npart),1.)
+       if(npart.gt.0.and.pcharge(1).eq.1.and.
+     + ptrackp(1).gt.0.and.pmom(1).lt.0)aprf=1
+*
+      END
+
+
+
+      function xsign(x)
+       xsign=1.
+       if(x.lt.0)xsign=-1.
+      end      
+      function frp(x)
+       frp=9*sqrt(0.42e-6*exp(-x*0.037)+0.46e-7/x/x)
+      end
+      function frt(x)
+       frt=9*sqrt(0.2e-7*exp(-x*0.037)+0.46e-7/x/x)
+      end
