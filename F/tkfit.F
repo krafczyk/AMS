@@ -112,8 +112,14 @@ C Fetch information from previous iteration
             ux = ux + outpar5*av(1,J-1)
             uy = uy + outpar5*av(2,J-1)
           ENDIF
-          uz = -sqrt(1.-ux**2-uy**2)
-          ABSUZ(J) = abs(uz)
+          IF (ux**2+uy**2.lt.1.) THEN
+            uz = -sqrt(1.-ux**2-uy**2)
+            ABSUZ(J) = abs(uz)
+          ELSE
+* Non-sense
+           GOTO 999
+          ENDIF
+
         END DO
 
 C F and G matrices
