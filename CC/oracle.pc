@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.6 2001/06/07 16:33:37 alexei Exp $
+//  $Id: oracle.pc,v 1.7 2001/06/08 07:34:35 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -300,7 +300,19 @@ EXEC SQL BEGIN DECLARE SECTION;
              SELECT * FROM m_nominal_hosts;
 
     EXEC SQL DECLARE NClients_Cursor  CURSOR  FOR 
-             SELECT * FROM m_nominal_clients;
+             SELECT 
+                m_nominal_clients.id, 
+                m_nominal_clients.type,
+                m_nominal_clients.maxclients, 
+                m_nominal_clients.cpu, 
+                m_nominal_clients.memory, 
+                m_nominal_clients.scriptpath, 
+                m_nominal_clients.logpath, 
+                m_nominal_clients.submitcmd, 
+                m_nominal_clients.hostid, 
+                m_nominal_clients.logintheend, 
+                m_nominal_clients.timestamp 
+             FROM m_nominal_clients;
 
     EXEC SQL DECLARE AClients_Cursor  CURSOR  FOR 
              SELECT m_active_clients.id,
@@ -2145,7 +2157,7 @@ int AMSoracle::updateProdTable(ProdRun *rtable)
      cout<<"AMSoracle::updateProdTable -E- More than run "<<trun<<endl;
    }
   } else {
-   cout<<"AMSoracle::updateProdTable -W- cannot find host "<<thostname<<endl;
+//   cout<<"AMSoracle::updateProdTable -W- cannot find host "<<thostname<<endl;
   }  
  }
    return rstatus;

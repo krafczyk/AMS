@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.7 2001/06/07 16:33:41 alexei Exp $
+//  $Id: oracle.h,v 1.8 2001/06/08 07:34:43 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -448,7 +448,8 @@ namespace AMSoracle {
              char *path, 
              char *lpath,
              char *cmd, 
-             char *host)
+             char *host,
+             int  &logintheend)
       {
         uid = id;
         ttype = type;
@@ -459,6 +460,7 @@ namespace AMSoracle {
         strcpy(lpath,logpath);
         strcpy(cmd,submitcmd);
         strcpy(host,hostname);
+        logintheend = logend;
       };
     int  set(unsigned long uid, 
              short int tmaxclients,

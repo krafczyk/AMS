@@ -1,11 +1,11 @@
-//  $Id: dbserver.C,v 1.16 2001/06/07 16:33:36 alexei Exp $
+//  $Id: dbserver.C,v 1.17 2001/06/08 07:34:35 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
 //  Mar,    2001. a.k. debugging   
 //  Jun,    2001. a.k. use amsdatadir as TDV file prefix                  
 //
-//  Last Edit : Jun 7, 2001. ak
+//  Last Edit : Jun 8, 2001. ak
 //
 #include <stdlib.h>
 #include <server.h>
@@ -184,6 +184,7 @@ void  DBServer_impl::_init(){
    char lpath[1024];
    char scmd[1024];
    char host[40];
+   integer logintheend;
 
    AMSoracle::ProcDesc *procdesc = 0;
 
@@ -202,14 +203,15 @@ void  DBServer_impl::_init(){
                          acv[i].MaxClients, 
                          acv[i].CPUNeeded,
                          acv[i].MemoryNeeded, 
-                         spath, lpath, scmd, host);
+                         spath, lpath, scmd, host, logintheend);
 
          acv[i].WholeScriptPath = (const char *)spath;
          acv[i].LogPath         = (const char *)lpath;
          acv[i].SubmitCommand   = (const char *)scmd;
          acv[i].HostName        = (const char *)host;
-
+         
          acv[i].Type = cid.Type;
+         acv[i].LogInTheEnd = logintheend;
        }
      }
      if (procdesc) delete [] procdesc;
@@ -796,7 +798,7 @@ void  DBServer_impl::_init(){
     tdv -> getutime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
     int nbytes = tdv -> getsize();
     length = nbytes/sizeof(uinteger);
-    cout <<" length "<<length<<endl;;
+    //    cout <<" length "<<length<<endl;;
     vbody->length(length);
       if ( AMSoracle::gettdvbody((const char*)amsdatadir, tdv, vbody->get_buffer()) == 1) {
         //        AMSTimeID::_convert(pdata,length);
@@ -1456,7 +1458,7 @@ tmend    = e;
       if (AMSoracle::updateProdTable(prun) == 1)  {
         AMSoracle::commit();
       } else {
-              cout<<"DBServer_impl::sendRunEvInfo -W- No Commit during update. "<<ne.Run<<endl;
+        // cout<<"DBServer_impl::sendRunEvInfo -W- No Commit during update. "<<ne.Run<<endl;
       }
     } else {
       _parent -> EMessage(AMSClient::print(ne,"Run exists. not recreated"));
