@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.h,v 1.10 2001/08/23 21:05:48 kscholbe Exp $
+//  $Id: AMSR_Ntuple.h,v 1.11 2001/08/24 10:02:04 kscholbe Exp $
 #ifndef AMSR_Ntuple_H
 #define AMSR_Ntuple_H
 
@@ -43,7 +43,7 @@
 #include <TNamed.h>
 #ifndef __CINT__
  #include "AMSR_NtupleCommons.h"
-#include "AMSR_Rootclasses.h"
+// #include "AMSR_Rootclasses.h"
 #endif
 #ifndef AMSR_Types_H
 #include "AMSR_Types.h"
@@ -95,7 +95,9 @@ class AMSR_Ntuple : public TNamed {
    TOFRAWCL_DEF *m_BlkTofrawcl;
    ECALSHOWER_DEF  *m_Blkecsh;
 
-   /*   EventNtuple02* evt;
+   /*   For top-level branch address setting-- not currently used
+
+   EventNtuple02* evt;
    BetaNtuple02* beta;
    ChargeNtuple02* charge;
    ParticleNtuple02* part;

@@ -1,10 +1,13 @@
+// This used for top-level branch access... not currently used.
+
+
 // Need to duplicate here essentially what is in AMS/include/root.h
 //  because rootcint doesn't seem to deal with the ifdefs
 #ifndef __AMSR_Rootclasses_H
 #define __AMSR_Rootclasses_H
 
 #include <TObject.h>
-/*
+
 const int MAXBETA02    = 50;
 const int MAXCHARGE02  = 30;
 const int MAXPART02    =  20;
@@ -562,7 +565,7 @@ public:
   int Z[MAXTRTR02];
 
 ClassDef(RICRing,1)
-};  */
+};  
 
 #endif
 

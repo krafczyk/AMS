@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.20 2001/08/23 21:05:48 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.21 2001/08/24 10:02:04 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -39,7 +39,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "AMSR_Ntuple.h"
-#include "AMSR_Rootclasses.h"
+/* #include "AMSR_Rootclasses.h" */
 #include "hbook.h"
 #include <TTree.h>
 //#include <TClonesArray.h>
@@ -471,7 +471,9 @@ void AMSR_Ntuple::GetEvent(Int_t event)
 
 	  m_Tree->GetEvent(event);
 	
-/*	  memcpy(&m_BlkEventh->eventno,&evt->Eventno,sizeof(EVENTH_DEF));
+/* For top-level branch address setting-- not currently used
+
+	  memcpy(&m_BlkEventh->eventno,&evt->Eventno,sizeof(EVENTH_DEF));
 	  memcpy(&m_BlkBeta->nbeta,&beta->Nbeta,sizeof(BETA_DEF));
 	  memcpy(&m_BlkCharge->ncharge,&charge->Ncharge,sizeof(CHARGE_DEF));
 	  memcpy(&m_BlkParticle->npart,&part->Npart,sizeof(PARTICLE_DEF));
@@ -490,7 +492,6 @@ void AMSR_Ntuple::GetEvent(Int_t event)
 	  memcpy(&m_BlkAntimccl->nantimc,&antimc->Nantimc,sizeof(ANTIMCCL_DEF));
 	  memcpy(&m_BlkLvl3->nlvl3,&lvl3->Nlvl3,sizeof(LVL3_DEF));
 	  memcpy(&m_BlkLvl1->nlvl1,&lvl1->Nlvl1,sizeof(LVL1_DEF)); */
-
 
 	  debugger.Print("AMSR_Ntuple::GetEvent:event run nbeta %d %d %d %d\n",m_BlkEventh->eventno,m_BlkEventh->run,m_BlkBeta->nbeta,m_BlkParticle->npart);
 
@@ -705,7 +706,9 @@ void AMSR_Ntuple::SetTreeAddress()
    //
 
 
-/*   evt=0; beta=0; charge=0; part=0;
+/*  Top-level branch address setting-- not currently used  
+
+   evt=0; beta=0; charge=0; part=0;
    tofcl=0; tofmccl=0; trcl=0; trclmc=0;
    trrh=0; trdclmc=0; trdcl=0; trtr=0; trdtrk=0;
    ecalsh=0; mcg=0; anti=0; antimc=0; lvl3=0; lvl1=0;
