@@ -2279,8 +2279,9 @@ void AMSEvent::_collectstatus(){
   }
      
   // Now collect geomag latitude 
-     number cosgm=fabs(sin(_StationTheta)*sin(AMSmceventg::Orbit.PoleTheta)+
-     cos(_StationTheta)*cos(AMSmceventg::Orbit.PoleTheta)*cos(_StationPhi-_NorthPolePhi));
+     geant thetam,phim;
+     getmag(thetam,phim);
+     number cosgm=fabs(sin(thetam));
      integer icos;
      if(cosgm<0.1736)icos=0;
      else if(cosgm<0.5)icos=1;
