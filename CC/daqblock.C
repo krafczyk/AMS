@@ -98,7 +98,7 @@ integer DAQSBlock::checkblockid(int16u blid){
   int valid(0);
   for(int i=0;i<DAQSFMX;i++)
                      for(int j=0;j<DAQSBLK;j++)
-                                          if(blid == sblids[i][j])valid=1;
+                                          if((blid & (~60)) == sblids[i][j])valid=1;
   return valid;
 }
 //-------------------------------------------------------
@@ -110,7 +110,7 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   integer i,j,lent,dlen,im;
   int16u blid,btyp,ntyp,naddr,dtyp,msk,chan;
 //
-  blid=*p;
+  blid=(*p) & ~60;       // New genial idea
   btyp=blid>>13;// block_type ("0" for event data)
   ntyp=(blid>>9)&15;// node_type ("10" for TOF/ANTI/CTC)
   naddr=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)

@@ -52,8 +52,9 @@ void AMSGenHist::_Fetch(){
 
 void AMSGenHist::ShowSet(Int_t Set){
 
-  TF1 f1("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0,40);
-  TF1 f2("vcg2","[0]*exp(-x*[1])",0,40);
+  TF1 f1("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0.4,15);
+  TF1 f2("vcg2","[0]*exp(-x*[1])",0.4,100);
+  int choise=0;
   f1.SetParameter(0,100.);
   f1.SetParameter(1,0.7);
   f1.SetParameter(2,10.);
@@ -81,17 +82,25 @@ void AMSGenHist::ShowSet(Int_t Set){
 	gPad->SetLogz(gAMSDisplay->IsLogZ());
         if (_fetched2[i]) {
           if(Set==4){
-            _fetched2[i]->Fit("vcg2","V");
+            _fetched2[i]->Fit("vcg2","VR");
+            double chi2=f2.GetChisquare();
+            if(chi2>200){
+              choise=1;
+            _fetched2[i]->Fit("vcg","VR");
+            double chi2_2=f1.GetChisquare();
+            if(chi2_2>chi2)choise=0;
+            } 
           }
           _fetched2[i]->Draw();
           if(Set==4){
             char text[80];
             TPaveText *lf=new TPaveText(0.2,0.8,0.5,0.9,"NDC");
             lf->SetFillColor(18);
-            sprintf(text,"Input Rate (Hz) %f",f2.GetParameter(1)*1000);    
+            if(choise==0)sprintf(text,"Input Rate (Hz) %f",f2.GetParameter(1)*1000);    
+            else sprintf(text,"Input Rate (Hz) %f",f1.GetParameter(1)*1000);    
             lf->AddText(text);
             sprintf(text,"Output Rate (Hz) %f",2000/f1.GetParameter(3));    
-            //lf->AddText(text);
+            if(choise!=0)lf->AddText(text);
             lf->Draw();
           }
         }
