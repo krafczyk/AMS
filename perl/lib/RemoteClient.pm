@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.60 2002/08/08 17:18:32 alexei Exp $
+# $Id: RemoteClient.pm,v 1.61 2002/08/14 08:14:20 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -4333,11 +4333,21 @@ sub PrintDownloadTable {
     print "<TR><br>\n";
     print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download</b></font>:\n";
     print "<br><br>\n";
-    print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileDB}>  filedb files (tar.gz)</a></font>";
+#   print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileDB}>  filedb files (tar.gz)</a></font>";
+    my $file= $self->{FileDB};
+    $file=~ s/gz/Z /;
+    print "<br><font size=\"4\">
+           <a href=load.cgi?$self->{UploadsHREF}/$file>  filedb files (tar.gz)</a>
+           </font>";
     my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
     print "<br><br>";
-    print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileAttDB}>   filedb att.files (tar.gz)</a></font>\n";
+    $file= $self->{FileAttDB};
+    $file=~ s/gz/Z /;
+#           <a href=$self->{UploadsHREF}/$self->{FileAttDB}>   filedb att.files (tar.gz)</a>
+    print "<br><font size=\"4\">
+           <a href=load.cgi?$self->{UploadsHREF}/$file>   filedb att.files (tar.gz)</a>
+           </font>\n";
     $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
     print "<br><br>\n";
