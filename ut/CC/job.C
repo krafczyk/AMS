@@ -1004,10 +1004,10 @@ if(IOPA.mode && isSimulation()){
 if(isReconstruction() && DAQCFFKEY.mode%10 ==0)DAQCFFKEY.mode=DAQCFFKEY.mode+1;
 if(isSimulation() && DAQCFFKEY.mode%10 == 1)DAQCFFKEY.mode=DAQCFFKEY.mode-1;
 if(DAQCFFKEY.mode){
+   AMSEvent::setfile(sfile);
    DAQEvent::setfiles(ifile,ofile);
    DAQEvent::init(DAQCFFKEY.mode);
 }
-  AMSEvent::setfile(sfile);
 
 
 

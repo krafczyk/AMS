@@ -118,8 +118,11 @@ void AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
  }
  else {
    // No Match Found
-   if(evt>_Status[0][_Nelem-1] && curevent!=_Status[0][_Nelem-1]){
+   if(evt>_Status[0][_Nelem-1] && curevent<_Status[0][_Nelem-1]){
       ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][_Nelem-1]);
+   }
+   else if(curevent>_Status[0][_Nelem-1]){ 
+    cerr<<"AMSStatus::geteventpos-E-NoMatchfound "<<run<<" "<<curevent<<" "<<_Status[0][_Nelem-1]<<" "<<endl;
    }
    else if(evt<_Status[0][_Nelem-1]){ 
     cerr<<"AMSStatus::geteventpos-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
