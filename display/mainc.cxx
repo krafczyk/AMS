@@ -107,6 +107,7 @@ out:
         }
         else break;
        }
+       if(!amsroot.IsGolden() && rand()%10 != 3)continue;
           display.DrawEvent();
           display.GetCanvas()->Update();	// force it to draw
           theApp->Run();

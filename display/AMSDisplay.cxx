@@ -161,7 +161,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    //
    // Create switch pad
    // ----------------------------
-   m_TrigPad = new TPad("TrigPad", "trigger pad",0,0.05,xsep,0.45);
+   m_TrigPad = new TPad("TrigPad", "trigger pad",0,0.1,xsep,0.45);
    //m_TrigPad->SetFillColor(22);
    m_TrigPad->SetFillColor(13);
    m_TrigPad->SetBorderSize(2);
@@ -170,7 +170,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    //
    // Create event info pad
    // ----------------------------
-   m_EventInfoPad = new TPad("EventInfoPad", "event info pad", 0, 0, 0.2, 0.05);
+   m_EventInfoPad = new TPad("EventInfoPad", "event info pad", 0, 0.0, 0.2, 0.1);
    m_EventInfoPad->SetFillColor(0);
    m_EventInfoPad->SetBorderSize(1);
    m_EventInfoPad->SetBorderMode(1);
@@ -191,7 +191,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
          m_ObjInfoPad->XtoAbsPixel(0.0), m_ObjInfoPad->YtoAbsPixel(0.0), 
          m_ObjInfoPad->XtoAbsPixel(1.0), m_ObjInfoPad->YtoAbsPixel(1.0) );
 
-   //
+   
    // Create part info pad
    // ----------------------------
    //   m_Canvas->cd();
@@ -712,8 +712,9 @@ void AMSDisplay::DrawEventInfo(Option_t *option)
    AMSDisplay * disp = (AMSDisplay *) gAMSRoot->Display();
    TPad * pad = disp->GetEventInfoPad();
 
-   const int kTMAX = 40;
+   const int kTMAX = 80;
    static TText * text=0;
+   static TText * text1=0;
    static char atext[kTMAX];
 
    TVirtualPad * gPadSave = gPad;
@@ -724,14 +725,29 @@ void AMSDisplay::DrawEventInfo(Option_t *option)
    atext[kTMAX-1] = 0;
 
    if (! text) {
-	text = new TText(0.04, 0.5, atext);
+	text = new TText(0.04, 0.75, atext);
    }
    else
-	text->SetText(0.04, 0.5,atext);
+	text->SetText(0.04, 0.75,atext);
 
+   //   text->SetTextFont(7);
    text->SetTextAlign(12);
-   text->SetTextSize(0.55);
+   text->SetTextSize(0.3);
    text->Draw();
+   sprintf(atext,"%s",gAMSRoot->GetTime());
+    for ( i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
+      atext[kTMAX-1] = 0;
+   
+      if (! text1) {
+   	text1 = new TText(0.04, 0.25, atext);
+      }
+      else
+   	text1->SetText(0.04, 0.25,atext);
+   
+      //   text->SetTextFont(7);
+      text1->SetTextAlign(12);
+      text1->SetTextSize(0.22);
+      text1->Draw();
 
    gPadSave->cd();
 }

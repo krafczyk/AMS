@@ -24,6 +24,7 @@
 #ifndef AMSMaker_H
 #include "AMSMaker.h"
 #endif
+#include <time.h>
 
 class TBrowser;
 //class AMSMCMaker;
@@ -51,6 +52,7 @@ private:
    Int_t                m_EventNum;          //Event number
    Int_t                m_Mode;              //Run mode
    Int_t		m_Event;             //Event counter in the input tree
+   time_t                m_time[2];           //Time
    TTree               *m_Tree;              //Pointer to the Root tree
    TTree               *m_Input;             //Pointer to the input data tree
    TList               *m_Makers;            //List of Makers
@@ -85,6 +87,7 @@ private:
 public:
                       AMSRoot();
                       AMSRoot(const char *name, const char *title="The AMS Display with Root");
+   Int_t             IsGolden();
    virtual           ~AMSRoot();
    virtual void       Browse(TBrowser *b);
    virtual Int_t       GetEvent(Int_t event=1);      // *MENU*
@@ -104,6 +107,7 @@ public:
    Int_t          GetVersion()     {return m_Version;}
    Int_t          GetVersionDate() {return m_VersionDate;}
    Int_t          RunNum()         {return m_RunNum;}
+   char*          GetTime()         {return ctime(m_time);}
    Int_t          EventNum()       {return m_EventNum;}
    Int_t          Event()          {return m_Event;}
    Int_t          Mode()           {return m_Mode;}

@@ -346,6 +346,19 @@ void AMSRoot::Browse(TBrowser *b)
 }
 
 //_____________________________________________________________________________
+
+Int_t AMSRoot::IsGolden(){
+
+  AMSMaker * p = (AMSMaker *) ParticleMaker();
+   
+  TObject *fruits = p->Fruits();
+  TClonesArray *clones = (TClonesArray*)fruits;
+   return clones->GetEntries();
+
+}
+
+
+
 Int_t AMSRoot::GetEvent(Int_t event)
 {
    Int_t ret=0;
@@ -432,6 +445,7 @@ void AMSRoot::Init(TTree * h1)
    h1->SetBranchAddress("eventno",&m_EventNum);
    h1->SetBranchAddress("run",&m_RunNum);
    h1->SetBranchAddress("runtype",&m_Mode);
+   h1->SetBranchAddress("time",m_time);
 
    //
    //    Initialise makers

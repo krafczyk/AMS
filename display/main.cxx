@@ -73,17 +73,12 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
        if(!amsroot.GetEvent(i))break;;
           display.DrawEvent();
           display.GetCanvas()->Update();	// force it to draw
-              theApp->Run();
-              //              system("sleep 5");       
+          theApp->Run();
       }        
       return ;
   
 
 
-// Enter event loop
-  theApp->Run();
-
-  delete theApp;
 }
 //---------------------------------------
 
