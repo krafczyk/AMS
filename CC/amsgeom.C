@@ -425,13 +425,13 @@ void ctcgeom(AMSgvolume & mother){
 extern void ctcgeomE(AMSgvolume &, integer iflag);
 extern void ctcgeomAG(AMSgvolume& );
 extern void ctcgeomAGPlus(AMSgvolume& );
-if(strstr(AMSJob::gethead()->getsetup(),"CTCAnnecyBasic")){
-ctcgeomAG(mother);
-  cout<<" CTCGeom-I-Annecy setup for CTC selected"<<endl;
+if(strstr(AMSJob::gethead()->getsetup(),"CTCAnnecyPlus")){
+  ctcgeomAGPlus(mother);
+  cout<<" CTCGeom-I-Annecy+Lead setup for CTC selected"<<endl;
 }
 else{
-  ctcgeomAGPlus(mother);
-  cout<<" CTCGeom-I-AnnecyPlus setup for CTC selected"<<endl;
+ctcgeomAG(mother);
+  cout<<" CTCGeom-I-Annecy setup for CTC selected"<<endl;
 }
 }
 
@@ -1219,7 +1219,7 @@ void tkgeom(AMSgvolume &mother){
 
 
 
-cout<<" TKGeom-I-Planes option selected"<<endl;
+   //cout<<" TKGeom-I-Planes option selected"<<endl;
 
 
 AMSID amsid;
@@ -1300,7 +1300,7 @@ ostrstream ost(name,sizeof(name));
       //  Ladder 
       //
         gid=i+1+10*(j+1)+100000;
-        integer status=0;
+        integer status=1;
         if(TKDBc::update())TKDBc::SetLadder(i,j,k,status,coo,nrm,gid);
         else               TKDBc::GetLadder(i,j,k,status,coo,nrm);
         lad[k]=(AMSgvolume*)dau->add(new AMSgvolume(
@@ -1424,6 +1424,63 @@ ostrstream ost(name,sizeof(name));
        gid=i+1;
        cur=dau->add(new AMSgvolume(
       "Tr_Honeycomb",nrot++,name,"TUBE",par,3,coo,nrm,"ONLY",1,gid,1));
+
+       // now Markers 1
+       for(j=0;j<4;j++){
+        ost.seekp(0);
+        ost <<"MK1"<<i+1<<ends;
+        par[0]=0;
+        par[1]=0.3;
+        par[2]=AMSDBc::support_hc_w(i)/2;
+        coo[0]=AMSDBc::PlMarkerPos(0,i,j,0);
+        coo[1]=AMSDBc::PlMarkerPos(0,i,j,1);
+        coo[2]=AMSDBc::PlMarkerPos(0,i,j,2)-par[2]-AMSDBc::support_hc_z(i);
+        VZERO(nrm,9*sizeof(nrm[0][0])/4);
+        nrm[0][0]=1;
+        nrm[1][1]=1;
+        nrm[2][2]=1;
+        gid=j+1;
+        integer status=1;
+        if(TKDBc::update())TKDBc::SetMarker(i+1,0,j,status,coo,nrm,gid);
+        else               TKDBc::GetMarker(i+1,0,j,status,coo,nrm);
+        cur->add(new AMSgvolume(
+       "VACUUM",nrot++,name,"TUBE",par,3,coo,nrm,"ONLY",1,gid,1));
+       }
+       // now Markers 2
+        number sq2=sqrt(2.);
+       for(j=0;j<4;j++){
+        ost.seekp(0);
+        ost <<"MK2"<<i+1<<ends;
+        par[0]=0;
+        par[1]=0.3;
+        number r=sqrt(AMSDBc::PlMarkerPos(0,i,j,0)*AMSDBc::PlMarkerPos(0,i,j,0)
+                + AMSDBc::PlMarkerPos(0,i,j,1)*AMSDBc::PlMarkerPos(0,i,j,1));
+        par[2]=(AMSDBc::support_hc_r(i)-r-0.3)/2;
+        number dc=(par[2]+0.3)/sq2;
+        coo[0]=AMSDBc::PlMarkerPos(1,i,j,0);
+        if(coo[0]>0)coo[0]+=dc;
+        else coo[0]+=-dc;
+        coo[1]=AMSDBc::PlMarkerPos(1,i,j,1);
+        if(coo[1]>0)coo[1]+=dc;
+        else coo[1]+=-dc;
+        coo[2]=AMSDBc::PlMarkerPos(1,i,j,2)-AMSDBc::support_hc_z(i);
+        nrm[0][0]=1./sq2;
+        nrm[1][0]=-1/sq2;
+        nrm[2][0]=0;
+        nrm[0][1]=0;
+        nrm[1][1]=0;
+        nrm[2][1]=-1;
+        nrm[0][2]=1./sq2;
+        nrm[1][2]=1./sq2;
+        nrm[2][2]=0;
+        gid=j+1;
+        integer status=1;
+        if(TKDBc::update())TKDBc::SetMarker(i+1,1,j,status,coo,nrm,gid);
+        else               TKDBc::GetMarker(i+1,1,j,status,coo,nrm);
+        cur->add(new AMSgvolume(
+       "VACUUM",nrot++,name,"TUBE",par,3,coo,nrm,"ONLY",1,gid,1));
+        }
+
 
        // Now Elec Left
 

@@ -36,6 +36,9 @@ private:
    static const number  _support_hc_z[nl];
    static const integer _nladshuttle[nl];
    static const integer _boundladshuttle[nl];
+   static const number _PlMarkerPos[2][nl][4][3];  // 1st wjb
+                                                   // 2nd hasan
+
 public:
 
 #ifdef __DB__
@@ -62,6 +65,9 @@ public:
 // member functions
    inline static  number layd(integer i, integer j)
      {return _layd[i][j];}
+inline static  number  PlMarkerPos(int i,int j,int k,int l)
+{return _PlMarkerPos[i][j][k][l];}
+
    inline static  number  xposl(integer i){return _xposl[i];}
    inline static  number  yposl(integer i){return _yposl[i];}
    inline static  number  zposl(integer i){return _zposl[i];}

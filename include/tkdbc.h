@@ -10,12 +10,14 @@ private:
  geant _coo[3];
  integer _status;
  integer _gid;
- static TKDBc * _Head;
+ static TKDBc * _HeadSensor;
  static TKDBc * _HeadLayer;
  static TKDBc * _HeadLadder[2];
+ static TKDBc * _HeadMarker[2];
  static integer _NumberSen;
  static integer _NumberLayer;
  static integer _NumberLadder;
+ static integer _NumberMarkers;
  static integer _ReadOK; 
  
 public:
@@ -26,7 +28,7 @@ public:
  static void read();
  static void write();
  static integer GetStatus(integer layer, integer ladder, integer sensor){
-                return _Head[getnum(layer,ladder,sensor)]._status;
+                return _HeadSensor[getnum(layer,ladder,sensor)]._status;
  }
  static integer update(){return _ReadOK==0;}
  static void SetSensor(integer layer, integer ladder, integer sensor,
@@ -42,6 +44,10 @@ public:
              integer  status, geant coo[],number nrm[3][3],integer gid);
  static void GetLadder(integer layer, integer ladder, integer half,
                           integer & status, geant coo[],number nrm[3][3]);
+ static void GetMarker(integer layer, integer markerno, integer markerpos,
+                       integer & status, geant coo[], number nrm[3][3]);    
+ static void SetMarker(integer layer, integer markerno, integer markerpos,
+                       integer & status, geant coo[], number nrm[3][3], integer gid);    
  
 #ifdef __DB__
    friend class TKDBcV;
