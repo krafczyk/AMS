@@ -159,7 +159,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
                              integer enddate, integer endtime, 
                               integer ipart,  integer low){
 
-  const number MIR=51.8;
+  const number MIR=51.65;
   Orbit.Begin.tm_year  =  begindate%10000-1900;
   Orbit.Begin.tm_mon = (begindate/10000)%100-1;
   Orbit.Begin.tm_mday   = (begindate/1000000)%100;
@@ -429,9 +429,22 @@ integer AMSmceventg::EarthModulation(){
   number cts=um*up+vm*vp+wm*wp;
   number xl=acos(cts);
   number cl=fabs(sin(xl));
-  number uv=vm*wp-wm*vp;
-  number vv=wm*up-wp*um;
-  number wv=um*vp-vm*up;
+   xc=Orbit.AlphaAltitude*sin(AMSDBc::pi/2-fabs(theta))*cos(phi)-
+    Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*cos(dphi);
+   yc=Orbit.AlphaAltitude*sin(AMSDBc::pi/2-fabs(theta))*sin(phi)-
+    Orbit.DipoleR*sin(AMSDBc::pi/2-Orbit.DipoleTheta)*sin(dphi);
+   zc=Orbit.AlphaAltitude*cos(AMSDBc::pi/2-fabs(theta))-
+    Orbit.DipoleR*cos(AMSDBc::pi/2-Orbit.DipoleTheta);
+   rl=sqrt(xc*xc+zc*zc+yc*yc);
+    number  uz=xc/rl;
+    number  vz=yc/rl;
+    number  wz=zc/rl;
+
+
+
+  number uv=vm*wz-wm*vz;
+  number vv=wm*uz-um*wz;
+  number wv=um*vz-vm*uz;
   //
   // particle dir in global system
   // AMS x along the shuttle/station flight
