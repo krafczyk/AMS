@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.74 2002/12/10 11:56:12 choutko Exp $
+//  $Id: ecalrec.C,v 1.75 2002/12/16 14:13:10 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -691,7 +691,7 @@ void AMSEcalHit::build(int &stat){
 	    edep=etrue;//welcome any other ideas...
 	  }
 	  if(saturf<0){
-	    sta|=AMSDBc::CATLEAK;
+	    sta|=AMSDBc::LEAK;
 	    saturf=fabs(saturf);
 	  }
 	  edepc=edep*(saturf-1.);//add this value to corr. for PM-saturation(type-1)
@@ -2381,9 +2381,14 @@ if(_EnergyC){
  number minen=_EnergyC>1?_EnergyC:1;
  number lowencorr=1.0009-2.7e-2/pow(minen,0.5);
  _EnergyC/=lowencorr;
- if(_EnergyC>2500){
-  number maxen=_EnergyC>15000?15000:_EnergyC;
-  number hiencorr=(1-0.165)/(1-0.165*maxen/2500.);
+ if(_EnergyC>2000){
+  number cf=0.3;
+  number maxen=_EnergyC/2000*cf;
+  if(maxen>=1){
+   setstatus(AMSDBc::CATLEAK);
+   maxen=0.9999999;
+  }
+  number hiencorr=(1-cf)/(1-maxen);
   _EnergyC*=hiencorr;
  }
 }

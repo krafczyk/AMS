@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.236 2002/12/06 14:43:41 choumilo Exp $
+#  $Id: Mopt,v 1.237 2002/12/16 14:13:19 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -186,7 +186,7 @@ NAGDIR  = /f2dat1/NagLib
 CC=/opt/intel/compiler60/ia32/bin/icc
 FF=/opt/intel/compiler60/ia32/bin/ifc
 LD=/opt/intel/compiler60/ia32/bin/icc
-CC=g++  -Wno-deprecated
+CC=g++  -Wno-deprecated -mcpu=i686
 LD=g++
 BINMT=$(AMSWD)/bin/linux/icc/mt/
 BIN=$(AMSWD)/bin/linux/icc/
@@ -200,7 +200,7 @@ NAGDIR = /afs/cern.ch/sw/lhcxx/specific/i386_redhat51/Nag_Fortran/mark18/lib
 #NAGDIR = /offline/n
 # Copy lib to private AFS area for remote link, example:
 #NAGDIR = /afs/cern.ch/user/k/kscholbe/private/
-CC=g++ -Wno-deprecated
+CC=g++  -Wno-deprecated -mcpu=i686
 FF=g77
 LD=g++
 SHLD=$(LIB)/ntuple.so

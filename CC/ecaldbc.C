@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.43 2002/12/10 11:56:12 choutko Exp $
+//  $Id: ecaldbc.C,v 1.44 2002/12/16 14:13:10 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -1383,8 +1383,8 @@ number ECcalib::pmsatf1(int dir,number q){//simulate PM-anode saturation, i.e. Q
   }
   else if(dir==1){//Qmeas->Qin
     if(q<=qme[0])return 1;
-    else if(q>(0.95*qme[npnt-1])){
-      cerr<<"ECcalib::pmsatf1:Qmeas saturation !"<<endl;
+    else if(q>(0.99*qme[npnt-1])){
+//      cerr<<"ECcalib::pmsatf1:Qmeas saturation !"<<endl;
       return -qin[npnt-1]/q;//r=Qin/Qmeas
     }
     else{
