@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.12 2002/11/29 08:23:19 glamanna Exp $
+//  $Id: gamma.C,v 1.13 2002/11/29 09:33:18 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -3350,7 +3350,8 @@ AMSPoint pe_hi;
      double bestvar=min(FIXVAr,FIXVAl);
      double lesshit=min(FIXNUr,FIXNUl);
      // we require sufficient number of hits
-     if ((FIXVAr > 1 || FIXVAl > 1) && (lesshit <= 4)){
+     //     if ((FIXVAr > 1 || FIXVAl > 1) && (lesshit <= 4)){
+     if ((FIXVAr > 1 || FIXVAl > 1)){
      if ((bestvar == FIXVAr && FIXNUr > 4) ||  (bestvar == FIXVAl && FIXNUl > 4)){
        if (bestvar < 1){
 	 if (bestvar == FIXVAr){
