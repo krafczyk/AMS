@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.305 2005/03/15 08:38:42 alexei Exp $
+# $Id: RemoteClient.pm,v 1.306 2005/03/16 11:02:29 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2250,9 +2250,10 @@ CheckCite:            if (defined $q->param("QCite")) {
 
     if ($self->{q}->param("queryDB04") eq "DoQuery") {
 
-      my $sql=undef;
-      my $dataset=undef;
-      my $particle=undef;
+      my $sql     = undef;
+      my $sqlNT   = undef; # will be used to get NT paths for ROOT file
+      my $dataset = undef;
+      my $particle= undef;
 #
 # Template is defined explicitly
 #
@@ -2265,17 +2266,24 @@ CheckCite:            if (defined $q->param("QCite")) {
                    WHERE runs.jid=jobs.jid AND 
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
                         runs.status='Completed'";
-#       htmlTop();
-#       print "$sql \n";
-#       htmlBottom();
+       $sqlNT = "SELECT ntuples.path 
+                 FROM runs, jobs, runcatalog, ntuples   
+                   WHERE runs.jid=jobs.jid AND 
+                        (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
+                        runs.run = ntuples.run AND 
+                        runs.status='Completed'";
+
 # check TriggerType
        if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
            my $trtype = trimblanks($q->param("QTrType"));
            $qtrigger = $trtype;
            $sql=$sql." AND (runs.run = runcatalog.run AND runcatalog.trtype='$trtype') ";
+           $sqlNT=$sqlNT." AND (runs.run = runcatalog.run AND runcatalog.trtype='$trtype') ";
+
        }
 #
        $sql = $sql."ORDER BY Runs.Run";
+       $sqlNT = $sqlNT."ORDER BY Runs.Run";
        my $r1=$self->{sqlserver}->Query($sql);
         if (defined $r1->[0][0]) {
          foreach my $r (@{$r1}){
@@ -2297,15 +2305,21 @@ CheckCite:            if (defined $q->param("QCite")) {
          if (defined $r0->[0][0]) {
           foreach my $r (@{$r0}){
            my $did = $r->[0];
-           $sql = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT 
+           $sql  = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
                      WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
+                            Runs.run=runcatalog.run AND Runs.Status='Completed'";
+           $sqlNT = "SELECT Ntuples.path 
+                    FROM Runs, Jobs, runcatalog, NTuples   
+                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
+                            Runs.run=Ntuples.run AND  
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
 # check TriggerType
            if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
             my $trtype = trimblanks($q->param("QTrType"));
             $qtrigger = $trtype;
             $sql=$sql." AND (runs.run = runcatalog.run AND runcatalog.trtype='$trtype') ";
+            $sqlNT=$sqlNT." AND (runs.run = runcatalog.run AND runcatalog.trtype='$trtype') ";
            }
 # check Momentum
            if (defined $q->param("QMomI") and defined $q->param("QMomA")) {
@@ -2317,10 +2331,12 @@ CheckCite:            if (defined $q->param("QCite")) {
                  my $momentumMin = $q->param("QMomI");
                  my $momentumMax = $q->param("QMomA");
                  $sql = $sql." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
+                 $sqlNT = $sqlNT." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
                }
            }
 #
             $sql = $sql." ORDER BY Runs.Run";
+            $sqlNT = $sqlNT." ORDER BY Runs.Run";
             my $r1=$self->{sqlserver}->Query($sql);
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
@@ -2335,10 +2351,18 @@ CheckCite:            if (defined $q->param("QCite")) {
         $sql = "SELECT Runs.RUN, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
                      WHERE Runs.JID=Jobs.JID AND Runs.Status='Completed' and Runs.run = runcatalog.run ";
+        $sqlNT = "SELECT Ntuples.path  
+                    FROM Runs, Jobs, runcatalog, Ntuples   
+                     WHERE 
+                        Runs.JID=Jobs.JID AND 
+                         Runs.Status='Completed' AND 
+                          Runs.run = runcatalog.run AND 
+                           Runs.run = Ntuples.run ";
 # check TriggerType
            if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
             my $trtype = trimblanks($q->param("QTrType"));
             $sql=$sql." AND (runs.run = runcatalog.run AND runcatalog.trtype='$trtype') ";
+            $sqlNT=$sqlNT." AND (runs.run = runcatalog.run AND runcatalog.trtype='$trtype') ";
            }
 # check Momentum
            if (defined $q->param("QMomI") and defined $q->param("QMomA")) {
@@ -2348,10 +2372,12 @@ CheckCite:            if (defined $q->param("QCite")) {
                  my $momentumMin = $q->param("QMomI");
                  my $momentumMax = $q->param("QMomA");
                  $sql = $sql." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
+                 $sqlNT = $sqlNT." AND (runs.run = runcatalog.run AND PMIN >= $momentumMin AND PMAX <= $momentumMax) ";
                }
            }
 #
             $sql = $sql." ORDER BY Runs.Run";
+            $sqlNT = $sql." ORDER BY Runs.Run";
             my $r1=$self->{sqlserver}->Query($sql);
             if (defined $r1->[0][0]) {
              foreach my $r (@{$r1}){
@@ -2362,20 +2388,25 @@ CheckCite:            if (defined $q->param("QCite")) {
              }
     }
 # now check output
-      my $accessmode = "xyz";
-      my $remotecite = "xyz";
+      my $accessmode       = "xyz";
+      my $remotecite       = "xyz";
+      my $rootfile         = undef;
+      my $rootfileaccess   = undef;
+
       if (defined $q->param("REMOTEACCESS")) {
           $accessmode="REMOTE";
           $remotecite = $q->param("REMOTEACCESS");
       }
       if (defined $q->param("NTOUT")) {
-       htmlTop();
+       $self->htmlTop();
         $self->htmlTemplateTable("Selected Query Keys :");
+
         if (defined $qparticle) {
          print "<tr><td><b><font size=\"4\" color=\"tomato\"> Particle/dataset :";
          print "</font></b></td>";
          print " <td><b><font size=\"4\"> $qparticle </font></b></td></tr>";
        }
+
        if (defined $qtemplate) {
         my @description = split /Total/,$qtemplate;
         print "<tr><td><b><font size=\"4\" color=\"green\"> Template :";
@@ -2389,16 +2420,30 @@ CheckCite:            if (defined $q->param("QCite")) {
          print "</font></b></td></tr> \n";
         }
        }
+
        if (defined $qtrigger) {
         print "<tr><td><b><font size=\"4\" color=\"green\">Trigger Type ";
         print "</font></b></td>";
         print "<td><b><font size=\"4\">$qtrigger </font></b></td></tr>\n";
        }
+
        if ($accessmode eq "REMOTE" && $q->param("NTOUT") ne "SUMM") {
         print "<tr><td><b><font size=\"4\" color=\"blue\">Print ONLY Files copied to ";
         print "</font></b></td>";
         print "<td><b><font size=\"4\" color=\"red\">$remotecite </font></b></td></tr>\n";
        }
+
+       if ($q->param("NTOUT") eq "ROOT") {
+        $rootfile = $q->param("ROOT");
+        print "<tr><td><b><font size=\"4\" color=\"blue\">ROOT script  ";
+        print "</font></b></td>";
+         if (defined $q->param("ROOTACCESS")) {
+             $rootfileaccess = $q->param("ROOTACCESS");
+         } else {
+             $rootfileaccess = "NFS";
+         }
+         print "<td><b><font size=\"4\" color=\"black\">$rootfile </font></b><i> (access via $rootfileaccess) </i></td></tr>\n";
+      }
       htmlTableEnd();
       print "<BR><BR>\n";
        if (defined $#runs) {
@@ -2589,38 +2634,28 @@ CheckCite:            if (defined $q->param("QCite")) {
           TChain chain(\"AMSRoot\");
       ";
 #...... check files access option
-      $accessmode = "NFS";
       my $prefix     = "xyz";
-       
-      if (defined $q->param("ROOTACCESS")) {
-          if ($q->param("ROOTACCESS") eq "HTTP") {
-              $accessmode = "HTTP";
+          if ($rootfileaccess eq "HTTP") {
               $prefix     = "http://$self->{HTTPserver}";
           }
-          if ($q->param("ROOTACCESS") eq "CASTOR") {
-              $accessmode = "CASTOR";
+          if ($rootfileaccess eq "CASTOR") {
               $prefix     = "rfio:/castor/cern.ch/ams/";
           }
-      }
 #..... remote cite (if any)
       if (defined $q->param("REMOTEACCESS")) {
-          $accessmode="REMOTE";
+          $rootfileaccess="REMOTE";
           $remotecite = $q->param("REMOTEACCESS");
       }
 
-    my $filename=$q->param("ROOT");
     my $buff=undef;
     my @dirs=[];
-    print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-    print "<td><b><i>will be written into file : </i><font color=\"blue\" > $filename </font> </b></td>";
-    print "</tr>\n";
-      if ($accessmode eq "HTTP") {
+      if ($rootfileaccess eq "HTTP") {
          $buff = $RootAnalysisTextHTTP;
          print "<tr><td>$RootAnalysisTextHTTP</td></tr>\n";
-     } elsif ($accessmode eq "CASTOR") {
+     } elsif ($rootfileaccess eq "CASTOR") {
          $buff = $RootAnalysisTextCastor;
          print "<tr><td>$RootAnalysisTextCastor</td></tr>\n";
-     } elsif ($accessmode eq "REMOTE") {
+     } elsif ($rootfileaccess eq "REMOTE") {
          $buff = $RootAnalysisTextRemote;
          print "<tr><td>$RootAnalysisTextRemote</td></tr>\n";
      } else {
@@ -2638,10 +2673,9 @@ CheckCite:            if (defined $q->param("QCite")) {
          print "<tr><td>//</tr></td>\n";
          print "<tr><td>TChain chain(\"AMSRoot\");</tr></td>\n";
 # 
-      if ($accessmode eq "NFS") {
-         foreach my $run (@runs){
-          my $sql = "SELECT path From Ntuples WHERE Run=$run AND CRCFLAG=1";
-          my $r1=$self->{sqlserver}->Query($sql);
+      my $sql = $sqlNT;
+      my $r1=$self->{sqlserver}->Query($sql);
+      if ($rootfileaccess eq "NFS") {
           foreach my $path (@{$r1}) {
            $path=trimblanks($path->[0]);
            my @junk = split '/',$path;
@@ -2666,24 +2700,16 @@ CheckCite:            if (defined $q->param("QCite")) {
           $buff = $buff.$s."\n";
           push @dirs, $tdir;
         }
-     }
-      }
-     } elsif ($accessmode eq "HTTP") {
-         foreach my $run (@runs){
-          my $sql = "SELECT path From Ntuples WHERE Run=$run AND CRCFLAG=1";
-          my $r1=$self->{sqlserver}->Query($sql);
-          foreach my $path (@{$r1}) {
+       }
+     } elsif ($rootfileaccess eq "HTTP") {
+       foreach my $path (@{$r1}) {
            $path=trimblanks($path->[0]);
            my $httppath=$prefix.$path;
            my $s = "chain.Add(\"$httppath\");";
            print "<tr><td> $s </tr></td>\n";
            $buff = $buff.$s."\n";
           }
-      }
-     } elsif ($accessmode eq "REMOTE") {
-         foreach my $run (@runs){
-          my $sql = "SELECT prefix,path From MC_DST_COPY WHERE Run=$run AND Cite='$remotecite'";
-          my $r1=$self->{sqlserver}->Query($sql);
+     } elsif ($rootfileaccess eq "REMOTE") {
           foreach my $p (@{$r1}) {
               my $prefix = trimblanks($p->[0]);
               my $local  = trimblanks($p->[1]);
@@ -2692,11 +2718,7 @@ CheckCite:            if (defined $q->param("QCite")) {
               print "<tr><td> $s </tr></td>\n";
               $buff = $buff.$s."\n";
           }
-      }
-     } elsif ($accessmode eq "CASTOR") {
-         foreach my $run (@runs){
-          my $sql = "SELECT path From Ntuples WHERE Run=$run AND CRCFLAG=1 AND CASTORTIME != 0";
-          my $r1=$self->{sqlserver}->Query($sql);
+     } elsif ($rootfileaccess eq "CASTOR") {
           foreach my $path (@{$r1}) {
            $path=trimblanks($path->[0]);
            my @junk = split '/',$path;
@@ -2723,16 +2745,15 @@ CheckCite:            if (defined $q->param("QCite")) {
         }
        }
       }
-     }
-
      htmlTableEnd();
       if (defined $buff) {
-       $self-> writetofile($filename,$buff);
+       $self-> writetofile($rootfile,$buff);
       }
-    }
+   }
      htmlReturnToQuery();
     htmlBottom();
-   }
+  }
+# queryDB04 / doQuery ends here
   } elsif ($self->{q}->param("queryDB04") eq "Continue") {
      my $query=$q->param("QPart");
      foreach my $dataset (@{$self->{DataSetsT}}){
@@ -2854,7 +2875,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            print "</b>
                    <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=\"Any\" CHECKED>ANY<BR>\n";
            print "</b></font></td></tr>\n";
-           my @datasets = [];
+           my @datasets = ();
            my $sql = "SELECT dataset FROM DatasetsDesc";
            my $r5=$self->{sqlserver}->Query($sql);
            if(defined $r5->[0][0]){
@@ -4713,7 +4734,7 @@ print qq`
     
 # write readme file
         my $readme="$self->{UploadsDir}/README.$run";
-        open(FILE,">".$readme) or die "Unable to open file $readme\n";
+        open(FILE,">".$readme) or die "Unable to open file $readme (specify the exact path and/or check dir protection)\n";
         if($self->{dwldaddon}==1){
          $self->{tsyntax}->{headers}->{readmestandalone}=~s/ams02/$dataset->{version}/g;                
          print FILE  $self->{tsyntax}->{headers}->{readmestandalone};
