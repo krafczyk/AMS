@@ -15,6 +15,11 @@ Below there is a description of a converted ntuple.
 * I*4  *              * EVENTH   * run              // run no
 * I*4  *              * EVENTH   * runtype          //
 * I*4  *              * EVENTH   * time(2)          // Event time
+* R*4  *              * EVENTH   * PolePhi          // North Magnetic Pole coo
+* R*4  *              * EVENTH   * ThetaS           // Shuttle Theta coo
+* R*4  *              * EVENTH   * PhiS             // Shuttle phi coo
+
+
 * I*4  *              * EVENTH   * Particles        // No of Particles
 * I*4  *              * EVENTH   * Tracks           // No of Tracks                      
 * I*4  *              * EVENTH   * Betas            // No of Betas
@@ -207,10 +212,13 @@ Below there is a description of a converted ntuple.
  * I*4  *             * LVL3     * LVL3Pattern(2,nlvl3)  // Pattern no
  * R*4  *             * LVL3     * LVL3Residual(2,nlvl3) // Aver Residual (cm)
  * R*4  *             * LVL3     * LVL3Time(nlvl3)       // Alg Time (sec)
+ * R*4  *             * LVL3     * LVL3ELoss(nlvl3)      // Aver energy loss
 
  * I*4  * [0,1]       * LVL1     * nlvl1                 // lvl1trigger number
  * I*4  *             * LVL1     * LVL1Mode(nlvl1)       // mode
  * I*4  *             * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
+ * I*4  *             * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>1
+
  * I*4  *             * LVL1     * LVL1AntiPatt          // antipattern
 
 
