@@ -19,7 +19,7 @@
 
 The program sources can be obtained by doing
 
-	cvs checkout AMS/display
+	cvs checkout AMS  (cvs update)
 
 This will create AMS/display directory and put all source files
 of AMS event display into it.
@@ -51,7 +51,7 @@ To run it, please make sure you have the environment to run ROOT.
 Only 3 things needs to be set:
 
 1. Environment variable ROOTSYS  should point to the ROOT directory.
-   (On boronams $ROOTSYS should be set to /pgm0/EventDisplay/root)
+   (On boronams $ROOTSYS should be set to /cern/root/v2.00)
 2. .:$ROOTSYS/lib is added into Environment variables LD_LIBRARY_PATH.
 3. $ROOTSYS/bin is in your path.
 
