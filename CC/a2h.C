@@ -27,7 +27,7 @@ int main(int argc, char* argv[]){
         }
       int i,k,ok;
              for(i=1;i<argc;i++){
-               cout <<"a2h-I-Open I file "<<argv[i]<<endl;
+               //               cout <<"a2h-I-Open I file "<<argv[i]<<endl;
                convert(i-1,argc-i-1,argv[i]);
              }
    return 0;
