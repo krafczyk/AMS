@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.66 2001/06/11 14:01:24 choutko Exp $
+//  $Id: server.C,v 1.67 2001/06/14 08:48:10 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -351,6 +351,11 @@ else{
 
 
 void AMSServer::Listening(int sleeptime){
+if( _MT){
+       if(sleeptime>0 && sleeptime <30)sleep(2*sleeptime);
+       else sleep(1);
+}
+else{
 /*
 static int init=0;
 if(!init){
@@ -366,10 +371,10 @@ typedef map<AString, AMSServer::OrbitVars>::iterator MOI;
 typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
       for(MOI i=_orbmap.begin();i!=_orbmap.end();++i){
        if(sleeptime>0)sleep(sleeptime);
-       if(!_MT )((*i).second)._orb->perform_work();
+       ((*i).second)._orb->perform_work();
       }
 }
-
+}
 
 void AMSServer::UpdateDB(bool force){
 // Her don't know yet
@@ -378,18 +383,18 @@ pcur->UpdateDB(force);
 }
 }
 
-void AMSServer::SystemCheck(){
+void AMSServer::SystemCheck(bool force){
 // Here run Start,Stop,Kill,Check Clients
 
 for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
  Listening();
- if(!_GlobalError)pcur->StartClients(_pid);
+ if(!_GlobalError )pcur->StartClients(_pid);
  Listening();
- if(!_GlobalError)pcur->CheckClients(_pid);
+ if(!_GlobalError) pcur->CheckClients(_pid);
  Listening();
  if(!_GlobalError)pcur->KillClients(_pid);
 }
-     
+if(force)IMessage("ForceSystemCheckSuccessful");      
 
 }
 
@@ -1567,6 +1572,20 @@ return length;
   void Server_impl::ping()throw (CORBA::SystemException){
   }
 
+  void Server_impl::SystemCheck()throw (CORBA::SystemException){
+   _parent->GlobalError()=false;
+   time_t tt;
+   time(&tt);
+   if(  tt-_parent->LastServiceTime()>_KillTimeOut+3 && _parent->MT()){
+     _parent->EMessage("Server_impl::SystemCheck-MainThreadNotRespondingWillBeSimulatedBySecondaryOne");
+    for(;;){
+     ((AMSServer*)_parent)->SystemCheck();
+     sleep(1);
+    }
+   }
+   else ((AMSServer*)_parent)->SystemCheck(true);
+  }
+
 
    void Server_impl::sendCriticalOps(const DPS::Client::CID & cid, const CriticalOps & op)throw (CORBA::SystemException){
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
@@ -2143,8 +2162,8 @@ if(li!=_acl.end()){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
-   _pser->Kill((*li),SIGHUP,true);
    PropagateAC(acv,DPS::Client::Update);
+   _pser->Kill((*li),SIGHUP,true);
   }
   else{
     _UpdateACT((*li)->id,DPS::Client::Active);

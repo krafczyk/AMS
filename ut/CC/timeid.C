@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.71 2001/01/22 17:32:21 choutko Exp $
+//  $Id: timeid.C,v 1.72 2001/06/14 08:48:11 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -266,7 +266,7 @@ integer AMSTimeID::readDB(const char * dir, time_t asktime,integer reenter){
       id=0;
     }
     else return -1;
-    return read(dir,id,asktime,index);
+    return read(dir,id,asktime,index)?1:0;
    
 }
 
@@ -892,9 +892,14 @@ bool AMSTimeID::updatedb(){
        delete [] _pDataBaseEntries[i];
        _pDataBaseEntries[i]=tmpa[i];
        }
+       _pDataBaseEntries[0][_DataBaseSize]=_Insert;
+       _pDataBaseEntries[1][_DataBaseSize]=_Insert;
+       _pDataBaseEntries[2][_DataBaseSize]=_Begin;
+       _pDataBaseEntries[3][_DataBaseSize]=_End;
        _DataBaseSize++;
-        uinteger **padd= new uinteger*[_DataBaseSize+1];
-        uinteger *tmp=  new uinteger[_DataBaseSize+1];
+       
+        uinteger **padd= new uinteger*[_DataBaseSize];
+        uinteger *tmp=  new uinteger[_DataBaseSize];
 #ifdef __AMSDEBUG__
         assert(padd!=NULL && tmp!=NULL);
 #endif

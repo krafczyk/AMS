@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.38 2001/06/11 14:01:24 choutko Exp $
+//  $Id: producer.C,v 1.39 2001/06/14 08:48:10 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -637,6 +637,7 @@ FMessage("AMSProducer::getinitTDV-F-tdvgetFailed",DPS::Client::CInAbort);
 }
 
 bool AMSProducer::getTDV(AMSTimeID * tdv, int id){
+cout <<" trying to get tdv "<<tdv->getname()<<endl;
 DPS::Producer::TDVbody * pbody;
 DPS::Producer::TDVName name;
 name.Name=tdv->getname();
@@ -680,12 +681,15 @@ if(name.Success){
  int nb=tdv->CopyIn(vbody->get_buffer());
  if(nb){
   tdv->SetTime(name.Entry.Insert,name.Entry.Begin,name.Entry.End);
+  cout <<"  gettdv success "<<endl;
   return true;
  }
 }
+  cout <<"  gettdv failuire "<<endl;
 return false;
 }
 bool AMSProducer::getSplitTDV(AMSTimeID * tdv, int id){
+cout <<" trying to get tdv "<<tdv->getname()<<endl;
 DPS::Producer::TDVbody * pbody;
 DPS::Producer::TDVName name;
 name.Name=tdv->getname();
@@ -735,9 +739,11 @@ if(name.Success){
  int nb=tdv->CopyIn(vb2->get_buffer());
  if(nb){
   tdv->SetTime(name.Entry.Insert,name.Entry.Begin,name.Entry.End);
+  cout <<"  gettdv success "<<endl;
   return true;
  }
 }
+  cout <<"  gettdv failure "<<endl;
 return false;
 }
 

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.23 2001/05/14 12:08:06 mdelgado Exp $
+//  $Id: richrec.C,v 1.24 2001/06/14 08:48:10 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -312,10 +312,10 @@ void AMSRichRing::build(){
   safe_array<integer_small_array,1> size(ARRAYSIZE);
 
 #else
-  geant recs[MAXRICHITS][3];
-  geant mean[MAXRICHITS][3];
-  geant probs[MAXRICHITS][3];
-  integer size[MAXRICHITS][3];
+  geant recs[RICmaxpmts*RICnwindows/2][3];
+  geant mean[RICmaxpmts*RICnwindows/2][3];
+  geant probs[RICmaxpmts*RICnwindows/2][3];
+  integer size[RICmaxpmts*RICnwindows/2][3];
 #endif
   
 
@@ -445,7 +445,7 @@ void AMSRichRing::build(){
 	    getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
 	
 	// Checks bounds
-	if(actual==MAXRICHITS) {
+	if(actual>=RICmaxpmts*RICnwindows/2) {
 	  cout << "AMSRichRing::build : Event too long."<<endl;
 	  break;
 	}

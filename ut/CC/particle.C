@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.97 2001/06/08 07:42:30 amsp Exp $
+//  $Id: particle.C,v 1.98 2001/06/14 08:48:10 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -82,9 +82,9 @@ integer AMSParticle::build(integer refit){
            ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
           if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
            if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
-            AMSgObj::BookTimer.start("ReRICHRefit");  
+            AMSgObj::BookTimer.start("ReCTCRefit");  
             ppart->ctcfit();
-             AMSgObj::BookTimer.stop("ReRICHRefit");  
+             AMSgObj::BookTimer.stop("ReCTCRefit");  
            }
            AMSgObj::BookTimer.start("ReTOFRefit"); 
            ppart->toffit();
