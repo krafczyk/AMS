@@ -96,57 +96,41 @@ void AMSIO::init(integer mode,integer format){
     else if (mode ==3){
 
 
-        fbin.open(fnam,ios::in|binary);
+        fbin.open(fnam,ios::in|binary|ios::ate);
         if(fbin ){
           // read one by one 
           AMSIO io;
-          integer ipos=0;
-          integer iposr=0;
-          integer runold=0;
-          integer pidold=0;
-          integer ok=1;
-          time_t time;
-          number theta,phi,pole;
-          integer event;
-          while(ok){
-           ok=io.read();
-           if(ok){
-             event=io.getevent();
-             theta=io.getstheta();
-             phi=io.getsphi();
-             pole=io.getpolephi();
-             time=io.gettime();
-           }
-           if(format==1 && (io.getrun()!=runold || ok==0)){
-             if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
-                          " events with pid = "<<pidold<<endl;
-             if(io.getrun()<0){
-               cout <<"AMSIO::init-F-Negative run number "<< io.getrun()<<endl;
-               exit(1);
-             }
-             iposr=0;
-             pidold=io.getpid();
-             runold=io.getrun();
-           }
-           ipos++;
-           iposr++;
-          }
-             theta=theta*AMSDBc::raddeg;
-             phi=phi*AMSDBc::raddeg;
-              pole=pole*AMSDBc::raddeg;
-              cout<<"AMSIO::init-I-Last Event "<<event<<endl;
-             cout << " Last time "<<ctime(&time)    <<endl;
-             cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
+          integer ok;
+          number otheta;
              fbin.clear();
              fbin.seekg(fbin.tellg()-2*sizeof(io));
              ok=io.read();
+             otheta=io.getstheta()*AMSDBc::raddeg;
+             ok=io.read();
              fbin.close();
              if(ok){
+              time_t time;
+              number theta,phi,pole;
+              integer seed[2];
+              integer event=io.getevent();
+              theta=io.getstheta()*AMSDBc::raddeg;
+              phi=io.getsphi()*AMSDBc::raddeg;
+              pole=io.getpolephi()*AMSDBc::raddeg;
+              time=io.gettime();
+              seed[0]=io.getseed(0);
+              seed[1]=io.getseed(1);
+              cout<<"AMSIO::init-I-Last Event "<<event<<endl;
+              cout << " Last time "<<ctime(&time)    <<endl;
+              cout << " Last Random Number "<<seed[0]<<" "<<seed[1]<<endl;
+              cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
+              GCFLAG.NRNDM[0]=seed[0];
+              GCFLAG.NRNDM[1]=seed[1];
+              GRNDMQ(seed[0],seed[1],1,"S");
               CCFFKEY.theta=theta;
               CCFFKEY.phi=phi;
               CCFFKEY.polephi=pole;
               GCFLAG.IEVENT=GCFLAG.IEVENT+event;
-              if(io.getstheta()*AMSDBc::raddeg > theta)CCFFKEY.sdir=-1;
+              if(otheta > theta)CCFFKEY.sdir=-1;
               else CCFFKEY.sdir=1;
               tm *pb;
               pb=localtime(&time);
