@@ -256,7 +256,7 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
  for(i=0;i<nhit;i++)_Chi2+=(y[i]-a*x[i]-b)/ey[i]*(y[i]-a*x[i]-b)/ey[i];
  if(nhit>2)_Chi2=_Chi2/(nhit-2);
  else _Chi2=0;
- _InvErrBeta=sqrt(1./e2)/sqrt(x2-xa*xa);
+ _InvErrBeta=sqrt(2./e2)/sqrt(x2-xa*xa);   //2 because of wrong Eugeni errors
  //if(_Chi2>0)_InvErrBeta*=sqrt(_Chi2);
 }
 
