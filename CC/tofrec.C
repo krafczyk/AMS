@@ -1028,7 +1028,7 @@ void AMSTOFRawCluster::_writeEl(){
     TN->Bar[TN->Ntofraw]=_plane;
     for(int i=0;i<2;i++){
       TN->tovta[TN->Ntofraw][i]=_tovta[i];
-      TN->tovtd[TN->Ntofraw][i]=_tovta[i];
+      TN->tovtd[TN->Ntofraw][i]=_tovtd[i];
       TN->sdtm[TN->Ntofraw][i]=_sdtm[i];
     }
     TN->Ntofraw++;
