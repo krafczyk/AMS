@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.169 2004/06/28 13:25:10 choutko Exp $
+//  $Id: trrec.C,v 1.170 2004/07/05 14:35:43 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1407,6 +1407,7 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
 
                   if (_NoMoreTime()) { 
                         remove_track(ptrack); 
+                        ptrack = NULL;
 #ifdef __AMSDEBUG__
                         cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1447,6 +1448,7 @@ integer AMSTrTrack::buildPathIntegral(integer refit){
                         // Stop when done
                         if (_NoMoreTime()) { 
                               remove_track(ptrack); 
+                              ptrack = NULL;
 #ifdef __AMSDEBUG__
                               cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1502,6 +1504,7 @@ next_pattern:
 
             // Get out if nothing has been found
             remove_track(ptrack); 
+            ptrack = NULL;
             return NTrackFound;
 
       }
@@ -1645,6 +1648,7 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
 
                   if (_NoMoreTime()) { 
                         remove_track(ptrack); 
+                        ptrack = NULL;
 #ifdef __AMSDEBUG__
                         cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1685,6 +1689,7 @@ integer AMSTrTrack::buildWeakPathIntegral(integer refit){
                         // Stop when done
                         if (_NoMoreTime()) { 
                               remove_track(ptrack); 
+                              ptrack = NULL;
 #ifdef __AMSDEBUG__
                               cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1733,6 +1738,7 @@ next_pattern:
 }
                } else {
                      remove_track(ptrack); 
+                     ptrack = NULL;
                }
    
             } else {
@@ -1930,7 +1936,9 @@ integer AMSTrTrack::buildFalseXPathIntegral(integer nptmin){
                   }
 
                   if (_NoMoreTime()) { 
+                        printf("Hola 1 %x\n",ptrack);
                         remove_track(ptrack); 
+                        ptrack = NULL;
 #ifdef __AMSDEBUG__
                         cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -1971,6 +1979,7 @@ integer AMSTrTrack::buildFalseXPathIntegral(integer nptmin){
                         // Stop when done
                         if (_NoMoreTime()) { 
                               remove_track(ptrack); 
+                              ptrack = NULL;
 #ifdef __AMSDEBUG__
                               cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -2019,6 +2028,7 @@ next_pattern:
 }
                } else {
                      remove_track(ptrack); 
+                     ptrack = NULL;
                }
    
             } else {
@@ -3547,6 +3557,7 @@ integer AMSTrTrack::buildFalseTOFXPathIntegral(integer refit){
 
                   if (_NoMoreTime()) { 
                         remove_track(ptrack); 
+                        ptrack = NULL;
 #ifdef __AMSDEBUG__
                         cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -3587,6 +3598,7 @@ integer AMSTrTrack::buildFalseTOFXPathIntegral(integer refit){
                         // Stop when done
                         if (_NoMoreTime()) { 
                               remove_track(ptrack); 
+                              ptrack = NULL;
 #ifdef __AMSDEBUG__
                               cout << " Cpulimit Exceeded!!!! " << endl;
 #endif
@@ -3636,6 +3648,7 @@ next_pattern:
 }
                } else {
                      remove_track(ptrack); 
+                     ptrack = NULL;
                }
    
             } else {
@@ -4029,13 +4042,18 @@ AMSTrTrack* AMSTrTrack::remove_track(AMSTrTrack* ptrack){
       for (AMSlink* ptr=pctr->gethead(); ptr!=NULL; ptr=ptr->next()){
         if (ptr->next()==ptrack) {
           pctr->removeEl(ptr,1);
+          printf("DROPPING %x element in %x!!!\n",ptr,pctr);
           break; 
         }
       }
     }
   }
-  delete ptrack;
-  ptrack = NULL;
+
+  if (ptrack) {
+      delete ptrack;  
+      ptrack = NULL;
+  }
+
   return ptrack;
 
 }
