@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.40 2003/05/09 15:59:52 choutko Exp $
+//  $Id: root.C,v 1.41 2003/05/12 13:11:18 choutko Exp $
 //
 #include <root.h>
 #include <ntuple.h>
@@ -17,6 +17,7 @@
 #include <trigger302.h>
 #include <trrawcluster.h>
 #include <trrec.h>
+#include <gamma.h>
 #endif
 using namespace root;
 #ifdef __WRITEROOT__
@@ -233,6 +234,15 @@ void AMSEventR::SetBranchA(TTree *fChain){
      fChain->SetBranchAddress(tmp,&fCharge);
     }
 
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fVertex");
+     fChain->SetBranchAddress(tmp,&fVertex);
+    }
+
+
+
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fParticle");
@@ -424,6 +434,12 @@ void AMSEventR::GetBranchA(TTree *fChain){
 
    {
      strcpy(tmp,_Name);
+     strcat(tmp,"fVertex");
+     bVertex=fChain->GetBranch(tmp);
+    }
+
+   {
+     strcpy(tmp,_Name);
      strcat(tmp,"fParticle");
      bParticle=fChain->GetBranch(tmp);
     }
@@ -496,6 +512,7 @@ void AMSEventR::SetCont(){
  fHeader.Level1s=fLevel1.size();
  fHeader.Level3s=fLevel3.size();
  fHeader.Betas=fBeta.size();
+ fHeader.Vertexs=fVertex.size();
  fHeader.Charges=fCharge.size();
  fHeader.Particles=fParticle.size();
  fHeader.AntiMCClusters=fAntiMCCluster.size();
@@ -554,6 +571,7 @@ fLevel3.reserve(MAXLVL3);
 
 fBeta.reserve(MAXBETA02);
 fCharge.reserve(MAXCHARGE02);
+fVertex.reserve(2);
 fParticle.reserve(MAXPART02);
 
 fAntiMCCluster.reserve(MAXANTIMC);
@@ -595,6 +613,7 @@ fLevel3.clear();
 
 fBeta.clear();
 fCharge.clear();
+fVertex.clear();
 fParticle.clear();
 
 fAntiMCCluster.clear();
@@ -664,6 +683,13 @@ void AMSEventR::AddAMSObject(AMSRichRing *ptr)
   fRichRing.push_back(RichRingR(ptr));
   ptr->SetClonePointer(& fRichRing.back(),fRichRing.size()-1);
 }
+
+
+void AMSEventR::AddAMSObject(AMSTrTrackGamma *ptr){
+  fVertex.push_back(VertexR(ptr));
+  ptr->SetClonePointer(& fVertex.back(),fVertex.size()-1);
+}
+
 
 void AMSEventR::AddAMSObject(AMSTOFCluster *ptr){
   if (ptr) {
@@ -1016,7 +1042,7 @@ ChargeR::ChargeR(AMSCharge *ptr, float probtof[],int chintof[],
   TrunTOFD      = ptr->_TrMeanTOFD;
   TrunTracker   = ptr->_TrMeanTracker;
  fBeta=-1;
- fRich=-1;
+ fRichRing=-1;
 #endif
 }
 
@@ -1085,14 +1111,14 @@ EcalShowerR::EcalShowerR(AMSEcalShower *ptr){
 Level1R::Level1R(Trigger2LVL1 *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
   Mode   = ptr->_LifeTime;
-  TOFlag = ptr->_tofflag;
+  TofFlag = ptr->_tofflag;
   for (int i=0; i<4; i++) {
-    TOFPatt[i]  = ptr->_tofpatt[i];
-    TOFPatt1[i] = ptr->_tofpatt1[i];
+    TofPatt[i]  = ptr->_tofpatt[i];
+    TofPatt1[i] = ptr->_tofpatt1[i];
   }
   AntiPatt = ptr->_antipatt;
-  ECALflag = ptr->_ecalflag;
-  ECALtrsum= ptr->_ectrsum;
+  EcalFlag = ptr->_ecalflag;
+  EcalTrSum= ptr->_ectrsum;
 #endif
 }
 
@@ -1133,10 +1159,26 @@ MCEventgR::MCEventgR(AMSmceventg *ptr){
 
 MCTrackR::MCTrackR(AMSmctrack *ptr){
 #ifndef __ROOTSHAREDLIBRARY__
-  _radl = ptr->_radl;
-  _absl = ptr->_absl;
-  for (int i=0; i<3; i++) _pos[i]   = ptr->_pos[i];
-  for (int i=0; i<4; i++) _vname[i] = ptr->_vname[i];
+  RadL = ptr->_radl;
+  AbsL = ptr->_absl;
+  for (int i=0; i<3; i++) Pos[i]   = ptr->_pos[i];
+  for (int i=0; i<4; i++) VolName[i] = ptr->_vname[i];
+  VolName[4]='\0';
+#endif
+}
+
+
+VertexR::VertexR(AMSTrTrackGamma *ptr){
+fTrTrackL=-1;
+fTrTrackR=-1;
+#ifndef __ROOTSHAREDLIBRARY__
+ Status=ptr->_status;
+ Momentum=ptr->getmom();
+ Theta=ptr->gettheta();
+ Phi=ptr->getphi();
+ for(int i=0;i<3;i++)Vertex[i]=ptr->getvert()[i];
+ Distance=ptr->_TrackDistance;
+ Mass=ptr->getmass();
 #endif
 }
 
@@ -1148,10 +1190,11 @@ ParticleR::ParticleR(AMSParticle *ptr, float phi, float phigl)
   PhiGl    = phigl;
   fBeta   = -1;
   fCharge = -1;
-  fTrack  = -1;
-  fTrd    = -1;
-  fRich   = -1;
-  fShower = -1;
+  fTrTrack  = -1;
+  fTrdTrack    = -1;
+  fRichRing   = -1;
+  fEcalShower = -1;
+  fVertex = -1;
   Particle     = ptr->_gpart[0];
   ParticleVice = ptr->_gpart[1];
   for (int i=0; i<2; i++) {Prob[i] = ptr->_prob[i];}
@@ -1412,14 +1455,14 @@ TrTrackR::TrTrackR(AMSTrTrack *ptr){
 
 RichMCClusterR::RichMCClusterR(AMSRichMCHit *ptr, int _numgen){
 #ifndef __ROOTSHAREDLIBRARY__
-  id        = ptr->_id;
+  Id        = ptr->_id;
   for (int i=0; i<i; i++) {
-   origin[i]    = ptr->_origin[i];
-   direction[i] = ptr->_direction[i];
+   Origin[i]    = ptr->_origin[i];
+   Direction[i] = ptr->_direction[i];
   }
-  status       = ptr->_status;
-  eventpointer = ptr->_hit;
-  numgen       = _numgen;
+  Status       = ptr->_status;
+  fRichHit = ptr->_hit;
+  NumGen       = _numgen;
 #endif
 }
 
@@ -1532,5 +1575,70 @@ EcalHitR::EcalHitR(AMSEcalHit *ptr) {
      return (AMSEventR::Head() && i<fTrRecHit.size())?AMSEventR::Head()->pTrRecHit(fTrRecHit[i]):0;
    }
 
+
+   TrdRawHitR* TrdClusterR::pTrdRawHit(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pTrdRawHit(fTrdRawHit):0;
+   }
+
+
+   TrdClusterR* TrdSegmentR::pTrdCluster(unsigned int i){
+     return (AMSEventR::Head() && i<fTrdCluster.size())?AMSEventR::Head()->pTrdCluster(fTrdCluster[i]):0;
+   }
+
+   TrdSegmentR* TrdTrackR::pTrdSegment(unsigned int i){
+     return (AMSEventR::Head() && i<fTrdSegment.size())?AMSEventR::Head()->pTrdSegment(fTrdSegment[i]):0;
+   }
+
+
+   TofClusterR* BetaR::pTofCluster(unsigned int i){
+     return (AMSEventR::Head() && i<fTofCluster.size())?AMSEventR::Head()->pTofCluster(fTofCluster[i]):0;
+   }
+
+   TrTrackR* BetaR::pTrTrack(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(fTrTrack):0;
+   }
+
+   BetaR* ChargeR::pBeta(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pBeta(fBeta):0;
+   }
+   RichRingR* ChargeR::pRichRing(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pRichRing(fRichRing):0;
+   }
+
+
+   RichRingR* ParticleR::pRichRing(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pRichRing(fRichRing):0;
+   }
+
+   BetaR* ParticleR::pBeta(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pBeta(fBeta):0;
+   }
+
+   ChargeR* ParticleR::pCharge(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pCharge(fCharge):0;
+   }
+
+
+   TrTrackR* VertexR::pTrTrack(unsigned int ptr){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(ptr==0?fTrTrackL:fTrTrackR):0;
+   }
+
+
+   TrTrackR* ParticleR::pTrTrack(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pTrTrack(fTrTrack):0;
+   }
+
+   TrdTrackR* ParticleR::pTrdTrack(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pTrdTrack(fTrdTrack):0;
+   }
+
+   EcalShowerR* ParticleR::pEcalShower(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pEcalShower(fEcalShower):0;
+   }
+
+
+   VertexR* ParticleR::pVertex(){
+     return (AMSEventR::Head() )?AMSEventR::Head()->pVertex(fVertex):0;
+   }
 
 #endif

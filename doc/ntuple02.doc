@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.60 2003/04/09 14:05:16 choumilo Exp $
+#  $Id: ntuple02.doc,v 1.61 2003/05/12 13:11:24 choutko Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -78,6 +78,7 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 * R*4  *           * CHARGE   * chargebetap(ncharge)   //pointer to velocity
 * I*4  *           * CHARGE   * chargetof(ncharge)     // TOF charge
 * I*4  *           * CHARGE   * chargetracker(ncharge) // Tracker Charge
+* I*4  *           * CHARGE   * chargerich(ncharge) // rich Charge
 * R*4  *           * CHARGE   * probtof(4,ncharge)     // TOF highest Probs
 * I*4  *           * CHARGE   * chintof(4,ncharge)     // charge indices for 
                                                        // highest Probs (see
@@ -136,7 +137,7 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 						   // first,cofg,last
 						   // ecal planes
 * R*4  *           * PARTICLE * cootr(3,8,npart)  // tracker extrapol in
-						  // tracker *****)
+						  // tracker 
 * R*4  *           * PARTICLE * cootrd(3,npart)  // trd extrapol in the middle
 * R*4  *           * PARTICLE * coorich(3,2,npart)  //rich extrapol in radiator
 						    // and PMT array
@@ -643,10 +644,6 @@ NOTES:
      GEOMz=-d, GEOMy=GEOMz x S (d: dipole direction, S: geographic South)
 
 
-*****) Changed from build=101
-
-cootr(3,1:nlay(),npart) now contains the minimal distance to sensor
-			edge in sensor length units;
 
 
 ******) geant3 only particle=pid+256 means heavy ion nonelstic

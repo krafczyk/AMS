@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.45 2003/05/09 16:00:16 choutko Exp $
+//  $Id: particle.h,v 1.46 2003/05/12 13:11:24 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -38,7 +38,7 @@ protected:
   AMSCharge * _pcharge;      // pointer to charge
   AMSTrTrack * _ptrack;      // pointer to track;
   AMSTRDTrack * _ptrd;       // pointer to trd track 
-  AMSTrTrackGamma * _pvert;       // pointer to trd track 
+  AMSTrTrackGamma * _pvert;       // pointer to vertex
   AMSRichRing * _prich;      // pointer to rich ring
   AMSEcalShower  *_pShower;     // pointer to shower;
   integer _GPart;        // Geant particle ID

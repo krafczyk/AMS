@@ -1,7 +1,9 @@
-#  $Id: root02.doc,v 1.2 2003/05/09 16:00:01 choutko Exp $
+#  $Id: root02.doc,v 1.3 2003/05/12 13:11:24 choutko Exp $
 This is AMS02 Root File Description 
 
-see http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02
+see http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html
 
 
+ to edit documentation see also
 
+ http://www.stack.nl/~dimitri/doxygen/index.html

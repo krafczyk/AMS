@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.14 2003/04/11 09:31:03 glamanna Exp $
+//  $Id: gamma.h,v 1.15 2003/05/12 13:11:24 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -216,7 +216,7 @@ void _ConstructGamma(int method);
 
 
 #ifdef __WRITEROOT__
-// friend class TrGammaRoot02;
+  friend class VertexR;
 #endif
 
 };

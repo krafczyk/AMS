@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.44 2003/05/09 15:59:52 choutko Exp $
+//  $Id: gamma.C,v 1.45 2003/05/12 13:11:17 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -2961,24 +2961,19 @@ AMSTrRecHit * parrayR[trconst::maxlay];
  
  
  void AMSTrTrackGamma::_copyEl(){
-/*
-   TrGammaRoot02 *ptr = (TrGammaRoot02*)_ptr;
-//   if (ptr) {
-     // //    if (_ptrack)  ptr->fTrack =_ptrack ->GetClonePointer();
-     //    for (int i=0; i<_NHits; i++) {
-     //
-     //  if (_Pthit[i]) ptr->fTrRecHit->Add(_Pthit[i]->GetClonePointer());
-     //    }
-//   } else {
-     cout<<"AMSTrTrack::_copyEl -I-  AMSTrTrackGamma::TrGammaRoot02 *ptr is NULL "<<endl;
-   }
-*/
+   VertexR *ptr = (VertexR*)_ptr;
+  if (ptr) {
+    if (_pntTrL)  ptr->fTrTrackL =_pntTrL ->GetClonePointer();
+    else ptr->fTrTrackL=-1;
+    if (_pntTrR)  ptr->fTrTrackR =_pntTrR ->GetClonePointer();
+    else ptr->fTrTrackR=-1;
  }
+}
  
  void AMSTrTrackGamma::_writeEl(){
    if(AMSTrTrackGamma::Out(1)){
      int i;
-     //       AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
+     AMSJob::gethead()->getntuple()->Get_evroot02()->AddAMSObject(this);
      TrGamma* TrTN = AMSJob::gethead()->getntuple()->Get_tpai02();
      if (TrTN->Ngam>=MAXPAIR02 ) return; //const int MAXPAIR02    =   2; see ntuple.h
 

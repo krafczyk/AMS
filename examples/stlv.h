@@ -47,15 +47,14 @@ class stlv : public TSelector {
    void    Begin(TTree *tree);
    /// Selection function.
    /// Entry is the entry number in the current tree.
-   /// Read only the necessary branches to select entries.
-   /// Return kFALSE as soon as a bad entry is detected.
+   /// Read only the header to select entries.
+   /// May return kFALSE as soon as a bad entry is detected.
    /// To read complete event, call fChain->GetTree()->GetEntry(entry).
-   /// Should Not be modified by User
+   /// Should Not be modified by (Non)Advanced User
    Bool_t  ProcessCut(Int_t entry);
    /// User Function called for selected entries only.
    /// Entry is the entry number in the current tree.
-   /// Read branches not processed in ProcessCut() and fill histograms.
-   /// To read complete event, call fChain->GetTree()->GetEntry(entry).
+   /// Fills histograms.
    void    ProcessFill(Int_t entry);
 
    void    Init(TTree *tree);
@@ -64,6 +63,8 @@ class stlv : public TSelector {
    void    SetObject(TObject *obj) { fObject = obj; }
    void    SetInputList(TList *input) {fInput = input;}
    TList  *GetOutputList() const { return fOutput; }
+   /// Called at the end of a loop on the tree,
+   /// a convenient place to draw/fit/store your histograms. \n
    void    Terminate();
 };
 

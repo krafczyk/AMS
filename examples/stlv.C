@@ -86,25 +86,25 @@ void stlv::ProcessFill(Int_t entry)
        
     
     Float_t xm=0;
-    if(ev.fHeader.MCEventgs>0){		
+    if(ev.nMCEventg()>0){		
      MCEventgR mc_ev=ev.MCEventg(0);
       xm = log(mc_ev.Momentum);
       acc[0]->Fill(xm,1);
-     if(ev.fHeader.Particles>0){
+     if(ev.nParticle()>0){
        
-       int ptrack = ev.Particle(0).fTrack;
-       int ptrd = ev.Particle(0).fTrd;
+       int ptrack = ev.Particle(0).TrTrack();
+       int ptrd = ev.Particle(0).TrdTrack();
        
        
        if(ev.NParticle()== 1 && ptrack>=0 && ptrd>=0){ //final if
          acc[1]->Fill(xm,1);
      
-        int pbeta = ev.Particle(0).fBeta;
+        int pbeta = ev.Particle(0).iBeta();   // here iBeta, not Beta
        
         if(pbeta>=0){			//check beta
 	  BetaR Beta=ev.Beta(pbeta);
           if(fabs(Beta.Beta) < 2 && Beta.Chi2S < 5 && Beta.Pattern < 4){
-	    if(ev.fHeader.TrdTracks<2){
+	    if(ev.nTrdTrack()<2){
 	    Int_t Layer1 =0;
             Int_t Layer2 =0;  
 	    

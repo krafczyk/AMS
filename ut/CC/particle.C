@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.128 2003/05/09 15:59:52 choutko Exp $
+//  $Id: particle.C,v 1.129 2003/05/12 13:11:18 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -602,14 +602,16 @@ void AMSParticle::_copyEl(){
     else ptr->fBeta=-1;
     if (_pcharge) ptr->fCharge=_pcharge->GetClonePointer();
     else ptr->fCharge=-1;
-    if (_ptrack)  ptr->fTrack =_ptrack ->GetClonePointer();
-    else ptr->fTrack=-1;
-    if (_ptrd)    ptr->fTrd   =_ptrd   ->GetClonePointer();
-    else ptr->fTrd=-1;
-    if (_prich)   ptr->fRich  =_prich  ->GetClonePointer();
-    else ptr->fRich=-1;
-    if (_pShower) ptr->fShower=_pShower->GetClonePointer();
-    else ptr->fShower=-1;
+    if (_ptrack)  ptr->fTrTrack =_ptrack ->GetClonePointer();
+    else ptr->fTrTrack=-1;
+    if (_ptrd)    ptr->fTrdTrack   =_ptrd   ->GetClonePointer();
+    else ptr->fTrdTrack=-1;
+    if (_prich)   ptr->fRichRing  =_prich  ->GetClonePointer();
+    else ptr->fRichRing=-1;
+    if (_pShower) ptr->fEcalShower=_pShower->GetClonePointer();
+    else ptr->fEcalShower=-1;
+    if (_pvert) ptr->fVertex=_pShower->GetClonePointer();
+    else ptr->fVertex=-1;
   } else {
     cout<<"AMSParticle::_copyEl -I-  AMSParticle::ParticleRoot02 *ptr is NULL "<<endl;
   }
@@ -949,11 +951,7 @@ void AMSParticle::_loc2gl(){
   number cl4=cl*cl*cl*cl;
   number mom=xfac*cl4/(sqrt(1.-chsgn*cth*cl3)+1)/(sqrt(1.-chsgn*cth*cl3)+1)*_Charge;
   _CutoffMomentum=chsgn*mom;
-/*
-  integer rgcutoff=(int)(mom/_Charge*10+.5)<(1<<10)-1?(int)(mom/_Charge*10+.5):(1<<10)-1;
-  _pbeta->setstatus(rgcutoff<<20);
-*/    
-          AMSgObj::BookTimer.stop("part::loc2gl");
+  AMSgObj::BookTimer.stop("part::loc2gl");
 
 }
 
