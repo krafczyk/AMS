@@ -28,7 +28,7 @@
 #include "TSwitch.h"
 #include "AMSR_SiHitReader.h"
 #include "AMSR_Axis.h"
-// #include "AMSR_GeometrySetter.h"  //already included in AMSR_Display.h
+#include "AMSR_GeometrySetter.h"
 //#include "AMSR_Particle.h"
 //#include "AMSR_MCMaker.h"
 //#include "AMSR_ClusterMaker.h"

@@ -32,9 +32,9 @@
 #ifndef AMSR_VirtualDisplay_H
 #include "AMSR_VirtualDisplay.h"
 #endif
-#ifndef AMSR_GeometrySetter_H
-#include "AMSR_GeometrySetter.h"
-#endif
+//#ifndef AMSR_GeometrySetter_H
+//#include "AMSR_GeometrySetter.h"
+//#endif
 #ifndef AMSR_Canvas_H
 #include "AMSR_Canvas.h"
 #endif
@@ -51,7 +51,7 @@ class TTUBE;
 class TNode;
 class TPolyLine3D;
 class TList;
-
+class AMSR_GeometrySetter;
 
 
 class AMSR_Display : public AMSR_VirtualDisplay {

@@ -10,7 +10,8 @@ void IdleHandle(Int_t option)
 //  static char *cut   
 //   = "ntrtr==1 && Ridgidity<0 && abs(pmom)/pcharge<2 && nctccl<2";
 //  static char *cut = "Chi2strline[0]<1 && Chi2circle[0]<1 && Chi2fastfit[0]<10 && beta[0]<0.";
-  static char *cut = "pmass[0]>2.";
+  static char *cut = "npart==1 && abs(pmom[0])<1.";
+//  static char *cut = "abs(pmom[0])<1.";
 
 
   static TTreeFormula *f_cut=0;
@@ -29,7 +30,7 @@ void IdleHandle(Int_t option)
        return;
     }
 
-    if ( option <0 || strcmp(filename, newfile) ) {
+    if ( option<0 || filename==0 || strcmp(filename, newfile) ) {
 
       if (filename != 0) delete filename;
       if (strlen(newfile) > 0) filename = new char[strlen(newfile)+1];
@@ -46,8 +47,11 @@ void IdleHandle(Int_t option)
          return;
       }
 
-      if (f_cut != 0) {delete f_cut; f_cut=0;}
-      f_cut=new TTreeFormula("cut",cut,t);
+      if (f_cut != 0) f_cut->SetTree(t);
+      else f_cut=new TTreeFormula("cut",cut,t);
+      printf("tree =%lx, formula =%lx\n", t, f_cut);
+//      if (f_cut != 0) {delete f_cut; f_cut=0;}
+//      f_cut=new TTreeFormula("cut",cut,t);
 
     }
   }
@@ -59,8 +63,9 @@ void IdleHandle(Int_t option)
 //    ntp->SetBranchStatus("Chi2circle", 1);
 //    ntp->SetBranchStatus("Chi2fastfit",1);
 //    ntp->SetBranchStatus("beta",1);      //end of enabling branches
-//    ntp->SetBranchStatus("pmom", 1);
-    ntp->SetBranchStatus("pmass", 1);
+    ntp->SetBranchStatus("npart", 1);
+    ntp->SetBranchStatus("pmom", 1);
+//    ntp->SetBranchStatus("pmass", 1);
 
     Int_t current = gAMSR_Root->Event();
     if (current < 0) current=-1;

@@ -358,9 +358,35 @@ Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
   }
 
   //
+  // determine data type if type is specified as "kUnknown"
+  //
+  //Ntuple: .ext = .ntp* or .hbk*
+  //Root:   .ext = .root*
+  //ObjectivityDB: others
+  //
+  if ( type == kUnknown ) {
+     char *slash = strrchr(filename, '/');
+     if ( slash==0 ) slash = filename;
+
+     if ( strlen(slash)==1 ) {  // nothing after '/'
+        cerr << "\nAMSR_Canvas::OpenFileCB\n" << filename
+          << " looks like a directory, not a filename ?" << endl;
+	return 1;
+     }
+     
+     char *dot = strrchr(slash, '.');
+     
+     if ( !dot ) type = kObjectivityFile;
+     else if ( strstr(dot+1, "root") == dot+1 ) type = kRootFile;
+     else if ( strstr(dot+1, "ntp") == dot+1 )  type = kNtupleFile;
+     else if ( strstr(dot+1, "hbk") == dot+1 )  type = kNtupleFile;
+     else type = kObjectivityFile;
+  }
+
+  //
   // Open file according to data type
   //
-  if (type == RootFile) {
+  if (type == kRootFile) {
     TFile *fNew = TFile::Open(filename);   // support opening remote file
     if ( ! fNew ) {                        // cannot open this file
       return 1;
@@ -395,13 +421,13 @@ Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
     //
     Init(t);
      
-  } else if ( type == ObjectivityFile ) {
+  } else if ( type == kObjectivityFile ) {
 
     Error("AMSR_Root::OpenDataFile",
           "Sorry ! Data type of ObjectivityFile not yet implemented.\n");
     return 1;
 
-  } else if ( type == NtupleFile ) {
+  } else if ( type == kNtupleFile ) {
     int openStat = m_Ntuple->OpenNtuple(filename);
     if (openStat == 0) Init(0);
     else return openStat;

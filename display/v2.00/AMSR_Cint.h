@@ -68,7 +68,6 @@ extern G__linked_taginfo G__AMSR_CintLN_TObjArray;
 extern G__linked_taginfo G__AMSR_CintLN_TObject;
 extern G__linked_taginfo G__AMSR_CintLN_TString;
 extern G__linked_taginfo G__AMSR_CintLN_TNamed;
-extern G__linked_taginfo G__AMSR_CintLN_TFile;
 extern G__linked_taginfo G__AMSR_CintLN_TVirtualPad;
 extern G__linked_taginfo G__AMSR_CintLN_TGeometry;
 extern G__linked_taginfo G__AMSR_CintLN_TAttLine;

@@ -6009,107 +6009,156 @@ extern "C" void G__cpp_setup_inheritanceAMSR_Cint() {
 extern "C" void G__cpp_setup_typetableAMSR_Cint() {
 
    /* Setting up typedef entry */
-   G__search_typename("Char_t",99,-1,0);
+   G__search_typename2("Char_t",99,-1,0,
+-1);
    G__setnewtype(-1,"Signed Character 1 byte",0);
-   G__search_typename("UChar_t",98,-1,0);
+   G__search_typename2("UChar_t",98,-1,0,
+-1);
    G__setnewtype(-1,"Unsigned Character 1 byte",0);
-   G__search_typename("Short_t",115,-1,0);
+   G__search_typename2("Short_t",115,-1,0,
+-1);
    G__setnewtype(-1,"Signed Short integer 2 bytes",0);
-   G__search_typename("UShort_t",114,-1,0);
+   G__search_typename2("UShort_t",114,-1,0,
+-1);
    G__setnewtype(-1,"Unsigned Short integer 2 bytes",0);
-   G__search_typename("Int_t",105,-1,0);
+   G__search_typename2("Int_t",105,-1,0,
+-1);
    G__setnewtype(-1,"Signed integer 4 bytes",0);
-   G__search_typename("UInt_t",104,-1,0);
+   G__search_typename2("UInt_t",104,-1,0,
+-1);
    G__setnewtype(-1,"Unsigned integer 4 bytes",0);
-   G__search_typename("Seek_t",105,-1,0);
+   G__search_typename2("Seek_t",105,-1,0,
+-1);
    G__setnewtype(-1,"File pointer",0);
-   G__search_typename("Long_t",108,-1,0);
+   G__search_typename2("Long_t",108,-1,0,
+-1);
    G__setnewtype(-1,"Signed long integer 8 bytes",0);
-   G__search_typename("ULong_t",107,-1,0);
+   G__search_typename2("ULong_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Unsigned long integer 8 bytes",0);
-   G__search_typename("Float_t",102,-1,0);
+   G__search_typename2("Float_t",102,-1,0,
+-1);
    G__setnewtype(-1,"Float 4 bytes",0);
-   G__search_typename("Double_t",100,-1,0);
+   G__search_typename2("Double_t",100,-1,0,
+-1);
    G__setnewtype(-1,"Float 8 bytes",0);
-   G__search_typename("Text_t",99,-1,0);
+   G__search_typename2("Text_t",99,-1,0,
+-1);
    G__setnewtype(-1,"General string",0);
-   G__search_typename("Bool_t",98,-1,0);
+   G__search_typename2("Bool_t",98,-1,0,
+-1);
    G__setnewtype(-1,"Boolean (0=false, 1=true)",0);
-   G__search_typename("Byte_t",98,-1,0);
+   G__search_typename2("Byte_t",98,-1,0,
+-1);
    G__setnewtype(-1,"Byte (8 bits)",0);
-   G__search_typename("Version_t",115,-1,0);
+   G__search_typename2("Version_t",115,-1,0,
+-1);
    G__setnewtype(-1,"Class version identifier",0);
-   G__search_typename("Option_t",99,-1,0);
+   G__search_typename2("Option_t",99,-1,0,
+-1);
    G__setnewtype(-1,"Option string",0);
-   G__search_typename("Ssiz_t",105,-1,0);
+   G__search_typename2("Ssiz_t",105,-1,0,
+-1);
    G__setnewtype(-1,"String size",0);
-   G__search_typename("Real_t",102,-1,0);
+   G__search_typename2("Real_t",102,-1,0,
+-1);
    G__setnewtype(-1,"TVector and TMatrix element type",0);
-   G__search_typename("VoidFuncPtr_t",89,-1,0);
+   G__search_typename2("VoidFuncPtr_t",89,-1,0,
+-1);
    G__setnewtype(-1,"pointer to void function",0);
-   G__search_typename("FreeHookFun_t",89,-1,0);
+   G__search_typename2("FreeHookFun_t",89,-1,0,
+-1);
    G__setnewtype(-1,NULL,0);
-   G__search_typename("ReAllocFun_t",81,-1,2);
+   G__search_typename2("ReAllocFun_t",81,-1,2,
+-1);
    G__setnewtype(-1,NULL,0);
-   G__search_typename("ReAllocCFun_t",81,-1,2);
+   G__search_typename2("ReAllocCFun_t",81,-1,2,
+-1);
    G__setnewtype(-1,NULL,0);
-   G__search_typename("Axis_t",102,-1,0);
+   G__search_typename2("Axis_t",102,-1,0,
+-1);
    G__setnewtype(-1,"Axis values type",0);
-   G__search_typename("Stat_t",100,-1,0);
+   G__search_typename2("Stat_t",100,-1,0,
+-1);
    G__setnewtype(-1,"Statistics type",0);
-   G__search_typename("Font_t",115,-1,0);
+   G__search_typename2("Font_t",115,-1,0,
+-1);
    G__setnewtype(-1,"Font number",0);
-   G__search_typename("Style_t",115,-1,0);
+   G__search_typename2("Style_t",115,-1,0,
+-1);
    G__setnewtype(-1,"Style number",0);
-   G__search_typename("Marker_t",115,-1,0);
+   G__search_typename2("Marker_t",115,-1,0,
+-1);
    G__setnewtype(-1,"Marker number",0);
-   G__search_typename("Width_t",115,-1,0);
+   G__search_typename2("Width_t",115,-1,0,
+-1);
    G__setnewtype(-1,"Line width",0);
-   G__search_typename("Color_t",115,-1,0);
+   G__search_typename2("Color_t",115,-1,0,
+-1);
    G__setnewtype(-1,"Color number",0);
-   G__search_typename("SCoord_t",115,-1,0);
+   G__search_typename2("SCoord_t",115,-1,0,
+-1);
    G__setnewtype(-1,"Screen coordinates",0);
-   G__search_typename("Coord_t",102,-1,0);
+   G__search_typename2("Coord_t",102,-1,0,
+-1);
    G__setnewtype(-1,"Pad world coordinates",0);
-   G__search_typename("Angle_t",102,-1,0);
+   G__search_typename2("Angle_t",102,-1,0,
+-1);
    G__setnewtype(-1,"Graphics angle",0);
-   G__search_typename("Size_t",102,-1,0);
+   G__search_typename2("Size_t",102,-1,0,
+-1);
    G__setnewtype(-1,"Attribute size",0);
-   G__search_typename("Double_t (*)(Double_t*, Double_t*)",81,-1,0);
+   G__search_typename2("Double_t (*)(Double_t*, Double_t*)",81,-1,0,
+-1);
    G__setnewtype(-1,NULL,0);
-   G__search_typename("Handle_t",107,-1,0);
+   G__search_typename2("Handle_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Generic resource handle",0);
-   G__search_typename("Display_t",107,-1,0);
+   G__search_typename2("Display_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Display handle",0);
-   G__search_typename("Window_t",107,-1,0);
+   G__search_typename2("Window_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Window handle",0);
-   G__search_typename("Pixmap_t",107,-1,0);
+   G__search_typename2("Pixmap_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Pixmap handle",0);
-   G__search_typename("Drawable_t",107,-1,0);
+   G__search_typename2("Drawable_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Drawable handle",0);
-   G__search_typename("Colormap_t",107,-1,0);
+   G__search_typename2("Colormap_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Colormap handle",0);
-   G__search_typename("Cursor_t",107,-1,0);
+   G__search_typename2("Cursor_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Cursor handle",0);
-   G__search_typename("FontH_t",107,-1,0);
+   G__search_typename2("FontH_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Font handle (as opposed to Font_t which is an index)",0);
-   G__search_typename("KeySym_t",107,-1,0);
+   G__search_typename2("KeySym_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Key symbol handle",0);
-   G__search_typename("Atom_t",107,-1,0);
+   G__search_typename2("Atom_t",107,-1,0,
+-1);
    G__setnewtype(-1,"WM token",0);
-   G__search_typename("GContext_t",107,-1,0);
+   G__search_typename2("GContext_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Graphics context handle (or pointer, needs to be long)",0);
-   G__search_typename("FontStruct_t",107,-1,0);
+   G__search_typename2("FontStruct_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Pointer to font structure",0);
-   G__search_typename("Mask_t",104,-1,0);
+   G__search_typename2("Mask_t",104,-1,0,
+-1);
    G__setnewtype(-1,"Structure mask type",0);
-   G__search_typename("Time_t",107,-1,0);
+   G__search_typename2("Time_t",107,-1,0,
+-1);
    G__setnewtype(-1,"Event time",0);
-   G__search_typename("X3DBuffer",117,G__get_linked_tagnum(&G__AMSR_CintLN__x3d_data_),0);
+   G__search_typename2("X3DBuffer",117,G__get_linked_tagnum(&G__AMSR_CintLN__x3d_data_),0,-1);
    G__setnewtype(-1,NULL,0);
-   G__search_typename("Size3D",117,G__get_linked_tagnum(&G__AMSR_CintLN__x3d_sizeof_),0);
+   G__search_typename2("Size3D",117,G__get_linked_tagnum(&G__AMSR_CintLN__x3d_sizeof_),0,-1);
    G__setnewtype(-1,NULL,0);
-   G__search_typename("time_t",108,-1,0);
+   G__search_typename2("time_t",108,-1,0,
+-1);
    G__setnewtype(-1,NULL,0);
 }
 
@@ -6326,7 +6375,7 @@ static void G__setup_memvarAMSR_Ntuple(void) {
    { AMSR_Ntuple *p; p=(AMSR_Ntuple*)0x1000; if (p) { }
    G__memvar_setup((void*)NULL,99,0,0,-1,G__defined_typename("Text_t"),-1,4,"m_VarNames[20][20]=",0,"Name list of m_NVar variables");
    G__memvar_setup((void*)NULL,105,0,0,-1,G__defined_typename("Int_t"),-1,4,"m_NVar=",0,"Number of vairables in HGNTV");
-   G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSR_CintLN_TFile),-1,-1,4,"m_SampleTree=",0,"File storing the TTree sample");
+   G__memvar_setup((void*)NULL,85,0,0,G__get_linked_tagnum(&G__AMSR_CintLN_TTree),-1,-1,4,"m_SampleTree=",0,"a sample of TTree to communicate with ntuple");
    G__memvar_setup((void*)NULL,105,0,0,-1,G__defined_typename("Int_t"),-1,4,"m_MemID=",0,"Actual ntuple ID in memory");
    G__memvar_setup((void*)NULL,105,0,0,G__get_linked_tagnum(&G__AMSR_CintLN_EDataFileType),-1,-1,2,"m_DataFileType=",0,"Data file type to access");
    G__memvar_setup((void*)NULL,105,0,0,-1,G__defined_typename("Int_t"),-1,2,"m_Entries=",0,"Entries in ntuple or Root-tree");
@@ -6652,7 +6701,7 @@ static void G__setup_memfuncTRadioButton(void) {
 "C - - 0 0 offMethod",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ExecuteEvent",1237,G__TRadioButton_ExecuteEvent_3_0,121,-1,-1,0,3,1,1,0,
 "i - 'Int_t' 0 - event i - 'Int_t' 0 - px "
-"i - 'Int_t' 0 - py",(char*)NULL,(void*)NULL,0);
+"i - 'Int_t' 0 - py",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("DeclFileName",1145,G__TRadioButton_DeclFileName_4_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__TRadioButton_DeclFileLine_5_0,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ImplFileName",1171,G__TRadioButton_ImplFileName_6_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
@@ -6680,7 +6729,7 @@ static void G__setup_memfuncTSwitch(void) {
 "f - 'Coord_t' 0 - y2 C - - 0 0 offMethod",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ExecuteEvent",1237,G__TSwitch_ExecuteEvent_3_0,121,-1,-1,0,3,1,1,0,
 "i - 'Int_t' 0 - event i - 'Int_t' 0 - px "
-"i - 'Int_t' 0 - py",(char*)NULL,(void*)NULL,0);
+"i - 'Int_t' 0 - py",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("GetButton",924,G__TSwitch_GetButton_4_0,85,G__get_linked_tagnum(&G__AMSR_CintLN_TRadioButton),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileName",1145,G__TSwitch_DeclFileName_5_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__TSwitch_DeclFileLine_6_0,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
@@ -6833,14 +6882,14 @@ static void G__setup_memfuncAMSR_3DCluster(void) {
    G__memfunc_setup("GetPosition",1141,G__AMSR_3DCluster_GetPosition_6_0,70,-1,G__defined_typename("Float_t"),0,0,1,1,4,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("GetSize",699,G__AMSR_3DCluster_GetSize_7_0,70,-1,G__defined_typename("Float_t"),0,0,1,1,4,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DistancetoPrimitive",1991,G__AMSR_3DCluster_DistancetoPrimitive_8_0,105,-1,G__defined_typename("Int_t"),0,2,1,1,0,
-"i - 'Int_t' 0 - px i - 'Int_t' 0 - py",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("SetPoints",937,G__AMSR_3DCluster_SetPoints_9_0,121,-1,-1,0,1,1,1,0,"F - 'Float_t' 0 - buff",(char*)NULL,(void*)NULL,0);
+"i - 'Int_t' 0 - px i - 'Int_t' 0 - py",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("SetPoints",937,G__AMSR_3DCluster_SetPoints_9_0,121,-1,-1,0,1,1,1,0,"F - 'Float_t' 0 - buff",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("SetPosition",1153,G__AMSR_3DCluster_SetPosition_0_1,121,-1,-1,0,3,1,1,0,
 "f - 'Float_t' 0 - x f - 'Float_t' 0 - y "
-"f - 'Float_t' 0 - z",(char*)NULL,(void*)NULL,0);
+"f - 'Float_t' 0 - z",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("SetDirection",1229,G__AMSR_3DCluster_SetDirection_1_1,121,-1,-1,0,2,1,1,0,
-"f - 'Float_t' 0 - theta f - 'Float_t' 0 - phi",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Sizeof3D",743,G__AMSR_3DCluster_Sizeof3D_2_1,121,-1,-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,0);
+"f - 'Float_t' 0 - theta f - 'Float_t' 0 - phi",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Sizeof3D",743,G__AMSR_3DCluster_Sizeof3D_2_1,121,-1,-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("DeclFileName",1145,G__AMSR_3DCluster_DeclFileName_3_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__AMSR_3DCluster_DeclFileLine_4_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ImplFileName",1171,G__AMSR_3DCluster_ImplFileName_5_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
@@ -6895,7 +6944,7 @@ static void G__setup_memfuncAMSR_HistBrowser(void) {
    G__tag_memfunc_setup(G__get_linked_tagnum(&G__AMSR_CintLN_AMSR_HistBrowser));
    G__memfunc_setup("AMSR_HistBrowser",1550,G__AMSR_HistBrowser_AMSR_HistBrowser_0_0,105,G__get_linked_tagnum(&G__AMSR_CintLN_AMSR_HistBrowser),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("Browse",626,G__AMSR_HistBrowser_Browse_2_0,121,-1,-1,0,1,1,1,0,"U 'TBrowser' - 0 - b",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("IsFolder",792,G__AMSR_HistBrowser_IsFolder_3_0,98,-1,G__defined_typename("Bool_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("IsFolder",792,G__AMSR_HistBrowser_IsFolder_3_0,98,-1,G__defined_typename("Bool_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("DeclFileName",1145,G__AMSR_HistBrowser_DeclFileName_4_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__AMSR_HistBrowser_DeclFileLine_5_0,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ImplFileName",1171,G__AMSR_HistBrowser_ImplFileName_6_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
@@ -6931,7 +6980,7 @@ static void G__setup_memfuncAMSR_ToFClusterReader(void) {
 "i - 'Int_t' 0 0 ncells i - 'Int_t' 0 0 npart "
 "i - 'Int_t' 0 0 ntracks U 'TObjArray' - 0 0 tracks",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("RemoveCluster",1360,G__AMSR_ToFClusterReader_RemoveCluster_7_0,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 - cluster",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Clear",487,G__AMSR_ToFClusterReader_Clear_8_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Clear",487,G__AMSR_ToFClusterReader_Clear_8_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("DeclFileName",1145,G__AMSR_ToFClusterReader_DeclFileName_9_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__AMSR_ToFClusterReader_DeclFileLine_0_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ImplFileName",1171,G__AMSR_ToFClusterReader_ImplFileName_1_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
@@ -6998,7 +7047,7 @@ static void G__setup_memfuncAMSR_SiHitReader(void) {
 "f - 'Float_t' 0 - ampl f - 'Float_t' 0 - asym "
 "U 'TObjArray' - 0 0 tracks",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("RemoveCluster",1360,G__AMSR_SiHitReader_RemoveCluster_8_0,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 - cluster",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Clear",487,G__AMSR_SiHitReader_Clear_9_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Clear",487,G__AMSR_SiHitReader_Clear_9_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("DeclFileName",1145,G__AMSR_SiHitReader_DeclFileName_0_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__AMSR_SiHitReader_DeclFileLine_1_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ImplFileName",1171,G__AMSR_SiHitReader_ImplFileName_2_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
@@ -7033,7 +7082,7 @@ static void G__setup_memfuncAMSR_CTCClusterReader(void) {
 "F - 'Float_t' 0 - ercoo i - 'Int_t' 0 0 ntracks "
 "U 'TObjArray' - 0 0 tracks",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("RemoveCluster",1360,G__AMSR_CTCClusterReader_RemoveCluster_7_0,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 - cluster",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Clear",487,G__AMSR_CTCClusterReader_Clear_8_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Clear",487,G__AMSR_CTCClusterReader_Clear_8_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("DeclFileName",1145,G__AMSR_CTCClusterReader_DeclFileName_9_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__AMSR_CTCClusterReader_DeclFileLine_0_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ImplFileName",1171,G__AMSR_CTCClusterReader_ImplFileName_1_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
@@ -7067,7 +7116,7 @@ static void G__setup_memfuncAMSR_AntiClusterReader(void) {
 "F - 'Float_t' 0 - ercoo i - 'Int_t' 0 0 ntracks "
 "U 'TObjArray' - 0 0 tracks",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("RemoveCluster",1360,G__AMSR_AntiClusterReader_RemoveCluster_7_0,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 - cluster",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Clear",487,G__AMSR_AntiClusterReader_Clear_8_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Clear",487,G__AMSR_AntiClusterReader_Clear_8_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("DeclFileName",1145,G__AMSR_AntiClusterReader_DeclFileName_9_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__AMSR_AntiClusterReader_DeclFileLine_0_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ImplFileName",1171,G__AMSR_AntiClusterReader_ImplFileName_1_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
@@ -7100,7 +7149,7 @@ static void G__setup_memfuncAMSR_TrMCClusterReader(void) {
 "F - 'Float_t' 0 - coo F - 'Float_t' 0 - ercoo "
 "i - 'Int_t' 0 0 ntracks U 'TObjArray' - 0 0 tracks",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("RemoveCluster",1360,G__AMSR_TrMCClusterReader_RemoveCluster_7_0,121,-1,-1,0,1,1,1,0,"i - 'Int_t' 0 - cluster",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Clear",487,G__AMSR_TrMCClusterReader_Clear_8_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Clear",487,G__AMSR_TrMCClusterReader_Clear_8_0,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("DeclFileName",1145,G__AMSR_TrMCClusterReader_DeclFileName_9_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__AMSR_TrMCClusterReader_DeclFileLine_0_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("ImplFileName",1171,G__AMSR_TrMCClusterReader_ImplFileName_1_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
@@ -7184,7 +7233,7 @@ static void G__setup_memfuncAMSR_Ntuple(void) {
    /* AMSR_Ntuple */
    G__tag_memfunc_setup(G__get_linked_tagnum(&G__AMSR_CintLN_AMSR_Ntuple));
    G__memfunc_setup("SetTreeAddress",1410,(G__InterfaceMethod)NULL,121,-1,-1,0,0,1,2,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("SetSampleTree",1310,(G__InterfaceMethod)NULL,121,-1,-1,0,0,1,2,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("CreateSampleTree",1606,(G__InterfaceMethod)NULL,121,-1,-1,0,0,1,2,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("SetVarNames",1097,(G__InterfaceMethod)NULL,121,-1,-1,0,0,1,2,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("AMSR_Ntuple",1034,G__AMSR_Ntuple_AMSR_Ntuple_3_0,105,G__get_linked_tagnum(&G__AMSR_CintLN_AMSR_Ntuple),-1,0,2,1,1,0,
 "C - - 0 \"AMSR_Ntuple\" name C - - 0 \"The AMS Ntuple\" title",(char*)NULL,(void*)NULL,0);
@@ -7294,7 +7343,7 @@ static void G__setup_memfuncAMSR_Root(void) {
    G__memfunc_setup("Draw",398,G__AMSR_Root_Draw_2_1,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option","*MENU*",(void*)NULL,1);
    G__memfunc_setup("Paint",508,G__AMSR_Root_Paint_3_1,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("Clear",487,G__AMSR_Root_Clear_4_1,121,-1,-1,0,1,1,1,0,"C - 'Option_t' 0 \"\" option",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("IsFolder",792,G__AMSR_Root_IsFolder_5_1,98,-1,G__defined_typename("Bool_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("IsFolder",792,G__AMSR_Root_IsFolder_5_1,98,-1,G__defined_typename("Bool_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("PrintInfo",921,G__AMSR_Root_PrintInfo_6_1,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("GetVersion",1030,G__AMSR_Root_GetVersion_7_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("GetVersionDate",1412,G__AMSR_Root_GetVersionDate_8_1,105,-1,G__defined_typename("Int_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
@@ -7632,8 +7681,8 @@ static void G__setup_memfuncAMSR_Canvas(void) {
    G__memfunc_setup("AMSR_Canvas",1006,G__AMSR_Canvas_AMSR_Canvas_3_0,105,G__get_linked_tagnum(&G__AMSR_CintLN_AMSR_Canvas),-1,0,4,1,1,0,
 "C - 'Text_t' 0 - name C - 'Text_t' 0 \"The AMS Display with Root\" title "
 "i - 'Int_t' 0 700 ww i - 'Int_t' 0 550 wh",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Update",611,G__AMSR_Canvas_Update_5_0,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("EditorBar",892,G__AMSR_Canvas_EditorBar_6_0,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Update",611,G__AMSR_Canvas_Update_5_0,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("EditorBar",892,G__AMSR_Canvas_EditorBar_6_0,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,1);
    G__memfunc_setup("HandleInput",1116,G__AMSR_Canvas_HandleInput_7_0,121,-1,-1,0,3,1,1,0,
 "i - 'Int_t' 0 - event i - 'Int_t' 0 - px "
 "i - 'Int_t' 0 - py",(char*)NULL,(void*)NULL,0);
@@ -7663,7 +7712,7 @@ static void G__setup_memfuncDebugger(void) {
    G__memfunc_setup("Debugger",805,G__Debugger_Debugger_0_0,105,G__get_linked_tagnum(&G__AMSR_CintLN_Debugger),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("On",189,G__Debugger_On_2_0,121,-1,-1,0,0,1,1,0,"","Turn on the debugger",(void*)NULL,0);
    G__memfunc_setup("Off",283,G__Debugger_Off_3_0,121,-1,-1,0,0,1,1,0,"","Turn off the debugger",(void*)NULL,0);
-   G__memfunc_setup("Print",525,G__Debugger_Print_4_0,121,-1,-1,0,2,1,1,0,
+   G__memfunc_setup("Print",525,G__Debugger_Print_4_0,121,-1,-1,0,2,2,1,0,
 "C - - 0 - fmt i - - 0 - -","Print a debug message",(void*)NULL,0);
    G__memfunc_setup("DeclFileName",1145,G__Debugger_DeclFileName_5_0,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
    G__memfunc_setup("DeclFileLine",1152,G__Debugger_DeclFileLine_6_0,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
@@ -7782,7 +7831,6 @@ G__linked_taginfo G__AMSR_CintLN_TObjArray = { "TObjArray" , 99 , -1 };
 G__linked_taginfo G__AMSR_CintLN_TObject = { "TObject" , 99 , -1 };
 G__linked_taginfo G__AMSR_CintLN_TString = { "TString" , 99 , -1 };
 G__linked_taginfo G__AMSR_CintLN_TNamed = { "TNamed" , 99 , -1 };
-G__linked_taginfo G__AMSR_CintLN_TFile = { "TFile" , 99 , -1 };
 G__linked_taginfo G__AMSR_CintLN_TVirtualPad = { "TVirtualPad" , 99 , -1 };
 G__linked_taginfo G__AMSR_CintLN_TGeometry = { "TGeometry" , 99 , -1 };
 G__linked_taginfo G__AMSR_CintLN_TAttLine = { "TAttLine" , 99 , -1 };
@@ -7912,7 +7960,7 @@ class G__cpp_setup_initAMSR_Cint {
 G__cpp_setup_initAMSR_Cint G__cpp_setup_initializerAMSR_Cint;
 
 //
-// File generated by rootcint at Fri Aug 14 14:39:57 1998.
+// File generated by rootcint at Tue Sep  1 17:28:58 1998.
 // Do NOT change. Changes will be lost next time file is generated
 //
 

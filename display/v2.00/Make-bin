@@ -69,6 +69,9 @@ FORO          = $(FORSRC:%.f=$(OBJDIR)/%.o)
 MAIN          = main.cxx
 MAINO         = $(MAIN:%.cxx=$(OBJDIR)/%.o)
 
+MAINRINT      = mainRint.cxx
+MAINRINTO     = $(MAINRINT:%.cxx=$(OBJDIR)/%.o)
+
 MAINC          = mainc.cxx
 MAINOC         = $(MAINC:%.cxx=$(OBJDIR)/%.o)
 
@@ -80,44 +83,60 @@ OBJS          = $(SRCS:%.cxx=$(OBJDIR)/%.o) $(DICTO) $(FORO)
 OBJSG         = # $(SRCSG:%.cxx=$(OBJDIR)/%.o) $(DICTGO)
 
 ALLDICT       = $(DICT) $(DICTH) $(DICTG) $(DICTGH)
-ALLSRCS       = $(SRCS) $(SRCSG) $(HDRS) $(HDRSG) $(ALLDICT) $(MAIN)
-ALLOBJS       = $(OBJS) $(OBJSG) $(MAINO)
+ALLSRCS       = $(SRCS) $(SRCSG) $(HDRS) $(HDRSG) $(ALLDICT) \
+                $(MAIN) $(MAINRINT) $(MAINC) $(MAINV)
+ALLOBJS       = $(OBJS) $(OBJSG) $(MAINO) $(MAINRINTO) $(MAINOC) $(MAINOV)
 
 
-AMSR_NOLIB      = $(OBJDIR)/amsed_nolib
-AMSR_LIB       = $(OBJDIR)/libams.a
-AMSR_SLIB       =  -L$(OBJDIR) -lams
+#####################################
+###                               ###
+###  physical names for TARGETS   ###
+###                               ###
+#####################################
+AMSR_STATICLIB  = $(OBJDIR)/libAMS.a
 
 AMSR_SHAREDLIB  = $(OBJDIR)/libAMS.so
 
-#AMSR_GLIB      = $(OBJDIR)/libAMSg.so
-
 AMSR_PRG        = $(OBJDIR)/amsed
-AMSR_PRGA        = $(OBJDIR)/amseda
+AMSR_RINT       = $(OBJDIR)/amsRint
 AMSR_PRGC       = $(OBJDIR)/amsedc
 AMSR_PRGV       = $(OBJDIR)/amsedv
 
 
-
-##### TARGETS #####
-.PHONY :     interprete standalone realtime projector depend dist clean
+##################################
+###                            ###
+###  dependencies for TARGETS  ###
+###                            ###
+##################################
+.PHONY :     standalone interactive realtime projector depend dist clean
 .PHONY :     touch_depend
 
-interprete:  $(AMSR_SHAREDLIB)
+interactive: $(CHECK_SUPPORT) $(AMSR_RINT)
 
-standalone:  $(AMSR_PRG)
+standalone:  $(CHECK_SUPPORT) $(AMSR_PRG)
 
-standalonea:  $(AMSR_PRGA)
+realtime:    $(CHECK_SUPPORT) $(AMSR_PRGC)
 
-realtime:  $(AMSR_PRGC)
+projector:   $(CHECK_SUPPORT) $(AMSR_PRGV)
 
-projector:  $(AMSR_PRGV)
 
-$(AMSR_NOLIB):  $(MAINO) $(OBJS)
-	rm -f $@
-	-$(LD) $(LDFLAGS) $^ $(LIBS) -o $@
-	chmod 555 $@
-	@echo "$@ done with $^ linked in"
+###########################
+###                     ###
+###  rules for TARGETS  ###
+###                     ###
+###########################
+## --First rule is to check if the platform is supported
+
+CHECK_SUPPORT = ""
+$(CHECK_SUPPORT):
+ ifeq "$(FOUND)" ""
+	@echo "Sorry! platform of $(OS) not yet supported"
+	@echo " current only supported are $(SUPPORTED)"
+	@false
+ else
+#	@echo "your platform of $(FOUND) is supported"
+	@true
+ endif
 
 $(AMSR_SHAREDLIB):  $(OBJS)
 	rm -f $@
@@ -125,23 +144,23 @@ $(AMSR_SHAREDLIB):  $(OBJS)
 	chmod 555 $@
 	@echo "$@ done with $^ linked in"
 
-$(AMSR_LIB):  $(OBJS)
+$(AMSR_STATICLIB):  $(OBJS)
 	rm -f $@
-	-$(ARLD)  $@ $^ 
+	$(ARLD)  $@ $^
 	chmod 555 $@
 	@echo "$@ done with $^ linked in"
 
-$(AMSR_PRG):	$(AMSR_SHAREDLIB) $(MAINO)
-		-$(LD) $(LDFLAGS) $(GLIBS) $^ -o $@
+$(AMSR_PRG):	$(MAINO) $(AMSR_STATICLIB)
+		$(LD) $(LDFLAGS) -o $@ $^ $(GLIBS) $(FORLIBS)
 
-$(AMSR_PRGA):	$(AMSR_LIB) $(MAINO)
-		-$(LD) $(LDFLAGS) $(MAINO) $(AMSR_SLIB) $(GLIBS)  -o $@
+$(AMSR_RINT):   $(MAINRINTO) $(AMSR_SHAREDLIB)
+		$(LD) $(LDFLAGS) -o $@ $^ $(GLIBS)
 
-$(AMSR_PRGC):	$(AMSR_SHAREDLIB) $(MAINOC)
-		-$(LD) $(LDFLAGS) $(GLIBS) $^ -o $@
+$(AMSR_PRGC):	$(MAINOC) $(AMSR_SHAREDLIB)
+		$(LD) $(LDFLAGS) -o $@ $^ $(GLIBS)
 
-$(AMSR_PRGV):	$(AMSR_SHAREDLIB) $(MAINOV)
-		-$(LD) $(LDFLAGS) $(GLIBS) $^ -o $@
+$(AMSR_PRGV):	$(MAINOV) $(AMSR_SHAREDLIB)
+		$(LD) $(LDFLAGS) -o $@ $^ $(GLIBS)
 
 
 $(DICT):        $(HDRS)
@@ -163,8 +182,8 @@ depend:         $(OBJDIR)/Make-depend
 touch_depend:
 		touch $(OBJDIR)/Make-depend
 
-$(OBJDIR)/Make-depend:    $(SRCS) $(SRCSG) $(MAIN)
-		$(GCC) -E -MM $(CXXFLAGS) $^ > $@.DELETE
+$(OBJDIR)/Make-depend:    $(SRCS) $(SRCSG) $(MAIN) $(MAINRINT)
+		$(GCC) -E -MM $(INCLUDES) $^ > $@.DELETE
 		cat $@.DELETE | $(AddPrefix) > $@; rm -f $@.DELETE
 
 dist:
@@ -174,4 +193,3 @@ dist:
 
 clean:
 		@rm -f $(ALLOBJS) $(ALLDICT)
-

@@ -142,11 +142,7 @@ void AMSR_Maker::MakeBranch()
    if (m_Fruits->InheritsFrom("TClonesArray")) {
       debugger.Print("AMSR_Maker::MakeBranch() tree->Branch(%s, %lx, %d)\n",
 		m_BranchName.Data(), m_Fruits, buffersize);
-#if defined(ROOT10308)
       tree->Branch(m_BranchName.Data(), &m_Fruits, buffersize);
-#else
-      tree->Branch(m_BranchName.Data(), (TClonesArray*)m_Fruits, buffersize);
-#endif
    } else {
       tree->Branch(m_BranchName.Data(),m_Fruits->ClassName(), &m_Fruits, buffersize);
    }

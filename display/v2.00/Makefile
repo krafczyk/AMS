@@ -11,13 +11,30 @@
 #--gcc used to produce dependencies
 GCC  = gcc
 
+#################
+# Common MACRO  #
+#################
+ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
+                -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet \
+                -lPostscript -lProof -lTree -lUnix -lZip
+ROOTGLIBS     = -lRint -lGpad -lGui -lGX11 -lX3d
+CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
+OPT           = -g
+NOOPT         =
+ARLD          = ar vr
+
 ####################
 #                  #
 # operating system #
 #                  #
 ####################
 
-OS  = $(shell uname)
+#--List of supported platforms so far
+SUPPORTED = AIX OSF1 HP-UX Linux
+
+OS    = $(shell uname)
+FOUND = $(findstring $(OS),$(SUPPORTED))
+
 #--Directory to put object files, executive and library produced
 OBJDIR = ./$(OS)/bin
 
@@ -27,26 +44,24 @@ OBJDIR = ./$(OS)/bin
 #  =======   #
 ##############
 ifeq  "$(OS)"  "AIX"
- PLATFORM      = aix
  CXX           = xlC
- CXXFLAGS      = -O -qnoro -qnoroconst -qmaxmem=-1 -I$(ROOTSYS)/include \
-                 -I/usr/lpp/xlC/include
+ INCLUDES      = -I$(ROOTSYS)/include -I/usr/lpp/xlC/include
+ CXXFLAGS      = -O -qnoro -qnoroconst -qmaxmem=-1 $(INCLUDES)
  FF            = xlf
- FFLAGS        = -qextname
- OPT           = -g -DROOT10308
- NOOPT         =
+ FFLAGS        = -g -qextname
  LD            = xlC
- LDFLAGS       = 
- SOFLAGS       = -b
- SOGFLAGS      = -b
- FORLIBS       = -lxlf90 -lxlf -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
+ LDFLAGS       = -g
+# SOFLAGS       = -b
+ SOFLAGS       =
+ SOGFLAGS      = $(SOFLAGS)
+
+ FORLIBS       = -lxlf90 -lxlf $(CERNLIBS)
  ADDLIBS       =
  ROOTLIBS      = -L$(ROOTSYS)/lib -lRoot -lCint
  ROOTGLIBS     = -lGpad -lGX11 -lMotif -lWidgets -lX3d
- LIBS          = $(ROOTLIBS) -lm -lcurses $(FORLIBS)
- GLIBS         = $(ROOTLIBS) -lXm -lXt -lX11 -lm -lPW -lld -lcurses $(FORLIBS)
- SHLD          = /usr/lpp/xlC/bin/makeC++SharedLib $(LIBS) -p 0
- ARLD          = ar vr
+ LIBS          = $(ROOTLIBS) -lm -lcurses
+ GLIBS         = $(ROOTLIBS) -lXm -lXt -lX11 -lm -lPW -lld -lcurses
+ SHLD          = /usr/lpp/xlC/bin/makeC++SharedLib $(LIBS) $(FORLIBS) -p 0
 endif
 
 ##############
@@ -55,36 +70,78 @@ endif
 #  =======   #
 ##############
 ifeq  "$(OS)"  "OSF1"
- PLATFORM      = osf
  CXX           = cxx
- CXXFLAGS      = -D__osf__ -D__alpha -D_ALPHA_ -I$(ROOTSYS)/include \
-                 -I/usr/include -I/usr/include/cxx
- OPT           = -g -DROOT10308
- NOOPT         =
+ INCLUDES      = -I$(ROOTSYS)/include -I/usr/include -I/usr/include/cxx
+ CXXFLAGS      = -D__osf__ -D__alpha -D_ALPHA_ $(INCLUDES)
  FF            = f77
- FFLAGS        =
+ FFLAGS        = -g
  LD            = cxx
  LDFLAGS       = -g
  SOFLAGS       =
- SOGFLAGS      =
+ SOGFLAGS      = $(SOFLAGS)
 # SOFLAGS       = -Wl,-expect_unresolved,* -call_shared
 # SOGFLAGS      = -Wl,-expect_unresolved,* -call_shared
 
- FORLIBS       = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib \
-                 -lUfor -lfor -lFutil
+ FORLIBS       = $(CERNLIBS) -lUfor -lfor -lFutil
  ADDLIBS       = $(FORLIBS)
- ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
-                 -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet \
-                 -lPostscript -lProof -lTree -lUnix -lZip
- ROOTGLIBS     = -lGpad -lGui -lGX11 -lX3d
- LIBS          = $(ROOTLIBS) -lm $(FORLIBS)
- GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -lXpm -lX11 -lm -lPW $(FORLIBS)
+ LIBS          = $(ROOTLIBS) -lm
+ GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -lXpm -lX11 -lm -lPW
  SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
                  -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o \
                  /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc
- ARLD          = ar vr
 endif
 
+
+##############
+#            #
+#   HP-UX    #
+#   =====    #
+##############
+ifeq "$(OS)"  "HP-UX"
+ CXX           = CC
+ INCLUDES      = -I$(ROOTSYS)/include
+ CXXFLAGS      = -O +a1 +Z $(INCLUDES)
+ FF            = f77
+ FFLAGS        = -g +ppu +Z
+ LD            = CC
+ LDFLAGS       = -g +a1 -z
+ SOFLAGS       = -b
+ SOGFLAGS      = $(SOFLAGS)
+
+ FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lF77 -lI77 -lc
+ ADDLIBS       =
+ LIBS          = $(ROOTLIBS) -lm $(FORLIBS)
+ GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -L/usr/lib/X11R5 \
+                 -lXpm -lX11 -lm -ldld $(FORLIBS)
+ SHLD          = $(LD) $(SOFLAGS) $(LDFLAGS)
+endif
+
+##############
+#            #
+#  PC/Linux  #
+#  ========  #
+##############
+ifeq "$(OS)"  "Linux"
+ CXX           = g++
+ INCLUDES      = -I$(ROOTSYS)/include
+ CXXFLAGS      = -O -Wall -fPIC $(INCLUDES)
+ FF            = g77
+ FFLAGS        =
+ LD            = g++
+ LDFLAGS       = -g
+# SOFLAGS       = -Wl,-soname,$(AMSR_SHAREDLIB) -shared
+# SOGFLAGS      = -Wl,-soname,$(AMSR_GLIB) -shared
+ SOFLAGS       = -shared
+ SOGFLAGS      = $(SOFLAGS)
+
+# FORLIBS       = $(CERNLIBS) -lf2c -lF77 -lI77 -lc
+ FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lf2c /usr/lib/libstdc++.so
+ ADDLIBS       = $(FORLIBS)
+ LIBS          = $(ROOTLIBS) -lg++ -lm -ldl -rdynamic
+ GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -L/usr/X11R6/lib \
+                 -lXpm -lX11 -lg++ -lm -ldl -rdynamic
+ SHLD          = $(LD) $(SOFLAGS) $(LDFLAGS)
+endif
 
 ##### RULES #####
 
@@ -96,8 +153,6 @@ $(OBJDIR)/%.o:    %.cxx
 
 $(OBJDIR)/%.o:    %.f
 	$(FF)  $(OPT) $(FFLAGS) -c $< -o $@
-#.cxx.o:
-#	$(CXX) $(OPT) $(CXXFLAGS) -c $<
 
 
 ##### MACROS and TARGETS #####
@@ -109,6 +164,8 @@ include Make-bin
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),touch_depend)
+ifneq "$(FOUND)" ""
  include $(OBJDIR)/Make-depend
+endif
 endif
 endif

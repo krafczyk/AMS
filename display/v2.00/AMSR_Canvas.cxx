@@ -15,6 +15,9 @@
 #ifndef ROOT_TContextMenu
 #include <TContextMenu.h>
 #endif
+#ifndef ROOT_TText
+#include <TText.h>
+#endif
 
 #ifndef AMSR_Root_H
 #include "AMSR_Root.h"
@@ -31,8 +34,9 @@
 TRootCanvas * AMSR_Canvas::fTheCanvas = 0;
 
 //----- TGFileDialog file types
-static const char *gOpenTypes[] = { "ROOT files",   "*.root*",
+static const char *gOpenTypes[] = { "Ntuple files", "*.hbk*",
                                     "Ntuple files", "*.ntp*",
+                                    "ROOT files",   "*.root*",
                                     "All files",    "*",
                                      0,              0 };
 //
@@ -454,33 +458,11 @@ void AMSR_Canvas::OpenFileCB()
   if (idle) disp->IdleSwitch(1);
 
   char *filename = m_FileInfo->fFilename;
-  EDataFileType type;
+  EDataFileType type = kUnknown;
 
   if ( filename==0 || strlen(filename)==0 ) {			// user cancelled
     return;
   }
-
-  char *slash = strrchr(filename, '/');
-  if ( slash==0 ) slash=filename;
-
-  if ( strlen(slash)==1 ) {  // nothing after '/'
-     cerr << "\nAMSR_Canvas::OpenFileCB\n" << filename
-        << " looks like a directory, not a filename ?" << endl;
-  }
-
-  char *dot = strchr(slash, '.');
-
-  if ( ! dot ) {                             //no ext. as Objectivity file
-    type = ObjectivityFile;
-  }
-
-  if ( strstr(dot+1, "root") == dot+1 ) {        //".root*" as Root file
-    type = RootFile;
-  } else if ( strstr(dot+1, "ntp") == dot+1 ) {  //".ntp*" as Ntuple file
-    type = NtupleFile;
-  } else {                                  //unknown ext. as Objectivity file
-    type = ObjectivityFile;                            
-  }                                                    
 
   Int_t status = gAMSR_Root->OpenDataFile(filename, type);
   if ( status == 1 ) { 

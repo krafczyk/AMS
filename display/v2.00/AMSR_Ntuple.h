@@ -4,9 +4,38 @@
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Ntuple                                                          //
+// ===========                                                          //
 //                                                                      //
 // Class to handle ntuple and make association between ntuple and Root  //
 //  tree and acts as an interface to ROOT tree when data is ROOT tree   //
+//                                                                      //
+// SetTree(TTree*) used to create link between ntuple and ROOT Tree     //
+//                                                                      //
+// SetBranchStatus(char *varname, Bool_t status) simulates TTree to     //
+// set ActiveBranches in order to fasten ntuple data accessing          //
+//                                                                      //
+// Usage:                                                               //
+//                                                                      //
+//   1. Create a class, e.g., AMSR_Ntuple *ntp = new AMSR_Ntuple();     //
+//   Only one object of AMSR_Ntuple should be created !                 //
+//                                                                      //
+//   2. Initialize data file :                                          //
+//      For ROOT file, ntp->SetTree(TTree *t) to set up address.        //
+//      For ntuple file, ntp->OpenNtuple(ntpfile) and SetTree(0) to     //
+//   open file and set link between ntuple and ROOT tree. The ntuple ID //
+//   is 1 by default which can be changed via "ntp->SetNtupleID(id)".   //
+//                                                                      //
+//   3. Read event: ntp->GetEvent(event).                               //
+//                                                                      //
+//   4. Select variables/branches for reading                           //
+//      ntp->SetBranchStatus(varname, status) to (de)activate a variable//
+//   or branch for reading. When varname == "*", all variables/branches //
+//   will be invoked. e.g. ntp->SetBranchStatus("*",1) to activate all  //
+//   variables/branches.                                                //
+//                                                                      //
+//   5. To impose cuts on ntuple/tree, create object of TTreeFormula    //
+//  to tree which can be get "GetTree()".                               //
+//                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
@@ -22,14 +51,13 @@
 class TTree;
 class TFile;
 
-//enum EDataFileType { RootFile=0, ObjectivityFile=1, NtupleFile=2 };
-
 class AMSR_Ntuple : public TNamed {
 
  private:
    Text_t        m_VarNames[20][20];    //Name list of m_NVar variables
    Int_t         m_NVar;        //Number of vairables in HGNTV
-   TFile        *m_SampleTree;  //File storing the TTree sample
+//   TFile        *m_SampleTree;  //File storing the TTree sample
+   TTree        *m_SampleTree;  //a sample of TTree to communicate with ntuple
    Int_t         m_MemID;       //Actual ntuple ID in memory
 
  protected:
@@ -67,7 +95,7 @@ class AMSR_Ntuple : public TNamed {
    
  protected:
    void          SetTreeAddress();
-   void          SetSampleTree();
+   void          CreateSampleTree();
    void          SetVarNames();
    
  public:

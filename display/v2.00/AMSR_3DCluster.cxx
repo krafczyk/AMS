@@ -24,14 +24,7 @@ ClassImp(AMSR_3DCluster)
 
 //_____________________________________________________________________________
 AMSR_3DCluster::AMSR_3DCluster()
-#if defined(ROOT10308)
-	: TMarker3DBox(0.0,0.0,0.0,  0.0,0.0,0.0,  0.0,0.0),
-          // v1.03/08:  fX, fY, fZ are members of TMarker3DBox
-#else
-	: TMarker3DBox(0.0,0.0,0.0,  0.0,0.0,0.0,  0.0,0.0,1.0),
-  fX(fTranslation[0]), fY(fTranslation[1]), fZ(fTranslation[2]),
-#endif
-	  fRange(5)
+	: TMarker3DBox(0.0,0.0,0.0,  0.0,0.0,0.0,  0.0,0.0), fRange(5)
 {
 }
 
@@ -40,16 +33,7 @@ AMSR_3DCluster::AMSR_3DCluster()
 AMSR_3DCluster::AMSR_3DCluster(Float_t x, Float_t y, Float_t z,
                            Float_t dx, Float_t dy, Float_t dz,
                            Float_t theta, Float_t phi, Int_t range)
-#if defined(ROOT10308)
-        : TMarker3DBox(x,y,z,dx,dy,dz,theta,phi),	// v1.03/08
-#else
-        : TMarker3DBox(x,y,z,dx,dy,dz,
-		       TMath::Sin(theta)*TMath::Cos(phi),
-		       TMath::Sin(theta)*TMath::Sin(phi),
-		       TMath::Cos(theta) ), 
-	  fX(fTranslation[0]), fY(fTranslation[1]), fZ(fTranslation[2]),
-#endif
-	  fRange(range)
+        : TMarker3DBox(x,y,z,dx,dy,dz,theta,phi), fRange(range)
 {
 
    //SetBit(kCanDelete);
@@ -72,13 +56,7 @@ AMSR_3DCluster::AMSR_3DCluster(Float_t x, Float_t y, Float_t z,
 //_____________________________________________________________________________
 AMSR_3DCluster::AMSR_3DCluster(Float_t * xyz, Float_t * dxyz, Float_t * cos, 
 			   Int_t range) 
-#if defined(ROOT10308)
-			//v1.03/08
   : TMarker3DBox(xyz[0],xyz[1],xyz[2],dxyz[0],dxyz[1],dxyz[2],0.0,0.0), 
-#else
-  : TMarker3DBox(xyz[0],xyz[1],xyz[2],dxyz[0],dxyz[1],dxyz[2],0.0,0.0,1.0),
-    fX(fTranslation[0]), fY(fTranslation[1]), fZ(fTranslation[2]),
-#endif
 	  fRange(range)
 {
    //SetBit(kCanDelete);
@@ -109,12 +87,7 @@ AMSR_3DCluster::AMSR_3DCluster(Float_t * xyz, Float_t * dxyz, Float_t * cos,
    this->SetDirection(theta,phi);
 
    debugger.Print("AMSR_3DCluster at (%lf,%lf,%lf)+-(%lf,%lf,%lf) in (%lf,%lf) direction\n", 
-	fX, fY, fZ, fDx, fDy, fDz,
-#if defined(ROOT10308)		/* v1.03/08 */
-	fTheta, fPhi);
-#else
-	TMath::ACos(fDirCos[2]), TMath::ATan2(fDirCos[1], fDirCos[0]));
-#endif
+	fX, fY, fZ, fDx, fDy, fDz, fTheta, fPhi);
 }
 
 //______________________________________________________________________________
@@ -160,13 +133,7 @@ void AMSR_3DCluster::SetDirection(Float_t theta, Float_t phi)
 //*-*-*-*-*-*-*-*-*-*-*set direction (theta, phi)*-*-*-*-*-*-*-*-*-*-*
 //*-*                  ==========================
 
-#if defined(ROOT10308)
    TMarker3DBox::SetDirection(theta,phi);
-#else
-   TMarker3DBox::SetDirection(TMath::Sin(theta)*TMath::Cos(phi),
-			      TMath::Sin(theta)*TMath::Sin(phi),
-			      TMath::Cos(theta));
-#endif
 
 }
 
@@ -179,12 +146,7 @@ char * AMSR_3DCluster::GetObjectInfo(Int_t px, Int_t py)
 
   sprintf(info, 
      "AMSR_3DCluster at (%f,%f,%f)+-(%f,%f,%f) in (%f,%f) direction", 
-	fX, fY, fZ, fDx, fDy, fDz,
-#if defined(ROOT10308)
-	fTheta, fPhi);
-#else
-  	TMath::ACos(fDirCos[2]), TMath::ATan2(fDirCos[1], fDirCos[0]));
-#endif
+	fX, fY, fZ, fDx, fDy, fDz, fTheta, fPhi);
   return info;
 }
 
@@ -207,13 +169,8 @@ void AMSR_3DCluster::SetPoints(Float_t *buff)
 
    Double_t raddeg = 180.0 / TMath::Pi();
 
-#if defined(ROOT10308)
    Double_t theta = fTheta;
    Double_t phi   = fPhi;
-#else
-   Double_t theta = TMath::ACos(fDirCos[2]);
-   Double_t phi   = TMath::ATan2(fDirCos[1], fDirCos[0]);
-#endif
 
    Double_t sinth = TMath::Sin(theta);
    Double_t costh = TMath::Cos(theta);
