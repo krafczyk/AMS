@@ -88,11 +88,12 @@ public:
                          const TOFTpoints _tdist1[], const TOFTpoints _tdist2[])
   {
     nscpnts=nscp;
-    for(int i=0;i<nscp;i++)scanp[i]=_scanp[i];
-    for(int j=0;j<nscp;j++)eff1[j]=_eff1[j];
-    for(int k=0;k<nscp;k++)eff2[k]=_eff2[k];
-    for(int j=0;j<nscp;j++)rgn1[j]=_rgn1[j];
-    for(int k=0;k<nscp;k++)rgn2[k]=_rgn2[k];
+    int i,j,k;
+    for(i=0;i<nscp;i++)scanp[i]=_scanp[i];
+    for( j=0;j<nscp;j++)eff1[j]=_eff1[j];
+    for( k=0;k<nscp;k++)eff2[k]=_eff2[k];
+    for( j=0;j<nscp;j++)rgn1[j]=_rgn1[j];
+    for( k=0;k<nscp;k++)rgn2[k]=_rgn2[k];
     for(int l=0;l<nscp;l++)tdist1[l]=_tdist1[l];
     for(int m=0;m<nscp;m++)tdist2[m]=_tdist2[m];
   };
