@@ -52,8 +52,9 @@ typedef list<ACA> ACAL;
 typedef list<ACA>::iterator ACALI;
 ACAL _acqueue;
 
-DPS::Client::NominalClient_var _ncl;
-
+typedef list<DPS::Client::NominalClient_var> NCL;
+typedef list<DPS::Client::NominalClient_var>::iterator NCLI;
+NCL _ncl;
 
 typedef list<DPS::Client::NominalHost_var> NHL;
 typedef list<DPS::Client::NominalHost_var>::iterator NHLI;
@@ -77,13 +78,23 @@ virtual void _PurgeQueue()=0;
  explicit find( const  DPS::Client::ClientStatus st):_st(st){}
   bool operator () (const DPS::Client::ActiveClient_var & a){return a->Status==_st;}
 };
+class NCL_find: public unary_function<DPS::Client::NominalClient,bool>{
+AString _a;
+public:
+ explicit NCL_find(const char * s){_a=s;}
+ bool operator()(const DPS::Client::NominalClient & a){
+  return strstr((const char *) _a, (const char *) a.HostName);
+}
+};
+
+
   uinteger getmaxcl() const {return _Submit;}
-  DPS::Client::NominalClient_var getncl(){return _ncl;}
   void addone(){++_Submit;}
   COL & getcol(){return _col;}
   ACL & getacl(){return _acl;}
   AHL & getahl(){return _ahl;}
   NHL & getnhl(){return _nhl;}
+  NCL & getncl(){return _ncl;}
   MS & getrefmap(){return _refmap;}
   DPS::Client::ClientType getType()const {return _Type;}
 
@@ -139,7 +150,7 @@ void Exiting(const char * message=0);
 class Server_impl : public virtual POA_DPS::Server, public AMSServerI{
 protected:
 AString _iface;
-DPS::Client::NominalClient_var _nki;
+NCL _nki;
 OpType _clear(OpType type){ if(type==StartClient)return ClearStartClient;else if (type==KillClient)return ClearKillClient;else return ClearCheckClient;}
 public:
   Server_impl(uinteger i=0):POA_DPS::Server(),AMSServerI(AMSID("Server",++i),0,DPS::Client::Server){};
@@ -159,8 +170,8 @@ public:
 void _PurgeQueue();
   void _init();
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
-  CORBA::Boolean getNC(const DPS::Client::CID &cid, DPS::Client::NominalClient_out nc)throw (CORBA::SystemException);
-  CORBA::Boolean getNK(const DPS::Client::CID &cid, DPS::Client::NominalClient_out nc)throw (CORBA::SystemException);
+  int getNC(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)throw (CORBA::SystemException);
+  int getNK(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)throw (CORBA::SystemException);
    int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, int maxcid=100000000)throw (CORBA::SystemException);
    int getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException);
    void sendAC(const DPS::Client::CID &cid,  DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc)throw (CORBA::SystemException);

@@ -117,7 +117,7 @@ integer AMSTimeID::CopyIn(const void *pdata){
   else return 0;
 }
 
-integer AMSTimeID::CopyOut(void *pdata){
+integer AMSTimeID::CopyOut  (void *pdata)const {
   if(pdata && _pData){
     integer n=_Nbytes/sizeof(uinteger)-1;
     integer i;

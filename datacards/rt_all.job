@@ -21,7 +21,7 @@ RUN=$1
 TRIG=$2
 EVENT=$3
 
-../exe/$MACHINE/gbatch.exe <<!
+$HOME/AMS/exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14 
 MULS 1

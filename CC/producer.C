@@ -372,5 +372,35 @@ return false;
 }
 
 bool AMSProducer::sendTDV(const AMSTimeID * tdv){
+
+
+DPS::Producer::TDVName name;
+name.Name=tdv->getname();
+name.DataMC=tdv->getid();
+name.CRC=tdv->getCRC();
+name.Size=tdv->GetNbytes();
+time_t i,b,e;
+tdv->gettime(i,b,e);
+name.Entry.Insert=i;
+name.Entry.Begin=b;
+name.Entry.End=e;
+ int suc=0;
+DPS::Producer::TDVbody_var vbody=new DPS::Producer::TDVbody();
+vbody->length(name.Size/sizeof(integer));
+tdv->CopyOut(vbody->get_buffer(0));
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  
+  try{
+    (*li)->sendTDV(_pid,vbody,name);
+    suc++;
+    break;
+  }
+  catch  (CORBA::SystemException & a){
+  }
+ }
+if(!suc){
+ FMessage("AMSProducer::getTDV-F-UnableTosendTDV",DPS::Client::CInAbort);
+ return false;
+}
 return true;
 }

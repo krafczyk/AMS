@@ -21,7 +21,7 @@ enum CType{Standalone,Client,Server};
 protected:
 IBE _ibe;
 CType _Type;
-integer _UpdateMe;
+mutable integer _UpdateMe;
 time_t _Insert;    // insert time
 time_t _Begin;     // validity starts
 time_t _End;       //  validity ends
@@ -61,8 +61,8 @@ _UpdateMe(0),_DataBaseSize(0){for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCR
 AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server);
 ~AMSTimeID(){for(int i=0;i<5;i++)delete[] _pDataBaseEntries[i];}
 integer GetNbytes() const { return _Nbytes;}
-integer CopyOut(void *pdataNew);
-integer CopyIn(const void *pdataNew);
+integer CopyOut (void *pdataNew) const;
+integer CopyIn( const void *pdataNew);
 uinteger getCRC()const {return _CRC;}
 void UpdCRC();
 IBE &  findsubtable(time_t begin, time_t end);

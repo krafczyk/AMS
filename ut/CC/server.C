@@ -357,17 +357,25 @@ if(NS){
  ifstream fbin;
  fbin.open(NS);
  if(fbin){
-   _ncl= new DPS::Client::NominalClient();
+   DPS::Client::NominalClient_var ncl= new DPS::Client::NominalClient();
    if(fbin.get()=='#')fbin.ignore(1024,'\n');
    else fbin.seekg(fbin.tellg()-sizeof(char));
-   fbin>>_ncl->MaxClients>>_ncl->CPUNeeded>>_ncl->MemoryNeeded;
-   char tmpbuf[1024];
+   fbin>>ncl->MaxClients>>ncl->CPUNeeded>>ncl->MemoryNeeded;
+    char tmpbuf[1024];
+    fbin>>tmpbuf;
+    ncl->WholeScriptPath=(const char*)tmpbuf;
+   fbin.ignore(1024,'\n');
+  while(!fbin.eof() && fbin.good()){ 
    fbin>>tmpbuf;
-   _ncl->WholeScriptPath=(const char*)tmpbuf;
+   ncl->HostName=(const char*)tmpbuf;
+   fbin>>ncl->LogInTheEnd;
+   fbin.ignore(1024,'\n');
    fbin.getline(tmpbuf,1024);
-   _ncl->LogPath= (const char*)tmpbuf;
+   ncl->LogPath= (const char*)tmpbuf;
    fbin.getline(tmpbuf,1024);
-    _ncl->SubmitCommand=(const char*)tmpbuf;
+    ncl->SubmitCommand=(const char*)tmpbuf;
+    if(fbin.good())_ncl.push_back(ncl);
+ }
  }
  else{
   cerr<<"Server_impl::Server_impl-F-UnableToOpenNSFile "<<NS<<endl;
@@ -379,17 +387,25 @@ if(NK){
  ifstream fbin;
  fbin.open(NK);
  if(fbin){
-   _nki= new DPS::Client::NominalClient();
+   DPS::Client::NominalClient_var ncl= new DPS::Client::NominalClient();
    if(fbin.get()=='#')fbin.ignore(1024,'\n');
    else fbin.seekg(fbin.tellg()-sizeof(char));
-   fbin>>_nki->MaxClients>>_nki->CPUNeeded>>_nki->MemoryNeeded;
-   char tmpbuf[1024];
+   fbin>>ncl->MaxClients>>ncl->CPUNeeded>>ncl->MemoryNeeded;
+    char tmpbuf[1024];
+    fbin>>tmpbuf;
+    ncl->WholeScriptPath=(const char*)tmpbuf;
+   fbin.ignore(1024,'\n');
+  while(!fbin.eof() && fbin.good()){ 
    fbin>>tmpbuf;
-   _nki->WholeScriptPath=(const char*)tmpbuf;
+   ncl->HostName=(const char*)tmpbuf;
+   fbin>>ncl->LogInTheEnd;
+   fbin.ignore(1024,'\n');
    fbin.getline(tmpbuf,1024);
-   _nki->LogPath= (const char*)tmpbuf;
+   ncl->LogPath= (const char*)tmpbuf;
    fbin.getline(tmpbuf,1024);
-    _nki->SubmitCommand=(const char*)tmpbuf;
+    ncl->SubmitCommand=(const char*)tmpbuf;
+    if(fbin.good())_nki.push_back(ncl);
+  }
  }
  else{
   cerr<<"Server_impl::Server_impl-F-UnableToOpenNKFile "<<NK<<endl;
@@ -448,18 +464,29 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 }
 
 //Get NominalServer
-
-if(!_pvar->getNC(cid,_ncl))_parent->FMessage("Server-UnableToReadNServer",DPS::Client::CInAbort);
-
+{
+DPS::Client::NCS * pncs;
+int length=_pvar->getNC(cid,pncs);
+NCS_var ncs=pncs;
+for(int i=0;i<length;i++){
+ DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
+ _ncl.push_back(vnh);
+}
+}
 //Get NominalKiller
 
-if(!_pvar->getNK(cid,_nki))_parent->FMessage("Server-UnableToReadNKiller",DPS::Client::CInAbort);
-
+DPS::Client::NCS * pncs;
+int length=_pvar->getNK(cid,pncs);
+NCS_var ncs=pncs;
+for(int i=0;i<length;i++){
+ DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
+ _nki.push_back(vnh);
+}
 
 //Now Read NominalHost
 
 DPS::Client::NHS * pnhs;
-int length=_pvar->getNHS(cid,pnhs);
+length=_pvar->getNHS(cid,pnhs);
 NHS_var nhs=pnhs;
 for(int i=0;i<length;i++){
  DPS::Client::NominalHost_var vnh= new DPS::Client::NominalHost(nhs[i]);
@@ -485,7 +512,7 @@ for(int i=0;i<length;i++){
  DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
  _acl.push_back(vac);
 }
- cout <<"ACL size"<<_acl.size()<<" "<<_ncl->MaxClients<<endl;
+ cout <<"ACL size"<<_acl.size()<<" "<<(*_ncl.begin())->MaxClients<<endl;
 
 }
 
@@ -504,7 +531,7 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
  // Check if there are some hosts to run on
  _ahl.sort(Less());
  for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
-  if(_acl.size()<_ncl->MaxClients ){
+  if(_acl.size()<(*_ncl.begin())->MaxClients ){
   if((*i)->Status!=NoResponse){
     if((*i)->ClientsRunning>=(*i)->ClientsAllowed)continue;
     // HereStartClient
@@ -512,30 +539,42 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
 #ifdef __AMSDEBUG__
 //    cout <<((*i)->Interface)<<" "<<_refstring<<endl;
 #endif
+    NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(*i)->HostName)); 
+    if(cli==_ncl.end())cli=_ncl.begin();
     AString submit;
-    submit+=(const char*)(_ncl->SubmitCommand);  
+    submit+=(const char*)((*cli)->SubmitCommand);  
     submit+=" ";
     submit+=(const char*)((*i)->HostName);
-    submit+=" ";
-    submit+=(const char*)(_ncl->LogPath);  
-    submit+="Server.";
-    char tmp[80];
-    sprintf(tmp,"%d",_Submit+1);
-    submit+=tmp;
-    submit+=".log ";
-    submit+=(const char*)(_ncl->WholeScriptPath);  
+     char tmp[80];
+     sprintf(tmp,"%d",_Submit+1);
+     submit+=" ";
+    if(!(*cli)->LogInTheEnd){
+     submit+=(const char*)((*cli)->LogPath);  
+     submit+="Server.";
+     submit+=tmp;
+     submit+=".log ";
+    }
+    submit+=(const char*)((*cli)->WholeScriptPath);  
     submit+=" -C";
     submit+=(const char*) _refstring;
     submit+=" -U";
     submit+=tmp;
     submit+=" -F";
     submit+= _iface;
+    submit+=" -I";
+    submit+=(const char*)(*i)->Interface;
+    if((*cli)->LogInTheEnd){
+     submit+=" ";
+     submit+=(const char*)((*cli)->LogPath);  
+     submit+="Server.";
+     submit+=tmp;
+     submit+=".log ";
+    }
 #ifdef __AMSDEBUG__
     submit+=" -D1";
     cout <<submit<<endl;
 #endif
-    submit+=" -I";
-    submit+=(const char*)(*i)->Interface;
+    submit+=" &";
     int out=system(submit);
     if(out==0){
      // Add New Active Client
@@ -561,9 +600,12 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     PropagateAC(acv,DPS::Client::Create);
     }
     else{
+     (*i)->Status=DPS::Client::LastClientFailed; 
+     ((*i)->ClientsFailed)++; 
      AString a="StartClients-E-UnableToStartClient ";
      a+=submit;
      _parent->EMessage((const char *) a);
+     
     }
     break;
    }
@@ -582,7 +624,10 @@ ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
 if(li!=_acl.end()){
  //kill by -9 here
    if(_parent->Debug())_parent->EMessage(AMSClient::print(*li, " KILL -9"));
-    _pser->Kill((*li),SIGKILL,true);
+    int iret=_pser->Kill((*li),SIGKILL,true);
+    if(iret){
+     _parent->EMessage(AMSClient::print(*li,"Server::Unable To Kill Client"));
+    }
     DPS::Client::ActiveClient_var acv=*li;
     PropagateAC(acv,DPS::Client::Delete);
 }
@@ -651,7 +696,7 @@ if(_ahl.size())return;
    ah.ClientsProcessed=0;
    ah.ClientsFailed=0;
    ah.ClientsRunning=0;
-   ah.ClientsAllowed=min((*i)->CPUNumber/_ncl->CPUNeeded,(*i)->Memory/float(_ncl->MemoryNeeded));
+   ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
  
    time_t tt;
    time(&tt);
@@ -701,23 +746,53 @@ if(_ahl.size())return;
      return false;
 
 
-
 }
 
-CORBA::Boolean Server_impl::getNC(const DPS::Client::CID &cid, DPS::Client::NominalClient_out nc)throw (CORBA::SystemException){
+int Server_impl::getNC(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::SystemException){
+
+NCS_var acv= new NCS();
+int length=0;
 for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down()){
 if(pser->getType()==cid.Type){
-nc= new DPS::Client::NominalClient(pser->getncl());
-return true;
+length=pser->getncl().size();
+if(length==0){
+acv->length(1);
+}
+else{
+acv->length(length);
+length=0;
+for(NCLI li=pser->getncl().begin();li!=pser->getncl().end();++li){
+ acv[length++]=*li;
 }
 }
-return false;
+acs=acv._retn();
+return length;
+}
 }
 
-CORBA::Boolean Server_impl::getNK(const DPS::Client::CID &cid, DPS::Client::NominalClient_out nc)throw (CORBA::SystemException){
-nc= new DPS::Client::NominalClient(_nki);
-return true;
+
 }
+
+int Server_impl::getNK(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::SystemException){
+
+NCS_var acv= new NCS();
+int length=0;
+length=_nki.size();
+if(length==0){
+acv->length(1);
+}
+else{
+acv->length(length);
+length=0;
+for(NCLI li=_nki.begin();li!=_nki.end();++li){
+ acv[length++]=*li;
+}
+}
+acs=acv._retn();
+return length;
+}
+
+
 
 
 
@@ -1021,7 +1096,6 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
 
 
 Producer_impl::Producer_impl(const map<AString, AMSServer::OrbitVars> & mo, const DPS::Client::CID & cid,AMSClient* parent,char * NC, char *RF, char *NS, char *TS): POA_DPS::Producer(),AMSServerI(AMSID("Producer",0),parent,DPS::Client::Producer),_RunID(0){
-
 typedef map<AString, AMSServer::OrbitVars>::const_iterator MOI;
 Producer_impl * pcur =0;
 for(MOI i=mo.begin();i!=mo.end();++i){
@@ -1040,21 +1114,32 @@ if(NC){
  ifstream fbin;
  fbin.open(NC);
  if(fbin){
-   _ncl= new DPS::Client::NominalClient();
+   DPS::Client::NominalClient_var ncl= new DPS::Client::NominalClient();
    if(fbin.get()=='#')fbin.ignore(1024,'\n');
    else fbin.seekg(fbin.tellg()-sizeof(char));
-   fbin>>_ncl->MaxClients>>_ncl->CPUNeeded>>_ncl->MemoryNeeded;
-   char tmpbuf[1024];
+   fbin>>ncl->MaxClients>>ncl->CPUNeeded>>ncl->MemoryNeeded;
+    char tmpbuf[1024];
+    fbin>>tmpbuf;
+    ncl->WholeScriptPath=(const char*)tmpbuf;
+   fbin.ignore(1024,'\n');
+  while(!fbin.eof() && fbin.good()){ 
    fbin>>tmpbuf;
-   _ncl->WholeScriptPath=(const char*)tmpbuf;
+   ncl->HostName=(const char*)tmpbuf;
+   fbin>>ncl->LogInTheEnd;
+   fbin.ignore(1024,'\n');
    fbin.getline(tmpbuf,1024);
-   _ncl->LogPath= (const char*)tmpbuf;
+   ncl->LogPath= (const char*)tmpbuf;
    fbin.getline(tmpbuf,1024);
-    _ncl->SubmitCommand=(const char*)tmpbuf;
+    ncl->SubmitCommand=(const char*)tmpbuf;
+    if(fbin.good())_ncl.push_back(ncl);
+  }
  }
  else{
  _parent->FMessage("Producer_impl::Producer_impl-F-UnableToOpenNCFile ",DPS::Client::CInAbort);
 }
+}
+else{
+ _parent->FMessage("Producer_impl::Producer_impl-F-UnableToFindNCFile ",DPS::Client::CInAbort);
 }
 //Here read runfiletable
 if(RF){
@@ -1120,13 +1205,21 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 //Here Read NominalClient
 
 cid.Type=getType();
-if(!_svar->getNC(cid,_ncl))_parent->FMessage("Producer::UnabletogetNClient",DPS::Client::CInAbort);
+
+DPS::Client::NCS * pncs;
+int length=_svar->getNC(cid,pncs);
+NCS_var ncs=pncs;
+for(int i=0;i<length;i++){
+ DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
+ _ncl.push_back(vnh);
+}
+
 
 
 //Now Read ActiveHost
 
 DPS::Client::AHS * pahs;
-int length=_svar->getAHS(cid,pahs);
+ length=_svar->getAHS(cid,pahs);
 AHS_var ahs=pahs;
 for(int i=0;i<length;i++){
  DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
@@ -1211,7 +1304,7 @@ else{
    ah.ClientsFailed=0;
    ah.ClientsKilled=0;
    ah.ClientsRunning=0;
-   ah.ClientsAllowed=min((*i)->CPUNumber/_ncl->CPUNeeded,(*i)->Memory/float(_ncl->MemoryNeeded));
+   ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
 
    time_t tt;
    time(&tt);
@@ -1246,7 +1339,7 @@ if(getServer()->InactiveClientExists())return;
  // Check if there are some hosts to run on
  _ahl.sort(Less());
  for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
-  if(_acl.size()<_ncl->MaxClients && _acl.size()<count_if(_rl.begin(),_rl.end(),REInfo_Count())){
+  if(_acl.size()<(*_ncl.begin())->MaxClients && _acl.size()<count_if(_rl.begin(),_rl.end(),REInfo_Count())){
   if((*i)->Status!=NoResponse){
     if((*i)->ClientsRunning>=(*i)->ClientsAllowed)continue;
     // HereStartClient
@@ -1254,26 +1347,38 @@ if(getServer()->InactiveClientExists())return;
 #ifdef __AMSDEBUG__
 //    cout <<((*i)->Interface)<<" "<<_refstring<<endl;
 #endif
+    NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(*i)->HostName)); 
+    if(cli==_ncl.end())cli=_ncl.begin();
     AString submit;
-    submit+=(const char*)(_ncl->SubmitCommand);  
+    char tmp[80];
+     sprintf(tmp,"%d",_Submit+1);
+    submit+=(const char *)(*cli)->SubmitCommand;  
     submit+=" ";
     submit+=(const char*)((*i)->HostName);
     submit+=" ";
-    submit+=(const char*)(_ncl->LogPath);  
-    submit+="Producer.";
-    char tmp[80];
-    sprintf(tmp,"%d",_Submit+1);
-    submit+=tmp;
-    submit+=".log ";
-    submit+=(const char*)(_ncl->WholeScriptPath);  
+    if(!(*cli)->LogInTheEnd){
+     submit+=(const char*)((*cli)->LogPath);  
+     submit+="Producer.";
+     submit+=tmp;
+     submit+=".log ";
+    }
+    submit+=(const char*)((*cli)->WholeScriptPath);  
     submit+=" -";
     submit+=(const char*) _refstring;
     submit+=" -U";
     submit+=tmp;
+    if((*cli)->LogInTheEnd){
+     submit+=" ";
+     submit+=(const char*)((*cli)->LogPath);  
+     submit+="Producer.";
+     submit+=tmp;
+     submit+=".log ";
+    }
 #ifdef __AMSDEBUG__
     submit+=" -D1";
     cout <<submit<<endl;
 #endif
+    submit+=" &";
     int out=system(submit);
     if(out==0){
      // Add New Active Client
@@ -1295,6 +1400,8 @@ if(getServer()->InactiveClientExists())return;
     PropagateAC(acv,DPS::Client::Create);
     }
     else{
+     (*i)->Status=DPS::Client::LastClientFailed; 
+     ((*i)->ClientsFailed)++; 
      AString a="StartClients-E-UnableToStartClient ";
      a+=submit;
      _parent->EMessage((const char *)a);
@@ -1324,7 +1431,11 @@ ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
 if(li!=_acl.end()){
  //kill by -9 here
    if(_parent->Debug())_parent->EMessage(AMSClient::print(*li, " KILL -9"));
-    _pser->Kill((*li),SIGKILL,true);
+    int iret=_pser->Kill((*li),SIGKILL,true);
+    if(iret){
+     _parent->EMessage(AMSClient::print(*li,"Producer::Unable To Kill Client"));
+    }
+
     DPS::Client::ActiveClient_var acv=*li;
     PropagateAC(acv,DPS::Client::Delete);
 }
@@ -1341,7 +1452,7 @@ if(li!=_acl.end()){
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Update);
-    _pser->Kill((*li),SIGTERM,true);
+    //_pser->Kill((*li),SIGTERM,true);
  }
 }
 
@@ -1487,6 +1598,17 @@ li->second->gettime(i,b,e);
 
 void Producer_impl::sendTDV(const DPS::Client::CID & cid, const TDVbody & tdv, TDVName & tdvname )throw (CORBA::SystemException){
 TIDI li=_findTDV(tdvname);
+tdvname.Success=false;
+if(li!=_tid.end()){
+time_t i,b,e;
+i=tdvname.Entry.Insert;
+b=tdvname.Entry.Begin;
+e=tdvname.Entry.End;
+li->second->SetTime(i,b,e);
+li->second->CopyIn(tdv.get_buffer()); 
+ tdvname.Success=li->second->write((const char*)AMSDBc::amsdatabase,1);
+// Here ohe has to update map as well
+}
 }
   
 int Producer_impl::getTDVTable(const DPS::Client::CID & cid, TDVName & tdvname, unsigned int id, TDVTable_out table)throw (CORBA::SystemException){
@@ -1705,6 +1827,12 @@ if(_parent->Debug()){
  DST_var vne= new DST(ne);
  switch (rc){
  case DPS::Client::Create:
+ for(DSTLI li=_ntuple.begin();li!=_ntuple.end();++li){
+  if(!strcmp((const char *)(*li)->Name,(const char *)ne.Name)){
+   _parent->EMessage(AMSClient::print(*li,"Create:Ntuple Already exists"));
+   return;
+  }
+ }
  _ntuple.push_back(vne);
  break;
  case DPS::Client::Update:
@@ -1713,14 +1841,16 @@ if(_parent->Debug()){
    switch ((*li)->Status){
     case InProgress:
      *li=vne;
-    break;
+      return;
     default:
-    _parent->EMessage(AMSClient::print(vne,"Ntuple Already Exists "));
-    break;
+    _parent->EMessage(AMSClient::print(vne,"Update:Ntuple Already Exists "));
+    return;
    }
    break;
   }
  }
+    _parent->EMessage(AMSClient::print(vne,"Update:Ntuple Not Found "));
+ 
 }
 }
 
@@ -1841,23 +1971,36 @@ integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool
   //start  killer here
    if(ac.id.pid==0)return 0;
    AString submit;
-    submit+=(const char*)(_nki->SubmitCommand);
+    NCLI cli=find_if(_nki.begin(),_nki.end(),NCL_find((const char *)(ac.id.HostName))); 
+    if(cli==_nki.end())cli=_nki.begin();
+    char tmp[80];
+     sprintf(tmp,"%d",ac.id.uid);
+    submit+=(const char*)((*cli)->SubmitCommand);
     submit+=" ";
     submit+=(const char*)(ac.id.HostName);
     submit+=" ";
-    submit+=(const char*)(_nki->LogPath);
-    submit+="Killer.";
-    char tmp[80];
-    sprintf(tmp,"%d",ac.id.uid);
-    submit+=tmp;
-    submit+=".log ";
-    submit+=(const char*)(_nki->WholeScriptPath);
+    if(!(*cli)->LogInTheEnd){
+     submit+=(const char*)((*cli)->LogPath);
+     submit+="Killer.";
+     submit+=tmp;
+     submit+=".log ";
+    }
+    submit+=(const char*)((*cli)->WholeScriptPath);
     submit+=" -";
     sprintf(tmp,"%d",signal);
     submit+=tmp;
     submit+=" ";
     sprintf(tmp,"%d",(self?ac.id.pid:ac.id.ppid));
     submit+=tmp;
+    if((*cli)->LogInTheEnd){
+     submit+=" ";
+     submit+=(const char*)((*cli)->LogPath);
+     submit+="Killer.";
+     sprintf(tmp,"%d",ac.id.uid);
+     submit+=tmp;
+     submit+=".log ";
+    }
+
     cout <<"kill "<<submit;
     return system(submit);
 }

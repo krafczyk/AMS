@@ -28,6 +28,8 @@ module DPS{
     string WholeScriptPath;
     string LogPath;
     string SubmitCommand;
+    string HostName;
+    short LogInTheEnd;
    }; 
 
 
@@ -49,6 +51,7 @@ module DPS{
      ClientStatus Status;
    };
     typedef sequence<ActiveClient> ACS;
+    typedef sequence<NominalClient> NCS;
     
     void Exiting(in CID id, in string Error, in ClientExiting Status);
 
@@ -197,9 +200,8 @@ module DPS{
     void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc);
 
 
-    boolean getNC(in CID cid, out NominalClient nc);
-
-    boolean getNK(in CID cid, out NominalClient nc);
+    long getNC(in CID id, out NCS acl);
+    long getNK(in CID id, out NCS acl);
 
     long getNHS(in CID id, out NHS nhs);
 
