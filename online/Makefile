@@ -1,11 +1,13 @@
-#  $Id: Makefile,v 1.11 2004/01/29 10:45:11 choutko Exp $
+#  $Id: Makefile,v 1.12 2004/02/13 10:55:47 choutko Exp $
 
+PREFIX        = $(AMSWD)/online/
+ARCH         := $(shell root-config --arch)
 PLATFORM      =  Linux
 RH9add=
 ifdef RH9
  RH9add=-pthread /usr/lib/ctype-info.o
 endif
-ifdef AMSICC
+ifeq ($(ARCH),linuxicc)
 CXX           =  icc
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
 OPT           = -O2
@@ -14,6 +16,9 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = icc
 LDFLAGS       = 
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
+
+LIBS          =  $(ROOTLIBS) -lm -ldl
 else
 CXX           =  g++ -Wno-deprecated
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
@@ -22,10 +27,23 @@ OPTC          = -O0
 NOOPT         = -g
 LD            = g++
 LDFLAGS       = -g 
-endif
 ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
 
 LIBS          =  $(ROOTLIBS) -lm -ldl
+endif
+ifeq ($(ARCH),win32gcc)
+PREFIX        = $(AMSWD)/online/cygwin/
+CXX           =  g++ -Wno-deprecated
+CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
+OPT           = -O2
+OPTC          = -O0
+NOOPT         = -g
+NOOPTC         = -g
+LD            = g++
+LDFLAGS       = -g 
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm.dll -lX11.dll $(RH9add) -L/usr/lib -lshift
+LIBS          =  $(ROOTLIBS) -lm 
+endif
 GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d -lGui -lGpad -lGX11  -lTree -lRint -lPostscript -lMatrix -lPhysics  -lHistPainter -lMinuit -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -lXpm -lm -ldl 
 
 ##### MACROS #####
@@ -63,7 +81,6 @@ HDRS          =   \
                 AMSGenHist.h\
                 AMSNtuple.h\
                 LinkDef.h
-PREFIX        = $(AMSWD)/online/
 DICT          = AMSCint.cxx
 DICTH         = $(DICT:.cxx=.h)
 DICTO         = $(DICT:%.cxx=$(PREFIX)%.o)
