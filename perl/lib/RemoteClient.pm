@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.4 2002/02/26 13:28:41 choutko Exp $
+# $Id: RemoteClient.pm,v 1.5 2002/02/27 14:52:00 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -657,6 +657,159 @@ sub Connect{
         $self->{read}=0;
     my $q=$self->{q};
 
+#Initial Request (just e-mail)
+
+    if ($self->{q}->param("RemoteClientEmail")){
+     $self->{read}=1;
+     my $cem=$self->{q}->param("CEM");
+     if(validate_email_address($cem)){
+        if ($self->findemail($cem)){
+            my $cite=$self->{q}->param("CCA");
+            if(not defined $cite or $cite eq ""){
+                $cite=$self->{q}->param("CCAS");
+            }
+            my $sql="SELECT cid FROM Cites WHERE name='$cite'";
+            my $ret=$self->{sqlserver}->Query($sql);
+            my $cid=$ret->[0][0];
+            if (not defined $cid) {
+              $self->ErrorPlus("Unknown cite $cite. Check spelling.");
+            }
+            $sql="SELECT rSite FROM Mails WHERE address='$cem' AND cid=$cid";
+            $ret=$self->{sqlserver}->Query($sql);
+            my $resp = $ret->[0][0];
+            $sql="SELECT name FROM Mails WHERE address='$cem' AND cid=$cid";
+            $ret=$self->{sqlserver}->Query($sql);
+            my $name = $ret->[0][0];
+            htmlTop();
+            if ($resp == 1) {
+             print "<TR><B><font color=green size= 5> Select Form Type or Production DataSet: </font>";
+            } else { 
+             print "<TR><B><font color=green size= 5> Select Form Type : </font>";
+            }
+            print "<p>\n";
+            print "<FORM METHOD=\"POST\" action=\"/cgi-bin/mon/rc.cgi\">\n";
+            print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+            print "<tr><td>\n";
+            print "<b><font color=\"magenta\" size=\"3\">User's Info </font><font size=\"2\"> (if in <i>italic</i> then cannot be changed)</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+            print "<i><b>e-mail : </td><td><input type=\"text\" size=18 value=$cem name=\"CEM\" onFocus=\"this.blur()\" ></i>\n";
+            print "</b></font></td></tr>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+            print "<i><b>cite : </td><td><input type=\"text\" size=18 value=$cite name=\"CCA\" onFocus=\"this.blur()\"></i>\n";
+            print "</b></font></td></tr>\n";
+            print "</TABLE>\n";
+            print "<tr><td>\n";
+            print "<b><font color=\"red\" size=\"3\">Form Type</font></b>\n";
+            print "</td><TD>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Basic\" CHECKED>Basic<BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=\"Advanced\" >Advanced<BR>\n";
+            print "</b></font></td></tr>\n";
+            print "</TABLE>\n";
+#-            if ($resp == 1) {
+             print "<tr><td><b><font color=\"blue\" size=\"3\">Datasets</font></b>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             foreach my $dataset (@{$self->{DataSetsT}}){
+              print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=$dataset->{name} >$dataset->{name}<BR>\n";
+#-            }
+             print "</b></font></td></tr>\n";
+             print "</TABLE>\n";
+          }
+          print "</TABLE>\n";
+          print "<p>\n";
+          print "<br>\n";
+          print "<input type=\"submit\" name=\"FormType\" value=\"Continue\">        ";
+          htmlReturnToMain();
+          htmlFormEnd();
+         htmlBottom();
+      } else {
+            $self->ErrorPlus("Client e-mail $cem not exist. Check spelling or do registration.");
+        }
+     } else {
+            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.");
+        }
+ }
+
+
+    if ($self->{q}->param("Registration")){
+        $self->{read}=1;
+        my $cem=lc($self->{q}->param("CEM"));
+        if ($self->findemail($cem)){
+            $self->ErrorPlus("Client $cem Already Exists.");
+        }
+        else{
+#check email
+        if(validate_email_address($cem)){
+        if($self->{q}->param("Registration") eq "Submit"){
+            my $name=$self->{q}->param("CNA");
+            if(not defined $name or $name eq ""){
+             $self->ErrorPlus("Please fill in Name and Surname Field");
+            }
+            my $responsible;
+            my $cite=$self->{q}->param("CCA");
+            if(not defined $cite or $cite eq ""){
+                $cite=$self->{q}->param("CCAS");
+              }
+        my $sendsuc=undef;
+        foreach my $chop (@{$self->{MailT}}) {
+              if($chop->{rServer}==1){
+                  my $address=$chop->{address};
+                  my $subject="AMS02 MC User Registration Request ";
+                  my $message=" E-Mail: $cem \n Name: $name \n Cite: $cite \n Responsible: $responsible"; 
+                  $self->sendmailmessage($address,$subject,$message);
+                  $sendsuc=$address;
+                  last;
+              }
+        }          
+        if(not defined $sendsuc){
+            $self->ErrorPlus("Unable to find responsible for the server. Please try again later..");
+        }
+
+# build up the corr entries in the database
+            
+# check if cite exist
+            my $sql="select cid from Cites where name='$cite'";
+            my $ret=$self->{sqlserver}->Query($sql);
+            my $cid=$ret->[0][0];
+            my $newcite=0;
+            if(not defined $cid){
+             $newcite=1;
+             $sql="select cid from Cites";
+             $ret=$self->{sqlserver}->Query($sql);
+             $cid=$ret->[$#{$ret}][0]+1;
+             if($cid>16){
+                 my $error=" Too many Cites. Your request will not be procedeed.";
+                 $self->sendmailerror($error,"$cem");
+                 $self->ErrorPlus("$error");
+             }
+             my $run=(($cid-1)<<27)+1;
+             $sql="insert into Cites values($cid,'$cite',0,'remote',$run,0)";
+             $self->{sqlserver}->Update($sql);
+
+            }
+            $sql="select mid from Mails";
+            $ret=$self->{sqlserver}->Query($sql);
+            my $mid=$ret->[$#{$ret}][0]+1;
+            my $resp=$newcite;
+            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0)";
+            $self->{sqlserver}->Update($sql);
+            if($newcite){
+                $sql="update Cites set mid=$mid where cid=$cid";
+                $self->{sqlserver}->Update($sql);
+            }
+         $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";     
+        }
+    }else{
+            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.");
+        }
+       }  
+    }
+
     if ($self->{q}->param("MyRegister")){
         $self->{read}=1;
         my $cem=lc($self->{q}->param("CEM"));
@@ -766,6 +919,278 @@ sub Connect{
        }  
     }
 
+    if ($self->{q}->param("FormType")){
+        $self->{read}=1;
+# check e-mail
+        my $cem=lc($self->{q}->param("CEM"));
+        if (not $self->findemail($cem)){
+            $self->ErrorPlus("Client $cem Not Found. Please Register.");
+        }
+        elsif($self->{CEMA} ne "Active"){
+            $self->ErrorPlus("Welcome $cem. Your account is not yet set up.
+            Please try again later.");
+        }
+        elsif($self->{q}->param("CTT")){
+# check form type
+            if($self->{q}->param("CTT") eq "Basic"){
+             htmlTop();
+             htmlTemplateTable("Select Basic Template File and Run Parameters");
+# print templates
+             my @tempnam=();
+             my $hash={};
+             foreach my $cite (@{$self->{TempT}}){
+              if(not ($cite->{filename} =~/^\./)){
+               push @tempnam, $cite->{filename};
+               $hash->{$cite->{filename}}=$cite->{filedesc};
+             }
+          }
+          print "<tr><td><b><font color=\"red\">Job Template</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+          print "<tr valign=middle><td align=left><b><font size=\"-1\"> File : </b></td> <td colspan=1>\n";
+          print "<select name=\"QTemp\" >\n";
+          foreach my $template (@tempnam) {
+            print "<option value=\"$template\">$template </option>\n";
+          }
+          print "</select>\n";
+          print "</b></td></tr>\n";
+          print "</TABLE>\n";
+# Run Parameters
+          print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+          print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
+          print "<select name=\"QPart\" >\n";
+              my $ts=$self->{tsyntax};
+              my %hash=%{$ts->{particles}};
+              my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
+              foreach my $particle (@keysa) {
+                print "<option value=\"$particle\">$particle </option>\n";
+              }
+          print "</select>\n";
+          print "</b></td></tr>\n";
+            htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
+            htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
+            htmlTextField("Total Events","number",7,1000000.,"QEv"," ");  
+            htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
+            my ($rndm1,$rndm2) = $self->getrndm();
+            htmlTextField("rndm1","text",7,$rndm1,"QRNDM1"," ");  
+            htmlTextField("rndm2","text",7,$rndm2,"QRNDM2"," ");  
+            htmlTextField("Begin Time","text",8,"01062005","QTimeB"," (ddmmyyyy)");  
+            htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");  
+            htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
+           htmlTableEnd();
+            print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+            print "</b></font></td></tr>\n";
+           htmlTableEnd();
+          htmlTableEnd();
+            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
+            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
+          print "<br>\n";
+          print "<input type=\"submit\" name=\"BasicForm\" value=\"Continue\"></br><br>        ";
+          htmlReturnToMain();
+          htmlFormEnd();
+         htmlBottom();
+         } elsif($self->{q}->param("CTT") eq "Advanced"){
+             htmlTop();
+             htmlTemplateTable("Select  Parameters for Advanced Request");
+# Run Parameters
+              print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
+              print "</td><td>\n";
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
+              print "<select name=\"QPart\" >\n";
+              my $ts=$self->{tsyntax};
+              my %hash=%{$ts->{particles}};
+              my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
+              foreach my $particle (@keysa) {
+                print "<option value=\"$particle\">$particle </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+              htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
+              htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
+              htmlTextField("Total Events","number",7,1000000.,"QEv"," ");  
+              htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
+              my ($rndm1,$rndm2) = $self->getrndm();
+              htmlTextField("rndm1","text",7,$rndm1,"QRNDM1"," ");  
+              htmlTextField("rndm2","text",7,$rndm2,"QRNDM2"," ");  
+              htmlTextField("Begin Time","text",8,"01062005","QTimeB"," (ddmmyyyy)");  
+              htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");  
+              htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
+              htmlTextField("Setup","text",8,"AMS02","QSetup"," ");
+              htmlTextField("Trigger Type ","text",8,"AMSParticle","QTrType"," ");
+           htmlTableEnd();
+            print "<tr><td><b><font color=\"green\">DST file type</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+              print "<tr><td><font size=\"-1\"<b>\n";
+              print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\" CHECKED><b> NTUPLE </b>\n";
+              print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=1 128=\" ><b> ROOT </b><BR>\n";
+            print "</b></font></td></tr>\n";
+           htmlTableEnd();
+            print "<tr><td><b><font color=\"green\">DST file wrtie mode</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+              print "<tr><td><font size=\"-1\"<b>\n";
+              print "<INPUT TYPE=\"radio\" NAME=\"RNO\" VALUE=\"102\" CHECKED><b> Used Objects Only </b>\n";
+              print "<INPUT TYPE=\"radio\" NAME=\"RNO\" VALUE=\"101\" ><b> Objects </b><BR>\n";
+            print "</b></font></td></tr>\n";
+           htmlTableEnd();
+            print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+            print "</b></font></td></tr>\n";
+           htmlTableEnd();
+            print "<tr><td><b><font color=\"red\">Spectrum and Focusing</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            $ts=$self->{tsyntax};
+            @keysa=sort keys %{$ts->{spectra}};
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Input Spectrum : </b></td> <td colspan=1>\n";
+              print "<select name=\"QSpec\" >\n";
+              foreach my $spectrum (@keysa) {
+                print "<option value=\"$spectrum\">$spectrum </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+           @keysa=sort keys %{$ts->{focus}};
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Focusing : </b></td> <td colspan=1>\n";
+              print "<select name=\"QFocus\" >\n";
+              foreach my $focus (@keysa) {
+                print "<option value=\"$focus\">$focus </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+           htmlTableEnd();
+            print "<tr><td><b><font color=\"magenta\">GeoMagnetic Cutoff</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"1\" CHECKED><b> Yes </b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"0\" ><b> No </b><BR>\n";
+             print "</b></font></td></tr>\n";
+           htmlTableEnd();
+            print "<tr><td><b><font color=\"blue\">Cube Coordinates</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Min : X : <input type=\"number\" size=5 value=-195 name=\"QXL\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYL\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";  
+            print "</b></font></tr>\n";
+            print "<tr><td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Max : X : <input type=\"number\" size=5 value=-195 name=\"QXU\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYU\"></td>\n";  
+            print "<td width=\"30%\"><font size=\"2\">\n";
+            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZU\"> (cm)</td>\n";  
+            print "</b></font></tr>\n";
+            htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
+            @keysa=sort keys %{$ts->{planes}};
+              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cube Surface Generation : </b></td> <td colspan=1>\n";
+              print "<select name=\"QFocus\" >\n";
+              foreach my $surface (@keysa) {
+                print "<option value=\"$surface\">$surface </option>\n";
+              }
+              print "</select>\n";
+              print "</b></td></tr>\n";
+           htmlTableEnd();
+          htmlTableEnd();
+            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
+            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
+          print "<br>\n";
+          print "<input type=\"submit\" name=\"AdvancedForm\" value=\"Continue\"></br><br>        ";
+          htmlReturnToMain();
+          htmlFormEnd();
+         htmlBottom();
+         } 
+# Advanced Query ends here
+          else{
+           my $query=$self->{q}->param("CTT");
+           my $found=0;
+           my @tempnam=();
+           my $hash={};
+           my @desc=();
+           my $cite={};
+           foreach my $dataset (@{$self->{DataSetsT}}){
+             if($dataset->{name} eq $query){
+               $found=1;
+               if(not $self->{CCR}){
+                 $self->{FinalMessage}=" Sorry Only Cite Responsible Is allowed to Request Production DataSets";
+               }
+                 else{                   
+                 foreach $cite (@{$dataset->{jobs}}){
+                 if(not ($cite->{filename} =~/^\./)){
+                  push @tempnam, $cite->{filename};
+                  $hash->{$cite->{filename}}=$cite->{filedesc};
+                  push @desc, $hash -> {$cite->{filename}}=$cite->{filedesc};
+                 }
+             }
+             htmlTop();
+             htmlTemplateTable("Select  Parameters for Dataset Request");
+# Job Template
+             print "<tr><td><b><font color=\"red\">Job Template</font></b>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr valign=middle><td align=left><b><font size=\"-1\"> Dataset : </b></td> <td colspan=1>\n";
+             print "<select name=\"QTemp\" >\n";
+             my $i=0;
+             foreach my $template (@tempnam) {
+              print "<option value=\"$template\">$desc[$i] </option>\n";
+              $i++;
+            }
+            print "</select>\n";
+            print "</b></td></tr>\n";
+            print "</TABLE>\n";
+# Run Parameters
+              print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
+              print "</td><td>\n";
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+              htmlTextField("Total Events","number",7,1000000.,"QEv"," ");  
+              htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
+              htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
+              htmlTextField("Approximate Jobs Total Elapsed Time ","number",3,7,"QTimeOut"," (days)");  
+            htmlTableEnd();
+# DST transfer
+             print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
+             print "</b></font></td></tr>\n";
+            htmlTableEnd();
+           htmlTableEnd();
+           print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
+           print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n"; 
+           print "<br>\n";
+           print "<input type=\"submit\" name=\"ProductionForm\" value=\"Continue\"></br><br>        ";
+           htmlReturnToMain();
+           htmlBottom();
+             }
+            last;
+           }
+         }
+         if(not $found){
+          $self->{FinalMessage}=" Sorry  $query Query Not Yet Implemented";     
+         }
+       }
+      }
+    }
+#MyQuery ends here
     
     if ($self->{q}->param("MyQuery")){
         $self->{read}=1;
@@ -965,7 +1390,8 @@ print qq`
           print "<BR>";
           print $q->submit(-name=>"AdvancedQuery", -value=>"Submit");
           print $q->reset(-name=>"Reset");
-            }
+# Advanced form ends here
+            } 
           else{
             
               my $query=$self->{q}->param("CTT");
@@ -1023,7 +1449,7 @@ print qq`
           print "<BR>";
           print $q->submit(-name=>"ProductionQuery", -value=>"Submit");
           print $q->reset(-name=>"Reset");
-                 }
+            }
                  last;
              }
          }
@@ -1035,9 +1461,9 @@ print qq`
 
         }
     }
-
-
-    if ($self->{q}->param("BasicQuery") or $self->{q}->param("AdvancedQuery") or $self->{q}->param("ProductionQuery")){
+#MyQuery ends here
+    if ($self->{q}->param("BasicQuery") or $self->{q}->param("AdvancedQuery") or $self->{q}->param("ProductionQuery") or
+        $self->{q}->param("BasicForm") or $self->{q}->param("AdvancedForm") or $self->{q}->param("ProductionForm")){
         $self->{read}=1;
 #  check par
         my $cem=lc($q->param("CEM"));
@@ -1118,7 +1544,6 @@ print qq`
                     $q->param("QEv",$tmp->{TOTALEVENTS});
                 }
                 last;
-      
             }
         }
      }
@@ -1937,4 +2362,46 @@ sub save_state {
 
 
 
+sub htmlTop {
+    print "Content-type: text/html\n\n";
+    print "<HTML>\n";
+    print "<HEAD><TITLE>Search </TITLE></HEAD>\n";
+}
 
+sub htmlBottom {
+    my $version="1.01";    
+    print "</TABLE>\n";
+    print "<HR>\n<TABLE WIDTH=\"100%\"><TR>\n<TD WIDTH=\"33%\" ALIGN=\"Left\">";
+    print "</TD>\n<TD ALIGN=\"center\"><FONT SIZE=2>jobt.pl V$version</FONT></TD>\n";
+    print "</FONT></TD>\n</TR></TABLE>\n";
+    print "</BODY></HTML>\n";
+}
+
+sub htmlTemplateTable {
+   my ($text) = @_;
+   print "<TR><B><font color=green size= 5> $text </font>";
+   print "<p>\n";
+   print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.cgi\">\n";
+   print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+}
+
+sub htmlTableEnd {
+   print "</TABLE>\n";
+}
+
+sub htmlFormEnd {
+   print "</form>\n";
+}
+
+sub htmlTextField {
+    my ($text,$type,$size,$value,$name,$comment) = @_;
+    print "<tr><td><font size=\"2\">\n";
+    print "<b> $text </td><td><input type=$type size=$size value=$value name=$name>$comment\n";
+    print "</b></font></td></tr>\n";
+}
+
+sub htmlReturnToMain {
+            print "<p><tr><td><i>\n";
+            print "Return to <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\"> MC02 Remote Client Request</a>\n";
+            print "</i></td></tr>\n";
+        }
