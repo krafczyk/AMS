@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.4 2003/06/17 07:39:55 choutko Exp $
+#  $Id: Makefile,v 1.5 2003/06/18 16:54:42 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -30,7 +30,6 @@ SRCS          = AMSDisplay.cxx \
                 AMSLVL3Hist.cxx\
                 AMSAxAMSHist.cxx\
                 AMSGenHist.cxx\
-                root.cxx\
                 AMSNtuple.cxx  ControlFrame.cxx\
 
 HDRS          =   \
@@ -63,11 +62,12 @@ MAINC          = mainc.cxx
 MAINOC         = $(MAINC:.cxx=.o)
 
 OBJS          = $(SRCS:%.cxx=$(PREFIX)%.o) 
+OBJSR          = $(PREFIX)root.o
 
 
 ALLDICT       = $(DICT) $(DICTH) 
 ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH) $(MAINC)
-ALLOBJS       = $(OBJS) $(MAINO)
+ALLOBJS       = $(OBJS) $(MAINO) 
 
 
 AMSLIB       = libAMS.a
@@ -89,13 +89,13 @@ osdepend:  $(AMSPRGC)
 
 
 
-$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH)
-		$(LD)  -static  $(LDFLAGS) $(ALLOBJS)  $(DICTO)  $(LIBS)  \
+$(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR)
+		$(LD)  -static  $(LDFLAGS) $(ALLOBJS) $(OBJSR)  $(DICTO)  $(LIBS)  \
 		-o $(@) 
 		@echo "$(AMSPRG) done"
 
-$(AMSPRGC):	$(ALLOBJS) $(DICTO)
-		$(LD) -rdynamic $(LDFLAGS) $(ALLOBJS) $(DICTO)   $(LIBS) -o $(AMSPRGC) 
+$(AMSPRGC):	$(ALLOBJS) $(DICTO) $(OBJSR)
+		$(LD) -rdynamic $(LDFLAGS) $(ALLOBJS) $(DICTO) $(OBJSR)   $(LIBS) -o $(AMSPRGC) 
 
 
 $(DICT):        $(HDRS)
@@ -130,6 +130,9 @@ clean:
 ##### RULES #####
 
 $(ALLOBJS): $(PREFIX)%.o : %.cxx 
+	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
+
+$(OBJSR): $(PREFIX)%.o : ../CC/%.C 
 	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(DICTO): $(PREFIX)%.o : %.cxx 
