@@ -935,7 +935,7 @@ if(init++==0){
   THN.pY=_Ycl->getpos();
    int i,pat;
     pat=1;
-    if(AMSTrCluster::Out(IOPA.WriteAll || checkstatus(AMSDBc::USED)   )){
+    if(AMSTrCluster::Out(IOPA.WriteAll    )){
       // Writeall
       for(i=0;i<pat;i++){
         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
@@ -1870,7 +1870,7 @@ if(init++==0){
    TrTN.pHits[k]=_Pthit[k]->getpos();
    int i,pat;
     pat=_Pthit[k]->getLayer()-1;
-    if(AMSTrRecHit::Out(1)){
+    if(AMSTrRecHit::Out(IOPA.WriteAll)){
       // Writeall
       for(i=0;i<pat;i++){
         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrRecHit",i);

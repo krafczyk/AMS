@@ -7,6 +7,7 @@
 #include <mccluster.h>
 #include <timeid.h>
 #include <trid.h>
+#include <ntuple.h>
 integer AMSTrRawCluster::TestRawMode(){
   AMSTrIdSoft id(_address);
   int icmpt=id.gettdr();
@@ -180,6 +181,24 @@ AMSgObj::BookTimer.stop("SITKDIGIc");
 }
 
 void AMSTrRawCluster::_writeEl(){
+
+  // fill the ntuple 
+static integer init=0;
+static TrRawClusterNtuple TrN;
+if(AMSTrRawCluster::Out( IOPA.WriteAll  )){
+if(init++==0){
+  //book the ntuple block
+  HBNAME(IOPA.ntuple,"TrRawCl",TrN.getaddress(),
+  "TrRawCl:I*4,RawAddress:I*4,RawLength:I*4");
+
+}
+  TrN.Event()=AMSEvent::gethead()->getid();
+  TrN.address=_address+_strip*10000;
+  TrN.nelem=_nelem;
+  HFNTB(IOPA.ntuple,"TrRawCl");
+}
+
+
 }
 
 
@@ -1463,3 +1482,19 @@ if(length){
 }
 
 
+
+integer AMSTrRawCluster::Out(integer status){
+static integer init=0;
+static integer WriteAll=0;
+if(init == 0){
+ init=1;
+ integer ntrig=AMSJob::gethead()->gettriggerN();
+  for(int n=0;n<ntrig;n++){
+    if(strcmp("AMSTrRawCluster",AMSJob::gethead()->gettriggerC(n))==0){
+     WriteAll=1;
+     break;
+    }
+  }
+}
+return (WriteAll || status);
+}

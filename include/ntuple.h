@@ -17,6 +17,9 @@ float Beta;
 float Error;
 float Chi2;
 float Chi2S;
+int NTOF;
+int pTOF[4];
+int pTr;
 friend class AMSBeta;
 
 };
@@ -74,6 +77,7 @@ int Betas;
 int Charges;
 int TrRecHits;
 int TrClusters;
+int TrRawClusters;
 int TrMCClusters;
 int TOFClusters;
 int TOFMCClusters;
@@ -208,6 +212,13 @@ float RMS;
 float ErrorMean;
 float Amplitude[5];
 friend class AMSTrCluster;
+};
+
+class TrRawClusterNtuple: public AMSNtuple{
+private:
+int address;
+int nelem;
+friend class AMSTrRawCluster;
 };
 
 class TrRecHitNtuple: public AMSNtuple{

@@ -1082,7 +1082,7 @@ static EventNtuple EN;
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"EventH",EN.getaddress(),
-  "EventNo:I*4, Run:I*4,  RunType:I*4 ,Time(2):I*4, PolePhi:R, ThetaS:R, PhiS:R, Particles:I, Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I, TrMCClusters:I, TOFClusters:I, TOFMCClusters:I, CTCClusters:I, CTCMCClusters:I, AntiMCClusters:I, AntiClusters:I"); 
+  "EventNo:I*4, Run:I*4,  RunType:I*4 ,Time(2):I*4, PolePhi:R, ThetaS:R, PhiS:R, Particles:I, Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I, TrRawClusters:I, TrMCClusters:I, TOFClusters:I, TOFMCClusters:I, CTCClusters:I, CTCMCClusters:I, AntiMCClusters:I, AntiClusters:I"); 
 
 }
   EN.Event()=_id;
@@ -1100,6 +1100,7 @@ if(init++==0){
   EN.Charges=0;
   EN.TrRecHits=0;
   EN.TrClusters=0;
+  EN.TrRawClusters=0;
   EN.TrMCClusters=0;
   EN.TOFClusters=0;
   EN.TOFMCClusters=0;
@@ -1141,6 +1142,11 @@ if(init++==0){
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTrCluster",i);
    if(p) EN.TrClusters+=p->getnelem();
+   else break;
+  }
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTrRawCluster",i);
+   if(p) EN.TrRawClusters+=p->getnelem();
    else break;
   }
 

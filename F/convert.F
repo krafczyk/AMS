@@ -42,6 +42,7 @@
      +  LVL3Residual,LVL3Time,LVL3ELoss,CTCHitSignal
      
       INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
+     + ,betantof,betaptof
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
@@ -54,7 +55,9 @@
      +  TrMCClusters, TOFClusters, TOFMCClusters, CTCClusters,
      +  CTCMCClusters,Nskip,AntiMCClusters,AntiClusters,
      +  AntiMCEvent,AntiMCIdsoft,AntiCluster, AntiSector, AntiStatus,
-     +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow
+     +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow,
+     +  Rawaddress,rawlength,trrawcluster,betaptr
+      
 *
 *
 *
@@ -70,6 +73,7 @@
       parameter(maxanti=16)
       parameter(maxantimc=200)
       parameter(maxtrcl=200)
+      parameter(maxtrraw=500)
       parameter(maxtrclmc=200)
       parameter(maxtrrh=500)
       parameter(maxtrtr=20)
@@ -82,13 +86,15 @@
 
       common /eventhC/eventno,run,runtype,time,PolePhi,ThetaS,PhiS,
      +    Particles, Tracks, Betas, Charges ,TrRecHits,
-     +    TrClusters, TrMCClusters, TOFClusters, TOFMCClusters,
+     +    TrClusters, TrRawClusters, TrMCClusters, TOFClusters, 
+     +    TOFMCClusters,
      +    CTCClusters, CTCMCClusters, AntiMCClusters, AntiClusters
 
       common /betaC/nbeta,
      + betapattern(maxbeta),beta(maxbeta),
      +              betaerror(maxbeta),betachi2(maxbeta),
-     +               betachi2s(maxbeta)
+     +  betachi2s(maxbeta),betantof(maxbeta),betaptof(4,maxbeta),
+     +  betaptr(maxbeta)
 
       common /chargeC/ ncharge,
      + chargebetap(maxch),chargetof(maxch),
@@ -120,6 +126,9 @@
      + NelemR(maxtrcl),Sumt(maxtrcl),Sigmat(maxtrcl),
      + Meant(maxtrcl),RMSt(maxtrcl),ErrorMeant(maxtrcl),
      + Amplitude(5,maxtrcl)
+
+      common /TrRawClusterC/ntrraw,
+     + rawaddress(maxtrraw),rawlength(maxtrraw)
     
       common/TrMCClusterC/ntrclmc,
      + IdsoftMC(maxtrclmc),Itra(maxtrclmc),
@@ -189,7 +198,7 @@
 
 
       character *64 cdet
-      parameter (ndet=18)
+      parameter (ndet=19)
       character *64 cblock(ndet)
       integer events(ndet),eof(ndet)
       common /quest/iquest(100)
@@ -223,6 +232,7 @@ c       write(*,*)' Starting converting'
        cblock(16)='LVL3'
        cblock(17)='LVL1'
        cblock(18)='CTCHIT'
+       cblock(19)='TRRAWCL'
 
        do idet=1,ndet
         open(40+idet,file=cblock(idet),status='old',
@@ -235,13 +245,14 @@ c       write(*,*)' Starting converting'
      + 'eventno:I,run:I,runtype:I,time(2):I,'//
      + 'PolePhi:R ,ThetaS:R ,PhiS:R, Particles:I,'//
      + 'Tracks:I, Betas:I, Charges:I ,TrRecHits:I, TrClusters:I,'//
-     + 'TrMCClusters:I, TOFClusters:I, TOFMCClusters:I,'//
-     + 'CTCClusters:I, CTCMCClusters:I,'//
+     + 'TrRawClusters:I, TrMCClusters:I, TOFClusters:I,'//
+     + 'TOFMCClusters:I,CTCClusters:I, CTCMCClusters:I,'//
      + 'AntiMCClusters:I, AntiClusters:I')
 
       call hbname(1,cblock(2),nbeta,
      + 'nbeta[0,100],betapattern(nbeta):I,beta(nbeta),'//
-     + 'betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta)')
+     + 'betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta),'//
+     + 'betantof(nbeta):I,betaptof(4,nbeta):I,betaptr(nbeta):I')
 
       call hbname(1,cblock(3), ncharge,
      + 'ncharge[0,10],chargebetap(ncharge),chargetof(ncharge):I,'//
@@ -346,6 +357,10 @@ c       write(*,*)' Starting converting'
      + 'nctcht[0,50],CTChitStatus(nctcht):I,CTChitLayer(nctcht):I,'//
      + 'ctchitcolumn(nctcht):I,ctchitrow(nctcht):I,'//
      + 'ctchitsignal(nctcht)')
+
+      call hbname(1,cblock(19),ntrraw,
+     + 'ntrraw[0,500],rawaddress(ntrraw):I,'//
+     + 'rawlength(ntrraw):I')
         runold=-1
         do i=1,ndet
           events(idet)=0
@@ -356,7 +371,7 @@ c       write(*,*)' Starting converting'
         read(lun,end=15)eventno,run,runtype,time, PolePhi,ThetaS,
      +   PhiS,Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
-     +   TrMCClusters , TOFClusters , TOFMCClusters , 
+     +   TrRawClusters,TrMCClusters , TOFClusters , TOFMCClusters, 
      +   CTCClusters , CTCMCClusters, AntiMCClusters,
      +   AntiClusters
         if(run.ne.runold)then
@@ -376,7 +391,8 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
           if(eof(idet).eq.0)read(lun,end=25)
      +    ne,betapattern(nbeta),
      +    beta(nbeta),betaerror(nbeta),betachi2(nbeta),
-     +    betachi2s(nbeta)
+     +    betachi2s(nbeta),betantof(nbeta),
+     +    (betaptof(k,nbeta),k=1,4),betaptr(nbeta)
           goto 26
  25       eof(idet)=1
  26       continue
@@ -903,6 +919,39 @@ c            write(*,*)' ntrrh eq 0 ', events
  170     continue
         
 
+
+        idet=19
+        lun=40+idet
+        ntrraw=1
+        do while(truth)
+           iostat=1
+           if(eof(idet).eq.0)read(lun,end=195)
+     +     ne,rawaddress(ntrraw),
+     +     rawlength(ntrraw)
+
+           goto 196
+ 195       eof(idet)=1
+ 196       continue
+          if(eof(idet).ne.0)then
+             events(idet)=0
+           else
+            if(events(idet).gt.ne)newrun=.true.
+            events(idet)=ne
+           endif              
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
+          if(eof(idet).eq.0)backspace lun
+           ntrraw=ntrraw-1
+           newrun=.false.
+          goto 180
+          else if (events(idet).lt.events(1))then
+              ntrraw=ntrraw-1
+         endif
+           ntrraw=min(ntrraw+1,maxtrraw)
+        enddo   
+ 180     continue
+        
+
+
 c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        call hfnt(1)
        enddo 
@@ -966,6 +1015,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +  lvl3residual,lvl3time,lvl3eloss,ctchitsignal
 
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
+     + ,betantof,betaptof(4)
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft,
@@ -978,7 +1028,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +  Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
      +  TrMCClusters , TOFClusters , TOFMCClusters , 
      +  CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters,
-     +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow,ctchit
+     +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow,ctchit,
+     +  rawhit,Rawaddress,rawstrip,rawlength,betaptr,trrawclusters
 *
 *
 *
@@ -989,14 +1040,14 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
       common /eventhC/eventno,run,runtype,time,PolePhi,ThetaS,PhiS,
      +   Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
-     +   TrMCClusters , TOFClusters , TOFMCClusters , 
+     +   TrRawClusters, TrMCClusters , TOFClusters , TOFMCClusters, 
      +   CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters
 
 *
 *    idet=2
 *
       common /betaC/betaevent,betapattern,beta,betaerror,betachi2,
-     +              betachi2s
+     +              betachi2s,betantof,betaptof,betaptr
 *
 *    idet=3
 *
@@ -1111,8 +1162,15 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      + CTCHitStatus,CTChitLayer,ctchitcolumn,
      + ctchitrow,ctchitsignal
 
+*
+*    idet=19
+*
+
+      common /TrRawClusterC/rawhit,
+     + rawaddress,rawlength
+
       character *64 cdet
-      parameter (ndet=18)
+      parameter (ndet=19)
       character *64 cblock(ndet)
       integer events(10000),nevent
 *
@@ -1145,6 +1203,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        cblock(16)='LVL3'
        cblock(17)='LVL1'
        cblock(18)='CTCHIT'
+       cblock(19)='TRRAWCL'
        do idet=1,ndet
         open(21,file=cblock(idet),status='unknown',
      +  form='unformatted',position='append')
@@ -1187,6 +1246,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +  call hbname(1,cblock(idet),lvl1event,'$SET') 
         if(cblock(idet).eq.'CTCHIT')
      +  call hbname(1,cblock(idet),ctchit,'$SET') 
+        if(cblock(idet).eq.'TRRAWCL')
+     +  call hbname(1,cblock(idet),rawhit,'$SET') 
         do i=1,nmax
          if(i.eq.1)write(*,*)cblock(idet)(1:8),' Started'
          call hgntb(1,cblock(idet),i,ierr)
@@ -1206,11 +1267,11 @@ c         if(mod(i,10).eq.1)write(*,*)i
             write(21)eventno,run,runtype,time,PolePhi,ThetaS,PhiS,
      +   Particles ,
      +   Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
-     +   TrMCClusters , TOFClusters , TOFMCClusters , 
+     +   TrRawclusters,TrMCClusters , TOFClusters , TOFMCClusters, 
      +   CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters 
            else if( cblock(idet).eq.'BETA')then
             write(21)betaevent,betapattern,beta,betaerror,betachi2,
-     +      betachi2s
+     +      betachi2s,betantof,betaptof,betaptr
            else if( cblock(idet).eq.'CHARGE')then
             write(21)chargeevent,chargebetap,chargetof,
      +      chargetracker,probtof,probtracker
@@ -1271,6 +1332,9 @@ c         if(mod(i,10).eq.1)write(*,*)i
            else if( cblock(idet).eq.'LVL1')then          
             write(21)lvl1event,lvl1mode,lvl1flag,
      +      LVL1tofpatt,LVL1tofpatt1,lvl1antipatt
+
+           else if( cblock(idet).eq.'TRRAWCL')then          
+            write(21)rawhit,rawaddress,rawlength
 
 
            else

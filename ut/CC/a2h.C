@@ -316,6 +316,8 @@ out:
          int cntdr=0;
          for(ll=0;ll<nblk;ll++){
           Record[frp]=pnblk[ll];
+          if(pnblk[ll]%2==0)Record[frp]++;
+          //          cout <<" raw "<<frp<<" "<<Record[frp]<<endl;
           Record[frp+1]=pheader[ll];
           frp+=2;
           for(int l1=0;l1<pntdr[ll];l1++){
@@ -360,6 +362,7 @@ out:
               rawl+=1+pData[icntdr++][1];
             }
           Record[frp]=rawl;
+          //          cout <<" mixed "<<frp<<" "<<rawl<<endl;
           Record[frp+1]=pheader[ll];
           frp+=2;
           for(int l1=0;l1<pntdr[ll];l1++){

@@ -29,7 +29,7 @@ public:
 //static int16 mkaddress(int16 strip, int16 va, int16 half, int16 icmpt, integer pedantic=0)
 //{return pedantic==0?strip | va<<6 | icmpt << 10 | half<<15:strip | va<<6 | icmpt << 10;}
 
-
+static integer Out(integer);
 static void lvl3CompatibilityAddress(int16u address, 
 integer & strip, integer & va, integer & side, integer & half, integer &drp){
   drp=(address>>10)&31;half=(address>>15) & 1;va=(address>>6)&15;

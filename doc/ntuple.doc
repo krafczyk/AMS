@@ -26,6 +26,7 @@ Below there is a description of a converted ntuple.
 * I*4  *              * EVENTH   * Charges          // No of Charges
 * I*4  *              * EVENTH   * TrRecHits        // No of 3 dim trackerpoints
 * I*4  *              * EVENTH   * TrClusters       // No of Tr Clusters
+* I*4  *              * EVENTH   * TrRawClusters    // No of Tr Raw Clusters
 * I*4  *              * EVENTH   * TrMCClusters     // No of Tr MC hits
 * I*4  *              * EVENTH   * TOFClusters      // No of TOF Clusters
 * I*4  *              * EVENTH   * TOFMCClusters    // No of TOF MC Hits
@@ -36,9 +37,14 @@ Below there is a description of a converted ntuple.
 
 * I*4  * [0,10]       * BETA     * nbeta            // betas number
 * I*4  *              * BETA     * betapattern(nbeta) // beta pattern(beta.doc) 
-* R*4  *              * BETA     * beta(nbeta)        // velocity
-* R*4  *              * BETA     * betaerror(nbeta)   // error in velocity 
-* R*4  *              * BETA     * betachi2(nbeta)    // chi2 of beta fit
+* R*4  *              * BETA     * beta(nbeta)       // velocity
+* R*4  *              * BETA     * betaerror(nbeta)  // est error  1/velocity 
+* R*4  *              * BETA     * betachi2(nbeta)   // chi2 of beta fit(time)
+* R*4  *              * BETA     * betachi2s(nbeta)  // chi2 of beta fit(space)
+* I*4  *              * BETA     * betantof(nbeta)   // number of tof planes
+* I*4  *              * BETA     * betaptof(4,nbeta) // pointers to tof planes
+* I*4  *              * BETA     * betatrp(nbeta)    // pointer to track
+
 * I*4  * [0,10]       * CHARGE   * ncharge            // charges number
 * R*4  *              * CHARGE   * chargebetap(ncharge)   //pointer to velocity
 * I*4  *              * CHARGE   * chargetof(ncharge)    // TOF charge
@@ -168,6 +174,8 @@ Below there is a description of a converted ntuple.
 * R*4  *              * MCEVENTG * momentum(nmcg) // momentum
 * R*4  *              * MCEVENTG * mass(nmcg)   // mass
 * R*4  *              * MCEVENTG * charge(nmcg) // charge
+
+
 * I*4  * [0,20]       * CTCCLUST * nctccl    // cerenkov clusters number
 * I*4  *              * CTCCLUST * CTCStatus(nctccl)  // Status *)
 * I*4  *              * CTCCLUST * CTCLayer(nctccl)  // layer no
@@ -176,6 +184,7 @@ Below there is a description of a converted ntuple.
 * R*4  *              * CTCCLUST * ctcrawsignal(nctccl) // raw signals
 * R*4  *              * CTCCLUST * ctcsignal(nctccl) // corrected ones
 * R*4  *              * CTCCLUST * ctcesignal(nctccl) // error to above
+
 * I*4  * [0,200]      * CTCMCCLU * nctcclmc    // cerenkov mc hits number
 * I*4  *              * CTCMCCLU * CTCMCIdsoft(nctcclmc) // Idsoft
                                                          // Ask E. Choumilov
@@ -229,6 +238,15 @@ Below there is a description of a converted ntuple.
  * I*4  *             * CTCHIT   * ctchitcolumn(nctcht)  //        column(x)
  * I*4  *             * CTCHIT   * ctchitrow(nctcht)     //        row(y)   
  * R*4  *             * CTCHIT   * ctchitsignal(nctcht)  //        signal (pe)
+
+
+
+ * I*4  * [0,500]     * TRRAWCL  * ntrraw                // trrawcl num
+ * I*4  *             * TRRAWCL  * rawaddress(ntrraw)    // see TRCLUSTE Idsoft
+ * I*4  *             * TRRAWCL  * rawlength(ntrraw)    //  rawcl length
+
+
+
 
 
 ---------------------------------------------------------------------------
