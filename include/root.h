@@ -8,9 +8,9 @@
 #include <TROOT.h>
 #endif
 class AMSNtuple;
-const int MAXBETA    =   100;
-const int MAXCHARGE  =    10;
-const int MAXPART    =    10;
+const int MAXBETA    =   150;
+const int MAXCHARGE  =    150;
+const int MAXPART    =    150;
 const int MAXTOF     =    20;
 const int MAXTOFRAW  =    20;
 const int MAXTOFMC   =   200;
@@ -21,7 +21,7 @@ const int MAXTRCL    =   200;
 const int MAXTRRAW   =   500;
 const int MAXTRCLMC  =   200;
 const int MAXTRRH    =   500;
-const int MAXTRTR    =    20;
+const int MAXTRTR    =    200;
 const int MAXMCG     =    20;
 const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;

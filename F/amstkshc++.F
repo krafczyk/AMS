@@ -5557,9 +5557,18 @@ CDECK  ID>, TKFITG.
            real *8 tol
            real *4 nx,ny,nz
            character *20 cnn
-
+*
+*          if initial ims ==0 keep it switched off
+*
+           integer imsinit/0/,imskeep
+           if(imsinit.eq.0)then
+               imsinit=1
+               imskeep=ims
+           endif
             call gfpart(ipart,cnn,itrt7,xmass,chrg,tlt7,uwb,nwb)
-             ims=imsa
+             if(imskeep.ne.0)then
+              ims=imsa
+             endif
              call tkfini
              ialg=mod(ialgo,10)
              npoint=npt

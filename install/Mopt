@@ -2079,8 +2079,9 @@ depend:
 ../bin/osf1/io.o: /usr/include/sys/procset.h /usr/include/time.h
 ../bin/osf1/io.o: /usr/include/sys/timers.h /usr/include/sys/times.h
 ../bin/osf1/io.o: ../include/commons.h ../include/amsdbc.h
-../bin/osf1/trcalib.o: ../include/trcalib.h ../include/typedefs.h
-../bin/osf1/trcalib.o: /usr/include/assert.h /usr/include/standards.h
+../bin/osf1/trcalib.o: ../include/event.h ../include/job.h
+../bin/osf1/trcalib.o: ../include/typedefs.h /usr/include/assert.h
+../bin/osf1/trcalib.o: /usr/include/standards.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/iostream.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/iostream.hxx
 ../bin/osf1/trcalib.o: /usr/include/cxx/cxxl.hxx
@@ -2098,30 +2099,26 @@ depend:
 ../bin/osf1/trcalib.o: /usr/include/sys/rt_limits.h
 ../bin/osf1/trcalib.o: /usr/include/limits.h /usr/include/memory.h
 ../bin/osf1/trcalib.o: /usr/include/string.h /usr/include/strings.h
-../bin/osf1/trcalib.o: ../include/commons.h ../include/cern.h
-../bin/osf1/trcalib.o: ../include/cfortran.h /usr/include/stdlib.h
-../bin/osf1/trcalib.o: ../include/hbook.h ../include/geant321.h
-../bin/osf1/trcalib.o: ../include/geant321g.h ../include/link.h
-../bin/osf1/trcalib.o: ../include/upool.h /usr/include/cxx/new.h
-../bin/osf1/trcalib.o: /usr/include/cxx/new.hxx ../include/apool.h
 ../bin/osf1/trcalib.o: ../include/node.h ../include/id.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/strstream.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/strstream.hxx
-../bin/osf1/trcalib.o: ../include/snode.h ../include/point.h
-../bin/osf1/trcalib.o: /usr/include/math.h ../include/particle.h
-../bin/osf1/trcalib.o: ../include/trrec.h ../include/gsen.h
-../bin/osf1/trcalib.o: ../include/gvolume.h ../include/amsdbc.h
-../bin/osf1/trcalib.o: ../include/trid.h ../include/amsstl.h
-../bin/osf1/trcalib.o: ../include/job.h ../include/gmat.h
-../bin/osf1/trcalib.o: /usr/include/cxx/iomanip.h
+../bin/osf1/trcalib.o: /usr/include/stdlib.h ../include/snode.h
+../bin/osf1/trcalib.o: ../include/upool.h /usr/include/cxx/new.h
+../bin/osf1/trcalib.o: /usr/include/cxx/new.hxx ../include/gvolume.h
+../bin/osf1/trcalib.o: ../include/cern.h ../include/cfortran.h
+../bin/osf1/trcalib.o: ../include/hbook.h ../include/geant321.h
+../bin/osf1/trcalib.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/osf1/trcalib.o: ../include/point.h /usr/include/math.h
+../bin/osf1/trcalib.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/trcalib.o: /usr/include/cxx/generic.hxx
 ../bin/osf1/trcalib.o: /usr/include/cxx/mutex.hxx ../include/amsgobj.h
 ../bin/osf1/trcalib.o: ../include/uzstat.h ../include/timeid.h
 ../bin/osf1/trcalib.o: /usr/include/time.h /usr/include/sys/timers.h
 ../bin/osf1/trcalib.o: /usr/include/sys/sysmisc.h ../include/astring.h
-../bin/osf1/trcalib.o: ../include/status.h ../include/cont.h
-../bin/osf1/trcalib.o: ../include/event.h /usr/include/sys/time.h
+../bin/osf1/trcalib.o: ../include/commons.h ../include/status.h
+../bin/osf1/trcalib.o: ../include/link.h ../include/apool.h
+../bin/osf1/trcalib.o: ../include/cont.h /usr/include/sys/time.h
 ../bin/osf1/trcalib.o: /usr/include/sys/signal.h
 ../bin/osf1/trcalib.o: /usr/include/sys/siginfo.h
 ../bin/osf1/trcalib.o: /usr/include/machine/signal.h
@@ -2130,13 +2127,11 @@ depend:
 ../bin/osf1/trcalib.o: ../include/io.h /usr/include/cxx/fstream.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/fstream.hxx
 ../bin/osf1/trcalib.o: /usr/include/sys/times.h ../include/daqevt.h
-../bin/osf1/trcalib.o: ../include/tofrec.h ../include/tofdbc.h
-../bin/osf1/trcalib.o: ../include/extC.h ../include/beta.h
-../bin/osf1/trcalib.o: ../include/ctcrec.h ../include/ctcdbc.h
-../bin/osf1/trcalib.o: ../include/ctcsim.h ../include/charge.h
-../bin/osf1/trcalib.o: ../include/ctc.h ../include/trrawcluster.h
+../bin/osf1/trcalib.o: ../include/trrawcluster.h ../include/gsen.h
+../bin/osf1/trcalib.o: ../include/amsstl.h ../include/trid.h
 ../bin/osf1/trcalib.o: /usr/include/float.h /usr/include/fp_class.h
-../bin/osf1/trcalib.o: ../include/mccluster.h
+../bin/osf1/trcalib.o: ../include/mccluster.h ../include/ctcdbc.h
+../bin/osf1/trcalib.o: ../include/tofdbc.h ../include/extC.h
 ../bin/osf1/trigger1.o: ../include/commons.h ../include/cern.h
 ../bin/osf1/trigger1.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/trigger1.o: /usr/include/standards.h

@@ -1330,8 +1330,9 @@ ostrstream ost(name,sizeof(name));
     for ( ii=0;ii<5;ii++)par[ii]=AMSDBc::layd(i,ii);
       gid=i+1;
       integer status=1;
+      integer rgid;
       if(TKDBc::update())TKDBc::SetLayer(i+1,status,coo,nrm,gid);
-      else               TKDBc::GetLayer(i+1,status,coo,nrm);
+      else               TKDBc::GetLayer(i+1,status,coo,nrm,rgid);
 #ifdef __AMSDEBUG__
          if(i==2 && AMSgvolume::debug){
           MTX(xnrm,xx);
@@ -1375,8 +1376,9 @@ ostrstream ost(name,sizeof(name));
       //
         gid=i+1+10*(j+1)+100000;
         integer status=1;
+        int rgid;
         if(TKDBc::update())TKDBc::SetLadder(i,j,k,status,coo,nrm,gid);
-        else               TKDBc::GetLadder(i,j,k,status,coo,nrm);
+        else               TKDBc::GetLadder(i,j,k,status,coo,nrm,rgid);
         //        if(i==5){
         //          cout <<"Lad "<<j<<" "<<k<<" "<< coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
         //        }
@@ -1493,7 +1495,7 @@ ostrstream ost(name,sizeof(name));
        par[2]=AMSDBc::support_hc_w(i)/2;
        coo[0]=0;
        coo[1]=0;
-       coo[2]=AMSDBc::support_hc_z(i);
+       coo[2]=AMSDBc::zpos(i)-AMSDBc::silicon_z(i)/2.+AMSDBc::support_hc_z(i);
        VZERO(nrm,9*sizeof(nrm[0][0])/4);
        nrm[0][0]=1;
        nrm[1][1]=1;

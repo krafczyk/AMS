@@ -38,7 +38,7 @@ C RNDM 197683093 1356123257
 C TOFMC 13=1
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0      3=50.   4=1  5=0 6='v203a' 
+AMSJOB 1=0   2=0      3=50.   4=1  5=0 46='AMSSHUTTLE.default' 
 C Special HP-UX
 TKGEOM   1=0 2=1
 TIME 3=10000000
@@ -68,7 +68,7 @@ C RNDM 197683093 1356123257
 C TOFMC 13=1
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0      3=50.   4=1  5=0 6='v203a' 
+AMSJOB 1=0   2=0      3=50.   4=1  5=0 46='AMSSHUTTLE.default' 
 C Special HP-UX
 TKGEOM   1=1 3=1
 TIME 3=10000000

@@ -33,16 +33,16 @@ void AMSNtuple::init(){
   _Nentries=0;
   HBNT(_lun, getname()," ");
   HBNAME(_lun,"EventH",&_event.Eventno,
-  "eventno:I,run:I,runtype:I,time(2):I,RawWords[0,32000]:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,Particles[0,100]:I,Tracks[0,100]:I,Betas[0,100]:I,Charges[0,100]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,100]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EventStatus:I");
+  "eventno:I,run:I,runtype:I,time(2):I,RawWords[0,32000]:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,100]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EventStatus:I");
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
-      "nbeta[0,100],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
+      "nbeta[0,150],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betaerror(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
 
   HBNAME(_lun,"Charge",&_charge.Ncharge,
-    "ncharge[0,10],chargestatus(ncharge):I,chargebetap(ncharge)[-1,30000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,probtof(10,ncharge),probtracker(10,ncharge),truntof(ncharge),truntracker(ncharge)");
+    "ncharge[0,150],chargestatus(ncharge):I,chargebetap(ncharge)[-1,30000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,probtof(10,ncharge),probtracker(10,ncharge),truntof(ncharge),truntracker(ncharge)");
 
   HBNAME(_lun,"Particle",&_part.Npart,
-  "npart[0,10],pctcp(2,npart)[-1,30000]:I,pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),signalctc(2,npart),betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart),cootof(3,4,npart),cooanti(3,2,npart),cootr(3,6,npart)");
+  "npart[0,150],pctcp(2,npart)[-1,30000]:I,pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),signalctc(2,npart),betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart),cootof(3,4,npart),cooanti(3,2,npart),cootr(3,6,npart)");
 
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,100]:I,TOFEdep(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
@@ -60,7 +60,7 @@ void AMSNtuple::init(){
   "ntrrh[0,500],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[0,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh)");
 
   HBNAME(_lun,"TrTrack",&_trtr.Ntrtr,
-  "ntrtr[0,20],trstatus(ntrtr):I,pattern(ntrtr)[0,100]:I,nhits(ntrtr)[0,6],phits(6,ntrtr)[-1,30000]:I,FastFitDone(ntrtr)[0,1000]:I,GeaneFitDone(ntrtr)[0,1000]:I,AdvancedFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRidgidity(ntrtr),Chi2FastFit(ntrtr),Ridgidity(ntrtr),ErrRidgidity(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),gridgidity(ntrtr),gerrridgidity(ntrtr),gtheta(ntrtr),gphi(ntrtr),gp0(3,ntrtr),hchi2(2,ntrtr),HRidgidity(2,ntrtr),HErrRidgidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),gchi2ms(ntrtr),ridgidityms(ntrtr),gridgidityms(ntrtr)");
+  "ntrtr[0,200],trstatus(ntrtr):I,pattern(ntrtr)[0,100]:I,nhits(ntrtr)[0,6],phits(6,ntrtr)[-1,30000]:I,FastFitDone(ntrtr)[0,1000]:I,GeaneFitDone(ntrtr)[0,1000]:I,AdvancedFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRidgidity(ntrtr),Chi2FastFit(ntrtr),Ridgidity(ntrtr),ErrRidgidity(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),gridgidity(ntrtr),gerrridgidity(ntrtr),gtheta(ntrtr),gphi(ntrtr),gp0(3,ntrtr),hchi2(2,ntrtr),HRidgidity(2,ntrtr),HErrRidgidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),gchi2ms(ntrtr),ridgidityms(ntrtr),gridgidityms(ntrtr)");
 
   HBNAME(_lun,"MCEventG",&_mcg.Nmcg,
   "nmcg[0,20],nskip(nmcg):I,Particle(nmcg)[-1,30000]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");

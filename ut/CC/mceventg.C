@@ -402,10 +402,10 @@ integer AMSmceventg::EarthModulation(){
   amsxg[2]=amsyg[0]*amszg[1]-amsyg[1]*amszg[0];
 
   number amsx[3],amsy[3],amsz[3];
-  number cp=cos(-pitch); 
-  number sp=sin(-pitch);
-  number cy=cos(-yaw);
-  number sy=sin(-yaw);
+  number cp=cos(pitch); 
+  number sp=sin(pitch);
+  number cy=cos(yaw);
+  number sy=sin(yaw);
   number cr=cos(roll);
   number sr=sin(roll);
   number l1=cy*cp;
