@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.176 2003/05/21 14:12:37 choutko Exp $
+# $Id: RemoteClient.pm,v 1.177 2003/05/21 15:12:25 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -760,7 +760,7 @@ sub RestartServer{
              }
            close FILE;
               my $i=system("chmod +x $full");
-              my $i=system("$full");
+                 $i=system("$full");
            return $i,$full;
           }
        }
@@ -806,7 +806,7 @@ sub ValidateRuns {
 
 # get list of runs from DataBase
     $sql="SELECT run,submit FROM Runs";
-    my $ret=$self->{sqlserver}->Query($sql);
+    $ret=$self->{sqlserver}->Query($sql);
 # get list of runs from Server
     if( not defined $self->{dbserver}->{rtb}){
       DBServer::InitDBFile($self->{dbserver});
@@ -5226,7 +5226,7 @@ sub listStat {
                print "<td align=center><b><font color=\"green\" > $timepassed days</font></b></td>";
               print "</tr>\n";
            my $color="black";
-           my $reqevents;
+           my $reqevents = 0;
            if ($trigreq < 1000) {
 	       $reqevents = $trigreq;
            } elsif ($trigreq => 1000 && $trigreq <= 1000000) {
@@ -5235,7 +5235,7 @@ sub listStat {
                $reqevents = sprintf("%.2fM",$trigreq/1000000.);
 	   }
 
-           my $donevents;
+           my $donevents = 0;
            if ($trigdone< 1000) {
 	       $donevents = $trigdone;
            } elsif ($trigdone=> 1000 && $trigdone<= 1000000) {
@@ -5959,6 +5959,11 @@ sub DownloadSA {
 
 sub PrintDownloadTable {
     my $self = shift;
+
+    my $file = undef;
+    my $dtime= undef;
+
+
     print "<tr><td width=600>\n";
     print "<table border=\"0\" cellspacing=\"5\" cellpadding=\"5\">\n";
     print "<P>\n";
@@ -5976,8 +5981,7 @@ sub PrintDownloadTable {
             $download = 0;
         }
     }
-     my $file= $self->{FileDB};
-    my $dtime = undef;
+     $file= $self->{FileDB};
     if ($download == 1) {
      print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  filedb files (tar.gz)</a>
@@ -5989,7 +5993,7 @@ sub PrintDownloadTable {
      print "<br><font size=\"4\">
            filedb files (tar.gz)</a>
            </font>";
-     my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
+     $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
      print "<br><br>";
    }
@@ -6027,11 +6031,11 @@ sub PrintDownloadTable {
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>";   
 #crc tar
-     my $file= $self->{FileCRC};
+     $file= $self->{FileCRC};
      print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  CRC Linux exec (tar.gz) - <i> optional </i></a>
            </font>";
-     my $dtime=EpochToDDMMYYHHMMSS($self->{FileCRCTimestamp});
+     $dtime=EpochToDDMMYYHHMMSS($self->{FileCRCTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>";
  }
@@ -6245,7 +6249,8 @@ sub parseJournalFiles {
  my $cid          = undef;
  my $sql          = undef;
  my $ret          = undef;
-
+ my $html         = 1;      # print output in html format
+ 
     if( not $self->Init()){
         die "parseJournalFiles -F- Unable To Init";
         
@@ -6890,6 +6895,7 @@ foreach my $block (@blocks) {
     $status = 'Completed';
     $inputfileLink = $inputfile.".1";
     if ($runfinishedR != 1) {
+      
       print FILE "End of Run not found update Jobs \n";
       $sql = "UPDATE Jobs SET 
                  host='$host',
@@ -6897,6 +6903,7 @@ foreach my $block (@blocks) {
                  cputime=-1, elapsed=-1,
                  timestamp=$timestamp 
                 where jid=$lastjobid";
+      print FILE "$sql \n";
       $self->Query($sql);
      }
    }
