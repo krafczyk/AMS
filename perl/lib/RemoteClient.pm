@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.147 2003/05/05 07:49:19 alexei Exp $
+# $Id: RemoteClient.pm,v 1.148 2003/05/05 09:14:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -960,6 +960,18 @@ sub ValidateRuns {
                $sql = "DELETE ntuples WHERE run=$run->{Run}";
                $self->{sqlserver}->Update($sql);
                $runupdate = "UPDATE runs SET ";
+               $sql = "SELECT dirpath FROM journals WHERE cid=-1";
+               my $r0 = $self->{sqlserver}->Query($sql);
+               if (defined $r0->[0][0]) { 
+                my $junkdir = $r0->[0][0];
+                foreach my $ntuple (@cpntuples) {
+                 my $cmd="mv $ntuple $junkdir/";
+                 system($cmd);
+                }
+                htmlText("Validation failed : moves ntuples to  ",$junkdir);
+               } else {
+                htmlText("Validation failed : cannot get junkdir  ",$sql);
+               }
            }
           $sql = $runupdate." STATUS='$status' WHERE run=$run->{Run}";
           $self->{sqlserver}->Update($sql);

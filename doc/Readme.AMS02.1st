@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.46 2003/03/14 12:17:48 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.47 2003/05/05 09:14:18 alexei Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -152,9 +152,20 @@ VIII. Misc
 
 a. Accounts
 
-   To get local/afs accounts on ams computers ask
-   Alexei.Klimentov@cern.ch                 
-   
+   First you should be registered at CERN Human Resource Database.
+   No access to AMS (and CERN public machines can be given to 
+   non-authorised users). 
+   If you are not registered at CERN  HR :
+     - contact AMS secretariat - Laurence Barrin (laurence.barrin@cern.ch)
+     - fill CERN computing center User's registration form (available in  
+       CERN User's Office) and fax the form (41 22 767 7910) or send it 
+       via CERN internal mail to Alexei Klimentov
+   If you already have an account at CERN and your primary group isn't 
+   'VA' (AMS)  or 'XV'(L3) specify explicitly what is you primary 
+   experiment/group.
+   To get local/afs accounts on ams computers ask Alexei Klimentov or 
+   Alexandre Eline  (e-mail : ams-support-computing@cern.ch).
+
 b. Disk space
     see a.
 

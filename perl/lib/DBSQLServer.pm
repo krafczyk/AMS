@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.45 2003/04/25 07:11:29 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.46 2003/05/05 09:14:21 alexei Exp $
 
 #
 #
@@ -424,8 +424,11 @@ my $sql;
          $n++;
          $run=($n<<27)+1;
      }
+      my $junkdir = $journal."/junk";
+      $dbh->do("INSERT INTO journals VALUES(-1,$junkdir,' ',$time)")  
+      or die "cannot do: ".$dbh->errstr();    
     }
-   }
+   } 
   } # foreach my $line
  } else {
     warn "Table Cites has $cnt entries. Not initialized";
