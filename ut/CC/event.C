@@ -195,6 +195,7 @@ void AMSEvent::_endofrun() {
   if (SRun > 0) {
    strcpy(time1,ctime(&T0));
    for(int j=0; j<15; j++) time11[j] = time1[j+4];
+   time11[15] = '\0';
 
    logsum = getenv("RunsSummaryFile");
    if (logsum) 
