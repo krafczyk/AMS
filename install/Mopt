@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.205 2001/12/10 20:03:08 choutko Exp $
+#  $Id: Mopt,v 1.206 2001/12/12 10:17:07 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -58,7 +58,7 @@ FFLAGS=   -O -I../include
 FFLAGSn=    -I../include
 endif
 DFLAGS=       -I/usr/include  -I../include   -I$(SRC)
-LDFLAGS=   -Bstatic  -library=f77,Cstd,Crun -lm   -L/cern/pro/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sun4x_56/nagfl16df -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L/usr/ucblib -lucb  
+LDFLAGS=   -Bstatic  -library=f77,Cstd,Crun -lm   -L/cern/pro/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sun4x_56/nagfl16df -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut 
 #LDFLAGS=   -Bstatic -library=f77,Cstd,Crun -lm   -L/cern/pro/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sun4x_56/nagfl16df -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L/usr/ucblib -lucb -Bdynamic -L/usr/lib -ldl 
 TIMEL=
 endif

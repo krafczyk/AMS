@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.74 2001/12/10 18:24:25 choutko Exp $
+//  $Id: timeid.C,v 1.75 2001/12/12 10:17:02 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -18,6 +18,12 @@
 #endif
 #if !defined( __IBMAIX__) && !defined(sun) 
 #include <dirent.h>
+#elif !defined( __IBMAIX__)
+#include <dirent.h>
+extern "C" int scandir(		const char *, struct dirent ***, 
+                                int (*)(struct dirent *),  
+                                int (*)(struct dirent **, struct dirent **));
+
 #else
 
 #define _D_NAME_MAX 255
@@ -481,7 +487,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
       _selectEntry=&fnam;
       dirent ** namelistsubdir;
       int size=0;
-      int nptrdir=scandir((const char *)fdir,&namelistsubdir,_selectsdir,NULL);     
+      int nptrdir=scandir((const char *)fdir,&namelistsubdir,_selectsdir,NULL);
       for(int is=0;is<nptrdir;is++){
        AString fsdir(fdir);
        fsdir+=namelistsubdir[is]->d_name;
