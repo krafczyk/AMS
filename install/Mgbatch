@@ -9,12 +9,7 @@ ROOTLIBS      =
 CFLAGS= -D__AMSDEBUG__  -D__IBMAIX__ -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include -I../include/stl -I../db
 FFLAGS=   -g -I../include -qextname -qflttrap=overflow:underflow:zerodivide:invalid:inexact:enable -qfloat=nans -d
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
-<<<<<<< Mgbatch
 LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag 
-=======
-LDFLAGS= -g -bloadmap:map  -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag  $(ROOTLIBS)
-SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
->>>>>>> 1.107
 CC=xlC
 FF=xlf
 LD=xlC
@@ -29,11 +24,7 @@ SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolv
 CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include -I../include/stl -I../db -define_templates 
 FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
-<<<<<<< Mgbatch
 LDFLAGS= -g -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag 
-=======
-LDFLAGS= -g -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag $(ROOTLIBS)
->>>>>>> 1.107
 CC=cxx
 FF=f77
 LD=cxx
