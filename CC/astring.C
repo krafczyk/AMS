@@ -18,6 +18,12 @@ AString::Data::Data(const char * a){
     RefC=1;
    }
   }
+   else{
+    cerr <<" AString::Data::Data-E-ZeroInput " <<endl;
+    pString = new char[1];
+    pString[0]='\0';
+    RefC=1;
+   }
 }
 
 AString::Data::Data( char  a, int n){

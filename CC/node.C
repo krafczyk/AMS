@@ -67,3 +67,11 @@ void AMSNode::printN(ostream & stream, int i){
     if(i && next())next()->printN(stream,1);
 }
 
+
+void AMSNode::setMessage(const char * message){
+if(message){
+if(_message)delete[] _message;
+_message=new char[strlen(message)+1];
+strcpy(_message,message);
+}
+}

@@ -440,15 +440,6 @@ GDCXYZ();
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
-#ifdef __DB__
-   if (dbg_prtout != 0 && eventR > DBWriteGeom) {
-     cout <<"guout_: read event of type "<<AMSJob::gethead() -> eventRtype()
-          <<" from dbase"<<endl;
-    if (AMSJob::gethead() -> isMCBanks()) cout <<"guout_: MCBanks exist"<<endl;
-    if (AMSJob::gethead() -> isRecoBanks()) 
-                                        cout <<"guout_: RecoBanks exist"<<endl;
-   }
-#endif
 
    try{
    if(AMSJob::gethead()->isSimulation()){
@@ -496,10 +487,10 @@ extern "C" void guout_(){
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
      AMSEvent::gethead()->seterror(2);
+/*
 #ifdef __CORBA__
      AMSProducer::gethead()->AddEvent();
 #endif
-/*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
      UPool.Release(1);
@@ -514,11 +505,11 @@ extern "C" void guout_(){
      AMSEvent::gethead()->_printEl(cerr);
      AMSEvent::gethead()->seterror(e.getlevel());
      if(e.getlevel()>2)throw e; 
+     
+/*
 #ifdef __CORBA__
      AMSProducer::gethead()->AddEvent();
 #endif
-     
-/*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
      UPool.Release(1);
@@ -561,13 +552,11 @@ extern "C" void guout_(){
         if(trigl==0)trig=0;
        }
      }
-// try to manipulate the conditions for writing....
    if(trig ){ 
      AMSEvent::gethead()->copy();
    }
      AMSEvent::gethead()->write(trig);
 #ifdef __DB_All__
-//+
    if(trig) {
     if ( eventW > DBWriteGeom) {
      integer run   = AMSEvent::gethead() -> getrun();
@@ -589,7 +578,6 @@ extern "C" void guout_(){
    } else {
      notrigEvents++;
    }
-//-
 #endif
      UPool.Release(0);
    AMSEvent::gethead()->remove();
@@ -597,6 +585,7 @@ extern "C" void guout_(){
    AMSEvent::sethead(0);
    UPool.erase(2000000);
    AMSgObj::BookTimer.stop("GUOUT");
+
 // allow termination via time via datacard
 {  
    float xx;

@@ -10,20 +10,20 @@
 class AMSNode : public AMSID{
 // Simple Node Class V.Choutko 3/20/96
  protected:
-  AString _message;
+  char * _message;
   AMSNode *_next;
   AMSNode *_prev;
   AMSNode *_up;
   AMSNode *_down;
   AMSNode(AMSID _amsid=0):
-          AMSID(_amsid),_up(0),_down(0),_prev(0),_next(0){const char *a=0;_message=a;}
+          AMSID(_amsid),_up(0),_down(0),_prev(0),_next(0),_message(0){}
  private:
   AMSNode( AMSNode &):AMSID(0){}  // do not have copy ctor at the moment
   //AMSNode & operator =(const AMSNode & o){return *this;}
  public:
  const char * getMessage()const {return (const char *)_message;}
- void setMessage(const char * message){_message=message;}
- virtual ~AMSNode(){}
+ void setMessage(const char * message);
+ virtual ~AMSNode(){if(_message)delete[] _message;_message=0;}
   AMSNode *  add(  AMSNode *);
   AMSNode * addup( AMSNode *);   // add at virtual top
   void  remove();
