@@ -41,10 +41,10 @@ IOPA 1=3 2='a' 43=2
 C RNDM 197683093 1356123257
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=10011   2=0      3=3.   4=1  5=0 6='v203a'  87=0
+AMSJOB 1=11   2=0      3=3.   4=1  5=0 6='v203a'  87=0
 C Special HP-UX
 TIME 3=10000000
-DAQC 1=1 2='$Offline/RunsDir.local/runs/'
+DAQC 1=1 2='$RunsDir/runs/'
 TRCALIB 9=2 13=1
 TERM 1=1234567890
 L3REC  11=1 12=2 
