@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.151 2003/05/07 07:14:51 alexei Exp $
+# $Id: RemoteClient.pm,v 1.152 2003/05/07 10:34:51 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1485,7 +1485,135 @@ sub Connect{
         htmlBottom();
       }
     }
-   }   
+   }
+# getJobId ends here
+#
+    if ($self->{q}->param("getRunID")) {
+     $self->{read}=1;
+     if ($self->{q}->param("getRunID") eq "Submit") {
+        htmlTop();
+        my $title = "Runs List ";
+        my $runid = 0;
+        my $runmin= 0;
+        my $runmax= 0;
+        if (defined $q->param("RunID")) {
+         $self->htmlTemplateTable($title);
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td align=center><b><font color=\"blue\">Run </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Job</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >fEvent </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >lEvent</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Submitted </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Status </font></b></td>";
+               print "</tr>\n";
+            if ($q->param("RunID") =~ /-/) {
+                ($runmin,$runmax) = split '-',$q->param("RunID");
+                $title = $title.$q->param("RunID");
+                $sql = "SELECT run, jid, fevent, levent, submit, status FROM Runs 
+                          WHERE run>$runmin AND run<$runmax 
+                          ORDER BY run";
+            } else {
+             $runid =  trimblanks($q->param("RunID"));
+             $title = $title.$runid;
+              $sql = "SELECT run, jid, fevent, levent, submit, status FROM Runs 
+                          WHERE run=$runid"; 
+            }
+         my $ret=$self->{sqlserver}->Query($sql);
+         if (defined $ret->[0][0]) {
+          foreach my $r (@{$ret}){
+             my $run    = $r->[0];
+             my $jid    = $r->[1];
+             my $fevent = $r->[2];
+             my $levent = $r->[3];
+             my $submit  =$r->[4];
+             my $status  = trimblanks($r->[5]);
+             $color="black";
+             if ($status eq 'Finished' || $status eq 'Completed') {
+                 $color = "green";
+             } elsif ($status eq 'Failed' || $status eq 'Unchecked' || $status eq 'TimeOut')  {
+                 $color = "red";
+             }
+           print "
+                  <td align=left><b><font color=$color> $run </font></td></b>
+                  <td align=left><b><font color=$color> $jid </font></td></b>
+                  <td align=center><b><font color=$color> $fevent </font></b></td>
+                  <td align=center><b><font color=$color> $levent </font></td></b>
+                  <td align=center><b><font color=$color> $submit </font></td></b>
+                  <td align=center><b><font color=$color> $status </font></b></td>\n";
+              print "</tr>\n";
+
+         }
+      }
+       htmlTableEnd();
+      htmlTableEnd();
+     }
+    htmlBottom();
+    }
+ }
+# getRunID end here
+#
+    if ($self->{q}->param("getDSTID")) {
+     $self->{read}=1;
+     if ($self->{q}->param("getDSTID") eq "Submit") {
+        htmlTop();
+        my $title = "DSTs List ";
+        my $runid = 0;
+        my $runmin= 0;
+        my $runmax= 0;
+        if (defined $q->param("DSTID")) {
+         $self->htmlTemplateTable($title);
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td align=center><b><font color=\"blue\">Job </font></b></td>";
+               print "<td align=center><b><font color=\"blue\">Run </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Updated</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >FilePath </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Events</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Errors </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Status </font></b></td>";
+               print "</tr>\n";
+            if ($q->param("DSTID") =~ /-/) {
+                ($runmin,$runmax) = split '-',$q->param("DSTID");
+                $title = $title.$q->param("RunID");
+                $sql = "SELECT jid, run, timestamp, nevents, neventserr, status 
+                          FROM ntuples  
+                          WHERE run>$runmin AND run<$runmax 
+                          ORDER BY run";
+            } else {
+             $runid =  trimblanks($q->param("DSTID"));
+             $title = $title.$runid;
+             $sql = "SELECT jid, run, path, timestamp, nevents, neventserr, status 
+                      FROM ntuples  WHERE run=$runid"; 
+            }
+         my $ret=$self->{sqlserver}->Query($sql);
+         if (defined $ret->[0][0]) {
+          foreach my $r (@{$ret}){
+             my $jid       = $r->[0];
+             my $run       = $r->[1];
+             my $path      = trimblanks($r->[2]);
+             my $starttime = EpochToDDMMYYHHMMSS($r->[3]); 
+             my $nevents   = $r->[4];
+             my $nerrors   = $r->[5];
+             my $status    = trimblanks($r->[6]);
+             my $color     = statusColor($status);
+             print "<td><b> $jid </td></b>
+                    <td><b> $run </td>
+                    <td><b> $starttime </b></td>
+                    <td><b> $path </b></td> 
+                    <td align=middle><b> $nevents </b></td> 
+                    <td align=middle><b> $nerrors </b></td> 
+                    <td align=middle><b><font color=$color> $status </font></b></td> \n";
+             print "</font></tr>\n";
+         }
+      }
+       htmlTableEnd();
+      htmlTableEnd();
+     }
+    htmlBottom();
+    }
+ }
+# getDSTID end here
+#
+
     if ($self->{q}->param("queryDB")) {
      $self->{read}=1;
      if ($self->{q}->param("queryDB") eq "Submit") {
@@ -1979,6 +2107,22 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
       print "<b>JobID : </b> <input type =\"text\" name=\"JobID\">\n";
       print "<input type=\"submit\" name=\"getJobID\" value=\"Submit\"> \n";
       print "</form>\n";
+       print "<tr></tr>\n";
+       print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
+       print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
+       print "Find Run : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
+       print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+       print "<b>RunID : </b> <input type =\"text\" name=\"RunID\">\n";
+       print "<input type=\"submit\" name=\"getRunID\" value=\"Submit\"> \n";
+       print "</form>\n";
+        print "<tr></tr>\n";
+        print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
+        print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
+        print "Find Ntuple(s) : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
+        print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+        print "<b>RunID : </b> <input type =\"text\" name=\"DSTID\">\n";
+        print "<input type=\"submit\" name=\"getDSTID\" value=\"Submit\"> \n";
+        print "</form>\n";
   htmlBottom();
   }
  }
@@ -5402,9 +5546,30 @@ sub listServers {
 
 sub listJobs {
     my $self = shift;
-     print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
-     htmlTable("MC02 Jobs");
-     my $sql="SELECT Jobs.jid, Jobs.jobname, Jobs.cid, Jobs.mid, 
+    
+    my $ret  = undef;
+    my $sql  = undef;
+    my $href = undef;    
+
+    print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
+    htmlTable("MC02 Jobs");
+    print_bar($bluebar,3);
+
+    $sql = "SELECT name FROM cites ORDER BY name";
+    $ret=$self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+     print " <Table> \n";
+     print " <TR><TH rowspan=2>MC Production Cites :<br> \n";
+     foreach my $cite (@{$ret}) {
+      my $rc = $cite->[0];
+      print "</th> <th><small> \n";
+      $href = "http://pcamsf0.cern.ch/cgi-bin/mon/rc.dsp.cgi\#jobs-".$rc;
+      print "<a href= $href target=\"status\"> <b><font color=blue>$rc</b></font></a>\n";
+     }
+     print "</TR></TABLE> \n";
+    }
+
+    $sql="SELECT Jobs.jid, Jobs.jobname, Jobs.cid, Jobs.mid, 
                      Jobs.time, Jobs.timeout, Jobs.triggers,
                      Cites.cid, Cites.name,
                      Mails.mid, Mails.name
@@ -5442,20 +5607,20 @@ sub listJobs {
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
                print "<td><font color=green size=\"+1\"><b>$citedescr ($cite)</b></font></td>\n";
                print "</table>\n";
-               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-#               print "<tr><td><b><font color=\"blue\" >Cite </font></b></td>";
-               print "<td><b><font color=\"blue\">JobId </font></b></td>";
-               print "<td><b><font color=\"blue\" >Owner </font></b></td>";
-               print "<td><b><font color=\"blue\" >JobName </font></b></td>";
-               print "<td><b><font color=\"blue\" >Submit Time </font></b></td>";
-               print "<td><b><font color=\"blue\" >Expire Time </font></b></td>";
-               print "<td><b><font color=\"blue\" >Triggers </font></b></td>";
-               print "<td><b><font color=\"blue\" >Status </font></b></td>";
-              print "</tr>\n";
-           }
-          }
-#          print "<td><b><font color=$color> $cite </font></td></b>
-           print "
+               my $citename="jobs-".$cite;
+               print "<A Name = $citename> </a>\n";
+                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+                 print "<td><b><font color=\"blue\">JobId </font></b></td>";
+                 print "<td><b><font color=\"blue\" >Owner </font></b></td>"; 
+                 print "<td><b><font color=\"blue\" >JobName </font></b></td>";
+                 print "<td><b><font color=\"blue\" >Submit Time </font></b></td>";
+                 print "<td><b><font color=\"blue\" >Expire Time </font></b></td>";
+                 print "<td><b><font color=\"blue\" >Triggers </font></b></td>";
+                 print "<td><b><font color=\"blue\" >Status </font></b></td>";
+                 print "</tr>\n";
+             }
+            }
+                 print "
                   <td><b><font color=$color> $jid </font></td></b>
                   <td><b><font color=$color> $user </font></b></td>
                   <td><b><font color=$color> $name </font></td></b>
@@ -5464,23 +5629,28 @@ sub listJobs {
                   <td><b><font color=$color> $trig </font></b></td>
                   <td><b><font color=$color> $status </font></b></td>\n";
 
-          print "</font></tr>\n";
+                 print "</font></tr>\n";
       }
-  }
-       htmlTableEnd();
       htmlTableEnd();
+    }  
+     htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
 }
 
 sub listRuns {
     my $self = shift;
+    my $rr   = 0;
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
+     print "<tr><font color=blue><b><i> Only last 100 runs are listed, to get complete list 
+            <a href=http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form> click here</a>
+            </b><i></font></tr>\n";
+
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status 
               FROM   Runs 
-              ORDER  BY Runs.jid";
+              ORDER  BY Runs.submit DESC, Runs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
               print "<td><b><font color=\"blue\">Run </font></b></td>";
@@ -5499,6 +5669,8 @@ sub listRuns {
                   <td><b><font color=$color> $starttime </font></b></td>
                   <td><b><font color=$color> $status    </font></b></td> \n";
           print "</font></tr>\n";
+          $rr++;
+          if ($rr > 100) { last;}
       }
   }
        htmlTableEnd();
@@ -5509,15 +5681,21 @@ sub listRuns {
 
 sub listNtuples {
     my $self = shift;
+    my $nn   = 0;
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><a href=$validatecgi><b><font color=green> MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
+     print "<tr><font color=blue><b><i> Only last 100 files are listed, to get complete list 
+            <a href=http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form> click here</a>
+            </b><i></font></tr>\n";
      print "<p>\n";
+
+
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT Ntuples.run, Ntuples.jid, Ntuples.nevents, Ntuples.neventserr, 
                      Ntuples.timestamp, Ntuples.status, Ntuples.path
               FROM   Ntuples
-              ORDER  BY Ntuples.jid";
+              ORDER  BY Ntuples.timestamp DESC, Ntuples.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td width=10% align=left><b><font color=\"blue\" > JobId </font></b></td>";
               print "<td width=10%><b><font color=\"blue\"> Run </font></b></td>";
@@ -5545,6 +5723,8 @@ sub listNtuples {
                   <td align=middle><b> $nerrors </b></td> 
                   <td align=middle><b><font color=$color> $status </font></b></td> \n";
           print "</font></tr>\n";
+          $nn++;
+          if ($nn > 100) { last;}
       }
   }
        htmlTableEnd();
@@ -6485,8 +6665,9 @@ foreach my $block (@blocks) {
     $runfinished[0] = "RunFinished";
     $runfinishedR   = 1;
     $sql = "UPDATE Runs SET LEVENT=$runfinished[4] WHERE run=$run";
+    $self->{sqlserver}->Update($sql);
     print FILE "$sql \n";
-    $self-{sqlserver}->Update($sql);
+
     my $cputime = sprintf("%.0f",$runfinished[6]);
     my $elapsed = sprintf("%.0f",$runfinished[7]);
     $sql = "update jobs set events=$runfinished[3], errors=$runfinished[5], 
