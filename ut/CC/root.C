@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.56 2003/09/19 14:23:12 alcaraz Exp $
+//  $Id: root.C,v 1.57 2003/09/22 08:44:26 choutko Exp $
 //
 
 #include <root.h>
@@ -145,6 +145,9 @@ char RichHitR::_Info[255];
 char RichRingR::_Info[255];
 char TrMCClusterR::_Info[255];
 char MCEventgR::_Info[255];
+char Level1R::_Info[255];
+char Level3R::_Info[512];
+char HeaderR::_Info[255];
 
 
 TTree*     AMSEventR::_Tree=0;
