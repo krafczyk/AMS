@@ -33,7 +33,7 @@ const integer AMSTrCluster::REFITTED=4;
 const integer AMSTrCluster::WEAK=8;
 const integer AMSTrRecHit::FalseX=1;
 const integer AMSTrRecHit::FalseTOFX=2;
-const integer AMSTrRecHit::AwayTOF=3;
+const integer AMSTrRecHit::AwayTOF=128;
 
 integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       1,2,3,4,6,0,   // 12346   1
@@ -846,10 +846,11 @@ integer AMSTrRecHit::build(integer refit){
    }
    y=y->next();
  }  
- return 1;
 
 // Mark hits away from TOF predictions
- markAwayTOFHits();
+ if (TRFITFFKEY.AwayTOFTracking!=0) markAwayTOFHits();
+
+ return 1;
 
 }
 
@@ -904,10 +905,11 @@ integer AMSTrRecHit::buildWeak(integer refit){
    }
    y=y->next();
  }  
- return 1;
 
 // Mark hits away from TOF predictions
- markAwayTOFHits();
+ if (TRFITFFKEY.AwayTOFTracking!=0) markAwayTOFHits();
+
+ return 1;
 
 }
 
