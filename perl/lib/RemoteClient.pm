@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.145 2003/05/02 17:29:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.146 2003/05/03 12:30:12 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6466,7 +6466,7 @@ foreach my $block (@blocks) {
   print FILE "Update Runs : $sql \n";
   my $lncmd = "mv $inputfile $inputfileLink";
   system($lncmd); 
- }
+}
  close FILE;
  
 }
