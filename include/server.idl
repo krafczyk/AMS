@@ -95,7 +95,7 @@ module DPS{
   };
  
   interface Producer: Client{
-    enum RunTransferStatus{Begin,Continue,End};
+    enum TransferStatus{Begin,Continue,End};
     enum RunStatus{ToBeRerun, Failed,Processing, Finished};
     enum DSTStatus{Success,InProgress,Failure};
     enum RunMode{RILO,LILO,RIRO,LIRO};
@@ -118,6 +118,7 @@ module DPS{
     typedef sequence<TDVName> TDV;
     typedef sequence<unsigned long> TDVbody;
     long getTDV(in DPS::Client::CID cid,inout TDVName tdvname, out TDVbody body);
+    long getSplitTDV(in DPS::Client::CID cid, inout unsigned long pos, inout TDVName tdvname, out TDVbody body, inout TransferStatus st);
     void sendTDV(in DPS::Client::CID cid,in TDVbody tdv, inout TDVName tdvname );
     void sendTDVUpdate(in DPS::Client::CID cid, in TDVName tdvname );
 
@@ -200,7 +201,7 @@ module DPS{
      string fname;
      unsigned long pos;
     };  
-    long getRun(in CID id, in FPath fpath ,out RUN run,  inout RunTransferStatus st) raises(FailedOp);      
+    long getRun(in CID id, in FPath fpath ,out RUN run,  inout TransferStatus st) raises(FailedOp);      
     
   };
 

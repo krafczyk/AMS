@@ -126,7 +126,7 @@ else{
        cerr <<fpath<<endl;
        FMessage("Unable to open tmp run file ", DPS::Client::CInAbort); 
      }
-     DPS::Producer::RunTransferStatus st=DPS::Producer::Begin;
+     DPS::Producer::TransferStatus st=DPS::Producer::Begin;
      DPS::Producer::RUN * prun;
      DPS::Producer::FPath fp;
      fp.fname=(const char*)_reinfo->FilePath;
@@ -479,6 +479,56 @@ if(!suc){
 DPS::Producer::TDVbody_var vbody=pbody;
 if(name.Success){
  int nb=tdv->CopyIn(vbody->get_buffer());
+ if(nb){
+  tdv->SetTime(name.Entry.Insert,name.Entry.Begin,name.Entry.End);
+  return true;
+ }
+}
+return false;
+}
+bool AMSProducer::getSplitTDV(AMSTimeID * tdv, int id){
+DPS::Producer::TDVbody * pbody;
+DPS::Producer::TDVName name;
+name.Name=tdv->getname();
+name.DataMC=tdv->getid();
+name.CRC=tdv->getCRC();
+name.Size=tdv->GetNbytes();
+name.Entry.id=id;
+time_t i,b,e;
+tdv->gettime(i,b,e);
+name.Entry.Insert=i;
+name.Entry.Begin=b;
+name.Entry.End=e;
+ int length=0;
+ int suc=0;
+ uinteger pos=0;
+ DPS::Producer::TransferStatus st=DPS::Producer::Begin;
+ DPS::Producer::TDVbody_var vb2=new DPS::Producer::TDVbody();
+ uinteger totallength=0;
+ while (st!=DPS::Producer::End){
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  
+  try{
+    length=(*li)->getSplitTDV(_pid,pos,name,pbody,st);
+    suc++;
+    break;
+  }
+  catch  (CORBA::SystemException & a){
+  }
+ }
+if(!suc){
+ FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
+ return false;
+}
+DPS::Producer::TDVbody_var vbody=pbody;
+vb2->length(totallength+length);
+for(int i=0;i<length;i++){
+  vb2[i+totallength]=vbody[i];
+}
+totallength+=length;
+}
+if(name.Success){
+ int nb=tdv->CopyIn(vb2->get_buffer());
  if(nb){
   tdv->SetTime(name.Entry.Insert,name.Entry.Begin,name.Entry.End);
   return true;

@@ -39,6 +39,7 @@ void sendRunEnd(DAQEvent::InitResult res);
 void sendEventTagEnd(const char *name, uinteger run,time_t insert, time_t begin,time_t end,uinteger first,uinteger last,integer nelem, bool fail);  
 void sendEventTagBegin(const char * name,uinteger run,uinteger first);  
 bool getTDV(AMSTimeID * tdv, int id);
+bool getSplitTDV(AMSTimeID * tdv, int id);
 bool sendTDV(const AMSTimeID * tdv);
 virtual void Exiting(const char * message=0);
 void InitTDV(uinteger run);

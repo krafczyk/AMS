@@ -1914,6 +1914,45 @@ li->second->gettime(i,b,e);
  return length;
 }
 
+int Producer_impl::getSplitTDV(const DPS::Client::CID & cid,  unsigned int & pos,TDVName & tdvname, TDVbody_out body, TransferStatus & st)throw (CORBA::SystemException){
+st=Continue;
+int length=0;
+TIDI li=_findTDV(tdvname);
+tdvname.Success=false;
+if(li!=_tid.end()){
+ time_t b=tdvname.Entry.Begin;
+ tdvname.Success=li->second->read((const char*)AMSDBc::amsdatabase,tdvname.Entry.id,b);
+}
+time_t i,b,e;
+li->second->gettime(i,b,e);
+ tdvname.Entry.Insert=i;
+ tdvname.Entry.Begin=b;
+ tdvname.Entry.End=e;
+ TDVbody_var vbody=new TDVbody();
+ if(tdvname.Success){
+  length=li->second->GetNbytes()/sizeof(uinteger);
+  int last=length-pos;
+  const int maxs=400000;
+  vbody->length(length);
+  li->second->CopyOut(vbody->get_buffer());
+  if(last>maxs){
+   length=maxs;
+   for (uinteger i=0;i<pos;i++){
+      vbody[i]=vbody[i+pos];
+   }        
+   vbody->length(length);
+   pos+=length;
+  }
+  else st=End;
+  
+ }
+ else{
+  vbody->length(1);
+ }
+ body=vbody._retn();
+ return length;
+}
+
 
 void Producer_impl::sendTDV(const DPS::Client::CID & cid, const TDVbody & tdv, TDVName & tdvname )throw (CORBA::SystemException){
 TIDI li=_findTDV(tdvname);
@@ -2708,11 +2747,11 @@ uinteger Producer_impl::getSmartFirst(uinteger run){
 #include <sys/stat.h>
 #include <sys/file.h>
 
-int Producer_impl::getRun(const DPS::Client::CID &cid, const FPath & fpath ,RUN_out run,RunTransferStatus & st)throw (CORBA::SystemException,FailedOp){
+int Producer_impl::getRun(const DPS::Client::CID &cid, const FPath & fpath ,RUN_out run,TransferStatus & st)throw (CORBA::SystemException,FailedOp){
 const int maxs=16000000;
  ifstream fbin;
  struct stat statbuf;
- st==Continue;
+ st=Continue;
  stat((const char*)fpath.fname, &statbuf);
  fbin.open((const char*)fpath.fname);
  if(!fbin){
