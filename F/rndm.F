@@ -1,4 +1,4 @@
-             function rrndm(dummy)
+             function rndm(dummy)
              data i/0/
              real *4 r(2)
              call grndm(r,1)
