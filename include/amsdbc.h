@@ -27,6 +27,7 @@ private:
    static const number  _silicon_z[nl];
    static const number  _zelec[nl][2];
    static const number  _c2c[nl];
+   static const number  _halfldist[nl];
    static const number  _support_w[nl];
    static const integer _nladshuttle[nl];
    static const integer _boundladshuttle[nl];
@@ -59,6 +60,7 @@ public:
    inline static integer maxnlad(){return _maxnlad;}
    inline static integer maxstrips(){return _maxstrips;}
    inline static  number  zpos(integer i){return _zpos[i];}
+   inline static  number  halfldist(integer i){return _halfldist[i];}
    inline static number  ssize_active(integer ilay, integer side){
      #ifdef __AMSDEBUG__
      if(AMSDBc::debug){
@@ -129,7 +131,7 @@ public:
      return _nstripsdrp[ilay-1][side];
    }
   static integer debug;
-  static integer activeladdshuttle(integer i,integer j);
+  static integer activeladdshuttle(integer i,integer j, integer s);
   static integer compactshuttle(integer layer, integer ladder);
   static void expandshuttle(integer cmpt, integer & layer, integer &ladder);
 };

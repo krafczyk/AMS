@@ -17,7 +17,7 @@
 #include <tofrec.h>
 #include <ntuple.h>
 #include <cont.h>
-
+#include <tkdbc.h>
 integer AMSTrTrack::_RefitIsNeeded=0;
 const integer AMSTrCluster::WIDE=1;
 const integer AMSTrCluster::NEAR=2;
@@ -425,8 +425,9 @@ void AMSTrRecHit::build(integer refit=0){
          AMSgSen *p;
          p=(AMSgSen*)AMSJob::gethead()->getgeomvolume((pid+i)->crgid());
          if(!p){
-          cerr << "AMSTrRecHitBuild-S-Sensor-Error "<<
-          AMSID(name,(pid+i)->cmpt());          
+           if(TKDBc::GetStatus((pid+i)->getlayer()-1,(pid+i)->getladder()-1,
+           (pid+i)->getsensor()-1))cerr << "AMSTrRecHitBuild-S-Sensor-Error "<<
+                                  AMSID(name,(pid+i)->cmpt());          
          }
          else{
           _addnext(p,0,ilay,x,y,

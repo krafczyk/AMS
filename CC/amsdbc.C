@@ -33,6 +33,7 @@ const number AMSDBc::twopi=2*pi;
                                40.,0.,54.3,0.,54.3, 
                                40.,0.,54.3,0.,54.3, 
                                7.5,0.,54.3,0.,75.};
+   const number AMSDBc::_halfldist[_nlay]={0.08,0.08,0.08,0.08,0.08,0.08};
    const number  AMSDBc::_zposl[_nlay]={47.5,0.,0.,0.,0.,-47.5};
    const integer AMSDBc::_nlad[_nlay]={17,14,14,14,14,17};
    const integer AMSDBc::_nsen[_nlay][_maxnlad]={15,20,23,26,28,29,30,30,30,30,30,
@@ -117,10 +118,11 @@ if(sum==NULL ){
  ladder=tld[cmpt];
 }
 
-integer AMSDBc::activeladdshuttle(int i,int j){
+integer AMSDBc::activeladdshuttle(int i,int j, int s){
 #ifdef __AMSDEBUG__
  assert(i>0 && i<=6);
  assert(j>0);
+ assert (s==0 || s==1);
 #endif
 
  // Shuttle ladders 
@@ -129,7 +131,25 @@ integer AMSDBc::activeladdshuttle(int i,int j){
   if(j>=7 && j<=10) return 1;
   else return 0;
  }
- if( i>1 && i<6){
+ if( i=2){
+  if(j>=5 && j<=10) return 1;
+  else return 0;
+ }
+ if( i=3){
+  if(j>=6 && j<=10){
+   if(j==10 && s==0)   return 0;
+   else return 1;
+  }
+  return 0;
+ }
+ if( i=4){
+  if(j>=5 && j<=10){
+    if((j==5 || j==10) && s==0)return 0;
+    else return 1;
+  }
+  return 0;
+ }
+ if( i=5){
   if(j>=5 && j<=10) return 1;
   else return 0;
  }

@@ -1148,7 +1148,7 @@ AMSgtmed * AMSJob::getmed(AMSID id){
 
 void AMSJob::setsetup(char *setup){
   if(setup && (strlen(setup)>1 || AMSFFKEY.ZeroSetupOk))strcpy(_Setup,setup);
-  else strcpy(_Setup,"AMSSHUTTLE STRPLANES CTCHor");   //defaults
+  else strcpy(_Setup,"AMSSHUTTLE");   //defaults
   
 }
 void AMSJob::settrigger(char *setup, integer N, integer I,integer or){

@@ -19,6 +19,7 @@
 #include <amsgobj.h>
 #include <job.h>
 #include <commons.h>
+#include <tkdbc.h>
 extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_
@@ -1214,7 +1215,7 @@ void ctcgeomAGPlus(AMSgvolume & mother){
 
 
 void tkgeom(AMSgvolume &mother){
-
+  TKDBc::read();
 
 
 
@@ -1251,63 +1252,39 @@ ostrstream ost(name,sizeof(name));
     for (j=0;j<AMSDBc::nlad(i+1);j++){
     nrot++;  
     int k;
-    for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
-      ost.seekp(0);
-      ost << "SEN" << i+1<<ends;
-      par[0]=AMSDBc::ssize_inactive(i,0)/2;
-      par[1]=AMSDBc::ssize_inactive(i,1)/2;
-      par[2]=AMSDBc::silicon_z(i)/2;
-      coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[0][0]=1;
-      nrm[1][1]=1;
-      nrm[2][2]=1;
+     for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
+       ost.seekp(0);
+       ost << "SEN" << i+1<<ends;
+       par[0]=AMSDBc::ssize_inactive(i,0)/2;
+       par[1]=AMSDBc::ssize_inactive(i,1)/2;
+       par[2]=AMSDBc::silicon_z(i)/2;
+       coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
+       //    Temporary
+       //       if(k < AMSDBc::nhalf(i+1,j+1))coo[0]=coo[0]-AMSDBc::halfldist(i)/2;
+       //       else coo[0]=coo[0]+AMSDBc::halfldist(i)/2;
+       coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+       coo[2]=AMSDBc::zpos(i);
+       VZERO(nrm,9*sizeof(nrm[0][0])/4);
+       nrm[0][0]=1;
+       nrm[1][1]=1;
+       nrm[2][2]=1;
 #ifdef __AMSDEBUG__
-      if(i==5 && AMSgvolume::debug){
-       MTX(xnrm,xx);
-       int a1,a2;
-       for(a1=0;a1<3;a1++)for(a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-      }
+       if(i==5 && AMSgvolume::debug){
+        MTX(xnrm,xx);
+        int a1,a2;
+        for(a1=0;a1<3;a1++)for(a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+       }
 #endif
       //
       //  Sensors notactive
       //
-      gid=i+1+10*(j+1)+1000*(k+1)+100000;
-          if(AMSJob::gethead()->isSimulation() && 
-         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
-        // Change parameters
-        int kloc,lloc;
-        for(kloc=0;kloc<3;kloc++){
-          coo[kloc]+=TRCALIB.InitialCoo[i][kloc];
-          for(lloc=0;lloc<3;lloc++) 
-          xnrm[kloc][lloc]=nrm[kloc][lloc]+TRCALIB.InitialRM[i][kloc][lloc];
-        }
-        MTX2(nrm,xnrm);
-          }
+       gid=i+1+10*(j+1)+1000*(k+1)+100000;
+       cur=dau->add(new AMSgvolume(
+       "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
 
 
-
-      cur=dau->add(new AMSgvolume(
-      "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
-      if(AMSJob::gethead()->isSimulation() && 
-         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
-        // restore parameters
-        int kloc,lloc;
-        for(kloc=0;kloc<3;kloc++){
-          coo[kloc]-=TRCALIB.InitialCoo[i][kloc];
-          for(lloc=0;lloc<3;lloc++) 
-          nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
-        }
-        ((AMSgvolume *)cur)->setcoo(coo);
-        ((AMSgvolume *)cur)->setnrm(nrm); 
-      }
-
-
-    }
-    if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
-       AMSDBc::activeladdshuttle(i+1,j+1)){  
+     }
+    
 
 
     for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
@@ -1317,6 +1294,8 @@ ostrstream ost(name,sizeof(name));
       par[1]=AMSDBc::ssize_active(i,1)/2;
       par[2]=AMSDBc::silicon_z(i)/2;
       coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
+       if(k < AMSDBc::nhalf(i+1,j+1))coo[0]=coo[0]-AMSDBc::halfldist(i)/2;
+       else coo[0]=coo[0]+AMSDBc::halfldist(i)/2;
       coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
       coo[2]=AMSDBc::zpos(i);
       VZERO(nrm,9*sizeof(nrm[0][0])/4);
@@ -1334,38 +1313,17 @@ ostrstream ost(name,sizeof(name));
       //  Sensors active
       //
       gid=i+1+10*(j+1)+1000*(k+1);
-      if(AMSJob::gethead()->isSimulation() && 
-         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
-        // Change parameters
-        int kloc,lloc;
-        for(kloc=0;kloc<3;kloc++){
-          coo[kloc]+=TRCALIB.InitialCoo[i][kloc];
-          for(lloc=0;lloc<3;lloc++) 
-          xnrm[kloc][lloc]=nrm[kloc][lloc]+TRCALIB.InitialRM[i][kloc][lloc];
-        }
-        MTX2(nrm,xnrm);
-      }
+      int s = k>=AMSDBc::nhalf(i+1,j+1);
+      if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
+       AMSDBc::activeladdshuttle(i+1,j+1,s)){  
+       integer status=1;
+       if(TKDBc::update())TKDBc::SetSensor(i,j,k,status,coo,nrm);
+       else               TKDBc::GetSensor(i,j,k,status,coo,nrm);
 
-      cur=dau->add(new AMSgvolume(
+       if(status)cur=dau->add(new AMSgvolume(
       "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
-
-      if(AMSJob::gethead()->isSimulation() && 
-         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
-        // restore parameters
-        int kloc,lloc;
-        for(kloc=0;kloc<3;kloc++){
-          coo[kloc]-=TRCALIB.InitialCoo[i][kloc];
-          for(lloc=0;lloc<3;lloc++) 
-          nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
-        }
-        ((AMSgvolume *)cur)->setcoo(coo);
-        ((AMSgvolume *)cur)->setnrm(nrm); 
       }
-
-
-
     }
-  }
     }
   for ( j=0;j<AMSDBc::nlad(i+1);j++){
     nrot++;  

@@ -248,8 +248,8 @@ void AMSTOFTovt::build()
     x=cloc[0];
     y=cloc[1];
     z=cloc[2];
-    if(time>=tmax||de>1.){
-//      cerr<<"TOF: Bad G-hit, id="<<id<<" t/de="<<time<<" "<<de<<'\n';
+    if(time>=tmax){
+      //      cerr<<"TOF: Bad G-hit, id="<<id<<" t/de="<<time<<" "<<de<<'\n';
       ptr=ptr->next(); // next hit
       continue;
     }
