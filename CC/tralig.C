@@ -960,8 +960,11 @@ void AMSTrAligPar::_lockunlock(integer lock){
 
 char fnam[256]="";
 strcpy(fnam,AMSDATADIR.amsdatabase);
-strcat(fnam,"/.AMSTrAligDB.lock");
+strcat(fnam,".AMSTrAligDB.lock");
 ofstream ftxt;
+int ntry=0;
+const int maxtry=100;
+again:
 ftxt.open(fnam);
 if(ftxt){
  ftxt <<lock<<endl;
@@ -970,7 +973,11 @@ if(ftxt){
 }
 else{
  cerr<<" AMSTrAligPar::_lockunlock-F-UnableToOpenLockFile "<<fnam<<endl;
- exit(1);
+  if(ntry++<maxtry){
+   ftxt.close();
+   goto again;
+  }
+   exit(1);
 }
 
 
@@ -981,7 +988,7 @@ int ntry=0;
 const int maxtry=255;
 char fnam[256]="";
 strcpy(fnam,AMSDATADIR.amsdatabase);
-strcat(fnam,"/.AMSTrAligDB.lock");
+strcat(fnam,".AMSTrAligDB.lock");
 ifstream ftxt;
 again:
 ftxt.open(fnam);
@@ -1006,7 +1013,12 @@ if(ftxt){
  }
 }
 else{
- cerr<<" AMSTrAligPar::DbIsNotLocked-F-UnableToOpenLockFile "<<fnam<<endl;
+ cerr<<" AMSTrAligPar::DbIsNotLocked-F-UnableToOpenLockFile "<<fnam<<" "<<ntry<<endl;
+ if(ntry++<maxtry){
+    ftxt.close();
+    sleep(delay);
+    goto again;
+ }
  exit(1);
 }
 
