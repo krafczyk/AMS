@@ -85,12 +85,16 @@ MenuDesc_t AMSCanvas::fgAMSFileTracker[] = {
 };
 
 MenuDesc_t AMSCanvas::fgAMSFileTOF[] = {
+   { kAction, "Occupancies Distibutions ",  TOFSet0CB, NULL },
+   { kAction, "Mean Amplitudes Distributions ",  TOFSet1CB, NULL },
+   { kAction, "NTof/Amplitud Distributions ",  TOFSet2CB, NULL },
    { kEnd },
 };
 
 MenuDesc_t AMSCanvas::fgAMSFileLVL1[] = {
-   { kAction, "Occupancies Distibution LVL1", LVL1Set0CB, NULL },
-   { kAction, "Occupancies Distibution TOF",  LVL1Set1CB, NULL },
+   { kAction, "Occupancies Distibutions", LVL1Set0CB, NULL },
+   { kAction, "LVL1 vs TOF",  LVL1Set1CB, NULL },
+   { kAction, "Trigger Pattern",  LVL1Set2CB, NULL },
    { kEnd },
 };
 
@@ -488,6 +492,22 @@ void AMSCanvas::HandleInput(Int_t event, Int_t px, Int_t py)
 
 
 //______________________________________________________________________
+void AMSCanvas::TOFSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,0);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet1CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,1);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::TOFSet2CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(4,2);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+
 void AMSCanvas::CTCSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
 {
    gAMSDisplay->Dispatch(5,0);
@@ -529,6 +549,11 @@ void AMSCanvas::LVL1Set0CB(Widget wid, XtPointer cd, XtPointer pointer)
 void AMSCanvas::LVL1Set1CB(Widget wid, XtPointer cd, XtPointer pointer)
 {
    gAMSDisplay->Dispatch(2,1);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::LVL1Set2CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(2,2);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }
 void AMSCanvas::AntiSet0CB(Widget wid, XtPointer cd, XtPointer pointer)

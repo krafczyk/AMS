@@ -71,10 +71,14 @@ public:
    // Level1
    static void        LVL1Set0CB(Widget, XtPointer, XtPointer);
    static void        LVL1Set1CB(Widget, XtPointer, XtPointer);
+   static void        LVL1Set2CB(Widget, XtPointer, XtPointer);
    // Level3
    static void        LVL3Set0CB(Widget, XtPointer, XtPointer);
    static void        LVL3Set1CB(Widget, XtPointer, XtPointer);
    // TOF
+   static void        TOFSet0CB(Widget, XtPointer, XtPointer);
+   static void        TOFSet1CB(Widget, XtPointer, XtPointer);
+   static void        TOFSet2CB(Widget, XtPointer, XtPointer);
    // CTC
    static void        CTCSet0CB(Widget, XtPointer, XtPointer);
    static void        CTCSet1CB(Widget, XtPointer, XtPointer);

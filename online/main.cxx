@@ -57,7 +57,7 @@ theApp->SetIdleTimer(5,"");
   amd->AddSubDet(LVL1h);
   AMSLVL3Hist  LVL3h("LVL3","LVL3  Hists",2,1);
   amd->AddSubDet(LVL3h);
-  AMSTOFHist  TOFh("TOF","TOF  Hists",2,0);
+  AMSTOFHist  TOFh("TOF","TOF  Hists",3,1);
   amd->AddSubDet(TOFh);
   AMSCTCHist  CTCh("CTC","CTC  Hists",2,1);
   amd->AddSubDet(CTCh);
