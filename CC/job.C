@@ -397,7 +397,7 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.hcsize[0]=165.;  // supp. honeycomb plate X-size
   CTCGEOMFFKEY.hcsize[1]=165.;  // supp. honeycomb plate Y-size
   CTCGEOMFFKEY.hcsize[2]=5.;    // supp. honeycomb plate Z-size
-  CTCGEOMFFKEY.supzc=-91.2-9.4-1.9625;     // supp. honeycomb plate (center) Z-pos
+  CTCGEOMFFKEY.supzc=-91.2-9.4-1.9625+6.5125+0.4;     // supp. honeycomb plate (center) Z-pos
   CTCGEOMFFKEY.aegden=0.125;    // aerogel density
   CTCGEOMFFKEY.wlsden=1.03;     // WLS density
   CTCGEOMFFKEY.nblk=1;          // number of aer. blocks (X-div.)(=1 for solid)
@@ -411,11 +411,11 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.upper[2]=15.50+3.9;  //
   CTCGEOMFFKEY.wall[0]=0.12;     //
   CTCGEOMFFKEY.wall[1]=96.;    // Wall dimensions (cm)
-  CTCGEOMFFKEY.wall[2]=7.175+1;   //
+  CTCGEOMFFKEY.wall[2]=7.175+1+0.8;   //
   CTCGEOMFFKEY.cell[0]=23.4+0.6;    //
   CTCGEOMFFKEY.cell[1]=23.4+0.6;    // Super cell dimensions (cm)
   CTCGEOMFFKEY.cell[2]=15.50+2;   //
-  CTCGEOMFFKEY.ygap[0]=23.4+0.5;    // 
+  CTCGEOMFFKEY.ygap[0]=23.4+0.6;    // 
   CTCGEOMFFKEY.ygap[1]=0.0;     // Gap dimensions (cm)
   CTCGEOMFFKEY.ygap[2]=15.50+2;   //
   CTCGEOMFFKEY.agel[0]=11.60;   //
@@ -426,7 +426,7 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.pmt[2]=7.5;      //          (and shielding)
   CTCGEOMFFKEY.ptfe[0]=11.75+0.25;   //
   CTCGEOMFFKEY.ptfe[1]=11.75+0.25;   // PTFE box dimensions (cm)
-  CTCGEOMFFKEY.ptfe[2]=7.175+1;   //
+  CTCGEOMFFKEY.ptfe[2]=7.175+1+0.8;   //
   CTCGEOMFFKEY.xdiv=5;
   CTCGEOMFFKEY.ydiv=4;
 //
@@ -1860,8 +1860,10 @@ if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProce
     //Tracker ped/sigma etc ( "Event" mode)
 
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
 
 
     }
@@ -1875,6 +1877,7 @@ if(DAQCFFKEY.LCrateinDAQ){
 //           tracker reduced
 
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrRawCluster::buildrawMixed);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidCompressed,&AMSTrRawCluster::buildrawCompressed);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,

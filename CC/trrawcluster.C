@@ -1343,6 +1343,12 @@ else if(id==getpedSRawid(1))return 2 ;
 else return 0;
 }
 
+integer AMSTrRawCluster::checkcmnSRawid(int16u id){
+if(id==getcmnSRawid(0))return 1;
+else if(id==getcmnSRawid(1))return 2 ;
+else return 0;
+}
+
 integer AMSTrRawCluster::checksigSRawid(int16u id){
 if(id==getsigSRawid(0))return 1;
 else if(id==getsigSRawid(1))return 2 ;
@@ -1378,6 +1384,12 @@ else return 0x0;
 int16u AMSTrRawCluster::getpedSRawid(int i){
   if (i==0)return (4 | 2<<6 | 11 <<9 );
   else if(i==1)return (4 | 5<<6 | 11 <<9 );
+else return 0x0;
+}
+
+int16u AMSTrRawCluster::getcmnSRawid(int i){
+  if (i==0)return (6 | 2<<6 | 11 <<9 );
+  else if(i==1)return (6 | 5<<6 | 11 <<9 );
 else return 0x0;
 }
 
@@ -1923,6 +1935,99 @@ void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
    cout <<" Time Begin "<<ctime(&begin);
    cout <<" Time End "<<ctime(&end);
 }
+
+
+
+void AMSTrRawCluster::updcmnSRaw(integer n, int16u* p){
+  // bits from most to least and 1 means good; 
+
+  integer const ms=640;
+  integer len;
+  int i,j,k;
+  integer ic=checkcmnSRawid(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+    integer subl=*ptr;
+    int16u *ptro=ptr;
+    int ntdr=*(ptr+1) & 31; 
+    ptr+=2;
+    
+    for(i=0;i<ntdr;i++){
+     int16u tdrn=*ptr;
+     int16u lrec=*(ptr+1);
+     ptr++;
+     if(tdrn < 16){
+       // S side
+       len=10;
+       for(j=0;j<2;j++){
+         int16u conn,tdrs;
+         tdrs=tdrn/2;
+         if(tdrn%2==0){
+          if(j==0)conn=0;
+          else conn=1;
+         }
+         else {
+          if(j==0)conn=2;
+          else conn=3;
+         }
+         int16u haddr=(conn<<10) | (tdrs <<12);
+         AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          for(k=0;k<len;k++){
+             idd.upd(k*64);
+             idd.setcmnnoise()=*(ptr+2+k+j*len);
+          }
+         }
+       }
+     }
+     else {
+       // K Side
+       len=6;
+       for(j=0;j<4;j++){
+          int16u conn, tdrk;
+          if(tdrn%2 ==0){
+            if(j<2)conn=j;
+            else conn=j;
+          }
+          else {
+           if(j<2)conn=j;
+           else conn=j;
+           conn+= 4;
+          }
+          tdrk=(tdrn-16)/2;
+          int16u haddr=(10<<6) |( conn<<10) | (tdrk <<13);
+          AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          for(k=0;k<len;k++){
+             idd.upd(k*16);
+             idd.setcmnnoise()=*(ptr+2+k+j*len);
+          }
+         }
+       }
+     }
+     ptr+=lrec;
+    }
+    ptr=ptro+subl;
+  }
+
+
+
+  // Set UpdateMe for corr TDV
+
+  AMSTimeID * ptdv = AMSJob::gethead()->gettimestructure(getTDVCmnNoise());
+   ptdv->UpdateMe()=1;
+   ptdv->UpdCRC();
+   time_t begin,end,insert;
+   time(&insert);
+   ptdv->SetTime(insert,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->gettime()+86400);
+   cout <<" Tracker H/K  info has been read for "<<*ptdv;
+   ptdv->gettime(insert,begin,end);
+   cout <<" Time Insert "<<ctime(&insert);
+   cout <<" Time Begin "<<ctime(&begin);
+   cout <<" Time End "<<ctime(&end);
+}
+
 
 
 
