@@ -2,6 +2,8 @@
 //
 // Objectivity class Oct 07, 1996 ak
 //
+// Mar 06, 1997. up to date 
+//
 // Last edit : Oct 07, 1996 ak
 //
 #include <typedefs.h> 

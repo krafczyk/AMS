@@ -22,7 +22,7 @@ CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__DB__
 CCFLAGS = -g
 FFLAGS=   -g -I../include -qextname -d
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
-GLIBS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/pro/lib  -lgeant321 -lmathlib\
+GLIBS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/old/lib  -lgeant321 -lmathlib\
         -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag
 
 
@@ -49,7 +49,7 @@ FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl \
          -I/usr/include/cxx
 
-GLIBS = -g -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag
+GLIBS = -g -lUfor   -lfor -lFutil -lots -lm -L/cern/old/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag
 
 CC=cxx
 FF=f77
@@ -91,10 +91,12 @@ SCHEMA_DDL		=  eventD.ddl  list.ddl \
 			   tofrecD.ddl  tbeta.ddl \
                            chargeD.ddl  particleD.ddl \
 			   mctofclusterD.ddl  gvolumeD.ddl \
+                           mceventD.ddl \
                            gmatD.ddl  gtmedD.ddl \
                            ctcrecD.ddl mcctcclusterD.ddl \
                            mcanticlusterD.ddl mceventgD.ddl \
-                           amsdbcD.ddl tofdbcD.ddl commonsD.ddl ctcdbcD.ddl
+                           amsdbcD.ddl tofdbcD.ddl commonsD.ddl ctcdbcD.ddl \
+                           timeidD.ddl
 
 
 SCHEMA_SRCS		= $(SCHEMA_DDL:.ddl=_ddl.C)
@@ -111,6 +113,7 @@ SCHEMA_OBJS		=   $(BIN_DB)eventD_ddl.o  $(BIN_DB)list_ddl.o \
 			    $(BIN_DB)tofrecD_ddl.o  $(BIN_DB)tbeta_ddl.o \
                            $(BIN_DB)chargeD_ddl.o  $(BIN_DB)particleD_ddl.o \
 			   $(BIN_DB)mctofclusterD_ddl.o  \
+                           $(BIN_DB)mceventD_ddl.o  \
                            $(BIN_DB)gvolumeD_ddl.o \
                            $(BIN_DB)gmatD_ddl.o  $(BIN_DB)gtmedD_ddl.o \
                            $(BIN_DB)ctcrecD_ddl.o \
@@ -118,7 +121,8 @@ SCHEMA_OBJS		=   $(BIN_DB)eventD_ddl.o  $(BIN_DB)list_ddl.o \
                            $(BIN_DB)mcanticlusterD_ddl.o \
                            $(BIN_DB)mceventgD_ddl.o \
                            $(BIN_DB)amsdbcD_ddl.o $(BIN_DB)tofdbcD_ddl.o \
-                           $(BIN_DB)commonsD_ddl.o $(BIN_DB)ctcdbcD_ddl.o
+                           $(BIN_DB)commonsD_ddl.o $(BIN_DB)ctcdbcD_ddl.o \
+                           $(BIN_DB)timeidD_ddl.o
 
 SCHEMA_METHOD_OBJS      =  $(BIN_DB)eventD.o  $(BIN_DB)list.o \
                            $(BIN_DB)trrechit.o  $(BIN_DB)ttrack.o \
@@ -126,13 +130,15 @@ SCHEMA_METHOD_OBJS      =  $(BIN_DB)eventD.o  $(BIN_DB)list.o \
 			   $(BIN_DB)tofrecD.o  $(BIN_DB)tbeta.o \
                            $(BIN_DB)chargeD.o  $(BIN_DB)particleD.o \
 			   $(BIN_DB)mctofclusterD.o  \
+                           $(BIN_DB)mceventD.o  \
                            $(BIN_DB)gvolumeD.o \
                            $(BIN_DB)gmatD.o  $(BIN_DB)gtmedD.o \
                            $(BIN_DB)ctcrecD.o $(BIN_DB)mcctcclusterD.o \
                            $(BIN_DB)mcanticlusterD.o \
                            $(BIN_DB)mceventgD.o \
                            $(BIN_DB)amsdbcD.o $(BIN_DB)tofdbcD.o \
-                           $(BIN_DB)commonsD.o $(BIN_DB)ctcdbcD.o
+                           $(BIN_DB)commonsD.o $(BIN_DB)ctcdbcD.o \
+                           $(BIN_DB)timeidD.o
 
 
 #########################
@@ -149,6 +155,7 @@ LMS_SRCS	= printList.C\
 		  A_LMSMenu.C \
 		  A_LMSDelete.C \
 		  A_LMSPrint.C \
+                  timeid_sub.C \
                   ooSession.C     \
                   ooStats.C        \
                   cxxfix.C          
@@ -160,6 +167,7 @@ LMS_OBJS	= $(BIN_DB)printList.o \
 		  $(BIN_DB)A_LMSMenu.o \
 		  $(BIN_DB)A_LMSDelete.o \
 		  $(BIN_DB)A_LMSPrint.o \
+                  $(BIN_DB)timeid_sub.o \
                   $(BIN_DB)ooSession.o     \
                   $(BIN_DB)ooStats.o        \
                   $(BIN_DB)cxxfix.o          
@@ -244,14 +252,15 @@ OBJECT_LIBS	= $(LIB_DIR)/liboo.a
 SRC             = ../CC
 
 ifeq  "$(shell uname)"  "OSF1"
-GEANT_OBJS= $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o   $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o  $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o \
-$(BIN)/ctcdbc.o $(BIN)/tofsim.o $(BIN)/timel.o
 
+GEANT_OBJS= $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o   $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o  $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o $(BIN)/tofsim.o $(BIN)/timel.o $(BIN)/tofcalib.o $(BIN)/timeid.o $(BIN)/io.o \
+$(BIN)/trcalib.o $(BIN)/mtx2.o
 endif
 
 ifeq  "$(shell uname)"  "AIX"
 
-GEANT_OBJS= $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/upool.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o  $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o $(BIN)/trrec.o $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/tofsim.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/apool.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o
+GEANT_OBJS= $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o   $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o  $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/job.o $(BIN)/event.o $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o $(BIN)/tofsim.o $(BIN)/timel.o $(BIN)/tofcalib.o $(BIN)/timeid.o $(BIN)/io.o \
+$(BIN)/trcalib.o $(BIN)/mtx2.o
 
 endif
 
@@ -561,6 +570,28 @@ endif
  $(BIN_DB)mceventgD_ddl.o:  mceventgD.ddl   mceventgD.h  mceventgD_ref.h
  mceventgD_ref.h:           mceventgD.ddl   mceventgD.h  ../include/mceventg.h
 
+ $(BIN_DB)mceventD.o:   mceventD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/mceventD.C \
+                                                -o $(BIN_DB)mceventD.o
+ $(BIN_DB)mceventD.o:  mceventD.ddl   mceventD.h  mceventD_ref.h
+ mceventD_ddl.C :   mceventD.h  mceventD.ddl
+ $(BIN_DB)mceventD_ddl.o: mceventD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                                             ../db/mceventD_ddl.C \
+                                             -o $(BIN_DB)mceventD_ddl.o
+ $(BIN_DB)mceventD_ddl.o:  mceventD.ddl   mceventD.h  mceventD_ref.h
+ mceventD_ref.h:           mceventD.ddl   mceventD.h  ../include/io.h \
+                           ../include/mceventg.h
+
+
+
+ $(BIN_DB)timeid_sub.o:   timeid_sub.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                                  ../db/timeid_sub.C -o $(BIN_DB)timeid_sub.o
+ $(BIN_DB)timeid_sub.o : list.ddl  list.h  list_ref.h \
+                         eventD.ddl  eventD_ref.h  eventD.h  A_LMS.h \
+                         timeidD.ddl timeidD.C timeid_sub.C
+
 
  $(BIN_DB)A_LMS.o:           A_LMS.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/A_LMS.C \
@@ -616,6 +647,19 @@ endif
                                                 -o $(BIN_DB)ooStats.o
  $(BIN_DB)ooStats.o:        ooStats.h
 
- $(BIN_DB)printList.o:   printList.C
+ $(BIN_DB)printList.o:   printList.C db_comm.h A_LMS.h list.ddl list.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
           ../db/printList.C -o $(BIN_DB)printList.o
+
+ $(BIN_DB)timeidD.o:   timeidD.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/timeidD.C \
+                                                -o $(BIN_DB)timeidD.o
+ $(BIN_DB)timeidD.o:  timeidD.ddl   timeidD.h  timeidD_ref.h
+ timeidD_ddl.C :   timeidD.h  timeidD.ddl
+ $(BIN_DB)timeidD_ddl.o: timeidD_ddl.C
+	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
+                                             ../db/timeidD_ddl.C \
+                                             -o $(BIN_DB)timeidD_ddl.o
+ $(BIN_DB)timeidD_ddl.o:  timeidD.ddl   timeidD.h  timeidD_ref.h
+ timeidD_ref.h:           timeidD.ddl   timeidD.h  ../include/timeid.h 
+

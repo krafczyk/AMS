@@ -1,7 +1,8 @@
 // Aug 08, 1996. ak. First try with Objectivity. Method file for AMSgvolume
 // Oct 12, 1996. ak. coo copy is modified.
-//                  
-// Last Edit : Oct 12, 1996. ak.
+// Mar 25, 1997. ak. new class member _rel
+//                 
+// Last Edit : Mar 25, 1996. ak.
 // 
 
 #include <iostream.h>
@@ -24,6 +25,7 @@ AMSgvolumeD::AMSgvolumeD(integer id, AMSgvolume* p, char name[], integer pos)
   _posp   = p -> _posp;
   _gid    = p -> _gid;
   _npar   = p -> _npar;
+  _rel    = p -> _rel;
   for (i=0; i<6; i++) { _par[i] = p -> _par[i];}
   for (i=0; i<3; i++) {
     for (j=0; j<3; j++) { 
@@ -52,8 +54,8 @@ void AMSgvolumeD::getcoo(AMSPoint* coo)
                                  {UCOPY( &_coo, coo, sizeof(AMSPoint)*1/4);}
 void AMSgvolumeD::getshape(char shape[]) { if(_shape)strcpy(shape,_shape); }
 void AMSgvolumeD::getgonly(char gonly[]) { if(_gonly)strcpy(gonly,_gonly); }
-void AMSgvolumeD::getnrm(number* nbuff0)
-{
-  UCOPY( &_nrm, nbuff0, sizeof(number)*3*3/4);
-  }
+void AMSgvolumeD::getnrm(number* nbuff0) { 
+                               UCOPY( &_nrm, nbuff0, sizeof(number)*3*3/4); }
+void AMSgvolumeD::getinrm(number* nbuff0) { 
+                              UCOPY( &_inrm, nbuff0, sizeof(number)*3*3/4); }
 

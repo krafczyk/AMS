@@ -36,18 +36,33 @@
 // Nov    1996. ak.  modifications of Addamsdbc
 //                   AMScommonsD is modified
 //                   CmpTrMedia and CmpMaterials
+// Feb  14,1997. ak. AMSmceventD, CopyGeometry is modified, 
+//                   move timeid -> timeid_sub
+// Mar  07,1997. ak. use unidirectional assoc. between track and trrechits,
+//                   cluster and trrechit
+//                   replace head() function by headC
+//                   pSen for AMSTrRecHitD
 //
-// last edit Nov 28, 1996, ak.
+// !!!               still AMSTrMCCluster,0 AMSTOFMCCluster,0 in gethead
+//                   CopyGeometry is modified (inrm <-> nrm)
+//
+// last edit Mar 25, 1997, ak.
 //
 //
 #include <iostream.h>
 #include <string.h>
+
+#include <ooIndex.h>
+
+#include <db_comm.h>
+
 #include <particleD_ref.h>
 #include <chargeD_ref.h>
 #include <tbeta_ref.h>
 #include <tcluster_ref.h>
 #include <tmccluster_ref.h>
 #include <mceventgD_ref.h>
+#include <mceventD_ref.h>
 #include <mctofclusterD_ref.h>
 #include <mcanticlusterD_ref.h>
 #include <ctcrecD_ref.h>
@@ -60,8 +75,8 @@
 #include <gtmedD_ref.h>
 #include <amsdbcD_ref.h>
 #include <ctcdbcD_ref.h>
+#include <tofdbcD_ref.h>
 #include <commonsD_ref.h>
-//#include <tofdbcD_ref.h>
 #include <eventD_ref.h>
 #include <list_ref.h>
 #include <list.h>
@@ -83,9 +98,10 @@
 #include <gtmedD.h>
 #include <amsdbcD.h>
 #include <ctcdbcD.h>
+#include <tofdbcD.h>
 #include <commonsD.h>
-//#include <tofdbcD.h>
 #include <mceventgD.h>
+#include <mceventD.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/times.h>
@@ -99,14 +115,13 @@
 #include <amsgobj.h>
 #include <gmat.h>
 #include <amsdbc.h>
-//#include <tofdbc.h>
-
+#include <ctcdbc.h>
+#include <gsen.h>
 // debugging and testing values
 
 integer  event_size;
-integer  read_only  = 1;
 integer  NN;
-static   integer dbg_prtout = 0;
+integer  NOBJ;
 
 
 ooHandle(AMSgvolumeD)* geometryHT;
@@ -131,6 +146,7 @@ ooHandle(ooContObj)  contGeometryH;           // geometry
 ooHandle(ooContObj)  contgmatH;               // material
 ooHandle(ooContObj)  contgtmedH;              // tracking media
 ooHandle(ooContObj)  contmceventgH;           // MC Event
+ooHandle(ooContObj)  conttdvH;                // Time dependent var
 
 // ooObj classes
 ooHandle(AMSTOFMCClusterD) TOFMCClusterH;
@@ -149,8 +165,8 @@ ooHandle(AMSgtmedD)        gtmedH;
 ooHandle(AMSmceventgD)     mceventgH;
 ooHandle(AMSDBcD)          amsdbcH;
 ooHandle(CTCDBcD)          ctcdbcH;
+ooHandle(TOFDBcD)          tofdbcH;
 ooHandle(AMScommonsD)      commonsH;
-//ooHandle(TOFDBcD)          tofdbcH;
 
 // Iterators
 ooItr(AMSTrRecHitD)    trRecHitItr;             // hit iterator
@@ -170,6 +186,7 @@ ooItr(AMSgmatD)        gmatItr;                 // material
 ooItr(AMSgtmedD)       gtmedItr;                // tmedia
 ooItr(AMSmceventgD)    mceventgItr;             // mc event
 ooItr(AMSDBcD)         amsdbcItr;               // amsdbc
+ooItr(TOFDBcD)         tofdbcItr;               // tofdbc
 ooItr(AMScommonsD)     commonsItr;              // commons
 ooItr(CTCDBcD)         ctcdbcItr;               // ctcdbc
 
@@ -181,8 +198,24 @@ ooItr(CTCDBcD)         ctcdbcItr;               // ctcdbc
   char       nameC[2][11] = {"TrClusterX","TrClusterY"};
   char       nameS[4][9] = {"ScLayer1","ScLayer2","ScLayer3","ScLayer4"};
 
+  static char* antimcclusterCont;
+  static char* betaCont;
+  static char* chargeCont;
+  static char* ctcclusterCont;
+  static char* ctcmcclusterCont;
+  static char* mceventgCont;
+  static char* particleCont;
+  static char* sclayerCont[4];
+  static char* tofmcclusterCont;
+  static char* trclusterCont[2];
+  static char* trlayerCont[6];
+  static char* trtrackCont;
+  static char* trmcclusterCont;
+
+
 AMSEventList::AMSEventList (char* listname, char* setup)
 {
+
   for (integer i=0; i<6; i++) _nHits[i]     = 0;
   for (i=0; i<2; i++) _nClusters[i] = 0;
   _nEvents   = 0;
@@ -195,121 +228,118 @@ AMSEventList::AMSEventList (char* listname, char* setup)
   _nTOFMCClusters = 0;
 
   if (setup) _Setup = setup;
-  if (listname) {
-   _listName = listname;
+  if (listname) _listName = listname;
+  SetContainersNames();
+}
 
-//create map
-   char* name =  new char[strlen(listname)+6];
-   strcpy(name,"Maps_");
-   strcat(name,listname);
-   _mapName = name;
-   delete [] name;
+void AMSEventList::SetContainersNames()
+{
+  char*   name;
+  integer i;
 
 //mceventg
-   name =  new char[strlen(listname)+10];
-   strcpy(name,"mceventg_");
-   strcat(name,listname);
-   _mceventgCont = name;
-   delete [] name;
+  if (!mceventgCont) {
+    mceventgCont =  new char[strlen(_listName)+10];
+    strcpy(mceventgCont,"mceventg_");
+    strcat(mceventgCont,_listName);
+  }
+
+//AntiMCCluster
+   if (!antimcclusterCont) {
+    antimcclusterCont =  new char[strlen(_listName)+15];
+    strcpy(antimcclusterCont,"AntiMCCluster_");
+    strcat(antimcclusterCont,_listName);
+   }
+
+//CTCMCCluster
+   if (!ctcmcclusterCont) {
+    ctcmcclusterCont =  new char[strlen(_listName)+14];
+    strcpy(ctcmcclusterCont,"CTCMCCluster_");
+    strcat(ctcmcclusterCont,_listName);
+   }
+
+//TOFMCCluster
+   if (!tofmcclusterCont) {
+    tofmcclusterCont =  new char[strlen(_listName)+14];
+    strcpy(tofmcclusterCont,"TOFMCCluster_");
+    strcat(tofmcclusterCont,_listName);
+   }
+
+//trMCCluster
+   if (!trmcclusterCont) {
+    trmcclusterCont =  new char[strlen(_listName)+13];
+    strcpy(trmcclusterCont,"TrMCCluster_");
+    strcat(trmcclusterCont,_listName);
+   }
 
 //TrLayer
    char       nameTrL[6][10] = {
      "TrLayer1_","TrLayer2_","TrLayer3_","TrLayer4_","TrLayer5_","TrLayer6_"};
    for (i=0; i<6; i++) {
-    name =  new char[strlen(listname)+10];
-    strcpy(name,nameTrL[i]);
-    strcat(name,listname);
-    _trlayerCont[i] = name;
-    delete [] name;
+     if (!trlayerCont[i]) {
+      trlayerCont[i] =  new char[strlen(_listName)+10];
+      strcpy(trlayerCont[i],nameTrL[i]);
+      strcat(trlayerCont[i],_listName);
+     }
    }
+
 //TrCluster
-   name =  new char[strlen(listname)+12];
-   strcpy(name,"TrClusterX_");
-   strcat(name,listname);
-   _trclusterCont[0] = name;
-   delete [] name;
-
-   name =  new char[strlen(listname)+12];
-   strcpy(name,"TrClusterY_");
-   strcat(name,listname);
-   _trclusterCont[1] = name;
-   delete [] name;
-
-//trMCCluster
-   name =  new char[strlen(listname)+13];
-   strcpy(name,"TrMCCluster_");
-   strcat(name,listname);
-   _trmcclusterCont = name;
-   delete [] name;
-
-//TOFMCCluster
-   name =  new char[strlen(listname)+14];
-   strcpy(name,"TOFMCCluster_");
-   strcat(name,listname);
-   _tofmcclusterCont = name;
-   delete [] name;
+   if (!trclusterCont[0]) {
+    trclusterCont[0] =  new char[strlen(_listName)+12];
+    strcpy(trclusterCont[0],"TrClusterX_");
+    strcat(trclusterCont[0],_listName);
+   }
+   if (!trclusterCont[1]) {
+    trclusterCont[1] =  new char[strlen(_listName)+12];
+    strcpy(trclusterCont[1],"TrClusterY_");
+    strcat(trclusterCont[1],_listName);
+   }
 
 //ScLayer
    char  nameSc[4][10] = {"ScLayer1_","ScLayer2_","ScLayer3_","ScLayer4_"};
    for (i=0; i<4; i++) {
-    name =  new char[strlen(listname)+10];
-    strcpy(name,nameSc[i]);
-    strcat(name,listname);
-   _sclayerCont[i] = name;
-    delete [] name;
+    if (!sclayerCont[i]) {
+     sclayerCont[i] =  new char[strlen(_listName)+10];
+     strcpy(sclayerCont[i],nameSc[i]);
+     strcat(sclayerCont[i],_listName);
+    }
    }
 
 //CTCCluster
-   name =  new char[strlen(listname)+12];
-   strcpy(name,"CTCCluster_");
-   strcat(name,listname);
-   _ctcclusterCont = name;
-   delete [] name;
-
-//CTCMCCluster
-   name =  new char[strlen(listname)+14];
-   strcpy(name,"CTCMCCluster_");
-   strcat(name,listname);
-   _ctcmcclusterCont = name;
-   delete [] name;
+   if (!ctcclusterCont) {
+    ctcclusterCont =  new char[strlen(_listName)+12];
+    strcpy(ctcclusterCont,"CTCCluster_");
+    strcat(ctcclusterCont,_listName);
+   }
 
 //TrTracks
-   name =  new char[strlen(listname)+10];
-   strcpy(name,"TrTracks_");
-   strcat(name,listname);
-   _trtrackCont = name;
-   delete [] name;
+   if (!trtrackCont) {
+    trtrackCont =  new char[strlen(_listName)+10];
+    strcpy(trtrackCont,"TrTracks_");
+    strcat(trtrackCont,_listName);
+   }
 
 //Beta
-   name =  new char[strlen(listname)+5];
-   strcpy(name,"Beta_");
-   strcat(name,listname);
-   _betaCont = name;
-   delete [] name;
+   if (!betaCont) {
+    betaCont =  new char[strlen(_listName)+5];
+    strcpy(betaCont,"Beta_");
+    strcat(betaCont,_listName);
+   }
 
 //Charge
-   name =  new char[strlen(listname)+8];
-   strcpy(name,"Charge_");
-   strcat(name,listname);
-   _chargeCont = name;
-   delete [] name;
+   if (!chargeCont) {
+    chargeCont =  new char[strlen(_listName)+8];
+    strcpy(chargeCont,"Charge_");
+    strcat(chargeCont,_listName);
+   }
 
-//CTCCluster
-   name =  new char[strlen(listname)+12];
-   strcpy(name,"Particle_");
-   strcat(name,listname);
-   _particleCont = name;
-   delete [] name;
-
-//AntiMCCluster
-   name =  new char[strlen(listname)+15];
-   strcpy(name,"AntiMCCluster_");
-   strcat(name,listname);
-   _antimcclusterCont = name;
-   delete [] name;
-
-  } 
-}
+//Particle
+   if (!particleCont) {
+    particleCont =  new char[strlen(_listName)+12];
+    strcpy(particleCont,"Particle_");
+    strcat(particleCont,_listName);
+   }
+} 
 
 void AMSEventList::setsetup (char* setup)
 {
@@ -321,130 +351,117 @@ void AMSEventList::setlistname (char* listname)
   if (listname) _listName = listname;
 }
 
-ooStatus AMSEventList::FindEvent
-                        (char* ID, ooMode mode, ooHandle(AMSEventD)& eventH)
+ooStatus AMSEventList::FindEvent(integer runNumber, uinteger eventNumber, 
+                                 ooMode mode, ooHandle(AMSEventD)& eventH)
 {
-     ooStatus rstatus = oocSuccess;
+     ooStatus rstatus = oocError;
+     ooItr(AMSEventD)   eventItr;
 
-     ooHandle(ooMap) mapH;
      ooHandle(AMSEventList) listH = ooThis();
 
-     rstatus = FindMap(listH -> _mapName.head(), mode, mapH);
-     if (rstatus == oocSuccess) {
-      rstatus = mapH -> lookup(ID, eventH, mode);
-      if (dbg_prtout) cout 
-            << "AMSEventList::FindEvent: cannot find the event with ID "
-            << ID<<endl;
+     ooLookupKey               lookupKey(ooTypeN(AMSEventD),2);
+
+     ooEqualLookupField        
+        runELookupField(ooTypeN(AMSEventD), "_runNumber", &runNumber);
+     ooGreaterThanLookupField  
+        runGLookupField(ooTypeN(AMSEventD), "_runNumber", &runNumber);
+
+     ooEqualLookupField        
+      eventELookupField(ooTypeN(AMSEventD), "_eventNumber", &eventNumber);
+     ooGreaterThanLookupField  
+      eventGLookupField(ooTypeN(AMSEventD), "_eventNumber", &eventNumber);
+
+     if (runNumber > 0) { 
+      lookupKey.addField(runELookupField); 
      } else {
-       cout<<"AMSEventList::FindEvent-E- cannot find "<<_listName<<endl;
-       return oocSuccess; // yes, to avoid adding event to unknown map
+      lookupKey.addField(runGLookupField); 
+     }
+
+     if (eventNumber > 0) { 
+       lookupKey.addField(eventELookupField); 
+     } else { 
+       lookupKey.addField(eventGLookupField); 
+     }
+
+     ooStatus status = eventItr.scan(listH,lookupKey,oocRead);
+     if (status == oocSuccess) {
+       while (eventItr.next()) {
+        eventH = eventItr;
+        if (dbg_prtout) cout 
+             << "AMSEventList::FindEvent: found the event with run # "
+             << runNumber<<" and event # "<<eventNumber<<endl;
+        rstatus = oocSuccess;
+        return rstatus;
+       }
+     } else {
+       cout<<"AMSEventList::FindEvent -E- scan init failed"<<endl;
      }
      return rstatus;
 }
 
-ooStatus AMSEventList::FindEvent(char* ID, ooMode mode, 
-                       ooHandle(AMSEventD)& eventH, ooHandle(ooMap)& mapH)
+ooStatus      AMSEventList::AddEvent(integer runNumber, uinteger eventNumber, 
+                                      integer eventW)
+  // runNumber    - run number
+  // eventNumber  - event number
+  // eventW       - match to AMSFFKEY.Write datacard
+  //
 {
-     ooStatus rstatus = oocSuccess;
-
-     ooHandle(AMSEventList) listH = ooThis();
-
-     rstatus = FindMap(listH -> _mapName.head(), mode, mapH);
-     if (rstatus == oocSuccess) {
-      rstatus = mapH -> lookup(ID, eventH, mode);
-      if (dbg_prtout) cout
-            << "AMSEventList::FindEvent: cannot find the event with ID "
-            << ID<<endl;
-     } else {
-       cout<<"AMSEventList::FindEvent-E- cannot find "<<_listName<<endl;
-       return oocSuccess; // yes, to avoid adding event to unknown map
-     }
-     return rstatus;
-}
-
-ooStatus AMSEventList::FindMap 
-                     (char* mapname, ooMode mode, ooHandle(ooMap)& mapH)
-{
-     ooStatus rstatus = oocSuccess;
-
-     // get a handle to the database containing the AMSEventList
-     ooHandle(ooDBObj) databaseH;
-     ooThis().containedIn(databaseH);
-
-     // get a handle to the maps
-     ooHandle(ooContObj) mapContH;
-     rstatus = mapContH.open(databaseH, mapname, mode);
-     if (rstatus != oocSuccess) {
-            cerr <<"AMSEventList::FindMap: -E- Cannot find the container "
-                 <<mapname<< endl;
-            return rstatus;
-     }
-
-     // lookup the mapName
-     rstatus = mapH.lookupObj(mapContH, mapname, mode);
-     if (rstatus != oocSuccess) {
-        cerr << "AMSEventList::FindMap: Error - Cannot open the map "
-             << mapname<< endl;
-            return rstatus;
-          }
-
-      return rstatus;
-}
-
-ooStatus AMSEventList::PrintMapStatistics(ooMode mode)
-{
-     ooStatus               rstatus = oocSuccess;
-     ooHandle(ooMap)        mapH;
-     ooHandle(AMSEventList) listH = ooThis();
-
-     // get a handle to the database containing the AMSEventList
-     ooHandle(ooDBObj) databaseH;
-     ooThis().containedIn(databaseH);
-
-     // get a handle to the maps
-     ooHandle(ooContObj) mapContH;
-     rstatus = mapContH.open(databaseH, listH -> _mapName.head(), mode);
-     if (rstatus != oocSuccess) {
-            cerr <<"AMSEventList::FindMap: -E- Cannot find the container "
-                 <<listH -> _mapName.head()<< endl;
-            return rstatus;
-     }
-
-     // lookup the mapName
-     rstatus = mapH.lookupObj(mapContH, listH -> _mapName.head(), mode);
-     if (rstatus != oocSuccess) {
-        cerr << "AMSEventList::FindMap: Error - Cannot open the map "
-             << listH -> _mapName.head()<< endl;
-            return rstatus;
-          }
-
-     cout <<"AMSEventList::PrintMap -I- map "<<listH -> _mapName.head()
-          <<" has "<<mapH -> nElement()<<" elements"<<endl;
-     mapH -> printStat(stdout);
-
-      return rstatus;
-}
-
-
-ooStatus      AMSEventList::AddEvent(integer _run, uinteger eventNumber, 
-                        char* ID, integer eventW, ooHandle(ooMap) mapH)
-
-{
-  	 ooStatus	     rstatus = oocSuccess;	// Return status
-         ooHandle(AMSEventD) eventH;
+  	 ooStatus	       rstatus = oocSuccess;	// Return status
+         ooHandle(AMSEventD)   eventH;
+         ooHandle(AMSmceventD) mceventH;
          char                err_mess[80];
          integer             i;
+         integer             run;
+         integer             runtype;
+         integer             eventn;
+         time_t              time;
+
+        integer              nevts;
+        integer              nevtsP;
 
         ooHandle(AMSEventList) listH = ooThis();
+        if (listH == NULL) {
+         rstatus = oocError;
+         strcpy(err_mess, "listH pointer is NULL");
+         goto error;
+        }
+
+        if ((eventW/DBWriteDumm)%2 == 1) {
+          rstatus = AddDummyMCEvent(runNumber, eventNumber, eventW);
+          strcpy(err_mess, "Cannot add mcevent ");
+          goto error;
+        }
+
+        if ((eventW/DBWriteMCEv)%2 == 1) {
+          rstatus = FindEvent(runNumber, eventNumber,oocUpdate, mceventH);
+           if (rstatus == oocSuccess) {
+             cout<<"AddEvent -W- Event "<<eventNumber<<", run "<<runNumber
+                 <<" exists. Will be overwritten"<<endl;
+             ooDelete(mceventH);
+             listH -> decNEvents();
+           }
+          rstatus = AddMCEvent(runNumber, eventNumber, eventW);
+          strcpy(err_mess, "Cannot add mcevent ");
+          goto error;
+        }
 
         // get pointers to all containers
         rstatus = CheckAllContainers(oocUpdate);
         if(rstatus != oocSuccess) return rstatus;
 
+        // check event
+        rstatus = FindEvent(runNumber, eventNumber,oocUpdate, eventH);
+        if (rstatus == oocSuccess) {
+         cout<<"AddEvent -W- Event "<<eventNumber<<", run "<<runNumber
+             <<" exists. Will be overwritten"<<endl;
+         ooDelete(eventH);
+         listH -> decNEvents();
+         }
+
         // Add Event Header
 
-        integer nevts   = listH -> getNEvents();
-        integer nevtsP  = listH -> getNEventsP();
+        nevts   = listH -> getNEvents();
+        nevtsP  = listH -> getNEventsP();
 
         if (dbg_prtout == 1) cout <<"found events in "<<nevts<<endl;
 
@@ -453,66 +470,56 @@ ooStatus      AMSEventList::AddEvent(integer _run, uinteger eventNumber,
              cerr<<"LMS::AddEvent -E- gethead = NULL"<<endl;
              return oocError;
            }
-           integer run     = _run;
-           integer runtype = AMSEvent::gethead() -> getruntype();
-           integer eventn  = AMSEvent::gethead() -> getEvent();
-           time_t time     = AMSEvent::gethead() -> gettime();
-           //           cout << "LMS::AddEvent: - run, runtype, event # "
-           //                << run <<", "<<runtype<<", "<<eventn<<endl;
-           eventH = new(listH) AMSEventD(eventNumber, run, runtype, time, ID);
+           runtype = AMSEvent::gethead() -> getruntype();
+           time    = AMSEvent::gethead() -> gettime();
+           eventH = new(listH) 
+                     AMSEventD(runNumber, eventNumber,  runtype, time);
            listH -> incNEvents();
            listH -> incNEventsP();
            nevtsP++;
            eventH -> setPosition(nevtsP);
            // add event ID to the event map
-           rstatus = mapH -> add(ID, eventH);
-           if (rstatus != oocSuccess) {
-             cerr <<"AMSEventList::AddEvent: Error - cannot add event with ";
-             cerr <<"ID of "<<ID<<" and event number "<<eventNumber;
-             cerr <<" to the eventMap"<<endl;
-             strcpy(err_mess, "Cannot add event to the map");
-             goto error;
-           }
+
        // AddmcEventg 
-        if ( (eventW/10)%2 == 1) {
-         rstatus = AddmcEventg(ID, eventH);
+        if ( (eventW/DBWriteMCEg)%2 == 1) {
+         rstatus = AddmcEventg(eventH);
          if (rstatus != oocSuccess) {
           strcpy(err_mess, "Cannot add mceventg to the  container");
            goto error;}
         }
         
         // add all MC banks
-        if ( (eventW/100)%2 == 1) {
+        if ( (eventW/DBWriteMC)%2 == 1) {
          //AddTrMCCluster
-         rstatus = AddTrMCCluster(ID, eventH);
+         rstatus = AddTrMCCluster(eventH);
          if (rstatus != oocSuccess) {
           strcpy(err_mess, "Cannot add TrMCCluster to the  container");
           goto error;}
 
          //AddTOFMCCluster         
-         rstatus = AddTOFMCCluster(ID, eventH);
+         rstatus = AddTOFMCCluster(eventH);
          if (rstatus != oocSuccess) {
           strcpy(err_mess, "Cannot add TOFMCCluster to the  container");
           goto error;}
           
          //AddAntiMCCluster         
-         rstatus = AddAntiMCCluster(ID, eventH);
+         rstatus = AddAntiMCCluster(eventH);
          if (rstatus != oocSuccess) {
           strcpy(err_mess, "Cannot add AntiMCCluster to the  container");
           goto error;}
 
          //AddCTCMCCluster         
-         rstatus = AddCTCMCCluster(ID, eventH);
+         rstatus = AddCTCMCCluster(eventH);
          if (rstatus != oocSuccess) {
           strcpy(err_mess, "Cannot add CTCMCCluster to the  container");
           goto error;}
         }
         
         // add all banks
-        if ( (eventW/1000)%2 == 1) {
+        if ( (eventW/DBWriteRecE)%2 == 1) {
         //AddTrRecHits
         for (i=0; i<6; i++) {
-         rstatus = AddTrRecHit(ID, i, eventH);
+         rstatus = AddTrRecHit(i, eventH);
          if (rstatus != oocSuccess) {
           strcpy(err_mess, "Cannot add TrRecHit to the  container");
            goto error;}
@@ -520,89 +527,86 @@ ooStatus      AMSEventList::AddEvent(integer _run, uinteger eventNumber,
 
         //AddTrCluster
          for (i=0; i<2; i++) {
-           rstatus = AddTrCluster(ID, i, eventH);
+           rstatus = AddTrCluster(i, eventH);
            if (rstatus != oocSuccess) {
             strcpy(err_mess, "Cannot add TrCluster to the  container");
             goto error; }
          }
 
          //AddTrTrack
-         rstatus = AddTrTrack(ID, eventH);
+         rstatus = AddTrTrack(eventH);
          if (rstatus != oocSuccess) {
           strcpy(err_mess, "Cannot add TrTrack to the  container");
           goto error;}
 
          //LinkHitCluster
          for (i=0; i<6; i++) {
-          rstatus = LinkHitClusterD(ID, i, eventH);
+          rstatus = LinkHitClusterD(i, eventH);
           if (rstatus != oocSuccess) {
            strcpy(err_mess, "Cannot link Hit to Cluster");
            goto error;}
          }
 
          //LinkTrackHit
-         rstatus = LinkTrackHitD(ID, eventH);
+         rstatus = LinkTrackHitD(eventH);
          if (rstatus != oocSuccess) {
           strcpy(err_mess, "Cannot link Track to hit");
           goto error;}
 
           //AddTOFCluster
           for (i=0; i<4; i++) {
-           rstatus = AddTOFCluster(ID, i, eventH);
+           rstatus = AddTOFCluster(i, eventH);
            if (rstatus != oocSuccess) {
             strcpy(err_mess, "Cannot add TOF Cluster to the container");
             goto error;}
            }
 
           //AddCTCCluster
-           rstatus = AddCTCCluster(ID, eventH);
+           rstatus = AddCTCCluster(eventH);
            if (rstatus != oocSuccess) {
             strcpy(err_mess, "Cannot add CTC Cluster to the container");
             goto error;}
 
           //AddBeta
-          rstatus = AddBeta(ID, eventH);
+          rstatus = AddBeta(eventH);
           if (rstatus != oocSuccess) {
            strcpy(err_mess, "Cannot add Beta to the container");
            goto error;}
 
           //AddCharge
-          rstatus = AddCharge(ID, eventH);
+          rstatus = AddCharge(eventH);
           if (rstatus != oocSuccess) {
            strcpy(err_mess, "Cannot add Charge to the  container");
            goto error;}
 
+        }
+        if ( (eventW/DBWritePart)%2 == 1) {
           //AddParticle
-          rstatus = AddParticle(ID, eventH);
+          rstatus = AddParticle(eventH);
           if (rstatus != oocSuccess) {
            strcpy(err_mess, "Cannot add Particle to the  container");
            goto error;}
         }
 error:
-        if (rstatus != oocSuccess) { 
-          cout <<"AddEvent:: Error "<<err_mess<<endl;}
-
+        if (rstatus != oocSuccess) cout <<"AddEvent-E- "<<err_mess<<endl;
         return rstatus;
 }
 
 
 ooStatus      AMSEventList::AddTrCluster(
-              char* eventID, const integer N, ooHandle(AMSEventD) & eventH)
+              const integer N, ooHandle(AMSEventD) & eventH)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
-
         if (contClusterH[N] == NULL) {
-         rstatus = CheckContainer
-            (listH ->_trclusterCont[N].head(), oocUpdate, contClusterH[N], 1);
+         rstatus= CheckContainer(trclusterCont[N], oocUpdate, contClusterH[N]);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -618,6 +622,10 @@ ooStatus      AMSEventList::AddTrCluster(
          cout <<"AMSEventList::AddTrCluster-I- AMSTrCluster* p == NULL"<<endl;
          return oocSuccess;
         }
+
+        if (dbg_prtout) cout <<"AddTrCluster -I- nelements "
+                   <<AMSEvent::gethead()->getC("AMSTrCluster",N)->getnelem()
+                   <<" for AMSTrCluster Cont "<<N<<endl;
         while ( p != NULL) {
          clusterH = new(contClusterH[N]) AMSTrClusterD(p);
          number*    pValues;
@@ -651,29 +659,26 @@ ooStatus      AMSEventList::AddTrCluster(
         return rstatus;
 }
 
-ooStatus      AMSEventList::AddTrRecHit(
-              char* eventID, const integer N, ooHandle(AMSEventD)& eventH) 
+ooStatus      AMSEventList::
+                AddTrRecHit(const integer N, ooHandle(AMSEventD)& eventH) 
 {
 	ooStatus	       rstatus = oocSuccess;	// Return status
         ooHandle(AMSTrRecHitD) layerH;
         ooHandle(AMSEventList) listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contTrLayerH[N] == NULL) {
-         rstatus = CheckContainer
-           (listH -> _trlayerCont[N].head(), oocUpdate, contTrLayerH[N], 1);
+         rstatus = CheckContainer(trlayerCont[N], oocUpdate, contTrLayerH[N]);
          if (rstatus != oocSuccess) return rstatus;
         }
 
         for (integer j =0; j<2; j++) {
          if(contClusterH[j] == NULL) {
-          rstatus = CheckContainer
-            (listH -> _trclusterCont[j].head(), oocUpdate, contClusterH[j], 1);
+          rstatus = CheckContainer(trclusterCont[j],oocUpdate,contClusterH[j]);
           if (rstatus != oocSuccess) return rstatus;
          }
         }
@@ -681,7 +686,9 @@ ooStatus      AMSEventList::AddTrRecHit(
         integer   hits  = listH -> getNHits(N);
         if (dbg_prtout == 1) cout <<"found hits for "<<nameTrL[N]
                                   <<" "<<hits<<endl;
-        AMSTrRecHit* p = AMSTrRecHit::gethead(N);
+        //AMSTrRecHit* p = AMSTrRecHit::gethead(N);
+        AMSTrRecHit* p = (AMSTrRecHit*)AMSEvent::gethead() -> 
+                                                   getheadC("AMSTrRecHit",N);
         if (p == NULL && dbg_prtout == 1) {
           cout <<"AMSEventList::AddTrRecHit-I-  "<<nameTrL[N]
                <<" AMSTrRecHit* p == NULL"<<endl;
@@ -689,6 +696,13 @@ ooStatus      AMSEventList::AddTrRecHit(
         }
         while ( p != NULL) {
          layerH = new(contTrLayerH[N]) AMSTrRecHitD(p);
+         AMSgSen* pSen = p -> getpsen();
+         integer gid  = pSen -> getid();
+         char*   name = pSen -> getname();
+         if (dbg_prtout) cout<<"AddTrRecHit -I- psensor -> id "<<gid
+                             <<", psensor -> name "<<name<<endl;
+         layerH -> setgid(gid);
+         layerH -> setname(name);
          //---rstatus = layerH -> set_pEventL(eventH);
          rstatus = eventH -> add_pTrRecHitS(layerH);
          if (rstatus != oocSuccess) {
@@ -701,29 +715,28 @@ ooStatus      AMSEventList::AddTrRecHit(
          p -> setContPos(hits);
          layerH -> setPosition(hits);
          listH  -> incNHits(N);
+         if (dbg_prtout) cout<<"AddTrRecHit -I- add hit pos "<<p->getpos()
+                             <<" ContPos "<<p -> getContPos()
+                             <<", Layer "<< p -> getLayer()<<endl;;
          p = p -> next();
         }
         return rstatus;
 }
 
-ooStatus      AMSEventList::CopyTrRecHit(
-                    char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode)
-
+ooStatus   AMSEventList::CopyTrRecHit(ooHandle(AMSEventD)& eventH, ooMode mode)
 {
 	ooStatus	       rstatus = oocSuccess;	// Return status
         integer                ihits = 0;
-        ooHandle(AMSEventList)  listH = ooThis();
+        ooHandle(AMSEventList) listH = ooThis();
 
-        if(eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+        if (eventH == NULL) {
+         cerr <<"CopyTrRecHit-E- eventH  == NULL "<<endl;
+         return oocError;
         }
 
          for (integer j=0; j<6; j++) {
           if (contTrLayerH[j] == NULL) {
-           rstatus = CheckContainer
-             (listH -> _trlayerCont[j].head(), mode, contTrLayerH[j], 1);
+           rstatus = CheckContainer(trlayerCont[j], mode, contTrLayerH[j]);
            if (rstatus != oocSuccess) return rstatus;
           }
          }
@@ -731,11 +744,29 @@ ooStatus      AMSEventList::CopyTrRecHit(
          eventH -> pTrRecHitS(trRecHitItr, mode);
 
          while (trRecHitItr.next()) {
-          if (read_only != 0) {
+          if (dbread_only != 0) {
            AMSTrRecHit* p = new  AMSTrRecHit();
            trRecHitItr -> copy(p);
+
            integer posCont= trRecHitItr -> getPosition();
            p -> setContPos(posCont);
+
+           integer gid  = trRecHitItr -> getgid();
+           char*   name = trRecHitItr -> getname();
+
+           AMSgSen *psen;
+           psen = (AMSgSen*)AMSJob::gethead()->getgeomvolume(AMSID(name,gid));
+           if (psen) {
+             if (dbg_prtout) cout<<"AMSEventList::CopyTrRecHit -I- "
+                                 <<"set pointer to sensor with id "<<gid
+                                 <<", name "<<name<<endl;
+             p -> setSensorP(psen);
+           } else {
+             cout<<"AMSEventList::CopyTrRecHit -E- cannot getgeomvolume "
+                 <<"for id "<<gid<<", name "<<name<<endl;
+             cout<<"cannot set sensor pointer"<<endl;
+           }
+
            integer layer  = trRecHitItr -> getLayer();
            AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",layer-1),p);
           }
@@ -748,8 +779,8 @@ ooStatus      AMSEventList::CopyTrRecHit(
         event_size = event_size + sizeof(AMSTrRecHitD)*ihits;
         return rstatus;
 }
-ooStatus      AMSEventList::CopyTrCluster(
-                   char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode)
+ooStatus      AMSEventList::
+                  CopyTrCluster(ooHandle(AMSEventD)& eventH, ooMode mode)
 
 {
 	ooStatus	       rstatus = oocSuccess;	// Return status
@@ -757,15 +788,13 @@ ooStatus      AMSEventList::CopyTrCluster(
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
          for (integer j =0; j<2; j++) {
           if(contClusterH[j] == NULL ) {
-           rstatus = CheckContainer
-             (listH -> _trclusterCont[j].head(), mode, contClusterH[j], 1);
+           rstatus = CheckContainer(trclusterCont[j], mode, contClusterH[j]);
            if (rstatus != oocSuccess) return rstatus;
           }
          }
@@ -775,16 +804,38 @@ ooStatus      AMSEventList::CopyTrCluster(
          number*     pValues;
          eventH -> pCluster(trClusterItr, mode);
          while (trClusterItr.next()) {
-          if (read_only != 0) {
-           AMSTrCluster* p = new AMSTrCluster();
-           trClusterItr -> copy(p);
+          if (dbread_only != 0) {
+            //AMSTrCluster* p = new AMSTrCluster();
+           //trClusterItr -> copy(p);
+            if (dbg_prtout) cout <<"CopyTrCluster nelem, nelemL, nelemR "
+                                 <<trClusterItr -> getnelem()<<", "
+                                 <<trClusterItr -> getnelemL()<<", "
+                                 <<trClusterItr -> getnelemR()<<endl;
            integer nelem = trClusterItr -> getnelem();
            if(nelem > 0) {
             if (nelem < 100) {
              trClusterItr -> getValues(pvalues);
-             p -> setValues(pvalues);
+             //p -> setValues(pvalues);
             }
            }
+           if (dbg_prtout) {
+             cout <<"CopyTrCluster nelem, nelemL, nelemR "
+                  <<trClusterItr -> getnelem()<<", "
+                  <<trClusterItr -> getnelemL()<<", "
+                  <<trClusterItr -> getnelemR()<<endl;
+             for (int j=0; j < nelem; j++) { cout <<"j,pvalues "<<j<<", "
+                                                  <<pvalues[j]<<endl; }
+           }
+           AMSTrCluster* p = new AMSTrCluster(
+                                              trClusterItr -> getidsoft(), 
+                                              trClusterItr -> getstatus(), 
+                                              trClusterItr -> getnelemL(), 
+                                              trClusterItr -> getnelemR(), 
+                                              trClusterItr -> getVal(), 
+                                              trClusterItr -> getSigma(),
+                                              trClusterItr -> getcofg(), 
+                                              trClusterItr -> getRms(),
+                                              pvalues);
            integer     posCont=  trClusterItr -> getPosition();
            p -> setContPos(posCont);
            integer side = trClusterItr -> getSide();
@@ -802,22 +853,23 @@ ooStatus      AMSEventList::CopyTrCluster(
         return rstatus;
 }
 
-ooStatus      AMSEventList::LinkHitClusterD(
-              char* eventID, const integer N,ooHandle(AMSEventD)& eventH)
+ooStatus      AMSEventList::
+                  LinkHitClusterD(const integer N,ooHandle(AMSEventD)& eventH)
 
 {
 	ooStatus	       rstatus = oocSuccess;	// Return status
         ooMode                 mode  = oocUpdate;
 
 // find event
-        if (eventH == NULL) {                           
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+        if (eventH == NULL) {
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
 // Get head of hit's container
-        AMSTrRecHit* p = AMSTrRecHit::gethead(N);
+        //AMSTrRecHit* p = AMSTrRecHit::gethead(N);
+        AMSTrRecHit* p = (AMSTrRecHit*)AMSEvent::gethead() -> 
+                                                   getheadC("AMSTrRecHit",N);
         while ( p != NULL) {
          integer  posH    = p -> getContPos();     // position of hit 
          for (integer j=0; j<2; j++) {
@@ -828,23 +880,25 @@ ooStatus      AMSEventList::LinkHitClusterD(
            if( posH != 0 && posXY != 0) {
            // find cluster 
            char pred[32];
-           (void) sprintf(pred,"_Position=%d && _Side=%d",posXY,side);
+           (void) sprintf(pred,"_Position=%d",posXY);
            eventH -> pCluster(trClusterItr,mode,oocAll,pred);
            while (trClusterItr.next() != NULL) {
-            (void) sprintf(pred,"_Position=%d && _Layer=%d",posH,N+1);
-             eventH -> pTrRecHitS(trRecHitItr,mode,oocAll,pred);
-             while (trRecHitItr.next() != NULL) {
-              if(side == 0) rstatus = trRecHitItr -> 
+            if (trClusterItr -> getSide() == side) {
+             (void) sprintf(pred,"_Position=%d && _Layer=%d",posH,N+1);
+              eventH -> pTrRecHitS(trRecHitItr,mode,oocAll,pred);
+              while (trRecHitItr.next() != NULL) {
+               if(side == 0) rstatus = trRecHitItr -> 
                                                   set_pClusterX(trClusterItr);
-              if(side == 1) rstatus = trRecHitItr -> 
+               if(side == 1) rstatus = trRecHitItr -> 
                                                   set_pClusterY(trClusterItr);
-              if (rstatus != oocSuccess) {
-               cerr << "AMSEventList:LinkHitClusterD: -E- cannot set the "
-                    << "Cluster to Hit association." << endl;
-               return rstatus;
-              }
-             }
-            }  // end while trClusterItr.next()
+               if (rstatus != oocSuccess) {
+                cerr << "AMSEventList:LinkHitClusterD: -E- cannot set the "
+                     << "Cluster to Hit association." << endl;
+                return rstatus;
+               }
+              } //end while trRecHitItr
+             } // getSide() == side
+            } // end while trClusterItr.next()
            }
           } else {
            if (dbg_prtout) cout <<"AMSEventList:LinkHitClusterD:  hit "<<posH
@@ -855,18 +909,16 @@ ooStatus      AMSEventList::LinkHitClusterD(
         return rstatus;
 }
 
-ooStatus      AMSEventList::LinkHitClusterM(
-                     char* eventID, ooHandle(AMSEventD)& eventH)
+ooStatus      AMSEventList::LinkHitClusterM(ooHandle(AMSEventD)& eventH)
 
 {
 
 	ooStatus	       rstatus = oocSuccess;	// Return status
         ooMode                 mode    = oocRead;
 // find event
-        if (eventH == NULL) {                           
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+        if (eventH == NULL) {
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
 // find containers
@@ -874,13 +926,14 @@ ooStatus      AMSEventList::LinkHitClusterM(
 // All containers and events are found
 // don't be confused all hits on a layer belongs to the same cluster
 // Get head of hit's container
-         AMSTrRecHit* p = AMSTrRecHit::gethead(l);
+          //AMSTrRecHit* p = AMSTrRecHit::gethead(l);
+         AMSTrRecHit* p = (AMSTrRecHit*)AMSEvent::gethead() -> 
+                                                   getheadC("AMSTrRecHit",l);
          while ( p != NULL) {
           integer  posH    = p -> getContPos();         // position of hit 
           if (posH != 0 ) {                             // pos =0 means
            integer  layer    = p -> getLayer();         // layer
            char pred[32];                               // hit is not in dbase 
-           //(void) sprintf(pred,"_Position=%d",posH);    // find it in dbase
                                                         // find it in dbase
            (void) sprintf(pred,"_Position=%d && _Layer=%d",posH,layer);    
            eventH -> pTrRecHitS(trRecHitItr, mode, oocAll, pred);
@@ -922,23 +975,19 @@ ooStatus      AMSEventList::LinkHitClusterM(
         return rstatus;
 }
 
-ooStatus      AMSEventList::AddTrTrack(
-                               char* eventID, ooHandle(AMSEventD) & eventH)
+ooStatus      AMSEventList::AddTrTrack(ooHandle(AMSEventD) & eventH)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
-
         if (contTrackH == NULL) {
-         rstatus = CheckContainer
-           (listH -> _trtrackCont.head(), oocUpdate, contTrackH, 1);
+         rstatus = CheckContainer(trtrackCont, oocUpdate, contTrackH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -974,6 +1023,16 @@ ooStatus      AMSEventList::AddTrTrack(
             rstatus = trackH -> set_pEventT(eventH);
             //           rstatus = eventH -> add_pTrack(trackH);
             eventH -> incTracks();
+            if (dbg_prtout) {
+              cout<<"AddTrTrack -I- add track pos "<<p->getpos()
+                   <<" ContPos "<<p -> getContPos()<<endl;
+              for (int j=0; j<6; j++){
+               if(p->getphit(j))
+                cout<<"track->hit->getpos() "<<p->getphit(j)->getpos()
+                    <<" track->hit->ContPos "<<p->getphit(j)->getContPos()
+                    <<", layer "<<p->getphit(j)->getLayer() <<endl;
+              }
+            }
             p = p -> next();
            }
           }
@@ -986,17 +1045,16 @@ ooStatus      AMSEventList::AddTrTrack(
 }
 
 ooStatus  
-        AMSEventList::LinkTrackHitD(char* eventID, ooHandle(AMSEventD)& eventH)
+        AMSEventList::LinkTrackHitD(ooHandle(AMSEventD)& eventH)
 {
 	ooStatus	       rstatus = oocSuccess;	// Return status
         ooMode                 mode    = oocUpdate;
         integer                i;
 
 // find event
-        if (eventH == NULL) {                           
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+        if (eventH == NULL) {
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
 // find track for all patterns
@@ -1011,17 +1069,23 @@ ooStatus
           integer  posT    = p -> getContPos();     // position of track
           char pred[32];
           (void) sprintf(pred,"_Position=%d",posT);
+          if (dbg_prtout) cout<<"LinkTrackHit -I- search for track "
+                              <<pred<<endl;
           eventH -> pTrack(trTrackItr,mode,oocAll,pred);
           integer layer = 0;
           for (integer j=0; j<6; j++) {             
-           AMSTrRecHit* pH = p -> getHitP(j);      // pointer to assoc hit
+           AMSTrRecHit* pH = p -> getphit(j);      // pointer to assoc hit
            if (pH != NULL) {
             integer  posH   = pH -> getContPos();  // position of Hit
-            if (posH != 0) {
+            if (dbg_prtout) cout<<"LinkTrackHit -I- assoc hit pos "
+                                <<p ->getpos()<<", ContPos "<<posH<<endl;
+            if (posH > 0) { // was if (posH != 0)
              layer = pH -> getLayer();
              // find hit
              char pred[32];
              (void) sprintf(pred,"_Position=%d && _Layer=%d",posH,layer);
+              if (dbg_prtout) cout<<"LinkTrackHit -I- search for hit "
+                                   <<pred<<endl;
              eventH -> pTrRecHitS(trRecHitItr,mode,oocAll,pred);
              while (trRecHitItr.next() != NULL) {
               rstatus = trTrackItr -> add_pTrRecHitT(trRecHitItr);
@@ -1042,23 +1106,21 @@ ooStatus
         return rstatus;
 }
 
-ooStatus  AMSEventList::CopyTrTrack
-                (char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode)
+ooStatus  AMSEventList::CopyTrTrack(ooHandle(AMSEventD)& eventH, ooMode mode)
 
 {
 	ooStatus	       rstatus = oocSuccess;	// Return status
         integer                itracks = 0;
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
          eventH -> pTrack(trTrackItr, mode);
 
          while (trTrackItr.next()) {
-          if (read_only != 0) {
+          if (dbread_only != 0) {
            AMSTrTrack* p = new AMSTrTrack();
            trTrackItr -> copy(p);
            integer     pattern = trTrackItr  -> getPattern();
@@ -1076,17 +1138,16 @@ ooStatus  AMSEventList::CopyTrTrack
         return rstatus;
 }
 
-ooStatus AMSEventList::LinkTrackHitM(char* eventID,ooHandle(AMSEventD)& eventH)
+ooStatus AMSEventList::LinkTrackHitM(ooHandle(AMSEventD)& eventH)
 {
 	ooStatus	       rstatus = oocSuccess;	// Return status
         ooMode                 mode    = oocRead;
         integer                i;
 
 // find event
-        if (eventH == NULL) {                           
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+        if (eventH == NULL) {
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
 // All containers and events are found
@@ -1106,6 +1167,7 @@ ooStatus AMSEventList::LinkTrackHitM(char* eventID,ooHandle(AMSEventD)& eventH)
           (void) sprintf(pred,"_Position=%d",posT);
           eventH -> pTrack(trTrackItr,mode,oocAll,pred);
           if(trTrackItr.next() != NULL) {                  //    in dbase
+           integer Npos = 0;                              //keep it for hits
            trTrackItr -> pTrRecHitT(trRecHitItr, mode);
            while (trRecHitItr.next()) {                   // get position of  
              integer posH = trRecHitItr -> getPosition(); // assoc.hit in dbase
@@ -1123,7 +1185,8 @@ ooStatus AMSEventList::LinkTrackHitM(char* eventID,ooHandle(AMSEventD)& eventH)
              }
             }
             if (pH != NULL) {
-             p -> setHitP(pH,layer);
+             p -> setHitP(pH,Npos);
+             Npos++;
             } else{ 
              cout <<"AMSEventList::LinkTrackHitM - W - cannot find an "
                   <<" associated hit "<<endl;
@@ -1157,23 +1220,19 @@ ooStatus  AMSEventList::GetKeepingList(ooHandle(AMSEventList)& mylistH)
 
 }
 
-ooStatus AMSEventList::AddTrMCCluster(
-                        char* eventID, ooHandle(AMSEventD) & eventH)
+ooStatus AMSEventList::AddTrMCCluster(ooHandle(AMSEventD) & eventH)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
-
         if (contMCClusterH == NULL) {
-         rstatus = CheckContainer
-           (listH -> _trmcclusterCont.head(), oocUpdate, contMCClusterH, 1);
+         rstatus = CheckContainer(trmcclusterCont, oocUpdate, contMCClusterH);
          if (rstatus != oocSuccess) return rstatus;
         }
         // get number of MCClusters so far
@@ -1188,6 +1247,10 @@ ooStatus AMSEventList::AddTrMCCluster(
         cout <<"AMSEventList::AddMCCluster-I- AMSTrMCCluster* p == NULL"<<endl;
         return oocSuccess;
         }
+
+        if (dbg_prtout) cout<<"AddTrMCCluster -I- nelements "
+                   <<AMSEvent::gethead()->getC("AMSTrMCCluster",0)->getnelem()
+                            <<endl;
         while ( p != NULL) {
          MCClusterH = new(contMCClusterH) AMSTrMCClusterD(p);
          mcclusters++;
@@ -1201,27 +1264,28 @@ ooStatus AMSEventList::AddTrMCCluster(
           cerr << "MCCluster to Event 'pEventMC' association." << endl;
           return rstatus;
          }
+         if (dbg_prtout==2) cout
+                     <<"AMSEventList::AMSTrMCCluster -I- add cluster"
+                     <<" with position "<<p -> getpos()<<endl;
          p = p -> next();
        }
         return rstatus;
 }
 
-ooStatus AMSEventList::CopyTrMCCluster(
-                 char* eventID, ooHandle(AMSEventD) & eventH, ooMode mode)
+ooStatus AMSEventList::
+             CopyTrMCCluster(ooHandle(AMSEventD) & eventH, ooMode mode)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contMCClusterH == NULL) {
-         rstatus = CheckContainer
-           (listH -> _trmcclusterCont.head(), mode, contMCClusterH, 1);
+         rstatus = CheckContainer(trmcclusterCont, mode, contMCClusterH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -1229,12 +1293,18 @@ ooStatus AMSEventList::CopyTrMCCluster(
          integer imcs=0;
 
          while (trMCClusterItr.next()) {
-          if (read_only != 0) {
+          if (dbread_only != 0) {
            AMSTrMCCluster* p = new AMSTrMCCluster();
            trMCClusterItr -> copy(p);
            integer    pos = trMCClusterItr -> getPosition();
            p -> setContPos(pos);
-           AMSEvent::gethead() -> addnext(AMSID("AMSTrMCCluster",0),p);
+           if (AMSEvent::gethead() != NULL) {
+            AMSEvent::gethead() -> addnext(AMSID("AMSTrMCCluster",0),p);
+           } else {
+            cout<<"AMSEventList::CopyTrMCCluster -E- AMSEvent::gethead is NULL"
+                <<endl;
+            return oocError;
+           }
           }
           imcs++;
          }
@@ -1246,9 +1316,8 @@ ooStatus AMSEventList::CopyTrMCCluster(
         return rstatus;
 }
 
-ooStatus      AMSEventList::AddTOFCluster(
-              char* eventID, const integer N,
-              ooHandle(AMSEventD)& eventH) 
+ooStatus      AMSEventList::
+                 AddTOFCluster(const integer N, ooHandle(AMSEventD)& eventH) 
 
 {
 	ooStatus	         rstatus = oocSuccess;	// Return status
@@ -1262,14 +1331,12 @@ ooStatus      AMSEventList::AddTOFCluster(
         }
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contLayerSH[N] == NULL) {
-         rstatus = CheckContainer
-           (listH -> _sclayerCont[N].head(), oocUpdate, contLayerSH[N], 1);
+         rstatus = CheckContainer(sclayerCont[N], oocUpdate, contLayerSH[N]);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -1278,7 +1345,9 @@ ooStatus      AMSEventList::AddTOFCluster(
         cout <<"AMSEventList::AddTOFCluster -I- found tof clusters for "
              <<nameS[N]<<" "<<tofcl<<endl;
         
-        AMSTOFCluster * p = AMSTOFCluster::gethead(N);
+        //AMSTOFCluster * p = AMSTOFCluster::gethead(N);
+        AMSTOFCluster* p = (AMSTOFCluster*)AMSEvent::gethead() -> 
+                                                   getheadC("AMSTOFCluster",N);
         if (p == NULL) {cout <<
               "AMSEventList::AddTOFCluster-I- AMSTOFCluster* p == NULL"<<endl;
                 return oocSuccess;
@@ -1302,8 +1371,8 @@ ooStatus      AMSEventList::AddTOFCluster(
         return rstatus;
 }
 
-ooStatus      AMSEventList::CopyTOFCluster(
-                     char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode) 
+ooStatus      AMSEventList::
+                 CopyTOFCluster(ooHandle(AMSEventD)& eventH, ooMode mode) 
 
 {
 	ooStatus	         rstatus = oocSuccess;	// Return status
@@ -1313,15 +1382,13 @@ ooStatus      AMSEventList::CopyTOFCluster(
 
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         for (integer i =0; i<4; i++) {
          if (contLayerSH[i] == NULL) {
-          rstatus = CheckContainer
-            (listH -> _sclayerCont[i].head(), mode, contLayerSH[i], 1);
+          rstatus = CheckContainer(sclayerCont[i], mode, contLayerSH[i]);
           if (rstatus != oocSuccess) return rstatus;
          }
         }
@@ -1330,9 +1397,20 @@ ooStatus      AMSEventList::CopyTOFCluster(
         eventH -> pTOFCluster(tofClusterItr, mode);
 
         while (tofClusterItr.next()) {
-         if (read_only != 0) {
-          AMSTOFCluster* p = new  AMSTOFCluster();
-          tofClusterItr -> copy(p);
+         if (dbread_only != 0) {
+           //AMSTOFCluster* p = new  AMSTOFCluster();
+           //tofClusterItr -> copy(p);
+           AMSTOFCluster* p = new  AMSTOFCluster(
+                                                 tofClusterItr -> getstatus(),
+                                                 tofClusterItr -> getntof(),
+                                                 tofClusterItr -> getplane(),
+                                                 tofClusterItr -> getedep(),
+                                                 tofClusterItr -> getcoo(),
+                                                 tofClusterItr -> getecoo(),
+                                                 tofClusterItr -> gettime(),
+                                                 tofClusterItr -> getetime()
+                                                 );
+           
           integer posCont= tofClusterItr -> getPosition();
           p -> setContPos(posCont);
           integer ntof = tofClusterItr -> getntof();
@@ -1348,8 +1426,7 @@ ooStatus      AMSEventList::CopyTOFCluster(
         return rstatus;
 }
 
-ooStatus      AMSEventList::AddBeta(
-                            char* eventID, ooHandle(AMSEventD) & eventH)
+ooStatus      AMSEventList::AddBeta(ooHandle(AMSEventD) & eventH)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
@@ -1358,22 +1435,19 @@ ooStatus      AMSEventList::AddBeta(
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contBetaH == NULL) {
-         rstatus = CheckContainer
-          (listH -> _betaCont.head(), oocUpdate, contBetaH, 1);
+         rstatus = CheckContainer(betaCont, oocUpdate, contBetaH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
         for (integer j = 0; j<4; j++)
          {
           if (contLayerSH[j] == NULL) {
-           rstatus = CheckContainer
-           (listH -> _sclayerCont[j].head(), oocUpdate, contLayerSH[j], 1);
+           rstatus = CheckContainer(sclayerCont[j], oocUpdate, contLayerSH[j]);
            if (rstatus != oocSuccess) return rstatus; 
           }
          }
@@ -1428,24 +1502,29 @@ ooStatus      AMSEventList::AddBeta(
            }
 
           // set Beta <-> TOF Cluster[] link
-           AMSTOFCluster* pTOF = p -> getpcluster(j);   // TOFCl.
-           if (pTOF != NULL) {
-            integer  posT   = pTOF -> getContPos();     // position of TOFCl.
-            integer  ntof   = pTOF -> getntof();
-            if (posT != 0) {
-             // find TOF Cluster
-             char pred[32];
-             (void) sprintf(pred,"_Position=%d && _ntof=%d",posT,ntof);
-             eventH -> pTOFCluster(tofClusterItr,mode,oocAll,pred);
-             while (tofClusterItr.next()) {               // get position of  
-              rstatus = betaH -> add_pTOFBeta(tofClusterItr);
-              if (rstatus != oocSuccess) {
-               cerr << "AMSEventList:AddBeta: Error - cannot set the "
-                    << "Beta to TOFCluster 'pTOFBeta' association." << endl;
-               return rstatus;
+           for (j=0; j<4; j++) {
+            AMSTOFCluster* pTOF = p -> getpcluster(j);   // TOFCl.
+            if (pTOF != NULL) {
+             if(dbg_prtout) cout<<"AddBeta -I- pTOF != NULL, layer "<<j<<endl;
+             integer  posT   = pTOF -> getContPos();     // position of TOFCl.
+             integer  ntof   = pTOF -> getntof();
+             if (posT != 0) {
+              // find TOF Cluster
+              char pred[32];
+              (void) sprintf(pred,"_Position=%d && _ntof=%d",posT,ntof);
+              eventH -> pTOFCluster(tofClusterItr,mode,oocAll,pred);
+              while (tofClusterItr.next()) {               // get position of  
+               rstatus = betaH -> add_pTOFBeta(tofClusterItr);
+               if (rstatus != oocSuccess) {
+                cerr << "AMSEventList:AddBeta: Error - cannot set the "
+                     << "Beta to TOFCluster 'pTOFBeta' association." << endl;
+                return rstatus;
+               }
               }
              }
-            }
+           } else {
+            if(dbg_prtout) cout<<"AddBeta -I- pTOF == NULL, layer "<<j<<endl;
+           }
            }
            betas++;
            p -> setContPos(betas);
@@ -1466,26 +1545,22 @@ ooStatus      AMSEventList::AddBeta(
         return rstatus;
 }
 
-ooStatus      AMSEventList::CopyBeta(
-                     char* eventID, ooHandle(AMSEventD) & eventH, ooMode mode)
+ooStatus      AMSEventList::CopyBeta(ooHandle(AMSEventD) & eventH, ooMode mode)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
         integer                 ibeta = 0;
+        integer                 patternB;
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
-        integer patternB;
-        number  buff[3];
         eventH -> pBeta(betaItr, mode);
-  
         while (betaItr.next()) {
-         if (read_only != 0) {
+         if (dbread_only != 0) {
           AMSBeta* p = new AMSBeta();
           betaItr -> copy(p);
           integer posCont = betaItr -> getPosition();
@@ -1495,59 +1570,60 @@ ooStatus      AMSEventList::CopyBeta(
          }
          ibeta++;
         }
-         if (dbg_prtout == 1) {
-          cout <<"AMSEventList:: CopyBeta : betas "<<ibeta
-             <<" total size "<< sizeof(AMSBetaD)*ibeta<<endl;
-         }
+         if (dbg_prtout == 1) cout <<"AMSEventList:: CopyBeta : betas "<<ibeta
+                              <<" total size "<< sizeof(AMSBetaD)*ibeta<<endl;
         event_size = event_size + sizeof(AMSBetaD)*ibeta;
-        if (read_only != 0) {
-        if (ibeta > 0) {
-         // set Beta <-> Track association
-         // get head of Beta Container
-         AMSContainer* pCont = AMSEvent::gethead() -> getC("AMSBeta",patternB);
-         integer nelem = pCont -> getnelem();
-         if (nelem > 0) {
-           AMSBeta* p = (AMSBeta*)AMSEvent::gethead() 
-                                              -> getheadC("AMSBeta",patternB);
-           while (p != NULL) {
-            integer posB = p -> getContPos();
-            if (posB != 0) {
-             char pred[32];
-             (void) sprintf(pred,"_Position=%d",posB);
-              eventH -> pBeta(betaItr,mode,oocAll,pred);       // find the same
-               if (betaItr.next() != NULL) {                   // beta in db
-                trackH = betaItr -> pTrackBeta();
-                integer posT = trackH -> getPosition();
-                integer patternT = trackH -> getPattern();
-                AMSTrTrack* pT = (AMSTrTrack*)AMSEvent::gethead() ->
+
+        if (dbread_only != 0) {
+         if (ibeta > 0) {
+           for (int ib=0; ib<npatb; ib++) {
+             AMSContainer* pCont = AMSEvent::gethead() -> 
+                                                     getC("AMSBeta",ib);
+             integer nelem = pCont -> getnelem();
+             if (nelem > 0) {
+              // set Beta <-> Track association
+              // get head of Beta Container
+              AMSBeta* p = (AMSBeta*)AMSEvent::gethead() 
+                                                   -> getheadC("AMSBeta",ib);
+              while (p != NULL) {
+               integer posB = p -> getContPos();
+               if (posB != 0) {
+                char pred[32];
+                (void) sprintf(pred,"_Position=%d",posB);
+                eventH -> pBeta(betaItr,mode,oocAll,pred);     // find the same
+                if (betaItr.next() != NULL) {                  // beta in db
+                 trackH = betaItr -> pTrackBeta();
+                 integer posT = trackH -> getPosition();
+                 integer patternT = trackH -> getPattern();
+                 AMSTrTrack* pT = (AMSTrTrack*)AMSEvent::gethead() ->
                                            getheadC("AMSTrTrack",patternT);
-                while (pT != NULL) {
-                 if (posT != pT -> getContPos()) {
-                  pT = pT -> next();
-                 } else {
-                  break;
+                 while (pT != NULL) {
+                  if (posT != pT -> getContPos()) {
+                   pT = pT -> next();
+                  } else {
+                   break;
+                  }
+                 }
+                 if (pT != NULL) {
+                  p -> setTrackP(pT);
+                  if (dbg_prtout == 1) cout << 
+                     "AMSEventList:: CopyBeta -I- find an "
+                                                   <<" associated track"<<endl;
+                  } else {
+                   cout <<"AMSEventList:: CopyBeta - W - cannot find an "
+                            <<" associated track"<<endl;
                  }
                 }
-                if (pT != NULL) {
-                 p -> setTrackP(pT);
-                 if (dbg_prtout == 1) cout <<
-                   "AMSEventList:: CopyBeta -I- find an "
-                                                   <<" associated track"<<endl;
-                 } else {
-                  cout <<"AMSEventList:: CopyBeta - W - cannot find an "
-                            <<" associated track"<<endl;
-                }
-              }
-             }
-           p = p -> next();
-           }
+               }
+               p = p -> next();
+              }   
          // set Beta <-> TOFCluster[] association
-         p = (AMSBeta*)AMSEvent::gethead() -> getheadC("AMSBeta",0);
+         p = (AMSBeta*)AMSEvent::gethead() -> getheadC("AMSBeta",ib);
          while (p != NULL) {
           integer posB = p -> getContPos();
           if (posB != 0) {
-          char pred[32];
-          (void) sprintf(pred,"_Position=%d",posB);
+           char pred[32];
+           (void) sprintf(pred,"_Position=%d",posB);
            eventH -> pBeta(betaItr,mode,oocAll,pred);      // find the same
            if (betaItr.next() != NULL) {                   // beta in db
             betaItr -> pTOFBeta(tofClusterItr, mode);
@@ -1577,14 +1653,14 @@ ooStatus      AMSEventList::CopyBeta(
           }
           p = p -> next();
          }
-        }
-       }
-      }
+         } // nelem > 0
+           } // for cycle 
+         }   // ibeta > 0
+        } // dbread_only
         return rstatus;
 }
 
-ooStatus      AMSEventList::AddCharge(
-                            char* eventID, ooHandle(AMSEventD) & eventH)
+ooStatus      AMSEventList::AddCharge(ooHandle(AMSEventD) & eventH)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
@@ -1592,14 +1668,12 @@ ooStatus      AMSEventList::AddCharge(
         ooMode                  mode  = oocUpdate;
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contChargeH == NULL) {
-         rstatus = CheckContainer
-            (listH -> _chargeCont.head(), oocUpdate, contChargeH, 1);
+         rstatus = CheckContainer(chargeCont, oocUpdate, contChargeH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -1654,29 +1728,27 @@ ooStatus      AMSEventList::AddCharge(
         return rstatus;
 }
 
-ooStatus      AMSEventList::CopyCharge(
-                     char* eventID, ooHandle(AMSEventD) & eventH, ooMode mode)
+ooStatus      AMSEventList::
+                   CopyCharge(ooHandle(AMSEventD) & eventH, ooMode mode)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contChargeH == NULL) {
-         rstatus = CheckContainer
-           (listH -> _chargeCont.head(), mode, contChargeH, 1);
+         rstatus = CheckContainer(chargeCont, mode, contChargeH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
         //chargeH = eventH -> pChargeE();
         eventH -> pChargeE(chargeItr, mode);
         while (chargeItr.next()) {
-         if (read_only != 0) {
+         if (dbread_only != 0) {
           AMSCharge* p = new AMSCharge();
           chargeItr -> copy(p);
           integer posCont = chargeItr -> getPosition();
@@ -1695,11 +1767,12 @@ ooStatus      AMSEventList::CopyCharge(
             integer posCh = p -> getContPos();
             if (posCh != 0) {
              betaH = chargeItr -> pBetaCh();                  // in dbase
-             integer posCh = betaH -> getPosition();
+             integer posB     = betaH -> getPosition();
+             integer patternB = betaH -> getpattern();
              AMSBeta* pB = (AMSBeta*)AMSEvent::gethead() ->
-                                                       getheadC("AMSBeta",0);
+                                                  getheadC("AMSBeta",patternB);
              while (pB != NULL) {
-              if (posCh != pB -> getContPos()) {
+              if (posB != pB -> getContPos()) {
                pB = pB -> next();
                } else {
                 break;
@@ -1724,24 +1797,19 @@ ooStatus      AMSEventList::CopyCharge(
         return rstatus;
 }        
 
-ooStatus      AMSEventList::AddParticle(
-                            char* eventID, ooHandle(AMSEventD) & eventH)
+ooStatus      AMSEventList::AddParticle(ooHandle(AMSEventD) & eventH)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
-        }
+         cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;}
 
         if (contParticleH == NULL) {
-         rstatus = CheckContainer
-           (listH -> _particleCont.head(), oocUpdate, contParticleH, 1);
-         if (rstatus != oocSuccess) return rstatus;
-        }
+         rstatus = CheckContainer(particleCont, oocUpdate, contParticleH);
+         if (rstatus != oocSuccess) return rstatus; }
 
         // get number of particle so far
         integer particles  = listH   -> getNParticles();
@@ -1773,7 +1841,6 @@ ooStatus      AMSEventList::AddParticle(
              (void) sprintf(pred,"_Position=%d",posB);
              eventH -> pBeta(betaItr,oocUpdate,oocAll,pred);
              while (betaItr.next()) {                   // get position of  
-              integer posBd = betaItr -> getPosition(); // assoc. beta in db
                rstatus = particleH -> set_pBetaP(betaItr);
                if (rstatus != oocSuccess) {
                 cerr << "AMSEventList:AddParticle: Error - cannot set the "
@@ -1800,18 +1867,40 @@ ooStatus      AMSEventList::AddParticle(
               }
              }
             }
-
+           }
+            // set particle -> ctc link
+            for (int icnt=0; icnt<CTCDBc::getnlay(); icnt++) {
+             AMSCTCCluster* pCTC = p -> getpctc(icnt);
+               if (pCTC != NULL) {
+                integer posCTC = pCTC -> getContPos();
+                if (posCTC != 0) {
+                // find CTC
+                char pred[32];
+                (void) sprintf(pred,"_Position=%d",posCTC);
+                eventH -> pCTCCluster(ctcClusterItr,oocUpdate,oocAll,pred);
+                while (ctcClusterItr.next()) {          // get position of  
+                  rstatus = particleH -> add_pCTCClusterP(ctcClusterItr);
+                  if (rstatus != oocSuccess) {
+                   cerr << "AMSEventList:AddParticle-E- cannot set the "
+                        << "Particle to CTC 'pChargeP' association." << endl;
+                   return rstatus;
+                  }
+                  break;
+                }
+                }
+               }
+            }
           particles++;
           p -> setContPos(particles);
           particleH -> setPosition(particles);
           listH  -> incNParticles();
           eventH -> incParticles();
-         }
+
         return rstatus;
 }           
 
-ooStatus      AMSEventList::CopyParticle(
-                      char* eventID, ooHandle(AMSEventD) & eventH, ooMode mode)
+ooStatus      AMSEventList::
+                   CopyParticle(ooHandle(AMSEventD) & eventH, ooMode mode)
 
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
@@ -1819,38 +1908,33 @@ ooStatus      AMSEventList::CopyParticle(
         integer                 iparticle = 0;
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contParticleH == NULL) {
-         rstatus = CheckContainer
-           (listH -> _particleCont.head(), mode, contParticleH, 1);
+         rstatus = CheckContainer(particleCont, mode, contParticleH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
         if (contChargeH == NULL) {
-         rstatus = CheckContainer
-           (listH -> _chargeCont.head(), mode, contChargeH, 1);
+         rstatus = CheckContainer(chargeCont, mode, contChargeH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
         if (contBetaH == NULL) {
-         rstatus = CheckContainer
-           (listH -> _betaCont.head(), mode, contBetaH, 1);
+         rstatus = CheckContainer(betaCont, mode, contBetaH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
         if (contTrackH == NULL) {
-         rstatus = CheckContainer
-           (listH -> _trtrackCont.head(), mode, contTrackH, 1);
+         rstatus = CheckContainer(trtrackCont, mode, contTrackH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
         eventH -> pParticleE(particleItr, mode);
         while (particleItr.next()) {
-         if (read_only != 0) {
+         if (dbread_only != 0) {
           AMSParticle* p = new AMSParticle();
           particleItr -> copy(p);
           integer posCont = particleItr -> getPosition();
@@ -1869,9 +1953,10 @@ ooStatus      AMSEventList::CopyParticle(
             if (posP != 0) {
              // set particle <-> beta link
              betaH = particleItr -> pBetaP();                  // in dbase
-             integer posP = betaH -> getPosition();
+             integer posB      = betaH -> getPosition();
+             integer patternB  = betaH -> getpattern();
              AMSBeta* pB = (AMSBeta*)AMSEvent::gethead() ->
-                                                       getheadC("AMSBeta",0);
+                                                getheadC("AMSBeta",patternB);
              while (pB != NULL) {
               if (posP != pB -> getContPos()) {
                pB = pB -> next();
@@ -1924,63 +2009,58 @@ ooStatus      AMSEventList::CopyParticle(
               }
               if (pT != NULL) {
                p -> setptrack(pT);
-               if (dbg_prtout == 1) 
-                 cout <<"AMSEventList:: CopyParticle -I- found an "
-                            <<" associated track"<<endl;
+               if (dbg_prtout == 1) cout <<"AMSEventList::CopyParticle -I- "
+                                         <<"found an associated track"<<endl;
                } else {
-                cout <<"AMSEventList:: CopyBeta - W - cannot find an "
+                cout <<"AMSEventList::CopyParticle - W - cannot find an "
                             <<" associated track"<<endl;
               }
             }
+
+            particleItr -> pCTCClusterP(ctcClusterItr, mode);
+            while (ctcClusterItr.next() != NULL) {
+              int posCTC = ctcClusterItr -> getPosition();
+              for (int ictc=0; ictc<CTCDBc::getnlay(); ictc++) {
+               AMSContainer* pCont = AMSEvent::gethead() 
+                                              -> getC("AMSCTCCluster",ictc);
+               if (pCont-> getnelem() > 0) {
+                AMSCTCCluster* pCTC = (AMSCTCCluster*) AMSEvent::gethead() ->
+                                               getheadC("AMSCTCCluster",ictc);
+                while (pCTC != NULL) {
+                  if (posCTC == pCTC -> getContPos()) {
+                    p -> setpctc(pCTC,ictc);
+                    break;
+                  }
+                 pCTC = pCTC -> next();
+                }
+               }
+              }
+            }
            p = p -> next();
-          }
-         }
-        }
+           } // p != NULL
+          }  // nelem > 0
+         }   // dbread_only
         event_size = event_size + sizeof(AMSParticleD);
         }
         return rstatus;
 }
 
-ooStatus AMSEventList::FindEventByN
-                   (integer eventN, ooMode mode, ooHandle(AMSEventD)& eventH)
-{
-     ooStatus               rstatus = oocError;
-     ooHandle(AMSEventList) listH = ooThis();
-     ooItr(AMSEventD)       eventItr;                 
-     
-     if (eventN > 0) {
-      char pred[32];
-       (void) sprintf(pred,"_Position=%d",eventN);
-        eventItr.scan(listH, mode, oocAll, pred);
-      while (eventItr.next())
-      {
-        if (dbg_prtout) cout <<"Event "<<eventItr -> EventNumber()
-                             <<", Position "<<eventItr -> getPosition()<<endl;
-         eventH = eventItr;
-          return oocSuccess;
-      }
-     }
-     eventH = NULL;
-     return rstatus;
-}
 
-ooStatus AMSEventList::AddTOFMCCluster(
-                        char* eventID, ooHandle(AMSEventD) & eventH)
+ooStatus AMSEventList::AddTOFMCCluster(ooHandle(AMSEventD) & eventH)
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
 
         if (contTOFMCClusterH == NULL) {
-        rstatus = CheckContainer
-          (listH -> _tofmcclusterCont.head(), oocUpdate, contTOFMCClusterH,1);
-        if (rstatus != oocSuccess) return rstatus;
+         rstatus = CheckContainer
+                             (tofmcclusterCont, oocUpdate, contTOFMCClusterH);
+         if (rstatus != oocSuccess) return rstatus;
         }
 
         // get number of MCClusters so far
@@ -2013,21 +2093,21 @@ ooStatus AMSEventList::AddTOFMCCluster(
         return rstatus;
 }
 
-ooStatus AMSEventList::CopyTOFMCCluster(
-                 char* eventID, ooHandle(AMSEventD) & eventH, ooMode mode)
+ooStatus AMSEventList::
+               CopyTOFMCCluster(ooHandle(AMSEventD) & eventH, ooMode mode)
 
 {
         ooHandle(AMSEventList) listH = ooThis();
 	ooStatus	        rstatus = oocSuccess;	// Return status
+
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+         cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contTOFMCClusterH == NULL) {
          rstatus = CheckContainer
-           (listH -> _tofmcclusterCont.head(), mode, contTOFMCClusterH, 1);
+                              (tofmcclusterCont, mode, contTOFMCClusterH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -2035,7 +2115,7 @@ ooStatus AMSEventList::CopyTOFMCCluster(
          integer imcs=0;
 
          while (TOFMCClusterItr.next()) {
-          if (read_only != 0) {
+          if (dbread_only != 0) {
            AMSTOFMCCluster* p = new AMSTOFMCCluster();
            TOFMCClusterItr -> copy(p);
            integer    pos = TOFMCClusterItr -> getPosition();
@@ -2059,71 +2139,89 @@ ooStatus AMSEventList::CheckAllContainers(ooMode mode)
 
         for (i=0; i<2; i++) {
          rstatus = CheckContainer
-           (listH -> _trclusterCont[i].head(), mode, contClusterH[i], 1);
+                               (trclusterCont[i], mode, contClusterH[i]);
          if (rstatus != oocSuccess) return rstatus;
         }
 
         for (i=0; i<6; i++) {
-         rstatus = CheckContainer(
-                 listH -> _trlayerCont[i].head(), mode, contTrLayerH[i], 1);
+         rstatus = CheckContainer(trlayerCont[i], mode, contTrLayerH[i]);
          if (rstatus != oocSuccess) return rstatus;
         }
 
-        rstatus = CheckContainer
-          (listH -> _trtrackCont.head(), mode, contTrackH, 1);
+        rstatus = CheckContainer(trtrackCont, mode, contTrackH);
         if (rstatus != oocSuccess) return rstatus;
 
-        rstatus = CheckContainer
-          (listH -> _trmcclusterCont.head(), mode, contMCClusterH, 1);
+        rstatus = CheckContainer(trmcclusterCont, mode, contMCClusterH);
         if (rstatus != oocSuccess) return rstatus;
 
         for (i=0; i<4; i++) {
-         rstatus = CheckContainer(
-                     listH -> _sclayerCont[i].head(), mode, contLayerSH[i], 1);
+         rstatus = CheckContainer(sclayerCont[i], mode, contLayerSH[i]);
          if (rstatus != oocSuccess) return rstatus;
         }
 
-        rstatus = CheckContainer
-          (listH -> _particleCont.head(), mode, contParticleH, 1);
+        rstatus = CheckContainer(particleCont, mode, contParticleH);
         if (rstatus != oocSuccess) return rstatus;
 
-        rstatus = CheckContainer(
-                        listH -> _chargeCont.head(), mode, contChargeH, 1);
+        rstatus = CheckContainer(chargeCont, mode, contChargeH);
         if (rstatus != oocSuccess) return rstatus;
 
-        rstatus = CheckContainer(
-                               listH -> _betaCont.head(), mode, contBetaH, 1);
+        rstatus = CheckContainer(betaCont, mode, contBetaH);
         if (rstatus != oocSuccess) return rstatus;
 
-        rstatus = CheckContainer(
-                listH -> _tofmcclusterCont.head(), mode, contTOFMCClusterH, 1);
+        rstatus = CheckContainer(tofmcclusterCont, mode, contTOFMCClusterH);
         if (rstatus != oocSuccess) return rstatus;
 
         return rstatus;
 }
 
 ooStatus AMSEventList::CheckContainer(char* name, ooMode mode, 
-                                      ooHandle(ooContObj)& containerH, 
-                                      const integer flag)
+                                      ooHandle(ooContObj)& containerH)
 {
      ooStatus rstatus = oocSuccess;
-     ooHandle(ooDBObj) databaseH;
+     ooHandle(ooDBObj)   databaseH;
      ooThis().containedIn(databaseH);
 
-     if (dbg_prtout == 1)
-      cout << "AMSEventList:: CheckContainer : container "<<name
-           << ", mode "<<mode<<endl;
-     if (!containerH.exist(databaseH,name,mode)) {
-       cout <<"AMSEventList::CheckContainer : Warning - Cannot find or open"
+     if (name) {
+      if (dbg_prtout == 1)
+       cout << "AMSEventList:: CheckContainer : container "<<name
+            << ", mode "<<mode<<endl;
+      if (!containerH.exist(databaseH,name,mode)) {
+       cout <<"AMSEventList::CheckContainer -W- Cannot find or open"
             <<"  container "<<name<<" in mode "<<mode<<endl;
-       return oocError;
+       rstatus = oocError;
       }
+     } else {
+       cout <<"AMSEventList::CheckContainer -W- container name is NULL"<<endl;
+       rstatus = oocError;
+     }
+      return rstatus;
+}
+
+ooStatus AMSEventList::CheckContainer(char* name, ooMode mode, 
+                                      ooHandle(ooContObj)& containerH, 
+                                      ooHandle(ooDBObj)& dbH)
+{
+     ooStatus rstatus = oocSuccess;
+
+     if (name) {
+      if (dbg_prtout == 1)
+       cout << "AMSEventList:: CheckContainer : container "<<name
+            << ", mode "<<mode<<endl;
+      if (!containerH.exist(dbH,name,mode)) {
+       cout <<"AMSEventList::CheckContainer -W- Cannot find or open"
+            <<"  container "<<name<<" in mode "<<mode<<endl;
+       rstatus = oocError;
+      }
+     } else {
+       cout <<"AMSEventList::CheckContainer -W- container name is NULL"<<endl;
+       rstatus = oocError;
+     }
       return rstatus;
 }
 
 
-ooStatus AMSEventList::CopyEvent
-                     (char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode)
+ooStatus AMSEventList::
+                    CopyEvent(ooHandle(AMSEventD)& eventH, ooMode mode)
 {
   ooStatus  rstatus = oocError;
   ooHandle(AMSEventList) listH = ooThis();
@@ -2133,38 +2231,38 @@ ooStatus AMSEventList::CopyEvent
      return rstatus;
   }
 
-   rstatus = listH -> CopyTrCluster(eventID, eventH, mode);
+   rstatus = listH -> CopyTrCluster(eventH, mode);
    if(rstatus != oocSuccess) goto error;
  
-   rstatus = listH -> CopyTrRecHit(eventID, eventH, mode);
+   rstatus = listH -> CopyTrRecHit(eventH, mode);
    if(rstatus != oocSuccess) goto error;
 
-   if (read_only != 0) {
-    rstatus = listH -> LinkHitClusterM(eventID, eventH);
+   if (dbread_only != 0) {
+    rstatus = listH -> LinkHitClusterM(eventH);
     if(rstatus != oocSuccess) goto error;
    } 
 
-   rstatus = listH -> CopyTrTrack(eventID, eventH, mode);
+   rstatus = listH -> CopyTrTrack(eventH, mode);
    if(rstatus != oocSuccess) goto error;
 
-   if (read_only != 0) {
-    rstatus = listH -> LinkTrackHitM(eventID, eventH);
+   if (dbread_only != 0) {
+    rstatus = listH -> LinkTrackHitM(eventH);
     if(rstatus != oocSuccess) goto error;
    }
 
-   rstatus = listH -> CopyTOFCluster(eventID, eventH, mode);
+   rstatus = listH -> CopyTOFCluster(eventH, mode);
    if(rstatus != oocSuccess) goto error;
 
-   rstatus = listH -> CopyCTCCluster(eventID, eventH, mode);
+   rstatus = listH -> CopyCTCCluster(eventH, mode);
    if(rstatus != oocSuccess) goto error;
 
-   rstatus = listH -> CopyBeta(eventID, eventH, mode);
+   rstatus = listH -> CopyBeta(eventH, mode);
    if(rstatus != oocSuccess) goto error;
 
-   rstatus = listH -> CopyCharge(eventID, eventH, mode);
+   rstatus = listH -> CopyCharge(eventH, mode);
    if(rstatus != oocSuccess) goto error;
 
-   rstatus = listH -> CopyParticle(eventID, eventH, mode);
+   rstatus = listH -> CopyParticle(eventH, mode);
    if(rstatus != oocSuccess) goto error;
 
    event_size=event_size+sizeof(AMSEventD);
@@ -2176,8 +2274,8 @@ error :
    return rstatus;
 
 }
-ooStatus AMSEventList::CopyMCEvent
-           (char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode)
+ooStatus AMSEventList::
+            CopyMCEvent(ooHandle(AMSEventD)& eventH, ooMode mode)
 {
   ooStatus  rstatus = oocError;
   ooHandle(AMSEventList) listH = ooThis();
@@ -2188,13 +2286,13 @@ ooStatus AMSEventList::CopyMCEvent
   }
 
   //copy MC banks
-   rstatus =  listH -> CopyTrMCCluster(eventID, eventH, mode);
+   rstatus =  listH -> CopyTrMCCluster(eventH, mode);
   if (rstatus == oocSuccess) rstatus = 
-                             listH -> CopyTOFMCCluster(eventID, eventH, mode);
+                             listH -> CopyTOFMCCluster(eventH, mode);
   if (rstatus == oocSuccess) rstatus = 
-                             listH -> CopyAntiMCCluster(eventID, eventH, mode);
+                             listH -> CopyAntiMCCluster(eventH, mode);
   if (rstatus == oocSuccess) rstatus = 
-                             listH -> CopyCTCMCCluster(eventID, eventH, mode);
+                             listH -> CopyCTCMCCluster(eventH, mode);
 
   if (dbg_prtout !=0 && rstatus == oocSuccess) 
                           cout<<"CopyMCEvent : Event size "<<event_size<<endl;
@@ -2203,8 +2301,8 @@ ooStatus AMSEventList::CopyMCEvent
    return rstatus;
 }
 
-ooStatus AMSEventList::CopyEventHeader
-           (char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode)
+ooStatus AMSEventList::
+                CopyEventHeader(ooHandle(AMSEventD)& eventH, ooMode mode)
 {
   ooStatus  rstatus = oocError;
   ooHandle(AMSEventList) listH = ooThis();
@@ -2220,7 +2318,7 @@ ooStatus AMSEventList::CopyEventHeader
   time_t   time;
 
   eventH -> getNumbers(run, runtype, eventn, time);
-  if (read_only != 0) {
+  if (dbread_only != 0) {
   
    if(dbg_prtout == 1) cout <<" AMSEventList::CopyEventHeader -I- add event "
                             <<eventn<<" of run "<<run<<endl;
@@ -2232,8 +2330,8 @@ ooStatus AMSEventList::CopyEventHeader
    return rstatus;
 }
 
-ooStatus AMSEventList::CopyMCeventg
-           (char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode)
+ooStatus AMSEventList::
+                CopyMCeventg(ooHandle(AMSEventD)& eventH, ooMode mode)
 {
   ooStatus  rstatus = oocError;
   ooHandle(AMSEventList) listH = ooThis();
@@ -2245,7 +2343,7 @@ ooStatus AMSEventList::CopyMCeventg
 
 
   //copy MC banks
-  rstatus = listH -> CopymcEventg(eventID, eventH, mode);
+  rstatus = listH -> CopymcEventg(eventH, mode);
   if (dbg_prtout !=0 && rstatus == oocSuccess) 
                           cout<<"CopyMCEvent : Event size "<<event_size<<endl;
 
@@ -2253,7 +2351,7 @@ ooStatus AMSEventList::CopyMCeventg
 }
 
 
-ooStatus AMSEventList::AddGeometry()
+ooStatus AMSEventList::AddGeometry(ooHandle(ooDBObj)& dbH)
 {
   ooStatus  rstatus = oocError;
   ooMode    mode    = oocUpdate;
@@ -2277,13 +2375,11 @@ ooStatus AMSEventList::AddGeometry()
   strcpy(contName,"Geometry_");
   strcat(contName,setup);
   
-  //--contName = "Geometry_RB";
-
   // check container
-  rstatus = CheckContainer(contName, mode, contGeometryH, 0);
+  rstatus = CheckContainer(contName, mode, contGeometryH, dbH);
   if (rstatus != oocSuccess) 
     {
-      contGeometryH = new(contName,1,0,0,databaseH) ooContObj;
+      contGeometryH = new(contName,1,0,0,dbH) ooContObj;
       cout<<"AMSEventList::AddGeometry -I- Create container "<<contName<< endl;
     } else {
       cout<<"AMSEventList::AddGeometry -I- Found container "<<contName<< endl;
@@ -2375,7 +2471,7 @@ ooStatus AMSEventList::AddGeometry()
   return oocSuccess;
 }
 
-ooStatus AMSEventList::CopyGeometry(ooMode mode)
+ooStatus AMSEventList::CopyGeometry(ooMode mode, ooHandle(ooDBObj)& dbH)
 {
   ooStatus                 rstatus = oocError;
 
@@ -2388,17 +2484,15 @@ ooStatus AMSEventList::CopyGeometry(ooMode mode)
 
   // get setup name
   char* setup = AMSJob::gethead() -> getsetup();
-  if (dbg_prtout) 
-      cout <<"AMSEventList::CopyGeometry -I- setup name "<<setup<<endl;
+  cout <<"AMSEventList::CopyGeometry -I- setup name "<<setup<<endl;
 
   char* contName = new char[strlen(setup)+10];
   strcpy(contName,"Geometry_");
   strcat(contName,setup);
 
-  if (dbg_prtout) 
-         cout <<"AMSEventList::CopyGeometry -I- container "<<contName<<endl;
+  cout <<"AMSEventList::CopyGeometry -I- container "<<contName<<endl;
 
-  rstatus = CheckContainer(contName, mode, contGeometryH, 0);
+  rstatus = CheckContainer(contName, mode, contGeometryH, dbH);
   if (rstatus != oocSuccess) {
    cout <<"AMSEventList::CopyGeometry -E- cannot find or open container "
         <<contName<<endl;
@@ -2411,6 +2505,10 @@ ooStatus AMSEventList::CopyGeometry(ooMode mode)
   {
     nobj++;
   }
+  
+  NOBJ = nobj;
+  cout <<"AMSEventList::CopyGeometry -I- found "<<NOBJ<<" objects"<<endl;
+
 
   geometryHT = new ooHandle(AMSgvolumeD)[nobj+1];
   geometryP  = new integer[nobj+1];
@@ -2422,10 +2520,16 @@ ooStatus AMSEventList::CopyGeometry(ooMode mode)
   {
     if (geometryItr -> getUp() == 0  && geometryItr -> _Up == NULL) 
     {
-        CopyByPos(geometryItr, mode);
         cout <<"mother  "<<geometryItr -> getid()<<" "
-             <<geometryItr -> _name<<" "
-             <<geometryItr -> getContPos()<<endl;
+             <<geometryItr -> _name<<endl;
+        //cout <<"position "<<geometryItr -> getContPos()<<endl;
+        if (geometryItr -> _Next != 0) {
+         geometryItr -> _Next = NULL;
+         geometryItr -> setNext(0); 
+         cout 
+          <<"AMSEventList::CopyGeometry -I- Next ptr of mother set to 0"<<endl;
+        }
+        CopyByPos(geometryItr, mode);
         break;
     }
   }
@@ -2441,10 +2545,10 @@ ooStatus AMSEventList::CopyGeometry(ooMode mode)
    geant                    par[6];
    geant                    cooG[3];
    number                   nbuff0[9];
-   number                   nrm[3][3];
+   //number                   nrm[3][3];
+   number                   inrm[3][3];
    char                     gonly[5];
    char                     shape[5];
-
 
    integer id     = geometryHT[j] -> getid();
    integer matter = geometryHT[j] -> getmatter();
@@ -2462,17 +2566,20 @@ ooStatus AMSEventList::CopyGeometry(ooMode mode)
    integer posp   = geometryHT[j] -> getposp();
    integer gid    = geometryHT[j] -> getgid();
    integer npar   = geometryHT[j] -> getnpar();
-                    geometryHT[j] -> getnrm(nbuff0);
-                    UCOPY(nbuff0,nrm,sizeof(number)*9/4);
+   //geometryHT[j] -> getnrm(nbuff0);
+   //UCOPY(nbuff0,nrm,sizeof(number)*9/4);
+                    geometryHT[j] -> getinrm(nbuff0);
+                    UCOPY(nbuff0,inrm,sizeof(number)*9/4);
 
+   integer rel    = 0;
    p = new AMSgvolume (matter, rotmno, name, shape, par, npar, 
-                       cooG, nrm, gonly, posp, gid);
+                       cooG, inrm, gonly, posp, gid);
    integer pos = geometryHT[j] -> getContPos();
    p -> setContPos(pos);
 
    ptrsGV[j] = p;
 
-   if (dbg_prtout) cout <<"# "<<j<<"  "<<id<<" "<<name<<" "<<pos;
+   if (dbg_prtout > 1) cout <<"# "<<j<<"  "<<id<<" "<<name<<" "<<pos;
 
    if( geometryHT[j] -> getUp() != 0) 
     {
@@ -2481,7 +2588,6 @@ ooStatus AMSEventList::CopyGeometry(ooMode mode)
       { 
        if (geometryP[l] == posUp) 
         {
-          //cout <<"  ....add it, to mother "<<l<<endl;
          AMSgvolume* motherT = ptrsGV[l];
          motherT -> add(p);
          break;
@@ -2505,23 +2611,28 @@ void AMSEventList::CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode)
 {
   ooHandle(AMSgvolumeD) cur;
   ooHandle(AMSgvolumeD) tmp;
- 
+  //static integer nnn = 0;
+
+  //if (ptr != NULL ) cout <<"ptr -> Pos "<< ptr -> getContPos()<<endl;
+  //cout <<"in "<<++nnn<<endl;
   cur = ptr;
   while(cur != NULL) {
     geometryHT[NN] = cur;
     geometryP[NN]  = cur -> getContPos();
     NN++;
+    //cout <<"NN... "<<NN<<" contPos "<<cur -> getContPos();
+    //cout<<"down "<<cur-> _Down<<", next "<<cur-> _Next<<endl;
     tmp = cur -> _Down;
-    CopyByPos(tmp, mode);
+    if (tmp != NULL) CopyByPos(tmp, mode);
     cur = cur -> _Next;
   }   
+  // cout <<"exit "<<nnn--<<endl;
 }
 
-ooStatus AMSEventList::AddMaterial()
+ooStatus AMSEventList::AddMaterial(ooHandle(ooDBObj)& dbH)
 {
   ooStatus  rstatus = oocError;
   ooMode    mode    = oocUpdate;
-  ooHandle(ooDBObj)    databaseH;
   AMSNode*  p;
   AMSgmat*  pp;
   integer   id;
@@ -2529,8 +2640,6 @@ ooStatus AMSEventList::AddMaterial()
   geant     z[3];
   geant     w[3];
   char*     name;
-
-  ooThis().containedIn(databaseH);
 
 
   // get setup and container names
@@ -2540,12 +2649,11 @@ ooStatus AMSEventList::AddMaterial()
   strcpy(contName,"Materials_");
   strcat(contName,setup);
 
-  //contName = "Materials_RB";
   // check container
-  rstatus = CheckContainer(contName, mode, contgmatH, 0);
+  rstatus = CheckContainer(contName, mode, contgmatH, dbH);
   if (rstatus != oocSuccess) 
     {
-      contgmatH = new(contName,1,0,0,databaseH) ooContObj;
+      contgmatH = new(contName,1,0,0,dbH) ooContObj;
       cout << "AMSEventList:: -I- Create container "<<contName<< endl;
     } else {
       cout << "AMSEventList:: -I- Found container "<<contName<< endl;
@@ -2591,7 +2699,7 @@ newsetup:
   if (p != NULL) {
    p = p -> down();
    while (p != NULL) {
-     if (dbg_prtout) cout<<p -> getid() <<" "<<p -> getname();
+     if (dbg_prtout > 1) cout<<p -> getid() <<" "<<p -> getname();
      pp = (AMSgmat*)p;
      integer npar = pp -> getnpar();
      id = p -> getid();
@@ -2608,17 +2716,14 @@ newsetup:
   return oocSuccess;
 }
 
-ooStatus AMSEventList::AddTMedia()
+ooStatus AMSEventList::AddTMedia(ooHandle(ooDBObj)& dbH)
 {
   ooStatus  rstatus = oocError;
   ooMode    mode    = oocUpdate;
-  ooHandle(ooDBObj)    databaseH;
   integer   id;
   char*     name;
   AMSNode*  p;
   AMSgtmed* pp;
-
-  ooThis().containedIn(databaseH);
 
   // get setup and container names
   char* setup = AMSJob::gethead() -> getsetup();
@@ -2628,10 +2733,10 @@ ooStatus AMSEventList::AddTMedia()
   strcat(contName,setup);
   
   // check container
-  rstatus = CheckContainer(contName, mode, contgtmedH, 0);
+  rstatus = CheckContainer(contName, mode, contgtmedH, dbH);
   if (rstatus != oocSuccess) 
     {
-      contgtmedH = new(contName,1,0,0,databaseH) ooContObj;
+      contgtmedH = new(contName,1,0,0,dbH) ooContObj;
       cout << "AMSEventList:: -I- Create container "<<contName<< endl;
     } else {
       cout << "AMSEventList:: -I- Found container "<<contName<< endl;
@@ -2691,7 +2796,7 @@ newsetup:
   return oocSuccess;
 }
 
-ooStatus AMSEventList::CopyMaterial(ooMode mode)
+ooStatus AMSEventList::CopyMaterial(ooMode mode, ooHandle(ooDBObj)& dbH)
 {
   ooStatus  rstatus = oocError;
 
@@ -2707,7 +2812,7 @@ ooStatus AMSEventList::CopyMaterial(ooMode mode)
   if(dbg_prtout) cout <<"AMSEventList::CopyMaterial -I-  container "
                       <<contName<<endl;
 
-  rstatus = CheckContainer(contName, mode, contgmatH, 0);
+  rstatus = CheckContainer(contName, mode, contgmatH, dbH);
   if (rstatus != oocSuccess) {
    cout <<"AMSEventList::CopyMaterial -E-  cannot find or open container "
                       <<contName<<endl;
@@ -2749,24 +2854,22 @@ ooStatus AMSEventList::CopyMaterial(ooMode mode)
   return rstatus;
 }
 
-ooStatus AMSEventList::CopyTMedia(ooMode mode)
+ooStatus AMSEventList::CopyTMedia(ooMode mode, ooHandle(ooDBObj)& dbH)
 {
   ooStatus  rstatus = oocError;
 
   cout <<" AMSEventList::CopyTMedia - I - add TMedia "<<endl;
-  // get setup name
   char* setup = AMSJob::gethead() -> getsetup();
   if(dbg_prtout) cout <<"AMSEventList::CopyTMedia -I- setup "<<setup<<endl;
 
   char* contName = new char[strlen(setup)+8];
-
   strcpy(contName,"TMedia_");
   strcat(contName,setup);
 
-  if(dbg_prtout) cout <<"AMSEventList::CopyTMedia -I- container "
-                      <<contName<<endl;
+  if(dbg_prtout) 
+        cout <<"AMSEventList::CopyTMedia -I- container "<<contName<<endl;
 
-  rstatus = CheckContainer(contName, mode, contgtmedH, 0);
+  rstatus = CheckContainer(contName, mode, contgtmedH, dbH);
   if (rstatus != oocSuccess) {
    cout <<"AMSEventList::CopyTMedia -E- cannot find or open container "
                       <<contName<<endl;
@@ -2799,23 +2902,19 @@ ooStatus AMSEventList::CopyTMedia(ooMode mode)
   return rstatus;
 }
 
-ooStatus      AMSEventList::AddCTCCluster(
-                                 char* eventID, ooHandle(AMSEventD)& eventH) 
-
+ooStatus      AMSEventList::AddCTCCluster(ooHandle(AMSEventD)& eventH) 
 {
 	ooStatus	         rstatus = oocSuccess;	// Return status
         ooHandle(AMSCTCClusterD) ctcclusterH;
         ooHandle(AMSEventList)   listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contCTCClusterH == NULL) {
-         rstatus = CheckContainer(
-              listH -> _ctcclusterCont.head(), oocUpdate, contCTCClusterH, 1);
+         rstatus = CheckContainer(ctcclusterCont, oocUpdate, contCTCClusterH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -2824,32 +2923,30 @@ ooStatus      AMSEventList::AddCTCCluster(
         cout <<"AMSEventList::AddCTCCluster -I- found CTC clusters for "
              <<ctccl<<endl;
         
-        AMSCTCCluster * p = (AMSCTCCluster*)AMSEvent::gethead() ->
-                                                 getheadC("AMSCTCCluster",0);
-        if (p == NULL && dbg_prtout == 1) {cout <<
-              "AMSEventList::AddCTCCluster-I- AMSCTCCluster* p == NULL"<<endl;
-                return oocSuccess;
-        }
-        while ( p != NULL) {
-         ctcclusterH = new(contCTCClusterH) AMSCTCClusterD(p);
-         rstatus = eventH -> add_pCTCCluster(ctcclusterH);
-         if (rstatus != oocSuccess) {
-          cerr << "AMSEventList:AddCTCCluster: Error - cannot set the "
-               << "CTCCluster to Event 'pCTCCluster' association." << endl;
-          return rstatus;
+        for (int icnt=0; icnt<CTCDBc::getnlay(); icnt++) {
+         AMSCTCCluster * p = (AMSCTCCluster*)AMSEvent::gethead() ->
+                                               getheadC("AMSCTCCluster",icnt);
+         while ( p != NULL) {
+          ctcclusterH = new(contCTCClusterH) AMSCTCClusterD(p);
+          rstatus = eventH -> add_pCTCCluster(ctcclusterH);
+          if (rstatus != oocSuccess) {
+           cerr << "AMSEventList:AddCTCCluster: Error - cannot set the "
+                << "CTCCluster to Event 'pCTCCluster' association." << endl;
+           return rstatus;
+          }
+          ctccl++;
+          eventH -> incCTCClusters();
+          p -> setContPos(ctccl);
+          ctcclusterH -> setPosition(ctccl);
+          listH  -> incNCTCClusters();
+          p = p -> next();
          }
-         ctccl++;
-         eventH -> incCTCClusters();
-         p -> setContPos(ctccl);
-         ctcclusterH -> setPosition(ctccl);
-         listH  -> incNCTCClusters();
-         p = p -> next();
         }
         return rstatus;
 }
 
-ooStatus      AMSEventList::CopyCTCCluster(
-                     char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode) 
+ooStatus      AMSEventList::
+                    CopyCTCCluster(ooHandle(AMSEventD)& eventH, ooMode mode) 
 
 {
 	ooStatus	         rstatus = oocSuccess;	// Return status
@@ -2859,14 +2956,12 @@ ooStatus      AMSEventList::CopyCTCCluster(
 
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
          if (contCTCClusterH == NULL) {
-          rstatus = CheckContainer(
-                  listH -> _ctcclusterCont.head(), mode, contCTCClusterH, 1);
+          rstatus = CheckContainer(ctcclusterCont, mode, contCTCClusterH);
           if (rstatus != oocSuccess) return rstatus;
          }
 
@@ -2874,12 +2969,13 @@ ooStatus      AMSEventList::CopyCTCCluster(
         eventH -> pCTCCluster(ctcClusterItr, mode);
 
         while (ctcClusterItr.next()) {
-         if (read_only != 0) {
+         if (dbread_only != 0) {
           AMSCTCCluster* p = new AMSCTCCluster();
           ctcClusterItr -> copy(p);
           integer posCont = ctcClusterItr -> getPosition();
           p -> setContPos(posCont);
-          AMSEvent::gethead()->addnext(AMSID("AMSCTCCluster",0),p);
+          int l = ctcClusterItr -> getLayer();
+          AMSEvent::gethead()->addnext(AMSID("AMSCTCCluster",l-1),p);
          }
          ictccl++;
         }
@@ -2891,23 +2987,20 @@ ooStatus      AMSEventList::CopyCTCCluster(
         return rstatus;
 }
 
-ooStatus AMSEventList::AddCTCMCCluster(
-                        char* eventID, ooHandle(AMSEventD) & eventH)
+ooStatus AMSEventList::AddCTCMCCluster(ooHandle(AMSEventD) & eventH)
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
-
 
         if (contCTCMCClusterH == NULL) {
         rstatus = CheckContainer(
-            listH -> _ctcmcclusterCont.head(), oocUpdate, contCTCMCClusterH,1);
+                              ctcmcclusterCont, oocUpdate, contCTCMCClusterH);
         if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -2941,21 +3034,19 @@ ooStatus AMSEventList::AddCTCMCCluster(
         return rstatus;
 }
 
-ooStatus AMSEventList::CopyCTCMCCluster(
-                 char* eventID, ooHandle(AMSEventD) & eventH, ooMode mode)
+ooStatus AMSEventList::
+              CopyCTCMCCluster(ooHandle(AMSEventD) & eventH, ooMode mode)
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contCTCMCClusterH == NULL) {
-         rstatus = CheckContainer(
-               listH -> _ctcmcclusterCont.head(), mode, contCTCMCClusterH, 1);
+         rstatus = CheckContainer(ctcmcclusterCont, mode, contCTCMCClusterH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -2963,7 +3054,7 @@ ooStatus AMSEventList::CopyCTCMCCluster(
          integer imcs=0;
 
          while (CTCMCClusterItr.next()) {
-          if (read_only != 0) {
+          if (dbread_only != 0) {
            AMSCTCMCCluster* p = new AMSCTCMCCluster();
            CTCMCClusterItr -> copy(p);
            integer pos = CTCMCClusterItr -> getPosition();
@@ -2979,22 +3070,19 @@ ooStatus AMSEventList::CopyCTCMCCluster(
         return rstatus;
 }
 
-ooStatus AMSEventList::AddAntiMCCluster(
-                        char* eventID, ooHandle(AMSEventD) & eventH)
+ooStatus AMSEventList::AddAntiMCCluster(ooHandle(AMSEventD) & eventH)
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)  listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
-
 
         if (contAntiMCClusterH == NULL) {
          rstatus = CheckContainer(
-         listH -> _antimcclusterCont.head(), oocUpdate, contAntiMCClusterH, 1);
+                            antimcclusterCont, oocUpdate, contAntiMCClusterH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -3029,30 +3117,27 @@ ooStatus AMSEventList::AddAntiMCCluster(
         return rstatus;
 }
 
-ooStatus AMSEventList::CopyAntiMCCluster(
-                 char* eventID, ooHandle(AMSEventD) & eventH, ooMode mode)
-
+ooStatus AMSEventList::
+                CopyAntiMCCluster(ooHandle(AMSEventD) & eventH, ooMode mode)
 {
 	ooStatus	        rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList) listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contAntiMCClusterH == NULL) {
          rstatus = 
-          CheckContainer(
-            listH -> _antimcclusterCont.head(), mode, contAntiMCClusterH, 1);
+          CheckContainer(antimcclusterCont, mode, contAntiMCClusterH);
           if (rstatus != oocSuccess) return rstatus;
         }
 
          eventH -> pAntiMCCluster(AntiMCClusterItr, mode);
          integer imcs=0;
          while (AntiMCClusterItr.next()) {
-          if (read_only != 0) {
+          if (dbread_only != 0) {
            AMSAntiMCCluster* p = new AMSAntiMCCluster();
            AntiMCClusterItr -> copy(p);
            integer    pos = AntiMCClusterItr -> getPosition();
@@ -3068,21 +3153,18 @@ ooStatus AMSEventList::CopyAntiMCCluster(
         return rstatus;
 }
 
-ooStatus      AMSEventList::AddmcEventg(
-                                 char* eventID, ooHandle(AMSEventD)& eventH) 
+ooStatus      AMSEventList::AddmcEventg(ooHandle(AMSEventD)& eventH) 
 {
 	ooStatus	         rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)   listH = ooThis();
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, oocUpdate, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contmceventgH == NULL) {
-         rstatus = CheckContainer(
-            listH -> _mceventgCont.head(), oocUpdate, contmceventgH, 1);
+         rstatus = CheckContainer(mceventgCont, oocUpdate, contmceventgH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
@@ -3113,38 +3195,31 @@ ooStatus      AMSEventList::AddmcEventg(
         }
         return rstatus;
 }
-ooStatus  AMSEventList::CopymcEventg(
-                      char* eventID, ooHandle(AMSEventD)& eventH, ooMode mode) 
+ooStatus  AMSEventList::
+                 CopymcEventg(ooHandle(AMSEventD)& eventH, ooMode mode) 
 {
 	ooStatus	         rstatus = oocSuccess;	// Return status
         ooHandle(AMSEventList)   listH = ooThis();
         integer               imceventg = 0;
 
         if (eventH == NULL) {
-         // try to find event with the same ID
-         rstatus = FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) return rstatus;
+          cerr <<"Error - eventH  == NULL "<<endl;
+         return oocError;
         }
 
         if (contmceventgH == NULL) {
-         rstatus = CheckContainer
-                    (listH -> _mceventgCont.head(), mode, contmceventgH, 1);
+         rstatus = CheckContainer(mceventgCont, mode, contmceventgH);
          if (rstatus != oocSuccess) return rstatus;
         }
 
 
         eventH -> pmcEventg(mceventgItr, mode);
-        AMSPoint  xcoo;
-        integer   ibuff[3];
-        number    buff[3];
-        AMSDir    dir;
-        integer   pos;
 
         while (mceventgItr.next()) {
-          if (read_only != 0) {
+          if (dbread_only != 0) {
            AMSmceventg* p = new AMSmceventg();
            mceventgItr -> copy(p);
-           pos = mceventgItr -> getPosition();
+           integer pos = mceventgItr -> getPosition();
            p->setContPos(pos);
            AMSEvent::gethead() -> addnext(AMSID("AMSmceventg",0),p);
            if (imceventg == 0) p -> InitSeed();
@@ -3159,13 +3234,10 @@ ooStatus  AMSEventList::CopymcEventg(
         return rstatus;
 }
 
-ooStatus AMSEventList::Addamsdbc()
+ooStatus AMSEventList::Addamsdbc(ooHandle(ooDBObj)& dbH)
 {
   ooStatus  rstatus = oocError;
   ooMode    mode    = oocUpdate;
-  ooHandle(ooDBObj)    databaseH;
-
-  ooThis().containedIn(databaseH);
 
 
   // get setup and container names
@@ -3176,14 +3248,15 @@ ooStatus AMSEventList::Addamsdbc()
   strcat(contName,setup);
 
   // check container
-  rstatus = CheckContainer(contName, mode, contH, 0);
+  rstatus = CheckContainer(contName, mode, contH, dbH);
   if (rstatus != oocSuccess) 
     {
-      contH = new(contName,1,0,0,databaseH) ooContObj;
+      contH = new(contName,1,0,0,dbH) ooContObj;
       cout << "AMSEventList:: -I- Create container "<<contName<< endl;
       amsdbcH  = new(contH) AMSDBcD();
       commonsH = new(contH) AMScommonsD();
       ctcdbcH  = new(contH) CTCDBcD();
+      tofdbcH  = new(contH) TOFDBcD();
     } else {
       cout << "AMSEventList:: -I- Found container "<<contName<< endl;
       amsdbcItr.scan(contH, mode);
@@ -3222,7 +3295,18 @@ ooStatus AMSEventList::Addamsdbc()
         cout <<"AMSEventList:: -I- write new setup."<<endl;
         return rstatus;
        }
-      } 
+      }
+
+      tofdbcItr.scan(contH, mode);
+      if (tofdbcItr.next()) {
+       cout <<"AMSEventList::Addamsdbc -I- check tofdbc"<<endl;
+       rstatus = tofdbcItr -> CmpConstants();
+       if (rstatus != oocSuccess) {
+        cout <<"AMSEventList:: -E- Quit. tofdbc comparison failed"<<endl;
+        cout <<"AMSEventList:: -I- write new setup."<<endl;
+        return rstatus;
+       }
+      }
     }
 
   return oocSuccess;
@@ -3235,8 +3319,6 @@ ooStatus AMSEventList::DeleteEventList()
   ooMode                 mode = oocUpdate;
 
   rstatus = DeleteAllContainers();
-  rstatus = DeleteMap();
-
   return rstatus;
 }
 
@@ -3248,86 +3330,52 @@ ooStatus AMSEventList::DeleteAllContainers()
         ooMode                 mode = oocUpdate;
 
         for (i=0; i<2; i++) {
-         rstatus = CheckContainer
-           (listH -> _trclusterCont[i].head(), mode, contClusterH[i], 1);
+         rstatus = CheckContainer(trclusterCont[i], mode, contClusterH[i]);
          if (rstatus == oocSuccess) ooDelete(contClusterH[i]);
         }
 
         for (i=0; i<6; i++) {
-         rstatus = CheckContainer(
-                 listH -> _trlayerCont[i].head(), mode, contTrLayerH[i], 1);
+         rstatus = CheckContainer(trlayerCont[i], mode, contTrLayerH[i]);
          if (rstatus == oocSuccess) ooDelete(contTrLayerH[i]);
         }
 
-        rstatus = CheckContainer
-          (listH -> _trtrackCont.head(), mode, contTrackH, 1);
+        rstatus = CheckContainer(trtrackCont, mode, contTrackH);
         if (rstatus == oocSuccess)  ooDelete(contTrackH);
 
-        rstatus = CheckContainer
-          (listH -> _trmcclusterCont.head(), mode, contMCClusterH, 1);
+        rstatus = CheckContainer(trmcclusterCont, mode, contMCClusterH);
         if (rstatus == oocSuccess) ooDelete(contMCClusterH);
 
         for (i=0; i<4; i++) {
-         rstatus = CheckContainer(
-                     listH -> _sclayerCont[i].head(), mode, contLayerSH[i], 1);
+         rstatus = CheckContainer(sclayerCont[i], mode, contLayerSH[i]);
          if (rstatus == oocSuccess) ooDelete(contLayerSH[i]);
         }
 
-        rstatus = CheckContainer
-          (listH -> _particleCont.head(), mode, contParticleH, 1);
+        rstatus = CheckContainer(particleCont, mode, contParticleH);
         if (rstatus == oocSuccess) ooDelete(contParticleH);
 
-        rstatus = CheckContainer(
-                        listH -> _chargeCont.head(), mode, contChargeH, 1);
+        rstatus = CheckContainer(chargeCont, mode, contChargeH);
         if (rstatus == oocSuccess) ooDelete(contChargeH);
 
-        rstatus = CheckContainer(
-                               listH -> _betaCont.head(), mode, contBetaH, 1);
+        rstatus = CheckContainer(betaCont, mode, contBetaH);
         if (rstatus == oocSuccess) ooDelete(contBetaH);
 
-        rstatus = CheckContainer(
-                listH -> _tofmcclusterCont.head(), mode, contTOFMCClusterH, 1);
+        rstatus = CheckContainer(tofmcclusterCont, mode, contTOFMCClusterH);
         if (rstatus == oocSuccess) ooDelete(contTOFMCClusterH);
 
-        rstatus = CheckContainer(
-        listH -> _antimcclusterCont.head(), oocUpdate, contAntiMCClusterH, 1);
+        rstatus = 
+             CheckContainer(antimcclusterCont, oocUpdate, contAntiMCClusterH);
         if (rstatus == oocSuccess) ooDelete(contAntiMCClusterH);
 
-        rstatus = CheckContainer(
-               listH -> _ctcmcclusterCont.head(), mode, contCTCMCClusterH, 1);
+        rstatus = CheckContainer(ctcmcclusterCont, mode, contCTCMCClusterH);
         if (rstatus == oocSuccess) ooDelete(contCTCMCClusterH);
 
-        rstatus = CheckContainer(
-                  listH -> _ctcclusterCont.head(), mode, contCTCClusterH, 1);
+        rstatus = CheckContainer(ctcclusterCont, mode, contCTCClusterH);
         if (rstatus == oocSuccess) ooDelete(contCTCClusterH);
 
-        rstatus = CheckContainer(
-            listH -> _mceventgCont.head(), oocUpdate, contmceventgH, 1);
+        rstatus = CheckContainer(mceventgCont, oocUpdate, contmceventgH);
         if (rstatus == oocSuccess) ooDelete(contmceventgH);
 
         return oocSuccess;
-}
-
-ooStatus AMSEventList::DeleteMap()
-{
-     ooStatus               rstatus = oocSuccess;
-     ooHandle(AMSEventList) listH = ooThis();
-     ooMode                 mode = oocUpdate;
-
-     // get a handle to the database containing the AMSEventList
-     ooHandle(ooDBObj) databaseH;
-     ooThis().containedIn(databaseH);
-
-     // get a handle to the maps
-     ooHandle(ooContObj) mapContH;
-     rstatus = mapContH.open(databaseH, listH -> _mapName.head(), mode);
-     if (rstatus != oocSuccess) {
-      cerr <<"AMSEventList::FindMap: -E- Cannot find the container "
-           <<listH -> _mapName.head()<< endl;
-     } else {
-      rstatus = ooDelete(mapContH);
-     }
-     return oocSuccess;
 }
 
 ooStatus AMSEventList::PrintListStatistics(char* printMode)
@@ -3336,7 +3384,8 @@ ooStatus AMSEventList::PrintListStatistics(char* printMode)
      ooItr(AMSEventD)       eventItr;                 
      ooHandle(AMSEventList) listH = ooThis();
 
-     cout<<"List... "<<_listName<<" of type "<<_listType<<endl;
+     cout<<"List :  "<<_listName<<", list type "<<_listType
+         <<", event type "<<_eventType<<endl;
      cout<<"with setup... "<<_Setup <<" has "<<_nEvents<<" events"<<endl;
 
      if (strcmp(printMode, "F") == 0 || strcmp(printMode, "f")== 0 ) {
@@ -3346,7 +3395,45 @@ ooStatus AMSEventList::PrintListStatistics(char* printMode)
         integer run     = 0;
         integer nevents = 0;
         while(eventItr.next()) {
-         integer r = eventItr -> RunNumber();
+         integer r = eventItr -> getrun();
+         if (r == run) {
+          nevents++;
+         } else {
+          if (run != 0) cout<<"run "<<run<<", events "<<nevents<<endl;
+          run = r;
+          nevents = 1; 
+         }
+        }
+         cout<<"run "<<run<<", events "<<nevents<<endl;
+       } else {
+         cout<<"AMSEventList::PrintListStatistics -E- scan failed "<<endl;
+       }
+      } else {
+        cout <<"AMSEventList::PrintListStatistics -I- cannot provide more "
+             <<", list is opened in Update mode by another process"<<endl; 
+      }      
+     }
+   return rstatus;
+}
+
+ooStatus AMSEventList::PrintListStatistics_mc(char* printMode)
+{
+     ooStatus               rstatus = oocSuccess;
+     ooItr(AMSmceventD)     mceventItr;                 
+     ooHandle(AMSEventList) listH = ooThis();
+
+     cout<<"List :  "<<_listName<<", list type "<<_listType
+         <<", event type "<<_eventType<<endl;
+     cout<<"with setup... "<<_Setup <<" has "<<_nEvents<<" events"<<endl;
+
+     if (strcmp(printMode, "F") == 0 || strcmp(printMode, "f")== 0 ) {
+      if (!listH.isUpdated()) {
+       rstatus = mceventItr.scan(listH,oocRead);
+       if (rstatus == oocSuccess) {
+        integer run     = 0;
+        integer nevents = 0;
+        while(mceventItr.next()) {
+         integer r = mceventItr -> getrun();
          if (r == run) {
           nevents++;
          } else {
@@ -3375,4 +3462,160 @@ ooBoolean AMSEventList::CheckListSstring(char* sstring)
    } 
   }
   return oocFalse;
+}
+
+ooStatus      AMSEventList::AddMCEvent
+                 (integer _run, uinteger eventNumber, integer eventW)
+{
+  // _run         - run number
+  // eventNumber  - event number
+  // eventW       - match to AMSFFKEY.Write datacard
+  //
+  	 ooStatus	       rstatus = oocError;	// Return status
+         ooHandle(AMSmceventD) eventH;
+         char                  err_mess[80];
+         integer               i;
+         time_t                time;
+
+        ooHandle(AMSEventList) listH = ooThis();
+
+        if (AMSEvent::gethead() == NULL) return rstatus;
+
+        time     = AMSEvent::gethead() -> gettime();
+
+        // Add Event Header
+
+        integer nevts   = listH -> getNEvents();
+        integer nevtsP  = listH -> getNEventsP();
+
+        if (dbg_prtout == 1) cout <<"found events in "<<nevts<<endl;
+
+        eventH = new(listH) AMSmceventD(_run, eventNumber, time);
+        listH -> incNEvents();
+        listH -> incNEventsP();
+        nevtsP++;
+        eventH -> setPosition(nevtsP);
+
+        AMSmceventg * p = (AMSmceventg*)AMSEvent::gethead() ->
+                                                 getheadC("AMSmceventg",0);
+        if (p == NULL) {cout <<
+              "AMSEventList::AddmcEventg-I- AMSmceventg* p == NULL"<<endl;
+                return oocSuccess;
+        }
+
+        if ( p != NULL) {
+          eventH -> add(p);
+           rstatus = oocSuccess;
+        }
+
+        return rstatus;
+}
+
+ooStatus AMSEventList::FindEvent(integer runNumber, uinteger eventNumber, 
+                       ooMode mode, ooHandle(AMSmceventD)& eventH)
+{
+     ooStatus rstatus = oocError;
+     ooItr(AMSmceventD)   eventItr;
+
+     ooHandle(AMSEventList) listH = ooThis();
+
+     ooLookupKey               lookupKey(ooTypeN(AMSmceventD),2);
+
+     ooEqualLookupField        
+        runELookupField(ooTypeN(AMSmceventD), "_runNumber", &runNumber);
+     ooGreaterThanLookupField  
+        runGLookupField(ooTypeN(AMSmceventD), "_runNumber", &runNumber);
+
+     ooEqualLookupField        
+      eventELookupField(ooTypeN(AMSmceventD), "_eventNumber", &eventNumber);
+     ooGreaterThanLookupField  
+      eventGLookupField(ooTypeN(AMSmceventD), "_eventNumber", &eventNumber);
+
+     if (runNumber > 0) { lookupKey.addField(runELookupField); }
+     if (runNumber < 1) { lookupKey.addField(runGLookupField); }
+
+     if (eventNumber > 0) { lookupKey.addField(eventELookupField); }
+     if (eventNumber < 1) { lookupKey.addField(eventGLookupField); }
+
+     ooStatus status = eventItr.scan(listH,lookupKey);
+     if (status == oocSuccess) {
+       while (eventItr.next()) {
+        eventH = eventItr;
+        if (dbg_prtout) cout 
+             << "AMSEventList::FindEvent: found the event with run # "
+             << runNumber<<" and event # "<<eventNumber<<endl;
+        rstatus = oocSuccess;
+        return rstatus;
+       }
+     } 
+
+     return rstatus;
+}
+
+ooStatus      AMSEventList::AddDummyMCEvent
+                 (integer _run, uinteger eventNumber, integer eventW)
+{
+  	 ooStatus	       rstatus = oocError;	// Return status
+         ooHandle(AMSmceventD) eventH;
+         char                  err_mess[80];
+         integer               i;
+         time_t                time;
+
+        ooHandle(AMSEventList) listH = ooThis();
+
+
+        // Add Event Header
+
+        integer nevts   = listH -> getNEvents();
+        integer nevtsP  = listH -> getNEventsP();
+
+        if (dbg_prtout == 1) cout <<"found events in "<<nevts<<endl;
+
+        eventH = new(listH) AMSmceventD(_run, eventNumber, time);
+        listH -> incNEvents();
+        listH -> incNEventsP();
+        nevtsP++;
+        eventH -> setPosition(nevtsP);
+        // add event ID to the event map
+
+        return oocSuccess;
+}
+
+ooStatus AMSEventList::CopyMCEventD(ooHandle(AMSmceventD)& eventH, ooMode mode)
+{
+  ooStatus  rstatus = oocError;
+  ooHandle(AMSEventList) listH = ooThis();
+
+  if(eventH == NULL) {
+   cout <<"AMSEventList::CopyMCEventD -E- eventH is NULL"<<endl;
+    return rstatus;
+  }
+
+  //copy event header
+  integer run    = eventH -> getrun();
+  integer eventn = eventH -> getevent();
+  time_t  time   = eventH -> gettime();
+  integer runtype = 0;
+
+  if (dbread_only != 0) {
+   if(dbg_prtout == 1) cout <<" AMSEventList::CopyMCEventD -I- copy event "
+                            <<eventn<<" of run "<<run<<endl;
+   AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+                      new AMSEvent(AMSID("Event",eventn),run,runtype,time)));
+  }
+  //copy mceventg part
+        integer   pos;
+        if (dbread_only != 0) {
+         AMSmceventg* p = new AMSmceventg();
+         eventH -> copy(p);
+         pos = eventH -> getPosition();
+         p -> setContPos(pos);
+         AMSEvent::gethead() -> addnext(AMSID("AMSmceventg",0),p);
+         p -> InitSeed();
+         p->run();
+       }
+
+       event_size = event_size + sizeof(AMSmceventD);
+
+       return oocSuccess;
 }

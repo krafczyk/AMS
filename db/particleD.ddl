@@ -4,10 +4,11 @@
 //              add #pragma        July 25, 1996
 // Aug 22, 1996. ak. change the position of members inside the class
 // Sep 10, 1996. ak. V1.25, _GPart
-// Sep 24, 1996. ak. set one to many assoc., between particle and event
-// Sep 27, 1996. ak. V1.27, add CTC
+//                   set one to many assoc., between particle and event
+//                   V1.27, add CTC
+// Mar 20, 1997. ak. pointers to CTC clusters
 //
-// Last Edit : Oct 10, 1996. ak
+// Last Edit : Mar 21, 1997. ak
 //
 #include <typedefs.h>
 #include <point.h>
@@ -26,13 +27,16 @@ class AMSChargeD;
 class AMSBetaD;
 #pragma ooclassref AMSBetaD <tbeta_ref.h>
 
+class AMSCTCClusterD;
+#pragma ooclassref AMSCTCClusterD <ctcrecD_ref.h>
+
 class AMSParticleD: public ooObj{
 
 protected:
 
   AMSPoint _Coo;
 
-  CTC      _Value;
+  CTC      _Value[2];
 
   number   _Mass;
   number   _ErrMass;
@@ -53,10 +57,11 @@ public:
   AMSParticleD(AMSParticle* p);
 
 // Associations
- ooHandle(AMSEventD)   pEventP  <-> pParticleE[] ;
- ooHandle(AMSBetaD)    pBetaP   <-> pParticleB ;
- ooHandle(AMSTrTrackD) pTrackP  <-> pParticleT ;
- ooHandle(AMSChargeD)  pChargeP <-> pParticleC ;
+ ooHandle(AMSEventD)      pEventP  <-> pParticleE[] ;
+ ooHandle(AMSBetaD)       pBetaP   <-> pParticleB ;
+ ooHandle(AMSTrTrackD)    pTrackP  <-> pParticleT ;
+ ooHandle(AMSChargeD)     pChargeP <-> pParticleC ;
+ ooHandle(AMSCTCClusterD) pCTCClusterP[] : copy (delete);
 
  void   copy(AMSParticle* p);
 
@@ -64,5 +69,14 @@ public:
  void    setPosition(integer pos) {_Position = pos;}
  integer getGPart()               {return _GPart;}
  void    setGPart(integer gpart)  {_GPart = gpart;}
-
+ number  getMass()                {return _Mass;}
+ number  getErrMass()             {return _ErrMass;}
+ number  getMomentum()            {return _Momentum;}
+ number  getErrMomentum()         {return _ErrMomentum;}
+ number  getCharge()              {return _Charge;}
+ number  gettheta()               {return _Theta;}
+ number  getPhi()                 {return _Phi;}
+ AMSPoint getCoo()                {return _Coo;}
+ number   getSumAnti()            {return _SumAnti;}
+  
 };

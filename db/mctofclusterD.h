@@ -19,7 +19,7 @@ class opiDummyDeclaration;
 #include "mctofclusterD_ref.h"
 #endif
 
-#line 16 "mctofclusterD.ddl"
+#line 17 "mctofclusterD.ddl"
 class AMSTOFMCClusterD : public ooObj { 
 
 
@@ -31,7 +31,7 @@ number _tof;
 number _edep; 
 
 integer _Position; 
-#line 32
+#line 33
 inline AMSTOFMCClusterD() { }
 AMSTOFMCClusterD(class AMSTOFMCCluster *); 
 
@@ -56,7 +56,7 @@ inline void setPosition(integer pos) { _Position = pos; }
     static void ooAssocRegister();
     ooRef(AMSTOFMCClusterD)& ooThis(ooRef(AMSTOFMCClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTOFMCClusterD(ooInternalObj iobj);
-#line 40 "mctofclusterD.ddl"
+#line 41 "mctofclusterD.ddl"
 }; 
 
 #endif /* !defined(MCTOFCLUSTER_D_H) */

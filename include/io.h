@@ -1,5 +1,10 @@
 // Author V. Choutko 2-feb-1997
 //
+// Feb  10, 1997.  ak.  implement friend class
+
+// Last edit : Feb 10, 1997. ak.
+//
+
 #ifndef __AMSIO__
 #define __AMSIO__
 #include <point.h>
@@ -42,6 +47,10 @@ static char * fnam;
 static fstream fbin;
 static void init(integer mode, integer format=0);
 friend class AMSmceventg;
+
+#ifdef __DB__
+   friend class AMSIOD;
+#endif
 };
 
 class AMSIOI{

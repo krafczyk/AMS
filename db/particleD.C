@@ -25,7 +25,8 @@ AMSParticleD:: AMSParticleD(AMSParticle* p) {
   
   _Coo            = p -> _Coo;
   _GPart          = p -> _GPart;
-  _Value          = p -> _Value[0];  // TEMPORARY should be corrected
+  _Value[0]       = p -> _Value[0];  
+  _Value[1]       = p -> _Value[1];  
   _SumAnti        = p -> _SumAnti;
   _Mass           = p -> _Mass;
   _ErrMass        = p -> _ErrMass;
@@ -41,7 +42,8 @@ void   AMSParticleD::copy(AMSParticle* p)
 {
    p -> _Coo     = _Coo;
    p -> _GPart   = _GPart;
-   p -> _Value[0]= _Value; // TEMPORARY should be corrected
+   p -> _Value[0]= _Value[0]; 
+   p -> _Value[1]= _Value[1]; 
    p -> _SumAnti = _SumAnti;
    p -> _Mass    = _Mass;
    p -> _ErrMass = _ErrMass;        

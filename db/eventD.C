@@ -1,7 +1,7 @@
 // method source file for the object AMSEvent
 // May 06, 1996. ak. First try with Objectivity 
 //
-// last edit Oct 30, 1996. ak.
+// last edit Mar 12, 1997. ak.
 
 #include <iostream.h>
 #include <string.h>
@@ -20,22 +20,20 @@
 #include <eventD.h>
 
 
-AMSEventD::AMSEventD (uinteger EventNumber, integer run, integer runtype, 
-                      time_t time, char* ID)
+AMSEventD::AMSEventD (integer run, uinteger eventNumber, integer runtype, 
+                      time_t time)
 {
-  fEventNumber = EventNumber;
-  _run         = run;
-  _runtype     = runtype;
-  _Timestamp   = time;
-  fTriggerMask = 0;
-  fErrorCode   = 0;
-  fID          = ID;
+  _eventNumber = eventNumber;
+  _runNumber   = run;
+  _runType     = runtype;
+  _time        = time;
+  _triggerMask = 0;
+  //_errorCode   = 0;
 }
 
 void AMSEventD::Print()
 {
- cout <<" Event " << fEventNumber<<" from Run "<<_run<<endl;
- cout <<" ID "<<fID<<endl;
+ cout <<" Event " << _eventNumber<<" from Run "<<_runNumber<<endl;
 }
 
 
@@ -43,8 +41,8 @@ void AMSEventD::Print()
 void AMSEventD::getNumbers
               (integer& run, integer& runtype, uinteger& eventn, time_t& time)
 {
-  run     = _run;
-  runtype = _runtype;
-  eventn  = fEventNumber;
-  time    = _Timestamp;
+  run     = _runNumber;
+  runtype = _runType;
+  eventn  = _eventNumber;
+  time    = _time;
 }

@@ -19,7 +19,7 @@ class opiDummyDeclaration;
 #include "mcanticlusterD_ref.h"
 #endif
 
-#line 10 "mcanticlusterD.ddl"
+#line 11 "mcanticlusterD.ddl"
 class AMSAntiMCClusterD : public ooObj { 
 
 
@@ -31,7 +31,7 @@ number _tof;
 number _edep; 
 
 integer _Position; 
-#line 26
+#line 27
 inline AMSAntiMCClusterD() { }
 AMSAntiMCClusterD(class AMSAntiMCCluster *); 
 
@@ -56,7 +56,7 @@ inline void setPosition(integer pos) { _Position = pos; }
     static void ooAssocRegister();
     ooRef(AMSAntiMCClusterD)& ooThis(ooRef(AMSAntiMCClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSAntiMCClusterD(ooInternalObj iobj);
-#line 34 "mcanticlusterD.ddl"
+#line 35 "mcanticlusterD.ddl"
 }; 
 
 #endif /* !defined(MCANTICLUSTER_D_H) */

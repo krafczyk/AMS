@@ -8,8 +8,11 @@
 //                  add eventR, eventW flags
 // Nov  27, 1996 ak MROW mode 
 // Dec  12, 1996 ak MROW in LMSInit, etc
+// Feb  11, 1997 ak AMSmceventD, AddTDV
+// Mar  22, 1997 ak new function dbend()
+//                  add class member setupdbH
 //
-// Last Edit Dec 12, 1996. ak.
+// Last Edit Mar 25, 1997. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -18,6 +21,7 @@
 #include <typedefs.h>
 #include <ooSession.h>
 #include <eventD_ref.h>
+#include <mceventD_ref.h>
 #include <tcluster_ref.h>
 #include <tmccluster_ref.h>
 #include <mctofclusterD_ref.h>
@@ -33,9 +37,11 @@
 #include <gvolumeD_ref.h>
 #include <amsdbcD_ref.h>
 #include <ctcdbcD_ref.h>
+#include <tofdbcD_ref.h>
 #include <commonsD_ref.h>
 #include <list.h>
 #include <eventD.h>
+#include <mceventD.h>
 #include <tcluster.h>
 #include <tmccluster.h>
 #include <mctofclusterD.h>
@@ -51,6 +57,7 @@
 #include <gvolumeD.h>
 #include <amsdbcD.h>
 #include <ctcdbcD.h>
+#include <tofdbcD.h>
 #include <commonsD.h>
 
 class LMS {
@@ -63,12 +70,8 @@ private:
         integer              _transCommit; // number of commited transactions
         integer              _transAbort;  // number of aborted transactions
         ooHandle(ooDBObj)    _databaseH;
-        ooHandle(ooContObj)  _trClusterH[2];
-        ooHandle(ooContObj)  _trLayersH[6];
-        ooHandle(ooContObj)  _scLayersH[4];
-        ooHandle(ooContObj)  _mapsH;       // container of maps
-        ooHandle(ooMap)      _eventMapH;   // maps of events
-        ooHandle(ooContObj)  _betaH;
+        char*                _setupdbname; // name of setup database
+        ooHandle(ooDBObj)    _setupdbH;    // handle to geometry dbase
 
 	void	       SetCurrentList(char* listName);
 
@@ -98,21 +101,22 @@ public:
         integer         getNTransAbort()  { return _transAbort;}
 
 	// Action Methods
-	ooStatus	AddList(char* listName, char* setup, 
+	ooStatus	AddList(char* listName, 
                                 integer flag, ooHandle(AMSEventList)& listH);
 	ooStatus	AddEvent(char* listName, integer run, uinteger event,
-                                 char* id, integer WriteStartEnd, 
-                                 integer eventW);
+                                 integer WriteStartEnd, integer eventW);
 	ooStatus	AddGeometry(char* listName);
 	ooStatus	AddMaterial(char* listName);
 	ooStatus	Addamsdbc(char* listName);
 	ooStatus	AddTMedia(char* listName);
-//	ooStatus	FillEvent(char* listName, char* id, ooMode mode);
+	ooStatus	AddTDV(char* listName);
 	ooStatus	FillGeometry(char* listName);
 	ooStatus	FillMaterial(char* listName);
 	ooStatus	FillTMedia(char* listName);
+	ooStatus	FillTDV(char* listName);
 
-	ooStatus	DeleteEvent(char* listName, char* id);
+	ooStatus	DeleteEvent
+                             (char* listName, integer run, uinteger event);
 	ooStatus	DeleteSetup(char* setup);
 
         ooStatus        Start(ooMode mode); // start a transaction
@@ -124,6 +128,9 @@ public:
         ooStatus        FindEventList (char* listName, ooMode mode, 
                                        ooHandle(AMSEventList)& listH);
         ooStatus        LMSInit(ooMode mode, ooMode mrowmode, char* prefix);
+        ooStatus        LMSInitS(ooMode mode, ooMode mrowmode, char* prefix);
+
+        void            dbend(integer eventR, integer eventW);
 
         void            CheckConstants();
 
@@ -135,34 +142,23 @@ public:
 	void		Interactive();
 
         //Get Methods
-        inline ooHandle(ooDBObj)    databaseH() {return _databaseH;}
-        inline ooHandle(ooContObj) trClusterH(integer n) { 
-                                       ooHandle(ooContObj) contObjH;
-                                       contObjH = NULL;
-                                       if (n<2) contObjH = _trClusterH[n];
-                                       return contObjH;
-        }
-        inline ooHandle(ooContObj) trLayersH(integer n) { 
-                                       ooHandle(ooContObj) contObjH;
-                                       contObjH = NULL;
-                                       if (n<6) contObjH = _trLayersH[n];
-                                       return contObjH;
-        }
-        inline ooHandle(ooContObj)  mapsH()      {return _mapsH;}
-        inline ooHandle(ooMap)      eventMapH()  {return _eventMapH;}
-
-        ooStatus GetEvent (char* listName, char* eventID, integer run,
-                           integer eventN, ooMode mode, integer ReadStartEnd, 
-                           integer eventR);
-        ooStatus GetNEvents (char* listName, char* eventID, integer run, 
-                             integer eventN, integer N, ooMode mode, 
-                             ooMode mrowmode, integer eventR);
-        ooStatus Getmceventg (char* listName, char* eventID, integer run,
-                               integer eventN, ooMode mode, ooMode mrowmode,
-                               integer ReadStartEnd);
+        inline ooHandle(ooDBObj)&    databaseH()   {return _databaseH;}
+        inline ooHandle(ooDBObj)&    setupdbH()    {return _setupdbH;}
+        char*                        setupdbname() {return _setupdbname;}
+        ooStatus                     setsetupdbname(char* name);
+        ooStatus GetNEvents (char* listName, integer run, integer event, 
+                             integer N, ooMode mode, ooMode mrowmode, 
+                             integer eventR);
+        ooStatus Getmceventg (char* listName, integer run, integer event, 
+                              ooMode mode, ooMode mrowmode,
+                              integer ReadStartEnd);
+        ooStatus GetmceventD (char* listName, integer run, integer event, 
+                              ooMode mode, ooMode mrowmode, 
+                              integer ReadStartEnd);
 
         ooStatus PrintList(ooMode mode, char* printMode);
         ooStatus PrintList(char* listName, ooMode mode, char* printMode);
+        ooStatus CheckDB(char* name, ooMode mode, ooHandle(ooDBObj)& dbH);
 };
 #endif
 

@@ -40,7 +40,8 @@ integer pattern, integer alg){
   int k=0;
   for(i=0;i<patpoints[alg][pattern];i++){
     for(j=0;j<ptrack->getnhits();j++){
-     AMSTrRecHit * ph= ptrack->getHitP(j);
+      //AMSTrRecHit * ph= ptrack->getHitP(j);
+     AMSTrRecHit * ph= ptrack->getphit(j);
      if (ph->getLayer() == patconf[alg][pattern][i])k++;
     }
   }
@@ -63,7 +64,8 @@ integer pattern, integer alg){
   _EHits=new AMSPoint[_NHits];
   for(i=0;i<patpoints[alg][pattern];i++){
     for(j=0;j<ptrack->getnhits();j++){
-     AMSTrRecHit * ph= ptrack->getHitP(j);
+      //- ak (see trrec.h)     AMSTrRecHit * ph= ptrack->getHitP(j);
+     AMSTrRecHit * ph= ptrack->getphit(j);
      if (ph->getLayer() == patconf[alg][pattern][i]){
       _Hits[i]=ph->getHit();
       _EHits[i]=ph->getEHit();

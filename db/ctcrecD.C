@@ -2,7 +2,7 @@
 // method source file for the object AMSCTCClusterD
 // Sep 27, 1996. First try with Objectivity 
 //
-// Oct 10, 1996. Last edit , ak.
+// Mar 06, 1996. Last edit , ak.
 
 #include <iostream.h>
 #include <string.h>
@@ -21,6 +21,7 @@ AMSCTCClusterD::AMSCTCClusterD(AMSCTCCluster* p)
   _CorrectedSignal = p -> _CorrectedSignal;
   _Coo             = p -> _Coo;
   _ErrorCoo        = p -> _ErrorCoo;
+  _Layer           = p -> _Layer;
 }
 
 void AMSCTCClusterD::copy(AMSCTCCluster* p)
@@ -31,4 +32,5 @@ void AMSCTCClusterD::copy(AMSCTCCluster* p)
    p -> _CorrectedSignal = _CorrectedSignal; 
    p -> _Coo = _Coo;             
    p -> _ErrorCoo = _ErrorCoo;        
+   p -> _Layer    = _Layer;
 }

@@ -1,7 +1,7 @@
 // method source file for the object AMSCTCMCCluster
 // Sep 30, 1996. First try with Objectivity 
 //
-// Last Edit: Oct 10, 1996. ak.
+// Last Edit: Mar 06, 1997.  ak.
 
 #include <iostream.h>
 #include <string.h>
@@ -15,9 +15,10 @@
 {
   _idsoft   = p -> _idsoft;
   _xcoo     = p -> _xcoo;
-  //_xdir     = p -> xdir;
+  _xdir     = p -> _xdir;
   _step     = p -> _step;
-  _edep     = p -> _charge;
+  _edep     = p -> _edep;
+  _charge   = p -> _charge;
   _beta     = p -> _beta;
 }
 
@@ -25,9 +26,10 @@
 {
   p -> _idsoft = _idsoft;   
   p -> _xcoo   = _xcoo;     
-  //p -> xdir = _xdir;     
-  p -> _step  = _step;     
-  p -> _charge  = _edep;     
+  p -> _xdir    = _xdir;     
+  p -> _step   = _step;     
+  p -> _charge  = _charge;     
+  p -> _edep  = _edep;     
   p -> _beta  = _beta;     
 }
  

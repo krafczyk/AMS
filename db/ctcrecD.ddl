@@ -2,7 +2,7 @@
 //
 // Sep 27, 1996. First Objectivity version
 //
-// Last Edit: Oct 10, 1996 ak.
+// Last Edit: Mar 06, 1997 ak.
 //
 #include <typedefs.h>
 #include <point.h>
@@ -20,6 +20,7 @@ protected:
                             // signal
 
  integer  _Status;          // if USED bit on -- correction done
+ integer  _Layer;           // layer no.
 
  integer  _Position;        // position in the database container
 
@@ -41,6 +42,7 @@ public:
  integer  getPosition()             {return _Position;}
  void     setPosition(integer pos ) {_Position = pos;}
  void     copy(AMSCTCCluster* p);
+ integer  getLayer()                {return _Layer;}
 
 // Constructor
  AMSCTCClusterD();

@@ -96,6 +96,8 @@ ooStatus AMSgmatD::CmpMaterials(integer id, AMSgmat* p)
           _z[i] != z[i] ||
           _w[i] != w[i] ) {
         cout<<"AMSgmatD::CmpMaterials -E- a,w,z are different"<<endl;
+        cout<<"AMSgmatD::db - a,w,z "<<_a[i]<<", "<<_w[i]<<", "<<_z[i]<<endl;
+        cout<<"AMSgmatD::mem- a,w,z "<<a[i]<<", "<<w[i]<<", "<<z[i]<<endl;
         return oocError;
       }
      }

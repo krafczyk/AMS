@@ -121,7 +121,7 @@ class ooRef(AMSParticleD);
 class ooShortRef(AMSParticleD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-#line 24 "eventD.ddl"
+#line 25 "eventD.ddl"
 class AMSTrRecHitD; 
 #ifdef OO_DDL_TRANSLATION
 #pragma ooclassref AMSTrRecHitD <trrechit_ref.h>
@@ -227,17 +227,12 @@ class AMSmceventgD;
 class opiDummyDeclaration;
 
 class AMSEventD : public ooObj { 
-
-
-
-class ooVString fID; 
-
-time_t _Timestamp; 
-integer _run; 
-short _runtype; 
-short fErrorCode; 
-uinteger fEventNumber; 
-uinteger fTriggerMask; 
+#line 70
+time_t _time; 
+integer _runNumber; 
+short _runType; 
+uinteger _eventNumber; 
+uinteger _triggerMask; 
 
 short _nTrHits; 
 short _nTrClusters; 
@@ -774,18 +769,17 @@ public:
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #line 111 "eventD.ddl"
 AMSEventD(); 
-AMSEventD(uinteger, integer, integer, time_t, char *); 
+AMSEventD(integer, uinteger, integer, time_t); 
 
 
 
 
-inline integer &RunNumber() { return _run; }
-inline short &RunType() { return _runtype; }
-inline uinteger &EventNumber() { return fEventNumber; }
-inline time_t &TriggerTime() { return _Timestamp; }
-inline uinteger &Trigmask() { return fTriggerMask; }
-inline short &ErrorCode() { return fErrorCode; }
-inline const char *GetID() { return fID; }
+inline integer &getrun() { return _runNumber; }
+inline short &RunType() { return _runType; }
+inline uinteger &getevent() { return _eventNumber; }
+inline time_t &TriggerTime() { return _time; }
+inline uinteger &Trigmask() { return _triggerMask; }
+
 inline integer getPosition() { return _Position; }
 void getNumbers(integer &, integer &, uinteger &, time_t &); 
 
@@ -845,7 +839,7 @@ void Print();
     static void ooAssocRegister();
     ooRef(AMSEventD)& ooThis(ooRef(AMSEventD)& objId, ooMode aMode = oocNoOpen) const;
     AMSEventD(ooInternalObj iobj);
-#line 167 "eventD.ddl"
+#line 166 "eventD.ddl"
 }; 
 
 #endif /* !defined(EVENT_D_H) */

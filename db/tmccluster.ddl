@@ -2,6 +2,8 @@
 // June 04, 1996. First try with Objectivity 
 // Aug  21, 1996. Remove MCCluster <-> Event bidirectional link
 //                change the place of members in the class
+// Mar  06, 1997. up to date
+//
 // Last Edit : Oct 10, 1996. ak
 //
 #include <typedefs.h>

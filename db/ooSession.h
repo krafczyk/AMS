@@ -71,7 +71,10 @@ public:
 				     ooHandle(ooDBObj)& databaseH);
 	ooStatus		DeleteDatabase(const char* DBName);
 	ooHandle(ooDBObj)&	DefaultDatabase() { return _databaseH; }
-
+        
+        //+ ak 25.03.97
+              ooHandle(ooFDObj)&      FederatedDatabase() {return _fdHandle;}
+        //-
 
 	// Monitor Methods
 

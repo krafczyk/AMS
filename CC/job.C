@@ -24,6 +24,7 @@
 #include <tofsim.h>
 #include <tofcalib.h>
 #include <tofrec.h>
+
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
@@ -506,6 +507,7 @@ setupname[159]='\0';
 triggername[159]='\0';
 ffile[159]='\0';
 int i;
+
 //+
 for (i=158; i>0; i--) {        // should be at least 1 char
  if(jobname[i] == ' ') jobname[i]='\0';
@@ -524,6 +526,9 @@ if(IOPA.mode){
  AMSIO::init(IOPA.mode);
 }
 //-
+
+int len;
+//=======
 setsetup(setupname);
 if(getsetup())setname(strcat(jobname,getsetup()));
 else{
@@ -532,6 +537,7 @@ else{
 }
 {
 int len=160;
+
 for(i=158;i>=0;i--){
    if(triggername[i]==' '){
     triggername[i]='\0';
@@ -796,12 +802,35 @@ void AMSJob::_retofinitjob(){
 //     ===> Clear JOB-statistics counters for SIM/REC :
 //
     TOFJobStat::clear();
+//-------------------------
+// ===> create tofvpar structure :
+//
+ tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
+//-------------------------
+//                ===> create scbrcal structures :
+// 
+ integer i,j,ila,ibr,ibrm,isp,nsp,ibt,cnum,dnum,mult;
+//
+ geant scp[SCANPNT];
+ geant rlo[SCANPNT];// relat.(to Y=0) light output
+ integer lps=1000;
+ geant ef1[SCANPNT],ef2[SCANPNT];
+ integer i1,i2,sta[2];
+ geant r,eff1,eff2;
+ integer sid,brt;
+ geant gna[2],gnd[2],qath,qdth,a2dr,tth,strat;
+ geant slope,fstrd,tzer,mip2q;
+ geant tzerf[SCLRS][SCMXBR],slpf,strf; 
+ char fname[80];
+ char name[80];
+ geant asatl=20.;//(mev,~10MIPs),if E-dinode(1-end) higher - use it instead
+//                                 of anode measurements
+ geant td2p[2]={16.9,1.8};// tempor timeD->coord conv.factor(cm/ns) and error(cm)
+//  
+//
+//   ---> Read tzero/slope/str_ratio calib.file :
 //-----------
 //     ===> create tofvpar structure :
-//
-    tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
-//-----------
-//     ===> create scbrcal-objects for each sc. bar :
 //
     TOFBrcal::build(); 
 //-----------
@@ -1148,39 +1177,5 @@ void AMSJob::_axendjob(){
 
 }
 
-void AMSJob::_dbendjob(){
-
-#ifdef __DB__
-  //+
-  if (eventR + eventW > 0) {
-    integer nST = dbout.getNTransStart();
-    integer nCT = dbout.getNTransCommit();
-    integer nAT = dbout.getNTransAbort();
-    if (nST > nCT + nAT) {
-      cout <<"uglast_ -W- Number of started transactions  "<<nST<<endl;
-      cout <<"uglast_ -W- Number of commited transactions "<<nCT<<endl;
-      cout <<"uglast_ -W- Number of aborted transactions  "<<nAT<<endl;
-      //if (dbout.getTransLevel() != 0) {
-      cout <<"uglast_ -I- commit an active transaction "<<endl;
-      cout <<"uglast_ -I- transaction nesting level "
-           <<dbout.getTransLevel()<<endl;
-      dbout.Commit();   // Commit transaction
-      //}
-    }
-  }
-    ooHandle(AMSEventList) listH;
-    char* jobname   = AMSJob::gethead()->getname();
-    ooStatus          rstatus;
-    rstatus = dbout.Start(oocRead);
-    rstatus = dbout.FindEventList(jobname,oocRead,listH);
-    if (rstatus == oocSuccess && dbg_prtout !=0 )
-                              listH -> PrintMapStatistics(oocRead);
-    rstatus = dbout.Commit();
-    if (dbg_prtout) ooRunStatus();
-
-    //-
-#endif
-
-
-}
+void AMSJob::_dbendjob(){} // moved to A_LMS.C
 

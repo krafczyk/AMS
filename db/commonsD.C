@@ -7,7 +7,7 @@
 
 #include <typedefs.h>
 #include <commonsD.h>
-//#include <commons.C>
+
 
 AMScommonsD::AMScommonsD() {
   integer  i;
@@ -93,6 +93,22 @@ AMScommonsD::AMScommonsD() {
   buff = new integer[l/4];
   memcpy(buff,&TRCLFFKEY,l);
   for (i=0; i<l/4; i++) { trclffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//trcalib
+  l = sizeof(TRCALIB);
+  trcalibD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRCALIB,l);
+  for (i=0; i<l/4; i++) { trcalibD.set(i,buff[i]);}
+  delete [] buff;
+
+//chargefitffkey
+  l = sizeof(CHARGEFITFFKEY);
+  chargefitffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CHARGEFITFFKEY,l);
+  for (i=0; i<l/4; i++) { chargefitffkeyD.set(i,buff[i]);}
   delete [] buff;
 
 }
@@ -296,7 +312,7 @@ trclffkey:
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TRCLFFKEY and trclffkeyD "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
-   goto cmpend;
+   goto trcalib;
   }
   buff = new integer[lm/4];
   memcpy(buff,&TRCLFFKEY,lm);
@@ -307,6 +323,47 @@ trclffkey:
     }
   }
   delete [] buff;
+
+trcalib:
+  ld = trcalibD.size();
+  cout<<"AMScommonsD::CmpConstants -I- TRCALIB size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(TRCALIB);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- TRCALIB and trcalibD "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto chargefitffkey;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&TRCALIB,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != trcalibD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- TRCALIB element "<<i
+        <<" is different "<<endl;
+    }
+  }
+  delete [] buff;
+
+chargefitffkey:
+  ld = chargefitffkeyD.size();
+  cout<<"AMScommonsD::CmpConstants -I- CHARGEFITFFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(CHARGEFITFFKEY);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- CHARGEFITFFKEY and chargefitffkeyD "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto cmpend;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&CHARGEFITFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != chargefitffkeyD[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- CHARGEFITFFKEY element "<<i
+        <<" is different "<<endl;
+    }
+  }
+  delete [] buff;
+
 
 cmpend:
 
@@ -415,4 +472,22 @@ void AMScommonsD::CopyConstants() {
   memcpy(buff,&TRCLFFKEY,l);
   for (i=0; i<l/4; i++) { trclffkeyD.set(i,buff[i]);}
   delete [] buff;
+
+//trcalib
+  l = sizeof(TRCALIB);
+  trcalibD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TRCALIB,l);
+  for (i=0; i<l/4; i++) { trcalibD.set(i,buff[i]);}
+  delete [] buff;
+
+//chargefitffkey
+  l = sizeof(CHARGEFITFFKEY);
+  chargefitffkeyD.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&CHARGEFITFFKEY,l);
+  for (i=0; i<l/4; i++) { chargefitffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+
 }

@@ -1,5 +1,7 @@
 // Author V. Choutko 24-may-1996
- 
+//
+// Last edit : Mar 19, 1997. ak. add AMSTrIdSoft::getidgeom() function 
+//
 #ifndef __AMSTRID__
 #define __AMSTRID__
 #include <typedefs.h>
@@ -106,6 +108,7 @@ void  setstatus(integer changer)
 {status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] | changer;}
 friend class AMSTrIdGeom;
 friend class AMSJob;
+
 AMSTrIdSoft(const AMSTrIdGeom &,integer side);
 AMSTrIdSoft():_pid(0){};
 AMSTrIdSoft( const AMSTrIdSoft& o):_layer(o._layer),_drp(o._drp),
@@ -131,6 +134,7 @@ inline integer getdrp() const {return _drp;}
 inline integer getside()const {return _side;}        
 inline integer gethalf()const {return _half;}        
 inline integer getstrip()const {return _strip;}
+AMSTrIdGeom *  getidgeom()     {return _pid;}
 AMSTrIdGeom * ambig(const AMSTrIdSoft &, integer & nambig) ;
                      
                                                       

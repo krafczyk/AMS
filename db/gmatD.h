@@ -21,7 +21,7 @@ class opiDummyDeclaration;
 #include "gmatD_ref.h"
 #endif
 
-#line 16 "gmatD.ddl"
+#line 17 "gmatD.ddl"
 declare(ooVArray,geant)
 
 class AMSgmatD : public ooObj { 
@@ -76,7 +76,7 @@ ooStatus CmpMaterials(integer, AMSgmat *);
     static void ooAssocRegister();
     ooRef(AMSgmatD)& ooThis(ooRef(AMSgmatD)& objId, ooMode aMode = oocNoOpen) const;
     AMSgmatD(ooInternalObj iobj);
-#line 53 "gmatD.ddl"
+#line 54 "gmatD.ddl"
 }; 
 
 #endif /* !defined(GMAT_D_H) */

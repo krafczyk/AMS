@@ -1,5 +1,11 @@
 // Author V. Choutko 24-may-1996
- 
+//
+// Mar 24, 1997. ak. add _eventRtype 
+//                       set it when read event from the database
+//                       functions to check it isMCBanks(), isRecoBanks(),
+//                       isRawBanks()
+// Last Edit: Mar 24, 1997.
+// 
 #ifndef __AMSJOB__
 #define __AMSJOB__
 #include <typedefs.h>
@@ -10,12 +16,15 @@
 #include <iomanip.h>
 #include <amsgobj.h>
 #include <timeid.h>
+#include <db_comm.h>
+
 const integer maxtrig=20;
 const integer maxtdv=255;
 const integer maxtdvsize=256;
 class AMSJob : public AMSNode{
 private:
-uinteger _jobtype;  // 0 == simulation
+uinteger _jobtype;    // 0 == simulation
+uinteger _eventRtype; // see eventR 
 char _Setup[256];
 
 char _TriggerC[maxtrig][256];
@@ -103,7 +112,15 @@ uinteger isSimulation(){return !isReconstruction();}
 uinteger isCalibration(){return _jobtype & Calibration;}
 uinteger isRealData(){return _jobtype & RealData;}
 uinteger isMCData(){ return !isRealData();}
+uinteger jobtype() {return _jobtype;}
 uinteger setjobtype(uinteger checker){return _jobtype | checker;}   
+
+uinteger eventRtype()     { return _eventRtype;}
+void     seteventRtype(integer eventR) {_eventRtype = eventR;}
+uinteger isMCBanks()   { return (_eventRtype/DBWriteMC)%2;}
+uinteger isRecoBanks() { return (_eventRtype/DBWriteRecE)%2;}
+uinteger isRawBanks()  { return (_eventRtype/DBWriteRawE)%2;}
+
 AMSNode * getnodep(AMSID  id) const{return JobMap.getp(id);}
 AMSgvolume * getgeom(AMSID id=0);
 AMSgvolume * getgeomvolume(AMSID id){return   (AMSgvolume*)JobMap.getp(id);}

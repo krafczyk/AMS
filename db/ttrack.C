@@ -2,7 +2,7 @@
 // May 29, 1996. Objectivity DDL
 // Aug 07, 1996. V1.24
 //
-// Oct 10, 1996. Last edit , ak.
+// Mar 14, 1997. Last edit , ak.
 
 #include <iostream.h>
 #include <string.h>
@@ -20,6 +20,7 @@ AMSTrTrackD::AMSTrTrackD(AMSTrTrack* p)
  _Status          = p -> _Status;
  _Pattern         = p -> _Pattern;
  _NHits           = p -> _NHits;
+ _FastFitDone     = p -> _FastFitDone;
  _GeaneFitDone    = p -> _GeaneFitDone;
  _AdvancedFitDone = p -> _AdvancedFitDone;
  _Chi2StrLine     = p -> _Chi2StrLine;
@@ -56,6 +57,7 @@ void AMSTrTrackD::copy(AMSTrTrack* p)
   p -> _Status          = _Status;          
   p -> _Pattern         = _Pattern;         
   p -> _NHits           = _NHits;           
+  p -> _FastFitDone     = _FastFitDone;    
   p -> _GeaneFitDone    = _GeaneFitDone;    
   p -> _AdvancedFitDone = _AdvancedFitDone; 
   p -> _Chi2StrLine     = _Chi2StrLine;     

@@ -2,14 +2,19 @@
 // May  09, 1996. First try with Objectivity 
 // Aug  22, 1996. Set unidirectional assoc to AMSEventD
 //                change the place of members in the class
-// Last Edit : Oct 10, 1996. ak.
+// Mar  07, 1997. use unidirectional assoc. between track and hits
+//                use unidirectional assoc. between clustwer and hits.
+//                add gid and name to get pointer to sensor in copy time
+//
+// Last Edit : Mar 19, 1997. ak.
 //
 
 #include <typedefs.h>
 #include <point.h>
 #include <trrec.h>
-class AMSTrTrackD;
+
 class AMSTrClusterD;
+//class AMSTrTrackD;
 //class AMSEventD;
 
 class AMSTrRecHitD : public ooObj {
@@ -24,14 +29,19 @@ class AMSTrRecHitD : public ooObj {
 
    integer      _Status;
    integer      _Layer;
-   integer      _Position;
+   integer      _Position;  
+
+   integer      _gid;       // gvolume ID, from *sen
+   char         _name[80];  // gvolume name, from *sen
 
  public:
 
 // Assosiations
-   ooRef(AMSTrClusterD) pClusterX     <-> pTrRecHitX[];
-   ooRef(AMSTrClusterD) pClusterY     <-> pTrRecHitY[];
-   ooRef(AMSTrTrackD)   pTrackH[]     <-> pTrRecHitT[];
+//   ooRef(AMSTrClusterD) pClusterX     <-> pTrRecHitX[];
+//   ooRef(AMSTrClusterD) pClusterY     <-> pTrRecHitY[];
+   ooRef(AMSTrClusterD) pClusterX : copy(delete);
+   ooRef(AMSTrClusterD) pClusterY : copy(delete);
+//   ooRef(AMSTrTrackD)   pTrackH[]     <-> pTrRecHitT[];
 
 // Constructor
   AMSTrRecHitD();
@@ -46,6 +56,10 @@ class AMSTrRecHitD : public ooObj {
    number   getDSum()     {return _DifoSum;}
    integer  getPosition() {return _Position;}
    void     copy(AMSTrRecHit* p);
+   integer  getgid()      {return _gid;}
+   char*    getname()     {return _name;}
+   void     setgid(integer gid) {_gid = gid;}
+   void     setname(char* name) {if (name) strcpy (_name,name);}
 
 // Set Methods
    void     setPosition(integer pos ) {_Position = pos;}

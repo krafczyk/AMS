@@ -529,7 +529,7 @@ clean:
                              gvolumeD.ddl  gvolumeD.h  gvolumeD_ref.h \
                              trrechit.ddl  trrechit.h  trrechit_ref.h \
                              A_LMS.h  ooSession.h  ooStats.h \
-                             list.ddl  list.h  list_ref.h
+                             list.ddl  list.h  list_ref.h db_comm.h
 
 
  $(BIN_DB)A_LMSAdd.o:   A_LMSAdd.C

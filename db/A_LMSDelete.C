@@ -1,4 +1,4 @@
-// Last Edit : Oct 25, 1996. ak.
+// Last Edit : Mar 07, 1997. ak.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,9 +7,11 @@
 #include <typedefs.h>
 #include <A_LMS.h>
 
-ooStatus      LMS::DeleteEvent(char* listName, char* eventID)
+ooStatus      LMS::DeleteEvent(char* listName, integer run, uinteger event)
 {
 	ooStatus	rstatus = oocError;	// Return status
+        ooHandle(AMSEventD)    eventH;
+        ooHandle(AMSmceventD)  mceventH;
 
         // Start the transaction
         rstatus = _session -> StartTransaction(oocUpdate);
@@ -27,39 +29,27 @@ ooStatus      LMS::DeleteEvent(char* listName, char* eventID)
            _session -> AbortTransaction();
             return rstatus;
         }
-
-        // print statistical information
-        ooHandle(ooDBObj)        databaseH;
-        ooItr(ooObj)             objectI;
-        integer                  nevents;
-
-        databaseH = listH.containedIn();
-
-        nevents = 0;
-        listH.contains(objectI);
-        while (objectI.next()) { nevents++; }
-        cout <<"LMS::DeleteEvent - I - there are "<<nevents<<" events";
-        cout <<" in AMSEventList "<<listName<<endl;
-
-        // delete event
-        ooHandle(AMSEventD) eventH;
-        //rstatus = listH -> DeleteEvent(eventID);
-        if (rstatus != oocSuccess) {
-          cerr <<"LMS::DeleteEvent: Error - cannot delete event with ID ";
-          cerr <<eventID<<endl;
+        
+        if (listH -> EventType() > 10000) {
+          rstatus = listH -> FindEvent(run, event, oocUpdate, mceventH);
+          if (rstatus == oocSuccess) {
+            ooDelete(mceventH);
+          }
+        } else {
+          rstatus = listH -> FindEvent(run, event, oocUpdate, eventH);
+          if (rstatus == oocSuccess) {
+            ooDelete(eventH);
+          }
         }
-
-        nevents = 0;
-        listH.contains(objectI);
-        while (objectI.next()) { nevents++; }
-        cout <<"LMS::DeleteEvent - I - there are "<<nevents<<" events";
-        cout <<" in AMSEventList (after delete)"<<listName<<endl;
-
+        if (rstatus != oocSuccess) {
+          cerr <<"LMS::DeleteEvent: Error - cannot find event "<<event
+               <<", run "<<run<<endl;
+        }
         // commit the transaction
         rstatus = _session -> CommitTransaction();
         if (rstatus != oocSuccess) {
-          cerr <<"LMS::DeleteEvent: Error - cannot commit a transaction";
-          cerr <<endl;
+          cerr <<"LMS::DeleteEvent: Error - cannot commit a transaction"
+               <<endl;
            return rstatus;
         }
         return rstatus;
@@ -111,13 +101,17 @@ ooStatus      LMS::DeleteSetup(char* setup) {
         if (containerH.exist(_databaseH,contName,mode)) ooDelete(containerH);
         cout<<"Container "<<contName<<" is deleted "<<endl;
         delete [] contName;
+
+// delete TDV container
+        contName = new char[strlen(setup)+10];
+        strcpy(contName,"Time_Var_");
+        strcat(contName,setup);
+        if (containerH.exist(_databaseH,contName,mode)) ooDelete(containerH);
+        cout<<"Container "<<contName<<" is deleted "<<endl;
+        delete [] contName;
         
         rstatus = oocSuccess;
       }
-
-
-
-
 
 
 error:

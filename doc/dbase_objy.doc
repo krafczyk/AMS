@@ -1,6 +1,6 @@
                                                      Alexei Klimentov
                                                     (alexei.klimentov@cern.ch)
-Filename : dbase_objy.doc                            Last Edit : Oct 31, 1996.
+Filename : dbase_objy.doc                            Last Edit : Mar 25, 1997.
 
 General Information.
 
@@ -26,7 +26,7 @@ and they are machine independent.
  The database attributes are defined in the boot file :
  ~/AMS/db/boot/LOM, don't forget to do
  setenv OO_FD_BOOT ../db/boot/LOM ( or other path if you'll change the place of
- boot file)
+ the boot file)
 
  The objectivity related definitions are in objy_def, config.user_'ARCH' and 
 config.'ARCH' files, all are in ~/AMS/install/ and ~/AMS/db/. The definitions
@@ -49,14 +49,16 @@ allocate it for you).
 *) goto ~/AMS/db directory first.
 
   AMS events are associated with list. The name of list is set by program using
-JobName and SetupName datacards. The event ID, formed from the event number & 
-run number, it is unique within the list. Geometry, tracking media, materials 
-and constants are also associated with the list.
+JobName and SetupName datacards. The combination of event number and run 
+number is unique within the list and is used to build search index. Geometry, 
+tracking media, materials and constants are also associated with the list.
 
 Event data are splitted between several containers. 
 For example: 
             the information about tracks, clusters, hits, betas, etc is stored
             in containers TrTracks, TrClusters, TrRecHits, Beta, etc.
+Setup (geometry, materials, constants, etc) are stored in the separate file
+AMSsetupDB
 
  READ and WRITE data cards have the following meaning :
  READ = 1 (WRITE = 1)
@@ -66,7 +68,11 @@ For example:
  READ = 100 (WRITE = 100)
     read (write) all MC banks from the database for the list defined by JobName
  READ = 1000 (WRITE = 1000)
+    read (write) raw event 
+ READ = 10000 (WRITE = 1000)
     read (write) all banks from the database for the list defined by JobName
+ READ = 100000 (WRITE = 100000)
+    special mode. read (write) MC event.
 
 How to start ?
 
@@ -124,21 +130,6 @@ AMS DBASE UTILITIES (../exe/$(ARCH) )
  deleteList            - delete list and all associated containers
  deleteSetup           - delete setup
 
-MORE INFORMATION CAN BE FOUND IN  
-=======
-- build database on local disk
-- copy ../db/boot/LOM file from the local disk to the place you can access from
-  cernsp.
-- execute on cernsp setenv OO_FD_BOOT 'PATH'/LOM
-- copy schema files, method files, the result of ooddlx processing to the area
-  you can access from the cernsp
-- execute gmake -f MakeClientDB on cersnp, it starts compiling of *.C files.
-  as the result of MakeClientDB you'll get an executive one can run from 
-  cernsp. 
-- be sure that remote access to the database is allowed (oostartams should be
-  run and alive on afl3u0, usually I take care of this)
-- start exec on cernsp.
-
 
 MORE INFORMATION CAN BE FOUND IN  
    http://wwwcn1.cern.ch/asd/cernlib/rd45/index.html
@@ -146,33 +137,36 @@ MORE INFORMATION CAN BE FOUND IN
 
 Main Subroutines :
 
-AddList(listName,setupName, 0,listH) - add list to the database
+AddList(listName, flag, listH) - add list to the database
 
-       char* listName                - list name
-       char* setupName               - setup name
+       char*   listName                - list name
+       integer flag
        ooHandle(AMSEventList) listH  - pointer to the list, returned by the 
                                        subroutine
 
-AddEvent(listName,event,runID,WriteStartEnd) - write event to database
+AddEvent(listName,run,event,WriteStartEnd, eventW) - write event to database
 
        char* listName - name of list event associated with
+       run            - run number
        event          - event number
-       runID          - unique event ID, build by program based on run # and 
-                        event #
        WriteStartEnd  - flag, 1 - start write transaction 
                              -1 - commit write tranaction
                              -2 - start and commit after writing 1 event
+       eventW         - AMSFFKEY.Write datacard
 
-GetNEvents(listName, eventID, eventN, nevents, mode, flag) - 
-      read N events, starting from event with eventID, or from eventN, if 
-      eventID = " "
-        
-        char*   listName - name of list event associated with
-        char*   eventID  - unique event ID
-        integer eventN   - event position in the list
-        integer nevents  - number of events to read
-        ooMode  mode     - database open mode (Update or Read)
-        integer flag
+GetNEvents
+            (char* listName, integer run, integer event,
+             integer N, ooMode mode, ooMode mrowmode, integer eventR)
+
+      read N events, starting from event with eventN
+
+ listName  - name of List
+ run       - run number 
+ event     - event number to start from
+ N         - number of events to read from dbase
+ eventR    - type of event to read, (corresponds to AMSFFKEY.Read datacard)
+ ooMode  mode     - database open mode (Update or Read)
+
 
 AddMaterial(listName)  - write materials to database
 FillMaterial(listName) - read materials from database

@@ -3,12 +3,14 @@
 // July 25, 1996.  ak. Add #pragma
 // Aug  22, 1996.  ak. Rearrange the position of members in class
 // Sep  24, 1996.  ak. set one to many assoc, between charge and event
+// Mar   6, 1997.  ak. up to date
 //
 // Last Edit : Oct 10, 1996
 
 #include <typedefs.h>
-#include <charge.h>
+#include <charge.h> 
 
+class AMSCharge;
 const integer nchargeD=7; // e,p,He...C
 
 class AMSEventD;

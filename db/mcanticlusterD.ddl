@@ -1,4 +1,5 @@
 // Sep 30, 1996. ak. AMSMCAntiClusterD Objectivity Class
+// Mar  6, 1997. ak. up to date
 //
 // Last Edit : Oct 10, 1996. ak.
 //

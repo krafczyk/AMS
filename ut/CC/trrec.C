@@ -1,5 +1,9 @@
 // Author V. Choutko 24-may-1996
- 
+//
+// Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
+//
+// Last Edit : Mar 20, 1997. ak
+// 
 #include <trrec.h>
 #include <commons.h>
 #include <math.h>
@@ -815,8 +819,12 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
   if(fit == 0 || fit==3 || fit==4 || fit==5){
     for(i=0;i<_NHits;i++){
      for(int j=0;j<3;j++){
-      hits[_NHits-i-1][j]=_Pthit[i]->getHit()[j];
-      sigma[_NHits-i-1][j]=_Pthit[i]->getEHit()[j];
+      if (_Pthit[i]) {
+       hits[_NHits-i-1][j]=_Pthit[i]->getHit()[j];
+       sigma[_NHits-i-1][j]=_Pthit[i]->getEHit()[j];
+      } else {
+        cout <<"AMSTrTrack::Fit -W- _Pthit["<<i<<"] = NULL, j"<<j<<endl;
+      }
      }
     }
   }

@@ -22,7 +22,7 @@ class opiDummyDeclaration;
 #include "gvolumeD_ref.h"
 #endif
 
-#line 17 "gvolumeD.ddl"
+#line 18 "gvolumeD.ddl"
 class AMSgvolumeD : public ooObj { 
 
 
@@ -33,6 +33,7 @@ integer _rotmno;
 integer _posp; 
 integer _gid; 
 integer _npar; 
+integer _rel; 
 char _gonly[5]; 
 char _shape[5]; 
 geant _par[6]; 
@@ -61,6 +62,7 @@ AMSgvolumeD(integer, class AMSgvolume *, char *, integer);
 
 
 void getnrm(number *); 
+void getinrm(number *); 
 inline integer getid() { return _id; }
 inline char *getname() { return _name; }
 inline integer getmatter() { return _matter; }
@@ -99,7 +101,7 @@ inline integer getContPos() { return _ContPos; }
     static void ooAssocRegister();
     ooRef(AMSgvolumeD)& ooThis(ooRef(AMSgvolumeD)& objId, ooMode aMode = oocNoOpen) const;
     AMSgvolumeD(ooInternalObj iobj);
-#line 77 "gvolumeD.ddl"
+#line 80 "gvolumeD.ddl"
 }; 
 
 #endif /* !defined(GVOLUME_D_H) */

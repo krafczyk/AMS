@@ -51,7 +51,7 @@ class ooRef(AMSParticleD);
 class ooShortRef(AMSParticleD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-#line 14 "ttrack.ddl"
+#line 16 "ttrack.ddl"
 class AMSEventD; 
 #ifdef OO_DDL_TRANSLATION
 #pragma ooclassref AMSEventD <eventD_ref.h>
@@ -119,14 +119,15 @@ number _GRidgidityMS;
 integer _Status; 
 integer _Pattern; 
 integer _NHits; 
+integer _FastFitDone; 
 integer _GeaneFitDone; 
 integer _AdvancedFitDone; 
 
 integer _Position; 
-#line 69 "ttrack.ddl"
+#line 72 "ttrack.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 69 "ttrack.ddl"
+#line 72 "ttrack.ddl"
     ooRef(AMSEventD) pEventT <-> pTrack[];
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pEventT */
@@ -149,10 +150,10 @@ public:
     ooRef(AMSEventD)& pEventT(ooRef(AMSEventD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 70 "ttrack.ddl"
-    ooRef(AMSTrRecHitD) pTrRecHitT[] <-> pTrackH[];
+#line 74 "ttrack.ddl"
+    ooRef(AMSTrRecHitD) pTrRecHitT[] : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for bidirectional association link: pTrRecHitT[] */
+    /* Methods for unidirectional association link: pTrRecHitT[] */
     ooStatus pTrRecHitT(ooItr(AMSTrRecHitD)& itr, ooMode mode = oocNoOpen) const;
     ooStatus pTrRecHitT(ooItr(AMSTrRecHitD)& itr, const char* predicate) const
       {
@@ -179,7 +180,7 @@ public:
     ooStatus sub_pTrRecHitT(const ooHandle(AMSTrRecHitD)& objH, uint32 number = 1);
     ooStatus del_pTrRecHitT()
       {
-	return opiDelAssoc(ooDysoc(), ooAssocN(AMSTrTrackD,pTrRecHitT));
+	return opiDelUssoc(ooDysoc(), ooAssocN(AMSTrTrackD,pTrRecHitT));
       }
     ooBoolean exist_pTrRecHitT(const ooHandle(AMSTrRecHitD)& objH) const;
     ooBoolean exist_pTrRecHitT() const
@@ -189,7 +190,7 @@ public:
     static ooAssocNumber pTrRecHitT_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 71 "ttrack.ddl"
+#line 75 "ttrack.ddl"
     ooRef(AMSBetaD) pBetaT <-> pTrackBeta;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pBetaT */
@@ -212,7 +213,7 @@ public:
     ooRef(AMSBetaD)& pBetaT(ooRef(AMSBetaD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 72 "ttrack.ddl"
+#line 76 "ttrack.ddl"
     ooRef(AMSParticleD) pParticleT <-> pTrackP;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pParticleT */
@@ -234,7 +235,7 @@ public:
     static ooAssocNumber pParticleT_ooAssocN;
     ooRef(AMSParticleD)& pParticleT(ooRef(AMSParticleD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 77 "ttrack.ddl"
+#line 80 "ttrack.ddl"
 AMSTrTrackD(); 
 AMSTrTrackD(class AMSTrTrack *); 
 
@@ -262,7 +263,7 @@ inline void setPosition(integer pos) { _Position = pos; }
     static void ooAssocRegister();
     ooRef(AMSTrTrackD)& ooThis(ooRef(AMSTrTrackD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTrTrackD(ooInternalObj iobj);
-#line 87 "ttrack.ddl"
+#line 90 "ttrack.ddl"
 }; 
 
 #endif /* !defined(TTRACK_H) */

@@ -52,7 +52,15 @@ class ooRef(AMSChargeD);
 class ooShortRef(AMSChargeD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-#line 17 "particleD.ddl"
+class AMSCTCClusterD;
+#ifndef OO_BUGGY_TEMPLATES
+class ooHandle(AMSCTCClusterD);
+class ooItr(AMSCTCClusterD);
+class ooRef(AMSCTCClusterD);
+class ooShortRef(AMSCTCClusterD);
+#endif // !defined(OO_BUGGY_TEMPLATES)
+
+#line 18 "particleD.ddl"
 class AMSEventD; 
 #ifdef OO_DDL_TRANSLATION
 #pragma ooclassref AMSEventD <eventD_ref.h>
@@ -85,13 +93,21 @@ class AMSBetaD;
 #endif
 class opiDummyDeclaration;
 
+class AMSCTCClusterD; 
+#ifdef OO_DDL_TRANSLATION
+#pragma ooclassref AMSCTCClusterD <ctcrecD_ref.h>
+#else
+#include <ctcrecD_ref.h>
+#endif
+class opiDummyDeclaration;
+
 class AMSParticleD : public ooObj { 
 
 
 
 protected: class AMSPoint _Coo; 
 
-class CTC _Value; 
+class CTC _Value[2]; 
 
 number _Mass; 
 number _ErrMass; 
@@ -111,7 +127,7 @@ integer _Position;
 public: AMSParticleD(); 
 AMSParticleD(class AMSParticle *); 
 #ifdef OO_DDL_TRANSLATION
-#line 56 "particleD.ddl"
+#line 60 "particleD.ddl"
     ooRef(AMSEventD) pEventP <-> pParticleE[];
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pEventP */
@@ -134,7 +150,7 @@ AMSParticleD(class AMSParticle *);
     ooRef(AMSEventD)& pEventP(ooRef(AMSEventD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 57 "particleD.ddl"
+#line 61 "particleD.ddl"
     ooRef(AMSBetaD) pBetaP <-> pParticleB;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pBetaP */
@@ -157,7 +173,7 @@ AMSParticleD(class AMSParticle *);
     ooRef(AMSBetaD)& pBetaP(ooRef(AMSBetaD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 58 "particleD.ddl"
+#line 62 "particleD.ddl"
     ooRef(AMSTrTrackD) pTrackP <-> pParticleT;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pTrackP */
@@ -180,7 +196,7 @@ AMSParticleD(class AMSParticle *);
     ooRef(AMSTrTrackD)& pTrackP(ooRef(AMSTrTrackD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 59 "particleD.ddl"
+#line 63 "particleD.ddl"
     ooRef(AMSChargeD) pChargeP <-> pParticleC;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pChargeP */
@@ -202,13 +218,62 @@ AMSParticleD(class AMSParticle *);
     static ooAssocNumber pChargeP_ooAssocN;
     ooRef(AMSChargeD)& pChargeP(ooRef(AMSChargeD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 61 "particleD.ddl"
+#ifdef OO_DDL_TRANSLATION
+#line 64 "particleD.ddl"
+    ooRef(AMSCTCClusterD) pCTCClusterP[] : copy(delete);
+#else /* !defined(OO_DDL_TRANSLATION) */
+    /* Methods for unidirectional association link: pCTCClusterP[] */
+    ooStatus pCTCClusterP(ooItr(AMSCTCClusterD)& itr, ooMode mode = oocNoOpen) const;
+    ooStatus pCTCClusterP(ooItr(AMSCTCClusterD)& itr, const char* predicate) const
+      {
+	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
+				    ooDysoc(),
+				    ooAssocN(AMSParticleD,pCTCClusterP),
+				    predicate,
+				    oocPublic,
+				    oocNoOpen);
+      }
+    ooStatus pCTCClusterP(ooItr(AMSCTCClusterD)& itr,
+		 ooMode mode,
+		 const ooAccessMode access,
+		 const char* predicate) const
+      {
+	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
+				    ooDysoc(),
+				    ooAssocN(AMSParticleD,pCTCClusterP),
+				    predicate,
+				    access,
+				    mode);
+      }
+    ooStatus add_pCTCClusterP(const ooHandle(AMSCTCClusterD)& newObjH);
+    ooStatus sub_pCTCClusterP(const ooHandle(AMSCTCClusterD)& objH, uint32 number = 1);
+    ooStatus del_pCTCClusterP()
+      {
+	return opiDelUssoc(ooDysoc(), ooAssocN(AMSParticleD,pCTCClusterP));
+      }
+    ooBoolean exist_pCTCClusterP(const ooHandle(AMSCTCClusterD)& objH) const;
+    ooBoolean exist_pCTCClusterP() const
+      {
+        return this->exist_pCTCClusterP((ooHandle(AMSCTCClusterD)&) (oocNullHandle));
+      }
+    static ooAssocNumber pCTCClusterP_ooAssocN;
+#endif /* !defined(OO_DDL_TRANSLATION) */
+#line 66 "particleD.ddl"
 void copy(AMSParticle *); 
 
 inline integer getPosition() { return _Position; }
 inline void setPosition(integer pos) { _Position = pos; }
 inline integer getGPart() { return _GPart; }
 inline void setGPart(integer gpart) { _GPart = gpart; }
+inline number getMass() { return _Mass; }
+inline number getErrMass() { return _ErrMass; }
+inline number getMomentum() { return _Momentum; }
+inline number getErrMomentum() { return _ErrMomentum; }
+inline number getCharge() { return _Charge; }
+inline number gettheta() { return _Theta; }
+inline number getPhi() { return _Phi; }
+inline AMSPoint getCoo() { return _Coo; }
+inline number getSumAnti() { return _SumAnti; }
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -226,7 +291,7 @@ inline void setGPart(integer gpart) { _GPart = gpart; }
     static void ooAssocRegister();
     ooRef(AMSParticleD)& ooThis(ooRef(AMSParticleD)& objId, ooMode aMode = oocNoOpen) const;
     AMSParticleD(ooInternalObj iobj);
-#line 68 "particleD.ddl"
+#line 82 "particleD.ddl"
 }; 
 
 #endif /* !defined(PARTICLE_D_H) */

@@ -4,6 +4,7 @@
 #include <iostream.h>
 
 #include <typedefs.h>
+#include <db_comm.h>
 #include <A_LMS.h>
 
 
@@ -23,7 +24,11 @@ ooStatus	LMS::PrintList(ooMode mode, char* printMode)
         if (rstatus == oocSuccess) {
          while (listItr.next()) {
           cout<<" "<<endl;
-          listItr -> PrintListStatistics(printMode);
+          if ( ((listItr -> EventType())/DBWriteMCEv)%2 != 1) {
+             listItr -> PrintListStatistics(printMode);
+          } else {
+             listItr -> PrintListStatistics_mc(printMode);
+          }
          }
         } else {
          cout<<"LMS::PrintList-E- scan operation failed"<<endl;

@@ -4,8 +4,10 @@
 //                add #pragma
 // Aug  07, 1996, V124.
 // Aug  22, 1996. change the place of members in the class
+// Mar  06, 1997  up to date
+//                use uni-directional association between track and hits
 //
-// Last Edit: Oct 10, 1996. ak. 
+// Last Edit: Mar 7, 1997. ak. 
 //
 #include <typedefs.h>
 #include <point.h>
@@ -58,22 +60,23 @@ number _GRidgidityMS;
 integer _Status;
 integer _Pattern;
 integer _NHits;
+integer _FastFitDone;
 integer _GeaneFitDone;
 integer _AdvancedFitDone;
 
-integer _Position;
+integer _Position;  //pos from link.h
 
 public:
 
 // Assosiations
 ooRef(AMSEventD)       pEventT      <-> pTrack[] ;
-ooRef(AMSTrRecHitD)    pTrRecHitT[] <-> pTrackH[];
+//ooRef(AMSTrRecHitD)    pTrRecHitT[] <-> pTrackH[];
+ooRef(AMSTrRecHitD)    pTrRecHitT[] : copy(delete);
 ooHandle(AMSBetaD)     pBetaT       <-> pTrackBeta;
 ooHandle(AMSParticleD) pParticleT   <-> pTrackP;
 
 //constructor 
 
-//~AMSTrTrackD(){};
 AMSTrTrackD();
 AMSTrTrackD(AMSTrTrack* p);
 

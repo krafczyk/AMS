@@ -27,17 +27,9 @@ class ooRef(AMSTrClusterD);
 class ooShortRef(AMSTrClusterD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-class AMSTrTrackD;
-#ifndef OO_BUGGY_TEMPLATES
-class ooHandle(AMSTrTrackD);
-class ooItr(AMSTrTrackD);
-class ooRef(AMSTrTrackD);
-class ooShortRef(AMSTrTrackD);
-#endif // !defined(OO_BUGGY_TEMPLATES)
-
-#line 11 "trrechit.ddl"
-class AMSTrTrackD; 
+#line 16 "trrechit.ddl"
 class AMSTrClusterD; 
+
 
 
 class AMSTrRecHitD : public ooObj { 
@@ -53,13 +45,16 @@ number _DifoSum;
 integer _Status; 
 integer _Layer; 
 integer _Position; 
-#line 32 "trrechit.ddl"
+
+integer _gid; 
+char _name[80]; 
+#line 42 "trrechit.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 32 "trrechit.ddl"
-    ooRef(AMSTrClusterD) pClusterX <-> pTrRecHitX[];
+#line 42 "trrechit.ddl"
+    ooRef(AMSTrClusterD) pClusterX : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for bidirectional association link: pClusterX */
+    /* Methods for unidirectional association link: pClusterX */
 #if !defined(__DECCXX) || !defined(OO_VMS)
     ooHandle(AMSTrClusterD) pClusterX(ooMode mode = oocNoOpen) const;
 #endif
@@ -68,7 +63,7 @@ public:
     ooStatus set_pClusterX(const ooHandle(AMSTrClusterD)& objH);
     ooStatus del_pClusterX()
       {
-	return opiDelAssoc_1(ooDysoc(), ooAssocN(AMSTrRecHitD,pClusterX));
+	return opiDelUssoc_1(ooDysoc(), ooAssocN(AMSTrRecHitD,pClusterX));
       }
     ooBoolean exist_pClusterX(const ooHandle(AMSTrClusterD)& objH) const;
     ooBoolean exist_pClusterX() const
@@ -79,10 +74,10 @@ public:
     ooRef(AMSTrClusterD)& pClusterX(ooRef(AMSTrClusterD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 33 "trrechit.ddl"
-    ooRef(AMSTrClusterD) pClusterY <-> pTrRecHitY[];
+#line 43 "trrechit.ddl"
+    ooRef(AMSTrClusterD) pClusterY : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for bidirectional association link: pClusterY */
+    /* Methods for unidirectional association link: pClusterY */
 #if !defined(__DECCXX) || !defined(OO_VMS)
     ooHandle(AMSTrClusterD) pClusterY(ooMode mode = oocNoOpen) const;
 #endif
@@ -91,7 +86,7 @@ public:
     ooStatus set_pClusterY(const ooHandle(AMSTrClusterD)& objH);
     ooStatus del_pClusterY()
       {
-	return opiDelAssoc_1(ooDysoc(), ooAssocN(AMSTrRecHitD,pClusterY));
+	return opiDelUssoc_1(ooDysoc(), ooAssocN(AMSTrRecHitD,pClusterY));
       }
     ooBoolean exist_pClusterY(const ooHandle(AMSTrClusterD)& objH) const;
     ooBoolean exist_pClusterY() const
@@ -101,47 +96,7 @@ public:
     static ooAssocNumber pClusterY_ooAssocN;
     ooRef(AMSTrClusterD)& pClusterY(ooRef(AMSTrClusterD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#ifdef OO_DDL_TRANSLATION
-#line 34 "trrechit.ddl"
-    ooRef(AMSTrTrackD) pTrackH[] <-> pTrRecHitT[];
-#else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for bidirectional association link: pTrackH[] */
-    ooStatus pTrackH(ooItr(AMSTrTrackD)& itr, ooMode mode = oocNoOpen) const;
-    ooStatus pTrackH(ooItr(AMSTrTrackD)& itr, const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSTrRecHitD,pTrackH),
-				    predicate,
-				    oocPublic,
-				    oocNoOpen);
-      }
-    ooStatus pTrackH(ooItr(AMSTrTrackD)& itr,
-		 ooMode mode,
-		 const ooAccessMode access,
-		 const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSTrRecHitD,pTrackH),
-				    predicate,
-				    access,
-				    mode);
-      }
-    ooStatus add_pTrackH(const ooHandle(AMSTrTrackD)& newObjH);
-    ooStatus sub_pTrackH(const ooHandle(AMSTrTrackD)& objH, uint32 number = 1);
-    ooStatus del_pTrackH()
-      {
-	return opiDelAssoc(ooDysoc(), ooAssocN(AMSTrRecHitD,pTrackH));
-      }
-    ooBoolean exist_pTrackH(const ooHandle(AMSTrTrackD)& objH) const;
-    ooBoolean exist_pTrackH() const
-      {
-        return this->exist_pTrackH((ooHandle(AMSTrTrackD)&) (oocNullHandle));
-      }
-    static ooAssocNumber pTrackH_ooAssocN;
-#endif /* !defined(OO_DDL_TRANSLATION) */
-#line 37 "trrechit.ddl"
+#line 47 "trrechit.ddl"
 AMSTrRecHitD(); 
 AMSTrRecHitD(class AMSTrRecHit *); 
 
@@ -154,6 +109,10 @@ inline number getSum() { return _Sum; }
 inline number getDSum() { return _DifoSum; }
 inline integer getPosition() { return _Position; }
 void copy(AMSTrRecHit *); 
+inline integer getgid() { return _gid; }
+inline char *getname() { return _name; }
+inline void setgid(integer gid) { _gid = gid; }
+inline void setname(char *name) { if (name) strcpy (_name, name); }
 
 
 inline void setPosition(integer pos) { _Position = pos; }
@@ -174,7 +133,7 @@ inline void setPosition(integer pos) { _Position = pos; }
     static void ooAssocRegister();
     ooRef(AMSTrRecHitD)& ooThis(ooRef(AMSTrRecHitD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTrRecHitD(ooInternalObj iobj);
-#line 55 "trrechit.ddl"
+#line 69 "trrechit.ddl"
 }; 
 
 #endif /* !defined(TRRECHIT_H) */

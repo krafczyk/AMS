@@ -7,8 +7,11 @@
 //                   change the place of members in the class
 // Sep 10, 1996. ak. V1.25, _pValues
 // Nov 15, 1996. al. NelemL, NelemR
+// Mar 06, 1997. ak. up to date
+//                   use uni directional assoc between cluster and hits
+//                   add AMSTrIdSoft
 //
-// Last Edit : Nov 15, 1996. ak
+// Last Edit : Mar 20, 1997. ak
 //
 
 #include <typedefs.h>
@@ -17,13 +20,14 @@
 
 declare (ooVArray, number);
 
-class AMSTrRecHitD;
+//class AMSTrRecHitD;
 //class AMSEventD;
 
 class AMSTrClusterD : public ooObj {
 
  private:
 
+   AMSTrIdSoft  _Id; // center
    number       _Sum;
    number       _Sigma;
    number       _Mean;
@@ -34,7 +38,6 @@ class AMSTrClusterD : public ooObj {
    integer      _NelemL;
    integer      _NelemR;
    integer      _Position;
-   integer      _Side;
 
    ooVArray(number) _pValues;
 
@@ -43,13 +46,9 @@ class AMSTrClusterD : public ooObj {
 
  public:
 
-   //static const integer BAD;
-   //static const integer WIDE;
-   //static const integer NEAR;
-
 // Assosiations
-   ooRef(AMSTrRecHitD) pTrRecHitX[] <-> pClusterX;
-   ooRef(AMSTrRecHitD) pTrRecHitY[] <-> pClusterY;
+//   ooRef(AMSTrRecHitD) pTrRecHitX[] <-> pClusterX;
+//   ooRef(AMSTrRecHitD) pTrRecHitY[] <-> pClusterY;
 //   ooRef(AMSEventD)    pEventCl     <-> pCluster[];
 
 // Constructor
@@ -58,20 +57,24 @@ class AMSTrClusterD : public ooObj {
 
 // Get Methods
   integer  getstatus()   {return _Status;}
-  integer  getnelem()    {return _NelemL + _NelemR;}
+  integer  getnelem()    {return -_NelemL + _NelemR;}
+  integer  getnelemL()   {return _NelemL;}
+  integer  getnelemR()   {return _NelemR;}
   number   getSigma()    {return _Sigma;}
   number   getRms()      {return _Rms;}
   number   getVal()      {return _Sum;}
   number   getcofg()     {return _Mean;}
   number   getecofg()    {return _ErrorMean;}
   integer  getPosition() {return _Position;}
-  integer  getSide()     {return _Side;}
+  integer  getSide()     {return _Id.getside();}
+
+  AMSTrIdSoft  getidsoft()   {return _Id;}
+
   void     copy(AMSTrCluster* p);
   void     getValues(number* values);
 
 // Set Methods
   void     setPosition(integer pos) {_Position = pos;}
-  void     setSide(integer side) {_Side = side;}
   void     setValues(number* values);
 
 };

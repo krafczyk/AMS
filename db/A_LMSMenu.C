@@ -293,7 +293,7 @@ void	LMS::AddListPrompts()
 	// Create a List
 
         ooHandle(AMSEventList) listH;
-	if (AddList(listName, setupName, 0, listH)) {
+	if (AddList(listName, 0, listH)) {
 		cout << "List '" << listName << "' is created." << endl;
 		SetCurrentList(listName);
 	} else {
@@ -323,7 +323,7 @@ void	LMS::AddEventPrompts(integer N)
         istrstream stat1(eventName);
         stat1 >> event;
 
-	if (AddEvent(fListName, run, event, eventName, -2, N)) {
+	if (AddEvent(fListName, run, event, -2, N)) {
           cout << "Event " << event << " of run "<<run<<" is created." << endl;
 	} else {
 		cout << "Event '" << event << "' is NOT created." << endl;
@@ -371,16 +371,22 @@ void	LMS::AddTMediaPrompts()
 	
 void	LMS::DeleteEventPrompts()
 {
-        char* eventID = NULL;
-
-        eventID = PromptForValue("(DELETE Event) Enter Event ID: ");
+        char*   eventName = NULL;
+        char*   runName   = NULL;
+        integer event, run;
+	
+	
+	runName = PromptForValue("(ADD EVENT) Enter Run Number: ");
+        istrstream stat(runName);
+        stat >> run;
+	eventName = PromptForValue("(ADD EVENT) Enter Event Number: ");
+        istrstream stat1(eventName);
+        stat1 >> event;
 
 	// Delete the Event
 
-	DeleteEvent(fListName, eventID);
+	DeleteEvent(fListName, run, event);
 
-	if (eventID) delete eventID;
-	
 	// Return the the Delete Menu
 	
 	DisplayDeleteMenu();
@@ -497,17 +503,24 @@ void	LMS::FillTMediaPrompts()
 
 void	LMS::FillEventPrompts(integer N)
 {
-        char*   eventID = NULL;
 	ooStatus rstatus;
 	
-	eventID = PromptForValue("(Fill AMSEvent) Enter Event ID: ");
+        char*   eventName = NULL;
+        char*   runName   = NULL;
+        integer event, run;
+	
+	
+	runName = PromptForValue("(ADD EVENT) Enter Run Number: ");
+        istrstream stat(runName);
+        stat >> run;
+	eventName = PromptForValue("(ADD EVENT) Enter Event Number: ");
+        istrstream stat1(eventName);
+        stat1 >> event;
 
 
-        rstatus = GetEvent(fListName, eventID, 0, 0, oocRead, -2, N);
+        //rstatus = GetNEvents(fListName, run, event, oocRead, -2, N);
 
 	// Delete prompt strings
-	
-	if (eventID) delete eventID;
 	
 	// Return the the Fill Menu
 	

@@ -1,11 +1,14 @@
 //
-// Last Edit : 13.Jan.1997 - call setgeom from CmpConstants()
+// 13.Jan.1997 - call setgeom from CmpConstants()
+//
+// Last Edit : Mar 06, 1997. ak. add nlay
 //
 #include <ctcdbcD.h>
 #include <ctcdbc.h>
 
 CTCDBcD::CTCDBcD() {
   _geomIdD = CTCDBc::_geomId;
+  _nlayD   = CTCDBc::_nlay;
 }
 
 ooStatus CTCDBcD::CmpConstants() {
@@ -14,13 +17,7 @@ ooStatus CTCDBcD::CmpConstants() {
 
  CTCDBc::setgeom(_geomIdD);
  cout <<" CTCDBcD::CmpConstants -I- CTCDBc::setgeom(_geomIdD) done"<<endl;
- //if(_geomIdD != CTCDBc::_geomId) {
- //  cout <<" CTCDBcD::CmpConstants -W- _geomId "<<_geomIdD<<", "
- //       << CTCDBc::_geomId<<endl;
- //  cout <<" CTCDBcD::CmpConstants -I- _geomId will be set to "<<_geomIdD
- //       <<endl;
- //  CTCDBc::_geomId = _geomIdD;
- //  rstatus = oocError;
- //}
+ if (_nlayD != CTCDBc::_nlay) 
+  cout <<" CTCDBcD::CmpConstants -W- nlay "<<_nlayD<<", "<<CTCDBc::_nlay<<endl;
  return rstatus;
 }

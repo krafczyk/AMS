@@ -1,5 +1,8 @@
 // Author V. Choutko 5-june-1996
- 
+//
+//
+// Lat Edit : Mar 20, 1997. ak. AMSCharge::Build() check if psen == NULL
+// 
 #include <beta.h>
 #include <commons.h>
 #include <math.h>
@@ -68,14 +71,20 @@ void AMSCharge::build(){
        for (i=0;i<6;i++){
         AMSTrRecHit *phit=ptrack->getphit(i);
         if(phit){
-         AMSDir SenDir((phit->getpsen())->getinrm(2,0),
-         (phit->getpsen())->getinrm(2,1),(phit->getpsen())->getinrm(2,2) );
-         AMSPoint SenPnt=phit->getHit();
+         if (phit->getpsen()) {
+          AMSDir SenDir((phit->getpsen())->getinrm(2,0),
+          (phit->getpsen())->getinrm(2,1),(phit->getpsen())->getinrm(2,2) );
+          AMSPoint SenPnt=phit->getHit();
            ptrack->interpolate(SenPnt, SenDir, P1, theta, phi, sleng);
            AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
            EdepTracker[nhitTracker]=phit->getsum()*
            pow(min(one,pbeta->getbeta()),2)*fabs(SenDir.prod(DTr));
          nhitTracker++;
+         } else {
+           cout<<"AMSCharge::build -E- phit -> getpsen == NULL "
+               <<" for hit wit pos "<<phit ->getpos()<<", ContPos "
+               <<phit -> getContPos()<<endl;
+         }
         }
        }   
       addnext(rid,pbeta,nhitTOF,nhitTracker, EdepTOF, EdepTracker);

@@ -16,8 +16,9 @@
 // Oct,   , 1996. ak. add delete(propagate)
 //                    keep number of tracks, clusters, hits per event
 //                    use short instead of integer for runtype and errorcode
+// Feb 27, 1997.  ak. remove fID
 //
-// Last Edit: Oct 31, 1996. ak.
+// Last Edit: Mar 12, 1997. ak.
 
 #include <typedefs.h>
 
@@ -64,14 +65,13 @@ class AMSEventD : public ooObj {
 
  private:
 
-  ooVString    fID;
+//  ooVString    fID;
    
-  time_t     _Timestamp;        // time of the trigger
-  integer    _run;              // run number
-  short      _runtype;          // type of Run
-  short      fErrorCode;        // error code, if any
-  uinteger   fEventNumber;      // event number
-  uinteger   fTriggerMask;      // trigger mask
+  time_t     _time;             // time of the trigger
+  integer    _runNumber;        // run number
+  short      _runType;          // type of Run
+  uinteger   _eventNumber;      // event number
+  uinteger   _triggerMask;      // trigger mask
 
   short      _nTrHits;          // number of TrRecHits
   short      _nTrClusters;      // number of TrClusters
@@ -110,17 +110,16 @@ class AMSEventD : public ooObj {
 
   AMSEventD();
   AMSEventD(
-    uinteger EventNumber, integer run, integer runtype, time_t time, char* ID);
+    integer runnumber, uinteger eventnumber, integer runtype, time_t time);
 
 // Get Methods
 
-  inline   integer&  RunNumber()        {return _run;}
-  inline   short&    RunType()          {return _runtype;}
-  inline   uinteger& EventNumber()      {return fEventNumber;}
-  inline   time_t&   TriggerTime()      {return _Timestamp;}
-  inline   uinteger& Trigmask()         {return fTriggerMask;}
-  inline   short&    ErrorCode()        {return fErrorCode;}
-  const    char*     GetID()            {return fID;}
+  inline   integer&  getrun()           {return _runNumber;}
+  inline   short&    RunType()          {return _runType;}
+  inline   uinteger& getevent()         {return _eventNumber;}
+  inline   time_t&   TriggerTime()      {return _time;}
+  inline   uinteger& Trigmask()         {return _triggerMask;}
+//inline   short&    ErrorCode()        {return _errorCode;}
   integer  getPosition()                { return _Position;}
   void     getNumbers
              (integer& run, integer& runtype, uinteger& eventn, time_t& time);

@@ -3,6 +3,7 @@
 //             July 25, 1996. add #pragma
 //             Aug  22, 1996. change the position of memebers in the class
 //             Sep  26, 1996. add getpattern function
+//             Mar  06, 1997. up to date.
 //
 // Last Edit Oct 04, 1996. ak 
 

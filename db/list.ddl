@@ -11,14 +11,17 @@
 //                   remove fRunNumber function
 //                   modify number of parameters of AddTrTrack
 // Oct    ,1996      add ooVstring listName
+// Feb  12, 1997    mceventD, TimeDependendVariables (TDV)
+//                  no ID, no map
+// Mar  25, 1997    AMSsetupDB
 //
-// last edit Dec 11, 1996, ak.
+// last edit Mar 25, 1997, ak.
 //
 
-#include <ooMap.h>
 #include <typedefs.h>
 
 class AMSEventD;
+class AMSmceventD;
 class AMSgvolumeD;
 class AMSNode;
 
@@ -27,6 +30,7 @@ class AMSEventList : public ooContObj {
  private:
 
   integer   _listType;          // 0 == simulation
+  integer   _eventType;         // AMSFFKEY.Write
   integer   _nEvents;           // number of events
   integer   _nEventsP;          // number of events
   integer   _nHits[6];          // number of hits;
@@ -38,7 +42,6 @@ class AMSEventList : public ooContObj {
   integer   _nTOFClusters[4];   // number of TOF Clusters
   integer   _nCTCClusters;      // number of CTC clusters
   integer   _nCTCMCClusters;    // number of TOF MCClusters
-  integer   _nMCCTCClusters;    // number of MC CTC clusters
   integer   _nBetas;            // number of Betas
   integer   _nCharges;          // number of Charges
   integer   _nParticles;        // number of Particles
@@ -47,85 +50,78 @@ class AMSEventList : public ooContObj {
   ooVString _listName;          // name of list
   ooVString _Setup;             // prefix will be used to find containers with
                                 // Geometry, Materials and TrackingMedia
-  ooVString _mapName;           // name of map
-  ooVString _mceventgCont;      // name of tof mc clusters container
-  ooVString _trlayerCont[6];    // name of track rechits container
-  ooVString _trclusterCont[2];  // name of tof mc clusters container
-  ooVString _trmcclusterCont;   // name of tof mc clusters container
-  ooVString _tofmcclusterCont;  // name of tof mc clusters container
-  ooVString _sclayerCont[4];    // name of tof container
-  ooVString _ctcclusterCont;    // name of tof mc clusters container
-  ooVString _ctcmcclusterCont;  // name of ctc mc clusters container
-  ooVString _trtrackCont;       // name of track container
-  ooVString _betaCont;          // name of beta container
-  ooVString _chargeCont;        // name of charge container
-  ooVString _particleCont;      // name of particle container
-  ooVString _antimcclusterCont; // name of anti mc clusters container
-
+  
  public:
 
 // Constructor
   AMSEventList();
   AMSEventList(char* listname, char* setup);
-//  AMSEventList(uinteger runNumber);
 
 // Add Methods
-   ooStatus AddGeometry();
-   ooStatus AddMaterial();
-   ooStatus AddTMedia();
-   ooStatus Addamsdbc();
-   ooStatus AddEvent (integer run, uinteger event, char* id, integer eventW, 
-                      ooHandle(ooMap) mapH);
-   ooStatus 
-         AddTrCluster(char* id, const integer N, ooHandle(AMSEventD)& eventH);
-  ooStatus  AddTrMCCluster(char* id, ooHandle(AMSEventD)&  eventH);
-  ooStatus  AddTOFMCCluster(char* id, ooHandle(AMSEventD)&  eventH);
-   ooStatus 
-         AddTrRecHit(char* id, const integer N, ooHandle(AMSEventD)&  eventH);
-   ooStatus  AddTrTrack(char* id, ooHandle(AMSEventD)&  eventH);
-   ooStatus  AddmcEventg(char* id, ooHandle(AMSEventD)&  eventH);
-   ooStatus  AddCTCCluster(char* id, ooHandle(AMSEventD)&  eventH);
-   ooStatus  AddCTCMCCluster(char* id, ooHandle(AMSEventD)&  eventH);
-   ooStatus  AddAntiMCCluster(char* id, ooHandle(AMSEventD)&  eventH);
-   ooStatus 
-       AddTOFCluster(char* id, const integer N, ooHandle(AMSEventD)&  eventH);
-   ooStatus AddBeta(char* id, ooHandle(AMSEventD)&  eventH);
-   ooStatus AddCharge(char* id, ooHandle(AMSEventD)&  eventH);
-   ooStatus AddParticle(char* id, ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddGeometry(ooHandle(ooDBObj)& dbH);
+   ooStatus  AddMaterial(ooHandle(ooDBObj)& dbH);
+   ooStatus  AddTMedia(ooHandle(ooDBObj)& dbH);
+   ooStatus  Addamsdbc(ooHandle(ooDBObj)& dbH);
+   ooStatus  AddTDV(ooHandle(ooDBObj)& dbH);
+   ooStatus  AddEvent (integer run, uinteger event, integer eventW);
+   ooStatus  AddMCEvent (integer run, uinteger event, integer eventW); 
+   ooStatus  AddDummyMCEvent (integer run, uinteger event, integer eventW);
+   ooStatus  AddTrCluster(const integer N, ooHandle(AMSEventD)& eventH);
+   ooStatus  AddTrMCCluster(ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddTOFMCCluster(ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddTrRecHit(const integer N, ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddTrTrack(ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddmcEventg(ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddCTCCluster(ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddCTCMCCluster(ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddAntiMCCluster(ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddTOFCluster(const integer N, ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddBeta(ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddCharge(ooHandle(AMSEventD)&  eventH);
+   ooStatus  AddParticle(ooHandle(AMSEventD)&  eventH);
 
 //Copy Methods
-   ooStatus CopyGeometry(ooMode mode);
-   ooStatus CopyMaterial(ooMode mode);
-   ooStatus CopyTMedia(ooMode mode);
-   ooStatus CopyEventHeader
-                     (char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus CopyEvent(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus CopyMCEvent(char* id, ooHandle(AMSEventD)& eventH, ooMode mode);
-   ooStatus CopyMCeventg(char* id, ooHandle(AMSEventD)& eventH, ooMode mode);
-   ooStatus CopymcEventg(char* id, ooHandle(AMSEventD)& eventH, ooMode mode);
-   ooStatus CopyTrRecHit(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus CopyTrCluster(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus CopyTrTrack(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus 
-         CopyTrMCCluster(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus 
-         CopyTOFMCCluster(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus CopyTOFCluster(char* id, ooHandle(AMSEventD)& eventH, ooMode mode);
-   ooStatus 
-       CopyAntiMCCluster(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus 
-         CopyCTCMCCluster(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus CopyCTCCluster(char* id, ooHandle(AMSEventD)& eventH, ooMode mode);
-   ooStatus CopyBeta(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus CopyCharge(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
-   ooStatus CopyParticle(char* id, ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyGeometry(ooMode mode, ooHandle(ooDBObj)& dbH);
+   ooStatus  CopyMaterial(ooMode mode, ooHandle(ooDBObj)& dbH);
+   ooStatus  CopyTMedia(ooMode mode, ooHandle(ooDBObj)& dbH);
+   ooStatus  CopyTDV(time_t time, ooMode mode, ooHandle(ooDBObj)& dbH);
+   ooStatus  CopyEventHeader(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyEvent(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyMCEvent(ooHandle(AMSEventD)& eventH, ooMode mode);
+   ooStatus  CopyMCEventD(ooHandle(AMSmceventD)& eventH, ooMode mode);
+   ooStatus  CopyMCeventg(ooHandle(AMSEventD)& eventH, ooMode mode);
+   ooStatus  CopymcEventg(ooHandle(AMSEventD)& eventH, ooMode mode);
+   ooStatus  CopyTrRecHit(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyTrCluster(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyTrTrack(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyTrMCCluster(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyTOFMCCluster(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyTOFCluster(ooHandle(AMSEventD)& eventH, ooMode mode);
+   ooStatus  CopyAntiMCCluster(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyCTCMCCluster(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyCTCCluster(ooHandle(AMSEventD)& eventH, ooMode mode);
+   ooStatus  CopyBeta(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyCharge(ooHandle(AMSEventD)&  eventH, ooMode mode);
+   ooStatus  CopyParticle(ooHandle(AMSEventD)&  eventH, ooMode mode);
+
+   ooStatus  LinkHitClusterD(const integer N, ooHandle(AMSEventD)& eventH);
+   ooStatus  LinkHitClusterM(ooHandle(AMSEventD)& eventH);
+   ooStatus  LinkTrackHitD(ooHandle(AMSEventD)& eventH);
+   ooStatus  LinkTrackHitM(ooHandle(AMSEventD)& eventH);
+
+   void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode);
+   void CopyByPtr(AMSNode *ptr);
 
 // Delete Methods
 
 
 // Set/Get Methods
            integer   ListType()          {return _listType;}
+           integer   EventType()         {return _eventType;}
+   const   char*     ListName()          {return _listName;}
+   const   char*     getsetup()          {return _Setup;}
    void    setListType(integer listType) {_listType = listType;}
+   void    setEventType(integer eventType) {_eventType = eventType;}
    integer getNEvents()                  {return _nEvents;}
    void    incNEvents()                  {_nEvents++;}
    void    decNEvents()                  {if (_nEvents > 0) _nEvents--;}
@@ -156,8 +152,6 @@ class AMSEventList : public ooContObj {
    void    incNTOFCl(integer n)           {if(n<4) _nTOFClusters[n]++;}
    integer getNCTCClusters()             {return _nCTCClusters;}
    void    incNCTCClusters()             {_nCTCClusters++;}
-   integer getNMCCTCClusters()           {return _nMCCTCClusters;}
-   void    incNMCCTCClusters()           {_nMCCTCClusters++;}
    integer getNBetas()                   {return _nBetas;}
    void    incNBetas()                   {_nBetas++;}
    integer getNCharges()                 {return _nCharges;}
@@ -179,37 +173,29 @@ class AMSEventList : public ooContObj {
 
    void setsetup(char* setup);
    void setlistname(char* listname);
-   void setmapname(char* mapname);
+   void SetContainersNames();
    void setlisttype(integer type) { _listType = type;}
 
 // Find Methods
-   ooStatus FindMap(char* mapName, ooMode mode, ooHandle(ooMap)& mapH);
-   ooStatus FindEvent(char* id, ooMode mode, ooHandle(AMSEventD)& eventH);
-   ooStatus FindEvent(char* id, ooMode mode, ooHandle(AMSEventD)& eventH,
-                      ooHandle(ooMap)& mapH);
-   ooStatus FindEventByN(integer eventN, ooMode mode, 
-                         ooHandle(AMSEventD)& eventH);
-   ooStatus CheckContainer(char* name, ooMode mode, 
-                           ooHandle(ooContObj)& container, const int flag);
-   ooStatus CheckAllContainers(ooMode mode);
-   ooStatus LinkHitClusterD
-                     (char* id, const integer N, ooHandle(AMSEventD)& eventH);
-   ooStatus LinkHitClusterM(char* id, ooHandle(AMSEventD)& eventH);
-   ooStatus LinkTrackHitD(char* id, ooHandle(AMSEventD)& eventH);
-   ooStatus LinkTrackHitM(char* id, ooHandle(AMSEventD)& eventH);
-   
-   void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode);
-   void CopyByPtr(AMSNode *ptr);
-
+   ooStatus FindEvent(integer runNumber, uinteger eventNumber, 
+                      ooMode mode, ooHandle(AMSEventD)& eventH);
+   ooStatus FindEvent(integer runNumber, uinteger eventNumber, 
+                      ooMode mode, ooHandle(AMSmceventD)& eventH);
+   ooStatus 
+       CheckContainer(char* name, ooMode mode, ooHandle(ooContObj)& container);
+   ooStatus 
+       CheckContainer(char* name, ooMode mode, 
+                      ooHandle(ooContObj)& container, ooHandle(ooDBObj)& dbH);
+   ooStatus   CheckAllContainers(ooMode mode);
    ooBoolean  CheckListSstring(char* sstring);
 
-   ooStatus PrintMapStatistics(ooMode mode);
+// Print Methods
    ooStatus PrintListStatistics(char* printMode);
+   ooStatus PrintListStatistics_mc(char* printMode);
 
 // Delete Methods
    ooStatus DeleteEventList();
    ooStatus DeleteAllContainers();
-   ooStatus DeleteMap();
 
 };
 

@@ -11,8 +11,10 @@
 // Aug  07, 1996. ak. V1.24 (AMSTrTrack functions are modified accord)
 // Sep  10, 1996. ak. V1.25
 // Oct  10, 1996. ak. implement friend class
-//
-// Last Edit : Oct 10, 1996. ak.
+// Mar  15, 1997. ak. there were two same functions AMSTrTrack::getHitP and 
+//                    getpthit. getHitP is removed
+//                    new function AMSTrREcHit::setSensorP
+// Last Edit : Mar 20, 1997. ak.
 //
 #ifndef __AMSTRBANK__
 #define __AMSTRBANK__
@@ -111,22 +113,23 @@ protected:
 AMSgSen * _pSen;
 AMSTrCluster *_Xcl;
 AMSTrCluster *_Ycl;
-integer _Status;
-integer _Layer;
+integer      _Status;
+integer      _Layer;
 AMSPoint     _Hit;
 AMSPoint     _EHit;
-number _Sum;
-number _DifoSum;
+number       _Sum;
+number       _DifoSum;
+
 
 static AMSTrRecHit* _Head[6];
 static void _addnext(AMSgSen * p, integer ,integer ,AMSTrCluster *, 
             AMSTrCluster *,  const AMSPoint &, const AMSPoint &);
-  void _printEl(ostream & stream){ stream << " Status " << _Status << " Layer " << 
-  _Layer <<" Coo " << _Hit<< endl;}
   void _copyEl();
   void _writeEl();
 
 public:
+  void _printEl(ostream & stream){ stream << " Status " << _Status << " Layer " << 
+  _Layer <<" Coo " << _Hit<< endl;}
 integer operator < (AMSlink & o) const {
   AMSTrRecHit * p= (AMSTrRecHit*)(&o);
  if (getstatus(AMSDBc::USED) && !(p->getstatus(AMSDBc::USED)))return 1;
@@ -181,6 +184,8 @@ void          setClusterP(AMSTrCluster* p,integer n) {
               if (n == 0) _Xcl = p;
               if (n == 1) _Ycl = p;
 }
+void          setSensorP(AMSgSen* p) { _pSen = p;}
+
 //-
 inline void setstatus(integer status){_Status=_Status | status;}
 ~AMSTrRecHit(){int i;for( i=0;i<6;i++)_Head[i]=0;};
@@ -308,12 +313,11 @@ number HPhi[2], AMSPoint  HP0[2] ) const;
 #ifdef __DB__
    friend class AMSTrTrackD;
 #endif
-AMSTrTrack() {_Pattern = -1; _NHits = -1;}
-AMSTrRecHit* getHitP(integer n) {return n>=0 && n<6 ?  _Pthit[n] : 0;}
-void   setHitP(AMSTrRecHit* p, integer n) {if (n< 6) _Pthit[n] = p;}
-
+AMSTrTrack() {_Pattern = -1; 
+              _NHits   = -1; 
+              for (int i=0; i<6; i++) _Pthit[i] = NULL; }
+void   setHitP(AMSTrRecHit* p, integer n) {if (n< 6)  _Pthit[n] = p;}
 //-
-
 integer TOFOK();
 integer getnhits() const {return _NHits;}
 number getgrid() const {return _GRidgidity;}

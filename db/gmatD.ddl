@@ -2,6 +2,7 @@
 // 
 // Sep 05, 1996. ak. First try with Objectivity
 //                   Add _id and _name. The order of variables is changed
+// Mar 06, 1997. ak. up to date.
 //
 // Last Edit : Nov 27, 1996. ak.
 // 

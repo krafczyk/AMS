@@ -26,12 +26,13 @@ class AMSCTCMCClusterD : public ooObj {
 public: class AMSPoint _xcoo; 
 class AMSDir _xdir; 
 number _step; 
+number _charge; 
 number _edep; 
 number _beta; 
 
 integer _idsoft; 
 integer _Position; 
-#line 29
+#line 30
 inline AMSCTCMCClusterD() { }
 AMSCTCMCClusterD(class AMSCTCMCCluster *); 
 
@@ -56,7 +57,7 @@ inline void setPosition(integer pos) { _Position = pos; }
     static void ooAssocRegister();
     ooRef(AMSCTCMCClusterD)& ooThis(ooRef(AMSCTCMCClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSCTCMCClusterD(ooInternalObj iobj);
-#line 37 "mcctcclusterD.ddl"
+#line 38 "mcctcclusterD.ddl"
 }; 
 
 #endif /* !defined(MCCTCCLUSTER_D_H) */

@@ -4,14 +4,16 @@
 // Sep 10, 1996. V1.25, _pValues
 // Oct 16, 1996. remove AMSTrIdSoft.
 // Nov 15, 1996. NelemL and NelemR
+// Mar 20, 1997. getnelem() is corrected
 //
-// Last Edit: Nov 15, 1996. ak.
+// Last Edit: Mar 20, 1997. ak.
 //
 #include <iostream.h>
 #include <string.h>
 #include <cern.h>
 
 #include <typedefs.h>
+#include <db_comm.h>
 #include <eventD_ref.h>
 #include <trrechit_ref.h>
 #include <tcluster.h>
@@ -19,6 +21,7 @@
 AMSTrClusterD::AMSTrClusterD(){}
 AMSTrClusterD::AMSTrClusterD ( AMSTrCluster* p)
 {
+  _Id     = p -> _Id;
   _Status = p -> _Status;
   _NelemL = p -> _NelemL;
   _NelemR = p -> _NelemR;
@@ -27,13 +30,12 @@ AMSTrClusterD::AMSTrClusterD ( AMSTrCluster* p)
   _Mean   = p -> _Mean;
   _Rms    = p -> _Rms;
   _ErrorMean = p -> _ErrorMean;
-  _Side      = p -> _Id.getside();
 }
 
 void AMSTrClusterD::setValues(number* values)
 {
   if (getnelem() > 0) {
-   _pValues.resize(_NelemR+_NelemL);
+   _pValues.resize(getnelem());
    for (integer i =0; i< getnelem(); i++) { _pValues.set(i,values[i]);}
   }
 }    
@@ -47,6 +49,7 @@ void AMSTrClusterD::getValues(number* values)
 
  void AMSTrClusterD::copy(AMSTrCluster* p)
 {
+   p -> _Id      = _Id;
    p -> _Status  = _Status; 
    p -> _NelemL  = _NelemL;  
    p -> _NelemR  = _NelemR;  

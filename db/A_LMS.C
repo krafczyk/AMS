@@ -7,8 +7,13 @@
 // Oct , 1996   ak.  create map per list
 //                   use Geometry_SETUPName container
 //                   container per list
+// Feb 13, 1997 ak.  add AMSmceventD , TimeV container
+//                   no map, no fID in classes AMSEventD, AMSmceventD
+// Mar  5, 1997 ak.  non-hashed containers.
+//                   new function dbend
+//                   use contH instead of trclusterH, etc
 //
-// last edit Nov 04, 1996, ak.
+// last edit Mar 25, 1997, ak.
 //
 
 #include <stdio.h>
@@ -18,13 +23,13 @@
 #include <strstream.h>
 
 #include <typedefs.h>
+#include <db_comm.h>
 #include <A_LMS.h>
 
 LMS::LMS(ooMode openMode) 
 {	
-  integer  i;
-  ooStatus rstatus;
-
+  ooStatus          rstatus;
+  ooHandle(ooDBObj) dbH;
    cout << "LMS::Constructor: ========Constructor called========" << endl;
 
    _session  = ooSession::Instance("LOM");
@@ -33,31 +38,29 @@ LMS::LMS(ooMode openMode)
    _transCommit = 0;
    _transAbort  = 0;
    cout << "LMS::Constructor: Database is initialized" << endl;
-   //rstatus   = _session -> StartTransaction(_openMode);
    rstatus = Start(_openMode);
    if (rstatus == oocSuccess) {
     _databaseH = _session -> DefaultDatabase();
-    if (_databaseH != NULL) {
- } else {
-  cout <<"LMS::Constructor: Error DefaultDatabase does not exist"<<endl;
-  cout << "LMS::Constructor: pointer to default database is null"<<endl;
-  rstatus = Abort();
-  return;
- }
-} else {
+    if (_databaseH == NULL) {
+     cerr <<"LMS::Constructor -E- DefaultDatabase does not exist"<<endl;
+     rstatus = Abort();
+     return;
+    }
+    if (!dbH.exist(_session -> FederatedDatabase(),"AMSsetupDB",openMode)) {
+      cerr<<"LMS::Constructor -E- setup database does not exist"<<endl;
+      rstatus = Abort();
+      return;
+    } else {
+      _setupdbH = dbH;
+      rstatus = setsetupdbname("AMSsetupDB");
+    }
+   } else {
     cerr << "LMS::Constructor: Error - Cannot start a transaction"<<endl;
     rstatus = Abort();
     exit(1);
-}
+   }
  
  rstatus = Commit();
-/*
- ooHandle(AMSEventList) listH;
- cout <<"LMS::Constructor -I- Open/Create EventKeeping list"<<endl;
- rstatus = AddList("EventKeeping","Setup", -1, listH);
- //if (rstatus != oocSuccess) 
- //cout<<"LMS::Constructor-E- failed to add EventKeeping List"<<endl;
-*/
  if (rstatus == oocSuccess) cout <<"LMS::Constructor Commit Done"<<endl;
 }
 
@@ -169,20 +172,13 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     _databaseH = _session -> DefaultDatabase();
     if (_databaseH != NULL) {
 
-    contName = new char[strlen(prefix)+6];
-    strcpy(contName,"Maps_");
-    strcat(contName,prefix);
-    if (!_mapsH.exist(_session -> DefaultDatabase(),contName,_openMode) &&
-        _openMode == oocUpdate) 
-      _mapsH = new(contName, 1, 0, 0, _databaseH) ooContObj;
-    delete [] contName;
-
    // create the "mcEventg" container, if it does not exist
     contName = new char[strlen(prefix)+10];
     strcpy(contName,"mceventg_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH, contName, _openMode) && openMode == oocUpdate)
-     contH   = new(contName,1,0,0,_databaseH) ooContObj;
+      //contH   = new(contName,1,0,0,_databaseH) ooContObj;
+     contH   = new(contName,0,0,0,_databaseH) ooContObj;
      delete [] contName;
      cout << "LMS::Constructor: mcEventg is opened/created" << endl;
 
@@ -193,9 +189,9 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
       contName = new char[strlen(prefix)+10];
       strcpy(contName,nameL[i]);
       strcat(contName,prefix);
-      if (!_trLayersH[i].exist(_databaseH, contName, _openMode) 
+      if (!contH.exist(_databaseH, contName, _openMode) 
           && openMode == oocUpdate) 
-      _trLayersH[i]    = new(contName,1,0,0,_databaseH) ooContObj;
+      contH    = new(contName,0,0,0,_databaseH) ooContObj;
       delete [] contName;
      }
      cout << "LMS::Constructor: TrLayers are opened/created" << endl;
@@ -207,9 +203,9 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
      contName = new char[strlen(prefix)+12];
      strcpy(contName,nameC[i]);
      strcat(contName,prefix);
-     if (!_trClusterH[0].exist(_databaseH, contName, _openMode)
-         && openMode == oocUpdate) 
-      _trClusterH[i]    = new(contName,1,0,0,_databaseH) ooContObj;
+     if (!contH.exist(_databaseH, contName, _openMode) 
+                                             && openMode == oocUpdate) 
+      contH    = new(contName,0,0,0,_databaseH) ooContObj;
       delete [] contName;
     }
     cout << "LMS::Constructor: TrClusters are opened/created" << endl;
@@ -218,7 +214,8 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     strcpy(contName,"TrMCCluster_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH,contName, _openMode) && openMode == oocUpdate) 
-     contH    = new(contName,1,0,0,_databaseH) ooContObj;
+      //contH    = new(contName,1,0,0,_databaseH) ooContObj;
+     contH    = new(contName,0,0,0,_databaseH) ooContObj;
      delete [] contName;
      cout << "LMS::Constructor: TrMCClusters are opened/created" << endl;
 
@@ -226,7 +223,8 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     strcpy(contName,"TOFMCCluster_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH, contName, _openMode) && openMode == oocUpdate)
-     contH    = new(contName,1,0,0,_databaseH) ooContObj;
+      //contH    = new(contName,1,0,0,_databaseH) ooContObj;
+     contH    = new(contName,0,0,0,_databaseH) ooContObj;
      delete [] contName;
      cout << "LMS::Constructor: TOFMCClusters are opened/created" << endl;
 
@@ -236,9 +234,9 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
      contName = new char[strlen(prefix)+10];
      strcpy(contName,nameSc[i]);
      strcat(contName,prefix);
-     if (!_scLayersH[0].exist(_databaseH, contName, _openMode) 
-         && openMode == oocUpdate) _scLayersH[i]    = 
-                                    new(contName,1,0,0,_databaseH) ooContObj; 
+     if (!contH.exist(_databaseH, contName, _openMode) 
+         && openMode == oocUpdate) contH    = 
+                                    new(contName,0,0,0,_databaseH) ooContObj; 
       delete [] contName;
     }
     cout << "LMS::Constructor: ScLayers are opened/created" << endl;
@@ -249,7 +247,8 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     strcpy(contName,"CTCCluster_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH,contName, _openMode) && openMode == oocUpdate)
-     contH    = new(contName,1,0,0,_databaseH) ooContObj;
+      //contH    = new(contName,1,0,0,_databaseH) ooContObj;
+     contH    = new(contName,0,0,0,_databaseH) ooContObj;
     delete [] contName;
     cout << "LMS::Constructor: CTCClusters are opened/created" << endl;
 
@@ -257,7 +256,8 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     strcpy(contName,"CTCMCCluster_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH,contName, _openMode)&& openMode == oocUpdate)
-     contH    = new(contName,1,0,0,_databaseH) ooContObj;
+      //contH    = new(contName,1,0,0,_databaseH) ooContObj;
+     contH    = new(contName,0,0,0,_databaseH) ooContObj;
     delete [] contName;
     cout << "LMS::Constructor: CTCMCClusters are opened/created" << endl;
 
@@ -266,7 +266,8 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     strcpy(contName,"TrTracks_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH, contName, _openMode) && openMode == oocUpdate)
-     contH    = new(contName,1,0,0,_databaseH) ooContObj; 
+      //contH    = new(contName,1,0,0,_databaseH) ooContObj; 
+     contH    = new(contName,0,0,0,_databaseH) ooContObj; 
     delete [] contName;
     cout << "LMS::Constructor: TrTracks is opened/created" << endl;
 
@@ -275,7 +276,8 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     strcpy(contName,"Beta_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH, contName, _openMode) && openMode == oocUpdate)
-     contH    = new(contName,1,0,0,_databaseH) ooContObj;
+      //contH    = new(contName,1,0,0,_databaseH) ooContObj;
+     contH    = new(contName,0,0,0,_databaseH) ooContObj;
     delete [] contName;
     cout << "LMS::Constructor: Beta is opened/created" << endl;
 
@@ -284,7 +286,8 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     strcpy(contName,"Charge_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH, contName, _openMode)&& openMode == oocUpdate)
-      contH    = new(contName,1,0,0,_databaseH) ooContObj;
+      //contH    = new(contName,1,0,0,_databaseH) ooContObj;
+      contH    = new(contName,0,0,0,_databaseH) ooContObj;
       delete [] contName;
       cout << "LMS::Constructor: Charge is opened/created" << endl;
 
@@ -293,7 +296,8 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     strcpy(contName,"Particle_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH, contName, _openMode)&& openMode == oocUpdate)
-     contH    = new(contName,1,0,0,_databaseH) ooContObj;
+      //contH    = new(contName,1,0,0,_databaseH) ooContObj;
+     contH    = new(contName,0,0,0,_databaseH) ooContObj;
      delete [] contName;
      cout << "LMS::Constructor: Particle is opened/created" << endl;
 
@@ -301,7 +305,8 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     strcpy(contName,"AntiMCCluster_");
     strcat(contName,prefix);
     if (!contH.exist(_databaseH,contName, _openMode) && openMode == oocUpdate)
-     contH    = new(contName,1,0,0,_databaseH) ooContObj;
+      //contH    = new(contName,1,0,0,_databaseH) ooContObj;
+     contH    = new(contName,0,0,0,_databaseH) ooContObj;
     delete [] contName;
     cout << "LMS::Constructor: AntiMCClusters are opened/created" << endl;
 
@@ -320,4 +325,89 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
  rstatus = Commit();
  if (rstatus == oocSuccess) cout <<"LMS::LMSInit Commit Done"<<endl;
  return rstatus;
+}
+
+ooStatus LMS::LMSInitS(ooMode openMode, ooMode mrowmode, char* prefix) 
+{	
+  integer              i;
+  ooStatus             rstatus;
+  ooHandle(ooContObj)  contH;
+  char*                contName;
+
+   _openMode = openMode;
+   if (openMode == oocRead) rstatus = Start(_openMode, mrowmode);
+   if (openMode != oocRead) rstatus = Start(_openMode);
+   if (rstatus == oocSuccess) {
+    _databaseH = _session -> DefaultDatabase();
+    if (_databaseH == NULL) {
+     cout <<"LMS::LMSInit: Error DefaultDatabase does not exist"<<endl;
+     cout << "LMS::LMSInit: pointer to default database is null"<<endl;
+     rstatus = Abort();
+     exit(1);
+    }
+   } else {
+    cerr << "LMS::Constructor: Error - Cannot start a transaction"<<endl;
+    rstatus = Abort();
+    exit(1);
+   }
+ 
+ rstatus = Commit();
+ if (rstatus == oocSuccess) cout <<"LMS::LMSInit Commit Done"<<endl;
+ return rstatus;
+}
+
+void LMS::dbend(integer eventR, integer eventW)
+{
+  if (eventR + eventW > 0) {
+    integer nST = getNTransStart();
+    integer nCT = getNTransCommit();
+    integer nAT = getNTransAbort();
+    if (nST > nCT + nAT) {
+      cout <<"LMS::dbend -W- Number of started transactions  "<<nST<<endl;
+      cout <<"LMS::dbend -W- Number of commited transactions "<<nCT<<endl;
+      cout <<"LMS::dbend -W- Number of aborted transactions  "<<nAT<<endl;
+      cout <<"LMS::dbend -I- commit an active transaction "<<endl;
+      cout <<"LMS::dbend -I- transaction nesting level "
+           <<getTransLevel()<<endl;
+      Commit();   // Commit transaction
+    }
+  }
+    if (dbg_prtout) ooRunStatus();
+}
+ooStatus LMS::setsetupdbname(char* name) 
+{
+  ooStatus rstatus = oocError;
+  if (name) {
+   if (_setupdbname) delete [] _setupdbname;
+    _setupdbname = new char[strlen(name)+1];
+    strcpy(_setupdbname,name);
+    rstatus = oocSuccess;
+  }
+  return rstatus;
+}
+
+ooStatus LMS::CheckDB(char* name, ooMode mode, ooHandle(ooDBObj)& dbH)
+{
+     ooStatus rstatus = oocSuccess;
+     ooHandle(ooFDObj) fddatabaseH;
+
+      if (name) {
+       if (dbg_prtout == 1)cout << "LMS:: CheckDB : dbase "<<name
+                               << ", mode "<<mode<<endl;
+       fddatabaseH = _session -> FederatedDatabase();
+       if (fddatabaseH != NULL ) {
+        if (!dbH.exist(fddatabaseH,name,mode)) {
+         cerr <<"LMS::CheckDBr : Warning - Cannot find or open dbase "<<name
+              <<" in mode "<<mode<<endl;
+         rstatus = oocError;
+        }
+       } else {
+         cerr <<"LMS::CheckDB -E- fddbase pointer is NULL"<<endl;
+         rstatus = oocError;
+       }
+      } else {
+        cerr <<"LMS::CheckDB -E-  dbase name is NULL"<<endl;
+         rstatus = oocError;
+      }
+       return rstatus;
 }

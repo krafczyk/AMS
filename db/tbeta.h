@@ -59,7 +59,7 @@ class ooRef(AMSParticleD);
 class ooShortRef(AMSParticleD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-#line 13 "tbeta.ddl"
+#line 14 "tbeta.ddl"
 class AMSTrTrackD; 
 #ifdef OO_DDL_TRANSLATION
 #pragma ooclassref AMSTrTrackD <ttrack_ref.h>
@@ -111,10 +111,10 @@ number _Chi2;
 integer _Pattern; 
 
 integer _Position; 
-#line 44 "tbeta.ddl"
+#line 45 "tbeta.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 44 "tbeta.ddl"
+#line 45 "tbeta.ddl"
     ooRef(AMSTOFClusterD) pTOFBeta[] <-> pBetaTOF;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pTOFBeta[] */
@@ -154,7 +154,7 @@ public:
     static ooAssocNumber pTOFBeta_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 45 "tbeta.ddl"
+#line 46 "tbeta.ddl"
     ooRef(AMSEventD) pEventB <-> pBeta[];
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pEventB */
@@ -177,7 +177,7 @@ public:
     ooRef(AMSEventD)& pEventB(ooRef(AMSEventD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 46 "tbeta.ddl"
+#line 47 "tbeta.ddl"
     ooRef(AMSTrTrackD) pTrackBeta <-> pBetaT;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pTrackBeta */
@@ -200,7 +200,7 @@ public:
     ooRef(AMSTrTrackD)& pTrackBeta(ooRef(AMSTrTrackD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 47 "tbeta.ddl"
+#line 48 "tbeta.ddl"
     ooRef(AMSChargeD) pChargeB <-> pBetaCh;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pChargeB */
@@ -223,7 +223,7 @@ public:
     ooRef(AMSChargeD)& pChargeB(ooRef(AMSChargeD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 48 "tbeta.ddl"
+#line 49 "tbeta.ddl"
     ooRef(AMSParticleD) pParticleB <-> pBetaP;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pParticleB */
@@ -245,7 +245,7 @@ public:
     static ooAssocNumber pParticleB_ooAssocN;
     ooRef(AMSParticleD)& pParticleB(ooRef(AMSParticleD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 52 "tbeta.ddl"
+#line 53 "tbeta.ddl"
 AMSBetaD(); 
 AMSBetaD(class AMSBeta *); 
 
@@ -278,7 +278,7 @@ inline void setPosition(integer position) { _Position = position; }
     static void ooAssocRegister();
     ooRef(AMSBetaD)& ooThis(ooRef(AMSBetaD)& objId, ooMode aMode = oocNoOpen) const;
     AMSBetaD(ooInternalObj iobj);
-#line 68 "tbeta.ddl"
+#line 69 "tbeta.ddl"
 }; 
 
 #endif /* !defined(TBETA_H) */

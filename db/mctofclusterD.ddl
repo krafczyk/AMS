@@ -3,7 +3,8 @@
 // July 22, 1996. ak. AMSMCTOFClusterD Objectivity Class
 // Aug  21, 1996. ak. remove TOFMCCluster <-> Event bidirectional link
 //                    rearrange the position of members inside the class
-//
+// Mar   6, 1997. ak. up to date.
+// 
 // Last Edit : Oct 10, 1996. ak.
 //
 

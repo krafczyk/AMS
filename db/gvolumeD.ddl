@@ -2,8 +2,9 @@
 // 
 // Aug 08, 1996. ak. First try with Objectivity
 //                   Add _id and _name. The order of variables is changed
+// Mar 25, 1997. ak. _rel member of class gvolume
 //
-// Last Edit : Oct 10, 1996. ak.
+// Last Edit : Mar 25, 1997. ak.
 // 
 
 #include <iostream.h>
@@ -24,10 +25,11 @@ class AMSgvolumeD : public ooObj
    integer _posp;     //   ! Pos by posp or by pos 
    integer _gid;      //   ! geant id
    integer _npar;     //   ! geant number of par     
+   integer _rel;      //   ! abs(0) or relative(1) geant coo/nrm
    char    _gonly[5]; //   ! should be 'MANY' or 'ONLY'
    char    _shape[5]; //   ! geant voulme shape
    geant  _par[6];    //   ! geant volume par
-   AMSPoint _coo;     //   ! geant volume coord
+   AMSPoint _coo;     //   ! geant volume coord _cooA in gvolume.h
    number  _nrm[3][3];   //   ! normales  with resp to mother
    number  _inrm[3][3];  //   ! norm absolute
 
@@ -51,7 +53,8 @@ class AMSgvolumeD : public ooObj
  AMSgvolumeD  (integer id, AMSgvolume* p, char name[], integer pos);
 
  // Set/Get Methods
- void getnrm ( number* nbuff0);
+ void getnrm  ( number* nbuff0);
+ void getinrm ( number* nbuff0);
  inline integer getid() {return _id;}
         char*   getname() {return _name;}
  inline integer getmatter() {return _matter;}

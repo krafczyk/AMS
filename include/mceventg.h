@@ -4,7 +4,9 @@
 //                   add next()
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
 //                    implement friend class
-// Last edit : Oct 10, 1996. ak. 
+// Feb  10, 1997. ak. AMSIOD - friend class
+//
+// Last edit : Feb 10, 1997. ak. 
 //
 #ifndef __AMSMCEVENTG__
 #define __AMSMCEVENTG__
@@ -57,6 +59,7 @@ AMSmceventg *  next(){return (AMSmceventg*)_next;}
 AMSmceventg(){_next=0;}
 #ifdef __DB__
    friend class AMSmceventgD;
+   friend class AMSmceventD;
 #endif
 };
 #endif

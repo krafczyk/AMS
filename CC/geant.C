@@ -21,16 +21,15 @@
 //                              Count number of transactions
 //                              Print dbase statistics at the end
 //           Oct  02, 1996 ak.  modification in Read and Write cards 
-//                                  1     -  read(write) setup
-//                                 10     -              mceventg
-//                                100     -              all MC banks
-//                               1000     -              all banks
 //                              put AMSFFKey.Read/Write interpretation in 
 //                              uginit, eventR, eventW
 //           Oct  09, 1996 ak.  use CCFFKEY.run  
-//           Oct  16, 1996 ak.  write geometry to dbase before event processing
-//
-//  Last Edit: Oct 23, 1996. ak
+//                              write geometry to dbase before event processing
+//           Feb  14, 1997 ak.  AMSmceventD
+//           Mar  19, 1997 ak.  see db_comm.h about new eventR/eventW
+//                              call dbend from uglast
+//                              eventRtype 
+//  Last Edit: Mar 24, 1997. ak
 //
 
 #include <typedefs.h>
@@ -56,18 +55,17 @@
 #include <event.h>
 #include <cont.h>
 #include <trrec.h>
-#include <tofdbc.h>
+
 #include <iostream.h>
-#include <tofcalib.h>
-
-
 
 #ifdef __DB__
+
+#include <db_comm.h>
+
 integer trigEvents;               // number of events written to the DBase
 integer notrigEvents;             // ALL events - trigEvents
 integer readEvents;               // events read from the DBase
 integer interactive = 0;          //
-static  integer dbg_prtout;       // debug printout flag
 static  integer eventR;           // = AMSFFKEY.Read
 static  integer eventW;           // = AMSFFKEY.Write
 static  integer ReadStartEnd = 1; // Start a transaction
@@ -80,7 +78,6 @@ PROTOCCALLSFSUB0(UGLAST,uglast)
 #ifdef __DB__
 class AMSEventList;
 
-//#include <typedefs.h>
 #include <A_LMS.h>
 
 implement (ooVArray, geant)   //;
@@ -91,20 +88,8 @@ LMS	               dbout(oocUpdate);
 
 void lmsStart(integer run, integer event, char* jobname, integer WriteStartEnd)
 {
-  char        eventID[256];
-  char        runID[256];
-  integer     runD   =  10000;
-  integer     eventD = 100000;
-  ostrstream  oss, oss1;
-
-  oss <<eventD+event << ends;
-  strcpy(eventID,oss.str());
-  oss1 <<runD+run << ends;
-  strcpy(runID,oss1.str());
-  strcat(runID, eventID);
-
   if(!interactive)dbout.AddEvent
-                       (jobname,run,event,runID,WriteStartEnd,eventW);
+                       (jobname,run,event,WriteStartEnd,eventW);
   if (interactive) dbout.Interactive();
 }
 #endif
@@ -148,12 +133,15 @@ extern "C" void uginit_(){
    eventW = AMSFFKEY.Write;
    char* jobname = AMSJob::gethead()->getname();
    if (eventW > 0) mode = oocUpdate;
-   if (eventW < 1) {
+   if (eventW < DBWriteGeom) {
      mode = oocRead;
      mrowmode = oocMROW;
    }
    if (dbg_prtout) cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
-   dbout.LMSInit(mode,mrowmode,jobname);
+   if ((eventW/DBWriteMCEv)%2 == 1 || (eventR/DBWriteMCEv)%2 == 1) 
+                              dbout.LMSInitS(mode,mrowmode,jobname);
+   if ((eventW/DBWriteMCEv)%2 != 1 && (eventR/DBWriteMCEv)%2 != 1) 
+                              dbout.LMSInit(mode,mrowmode,jobname);
    readGeomDB();
 #else
    AMSgmat::amsmat();
@@ -176,6 +164,7 @@ GDINIT();
 
 
 extern "C" void gustep_(){
+  //  cout <<" gustep in"<<endl;
   try{
 
   //  Tracker
@@ -186,10 +175,8 @@ extern "C" void gustep_(){
      AMSTrMCCluster::sitkhits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
 
+  // TOF
 
-//-------------------------------------------
-  // ---- TOF ----
-  
   geant t,x,y,z;
   geant de,dee,dtr2,div,tof;
   static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
@@ -240,9 +227,7 @@ extern "C" void gustep_(){
   }// end of "in TOFS"
 //-------------------------------------
 
-
-  // CTC old
-
+  // CTC
   if(GCVOLU.nlevel >1 && GCKINE.charge != 0  && GCTRAK.destep != 0 && 
   GCTMED.isvol != 0 && 
   ((GCVOLU.names[1][0]== 'A' && GCVOLU.names[1][1]=='G' && 
@@ -298,9 +283,20 @@ extern "C" void gustep_(){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;
    }
+   //  cout <<" gustep out"<<endl;
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
+
+#ifdef __DB__
+   if (dbg_prtout != 0 && eventR > DBWriteGeom) {
+     cout <<"guout_: read event of type "<<AMSJob::gethead() -> eventRtype()
+          <<" from dbase"<<endl;
+    if (AMSJob::gethead() -> isMCBanks()) cout <<"guout_: MCBanks exist"<<endl;
+    if (AMSJob::gethead() -> isRecoBanks()) 
+                                        cout <<"guout_: RecoBanks exist"<<endl;
+   }
+#endif
 
    AMSgObj::BookTimer.stop("GEANTTRACKING");
 
@@ -364,7 +360,7 @@ extern "C" void guout_(){
 #ifdef __DB__
 //+
    if(trig) {
-    if ( eventW > 1) {
+    if ( eventW > DBWriteGeom) {
      integer run   = AMSEvent::gethead() -> getrun();
      run = CCFFKEY.run;
      char* jobname = AMSJob::gethead()->getname();
@@ -374,10 +370,9 @@ extern "C" void guout_(){
      lmsStart(run, event, jobname, WriteStartEnd);
      trigEvents++;
     } 
-    if (dbg_prtout != 0 && eventW < 1) cout <<
+    if (dbg_prtout != 0 && eventW < DBWriteGeom) cout <<
          "GUOUT - I - AMSFFKEY.Write = 0, no database action "<<endl;
    } else {
-    if (dbg_prtout) cout <<"GUOUT - I - trig =0, no database action "<<endl;
      notrigEvents++;
    }
 //-
@@ -385,9 +380,11 @@ extern "C" void guout_(){
    AMSEvent::gethead()->remove();
    AMSEvent::sethead(0);
    UPool.erase(2000000);
+   //   cout <<" guout out "<<endl; 
 }
 
 extern "C" void gukine_(){
+
 static integer event=0;
 time_t         Time;
 
@@ -439,6 +436,9 @@ time_t         Time;
 //-----------------------------------------------------------------------------
 extern "C" void uglast_(){
        GLAST();
+#ifdef __DB__
+     dbout.dbend(eventR, eventW);
+#endif
        delete AMSJob::gethead();
 }
 //------------------------------------------------------------------------------------
@@ -455,7 +455,6 @@ Float_t                EndRealTime;
   integer nevents = GCFLAG.NEVENT;
   ooMode   mode     = oocRead;
   ooMode   mrowmode = oocMROW;
-  char* eventID   = NULL;
   char* jobname   = AMSJob::gethead()->getname();
   char* setup     = AMSJob::gethead() -> getsetup();
   long int gTicks = sysconf(_SC_CLK_TCK);
@@ -469,17 +468,24 @@ Float_t                EndRealTime;
     eventNu       = 0;
    }
    if (run < 0)     run = 0;
-   if ( (eventR/10)%2 != 1) {
+   if ( (eventR > DBWriteMCEg+1)  && (eventR/DBWriteMCEv)%2 != 1) {
+    AMSJob::gethead() -> seteventRtype(eventR);
     rstatus = dbout.GetNEvents
-            (jobname, eventID, run, eventNu, nevents, mode, mrowmode, eventR);
+            (jobname, run, eventNu, nevents, mode, mrowmode, eventR);
    } else {
     ReadStartEnd = 0; 
     integer nST = dbout.getNTransStart();
     integer nCT = dbout.getNTransCommit();
     integer nAT = dbout.getNTransAbort();
+
+    if (readEvents == 0) AMSJob::gethead() -> seteventRtype(eventR);
     if ((readEvents == 0) || (nST == (nCT + nAT))) ReadStartEnd = 1;
+    if ( (eventR/DBWriteMCEg)%2 == 1)
     rstatus =dbout.Getmceventg
-              (jobname, eventID, run, eventNu, mode, mrowmode, ReadStartEnd);
+              (jobname, run, eventNu, mode, mrowmode, ReadStartEnd);
+    if ( (eventR/DBWriteMCEv)%2 == 1)
+    rstatus =dbout.GetmceventD
+              (jobname, run, eventNu, mode, mrowmode, ReadStartEnd);
     readEvents++;
    }
    if (rstatus == oocSuccess) {
@@ -487,13 +493,12 @@ Float_t                EndRealTime;
     if (dbg_prtout) cout <<"elapsed time (EndRealTime - StartRealTime) "
          <<(EndRealTime - StartRealTime)<<" "<<gTicks<<" sec."
          <<endl;
-     if ((eventR/10)%2 == 1) {
+     if ((eventR < DBWriteMC) || (eventR/DBWriteMCEv)%2 == 1) {
        eventNu++;
        return; }
    } 
 
    UGLAST();
-   //return;
    exit(0);
 #endif
 }
@@ -502,17 +507,19 @@ extern "C" void writeGeomDB(){
 
 #ifdef __DB__
      if ( (AMSFFKEY.Write%2) == 1) {
+      integer eventW = AMSFFKEY.Write;
       char* jobname = AMSJob::gethead()->getname();
       char* setup = AMSJob::gethead() -> getsetup();
       cout <<"uglast_ -I- geometry and setup will be saved to database"<<endl;
       cout <<"            for the job with name "<<jobname<<endl;
       ooHandle(AMSEventList) listH;
       ooStatus rstatus = oocSuccess;
-      rstatus = dbout.AddList(jobname,setup,0,listH);
+      rstatus = dbout.AddList(jobname,eventW,listH);
       dbout.AddMaterial(jobname);
       dbout.AddTMedia(jobname);
       dbout.AddGeometry(jobname);
       dbout.Addamsdbc(jobname);
+      dbout.AddTDV(jobname);
      }
 #endif
 }
@@ -525,7 +532,7 @@ extern "C" void readGeomDB(){
   char* setup = AMSJob::gethead() -> getsetup();
   ooHandle(AMSEventList) listH;
   ooStatus rstatus = oocSuccess;
-  if (eventW < 1) {
+  if (eventW < DBWriteGeom) {
    if (eventR) {
     rstatus = dbout.Start(oocRead);
     rstatus = dbout.FindEventList(jobname,oocRead,listH);
@@ -543,7 +550,7 @@ extern "C" void readGeomDB(){
     rstatus = dbout.Commit();
    }
   } else {
-   rstatus = dbout.AddList(jobname,setup,0,listH);
+   rstatus = dbout.AddList(jobname,eventW,listH);
   }
 
   if ( (AMSFFKEY.Read%2) == 0) {
@@ -565,17 +572,3 @@ extern "C" void readGeomDB(){
   }
 #endif
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

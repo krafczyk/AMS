@@ -2,7 +2,7 @@
 // Objectivity version Oct 08, 1996 ak
 // Nov 12, 1996. ak. remove amsffkey and iopa from class definition
 //
-// Last Edit : Nov 27, 1996. ak.
+// Last Edit : Mar 06, 1997. ak.
 //
 
 #include <typedefs.h>
@@ -21,9 +21,11 @@ protected :
  ooVArray(integer) ctcrecffkeyD;
  ooVArray(integer) trmcffkeyD;
  ooVArray(integer) betafitffkeyD;
+ ooVArray(integer) chargefitffkeyD;
  ooVArray(integer) trfitffkeyD;
  ooVArray(integer) ccffkeyD;
  ooVArray(integer) trclffkeyD;
+ ooVArray(integer) trcalibD;
 
 //
 public:

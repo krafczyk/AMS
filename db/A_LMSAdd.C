@@ -9,8 +9,11 @@
 //                    set map per list, not map per dbase as before
 // Nov    , 1996. ak. exit, if Addamsdbc fails
 // Dec  16, 1996. ak. oocMROW if mode == oocREAD
-//
-// last edit Dec 16, 1996, ak.
+// Feb    , 1997. ak. mceventItr, AddTDV
+//                    no map anymore, use indexes
+// Mar  18, 1997. ak. Getmceventg and GetNEvents are modified
+//                    setup moved to AMSsetupDB
+// last edit Mar 25, 1997, ak.
 //
 
 #include <stdio.h>
@@ -21,7 +24,10 @@
 #include <sys/times.h>
 #include <unistd.h>
 
+#include <ooIndex.h>
+
 #include <typedefs.h>
+#include <db_comm.h>
 #include <A_LMS.h>
 
 #include <event.h>
@@ -30,16 +36,25 @@
 static  Float_t  StartRealTime;
 static  Float_t  EndRealTime;
 static  long int gTicks;
-static  integer dbg_prtout;
 static  integer NN_events;        // number of events written to the database
 static  integer NW_commit = 10;   // commit after each NW_commit events
 static  ooItr(AMSEventD)       mceventgItr;
+static  ooItr(AMSmceventD)     mceventItr;
 
 
 ooStatus   LMS::AddEvent(char* listName, 
-                         integer run, uinteger eventNumber, char* eventID, 
+                         integer runNumber, uinteger eventNumber, 
                          integer WriteStartEnd, integer eventW)
-
+  //
+  // listName      - name of list (container) to place event
+  // runNumber     - run number
+  // eventNumber   - event number
+  // WriteStartEnd - flag; 
+  //                       1 - start transaction
+  //                      -1 - end transaction
+  //                      -2 - start&end trasaction
+  // eventW        - flag, has the same meaning as AMSFFKEY.Write datacard
+  //
 {
 	ooStatus 	     rstatus = oocError;	// Return status
         integer              i;
@@ -47,7 +62,6 @@ ooStatus   LMS::AddEvent(char* listName,
         char                 err_mess[80];
         ooHandle(AMSEventList) listH;
         ooHandle(AMSEventD)    eventH;
-        ooHandle(ooMap)        mapH;
 
         struct    tms cpt;
 
@@ -55,6 +69,11 @@ ooStatus   LMS::AddEvent(char* listName,
 
 //
 	strcpy(err_mess, "error");
+        if (runNumber < 1 || eventNumber < 1) {
+         cerr << "AddEvent -E- invalid run/event number, run # "
+              <<runNumber<<", event # "<<eventNumber<<endl;
+          return oocError;
+        }
         if (eventW < 10) {
          cerr << "AddEvent -W- no action, eventW "<<eventW<<endl;
           return oocError;
@@ -84,22 +103,28 @@ ooStatus   LMS::AddEvent(char* listName,
           cout<<"LMS::AddEvent -I- do nothing, list already opened "<<endl;
         }
     
-        rstatus = listH -> FindEvent(eventID, mode, eventH, mapH);
+        rstatus = listH -> FindEvent(runNumber, eventNumber, mode, eventH);
         if (rstatus == oocSuccess) {
-          cout <<"LMS::AddEvent -W- event with ID "<<eventID
-               <<" will be overwritten "<<endl;
-          rstatus = mapH -> remove(eventID);
+          cout <<"LMS::AddEvent -W- event of run "<<runNumber<<", with number "
+               <<eventNumber<<" will be overwritten "<<endl;
           rstatus = ooDelete(eventH);
           listH -> decNEvents();
         }
 
-        rstatus = listH -> AddEvent(run, eventNumber, eventID, eventW, mapH);
-        if (rstatus != oocSuccess) {
-	 strcpy(err_mess, "Cannot add the event to the list");
-         goto error; }
+         rstatus = listH -> AddEvent(runNumber, eventNumber, eventW);
+          if (rstatus != oocSuccess) {
+           strcpy(err_mess, "Cannot add the event to the list");
+          } else {
+           cout <<"AddEvent -I- event "<<eventNumber<<", run "<<runNumber
+               <<" added to the list "<<endl;
+          }
+         } else {
+          cout <<"AddEvent -E- cannot find list "<<listName<<endl;
+          rstatus = oocError;
          }
         } else {
 	 strcpy(err_mess, "_databaseH == NULL");
+         rstatus = oocError;
         }
 
 error:
@@ -134,11 +159,14 @@ error:
 	return rstatus;
 }
 
-ooStatus	LMS::AddList(char* listName, char* setup, 
-                             integer flag, ooHandle(AMSEventList)& listH)
+ooStatus	LMS::AddList(char* listName, 
+                                integer eventW, ooHandle(AMSEventList)& listH)
+  // listName - name of container to store events
+  // eventW   - AMSFFKEY.Write
+  // listH    - pointer to the created container
 {
 	ooStatus	rstatus = oocError;	// Return status
-        
+
         if (!listName) return rstatus;
 
         rstatus = Start(oocUpdate);
@@ -147,34 +175,63 @@ ooStatus	LMS::AddList(char* listName, char* setup,
        _databaseH = _session -> DefaultDatabase();
 
        if (listH.exist(_databaseH, listName, _openMode)) {
+         listH -> SetContainersNames();
          rstatus = Commit();
           return oocError;
        }
         // Create the list, if it doesn't exist
+        char* setup = AMSJob:: gethead() -> getsetup();
         listH = new(listName,1,0,0,_databaseH) AMSEventList(listName, setup);
 
-        ooHandle(ooContObj)  mapsH;       // container of maps
-        ooHandle(ooMap)      eventMapH;   // maps of events
+        if (setup) listH -> setsetup(setup); 
+        integer type = AMSJob:: gethead() -> jobtype();
+        listH -> setlisttype(type); 
+        listH -> setEventType(eventW);
 
-        if (flag != -1 ) {
-          char* setup = AMSJob:: gethead() -> getsetup();
-          if (setup) listH -> setsetup(setup); 
-          integer type = AMSJob:: gethead() -> getjobtype();
-          listH -> setlisttype(type); 
-          char* mapname =  new char[strlen(listName)+6];
-          strcpy(mapname,"Maps_");
-          strcat(mapname,listName);
-          if (mapsH.exist(_databaseH, mapname, oocUpdate)) {
-            eventMapH = new (mapsH) ooMap;
-            rstatus = eventMapH.nameObj(mapsH,mapname);
-            if (rstatus != oocSuccess) {
-              cerr<<"LMS::AddList-E- error creating map "<<mapname<<endl;
-            }
+        // Create key
+        ooHandle(ooKeyField) keyFieldH;
+        ooHandle(ooKeyDesc)  keyDescH;
+
+        if ((eventW/DBWriteMCEv)%2 != 1) {
+         keyDescH  = new(listH) ooKeyDesc(ooTypeN(AMSEventD),oocTrue);
+         keyFieldH = new(keyDescH) ooKeyField(ooTypeN(AMSEventD),"_runNumber");
+         keyDescH  -> addField(keyFieldH);
+         keyFieldH = 
+                  new(keyDescH) ooKeyField(ooTypeN(AMSEventD),"_eventNumber");
+         if (keyDescH  -> addField(keyFieldH) != oocSuccess) 
+          {
+            cerr<<"AddList -E- error creating key description"<<endl;
+            rstatus = Commit();
+            return oocError;
           }
-        if (mapname) delete [] mapname;
+        else if (keyDescH -> createIndex(listH) != oocSuccess) 
+          {
+            cerr<<"AddList -E- error creating index"<<endl;
+            rstatus = Commit();
+            return oocError;
+          }
+        } else {
+         keyDescH  = new(listH) ooKeyDesc(ooTypeN(AMSmceventD),oocTrue);
+         keyFieldH = new(keyDescH) 
+                       ooKeyField(ooTypeN(AMSmceventD),"_runNumber");
+         keyDescH  -> addField(keyFieldH);
+         keyFieldH = new(keyDescH) 
+                       ooKeyField(ooTypeN(AMSmceventD),"_eventNumber");
+         if (keyDescH  -> addField(keyFieldH) != oocSuccess)
+          {
+            cerr<<"AddList -E- error creating key description"<<endl;
+            rstatus = Commit();
+            return oocError;
+           }
+         if (keyDescH -> createIndex(listH) != oocSuccess) 
+          {
+            cerr<<"AddList -E- error creating index"<<endl;
+            rstatus = Commit();
+            return oocError;
+          }
         }
 
-        // commit the transaction
+       // commit the transaction
         rstatus = Commit();
 
         return rstatus;
@@ -210,76 +267,13 @@ ooStatus LMS::FindEventList
         return rstatus;
 }
 
-ooStatus LMS::GetEvent(char* listName, char* eventID, integer run, 
-                       integer eventN, ooMode mode, integer ReadStartEnd, 
-                       integer eventT)
-//
-// read event from the database, with all banks available
-//
-{
-	ooStatus	       rstatus;             // Return status
-        ooHandle(AMSEventList) listH;
-        ooHandle(AMSEventD)    eventH;
-        char                   err_mess[80];
-
-        if (ReadStartEnd == 1 || ReadStartEnd == -2) {
-         if (mode == oocRead)  rstatus = Start(mode, oocMROW);
-         else rstatus = Start(mode);
-         if (rstatus != oocSuccess) return rstatus;
-         cout <<"GetEvent:: -I- StartTransaction"<<endl;
-        }
-
-        rstatus = FindEventList(listName, mode, listH);
-        if (rstatus != oocSuccess) {
-	 strcpy(err_mess, "Cannot open a list ");
-          goto error;}
-
-        if (eventN < 1) {
-         rstatus = listH -> FindEvent(eventID, mode, eventH);
-         if (rstatus != oocSuccess) {
-	 strcpy(err_mess, "Cannot find an event by ID ");
-          goto error;}
-        } else {
-         rstatus = listH -> FindEventByN(eventN, mode, eventH);
-        if (rstatus != oocSuccess) {
-	 strcpy(err_mess, "Cannot find an event by number ");
-          goto error;}
-        }
-
-        if(eventT > 1) 
-             rstatus = listH -> CopyEventHeader(eventID, eventH, mode);
-        if (rstatus == oocSuccess) {
-         if(eventT == 10)rstatus = 
-                          listH -> CopyMCeventg(eventID, eventH, mode);
-         if(eventT == 100)rstatus = 
-                          listH -> CopyMCEvent(eventID, eventH, mode);
-         if(eventT == 1000) rstatus = 
-                          listH -> CopyEvent(eventID, eventH, mode);
-        } else {
-	 strcpy(err_mess, "Cannot copy event header. Quit. ");
-        }          
-error:
-        if (rstatus == oocSuccess) {
-          if (ReadStartEnd == -1 || ReadStartEnd == -2) {
-            rstatus = Commit();
-             cout <<"GetEvent:: -I- CommitTransaction"<<endl;
-          }
-        } else {
-          cout <<"GetEvent -E- "<<err_mess<<endl;
-          cout <<"GetEvent:: -E- Transaction is aborted"<<endl;
-          rstatus = Abort();
-          return oocError;
-        }
-
-	return rstatus;
-}
-
 
 ooStatus   LMS::AddGeometry(char* listName)
 {
 	ooStatus 	     rstatus = oocError;	// Return status
         char                 err_mess[80];
         ooMode               mode = oocUpdate;
+        ooHandle(ooDBObj)      dbH;
         ooHandle(AMSEventList) listH;
 
 
@@ -291,26 +285,18 @@ ooStatus   LMS::AddGeometry(char* listName)
 // Get pointer to default database
         _databaseH = _session -> DefaultDatabase();
         if (_databaseH != NULL) {
-// Check for the list
-        rstatus = FindEventList(listName, oocUpdate, listH);
-        if (rstatus == oocSuccess) {
-
-        ooMode  lmode = listH.openMode();
-        if(lmode == oocNoOpen) {
-         if(!listH.open(_databaseH, listName, oocUpdate)) {
-	  strcpy(err_mess, "Cannot open the list in oocUpdate mode");
+         rstatus = CheckDB("AMSsetupDB", mode, dbH); // Check setup dbase
+         if (rstatus != oocSuccess || dbH == NULL) {
+	  strcpy(err_mess, "Cannot open setup dbase in oocUpdate mode");
           goto error;}
-        } 
-        if(lmode == oocRead) {
-         strcpy(err_mess,"list already opened in ooRead mode "); goto error;}
-        if(lmode == oocUpdate) {
-          cout<<"LMS::AddGeometry -I- do nothing, list already opened "<<endl;
+         if (_setupdbH != dbH) _setupdbH = dbH;
+         rstatus = FindEventList(listName, oocUpdate, listH); // Check list
+         if (rstatus == oocSuccess) {
+          if(!listH -> AddGeometry(dbH)) {
+ 	   strcpy(err_mess, "Cannot add geometry"); goto error; }
+         } else {
+ 	   strcpy(err_mess, "listH pointer = NULL"); goto error; }
         }
-    
-        if(!listH -> AddGeometry()) {
- 	 strcpy(err_mess, "Cannot add geometry"); goto error; }
-        }
-       }
 error:
         if (rstatus == oocSuccess) {
 	  rstatus = Commit(); 	           // Commit the transaction
@@ -329,6 +315,7 @@ ooStatus   LMS::AddMaterial(char* listName)
 	ooStatus 	     rstatus = oocError;	// Return status
         char                 err_mess[80];
         ooMode               mode = oocUpdate;
+        ooHandle(ooDBObj)      dbH;
         ooHandle(AMSEventList) listH;
 
 
@@ -340,26 +327,18 @@ ooStatus   LMS::AddMaterial(char* listName)
 // Get pointer to default database
         _databaseH = _session -> DefaultDatabase();
         if (_databaseH != NULL) {
-// Check for the list
-        rstatus = FindEventList(listName, oocUpdate, listH);
-        if (rstatus == oocSuccess) {
-
-        ooMode  lmode = listH.openMode();
-        if(lmode == oocNoOpen) {
-         if(!listH.open(_databaseH, listName, oocUpdate)) {
-	  strcpy(err_mess, "Cannot open the list in oocUpdate mode");
+         rstatus = CheckDB("AMSsetupDB", mode, dbH); // Check setup dbase
+         if (rstatus != oocSuccess || dbH == NULL) {
+	  strcpy(err_mess, "Cannot open setup dbase in oocUpdate mode");
           goto error;}
-        } 
-        if(lmode == oocRead) {
-         strcpy(err_mess,"list already opened in ooRead mode "); goto error;}
-        if(lmode == oocUpdate) {
-          cout<<"LMS::AddMaterial -I- do nothing, list already opened "<<endl;
+         if (_setupdbH != dbH) _setupdbH = dbH;
+         rstatus = FindEventList(listName, oocUpdate, listH); // Check list
+         if (rstatus == oocSuccess) {
+          if(!listH -> AddMaterial(dbH)) {
+ 	   strcpy(err_mess, "Cannot add materials"); goto error; }
+          } else {
+ 	   strcpy(err_mess, "listH pointer = NULL"); goto error; }
         }
-    
-        if(!listH -> AddMaterial()) {
- 	 strcpy(err_mess, "Cannot add materials"); goto error; }
-        }
-       }
 error:
         if (rstatus == oocSuccess) {
 	  rstatus = Commit(); 	           // Commit the transaction
@@ -368,8 +347,6 @@ error:
          rstatus = Abort();  // or Abort it
          return oocError;
         }
-
-	// Return the status (oocSuccess or oocError)
 	return rstatus;
 }
 
@@ -378,38 +355,29 @@ ooStatus   LMS::AddTMedia(char* listName)
 	ooStatus 	     rstatus = oocError;	// Return status
         char                 err_mess[80];
         ooMode               mode = oocUpdate;
+        ooHandle(ooDBObj)      dbH;
         ooHandle(AMSEventList) listH;
 
-
-//
 	strcpy(err_mess, "Error Error");
-// Start the transaction
-        rstatus = Start(oocUpdate);
+        rstatus = Start(oocUpdate); // Start the transaction
         if (rstatus != oocSuccess) return rstatus;
-// Get pointer to default database
-        _databaseH = _session -> DefaultDatabase();
-        if (_databaseH != NULL) {
-// Check for the list
-        rstatus = FindEventList(listName, oocUpdate, listH);
-        if (rstatus == oocSuccess) {
-
-        ooMode  lmode = listH.openMode();
-        if(lmode == oocNoOpen) {
-         if(!listH.open(_databaseH, listName, oocUpdate)) {
-	  strcpy(err_mess, "Cannot open the list in oocUpdate mode");
+        _databaseH = _session -> DefaultDatabase(); // Get pointer to default 
+        if (_databaseH != NULL) {                   // database
+         rstatus = CheckDB("AMSsetupDB", mode, dbH); // Check setup dbase
+         if (rstatus != oocSuccess || dbH == NULL) {
+	  strcpy(err_mess, "Cannot open setup dbase in oocUpdate mode");
           goto error;}
-        } 
-        if(lmode == oocRead) {
-         strcpy(err_mess,"list already opened in ooRead mode "); goto error;}
-        if(lmode == oocUpdate) {
-          cout<<"LMS::AddTMedia -I- do nothing, list already opened "<<endl;
+         if (_setupdbH != dbH) _setupdbH = dbH;
+         rstatus = FindEventList(listName, oocUpdate, listH); // Check list
+         if (rstatus == oocSuccess) {
+          if (listH != NULL) {
+           rstatus = listH -> AddTMedia(dbH);
+           if(rstatus != oocSuccess) {
+ 	    strcpy(err_mess, "Cannot add tmedia"); goto error; }
+           } else {
+ 	   strcpy(err_mess, "listH pointer = NULL"); goto error; }
+         }
         }
-    
-        rstatus = listH -> AddTMedia();
-        if(rstatus != oocSuccess) {
- 	 strcpy(err_mess, "Cannot add tmedia"); goto error; }
-        }
-       }
 error:
         if (rstatus == oocSuccess) {
 	  rstatus = Commit(); 	           // Commit the transaction
@@ -419,30 +387,34 @@ error:
          exit(1);
         }
 
-	// Return the status (oocSuccess or oocError)
 	return rstatus;
 }
 
 ooStatus LMS::GetNEvents
-            (char* listName, char* eventID, integer run, integer eventN, 
+            (char* listName, integer run, integer eventN, 
              integer N, ooMode mode, ooMode mrowmode, integer eventR)
 //+
 //
 // listName  - name of List
-// eventID - ID of event to start from
-// eventN  - number of event to start from
-// N       - number of events to read from dbase
-// eventR  - type of event to read, 100 - MC banks, 1000 - all banks
+// eventN    - number of event to start from
+// N         - number of events to read from dbase
+// eventR    - type of event to read (see db_comm.h)
 //-
 {
 	ooStatus	       rstatus;             // Return status
         ooHandle(AMSEventList) listH;
         ooHandle(AMSEventD)    eventH;
         ooItr(AMSEventD)       eventItr;
-        integer                position;            // Position of event
         integer                ii=0;
+        char                   pred[32];
 
-        if (eventR < 10) {
+        if (run < 0 || eventN < 0) {
+          cerr <<"LMS::GetNEvent -E- invalid run/event number "<<run
+               <<", "<<eventN<<endl;
+          return oocError;
+        }
+
+        if (eventR < DBWriteMCEg) {
          cerr<<"LMS::GetNEvent -W- do nothing, eventR "<<eventR<<endl;
           return oocError;
         }
@@ -456,42 +428,39 @@ ooStatus LMS::GetNEvents
 
         rstatus = FindEventList(listName, mode, listH);
         if (rstatus == oocSuccess) {
-         if (eventN < 0) {
-          if (eventID) {
-           rstatus = listH -> FindEvent(eventID, mode, eventH);
+         listH -> SetContainersNames();
+         if (eventN > 0) {
+           rstatus = listH -> FindEvent(run, eventN, mode, eventH);
            if (rstatus != oocSuccess) {
             cout <<"LMS::GetNEvents: error in FindEvent "<<endl;
             goto error;
            }
-           position = eventH -> getPosition();
-          } else {
-           goto error;
-          }
-         } else {
-          position = eventN - 1;
          }
 
-         if (position < 0) position = 0;
+         if (run > 0) {
+            if (eventN > 0) (void) 
+             sprintf(pred,"_eventNumber>=%d && _runNumber=%d",eventN,run);
+            if (eventN < 1) (void) sprintf(pred,"_runNumber=%d",run);
+           } else {
+             (void) sprintf(pred,"_runNumber>%d",run);
+           }
+
          rstatus = oocError;
          integer nevents = listH -> getNEvents();
-         if (nevents != 0) {
-          char pred[32];
-          (void) sprintf(pred,"_Position>%d",position);
-          cout<<"LMS::GetNEvents -I- read "<<N
-              <<" events, starting from "<<position+1<<endl;
+         if (nevents > 0) {
+          cout<<"LMS::GetNEvents -I- read "<<N<<endl;
           eventItr.scan(listH, mode, oocAll, pred);
           if (dbg_prtout == 1) 
            cout<<"LMS::GetNEvent-I- scan event of "<<pred<<endl;
           while (eventItr.next()) 
           {
-           if ( (eventR/100)%2 == 1)
-               rstatus = listH -> CopyMCEvent(eventID, eventItr, mode);
-           if ( (eventR/1000)%2 == 1)
-               rstatus = listH -> CopyEvent(eventID, eventItr, mode);
+           rstatus = listH -> CopyEventHeader(eventItr, mode);
+           if ( (eventR/DBWriteMC)%2 == 1)
+               rstatus = listH -> CopyMCEvent(eventItr, mode);
+           if ( (eventR/DBWriteRecE)%2 == 1)
+               rstatus = listH -> CopyEvent(eventItr, mode);
            ii++;
-           cout <<"I++ "<<ii<<endl;
            if (rstatus == oocSuccess) {
-            cout <<"call guout_ "<<ii<<endl;
              guout_();
            } else {
              break;
@@ -521,12 +490,11 @@ error:
 }
 
 ooStatus LMS::Getmceventg
-            (char* listName, char* eventID, integer run, integer eventN, 
+            (char* listName, integer run, integer eventN, 
              ooMode mode, ooMode mrowmode, integer ReadStartEnd)
 //+
 //
 // listName     - name of List
-// eventID      - ID of event to start from
 // run          - run number
 // eventN       - number of event to start from
 // ReadStartEnd - flag, 1 - Start a transaction, -1 - Commit a transaction
@@ -538,11 +506,17 @@ ooStatus LMS::Getmceventg
         ooHandle(AMSEventList) listH;
         ooHandle(AMSEventD)    eventH;
         ooItr(AMSEventD)       eventItr;
-        integer                frun, N;
+        integer                N;
         integer                nevents;
         integer                do_abort = 0;
         char                   pred[32];
         integer                do_commit = 0;
+
+        if (run < 0 || eventN < 0) {
+          cerr <<"LMS::Getmceventg -E- invalid run/event number "<<run
+               <<", "<<eventN<<endl;
+          return oocError;
+        }
 
         if (ReadStartEnd == 1 || ReadStartEnd == -2) {
          if (mode == oocRead)
@@ -555,35 +529,29 @@ ooStatus LMS::Getmceventg
 
         rstatus = FindEventList(listName, mode, listH);
         if (rstatus == oocSuccess) {
-         if (eventN < 0) {
-          if (eventID) {
-           rstatus = listH -> FindEvent(eventID, mode, eventH);
+         listH -> SetContainersNames();
+         if (eventN > 0) {
+          if (ReadStartEnd == 1 || ReadStartEnd == -2) {
+           if (dbg_prtout) cout<<"Getmceventg -I- search event "<<eventN
+                               <<", run "<<run<<endl;
+           rstatus = listH -> FindEvent(run, eventN, mode, eventH);
            if (rstatus != oocSuccess) {
-            cout <<"LMS::Getmceventg: error in FindEvent "<<endl;
+            cout <<"LMS::Getmceventg -E- error in FindEvent "<<endl;
             do_abort = 1;
             goto error;
            }
-           N = eventH -> EventNumber();
-           frun = eventH -> RunNumber();
-          } else {
-           do_abort = 1;
-           goto error;
-          }
-         } else {
-          N  = eventN;
-          frun = run;
-          if (N < 1 ) {
-           N = 1;
-          }
-          if (run < 0 ) {
-           frun = 0;
           }
          }
+
          if (ReadStartEnd == 1 || ReadStartEnd == -2) { //init Itr if Start
-          if (run > 0)
-            (void) sprintf(pred,"fEventNumber>=%d && _run=%d",N,frun);
-          if (run < 1)
-            (void) sprintf(pred,"_run>%d",frun);
+           if (run > 0) {
+            if (eventN > 0) (void) 
+              sprintf(pred,"_eventNumber>=%d && _runNumber=%d",eventN,run);
+            if (eventN < 1) 
+             (void) sprintf(pred,"_runNumber=%d",run);
+           } else {
+              (void) sprintf(pred,"_runNumber>%d",run);
+           }
           mceventgItr.scan(listH, mode, oocAll, pred);
           cout<<"LMS::Getmceventg-I- scan event of "<<pred<<endl;
          }
@@ -591,8 +559,8 @@ ooStatus LMS::Getmceventg
          nevents = listH -> getNEvents();
          if (nevents != 0) {
           if (mceventgItr.next() != NULL) {
-           rstatus = listH -> CopyEventHeader(eventID, mceventgItr, mode);
-           rstatus = listH -> CopyMCeventg(eventID, mceventgItr, mode);
+           rstatus = listH -> CopyEventHeader(mceventgItr, mode);
+           rstatus = listH -> CopyMCeventg(mceventgItr, mode);
           }
          } else {
           do_commit = 1;
@@ -618,38 +586,28 @@ ooStatus   LMS::Addamsdbc(char* listName)
 	ooStatus 	     rstatus = oocError;	// Return status
         char                 err_mess[80];
         ooMode               mode = oocUpdate;
+        ooHandle(ooDBObj)      dbH;
         ooHandle(AMSEventList) listH;
 
 
 //
 	strcpy(err_mess, "Error Error");
-// Start the transaction
-        rstatus = Start(oocUpdate);
+        rstatus = Start(oocUpdate); // Start the transaction
         if (rstatus != oocSuccess) return rstatus;
-// Get pointer to default database
-        _databaseH = _session -> DefaultDatabase();
-        if (_databaseH != NULL) {
-// Check for the list
-        rstatus = FindEventList(listName, oocUpdate, listH);
-        if (rstatus == oocSuccess) {
-
-        ooMode  lmode = listH.openMode();
-        if(lmode == oocNoOpen) {
-         if(!listH.open(_databaseH, listName, oocUpdate)) {
-	  strcpy(err_mess, "Cannot open the list in oocUpdate mode");
+        _databaseH = _session -> DefaultDatabase();  // Get pointer to default 
+        if (_databaseH != NULL) {                    // database
+         rstatus = CheckDB("AMSsetupDB", mode, dbH); // Check setup dbase
+         if (rstatus != oocSuccess || dbH == NULL) {
+	  strcpy(err_mess, "Cannot open setup dbase in oocUpdate mode");
           goto error;}
-        } 
-        if(lmode == oocRead) {
-         strcpy(err_mess,"list already opened in ooRead mode "); goto error;}
-        if(lmode == oocUpdate) {
-          cout<<"LMS::Addamsdbc -I- do nothing, list already opened "<<endl;
+         if (_setupdbH != dbH) _setupdbH = dbH;
+         rstatus = FindEventList(listName, oocUpdate, listH); // Check list
+         if (rstatus == oocSuccess) {
+           if(!listH -> Addamsdbc(dbH)) {
+            rstatus = oocError;
+ 	    strcpy(err_mess, "Cannot add amsdbc"); goto error; }
+         }
         }
-    
-        if(!listH -> Addamsdbc()) {
-         rstatus = oocError;
- 	 strcpy(err_mess, "Cannot add amsdbc"); goto error; }
-        }
-       }
 error:
         if (rstatus == oocSuccess) {
 	  rstatus = Commit(); 	           // Commit the transaction
@@ -657,10 +615,131 @@ error:
          cout <<"Addamsdbc:: Error "<<err_mess<<endl;
          rstatus = Abort();  // or Abort it
          exit (1);
-         //return oocError;
         }
-
-	// Return the status (oocSuccess or oocError)
 	return rstatus;
 }
 
+ooStatus LMS::GetmceventD(char* listName, integer run, integer eventN, 
+                          ooMode mode, ooMode mrowmode, integer ReadStartEnd)
+//+
+//
+// listName     - name of List
+// run          - run number
+// eventN       - event Number to start from, if 0, then first event of run
+// ReadStartEnd - flag, 1 - Start a transaction, -1 - Commit a transaction
+//                     -2 - start and commit a tranaction
+//
+//-
+{
+	ooStatus	       rstatus;             // Return status
+        ooHandle(ooDBObj)      dbH;
+        ooHandle(AMSEventList) listH;
+        ooHandle(AMSmceventD)  eventH;
+        integer                nevents;
+        integer                do_abort = 0;
+        char                   pred[32];
+        integer                do_commit = 0;
+
+        static integer oldrun = 0;
+
+        if (run < 0 || eventN < 0) {
+          cerr<<"LMS::GetmceventD: -E- invalid run/event number "
+              <<run<<", "<<eventN<<endl;
+          return oocError;
+        }
+
+        if (ReadStartEnd == 1 || ReadStartEnd == -2) {
+         if (mode == oocRead)
+          rstatus = Start(mode,mrowmode);
+         else
+          rstatus = Start(mode);
+          if (rstatus != oocSuccess) return rstatus;
+          if (dbg_prtout) cout<<"LMS::GetmceventD: -I- StartTransaction"<<endl;
+        }
+
+        rstatus = FindEventList(listName, mode, listH);
+        if (rstatus == oocSuccess) {
+         rstatus = CheckDB("AMSsetupDB", mode, dbH); // Check setup dbase
+         if (rstatus != oocSuccess || dbH == NULL) {
+           cerr<<"LMS::GetmceventD -E- Cannot open setup dbase in "
+               <<mode<<" mode";}
+         if (ReadStartEnd == 1 || ReadStartEnd == -2) { //init Itr if Start
+          if (run > 0 && eventN > 0) (void) 
+             sprintf(pred,"_eventNumber>=%d && _runNumber=%d",eventN,run);
+          if (run > 0 && eventN < 1) (void) sprintf(pred,"_runNumber=%d",run);
+          if (run < 1 && eventN < 1) (void) sprintf(pred,"_runNumber>%d",0);
+          mceventItr.scan(listH, mode, oocAll, pred);
+          if (dbg_prtout) cout<<"LMS::Getmcevent-I- scan events with "
+                              <<pred<<endl;
+         }
+         rstatus = oocError;
+         nevents = listH -> getNEvents();
+         if (nevents != 0) {
+          if (mceventItr.next() != NULL) {
+           if (dbg_prtout) 
+            cout <<"GetmceventD -I- Copy event "<<mceventItr -> getevent()
+                 <<", run "<<mceventItr -> getrun() <<endl;
+            if ( mceventItr -> getrun() != oldrun) {
+             cout <<" LMS::CopyMCEventD -I- new run, run number "
+                  <<mceventItr -> getrun()<<endl;
+             oldrun = mceventItr -> getrun();
+             time_t time = mceventItr -> gettime();
+             if (dbH != NULL) rstatus = listH -> CopyTDV(time, mode, dbH);
+            }
+           rstatus = listH -> CopyMCEventD(mceventItr, mode);
+          }
+         } else {
+          do_commit = 1;
+         } 
+error:
+        if (do_abort == 1) {
+         rstatus = Abort();
+         return oocError;
+        }
+        if (rstatus != oocSuccess) {
+         if (ReadStartEnd == -1 || ReadStartEnd == -2 || do_commit == 1) {
+           rstatus = Commit();
+         } else {         
+           rstatus = Abort();
+         }
+         return oocError;
+         }
+        }
+	return rstatus;
+}
+
+ooStatus   LMS::AddTDV(char* listName)
+{
+	ooStatus 	     rstatus = oocError;	// Return status
+        char                 err_mess[80];
+        ooMode               mode = oocUpdate;
+        ooHandle(ooDBObj)      dbH;
+        ooHandle(AMSEventList) listH;
+
+	strcpy(err_mess, "Error Error");
+        rstatus = Start(oocUpdate); // Start the transaction
+        if (rstatus != oocSuccess) return rstatus;
+        _databaseH = _session -> DefaultDatabase();  // Get pointer to default 
+        if (_databaseH != NULL) {                    // database
+         rstatus = CheckDB("AMSsetupDB", mode, dbH); // Check setup dbase
+         if (rstatus != oocSuccess || dbH == NULL) {
+	  strcpy(err_mess, "Cannot open setup dbase in oocUpdate mode");
+          goto error;}
+         if (_setupdbH != dbH) _setupdbH = dbH;
+         rstatus = FindEventList(listName, oocUpdate, listH); // Check list
+         if (rstatus == oocSuccess) {
+          rstatus = listH -> AddTDV(dbH);
+          if(rstatus != oocSuccess) {
+   	   strcpy(err_mess, "Cannot add time dependent values"); goto error; }
+         }
+        }
+error:
+        if (rstatus == oocSuccess) {
+	  rstatus = Commit(); 	           // Commit the transaction
+        } else {
+         cout <<"AddTMedia:: Error "<<err_mess<<endl;
+         rstatus = Abort();  // or Abort it
+         exit(1);
+        }
+	return rstatus;
+}

@@ -27,7 +27,7 @@ class ooRef(AMSBetaD);
 class ooShortRef(AMSBetaD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-#line 13 "tofrecD.ddl"
+#line 14 "tofrecD.ddl"
 class AMSBetaD; 
 
 class AMSTOFClusterD : public ooObj { 
@@ -35,6 +35,7 @@ class AMSTOFClusterD : public ooObj {
 
 protected: class AMSPoint _Coo; 
 AMSPoint _ErrorCoo; 
+
 
 number _edep; 
 number _time; 
@@ -45,10 +46,10 @@ integer _ntof;
 integer _plane; 
 
 integer _Position; 
-#line 33 "tofrecD.ddl"
+#line 35 "tofrecD.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 33 "tofrecD.ddl"
+#line 35 "tofrecD.ddl"
     ooRef(AMSBetaD) pBetaTOF <-> pTOFBeta[];
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pBetaTOF */
@@ -70,12 +71,13 @@ public:
     static ooAssocNumber pBetaTOF_ooAssocN;
     ooRef(AMSBetaD)& pBetaTOF(ooRef(AMSBetaD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 35 "tofrecD.ddl"
+#line 37 "tofrecD.ddl"
 static const integer BAD; 
 static const integer USED; 
 
 inline integer checkstatus(integer checker) const { return _status & checker; }
 inline void setstatus(integer status) { _status = _status | status; }
+inline integer getstatus() const { return _status; }
 inline integer getntof() const { return _ntof; }
 inline integer getplane() const { return _plane; }
 inline number gettime() const { return _time; }
@@ -107,7 +109,7 @@ AMSTOFClusterD(AMSTOFCluster *);
     static void ooAssocRegister();
     ooRef(AMSTOFClusterD)& ooThis(ooRef(AMSTOFClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTOFClusterD(ooInternalObj iobj);
-#line 54 "tofrecD.ddl"
+#line 57 "tofrecD.ddl"
 }; 
 
 #endif /* !defined(TOFREC_D_H) */

@@ -3,8 +3,9 @@
 // July 10th, 1996. Add AMSBeta assosiation
 // Aug  21st, 1996. Remove Event TOFCluster bidirectional link
 //                  change the place of members in the class
+// Mar 05th, 1997.  up to date version
 //
-// Last Edit: Oct 10, 1996 ak.
+// Last Edit: Mar 05, 1997 ak.
 //
 #include <typedefs.h>
 #include <point.h>
@@ -18,9 +19,10 @@ protected:
  AMSPoint _Coo;      // coordinates
  AMSPoint _ErrorCoo; // Error to coordinates
 
- number  _edep;      // depositions in MeV
- number  _time; 
- number  _etime; 
+
+ number _edep;     // reconstructed via anode (no angle correction)
+ number _time;     // average cluster time
+ number _etime;    // error on cluster time
 
  integer _status;
  integer _ntof;
@@ -37,6 +39,7 @@ static const integer USED;
 // Get/Set Methods
  integer checkstatus(integer checker) const{return _status & checker;}
  inline void setstatus(integer status)     {_status=_status | status;}
+ integer getstatus()                 const {return _status;}
  integer getntof()                   const {return _ntof;}
  integer getplane()                  const {return _plane;}
  number  gettime()                   const {return _time;}

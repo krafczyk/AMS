@@ -1,7 +1,8 @@
 // Last Edit 
 //           May 24, 1996 ak. extracted from geant.C
 //           Sep 30, 1996 ak.
-
+//           Mar 25, 1997 ak.
+//
 #include <iostream.h>
 #include <strstream.h>
 
@@ -40,41 +41,21 @@ ooStatus Commit()            // commit a transaction
 int main()
 {
    ooStatus rstatus;
-   integer  i;
-        ooHandle(ooDBObj)    _databaseH;
-        ooHandle(ooContObj)  _trClusterH[2];
-        ooHandle(ooContObj)  _trLayersH[6];
-        ooHandle(ooContObj)  _scLayersH[4];
-        ooHandle(ooContObj)  _mapsH;       // container of maps
-        ooHandle(ooMap)      _eventMapH;   // maps of events
-        ooHandle(ooContObj)  _betaH;
-        ooHandle(ooContObj)  contCTCClusterH;
-        ooHandle(ooContObj)  contTrackH;
-
-   cout << "LMS:: main ========  Create containers =======" << endl;
+   ooHandle(ooDBObj)    _databaseH;
+   ooHandle(ooDBObj)    _setupdbH;
 
    _session  = ooSession::Instance("LOM");
    _openMode = oocUpdate;
    rstatus = Start(_openMode);
    if (rstatus == oocSuccess) {
     _databaseH = _session -> DefaultDatabase();
-    if (_databaseH != NULL) {
-      //if (!_mapsH.exist(_session -> DefaultDatabase(),"Maps",_openMode)) {
-      //_mapsH = new("Maps", 1, 0, 0, _databaseH) ooContObj;
-      //_eventMapH = new (_mapsH) ooMap;
-      //rstatus   = _eventMapH.nameObj(_mapsH, "RawEvents");
-      //if (rstatus != oocSuccess) {
-      //cerr << "LMS:::Error - Cannot name the map RawEvents"<< endl;
-      //}
-    }
-    //cout << "LMS:: Maps are opened/created" << endl;
-
- } else {
-  cout <<"LMS:: Error DefaultDatabase does not exist"<<endl;
-  cout << "LMS:: pointer to default database is null"<<endl;
-  _session -> AbortTransaction();
-   goto error;
- } 
+    _setupdbH   = new ooDBObj("AMSsetupDB",0,0);
+   } else {
+      cout <<"LMS:: Error DefaultDatabase does not exist"<<endl;
+      cout << "LMS:: pointer to default database is null"<<endl;
+      _session -> AbortTransaction();
+      goto error;
+   } 
 
 error:
   if (rstatus == oocSuccess) {

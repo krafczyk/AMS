@@ -1,6 +1,6 @@
 // MC CTC class schema file, Sep. 30, 1996. ak.
 //
-// Last Edit : Oct 04, 1996. ak.
+// Last Edit : Mar 06, 1997. ak.
 //
 
 
@@ -16,6 +16,7 @@ public:
  AMSPoint _xcoo;    // Coordinates of input point
  AMSDir   _xdir;    // dir cos
  number   _step;    // step
+ number   _charge;  // charge
  number   _edep;    // energy deposition
  number   _beta;    // particle velocity
 
