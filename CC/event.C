@@ -349,10 +349,13 @@ for(i=0;i<2;i++){
 
 void AMSEvent::_cactcevent(){
 }
-
+//---------------------------------------------------------------------------
 void AMSEvent::_catofevent(){
+//
+if(TOFRECFFKEY.relogic[0]==1)
+           TOFTZSLcalib::select();// event selection for TOF TZSL-calibration
 }
-
+//---------------------------------------------------------------------------
 void AMSEvent::_catrdevent(){
 }
 
@@ -394,30 +397,37 @@ int stat;
 //
   AMSgObj::BookTimer.start("RETOFEVENT");
 //
-  if(TOFMCFFKEY.fast==0){
-  TOFJobStat::addre(0);
-  if(AMSJob::gethead()->isRealData()  ){
-    AMSgObj::BookTimer.start("TOF:DAQ->RwEv");
-    AMSTOFRawEvent::re_build(stat);// DAQ-->RawEvent
-    AMSgObj::BookTimer.stop("TOF:DAQ->RwEv");
+  if(TOFMCFFKEY.fast==0){// ===> slow(accurate) algorithm:
+    TOFJobStat::addre(0);
+    if(AMSJob::gethead()->isRealData()  ){
+      AMSgObj::BookTimer.start("TOF:DAQ->RwEv");
+      AMSTOFRawEvent::re_build(stat);// DAQ-->RawEvent
+      AMSgObj::BookTimer.stop("TOF:DAQ->RwEv");
+      if(stat!=0)return;
+      TOFJobStat::addre(1);
+    }
+//
+    AMSgObj::BookTimer.start("TOF:RwEv->RwCl");
+    AMSTOFRawCluster::build(stat); // RawEvent-->RawCluster
+    AMSgObj::BookTimer.stop("TOF:RwEv->RwCl");
     if(stat!=0)return;
-    TOFJobStat::addre(1);
-  }
+    TOFJobStat::addre(5);
 //
-  AMSgObj::BookTimer.start("TOF:RwEv->RwCl");
-  AMSTOFRawCluster::build(stat); // RawEvent-->RawCluster
-  AMSgObj::BookTimer.stop("TOF:RwEv->RwCl");
-  if(stat!=0)return;
-  TOFJobStat::addre(5);
-//
-  AMSgObj::BookTimer.start("TOF:RwCl->Cl");
-  AMSTOFCluster::build(stat);    // RawCluster-->Cluster
-  AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
-  if(stat!=0)return;
-  TOFJobStat::addre(6);
+    AMSgObj::BookTimer.start("TOF:RwCl->Cl");
+    AMSTOFCluster::build(stat);    // RawCluster-->Cluster
+    AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
+    if(stat!=0)return;
+    TOFJobStat::addre(6);
 //
   }
-  else AMSTOFCluster::build();
+  else{  //               ===> fast algorithm:
+    TOFJobStat::addre(0);
+    AMSgObj::BookTimer.start("TOF:RwCl->Cl");
+    AMSTOFCluster::build(stat);    // "RawCluster-->Cluster"
+    if(stat!=0)return;
+    TOFJobStat::addre(6);
+    AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
+  }
   #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSTOFCluster::print();
   #endif
@@ -449,9 +459,6 @@ AMSParticle::build();
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSParticle::print();
 #endif
-//
-if(TOFRECFFKEY.relogic[0]==1)
-           TOFTZSLcalib::select();// event selection for TOF TZSL-calibration
 //
 AMSgObj::BookTimer.stop("REAXEVENT");
 }
@@ -513,7 +520,7 @@ void AMSEvent:: _sitofevent(){
   AMSContainer *p;
 //
   AMSgObj::BookTimer.start("SITOFDIGI");
-  if(TOFMCFFKEY.fast==0){
+  if(TOFMCFFKEY.fast==0){//           ===> slow algorithm:
    AMSgObj::BookTimer.start("TOF:Ghit->Tovt");
    TOFJobStat::addmc(0);
    AMSTOFTovt::build(); // Geant_hits-->Tovt_hits
@@ -523,7 +530,10 @@ void AMSEvent:: _sitofevent(){
    AMSTOFRawEvent::mc_build(); // Tovt_hits-->RawEvent_hits
    AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
   }
-  else AMSTOFRawCluster::sitofdigi();
+  else{    //                         ===> fast algorithm:
+    TOFJobStat::addmc(0);
+    AMSTOFRawCluster::sitofdigi();//Geant_hit->RawCluster
+  }
 
   AMSgObj::BookTimer.stop("SITOFDIGI");
 #ifdef __AMSDEBUG__

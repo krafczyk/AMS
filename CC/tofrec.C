@@ -20,7 +20,6 @@ extern TOFVarp tofvpar;// TOF general parameters
 //
 //
 void AMSTOFRawCluster::sitofdigi(){
-  AMSgObj::BookTimer.start("SITOFDIGI");
   AMSTOFMCCluster * ptr=(AMSTOFMCCluster*)
   AMSEvent::gethead()->
    getheadC("AMSTOFMCCluster",0,1); // last 1  to test sorted container
@@ -28,12 +27,13 @@ void AMSTOFRawCluster::sitofdigi(){
   static number xtime[4][SCMXBR];
   static number xtimed[4][SCMXBR];
   static number xz[4][SCMXBR];
+  integer plrot;
   number ama[2],amd[2],stm[2],edepd,etd;
   VZERO(xtime,SCMXBR*sizeof(number));
   VZERO(xtimed,SCMXBR*sizeof(number));
   VZERO(xplane,SCMXBR*sizeof(number));
   VZERO(xz,SCMXBR*sizeof(number));
-
+  geant x,y;
   while(ptr){
    integer ntof,plane,status;
    ntof=(ptr->idsoft)/100-1;//ilay
@@ -44,7 +44,7 @@ void AMSTOFRawCluster::sitofdigi(){
 #endif
    xplane[ntof][plane]+=ptr->edep*1000;
    xtime[ntof][plane]+=ptr->tof*(ptr->edep)*1000;//tof*edep
-   integer plrot=TOFDBc::plrotm(ntof);     // =0/1-unrotated/rotated TOF-plane
+   plrot=TOFDBc::plrotm(ntof);     // =0/1-unrotated/rotated TOF-plane
    integer ixy=0;
    if(plrot==0)ixy=1;
    xtimed[ntof][plane]+=ptr->xcoo[ixy]*(ptr->edep)*1000;//long_coo*edep
@@ -63,19 +63,24 @@ void AMSTOFRawCluster::sitofdigi(){
      xtime[kk][i]=xtime[kk][i]/xplane[kk][i];
      xtimed[kk][i]=xtimed[kk][i]/xplane[kk][i];
      geant dummy(-1);
-     const number c=1.7e10;    // Speed of light
+     const number c=1.7e10;    // eff. speed of light in scint.
      number ts1,ts2;
      if(RNDM(dummy)< TOFMCFFKEY.TimeProbability2){
-      ts1=TOFMCFFKEY.TimeSigma2*rnormx();
-      ts2=TOFMCFFKEY.TimeSigma2*rnormx();
+       ts1=TOFMCFFKEY.TimeSigma2*rnormx();
+       ts2=TOFMCFFKEY.TimeSigma2*rnormx();
+       etd=TOFMCFFKEY.TimeSigma2*c*0.707;//err. on long.coord.
      }
      else {
        ts1=TOFMCFFKEY.TimeSigma*rnormx();
        ts2=TOFMCFFKEY.TimeSigma*rnormx();
+       etd=TOFMCFFKEY.TimeSigma*c*0.707;
      }
-     xtime[kk][i]+=(ts1+ts2)/2.;// error time
-     xtimed[kk][i]+=(ts1-ts2)/2.*c;   // error coordinate
-
+     xtime[kk][i]+=(ts1+ts2)/2.;// add  time-error
+     xtimed[kk][i]+=(ts1-ts2)/2.*c; // add  coordinate-error
+//
+     plrot=TOFDBc::plrotm(kk);
+     if(plrot==1)xtimed[kk][i]=-xtimed[kk][i];//to agree with slow algorithm
+     xtime[kk][i]=-(1.e9)*xtime[kk][i];//sec->-ns to agree with slow algorithm
      ama[0]=0.;
      ama[1]=0.;
      amd[0]=0.;
@@ -90,7 +95,6 @@ void AMSTOFRawCluster::sitofdigi(){
 
   }
   }
-  AMSgObj::BookTimer.stop("SITOFDIGI");
 }
 //------
 void AMSTOFRawCluster::build(int &status){
@@ -492,7 +496,7 @@ void AMSTOFCluster::build(int &stat){
       yloc=ptr->gettimeD();// get yloc/err for "peak" bar
       eyloc=ptr->getetimeD();
       ylocm=0.5*barl+3.*eyloc;// limit on max. coord.
-      if(abs(yloc) > ylocm){//out of bar size
+      if(fabs(yloc) > ylocm){//out of bar size
         eyloc=barl/sqrt(12.);
         yloc=0.;//at bar center
       }
@@ -507,7 +511,7 @@ void AMSTOFCluster::build(int &stat){
         edep+=eplane[j];
         cofg+=eplane[j]*(j-i);//relative to "peak" bar
         yloc=ptrr->gettimeD();
-        if(abs(yloc) < ylocm){
+        if(fabs(yloc) < ylocm){
          edepl+=eplane[j];
          cofgl+=eplane[j]*yloc;
         }
@@ -549,12 +553,12 @@ void AMSTOFCluster::build(int &stat){
           ecoo[1]=1.5*eyloc;// 1.5 for security
         }
         else{ // rotated plane
-          coo[0]=-cl;
+          coo[0]=-cl;//rotated plane has yloc=-xabs
           ecoo[0]=1.5*eyloc;
           coo[1]=ct;
           ecoo[1]=bars/2.7;
         }
-        time=-time*1.e-9;// (-> sec ,"-" for V.Shoutko fit)
+        time=-time*1.e-9;// ( ns -> sec ,"-" for V.Shoutko fit)
         AMSEvent::gethead()->addnext(AMSID("AMSTOFCluster",ilay),
         new     AMSTOFCluster(status,ntof,barn,edep,coo,ecoo,time,etime));
         nclust+=1;
@@ -577,7 +581,7 @@ void AMSTOFCluster::build(int &stat){
 
 
 
-
+// Old Choutko's version, it is not used now:
 
 void AMSTOFCluster::build(){
   for(integer kk=1;kk<5;kk++){

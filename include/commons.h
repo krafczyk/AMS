@@ -98,8 +98,21 @@ geant ThrS;  // limit on sum
 };
 #define TOFRECFFKEY COMMON_BLOCK(TOFRECFFKEY,tofrecffkey)
 COMMON_BLOCK_DEF(TOFRECFFKEY_DEF,TOFRECFFKEY);
-//===============================================================
-
+//===================================================================
+class TOFCAFFKEY_DEF {
+public:
+geant pcut[2];//low/high limits on momentum of calibr. events
+geant bmean;// mean proton velocity in this mom. range
+geant tzref[2];// def. T0 for two reference counters
+geant fixsl;// def. for slope
+geant fixstr;// def. for inverse (<1) stratcher ratio
+integer idref[2];// LBB for two ref.counter 
+integer ifsl;// 0/1 to fix/release slope param.
+integer ifstr;// 0/1 to fix/release str. param
+};
+#define TOFCAFFKEY COMMON_BLOCK(TOFCAFFKEY,tofcaffkey)
+COMMON_BLOCK_DEF(TOFCAFFKEY_DEF,TOFCAFFKEY);
+//===================================================================
 class CTCGEOMFFKEY_DEF {
 public:
   geant wallth;    // reflecting walls(separators) thickness (cm)

@@ -92,6 +92,21 @@ I 35   hour[2](0,0)       //
 I 37   day[2](1,1)        //
 I 39   mon[2](0,0)        //
 I 41   year[2](96,98)     //
+
+// TOF calibration
+
+TOFCA
+R  1 plow(8.);  // track mom. low limit (gev/c)
+R  2 phigh(5.); // track mom. high limit
+R  3 meanbeta(0.996);// mean proton velocity in this range 
+R  4 T0-ref1(6.);   // T0 for ref. counters
+R  5 T0-ref2(6.);   // T0 for ref. counters
+R  6 slope(3.2);    // def. slope
+R  7 invstr(0.025); // def. inv. stratcher ratio
+I  8 id-ref1(108);  // LBB for first ref. counter (if non zero)
+I  9 id-ref2(0);    // LBB for second ref. counter (if nonzero)
+I 10 fix-slope(1); // =0/1 to fix/release slope param.
+I 11 fix-invstr(0);// =0/1 to fix/release str.ratio param.
 //---------------------------------------------------------------------------------
 
 // CTC  Simulation

@@ -287,7 +287,7 @@ extern "C" void gustep_(){
     GCTRAK.istop =1;
    }
 }
-
+//-----------------------------------------------------------------------
 extern "C" void guout_(){
 
    AMSgObj::BookTimer.stop("GEANTTRACKING");
@@ -424,12 +424,12 @@ time_t         Time;
 #endif
 }
 
-
+//-----------------------------------------------------------------------------
 extern "C" void uglast_(){
        GLAST();
        delete AMSJob::gethead();
 }
-
+//------------------------------------------------------------------------------------
 extern "C" void readDB(){
 
 #ifdef __DB__

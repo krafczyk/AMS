@@ -44,11 +44,7 @@ number TOFTZSLcalib::events;
 number TOFTZSLcalib::resol;
 //--------------------------------------------------------------------
 void TOFTZSLcalib::mfit(){  // calibr. fit procedure
-  int i,ii,j,ier,il,ib,npar(SCBLMX+2),nparr;
-//     Ref. counter (with fixed T0) :
-  int lref=1;// counting from 1
-  int bref=8;
-  number t0ref=6.;
+  int i,id,ii,j,ier,il,ib,npar(SCBLMX+2),nparr;
 //
   char pnm[6];
   char p1nam[6];
@@ -69,26 +65,29 @@ void TOFTZSLcalib::mfit(){  // calibr. fit procedure
 //
 // -----------> set parameter defaults:
   strcpy(pnam[0],p1nam); // for slope
-  start[0]=3.;
+  start[0]=TOFCAFFKEY.fixsl;// def. slope
   step[0]=0.5;
   plow[0]=0.;
   phigh[0]=10.;
-  ifit[0]=1;// release slope-parameter 
+  ifit[0]=TOFCAFFKEY.ifsl;// fix/release slope 
 //
   strcpy(pnam[1],p2nam); // for inverse stratcher ratio
-  start[1]=0.025;
+  start[1]=TOFCAFFKEY.fixstr;// def. for inv. str.ratio
   step[1]=0.05;
   plow[1]=0.001;
   phigh[1]=1.;
-  ifit[1]=0;// fix istrr-parameter
+  ifit[1]=TOFCAFFKEY.ifstr;// fix/release istrr-parameter
 //
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
+      id=(il+1)*100+ib+1;
       ii=il*SCMXBR+ib;
-      if(il==(lref-1) && ib==(bref-1))
-          start[ii+2]=t0ref;//start for ref.counter
-      else 
+      for(j=0;j<2;j++){
+        if(id == TOFCAFFKEY.idref[j])
+          start[ii+2]=TOFCAFFKEY.tzref[j];//def. t0 for ref.counters
+        else 
           start[ii+2]=6.;
+      }
       step[ii+2]=1.;
       plow[ii+2]=0.;
       phigh[ii+2]=30.;
@@ -121,18 +120,23 @@ void TOFTZSLcalib::mfit(){  // calibr. fit procedure
   nparr=0;
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
+      id=(il+1)*100+ib+1;
       if(s3[il][ib]>=10.){
         ifit[2+il*SCMXBR+ib]=1;//bar with high statist.- release
         nparr+=1;
-        if(il==(lref-1) && ib==(bref-1)){
-          ifit[2+il*SCMXBR+ib]=0;//fix, if ref counter
-          nparr-=1;
+        for(j=0;j<2;j++){
+          if(id == TOFCAFFKEY.idref[j]){
+            ifit[2+il*SCMXBR+ib]=0;//fix, if ref counter
+            nparr-=1;
+          }
         }
       }
       else{
-        if(il==(lref-1) && ib==(bref-1)){
-          cerr<<"Too low statistics in ref.counter !!! "<<s3[il][ib]<<'\n';
-          return;
+        for(j=0;j<2;j++){
+          if(id == TOFCAFFKEY.idref[j]){
+            cerr<<"Too low statistics in ref.counter "<<id<<" "<<s3[il][ib]<<'\n';
+            return;
+          }
         }
         ifit[2+il*SCMXBR+ib]=0;//bar with low statist.- fix
       }
@@ -282,10 +286,7 @@ void TOFTZSLcalib::fill(number bet, int ib[4], number tld[3]
   static number vl(29.979); // light velocity [cm/ns]
   number dtr[3];
   int i,j;
-  if(first==0){
-    first=1;
-    TOFTZSLcalib::init();
-  }
+//
   for(i=0;i<3;i++)dtr[i]=tld[i]/bet/vl;
 //
   events+=1.;
@@ -411,8 +412,8 @@ void TOFTZSLcalib::select(){  // calibr. event selection
       HF1(1509,t24,1.);
     }
 //------> get parameters from tracker:
-    static number pmas(0.938),pmomc(8.),betm(0.996),pmomc1(25.);
-    number pmom,bet,chi2;
+    static number pmas(0.938);
+    number pmom,bet,chi2,betm;
     number the,phi,rid,err;
     AMSPoint C0;
     AMSContainer *cptr;
@@ -434,7 +435,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     else rid=0;
     pmom=fabs(rid);
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
-    if(pmom<pmomc || pmom>pmomc1)return;// remove low/too_high mom events
+    if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom events
     bet=pmom/sqrt(pmom*pmom+pmas*pmas);
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1501,bet,1.);
     TOFJobStat::addre(4);
@@ -473,6 +474,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     dum[0]=ram[1]-ram[0];
     dum[1]=ram[2]-ram[0];
     dum[2]=ram[3]-ram[0];
+    betm=TOFCAFFKEY.bmean;// tempor! use mean value for beta
 //
     TOFTZSLcalib::fill(betm,brnl,tld,tdi,dum); // fill calib.working arrays
 }
