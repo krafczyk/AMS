@@ -3,5 +3,10 @@
  *  your selected events into a new AMS Root file. 
  *    - To run it: root -b -q select_entries.C
  *
+ *  The example also illustrates how to write/use only a subsample
+ *  of branches (Header+Particle), thus saving some disk space.
+ *  If you just want to write all branches, comment
+ *  the code between "BEGIN of block" and "END of block".
+ *
  *  \include select_entries.C
  */ 

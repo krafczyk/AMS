@@ -5,6 +5,18 @@
 <H1> <font color=red> `Compiled' Analysis </font> </H1>
 <hr>
 </CENTER>
+<p> To analyze AMS data with `compiled' code one needs two 
+programs: a `steering' program and the analysis program to be compiled. 
+An example of steering program is 
+<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/run_8stlv_8C-source.html">
+ run.stlv.C </a>, which will initialize some ROOT stuff, define input and output 
+files and process (compile+link+execute) the actual 'analysis' program, 
+<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/stlv_8C-source.html">
+stlv.C </a>,  containing the "real" stuff.
+Everything works together by doing "root run.stlv.C".  If one wants to run in 
+non-graphic mode and exiting root at the end of processing, do: "root -b -q run.stlv.C".
+More details about how does it work are given in the following.
+
 <p> The <a href="http://root.cern.ch/root/html/TSelector.html#TSelector:description"> 
 TSelector </a> class is 
 used by the method 
@@ -102,16 +114,15 @@ The relevant features of the AMS implementation are:<br>
              <center> <b> int stat = pEcalHit(i)->Status; </b> </center><br><br>
 </ul>
 
-<p> Let us go to practice. To analyze AMS data with `compiled' code one needs two 
-programs: a `steering' program and the `to-be-compiled' analysis program. An example of steering program is 
+<p> Let us go to back to practice. The `steering' program 
 <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/run_8stlv_8C-source.html">
- run.stlv.C </a>, which will initialize some ROOT stuff, define input and output files 
-and invoque "TTree::Process". An example of the 
-actual 'analysis' program, containing the "real" stuff with the calls to
+ run.stlv.C </a> will invoque "TTree::Process", whereas the
+actual 'analysis' program, 
+<a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/stlv_8C-source.html">
+stlv.C </a>, contains the calls to
 Ubegin(), UProcessCut(), UProcessFill() and UTerminate(), 
-is <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/stlv_8C-source.html">
-stlv.C </a>. Everything works together by doing "root run.stlv.C". If one wants to run in 
-non-graphic mode and exiting root at the end of processing, do: "root -b -q run.stlv.C".
+As stated above, Everything works together just by doing "root run.stlv.C" 
+or "root -b -q run.stlv.C" (``batch'' and ``quit'' mode).
 
    Some final comments:
 

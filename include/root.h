@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.131 2004/02/05 12:00:46 alcaraz Exp $
+//  $Id: root.h,v 1.132 2004/02/05 17:29:11 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3057,8 +3057,13 @@ public:
       AMSEventR* GetEvent(); ///<Get next AMSEventR object in the chain
       AMSEventR* GetEvent(Int_t ev); ///<Get AMSEventR with event number "ev"
       AMSEventR* GetEvent(Int_t run, Int_t ev); ///<Get AMSEventR with run number "run" and event number "ev"
+      void Rewind() {_ENTRY=0;}; ///<Rewind the chain (go back to first entry)
 
-      ClassDef(AMSChain,1)       //AMSChain
+      unsigned int current_entry() {return _ENTRY;};///<Get the current entry number to be read
+      AMSEventR* current_event_pointer() {return _EVENT;}; ///<Get the current event pointer
+      const char* chain_name() {return _NAME;}; ///<Get the name of the tree
+
+      ClassDef(AMSChain,2)       //AMSChain
 };
 
 #endif

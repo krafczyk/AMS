@@ -5,6 +5,13 @@
       AMSChain *ams = new AMSChain;              
       ams->Add("/f2users/choutko/g3v1g3.root");
 
+      // BEGIN of block: How to select only some branches ->
+      ams->SetBranchStatus("*",0); // this disables all branches by default
+      ams->SetBranchStatus("ev.",1); // mother branch
+      ams->SetBranchStatus("ev.fHeader",1); // HeaderR class information IN
+      ams->SetBranchStatus("ev.fParticle",1); // ParticleR class information IN
+      // END of block
+
       TFile* hfile = new TFile ("amstest.root", "RECREATE"); 
       TTree *amsnew = ams->CloneTree(0);
 
@@ -13,7 +20,7 @@
       for (int entry=0; entry<ndata; entry++) {
             AMSEventR* pev = ams->GetEvent();
             if (pev==NULL) break;
-            if (pev->nParticle()==0) {
+            if (pev->nParticle()==1) {
                amsnew->Fill();
                nnew++;
             }
