@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.47 2003/12/12 11:07:37 choutko Exp $
+//  $Id: server.h,v 1.48 2004/03/10 10:17:47 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -179,6 +179,7 @@ void Listening(int sleeptime=0);
 void UpdateDB(bool force=false);
 void SystemCheck(bool force=false);
 void Exiting(const char * message=0);
+CORBA::ORB_ptr  getdefaultorb()const {return ((*_orbmap.begin()).second)._orb;}
 ~AMSServer(){Exiting();if(_pser)delete _pser;}
   uinteger  getSleepTime() const {return _SleepTime;}
   uinteger  setSleepTime(){

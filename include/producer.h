@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.17 2003/04/07 08:49:14 choutko Exp $
+//  $Id: producer.h,v 1.18 2004/03/10 10:17:47 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -18,6 +18,7 @@ bool _FreshMan;
 bool _Local;
 bool _Solo;
 bool _RemoteDST;
+bool _Transfer;
 DPS::Producer::CurrentInfo _cinfo;
 DPS::Producer::DST   _ntend[2];  // 0 - ntuple 1 -root
 DPS::Producer::DST   _evtag;

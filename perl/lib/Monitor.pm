@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.71 2004/03/01 12:03:37 choutko Exp $
+# $Id: Monitor.pm,v 1.72 2004/03/10 10:17:50 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -645,7 +645,9 @@ sub getactivehosts{
      my $hdst=$Monitor::Singleton->{dsts}[$j];
       @dummy=split '\:', $hdst->{Name};
      my $chop=$dummy[0];
-      if ( $chop eq $host){
+                     $chop=~/^(.*?)(\.|$)/;
+                         if($1 eq $host){
+#      if ( $chop eq $host){
           if( $hdst->{Type} eq "Ntuple" or $hdst->{Type} eq "RootFile"){
               $ntp++;
           }elsif( $hdst->{Type} eq "EventTag"){

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.251 2004/03/05 19:04:26 alexei Exp $
+# $Id: RemoteClient.pm,v 1.252 2004/03/10 10:17:50 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3885,6 +3885,9 @@ print qq`
             }
 
         $cput=50+$pmax*1000/$cput/$corr;
+        if($cput >7200){
+         $cput=7200;
+        } 
         
         my $evno=$q->param("QEv");
         my $runno=$q->param("QRun");
@@ -4250,8 +4253,8 @@ print qq`
         if($pminr<0.01){
             $pminr=0.01;
         }
-        if($pmaxr>21000){
-            $pmaxr=21000;
+        if($pmaxr>100000){
+            $pmaxr=100000;
         }
          my $cputf=sprintf("%.3f",$cput);
          my $pminf=sprintf("%.3f",$pminr);

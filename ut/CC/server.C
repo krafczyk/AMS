@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.108 2004/03/03 13:04:32 choutko Exp $
+//  $Id: server.C,v 1.109 2004/03/10 10:17:42 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -11,6 +11,10 @@
 #include <amsdbc.h>
 #include <signal.h>    
 #include <dbserver.h>
+#include <glib.h>
+static GMainLoop* gloop[2]={0,0};
+static GThread* gthread[2]={0,0};
+extern "C" gpointer myrun(gpointer data);
 
 AMSServer* AMSServer::_Head=0;
 void (handler)(int);   
@@ -65,7 +69,11 @@ int main(int argc, char * argv[]){
    AMSServer::Singleton()->DumpIOR();
     cout <<"  Starting ... "<<endl;
     int count=AMSServer::Singleton()->MT()?-1:1;
-
+          GError *error=NULL;
+          int countt=0;
+            g_thread_init(NULL);
+         CORBA::ORB_ptr orb=AMSServer::Singleton()->getdefaultorb();
+//         g_thread_create(myrun,&orb,FALSE,&error);
     AMSServer::Singleton()->Listening(count);
     cout <<"  Starting ... "<<endl;
     for(;;){
@@ -412,16 +420,17 @@ pcur->UpdateDB(force);
 void AMSServer::SystemCheck(bool force){
 // Here run Start,Stop,Kill,Check Clients
 
+    int count=AMSServer::Singleton()->MT()?-1:1;
 for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
-  Listening(1);
+  Listening(count);
   if(!_GlobalError)pcur->StartClients(_pid);
-  Listening(1);
+  Listening(count);
   if(!_GlobalError) pcur->CheckClients(_pid);
   Server_impl* pser=dynamic_cast<Server_impl*>(pcur);
   if(pser)pser->AdvancedPing();
-  Listening(1);
+  Listening(count);
  if(!_GlobalError)pcur->KillClients(_pid);
- else Listening(-1);
+ else Listening(count);
 
 }
 if(force)IMessage("ForceSystemCheckSuccessful");      
@@ -475,9 +484,9 @@ void AMSServerI::_UpdateACT(const DPS::Client::CID & cid, DPS::Client::ClientSta
 }
 
 void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc,DPS::Client::AccessType type, uinteger uid){
-//         cout <<" entering Producer_impl::propagateac"<<endl;
 
   PropagateACDB(ac,rc);
+//         cout <<" entering Producer_impl::propagateac"<<endl;
 
   if(_ActivateQueue)_acqueue.push_back(ACA(ac,rc));
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
@@ -991,7 +1000,7 @@ Server_impl* _pser=dynamic_cast<Server_impl*>(getServer());
 if(!_pser->Lock(cid,DPS::Server::CheckClient,getType(),_KillTimeOut))return;
 for(AHLI li=_ahl.begin();li!=_ahl.end();++li){
  if((*li)->Status==DPS::Server::NoResponse){
- iorder=(iorder+1)%100;
+ iorder=(iorder+1)%60;
     if(iorder==1 && _pser->pingHost((const char*)((*li)->HostName))){
         (*li)->Status=DPS::Client::OK;
      DPS::Client::CID cid=_parent->getcid();      
@@ -4595,7 +4604,9 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
       DPS::Client::CID acid=ac.id;
       if(strstr(pcur->getname(),"Perl")){
+//       cout << " sending acperl "<<endl;
        dvar->sendACPerl(ac.id,ac,rc);
+//       cout << " sent acperl "<<endl;
       }
       else{
        dvar->sendAC(acid,ac,rc);
@@ -4633,7 +4644,9 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
                 (ahlv->ClientsKilled)++; 
                 break;
                }
+//              cout << " sending ah "<<endl;
                dvar->sendAH(acid,ahlv,DPS::Client::Update);
+//              cout << " sent ah "<<endl;
                break;
               }  
              }
@@ -4695,6 +4708,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
     try{
       CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
+      cout <<"  modifying db "<<endl; 
       dvar->sendAH(pid,ah,rc);
       cout <<"   database modified "<<endl; 
       return 1;
@@ -5216,3 +5230,18 @@ _dstinfo.clear();
    }
    return;
   }
+/*
+extern "C" gpointer myrun(gpointer data){
+//((CORBA::ORB_ptr)data)->run();
+cout << "  count " <<*((int*)data)<<endl;;
+gloop[*((int*)data)]=g_main_loop_new(NULL,FALSE);
+g_main_loop_run(gloop[*((int*)data)]);
+cout <<"  returning "<<*((int*)data)<<endl;
+return NULL;
+}
+*/
+extern "C" gpointer myrun(gpointer data){
+//g_main_loop_new(NULL,TRUE);
+((CORBA::ORB_ptr)data)->run();
+return NULL;
+}

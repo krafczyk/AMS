@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.85 2004/01/30 22:42:09 choutko Exp $
+//  $Id: producer.C,v 1.86 2004/03/10 10:17:42 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 AMSProducer * AMSProducer::_Head=0;
-AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true),_Solo(false){
+AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true),_Solo(false),_Transfer(false){
 DPS::Producer_var pnill=DPS::Producer::_nil();
 _plist.push_back(pnill);
 if(_Head){
@@ -457,6 +457,7 @@ if(ntend->End==0 || ntend->LastEvent==0)ntend->Status=DPS::Producer::Failure;
 
 char *destdir=getenv("NtupleDestDir");
 if(destdir && strcmp(destdir,getenv("NtupleDir"))){
+ _Transfer=true;
  char *means=getenv("TransferBy");
  AString fmake;
  AString fcopy;
@@ -506,6 +507,7 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
    break;
   }
  }
+ _Transfer=false;
 }
 
 
@@ -1428,6 +1430,7 @@ float lt;
     double st=ft.time+ft.millitm/1000.;
 TIMEX(lt);
 cerr <<"AMSPRoducer::Progressing "<<total<<" "<<lt-xt<<" "<<AMSFFKEY.CpuLimit*2<<" "<<_cinfo.EventsProcessed<<" "<<st-xte<<endl;
+ if(_Transfer)return true;
  if(total>=0 && total == _cinfo.EventsProcessed && (lt-xt>AMSFFKEY.CpuLimit*2.5 || st-xte>AMSFFKEY.CpuLimit*100)){
    total=-1;   
    return false;
