@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.98 2003/10/29 15:24:36 choutko Exp $
+//  $Id: server.C,v 1.99 2003/11/12 15:22:23 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -2423,6 +2423,7 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
       if(((*j)->id).uid==cid.uid && (*j)->Status ==DPS::Client::Submitted){
        ((*j)->id).pid=cid.pid;
        ((*j)->id).ppid=cid.ppid;
+        ((*j)->id).Mips=cid.Mips;
        cid.Interface=CORBA::string_dup(((*j)->id).Interface);
        cid.StatusType=((*j)->id).StatusType;
        cid.Type=((*j)->id).Type;
@@ -4301,11 +4302,15 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        _parent->EMessage(" UpdateRunTable-UnableToUpdate"); 
         return 0;
       }
-      DPS::Client::ActiveHost *pre;
-      int ret=dvar->getFreeHost(tcid,pre);     
-//        cout <<"  get free host "<<AMSClient::print(*pre," ");
-      prv=pre;
-      return ret;
+      int ret=dvar->getFreeHostN(tcid);     
+      if(ret){
+       DPS::Client::ActiveHost *pre;
+       ret=dvar->getFreeHost(tcid,pre);     
+       cout <<"  get free host "<<AMSClient::print(*pre," ");
+       prv=pre;
+       return ret;
+      }
+      else return 0;
      }
      catch(DPS::DBProblem &dbl){
        _parent->EMessage((const char*)dbl.message); 
