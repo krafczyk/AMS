@@ -1,9 +1,7 @@
-Dumb ntuples produced by the program are of a little use.
-There is a special standalone program nconvert (use clmake 
-Mconvert from ~/AMS/install to create it)
-which converts these dumb ntuples into more useful ones.
+Thanks to Juan's curiosity there is no more dump ntuple, only
+clever one survived. No more nconvert.
 
-Below there is a description of a converted ntuple.
+Below there is a description of a  ntuple.
 
 (!) New : Record Length = 8000
 

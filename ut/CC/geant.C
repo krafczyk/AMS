@@ -140,6 +140,7 @@ extern "C" void uginit_(){
 #endif
   AMSJob::map();
   AMSJob::gethead()->init();
+  AMSJob::gethead()->uhinit();
   AMSJob::map(1);
 #ifndef __BATCH__
 GDINIT();
@@ -155,7 +156,6 @@ GDINIT();
 #endif
 
   GPHYSI();
-  AMSJob::gethead()->uhinit();
 }
 
 
