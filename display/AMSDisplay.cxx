@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.28 2003/07/18 13:48:51 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.29 2003/07/18 14:49:27 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -30,7 +30,7 @@
 #include <dlfcn.h>
 #include "AMSNtupleV.h"
 #include "TAxis3D.h"
-
+#include "Help.h"
 AMSDisplay *gAMSDisplay;
 
 AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple):m_ntuple(ntuple), TObject(){
@@ -850,3 +850,19 @@ static const char *gOpenTypes[] = { "Root files", "*.root*",
 
 }
 
+
+
+void AMSDisplay::ShowHelp(){
+  static char* fname=0;
+  if(!fname){
+   char *geo_dir=getenv("AMSGeoDir");
+   if ( geo_dir && strlen(geo_dir)  ) {
+    fname = new char[256];
+   strcpy(fname,geo_dir);
+   strcat(fname,"/../00index.txt");
+  }
+  }
+   const TGWindow *main = gClient->GetRoot();
+   TRootCanvas *own = (TRootCanvas*)m_Canvas->GetCanvasImp();
+   new AMSHelp(main, own, fname);
+}

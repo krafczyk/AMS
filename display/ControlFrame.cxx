@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.7 2003/07/18 08:50:59 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.8 2003/07/18 14:49:27 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -162,6 +162,9 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       break;
     case kCM_MENU:
       switch   (parm1){
+      case 201:
+       gAMSDisplay->ShowHelp();
+       break;
       case 101:
        gAMSDisplay->ShowTrClProfile()=!gAMSDisplay->ShowTrClProfile();
         fOptionMenu->DeleteEntry(101);
@@ -257,6 +260,10 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fOptionMenu->AddEntry("&Draw TrClusters As Simple Boxes",101);
     fOptionMenu->AddEntry("&Use Hollow Style",102);
     fOptionMenu->Associate(this);
+
+    fHelpMenu=new TGPopupMenu(fClient->GetRoot());
+    fHelpMenu->AddEntry("&Help",201);
+    fHelpMenu->Associate(this);
     
 
 
@@ -265,6 +272,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     
     fMenuBar->AddPopup("&File", fSaveAsMenu, fMenuBarItemLayout);
     fMenuBar->AddPopup("&Options", fOptionMenu, fMenuBarItemLayout);
+    fMenuBar->AddPopup("&Help", fHelpMenu, fMenuBarItemLayout);
     AddFrame(fMenuBar, fMenuBarLayout);
     ULong_t tggcolor,tgbcolor,tgccolor,tgblcolor;
     gClient->GetColorByName("#808080",tggcolor);

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.14 2003/07/18 08:50:59 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.15 2003/07/18 14:49:27 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -120,6 +120,7 @@ public:
     virtual Int_t       DistancetoPrimitive(Int_t px, Int_t py);
     void        Draw(Option_t *option="");
     void        DrawAllViews();
+    void ShowHelp();
 	   void        DrawFrontAndSideViews();
    Bool_t              DrawParticles() {return m_DrawParticles;}
            void        DrawTitle(Option_t *option="");
