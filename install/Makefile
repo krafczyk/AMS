@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.8 2004/03/03 13:04:43 choutko Exp $
+#  $Id: Makefile,v 1.9 2004/03/05 11:05:01 choutko Exp $
 
 #rl october 2003
 
@@ -305,7 +305,9 @@ $(BIN)gskpho.o:      ../F/gskpho.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include ../F/gskpho.F -o $(BIN)gskpho.o
 
 ../F/hadevv.F:      $(CERNSRCDIR)/src/geant321/fluka/hadevv.F
-	sed  "0,/AMCH2 .LT. AMB8/ s/AMCH2 .LT. AMB8/AMCH2 .LT. AMB8 .AND. AMB8 .LT. UMO*0.5/"  $(CERNSRCDIR)/src/geant321/fluka/hadevv.F > ../F/hadevv.F
+	sed  "0,/AMCH2 .LT. AMB8/ s/AMCH2 .LT. AMB8/AMCH2 .LT. AMB8 .AND. AMB8 .LT. UMO*0.5/"  $(CERNSRCDIR)/src/geant321/fluka/hadevv.F > ../F/hadevv.F.tmp
+	sed  "s/ACH1.LE./ACH1.LT./;s/ACH2.LE./ACH2.LT./"  ../F/hadevv.F.tmp > ../F/hadevv.F
+	rm -rf ../F/hadevv.F.tmp 
 
 $(BIN)hadevv.o:      ../F/hadevv.F
 	$(FF) -c $(FFLAGS) -DCERNLIB_DOUBLE -I$(CERNDIR)/include ../F/hadevv.F -o $(BIN)hadevv.o
