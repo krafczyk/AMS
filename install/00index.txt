@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.24 2002/06/06 14:41:05 choutko Exp $
+#  $Id: 00index.txt,v 1.25 2002/07/10 15:29:22 choutko Exp $
 Mopt      // makefile to gmake geant batch 
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv AMSPROFILE 1  adds gprof
@@ -17,6 +17,9 @@ To create standalone simulation/reconstruction program (without db) use:
  interactive(g3 )   gmake -if  Mgxint  (batch program should be created first)
  interactive(g4 )   gmake -if  Moptg4i  (batch program should be created first)
 
+To use intel linux icc compiler
+setenv AMSICC 1
+gmake -if Mopt
 
 To create production server:
 

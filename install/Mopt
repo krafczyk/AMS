@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.218 2002/07/10 14:54:37 alexei Exp $
+#  $Id: Mopt,v 1.219 2002/07/10 15:29:22 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -183,10 +183,10 @@ NAGDIR  = /f2dat1/NagLib
 CC=/opt/intel/compiler60/ia32/bin/icc
 FF=/opt/intel/compiler60/ia32/bin/ifc
 LD=/opt/intel/compiler60/ia32/bin/icc
-BINMT=../bin/linux/icc/mt/
-BIN=../bin/linux/icc/
-EXE=../exe/linux/icc/
-LIB=../lib/linux/icc/
+BINMT=$(AMSWD)/bin/linux/icc/mt/
+BIN=$(AMSWD)/bin/linux/icc/
+EXE=$(AMSWD)/exe/linux/icc/
+LIB=$(AMSWD)/lib/linux/icc/
 else
 #CERN_LEVEL=2000
 #CERNDIR = /afs/cern.ch/asis/i386_redhat61/cern/$(CERN_LEVEL)
@@ -239,15 +239,15 @@ ifdef AMSDEBUG
 CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)
-FFLAGS=     -mp1 -fp_port -save -g -I../include   $(PFLAGS)
-FFLAGSn=   -mp1 -fp_port -save  -g -I../include   $(PFLAGS)
+FFLAGS=     -mp1 -fp_port  -g -I../include   $(PFLAGS)
+FFLAGSn=   -mp1 -fp_port   -g -I../include   $(PFLAGS)
 else
 CFLAGSTOFSIM= $(CFLAGSB)     -O2  
 CFLAGSDAQ=    $(CFLAGSB) -O2
 CFLAGSn=      $(CFLAGSB) -O2
 CFLAGS=      $(CFLAGSB) -O2
-FFLAGS=   -mp1 -fp_port -save -O -I../include  $(PFLAGS)
-FFLAGSn=  -mp1 -fp_port -save -O   -I../include  $(PFLAGS)
+FFLAGS=   -mp1 -fp_port  -O -I../include  $(PFLAGS)
+FFLAGSn=  -mp1 -fp_port  -O   -I../include  $(PFLAGS)
 endif
 
 else
