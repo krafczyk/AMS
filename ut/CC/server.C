@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.58 2001/03/16 10:39:48 choutko Exp $
+//  $Id: server.C,v 1.59 2001/03/26 10:27:17 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -3335,6 +3335,23 @@ void Server_impl::sendNK(const DPS::Client::CID &  cid, const  DPS::Client::Nomi
 #include <sys/statfs.h>
 CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, const char * path, const char * addpath, DB_out dbo)throw (CORBA::SystemException){
 
+
+
+
+ if( _parent->IsOracle()){
+     Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     for (AMSServerI* pcur=_pser;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+     if(DBServer_impl* pdb=dynamic_cast<DBServer_impl*>(pcur)){
+          return pdb->getDBSpace(cid,path,addpath,dbo);
+       }
+    }
+
+ }
+ else{
+
+
+
+
    DB_var dbv= new DB();
    AString amsdatadir; 
    char* gtv=getenv(path);
@@ -3374,6 +3391,9 @@ CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, const char *
    dbo=dbv._retn();
   }
   return true;
+
+ }
+
 }
 
 
