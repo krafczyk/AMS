@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.105 2004/01/14 16:29:35 choutko Exp $
+//  $Id: server.C,v 1.106 2004/01/19 16:39:28 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -3213,8 +3213,31 @@ if(_parent->Debug()){
  break;
  case DPS::Client::Update:
  for(DSTLI li=b.first;li!=b.second;++li){
-  if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
-   switch ((li->second)->Status){
+//  if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
+//
+// Change cmp vy comp name and file name only
+// 
+//
+  AString a=(const char*)ne.Name;
+   int bstart=0;
+   for (int i=0;i<a.length();i++){
+    if(a[i]==':'){
+     bstart=i+1;
+     break;
+    }
+   }
+   int bend=0;
+   for (int i=a.length()-1;i>=0;i--){
+    if(a[i]=='/'){
+     bend=i+1;
+     break;
+    }
+   }
+    AString b="";
+    for(int k=0;k<bstart;k++)b+=a[k];
+  if(strstr((const char *)(li->second)->Name,(const char*)a(bend)) && 
+     strstr((const char *)(li->second)->Name,(const char*)b)){
+     switch ((li->second)->Status){
     case DPS::Producer::InProgress:
      (li->second)=vne;
       if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.83 2004/01/14 16:29:35 choutko Exp $
+//  $Id: producer.C,v 1.84 2004/01/19 16:39:28 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -296,9 +296,10 @@ else{
    bool writeable=false;
    
    if(char *ntd=getenv("NtupleDir")){
-     AString cmd=" mkdir -p  ";
+     AString cmd=" mkdir -p -v  ";
      cmd+=ntd;
      system(cmd);
+     cout <<"AMSProducer::getRunEvInfo-I-CreatingOutputDir "<<cmd<<endl;
      cmd=" touch ";
      cmd+=ntd;
      cmd+="/qq";
@@ -499,6 +500,7 @@ if(destdir && strcmp(destdir,getenv("NtupleDir"))){
     b+="/";
     b+=a(bnt);
     a=b;
+    ntend->Name=(const char*)a;
    }
    break;
   }
