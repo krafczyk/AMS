@@ -200,7 +200,8 @@ integer DAQEvent::_HeaderOK(){
       _Checked=1;
     if (AMSJob::gethead()->isMonitoring()) {
      if (Time_1 != 0 && _Time > Time_1) {
-      geant d = (_Time - Time_1)/1000.;
+      geant d = _Time - Time_1;
+            d = d/1000.;
       HF1(300003,d,1.);
      }
      Time_1 = _Time;
