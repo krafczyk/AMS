@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.266 2004/01/30 22:42:09 choutko Exp $
+//  $Id: commons.C,v 1.267 2004/02/12 11:11:10 choutko Exp $
 
 
 
@@ -75,7 +75,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=117;
+uinteger AMSCommonsI::_build=118;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
@@ -179,7 +179,7 @@ void AMSCommonsI::init(){
        char *fname = tempnam("/tmp",NULL);
        char syscom[255];
 {
-       strcpy(syscom,"cat /proc/cpuinfo | grep -i -e mhz  > ");
+       strcpy(syscom,"cat /proc/cpuinfo | grep -i -e 'cpu mhz'  > ");
        strcat(syscom,fname);
        int i=system(syscom);
        if(i==0){
@@ -209,6 +209,7 @@ void AMSCommonsI::init(){
           if(strstr(syscom,"Pentium II"))_cor=1.07;
           else if(strstr(syscom,"Pentium III"))_cor=1.0;
           else if(strstr(syscom,"Pentium(R) 4"))_cor=0.7;
+          else if(strstr(syscom,"Pentium(R) M"))_cor=1.07;
           else if(strstr(syscom,"Xeon"))_cor=0.8;
           else if(strstr(syscom,"Athlon"))_cor=1.15;
           else cerr<<"AMSCommonsI-E-UnableToMatchName "<<syscom<<endl;
