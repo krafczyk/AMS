@@ -2,12 +2,13 @@ include $(ORACLE_HOME)/precomp/lib/env_precomp.mk
 #
 PCINCLUDE=/usr/local/include/g++
 OBJS=getior.o
-EXE=/afs/cern.ch/user/a/alexei/oracle/c++pro/getior
-PCCSRC=/afs/cern.ch/user/a/alexei/oracle/c++pro/getior.pc
+EXE=../exe/linux/getior.exe
+BIN=../bin/linux/getior.c
+PCCSRC=../CC/getior.pc
 
 cppbuild: 
-	$(PROC) $(PROCPPFLAGS) INCLUDE=$(PCINCLUDE) iname=$(PCCSRC)
-	$(CPLUSPLUS) -w -g -c -fpermissive -I/usr/include  -I../include  -I/usr/local/include/g++ $(INCLUDE) $(EXE).c
+	$(PROC) $(PROCPPFLAGS) INCLUDE=$(PCINCLUDE) iname=$(PCCSRC) oname=$(BIN)
+	$(CPLUSPLUS) -w -g -c -fpermissive -I/usr/include  -I../include  -I/usr/local/include/g++ $(INCLUDE) $(BIN)
 	$(CPLUSPLUS) -static -w -o $(EXE) $(OBJS) -L$(LIBHOME) $(STATICCPPLDLIBS)
 
 $(CPPSAMPLES): cppdemo2
@@ -19,7 +20,7 @@ $(CPPSAMPLES): cppdemo2
 OTTFLAGS=$(PCCFLAGS)
 CLIBS= $(TTLIBS_QA) $(STATICCPPLDLIBS)
 PRODUCT_LIBHOME=
-MAKEFILE=/afs/cern.ch/user/a/alexei/oracle/c++/getior.linux.mk
+MAKEFILE=./getior.linux.mk
 PROCPLSFLAGS= sqlcheck=full userid=$(USERID) 
 PROCPPFLAGS= code=cpp $(CPLUS_SYS_INCLUDE)
 USERID=scott/tiger

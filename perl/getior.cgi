@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: getior.cgi,v 1.3 2002/03/22 17:56:53 alexei Exp $
+#  $Id: getior.cgi,v 1.4 2002/03/26 18:03:21 alexei Exp $
 use Gtk;
 use strict;
 use DBI;
@@ -51,8 +51,8 @@ sub set_oracle_env {
 
 sub connect_to_oracle {
 
-    my $user   = "amsdes";
-    my $pwd    = "ams";
+    my $user   = "amsro";
+    my $pwd    = "amsMC02";
     my $dbname = "DBI:Oracle:amsdb";
 
 # This sets up the HTML header and table
@@ -66,7 +66,7 @@ sub connect_to_oracle {
 
 sub getior {
     my $ior = "- no 'Active' servers found -";
-    my $sql="SELECT iors FROM Servers WHERE status='Active' Order by createtime DESC";
+    my $sql="SELECT iors FROM amsdes.Servers WHERE status='Active' Order by createtime DESC";
     my $sth=$dbh->prepare($sql)  or die "Cannot prepare $sql ".$dbh->errstr();
     $sth->execute or die "Cannot execute $sql ".$dbh->errstr();
     my $ret=$sth->fetchall_arrayref();
