@@ -1504,8 +1504,9 @@ void AMSTrTrack::AdvancedFit(){
 }
 
 integer AMSTrTrack::TOFOK(){
+    if (TRFITFFKEY.UseTOF && (_Pattern > 6 )){
   //  if (TRFITFFKEY.UseTOF && (_Pattern == 17 || _Pattern > 21)){
-    if (TRFITFFKEY.UseTOF ){
+  //   if (TRFITFFKEY.UseTOF ){
    // Cycle thru all TOF clusters;
    // at least UseTOF of them should be matched with the track
    integer i;
@@ -1524,15 +1525,29 @@ integer AMSTrTrack::TOFOK(){
     while (phit){
      if( ((phit->getcoo()-Res)/phit->getecoo()).abs()< SearchReg){
      if(phit->getntof() < 3)matched+=1;  
-     else matched+=1;
+     else matched+=10;
      }
      phit=phit->next();
     }  
    }
-   //   if(matched/10 < TRFITFFKEY.UseTOF || matched%10< TRFITFFKEY.UseTOF)return 0;
-   if(matched < TRFITFFKEY.UseTOF)return 0;
-   else return 1;
-  }
+   switch (TRFITFFKEY.UseTOF){
+   case 0:
+    return 1;
+   case 1:
+    if(matched/10 <1 && matched%10 <1)return 0;
+    break;
+   case 2:
+    if(matched/10 <1 || matched%10<1)return 0;
+    break;
+   case 3:
+    if(matched/10 <2 && matched%10<2)return 0;
+    break;
+   case 4:
+    if(matched/10 <2 || matched%10<2)return 0;
+    break;
+   }
+   return 1;  
+    }
   else return 1;
 }
 
@@ -1840,7 +1855,7 @@ void AMSTrTrack::_writeEl(){
 static integer init=0;
 static TrTrackNtuple TrTN;
 int i;
-if(AMSTrTrack::Out(IOPA.WriteAll || checkstatus(AMSDBc::USED))){
+if(AMSTrTrack::Out(1 )){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrTrack",TrTN.getaddress(),

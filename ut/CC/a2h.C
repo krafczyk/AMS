@@ -98,7 +98,7 @@ int16u pheader[12];
       }
       runprev=run;
     }
-    if(in[strlen(in)-3]=='d'){
+    if(in[strlen(in)-3]=='d' || in[strlen(in)-3]=='D'){
       strncpy(name,in+strlen(in)-8,1);
     }
     else if(in[strlen(in)-3]=='c'){
