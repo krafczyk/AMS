@@ -16,7 +16,7 @@ void TriggerLVL1::build(){
 // TOF : 
   int i;
   integer ntof=0;
-  integer tofpatt[SCLRS]={0,0,0,0};
+  uinteger tofpatt[SCLRS]={0,0,0,0};
   integer tofflag(0);
   integer nanti=0;
   integer antipatt=0;
@@ -165,6 +165,13 @@ void TriggerLVL1::builddaq(integer i, integer n, int16u *p){
        *(p+8)=int16u(ptr->_tofpatt[2]);
        *(p+9)=int16u(ptr->_tofpatt[1]);
        *(p+10)=int16u(ptr->_tofpatt[0]);
+       for(i=3;i<11;i++){
+         //swap bits
+         int16u tmp=0;
+         int16u tag=*(p+i);
+         for(int k=0;k<16;k++)tmp=tmp | (( (tag >> k) & 1) << (13-k));
+         *(p+i)=tmp;
+       }
 
   }   
 }
@@ -176,7 +183,7 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
    else cerr <<"TriggerLVL1::buildraw-S-NoContainer"<<endl;
 
   }
-  integer z,mode,antip,tofp[4];  
+  uinteger z,mode,antip,tofp[4];  
   //  tofp[0]=*(p+1);
   //  tofp[1]=*(p+2);
   //  tofp[2]=*(p+3);
@@ -189,6 +196,12 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   tofp[1]=*(p+5) | *(p+9);
   tofp[2]=*(p+4) | *(p+8);
   tofp[3]=*(p+3) | *(p+7);
+  for(int k=0;k<4;k++){
+   for(int i=0;i<16;i++){
+     tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
+   }  
+   tofp[k]=tofp[k]>>16;     
+  }
   z=1;
   if(*(p+2) & 1<<4)z=3;
   //anti
