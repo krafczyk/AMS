@@ -1,4 +1,0 @@
-C++		= cxx
-C_FLAGS		= -nopt
-LD		= $(C++)
-LD_FLAGS	= 
