@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.118 2005/01/26 12:57:46 choutko Exp $
+//  $Id: server.C,v 1.119 2005/02/23 15:45:43 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -3724,7 +3724,7 @@ IMessage((const char*)dmp);
 IMessage((const char*)li->first);
 IMessage((const char*)li->second);
 }
-
+{
  ofstream fbin;
  AString fnam("/tmp/DumpIOR");
  if(IsMC())fnam+=".0";
@@ -3738,6 +3738,29 @@ IMessage((const char*)li->second);
  fbin.close();
  }
  else EMessage(" Unable To Open /tmp/DumpIOR File");
+}
+{
+       ofstream fbin;
+       AString fnam;
+         char * logdir=getenv("AMSDataDir");
+         if(!logdir){
+            EMessage(" Unable To Open $AMSDataDir");
+            return;
+         }
+         fnam=logdir;
+         fnam+="/prod.log/DumpIOR";
+ if(IsMC())fnam+=".0";
+ else fnam+=".1";
+ fbin.open((const char*)fnam);
+ if(fbin){
+ for(map<AString,CORBA::String_var>::iterator li=_pser->getrefmap().begin();li!=_pser->getrefmap().end();++li){
+ fbin <<((const char*)li->first)<<endl;
+ fbin<<((const char*)li->second)<<endl;
+ }
+ fbin.close();
+ }
+ else EMessage(" Unable To Open $ProductionLogDir/DumpIOR File");
+}
 
 }
 

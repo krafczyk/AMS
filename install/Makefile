@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.16 2004/12/19 17:32:36 choutko Exp $
+#  $Id: Makefile,v 1.17 2005/02/23 15:46:01 choutko Exp $
 
 #rl october 2003
 
@@ -194,8 +194,8 @@ $(EXE)gbatch.exe:	$(OBJECTS)
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch.exe $(OBJECTS)\
          $(TIMEL) $(LDFLAGSSTATIC)
 
-shared :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
-	$(LD) -O  $(SOFLAGS) $(BIN)/root_rs.o $(BIN)/rootdict_s.o $(SHLDFLAGS) -o  $(SHLD)
+shared :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o 
+	$(LD) -O  $(SOFLAGS) $(BIN)/root_rs.o $(BIN)/rootdict_s.o  $(SHLDFLAGS) -o  $(SHLD)
 
 static :	$(BIN)root_rs.o ../include/root_RV.h ../include/root.h $(BIN)rootdict_s.o
 	ar rv $(LIB)/libntuple.a $(BIN)/root_rs.o $(BIN)/rootdict_s.o
@@ -217,6 +217,7 @@ $(BIN)geant3i.o:      ../CC/geant3.C
 
 $(BIN)gi2.o:      ../CC/gi2.C
 	$(CC) -c $(CFLAGS) ../CC/gi2.C -o $(BIN)/gi2.o
+
 
 $(BIN)gi.o:      ../F/gi.F
 	$(FF) -c $(FFLAGS) ../F/gi.F -o $(BIN)/gi.o

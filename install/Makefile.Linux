@@ -173,7 +173,7 @@ endif
 
 DFLAGS=        -I../include    -I$(SRC)
 
-SOFLAGS = -Wl,-shared,--allow-shlib-undefined
+SOFLAGS = -shared
 ifdef SLC3system
  SOFLAGS+= -L/usr/lib/i386-redhat-linux7/lib
 endif

@@ -1,4 +1,4 @@
-* $Id: richpatt_lip.F,v 1.3 2004/03/09 17:03:27 mdelgado Exp $
+* $Id: richpatt_lip.F,v 1.4 2005/02/23 15:45:48 choutko Exp $
 *//+LIP pattern tracing routines
 * ================================================================         
       subroutine patrace1(phig,cerangh,xdet,ydet,nmiref,nerr,verr)
@@ -39,17 +39,19 @@
 
       real phdir(3), phpto(3),phdirn(3)                                    
       character*3 CHIN,CHOUT
-
+       integer iter
+       integer niter
+       data niter/100/
 * ... passed parameters
       integer nmiref
       integer nphmax
       parameter(nphmax=10)
       integer nerr,verr(nphmax)
       real xdet,ydet,phig,cerangh
-
+      real *8 eps
 * ... local variables
       integer ierr,i,iflfl
-      real rpoint
+      real *8 rpoint
 
 * --- init                                                                 
       nerr   = 0                                                           
@@ -164,9 +166,13 @@ CC    if (nerr.ne.0) return
       call patints(phpto,phdir,'PMTD',ierr)                        
 *      print*,'>>>>>>>>>>>>>>>>>> richpatt,phpto',phpto 
 * ... propagating photons to pmt matrix  - FLIGHT
-      rpoint = sqrt(phpto(1)**2+phpto(2)**2)                               
-      do while (rpoint.gt.RBMIR+TGMIR*ZBMIRGAP)                                           
+       iter=0
+      rpoint = sqrt(phpto(1)**2+phpto(2)**2)  
+      eps=1.e-5                             
+      do while (rpoint.gt.RBMIR+TGMIR*ZBMIRGAP+eps)
+        iter=iter+1
         call patints(phpto,phdir,'MIRR',ierr) 
+        if(iter.gt.niter)ierr=1
         if (ierr.ne.0) return   
         rpoint = sqrt(phpto(1)**2+phpto(2)**2)                            
 

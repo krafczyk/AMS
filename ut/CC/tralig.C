@@ -1,4 +1,4 @@
-//  $Id: tralig.C,v 1.29 2003/11/07 17:35:07 alcaraz Exp $
+//  $Id: tralig.C,v 1.30 2005/02/23 15:45:43 choutko Exp $
 #include <tralig.h>
 #include <event.h>
 #include <math.h>
@@ -479,7 +479,7 @@ if(forced==0){
           int itst=GCFLAG.ITEST>10?GCFLAG.ITEST/10:1;        
            if(pal->_PositionData%itst==1)cout <<"AMSTrAligFit::Testgl-I "<<pal->_PositionData<<" events in memory "<<endl;
            if(pal->_PositionData%GCFLAG.ITEST==1){
-             for(int ilay=0;ilay<6;ilay++){
+             for(int ilay=0;ilay<maxlay;ilay++){
                for(int iside=0;iside<2;iside++){
                 for(int ilad=0;ilad<maxlad;ilad++){
                  if(_pPargl[ilad][iside][ilay].NEntries()>0){
@@ -495,14 +495,14 @@ if(forced==0){
              AMSTrTrack::decodeaddress(ladder,ptrack->getaddress());
              int add=0;
              int i;
-             for(i=0;i<6;i++){
+             for(i=0;i<maxlay;i++){
               if(ladder[0][i]){
                 add+=_pPargl[ladder[0][i]-1][ladder[1][i]][i].AddOne();
               }
              }
              if(add)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
              else{
-              for( i=0;i<6;i++){
+              for( i=0;i<maxlay;i++){
                if(ladder[0][i]){
                 _pPargl[ladder[0][i]-1][ladder[1][i]][i].MinusOne();
                }
@@ -611,8 +611,8 @@ void AMSTrAligFit::Fit(){
       }
      }
      if(ifail==0){
-      AMSPoint outc[6];
-      AMSPoint outa[6];
+      AMSPoint outc[maxlay];
+      AMSPoint outa[maxlay];
       for(i=0;i<6;i++){
         outc[i]=0;
         outa[i]=0;
@@ -624,7 +624,7 @@ void AMSTrAligFit::Fit(){
        else outa[plane][parno-3]=x[i]*AMSDBc::pi/180.;
       }
  
-      for(i=0;i<6;i++){
+      for(i=0;i<maxlay;i++){
         (_pParC[i]).setpar(outc[i],outa[i]);
       }
       _fcn=f;
@@ -648,7 +648,7 @@ void AMSTrAligFit::Fitgl(){
       cout << "Global AMSTrAligFit::Fit started" <<endl;
   // Fit Here
   // number of parameters to fit
-    const integer mp=350;
+    const integer mp=999;
     number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
 
    // rebuild noactivepar
@@ -671,11 +671,11 @@ void AMSTrAligFit::Fitgl(){
      number fd;
      integer one(1);
      e04ccf_(n,x,fd,tol,iw,w1,w2,w3,w4,w5,w6,(void*)palfun,(void*)pmonit,one,ifail,this);
-     AMSPoint outc[maxlad][2][6];
-     AMSPoint outa[maxlad][2][6];
+     AMSPoint outc[maxlad][2][maxlay];
+     AMSPoint outa[maxlad][2][maxlay];
      for(i=0;i<maxlad;i++){ 
      for(j=0;j<2;j++){
-     for(int k=0;k<6;k++){
+     for(int k=0;k<maxlay;k++){
        outc[i][j][k]=AMSPoint(0,0,0);
        outa[i][j][k]=AMSPoint(0,0,0);
      }
@@ -762,7 +762,7 @@ cout <<" AMSTrAligFit::Anal called for pattern "<<_Pattern<<" "<<_Address<<endl;
    // I need to convert _pParc to a local ladder level
    integer ladder[2][maxlay];
    AMSTrTrack::decodeaddress(ladder,_Address);
-   for(int il=0;il<6;il++){
+   for(int il=0;il<maxlay;il++){
     if(ladder[0][il]){
      integer sensor= ladder[1][il]==0? 1: TKDBc::nhalf(il+1,ladder[0][il])+1;
      AMSTrIdGeom amd(il+1,ladder[0][il],sensor,0,0);
@@ -900,6 +900,9 @@ integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, intege
         AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), pmcg);  
        }
    }
+   else if(alg==2){
+    //  no magnetic field algo
+   }
    else{
      cerr<<"AMSTrAligFit::Select-F-AlgNo "<<alg<<" IsNotSupportedYet"<<endl;
       exit(1);
@@ -976,6 +979,12 @@ integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, intege
         }
 
       }
+   }
+   if(alg==2){
+    number recharge=ppart->getcharge();
+    if(recharge<3){
+     AMSTrTrack *ptr=ppart->getptrack();              
+    }
    }
    return 0;
 }
@@ -1099,6 +1108,8 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
 }
 
 void AMSTrAligFit::alfungl(integer &n, number xc[], number &fc, AMSTrAligFit *p){
+if(MAGSFFKEY.magstat>0){
+
   integer i,niter;
   fc=0;
   for(i=0;i<n;i++){
@@ -1131,20 +1142,20 @@ void AMSTrAligFit::alfungl(integer &n, number xc[], number &fc, AMSTrAligFit *p)
   integer ialgo=11;
   integer ims=0;
   geant out[9];
-  for(i=0;i<6;i++){
+  for(i=0;i<maxlay;i++){
      normal[i][0]=0;
      normal[i][1]=0;
      normal[i][2]=-1;
   }
   integer npfit=0;
    // convert parameters
-   AMSTrAligPar par[maxlad][2][6];
+   AMSTrAligPar par[maxlad][2][maxlay];
  {
-     AMSPoint outc[maxlad][2][6];
-     AMSPoint outa[maxlad][2][6];
+     AMSPoint outc[maxlad][2][maxlay];
+     AMSPoint outa[maxlad][2][maxlay];
      for(i=0;i<maxlad;i++){
      for(int j=0;j<2;j++){
-     for(int k=0;k<6;k++){
+     for(int k=0;k<maxlay;k++){
        outc[i][j][k]=0;
        outa[i][j][k]=0;
      }
@@ -1161,7 +1172,7 @@ void AMSTrAligFit::alfungl(integer &n, number xc[], number &fc, AMSTrAligFit *p)
 
      for(i=0;i<maxlad;i++){
      for(int j=0;j<2;j++){
-     for(int k=0;k<6;k++){
+     for(int k=0;k<maxlay;k++){
        par[i][j][k].setpar(outc[i][j][k],outa[i][j][k]);
      }
      }
@@ -1241,6 +1252,11 @@ mbreak:
        fool_e04ccf=fc;
       }
 }
+else{
+// no magnetic field;  str line fit
+
+}
+}
 
 
 
@@ -1264,6 +1280,7 @@ void AMSTrAligData::Init(AMSParticle *ppart, AMSmceventg *pmcg){
      }
     }
   }
+
   return ;
 }
 
@@ -1276,7 +1293,7 @@ return AMSID("TrAligglDB",AMSJob::gethead()->isRealData());
 
 }
 
-AMSTrAligPar  AMSTrAligFit::_pPargl[17][2][6];
+AMSTrAligPar  AMSTrAligFit::_pPargl[17][2][maxlay];
 
 integer AMSTrAligFit::AddressOK(uinteger address, integer strict){
   
@@ -1285,7 +1302,7 @@ integer AMSTrAligFit::AddressOK(uinteger address, integer strict){
   integer lad2[2][maxlay];
   AMSTrTrack::decodeaddress(lad1,address);
    AMSTrTrack::decodeaddress(lad2,_Address);
-  for(int i=0;i<6;i++){
+  for(int i=0;i<maxlay;i++){
      if(lad1[0][i]!=0){
       for(int j=0;j<2;j++){
        if(lad1[j][i]!=lad2[j][i]){
@@ -1416,7 +1433,7 @@ else{
          geant coo[3];
          number nrm[3][3];
 int i;
-for(i=0;i<6;i++){
+for(i=0;i<maxlay;i++){
  integer statusy;
  integer rgidy;
  geant cooy[3];
@@ -1473,7 +1490,7 @@ for(i=0;i<6;i++){
 
       // UpdateDB
 
-     for(i=0;i<6;i++){
+     for(i=0;i<maxlay;i++){
       int j;
       for(j=0;j<maxlad;j++){
         for(int k=0;k<2;k++){
@@ -1505,7 +1522,7 @@ void AMSTrAligFit::RebuildNoActivePar(){
 if(TRALIG.LayersOnly){
 
  _NoActivePar=0;
- for(int i=0;i<6;i++){
+ for(int i=0;i<maxlay;i++){
   int ntr=0;
   for(int l=0;l<maxlad;l++){
    for(int m=0;m<2;m++){
@@ -1515,7 +1532,7 @@ if(TRALIG.LayersOnly){
   if(ntr>TRALIG.MinEventsPerFit/2){
   _pPargl[0][0][i].NEntries()=ntr;
   int nprp=0;
-   for(int j=0;j<6;j++){ 
+   for(int j=0;j<maxlay;j++){ 
     if(TRALIG.ActiveParameters[i][j]){
       _PlaneNo[_NoActivePar+nprp]=i;
       _ParNo[_NoActivePar+nprp]=j;
@@ -1536,12 +1553,12 @@ if(TRALIG.LayersOnly){
 }
 else{
  _NoActivePar=0;
- for(int i=0;i<6;i++){
+ for(int i=0;i<maxlay;i++){
   for(int l=0;l<maxlad;l++){
    for(int m=0;m<2;m++){
     if(_pPargl[l][m][i].NEntries()>TRALIG.MinEventsPerFit/2){
      int nprp=0;
-     for(int j=0;j<6;j++){ 
+     for(int j=0;j<maxlay;j++){ 
       if(TRALIG.ActiveParameters[i][j]){
         _PlaneNo[_NoActivePar+nprp]=i;
         _ParNo[_NoActivePar+nprp]=j;
@@ -1568,7 +1585,7 @@ void AMSTrAligFit::InitDB(){
 
   for(int i=0;i<maxlad;i++){
    for(int j=0;j<2;j++){
-    for(int k=0;k<6;k++){   
+    for(int k=0;k<maxlay;k++){   
        _gldb[i][j][k].nentries=0;
          for(int l=0;l<3;l++){
           _gldb[j][k][i].coo[l]=0;
@@ -1581,13 +1598,13 @@ void AMSTrAligFit::InitDB(){
 
 }
 
-AMSTrAligFit::gldb_def AMSTrAligFit::_gldb[maxlad][2][6];
+AMSTrAligFit::gldb_def AMSTrAligFit::_gldb[maxlad][2][maxlay];
 
 
 integer AMSTrAligFit::glDBOK(uinteger address){
    integer ladder[2][maxlay];
    AMSTrTrack::decodeaddress(ladder,address);
-   for(int i=0;i<6;i++){
+   for(int i=0;i<maxlay;i++){
      if(ladder[0][i]){
        if(!_gldb[ladder[0][i]-1][ladder[1][i]][i].nentries)return 0;
      }

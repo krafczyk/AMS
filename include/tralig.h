@@ -1,4 +1,4 @@
-//  $Id: tralig.h,v 1.13 2001/01/22 17:32:45 choutko Exp $
+//  $Id: tralig.h,v 1.14 2005/02/23 15:45:57 choutko Exp $
 // Author V. Choutko 13-nov-1998
 
 #ifndef __AMSTRALIG__
@@ -192,9 +192,9 @@ number _fcnI;   // pointer to fcns;
 number _pfit;  //pointer to fitterd mom
 number _pfitbefore;  //pointer to fitterd mom before
 number _pfits;  //pointer to fitterd mom sigma
-AMSTrAligPar _pParC[6];
-static AMSTrAligPar _pPargl[17][2][6];
-static gldb_def _gldb[trconst::maxlad][2][6];
+AMSTrAligPar _pParC[8];
+static AMSTrAligPar _pPargl[17][2][8];
+static gldb_def _gldb[trconst::maxlad][2][8];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
 static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);

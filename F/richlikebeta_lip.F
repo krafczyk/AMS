@@ -1,4 +1,4 @@
-*$Id: richlikebeta_lip.F,v 1.4 2004/03/15 11:44:20 mdelgado Exp $
+*$Id: richlikebeta_lip.F,v 1.5 2005/02/23 15:45:48 choutko Exp $
 *+LIP  velocity reconstruction 
 
        subroutine richlikebeta_lip(iproc,ireflec)
@@ -335,7 +335,6 @@ C     & hitscoo(2,nn), chi2hit_fit(nn),iflghit(nn)
 * .. GO ...
 *------------------
       CALL PATRACE1(phphi,cangrecx,xdet,ydet,nmiref,nerr,verr) 
-*      print*,'>>>>>>>>>>>>>>',nerr,verr(nerr)  
       nmirefhit = nmiref
       if (nerr.ne.0) then
          fchi2hit = 1.E+8
