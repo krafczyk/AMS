@@ -1,6 +1,10 @@
-//  $Id: commons.h,v 1.193 2003/12/15 15:38:58 choutko Exp $
+//  $Id: commons.h,v 1.194 2003/12/15 15:46:11 choutko Exp $
 //  Author V. Choutko 24-may-1996
-// 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
+//
+//  To developpers:
+//  All new vars to cblocks defs: only at the very end !!!
+///
+
 #ifndef __AMSCOMMONS__
 #define __AMSCOMMONS__
 #include <typedefs.h>
