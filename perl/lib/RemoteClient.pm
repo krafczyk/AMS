@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.31 2002/03/27 12:07:59 choutko Exp $
+# $Id: RemoteClient.pm,v 1.32 2002/03/27 12:17:37 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2279,13 +2279,11 @@ print qq`
                   my $attach;
        if ($self->{CCT} eq "remote"){
           if($self->{senddb}){
-          my $time=time();
-          $self->{TU1}=$time;
+          $self->{TU1}=time();
            $attach="$file2tar.gz,ams02mcscripts.tar.gz;$filedb,ams02mcdb.tar.gz";
           }
           elsif($self->{sendaddon}){
-              my $time=time();
-              $self->{TU2}=$time;
+              $self->{TU2}=time();
               $self->{sendaddon}=0;
              $attach= "$file2tar.gz,ams02mcscripts.tar.gz;$filedb_att,ams02mcdb.addon.tar.gz";
           }
@@ -2295,8 +2293,7 @@ print qq`
                   $self->sendmailmessage($address,$subject,$message,$attach);
                   my $i=unlink "$file2tar.gz";
                   if($self->{sendaddon}){
-                   my $time=time();
-                   $self->{TU2}=$time;
+                   $self->{TU2}=time();
                    $attach="$filedb_att,ams02mcdb.addon.tar.gz";
                    $subject="Addon To AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
                    $self->sendmailmessage($address,$subject,$message,$attach);
