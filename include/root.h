@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.147 2004/09/27 15:00:59 choumilo Exp $
+//  $Id: root.h,v 1.148 2005/02/17 17:22:45 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1877,7 +1877,9 @@ protected:
    /// Should Not be modified by (Non)Advanced User\n
    /// \sa stlv.C
    /// \param entry - event no
+   void ProcessFill(Long64_t entry){ProcessFill((int)entry);};
    void ProcessFill(int entry);
+   bool Process(Long64_t entry){return Process((int)entry);};
    bool Process(int entry){if(ProcessCut(entry))ProcessFill(entry);return true;}
 public:
 
@@ -1913,6 +1915,7 @@ public:
    /// \sa stlv.C
    /// \param entry - event no
    /// \return false if error;
+   Bool_t ProcessCut(Long64_t entry){return ProcessCut((int)entry);}
    Bool_t ProcessCut(int entry){return ReadHeader(entry);}
 
    ///  Reads Header 
