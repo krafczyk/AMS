@@ -893,12 +893,22 @@ VBLANK(DAQCFFKEY.ofile,40);
 
 void AMSJob::_reaxdata(){
 // Fit beta & charge
-CHARGEFITFFKEY.Thr=1.;
-CHARGEFITFFKEY.OneChargeThr=200.;
+CHARGEFITFFKEY.NmembMax=3;
+CHARGEFITFFKEY.Tracker=1;
 CHARGEFITFFKEY.EtaMin[0]=0.05;
 CHARGEFITFFKEY.EtaMin[1]=0.00;
 CHARGEFITFFKEY.EtaMax[0]=0.95;
 CHARGEFITFFKEY.EtaMax[1]=1.00;
+CHARGEFITFFKEY.ProbTrkRefit=0.01;
+CHARGEFITFFKEY.ResCut[0]=4.;
+CHARGEFITFFKEY.ResCut[1]=4.;
+CHARGEFITFFKEY.SigMin=0.1;
+CHARGEFITFFKEY.SigMax=0.3;
+CHARGEFITFFKEY.PdfNorm=1;
+CHARGEFITFFKEY.TrMeanRes=1;
+CHARGEFITFFKEY.ProbMin=0.01;
+CHARGEFITFFKEY.TrackerOnly=8;
+
 BETAFITFFKEY.pattern[0]=1;
 BETAFITFFKEY.pattern[1]=1;
 BETAFITFFKEY.pattern[2]=1;
@@ -1449,7 +1459,7 @@ void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("part::loc2gl");
   if(AMSFFKEY.Update){
     for(int i=0;i<gethead()->gettdvn();i++){
-      if( strcmp(gethead()->gettdvc(i),"ChargeLkhd1")==0 ){
+      if( strcmp(gethead()->gettdvc(i),"ChargeLkhd01")==0 ){
         AMSCharge::init();
       }
     }
@@ -1804,22 +1814,34 @@ end.tm_year=AMSCharge::_year[1];
 
 
 
-TID.add (new AMSTimeID(AMSID("ChargeLkhd1",isRealData()),
-   begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTracker[0][0]),
-   (void*)AMSCharge::_lkhdTracker[0]));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd2",isRealData()),
-   begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTOF[0][0]),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd01",isRealData()),
+   begin,end,100*ncharge*TOFTypes*sizeof(AMSCharge::_lkhdTOF[0][0][0]),
    (void*)AMSCharge::_lkhdTOF[0]));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd3",isRealData()),
-   begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTOF[0]),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd02",isRealData()),
+   begin,end,100*ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdTracker[0][0][0]),
+   (void*)AMSCharge::_lkhdTracker[0]));
+TID.add (new AMSTimeID(AMSID("ChargeLkhd03",isRealData()),
+   begin,end,ncharge*TOFTypes*sizeof(AMSCharge::_lkhdStepTOF[0][0]),
    (void*)AMSCharge::_lkhdStepTOF));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd4",isRealData()),
-   begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTracker[0]),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd04",isRealData()),
+   begin,end,ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdStepTracker[0][0]),
    (void*)AMSCharge::_lkhdStepTracker));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd5",isRealData()),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd05",isRealData()),
+   begin,end,ncharge*TOFTypes*sizeof(AMSCharge::_lkhdNormTOF[0][0]),
+   (void*)AMSCharge::_lkhdNormTOF));
+TID.add (new AMSTimeID(AMSID("ChargeLkhd06",isRealData()),
+   begin,end,ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdNormTracker[0][0]),
+   (void*)AMSCharge::_lkhdNormTracker));
+TID.add (new AMSTimeID(AMSID("ChargeLkhd07",isRealData()),
+   begin,end,ncharge*TOFTypes*sizeof(AMSCharge::_lkhdSlopTOF[0][0]),
+   (void*)AMSCharge::_lkhdSlopTOF));
+TID.add (new AMSTimeID(AMSID("ChargeLkhd08",isRealData()),
+   begin,end,ncharge*TrackerTypes*sizeof(AMSCharge::_lkhdSlopTracker[0][0]),
+   (void*)AMSCharge::_lkhdSlopTracker));
+TID.add (new AMSTimeID(AMSID("ChargeLkhd09",isRealData()),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTOF[0]),
    (void*)AMSCharge::_chargeTOF));
-TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
+TID.add (new AMSTimeID(AMSID("ChargeLkhd10",isRealData()),
    begin,end,ncharge*sizeof(AMSCharge::_chargeTracker[0]),
    (void*)AMSCharge::_chargeTracker));
 

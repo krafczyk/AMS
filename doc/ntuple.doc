@@ -27,8 +27,8 @@ Below there is a description of a  ntuple.
                                                     // * -1  if dir is from north to south
 * R*4  *              * EVENTH   * VelTheta         // speed theta (GTOD rad) 
 * R*4  *              * EVENTH   * VelPhi           // speed phi (GTOD rad) 
-* R*4  *              * EVENTH   * ThetaM           // Magnetic Lattitude
-* R*4  *              * EVENTH   * PhiM             // Magnetic Longitude
+* R*4  *              * EVENTH   * ThetaM           // Magnetic Latitude ***)
+* R*4  *              * EVENTH   * PhiM             // Magnetic Longitude ***)
 * I*4  *              * EVENTH   * Particles        // No of Particles
 * I*4  *              * EVENTH   * Tracks           // No of Tracks                    
 * I*4  *              * EVENTH   * Betas            // No of Betas
@@ -368,13 +368,12 @@ Below there is a description of a  ntuple.
 16 - 4th tof plane was recovered using tracker           (status&32768 !=0)
 
 
-
-
-
 **) AMS global system definition :
 GTOD
 
 
+***) Shuttle coordinates in an eccentric dipole coordinate system where
+     GEOMz=-d, GEOMy=GEOMz x S  (d: dipole direction, S: geographic South)
 
 Known bugs:
 

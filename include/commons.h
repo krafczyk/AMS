@@ -427,10 +427,18 @@ COMMON_BLOCK_DEF(BETAFITFFKEY_DEF,BETAFITFFKEY);
 
 class CHARGEFITFFKEY_DEF {
 public:
-  geant Thr;  // Threshold to refit
-  geant OneChargeThr;
+  integer NmembMax;
+  integer Tracker;
   geant EtaMin[2];
   geant EtaMax[2];
+  geant ProbTrkRefit;
+  geant ResCut[2];
+  geant SigMin;
+  geant SigMax;
+  integer PdfNorm;
+  integer TrMeanRes;
+  geant ProbMin;
+  integer TrackerOnly;
 };
 //
 

@@ -347,7 +347,7 @@ R53 ResFunX[3][6];      //  Parabolic parametrization of resolution
 R71 ResFunX[3][6];      //
 R89 CommonGain[2](1.6,1.)  // Relative gain s/k
 R91 CommonShift[2](4.5,0.)  // Relative Shift s/k
-I93 EtaCor[2](0,0)      // 0/1 no/apply eta corrections (x,y)
+I93 EtaCor[2](1,0)      // 0/1 no/apply eta corrections (x,y)
 // Tracker pattern recognition
 TRFIT
 I 1 Pattern[42](22*1,20*0)
@@ -454,11 +454,22 @@ R16 Chi2S(10.)     // Max acceptable chi2 for space matching tof/tracker
 I17 MassFromBetaRaw(0)  // get mass from raw or corrected beta(1/0)
 
 CHARGEFIT
-R 1 Thr(1.)   // Refit charge if Fisher's criterium is satisfied(1.=67%,2.=95%)
-R 2 OneChargeThr(200.)   // votedcharge aux parameter
-R 3 EtaMin[2](0.05,0.0)  // min eta for tracker cluster (x,y)
-R 5 EtaMax[2](0.95,1.0)  // max eta for tracker cluster (x,y)
+I 1 NmembMax(3)          // maximum number of members for TOF clusters
+I 2 Tracker(1)           // tracker cluster energies used 0/1/2 (y)/(x+y,y)/(x+y,y,x)
+R 3 EtaMin[2](0.05,0.0)  // min eta value for tracker cluster (x,y)
+R 5 EtaMax[2](0.95,1.0)  // max eta value for tracker cluster (x,y)
+R 7 ProbTrkRefit(0.01)   // refit tracker charge below this cut
+R 8 ResCut(4.,4.)        // thrsld for incompatible TOF/trk clus exclusion *) 
+                            (-1: no cluster is excluded)
+R10 SigMin(0.1)          // min relative spread of TOF or trk cluster energies
+R11 SigMax(0.3)          // max 
+I12 PdfNorm(1)           // 0/1 peak=1/normalised prob. density functs. for likelihood
+I13 TrMeanRes(1)         // 0/1 n-1/modified*) truncated mean 
+R14 ProbMin(0.01)        // minimum value for TOF and trk charge probs to be combined
+                            into particle charge
+I15 TrackerOnly(8)       // use only tracker charge if TOF charge is above this value
 
+*) most incompatible cluster is excluded if Ec-<E>_rest>ResCut*sigma(E_rest)
 
 TRCALIB    // trcaker calibration
 I 1 CalibProcedureNo(1)               // 1 - sigma/ped calc; 2 - treacker alignment 

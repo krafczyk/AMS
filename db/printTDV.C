@@ -104,12 +104,16 @@ static char    *tdvnames[] = {
    "Tofvpar",
    "Tofmcscans",
    "Antisccal",
-   "ChargeLkhd1",
-   "ChargeLkhd2",
-   "ChargeLkhd3",
-   "ChargeLkhd4",
-   "ChargeLkhd5",
-   "ChargeLkhd6"
+   "ChargeLkhd01",
+   "ChargeLkhd02",
+   "ChargeLkhd03",
+   "ChargeLkhd04",
+   "ChargeLkhd05",
+   "ChargeLkhd06",
+   "ChargeLkhd07",
+   "ChargeLkhd08",
+   "ChargeLkhd09",
+   "ChargeLkhd10"
 };
 
 

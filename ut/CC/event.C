@@ -2356,9 +2356,45 @@ void AMSEvent::setfile(char file[]){
   }
 }
 
-extern "C" void geocoor_(const number & gt, const number &gp, const number &gr, geant &mt, geant &mp, geant &mr);
+// extern "C" void geocoor_(const number & gt, const number &gp, const number &gr, geant &mt, geant &mp, geant &mr);
+
 void AMSEvent::getmag(float & thetam, float & phim){
- // to be done
- geant drad;
- geocoor_(_StationTheta,_StationPhi,_StationRad/100000.,thetam,phim,drad);    
+  const number DipShfRad=534.259e5;               // Dipole Shift Distance  (cm)
+  const number DipShfTheta=21.687/AMSDBc::raddeg; //              Latitude  (rad)
+  const number DipShfPhi=144.280/AMSDBc::raddeg;  //              Longitude (rad)
+  const number DipDirTheta=-79.397/AMSDBc::raddeg;// Dipole Direction Lat   (rad)
+  const number DipDirPhi=108.392/AMSDBc::raddeg;  //                  Lon   (rad)
+
+//  geant drad;
+//  geocoor_(_StationTheta,_StationPhi,_StationRad/100000.,thetam,phim,drad);
+
+  number zero=0, one=1;
+  number StationTheta=_StationTheta;
+  number StationPhi=_StationPhi;
+  number StationRad=_StationRad;
+
+// Station GTOD coordinates referred to dipole center
+  AMSPoint StationGOTD(cos(StationTheta)*cos(StationPhi),
+                       cos(StationTheta)*sin(StationPhi),sin(StationTheta));
+  AMSPoint DipoleGTOD(cos(DipShfTheta)*cos(DipShfPhi),
+                      cos(DipShfTheta)*sin(DipShfPhi),sin(DipShfTheta));
+  AMSDir StationRedDirGTOD=AMSDir(StationGOTD*StationRad-DipoleGTOD*DipShfRad);
+
+// Dipole direction
+  AMSDir DipoleDirGTOD=AMSDir(cos(DipDirTheta)*cos(DipDirPhi),
+                              cos(DipDirTheta)*sin(DipDirPhi),sin(DipDirTheta));
+
+// For sake of clearness GEOM z axis is reversed, i.e. z = -DipoleDirGTOD, y= z x S
+   AMSDir GTODs=AMSDir(zero,zero,-one);
+
+//   AMSDir GEOMz=DipoleDirGTOD;       // conventional GEOM z coordinate definition
+   AMSDir GEOMz=DipoleDirGTOD*-one;  // unconventional GEOM z coordinate definition
+   AMSDir GEOMy=GEOMz.cross(GTODs);
+   AMSDir GEOMx=GEOMy.cross(GEOMz);
+
+   AMSDir StationGEOM(GEOMx.prod(StationRedDirGTOD),GEOMy.prod(StationRedDirGTOD),GEOMz.prod(StationRedDirGTOD));
+
+   thetam=(float)(AMSDBc::pi/2-StationGEOM.gettheta());
+   phim=(float)StationGEOM.getphi();
+
 }

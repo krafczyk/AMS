@@ -13,8 +13,8 @@ echo $UNAME is not supported yet
 
 fi
 
-
-
+NUM=$1
+RUN=$2
 ../exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14 
@@ -36,11 +36,11 @@ IOPA 1=3 2='pr.hbk'
 RNDM 191483093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=11   2=0      3=50.   4=0  5=0   6='v203 Protons ' 87=1
-88='ChargeLkhd1|ChargeLkhd2|ChargeLkhd3|ChargeLkhd4|ChargeLkhd5|ChargeLkhd6|'
+88='ChargeLkhd01|ChargeLkhd$NUM'
 C Special HP-UX
 TIME 3=10000000
 TERM 1=1234567890
-DAQC 1=1 2='$RunsDir/runs/'              
+DAQC 1=1 2='$RunsDir/runs/$RUN'              
 END
 
 !

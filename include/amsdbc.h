@@ -75,6 +75,7 @@ public:
      static const integer RECOVERED;
      static const integer LocalDB;
      static const integer GlobalDB;
+     static const integer CHARGEUSED;
 
 // machine dependent values
 
