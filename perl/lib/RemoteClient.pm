@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.6 2002/03/11 16:22:21 choutko Exp $
+# $Id: RemoteClient.pm,v 1.7 2002/03/11 16:23:43 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -468,7 +468,7 @@ if( defined $ref->{dbfile}){
                 if($ars->{Interface} eq "default"){
                  $ref->{IORP}=$ars->{IOR};
                  my $createt=time();
-                 my $sql="delete Servers where dbfilename='$ref->{dbfile}'";
+                 my $sql="delete from Servers where dbfilename='$ref->{dbfile}'";
                  $ref->{sqlserver}->Update($sql);
                  $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}',NULL,'Active',$createt,$createt)";
                  $ref->{sqlserver}->Update($sql);
