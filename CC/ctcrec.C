@@ -345,6 +345,7 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
           stat=0;//event ok ( at least one object created)
           AMSEvent::gethead()->addnext(AMSID("AMSCTCRawHit",layer-1),
                         new AMSCTCRawHit(status,row,layer,col,msignal,0));
+          //cout <<" "<<msignal<<" "<<totsig<<endl;
         }
 //    
       }

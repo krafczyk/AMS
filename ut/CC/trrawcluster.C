@@ -43,7 +43,8 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic)
    adc[pos+i+2]=int16(_array[i]);
   }
   //  if(id.getside()==1)cout <<"sn "<<sn<<endl;
-  if(LVL3FFKEY.SeedThr>0)adc[pos]=(_nelem-1) | (sn<<6); 
+  if(LVL3FFKEY.SeedThr>0)adc[pos]=(_nelem-1) | (int16u(_s2n*8)<<6); 
+  else if(LVL3FFKEY.SeedThr<0)adc[pos]=(_nelem-1) | (sn<<6); 
   else  adc[pos]=(_nelem-1) | (imax<<6); 
     pos+=2+_nelem;
  return pos; 
@@ -400,7 +401,31 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
         AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
         AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
         (int16*)ptr+2,s2n));
+
         //cout <<" ok "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
+
+        /*            
+              static int jpa=0;
+              if(!jpa){
+               HBOOK1(501101,"diff",100,-18.,2.,0.);
+               jpa=1;
+              }
+              int16 snm=0;
+              int olds=id.getstrip();
+              for (int k=0;k<leng+1;k++){
+               id.upd(olds+k);
+               if(id.getsig() && (*((int16*)ptr+2+k))/id.getsig() > snm){
+                snm=*((int16*)ptr+2+k)/id.getsig();
+               }
+              }       
+              id.upd(olds);
+              if(1 || sn>snm){
+                cout <<sn<<" "<<snm<<" "<<id.getsig()<<" "<<id<<endl;
+              }
+              HF1(501101,float(sn-snm),1.);
+
+         */
+
        }
         else {
           // split into two clusters;

@@ -45,7 +45,6 @@ AMSID AMSCTCRawHit::crgid(integer imat){
 void AMSCTCRawHit::sictcdigi(){
   AMSCTCMCCluster * ptr;
   int icnt;
-  number aphe,val;
   for(icnt=0;icnt<CTCDBc::getnlay();icnt++){
   integer nrow=CTCDBc::getny()*2;
   integer ncol=CTCDBc::getnx(icnt+1)*2;
@@ -87,9 +86,9 @@ void AMSCTCRawHit::sictcdigi(){
      integer ierr,ival;
      if(Tmp[i]>0){
       POISSN(Tmp[i],ival,ierr);
-      val=0.;
+      number val=0.;
       for(int j=0;j<ival;j++){
-        aphe=1.+0.4*rnormx();//PMT gain variations 40%
+        number aphe=1.+0.4*rnormx();//PMT gain variations 40%
         if(aphe<0.)aphe=0.;
         val+=aphe;
       }

@@ -588,8 +588,8 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
      if(side != 0 && (LVL3FFKEY.NoK || _TrackerAux[drp][half])){
       integer layer=_TrackerDRP2Layer[drp][half];
       integer num = ((*ptr)&63);
-      if(LVL3FFKEY.SeedThr>0 ){
-        if(((*((int16u*)ptr)>>6) & 63) <LVL3FFKEY.SeedThr && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
+      if(abs(LVL3FFKEY.SeedThr)>0 ){
+        if(((*((int16u*)ptr)>>6) & 63) <abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
         int count=0;
         for(int k=2;k<num+3;k++){
           if(*(ptr+k)>=16)count++;
@@ -634,6 +634,9 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
      
       coo=_TrackerCoo[drp][half][1]+
       _TrackerDir[drp][half]*_stripsize*(0.5+ss);
+      if(AMSFFKEY.Debug){
+       cout << "Trigger3  s/n*8 "<<((*((int16u*)ptr)>>6)&63)<<" lay "<<layer<<" strip "<<strip<<" coo "<<coo<<endl;
+      }
       if (coo > plvl3->getlowlimitY(layer) && coo < plvl3->getupperlimitY(layer)){
         if(( half ==0 && plvl3->getlowlimitX(layer) < 0) ||
            ( half ==1 && plvl3->getupperlimitX(layer) > 0) ){
@@ -875,11 +878,15 @@ void TriggerLVL3::builddaq(integer i, integer n, int16u *p){
   *p=getdaqid(i);
   if(ptr){
     *(p+1)=int16u(ptr->_TrackerTrigger);
-    *(p+2)=(ptr->_TOFTrigger) | (ptr->_AntiTrigger)<<8;
+    *(p+2)=(ptr->_TOFTrigger) | ((ptr->_AntiTrigger)<<8);
     int16 res=int16(ptr->_Residual[0]*1000);
     *(p+3)=int16u(res);
-    *(p+4)= ptr->_Pattern[0] | (ptr->_NPatFound)<<6 | (ptr->_NTrHits)<<8;
-    *(p+5)=int16u(ptr->_TrEnergyLoss);
+    res=int16(ptr->_Residual[1]*1000);
+    *(p+4)=int16u(res);
+    *(p+5)=(ptr->_NPatFound) | ((ptr->_NTrHits)<<4);
+    *(p+6)= (ptr->_Pattern[0]) |( (ptr->_Pattern[1])<<6);
+    *(p+7)=int16u(ptr->_TrEnergyLoss);
+    //    cout <<"*(p+7) "<<*(p+7)<<" "<<ptr->_TrEnergyLoss<<endl;
   }
   else {
     cerr <<"TriggerLVL3::builddaq-E-No Trigger for "<<i<<endl;
@@ -903,10 +910,12 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  tof=(*(p+2))&255;
  anti=((*(p+2))>>8)&255;
  res[0]=int16(*(p+3))/1000.;
- pat[0]=((*(p+4)))&63;
- npat=((*(p+4))>>6)&3;
- ntr=((*(p+4))>>8)&255;
- eloss=*(p+5);
+ res[1]=int16(*(p+4))/1000.;
+ pat[0]=((*(p+6)))&63;
+ pat[1]=((*(p+6))>>6)&63;
+ npat=((*(p+5)))&15;
+ ntr=((*(p+5))>>4)&255;
+ eloss=int16(*(p+7));
 if(tra >= LVL3FFKEY.Accept)
   AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",ic), new
  TriggerLVL3( tra,  tof,  anti, ntr,  npat,
@@ -1048,7 +1057,7 @@ return 0;
 integer TriggerLVL3::calcdaqlength(integer i){
   TriggerLVL3 *ptr=(TriggerLVL3*)AMSEvent::gethead()->
   getheadC("TriggerLVL3",i);
-  if(ptr)return 5;
+  if(ptr)return 8;
   else return 0;
 }
 

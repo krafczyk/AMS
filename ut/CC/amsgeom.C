@@ -794,11 +794,17 @@ void ctcgeomAG(AMSgvolume & mother){
             cooptf[1]=coo[1]+parptf[1]*(2*iy-1);
             cooptf[2]=coo[2]-(-0.5*CTCDBc::getcellsize(2)+
             parptf[2]);
-            char cvolptf[]="PTFU";
+            char cvolptf[]="PTAU";
             cvolptf[3]=cdum[ilay-1][0];
             gid=1000000*ilay+1000*(i+1)+100*(j+1)+10+ix+1+2*iy;
             pLayer->add(new AMSgvolume(
-            "ATC_PTFE",0,cvolptf,"BOX ",parptf,3,cooptf,nrm,"MANY",1,gid,1));
+            "ATC_PTAE",0,cvolptf,"BOX ",parptf,3,cooptf,nrm,"MANY",1,gid,1));
+            // add sensitive ptfe
+            for(k=0;k<3;k++)paragl[k]=0.5*CTCDBc::getagelsize(k);
+            char cvolptfs[]="PTFU";
+            cvolptfs[3]=cdum[ilay-1][0];
+            pLayer->add(new AMSgvolume(
+            "ATC_PTFE",0,cvolptfs,"BOX ",paragl,3,cooptf,nrm,"MANY",1,gid,1));
             for(iz=0;iz<2;iz++){
              //put two agel blocks
              for(k=0;k<3;k++)paragl[k]=0.5*CTCDBc::getagelsize(k);
@@ -925,11 +931,17 @@ void ctcgeomAG(AMSgvolume & mother){
             cooptf[1]=coo[1]+parptf[1]*(2*iy-1);
             cooptf[2]=coo[2]-(-0.5*CTCDBc::getcellsize(2)+
             parptf[2]);
-            char cvolptf[]="PTFU";
+            char cvolptf[]="PTAU";
             cvolptf[3]=cdum[ilay-1][0];
             gid=1000000*ilay+1000*(i+1)+100*(j+1)+10+ix+1+2*iy;
             pLayer->add(new AMSgvolume(
-            "ATC_PTFE",0,cvolptf,"BOX ",parptf,3,cooptf,nrm,"MANY",1,gid,1));
+            "ATC_PTAE",0,cvolptf,"BOX ",parptf,3,cooptf,nrm,"MANY",1,gid,1));
+            // add sensitive ptfe
+            char cvolptfs[]="PTFU";
+            cvolptfs[3]=cdum[ilay-1][0];
+            for(k=0;k<3;k++)paragl[k]=0.5*CTCDBc::getagelsize(k);
+            pLayer->add(new AMSgvolume(
+            "ATC_PTFE",0,cvolptfs,"BOX ",paragl,3,cooptf,nrm,"MANY",1,gid,1));
             for(iz=0;iz<2;iz++){
              //put two agel blocks
              for(k=0;k<3;k++)paragl[k]=0.5*CTCDBc::getagelsize(k);

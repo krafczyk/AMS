@@ -207,7 +207,7 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.RebuildLVL3=0;
   LVL3FFKEY.NoK=1;
   LVL3FFKEY.TrHeavyIonThr=200;
-  LVL3FFKEY.SeedThr=32;
+  LVL3FFKEY.SeedThr=-32;
   FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -402,7 +402,7 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.wlsden=1.03;     // WLS density
   CTCGEOMFFKEY.nblk=1;          // number of aer. blocks (X-div.)(=1 for solid)
   CTCGEOMFFKEY.nwls=1;          // number of wls blocks
-  CTCGEOMFFKEY.ptfx=0.025;      // PTFE thickness in cm
+  CTCGEOMFFKEY.ptfx=0.0125;      // PTFE thickness in cm
   CTCGEOMFFKEY.thcsize[0]=150.; //
   CTCGEOMFFKEY.thcsize[1]=110.; // Support structure dimensions (cm)
   CTCGEOMFFKEY.thcsize[2]=6.;   //
@@ -431,18 +431,19 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.ydiv=4;
 //
   CTCMCFFKEY.Refraction[0]=1.036;   // Refraction indexes
-  CTCMCFFKEY.Refraction[1]=1.40;
-  CTCMCFFKEY.Refraction[2]=1.00;
-  CTCMCFFKEY.Path2PhEl[0]=5;   // Path to photoelectrons conv fact ( ~ 6 p.e.)
-  CTCMCFFKEY.Path2PhEl[1]=2;
+  CTCMCFFKEY.Refraction[1]=1.4;     //ptfe
+  CTCMCFFKEY.Refraction[2]=1.45;    // pmt
+
+  CTCMCFFKEY.Path2PhEl[0]=6.;   // Path to photoelectrons conv fact ( ~ 3.3 p.e.)
+  CTCMCFFKEY.Path2PhEl[1]=0.;
   CTCMCFFKEY.Path2PhEl[2]=0;
   CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
   CTCMCFFKEY.AbsLength[1]=100;
   CTCMCFFKEY.AbsLength[2]=100;
   CTCMCFFKEY.Edep2Phel[0]=0;      // Agel is not a scint
-  CTCMCFFKEY.Edep2Phel[1]=0;      // ???  is not a scint 
-  CTCMCFFKEY.Edep2Phel[2]=0;      // ???  is not a scint
-  CTCMCFFKEY.mcprtf=0;//(13)print MC-hist if !=0
+  CTCMCFFKEY.Edep2Phel[1]=0; 
+  CTCMCFFKEY.Edep2Phel[2]=0;     
+  CTCMCFFKEY.mcprtf=0;//print MC-hist if !=0
 
 FFKEY("CTCGEOM",(float*)&CTCGEOMFFKEY,sizeof(CTCGEOMFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CTCMC",(float*)&CTCMCFFKEY,sizeof(CTCMCFFKEY_DEF)/sizeof(integer),"MIXED");

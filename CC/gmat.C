@@ -207,6 +207,8 @@ int ip=27;
 tmed.add (new AMSgtmed(++ip,"Tr_Honeycomb",35,0));
 tmed.add (new AMSgtmed(++ip,"Tr_Foam",36,0));
 
+tmed.add (new AMSgtmed(++ip,"ATC_PTAE",31,0));
+//
 
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__
