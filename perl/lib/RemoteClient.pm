@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.110 2003/04/22 09:12:58 choutko Exp $
+# $Id: RemoteClient.pm,v 1.111 2003/04/22 10:29:42 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3145,6 +3145,14 @@ print qq`
         else{
          print FILE  $self->{tsyntax}->{headers}->{readmecorba};
         }
+        my $sql = "SELECT dirpath FROM journals WHERE cid=$self->{cid}";
+        my $note="please contact alexei.klimentov@cern.ch for details"; 
+        my $ret = $self->Query($sql);
+  
+        if (defined $ret->[0][0]) {
+         $note ="DST directory path : $ret->[0][0]/nt \n Journal files directory path : $ret->[0][0]/jou \n";
+         }         
+        print FILE  $note;
         close FILE;
          $file2tar="$self->{UploadsDir}/ams02mcscript.$run.tar";
         my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run"); 
