@@ -1,9 +1,10 @@
-//  $Id: richdbc.C,v 1.22 2001/05/21 13:32:34 choutko Exp $
+//  $Id: richdbc.C,v 1.23 2002/02/27 16:19:55 mdelgado Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
 #include<mceventg.h>
 #include<iostream.h>
+#include<richid.h>
 
 integer RICHDB::_Nph=0;
 // defaults
@@ -33,11 +34,15 @@ geant RICHDB::index[RICmaxentries]={1.136,   1.13602, 1.13605, 1.13608, 1.13612,
 
 
 
-geant RICHDB::abs_length[RICmaxentries]={36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,36.,36.,36.,36.,36.,36.};
-
+geant RICHDB::abs_length[RICmaxentries]={1372.78,1346.82,1321.23,1296.00,1258.84,
+					 1222.49,1175.25,1118.14,1084.89,1041.71,
+					 1010.19,959.240,919.900,872.430,826.820,
+					 783.020,735.330,685.020,639.620,596.520,
+					 542.480,492.200,445.490,402.200,347.910,
+					 329.600,267.310,234.460,201.600,186.540,
+					 158.840,134.550,117.140,97.8200,85.8000,
+					 76.0500,69.1900,65.1100,61.2100,57.8700,
+  	 				 55.1100,53.1600,51.6800,50.5700};
 
 // PMT quantum eff. from Hamamatsu
 
@@ -47,7 +52,7 @@ geant RICHDB::eff[RICmaxentries]={1.296, 1.476, 1.717, 1.853, 2.041, 2.324, 2.64
 				  20.633,20.633,20.633,20.633,20.010,18.923,17.355,16.266,14.918, 
 				  13.682,11.509,10.555, 8.321, 7.153, 6.282, 6.148, 4.953};
 
-
+/* Old version of code
 integer RICHDB::n_rows[2]={10,8};
 
 integer RICHDB::n_pmts[15][2]={{11,7},{11,8},{11,7},{11,6},{11,5},{11,4},
@@ -55,7 +60,7 @@ integer RICHDB::n_pmts[15][2]={{11,7},{11,8},{11,7},{11,6},{11,5},{11,4},
 
 integer RICHDB::offset[15][2]={{0,1},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
                                {0,0},{0,0},{1,0}};
-
+*/
 
 geant RICHDB::pmt_p[RICmaxpmts][2];
 
@@ -73,10 +78,13 @@ geant RICHDB::lg_abs[RICmaxentries]={100.000,100.000,100.000,100.000,100.000,
 				     100.000,100.000,100.000,100.000,100.000,
 				     100.000,100.000,100.000,100.000,100.000,
 				     100.000,100.000,100.000,100.000,100.000,
-				     100.000,99.9604,99.8544,99.3826,98.7339,
-				     94.7906,81.1226,57.4100,24.0361,10.2919,
-				      4.4379, 2.2767, 1.4859, 0.9670, 0.6569,
-				     0.4709, 0.3689, 0.3054, 0.2643};
+				     100.000,83.6568,61.6296,24.8616,14.1085,
+				      7.0524, 5.3358, 5.2303, 5.0741, 2.8348,
+                                      0.7004, 0.2304, 0.0554, 0.0554, 0.0554,
+				      0.0554, 0.0554, 0.0554, 0.0554};
+
+
+
 
 geant RICHDB::lg_index[RICmaxentries]={1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,
 				       1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,
@@ -87,17 +95,23 @@ geant RICHDB::lg_index[RICmaxentries]={1.49,1.49,1.49,1.49,1.49,1.49,1.49,1.49,1
 
 
 integer RICHDB::entries=RICmaxentries;
-geant RICHDB::top_radius=60.0;
-geant RICHDB::bottom_radius=67.;
-geant RICHDB::height=45.4;
-geant RICHDB::hole_radius=31.5;
-geant RICHDB::inner_mirror_height=50;
-geant RICHDB::rad_clarity=0.0091;
-geant RICHDB::rad_radius=60.0;
-geant RICHDB::rad_height=2;
-geant RICHDB::rad_tile_size=15;
-geant RICHDB::lg_height=3.31;
-geant RICHDB::lg_tile_size=3.1;  // NEW! Called lg_length in the standalone version
+geant RICHDB::top_radius=60.0;         // Top mirror radius
+geant RICHDB::bottom_radius=67.;       // Bottom mirror radius
+geant RICHDB::rich_height=46.8;             // Expansion height
+geant RICHDB::hole_radius=31.5;        // half ECAL hole side length
+geant RICHDB::inner_mirror_height=50;  // UNUSED
+geant RICHDB::rad_clarity=0.0091;      // Radiator clarity
+geant RICHDB::rad_radius=60.0;         // Radiator radius
+geant RICHDB::rad_height=3;            // Radiator thickness
+geant RICHDB::rad_length=11.3+0.1;        // Radiator tile side length
+geant RICHDB::lg_height=3.0;           // Light guide height withou the fixing foil
+geant RICHDB::lg_length=3.1;        // Side length of light guide top (Called lg_length in the standalone version)
+geant RICHDB::lg_bottom_length=1.77;
+geant RICHDB::inner_pixel=0.38;
+geant RICHDB::foil_height=0.1;
+geant RICHDB::rad_supthk=0.1;
+
+
 integer RICHDB::total=0;
 
 geant RICHDB::ped=0.;           // Values from A. Contin talk
@@ -106,6 +120,9 @@ geant RICHDB::peak=23.04;
 geant RICHDB::sigma_peak=12.10;
 geant RICHDB::c_ped=2.;           // N od ADC counts for detection threshold
 geant RICHDB::prob_noisy=1-FREQ(RICHDB::c_ped/RICHDB::sigma_ped);
+
+
+// Some counters
 
 integer RICHDB::nphgen=0;
 integer RICHDB::nphbas=0;
@@ -122,15 +139,18 @@ void RICHDB::bookhist(){
 void RICHDB::mat_init(){
 // Update chromatic dispersion if the radiator index is different from 1.14
 // Scaled from fused SiO2
+
 #ifdef __AMSDEBUG__
   if(RICHDB::rad_index!=1.14) 
     cout <<"Energia     Indice"<<endl
          <<"-------     ------"<<endl;
 #endif
+
   if(RICHDB::rad_index!=1.14)
   for(integer i=0;i<RICmaxentries;i++){
     if(RICHDB::index[i]<1.) continue;
     RICHDB::index[i]=1.+(RICHDB::index[i]-1.)*(RICHDB::rad_index-1.)/0.14;
+
 #ifdef __AMSDEBUG__
     cout <<2*3.1415926*197.327e-9/RICHDB::wave_length[i]<<"   "<<
            RICHDB::index[i]<<endl;
@@ -139,6 +159,8 @@ void RICHDB::mat_init(){
   }
 
 }
+
+
 
 // Aerogel density
 
@@ -154,108 +176,169 @@ geant RICHDB::aerogel_density(){
 }
 
 
-
 /// Now Some functions for the rich geometry
 
 geant RICHDB::total_height()
 {
-  return RICGEOM.height+ // Expanxion length
-    RICGEOM.radiator_height+
-    RICGEOM.light_guides_height+
-    RICshiheight; // NEW!!
+#ifdef __AMSDEBUG__
+  cout<<"Total_height:"<<rad_height+foil_height+RICradmirgap+rich_height+
+                  RIClgdmirgap+lg_height+RICpmtlength+RICeleclength<<endl;
+#endif
+
+  return rad_height+foil_height+RICradmirgap+rich_height+
+                  RIClgdmirgap+lg_height+RICpmtlength+RICeleclength;
+                  +RICpmtfoil;
 }
 
 geant RICHDB::pmtb_height() // NEW!
 {
-  return RICpmtlength+RICeleclength+RICGEOM.light_guides_height;
+#ifdef __AMSDEBUG__
+  cout<<"pmtb_height:"<<RICpmtlength+RICeleclength+lg_height+RICpmtfoil<<endl;
+#endif
+
+  return RICpmtlength+RICeleclength+lg_height+RICpmtfoil;
 }
 
 geant RICHDB::mirror_pos()
 {
-  return total_height()/2-RICGEOM.height/2-RICGEOM.radiator_height;
+#ifdef __AMSDEBUG__
+  cout<<"mirror_pos:"<<rad_height+foil_height+RICradmirgap+rich_height/2.<<endl;
+#endif
+  return rad_height+foil_height+RICradmirgap+rich_height/2.;
 }
 
 geant RICHDB::rad_pos()
 {
-  return total_height()/2-RICGEOM.radiator_height/2;
+#ifdef __AMSDEBUG__
+  cout <<"rad_pos:"<<rad_height/2.<<endl;
+#endif
+  return rad_height/2;
 }
 
 geant RICHDB::pmt_pos() // In RICH
-{
-  return total_height()/2-RICGEOM.radiator_height-RICGEOM.height-
-    (RICpmtlength+RICeleclength)/2-RICGEOM.light_guides_height/2;
+{  
+#ifdef __AMSDEBUG__
+  cout <<"pmt(f)_pos:"<<rad_height+foil_height+RICradmirgap+rich_height+
+             RIClgdmirgap+pmtb_height()/2.<<endl;
+#endif
+
+  return rad_height+foil_height+RICradmirgap+rich_height+
+             RIClgdmirgap+pmtb_height()/2.;
 }
 
 geant RICHDB::elec_pos() // In PMT box
 {
-  return (RICpmtlength+RICeleclength)/2 // 7(=electronics+phototube length)/2
-    -RICGEOM.light_guides_height/2-RICotherthk/2-
-    RICpmtlength/2; 
+#ifdef __AMSDEBUG__
+  cout <<"elec_pos:"<<cato_pos()+RICpmtlength/2.<<endl;
+#endif
+
+  return cato_pos()+RICpmtlength/2.;
 }
 
 geant RICHDB::cato_pos() // In PMT box
 {
-  return (RICpmtlength+RICeleclength)/2
-    -RICGEOM.light_guides_height/2-RICotherthk/2;
+#ifdef __AMSDEBUG__
+  cout <<"cato_pos:"<<lg_pos()+(lg_height+RICotherthk)/2<<endl;
+#endif
+
+  return lg_pos()+(lg_height+RICotherthk)/2;
 }
 
 geant RICHDB::lg_pos()
 {
-  return (RICpmtlength+RICeleclength)/2;
+#ifdef __AMSDEBUG__
+cout <<"lg_pos:"<<-(RICpmtlength+RICeleclength)/2+RICpmtfoil/2.<<endl;
+#endif
+
+  return -(RICpmtlength+RICeleclength)/2+RICpmtfoil/2.;
+}
+
+geant RICHDB::shield_pos(){
+#ifdef __AMSDEBUG__
+cout <<"shield_pos:"<<elec_pos()-RICotherthk/2.<<endl;
+#endif
+
+  return elec_pos()-RICotherthk/2.;
 }
 
 geant RICHDB::lg_mirror_angle(integer i)
 {
+#ifdef __AMSDEBUG__
+cout <<"lg_mirror_angle(1):"<<atan2(lg_length/2.-
+       (lg_bottom_length/2.+RIClgthk_bot/2.),
+        lg_height)*180./3.1415926<<endl
+     <<"lg_mirror_angle(2):"<<atan2(lg_length/4.-
+        (RIClgthk_bot+inner_pixel),
+         lg_height)*180./3.1415926<<endl;
+#endif
+
   if(i==1) // NEW!
-    return atan2(RICGEOM.light_guides_length/2-RICcatolength/2,
-			 RICGEOM.light_guides_height)*180/3.1415926;
+    return atan2(lg_length/2.-
+       (lg_bottom_length/2.+RIClgthk_bot/2.),
+        lg_height)*180./3.1415926;
 
   if(i==2) // NEW!
-    return atan2((RICGEOM.light_guides_length/2-RICcatolength/2)/2,
-		 RICGEOM.light_guides_height)*180/3.1415926;
+    return atan2(lg_length/4.-
+        (RIClgthk_bot+inner_pixel),
+         lg_height)*180./3.1415926;
+
 
   return 0;
 }
 
 geant RICHDB::lg_mirror_pos(integer i)
 {
+#ifdef __AMSDEBUG__
+cout <<"lg_mirror_pos(1):"<<lg_bottom_length/2.+RIClgthk_bot/2.
+           +lg_height/2.*tan(lg_mirror_angle(1)*3.1415926/180.)<<endl
+     <<"lg_mirror_pos(2):"<<RIClgthk_bot+inner_pixel+  
+            lg_height/2.*tan(lg_mirror_angle(2)*3.1415926/180.)<<endl;
+
+#endif
+
   if(i==1)
-    return RICcatolength/2-RIClgthk/2+RICGEOM.light_guides_height/2
-      *tan(lg_mirror_angle(1)*3.1415926/180);
-  
+    return lg_bottom_length/2.+RIClgthk_bot/2.
+           +lg_height/2.*tan(lg_mirror_angle(1)*3.1415926/180.);
+
   if(i==2)
-   return (RICcatolength/2-RIClgthk/2)/2+RICGEOM.light_guides_height/2
-     *tan(lg_mirror_angle(2)*3.1415926/180);
+    return RIClgthk_bot+inner_pixel+
+            lg_height/2.*tan(lg_mirror_angle(2)*3.1415926/180.);
+
 
   return 0;
 }
 
-geant RICHDB::x(integer channel)
-{
-  integer pmt=channel/RICnwindows;
-  integer window=channel%RICnwindows;
 
-  //  geant x=pmt_p[pmt][0]+(window%integer(sqrt(RICnwindows))
-  //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
+geant RICHDB::x(integer id){AMSRICHIdGeom channel(id);return channel.x();};
+geant RICHDB::y(integer id){AMSRICHIdGeom channel(id);return channel.y();};
 
-  geant x=(2*(window%integer(sqrt(RICnwindows)))-3)*RICHDB::lg_tile_size/8.+pmt_p[pmt][0];
-
-  return x;
-}
+// Old and unused version
+//geant RICHDB::x(integer channel)
+//{
+//  integer pmt=channel/RICnwindows;
+//  integer window=channel%RICnwindows;
+//
+//  //  geant x=pmt_p[pmt][0]+(window%integer(sqrt(RICnwindows))
+//  //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
+//
+//  geant x=(2*(window%integer(sqrt(RICnwindows)))-3)*RICHDB::rad_length/8.+pmt_p[pmt][0];
+//
+//  return x;
+//}
   
 
-geant RICHDB::y(integer channel)
-{
-  integer pmt=channel/RICnwindows;
-  integer window=channel%RICnwindows;
-
-  //  geant y=pmt_p[pmt][1]+(window/integer(sqrt(RICnwindows))
-  //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
-
-  geant y=(2*(window/integer(sqrt(RICnwindows)))-3)*RICHDB::lg_tile_size/8.+pmt_p[pmt][1];
-
-  return y;
-}
+//geant RICHDB::y(integer channel)
+//{
+//  integer pmt=channel/RICnwindows;
+//  integer window=channel%RICnwindows;
+//
+//  //  geant y=pmt_p[pmt][1]+(window/integer(sqrt(RICnwindows))
+//  //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
+//
+//  geant y=(2*(window/integer(sqrt(RICnwindows)))-3)*RICHDB::rad_length/8.+pmt_p[pmt][1];
+//
+//  return y;
+//}
 
 
 
@@ -355,10 +438,10 @@ geant RICHDB::mean_height(){
     l_abs_rad=(RICHDB::abs_length[i]+RICHDB::abs_length[i+1])/2.;
     l_abs_lg=(RICHDB::lg_abs[i]+RICHDB::lg_abs[i+1])/2.;
     for(integer j=0;j<steps;j++){ // Integration in radiador thicknes
-      geant x=RICGEOM.radiator_height*(geant(j)+0.5)/geant(steps);
-      geant g=qeff/lambda/lambda/exp((RICGEOM.radiator_height-x)*
+      geant x=rad_height*(geant(j)+0.5)/geant(steps);
+      geant g=qeff/lambda/lambda/exp((rad_height-x)*
 				     (1/l_scat+1/l_abs_rad))/
-	exp(RICGEOM.light_guides_height/l_abs_lg);
+	exp(lg_height/l_abs_lg);
       sum+=dl*g*x;
       densum+=dl*g;
     }
@@ -366,7 +449,7 @@ geant RICHDB::mean_height(){
   if(!densum){
     cout<<"RICHDB::mean_height : Error"<<endl;
   }else{
-    value=RICGEOM.radiator_height-sum/densum;
+    value=rad_height-sum/densum;
     return value;
   }
   return -1;  // Codigo de error

@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.46 2001/12/10 15:25:10 mdelgado Exp $
+//  $Id: mccluster.C,v 1.47 2002/02/27 16:19:55 mdelgado Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -554,7 +554,7 @@ void AMSRichMCHit::sirichhits(integer id,
        <<"Asigned pixel "<<channel.getpixel()<<endl
        <<"Asigned position "<<channel.x()<<","<<channel.y()<<endl;
 #endif
-  
+  if(channel.getchannel()>0)
   AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
 			       new AMSRichMCHit(id,channel.getchannel(),adc,
 						r,u,status));

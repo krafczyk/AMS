@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.20 2001/05/21 13:32:35 choutko Exp $
+//  $Id: richdbc.h,v 1.21 2002/02/27 16:20:02 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -17,7 +17,7 @@ namespace richconst{
 const integer RICnrot=30001;   // Rot. matrix no.
 
 // Geometry parameters
-
+/*
 const geant   RICmithk=0.2;         // Mirror and 2*aerogel support thickness
 const geant   RICaethk=0.1;         // Light guides thickness
 const geant   RIClgthk=0.05;        // NEW!
@@ -33,6 +33,31 @@ const geant   RICradpos=-75.26;// Top of the radiator position
 const geant   sq2=1.4142135623;// useful constant:sqrt(2)
 
 const geant   RICepsln=0.002;  // Useful to simulate absence of optical contact
+*/
+
+
+const geant      RICradpos=-75.26;     // Top of the radiator position
+const geant      RICaethk=0.1;         // Radiator support thickness
+#define RIClgthk (2.5*RIClgthk_top)    // A simple fix in the meanwhile
+const geant      RIClgthk_top=0.02;    // LG    top gap
+const geant      RIClgthk_bot=0.07;    // LG bottom gap
+const geant      RICmithk=0.2;         // Mirror thickness
+const geant      RICradmirgap=0.;      // Mirror-Radiator Distance  (if !=0 Chk gustep)
+const geant      RIClgdmirgap=0.;      // LG-Mirror Distance        (if !=0 Chk gustep)
+const geant      RICotherthk=0.08;     // PMT window thickness
+const geant      RICcatolength=1.81;   // cathode window length 
+const geant      RICcatogap=0.03;      // Gap btwn PMT pixels 
+const geant      RICpmtlength=2.0;     // phototube length including PMT window 
+const geant      RICeleclength=2.75;   // electronics length below PMT           
+const geant      RICpmtsupport=0.6;    // support structure thickness
+const geant      RICshiheight=7.5;     // PMT shield height from the bottom 
+const geant      RICpmtshield=0.1;     // PMT shield thickness 
+const geant      RICepsln=0.002;       // Epsilon
+const geant      RICpmtfoil=0.1;       // thickness of the goil over the LG
+const geant      PMT_electronics=3.0;    // PMT side size
+const geant      cato_inner_pixel=0.42;  // Inner pixel side size in the photocathode
+const geant      cathode_length=RICcatolength+RICcatogap;
+const geant      pitch=3.7;
 
 // Entries in the tables of materials
 
@@ -75,7 +100,7 @@ public: // To be migrated in the future
   // RICH detector features
   static geant top_radius;
   static geant bottom_radius;
-  static geant height;
+  static geant rich_height;
   static geant hole_radius;
 
 
@@ -86,12 +111,16 @@ public: // To be migrated in the future
   static geant rad_clarity;
   static geant rad_radius;
   static geant rad_height;
-  static geant rad_tile_size;
-  static geant rad_index; // Mean index
+  static geant rad_length;
+  static geant rad_index;   // Mean index
+  static geant foil_height; // Radiator foil support height
+  static geant rad_supthk;
 
   // Light guide features
   static geant lg_height;
-  static geant lg_tile_size;
+  static geant lg_length;
+  static geant lg_bottom_length;        // bottom LG length
+  static geant inner_pixel;             // Inner pixel size
   static geant lg_abs[RICmaxentries];   // abs. length for solid LG
   static geant lg_index[RICmaxentries]; // refractive index for solid_LG
 
@@ -118,9 +147,11 @@ public: // To be migrated in the future
 
 
   //--------- PMT array parameters
+/* Old version
   static integer n_rows[2];
   static integer n_pmts[15][2];
   static integer offset[15][2];
+*/
   static integer total; // Total number of pmts in the actual setup
   static geant pmt_p[RICmaxpmts][2];			     
  
@@ -131,8 +162,8 @@ public: // To be migrated in the future
   static integer numrayl; // Nb. of rayleigh scatterings
 
 public:
-  static geant x(integer);
-  static geant y(integer);
+  static inline geant x(integer);
+  static inline geant y(integer);
   static void bookhist();
   static void mat_init();
   static geant aerogel_density();
@@ -144,6 +175,7 @@ public:
   static geant elec_pos();
   static geant cato_pos();
   static geant lg_pos();
+  static geant shield_pos();
   static geant lg_mirror_angle(integer);
   static geant lg_mirror_pos(integer);
   static integer detcer(geant);

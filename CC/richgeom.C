@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.13 2001/12/20 13:11:18 mdelgado Exp $
+//  $Id: richgeom.C,v 1.14 2002/02/27 16:19:55 mdelgado Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -14,7 +14,7 @@
 
 #define SQR(x) ((x)*(x))
 
-#define VERSION "28/04/00 updated"
+#define VERSION "2002"
 
 namespace amsgeom{
 extern void tkgeom(AMSgvolume &);
@@ -52,12 +52,12 @@ void amsgeom::Put_rad(AMSgvolume * mother,integer copia)
 {
   AMSNode *dummy;
   geant par[3],coo[3];
-  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz}
+  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz} 
   const integer rel=1;
 
-  par[0]=RICGEOM.radiator_box_length/2.-RICaethk;
-  par[1]=RICGEOM.radiator_box_length/2.-RICaethk;
-  par[2]=RICGEOM.radiator_height/2;
+  par[0]=RICHDB::rad_length/2.-RICaethk;
+  par[1]=RICHDB::rad_length/2.-RICaethk;
+  par[2]=RICHDB::rad_height/2;
   coo[0]=0;
   coo[1]=0;
   coo[2]=0;
@@ -82,9 +82,11 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 {
   AMSNode *dummy;
   AMSgvolume *solid_lg;
-  geant par[11],coo[3],fcoo[3],fpar[11];
+  geant par[13],coo[3],fcoo[3],fpar[11];
   number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz}
-  number nrma[3][3]={0,-1,0,1,0,0,0,0,1}; // Rotated 90 degrees
+  number nrm90[3][3]={0,-1,0,1,0,0,0,0,1};
+  number nrm180[3][3]={-1,0,0,0,-1,0,0,0,1};
+  number nrm270[3][3]={0,1,0,-1,0,0,0,0,1};
   const integer rel=1; 
   integer flag=1;
   
@@ -96,12 +98,13 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   par[1]=360;
   par[2]=4;
   par[3]=2;
-  par[4]=-RICshiheight/2; //NEW!
-  par[5]=(RICGEOM.light_guides_length/2-RICpmtshield);
-  par[6]=RICGEOM.light_guides_length/2;
+  par[4]=-RICshiheight/2;
+  par[5]=PMT_electronics/2.;
+  par[6]=par[5]+RICpmtshield/2.;
   par[7]=RICshiheight/2;
-  par[8]=(RICGEOM.light_guides_length/2-RICpmtshield);
-  par[9]=RICGEOM.light_guides_length/2;
+  par[8]=par[5];
+  par[9]=par[6];
+
 
   coo[0]=0;
   coo[1]=0;
@@ -127,13 +130,13 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 
 // Electronics
 
-  par[0]=RICGEOM.light_guides_length/2-RICpmtshield;
-  par[1]=RICGEOM.light_guides_length/2-RICpmtshield;
+  par[0]=PMT_electronics/2.;
+  par[1]=PMT_electronics/2.;
   par[2]=(RICpmtlength-RICotherthk)/2; 
   
   coo[0]=0;
   coo[1]=0;
-  coo[2]=RICHDB::elec_pos();
+  coo[2]=-RICHDB::elec_pos();
   
   
   dummy=lig->add(new AMSgvolume("RICH GLUE", // Good approx. media
@@ -160,7 +163,7 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   par[2]=RICotherthk/2; // Thickness: 1mm
   coo[0]=0;
   coo[1]=0;
-  coo[2]=RICHDB::cato_pos();
+  coo[2]=-RICHDB::cato_pos();
 
   dummy=lig->add(new AMSgvolume("RICH PMTS",
 				0,
@@ -186,25 +189,32 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
 
   coo[0]=0;
   coo[1]=0;
-  coo[2]=RICHDB::lg_pos();
+  coo[2]=-RICHDB::lg_pos();
 
   par[0]=45.;
   par[1]=360.;
   par[2]=4.;
-  par[3]=2.;
-  par[4]=-RICGEOM.light_guides_height/2.;
+  par[3]=3.;
+  par[4]=-RICHDB::lg_height/2.;
   par[5]=0.;
-  par[6]=RICcatolength/2.;
-  par[7]=RICGEOM.light_guides_height/2.;
+  par[6]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;
+  par[7]=RICHDB::lg_height/2.;
   par[8]=0.;
-  par[9]=RICGEOM.light_guides_length/2.;
+  par[9]=RICHDB::lg_length/2.;
+
+
+
+  par[10]=RICHDB::lg_height/2.+RICpmtfoil;
+  par[11]=0;
+  par[12]=RICHDB::lg_length/2.;
 
   solid_lg=(AMSgvolume*)lig->add(new AMSgvolume("RICH SOLG",
 				   0,
 				   "SLGC",
 				   "PGON",
 				   par,
-				   10,
+				   //10,
+                                   13,
 				   coo,
 				   nrm,
 				   "ONLY",
@@ -216,597 +226,262 @@ void amsgeom::Put_pmt(AMSgvolume * lig,integer copia)
   solid_lg->Smartless()=-2;
 #endif
 
-  coo[2]=0.;
-  
-  par[0]=RICGEOM.light_guides_height/2;
+
+  par[0]=RICHDB::lg_height/2.;
   par[1]=RICHDB::lg_mirror_angle(1);
   par[2]=90;
-  par[3]=RIClgthk/2;
-  par[4]=RICcatolength/2;
-  par[5]=RICcatolength/2;
+  par[3]=RIClgthk_bot/2.;
+  par[4]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;
+  par[5]=par[4];
   par[6]=0;
-  par[7]=RIClgthk/2;
-  par[8]=RICGEOM.light_guides_length/2;
-  par[9]=RICGEOM.light_guides_length/2;
+  par[7]=RICepsln;  // This is a patch for G4
+//  par[7]=0.;
+  par[8]=RICHDB::lg_length/2.;
+  par[9]=par[8];
   par[10]=0;
-  
-  coo[1]=RICHDB::lg_mirror_pos(1);
-  dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				     0,
-				     "MIRA",
-				     "TRAP",
-				     par,
-				     11,
-				     coo,
-				     nrm,
-				     "ONLY", // This seems to be safe
-				     0,
-				     2*copia-1,
-				     rel));
 
-   
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
+  coo[0]=0;
+  coo[1]=RICHDB::lg_mirror_pos(1);
+  coo[2]=0;
   
-  // Trick to avoid optical contact
-  for(integer i=0;i<11;i++)fpar[i]=par[i];
-  for(integer i=0;i<3;i++) fcoo[i]=coo[i];
-  
-  fpar[3]=RICepsln/2.;
-  fpar[7]=fpar[3];
-  fcoo[1]-=RIClgthk/2.+RICepsln/2.;
+
 
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     0,
-				     "MIA0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrm,
-				     "ONLY", // This seems to be safe
-				     0,
-				     2*copia-1,
-				     rel));
-  
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-  
-  coo[0]=-coo[1];
-  coo[1]=0;
-  
-  dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				     RICnrot,
-				     "MIRA",
-				     "TRAP",
-				     par,
-				     11,
-				     coo,
-				     nrma,
-				     "ONLY",
-				     0,
-				     2*copia,
-				     rel));
-  
+                                     0,
+                                     "MIRA",
+                                     "TRAP",
+                                     par,
+                                     11, 
+                                     coo,
+                                     nrm,
+                                     "ONLY", // This seems to be safe
+                                     0,
+                                     4*copia-3,
+                                     rel));
+
 #ifdef __G4AMS__
   ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif  
-  
-  fcoo[0]=coo[0]+RIClgthk/2.+RICepsln/2.;
-  fcoo[1]=0;
+
+  coo[0]=-RICHDB::lg_mirror_pos(1);
+  coo[1]=0;
   
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     RICnrot,
-				     "MIA0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrma,
-				     "ONLY", // This seems to be safe
-				     0,
-				     2*copia,
-				     rel));
+                                     RICnrot,     
+                                     "MIRA",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,
+                                     nrm90,
+                                     "ONLY", // This seems to be safe
+                                     0,
+                                     4*copia-2,
+                                     rel));
   
+ 
 #ifdef __G4AMS__
   ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif   
+#endif
+
+
+  coo[0]=0;
+  coo[1]=-RICHDB::lg_mirror_pos(1); 
+                                   
+  dummy=solid_lg->add(new AMSgvolume("VACUUM",
+                                     RICnrot+2,
+                                     "MIRA",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,   
+                                     nrm180, 
+                                     "ONLY", // This seems to be safe
+                                     0,  
+                                     4*copia-1,
+                                     rel));
+                                     
+                                     
+
+#ifdef __G4AMS__
+  ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
+
+
+  coo[0]=RICHDB::lg_mirror_pos(1);
+  coo[1]=0;
+
+  dummy=solid_lg->add(new AMSgvolume("VACUUM",
+                                     RICnrot+3,
+                                     "MIRA",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,
+                                     nrm270,
+                                     "ONLY", // This seems to be safe
+                                     0,
+                                     4*copia,
+                                     rel));
+                                        
+                                     
+                                     
+#ifdef __G4AMS__
+  ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
   
-  par[0]=RICGEOM.light_guides_height/2;
+
+  par[0]=RICHDB::lg_height/2.;
   par[1]=RICHDB::lg_mirror_angle(2);
-  par[2]=90;
-  par[3]=RIClgthk/2;
-  par[4]=RICcatolength/2;
-  par[5]=RICcatolength/2;
+  par[2]=90;                         
+  par[3]=RIClgthk_bot/2.;
+  par[4]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;
+  par[5]=par[4];                     
   par[6]=0;
-  par[7]=RIClgthk/2;
-  par[8]=RICGEOM.light_guides_length/2;
-  par[9]=RICGEOM.light_guides_length/2;
-  par[10]=0;
+  par[7]=RIClgthk_top/2.;                          
+  par[8]=RICHDB::lg_length/2.;
+  par[9]=par[8];
+  par[10]=0;                         
   
   coo[0]=0;
   coo[1]=RICHDB::lg_mirror_pos(2);
-  
-  
-  dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				     0,
-				     "MIRB",
-				     "TRAP",
-				     par,
-				     11,
-				     coo,
-				     nrm,  
-				     "ONLY",
-				     0,
-				     2*copia-1,
-				     rel));
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif   
-  
-  for(integer i=0;i<11;i++)fpar[i]=par[i];
-  for(integer i=0;i<3;i++) fcoo[i]=coo[i];
-  
-  fpar[3]=RICepsln/2.;
-  fpar[7]=fpar[3];
-  fcoo[1]-=RIClgthk/2.+RICepsln/2.;
-  
+  coo[2]=0;
+
+
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     0,
-				     "MIB0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrm,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia-3,
-				     rel));
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-  
-  fcoo[1]=coo[1]+RIClgthk/2.+RICepsln/2.;
-  
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     0,
-				     "MIB0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrm,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia-2,
-				     rel));
-  
+                                     0,     
+                                     "MIRB",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,
+                                     nrm,
+                                     "ONLY", // This seems to be safe
+                                     0,
+                                     4*copia-3,
+                                     rel));
   
 #ifdef __G4AMS__
   ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
+
+  coo[0]=-RICHDB::lg_mirror_pos(2);
+  coo[1]=0;                          
+
+  dummy=solid_lg->add(new AMSgvolume("VACUUM",
+                                     RICnrot,
+                                     "MIRB",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,
+                                     nrm90, 
+                                     "ONLY", // This seems to be safe
+                                     0,  
+                                     4*copia-2,
+                                     rel));
+
   
-  coo[0]=-coo[1];
+                                       
+#ifdef __G4AMS__
+  ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
+
+  coo[0]=0;
+  coo[1]=-RICHDB::lg_mirror_pos(2);  
+
+  dummy=solid_lg->add(new AMSgvolume("VACUUM",
+                                     RICnrot+2,
+                                     "MIRB",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,   
+                                     nrm180,
+                                     "ONLY", // This seems to be safe
+                                     0, 
+                                     4*copia-1,
+                                     rel));
+                                     
+                                       
+                                     
+#ifdef __G4AMS__
+  ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
+
+  coo[0]=RICHDB::lg_mirror_pos(2);
   coo[1]=0;
   
-  dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				     RICnrot,
-				     "MIRB",
-				     "TRAP",
-				     par,
-				     11,
-				     coo,
-				     nrma,  // Rotated 90 degrees
-				     "ONLY",
-				     0,
-				     2*copia,
-				     rel));
-  
+  dummy=solid_lg->add(new AMSgvolume("VACUUM",
+                                     RICnrot+3,
+                                     "MIRB",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,
+                                     nrm270,
+                                     "ONLY", // This seems to be safe
+                                     0, 
+                                     4*copia,
+                                     rel));   
+                                       
+                                     
+                                     
 #ifdef __G4AMS__
   ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
-  
-  fcoo[0]=coo[0]+RIClgthk/2.+RICepsln/2.;
-  fcoo[1]=0;
-  
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     RICnrot,
-				     "MIB0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrma,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia-1,
-				     rel));
-  
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif   
-  
-  fcoo[0]=coo[0]-RIClgthk/2.-RICepsln/2.;
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     RICnrot,
-				     "MIB0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrma,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia,
-				     rel));
-  
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif    
-  
-  par[0]=RICGEOM.light_guides_height/2;;
-  par[1]=0;
+
+
+  par[0]=RICHDB::lg_height/2.;
+  par[1]=0.;
   par[2]=90;
-  par[3]=RIClgthk/2;
-  par[4]=RICcatolength/2;
-  par[5]=RICcatolength/2;
-  par[6]=0;
-  par[7]=RIClgthk/2;
-  par[8]=RICGEOM.light_guides_length/2;
-  par[9]=RICGEOM.light_guides_length/2;
+  par[3]=RIClgthk_bot/2.;
+  par[4]=RICHDB::lg_bottom_length/2.+RIClgthk_bot;
+  par[5]=par[4];
+  par[6]=0;                          
+  par[7]=RIClgthk_top/2.;
+  par[8]=RICHDB::lg_length/2.;
+  par[9]=par[8];                     
   par[10]=0;
-  
+                                     
   coo[0]=0;
   coo[1]=0;
-  
-  
-  dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				     0,
-				     "MIRC",
-				     "TRAP",
-				     par,
-				     11,
-				     coo,
-				     nrm,  // Rotated 90 degrees
-				     "ONLY",
-				     0,
-				     2*copia-1,
-				     rel));
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif   
-  
-  for(integer i=0;i<11;i++)fpar[i]=par[i];
-  for(integer i=0;i<3;i++) fcoo[i]=coo[i];
-  
-  fpar[3]=RICepsln/2.;
-  fpar[7]=fpar[3];
+  coo[2]=0;
 
-  fcoo[1]-=RIClgthk/2.+RICepsln/2.;
-  
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     0,
-				     "MIC0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrm,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia-3,
-				     rel));
-
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-  fcoo[1]=coo[0]+RIClgthk/2.+RICepsln/2.;
-  
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     0,
-				     "MIC0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrm,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia-2,
-				     rel));
-
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-  dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				     RICnrot,
-				     "MIRC",
-				     "TRAP",
-				     par,
-				     11,
-				     coo,
-				     nrma,  // Rotated 90 degrees
-				     "ONLY",
-				     0,
-				     2*copia,
-				     rel));
- 
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-  
-  fcoo[0]=coo[0]+RIClgthk/2.+RICepsln/2.;
-  fcoo[1]=0;
-  
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     RICnrot,
-				     "MIC0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrma,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia-1,
-				     rel));
- 
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-  fcoo[0]=coo[0]-RIClgthk/2.-RICepsln/2.;
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     RICnrot,
-				     "MIC0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrma,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia,
-				     rel));
- 
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-    par[0]=RICGEOM.light_guides_height/2;
-    par[1]=RICHDB::lg_mirror_angle(1);
-    par[2]=270;
-    par[3]=RIClgthk/2;
-    par[4]=RICcatolength/2;
-    par[5]=RICcatolength/2;
-    par[6]=0;
-    par[7]=RIClgthk/2;
-    par[8]=RICGEOM.light_guides_length/2;
-    par[9]=RICGEOM.light_guides_length/2;
-    par[10]=0;
-    
-    coo[0]=0;
-    coo[1]=-RICHDB::lg_mirror_pos(1);
-
-    dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				       0,
-				       "MIRD",
-				       "TRAP",
-				       par,
-				       11,
-				       coo,
-				       nrm,
-				       "ONLY",
-				       0,
-				       2*copia-1,
-				       rel));
-#ifdef __G4AMS__
-    ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-     
-  for(integer i=0;i<11;i++)fpar[i]=par[i];
-  for(integer i=0;i<3;i++) fcoo[i]=coo[i];
-  
-  fpar[3]=RICepsln/2.;
-  fpar[7]=fpar[3];
-  
-  fcoo[1]+=RIClgthk/2.+RICepsln/2.;
 
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     0,
-				     "MID0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrm,
-				     "ONLY", // This seems to be safe
-				     0,
-				     2*copia-1,
-				     rel));
+                                     0,
+                                     "MIRC",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,
+                                     nrm,
+                                     "ONLY", // This seems to be safe
+                                     0,
+                                     4*copia-3,
+                                     rel));
 
 #ifdef __G4AMS__
   ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
-
-    coo[0]=-coo[1];
-    coo[1]=0;
-
-    dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				       RICnrot,
-				       "MIRD",
-				       "TRAP",
-				       par,
-				       11,
-				       coo,
-				       nrma,
-				       "ONLY",
-				       0,
-				       2*copia,
-				       rel));
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-     fcoo[0]=coo[0]-RIClgthk/2.+RICepsln/2.;
-     fcoo[1]=coo[1];
-     
-     dummy=solid_lg->add(new AMSgvolume("VACUUM",
-					RICnrot,
-					"MID0",
-					"TRAP",
-					fpar,
-					11,
-					fcoo,
-				     nrma,
-					"ONLY", // This seems to be safe
-					0,
-					2*copia,
-					rel));
-
-
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-    par[0]=RICGEOM.light_guides_height/2;;
-    par[1]=RICHDB::lg_mirror_angle(2);
-    par[2]=270;
-    par[3]=RIClgthk/2;
-    par[4]=RICcatolength/2;
-    par[5]=RICcatolength/2;
-    par[6]=0;
-    par[7]=RIClgthk/2;
-    par[8]=RICGEOM.light_guides_length/2;
-    par[9]=RICGEOM.light_guides_length/2;
-    par[10]=0;
-    
-    coo[0]=0;
-    coo[1]=-RICHDB::lg_mirror_pos(2);
-	  
-
-    dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				       0,
-				       "MIRE",
-				       "TRAP",
-				       par,
-				       11,
-				       coo,
-				       nrm,  // Rotated 90 degrees
-				       "ONLY",
-				       0,
-				       2*copia-1,
-				       rel));
-#ifdef __G4AMS__
-     ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif    
-
-  for(integer i=0;i<11;i++)fpar[i]=par[i];
-  for(integer i=0;i<3;i++) fcoo[i]=coo[i];
-  
-  fpar[3]=RICepsln/2.;
-  fpar[7]=fpar[3];
-  
-  fcoo[1]+=RIClgthk/2.+RICepsln/2.;
 
   dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     0,
-				     "MIE0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrm,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia-3,
-				     rel));
+                                     RICnrot,
+                                     "MIRC",
+                                     "TRAP",
+                                     par,
+                                     11,
+                                     coo,
+                                     nrm90,
+                                     "ONLY", // This seems to be safe
+                                     0,
+                                     4*copia-2,
+                                     rel));
 
 #ifdef __G4AMS__
   ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
-
-  fcoo[1]=coo[1]-RIClgthk/2.-RICepsln/2.;
-
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     0,
-				     "MIE0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrm,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia-2,
-				     rel));
-
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-  coo[0]=-coo[1];
-  coo[1]=0;
-  
-  dummy=solid_lg->add(new AMSgvolume("RICH WALLS",
-				     RICnrot,
-				     "MIRE",
-				     "TRAP",
-				       par,
-				     11,
-				     coo,
-				     nrma,  // Rotated 90 degrees
-				     "ONLY",
-				     0,
-				     2*copia,
-				     rel));
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif    
-
-  fcoo[1]=0;fcoo[0]=coo[0]-RIClgthk/2.-RICepsln/2.;
-
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     RICnrot,
-				     "MIE0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrma,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia-1,
-				     rel));
-
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
-  fcoo[0]=coo[0]+RIClgthk/2.+RICepsln/2.;
-
-  dummy=solid_lg->add(new AMSgvolume("VACUUM",
-				     RICnrot,
-				     "MIE0",
-				     "TRAP",
-				     fpar,
-				     11,
-				     fcoo,
-				     nrma,
-				     "ONLY", // This seems to be safe
-				     0,
-				     4*copia,
-				     rel));
-
-#ifdef __G4AMS__
-  ((AMSgvolume*)dummy)->Smartless()=-2;
-#endif
-
 }
 
 
@@ -825,55 +500,14 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   // Write the selected geometry
 
   cout <<"RICH geometry version dated:"<<VERSION<<endl;
-#ifdef __AMSDEBUG__
-  //  cout << "RICH geometry according to December(99) meeting" <<endl;
 
-  cout << "************** RICH GEOMETRY ***************" << endl;
-  cout << "Top radius:" << RICGEOM.top_radius << endl;
-  cout << "Bottom radius:" << RICGEOM.bottom_radius << endl;
-  cout << "Hole radius:" << RICGEOM.hole_radius << endl;
-  cout << "Height:" << RICGEOM.height << endl;
-  //  cout << "Inner mirror height:" << RICGEOM.inner_mirror_height << endl;
-  cout << "Radiator radius:" << RICGEOM.radiator_radius << endl;
-  cout << "Radiator height:" << RICGEOM.radiator_height << endl;
-  cout << "Radiator tile size:" << RICGEOM.radiator_box_length << endl;
-  cout << "Light guides height:" << RICGEOM.light_guides_height << endl;
-  cout << "Light guides tile size:" << RICGEOM.light_guides_length <<endl;
-  cout << "******************************************" << endl;
-#endif
-
-
-  /// Define the RICH volume: fixed
-
-
-  //  par[0]=0;
-  //  par[1]=90;
-  //  par[2]=RICHDB::total_height()/2;
-  //  coo[0]=0;
-  //  coo[1]=0;
-  //  coo[2]=RICradpos-RICHDB::total_height()/2;
-
-  //  rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("VACUUM",
-  //							   0,
-  //							   "RICH",
-  //							   "TUBE",
-  //							   par,
-  //							   3,
-  //							   coo,
-  //							   nrm,
-  //							   "ONLY",
-  //							   0,
-  //							   1,
-  //							   rel)));
-  
-
-  // This is provisional
+  // This is not so provisional
 
 
   par[0]=RICHDB::total_height()/2.;
   par[1]=0.;
   par[2]=RICHDB::total_height()*(RICHDB::bottom_radius-RICHDB::top_radius)/
-    RICHDB::height+RICHDB::top_radius+1.;
+    RICHDB::rich_height+RICHDB::top_radius+1.;
   par[3]=0.;
   par[4]=RICHDB::top_radius+1.;
 
@@ -898,57 +532,117 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 #endif
 
 
-  ////////// Mirror
+  ////////// Mirror: WARNING Need to be update
 
-  par[0]=RICGEOM.height/2;
-  par[1]=RICGEOM.bottom_radius;
-  par[2]=par[1]+RICmithk;
-  par[3]=RICGEOM.top_radius; 
-  par[4]=par[3]+RICmithk;
+//  par[0]=RICGEOM.height/2;
+//  par[1]=RICGEOM.bottom_radius;
+//  par[2]=par[1]+RICmithk;
+//  par[3]=RICGEOM.top_radius; 
+//  par[4]=par[3]+RICmithk;
 
-  coo[2]=RICHDB::mirror_pos();
 
-  dummy=rich->add(new AMSgvolume("RICH MIRROR",  // Material
-				 0,          // No rotation
-				 "OMIR",     // Name 
-				 "CONE",    // Shape
-				 par,       // Geant parameters
-				 5,         // # of parameters
-				 coo,       // coordinates 
-				 nrm,       // Matrix of normals
-				 "ONLY",    
-				 0,
-				 1,
-				 rel));
+  par[0]=RICHDB::rich_height/2.;
+  par[3]=RICHDB::top_radius;
+  par[4]=RICHDB::top_radius+RICmithk+RICepsln;
+  par[1]=RICHDB::bottom_radius;
+  par[2]=RICHDB::bottom_radius+RICmithk+RICepsln;
+
+
+  coo[2]=RICHDB::total_height()/2.-RICHDB::mirror_pos();
+
+  AMSgvolume *mirror=(AMSgvolume *)rich->add(new AMSgvolume("VACUUM",  // Material
+				           0,          // No rotation
+				           "OMIR",     // Name 
+				           "CONE",    // Shape
+				           par,       // Geant parameters
+				           5,         // # of parameters
+				           coo,       // coordinates 
+				           nrm,       // Matrix of normals
+				           "ONLY",    
+				           0,
+				           1,
+				           rel));
   
-  
+  par[3]=RICHDB::top_radius+RICmithk;
+  par[4]=RICHDB::top_radius+RICmithk+RICepsln;
+  par[1]=RICHDB::bottom_radius;
+  par[2]=RICHDB::bottom_radius+RICmithk+RICepsln;
 
+  coo[2]=0;
+
+  mirror->add(new AMSgvolume("RICH CARBON",
+                             0,          // No rotation
+                             "OMI0",     // Name
+                             "CONE",    // Shape
+                             par,       // Geant parameters
+                             5,         // # of parameters
+                             coo,       // coordinates
+                             nrm,       // Matrix of normals
+                             "ONLY",
+                             0,
+                             1,
+                             rel));
+
+  
+  par[3]=RICHDB::top_radius;
+  par[4]=RICHDB::top_radius+RICmithk;
+  par[1]=RICHDB::bottom_radius;
+  par[2]=RICHDB::bottom_radius+RICmithk;
+
+    
+  mirror->add(new AMSgvolume("RICH MIRROR",
+                             0,          // No rotation
+                             "OMI1",     // Name
+                             "CONE",    // Shape
+                             par,       // Geant parameters
+                             5,         // # of parameters
+                             coo,       // coordinates
+                             nrm,       // Matrix of normals  
+                             "ONLY",
+                             0,
+                             1,
+                             rel));
+
+
+  par[0]=0.;
+  par[1]=RICHDB::top_radius;
+  par[2]=RICHDB::foil_height/2;
+  
+  coo[0]=0;coo[1]=0;coo[2]=RICHDB::total_height()/2.-RICHDB::rad_height-par[2];
+
+  rich->add(new AMSgvolume("RICH SOLG",
+                           0,
+                           "FOIL",
+                           "TUBE",
+                           par,3,coo,nrm,"ONLY",0,1,rel));
 
 
 
   //// Radiator
 
 
-  geant xedge=RICGEOM.radiator_box_length/2,
-    yedge=RICGEOM.radiator_box_length/2,
+  geant xedge=RICHDB::rad_length/2.,yedge=RICHDB::rad_length/2., 
     lg,
     cl;
   integer copia=1;
 
-  while(yedge-RICGEOM.radiator_box_length/2<RICGEOM.radiator_radius){
-    cl=SQR(xedge-RICGEOM.radiator_box_length/2)+SQR(yedge-RICGEOM.radiator_box_length/2);
 
-    coo[2]=RICHDB::rad_pos();
+  while(yedge-RICHDB::rad_length/2<RICHDB::rad_radius){
+    cl=SQR(xedge-RICHDB::rad_length/2)+SQR(yedge-RICHDB::rad_length/2);
+
+    coo[2]=RICHDB::total_height()/2-RICHDB::rad_pos();
       
-    if(cl<SQR(RICGEOM.radiator_radius)){
+    if(cl<SQR(RICHDB::rad_radius)){
       for(int i=0;i<4;i++){
 	
 	coo[0]=xedge*(1-2*(i%2));
 	coo[1]=yedge*(1-2*(i>1));
 	
-	par[0]=RICGEOM.radiator_box_length/2;
-	par[1]=RICGEOM.radiator_box_length/2;
-	par[2]=RICGEOM.radiator_height/2;
+
+        par[0]=RICHDB::rad_length/2;
+        par[1]=RICHDB::rad_length/2;
+        par[2]=RICHDB::rad_height/2;
+
 	
 	rad=rich->add(new AMSgvolume("RICH CARBON",
 				     0,
@@ -972,9 +666,10 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 
       }
     
-    xedge+=RICGEOM.radiator_box_length;}else{
-      yedge+=RICGEOM.radiator_box_length;
-      xedge=RICGEOM.radiator_box_length/2;
+
+     xedge+=RICHDB::rad_length;}else{
+      yedge+=RICHDB::rad_length;
+      xedge=RICHDB::rad_length/2;
     }
   }
   
@@ -991,22 +686,23 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 
 
   /// PMT support structure
+  // WARNING: to add the support bars
 
   coo[0]=0;
   coo[1]=0;
-  coo[2]=RICHDB::pmt_pos();  
+  coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos();  
 
   par[0]=45;
   par[1]=360;
   par[2]=4;
   par[3]=2;
-  par[4]=-((RICpmtlength+RICeleclength)/2+RICGEOM.light_guides_height/2);
-  par[5]=RICGEOM.hole_radius;
-  par[6]=RICGEOM.hole_radius+RICpmtsupport;
-  par[7]=((RICpmtlength+RICeleclength)/2+RICGEOM.light_guides_height/2);
-  par[8]=RICGEOM.hole_radius;
-  par[9]=RICGEOM.hole_radius+RICpmtsupport;
-   
+  par[4]=-((RICpmtlength+RICeleclength)/2+RICHDB::lg_height/2);
+  par[5]=RICHDB::hole_radius;
+  par[6]=RICHDB::hole_radius+RICpmtsupport;
+  par[7]=((RICpmtlength+RICeleclength)/2+RICHDB::lg_height/2);
+  par[8]=RICHDB::hole_radius;
+  par[9]=RICHDB::hole_radius+RICpmtsupport;
+
 
   dummy=rich->add(new AMSgvolume("RICH CARBON",
 				 0,
@@ -1022,21 +718,20 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				 rel));
   
 
-  par[0]=(RICGEOM.bottom_radius-RICGEOM.hole_radius-RICpmtsupport)/2;
+  par[0]=(RICHDB::bottom_radius-RICHDB::hole_radius-RICpmtsupport)/2;
   par[1]=RICpmtsupport/2;
-  par[2]=(RICpmtlength+RICeleclength)/2+RICGEOM.light_guides_height/2;
-  
+  par[2]=(RICpmtlength+RICeleclength)/2+RICHDB::lg_height/2;
 
-//NEW!
 
-geant xpos,ypos;
+  geant xpos,ypos;
 
-  xpos=RICGEOM.bottom_radius/2+RICGEOM.hole_radius/2+RICpmtsupport/2;
-  ypos=RICGEOM.hole_radius+RICpmtsupport/2.;
+  xpos=RICHDB::bottom_radius/2+RICHDB::hole_radius/2+RICpmtsupport/2;
+  ypos=RICHDB::hole_radius+RICpmtsupport/2.;
+
 
   coo[0]=xpos;
   coo[1]=ypos;
-  coo[2]=RICHDB::pmt_pos();
+  coo[2]=RICHDB::total_height()/2-RICHDB::pmt_pos();
 
   dummy=rich->add(new AMSgvolume("RICH CARBON",
 				 0,
@@ -1162,17 +857,18 @@ geant xpos,ypos;
 
   AMSRICHIdGeom pmts;
 
-  par[0]=RICGEOM.light_guides_length/2;
-  par[1]=RICGEOM.light_guides_length/2;
-  par[2]=RICHDB::pmtb_height()/2;
+  par[0]=RICHDB::lg_length>PMT_electronics+RICpmtshield?
+                           RICHDB::lg_length/2:PMT_electronics/2+RICpmtshield/2;
+  par[1]=par[0];
+  par[2]=RICHDB::pmtb_height()/2;  
 
   for(int copia=0;copia<pmts.getpmtnb();copia++){
     coo[0]=AMSRICHIdGeom::pmt_pos(copia,0);
     coo[1]=AMSRICHIdGeom::pmt_pos(copia,1);
-    coo[2]=AMSRICHIdGeom::pmt_pos(copia,2);
+    coo[2]=RICHDB::total_height()/2+AMSRICHIdGeom::pmt_pos(copia,2);
 
 
-    lig=rich->add(new AMSgvolume("VACUUM",
+    lig=rich->add(new AMSgvolume("RICH VACUUM",
 				 0,
 				 "PMTB",
 				 "BOX",

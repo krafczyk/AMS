@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.70 2002/01/17 14:33:44 choutko Exp $
+//  $Id: gmat.C,v 1.71 2002/02/27 16:19:54 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -617,16 +617,18 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 
-  geant xustep=200.;
+//  geant xustep=200.;
+  geant xustep=800.;
   for(iw=0;iw<RICHDB::entries;iw++){
-    xustep=xustep+(800.-200.)/geant(RICHDB::entries);
+//    xustep=xustep+(800.-200.)/geant(RICHDB::entries);
+    xustep=xustep-(800.-200.)/geant(RICHDB::entries);    
     p[iw]=2*3.1415926*197.327e-9/xustep;
   }
 
 
 // RICH MOTHER VOLUME
 
-//  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUM",1));
+  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUM",1));  // absorber
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1e5;

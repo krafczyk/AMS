@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.28 2001/12/10 15:25:10 mdelgado Exp $
+//  $Id: richrec.C,v 1.29 2002/02/27 16:19:55 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -105,14 +105,14 @@ void AMSRichRawEvent::_writeEl(){
   cluster->x[cluster->Nhits]=channel.x();
   cluster->y[cluster->Nhits]=channel.y();
 
-#ifdef __AMSDEBUG__
-  cout<<"Channel "<<_channel<<"/"<<channel.getchannel()<<endl;
-  if(cluster->x[cluster->Nhits]!=RICHDB::x(_channel) ||
-     cluster->y[cluster->Nhits]!=RICHDB::y(_channel))
-    cout<<">>>>>>>>>>> Error in channel"<<channel.getchannel()<<" position "<<
-      cluster->x[cluster->Nhits]<<" should be "<<RICHDB::x(_channel) << endl<<
-      cluster->y[cluster->Nhits]<<" should be "<<RICHDB::y(_channel) << endl;
-#endif
+//#ifdef __AMSDEBUG__
+//  cout<<"Channel "<<_channel<<"/"<<channel.getchannel()<<endl;
+//  if(cluster->x[cluster->Nhits]!=RICHDB::x(_channel) ||
+//     cluster->y[cluster->Nhits]!=RICHDB::y(_channel))
+//    cout<<">>>>>>>>>>> Error in channel"<<channel.getchannel()<<" position "<<
+//      cluster->x[cluster->Nhits]<<" should be "<<RICHDB::x(_channel) << endl<<
+//      cluster->y[cluster->Nhits]<<" should be "<<RICHDB::y(_channel) << endl;
+//#endif
 
   cluster->Nhits++;
 
@@ -129,13 +129,19 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 				  geant *betas){
 #endif
   // Reconstruct the beta values for this hit. Assumes direction as unitary
-  static const geant z=RICradpos-RICHDB::rad_height-RICHDB::height;
+  static const geant z=RICradpos-RICHDB::rad_height-RICHDB::foil_height-
+                       RICradmirgap-RIClgdmirgap-RICHDB::rich_height;
   AMSRICHIdGeom channel(_channel);
   //  geant x=RICHDB::x(_channel);  // TODO:Get them from AMSRICHIdGeom
   //  geant y=RICHDB::y(_channel);  // TODO:Get them from AMSRICHIdGeom
 
   geant x=channel.x();
   geant y=channel.y();
+
+#ifdef __AMSDEBUG__
+  cout <<" Z by hand:"<<z<<"    according to richid:"<<channel.z()<<endl;
+#endif
+
 
   betas[0]=0;
   betas[1]=0;
@@ -164,7 +170,8 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   geant R=sqrt((origin[0]-x)*(origin[0]-x)+(origin[1]-y)*(origin[1]-y));
   geant theta=atan2(R,fabs(origin[2]-z));
   geant h=origin[2]-RICradpos+RICHDB::rad_height;
-  static const geant H=RICHDB::height;
+  static const geant H=RICHDB::rich_height+RICHDB::foil_height+
+                       RICradmirgap+RIClgdmirgap;
   static const geant n=RICHDB::rad_index;
   
   geant u=fabs(sin(theta)/n);
@@ -232,8 +239,9 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 
 
 integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
-  geant false_height=RICHDB::bottom_radius*RICHDB::height/
-    (RICHDB::bottom_radius-RICHDB::top_radius);
+  geant false_height=RICHDB::bottom_radius*
+                     (RICHDB::rich_height+RICHDB::foil_height+RIClgdmirgap
+                      +RICradmirgap)/(RICHDB::bottom_radius-RICHDB::top_radius);
   geant zk=(RICHDB::bottom_radius/false_height)*
     (RICHDB::bottom_radius/false_height);
   geant c2=zk/(1+zk);
@@ -250,7 +258,9 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   //  geant zf=RICradpos-RICHDB::rad_height-false_height;
   geant x=origin[0],y=origin[1],
     //    z=origin[3]-false_height+RICHDB::height;
-    z=origin[3]-RICradpos+RICHDB::rad_height-false_height+RICHDB::height;
+    z=origin[3]-RICradpos+RICHDB::rad_height-false_height+
+                (RICHDB::rich_height+RICHDB::foil_height
+                 +RIClgdmirgap+RICradmirgap);
 
 
   AMSPoint initial(x,y,z),final(xf,yf,zf);
@@ -310,7 +320,8 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
       (ref_point[good]).setp((ref_point[good])[0],
 			     (ref_point[good])[1],
 			     (ref_point[good])[2]+false_height-
-			     RICHDB::height-RICHDB::rad_height+RICradpos);
+                              RICHDB::rich_height+RICHDB::foil_height+RICradmirgap+
+                              RIClgdmirgap-RICHDB::rad_height+RICradpos);
       good++;
     }
 
@@ -432,11 +443,13 @@ void AMSRichRing::build(){
       
       geant A=(-2.81+13.5*(RICHDB::rad_index-1.)-18.*
 	       (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-	RICHDB::rad_height/RICHDB::height*40./2.;
+               RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+                                   RICradmirgap+RIClgdmirgap)*40./2.;
       
       geant B=(2.90-11.3*(RICHDB::rad_index-1.)+18.*
 	       (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-	RICHDB::rad_height/RICHDB::height*40./2.;
+	RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+                                   RICradmirgap+RIClgdmirgap)*40./2.;
       
       
       // Reconstruction threshold: maximum beta admited
@@ -711,11 +724,13 @@ void AMSRichRing::rebuild(AMSTrTrack *track){
       
       geant A=(-2.81+13.5*(RICHDB::rad_index-1.)-18.*
 	       (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-	RICHDB::rad_height/RICHDB::height*40./2.;
+	RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+                                   RICradmirgap+RIClgdmirgap)*40./2.;
       
       geant B=(2.90-11.3*(RICHDB::rad_index-1.)+18.*
 	       (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-	RICHDB::rad_height/RICHDB::height*40./2.;
+	RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+                                   RICradmirgap+RIClgdmirgap)*40./2.;
       
       
       // Reconstruction threshold: maximum beta admited
@@ -892,11 +907,13 @@ void AMSRichRing::_writeEl(){
 void AMSRichRing::CalcBetaError(){
   geant A=(-2.81+13.5*(RICHDB::rad_index-1.)-18.*
 	   (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-    RICHDB::rad_height/RICHDB::height*40./2.;
+    RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+                                   RICradmirgap+RIClgdmirgap)*40./2.;
       
   geant B=(2.90-11.3*(RICHDB::rad_index-1.)+18.*
 	   (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-    RICHDB::rad_height/RICHDB::height*40./2.;
+    RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+                                   RICradmirgap+RIClgdmirgap)*40./2.;
 
 
   _errorbeta=_used>0?

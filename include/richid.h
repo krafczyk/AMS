@@ -41,8 +41,11 @@ public:
     return *(_pmt_p[i]+pmt);
   }
 
-  inline integer getpmtnb(){return _npmts;}
-  inline integer getcratesnb(){return _ncrates;}
+  static inline integer getpmtnb(){return _npmts;}
+  static inline integer getcratesnb(){return _ncrates;}
+
+  static inline integer getpmtsincrate(int n){return (n<_ncrates && n>-1)?_npmts_crate[n]:0;}
+  static inline integer getfirstincrate(int n){return (n<_ncrates && n>-1)?_crate_pmt[n]:0;}
 
   static void Init(); // Init tables according to geometry
   
