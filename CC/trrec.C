@@ -2890,7 +2890,7 @@ void AMSTrTrack::_crHit(){
     for(int j=0;j<3;j++){
      _Hit[i][j]=(par[plane].getcoo())[j]+
       (par[plane].getmtx(j)).prod(_Pthit[i]->getlocHit());
-     _EHit[i][j]=(par[plane].getmtx(j)).prod(_Pthit[i]->getEHit());
+     _EHit[i][j]=fabs((par[plane].getmtx(j)).prod(_Pthit[i]->getEHit()));
 //     cout <<i<<" "<<j<<" "<<_Hit[i][j]<<" "<<_Pthit[i]->getHit()[j]<<endl; 
     }
    }
