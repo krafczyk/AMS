@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.230 2004/01/08 16:20:30 alexei Exp $
+# $Id: RemoteClient.pm,v 1.231 2004/01/09 12:45:30 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2439,6 +2439,12 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
      my @jobnames=();
      my @datasets=();
 
+     my $qtemplate  = undef;
+     my $qparticle  = undef;
+     my $qmomentumI = undef;
+     my $qmomentumA = undef;
+     my $qtrigger   = undef;
+
     if ($self->{q}->param("queryDB04") eq "DoQuery") {
 
       my $sql=undef;
@@ -2450,11 +2456,16 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
       if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
        $dataset = $q->param("QTempDataset");
        $dataset = trimblanks($dataset);
+       $qtemplate = $dataset;
+       $dataset =~ s/ /\%/g;
        $sql = "SELECT runs.run, jobs.jobname, runs.submit FROM runs, jobs, runcatalog  
-                   WHERE runs.jid=jobs.jid AND jobs.jobname LIKE '%$dataset%' AND runs.status='Completed'";
+                   WHERE runs.jid=jobs.jid AND 
+                        (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
+                        runs.status='Completed'";
 # check TriggerType
        if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
            my $trtype = trimblanks($q->param("QTrType"));
+           $qtrigger = $trtype;
            $sql=$sql." AND (runs.run = runcatalog.run AND runcatalog.trtype='$trtype') ";
        }
 #
@@ -2470,23 +2481,30 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
 #
 # Template 'Any', particle (dataset) is defined
 #
-      } elsif (defined $q->param("QPart") and $q->param("QPart") ne "Any")  {
+      } elsif (defined $q->param("QPart") and 
+                   ($q->param("QPart") ne "Any" and 
+                    $q->param("QPart") ne "ANY" and $q->param("QPart") ne "any"))  {
          $particle = $q->param("QPart");
+         $qparticle = $particle;
          $sql = " SELECT DID FROM Datasets WHERE NAME LIKE '$particle%'";
          my $r0=$self->{sqlserver}->Query($sql);
          if (defined $r0->[0][0]) {
           foreach my $r (@{$r0}){
            my $did = $r->[0];
-           $sql = "SELECT Runs.RUN, Jobs.JOBNAME, Runs.SUBMIT 
+           $sql = "SELECT Runs.Run, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
-                     WHERE Runs.JID=Jobs.JID AND Runs.Status='Completed' AND Jobs.DID=$did";
+                     WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
+                            Runs.run=runcatalog.run AND Runs.Status='Completed'";
 # check TriggerType
            if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
             my $trtype = trimblanks($q->param("QTrType"));
+            $qtrigger = $trtype;
             $sql=$sql." AND (runs.run = runcatalog.run AND runcatalog.trtype='$trtype') ";
            }
 # check Momentum
            if (defined $q->param("QMomI") and defined $q->param("QMomA")) {
+               $qmomentumI = $q->param("QMomI");
+               $qmomentumA = $q->param("QMomA");
                if ($q->param("QMomI") == 1 and $q->param("QMomA") == 10000) {
 #              do nothing - defaults
                } else {
@@ -2510,7 +2528,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
      } else {
         $sql = "SELECT Runs.RUN, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
-                     WHERE Runs.JID=Jobs.JID AND Runs.Status='Completed'";
+                     WHERE Runs.JID=Jobs.JID AND Runs.Status='Completed' and Runs.run = runcatalog.run ";
 # check TriggerType
            if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
             my $trtype = trimblanks($q->param("QTrType"));
@@ -2540,6 +2558,36 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
 # now check output
       if (defined $q->param("NTOUT")) {
        htmlTop();
+        $self->htmlTemplateTable("Selected Query Keys :");
+        if (defined $qparticle) {
+         print "<tr><td><b><font size=\"4\" color=\"tomato\"> Particle/dataset :";
+         print "</font></b></td>";
+         print " <td><b><font size=\"4\"> $qparticle </font></b></td></tr>";
+       }
+       if (defined $qtemplate) {
+        my @description = split /Total/,$qtemplate;
+        print "<tr><td><b><font size=\"4\" color=\"green\"> Template :";
+        print "</font></b></td>";
+        print "<td><b><font size=\"4\">$description[0] </font></b></td></tr>\n";
+       } else {
+        if (defined $qmomentumI and defined $qmomentumA) {
+         print "<tr><td><b><font size=\"4\" color=\"green\">Momentum ";
+         print "</font></b></td>";
+         print "<td><b><font size=\"4\">$qmomentumI ... $qmomentumA [GeV/c]";
+         print "</font></b></td></tr> \n";
+        }
+       }
+       if (defined $qtrigger) {
+        print "<tr><td><b><font size=\"4\" color=\"green\">Trigger Type ";
+        print "</font></b></td>";
+        print "<td><b><font size=\"4\">$qtrigger </font></b></td></tr>\n";
+       }
+      htmlTableEnd();
+      print "<BR><BR>\n";
+       if (defined $#runs) {
+           print "<LI><font size=5 color=tomato><i> Runs Found... </font></i> $#runs+1 </li>\n";
+           print "<BR><BR>\n";
+       }
 # ....print 'ALL' information
        if ($q->param("NTOUT") eq "ALL") {
               my $i = 0;
@@ -2752,7 +2800,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
        my $i=0;
        print "<option value=\"Any\"> ANY </option>\n";
        foreach my $template (@tempnam) {
-         print "<option value=\"$template\">$desc[$i] </option>\n";
+         my @description = split /Total/,$desc[$i];
+         print "<option value=\"$description[0]\">$description[0] </option>\n";
          $i++;
         }
         print "</select>\n";
@@ -2808,7 +2857,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      print "<tr><td><font size=\"-1\"<b>\n";
            print "</b>
-                   <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=\"ANY\" CHECKED>ANY<BR>\n";
+                   <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=\"Any\" CHECKED>ANY<BR>\n";
            print "</b></font></td></tr>\n";
            foreach my $dataset (@{$self->{DataSetsT}}){
              print "</b>
