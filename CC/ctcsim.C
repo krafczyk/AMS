@@ -109,7 +109,7 @@ void AMSCTCRawHit::_writeEl(){
   CTCCLN->Layer[CTCCLN->Nctcht]=_layer;
   CTCCLN->Column[CTCCLN->Nctcht]=_column;
   CTCCLN->Row[CTCCLN->Nctcht]=_row;
-  CTCCLN->Signal[CTCCLN->Nctcht]=_signal;
+  CTCCLN->Signal[CTCCLN->Nctcht]=float(_signal);
   CTCCLN->Nctcht++;
 
 }
