@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.1 2003/07/08 16:22:02 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.2 2003/07/09 08:42:46 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -88,8 +88,11 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       if(parm1/1000==7){
         gAMSDisplay->SetVisible(type, _pvis[parm1%100-1]->GetState());
         gAMSDisplay->GetNtuple()->Prepare(type);
-       if(type==kgeometry)gAMSDisplay->ResetView();
-       if(gAMSDisplay->DrawObject(type) || type==kusedonly || type==kgeometry)gAMSDisplay->SetView(gAMSDisplay->GetView());
+         EAMSR_View mview=gAMSDisplay->GetView();
+       if(type==kgeometry){
+           gAMSDisplay->ResetView();
+        }
+       if(gAMSDisplay->DrawObject(type) || type==kusedonly || type==kgeometry)gAMSDisplay->SetView(mview);
         gAMSDisplay->DrawTitle();
        }
       break;

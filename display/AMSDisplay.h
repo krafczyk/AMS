@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.8 2003/07/08 16:17:33 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.9 2003/07/09 08:42:46 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -89,7 +89,7 @@ private:
 
       
 public:
-
+               int Focus() const {return m_selected;}
                bool DrawGeometry()const {return d_geometry;}
                bool DrawUsedOnly()const {return d_usedonly;}
                bool DrawObject(EAMSType type)const;

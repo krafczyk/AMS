@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.19 2003/07/08 16:26:05 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.20 2003/07/09 08:42:45 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -278,14 +278,14 @@ void AMSDisplay::AddParticleInfo(char * obj){
    if(obj){
     static TLatex texto;
     texto.SetTextAlign(22);
-    texto.SetTextSize(0.35);
+    texto.SetTextSize(0.35/sqrt(m_scale));
     texto.DrawLatex(0.5,0.25,obj);
    }
 
 
    static TLatex text;
    text.SetTextAlign(22);
-   text.SetTextSize(0.4);
+   text.SetTextSize(0.4/sqrt(m_scale));
    text.DrawLatex(0.5,0.75,m_ntuple->pParticle(0)?m_ntuple->pParticle(0)->Info(0):atext);
 
    
@@ -703,7 +703,6 @@ void AMSDisplay::Init(){
 
 
 void AMSDisplay::SetFocus(int selected){
-  cout << " got selected "<<selected<<" "<<m_selected<<endl;
   if(m_selected!=selected){
    m_selected=selected;
    if(m_View==kTwoView && selected!=0){
@@ -711,6 +710,7 @@ void AMSDisplay::SetFocus(int selected){
    }
    else m_PrevView=m_View;
    m_View=kNoView;
+   m_ntuple->Prepare();
  switch (selected){
   case 0:   //AMS
    ResetCoo();

@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.1 2003/07/08 16:17:33 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.2 2003/07/09 08:42:46 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -80,13 +80,14 @@ public:
 TrRecHitV():AMSDrawI(NULL,-1),AMS3DMarker(){};
 TrRecHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
  TrRecHitR *pcl=ev->pTrRecHit(ref);
+int size=gAMSDisplay->Focus()==0?2:1;
 if(pcl){
-  SetSize(pcl->EHit[0]<0.5?pcl->EHit[0]*200:pcl->EHit[0],pcl->EHit[1]*200,sqrt(pcl->Sum/10)<8?sqrt(pcl->Sum/10
+  SetSize(pcl->EHit[0]<0.5?pcl->EHit[0]*100*size:pcl->EHit[0],pcl->EHit[1]*100*size,sqrt(pcl->Sum/10)<8?sqrt(pcl->Sum/10
 ):8);
   SetPosition(pcl->Hit[0],pcl->Hit[1],pcl->Hit[2]);
   SetDirection(0,0);
 }
-   SetLineWidth(2);
+   SetLineWidth(size);
    SetLineColor(4);             // blue
    SetFillColor(4);
    SetFillStyle(1001);          // solid filling (not working now....)
@@ -155,9 +156,10 @@ public:
 RichHitV():AMSDrawI(NULL,-1),AMS3DMarker(){};
 RichHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
  RichHitR *pcl=ev->pRichHit(ref);
+ int size=gAMSDisplay->Focus()==0?2:1;
 if(pcl){
   float error[3];
-  error[0]=error[1]=0.85;  //tmp
+  error[0]=error[1]=0.85/2*size;  //tmp
   error[2]=sqrt(pcl->Npe);
   SetPosition(pcl->Coo[0],pcl->Coo[1],pcl->Coo[2]+error[2]/2);
   SetSize(error[0],error[1],error[2]);
@@ -165,7 +167,7 @@ if(pcl){
 //  cout <<error[0]<<" "<<error[1]<<" "<<error[2]<<" "<<endl;
   SetDirection(0,0);
 }
-   SetLineWidth(2);
+   SetLineWidth(size);
    SetLineColor(6);             // purple
    SetFillColor(6);
    SetFillStyle(1001);          // solid filling (not working now....)
@@ -194,7 +196,7 @@ if(pcl){
   SetSize(error[0],error[1],error[2]);
   SetDirection(0,0);
 }
-   SetLineWidth(1);
+   SetLineWidth(gAMSDisplay->Focus()==0?1:2);
    SetLineColor(7);             // purple
    SetFillColor(7);
    SetFillStyle(1001);          // solid filling (not working now....)
