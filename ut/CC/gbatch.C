@@ -42,6 +42,7 @@ main(){
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
+     *signal(SIGXCPU,handler);
      *signal(SIGINT, handler);
      *signal(SIGQUIT, handler);
      *signal(SIGUSR1, handler); 
