@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.79 2004/10/08 09:11:53 choutko Exp $
+# $Id: Monitor.pm,v 1.80 2004/10/28 07:50:12 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2135,7 +2135,7 @@ opendir THISDIR ,$dir or die "unable to open $dir";
 @allfiles= readdir THISDIR;
 closedir THISDIR;
 
-for my $run (943...100000){
+for my $run (1167...100000){
 foreach my $file (@allfiles){
     if ($file =~/^cern\.$run/){
                my %rdst; 
