@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.28 2003/12/18 16:12:50 mdelgado Exp $
+//  $Id: richrec.h,v 1.29 2004/03/01 10:50:05 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -300,7 +300,7 @@ public:
   static AMSRichRing* build(AMSTrTrack *track,int cleanup=1);
   static AMSRichRing* rebuild(AMSTrTrack *ptrack);
   //+LIP
-  static AMSRichRing* buildlip(AMSTrTrack *track);
+  static void buildlip(AMSTrTrack *track);
   //ENDofLIP
 
   AMSTrTrack* gettrack(){return _ptrack;}

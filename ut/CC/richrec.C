@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.61 2003/12/18 16:12:34 mdelgado Exp $
+//  $Id: richrec.C,v 1.62 2004/03/01 10:49:56 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -1935,7 +1935,7 @@ int AMSRichRing::locsmpl(int id,
 
 integer AMSRichRing::_lipdummy=0;
 
-AMSRichRing * AMSRichRing::buildlip(AMSTrTrack *trk){
+void AMSRichRing::buildlip(AMSTrTrack *trk){
 
 #define PI 3.14159265359
 #define SQR(x) ((x)*(x))
