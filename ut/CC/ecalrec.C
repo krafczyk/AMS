@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.27 2001/08/01 13:28:43 choutko Exp $
+//  $Id: ecalrec.C,v 1.28 2001/08/03 09:14:04 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1109,7 +1109,7 @@ AGAIN:
        goto AGAIN;
       }
       number chi2proj=(chi2*(tot-1)-chi2max)/(tot-2);
-      if(!restore && tot>ECREFFKEY.Length2DMin+1 && ((chi2>ECREFFKEY.Chi22DMax/10. && chi2proj/chi2<2*ECREFFKEY.Chi2Change2D) || chi2proj/chi2<ECREFFKEY.Chi2Change2D)){
+      if(chi2>0 && !restore && tot>ECREFFKEY.Length2DMin+1 && ((chi2>ECREFFKEY.Chi22DMax/10. && chi2proj/chi2<2*ECREFFKEY.Chi2Change2D) || chi2proj/chi2<ECREFFKEY.Chi2Change2D)){
        again=true;
        chi2old=chi2;
        p1c[ipmax]->setstatus(AMSDBc::DELETED);

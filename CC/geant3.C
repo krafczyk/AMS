@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.54 2001/05/23 14:37:21 choutko Exp $
+//  $Id: geant3.C,v 1.55 2001/08/03 09:14:04 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -424,14 +424,16 @@ extern "C" void gustep_(){
    }
   }
   GCTRAK.upwght=0;
-  if(GCNUMX.NALIVE+GCKING.ngkine>2000)throw AMSTrTrackError("SecondaryStackOverflows"); 
+ //cout <<" nalive "<<GCNUMX.NALIVE+GCKING.ngkine<<endl;
+
+//  if(GCNUMX.NALIVE+GCKING.ngkine>2000)throw AMSTrTrackError("SecondaryStackOverflows"); 
   GSKING(0);
   GCTRAK.upwght=1; //cerenkov tracked first  
   for(integer i=0;i<GCKIN2.ngphot;i++){
     if(RICHDB::detcer(GCKIN2.xphot[i][6])){
-       if(GCNUMX.NALIVE>2000)throw AMSTrTrackError("SecondaryPhStackOverflows");
+//       if(GCNUMX.NALIVE>2000)throw AMSTrTrackError("SecondaryPhStackOverflows");
        GSKPHO(i+1);
-       //cout << " NALIVE " <<GCNUMX.NALIVE<<endl;
+//       cout << " NALIVE " <<GCNUMX.NALIVE<<endl;
     }
   }
   GCTRAK.upwght=0;  
