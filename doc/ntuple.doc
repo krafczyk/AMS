@@ -13,6 +13,7 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * run              // run no
 * I*4  *              * EVENTH   * runtype          //
 * I*4  *              * EVENTH   * time(2)          // Event time
+* I*4  *              * EVENTH   * rawwords         // Event Lenght in bytes
 * R*4  *              * EVENTH   * GrMedPhi         // Greenwich meridian phi 
 * R*4  *              * EVENTH   * RadS             // Shuutle Altitude (cm)
 * R*4  *              * EVENTH   * ThetaS           // Shuttle Theta (rad)
