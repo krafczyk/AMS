@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.29 2001/02/08 10:32:03 choutko Exp $
+# $Id: Monitor.pm,v 1.30 2001/02/08 10:42:59 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -340,7 +340,7 @@ sub UpdateARS{
          ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
 
          if($length==0 ){
-//            carp "updars returns zero \n";
+#            carp "updars returns zero \n";
             return 1;
         }
         for(;;){
