@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.87 2003/04/07 11:36:54 choutko Exp $
+# $Id: RemoteClient.pm,v 1.88 2003/04/07 12:08:37 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2921,7 +2921,7 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap/9* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/*of*/*/*.0.* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase"; 
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Ecal* $self->{UploadsDir}/DataBase";
