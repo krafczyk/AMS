@@ -1017,7 +1017,7 @@ void TOFJobStat::print(){
       ic=il*SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][1])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1028,7 +1028,7 @@ void TOFJobStat::print(){
       ic=il*SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][2])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1039,7 +1039,7 @@ void TOFJobStat::print(){
       ic=il*SCMXBR+ib;
       rc=geant(brcount[ic][0]);
       if(rc>0.)rc=geant(brcount[ic][3])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1067,14 +1067,14 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][1])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][1])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1086,14 +1086,14 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][2])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][2])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1105,14 +1105,14 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][3])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][3])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1124,14 +1124,14 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][4])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][4])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1143,14 +1143,14 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][5])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][5])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1162,14 +1162,14 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][6])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][6])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1181,14 +1181,14 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][7])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][7])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1200,14 +1200,14 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][8])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][8])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }
@@ -1219,14 +1219,14 @@ void TOFJobStat::print(){
       ic=il*SCMXBR*2+ib*2;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][9])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n");
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2+1;
       rc=geant(chcount[ic][0]);
       if(rc>0.)rc=geant(chcount[ic][9])/rc;
-      printf("% 5.3f",rc);
+      printf("% 5.2f",rc);
     }
     printf("\n\n");
   }

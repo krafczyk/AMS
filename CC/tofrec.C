@@ -36,7 +36,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   int16u pbanti;
   int16u pbup,pbdn,pbup1,pbdn1;
   int16u id,idd,idN,stat[2];
-  number tsr[3],ths[2],fstd;
+  number tsr[3],ths[2],fstd,t1,t2,t3,t4,dt;
   geant mtma[2],mtmd[2];
   int bad(1);
   geant charge,edep;
@@ -104,7 +104,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         nhit+=1;
         i+=1;//to bypass current 2 good edges
       }
-      if(nhit<im){//something was wrong (overflow ?)
+      if(nhit<im){//something was wrong (lost edge, overflow ?)
         ptr->putftdc(int16u(nhit),ftdc2);// refill object with corrected data
         TOFJobStat::addch(chnum,12);
       }
@@ -114,7 +114,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
       nhit=0;
       im=nstdc[isid];
       for(i=0;i<im;i++)stdc2[i]=0;
-      for(i=0;i<im-3;i++){// find all correct pairs of up/down bits settings
+      for(i=0;i<im-3;i++){// find all correct 4's of up/down bits settings
         pbdn=(stdc1[i]&pbitn);//check p-bit of 2-nd down-edge (come first, LIFO mode !!!)
         pbup=(stdc1[i+1]&pbitn);//check p-bit of 2-nd up-edge (come second)
         pbdn1=(stdc1[i+2]&pbitn);//check p-bit of 1-st down-edge (come third)
@@ -125,6 +125,19 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
         else{
           if(pbup!=0||pbup1!=0||pbdn==0||pbdn1==0)continue;//wrong  sequence, take next "4" 
         }
+// -> check timing of 4 edges:
+        t1=(stdc1[i+3]&pbanti)*TOFDBc::tdcbin(1);//1-st up-edge (in real time)
+        t2=(stdc1[i+2]&pbanti)*TOFDBc::tdcbin(1);//1-st down-edge
+        t3=(stdc1[i+1]&pbanti)*TOFDBc::tdcbin(1);//2-nd up-edge
+        t4=(stdc1[i]&pbanti)*TOFDBc::tdcbin(1);//2-nd down-edge
+        dt=t2-t3;
+        HF1(1203,geant(dt),1.);
+        if(dt<5. || dt>24.)continue;//wrong "hole" width, take next "4"
+        dt=t1-t2;
+        if(dt<10. || dt>200.)continue;//wrong "1st_pulse" width, ...
+        dt=t2-t4;
+        if(dt<1500. || dt>6000.)continue;//wrong "2nd_pulse" width, ...
+//
         stdc2[nhit]=stdc1[i];
         nhit+=1;
         stdc2[nhit]=stdc1[i+1];
@@ -402,14 +415,14 @@ void AMSTOFRawCluster::build(int &status){
   int16u  ftdc1[SCTHMX2*2],stdc1[SCTHMX3*4],adca1[SCTHMX4*2],adcd1[SCTHMX4*2];
   int16u  ftdc2[SCTHMX2*2],stdc2[SCTHMX3*4],adca2[SCTHMX4*2],adcd2[SCTHMX4*2];
   integer ilay,last,ibar,isid,isds,isd,isdsl[SCLRS];
-  integer i,j,chnum,brnum,am[2],tmi[2],itmf[2],sta,st,smty[2],reject;
+  integer i,j,chnum,brnum,am[2],tmi[2],itmf[2],sta,st,smty[2],ftdcfl,reject;
   integer trpatt[SCLRS];
   int statdb[2];
   int16u pbitn;
   int16u pbanti;
   int16u id,idd,idN,stat[2];
   number zc,ama[2],amd[2],qtota,qtotd,tmf[2],time,coo,ecoo;//input to RawCluster Constr
-  number tm[2],tf,tff,dt,fstd;
+  number tm[2],tf,tff,dt,fstd,tmr[2];
   number amf[2],timeD,tamp;
   number charg[2]={0.,0.};
   number t1,t2,t3,t4;
@@ -445,7 +458,7 @@ void AMSTOFRawCluster::build(int &status){
     stat[isid]=ptr->getstat();
 //    if(stat[isid] == 0){  
     scbrcal[ilay][ibar].getbstat(statdb); // "alive" status from DB
-    if(statdb[isid] == 0){  // channel alive, read out it
+    if(statdb[isid] >= 0){  // channel alive(no severe problems), read out it
 //       fill working arrays for given side:
       isds+=1;
       if(isid==0){
@@ -491,12 +504,17 @@ void AMSTOFRawCluster::build(int &status){
 //
         smty[0]=0;
         smty[1]=0;
-        if(nstdc[0]>=4 && nadca[0]>=2 && nftdc[0] >=2)smty[0]=1;
-        if(nstdc[1]>=4 && nadca[1]>=2 && nftdc[1] >=2)smty[1]=1;
+        ftdcfl=TOFRECFFKEY.relogic[1];// how to use f-TDC 
+        if(nstdc[0]>=4 && nadca[0]>=2 && (nftdc[0] >=2 || ftdcfl==2))smty[0]=1;
+        if(nstdc[1]>=4 && nadca[1]>=2 && (nftdc[1] >=2 || ftdcfl==2))smty[1]=1;
         if(smty[0]==1 || smty[1]==1){ //(even 1-side bar is accepted,if have complete measur.) 
           TOFJobStat::addbr(brnum,1);
-          isds=smty[0]+smty[1];// redefine side-counter as good side counter
+          isds=smty[0]+smty[1];// redefine side-counter as good side-counter
           sta=0;
+// -> add status-bits for known problems:
+          if(((statdb[0]%100)/10 > 0) || ((statdb[1]%100)/10 > 0))
+                               sta|=SCBADB3;// set bit of known bad t-measurement on any side
+//
           if(isds==1)sta|=SCBADB2;// set bad-bit for counter with only one-side measurements
           scbrcal[ilay][ibar].gtstrat(strat);
           strr[0]=strat[0][0];// strr.for s-1
@@ -582,12 +600,14 @@ void AMSTOFRawCluster::build(int &status){
           }
 //---
           reject=0;
-          if((tmf[0]<0. && smty[0]==1) ||
-             (tmf[1]<0. && smty[1]==1))reject=1;// NO f/s-TDC MATCHING on any of the alive(3-meas) side
+          if(ftdcfl==0){//require f/s-TDC time matching
+            if((tmf[0]<0. && smty[0]==1) ||
+             (tmf[1]<0. && smty[1]==1))reject=1;//NO MATCHING on any of the alive(3-meas) sides
+          }
 //
 //-----------> do "befor"/"after"-hit presence test for each of the good(upto now) sides :
 //
-        if(reject==0){
+        if(reject==0 && ftdcfl==0){
           if(smty[0]>0){
             j=itmf[0]-2; // Side-1 "after"(real time)-check (LIFO-readout !)
             if(j >= 0){
@@ -631,6 +651,7 @@ void AMSTOFRawCluster::build(int &status){
             tm[0]=0;
             ama[0]=0;
             amf[0]=0;
+            tmr[0]=0.;
             if(smty[0]==1){// good(3-measurement) side, but matching/hist0ry may not be good
               t4=(stdc1[0]&pbanti)*TOFDBc::tdcbin(1);// 4-th edge of str-info
               t2=(stdc1[2]&pbanti)*TOFDBc::tdcbin(1);// 2-nd edge of str-info
@@ -641,10 +662,12 @@ void AMSTOFRawCluster::build(int &status){
               ama[0]=am[0]*TOFDBc::tdcbin(2);//TDC_counts->ns
               amf[0]=ama[0]; 
               if(TOFRECFFKEY.reprtf[2]>0)HF1(1104,geant(ama[0]),1.);
+              tmr[0]=t1-t2;
             }
             tm[1]=0;
             ama[1]=0;
             amf[1]=0;
+            tmr[1]=0.;
             if(smty[1]==1){// good(3-measurement) side, but matching/hist may not be good
               t4=(stdc2[0]&pbanti)*TOFDBc::tdcbin(1);// 4-th edge of str-info
               t2=(stdc2[2]&pbanti)*TOFDBc::tdcbin(1);// 2-nd edge of str-info
@@ -655,6 +678,7 @@ void AMSTOFRawCluster::build(int &status){
               ama[1]=am[1]*TOFDBc::tdcbin(2);//TDC_counts->ns
               amf[1]=ama[1]; 
               if(TOFRECFFKEY.reprtf[2]>0)HF1(1104,geant(ama[1]),1.);
+              tmr[1]=t1-t2;
             }
             if(smty[0]==0){ // make "=" each side times and ampl. for 1-side case:
               tmf[0]=tmf[1];
@@ -839,6 +863,8 @@ void AMSTOFRawCluster::build(int &status){
       HF1(1545,td14,1.);//uncorr.ToF for L1->L4
       HF1(1533,tdiff[0],1.);//layer=0
       HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
+      TOFRECFFKEY.relogic[2]=0;// tempor
+      if(fabs(td13-td24)>1.8)TOFRECFFKEY.relogic[2]=1;//tempor (bad event)
       HF1(1544,(td13-td24),1.);
       if(AMSJob::gethead()->isSimulation()){
         geant tch;
@@ -979,7 +1005,7 @@ void AMSTOFCluster::build(int &stat){
         if(yloc>0.)yloc=ylocm;//at bar edge
         else yloc=-ylocm;
       }
-      status=ptr->getstatus();//may be !=0(bad history or single-sided)
+      status=ptr->getstatus();//may be !=0(bad history/t_meas or single-sided)
       edep=0.;
       edepl=0.;
       cofg=0.;
@@ -1046,7 +1072,8 @@ void AMSTOFCluster::build(int &stat){
         }
         time=-time*1.e-9;// ( ns -> sec ,"-" for V.Shoutko fit)
 //
-        if(status & SCBADB2)status|=AMSDBc::BAD;//tempor: bad=(peak bar is single-sided)
+        if(((status & SCBADB2)>0)||((status & SCBADB3)>0))status|=AMSDBc::BAD; 
+//          bad=(peak bar is single-sided   or known problem with t-measurement)
         AMSEvent::gethead()->addnext(AMSID("AMSTOFCluster",ilay),
         new     AMSTOFCluster(status,ntof,barn,edep,coo,ecoo,time,etime));
 //

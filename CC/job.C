@@ -607,10 +607,10 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.reprtf[4]=0; // print flag (spare)
 //
   TOFRECFFKEY.relogic[0]=0;// 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
-  TOFRECFFKEY.relogic[1]=0;// RECO logic flag 
-  TOFRECFFKEY.relogic[2]=0;// RECO logic flag 
-  TOFRECFFKEY.relogic[3]=0;// RECO logic flag 
-  TOFRECFFKEY.relogic[4]=0;// RECO logic flag
+  TOFRECFFKEY.relogic[1]=0;// 0/1/2-> full_fTDC_use/no_time_matching/not_use 
+  TOFRECFFKEY.relogic[2]=0;// spare RECO logic flag 
+  TOFRECFFKEY.relogic[3]=0;// spare RECO logic flag 
+  TOFRECFFKEY.relogic[4]=0;// spare RECO logic flag
 //
   TOFRECFFKEY.daqthr[0]=35.;//Fast discr. thresh(mV) for fast/slow_TDC 
   TOFRECFFKEY.daqthr[1]=150.;//Fast discr. thresh(mV) for FT-trigger (z>=1)  
@@ -651,9 +651,9 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.pcut[0]=8.;// (1)track mom. low limit (gev/c) (prot, 0.85 for mu)
   TOFCAFFKEY.pcut[1]=50.;// (2)track mom. high limit
   TOFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in the above range
-  TOFCAFFKEY.tzref[0]=6.;// (4)T0 for ref. counters
-  TOFCAFFKEY.tzref[1]=6.;// (5)T0 for ref. counters
-  TOFCAFFKEY.fixsl=3.2;// (6)def. slope
+  TOFCAFFKEY.tzref[0]=0.;// (4)T0 for ref. counters
+  TOFCAFFKEY.tzref[1]=0.;// (5)T0 for ref. counters
+  TOFCAFFKEY.fixsl=25.;// (6)def. slope
   TOFCAFFKEY.bmeanmu=0.998;// (7)mean muon velocity in the above range
   TOFCAFFKEY.idref[0]=108;//(8)LBB for first ref. counter 
   TOFCAFFKEY.idref[1]=0;//(9)LBB for second ref. counter (if nonzero)
@@ -677,7 +677,7 @@ void AMSJob::_retofdata(){
 //
   TOFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TOFCAFFKEY.dynflg=1; // (27) 0/1-> use stand/special(Contin's) dynode-calibration
-  TOFCAFFKEY.cfvers=1; // (28) 1-99 -> vers.number for tofverlistNN.dat file 
+  TOFCAFFKEY.cfvers=91; // (28) 1-99 -> vers.number for tofverlistNN.dat file 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
@@ -1207,7 +1207,9 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1200,"Stretcher-ratio for indiv. channel",80,35.,55.,0.);
         HBOOK1(1201,"Offsets for indiv. channels",80,-100.,2300.,0.);
         HBOOK1(1202,"Chi2 for indiv. channel",50,0.,5.,0.);
-// hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!
+        HBOOK1(1203,"Hole width in str.TDC sequence(ns)",60,0.,60.,0.);
+// hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
+// hist.1720-1790 are booked in init-function for BarRawTime histogr.!!!(TDLV)
         if(TOFCAFFKEY.dynflg==1){ // for special(Contin's) Dynode calibr.
           HBOOK1(1240,"Slope in Td vs Ta correlation",50,0.,2.,0.);
           HBOOK1(1241,"Offset in Td vs Ta correlation",50,-200.,50.,0.);
@@ -1901,6 +1903,7 @@ void AMSJob::_tofendjob(){
            HPRINT(1200);
            HPRINT(1201);
            HPRINT(1202);
+           HPRINT(1203);
            if(TOFCAFFKEY.dynflg==1){
              TOFAVSDcalib::fit();
              HPRINT(1240);

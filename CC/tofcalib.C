@@ -87,14 +87,14 @@ void TOFTZSLcalib::mfit(){  // calibr. fit procedure
     for(ib=0;ib<SCMXBR;ib++){
       id=(il+1)*100+ib+1;
       ii=il*SCMXBR+ib;
-      start[ii+2]=6.+3.5*rnormx();// def.T0 for all counters
+      start[ii+2]=0.;// def.T0 for all counters
       for(j=0;j<2;j++){
         if(id == TOFCAFFKEY.idref[j])
           start[ii+2]=TOFCAFFKEY.tzref[j];//def. t0 for ref.counters
       }
       step[ii+2]=1.;
-      plow[ii+2]=-30.;
-      phigh[ii+2]=30.;
+      plow[ii+2]=-40.;
+      phigh[ii+2]=40.;
       ifit[ii+2]=0;
       strcpy(pnm,p3nam);
       in[0]=inum[il];
@@ -331,6 +331,7 @@ void TOFTZSLcalib::fill(number bet, int ib[4], number tld[3]
 //========================================================================
 void TOFTZSLcalib::select(){  // calibr. event selection
   integer i,ilay,ibar,nbrl[SCLRS],brnl[SCLRS],bad,status,sector,conf;
+  integer cref[2],lref[2];
   number tm[2],am[2],ama[2],amd[2],time,timeD,tamp,edepa,edepd,relt;
   number coo[SCLRS],trp1[SCLRS],trp2[SCLRS],arp1[SCLRS],arp2[SCLRS];
   geant slops[2];
@@ -350,10 +351,12 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   TOFJobStat::addre(6);
   for(i=0;i<SCLRS;i++)nbrl[i]=0;
   for(i=0;i<SCLRS;i++)qtotl[i]=0;
+  cref[0]=TOFCAFFKEY.idref[0]%100-1;//BB-ref1(0-13)
+  lref[0]=TOFCAFFKEY.idref[0]/100-1;//L-ref1(0-3)
 //----
   while (ptr){ // <--- loop over AMSTOFRawCluster hits
     status=ptr->getstatus();
-    if(status==0){ //select only 2-sided "good_history" hits
+    if(status==0){ //select only 2-sided "good_history/good_strr" hits
       ilay=(ptr->getntof())-1;
       ibar=(ptr->getplane())-1;
       ptr->gettovta(ama);
@@ -378,6 +381,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   bad=0;
   for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
   if(bad==1)return; // remove events with bars/layer != 1
+     if(TOFRECFFKEY.relogic[2]==1)return;// tempor  bad event
   TOFJobStat::addre(7);
 //
 // -----> check Anti-counter :
@@ -391,7 +395,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     ptra=ptra->next();
   }// --- end of hits loop --->
   HF1(1503,geant(eanti),1.);
-  if(eanti>eacut)return;// remove events with big signal in Anti. tempor commented
+//  if(eanti>eacut)return;// remove events with big signal in Anti. tempor commented
 //
 // -----> check amplitudes :
 //
@@ -403,7 +407,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   qmax=*pntr[SCLRS-1];
   rr=qmax/meanq;
   HF1(1505,geant(rr),1.);
-  if(rr>qrcut)return; // remove events with "spike" dE/dX.  tempor commented
+//  if(rr>qrcut)return; // remove events with "spike" dE/dX.  tempor commented
   TOFJobStat::addre(8);
 //------>
     number t1,t2,t3,t4,t13,t24;
@@ -494,7 +498,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     if(cptr)
            ntrk+=cptr->getnelem();
     HF1(1506,geant(ntrk),1.);
-    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
+//    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){
@@ -503,7 +507,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     } 
     else rid=0;
     pmom=fabs(rid);
-//  pmom=2.7;// tempor to bypass tracker
+  pmom=2.7;// tempor to bypass tracker
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
     if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom.
     if(pmom<TOFCAFFKEY.pcut[0])return;//remove low mom.
@@ -672,6 +676,25 @@ void TOFTDIFcalib::init(){ // ----> initialization for TDIF-calibration
       nevnt[i][j]=0;
     }
   }
+// ---> book histograms for "Bar raw time" (data quality check for TZSL-cal):
+  strcpy(inum,"0123456789");
+  for(il=0;il<SCLRS;il++){  
+    for(ib=0;ib<SCMXBR;ib++){
+      strcpy(htit1,"Bar raw time (4Lx1Bar events) for chan(LBB) ");
+      in[0]=inum[il+1];
+      strcat(htit1,in);
+      ii=(ib+1)/10;
+      jj=(ib+1)%10;
+      in[0]=inum[ii];
+      strcat(htit1,in);
+      in[0]=inum[jj];
+      strcat(htit1,in);
+      id=1720+il*SCMXBR+ib;
+      HBOOK1(id,htit1,80,40.,120.,0.);
+    }
+  }
+  HBOOK2(1780,"T vs 1/Q, L=1",50,0.,0.1,80,40.,120.,0.);
+  HBOOK2(1781,"T vs 1/Q, L=4",50,0.,0.1,80,40.,120.,0.);
 // ---> book histograms for "Tdiff_mean vs Clong"
   strcpy(inum,"0123456789");
   for(il=0;il<SCLRS;il++){  
@@ -699,7 +722,8 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
   integer i,ilay,ibar,nbrl[SCLRS],brnl[SCLRS],bad,status;
   integer il,ib,ix,iy,chan;
   geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,crz;
-  number sdtm[2],tmsd[SCLRS],tmsdc[SCLRS],ama[2],crc,t14;
+  number sdtm[2],tmsd[SCLRS],tmsdc[SCLRS],ama[2],crc,t14,tmss[SCLRS];
+  number am[2],time,qsd1[SCLRS],qsd2[SCLRS],q1,q2,qinv,tmin;
   AMSTOFRawCluster *ptr;
   ptr=(AMSTOFRawCluster*)AMSEvent::gethead()->
                            getheadC("AMSTOFRawCluster",0);
@@ -715,8 +739,12 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
       nbrl[ilay]+=1;
       brnl[ilay]=ibar;
       ptr->gettovta(ama);// raw TovT (ns)
+      scbrcal[ilay][ibar].ama2q(ama,am);// convert side-TovT to charge
+      qsd1[ilay]=am[0];
+      qsd2[ilay]=am[1];
       ptr->getsdtm(sdtm);// get raw side-times(ns)
-      tmsd[ilay]=0.5*(sdtm[0]-sdtm[1]);// by definition
+      tmsd[ilay]=0.5*(sdtm[0]-sdtm[1]);// side time difference
+      tmss[ilay]=0.5*(sdtm[0]+sdtm[1]);// side time sum
 //      scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,tmsdc[ilay]);//A-corrected time_diff
       tmsdc[ilay]=tmsd[ilay];// uncomment to use raw side-times
     }
@@ -730,6 +758,29 @@ void TOFTDIFcalib::select(){ // ------> event selection for TDIF-calibration
   TOFJobStat::addre(18);
   t14=tmsdc[0]-tmsdc[3];
 //
+//------> fill histogr. for indiv. bar time (quality check for TZSL-calibr):
+  for(il=0;il<SCLRS;il++){
+    ib=brnl[il];
+    time=tmss[il];
+    chan=SCMXBR*il+ib;
+    HF1(1720+chan,geant(time),1.);
+  }
+  q1=qsd1[0];// layer=1
+  q2=qsd2[0];
+  time=tmss[0];
+  ib=brnl[0];
+  if(ib==7 && q1>0. && q2>0.){ // for bar=8
+    qinv=1./q1+1./q2;
+    HF2(1780,geant(qinv),geant(time),1.);
+  }
+  q1=qsd1[3];// layer=4
+  q2=qsd2[3];
+  time=tmss[3];
+  ib=brnl[3];
+  if(ib==7 && q1>0. && q2>0.){ // for bar=8
+    qinv=1./q1+1./q2;
+    HF2(1781,geant(qinv),geant(time),1.);
+  }
 //------> find track slope(in projection) using only scint.pos.info :
   ix=0;
   iy=0;
@@ -858,7 +909,8 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
   }
   if(bintot>0)meansl/=bintot; // mean slope
   if(meansl!=0)speedl=fabs(1/meansl);// mean light speed
-//---
+//
+//---> print Td vs Coo histograms:
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       chan=SCMXBR*il+ib;
@@ -900,6 +952,16 @@ void TOFTDIFcalib::fit(){//---> get the slope,td0,chi2
 //
   HPRINT(1602);
   HPRINT(1603);
+//
+//---> print T vs 1/Q histograms:
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      chan=SCMXBR*il+ib;
+      HPRINT(1720+chan);
+    }
+  }
+  HPRINT(1780);
+  HPRINT(1781);
 //
 // ---> write mean light speed and Tdif's to file:
 // 
@@ -1872,7 +1934,7 @@ void TOFSTRRcalib::fill2(integer ichan, number tdif){
 }
 //-----------
 void TOFSTRRcalib::outp(){
-  integer i,j,il,ib,id,ic,stat(0),idtol[2];
+  integer i,j,il,ib,id,ic,stat(0),idtol[2],dbsta;
   number t0,sl,chi2[SCCHMX],t,tq,co,dis,nev,bins;
   number sumc,sumt,sumct,sumc2,sumt2,sumid;
   number strr[SCCHMX],offs[SCCHMX];
@@ -2094,9 +2156,15 @@ void TOFSTRRcalib::outp(){
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){// str-ratios
       ic=il*SCMXBR*2+ib*2;
-      tcfile <<strr[ic]<<" "<<offs[ic]<<" ";// side-1
-      ic=il*SCMXBR*2+ib*2+1;
-      tcfile <<strr[ic]<<" "<<offs[ic]<<endl;// side-2
+      dbsta=-1;
+      if(chi2[ic]>0.)dbsta=0; 
+      if(chi2[ic]>3.)dbsta=10;//problem with t-measurement
+      tcfile <<strr[ic]<<" "<<offs[ic]<<" "<<dbsta<<"  ";// side-1
+      ic+=1;
+      dbsta=-1;
+      if(chi2[ic]>0.)dbsta=0; 
+      if(chi2[ic]>3.)dbsta=10;//problem with t-measurement
+      tcfile <<strr[ic]<<" "<<offs[ic]<<" "<<dbsta<<endl;// side-2
     }
     tcfile << endl;
   }
