@@ -26,7 +26,6 @@
 #include <commons.h>
 #include <cont.h>
 #include <event.h>
-typedef void  (*pClusterB)(integer refit);
 
 
 class AMSTrCluster: public AMSlink {
@@ -52,8 +51,6 @@ static void _addnext(const AMSTrIdSoft& id, integer status, integer nelemL,
   number val[]);
 
 
-// Builder pointer
-static pClusterB _pClusterBuilder; 
 
 
 
@@ -97,9 +94,7 @@ number val[]);
 AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
 //default builder
-static void build(integer refit);
-static void SetTrClusterBuilder(pClusterB pcb){ _pClusterBuilder=pcb;} 
-static void RunBuilder(integer refit){_pClusterBuilder(refit);}
+static integer build(integer refit);
 
 static void print();
 AMSTrCluster():AMSlink(){_NelemL=0; _NelemR=0;_pValues=0;};
@@ -167,7 +162,7 @@ AMSTrRecHit(AMSgSen *p, integer good,integer layer, AMSTrCluster * xcl, AMSTrClu
             _pSen(p), _Layer(layer),_Xcl(xcl),
             _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs){};
 AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0){};
-static void build(integer refit);
+static integer build(integer refit);
 static void print();
 static integer Out(integer);
 number getsum()const{return _Sum;}
@@ -294,7 +289,7 @@ AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]):
 AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
   {init(  phit);}
 void init( AMSTrRecHit * phit[]);
-static void build(integer refit);
+static integer build(integer refit);
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<6? _Pthit[i]:0;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 

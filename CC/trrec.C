@@ -19,7 +19,6 @@
 #include <cont.h>
 #include <tkdbc.h>
 integer AMSTrTrack::_RefitIsNeeded=0;
-pClusterB AMSTrCluster::_pClusterBuilder=&AMSTrCluster::build;
 const integer AMSTrCluster::WIDE=1;
 const integer AMSTrCluster::NEAR=2;
 const integer AMSTrCluster::REFITTED=4;
@@ -50,7 +49,7 @@ integer AMSTrTrack::patpoints[npat]=
               {6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
 
 
-void AMSTrCluster::build(integer refit=0){
+integer AMSTrCluster::build(integer refit=0){
   AMSlink * OriginalLast[2];
   integer OriginalNumber[2];
   AMSContainer * pct[2];
@@ -278,6 +277,7 @@ void AMSTrCluster::build(integer refit=0){
      }
      }
     AMSgObj::BookTimer.stop("TrClusterRefit");
+    return 1;
   }
 
 }
@@ -390,7 +390,7 @@ for(int i=0;i<2;i++){
 }
 
 AMSTrRecHit * AMSTrRecHit::_Head[6]={0,0,0,0,0,0};
-void AMSTrRecHit::build(integer refit=0){
+integer AMSTrRecHit::build(integer refit=0){
   if(refit){
     // Cleanup all  containers
     int i;
@@ -442,6 +442,7 @@ void AMSTrRecHit::build(integer refit=0){
    }
    y=y->next();
  }  
+ return 1;
 }
  void AMSTrRecHit::_addnext(AMSgSen * pSen, integer status, integer layer, AMSTrCluster *x,
                             AMSTrCluster * y, const AMSPoint & hit,
@@ -523,7 +524,7 @@ for(int i=0;i<6;i++){
 }
 
 geant AMSTrTrack::_Time=0;
-void AMSTrTrack::build(integer refit=0){
+integer AMSTrTrack::build(integer refit=0){
   // pattern recognition + fit
   if(refit){
     // Cleanup all track containers
@@ -618,7 +619,7 @@ out:
       
     }
   }
-
+return 1;
 }
 
 integer AMSTrTrack::Distance(number par[2][2], AMSTrRecHit *ptr){

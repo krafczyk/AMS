@@ -35,20 +35,39 @@ B) Initialization of containers
 
 //in corresponding _si{re}(detectorname)initevent() routine in event.C
 
-AMSEvent::gethead()->add (new AMSContainer(AMSID("AMSContainer:XXX",k),0));
+i)  AMSEvent::gethead()->add (new AMSContainer(AMSID("AMSContainer:XXX",k),0));
+
+OR
+
+ii) AMSEvent::gethead()->add (new AMSContainer(AMSID("AMSContainer:XXX",k),
+&XXX::builder_function_for_that_container,0));
+
+static integer XXX::builder_function_for_that_container(integer parameter=0);
+
+
 
 // There can be several containers for one class which differs in "k"
 // e.g. for AMSTrRechit class there are 6 containers, each containing 
 // 3dim point with particular(=k+1) layer
 
+C) Building of containers (general case; not all containers are actually
+                           building thru this mechanism);
+    i) Set (if necessary) builder by 
+       AMSEvent::gethead()->setbuilderC
+       ("XXX",&XXX::builder_function_for_that_container);
+       { Normally this step is not needed if B-ii) initialization was used}
+   ii) Build it
+       AMSEvent::gethead()->buildC("XXX",{parameter}) or
+       AMSEvent::gethead()->rebuildC("XXX",{parameter}) // Erase container first
+        
 
-C) Adding element in container "k"
+D) Adding element in container "k"
 
 
     AMSEvent::gethead()->addnext(AMSID("XXX",k),new XXX(...));
 
 
-D) Getting elements from container "k"
+E) Getting elements from container "k"
 
 // NonSorted one
 

@@ -2,6 +2,12 @@
  
 #include <cont.h>
 #include <amsstl.h>
+void AMSContainer::runbuilder(integer par){
+ if(_pb)_BuildSuccess=_pb(par);
+#ifdef __AMSDEBUG__
+ else cerr <<"AMSContainer::runbuilder-E-NoBuilderFound for "<<getname()<<" "<<getid()<<endl;
+#endif 
+}
 void AMSContainer::addnext(AMSlink *ptr){
   if(_Last){
              _Last->_next=ptr;

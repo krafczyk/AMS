@@ -38,11 +38,20 @@ c) User interface
 
 thru ~CC/user.C):
 
-InitJob(){  // calling  at initialization;
-            // apart from trivail things as e.g. histos
-            // can redefine defalut object builders :
-  // Sets own builder for TrCluster class
-  AMSTrCluster::SetTrClusterBuilder(&AMSTrCluster::my_own_build);
+void AMSUser::InitJob(){  // calling  at initialization;
+}
+
+void AMSUser::InitRun(){  // calling  at initialization;
+}
+
+void AMSUser::InitEvent(){  
+
+  // Example of how to reset builder for containter
+#ifdef __AMSDEBUG__
+  AMSEvent::gethead()->setbuilderC("AMSTrCluster",&AMSTrCluster::build);
+#endif
+
+
 
 }
 
@@ -56,5 +65,6 @@ void AMSUser::EndJob(){
 
 
           
+
 
 

@@ -47,7 +47,7 @@ static integer _addnext(integer pat, integer nhit, number sleng[],
 AMSTOFCluster *ptr[], AMSTrTrack * ptrack, number theta);
 static AMSPoint Distance(AMSPoint coo, AMSPoint ecoo, AMSTrTrack *ptr,
                        number & sleng, number & theta);
-static void build();
+static integer build(integer refit=0);
 static void print();
 //+
 #ifdef __DB__

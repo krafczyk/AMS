@@ -96,6 +96,7 @@ _retofinitrun();
 _reantiinitrun();
 _rectcinitrun();
 _reaxinitrun();
+AMSUser::InitRun();
 }
 
 
@@ -297,13 +298,13 @@ void AMSEvent::_reaxinitevent(){
   integer i;
   AMSNode *ptr;
   for( i=0;i<npatb;i++)  ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSBeta",i),0));
+  new AMSContainer(AMSID("AMSContainer:AMSBeta",i),&AMSBeta::build,0));
 
   AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSCharge",0),0));
+  new AMSContainer(AMSID("AMSContainer:AMSCharge",0),&AMSCharge::build,0));
 
   AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSParticle",0),0));
+  new AMSContainer(AMSID("AMSContainer:AMSParticle",0),&AMSParticle::build,0));
 
 
   AMSEvent::gethead()->add (
@@ -322,13 +323,13 @@ void AMSEvent::_retkinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSTrRawCluster",i),0));
 
   for( i=0;i<2;i++)  ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSTrCluster",i),0));
+  new AMSContainer(AMSID("AMSContainer:AMSTrCluster",i),&AMSTrCluster::build,0));
 
   for( i=0;i<6;i++)  ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSTrRecHit",i),0));
+  new AMSContainer(AMSID("AMSContainer:AMSTrRecHit",i),&AMSTrRecHit::build,0));
 
   for( i=0;i<npat;i++)  ptr = AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSTrTrack",i),0));
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrack",i),&AMSTrTrack::build,0));
 }
 
 void  AMSEvent::write(){
@@ -410,6 +411,7 @@ for (int i=0;;){
 }
 //------------------------------------------------------------------
 void AMSEvent::event(){
+   AMSUser::InitEvent();
    if(AMSJob::gethead()->isSimulation())_siamsevent();
       _reamsevent();
       if(AMSJob::gethead()->isCalibration())_caamsevent();
@@ -524,19 +526,19 @@ void AMSEvent::_retkevent(integer refit){
 
 AMSgObj::BookTimer.start("RETKEVENT");
 AMSgObj::BookTimer.start("TrCluster");
-AMSTrCluster::RunBuilder(refit);
+buildC("AMSTrCluster",refit);
 AMSgObj::BookTimer.stop("TrCluster");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrCluster::print();
 #endif
 AMSgObj::BookTimer.start("TrRecHit");
-AMSTrRecHit::build(refit);
+buildC("AMSTrRecHit",refit);
 AMSgObj::BookTimer.stop("TrRecHit");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrRecHit::print();
 #endif
 AMSgObj::BookTimer.start("TrTrack");
-AMSTrTrack::build(refit);
+buildC("AMSTrTrack",refit);
 AMSgObj::BookTimer.stop("TrTrack");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSTrTrack::print();
@@ -706,15 +708,15 @@ void AMSEvent::_rectcevent(){
 void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
 //
-AMSBeta::build();
+buildC("AMSBeta");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSBeta::print();
 #endif
-AMSCharge::build();
+buildC("AMSCharge");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSCharge::print();
 #endif
-AMSParticle::build();
+buildC("AMSParticle");
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSParticle::print();
 #endif
@@ -887,15 +889,79 @@ void AMSEvent:: _sictcevent(){
 }
 //=============================================================
 
+void AMSEvent::_findC(AMSID & id){
+
+  static char names[1024]="AMSContainer:";
+  static char * name=names;
+#ifdef __AMSDEBUG__
+  int nc=0; 
+  if(13+strlen(id.getname())+1  > 1024){
+   name=new char[13+strlen(id.getname())+1];
+   nc=1;
+   name[0]='\0';
+   strcat(name,"AMSContainer:");
+  }
+#endif
+  name[13]='\0';
+  if(id.getname())strcat(name,id.getname());
+  id.setname(name); 
+#ifdef __AMSDEBUG__
+  if(nc)delete[] name;
+#endif
+
+
+}
+
+
+integer AMSEvent::setbuilderC(char name[], pBuilder pb){
+  AMSID id(name,0);
+  _findC(id);
+  AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+  if(p){
+   p->setbuilder(pb);
+   return 1;
+  }
+  else return 0;
+
+}
+
+integer AMSEvent::buildC(char name[], integer par){
+   AMSID id(name,0);
+   _findC(id);
+   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+   if(p){
+     p->runbuilder(par);
+     return 1;
+   }
+   else return 0; 
+  
+}
+
+integer AMSEvent::rebuildC(char name[], integer par){
+   AMSID id(name,0);
+   _findC(id);
+  for(int i=0;;i++){
+   id.setid(i);
+   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+   if(p){
+     p->eraseC();
+   }
+   else break;
+  }
+   id.setid(0);
+   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
+   if(p){
+     p->runbuilder(par);
+     return 1;
+   }
+   else return 0; 
+
+
+}
 
 
 AMSlink * AMSEvent::_getheadC( AMSID id, integer sorted){
-  char *name=new char[13+strlen(id.getname())+1];
-  name[0]='\0';
-  strcat(name,"AMSContainer:");
-  if(id.getname())strcat(name,id.getname());
-  id.setname(name); 
-  delete[] name;
+_findC(id);
   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
   if(p){
     if(sorted)p->sort();
@@ -906,12 +972,7 @@ AMSlink * AMSEvent::_getheadC( AMSID id, integer sorted){
   else return 0;
 }
 AMSlink * AMSEvent::_getlastC( AMSID id){
-  char *name=new char[13+strlen(id.getname())+1];
-  name[0]='\0';
-  strcat(name,"AMSContainer:");
-  if(id.getname())strcat(name,id.getname());
-  id.setname(name); 
-  delete[] name;
+_findC(id);
   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
   if(p){
     return p->getlast();
@@ -920,12 +981,7 @@ AMSlink * AMSEvent::_getlastC( AMSID id){
 }
 
 integer AMSEvent::_setheadC( AMSID id, AMSlink *head){
-  char *name=new char[13+strlen(id.getname())+1];
-  name[0]='\0';
-  strcat(name,"AMSContainer:");
-  if(id.getname())strcat(name,id.getname());
-  id.setname(name); 
-  delete[] name;
+_findC(id);
   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
   if(p && head){
    p->sethead(head);
@@ -935,24 +991,14 @@ integer AMSEvent::_setheadC( AMSID id, AMSlink *head){
 }
 
 AMSContainer * AMSEvent::_getC( AMSID  id){
-  char *name=new char[13+strlen(id.getname())+1];
-  name[0]='\0';
-  strcat(name,"AMSContainer:");
-  if(id.getname())strcat(name,id.getname());
-  id.setname(name); 
-  delete[] name;
-  
+_findC(id);  
   AMSContainer *p = (AMSContainer*)AMSEvent::gethead()->getp(id);
   return p;
 }
 
 integer AMSEvent::getnC(char n[]){
   AMSID id;
-  char *name=new char[13+strlen(n)+1];
-  strcpy(name,"AMSContainer:");
-  if(n)strcat(name,n);
-  id.setname(name); 
-  delete[] name;
+  _findC(id);
   AMSContainer *p;
   for(int i=0;;i++){
    id.setid(i);

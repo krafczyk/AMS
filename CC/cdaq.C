@@ -149,7 +149,7 @@ int16u pData[24][1536];
          Record[11]=0;
          Record[12]=32*(640+1)+32*(384+1)+1;
          Record[0]=Record[12]+1+Record[2]+1+1;
-         Record[13]= 2<<6 | 11 <<9;    // Create 32; 5 for 72
+         Record[13]= 2<<6 | 11 <<9;    // Crate 32; 5 for 72
          int frp=14;
          for (int k=0;k<16;k++){
            for(int j=0;j<2;j++){
@@ -199,7 +199,7 @@ int16u pData[24][1536];
              }
              tdrk=(k-16)/2;
              //swap 3.2 <-> 3.0
-             if(run >=20 && tdrk == 2){
+             if(run >=21 && tdrk == 2){
               if(conn == 0)conn=3;
               else if (conn==3)conn=0;  
              }

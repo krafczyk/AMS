@@ -23,7 +23,7 @@ integer AMSBeta::patpoints[npatb]={4,3,3,3,3,2,2,2,2};
 
 
 
-void AMSBeta::build(){
+integer AMSBeta::build(integer refit){
   // pattern recognition + fit
   AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
   BETAFITFFKEY.SearchReg[2]);
@@ -106,6 +106,7 @@ out:
     ptrack=ptrack->next();
    } 
 } 
+return 1;
 }
 
 AMSPoint AMSBeta::Distance(AMSPoint coo, AMSPoint ecoo, AMSTrTrack *ptr,

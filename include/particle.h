@@ -82,7 +82,7 @@ public:
   void ctcfit(); // CTC fit
   void pid();   // particle identification
   void refit(); // refit if necessary;
-  static void build();
+  static integer build(integer refit=0);
   static void print();
 //+
 

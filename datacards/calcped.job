@@ -32,7 +32,7 @@ TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03
 C npars ims 
   5     1   
 C          Nparticles 
-IOPA 1=3 2='run21.hbk' 43=1 45='AMSTrTrack   ' 
+IOPA 1=0 2='run21.hbk' 43=1 45='AMSTrTrack   ' 
 C RNDM 197683093 1356123257
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
@@ -41,8 +41,8 @@ C Special HP-UX
 TIME 3=10000000
 TRCALIB 1=1 3=0.2 4=0.15  5=2000000 6=30000000
 C TRMC 36=1
-SELECT 18 1
-DAQC 1=1 2='/offdata/raw/run1-18.dat'
+SELECT 26 1
+DAQC 1=1 2='/offdata/raw/run00026.dat'
 TERM 1=1234567890
 END
 

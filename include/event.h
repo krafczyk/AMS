@@ -100,6 +100,7 @@ static const int16u _HDID;
 AMSlink * _getheadC( AMSID id, integer sorted=0);
 AMSlink * _getlastC( AMSID id);
 integer _setheadC( AMSID id, AMSlink * p);
+void _findC(AMSID & id);
 AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
@@ -116,6 +117,10 @@ static AMSEvent * gethead()  {return _Head;}
 static integer debug;
 AMSlink * getheadC(char name[], integer id, integer sorted=0)
 {return _getheadC(AMSID(name,id),sorted);}
+integer buildC(char name[], integer par=0);
+integer rebuildC(char name[], integer par=0);
+
+ integer setbuilderC(char name[], pBuilder pb);
 AMSlink * getlastC(char name[], integer id)
 {return _getlastC(AMSID(name,id));}
 AMSlink * getheadC( AMSID id, integer sorted=0){return _getheadC(id,sorted);}

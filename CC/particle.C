@@ -22,7 +22,7 @@ if(a>=0)return 1;
 else return -1;
 }
 
-void AMSParticle::build(){
+integer AMSParticle::build(integer refit){
   //Particle mass rec, momentum etc.
      number mass,emass,charge,momentum,emomentum,theta(0),phi(0);
      AMSPoint coo;
@@ -93,6 +93,7 @@ void AMSParticle::build(){
 out:
        pcharge=pcharge->next();
       }
+      return 1;
 }
 
 void AMSParticle::ctcfit(){

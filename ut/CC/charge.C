@@ -31,7 +31,7 @@ geant AMSCharge::_lkhdStepTracker[ncharge];
 integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
 integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
 char AMSCharge::_fnam[128]="lkhd_v205+.data";
-void AMSCharge::build(){
+integer AMSCharge::build(integer refit){
   // charge finding
   number EdepTOF[4];
   number EdepTracker[6];
@@ -91,6 +91,7 @@ void AMSCharge::build(){
       pbeta=pbeta->next();
      }
     }
+    return 1;
 }
 
 void AMSCharge::addnext(number rid, AMSBeta *pbeta , integer nhitTOF, 

@@ -53,7 +53,7 @@ public:
    void Fit(number rid,integer nhitTOF, integer nhitTracker, number
    EdepTOF[4], number EdepTracker[6]);
   static void init();
-  static void build();
+  static integer build(integer refit=0);
   static void print();
 //+
 #ifdef __DB__
