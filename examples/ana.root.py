@@ -5,7 +5,7 @@
 import sys, os
 sys.path.insert(0,os.environ['AMSDir'] + '/python/linux')
 
-from AMS import AMSChain, TRint, TFile, TH1F
+from AMS import AMSChain, AMSEventList, TRint, TFile, TH1F
 
 app = TRint("", 0, [])
 
@@ -14,8 +14,9 @@ ams.Add("/f2users/choutko/g3v1g3.root")
 #ams.Add("http://pcamsf0.cern.ch/f2dah1/MC/AMS02/2004A/protons/el.pl1.10200/738197524.0000001.root");
 #ams.Add("rfio:/castor/cern.ch/ams/MC/AMS02/2004A/protons/el.pl1.10200/738197524.0000001.root");
 
-chfile = "amstest.root"
-hfile = TFile(chfile, "RECREATE")
+hfile = TFile("amstest.root", "RECREATE")
+
+list = AMSEventList()
 
 hrig = TH1F("hrig", "Momentum (GeV)", 50, -10., 10.)
 
@@ -27,11 +28,17 @@ for entry in range(ndata):
   for i in range(ev.nParticle()):
       part = ev.Particle(i)
       hrig.Fill(part.Momentum) 
+      if ev.nVertex() > 0:
+            # Add to list of selected events
+            list.Add(ev)
+            # Write it into ouput ROOT file
+            ev.Fill()
 
 hrig.Draw()
 hfile.Write()
+list.Write("selected.list")
 
 print "\n>>> We have processed %d events" % ndata
-print "\n>>> Histograms saved in '%s'" % chfile
+print "\n>>> Histograms saved in '%s'" % hfile.GetName()
 
 app.Run()

@@ -20,6 +20,8 @@ public :
       TH1F* h_ang;
       TH1F* h_ang2;
 
+      TTree* amsnew;
+
       bool Trigger_Flag();
 };
 
@@ -41,6 +43,8 @@ void MyAnal::UBegin(){
       badrun_list = new AMSEventList("my_badruns.list");
 
       my_track = new AMSMyTrack();
+
+      amsnew = NULL;
 
 }
 
@@ -70,6 +74,7 @@ void MyAnal::UProcessFill() {
       float delta_ang = acos(dotprod);
       h_ang->Fill(delta_ang);
 
+
       // Select events which are better than 0.01 rad accurate
       if (delta_ang<0.01) select_list->Add(this);
 
@@ -85,6 +90,9 @@ void MyAnal::UProcessFill() {
       delta_ang = acos(dotprod);
       h_ang2->Fill(delta_ang);
 
+      // Write out selected entries "as we run"
+      if (select_list->Contains(this)) Fill();
+
 };
 
 
@@ -96,15 +104,16 @@ void MyAnal::UTerminate()
       // Write the list of selected events
       select_list->Write("select.list");
 
-      // Write selected events into a root file (added to 
-      //    the same output file in this example)
-      // select_list->Write(_Tree, outfile);
+      // Write all selected events into a new root file 
+      // TFile* another_file = new TFile("anotherfile.root","RECREATE");
+      // select_list->Write(_Tree, another_file);
       
       // Write only Header and Particle branches of selected events
-      _Tree->SetBranchStatus("*",0);
-      _Tree->SetBranchStatus("ev.fHeader",1);
-      _Tree->SetBranchStatus("ev.fParticle",1);
-      select_list->Write(_Tree, outfile);
+      // (added to the default output file in this example)
+      //_Tree->SetBranchStatus("*",0);
+      //_Tree->SetBranchStatus("ev.fHeader",1);
+      //_Tree->SetBranchStatus("ev.fParticle",1);
+      //select_list->Write(_Tree, outfile);
 
       printf("\n>>> We have processed %d events\n\n", (int)_Tree->GetEntries());
       printf("\n>>> Histograms saved in '%s'\n\n", outfile->GetName());
