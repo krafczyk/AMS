@@ -33,7 +33,7 @@ C npars ims
   5     1   
 C          Nparticles 
 MCGEN  1=-150. 2=-150. 4=150. 5=150. 12=-0.75 15=1 18=1 19=110111
-TRMC 19=0
+TRMC 15=0
 C TRFIT 6=1 7=1 8=1 
 IOPA 1=3 2='pr.hbk' 45='TriggerLVL1   ' 85=0 86='proton.dat'
 RNDM 197683093 1356123257

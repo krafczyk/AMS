@@ -240,7 +240,7 @@ static geant _Time;
   void _writeEl();
 
 static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
-static number Distance(number par[2], AMSTrRecHit *ptr);
+static integer Distance(number par[2][2], AMSTrRecHit *ptr);
 static integer patpoints[npat];
 static integer patconf[npat][6];
 static integer _RefitIsNeeded;

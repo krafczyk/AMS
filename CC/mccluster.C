@@ -211,7 +211,7 @@ void  AMSTrMCCluster::sitknoisespectrum(
 const AMSTrIdSoft & id,integer nch,number ss[]){
   for(int i=0;i<nch;i++){
    ss[i]=id.getsig()*rnormx();
-   if(i==nch/2) ss[i]=fabs(ss[i])+TRMCFFKEY.thr[id.getside()];
+   if(i==nch/2) ss[i]=fabs(ss[i])+id.getsig()*TRMCFFKEY.thr1R[id.getside()];
   }
  
 }

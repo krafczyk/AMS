@@ -227,3 +227,7 @@ void AMSaPool::ReleaseLastResort(){
     _LRS=0;
   }
 }
+
+void AMSaPool::StHandler(){
+  cerr << "AMSaPool::StHandler-E-NoMemory"<<endl;
+}

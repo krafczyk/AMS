@@ -2,11 +2,9 @@
  
 #include <link.h>
 void AMSlink::_erase(){
-  //if(_next){
-  //_next->_erase();
-  //_next=0;
-  //}
-  //if(!_next) delete this;
+  //
+  // Deletes all subsequent elements
+  // 
   AMSlink * next=_next;
   AMSlink * prev;
   do {

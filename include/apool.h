@@ -112,6 +112,7 @@ public:
   void Release(integer r){ _Release=r;}
  void * insert(size_t); 
  void udelete(void *p);
+  static void StHandler();
  };
 
 

@@ -61,3 +61,16 @@ HFNTB(IOPA.ntuple,"LVL1");
 
 
 }
+
+
+integer TriggerLVL1::calcdaqlength(){
+ return 0;
+}
+
+void TriggerLVL1::builddaq(integer n, uinteger *p){
+}
+
+void TriggerLVL1::buildraw(integer n, uinteger *p){
+}
+
+ 

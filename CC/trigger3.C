@@ -136,7 +136,7 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
 
 
 TriggerLVL3::TriggerLVL3():_AntiTrigger(0),_TOFTrigger(0),
-_TrackerTrigger(-2),_NPatFound(0),_Time(0),_NTrHits(0){
+_TrackerTrigger(0),_NPatFound(0),_Time(0),_NTrHits(0){
   
   // Ctor
 
@@ -369,21 +369,18 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
   plvl3->preparetracker();
   ptr=aux.readtracker(1);  
   while(ptr){
-     integer drp,half,va,strip;
-     AMSTrRawCluster::getaddress(ptr[1],strip,va,half,drp);
-     integer side=va>9 ? 0 : 1;
+     integer drp,half,va,strip,side;
+     AMSTrRawCluster::getaddress(ptr[1],strip,va,side,half,drp);
      if(side == 0 )_TrackerAux[drp][half]=1;
    ptr = aux.readtracker();    
   }
 
   ptr=aux.readtracker(1);  
   while(ptr){
-     integer drp,half,va,strip;
-     AMSTrRawCluster::getaddress(ptr[1],strip,va,half,drp);
-     integer side=va>9 ? 0 : 1;
+     integer drp,half,va,strip,side;
+     AMSTrRawCluster::getaddress(ptr[1],strip,va,side,half,drp);
      if(side != 0 && _TrackerAux[drp][half]){
       integer layer=_TrackerDRP2Layer[drp];
-      strip=strip+va*64;
       float coo=0;
       //      float amp=0;
       //      for (int i=2;i<((*(ptr))&255);i++){
@@ -400,7 +397,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
         if(( half ==0 && plvl3->getlowlimitX(layer) < 0) ||
            ( half ==1 && plvl3->getupperlimitX(layer) > 0) ){
            if(!(plvl3->addnewhit(coo,layer))){
-           plvl3->TrackerTrigger()=-1;
+           plvl3->TrackerTrigger()=2;
            goto formed;
            }             
         }
@@ -414,9 +411,12 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
           
   tt2=etime_(tar);
        }
-  plvl3->settime(tt2-tt1);
-  AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
-  AMSgObj::BookTimer.stop("LVL3");
+       if(plvl3->TrackerTrigger() >= LVL3FFKEY.Accept){ 
+         plvl3->settime(tt2-tt1);
+         AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
+       }
+       else delete plvl3;
+       AMSgObj::BookTimer.stop("LVL3");
 
      }
     }
@@ -491,7 +491,7 @@ void TriggerLVL3::fit(integer idum){
 
   _NTrHits=_nhits[0]+_nhits[1]+_nhits[2]+_nhits[3]+_nhits[4]+_nhits[5];
   if(_NTrHits > LVL3FFKEY.TrMaxHits){
-   _TrackerTrigger=-1;
+   _TrackerTrigger=2;
    return;
   }   
 
@@ -570,17 +570,18 @@ void TriggerLVL3::fit(integer idum){
   }
   done:
 
-   if( _NPatFound  <= 0 || _NPatFound >2)_TrackerTrigger = -1;
+   if( _NPatFound  <= 0)_TrackerTrigger=3;
+   else if ( _NPatFound >2)_TrackerTrigger = 4;
    else if (_NPatFound ==1){
-    if(_Residual[0] > LVL3FFKEY.TrMinResidual )_TrackerTrigger=0;
-    else _TrackerTrigger=1;
+    if(_Residual[0] > LVL3FFKEY.TrMinResidual )_TrackerTrigger=1;
+    else _TrackerTrigger=7;
    }
    else {
     if(_Residual[0] > LVL3FFKEY.TrMinResidual && _Residual[1] > LVL3FFKEY.TrMinResidual )
-    _TrackerTrigger=0;
-    else if(_Residual[0] <= LVL3FFKEY.TrMinResidual && _Residual[1] <= LVL3FFKEY.TrMinResidual )
     _TrackerTrigger=1;
-    else _TrackerTrigger=-1;
+    else if(_Residual[0] <= LVL3FFKEY.TrMinResidual && _Residual[1] <= LVL3FFKEY.TrMinResidual )
+    _TrackerTrigger=7;
+    else _TrackerTrigger=4;
    }
      
 }

@@ -15,6 +15,11 @@ Run Time
    Probably due to different geant tracking.
 
 
+3.  g++2.7.2.2 can't handle exceptions any more....
+    so hp-ux/irix can't work
+    please go back to 2.7.2.1 
+
+
 
 DB related
 -----------

@@ -1,0 +1,130 @@
+I. Proposed Daq Event format 
+
+All 32 bit integers. Means e.g. two 16bit integers should be packed
+   as i32=i16_1 + (i16_2<<16), that is converted to little endian, so no conversion is
+   needed for alpha. 
+   
+-----------------------------------------------------------------------------
+| LT  | LH |IDH |CRC | Run | Evt | RType | Time|LSubdet| ID Subdet|..data subdet.|
+-----------------------------------------------------------------------------
+
+Legend:
+
+LT      - total length in 32 bit words
+LH      - header length
+IDH     - header id (0?)
+CRC     - crc32
+Run     - run number
+Evt     - event number
+RType   - run type 
+Time    - time (unix format)
+LSubdet - length of subdet (LVL1,LVL3,TOF,Anti,Tracker,CTC)
+IDSubdet - Proposed          1    3   10  20    30      40
+
+
+II. Subdet event formats
+
+a.Trig1 Event format
+
+Word1   tof1 pattern + tof2pattern<<16
+Word2   tof3 pattern + tof4pattern<<16
+word3   antipattern  + z<<16
+
+b.Trig3 Event Format 
+
+Word1
+8 bit tracker  output + 8 bit tof output + 8 bit antioutput + 8 bit reserved
+
+c.TOF Event Format
+
+To be filled
+
+
+
+
+d.Anti Event Format
+
+
+To be filled
+
+
+e.Tracker Event Format
+
+16bit word1
+8bit cluster length
+8bit max hit offset
+16bit word 2
+leftmost hit address
+16 bit word 3 - length
+amplitudes*8
+.............
+
+
+
+f.CTC(Aerogel) Event Format
+
+
+To be filled
+
+
+
+
+III. Interface with DAQEvent class
+
+Each subdetector raw class (or trigger class) 
+should have four functions of the following format (names are not relevant)
+
+      static AMSID getdaqid(){return AMSID("Name-of-SubDet",0);}   // Identify itself
+                                                                   //The following names are proposed
+                                                                   //LVL1
+                                                                   //LVL3
+                                                                   //TOF
+                                                                   //Anti
+                                                                   //Tracker
+                                                                   //CTC
+      static integer calcdaqlength();                              // return data length in 32 bit words
+
+      static void builddaq(integer n, uinteger *p);                // builds daq from raw into p
+
+      static void buildraw(integer n, uinteger *p);                // builds raw from daq from p
+
+
+
+The corresponding functions should be registered in AMSJob::_redaqinitjob()
+as in example:
+
+
+ //tracker
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::getdaqid,&AMSTrRawCluster::builddaq,
+    &AMSTrRawCluster::buildraw,&AMSTrRawCluster::calcdaqlength);
+
+
+
+
+
+
+
+
+
+
+IV. Relevant datacards 
+
+    AMSJOB 1
+
+    DAQC 
+
+    (see datacards.doc)
+
+
+
+V. Comments
+
+   Current program flow  for simulation chain creates daq structure in _sidaqevent
+   then recreates the rawstructures in _redaqevent only if isReconstruction() is true.
+   For test purposes however it recreates them always if __AMSDEBUG__ is defined.
+   So one should delete the corresponding container by eraseC in corresponding buildraw 
+   function  if __AMSDEBUG__ defined in compile time.
+    
+
+

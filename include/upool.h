@@ -80,6 +80,7 @@ public:
   void ReleaseLastResort();
   void SetLastResort(integer i);
  void * insert(size_t); 
+ static void StHandler();
  void udelete(void *p){
 #ifdef __AMSDEBUG__
  _Count--;

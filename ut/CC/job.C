@@ -25,8 +25,12 @@
 #include <tofsim.h>
 #include <tofrec.h>
 #include <tofcalib.h>
+#include <trigger1.h>
 #include <trigger3.h>
+#include <trrawcluster.h>
+#include <daqevt.h>
 
+realorbit AMSJob::Orbit;
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
@@ -124,7 +128,6 @@ void AMSJob::_sitrigdata(){
   FFKEY("L3SIM",(float*)&LVL3SIMFFKEY,sizeof(LVL3SIMFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
-  LVL3FFKEY.TrThr1R=5;
   LVL3FFKEY.MinTOFPlanesFired=3;
   LVL3FFKEY.UseTightTOF=1;
   LVL3FFKEY.TrTOFSearchReg=6;
@@ -135,6 +138,7 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.TrMaxHits=20;
   LVL3FFKEY.Splitting=0.04;
   LVL3FFKEY.NRep=1;
+  LVL3FFKEY.Accept=0;
   FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -148,17 +152,13 @@ TRMCFFKEY.fastswitch=5.e-5;  // inverse linear density of primary electrons
 TRMCFFKEY.dedx2nprel=0.33e6;
 TRMCFFKEY.ped[0]=100;
 TRMCFFKEY.ped[1]=100;
-TRMCFFKEY.gain[0]=1;
-TRMCFFKEY.gain[1]=1;
+TRMCFFKEY.gain[0]=8;
+TRMCFFKEY.gain[1]=8;
 TRMCFFKEY.sigma[1]=110/20/sqrt(3.); // sig/noise ratio is about 20 for y
 TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
-TRMCFFKEY.thr[0]=17;      // should be sync with sigma approx 4*sigma
-TRMCFFKEY.thr[1]=12;      // ------------------------
-TRMCFFKEY.neib[0]=2;
-TRMCFFKEY.neib[1]=2;
 TRMCFFKEY.cmn[0]=50;
 TRMCFFKEY.cmn[1]=50;
-TRMCFFKEY.adcoverflow=4095;
+TRMCFFKEY.adcoverflow=32767;
 TRMCFFKEY.NoiseOn=1;
 TRMCFFKEY.sec[0]=0;
 TRMCFFKEY.sec[1]=0;
@@ -172,6 +172,16 @@ TRMCFFKEY.mon[0]=0;
 TRMCFFKEY.mon[1]=0;
 TRMCFFKEY.year[0]=96;
 TRMCFFKEY.year[1]=99;
+
+TRMCFFKEY.thr1R[0]=4.5;
+TRMCFFKEY.thr1R[1]=4.5;
+TRMCFFKEY.thr2R[0]=1;
+TRMCFFKEY.thr2R[1]=1;
+TRMCFFKEY.neib[0]=1;
+TRMCFFKEY.neib[1]=1;
+TRMCFFKEY.CalcCmnNoise[0]=1;
+TRMCFFKEY.CalcCmnNoise[1]=3;
+
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRCALIB.EventsPerIteration[0]=100;
@@ -359,7 +369,7 @@ _reantidata();
 _retrddata();
 _rectcdata();
 _reaxdata();
-
+_redaqdata();
 }
 
 void AMSJob::_retkdata(){
@@ -456,8 +466,8 @@ TRFITFFKEY.ResCutFastFit=0.5;
 TRFITFFKEY.ResCutStrLine=0.5;
 TRFITFFKEY.ResCutCircle=0.5;
 TRFITFFKEY.SearchRegFastFit=1;
-TRFITFFKEY.SearchRegStrLine=0.5;
-TRFITFFKEY.SearchRegCircle=1;
+TRFITFFKEY.SearchRegStrLine=0.3;
+TRFITFFKEY.SearchRegCircle=1.5;
 TRFITFFKEY.RidgidityMin=0.2;
 TRFITFFKEY.FullReco=0;
 TRFITFFKEY.MinRefitCos[0]=0.7;
@@ -525,8 +535,9 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.mon[1]=0;
   TOFRECFFKEY.year[0]=96;
   TOFRECFFKEY.year[1]=99;
-  FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),"MIXED");
-//-----------------------
+  FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),
+  "MIXED");
+
 //    defaults for calibration:
 // TZSL-calibration:
   TOFCAFFKEY.pcut[0]=8.;// track mom. low limit (gev/c)
@@ -565,6 +576,15 @@ void AMSJob::_rectcdata(){
   FFKEY("CTCREC",(float*)&CTCRECFFKEY,sizeof(CTCRECFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
+void AMSJob::_redaqdata(){
+DAQCFFKEY.mode=0;
+VBLANK(DAQCFFKEY.ifile,40);
+VBLANK(DAQCFFKEY.ofile,40);
+  FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");
+
+}
+
+
 void AMSJob::_reaxdata(){
 // Fit beta & charge
 CHARGEFITFFKEY.Thr=1.;
@@ -596,6 +616,10 @@ char setupname[160];
 char triggername[160];
 char tdvname[1600];
 char ffile[160];
+char ifile[160];
+char ofile[160];
+UHTOC(DAQCFFKEY.ifile,40,ifile,160);
+UHTOC(DAQCFFKEY.ofile,40,ofile,160);
 UHTOC(AMSFFKEY.Jobname,40,jobname,160);
 UHTOC(AMSFFKEY.Setupname,40,setupname,160);
 UHTOC(IOPA.ffile,40,ffile,160);
@@ -604,6 +628,8 @@ jobname[159]='\0';
 setupname[159]='\0';
 triggername[159]='\0';
 ffile[159]='\0';
+ifile[159]='\0';
+ofile[159]='\0';
 int i;
 
 //+
@@ -619,9 +645,24 @@ for (i=158; i>=0; i--) {
  if(ffile[i] == ' ') ffile[i]='\0';
  else break;
 }
-if(IOPA.mode){
- AMSIO::setfile(ffile);
- AMSIO::init(IOPA.mode);
+for (i=158; i>=0; i--) {
+ if(ifile[i] == ' ') ifile[i]='\0';
+ else break;
+}
+for (i=158; i>=0; i--) {
+ if(ofile[i] == ' ') ofile[i]='\0';
+ else break;
+}
+
+if(IOPA.mode && isSimulation()){
+   AMSIO::setfile(ffile);
+   AMSIO::init(IOPA.mode);
+}
+if(isReconstruction() && DAQCFFKEY.mode%10 ==0)DAQCFFKEY.mode=DAQCFFKEY.mode+1;
+if(isSimulation() && DAQCFFKEY.mode%10 == 1)DAQCFFKEY.mode=DAQCFFKEY.mode-1;
+if(DAQCFFKEY.mode){
+   DAQEvent::setfiles(ifile,ofile);
+   DAQEvent::init(DAQCFFKEY.mode);
 }
 //-
 
@@ -736,7 +777,7 @@ void AMSJob::_sitkinitjob(){
              id.setgain()=TRMCFFKEY.gain[l];
              id.setcmnnoise()=TRMCFFKEY.cmn[l];
              id.setindnoise()=oldone+
-             AMSTrMCCluster::sitknoiseprob(id ,TRMCFFKEY.thr[l]);
+             AMSTrMCCluster::sitknoiseprob(id ,TRMCFFKEY.sigma[l]*TRMCFFKEY.thr1R[l]);
              oldone=id.getindnoise();
             }
            }
@@ -816,6 +857,7 @@ void AMSJob::_sitrdinitjob(){
 
 
 void AMSJob::_reamsinitjob(){
+_redaqinitjob();
 _retkinitjob();
 _retofinitjob();
 _reantiinitjob();
@@ -1347,3 +1389,85 @@ void AMSJob::_axendjob(){
 
 void AMSJob::_dbendjob(){} // moved to A_LMS.C
 
+
+
+void AMSJob::_setorbit(){
+
+ const number MIR=51.65;
+  tm Begin;
+  integer begindate=CCFFKEY.begindate;
+  integer begintime=CCFFKEY.begintime;
+  Begin.tm_year  =  begindate%10000-1900;
+  Begin.tm_mon = (begindate/10000)%100-1;
+  Begin.tm_mday   = (begindate/1000000)%100;
+  Begin.tm_hour  = (begintime/10000)%100;
+  Begin.tm_min= (begintime/100)%100;
+  Begin.tm_sec=(begintime)%100;
+  Begin.tm_isdst =  Begin.tm_mon>=3 &&  Begin.tm_mon<=8;
+  Orbit.Begin=mktime(&Begin);
+  Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
+  Orbit.PhiI=fmod(CCFFKEY.phi/AMSDBc::raddeg+AMSDBc::twopi,AMSDBc::twopi);
+  Orbit.AlphaTanThetaMax=tan(MIR/AMSDBc::raddeg);
+  number r= tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
+  if(r > 1 || r < -1){
+    cerr <<"AMSJob::setorbit-E-ThetaI too high "<<Orbit.ThetaI<<endl;
+    if(Orbit.ThetaI < 0 )Orbit.ThetaI = -MIR/AMSDBc::raddeg;
+    else Orbit.ThetaI= MIR/AMSDBc::raddeg;
+    cerr <<"AMSJob::setorbit-ThetaI brought to "<<Orbit.ThetaI<<endl;
+    r=tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
+  }
+  Orbit.PhiZero=Orbit.PhiI-atan2(r,CCFFKEY.sdir*sqrt(1-r*r));         
+  Orbit.AlphaSpeed=AMSDBc::twopi/92.36/60.;
+  Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
+  Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
+  Orbit.PoleTheta=78.6/AMSDBc::raddeg;
+
+
+}
+
+
+  void AMSJob::_redaqinitjob(){
+     AMSgObj::BookTimer.book("SIDAQ");
+     AMSgObj::BookTimer.book("REDAQ");
+
+    if(!strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){    
+     _setorbit();
+    // Add subdetectors to daq
+    //
+{
+    // lvl1
+
+    DAQEvent::addsubdetector(&TriggerLVL1::getdaqid,&TriggerLVL1::builddaq,
+    &TriggerLVL1::buildraw,&TriggerLVL1::calcdaqlength);
+
+
+}
+{
+    //lvl3
+
+}    
+{
+    //tof
+}    
+{
+    //anti
+}    
+
+{
+    //ctc
+}    
+
+
+{
+  //tracker
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::getdaqid,&AMSTrRawCluster::builddaq,
+    &AMSTrRawCluster::buildraw,&AMSTrRawCluster::calcdaqlength);
+}    
+
+}
+else {
+      cerr <<"AMSJob::_redaqinitjob-E-NoYetDAQFormat for "<<
+      AMSJob::gethead()->getsetup()<<endl;
+}
+}

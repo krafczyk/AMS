@@ -31,6 +31,7 @@ M A I N  ->      gbatch.C
  |    |        |->_retrddata  TRD datacards
  |    |        |->_rectcdata  CTC datacards
  |    |        |->_reaxdata   AMS datacards
+ |    |        |->_redaqdata  DAQ datacards
  |    |        
  |    |->GFFGO  
  |    |->AMSJob::udata     read user data cards
@@ -70,6 +71,7 @@ M A I N  ->      gbatch.C
  |    |   |    
  |    |   |->_reamsinitjob    Reconstruction initialization   
  |    |   |    | 
+ |    |   |    |->_redaqinitjob
  |    |   |    |->_retkinitjob
  |    |   |    |->_retofinitjob
  |    |   |    |->_reantiinitjob
@@ -135,6 +137,7 @@ M A I N  ->      gbatch.C
  |    |   |    |    |
  |    |   |    |->_reamsinitevent
  |    |   |    |    |
+ |    |   |    |    |->_redaqinitevent
  |    |   |    |    |->_retkinitevent
  |    |   |    |    |->_retofinitevent
  |    |   |    |    |->_reantiinitevent
@@ -182,18 +185,20 @@ M A I N  ->      gbatch.C
  |        |    |   |      |->TriggerLVL1::build();
  |        |    |   |      |->TriggerLVL3::build();     
  |        |    |   |     
- |        |    |         
+ |        |    |   |      
+ |        |    |   |->_sidaqevent          Create/simulate DaqStructure
+ |        |    |
  |        |    |
  |        |    |->_reamsevent         Reconstruct event
  |        |    |    |     
+ |        |    |    |->_redaqevent     (Re)Create raw data structures     
+ |        |    |    |     
  |        |    |    |->_reantievent     Reconstruct Anti
  |        |    |    |     |
- |        |    |    |     |->AMSAntiRawCluster::build;
  |        |    |    |     |->AMSAntiCluster::build;
  |        |    |    |     
  |        |    |    |->_retofevent     Reconstruct TOF
  |        |    |    |     |
- |        |    |    |     |->AMSTOFRawEvent::re_build  DAQ-->RawEvent(ifRealData)
  |        |    |    |     |->AMSTOFRawEvent::validate  RawEvent-->RawEvent
  |        |    |    |     |->AMSTOFRawCluster::build   RawEvent-->RawCluster
  |        |    |    |     |->AMSTOFCluster::build      RawCluster-->Cluster

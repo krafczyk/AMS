@@ -53,7 +53,7 @@
 #include <event.h>
 #include <cont.h>
 #include <trrec.h>
-
+#include <daqevt.h>
 #include <iostream.h>
 
 #ifdef __DB__
@@ -426,39 +426,56 @@ static integer event=0;
   }
 #endif
 // create new event & initialize it
-  if(IOPA.mode !=1){
-  AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-  new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0)));
-   for(integer i=0;i<CCFFKEY.npat;i++){
+  if(AMSJob::gethead()->isSimulation()){
+   if(IOPA.mode !=1 ){
+    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+    new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0)));
+    for(integer i=0;i<CCFFKEY.npat;i++){
     AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
      genp->run(GCKINE.ikine);
     }
+    }
+   }
+   else {
+    AMSIO io;
+    if(io.read()){
+     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+     new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),
+     io.getpolephi(),io.getstheta(),io.getsphi())));
+     AMSmceventg* genp=new AMSmceventg(io);
+     if(genp){
+      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
+      genp->run();
+     }
+    }
+    else{
+     GCFLAG.IEORUN=1;
+     GCFLAG.IEOTRI=1;
+     return;
+    }   
    }
   }
   else {
-   AMSIO io;
-   if(io.read()){
-    AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-    new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),
-    io.getpolephi(),io.getstheta(),io.getsphi())));
-    AMSmceventg* genp=new AMSmceventg(io);
-    if(genp){
-     AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
-     genp->run();
-   }
-   }
-   else{
-    GCFLAG.IEORUN=1;
-    GCFLAG.IEOTRI=1;
-    return;
-   }   
-  }
-#ifdef __AMSDEBUG__
-   AMSContainer *p = AMSEvent::gethead()->getC("AMSmceventg",0);
-   if(p && AMSEvent::debug)p->printC(cout);
-#endif
+    //
+    // read daq    
+    //
+    DAQEvent * pdaq = new DAQEvent();
+    integer ok=pdaq->read();
+    if(ok==1){ 
+     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+     new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
+     pdaq->runtype(),pdaq->time())));
+     AMSEvent::gethead()->addnext(AMSID("DAQEvt",0), pdaq);
+    }
+    else if (ok==0){
+     delete pdaq;
+     GCFLAG.IEORUN=1;
+     GCFLAG.IEOTRI=1;
+    }   
+    else delete pdaq;
+  }   
 }
 
 //-----------------------------------------------------------------------------

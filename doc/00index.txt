@@ -5,6 +5,7 @@ cfortran.doc        // B.Burow cfortran
 charge.doc          // charge reconstruction
 cont.doc            // Containers description
 ctcrec.doc          // Threshold cerenkov counter reconstruction
+daqevt.doc          // daqevet format/class description
 datacards.doc       // datacards
 dbase_objy.doc      // Objectivity related information
 dbase_evol_log.doc  // evaluation log file

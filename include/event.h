@@ -14,6 +14,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <mceventg.h>
+#include <daqevt.h>
 class AMSEvent: public AMSNode{
 private:
 integer _run;
@@ -36,6 +37,7 @@ void _sitrdinitrun();
 void _sictcinitrun();
 void _sitofinitrun();
 void _siantiinitrun();
+
 void _reamsinitrun();
 void _retkinitrun();
 void _retrdinitrun();
@@ -59,6 +61,7 @@ void _retofinitevent();
 void _reantiinitevent();
 void _reaxinitevent();
 void _siamsevent();
+void _redaqinitevent();
 void _reamsevent();
 void _sitrigevent();
 void _sitkevent();
@@ -66,6 +69,8 @@ void _sitofevent();
 void _siantievent();
 void _sitrdevent();
 void _sictcevent();
+void _sidaqevent();
+void _redaqevent();
 void _retkevent(integer refit=0);
 void _retofevent();
 void _reantievent();
@@ -94,10 +99,10 @@ AMSEvent(AMSID id, integer run, integer runtype,time_t time,
 number pole, number stationT, number stationP ):AMSNode(id),_run(run),
 _time(time), _runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),
 _StationTheta(stationT){_Head=this;}
-AMSEvent(AMSID id, integer run, integer runtype):AMSNode(id),_run(run),
-   _runtype(runtype){
-if(AMSJob::gethead()->isSimulation())SetTimeCoo();
-_Head=this;
+AMSEvent(AMSID id, integer run, integer runtype, time_t time=0):AMSNode(id),_run(run),
+   _runtype(runtype), _time(time){
+   SetTimeCoo();
+   _Head=this;
 }
 ~AMSEvent(){_Head=0;}
 static AMSEvent * gethead()  {return _Head;}

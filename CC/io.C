@@ -224,20 +224,20 @@ ostream & operator << (ostream &o, const AMSIO &b ){
 }   
 
 void AMSIO::convert(){
-#ifndef __ALPHA__
-  // Dec alpha has to be converted to big endian...
-  unsigned char tmp;
-  unsigned char *pc = (unsigned char*)this;
-  int i;
-  int n=sizeof(*this)/sizeof(integer);
-  for(i=0;i<n;i++){
-    tmp=*pc;
-    *pc=*(pc+3);
-    *(pc+3)=tmp;
-    tmp=*(pc+1);
-    *(pc+1)=*(pc+2);
-    *(pc+2)=tmp;
-    pc=pc+sizeof(integer);
-  }    
-#endif
+  if(AMSDBc::BigEndian){
+   // Let's convert   to little endian...
+   unsigned char tmp;
+   unsigned char *pc = (unsigned char*)this;
+   int i;
+   int n=sizeof(*this)/sizeof(integer);
+   for(i=0;i<n;i++){
+     tmp=*pc;
+     *pc=*(pc+3);
+     *(pc+3)=tmp;
+     tmp=*(pc+1);
+     *(pc+1)=*(pc+2);
+     *(pc+2)=tmp;
+     pc=pc+sizeof(integer);
+   }    
+  }
 }

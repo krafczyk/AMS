@@ -19,6 +19,22 @@
 #ifdef __DB__
 #include <db_comm.h>
 #endif
+
+
+class realorbit{
+public:
+number AlphaTanThetaMax;
+number AlphaSpeed;
+number ThetaI;
+number PhiI;
+number PhiZero;
+number PolePhi;
+number PoleTheta;
+number EarthSpeed;
+time_t Begin;
+};
+
+
 const integer maxtrig=20;
 const integer maxtdv=255;
 const integer maxtdvsize=256;
@@ -36,6 +52,7 @@ char _TDVC[maxtdv][maxtdvsize];
 integer _TDVN;
 static AMSJob* _Head;
 void _init(){};
+void _setorbit();
 void _sitrigdata();
 void _siamsdata();
 void _sitkdata();
@@ -51,6 +68,8 @@ void _rectcdata();
 void _retofdata();
 void _reantidata();
 void _reaxdata();
+void _redaqdata();
+
 void _siamsinitjob();
 void _sitkinitjob();
 void _sitriginitjob();
@@ -59,6 +78,7 @@ void _sitrdinitjob();
 void _sictcinitjob();
 void _sitofinitjob();
 void _siantiinitjob();
+void _redaqinitjob();
 void _reamsinitjob();
 void _retkinitjob();
 void _regninitjob();
@@ -82,6 +102,7 @@ void _axendjob();
 void _timeinitjob();
 static AMSNodeMap JobMap;
 public:
+static realorbit Orbit;
 AMSJob(AMSID id=0,uinteger jobtype=0):AMSNode(id),_jobtype(jobtype)
 {_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
 _TDVC[0][0]='\0',_TDVN=0;cout <<

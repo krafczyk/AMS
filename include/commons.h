@@ -33,6 +33,15 @@ integer Event;
 #define SELECTFFKEY COMMON_BLOCK(SELECTFFKEY,selectffkey)
 COMMON_BLOCK_DEF(SELECTFFKEY_DEF,SELECTFFKEY);
 
+class DAQCFFKEY_DEF {
+public:
+integer mode;
+integer ifile[40];
+integer ofile[40];
+};
+#define DAQCFFKEY COMMON_BLOCK(DAQCFFKEY,daqcffkey)
+COMMON_BLOCK_DEF(DAQCFFKEY_DEF,DAQCFFKEY);
+
 
 
 class LVL3SIMFFKEY_DEF{
@@ -46,7 +55,6 @@ COMMON_BLOCK_DEF(LVL3SIMFFKEY_DEF,LVL3SIMFFKEY);
 
 class LVL3FFKEY_DEF {
 public:
-geant   TrThr1R;
 integer MinTOFPlanesFired;
 integer UseTightTOF;
 geant TrTOFSearchReg; 
@@ -55,6 +63,7 @@ geant TrMaxResidual[3];
 integer TrMaxHits;
 geant Splitting;
 integer NRep;
+integer Accept;
 };
 #define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
 COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);
@@ -257,8 +266,6 @@ geant fastswitch;
 geant ped[2];
 geant sigma[2];
 geant gain[2];
-geant thr[2];
-integer neib[2];
 geant   cmn[2];
 integer adcoverflow;
 integer NoiseOn;
@@ -268,6 +275,10 @@ integer hour[2];
 integer day[2];
 integer mon[2];
 integer year[2];
+integer CalcCmnNoise[2];
+integer thr1R[2];
+integer thr2R[2];
+integer neib[2];
 };
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);

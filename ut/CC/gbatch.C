@@ -6,6 +6,9 @@
 #include <commons.h>
 #include <signal.h>
 #include <unistd.h> 
+#include <new.h>
+#include <upool.h>
+#include <apool.h>
 GCBANK_DEF GCBANK;
 PAWC_DEF PAWC;
 
@@ -16,6 +19,7 @@ PROTOCCALLSFSUB0(UGLAST,uglast)
 //
 void (handler)(int);
 main(){
+     //set_new_handler(UPool.StHandler);
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);

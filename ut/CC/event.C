@@ -60,6 +60,7 @@ _sitrdinitrun();
 }
 
 void AMSEvent::_reamsinitrun(){
+
 _retkinitrun();
 _retrdinitrun();
 _retofinitrun();
@@ -80,6 +81,7 @@ void AMSEvent::_siamsinitevent(){
 }
 
 void AMSEvent::_reamsinitevent(){
+ _redaqinitevent();
  _retkinitevent();
  _retrdinitevent();
  _retofinitevent();
@@ -97,36 +99,54 @@ void AMSEvent::_signinitevent(){
 void AMSEvent::SetTimeCoo(){    
 
   // Allocate time & define the geographic coordinates
-static number dtime=AMSmceventg::Orbit.FlightTime/
-(GCFLAG.NEVENT+1-GCFLAG.IEVENT);
-  static   number t2=
-  AMSmceventg::Orbit.AlphaTanThetaMax*AMSmceventg::Orbit.AlphaTanThetaMax;
-  static number curtime=0;
-  static number theta=AMSmceventg::Orbit.ThetaI;
-  static number philocal=
-  atan2(sin(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero)*sqrt(1+t2),
-  cos(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero));
-  static number pole=AMSmceventg::Orbit.PolePhi;
-  geant dd; 
-  int i;
-  number xsec=0;
-  for(i=0;i<AMSmceventg::Orbit.Nskip+1;i++)
-  xsec+=-dtime*log(RNDM(dd)+1.e-30);
-  curtime+=xsec;
-  pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
-  philocal=fmod(philocal+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
-  number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
-  if(phi < 0)phi=phi+AMSDBc::twopi;
-
-  theta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*
+  if(AMSJob::gethead()->isSimulation()){
+   static number dtime=AMSmceventg::Orbit.FlightTime/
+   (GCFLAG.NEVENT+1-GCFLAG.IEVENT);
+   number t2=
+   AMSmceventg::Orbit.AlphaTanThetaMax*AMSmceventg::Orbit.AlphaTanThetaMax;
+   static number curtime=0;
+   static number theta=AMSmceventg::Orbit.ThetaI;
+   static number philocal=
+   atan2(sin(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero)*sqrt(1+t2),
+   cos(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero));
+   static number pole=AMSmceventg::Orbit.PolePhi;
+   geant dd; 
+   int i;
+   number xsec=0;
+   for(i=0;i<AMSmceventg::Orbit.Nskip+1;i++)
+   xsec+=-dtime*log(RNDM(dd)+1.e-30);
+   curtime+=xsec;
+   pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
+   philocal=fmod(philocal+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
+   number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
+   if(phi < 0)phi=phi+AMSDBc::twopi;
+   theta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*
         sin(phi));
-  _time=mktime(&AMSmceventg::Orbit.Begin)+curtime+0.5;
-  _NorthPolePhi=pole;
-  _StationTheta=theta;
-  _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
-  GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
-  AMSmceventg::Orbit.Nskip=0;        
+   _time=mktime(&AMSmceventg::Orbit.Begin)+curtime+0.5;
+   _NorthPolePhi=pole;
+   _StationTheta=theta;
+   _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
+   GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
+   AMSmceventg::Orbit.Nskip=0;        
+  }
+  else {
+   number t2=
+   AMSJob::Orbit.AlphaTanThetaMax*AMSJob::Orbit.AlphaTanThetaMax;
 
+   number xsec=difftime(_time,AMSJob::Orbit.Begin);
+   _NorthPolePhi=fmod(_NorthPolePhi+
+   AMSJob::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
+
+   number phil=
+   atan2(sin(AMSJob::Orbit.PhiI-AMSJob::Orbit.PhiZero)*sqrt(1+t2),
+   cos(AMSJob::Orbit.PhiI-AMSJob::Orbit.PhiZero));
+
+   phil=fmod(phil+AMSJob::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
+   number phi=atan2(sin(phil),cos(phil)*sqrt(1+t2));
+   if(phi < 0)phi=phi+AMSDBc::twopi;
+   _StationTheta==atan(AMSJob::Orbit.AlphaTanThetaMax*sin(phi));
+   _StationPhi=fmod(phi+AMSJob::Orbit.PhiZero,AMSDBc::twopi);
+  }
 }
 
 
@@ -358,9 +378,14 @@ _sitofevent();
 _siantievent(); 
 _sictcevent(); 
 _sitrigevent(); 
+_sidaqevent();
 }
 
 void AMSEvent::_reamsevent(){
+#ifndef __AMSDEBUG__
+    if(AMSJob::gethead()->isReconstruction())
+#endif
+  _redaqevent();
   _retofevent();
   _reantievent();
   _rectcevent(); 
@@ -969,5 +994,31 @@ void AMSEvent::Recovery(){
       cerr <<"AMSEvent::Recovery-I-Memory pool released"<<endl;
       UPool.SetLastResort(10000);
       cerr <<"AMSEvent::Recovery-I-Cleanup done"<<endl;
+
+}
+
+
+void AMSEvent::_redaqinitevent(){
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:DAQEvent",0),0));
+}
+
+void AMSEvent::_redaqevent(){
+  AMSgObj::BookTimer.start("REDAQ");
+
+   DAQEvent * pdaq = (DAQEvent*)AMSEvent::gethead()->
+   getheadC("DAQEvent",0);
+   if(pdaq)pdaq->buildRawStructures();
+  AMSgObj::BookTimer.stop("REDAQ");
+}
+
+
+void AMSEvent::_sidaqevent(){
+  AMSgObj::BookTimer.start("SIDAQ");
+
+DAQEvent *  pdaq = new DAQEvent();
+AMSEvent::gethead()->addnext(AMSID("DAQEvent",0), pdaq);      
+pdaq->buildDAQ();
+  AMSgObj::BookTimer.stop("SIDAQ");
 
 }

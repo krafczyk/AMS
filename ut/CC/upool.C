@@ -119,3 +119,6 @@ void AMSuPool::ReleaseLastResort(){
 }
 
 
+void AMSuPool::StHandler(){
+  cerr << "AMSuPool::StHandler-E-NoMemory"<<endl;
+}

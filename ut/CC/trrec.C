@@ -80,15 +80,17 @@ void AMSTrCluster::build(integer refit=0){
   number *  adc  = (number*)UPool.insert(size); 
   AMSTrIdSoft id;
   AMSTrRawCluster *p=(AMSTrRawCluster*)AMSEvent::gethead()->
-  getheadC("AMSTrRawCluster",0);
+  getheadC("AMSTrRawCluster",0,1);
+  VZERO(adc,size/4);
   while(p){
     // Unpack cluster into tmp space
-    VZERO(adc,size/4);
     // find clusters
      id=AMSTrIdSoft(p->getid());
      integer ilay=id.getlayer(); 
      integer side=id.getside();
      p->expand(adc+TRCLFFKEY.ThrClNEl[side]/2);
+    if(p->testlast()){
+              
      // Circle buffer for x layers 1 && 6;
      // 
      if(side==0 && (ilay==1 || ilay==6)){
@@ -208,9 +210,11 @@ void AMSTrCluster::build(integer refit=0){
        id.checkstatus(AMSDBc::BAD)==0)ref=adc[i];
       }
      }
-     }   
-  p=p->next();           
-  }  
+     } 
+     VZERO(adc,size/4);
+    }  
+     p=p->next();           
+  }
   UPool.udelete(adc);
 
   if(refit){
@@ -533,59 +537,53 @@ void AMSTrTrack::build(integer refit=0){
   for (int pat=0;pat<npat;pat++){
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(TRFITFFKEY.pattern[pat]){
+      int fp=patpoints[pat]-1;    
       // Try to make StrLine Fit
       integer first=AMSTrTrack::patconf[pat][0]-1;
-      integer second=AMSTrTrack::patconf[pat][1]-1;
+      integer second=AMSTrTrack::patconf[pat][fp]-1;
       phit[0]=AMSTrRecHit::gethead(first);
-      number x[2];
-      number y[2];
-      number par[2];
-      number epar[2];
+      number par[2][2];
       while( phit[0]){
        if(TRFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0){
-       phit[1]=AMSTrRecHit::gethead(second);
-       while( phit[1]){
-        if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
-        x[0]=phit[0]-> getHit()[2];
-        x[1]=phit[1]-> getHit()[2];
-        y[0]=phit[0]-> getHit()[0];
-        y[1]=phit[1]-> getHit()[0];
-        number axy=(x[0]*y[0]+x[1]*y[1])/2;
-        number ax=(x[0]+x[1])/2;
-        number ay=(y[0]+y[1])/2;
-        number axx=(x[0]*x[0]+x[1]*x[1])/2;
-        par[1]=(axy-ax*ay)/(axx-ax*ax);
-        par[0]=ay-ax*par[1];
+       phit[fp]=AMSTrRecHit::gethead(second);
+       while( phit[fp]){
+        if(TRFITFFKEY.FullReco || phit[fp]->checkstatus(AMSDBc::USED)==0){
+        par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
+        par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
         // Search for others
-        phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
-        while(phit[2]){
-         if(TRFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0){
+        phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
+        while(phit[1]){
+         if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
           // Check if the point lies near the str line
-           if(AMSTrTrack::Distance(par,phit[2])>= TRFITFFKEY.SearchRegStrLine)
-           {phit[2]=phit[2]->next();continue;}
-         phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
-         while(phit[3]){
+           if(AMSTrTrack::Distance(par,phit[1]))
+           {phit[1]=phit[1]->next();continue;}
+         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
+         while(phit[2]){
           // Check if the point lies near the str line
-          if(TRFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0){
-          if(AMSTrTrack::Distance(par,phit[3])>= TRFITFFKEY.SearchRegStrLine)
-          {phit[3]=phit[3]->next();continue;}
+          if(TRFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0){
+          if(AMSTrTrack::Distance(par,phit[2]))
+          {phit[2]=phit[2]->next();continue;}
           if(AMSTrTrack::patpoints[pat] >4){         
-          phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
-          while(phit[4]){
-           if(TRFITFFKEY.FullReco || phit[4]->checkstatus(AMSDBc::USED)==0){
-           if(AMSTrTrack::Distance(par,phit[4])>= TRFITFFKEY.SearchRegStrLine)
-           {phit[4]=phit[4]->next();continue;}
+          phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
+          while(phit[3]){
+           if(TRFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0){
+           if(AMSTrTrack::Distance(par,phit[3]))
+           {phit[3]=phit[3]->next();continue;}
            if(AMSTrTrack::patpoints[pat]>5){
-           phit[5]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][5]-1);
-           while(phit[5]){
-             if(TRFITFFKEY.FullReco || phit[5]->checkstatus(AMSDBc::USED)==0){
-              if(AMSTrTrack::Distance(par,phit[5])>= 
-              TRFITFFKEY.SearchRegStrLine){phit[5]=phit[5]->next();continue;}
+           phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
+           while(phit[4]){
+             if(TRFITFFKEY.FullReco || phit[4]->checkstatus(AMSDBc::USED)==0){
+              if(AMSTrTrack::Distance(par,phit[4]))
+              {phit[4]=phit[4]->next();continue;}
                 // 6 point combination found
                 if(AMSTrTrack::_addnext(pat,6,phit))goto out;
                 
              }
-            phit[5]=phit[5]->next();
+            phit[4]=phit[4]->next();
            }
            }
            else{  // 5 points only
@@ -594,7 +592,7 @@ void AMSTrTrack::build(integer refit=0){
                 
            }
            }
-           phit[4]=phit[4]->next();
+           phit[3]=phit[3]->next();
           }
           }
           else{       // 4 points only
@@ -603,13 +601,13 @@ void AMSTrTrack::build(integer refit=0){
                 
           }
           }
-          phit[3]=phit[3]->next();
+          phit[2]=phit[2]->next();
          }
          }
-         phit[2]=phit[2]->next();
+         phit[1]=phit[1]->next();
         }
         }         
-        phit[1]=phit[1]->next();
+        phit[fp]=phit[fp]->next();
        }
        }  
 out:
@@ -621,7 +619,7 @@ out:
 
 }
 
-number AMSTrTrack::Distance(number par[2], AMSTrRecHit *ptr){
+integer AMSTrTrack::Distance(number par[2][2], AMSTrRecHit *ptr){
 const integer freq=10;
 static integer trig=0;
 trig=(trig+1)%freq;
@@ -629,8 +627,10 @@ trig=(trig+1)%freq;
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
 
-   return fabs(par[0]+par[1]*ptr->getHit()[2]-ptr->getHit()[0])/
-            sqrt(1+par[1]*par[1]);
+   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0])/
+            sqrt(1+par[0][0]*par[0][0]) > TRFITFFKEY.SearchRegStrLine ||
+          fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])/
+            sqrt(1+par[1][0]*par[1][0]) > TRFITFFKEY.SearchRegCircle;
 }
 
 
