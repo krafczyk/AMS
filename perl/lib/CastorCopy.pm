@@ -1,9 +1,12 @@
 package CastorCopy;
 #
-# Last Edit : November 29, 2002. A.Klimentov
+# November 25, 2002. A.Klimentov
 #
-# doCopy - subr. to copy from local to castor
-# doCmp  - subr. to compare directories content
+# Last Edit : December 4, 2002. A.Klimentov
+#
+# doCopy   - subr. to copy from local to castor
+# doCmp    - subr. to compare directories content
+# doCRCcmp - subr. to compare CRC values stored in two files
 #
 my $helpCastorCopy = "
 # CastorCopy
@@ -34,11 +37,23 @@ my $helpCmp = "
 # November 25, 2002. A.Klimentov
 ";
 
+my $helpCRCcmp = "
+#
+# CastorCRCcmp
+# Program compare CRC (calculated elsethere) of files in local and 
+# remote directories
+#
+# arguments - dir prefix, inpfile1 inpfile2
+# castor.CRCcmp -subdir inpfile1 inpfile2
+#
+# December 4, 2002. A.Klimentov
+";
+
 use File::Find;
 use Time::Local;
 use Sys::Hostname;
 
-@CastorCopy::EXPORT= qw(newCopy newCmp doCopy doCmp);
+@CastorCopy::EXPORT= qw(newCopy newCmp newCRCcmp doCopy doCmp doCRCcmp);
 
 my $nfiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;     # list of file names in input dir
@@ -56,6 +71,7 @@ my %fields=(
     hostname=>undef,
     source=>undef,
     target=>undef,
+    subdir=>undef,
     ok=>undef
             );
 
@@ -207,6 +223,73 @@ return $mybless;
 
 }
 
+
+sub newCRCcmp {
+#
+my $input;           # file with CRC for input directory 
+my $output;          # file with CRC for output directory
+#
+    my $type=shift;
+    my $self={
+              %fields,
+          };
+
+    $self->{start}=time();
+    $verbose = 0;
+   
+my $subdirflag = 0;
+my $subdir => undef;
+
+foreach my $chop  (@ARGV){
+    if ($subdirflag == 1) {
+        $subdir=$chop;
+        $subdirflag = 0;
+    }
+
+    if($chop =~/^-h/){
+        print $helpCRCcmp;
+        die "...";
+    }
+
+    if($chop =~/^-subdir/){
+        $subdirflag = 1;
+    }
+
+}
+
+if (defined $subdir) {$subdirflag = 1;}
+# check sintaksis
+
+
+
+
+# check dirpath
+    if (defined $subdir) {
+     $self->{subdir}=$subdir;
+     $input=$ARGV[2];
+     $output=$ARGV[3];
+    } else {
+     $input =$ARGV[0];
+     $output=$ARGV[1];
+    }
+#
+    $self->{source} = $input;
+    $self->{target} = $output;
+    if (not defined $input or not defined $output) {
+     die "CastorCopy -E- Invalid sintaksis.   castor.CRCcmp  inputfile outputfile";
+    }
+#
+    print "***** Input  dir list  $input \n";
+    print "***** Output dir list  $output \n";
+    if (defined $subdir) {print "Subdirectory path $subdir \n";}
+    
+#
+my $mybless=bless $self,$type;
+$CastorCopy::Singleton=$mybless;
+return $mybless;
+
+}
+
 sub castorDir {
     my $dir     = shift;
     my $mode    = shift;
@@ -296,7 +379,79 @@ sub outputList {
     $nfiles++;
 }
 
+sub doCRCcmp {
 
+    my $status =>undef;
+    my $cmd    =>undef;
+    my $self = shift;
+    my $input  = $self->{source};
+    my $output = $self->{target};
+    my $subdir => undef;
+    if (defined $self->{subdir}) {
+       $subdir = $self->{subdir};
+    }
+
+    if (defined $subdir) {
+     print "***** Sub directory    $subdir \n";
+    }
+
+    open(FILE,"<".$input) or die "-E- Unable to open file $input \n"; 
+    my @inplines= <FILE>;
+    close FILE;
+
+    open(FILE,"<".$output) or die "-E- Unable to open file $output \n"; 
+    my @outlines= <FILE>;
+    close FILE;
+
+
+    my $i = 0;
+    my $j = 0;
+    my $crcok = 0;
+    my $notfound = 0;
+    my $badcrc   = 0;
+    my $nfiles   = 0;
+
+    while ($i <= $#inplines){     
+     my ($filepath,$crc) = split " ",$inplines[$i];
+     if (defined $filepath && defined $crc) {
+         my @junk   = split '/',$filepath;
+         $filepath = $junk[$#junk];
+         if (defined $subdir) {$filepath = $subdir.$filepath;}
+         $j=0;
+         $crcok = 0;
+         while ($j <= $#outlines && $crcok ==0) {
+          if ($outlines[$j] =~ /$filepath/) {
+           my ($ofilepath,$ocrc) = split " ",$outlines[$j];
+           if (defined $ofilepath && defined $ocrc) {
+               if ($crc == $ocrc) {
+                   $crcok = 1;
+               } else {
+                   $crcok = -1;
+               }
+           } else {
+               print "doCRCcmp -W- check $filepath, $crc \n";
+               print "doCRCcmp -W- found $outlines[$j] ";
+           }          
+         }
+         $j++;
+        }
+         if ($crcok == 0) {
+             print "doCRCcmp -E- not found $inplines[$i]";
+             $notfound++;
+         } 
+         if ($crcok == -1) {
+             print "doCRCcmp -E- $inplines[$i], $crc \n";
+             print "doCRCcmp -E- $outlines[$i], $ocrc \n";
+             $badcrc++;
+         } 
+         $nfiles++;
+     }
+     $i++;
+ }
+    print "Files checked in $input : $nfiles \n";
+    print "Files not found in $output : $notfound \n";
+    print "CRC differs for : $badcrc files \n";
+}
 sub doCopy {
 #
 # 4 possibilities 
