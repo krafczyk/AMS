@@ -74,6 +74,13 @@ c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
             call vzero(b(1),3)
             goto 999
         ENDIF
+#ifdef __G4AMS__
+        b(1)=7
+        b(2)=0
+        b(3)=0
+        goto 999
+#endif
+
 C
         sx=sign(1.,vv(1))
         sy=sign(1.,vv(2))
@@ -109,6 +116,10 @@ C
            call vzero (hxy(1,1),9)
            goto 999
           endif
+#ifdef __G4AMS__
+           call vzero (hxy(1,1),9)
+           goto 999
+#endif          
 
           sx=sign(1.,xx(1))
           sy=sign(1.,xx(2))

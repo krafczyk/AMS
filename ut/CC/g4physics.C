@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.6 1999/11/16 10:41:19 choutko Exp $
+// $Id: g4physics.C,v 1.7 1999/11/18 11:43:31 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -67,7 +67,7 @@ void AMSG4Physics::ConstructParticle()
   ConstructAllMesons();
   ConstructAllBarions();
   ConstructAllIons();
-  //ConstructAllShortLiveds();
+//  ConstructAllShortLiveds();
   _init();
 }
 
@@ -78,7 +78,7 @@ void AMSG4Physics::ConstructProcess()
   while( (*theParticleIterator)() ){
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
-    pmanager->AddDiscreteProcess(new G4UserSpecialCuts());
+//    pmanager->AddDiscreteProcess(new G4UserSpecialCuts());
 //    pmanager->AddDiscreteProcess(new ExN05MaxTimeCuts());
 //    pmanager->AddDiscreteProcess(new ExN05MinEkineCuts());
 //    pmanager->AddDiscreteProcess(new ExN05MinRangeCuts());
@@ -118,9 +118,9 @@ void AMSG4Physics::ConstructEM()
     if (particleName == "gamma") {
     // gamma
       // Construct processes for gamma
-      pmanager->AddDiscreteProcess(new G4GammaConversion());
-      pmanager->AddDiscreteProcess(new G4ComptonScattering());      
       pmanager->AddDiscreteProcess(new G4PhotoElectricEffect());
+      pmanager->AddDiscreteProcess(new G4ComptonScattering());      
+      pmanager->AddDiscreteProcess(new G4GammaConversion());
 
     } else if (particleName == "e-") {
     //electron

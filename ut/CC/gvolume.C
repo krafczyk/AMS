@@ -271,7 +271,7 @@ integer AMSgvolume::_Norp=0;
      _pg4l= new G4LogicalVolume(psolid,_pgtmed->getpgmat()->getpamsg4m(),G4String(_name));    
      if(_pgtmed->IsSensitive())_pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
 // Add user limits 
-     _pg4l->SetUserLimits(new G4UserLimits(maxstep*cm));
+     else _pg4l->SetUserLimits(new G4UserLimits(maxstep*cm));
     }
     // now rotmatrix if necessary
     if (!_pg4rm){

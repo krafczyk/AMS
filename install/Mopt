@@ -42,7 +42,7 @@ endif
 DFLAGS=     -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
 LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm 
 CC=cxx -D__NAMESPACE__
-ifeq "$(shell cxx -V | grep -c 6.1)" "1"
+ifeq "$(shell cxx -V | grep -c 6.)" "1"
 CC=cxx -D__NAMESPACE__  -nostdnew
 #CC=cxx -D__NAMESPACE__ -nostdnew 
 #CC=cxx -D__NAMESPACE__ -oldcxx
@@ -55,7 +55,7 @@ LD=cxx
 BIN=../bin/osf1/
 EXE=/exe/osf1
 LIB=/lib/osf1
-TIMEL=../bin/osf1/timel.o
+TIMEL=
 endif
 ifeq  "$(shell uname)"  "Linux"
 ifdef AMSDEBUG

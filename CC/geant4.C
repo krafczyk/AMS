@@ -275,7 +275,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       return;
    }
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
-         GCFLAG.IEVENT==GCFLAG.NEVENT)
+         GCFLAG.IEVENT>=GCFLAG.NEVENT)
       AMSEvent::gethead()->printA(AMSEvent::debug);
      integer trig;
      if(AMSJob::gethead()->gettriggerOr()){
@@ -317,7 +317,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
    UPool.erase(2000000);
 
    GCFLAG.IEVENT++;
-   if(GCFLAG.IEVENT==GCFLAG.NEVENT){
+   if(GCFLAG.IEVENT>=GCFLAG.NEVENT){
     GCFLAG.IEOTRI=1;
     GCFLAG.IEORUN=1;
    }
@@ -521,7 +521,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      G4StepPoint * PrePoint = Step->GetPreStepPoint();
      G4VPhysicalVolume * PrePV = PrePoint->GetPhysicalVolume();
     if(PostPV && PrePV){
-//      cout << "Stepping  "<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
+//      cout << "Stepping Pre "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
+//      cout << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<endl;
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0 ||
                  PrePV->GetLogicalVolume()->GetSensitiveDetector()!=0;
      GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;
@@ -641,24 +642,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       geant vect[3],dx,dy,dz,dt;
       int i,nd,numv,iprt,numl,numvp;
       static int numvo(-999),iprto(-999);
-      if(PostPV->GetName()[0]== 'T' &&PostPV->GetName()[1]=='O' &&
-      PostPV->GetName()[2]=='F' &&PostPV->GetName()[3]=='S'){
-       numv=PostPV->GetCopyNo();
-       iprt=GCKINE.ipart;
-       x=GCTRAK.vect[0];
-       y=GCTRAK.vect[1];
-       z=GCTRAK.vect[2];
-       t=GCTRAK.tofg;
-       de=GCTRAK.destep;
-       if(GCTRAK.inwvol==1){// new volume or track : store param.
-        iprto=iprt;
-        numvo=numv;
-        xpr=x;
-        ypr=y;
-        zpr=z;
-        tpr=t;
-       }
-     }
+
      if(PrePV->GetName()[0]== 'T' &&PrePV->GetName()[1]=='O' &&
       PrePV->GetName()[2]=='F' &&PrePV->GetName()[3]=='S'){
        numv=PrePV->GetCopyNo();
@@ -709,6 +693,26 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
         tpr=t;
       }// end of "same part/vol, de>0"
   }// end of "in TOFS"
+
+
+      if(PostPV->GetName()[0]== 'T' &&PostPV->GetName()[1]=='O' &&
+      PostPV->GetName()[2]=='F' &&PostPV->GetName()[3]=='S'){
+       numv=PostPV->GetCopyNo();
+       iprt=GCKINE.ipart;
+       x=GCTRAK.vect[0];
+       y=GCTRAK.vect[1];
+       z=GCTRAK.vect[2];
+       t=GCTRAK.tofg;
+       de=GCTRAK.destep;
+       if(GCTRAK.inwvol==1){// new volume or track : store param.
+        iprto=iprt;
+        numvo=numv;
+        xpr=x;
+        ypr=y;
+        zpr=z;
+        tpr=t;
+       }
+     }
 
 
 
