@@ -127,6 +127,11 @@ See TOF Event Format
 f. Reduced Tracker Event Format
 
 ID =  2<<6 | 11 <<9 (x<0)   or     5<<6 | 11<<9 (x>0)
+
+Then blocks
+
+One block:
+
 word1 8bit cluster length - 3 | (8bit max hit offset << 8)
 word2 leftmost hit address
 word 3 to length+3
@@ -172,10 +177,10 @@ WordSSL+5          SubSubBlock Length (SSL2) (1538 for K; 1282 S)
 WordSSL+6         
 Word1SSL+7 to SSL+SSL2+4   Data
 
-then two words 
-WordSL-1 CRC1
-WordSL   CRC2
-
+then three words 
+WordSL-2 CRC1
+WordSL-1 CRC2
+WordSL   Junk
 i. Calibration Event Format  Status
 ID = 2 |  2<<6 | 11 <<9 (x<0)   or   2 |  5<<6 | 11<<9 (x>0)
 
@@ -200,9 +205,9 @@ Data Word:    Bit on = good strip
 
 then two words 
 
-WordSL-1 CRC1
-WordSL   CRC2
-
+WordSL-2 CRC1
+WordSL-1 CRC2
+WordSL   Junk
 
 
 
@@ -239,11 +244,11 @@ Word6 to SSL+3     Data
 
 Data Word:    Two words /VA (Cmnoise * 8??)
 
-then two words 
+then 3 words 
 
-WordSL-1 CRC1
-WordSL   CRC2
-
+WordSL-2 CRC1
+WordSL-1 CRC2
+WordSL   Junk
 
 
 
