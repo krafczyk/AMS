@@ -1,8 +1,8 @@
-#  $Id: amsvar,v 1.37 2003/09/04 10:24:57 choutko Exp $
+#  $Id: amsvar,v 1.38 2003/09/17 08:12:00 choutko Exp $
 setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
 #setenv ROOTSYS    /f2users/rdm/root
-#setenv ROOTSYS /f2users/choutko/root/vdev
+setenv ROOTSYS /f2users/choutko/root/vdev
 #setenv ROOTSYS  /afs/cern.ch/sw/root/v3.05.05/rh73_gcc32/root
 set path=($ROOTSYS/bin $path . /usr/sbin  )
 setenv LD_LIBRARY_PATH .:$ROOTSYS/lib

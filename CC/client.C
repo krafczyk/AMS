@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.26 2003/07/29 17:17:17 choutko Exp $
+//  $Id: client.C,v 1.27 2003/09/17 08:11:59 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
+
 char AMSClient::_streambuffer[1024];
 ostrstream AMSClient::_ost(AMSClient::_streambuffer,sizeof(AMSClient::_streambuffer));
 void AMSClient::_openLogFile(char * prefix){
