@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.141 2003/09/19 11:45:25 choutko Exp $
+//  $Id: particle.C,v 1.142 2003/09/22 17:38:28 mdelgado Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -444,6 +444,16 @@ void AMSParticle::richfit(){
  number theta, phi, sleng;
  AMSTrTrack *real_track=_ptrack;
 
+ real_track->interpolate(AMSPoint(0,0,RICradpos),dir,_RichCoo[0],theta,phi,sleng);
+ real_track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
+
+ geant direct,reflected,length;
+ RICHDB::ring_fraction(real_track,direct,reflected,length,1.0);
+ 
+ _RichPath[0]=direct;
+ _RichPath[1]=reflected;
+ _RichLength=length;
+
 
  if(real_track->checkstatus(AMSDBc::TOFFORGAMMA)){ // MAKE RICH VTX PARTICLE AWARE
    _prich=0;
@@ -463,10 +473,9 @@ void AMSParticle::richfit(){
        }
      }
    }
- }
 
- real_track->interpolate(AMSPoint(0,0,RICradpos),dir,_RichCoo[0],theta,phi,sleng);
- real_track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
+   return;  // Do not try to assign a ring to the current particle
+ }
  
  
   //  cout <<"TEST DE RICHRING"<<endl;
@@ -477,13 +486,6 @@ void AMSParticle::richfit(){
   //       <<"   Reflected:"<<ref<<endl
   //       <<"   path length:"<<length<<endl;
 
-
-  geant direct,reflected,length;
-  RICHDB::ring_fraction(real_track,direct,reflected,length,1.0);
-
-  _RichPath[0]=direct;
-  _RichPath[1]=reflected;
-  _RichLength=length;
 
 //  Add more
   //AMSRichRing::rebuild(real_track);
