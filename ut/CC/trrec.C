@@ -795,7 +795,7 @@ TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
     TrN->RMS[TrN->Ntrcl]=_Rms;
     TrN->ErrorMean[TrN->Ntrcl]=_ErrorMean;
     for(int i=0;i<min(5,getnelem());i++)TrN->Amplitude[TrN->Ntrcl][i]=_pValues[i]; 
-    for(i=min(5,getnelem());i<5;i++)TrN->Amplitude[TrN->Ntrcl][i]=0;
+    for(i=getnelem();i<5;i++)TrN->Amplitude[TrN->Ntrcl][i]=0;
     TrN->Ntrcl++;
   }
 }
@@ -2147,7 +2147,6 @@ for(int i=0;i<2;i++){
 
 void AMSTrTrack::_writeEl(){
   TrTrackNtuple* TrTN = AMSJob::gethead()->getntuple()->Get_trtr();
-
   if (TrTN->Ntrtr>=MAXTRTR) return;
 
 // Fill the ntuple 
