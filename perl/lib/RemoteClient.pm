@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.270 2004/06/03 17:20:09 alexei Exp $
+# $Id: RemoteClient.pm,v 1.271 2004/06/07 06:13:50 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -56,7 +56,9 @@
 #                : don't validate run if status != 'Finished' 
 #                : journal files : CRC/crc
 #                 
-# June 2, 2004   :  Jean Jacquemier & Alexei Klimentov : updateCopyStatus
+# June 2, 2004   : Jean Jacquemier & Alexei Klimentov : updateCopyStatus
+#                  functions to keep and update information about DSTs 
+#                  copied to remote cites.
 #
 
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
@@ -102,7 +104,7 @@ my     $rmprompt        = 1; # prompt before files removal
  my @CheckedDSTs  = [];  # dsts checked
  my @GoodDSTs     = [];  # copied to final destination
  my @BadDSTs      = [];  # marked as bad because of different reasons
-                       # in particular :
+                         # in particular :
  my @BadDSTCopy   = [];  #                 doCopy failed to copy DST
  my @BadCRCi      = [];  #                 dsts with crc error (before copying)
  my @BadCRCo      = [];  #                 dsts with crc error (after copying)
@@ -529,7 +531,7 @@ my %mv=(
      my @allfiles= readdir THISDIR;
      closedir THISDIR;    
     foreach my $file (@allfiles){
-        my $newfile="$dir/$file";
+       my $newfile="$dir/$file";
        if($file =~/^\.Trial/){
 
            open(FILE,"<".$newfile) or die "Unable to open dataset control file $newfile \n";
@@ -545,16 +547,19 @@ my %mv=(
         if(readlink $newfile or  $file =~/^\./){
          next;
         }
-       my @sta = stat $newfile;
+      my @sta = stat $newfile;
       if($sta[2]<32000){
           my $dataset={};
           $dataset->{name}=$file;
           $dataset->{jobs}=[];
+
+          $dataset->{eventstodo} = 0;
+
           my @tmpa;
        opendir THISDIR, $newfile or die "unable to open $newfile";
        my @jobs=readdir THISDIR;
        closedir THISDIR;
-          push @{$self->{DataSetsT}}, $dataset;
+       push @{$self->{DataSetsT}}, $dataset;
        foreach my $job (@jobs){
         if($job =~ /\.job$/){
         if($job =~ /^\./){
@@ -644,6 +649,7 @@ my %mv=(
             my $desc=$sbuf[0];
             substr($desc,0,1)=" ";
             $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
+            $dataset->{eventstodo} += $template->{TOTALEVENTS};
            if($template->{TOTALEVENTS}>100){
              push @tmpa, $template; 
          }
@@ -2684,7 +2690,7 @@ CheckCite:            if (defined $q->param("QCite")) {
            print "</b></font></td></tr>\n";
            foreach my $dataset (@{$self->{DataSetsT}}){
              print "</b>
-                     <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=$dataset->{name}>$dataset->{name}<BR>\n";
+                     <INPUT TYPE=\"radio\" NAME=\"QPart\" VALUE=$dataset->{name}>$dataset->{name}, $dataset->{eventstodo}<BR>\n";
               print "</b></font></td></tr>\n";
            }
         htmlTableEnd();
@@ -2821,8 +2827,14 @@ CheckCite:            if (defined $q->param("QCite")) {
               if ($firstdataset++ != 1) {
                   $checked="";
               }
-               print "</b>
-                     <INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=$dataset->{name} $checked>$dataset->{name}<BR>\n";
+              print "</b>\n";
+                 if ($dataset->{eventstodo} == 0) {
+                  print "<tr><td><b><font color=\"tomato\"><i> $dataset->{name} </i></font><b></td></tr>\n";
+                 } elsif ($dataset->{eventstodo} < 10000) {                  
+                   print "<font color=\"tomato\"><INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name} <BR>\n";
+               } else {
+                    print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name} <BR>\n";
+                }
               print "</b></font></td></tr>\n";
              }
             print "</TABLE>\n";
@@ -2838,6 +2850,8 @@ CheckCite:            if (defined $q->param("QCite")) {
             print "</TABLE>\n";
 
             print "<TR><TD><font color=\"green\" size=\"3\"> Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
+            print "<br>\n";
+            print "<TR><TD><font color=\"tomato\" size=\"3\"> Note : If dataset is not clickable, means all events already allocated for running jobs or processed</font></TD></TR>\n";
           
           print "<p>\n";
           print "<br>\n";
