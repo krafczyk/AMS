@@ -18,7 +18,7 @@ ndata = ams.GetEntries
 
 ndata.times do
   ev = ams.GetEvent
-  if not ev then; break; end
+  break if not ev
   for i in 0...ev.nParticle
       part = ev.Particle(i)
       hrig.Fill(part.Momentum) 
