@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.183 2003/05/23 17:52:41 alexei Exp $
+# $Id: RemoteClient.pm,v 1.184 2003/06/03 07:48:35 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6985,19 +6985,19 @@ foreach my $block (@blocks) {
 
  if ($startingrunR == 1 || $runfinishedR == 1) {
   $status="Failed";
+  my $cmd = undef;
   my $inputfileLink = $inputfile.".0";
   if ($copyfailed == 0) {
     foreach my $ntuple (@cpntuples) {
-      my $cmd="rm  $ntuple";
+      $cmd="rm  $ntuple";
       print FILE "$cmd\n";
       system($cmd);
       print FILE "Validation done : system command rm -i $ntuple \n";
-  }
-  if ($#cpntuples >= 0) { 
+    }
+   if ($#cpntuples >= 0) { 
     $status = 'Completed';
     $inputfileLink = $inputfile.".1";
     if ($runfinishedR != 1) {
-      
       print FILE "End of Run not found update Jobs \n";
       $sql = "UPDATE Jobs SET 
                  host='$host',
@@ -7008,38 +7008,39 @@ foreach my $block (@blocks) {
       print FILE "$sql \n";
       $self->{sqlserver}->Update($sql);
      }
-   }
+  }
  }
   else{
    print FILE "Validation/copy failed : Run =$run \n";
    $status='Unchecked';
    foreach my $ntuple (@mvntuples) {
-     my $cmd = "rm  $ntuple";
+     $cmd = "rm  $ntuple";
      print FILE "Validation failed : system command rm -i $ntuple \n";
      print FILE "$cmd\n";
      system($cmd);
     }
+
     $sql = "DELETE ntuples WHERE run=$run";
     $self->{sqlserver}->Update($sql);
     print FILE "$sql \n";
     $runupdate = "UPDATE runs SET ";
-    $sql = "SELECT dirpath FROM journals WHERE cid=-1";
-    my $ret=$self->{sqlserver}->Query($sql);
-     if( defined $ret->[0][0]){
-      my $junkdir = $ret->[0][0];   
-      foreach my $ntuple (@cpntuples) {
-       my $cmd="mv  $ntuple $junkdir/";
-       print FILE "$cmd\n";
-       system($cmd);
-      }
-      print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
-  }
 }
  if ($run != 0) {
    $sql = $runupdate." STATUS='$status' WHERE run=$run";
    $self->{sqlserver}->Update($sql);
    print FILE "Update Runs : $sql \n";
-  }
+   if ($status eq "Failed" || $status eq "Unchecked") {
+    $sql = "SELECT dirpath FROM journals WHERE cid=-1";
+    my $ret=$self->{sqlserver}->Query($sql);
+     if( defined $ret->[0][0]){
+      my $junkdir = $ret->[0][0];   
+      $cmd = "mv $dirpath/*$run* $junkdir/";
+      print FILE "$cmd\n";
+      system($cmd);
+      print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
+     }
+   }
+ }
   system("mv $inputfile $inputfileLink"); 
   print FILE "mv $inputfile $inputfileLink\n";
   if ($status eq "Completed") {
