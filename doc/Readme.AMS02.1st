@@ -1,14 +1,12 @@
-Dear AMS User, 
-below are some (useful) info to make you more familiar  with AMS02 software.
-
+Last Updated 09-mar-2000
 
 I. The following hardware platforms are currently supported:
- DEC/OSF1/cxx  6.2
+ DEC/OSF1/cxx6.2
  Linux/gcc2.95.2   
 
 II. Software management:
     cvs  ( Concurrent Version System)
-    described in detail in http://wwwcn1.cern.ch/asd/cvs/index.html
+    see also in http://wwwcn1.cern.ch/asd/cvs/index.html
 
 III. Programming languagues:
 a) C++  (general framework, data structures, methods, algorithmes, i/o etc)
@@ -98,11 +96,13 @@ VII.  Standalone version
              
       c.  Third party libraries you may want to install
           i)   cernlib (ask you know whom)
-          ii)  naglib  (same, except for linux ask V.Choutko)
+          ii)  naglib  (same, except for linux ask V.Choutko@cern.ch)
           iii) libamsut   (in /afs/cern.ch/exp/ams/Offline/lib)  
 
 
-VIII. Current (2nd Half  1999) computer situation
+VIII. Misc
+
+
 
 a. Accounts
 
@@ -122,7 +122,7 @@ c. SoftWare/DataAccess
 
   source $Offline/vdev/install/amsvar
 
-  vdev version is in $Offline/vdev  (v 3.00 build 601)
+  vdev version is in $Offline/vdev  (v 3.00 build 912)
 
   vdec/doc contains doc
 
@@ -130,11 +130,13 @@ c. SoftWare/DataAccess
 
    http://ams.cern.ch/AMS/Analysis/hpl3itp1/prv3.job contains relevant datacards
 
-IX  Misc
 
+d.  Misc
     you may need to override some default shell limits to run offline program;
     recommended settings are (in c-shell)
     limit stack 8191
     limit data 256000
+
+
 
 Comments, questions to shoutko@vxcern.cern.ch
