@@ -1,4 +1,4 @@
-//  $Id: antirec02.h,v 1.5 2003/05/08 16:42:12 choutko Exp $
+//  $Id: antirec02.h,v 1.6 2004/09/27 15:00:59 choumilo Exp $
 //
 // May 29   1997. V. Choutko primitive version
 // July 18 1997 E.Choumilov RawEvent added + RawCluster/Cluster modified
@@ -95,7 +95,7 @@ void _copyEl(){};
 //===================================================================
 class AMSAntiCluster: public AMSlink{
 protected:
- integer _sector;  // Sector number 1 - MAXANTI+1
+ integer _sector;  // Sector number 1 - MAXANTI
  integer _ntimes;  //number of time-hits
  integer _npairs;  //number of true(paired) time-hits
  number  _times[ANTI2C::ANTHMX*2];//time-hits(ns)

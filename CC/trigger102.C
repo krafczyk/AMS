@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.22 2003/06/26 13:13:28 choumilo Exp $
+//  $Id: trigger102.C,v 1.23 2004/09/27 15:00:32 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -51,7 +51,7 @@ void Trigger2LVL1::build(){
       tflg=tofflag%10;//0->4planes, (1-4)->3plns, (5-8)->2plns, <0->noFT
       if(tflg==0)ntof=4;
       if(tflg>0 && tflg<=4)ntof=3;
-      if(tflg>4 && tflg<=8)ntof=2;
+      if(tflg>4 && tflg<=9)ntof=2;
 //set/reset TOF-matr(center) trig-flag(using actual Z pattern):
       ns1=0;
       ns2=0;

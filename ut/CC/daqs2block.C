@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.4 2002/04/29 07:28:51 choumilo Exp $
+//  $Id: daqs2block.C,v 1.5 2004/09/27 15:00:30 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #include <typedefs.h>
@@ -40,10 +40,6 @@ int16u DAQS2Block::tempch[TOF2GC::SCCRAT][TOF2GC::SCSFET]={   // TOFch#, occupie
                                           {0,0,4,0},  // cr=2(31) inverted !
                                           {0,0,4,0},  // cr=3(41) inverted !
                                           {0,0,4,0},  // cr=4(71) inverted !
-                                          {0,4,0,0},  // cr=5(03)
-                                          {0,4,0,0},  // cr=6(33)
-                                          {0,4,0,0},  // cr=7(43)
-                                          {0,4,0,0},  // cr=8(73)
                                          };
 //
 number DAQS2Block::rwtemp[TOF2GC::DAQSTMX]={0,0,0,0,0,0,0,0, // just mem. reservation

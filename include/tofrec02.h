@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.10 2003/05/22 08:36:40 choumilo Exp $
+//  $Id: tofrec02.h,v 1.11 2004/09/27 15:01:00 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -23,12 +23,13 @@ protected:
  integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
  integer _plane;   //  number of sc. bar in given plane(1->...)
  number _z;        // z coord of sc.bar
- number _adca[2]; // Anode ADC for 2 sides (ADC-chan in float)
- number _adcd[2]; // Dynode(h) ADC for 2 sides (ADC-chan in float)
- number _adcdl[2]; // Dynode(l) ADC for 2 sides (ADC-chan in float)
- number _edepa;    // reco. via Anode channel (no angle correction)
- number _edepd;    // reco. via Dynode(h) channel (..................)
- number _edepdl;    // reco. via Dynode(l) channel (..................)
+ number _adca[2]; // Anode(h) ADC for 2 sides (ADC-chan in float)
+ number _adcal[2]; // Anode(l) ADC for 2 sides (ADC-chan in float)
+ number _adcd[2]; // Dynode(pmt/h/l-combined) ADC(s1/2, float adc-chan))
+ number _adcdr[2][TOF2GC::PMTSMX];// Dh-pmts ADC(s1/2, float adc-chan)
+ number _adcdlr[2][TOF2GC::PMTSMX];// Dl-pmts ADC(s1/2, float adc-chan)
+ number _edepa;    // reco. via Anode channel(h/l-combined,no angle correction)
+ number _edepd;    // reco. via Dynode channel (..................)
  number _sdtm[2];  // A-noncorrected side times (ns, for TZSL-calibr) 
  number _time;   // A-corrected time=0.5*(t1+t2) (ns);
  number _timeD; // Y-coo(long)/(cm,loc.r.s,A-corrected) calc.from 0.5(t1-t2)
@@ -47,19 +48,21 @@ public:
  number getetimeD()const {return _etimeD;}
  number getedepa()const {return _edepa;}
  number getedepd()const {return _edepd;}
- number getedepdl()const {return _edepdl;}
  number getz()const {return _z;}
  TOF2RawCluster(integer status, integer xy, integer plane, 
-   number z, number adca[2], number adcd[2], number adcdl[2],
-   number de, number ded, number dedl, 
+   number z, number adca[2], number adcal[2], number adcd[2],
+   number adcdr[2][TOF2GC::PMTSMX], number adcdlr[2][TOF2GC::PMTSMX],
+   number de, number ded, 
    number sdtm[2], number time, number timed, number etimed):
    AMSlink(status,0), _ntof(xy),_plane(plane),_z(z),
-   _edepa(de), _edepd(ded), _edepdl(dedl),
+   _edepa(de), _edepd(ded),
    _time(time), _timeD(timed), _etimeD(etimed){
    for(int i=0;i<2;i++){
      _adca[i]=adca[i];
+     _adcal[i]=adcal[i];
      _adcd[i]=adcd[i];
-     _adcdl[i]=adcdl[i];
+     for(int ip=0;ip<TOF2GC::PMTSMX;ip++)_adcdr[i][ip]=adcdr[i][ip];
+     for(int ip=0;ip<TOF2GC::PMTSMX;ip++)_adcdlr[i][ip]=adcdlr[i][ip];
      _sdtm[i]=sdtm[i];
    }
  }
@@ -67,13 +70,19 @@ public:
    adc[0]=_adca[0];
    adc[1]=_adca[1];
  }
+ void getadcal(number adc[2]){
+   adc[0]=_adcal[0];
+   adc[1]=_adcal[1];
+ }
  void getadcd(number adc[2]){
    adc[0]=_adcd[0];
    adc[1]=_adcd[1];
  }
- void getadcdl(number adc[2]){
-   adc[0]=_adcdl[0];
-   adc[1]=_adcdl[1];
+ void getadcdr(int is, number adc[TOF2GC::PMTSMX]){
+   for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++)adc[ipm]=_adcdr[is][ipm];
+ }
+ void getadcdlr(int is, number adc[TOF2GC::PMTSMX]){
+   for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++)adc[ipm]=_adcdlr[is][ipm];
  }
  void getsdtm(number sdtm[2]){
    sdtm[0]=_sdtm[0];
@@ -108,8 +117,8 @@ protected:
  static AMSTOFCluster *_Head[4];
  integer _ntof;  // TOF plane number where cluster was found(1->) 
  integer _plane; // bar number of the "peak" bar in cluster(1->)  
- number _edep;   // clust. Etot/nmemb (MeV) (continious through high-to-low chan)
- number _edepd;  // clust. Etot/nmemb (MeV) via 1st not overflowed dynode
+ number _edep;   // clust. Etot/nmemb (MeV) (A/D/h/l-combined)
+ number _edepd;  // clust. Etot/nmemb (MeV) (D h/l-combined)
  number _time;   // average cluster time (sec)
  number _etime;  // error on cluster time (sec)
  AMSPoint _Coo;  // cluster center of gravity coordinates (cm)

@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.132 2004/04/07 17:20:40 choutko Exp $
+//  $Id: mceventg.C,v 1.133 2004/09/27 15:00:31 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -11,6 +11,7 @@
 #include <io.h>
 #include <extC.h>
 #include <ecaldbc.h>
+#include <tofdbc02.h>
 #include <astro.h> //ISN 
 #ifdef __G4AMS__
 #include "CLHEP/Random/Random.h"
@@ -130,6 +131,7 @@ void AMSmceventg::gener(){
       else
 #endif
         _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
+//cout<<"mom="<<_mom<<" hid="<<_hid<<endl;
     }
     geant th,ph; // photon incidence angle (normal to gamma source generation plane)
     number ra,dec;  // AMS zenithal pointing direction
@@ -250,7 +252,7 @@ void AMSmceventg::gener(){
           _coo=AMSPoint(x0+lx*RNDM(d),y0+ly*RNDM(d),z0+lz*RNDM(d));
         }
       }
-    }
+    }//--->endof fixdir>0
     else {   // <--- random dir
       geant d(-1);
       phi=2*AMSDBc::pi*RNDM(d);
@@ -265,7 +267,9 @@ void AMSmceventg::gener(){
         return;
       }
      
-      if(_fixedplane)curp=_fixedplane;
+      if(_fixedplane){
+        curp=_fixedplane;
+      }
       else {
         geant r=RNDM(d)-1.e-5;
        int i;
@@ -276,7 +280,6 @@ void AMSmceventg::gener(){
          }
        }
       }
-      
       number xa=_coorange[0][0]>-AMSDBc::ams_size[0]/2?_coorange[0][0]:-AMSDBc::ams_size[0]/2;
       number ya=_coorange[0][1]>-AMSDBc::ams_size[1]/2?_coorange[0][1]:-AMSDBc::ams_size[1]/2;
       number za=_coorange[0][2]>-AMSDBc::ams_size[2]/2?_coorange[0][2]:-AMSDBc::ams_size[2]/2;
@@ -306,7 +309,7 @@ void AMSmceventg::gener(){
        }
        else{
          _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
-         //      cout <<" coo "<<xa<<" "<<ya<<" "<<lx<<" "<<ly<<" "<<_coo<<endl;
+//cout <<" coo "<<xa<<" "<<ya<<" "<<lx<<" "<<ly<<" "<<_coo<<endl;
        }
        //
        _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
@@ -336,8 +339,8 @@ void AMSmceventg::gener(){
         abort();
       }//<--- end of switch
       //if(_fixedplane == 0)_coo=_coo/2;
-    }
-  }
+    }//--->endof "random dir"
+  }//--->endof "low!=2"
   char hp[9]="//PAWC";
   HCDIR(hp," ");
   HCDIR (cdir, " ");
@@ -541,8 +544,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
         }
         HF1(_hid,xm,y);
         HF1(_hid+1,xm,y);
-      }
-    }
+      }//--->endof "nchan"-loop
+    }//--->endof "low=0"
+//
     else if(low==6){
     //read fluxfile
       char fname[161];
@@ -1438,6 +1442,14 @@ void AMSmceventg::endjob(){
 //
 integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, geant phi){
   static integer first=1;
+  geant ztof1t=66.5;//tempor
+  geant ztof1b=64.0;//tempor
+  geant ztof2t=63.5;//tempor
+  geant ztof2b=61.0;//tempor
+  geant xtof1=131/2;//tempor
+  geant ytof1=114/2;//tempor
+  geant xtof2=120/2;//tempor
+  geant ytof2=133/2;//tempor
   geant zanti;
   geant ranti;
   geant zcal=ECALDBc::gendim(7);
@@ -1463,8 +1475,29 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
        xcr=xin+dxy*cos(phi);
        ycr=yin+dxy*sin(phi);
        if((fabs(xcr)>calhs) || (fabs(ycr)>calhs))return 0;
+
+//       dxy=(zb-ztof1t)*sin(theta); // cr.with tof1top
+//       xcr=xin+dxy*cos(phi);
+//       ycr=yin+dxy*sin(phi);
+//       if((fabs(xcr)>xtof1) || (fabs(ycr)>ytof1))return 0;
+       
+//       dxy=(zb-ztof1b)*sin(theta); // cr.with tof1bot
+//       xcr=xin+dxy*cos(phi);
+//       ycr=yin+dxy*sin(phi);
+//       if((fabs(xcr)<xtof1) && (fabs(ycr)<ytof1))return 0;
+       
+//       dxy=(zb-ztof2t)*sin(theta); // cr.with tof2top
+//       xcr=xin+dxy*cos(phi);
+//       ycr=yin+dxy*sin(phi);
+//       if((fabs(xcr)<xtof2) && (fabs(ycr)<ytof2))return 0;
+       
+//       dxy=(zb-ztof2b)*sin(theta); // cr.with tof2bot
+//       xcr=xin+dxy*cos(phi);
+//       ycr=yin+dxy*sin(phi);
+//       if((fabs(xcr)<xtof2) && (fabs(ycr)<ytof2))return 0;
      }
 //
+     TOF2JobStat::addmc(14);
      return 1;
 }
 

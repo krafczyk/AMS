@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.331 2004/07/16 15:40:27 alcaraz Exp $
+//  $Id: event.C,v 1.332 2004/09/27 15:00:30 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -28,6 +28,7 @@
 #include <tofsim02.h>
 #include <stdlib.h>
 #include <tofcalib02.h>
+#include <anticalib02.h>
 #include <daqs2block.h>
 #include <ntuple.h>
 #include <timeid.h>
@@ -1349,6 +1350,13 @@ void AMSEvent::_catofevent(){
 //---------------------------------------------------------------------------
 
 void AMSEvent::_cantievent(){
+  integer trflag(-1);
+  Trigger2LVL1 *ptr2;
+//
+    ptr2=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
+    if(ptr2)trflag=ptr2->gettoflg();
+    if(trflag < 0)return;// use only H/W-triggered event tempor
+    AntiCalib::select();
 }
 //--------------------------------------------------------------------------
 void AMSEvent::_caecevent(){

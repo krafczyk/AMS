@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.49 2003/06/27 12:48:03 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.50 2004/09/27 15:00:30 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -760,6 +760,20 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+27,"ECMC: Transv.Width(proj2,ME)",80,0.,80.,0.);
       HBOOK1(ECHIST+28,"ECMC: Transv.Width(proj1,HE)",80,0.,80.,0.);
       HBOOK1(ECHIST+29,"ECMC: Transv.Width(proj2,HE)",80,0.,80.,0.);
+      HBOOK1(ECHIST+30,"ECMC: TrgDynSignalsMax(mev),SL1",80,0.,400.,0.);
+      HBOOK1(ECHIST+31,"ECMC: TrgDynSignalsMax(mev),SL2",80,0.,400.,0.);
+      HBOOK1(ECHIST+32,"ECMC: TrgDynSignalsMax(mev),SL3",80,0.,400.,0.);
+      HBOOK1(ECHIST+33,"ECMC: TrgDynSignalsMax(mev),SL4",80,0.,400.,0.);
+      HBOOK1(ECHIST+34,"ECMC: TrgDynSignalsMax(mev),SL5",80,0.,400.,0.);
+      HBOOK1(ECHIST+35,"ECMC: TrgDynSignalsMax(mev),SL6",80,0.,400.,0.);
+      HBOOK1(ECHIST+36,"ECMC: TrgDynSignalsMax(mev),SL7",80,0.,400.,0.);
+      HBOOK1(ECHIST+37,"ECMC: TrgDynSignalsMax(mev),SL8",80,0.,400.,0.);
+      HBOOK1(ECHIST+38,"ECMC: TrgDynSignalsMax(mev),SL9",80,0.,400.,0.);
+      HBOOK1(ECHIST+39,"ECMC: NonEmptySLs(BendYproj)",10,0.,10.,0.);
+      HBOOK1(ECHIST+40,"ECMC: NonEmptySLs(NonBendXproj)",10,0.,10.,0.);
+      HBOOK1(ECHIST+41,"ECMC: MaxCOGShift(Yproj)",50,0.,10.,0.);
+      HBOOK1(ECHIST+42,"ECMC: MaxCOGShift(Xproj)",50,0.,10.,0.);
+      HBOOK1(ECHIST+43,"ECMC: DyTrigEnerTot(mev)",80,0.,2000.,0.);
     }
     HBOOK1(ECHIST+25,"LVL1: TrigType(entr,unb1-4,z1,z2,elec,phot,",10,0.,10.,0.);
 }
@@ -1026,6 +1040,20 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+27);
       HPRINT(ECHIST+28);
       HPRINT(ECHIST+29);
+      HPRINT(ECHIST+30);
+      HPRINT(ECHIST+31);
+      HPRINT(ECHIST+32);
+      HPRINT(ECHIST+33);
+      HPRINT(ECHIST+34);
+      HPRINT(ECHIST+35);
+      HPRINT(ECHIST+36);
+      HPRINT(ECHIST+37);
+      HPRINT(ECHIST+38);
+      HPRINT(ECHIST+39);
+      HPRINT(ECHIST+40);
+      HPRINT(ECHIST+41);
+      HPRINT(ECHIST+42);
+      HPRINT(ECHIST+43);
       HPRINT(ECHIST+18);
       HPRINT(ECHIST+19);
     }
@@ -1405,8 +1433,8 @@ number ECcalib::pmsatf1(int dir,number q){//simulate PM-anode saturation, i.e. Q
          if(q<qme[i]){
            return (qin[i-1]+(qin[i]-qin[i-1])*(q-qme[i-1])/(qme[i]-qme[i-1]))/q;//r=Qin/Qmeas>1
          }
+      }
     }
-   }
   } 
     cerr<<"ECcalib::pmsatf1: wrong dir parameter or logic error"<<dir<<endl;
     abort();
@@ -1660,10 +1688,10 @@ void ECcalibMS::build(){// <--- create ecpmcal-objects used as "MC-Seeds"
 //==========================================================================
 //  ECALVarp class functions :
 //
-void ECALVarp::init(geant daqth[10], geant cuts[5]){
+void ECALVarp::init(geant daqth[20], geant cuts[5]){
 
     int i;
-    for(i=0;i<10;i++)_daqthr[i]=daqth[i];
+    for(i=0;i<20;i++)_daqthr[i]=daqth[i];
     for(i=0;i<5;i++)_cuts[i]=cuts[i];
 }
 //==========================================================================

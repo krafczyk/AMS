@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.87 2003/12/18 16:12:33 mdelgado Exp $
+//  $Id: geant3.C,v 1.88 2004/09/27 15:00:30 choumilo Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -401,8 +401,8 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
      dee=GCTRAK.destep; 
      if(TFMCFFKEY.birks)GBIRK(dee);
      isphys=GCVOLU.number[lvl];
-     islog=floor(0.5*(isphys-1))+1;
-     AMSAntiMCCluster::siantihits(islog,GCTRAK.vect,dee,GCTRAK.tofg);
+     islog=floor(0.5*(isphys-1))+1;//not used now
+     AMSAntiMCCluster::siantihits(isphys,GCTRAK.vect,dee,GCTRAK.tofg);
 //     HF1(1510,geant(iprt),1.);
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
   }

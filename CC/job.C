@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.467 2004/07/16 15:40:27 alcaraz Exp $
+// $Id: job.C,v 1.468 2004/09/27 15:00:31 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -13,6 +13,7 @@
 #include <tofdbc02.h>
 #include <ecaldbc.h>
 #include <ecalcalib.h>
+#include <antidbc02.h>
 #include <amsgobj.h>
 #include <astring.h>
 #include <cern.h>
@@ -34,6 +35,7 @@
 #include <tofsim02.h>
 #include <tofrec02.h>
 #include <tofcalib02.h>
+#include <anticalib02.h>
 #include <trigger102.h>
 //#include <trigger3.h>
 #include <trigger302.h>
@@ -290,16 +292,16 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.tfhzlc=1;//(4)TOF_HiZ_FT 2-top(2-bot)fired layers configurations(0/1/2/3-> 
 //                                              ->top(bot)OR/topAND/botAND/top(bot)AND 
 // ANTI :
-  TGL1FFKEY.nanti=2;//(5) max. fired ANTI-paddles 
+  TGL1FFKEY.nanti=1;//(5) max. fired ANTI-paddles(logical) in equat.region 
 //
-  TGL1FFKEY.RebuildLVL1=0;
+  TGL1FFKEY.RebuildLVL1=0;//(6)
 // 
-  TGL1FFKEY.MaxScalersRate=20000;
-  TGL1FFKEY.MinLifeTime=0.015;
+  TGL1FFKEY.MaxScalersRate=20000;//(7)
+  TGL1FFKEY.MinLifeTime=0.015;//(8)
 // orbit:
-  TGL1FFKEY.TheMagCut=0.7;//geom.latitude cut when anti-cut is used
+  TGL1FFKEY.TheMagCut=0.7;//(9)geom.latitude cut when anti-cut is used(below-#5, above-0)
 // Ecal
-  TGL1FFKEY.ectrlog=2;// EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
+  TGL1FFKEY.ectrlog=3;//(10) EC-trigger logic type(1->MyOld,2->MyNew+ANSI,3->Pisa)
 //
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
 //----
@@ -552,9 +554,9 @@ CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;
 CCFFKEY.begindate=2062004;
-CCFFKEY.enddate=12062008;
+CCFFKEY.enddate=1012008;
 CCFFKEY.begintime=170000;
-CCFFKEY.endtime=220000;
+CCFFKEY.endtime=0;
 CCFFKEY.oldformat=0;
 CCFFKEY.sdir=1;
 CCFFKEY.Fast=0;
@@ -664,21 +666,21 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.thresh[7]=1.;     // (16) min Epeak/Efron .....................................
   ECREFFKEY.thresh[8]=25.;    // (17) PM-dynode threshold for width calc.(mev tempor) 
   ECREFFKEY.thresh[9]=13.;    // (18) trig. width cut(columns, bending plane)
-  ECREFFKEY.thresh[10]=0.;    // (19) Trig. PMDynThr sl1(y)
-  ECREFFKEY.thresh[11]=80.;   // (20) Trig. PMDynThr sl2(x)
-  ECREFFKEY.thresh[12]=180.;  // (21) Trig. PMDynThr sl3(y)
-  ECREFFKEY.thresh[13]=140.;  // (22) Trig. PMDynThr sl4(x)
+  ECREFFKEY.thresh[10]=1.;    // (19) Trig. PMDynThr sl1(y)
+  ECREFFKEY.thresh[11]=70.;   // (20) Trig. PMDynThr sl2(x)
+  ECREFFKEY.thresh[12]=100.;  // (21) Trig. PMDynThr sl3(y)
+  ECREFFKEY.thresh[13]=80.;  // (22) Trig. PMDynThr sl4(x)
   ECREFFKEY.thresh[14]=60.;   // (23) Trig. PMDynThr sl5(y)
-  ECREFFKEY.thresh[15]=100.;  // (24) Trig. PMDynThr sl6(x)
-  ECREFFKEY.thresh[16]=100.;  // (25) Trig. PMDynThr sl7(y)
-  ECREFFKEY.thresh[17]=0.;   // (26) Trig. PMDynThr sl8(x) 
-  ECREFFKEY.thresh[18]=0.;   // (27) Trig. PMDynThr sl9(y) 
+  ECREFFKEY.thresh[15]=40.;  // (24) Trig. PMDynThr sl6(x)
+  ECREFFKEY.thresh[16]=40.;  // (25) Trig. PMDynThr sl7(y)
+  ECREFFKEY.thresh[17]=1.;   // (26) Trig. PMDynThr sl8(x) 
+  ECREFFKEY.thresh[18]=1.;   // (27) Trig. PMDynThr sl9(y) 
   ECREFFKEY.thresh[19]=0.;   // (28) 
 // Run-time RECO-thresholds(time dependent):
-  ECREFFKEY.cuts[0]=0.;   // (29) spare 
-  ECREFFKEY.cuts[1]=0.;   // (30) spare
-  ECREFFKEY.cuts[2]=0.;   // (31) spare
-  ECREFFKEY.cuts[3]=0.;//    (32) spare
+  ECREFFKEY.cuts[0]=1.15;   // (29) Italy Trig-algor: WidthCut1 
+  ECREFFKEY.cuts[1]=2.15;   // (30)                   WidthCut1
+  ECREFFKEY.cuts[2]=5.;     // (31)                   Xmult-boundary
+  ECREFFKEY.cuts[3]=6.;     // (32)                    Ymult-boundary
   ECREFFKEY.cuts[4]=0.65;//  (33) LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 //
   ECREFFKEY.ReadConstFiles=10;//(34)DC (ThreshCuts-set | Calib.const(MC/RD))
@@ -807,7 +809,7 @@ void AMSJob::_sianti2data(){
   
 //---
   ATMCFFKEY.mcprtf=0;//(1)print-flag(0/1/2/3->print:no/histogr/PulseSh_arr/print_pulse)
-  ATMCFFKEY.LZero=120; // (2)attenuation length for one-side signal (cm)
+  ATMCFFKEY.LZero=0; // (2)spare
   ATMCFFKEY.LSpeed=17.;// (3)Eff. light speed in anti-paddle (cm/ns)
   ATMCFFKEY.ReadConstFiles=0;//(4)P(PedsMC), P=0/1-> read from DB/RawFiles
 //---
@@ -1048,7 +1050,7 @@ void AMSJob::_retof2data(){
   TFREFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
   TFREFFKEY.relogic[1]=2;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
   TFREFFKEY.relogic[2]=0;//(10) 0/1-> force 1-side suppression(useful for MC processing)
-  TFREFFKEY.relogic[3]=0;//(11) 0/1-> use new/old parametrization for TOF integrators 
+  TFREFFKEY.relogic[3]=0;//(11) 1/0->Do/not recovering of missing side 
   TFREFFKEY.relogic[4]=0;//(12) spare RECO logic flag
 //
   TFREFFKEY.daqthr[0]=30.;//(13)tempor Anode low discr.thresh(30mV) for fast/slow_TDC 
@@ -1091,12 +1093,12 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.pcut[0]=5.;// (1)track mom. low limit (gev/c) (prot, put 0.75 for mu)
   TFCAFFKEY.pcut[1]=100.;// (2)track mom. high limit
   TFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in the above range
-  TFCAFFKEY.tzref[0]=0.;// (4)T0 for ref. counters
-  TFCAFFKEY.tzref[1]=0.;// (5)T0 for ref. counters
+  TFCAFFKEY.tzref[0]=0.;//(4)T0 for ref. counter
+  TFCAFFKEY.tzref[1]=0.;//(5) spare
   TFCAFFKEY.fixsl=5.;// (6)def. slope
   TFCAFFKEY.bmeanmu=0.997;// (7)mean muon velocity in the above range
   TFCAFFKEY.idref[0]=104;//(8)LBB for first ref. counter 
-  TFCAFFKEY.idref[1]=0;//(9)LBB for second ref. counter (if nonzero)
+  TFCAFFKEY.idref[1]=0;//(9)0/1/2->FitAll/IgnorTrapezCount/FitTrapezCount&FixOthers
   TFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.
 //
   TFCAFFKEY.caltyp=0;// (11) 0/1->space/earth calibration
@@ -1111,7 +1113,7 @@ void AMSJob::_retof2data(){
   TFCAFFKEY.spares[1]=0;//spare integers
   TFCAFFKEY.spares[2]=0;//spare integers
   TFCAFFKEY.spares[3]=0;//spare integers
-  TFCAFFKEY.spares[4]=0;//spare integers
+  TFCAFFKEY.adc2q=1.;//(21)adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
   TFCAFFKEY.plhec[0]=0.8;//(22)plow-cut for earth calibration
   TFCAFFKEY.plhec[1]=20.;  //(23)phigh-cut ...................
   TFCAFFKEY.bgcut[0]=2.; //(24) beta*gamma low-cut to be in mip-region(abs.calib)
@@ -1119,7 +1121,7 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.dynflg=0; // (27)  not used now
-  TFCAFFKEY.cfvers=4; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
+  TFCAFFKEY.cfvers=6; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TFCAFFKEY.mcainc=0;// (30) =1->Anode-integrators calibration(MC only)(not used now)
   TFCAFFKEY.tofbetac=0.6;// (31) if nonzero->low beta cut (own TOF measurements !!!)
@@ -1129,14 +1131,14 @@ void AMSJob::_retof2data(){
 void AMSJob::_reanti2data(){
   ATREFFKEY.reprtf[0]=0;//(1) Reco print_hist flag (0/1->no/yes)
   ATREFFKEY.reprtf[1]=0;//(2) DAQ-print (1/2->print for decoding/decoding+encoding)
-  ATREFFKEY.reprtf[2]=0;//(3)spare
-  ATREFFKEY.Edthr=0.1;    //(4) threshold to create Cluster(Paddle) object (mev)
-  ATREFFKEY.zcerr1=10.;//(5) Err(cm).in longit.coord. when 2-sides times are known 
-  ATREFFKEY.daqthr=3.;   //(6) daq readout thresh. in SigmaPed units
-  ATREFFKEY.dathr=2.;  //(7) Amplitude discr.threshold in hist-TDC branch (p.e.)
-  ATREFFKEY.ftwin=50.;//(8) Tof FT-pulse <-> Anti "pattern"-pulse t-adjustment(ns)(used now in MC!) 
+  ATREFFKEY.relogic=0;  //(3) =0/1->NormalRun/CalibrationRun
+  ATREFFKEY.Edthr=0.1;  //(4) threshold to create Cluster(Paddle) object (mev)
+  ATREFFKEY.zcerr1=10.; //(5) Err(cm).in longit.coord. when 2-sides times are known 
+  ATREFFKEY.daqthr=3.;  //(6) spare
+  ATREFFKEY.dathr=2.;   //(7) spare
+  ATREFFKEY.ftwin=50.;  //(8) Tof FT-pulse <-> Anti "pattern"-pulse t-adjustment(ns)(used now in MC!) 
 //
-  ATREFFKEY.ReadConstFiles=0;//(9)PC(Peds,CalConst), P(C)=0/1-> read from DB/RawFiles
+  ATREFFKEY.ReadConstFiles=0;//(9)PVS(Peds,VarCalPar,StabCalPar), P(V,S)=0/1-> read from DB/RawFiles
 //  
   ATREFFKEY.sec[0]=0;//(10) 
   ATREFFKEY.sec[1]=0;//(11)
@@ -1148,11 +1150,11 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.day[1]=1;
   ATREFFKEY.mon[0]=0;
   ATREFFKEY.mon[1]=0;
-  ATREFFKEY.year[0]=101;
+  ATREFFKEY.year[0]=101;//(20)
   ATREFFKEY.year[1]=110;
   FFKEY("ATRE",(float*)&ATREFFKEY,sizeof(ATREFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
-  ATCAFFKEY.cfvers=3; //(1) (001-999) vers.number NN for antiverlistNN.dat file
+  ATCAFFKEY.cfvers=4; //(1) (001-999) vers.number NN for antiverlistNN.dat file
   ATCAFFKEY.cafdir=0;// (2)  0/1-> use official/private directory for calibr.files
   FFKEY("ATCA",(float*)&ATCAFFKEY,sizeof(ATCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -1443,7 +1445,6 @@ if(AMSFFKEY.Update){
        AMSRICHIdSoft::Init();
        AMSTRDIdSoft::inittable();
        AMSECIdSoft::inittable();
-       AMSTOFIds::inittable();
     }
     else {
       cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
@@ -1522,7 +1523,6 @@ AMSgObj::BookTimer.book("GUOUT");
 AMSgObj::BookTimer.book("GUKINE");
 
 _siamsinitjob();
-
 _reamsinitjob();
 
 
@@ -1781,17 +1781,7 @@ void AMSJob::_sianti2initjob(){
   if(ATMCFFKEY.ReadConstFiles>0 && !isRealData()){//(P) MCPeds from ext.files
     ANTIPeds::mcbuild();//create sc.bar anscped-objects
   }
-  if(ATMCFFKEY.mcprtf){
-    HBOOK1(2600,"ANTI-MC: Counters Etot (geant,Mev)",60,0.,30.,0.); 
-    HBOOK1(2601,"ANTI-MC: FTime-SideTime(SingleHits,ns)",80,-160.,160.,0.); 
-    HBOOK1(2602,"ANTI-MC: DownSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
-    HBOOK1(2603,"ANTI-MC: UpSideEdep (pe,FillRawEvent)",80,0.,80.,0.); 
-    HBOOK1(2604,"ANTI-MC: DownSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 
-    HBOOK1(2605,"ANTI-MC: UpSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 
-    HBOOK1(2606,"ANTI-MC: NtdcUp/Down-pairs per side ",16,0.,16.,0.); 
-    HBOOK1(2607,"ANTI-MC: NumbOfMC-hits per event ",80,0.,320.,0.);
-//  HBOOK1(2608,... reserved for PM-pulse  
-  }
+  if(ATMCFFKEY.mcprtf)ANTI2JobStat::bookmch();
 }
 //-----------------------------------------------------------------------
 void AMSJob::_sitrdinitjob(){
@@ -1924,6 +1914,7 @@ void AMSJob::_casrdinitjob(){
 
 //==========================================
 void AMSJob::_cant2initjob(){
+  AntiCalib::init();
 }
 //==========================================
 void AMSJob::_caecinitjob(){
@@ -2000,22 +1991,13 @@ void AMSJob::_retof2initjob(){
 // 
 //-----------
   AMSTOFCluster::init();
+  AMSSCIds::inittable();
 }
 //=============================================================================================
 void AMSJob::_reanti2initjob(){
 //
     AMSgObj::BookTimer.book("REANTIEVENT");
-    if(ATREFFKEY.reprtf[0]>0){
-      HBOOK1(2500,"ANTI-REC: EtotSectors(Mev)",80,0.,40.,0.);
-      HBOOK1(2501,"ANTI-REC: NumbOfSectors",16,0.,16.,0.);
-      HBOOK1(2502,"ANTI-REC: Total Time-hits per sector",16,0.,16.,0.);
-      HBOOK1(2503,"ANTI-REC: MadeOfPair-TimeHits per sector",16,0.,16.,0.);
-      HBOOK1(2504,"ANTI-REC: Sector Z-coo(cm,1Pair)",60,-60.,60.,0.);
-      HBOOK1(2505,"ANTI-REC: Sector Z-coo(cm, 2sided but pairs!=1)",60,-60.,60.,0.);
-      HBOOK1(2506,"ANTI-REC: Sector appearance frequency",16,1.,17.,0.);
-      HBOOK1(2507,"ANTI-REC: NumbOfPairedSectors",16,0.,16.,0.);
-      HBOOK1(2508,"ANTI-REC: Edep per sector(mev,2sided)",80,0.,20.,0.);
-    }
+    if(ATREFFKEY.reprtf[0]>0)ANTI2JobStat::bookh();
 //
     ANTI2JobStat::clear();
 //-----------
@@ -2025,8 +2007,11 @@ void AMSJob::_reanti2initjob(){
     ANTIPeds::build();//create sc.bar anscped-objects
   }
 // 
-  if(ATREFFKEY.ReadConstFiles%10>0){//(PC)CalibConst(MC/RD) from ext.files
-     ANTI2Pcal::build();//create calibr.objects(antisccal-objects for each sector)
+  if(ATREFFKEY.ReadConstFiles%10){//(PVS) StableCalibParams(MC/RD) from ext.files
+     ANTI2SPcal::build();//create antispcal-objects for each sector
+  }
+  if((ATREFFKEY.ReadConstFiles/10)%10>0){//(PVS) VariableCalibParams(MC/RD) from ext.files
+     ANTI2VPcal::build();//create antivpcal-objects for each sector
   }
 }
 //============================================================================================
@@ -2493,16 +2478,24 @@ if(!isRealData()){
   end.tm_mon=ATREFFKEY.mon[1];
   end.tm_year=ATREFFKEY.year[1];
 //---------
-//atre->PC,atmc->P
-if(ATREFFKEY.ReadConstFiles%10==0)end.tm_year=ATREFFKEY.year[0]-1;//CalibConst from DB
+//atre->PVS, atmc->P
+if(ATREFFKEY.ReadConstFiles%10==0)end.tm_year=ATREFFKEY.year[0]-1;//StableParams from DB
 //
-  TID.add (new AMSTimeID(AMSID("Antisccal2",isRealData()),
-     begin,end,ANTI2C::MAXANTI*sizeof(ANTI2Pcal::antisccal[0]),
-                         (void*)&ANTI2Pcal::antisccal[0],server,NeededByDefault));
+  TID.add (new AMSTimeID(AMSID("Antispcal2",isRealData()),
+     begin,end,ANTI2C::MAXANTI*sizeof(ANTI2SPcal::antispcal[0]),
+                         (void*)&ANTI2SPcal::antispcal[0],server,NeededByDefault));
 //
   end.tm_year=ATREFFKEY.year[1];
 //---------
-if(ATREFFKEY.ReadConstFiles/10==0 &&
+if((ATREFFKEY.ReadConstFiles/10)%10==0)end.tm_year=ATREFFKEY.year[0]-1;//VariableParams from DB
+//
+  TID.add (new AMSTimeID(AMSID("Antivpcal2",isRealData()),
+     begin,end,ANTI2C::MAXANTI*sizeof(ANTI2VPcal::antivpcal[0]),
+                         (void*)&ANTI2VPcal::antivpcal[0],server,NeededByDefault));
+//
+  end.tm_year=ATREFFKEY.year[1];
+//---------
+if(ATREFFKEY.ReadConstFiles/100==0 &&
     isRealData())end.tm_year=ATREFFKEY.year[0]-1;//Real data Peds.fromDB
 if(ATMCFFKEY.ReadConstFiles==0 &&
    !isRealData())end.tm_year=ATREFFKEY.year[0]-1;//MC data Peds.fromDB
@@ -3129,30 +3122,9 @@ void AMSJob::_tof2endjob(){
 }
 //-----------------------------------------------------------------------
 void AMSJob::_anti2endjob(){
-  if(ATREFFKEY.reprtf[0]>0){
-    ANTI2JobStat::print();
-  }
-  if(isSimulation() && ATMCFFKEY.mcprtf>0){
-    HPRINT(2600);
-    HPRINT(2601);
-    HPRINT(2602);
-    HPRINT(2603);
-    HPRINT(2604);
-    HPRINT(2605);
-    HPRINT(2606);
-    HPRINT(2607);
-  }
-  if(ATREFFKEY.reprtf[0]>0){
-    HPRINT(2500);
-    HPRINT(2501);
-    HPRINT(2507);
-    HPRINT(2502);
-    HPRINT(2503);
-    HPRINT(2504);
-    HPRINT(2505);
-    HPRINT(2506);
-    HPRINT(2508);
-  }
+  ANTI2JobStat::printstat();
+  if(isSimulation() && ATMCFFKEY.mcprtf>0)ANTI2JobStat::outpmc();
+  ANTI2JobStat::outp();
 }
 //-----------------------------------------------------------------------
 void AMSJob::_ecalendjob(){

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.199 2004/05/13 08:51:14 choutko Exp $
+//  $Id: commons.h,v 1.200 2004/09/27 15:00:59 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -408,7 +408,8 @@ COMMON_BLOCK_DEF(ATMCFFKEY_DEF,ATMCFFKEY);
 //===================================================================
 class ATREFFKEY_DEF {
 public:
-  integer reprtf[3];//  print flag
+  integer reprtf[2];//  print flag
+  integer relogic;// reco logic
   geant Edthr; // threshold (mev) to create Cluster-object
   geant zcerr1;// long.coo error(when 2-sides times are known) 
   geant daqthr; //DAQ-readout threshold(SigmaPed units) 
@@ -473,7 +474,8 @@ integer truse;// 1/0 to use/not tracker
 geant plhc[2];//low/high cuts on tracker mom. for space calibration
 integer minev;// min.events needed for measurement in channel or bin
 geant trcut;// cut to use for "truncated average" calculation (0.85)
-integer spares[5];//
+integer spares[4];//
+geant adc2q;//adc->charge conv.factor(pC/ADCch)(hope = for all ADC chips)
 geant plhec[2];//low/high cuts on tracker mom. for earth calibration
 geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
 integer tofcoo;// 0/1-> use transv/longit coord. from TOF

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.153 2004/02/12 11:11:10 choutko Exp $
+//  $Id: ntuple.C,v 1.154 2004/09/27 15:00:31 choumilo Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -150,8 +150,8 @@ void AMSNtuple::init(){
   "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
 
 
-  HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,
-  "ntofraw[0,48],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,4]:I,tofrbar(ntofraw)[0,12]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
+  HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,"ntofraw[0,48],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,4]:I,tofrbar(ntofraw)[0,12]:I,tofradca(2,ntofraw),tofradcal(2,ntofraw),tofradcd(2,ntofraw),tofradcdr(3,2,ntofraw),tofradcdlr(3,2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
+ 
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
   	 "nsignals[0,250],sid(nsignals):I,"
   	 "rimcorg(3,nsignals),rimcdir(3,nsignals),rimcstatus(nsignals):I,"

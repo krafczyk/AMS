@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.8 2003/05/22 08:36:39 choumilo Exp $
+//  $Id: antidbc02.h,v 1.9 2004/09/27 15:00:59 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -10,17 +10,24 @@
 namespace ANTI2C{
  const integer ANTISRS=16;// number of physical sectors 
  const integer MAXANTI=ANTISRS/2; // number of logical(readout) sectors(8)
- const integer ANCHMX=2*MAXANTI;// max. number of readout channels 
+ const integer ANCHMX=2*MAXANTI;// number of readout channels(inputs)
+ const integer ANAMTS=3;// number of Anode measurements types(hist/qh/ql) 
  const integer ANAHMX=1; // max. number of anode-charge hits  per chan.
  const integer ANTHMX=8; // max. number of time-history hits (pairs of edges) per channel
  const integer ANFADC=100;//Flash-ADC channels
- const integer ANJSTA=10;// size of Job-statistics array 
+ const integer ANJSTA=20;// size of Job-statistics array 
  const integer ANCSTA=10;// size of Channel-statistics array
  const integer ANCRAT=4; // number of crates with SFEA cards
  const integer ANSFEA=1; // number of SFEA cards per crate
  const integer ANCHSF=16;// max. number of TDC-channels per SFEA (incl. FT-channel)
  const integer ANCHCH=4;// real number of Anti-channels per TDC-chip (impl. 2chip/SFEA)
  const integer ANSLOT=5; // SFEA card position in crate (sequential slot number(1-6))
+// calibr.const:
+const integer ANACMX=2000;// max. number of accum. events per channel(or bin)
+const integer ANPRBM=11;//max.bins for Ampl-profile along the counter
+const integer ANELFT=4;     // max. number of param. for Eloss-shape(landau) fit
+const integer ANPROFP=4;//max. parameters/side in A-profile(Apm<->Yloc) fit
+//
 }
 //
 class ANTI2DBc {  
@@ -78,59 +85,37 @@ friend class AntiDBcD;
 
 };
 //=================================================================
-// class to store individual ANTI_paddle calibr. constants:
-class ANTI2Pcal{
+// class to store individual ANTI-ReadoutPaddle Stable calib-parameters:
+class ANTI2SPcal{
 //
 private:
-  integer softid;   // paddle number (Sector:1-8)
-  integer status[2];// each side  status (1/0->dead/alive)
-  geant dathr;      // discriminator threshold (p.e) for hist-channel
-  geant ftdel[2];   // spare
-  geant mev2pe[2];  // Edep->(pe's)conv.factor(1SideSignal(pe)/0.5MIP(mev) at counter center)
-//                     (incl.indiv. abs. PM-amplification and clear-fiber atten)
-  geant gain[2];    // Instant gains relative to some ref.gain(eg.during beam-test calibr)
-//                     (to correct for gain variations over time)
-  geant adc2pe;     // Signal(adc-ch)->Signal(pe's) conv.factor (pe/ADCch)
+  integer softid;   // readout paddle number (LogicSector:1-8)
+  geant hdthr;      // Hist-channel discriminator threshold (p.e)
   geant dqthr;      // DAQ-readout threshold(ADC-ch sigmas)
-  geant tzero;      // Signal delay(ns, imply = for both sides) due to fib.connection
+  geant adc2pe;     // Signal(adc-ch)->Signal(pe's) conv.factor (pe/ADCch)
+  geant tzero[2];   // 2 PhysSector-signal delays(ns, side independ) due to fib.connection
+  geant ftdel[2];   // spare
   
 public:
-  static ANTI2Pcal antisccal[ANTI2C::MAXANTI];
-  ANTI2Pcal(){};
-  ANTI2Pcal(integer sid, integer sta[2], geant athr, geant ftd[2],
-                             geant m2pe[2], geant gn[2],geant ad2e,
-                                            geant dthr,geant tzer):
-                                          softid(sid),dathr(athr),
-                              adc2pe(ad2e),dqthr(dthr),tzero(tzer){
-    status[0]=sta[0];
-    status[1]=sta[1];
-    mev2pe[0]=m2pe[0];
-    mev2pe[1]=m2pe[1];
-    gain[0]=gn[0];
-    gain[1]=gn[1];
+  static ANTI2SPcal antispcal[ANTI2C::MAXANTI];
+  ANTI2SPcal(){};
+  ANTI2SPcal(integer sid, geant ad2e, geant dthr, geant hthr, 
+                                 geant tzer[2], geant ftd[2]):
+                                          softid(sid),adc2pe(ad2e),
+                                          dqthr(dthr),hdthr(hthr){
+    tzero[0]=tzer[0];
+    tzero[1]=tzer[1];
     ftdel[0]=ftd[0];
     ftdel[1]=ftd[1];
   }
   integer getid(){return softid;}
-  geant getmev2pe(int is){return mev2pe[is];}
   geant getadc2pe(){return adc2pe;}
   geant getdqthr(){return dqthr;}
-  geant gettzer(){return tzero;}
+  geant gettzer(int iphc){return tzero[iphc];}
+  geant gettzerc(){return 0.5*(tzero[0]+tzero[1]);}
 //
-  geant getathr(){
-    return(dathr);
-  }
-  bool CalStOK(int isd){return status[isd]==0;}
-  void getstat(integer sta[2]){
-    sta[0]=status[0];
-    sta[1]=status[1];
-  }
-  void getgain(geant gn[2]){
-    gn[0]=gain[0];
-    gn[1]=gain[1];
-  }
-  geant sgain(int is){
-    return gain[is];
+  geant gethdthr(){
+    return(hdthr);
   }
   void getftd(geant ftd[2]){
     ftd[0]=ftdel[0];
@@ -139,11 +124,59 @@ public:
   static void build();
 };
 //=================================================================
-// class to store ANTI_paddle anode-peds/sigmas  :
+// class to store individual ANTI-ReadoutPaddle Variable calib-parameters:
+class ANTI2VPcal{
+//
+private:
+  integer softid;   // readout paddle number (LogicSector:1-8)
+  integer status1[2];// 1st PhysSector sides-status (PM+AMPL, 1/0->dead/alive)
+  integer status2[2];// 2nd PhysSector sides-status (PM+AMPL, 1/0->dead/alive)
+  geant attlen[2];  // 2 PhysSectors atten.length(cm)
+  geant mev2pe1[2]; // 1st PhysSector Edep->pe conv.factor(1SideSignal(pe)/0.5MIP(mev))
+//                     (incl.indiv. abs. PM-amplification and clear-fiber atten)
+  geant mev2pe2[2]; // 2nd PhysSector Edep->pe conv.factor(1SideSignal(pe)/0.5MIP(mev))
+//                     (incl.indiv. abs. PM-amplification and clear-fiber atten)
+    
+public:
+  static ANTI2VPcal antivpcal[ANTI2C::MAXANTI];
+  ANTI2VPcal(){};
+  ANTI2VPcal(integer sid, integer sta1[2], integer sta2[2], 
+             geant m2pe1[2],geant m2pe2[2], geant atl[2]):softid(sid){
+                                          
+    status1[0]=sta1[0];
+    status1[1]=sta1[1];
+    status2[0]=sta2[0];
+    status2[1]=sta2[1];
+    attlen[0]=atl[0];
+    attlen[1]=atl[1];
+    mev2pe1[0]=m2pe1[0];
+    mev2pe1[1]=m2pe1[1];
+    mev2pe2[0]=m2pe2[0];
+    mev2pe2[1]=m2pe2[1];
+  }
+  integer getid(){return softid;}
+  geant getmev2pe1(int is){return mev2pe1[is];}
+  geant getmev2pe2(int is){return mev2pe2[is];}
+  geant getmev2pec(int is);
+  geant getatlen(int iphc){return attlen[iphc];}
+  geant getatlenc();
+//
+  bool CalStOK(int isd){return (status1[isd]==0 || status2[isd]==0);}
+  integer getstat1(int isd){
+    return status1[isd];
+  }
+  int NPhysSecOK();
+  integer getstat2(int isd){
+    return status2[isd];
+  }
+  static void build();
+};
+//=================================================================
+// class to store ANTI-ReadoutPaddle anode-peds/sigmas  :
 class ANTIPeds{
 //
 private:
-  integer softid;  // S(sector number 1-8)
+  integer softid;  // S(readout-sector number 1-8)
   integer stata[2];//status for side1/2 anodes =0/1->ok/bad
   geant peda[2]; // anode peds for side1/2
   geant siga[2]; // anode ped.sigmas .............................
@@ -196,6 +229,15 @@ private:
 //           =4 -> RawCluster->Cluster OK
 //           =5 -> Using TOF in LVL1
 //           =6 -> Using EC  in LVL1
+//       ....=7-10 -> reco spare
+//           =11-> AntiCalib entries
+//           =12-> Nsectors OK
+//           =13-> TRK-track found
+//           =14-> Track-sector matching OK
+//           =15-> TOF/TRK Z=1 
+//           =16-> good matching/impact 
+//           =17-> In MIP range 
+//           =18-> CrossLength OK 
 //
 //------
   static integer chcount[ANTI2C::ANCHMX][ANTI2C::ANCSTA];//channel statistics
@@ -211,6 +253,7 @@ private:
   static integer brcount[ANTI2C::MAXANTI][ANTI2C::ANCSTA];// bar statistics
 //                               [0] -> h/w-status="ON" frequency
 //                               [1] -> "multipl-OK"
+//                               [2] -> "Good for calibr"
 public:
   inline static void clear(){
     int i,j;
@@ -241,7 +284,11 @@ public:
     assert(brnum < ANTI2C::MAXANTI && i < ANTI2C::ANCSTA);
     brcount[brnum][i]+=1;
   }
-  static void print();
+  static void bookh();
+  static void bookmch();
+  static void printstat();
+  static void outpmc();
+  static void outp();
 };
 //===================================================================
 #endif

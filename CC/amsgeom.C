@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.179 2004/05/13 08:50:53 choutko Exp $
+//  $Id: amsgeom.C,v 1.180 2004/09/27 15:00:29 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1129,34 +1129,36 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //
 // ------------> #3(inclined at +Y(Wake)):
 //
- geant r3rex=40.;// external radious of radiator cylinder
- geant r3ang=87.5;//angle(degrees) of cylinder 
- geant r3cy2=174.7;// bot/inner cylinder corner y-pos.
- geant r3cz2=110.6;//bot/inner corner z-pos
- geant r3dy=1.6;// thickness
- geant r3dx1=237.2;// dx(height) of the cylinder.
- number nrm3[3][3]={0.,0.,1., 1.,0.,0., 0.,1.,0.};//rot matrix.v#3
+ geant r3dz=51.86;//height of TRD1(dz)
+ geant r3cy2=173.15;// bot/inner corner y-pos.
+ geant r3cz2=112.46;//bot/inner corner z-pos
+ geant r3dy=1.5;// thickness
+ geant r3dx1=260;//top dx of TRD1(at -z)
+ geant r3dx2=212.7;//bot dx of TRD1(at +z)
+ geant alp3=45.1;//slope(degr)
+ geant cosa=cos(alp3/AMSDBc::raddeg);
+ geant sina=sin(alp3/AMSDBc::raddeg);
+ number nrm3[3][3]={-1.,0.,0.,0.,sina,cosa,0.,cosa,-sina};//rot matrix.v#3
 //
- par[0]=r3rex-r3dy;//Rmin
- par[1]=r3rex;//Rmax
- par[2]=r3dx1/2.;
- par[3]=0.;//phi-1
- par[4]=r3ang;//phi-2
+ par[0]=r3dx1/2;//dxloc at -Zloc
+ par[1]=r3dx2/2;//dxloc at +Zloc
+ par[2]=r3dy/2;// thickn(dyloc)
+ par[3]=r3dz/2;// height(dzloc)
  coo[0]=0.;
- coo[1]=r3cy2+r3dy-r3rex;//cylinder center y-pos
- coo[2]=r3cz2;
+ coo[1]=r3cy2-0.5*r3dz*cosa+0.5*r3dy*sina;
+ coo[2]=r3cz2+0.5*r3dz*sina+0.5*r3dy*cosa;
  gid=1;
  dau=mother.add(new AMSgvolume(
-     "RADMED2",1,"RA3T","TUBS",par,5,coo,nrm3,"ONLY",1,gid,1));//radiator #3,top.
+     "RADMED1",nrot++,"RA3T","TRD1",par,4,coo,nrm3,"ONLY",1,gid,1));//radiator #3,top.
 //
 // ------------> #4(inclined at -Y):
 //
- number nrm4[3][3]={0.,0.,-1., -1.,0.,0., 0.,1.,0.};//rot matrix.v#4
+ number nrm4[3][3]={1.,0.,0.,0.,-sina,-cosa,0.,cosa,-sina};//rot matrix.v#4
 //
  coo[1]=-coo[1];
  gid=1;
  dau=mother.add(new AMSgvolume(
-     "RADMED2",1,"RA4T","TUBS",par,5,coo,nrm4,"ONLY",1,gid,1));//radiator #4,top.
+     "RADMED1",nrot++,"RA4T","TRD1",par,4,coo,nrm4,"ONLY",1,gid,1));//radiator #4,top.
 //
 // -----------------------------> Crates:
 //
@@ -1454,6 +1456,55 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
    gid=ib+1;
    dau=mother.add(new AMSgvolume(
      "MSBRMED",0,"MSBR","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//M-structure top-brackets
+ }
+//
+// ------> M-structure antivibration rods(22.09.03 RB) :
+//
+ geant rodd=2.5;//rod diameter
+ geant rodh=2.;//rod int. hole diam
+ geant rodpxy=52.8;//rod-end dist from MS-frame edge(intern.angle)
+ geant rodpz=0;//rod z-pos wrt MS-frame top surface(<0 if below it)
+ geant rodl=sqrt(2)*rodpxy-rodd-0.01;//rod length +safety margine
+ geant roda=45;//rod-rotation angle in xy-plane(only 45degr is supported !) 
+ geant sinra=sin(roda/AMSDBc::raddeg);
+ geant cosra=cos(roda/AMSDBc::raddeg);
+ number rmrd1[3][3]={0.,sinra,cosra,0.,cosra,-sinra,-1.,0.,0.};//rm  +x+y
+ number rmrd2[3][3]={0.,sinra,-cosra,0.,-cosra,-sinra,-1.,0.,0.};//rm +x-y
+ number rmrd3[3][3]={0.,-sinra,-cosra,0.,-cosra,sinra,-1.,0.,0.};//rm -x-y
+ number rmrd4[3][3]={0.,-sinra,cosra,0.,cosra,sinra,-1.,0.,0.};//rm -x+y
+//
+ par[0]=rodh/2;//rmin
+ par[1]=rodd/2;//rmax
+ par[2]=rodl/2;//length
+ coo[2]=msfz1+msfdz-rodpz;
+ geant rdcx=msfr1-rodpxy/2;//rod-center x-pos for #1
+ geant rdcy=msfr1-rodpxy/2;//rod-center y-pos for #1
+//
+ for(int ir=0;ir<4;ir++){
+   if(ir==0){
+     for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmrd1[i][j];
+     coo[0]=rdcx;
+     coo[1]=rdcy;
+   }
+   if(ir==1){
+     for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmrd2[i][j];
+     coo[0]=rdcx;
+     coo[1]=-rdcy;
+   }
+   if(ir==2){
+     for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmrd3[i][j];
+     coo[0]=-rdcx;
+     coo[1]=-rdcy;
+   }
+   if(ir==3){
+     for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmrd4[i][j];
+     coo[0]=-rdcx;
+     coo[1]=rdcy;
+   }
+   gid=ir+1;
+   nrot+=ir;
+   dau=mother.add(new AMSgvolume(
+     "USSALLOY",nrot,"AVRD","TUBE",par,3,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));
  }
 //------------------------------------------ 
 //
@@ -2608,6 +2659,7 @@ ECALDBc::readgconf();//
   gid=1;
   ECmother=mother.add(new AMSgvolume(
        "EC_AL_PLATE",0,"ECMO","BOX",par,3,coo,nrm0,"ONLY",0,gid,1));// create ECAL mother volume
+//                                               (ec_al_plate is really glue in current design !!)
 //------------------------------------
 //  create top/bot honeycomb plate in ECAL-mother:
 //

@@ -1,4 +1,4 @@
-//  $Id: tofsim02.h,v 1.8 2003/05/22 08:36:40 choumilo Exp $
+//  $Id: tofsim02.h,v 1.9 2004/09/27 15:01:00 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #ifndef __AMSTOF2SIM__
 #define __AMSTOF2SIM__
@@ -79,6 +79,8 @@ private:
   geant eff2[TOF2GC::SCANPNT];  //effic. for +X side PMT
   geant rgn1[TOF2GC::SCANPNT];  //PM rel.gain for -X side PMT
   geant rgn2[TOF2GC::SCANPNT];  //PM rel.gain for +X side PMT
+  geant psh1[TOF2GC::SCANPNT][TOF2GC::PMTSMX];// ph.el. sharing over PMTs (s1)
+  geant psh2[TOF2GC::SCANPNT][TOF2GC::PMTSMX];// ph.el. sharing over PMTs (s2)
   TOFTpoints tdist1[TOF2GC::SCANPNT];// t-points arrays for -X side
   TOFTpoints tdist2[TOF2GC::SCANPNT];// t-points arrays for +X side
 public:
@@ -86,6 +88,7 @@ public:
   TOF2Scan(const integer nscp, const int _indsp[], const geant _scanp[], 
                          const geant _eff1[], const geant _eff2[],
                          const geant _rgn1[], const geant _rgn2[],
+			 const geant _psh1[][TOF2GC::PMTSMX],const geant _psh2[][TOF2GC::PMTSMX],
                          const TOFTpoints _tdist1[], const TOFTpoints _tdist2[])
   {
     nscpnts=nscp;
@@ -96,6 +99,8 @@ public:
     for( k=0;k<nscp;k++)eff2[k]=_eff2[k];
     for( j=0;j<nscp;j++)rgn1[j]=_rgn1[j];
     for( k=0;k<nscp;k++)rgn2[k]=_rgn2[k];
+    for( k=0;k<nscp;k++)for(i=0;i<TOF2GC::PMTSMX;i++)psh1[k][i]=_psh1[k][i];
+    for( k=0;k<nscp;k++)for(i=0;i<TOF2GC::PMTSMX;i++)psh2[k][i]=_psh2[k][i];
     for(int l=0;l<nscp;l++)tdist1[l]=_tdist1[l];
     for(int m=0;m<nscp;m++)tdist2[m]=_tdist2[m];
   };
@@ -125,6 +130,10 @@ geant getgn1(const geant r, const int i1, const int i2){
   if(i1==i2){return rgn1[i1];}
   else{return (rgn1[i1]+(rgn1[i2]-rgn1[i1])*r);}
 }
+geant getps1(const int ipm, const geant r, const int i1, const int i2){
+  if(i1==i2){return psh1[i1][ipm];}
+  else{return (psh1[i1][ipm]+(psh1[i2][ipm]-psh1[i1][ipm])*r);}
+}
 geant getef2(const geant r, const int i1, const int i2){
   if(i1==i2){return eff2[i1];}
   else{return (eff2[i1]+(eff2[i2]-eff2[i1])*r);}
@@ -132,6 +141,10 @@ geant getef2(const geant r, const int i1, const int i2){
 geant getgn2(const geant r, const int i1, const int i2){
   if(i1==i2){return rgn2[i1];}
   else{return (rgn2[i1]+(rgn2[i2]-rgn2[i1])*r);}
+}
+geant getps2(const int ipm, const geant r, const int i1, const int i2){
+  if(i1==i2){return psh2[i1][ipm];}
+  else{return (psh2[i1][ipm]+(psh2[i2][ipm]-psh2[i1][ipm])*r);}
 }
 //-------
 //get PM time using t-distr. arrays for closest (to Y) sc.points
@@ -145,6 +158,7 @@ geant gettm2(const geant r, const int i1, const int i2);
 class TOFWScan{
 //
 private:
+  int npmts; //real number of PMTs per side
   int nwdivs; // real number of width-divisions
   geant divxl[TOF2GC::SCANWDS];//division xlow
   geant divxh[TOF2GC::SCANWDS];//division xhigh
@@ -152,9 +166,11 @@ private:
 public:
   static TOFWScan scmcscan[TOF2GC::SCBTPN];
   TOFWScan(){};
-  TOFWScan(const int nwdvs, const geant _dxl[], const geant _dxh[], 
+  TOFWScan(const int npm, const int nwdvs, 
+                         const geant _dxl[], const geant _dxh[], 
                          const TOF2Scan  _sdsc[])
   {
+    npmts=npm;
     nwdivs=nwdvs;
     int i;
     for(i=0;i<nwdvs;i++){
@@ -164,6 +180,9 @@ public:
     }
   };
 //
+  int getnpmts(){
+    return(npmts);
+  }
   int getndivs(){
     return(nwdivs);
   }
@@ -217,6 +236,12 @@ public:
   geant getgn2(const int div, const geant r, const int i1, const int i2){
     return(wscan[div].getgn2(r, i1, i2));
   }
+  geant getps1(const int ipm, const int div, const geant r, const int i1, const int i2){
+    return(wscan[div].getps1(ipm, r, i1, i2));
+  }
+  geant getps2(const int ipm, const int div, const geant r, const int i1, const int i2){
+    return(wscan[div].getps2(ipm, r, i1, i2));
+  }
 //
 //   Func. to calc. pm1/pm2 times for division div:
 //
@@ -252,18 +277,18 @@ number tftdc[TOF2GC::SCTHMX2];  // up-time of pulses going to fast(history) TDC
 number tftdcd[TOF2GC::SCTHMX2]; // down-time ..., TDC dbl. resol. already taken into account
 integer nstdc;
 number tstdc[TOF2GC::SCTHMX3];  // store up-times of pulses going to slow(stretcher) TDC
-integer nadca;
-number adca[TOF2GC::SCTHMX4];  // store ADC-counts(float) for Anode channel
+number adca;  // store ADC-counts(float) for Anode high_gain channel
+number adcal;  // store ADC-counts(float) for Anode low_gain channel
 integer nadcd;
-number adcd[TOF2GC::SCTHMX4];  // store ADC-counts(float) for Dynode high_gain channel
+number adcd[TOF2GC::PMTSMX];  // store ADC-counts(float) for Dynodes high_gain channels
 integer nadcdl;
-number adcdl[TOF2GC::SCTHMX4];  // store ADC-counts(float) for Dynode low_gain channel
+number adcdl[TOF2GC::PMTSMX];  // store ADC-counts(float) for Dynodes low_gain channels
 //
 public:
 TOF2Tovt(integer _ids, integer _sta, number _charga, number _tedep,
   integer _ntr1, number _ttr1[], integer _ntr3, number _ttr3[],
   integer _nftdc, number _tftdc[], number _tftdcd[], integer _nstdc, number _tstdc[],
-  integer _nadca, number _adca[],
+  number _adca, number _adcal,
   integer _nadcd, number _adcd[],
   integer _nadcdl, number _adcdl[]);
 //
@@ -276,7 +301,8 @@ integer gettr1(number arr[]);
 integer gettr3(number arr[]);
 integer getftdc(number arr1[], number arr2[]);
 integer getstdc(number arr[]);
-integer getadca(number arr[]);
+number  getadca();
+number getadcal();
 integer getadcd(number arr[]);
 integer getadcdl(number arr[]);
 integer getstat(){return status;}
@@ -286,7 +312,7 @@ static void displ_a(const int id, const int mf, const geant arr[]);
 static number tr1time(int &trcode,uinteger arr[]);//to get "z>=1" trigger time/code/patt 
 static number tr2time(int &trcode,uinteger arr[]);//to get "z>=2" trigger time/code/patt 
 static void build();
-static void totovt(integer id, geant edep, geant tslice[]);//flash_ADC_array->Tovt
+static void totovt(integer id, geant edep, geant tslice[],geant shar[]);//flash_ADC_array->Tovt
 //
 protected:
 void _printEl(ostream &stream){stream <<"TOF2Tovt: "<<idsoft<<endl;}
@@ -368,12 +394,12 @@ private:
  int16u ftdc[TOF2GC::SCTHMX2*2]; // fast "tdc" hits (2 edges, in TDC channels)
  int16u nstdc;         // number of slow "tdc" hits
  int16u stdc[TOF2GC::SCTHMX3*4]; // slow "tdc" hits (4 edges,in TDC channels)
- int16u nadca;         // number of Anode  ADC hits
- int16u adca[TOF2GC::SCTHMX4]; // Anode ADC hits (in DAQ-bin units !)
- int16u nadcd;         // number of Dynode high-gain-channel ADC hits
- int16u adcd[TOF2GC::SCTHMX4]; // Dynode high-gain-channel ADC hits (in DAQ-bin units !)
- int16u nadcdl;         // number of Dynode low-gain-channel ADC hits
- int16u adcdl[TOF2GC::SCTHMX4]; // Dynode low-gain-channel ADC hits (in DAQ-bin units !)
+ int16u adca; // Anode h-channel ADC hit (in DAQ-bin units !)
+ int16u adcal;// Anode l-channel ADC hit (in DAQ-bin units !)
+ int16u nadcd;         // number of NONZERO Dynode(h)-channels(max PMTSMX)
+ int16u adcd[TOF2GC::PMTSMX]; // ALL Dynodes(h) ADC hits(positional, in DAQ-bin units !)
+ int16u nadcdl;        // number of NONZERO Dynode(l)-channels(max PMTSMX)
+ int16u adcdl[TOF2GC::PMTSMX]; //ALL Dynodes(l) ADC hits(positional, in DAQ-bin units !)
  geant charge;         // for MC : tot. anode charge (pC)
  geant edep;           // for MC : tot. edep in bar (mev)
 //
@@ -381,9 +407,9 @@ public:
  TOF2RawEvent(int16u _ids, int16u _sta, geant _charge, geant _edep,
    int16u _nftdc, int16u _ftdc[],
    int16u _nstdc, int16u _stdc[],
-   int16u _nadca, int16u _adca[],
-   int16u _nadcd, int16u _adcd[],
-   int16u _nadcdl, int16u _adcdl[]);
+   int16u _adca, int16u _adcal,
+   int16u _nadcd, int16u _adcd[TOF2GC::PMTSMX],
+   int16u _nadcdl, int16u _adcdl[TOF2GC::PMTSMX]);
  ~TOF2RawEvent(){};
  TOF2RawEvent * next(){return (TOF2RawEvent*)_next;}
 
@@ -394,7 +420,7 @@ public:
  int16u getstat() const {return status;}
  geant getcharg(){return charge;}
  geant getedep(){return edep;}
- integer gettoth(){return integer(nftdc+nstdc+nadca+nadcd+nadcdl);}
+ integer gettoth(){return integer(nftdc+nstdc+1+1+nadcd+nadcdl);}
 
 
  integer getnztdc();
@@ -404,9 +430,10 @@ public:
  int16u getstdc(int16u arr[]);
  int16u getnstdc(){return nstdc;}
  void putstdc(int16u nelem, int16u arr[]);
- int16u getadca(int16u arr[]);
- int16u getnadca(){return nadca;}
- void putadca(int16u nelem, int16u arr[]);
+ int16u getadca(){return adca;}
+ int16u getadcal(){return adcal;}
+ void putadca(int16u _adca){adca=_adca;}
+ void putadcal(int16u _adcal){adcal=_adcal;}
  int16u getadcd(int16u arr[]);
  int16u getnadcd(){return nadcd;}
  void putadcd(int16u nelem, int16u arr[]);
@@ -439,9 +466,6 @@ public:
  static void mc_build(int &);// Tovt-->raw_event  
  static void validate(int &);// RawEvent->RawEvent
 //
- static void  tofonlinefill1(integer ilay, integer ibar, integer isid,
-			    int nedges[4], int num, int den,
-			    number Atovt, number Dtovt);
 // interface with DAQ :
  static integer calcdaqlength(int16u blid);
  static void builddaq(int16u blid, integer &len, int16u *p);
@@ -457,8 +481,7 @@ protected:
   for(i=0;i<nftdc;i++)stream <<hex<<ftdc[i]<<endl;
   stream <<"nstdc="<<dec<<nstdc<<endl;
   for(i=0;i<nstdc;i++)stream <<hex<<stdc[i]<<endl;
-  stream <<"nadca="<<dec<<nadca<<endl;
-  for(i=0;i<nadca;i++)stream <<hex<<adca[i]<<endl;
+  stream <<hex<<adca<<" "<<adcal<<endl;
   stream <<"nadcd="<<dec<<nadcd<<endl;
   for(i=0;i<nadcd;i++)stream <<hex<<adcd[i]<<endl;
   stream <<"nadcdl="<<dec<<nadcdl<<endl;

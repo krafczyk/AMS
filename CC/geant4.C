@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.55 2003/12/18 16:12:33 mdelgado Exp $
+//  $Id: geant4.C,v 1.56 2004/09/27 15:00:31 choumilo Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -965,8 +965,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
        PrePV->GetName()(2)=='T' && PrePV->GetName()(3)=='S' && GCTRAK.destep>0.){
        dee=GCTRAK.destep;
        isphys=PrePV->GetCopyNo();
-       islog=floor(0.5*(isphys-1))+1;
-       AMSAntiMCCluster::siantihits(islog,GCTRAK.vect,
+       islog=floor(0.5*(isphys-1))+1;//not used now
+       AMSAntiMCCluster::siantihits(isphys,GCTRAK.vect,
                                                    dee,GCTRAK.tofg);
      }// <--- end of "in ANTS"
 //------------------------------------------------------------------

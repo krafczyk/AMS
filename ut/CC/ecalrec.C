@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.90 2003/12/11 16:14:03 choutko Exp $
+//  $Id: ecalrec.C,v 1.91 2004/09/27 15:00:30 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -104,6 +104,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number attfdir,attfrfl,ww[4],anen,dyen;
   number sum[ECPMSMX][4],pmtmap[ECSLMX][ECPMSMX],pmlprof[ECSLMX];
   int dytmap[ECSLMX][ECPMSMX],dytrc[ECSLMX];
+//  number dycog[ECSLMX];
+  int dycog[ECSLMX];//to work with integer as in real EC trigger
   number pmedepr[4];
   integer zhitmap[ECSLMX];
   integer adch,adcm,adcl,adcd;
@@ -140,6 +142,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
     pmlprof[il]=0.;
     zhitmap[il]=0;
     dytrc[il]=0;
+    dycog[il]=0;
     for(i=0;i<ECPMSMX;i++){
       pmtmap[il][i]=0.;
       dytmap[il][i]=0;
@@ -522,21 +525,86 @@ else if(TGL1FFKEY.ectrlog==2){//<===== logic-type-2:new my_simple+ansi
 else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: italy
 //
   int nprx(0),npry(0);
+  number dyslmx[ECSLMX]={0.,0.,0.,0.,0.,0.,0.,0.,0.};
+  number dytrsum(0),dysl;
+  geant trwr;
+  ethrmip=ECALVarp::ecalvpar.daqthr(1);//Etot mip-thr
   trigfl=0;
   for(il=0;il<nslmx;il++){//prepare trigger Dynode map(variab.thr vs layer)
     for(pm=0;pm<npmmx;pm++){
-      if(pmtmap[il][pm]>ECALVarp::ecalvpar.daqthr(10+il)){
+      dysl=pmtmap[il][pm];
+      dytrsum+=dysl;
+      if(dysl>dyslmx[il])dyslmx[il]=dysl;
+//      if(ECMCFFKEY.mcprtf>0){
+//        if(dysl>0)HF1(ECHIST+30+il,geant(dysl),1.);
+//      }
+      
+      if(dysl>ECALVarp::ecalvpar.daqthr(10+il)){
         dytmap[il][pm]=1;
 	dytrc[il]+=1;
+	dycog[il]+=(pm+1);
       }
     }
+    if(dytrc[il]>0){
+      dycog[il]*=64;//as in real trigger electronics(according Stefano Di Falco)
+      dycog[il]=geant(dycog[il])/dytrc[il];//layer COG
+    }
   }
-  for(il=0;il<5;il+=2){//calc.fired PMs
-    if(dytrc[il+1]>0)nprx+=1;
+//
+  if(ECMCFFKEY.mcprtf>0){// histogr of max in SL
+    for(il=0;il<nslmx;il++)if(dyslmx[il]>0)HF1(ECHIST+30+il,geant(dyslmx[il]),1.);
+  }
+//
+  for(il=0;il<5;il+=2){//count fired PMs in SL 2:7
+    if(dytrc[il+1]>0)nprx+=1;//counts SLs with PMs above threshold
     if(dytrc[il+2]>0)npry+=1;
   }
+  if(dytrsum>ethrmip)trflen=1;//at least MIP
   if(nprx>0 && npry>0)trflen=2;//tempor
   if(nprx>=2 && npry>=2)trflen=3;//tempor
+  if(ECMCFFKEY.mcprtf>0){
+    HF1(ECHIST+39,geant(npry),1.);
+    HF1(ECHIST+40,geant(nprx),1.);
+    if(dytrsum>0)HF1(ECHIST+43,geant(dytrsum),1.);
+  }
+//
+  number dbx24(-99),dbx46(-99),dbx26(-99),dbxm(-99);
+  number dby35(-99),dby57(-99),dby37(-99),dbym(-99);
+//  geant wdxcut,wdycut;
+  int wdxcut,wdycut;//to follow the real electronics logic
+  if(trflen==3){
+    if(dytrc[1]>0 && dytrc[3]>0)dbx24=abs(dycog[1]-dycog[3]);
+    if(dytrc[3]>0 && dytrc[5]>0)dbx46=abs(dycog[3]-dycog[5]);
+    if(dytrc[1]>0 && dytrc[5]>0)dbx26=abs(dycog[1]-dycog[5])/2;
+    if(dytrc[2]>0 && dytrc[4]>0)dby35=abs(dycog[2]-dycog[4]);
+    if(dytrc[4]>0 && dytrc[6]>0)dby57=abs(dycog[4]-dycog[6]);
+    if(dytrc[2]>0 && dytrc[6]>0)dby37=abs(dycog[2]-dycog[6])/2;
+//
+    if(dbx26>=0)dbxm=dbx26;
+    else{
+      if(dbx24>=0)dbxm=dbx24;
+      else dbxm=dbx46;
+    }
+//
+    if(dby37>=0)dbym=dby37;
+    else{
+      if(dby35>=0)dbym=dby35;
+      else dbym=dby57;
+    }
+//
+    if((dytrc[3]+dytrc[5])<ECALVarp::ecalvpar.rtcuts(2))wdxcut=64*ECALVarp::ecalvpar.rtcuts(0);
+    else wdxcut=64*ECALVarp::ecalvpar.rtcuts(1);
+    if((dytrc[4]+dytrc[6])<ECALVarp::ecalvpar.rtcuts(3))wdycut=64*ECALVarp::ecalvpar.rtcuts(0);
+    else wdycut=64*ECALVarp::ecalvpar.rtcuts(1);
+//"64" to convert logic cuts into real electronics scale (according to Stefano Di Falco)   
+    if(ECMCFFKEY.mcprtf>0){
+      HF1(ECHIST+41,geant(dbym/64),1.);//"64" to view variables in the logic scale
+      HF1(ECHIST+42,geant(dbxm/64),1.);
+    }
+    if(dbxm<wdxcut && dbym<wdycut)trflwd=2;//EM
+    else trflwd=1;//nonEM
+  }
+//
   trigfl=10*trflen+trflwd;//MN, M->EnergyFlag, N->WidthFlag
 }
 //-----
@@ -1305,7 +1373,7 @@ integer Ecal1DCluster::build(int rerun){
      AMSEvent::gethead()->addnext(AMSID("Ecal1DCluster",proj),new Ecal1DCluster(status,proj,ipl,0,0,0,-ec,0,0,0,0,0,coo,0,coox2,0));
     }
 }
-}
+}//--->endof SubCell-planes loop
 return 1;
 }
 

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.238 2004/05/13 08:51:04 choutko Exp $
+#  $Id: datacards.doc,v 1.239 2004/09/27 15:00:58 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -927,7 +927,7 @@ I 17 day[1](1)             //
 I 18 mon[0](0)             //
 I 19 mon[1](0)             //
 I 20 year[0](101)          //
-I 21 year[1](108)          //
+I 21 year[1](110)          //
 
  AMS02 Anti Calibration
 

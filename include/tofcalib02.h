@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.h,v 1.4 2003/02/21 16:23:37 choumilo Exp $
+//  $Id: tofcalib02.h,v 1.5 2004/09/27 15:00:59 choumilo Exp $
 #include <typedefs.h>
 #include <tofdbc02.h>  
 //  Some classes for calibrations. E.Choumilov
@@ -95,9 +95,21 @@ private:
   static geant profb[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// profile bins width(counting from "-" side)
   static geant profp[TOF2GC::SCBTPN][TOF2GC::SCPRBM];// bin middle-point values
   static integer nprbn[TOF2GC::SCBTPN];// real number of prof.bins according to bar-type
-  static number a2dr[TOF2GC::SCCHMX];// sum of anode/dinode signal-ratios for each channel
-  static number a2dr2[TOF2GC::SCCHMX];// sum of anode/dinode (signal-ratios)**2
-  static integer nevenr[TOF2GC::SCCHMX];// number of events/channel for above sum
+  
+  static number ah2lr[TOF2GC::SCCHMX];//sum of Anode h/l-ratios for each channel
+  static number ah2lr2[TOF2GC::SCCHMX];// sum of Anode h/l-ratios**2
+  static integer nevenar[TOF2GC::SCCHMX];//number of events/channel for above sum
+  static number dh2lr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dynode h/l-ratios for each LBBS
+  static number dh2lr2[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dynode h/l-ratios**2 ...
+  static integer nevendr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];// number of events/channel for above sum
+  
+  static number a2dr[TOF2GC::SCCHMX];//sum of Ah/Sum(Dh(pmt))-ratios for each channel
+  static number a2dr2[TOF2GC::SCCHMX];//sum of ratios**2 for each channel
+  static integer neva2d[TOF2GC::SCCHMX];//number of events/channel for above sum
+  static number d2sdr[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of Dh(pm)/Sum(Dh(pm))-gains for LBBS
+  static number d2sdr2[TOF2GC::SCCHMX][TOF2GC::PMTSMX];//sum of ratios**2 for each LBBS
+  static integer nevdgn[TOF2GC::SCCHMX];//number of events/channel for above sum
+  
   static number ammrfc[TOF2GC::SCBTPN];// mean charge (central incidence) for ref.counters
   static integer nevrfc[TOF2GC::SCBTPN];// number of accum. events for above sum
   static number arefb[TOF2GC::SCBTPN][TOF2GC::SCACMX];// tot-signals for each ref_bar/event
@@ -123,7 +135,10 @@ public:
   static void fill(integer il, integer ib, geant ama[2], geant coo);
   static void fillabs(integer il, integer ib, geant ama[2], geant coo, number mom,
                                                                      number btof);
-  static void filla2d(integer il, integer ib, geant ama[2], geant amd[2]);
+  static void fillah2l(integer chan, number ama,number amal);
+  static void filldh2l(int chan, int np, number amd[TOF2GC::PMTSMX], number amdl[TOF2GC::PMTSMX]);
+  static void filla2dg(int il, int ib, geant cin, geant ama[2], geant amd[2][TOF2GC::PMTSMX]);
+  
   static void mfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
   static void melfun(int &np, number grad[],number &f,number x[],int &flg,int &dum);
   static void select();
@@ -131,16 +146,16 @@ public:
 };
 //-----------------------------------------------------------------------
 //
-//  class to manipulate with AvsD-calibration data :
+//  class to manipulate  AvsD-calibration data :
 class TOF2AVSDcalib {
 private:
-  static number dtdyn[TOF2GC::SCCHMX][TOF2GC::SCACHB];// to calc.mean adc-low per chan/bin 
-  static number dtdyn2[TOF2GC::SCCHMX][TOF2GC::SCACHB];// to calc.mean (adcl)**2 per chan/bin
-  static integer nevdyn[TOF2GC::SCCHMX][TOF2GC::SCACHB];// events in above sums per chan/bin
+  static number dtdyn[TOF2GC::SCCHMX][TOF2GC::SCACHB];// to calc.mean adcd per chan/Abin 
+  static number dtdyn2[TOF2GC::SCCHMX][TOF2GC::SCACHB];// to calc.mean (adcd)**2 per chan/Abin
+  static integer nevdyn[TOF2GC::SCCHMX][TOF2GC::SCACHB];// events in above sums per chan/Abin
   static integer nevdynt[TOF2GC::SCCHMX];// events in above sums per chan
 public:
   static void init();
-  static void filltovt(integer chan, geant tovta, geant tovtd);
+  static void filla2dr(integer chan, geant adca, geant adcd);
   static void fit(number a2d[], number a2do[], number &av, number &avo);
 };
 //-----------------------------------------------------------------------

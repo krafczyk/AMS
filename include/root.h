@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.146 2004/03/31 15:25:52 alcaraz Exp $
+//  $Id: root.h,v 1.147 2004/09/27 15:00:59 choumilo Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -423,20 +423,31 @@ ClassDef(EcalShowerR,1)       //EcalShowerR
 
 class TofRawClusterR {
 public:
-  unsigned int   Status;  ///< statusword (Ask E.Choumilov)
+  unsigned int   Status;  ///< statusword
+                /*!<
+                                              // bit8(128)  -> time-history/matching problems on any side
+                                              // bit9(256)  -> "1-sided" counter(1-side meas. is missing)
+                                              // bit10(512) -> time-chan.problems(any side, according to DB info)
+					      // bit11(1024)-> missing side number(0->s1,1->s2)
+                                              // bit12(2048)-> recovered from 1-sided (bit256 also set)
+					      // bit6(32)   -> used for TofCluster 
+   */
   int   Layer;   ///< Tof plane 1(top)...4
   int   Bar;     ///< Tof Bar number 1...14
-  float tovta[2]; ///<anode time over_thres (ns)
-  float tovtd[2]; ///<dinode time over_thres (ns)
+  float adca[2]; ///< Anode(high gain) raw signal(adc), side=1-2
+  float adcal[2]; ///< Anode(low gain) raw signal(adc)
+  float adcd[2]; ///< Dynode(equilized sum of pmts, h/l-gain corrected) raw signal(adc) 
+  float adcdr[2][3]; ///< Dynode(pm=1-3, high gain) raw signals(adc) 
+  float adcdlr[2][3]; ///< Dynode(pm=1-3, low gain) raw signals(adc) 
   float sdtm[2];  ///< A-noncorrected side times
-  float edepa;   ///<  Anode Edep (mev)
-  float edepd;   ///<  dinode Edep (mev)
-  float time;    ///<Time (ns)
+  float edepa;   ///< Anode(hi/low combined) Edep (mev)
+  float edepd;   ///< Dynode(hi/low combined) Edep (mev)
+  float time;    ///< Time (ns)
   float cool;     ///< Long.coord.(cm)
   TofRawClusterR(){};
   TofRawClusterR(TOF2RawCluster *ptr);
 
-  ClassDef(TofRawClusterR ,1)       //TofRawClusterR
+  ClassDef(TofRawClusterR ,3)       //TofRawClusterR
 };
 
 
@@ -450,14 +461,11 @@ class TofClusterR {
 protected:
 static char _Info[255];
 public:
-  unsigned int Status;   ///< Statusword
+  unsigned int Status;   ///< Statusword(as for RawCluster + ones below:
                 /*!<
-                                                 // bit 4 - ambig
-                                                 // bit 128 -> problems with history
-                                                 // bit 256 -> "1-sided" counter
-                                                 // bit 512 -> bad t-measurement on one of the sides
-                                                 // bit 2048 -> recovered from 
-                                                 // 1-sided (bit256 also set)
+                                                 // bit3(4)  -> ambig
+						 // bit5(16) -> BAD((bit9 | bit10) & !bit12))
+						 // bit8 is ORed over cluster-members
    */
   int Layer;    ///<  Tof plane 1(top)...4
   int Bar;      ///< Tof Bar number 1...14
@@ -505,7 +513,7 @@ ClassDef(TofClusterR,1)       //TofClusterR
 class AntiClusterR {
 static char _Info[255];
 public:
-  unsigned int   Status;   ///< Statusword Bit"256"->1sideSector;"1024"->s2 missing if set  s1 missing if not
+  unsigned int   Status;   ///< Statusword Bit"256"->1sideSector;"1024"->s2  missing if set,  s1 missing if not
   int   Sector;   ///< //Sector number(1-8)
   int   Ntimes;  ///<Number of time-hits(1st come paired ones)
   int   Npairs;   ///<Numb.of time-hits, made of 2 side-times(paired)

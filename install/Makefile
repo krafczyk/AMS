@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.9 2004/03/05 11:05:01 choutko Exp $
+#  $Id: Makefile,v 1.10 2004/09/27 15:01:00 choumilo Exp $
 
 #rl october 2003
 
@@ -127,7 +127,7 @@ FILES= \
  $(SCC)richrec.C     $(SCC)richid.C    $(SCC)richgeom.C    ../F/gtckov.F\
  ../F/graylc.F      ../F/cerenkov.F    $(SCC)producer.C   $(SCC)client.C\
  $(SCC)server.C    $(SCC)dbserver.C    $(SCC)astro.C      ../F/richlikebeta_lip.F\
- ../F/richpatt_lip.F ../F/richrec_lip.F
+ ../F/richpatt_lip.F ../F/richrec_lip.F $(SCC)anticalib02.C
 
 OBJECTS=\
  $(BIN)gbatch.o     $(BIN)commons.o    $(BIN)gvolume.o   $(BIN)id.o\
@@ -154,9 +154,9 @@ OBJECTS=\
  $(BIN)richgeom.o   $(BIN)gtckov.o     $(BIN)graylc.o    $(BIN)cerenkov.o\
  $(BIN)grfile.o     $(BIN)sbcomp.o     $(BIN)gskpho.o    $(BIN)flinit.o\
  $(BIN)fint_my.o    $(BIN)astro.o      $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o\
- $(BIN)richrec_lip.o $(BIN)hadevv.o
+ $(BIN)richrec_lip.o $(BIN)hadevv.o  $(BIN)anticalib02.o 
 
-OBJECTSI= $(BIN)gxint.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)rkms.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geanti.o $(BIN)geant3i.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)vtx.o $(BIN)trdrec.o $(BIN)trdsim.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o   $(BIN)tofrec02.o  $(BIN)tofonline02.o $(BIN)antirec02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o  $(BIN)gi.o $(BIN)gi2.o $(BIN)e04ccf.o $(BIN)tofdbc02.o $(BIN)apool.o $(BIN)tofsim02.o $(BIN)tofcalib02.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)trigger102.o  $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)user.o  $(BIN)tofid.o $(BIN)status.o $(BIN)bcorr.o $(BIN)tralig.o  $(BIN)tofuser02.o $(BIN)geocoor.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o  $(BIN)tkfit.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)root.o $(BIN)rootdict.o $(BIN)astro.o $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o $(BIN)richrec_lip.o $(BIN)hadevv.o
+OBJECTSI= $(BIN)gxint.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)rkms.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geanti.o $(BIN)geant3i.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)vtx.o $(BIN)trdrec.o $(BIN)trdsim.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o   $(BIN)tofrec02.o  $(BIN)tofonline02.o $(BIN)antirec02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o  $(BIN)gi.o $(BIN)gi2.o $(BIN)e04ccf.o $(BIN)tofdbc02.o $(BIN)apool.o $(BIN)tofsim02.o $(BIN)tofcalib02.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)mtx2.o $(BIN)trigger102.o  $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)user.o  $(BIN)tofid.o $(BIN)status.o $(BIN)bcorr.o $(BIN)tralig.o  $(BIN)tofuser02.o $(BIN)geocoor.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o  $(BIN)tkfit.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)ecalcalib.o $(BIN)fint_my.o $(BIN)root.o $(BIN)rootdict.o $(BIN)astro.o $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o $(BIN)richrec_lip.o $(BIN)hadevv.o $(BIN)anticalib02.o
 
 
 OBJECTSC= \
@@ -184,7 +184,7 @@ OBJECTSC= \
  $(BIN)richgeom.o   $(BIN)gtckov.o      $(BIN)graylc.o    $(BIN)cerenkov.o\
  $(BIN)grfile.o     $(BIN)flinit.o      $(BIN)producer.o  $(BIN)client.o\
  $(BIN)fint_my.o    $(BIN)ins_dummy.o   $(BIN)astro.o     $(BIN)sbcomp.o\
- $(BIN)gskpho.o     $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o $(BIN)richrec_lip.o $(BIN)hadevv.o
+ $(BIN)gskpho.o     $(BIN)richlikebeta_lip.o $(BIN)richpatt_lip.o $(BIN)richrec_lip.o $(BIN)hadevv.o $(BIN)anticalib02.o
 
 
 

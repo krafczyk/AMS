@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.92 2003/12/17 12:59:56 mdelgado Exp $
+//  $Id: ntuple.h,v 1.93 2004/09/27 15:00:59 choumilo Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -619,8 +619,11 @@ public:
   int Status[MAXTOFRAW];
   int Layer[MAXTOFRAW];
   int Bar[MAXTOFRAW];
-  float tovta[MAXTOFRAW][2];
-  float tovtd[MAXTOFRAW][2];
+  float adca[MAXTOFRAW][2];
+  float adcal[MAXTOFRAW][2];
+  float adcd[MAXTOFRAW][2];
+  float adcdr[MAXTOFRAW][2][3];
+  float adcdlr[MAXTOFRAW][2][3];
   float sdtm[MAXTOFRAW][2];
   float edepa[MAXTOFRAW];
   float edepd[MAXTOFRAW];
