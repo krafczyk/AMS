@@ -1291,9 +1291,13 @@ integer AMSTrTrack::build(integer refit){
     for(int i=0;i<TKDBc::nlay();i++){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
-    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH)){
-      AMSEvent::gethead()->seterror();
-      return 0;
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
+     TriggerLVL3 *plvl3;
+     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+      if(!plvl3 || plvl3->skip()){
+       AMSEvent::gethead()->seterror();
+       return 0;
+     }
     }
   }
 
@@ -1375,9 +1379,13 @@ integer AMSTrTrack::buildWeak(integer refit){
     for(int i=0;i<TKDBc::nlay();i++){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
-    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH)){
-      AMSEvent::gethead()->seterror();
-      return 0;
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
+     TriggerLVL3 *plvl3;
+     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+      if(!plvl3 || plvl3->skip()){
+       AMSEvent::gethead()->seterror();
+       return 0;
+     }
     }
   }
 
@@ -1442,9 +1450,13 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
     for(int i=0;i<TKDBc::nlay();i++){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
-    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH)){
-      AMSEvent::gethead()->seterror();
-      return 0;
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
+     TriggerLVL3 *plvl3;
+     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+      if(!plvl3 || (plvl3->skip())){
+       AMSEvent::gethead()->seterror();
+       return 0;
+     }
     }
   }
 
@@ -2720,9 +2732,13 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     for(int i=0;i<TKDBc::nlay();i++){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
-    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH)){
-      AMSEvent::gethead()->seterror();
-      return 0;
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
+     TriggerLVL3 *plvl3;
+     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+      if(!plvl3 || (plvl3->skip())){
+       AMSEvent::gethead()->seterror();
+       return 0;
+     }
     }
   }
 
