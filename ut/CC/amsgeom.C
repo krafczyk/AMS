@@ -3525,7 +3525,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 				     rel));
        
 #ifdef __G4AMS__
-//        ((AMSgvolume*)dummy)->Smartless()=-2;
+        ((AMSgvolume*)dummy)->Smartless()=-2;
 #endif
        
      } // PMT put. Now we're going for the light-guides
