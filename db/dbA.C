@@ -339,7 +339,7 @@ integer LMS::List(char* listName, ooHandle(AMSEventList)& listH)
   //            1  - container is created
 {
   integer rstatus = -1;
-  if (!listName) Fatal ("AddTagList: listName is NULL");
+  if (!listName) Fatal ("List: listName is NULL");
 
   ooHandle(ooDBObj) dbH = recodb();
   if(!dbH) Fatal("List: recodbH is NULL");
@@ -350,11 +350,7 @@ integer LMS::List(char* listName, ooHandle(AMSEventList)& listH)
   } else {
     if (mode == oocUpdate) {
      listH = new(listName,1,0,0,dbH) AMSEventList(listName);
-     char* setup = getsetup();
-     if (setup) {
-       listH -> setsetupname(setup);
-       delete [] setup;
-     }
+     if (getsetup()) listH -> setsetupname(getsetup());
      rstatus = 1;
     } else {
       cerr<<"List: "<<listName<<endl;

@@ -1,6 +1,6 @@
-// method source file for the object AMSAntiCluster
+// method source file for the object AMSAntiClusterD
 //
-// Last Edit: May 29, 1997. ak.
+// Last Edit: Jun 02, 1997. ak.
 
 #include <iostream.h>
 #include <string.h>
@@ -29,3 +29,12 @@ void AMSAntiClusterD::copy(AMSAntiCluster* p)
 
 }
  
+void AMSAntiClusterD::add(AMSAntiCluster* p)
+{
+  _coo      = p -> _coo;
+  _ecoo     = p -> _ecoo;
+  _edep     = p -> _edep;
+  _sector   = p -> _sector;
+  _status   = p -> _status;
+
+}

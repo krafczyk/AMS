@@ -22,8 +22,9 @@
 //                    unidirectional link between track and event
 //                    unidirectional link between beta and event
 // May 29, 1997.  ak. add AntiClusters
+// Jun 02, 1997.  ak. VArray of AntiClusters
 //
-// Last Edit: May 29, 1997. ak.
+// Last Edit: Jun 02, 1997. ak.
 //
 
 #include <typedefs.h>
@@ -71,8 +72,8 @@ class ParticleS {
  }
 };
 
-class AMSAntiClusterD;
-#pragma ooclassref AMSAntiClusterD <anticlusterD_ref.h>
+class AMSAntiClusterV;
+#pragma ooclassref AMSAntiClusterV <anticlusterV_ref.h>
 
 class AMSTOFClusterD;
 #pragma ooclassref AMSTOFClusterD <tofrecD_ref.h>
@@ -121,7 +122,7 @@ class AMSeventD : public dbEvent {
  public:
 
 //Assosiations
-  ooRef(AMSAntiClusterD)   pAntiCluster[] : delete (propagate);
+  ooRef(AMSAntiClusterV)   pAntiCluster   : delete (propagate);
   ooRef(AMSTOFClusterD)    pTOFCluster[]  : delete (propagate);
   ooRef(AMSTrClusterD)     pCluster[]     : delete (propagate);  
   ooRef(AMSTrRecHitD)      pTrRecHitS[]   : delete (propagate);

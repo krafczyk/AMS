@@ -439,9 +439,10 @@ ooStatus   LMS::AddMaterial()
          if(setup) delete [] setup;  
 
          // check container
+         cout<<"AddMaterial -I- container name "<<contName<<endl;
          int status = Container(dbH, contName, contgmatH);
          if (status == 0) {
-          cout << "AMSEventList:: -I- Found container "<<contName<< endl;
+          cout << "AddMaterial -I- Found container "<<contName<< endl;
           p = AMSJob::gethead()->getnodep(AMSID("Materials:",0));
           if (p == NULL) 
                   Fatal("AddMaterial : cannot find the virtual top of gmat");
@@ -525,9 +526,10 @@ ooStatus   LMS::AddTMedia()
           if(setup) delete [] setup;  
 
           // check container
+          cout<<"AddTMedia -I- container name "<<contName<<endl;
           int status = Container(dbH, contName, contgtmedH);
           if (status == 0) {
-           cout << "AMSEventList:: -I- Found container "<<contName<< endl;
+           cout << "AddTMedia -I- Found container "<<contName<< endl;
            p = AMSJob::gethead()->getnodep(AMSID("TrackingMedia:",0));
            if (p == NULL) 
                    Fatal("AddTMedia : cannot find the virtual top of gtmed");
@@ -832,7 +834,7 @@ void LMS::CheckConstants()
         if(setup) delete [] setup;  
         if (!contH.exist(dbH, contName, oocRead)) {
          rstatus = oocError;
-         Error("CheckConstants : cannot open a container");
+         cout<<"CheckConstants : cannot open a container "<<contName<<endl;
          goto end;
         }
 

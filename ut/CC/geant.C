@@ -27,7 +27,7 @@
 //           Mar  19, 1997 ak.  see db_comm.h about new eventR/eventW
 //                              call dbend from uglast
 //                              eventRtype 
-//  Last Edit: May 12, 1997. ak
+//  Last Edit: Jun 02, 1997. ak
 //
 
 #include <typedefs.h>
@@ -88,6 +88,9 @@ class AMSEventList;
 #include <tmcclusterV_ref.h>
 #include <tmcclusterV.h>
 
+#include <anticlusterV_ref.h>
+#include <anticlusterV.h>
+
 //#include <timeidD_ref.h>
 //#include <timeidD.h>
 
@@ -97,6 +100,7 @@ implement (ooVArray, geant)
 implement (ooVArray, number)  
 implement (ooVArray, integer) 
   //implement (ooVArray, uinteger) 
+implement (ooVArray, AMSAntiClusterD) 
 implement (ooVArray, AMSTOFMCClusterD) 
 implement (ooVArray, AMSTrMCClusterD) 
 implement (ooVArray, ParticleS) 
@@ -149,11 +153,8 @@ extern "C" void uginit_(){
    }
    char* jobname = AMSJob::gethead()-> getname();
    char* setup     = AMSJob::gethead() -> getsetup();
-   if (dbg_prtout) {
-     cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
-     cout <<"                       setup "<<setup<<endl;
-   }
-   //DbApplication  DbApp(jobname);
+   cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
+   cout <<"                       setup "<<setup<<endl;
    dbout.setapplicationName(jobname);
    dbout.setprefix(jobname);
    dbout.setsetup(setup);

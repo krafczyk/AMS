@@ -73,7 +73,7 @@
 #include <rclist_ref.h>
 #include <rclist.h>
 
-#include <anticlusterD_ref.h>
+#include <anticlusterV_ref.h>
 #include <chargeD_ref.h>
 #include <ctcrecD_ref.h>
 #include <recevent_ref.h>
@@ -84,7 +84,7 @@
 #include <trrechit_ref.h>
 #include <ttrack_ref.h>
 
-#include <anticlusterD.h>
+#include <anticlusterV.h>
 #include <chargeD.h>
 #include <ctcrecD.h>
 #include <recevent.h>
@@ -135,7 +135,7 @@ ooHandle(ooContObj)  contTrLayerH[6];         // tracker layers
 
 // ooObj classes
 
-ooHandle(AMSAntiClusterD)  anticlusterH;
+ooHandle(AMSAntiClusterV)  anticlusterH;
 ooHandle(AMSBetaD)         betaH;
 ooHandle(AMSChargeD)       chargeH;
 ooHandle(AMSTrClusterD)    clusterH;
@@ -966,25 +966,34 @@ ooStatus      AMSEventList::AddAntiCluster(ooHandle(AMSeventD) & eventH)
         AMSContainer* pCont = AMSEvent::gethead() -> getC("AMSAntiCluster",0);
         if (pCont != NULL) {
          integer nelem = pCont -> getnelem();
-         if (nelem == 0) 
-          if(dbg_prtout != 0) cout 
-                              <<"AddAntiClusters -I- elements "<<nelem<<endl;
-         if ( nelem > 0) {
-          AMSAntiCluster* p = (AMSAntiCluster*)AMSEvent::gethead() -> 
+         if (nelem >0) {
+          // create VArray to store AntiClusters
+          anticlusterH = new(contAntiClusterH) AMSAntiClusterV(nelem);
+          rstatus = eventH -> set_pAntiCluster(anticlusterH);
+          if (rstatus != oocSuccess) {
+           Error("AddAntiCluster: cannot set the AntiCluster to Event assoc.");
+           return rstatus;
+          }
+         // get first cluster
+         AMSAntiCluster* p = (AMSAntiCluster*)AMSEvent::gethead() -> 
                                                  getheadC("AMSAntiCluster",0);
-           while (p != NULL) {
-            anticlusterH = new(contAntiClusterH) AMSAntiClusterD(p);
-            clusters++;
-            listH  -> incNAntiClusters();
-            rstatus = eventH -> add_pAntiCluster(anticlusterH);
-            eventH -> incAntiClusters();
-            p = p -> next();
-           }
-         } else {
-           Warning("AddAntiCluster : AMSAntiCluster container is empty");
+          integer i = 0;
+          while ( p != NULL) {
+           AMSAntiClusterD   anticluster;
+           AMSAntiClusterD  *pD;
+           pD = &anticluster;
+           pD -> add(p);
+           anticlusterH -> add(i,anticluster);
+           i++;
+           listH  -> incNAntiClusters();
+           eventH -> incAntiClusters();
+           p = p -> next();
+          }
+         } else { 
+          Message("AddAntiCluster: No AntiClusters for this event");
          }
         } else {
-         Warning("AddAntiCluster: pointer to AMSAntiCluster container is 0");
+        Warning("AddAntiCluster: pointer to AMSAntiCluster container is NULL");
         }
         return rstatus;
 }

@@ -22,8 +22,6 @@
 #include <ooSession.h>
 #include <recevent_ref.h>
 #include <tcluster_ref.h>
-//#include <tmcclusterV_ref.h>
-//#include <mctofclusterV_ref.h>
 #include <trrechit_ref.h>
 #include <ttrack_ref.h>
 #include <tofrecD_ref.h>
@@ -39,10 +37,6 @@
 #include <tofdbcD_ref.h>
 #include <recevent.h>
 #include <tcluster.h>
-//#include <tmccluster.h>
-//#include <tmcclusterV.h>
-//#include <mctofclusterD.h>
-//#include <mctofclusterV.h>
 #include <trrechit.h>
 #include <ttrack.h>
 #include <tofrecD.h>
