@@ -1,10 +1,9 @@
-//  $Id: amsdbc.C,v 1.40 2001/08/07 07:29:58 choutko Exp $
+//  $Id: amsdbc.C,v 1.41 2001/08/07 07:32:55 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <math.h>
 #include <amsdbc.h>
 #include <amsstl.h>
-#include <job.h>
 //
 
 char* AMSDBc::amsdatabase=0;
