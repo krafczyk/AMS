@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.133 2004/02/06 15:55:55 alcaraz Exp $
+//  $Id: root.h,v 1.134 2004/02/07 11:46:14 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3087,11 +3087,21 @@ public:
             _RUNs.reserve(10000);
             _EVENTs.reserve(10000);
       };
+      AMSEventList(const char* filename){
+            _RUNs.reserve(10000);
+            _EVENTs.reserve(10000);
+            Read(filename);
+      };
       ~AMSEventList(){};
 
       void Add(int run, int event); ///<Add a (run,event) number to the list
-      void Add(AMSEventR* pev); ///<Add the (run,event) number of this AMSEvent object to the list
+      void Add(AMSEventR* pev); ///<Add the (run,event) number of this AMSEventR object to the list
+      void Remove(int run, int event); ///<Remove a (run,event) number from the list
+      void Remove(AMSEventR* pev); ///<Remove the (run,event) number of this AMSEventR object from the list
+      bool Contains(int run, int event); ///<Returns true if the list contains this (run,event)
+      bool Contains(AMSEventR* pev); ///<Returns true if the list contains the (run,event) of this AMSEventR object
       void Reset(); ///<Reset the array
+      void Read(const char* filename); ///<Read "run event" list from ASCII file
       void Write(); ///<Write "run event" list to standard output
       void Write(const char* filename); ///<Write "run event" list to ASCII file
       void Write(TChain* chain, const char* filename); ///<Write selected events from a chain to a new ROOT file

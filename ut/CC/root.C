@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.68 2004/02/06 15:55:50 alcaraz Exp $
+//  $Id: root.C,v 1.69 2004/02/07 11:46:11 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2304,13 +2304,48 @@ void AMSEventList::Add(int run, int event){
 };
 
 void AMSEventList::Add(AMSEventR* pev){
-        _RUNs.push_back(pev->Run());
-        _EVENTs.push_back(pev->Event());
+        Add(pev->Run(),pev->Event());
+};
+
+void AMSEventList::Remove(int run, int event){
+        for (int j=0; j<_RUNs.size(); j++) {
+            if (run==_RUNs[j] && event==_EVENTs[j]) {
+                  vector<int>::iterator jiter = _RUNs.begin() + j;
+                  _RUNs.erase(jiter);
+                  jiter = _EVENTs.begin() + j;
+                  _EVENTs.erase(jiter);
+                  j--;
+            }
+        }
+};
+
+void AMSEventList::Remove(AMSEventR* pev){
+        Remove(pev->Run(),pev->Event());
+};
+
+bool AMSEventList::Contains(int run, int event){
+        for (int j=0; j<_RUNs.size(); j++) {
+            if (run==_RUNs[j] && event==_EVENTs[j]) {
+                  return true;
+            }
+        }
+        return false;
+};
+
+bool AMSEventList::Contains(AMSEventR* pev){
+        return Contains(pev->Run(),pev->Event());
 };
 
 void AMSEventList::Reset(){
         _RUNs.clear();
         _EVENTs.clear();
+};
+
+void AMSEventList::Read(const char* filename){
+        FILE* listfile = fopen(filename,"r");
+        int run, event;
+        while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
+        fclose(listfile);
 };
 
 void AMSEventList::Write(){
@@ -2328,7 +2363,7 @@ void AMSEventList::Write(const char* filename){
         cout << " selected events" << endl;
         FILE* listfile = fopen(filename,"w");
         for (int j=0; j<_RUNs.size(); j++) {
-            fprintf(listfile,"%0d\t%0d\n",_RUNs[j],_EVENTs[j]);
+            fprintf(listfile,"%10d %10d\n",_RUNs[j],_EVENTs[j]);
         }
         fclose(listfile);
 };
@@ -2356,5 +2391,4 @@ void AMSEventList::Write(TChain* chain, const char* filename){
         newfile->Write();
         newfile->Close();
 };
-
 #endif
