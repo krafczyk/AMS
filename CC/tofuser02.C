@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.4 2001/05/01 09:59:59 choumilo Exp $
+//  $Id: tofuser02.C,v 1.5 2002/09/04 09:11:12 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>
@@ -33,10 +33,10 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   geant ainp[2],dinp[2],cinp;
   number ltim[TOF2GC::SCLRS],tdif[TOF2GC::SCLRS],trle[TOF2GC::SCLRS],trlr[TOF2GC::SCLRS];
   number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof,lflgt;
-  number sigt[4]={0.13,0.15,0.15,0.13};// time meas.accuracy 
+  number sigt[4]={0.15,0.15,0.15,0.15};// time meas.accuracy 
   number cvel(29.979);// light velocity
   number eacut=0.3;// cut on E-anti (mev)
-  number dscut=6.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
+  number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   TOF2RawCluster *ptr;
   AMSAntiCluster *ptra;
   uinteger Runum(0);
@@ -113,7 +113,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     static number pmas(0.938),mumas(0.1057),imass;
     number pmom,mom,bet,chi2,betm,pcut[2],massq;
     number the,phi,trl,rid,err,ctran;
-    integer chargeTOF,chargeTracker;
+    integer chargeTOF,chargeTracker,betpatt;
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
     AMSContainer *cptr;
@@ -134,6 +134,8 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
       status=ptrack->getstatus();
       pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
+      AMSBeta * pbeta=pcharge->getpbeta();
+      betpatt=pbeta->getpattern();
       chargeTracker=pcharge->getchargeTracker();
       chargeTOF=pcharge->getchargeTOF();
     } 
@@ -179,12 +181,11 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
       cstr[il]=cos(the);
       trlr[il]=fabs(trl);
       if(TOF2DBc::plrotm(il)==0){
-        coot[il]=Cout[1];// unrot. (X-meas) planes -> take Y-cross for long.c
+        coot[il]=Cout[1];// unrot. (X-meas) planes -> take trk Y-cross as long.c
         ctran=Cout[0];// transv. coord.(abs. r.s.)(X-cross) 
       }
       else {
-        coot[il]=Cout[0];// rot. (Y-meas) planes -> take X-cross for long.c.
-        coot[il]=-coot[il];// go to bar local r.s.
+        coot[il]=Cout[0];// rot. (Y-meas) planes -> take trk X-cross as long.c.
         ctran=Cout[1];// transv. coord.(abs. r.s.)(Y-cross) 
       }
       dy=coot[il]-coo[il];//Long.coo_track-Long.coo_sc
@@ -240,13 +241,13 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 //
     geant td13,td24;
     geant zpl1,zpl2,trlnor;
-    zpl1=TOF2DBc::supstr(1)+TOF2DBc::supstr(7)+
-        (TOF2DBc::plnstr(6)+2.*TOF2DBc::plnstr(7))/2.+TOF2DBc::plnstr(3)/2.;//z-l1-middl
+    zpl1=TOF2DBc::supstr(1)-
+        (TOF2DBc::plnstr(1)+TOF2DBc::plnstr(6)/2+TOF2DBc::plnstr(3)/2);//z-l1-middl
     zpl2=TOF2DBc::supstr(1)-
-        (TOF2DBc::plnstr(6)+2.*TOF2DBc::plnstr(7))/2.-TOF2DBc::plnstr(3)/2.;//z-l2-middl
+        (TOF2DBc::plnstr(2)+TOF2DBc::plnstr(6)/2+TOF2DBc::plnstr(3)/2);//z-l2-middl
     trlnor=zpl1+zpl2;//z-dist. L1-L3(L2-L4)
-    td13=tdif[2]*trlnor/trle[2];// normalized to fix(~125cm) distance
-    td24=(ltim[1]-ltim[3])*trlnor/(trle[3]-trle[1]);// normalized to fix(~125cm) distance
+    td13=tdif[2]*trlnor/trle[2];// normalized to fix(~127cm) distance
+    td24=(ltim[1]-ltim[3])*trlnor/(trle[3]-trle[1]);// normalized to fix(~127cm) distance
     if(TFREFFKEY.reprtf[2]>0)HF1(1504,(td13-td24),1.);
 //
     HF1(1507,geant(chargeTOF),1.);

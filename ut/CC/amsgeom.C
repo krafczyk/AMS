@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.139 2002/03/20 09:41:14 choumilo Exp $
+//  $Id: amsgeom.C,v 1.140 2002/09/04 09:11:09 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -295,25 +295,37 @@ AMSgtmed *p;
     
 }
 //-------------------------------------------------------------------
-// for  AMS02 setup:
+// for  final(trapezoidal TOF) AMS02 setup:
 //
 void amsgeom::tofgeom02(AMSgvolume & mother){ 
-number pr[3]={0.,0.,0.};
+geant prc[3]={0.,0.,0.};
 geant par[6]={0.,0.,0.,0.,0.,0.};
+geant pard[11]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
-number nrm1[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};// for nonrotated layers
-number nrm2[3][3]={0.,-1.,0.,1.,0.,0., 0.,0.,1.};// for rotated layers (90degr)
+number nrm1[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};// nonrotated (MRS)
+//
+number nrm2[3][3]={0.,1.,0.,-1.,0.,0., 0.,0.,1.};// sc(1:n-1) in rot.planes(L1,4)
+number nrm3[3][3]={0.,1.,0.,1.,0.,0., 0.,0.,-1.};// sc(n)(+Y) in rot.planes(L1,4)
+//
+number nrm4[3][3]={-1.,0.,0.,0.,1.,0., 0.,0.,-1.};// sc(1)(-x) in nonrot.planes(L2,3)
+//                                                  (sc(2:n) are in MRS) 
+number rmd1[3][3]={1.,0.,0.,0.,-1.,0.,0.,0.,-1.};// dummy trang.vol. at -Yc
+//                                                 (dummy vol.at +Yc is in sc.r.s.)
 number inrm[3][3];
-number dz,dz1,dz2,zc,dx,dxt;
-integer btyp,nbm,nrot;
+geant dz,dz1,dz2,zc,dx,dxi,dxo,dxt;
+geant ocxc,ocyc,ocwd,ocewd,brlen,lglen,lgxb;
+integer btyp,nbm,irot,nrot(0);
 int ii,kk;
 char inum[11];
 char in[2]="0";
 char vname[5];
 char name[5];
 number co[3]={0.,0.,0.};
+geant coc[3]={0.,0.,0.};
 geant coo[3]={0.,0.,0.};
-integer gid=0;
+geant cow[3]={0.,0.,0.};
+geant cod[3]={0.,0.,0.};
+integer gid(0),id(0);
 integer nmed;
 AMSNode *ptofc;
 AMSNode *cur;
@@ -326,38 +338,37 @@ TOF2DBc::readgconf();// read TOF-counters geometry parameters
 //------
 //          <-- create/position top supp. honeycomb plate
 gid=1;
-par[0]=0.;                //Ri
-par[1]=TOF2DBc::supstr(8); //Ro
-par[2]=TOF2DBc::supstr(7)/2.; //Dz
+par[0]=TOF2DBc::supstr(7)/2; //dx
+par[1]=TOF2DBc::supstr(8)/2; //dy
+par[2]=TOF2DBc::supstr(9)/2; //Dz
 coo[0]=TOF2DBc::supstr(3);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(4);    // y-shift ...
-coo[2]=TOF2DBc::supstr(1)+TOF2DBc::supstr(7)/2.;// z-centre of top supp. honeycomb
+coo[2]=TOF2DBc::supstr(1)+TOF2DBc::supstr(9)/2;// z-centre of top supp. honeycomb
 dau=mother.add(new AMSgvolume(
-    "TOF_HONEYCOMB",0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
+    "TOF_HONEYCOMB",0,"TOFH","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //--------------
 //          <-- create/position bot supp. honeycomb plate
 gid=2;
-par[0]=0.;                //Ri
-par[1]=TOF2DBc::supstr(8); //Ro
-par[2]=TOF2DBc::supstr(9)/2.; //Dz
+par[0]=TOF2DBc::supstr(10)/2; //dx
+par[1]=TOF2DBc::supstr(11)/2; //dy
+par[2]=TOF2DBc::supstr(12)/2; //Dz
 coo[0]=TOF2DBc::supstr(5);    // x-shift from "0" of mother
 coo[1]=TOF2DBc::supstr(6);    // y-shift ...
-coo[2]=TOF2DBc::supstr(2)-TOF2DBc::supstr(9)/2.;// z-centre of bot supp. honeycomb
+coo[2]=TOF2DBc::supstr(2)-TOF2DBc::supstr(12)/2.;// z-centre of bot supp. honeycomb
 dau=mother.add(new AMSgvolume(
-    "TOF_HONEYCOMB",0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
+    "TOF_HONEYCOMB",0,"TOFH","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------
 //             <-- create/position S1-S4 sc. planes :
 //
-dx=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);// dx(width) of sc.counter(bar+cover)
-dz=TOF2DBc::plnstr(6)+2.*TOF2DBc::plnstr(7);// dz(thickn)of sc.counter(bar+cover)
-pr[0]=dx/2.;
-pr[2]=dz/2.; 
+dxi=TOF2DBc::plnstr(5);// dx(width) of inner sc.paddles
+dz=TOF2DBc::plnstr(6);// dz(thickn)of sc.paddles
 //                                 
 for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc. planes
 //
+  dxo=TOF2DBc::outcp(ip,1);//dx(width) of outer sc.paddles
   nbm=TOF2DBc::getbppl(ip);                      // num. of bars in layer ip
-  dxt=(nbm-1)*(dx-TOF2DBc::plnstr(4)); // first-last sc.count. bars distance 
-//                                   (betw.centers, taking into account overlaping)
+  dxt=(nbm-3)*(dxi-TOF2DBc::plnstr(4)); // sc.paddles distance for "normal" counters
+//                                    (betw.centers, taking into account overlaping)
   if(ip<2){
     co[0]=TOF2DBc::supstr(3);// <--top TOF-subsystem X-shift
     co[1]=TOF2DBc::supstr(4);// <--top TOF-subsystem Y-shift
@@ -367,34 +378,46 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     co[1]=TOF2DBc::supstr(6);// <--bot TOF-subsystem Y-shift
   }
 //
-  if(TOF2DBc::plrotm(ip)==0){
-    nrot=0;                    //  <-- for unrotated planes
-    for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm1[i][j];
-  }
-  if(TOF2DBc::plrotm(ip)==1){
-    nrot=TOF2GC::SCROTN+ip;           // <-- for rotated planes
-    for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm2[i][j];
-  }
 //-----------
   for(int ib=0;ib<nbm;ib++){ // <<<====== loop over sc. counter bars in plane ip
 //
-//   <-- cr/position sc. counter (cover + scint. as solid cover)
+//---   <-- cr/position sc.paddles
+//
+    if(ib==0 || ib==(nbm-1))prc[0]=0.5*dxo;//dx/2 of outer sc.padds
+    else prc[0]=0.5*dxi;//dx/2 of inner sc.padds
 //
     btyp=TOF2DBc::brtype(ip,ib);
-    pr[1]=TOF2DBc::brlen(ip,ib)/2.+TOF2DBc::lglen(ip,ib); // dy/2 (sc.length+lg) 
+    brlen=TOF2DBc::brlen(ip,ib);//sc.length(loc.y-dir)
+    lglen=TOF2DBc::lglen(ip,ib);//eff.lg.length(loc.y-dir)
+    prc[1]=brlen/2; // dy/2  
+    prc[2]=dz/2.; 
     if(TOF2DBc::plrotm(ip)==0){  // <-- unrotated planes
-      coo[0]=co[0]-dxt/2.+ib*(dx-TOF2DBc::plnstr(4));
-      coo[1]=co[1];
+      coc[0]=TOF2DBc::gettsc(ip,ib);
+      coc[1]=co[1];
+      if(ib==0){//1st counter
+        nrot+=1;
+	irot=nrot;
+        for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm4[i][j];
       }
-    if(TOF2DBc::plrotm(ip)==1){  // <-- rotated planes
-      coo[0]=co[0];
-      coo[1]=co[1]-dxt/2.+ib*(dx-TOF2DBc::plnstr(4));
+      else irot=0;
     }
-    coo[2]=TOF2DBc::getzsc(ip,ib);
-    for(int i=0;i<3;i++)par[i]=pr[i];
+    if(TOF2DBc::plrotm(ip)==1){  // <-- rotated planes
+      coc[0]=co[0];
+      coc[1]=TOF2DBc::gettsc(ip,ib);
+      nrot+=1;
+      irot=nrot;
+      if(ib==(nbm-1)){//last counter
+        for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm3[i][j];
+      }
+      else{
+        for(int i=0;i<3;i++)for(int j=0;j<3;j++)nrm[i][j]=nrm2[i][j];
+      }
+    }
+    coc[2]=TOF2DBc::getzsc(ip,ib);
+//
     gid=100*(ip+1)+ib+1;
-    strcpy(vname,"TC");
-    kk=ip*TOF2GC::SCMXBR+ib+1;//solid numbering of counters
+    strcpy(vname,"TF");
+    kk=ip*TOF2GC::SCMXBR+ib+1;//ID's of volumes(diff.from gid=userID !)
     ii=kk/10;
     in[0]=inum[ii];
     strcat(vname,in);
@@ -402,51 +425,181 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     in[0]=inum[ii];
     strcat(vname,in);
     ptofc=mother.add(new AMSgvolume(
-    "TOF_SC_COVER",nrot,vname,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
-//-------
-//        <-- cr/position scintillator inside counter
+    "TOF_SCINT",irot,vname,"BOX",prc,3,coc,nrm,"ONLY",0,gid,1));
 //
-    par[0]=pr[0]-TOF2DBc::plnstr(8);// pure scint. x-size/2
-    par[1]=pr[1]-TOF2DBc::lglen(ip,ib);// pure scint. y-size/2 (minus light guide)
-    par[2]=pr[2]-TOF2DBc::plnstr(7);// pure scint. z-size/2
-    coo[0]=0.;
-    coo[1]=0.;
-    coo[2]=0.;
-    dau=ptofc->add(new AMSgvolume(
-    "TOF_SCINT",0,"TOFS","BOX",par,3,coo,nrm1,"ONLY",gid==101?1:-1,gid,1));
+//---        <-- cr/position dummy corners in outer paddles:
+//
+    if(ib==0 || ib==(nbm-1)){
+      ocwd=TOF2DBc::outcp(ip,1);
+      ocxc=TOF2DBc::outcp(ip,2);
+      ocyc=TOF2DBc::outcp(ip,3);
+      ocewd=TOF2DBc::outcp(ip,4);
+      pard[0]=dz/2;
+      pard[1]=0.;//the
+      pard[2]=0.;//phi
+      pard[3]=ocyc/2;//dy1(-Z)
+      pard[4]=0;//dx1l
+      pard[5]=ocxc/2;//dx1h
+      pard[6]=-AMSDBc::raddeg*atan(ocxc/ocyc/2);//alp1
+      pard[7]=pard[3];//dy2 (+Z)
+      pard[8]=0;//dx2l
+      pard[9]=pard[5];//dx2h
+      pard[10]=pard[6];//alp2
+      cow[0]=ocwd/2-ocxc/4;//in paddle RefSyst
+      cow[1]=brlen/2-ocyc/2;
+      cow[2]=0.;
+      dau=ptofc->add(new AMSgvolume(
+      "TOF_VAC",0,"TOD1","TRAP",pard,11,cow,nrm1,"ONLY",gid==101?1:-1,gid,1));
+      cow[1]=-cow[1];
+      dau=ptofc->add(new AMSgvolume(
+      "TOF_VAC",nrot++,"TOD2","TRAP",pard,11,cow,rmd1,"ONLY",gid==101?1:-1,gid,1));
+    }
+//
+//---        <-- cr/position eff.light-guides(ext+lg):
+//
+    if(ib==0 || ib==(nbm-1))par[0]=ocewd/2;//ext.width of outer sc.padds
+    else par[0]=dxi/2;//width/2 of inner sc.padds  
+    par[1]=lglen/2;//dy/2  
+    par[2]=prc[2];//dz/2
+    coo[2]=coc[2];//z-pos as for sc.pad
+    lgxb=ocwd/2-ocewd/2;//LG x-bias wrt sc.paddle x-center
+    if(TOF2DBc::plrotm(ip)==0){          // <-- unrotated planes
+      coo[0]=coc[0];//x-pos(transv) as for sc.pad (inner)
+      if(ib==0)coo[0]=coo[0]+lgxb;//corr. for LG-bias of outer paddles
+      if(ib==(nbm-1))coo[0]=coo[0]-lgxb;
+      coo[1]=co[1]-(brlen+lglen)/2;//y-pos(long)
+      dau=mother.add(new AMSgvolume(
+        "TOF_LG",0,"TOL1","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));//at -Yc
+      coo[1]=co[1]+(brlen+lglen)/2;
+      dau=mother.add(new AMSgvolume(
+        "TOF_LG",0,"TOL2","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));//at +Yc
+    }
+    else{                                // <-- rotated planes
+      coo[1]=coc[1];//y-pos(transv) as for sc.pad (inner)
+      if(ib==0)coo[1]=coo[1]+lgxb;//corr. for LG-bias of outer paddles
+      if(ib==(nbm-1))coo[1]=coo[1]-lgxb;
+      coo[0]=co[0]-(brlen+lglen)/2;//x-pos(long)
+      nrot+=1;
+      dau=mother.add(new AMSgvolume(
+        "TOF_LG",nrot,"TOL1","BOX",par,3,coo,nrm2,"ONLY",1,gid,1));//at -Yc
+      coo[0]=co[0]+(brlen+lglen)/2;
+      dau=mother.add(new AMSgvolume(
+       "TOF_LG",nrot,"TOL2","BOX",par,3,coo,nrm2,"ONLY",1,gid,1));//at +Yc
+    }      
 //
   }      //   <<<============= end of sc. bars loop ==========
 }   //   <<<============= end of sc. planes loop =============
 //-------
-//        <---  CONE eff.volume, replacing (Boxes+PMTs)
-// for top TOF:
-//                                   
-    par[0]=TOF2DBc::plnstr(10)/2.; // cone dz/2
-    par[1]=TOF2DBc::plnstr(11);    // Rmin at -dz/2
-    par[2]=TOF2DBc::plnstr(12);    // Rmax at -dz/2
-    par[3]=TOF2DBc::plnstr(13);    // Rmin at +dz/2
-    par[4]=TOF2DBc::plnstr(14);    // Rmax at +dz/2
-    coo[0]=TOF2DBc::supstr(3);     // centered as top honeycomb
+//        <---  Now put Boxes with PMTs:
+//
+  geant xbias,ybias,zbias;
+//
+// --------> for top TOF:
+//            common box at +X, -X :                                   
+    brlen=TOF2DBc::brlen(0,3);//sc.length Plane-1, middle bar4
+    lglen=TOF2DBc::lglen(0,3);//eff.lg.length ...........
+    xbias=brlen/2+lglen;
+    zbias=TOF2DBc::plnstr(14);//wrt int.surf. of top honeycomb
+    par[0]=TOF2DBc::plnstr(11)/2.; // dx/2
+    par[1]=TOF2DBc::plnstr(12)/2;  // dy/2
+    par[2]=TOF2DBc::plnstr(13)/2;  // dz/2
+    coo[0]=TOF2DBc::supstr(3)+xbias+TOF2DBc::plnstr(11)/2+0.1;//"0.1" for safety
     coo[1]=TOF2DBc::supstr(4);
-    coo[2]=TOF2DBc::supstr(1)+TOF2DBc::plnstr(9)+TOF2DBc::plnstr(10)/2.;// Z-center
+    coo[2]=TOF2DBc::supstr(1)+zbias-TOF2DBc::plnstr(13)/2;// z-center
     gid=1;
     dau=mother.add(new AMSgvolume(
-    "TOF_PMT_BOX",0,"TFBT","CONE",par,5,coo,nrm1,"ONLY",1,gid,1));
-//
-// for bot TOF:
-//                                   
-    par[1]=TOF2DBc::plnstr(13);    // Rmin at -dz/2
-    par[2]=TOF2DBc::plnstr(14);    // Rmax at -dz/2
-    par[3]=TOF2DBc::plnstr(11);    // Rmin at +dz/2
-    par[4]=TOF2DBc::plnstr(12);    // Rmax at +dz/2
-    coo[0]=TOF2DBc::supstr(5);     // centered as bot honeycomb
-    coo[1]=TOF2DBc::supstr(6);
-    coo[2]=TOF2DBc::supstr(2)-TOF2DBc::plnstr(9)-TOF2DBc::plnstr(10)/2.;// Z-center
+    "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
+    gid=2;
+    coo[0]=TOF2DBc::supstr(3)-xbias-TOF2DBc::plnstr(11)/2-0.1;//"0.1" for safety
     dau=mother.add(new AMSgvolume(
-    "TOF_PMT_BOX",0,"TFBB","CONE",par,5,coo,nrm1,"ONLY",1,gid,1));
+    "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
+//
+//           common ring-sector at +Y,-Y : 
+//                                   
+    zbias=TOF2DBc::plnstr(2)-0.1;//ring int.surf. wrt top.honeyc. int.surf. 
+    brlen=TOF2DBc::brlen(1,3);//sc.length Plane-2, middle bar4
+    lglen=TOF2DBc::lglen(1,3);//eff.lg.length ...........
+    par[0]=0.5*brlen+lglen;    // Rmin
+    par[1]=par[0]+TOF2DBc::plnstr(16);    // Rmax 
+    par[2]=TOF2DBc::plnstr(17)/2;    // dz/2
+    par[3]=90.-0.5*TOF2DBc::plnstr(18);    // phi1
+    par[4]=par[3]+TOF2DBc::plnstr(18);    // phi2
+    coo[0]=TOF2DBc::supstr(3);     
+    coo[1]=TOF2DBc::supstr(4);
+    coo[2]=TOF2DBc::supstr(1)-zbias+TOF2DBc::plnstr(17)/2.;// ring Z-center
+    gid=1;
+    dau=mother.add(new AMSgvolume(
+    "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
+    gid=2;
+    par[3]=270.-0.5*TOF2DBc::plnstr(18);    // phi1
+    par[4]=par[3]+TOF2DBc::plnstr(18);    // phi2
+    dau=mother.add(new AMSgvolume(
+    "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
+//
+// --------> for bot TOF:
+//            common box at +X, -X :                                   
+    brlen=TOF2DBc::brlen(3,3);//sc.length Plane-4, middle bar4
+    lglen=TOF2DBc::lglen(3,3);//eff.lg.length ...........
+    xbias=brlen/2+lglen;
+    zbias=TOF2DBc::plnstr(14);//wrt int.surf. of bot honeycomb
+    par[0]=TOF2DBc::plnstr(11)/2.; // dx/2
+    par[1]=TOF2DBc::plnstr(12)/2;  // dy/2
+    par[2]=TOF2DBc::plnstr(13)/2;  // dz/2
+    coo[0]=TOF2DBc::supstr(5)+xbias+TOF2DBc::plnstr(11)/2+0.1;//"0.1" for safety
+    coo[1]=TOF2DBc::supstr(6);
+    coo[2]=TOF2DBc::supstr(2)-zbias+TOF2DBc::plnstr(13)/2;// z-center
+    gid=3;
+    dau=mother.add(new AMSgvolume(
+    "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
+    gid=4;
+    coo[0]=TOF2DBc::supstr(5)-xbias-TOF2DBc::plnstr(11)/2-0.1;//"0.1" for safety
+    dau=mother.add(new AMSgvolume(
+    "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
+//
+//           common ring-sector at +Y,-Y : 
+//                                   
+    zbias=TOF2DBc::plnstr(2)-0.1;//ring int.surf. wrt bot.honeyc. int.surf.
+    brlen=TOF2DBc::brlen(2,3);//sc.length Plane-3, middle bar4
+    lglen=TOF2DBc::lglen(2,3);//eff.lg.length ...........
+    par[0]=0.5*brlen+lglen;    // Rmin
+    par[1]=par[0]+TOF2DBc::plnstr(16);    // Rmax 
+    par[2]=TOF2DBc::plnstr(17)/2;    // dz/2
+    par[3]=90.-0.5*TOF2DBc::plnstr(20);    // phi1
+    par[4]=par[3]+TOF2DBc::plnstr(20);    // phi2
+    coo[0]=TOF2DBc::supstr(5);     
+    coo[1]=TOF2DBc::supstr(6);
+    coo[2]=TOF2DBc::supstr(2)+zbias-TOF2DBc::plnstr(17)/2.;// Z-center
+    gid=3;
+    dau=mother.add(new AMSgvolume(
+    "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
+    gid=4;
+    par[3]=270.-0.5*TOF2DBc::plnstr(20);    // phi1
+    par[4]=par[3]+TOF2DBc::plnstr(20);    // phi2
+    dau=mother.add(new AMSgvolume(
+    "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
 //
 //-----
-  cout<<"AMSGEOM: TOF02-geometry(G3/G4-compatible) done!"<<endl;
+//          CarbFiber box(it is replaced by solid thin plate)
+// 
+    zbias=TOF2DBc::plnstr(2)+TOF2DBc::plnstr(3)+
+          TOF2DBc::plnstr(6)+TOF2DBc::plnstr(7);//wrt int.surf. of honeycomb
+    par[0]=0.; //                  rmin
+    par[1]=TOF2DBc::plnstr(9);  // rmax
+    par[2]=TOF2DBc::plnstr(8)/2;// dz/2
+    coo[0]=TOF2DBc::supstr(3);
+    coo[1]=TOF2DBc::supstr(4);
+    coo[2]=TOF2DBc::supstr(1)-zbias-TOF2DBc::plnstr(8)/2;// z-center
+    gid=1;
+    dau=mother.add(new AMSgvolume(
+    "TOF_SC_COVER",0,"TOFB","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//top TOF
+    coo[0]=TOF2DBc::supstr(5);
+    coo[1]=TOF2DBc::supstr(6);
+    coo[2]=TOF2DBc::supstr(2)+zbias+TOF2DBc::plnstr(8)/2;// z-center
+    gid=2;
+    dau=mother.add(new AMSgvolume(
+    "TOF_SC_COVER",0,"TOFB","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//bot TOF
+//-----
+  cout<<"AMSGEOM: Final TOF02-geometry(G3/G4-compatible) done!"<<endl;
   cout<<"         "<<TOF2DBc::getbppl(0)<<"/"<<TOF2DBc::getbppl(1)<<"/"
   <<TOF2DBc::getbppl(2)<<"/"<<TOF2DBc::getbppl(3)<<" bars/plane selected !"<<endl;
 }
@@ -1085,7 +1238,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  dau=mother.add(new AMSgvolume(
      "MSFMED1",0,"MSFR","PGON",par,10,coo,nrm,"ONLY",1,gid,1));// M-structure frame
 //
-//----> create TFHS(TOF-honeycomb supports, TRD1 shape):
+//----> create TFHS(TOF-honeycomb supports, TRD1 shape): tempor removed !!
 //
  par[0]=tfsdx1/2.;
  par[1]=tfsdx2/2.;
@@ -1102,8 +1255,8 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
    if(ii==3)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmtfs4[i][j];
    gid=is+1;
    nrot+=ii;
-   dau=mother.add(new AMSgvolume(
-     "TFSUPMED1",nrot,"TFHS","TRD1",par,4,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));//TOF-honeyc.supp.
+//   dau=mother.add(new AMSgvolume(
+//     "TFSUPMED1",nrot,"TFHS","TRD1",par,4,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));//tempor TOF-honeyc.supp.
  }
 //
 //----> create M-structure legs:

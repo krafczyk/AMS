@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.49 2002/07/17 14:46:02 choutko Exp $
+//  $Id: geant4.C,v 1.50 2002/09/04 09:11:10 choumilo Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -800,8 +800,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       int i,nd,numv,iprt,numl,numvp;
       static int numvo(-999),iprto(-999);
 
-     if(PrePV->GetName()(0)== 'T' &&PrePV->GetName()(1)=='O' &&
-      PrePV->GetName()(2)=='F' &&PrePV->GetName()(3)=='S'){ // step starts in TOFS
+     if(GCTMED.isvol != 0 && PrePV->GetName()(0)== 'T' && PrePV->GetName()(1)=='F'){ // step starts in TFnn
        numv=PrePV->GetCopyNo();
        iprt=GCKINE.ipart;
        x=GCTRAK.vect[0];
@@ -848,12 +847,11 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
         ypr=y;
         zpr=z;
         tpr=t;
-      }// end of "same part/vol, de>0"
-  }// <--- end of "in TOFS-pre"
+       }// end of "same part/vol, de>0"
+     }// <--- end of "in TOFS-pre"
 
 
-      if(PostPV->GetName()(0)== 'T' &&PostPV->GetName()(1)=='O' &&
-      PostPV->GetName()(2)=='F' &&PostPV->GetName()(3)=='S'){ // step ends in TOFS
+     if(GCTMED.isvol != 0 && PostPV->GetName()(0)== 'T' && PostPV->GetName()(1)=='F'){ // step ends in TFnn
        numv=PostPV->GetCopyNo();
        iprt=GCKINE.ipart;
        x=GCTRAK.vect[0];

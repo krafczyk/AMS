@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.286 2002/06/06 15:11:01 alexei Exp $
+//  $Id: event.C,v 1.287 2002/09/04 09:11:10 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1157,7 +1157,7 @@ void AMSEvent::event(){
 
      }
     }
-    _siecalevent(); 
+    _siecalevent();
     _sitrdevent(); 
     _sirichevent();
     _sitof2event();//important to call after siecalevent to have FT from EC
@@ -1292,8 +1292,9 @@ void AMSEvent::_catofevent(){
     if(trflag <= 0)return;// use only H/W-triggered event tempor
     if(TFREFFKEY.relogic[0]==2)
              TOF2TDIFcalib::select();// event selection for TOF TDIF-calibration
-    if(TFREFFKEY.relogic[0]==3)
-             TOF2TZSLcalib::select();// event selection for TOF TZSL-calibration
+    if(TFREFFKEY.relogic[0]==3){
+      TOF2TZSLcalib::select();// event selection for TOF TZSL-calibration
+    }
     if(TFREFFKEY.relogic[0]==4)
              TOF2AMPLcalib::select();// event selection for TOF AMPL-calibration
 }

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.16 2002/06/03 14:53:34 alexei Exp $
+//  $Id: tofrec02.C,v 1.17 2002/09/04 09:11:12 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -266,11 +266,11 @@ void TOF2RawEvent::validate(int &status){ //Check/correct RawEvent-structure
 //                           
     while(ptr){ //  <---- loop over TOF RawEvent hits -----
       idd=ptr->getid();
-      id=idd/10;// short id=LBB, where L=1,4 BB=1,14
+      id=idd/10;// short id=LBB, where L=1,4 BB=1,10
       ilay=id/100-1;
       ibar=id%100-1;
       isid=idd%10-1;
-      chnum=ilay*TOF2GC::SCMXBR*2+ibar*2+isid;//channels numbering
+      chnum=2*TOF2DBc::barseqn(ilay,ibar)+isid;//sequential solid numbering
       stat[isid]=ptr->getstat();
       if(stat[isid] == 0){  
         isds+=1;
@@ -857,7 +857,8 @@ void TOF2RawCluster::build(int &ostatus){
               if(isds==1)ecoo=blen/sqrt(12.);//for single-sided counters
               if(AMSEvent::gethead()->addnext(AMSID("TOF2RawCluster",0)
               ,new TOF2RawCluster(sta,ilay+1,ibar+1,zc,ama,amd,
-                                  qtota,qtotd,tm,time,coo,ecoo)))st=1;;//store values
+                                  qtota,qtotd,tm,time,coo,ecoo)))st=1;;//store value
+//	      cout<<"StoreNewRawCl(il/ib)="<<ilay+1<<" "<<ibar+1<<" time="<<time<<endl;
             } // ccc------> end of bypass check
 //-----------
         } // bbb---> end of "side measurement-multiplicity" check
@@ -1033,17 +1034,17 @@ void TOF2RawCluster::build(int &ostatus){
   td14=tuncorr[0]-tuncorr[3];
 //
   geant zpl1,zpl2,trlnor;
-  zpl1=TOF2DBc::supstr(1)+TOF2DBc::supstr(7)+
-      (TOF2DBc::plnstr(6)+2.*TOF2DBc::plnstr(7))/2.+TOF2DBc::plnstr(3)/2.;//z-l1-middl
+  zpl1=TOF2DBc::supstr(1)-
+        (TOF2DBc::plnstr(1)+TOF2DBc::plnstr(6)/2+TOF2DBc::plnstr(3)/2);//z-l1-middl
   zpl2=TOF2DBc::supstr(1)-
-      (TOF2DBc::plnstr(6)+2.*TOF2DBc::plnstr(7))/2.-TOF2DBc::plnstr(3)/2.;//z-l2-middl
+        (TOF2DBc::plnstr(2)+TOF2DBc::plnstr(6)/2+TOF2DBc::plnstr(3)/2);//z-l2-middl
   trlnor=zpl1+zpl2;//z-dist. L1-L3(L2-L4)
 //
   if(TFREFFKEY.reprtf[2]>0 || 
      (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
-      HF1(1532,td13,1.);//ToF for L0->L2
-      HF1(1534,td24,1.);//ToF for L1->L3
-      gdt=(td13/trlen13-td24/trlen24)*trlnor;// normalized to fix(~125cm) dist. for AMS02
+      HF1(1532,td13*trlnor/trlen13,1.);//ToF for L0->L2, normalized to trlnor
+      HF1(1534,td24*trlnor/trlen24,1.);//ToF for L1->L3, ....................
+      gdt=(td13/trlen13-td24/trlen24)*trlnor;// normalized to fix(~127cm) dist. for AMS02
 //                                                           (130cm for AMS01)
       HF1(1544,gdt,1.);
       if(TFREFFKEY.reprtf[2]>1){ 
@@ -1212,6 +1213,25 @@ void AMSTOFCluster::_writeEl(){
     int i;
     for(i=0;i<3;i++)TN->Coo[TN->Ntof][i]=_Coo[i];
     for(i=0;i<3;i++)TN->ErrorCoo[TN->Ntof][i]=_ErrorCoo[i];
+    for(int i=0;i<3;i++)TN->P2memb[TN->Ntof][i]=0;
+    if(TOF2RawCluster::Out(IOPA.WriteAll%10==1)){//WriteAll
+      for(int i=0;i<_nmemb;i++) {
+        TN->P2memb[TN->Ntof][i]=_mptr[i]->getpos();
+//      cout<<"MembPlane/Padl="<<dynamic_cast<TOF2RawCluster*>(_mptr[i])->getntof()<<" "<<dynamic_cast<TOF2RawCluster*>(_mptr[i])->getplane()<<" status="<<dynamic_cast<TOF2RawCluster*>(_mptr[i])->getstatus()<<endl;
+      }
+    }
+    else{// Used
+      integer mpos;
+      TOF2RawCluster *ptr;
+      for(int i=0;i<_nmemb;i++) {
+        mpos=_mptr[i]->getpos();
+	ptr=(TOF2RawCluster*)AMSEvent::gethead()->getheadC("TOF2RawCluster",0);
+        for(int j=0;j<mpos;j++){
+          if(ptr && ptr->checkstatus(AMSDBc::USED))TN->P2memb[TN->Ntof][i]++;
+          ptr=ptr->next();
+        }
+      }
+    }
     TN->Ntof++;
   }
 }
@@ -1370,8 +1390,7 @@ void AMSTOFCluster::build2(int &stat){
 	    ct=0.5*(ct+ctn);
 	    cz=0.5*(cz+czn);
 	    if(edep<edepn)barn=ib+2;//use bar-number for cluster from highest edep bar 
-	    if((edep+edepn)>0)edass=(edep-edepn)/(edep+edepn);
-	    else edass=-1;
+	    edass=(edep-edepn)/(edep+edepn);//edep,edepn>thresh>0 
 	    if(TFREFFKEY.reprtf[2]>0)HF1(1548,edass,1.);
             if(fabs(edass)<TOF2Varp::tofvpar.eclass()){//tempor(need real data to clarify algor.)
 	      edep=0.5*(edep+edepn);
@@ -1381,8 +1400,8 @@ void AMSTOFCluster::build2(int &stat){
 	      }
 	    }
 	    else{
-	      if(edepn<edep && edepn>0.8){
-	        edep=edepn;//use lowest(but not week) when big assimetry in edep's
+	      if(edepn>edep){
+	        edep=edepn;//use highest when big assimetry in edep's
 		edepd=edepdn;
 	      }
 	    }
@@ -1391,7 +1410,7 @@ void AMSTOFCluster::build2(int &stat){
             if((statusn&TOFGC::SCBADB1)!=0)status|=TOFGC::SCBADB1;//bad hist OR-ed for members 
 	    ib+=1;//to skip already glued "next" bar in further buffer scan 
 	  }//---> endof time/coo-match check
-	}//endof check for for "next" bar gluing
+	}//endof check for  "next" bar gluing
       }//---> endof next bar check
 //
       coo[2]=cz;
@@ -1399,11 +1418,11 @@ void AMSTOFCluster::build2(int &stat){
       if(plrot==0){ // non-rotated plane
         coo[0]=ct;//clust. X-coord.
         ecoo[0]=cte;
-        coo[1]=cl;//clust. abs.Y-coord.(neglect counter's long.shift)
+        coo[1]=cl;//clust. abs.Y-coord.(yabs=yloc and neglect counter's long.shift)
         ecoo[1]=cle;
       }
       else{ // rotated plane
-        coo[0]=-cl;//abs.X-coord(yloc=-xabs and neglect counter's long.shift)
+        coo[0]=cl;//clust. abs.X-coord.(xabs=yloc and neglect counter's long.shift)
         ecoo[0]=cle;
         coo[1]=ct;
         ecoo[1]=cte;
@@ -1447,8 +1466,8 @@ void AMSTOFCluster::build2(int &stat){
   if(nclust>0)cllay[il]=1;
 //------
   }// ---> end of TOF layers (il) loop
-  if((cllay[0]+cllay[1])>0 && (cllay[2]+cllay[3])>0)stat=0;
-// ( at least one cluster per top/bot TOF-subsystem)
+  if((cllay[0]+cllay[1]+cllay[2]+cllay[3])>0)stat=0;//at least one layer with cluster
+// 
 }
 //
 //--------------------------------------------
@@ -1479,7 +1498,7 @@ cout<<"Enter TOFCluster::recovers2"<<endl;
       }
       else {
         clo=outp[0];// rot.(Y-meas) -> take X-cross for long.c.
-        clo=-clo;// go to bar local r.s.
+//        clo=-clo;// go to bar local r.s.
         ctr=outp[1];// transv. coord.(abs. r.s.)(Y-cross) 
       }
     }
@@ -2161,6 +2180,19 @@ int16u TOF2RawEvent::sw2hwid(int16u a1, int16u a2, int16u a3){
 
 
 
-AMSID AMSTOFCluster::crgid(int kk){
-return AMSID("TOFS",_ntof*100+_plane);
+AMSID AMSTOFCluster::crgid(int k){
+  int ii,kk;
+  char inum[11];
+  char in[2]="0";
+  char vname[5];
+  strcpy(inum,"0123456789");
+  strcpy(vname,"TF");
+  kk=(_ntof-1)*TOF2GC::SCMXBR+_plane;//counter ID used in volume name
+  ii=kk/10;
+  in[0]=inum[ii];
+  strcat(vname,in);
+  ii=kk%10;
+  in[0]=inum[ii];
+  strcat(vname,in);
+  return AMSID(vname,_ntof*100+_plane);
 }

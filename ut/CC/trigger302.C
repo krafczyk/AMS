@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.22 2002/07/18 13:45:46 choutko Exp $
+//  $Id: trigger302.C,v 1.23 2002/09/04 09:11:12 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -300,16 +300,30 @@ void TriggerLVL302::init(){
       for(i=0;i<padspl[j];i++)_TOFOr[j][i]=1;
     }
   }
-
+//
+    int ii,kk;
+    char inum[11];
+    char in[2]="0";
+    char vname[5];
+    strcpy(inum,"0123456789");
+//
     for(j=0;j<planes;j++){
       for(i=0;i<padspl[j];i++){
-        AMSgvolume *ptr=AMSJob::gethead()->getgeomvolume(AMSID("TOFS",100*(j+1)+i+1));
+        strcpy(vname,"TF");
+        kk=j*TOF2GC::SCMXBR+i+1;//counter ID used in volume name
+        ii=kk/10;
+        in[0]=inum[ii];
+        strcat(vname,in);
+        ii=kk%10;
+        in[0]=inum[ii];
+        strcat(vname,in);
+        AMSgvolume *ptr=AMSJob::gethead()->getgeomvolume(AMSID(vname,100*(j+1)+i+1));
         if( ptr){
          AMSPoint loc(0,0,0);
          AMSPoint global=ptr->loc2gl(loc);
          for(int k=0;k<3;k++)_TOFCoo[j][i][k]=global[k];         
         }
-        else cerr <<"TriggerLVL302-Init-S-TOFVolumeNotFound"<<AMSID("TOFS",100*(j+1)+i+1);
+        else cerr <<"TriggerLVL302-Init-S-TOFVolumeNotFound"<<AMSID(vname,100*(j+1)+i+1);
       }
     }
 //----------------  
@@ -332,8 +346,8 @@ void TriggerLVL302::init(){
        strcat(name,vers2);
  }
 //
- char setu1[4]="12p";
- char setu2[4]="8p";
+ char setu1[4]="12b";
+ char setu2[4]="8b";
  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
    if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
      cout <<" T0LVL3-I-TOF:12PAD setup selected."<<endl;

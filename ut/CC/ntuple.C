@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.110 2002/07/18 12:00:06 alexei Exp $
+//  $Id: ntuple.C,v 1.111 2002/09/04 09:11:11 choumilo Exp $
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
@@ -75,7 +75,8 @@ void AMSNtuple::init(){
 "npart[0,10],pbetap(npart)[-1,254]:I,pchargep(npart)[-1,254]:I,ptrackp(npart)[-1,254]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pecalp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart),coorich(3,2,npart),pathrich(2,npart):R,pathrichb(2,npart):R,lengthrich(npart):R,trdlikelihood(npart):R");
 //
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
-  "ntof[0,40],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
+ 
+"ntof[0,48],TOFStatus(ntof):I,TOFpln(ntof)[0,4]:I,TOFbar(ntof)[0,12]:I,TOFmem(ntof)[0,3]:I,TOFp2m(3,ntof)[0,48]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
 //
 
   HBNAME(_lun,"EcalClus",&_ecclust.Neccl,
@@ -126,7 +127,7 @@ void AMSNtuple::init(){
   "naraw[0,32],arawstatus(naraw):I,arawsector(naraw)[0,100]:I,arawupdown(naraw)[0,7]:I,arawsignal(naraw)");
 
   HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,
-  "ntofraw[0,40],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
+  "ntofraw[0,48],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,4]:I,tofrbar(ntofraw)[0,12]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
   	 "nsignals[0,300],sid(nsignals):I,"
   	 "rimcorg(3,nsignals),rimcdir(3,nsignals),rimcstatus(nsignals):I,"

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.73 2002/04/23 16:47:06 delgadom Exp $
+//  $Id: gmat.C,v 1.74 2002/09/04 09:11:11 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -166,12 +166,6 @@ a[0]=144.24;a[1]=55.85;a[2]=10.8;
 z[0]=60.;   z[1]=26.;  z[2]=5.;
 w[0]=30.;   w[1]=69.;  w[2]=1.;
 mat.add (new AMSgmat("MAGNET",a,z,w,3,7.45));
-         // AL honeycomb structure for TOF :
-mat.add (new AMSgmat( "AL-HONEYC",26.98, 13., 0.04, 600., 2660.));
-     // effective material for PMT-boxes (low dens.(1:10) iron):
-mat.add (new AMSgmat("LOW_DENS_Fe",55.85,26.,0.787,17.6,168.));
-     // low density(1.3 eff) carbon (carb.fiber+mylar) for TOF sc_cover :
-mat.add (new AMSgmat("CARBONF", 12.01, 6., 1.3 , 33., 66.));
 
 // WLS for CTC (same polystiren as for TOF scint)
 a[0]=12.;a[1]=1.;
@@ -289,11 +283,36 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
 
   mat.add (new AMSgmat("RICH_MIRROR",29.98,13.,1.35,17.8,74.4));
 }
-
-
-
-
 }
+//-------------------------------------------
+// ---> materials for TOF/ANTI:
+//
+
+mat.add (new AMSgmat("VACUUMTOFA",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
+{
+// ---> TOF-scintillator(C8H8):
+  geant a[]={12.01,1.01};
+  geant z[]={6.,1.};
+  geant w[]={8.,8.};
+  mat.add (new AMSgmat("TOFSCINT",a,z,w,2,1.032));
+}
+// ---> AL honeycomb structure for TOF :
+mat.add (new AMSgmat( "TOF_AL_HONEYC",26.98, 13., 0.04, 600., 2660.));
+// ---> effective material for PMT-boxes (low dens.(1:10) iron):
+mat.add (new AMSgmat("TOF_LOW_DENS_Fe",55.85,26.,0.787,17.6,168.));
+// ---> low density(1.3 eff) carbon (carb.fiber+mylar) for TOF sc_cover :
+mat.add (new AMSgmat("TOFCARBONF", 12.01, 6., 1.3 , 33., 66.));
+// ---> low density(1.3 eff) carbon (carb.fiber+mylar) for ANTI supp.tube :
+mat.add (new AMSgmat("ANTICARBONF", 12.01, 6., 1.3 , 33., 66.));
+{  
+// ---> LG-plexiglass(C5H8O2):
+  geant a[]={12.01,1.01,16.0};
+  geant z[]={6.,1.,8.};
+  geant w[]={5.,8.,2.};
+
+  mat.add(new AMSgmat("TOFLGPLEX",a,z,w,3,1.16));
+}
+
 //-------------------------------------------
 // ---> materials for ECAL:
 //
@@ -464,7 +483,13 @@ if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();
 #endif
 cout <<"AMSgmat::amsmat-I-TotalOf "<<GetLastMatNo()<<" materials defined"<<endl;
 }
+
+
+
 //------------------------------------------------------------------------------
+
+
+
 void AMSgtmed::amstmed(){
 
 
@@ -515,21 +540,31 @@ tmed.add (new AMSgtmed("NONACTIVE_SILICON","SILICON"));
 tmed.add (new AMSgtmed("CARBON","CARBON",0));
 tmed.add (new AMSgtmed("ELECTRONICS","CARBON",0));
 //
+//----------------------------------------------------
+// TOF/ANTI-media:
+//
+tmed.add (new AMSgtmed("TOF_VAC","VACUUMTOFA",0));// fill all gaps
 {
 geant birks[]={1.,0.013,9.6e-6};
-tmed.add (new AMSgtmed("TOF_SCINT","SCINT",1,'Y',birks,1,5,10,
+//tmed.add (new AMSgtmed("TOF_SCINT","TOFSCINT",1,'Y',birks));
+tmed.add (new AMSgtmed("TOF_SCINT","TOFSCINT",1,'Y',birks,1,5,10,
                        -0.25, -1, 0.001, -0.05));
 }
 //(for tof_scint.: max_step=0.25cm/autom, min_step=0.05cm/autom )
 //
 {
 geant birks[]={1.,0.013,9.6e-6};
-tmed.add (new AMSgtmed("ANTI_SCINT","SCINT",1,'Y',birks));
+tmed.add (new AMSgtmed("ANTI_SCINT","TOFSCINT",1,'Y',birks));
 }
 //
-tmed.add (new AMSgtmed("TOF_HONEYCOMB","AL-HONEYC",0));
-tmed.add (new AMSgtmed("TOF_PMT_BOX","LOW_DENS_Fe",0));
-tmed.add (new AMSgtmed("TOF_SC_COVER","CARBONF",0));
+tmed.add (new AMSgtmed("TOF_HONEYCOMB","TOF_AL_HONEYC",0));
+tmed.add (new AMSgtmed("TOF_PMT_BOX","TOF_LOW_DENS_Fe",0));
+tmed.add (new AMSgtmed("TOF_SC_COVER","TOFCARBONF",0));
+tmed.add (new AMSgtmed("TOF_LG","TOFLGPLEX",0));
+//
+tmed.add (new AMSgtmed("ANTI_WRAP","MYLAR",0));//  tempor. mylar
+tmed.add (new AMSgtmed("ANTI_SUPTB","ANTICARBONF",0));//  tempor. carb.fiber
+//----------------------------------------------------
 tmed.add (new AMSgtmed("IRON","IRON",0));
 //
 tmed.add (new AMSgtmed("CTC_WLS","WLS",1));
@@ -548,9 +583,6 @@ tmed.add (new AMSgtmed("CTC_DUMMYMED","VACUUM",0));// fill all gaps inside CTC
 //
 tmed.add (new AMSgtmed("ATC_AEROGEL","MEWAEROGEL",1));
 //
-tmed.add (new AMSgtmed("ANTI_WRAP","MYLAR",0));//  tempor. mylar
-//
-tmed.add (new AMSgtmed("ANTI_SUPTB","CARBONF",0));//  tempor. carb.fiber
 //
 tmed.add (new AMSgtmed("TUNGSTEN","TUNGSTEN",0));
 //
@@ -559,11 +591,11 @@ geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed("BGO","BGO",1,'Y',birks));
 }
 int ip=27;
-tmed.add (new AMSgtmed("Tr_Honeycomb","AL-HONEYC-Tr",0));//28
-tmed.add (new AMSgtmed("Tr_Foam","FOAM",0));//29
+tmed.add (new AMSgtmed("Tr_Honeycomb","AL-HONEYC-Tr",0));
+tmed.add (new AMSgtmed("Tr_Foam","FOAM",0));
 
 tmed.add (new AMSgtmed("ATC_PTAE","TEFLON3",0));//30
-tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
+tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
 //---------------
 // RICH media
 

@@ -1,5 +1,6 @@
-//  $Id: tofsim02.C,v 1.17 2002/04/29 07:28:52 choumilo Exp $
+//  $Id: tofsim02.C,v 1.18 2002/09/04 09:11:12 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
+// Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
 #include <iostream.h>
 #include <stdio.h>
@@ -18,7 +19,7 @@
 #include <mceventg.h>
 #include <ecalrec.h>
 //
-TOF2Scan TOF2Scan::scmcscan[TOF2GC::SCBLMX];
+TOFWScan TOFWScan::scmcscan[TOF2GC::SCBLMX];
 //
 integer TOF2RawEvent::trpatt[TOF2GC::SCLRS]={0,0,0,0};
 integer TOF2RawEvent::trflag=0;
@@ -87,26 +88,26 @@ TOFTpoints::TOFTpoints(int nbin, geant bnl, geant bnw, geant arr[]){//constructo
   }
 }
 //===========================================================
-//  <--- for inp. X define position in scan array (i1/i2) and correction ratio R.
+//  <--- for inp. Y define position in scan array (i1/i2) and correction ratio R.
 //
-void TOF2Scan::getxbin(const geant x, integer &i1, integer &i2, geant &r)
+void TOF2Scan::getybin(const geant y, integer &i1, integer &i2, geant &r)
 {
-  integer i=AMSbins(scanp,x,nscpnts);
+  integer i=AMSbins(scanp,y,nscpnts);
   if(i==0){
     i1=0;
     i2=1;
-    r=(x-scanp[i1])/(scanp[i2]-scanp[i1]);//r<0 -> x below 1st sc.point
+    r=(y-scanp[i1])/(scanp[i2]-scanp[i1]);//r<0 -> y below 1st sc.point
   }
   else if(i<0){
-    if(i==-nscpnts){// r>1 -> x above last sc.point
+    if(i==-nscpnts){// r>1 -> y above last sc.point
       i1=nscpnts-2;
       i2=nscpnts-1;
-      r=(x-scanp[i1])/(scanp[i2]-scanp[i1]);
+      r=(y-scanp[i1])/(scanp[i2]-scanp[i1]);
       }
-    else{// <- normal case when x is inside of sc.points array
+    else{// <- normal case when y is inside of sc.points array
       i1=-i-1;
       i2=-i;
-      r=(x-scanp[i1])/(scanp[i2]-scanp[i1]);
+      r=(y-scanp[i1])/(scanp[i2]-scanp[i1]);
     }
   }
   else{ // exact matching inside sc.points array(i1=i2, r=0.)
@@ -116,7 +117,7 @@ void TOF2Scan::getxbin(const geant x, integer &i1, integer &i2, geant &r)
   }
 }
 //------------------------------------------------------------------
-geant TOF2Scan::gettm1(geant r, int i1, int i2){
+geant TOF2Scan::gettm1(const geant r, const int i1, const int i2){
   geant rnd,t1,t2,dummy(-1);
 //
   rnd=RNDM(dummy);
@@ -125,7 +126,7 @@ geant TOF2Scan::gettm1(geant r, int i1, int i2){
   return t1+(t2-t1)*r>0?t1+(t2-t1)*r:0;
 
 };    
-geant TOF2Scan::gettm2(geant r, int i1, int i2){
+geant TOF2Scan::gettm2(const geant r, const int i1, const int i2){
   geant rnd,t1,t2,dummy(-1);
 //
   rnd=RNDM(dummy);
@@ -135,10 +136,10 @@ geant TOF2Scan::gettm2(geant r, int i1, int i2){
 
 };    
 //------------------------------------------------------------------
-// function to create TOF2Scan objects for all sc. bars :
-void TOF2Scan::build(){
+// function to create TOFWScan objects for all sc. bars :
+void TOFWScan::build(){
 //
-  int i,ic,nverst,ivers,dig;
+  int i,ic,nverst,ivers,dig,nctot(0);
   int brfnam[TOF2GC::SCBLMX];
   char fname[80];
   char name[80];
@@ -167,7 +168,7 @@ void TOF2Scan::build(){
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"TOF2Scan::build: Open file  "<<fname<<'\n';
+  cout<<"TOFWScan::build: Open file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
   if(!vlfile){
     cerr <<"TOF2Scan::build(): missing verslist-file "<<fname<<endl;
@@ -177,7 +178,7 @@ void TOF2Scan::build(){
   vlfile >> ivers;// first number in first line (vers.# for tdisfmap-file)
   vlfile.close();
   ivers=(ivers%1000);
-  cout<<"TOF2Scan::build(): use MC timescan map-file version="<<ivers<<'\n';
+  cout<<"TOFWScan::build(): use MC-timescan map-file version="<<ivers<<'\n';
 //  
 //                                  <-- first read t-distr. map-file
   strcpy(name,tdisfn);
@@ -194,18 +195,20 @@ void TOF2Scan::build(){
   if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
   if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
   strcat(fname,name);
-  cout<<"Open file : "<<fname<<'\n';
+  cout<<"       Open file : "<<fname<<'\n';
   ifstream tcfile(fname,ios::in); // open needed tdisfmap-file for reading
   if(!tcfile){
-    cerr <<"TOF2Scan::build(): missing tof2smap-file "<<fname<<endl;
+    cerr <<"TOFWScan::build(): missing tof2smap-file "<<fname<<endl;
     exit(1);
   }
-  for(ic=0;ic<TOF2GC::SCBLMX;ic++) tcfile >> brfnam[ic];
+  for(i=0;i<TOF2DBc::getnplns();i++)nctot+=TOF2DBc::getbppl(i);//tot.counters
+  for(ic=0;ic<nctot;ic++) tcfile >> brfnam[ic];
   tcfile.close();
 //-------------------
 //                                  <-- now read t-distr. files
- int j,ila,ibr,brt,ibrm,isp,nsp,ibt,cnum,dnum,mult;
+ int j,ila,ibr,brt,ibrm,isp,nsp,ibt,cnum,dnum,dnumm,mult,dnumo;
  integer nb;
+ int iscp[TOF2GC::SCANPNT];
  geant scp[TOF2GC::SCANPNT];
  geant nft,bl,bw;
  geant arr[TOFGC::AMSDISL];
@@ -213,65 +216,92 @@ void TOF2Scan::build(){
  geant rg1[TOF2GC::SCANPNT],rg2[TOF2GC::SCANPNT];
  TOFTpoints td1[TOF2GC::SCANPNT];
  TOFTpoints td2[TOF2GC::SCANPNT];
+ int nwdivs(0);
+ TOF2Scan swdscan[TOF2GC::SCANWDS];
+ geant wdivxl[TOF2GC::SCANWDS];
+ geant wdivxh[TOF2GC::SCANWDS];
+ integer idiv;
  geant eff1,eff2;
 //
+  dnumo=0;
   cnum=0;//for sequential numbering
   for(ila=0;ila<TOF2DBc::getnplns();ila++){   // <-------- loop over layers
   for(ibr=0;ibr<TOF2DBc::getbppl(ila);ibr++){  // <-------- loop over bar in layer
     brt=TOF2DBc::brtype(ila,ibr);
     dnum=brfnam[cnum];// 4-digits t-distr. file name (VLBB)
-    mult=1000;
-    strcpy(name,"tof2c");
-    for(i=3;i>=0;i--){//create 4-letters file name
-      j=dnum/mult;
-      in[0]=inum[j];
-      strcat(name,in);
-      dnum=dnum%mult;
-      mult=mult/10;
+    if(dnum != dnumo){//new bar(type)
+      mult=1000;
+      strcpy(name,"tof2c");
+      dnumm=dnum;
+      for(i=3;i>=0;i--){//create 4-letters file name
+        j=dnumm/mult;
+        in[0]=inum[j];
+        strcat(name,in);
+        dnumm=dnumm%mult;
+        mult=mult/10;
+      }
+      strcat(name,".tsfn");
+      if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
+      if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
+      strcat(fname,name);
+      cout<<"       Open file : "<<fname<<'\n';
+      ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
+      if(!tcfile){
+        cerr <<"AMSTOFScan::build(): missing MC-t_scan file "<<fname<<endl;
+        exit(1);
+      }
+      tcfile >> nwdivs; // read tot.number of X(width) divisions
+//
+      for(int div=0;div<nwdivs;div++){// <--- divisions loop
+//
+        tcfile >> idiv; // read numb.of current div.
+//
+        tcfile >> nsp; // read tot.number of scan-point in this div.
+        if(nsp>TOF2GC::SCANPNT){
+          cerr<<"Sitofinitjob: wrong # of MC Y-scan point ! "<<nsp<<'\n';
+          exit(1);
+        } 
+        tcfile >> wdivxl[div]; // read xl
+        tcfile >> wdivxh[div]; // read xh
+//
+// <-- fill errays scp,ef1,ef2,rg1,rg2 for given division
+//
+        for(isp=0;isp<nsp;isp++){ // <--- sp. points loop to prepare arr. of t-distr
+          tcfile >> iscp[isp];
+          tcfile >> scp[isp];
+          tcfile >> nft;   // for PM-1
+          tcfile >> nb;
+          tcfile >> bl;
+          tcfile >> bw;
+          tcfile >> ef1[isp];
+          tcfile >> rg1[isp];
+          for(i=0;i<nb;i++){arr[i]=0.;}
+          for(i=0;i<nb;i++){tcfile >> arr[i];}
+          td1[isp]=TOFTpoints(nb,bl,bw,arr);
+          tcfile >> nft;   // for PM-2
+          tcfile >> nb;
+          tcfile >> bl;
+          tcfile >> bw;
+          tcfile >> ef2[isp];
+          tcfile >> rg2[isp];
+          for(i=0;i<nb;i++){arr[i]=0.;}
+          for(i=0;i<nb;i++){tcfile >> arr[i];}
+          td2[isp]=TOFTpoints(nb,bl,bw,arr);
+//
+        } // <--- end of scan points loop -----
+//
+        swdscan[div]=TOF2Scan(nsp,iscp,scp,ef1,ef2,rg1,rg2,td1,td2);// create single div. scan obj
+//
+      } // <--- end of divisions loop -----
+//
+      tcfile.close(); // close file
+      scmcscan[cnum]=TOFWScan(nwdivs,wdivxl,wdivxh,swdscan);// create complete scan obj
+      dnumo=dnum;
     }
-    strcat(name,".tsf");
-    if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
-    if(TFCAFFKEY.cafdir==1)strcpy(fname,"");
-    strcat(fname,name);
-    cout<<"Open file : "<<fname<<'\n';
-    ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
-    if(!tcfile){
-      cerr <<"AMSTOFScan::build(): missing MC-t_scan file "<<fname<<endl;
-      exit(1);
+    else{// the same btyp - use old arrays:
+      scmcscan[cnum]=TOFWScan(nwdivs,wdivxl,wdivxh,swdscan);// ccomplete scan obj 
     }
-// <-- fill errays scp,ef1,ef2,rg1,rg2 from file
-//
-    tcfile >> nsp;// read # of calibr. points
-    if(nsp>TOF2GC::SCANPNT){
-      cerr<<"Sitofinitjob: bad # of MC Y-scan point ! "<<nsp<<'\n';
-      exit(1);
-    } 
-    for(isp=0;isp<nsp;isp++){ // sp. points loop to prepare arr. of t-distr
-      tcfile >> scp[isp];
-      tcfile >> nft;   // for PM-1
-      tcfile >> nb;
-      tcfile >> bl;
-      tcfile >> bw;
-      tcfile >> ef1[isp];
-      tcfile >> rg1[isp];
-      for(i=0;i<nb;i++){arr[i]=0.;}
-      for(i=0;i<nb;i++){tcfile >> arr[i];}
-      td1[isp]=TOFTpoints(nb,bl,bw,arr);
-      tcfile >> nft;   // for PM-2
-      tcfile >> nb;
-      tcfile >> bl;
-      tcfile >> bw;
-      tcfile >> ef2[isp];
-      tcfile >> rg2[isp];
-      for(i=0;i<nb;i++){arr[i]=0.;}
-      for(i=0;i<nb;i++){tcfile >> arr[i];}
-      td2[isp]=TOFTpoints(nb,bl,bw,arr);
-//
-    } // <--- end of scan points loop -----
-//
-    scmcscan[cnum]=TOF2Scan(nsp,scp,ef1,ef2,rg1,rg2,td1,td2);// create bar MC-t-scan obj
-    tcfile.close(); // close file
-  cnum+=1;//sequential numbering
+    cnum+=1;//sequential numbering
   } // --- end of bar loop --->
   } // --- end of layer loop --->
 }
@@ -285,11 +315,12 @@ void TOF2Tovt::build()
   static AMSDistr scpmsesp(19,0.,0.279,arr);// p/h spectrum ready
 //                   ( scale in mV@50ohm to have 1.5mV as m.p. value!!!)
 //
-  integer i1,i2,id,idN,idd,ibar,ilay,ibtyp,cnum;
+  integer id,idN,idd,ibar,ilay,ibtyp,cnum;
+  static integer cnumo;
   static geant tslice1[TOF2GC::SCTBMX+1]; //  flash ADC array for side-1
   static geant tslice2[TOF2GC::SCTBMX+1]; //  flash ADC array for side-2
   static geant tslice[TOF2GC::SCTBMX+1]; //  flash ADC array
-  geant bnw; 
+  geant bnw,bwid; 
   integer warr[TOFGC::AMSDISL]; 
   int i,i0,j,jj,jm,k,stat(0),nelec,ierr(0),lbn,nbm;
   int status[2];
@@ -303,17 +334,27 @@ void TOF2Tovt::build()
   AMSgvolume *p;
   AMSTOFMCCluster *ptr;
   AMSTOFMCCluster *ptrN;
+  int i1,i2,idivx,nwdivs;
+  static geant bthick;
 //
   static integer first=0;
   static integer npshbn;
   static geant pmplsh[1000];  // PM s.e. pulse shape
   static geant fadcb,ifadcb,trts,tmax,zlmx,convr,seres,sesig,sesave,sessig,sesrat;
 //
+  int ii,kk;
+  char inum[11];
+  char in[2]="0";
+  char vname[5];
+  strcpy(inum,"0123456789");
+//
   if(first++==0){
     AMSmceventg::SaveSeeds();
 //    AMSmceventg::PrintSeeds(cout);
     AMSmceventg::SetSeed(0);
 //    cout <<" first in"<<endl;
+    bthick=0.5*TOF2DBc::plnstr(6);//half bar-thickness
+    cnumo=0;
     seres=TOF2DBc::seresp();
     sesig=seres*TOF2DBc::seresv();
     TOF2Tovt::inipsh(npshbn,pmplsh); // prepare PM s.e. pulse shape arr.
@@ -366,7 +407,7 @@ void TOF2Tovt::build()
     ilay=id/100-1;
     nhitl[ilay]+=1;
     ibar=id%100-1;
-    de  =ptr->edep;
+    de=ptr->edep;
     edepl[ilay]+=de;
     edepb+=de;
     time=(1.e+9)*(ptr->tof); // conv. to "ns"
@@ -375,8 +416,16 @@ void TOF2Tovt::build()
     z=ptr->xcoo[2];
 //  cout<<"MChit id="<<id<<" edep="<<de<<" /x/y/z="<<x<<" "<<y<<" "<<z<<endl;
     AMSPoint cglo(x,y,z);
+    strcpy(vname,"TF");
+    kk=ilay*TOF2GC::SCMXBR+ibar+1;//bar ID used in the volume name
+    ii=kk/10;
+    in[0]=inum[ii];
+    strcat(vname,in);
+    ii=kk%10;
+    in[0]=inum[ii];
+    strcat(vname,in);
     p=AMSJob::gethead()->
-           getgeomvolume(AMSID("TOFS",id));// pointer to volume "TOFS",id
+           getgeomvolume(AMSID(vname,id));// pointer to volume "TFnn",id
 #ifdef __AMSDEBUG__
     assert(p != NULL);
 #endif
@@ -387,28 +436,53 @@ void TOF2Tovt::build()
 //  cout<<"local coo="<<x<<" "<<y<<" "<<z<<" G-time="<<time<<endl;
     if((time>=tmax) || (time<0.)){
 //            cout<<"TOF: Bad G-hit, id="<<id<<" t/de="<<time<<" "<<de<<'\n';
-      ptr=ptr->next(); // next hit
+      ptr=ptr->next(); // take next hit
       continue;
     }
     qtime=time*ifadcb;
-//    cnum=ilay*TOF2GC::SCMXBR+ibar;// sequential counter number
-    cnum=TOF2DBc::barseqn(ilay,ibar);// sequential counter number
-    TOF2Scan::scmcscan[cnum].getxbin(y,i1,i2,r);//y-bin # (longit.(x !)-coord. in LTRANS )
+    cnum=TOF2DBc::barseqn(ilay,ibar);// solid sequential numbering(0->33)
+    nwdivs=TOFWScan::scmcscan[cnum].getndivs();//real # of wdivs
+    idivx=TOFWScan::scmcscan[cnum].getwbin(x);// x-div #
+    if(idivx<0 || (fabs(z)-bthick)>0.01){
+      if(cnum!=cnumo){//do not count repeated bad hits from the same volume  
+#ifdef __AMSDEBUG__
+        cout<<"---> TOF2Tovt::build: OutOfVolError:ID="<<id<<" cnum="<<cnum<<" Vol.name:"<<vname<<endl;
+        if(idivx<0){
+          cout<<"     Out-of-width hit !"<<endl;
+          nbm=TOF2DBc::getbppl(ilay);
+	  if(ibar==0 || ibar==(nbm-1))bwid=0.5*TOF2DBc::outcp(ilay,1);
+	  else bwid=0.5*TOF2DBc::plnstr(5);                      
+	  HF1(1078,geant(fabs(x)-bwid),1.);
+        }
+        if((fabs(z)-bthick)>0.01){
+          cout<<"     Out-of-thickness hit !"<<endl;
+	  HF1(1079,geant(fabs(z)-bthick),1.);
+        }    
+        cout<<"   xyzloc="<<x<<" "<<y<<" "<<z<<endl;
+        cout<<"   xyzglo="<<cglo[0]<<" "<<cglo[1]<<" "<<cglo[2]<<" de="<<de<<endl;
+        cout<<"   Evnum="<<GCFLAG.IEVENT<<endl;
+#endif
+        TOF2JobStat::addmc(3);
+        cnumo=cnum;
+      }
+      ptr=ptr->next(); // take next hit
+      continue;
+    }
+    TOFWScan::scmcscan[cnum].getybin(idivx,y,i1,i2,r);//y-bin # 
     TOF2Brcal::scbrcal[ilay][ibar].getbstat(status);//get status of two ends (from DB)
     nel0=de*convr;// -> photons
-//  cout<<"scanbin="<<i1<<" "<<i2<<" r="<<r<<" nphot="<<nel0<<endl;
 //
 // PM-1 actions --->
 //
   if(status[0]>=0){// alive side
-    eff=TOF2Scan::scmcscan[cnum].getef1(r,i1,i2);//eff for PM-1
-    rgn=TOF2Scan::scmcscan[cnum].getgn1(r,i1,i2);//gain for PM-1
+    eff=TOFWScan::scmcscan[cnum].getef1(idivx,r,i1,i2);//eff for PM-1
+    rgn=TOFWScan::scmcscan[cnum].getgn1(idivx,r,i1,i2);//gain for PM-1
     nel=nel0*eff;// mean total number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
     for(i=0;i<TOFGC::AMSDISL;i++)warr[i]=0;
 //    <-------- create phel. arrival-time distribution(PM-1) ---<<<
     for(i=0;i<nelec;i++){
-      tm=TOF2Scan::scmcscan[cnum].gettm1(r,i1,i2);//phel.arrival time from interpol.distr.
+      tm=TOFWScan::scmcscan[cnum].gettm1(idivx,r,i1,i2);//phel.arrival time from interpol.distr.
       uinteger ii=uinteger(floor(tm*ifadcb));
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
@@ -438,14 +512,14 @@ void TOF2Tovt::build()
 // PM-2 actions --->
 //
   if(status[1]>=0){// alive side
-    eff=TOF2Scan::scmcscan[cnum].getef2(r,i1,i2);//eff for PM-2
-    rgn=TOF2Scan::scmcscan[cnum].getgn2(r,i1,i2);//gain for PM-2
+    eff=TOFWScan::scmcscan[cnum].getef2(idivx,r,i1,i2);//eff for PM-2
+    rgn=TOFWScan::scmcscan[cnum].getgn2(idivx,r,i1,i2);//gain for PM-2
     nel=nel0*eff;// mean total number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
     for(i=0;i<TOFGC::AMSDISL;i++)warr[i]=0;
 //    <-------- create phel. arrival-time distribution(PM-2) ---<<<
     for(i=0;i<nelec;i++){
-      tm=TOF2Scan::scmcscan[cnum].gettm2(r,i1,i2);//phel.arrival time from interpol.distr.
+      tm=TOFWScan::scmcscan[cnum].gettm2(idivx,r,i1,i2);//phel.arrival time from interpol.distr.
       uinteger ii=uinteger(floor(tm*ifadcb));
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
@@ -476,8 +550,10 @@ void TOF2Tovt::build()
 //      idN=0; 
 //      if(ptrN)idN=ptrN->getid();// id of the next G-hit
 //      if(idN != id){ // <---- last or new bar -> create Tovt-objects :
+//
       if(ptr->testlast()){ // <---- last or new bar -> create Tovt-objects :
         edepb*=1000.;// --->MeV
+	if(edepb>0.)TOF2JobStat::addmc(4);//count fired bars
         if(edepb>TFMCFFKEY.Thr){// process only bar with Edep>Ethr
 // PM-1 loop to apply pulse shape :
         if(status[0]>=0){// alive side

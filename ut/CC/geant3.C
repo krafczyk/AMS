@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.71 2002/08/05 11:19:52 choutko Exp $
+//  $Id: geant3.C,v 1.72 2002/09/04 09:11:10 choumilo Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -150,79 +150,190 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
   }
   // TOF
 
+  int tflv;  
   char name[4];
   char media[20];
   geant t,x,y,z;
-  geant de,dee,dtr2,div,tof;
+  geant de,dee,dtr2,div,tof,prtq,pstep;
   static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
+  static geant stepsum(0.),estepsum(0.);
+  static geant sscoo[3]={0.,0.,0.};
+  static geant sstime(0.);
+  static int nsmstps(0);
   geant trcut2(0.25);// Max. transv.shift (0.5cm)**2
-  geant vect[3],dx,dy,dz,dt; 
-  int i,nd,numv,iprt,numl,numvp;
+  geant stepmin(0.25);//(cm) min. step/cumul.step to store hit(0.5cm/2)
+  geant estepmin(1.e-5);
+  geant coo[3],dx,dy,dz,dt;
+  geant wvect[6],snext,safety;
+  int i,nd,numv,iprt,numl,numvp,tfprf(0);
   static int numvo(-999),iprto(-999);
+  tflv=GCVOLU.nlevel-1;  
+//---> print some GEANT standard values(for debugging):
+  tfprf=0;
+//  if(GCFLAG.IEVENT==4442)tfprf=1;
+//  numl=GCVOLU.nlevel;
+//  numv=GCVOLU.number[numl-1];
+//  numvp=GCVOLU.number[numl-2];
+//  for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-1][i];
+//  UHTOC(GCTMED.natmed,4,media,20);
 //
-  if(lvl >1 && GCVOLU.names[lvl][0]== 'T' && GCVOLU.names[lvl][1]=='O' &&
-  GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='S'){// in "TOFS"
-  if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+  if(GCVOLU.nlevel==3 && GCTMED.isvol != 0
+            && GCVOLU.names[tflv][0]=='T' && GCVOLU.names[tflv][1]=='F'){// <=== in "TFnn"
+    if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
     iprt=GCKINE.ipart;
-    numv=GCVOLU.number[lvl];
+    prtq=GCKINE.charge;
+    pstep=GCTRAK.step;
+    numv=GCVOLU.number[tflv];
     x=GCTRAK.vect[0];
     y=GCTRAK.vect[1];
     z=GCTRAK.vect[2];
     t=GCTRAK.tofg;
     de=GCTRAK.destep;
-//    if(iprt>40)cout <<iprt<<" "<<de<<" "<<GCTRAK.inwvol<<" "<<z<<" "<<GCTRAK.istop<<endl;
-    if(GCTRAK.inwvol==1){// new volume or track : store param.
+//
+    if(GCTRAK.inwvol==1){// <--- new volume or track : store param.
       iprto=iprt;
       numvo=numv;
+      stepsum=0.;
+      estepsum=0.;
+      nsmstps=0;
+      sstime=0;
+      sscoo[0]=0;
+      sscoo[1]=0;
+      sscoo[2]=0;
       xpr=x;
       ypr=y;
       zpr=z;
       tpr=t;
     }
-    else{
-      if(iprt==iprto && numv==numvo && de!=0.){// same part. in the same volume
+//
+    else{// <--- inwvol!=1(still running through given volume)
+//
+      if(iprt==iprto && numv==numvo && de!=0.){// <-- same part. in the same volume, de!=0
         dx=(x-xpr);
         dy=(y-ypr);
         dz=(z-zpr);
         dt=(t-tpr);
         dtr2=dx*dx+dy*dy;
 //
-        if(dtr2>trcut2){// too big transv. shift: subdivide step
-          nd=integer(sqrt(dtr2/trcut2));
-          nd+=1;
-          dx=dx/geant(nd);
-          dy=dy/geant(nd);
-          dz=dz/geant(nd);
-          dt=dt/geant(nd);
-          GCTRAK.destep=de/geant(nd);
-          for(i=1;i<=nd;i++){//loop over subdivisions
-            vect[0]=xpr+dx*(i-0.5);
-            vect[1]=ypr+dy*(i-0.5);
-            vect[2]=zpr+dz*(i-0.5);
-            tof=tpr+dt*(i-0.5);
+        if(prtq!=0.){// <--- char!=0
+//
+        if(pstep>=stepmin){ // <------ big step
+//
+          if(dtr2>trcut2){//  big transv. shift: subdivide step
+            nd=integer(sqrt(dtr2/trcut2));
+            nd+=1;
+            dx=dx/geant(nd);
+            dy=dy/geant(nd);
+            dz=dz/geant(nd);
+            dt=dt/geant(nd);
+            GCTRAK.destep=de/geant(nd);
+            for(i=1;i<=nd;i++){//loop over subdivisions
+              coo[0]=xpr+dx*(i-0.5);
+              coo[1]=ypr+dy*(i-0.5);
+              coo[2]=zpr+dz*(i-0.5);
+              tof=tpr+dt*(i-0.5);
+              dee=GCTRAK.destep;
+//  if(tfprf)cout<<"-->WrBigTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<endl;
+              if(TFMCFFKEY.birks)GBIRK(dee);
+              AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
+            }
+          }// ---> end of "big transv.shift"
+//
+          else{// <---  small transv.shift(use middle of step params)
+//
+            coo[0]=xpr+0.5*dx;
+            coo[1]=ypr+0.5*dy;
+            coo[2]=zpr+0.5*dz;
+            tof=tpr+0.5*dt;
             dee=GCTRAK.destep;
+//  if(tfprf)cout<<"-->WrSmalTrsHit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<endl;
             if(TFMCFFKEY.birks)GBIRK(dee);
-            AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
-          }
-        }
-        else{
-          vect[0]=xpr+0.5*dx;
-          vect[1]=ypr+0.5*dy;
-          vect[2]=zpr+0.5*dz;
-          tof=tpr+0.5*dt;
+            AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
+          }// ---> endof "small transv.shift"
+//
+          if(estepsum>estepmin){// on "AfterBigStep": write "small steps" buffer if not empty
+	    sscoo[0]/=geant(nsmstps);
+	    sscoo[1]/=geant(nsmstps);
+	    sscoo[2]/=geant(nsmstps);
+	    sstime/=geant(nsmstps);
+//  if(tfprf)cout<<"-->WrSmalStepAHits:numv="<<numv<<"x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
+//                                                   <<" de/nst="<<estepsum<<" "<<nsmstps<<endl;
+            if(TFMCFFKEY.birks)GBIRK(estepsum);
+            AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
+	    stepsum=0.;
+	    estepsum=0.;
+            nsmstps=0;
+            sstime=0;
+            sscoo[0]=0;
+            sscoo[1]=0;
+            sscoo[2]=0;
+	  }//---> endof "AfterBigStep" actions
+//
+        }// ------> endof "big step"
+//
+	else{//      <--- small step
+	  stepsum+=pstep;
+	  estepsum+=GCTRAK.destep;
+	  nsmstps+=1;
+	  sscoo[0]+=x;
+	  sscoo[1]+=y;
+	  sscoo[2]+=z;
+	  sstime+=t;
+	  if(stepsum>=stepmin){
+	    sscoo[0]/=geant(nsmstps);
+	    sscoo[1]/=geant(nsmstps);
+	    sscoo[2]/=geant(nsmstps);
+	    sstime/=geant(nsmstps);
+//  if(tfprf)cout<<"-->WrSmalStepHits:numv="<<numv<<"x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
+//                                                   <<" de/nst="<<estepsum<<" "<<nsmstps<<endl;
+            if(TFMCFFKEY.birks)GBIRK(estepsum);
+            AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
+	    stepsum=0.;
+	    estepsum=0.;
+            nsmstps=0;
+            sstime=0;
+            sscoo[0]=0;
+            sscoo[1]=0;
+            sscoo[2]=0;
+	  }
+	}//---> endof "small step" 
+//
+        if(GCTRAK.inwvol>=2 && estepsum>estepmin){// on leave: write "small steps" buffer if not empty
+	  sscoo[0]/=geant(nsmstps);
+	  sscoo[1]/=geant(nsmstps);
+	  sscoo[2]/=geant(nsmstps);
+	  sstime/=geant(nsmstps);
+//  if(tfprf)cout<<"-->WrSmalStepLHits:numv="<<numv<<"x/y/z="<<sscoo[0]<<" "<<sscoo[1]<<" "<<sscoo[2]
+//                                                   <<" de/nst="<<estepsum<<" "<<nsmstps<<endl;
+          if(TFMCFFKEY.birks)GBIRK(estepsum);
+          AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
+	}//---> endof "on leave" actions
+//
+	}// ---> endof "char!=0"
+// 
+	else{//<--- charge=0(use end-of-step coo)
+          coo[0]=x;
+          coo[1]=y;
+          coo[2]=z;
+          tof=t;
           dee=GCTRAK.destep;
-          if(TFMCFFKEY.birks)GBIRK(dee);
-          AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
-        }// end of "big step" test
+//  if(tfprf)cout<<"-->WrZ=0Hit:numv="<<numv<<"x/y/z="<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" de="<<dee<<endl;
+            if(TFMCFFKEY.birks)GBIRK(dee);
+            AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
+//
+	}// ===> endof "char=0" 
 //
         xpr=x;
         ypr=y;
         zpr=z;
         tpr=t;
-      }// end of "same part/vol, de>0"
-    }// end of new volume test
+      }// ===> end of "same part/vol, de>0"
+//
+    }// ===> endof "inwvol!=0"(still running throuhg given volume)
+//
   if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
-  }// end of "in TOFS"
+//
+  }// ===> endof "in TFnn"
 //-------------------------------------
 
 #ifdef __AMSDEBUG__

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.411 2002/08/28 10:08:58 delgadom Exp $
+// $Id: job.C,v 1.412 2002/09/04 09:11:11 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -542,7 +542,7 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 //=================================================================================
 //
 void AMSJob::_sitof2data(){
-  TFMCFFKEY.TimeSigma=0.212; //(1) side time resolution(ns,=CounterResol(0.15)*sqrt(2)) 
+  TFMCFFKEY.TimeSigma=0.240; //(1) side time resolution(ns,=CounterResol(0.17)*sqrt(2)) 
   TFMCFFKEY.TimeSigma2=0.45; //(2)
   TFMCFFKEY.TimeProbability2=0.035;//(3)
   TFMCFFKEY.padl=11.5;        //(4) not used now (spare)
@@ -983,8 +983,8 @@ void AMSJob::_retof2data(){
   TFREFFKEY.relogic[3]=0;//(11) 0/1-> use new/old parametrization for TOF integrators 
   TFREFFKEY.relogic[4]=0;//(12) spare RECO logic flag
 //
-  TFREFFKEY.daqthr[0]=30.;//(13)Fast discr. thresh(mV) for fast/slow_TDC 
-  TFREFFKEY.daqthr[1]=100.;//(14)Fast discr. thresh(mV) for FT-trigger (z>=1)  
+  TFREFFKEY.daqthr[0]=30.;//(13)Fast discr. thresh(30mV) for fast/slow_TDC 
+  TFREFFKEY.daqthr[1]=100.;//(14)Fast discr. thresh(100mV) for FT-trigger (z>=1)  
   TFREFFKEY.daqthr[2]=150.;//(15)thresh(mV) for discr. of "z>1"-trig  
   TFREFFKEY.daqthr[3]=1.;//(16)H(L)-ADC-readout threshold in DAQ (in ADC-channels)    
   TFREFFKEY.daqthr[4]=0.;//(17)spare
@@ -992,10 +992,10 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[0]=40.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
   TFREFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TFREFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
-  TFREFFKEY.cuts[3]=2.5; //(21) error(cm) in longitudinal coordinate (single TOF bar)
+  TFREFFKEY.cuts[3]=2.8; //(21) error(cm) in longitudinal coordinate (single TOF bar)
   TFREFFKEY.cuts[4]=65.;//(22) FT const. delay
   TFREFFKEY.cuts[5]=40.;//(23) sTDC-delay wrt fTDC
-  TFREFFKEY.cuts[6]=0.8;//(24) 2-bars assim.cut in TOFCluster energy calculation
+  TFREFFKEY.cuts[6]=0.6;//(24) 2-bars assim.cut in TOFCluster energy calculation
   TFREFFKEY.cuts[7]=8.;// (25) internal longit.coo matching cut ...Not used (spare)
   TFREFFKEY.cuts[8]=0.;// (26) spare
   TFREFFKEY.cuts[9]=0.;// (27) 
@@ -1019,14 +1019,14 @@ void AMSJob::_retof2data(){
 
 //    defaults for calibration:
 // TZSL-calibration:
-  TFCAFFKEY.pcut[0]=8.;// (1)track mom. low limit (gev/c) (prot, put 0.75 for mu)
-  TFCAFFKEY.pcut[1]=50.;// (2)track mom. high limit
+  TFCAFFKEY.pcut[0]=5.;// (1)track mom. low limit (gev/c) (prot, put 0.75 for mu)
+  TFCAFFKEY.pcut[1]=100.;// (2)track mom. high limit
   TFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in the above range
   TFCAFFKEY.tzref[0]=0.;// (4)T0 for ref. counters
   TFCAFFKEY.tzref[1]=0.;// (5)T0 for ref. counters
   TFCAFFKEY.fixsl=5.;// (6)def. slope
   TFCAFFKEY.bmeanmu=0.997;// (7)mean muon velocity in the above range
-  TFCAFFKEY.idref[0]=106;//(8)LBB for first ref. counter 
+  TFCAFFKEY.idref[0]=104;//(8)LBB for first ref. counter 
   TFCAFFKEY.idref[1]=0;//(9)LBB for second ref. counter (if nonzero)
   TFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.
 //
@@ -1034,10 +1034,10 @@ void AMSJob::_retof2data(){
 //
 // AMPL-calibration:
   TFCAFFKEY.truse=1; // (12) 1/-1-> to use/not tracker
-  TFCAFFKEY.plhc[0]=0.8;// (13) track mom. low limit(gev/c) for space calibr
+  TFCAFFKEY.plhc[0]=2.;// (13) track mom. low limit(gev/c) for space calibr
   TFCAFFKEY.plhc[1]=500.;// (14) track mom. high limit(gev/c) ..............
-  TFCAFFKEY.minev=50;// (15)min.events needed for measurement in channel or bin
-  TFCAFFKEY.trcut=0.75;// (16) cut to use for "truncated average" calculation
+  TFCAFFKEY.minev=80;// (15)min.events needed for measurement in channel or bin
+  TFCAFFKEY.trcut=0.9;// (16) cut to use for "truncated average" calculation
   TFCAFFKEY.spares[0]=0;//spare integers
   TFCAFFKEY.spares[1]=0;//spare integers
   TFCAFFKEY.spares[2]=0;//spare integers
@@ -1050,7 +1050,7 @@ void AMSJob::_retof2data(){
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.dynflg=0; // (27)  not used now
-  TFCAFFKEY.cfvers=2; // (28) 1-999 -> vers.number for tofverlistNN.dat file
+  TFCAFFKEY.cfvers=3; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TFCAFFKEY.mcainc=0;// (30) not used now
   TFCAFFKEY.tofbetac=0.6;// (31) if nonzero->low beta cut (own TOF measurements !!!)
@@ -1857,7 +1857,7 @@ void AMSJob::_retof2initjob(){
 //-----------
 //     ===> create indiv. sc.bar scmcscan-objects (MC t/eff-distributions) 
 //
-    TOF2Scan::build();
+    TOFWScan::build();
 //
 //-------------------------
 // ===> create indiv. sc.bar parameters (sc.bar scbrcal-objects) fr.ext.files:
@@ -2270,8 +2270,8 @@ end.tm_year=TRDMCFFKEY.year[1];
     (void*)&TOF2Varp::tofvpar,server));
    
   TID.add (new AMSTimeID(AMSID("Tofmcscans2",isRealData()),
-    begin,end,TOF2GC::SCBLMX*sizeof(TOF2Scan::scmcscan[0]),
-    (void*)&TOF2Scan::scmcscan[0],server));
+    begin,end,TOF2GC::SCBLMX*sizeof(TOFWScan::scmcscan[0]),
+    (void*)&TOFWScan::scmcscan[0],server));
    
   TID.add (new AMSTimeID(AMSID("Tofpeds",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFBPeds::scbrped[0][0]),

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.47 2002/07/12 11:18:59 choutko Exp $
+//  $Id: ecalrec.C,v 1.48 2002/09/04 09:11:10 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -336,7 +336,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //
   esep1=ECALVarp::ecalvpar.daqthr(5);// separation.energy for p2b,p2f cuts
   p2bcut=ECALVarp::ecalvpar.daqthr(6);
-  esep2=2.*esep1;//separation.energy for width cut;
+  esep2=2.*esep1;//energy high-limit for width-cut action;
   p2fcut=ECALVarp::ecalvpar.daqthr(7);
   wdthr=ECALVarp::ecalvpar.daqthr(8);
   wdcut1=ECALVarp::ecalvpar.daqthr(9);//L=1,7,2(bend.proj)
@@ -377,24 +377,25 @@ void AMSEcalRawEvent::mc_build(int &stat){
     HF1(ECHIST+9,geant(an4respt),1.);
     HF1(ECHIST+10,efrnt,1.);
   }
-//  ---> create ECAL H/W-trigger(0->non;1->MIP+nonEM;2->EM;prev+10->HighEn):
+//  ---> create ECAL H/W-trigger(0->non;1->MIP+nonEM;2->softEM;3->hardEM(req.for Phot);
+//                               prev+10->HighEn):
 //
   if(an4respt>ECALVarp::ecalvpar.daqthr(1)){// mip thr.cut
     EcalJobStat::addsr(0);
     trigfl=1;// at least MIP (some non-zero activity in EC)
 //
     if(efrnt>ECALVarp::ecalvpar.daqthr(2)){ //<--- Efront cut
-      trigfl=2;// softEM confirmed
+      trigfl=2;// softEM 
       EcalJobStat::addsr(1);
       if(ECMCFFKEY.mcprtf==1 && an4respt<esep1){
         HF1(ECHIST+11,p2brat,1.);
         HF1(ECHIST+12,ebase,1.);
       }
-      if(an4respt<esep1 && p2brat<p2bcut)goto nonEM;// ---> too low Peak/base(LE)
+//      if(an4respt<esep1 && p2brat<p2bcut)goto TrExit1;// ---> too low Peak/base(LE)
       EcalJobStat::addsr(2);
 //
       if(ECMCFFKEY.mcprtf==1 && an4respt>esep1)HF1(ECHIST+13,p2frat,1.);
-      if(an4respt>esep1 && p2frat<p2fcut)goto nonEM;// ---> too low Peak/front(HE)
+//      if(an4respt>esep1 && p2frat<p2fcut)goto TrExit1;// ---> too low Peak/front(HE)
       EcalJobStat::addsr(3);
 //
       for(pm=0;pm<npmmx;pm++)if(etrsum1[pm]>0.)HF1(ECHIST+14,etrsum1[pm],1.);
@@ -404,10 +405,10 @@ void AMSEcalRawEvent::mc_build(int &stat){
         HF1(ECHIST+17,trwid2,1.);
       }
       if(ECMCFFKEY.mcprtf==1)HF1(ECHIST+18,geant(an4respt),1.);
-      if(an4respt<esep2 && (trwid1>=wdcut1 || trwid2>=wdcut2))goto nonEM;// ---> too high width(LE)
+      if(an4respt<esep2 && (trwid1>=wdcut1 || trwid2>=wdcut2))goto TrExit1;// ---> too high width(LE)
       EcalJobStat::addsr(4);
-      trigfl=3;// EM confirmed
-nonEM:
+      trigfl=3;// hardEM 
+TrExit1:
         rrr=0;    
     }
     if(an4respt>ECALVarp::ecalvpar.daqthr(3))trigfl+=10;//high energy
