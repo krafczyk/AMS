@@ -208,7 +208,7 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
  if(nhit>2)_Chi2=_Chi2/(nhit-2);
  else _Chi2=0;
  for(i=0;i<nhit;i++)_InvErrBeta+=ey[i]*ey[i];
- _InvErrBeta=sqrt(_InvErrBeta)/nhit/sqrt(x2-xa*xa);
+ _InvErrBeta=sqrt(2*_InvErrBeta)/nhit/sqrt(x2-xa*xa);
  if(_Chi2>0)_InvErrBeta*=sqrt(_Chi2);
 }
 

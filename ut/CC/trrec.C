@@ -1522,11 +1522,14 @@ integer AMSTrTrack::TOFOK(){
      interpolate(phit->getcoo() ,AMSPoint(0,0,1), Res, theta, phi, sleng);
     }
     while (phit){
-     if( ((phit->getcoo()-Res)/phit->getecoo()).abs()< SearchReg)matched++;
+     if( ((phit->getcoo()-Res)/phit->getecoo()).abs()< SearchReg){
+     if(phit->getntof() < 3)matched+=1;  
+     else matched+=10;
+     }
      phit=phit->next();
     }  
    }
-   if(matched < TRFITFFKEY.UseTOF)return 0;
+   if(matched/10 < TRFITFFKEY.UseTOF || matched%10< TRFITFFKEY.UseTOF)return 0;
    else return 1;
   }
   else return 1;

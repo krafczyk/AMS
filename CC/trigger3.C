@@ -189,6 +189,10 @@ void TriggerLVL3::init(){
 
   // TOF
 
+    for(i=0;i<SCMXBR;i++){
+      for(j=0;j<SCLRS;j++)_TOFStatus[j][i]=0;
+    }
+
   if(LVL3FFKEY.UseTightTOF){
     char fnam[256]="";
     strcpy(fnam,AMSDATADIR.amsdatadir);
@@ -209,7 +213,6 @@ void TriggerLVL3::init(){
   else{
     for(i=0;i<SCMXBR;i++){
       for (j=0;j<SCMXBR;j++)_TOFPattern[i][j]=1;
-      for(j=0;j<SCLRS;j++)_TOFStatus[j][i]=0;
     }
   }
 
@@ -324,7 +327,102 @@ void TriggerLVL3::init(){
       } 
    }
 
+    // Now print it in the some file
 
+#ifdef __AMSDEBUG__
+    {
+
+    char fnam[256]="lvl3.constants";
+    ofstream oftxt(fnam,ios::out);
+    if(oftxt){
+      oftxt<<endl;
+      oftxt << "_TOFPattern[i][14]"<<endl;
+      int i,j,k;
+      for(i=0;i<SCMXBR;i++){
+        oftxt <<"i "<<i<<" ";
+        for(j=0;j<SCMXBR;j++)oftxt <<_TOFPattern[i][j]<<" ";
+        oftxt <<endl;
+      }    
+      oftxt<<endl;
+      oftxt << "_TOFStatus[i][14]"<<endl;
+      for(i=0;i<4;i++){
+        oftxt <<"i "<<i<<" ";
+        for(j=0;j<SCMXBR;j++)oftxt <<_TOFStatus[i][j]<<" ";
+        oftxt <<endl;
+      }    
+      oftxt<<endl;
+      oftxt << "_TOFCoo[i][j][3]"<<endl;
+      for(i=0;i<4;i++){
+        oftxt <<"i "<<i<<endl;
+        for(j=0;j<SCMXBR;j++){
+         oftxt <<"j "<<j<<" ";
+         for(k=0;k<3;k++)oftxt <<_TOFCoo[i][j][k]<<" ";
+         oftxt <<endl;
+        }
+        oftxt <<endl;
+      }  
+    
+
+      oftxt << "_Trackerstatus[64]"<<endl;
+      for(i=0;i<NTRHDRP2;i++){
+       oftxt<<_TrackerStatus[i]<<" ";
+      }
+      oftxt<<endl;
+      oftxt<<endl;
+
+      oftxt << "_TrackerCooZ[6]"<<endl;
+      for(i=0;i<6;i++){
+       oftxt<<_TrackerCooZ[i]<<" ";
+      }
+      oftxt<<endl;
+      oftxt<<endl;
+
+      oftxt << "_TrackerCoo[i][j][3]"<<endl;
+      for(i=0;i<NTRHDRP;i++){
+        oftxt <<"i "<<i<<endl;
+        for(j=0;j<2;j++){
+         oftxt <<"j "<<j<<" ";
+         for(k=0;k<3;k++)oftxt <<_TrackerCoo[i][j][k]<<" ";
+         oftxt <<endl;
+        }
+        oftxt <<endl;
+      }  
+      oftxt<<endl;
+
+      oftxt << "_TrackerDir[i][2]"<<endl;
+      for(i=0;i<NTRHDRP;i++){
+        oftxt <<"i "<<i<<endl;
+         for(k=0;k<2;k++)oftxt <<_TrackerDir[i][k]<<" ";
+         oftxt <<endl;
+      }
+
+      oftxt<<endl;
+
+
+      oftxt << "_TrackerDRP2Layer[i][2]"<<endl;
+      for(i=0;i<NTRHDRP;i++){
+        oftxt <<"i "<<i<<endl;
+         for(k=0;k<2;k++)oftxt <<_TrackerDRP2Layer[i][k]<<" ";
+         oftxt <<endl;
+        }
+        
+    
+      oftxt<<endl;
+
+      oftxt << "_TrackerOtherTDR[i][2]"<<endl;
+      for(i=0;i<NTRHDRP;i++){
+         oftxt <<"i "<<i<<endl;
+         for(k=0;k<2;k++)oftxt <<_TrackerOtherTDR[i][k]<<" ";
+         oftxt <<endl;
+      }
+    
+
+
+
+
+    }
+    }
+#endif
     // Expert
     TriggerExpertLVL3::pExpert= new 
      TriggerExpertLVL3(LVL3EXPFFKEY.NEvents,LVL3EXPFFKEY.ToBad,

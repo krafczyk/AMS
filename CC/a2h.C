@@ -158,6 +158,7 @@ int16u pheader[12];
            cerr <<"a2h-E-FormatLogicError "<<tlength-2-l16ptr<<" words will be skipped"<<endl;
           for(int ks=l16ptr;ks<tlength-2;ks++){
            ie=fscanf(fbin,"%x",&elem);
+           pnblk[nblk-1]--;
           }  
           goto out;          
          }
