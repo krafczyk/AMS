@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.97 2003/10/26 14:20:27 choutko Exp $
+//  $Id: server.C,v 1.98 2003/10/29 15:24:36 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -65,7 +65,7 @@ int main(int argc, char * argv[]){
    AMSServer::Singleton()->DumpIOR();
     AMSServer::Singleton()->Listening(1);
     for(;;){
-     usleep(33333);
+     usleep(AMSServer::Singleton()->getSleepTime());
      try{
       AMSServer::Singleton()->UpdateDB();
       AMSServer::Singleton()->SystemCheck();     
@@ -108,6 +108,7 @@ AMSServer::AMSServer(int argc, char* argv[]){
  char *amsd=0;
  char *amsp=0;
  char *amsperl=0;
+ setSleepTime();
  
  for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
     pchar++;
@@ -3704,7 +3705,9 @@ _UpdateACT(cid,DPS::Client::Active);
  ofstream fbin;
  fbin.open((const char*)fname,ios::out|ios::app);
  if(!fbin){
-  throw DPS::Producer::FailedOp((const char*)"Server-F-Unable to open file");
+  AString a("Server-F-Unable to open file ");
+  a+=(const char*)fname;
+  throw DPS::Producer::FailedOp((const char *) a);
  }
  fbin.write(( char*)run.get_buffer(),run.length());
  if(!fbin.good()){
@@ -4206,7 +4209,7 @@ return _pser->Master(advanced);
 
 void Server_impl::setEnv(const DPS::Client::CID & cid, const char * env, const char *path)throw (CORBA::SystemException){
   setenv(env,path,1);
-
+if(!strcmp(env,"AMSServerSleepTime"))AMSServer::Singleton()->setSleepTime();
 if(!strcmp(env,"AMSDataDir")){
    AString amsdatadir(path); 
    amsdatadir+="/DataBase/";

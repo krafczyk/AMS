@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.152 2003/10/17 17:13:38 alcaraz Exp $
+//  $Id: trrec.C,v 1.153 2003/10/29 15:24:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1939,7 +1939,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   geant out[9];
   integer i;
     integer fit =abs(fits);
-    if(fit==3 )ialgo=3;      
+    if(fit==3 )ialgo=TRFITFFKEY.UseGeaneFitting?3:5;      
     else if(fit==5)ialgo=4;
     for(i=0;i<_NHits;i++){
      normal[i][0]=0;
