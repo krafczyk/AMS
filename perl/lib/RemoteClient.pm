@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.311 2005/03/23 17:01:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.312 2005/04/04 10:03:12 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -83,6 +83,8 @@
 # Mar 18, 2005.   : Table Jobs add pid - production period ID
 #                   queries are modified accordingly
 # Mar 22, 2005.   : use views instead of table (see listStat sub)
+# Mar 28, 2005.   : checkJobsTimeOut performance is improved
+#                   deleteTimeoutJobs  - ditto
 #
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -5393,7 +5395,11 @@ sub getior{
     close (FILEO);
     unlink $file,$fileo;
      if($ref->{debug}){
-      $ref->WarningPlus("unable to bpeek");
+       if ($webmode == 1 ) {
+        $ref->WarningPlus("unable to bpeek");
+       } else {
+           print "getior -Warning - unable to bpeek \n";
+       }
      }
     return $ref->getior2();      
 }
@@ -5908,100 +5914,88 @@ sub checkJobsTimeout {
 # get production set path
     if (not defined $period || $period eq $UNKNOWN || $periodStartTime == 0) {
     } else {
-     $sql = "SELECT runs.run 
-              FROM runs 
-               WHERE runs.status != 'Completed' AND 
-                     runs.status != 'TimeOut'   AND 
-                     runs.status != 'Finished'  AND 
-                     runs.status != 'Processing'";
+     $sql = "SELECT ntuples.run
+              FROM runs, ntuples  
+               WHERE 
+                     (runs.run = ntuples.run) AND 
+                     (runs.submit > $periodStartTime) AND 
+                     (
+                      runs.status != 'Completed' AND 
+                      runs.status != 'TimeOut'   AND 
+                      runs.status != 'Finished'  AND 
+                      runs.status != 'Foreign'  AND 
+                      runs.status != 'Processing')";
       my $r1=$self->{sqlserver}->Query($sql);
       if( defined $r1->[0][0]){
        foreach my $r (@{$r1}){
-        my $run= $r -> [0];
-        $sql="SELECT run FROM ntuples WHERE run=$run";
-        my $r2=$self->{sqlserver}->Query($sql);
-        if( defined $r2->[0][0]){
+         my $run= $r -> [0];
            $sql="UPDATE runs SET runs.status='Completed' WHERE run=$run";
            $self->{sqlserver}->Update($sql); 
        }
-    }
    }
   } # Active Production Set
 #
-    $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid, 
-                 cites.name FROM jobs, cites 
-          WHERE jobs.time+jobs.timeout <  $timenow AND 
-                jobs.cid=cites.cid"; 
+    $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid 
+            FROM jobs
+             WHERE jobs.time+jobs.timeout <  $timenow AND (jobs.mips = 0 OR jobs.events=0)";
     my $r3=$self->{sqlserver}->Query($sql);
     if( defined $r3->[0][0]){
      foreach my $job (@{$r3}){
-         my $tmoutflag    = 0;
-         my $owner        ="xyz";
-         my $jobstatus    ="unknown";
-         my $jid          = $job->[0];
-         my $address      = "alexei.klimentov\@cern.ch";
-
+       my $jid          = $job->[0];
+       my $tmoutflag    = 0;
+       my $jobstatus    ="unknown";
+       my $owner        ="xyz";
+       my $address      = "alexei.klimentov\@cern.ch";
+       $sql="SELECT runs.run, runs.status 
+              FROM runs 
+                WHERE (runs.status = 'Failed' OR runs.status = 'Unchecked') AND runs.jid=$jid";
+       my $r4=$self->{sqlserver}->Query($sql); 
+       if (defined $r4->[0][0]) {
+        $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
+        if ($update == 1) {$self->{sqlserver}->Update($sql); }
+        $tmoutflag = 1;
+        $jobstatus = $r4->[0][1];
+       }
+       if ($tmoutflag == 1) {
          my $timestamp    = $job->[1];
          my $submittime = localtime($timestamp);
          my $timeout      = $job->[2];
          my $tsubmit      = EpochToDDMMYYHHMMSS($timestamp);
          my $texpire      = EpochToDDMMYYHHMMSS($timestamp+$timeout);
-
          my $mid          = $job->[3];
          my $cid          = $job->[4];
-         my $cite         = $job->[5];
-         $sql = "SELECT mails.name, mails.address FROM Mails WHERE mails.mid=$mid";
+         my $cite         = "xyz";
+         $sql = "SELECT mails.name, mails.address, cites.name 
+                    FROM Mails, Cites  WHERE mails.mid=$mid and mails.cid=cites.cid";
          my $r4 = $self->{sqlserver}->Query($sql);
          if (defined $r4->[0][0]) {
             $owner   = $r4->[0][0];
             $address = $r4->[0][1].",".$address;
+            $cite         = $r4->[0][2];
           }
-
-         $sql="SELECT runs.run, runs.status 
-                FROM runs 
-                WHERE runs.jid = $jid ";
-         $r4=$self->{sqlserver}->Query($sql); 
-         if (defined $r4->[0][0]) {
-             $jobstatus = $r4->[0][1];
-             if ($jobstatus eq 'Failed'     ||
-#-                 $jobstatus eq "Finished"   ||
-#-                 $jobstatus eq "Foreign"    ||
-#-                 $jobstatus eq "Processing" ||
-                 $jobstatus eq "Unchecked")  {
-               $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
-               if ($update == 1) {$self->{sqlserver}->Update($sql); }
-               $tmoutflag = 1;
-             }
-         }
-           else {
-              $tmoutflag = 1;
-          }
-      if ($tmoutflag == 1) {
-       my $timenow    = time();
-       my $deletetime = localtime($timenow+60*60);
-
-       my $exptime    = $timestamp+$timeout;
-
-       $exptime       = localtime($exptime);
-       my $sujet = "Job : $jid - expired";
-       my $message    = "Job $jid, Submitted : $submittime, Expired : $exptime; 
+         my $timenow    = time();
+         my $deletetime = localtime($timenow+60*60);
+         my $exptime    = $timestamp+$timeout;
+         $exptime       = localtime($exptime);
+         my $sujet = "Job : $jid - expired";
+         my $message    = "Job $jid, Submitted : $submittime, Expired : $exptime; 
                          \n Job will be removed from database (Not earlier than  : $deletetime).
                          \n MC Production Team.
                          \n ----------------------------------------------
                          \n This message was generated by program.
                          \n DO NOT reply using REPLY option of your mailer";
-       if ($update == 1) {
-        $self->sendmailmessage($address,$sujet,$message);
-       }
-        $self->amsprint($cite,666);
-        $self->amsprint($jid,666);
-        $self->amsprint($tsubmit,666);
-        $self->amsprint($texpire,666);
-        $self->amsprint($jobstatus,666);
-        $self->amsprint($owner,0);
-        if ($webmode == 1) {print "</tr>\n";}
-      }
+         if ($update == 1) {
+          $self->sendmailmessage($address,$sujet,$message);
+         }
+         $self->amsprint($cite,666);
+         $self->amsprint($jid,666);
+         $self->amsprint($tsubmit,666);
+         $self->amsprint($texpire,666);
+         $self->amsprint($jobstatus,666);
+         $self->amsprint($owner,0);
+         if ($webmode == 1) {print "</tr>\n";}
      }
+   }
  }
 
  if ($webmode == 1) {
@@ -8827,11 +8821,13 @@ sub deleteTimeOutJobs {
     my $vlog = undef;
     my $timenow = time();
 
+    my $update  = 0;
 #
  my $HelpTxt = "
      -c    - output will be produced as ASCII page (default)
      -h    - print help
      -v    - verbose mode
+     -u    - update mode
      -w    - output will be produced as HTML page
      ./deleteTimeOutJobs.o.cgi -c -v
 ";
@@ -8843,6 +8839,9 @@ sub deleteTimeOutJobs {
     if ($chop =~/^-v/) {
         $verbose = 1;
     }
+    if ($chop =~/^-u/) {
+        $update = 1;
+    }
     if ($chop =~/^-w/) {
      $webmode = 1;
     }
@@ -8853,7 +8852,7 @@ sub deleteTimeOutJobs {
    }
 #
 
-
+    my $time0 = time();
     if( not $self->Init()){
         die "deleteTimeoutJobs -F- Unable To Init";
     }
@@ -8878,6 +8877,7 @@ sub deleteTimeOutJobs {
 #
     if ($webmode == 1) {htmlTable("Jobs below will be deleted from the database");}
 
+    my $time1 = time();
     my $sql  = undef;
     $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
                  cites.name, mails.name FROM jobs, cites, mails, runs  
@@ -8886,6 +8886,7 @@ sub deleteTimeOutJobs {
                      Jobs.mid = Mails.mid AND 
                      Runs.status = 'TimeOut'";
     my $ret = $self->{sqlserver}->Query($sql);
+    my $time2 = time();
     if (defined $ret->[0][0]) {
      if ($webmode == 1) {
       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -8908,12 +8909,13 @@ sub deleteTimeOutJobs {
             my $cid          = $job->[4];
             my $cite         = $job->[5];
             my $owner        = $job->[6];
-           
+           if ($update == 1) {           
             $sql = "DELETE Ntuples WHERE jid=$jid";
             $self->{sqlserver}->Update($sql);
             $sql = "DELETE Jobs WHERE jid=$jid";
             $self->{sqlserver}->Update($sql);
             print FILE "$sql \n";
+           }
             foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
              if($runinfo->{Run}=$jid) {
 #--              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
@@ -8932,17 +8934,22 @@ sub deleteTimeOutJobs {
       if ($webmode == 1) {htmlTableEnd();}
     }
 
+    my $time3 = time();
 
 #
 # delete jobs without runs
 #
 
     my $timedelete = time() - 4*60*60;
-    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
-                 cites.name FROM jobs, cites 
-          WHERE jobs.timestamp+jobs.timeout < $timedelete  AND 
-                jobs.cid=cites.cid"; 
+    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid 
+            FROM jobs
+             WHERE jobs.time+jobs.timeout <  $timedelete AND (jobs.mips = 0 OR jobs.events=0)";
+#    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
+#                 cites.name FROM jobs, cites 
+#          WHERE jobs.timestamp+jobs.timeout < $timedelete  AND 
+#                jobs.cid=cites.cid"; 
     my $r3=$self->{sqlserver}->Query($sql);
+    my $time4 = time();
     if( defined $r3->[0][0]){
      if ($webmode == 1) {
       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -8960,11 +8967,16 @@ sub deleteTimeOutJobs {
             my $tsubmit      = EpochToDDMMYYHHMMSS($timestamp);
             my $texpire      = EpochToDDMMYYHHMMSS($timestamp+$timeout);
             my $mid          = $job->[3];
-            my $cite         = $job->[5];
+            my $cid          = $job->[4];    
+            my $cite         = "XYZ";
 
         $sql="SELECT run  FROM runs WHERE jid = $jid";
         my $r4=$self->{sqlserver}->Query($sql); 
-         if (not defined $r4->[0][0]) {
+         if ($update == 1) {
+          if (not defined $r4->[0][0]) {
+            $sql = "SELECT name FROM Cites where cid = $cid";
+            my $r5=$self->{sqlserver}->Query($sql); 
+            $cite = $r5->[0][0];
             $sql = "DELETE Ntuples WHERE jid=$jid";
             $self->{sqlserver}->Update($sql);
             $sql = "DELETE Jobs WHERE jid=$jid";
@@ -8977,7 +8989,7 @@ sub deleteTimeOutJobs {
               last;
              }
          }
-
+        
         $self->amsprint($cite,666);
         $self->amsprint($jid,666);
         $self->amsprint($tsubmit,666);
@@ -8986,6 +8998,7 @@ sub deleteTimeOutJobs {
         $self->amsprint("Deleted",0);
         if ($webmode == 1) {print "</tr>\n";}
         }
+       }
       }
      if ($webmode == 1) {
        htmlTableEnd();
@@ -8999,6 +9012,11 @@ sub deleteTimeOutJobs {
     $self->htmlBottom();
    }
     close FILE;
+    my $time5 = time();
+# 1.04 1112375753 / 1112375763 / 1112375765 / 1112375770 / 1112375772 / 1112379161
+# 4.04 1112608195 / 1112608203 / 1112608204 / 1112608206 / 1112608207 / 1112608225
+#    print "$time0 / $time1 / $time2 / $time3 / $time4 / $time5 \n";
+
 }
 
 sub insertRun {
