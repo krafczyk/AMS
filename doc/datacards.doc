@@ -300,14 +300,14 @@ I 1 cfvers(1)             // version number(01-99) of ctcverlistNN.dat file
 // Tracker Clusters Reconstruction
 
 TRCL
-R 1 ThrClA[2](45,45)    // Lower limit for amplitude for cls (x,y)
-R 3 ThrClS[2](14,10)    // Upper limit for sigma     for cls (x,y)
-R 5 ThrClR[2](7,8)    // Lower limit for Amplitude/sigma for cls (x,y)
-R 7 Thr1A[2](30,25)     // Lower limit for ampl for max hit in cluster
-R 9 Thr1S[2](10,7)       // Upper limit for sigma for max hit in cluster
-R11 Thr1R[2](6,5)       // Lower limit for a/sigma for max hit in cluster
-R13 Thr2A[2](6,7)      // Lower limit for ampl for other hits in cluster 
-R15 Thr2S[2](10,7)       // Upper limit for sigma for other hits in cluster 
+R 1 ThrClA[2](10,10)    // Lower limit for amplitude for cls (x,y)
+R 3 ThrClS[2](20,15)    // Upper limit for sigma     for cls (x,y)
+R 5 ThrClR[2](3,4)    // Lower limit for Amplitude/sigma for cls (x,y)
+R 7 Thr1A[2](8,8)     // Lower limit for ampl for max hit in cluster
+R 9 Thr1S[2](20,15)       // Upper limit for sigma for max hit in cluster
+R11 Thr1R[2](2.75,3.5)       // Lower limit for a/sigma for max hit in cluster
+R13 Thr2A[2](4,3)      // Lower limit for ampl for other hits in cluster 
+R15 Thr2S[2](15,10)       // Upper limit for sigma for other hits in cluster 
 R17 Thr2R[2](1.,1.)   // Lower limit for a/sigma for other  hits in cluster
 R19 Thr3R[2](-2.,-2.)   // Reserved
 I21 ThrClNMin[2](1,2)   // Min Number of hits satisfied the above limits
@@ -482,7 +482,7 @@ R 9 Splitting(0.04)                    // Min distance between hits
 I10 Nrep(1)                            // Aux no of rep to calc lvl3 time
 I11 Accept(0)                        // Min value of lvl3 trigger to accept
 I12 RebuildLVL3(0)                   // rebuild/not rebuild lvl3 in reconstruction
-I13 NoK(0)                           // NotMatch(1) Match(0) S & K in lvl3
+I13 NoK(1)                           // NotMatch(1) Match(0) S & K in lvl3
 R14 TrHeavyIonThr(200)               // Heavy Ion threshold (trunc mean)
 I15 SeedThr(32)                      // S/N *8 threshold for seed 
 
