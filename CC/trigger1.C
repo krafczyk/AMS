@@ -35,11 +35,9 @@ void TriggerLVL1::build(){
 // ANTI :
     integer cbt,lsbit(1);
     antipatt=AMSAntiRawEvent::getpatt();
-    for(i=0;i<MAXANTI;i++){
-      cbt=lsbit<<i;
-      if((antipatt&cbt)>0)nanti+=1;//counts paddles
-    }
+    nanti=antipatt&255;
   }
+/*
 //----
   else if(LVL1FFKEY.RebuildLVL1){ // <---------- Real
     (AMSEvent::gethead()->getC("TriggerLVL1",0))->eraseC();
@@ -71,6 +69,7 @@ void TriggerLVL1::build(){
       if((antipatt&cbt)>0)nanti+=1;//counts paddles
     }
   }
+*/
 //------
   for(i=0;i<4;i++){
     tofpatt[i]=tofpatt[i] | (tofpatt[i]<<16);
@@ -143,7 +142,10 @@ void TriggerLVL1::builddaq(integer i, integer n, int16u *p){
   // first anti
   // -x  -z ; -x +z ; +x -z ; +x +z
   // 5-12             1-4   13-16
-  
+
+   int16u anti8=  (ptr->_antipatt >>16) & 255;
+   *(p+1)=*(p+1) | (anti8 <<8); 
+/*
   {  
     integer cbt,lsbit(1);
     integer antipatt=ptr->_antipatt;
@@ -170,6 +172,7 @@ void TriggerLVL1::builddaq(integer i, integer n, int16u *p){
     if(nanti>3)nanti=3;
     *(p+1)=*(p+1) | (nanti<<12) | (nanti<<14);
    }
+*/
 
   // Word 2 Z > 1
   if((ptr->_tofflag)%10==3)*(p+2)=*(p+2) | (1<<4);
@@ -306,10 +309,10 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   if(*(p+2) & (1<<4))z=3;
   if(*(p+2) & (1<<5))z+=10;
   //anti
-  uinteger xneg= (((*(p+1) >> 8) & 3) & ((*(p+1) >> 10) & 3)); 
-  uinteger xpos= (((*(p+1) >> 12) & 3) & ((*(p+1) >> 14) & 3)); 
+  uinteger xneg= min(((*(p+1) >> 8) & 3),  ((*(p+1) >> 10) & 3)); 
+  uinteger xpos= min(((*(p+1) >> 12) & 3) , ((*(p+1) >> 14) & 3)); 
   uinteger a2=(*(p+1)>>8) ;
-  antip = xpos | (xneg <<4);
+  antip = xpos +xneg ;
   antip = antip | (a2<<16);
   geant sumsc=_scaler.getsum()/96;
   integer tm=floor(TOFVarp::getmeantoftemp(0));   

@@ -520,7 +520,7 @@ integer AMSmceventg::EarthModulation(){
   number we=_dir[0]*amsx[2]+_dir[1]*amsy[2]+_dir[2]*amsz[2];
   
   number cth=ue*uv+ve*vv+we*wv;
-  number xfac=(CCFFKEY.Fast==0?57.576:52.)*Orbit.EarthR/rgm*Orbit.EarthR/rgm;
+  number xfac=(CCFFKEY.Fast==0?57.576:0)*Orbit.EarthR/rgm*Orbit.EarthR/rgm;
   number chsgn=_charge/fabs(_charge);
   number cl3=cl*cl*cl;
   number cl4=cl*cl*cl*cl;
