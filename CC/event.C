@@ -490,7 +490,7 @@ void AMSEvent::_sitofinitrun(){
   int sid,brt;
   number gna[2],gnd[2],qath,qdth,a2dr,tth,strat;
   number fstrd,tzer,mip2q;
-  number tzero[SCBTPN]={4.26,5.02,5.55,5.88,6.};// tempor T0 for bar types
+  number tzero[SCBTPN]={4.20,5.02,5.57,5.89,6.03};// tempor T0 for bar types
 //
   // read from file or DB:
     gna[0]=1.; // tempor
