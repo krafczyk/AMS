@@ -46,7 +46,6 @@ elif [ $V1 -eq 1 -a $V2 -eq 3 -a $V3 -ge 20 ]; then
 else
       echo "SWIG accessible ... no"
       echo "SWIG version must be higher than 1.3.20"
-      echo "Try anyway \"make 3_10_02\" if you have ROOT v3.10/02 installed"
       exit
 fi
 

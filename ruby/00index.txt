@@ -6,5 +6,5 @@ gmake install // installs the AMS.so library in the system
 gmake clean   // Clean up the directory (if you want to start from scratch)
 
 ams_example.rb // analysis example 
-               // the line with $LOAD_PATH is needed if no "gmake install" has
-               // been done
+               // the line with "$LOAD_PATH..." is necessary if 
+               // no "gmake install" has been done
