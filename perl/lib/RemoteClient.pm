@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.131 2003/04/26 13:53:22 choutko Exp $
+# $Id: RemoteClient.pm,v 1.132 2003/04/27 09:57:31 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -766,6 +766,9 @@ sub ValidateRuns {
     if (not $self->ServerConnect()){
         die "ValidateRuns -F- Unable To Connect To Server";
     }
+#
+    $self->htmlTop();
+
 # get list of runs from DataBase
     my $sql="SELECT run,submit FROM Runs";
     my $ret=$self->{sqlserver}->Query($sql);
@@ -782,6 +785,14 @@ sub ValidateRuns {
      $sql   = "SELECT run, status FROM runs WHERE run=$run->{Run}";
      my $r0 = $self->{sqlserver}->Query($sql);
      if (not defined $r0->[0][0]) {
+      htmlTable("Insert Runs");
+      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+      print "<td><b><font color=\"blue\">Run </font></b></td>";
+      print "<td><b><font color=\"blue\" >FirstEvent</font></b></td>";
+      print "<td><b><font color=\"blue\" >LastEvent</font></b></td>";
+      print "<td><b><font color=\"blue\" >SubmitTime </font></b></td>";
+      print "<td><b><font color=\"blue\" >Status</font></b></td>";
+      print "</tr>\n";
        $sql = "INSERT INTO runs VALUES($run->{Run},
                                        $run->{Run},
                                        $run->{FirstEvent},
@@ -793,6 +804,13 @@ sub ValidateRuns {
        $self->{sqlserver}->Update($sql);
        $sql   = "SELECT run, status FROM runs WHERE run=$run->{Run}";
        $r0 = $self->{sqlserver}->Query($sql);
+       print "<td><b><font color=\"black\">$run->{Run} </font></b></td>";
+       print "<td><b><font color=\"black\" >$run->{FirstEvent}</font></b></td>";
+       print "<td><b><font color=\"black\" >$run->{LastEvent}</font></b></td>";
+       print "<td><b><font color=\"black\" >$run->{SubmitTime} </font></b></td>";
+       print "<td><b><font color=\"black\" >$run->{Status}</font></b></td>";
+       print "</tr>\n";
+      htmlTableEnd();
    } 
      if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
          (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked"))
@@ -804,8 +822,11 @@ sub ValidateRuns {
                           WHERE jobs.jid=$run->{Run} AND runs.jid=jobs.jid";
          my $r1 = $self->{sqlserver}->Query($sql);
          if (not defined $r1->[0][0]) { 
-          print "ValidateRuns -W- cannot find status, content in Jobs for JID=$run->{Run} \n";
-          $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}"; #???
+          $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}"; 
+          $self->{sqlserver}->Update($sql);
+                 htmlWarning("ValidateRuns",
+                             "cannot find status, content in Jobs for JID=",
+                             $run->{Run});
          } else {
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
@@ -885,7 +906,7 @@ sub ValidateRuns {
                            $badevents=int($i*$ntuple->{EventNumber}/100);
                            $validated++;
                            my $jobid = $run->{Run};
-                           my ($outputpath,$rstatus) = $self->doCopy($jobid,$fpath);
+                           my ($outputpath,$rstatus) = $self->doCopy($jobid,$fpath,$ntuple->{crc});
                            if(defined $outputpath){
                               push @mvntuples, $outputpath; 
                           }
@@ -920,18 +941,22 @@ sub ValidateRuns {
          } #loop for ntuples
          my $status='Failed';
          if ($copyfailed == 0) {
-          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
+          htmlText("Validation done : send Delete to DBServer, Run =",$run->{Run});
+#          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
           foreach my $ntuple (@cpntuples) {
            my $cmd="rm -i $ntuple";
-           system($cmd);
+#           system($cmd);
+           htmlText("Validation done : system command rm -i ",$ntuple);
          }
           if ($#cpntuples >= 0) { $status = 'Completed';}
       }
            else{
+               htmlText("Validation/copy failed : Run =",$run->{Run});
                $status='Unchecked';
                foreach my $ntuple (@mvntuples) {
                 my $cmd = "rm -i $ntuple";
-                system($cmd);
+                htmlText("Validation failed : system command rm -i ",$ntuple);
+#                system($cmd);
                 $failedcp++;
                 $copied--;
                }
@@ -940,13 +965,14 @@ sub ValidateRuns {
                $runupdate = "UPDATE runs SET ";
            }
           $sql = $runupdate." STATUS='$status' WHERE run=$run->{Run}";
-           print "Run : First/last : $run->{FirstEvent}/$run->{LastEvent}\n";
-           print "$sql \n";
           $self->{sqlserver}->Update($sql);
+          htmlText("Update Runs : ",$sql);
      } # remote job
     }  # job found
    }   # run->{Status} == 'Finished' || 'Failed'
   }    # loop for runs
+
+  $self->htmlBottom();
 
    $self->InfoPlus("$validated Ntuple(s) Successfully Validated.
                    \n $copied Ntuple(s) Copied.
@@ -963,6 +989,7 @@ sub doCopy {
      my $self = shift;
      my $jid  = shift;
      my $inputfile = shift;
+     my $crc       = shift;
 # 
      my @junk = split '/',$inputfile;
      my $file = $junk[$#junk];
@@ -1018,23 +1045,30 @@ sub doCopy {
              $cmd = "cp -pi -d -v $inputfile  $outputpath >> $logfile";
              $cmdstatus = system($cmd);
              if ($cmdstatus) {
-                 return $outputpath,0;
-             } 
+                 my $rstatus = system("$self->{AMSSoftwareDir}/exe/linux/crc $outputpath $crc");
+                 if ($rstatus == 1) {
+                   return $outputpath,0;
+                 } else {
+                  htmlWarning("doCopy","crc calculation failed for ",$outputpath);
+                  htmlWarning("doCopy","crc calculation failed staus ",$rstatus);
+                  return $outputpath,1;
+                 }
+             }
              return $outputpath,1;
             } else {
-             print "doCopy -W- failed $cmd";
+             htmlWarning("doCopy","failed",$cmd);
             }
            } else {
-            print "doCopy -W- cannot get info for JID=$jid \n";
+            htmlWarning("doCopy","cannot get info for JID=",$jid);
            }
         } else {
-         print "doCopy -W- cannot stat disk from Filesystems \n";
+         htmlWarning("doCopy","cannot stat disk from ","Filesystems");
         } 
       } else {
-       print "doCopy -W- cannot get ProductionSet\n";
+       htmlWarning("doCopy","cannot get ProductionSet",", status=Active");
      }
   } else {
-    print "doCopy -W- cannot stat $inputfile or file size is 0\n";
+    htmlWarning("doCopy","cannot stat ",$inputfile);
   } 
   return undef,0;
  }
@@ -1336,10 +1370,54 @@ sub Connect{
         if ($jobid > 0) {
           print "<p></p>\n";
           print $q->textarea(-name=>"CCA",-default=>"$content",-rows=>30,-columns=>80);
-        }   
+# here run info
+        $sql = "SELECT run, fevent, levent, submit FROM runs WHERE run=$jobid";
+        $ret=$self->{sqlserver}->Query($sql);
+        if (defined $ret->[0][0]) {
+              my $run = $ret->[0][0];
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td align=center><b><font color=\"blue\">Run </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >First Event</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Last Event </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Submit Time</font></b></td>";
+               print "</tr>\n";
+               print "<td align=center><b><font color=\"black\">$ret->[0][0] </font></b></td>";
+               print "<td align=center><b><font color=\"black\" >$ret->[0][1]</font></b></td>";
+               print "<td align=center><b><font color=\"black\" >$ret->[0][2] </font></b></td>";
+               my $stime = EpochToDDMMYYHHMMSS($ret->[0][3]);
+               print "<td align=center><b><font color=\"black\" >$stime</font></b></td>";
+               print "</tr>\n";
+              htmlTableEnd();
+              $sql = "SELECT path, nevents, neventserr, sizemb, status FROM ntuples 
+                       WHERE  run = $run";
+              my $r0=$self->{sqlserver}->Query($sql);
+              if (defined $r0->[0][0]) {
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+                print "<td align=center><b><font color=\"blue\">DST Path </font></b></td>";
+                print "<td align=center><b><font color=\"blue\" >Events</font></b></td>";
+                print "<td align=center><b><font color=\"blue\" >Errors </font></b></td>";
+                print "<td align=center><b><font color=\"blue\" >MBytes</font></b></td>";
+                print "<td align=center><b><font color=\"blue\" >Status</font></b></td>";
+                print "</tr>\n";
+               foreach my $nt (@{$r0}) {
+                print "<td align=left><b><font color=\"black\">$nt->[0] </font></b></td>";
+                print "<td align=center><b><font color=\"black\" >$nt->[1]</font></b></td>";
+                print "<td align=center><b><font color=\"black\" >$nt->[2] </font></b></td>";
+                print "<td align=center><b><font color=\"black\" >$nt->[3]</font></b></td>";
+                print "<td align=center><b><font color=\"black\" >$nt->[4]</font></b></td>";
+                print "</tr>\n";
+               }
+               htmlTableEnd();
+              } else {
+               htmlText("No ntuples found for Run=",$run);
+              }
+          } else {
+             htmlText("No run found for Job=",$jobid);
+           }
         htmlBottom();
-     }
+      }
     }
+   }   
     if ($self->{q}->param("queryDB")) {
      $self->{read}=1;
      if ($self->{q}->param("queryDB") eq "Submit") {
@@ -4299,6 +4377,13 @@ sub htmlTableEnd {
    print "</TABLE>\n";
 }
 
+sub htmlWarning {
+    my ($subr,$text,$value) = @_;
+    print "<p><tr><td><font size=\"2\">\n";
+    print "<b><i> $subr -W- </i> $text </td><td>$value\n";
+    print "</b></font></td></tr>\n";
+}
+
 sub htmlFormEnd {
    print "</form>\n";
 }
@@ -4358,6 +4443,7 @@ sub checkJobsTimeout {
 
     my $sql;
     my $timenow = time();
+    $self->htmlTop();
 #
 # 1st update runs.status from 'Finished'/'Failed' to 'Completed' if 
 # at least one DST is copied to final destination 
@@ -4382,23 +4468,46 @@ sub checkJobsTimeout {
      }
     }
 #
-    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid FROM jobs 
-          WHERE jobs.timestamp+jobs.timeout < $timenow"; 
+    htmlTable("Jobs below will be deleted from the database");
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<td><b><font color=\"blue\">Cite </font></b></td>";
+     print "<td><b><font color=\"blue\" >JobID </font></b></td>";
+     print "<td><b><font color=\"blue\" >Submitted</font></b></td>";
+     print "<td><b><font color=\"blue\" >Expired</font></b></td>";
+     print "<td><b><font color=\"blue\" >Status</font></b></td>";
+     print "<td><b><font color=\"blue\" >Owner</font></b></td>";
+     print "</tr>\n";
+     print_bar($bluebar,3);
+
+
+    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
+                 cites.name FROM jobs, cites 
+          WHERE jobs.timestamp+jobs.timeout < $timenow AND 
+                jobs.cid=cites.cid"; 
     my $r3=$self->{sqlserver}->Query($sql);
     if( defined $r3->[0][0]){
      foreach my $job (@{$r3}){
          my $jid          = $job->[0];
+
          my $timestamp    = $job->[1];
          my $timeout      = $job->[2];
+         my $tsubmit      = EpochToDDMMYYHHMMSS($timestamp);
+         my $texpire      = EpochToDDMMYYHHMMSS($timestamp+$timeout);
+
          my $mid          = $job->[3];
-         $sql="SELECT runs.run, mails.address FROM runs, mails 
-               WHERE runs.jid = $jid AND 
-                     runs.status != 'Completed' AND 
-                     runs.status != 'TimeOut' AND 
-                     mails.mid = $mid";
+         my $cid          = $job->[4];
+         my $cite         = $job->[5];
+         $sql="SELECT runs.run, runs.status, mails.name, mails.address 
+                FROM runs, mails 
+                WHERE runs.jid = $jid AND 
+                      runs.status != 'Completed' AND 
+                      runs.status != 'TimeOut' AND 
+                      mails.mid = $mid";
          my $r4=$self->{sqlserver}->Query($sql); 
          if (defined $r4->[0][0]) {
-              my $address = $r4->[0][1].",alexei.klimentov\@cern.ch";
+              my $rstatus = $r4->[0][1];
+              my $owner   = $r4->[0][2];
+              my $address = $r4->[0][3].",alexei.klimentov\@cern.ch";
               my $sujet = "Job : $jid - expired";
               my $submittime = localtime($timestamp);
               my $timeouttime= localtime($timestamp+$timeout);
@@ -4407,13 +4516,25 @@ sub checkJobsTimeout {
                   $timeouttime = localtime($timenow+60*60);
               } 
               my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. \n Job will be removed from database : $timeouttime. MC Production Team \n";
-              $self->sendmailmessage($address,$sujet,$message);
+               $self->sendmailmessage($address,$sujet,$message);
 #              print "$address : $sujet : $message ";
               $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
               $self->{sqlserver}->Update($sql); 
+
+        print "<td><b><font color=\"black\">$cite </font></b></td>";
+        print "<td><b><font color=\"black\">$jid </font></b></td>";
+        print "<td><b><font color=\"black\">$tsubmit </font></b></td>";
+        print "<td><b><font color=\"black\">$texpire </font></b></td>";
+        print "<td><b><font color=\"black\">$rstatus </font></b></td>";
+        print "<td><b><font color=\"black\">$owner </font></b></td>";
+        print "</tr>\n";
+
+
           }
      }
  }
+  $self->htmlTableEnd();
+ $self->htmlBottom();
 }
 
 
@@ -4659,12 +4780,14 @@ sub listStat {
     my $timestart  = 0;
      print "<b><h2><A Name = \"stat\"> </a></h2></b> \n";
      htmlTable("MC02 Jobs");
-     my $sql="SELECT MIN(timestamp) FROM Jobs";
+     my $sql="SELECT MIN(Jobs.timestamp) FROM Jobs, Cites 
+                WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
      my $r0=$self->{sqlserver}->Query($sql);
      if (defined $r0->[0][0]) {
        $timestart = $r0->[0][0];
      }
-     $sql="SELECT Jobs.jid, Jobs.triggers FROM Jobs";
+     $sql="SELECT Jobs.jid, Jobs.triggers FROM Jobs, Cites 
+            WHERE Jobs.cid=Cites.cid and Cites.cid!=(SELECT cites.cid FROM Cites WHERE name='test')";
      my $r3=$self->{sqlserver}->Query($sql);
      print_bar($bluebar,3);
      my $newline = " ";
@@ -4686,7 +4809,8 @@ sub listStat {
           }
       }
  
-               $sql="SELECT MAX(timestamp) FROM Jobs";
+               $sql="SELECT MAX(Jobs.timestamp) FROM Jobs, Cites 
+                            WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
                $r3=$self->{sqlserver}->Query($sql);
                my $lastupd=localtime($r3->[0][0]);
                $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples";
@@ -5093,7 +5217,8 @@ sub listJobs {
     my $self = shift;
      print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
      htmlTable("MC02 Jobs");
-     my $sql="SELECT Jobs.jid, Jobs.jobname, Jobs.cid, Jobs.mid, Jobs.time, Jobs.triggers,
+     my $sql="SELECT Jobs.jid, Jobs.jobname, Jobs.cid, Jobs.mid, 
+                     Jobs.time, Jobs.timeout, Jobs.triggers,
                      Cites.cid, Cites.name,
                      Mails.mid, Mails.name
               FROM   Jobs, Cites, Mails
@@ -5107,9 +5232,11 @@ sub listJobs {
           my $jid       = $job->[0];
           my $name      = $job->[1];
           my $starttime = EpochToDDMMYYHHMMSS($job->[4]); 
-          my $trig      = $job->[5];
-          my $cite      = $job->[7];
-          my $user      = $job->[9];
+          my $texpire   = $job->[4] + $job->[5];
+          my $expiretime= EpochToDDMMYYHHMMSS($texpire); 
+          my $trig      = $job->[6];
+          my $cite      = $job->[8];
+          my $user      = $job->[10];
           $sql="SELECT status from Runs WHERE jid=$jid";
           $r3=$self->{sqlserver}->Query($sql);
           my $status    = "Submitted";
@@ -5134,6 +5261,7 @@ sub listJobs {
                print "<td><b><font color=\"blue\" >Owner </font></b></td>";
                print "<td><b><font color=\"blue\" >JobName </font></b></td>";
                print "<td><b><font color=\"blue\" >Submit Time </font></b></td>";
+               print "<td><b><font color=\"blue\" >Expire Time </font></b></td>";
                print "<td><b><font color=\"blue\" >Triggers </font></b></td>";
                print "<td><b><font color=\"blue\" >Status </font></b></td>";
               print "</tr>\n";
@@ -5145,6 +5273,7 @@ sub listJobs {
                   <td><b><font color=$color> $user </font></b></td>
                   <td><b><font color=$color> $name </font></td></b>
                   <td><b><font color=$color> $starttime </font></b></td>
+                  <td><b><font color=$color> $expiretime </font></b></td>
                   <td><b><font color=$color> $trig </font></b></td>
                   <td><b><font color=$color> $status </font></b></td>\n";
 
@@ -5162,10 +5291,9 @@ sub listRuns {
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT Runs.run, Runs.jid, Jobs.jobname, Runs.submit, Runs.status, Jobs.jid 
-              FROM   Runs, Jobs
-              WHERE  Jobs.jid=Runs.jid 
-              ORDER  BY Jobs.jid";
+     my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status 
+              FROM   Runs 
+              ORDER  BY Runs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
               print "<td><b><font color=\"blue\">Run </font></b></td>";
@@ -5177,8 +5305,8 @@ sub listRuns {
       foreach my $run (@{$r3}){
           my $nn        = $run->[0];
           my $jid       = $run->[1];
-          my $starttime = EpochToDDMMYYHHMMSS($run->[3]); 
-          my $status    = $run->[4];
+          my $starttime = EpochToDDMMYYHHMMSS($run->[2]); 
+          my $status    = $run->[3];
           my $color = statusColor($status);
            print "<td><b><font color=$color> $jid       </font></td></b><td><b> $nn </td>
                   <td><b><font color=$color> $starttime </font></b></td>
