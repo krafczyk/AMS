@@ -658,10 +658,12 @@ int($hash->{CPUNeeded}*10)/10,
      for my $j (0 ... $#{$Monitor::Singleton->{ahls}}){
          my $ahl=$Monitor::Singleton->{ahls}[$j];
          if( $ahl->{HostName} eq $hash->{HostName}){
+            push @text,$ahl->{ClientsAllowed}; 
             push @text,$ahl->{Status}; 
             goto FOUND1;
          }
      }
+         push @text,0;
          push @text,"NotFound";
      FOUND1:    
          push @output, [@text];   
@@ -678,10 +680,12 @@ int($hash->{CPUNeeded}*10)/10,
      for my $j (0 ... $#{$Monitor::Singleton->{ahlp}}){
          my $ahl=$Monitor::Singleton->{ahlp}[$j];
          if( $ahl->{HostName} eq $hash->{HostName}){
+            push @text,$ahl->{ClientsAllowed}; 
             push @text,$ahl->{Status}; 
             goto FOUND;
          }
      }
+         push @text,0;
          push @text,"NotFound";
      FOUND:    
          push @output, [@text];   
@@ -722,10 +726,10 @@ int($hash->{CPUNeeded}*10)/10,
 }
 
 sub sendback{
-    my ($name, $action, @data) =@_;
-    if ($name eq "ServerClient"){
+    my ($name, $action, $row,@data) =@_;
+    if($name eq "ServerClient"){
         my $ref=$Monitor::Singleton;
-        my %nc=%{${$ref->{nsl}}[0]};
+        my %nc=%{${$ref->{nsl}}[$row]};
         $nc{uid}=shift @data;
         $nc{Type}=shift @data;
         $nc{MaxClients}=shift @data;
@@ -746,7 +750,184 @@ sub sendback{
             catch CORBA::SystemException with{
                 warn "sendback corba exc";
             };
-
+        }
+   }elsif($name eq "ProducerClient"){
+        my $ref=$Monitor::Singleton;
+        my %nc=%{${$ref->{ncl}}[$row]};
+        $nc{uid}=shift @data;
+        $nc{Type}=shift @data;
+        $nc{MaxClients}=shift @data;
+        $nc{CPUNeeded}=shift @data;
+        $nc{MemoryNeeded}=shift @data;
+        $nc{WholeScriptPath}=shift @data;
+        $nc{LogPath}=shift @data;
+        $nc{SubmitCommand}=shift @data;
+        $nc{HostName}=shift @data;
+        $nc{LogInTheEnd}=shift @data;
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}=$nc{Type};
+                $arsref->sendNC(\%cid,\%nc,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+    }elsif($name eq "Killer"){
+        my $ref=$Monitor::Singleton;
+        my %nc=%{${$ref->{nkl}}[$row]};
+        $nc{uid}=shift @data;
+        $nc{Type}=shift @data;
+        $nc{MaxClients}=shift @data;
+        $nc{CPUNeeded}=shift @data;
+        $nc{MemoryNeeded}=shift @data;
+        $nc{WholeScriptPath}=shift @data;
+        $nc{LogPath}=shift @data;
+        $nc{SubmitCommand}=shift @data;
+        $nc{HostName}=shift @data;
+        $nc{LogInTheEnd}=shift @data;
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}=$nc{Type};
+                $arsref->sendNK(\%cid,\%nc,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+    }elsif($name eq "Ntuple"){
+        my $ref=$Monitor::Singleton;
+        my %nc=%{${$ref->{dsti}}[$row]};
+        $nc{uid}=shift @data;
+        $nc{HostName}=shift @data;
+        $nc{OutputDirPath}=shift @data;
+        $nc{Mode}=shift @data;
+        $nc{UpdateFreq}=shift @data;
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                $arsref->sendDSTInfo(\%nc,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+    }elsif($name eq "Run"){
+        my $ref=$Monitor::Singleton;
+        my %nc=%{${$ref->{rtb}}[$row]};
+        $nc{uid}=shift @data;
+        $nc{Run}=shift @data;
+        $nc{FirstEvent}=shift @data;
+        $nc{LastEvent}=shift @data;
+        $nc{Priority}=shift @data;
+        $nc{FilePath}=shift @data;
+        $nc{Status}=shift @data;
+        $nc{History}=shift @data;
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                $arsref->sendRunEvInfo(\%nc,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+    }elsif($name eq "ServerHost"){
+        my $ref=$Monitor::Singleton;
+        my %nc=%{${$ref->{nhl}}[$row]};
+        $nc{HostName}=shift @data;
+        $nc{Interface}=shift @data;
+        $nc{OS}=shift @data;
+        $nc{CPUNumber}=shift @data;
+        $nc{Memory}=shift @data;
+        $nc{Clock}=shift @data;
+        $nc{CPUNumber}=shift @data;
+#find ahl
+      for my $j (0 ... $#{$Monitor::Singleton->{ahlp}}){
+         my $ahl=$Monitor::Singleton->{ahls}[$j];
+         if( $ahl->{HostName} eq $nc{HostName}){
+           my %ac=%{${$ref->{ahls}}[$j]};
+          $ac{ClientsAllowed}=shift @data;
+          $ac{Status}=shift @data;
+          $ac{Clock}=$nc{Clock};
+          $ac{Interface}=$nc{Interface};
+          goto FOUND2;
+         }
+      }
+          my %ac=%{${$ref->{ahls}}[0]};
+          $ac{ClientsAllowed}=shift @data;
+          $ac{Status}=shift @data;
+          $ac{Hostname}=$nc{HostName};
+          $ac{ClientsRunning}=0;
+          $ac{ClientsProcessed}=0;
+          $ac{ClientsFailed}=0;
+          $ac{ClientsKilled}=0;
+          $ac{Clock}=$nc{Clock};
+          $ac{Interface}=$nc{Interface};
+FOUND2:
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}="Server";
+                $arsref->sendNH(\%cid,\%nc,$action);
+                $arsref->sendAH(\%cid,\%ac,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+    }elsif($name eq "ProducerHost"){
+        my $ref=$Monitor::Singleton;
+        my %nc=%{${$ref->{nhl}}[$row]};
+        $nc{HostName}=shift @data;
+        $nc{Interface}=shift @data;
+        $nc{OS}=shift @data;
+        $nc{CPUNumber}=shift @data;
+        $nc{Memory}=shift @data;
+        $nc{Clock}=shift @data;
+        $nc{CPUNumber}=shift @data;
+#find ahl
+      for my $j (0 ... $#{$Monitor::Singleton->{ahlp}}){
+         my $ahl=$Monitor::Singleton->{ahlp}[$j];
+         if( $ahl->{HostName} eq $nc{HostName}){
+           my %ac=%{${$ref->{ahls}}[$j]};
+          $ac{ClientsAllowed}=shift @data;
+          $ac{Status}=shift @data;
+          $ac{Clock}=$nc{Clock};
+          $ac{Interface}=$nc{Interface};
+          goto FOUND2;
+         }
+      }
+          my %ac=%{${$ref->{ahlp}}[0]};
+          $ac{ClientsAllowed}=shift @data;
+          $ac{Status}=shift @data;
+          $ac{Hostname}=$nc{HostName};
+          $ac{ClientsRunning}=0;
+          $ac{ClientsProcessed}=0;
+          $ac{ClientsFailed}=0;
+          $ac{ClientsKilled}=0;
+          $ac{Clock}=$nc{Clock};
+          $ac{Interface}=$nc{Interface};
+FOUND2:
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                $cid{Type}="Server";
+                $arsref->sendNH(\%cid,\%nc,$action);
+                $cid{Type}="Producer";
+                $arsref->sendAH(\%cid,\%ac,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
         }
     }
 }
+
+

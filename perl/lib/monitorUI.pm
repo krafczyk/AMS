@@ -1016,6 +1016,7 @@ sub show_sample{
 "CPUNumber",
 "Memory",
 "Clock",
+"Clients Allowed",
 "Status",
                  );
     }elsif( $name eq "ProducerHost"){
@@ -1027,6 +1028,7 @@ sub show_sample{
 "CPUNumber",
 "Memory",
 "Clock",
+"Clients Allowed",
 "Status",
                  );
     }elsif( $name eq "Ntuple"){
@@ -1160,7 +1162,7 @@ sub ares{
                     push @data,$scr->{clist}->get_text($scr->{clist}->{row},$i);
                 }
             }
-          Monitor::sendback($name,$action,@data);
+          Monitor::sendback($name,$action,$scr->{clist}->{row},@data);
         }
     }
 }
