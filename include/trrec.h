@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.67 2003/07/25 16:47:48 alcaraz Exp $
+//  $Id: trrec.h,v 1.68 2003/10/10 16:04:12 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -300,6 +300,7 @@ number _PITheta;
 number _PIPhi;
 AMSPoint _PIP0;
 number _PIChi2;
+AMSTrTrack * _PtAmbiguous;
 
 void SimpleFit(AMSPoint err);
 void TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit);
@@ -381,6 +382,7 @@ static integer makeFalseTOFXHits();
 static integer buildFalseTOFX(integer refit=0);
 static integer _MarginPatternsNeeded;
 static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
+void setAmbiguous(AMSTrTrack* ptrack){_PtAmbiguous=ptrack;}
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
 void SimpleFit();
@@ -419,6 +421,7 @@ number gettheta(int icase=0) const {return (icase==0?_Theta:(icase==1?_GTheta:_P
 number getphi(int icase=0) const {return (icase==0?_Phi:(icase==1?_GPhi:_PIPhi));}
 number getpichi2() const {return _PIChi2;}
 AMSPoint getpiP0() const {return _PIP0;}
+AMSTrTrack * getAmbiguous(){return _PtAmbiguous;}
 friend class AMSVtx;
 friend class AMSTrCalibFit;
 #ifdef __WRITEROOT__

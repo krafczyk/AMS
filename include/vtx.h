@@ -94,6 +94,7 @@ public:
   static integer build(integer refit=0);
   static AMSTrTrack* copy_track(AMSTrTrack* ptr);
   static AMSTrTrack* remove_track(AMSTrTrack* ptrack);
+  static AMSTrTrack* get_similar_track(AMSTrTrack* ptrack);
   static number Test(AMSTrTrack* ptrack);
   static AMSTrTrack * next_track();
   static AMSTrRecHit * firstgood(integer pattern, integer index);

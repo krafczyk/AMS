@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.52 2003/07/25 16:46:50 alcaraz Exp $
+//  $Id: beta.C,v 1.53 2003/10/10 16:03:56 alcaraz Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -507,10 +507,12 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
     pbeta->SimpleFit(nhit, sleng);
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 ){
       // Mark Track as used
+         /*
          if(ptrackc->checkstatus(AMSDBc::USED)) 
            ptrackc->setstatus(AMSDBc::AMBIG);
          if(ptrackc->checkstatus(AMSDBc::RELEASED)) 
            ptrackc->setstatus(AMSDBc::AMBIG);
+         */
          ptrackc->setstatus(AMSDBc::USED);
       // Mark TOF hits as USED
          int i;
