@@ -31,7 +31,6 @@ int main(){
      *signal(SIGTERM, handler);
      *signal(SIGINT, handler);
      *signal(SIGQUIT, handler);
-
    AMSgvolume::debug=0;
   GPAW(NWGEAN,NWPAW);
 return 0;

@@ -11,9 +11,7 @@
 #include <cont.h>
 #include <ntuple.h>
 #include <richdbc.h>
-#ifndef __G4AMS__
 extern "C" void indetra_();
-#endif
 
 integer AMSTRDMCCluster::_NoiseMarker(555);
 

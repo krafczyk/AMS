@@ -13,7 +13,7 @@ TIMEL=../bin/aix/timel.o
 endif
 ifeq  "$(shell uname)"  "OSF1" 
 CFLAGS= -D__AMSDEBUG__   -D__ALPHA__ -g   -I../include -I../include/stl -tlocal 
-LDFLAGS=  -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag 
+LDFLAGS=  -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag  -L/afs/cern.ch/exp/ams/Offline/rqmd/lib/osf1 -lrqmd -lm
 CC=cxx -D__NAMESPACE__
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 #CC=cxx -D__NAMESPACE__  -oldcxx
@@ -42,7 +42,7 @@ CFLAGSTOFSIM=      -D__BATCH__ -g      -I../include   -I../db
 CFLAGSn=      -D__BATCH__  -g   -I../include   -I../db
 FFLAGS=   -fno-automatic -g -I../include  
 CFLAGSDAQ=      -D__BATCH__  -g     -I../include 
-LDFLAGS=    -static -L/cern/pro/lib  -lgeant321  -lpawlib -lpacklib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -ln -lnsl -L/usr/local/lib -lf2c  -lcrypt -ldl  
+LDFLAGS=    -static -L/cern/pro/lib  -lgeant321  -lpawlib -lpacklib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -ln -lnsl -L/usr/local/lib   -lcrypt -ldl   -L/afs/cern.ch/exp/ams/Offline/rqmd/lib/linux -lrqmd -lg2c
 CC=g++ -D__NAMESPACE__
 FF=g77
 LD=g++

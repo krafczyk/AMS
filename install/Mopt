@@ -16,7 +16,7 @@ CFLAGSn=   -D__BATCH__ -g   -I../include -I$(ROOTSYS)/include
 FFLAGS=    -I../include -O -qextname 
 endif
 DFLAGS=  -D__AMSDEBUG__     -I/usr/include -I/usr/lpp/xlC/include -I../include 
-LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag $(ROOTLIBS)
+LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag $(ROOTLIBS)  
 CC=xlC
 FF=xlf
 LD=xlC
@@ -47,7 +47,7 @@ CFLAGSn=   -D__BATCH__ -D__ALPHA__   -$(O4)     -I../include -I$(ROOTSYS)/includ
 CFLAGSDAQ= $(CFLAGS)
 FFLAGS=   -$(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=     -I/usr/include  -I../include  
-LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm 
+LDFLAGS=    -non_shared -lUfor   -lfor -lFutil -lots -lm -L/cern/new/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/rqmd/lib/osf1 -lrqmd -lm
 CC=cxx 
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 CC=cxx   -nostdnew
@@ -80,7 +80,7 @@ CFLAGS=      $(CFLAGSB) -O2
 FFLAGS=   -fno-automatic -O -I../include
 endif
 DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include
-LDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln -lnsl -L/usr/local/lib  -lf2c  -lm
+LDFLAGS=   -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln -lnsl -L/usr/local/lib    -lm  -L/afs/cern.ch/exp/ams/Offline/rqmd/lib/linux -lrqmd -lg2c
 CC=g++ 
 FF=g77
 LD=g++

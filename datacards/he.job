@@ -8,48 +8,45 @@ elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="osf1"
 elif [ "$UNAME" = "HP-UX" ] ; then
     MACHINE="hpux"
-elif [ "$UNAME" = "IRIX" ] ; then
-    MACHINE="irix"
 elif [ "$UNAME" = "Linux" ] ; then
     MACHINE="linux"
 else
 echo $UNAME is not supported yet
 
 fi
-Offline=/offline
-AMSDataDir=/offline/AMSDataDir
-/offline/v2.17/exe/osf1/gbatch.exe <<!
+
+
+
+../exe/$MACHINE/gbatch.exe <<!
 LIST
-KINE 14 
-MULS 1
+KINE 47 
+MULS 1 
 C MSEL 1=0
 LOSS 1 
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
-HADR 1
-TRIG 1
-DEBUG -1 10 1000
+HADR 1 
+TRIG 100000
+DEBUG -1 10 10
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 
 C npars ims 
   5     1   
 C          Nparticles 
-IOPA 1=3 2='he.hbk' 43=2 
-45='AMSParticle' 126=30000 
-C RNDM 197683093 1356123257
-RNDM  1310381404  1978925784
+MCGEN  1=-20. 2=-10. 3=90. 4=15. 5=10. 
+6=90. 
+C 7=0. 8=0. 9=-1. 10=0. 11=0. 
+9=-1.
+12=-0.7 13=0.7 14=200. 15=1 18=1 19=102004 20=5
+IOPA 1=3 2='/amsdat1/scratch/choutko/he.hbk' 43=1 
+45='AMSParticle&AMSmceventg'
+RNDM 191473093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=11   2=0      3=6.   4=1  5=0 6='v203a'  87=0
-C Special HP-UX
+AMSJOB 1=0   2=0      3=20.   4=0  5=0   46='AMSSHUTTLE' 
+L3REC 11=0
 TIME 3=10000000
-DAQC 1=1 2='/offline/RunsDir/runs/896851959'
-TRCALIB 9=2 13=1
 TERM 1=1234567890
-L3REC  11=1 12=2 
-SELECT 896851959 968 
-TRFIT 45=200. 46=200. 50=1.5 51=0.5 52=1.5
-57=0 58=0 65=25. 66=40. 67=4.5 68=6.
+C TOFMC 13=1
+HISE 2=2
 END
 
-
 !
-

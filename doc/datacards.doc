@@ -678,8 +678,8 @@ I 3 UniformField(0)  // Use(1)/not use(0) average uniform mag field instead fiel
 
 
 HISE   // Heavy Ion MC switch (Geant3 only)
-I1 HISW(1)              // heavy ion mc switch (1== abpackage)
-I2 HISA(0)              // additional switch hisw dependent
+I1 HISW(1)              // heavy ion mc switch (1== abpackage, 2==tripaty)
+I2 HISA(0)              // 0: record collision; 1:0+stop particle; 2:rqmd
 
 
 

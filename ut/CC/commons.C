@@ -63,7 +63,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v3.00";
-integer AMSCommonsI::_build=903;
+integer AMSCommonsI::_build=911;
 AMSCommonsI::AMSCommonsI(){
   init();
 }

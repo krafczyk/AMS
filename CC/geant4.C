@@ -274,6 +274,17 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       UPool.erase(0);
       return;
    }
+   catch (amsglobalerror e){
+     cerr << e.getmessage()<<endl;
+     cerr <<"Event dump follows"<<endl;
+     AMSEvent::gethead()->_printEl(cerr);
+     UPool.Release(0);
+     AMSEvent::gethead()->remove();
+     UPool.Release(1);
+     AMSEvent::sethead(0);
+      UPool.erase(0);
+      return;
+   }
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
          GCFLAG.IEVENT>=GCFLAG.NEVENT)
       AMSEvent::gethead()->printA(AMSEvent::debug);

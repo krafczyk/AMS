@@ -790,24 +790,55 @@ CDECK  ID>, ABSIEL.
        call ucopy(u(1),pmom_p(1),3)
        end
 CDECK  ID>, ABSIIN. 
-       subroutine absiin(p_p,p_t,i_p,i_t)
-*   
-*        p_p(5)   u,v,w,p,m   
-*        p_t(5)   u,v,w,p,m   
-*        i_p      geant id p
-*        i_t      geant id t
-
+       subroutine absiin(a_p,z_p,a_t,z_t,pmom_p,nsec,p_sec,ierr)
+*        input
+*        pmom_p(5)   u,v,w,etotal,mass
+*        a_p,t atomic weight
+*        z_p,t 
+*        output p_sec(6,1000)   // as in gkin
+         real *4 p_sec(6,*)
+         real *4 u(3),pmom_p(5)
+         a_p=int(a_p+0.5)
+         ekin=(pmom_p(4)-pmom_p(5))/a_p
 *
 *   call to rqmd
 *
+         call call_rqmd(a_p,z_p,a_t,z_t,ekin,nsec,p_sec,ierr)
+         if(ierr.ne.0)then
+             nsec=0
+             goto 999
+         endif
+*
+* Rotate back
+*
 
+c         px=0
+c         py=0
+c         pz=0
+c         ptot=sqrt((pmom_p(4)-pmom_p(5))*(pmom_p(4)+pmom_p(5)))
+         call conv_r_p(pmom_p(1),pmom_p(2),pmom_p(3),th,ph,r)
+c         u(1)=0
+c         u(2)=0
+c         u(3)=ptot
+c          call rotate(th,2,u(1),u(2),u(3),tst)
+c          call rotate(ph,3,u(1),u(2),u(3),tst)
+c           write(*,*)u
+         do i=1,nsec
+          call rotate(th,2,p_sec(1,i),p_sec(2,i),p_sec(3,i),tst)
+          call rotate(ph,3,p_sec(1,i),p_sec(2,i),p_sec(3,i),tst)
+*
+* Check conserv
+*      
+c          px=px+p_sec(1,i)
+c          py=py+p_sec(2,i)
+c          pz=pz+p_sec(3,i)
+         enddo
+c         write(*,*)'*** secondary *****'
+c         write(*,*)px,py,pz,pmom_p(1)*ptot,
+c     +    pmom_p(2)*ptot,pmom_p(3)*ptot
 
 *
-*   fill geant secondary common
-*
-
-*
-       end
+ 999     end
 
 CDECK  ID>, ABSIQE. 
        subroutine absiqe(pmom_p,pmom_t,iuu)
@@ -1366,6 +1397,8 @@ CDE, FCONS.
               common /hvsec/ihvse(2)
       REAL RNDMm(1)
       real *4 pmom_p(5),pmom_t(6)
+      parameter (nsecm=1000)
+      real *4 p_sec(6,nsecm)
 *
       NP = 0
 *
@@ -1397,7 +1430,7 @@ c      IF (GEKIN.LE.CUTHAD.or.poo/amass.le.ddcutt)then
          pmom_p(1)=txi
          pmom_p(2)=tyi
          pmom_p(3)=tzi
-          pmom_p(4)=poo
+         pmom_p(4)=poo
          pmom_p(5)=amass
 888      CALL GRNDM(RNDmM,1)
 c      RNDEVT=RNDmM(1)
@@ -1453,36 +1486,61 @@ c         write(*,*)iqi,(sela+sqel)/fsig
          END IF
       ELSE
 c           goto 888
-            call abinelset(vect,ipart)
+            int=3
+            if(ihvse(2).lt.2)call abinelset(vect,ipart)
             if(ihvse(2).eq.1)then
              ISTOP = 1
-             DESTEP = DESTEP + GETOT
+             DESTEP = DESTEP + GEKIN
             else if(ihvse(2).eq.0)then
              GO TO 110
             else
 *
 * here inelastic kinematics will play
 *
-         IF(NCOMP.LE.1) THEN
-            pmom_t(5)=amm*xm_proton
-            zmed=z
-         ELSE
-            CALL GRNDM(RNDMm,1)
-            RCONT=qeXNOR*RNDM(dd)
-            DO   I=1,NCOMP
+             ISTOP = 1
+             IF(NCOMP.LE.1) THEN
+               a_t = a
+               Z_t = z
+               pmom_t(5)=amm*xm_proton
+               zmed=z
+             ELSE
+              CALL GRNDM(RNDMm,1)
+              RCONT=qeXNOR*RNDM(dd)
+              DO   I=1,NCOMP
                IF(RCONT.LE.ABqeX(I)) GO TO 501
-            enddo
-            I=NCOMP
- 501        CONTINUE
-            zmed=Q(JMIXT+NCOMP+i)
-            pmom_t(5)=q(jmixt+i)*xm_proton
-         END IF
-            igepar=IAFPAR(zmed)
-             pmom_t(1)=0  
-             pmom_t(2)=0  
-             pmom_t(3)=0  
-             pmom_t(4)=0
-            call absiin(pmom_p,pmom_t,ipart,igepar)
+              enddo
+              I=NCOMP
+ 501          CONTINUE
+              a_t=Q(JMIXT+I)
+              z_t=Q(JMIXT+NCOMP+I)
+              pmom_t(5)=q(jmixt+i)*xm_proton
+             END IF
+             a_p=amass/xm_proton
+             z_p=abs(charge)
+             nsec=-nsecm
+             call absiin(a_p,z_p,a_t,z_t,pmom_p,nsec,p_sec,ierr)
+              if(ierr.ne.0)then
+                DESTEP=DESTEP+GEKIN
+                write(*,*)'rqmd error ',gekin,'gev energy released' 
+                nsec=0
+              endif 
+               if(ngkine.ge.mxgkin)then
+                write(*,*)'absiin-E-Stack overflowExiting' 
+                nsec=0
+               endif
+             do i=1,nsec
+              if(p_sec(4,i)-p_sec(6,i).gt.cuthad
+     +          .and.ngkine.lt.mxgkin)then
+               ngkine=ngkine+1
+               do j=1,5
+                gkin(j,ngkine)=p_sec(j,i)
+               enddo
+               call gsking(ngkine)
+               ngkine=ngkine-1
+              else
+               DESTEP = DESTEP + p_sec(4,i)-p_sec(6,i)
+              endif
+             enddo
             endif
       endif
    80 IF(INT.Eq.1.or.int.eq.2)then
