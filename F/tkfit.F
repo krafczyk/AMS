@@ -69,7 +69,7 @@ c      write(*,*)imscat,xmass,iplanez,exm
       IF (magstat.LE.0) IMSCAT = 0
 
       do 20 ipl = 1, NPOINTS
-        if (ipl.EQ.1 .or. magstat.gt.0) then
+        if (ipl.EQ.1 .or. magstat.le.0) then
           DO i=1,3
             axx(i,ipl) = 0.
             av(i,ipl) = 0.
@@ -224,9 +224,16 @@ C F*S_x*x + G*S_y*y
         END DO
 
 C (F*S_x*F + G*S_y*G)
-        DO J = 1, 5
-          DO K = 1, 5
-            DD(J,K) = 0.D0
+        IF (magstat.gt.0) THEN
+          IDIM_EFF = 5
+          CALL VZERO (DD, 2*5*5)
+        ELSE
+          IDIM_EFF = 4
+          CALL VZERO (DD, 2*5*5)
+          DD(5,5) = 1.D0
+        ENDIF
+        DO J = 1, IDIM_EFF
+          DO K = 1, IDIM_EFF
             DO L = 1, NPOINTS
              DO M = 1, NPOINTS
               DD(J,K) = DD(J,K) + D(L,J)*ER2(L,M)*D(M,K)
@@ -235,18 +242,13 @@ C (F*S_x*F + G*S_y*G)
              END DO
             END DO
           END DO
-c          PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
+c        PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
         END DO
         
 C (F*S_x*F + G*S_y*G)**{-1}
-        IF (magstat.gt.0) THEN
-          IDIM_EFF = 5
-        ELSE
-          IDIM_EFF = 4
-        ENDIF
-        CALL DINV (5, DD, IDIM_EFF, IDAUX, IFAIL)
+        CALL DINV (5, DD, 5, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
-c          PRINT*,' DD Covariance Matrix is Singular !!!'
+          PRINT*,' DD Covariance Matrix is Singular !!!'
           outpar(5)=0
           GOTO 999
         ENDIF

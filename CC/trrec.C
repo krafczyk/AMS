@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.163 2004/01/20 19:59:05 choutko Exp $
+//  $Id: trrec.C,v 1.164 2004/01/21 07:29:10 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2489,11 +2489,26 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
 
 // (F*S_x*F + G*S_y*G)
   
+  int idim = 5;
+  int idim_eff;
+  if (MAGSFFKEY.magstat>0) {
+      idim_eff = 5;
+  } else {
+      idim_eff = 4;
+  }
   number Param[5];
   number Covariance[5][5];
   for (int j=0;j<5;j++) {
     for (int k=0;k<5;k++) {
-      Covariance[j][k] = 0.;
+      if (MAGSFFKEY.magstat>0 && k==5 && j==5) {
+            Covariance[j][k] = 1.;
+            continue;
+      } else if (MAGSFFKEY.magstat>0 && (k==5 || j==5) ) {
+            Covariance[j][k] = 0.;
+            continue;
+      } else {
+            Covariance[j][k] = 0.;
+      }
       for (int l=0;l<_NHits;l++) {
         Covariance[j][k] += d[l][j]/sigma[l][0]/sigma[l][0]*d[l][k];
         Covariance[j][k] += d[l+_NHits][j]/sigma[l][1]/sigma[l][1]*d[l+_NHits][k];
@@ -2503,14 +2518,7 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
         
 // (F*S_x*F + G*S_y*G)**{-1}
   int ifail;
-  int idim = 5;
-  int idim_eff;
-  if (MAGSFFKEY.magstat>0) {
-      idim_eff = 5;
-  } else {
-      idim_eff = 4;
-  }
-  INVERTMATRIX((double*)Covariance, idim, idim_eff, ifail);
+  INVERTMATRIX((double*)Covariance, idim, idim, ifail);
   if (ifail) {
     _Chi2WithoutMS = FLT_MAX;
     _Chi2StrLine = FLT_MAX;
