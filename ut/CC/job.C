@@ -623,7 +623,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.cuts[0]=50.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
   TOFRECFFKEY.cuts[1]=15.;//"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TOFRECFFKEY.cuts[2]=400.;//"after"-cut in time history (ns)(max. shaper integr.time?)
-  TOFRECFFKEY.cuts[3]=2.;//(21) error in longitudinal coordinate (single TOF bar)
+  TOFRECFFKEY.cuts[3]=2.2;//(21) error in longitudinal coordinate (single TOF bar)
   TOFRECFFKEY.cuts[4]=0.;
   TOFRECFFKEY.cuts[5]=0.;
   TOFRECFFKEY.cuts[6]=0.;
