@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include "xform_proc_3x3.h"
 
-int open_log(int i);
+int open_log(int i, int mode);
 int open_elog(int i);
 int read_status();
 int write_status();
@@ -27,6 +27,7 @@ pid_t pid;
   time_int=360; /* minutes */
   time_sleep=120; /* sec */
   cpu_lim=50;
+  N_lim_log_length=100000000;
   user_name="ams";
   sprintf(host_name[0],"helium");
   sprintf(host_name[1],"ahelium");
@@ -67,7 +68,7 @@ pid_t pid;
 
     for (i=0; i<N_comp; i++) {
       if (but == b_open_log[i])
-        open_log(i);
+        open_log(i, 1); /* open mode */
       if (but == b_open_elog[i])
         open_elog(i);
     }
@@ -128,6 +129,17 @@ pid_t pid;
         system(ch);
       END_stat:
       }
+
+
+      if (j<N_comp) {
+        /*--------------- check logfile length -------- */
+        er=open_log(j, 0);
+        if (er<0) 
+          fl_set_object_label(log_check[j],"! CHECK LOG !");
+        else
+          fl_set_object_label(log_check[j],"");
+      }
+
 
       if (j<N_comp) {  /* !!!! <N_comp */
       /*----------- check for gbatch ----------- */
@@ -463,9 +475,9 @@ pid_t pid;
   return (1);
 }
 
-int open_log(int j) {
+int open_log(int j, int mode) {
 int er, ii;
-char *ch1, ch[256], chb[256], *token, chbuf[80];
+char *ch1, ch[256], chb[256], chb1[256], *token, chbuf[80];
 struct stat stat_buf;
 FILE *fp;
 char delime[]=" .";
@@ -501,7 +513,8 @@ CONT:
      token=strtok(NULL,delime);
   sprintf(chb,"%s",token);
   /*  token=strtok(NULL,delime);*/
-  if (isdigit(chb[0]==0))
+  er=isdigit(chb[0]);
+  if (er==0)
     goto CONT;
   token=strtok(NULL,delime);
   if (token==NULL)
@@ -512,6 +525,18 @@ CONT:
   fclose(fp);
   /*  token=strtok(chb,del);*/
   sprintf(ch,"%s.log",chb);
+  if (mode!=1) { /* check mode */
+    sprintf(chb1,"/dat0/local/logs/%s",ch);
+    er = stat(chb1,&stat_buf);
+    /*    if (er!=0) {
+      printf("%s: cannot open logfile\n",host_name[j]);
+      return -1;
+    }*/
+    if (stat_buf.st_size>N_lim_log_length) {
+       return -1;
+    }
+    return 0;
+  }
   sprintf(ch,"/usr/sue/bin/rsh %s cat /dat0/local/logs/%s > %s",host_name[j],ch,temp_name);
   er=system(ch);
   if (er<0){
@@ -526,7 +551,7 @@ CONT:
   log_(j,token);
   sprintf(ch,"rm %s",temp_name);
   system(ch);
-
+  
   return 0;
 }
 
@@ -568,7 +593,8 @@ CONT:
      token=strtok(NULL,delime);
   sprintf(chb,"%s",token);
   /*  token=strtok(NULL,delime);*/
-  if (isdigit(chb[0]==0))
+  er=isdigit(chb[0]);
+  if (er==0)  
     goto CONT;
   token=strtok(NULL,delime);
   if (token==NULL)

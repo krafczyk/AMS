@@ -24,7 +24,7 @@
 
 char a_name[80], temp_name[80];
 int Y_line, Y_current, ind=0, i_log[N_comp*2], ind_l=-1;
-time_t ti;
+time_t ti,  N_lim_log_length;
 
 typedef char ch80[80];
 typedef char ch256[256];
@@ -38,7 +38,7 @@ FL_FORM *form, *spare_f;
 Forms log_f[14];
 FL_OBJECT *quit, *help, *but, *b_open_log[N_comp], *b_open_elog[N_comp], *heade;
 Obje check_[10][N_comp+1], numb_[20][N_comp+1], spare[N_comp+1], ind_[2], 
-  stop_h[N_comp*2], stati_[N_comp+2];
+  stop_h[N_comp*2], stati_[N_comp+2], log_check[N_comp];
 
   /*-------------------------------------*/
 
@@ -72,9 +72,12 @@ FL_OBJECT * add_comp_box(int i, int j, int X, int Y, int width, int heigth, cons
   check_[1][j]= add_check_field(1,j,X+10,Y+60,320,40,"used disk space");
   check_[2][j]= add_check_field(2,j,X+10,Y+100,320,40,"run");
 
-  b_open_log[j] =fl_add_button(FL_NORMAL_BUTTON,X+20,Y+140,120,25,"log");
-  b_open_elog[j]=fl_add_button(FL_NORMAL_BUTTON,X+180,Y+140,120,25,"err log");
-  
+  b_open_log[j] =fl_add_button(FL_NORMAL_BUTTON,X+10,Y+140,100,25,"log");
+  b_open_elog[j]=fl_add_button(FL_NORMAL_BUTTON,X+width-110,Y+140,100,25,"err log");
+  log_check[j]=fl_add_box(FL_FLAT_BOX,X+115,Y+140,width-225,25,"");
+  fl_set_object_lstyle(log_check[j], FL_BOLDITALIC_STYLE);
+  fl_set_object_lsize(log_check[j],FL_MEDIUM_SIZE);
+  fl_set_object_lcol(log_check[j],FL_RED);
   return(obj_buf);
 
 }
