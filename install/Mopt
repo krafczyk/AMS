@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.221 2002/07/11 09:32:22 choutko Exp $
+#  $Id: Mopt,v 1.222 2002/07/12 11:19:00 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -87,9 +87,11 @@ LDFLAGSIDL=   -lorbitcpp
 LDFLAGSIDLMT=   -lorbitcpp -lORBit-mt -lIIOP-mt -lORBitutil-mt -lgthread -lglib -lpthread -lpopt 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
 LDFLAGSSTATICIDLMT= -L/usr/local/lib -lc -static $(LDFLAGSIDLMT) 
+LDFLAGSSTATICIDLMT= -L/usr/lib -lc -static $(LDFLAGSIDLMT) 
 IDL=orbit-idl
 IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
+
 CPP=g++ 
 CCC=gcc
 CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/ORBit-mt -fpermissive 
@@ -209,11 +211,17 @@ LDFLAGSIDL=   -lorbitcpp
 LDFLAGSIDLMT=   -lorbitcpp -lORBit-mt -lIIOP-mt -lORBitutil-mt -lgthread -lglib -lpthread -lpopt 
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
 LDFLAGSSTATICIDLMT= -L/usr/local/lib -lc -static $(LDFLAGSIDLMT) 
+LDFLAGSSTATICIDLMT= -L/usr/lib -lc -static $(LDFLAGSIDLMT) 
 IDL=orbit-idl
 IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
-CPP=g++ 
+ifndef AMSICC
+CPP=g++
 CCC=gcc
+else
+CPP=/opt/intel/compiler60/ia32/bin/icc
+CCC=/opt/intel/compiler60/ia32/bin/icc
+endif
 CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/ORBit-mt
 SRC=$(BIN)
 SRCMT=$(BINMT)
@@ -251,6 +259,7 @@ endif
 else
 
 ifdef AMSDEBUG
+CFLAGS=      $(CFLAGSB) 
 CFLAGSTOFSIM= $(CFLAGS)
 CFLAGSn=      $(CFLAGS)
 CFLAGSDAQ=    $(CFLAGS)

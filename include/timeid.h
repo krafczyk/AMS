@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.28 2001/12/10 18:24:32 choutko Exp $
+//  $Id: timeid.h,v 1.29 2002/07/12 11:19:00 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>
@@ -82,6 +82,7 @@ bool read(const char * dir,int run, time_t begin, int index=0);
 integer readDB(const char * dir, time_t time,integer reenter=0);
 #ifdef __CORBA__
 void fillDB(int length, uinteger * ibe[5]);
+friend class AMSProducer;
 #endif
 #ifdef __DB__
 void _fillfromDB();

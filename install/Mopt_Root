@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.21 2002/06/06 14:41:11 choutko Exp $
+#  $Id: Mopt_Root,v 1.22 2002/07/12 11:19:16 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -219,6 +219,12 @@ static: $(EXE)gbatch_ra.exe
 
 $(EXE)gbatch_ra.exe:	$(OBJECTSA)
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch_ra.exe $(OBJECTSA) $(TIMEL) $(LDFLAGSSTATIC)
+
+
+producer: $(EXE)gbatchr_orbit.exe
+
+$(EXE)gbatchr_orbit.exe:	$(OBJECTCO) $(OBJECTCL) $(OBJECTSA)
+	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatchr_orbit.exe $(OBJECTSA) $(OBJECTCL) $(OBJECTCO) $(TIMEL) $(LDFLAGSSTATICIDL) $(LDFLAGSSTATIC)
 
 
 shared :	$(BIN)root_r.o ../include/root_R.h ../include/root.h $(BIN)rootdict.o

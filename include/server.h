@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.42 2002/06/12 15:20:32 choutko Exp $
+//  $Id: server.h,v 1.43 2002/07/12 11:19:00 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -369,7 +369,7 @@ public:
   int getDSTS(const DPS::Client::CID & ci, DSTS_out dsts)throw (CORBA::SystemException);
   void sendDSTS(const DPS::Client::CID & ci, const DSTS & dsts)throw (CORBA::SystemException);
 
-  void sendCurrentInfo(const DPS::Client::CID & ci, const  CurrentInfo &ci, int propagate)throw (CORBA::SystemException);
+  void sendCurrentInfo(const DPS::Client::CID & ci, const  CurrentInfo &cii, int propagate)throw (CORBA::SystemException);
 
   void sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException);
 

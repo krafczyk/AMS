@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.54 2002/06/12 15:20:37 choutko Exp $
+# $Id: Monitor.pm,v 1.55 2002/07/12 11:19:17 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -169,36 +169,6 @@ sub Connect{
 
 }
 
-sub ResetFailedRuns{
- my $ref=shift;
-      for my $j (0 ... $#{$ref->{rtb}}){
-        my %rdst=%{${$ref->{rtb}}[$j]};
-       if($rdst{Status} eq "Failed"){
-         $rdst{Status}="ToBeRerun";
-        my $arsref;
-        foreach $arsref (@{$ref->{arpref}}){
-            try{
-                $arsref->sendRunEvInfo(\%rdst,"Update");
-                last;
-            }
-            catch CORBA::SystemException with{
-                warn "sendback corba exc";
-            };
-        }
-        foreach $arsref (@{$ref->{ardref}}){
-            try{
-                $arsref->sendRunEvInfo(\%rdst,"Update");
-                last;
-            }
-            catch CORBA::SystemException with{
-                warn "sendback corba exc";
-            };
-        }
-
-
-     }
-}
-}
 
 sub ResetHosts{
  my $ref=shift;
@@ -1552,4 +1522,91 @@ sub SendId{
 sub ErrorPlus{
    my $ref=shift;
    die shift;
+}
+
+
+sub ResetFailedRuns{
+ my $ref=shift;
+
+
+      for my $j (0 ... $#{$ref->{rtb}}){
+        my %rdst=%{${$ref->{rtb}}[$j]};
+ if($rdst{Status} eq "Processing"){
+     my $found=0;
+     foreach my $ac (@{$ref->{acl}}){
+         if($ac->{id}->{uid} eq $rdst{cuid}){
+             $found=1;
+             last;
+         }
+     }
+     if($found eq 0){
+         $rdst{Status} ="Failed";
+         $rdst{History}="Failed";
+     }
+ }
+       if($rdst{Status} eq "Failed"){
+         $rdst{Status}="ToBeRerun";
+        my $arsref;
+        foreach $arsref (@{$ref->{arpref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Update");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Update");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+
+
+     }
+}
+
+
+
+    for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
+     my %nc=%{$Monitor::Singleton->{dsts}[$i]};
+     if($nc{Type} eq "Ntuple"){
+         if($nc{Status} eq "InProgress"){
+             my $Run=$nc{Run};
+             for my $j (0 ... $#{$ref->{rtb}}){
+              my %rdst=%{${$ref->{rtb}}[$j]};
+              if($Run eq $rdst{Run} and $rdst{Status} ne "Processing"){
+                  $nc{Status}="Failure";
+                 my $arsref;
+                my %cid=%{$ref->{cid}};
+                foreach $arsref (@{$ref->{arpref}}){
+                 try{
+                  $arsref->sendDSTEnd(\%cid,\%nc,"Update");
+                 }
+                catch CORBA::SystemException with{
+                 warn "sendback corba exc";
+                };
+                }
+                foreach $arsref (@{$ref->{ardref}}){
+                 try{
+                   $arsref->sendDSTEnd(\%cid,\%nc,"Update");
+                   last;
+                 }
+                catch CORBA::SystemException with{
+                 warn "sendback corba exc";
+                };
+              }
+              }
+             }
+         }
+     }
+}
+
+
+
+
 }

@@ -4,10 +4,10 @@ use Carp;
 
 #my $RunTable="/f0dat1/AMSDataDir/DataManagement/prod/RunTable";
 my $RunTable="../prod/RunTable";
-my @dirs=("/f2dah1/STS91/amsdatantuple");
+my @dirs=("/f2dat1/STS91/hen");
 my $token="hbk";
 my $OldChain="sts91.prechain";
-my $NewChain="../analysis/sts91.chain";
+my $NewChain="../analysis/sts91.hen.chain";
 my @myruns;
 my @myevf;
 my @myevl;

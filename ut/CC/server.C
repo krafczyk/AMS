@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.86 2002/06/12 15:20:21 choutko Exp $
+//  $Id: server.C,v 1.87 2002/07/12 11:18:59 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -415,7 +415,7 @@ _ExitInProgress=true;
     DPS::Client::ARS * pars;
     int length=pser?pser->getARS(_pid,pars):0;
     DPS::Client::ARS_var arf=pars;
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=(_orbmap.find((const char*)(arf[i].Interface))->second)._orb->string_to_object(arf[i].IOR);
 
@@ -472,7 +472,7 @@ void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordC
 //  cout <<"propagateAC - getars returns "<<length<<endl;
   time_t tt;
   time(&tt);
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
@@ -514,7 +514,7 @@ void AMSServerI::PropagateAH(const DPS::Client::CID & pid,DPS::Client::ActiveHos
 //  cout <<"propagateAC - getars returns "<<length<<endl;
   time_t tt;
   time(&tt);
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
@@ -580,6 +580,43 @@ for(MOI i=mo.begin();i!=mo.end();++i){
 
 
 
+if(NK){
+ ifstream fbin;
+ fbin.open(NK);
+ if(fbin){
+   unsigned int uid=0;
+   DPS::Client::NominalClient_var ncl= new DPS::Client::NominalClient();
+   if(fbin.get()=='#')fbin.ignore(1024,'\n');
+   else fbin.seekg(fbin.tellg()-sizeof(char));
+   fbin>>ncl->MaxClients>>ncl->CPUNeeded>>ncl->MemoryNeeded;
+    char tmpbuf[1024];
+    fbin>>tmpbuf;
+    ncl->Type=DPS::Client::Killer;
+    ncl->WholeScriptPath=(const char*)tmpbuf;
+   fbin.ignore(1024,'\n');
+  while(!fbin.eof() && fbin.good()){ 
+   fbin>>tmpbuf;
+   ncl->HostName=(const char*)tmpbuf;
+   fbin>>ncl->LogInTheEnd;
+   fbin.ignore(1024,'\n');
+   fbin.getline(tmpbuf,1024);
+   ncl->LogPath= (const char*)tmpbuf;
+   fbin.getline(tmpbuf,1024);
+    ncl->SubmitCommand=(const char*)tmpbuf;
+    ncl->uid=++uid;
+    if(fbin.good())_nki.push_back(ncl);
+  }
+ fbin.close();
+ }
+ else{
+  cerr<<"Server_impl::Server_impl-F-UnableToOpenNKFile "<<NK<<endl;
+  _parent->FMessage("Server_impl::Server_impl-F-UnableToOpenNKFile ",DPS::Client::CInAbort);
+}
+}
+else _parent->FMessage("Server_impl::Server_impl-F-NoNKFile",DPS::Client::CInAbort);
+
+
+
 
 if(NS){
  ifstream fbin;
@@ -607,6 +644,7 @@ if(NS){
     ncl->uid=++uid;
     if(fbin.good())_ncl.push_back(ncl);
  }
+ fbin.close();
  }
  else{
   cerr<<"Server_impl::Server_impl-F-UnableToOpenNSFile "<<NS<<endl;
@@ -614,39 +652,6 @@ if(NS){
 }
 }
 else _parent->FMessage("Server_impl::Server_impl-F-NoNSFile",DPS::Client::CInAbort);
-if(NK){
- ifstream fbin;
- fbin.open(NK);
- if(fbin){
-   unsigned int uid=0;
-   DPS::Client::NominalClient_var ncl= new DPS::Client::NominalClient();
-   if(fbin.get()=='#')fbin.ignore(1024,'\n');
-   else fbin.seekg(fbin.tellg()-sizeof(char));
-   fbin>>ncl->MaxClients>>ncl->CPUNeeded>>ncl->MemoryNeeded;
-    char tmpbuf[1024];
-    fbin>>tmpbuf;
-    ncl->Type=DPS::Client::Killer;
-    ncl->WholeScriptPath=(const char*)tmpbuf;
-   fbin.ignore(1024,'\n');
-  while(!fbin.eof() && fbin.good()){ 
-   fbin>>tmpbuf;
-   ncl->HostName=(const char*)tmpbuf;
-   fbin>>ncl->LogInTheEnd;
-   fbin.ignore(1024,'\n');
-   fbin.getline(tmpbuf,1024);
-   ncl->LogPath= (const char*)tmpbuf;
-   fbin.getline(tmpbuf,1024);
-    ncl->SubmitCommand=(const char*)tmpbuf;
-    ncl->uid=++uid;
-    if(fbin.good())_nki.push_back(ncl);
-  }
- }
- else{
-  cerr<<"Server_impl::Server_impl-F-UnableToOpenNKFile "<<NK<<endl;
-  _parent->FMessage("Server_impl::Server_impl-F-UnableToOpenNKFile ",DPS::Client::CInAbort);
-}
-}
-else _parent->FMessage("Server_impl::Server_impl-F-NoNKFile",DPS::Client::CInAbort);
 if(NH){
  ifstream fbin;
  fbin.open(NH);
@@ -672,6 +677,7 @@ if(NH){
    DPS::Client::NominalHost_var vnh= new  DPS::Client::NominalHost(nh);
    if(fbin.good())_nhl.push_back(vnh);  
  }
+ fbin.close();
  }
  else{
   cerr<<"Server_impl::Server_impl-F-UnableToOpenNHFile "<<NH<<endl;
@@ -1109,7 +1115,7 @@ int Server_impl::getNC(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::Sy
      DPS::Client::ARS * pars;
      int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
      DPS::Client::ARS_var arf=pars;
-     for(int i=0;i<length;i++){
+     for(unsigned int i=0;i<length;i++){
       try{
        CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
@@ -1127,7 +1133,7 @@ int Server_impl::getNC(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::Sy
 
 
 NCS_var acv= new NCS();
-int length=0;
+unsigned int length=0;
 for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down()){
 if(pser->getType()==cid.Type){
 length=pser->getncl().size();
@@ -1160,7 +1166,7 @@ int Server_impl::getNK(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::Sy
      DPS::Client::ARS * pars;
      int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
      DPS::Client::ARS_var arf=pars;
-     for(int i=0;i<length;i++){
+     for(int unsigned i=0;i<length;i++){
       try{
        CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
@@ -1177,7 +1183,7 @@ int Server_impl::getNK(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::Sy
  }
 
 NCS_var acv= new NCS();
-int length=0;
+unsigned int length=0;
 length=_nki.size();
 if(length==0){
 acv->length(1);
@@ -1215,7 +1221,7 @@ bool Server_impl::ARSaux(DPS::Client::AccessType type,uint id, uint compare){
 
 int Server_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out  arf,DPS::Client::AccessType type,uinteger maxcid, int selffirst)throw (CORBA::SystemException){
 DPS::Client::ARS_var arv=new ARS();
-int length=0;
+unsigned int length=0;
 AMSServerI * _pser=getServer();
 AMSServerI *  pser=0;
 if(cid.Type == DPS::Client::Server || cid.Type == DPS::Client::Producer){
@@ -1282,7 +1288,7 @@ int Server_impl::getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int &
      DPS::Client::ARS * pars;
      int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
      DPS::Client::ARS_var arf=pars;
-     for(int i=0;i<length;i++){
+     for(unsigned int i=0;i<length;i++){
       try{
        CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
@@ -1301,7 +1307,7 @@ int Server_impl::getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int &
 
 //_parent->IMessage(AMSClient::print(cid," type "));
 ACS_var acv= new ACS();
-int length=0;
+unsigned int length=0;
 for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down()){
 if(pser->getType()==cid.Type){
 maxc=pser->getmaxcl();
@@ -1542,7 +1548,7 @@ int Server_impl::getNHS(const DPS::Client::CID &cid, NHS_out acs)throw (CORBA::S
      DPS::Client::ARS * pars;
      int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
      DPS::Client::ARS_var arf=pars;
-     for(int i=0;i<length;i++){
+     for(unsigned int i=0;i<length;i++){
       try{
        CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
@@ -1561,7 +1567,7 @@ int Server_impl::getNHS(const DPS::Client::CID &cid, NHS_out acs)throw (CORBA::S
 
 
 NHS_var acv= new NHS();
-int length=0;
+unsigned int length=0;
 for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down()){
 if(pser->getType()==cid.Type){
 length=pser->getnhl().size();
@@ -1595,7 +1601,7 @@ int Server_impl::getAHS(const DPS::Client::CID &cid, AHS_out acs)throw (CORBA::S
      DPS::Client::ARS * pars;
      int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
      DPS::Client::ARS_var arf=pars;
-     for(int i=0;i<length;i++){
+     for(unsigned int i=0;i<length;i++){
       try{
        CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
        DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
@@ -1614,7 +1620,7 @@ int Server_impl::getAHS(const DPS::Client::CID &cid, AHS_out acs)throw (CORBA::S
 
 
 AHS_var acv= new AHS();
-int length=0;
+unsigned int length=0;
 
 for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down()){
 if(pser->getType()==cid.Type){
@@ -1994,7 +2000,7 @@ if(_ahl.size()){
     int length=_pser->getARS(cid,pars);
     DPS::Client::ARS_var arf=pars;
     DPS::Producer_var _pvar=DPS::Producer::_nil();
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     _pvar=DPS::Producer::_narrow(obj);
@@ -2012,7 +2018,7 @@ DSTIS * pdstis;
 length=_pvar->getDSTInfoS(cid, pdstis);
 DSTIS_var dstis=pdstis; 
 
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
 DSTInfo_var vre= new DSTInfo(dstis[i]);
  _dstinfo.push_back(vre);
 }
@@ -2025,7 +2031,7 @@ RES * pres;
 length=_pvar->getRunEvInfoS(cid, pres,_RunID);
 RES_var res=pres; 
 
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
 RunEvInfo_var vre= new RunEvInfo(res[i]);
  _rl.push_back(vre);
 }
@@ -2038,7 +2044,7 @@ RunEvInfo_var vre= new RunEvInfo(res[i]);
 DSTS * pdsts;
 length=_pvar->getDSTS(cid,pdsts);
 DSTS_var dsts=pdsts;
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
 DST_var vdst= new DST(dsts[i]);
  _dst.insert(make_pair(vdst->Type,vdst));
 }
@@ -2662,7 +2668,7 @@ li->second->CopyIn(tdv.get_buffer());
     DPS::Client::ARS * pars;
     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
     DPS::Client::ARS_var arf=pars;
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
@@ -2713,7 +2719,7 @@ _UpdateACT(cid,DPS::Client::Active);
 
 TIDI li=_findTDV(tdvname);
 tdvname.Success=false;
-int length=0;
+unsigned int length=0;
 TDVTable_var vtable=new TDVTable();
 if(li!=_tid.end()){
   RLI ri=find_if(_rl.begin(),_rl.end(),REInfo_Eqs(id));
@@ -2788,7 +2794,7 @@ cid=cvar._retn();
 //         cout <<" entering Producer_impl::getRunEvInfoS"<<endl;
  
 RES_var acv= new RES();
-int length=0;
+unsigned int length=0;
 maxrun=_RunID;
 length=_rl.size();
 if(length==0){
@@ -2810,7 +2816,7 @@ return length;
  
 //         cout <<" entering Producer_impl::getDSTInfoS"<<endl;
 DSTIS_var acv= new DSTIS();
-int length=0;
+unsigned int length=0;
 length=_dstinfo.size();
 if(length==0){
 acv->length(1);
@@ -2840,7 +2846,7 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro,D
  DPS::Client::ARS * pars;      
  int length=getARS(pid,pars,DPS::Client::LessThan,_parent->getcid().uid);
  DPS::Client::ARS_var arf=pars; 
- for(int i=0;i<length;i++){
+ for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
@@ -3041,7 +3047,7 @@ void Producer_impl::sendDSTInfo(const  DSTInfo & ne, DPS::Client::RecordChange r
 int Producer_impl::getDSTS(const DPS::Client::CID & ci, DSTS_out dsts)throw (CORBA::SystemException){
 
 DSTS_var acv= new DSTS();
-int length=0;
+unsigned int length=0;
 length=_dst.size();
 if(length==0){
 acv->length(1);
@@ -3177,7 +3183,7 @@ void Producer_impl::PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange
     DPS::Client::ARS * pars;
     int length=_pser->getARS(cid,pars,type,uid);
     DPS::Client::ARS_var arf=pars;
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
@@ -3204,7 +3210,7 @@ void Producer_impl::PropagateDST(const DST & ri, DPS::Client::RecordChange rc, D
     DPS::Client::ARS * pars;
     int length=_pser->getARS(cid,pars,type,uid);
     DPS::Client::ARS_var arf=pars;
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
@@ -3297,7 +3303,7 @@ int length=getARS(cid,pars,DPS::Client::LessThan,_parent->getcid().uid);
 DPS::Client::ARS_var arf=pars;
   time_t tt;
   time(&tt);
- for(int i=0;i<length;i++){
+ for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
@@ -3404,7 +3410,7 @@ break;
   DPS::Client::ARS * pars;
   int length=getARS(cid,pars);
   DPS::Client::ARS_var arf=pars;
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
@@ -3460,7 +3466,7 @@ bool Server_impl::PingServer(const DPS::Client::ActiveClient & ac){
     DPS::Client::ARS * pars;
     int length=getARS(cid,pars,DPS::Client::Self,ac.id.uid);
     DPS::Client::ARS_var arf=pars;
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
@@ -3485,7 +3491,7 @@ bool Producer_impl::NotAllServersAlive(){
     DPS::Client::ARS * pars;
     int length=getARS(cid,pars);
     DPS::Client::ARS_var arf=pars;
-  for(int i=0;i<length;i++){
+  for(unsigned int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Server_var _pvar=DPS::Server::_narrow(obj);
@@ -4189,7 +4195,7 @@ if(!strcmp(env,"AMSDataDir")){
 
 int Server_impl::getEnv(const CID & cid, SS_out ss)throw (CORBA::SystemException){
 char ** e1;
-int length=0;
+unsigned int length=0;
 for (e1=__environ;*e1;e1++){
  if((*e1)[0]=='A' && (*e1)[1]=='M' &&(*e1)[2]=='S'){
   length++;
@@ -4242,7 +4248,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
    pcur->getacl().sort(Less(_parent->getcid()));
    for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
    while( ! done){
-   for (int i=0;i<((*li)->ars).length();i++){
+   for (unsigned int i=0;i<((*li)->ars).length();i++){
     try{
       CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[i].IOR);
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
@@ -4255,7 +4261,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       DPS::Client::AHS_var res=pres; 
       if(length){
        _ahl.clear();
-       for(int i=0;i<length;i++){
+       for(unsigned int i=0;i<length;i++){
         DPS::Client::ActiveHost_var vre= new DPS::Client::ActiveHost(res[i]);
         _ahl.push_back(vre);
        }
@@ -4313,7 +4319,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       RES_var res=pres; 
       if(length){
        _rl.clear();
-       for(int i=0;i<length;i++){
+       for(unsigned int i=0;i<length;i++){
         RunEvInfo_var vre= new RunEvInfo(res[i]);
         _rl.push_back(vre);
        }
@@ -4620,7 +4626,7 @@ DPS::Client::NCS * pncs;
 int length=_pvar->getNC(cid,pncs);
 DPS::Client::NCS_var ncs=pncs;
 _ncl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
  _ncl.push_back(vnh);
 }
@@ -4632,7 +4638,7 @@ DPS::Client::AHS * pahs;
 length=_pvar->getAHS(cid,pahs);
 DPS::Client::AHS_var ahs=pahs;
 _ahl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
  _parent->IMessage(AMSClient::print(vah, "getAHS: "));
  _ahl.push_back(vah);
@@ -4644,7 +4650,7 @@ DPS::Client::ACS * pacs;
 length=_pvar->getACS(cid,pacs,_Submit);
 DPS::Client::ACS_var acs=pacs;
 _acl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
  _acl.push_back(vac);
 }
@@ -4705,7 +4711,7 @@ DPS::Client::NCS * pncs;
 int length=_pvar->getNC(cid,pncs);
 NCS_var ncs=pncs;
 _ncl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
  _ncl.push_back(vnh);
 }
@@ -4716,7 +4722,7 @@ DPS::Client::NCS * pncs;
 int length=_pvar->getNK(cid,pncs);
 NCS_var ncs=pncs;
 _nki.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
  _nki.push_back(vnh);
 }
@@ -4727,7 +4733,7 @@ DPS::Client::NHS * pnhs;
 length=_pvar->getNHS(cid,pnhs);
 NHS_var nhs=pnhs;
 _nhl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::NominalHost_var vnh= new DPS::Client::NominalHost(nhs[i]);
  _nhl.push_back(vnh);
 }
@@ -4738,7 +4744,7 @@ DPS::Client::AHS * pahs;
 length=_pvar->getAHS(cid,pahs);
 AHS_var ahs=pahs;
 _ahl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
  _parent->IMessage(AMSClient::print(vah, "getAHS: "));
  _ahl.push_back(vah);
@@ -4750,7 +4756,7 @@ DPS::Client::ACS * pacs;
 length=_pvar->getACS(cid,pacs,_Submit);
 ACS_var acs=pacs;
 _acl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
  _acl.push_back(vac);
 }
@@ -4829,7 +4835,7 @@ DPS::Client::NCS * pncs;
 int length=_svar->getNC(cid,pncs);
 DPS::Client::NCS_var ncs=pncs;
 _ncl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::NominalClient_var vnh= new DPS::Client::NominalClient(ncs[i]);
  _ncl.push_back(vnh);
 }
@@ -4841,7 +4847,7 @@ DPS::Client::AHS * pahs;
 length=_svar->getAHS(cid,pahs);
 DPS::Client::AHS_var ahs=pahs;
 _ahl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
  _parent->IMessage(AMSClient::print(vah, "getAHS: "));
  _ahl.push_back(vah);
@@ -4853,7 +4859,7 @@ DPS::Client::ACS * pacs;
 length=_svar->getACS(cid,pacs,_Submit);
 DPS::Client::ACS_var acs=pacs;
 _acl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
  DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
  _acl.push_back(vac);
 }
@@ -4874,7 +4880,7 @@ DSTIS * pdstis;
 length=_pvar->getDSTInfoS(cid, pdstis);
 DSTIS_var dstis=pdstis; 
 _dstinfo.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
 DSTInfo_var vre= new DSTInfo(dstis[i]);
  _dstinfo.push_back(vre);
 }
@@ -4887,7 +4893,7 @@ RES * pres;
 length=_pvar->getRunEvInfoS(cid, pres,_RunID);
 RES_var res=pres; 
 _rl.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
 RunEvInfo_var vre= new RunEvInfo(res[i]);
  _rl.push_back(vre);
 }
@@ -4901,7 +4907,7 @@ DSTS * pdsts;
 length=_pvar->getDSTS(cid,pdsts);
 DSTS_var dsts=pdsts;
 _dst.clear();
-for(int i=0;i<length;i++){
+for(unsigned int i=0;i<length;i++){
 DST_var vdst= new DST(dsts[i]);
  _dst.insert(make_pair(vdst->Type,vdst));
 }

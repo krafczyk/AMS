@@ -7,24 +7,24 @@ if [ "$UNAME" = "AIX" ] ; then
 elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="osf1"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="linux"
+    MACHINE="linux/icc"
 else
 echo $UNAME is not supported yet
 
 fi
 
 
-../exe/$MACHINE/gbatch.exe <<!
+$AMSWD/exe/$MACHINE/gbatch.exe <<!
 LIST
-KINE 14
+KINE 47
 LOSS 1
 HADR 1
 MULS 1
 CKOV 1
 RAYL 1
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
-TRIG 100
-DEBUG -1 10 1
+TRIG 1000
+DEBUG -1 10 100
 C          Nparticles 
 MISC 4=1 5=0       
 MCGEN 1=-10. 2=-10. 3=140. 4=-10. 5=-10. 6=140.

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.60 2002/06/12 15:20:21 choutko Exp $
+//  $Id: producer.C,v 1.61 2002/07/12 11:18:59 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -317,6 +317,7 @@ cout <<" sendntupleend start "<<endl;
 
 DPS::Producer::DST *ntend=getdst(type);
 if(ntend){
+ntend->crc=0;
 ntend->Status=success?DPS::Producer::Success:DPS::Producer::Failure;
 ntend->EventNumber=entries;
 ntend->LastEvent=last;
@@ -340,7 +341,42 @@ ntend->Insert=statbuf.st_ctime;
 ntend->size=statbuf.st_size/1024./1024.+0.5;
 ntend->ErrorNumber=0;
 
-
+//add crc
+   if(!AMSTimeID::_Table){
+     AMSTimeID::_InitTable;
+   }
+   ifstream fbin;
+   fbin.open((const char*)a(bstart));
+   uinteger crc=0;
+   if(fbin){
+          unsigned int chunk[32000]; 
+         int i=0;
+          int fsize=statbuf.st_size;
+         for(;;){
+           if(!fsize) break;
+           int myread=fsize>sizeof(chunk)?sizeof(chunk):fsize;
+           fbin.read((char*)chunk,myread);
+           fsize-=myread;
+           if(fbin.good() && !fbin.eof()){
+           int beg;
+           if(i==0){
+            crc=~chunk[0];
+            beg=1;
+           }
+           else{
+            beg=0;
+           }
+           for(int m=beg;m<myread/sizeof(chunk[0]);m++){
+            for(int j=0;j<3;j++)crc=AMSTimeID::_Table[crc>>24]^(crc<<8);
+            crc=crc^chunk[m];  
+           }
+           i++;
+          }
+          else break;
+         }
+         fbin.close();
+         ntend->crc=~crc;
+   }
 // add validation
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv("NtupleValidatorExec");

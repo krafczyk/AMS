@@ -208,6 +208,7 @@ module DPS{
      long   size;
      string Name;
      string Version;
+     unsigned long crc;
     };    
 
     void sendDSTEnd(in CID id, in DST ne, in RecordChange re)raises(DBProblem); 

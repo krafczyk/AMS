@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.46 2002/06/03 14:53:34 alexei Exp $
+//  $Id: ecalrec.C,v 1.47 2002/07/12 11:18:59 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -2012,7 +2012,7 @@ return (WriteAll || status);
 void EcalShower::_AngleRes(){
 _Angle3DError=0;
 if(_EnergyC>0){
- _Angle3DError= 1.4*3.1415926/180.*sqrt(0.33*0.33+4.8*4.8/_EnergyC);
+ _Angle3DError= 3.1415926/180.*sqrt(0.8*0.8+8.4*8.4/_EnergyC);
 }
 }
 

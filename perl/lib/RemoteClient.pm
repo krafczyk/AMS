@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.46 2002/05/21 14:56:24 alexei Exp $
+# $Id: RemoteClient.pm,v 1.47 2002/07/12 11:19:17 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -715,7 +715,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                           }
                       }
                   }
-                  $sql="insert into Ntuples values($run->{Run},'$ntuple->{Version}','$ntuple->{Type}',$run->{Run},$ntuple->{FirstEvent},$ntuple->{LastEvent},$events,$badevents,$ntuple->{Insert},$ntuple->{size},'$status','$ntuple->{Name}')";
+                  $sql="insert into Ntuples values($run->{Run},'$ntuple->{Version}','$ntuple->{Type}',$run->{Run},$ntuple->{FirstEvent},$ntuple->{LastEvent},$events,$badevents,$ntuple->{Insert},$ntuple->{size},'$status','$ntuple->{Name}',$ntuple->{crc})";
                   $self->{sqlserver}->Update($sql);
               }
           }
