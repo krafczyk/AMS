@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.160 2003/05/09 15:09:43 alexei Exp $
+# $Id: RemoteClient.pm,v 1.161 2003/05/12 15:57:02 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3989,7 +3989,7 @@ print qq`
          my $sql="INSERT INTO Jobs VALUES
          ($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',
                    $ctime,'$nickname',' ',' ',0,0,0,0,'$stalone')";
-         $self->{sqlserver}->Update($sql);
+#         $self->{sqlserver}->Update($sql);
 #
 #creat corresponding runevinfo
          my $ri={};
@@ -4026,12 +4026,32 @@ print qq`
          push @{$self->{Runs}}, $ri; 
          $run=$run+1;
         }
+
+#
+# Add files to server
+#
+        if(defined $self->{dbserver} ){
+            if($self->{dwldaddon}==0){
+            foreach my $ri (@{$self->{Runs}}){
+              DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
+            }
+            my $lu=time();
+            $sql="update Servers set lastupdate=$lu where dbfilename='$self->{db
+file}'";
+            $self->{sqlserver}->Update($sql);
+            }
+        }
+        else{
+            $self->ErrorPlus("Unable To Communicate With Server");
+        }
          if ($self->{CCT} eq "remote"){
           my $i=system("gzip -f $file2tar");
           if($i){
               $self->ErrorPlus("Unable to gzip  $file2tar");
           }
         }     
+        $self->{sqlserver}->Update($sql);
+
         my $address=$self->{CEM};
         my $frun=$run-$runno;
         my $lrun=$run-1;
@@ -4091,22 +4111,6 @@ print qq`
             $self->ErrorPlus("Unable to obtain mail address for MailId = $ret->[0][0] and Cite=$self->{CCID}");
            }           
        }
-#
-# Add files to server
-#                    
-        if(defined $self->{dbserver} ){
-            if($self->{dwldaddon}==0){
-            foreach my $ri (@{$self->{Runs}}){
-              DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
-            }
-            my $lu=time();
-            $sql="update Servers set lastupdate=$lu where dbfilename='$self->{dbfile}'";
-            $self->{sqlserver}->Update($sql);
-            }
-        }
-        else{
-            $self->ErrorPlus("Unable To Communicate With Server");
-        }
            $time=time();
            $sql="update Cites set state=0, maxrun=$run, timestamp=$time where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
