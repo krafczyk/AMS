@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.144 2003/05/12 17:55:05 choutko Exp $
+//  $Id: ntuple.C,v 1.145 2003/05/12 21:17:46 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -172,6 +172,7 @@ void AMSNtuple::init(){
 void AMSNtuple::reset(int full){
 #ifdef __WRITEROOT__
    _evroot02.clear();
+   _evroot02.SetCont();
 #endif
    _beta02.Nbeta= 0;
    _charge02.Ncharge = 0;
@@ -245,8 +246,8 @@ void AMSNtuple::initR(char* fname){
    _tree= new TTree("AMSRoot","AMS Ntuple Root");
     static void *pev1=(void*)&_evroot02;
    TBranch *b1=_tree->Branch(AMSEventR::_Name,"AMSEventR",&pev1,64000,branchSplit);
-    AString  bhead=AMSEventR::_Name;
-    bhead+="Header";
+//    AString  bhead=AMSEventR::_Name;
+//    bhead+="Header";
 //     static void *pev2=(void*)&_evroot02.fHeader;
 //   TBranch *b2=_tree->Branch((const char*)bhead,"AMSEventHeaderR",&pev2,64000,1); 
 #endif

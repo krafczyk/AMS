@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.129 2003/05/12 13:11:18 choutko Exp $
+//  $Id: particle.C,v 1.130 2003/05/12 21:17:46 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -596,25 +596,21 @@ break;
 
 void AMSParticle::_copyEl(){
 #ifdef __WRITEROOT__
-  ParticleR *ptr = (ParticleR*)_ptr;
-  if (ptr) {
-    if (_pbeta)   ptr->fBeta  =_pbeta  ->GetClonePointer();
-    else ptr->fBeta=-1;
-    if (_pcharge) ptr->fCharge=_pcharge->GetClonePointer();
-    else ptr->fCharge=-1;
-    if (_ptrack)  ptr->fTrTrack =_ptrack ->GetClonePointer();
-    else ptr->fTrTrack=-1;
-    if (_ptrd)    ptr->fTrdTrack   =_ptrd   ->GetClonePointer();
-    else ptr->fTrdTrack=-1;
-    if (_prich)   ptr->fRichRing  =_prich  ->GetClonePointer();
-    else ptr->fRichRing=-1;
-    if (_pShower) ptr->fEcalShower=_pShower->GetClonePointer();
-    else ptr->fEcalShower=-1;
-    if (_pvert) ptr->fVertex=_pShower->GetClonePointer();
-    else ptr->fVertex=-1;
-  } else {
-    cout<<"AMSParticle::_copyEl -I-  AMSParticle::ParticleRoot02 *ptr is NULL "<<endl;
-  }
+  ParticleR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Particle(_vpos);
+    if (_pbeta)   ptr.fBeta  =_pbeta  ->GetClonePointer();
+    else ptr.fBeta=-1;
+    if (_pcharge) ptr.fCharge=_pcharge->GetClonePointer();
+    else ptr.fCharge=-1;
+    if (_ptrack)  ptr.fTrTrack =_ptrack ->GetClonePointer();
+    else ptr.fTrTrack=-1;
+    if (_ptrd)    ptr.fTrdTrack   =_ptrd   ->GetClonePointer();
+    else ptr.fTrdTrack=-1;
+    if (_prich)   ptr.fRichRing  =_prich  ->GetClonePointer();
+    else ptr.fRichRing=-1;
+    if (_pShower) ptr.fEcalShower=_pShower->GetClonePointer();
+    else ptr.fEcalShower=-1;
+    if (_pvert) ptr.fVertex=_pShower->GetClonePointer();
+    else ptr.fVertex=-1;
 #endif
 }
 

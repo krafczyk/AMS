@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.146 2003/05/08 16:41:51 choutko Exp $
+//  $Id: trrec.C,v 1.147 2003/05/12 21:17:46 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1207,15 +1207,11 @@ void AMSTrRecHit::_writeEl(){
 
 void AMSTrRecHit::_copyEl(){
 #ifdef __WRITEROOT__
-  TrRecHitR *ptr = (TrRecHitR*)_ptr;
-  if (ptr) {
-    if (_Xcl) ptr->fTrClusterX= _Xcl->GetClonePointer();
-    if (_Ycl) ptr->fTrClusterY= _Ycl->GetClonePointer();
-  } else {
-#ifdef __AMSDEBUG__
-    cout<<"AMSTrRecHit::_copyEl -I-  AMSTrRecHit::TrRecHitR *ptr is NULL "<<endl;
-#endif
-  }
+    TrRecHitR trr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrRecHit(_vpos);
+    if (_Xcl) trr.fTrClusterX= _Xcl->GetClonePointer();
+    else trr.fTrClusterX=-1;
+    if (_Ycl) trr.fTrClusterY= _Ycl->GetClonePointer();
+    else trr.fTrClusterY=-1;
 #endif
 }
 
@@ -2268,15 +2264,10 @@ void AMSTrTrack::_writeEl(){
 }
 void AMSTrTrack::_copyEl(){
 #ifdef __WRITEROOT__
-  TrTrackR *ptr = (TrTrackR*)_ptr;
-  if (ptr) {
-    // AMSTrRecHit * _Pthit[trconst::maxlay];
+TrTrackR trr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrTrack(_vpos);
     for (int i=0; i<_NHits; i++) {
-      if(_Pthit[i])ptr->fTrRecHit.push_back(_Pthit[i]->GetClonePointer());
+      if(_Pthit[i])trr.fTrRecHit.push_back(_Pthit[i]->GetClonePointer());
     }
-} else {
-  cout<<"AMSTrTrack::_copyEl -I-  AMSTrTrack::TrTrackR *ptr is NULL "<<endl;
-}
 #endif
 }
 

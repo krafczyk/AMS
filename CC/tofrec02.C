@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.22 2003/05/08 16:41:51 choutko Exp $
+//  $Id: tofrec02.C,v 1.23 2003/05/12 21:17:46 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -1159,10 +1159,8 @@ void AMSTOFCluster::_writeEl(){
 
 void AMSTOFCluster::_copyEl(){
 #ifdef __WRITEROOT__
- TofClusterR *ptr = (TofClusterR *)_ptr;
-  if (ptr) {
-      for(int i=0;i<_nmemb;i++)(ptr->fTofRawCluster).push_back(_mptr[i]->GetClonePointer());
-  }
+ TofClusterR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->TofCluster(_vpos);
+      for(int i=0;i<_nmemb;i++)(ptr.fTofRawCluster).push_back(_mptr[i]->GetClonePointer());
 #endif
 }
 

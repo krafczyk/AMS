@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.81 2003/05/09 15:59:51 choutko Exp $
+//  $Id: ecalrec.C,v 1.82 2003/05/12 21:17:45 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -947,14 +947,10 @@ void Ecal1DCluster::_writeEl(){
 }
 void Ecal1DCluster::_copyEl(){
 #ifdef __WRITEROOT__  
- EcalClusterR *ptr = (EcalClusterR*)_ptr;
-  if (ptr) {
+ EcalClusterR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->EcalCluster(_vpos);
     for (int i=0; i<_NHits; i++) {
-       if(_pHit[i])ptr->fEcalHit.push_back(_pHit[i]->GetClonePointer());
+       if(_pHit[i])ptr.fEcalHit.push_back(_pHit[i]->GetClonePointer());
   }
-} else {
-  cout<<"Ecal1DCluster::_copyEl -I-  Ecal1DCluster::EcalClusterR *ptr is NULL "<<endl;
-}
 #endif
 }
 
@@ -1320,14 +1316,10 @@ void AMSEcal2DCluster::_writeEl(){
 
 void AMSEcal2DCluster::_copyEl(){
 #ifdef __WRITEROOT__
-  Ecal2DClusterR *ptr = (Ecal2DClusterR*)_ptr;
-  if (ptr) {
+  Ecal2DClusterR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->Ecal2DCluster(_vpos);
     for (int i=0; i<_NClust; i++) {
-      if(_pCluster[i])ptr->fEcalCluster.push_back(_pCluster[i]->GetClonePointer());
+      if(_pCluster[i])ptr.fEcalCluster.push_back(_pCluster[i]->GetClonePointer());
     }
-  } else {
-   cout<<"AMSEcal2DCluster::_copyEl -I- AMSEcal2DCluster::EcalClusterR *ptr is NULL "<<endl;
-  }
 #endif
 }
 
@@ -2702,11 +2694,9 @@ void AMSEcalShower::_AttCorr(){
 
 void AMSEcalShower::_copyEl(){
 #ifdef __WRITEROOT__
- EcalShowerR *ptr = (EcalShowerR*)_ptr;
-  if (ptr) {
+ EcalShowerR ptr = AMSJob::gethead()->getntuple()->Get_evroot02()->EcalShower(_vpos);
     for (int i=0; i<_N2dCl; i++) {
-       ptr->fEcal2DCluster.push_back(_pCl[i]->GetClonePointer());
+       ptr.fEcal2DCluster.push_back(_pCl[i]->GetClonePointer());
    }
-  } 
 #endif
 }  
