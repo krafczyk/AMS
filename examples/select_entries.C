@@ -5,8 +5,7 @@
       
 // Input AMS ROOT Chain
       AMSChain *ams = new AMSChain;              
-      //ams->Add("/f2users/choutko/g3v1g3.root");
-      ams->Add("$HOME/private/vitaly.root");
+      ams->Add("/f2users/choutko/g3v1g3.root");
 
       // BEGIN of block: How to read just few branches ->
       ams->SetBranchStatus("*",0); // this disables all branches by default
