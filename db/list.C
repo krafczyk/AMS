@@ -2552,6 +2552,7 @@ ooStatus AMSEventList::AddMaterial()
       p = AMSJob::gethead()->getnodep(AMSID("Materials:",0));
       if (p != NULL) {
        p = p -> down();
+       integer nobj = 0;
        gmatItr.scan(contgmatH, mode);
        while (gmatItr.next()) {
         if (p == NULL) {
@@ -2568,6 +2569,13 @@ ooStatus AMSEventList::AddMaterial()
          return oocError;
         }
         p = p -> next();
+        nobj++;
+       }
+       if (nobj == 0) {
+         cout<<"AMSEventList::AddMaterials -W- container is empty"<<endl;
+         cout<<"AMSEventList::AddMaterials -I- write new Materials objects"
+             <<endl;
+         goto newsetup;
        }
       } else {
       cout <<"AddMaterial - E - cannot find the virtual top of gmat"<<endl; 
@@ -2576,6 +2584,7 @@ ooStatus AMSEventList::AddMaterial()
       return oocSuccess;
     }
 
+newsetup:
  // get pointer to the top
 
   p = AMSJob::gethead()->getnodep(AMSID("Materials:",0));
@@ -2629,6 +2638,7 @@ ooStatus AMSEventList::AddTMedia()
       p = AMSJob::gethead()->getnodep(AMSID("TrackingMedia:",0));
       if (p != NULL) {
       p = p -> down();
+      integer nobj = 0;
       gtmedItr.scan(contgtmedH, mode);
       while (gtmedItr.next()) {
        if (p == NULL) {
@@ -2645,6 +2655,12 @@ ooStatus AMSEventList::AddTMedia()
         return oocError;
        }
        p = p -> next();
+       nobj++;
+      }
+      if (nobj == 0) {
+       cout <<"AddTMedia - W - container is empty"<<endl; 
+       cout <<"AddTMedia - I - write new TMedia objects "<<endl;
+       goto newsetup;
       }
      } else {
       cout <<"AddTMedia - E - cannot find the virtual top of gtmed"<<endl; 
@@ -2653,6 +2669,7 @@ ooStatus AMSEventList::AddTMedia()
      return oocSuccess;
     }
 
+newsetup:
   // get pointer to the top
   p = AMSJob::gethead()->getnodep(AMSID("TrackingMedia:",0));
   if (p != NULL) {
