@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.103 2003/04/17 10:47:58 choutko Exp $
+# $Id: RemoteClient.pm,v 1.104 2003/04/17 14:30:17 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2914,7 +2914,7 @@ print qq`
           if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>31){
              $self->ErrorPlus("Time  $evno is out of range (1,31) days. ");
           }
-          $timeout=int($timeout*1.41*3600*24);
+          $timeout=int($timeout*3600*24);
           $particleid= $q->param("QPart");
       }
         else{
