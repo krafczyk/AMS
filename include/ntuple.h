@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.72 2002/12/10 11:56:20 choutko Exp $
+//  $Id: ntuple.h,v 1.73 2003/01/07 18:38:07 jorgec Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -12,8 +12,8 @@ const int NBRANCHES = 1;    // number of branches
 const int NCLONES   = 1;    // number of clones array
 
 namespace root{
-const int MAXBETA02    = 30;
-const int MAXCHARGE02  = 30;
+const int MAXBETA02    = 20;
+const int MAXCHARGE02  = 20;
 const int MAXPART02    =  10;
 const int MAXTOF     =    48;
 const int MAXTOFRAW  =    48;
@@ -112,12 +112,16 @@ public:
   int Ncharge;
   int Status[MAXCHARGE02];
   int BetaP[MAXCHARGE02];
+  int RingP[MAXCHARGE02];
   int ChargeTOF[MAXCHARGE02];
   int ChargeTracker[MAXCHARGE02];
+  int ChargeRich[MAXCHARGE02];
   float ProbTOF[MAXCHARGE02][4];
   int ChInTOF[MAXCHARGE02][4];
   float ProbTracker[MAXCHARGE02][4];
   int ChInTracker[MAXCHARGE02][4];
+  float ProbRich[MAXCHARGE02][4];
+  int ChInRich[MAXCHARGE02][4];
   float ProbAllTracker[MAXCHARGE02];
   float TrunTOF[MAXCHARGE02];
   float TrunTOFD[MAXCHARGE02];
