@@ -36,7 +36,14 @@ II. Subdet event formats
 a.Trig1 Event format
 
 ID= 1 << 6 | 2<<9 
-Word01  
+Word01   
+         bits08-09  Number of AC hits for x<0 z<0
+         bits10-11  Number of AC hits for x<0 z>0
+         bits12-13  Number of AC hits for x>0 z<0
+         bits14-15  Number of AC hits for x>0 z>0
+                 
+           
+
 Word02   bit01 Cluster Trigger
          bit04 Z>1 Trigger    
          bit15 Veto Trigger
