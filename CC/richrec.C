@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.24 2001/06/14 08:48:10 choutko Exp $
+//  $Id: richrec.C,v 1.25 2001/09/11 08:06:44 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -559,13 +559,289 @@ void AMSRichRing::build(){
 }  
 
 
+
+
+
+void AMSRichRing::rebuild(AMSTrTrack *track){
+
+// in fact copy of build
+// should be replace by smth more smart
+
+
+// check if rich rings lardy exist
+    AMSRichRing *ring=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
+   if(ring && ring->_ptrack->getpattern()>=0)return;
+
+   
+
+  //  integer track_number=0;
+  
+  // All these arrays are for speed up the reconstruction
+  // They should be move to a dynamic list (like the containers)
+  // using, for example, a structure (~completely public class)
+
+  int ARRAYSIZE=(AMSEvent::gethead()->getC("AMSRichRawEvent",0))->getnelem();
+  if(ARRAYSIZE==0) return;
+  
+#ifdef __SAFE__
+  //  safe_array<geant_small_array,MAXRICHITS> recs,mean,probs;
+  //  safe_array<integer_small_array,MAXRICHITS> size;
+  //  safe_array<geant_small_array,3*MAXRICHITS> recs,mean,probs;
+  //  safe_array<integer_small_array,3*MAXRICHITS> size;
+  safe_array<geant_small_array,1> recs(ARRAYSIZE),mean(ARRAYSIZE),probs(ARRAYSIZE);
+  safe_array<integer_small_array,1> size(ARRAYSIZE);
+
+#else
+  geant recs[RICmaxpmts*RICnwindows/2][3];
+  geant mean[RICmaxpmts*RICnwindows/2][3];
+  geant probs[RICmaxpmts*RICnwindows/2][3];
+  integer size[RICmaxpmts*RICnwindows/2][3];
+#endif
+  
+
+  //  for(AMSTrTrack *track=(AMSTrTrack *)AMSEvent::gethead()->
+  //   	getheadC("AMSTrTrack",0);track;track=track->next()){
+
+
+      // Tentative use of higher quality track reconstructed
+      //    if(!(track->TOFOK())) continue; //CJD
+
+      //      track_number++;
+      //      track_number=track->getpos();
+      AMSPoint point;
+      number theta,phi,length;
+      AMSPoint pnt(0.,0.,RICradpos);
+      AMSDir dir(0.,0.,-1.);
+      
+      track->interpolate(pnt,dir,point,theta,phi,length);
+      
+      //============================================================
+      // Here we should check if the track goes through the radiator
+      //============================================================
+      
+      // This should be done better
+      if(point[0]*point[0]+point[1]*point[1]>RICGEOM.top_radius*RICGEOM.top_radius)
+	return;   
+
+
+      //================================================
+      // Compute the best emition point:
+      //   -Try numeric integration (only one time). 
+      //   -If it fails use old parametrization
+      //================================================
+
+      geant height_direct=RICHDB::mean_height();
+      geant height_reflected=height_direct-0.1; // 0.2 if NaF
+
+      if(height_direct==-1.){   // Error in the computation
+
+	//============================================================
+	// PARAMETRISATION OF THE RECONSTRUCCION HEIGHT
+	// Parametrisation optimised in absence of magnetic field,
+	// mirror top radius 58.6 cm, and aerogel according (including 
+	// rayleigh scattering).
+	// TODO: Parametrise it using the AMS simulation
+	//============================================================
+	
+	const geant fd=exp(.78-1.23*RICHDB::rad_height+
+			   .131*RICHDB::rad_height*RICHDB::rad_height);
+	const geant fr=exp(.90-1.19*RICHDB::rad_height+
+			   .130*RICHDB::rad_height*RICHDB::rad_height);
+	
+	// Distance from the bottom plane of radiator of the optimum 
+	// reconstruction point. THIS SHOULD BE REOPTIMISED
+	
+	height_direct=1/fd-RICHDB::rad_height/fabs(cos(theta))/
+	  (exp(RICHDB::rad_height*fd/fabs(cos(theta)))-1);
+	height_reflected=1/fr-RICHDB::rad_height/fabs(cos(theta))/
+	  (exp(RICHDB::rad_height*fr/fabs(cos(theta)))-1);
+	
+	// Fine tunning
+	
+	height_direct+=-.047+.14*RICHDB::rad_height-.073*
+	  RICHDB::rad_height*RICHDB::rad_height;
+	height_reflected+=-.048+.06*RICHDB::rad_height-.071*
+	  RICHDB::rad_height*RICHDB::rad_height;
+    }
+
+
+      //============================================================
+      // PARAMETRISATION OF THE HIT ERROR
+      // Obtained using the same conditions as the reconstruction 
+      // height parametrisation. This depends in the light guides 
+      // dimensions
+      //============================================================
+      
+      
+      // Parameters
+      
+      geant A=(-2.81+13.5*(RICHDB::rad_index-1.)-18.*
+	       (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
+	RICHDB::rad_height/RICHDB::height*40./2.;
+      
+      geant B=(2.90-11.3*(RICHDB::rad_index-1.)+18.*
+	       (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
+	RICHDB::rad_height/RICHDB::height*40./2.;
+      
+      
+      // Reconstruction threshold: maximum beta admited
+      geant betamax=1.+3.e-2*(A+B);
+      
+      // Next obtained by Casaus: minimum beta admited to avoid noise caused
+      // by the particle going through the PMTs
+      //    geant betamin=(1.+0.05*(RICHDB::rad_index-1.))/RICHDB::rad_index;
+      // Value corrected by Carlos D.
+      geant betamin=(1.+RICthreshold*(RICHDB::rad_index-1.))/RICHDB::rad_index;
+      
+      
+      
+      //==================================================
+      // The reconstruction starts here
+      //==================================================
+      
+      // Reconstructing it as direct
+      
+      pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+height_direct);
+      
+      
+      AMSPoint dirp,refp;
+      track->interpolate(pnt,dir,dirp,theta,phi,length);
+      
+      AMSDir dird(theta,phi);
+      
+      pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+height_reflected);
+      track->interpolate(pnt,dir,refp,theta,phi,length);
+      
+      AMSDir refd(theta,phi); // Reflected case ;)
+      
+      integer actual=0;
+      
+      for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
+	    getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
+	
+	// Checks bounds
+	if(actual>=RICmaxpmts*RICnwindows/2) {
+	  cout << "AMSRichRing::build : Event too long."<<endl;
+	  break;
+	}
+	
+	// Reconstruct one hit
+	hit->reconstruct(dirp,refp,
+			 dird,refd,
+			 betamin,betamax,recs[actual]);
+	
+	if(recs[actual][0]>0 || recs[actual][1]>0 || recs[actual][2]>0){	
+	  
+	  // Initialise arrays
+	  for(integer j=0;j<3;j++)
+	    if(recs[actual][j]>0){
+	      mean[actual][j]=recs[actual][j];
+	      size[actual][j]=1;
+	      probs[actual][j]=0;}
+	  actual++;
+	}
+      }
+      
+      // Look for clusters
+      integer best_cluster[2]={0,0};
+      geant best_prob=-1;
+
+      
+      for(integer i=0;i<actual;i++){
+	if(recs[i][0]==-2.) continue; // Jump if direct is below threshold
+	for(integer k=0;k<3;k++){
+	  if(recs[i][k]<betamin) continue; 
+	  for(integer j=0;j<actual;j++){
+	    if(recs[j][0]==-2.) continue;
+	    if(i==j) continue;
+	    integer better=AMSRichRing::closest(recs[i][k],recs[j]);
+	    
+	    geant prob=(recs[i][k]-
+			recs[j][better])*
+	      (recs[i][k]-
+	       recs[j][better])/
+	      AMSRichRing::Sigma(recs[i][k],A,B)/
+	      AMSRichRing::Sigma(recs[i][k],A,B);
+	    if(prob<9){ //aprox. (3 sigmas)**2
+	      probs[i][k]+=exp(-.5*prob);
+	      mean[i][k]+=recs[j][better];
+	      size[i][k]++;
+	    }
+	  }
+	  if(best_prob<probs[i][k]){ 
+	    best_prob=probs[i][k];	
+	    best_cluster[0]=i;
+	    best_cluster[1]=k;
+	  }
+	  
+	}
+      }
+      // Add a ring element with the results. Not added to ntuple yet
+      if(best_prob>0){
+	
+	// This piece is a bit redundant: computes chi2
+	
+	geant chi2=0.;
+	geant beta_track=
+	  recs[best_cluster[0]][best_cluster[1]];
+	
+	for(integer i=0;i<actual;i++){
+	  if(recs[i][0]==-2.) continue;
+	  integer closest=
+	    AMSRichRing::closest(beta_track,recs[i]);
+	  
+	  if(recs[i][closest]<betamin) continue;
+	  geant prob=(recs[i][closest]-beta_track)*
+	    (recs[i][closest]-beta_track)/
+	    AMSRichRing::Sigma(beta_track,A,B)/
+	    AMSRichRing::Sigma(beta_track,A,B);
+	  if(prob>=9) continue;
+	  chi2+=prob;
+	}
+	
+	integer beta_used=size[best_cluster[0]][best_cluster[1]];
+	beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
+
+	
+	// Event quality numbers:
+	// 0-> Number of used hits
+	// 1-> chi2/Ndof
+	
+	// Fill the container
+	
+	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
+				     new AMSRichRing(track,
+						     beta_used,
+						     beta_track,
+						     chi2/geant(beta_used),
+						     1.  //Unused by now
+						     ));
+	
+      } else {
+//	// Add empty ring to keep track of no recostructed tracks
+//	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
+//				     new AMSRichRing(track,
+//						     0,
+//						     0.,
+//						     0.,
+//						     0. // Unused by now
+//						     ));
+      }
+  
+}  
+
+
+
 void AMSRichRing::_writeEl(){
   
   RICRing* cluster=AMSJob::gethead()->getntuple()->Get_ring();
   
   if(cluster->NRings>=MAXTRTR02) return;
 
-  cluster->track[cluster->NRings]=_ptrack->getpos();
+  if(_ptrack->checkstatus(AMSDBc::NOTRACK))cluster->track[cluster->NRings]=-1;
+  else if(_ptrack->checkstatus(AMSDBc::TRDTRACK))cluster->track[cluster->NRings]=-1;
+  else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))cluster->track[cluster->NRings]=-1;
+  else cluster->track[cluster->NRings]=_ptrack->getpos();
   cluster->used[cluster->NRings]=_used;
   cluster->beta[cluster->NRings]=_beta;
   cluster->errorbeta[cluster->NRings]=_errorbeta;

@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.115 2001/08/09 15:16:31 choutko Exp $
+//  $Id: mceventg.C,v 1.116 2001/09/11 08:06:43 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -603,7 +603,8 @@ integer AMSmceventg::acceptio(){
           if(AMSJob::gethead()->isRealData()){
             if(!MISCFFKEY.BeamTest || (_ipart==GCKINE.ikine || (_ipart>0  && GCKINE.ikine==-1)))return 1;
           }
-          else return EarthModulation();
+//          else return EarthModulation();
+          else return 1;
       }
     }
   }

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.102 2001/08/10 12:59:39 choutko Exp $
+//  $Id: particle.C,v 1.103 2001/09/11 08:06:44 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -451,6 +451,10 @@ number theta, phi, sleng;
 
 
 void AMSParticle::richfit(){
+
+//  Add more
+  AMSRichRing::rebuild(_ptrack);
+
 _prich=0;
   AMSRichRing* ptr=(AMSRichRing*)AMSEvent::gethead()->getheadC("AMSRichRing",0);
   while(ptr){
