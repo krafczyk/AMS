@@ -2961,6 +2961,7 @@ void AMSJob::uhinit(integer run, integer eventno){
     if(eventno){
       system((const char*)mdir);
       char event[80];  
+      strcat(_ntuplefilename,"/");
       sprintf(event,"%d",run);
       strcat(_ntuplefilename,event);
       sprintf(event,".%d",eventno);
