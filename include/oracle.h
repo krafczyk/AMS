@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.5 2001/06/06 15:02:07 alexei Exp $
+//  $Id: oracle.h,v 1.6 2001/06/07 09:19:28 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -668,9 +668,18 @@ namespace AMSoracle {
       int get(char *tname, char *tinterface, char *tplatform,
               short int &tncpu, short int &tmemory, int &tclock)
         {
-          if (tname) strcpy(tname,name);
-          if (tinterface) strcpy(tinterface,interface);
-          if (tplatform)  strcpy(tplatform,platform);
+          if (tname) {
+                       strcpy(tname,name);
+                       suppressBlanks(tname);
+          }
+          if (tinterface) {
+                        strcpy(tinterface,interface);
+                        suppressBlanks(tinterface);
+          }
+          if (tplatform) {
+                         strcpy(tplatform,platform);
+                         suppressBlanks(tplatform);
+          }
           tncpu   = ncpu;
           tmemory = memory;
           tclock  = clock;

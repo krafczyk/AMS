@@ -1,5 +1,5 @@
 # Max CPU Mem  Job    {// Host LogInEnd// Log     //   Submit}
-  9 0.9 100 /f0dah0/users/alexei/AMS/datacards/StandardNtuple.job
+  1 0.9 100 /f0dah0/users/alexei/AMS/datacards/StandardNtuple.job
   defaulthost 0
   -o /dat0/local/logs/
   /usr/local/lsf/bin/bsub -q linux_client -m
