@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.8 2001/08/02 16:18:36 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.9 2001/08/02 22:34:17 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -215,7 +215,8 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("TRDClusters", &m_BlkEventh->TRDClusters, "TRDClusters/i");
    m_Tree->Branch("TRDSegments", &m_BlkEventh->TRDSegments, "TRDSegments/i");
    m_Tree->Branch("TRDTracks", &m_BlkEventh->TRDTracks, "TRDTracks/i");
-   m_Tree->Branch("Eventstatus", &m_BlkEventh->Eventstatus, "Eventstatus/I");
+   m_Tree->Branch("Eventstatus", &m_BlkEventh->Eventstatus, "Eventstatus[2]/i");
+
 
    m_Tree->Branch("nbeta", &m_BlkBeta->nbeta, "nbeta/I");
    m_Tree->Branch("betastatus", m_BlkBeta->betastatus, "betastatus[nbeta]/I");
@@ -243,10 +244,13 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("truntof", m_BlkCharge->truntof, "truntof[ncharge]/F");
    m_Tree->Branch("truntofd", m_BlkCharge->truntofd, "truntofd[ncharge]/F");
    m_Tree->Branch("truntracker", m_BlkCharge->truntracker, "truntracker[ncharge]/F");
+
    m_Tree->Branch("npart", &m_BlkParticle->npart, "npart/I");
    m_Tree->Branch("pbetap", m_BlkParticle->pbetap, "pbetap[npart]/i");
    m_Tree->Branch("pchargep", m_BlkParticle->pchargep, "pchargep[npart]/I");
    m_Tree->Branch("ptrackp", m_BlkParticle->ptrackp, "ptrackp[npart]/I");
+   m_Tree->Branch("ptrdp", m_BlkParticle->ptrd, "ptrdp[npart]/I");
+   m_Tree->Branch("prichp", m_BlkParticle->prich, "prichp[npart]/I");
    m_Tree->Branch("pid", m_BlkParticle->pid, "pid[npart]/i");
    m_Tree->Branch("pidvice", m_BlkParticle->pidvice, "pidvice[npart]/i");
    m_Tree->Branch("probpid", m_BlkParticle->probpid, "probpid[npart][2]/F");
@@ -264,8 +268,10 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("cutoff", m_BlkParticle->cutoff, "cutoff[npart]/F");
    m_Tree->Branch("cootof", m_BlkParticle->cootof, "cootof[npart][4][3]/F");
    m_Tree->Branch("cooanti", m_BlkParticle->cooanti, "cooanti[npart][2][3]/F");
-   m_Tree->Branch("cooecal", m_BlkParticle->cooecal, "cooecal[npart][18][3]/F");
+   m_Tree->Branch("cooecal", m_BlkParticle->cooecal, "cooecal[npart][3][3]/F");
    m_Tree->Branch("cootr", m_BlkParticle->cootr, "cootr[npart][8][3]/F");
+   m_Tree->Branch("cootrd", m_BlkParticle->cootrd, "cootrd[npart][3]/F");
+
    m_Tree->Branch("ntof", &m_BlkTofclust->ntof, "ntof/I");
    m_Tree->Branch("Tofstatus", m_BlkTofclust->Tofstatus, "Tofstatus[ntof]/I");
    m_Tree->Branch("plane", m_BlkTofclust->plane, "plane[ntof]/i");
@@ -405,6 +411,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("tofredd", m_BlkTofrawcl->tofredd, "tofredd[ntofraw]/F");
    m_Tree->Branch("tofrtm", m_BlkTofrawcl->tofrtm, "tofrtm[ntofraw]/F");
    m_Tree->Branch("tofrcoo", m_BlkTofrawcl->tofrcoo, "tofrcoo[ntofraw]/F");
+
 }
 
 //_____________________________________________________________________________
@@ -434,8 +441,8 @@ void AMSR_Ntuple::GetEvent(Int_t event)
          else {
             SetVarNames();
             HGNTV(m_MemID, m_VarNames, m_NVar, event, ierr);
-//	    for (int i=0; i<m_NVar; i++) 
-//	      printf("m_VarNames[%d]=%s\n",i,m_VarNames[i]);
+	    for (int i=0; i<m_NVar; i++) 
+	      printf("m_VarNames[%d]=%s\n",i,m_VarNames[i]);
          }
       }
       m_SameRead = kTRUE;

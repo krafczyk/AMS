@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.6 2001/06/28 13:27:35 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.7 2001/08/02 22:34:18 kscholbe Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -129,7 +129,7 @@ struct PARTICLE_DEF {
    float cutoff[NPART];
    float cootof[NPART][4][3];
    float cooanti[NPART][2][3];
-   float cooecal[NPART][18][3];
+   float cooecal[NPART][3][3];
    float cootr[NPART][8][3];
    float cootrd[NPART][3];
 };
