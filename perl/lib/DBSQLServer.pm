@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.24 2002/07/12 11:19:17 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.25 2002/07/15 14:30:05 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -179,8 +179,8 @@ sub Create{
          timestamp   INT,
          sizemb   INT,
          status   VARCHAR(64),
-         path   VARCHAR(255)),
-         crc INT",
+         path   VARCHAR(255),
+         crc INT)",
         "CREATE TABLE DataSets
          (did    INT NOT NULL,
           name   VARCHAR(255))",

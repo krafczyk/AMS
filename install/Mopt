@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.222 2002/07/12 11:19:00 choutko Exp $
+#  $Id: Mopt,v 1.223 2002/07/15 14:29:23 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -92,9 +92,9 @@ IDL=orbit-idl
 IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
 
-CPP=g++ 
-CCC=gcc
-CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/ORBit-mt -fpermissive 
+CPP=g++  -I/usr/include/orbit-1.0
+CCC=gcc -I/usr/include/orbit-1.0
+CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT  -I/usr/include/orbit-mt-1.0 -fpermissive 
 SRC=$(BIN)
 SRCMT=$(BINMT)
 INCLUDE=../include/
@@ -216,13 +216,13 @@ IDL=orbit-idl
 IDLMT=orbit-idl-mt
 IDLCPP=orbit-idl -l c++
 ifndef AMSICC
-CPP=g++
-CCC=gcc
+CPP=g++  -I/usr/include/orbit-1.0
+CCC=gcc  -I/usr/include/orbit-1.0
 else
 CPP=/opt/intel/compiler60/ia32/bin/icc
 CCC=/opt/intel/compiler60/ia32/bin/icc
 endif
-CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/ORBit-mt
+CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT -I/usr/include/orbit-mt-1.0
 SRC=$(BIN)
 SRCMT=$(BINMT)
 INCLUDE=../include/
@@ -741,7 +741,7 @@ $(OBJECTSE):         $(SRCSCPP)
 	mv *.o $(BIN)
 
 $(OBJECTSEMT):         $(SRCSCPPMT)
-	$(CPP)  -fpermissive  -c $(CFLAGS) $(SRCSCPPMT) 
+	$(CPP)  -fpermissive   -c $(CFLAGS) $(SRCSCPPMT) 
 	mv *.o $(BINMT)
 
 $(OBJECTCO):         $(SRCS)
@@ -781,46 +781,46 @@ $(SRCSCPPMT):   $(SRCSMT) 	 $(INCLUDE)server.idl
 
 
 $(BIN)gbatch_c.o:         $(SCC)gbatch.C $(INCSCPP)
-	$(CC) -c -fpermissive $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
+	$(CPP) -c -fpermissive $(CFLAGS) -D__USE_STD_IOSTREAM $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
 
 $(BIN)geant_c.o: 	 $(SCC)geant.C  $(INCSCPP)
-	$(CC) -c -fpermissive $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
+	$(CPP) -c -fpermissive $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
 
 $(BIN)job_c.o: 	 $(SCC)job.C  $(INCSCPP)
-	$(CC) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
+	$(CPP) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
 
 $(BIN)geant3_c.o: 	 $(SCC)geant3.C  $(INCSCPP)
-	$(CC) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
+	$(CPP) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
 
 $(BIN)event_c.o: 	 $(SCC)event.C  $(INCSCPP)
-	$(CC) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
+	$(CPP) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
 
 $(BIN)timeid_c.o:        $(SCC)timeid.C  $(INCSCPP)
-	$(CC) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+	$(CPP) -c -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
            
 $(BIN)producer.o: 	 $(SCC)producer.C $(INCLUDE)client.h
-	$(CC) -c -w -fpermissive $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
+	$(CPP) -c -w -fpermissive $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)client.o: 	 $(SCC)client.C
-	$(CC) -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
+	$(CPP) -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
 
 $(BIN)client_mt.o: 	 $(SCC)client.C
-	$(CC) -c -w -fpermissive $(CFLAGS) $(IDLFLAGSMT) $(SCC)client.C -o $(BIN)client_mt.o
+	$(CPP) -c -w -fpermissive $(CFLAGS) $(IDLFLAGSMT) $(SCC)client.C -o $(BIN)client_mt.o
 
 $(BIN)server.o: 	 $(SCC)server.C
-	$(CC)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
+	$(CPP)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
 
 $(BIN)server_mt.o: 	 $(SCC)server.C
-	$(CC)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGSMT) $(SCC)server.C -o $(BIN)server_mt.o
+	$(CPP)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGSMT) $(SCC)server.C -o $(BIN)server_mt.o
 
 $(BIN)mys.o: 	 $(SCC)mys.c
 	$(CCCMT) -c  $(CFLAGS) $(IDLFLAGSMT) $(SCC)mys.c -o $(BIN)mys.o
 
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
-	$(CC)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
+	$(CPP)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
 
 $(BIN)dbserver_mt.o: 	 $(SCC)dbserver.C
-	$(CC)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGSMT) $(SCC)dbserver.C -o $(BIN)dbserver_mt.o
+	$(CPP)  -c -w -fpermissive $(CFLAGS) $(IDLFLAGSMT) $(SCC)dbserver.C -o $(BIN)dbserver_mt.o
 
 
 

@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.22 2002/07/12 11:19:16 choutko Exp $
+#  $Id: Mopt_Root,v 1.23 2002/07/15 14:29:58 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -104,8 +104,9 @@ LDFLAGSIDL=   -lorbitcpp -lorbitcppCosNaming -lORBitCosNaming
 LDFLAGSSTATICIDL= -static $(LDFLAGSIDL) -lORBit -lglib -lIIOP -lORBitutil -lglib -lnsl  
 IDL=orbit-idl
 IDLCPP=orbit-idl -l c++
-CPP=g++ 
-CCC=gcc
+CPP=g++  -I/usr/include/orbit-1.0
+CCC=gcc -I/usr/include/orbit-1.0
+CCCMT=gcc -DHAVE_CONFIG_H -D_REENTRANT  -I/usr/include/orbit-mt-1.0 -fpermissive 
 SRC=$(BIN)
 INCLUDE=../include/
 IFLAGS= -I/usr/include -I$(SRC)
@@ -582,34 +583,34 @@ $(SRCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
 
 
 $(BIN)gbatch_c.o:         $(SCC)gbatch.C
-	$(CC) -c $(CFLAGS) -D__ROOTA__ $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
+	$(CPP) -c $(CFLAGS) -D__ROOTA__ $(SCC)gbatch.C $(IDLFLAGS)  -o $(BIN)gbatch_c.o
 
 $(BIN)geant_c.o: 	 $(SCC)geant.C
-	$(CC) -c $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
+	$(CPP) -c $(CFLAGSB) $(IDLFLAGS) $(SCC)geant.C -o $(BIN)geant_c.o
 
 $(BIN)job_c.o: 	 $(SCC)job.C
-	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
+	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)job.C -o $(BIN)job_c.o
 
 $(BIN)geant3_c.o: 	 $(SCC)geant3.C
-	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
+	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)geant3.C -o $(BIN)geant3_c.o
 
 $(BIN)event_c.o: 	 $(SCC)event.C
-	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
+	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)event.C -o $(BIN)event_c.o
 
 $(BIN)timeid_c.o:        $(SCC)timeid.C
-	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
+	$(CPP) -c $(CFLAGS) $(IDLFLAGS) $(SCC)timeid.C -o $(BIN)timeid_c.o
            
 $(BIN)producer.o: 	 $(SCC)producer.C
-	$(CC) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
+	$(CPP) -c -w $(CFLAGSB) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)client.o: 	 $(SCC)client.C
-	$(CC) -fpermissive -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
+	$(CPP) -fpermissive -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)client.C -o $(BIN)client.o
 
 $(BIN)server.o: 	 $(SCC)server.C
-	$(CC)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
+	$(CPP)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
 
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
-	$(CC)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
+	$(CPP)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
 
 
 depend:         $(BIN)Make-depend

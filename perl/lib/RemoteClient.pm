@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.47 2002/07/12 11:19:17 choutko Exp $
+# $Id: RemoteClient.pm,v 1.48 2002/07/15 14:30:05 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2404,11 +2404,11 @@ print qq`
         }
          my $sonly="No";
          $sonly=$q->param("SONLY");
-         if ($sonly eq "Yes") {
-             $self->{scriptsOnly}=0;
-             $self->{senddb}=1;
-             $self->{sendaddon}=1;
-         }
+#         if ($sonly eq "Yes") {
+#             $self->{scriptsOnly}=0;
+#             $self->{senddb}=1;
+#             $self->{sendaddon}=1;
+#         }
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
         my $template=undef;
@@ -2706,7 +2706,7 @@ print qq`
         $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
         my @sta = stat $filedb;
         if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] ){
-           $self->{senddb}=1;
+#           $self->{senddb}=1;
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
         $key='dbversion';
         $sql="select myvalue from Environment where mykey='".$key."'";
@@ -2719,6 +2719,7 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/T* $self->{UploadsDir}/$dbversion";
+        $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
         $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion";
           if($i){
               $self->ErrorPlus("Unable to tar $dbversion to $filen");
@@ -2740,13 +2741,13 @@ print qq`
           unlink "$filedb.o";
        }
         elsif($sta[9]>$self->{TU1}){
-            $self->{senddb}=1;
+#            $self->{senddb}=1;
         }
         $filedb_att="$self->{UploadsDir}/ams02mcdb.att.tar.gz";
         @sta = stat $filedb_att;
 
         if($#sta<0 or $sta[9]-time() >86400*7  or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
-           $self->{sendaddon}=1;
+#           $self->{sendaddon}=1;
         my $filen="$self->{UploadsDir}/ams02mcdb.att.tar.$run";
          my $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
           if($i){
@@ -2769,7 +2770,7 @@ print qq`
           unlink "$filedb_att.o";
        }
         elsif($sta[9]>$self->{TU2}){
-            $self->{sendaddon}=1;
+#            $self->{sendaddon}=1;
         }
 
     
