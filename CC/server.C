@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.84 2002/04/10 10:35:48 choutko Exp $
+//  $Id: server.C,v 1.85 2002/06/03 13:29:33 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -828,6 +828,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
      ac.id.ppid=0;
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
+     ac.id.StatusType=DPS::Client::Permanent;
      ac.StatusType=DPS::Client::Permanent;
      ac.TimeOut=_KillTimeOut;
      time_t tt;
@@ -1060,7 +1061,7 @@ cout <<" exiting Server_impl::sendId 2"<<endl;
 else if(cid.Type==DPS::Client::Monitor){
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
-      (dynamic_cast<Client_impl*>(pcur))->sendId(cid,timeout);
+      return (dynamic_cast<Client_impl*>(pcur))->sendId(cid,timeout);
       break;
     }
 }
@@ -1068,7 +1069,7 @@ else if(cid.Type==DPS::Client::Monitor){
 else if(cid.Type==DPS::Client::DBServer){
   for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
     if(pcur->getType()==cid.Type){
-      (dynamic_cast<Client_impl*>(pcur))->sendId(cid,timeout);
+      return (dynamic_cast<Client_impl*>(pcur))->sendId(cid,timeout);
       break;
     }
 }
@@ -1712,6 +1713,7 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
      DPS::Client::ActiveClient as;
      as.id= cid;
      as.Status=DPS::Client::Active;
+     as.id.StatusType=DPS::Client::Permanent;
      as.StatusType=DPS::Client::Permanent;
      as.LastUpdate=tt;     
      as.TimeOut=_KillTimeOut;
@@ -2116,6 +2118,7 @@ if(pcur->InactiveClientExists(getType()))return;
      ac.id.Type=getType();
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
+     ac.id.StatusType=DPS::Client::Permanent;
      ac.StatusType=DPS::Client::Permanent;
      ac.TimeOut=_KillTimeOut;
      time_t tt;
@@ -3042,10 +3045,16 @@ if(li !=_rl.end()){
    RunEvInfo_var rv=*li; 
    rv->cinfo=ci;
    rv->Status=ci.Status;
+    if(ci.Status ==Finished || ci.Status==Failed){
+//  lets check it is finished normally
+     if(!_parent->IsMC() && rv->LastEvent && rv->LastEvent != ci.LastEventProcessed){
+       ci.Status==Failed;
+       _parent->EMessage(AMSClient::print(rv, " run Failed "));
+     }
    if(ci.Status==Failed){
        _parent->EMessage(AMSClient::print(ci, " run Failed "));
    }
-    if(ci.Status ==Finished || ci.Status==Failed){
+
 /*
       if(_parent->Debug()){
        _parent->IMessage(AMSClient::print(cid,"sendCurrentInfo from "));
@@ -3940,6 +3949,7 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
      ac.id.pid=pid;;
      ac.id.Status=DPS::Client::NOP;
      ac.Status=DPS::Client::Submitted;
+     ac.id.StatusType=DPS::Client::Permanent;
      ac.StatusType=DPS::Client::Permanent;
      ac.TimeOut=_KillTimeOut;
      time_t tt;
