@@ -212,9 +212,9 @@ void AMSEvent::SetTimeCoo(){
     
     
     if(_time == Array[hint].Time){
-      _NorthPolePhi=AMSmceventg::Orbit.PolePhiStatic+Array[hint].GrMedPhi;
+      _NorthPolePhi=fmod(AMSmceventg::Orbit.PolePhiStatic+Array[hint].GrMedPhi+AMSDBc::twopi,AMSDBc::twopi);
       _StationTheta=Array[hint].StationTheta;
-      _StationPhi=Array[hint].StationPhi;
+      _StationPhi=fmod(Array[hint].StationPhi+AMSDBc::twopi,AMSDBc::twopi);
       _Yaw=Array[hint].StationYaw;
       _Roll=Array[hint].StationRoll;
       _Pitch=Array[hint].StationPitch;
@@ -225,9 +225,9 @@ void AMSEvent::SetTimeCoo(){
       _SunPhi=Array[hint].SunPhi;
     }
     else if(_time == Array[hint+1].Time){
-      _NorthPolePhi=AMSmceventg::Orbit.PolePhiStatic+Array[hint+1].GrMedPhi;
+      _NorthPolePhi=fmod(AMSmceventg::Orbit.PolePhiStatic+Array[hint+1].GrMedPhi+AMSDBc::twopi,AMSDBc::twopi);
       _StationTheta=Array[hint+1].StationTheta;
-      _StationPhi=Array[hint+1].StationPhi;
+      _StationPhi=fmod(Array[hint+1].StationPhi+AMSDBc::twopi,AMSDBc::twopi);
       _Yaw=Array[hint+1].StationYaw;
       _Roll=Array[hint+1].StationRoll;
       _Pitch=Array[hint+1].StationPitch;
@@ -272,7 +272,8 @@ void AMSEvent::SetTimeCoo(){
          if(r < 0 )r=-1;
          else r=1;
        }
-       number PhiZero=Array[hint].StationPhi-atan2(r,sqrt(1-r*r));
+       number idir=Array[hint+1].StationTheta>Array[hint].StationTheta?1:-1;
+       number PhiZero=Array[hint].StationPhi-atan2(r,idir*sqrt(1-r*r));
 
       number t2=
         AMSmceventg::Orbit.AlphaTanThetaMax*AMSmceventg::Orbit.AlphaTanThetaMax;
