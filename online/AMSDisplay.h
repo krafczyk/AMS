@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.13 2003/06/19 15:17:44 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.14 2003/07/01 06:42:20 choutko Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -90,7 +90,6 @@ public:
   void SaveParticleGIF();  
   void PrintCB();
   void ReSizeCanvas(Long_t zoom, bool draw);
-  ClassDef(AMSOnDisplay, 0)   //Utility class to display AMS Hist Online
 
 };
 

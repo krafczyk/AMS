@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.4 2003/06/19 13:00:13 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.5 2003/07/01 06:42:20 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
@@ -69,10 +69,10 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
       case 402:
 	gAMSDisplay->Filled(buf);
-	if(strlen(buf)){
-	  ptg2 =new TGHotString(buf);
-	  _pcontrol[1]->SetText(ptg2);
-	}
+//	if(strlen(buf)){
+//	  ptg2 =new TGHotString(buf);
+//	  _pcontrol[1]->SetText(ptg2);
+//	}
 	break;
       case 403:
 	gAMSDisplay->Reset();

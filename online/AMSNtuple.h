@@ -1,4 +1,4 @@
-//  $Id: AMSNtuple.h,v 1.6 2003/06/20 15:09:00 choutko Exp $
+//  $Id: AMSNtuple.h,v 1.7 2003/07/01 06:42:20 choutko Exp $
 #ifndef __AMSNtuple__
 #define __AMSNtuple__
 #include <TChain.h>
@@ -23,6 +23,7 @@ class AMSNtupleR : public AMSEventR {
 protected:
 int fCurrentTree;
 int fEntries;
+int fCurrentEntry;
 //TProcessEventTimer * fTimer;  
 //bool fTimerDone;
 public:
@@ -30,6 +31,7 @@ AMSNtupleR(TChain * chain);
 Int_t EventNo()const {return fHeader.Event;}
 Int_t GetRun()const {return fHeader.Run;}
 char* GetTime()const {return ctime((time_t*)&fHeader.Time[0]);}
+int CurrentEntry()const {return fCurrentEntry;}
 int ReadOneEvent(int event);
 int & Entries() {return fEntries;} 
 friend class AMSTOFHist;

@@ -1,4 +1,4 @@
-//  $Id: AMSNtuple.cxx,v 1.6 2003/06/19 13:00:13 choutko Exp $
+//  $Id: AMSNtuple.cxx,v 1.7 2003/07/01 06:42:20 choutko Exp $
 #include <stdlib.h>
 #include <iostream.h>
 #include "AMSNtuple.h"
@@ -6,7 +6,7 @@
 ClassImp(AMSNtupleR)
   void* gAMSUserFunction;
 
-  AMSNtupleR::AMSNtupleR(TChain *chain):fCurrentTree(-1),fEntries(0){
+  AMSNtupleR::AMSNtupleR(TChain *chain):fCurrentTree(-1),fEntries(0),fCurrentEntry(-1){
 
    //loop on entries (elist or all entries)
 
@@ -42,6 +42,7 @@ int AMSNtupleR::ReadOneEvent(int entry){
           cout <<"InteruptReceived"<<endl;
           return -1;
       }
+      fCurrentEntry=entry;
       int entryNumber = _Tree->LoadTree(entry);
       if (entryNumber < 0) return -1;
       if (_Tree->GetTreeNumber() != fCurrentTree) {

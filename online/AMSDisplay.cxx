@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.16 2003/06/19 13:00:12 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.17 2003/07/01 06:42:20 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -31,7 +31,6 @@
 #include <dlfcn.h>
 AMSOnDisplay * gAMSDisplay;
 
-ClassImp(AMSOnDisplay)
 
 AMSOnDisplay * AMSOnDisplay::_Head=0; 
 
