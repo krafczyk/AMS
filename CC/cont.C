@@ -1,4 +1,4 @@
-//  $Id: cont.C,v 1.7 2002/09/25 17:18:10 choutko Exp $
+//  $Id: cont.C,v 1.8 2002/11/29 20:04:39 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <cont.h>
@@ -13,6 +13,7 @@ void AMSContainer::addnext(AMSlink *ptr){
   if(_Last){
              _Last->_next=ptr;
              _Last=_Last->_next;
+             _Last->_next=0;
   }
   else _Head=_Last=ptr;
   _nelem++;

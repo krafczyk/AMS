@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.19 2002/11/22 13:12:26 choutko Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.20 2002/11/29 20:06:11 choutko Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -101,13 +101,14 @@ struct CHARGE_DEF {
 #define blkCharge COMMON_BLOCK(CHARGE,charge)
 COMMON_BLOCK_DEF(CHARGE_DEF,blkCharge);
 
-static const int NPART = 20;
+static const int NPART = 10;
 struct PARTICLE_DEF {
    int   npart;
    int   pbetap[NPART];
    int   pchargep[NPART];
    int   ptrackp[NPART];
    int   ptrd[NPART];
+   int   pvert[NPART];
    int   prich[NPART];
    int   pecal[NPART];
    int   pid[NPART];

@@ -1,4 +1,4 @@
-//  $Id: link.h,v 1.11 2002/09/17 12:12:19 choutko Exp $
+//  $Id: link.h,v 1.12 2002/11/29 20:04:59 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 04, 1996. add _ContPos
@@ -53,7 +53,7 @@ public:
   AMSlink*  next(integer & last);
   virtual integer   testlast();
   friend class AMSContainer;
-
+   void resetnext(){_next=0;}
 
 };
 #endif

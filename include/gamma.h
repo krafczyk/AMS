@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.8 2002/11/29 08:23:50 glamanna Exp $
+//  $Id: gamma.h,v 1.9 2002/11/29 20:04:59 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -201,7 +201,7 @@ AMSTrTrackGamma *  next(){return (AMSTrTrackGamma*)_next;}
 void getFFParam(number&  Chi2, number& Rigi, number&  Erigi, 
 number&  Thetaff, number & Phiff, AMSPoint&  X0)const ; 
 
-void _ConstructGamma();
+void _ConstructGamma(int method);
 
 
 #ifdef __WRITEROOT__

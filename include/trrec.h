@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.63 2002/11/27 15:39:59 choutko Exp $
+//  $Id: trrec.h,v 1.64 2002/11/29 20:05:00 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -382,6 +382,7 @@ static integer _MarginPatternsNeeded;
 static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
+void SimpleFit();
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
                  number & theta, number & phi, number & length, int icase=0);
 void interpolateCyl(AMSPoint  pnt,  AMSDir dir, number rad, number idir, 
@@ -415,7 +416,7 @@ number getpirid() const {return _PIRigidity;}
 number getepirid() const {return _PIErrRigidity;}
 number getegrid() const {return _GErrRidgidity;}
 number geterid() const {return _ErrRidgidity;}
-number getrid() const {return _Ridgidity;}
+number getrid(int method=0) const {return method==0?_Ridgidity:(method==1?_GRidgidity:_PIRigidity);}
 number getchi2()const {return _Chi2FastFit;}
 number gettheta(int icase=0) const {return (icase==0?_Theta:(icase==1?_GTheta:_PITheta));}
 number getphi(int icase=0) const {return (icase==0?_Phi:(icase==1?_GPhi:_PIPhi));}

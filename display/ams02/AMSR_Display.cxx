@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.14 2002/11/22 13:12:25 choutko Exp $
+//  $Id: AMSR_Display.cxx,v 1.15 2002/11/29 20:06:11 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -1257,7 +1257,6 @@ Bool_t AMSR_Display::GotoRunEvent()
    const TGWindow *main = gClient->GetRoot();
    TRootCanvas *own = (TRootCanvas*)m_Canvas->GetCanvasImp();
    new TGRunEventDialog(main, own, &run, &event);
-   cout << "bliabudu "<<run<< " "<<event<<endl;
    debugger.Print("You input run/event =%d/%d\n", run, event);
 
    //

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.300 2002/11/26 11:53:49 choutko Exp $
+//  $Id: event.C,v 1.301 2002/11/29 20:04:39 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1662,8 +1662,11 @@ if(AMSEvent::debug)AMSBeta::print();
   }
 if( veto){
  AMSgObj::BookTimer.start("TrTrackGamma");
-  buildC("AMSTrTrackGamma");
+  int found=buildC("AMSTrTrackGamma");
  AMSgObj::BookTimer.stop("TrTrackGamma");
+  if(found){
+    buildC("AMSBeta");
+  }
 }
 #ifdef __AMSDEBUG__
 //if(AMSEvent::debug)AMSTrTrackGamma::print();

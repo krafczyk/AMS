@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.15 2002/11/29 17:56:58 glamanna Exp $
+//  $Id: gamma.C,v 1.16 2002/11/29 20:04:39 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -1033,6 +1033,7 @@ integer AMSTrTrackGamma::build(integer refit){
    Nuser+=(AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
    Nlayu[i]+=(AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
   }
+/*
   uinteger evn=AMSEvent::gethead()->getEvent();
   uinteger Run=AMSEvent::gethead()->getrun();
 
@@ -1041,10 +1042,8 @@ integer AMSTrTrackGamma::build(integer refit){
   AMSmceventg::PrintSeeds(cout);
   //  cout << " ##### Nuser which should correspond to ntrrh =   " << Nuser <<endl;
   //#endif
+*/
   for(int i=0;i<TKDBc::nlay();i++){
-#ifdef __AMSDEBUG__
-   cout << " #####     layer "<<i<< "    hits "<<Nlayu[i]<<endl;
-#endif
    AMSTrRecHit::_markDouble(H[i],i);
    FLPAT[i]=H[i].size(); 
    if (i==0){
@@ -1648,13 +1647,20 @@ else return 0;
     AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),pntLR);
     int done=0;
     pntLR->addtracks(done);
-//    pntLR->_ConstructGamma();
 
 // VC gamma
 
+
+{
     AMSTrTrackGamma  *p= new AMSTrTrackGamma(*pntLR);
-     p->_ConstructGamma();
+     p->_ConstructGamma(0);
     AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),p);
+}
+{
+    AMSTrTrackGamma  *p= new AMSTrTrackGamma(*pntLR);
+     p->_ConstructGamma(2);
+    AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),p);
+}
 
 //    cout<<" done ------- = "<< done<< endl;
 
@@ -3424,7 +3430,6 @@ AMSPoint pe_hi;
      p->clearstatus(AMSDBc::TOFFORGAMMA);
       p_hi = p->getHit(); 
      if (p->checkstatus(AMSDBc::GAMMARIGHT) ){
-       cout<< "*+++++ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
        FIXNUr++;
      }
    }
@@ -5062,7 +5067,7 @@ AMSTrTrackGamma::dlinearme(3,zf,yf,A,B,VAR);         // linear fit
 
 
 
-void AMSTrTrackGamma::_ConstructGamma(){
+void AMSTrTrackGamma::_ConstructGamma(int method){
 
 
 //  Find if there are some tracks already fitted
@@ -5100,14 +5105,27 @@ void AMSTrTrackGamma::_ConstructGamma(){
   }
   }
     _Charge=(_pntTrL->getrid()>0?1:-1)+(_pntTrR->getrid()>0?1:-1);
-    cout <<" init charge "<<_Charge<<endl;
+//    cout <<" init charge "<<_Charge<<endl;
   if(_pbeta){
     _pbeta->getptrack()->AdvancedFit();
     if(_pbeta->getptrack()->getrid()*_pntTrL->getrid()>0)_pntTrL=_pbeta->getptrack();
     else if(_pbeta->getptrack()->getrid()*_pntTrR->getrid()>0)_pntTrR=_pbeta->getptrack();
   }
 
-   if((_pntTrL->FastFitDone() && _pntTrR->FastFitDone()) ){
+   if((_pntTrL->FastFitDone() && _pntTrR->FastFitDone()) && _pntTrL->getchi2()<FLT_MAX-1 && _pntTrR->getchi2()<FLT_MAX-1){
+    number gers=0.03;
+     _pntTrL->SimpleFit();
+     _pntTrR->SimpleFit();
+
+  // get angle between tracks;
+
+  AMSDir dirL(_pntTrL->gettheta(method),_pntTrL->getphi(method));
+  AMSDir dirR(_pntTrR->gettheta(method),_pntTrR->getphi(method));
+  if (dirL[2]>0)dirL=dirL*(-1);
+  if (dirR[2]>0)dirR=dirR*(-1);
+  number ca=dirL.prod(dirR);
+  if(ca>1)ca=1;
+
 
 //  First  interpolate to zero order vertex guess  
 
@@ -5115,107 +5133,33 @@ void AMSTrTrackGamma::_ConstructGamma(){
    integer lay_r=min(_pntTrR->getphit(0)->getLayer(),_pntTrR->getphit(_pntTrR->getnhits()-1)->getLayer())-1;
    integer lay=min(lay_l,lay_r);
 
-{
-  AMSDir dirL(_pntTrL->gettheta(2),_pntTrL->getphi(2));
-  AMSDir dirR(_pntTrR->gettheta(2),_pntTrR->getphi(2));
-  if (dirL[2]>0)dirL=dirL*(-1);
-  if (dirR[2]>0)dirR=dirR*(-1);
-    number ca=dirL.prod(dirR);
-    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getpirid())*fabs(_pntTrL->getpirid())*(1-ca)));
-    if(ca>1)ca=1;
-    cout <<"very very initial ca "<<180/3.1415926*acos(ca)<<" "<<_MGAM<<endl;
+/*
+  {
+    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid(method))*fabs(_pntTrL->getrid(method))*(1-ca)));
+    cout <<"very  very initial ca "<<method<<" "<<180/3.1415926*acos(ca)<<" "<<_MGAM<<endl;
 
     AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
     if(pmcg){
-     AMSPoint pge=dirR*fabs(_pntTrR->getpirid())+dirL*fabs(_pntTrL->getpirid());
-     AMSTrTrack *ptr=lay_l<lay_r?_pntTrL:(lay_r<lay_l?_pntTrR:0);
-     if(ptr  ){
-      AMSPoint pge2=AMSDir(ptr->gettheta(),ptr->getphi())*fabs(ptr->getrid());
-      if(pge2[2]>0)pge2=pge2*(-1);
-      pge=pge2;
-     }
-     ca=pmcg->getdir().prod(AMSDir(pge));
+     AMSPoint pge=dirR*fabs(_pntTrR->getrid(method))+dirL*fabs(_pntTrL->getrid(method));
+     number cag=pmcg->getdir().prod(AMSDir(pge));
      cout <<" pmcg->getdir() "<<pmcg->getdir()<<endl;
      cout <<" AMSDir(pge) "<<AMSDir(pge)<<endl;
-   if(ca>1)ca=1;
-    cout <<"very very initial ca2 "<<180/3.1415926*acos(ca)<<" "<<endl;
+   if(cag>1)cag=1;
+    cout <<" very initial ca2 "<<180/3.1415926*acos(cag)<<" "<<endl;
     }
 
-}    
-
+  }     
+*/
 
  AMSPoint p1L,p1R;
  number thetaL,phiL,local;
  number thetaR,phiR;
-{
-
-{
-  AMSDir dirL(_pntTrL->gettheta(2),_pntTrL->getphi(2));
-  AMSDir dirR(_pntTrR->gettheta(2),_pntTrR->getphi(2));
-  if (dirL[2]>0)dirL=dirL*(-1);
-  if (dirR[2]>0)dirR=dirR*(-1);
-    number ca=dirL.prod(dirR);
-    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getpirid())*fabs(_pntTrL->getpirid())*(1-ca)));
-    if(ca>1)ca=1;
-    cout <<"very very initial ca "<<180/3.1415926*acos(ca)<<" "<<_MGAM<<endl;
-
-    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
-    if(pmcg){
-     AMSPoint pge=dirR*fabs(_pntTrR->getpirid())+dirL*fabs(_pntTrL->getpirid());
-     ca=pmcg->getdir().prod(AMSDir(pge));
-     cout <<" pmcg->getdir() "<<pmcg->getdir()<<endl;
-     cout <<" AMSDir(pge) "<<AMSDir(pge)<<endl;
-   if(ca>1)ca=1;
-    cout <<"very very initial ca2 "<<180/3.1415926*acos(ca)<<" "<<endl;
-    }
-
-}    
 
 
-{
-  AMSDir dirL(_pntTrL->gettheta(),_pntTrL->getphi());
-  AMSDir dirR(_pntTrR->gettheta(),_pntTrR->getphi());
-  if (dirL[2]>0)dirL=dirL*(-1);
-  if (dirR[2]>0)dirR=dirR*(-1);
-    number ca=dirL.prod(dirR);
-    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid())*fabs(_pntTrL->getrid())*(1-ca)));
-    if(ca>1)ca=1;
-    cout <<"very initial ca "<<180/3.1415926*acos(ca)<<" "<<_MGAM<<endl;
 
-    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
-    if(pmcg){
-     AMSPoint pge=dirR*fabs(_pntTrR->getrid())+dirL*fabs(_pntTrL->getrid());
-     ca=pmcg->getdir().prod(AMSDir(pge));
-     cout <<" pmcg->getdir() "<<pmcg->getdir()<<endl;
-     cout <<" AMSDir(pge) "<<AMSDir(pge)<<endl;
-   if(ca>1)ca=1;
-    cout <<"very initial ca2 "<<180/3.1415926*acos(ca)<<" "<<endl;
-    }
 
-}    
-}
- if(_pntTrL->intercept(p1L,lay,thetaL,phiL,local,_pntTrL->getpattern()<0?1:0) && _pntTrR->intercept(p1R,lay,thetaR,phiR,local,_pntTrR->getpattern()<0?1:0)){
+ if(_pntTrL->intercept(p1L,lay,thetaL,phiL,local,method) && _pntTrR->intercept(p1R,lay,thetaR,phiR,local,method)){
   
-  AMSDir dirL(thetaL,phiL);
-  AMSDir dirR(thetaR,phiR);
-  if (dirL[2]>0)dirL=dirL*(-1);
-  if (dirR[2]>0)dirR=dirR*(-1);
-
-
-{
-    number ca=dirL.prod(dirR);
-    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid())*fabs(_pntTrL->getrid())*(1-ca)));
-    if(ca>1)ca=1;
-    cout <<" initial ca "<<180/3.1415926*acos(ca)<<" "<<_MGAM<<endl;
-
-    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
-    if(pmcg){
-     AMSPoint pge=dirR*fabs(_pntTrR->getgrid())+dirL*fabs(_pntTrL->getgrid());
-     ca=pmcg->getdir().prod(AMSDir(pge));
-    if(ca>1)ca=1;
-    cout <<" initial ca2 "<<180/3.1415926*acos(ca)<<" "<<endl;
-    }
-}
     
 
 //  Now find the two str lines interception   
@@ -5231,73 +5175,76 @@ void AMSTrTrackGamma::_ConstructGamma(){
     _P0L=p1L+dirL*t;
     AMSPoint dc=p1L-_P0R;
     number dist=dirL.prod(dc);
-    _TrackDistance=sqrt(dc.prod(dc)-dist*dist);
     _Vertex=(_P0L+_P0R)*0.5;
-//    _TrackDistance=(_P0L-_P0R).norm();
+    _TrackDistance=(_P0L-_P0R).norm();
     
 
     AMSDir dir(0,0,-1);
     number length;
-    _pntTrL->interpolate(_Vertex,dir,_P0L,thetaL,phiL,length,_pntTrL->getpattern()<0?1:0);    
-    _pntTrR->interpolate(_Vertex,dir,_P0R,thetaR,phiR,length,_pntTrR->getpattern()<0?1:0);    
-    if(_pntTrL->getpattern()<0)_pntTrL->SetPar(_pntTrL->getgrid(),thetaL,phiL,_P0L,1);
-    else _pntTrL->SetPar(_pntTrL->getrid(),thetaL,phiL,_P0L);
-    if(_pntTrR->getpattern()<0)_pntTrR->SetPar(_pntTrR->getgrid(),thetaR,phiR,_P0R,1);
-    else _pntTrR->SetPar(_pntTrR->getrid(),thetaR,phiR,_P0R);
-    dirL=AMSDir(thetaL,phiL);
-    dirR=AMSDir(thetaR,phiR);
-    if (dirL[2]>0)dirL=dirL*(-1);
-    if (dirR[2]>0)dirR=dirR*(-1);
+    _pntTrL->interpolate(_Vertex,dir,_P0L,thetaL,phiL,length,method);    
+    _pntTrR->interpolate(_Vertex,dir,_P0R,thetaR,phiR,length,method);    
+    AMSDir dirL1(thetaL,phiL); 
+    AMSDir dirR1(thetaR,phiR); 
+    if(1 && dirL1.prod(dirR1)>=ca){
+     _pntTrL->SetPar(_pntTrL->getgrid(),thetaL,phiL,_P0L,method);
+     _pntTrR->SetPar(_pntTrR->getgrid(),thetaR,phiR,_P0R,method);
+     dirL=dirL1;
+     dirR=dirR1;
+     if (dirL[2]>0)dirL=dirL*(-1);
+     if (dirR[2]>0)dirR=dirR*(-1);
+    }
 
 
-
-
+/*
 {
-    number ca=dirL.prod(dirR);
-    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid())*fabs(_pntTrL->getrid())*(1-ca)));
-    if(ca>1)ca=1;
+  ca=dirL.prod(dirR);
+  if(ca>1)ca=1;
+
+    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid(method))*fabs(_pntTrL->getrid(method))*(1-ca)));
     cout <<" final "<<180/3.1415926*acos(ca)<<" "<<_MGAM<<endl;
 
     AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
     if(pmcg){
-     AMSPoint pge=dirR*fabs(_pntTrR->getgrid())+dirL*fabs(_pntTrL->getgrid());
-     ca=pmcg->getdir().prod(AMSDir(pge));
-    if(ca>1)ca=1;
-    cout <<" final2 "<<180/3.1415926*acos(ca)<<" "<<endl;
+     AMSPoint pge=dirR*fabs(_pntTrR->getrid(method))+dirL*fabs(_pntTrL->getrid(method));
+     number cag=pmcg->getdir().prod(AMSDir(pge));
+    if(cag>1)cag=1;
+    cout <<" final2 "<<180/3.1415926*acos(cag)<<" "<<endl;
     }
 }
-
+*/
 
 
 
 
 
 //  set gamma parameters  (assuming direction for top to bottom)
-    _Charge=(_pntTrL->getrid()>0?1:-1)+(_pntTrR->getrid()>0?1:-1);
+
+    _Charge=(_pntTrL->getrid(method)>0?1:-1)+(_pntTrR->getrid(method)>0?1:-1);
     cout <<" final charge "<<_Charge<<endl;
-    AMSPoint pge=dirR*fabs(_pntTrR->getrid())+dirL*fabs(_pntTrL->getrid());
+    AMSPoint pge=dirR*fabs(_pntTrR->getrid(method))+dirL*fabs(_pntTrL->getrid(method));
     number err_1=pow(_pntTrL->geterid()*_pntTrL->getrid()*_pntTrL->getrid(),2)+pow(_pntTrL->geterid()*_pntTrL->getrid()*_pntTrL->getrid(),2);
-   AMSPoint p1=dirR*fabs(_pntTrR->getgrid())+dirL*fabs(_pntTrL->getgrid());
+   AMSPoint p1=dirR*fabs(_pntTrR->getrid(2))+dirL*fabs(_pntTrL->getrid(2));
    number err_2=p1.norm()-pge.norm();
     _PGAMM=(pge.norm()+p1.norm())/2;
     _ErrPGAMM=sqrt(err_2*err_2+err_1);
 
+/*
 {
-  dirL=AMSDir(_pntTrL->gettheta(),_pntTrL->getphi());
-  dirR=AMSDir(_pntTrR->gettheta(),_pntTrR->getphi());
+  dirL=AMSDir(_pntTrL->gettheta(method),_pntTrL->getphi(method));
+  dirR=AMSDir(_pntTrR->gettheta(method),_pntTrR->getphi(method));
   if (dirL[2]>0)dirL=dirL*(-1);
   if (dirR[2]>0)dirR=dirR*(-1);
-     pge=dirR*fabs(_pntTrR->getrid())+dirL*fabs(_pntTrL->getrid());
+     pge=dirR*fabs(_pntTrR->getrid(method))+dirL*fabs(_pntTrL->getrid(method));
      AMSTrTrack *ptr=lay_l<lay_r?_pntTrL:(lay_r<lay_l?_pntTrR:0);
      if(ptr  ){
-      AMSPoint pge2=AMSDir(ptr->gettheta(),ptr->getphi())*fabs(ptr->getrid());
+      AMSPoint pge2=AMSDir(ptr->gettheta(method),ptr->getphi(method))*fabs(ptr->getrid(method));
       if(pge2[2]>0)pge2=pge2*(-1);
       pge=pge2;
      }
 
 }    
 
-
+*/
    _PhTheta=AMSDir(pge).gettheta();
     _PhPhi=AMSDir(pge).getphi();
     number ca=dirL.prod(dirR);
@@ -5306,10 +5253,12 @@ void AMSTrTrackGamma::_ConstructGamma(){
   return;
  } 
 }
+_MGAM=0;
 _PGAMM=0;
 _ErrPGAMM=0;
 _PhTheta=0;
 _PhPhi=0;
+_Charge=0;
 setstatus(AMSDBc::BAD);
 
 

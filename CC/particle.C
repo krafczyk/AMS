@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.121 2002/11/26 13:09:23 choutko Exp $
+//  $Id: particle.C,v 1.122 2002/11/29 20:04:40 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -84,20 +84,27 @@ out:
       }
 
 //    Make vertex particle(gamma) only if charge==0
+//   find vetex with minmal relative mass 
 
-      AMSTrTrackGamma *pvert=(AMSTrTrackGamma*)AMSEvent::gethead()->getheadC("AMSTrTrackGamma",0);   
+      number mbig=100000;
+      AMSTrTrackGamma *pcand=0;
+      for( AMSTrTrackGamma *pvert=(AMSTrTrackGamma*)AMSEvent::gethead()->getheadC("AMSTrTrackGamma",0);pvert!=NULL;pvert=pvert->next()){   
 // VC pvert
-         if(pvert)pvert=pvert->next();
-
-         if(pvert && pvert->getcharge()==0){    
-          ppart=new AMSParticle(pvert);
-          pvert->setstatus(AMSDBc::USED);
+         if(pvert->getcharge()==0 && !pvert->checkstatus(AMSDBc::BAD)){    
+           if(pvert->getmass()/pvert->getmom()<mbig){
+             mbig=pvert->getmass()/pvert->getmom();
+             pcand=pvert;
+           }
+         }
+       }
+        if(pcand){
+          ppart=new AMSParticle(pcand);
+          pcand->setstatus(AMSDBc::USED);
           ppart->pid();
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
            partfound++;
+       }
 
-
-      }       
 
 
 

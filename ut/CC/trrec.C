@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.143 2002/11/27 15:39:51 choutko Exp $
+//  $Id: trrec.C,v 1.144 2002/11/29 20:04:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1799,6 +1799,12 @@ integer AMSTrTrack::TOFOK(){
   else return 1;
 }
 
+void AMSTrTrack::SimpleFit(){
+ AMSPoint ehit(0.03,0.03,0.03);
+ SimpleFit(ehit);
+}
+
+
 void AMSTrTrack::SimpleFit(AMSPoint ehit){
 
 integer ifit=0;
@@ -2318,6 +2324,16 @@ void AMSTrTrack::interpolate(AMSPoint  pntplane, AMSDir dirplane,AMSPoint & P1,
    init[4]=dir[1];
    init[5]=dir[2];
    init[6]=_GRidgidity;
+  }
+  else {
+   AMSDir  dir(_PITheta,_PIPhi);
+   init[0]=_PIP0[0];
+   init[1]=_PIP0[1];
+   init[2]=_PIP0[2];
+   init[3]=dir[0];
+   init[4]=dir[1];
+   init[5]=dir[2];
+   init[6]=_PIRigidity;
   }
   point[0]=pntplane[0];
   point[1]=pntplane[1];
