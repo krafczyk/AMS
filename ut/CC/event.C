@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.324 2003/12/09 14:31:26 choutko Exp $
+//  $Id: event.C,v 1.325 2003/12/09 16:15:03 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -969,6 +969,8 @@ void AMSEvent::_retkinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseTOFX",i),&AMSTrTrack::buildFalseTOFX,0));
 
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseX_PathIntegral",i),&AMSTrTrack::buildFalseXPathIntegral,0));
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrack_PathIntegral",i),&AMSTrTrack::buildPathIntegral,0));
 
   ptr = AMSEvent::gethead()->add (
@@ -1455,7 +1457,7 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
   //
     // Default reconstruction: 4S + 4K or more
   if(TRFITFFKEY.FalseXTracking && !TRFITFFKEY.FastTracking)
-    itrk = buildC("AMSTrTrackFalseX",TKDBc::nlay());
+    itrk = buildC("AMSTrTrackFalseX_PathIntegral",TKDBc::nlay());
   if(itrk>0)itrk=buildC("AMSTrTrack_PathIntegral",refit);
   // Reconstruction with looser cuts on the K side
   if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.WeakTracking ){
@@ -1467,7 +1469,7 @@ if(ptr1 && (!LVL3FFKEY.Accept ||  (ptr1 && ptr && (ptr302 && ptr302->LVL3OK())))
   if(TRFITFFKEY.FastTracking){
     // Reconstruction of 4S + 3K
     if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
-      itrk=buildC("AMSTrTrackFalseX",TKDBc::nlay()-3);
+      itrk=buildC("AMSTrTrackFalseX_PathIntegral",TKDBc::nlay()-3);
       if(itrk>0)itrk=buildC("AMSTrTrack_PathIntegral",refit);
 #ifdef __AMSDEBUG__
       if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
