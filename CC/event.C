@@ -371,13 +371,13 @@ for (int i=0;;){
 
 
 }
-
+//------------------------------------------------------------------
 void AMSEvent::event(){
    if(AMSJob::gethead()->isSimulation())_siamsevent();
       _reamsevent();
       if(AMSJob::gethead()->isCalibration())_caamsevent();
 }
-
+//------------------------------------------------------------------
 void AMSEvent::_siamsevent(){
 _sitkevent(); 
 _sitrdevent();
@@ -385,14 +385,15 @@ _sitofevent();
 _siantievent(); 
 _sictcevent(); 
 _sitrigevent(); 
-_sidaqevent();
+if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
 }
 
 void AMSEvent::_reamsevent(){
 #ifndef __AMSDEBUG__
-  if(AMSJob::gethead()->isReconstruction())
-#endif
-  _redaqevent();
+  if(AMSJob::gethead()->isReconstruction() )_redaqevent();
+#else
+  if(TOFMCFFKEY.fast==0)_redaqevent();
+#endif  
   _retofevent();
   _reantievent();
   _rectcevent(); 
@@ -459,9 +460,13 @@ void AMSEvent::_catofevent(){
 //
   ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr)trflag=ptr->gettoflg();
-  if(trflag != 1)return;// use only "z>=1" trigger
-  if(TOFRECFFKEY.relogic[0]==1)
+  if(trflag <= 0)return;// use only H/W-triggered event
+  if(TOFRECFFKEY.relogic[0]==2)
+           TOFTDIFcalib::select();// event selection for TOF TDIF-calibration
+  if(TOFRECFFKEY.relogic[0]==3)
            TOFTZSLcalib::select();// event selection for TOF TZSL-calibration
+  if(TOFRECFFKEY.relogic[0]==4)
+           TOFAMPLcalib::select();// event selection for TOF AMPL-calibration
 }
 //---------------------------------------------------------------------------
 void AMSEvent::_catrdevent(){
@@ -509,13 +514,20 @@ void AMSEvent::_reantievent(){
 //
   ANTIJobStat::addre(0);
 //
-  AMSAntiRawEvent::validate(stat);// RawEvent-->RawEvent
-  if(stat!=0)return;
-  ANTIJobStat::addre(1);
+  if(AMSJob::gethead()->isSimulation() && TOFMCFFKEY.fast==1){ // fast algorithm
+  }
 //
-  AMSAntiRawCluster::build(stat);// RawEvent->RawCluster
-  if(stat!=0)return;
-  ANTIJobStat::addre(2);
+  else{                                                        // slow algorithm
+//
+    AMSAntiRawEvent::validate(stat);// RawEvent-->RawEvent
+    if(stat!=0)return;
+    ANTIJobStat::addre(1);
+//
+    AMSAntiRawCluster::build(stat);// RawEvent->RawCluster
+    if(stat!=0)return;
+    ANTIJobStat::addre(2);
+//
+  }
 //
   AMSAntiCluster::build();// RawCluster->Cluster
   ANTIJobStat::addre(3);
@@ -671,10 +683,19 @@ void AMSEvent:: _siantievent(){
   int stat;
   AMSgObj::BookTimer.start("SIANTIEVENT");
   ANTIJobStat::addmc(0);
-//  AMSAntiRawCluster::siantidigi();//Geant_hit->RawCluster
-  AMSAntiRawEvent::mc_build(stat);// Geant_hit->RawEvent
-  if(stat!=0)return;// no FTrigger from TOF - skip the rest
-  ANTIJobStat::addmc(1);
+//
+  if(TOFMCFFKEY.fast==0){//           ===> slow algorithm:
+//
+    AMSAntiRawEvent::mc_build(stat);// Geant_hit->RawEvent
+    if(stat!=0)return;// no FTrigger from TOF - skip the rest
+    ANTIJobStat::addmc(1);
+//
+  }
+  else{    //                         ===> fast algorithm:
+//
+    AMSAntiRawCluster::siantidigi();//Geant_hit->RawCluster
+  }
+//
 #ifdef __AMSDEBUG__
   AMSContainer *p;
   p=getC("AMSAntiMCCluster",0);

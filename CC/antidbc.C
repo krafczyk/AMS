@@ -67,6 +67,7 @@ void ANTIPcal::build(){ // fill array of objects with data
   geant mip2q;   // conv.factor for Mev->pe (Pe/Mev)
   geant gain[2];
   geant ftdl[2];// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
+//
   if(AMSJob::gethead()->isMCData()){ //            =====> For MC data:
     for(i=0;i<MAXANTI;i++){
       tthr[0]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
@@ -75,7 +76,7 @@ void ANTIPcal::build(){ // fill array of objects with data
       athr[1]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
       slop[0]=1.; // if TovT is in shaper_decay_time units
       slop[1]=1.; 
-      mip2q=ANTIMCFFKEY.MeV2PhEl; // 
+      mip2q=ANTIMCFFKEY.MeV2PhEl; // (pe/mev)
       gain[0]=1.; // tempor
       gain[1]=1.;
       ftdl[0]=TOFDBc::ftdelf();// tempor (as for TOF)
@@ -85,7 +86,20 @@ void ANTIPcal::build(){ // fill array of objects with data
   }
 //---------------------------------------------------------------------
   else{ //                                         =====> For Real Data :
-      mip2q=1./ANTIRECFFKEY.PhEl2MeV; // 
+    for(i=0;i<MAXANTI;i++){
+      tthr[0]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
+      tthr[1]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
+      athr[0]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
+      athr[1]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
+      slop[0]=1.; // if TovT is in shaper_decay_time units
+      slop[1]=1.; 
+      mip2q=1./ANTIRECFFKEY.PhEl2MeV; // (pe/mev)
+      gain[0]=1.; // tempor
+      gain[1]=1.;
+      ftdl[0]=TOFDBc::ftdelf();// tempor (as for TOF)
+      ftdl[1]=TOFDBc::ftdelf();// tempor
+      antisccal[i]=ANTIPcal(i,sta,tthr,athr,slop,mip2q,gain,ftdl);// create ANTIPcal object
+    }
   }
 }
 //=====================================================================  
@@ -128,6 +142,8 @@ void ANTIJobStat::print(){
       printf("% 5.3f",rc);
     }
     printf("\n\n");
+//
+  if(!AMSJob::gethead()->isRealData() && TOFMCFFKEY.fast==1)return;
 //
   printf("===========> Channels validation report :\n\n");
 //

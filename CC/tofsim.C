@@ -540,7 +540,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
     AMSTOFTovt::inishap(nshbn,shplsh); // prepare Shaper stand. pulse shape arr.
     fladcb=TOFDBc::fladctb();          // and other time-stable parameters
     shapb=TOFDBc::shaptb();
-    cconv=fladcb/50.; // for mV->pC
+    cconv=fladcb/50.; // for mV->pC (50 Ohm load)
     daqp0=TOFDBc::daqpwd(0);
     daqp3=TOFDBc::daqpwd(3);
     daqp4=TOFDBc::daqpwd(4);
@@ -784,25 +784,29 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         _nadca=0;
         updsh=0;
         tshd=-9999.;
+        tm=0;
+        amp=0.;
+        tmp=0.;
         for(i=0;i<mxshc;i++){  //  <--- time bin loop ---
           am=tshap2[i];
+          tm+=shapb;
           if(am>=daqt3){
             if(updsh==0){
-              tm=(i+1)*shapb;
+              tmark=tmp+shapb*(daqt3-amp)/(am-amp);//interpolation to compensate coarse binning
               if((tm-tshd)>daqp5){ //dead time check
                 updsh=1;
-                tshup=tm;
+                tshup=tmark;
               }
             }
           }
           else{
             if(updsh==1){
-              tm=(i+1)*shapb;
               updsh=0;
-              tshd=tm;
+              tmark=tmp+shapb*(daqt3-amp)/(am-amp);
+              tshd=tmark;
               if(_nadca<SCTHMX4){
                 _tadca[_nadca]=tshup;// up-time
-                _tadcad[_nadca]=tm;  // down-time
+                _tadcad[_nadca]=tshd;  // down-time
                 _nadca+=1;
               }
               else{
@@ -811,6 +815,8 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
               }
             } 
           }
+          amp=am;// store as "previous" value for next loop
+          tmp=tm;
         }                    // --- end of time bin loop --->
 // 
 //                      
@@ -820,25 +826,29 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         _nadcd=0;
         updsh=0;
         tshd=-9999.;
+        tm=0;
+        amp=0.;
+        tmp=0.;
         for(i=0;i<mxshc;i++){  //  <--- time bin loop ---
           am=tshap2[i];
+          tm+=shapb;
           if(am>=daqt4){
             if(updsh==0){
-              tm=(i+1)*shapb;
+              tmark=tmp+shapb*(daqt4-amp)/(am-amp);
               if((tm-tshd)>daqp6){ //dead time check
                 updsh=1;
-                tshup=tm;
+                tshup=tmark;
               }
             }
           }
           else{
             if(updsh==1){
-              tm=(i+1)*shapb;
               updsh=0;
-              tshd=tm;
+              tmark=tmp+shapb*(daqt4-amp)/(am-amp);
+              tshd=tmark;
               if(_nadcd<SCTHMX4){
                 _tadcd[_nadcd]=tshup;
-                _tadcdd[_nadcd]=tm;
+                _tadcdd[_nadcd]=tshd;
                 _nadcd+=1;
               }
               else{
@@ -847,6 +857,8 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
               }
             } 
           }
+          amp=am;
+          tmp=tm;
         }                    // --- end of time bin loop --->
 //
 //------------------------------

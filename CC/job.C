@@ -1,7 +1,7 @@
-//an
+//
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
-// ANTI codec added 5.08.97 E.Choumilov
+// ANTI codes added 5.08.97 E.Choumilov
  
 #include <amsgobj.h>
 #include <cern.h>
@@ -279,7 +279,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[4]=0;     // spare
   TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // ......................(=0/1-> ANY3/ALL4 layer coincidence) 
-  TOFMCFFKEY.fast=0;       // 0/1-> fast/slow simulation algorithm
+  TOFMCFFKEY.fast=0;       // 1/0-> fast/slow simulation algorithm
   TOFMCFFKEY.daqfmt=1;     // 0/1-> raw/reduced TDC format for DAQ simulation
   UCTOH(tfname,TOFMCFFKEY.tdfnam,4,12);
 FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -519,9 +519,11 @@ TKFINI();
 void AMSJob::_retofdata(){
   char cfname[12]="geomconf";//geomconfig-file generic name (max 11 letters)
 //                          (version #01/02-> shuttle/Alpha will be added autom.)
-  char tzslop[12]="tzcalib02";//t0,slope-file generic name(max.11 lett)
-//                           (mc/rl->MC/Real will be added automatically)
+  char tzslop[12]="tzcalib01";//Ls/Tdif/T0/Slope-file generic name(max.11 lett)
+//                           ("mc"/"rl"->MC/Real will be added automatically)
   char strrat[12]="srcalib01";//stretcher_ratio-file generic name(max.11 lett)
+//                           (mc/rl->MC/Real will be added automatically)
+  char analog[12]="ancalib01";//gain/unif/a2dr-file generic name(max.11 lett)
 //                           (mc/rl->MC/Real will be added automatically)
 // 
   TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy
@@ -530,10 +532,10 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.reprtf[0]=0; // RECO print flag for statistics 
   TOFRECFFKEY.reprtf[1]=0; // print flag for DAQ (1/2-> print for decoding/dec+encoding)
   TOFRECFFKEY.reprtf[2]=0; // print flag for histograms
-  TOFRECFFKEY.reprtf[3]=0; // print flag (spare) 
+  TOFRECFFKEY.reprtf[3]=0; // print flag for TDC-hit multiplicity histograms 
   TOFRECFFKEY.reprtf[4]=0; // print flag (spare)
 //
-  TOFRECFFKEY.relogic[0]=0;// 0/1/2/3 ->normal/TZSL-/AMPL-/Stretcher-calibr. run. 
+  TOFRECFFKEY.relogic[0]=0;// 0/1/2/3/4 ->normal/Stretcher-/TDIF-/TZSL-/AMPL-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[2]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[3]=0;// RECO logic flag 
@@ -561,6 +563,8 @@ void AMSJob::_retofdata(){
   UCTOH(tzslop,TOFRECFFKEY.tzerca,4,12);
 //  
   UCTOH(strrat,TOFRECFFKEY.strrca,4,12);
+//  
+  UCTOH(analog,TOFRECFFKEY.amplca,4,12);
 //  
   TOFRECFFKEY.sec[0]=0; 
   TOFRECFFKEY.sec[1]=0;
@@ -591,13 +595,15 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.ifsl=1;// 0/1 to fix/release slope param.
   TOFCAFFKEY.ifstr=0;// 0/1 to fix/release str.ratio param.
 // AMPL-calibration:
-  TOFCAFFKEY.truse=1; // 1/0 to use/not tracker
-  TOFCAFFKEY.plhc[0]=0.8;// track mom. low limit(gev/c)
-  TOFCAFFKEY.plhc[1]=8.;// track mom. high limit(gev/c)
-  TOFCAFFKEY.refbid[0]=101;//ref.bar id list (LBB) for btype=1->5
-  TOFCAFFKEY.refbid[1]=102; 
-  TOFCAFFKEY.refbid[2]=103; 
-  TOFCAFFKEY.refbid[3]=104; 
+  TOFCAFFKEY.truse=0; // 1/0-> to use/not tracker
+  TOFCAFFKEY.plhc[0]=0.5;// track mom. low limit(gev/c)
+  TOFCAFFKEY.plhc[1]=20.;// track mom. high limit(gev/c)
+  TOFCAFFKEY.minev=30;// min.events needed for measurement in channel or bin
+  TOFCAFFKEY.trcut=0.85;// cut to use for "truncated average" calculation
+  TOFCAFFKEY.refbid[0]=201;//ref.bar id's list (LBB) for btype=1->5
+  TOFCAFFKEY.refbid[1]=202; 
+  TOFCAFFKEY.refbid[2]=203; 
+  TOFCAFFKEY.refbid[3]=204; 
   TOFCAFFKEY.refbid[4]=108; 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -883,7 +889,7 @@ void AMSJob::_sitofinitjob(){
   if(TOFMCFFKEY.daqfmt==0)cout<<"_sitofinit-I-Raw TDC_Format selected"<<endl;
   else if(TOFMCFFKEY.daqfmt==1)cout<<"_sitofinit-I-Reduced TDC_Format selected"<<endl;
   else {
-    cout<<"_sitofinit-I- Unknown TDC_Format !!!"<<endl;
+    cout<<"_sitofinit-I- Unknown TDC_Format was requested !!!"<<endl;
     exit(1);
   }
 //
@@ -909,10 +915,6 @@ void AMSJob::_sitofinitjob(){
       HBOOK1(1071,"Total bar pulse-charge(pC),L-1",80,0.,1600.,0.);
       HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,0.,16000.,0.);
     }
-
-    AMSTOFScan::build();// create scmcscan-objects for all sc. bars,
-                        // using MC t/eff-distributions from ext. files
-
 
 
 }
@@ -975,16 +977,20 @@ for(i=0;i<2;i++){
 //---------------------------------------------------------------------
 void AMSJob::_catofinitjob(){
  if(TOFRECFFKEY.relogic[0]==1){
+   TOFSTRRcalib::init();// TOF STRR-calibr.
+   cout<<"TOFSTRRcalib-init done !!!"<<'\n';
+ }
+ if(TOFRECFFKEY.relogic[0]==2){
+   TOFTDIFcalib::init();// TOF TDIF-calibr.
+   cout<<"TOFTDIFcalib-init done !!!"<<'\n';
+ }
+ if(TOFRECFFKEY.relogic[0]==3){
    TOFTZSLcalib::init();// TOF TzSl-calibr.
    cout<<"TOFTZSLcalib-init done !!!"<<'\n';
  }
- if(TOFRECFFKEY.relogic[0]==2){
+ if(TOFRECFFKEY.relogic[0]==4){
    TOFAMPLcalib::init();// TOF AMPL-calibr.
    cout<<"TOFAMPLcalib-init done !!!"<<'\n';
- }
- if(TOFRECFFKEY.relogic[0]==3){
-   TOFSTRRcalib::init();// TOF STRR-calibr.
-   cout<<"TOFSTRRcalib-init done !!!"<<'\n';
  }
 }
 //---------------------------------------------------------------------
@@ -1013,8 +1019,8 @@ AMSgObj::BookTimer.book("TrTrack");
 }
 //--------------------------------------------------------------------------
 void AMSJob::_retofinitjob(){
-
-
+  int i,j,k,ich;
+//
     AMSgObj::BookTimer.book("RETOFEVENT");
     AMSgObj::BookTimer.book("TOF:DAQ->RwEv");
     AMSgObj::BookTimer.book("TOF:validation");
@@ -1045,7 +1051,14 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1540,"L=4,TOF Eclust(mev)",80,0.,24.,0.);
       HBOOK1(1541,"L=2,TOF Eclust(mev)",80,0.,240.,0.);
       HBOOK1(1542,"L=4,TOF Eclust(mev)",80,0.,240.,0.);
-      if(TOFRECFFKEY.relogic[0]==1){
+      if(TOFRECFFKEY.relogic[0]==1){ // STRR-calibration
+        HBOOK1(1200,"Stretcher-ratio for indiv. channel(R1)",80,30.,50.,0.);
+        HBOOK1(1201,"Stretcher-ratio for indiv. channel(R2)",80,30.,50.,0.);
+        HBOOK1(1202,"Error of str-ratio for indiv. channel(SR1)",80,0.,0.8,0.);
+        HBOOK1(1203,"Error of str-ratio for indiv. channel(SR2)",80,0.,0.8,0.);
+        HBOOK1(1204,"Correl.factor of R1/R2",60,0.,1.2,0.);
+      }
+      if(TOFRECFFKEY.relogic[0]==3){ // TZSL-calibration
         HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
         HBOOK1(1501,"Proton beta",80,0.9,1.1,0.);
         HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
@@ -1072,7 +1085,7 @@ void AMSJob::_retofinitjob(){
          HBOOK1(1524,"Layer-4 PM-1 a-ampl,noncor",80,50.,290.,0.);
          HBOOK1(1525,"Layer-4 PM-2 a-ampl,noncor",80,50.,290.,0.);
       }
-      if(TOFRECFFKEY.relogic[0]==2){
+      if(TOFRECFFKEY.relogic[0]==4){ // AMPL-calibration
         HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
         HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
         HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
@@ -1084,25 +1097,53 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
         HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
         HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
-        HBOOK1(1216,"Cos_tr",50,-1.,1.,0.);
-        HBOOK1(1217,"Cos_sc",50,-1.,1.,0.);
+        HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
+        HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
 // hist.# 1220-1239 are reserved for imp.point distr.(later in TOFAMPLcalib.init()
-        HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,480.,0.);        
-        HBOOK1(1251,"Ref.bar(type=5) Q-distr.(s=2,centre)",80,0.,480.,0.);        
+//        HBOOK2(1248,"Ref.bar(type=5) D-signal vs A-signal",80,0.,160.,80,2.,18.,0.);
+        HBOOK2(1249,"Ref.bar(type=5) A2D-ratio vs A-signal",80,0.,160.,50,5.,15.,0.);
+        HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,160.,0.);        
+        HBOOK1(1251,"Ref.bar(type=5) Q-distr.(s=2,centre)",80,0.,240.,0.);
+        HBOOK1(1252,"Relative anode-gains(all channels)",80,0.6,1.4,0.);
+        HBOOK1(1254,"Ref.bar A-profile (type-1)",70,-70.,70.,0.);        
+        HBOOK1(1255,"Ref.bar A-profile (type-2)",70,-70.,70.,0.);        
+        HBOOK1(1256,"Ref.bar A-profile (type-3)",70,-70.,70.,0.);        
+        HBOOK1(1257,"Ref.bar A-profile (type-4)",70,-70.,70.,0.);        
+        HBOOK1(1258,"Ref.bar A-profile (type-5)",70,-70.,70.,0.);        
+        HBOOK1(1259,"Anode_to_Dinode signal ratio(all channels)",80,8.,12.,0.);
+        HBOOK1(1260,"Anode_to_Dinode ratio error(all channels)",80,0.,4.,0.);
+      }
+      if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
+        for(i=0;i<SCLRS;i++){
+          for(j=0;j<SCMXBR;j++){
+            for(k=0;k<2;k++){
+              ich=2*SCMXBR*i+2*j+k;
+              HBOOK1(1300+ich,"FDTC/STDC/ATDC/DTDC-hit multiplicity",80,0.,80.,0.);
+            }
+          }
+        }
       }
     }
 //-----------
 //     ===> Clear JOB-statistics counters for SIM/REC :
 //
     TOFJobStat::clear();
+//
 //-----------
 //     ===> create common parameters (tofvpar structure) :
 //
  tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
+//
+//-----------
+//     ===> create scmcscan-objects for each sc.bar using MC t/eff-distributions
+//                                                              from ext. files :
+    AMSTOFScan::build();
+//
 //-------------------------
 //     ===> fill indiv. parameters (scbrcal-objects for each sc. bar) :
 //
-    TOFBrcal::build(); 
+    TOFBrcal::build();
+// 
 //-----------
 }
 //===================================================================
@@ -1406,6 +1447,7 @@ void AMSJob::_ctcendjob(){
 
 //-------------------------------------------------------------------
 void AMSJob::_tofendjob(){
+  int i,j,k,ich;
 //--------> some TOF stuff :
        if(TOFMCFFKEY.mcprtf[2]!=0 && TOFMCFFKEY.fast==0){ // tempor! print MC-hists
          HPRINT(1050);
@@ -1421,24 +1463,6 @@ void AMSJob::_tofendjob(){
          HPRINT(1072);
        }
        if(TOFRECFFKEY.reprtf[2]!=0){ // tempor! print RECO-hists
-         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
-         HPRINT(1100);
-         HPRINT(1101);
-         HPRINT(1102);
-         HPRINT(1103);
-         HPRINT(1104);
-         HPRINT(1526);
-         HPRINT(1527);
-         HPRINT(1528);
-         HPRINT(1529);
-         HPRINT(1530);
-         HPRINT(1531);
-         HPRINT(1532);
-         HPRINT(1533);
-         HPRINT(1543);
-         HPRINT(1544);
-         HPRINT(1534);
-         }
          HPRINT(1535);
          HPRINT(1536);
          HPRINT(1537);
@@ -1447,15 +1471,45 @@ void AMSJob::_tofendjob(){
          HPRINT(1540);
          HPRINT(1541);
          HPRINT(1542);
-         if(TOFRECFFKEY.relogic[0]==1){// for TZSL-calibr. runs
-           if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
-           HPRINT(1500);
-           HPRINT(1501);
+         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
+           HPRINT(1100);
+           HPRINT(1101);
+           HPRINT(1102);
+           HPRINT(1103);
+           HPRINT(1104);
+           HPRINT(1526);
+           HPRINT(1527);
+           HPRINT(1528);
+           HPRINT(1529);
+           HPRINT(1530);
+           HPRINT(1531);
+           HPRINT(1532);
+           HPRINT(1533);
+           HPRINT(1543);
+           HPRINT(1544);
+           HPRINT(1534);
+         }
+         if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
+           for(i=0;i<SCLRS;i++){
+             for(j=0;j<SCMXBR;j++){
+               for(k=0;k<2;k++){
+                 ich=2*SCMXBR*i+2*j+k;
+                 HPRINT(1300+ich);
+               }
+             }
+           }
+         }
+       }
+// ---> calibration specific :
+       if(TOFRECFFKEY.relogic[0]==3){// for TZSL-calibr. runs
+         HPRINT(1500);
+         HPRINT(1501);
+         HPRINT(1506);
+         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
            HPRINT(1502);
            HPRINT(1503);
            HPRINT(1504);
            HPRINT(1505);
-           HPRINT(1506);
            HPRINT(1508);
            HPRINT(1509);
            HPRINT(1510);
@@ -1475,10 +1529,11 @@ void AMSJob::_tofendjob(){
            HPRINT(1524);
            HPRINT(1525);
            TOFTZSLcalib::mfit();
-           }
          }
-         if(TOFRECFFKEY.relogic[0]==2){// for AMPL-calibr. runs
-           if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
+       }
+//
+       if(TOFRECFFKEY.relogic[0]==4){// for AMPL-calibr. runs
+         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
            HPRINT(1506);
            HPRINT(1500);
            HPRINT(1200);
@@ -1492,19 +1547,40 @@ void AMSJob::_tofendjob(){
            HPRINT(1215);
            HPRINT(1216);
            HPRINT(1217);
+//           HPRINT(1248);
+           HPRINT(1249);
            HPRINT(1250);
            HPRINT(1251);
            TOFAMPLcalib::fit();
-           }
+           HPRINT(1259);
+           HPRINT(1260);
+           HPRINT(1252);
+           HPRINT(1254);
+           HPRINT(1255);
+           HPRINT(1256);
+           HPRINT(1257);
+           HPRINT(1258);
+         }
+       }
+//
+//
+       if(TOFRECFFKEY.relogic[0]==1){// for STRR-calibr. runs
+         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){//for Real/Mc-SLOW
+           TOFSTRRcalib::outp();
+           HPRINT(1200);
+           HPRINT(1201);
+           HPRINT(1202);
+           HPRINT(1203);
+           HPRINT(1204);
+         }
+       }
+//
+       if(TOFRECFFKEY.relogic[0]==2){// for TDIF-calibr. runs
+         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){//for Real/Mc-SLOW
+           TOFTDIFcalib::fit();
          }
        }
        TOFJobStat::print(); // Print JOB-TOF statistics
-//
-       if(TOFRECFFKEY.relogic[0]==3){// for STRR-calibr. runs
-         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){//for Real/Mc-SLOW
-           TOFSTRRcalib::outp();
-         }
-       }
 }
 //-----------------------------------------------------------------------
 void AMSJob::_antiendjob(){

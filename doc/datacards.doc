@@ -98,33 +98,37 @@ R 2   Thresh(0.9)         // Thresh(mev) on total cluster energy ...............
 I 3   Print-flag(0)       // spare
 I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encoding 
 I 5   Print-flag(0)       // print RECO-histograms (if=1)
-I 6   Print-flag(0)       // spare
+I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
 I 7   Print-flag(0)       // spare
 I 8   RECO logic-flag(0)  // Normal/TZSL/AMPL/Stretch_ratio-calibr_run(if=0/1/2/3)
 I 9   RECO logic-flag(0)  // spare
 I 10  RECO logic-flag(0)  // spare
 I 11  RECO logic-flag(0)  // spare
 I 12  RECO logic-flag(0)  // spare
-I 13-15 generic file-name // (<=11 letters) contains bar-types map and geometry const.
-I 16  DAQ-thresh-1 (40)     // thresh.(mv) for fast t-discriminator (z>=1 trig)
-I 17  DAQ-thresh-2 (100)    // thresh.(mv) for z>1-trig. discr.
-I 18  DAQ-thresh-3 (200)    // thresh.(mv) for z>2-trig. discr.
-I 19  DAQ-thresh-4 (10)     // thresh.(pC) for anode Time_over_Threshold discr.
-I 20  DAQ-thresh-5 (10)     // thresh.(pC) for dinode Time_over_Threshold discr.
-I 21  cut-1 ()            // cut on time diff. of the same hit in fast/slow TDC
-I 22  cut-2 ()            // cut on min. distance of "befor"-hit in time history TDC
-I 23  cut-3 ()            // ........................"after"-hit in time history TDC
-I 24-30 spare cuts        //
-I 31   sec[2](0,0)        // Validity time:
-I 33   min[2](0,0)        //
-I 35   hour[2](0,0)       // 
-I 37   day[2](1,1)        //
-I 39   mon[2](0,0)        //
-I 41   year[2](96,98)     //
+I 13  DAQ-thresh-1 (40)     // thresh.(mv) for fast t-discriminator (z>=1 trig)
+I 14  DAQ-thresh-2 (100)    // thresh.(mv) for z>1-trig. discr.
+I 15  DAQ-thresh-3 (200)    // thresh.(mv) for z>2-trig. discr.
+I 16  DAQ-thresh-4 (10)     // thresh.(pC) for anode Time_over_Threshold discr.
+I 17  DAQ-thresh-5 (10)     // thresh.(pC) for dinode Time_over_Threshold discr.
+I 18  cut-1 ()            // cut on time diff. of the same hit in fast/slow TDC
+I 19  cut-2 ()            // cut on min. distance of "befor"-hit in time history TDC
+I 20  cut-3 ()            // ........................"after"-hit in time history TDC
+I 21-27 spare cuts        //
+I 28-30 generic file-name // (<=11 letters) contains bar-types map and geometry const.
+I 31-33 generic file-name // (<=11 letters) contains Lspeed/Tdif/Slope/T0 const.
+I 34-36 generic file-name // (<=11 letters) contains stretcher ratio const.
+I 37-39 generic file-name // (<=11 letters) spare file name
+I 40   sec[2](0,0)        // Validity time:
+I 42   min[2](0,0)        //
+I 44   hour[2](0,0)       // 
+I 46   day[2](1,1)        //
+I 48   mon[2](0,0)        //
+I 50   year[2](96,98)     //
 
 // TOF calibration
 
 TOFCA
+  TZSL-calibration
 R  1 plow(8.);  // track mom. low limit (gev/c)
 R  2 phigh(50.);// track mom. high limit
 R  3 meanbeta(0.996);// mean proton velocity in this range 
@@ -136,6 +140,15 @@ I  8 id-ref1(108);  // LBB for first ref. counter (if non zero)
 I  9 id-ref2(0);    // LBB for second ref. counter (if nonzero)
 I 10 fix-slope(1); // =0/1 to fix/release slope param.
 I 11 fix-invstr(0);// =0/1 to fix/release str.ratio param.
+  AMPL-calibration:
+I 12 truse(1);     // =1/0 to use/not tracker info
+R 13 plhc[0](0.5)  // low cut on tracker momentum (Gev/c)
+R 14 plhc[1](0.5)  // high cut on tracker momentum (Gev/c)
+I 15 minev(20)     // min.events needed for measurement in channel or bin
+R 16 trcut(0.85)   // cut to use for "truncated average" calculation
+I 17 refbid[0]     // ref.bar id's list (LBB) for btype=1->5 
+   ...             // ......................................
+I 21 refbid[4]     // ......................................
 //---------------------------------------------------------------------------------
 
 // CTC  Simulation

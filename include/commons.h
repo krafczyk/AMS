@@ -194,9 +194,9 @@ geant ThrS;  // limit on sum
   geant daqthr[5];// daq thresholds
   geant cuts[10];// cuts 
   integer config[3];// geometry-configuration generic file-name (max 11 letters)
-  integer tzerca[3];// T0,slope calib.parameters gen. file-name
+  integer tzerca[3];// Lspeed/Tdif/Slop/T0 calib.parameters gen. file-name
   integer strrca[3];// stretcher-ratio calib. file-name
-  integer spare2[3];// spare f.n
+  integer amplca[3];// ampl_parameters calib. file-name
   integer sec[2];
   integer min[2];
   integer hour[2];
@@ -221,7 +221,9 @@ integer ifstr;// 0/1 to fix/release str. param
 // AMPL-calibration :
 integer truse;// 1/0 to use/not tracker
 geant plhc[2];//low/high limits on tracker mom. of calibr.events
-integer refbid[20];//ref. id's list to use for longit. uniformity meas.
+integer minev;// min.events needed for measurement in channel or bin
+geant trcut;// cut to use for "truncated average" calculation (0.85)
+integer refbid[5];//ref. id's list to use for longit. uniformity meas.
 };
 #define TOFCAFFKEY COMMON_BLOCK(TOFCAFFKEY,tofcaffkey)
 COMMON_BLOCK_DEF(TOFCAFFKEY_DEF,TOFCAFFKEY);
