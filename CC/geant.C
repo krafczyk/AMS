@@ -58,7 +58,6 @@
 #include <trrec.h>
 #include <daqevt.h>
 #include <iostream.h>
-
 #ifdef __DB__
 
 #include <db_comm.h>
@@ -138,6 +137,7 @@ extern "C" void uginit_(){
    AMSgmat::amsmat();
    AMSgvolume::amsgeom();
 #endif
+   AMSStatus::create();
   AMSJob::map();
   AMSJob::gethead()->init();
   AMSJob::gethead()->uhinit();

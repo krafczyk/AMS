@@ -259,8 +259,10 @@ void AMSCharge::_writeEl(){
   CN->ChargeTOF[CN->Ncharge]=_ChargeTOF;
   CN->ChargeTracker[CN->Ncharge]=_ChargeTracker;
   int i;
-  for(i=0;i<7;i++)CN->ProbTOF[CN->Ncharge][i]=_ProbTOF[i];
-  for(i=0;i<7;i++)CN->ProbTracker[CN->Ncharge][i]=_ProbTracker[i];
+  for(i=0;i<10;i++)CN->ProbTOF[CN->Ncharge][i]=_ProbTOF[i];
+  for(i=0;i<10;i++)CN->ProbTracker[CN->Ncharge][i]=_ProbTracker[i];
+  CN->TrunTOF[CN->Ncharge]=_TrMeanTOF;
+  CN->TrunTracker[CN->Ncharge]=_TrMeanTracker;
   CN->Ncharge++;
 }
 

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <iostream.h>
 //
+STATUSFFKEY_DEF STATUSFFKEY;
 SELECTFFKEY_DEF SELECTFFKEY;
 AMSFFKEY_DEF AMSFFKEY;
 IOPA_DEF IOPA;
@@ -53,7 +54,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v2.16";
-integer AMSCommonsI::_build=17;
+integer AMSCommonsI::_build=19;
 
 AMSCommonsI::AMSCommonsI(){
   init();

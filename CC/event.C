@@ -51,6 +51,28 @@ AMSEvent* AMSEvent::_Head=0;
 AMSNodeMap AMSEvent::EventMap;
 integer AMSEvent::SRun=0;
 void AMSEvent::_init(){
+  SetTimeCoo(0);
+  // Status stuff
+  if( AMSFFKEY.Update && AMSStatus::isDBUpdate()){
+    if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid())){
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time_t begin,end,insert;
+      begin=AMSJob::gethead()->getstatustable()->getbegin();
+      end=AMSJob::gethead()->getstatustable()->getend();
+      time(&insert);
+      ptdv->SetTime(insert,begin,end);
+      cout <<" Event Status info  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+      cout << " Starting to update "<<*ptdv; 
+      if(  !ptdv->write(AMSDATADIR.amsdatabase))
+        cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*ptdv;
+    }
+  }
   // check old run & 
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
@@ -102,7 +124,7 @@ void AMSEvent::_init(){
    _validate(1);
 #endif
   }
-  SetTimeCoo();
+  SetTimeCoo(1);
 
 }
 
@@ -148,10 +170,10 @@ void AMSEvent::_signinitevent(){
  
 }
 
-void AMSEvent::SetTimeCoo(){    
+void AMSEvent::SetTimeCoo(integer rec){    
   AMSgObj::BookTimer.start("SetTimeCoo");
   // Allocate time & define the geographic coordinates
-  if(AMSJob::gethead()->isSimulation()){
+  if(AMSJob::gethead()->isSimulation() && !rec){
     static number dtime=AMSmceventg::Orbit.FlightTime/
       (GCFLAG.NEVENT+1-GCFLAG.IEVENT);
     number t2=
@@ -191,7 +213,7 @@ void AMSEvent::SetTimeCoo(){
     _SunTheta=0;
     _SunPhi=0;
   }
-  else {
+  else if(!AMSJob::gethead()->isSimulation() && rec){
     static integer hint=0;
     //get right record
     if( Array[hint].Time<=_time && 
@@ -560,21 +582,68 @@ for (int i=0;;){
 }
 //------------------------------------------------------------------
 void AMSEvent::event(){
-   AMSUser::InitEvent();
-   if(AMSJob::gethead()->isSimulation())_siamsevent();
-      _reamsevent();
-      if(AMSJob::gethead()->isCalibration())_caamsevent();
-}
-//------------------------------------------------------------------
-void AMSEvent::_siamsevent(){
-_sitkevent(); 
-_sitofevent(); 
-_siantievent(); 
-_sictcevent(); 
-_sitrigevent(); 
- if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
-}
-
+  if(!AMSStatus::isDBUpdate()){
+    uinteger status=AMSJob::gethead()->getstatustable()->getstatus(getid());
+    // compare status 
+    AMSgObj::BookTimer.start("EventStatus");
+    if(!(status & (1<<32))){    // Status exists
+      const int nsta=10;
+      uinteger Status[nsta];
+      Status[0]=((status & ((1<<4)-1)))+1;
+      Status[1]=((status>>4) & ((1<<1)-1))+1;
+      Status[2]=((status>>5) & ((1<<3)-1))+1;
+      Status[3]=((status>>8) & ((1<<1)-1))+1;
+      Status[4]=((status>>9) & ((1<<1)-1))+1;
+      Status[5]=((status>>10) & ((1<<5)-1))+1;
+      Status[6]=((status>>15) & ((1<<2)-1))+1;
+      Status[7]=((status>>17) & ((1<<2)-1))+1;
+      Status[8]=((status>>19) & ((1<<2)-1))+1;
+      Status[9]=((status>>21) & ((1<<2)-1))+1;
+      cout <<Status[3]-1<<" "<< STATUSFFKEY.status[3]<< endl;
+        uinteger local=0;
+      for(int i=0;i<nsta;i++){
+        local=0;
+        if(STATUSFFKEY.status[i]==0)continue;
+        else {
+          uinteger st=STATUSFFKEY.status[i];
+          for (int j=0;j<10;j++){
+            uinteger stbit=(st%10)>0?1:0;
+            //            cout <<stbit <<" "<<j<<" "<<Status[i]<<" "<<i<<endl;
+            if((stbit<<j) & Status[i]){
+              local=1;
+              break; 
+            }
+            st=st/10;
+          }
+        }
+        if(!local){
+          AMSgObj::BookTimer.stop("EventStatus");
+          return;
+        }
+      }
+    }
+    }
+    AMSgObj::BookTimer.stop("EventStatus");
+    
+    AMSUser::InitEvent();
+    if(AMSJob::gethead()->isSimulation())_siamsevent();
+    _reamsevent();
+    if(AMSJob::gethead()->isCalibration())_caamsevent();
+    _collectstatus();
+    if(AMSStatus::isDBUpdate()){
+      AMSJob::gethead()->getstatustable()->update(getrun(),getid(),getstatus(),gettime());
+    }
+  }
+  //------------------------------------------------------------------
+  void AMSEvent::_siamsevent(){
+    _sitkevent(); 
+    _sitofevent(); 
+    _siantievent(); 
+    _sictcevent(); 
+    _sitrigevent(); 
+    if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
+  }
+  
 void AMSEvent::_reamsevent(){
 
   geant d;
@@ -1251,6 +1320,7 @@ void AMSEvent::_writeEl(){
   int nws=myp->getlength();
 // Fill the ntuple
   EventNtuple* EN = AMSJob::gethead()->getntuple()->Get_event();
+  EN->EventStatus=getstatus();
   EN->Eventno=_id;
   EN->RawWords=nws;
   EN->Run=_run;
@@ -1686,3 +1756,65 @@ void AMSEvent::SetShuttlePar(){
 }
 
 AMSEvent::ShuttlePar AMSEvent::Array[60];
+
+
+AMSID AMSEvent::getTDVStatus(){
+  return AMSID(AMSJob::gethead()->getstatustable()->getname(),AMSJob::gethead()->isRealData());
+}
+
+
+void AMSEvent::_collectstatus(){
+  _status=0;
+  {
+    TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
+    if(ptr){
+      integer lvl3o=ptr->TrackerTrigger();
+      integer prescale = lvl3o>=32?1:0;
+      lvl3o=lvl3o%32;
+      _status=_status | lvl3o | (prescale<<4);
+      
+    }
+  }
+  {
+    AMSParticle *ptr=(AMSParticle*)getheadC("AMSParticle",0);
+    int npart=0;
+    if(ptr){
+      AMSContainer *ptrc=getC("AMSParticle",0);
+      npart=ptrc->getnelem();
+      if(npart>3)npart=3;
+      _status= _status | (npart<<21);
+      integer charge=ptr->getcharge()-1;
+      if(charge>7)charge=7;
+      _status=_status | (charge<<5);
+      number pmom=ptr->getmomentum();
+      integer sign=pmom<0?0:1;
+      _status=_status | (sign<<8);
+      sign=(ptr->getpbeta())->getbeta()<0?0:1;
+      _status=_status | (sign<<9);
+      integer pat=(ptr->getptrack())->getpattern();
+      if(pat>31)pat=31;
+      _status=_status | (pat<<10);
+       pat=(ptr->getpbeta())->getpattern();
+      integer spat=0;
+      if(pat==0)spat==0;
+      else if(pat<5)spat=1;
+      else spat=2;
+      _status=_status | (spat<<15);       
+    }
+  }
+  {
+    integer ctcl[2]={0,0};
+    for(int  i=0;i<2;i++){
+      AMSContainer *ptr=getC("AMSCTCCluster",i);
+      if(ptr)ctcl[i]=ptr->getnelem()>0?1:0;
+    }
+    integer ictc=ctcl[0]+ctcl[1];
+    _status=_status | (ictc<<17);
+  }
+  {
+      AMSContainer *ptr=getC("AMSAntiCluster",0);
+      integer ncl=ptr->getnelem();
+      if(ncl>3)ncl=3;
+      _status=_status | (ncl<<19);
+  }
+}

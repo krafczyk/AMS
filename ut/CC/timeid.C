@@ -69,8 +69,8 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0,
       }
 #endif
       //  Zero light saving hour
-      begin.tm_isdst=0;
-      end.tm_isdst=0;
+      //      begin.tm_isdst=0;
+      //      end.tm_isdst=0;
       _Begin=mktime(&begin); 
       _End=mktime(&end); 
       _Insert=_Begin;
@@ -213,18 +213,18 @@ integer AMSTimeID::write(char * dir){
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    if(AMSJob::gethead()->isCalibration()  & AMSJob::CTracker){
-     char name[255];
-     ostrstream ost(name,sizeof(name));
-     ost << "."<<AMSTrIdCalib::getrun()<<ends;
-     fnam+=name;     
-    }
-    else {
-     char name[255];
-     ostrstream ost(name,sizeof(name));
-     ost << "."<<AMSEvent::getSRun()<<ends;
-     fnam+=name;     
-    }
+    //      if(AMSJob::gethead()->isCalibration()  & AMSJob::CTracker){
+    //        char name[255];
+    //        ostrstream ost(name,sizeof(name));
+    //        ost << "."<<AMSTrIdCalib::getrun()<<ends;
+    //        fnam+=name;     
+    //      }
+    //      else {
+        char name[255];
+        ostrstream ost(name,sizeof(name));
+        ost << "."<<_Begin<<ends;
+        fnam+=name;     
+    //      }
     fbin.open((const char *)fnam,ios::out|binary|ios::trunc);
     if(fbin){
      uinteger * pdata;
@@ -261,6 +261,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
+    //cout <<run<<" "<<reenter<<" "<<getname()<<endl;
     if(run>0 && !reenter){
      fnam+=getname();
      fnam+= getid()==0?".0":".1";
@@ -277,6 +278,15 @@ integer AMSTimeID::read(char * dir, integer reenter){
       dflt=1;
     }
     else return -1;
+    if(AMSFFKEY.Update){
+      for(int i=0;i<AMSJob::gethead()->gettdvn();i++){
+        if( strcmp(AMSJob::gethead()->gettdvc(i),getname())==0 ){
+          // Never read tdv 
+          cerr<<"AMSTimeID::read-W-UpdateTDVSet "<<getname()<<", reading from DB is disabled"<<endl;
+          return -1;
+        }
+      }
+    }
     fbin.open((const char *)fnam,ios::in|binary);
     if(fbin){
 

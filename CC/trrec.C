@@ -238,12 +238,12 @@ integer AMSTrCluster::build(integer refit){
       for (j=left;j<center;j++){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
         if(j-center< -1 && j-left==0 &&  
-           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]) {
+           (id.checkstatus(AMSDBc::BAD) ||adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side])) {
           left++;
           continue;
         }
         if(j-center< 0 && j-left==0 &&
-           adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+           (id.checkstatus(AMSDBc::BAD) ||adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.))){
           left++;
           continue;
         }
@@ -252,12 +252,12 @@ integer AMSTrCluster::build(integer refit){
       for (j=right;j>center;j--){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
         if(j-center> 1 && j-right==0 &&  
-           adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side]) {
+           (id.checkstatus(AMSDBc::BAD) ||adc[j]/id.getsig()<TRCLFFKEY.Thr2R[side])) {
           right--;
           continue;
         }
         if(j-center> 0 && j-right==0 &&
-           adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+           (id.checkstatus(AMSDBc::BAD) ||adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.))){
           right--;
           continue;
         }
@@ -484,7 +484,7 @@ integer AMSTrCluster::buildWeak(integer refit){
           continue;
         }
         if(j-center< 0 && j-left==0 &&
-           adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+           (id.checkstatus(AMSDBc::BAD) ||adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.))){
           left++;
           continue;
         }
@@ -497,7 +497,7 @@ integer AMSTrCluster::buildWeak(integer refit){
           continue;
         }
         if(j-center> 0 && j-right==0 &&
-           adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.)){
+           (id.checkstatus(AMSDBc::BAD) ||adc[j]/id.getsig()<max(1.,TRCLFFKEY.Thr2R[side]/3.))){
           right--;
           continue;
         }

@@ -830,7 +830,7 @@ void AMSTrIdCalib::_update(){
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time(&insert);
-      ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+      ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
       cout <<" Tracker H/K  info has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
       cout <<" Time Insert "<<ctime(&insert);
@@ -843,7 +843,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
-     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+     ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
      cout <<" Time Insert "<<ctime(&insert);
@@ -860,7 +860,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
-     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+     ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
      cout <<" Time Insert "<<ctime(&insert);
@@ -871,7 +871,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
-     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+     ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
      cout <<" Time Insert "<<ctime(&insert);
@@ -885,7 +885,7 @@ void AMSTrIdCalib::_update(){
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time(&insert);
-      ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+      ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
       cout <<" Tracker H/K  info has been updated for "<<*ptdv;
       ptdv->gettime(insert,begin,end);
       cout <<" Time Insert "<<ctime(&insert);
@@ -898,7 +898,7 @@ void AMSTrIdCalib::_update(){
       //      ptdv->UpdateMe()=1;
       //      ptdv->UpdCRC();
       //      time(&insert);
-      //      ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+      //      ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
       //      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
       //      ptdv->gettime(insert,begin,end);
       //      cout <<" Time Insert "<<ctime(&insert);
@@ -913,7 +913,7 @@ void AMSTrIdCalib::_update(){
      ptdv->UpdateMe()=1;
      ptdv->UpdCRC();
      time(&insert);
-     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+     ptdv->SetTime(insert,getrun()-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
      ptdv->gettime(insert,begin,end);
      cout <<" Time Insert "<<ctime(&insert);

@@ -117,6 +117,13 @@ void AMSJob::data(){
   SELECTFFKEY.Event=0;
   FFKEY("SELECT",(float*)&SELECTFFKEY,sizeof(SELECTFFKEY_DEF)/sizeof(integer),"MIXED");
 
+  { 
+    for(int i=0;i<32;i++){
+      STATUSFFKEY.status[i]=0;
+    }
+  }
+  FFKEY("STATUS",(float*)&STATUSFFKEY,sizeof(STATUSFFKEY_DEF)/sizeof(integer),"MIXED");
+
   AMSFFKEY.Simulation=0; // Simulation
   AMSFFKEY.Reconstruction=1; // Reconstruction
   AMSFFKEY.Jobtype=0; // Default
@@ -832,6 +839,8 @@ void AMSJob::udata(){
    }
   //#endif
 
+
+
 {
   int i,j,k;
   for(i=0;i<2;i++){
@@ -989,8 +998,11 @@ _siamsinitjob();
 
 _reamsinitjob();
 
+
+
 if(isCalibration())_caamsinitjob();
 _timeinitjob();
+_dbinitjob();
 cout << *this;
 }
 void AMSJob::_siamsinitjob(){
@@ -1002,6 +1014,13 @@ void AMSJob::_siamsinitjob(){
   _sictcinitjob();
   _sitriginitjob();
 }
+
+
+void AMSJob::_dbinitjob(){
+  AMSgObj::BookTimer.book("EventStatus");
+  AMSStatus::init();
+}
+
 
 void AMSJob::_sitriginitjob(){
   if(LVL1FFKEY.RebuildLVL1)cout <<"AMSJob::_sitriginitjob-W-TriggerLvl1 Will be rebuild from TOF data; Original Trigger info will be lost"<<endl;
@@ -1285,14 +1304,20 @@ AMSgObj::BookTimer.book("RECTCEVENT");
 }
 
 void AMSJob::_reaxinitjob(){
-AMSgObj::BookTimer.book("REAXEVENT");
-AMSgObj::BookTimer.book("ReAxRefit");
-if(AMSFFKEY.Update)AMSCharge::init();
+  AMSgObj::BookTimer.book("REAXEVENT");
+  AMSgObj::BookTimer.book("ReAxRefit");
+  if(AMSFFKEY.Update){
+    for(int i=0;i<gethead()->gettdvn();i++){
+      if( strcmp(gethead()->gettdvc(i),"ChargeLkhd")==0 ){
+        AMSCharge::init();
+      }
+    }
+  }
 
 
-const   int nids = 17;
-
-int16u ids[nids] =
+  const   int nids = 17;
+  
+  int16u ids[nids] =
   { 0x200,
     0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1,  //  TOF Raw
     0x1680, 0x1740,                                           //  TRK Reduced
@@ -1301,22 +1326,22 @@ int16u ids[nids] =
     0x0440,                                                   //  Level-1
     0x1200                                                    //  Level-3
   };
-
-
-char   *ids_names[]  = {"Length (words) GenBlock    ",
-                        "Length (words) TOF(raw) 01 ",
-                        "Length (words) TOF(raw) 31 ",
-                        "Length (words) TOF(raw) 41 ",
-                        "Length (words) TOF(raw) 71 ",
-                        "Length (words) TOF(raw) 03 ",
-                        "Length (words) TOF(raw) 33 ",
-                        "Length (words) TOF(raw) 43 ",
-                        "Length (words) TOF(raw) 73 ",
-                        "Length (words) TRK(red) 32",
-                        "Length (words) TRK(red) 72",
-                        "Length (words) TRK(raw) 32",
+  
+  
+  char   *ids_names[]  = {"Length (words) GenBlock    ",
+                          "Length (words) TOF(raw) 01 ",
+                          "Length (words) TOF(raw) 31 ",
+                          "Length (words) TOF(raw) 41 ",
+                          "Length (words) TOF(raw) 71 ",
+                          "Length (words) TOF(raw) 03 ",
+                          "Length (words) TOF(raw) 33 ",
+                          "Length (words) TOF(raw) 43 ",
+                          "Length (words) TOF(raw) 73 ",
+                          "Length (words) TRK(red) 32",
+                          "Length (words) TRK(red) 72",
+                          "Length (words) TRK(raw) 32",
                         "Length (words) TRK(raw) 72",
-                        "Length (words) TRK(mix) 32",
+                          "Length (words) TRK(mix) 32",
                         "Length (words) TRK(mix) 72",
                         "Length (words) Level1 block ",
                         "Length (words) Level3 block "};
@@ -1347,6 +1372,15 @@ void AMSJob::_retrdinitjob(){
 AMSgvolume * AMSJob::getgeom(AMSID id){
   if(id.getname() ==0 && id.getid()==0)id=AMSID(AMSDBc::ams_name,1);
   return (AMSgvolume*)AMSJob::JobMap.getp(id);
+}
+
+AMSStatus * AMSJob::getstatustable(){
+  static AMSStatus * _Head=0;
+  if(!_Head){
+    AMSID id("EventStatusTable",0);
+    _Head= (AMSStatus*)AMSJob::JobMap.getp(id);
+  }
+  return _Head;
 }
 
 
@@ -1402,6 +1436,8 @@ gethead()->addup( &TID);
 {
 tm begin;
 tm end;
+begin.tm_isdst=0;
+end.tm_isdst=0;
 begin.tm_sec=TKFIELD.isec[0];
 begin.tm_min=TKFIELD.imin[0];
 begin.tm_hour=TKFIELD.ihour[0];
@@ -1425,6 +1461,8 @@ TID.add (new AMSTimeID(AMSID("MagneticFieldMap",isRealData()),
 {
 tm begin;
 tm end;
+begin.tm_isdst=0;
+end.tm_isdst=0;
 begin.tm_sec=TRMCFFKEY.sec[0];
 begin.tm_min=TRMCFFKEY.min[0];
 begin.tm_hour=TRMCFFKEY.hour[0];
@@ -1502,6 +1540,8 @@ TID.add (new AMSTimeID(AMSID("TrackerCmnNoise",isRealData()),
 {
 tm begin;
 tm end;
+begin.tm_isdst=0;
+end.tm_isdst=0;
 begin.tm_sec=TOFRECFFKEY.sec[0];
 begin.tm_min=TOFRECFFKEY.min[0];
 begin.tm_hour=TOFRECFFKEY.hour[0];
@@ -1536,6 +1576,8 @@ TID.add (new AMSTimeID(AMSID("Tofmcscans",isRealData()),
 {
 tm begin;
 tm end;
+begin.tm_isdst=0;
+end.tm_isdst=0;
 begin.tm_sec=ANTIRECFFKEY.sec[0];
 begin.tm_min=ANTIRECFFKEY.min[0];
 begin.tm_hour=ANTIRECFFKEY.hour[0];
@@ -1567,6 +1609,8 @@ TID.add (new AMSTimeID(AMSID("Antisccal",isRealData()),
 {
 tm begin;
 tm end;
+begin.tm_isdst=0;
+end.tm_isdst=0;
 begin.tm_sec=CTCRECFFKEY.sec[0];
 begin.tm_min=CTCRECFFKEY.min[0];
 begin.tm_hour=CTCRECFFKEY.hour[0];
@@ -1593,6 +1637,8 @@ TID.add (new AMSTimeID(AMSID("CTCccal",isRealData()),
 {
 tm begin;
 tm end;
+begin.tm_isdst=0;
+end.tm_isdst=0;
 begin.tm_sec=AMSCharge::_sec[0];
 begin.tm_min=AMSCharge::_min[0];
 begin.tm_hour=AMSCharge::_hour[0];
@@ -1644,6 +1690,20 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
                          sizeof(AMSEvent::Array),(void*)AMSEvent::Array));
 }
 
+{
+  tm begin=AMSmceventg::Orbit.Begin;
+  tm end;
+  if(AMSFFKEY.Update){
+    end=AMSmceventg::Orbit.End;
+  }
+  else end=AMSmceventg::Orbit.Begin;
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
+                          isRealData()),begin,end,getstatustable()->getsize(),
+                          getstatustable()->getptr()));
+  ptdv->UpdateMe()=0;   
+}
+
+
 if (AMSFFKEY.Update){
 
 #ifdef __DB__
@@ -1661,6 +1721,7 @@ if (AMSFFKEY.Update){
   } 
 #endif  
 }
+
 }
 
 
@@ -1668,7 +1729,7 @@ AMSTimeID * AMSJob::gettimestructure(){
       AMSID id("TDV:",0);    
      AMSNode *p=JobMap.getp(id);
      if(!p){
-      cerr << "AMSJob::gettimestructe-F-no time structer found"<<endl;
+      cerr << "AMSJob::gettimestructure-F-no time structure found"<<endl;
       exit(1);
      }
      else return  (AMSTimeID*)p;
@@ -1677,7 +1738,7 @@ AMSTimeID * AMSJob::gettimestructure(){
 AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
      AMSNode *p=JobMap.getp(id);
      if(!p){
-       cerr << "AMSJob::gettimestructe-F-no time structer found "<<id<<endl;
+       cerr << "AMSJob::gettimestructure-F-no time structure found "<<id<<endl;
       exit(1);
      }
      else return  (AMSTimeID*)p;
@@ -1807,8 +1868,28 @@ void AMSJob::_axendjob(){
     AMSUser::EndJob(); 
 }
 
-void AMSJob::_dbendjob()
-{
+void AMSJob::_dbendjob(){
+
+
+  //Status Stuff
+
+  if( AMSFFKEY.Update && AMSStatus::isDBUpdate()){
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time_t begin,end,insert;
+      begin=AMSJob::gethead()->getstatustable()->getbegin();
+      end=AMSJob::gethead()->getstatustable()->getend();
+      time(&insert);
+      ptdv->SetTime(insert,begin,end);
+      cout <<" Event Status info  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+  }
+
+
 #ifdef __DB__
   if (AMSEvent::_checkUpdate() == 1) {
    Message("AMSJob::_dbendjob -I- UpdateMe is set. Update database and tables.");
@@ -1828,7 +1909,7 @@ void AMSJob::_dbendjob()
      }
     }
 #endif
-} 
+}
 
 
 
