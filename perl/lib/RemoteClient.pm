@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.184 2003/06/03 07:48:35 alexei Exp $
+# $Id: RemoteClient.pm,v 1.185 2003/06/04 08:42:47 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -45,6 +45,7 @@ my     $rccgi      ='http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form';
 my     $rccgiMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/rc.mysql.cgi?queryDB=Form';
 
 my     $rchtml='http://pcamsf0.cern.ch/rc.html';
+
 my     $rchtmlMySQL='http://ams.cern.ch/AMS/Computing/mcproduction/rc.mysql.html';
 
 my     $validatecgi      ='http://pcamsf0.cern.ch/cgi-bin/mon/validate.o.cgi';
@@ -67,6 +68,9 @@ my %fields=(
         AMSDSTOutputDir=>undef,
         CERN_ROOT=>undef,
         ROOTSYS  =>undef,
+        HTTPserver=>'pcamsf0.cern.ch',
+        HTTPhtml  =>'http://pcamsf0.cern.ch/',
+        HTTPcgi   =>'http://pcamsf0.cern.ch/cgi-bin/mon',
         UploadsDir=>undef,
         UploadsHREF=>undef,
         FileDB=>undef,
@@ -128,6 +132,10 @@ return $mybless;
 
 sub Init{
     my $self = shift;
+#
+    my $sql  = undef;
+    my $ret  = undef;
+
 #just temporary skeleton to check basic princ
 #should be replaced by real db servers
 
@@ -248,6 +256,13 @@ my %mv=(
 #sqlserver
     $self->{sqlserver}=new DBSQLServer();
     $self->{sqlserver}->Connect();
+#
+   $sql = "SELECT myvalue from Environment where mykey='HTTPserver'";
+   $ret=$self->{sqlserver}->Query($sql);
+     if( defined $ret->[0][0]){
+       $self->{HTTPserver}=$ret->[0][0];
+     } 
+   $self->set_URL();
 
 # mySQL/Oracle 
     if($self->{sqlserver}->{dbdriver} =~ m/mysql/){
@@ -263,8 +278,8 @@ my %mv=(
      $self->{CERN_ROOT}=$dir;
  }
  else{
-     my $sql="select myvalue from Environment where mykey='CERN_ROOT'";
-     my $ret=$self->{sqlserver}->Query($sql);
+     $sql="select myvalue from Environment where mykey='CERN_ROOT'";
+     $ret=$self->{sqlserver}->Query($sql);
      if( defined $ret->[0][0]){
        $self->{CERN_ROOT}=$ret->[0][0];
      }
@@ -288,8 +303,8 @@ my %mv=(
  }
 #
     my $key='UploadsDir';
-    my $sql="select myvalue from Environment where mykey='".$key."'";
-    my $ret=$self->{sqlserver}->Query($sql);
+    $sql="select myvalue from Environment where mykey='".$key."'";
+    $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
     }
@@ -2067,7 +2082,8 @@ sub Connect{
    print "<a href=$amshome_page>AMS</a>\n";
    print "&nbsp; <a href=$amscomp_page>Computing</a>\n";
    print "</b>\n";
-   print "&nbsp;<b><a href=\"http://pcamsf0.cern.ch/mm.html\">MC production</a>\n";
+   my $href=$self->{HTTPhtml}."/mm.html";
+   print "&nbsp;<b><a href=$href>MC production</a>\n";
    print "</b></td>\n";
    print "<td align=right> <font size=\"-1\"> &nbsp;  <!-- top right corner  --> </font></td>\n";
    print "</tr>\n";
@@ -2090,7 +2106,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
    print "</ul>\n";
    print "<font size=\"2\" color=\"black\">\n";
    print "<li> Catalogues are updated nightly.\n";
-   print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/print.gamma.test.cgi\"> here </a>\n";
+   my $href = $self->{HTTPcgi}."/print.gamma.test.cgi";
+   print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=$href> here </a>\n";
    print "<p>\n";
     print "<TR><B><font color=green size= 4> Select by key(s) (you can select multiple keys) </font>";
     print "<p>\n";
@@ -5030,7 +5047,8 @@ sub queryDB {
   print "<a href=$amshome_page>AMS</a>\n";
   print "&nbsp; <a href=$amscomp_page>Computing</a>\n";
   print "</b>\n";
-   print "&nbsp;<b><a href=\"http://pcamsf0.cern.ch/mm.html\">MC production</a>\n";
+   my $href=$self->{HTTPhtml}."/mm.html";
+   print "&nbsp;<b><a href=$href>MC production</a>\n";
    print "</b></td>\n";
   print "<td align=right> <font size=\"-1\"> &nbsp;  <!-- top right corner  --> </font></td>\n";
   print "</tr>\n";
@@ -5789,7 +5807,7 @@ sub listJobs {
      foreach my $cite (@{$ret}) {
       my $rc = $cite->[0];
       print "</th> <th><small> \n";
-      $href = "http://pcamsf0.cern.ch/cgi-bin/mon/rc.dsp.cgi\#jobs-".$rc;
+      $href = $self->{HTTPcgi}."/rc.dsp.cgi\#jobs-".$rc;
       print "<a href= $href target=\"status\"> <b><font color=blue>$rc</b></font></a>\n";
      }
      print "</TR></TABLE> \n";
@@ -5873,8 +5891,9 @@ sub listRuns {
     my $rr   = 0;
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
+     my $href=$self->{HTTPcgi}."/rc.o.cgi?queryDB=Form";
      print "<tr><font color=blue><b><i> Only recent 100 runs are listed, to get complete list 
-            <a href=http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form> click here</a>
+            <a href=$href> click here</a>
             </b><i></font></tr>\n";
 
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -5913,10 +5932,10 @@ sub listNtuples {
     my $self = shift;
     my $nn   = 0;
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
-#     print "<TR><B><font color=green size= 5><a href=$validatecgi><b><font color=green> MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
      print "<TR><B><font color=green size= 5><b>MC NTuples </font></b>";
+     my $href = $self->{HTTPcgi}."/rc.o.cgi?queryDB=Form";
      print "<tr><font color=blue><b><i> Only recent 100 files are listed, to get complete list 
-            <a href=http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form> click here</a>
+            <a href=$href> click here</a>
             </b><i></font></tr>\n";
      print "<p>\n";
 
@@ -6147,7 +6166,8 @@ sub ht_init{
      print  "<a href=$amshome_page>AMS</a>\n";
      print "&nbsp; <a href=$amscomp_page>Computing</a>\n";
      print "</b></font>\n";
-      print "&nbsp;<b><a href=\"http://pcamsf0.cern.ch/mm.html\">MC production</a>\n";
+      my $href=$self->{HTTPhtml}."/mm.html";
+      print "&nbsp;<b><a href=$href>MC production</a>\n";
     print "</b></td>\n";
     print "<td align=right> <font size=\"-1\">\n";
     print "&nbsp;</font></td></tr>\n";
@@ -7551,4 +7571,25 @@ sub set_root_env {
     $ENV{"PATH"}=$ENV{"PATH"}.":".$ENV{"ROOTSYS"}."/bin";
     $ENV{"LD_LIBRARY_PATH"}=$ENV{"LD_LIBRARY_PATH"}.":".$ENV{"ROOTSYS"}."/lib";
     1;
+}
+
+sub set_URL {
+
+    my $self = shift;
+    my $html= "http://".$self->{HTTPserver};
+    my $cgi = "http://".$self->{HTTPserver}."/cgi-bin/mon";
+    $downloadcgi       =$cgi."/download.o.cgi";
+    $downloadcgiMySQL  =$cgi."/download.mysql.cgi";
+
+    $monmcdb      =$cgi."/monmcdb.o.cgi";
+    $monmcdbMySQL =$cgi."/monmcdb.mysql.cgi";
+
+    $rccgi      =$cgi."/rc.o.cgi?queryDB=Form";
+    $rccgiMySQL =$cgi."/rc.mysql.cgi?queryDB=Form";
+
+    $rchtml=$html."/rc.html";
+
+    $validatecgi      =$cgi."/validate.o.cgi";
+    $validatecgiMySQL =$cgi."/validate.mysql.cgi";
+
 }
