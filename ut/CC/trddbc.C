@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.36 2003/03/31 09:56:42 choutko Exp $
+//  $Id: trddbc.C,v 1.37 2003/04/01 10:49:00 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -14,7 +14,7 @@ char * TRDDBc::_PipesMedia="TRDALUMINIUM";
 char * TRDDBc::_CutoutsMedia="VACUUM";
 char * TRDDBc::_TubesMedia="TRDCapton";
 char * TRDDBc::_ITubesMedia="TRDGas";
-char * TRDDBc::_WiresMedia="TUNGSTEN";
+char * TRDDBc::_WiresMedia="TUNGSTENTRD";
 char * TRDDBc::_RadiatorMedia="VACUUM";  // Really hole in radiator
 char * TRDDBc::_TubesBoxMedia="TRDFoam";
 char * TRDDBc::_SpacerMedia="TRDCarbonFiber";

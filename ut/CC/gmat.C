@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.81 2003/03/18 11:43:08 choutko Exp $
+//  $Id: gmat.C,v 1.82 2003/04/01 10:49:00 kscholbe Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -138,6 +138,7 @@ mat.add (new AMSgmat("ALUMINIUM",26.98, 13., 1.35, 17.8, 74.4));
 mat.add (new AMSgmat("IRON", 55.85,26., 7.87  ,1.76,17.1));
 mat.add (new AMSgmat("COPPER", 63.54,29.,8.96  ,1.43,14.8));
 mat.add (new AMSgmat("TUNGSTEN",183.85,74., 19.3  ,0.35,10.3));
+mat.add (new AMSgmat("TUNGSTENTRD",183.85,74., 19.3  ,0.35,10.3));
 mat.add (new AMSgmat("LEAD",207.19,82., 11.35 ,0.56,18.5));
 mat.add (new AMSgmat("URANIUM",238.03,92., 18.95 ,0.32,12. ));
 mat.add (new AMSgmat("AIR",14.61,7.3, 0.001205,30423.24,67500.));
@@ -570,6 +571,10 @@ else{
  tmed.add (pvac );
  pvac=new AMSgtmed("COPPERTRD","COPPER",0);
  uwbuf[2]=10;
+ pvac->setubuf(nwbuf,uwbuf);
+ tmed.add (pvac );
+ pvac=new AMSgtmed("TUNGSTENTRD","TUNGSTEN",0);
+ uwbuf[2]=12;
  pvac->setubuf(nwbuf,uwbuf);
  tmed.add (pvac );
 }
