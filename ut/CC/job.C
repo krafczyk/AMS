@@ -1286,7 +1286,7 @@ AMSgObj::BookTimer.book("REAXEVENT");
 if(AMSFFKEY.Update)AMSCharge::init();
 
 
-const   int nids = 19;
+const   int nids = 17;
 
 int16u ids[nids] =
   { 0x200,
