@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.43 2003/04/07 12:33:15 choutko Exp $
+#  $Id: Mopt_Root,v 1.44 2003/04/23 09:41:35 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -161,7 +161,7 @@ ifdef AMSPROFILE
 endif
 
 ifdef AMSDEBUG
-  CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -I../db  -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include $(PFLAGS)
+  CFLAGSB=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -I../db  -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include $(PFLAGS)
 else
   CFLAGSB=      -D__BATCH__  -I../include    -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include  $(PFLAGS)
 endif
@@ -700,8 +700,8 @@ CLIENT=$(EXE)gbatch-orbit.exe
 
 producer:	$(CLIENT)
 
-$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSA)
-	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSA)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
+$(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC)
+	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 $(OBJECTSE):         $(SRCSCPP)
 	$(CPP)  -c $(CFLAGS) $(SRCSCPP) 
