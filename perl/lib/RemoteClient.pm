@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.35 2002/03/28 12:59:43 alexei Exp $
+# $Id: RemoteClient.pm,v 1.36 2002/03/28 14:14:30 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1256,7 +1256,7 @@ sub Connect{
                foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $avail and $fs->{available}>$minspace) {
                    $avail = $fs->{available};
-                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                   $ntdir = $fs->{disk}.$fs->{path};
                  }
                 } 
                if ($avail > $minspace) {
@@ -1264,7 +1264,7 @@ sub Connect{
                 foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $minspace and $fs->{available} != $avail) {
                    $avail = $fs->{available};
-                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                   $ntdir = $fs->{disk}.$fs->{path};
                    goto DDTAB;
                  }
                }
@@ -1428,7 +1428,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $avail and $fs->{available}>$minspace) {
                    $avail = $fs->{available};
-                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                   $ntdir = $fs->{disk}.$fs->{path};
                  }
                 } 
                if ($avail > $minspace) {
@@ -1436,7 +1436,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                 foreach my $fs (@{$self->{FilesystemT}}){
                  if ($fs->{available} > $minspace and $fs->{available} != $avail) {
                    $avail = $fs->{available};
-                   $ntdir = $fs->{host}.":".$fs->{disk}.$fs->{path};
+                   $ntdir = $fs->{disk}.$fs->{path};
                    goto DDTAB;
                  }
                }
@@ -2986,10 +2986,9 @@ sub listDisks {
     my $sql;
     $sql="SELECT MAX(timestamp) FROM filesystems";
     my $r4=$self->{sqlserver}->Query($sql);
-    foreach my $tnt (@{$r4}){
-              $lastupd = localtime($tnt->[0]);
-    }
-
+    if( defined $r4->[0][0]){
+      $lastupd=localtime($r4->[0][0]);
+     }
      print "<b><h2><A Name = \"disks\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><b><font color=green> Disks and Filesystems </font></b>";
      if (defined $lastupd) {
