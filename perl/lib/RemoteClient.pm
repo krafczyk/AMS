@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.303 2005/03/09 12:25:12 alexei Exp $
+# $Id: RemoteClient.pm,v 1.304 2005/03/11 10:35:16 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -99,7 +99,7 @@ use File::Find;
 use Benchmark;
 use Class::Struct;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA castorPath  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getProductionPeriods getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips);
 
 # debugging
 my $benchmarking = 0;
@@ -146,6 +146,7 @@ my     $rmprompt        = 1; # prompt before files removal
  my @FailedRuns   = [];  # failed runs
  my @GoodRuns     = [];  # marked as 'Completed'
  my @BadRuns      = [];  # marked as 'Unckecked' or 'Failed'
+ my @BadRunID     = [];  # files belongs to obsolete runs
  my @CheckedDSTs  = [];  # dsts checked
  my @GoodDSTs     = [];  # copied to final destination
  my @BadDSTs      = [];  # marked as bad because of different reasons
@@ -6836,14 +6837,14 @@ sub listDisks {
             my $r4=$self->{sqlserver}->Query($sql);
             if (defined $r4->[0][0]) {
              $totalGBMC = $totalGBMC + $r4->[0][0];
-             $size   = $size + $dd->[3];
-             $used   = $used + $dd->[4];
-             $avail  = $avail+ $dd->[5];
-             $status   = trimblanks($dd->[6]);
+             $used   = $used + $r4->[0][0];
             }    
            }
-         }
-            $usedGBMC = sprintf("%6.1f",$used/1000);
+          }
+           $size   = $size + $dd->[3];
+           $avail  = $avail+ $dd->[5];
+           $status   = trimblanks($dd->[6]);
+           $usedGBMC = sprintf("%6.1f",$used/1000);
             print "<tr><font size=\"2\">\n";
             my $color=statusColor($status);
             print "<td><b> $fs </b></td>
@@ -7179,7 +7180,7 @@ sub listNtuples {
      my $sql="SELECT Ntuples.run, Ntuples.jid, Ntuples.nevents, Ntuples.neventserr, 
                      Ntuples.timestamp, Ntuples.status, Ntuples.path
               FROM   Ntuples
-              WHERE  Ntuples.timestamp > $time24h  
+              WHERE  Ntuples.timestamp > $time24h AND Ntuples.path NOT LIKE '/castor/cern.ch%'   
               ORDER  BY Ntuples.timestamp DESC, Ntuples.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td width=10% align=left><b><font color=\"blue\" > JobId </font></b></td>";
@@ -7667,7 +7668,7 @@ sub parseJournalFiles {
 
  my $firstjobtime = 0;      # first job order time
  my $lastjobtime  = 0;      # last
- my $cid          = undef;
+ my $cid          = -1;
  my $sql          = undef;
  my $ret          = undef;
  my $dbonly       = 0;
@@ -7795,6 +7796,7 @@ sub parseJournalFiles {
  $BadDSTCopy[$i]   = 0;  # doCopy failed to copy DST
  $BadCRCi[$i]      = 0;  # dsts with crc error (before copying)
  $BadCRCo[$i]      = 0;  # dsts with crc error (after copying)
+ $BadRunID[$i]     = 0;  # Runs with oboslete ID
  $gbDST[$i]        = 0;  # GB of DSTs
 #-
 }
@@ -7807,14 +7809,16 @@ sub parseJournalFiles {
  $sql = "SELECT dirpath,journals.timelast,name,journals.cid  
               FROM journals,cites WHERE journals.cid=cites.cid";
  $ret = $self->{sqlserver}->Query($sql);
+
  
  if(defined $ret->[0][0]){
   foreach my $jou (@{$ret}){
    $nCheckedCite++;
    my $timenow    = time();
    my $dir        = trimblanks($jou->[0]);  # journal file's path
-   my $timestamp  = trimblanks($jou->[1]);  # time of latest processed file
    my $cite       = trimblanks($jou->[2]);  # cite
+   my $timestamp  = trimblanks($jou->[1]);  # time of latest processed file
+   my $lastcheck  = EpochToDDMMYYHHMMSS($timestamp);
 
    if ( $cid != $jou->[3]) {
     $cid        = $jou->[3];
@@ -7830,8 +7834,6 @@ sub parseJournalFiles {
    }
 #-
   }
-
-   my $lastcheck  = EpochToDDMMYYHHMMSS($timestamp);
    $JouDirPath[$nCheckedCite]=$cite;
    $JouLastCheck[$nCheckedCite] = $lastcheck;
    my $title  = "Cite : ".$cite.", Directory : ".$dir." Last Check ".$lastcheck;
@@ -7879,8 +7881,9 @@ sub parseJournalFiles {
        $fid  =~ s/.journal//;
        if ($fid < $minJobID) {
         if ($webmode == 0) {
-           print "ParseJournalFiles -W- skip $joudir/$file invalid JID \n";
+           $self->amsprint("ParseJournalFiles -W- skip $joudir/$file invalid JID \n",0);
         }
+        $BadRunID[$cite]++;        
         next; 
        }
 
@@ -9662,13 +9665,15 @@ sub printParserStat {
 
    for (my $i=0; $i<$nCheckedCite+1; $i++) {
      print " \n";
-     my $cj = sprintf ("%-20.15s %-20.40s %-50.30s","Cite : $JouDirPath[$i]", "Latest Journal : $JouLastCheck[$i]", "New Files : $JournalFiles[$i]");
+     my $cj = 
+              sprintf ("%-20.15s %-20.40s %-50.30s",
+                       "Cite : $JouDirPath[$i]", "Latest Journal : $JouLastCheck[$i]", "New Files : $JournalFiles[$i]");
      print $cj;
      print FILEV "\n",$cj;
      if ($JournalFiles[$i] > 0) {
       my $l0 = "   Runs (Checked, Good, Bad, Failed) :  $CheckedRuns[$i], $GoodRuns[$i],  $BadRuns[$i], $FailedRuns[$i] \n";
       my $l1 = "   DSTs (Checked, Good, Bad, CRCi, CopyFail, CRCo) :  ";
-      my $l2 = "$CheckedDSTs[$i],  $GoodDSTs[$i], $BadDSTs[$i], $BadCRCi[$i], $BadDSTCopy[$i], $BadCRCo[$i] \n";
+      my $l2 = "$CheckedDSTs[$i],  $GoodDSTs[$i], $BadDSTs[$i], $BadCRCi[$i], $BadDSTCopy[$i], $BadCRCo[$i], $BadRunID[$i] \n";
       print "\n ",$l0,$l1,$l2;
       print FILEV "\n",$l0,$l1,$l2;
 
@@ -11818,6 +11823,90 @@ sub updateDSTPath {
      print "File found twice     : $foundtwice \n";
      foreach my $f (@ErrMultFound) { print "$f \n";}
 }
+
+sub castorPath {
+ my $HelpTxt = "
+     set DST path in NTuples table to castor
+
+     -h    - print help
+     -d    - db path. -d:dir
+     -v    - verbose mode
+     -u    - update mode
+
+     ./castorPath.cgi -v -d:/d0dah1/MC/AMS02/2004 
+";
+
+  my $self         = shift;
+  my $sql          = undef;
+  my $nFiles          = 0;   # files matched DST path
+  my $nUpdated        = 0;   # DST path updated
+  my $nError          = 0;   # error in DST path
+  my $notCopied       = 0;   # file not copied to CASTOR
+
+  my $dbpath       = undef;
+  my $update       = 0;
+  my $castorPrefix = '/castor/cern.ch/ams';
+
+  my $whoami = getlogin();
+  if ($whoami =~ 'ams') {
+  } else {
+   print  "castorPath -ERROR- script cannot be run from account : $whoami \n";
+   return 1;
+  }
+
+  foreach my $chop  (@ARGV){
+
+    if($chop =~/^-d:/){$dbpath=unpack("x3 A*",$chop);}
+
+    if ($chop =~/^-v/) {$verbose = 1;}
+
+    if ($chop =~/^-u/) {$update = 1;}
+
+    if ($chop =~/^-h/) {print "$HelpTxt \n";return 1;}
+   }
+
+   if (not defined $dbpath) {print "ERROR - -p option is mandatory. Quit.\n"; return 1;}
+
+   my $timenow = time();
+
+   $sql = "SELECT path, castortime FROM ntuples WHERE PATH LIKE '$dbpath%'";
+   my $ret=$self->{sqlserver}->Query($sql);
+   if (not defined $ret->[0][0]) {
+     print "DB path : $dbpath \n";
+     print "$sql \n";
+     print "N O T     F O U N D   I N     D B \n";
+     return 1;
+    } else {
+     foreach my $d (@{$ret}){
+         $nFiles++;
+         my $dst    = $d->[0];
+         my $ctime  = $d->[1];
+         if ($ctime > 0) {
+          my @junk = split("MC",$dst);
+          if (defined $junk[1]) {
+           my $castorpath = $castorPrefix."/MC".$junk[1];    
+           if ($verbose) {print "$castorpath \n";}
+           $nUpdated++;
+           if ($update == 1) {
+            $sql = "UPDATE ntuples SET PATH='$castorpath', timestamp=$timenow  WHERE path='$dst'";
+            $self->{sqlserver}->Update($sql);
+           }
+          } else {
+             $nError++;
+             print "Error - unknown DST path $dst \n";
+          }
+       } else {
+           $notCopied++;
+           print "NO UPDATE (castorflag = 0) : $dst \n ";
+       } 
+     }
+    }
+     print "DSTs matched $dbpath     : $nFiles \n";
+     print "DSTs records updated     : $nUpdated \n";
+     print "DST path error           : $nError \n";
+     print "DST NO UPDATE            : $notCopied \n";
+}
+
 
 #
 # Subroutines to fill datasets and jobs description tables
