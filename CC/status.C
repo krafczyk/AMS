@@ -24,7 +24,7 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time){
   static time_t oldtime=0;
   integer timechanged= time!=oldtime?1:0;
   oldtime=time;
-  if(_Nelem>0 && evt<_Status[0][_Nelem-1]){
+  if(run==_Run && _Nelem>0 && evt<_Status[0][_Nelem-1]){
     cerr <<"AMSStatus::isFull-E-EventSequenceBroken "<<_Nelem<<" "<<run<<" "<<evt<<" "<<_Status[0][_Nelem-1]<<endl;
    _Errors++;
    return 1;
