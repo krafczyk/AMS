@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.91 2003/04/08 13:41:44 choutko Exp $
+# $Id: RemoteClient.pm,v 1.92 2003/04/08 14:55:52 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1936,7 +1936,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
 
 
             print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
-            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
+            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=-1>\n"; 
           print "<br>\n";
           print "<input type=\"submit\" name=\"BasicQuery\" value=\"Submit\"></br><br>        ";
           htmlReturnToMain();
@@ -2240,6 +2240,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n"; 
            print "<br>\n";
            print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit Request\"></br><br>        ";
+           print "<a href=load.cgi?$self->{UploadsHREF}/Help.txt target=\"_blank\">H E L P \n";
            htmlReturnToMain();
            htmlBottom();
              }
@@ -2637,7 +2638,7 @@ print qq`
                 last;
             }
          }
-        }
+     }
         if(not defined $templatebuffer){
             $self->ErrorPlus("Could not find file for $template template.");
         }
