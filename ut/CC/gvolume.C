@@ -5,7 +5,7 @@
 integer AMSgvolume::debug=0;
 geant AMSgvolume::dgeant=1.e-4;
 
-
+/*
 AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
@@ -17,10 +17,23 @@ AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[],
    _coo=_cooA;
    if(shape)strcpy(_shape,shape);
    if(gonly)strcpy(_gonly,gonly);
-   UCOPY(par,_par,6*sizeof(par[0])/4);
+   UCOPY(par,_par,10*sizeof(par[0])/4);
    UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
    UCOPY(nrm,_nrmA,3*3*sizeof(nrm[0][0])/4);
    amsprotected::transpose(_nrmA,_inrmA);
+//  Check rotmno=0 here
+
+    if(!_rotmno){
+     if(_nrm[0][0]!=1 || _nrm[1][1]!=1 || _nrm[2][2]!=1){
+      cerr<<"AMSgvolume::AMSgvolume-E-RotationMatrixZeroButNrmNotUnit "<<_nrm[0][0]<<" "<<_nrm[1][1]<<" "<<_nrm[2][2]<<endl;
+      for(int i=0;i<2;i++){
+       for(int k=0;k<2;k++)_nrm[i][k]= k==i?1:0;
+      }
+      UCOPY(_nrm,_nrmA,3*3*sizeof(nrm[0][0])/sizeof(int));
+     }
+    }
+
+
 //
 //  Part of geant initialization here
 //
@@ -32,6 +45,8 @@ AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[],
    
       
 }
+
+*/
 
 AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
@@ -50,7 +65,7 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
    _coo=_cooA;
    if(shape)strcpy(_shape,shape);
    if(gonly)strcpy(_gonly,gonly);
-   UCOPY(par,_par,6*sizeof(par[0])/4);
+   UCOPY(par,_par,10*sizeof(par[0])/4);
    UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
    UCOPY(nrm,_nrmA,3*3*sizeof(nrm[0][0])/4);
    amsprotected::transpose(_nrmA,_inrmA);
@@ -85,7 +100,7 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
    _coo=_cooA;
    if(shape)strcpy(_shape,shape);
    if(gonly)strcpy(_gonly,gonly);
-   UCOPY(par,_par,6*sizeof(par[0])/4);
+   UCOPY(par,_par,10*sizeof(par[0])/4);
    int j;
    for(j=0;j<3;j++){
       _nrm[j][0]=nrm1[j];
@@ -182,7 +197,7 @@ void AMSgvolume::_init(){
      GSVOLU(_name,_shape,_matter,_par,0,ivol);
     }
    }
-   if(newr){
+   if(newr && _rotmno){
     geant r[3],sph,cth,cph,sth,theta[3],phi[3];
     integer rt=0;
     for (int j=0;j<3;j++){
@@ -200,15 +215,18 @@ void AMSgvolume::_init(){
    //   char * pp=(char*)up()->getname();
    geant coo[3];
    _coo.getp(coo[0],coo[1],coo[2]);
-   if(_posp){
+   if(_posp>-2){
     GSPOSP(_name,_gid,up()->_name, 
           coo[0],coo[1],coo[2],_rotmno,_gonly, 
           _par,_npar);
    }
-   else{
+   else if(_posp==0){
     GSPOS(_name,_gid,up()->_name, 
           coo[0],coo[1],coo[2],_rotmno,_gonly);
    }
+    else{
+       cout<<"AMSgvolume::init-W-NoGEANT3PositionSelected"<<endl;
+     }
   }
 
 }

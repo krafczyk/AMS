@@ -11,6 +11,7 @@
 #include <string.h>
 #include <cern.h>
 #include <amsdbc.h>
+#include <amsgobj.h>
 class AMSgmat : public AMSNode 
 {
  
@@ -19,11 +20,13 @@ class AMSgmat : public AMSNode
   friend class AMSgtmed;
   AMSgmat (): AMSNode(0){};
   ~AMSgmat(){delete[] _a;_a=0;delete[] _z;_z=0;delete[] _w;_w=0;}
-  AMSgmat (integer imate,const char name[], 
+  AMSgmat (const char name[], 
               geant a[] , geant z[], geant w[], integer npar, 
               geant rho, geant radl=0, geant absl=0 ): 
-      _imate(imate),_npar(npar), _rho(rho), _radl(radl), _absl(absl),AMSNode(0){
-    
+      _imate(++_GlobalMatI),_npar(npar), _rho(rho), _radl(radl), _absl(absl),AMSNode(0){
+#ifdef __AMSDEBUG__
+assert(npar>0);
+#endif    
    setname(name);
    setid(0);
    _a=new geant[npar];
@@ -33,11 +36,11 @@ class AMSgmat : public AMSNode
    UCOPY(z,_z,npar*sizeof(_z[0])/4);
    UCOPY(w,_w,npar*sizeof(_w[0])/4);
   }
-
-  AMSgmat (integer imate,const char name[], 
+  static uinteger GetMatNo(){return _GlobalMatI;}
+  AMSgmat (const char name[], 
               geant a , geant z,  
               geant rho, geant radl, geant absl ): 
-      _imate(imate), _rho(rho), _radl(radl), _absl(absl),AMSNode(0){
+      _imate(++_GlobalMatI), _rho(rho), _radl(radl), _absl(absl),AMSNode(0){
     
    setname(name);
    setid(0);
@@ -53,6 +56,7 @@ class AMSgmat : public AMSNode
   AMSgmat * up(){return   (AMSgmat *)AMSNode::up();}
   AMSgmat * down(){return (AMSgmat *)AMSNode::down();}
   static integer debug;
+  static integer getmat(const char name[]){AMSgmat *p =(AMSgmat *)AMSgObj::GTrMatMap.getp(AMSID(name,0));return p?p->_imate:0;}
 //+
 #ifdef __DB__
    friend class AMSgmatD;
@@ -68,6 +72,7 @@ class AMSgmat : public AMSNode
 //-
  protected:
    void _init();
+   static uinteger _GlobalMatI;
    AMSgmat (const AMSgmat&);   // do not want cc
    AMSgmat &operator=(const AMSgmat&); // do not want ass
 
@@ -87,17 +92,21 @@ class AMSgtmed : public AMSNode
 {
  
  public:
+  static void amstmed();
   AMSgtmed (): AMSNode(0){};
-  AMSgtmed (integer itmed,const char name[],integer itmat, 
+  AMSgtmed (const char name[], const char matname[], 
               integer isvol=0 , char yb='N', geant birks[3]=0,
               integer ifield=1, geant fieldm=20, 
             geant tmaxfd=10, geant stemax=1000, 
             geant deemax=-1, geant epsil=0.001,
             geant stmin=-1 ):
-    _itmed(itmed),_isvol(isvol), _ifield(ifield),_fieldm(fieldm),_tmaxfd(tmaxfd),
+    _itmed(++_GlobalMedI),_isvol(isvol), _ifield(ifield),_fieldm(fieldm),_tmaxfd(tmaxfd),
     _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_yb(yb),
-    _itmat(itmat),AMSNode(){
-    
+    AMSNode(){
+   _itmat=AMSgmat::getmat(matname); 
+#ifdef __AMSDEBUG__
+   assert(_itmat>0 && _itmat<=AMSgmat::GetMatNo());
+#endif
    setname(name);
    setid(0); 
    if(birks)for(int i=0;i<3;i++)_birks[i]=birks[i];
@@ -109,6 +118,7 @@ class AMSgtmed : public AMSNode
   AMSgtmed * down(){return (AMSgtmed *)AMSNode::down();}
   static integer debug;
   integer getmedia(){return _itmed;}
+  static integer gettmed(const char name[]){AMSgtmed *p =(AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(name,0));return p?p->_itmed:0;}
 //+
 #ifdef __DB__
    friend class AMSgtmedD;
@@ -116,8 +126,10 @@ class AMSgtmed : public AMSNode
     char getyb() {return _yb;}
 //-
 
+  static uinteger GetMedNo(){return _GlobalMedI;}
  protected:
    void _init();
+   static uinteger _GlobalMedI;
    AMSgtmed (const AMSgtmed&);   // do not want cc
    AMSgtmed &operator=(const AMSgtmed&); // do not want ass
    integer _isvol;

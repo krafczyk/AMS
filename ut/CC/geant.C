@@ -154,6 +154,7 @@ void gams::UGINIT(){
    if ((AMSFFKEY.Read%2) == 1) lms -> CheckConstants();
 #else
    AMSgmat::amsmat();
+   AMSgtmed::amstmed();
    AMSgvolume::amsgeom();
 #endif
    AMSStatus::create();
@@ -277,6 +278,7 @@ extern "C" void readSetup(){
 
   if ( (AMSFFKEY.Read%2) == 0) {
    AMSgmat::amsmat();
+   AMSgtmed::amstmed();
    AMSgvolume::amsgeom();
   }  
   if ((AMSFFKEY.Read%2) == 1)   {

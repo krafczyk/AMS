@@ -6,10 +6,6 @@ AMSNode * gvolume = mother.add( new AMSgvolume_constructor);
 
 b) Constructors:
 
-  AMSgvolume (integer matter,integer rotmno,const char name[],
-           const char shape[] ,   geant par[] , integer npar,
-           geant coo[] ,  number nrm[][3] , const char gonly[] ,
-           integer posp,integer gid, integer rel)       // constructor
 
   AMSgvolume (char matter[],integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar,
@@ -34,7 +30,7 @@ b) Constructors:
 //  number nrm[3][3]      ! ABSOLUTE rotation matrix (1st index 1st) if rel==0
 //  number nrm[3][3]      ! RELATIVE rotation matrix (1st index 1st) if rel!=0
 //  char gonly[]          ! 'Many' or 'ONLY'
-//  integer posp          ! Position by gsposp(1,-1 (-1 == not call gsvolu)) or by gspos(0)
+//  integer posp          ! Position by gsposp(1,-1 (-1 == not call gsvolu)) or by gspos(0) or NOT position at all (-2)
 //  integer gid           ! geant volume id
 //  integer rel           ! See above for coo & nrm
 

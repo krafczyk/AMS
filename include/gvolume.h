@@ -26,7 +26,7 @@ class AMSgvolume : public AMSNode {
    integer _gid;        //   ! geant id
    integer _npar;       //   ! geant number of par     
    integer _rel;        //   ! abs(0) or relative(1) geant coo/nrm
-   geant  _par[6];      //   ! geant volume par
+   geant  _par[10];      //   ! geant volume par
    AMSPoint _coo;       //   ! geant volume relative coord
    AMSPoint _cooA;     //    ! geant volume abs coordinate
    number  _nrm[3][3];  //   ! normales  with resp to mother (1st index 1st)
@@ -44,10 +44,12 @@ class AMSgvolume : public AMSNode {
   AMSgvolume (): AMSNode(0),_pg4v(0){};
   amsg4pv * getg4pv() const {return _pg4v;}
 
+/*
   AMSgvolume (integer matter,integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar,
             geant coo[] ,  number nrm[][3] , const char gonly[] ,
            integer posp,integer gid, integer rel=0);
+*/
 
   AMSgvolume (char matter[], integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 

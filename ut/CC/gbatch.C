@@ -41,9 +41,7 @@ void (handler)(int);
 return 0;
 }
 void (handler)(int sig){
-#ifdef __NAMESPACE__
 using namespace glconst;
-#endif
   switch(sig){
   case SIGFPE:
    cerr <<" FPE intercepted"<<endl;

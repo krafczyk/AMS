@@ -190,7 +190,7 @@ else{
   exit(1);
     }
 dau=mother.add(new AMSgvolume(
-    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
+    amsid.getname(),0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
 //--------------
 //          <-- create/position bot supp. honeycomb structures
 gid=2;
@@ -208,7 +208,7 @@ else{
   exit(1);
     }
 dau=mother.add(new AMSgvolume(
-    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
+    amsid.getname(),0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------
 //             <-- create/position S1-S4 sc. planes :
 //
@@ -267,7 +267,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
         }
     gid=100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFC","BOX",par,3,coo,nrm,"MANY",1,gid,1));
+    amsid.getname(),nrot,"TOFC","BOX",par,3,coo,nrm,"MANY",1,gid,1));
 //-------
 //        <-- cr/position scintillator inside counter
 //
@@ -282,7 +282,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
       exit(1);
         }
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFS","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+    amsid.getname(),nrot,"TOFS","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
 //-------
 //        <--- now put boxes, equivalent to (PMTs + shielding)
 //                                    at both ends of sc. bar.
@@ -308,7 +308,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
         }
     gid=1000+100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+    amsid.getname(),nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
 //-----
     if(TOFDBc::plrotm(ip)==0){
       coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
@@ -327,7 +327,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
         }
     gid=2000+100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+    amsid.getname(),nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
     
   }      //   <<<============= end of sc. bars loop ==========
 }   //   <<<============= end of sc. planes loop =============
@@ -378,7 +378,7 @@ else{
   exit(1);
     }
 dau=mother.add(new AMSgvolume(
-    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
+    amsid.getname(),0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
 //--------------
 //          <-- create/position bot supp. honeycomb structures
 gid=2;
@@ -396,7 +396,7 @@ else{
   exit(1);
     }
 dau=mother.add(new AMSgvolume(
-    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
+    amsid.getname(),0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------
 //             <-- create/position S1-S4 sc. planes :
 //
@@ -455,7 +455,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
         }
     gid=100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFC","BOX",par,3,coo,nrm,"MANY",1,gid,1));
+    amsid.getname(),nrot,"TOFC","BOX",par,3,coo,nrm,"MANY",1,gid,1));
 //-------
 //        <-- cr/position scintillator inside counter
 //
@@ -470,7 +470,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
       exit(1);
         }
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFS","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+    amsid.getname(),nrot,"TOFS","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
 //-------
 //        <--- now put boxes, equivalent to (PMTs + shielding)
 //                                    at both ends of sc. bar.
@@ -496,7 +496,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
         }
     gid=1000+100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+    amsid.getname(),nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
 //-----
     if(TOFDBc::plrotm(ip)==0){
       coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
@@ -515,7 +515,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
         }
     gid=2000+100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+    amsid.getname(),nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
     
   }      //   <<<============= end of sc. bars loop ==========
 }   //   <<<============= end of sc. planes loop =============
@@ -2403,8 +2403,116 @@ ostrstream ost(name,sizeof(name));
 
 }
 
+#include <trddbc.h>
 void trdgeom02(AMSgvolume & mother){
+using trdconst::maxlay;
+using trdconst::maxlad;
+using trdconst::maxo;
+using trdconst::mtrdo;
+using trdconst::maxtube;
+using trdconst::TRDROTMATRIXNO;
+
+   TRDDBc::read();
+
+geant par[10]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+number inrm[3][3];
+char name[5];
+geant coo[3]={0.,0.,0.};
+integer gid(0);
+uinteger rgid(0);
+uinteger status;
+integer nrot=TRDROTMATRIXNO; 
+AMSNode * cur;
+AMSNode * dau;
+AMSNode * oct[maxo];
+ ostrstream ost(name,sizeof(name));
+
+int i;
+for ( i=0;i<TRDDBc::PrimaryOctagonNo();i++){
+ ost.seekp(0);  
+ ost << "TRD"<<i<<ends;
+ TRDDBc::GetOctagon(i,status,coo,nrm,rgid);
+ gid=i+1;
+ int ip;
+ for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
+       oct[i]=mother.add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+       nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
 }
+
+
+for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
+ ost.seekp(0);  
+ ost << "TRD"<<i<<ends;
+ TRDDBc::GetOctagon(i,status,coo,nrm,rgid);
+ gid=i+1;
+ int ip;
+ int po=TRDDBc::GetPrimaryOctagon(i);
+ for(ip=0;ip<10;ip++)par[ip]=TRDDBc::OctagonDimensions(i,ip);
+       oct[i]=oct[po]->add(new AMSgvolume(TRDDBc::OctagonMedia(i),
+       nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
+}
+
+cout <<"amsgeom::trdgeom02-I-TRDGeometryDone"<<endl;
+return;
+
+// trd 
+for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
+ int j,k;
+ for(j=0;j<TRDDBc::LayersNo(i);j++){
+  for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
+   int ip;
+   gid=i+mtrdo*j+mtrdo*maxlay*k;
+   ost.seekp(0);  
+   ost << "TR"<<TRDDBc::CodeLad(gid)<<ends;
+   TRDDBc::GetLadder(k,j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::LaddersDimensions(i,j,k,ip);
+   int itrd=TRDDBc::NoTRDOctagons(i);
+   dau=oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
+       nrot++,name,"BOX",par,3,coo,nrm, "ONLY",1,gid,1));
+//
+// Tubes & Radiators has no rotation matrix at the moment
+// This can be changed in any time
+//
+   ost.seekp(0);  
+   ost << "TRDR"<<ends;
+   TRDDBc::GetRadiator(k,j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::RadiatorDimensions(i,j,k,ip);
+   gid=i+mtrdo*j+mtrdo*maxlay*k;
+   dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
+      0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+   ost.seekp(0);  
+   ost << "TRDB"<<ends;
+   TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<10;ip++)par[ip]=TRDDBc::TubesBoxDimensions(i,j,k,ip);
+   gid=i+mtrdo*j+mtrdo*maxlay*k;
+   dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
+        0,name,"PGON",par,10,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+   int l;
+   for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
+   ost.seekp(0);  
+   ost << "TRDW"<<ends;
+   TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::TubesDimensions(i,j,k,ip);
+   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l;
+   dau->add(new AMSgvolume(TRDDBc::TubesMedia(),
+      0,name,"TUBE",par,10,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+   }
+
+   for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
+   ost.seekp(0);  
+   ost << "TRDT"<<ends;
+   TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
+   for(ip=0;ip<3;ip++)par[ip]=TRDDBc::ITubesDimensions(i,j,k,ip);
+   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l;
+   dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
+      0,name,"TUBE",par,10,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+   }
+  }
+ }
+}
+}
+
 void antigeom02(AMSgvolume & mother){
    antigeom(mother);
 }

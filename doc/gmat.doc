@@ -25,7 +25,7 @@
 
     AMSgmat ();   // default ctor
     ~AMSgmat()    // dtor
-     AMSgmat (integer imate,const char name[],
+     AMSgmat (const char name[],
               geant a[] , geant z[], geant w[], integer npar,
               geant rho, geant radl=0, geant absl=0 ) // ini ctor
 };
@@ -58,7 +58,7 @@ class AMSgtmed : public AMSNode   // Geant Tracking Media
 
   public:
     AMSgtmed (): AMSNode(0){};   // default ctor
-  AMSgtmed (integer itmed,const char name[],integer itmat,
+  AMSgtmed (const char name[],const char matname[],
               integer isvol=0 , char yb='N', geant birks[3]=0,
               integer ifield=1, geant fieldm=5,
             geant tmaxfd=10, geant stemax=1000,

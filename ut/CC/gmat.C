@@ -6,6 +6,15 @@
 #include <job.h>
 integer AMSgmat::debug=0;
 void AMSgmat::_init(){
+#ifdef __AMSDEBUG__
+  for( AMSNode *p=this->prev();p;p=p->prev()){
+//    cout <<getname() <<" "<<p->getname()<<endl;
+    if(!strcmp(getname(),p->getname())){
+      cerr<<"AMSgmat-F-MaterialalrdyExists "<<getname()<<endl;
+      exit(1);
+    }
+  }
+#endif
    geant *a=new geant[_npar];
    geant *z=new geant[_npar];
    geant *w=new geant[_npar];
@@ -27,6 +36,15 @@ return(AMSID::print(stream)  <<  " GSMATE" << endl);
 }
 integer AMSgtmed::debug=1;
 void AMSgtmed::_init(){
+#ifdef __AMSDEBUG__
+  for( AMSNode *p=this->prev();p;p=p->prev()){
+//    cout <<getname() <<" "<<p->getname()<<endl;
+    if(!strcmp(getname(),p->getname())){
+      cerr<<"AMSgtmed-F-MediaalrdyExists "<<getname()<<endl;
+      exit(1);
+    }
+  }
+#endif
   GSTMED(_itmed,_name,_itmat,_isvol,_ifield,_fieldm,_tmaxfd,
   _stemax,_deemax,_epsil,_stmin,_ubuf,1);
   if(_yb=='Y'){
@@ -39,120 +57,112 @@ ostream & AMSgtmed::print(ostream & stream)const{
 return(AMSID::print(stream)  <<  " GSTMED" << endl);
 }
 
+uinteger AMSgmat::_GlobalMatI=0;
+uinteger AMSgtmed::_GlobalMedI=0;
 
 void AMSgmat::amsmat(){
 static AMSgmat mat;
-static AMSgtmed tmed;
 mat.setname("Materials:");
 AMSJob::gethead()->addup(&mat);
-tmed.setname("TrackingMedia:");
-AMSJob::gethead()->addup(&tmed);
-mat.add (new AMSgmat(1,"HYDROGEN",1.01, 1.,0.0708,865.,790.));
-mat.add (new AMSgmat(2,"DEUTERIUM",  2.01,1.,0.162 ,757.,342.));
-mat.add (new AMSgmat(3,"HELIUM",  4.  , 2.,0.125 ,755.,478.));
-mat.add (new AMSgmat( 4,"LITHIUM",  6.94, 3.,0.534 ,155.,120.6));
-mat.add (new AMSgmat(5,"BERILLIUM",  9.01, 4., 1.848 ,35.3,36.7));
-mat.add (new AMSgmat( 6,"CARBON", 12.01, 6., 2.265 ,18.8,49.9));
-mat.add (new AMSgmat( 7,"NITROGEN", 14.01, 7.,0.808 ,44.5,99.4));
-mat.add (new AMSgmat( 8,"NEON", 20.18,10., 1.207 , 24.,74.9));
+mat.add (new AMSgmat("HYDROGEN",1.01, 1.,0.0708,865.,790.));
+mat.add (new AMSgmat("DEUTERIUM",  2.01,1.,0.162 ,757.,342.));
+mat.add (new AMSgmat("HELIUM",  4.  , 2.,0.125 ,755.,478.));
+mat.add (new AMSgmat("LITHIUM",  6.94, 3.,0.534 ,155.,120.6));
+mat.add (new AMSgmat("BERILLIUM",  9.01, 4., 1.848 ,35.3,36.7));
+mat.add (new AMSgmat("CARBON", 12.01, 6., 2.265 ,18.8,49.9));
+mat.add (new AMSgmat("NITROGEN", 14.01, 7.,0.808 ,44.5,99.4));
+mat.add (new AMSgmat("NEON", 20.18,10., 1.207 , 24.,74.9));
          // Half density alum
-mat.add (new AMSgmat( 9,"ALUMINIUM",26.98, 13., 1.35, 17.8, 74.4));
-mat.add (new AMSgmat(10,"IRON", 55.85,26., 7.87  ,1.76,17.1));
-mat.add (new AMSgmat(11,"COPPER", 63.54,29.,8.96  ,1.43,14.8));
-mat.add (new AMSgmat(12,"TUNGSTEN",183.85,74., 19.3  ,0.35,10.3));
-mat.add (new AMSgmat(13,"LEAD",207.19,82., 11.35 ,0.56,18.5));
-mat.add (new AMSgmat(14,"URANIUM",238.03,92., 18.95 ,0.32,12. ));
-mat.add (new AMSgmat(15,"AIR",14.61,7.3, 0.001205,30423.24,67500.));
-mat.add (new AMSgmat(16,"VACUUM",1.E-16,1.E-16, 1.E-16,1.E+16,1.E+16));
-mat.add (new AMSgmat(17,"MYLAR",  8.7   ,4.5,  1.39  ,28.7, 43.));
+mat.add (new AMSgmat("ALUMINIUM",26.98, 13., 1.35, 17.8, 74.4));
+mat.add (new AMSgmat("IRON", 55.85,26., 7.87  ,1.76,17.1));
+mat.add (new AMSgmat("COPPER", 63.54,29.,8.96  ,1.43,14.8));
+mat.add (new AMSgmat("TUNGSTEN",183.85,74., 19.3  ,0.35,10.3));
+mat.add (new AMSgmat("LEAD",207.19,82., 11.35 ,0.56,18.5));
+mat.add (new AMSgmat("URANIUM",238.03,92., 18.95 ,0.32,12. ));
+mat.add (new AMSgmat("AIR",14.61,7.3, 0.001205,30423.24,67500.));
+mat.add (new AMSgmat("MYLAR",  8.7   ,4.5,  1.39  ,28.7, 43.));
 
 geant a[]={20.18,12.01,1.01,0};
 geant z[]={10.,6.,1.,0};
 geant w[]={4.,1.,4.,0};
-mat.add (new AMSgmat(18,"TPC GAS",a,z,w,3,0.8634e-3));
+mat.add (new AMSgmat("TPC GAS",a,z,w,3,0.8634e-3));
 a[0]=39.95;a[1]=12.01;a[2]=1.01;
 z[0]=18.;  z[1]=6.;   z[2]=1.;
 w[0]=1.;   w[1]=2.;   w[2]=6.;
-mat.add (new AMSgmat(19,"DRIFT GAS ",a,z,w,3,1.568e-3));
+mat.add (new AMSgmat("DRIFT GAS ",a,z,w,3,1.568e-3));
 a[0]=12.01;a[1]=28.1;
 z[0]=6.;  z[1]=14.;
 w[0]=2.66;w[1]=1.;
-mat.add (new AMSgmat(20,"SICARBON",a,z,w,2,2.286));
+mat.add (new AMSgmat("SICARBON",a,z,w,2,2.286));
 a[0]=12.;a[1]=1.;
 z[0]=6.; z[1]=1.;
 w[0]=8.; w[1]=8.;
-mat.add (new AMSgmat(21,"SCINT",a,z,w,2,1.032));
-mat.add (new AMSgmat(22,"SILICON",28.09,14.,2.32,9.36,45.));
+mat.add (new AMSgmat("SCINT",a,z,w,2,1.032));
+mat.add (new AMSgmat("SILICON",28.09,14.,2.32,9.36,45.));
 a[0]=144.24;a[1]=55.85;a[2]=10.8;
 z[0]=60.;   z[1]=26.;  z[2]=5.;
 w[0]=30.;   w[1]=69.;  w[2]=1.;
-mat.add (new AMSgmat(23,"MAGNET",a,z,w,3,7.45));
+mat.add (new AMSgmat("MAGNET",a,z,w,3,7.45));
          // AL honeycomb structure for TOF :
-mat.add (new AMSgmat( 24,"AL-HONEYC",26.98, 13., 0.04, 600., 2660.));
+mat.add (new AMSgmat( "AL-HONEYC",26.98, 13., 0.04, 600., 2660.));
      // effective material for PMT-boxes (low dens.(1:10) iron):
-mat.add (new AMSgmat(25,"LOW_DENS_Fe",55.85,26.,0.787,17.6,168.));
+mat.add (new AMSgmat("LOW_DENS_Fe",55.85,26.,0.787,17.6,168.));
      // low density(1.3 eff) carbon (carb.fiber+mylar) for TOF sc_cover :
-mat.add (new AMSgmat(26,"CARBONF", 12.01, 6., 1.3 , 33., 66.));
+mat.add (new AMSgmat("CARBONF", 12.01, 6., 1.3 , 33., 66.));
 
 // WLS for CTC (same polystiren as for TOF scint)
 a[0]=12.;a[1]=1.;
 z[0]=6.; z[1]=1.;
 w[0]=8.; w[1]=8.;
-mat.add (new AMSgmat(27,"WLS",a,z,w,2,1.03));
+mat.add (new AMSgmat("WLS",a,z,w,2,1.03));
 //
 // AL honeycomb structure for CTC (as for TOF now !) :
-mat.add (new AMSgmat( 28,"AL-HONEYC2",26.98, 13., 0.04, 600., 2660.));
+mat.add (new AMSgmat( "AL-HONEYC2",26.98, 13., 0.04, 600., 2660.));
 //
 // Teflon(C2F4) cover for CTC :
 a[0]=12.;a[1]=19.;
 z[0]=6.; z[1]=9.;
 w[0]=2.; w[1]=4.;
-mat.add (new AMSgmat( 29,"TEFLON1",a,z,w,2, 2.2));
+mat.add (new AMSgmat( "TEFLON1",a,z,w,2, 2.2));
 //
 // Teflon(C2F4) separators for CTC :
 a[0]=12.;a[1]=19.;
 z[0]=6.; z[1]=9.;
 w[0]=2.; w[1]=4.;
-mat.add (new AMSgmat( 30,"TEFLON2",a,z,w,2, 2.2));
+mat.add (new AMSgmat( "TEFLON2",a,z,w,2, 2.2));
 //
 // Teflon(C2F4) separators for ATC rho=0.3 gr/cm^3 :
 a[0]=12.;a[1]=19.;
 z[0]=6.; z[1]=9.;
 w[0]=2.; w[1]=4.;
-mat.add (new AMSgmat( 31,"TEFLON3",a,z,w,2, 0.3));
+mat.add (new AMSgmat( "TEFLON3",a,z,w,2, 0.3));
 //
 // Si-aerogel(SiO4H4) for CTC :
 a[0]=28.; a[1]=16.; a[2]=1.;
 z[0]=14.; z[1]=8.;  z[2]=1.;
 w[0]=1.;  w[1]=4.;  w[2]=4.;
-mat.add (new AMSgmat( 32,"SIAEROGEL",a,z,w,3, 0.24));
+mat.add (new AMSgmat( "SIAEROGEL",a,z,w,3, 0.24));
 //
 // Si-aerogel(SiO2(CH3)3) for CTC-MEW :
 a[0]=28.; a[1]=16.; a[2]=12.; a[3]=1.;
 z[0]=14.; z[1]=8.;  z[2]=6.; z[3]=1.;
 w[0]=1.;  w[1]=2.;  w[2]=3.; w[3]=9.;
-mat.add (new AMSgmat( 33,"MEWAEROGEL",a,z,w,4, 0.125));
+mat.add (new AMSgmat( "MEWAEROGEL",a,z,w,4, 0.125));
 
 // Si-aerogel(SiO2(CH3)3) for CTC-MEW :
 {
   geant a[]={209.,72.61,16.};
   geant z[]={83.,32.,8.};
   geant w[]={4.,3.,12.};
-   mat.add (new AMSgmat( 34,"BGO",a,z,w,3, 7.1));
+   mat.add (new AMSgmat( "BGO",a,z,w,3, 7.1));
 }
 
 
 // AL honeycomb structure for Tracker (as for TOF now !) :
-mat.add (new AMSgmat( 35,"AL-HONEYC-Tr",26.98, 13., 0.04, 600., 2660.));
+mat.add (new AMSgmat( "AL-HONEYC-Tr",26.98, 13., 0.04, 600., 2660.));
 
 // Foam structure for Tracker  :
-mat.add (new AMSgmat( 36,"FOAM",12.01, 6., 0.1 , 425.82, 900.));
-{
-  geant a[]={28.,16.};
-  geant z[]={14.,8.};
-  geant w[]={1.,2.};
-mat.add (new AMSgmat(37,"PMT_WINDOW",a,z,w,2,2.64));
-}
+mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
 //
 
 
@@ -219,10 +229,10 @@ for(iw=0;iw<44;iw++)
   geant z[]={14.,8.};
   geant w[]={1.,2.};
 
-  mat.add(new AMSgmat(38,"RICH_AEROGEL",a,z,w,2,.7368));
+  mat.add(new AMSgmat("RICH_AEROGEL",a,z,w,2,.7368));
   
   // Define optical properties
-  GSCKOV(38,44,p,abs_l,dummy,index);
+  GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
 }
 
 { // Mirrors: plexiglass
@@ -230,20 +240,20 @@ for(iw=0;iw<44;iw++)
   geant z[]={6.,1.,8.};
   geant w[]={5.,8.,2.};
 
-  mat.add(new AMSgmat(39,"RICH_MIRRORS",a,z,w,3,1.16));
+  mat.add(new AMSgmat("RICH_MIRRORS",a,z,w,3,1.16));
 
   //Define optical properties
   for(iw=0;iw<44;iw++)
       abs_l[iw]=1.-0.9; // Reflectivity=90%
   index[0]=0;
-  GSCKOV(39,44,p,abs_l,dummy,index);
+  GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
 }
 
 { // PMTs
   geant a[]={28.,16.};
   geant z[]={14.,8.};
   geant w[]={1.,2.};
-  mat.add (new AMSgmat(40,"PMT_WINDOW",a,z,w,2,2.64));
+  mat.add (new AMSgmat("PMT_WINDOW",a,z,w,2,2.64));
 
   // Define optical properties
   for(iw=0;iw<44;iw++)
@@ -251,7 +261,7 @@ for(iw=0;iw<44;iw++)
       abs_l[iw]=1e5;
       index[iw]=1.458;
     }
-  GSCKOV(40,44,p,abs_l,dummy,index);
+  GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
 }
 
 
@@ -260,15 +270,16 @@ for(iw=0;iw<44;iw++)
   geant z[]={6.,1.,8.};
   geant w[]={5.,8.,2.};
 
-  mat.add(new AMSgmat(41,"RICH_WALLS",a,z,w,3,1.16));
+  mat.add(new AMSgmat("RICH_WALLS",a,z,w,3,1.16));
 
   //Define optical properties
   for(iw=0;iw<44;iw++)
       abs_l[iw]=1.; // Reflectivity=90%
   index[0]=0;
-  GSCKOV(41,44,p,abs_l,dummy,index);
+  GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
 }
 
+mat.add (new AMSgmat("VACUUM",1.E-16,1.E-16, 1.E-16,1.E+16,1.E+16));
 // Define vaccum optical properties
 
 for(iw=0;iw<44;iw++)
@@ -277,110 +288,182 @@ for(iw=0;iw<44;iw++)
   index[iw]=1;
 }
 
-GSCKOV(16,44,p,abs_l,dummy,index);
+GSCKOV(GetMatNo(),44,p,abs_l,dummy,index);
 }
 //-------------------
 // Light lead for ECAL test :
 {
-mat.add (new AMSgmat(45,"LIGHTLEAD",207.19,82., 6.36 ,1.,32.5));
+mat.add (new AMSgmat("LIGHTLEAD",207.19,82., 6.36 ,1.,32.5));
 a[0]=12.;a[1]=1.;
 z[0]=6.; z[1]=1.;
 w[0]=8.; w[1]=8.;
-mat.add (new AMSgmat(46,"ECSCINT",a,z,w,2,1.032));
+mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
 }
 //-------------------
 // effective material for ECAL PMT-boxes (low dens.(1:10) iron):
-mat.add (new AMSgmat(47,"LOW_DENS_Fe_2",55.85,26.,0.787,17.6,168.));
+mat.add (new AMSgmat("LOW_DENS_Fe_2",55.85,26.,0.787,17.6,168.));
 //-------------------
+
+
+{
+ // TRD Materials by V. Choutko - probably wrong ones
+
+  // HC 3% X0
+geant rho=0.032;
+mat.add (new AMSgmat( "TRDHC",26.98, 13., rho, 24./rho, 106/rho));
+
+ // CF  (2.25 % X0)
+rho=1.6;
+mat.add (new AMSgmat("TRDCarbonFiber", 12.01, 6., rho , 42.7/rho, 86.3/rho));
+
+// Gas (Xe/CF4) (80/20) 1.1% X0
+
+{
+   geant z[]={54.,6.,7.};
+   geant a[]={131.3,12.,14.};
+   geant w[]={8,2,8};
+   mat.add (new AMSgmat("XECF4_80/20",a,z,w,3,5.3e-3));
+}
+// TRDFoam
+//   just plain carbon with 0.08 0.4% X0
+
+rho=0.08;
+mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
+
+// TRD tube walls (kapton)  --> using mylar for the moment (1% X0)
+
+//TRD Radiator (polypropylene )  6% X0
+
+{
+   geant z[]={6.,1.};
+   geant a[]={12.,1.};
+   geant w[]={1,2};
+   mat.add (new AMSgmat("TRDRadiator",a,z,w,2,0.06));
+}
+
+}
+
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPMATE(0);
 #endif
 
+AMSgObj::GTrMatMap.map(mat);
+#ifdef __AMSDEBUG__
+if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();
+#endif
+cout <<"AMSgmat::amsmat-I-TotalOf "<<GetMatNo()<<" materials defined"<<endl;
+}
+
+void AMSgtmed::amstmed(){
 
 
-tmed.add (new AMSgtmed(1,"AIR",15,0));
-tmed.add (new AMSgtmed(2,"MAGNET",23,0));
-tmed.add (new AMSgtmed(4,"VACUUM",16,0));
-tmed.add (new AMSgtmed(5,"1/2ALUM",9,0));
-tmed.add (new AMSgtmed(6,"ACTIVE_SILICON",22,1));
-tmed.add (new AMSgtmed(7,"NONACTIVE_SILICON",22));
-tmed.add (new AMSgtmed(8,"CARBON",6,0));
-tmed.add (new AMSgtmed(9,"ELECTRONICS",6,0));
+// NowMedia
+
+static AMSgtmed tmed;
+tmed.setname("TrackingMedia:");
+AMSJob::gethead()->addup(&tmed);
+
+
+tmed.add (new AMSgtmed("AIR","AIR",0));
+tmed.add (new AMSgtmed("MAGNET","MAGNET",0));
+tmed.add (new AMSgtmed("VACUUM","VACUUM",0));
+tmed.add (new AMSgtmed("1/2ALUM","ALUMINIUM",0));
+tmed.add (new AMSgtmed("ACTIVE_SILICON","SILICON",1));
+tmed.add (new AMSgtmed("NONACTIVE_SILICON","SILICON"));
+tmed.add (new AMSgtmed("CARBON","CARBON",0));
+tmed.add (new AMSgtmed("ELECTRONICS","CARBON",0));
 //
 {
 geant birks[]={1.,0.013,9.6e-6};
-tmed.add (new AMSgtmed(10,"TOF_SCINT",21,1,'Y',birks,1,5,10,
+tmed.add (new AMSgtmed("TOF_SCINT","SCINT",1,'Y',birks,1,5,10,
                        -0.25, -1, 0.001, -0.05));
 }
 //(for tof_scint.: max_step=0.25cm/autom, min_step=0.05cm/autom )
 //
 {
 geant birks[]={1.,0.013,9.6e-6};
-tmed.add (new AMSgtmed(11,"ANTI_SCINT",21,1,'Y',birks));
+tmed.add (new AMSgtmed("ANTI_SCINT","SCINT",1,'Y',birks));
 }
 //
-tmed.add (new AMSgtmed(12,"TOF_HONEYCOMB",24,0));
-tmed.add (new AMSgtmed(13,"TOF_PMT_BOX",25,0));
-tmed.add (new AMSgtmed(14,"TOF_SC_COVER",26,0));
-tmed.add (new AMSgtmed(15,"IRON",10,0));
+tmed.add (new AMSgtmed("TOF_HONEYCOMB","AL-HONEYC",0));
+tmed.add (new AMSgtmed("TOF_PMT_BOX","LOW_DENS_Fe",0));
+tmed.add (new AMSgtmed("TOF_SC_COVER","CARBONF",0));
+tmed.add (new AMSgtmed("IRON","IRON",0));
 //
-tmed.add (new AMSgtmed(16,"CTC_WLS",27,1));
+tmed.add (new AMSgtmed("CTC_WLS","WLS",1));
 //
-tmed.add (new AMSgtmed(17,"CTC_HONEYCOMB",28,0));
+tmed.add (new AMSgtmed("CTC_HONEYCOMB","AL-HONEYC2",0));
 //
-tmed.add (new AMSgtmed(18,"CTC_WALL",29,0));
+tmed.add (new AMSgtmed("CTC_WALL","TEFLON1",0));
 //
-tmed.add (new AMSgtmed(19,"CTC_SEP",30,0));
+tmed.add (new AMSgtmed("CTC_SEP","TEFLON2",0));
 //
-tmed.add (new AMSgtmed(20,"ATC_PTFE",31,1));
+tmed.add (new AMSgtmed("ATC_PTFE","TEFLON3",1));
 //
-tmed.add (new AMSgtmed(21,"CTC_AEROGEL",32,1));
+tmed.add (new AMSgtmed("CTC_AEROGEL","SIAEROGEL",1));
 //
-tmed.add (new AMSgtmed(22,"CTC_DUMMYMED",16,0));// fill all gaps inside CTC
+tmed.add (new AMSgtmed("CTC_DUMMYMED","VACUUM",0));// fill all gaps inside CTC
 //
-tmed.add (new AMSgtmed(23,"ATC_AEROGEL",33,1));
+tmed.add (new AMSgtmed("ATC_AEROGEL","MEWAEROGEL",1));
 //
-tmed.add (new AMSgtmed(24,"ANTI_WRAP",17,0));//  tempor. mylar
+tmed.add (new AMSgtmed("ANTI_WRAP","MYLAR",0));//  tempor. mylar
 //
-tmed.add (new AMSgtmed(25,"ANTI_SUPTB",26,0));//  tempor. carb.fiber
+tmed.add (new AMSgtmed("ANTI_SUPTB","CARBONF",0));//  tempor. carb.fiber
 //
-tmed.add (new AMSgtmed(26,"TUNGSTEN",12,0));
+tmed.add (new AMSgtmed("TUNGSTEN","TUNGSTEN",0));
 //
 {
 geant birks[]={1.,0.013,9.6e-6};
-tmed.add (new AMSgtmed(27,"BGO",34,1,'Y',birks));
+tmed.add (new AMSgtmed("BGO","BGO",1,'Y',birks));
 }
 int ip=27;
-tmed.add (new AMSgtmed(++ip,"Tr_Honeycomb",35,0));//28
-tmed.add (new AMSgtmed(++ip,"Tr_Foam",36,0));//29
+tmed.add (new AMSgtmed("Tr_Honeycomb","AL-HONEYC-Tr",0));//28
+tmed.add (new AMSgtmed("Tr_Foam","FOAM",0));//29
 
-tmed.add (new AMSgtmed(++ip,"ATC_PTAE",31,0));//30
-tmed.add (new AMSgtmed(++ip,"TOF_PMT_WINDOW",37,1));//31
+tmed.add (new AMSgtmed("ATC_PTAE","TEFLON3",0));//30
+tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 //---------------
 // RICH media
 
 {
-  tmed.add (new AMSgtmed(++ip,"RICH RAD",38,0));   //32
-  tmed.add (new AMSgtmed(++ip,"RICH MIRRORS",39,0));//33
-  tmed.add (new AMSgtmed(++ip,"RICH WALLS",41,0)); //34
-  tmed.add (new AMSgtmed(++ip,"RICH PMTS",40,0));   //35
+  tmed.add (new AMSgtmed("RICH RAD","RICH_AEROGEL",0));   //32
+  tmed.add (new AMSgtmed("RICH MIRRORS","RICH_MIRRORS",0));//33
+  tmed.add (new AMSgtmed("RICH WALLS","RICH_WALLS",0)); //34
+  tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",0));   //35
 }
 //---------------
 //  ECAL media
 //
 {
 geant birks[]={1.,0.013,9.6e-6};
-tmed.add (new AMSgtmed(++ip,"EC_EFFRAD",45,0));// 36 eff.radiator for fast sim(not sens !!!)
-//tmed.add (new AMSgtmed(++ip,"EC_RADIATOR",13,0)); // 37
-tmed.add (new AMSgtmed(++ip,"EC_RADIATOR",13,0,'N',birks,2,20.,10.,1000.,
+tmed.add (new AMSgtmed("EC_EFFRAD","LIGHTLEAD",0));// 36 eff.radiator for fast sim(not sens !!!)
+//tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0)); // 37
+tmed.add (new AMSgtmed("EC_RADIATOR","LEAD",0,'N',birks,2,20.,10.,1000.,
                                     -1.,0.001,-1.)); // 37 simplif.tracking in magn.f
-GSTPAR(ip,"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
-GSTPAR(ip,"CUTELE",ECMCFFKEY.cutge);
-tmed.add (new AMSgtmed(++ip,"EC_FIBER",46,1,'Y',birks));// 38
-tmed.add (new AMSgtmed(++ip,"EC_ELBOX",47,0));// 39 tempor as for TOF-boxes
-GSTPAR(ip,"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
-GSTPAR(ip,"CUTELE",ECMCFFKEY.cutge);
+GSTPAR(GetMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_RADIATOR
+GSTPAR(GetMedNo(),"CUTELE",ECMCFFKEY.cutge);
+tmed.add (new AMSgtmed("EC_FIBER","ECSCINT",1,'Y',birks));// 38
+tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));// 39 tempor as for TOF-boxes
+GSTPAR(GetMedNo(),"CUTGAM",ECMCFFKEY.cutge);// special cuts for EC_ELBOX
+GSTPAR(GetMedNo(),"CUTELE",ECMCFFKEY.cutge);
 } 
+
+
+{ // TRD Media by V. Choutko  seems to be also wrong
+
+tmed.add (new AMSgtmed("TRDHC","TRDHC",0));
+tmed.add (new AMSgtmed("TRDCarbonFiber","TRDCarbonFiber",0));
+tmed.add (new AMSgtmed("TRDGas","XECF4_80/20",1));
+tmed.add (new AMSgtmed("TRDFoam","TRDFoam",0));
+tmed.add (new AMSgtmed("TRDCapton","MYLAR",0));
+tmed.add (new AMSgtmed("TRDRadiator","TRDRadiator",1));
+
+
+
+}
+
+
+
 //---------------
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__
@@ -389,6 +472,7 @@ if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPTMED(0);
 #endif
+cout <<"AMSgmat::amstmed-I-TotalOf "<<GetMedNo()<<" media defined"<<endl;
 }
 
 

@@ -4,6 +4,7 @@
 #include <snode.h>
 #include <uzstat.h>
 #include <amsgobj.h>
+AMSNodeMap AMSgObj::GTrMatMap;
 AMSNodeMap AMSgObj::GTrMedMap;
 AMSNodeMap AMSgObj::GVolMap;
 AMSStat  AMSgObj::BookTimer;
