@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.3 2003/07/10 13:56:57 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.4 2003/07/11 07:37:07 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -101,9 +101,9 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         case 9001:
          if(gAMSDisplay->Zoom()){
            gAMSDisplay->Zoom()=false;
-           EAMSR_View mview=gAMSDisplay->GetView();
-           gAMSDisplay->ResetView();
-           gAMSDisplay->SetView(mview);          
+           //EAMSR_View mview=gAMSDisplay->GetView();
+           //gAMSDisplay->ResetView();
+           //gAMSDisplay->SetView(mview);          
         }
         break;
         case 9002:

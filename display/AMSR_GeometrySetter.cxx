@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.4 2003/07/10 13:56:57 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.5 2003/07/11 07:37:06 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -26,36 +26,11 @@ AMSR_GeometrySetter::AMSR_GeometrySetter()
    m_Geometry = 0;
 }
 
-//  { "TRD9210",              kDrawImmediateSonsOnly, NULL },
 AMSR_GeoToggle AMSR_GeometrySetter::m_Toggle[] = {
-  { "TRD11632",              kDrawNone, NULL },
  { "TRD9210",              kDrawNone, NULL },
   { "AMSG1",              kDrawSonsOnly, NULL },
   { "FMOT1",              kDrawSonsOnly, NULL },
-  { "CRB11231",                kDrawNone, NULL },
-  { "CRB21241",                kDrawNone, NULL },
-  { "CRB31251",                kDrawNone, NULL },
-  { "CRB41261",                kDrawNone, NULL },
-  { "CRB41261",                kDrawNone, NULL },
-  { "CRS11271",                kDrawNone, NULL },
-  { "CRS21281",                kDrawNone, NULL },
   { "MMOT11",               kDrawNone, NULL },
-  { "MSBO1301",             kDrawNone, NULL },
-  { "MSBO1312",             kDrawNone, NULL },
-  { "MSBO1323",             kDrawNone, NULL },
-  { "MSBO1334",             kDrawNone, NULL },
-  { "MSBO1345",             kDrawNone, NULL },
-  { "MSBO1356",             kDrawNone, NULL },
-  { "MSBO1367",             kDrawNone, NULL },
-  { "MSBO1378",             kDrawNone, NULL },
-  { "MSFR1291",             kDrawNone, NULL },
-  { "RA1B1161",             kDrawNone, NULL },
-  { "RA1T1172",             kDrawNone, NULL },
-  { "RA2B1181",             kDrawNone, NULL },
-  { "RA2M1192",             kDrawNone, NULL },
-  { "RA2T1203",             kDrawNone, NULL },
-  { "RA3T1211",             kDrawNone, NULL },
-  { "RA4T1221",             kDrawNone, NULL },
   { "ASTB100",              kDrawNone,     NULL },
   { "PLA2632",              kDrawNone,     NULL },
   { "PLA7637",              kDrawNone,     NULL },
@@ -76,18 +51,6 @@ AMSR_GeoToggle AMSR_GeometrySetter::m_Toggle[] = {
   { "STK66",              kDrawImmediateSonsOnly, NULL },
   { "STK77",              kDrawImmediateSonsOnly, NULL },
   { "STK88",              kDrawImmediateSonsOnly, NULL },
-  { "US1B1381",              kDrawNone,     NULL },
-  { "US1B1392",              kDrawNone,     NULL },
-  { "US1B1403",              kDrawNone,     NULL },
-  { "US1B1414",              kDrawNone,     NULL },
-  { "US2B1421",              kDrawNone,     NULL },
-  { "US2B1432",              kDrawNone,     NULL },
-  { "US2B1443",              kDrawNone,     NULL },
-  { "US2B1454",              kDrawNone,     NULL },
-  { "US4B1461",              kDrawNone,     NULL },
-  { "US4B1472",              kDrawNone,     NULL },
-  { "US4B1483",              kDrawNone,     NULL },
-  { "US4B1494",              kDrawNone,     NULL },
   { "USLF1",              kDrawNone,     NULL },
   { "USS23",              kDrawNone,     NULL },
   { "USS32",              kDrawNone,     NULL },
@@ -114,7 +77,43 @@ AMSR_GeometrySetter::AMSR_GeometrySetter(TGeometry * geo)
           TObjLink *lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"TRDT");          
           lnk = first->GetListOfNodes()->FirstLink();
-          recur(lnk,"TRDW");          
+          recur(lnk,"TOPR");          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDW");    
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"STK");      
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"PLA");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"MS");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"CR");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RA1");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RA2");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RA3");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RA4");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"US");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDI");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRCO");
+           lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDQ");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDE");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRB");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRR");
+
+
+
+
 }
 
 
@@ -129,7 +128,10 @@ void    AMSR_GeometrySetter::recur(TObjLink *lnk, char *exclude, bool what){
             break;
           }
           }
-          if(off)obj->SetVisibility(what);
+          if(off){
+            obj->SetVisibility(what);
+            //cout <<" name "<<name <<(what?" inseted ":" removed ")<<endl;
+          }
           if(obj->GetListOfNodes())recur(obj->GetListOfNodes()->FirstLink(),exclude,what); 
           lnk = lnk->Next();                                 
          } 
@@ -199,7 +201,7 @@ void AMSR_GeometrySetter::UpdateGeometry(EAMSR_View mview){
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"L");          
           lnk = first->GetListOfNodes()->FirstLink();
-          recur(lnk,"ST");          
+          recur(lnk,"STK");          
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"RAD");          
           lnk = first->GetListOfNodes()->FirstLink();
@@ -214,14 +216,48 @@ void AMSR_GeometrySetter::UpdateGeometry(EAMSR_View mview){
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"L",true);          
           lnk = first->GetListOfNodes()->FirstLink();
-          recur(lnk,"ST",true);          
-          lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"RAD",true);          
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"FOA",true);          
           lnk = first->GetListOfNodes()->FirstLink();
-          recur(lnk,"TRDT");          
+            recur(lnk,"TRDT");
           lnk = first->GetListOfNodes()->FirstLink();
-          recur(lnk,"TRDW");          
-  }
+          recur(lnk,"TOPR");          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDW");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"STK");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"PLA");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"MS");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"CR");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RA1");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RA2");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RA3");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"RA4");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"US");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDI");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRCO");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDQ");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRDE");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRR");
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"TRB");
+
+
+
+
+}
 }

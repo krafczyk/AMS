@@ -413,20 +413,19 @@ RichRingV::RichRingV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
 //  This should go to RichRingR  as soon as the latter will be updated
 //  (added theta, radiator etc) by Carlos
 //
-
+static TNode *mirror=gAMSDisplay->GetGeometry()->GetNode("OMIR1");
+static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
 for(int i=0;i<ev->nParticle();i++){
  if( ev->pParticle(i)->iRichRing() == ref){
-           TNode *obj=gAMSDisplay->GetGeometry()->GetNode("OMIR1");
-           TCONE * pcone= (TCONE*)obj->GetShape();
+           TCONE * pcone= (TCONE*)mirror->GetShape();
            double r1=pcone->GetRmin2();
            double r2=pcone->GetRmin();
            double dz=pcone->GetDz();      
-           double xc=obj->GetX();
-           double yc=obj->GetY();
-           double zc=obj->GetZ();
+           double xc=mirror->GetX();
+           double yc=mirror->GetY();
+           double zc=mirror->GetZ();
            double tc=(r1-r2)/2/dz;
-           obj=gAMSDisplay->GetGeometry()->GetNode("RICH1");
-           zc+=obj->GetZ();
+           zc+=rich->GetZ();
            double  z2=zc-dz;
            
   const int npoint=360/5;

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.22 2003/07/10 13:56:57 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.23 2003/07/11 07:37:06 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -40,7 +40,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV *ntuple):m
      fCooDef[0][2]=-90.;
      fCooDef[1][0]=65.;
      fCooDef[1][1]=65.;
-     fCooDef[1][2]=110.;
+     fCooDef[1][2]=100.;
      ResetCoo();
      m_Geometry     = 0;
      m_selected=0;
@@ -402,6 +402,7 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
      if(m_zoom){
       TAxis3D *axis=TAxis3D::ToggleZoom(gPad);
      if(axis){
+        axis->StickyZoom()=true;
         axis->SetNdivisions(0);
         axis->SetAxisColor(0);
      } 

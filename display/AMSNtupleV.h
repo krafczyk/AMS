@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.4 2003/07/10 13:56:57 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.5 2003/07/11 07:37:06 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -81,7 +81,7 @@ TrRecHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
  TrRecHitR *pcl=ev->pTrRecHit(ref);
 int size=gAMSDisplay->Focus()==0?2:1;
 if(pcl){
-  SetSize(pcl->EHit[0]<0.5?pcl->EHit[0]*100*size:pcl->EHit[0],pcl->EHit[1]*100*size,sqrt(pcl->Sum/10)<8?sqrt(pcl->Sum/10
+  SetSize(pcl->EHit[0]<0.5?pcl->EHit[0]*100:pcl->EHit[0],pcl->EHit[1]*100,sqrt(pcl->Sum/10)<6?sqrt(pcl->Sum/10
 ):8);
   SetPosition(pcl->Hit[0],pcl->Hit[1],pcl->Hit[2]);
   SetDirection(0,0);
