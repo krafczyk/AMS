@@ -226,7 +226,7 @@ c      RETURN
 c      END
 c
 CDECK  ID>, ABCR2.  
-        subroutine abcr2(i,a_p,z_p,a_t,z_t,p_p)
+        subroutine abcr2(i,a_p,z_p,a_t,z_t,p_p,ipart)
        parameter (inmat=1000)
        common /abcrossC/sigma_t(inmat),sigma_el(3,inmat),
      +  sigma_q(5,inmat),abinx(inmat),abelx(inmat),abqex(inmat)
@@ -271,7 +271,7 @@ CDECK  ID>, ABCR2.
 *         
           if (ihvse(1).eq.2) then       
 
-            CALL TRIPA(P_P,Z_P,A_P,Z_T,A_T,TRIPA_T,IFLAG_T)
+            CALL TRIPA(ipart,P_P,Z_P,A_P,Z_T,A_T,TRIPA_T,IFLAG_T)
 
             IF (IFLAG_T.EQ.1) THEN  
              sigma_q(1,i)=0
@@ -296,12 +296,14 @@ c Deuteron total cross section
 c                                               by G.LAMANNA  
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      SUBROUTINE TRIPA(P_P,Z_P,A_P,Z_T,A_T,SIGMA_T,IFLAG)
+      SUBROUTINE TRIPA(ipart,P_P,Z_P,A_P,Z_T,A_T,SIGMA_T,IFLAG)
 c
-        integer A_P,A_T,IFLAG
+
+        real A_P,A_T
+        integer IFLAG
         real M_P,P_P,M_T,Z_T,Z_P,r_t,r_p
         real E_lab,E_cm,T1,D,C_E,S,dE,R,B,X1,S_L,X_m
-        real R_C        
+        real R_C,tem_p,tem_t        
         real *4 sigma_t
         DATA PI / 3.1415927 /
         DATA r0 / 1.1 /
@@ -311,7 +313,7 @@ c
 *    Input:
 *     a_p,a_t,z_p,z_t,p_p [atom number projectile & target,Z p & t
 *      and momentom of projectile [MeV/c]]
-*     Is mandatory to transform p form GeV to Mev
+*     Transform p from GeV/c to Mev/c is mandatory
 *
 *    Output:
 *     sigma_T=total inelastic cr_sec [mbarn]
@@ -320,11 +322,7 @@ c
         sigma_T=0.
 
         IFLAG=0
-        IF (Z_T.LE.0.0) GOTO 66
-
-        IF (Z_P.NE.1.0) GOTO 66
-
-        IF (A_P.NE.2) GOTO 66
+        IF (IPART.NE.45) GOTO 66
 *       
         IFLAG=1 
 *
@@ -335,8 +333,9 @@ c
 
 *
 *    P_P  is    DEUTERON'S momentum in                           "MeV/c"           
+
        P_PM=P_P*1000.
-*
+
 * 
 *    E_k  is    DEUTERON'S KINETIC ENERGY 
 *               per NUMBER OF NUCLEONS (dividing by 2=A_P) in    "MeV/A"    
@@ -354,17 +353,28 @@ c
       D=1.65+(0.1/(1.+(exp((500.-E_k)/200.))))
 
 
+       if (Z_T.eq.1.0) THEN
+         if (A_T.lt.2.0.and.A_T.gt.0) then ! d+p becomes p+d
 
-       if (A_T.eq.1.and.Z_T.eq.1.0) THEN  ! d+p becomes p+d
-         A_T=2
-         A_P=1
-         M_P=938.
-         M_T=1876.
+         tem_p=0.0
+         tem_t=0.0
+         tem_p=A_P
+         tem_t=A_T
+         A_P=tem_t
+         A_T=tem_p
+
+         tem_p=0.0
+         tem_t=0.0
+         tem_p=M_P
+         tem_t=M_T
+         M_P=tem_t
+         M_T=tem_p
+
          T1=18.
          R_C=13.5
          D=1.85+(0.16/(1.+(exp((500.-E_k)/200.))))
        endif
-
+      endif
 *************************************
 * Center of mass energy : E_cm
 *
@@ -432,15 +442,15 @@ c
 *
 * ***********
 
-       if (A_T.eq.2.and.Z_T.eq.1.) THEN     ! d+d 
+       if (A_T.eq.2.0.and.Z_T.eq.1.) THEN     ! d+d 
         R_C=13.5
        endif
 
-       if (A_T.eq.4.and.Z_T.eq.2.) THEN     ! d+He4 
+       if (A_T.eq.4.0.and.Z_T.eq.2.) THEN     ! d+He4 
         R_C=13.5
        endif
 
-       if (A_T.eq.12.and.Z_T.eq.6.) THEN     ! d+C 
+       if (A_T.eq.12.0.and.Z_T.eq.6.) THEN     ! d+C 
         R_C=6.0
        endif
 
@@ -478,7 +488,6 @@ c
 ******************************************************************
 *
         FUNCTION RADIUS(A)
-        integer A
         DIMENSION NA(23),RMS(23)
         DATA NA/1,2,3,4,6,7,9,10,11,12,13,14,15,16,17,18,
      +         19,20,22,23,24,25,26/
@@ -1100,7 +1109,7 @@ C
          IF ( NCOMP .LE. 1) THEN
             a_t = a
             Z_t = z
-            CALL abcr2(1,a_p,z_p,a_t,z_t,p_p)
+            CALL abcr2(1,a_p,z_p,a_t,z_t,p_p,ipart)
             if(sigma_t(1)-sigma_el(1,1)-sigma_q(1,1).gt.0)then
              zin=a*avogmb/(sigma_t(1)-sigma_el(1,1)-sigma_q(1,1))
             else
@@ -1128,7 +1137,7 @@ C
             zqe1=0
             DO 10 K=1,NCOMP
                CALL abcr2(k,a_p,z_p,Q(JMIXT+K),
-     +         Q(JMIXT+NCOMP+K),p_p)
+     +         Q(JMIXT+NCOMP+K),p_p,ipart)
             if(sigma_t(k)-sigma_el(1,k)-sigma_q(1,k).gt.0)then
             zin=q(jmixt+k)*avogmb/(sigma_t(k)-sigma_el(1,k)-
      +      sigma_q(1,k))
