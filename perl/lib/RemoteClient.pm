@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.95 2003/04/10 09:07:03 alexei Exp $
+# $Id: RemoteClient.pm,v 1.96 2003/04/10 11:13:15 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1348,7 +1348,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("Job nickname","text",80,'Any',"QNick"," ");  
             print "</b></td></tr>\n";
         htmlTableEnd();
-# Run Parameters
+# Job Parameters
           print "<tr><td><b><font color=\"green\" size=2>Cite HW Parameters</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -1858,7 +1858,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
 # check form type
             if($self->{q}->param("CTT") eq "Basic"){
              htmlTop();
-             $self->htmlTemplateTable("Select Basic Template File and Run Parameters");
+             $self->htmlTemplateTable("Select Basic Template File and Job Parameters");
 # print templates
              my @tempnam=();
              my $hash={};
@@ -1895,8 +1895,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
               print "</select>\n";
           htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
           htmlTableEnd();
-# Run Parameters
-          print "<tr><td><b><font color=\"blue\">Run Parameters</font><font color=\"black\">
+# Job Parameters
+          print "<tr><td><b><font color=\"blue\">Job Parameters</font><font color=\"black\">
                  <i> (if in italic then cannot be changed)</font></b></i> \n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -1914,13 +1914,13 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
             htmlTextField("Total Events","number",9,1000000.,"QEv"," ");  
             htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
-            my ($rid,$rndm1,$rndm2) = $self->getrndm();
+            my ($rid,$rndm1,$rndm2) = $self->getRID();
 
-            htmlHiddenTextField("rndms","hidden",12,$rid,"QRNDMS"," ");  
+            htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
             htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
             htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");  
 
-            htmlText("<i>rndm sequence number </i>",$rid);
+            htmlText("<i>rndm sequence number </i>",abs($rid));
             htmlText("<i>rndm1 </i>",$rndm1);
             htmlText("<i>rndm2 </i>",$rndm2);
 
@@ -2021,8 +2021,8 @@ DDTAB:         $self->htmlTemplateTable(" ");
               print "</select>\n";
               htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");  
               htmlTableEnd();
-# Run Parameters
-              print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
+# Job Parameters
+              print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
@@ -2039,13 +2039,13 @@ DDTAB:         $self->htmlTemplateTable(" ");
               htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
               htmlTextField("Total Events","number",12,1000000.,"QEv"," ");  
               htmlTextField("Total Runs","number",12,3.,"QRun"," ");  
-              my ($rid,$rndm1,$rndm2) = $self->getrndm();
+              my ($rid,$rndm1,$rndm2) = $self->getRID();
 
-              htmlHiddenTextField("rndms","hidden",12,$rid,"QRNDMS"," ");  
+              htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
               htmlHiddenTextField("rndm1","hidden",12,$rndm1,"QRNDM1"," ");  
               htmlHiddenTextField("rndm2","hidden",12,$rndm2,"QRNDM2"," ");  
 
-              htmlText("<i>rndm sequence number </i>",$rid);
+              htmlText("<i>rndm sequence number </i>",abs($rid));
               htmlText("<i>rndm1 </i>",$rndm1);
               htmlText("<i>rndm2 </i>",$rndm2);
 
@@ -2254,16 +2254,17 @@ DDTAB:         $self->htmlTemplateTable(" ");
               print "</select>\n";
               htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
             htmlTableEnd();
-# Run Parameters
-              print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
+# Job Parameters
+              print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
               print "</td><td>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               $q->param("QEv",0);
               htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," sec");  
               htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");  
               htmlTextField("Total  Real Time Required","number",3,10,"QTimeOut"," (days)");  
-              my ($rid,$rndm1,$rndm2) = $self->getrndm();
-              htmlTextField("RNDM sequence number","number",7,$rid,"QRNDMS"," ");
+              my ($rid,$rndm1,$rndm2) = $self->getRID();
+              htmlHiddenTextField("rid","hidden",12,$rid,"QRNDMS"," ");  
+              htmlText("<i>rndm sequence number </i>",abs($rid));
             htmlTableEnd();
             if ($self->{CCT} eq "remote") {
              print "<tr><td>\n";
@@ -3695,6 +3696,35 @@ END_OF_MESSAGE2
     }
  }
 
+sub getRID() {
+    my $self=shift;
+    my $maxrun;
+        my $sql="select rid from RNDM WHERE rid<0";
+        my $res=$self->{sqlserver}->Query($sql);
+        if(not defined $res->[0][0]){
+           Warning::error($self->{q},"unable to find RID<0");
+           $maxrun = -1;
+       } else {
+           $maxrun=$res->[0][0];
+        }
+        $sql="select rid,rndm1,rndm2 from RNDM where rid=$maxrun";
+        my $res=$self->{sqlserver}->Query($sql);
+        if( not defined $res->[0][0] ){
+          my $big=2147483647;
+          my $rndm1=int (rand $big);
+          my $rndm2=int (rand $big);
+          my $rid  = 0;
+          Warning::error($self->{q},"unable to read rndm table $maxrun");
+          return ($rid,$rndm1,$rndm2);
+      }
+      my $rid  =$res->[0][0];
+      my $rndm1=$res->[0][1];
+      my $rndm2=$res->[0][2];
+
+      return ($rid,$rndm1,$rndm2);
+
+}  
+
 sub getrndm(){
     my $self=shift;
         my $sql="select rid from RNDM WHERE rid<0";
@@ -3717,7 +3747,7 @@ sub getrndm(){
           my $rid  = 0;
            Warning::error($self->{q},"unable to read rndm table $maxrun");
 
-          return ($rndm1,$rndm2);
+          return ($rid,$rndm1,$rndm2);
          }
     my $rid  =$res->[0][0];
     my $rndm1=$res->[0][1];
@@ -4000,7 +4030,7 @@ sub queryDB {
             print "</select>\n";
             print "</b></td></tr>\n";
         htmlTableEnd();
-# Run Parameters
+# Job Parameters
           print "<tr><td><b><font color=\"blue\" size=2>Cite HW Parameters</font></b>\n";
           print "</td><td>\n";
           print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -4098,10 +4128,11 @@ sub listCites {
     print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
      htmlTable("MC02 Cites");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT cid, descr, name, status, maxrun FROM Cites ORDER by cid";
+#     my $sql="SELECT cid, descr, name, status, maxrun FROM Cites ORDER by cid";
+     my $sql="SELECT cid,descr, name, status, maxrun FROM Cites ORDER by descr";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
-              print "<td><b><font color=\"blue\" >ID </font></b></td>";
+#              print "<td><b><font color=\"blue\" >ID </font></b></td>";
               print "<td><b><font color=\"blue\" >Type </font></b></td>";
               print "<td><b><font color=\"blue\" >Jobs Ends</font></b></td>";
               print "<td><b><font color=\"blue\" >Jobs Reqs</font></b></td>";
@@ -4130,7 +4161,9 @@ sub listCites {
               $reqs = $cnt->[0];
           }
           print "<tr><font size=\"2\">\n";
-          print "<td><b> $descr ($name) </td><td><b> $cid </td><td><b> $status </td>
+#          print "<td><b> $descr ($name) </td><td><b> $cid </td><td><b> $status </td>
+#                 <td><b> $jobs </td></b><td><b> $reqs </b></td>\n";
+          print "<td><b> $descr ($name) </td><td><b> $status </td>
                  <td><b> $jobs </td></b><td><b> $reqs </b></td>\n";
           print "</font></tr><p></p>\n";
       }
@@ -4742,9 +4775,8 @@ sub DDMMYYHHMMSSToEpoch {
 }
 
 sub colorLegend {
+#    print "<td align=\"right\"><font size=4 color=\"#3399ff\"><b>Colors Legend</b></font></td>\n";
     print "<table width=100 cellpadding=2 cellspacing=2 border=2 align=right>\n";;
-    print "<caption><font size=4 color=\"#3399ff\"><b>Colors Legend</b></font><br>\n";
-    print "<tr>\n";
     print "<td width=40 height=20 align=middle valign=middle bgcolor=\"green\">
             <font size=3 color=\"ffffff\"><b>Normal</b></font></td>\n";
     print "<td width=40 height=20 align=middle valign=middle bgcolor=\"orange\">
@@ -4756,7 +4788,7 @@ sub colorLegend {
     print "<td width=40 height=20 align=middle valign=middle bgcolor=\"#990099\">
             <font size=3 color=\"ffff66\"><b>Obsolete</b></font></td>\n";
     print "</tr>\n";
-    print "</table><p></p><br>\n";
+    print "</table><p></p><br></br>\n";
 }
 
 sub ht_Menus {
