@@ -16,9 +16,12 @@ integer AMSDBc::BigEndian=0;
 const number AMSDBc::raddeg=57.295779;
 const number AMSDBc::pi=3.14159265358979;
 const number AMSDBc::twopi=2*pi;
-      geant AMSDBc::ams_size[3]={380.,380.,380.};
-     const char AMSDBc::ams_name[]="AMSG version 1.00";
-      geant AMSDBc::ams_coo[3]={0.,0.,0.};
+geant AMSDBc::ams_size[3]={380.,380.,380.};
+const char AMSDBc::ams_name[]="AMSG version 1.00";
+geant AMSDBc::ams_coo[3]={0.,0.,0.};
+const integer AMSDBc::ams_rotmno=1;
+number AMSDBc::ams_nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+//number AMSDBc::ams_nrm[3][3]={0.,0.,1.,0.,1.,0.,-1.,0.,0};
 // Tracker parameters
    const integer AMSDBc::_nlay=nl;
 

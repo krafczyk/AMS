@@ -102,7 +102,6 @@ TOFVarp tofvpar; // TOF general parameters (not const !)
 extern ANTIPcal antisccal[MAXANTI]; // ANTI-counter individ.parameters
 extern CTCCCcal ctcfcal[CTCCCMX];//  CTC calibr. objects
 
-void  _genonlinebookhist();
 
 //
 void AMSJob::data(){
@@ -1208,7 +1207,6 @@ void AMSJob::_retofinitjob(){
 
     if(isMonitoring() & (AMSJob::MTOF | AMSJob::MAll)){ // TOF Online histograms
       _retofonlineinitjob();      // (see tofonline.C)
-      _genonlinebookhist();
     }
 //
 // ===> Clear JOB-statistics counters for SIM/REC :
@@ -1286,6 +1284,59 @@ AMSgObj::BookTimer.book("RECTCEVENT");
 void AMSJob::_reaxinitjob(){
 AMSgObj::BookTimer.book("REAXEVENT");
 if(AMSFFKEY.Update)AMSCharge::init();
+
+
+const   int nids = 19;
+
+int16u ids[nids] =
+  { 0x200,
+    0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1,  //  TOF Raw
+    0x1680, 0x1740,                                           //  TRK Reduced
+    0x1681, 0x1741,                                           //  TRK Raw
+    0x168C, 0x174C,                                           //  TRK Mixed
+    0x0440,                                                   //  Level-1
+    0x1200                                                    //  Level-3
+  };
+
+
+char   *ids_names[]  = {"Length (words) GenBlock    ",
+                        "Length (words) TOF(raw) 01 ",
+                        "Length (words) TOF(raw) 31 ",
+                        "Length (words) TOF(raw) 41 ",
+                        "Length (words) TOF(raw) 71 ",
+                        "Length (words) TOF(raw) 03 ",
+                        "Length (words) TOF(raw) 33 ",
+                        "Length (words) TOF(raw) 43 ",
+                        "Length (words) TOF(raw) 73 ",
+                        "Length (words) TRK(red) 32",
+                        "Length (words) TRK(red) 72",
+                        "Length (words) TRK(raw) 32",
+                        "Length (words) TRK(raw) 72",
+                        "Length (words) TRK(mix) 32",
+                        "Length (words) TRK(mix) 72",
+                        "Length (words) Level1 block ",
+                        "Length (words) Level3 block "};
+
+  int nchans[nids] ={100,
+                    100.,100.,100.,100.,100.,100.,100.,100.,
+                    1000.,1000.,
+                    800.,800.,
+                    800.,800.,
+                    100., 100.};
+                    
+  for (int i=0; i<nids; i++) {
+     int hid  = 300000 + ids[i];
+     geant f = nchans[i];
+     integer nbin = 50;
+     if (i>17) nbin = 100;
+     HBOOK1(hid,ids_names[i],nbin,0.,f,0.);
+  }
+    HBOOK1(300000,"Length (words) event",300,0.,1500.,0.);
+    HBOOK1(300001,"Length (words) TOF",200,0.,600.,0.);
+    HBOOK1(300002,"Length (words) Tracker",300,0.,1500.,0.);
+
+
+
 }
 
 void AMSJob::_retrdinitjob(){
@@ -2047,57 +2098,6 @@ integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
 }
 #endif
 
-void       _genonlinebookhist() 
-{
-const   int nids = 19;
-
-int16u ids[nids] =
-  { 0x200,
-    0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1,  //  TOF Raw
-    0x1680, 0x1740,                                           //  TRK Reduced
-    0x1681, 0x1741,                                           //  TRK Raw
-    0x168C, 0x174C,                                           //  TRK Mixed
-    0x0440,                                                   //  Level-1
-    0x1200                                                    //  Level-3
-  };
-
-
-char   *ids_names[]  = {"Length (words) GenBlock    ",
-                        "Length (words) TOF(raw) 01 ",
-                        "Length (words) TOF(raw) 31 ",
-                        "Length (words) TOF(raw) 41 ",
-                        "Length (words) TOF(raw) 71 ",
-                        "Length (words) TOF(raw) 03 ",
-                        "Length (words) TOF(raw) 33 ",
-                        "Length (words) TOF(raw) 43 ",
-                        "Length (words) TOF(raw) 73 ",
-                        "Length (words) TRK(red) 32",
-                        "Length (words) TRK(red) 72",
-                        "Length (words) TRK(raw) 32",
-                        "Length (words) TRK(raw) 72",
-                        "Length (words) TRK(mix) 32",
-                        "Length (words) TRK(mix) 72",
-                        "Length (words) Level1 block ",
-                        "Length (words) Level3 block "};
-
-  int nchans[nids] ={100,
-                    100.,100.,100.,100.,100.,100.,100.,100.,
-                    1000.,1000.,
-                    800.,800.,
-                    800.,800.,
-                    100., 100.};
-                    
-  for (int i=0; i<nids; i++) {
-     int hid  = 300000 + ids[i];
-     geant f = nchans[i];
-     integer nbin = 50;
-     if (i>17) nbin = 100;
-     HBOOK1(hid,ids_names[i],nbin,0.,f,0.);
-  }
-    HBOOK1(300000,"Length (words) event",300,0.,1500.,0.);
-    HBOOK1(300001,"Length (words) TOF",200,0.,600.,0.);
-    HBOOK1(300002,"Length (words) Tracker",300,0.,1500.,0.);
-}
 
 #ifdef __DB__
 

@@ -33,16 +33,17 @@ extern void antigeom(AMSgvolume &);
 extern void pshgeom(AMSgvolume &);
 extern void ctcgeom(AMSgvolume &);
 AMSID amsid;
-number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-number inrm[3][3];
 geant par[3];
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=1;
       par[0]=AMSDBc::ams_size[0]/2;
       par[1]=AMSDBc::ams_size[1]/2;
       par[2]=AMSDBc::ams_size[2]/2;
-static AMSgvolume mother("VACUUM",0,AMSDBc::ams_name,"BOX",par,
-       3,AMSDBc::ams_coo,nrm,"ONLY",  0,gid);  // AMS mother volume
-AMSJob::gethead()->addup( &mother);
+      // to be able rotate ams as a whole
+static AMSgvolume false_mother("VACUUM",0,AMSDBc::ams_name,"BOX",par,3,AMSDBc::ams_coo,nrm,"ONLY",  0,gid);  // AMS false mother volume
+static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,AMSDBc::ams_nrm,"ONLY",  0,gid);  // AMS mother volume
+AMSJob::gethead()->addup( &false_mother);
+false_mother.add(&mother);
 magnetgeom(mother);
 tofgeom(mother);
 antigeom(mother);
@@ -67,10 +68,9 @@ AMSgObj::GVolMap.map(mother);
 void magnetgeom(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
-number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
-number inrm[3][3];
 char name[5]="MAGN";
 geant coo[3]={0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=0;
 AMSNode * cur;
 AMSNode * dau;
@@ -80,32 +80,33 @@ AMSgtmed *p;
       par[1]=129.6/2;
       par[2]=40.;
       dau=mother.add(new AMSgvolume(
-      "MAGNET",0,name,"TUBE",par,3,coo,nrm, "ONLY",0,gid));
+      "MAGNET",0,name,"TUBE",par,3,coo,
+       nrm, "ONLY",0,gid,1));
       gid=2;
       par[0]=111.4/2.;
       par[1]=112.0/2.;
       par[2]=40.;
       dau=mother.add(new AMSgvolume(
-      "1/2ALUM",0,"ALT1","TUBE",par,3,coo,nrm, "ONLY",0,gid));
+      "1/2ALUM",0,"ALT1","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
       gid=3;
       par[0]=129.6/2.;
       par[1]=130.4/2.;
       par[2]=40.;
       dau=mother.add(new AMSgvolume(
-      "1/2ALUM",0,"ALT2","TUBE",par,3,coo,nrm, "ONLY",0,gid++));
+      "1/2ALUM",0,"ALT2","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
       par[0]=112/2.;
       par[1]=165./2.;
       par[2]=0.75;
       coo[2]=40.75;
       dau=mother.add(new AMSgvolume(
-      "1/2ALUM",0,"ALT3","TUBE",par,3,coo,nrm, "ONLY",0,gid++));
+      "1/2ALUM",0,"ALT3","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
       par[0]=112/2.;
       par[1]=165.6/2.;
       par[2]=0.75;
       coo[2]=-40.75;
       dau=mother.add(new AMSgvolume(
-      "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++));
+      "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
 }
 //-------------------------------------------------------------------
@@ -152,7 +153,7 @@ else{
   exit(1);
     }
 dau=mother.add(new AMSgvolume(
-    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid));
+    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
 //--------------
 //          <-- create/position bot supp. honeycomb structures
 gid=2;
@@ -170,7 +171,7 @@ else{
   exit(1);
     }
 dau=mother.add(new AMSgvolume(
-    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid));
+    nmed,0,"TOFH","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));
 //----------------------------------------------------------------------
 //             <-- create/position S1-S4 sc. planes :
 //
@@ -229,7 +230,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
         }
     gid=100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFC","BOX",par,3,coo,nrm,"MANY",1,gid));
+    nmed,nrot,"TOFC","BOX",par,3,coo,nrm,"MANY",1,gid,1));
 //-------
 //        <-- cr/position scintillator inside counter
 //
@@ -244,7 +245,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
       exit(1);
         }
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFS","BOX",par,3,coo,nrm,"ONLY",1,gid));
+    nmed,nrot,"TOFS","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
 //-------
 //        <--- now put boxes, equivalent to (PMTs + shielding)
 //                                    at both ends of sc. bar.
@@ -270,7 +271,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
         }
     gid=1000+100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid));
+    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
 //-----
     if(TOFDBc::plrotm(ip)==0){
       coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
@@ -289,7 +290,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
         }
     gid=2000+100*(ip+1)+ib+1;
     dau=mother.add(new AMSgvolume(
-    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid));
+    nmed,nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
     
   }      //   <<<============= end of sc. bars loop ==========
 }   //   <<<============= end of sc. planes loop =============
@@ -338,7 +339,7 @@ AMSNode * p;
   par[4]=360.;
   gid=100;
   p=mother.add(new AMSgvolume(
-       "ANTI_SUPTB",0,"ASTB","TUBE",par,5,coo,nrm, "ONLY",0,gid));
+       "ANTI_SUPTB",0,"ASTB","TUBE",par,5,coo,nrm, "ONLY",0,gid,1));
 //
 // create ANTI-counter mother volume as wrapper-made cylinder:
 //
@@ -349,7 +350,7 @@ AMSNode * p;
   par[4]=360.;
   gid=200;
   pAmother=mother.add(new AMSgvolume(
-       "ANTI_WRAP",0,"AMOT","TUBE",par,5,coo,nrm, "ONLY",0,gid));
+       "ANTI_WRAP",0,"AMOT","TUBE",par,5,coo,nrm, "ONLY",0,gid,1));
 //
 // ---> Loop to fill A-mother volume with sc.segments,sc.bumps and holes :
 //
@@ -370,7 +371,7 @@ AMSNode * p;
     coo[2]=0.;
     gid+=1;
     pSegm=pAmother->add(new AMSgvolume(
-       "ANTI_SCINT",0,"ANTS","TUBS",par,5,coo,nrm, "MANY",1,gid));
+       "ANTI_SCINT",0,"ANTS","TUBS",par,5,coo,nrm, "MANY",1,gid,1));
 //
 //     create/pos groove in A-mother:
 //
@@ -393,7 +394,7 @@ AMSNode * p;
     par[3]=0.;
     par[4]=180.;
     pGroov=pAmother->add(new AMSgvolume(
-       "ANTI_WRAP",nrot,"AGRV","TUBS",par,5,coo,nrd, "ONLY",1,gid));
+       "ANTI_WRAP",nrot,"AGRV","TUBS",par,5,coo,nrd, "ONLY",1,gid,1));
 //
 //     create/pos sc. bump in Amother:
 //
@@ -416,7 +417,7 @@ AMSNode * p;
     par[3]=0.;
     par[4]=180.;
     p=pAmother->add(new AMSgvolume(
-       "ANTI_SCINT",nrot,"ANTB","TUBS",par,5,coo,nrd, "ONLY",1,gid));
+       "ANTI_SCINT",nrot,"ANTB","TUBS",par,5,coo,nrd, "ONLY",1,gid,1));
   }// ---> end of sector loop
 //
 }
@@ -474,7 +475,7 @@ coo[0]=0.;
 coo[1]=0.;
 coo[2]=zr-dz; // supp.plate center z-pos
 dau=mother.add(new AMSgvolume(
-    "CTC_HONEYCOMB",0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,gid));
+    "CTC_HONEYCOMB",0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,gid,1));
 //
 //--------------
 //
@@ -495,7 +496,7 @@ coo[0]=0.;
 coo[1]=0.;
 coo[2]=zr+dz;// box center z-pos
 dau=mother.add(new AMSgvolume(
-    "CTC_WALL",0,"WALL","BOX ",par,3,coo,nrm,"MANY",0,gid));
+    "CTC_WALL",0,"WALL","BOX ",par,3,coo,nrm,"MANY",0,gid,1));
 //---
 //  <--- put into this box "dummy_media"("air") to get space for aerogel
 //
@@ -505,7 +506,7 @@ par[1]=dy-wl;
 par[2]=dz-wl;
 coo[2]=zr+dz;
 dau=mother.add(new AMSgvolume(
-    "CTC_DUMMYMED",0,"DVOL","BOX ",par,3,coo,nrm,"MANY",0,gid));
+    "CTC_DUMMYMED",0,"DVOL","BOX ",par,3,coo,nrm,"MANY",0,gid,1));
 //--------------
 //          <-- add middle horiz. separator for side readout geometry(geom-1)
 if(iflag==1){
@@ -517,7 +518,7 @@ coo[0]=0.;
 coo[1]=0.;
 coo[2]=zr+dz;// box center z-pos
 dau=mother.add(new AMSgvolume(
-    "CTC_WALL",0,"HSEP","BOX ",par,3,coo,nrm,"MANY",0,gid));
+    "CTC_WALL",0,"HSEP","BOX ",par,3,coo,nrm,"MANY",0,gid,1));
 }
 //--------------
 //
@@ -553,28 +554,28 @@ for(i=0;i<nblk;i++){ // <---- loop over aerog. blocks ----
     coo[0]=xleft+i*step;
     coo[2]=cooz;
     dau=mother.add(new AMSgvolume(
-        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid,1));
   }
   if(iflag==1){
     gid=11001+2*i;
     coo[0]=xleft+i*step;
     coo[2]=cooz;
     dau=mother.add(new AMSgvolume(
-        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));//1-st in top row
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid,1));//1-st in top row
     gid=12001+2*i;
     coo[2]=cooz-dz-2.*gp-wl;
     dau=mother.add(new AMSgvolume(
-        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));//1-st in bot row
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid,1));//1-st in bot row
 //        
     gid=11002+2*i;
     coo[0]=xleft+i*step+2.*dxag+2.*gp+wls;
     coo[2]=cooz;
     dau=mother.add(new AMSgvolume(
-        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));//2-nd in top row
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid,1));//2-nd in top row
     gid=12002+2*i;
     coo[2]=cooz-dz-2.*gp-wl;
     dau=mother.add(new AMSgvolume(
-        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid));//2-nd in bot row
+        "CTC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",1,gid,1));//2-nd in bot row
   }
 } // ----- end of aerog. blocks loop ----->
 //--------------
@@ -608,7 +609,7 @@ for(i=0;i<loop;i++){ // <---- separators loop ----
   gid=51+i;
   coo[0]=xleft+i*step;
   dau=mother.add(new AMSgvolume(
-      "CTC_SEP",0,"VSEP","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+      "CTC_SEP",0,"VSEP","BOX ",par,3,coo,nrm,"ONLY",1,gid,1));
 } // ----- end of separators(WLS's) loop ----->
 
 //--------------
@@ -630,7 +631,7 @@ if(iflag==0){
     gid=21001+i;
     coo[0]=xleft+i*step;
     dau=mother.add(new AMSgvolume(
-        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid,1));
   } // ----- end of wls-strips loop ----->
 }
 //--------------
@@ -653,11 +654,11 @@ if(iflag==1){
     coo[0]=xleft+i*step;
     coo[2]=cooz;
     dau=mother.add(new AMSgvolume(
-        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid,1));
     gid=22001+i;    // bot row
     coo[2]=cooz-2.*dz-wl-2.*gwls;
     dau=mother.add(new AMSgvolume(
-        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid));
+        "CTC_WLS",0,"WLS ","BOX ",par,3,coo,nrm,"ONLY",1,gid,1));
   }
 }
 //-----
@@ -707,7 +708,7 @@ void ctcgeomAG(AMSgvolume & mother){
   coo[0]=coo[1]=0.;
   coo[2]=zr; // support structure's centre z-position
   mother.add(new AMSgvolume(
-      "CTC_HONEYCOMB",0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,3000000));
+      "CTC_HONEYCOMB",0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,3000000,1));
   //
   // <---- 
   //
@@ -726,7 +727,7 @@ void ctcgeomAG(AMSgvolume & mother){
      coo[1]=-3.;
      coo[2]=zr+0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
      pLayer=mother.add(new AMSgvolume(
-       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000));
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000,1));
     }
     else{
       for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
@@ -734,7 +735,7 @@ void ctcgeomAG(AMSgvolume & mother){
       coo[1]=3.;
       coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
       pLayer=mother.add(new AMSgvolume(
-       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000,1));
     }
 
 #ifdef __AMSDEBUG__
@@ -867,7 +868,7 @@ void ctcgeomAG(AMSgvolume & mother){
      coo[1]=0.;
      coo[2]=zr+0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
      pLayer=mother.add(new AMSgvolume(
-       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000));
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000,1));
     }
     else{
       par[0]= 0.25*CTCDBc::getcellsize(0)+0.5*CTCDBc::getwallsize(0);
@@ -877,7 +878,7 @@ void ctcgeomAG(AMSgvolume & mother){
       coo[1]=3.;
       coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
       pLayer=mother.add(new AMSgvolume(
-       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000,1));
     }
 #ifdef __AMSDEBUG__
     cout <<" Layer "<<ilay<<" "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;      
@@ -1045,7 +1046,7 @@ void ctcgeomAGPlus(AMSgvolume & mother){
   coo[0]=coo[1]=0.;
   coo[2]=zr; // support structure's centre z-position
   mother.add(new AMSgvolume(
-      "CTC_HONEYCOMB",0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,3000000));
+      "CTC_HONEYCOMB",0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,3000000,1));
   //
   // <---- 
   //
@@ -1065,7 +1066,7 @@ void ctcgeomAGPlus(AMSgvolume & mother){
       coo[1]=5.5;
       coo[2]=zr-0.5*CTCDBc::getthcsize(2)-0.55;   // for W
       pLayer=mother.add(new AMSgvolume(
-       "TUNGSTEN",0,"AMP1","BOX ",par,3,coo,nrm,"ONLY",0,1000001));
+       "TUNGSTEN",0,"AMP1","BOX ",par,3,coo,nrm,"ONLY",0,1000001,1));
   
 
   for(ilay=1;ilay<3;ilay++){
@@ -1074,14 +1075,14 @@ void ctcgeomAGPlus(AMSgvolume & mother){
      coo[0]=coo[1]=0.;
      coo[2]=zr+0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
      pLayer=mother.add(new AMSgvolume(
-       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000));
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000,1));
     }
     else{
       for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
       coo[0]=coo[1]=5.5;
       coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2)-1.1;   // for W
       pLayer=mother.add(new AMSgvolume(
-       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000,1));
     }
     
   //<--- Introduce the walls between modules
@@ -1181,7 +1182,7 @@ void ctcgeomAGPlus(AMSgvolume & mother){
      coo[0]=coo[1]=0.;
      coo[2]=zr+0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
      pLayer=mother.add(new AMSgvolume(
-       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000));
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000,1));
     }
     else{
       par[0]= 0.25*CTCDBc::getcellsize(0)+0.5*CTCDBc::getwallsize(0);
@@ -1191,7 +1192,7 @@ void ctcgeomAGPlus(AMSgvolume & mother){
       coo[1]=5.5;
       coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2)-1.1;
       pLayer=mother.add(new AMSgvolume(
-       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000,1));
     }
   //<--- Introduce the walls between modules
 
@@ -1338,7 +1339,7 @@ ostrstream ost(name,sizeof(name));
          }
 #endif
       dau=mother.add(new AMSgvolume(
-      "VACUUM",nrot++,name,"CONE",par,5,coo,nrm, "ONLY",0,gid));
+      "VACUUM",nrot++,name,"CONE",par,5,coo,nrm, "ONLY",0,gid,1));
       //      cout <<" layer "<<i<<" "<<nrot<<endl;
       int j;
       for (j=0;j<AMSDBc::nlad(i+1);j++){
@@ -1638,7 +1639,7 @@ AMSgtmed *p;
       par[2]=0.75;
       coo[2]=75.25;
       dau=mother.add(new AMSgvolume(
-      "TOF_SCINT",0,"PSH1","TUBE",par,3,coo,nrm, "ONLY",0,gid));
+      "TOF_SCINT",0,"PSH1","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
       gid++;
 
       par[0]=18.;
@@ -1651,7 +1652,7 @@ AMSgtmed *p;
 
 
       dau=mother.add(new AMSgvolume(
-      "TOF_SCINT",0,"PSH2","CONE",par,5,coo,nrm, "ONLY",0,gid++));
+      "TOF_SCINT",0,"PSH2","CONE",par,5,coo,nrm, "ONLY",0,gid++,1));
 
       par[0]=18.;
       par[1]=82.8;
@@ -1663,7 +1664,7 @@ AMSgtmed *p;
 
 
       dau=mother.add(new AMSgvolume(
-      "TOF_SCINT",0,"PSH3","CONE",par,5,coo,nrm, "ONLY",0,gid++));
+      "TOF_SCINT",0,"PSH3","CONE",par,5,coo,nrm, "ONLY",0,gid++,1));
 
 
 
@@ -1686,7 +1687,7 @@ AMSgtmed *p;
       nrm[1][2]=0;
       nrm[2][2]=0;
       dau=mother.add(new AMSgvolume(
-      "1/2ALUM",nrot++,"SHU1","TUBS",par,5,coo,nrm, "ONLY",0,gid++));
+      "1/2ALUM",nrot++,"SHU1","TUBS",par,5,coo,nrm, "ONLY",0,gid++,1));
 
       par[0]=0;
       par[1]=187.;
@@ -1697,7 +1698,7 @@ AMSgtmed *p;
       coo[1]=0;
       coo[2]=0;
       dau=mother.add(new AMSgvolume(
-      "1/2ALUM",nrot++,"SHU2","TUBS",par,5,coo,nrm, "ONLY",0,gid++));
+      "1/2ALUM",nrot++,"SHU2","TUBS",par,5,coo,nrm, "ONLY",0,gid++,1));
       par[0]=0.;
       par[1]=187.;
       par[2]=1.;
@@ -1707,7 +1708,7 @@ AMSgtmed *p;
       coo[1]=0;
       coo[2]=0;
       dau=mother.add(new AMSgvolume(
-      "1/2ALUM",nrot++,"SHU3","TUBS",par,5,coo,nrm, "ONLY",0,gid++));
+      "1/2ALUM",nrot++,"SHU3","TUBS",par,5,coo,nrm, "ONLY",0,gid++,1));
 
 
       // Iron support 12 + 10 bins
@@ -1730,25 +1731,25 @@ AMSgtmed *p;
       coo[1]=-87.;      
       coo[2]=-38;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR01","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR01","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       coo[0]=0;      
       coo[1]=-87.;      
       coo[2]=38;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR02","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR02","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       coo[0]=0;      
       coo[1]=87.;      
       coo[2]=-38;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR03","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR03","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       coo[0]=0;      
       coo[1]=87.;      
       coo[2]=38;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR04","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR04","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       par[0]=3;
       par[1]=84;
@@ -1760,25 +1761,25 @@ AMSgtmed *p;
       coo[1]=0;      
       coo[2]=-38;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR05","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR05","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       coo[0]=-87;      
       coo[1]=0.;      
       coo[2]=38;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR06","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR06","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       coo[0]=87;      
       coo[1]=0.;      
       coo[2]=-38;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR07","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR07","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       coo[0]=87;      
       coo[1]=0;      
       coo[2]=38;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR08","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR08","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       par[0]=4;
       par[1]=3;
@@ -1790,25 +1791,25 @@ AMSgtmed *p;
       coo[1]=-87.;      
       coo[2]=0;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR09","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR09","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       coo[0]=-87;      
       coo[1]=87.;      
       coo[2]=0;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR10","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR10","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       coo[0]=87;      
       coo[1]=-87.;      
       coo[2]=0;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR11","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR11","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
       coo[0]=87;      
       coo[1]=87.;      
       coo[2]=0;      
       dau=mother.add(new AMSgvolume(
-      "IRON",0,"IR12","BOX ",par,3,coo,nrm, "ONLY",0,gid++));
+      "IRON",0,"IR12","BOX ",par,3,coo,nrm, "ONLY",0,gid++,1));
 
 
        

@@ -1072,7 +1072,7 @@ void TriggerLVL3::_printEl(ostream & stream){
 
   stream << " Lvl3Output " << _TrackerTrigger<<" "<<_TOFTrigger<<" "<<
     _AntiTrigger<<" res "<<_Residual[0]<<" "<<_Residual[1]<<" "<<_NPatFound <<
-    " pat "<<_Pattern[0]<<" "<<_Pattern[1]<<" eloss "<<_TrEnergyLoss<<endl;
+    " pat "<<_Pattern[0]<<" "<<_Pattern[1]<<" eloss "<<_TrEnergyLoss<<" nhits "<<_NTrHits<<endl;
  for(int j=0;j<6;j++){
   for(int i=0;i<_nhits[j];i++){
     stream<<"Lvl3-Layer "<<j+1<<" hit "<<i<<" "<<_coo[j][i]<<endl;    

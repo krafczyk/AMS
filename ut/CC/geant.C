@@ -164,11 +164,12 @@ extern "C" void gustep_(){
   try{
 
   //  Tracker
+  int lvl= GCVOLU.nlevel-1;  
 
-  if(GCVOLU.nlevel >1 && GCTRAK.destep != 0 && GCTMED.isvol != 0 && 
-  GCVOLU.names[1][0]== 'S' &&     GCVOLU.names[1][1]=='T' && 
-  GCVOLU.names[1][2]=='K')
-     AMSTrMCCluster::sitkhits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
+  if(GCVOLU.nlevel>2 && GCTRAK.destep != 0 && GCTMED.isvol != 0 && 
+  GCVOLU.names[2][0]== 'S' &&     GCVOLU.names[2][1]=='T' && 
+  GCVOLU.names[2][2]=='K')
+     AMSTrMCCluster::sitkhits(GCVOLU.number[lvl],GCTRAK.vect,
      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
 
   // TOF
@@ -182,10 +183,10 @@ extern "C" void gustep_(){
   geant vect[3],dx,dy,dz,dt; 
   int i,nd,numv,iprt,numl;
   static int numvo(-999),iprto(-999);
-  if(GCVOLU.nlevel >1 && GCVOLU.names[1][0]== 'T' && GCVOLU.names[1][1]=='O' &&
-  GCVOLU.names[1][2]=='F' && GCVOLU.names[1][3]=='S'){// in "TOFS"
+  if(lvl >1 && GCVOLU.names[lvl][0]== 'T' && GCVOLU.names[lvl][1]=='O' &&
+  GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='S'){// in "TOFS"
     iprt=GCKINE.ipart;
-    numv=GCVOLU.number[GCVOLU.nlevel-1];
+    numv=GCVOLU.number[lvl];
     x=GCTRAK.vect[0];
     y=GCTRAK.vect[1];
     z=GCTRAK.vect[2];
@@ -247,22 +248,22 @@ extern "C" void gustep_(){
   // CTC
 
 
-  if(GCVOLU.nlevel >2 && GCKINE.charge != 0  && GCTRAK.destep != 0 
+  if(lvl >2 && GCKINE.charge != 0  && GCTRAK.destep != 0 
       &&   GCTMED.isvol != 0 ){ 
-    if((GCVOLU.names[2][0]== 'A' && GCVOLU.names[2][1]=='G' && 
-        GCVOLU.names[2][2]=='L'))
-      AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
+    if((GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='G' && 
+        GCVOLU.names[lvl][2]=='L'))
+      AMSCTCMCCluster::sictchits(GCVOLU.number[lvl],GCTRAK.vect,
       GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
 
-       if((GCVOLU.names[2][0]== 'P' && GCVOLU.names[2][1]=='T' && 
-           GCVOLU.names[2][2]=='F' )){
-         AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
+       if((GCVOLU.names[lvl][0]== 'P' && GCVOLU.names[lvl][1]=='T' && 
+           GCVOLU.names[lvl][2]=='F' )){
+         AMSCTCMCCluster::sictchits(GCVOLU.number[lvl],GCTRAK.vect,
          GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
        }
 
-      if((GCVOLU.names[2][0]== 'P' && GCVOLU.names[2][1]=='M' && 
-          GCVOLU.names[2][2]=='T' ))
-        AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
+      if((GCVOLU.names[lvl][0]== 'P' && GCVOLU.names[lvl][1]=='M' && 
+          GCVOLU.names[lvl][2]=='T' ))
+        AMSCTCMCCluster::sictchits(GCVOLU.number[lvl],GCTRAK.vect,
         GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
   }
 
@@ -281,8 +282,8 @@ extern "C" void gustep_(){
 //  UHTOC(GCTMED.natmed,4,media,20);
 //  cout<<" Media "<<media<<endl;
   int manti(0);
-  if(numl==3 && GCVOLU.names[numl-1][0]== 'A' && GCVOLU.names[numl-1][1]=='N'
-                                       && GCVOLU.names[numl-1][2]=='T')manti=1;
+  if(lvl==3 && GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='N'
+                                       && GCVOLU.names[lvl][2]=='T')manti=1;
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
      GBIRK(dee);
      AMSAntiMCCluster::siantihits(numv,GCTRAK.vect,dee,GCTRAK.tofg);

@@ -52,6 +52,8 @@ public:
    static const number twopi;
 // AMS parameters
      static  geant ams_size[3];
+     static number ams_nrm[3][3];
+     static const integer ams_rotmno;
      static const char ams_name[129];
      static  geant ams_coo[3];
 //bits
