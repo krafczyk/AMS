@@ -2081,20 +2081,20 @@ AMSgtmed *p;
       "MAGNET",0,name,"TUBE",par,3,coo,
        nrm, "ONLY",0,gid,1));
 /*
+#ifdef __G4AMS__
 // add boolean for testing
       coo[0]=par[1];
       coo[1]=0;
       coo[2]=0;
       par[1]=(par[1]-par[0])/2;
       par[0]=0;
-      dau->addboolean(new AMSgvolume("MAGNET",0,name,"TUBE",par,3,coo,
-           nrm,"BOO-",0,gid,1));
+      dau->addboolean("TUBE",par,3,coo,nrm,'-');
             
       coo[0]=-coo[0];
       coo[1]=0;
       coo[2]=0;
-      dau->addboolean(new AMSgvolume("MAGNET",0,name,"TUBE",par,3,coo,
-           nrm,"BOO+",0,gid,1));
+      dau->addboolean("TUBE",par,3,coo,nrm,'+');
+#endif
 */            
       gid=2;
       coo[0]=0;
@@ -2864,7 +2864,7 @@ void testboolgeom(AMSgvolume &mother){
   coo[1]=0;
   coo[2]=0;
 
-                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","TUBE",par,3,coo,nrm,"BOO-",posp,gid,rel));
+                 dummy->addboolean("TUBE",par,3,coo,nrm,'-');
 /*
   //box
   par[0]=10;
@@ -2873,7 +2873,7 @@ void testboolgeom(AMSgvolume &mother){
   coo[0]=-110;
   coo[1]=0;
   coo[2]=0;
-                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","BOX",par,3,coo,nrm1,"BOO+",posp,gid,rel));
+                 dummy->addboolean(new AMSgvolume("BOX",par,3,coo,nrm1,'+');
   //cyl
   par[0]=0;
   par[1]=10;
@@ -2882,7 +2882,7 @@ void testboolgeom(AMSgvolume &mother){
   coo[1]=0;
   coo[2]=0;
 
-                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","TUBE",par,3,coo,nrm,"BOO-",posp,gid,rel));
+                 dummy->addboolean(new AMSgvolume("TUBE",par,3,coo,nrm,'-');
 
 //two spheres;
 par[0]=0;
@@ -2894,11 +2894,11 @@ par[5]=360;
   coo[0]=-95;
   coo[1]=-10;
   coo[2]=-11;
-                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","SPHE",par,6,coo,nrm,"BOO+",posp,gid,rel));
+                 dummy->addboolean("SPHE",par,6,coo,nrm,'+');
   coo[0]=-95;
   coo[1]=+10;
   coo[2]=-11;
-                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","SPHE",par,6,coo,nrm,"BOO+",posp,gid,rel));
+                 dummy->addboolean("SPHE",par,6,coo,nrm,'+');
 */
 }
 
@@ -3556,18 +3556,7 @@ void richgeom02(AMSgvolume & mother)
 	    coo[0]=-d1;
 	    coo[1]=0;
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  RICnrot,
-					  "MIRA",
-					  "TRAP",
-					  par,
-					  11,
-					  coo,
-					  nrma,
-					  "BOO+",
-					  posp,
-					  2,
-					  rel));
+	    lg->addboolean("TRAP",par,11,coo,nrma,'+');
 
 	    
 	    
@@ -3589,33 +3578,13 @@ void richgeom02(AMSgvolume & mother)
 
 
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  0,
-					  "MIRB",
-					  "TRAP",
-					  par,
-					  11,
-					  coo,
-					  nrm,  // Rotated 90 degrees
-					  "BOO+",
-					  posp,
-					  1,
-					  rel));
+	    lg->addboolean("TRAP",par,11,coo,nrm,'+');
 	    coo[0]=-d2;
 	    coo[1]=0;
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  RICnrot,
-					  "MIRB",
-					  "TRAP",
-					  par,
-					  11,
-					  coo,
+	    lg->addboolean("TRAP",par,11,coo,
 					  nrma,  // Rotated 90 degrees
-					  "BOO+",
-					  posp,
-					  2,
-					  rel));
+					  '+');
 
 
 	    par[0]=RICGEOM.light_guides_height/2;;
@@ -3635,31 +3604,21 @@ void richgeom02(AMSgvolume & mother)
 	    coo[2]=0;
 
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  0,
-					  "MIRC",
+	    lg->addboolean(
 					  "TRAP",
 					  par,
 					  11,
 					  coo,
 					  nrm,  // Rotated 90 degrees
-					  "BOO+",
-					  posp,
-					  1,
-					  rel));
+					  '+');
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  RICnrot,
-					  "MIRC",
+	    lg->addboolean(
 					  "TRAP",
 					  par,
 					  11,
 					  coo,
 					  nrm,  // Rotated 90 degrees
-					  "BOO+",
-					  posp,
-					  2,
-					  rel));
+					  '+');
 
 
 	    par[0]=RICGEOM.light_guides_height/2;
@@ -3678,35 +3637,25 @@ void richgeom02(AMSgvolume & mother)
 	    coo[1]=-d1;
 	    coo[2]=0;
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  0,
-					  "MIRD",
+	    lg->addboolean(
 					  "TRAP",
 					  par,
 					  11,
 					  coo,
 					  nrm,
-					  "BOO+",
-					  posp,
-					  1,
-					  rel));
+					  '+');
 
 	    coo[0]=d1;
 	    coo[1]=0;
 
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  RICnrot,
-					  "MIRD",
+	    lg->addboolean(
 					  "TRAP",
 					  par,
 					  11,
 					  coo,
 					  nrma,
-					  "BOO+",
-					  posp,
-					  2,
-					  rel));
+					  '+');
 	    
 	    
 	    
@@ -3728,33 +3677,23 @@ void richgeom02(AMSgvolume & mother)
 
 
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  0,
-					  "MIRE",
+	    lg->addboolean(
 					  "TRAP",
 					  par,
 					  11,
 					  coo,
 					  nrm,  // Rotated 90 degrees
-					 "BOO+",
-					  posp,
-					  1,
-					  rel));
+					 '+');
 	    coo[0]=d2;
 	    coo[1]=0;
 
-	    lg->addboolean(new AMSgvolume("RICH MIRRORS",
-					  RICnrot,
-					  "MIRE",
+	    lg->addboolean(
 					  "TRAP",
 					  par,
 					  11,
 					  coo,
 					  nrm,  // Rotated 90 degrees
-					 "BOO+",
-					  posp,
-					  2,
-					  rel));
+					 '+');
 	    
 	}
         else if(MISCFFKEY.G3On){

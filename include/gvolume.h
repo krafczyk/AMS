@@ -78,6 +78,7 @@ class AMSgvolume : public AMSNode {
 #else
   AMSgvolume():AMSNode(0),_npar(0),_par(0),_shape(0),_nrm(0),_nrmA(0), _pgtmed(0){};
 #endif
+  void _addboolean(AMSgvolume *p);
  public:
   ~AMSgvolume();
  void MakeG3Volumes();
@@ -85,7 +86,7 @@ class AMSgvolume : public AMSNode {
  void MakeG4Volumes();
   AMSgvolume* offspring(){return _offspring;}
   integer & Smartless(){return _smartless;}
-  void addboolean(AMSgvolume *p);
+  void addboolean(char shape[], geant par[], integer npar,  geant coo[], number nrm[3][3],char ops);
   void removeboolean();
    amsg4pv * & pg4v()  {return _pg4v;}
   G4LogicalVolume * & pg4l()  {return _pg4l;}

@@ -517,8 +517,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      G4StepPoint * PrePoint = Step->GetPreStepPoint();
      G4VPhysicalVolume * PrePV = PrePoint->GetPhysicalVolume();
     if(PostPV && PrePV){
-//      cout << "Stepping Pre "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
-//      cout << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<endl;
+  //    cout << "Stepping Pre "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
+    //  cout << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<endl;
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0 ||
                  PrePV->GetLogicalVolume()->GetSensitiveDetector()!=0;
      GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;

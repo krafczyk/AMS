@@ -200,8 +200,20 @@ void AMSgvolume::removeboolean(){
    } 
 
 }
+void AMSgvolume::addboolean(char shape[], geant par[],integer npar, geant coo[3], number nrm[3][3],char ops){
+char gonly[]="BOOL";
+if(G4String(gonly)!=G4String(_gonly)){
+       cerr<<"AMSgvolume::addboolean-W-AttributeIsNotAllowedForBooleanVolume "<<getname()<<" "<<getid()<<" "<<_gonly<<endl;
+       strcpy(_gonly,gonly);
 
-void AMSgvolume::addboolean(AMSgvolume * ptr){
+}
+gonly[3]=ops;
+int rotmno=0;
+if(_amsrm(nrm)!= _UnitRM)rotmno=1;
+_addboolean( new AMSgvolume(_pgtmed->getname(),rotmno,_name,shape,par,npar,coo,nrm,gonly,0,1,1));
+}
+
+void AMSgvolume::_addboolean(AMSgvolume * ptr){
 
   AMSgvolume *cur;
   cur=_offspring;
