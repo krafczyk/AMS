@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.21 2002/06/03 14:53:42 alexei Exp $
+//  $Id: ecalrec.h,v 1.22 2002/09/24 07:15:51 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ecaldbc.h>
+#include <ecid.h>
 //
 //---------------------------------------
 class AMSEcalRawEvent: public AMSlink{
@@ -18,22 +19,31 @@ private:
   static uinteger trigfl; // =1/2/3... -> "mip/low/high, =0->no trig.
   static number trigtm; // ECAL FT abs. time
   static geant trsum;// Trigger sum(dynodes,gev)
+  integer _gain; // 0: High, 1: Low, 2: Both
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
   integer _padc[2];// Anode pulse hights (ADC-channels)[HighGain,LowGain]
 public:
   AMSEcalRawEvent(integer idsoft, integer status,  
-        integer padc[2]):AMSlink(status,0),_idsoft(idsoft)
+        integer padc[2]):AMSlink(status,0),_gain(2),_idsoft(idsoft)
   {for(int i=0;i<2;i++)_padc[i]=padc[i];};
+  AMSEcalRawEvent(AMSECIdSoft id,int16u dynode,int16u gain,int16u adc);
+
 //
   ~AMSEcalRawEvent(){};
   AMSEcalRawEvent * next(){return (AMSEcalRawEvent*)_next;}
 //
   integer operator < (AMSlink & o)const{
-                return _idsoft<((AMSEcalRawEvent*)(&o))->_idsoft;}
+    return _idsoft<((AMSEcalRawEvent*)(&o))->_idsoft;
+  }
 //
   integer getid() const {return _idsoft;}
+  uint16 getgain() const {return _gain;}
   void getpadc(integer padc[2]){for(int i=0;i<2;i++)padc[i]=_padc[i];}
+  int16 getadc(int16u gain) const{return gain<2?_padc[gain]:-1;}
+  void setgain(int16u gain){_gain=gain;}
+  void setadc(int16 adc, int16u gain){if(gain<2)_padc[gain]=adc;}
   integer lvl3format(int16 * ptr, integer rest);
+  int16 getslay(){return _idsoft/1000-1;}
 //
   static void mc_build(int &stat);
   static void validate(int &stat);
@@ -44,6 +54,18 @@ public:
 //
 // interface with DAQ :
 //
+ static integer checkdaqid(int16u id);
+ static void buildraw(integer n, int16u *p);
+ static integer getmaxblocks(){return AMSECIdSoft::ncrates();}
+ static int16u getdaqid(int i);
+ static void setTDV();
+
+//  TDV
+
+static     AMSID    getTDVped() {return AMSID("Ecalpeds",AMSJob::gethead()->isRealData());}
+static    AMSID  getTDVsig(){return AMSID("Ecalsigmas",AMSJob::gethead()->isRealData());}
+static    AMSID  getTDVcalib(){return AMSID("Ecalpmcalib",AMSJob::gethead()->isRealData());}
+static    AMSID  getTDVvpar(){return AMSID("Ecalvpar",AMSJob::gethead()->isRealData());}
 protected:
   void _printEl(ostream &stream){
     int i;

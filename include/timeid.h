@@ -1,4 +1,4 @@
-//  $Id: timeid.h,v 1.29 2002/07/12 11:19:00 choutko Exp $
+//  $Id: timeid.h,v 1.30 2002/09/24 07:15:51 choutko Exp $
 #ifndef __AMSTimeID__
 #define __AMSTimeID__
 #include <time.h>
@@ -33,6 +33,7 @@ uinteger * _pData;      // pointer to data
 integer _DataBaseSize;
 uinteger * _pDataBaseEntries[5];  // Insert Insert Begin End SortedBeg
 uinteger _CalcCRC();
+bool _verify;
 void _init(){};
 static void _InitTable();
 static uinteger * _Table;
@@ -57,17 +58,18 @@ dirent * entry=0);
 static AString *_selectEntry;
 public:
 AMSTimeID():AMSNode(),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_pData(0),
-_CRC(0),_UpdateMe(0),_DataBaseSize(0),_Type(Standalone){for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;}
-AMSTimeID(AMSID  id,integer nbytes=0, void* pdata=0,CType server=Standalone):
-AMSNode(id),_Insert(0),_Begin(0),_End(0),_Type(server),_Nbytes(nbytes),_pData((uinteger*)pdata),
+_CRC(0),_UpdateMe(0),_verify(true),_DataBaseSize(0),_Type(Standalone){for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;}
+AMSTimeID(AMSID  id,integer nbytes=0, void* pdata=0,bool verify=true,CType server=Standalone):
+AMSNode(id),_Insert(0),_Begin(0),_End(0),_Type(server),_verify(verify),_Nbytes(nbytes),_pData((uinteger*)pdata),
 _UpdateMe(0),_DataBaseSize(0){for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();}
-AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server);
+AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata, CType server, bool verify=true);
 ~AMSTimeID(){for(int i=0;i<5;i++)delete[] _pDataBaseEntries[i];}
 integer GetNbytes() const { return _Nbytes;}
 integer CopyOut (void *pdataNew) const;
 integer CopyIn( const void *pdataNew);
 uinteger getCRC()const {return _CRC;}
 void UpdCRC();
+bool & Verify() {return _verify;}
 IBE &  findsubtable(time_t begin, time_t end);
 void checkupdate(const char * name);
 integer & UpdateMe() {return _UpdateMe;}

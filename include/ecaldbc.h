@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.17 2002/02/08 13:48:27 choutko Exp $
+//  $Id: ecaldbc.h,v 1.18 2002/09/24 07:15:51 choutko Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -8,6 +8,7 @@
 // ECAL global constants definition
 //
 namespace ecalconst{
+const integer ECRT=2;      //  ecal crates no
 const integer ECFLSMX=10; // max. fiber-layers per S-layer
 const integer ECFBCMX=12; // max. fibers per layer in PMcell
 const integer ECSLMX=9; // max. S(uper)-layers
