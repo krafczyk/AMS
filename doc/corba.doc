@@ -1,44 +1,90 @@
-see also include/server.idl for idl defs
+
+I DB aware routines
+  see  include/server.idl for idl defs
 
 
-I Server flowchart  (!!! Not implemented yet)
+1.long getTDVTable(in DPS::Client::CID cid,inout TDVName tdvname, in unsigned long Run, out TDVTable table);     
+
+Purpose:
+
+Provide TDVTable of insert/begin/end values for given tdv & given run.
+
+2.long getTDV(in DPS::Client::CID cid,inout TDVName tdvname, out TDVbody body);
+
+Purpose:
+
+Provide TDVBody (array of int values) for given tdv and given ins/beg/end values
+
+3.void sendTDV(in DPS::Client::CID cid,in TDVbody tdv, inout TDVName tdvname );
+
+Purpose:
+
+Opposite to 2 {i.e. accept tdvbody and update db}
+
+4. sendTDVUpdate(in DPS::Client::CID cid, in TDVName tdvname );
+ 
+Purpose:
+
+add tdv with given ins/beg/end to local server db copy (may be dummy for oracle)
+
+ 
+5. AMSServer::UpdateDB
+
+Purpose:
+
+steering program for db read/write { e.g. update run table etc} 
+
+
+II Server flowchart  
 ----------
+
+
+Legenda:
+NH{L,F} Nominal Host  {List, File}
+NI Nominal Interface
+AH Active Host
+NP NominalProducer
+NS NominalClient
+AS Nominal Server
+AC ActiveClient
+RL Run List
+RF Run Table
+NN Nominal Ntuple
+NK Nominal Killer
   
    Very first Server activates manually.
 
      Activate POA  (TRANSIENT)
-      DB-Read ASL (ActiveServerList) 
-      if (IORStringParent == ParentServer ID ==0){
-       Send Kill every ASL entry
-       Nullify ASL
-       Write ASL to DB { exit if problem}
-       Start Monitor (IORStringSelf)
-       Depending of ActiveServerTasks: e.g. if (-StartProducers){
-        DB-Read ACL  (ActiveClientList)
-        Send Kill every ACL entry
-        Nullify ACL
-        Write ACL to DB { exit if problem}
-       }
+      if (-IOR in argv == 0)   //very first one
+       read NIF 
+       read NHF
+       read NSF
+       read NPF
+       read RF
+       read NNF 
+       read NKF       
+       init self
+       add self in ASL
       }
       else{
        send back to Parent ProcessID 
-       getASL from Parent : notify parent & exit if problem
-       getACL from Parent : notify parent & exit if problem
-      }
-      DB-Read NSL (NominalServerList)
-      DB-Read NCL (NominalClientList)
-      DB-read RunsToBeRerunTable
+       read NIF 
+       getNHL
+       getAHL
+       getASL 
+       getRL
+       getNKL
+       getNNL
+       (...)
+       init self
+       propagate self to every ASL
 Main Loop:
        SocketListening (NonBlocking)
-//   Critical Operations Protocol
-//   Start/Kill (not to be mixed with Stop) Servers
-//   Start/Kill Clients
-
-       check if (SomeServersNeedToBeStarted == there are
-                 some entries in NSL not found in ASL ){
+       check if (SomeServersNeedToBeStarted)
+                 If Master (i.e. lowest pingable ASL id)
+                 IfNot    (inactive servers exists)
                  IfNot (Lock_Start_Server or Timeout){
                    Set Lock_Start_Server  
-                   Read ASL from DB
                    start server IORStringSelf
                  }
                Write ASL to DB

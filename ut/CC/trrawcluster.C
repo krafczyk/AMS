@@ -2108,12 +2108,7 @@ void AMSTrRawCluster::updcmnSRaw(integer n, int16u* p){
 
 
 AMSID AMSTrRawCluster::getTDVstatus(int i){
-  if(i ==0)return AMSID("TrackerStatus.l",AMSJob::gethead()->isRealData());
-  else if(i ==1)return AMSID("TrackerStatus.r",AMSJob::gethead()->isRealData());
-  else {
-    cerr <<"AMSTrRawCluster::getstatusTDV-F-illegal crate "<<i<<endl;
-    exit(1);
-  }
+  return AMSID(AMSTrIdSoft::TrackerStatus(i),AMSJob::gethead()->isRealData());
 }
 
 AMSID AMSTrRawCluster::getTDVCmnNoise(){

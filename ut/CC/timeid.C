@@ -247,11 +247,11 @@ if(_Type!=Client){
     return false;
 
 }
-else{
 #ifdef __CORBA__
+else{
 return AMSProducer::gethead()->sendTDV(this);
-#endif
 }
+#endif
 }
 
 
@@ -338,16 +338,16 @@ if(_Type!=Client){
     return true;
 
 }
-else{
 #ifdef __CORBA__
+else{
 if(run>0){
 _Insert=_pDataBaseEntries[1][index];
 _Begin=_pDataBaseEntries[2][index];
 _End=_pDataBaseEntries[3][index];
 }
 return AMSProducer::gethead()->getTDV(this,run);
-#endif
 }
+#endif
 }
 
 void AMSTimeID::_convert(uinteger *pdata, integer n){
@@ -910,5 +910,5 @@ bool AMSTimeID::updatedb(){
         }
         delete[] padd;
         delete[] tmp;
-
+         return true;
 }
