@@ -69,6 +69,7 @@ public: // To be migrated in the future
   static geant rad_radius;
   static geant rad_height;
   static geant rad_tile_size;
+  static geant rad_index; // Mean index
 
   // Light guide features
   static geant lg_height;

@@ -14,6 +14,7 @@ geant RICHDB::wave_length[RICmaxentries]={608.696, 605.797, 602.899, 600.000, 59
 					  288.406, 284.058, 279.71,  275.812, 272.464, 270.014,
 					  268.116, 266.667};
 
+geant RICHDB::rad_index=1.14;
 
 geant RICHDB::index[RICmaxentries]={1.136,   1.13602, 1.13605, 1.13608, 1.13612, 1.13617,
 				    1.13623, 1.13631, 1.13635, 1.13642, 1.13647, 1.13656,
@@ -168,8 +169,10 @@ geant RICHDB::x(integer channel)
   integer pmt=channel/RICnwindows;
   integer window=channel%RICnwindows;
 
-  geant x=pmt_p[pmt][0]+(window%integer(sqrt(RICnwindows))
-			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
+  //  geant x=pmt_p[pmt][0]+(window%integer(sqrt(RICnwindows))
+  //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
+
+  geant x=(2*(window%integer(sqrt(RICnwindows)))-3)*RICHDB::lg_tile_size/8.;
 
   return x;
 }
@@ -180,8 +183,10 @@ geant RICHDB::y(integer channel)
   integer pmt=channel/RICnwindows;
   integer window=channel%RICnwindows;
 
-  geant y=pmt_p[pmt][1]+(window/integer(sqrt(RICnwindows))
-			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
+  //  geant y=pmt_p[pmt][1]+(window/integer(sqrt(RICnwindows))
+  //			 -integer(sqrt(RICnwindows))/2)*RICcatolength/sqrt(RICnwindows);
+
+  geant y=(2*(window/integer(sqrt(RICnwindows)))-3)*RICHDB::lg_tile_size/8.;
 
   return y;
 }
@@ -212,3 +217,19 @@ integer RICHDB::detcer(geant photen)
    return 0;
 }
    
+
+// New function to apply q.eff a priori in photons produced in RICH
+
+extern "C" integer prod_cer_(geant *energy){
+  integer lvl=GCVOLU.nlevel-1;
+
+  if(
+    (GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='A' &&
+     GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]==' ') ||
+    (GCVOLU.names[lvl][0]=='C' && GCVOLU.names[lvl][1]=='A' &&
+     GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O')){
+    if(RICHDB::detcer(*energy)) return 0;
+  }
+  return 1;
+}
+

@@ -300,7 +300,7 @@ extern "C" void gustep_(){
 	RICHDB::numrayl=0;
 	RICHDB::numrefm=0;
 
-        if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1; 
+//        if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1; 
 //          else RICHDB::nphgen++; 
          RICHDB::nphgen++;
       }          
@@ -329,8 +329,8 @@ extern "C" void gustep_(){
 
         GCTRAK.istop=1;
 
-        if(RICHDB::detcer(GCTRAK.vect[6])) {
-          GCTRAK.istop=2;
+//        if(RICHDB::detcer(GCTRAK.vect[6])) {
+//          GCTRAK.istop=2;
           AMSRichMCHit::sirichhits(GCKINE.ipart,
                                    GCVOLU.number[lvl-1]-1,
                                    GCTRAK.vect,
@@ -338,7 +338,7 @@ extern "C" void gustep_(){
                                    GCKINE.pvert,
                                    Status_Window-
                                    (GCKINE.itra!=1?100:0));
-        }
+//        }
       }
 
 
@@ -382,11 +382,11 @@ extern "C" void gustep_(){
      GCKING.iflgk[i]=1;
    }
   }
-  GCTRAK.upwght=0;
-  GSKING(0);
-  GCTRAK.upwght=1; //cerenkov tracked first 
-  GSKPHO(0);
   GCTRAK.upwght=0; 
+  GSKING(0);
+  GCTRAK.upwght=1; //cerenkov tracked first  
+  GSKPHO(0);
+  GCTRAK.upwght=0;  
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("SYSGUSTEP");
 #ifdef __AMSDEBUG__
   if( globalbadthinghappened){

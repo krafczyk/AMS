@@ -620,8 +620,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
         else{
          RICHDB::numrayl=0;
 	 RICHDB::numrefm=0;
-          RICHDB::nphgen++;  
-         if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1;
+//          RICHDB::nphgen++;  
+         if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1; else RICHDB::nphgen++;
         }
 
         }
