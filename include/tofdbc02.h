@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.8 2002/03/20 09:43:11 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.9 2002/04/10 10:06:02 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -25,7 +25,7 @@ namespace TOFGC{
   const integer SCBITM=SCWORM*16;// same in bits
   const integer SCBADB1=128; // status bit to mark counter with bad "history"
   const integer SCBADB2=256; // status bit to mark counter with only one_side measurement
-  const integer SCBADB3=512; // ...  with bad t-meas.(don't use for tzcalibr/beta-meas)
+  const integer SCBADB3=512; // ... bad for t-meas.based on DB(don't use for tzcalibr/beta-meas)
   const integer SCBADB4=1024; // missing side number(s1->n0_bit,s2->set_bit, IF B2 is set !)
   const integer SCBADB5=2048; // set if missing side was recovered (when B2 is set)
   const integer SCBADB6=4096; // set if no aTDC/sTDC matching on any alive side

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.400 2002/04/03 11:04:57 choutko Exp $
+// $Id: job.C,v 1.401 2002/04/10 10:05:47 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -164,7 +164,7 @@ void AMSJob::data(){
   AMSFFKEY.Update=0;
   VBLANK(AMSFFKEY.Jobname,40);
   VBLANK(AMSFFKEY.Setupname,40);
-  char amsetup[16]="AMS02 TOF:8PAD ";
+  char amsetup[16]="AMS02";
   UCTOH(amsetup,AMSFFKEY.Setupname,4,16);
   AMSFFKEY.ZeroSetupOk=0;
   // Set Defaults
@@ -519,8 +519,8 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 //=================================================================================
 //
 void AMSJob::_sitof2data(){
-  TFMCFFKEY.TimeSigma=1.71e-10; //(1) side time resolution(sec,/1.41=121ps) 
-  TFMCFFKEY.TimeSigma2=4.5e-10; //(2)
+  TFMCFFKEY.TimeSigma=0.212; //(1) side time resolution(ns,=CounterResol(0.15)*sqrt(2)) 
+  TFMCFFKEY.TimeSigma2=0.45; //(2)
   TFMCFFKEY.TimeProbability2=0.035;//(3)
   TFMCFFKEY.padl=11.5;        //(4) not used now (spare)
   TFMCFFKEY.Thr=0.1;          //(5) Sc.bar Elos-thresh.(Mev) to participate in Simul.   
@@ -944,8 +944,8 @@ TKFINI();
 //
 void AMSJob::_retof2data(){
 // 
-  TFREFFKEY.Thr1=0.2;//(1) Threshold (mev) on peak bar energy
-  TFREFFKEY.ThrS=0.2; //(2) Threshold (mev) on total cluster energy
+  TFREFFKEY.Thr1=0.2;//(1) Bar threshold (mev) in tof-cluster algorithm
+  TFREFFKEY.ThrS=0.2; //(2) Threshold (mev) on total cluster energy(Not used now!)
 //
   TFREFFKEY.reprtf[0]=0; //(3) RECO print flag for statistics 
   TFREFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
@@ -968,11 +968,11 @@ void AMSJob::_retof2data(){
   TFREFFKEY.cuts[0]=40.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
   TFREFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TFREFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
-  TFREFFKEY.cuts[3]=2.; //(21) error in longitudinal coordinate (single TOF bar)
+  TFREFFKEY.cuts[3]=2.5; //(21) error(cm) in longitudinal coordinate (single TOF bar)
   TFREFFKEY.cuts[4]=65.;//(22) FT const. delay
   TFREFFKEY.cuts[5]=40.;//(23) sTDC-delay wrt fTDC
-  TFREFFKEY.cuts[6]=0.36;//(24) assim.cut in TOFCluster energy calculation
-  TFREFFKEY.cuts[7]=8.;// (25) internal longit.coo matching cut ............
+  TFREFFKEY.cuts[6]=0.8;//(24) 2-bars assim.cut in TOFCluster energy calculation
+  TFREFFKEY.cuts[7]=8.;// (25) internal longit.coo matching cut ...Not used (spare)
   TFREFFKEY.cuts[8]=0.;// (26) spare
   TFREFFKEY.cuts[9]=0.;// (27) 
 //

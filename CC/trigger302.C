@@ -1,9 +1,11 @@
-//  $Id: trigger302.C,v 1.14 2002/03/20 09:41:25 choumilo Exp $
+//  $Id: trigger302.C,v 1.15 2002/04/10 10:05:48 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
 #include <trigger102.h>
 #include <trigger302.h>
+#include <ecaldbc.h>
+#include <ecalrec.h>
 #include <event.h>
 #include <mccluster.h>
 #include <amsdbc.h>
@@ -13,6 +15,7 @@
 using namespace std;
 using namespace trconst;
 using namespace trigger302const;
+using namespace ecalconst;
 void TriggerAuxLVL302::addnoisetk(integer crate){
 
 
@@ -89,7 +92,7 @@ void TriggerAuxLVL302::filltrd(integer crate){
 //------------------------------------------------
 void TriggerAuxLVL302::filltof(){
 //
-// fillTOF
+// fill TOF
 //
   TOF2RawEvent *ptr;
 //
@@ -111,7 +114,31 @@ int16 *  TriggerAuxLVL302::readtof(integer begin){
   return _ctr < _ltr ? _ptr+_ctr : 0;
 }
 //------------------------------------------------
-
+void TriggerAuxLVL302::fillecal(){
+//
+// fill ECAL
+//
+  AMSEcalRawEvent *ptr;
+//
+  for(int isl=0;isl<ECALDBc::slstruc(3);isl++){ // <-------------- super-layer loop
+    ptr=(AMSEcalRawEvent*)AMSEvent::gethead()
+                        ->getheadC("AMSEcalRawEvent",isl,0);
+//(for MC i use "daq-decoded" class AMSEcalRawEvent as input)  
+    while(ptr){
+      _ltr+=ptr->lvl3format(_ptr+_ltr,maxtr-_ltr);//filling TriggerAuxLVL3
+      ptr=ptr->next();
+//
+    }
+  } // ---> end of super-layer loop
+}
+//------------
+//
+int16 *  TriggerAuxLVL302::readecal(integer begin){
+  if(begin)_ctr=0;
+  else if (_ctr < _ltr)_ctr=_ctr+3;
+  return _ctr < _ltr ? _ptr+_ctr : 0;
+}
+//------------------------------------------------
 
 
 TriggerAuxLVL302::TriggerAuxLVL302(){
@@ -136,7 +163,7 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
 
   integer TriggerLVL302::_TOFPattern[TOF2GC::SCMXBR][TOF2GC::SCMXBR];
   integer TriggerLVL302::_TOFStatus[TOF2GC::SCLRS][TOF2GC::SCMXBR];
-  integer TriggerLVL302::_TOFTzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+  geant TriggerLVL302::_TOFTzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   integer TriggerLVL302::_TOFOr[TOF2GC::SCLRS][TOF2GC::SCMXBR];
   integer TriggerLVL302::_TrackerStatus[NTRHDRP2];
   integer TriggerLVL302::_TrackerAux[NTRHDRP][trid::ncrt];
@@ -149,6 +176,14 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
   integer TriggerLVL302::_TrackerDRP2Layer[NTRHDRP][trid::ncrt];
   number TriggerLVL302::_stripsize=0.0055;
 integer TriggerLVL302::_TrackerOtherTDR[NTRHDRP][trid::ncrt];
+
+
+// ECAL
+  geant TriggerLVL302::_ECgains[ECSLMX][ECPMSMX];
+  geant TriggerLVL302::_ECadc2mev;
+  geant TriggerLVL302::_ECh2lrat;
+  geant TriggerLVL302::_ECpedsig;
+
 
 
 
@@ -288,13 +323,20 @@ void TriggerLVL302::init(){
 //
  char setu1[4]="12p";
  char setu2[4]="8p";
- if(strstr(AMSJob::gethead()->getsetup(),"TOF:8PAD")){
+ if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+   if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
+     cout <<" T0LVL3-I-TOF:12PAD setup selected."<<endl;
+     strcat(name,setu1);
+   }
+   else{
     cout <<" T0LVL3-I-TOF:8PAD setup selected."<<endl;
     strcat(name,setu2);
+   }
  }
- else{
-    cout <<" T0LVL3-I-TOF:12PAD setup selected."<<endl;
-    strcat(name,setu1);
+ else
+ {
+    cout <<" TOFLVL302-E-Unknown setup for TOF T0-calibr.!!!"<<endl;
+    exit(10);
  }
 //
  if(TFCAFFKEY.cafdir==0)strcpy(fname,AMSDATADIR.amsdatadir);
@@ -314,6 +356,17 @@ void TriggerLVL302::init(){
    } 
  }
  tzcfile.close();
+//----------------- 
+//  ECAL: fill in PM-gains, abs.normalization, h2lratio, pedsig:
+//
+ for(int isl=0;isl<ecalconst::ECSLMX;isl++){
+   for(int ipm=0;ipm<ecalconst::ECPMSMX;ipm++){
+     _ECgains[isl][ipm]=1;
+   }
+ }
+ _ECadc2mev=2.35;
+ _ECh2lrat=16;
+ _ECpedsig=2;//max. Ped's sigma 
 //-----------------   
   
    
@@ -670,6 +723,14 @@ void TriggerLVL302::settofdir(int dir){
   _TOFDirection=dir;
 }
 //----------------------------------------------------------------
+void TriggerLVL302::setecemag(int val){
+  _ECemag=val;
+}
+//----
+void TriggerLVL302::setectrmat(int val){
+  _ECtrmat=val;
+}
+//----------------------------------------------------------------
   integer TriggerLVL302::toftrdok(){ 
 // Now we allow 1tof  at top and 1tof  at botton if no trd 
 // Take nearest to trd if trd exist
@@ -867,6 +928,11 @@ geant TriggerLVL302::Discriminator(integer nht){
        TriggerAuxLVL302 auxtof;
        auxtof.filltof();
 //
+//---> fill ecal:  
+//
+       TriggerAuxLVL302 auxecal;
+       auxecal.fillecal();
+//
 //===> create LVL3-object:
 //
        int idum,i,j;
@@ -947,10 +1013,96 @@ geant TriggerLVL302::Discriminator(integer nht){
         }
       }
     }
-
-
-
-    //  TRD
+//---------
+//
+//===> ECAL: create Edep-pattern, check EM, Tracker-matching:
+//
+    int pmc,pm,sl,proj,ip;
+    number ah,al,amp,etot,efrnt,efr,ebase,epeak;
+    number EClprof[ECSLMX];
+    number ECtprofx[5][ECPMSMX];
+    number ECtprofy[5][ECPMSMX];
+    plvl3->setecemag(0);//reset EC-emag flag
+    plvl3->setectrmat(0);//reset EC-trmat flag
+    etot=0;
+//
+    if(plvl3->UseECinfo()){// <--- use ECAL info
+      for(int i=0;i<ECSLMX;i++)EClprof[i]=0;
+      for(int i=0;i<5;i++){
+      for(int j=0;j<ECPMSMX;j++){
+        ECtprofx[i][j]=0;
+        ECtprofy[i][j]=0;
+      }
+      }
+      ptr=auxecal.readecal(1);
+      while(ptr){
+        id=*ptr;//SSPPC
+        idd=id/10;
+        pmc=id%10-1;//PMSubCell(0-3)
+        pm=idd%100-1;//PM(0-...)
+	sl=idd/100-1;//superlayer
+	ah=number(*(ptr+1))/ECALDBc::scalef();//DAQ-format-->ADC(don't need for real algor)
+	al=number(*(ptr+2))/ECALDBc::scalef();//DAQ-format-->ADC(don't need for real algor)
+	amp=0;
+	if(ah>0){//(some readout thresh. is assumed to be done on prev. stages of readout)
+	  if(ah<(number(ECADCMX)-5*_ECpedsig))amp=ah;// no ovfl
+	  else{
+	    if(al>0)amp=al*_ECh2lrat;
+	  }
+	  amp*=_ECadc2mev;//ADCch->mev
+	  EClprof[sl]+=amp;
+	  etot+=amp;
+          ip=sl%2;
+          if(ip==0)proj=ECALDBc::slstruc(1);// proj (0/1->X/Y)
+          else proj=1-ECALDBc::slstruc(1);
+	  if(proj>0){// Y-proj
+	    ECtprofy[sl/2][pm]+=amp;
+	  }
+	  else{//X-proj
+	    ECtprofx[(sl+1)/2][pm]+=amp;
+	  }
+	}
+        ptr=auxecal.readecal();//to take next
+      }//---> endof raw hit loop
+//
+      efrnt=EClprof[0]+EClprof[1]+EClprof[2];
+      efr=0.5*(EClprof[0]+EClprof[1]+EClprof[ECSLMX-2]+EClprof[ECSLMX-1]);
+      ebase=EClprof[0]+EClprof[ECSLMX-1];
+      epeak=EClprof[1]+EClprof[2]+EClprof[3];
+      geant etcut(120);
+      geant efrcut(400);
+      geant p2bcut(3.2);
+      geant p2fcut(0);
+      geant esep1(10000);
+      geant p2brat,p2frat;
+      if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+31,geant(etot),1.);
+      if(etot>=etcut){
+        if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+32,geant(efrnt),1.);
+	if(efrnt<efrcut){
+	  plvl3->setecemag(-1);//nonEC
+	  goto ecfin;
+	}
+        if(ebase>0)p2brat=epeak/ebase;
+        else p2brat=39.5;
+        if(p2brat>39.5)p2brat=39.5;
+	if(efr>0)p2frat=epeak/efr;
+	else p2frat=39.5;
+        if(p2frat>39.5)p2frat=39.5;
+	if(etot<esep1){
+            if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+33,p2brat,1.);
+            if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+34,p2frat,1.);
+	    if(p2brat<p2bcut){
+	      plvl3->setecemag(-1);//nonEC
+	      goto ecfin;
+	    }
+	}
+        plvl3->setecemag(1);//EC
+      }
+    }//---> endof UseECinfo check 
+ ecfin:
+//---------
+//
+//===> TRD
   
     
     if(plvl3->UseTRD()){

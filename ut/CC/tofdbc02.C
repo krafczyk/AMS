@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.13 2002/03/20 09:41:22 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.14 2002/04/10 10:05:47 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -119,14 +119,14 @@ geant TOF2DBc::_plnstr[15]={
     char vers2[4]="8p";
     if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
-      if(strstr(AMSJob::gethead()->getsetup(),"TOF:8PAD")){
-        cout <<" TOFGeom-I-TOF:8PAD setup selected."<<endl;
-        strcat(name,vers2);
-      }
-      else{
+      if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
         cout <<" TOFGeom-I-TOF:12PAD setup selected."<<endl;
         strcat(name,vers1);
 	TFCAFFKEY.cfvers=0;//reset vers.numb. to 0 for old(12pads) setup
+      }
+      else{
+        cout <<" TOFGeom-I-TOF:8PAD setup selected."<<endl;
+        strcat(name,vers2);
       }
 	  
     }
@@ -937,13 +937,13 @@ void TOFBPeds::build(){// create TOFBPeds-objects for each sc.bar
   char vers2[4]="8p";
   if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
     cout<<" TOFPEDS-I-AMS02 setup selected."<<endl;
-    if(strstr(AMSJob::gethead()->getsetup(),"TOF:8PAD")){
-      cout <<" TOFPEDS-I-TOF:8PAD setup selected."<<endl;
-      strcat(name,vers2);
-    }
-    else{
+    if(strstr(AMSJob::gethead()->getsetup(),"TOF:12PAD")){
       cout <<" TOFPEDS-I-TOF:12PAD setup selected."<<endl;
       strcat(name,vers1);
+    }
+    else{
+      cout <<" TOFPEDS-I-TOF:8PAD setup selected."<<endl;
+      strcat(name,vers2);
     }
 	  
   }
@@ -1576,9 +1576,9 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1540,"L=4,TOF Eclust(mev)",80,0.,24.,0.);
     HBOOK1(1541,"L=2,TOF Eclust(10Xscaled,mev)",80,0.,240.,0.);
     HBOOK1(1542,"L=4,TOF Eclust(10Xscaled,mev)",80,0.,240.,0.);
-    HBOOK1(1548,"TOFCluster internal E-assimetry",70,-0.2,1.2,0.);
-    HBOOK1(1549,"TOFCluster internal Y-match(low ass.,cm)",80,-40.,40.,0.);
-    HBOOK2(1550,"Ass vs Dy",80,-40.,40.,60,0.,1.2,0.);
+    HBOOK1(1548,"TOFClus 2 bars E-ass(dt,dc ok)",44,-1.1,1.1,0.);
+    HBOOK1(1549,"TOFClus cand. Y-match(cm, dt ok)",80,-40.,40.,0.);
+    HBOOK1(1550,"TOFClus cand. T-match(ns)",80,-10.,10.,0.);
 //
     if(TFREFFKEY.relogic[0]==1){ // <==================== STRR-calibration
       HBOOK1(1200,"Stretcher-ratio for indiv. channel,bin.meth",80,35.,55.,0.);

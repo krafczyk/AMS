@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.18 2002/03/27 18:43:19 choutko Exp $
+//  $Id: ecalrec.h,v 1.19 2002/04/10 10:06:02 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -32,6 +32,7 @@ public:
 //
   integer getid() const {return _idsoft;}
   void getpadc(integer padc[2]){for(int i=0;i<2;i++)padc[i]=_padc[i];}
+  integer lvl3format(int16 * ptr, integer rest);
 //
   static void mc_build(int &stat);
   static void validate(int &stat);

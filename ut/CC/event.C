@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.279 2002/03/20 09:41:17 choumilo Exp $
+//  $Id: event.C,v 1.280 2002/04/10 10:05:47 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1619,7 +1619,6 @@ void AMSEvent::_rerichevent(){
 void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
 //
-
 
 buildC("AMSBeta");
 #ifdef __AMSDEBUG__

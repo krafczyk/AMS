@@ -1,10 +1,11 @@
-//  $Id: trigger302.h,v 1.10 2002/03/20 09:43:12 choumilo Exp $
+//  $Id: trigger302.h,v 1.11 2002/04/10 10:06:02 choumilo Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
 #include <tofdbc02.h>
 #include <tkdbc.h>
 #include <trddbc.h>
+#include <ecaldbc.h>
 #include <amsdbc.h>
 #include <amsstl.h>
 #include <trid.h>
@@ -19,6 +20,7 @@ const integer maxtof=1000;
 const integer maxtrpl=10;
 const integer TRDIN=1;
 const integer TOFIN=2;
+const integer ECIN=4;
 const integer maxufe=20;
 const integer maxhitstrd=12;
 const integer maxtrd=maxufe*maxhitstrd;
@@ -30,7 +32,7 @@ class TriggerAuxLVL302{
  protected:
   integer _ltr;   // recorded length  
   integer _ctr;   // current pointer position while read
-  int16 _ptr[trigger302const::maxtr];
+  int16 _ptr[trigger302const::maxtr];//storage needed info for all detectors of lvl3
  public:
 
   TriggerAuxLVL302();
@@ -39,9 +41,11 @@ class TriggerAuxLVL302{
   void filltk(integer crate);
   void filltrd(integer crate);
   void filltof();
+  void fillecal();
   int16 * readtracker(integer begin=0);
   int16 * readtrd(integer begin=0);
   int16 * readtof(integer begin=0);
+  int16 * readecal(integer begin=0);
 };
 
 
@@ -55,6 +59,7 @@ protected:
  uinteger _TriggerInputs;   //   0 Default
                             //   1  Doesnot Require TRD      
                             //   2  Doesnot Require TOF Timing      
+                            //   4  Doesnot Require ECAL info      
 
  integer _TOFTrigger;       //  -1 No Matrix
                             //   0 Too Many Hits
@@ -103,9 +108,10 @@ protected:
 //
 
 //
-// EC to define
+// ECAL electromagneticity/track_matching Part
 //
-
+ integer _ECemag;//(0->unknown;1->mip)
+ integer _ECtrmat;//(0->unknown;-1->NoMatch;1->Match)
 
 
  
@@ -200,8 +206,14 @@ static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst:
 //  Tof Aux Part
 
  static integer _TOFStatus[TOF2GC::SCLRS][TOF2GC::SCMXBR];
- static integer _TOFTzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
+ static geant _TOFTzero[TOF2GC::SCLRS][TOF2GC::SCMXBR];
 
+//  ECAL Aux part
+//
+ static geant _ECgains[ecalconst::ECSLMX][ecalconst::ECPMSMX];
+ static geant _ECadc2mev;
+ static geant _ECh2lrat;
+ static geant _ECpedsig;
 
 
 
@@ -250,7 +262,10 @@ public:
    
  bool UseTOFTime(){return (_TriggerInputs&trigger302const::TOFIN) ==0;}
 
-
+// ECAL
+ bool UseECinfo(){return (_TriggerInputs&trigger302const::ECIN) ==0;}
+ void setecemag(int d);
+ void setectrmat(int d);
 
 
  // Interface with DAQ

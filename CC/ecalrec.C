@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.42 2002/03/28 15:13:01 choutko Exp $
+//  $Id: ecalrec.C,v 1.43 2002/04/10 10:05:47 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -425,6 +425,19 @@ nonEM:
   return;
 }
 //---------------------------------------------------
+integer AMSEcalRawEvent::lvl3format(int16 *ptr, integer rest){
+//(to fill aux-part of lvl3 data block with EC raw info)
+//
+//  integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
+//  integer _padc[2];// Anode pulse hights (ADC-channels)[HighGain,LowGain]
+//
+    if (_padc[0]<=0) return 0;
+    *(ptr)=_idsoft;
+    *(ptr+1)=_padc[0];
+    *(ptr+2)=_padc[1];
+    return 3; 
+}
+//---------------------------------------------------
 void AMSEcalHit::build(int &stat){
   int i,j,k;
   integer sta,status,dbstat,padc[2],id,idd,isl,pmc,subc,nraw,nhits;
@@ -523,7 +536,6 @@ void AMSEcalHit::build(int &stat){
   }
   if(nhits>0)stat=0;
 }
-//---------------------------------------------------
 //---------------------------------------------------
 integer Ecal1DCluster::Out(integer status){
 static integer init=0;
@@ -644,7 +656,7 @@ void Ecal1DCluster::_writeEl(){
             assert(pc != NULL);
            #endif
            TN->pLeft[TN->Neccl]+=pc->getnelem();
-      }
+        }
       }
       else{
         // Writeall
@@ -1258,6 +1270,8 @@ integer EcalShower::build(int rerun){
 
 
 
+
+
 //  2nd pass needed in case there are orphaned 2d clusters
 
       Ecal2DCluster *p2di=(Ecal2DCluster*)AMSEvent::gethead()->
@@ -1302,6 +1316,7 @@ _Orp2DEnergy=0;
 _pCl[0]=px;
 _pCl[1]=py;
 _N2dCl=2;
+
 
 
 

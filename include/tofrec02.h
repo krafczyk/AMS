@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.5 2002/03/20 09:43:11 choumilo Exp $
+//  $Id: tofrec02.h,v 1.6 2002/04/10 10:06:02 choumilo Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -20,7 +20,7 @@ protected:
  static integer trflag; // =1/2/3 -> "z>=1"/"z>1"/"z>2", =0->no trig.
  static integer trpatt[TOF2GC::SCLRS]; // triggered bars pattern
  integer _ntof;    // number of TOF-plane(layer) (1-top,...,4-bot)
- integer _plane;   //  number of sc. bar in given plane
+ integer _plane;   //  number of sc. bar in given plane(1->...)
  number _z;        // z coord of sc.bar
  number _adch[2]; // high(anode) ADC for 2 sides (ADC-chan in float)
  number _adcl[2]; // low(dinode) ADC for 2 sides (ADC-chan in float)
@@ -87,8 +87,8 @@ public:
 class AMSTOFCluster: public AMSlink{
 protected:
  static AMSTOFCluster *_Head[4];
- integer _ntof;  // TOF plane number where cluster was found 
- integer _plane; // bar number of the "peak" bar in cluster  
+ integer _ntof;  // TOF plane number where cluster was found(1->) 
+ integer _plane; // bar number of the "peak" bar in cluster(1->)  
  number _edep;   // clust. Etot/nmemb (MeV) (continious through high-to-low chan)
  number _edepd;  // clust. Etot/nmemb (MeV) via low(dinode)
  number _time;   // average cluster time (sec)
@@ -96,8 +96,7 @@ protected:
  AMSPoint _Coo;  // cluster center of gravity coordinates (cm)
  AMSPoint _ErrorCoo; // Error to coordinates
  integer _nmemb; // number of TOFRawCluster members(1-3)
- AMSlink * _mptr[3]; // list of pointers to member
-//                               starting from "peak" member
+ AMSlink * _mptr[3]; // list of pointers to members(raw clust)
  static integer _planes; // real number of planes
  static integer _padspl[TOF2GC::SCLRS]; // real number of paddles/plane
  
@@ -160,7 +159,7 @@ public:
  AMSTOFCluster(integer status, integer ntof, integer plane):
         AMSlink(status,0),_ntof(ntof),_plane(plane),_edep(0),_edepd(0),
                  _Coo(0,0,0),_ErrorCoo(0,0,0),_time(0), _etime(0), _nmemb(0){
-   for(int i=0;i<3;i++)_mptr[i]=0;
+   for(int i=0;i<2;i++)_mptr[i]=0;
  }
 //
  AMSTOFCluster *  next(){return (AMSTOFCluster*)_next;}
