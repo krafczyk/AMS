@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.128 2001/07/13 16:25:27 choutko Exp $
+//  $Id: trrec.C,v 1.129 2001/08/02 16:42:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1047,7 +1047,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
     geant searchregtof;
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
     else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
     for (i=0;i<TKDBc::nlay();i++) {
       for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
@@ -1074,7 +1074,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
     (AMSTrMCCluster*)AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);    
     AMSPoint hit;
     geant searchregtof;
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
     else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
       while(ptrhit){
         hit = ptrhit->getHit();
@@ -1758,16 +1758,23 @@ integer AMSTrTrack::TOFOK(){
     AMSContainer *pc=AMSEvent::gethead()->getC("AMSTRDTrack",0);
     if(pc){
       AMSTRDTrack * ptrd = (AMSTRDTrack*)pc->gethead();
-      AMSPoint SearchReg(5,5,5);
+      number SearchReg(4);
       integer trdf=0;
       while(ptrd){
        trdf++;
-       AMSPoint Res;
        number theta,phi,sleng;
+       AMSDir s(ptrd->gettheta(),ptrd->getphi());
+       if(s[2]!=0){
+         number x=ptrd->getCooStr()[0]+s[0]/s[2]*(_P0[2]-ptrd->getCooStr()[2]);
+         if(fabs(x-_P0[0])<SearchReg)return 1;       
+       }
+/*
+       AMSPoint Res;
        interpolate(ptrd->getCooStr() ,AMSPoint(0,0,1), Res, theta, phi, sleng);
        if( ((ptrd->getCooStr()-Res)/ptrd->getECooStr()).abs()< SearchReg){
          return 1;
        }
+*/
        ptrd=ptrd->next();
       }
       if(trdf)return 0;
@@ -2654,7 +2661,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 // 1 or 4, respectively (info from planes 1,4 is TOF-calibration dependent)
     number sw=0, sz=0, sx=0, sxz=0, szz=0;
     geant searchregtof;
-    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
     else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
     for (i=0; i<4; i++){
       if (phit[i]==NULL) continue;
@@ -2707,7 +2714,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       glopos[0] = intercept_x + slope_x*glopos[2];
 // Do not use if it is far away from TOF prediction
       geant searchregtof;
-      if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+      if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
       else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
       if (fabs(glopos[1] - intercept_y - slope_y*glopos[2])
                > searchregtof) continue; // 1/2 SC bar
@@ -2850,7 +2857,7 @@ trig=(trig+1)%freq;
            }
 
    geant searchregtof;
-   if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(13);
+   if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
    else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
    
    return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0])/

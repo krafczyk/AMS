@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.101 2001/08/01 13:28:43 choutko Exp $
+//  $Id: geant.C,v 1.102 2001/08/02 16:42:36 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -120,6 +120,7 @@ extern "C" void npq_();
 extern "C" void timest_(float & t);
 extern "C" void gstran_(int & itrt,float & ch, float &mas);
 #include <producer.h>
+
 void gams::UGINIT(int argc,  char * argv[]){
   float zero=0;
   timest_(zero);
@@ -128,6 +129,7 @@ void gams::UGINIT(int argc,  char * argv[]){
   new AMSJob();
   AMSJob::gethead()->data();
   GCTLIT.ITCKOV=1;
+  integer mone=-1;
   GFFGO();
    AMSJob::gethead()->udata();
 
