@@ -1,11 +1,11 @@
 ##############################################################################
 # AMS Software Panel, coded using Tcl/Tk,     J. Alcaraz 09-Dec-1003
 ##############################################################################
-# You may want to redefine here the AMS software directory (AMSDir) 
+# You may want to redefine the AMS software directory (AMSDir) 
 #   and/or
 # your preferred XWindow editor (XEDITOR),
 #
-# By default, we try to take set AMSDir form the environemnt variable
+# By default, we try to take set AMSDir from the environemnt variable
 # $AMSDir. If it is not defined, you will get an error message to help
 # 
 # In addition, you can change here below:
