@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.123 2002/07/14 12:33:05 kscholbe Exp $
+//  $Id: mceventg.C,v 1.124 2002/09/30 14:57:32 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -120,7 +120,12 @@ if(_fixeddir){
   number y=_coorange[0][1];
   number z=_coorange[0][2];
   geant d(-1);
-  _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz*RNDM(d));
+ if(_fixedplane==1){
+   _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz);
+ }
+ else{
+   _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz*RNDM(d));
+ }
  }
 }
 else {   // <--- random dir

@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.72 2002/09/04 09:11:10 choumilo Exp $
+//  $Id: geant3.C,v 1.73 2002/09/30 14:57:32 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -54,7 +54,7 @@ if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
 //AMSmceventg::SaveSeeds();
 //cout <<" in gustep "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
 //if (GCTRAK.istop ){
-// cout <<GCKINE.ipart<<" "<<GCTRAK.vect[2]<<" "<<GCTRAK.getot<<" "<<GCTMED.numed<<endl;
+//cout <<GCKINE.ipart<<" "<<GCTRAK.vect[2]<<" "<<GCTRAK.getot<<" "<<GCTMED.numed<<endl;
 //}
 
 

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.416 2002/09/25 17:18:11 choutko Exp $
+// $Id: job.C,v 1.417 2002/09/30 14:57:32 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -626,12 +626,12 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.Cl1DLeakSize=9;
   ECREFFKEY.Cl1DCoreSize=2;
   ECREFFKEY.Thr2DMax=1.2;  //max tan(theta)
-  ECREFFKEY.Length2DMin=4;
+  ECREFFKEY.Length2DMin=3;
   ECREFFKEY.Chi22DMax=1000;
   ECREFFKEY.PosError1D=0.1;
   ECREFFKEY.Chi2Change2D=0.33;
   ECREFFKEY.TransShowerSize2D=10;
-  ECREFFKEY.SimpleRearLeak[0]=0.01;
+  ECREFFKEY.SimpleRearLeak[0]=-0.01;
   ECREFFKEY.SimpleRearLeak[1]=0.94e-3;
   ECREFFKEY.SimpleRearLeak[2]=2.75;   // was 3.7*0.8  for 18 lay
    ECREFFKEY.SimpleRearLeak[2]=3.7*0.8;
@@ -1156,6 +1156,8 @@ void AMSJob::_resrddata(){
 
 
 void AMSJob::udata(){
+
+
 GCTIME.TIMEND=GCTIME.TIMINT;
 GCTIME.ITIME=0;
 if(!MISCFFKEY.G4On && !MISCFFKEY.G3On){
@@ -1907,6 +1909,25 @@ void AMSJob::_reanti2initjob(){
 //============================================================================================
 void AMSJob::_reecalinitjob(){
 //
+
+
+// setup - data type dep init
+if(ECREFFKEY.SimpleRearLeak[0]<0){
+if(isRealData() ){
+  ECREFFKEY.SimpleRearLeak[0]=0.015;
+  ECREFFKEY.SimpleRearLeak[1]=1e-3/1.097;
+  ECREFFKEY.SimpleRearLeak[2]=3.55;
+  ECREFFKEY.SimpleRearLeak[3]=0.92e-3;
+  for (int i=0;i<4;i++)cout <<" RearLeak["<<i<<"]="<<ECREFFKEY.SimpleRearLeak[i]<<endl;
+}
+else{
+for(int k=0;k<4;k++){
+ if( ECREFFKEY.SimpleRearLeak[k]<0) ECREFFKEY.SimpleRearLeak[k]*=-1;
+}
+}
+}
+
+
 
 if(isRealData() && !(isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<=0)ECREFFKEY.year[1]=ECREFFKEY.year[0]-1;
 

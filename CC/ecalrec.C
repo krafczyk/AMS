@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.56 2002/09/27 15:17:38 choutko Exp $
+//  $Id: ecalrec.C,v 1.57 2002/09/30 14:57:31 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -500,15 +500,43 @@ void AMSEcalHit::build(int &stat){
       }
       ovfl[0]=0;
       ovfl[1]=0;
-      if(radc[0]>0.)if((ECADCMX-(radc[0]+ph))<=4.*sh)ovfl[0]=1;// mark as ADC-Overflow
-      if(radc[1]>0.)if((ECADCMX-(radc[1]+pl))<=4.*sl)ovfl[1]=1;// mark as ADC-Overflow
+       float adcmax=ECADCMX;
+      if(radc[0]>0.)if((adcmax-(radc[0]+ph))<=3.*sh)ovfl[0]=1;// mark as ADC-Overflow
+      if(radc[1]>0.)if((adcmax-(radc[1]+pl))<=3.*sl)ovfl[1]=1;// mark as ADC-Overflow
 // take decision which chain to use for energy calc.(Hi or Low):
       sta=0;
       fadc=0.;
-      if(radc[0]>0. && ovfl[0]==0)
-                                 fadc=radc[0];//use highCh.
-      else if(radc[0]>0. && radc[1]>0. && ovfl[1]==0)
-                                 fadc=radc[1]*h2lr;//use lowCh.,rescale LowG-chain to HighG
+      if(radc[0]>0. && ovfl[0]==0){
+               fadc=radc[0];//use highCh.
+           }
+      else if(radc[0]>0. && radc[1]>0. && ovfl[1]==0){
+        fadc=radc[1]*h2lr;//use lowCh.,rescale LowG-chain to HighG
+        if(AMSJob::gethead()->isRealData()){
+//      assume tri-angular  h/l correction;
+
+        number ped=ph;
+        number a=1.2;
+        number b=1.2e-4;
+        number x1=1666;
+        number x2=3766;
+        number x3=x2+x2-x1;
+        number al=b;
+        number be=b*ph-a;
+        if(fadc<(x2-ph)*(a-b*x2)){
+         number mfadc=(-be-sqrt(be*be-4*fadc*al))/2/al;
+//         cout <<" case 1 "<<fadc<<" "<<mfadc<<endl;
+         fadc=mfadc;
+        }
+        else if(fadc<x3){
+         a=1-b*x3;
+         al=-b;
+         be=-b*ph-a;
+         number mfadc=(-be-sqrt(be*be-4*fadc*al))/2/al;
+//         cout <<" case 2 "<<fadc<<" "<<mfadc<<endl;
+         fadc=mfadc;
+        }
+}
+}
       else{ // accept double overflow case, the rest is junk
         if(ovfl[0]==1){
 	  if(ovfl[1]==1){
@@ -611,7 +639,7 @@ void AMSEcalHit::_writeEl(){
     AMSECIdSoft ic(getid());
     TN->Coo[TN->Necht][2]=_cooz;
     TN->ADC[TN->Necht][0]=_adc[0];
-    TN->ADC[TN->Necht][1]=_adc[1]*ic.getan2dyr();
+    TN->ADC[TN->Necht][1]=_adc[1]*ic.gethi2lowr();
     TN->Ped[TN->Necht][0]=ic.getped(0);
     TN->Ped[TN->Necht][1]=ic.getped(1);
     TN->Necht++;
@@ -1436,6 +1464,7 @@ void EcalShower::_writeEl(){
     for(int i=0;i<3;i++)TN->Dir[TN->Necsh][i]=_Dir[i];
     for(int i=0;i<3;i++)TN->EMDir[TN->Necsh][i]=_EMDir[i];
     for(int i=0;i<3;i++)TN->Entry[TN->Necsh][i]=_EntryPoint[i];
+//    for(int i=0;i<3;i++)cout <<"  entry "<<TN->Entry[TN->Necsh][i]<<endl;
     for(int i=0;i<3;i++)TN->Exit[TN->Necsh][i]=_ExitPoint[i];
     for(int i=0;i<3;i++)TN->CofG[TN->Necsh][i]=_CofG[i];
     TN->ErTheta[TN->Necsh]=_Angle3DError;
@@ -2311,17 +2340,30 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
 void AMSEcalRawEvent::TestThreshold(){
  // hardwired here, should be via dcards
  if(_gain!=2)return ;
- geant HighThr=4.5;
+ geant HighThr=3.;
  geant LowThr=1;
  geant LowAmp=10;
  AMSECIdSoft id(_idsoft);
  float x0=_padc[0]-id.getped(0);
+ float x1=_padc[1]-id.getped(1);
  if((x0> id.getsig(0)*HighThr) ||  (x0> LowAmp && x0> id.getsig(0)*LowThr)){
    for(int i=0;i<2;i++){
       _padc[i]=floor((_padc[i]-id.getped(i)+1/ECALDBc::scalef())*ECALDBc::scalef());
       if(_padc[i]<0)_padc[i]=0;
    }
 }
+else if((x1> id.getsig(1)*HighThr*2) && x1> LowAmp ){
+   for(int i=0;i<2;i++){
+      _padc[i]=floor((_padc[i]-id.getped(i)+1/ECALDBc::scalef())*ECALDBc::scalef
+());
+      if(_padc[i]<0)_padc[i]=0;
+}
+#ifdef __AMSDEBUG__
+cout << "  HighGainChannelAbsent for "<<id.makeshortid()<<" "<<_padc[1]<<endl; 
+#endif 
+}
+
+
  else setstatus(AMSDBc::DELETED);
 }
 
