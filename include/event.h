@@ -35,6 +35,21 @@ private:
    geant VelPhi;
    time_t Time;
   };
+  class BeamPar{
+   public:
+    time_t Time;     // UNIX sec, of the manipulator PC
+    float X;     //cm, the beam cross in AMS coo system
+    float Y;     //cm
+    float Z;     //cm
+    float Theta; //rad [0-Pi], direction of the beam (Pi- from z-direction)
+    float Phi;   //rad [0-2Pi]
+    uinteger  Pid;   //Beam particle ID  == Geant One
+    float Mom;   //Beam particle momentum (GeV/c) - 0-default
+    float Intens;//Beam intensity (part/sec), 0-default
+    uinteger  Cond;  //Beam conditions, 0-default
+    float BeamSize;  //beam size in cm;
+ };
+
 uinteger _status;
 uinteger _run;
 uinteger _runtype;
@@ -58,6 +73,7 @@ static integer PosGlobal;
 static AMSEvent * _Head;
 static AMSNodeMap EventMap;
 static ShuttlePar Array[60];
+static BeamPar ArrayB[60];
 void _copyEl();
 void _writeEl();
 void _init();

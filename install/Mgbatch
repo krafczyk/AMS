@@ -377,6 +377,7 @@ depend:
 ../bin/aix/gbatch.o: /usr/include/sys/signal.h /usr/include/unistd.h
 ../bin/aix/gbatch.o: /usr/include/sys/access.h /usr/lpp/xlC/include/new.h
 ../bin/aix/gbatch.o: ../include/upool.h ../include/apool.h ../include/snode.h
+../bin/aix/gbatch.o: ../include/status.h /usr/include/time.h
 ../bin/aix/gvolume.o: ../include/gvolume.h ../include/node.h
 ../bin/aix/gvolume.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/gvolume.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h

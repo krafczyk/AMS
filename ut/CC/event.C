@@ -342,7 +342,6 @@ void AMSEvent::_reamsinitevent(){
 void AMSEvent::_signinitevent(){
   AMSNode *ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSmceventg",0),0));
- 
 }
 
 void AMSEvent::SetTimeCoo(integer rec){    
@@ -507,7 +506,7 @@ void AMSEvent::SetTimeCoo(integer rec){
       number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
       if(phi < 0)phi=phi+AMSDBc::twopi;
       _StationTheta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*sin(phi));
-      _StationPhi=fmod(phi+PhiZero,AMSDBc::twopi);
+      _StationPhi=fmod(phi+PhiZero+AMSDBc::twopi,AMSDBc::twopi);
       _StationSpeed*=idir;
       // Recalculate VelTheta,VelPhi
 {
@@ -518,6 +517,40 @@ void AMSEvent::SetTimeCoo(integer rec){
 }
 
      
+    }
+    // Add mceventg if BeamTest
+    if(MISCFFKEY.BeamTest){
+
+
+    static integer hintb=0;
+    //get right record
+    if( ArrayB[hintb].Time<=_time && 
+       _time<ArrayB[hintb+2>=sizeof(ArrayB)/sizeof(ArrayB[0])?
+                  sizeof(ArrayB)/sizeof(ArrayB[0])-1:hintb+2].Time){
+      // got it
+      if(_time>=ArrayB[hintb+1].Time)hintb++;
+    }
+    else{
+      //find from scratch
+      for(hintb=1;hintb<sizeof(ArrayB)/sizeof(ArrayB[0]);hintb++){
+        if(ArrayB[hintb].Time>_time){
+          hintb--;
+          break;
+        }
+      }
+      if(hintb>=sizeof(ArrayB)/sizeof(ArrayB[0])-1)hintb=sizeof(ArrayB)/sizeof(ArrayB[0])-2;
+    }
+    integer chint;
+    if(_time < ArrayB[hintb].Time){
+     chint=hintb;
+    }
+    else chint=hintb+1;
+     geant mom(ArrayB[chint].Mom);
+     integer part(ArrayB[chint].Pid);
+     AMSDir dir(ArrayB[chint].Theta,ArrayB[chint].Phi);
+     AMSPoint x(ArrayB[chint].X,ArrayB[chint].Y,ArrayB[chint].Z);
+     AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0),
+     new AMSmceventg(part,mom,x,dir));
     }
   }
   AMSgObj::BookTimer.stop("SetTimeCoo");
@@ -2055,6 +2088,7 @@ void AMSEvent::SetShuttlePar(){
 }
 
 AMSEvent::ShuttlePar AMSEvent::Array[60];
+AMSEvent::BeamPar AMSEvent::ArrayB[60];
 
 
 AMSID AMSEvent::getTDVStatus(){
