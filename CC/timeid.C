@@ -343,8 +343,8 @@ _Insert=_pDataBaseEntries[1][index];
 _Begin=_pDataBaseEntries[2][index];
 _End=_pDataBaseEntries[3][index];
 }
-//return AMSProducer::gethead()->getTDV(this,run);
-return AMSProducer::gethead()->getSplitTDV(this,run);
+return AMSProducer::gethead()->getTDV(this,run);
+//return AMSProducer::gethead()->getSplitTDV(this,run);
 }
 #endif
 }

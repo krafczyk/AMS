@@ -193,6 +193,8 @@ if(failure)UpdateARS();
 void AMSProducer::getASL(){
 }
 
+#include <sys/stat.h>
+#include <sys/file.h>
 
 void AMSProducer::sendNtupleEnd(int entries, int last, time_t end, bool success){
 _ntend.Status=success?DPS::Producer::Success:DPS::Producer::Failure;
@@ -208,7 +210,94 @@ cout << " nt end " <<_ntend.Insert<<" "<<_ntend.Begin<<" "<<_ntend.End<<endl;
 UpdateARS();
 sendDSTInfo();
 
+if(_dstinfo->Mode==DPS::Producer::LIRO || _dstinfo->Mode==DPS::Producer::RIRO){
+for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
 
+  try{
+   if(!CORBA::is_nil(*li)){
+    (*li)->sendDSTEnd(_pid,_ntend,DPS::Client::Delete);
+     break;
+   }
+  }
+  catch  (CORBA::SystemException & a){
+  }
+}
+   AString a=(const char*)_ntend.Name;
+   int bstart=0;
+   for (int i=0;i<a.length();i++){
+    if(a[i]==':'){
+     bstart=i+1;
+     break;
+    }
+   }
+   int start=0;
+   for (int i=a.length()-1;i>=0;i--){
+    if(a[i]=='/'){
+     start=i+1;
+     break;
+    }
+   }
+    DPS::Producer::FPath fpath;
+    fpath.fname=(const char*)a(start);    
+    fpath.pos=0;
+    cout <<" file name "<<a<<" "<<start<<endl;    
+    struct stat statbuf;
+    stat((const char*)a(bstart), &statbuf);
+   ifstream fbin;
+   fbin.open((const char*)a(bstart));
+   if(fbin){
+    DPS::Producer::TransferStatus st=DPS::Producer::Begin;
+    const int maxs=16000000;
+     DPS::Producer::RUN_var vrun=new DPS::Producer::RUN();
+    while(st !=DPS::Producer::End){
+     int last=statbuf.st_size-fpath.pos;
+     if(last>maxs)last=maxs;
+     else st=DPS::Producer::End;
+     vrun->length(last);
+     fbin.read(( char*)vrun->get_buffer(),last);
+     if(!fbin.good()){
+      FMessage("AMSProducer::sendNtupleEnd-F-UnableToReadNtuplein mode RO ",DPS::Client::CInAbort);
+     }
+     for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+      try{
+       (*li)->sendFile(_pid,fpath,vrun,st);
+        break;
+       }
+       catch (DPS::Producer::FailedOp & a){
+        FMessage((const char *)a.message,DPS::Client::SInAbort);
+       }
+       catch  (CORBA::SystemException & a){
+       }
+     }
+     fpath.pos+=last;
+    }
+     fbin.close();
+      a=(const char*)_pid.HostName;
+     a+=":REMOTE:";
+     a+=(const char*)fpath.fname;
+     _ntend.Name=(const char *)a;
+     for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+      try{
+       if(!CORBA::is_nil(*li)){
+        (*li)->sendDSTEnd(_pid,_ntend,DPS::Client::Create);
+        return;
+       }
+      }
+      catch  (CORBA::SystemException & a){
+     }
+    }
+FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
+}
+   else FMessage("AMSProducer::sendNtupleEnd-F-UnableToSendNtuplein mode RO ",DPS::Client::CInAbort);
+
+  }
+
+ 
+
+
+
+
+else{
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -221,7 +310,7 @@ sendDSTInfo();
   }
 }
 FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
-
+}
   
 }
 

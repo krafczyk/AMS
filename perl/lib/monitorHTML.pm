@@ -230,7 +230,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
             "% Free",
 #            "OK",
                    );
-    if($ref->{CAC}){
+    if($ref->{DB}){
      my @output=Monitor::getdbok();
      my $buffer="DiskUsage";
      print_table($q,$buffer,$#titles,@titles,@output);

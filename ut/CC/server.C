@@ -95,6 +95,7 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
  char *ntuplestring=0;
  char *eventtagstring=0;
  char *amsd=0;
+ char *amsp=0;
  
  for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
     pchar++;
@@ -105,6 +106,10 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
     case 'A':   //AMSDataDir
      amsd=++pchar;
       setenv("AMSDataDir",amsd,1);
+     break;
+    case 'a':   //AMSProdOutputDir
+     amsp=++pchar;
+      setenv("AMSProdOutputDir",amsp,1);
      break;
     case 'I':   //Interface
      iface=++pchar;
@@ -643,6 +648,10 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     if(_parent->Debug())submit+=" -D1";
     submit+=" -A";
      submit+=getenv("AMSDataDir");
+     if(getenv("AMSProdOutputDir")){
+      submit+=" -a";
+      submit+=getenv("AMSProdOutputDir");
+     }
     if((*cli)->LogInTheEnd){
      submit+=" ";
      submit+=(const char*)((*cli)->LogPath);  
@@ -2323,7 +2332,7 @@ if(_parent->Debug()){
   }
  }
  _dst.insert(make_pair(ne.Type,vne));
-  if(ci.Type==DPS::Client::Producer)PropagateDST(ne,DPS::Client::Create,DPS::Client::AnyButSelf,_parent->getcid().uid);
+  if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Create,DPS::Client::AnyButSelf,_parent->getcid().uid);
  break;
  case DPS::Client::Update:
  for(DSTLI li=b.first;li!=b.second;++li){
@@ -2331,18 +2340,29 @@ if(_parent->Debug()){
    switch ((li->second)->Status){
     case InProgress:
      (li->second)=vne;
-      if(ci.Type==DPS::Client::Producer)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
+      if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
       return;
     default:
     _parent->EMessage(AMSClient::print(vne,"Update:DST Already Exists "));
      (li->second)=vne;
-      if(ci.Type==DPS::Client::Producer)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
+      if(ci.Type!=DPS::Client::Server)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
     return;
    }
    break;
   }
  }
     _parent->EMessage(AMSClient::print(vne,"Update:DST Not Found "));
+ break;
+ case DPS::Client::Delete:
+ for(DSTLI li=b.first;li!=b.second;++li){
+  if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
+      if(ci.Type!=DPS::Client::Server)PropagateDST((*li).second,rc,DPS::Client::AnyButSelf,_parent->getcid().uid);
+     _dst.erase(li);
+     return;       
+      
+  }
+ } 
+    _parent->EMessage(AMSClient::print(vne,"Delete:DST Not Found "));
  
 }
 }
@@ -2410,7 +2430,7 @@ if(!resultdone){
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   float dbfree,dbtotal;
   DPS::Server::DB* db;
-  _pser->getDBSpace(_parent->getcid(),db);
+  _pser->getDBSpace(_parent->getcid(),"AMSDataDir","/DataBase/",db);
   DPS::Server::DB_var dbv=db;
   cout <<" DBSpace Free "<<dbv->dbfree <<" Mb out of Total "<<dbv->dbtotal<<endl;
 {
@@ -2773,6 +2793,31 @@ vrun->length(last);
 }
 
 
+int Producer_impl::sendFile(const DPS::Client::CID &cid, const FPath & fpath ,const  RUN & run,TransferStatus & st)throw (CORBA::SystemException,FailedOp){
+const int maxs=16000000;
+   AString fname;
+   char* gtv=getenv("AMSProdOutputDir");
+   if(gtv && strlen(gtv)>0){
+     fname=gtv;
+     fname+="/";
+   }
+   else throw FailedOp("Server-F-AMSProdOutputDir NotDefined");
+   fname+=(const char*)fpath.fname;
+ ofstream fbin;
+ fbin.open((const char*)fname,ios::out|ios::app);
+ if(!fbin){
+  throw FailedOp("Server-F-Unable to open file");
+ }
+ fbin.write(( char*)run.get_buffer(),run.length());
+ if(!fbin.good()){
+   throw FailedOp((const char*)"Server-F-Unable to write file");
+ }
+ fbin.close();
+  _UpdateACT(cid,DPS::Client::Active);
+ return 1;
+}
+
+
 
 void Server_impl::sendNC(const DPS::Client::CID &  cid, const  DPS::Client::NominalClient & nc, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 
@@ -2841,15 +2886,20 @@ void Server_impl::sendNK(const DPS::Client::CID &  cid, const  DPS::Client::Nomi
    }
 
 #include <sys/statfs.h>
-CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, DB_out dbo)throw (CORBA::SystemException){
+CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, const char * path, const char * addpath, DB_out dbo)throw (CORBA::SystemException){
 
    DB_var dbv= new DB();
    AString amsdatadir; 
-   char* gtv=getenv("AMSDataDir");
+   char* gtv=getenv(path);
    if(gtv && strlen(gtv)>0){
      amsdatadir=gtv;
    }
    else{
+      AString a("UnknownENVingetDBSpace ");
+      a+=path;
+      a+=" ";
+      a+=addpath;
+    _parent->EMessage(a);
    dbv->fs=(const char *)" Unknown";
    dbv->dbfree=-1;
    dbv->dbtotal=-1;
@@ -2858,7 +2908,7 @@ CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, DB_out dbo)t
    return false;
   }
     
-    amsdatadir+="/DataBase/";
+    amsdatadir+=addpath;
   struct statfs buffer;
   int fail=statfs((const char*)amsdatadir,&buffer); 
   if(fail){

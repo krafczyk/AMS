@@ -149,4 +149,8 @@ AString & AString::operator +=(const AString & a){
  
 }
 
+AString AString::operator ()(int i) {
+ return AString((pData->pString)+i);
+}
+
 

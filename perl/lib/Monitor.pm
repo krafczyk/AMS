@@ -31,6 +31,7 @@ my %fields=(
      dsti=>undef,
      dsts=>undef,
      db=>undef,
+     rn=>undef,
      ok=>0,
      registered=>0,
             );
@@ -136,9 +137,14 @@ sub UpdateEverything{
          else {
              $ref->{nkl}=$ahl;
          }
-
-         my ($ok, $dhl)=$arsref->getDBSpace(\%cid);
+         my $path="AMSDataDir";
+         my $addpath="/DataBase/";
+         my ($ok, $dhl)=$arsref->getDBSpace(\%cid,$path,$addpath);
          $ref->{db}=$dhl;
+         $path="AMSProdOutputDir";
+         $addpath="/";
+          ($ok, $dhl)=$arsref->getDBSpace(\%cid,$path,$addpath);
+         $ref->{rn}=$dhl;
          $cid{Type}="Producer";
       ($length,$ahl)=$arsref->getACS(\%cid,\$maxc);
          if($length==0){
@@ -326,7 +332,7 @@ sub getior{
     my $i=system "/usr/local/lsf/bin/bjobs -q linux_server -u all>$file" ;
     if($i){
         unlink $file;
-        return undef;
+        return getior2();
     }
     open(FILE,"<".$file) or return undef;
     my $ii=0;
@@ -352,7 +358,7 @@ sub getior{
     }
     close (FILEO);
     unlink $file,$fileo;
-    return getior2();
+    return getior2();      
 }
 sub getior2{
     my $file ="/tmp/DumpIOR";
@@ -376,6 +382,19 @@ sub getdbok{
     if($text[1]<0 or $text[2]<0 or $text[2]<200){
       push @text ,1;
   }elsif($text[2]<100){
+      push @text ,2;
+  }else{
+      push @text ,0;
+  }
+    push @output, [@text];
+     $#text=-1;
+    push @text, $Monitor::Singleton->{rn}->{fs};
+    push @text, int $Monitor::Singleton->{rn}->{dbtotal};
+    push @text, int $Monitor::Singleton->{rn}->{dbfree};
+    push @text, int $Monitor::Singleton->{rn}->{dbfree}/$Monitor::Singleton->{rn}->{dbtotal}*100;
+    if($text[1]<0 or $text[2]<0 or $text[2]<2000){
+      push @text ,1;
+  }elsif($text[2]<1000){
       push @text ,2;
   }else{
       push @text ,0;

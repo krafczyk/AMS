@@ -202,6 +202,7 @@ module DPS{
      unsigned long pos;
     };  
     long getRun(in CID id, in FPath fpath ,out RUN run,  inout TransferStatus st) raises(FailedOp);      
+    long sendFile(in CID id, in FPath fpath ,in RUN run,  inout TransferStatus st) raises(FailedOp);      
     
   };
 
@@ -241,7 +242,7 @@ module DPS{
      float dbtotal;
      float bs;
     };
-    boolean getDBSpace(in CID id, out DB db);   
+    boolean getDBSpace(in CID id, in string path, in string addpath,out DB db);   
    };
   interface Monitor: Client{
     void MonInfo(in CID id, in string message, in ErrorType error, in time timeout);
