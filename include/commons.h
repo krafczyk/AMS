@@ -528,6 +528,8 @@ geant RhoThrV;
 integer Method;
 geant BadChanThr[2];
 integer Pass;
+integer DPS;
+integer UPDF;
                                 // Proc # 2 starts here
 integer EventsPerIteration[2];
 integer NumberOfIterations[2];

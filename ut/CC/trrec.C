@@ -1249,6 +1249,7 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
         // add "FalseX" bit into track status word
 
         {
+          integer pointfound=0;
           for(int i=nhit;i<6;i++){
             integer ladder=8;
             integer sensor=5;
@@ -1266,7 +1267,6 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
              AMSTrCluster * py=
              (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
              integer yfound=0;  
-             integer yfound2=0;  
              while(py){
               AMSTrIdSoft idy=py->getid();
               if(idy.getlayer()==id.getlayer()){
@@ -1298,25 +1298,25 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
                    id.R2Gy(idy.getstrip());
                    AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(1,&id)); 
                    AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
-                   TRFITFFKEY.SearchRegCircle,TRFITFFKEY.SearchRegStrLine);
+                   TRFITFFKEY.SearchRegStrLine,TRFITFFKEY.SearchRegStrLine);
                    if((hit-P1).abs() < Err){
                    AMSTrRecHit::_addnext(pls,AMSTrRecHit::FalseX,id.getlayer(),0,py,hit,
                    AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
-                   yfound2++;
+                   pointfound++;
                    } 
                            
                 }
               }
               py=py->next();
              }
-
-                
-             }
-
 #ifndef __UPOOL__
                     delete ptrack;  
 #endif   
-                    return (yfound2>0);
+                    return (pointfound>0);
+
+                
+              }
+
 
 
 
@@ -1328,6 +1328,9 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 #endif
           
           }
+
+
+
         }
       }
      }

@@ -618,6 +618,15 @@ void AMSTrRawCluster::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[
            else  id[l]+=-cmn;
          }
       }
+      // Dynamically Update pedestals if needed
+      if(TRCALIB.DPS){
+       for(j=0;j<len;j++){
+          idd.upd(j);
+          if(fabs(id[j])<TRCALIB.DPS*idd.getsig()){
+           idd.setped()=idd.getped()+id[j]/TRCALIB.UPDF;
+         }           
+       }
+      }
       // find "preclusters"  
          idd.upd(0);
          integer ilay=idd.getlayer();

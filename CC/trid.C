@@ -939,8 +939,8 @@ integer AMSTrIdGeom::FindAtt(const AMSPoint & pnt,  AMSPoint  size){
      AMSPoint loc=p->gl2loc(pnt);
      loc=loc+size;
      if( 
-      loc[1]>2*size[1]+200*AMSgvolume::dgeant  ||
-      loc[1]<-200*AMSgvolume::dgeant   ){
+      loc[1]>2*size[1]+0.1  ||
+      loc[1]<-0.1   ){
 #ifdef __AMSDEBUG__
        cerr << "AMSgSen::FindAtt-S-Error loc " 
        << loc << size << endl;
