@@ -209,6 +209,7 @@ void AMSEvent::_endofrun() {
   char ac[4]  = "aC";
   char p0[4]  = "P0";
   char p1[4]  = "P1";
+  char u1[4]  = "U1";
   char comp[4];
 
 
@@ -259,6 +260,8 @@ void AMSEvent::_endofrun() {
       if (hh[0] == 'C' || hh[0] == 'c') strcpy(comp,c);
       if (hh[1] == 'H' || hh[1] == 'h') strcpy(comp,ahe);
       if (hh[1] == 'C' || hh[1] == 'c') strcpy(comp,ac);
+      if (hh[0] == 'A' || hh[0] == 'a') 
+                                        if (hh[6] == '1') strcpy(comp,u1);
       if (hh[0] == 'P' || hh[0] == 'p') {
        if (hh[6] == '0') strcpy(comp,p0);
        if (hh[6] == '1') strcpy(comp,p1);
