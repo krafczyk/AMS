@@ -452,8 +452,8 @@ LAST :
     my $end     = localtime($endtime);
     print "Copy started : $start \n";
     print "     ended   : $end \n";
-    my $mbytes = sprintf("%.1f",$nbytes/100000.);
-    print "MBYtes : $mbytes \n";
+    my $mbytes = sprintf("%.1f",$nbytes/1000000.);
+    print "MBytes : $mbytes \n";
     print "Files  : $nnfiles \n";
     if ($nnfiles > 0) {
      my $fsize= sprintf("%.1f",$mbytes/$nnfiles);
@@ -487,8 +487,8 @@ sub doCmp {
     my $inputdir  = "local";
     my $outputdir = "local";
 
-    if($input  =~/castor/){ $inputdir = "castor";}
-    if($output =~/castor/){ $outputdir = "castor";}
+    if($input  =~/castor\/cern.ch/){ $inputdir = "castor";}
+    if($output =~/castor\/cern.ch/){ $outputdir = "castor";}
 
     print "***** Input directory $input \n";
     if ($inputdir eq "local") {
