@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.30 2003/02/04 15:02:03 choutko Exp $
+//  $Id: gamma.C,v 1.31 2003/02/10 10:08:55 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -149,6 +149,8 @@ void AMSTrTrackGamma::_SingleHit(integer FLPAT[], double CE[], int LA){
   }
   //
   // One more alternative:
+ /*
+
   int cou1a=0;    
   int cou1b=0;    
   for(int i=0;i<5;i++){
@@ -205,7 +207,7 @@ void AMSTrTrackGamma::_SingleHit(integer FLPAT[], double CE[], int LA){
     }
   }
   //
-  
+ */  
 }
 
 void AMSTrTrackGamma::_SingleCommonHit(integer FLPAT[], vector<double> H[]){
@@ -239,6 +241,20 @@ void AMSTrTrackGamma::_SingleCommonHit(integer FLPAT[], vector<double> H[]){
        }
 
      }
+
+     if (FLPAT[0] == 1 && FLPAT[1] ==2 && FLPAT[2] == 2 && (fabs(H[1][0]-H[1][1])<= 0.44) &&  (fabs(H[2][0]-H[2][1])<= 0.63)){
+       for (AMSTrRecHit * p=AMSTrRecHit::gethead(0); p!=NULL; p=p->next()){ 
+	 if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
+
+	 if (p->checkstatus(AMSDBc::GAMMALEFT) || p->checkstatus(AMSDBc::GAMMARIGHT)){
+             p->setstatus(AMSDBc::GAMMALEFT);
+	     p->setstatus(AMSDBc::GAMMARIGHT);
+	 }
+
+       }
+     }
+
+
 
   // planes 1  2  3  4
   // FLPAT  1  2  .. .. -> 2  2
@@ -3328,6 +3344,8 @@ mindx=10000;
 } // VAMAXR > 1
 /////////////////////////////////////////
 // for both: Looking for missing X-hit:  (VAMAXR < 1) and (VAMAXR >= 1)
+// added on 10-febbraio
+ if (lkfir>2){
 
 
  for (int i=0;i<TKDBc::nlay();i++){
@@ -3426,6 +3444,9 @@ mindx=10000;
 	}
    }
   }
+
+
+ }//// lkfir >2
 
 
 
@@ -3688,6 +3709,8 @@ mindx=10000;
 } // VAMAXL > 1
 /////////////////////////////////////////
 // for both: Looking for missing X-hit:  (VAMAXL < 1) and (VAMAXL > 1)
+// added on 10-febbraio
+   if (lkfil > 2){
 
  for (int i=0;i<TKDBc::nlay();i++){
    xxx=B*TKDBc::zposl(i)+A;  
@@ -3787,6 +3810,7 @@ mindx=10000;
    }
  }
  
+   } // lkfil >2
 
 
 }
@@ -4283,13 +4307,32 @@ RecoXRight(0,X3P,10000,DeltaRecoBottom,ifi,ila,RegStr0,lkfir,VAMAXR);
      }
    }
 
-   if (min(VAMAXL,VAMAXR) <= 0.015 && max(VAMAXL,VAMAXR) >= 0.08 ) {
-     if ((VAMAXL < VAMAXR && nulf > 3) ||
-         (VAMAXR < VAMAXL && nurf > 3)){
+   if (min(VAMAXL,VAMAXR) <= 0.015 && min(VAMAXL,VAMAXR) >= 0.001 && max(VAMAXL,VAMAXR) >= 0.08 ) {
+     if ((VAMAXL < VAMAXR && nulf > 3 ) ||
+         (VAMAXR < VAMAXL && nurf > 3 )){
+         slr=(VAMAXL<VAMAXR)?blf:brf;
+         qlr=(VAMAXL<VAMAXR)?alf:arf;
+     }
+   }
+   if (min(VAMAXL,VAMAXR) <= 0.001 && max(VAMAXL,VAMAXR) >= 0.1 ) {
+     if ((VAMAXL < VAMAXR && nulf > 3 ) ||
+         (VAMAXR < VAMAXL && nurf > 3 )){
          slr=(VAMAXL<VAMAXR)?blf:brf;
          qlr=(VAMAXL<VAMAXR)?alf:arf;
      }
    }  
+   if (min(VAMAXL,VAMAXR) <= 0.04 && max(VAMAXL,VAMAXR) >= 0.2 ) {
+    slr=(VAMAXL<VAMAXR)?blf:brf;
+    qlr=(VAMAXL<VAMAXR)?alf:arf;
+   }
+
+   //   if (min(VAMAXL,VAMAXR) <= 0.015 && max(VAMAXL,VAMAXR) >= 0.08 ) {
+   //  if ((VAMAXL < VAMAXR && nulf > 3) ||
+   //      (VAMAXR < VAMAXL && nurf > 3)){
+   //      slr=(VAMAXL<VAMAXR)?blf:brf;
+   //      qlr=(VAMAXL<VAMAXR)?alf:arf;
+   //  }
+   //}  
    if (nulf == 8 && nurf == 8){
      if ((VAMAXL > 0.5 && VAMAXL < 0.1) && 
 	 (VAMAXR > 0.5 && VAMAXR < 0.1)){
@@ -4450,7 +4493,7 @@ RecoXRight(0,X3P,10000,DeltaRecoBottom,ifi,ila,RegStr0,lkfir,VAMAXR);
 
 
 
-ResetXhits(resetting);
+ResetXhits(resetting,VAMAXL,VAMAXR);
 
  if (resetting > 1100){
    slr=10000;
@@ -4469,7 +4512,7 @@ ResetXhits(resetting);
   //..
 }
 
-void AMSTrTrackGamma::ResetXhits(int & resetting){
+void AMSTrTrackGamma::ResetXhits(int & resetting, double VAMAXL, double VAMAXR){
 
   double xamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
   double yamr[8]={10000,10000,10000,10000,10000,10000,10000,10000};
@@ -4627,9 +4670,7 @@ dlinearme(ll,zaml,xaml,aa,bb,vvl);         // linear fit
     } 
   //}
   
-  //void AMSTrTrackGamma::ResetXhits(int lkfil, double xaml[], double yaml[], double zaml[], int lkfir, double xamr[], double yamr[], double zamr[]){
-
-
+ 
 
   
   double cetkylr[8]={10000,10000,10000,10000,10000,10000,10000,10000};  
@@ -4793,8 +4834,8 @@ dlinearme(ll,zaml,xaml,aa,bb,vv);         // linear fit
 //
 	
 	if (p_hi[2] > (zaml[ii]-0.5) && p_hi[2] < (zaml[ii]+0.5)){
-	  if (p_hi[1] > (yaml[ii]-0.005) && p_hi[1] < (yaml[ii]+0.005)){
-	    if (p_hi[0] > (xaml[ii]-0.005) && p_hi[0] < (xaml[ii]+0.005)){              
+	  if (p_hi[1] > (yaml[ii]-0.001) && p_hi[1] < (yaml[ii]+0.001)){
+	    if (p_hi[0] > (xaml[ii]-0.001) && p_hi[0] < (xaml[ii]+0.001)){              
 	      p->setstatus(AMSDBc::GAMMALEFT);
 	    }
 	  }
@@ -4812,8 +4853,8 @@ dlinearme(ll,zaml,xaml,aa,bb,vv);         // linear fit
 	//
 	
 	if (p_hi[2] > (zamr[ii]-0.5) && p_hi[2] < (zamr[ii]+0.5)){
-	  if (p_hi[1] > (yamr[ii]-0.005) && p_hi[1] < (yamr[ii]+0.005)){
-	    if (p_hi[0] > (xamr[ii]-0.005) && p_hi[0] < (xamr[ii]+0.005)){              
+	  if (p_hi[1] > (yamr[ii]-0.001) && p_hi[1] < (yamr[ii]+0.001)){
+	    if (p_hi[0] > (xamr[ii]-0.001) && p_hi[0] < (xamr[ii]+0.001)){              
 	      p->setstatus(AMSDBc::GAMMARIGHT);
 	    }
 	  }
