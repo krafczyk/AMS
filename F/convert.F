@@ -1314,7 +1314,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        endif
        ic=0
        call hcdir('//input',' ')
-       call hrin(1,9999,0)
+       call hrin(0,9999,0)
        ic=0
        cblock(1)='EVENTH'
        cblock(2)='BETA'
