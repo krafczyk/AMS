@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.62 2002/10/04 15:43:36 choutko Exp $
+//  $Id: ecalrec.C,v 1.63 2002/10/11 16:47:01 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -31,7 +31,6 @@ geant AMSEcalRawEvent::trsum=0.;// just memory reservation/initialization for st
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   int i,j,k;
   integer sta,status,dbstat,id,idd,isl,pmc,subc;
-  integer padc[2];
   number radc[2]; 
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
   integer ovfl[2];
@@ -60,6 +59,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
         idd=id/10;
         subc=id%10-1;//SubCell(0-3)
         pmc=idd%100-1;//PMCell(0-...)
+        integer padc[3];
         ptr->getpadc(padc);
         ECPMPeds::pmpeds[isl][pmc].getpedh(pedh);
         ECPMPeds::pmpeds[isl][pmc].getsigh(sigh);
@@ -450,7 +450,6 @@ integer AMSEcalRawEvent::lvl3format(int16 *ptr, integer rest){
 void AMSEcalHit::build(int &stat){
   int i,j,k;
   integer sta,status,dbstat,id,idd,isl,pmc,subc,nraw,nhits;
-  integer padc[2];
   integer proj,plane,cell,icont;
   number radc[2],edep,adct,fadc,emeast,coot,cool,cooz; 
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
@@ -474,6 +473,7 @@ void AMSEcalHit::build(int &stat){
       idd=id/10;
       subc=id%10-1;//SubCell(0-3)
       pmc=idd%100-1;//PMCell(0-...)
+      integer padc[3];
       ptr->getpadc(padc);
 //      cout << "  found "<<padc[0]<<" "<<padc[1]<<endl;
       ECPMPeds::pmpeds[isl][pmc].getpedh(pedh);
@@ -506,19 +506,32 @@ void AMSEcalHit::build(int &stat){
       fadc=0.;
       if(radc[0]>0 && ovfl[0]==0 && !ids.HCHisBad()){
         fadc=radc[0];//use highCh.
-      }
-      else if(radc[1]>3*sl && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl -> use Lch
-        fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
-	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
-//
-        if(AMSJob::gethead()->isRealData()){// tempor RealData Lch-corr.
-//      assume tri-angular  h/l correction;
-
+        if(AMSJob::gethead()->isRealData() ){// tempor RealData Lch-corr.
         number ped=ph;
         number a=1.2;
         number b=1.2e-4;
         number x1=1666;
         number x2=3766;
+        if(radc[0]+ph<1666){
+          fadc=radc[0];
+        }
+        else{
+         fadc=radc[0]*(a-b*(radc[0]+ph));
+        }
+       }
+      }
+      else if(radc[1]>(sl>1?5*sl:5) && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl -> use Lch
+        fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
+	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
+//
+        if(AMSJob::gethead()->isRealData() ){// tempor RealData Lch-corr.
+//      assume tri-angular  h/l correction;
+
+        number ped=ph;
+        number a=1.05;
+        number b=0.5e-4/2/2;
+        number x1=3766;
+        number x2=5866;
         number x3=x2+x2-x1;
         number al=b;
         number be=b*ph-a;
@@ -640,8 +653,11 @@ void AMSEcalHit::_writeEl(){
     TN->Coo[TN->Necht][2]=_cooz;
     TN->ADC[TN->Necht][0]=_adc[0];
     TN->ADC[TN->Necht][1]=_adc[1]*ic.gethi2lowr();
+    TN->ADC[TN->Necht][2]=_adc[2]*ic.getan2dyr();
     TN->Ped[TN->Necht][0]=ic.getped(0);
     TN->Ped[TN->Necht][1]=ic.getped(1);
+    TN->Ped[TN->Necht][2]=ic.getpedd();
+    TN->Gain[TN->Necht]=ic.getgain();
     TN->Necht++;
   }
 }
@@ -1708,6 +1724,10 @@ void EcalShower::EnergyFit(){
     }   
    }
    if(dn)_Dz/=dn;
+   else{
+    cerr<<"EcalShower::EnergyFit-E-CouldNotGet Z info"<<endl;
+    _Dz=0.9;
+   }
    }
    for(int i=0;i<Maxrow;i++){
     if(!_Edep[i]){
@@ -1954,8 +1974,11 @@ if(p->_iflag==3){
    for(int j=0;j<nint;j++){
     number x1=p->_Ez[i]-p->_Ez[0]+dz*(j)/nint;
     number x2=p->_Ez[i]-p->_Ez[0]+dz*(j+1)/nint;
-    number f1=x1>0?pow(x1,xc[1]*xc[2])*exp(-xc[2]*x1):0;
-    number f2=x2>0?pow(x2,xc[1]*xc[2])*exp(-xc[2]*x2):0;
+//    number f3=x1>0?pow(x1,xc[1]*xc[2])*exp(-xc[2]*x1):0;
+//    number f4=x2>0?pow(x2,xc[1]*xc[2])*exp(-xc[2]*x2):0;
+    number f1=x1>0?exp(min(log(FLT_MAX/2),-xc[2]*x1+xc[1]*xc[2]*log(x1))):0;
+    number f2=x2>0?exp(min(log(FLT_MAX/2),-xc[2]*x2+xc[1]*xc[2]*log(x2))):0;
+//    cout<<" f4/f2 "<<f4/f2<<endl;
     edep+= (f1+f2)*0.5;
     p->_Et+=edep*dz/nint;
     edepz+=(f1*(x2+2*x1)+f2*(x1+2*x2))/6.;
@@ -2271,8 +2294,8 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
             int16u gain=((*ptr)>>14)&1;
             int16u value=( (*ptr))&4095; 
             if(!anode){
-               channel=4;
-               gain=0;
+               channel=0;
+               gain=3;
             }
   
            AMSECIdSoft id(ic,pmt,channel);//create id's
@@ -2288,6 +2311,9 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
          }
          else{
 //  put here dynode related class
+
+           AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEventD",ic), new
+          AMSEcalRawEvent(id,1-anode,gain,value));
           sum_dynode+=(value-id.getpedd())*id.getan2dyr()*id.getadc2mev();   
           dynode++; 
          }
@@ -2365,12 +2391,32 @@ void AMSEcalRawEvent::TestThreshold(){
       _padc[i]=floor((_padc[i]-id.getped(i)+1/ECALDBc::scalef())*ECALDBc::scalef());
       if(_padc[i]<0)_padc[i]=0;
    }
+   //add dynode if any
+      for(AMSEcalRawEvent*   ptrd=(AMSEcalRawEvent*)AMSEvent::gethead()->
+                       getheadC("AMSEcalRawEventD",_id.getcrate(),1);ptrd;ptrd=ptrd->next()){
+       if(*ptrd == *this){
+//       cout <<"  dynodes found****"<<ptrd->getpadc(2)<<endl;;
+        //dynode found
+         _padc[2]=floor((ptrd->getpadc(2)-id.getpedd()+1/ECALDBc::scalef())*ECALDBc::scalef());
+         break;
+       }
+     }
+
 }
 else if((x1> id.getsig(1)*HighThr*2) && x1> LowAmp ){// tempor (HighThr->LowThr ?)
    for(int i=0;i<2;i++){
       _padc[i]=floor((_padc[i]-id.getped(i)+1/ECALDBc::scalef())*ECALDBc::scalef
 ());
       if(_padc[i]<0)_padc[i]=0;
+   //add dynode if any
+      for(AMSEcalRawEvent*   ptrd=(AMSEcalRawEvent*)AMSEvent::gethead()->
+                       getheadC("AMSEcalRawEventD",_id.getcrate(),1);ptrd;ptrd=ptrd->next()){
+        if(*ptrd == *this){
+          //dynode found
+         _padc[2]=floor((ptrd->getpadc(2)-id.getpedd()+1/ECALDBc::scalef())*ECALDBc::scalef());
+         break;
+       }
+     }
 }
 #ifdef __AMSDEBUG__
 cout << "  HighGainChannelAbsent for "<<id.makeshortid()<<" "<<_padc[1]<<endl; 
@@ -2382,8 +2428,11 @@ cout << "  HighGainChannelAbsent for "<<id.makeshortid()<<" "<<_padc[1]<<endl;
 }
 
 
-AMSEcalRawEvent::AMSEcalRawEvent(const AMSECIdSoft & id, int16u dynode,int16u gain,int16u adc):AMSlink(),_gain(gain){
+AMSEcalRawEvent::AMSEcalRawEvent(const AMSECIdSoft & id, int16u dynode,int16u gain,int16u adc):AMSlink(),_gain(gain),_id(id){
  for(int i=0;i<2;i++)_padc[i]=0;
-  if(_gain<2)_padc[_gain]=adc;
+  if(dynode)_padc[2]=adc;
+  else{
+   if(_gain<2)_padc[_gain]=adc;
+  }
   _idsoft=id.makeshortid();
 }

@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.60 2002/09/27 15:17:43 choutko Exp $
+//  $Id: ntuple.h,v 1.61 2002/10/11 16:47:17 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -12,7 +12,7 @@ const int NBRANCHES = 1;    // number of branches
 const int NCLONES   = 1;    // number of clones array
 
 namespace root{
-const int MAXBETA02    = 50;
+const int MAXBETA02    = 30;
 const int MAXCHARGE02  = 30;
 const int MAXPART02    =  10;
 const int MAXTOF     =    48;
@@ -30,10 +30,10 @@ const int MAXMCG02     =    100;
 const int MAXECSHOW =    5;
 const int MAXECCLUST =    60;
 const int MAXEC2DCLUST =    10;
-const int MAXECHITS  =   500;
+const int MAXECHITS  =   450;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
-const int MAXRICMC   =   300;
+const int MAXRICMC   =   250;
 const int MAXRICHITS =   100;
 const int MAXRICHRIN =   10;
 const int MAXTRDCLMC   =   200;
@@ -265,8 +265,9 @@ public:
   int Cell[MAXECHITS];
   float Edep[MAXECHITS];
   float Coo[MAXECHITS][3];
-  float ADC[MAXECHITS][2];
-  float Ped[MAXECHITS][2];
+  float ADC[MAXECHITS][3];
+  float Ped[MAXECHITS][3];
+  float Gain[MAXECHITS];
 friend class AMSEcalHit;
 friend class AMSNtuple;
 };

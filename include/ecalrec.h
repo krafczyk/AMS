@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.27 2002/10/01 15:53:54 choumilo Exp $
+//  $Id: ecalrec.h,v 1.28 2002/10/11 16:47:17 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -19,14 +19,16 @@ private:
   static uinteger trigfl; // =1/2/3... -> "mip/low/high, =0->no trig.
   static number trigtm; // ECAL FT abs. time
   static geant trsum;// Trigger sum(dynodes,gev)
-  integer _gain; // 0: High, 1: Low, 2: Both
+  AMSECIdSoft _id;  // real id soft
+  integer _gain; // 0: High, 1: Low, 2: Both  3:Dynode 
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
-  integer _padc[2];// Anode pulse hights (ADC-channels)[HighGain,LowGain]
+  integer _padc[3];//  pulse hights (ADC-channels)[HighGain,LowGain, Dynode]
 public:
 
   AMSEcalRawEvent(integer idsoft, integer status,  
-        int padc[2]):AMSlink(status,0),_gain(2),_idsoft(idsoft)
-  {for(int i=0;i<2;i++)_padc[i]=padc[i];}
+        int padc[2]):AMSlink(status,0),_gain(2),_idsoft(idsoft),_id(idsoft){
+        for(int i=0;i<2;i++)_padc[i]=padc[i];
+}
 
 
   AMSEcalRawEvent(const AMSECIdSoft & id,int16u dynode,int16u gain,int16u adc);
@@ -35,6 +37,11 @@ public:
   ~AMSEcalRawEvent(){};
   AMSEcalRawEvent * next(){return (AMSEcalRawEvent*)_next;}
 //
+  integer operator == (AMSlink & o)const{
+   AMSEcalRawEvent *p =dynamic_cast<AMSEcalRawEvent*>(&o);
+    return p && (p->_idsoft)/10 == _idsoft/10;
+  }
+
   integer operator < (AMSlink & o)const{
    AMSEcalRawEvent *p =dynamic_cast<AMSEcalRawEvent*>(&o);
    if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
@@ -44,7 +51,8 @@ public:
 //
   integer getid() const {return _idsoft;}
   uint16 getgain() const {return _gain;}
-  void getpadc(int padc[2]){for(int i=0;i<2;i++)padc[i]=_padc[i];}
+  void getpadc(int padc[3]){for(int i=0;i<3;i++)padc[i]=_padc[i];}
+  int getpadc(uinteger i){return i<3?_padc[i]:0;}
   int getadc(int16u gain) const{return gain<2?_padc[gain]:-1;}
   void setgain(int16u gain){_gain=gain;}
   void TestThreshold();
@@ -89,7 +97,7 @@ class AMSEcalHit: public AMSlink{
 private:
 //integer _status; // status (0/1/... -> alive/dead/...) (It is really in AMSlink !!!)
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
-  geant _adc[2]; //raw adc's for later calibration (ovfl-suppressed, DAQ-scale -> ADC converted!)
+  geant _adc[3]; //raw adc's for later calibration (ovfl-suppressed, DAQ-scale -> ADC converted! (high,low,dynode if any)
   integer _proj;   //projection (0->X, 1->Y)
   integer _plane;  //continious numbering of planes through 2 projections(0,...)
   integer _cell;   // numbering in plane(0,...)
@@ -101,13 +109,13 @@ public:
 #ifdef __WRITEROOTCLONES__
   friend class EcalHitRoot;
 #endif
-  AMSEcalHit(integer status, integer id, integer adc[2], integer proj, integer plane, integer cell,
+  AMSEcalHit(integer status, integer id, integer adc[3], integer proj, integer plane, integer cell,
          number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(id),
 	 _proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz)
-	 {for(int i=0;i<2;i++)_adc[i]=adc[i]/ECALDBc::scalef();}
+	 {for(int i=0;i<3;i++)_adc[i]=adc[i]/ECALDBc::scalef();}
   AMSEcalHit(integer status, integer proj, integer plane, integer cell,
          number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(0),_proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz)
-	 {for(int i=0;i<2;i++)_adc[i]=0;};
+	 {for(int i=0;i<3;i++)_adc[i]=0;};
   ~AMSEcalHit(){};
   AMSEcalHit * next(){return (AMSEcalHit*)_next;}
 //
@@ -120,6 +128,7 @@ public:
   integer getproj(){return _proj;}
   integer getid(){return _idsoft;}
   void getadc(float adc[]){for(int i=0;i<2;i++)adc[i]=_adc[i];}
+  float getadc(uinteger i){return i<3?_adc[i]:0;}
   integer getplane(){return _plane;}
   integer getcell(){return _cell;}
   number getedep(){return _edep;}

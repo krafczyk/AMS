@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.420 2002/10/03 16:24:35 choumilo Exp $
+// $Id: job.C,v 1.421 2002/10/11 16:47:02 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -537,7 +537,7 @@ CCFFKEY.oldformat=0;
 CCFFKEY.sdir=1;
 CCFFKEY.Fast=0;
 CCFFKEY.StrCharge=2;
-CCFFKEY.StrMass=12;
+CCFFKEY.StrMass=-1;
 CCFFKEY.SpecialCut=0;
 CCFFKEY.curtime=0;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -678,10 +678,9 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.Chi2Change2D=0.33;
   ECREFFKEY.TransShowerSize2D=10;
   ECREFFKEY.SimpleRearLeak[0]=-0.01;
-  ECREFFKEY.SimpleRearLeak[1]=0.94e-3;
-  ECREFFKEY.SimpleRearLeak[2]=2.75;   // was 3.7*0.8  for 18 lay
-  ECREFFKEY.SimpleRearLeak[2]=3.7*0.8;
-  ECREFFKEY.SimpleRearLeak[3]=0.975e-3;
+  ECREFFKEY.SimpleRearLeak[1]=1.00e-3/1.02;
+  ECREFFKEY.SimpleRearLeak[2]=3.;
+  ECREFFKEY.SimpleRearLeak[3]=1.00e-3/1.02;
   ECREFFKEY.CalorTransSize=32;
   ECREFFKEY.EMDirCorrection=1.035;
 //  
@@ -1202,6 +1201,13 @@ void AMSJob::_resrddata(){
 
 
 void AMSJob::udata(){
+
+if(CCFFKEY.StrMass<0){
+ CCFFKEY.StrMass=0.938*pow(CCFFKEY.StrCharge/0.3,1.5);
+}
+ if(GCKINE.ipart==113){
+  cout <<" Stranglet Parameters Are Charge: "<<CCFFKEY.StrCharge<<" Mass: "<<CCFFKEY.StrMass<<endl;
+ }
 
 
 GCTIME.TIMEND=GCTIME.TIMINT;
@@ -1970,9 +1976,9 @@ void AMSJob::_reecalinitjob(){
 if(ECREFFKEY.SimpleRearLeak[0]<0){
 if(isRealData() ){
   ECREFFKEY.SimpleRearLeak[0]=0.015;
-  ECREFFKEY.SimpleRearLeak[1]=1e-3;
-  ECREFFKEY.SimpleRearLeak[2]=2;
-  ECREFFKEY.SimpleRearLeak[3]=0.98e-3;
+  ECREFFKEY.SimpleRearLeak[1]=0.928e-3;
+  ECREFFKEY.SimpleRearLeak[2]=4.1;
+  ECREFFKEY.SimpleRearLeak[3]=0.935e-3;
   for (int i=0;i<4;i++)cout <<" RearLeak["<<i<<"]="<<ECREFFKEY.SimpleRearLeak[i]<<endl;
 }
 else{
@@ -2019,7 +2025,7 @@ if(isRealData() && !(isCalibration() & AMSJob::CEcal) && ECREFFKEY.relogic[1]<=0
 //    }
   }
 //-----------
-  else{ // Constants will be taken from DB(TDV)
+  else if(!(isCalibration() & CEcal)){ // Constants will be taken from DB(TDV)
     ECREFFKEY.year[1]=ECREFFKEY.year[0]-1;    
   } 
 }

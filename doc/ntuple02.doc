@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.46 2002/09/27 15:17:43 choutko Exp $
+#  $Id: ntuple02.doc,v 1.47 2002/10/11 16:47:16 choutko Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -316,8 +316,9 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 * R*4  *           * ECALHITS * EchtEdep(necht)    // ECAL measured energy (MeV)
                                                       (e+- energy normalization)  
 * R*4  *           * ECALHITS * EchtCoo(3,necht)   // ECAL Coo (cm)
-* R*4  *           * ECALHITS * EchtADC(2,necht)   // ECAL Raw ADC - Ped
-* R*4  *           * ECALHITS * EchtPed(2,necht)   // ECAL Pedestals
+* R*4  *           * ECALHITS * EchtADC(3,necht)   // ECAL Raw ADC - Ped
+* R*4  *           * ECALHITS * EchtPed(3,necht)   // ECAL Pedestals
+* R*4  *           * ECALHITS * EchtGain(necht)   // ECAL 1/gain used
 
 
 

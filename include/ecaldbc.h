@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.24 2002/10/03 16:24:37 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.25 2002/10/11 16:47:16 choutko Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -16,7 +16,7 @@ const integer ECSLMX=9; // max. S(uper)-layers
 const integer ECPMSMX=36; // max. PMCell(PM's) per S-layer
 const integer ECPMSL=ECSLMX*ECPMSMX;// Max. total PM's in all S-layers
 const integer ECFBLMX=500;// max. fibers per layer
-const integer ECADCMX[3]={3550,4095,4095};//max capacity of ADC(12bits)
+const integer ECADCMX[3]={3500,4095,4095};//max capacity of ADC(12bits)
 const integer ECROTN=10000; // geant numbering of ECAL rot. matr.(starting from...)
 const integer ECJSTA=10; // max size of counter-array for job statistics
 const integer ECHIST=2000;// MCEcal histogram number(starting from...) 
