@@ -34,12 +34,12 @@ integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
 char AMSCharge::_fnam[128]="lkhd_v214+.data";
 integer AMSCharge::getvotedcharge(){
 int i;
-geant mp=0;
+number mp=0;
 integer charge=0;
 for(i=0;i<ncharge;i++){
   if(mp<_ProbTOF[i]*_ProbTracker[i]){
     mp=_ProbTOF[i]*_ProbTracker[i];
-    charge=i;
+    charge=_chargeTracker[i];
   }
 }
 return charge;
