@@ -354,8 +354,14 @@ void AMSParticle::pid(){
 
 }
 void AMSParticle::refit(){
-  if(_GPart !=14 && _Momentum*sign(_pbeta->getbeta()) < 0){
+  if(_GPart !=14 ){
    if(_Charge >= 1.5 || fabs(_Mass-0.938)>1.5*_ErrMass){
+      if(_Charge>=1.5){
+        if(!_ptrack->AdvancedFitDone()){
+          _ptrack->AdvancedFit(1);
+        }
+      }
+
     if(_Mass > 0){
      _ptrack->Fit(3,_GPart);
      if(_ptrack->GeaneFitDone()){

@@ -886,7 +886,6 @@ void TriggerLVL3::builddaq(integer i, integer n, int16u *p){
     *(p+5)=(ptr->_NPatFound) | ((ptr->_NTrHits)<<4);
     *(p+6)= (ptr->_Pattern[0]) |( (ptr->_Pattern[1])<<6);
     *(p+7)=int16u(ptr->_TrEnergyLoss);
-    //    cout <<"*(p+7) "<<*(p+7)<<" "<<ptr->_TrEnergyLoss<<endl;
   }
   else {
     cerr <<"TriggerLVL3::builddaq-E-No Trigger for "<<i<<endl;
@@ -918,6 +917,10 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  npat=((*(p+5)))&15;
  ntr=((*(p+5))>>4)&255;
  eloss=int16(*(p+7));
+ //  for(int k=0;k<8;k++){
+ //    cout <<k<<" "<<*(p+k)<<endl;
+ //   }
+ 
 if(tra >= LVL3FFKEY.Accept)
   AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",ic), new
  TriggerLVL3( tra,  tof,  anti, ntr,  npat,
@@ -1065,7 +1068,9 @@ integer TriggerLVL3::calcdaqlength(integer i){
 
 void TriggerLVL3::_printEl(ostream & stream){
 
- stream << " Lvl3TriggerMode " << _TrackerTrigger<<endl;
+  stream << " Lvl3Output " << _TrackerTrigger<<" "<<_TOFTrigger<<" "<<
+    _AntiTrigger<<" res "<<_Residual[0]<<" "<<_Residual[1]<<" "<<_NPatFound <<
+    " pat "<<_Pattern[0]<<" "<<_Pattern[1]<<" eloss "<<_TrEnergyLoss<<endl;
  for(int j=0;j<6;j++){
   for(int i=0;i<_nhits[j];i++){
     stream<<"Lvl3-Layer "<<j+1<<" hit "<<i<<" "<<_coo[j][i]<<endl;    

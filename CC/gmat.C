@@ -147,9 +147,12 @@ mat.add (new AMSgmat( 35,"AL-HONEYC-Tr",26.98, 13., 0.04, 600., 2660.));
 
 // Foam structure for Tracker  :
 mat.add (new AMSgmat( 36,"FOAM",12.01, 6., 0.1 , 425.82, 900.));
-
-
-
+{
+  geant a[]={28.,16.};
+  geant z[]={14.,8.};
+  geant w[]={1.,2.};
+mat.add (new AMSgmat(37,"PMT_WINDOW",a,z,w,2,2.64));
+}
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPMATE(0);
 #endif
@@ -171,7 +174,7 @@ tmed.add (new AMSgtmed(10,"TOF_SCINT",21,1,'Y',birks,1,5,10,
 //(for tof_scint.: max_step=0.25cm/autom, min_step=0.05cm/autom )
 //
 tmed.add (new AMSgtmed(12,"TOF_HONEYCOMB",24,0));
-tmed.add (new AMSgtmed(13,"TOF_PMT_BOX",25,1));
+tmed.add (new AMSgtmed(13,"TOF_PMT_BOX",25,0));
 tmed.add (new AMSgtmed(14,"TOF_SC_COVER",26,0));
 tmed.add (new AMSgtmed(15,"IRON",10,0));
 //
@@ -208,6 +211,7 @@ tmed.add (new AMSgtmed(++ip,"Tr_Honeycomb",35,0));
 tmed.add (new AMSgtmed(++ip,"Tr_Foam",36,0));
 
 tmed.add (new AMSgtmed(++ip,"ATC_PTAE",31,0));
+tmed.add (new AMSgtmed(++ip,"TOF_PMT_WINDOW",37,1));
 //
 
 AMSgObj::GTrMedMap.map(tmed);

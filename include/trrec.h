@@ -284,7 +284,6 @@ number _RidgidityMS;
 number _GRidgidityMS;
 void SimpleFit(AMSPoint err=0);
 void TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit);
-void   AdvancedFit();
 static void _Start(){_Time=HighResTime();}
 static geant _CheckTime(){return HighResTime()-_Time;}
 static geant _Time;
@@ -311,6 +310,7 @@ integer operator < (AMSlink & o) const {
   else return 0;
 }
 
+void   AdvancedFit(int forced=0);
 integer getpattern()const{return _Pattern;}
 static integer Out(integer);
 number Fit(integer i=0, integer ipart=14);

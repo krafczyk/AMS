@@ -247,18 +247,18 @@ extern "C" void gustep_(){
   // CTC
 
 
-  if(GCVOLU.nlevel >2 && GCKINE.charge != 0  && GCTRAK.destep != 0 && 
-     GCTMED.isvol != 0 ){ 
+  if(GCVOLU.nlevel >2 && GCKINE.charge != 0  && GCTRAK.destep != 0 
+      &&   GCTMED.isvol != 0 ){ 
     if((GCVOLU.names[2][0]== 'A' && GCVOLU.names[2][1]=='G' && 
         GCVOLU.names[2][2]=='L'))
       AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
       GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
 
        if((GCVOLU.names[2][0]== 'P' && GCVOLU.names[2][1]=='T' && 
-          GCVOLU.names[2][2]=='F' ))
+           GCVOLU.names[2][2]=='F' )){
          AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
          GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
-
+       }
 
       if((GCVOLU.names[2][0]== 'P' && GCVOLU.names[2][1]=='M' && 
           GCVOLU.names[2][2]=='T' ))

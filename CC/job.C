@@ -432,11 +432,11 @@ void AMSJob::_sictcdata(){
 //
   CTCMCFFKEY.Refraction[0]=1.036;   // Refraction indexes
   CTCMCFFKEY.Refraction[1]=1.4;     //ptfe
-  CTCMCFFKEY.Refraction[2]=1.45;    // pmt
+  CTCMCFFKEY.Refraction[2]=1.458;    // pmt
 
   CTCMCFFKEY.Path2PhEl[0]=6.;   // Path to photoelectrons conv fact ( ~ 3.3 p.e.)
-  CTCMCFFKEY.Path2PhEl[1]=76.;
-  CTCMCFFKEY.Path2PhEl[2]=0;
+  CTCMCFFKEY.Path2PhEl[1]=58;
+  CTCMCFFKEY.Path2PhEl[2]=110;
   CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
   CTCMCFFKEY.AbsLength[1]=100;
   CTCMCFFKEY.AbsLength[2]=100;

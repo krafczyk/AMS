@@ -86,13 +86,9 @@ void AMSCTCRawHit::sictcdigi(){
      integer ierr,ival;
      if(Tmp[i]>0){
       POISSN(Tmp[i],ival,ierr);
-      number val=0.;
-      for(int j=0;j<ival;j++){
-        number aphe=1.+0.4*rnormx();//PMT gain variations 40%
-        if(aphe<0.)aphe=0.;
-        val+=aphe;
-      }
-      AMSEvent::gethead()->addnext(AMSID("AMSCTCRawHit",icnt),
+      number val=0;
+      if(ival)val=ival*(1+0.4*rnormx()/sqrt(number(ival)));
+      if(val>0)AMSEvent::gethead()->addnext(AMSID("AMSCTCRawHit",icnt),
       new AMSCTCRawHit(0,i/ncol+1,icnt+1,i%ncol+1,val,TmpT[i]));
      }      
     }
