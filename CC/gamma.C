@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.14 2002/11/29 09:44:58 glamanna Exp $
+//  $Id: gamma.C,v 1.15 2002/11/29 17:56:58 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -2462,13 +2462,17 @@ AMSPoint p_hi;
  double lasLX;
  int conL_f=-1;
  int conL_l=-1;
+ double conLf=0;
+ double conLl=0;
+
  number deposf,deposl;
  number deposfmin=-1; 
  number deposlmin=-1; 
  //
  while (MinDX2L == 10000){
    conL_f++;
-   if (MinDX2L == 10000) DeltaRecoTop+=(conL_f/2);
+   conLf=0.5*conL_f;
+   if (MinDX2L == 10000) DeltaRecoTop+=conL_f;
    //
    for (int i=0;i<TKDBc::nlay();i++){
      for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
@@ -2504,7 +2508,8 @@ AMSPoint p_hi;
 	 //
    while (MinDX3L == 10000){
    conL_l++;
-    if (MinDX3L == 10000) DeltaRecoBottom+=(conL_l/2);
+   conLl=0.5*conL_l;
+    if (MinDX3L == 10000) DeltaRecoBottom+=conLl;
    for (int i=0;i<TKDBc::nlay();i++){
      for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
 	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
@@ -2528,7 +2533,7 @@ AMSPoint p_hi;
       }
          }
      }
-   conL_w=max(conL_l,conL_f);
+   conL_w=max(conLl,conLf);
    //   cout <<" conL_l "<<conL_l<<" conL_f "<<conL_f<<" conL_w "<<conL_w<<endl;
 
  //*****************
@@ -2668,19 +2673,33 @@ AMSPoint bo_hi;
  //*****************
  //////////////////////////////////////////
  ///
+ double xa[8];
+ double za[8];
+ double ya[8];
+ int laa=0;
   //Now in order to be free from the status(AMSDBc::TOFFORGAMMA):
   for (int i=0;i<TKDBc::nlay();i++){
    for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
 	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
      p_hi = p->getHit(); 
       if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
+       za[laa]=p_hi[2];
+       xa[laa]=p_hi[0];
+       ya[laa]=p_hi[1];
+       laa++;
 	//             cout<< "*after best_last_____ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
       }
       p->clearstatus(AMSDBc::GAMMALEFT);
    }
   }
 
-  if (refitting >=100){
+ double A11,B11,VA11;
+ dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
+
+
+  if (refitting >=100 && VA11 >1){
+
+
 
  // in order to reasset the linearity in XZ:
 double z_tkl[trconst::maxlay];
@@ -2947,12 +2966,16 @@ if (higcou != 0 && (li-higcou2) >= 3 && li > 3){
    double lasRX;
    int conR_f=-1;
    int conR_l=-1;
+    double conRf=0;
+     double conRl=0;
     deposfmin=-1; 
     deposlmin=-1; 
    /// /// /// /// //// /
    while (MinDX2R == 10000){
      conR_f++;
-     if (MinDX2R == 10000) DeltaRecoTop+=(conR_f/2);
+     conRf=0.5*conR_f;
+     if (MinDX2R == 10000) DeltaRecoTop+=conRf;
+
      //
      for (int i=0;i<TKDBc::nlay();i++){
        for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
@@ -2986,7 +3009,8 @@ if (higcou != 0 && (li-higcou2) >= 3 && li > 3){
    /////////
        while (MinDX3R == 10000){
    	conR_l++;
-  	if (MinDX3R == 10000) DeltaRecoBottom+=(conR_l/2);
+        conRl=0.5*conR_l;
+  	if (MinDX3R == 10000) DeltaRecoBottom+=conRl;
 	for (int i=0;i<TKDBc::nlay();i++){
 	  for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
 	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
@@ -3008,7 +3032,7 @@ if (higcou != 0 && (li-higcou2) >= 3 && li > 3){
 	  	}
 	   }
       
-      conR_w=max(conR_l,conR_f);
+      conR_w=max(conRl,conRf);
 
 
 #ifdef __AMSDEBUG__
@@ -3142,19 +3166,27 @@ lhi=0;
  }
  //*****************
  //////////////////////////////////////////////////
+ laa=0;
   //Now in order to be free from the status(AMSDBc::TOFFORGAMMA):
   for (int i=0;i<TKDBc::nlay();i++){
    for (p=AMSTrRecHit::gethead(i); p!=NULL; p=p->next()){
 	if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
      p_hi = p->getHit(); 
       if (p->checkstatus(AMSDBc::TOFFORGAMMA)){
+       za[laa]=p_hi[2];
+       xa[laa]=p_hi[0];
+       ya[laa]=p_hi[1];
+       laa++;
 	//       cout<< "*after best_last_____ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
       }
       p->clearstatus(AMSDBc::GAMMARIGHT);
    }
   }
  //*****************
-  if (refitting >=100){
+
+ dlinearme(laa,za,xa,A11,B11,VA11);         // linear fit
+ if (refitting >=100  && VA11 >1){
+
 double z_tkl[trconst::maxlay];
  for(int i=0;i<TKDBc::nlay();i++){
    z_tkl[i]=TKDBc::zposl(i);
