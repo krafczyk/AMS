@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: getoutputdisk.cgi,v 1.2 2005/02/15 16:46:10 alexei Exp $
+#  $Id: getoutputdisk.cgi,v 1.3 2005/02/16 14:29:43 alexei Exp $
 use Gtk;
 use strict;
 
@@ -23,7 +23,7 @@ my $html=new RemoteClient();
 #get number of used hosts for each site
 
  my $ok=$html->ConnectOnlyDB();
- my ($disk, $gb) = $html->getOutputPath();
+ my ($disk, $gb) = $html->getOutputPath('AMS02/2005A');
  print "Select disk : $disk, $gb GB available \n";
 
  

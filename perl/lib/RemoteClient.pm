@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.299 2005/02/15 16:46:18 alexei Exp $
+# $Id: RemoteClient.pm,v 1.300 2005/02/16 14:29:51 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -235,7 +235,6 @@ my %fields=(
         UploadsHREF=>undef,
         FileDB   =>[],
         FileAttDB=>[],
-        FileAttDB=>undef,
         FileCRC=>undef,
         FileBBFTP=>undef,
         FileBookKeeping=>undef,
@@ -502,12 +501,16 @@ my %mv=(
     else{    
      $self->{$key}="AMS02MCUploads";
     }
-
+#+
+# Feb 15.02.2004 More than 1 Active Production set is allowed
+# More than 1 FileDB, FileAttDB, etc can be available
     $key='FileDB';
     $sql="select myvalue from Environment where mykey='".$key."'";
     $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
-     $self->{$key}=$ret->[0][0];
+     foreach my $file (@{$ret}){
+      push @{$self->{FileDB}}, $file; 
+     }
     }
     else{    
      push @{$self->{FileDB}}, "v3.00mcdb.tar.gz"; 
@@ -518,14 +521,16 @@ my %mv=(
     $sql="select myvalue from Environment where mykey='".$key."'";
     $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
-     $self->{$key}=$ret->[0][0];
+     foreach my $file (@{$ret}){
+      push @{$self->{FileAttDB}}, $file; 
+     }
     }
     else{    
       push @{$self->{FileAttDB}}, "v3.00mcdb.addon.tar.gz";
       push @{$self->{FileAttDB}}, "v4.00mcdb.addon.tar.gz";
     }
 
-
+#-
     $key='FileBBFTP';
     $sql="select myvalue from Environment where mykey='".$key."'";
     $ret=$self->{sqlserver}->Query($sql);
@@ -2963,7 +2968,9 @@ CheckCite:            if (defined $q->param("QCite")) {
              print "<TR><B><font color=green size= 5> Select Template : </font>";
             }
             print "<p>\n";
-            print "<FORM METHOD=\"POST\" action=\"$self->{Name}\">\n";
+# User's and cite info 
+           $self->  getProductionPeriods();
+           print "<FORM METHOD=\"POST\" action=\"$self->{Name}\">\n";
             print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
             print "<tr><td>\n";
             print "<b><font color=\"magenta\" size=\"3\">User's Info </font>
@@ -2978,27 +2985,34 @@ CheckCite:            if (defined $q->param("QCite")) {
             print "<i><b>cite : </td><td><input type=\"text\" size=18 value=$cite name=\"CCA\" onFocus=\"this.blur()\"></i>\n";
             print "</b></font></td></tr>\n";
             print "</TABLE>\n";
-             print "<tr><td><b><font color=\"blue\" size=\"3\">Datasets </font><font color=\"tomato\" size=\"3\"> (MC PRODUCTION)</font></b>\n";
-             print "</td><td>\n";
-             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-             print "<tr><td><font size=\"-1\"<b>\n";
-             my $firstdataset = 1;
-             my $checked="CHECKED";
+# Datasets
+            foreach my $mc (@productionPeriods) {
+             if ($mc->{status} =~ 'Active') {
+              print "<tr><td><b><font color=\"blue\" size=\"3\">Dataset </font><font color=\"tomato\" size=\"3\"> ($mc->{name} $mc->{vdb})";
+              print "</font></b></td><td>\n";
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+              print "<tr><td><font size=\"-1\"<b>\n";
+              my $firstdataset = 1;
+              my $checked="CHECKED";
               foreach my $dataset (@{$self->{DataSetsT}}){
-              if ($firstdataset++ != 1) {
-                  $checked="";
-              }
-              print "</b>\n";
+               if ($dataset->{version} eq $mc->{vdb}) {
+                if ($firstdataset++ != 1) {
+                   $checked="";
+                }
+                print "</b>\n";
                  if ($dataset->{eventstodo} == 0) {
                   print "<tr><td><b><font color=\"tomato\"><i> $dataset->{name} </i></font></b></td></tr>\n";
                  } elsif ($dataset->{eventstodo} < 5000) {                  
                    print "<tr><td><b><font color=\"tomato\"> $dataset->{name} </font><b></td></tr><BR>\n";
-               } else {
+                 } else {
                     print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE= $dataset->{name} $checked>$dataset->{name} <BR>\n";
-                }
-              print "</b></font></td></tr>\n";
+                 }
+                print "</b></font></td></tr>\n";
              }
+           }
             print "</TABLE>\n";
+          }
+         }
             print "<tr><td>\n";
             print "<b><font color=\"red\" size=\"3\">Template</font></b>\n";
             print "</td><TD>\n";
@@ -3010,9 +3024,12 @@ CheckCite:            if (defined $q->param("QCite")) {
             print "</TABLE>\n";
             print "</TABLE>\n";
 
-            print "<TR><TD><font color=\"green\" size=\"3\"> Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
+            print "<TR><TD><font color=\"green\" size=\"3\"> ";
+            print "Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
             print "<br>\n";
-            print "<TR><TD><font color=\"tomato\" size=\"3\"> Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed </font></TD></TR>\n";
+            print "<TR><TD><font color=\"tomato\" size=\"3\">";
+            print "Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed";
+            print " </font></TD></TR>\n";
              if ($benchmarking == 1) {
               print "<TR></TR>\n";
 
@@ -3208,7 +3225,8 @@ CheckCite:            if (defined $q->param("QCite")) {
 # add responsible info to Cites
              $sql="UPDATE Cites SET mid=$mid WHERE cid=$cid";
              $self->{sqlserver}->Update($sql);
-         $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account and cite registration will be done soon.";     
+             $self->{FinalMessage}=
+             " Your request to register was succesfully sent to $sendsuc. Your account and cite registration will be done soon.";     
          } else {
             $self->ErrorPlus("Seems $addcite is already registered.");
         }
@@ -3320,10 +3338,11 @@ CheckCite:            if (defined $q->param("QCite")) {
      $self->{CEM}=$self->{q}->param("CEM");
      my $upl0=$self->{q}->param("UPL0");
      my $upl1=$self->{q}->param("UPL1");
+     my $vdb =$self->{q}->param("VDB");
      my $time = time();
      if ($upl1 > 0) {
       $sql=
-      "update Mails set timeu1=$upl0, timeu2=$upl1, timestamp=$time WHERE address='$self->{CEM}'";
+      "update Mails set timeu1=$upl0, timeu2=$upl1, vdb='$vdb', timestamp=$time WHERE address='$self->{CEM}'";
      } else {
       $sql=
       "update Mails set timeu1=$upl0, timestamp=$time WHERE address='$self->{CEM}'";
@@ -3778,7 +3797,8 @@ DDTAB:          $self->htmlTemplateTable(" ");
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"C\" ><b> Custom </b><i> (specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"C\" ><b> Custom </b><i> ";
+             print "(specific for for cite <font color=\"green\"> $self->{CCA} </font>)</i><BR>\n";
              print "<INPUT TYPE=\"radio\" NAME=\"JST\" VALUE=\"G\" CHECKED><b> Generic </b><i> (AMS generic)</i><BR>\n";
              print "</b></font></td></tr>\n";
             htmlTableEnd();
@@ -3809,7 +3829,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
            print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
            print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=$dataset->{did}>\n"; 
            print "<br>\n";
-           print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit Request\"></br><br>        ";
+           print "<input type=\"submit\" name=\"ProductionQuery\" value=\"Submit Request\"> <b>(it will take a while to tar DB and execs)</b></br><br>";
            print "<b><a href=load.cgi?$self->{UploadsHREF}/Help.txt target=\"_blank\">H E L P </b>\n";
            htmlReturnToMain();
            htmlBottom();
@@ -4466,22 +4486,43 @@ print qq`
         my $file2tar;
         my $filedb;
         my $filedb_att;
+        my $vdb ='XYZ';
+        my $stt ='UNK';
+
         if($self->{CCT} eq "remote"){
-        $filedb="$self->{UploadsDir}/$self->{FileDB}";
-        $filedb=~s/ams02/$dataset->{version}/;
+#+
+         $self->  getProductionPeriods();
+         foreach my $mc (@productionPeriods) {
+          if ($mc->{status} =~ 'Active') {
+           my $vdb = $mc->{vdb};
+           if ($vdb =~ $dataset->{version}) {
+            foreach my $file (@{$self->{FileDB}}) {
+             if ( $file =~ m/$vdb/) {
+                $filedb = "$self->{UploadsDir}/$file";
+                last;
+             }
+            }
+           }
+          }
+         }
+          if (not defined $filedb) {
+            $self->ErrorPlus("unable to find corrsponding database file ($dataset->{name},$dataset->{version}, $vdb, $stt)");
+         }
+#-
+#        $filedb=~s/ams02/$dataset->{version}/;
         my @sta = stat $filedb;
         if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
            $self->{senddb}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
-        $key='dbversion';
-        $sql="select myvalue from Environment where mykey='".$key."'";
-        my $ret=$self->{sqlserver}->Query($sql);
-        if( not defined $ret->[0][0]){
-            $self->ErrorPlus("unable to retreive db version from db");
-        }
+#        $key='dbversion';
+#        $sql="select myvalue from Environment where mykey='".$key."'";
+#        my $ret=$self->{sqlserver}->Query($sql);
+#        if( not defined $ret->[0][0]){
+#            $self->ErrorPlus("unable to retreive db version from db");
+#        }
 #
 #        my $dbversion=$ret->[0][0];
-         my $dbversion=$dataset->{version};       
+        my $dbversion=$dataset->{version};       
         my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
@@ -4527,8 +4568,23 @@ print qq`
         elsif($sta[9]>$self->{TU1}){
             $self->{senddb}=2;
         }
-        $filedb_att="$self->{UploadsDir}/$self->{FileAttDB}";
-        $filedb_att=~s/ams02/$dataset->{version}/;
+#
+         foreach my $mc (@productionPeriods) {
+          if ($mc->{status} =~ 'Active') {
+           my $vdb = $mc->{vdb};
+           if ($vdb =~ $dataset->{version}) {
+            foreach my $file (@{$self->{FileAttDB}}) {
+             if ( $file =~ m/$vdb/) {
+                $filedb_att = "$self->{UploadsDir}/$file";
+                last;
+             }
+            }
+           }
+          }
+         }
+
+#         die $filedb, $filedb_att;
+#        $filedb_att=~s/ams02/$dataset->{version}/;
         @sta = stat $filedb_att;
           
          my @stag3=stat "$self->{AMSDataDir}/DataBase";
@@ -4694,9 +4750,6 @@ print qq`
          if (defined $rootntuple && $i<2) {
           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
          }
-#       if ($self->{q}->param("ProductionQuery")) {
-#          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
-#        }
          if($i > 1){
             my $rid=1; 
             ($rid,$rndm1,$rndm2) = $self->getrndm($dataset);
@@ -5053,36 +5106,58 @@ print qq`
       }
 # check last download time
      if ($cite_status eq "remote") {
-          my $uplt0 = 0;  #last upload
-          my $uplt1 = 0;  # for filedb and filedb.addon
-          $sql="SELECT timeu1, timeu2 FROM Mails WHERE ADDRESS='$self->{CEM}'";
+          my $uplt0 = 0;                   #last upload
+          my $uplt1 = 0;                   # for filedb and filedb.addon
+          my $vdb   = 'XYZ';               # lastdb version loaded
+          my $vvv   = $dataset->{version}; # dataset version
+          $sql="SELECT timeu1, timeu2, vdb  FROM Mails WHERE ADDRESS='$self->{CEM}'";
           my $retime=$self->{sqlserver}->Query($sql);
           if(defined $retime->[0][0]){
-          foreach my $uplt (@{$retime}){
-           $uplt0    = $uplt->[0];
-           $uplt1    = $uplt->[1];
+           $vdb = trimblanks($retime->[0][2]);
+           $uplt0    = $retime->[0][0];
+           $uplt1    = $retime->[0][1];
           }
+ 
+       $self->DownloadTime();
+
+        my $timeFileDB     = 0; # file xyzmcdb.tar.gz time
+        my $timeFileAttDB  = 0; #      xyzmcdbaddon.tar.gz time
+        my $i              = 0;
+
+        foreach my $filedb (@{$self->{FileDB}}) {
+          $self->{FileDBLastLoad} ->[$i] = 0;
+          if ($filedb =~ m/$vvv/) {
+           $timeFileDB=(stat($filedb))[9];
+           $self->{FileDBLastLoad} ->[$i] = $uplt0;
+           last;
+         }
+         $i++;
         }
 
-          $self->DownloadTime();
+        $i = 0;
+        foreach my $filedb (@{$self->{FileAttDB}}) {
+          $self->{FileAttDBLastLoad} ->[$i] = 0;
+          if ($filedb =~ m/$vvv/) {
+           $timeFileAttDB=(stat($filedb))[9];
+           $self->{FileAttDBLastLoad} ->[$i] = $uplt1;
+           last;
+         }
+          $i++;
+      }
 
-        $self->{FileDBLastLoad}=$uplt0;
-        $self->{FileAttDBLastLoad}=$uplt1;
-
-        if ($self->{dwldaddon} == 1) {
-         if($uplt0 == 0 or $uplt0 < $self->{FileDBTimestamp} or $uplt1 == 0 or $uplt1 < $self->{FileAttDBTimestamp}) {
-            $self->Download();
-         } else {
+       if ($vvv =~ $vdb) {
+        if ($uplt0 == 0 || $uplt1 == 0) {
+            $self->Download($vvv, $vdb);
+         } elsif ($timeFileDB == 0 || $timeFileAttDB == 0) {
+            $self->Download($vvv, $vdb);
+         } elsif ($uplt0 < $timeFileDB || $uplt1 < $timeFileAttDB) {
+            $self->Download($vvv, $vdb);
+         } else {  
           $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
          } 
-        } else {
-         if($uplt0 == 0 or $uplt0 < $self->{FileDBTimestamp}) {
-            $self->Download();
-        } else {
-         $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
-         } 
-       }
-            
+       } else {
+         $self->Download($vvv, $vdb);
+        }
      } else { 
       $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
      }
@@ -7144,6 +7219,9 @@ sub DownloadTime {
 
 sub Download {
     my $self = shift;
+    my $vvv  = shift; # dataset version
+    my $vdb  = shift; # last downloaded version
+
     print "Content-type: text/html\n\n";
     print "<HTML>\n";
     print "<body bgcolor=cornsilk text=black link=#007746 vlink=navy alink=tomato>\n";
@@ -7156,13 +7234,33 @@ sub Download {
      $mode = "Standalone";
     }
     print "<br><b><font color=\"blue\" size=\"4\"> $self->{CEM}, mode :  $mode </b></font>\n";
-    my $dtime0=EpochToDDMMYYHHMMSS($self->{FileDBLastLoad});
-    my $dtime1=EpochToDDMMYYHHMMSS($self->{FileAttDBLastLoad});
-    print "<br><font color=\"green\" size=\"4\"><b><i> Last downloaded  : </i></font><b> $dtime0, $dtime1 </b>\n";
-    my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
-    print "<br><font color=\"green\" size=\"4\"><b><i>Files updated    : </i></font><b> $dtime </b>\n";
+    my $dtime0  = 0;
+    my $dtime1  = 0;
+    my $dtime00 = 0;
+    my $dtime11 = 0;
+    my $dtime  = 0;
+    my $i      = 0;
+    foreach my $filedb (@{$self->{FileAttDB}}) {
+      if ($filedb =~ m/$vvv/) {
+       $dtime0 = EpochToDDMMYYHHMMSS($self->{FileAttDBLastLoad} ->[$i]);
+       $dtime00= EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp}->[$i]);
+       last;
+      }
+      $i++;
+    }
+    $i = 0;
+    foreach my $filedb (@{$self->{FileDB}}) {
+      if ($filedb =~ m/$vvv/) {
+       $dtime1 = EpochToDDMMYYHHMMSS($self->{FileDBLastLoad} ->[$i]);
+       $dtime11= EpochToDDMMYYHHMMSS($self->{FileDBTimestamp}->[$i]);
+       last;
+      }
+     $i++;
+   }
+    print "<br><font color=\"green\" size=\"4\"><b><i> Last downloaded (version $vdb) : </i></font><b> $dtime1, $dtime0 </b>\n";
+    print "<br><font color=\"green\" size=\"4\"><b><i>Files updated    : </i></font><b> $dtime11, $dtime00 </b>\n";
     print "<br><font color=\"red\" size=\"5\"><b><i> It is absolutely mandatory to download files</b></i></font>\n";
-    $self->PrintDownloadTable();
+    $self->PrintDownloadTable($vvv);
     print "</TABLE>\n";
     print "<p>\n";
           my $time; 
@@ -7174,6 +7272,7 @@ sub Download {
           } else {
            print "<input type=\"hidden\" name=\"UPL1\" value=0>\n";
           }
+          print "<input type=\"hidden\" name=\"VDB\" value=$vvv>\n";
           print "<input type=\"submit\" name=\"Download\" value=\"Finish\">\n";
     print "</FORM>\n";
     print "</BODY>\n";
@@ -7203,7 +7302,7 @@ sub DownloadSA {
     print "<head>\n";
     print "<TITLE>AMS Offline Software</TITLE></HEAD>\n";
     print "<TABLE border=0 cellspacing=0 cellpadding=0>\n";
-    $self->PrintDownloadTable();
+    $self->PrintDownloadTable('ALL');
     print "</TABLE>\n";
     print "<p>\n";
     print "</BODY>\n";
@@ -7212,6 +7311,7 @@ sub DownloadSA {
 
 sub PrintDownloadTable {
     my $self = shift;
+    my $vvv  = shift;
 
     my $file = undef;
     my $dtime= undef;
@@ -7224,33 +7324,39 @@ sub PrintDownloadTable {
     print "<font face=\"myriad,arial,geneva,helvetica\">\n";
     print "<TABLE BORDER=2 cellpadding=3 cellspacing=3 BGCOLOR=#eed8ae align=center width=100%>\n";
     print "<TR><br>\n";
-    print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download</b></font>:\n";
+    if ($vvv =~ 'ALL') {
+     print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download</b></font>:\n";
+    } else { 
+     print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download ($vvv)</b></font>:\n";
+    }
     print "<br><br>\n";
 #
 ##ams02mcdb tar
     my $download = 1;
     my $i        = 0;
     foreach my $filedb  (@{$self->{FileDB}}) {
-     if (defined $self->{FileDBLastLoad}->[$i]) {
+     if ($vvv =~ 'ALL' || $filedb =~ m/$vvv/) {
+      if (defined $self->{FileDBLastLoad}->[$i]) {
         if ($self->{FileDBLastLoad}->[$i] > $self->{FileDBTimestamp}->[$i]) {
             $download = 0;
         }
-     }
-     if ($download == 1) {
-      print "<br><font size=\"4\">
+      }
+      if ($download == 1) {
+       print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$filedb> $filedb</a>
            </font>";
-      $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp}->[$i]);
-      print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
-      print "<br><br>";
+       $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp}->[$i]);
+       print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+       print "<br><br>";
      } else {
       print "<br><font size=\"4\">
-            filedb files (tar.gz)</a>
+            $vvv.filedb files (tar.gz)</a>
            </font>";
      $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp}->[$i]);
      print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
      print "<br><br>";
    }
+  }
    $i++;
  }
    $download = 1;
@@ -7258,15 +7364,16 @@ sub PrintDownloadTable {
 ## ams02mcdbaddon tar
     $i = 0;
     foreach my $filedb  (@{$self->{FileAttDB}}) {
-     if (defined $self->{FileAttDBLastLoad}->[$i]) {
+     if ($vvv =~ 'ALL' || $filedb =~ m/$vvv/) {
+      if (defined $self->{FileAttDBLastLoad}->[$i]) {
         if ($self->{FileAttDBLastLoad}->[$i] > $self->{FileAttDBTimestamp}->[$i]) {
             $download = 0;
         }
-     }
+      }
     
-     if ($self->{dwldaddon} == 1) {
-      if ($download == 1) {
-       print "<br><font size=\"4\">
+      if ($self->{dwldaddon} == 1) {
+       if ($download == 1) {
+        print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$filedb>   $filedb </a>
            </font>\n";
        $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp}->[$i]);
@@ -7274,21 +7381,23 @@ sub PrintDownloadTable {
        print "<br><br>\n";
       } else {
        print "<br><font size=\"4\">
-           filedb att.files (tar.gz)</a>
+           $vvv.filedb att.files (tar.gz)</a>
            </font>\n";
        $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp}->[$i]);
        print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
        print "<br><br>\n";
       }
- }
+  }
+  }
+     $i++;
  }
 #
 ## bbftp tar
-     my $file= $self->{FileBBFTP};
+     $file= $self->{FileBBFTP};
      print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  bbftp files (tar.gz) - <i> optional </i></a>
            </font>";
-     my $dtime=EpochToDDMMYYHHMMSS($self->{FileBBFTPTimestamp});
+     $dtime=EpochToDDMMYYHHMMSS($self->{FileBBFTPTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>";   
 #
