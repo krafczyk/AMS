@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.9 2001/08/19 10:04:10 kscholbe Exp $
+//  $Id: AMSR_Display.cxx,v 1.10 2001/08/19 12:42:43 kscholbe Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -331,9 +331,9 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
                "gAMSR_Root->Display()->IdleSwitch()", 0.0, y-height, 1.0, y);
 
    //Save address of TRadioButton of "IdleTimer" for late use
-   m_IdleSwitch = sw[11]->GetButton();
+   m_IdleSwitch = sw[12]->GetButton();
 
-   debugger.Print("IdleTimer-button=%lx",sw[11]);
+   debugger.Print("IdleTimer-button=%lx",sw[12]);
 
   /*
    TText *t = new TText();
