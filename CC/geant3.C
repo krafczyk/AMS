@@ -310,7 +310,7 @@ extern "C" void guout_(){
       number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
 //        cout <<  "  tt   " <<tt<<endl;
       if(tt > AMSFFKEY.CpuLimit){
-       cerr<<" Time "<<tt<<endl;
+       cerr<<" GEANTTRACKING Time Spent"<<tt<<" "<<((AMSEvent::gethead()->getC("AMSmceventg",0))->getnelem())<<" Secondaries Generated"<<endl;
        throw AMSTrTrackError("SimCPULimit exceeded");
       }
    }
