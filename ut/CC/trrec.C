@@ -1325,9 +1325,9 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
      if(ptrack->_Chi2Circle< TRFITFFKEY.Chi2Circle && 
       fabs(ptrack->_CircleRidgidity)>TRFITFFKEY.RidgidityMin ){
           
-       if( (TRFITFFKEY.FastTracking || (ptrack->Fit(0) < 
+       if( (  (ptrack->Fit(0) < 
             TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK()){
-         ptrack->AdvancedFit();
+         if(!TRFITFFKEY.FastTracking)ptrack->AdvancedFit();
          int i;   
          // Mark hits as USED
          for( i=0;i<nhit;i++){
@@ -1380,7 +1380,7 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
     if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){
      if(ptrack->_Chi2Circle< TRFITFFKEY.Chi2Circle && 
       fabs(ptrack->_CircleRidgidity)>TRFITFFKEY.RidgidityMin ){
-      if( (TRFITFFKEY.FastTracking || (ptrack->Fit(0) < TRFITFFKEY.Chi2FalseX))
+      if( (  (ptrack->Fit(0) < TRFITFFKEY.Chi2FalseX))
            && ptrack->TOFOK()){
         // Here we should add at least one point and fit 
         // First determine which planes are missed and interpolate to them,
@@ -1490,16 +1490,15 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
 
 
 void AMSTrTrack::AdvancedFit(){
-    if(_Ridgidity < 0){
-   if(TRFITFFKEY.FastTracking)Fit(0);
-   if(_Pattern <22){
-     Fit(1);
-     Fit(2);
+   if(_Ridgidity < 0){
+    if(_Pattern <22){
+      Fit(1);
+      Fit(2);
+    }
+    Fit(3);
+    Fit(4);
+    Fit(5);
    }
-   Fit(3);
-   Fit(4);
-   Fit(5);
-  }
 
 }
 
@@ -1592,23 +1591,23 @@ else _Chi2Circle=FLT_MAX;
 if(iflag%1000 ==0)_Chi2StrLine=chiz;
 else _Chi2StrLine=FLT_MAX;
 _CircleRidgidity=xmom;
-if(TRFITFFKEY.FastTracking){
-  // Fill fastfit here
-  _Ridgidity=_CircleRidgidity; 
-  _ErrRidgidity=exmom;
-  //  _P0[0]=p0[0];
-  //  _P0[1]=p0[1];
-  //  _P0[2]=p0[2];
-  _P0[0]=_Pthit[1]->getHit()[0];
-  _P0[1]=_Pthit[1]->getHit()[1];
-  _P0[2]=_Pthit[1]->getHit()[2];
-
-  _Theta=dip;
-  // _Phi=phis;
-  _Phi=atan2(_Pthit[2]->getHit()[1]-_Pthit[0]->getHit()[1],
-             _Pthit[2]->getHit()[0]-_Pthit[0]->getHit()[0]);
-
-}
+//if(TRFITFFKEY.FastTracking){
+//  // Fill fastfit here
+//  _Ridgidity=_CircleRidgidity; 
+//  _ErrRidgidity=exmom;
+//  //  _P0[0]=p0[0];
+//  //  _P0[1]=p0[1];
+//  //  _P0[2]=p0[2];
+//  _P0[0]=_Pthit[1]->getHit()[0];
+//  _P0[1]=_Pthit[1]->getHit()[1];
+//  _P0[2]=_Pthit[1]->getHit()[2];
+//
+//  _Theta=dip;
+//  // _Phi=phis;
+//  _Phi=atan2(_Pthit[2]->getHit()[1]-_Pthit[0]->getHit()[1],
+//             _Pthit[2]->getHit()[0]-_Pthit[0]->getHit()[0]);
+//
+//}
 }
 
 
