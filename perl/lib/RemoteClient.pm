@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.283 2004/11/23 12:33:01 alexei Exp $
+# $Id: RemoteClient.pm,v 1.284 2004/12/06 14:14:58 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -91,7 +91,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -5911,6 +5911,7 @@ sub getJobParticleFromDSTPath {
     return $particle;
 }
 
+
 sub listAll {
     my $self = shift;
     my $show = shift;
@@ -5932,6 +5933,32 @@ sub listAll {
           $self -> listNtuples();
             $self -> listDisks();
     htmlBottom();
+}
+
+sub listMCStatus {
+    my $self = shift;
+    my $show = shift;
+    htmlTop();
+    $self->ht_init();
+    
+    $self->  setActiveProductionSet();
+    $self -> listProductionSetPeriods();
+    $self -> listStat();
+
+     htmlTableEnd();
+     print_bar($bluebar,3);
+     print "<p></p>\n";
+
+    $self ->FullStatusLink();
+
+    htmlBottom();
+}
+
+sub FullStatusLink {
+    print "<dt> \n";
+#    print "<a href=\"/cgi-bin/mon/rc.dsp.cgi\" target=\"all\">\n";
+#    print "<b><font color=green> Production Main Page (Complete status)</font></a>\n";
+    print "<b><font color=green> To get Complete list click Production Main Page (in menu)</font></a>\n";
 }
 
 sub listShort {
