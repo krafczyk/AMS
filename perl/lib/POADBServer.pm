@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.15 2003/11/18 08:53:40 choutko Exp $
+#  $Id: POADBServer.pm,v 1.16 2003/11/19 09:41:19 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -182,6 +182,31 @@ else {
                 }
              }
             }
+
+            $i=-1;
+            foreach my $rtb (@sortedrtb){
+                 $i=$i+1;
+             if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly"){
+                 if($rtb->{History} eq "Failed" and  ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
+    if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
+   $sortedrtb[$i]->{Status}="Processing";
+}
+else {
+ $sortedrtb[$i]->{Status}="Allocated";
+}
+  if($cid->{uid} ne 0){
+   $sortedrtb[$i]->{cuid}=$cid->{uid};
+  }
+  else{
+    $sortedrtb[$i]->{cuid}=$rtb->{Run};
+  }
+                    $hash{rtb}=\@sortedrtb;
+                    untie %hash;
+                    return ($rtb,$dv);
+                }
+             }
+            }
+
                    $dv->{DieHard}=1;
                     untie %hash;
                     return (${$ref->{rtb}}[0],$dv);

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.78 2003/11/17 11:51:45 choutko Exp $
+//  $Id: producer.C,v 1.79 2003/11/19 09:41:12 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -655,7 +655,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
        }
      }
      fpath.pos+=last;
-      if(st==DPS::Producer::Begin)st==DPS::Producer::Continue;
+      if(st==DPS::Producer::Begin)st=DPS::Producer::Continue;
     }
      fbin.close();
      unlink( ((const char*)a(bstart)));
@@ -1025,13 +1025,13 @@ else if(!(AMSEvent::gethead()->HasNoCriticalErrors())){
 
   sendCurrentRunInfo();
 }
-else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 || st-_ST0-_cinfo.TimeSpent>2*AMSFFKEY.CpuLimit){
+else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 || st-_ST0-_cinfo.TimeSpent>AMSFFKEY.CpuLimit){
   TIMEX(_cinfo.CPUTimeSpent);
   _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
 
     _cinfo.TimeSpent=st-_ST0;
 
-  sendCurrentRunInfo(_cinfo.EventsProcessed%(_dstinfo->UpdateFreq*10)==1);
+  sendCurrentRunInfo(true);
 }
 }
 

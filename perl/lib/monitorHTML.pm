@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.19 2002/03/22 09:06:48 alexei Exp $
+#  $Id: monitorHTML.pm,v 1.20 2003/11/19 09:41:19 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -182,6 +182,7 @@ sub Update{
                         @titles = (
             "ID",
             "HostName",
+            "Mips",
             "Process ID",
             "Start Time",
             "LastUpdate Time",
@@ -223,6 +224,7 @@ sub Update{
                         @titles = (
             "ID",
             "HostName",
+             "Mips",
             "Process ID",
             "Start Time",
             "LastUpdate Time",
@@ -241,6 +243,7 @@ sub Update{
                         @titles = (
             "ID",
             "HostName",
+            "Mips",
             "Process ID",
             "Start Time",
             "LastUpdate Time",
@@ -509,6 +512,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                         @titles = (
             "ID",
             "HostName",
+            "Mips",
             "Process ID",
             "Start Time",
             "LastUpdate Time",
@@ -550,6 +554,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                         @titles = (
             "ID",
             "HostName",
+            "Mips",
             "Process ID",
             "Start Time",
             "LastUpdate Time",
@@ -568,6 +573,7 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
                         @titles = (
             "ID",
             "HostName",
+            "Mips",
             "Process ID",
             "Start Time",
             "LastUpdate Time",

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.101 2003/11/17 11:51:45 choutko Exp $
+//  $Id: server.C,v 1.102 2003/11/19 09:41:12 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -63,7 +63,9 @@ int main(int argc, char * argv[]){
   } 
    AMSServer::Singleton()->IMessage("Initialization Completed");
    AMSServer::Singleton()->DumpIOR();
-    AMSServer::Singleton()->Listening(1);
+    cout <<"  Starting ... "<<endl;
+    AMSServer::Singleton()->Listening(-1);
+    cout <<"  Starting ... "<<endl;
     for(;;){
      try{
       AMSServer::Singleton()->UpdateDB();
@@ -73,7 +75,7 @@ int main(int argc, char * argv[]){
       cerr <<"CorbaSystemExceptionDuringUpdateDB/SystemCheck "<<endl;
        continue;
      try{
-      AMSServer::Singleton()->Listening(1);
+      AMSServer::Singleton()->Listening(-1);
      }
      catch(CORBA::SystemException &a){
       cerr <<"CorbaSystemExceptionDuringPerform_Work "<<endl;
@@ -385,14 +387,13 @@ else{
 
 void AMSServer::Listening(int sleeptime){
 typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
-      int ntry=sleeptime*1000000/AMSServer::Singleton()->getSleepTime();
+      int ntry=sleeptime*1000000/int(AMSServer::Singleton()->getSleepTime());
       if(ntry<=0)ntry=1;
       for(int itry=0;itry<ntry;itry++){
-      usleep(AMSServer::Singleton()->getSleepTime());
+       usleep(AMSServer::Singleton()->getSleepTime());
       for(MOI i=_orbmap.begin();i!=_orbmap.end();++i){
-//       if(sleeptime>0)sleep(sleeptime);
-        ((*i).second)._orb->perform_work();
-//         ((*i).second)._orb->run();
+        if(sleeptime<0)((*i).second)._orb->run();
+        //else ((*i).second)._orb->perform_work();
       }
      }
 }
@@ -408,12 +409,16 @@ void AMSServer::SystemCheck(bool force){
 // Here run Start,Stop,Kill,Check Clients
 
 for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
- Listening(1);
- if(!_GlobalError )pcur->StartClients(_pid);
- Listening(1);
- if(!_GlobalError) pcur->CheckClients(_pid);
- Listening(1);
+  Listening(1);
+  if(!_GlobalError)pcur->StartClients(_pid);
+  Listening(1);
+  if(!_GlobalError) pcur->CheckClients(_pid);
+  Server_impl* pser=dynamic_cast<Server_impl*>(pcur);
+  if(pser)pser->AdvancedPing();
+  Listening(1);
  if(!_GlobalError)pcur->KillClients(_pid);
+ else Listening(-1);
+
 }
 if(force)IMessage("ForceSystemCheckSuccessful");      
 
@@ -2137,8 +2142,12 @@ if(pcur->InactiveClientExists(getType()))return;
   if(suc){ 
   if(!_pser->Lock(pid,DPS::Server::StartClient,getType(),_StartTimeOut))return;
    // HereStartClient
-   CORBA::String_var _refstring=_refmap.find((const char *)((ahlv)->Interface))->second;
-  if(! (const char*)(_refstring)){
+  CORBA::String_var _refstring;
+   _refstring=_refmap.find((const char *)((ahlv)->Interface))->second;
+   if(_refmap.find((const char *)((ahlv)->Interface))->second){
+    _refstring=_refmap.find((const char *)((ahlv)->Interface))->second;
+   }
+   else{
        _parent->EMessage(AMSClient::print(ahlv, " Could not find refstring for the host "));
      _refstring=_refmap.find((const char *)("default"))->second;
     
@@ -2399,7 +2408,7 @@ time_t tt;
 time(&tt);
 for(ACLI li=_acl.begin();li!=_acl.end();++li){
  // find clients with timeout
- if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+(*li)->TimeOut<tt || (*li)->Status==DPS::Client::Submitted && (*li)->LastUpdate+100<tt){
+ if((*li)->Status!=DPS::Client::Killed && ((*li)->LastUpdate+(*li)->TimeOut<tt && ((*li)->Status!=DPS::Client::Submitted || (*li)->LastUpdate+100<tt))){
    DPS::Client::ActiveClient_var acv=*li;
    if(acv->Status==DPS::Client::Submitted){
     acv->LastUpdate=(*li)->LastUpdate-2*((*li)->TimeOut);
