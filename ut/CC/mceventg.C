@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.109 2001/05/23 14:37:21 choutko Exp $
+//  $Id: mceventg.C,v 1.110 2001/07/16 16:11:34 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -458,16 +458,50 @@ void AMSmceventg::setcuts(geant coo[6], geant dir[6],
     for ( i=0;i<6;i++)_planesw[i]=area[5]>0?area[i]/area[5]:(i+1.)/6.;
 }
 
+bool AMSmceventg::SpecialCuts(integer cut){
+  if(cut ==1 ) {
+   //  EcalFocusing
+   static bool InitDone=false;
+   static AMSPoint cross;
+   if(!InitDone){
+    AMSgvolume *ecal=AMSJob::gethead()->getgeomvolume(AMSID("ECMO",1));
+    if(ecal){
+     InitDone=true;
+     AMSPoint cooA,par;
+     for(int i=0;i<3;i++)cooA[i]=ecal->getcooA(i);
+     for(int i=0;i<3;i++)par[i]=ecal->getpar(i);
+      cross[2]=cooA[2]+par[2];
+      cross[0]=par[0];
+      cross[1]=par[1];
+      cout <<" EcalFocusing-I-CrossingParameters: "<<cross<<endl;
+    }
+    else{
+     cerr<<"AMSmceventg::SpecialCuts-S-NoEcalVulmefound "<<endl;
+     return true;
+    }   
+   }
+    if(_dir[2]){
+     AMSPoint extrap=_coo+_dir*((cross[2]-_coo[2])/_dir[2]);
+     if(fabs(extrap[0])<fabs(cross[0]) && fabs(extrap[1])<fabs(cross[1]))return true;
+     else return false; 
+    }
+    else return false;
+  }   
+   return true;
+}
+
 integer AMSmceventg::accept(){
   _nskip=Orbit.Ntot;
   if(_coo >= _coorange[0] && _coo <= _coorange[1]){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
         geant d;
-//        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate){
-          if(!CCFFKEY.low  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
-           return EarthModulation();
-          else return 1;
+          if(SpecialCuts(CCFFKEY.SpecialCut)){
+//        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate)
+           if(!CCFFKEY.low  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
+            return EarthModulation();
+           else return 1;
+          }
       }
     }
   }

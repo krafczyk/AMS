@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.70 2001/07/05 17:15:44 choutko Exp $
+//  $Id: server.C,v 1.71 2001/07/16 16:11:43 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -932,7 +932,14 @@ if(!_pser->Lock(cid,DPS::Server::CheckClient,getType(),_KillTimeOut))return;
 for(AHLI li=_ahl.begin();li!=_ahl.end();++li){
  if((*li)->Status==NoResponse){
  iorder=(iorder+1)%100;
-    if(iorder==1 && _pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
+    if(iorder==1 && _pser->pingHost((const char*)((*li)->HostName))){
+        (*li)->Status=DPS::Client::OK;
+     DPS::Client::CID cid=_parent->getcid();      
+     cid.Type=getType();
+     cid.Interface= (const char *) " "; 
+         PropagateAH(cid,*li,DPS::Client::Update,DPS::Client::AnyButSelf);
+
+    }
  }
 }
 time_t tt;
@@ -2202,8 +2209,14 @@ if(!_pser->Lock(cid,DPS::Server::CheckClient,getType(),_KillTimeOut))return;
 for(AHLI li=_ahl.begin();li!=_ahl.end();++li){
  if((*li)->Status==NoResponse){
  iorder=(iorder+1)%100;
-    if(iorder==1 && _pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
- }
+    if(iorder==1 && _pser->pingHost((const char*)((*li)->HostName))){
+        (*li)->Status=DPS::Client::OK;
+     DPS::Client::CID cid=_parent->getcid();      
+     cid.Type=getType();
+     cid.Interface= (const char *) " "; 
+         PropagateAH(cid,*li,DPS::Client::Update,DPS::Client::AnyButSelf);
+    } 
+}
 }
 time_t tt;
 time(&tt);
@@ -4168,7 +4181,8 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
                DPS::Client::ActiveHost_var ahlv= *i;
                (ahlv->ClientsRunning)--;
         if(ahlv->ClientsRunning<0){
-          _parent->FMessage("AMSServerI::PropagateACDB-F-NegativeNumberClientRunning ",DPS::Client::CInAbort);
+          _parent->EMessage("Server_impl::propagateacdb-F-NegativeNumberClientRunning ");
+         ahlv->ClientsRunning=0;
         }
                time_t tt;
                time(&tt);
@@ -4187,6 +4201,7 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
                 break;
                case DPS::Client::SInKill:
                 HostClientFailed(ahlv);
+                (ahlv->ClientsKilled)++; 
                 break;
                }
                dvar->sendAH(acid,ahlv,DPS::Client::Update);

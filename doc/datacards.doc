@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.193 2001/06/26 15:07:27 choutko Exp $
+#  $Id: datacards.doc,v 1.194 2001/07/16 16:11:45 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -315,6 +315,8 @@ I30 oldformat(0)                  // 1 if oldformat for io read is used
 I31 Fast(0)                       // Fast MC gen is used
 R32 StrCharge(2)                  // stranglet charge  (pid=113)
 R33 StrMass(12)                   // stranglet mass  
+I34 SpecialCut(0)                 // special acceptance cut
+                                  // 1: focus on ecal
 KINE 
 1 IPART        // Geant particle id
 

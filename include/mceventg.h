@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.35 2001/05/23 14:37:23 choutko Exp $
+//  $Id: mceventg.h,v 1.36 2001/07/16 16:11:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -126,6 +126,7 @@ integer & pid() {return _ipart;}
 bool Primary();
 number getmass() const {return _mass;}
 integer accept();
+bool SpecialCuts(integer cut);
 integer acceptio();
 integer EarthModulation();
 static void setcuts( geant [],geant[],geant[],integer,geant,geant);

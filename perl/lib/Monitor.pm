@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.40 2001/06/26 15:07:27 choutko Exp $
+# $Id: Monitor.pm,v 1.41 2001/07/16 16:11:45 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -913,6 +913,7 @@ int($hash->{CPUNeeded}*10)/10,
             goto FOUND;
          }
      }
+         push @text,0;
          push @text,0;
          push @text,"NotFound";
      FOUND:    
