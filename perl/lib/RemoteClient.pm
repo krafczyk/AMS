@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.206 2003/08/04 10:48:08 alexei Exp $
+# $Id: RemoteClient.pm,v 1.207 2003/08/07 10:56:51 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8,6 +8,11 @@
 # Apr-May, 2003 : ValidateRuns, checkJobsTimeout, deleteTimeOutJobs,
 #                 parseJournalFiles
 # Jun 2003      : script to set links
+#
+# Jul 2003      : add book-keeping tarball
+#                 ValidateRuns : "local" runs
+# Aug 2003      : remove explicit server name, e.g. pcamsf0.cern.ch
+#                 from scripts names
 #
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -25,35 +30,35 @@ use POSIX  qw(strtod);
 
 @RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
-# my     $bluebar      = 'http://pcamsf0.cern.ch/AMS/icons/bar_blue.gif';
 my     $bluebar      = '/AMS/icons/bar_blue.gif';
-my     $maroonbullet = 'http://pcamsf0.cern.ch/AMS/icons/bullet_maroon.gif';
-my     $bluebullet   = 'http://pcamsf0.cern.ch/AMS/icons/bullet_blue.gif';
-my     $silverbullet = 'http://pcamsf0.cern.ch/AMS/icons/bullet_silver.gif';
-my     $purplebullet = 'http://pcamsf0.cern.ch/AMS/icons/bullet_purple.gif';
+my     $maroonbullet = '/AMS/icons/bullet_maroon.gif';
+my     $bluebullet   = '/AMS/icons/bullet_blue.gif';
+my     $silverbullet = '/AMS/icons/bullet_silver.gif';
+my     $purplebullet = '/AMS/icons/bullet_purple.gif';
 
 my     $srvtimeout = 30; # server timeout 30 seconds
 my     @colors=("red","green","blue","magenta","orange","cyan","tomato");
 
 my     $amscomp_page ='http://ams.cern.ch/AMS/Computing/computing.html';
 my     $amshome_page ='http://ams.cern.ch/AMS/ams_homepage.html';
-my     $dbqueryR   ='http://ams.cern.ch/AMS/Computing/dbqueryR.html';
+my     $dbqueryR     ='http://ams.cern.ch/AMS/Computing/dbqueryR.html';
 
-my     $downloadcgi       ='http://pcamsf0.cern.ch/cgi-bin/mon/download.o.cgi';
-my     $downloadcgiMySQL  ='http://pcamsf0.cern.ch/cgi-bin/mon/download.mysql.cgi';
 
-my     $monmcdb      ='http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.o.cgi';
-my     $monmcdbMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.mysql.cgi';
+my     $downloadcgi       ='/cgi-bin/mon/download.o.cgi';
+my     $downloadcgiMySQL  ='/cgi-bin/mon/download.mysql.cgi';
 
-my     $rccgi      ='http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form';
-my     $rccgiMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/rc.mysql.cgi?queryDB=Form';
+my     $monmcdb           ='/cgi-bin/mon/monmcdb.o.cgi';
+my     $monmcdbMySQL      ='/cgi-bin/mon/monmcdb.mysql.cgi';
 
-my     $rchtml='http://pcamsf0.cern.ch/rc.html';
+my     $rccgi             ='/cgi-bin/mon/rc.o.cgi?queryDB=Form';
+my     $rccgiMySQL        ='/cgi-bin/mon/rc.mysql.cgi?queryDB=Form';
 
-my     $rchtmlMySQL='http://ams.cern.ch/AMS/Computing/mcproduction/rc.mysql.html';
+my     $rchtml            ='rc.html';
 
-my     $validatecgi      ='http://pcamsf0.cern.ch/cgi-bin/mon/validate.o.cgi';
-my     $validatecgiMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/validate.mysql.cgi';
+my     $rchtmlMySQL       ='rc.mysql.html';
+
+my     $validatecgi       ='/cgi-bin/mon/validate.o.cgi';
+my     $validatecgiMySQL  ='/cgi-bin/mon/validate.mysql.cgi';
 
 my     $PrintMaxJobsPerCite = 25;
 sub new{
@@ -1493,6 +1498,7 @@ sub Connect{
     my $q=$self->{q};
     my $sql=>undef;
     my $color;
+    my $cite = 'Any';
 # db query
     if ($self->{q}->param("getJobID")) {
      $self->{read}=1;
@@ -1512,13 +1518,13 @@ sub Connect{
                           WHERE jobs.jid>$jobmin AND jobs.jid<$jobmax 
                                 AND jobs.cid=cites.cid ";
                 if ($q->param("QCite")) {
-                 my $cite = trimblanks($q->param("QCite"));
+                 $cite = trimblanks($q->param("QCite"));
                  if ($cite ne 'Any') {
                   $sql = $sql." AND cites.name = '$cite' ";
+                  $title=$title." for Cite : $cite";
                  }
-                 $title=$title." for Cite : $cite";
                 }
-                $sql = $sql." ORDER BY jobs.jid";
+                $sql = $sql." ORDER BY jobs.jid DESC";
             } else {
              $jobid =  trimblanks($q->param("JobID"));
              if ($jobid > 0) {
@@ -1526,19 +1532,20 @@ sub Connect{
               $sql = "SELECT jobname, triggers , host, events, errors, cputime, 
                             elapsed, cites.name, content, jobs.timestamp, jobs.jid 
                           FROM jobs, cites 
-                          WHERE jobs.jid=$jobid AND jobs.cid=cites.cid";
+                          WHERE jobs.jid=$jobid AND jobs.cid=cites.cid ORDER BY jobs.jid DESC";
              } else {
                  goto CheckCite;
              }
           }
         } else {
 CheckCite:            if (defined $q->param("QCite")) {
-             my $cite = trimblanks($q->param("QCite"));
+             $cite = trimblanks($q->param("QCite"));
              if ($cite ne 'Any') {
               $sql = "SELECT jobname, triggers , host, events, errors, cputime, 
                             elapsed, cites.name, content, jobs.timestamp, jobs.jid 
                           FROM jobs, cites 
-                          WHERE cites.name='$cite' AND jobs.cid=cites.cid";
+                          WHERE cites.name='$cite' AND jobs.cid=cites.cid 
+                          ORDER BY jobs.jid DESC";
               $title=$title." for Cite : $cite";
              }
          }
@@ -1546,12 +1553,12 @@ CheckCite:            if (defined $q->param("QCite")) {
         my $content = " ";
         $self->htmlTemplateTable($title);
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-        if ($jobmax > 0) {
-               print "<td align=center><b><font color=\"blue\">JID </font></b></td>";
-        }
+               print "<td align=left><b><font color=\"blue\">JID </font></b></td>";
                print "<td align=center><b><font color=\"blue\">Name </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Triggers</font></b></td>";
+        if ($cite eq 'Any') {
                print "<td align=center><b><font color=\"blue\" >Cite </font></b></td>";
+        }
                print "<td align=center><b><font color=\"blue\" >Host</font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Errors </font></b></td>";
@@ -1593,23 +1600,20 @@ CheckCite:            if (defined $q->param("QCite")) {
              } elsif ($status eq 'Processing') {
                  $color = "blue";
              }
-             if ($jobmax > 0) {
-              print "
-                  <td align=left><b><font color=$color> $jid </font></td></b>";
-          }
-           print "
-                  <td align=left><b><font color=$color> $jobname </font></td></b>
-                  <td align=center><b><font color=$color> $triggers </font></b></td>
-                  <td align=center><b><font color=$color> $cite </font></td></b>
-                  <td align=center><b><font color=$color> $host </font></td></b>
-                  <td align=center><b><font color=$color> $events </font></b></td>
-                  <td align=center><b><font color=$color> $errors </font></b></td>
-                  <td align=center><b><font color=$color> $cputime </font></b></td>
-                  <td align=center><b><font color=$color> $elapsed </font></b></td>
-                  <td align=center><b><font color=$color> $status </font></b></td>
-                  <td align=center><b><font color=$color> $timestamp </font></b></td>\n";
+              print "<td align=left><b><font color=$color> $jid </font></td></b>";
+              print "<td align=center><b><font color=$color> $jobname </font></td></b>";
+              print "<td align=center><b><font color=$color> $triggers </font></b></td>";
+              if ($cite eq 'Any') {
+               print "<td align=center><b><font color=$color> $cite </font></td></b>";
+              }
+              print "<td align=center><b><font color=$color> $host </font></td></b>";
+              print "<td align=center><b><font color=$color> $events </font></b></td>";
+              print "<td align=center><b><font color=$color> $errors </font></b></td>";
+              print "<td align=center><b><font color=$color> $cputime </font></b></td>";
+              print "<td align=center><b><font color=$color> $elapsed </font></b></td>";
+              print "<td align=center><b><font color=$color> $status </font></b></td>";
+              print "<td align=center><b><font color=$color> $timestamp </font></b></td>\n";
               print "</tr>\n";
-
          }
        } 
        htmlTableEnd();
@@ -5038,7 +5042,7 @@ sub htmlReturnToMain {
 
 sub htmlReadMeFirst {
             print "<p><tr><td><i>\n";
-            print "<font color=\"green\"><b><a href=http://pcamsf0.cern.ch/cgi-bin/mon/load.cgi?AMS02MCUploads/Help.txt target=\"_blank\"> ReadMeFirst</a></b></font>\n";
+            print "<font color=\"green\"><b><a href=/cgi-bin/mon/load.cgi?AMS02MCUploads/Help.txt target=\"_blank\"> ReadMeFirst</a></b></font>\n";
             print "</i></td></tr>\n";
         }
 
