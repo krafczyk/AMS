@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.16 2002/03/13 14:59:27 choutko Exp $
+# $Id: RemoteClient.pm,v 1.17 2002/03/13 18:07:35 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -920,6 +920,113 @@ sub Connect{
        }  
     }
 
+# cite registration
+    if ($self->{q}->param("CiteRegistration")){
+        $self->{read}=1;
+        my $cem=lc($self->{q}->param("CEM"));
+        if ($self->findemail($cem)){
+            $self->ErrorPlus("User with e-mail $cem Already Exists.");
+        }
+        else{
+#check email
+        if(validate_email_address($cem)){
+# build up the corr entries in the database
+         my @cite=();
+         foreach my $cite (@{$self->{CiteT}}){
+             push @cite, $cite->{name};
+         }
+         my $name=$self->{q}->param("CNA");
+         if(not defined $name or $name eq ""){
+             $self->ErrorPlus("Please fill Name Field");
+         }
+         my $addcite=$self->{q}->param("CCA");
+         if(not defined $addcite or $addcite eq ""){
+             $self->ErrorPlus("Please fill Cite (University) Field");
+         }
+         my $newcitedesc=$self->{q}->param("CCF");
+         if(not defined $newcitedesc or $newcitedesc eq ""){
+             $self->ErrorPlus("Please fill Cite (University) Field");
+         }
+# send e-mail
+        my $sendsuc=undef;
+        foreach my $chop (@{$self->{MailT}}) {
+             if($chop->{rserver}==1){
+              my $address=$chop->{address};
+              my $subject="AMS02 MC Cite Registration Request ";
+              my $message=" E-Mail: $cem \n Name: $name \n Cite: $addcite ($newcitedesc)\n";
+              $self->sendmailmessage($address,$subject,$message);
+              $sendsuc=$address;
+          }
+        }        
+        if(not defined $sendsuc){
+            $self->ErrorPlus("Unable to find responsible for the server. Please try again later..");
+        }
+# check if cite exist
+            my $sql="select cid from Cites where name='$addcite'";
+            my $ret=$self->{sqlserver}->Query($sql);
+            my $cid=$ret->[0][0];
+            my $newcite=0;
+            if(not defined $cid){
+# add cite
+             $newcite=1;
+             $sql="SELECT MAX(cid) FROM Cites";
+             $ret=$self->{sqlserver}->Query($sql);
+             $cid=$ret->[0][0]+1;
+             if($cid>16){
+                 my $error=" Too many Cites. Your request will not be procedeed.";
+                 $self->sendmailerror($error,"$cem");
+                 $self->ErrorPlus("$error");
+             }
+             my $run=(($cid-1)<<27)+1;
+             $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0)";
+             $self->{sqlserver}->Update($sql);
+# add responsible
+             $sql="select MAX(mid) from Mails";
+             $ret=$self->{sqlserver}->Query($sql);
+             my $mid=$ret->[0][0]+1;
+             my $resp=1;
+             $sql="INSERT INTO Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0)";
+            $self->{sqlserver}->Update($sql);
+# add responsible info to Cites
+             $sql="UPDATE Cites SET mid=$mid WHERE cid=$cid";
+             $self->{sqlserver}->Update($sql);
+         $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account and cite registration will be done soon.";     
+         } else {
+            $self->ErrorPlus("Seems $addcite is already registered.");
+        }
+       }else{
+            $self->ErrorPlus("E-Mail $cem Seems Not to Be Valid.");
+        }
+       }  
+    }
+# CiteRegistration ends here
+
+# UserRegistration 
+    if ($self->{q}->param("UserRegistration")){
+     $self->{read}=1;
+      htmlTop();
+        $self->htmlTemplateTable("AMS MC02 User Registration Form");
+          print "<tr><td><b><font color=\"red\">User Info</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+           htmlTextField("First and Last Name","text",24,"' '","CNA","(Santa Klaus)");  
+           htmlTextField("e-mail address","text",24,"' '","CEM","(name\@mail.domain)");  
+           print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cite : </b></td> <td colspan=1>\n";
+          print "<select name=\"CCA\" >\n";
+          my @cite=();
+          foreach my $cite (@{$self->{CiteT}}){
+             print "<option value=\" $cite->{name} \">$cite->{name} </option>\n";
+         }
+          print "</select>\n";
+          print "</b></td></tr>\n";
+         htmlTableEnd();
+        htmlTableEnd();
+        print "<input type=\"submit\" name=\"MyRegister\" value=\"Submit\"></br><br>\n";
+       htmlReturnToMain();
+      htmlFormEnd();
+     htmlBottom();
+ }
+# UserRegistration ends here
     if ($self->{q}->param("MyRegister")){
         $self->{read}=1;
         my $cem=lc($self->{q}->param("CEM"));
@@ -1028,6 +1135,7 @@ sub Connect{
         }
        }  
     }
+#MyRegister ends here
 
     if ($self->{q}->param("FormType")){
         $self->{read}=1;
@@ -1102,7 +1210,6 @@ sub Connect{
             print "<INPUT TYPE=\"hidden\" NAME=\"CEM\" VALUE=$cem>\n"; 
             print "<INPUT TYPE=\"hidden\" NAME=\"DID\" VALUE=0>\n"; 
           print "<br>\n";
-#          print "<input type=\"submit\" name=\"BasicForm\" value=\"Continue\"></br><br>        ";
           print "<input type=\"submit\" name=\"BasicQuery\" value=\"Submit\"></br><br>        ";
           htmlReturnToMain();
           htmlFormEnd();
@@ -2558,16 +2665,22 @@ sub trimblanks {
 
 sub listAll {
     my $self = shift;
+    my $show = shift;
     htmlTop();
     ht_init();
-    ht_Menus();
-    $self -> colorLegend();
+    if ($show eq 'all') {
+     ht_Menus();
+     $self -> colorLegend();
+    }
+    
     $self -> listCites();
-     $self -> listMails();
+    $self -> listMails();
+    if ($show eq 'all') {
       $self -> listServers();
        $self -> listJobs();
         $self -> listRuns();
           $self -> listNtuples();
+    }
     htmlBottom();
 }
     
@@ -2598,7 +2711,7 @@ sub listCites {
               $jobs = $cnt->[0];
           }
           $sql="SELECT SUM(requests) FROM Mails WHERE cid=$cid";
-          my $r4=$self->{sqlserver}->Query($sql);
+          $r4=$self->{sqlserver}->Query($sql);
           my $reqs = 0;
           foreach my $cnt (@{$r4}){
               $reqs = $cnt->[0];
@@ -2656,9 +2769,10 @@ sub listMails {
 sub listServers {
     my $self = shift;
      print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
-     htmlTable("MC Servers");
-     print "<a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.cgi\"><b><font color=blue> Click  here to check current production status</font></a>\n";
-              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.cgi\"><b><font color=blue> MC Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
+     print "<p>\n";
+     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT dbfilename, status, createtime, lastupdate FROM servers";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\">Server </font></b></td>";
@@ -2765,21 +2879,22 @@ sub listRuns {
 sub listNtuples {
     my $self = shift;
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
-     htmlTable("MC02 Ntuples");
-     print "<a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/validate.o.cgi\"><b><font color=red> Click  here to validate NTuples</font></a>\n";
-              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/validate.o.cgi\"><b><font color=green> MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
+     print "<p>\n";
+     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+              print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT ntuples.run, ntuples.jid, ntuples.nevents, ntuples.neventserr, 
                      ntuples.timestamp, ntuples.status, ntuples.path
               FROM   ntuples
-              ORDER  BY ntuples.jid";
+              ORDER  BY ntuples.timestamp";
      my $r3=$self->{sqlserver}->Query($sql);
-              print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
-              print "<td><b><font color=\"blue\">Run </font></b></td>";
-              print "<td><b><font color=\"blue\" >LastUpdate </font></b></td>";
-              print "<td><b><font color=\"blue\" >FilePath </font></b></td>";
-              print "<td><b><font color=\"blue\" >Events </font></b></td>";
-              print "<td><b><font color=\"blue\" >Errors </font></b></td>";
-              print "<td><b><font color=\"blue\" >Status </font></b></td>";
+              print "<tr><td width=10% align=left><b><font color=\"blue\" > JobId </font></b></td>";
+              print "<td width=10%><b><font color=\"blue\"> Run </font></b></td>";
+              print "<td width=15%><b><font color=\"blue\" > LastUpdate </font></b></td>";
+              print "<td td align=middle><b><font color=\"blue\" > FilePath </font></b></td>";
+              print "<td width=10%><b><font color=\"blue\" > Events </font></b></td>";
+              print "<td width=10%><b><font color=\"blue\" > Errors </font></b></td>";
+              print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
              print "</tr>\n";
      print_bar($bluebar,3);
      if(defined $r3->[0][0]){
@@ -2794,9 +2909,9 @@ sub listNtuples {
            print "<td><b> $jid </td></b><td><b> $run </td>
                   <td><b> $starttime </b></td>
                   <td><b> $path </b></td> 
-                  <td><b> $nevents </b></td> 
-                  <td><b> $nerrors </b></td> 
-                  <td><b> $status </b></td> \n";
+                  <td align=middle><b> $nevents </b></td> 
+                  <td align=middle><b> $nerrors </b></td> 
+                  <td align=middle><b> $status </b></td> \n";
           print "</font></tr>\n";
       }
   }

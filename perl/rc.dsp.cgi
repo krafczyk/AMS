@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: rc.dsp.cgi,v 1.1 2002/03/13 08:42:23 alexei Exp $
+#  $Id: rc.dsp.cgi,v 1.2 2002/03/13 18:07:31 alexei Exp $
 use Gtk;
 use strict;
 
@@ -23,7 +23,7 @@ my $html=new RemoteClient();
 #get all info from the db
 
  my $ok=$html->ConnectDB();
-    $ok=$html->listAll();
+    $ok=$html->listAll('all');
 
  
 #work
