@@ -91,6 +91,7 @@ void AMSgtmed::_init(){
   if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>0){
    if(IsSensitive()){
     GSTPAR(_itmed,"CUTELE",20.01e-6);
+    GSTPAR(_itmed,"DCUTE",1.8e-6);
     GSTPAR(_itmed,"STRA",1);
    }
   }

@@ -15,9 +15,10 @@ AMSStat::~AMSStat(){
 print();
 Timer.remove();
 }
-void AMSStat::book(char *name){
+void AMSStat::book(char *name, int freq){
 if( add(*(Timer.add(new AMSStatNode(name))))==-1)
 cerr<<" AMSStat-Book-E-Name "<<name<<" already exists"<<endl;
+Timer._freq=freq;
 }
 void AMSStat::start(char *name){
 AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
@@ -65,8 +66,8 @@ char *name=new char[strlen(getname())+1];
 strcpy(name,getname());
 if(name && strlen(name)>15)name[14]='\0';
 
-return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry<<" "<<setw(12)<<_min
- <<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum<<endl:stream;
+return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry*_freq<<" "<<setw(12)<<_min
+ <<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum*_freq<<endl:stream;
 delete name;
 }
 

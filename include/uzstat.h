@@ -35,9 +35,10 @@ number _entry;
 number _sum;
 number _max;
 number _min;
+integer _freq;
 public:
-AMSStatNode():AMSNode(0),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX){};
-AMSStatNode(char * name):AMSNode(name),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX){};
+AMSStatNode():AMSNode(0),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
+AMSStatNode(char * name):AMSNode(name),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
 void _init(){};
 ostream & print(ostream & stream ) const;
 };
@@ -49,7 +50,7 @@ AMSStatNode Timer;
 public: 
   AMSStat();
   ~AMSStat();
-  void book(char * name);
+  void book(char * name, int freq=1);
   void start(char * name);
   number check(char *name);
   number stop(char * name);

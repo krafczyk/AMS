@@ -1361,6 +1361,7 @@ else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
    }
 
      AMSgObj::BookTimer.book("GEANTTRACKING");
+     AMSgObj::BookTimer.book("GUSTEP",10);
      AMSgObj::BookTimer.book("SITKHITS");
      AMSgObj::BookTimer.book("SITKNOISE");
      AMSgObj::BookTimer.book("SITKDIGIa");

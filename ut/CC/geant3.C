@@ -50,8 +50,9 @@ extern "C" void gustep_(){
   static integer freq=10;
   static integer trig=0;
   trig=(trig+1)%freq;
-
+  if(trig==0 && freq>1)AMSgObj::BookTimer.start("GUSTEP");
   if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit){
+    if(freq>1)AMSgObj::BookTimer.stop("GUSTEP");
     freq=1;
     GCTRAK.istop =1;
     return;
@@ -341,18 +342,17 @@ extern "C" void gustep_(){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;
      AMSEvent::gethead()->Recovery();
-     return;
-   }
+    }
    catch (AMSaPoolError e){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;
     AMSEvent::gethead()->Recovery();
-      return;
-   }
+    }
    catch (AMSTrTrackError e){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;
    }
+  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("GUSTEP");
    //  cout <<" gustep out"<<endl;
 }
 //-----------------------------------------------------------------------
