@@ -85,7 +85,6 @@ out:
     return 1;
    }
 
-   cout <<" "<<endl;
    AMSRoot amsroot("AMS", "AMS Display");
    cout <<" "<<endl;
    amsroot.Init(t);
@@ -93,6 +92,7 @@ out:
    cout <<"Open file "<<fnam<<endl;
    amsroot.MakeTree("AMSTree", "AMS Display Tree");
    TFile fgeo("ams_group.root");
+   cout <<" "<<endl;
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
        display.SetApplication(theApp);
