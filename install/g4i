@@ -15,13 +15,16 @@ setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.0.1
 setenv G4LIB $G4INSTALL/lib
 setenv G4_NO_VERBOSE 1
 setenv  G4WORKDIR /amsdat1/scratch/choutko/tmp
+setenv G4VIS_BUILD_DAWNFILE_DRIVER 1
+setenv G4VIS_BUILD_DAWN_DRIVER         1
+setenv G4VIS_USE_DAWN       1 
+setenv G4VIS_USE_DAWNFILE         1
 setenv G4VIS_BUILD_OPENGLX_DRIVER     1  # Uses OpenGL and Motif
 setenv G4VIS_USE_OPENGLX     1
 setenv G4VIS_BUILD_RAYX_DRIVER         1
 setenv G4VIS_USE_RAYX         1
-setenv G4VIS_BUILD_DAWN_DRIVER         1
-setenv G4VIS_USE_DAWN         1
-setenv G4VIS_USE_DAWNFILE         1
+setenv G4VIS_BUILD_OPACS_DRIVER         1
+setenv G4VIS_USE_OPACS         1
 setenv G4DAWNFILE_VIEWER david
 setenv OGLHOME /usr/local
 #setenv G4LEVELGAMMADATA $G4INSTALL/data/PhotonEvaporation
