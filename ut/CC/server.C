@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.99 2003/11/12 15:22:23 choutko Exp $
+//  $Id: server.C,v 1.100 2003/11/12 15:59:55 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -4286,9 +4286,11 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
       DPS::DBServer_var dvar=DPS::DBServer::_narrow(obj);
       CORBA::String_var filepath=dvar->getDBFilePath(_parent->getcid());
       _parent->setdbfile(filepath);
-      DPS::Client::AHS * pres;
       DPS::Client::CID tcid=cid;
       tcid.Type=getType();
+      int ret=dvar->getFreeHostN(tcid);     
+      if(ret){
+      DPS::Client::AHS * pres;
       int length=dvar->getAHS(tcid, pres);
       DPS::Client::AHS_var res=pres; 
       if(length){
@@ -4302,8 +4304,6 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
        _parent->EMessage(" UpdateRunTable-UnableToUpdate"); 
         return 0;
       }
-      int ret=dvar->getFreeHostN(tcid);     
-      if(ret){
        DPS::Client::ActiveHost *pre;
        ret=dvar->getFreeHost(tcid,pre);     
        cout <<"  get free host "<<AMSClient::print(*pre," ");
