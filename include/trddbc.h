@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.7 2001/03/29 12:17:53 kscholbe Exp $
+//  $Id: trddbc.h,v 1.8 2001/04/01 19:32:07 kscholbe Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -12,7 +12,8 @@ const uinteger maxo=9;
 const uinteger mtrdo=1;   
 const uinteger maxbulk=6;
 const uinteger maxlay=20;
-const uinteger maxlad=21;
+const uinteger maxlad=18;
+const uinteger maxco=2;
 const uinteger maxtube=16;
 const uinteger TRDROTMATRIXNO=9001;
 }
@@ -30,6 +31,7 @@ private:
    // Media    
    static char* _OctagonMedia[maxo];
    static char* _BulkheadsMedia;
+   static char* _CutoutsMedia;
    static char* _TubesMedia;
    static char* _ITubesMedia;
    static char* _RadiatorMedia;
@@ -44,14 +46,20 @@ private:
     static  uinteger  _BulkheadsNo[mtrdo];
     static  uinteger  _LayersNo[mtrdo];
     static  uinteger  _LaddersNo[mtrdo][trdconst::maxlay];
+    static  uinteger  _CutoutsNo[mtrdo][trdconst::maxlay][trdconst::maxlad];
+    static  uinteger  _CutoutsBH[mtrdo][trdconst::maxlay][trdconst::maxco];
     static uinteger   _TubesNo[mtrdo][trdconst::maxlay][trdconst::maxlad];
     static uinteger   _NumberBulkheads;
     static uinteger   _NumberTubes;
     static uinteger   _NumberLadders;
+    static uinteger   _NumberCutouts;
     static const number  _TubeInnerDiameter;
     static const number  _TubeWallThickness;
     static const number  _TubeBoxThickness;
     static const number  _LadderThickness;
+    static const number  _BulkheadWidth;
+    static const number  _CutoutThickness;
+    static const number  _CutoutWidth;
     static const number  _FirstLayerHeight;
     static const number  _WirePosition;
     static const number  _ManifoldThickness;
@@ -64,6 +72,7 @@ private:
    static number    _OctagonDimensions[maxo][10]; 
    static number    _BulkheadsDimensions[mtrdo][trdconst::maxbulk][4];
    static number    _LaddersDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
+   static number    _CutoutsDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
    static number    _TubesDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];    
    static number    _TubesBoxDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][10];    
    static number    _RadiatorDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3];
@@ -72,6 +81,7 @@ private:
   
    static TRDDBc * _HeadOctagonPos;
    static TRDDBc * _HeadBulkheadPos;
+   static TRDDBc * _HeadCutoutPos;
    static TRDDBc * _HeadLadderPos;
    static TRDDBc * _HeadRadiatorPos;
    static TRDDBc * _HeadTubeBoxPos;
@@ -92,6 +102,7 @@ public:
    static uinteger getnumTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct=1);
    static uinteger getnumBulkhead(uinteger bulkhead, uinteger oct=1);
    static uinteger getnumLadder(uinteger ladder, uinteger layer, uinteger oct=1);
+   static uinteger getnumCutout(uinteger cutout, uinteger ladder,uinteger layer, uinteger oct=1);
 
 
    static uinteger getnumOctagon(uinteger oct);
@@ -114,6 +125,14 @@ public:
  static void SetLadder(uinteger ladder, uinteger layer, uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3],uinteger gid);
  static void GetLadder(uinteger ladder, uinteger layer, uinteger oct,
+                          uinteger & status, geant coo[],number nrm[3][3],
+                          uinteger &gid);
+
+ static void SetCutout(uinteger cutout, uinteger ladder, 
+             uinteger layer, uinteger oct,
+             uinteger  status, geant coo[],number nrm[3][3],uinteger gid);
+ static void GetCutout(uinteger cutout, uinteger ladder, 
+                          uinteger layer, uinteger oct,
                           uinteger & status, geant coo[],number nrm[3][3],
                           uinteger &gid);
 
@@ -148,6 +167,8 @@ public:
    static  uinteger  BulkheadsNo(uinteger toct){return toct<TRDOctagonNo()?_BulkheadsNo[toct]:0;}
    static  uinteger  LayersNo(uinteger toct){return toct<TRDOctagonNo()?_LayersNo[toct]:0;}
    static  uinteger  LaddersNo(uinteger toct, uinteger lay){return lay<LayersNo(toct)?_LaddersNo[toct][lay]:0;}
+   static  uinteger  CutoutsNo(uinteger toct, uinteger lay, uinteger lad){return lay<LayersNo(toct)?_CutoutsNo[toct][lay][lad]:0;}
+   static  uinteger  CutoutsBH(uinteger toct, uinteger lay,uinteger bh){return lay<LayersNo(toct)?_CutoutsBH[toct][lay][bh]:0;}
    static uinteger   TubesNo(uinteger toct, uinteger lay, uinteger lad){return lad<LaddersNo(toct,lay)?_TubesNo[toct][lay][lad]:0;}
    
 
@@ -155,6 +176,9 @@ public:
     static  number  TubeWallThickness(){return _TubeWallThickness;}
     static  number  TubeBoxThickness(){return _TubeBoxThickness;}
     static  number  LadderThickness(){return _LadderThickness;}
+    static  number  BulkheadWidth(){return _BulkheadWidth;}
+    static  number  CutoutThickness(){return _CutoutThickness;}
+    static  number  CutoutWidth(){return _CutoutWidth;}
     static  number  FirstLayerHeight(){return _FirstLayerHeight;}
     static  number  WirePosition(){return _WirePosition;}
     static  number  ManifoldThickness(){return _ManifoldThickness;}
@@ -170,6 +194,7 @@ public:
    static number&    OctagonDimensions(uinteger oct, uinteger index); 
    static number&    BulkheadsDimensions(uinteger toct, uinteger bulk, uinteger index);
    static number&    LaddersDimensions(uinteger toct, uinteger lay, uinteger lad, uinteger index);
+   static number&    CutoutsDimensions(uinteger toct, uinteger lay, uinteger lad, uinteger index);
    static number&    TubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
    static number    ITubesDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index);    
    static number&    TubesBoxDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index); 
@@ -184,6 +209,7 @@ public:
    static char* RadiatorMedia(){return _RadiatorMedia;}
    static char* TubesBoxMedia(){return _TubesBoxMedia;}
    static char* LaddersMedia(){return _OctagonMedia[_NoTRDOctagons[0]];}
+   static char* CutoutsMedia(){return _CutoutsMedia;}
 
 
 

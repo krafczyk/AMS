@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.14 2001/03/29 12:17:05 kscholbe Exp $
+//  $Id: trddbc.C,v 1.15 2001/04/01 19:31:42 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -7,6 +7,7 @@ char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 "TRDCarbonFiber","TRDCarbonFiber","TRDCarbonFiber","TRDHC","TRDHC",
 "TRDHC","TRDRadiator"};
 char * TRDDBc::_BulkheadsMedia="TRDCarbonFiber";
+char * TRDDBc::_CutoutsMedia="VACUUM";
 char * TRDDBc::_TubesMedia="TRDCapton";
 char * TRDDBc::_ITubesMedia="TRDGas";
 char * TRDDBc::_RadiatorMedia="VACUUM";  // Really hole in radiator
@@ -21,17 +22,26 @@ uinteger TRDDBc::_BulkheadsNo[mtrdo]={maxbulk};
 uinteger TRDDBc::_LayersNo[mtrdo]={maxlay};
 uinteger TRDDBc::_LaddersNo[mtrdo][maxlay]={14,14,14,14,16,16,16,16,16,16,16,16,18,18,18,18,18,18,18,18};
 
+uinteger TRDDBc::_CutoutsNo[mtrdo][maxlay][maxlad];
+
+// Bulkhead that the cutout belongs to
+uinteger TRDDBc::_CutoutsBH[mtrdo][maxlay][maxco]={2,3,2,3,2,3,2,3,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,4,5,4,5,4,5,4,5};
+
 uinteger TRDDBc::_TubesNo[mtrdo][maxlay][maxlad];
 
 uinteger   TRDDBc::_NumberTubes=0;
 uinteger   TRDDBc::_NumberLadders=0;
+uinteger   TRDDBc::_NumberCutouts=0;
 uinteger   TRDDBc::_NumberBulkheads=0;
 
 
 const number  TRDDBc::_TubeWallThickness=75e-4;
 const number  TRDDBc::_TubeInnerDiameter=0.6;
 const number  TRDDBc::_TubeBoxThickness=(0.62-TRDDBc::_TubeInnerDiameter-2*TRDDBc::_TubeWallThickness)/2.;
+const number  TRDDBc::_BulkheadWidth=0.3;
 const number  TRDDBc::_LadderThickness=2.9;
+const number  TRDDBc::_CutoutThickness=0.88;
+const number  TRDDBc::_CutoutWidth=10.2;
 const number  TRDDBc::_FirstLayerHeight = 1.7; // Distance of first layer-line from bottom (center of bottom main octagon skin)
 const number TRDDBc::_WirePosition = 0.725; // Distance of wire below layer-line
 const number TRDDBc::_ManifoldThickness = 0.70; // Z-height of manifold
@@ -42,6 +52,7 @@ const number TRDDBc::_BulkheadGap = 0.78; // Gap between ladders at bulkhead
 const integer TRDDBc::_LadderOrientation[mtrdo][maxlay]={0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0};   // 0 -x 1 -y    
 number TRDDBc::_OctagonDimensions[maxo][10]; 
 number TRDDBc::_BulkheadsDimensions[mtrdo][maxbulk][4];
+number TRDDBc::_CutoutsDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_LaddersDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_TubesDimensions[mtrdo][maxlay][maxlad][3];    
 number TRDDBc::_TubesBoxDimensions[mtrdo][maxlay][maxlad][10];    
@@ -51,6 +62,7 @@ number TRDDBc::_RadiatorDimensions[mtrdo][maxlay][maxlad][3];
   
 TRDDBc* TRDDBc::_HeadOctagonPos=0;
 TRDDBc* TRDDBc::_HeadBulkheadPos=0;
+TRDDBc* TRDDBc::_HeadCutoutPos=0;
 TRDDBc* TRDDBc::_HeadLadderPos=0;
 TRDDBc* TRDDBc::_HeadRadiatorPos=0;
 TRDDBc* TRDDBc::_HeadTubeBoxPos=0;
@@ -59,11 +71,19 @@ TRDDBc* TRDDBc::_HeadTubePos=0;
 void TRDDBc::init(){
 
    // Quantities
-    int i,j,k,l;
+    int i,j,k,l,b;
     for(i=0;i<TRDOctagonNo();i++){
      for(j=0;j<LayersNo(i);j++){
       for(k=0;k<LaddersNo(i,j);k++){
        _TubesNo[i][j][k]=16;
+      }
+     }
+    }
+
+    for(i=0;i<TRDOctagonNo();i++){
+     for(j=0;j<LayersNo(i);j++){
+      for(k=0;k<LaddersNo(i,j);k++){
+       _CutoutsNo[i][j][k]=2;
       }
      }
     }
@@ -95,9 +115,20 @@ void TRDDBc::init(){
        }
        cout <<"TRDDBcI-I-Total of " <<_NumberBulkheads<< "  bulkheads initialized."<<endl;
 
+  // calculate cutout #
+       for ( i=0;i<TRDOctagonNo();i++){
+        for ( j=0;j<LayersNo(i);j++){
+         for ( k=0;k<LaddersNo(i,j);k++){
+          for ( b=0;b<CutoutsNo(i,j,k);b++)_NumberCutouts++;
+	 }
+        }
+       }
+       cout <<"TRDDBcI-I-Total of " <<_NumberCutouts<< "  bulkhead cutouts initialized."<<endl;
+
 
        _HeadLadderPos=new TRDDBc[_NumberLadders];
        _HeadBulkheadPos=new TRDDBc[_NumberBulkheads];
+       _HeadCutoutPos=new TRDDBc[_NumberCutouts];
        _HeadRadiatorPos=new TRDDBc[_NumberLadders];
        _HeadTubeBoxPos=new TRDDBc[_NumberLadders];
        _HeadTubePos=new TRDDBc[_NumberTubes];
@@ -317,7 +348,7 @@ void TRDDBc::init(){
 	BulkheadsDimensions(i,0,0)= OctagonDimensions(8,6);
 
         // dy
-	BulkheadsDimensions(i,0,2)= 3./20.;
+	BulkheadsDimensions(i,0,2)= BulkheadWidth()/2.;
 
 	//dz
 	// Not sure what this is for the moment
@@ -368,7 +399,7 @@ void TRDDBc::init(){
 	  -2.*BulkheadsDimensions(i,2,3)*tan(ang);
 
 
-	BulkheadsDimensions(i,2,2)= 3./20.;
+	BulkheadsDimensions(i,2,2)= BulkheadWidth()/2.;
 
         // Position it wrt main octagon
 	coo[0] = -bulkhead_pos;
@@ -411,7 +442,7 @@ void TRDDBc::init(){
 
 
         // dy
-	BulkheadsDimensions(i,4,2)= 3./20.;
+	BulkheadsDimensions(i,4,2)= BulkheadWidth()/2.;
 
 
         // Position it
@@ -438,11 +469,35 @@ void TRDDBc::init(){
       }
 
 
+      // Cutout sizes.  Actually the edges are rounded
+      //  but just use a box for now
+
+            for (i=0;i<TRDOctagonNo();i++)
+	{
+	  for(j=0;j<LayersNo(i);j++){
+	    for(k=0;k<LaddersNo(i,j);k++){
+
+	      // x
+	      CutoutsDimensions(i,j,k,0) = CutoutWidth();
+
+	      // y
+	      CutoutsDimensions(i,j,k,1) = BulkheadWidth();
+
+	      // z
+	      CutoutsDimensions(i,j,k,2) = CutoutThickness();
+
+	      // Half-dimensions
+	    for(int l=0;l<3;l++)CutoutsDimensions(i,j,k,l)/=2.;
+	    }
+	  }
+	}
+      
+     // LadderSizes
+
       number nrmxy[2][3][3]={0,0,1,1,0,0,0,1,0,
                             1,0,0,0,0,-1,0,1,0};
 
 
-     // LadderSizes
       for(i=0;i<TRDOctagonNo();i++){
 
 //       Get octagon parameters at lowest point
@@ -658,6 +713,35 @@ void TRDDBc::init(){
             +LaddersDimensions(i,j,k,1)*2.*j;
 
          SetLadder(k,j,i,status,coo,nrmxy[LadderOrientation(i,j)],gid);
+
+
+         // Now position the bulkhead cutouts for the ladder
+         //  wrt to the bulkhead coordinates
+      
+
+	 // First, find which kind of bulkhead for this layer
+
+	 for (b=0;b<CutoutsNo(i,j,k);b++)
+	   {
+	     int bhno;
+	     bhno = CutoutsBH(i,j,b);
+	     
+	     geant blkcoo[3];
+	     geant cocoo[3];
+	     
+	     GetBulkhead(bhno,i,status,blkcoo,nrm,gid);
+
+	 // x
+	     cocoo[0] = coo[1-LadderOrientation(i,j)];
+
+         //y 
+	     cocoo[1] = 0.;
+
+         // z
+	     cocoo[2] = coo[2]-blkcoo[2]-WirePosition()+0.9/10.;
+
+	     SetCutout(b,k,j,i,status,cocoo,unitnrm,gid);
+	   }
         }
        }
       }
@@ -783,6 +867,20 @@ void TRDDBc::init(){
 	   if (tube_is_upper)
 	     {
 	       coo[1]= -WirePosition()+LadderThickness()/2.;
+
+	       // Adjust bulkhead cutout position
+
+	       if (l==0)
+		 {
+		   geant cocoo[3];
+		   GetCutout(0,k,j,i,status,cocoo,unitnrm,gid);
+		   
+		   cocoo[2] += LadderThickness()/2;
+
+		   SetCutout(0,k,j,i,status,cocoo,unitnrm,gid);
+		   SetCutout(1,k,j,i,status,cocoo,unitnrm,gid);
+		 }
+
 	     }
 	   else
 	     {
@@ -893,10 +991,54 @@ uinteger TRDDBc::getnumLadder(uinteger ladder, uinteger layer, uinteger oct){
        }
 
 #ifdef __AMSDEBUG__
-   assert(num<_NumberBulkheads);
+   assert(num<_NumberLadders);
 #endif
      return num;
 }
+
+uinteger TRDDBc::getnumCutout(uinteger cutout, uinteger ladder, uinteger layer, uinteger oct){
+       int num=0;
+       int i,j,k,l,b;
+       for ( i=0;i<oct;i++){
+        for ( j=0;j<LayersNo(i);j++){
+	  for ( k=0;k<LaddersNo(i,j);k++){
+	    for ( b=0;b<CutoutsNo(i,j,k);b++)num++;
+	  }
+        }
+       }
+
+       for ( i=oct;i<oct+1;i++){
+        for ( j=0;j<layer;j++){
+	  for ( k=0;k<LaddersNo(i,j);k++){
+	    for ( b=0;b<CutoutsNo(i,j,k);b++)num++;
+	  }
+        }
+       }
+
+       for ( i=oct;i<oct+1;i++){
+        for ( j=layer;j<layer+1;j++){
+	  for ( k=0;k<ladder;k++){
+	    for ( b=0;b<CutoutsNo(i,j,k);b++)num++;
+	  }
+        }
+       }
+
+
+       for ( i=oct;i<oct+1;i++){
+        for ( j=layer;j<layer+1;j++){
+	  for ( k=ladder;k<ladder+1;k++){
+	    for ( b=0;b<cutout;b++)num++;
+	  }
+        }
+       }
+
+
+#ifdef __AMSDEBUG__
+   assert(num<_NumberCutouts);
+#endif
+     return num;
+}
+
 
 void TRDDBc::SetOctagon(uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3], uinteger &gid){
@@ -1005,6 +1147,42 @@ void TRDDBc::GetLadder(uinteger ladder, uinteger layer, uinteger oct,
    }
 
 }
+
+void TRDDBc::SetCutout(uinteger bh, uinteger ladder, 
+		       uinteger layer,uinteger oct,
+             uinteger  status, geant coo[],number nrm[3][3], uinteger gid){
+
+    oct=getnumCutout(bh,ladder,layer,oct);    
+
+   _HeadCutoutPos[oct]._status=status;     
+   _HeadCutoutPos[oct]._gid=gid;     
+   int i,j;
+   for(i=0;i<3;i++){
+    _HeadCutoutPos[oct]._coo[i]=coo[i];
+    for(j=0;j<3;j++){
+     _HeadCutoutPos[oct]._nrm[i][j]=nrm[i][j];
+    }
+   }
+}
+
+
+void TRDDBc::GetCutout(uinteger bh,uinteger ladder, 
+                       uinteger layer, uinteger oct,
+                          uinteger & status, geant coo[],number nrm[3][3],
+                          uinteger &gid){
+   oct=getnumCutout(bh,ladder,layer,oct);    
+   status=_HeadCutoutPos[oct]._status;     
+   gid=_HeadCutoutPos[oct]._gid;     
+   int i,j;
+   for(i=0;i<3;i++){
+    coo[i]=_HeadCutoutPos[oct]._coo[i];
+    for(j=0;j<3;j++){
+     nrm[i][j]=_HeadCutoutPos[oct]._nrm[i][j];
+    }
+   }
+
+}
+
 
 void TRDDBc::SetRadiator(uinteger ladder, uinteger layer,uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3], uinteger gid){
@@ -1187,6 +1365,14 @@ assert(index<sizeof(_LaddersDimensions)/sizeof(_LaddersDimensions[0][0][0][0])/m
 return _LaddersDimensions[toct][lay][lad][index];
 }
 
+number & TRDDBc::CutoutsDimensions(uinteger toct, uinteger lay, uinteger cut,uinteger index){
+#ifdef __AMSDEBUG__
+assert(index<sizeof(_CutoutsDimensions)/sizeof(_CutoutsDimensions[0][0][0][0])/mtrdo/maxlay/maxcut);
+#endif
+return _CutoutsDimensions[toct][lay][cut][index];
+}
+
+
 number & TRDDBc::OctagonDimensions(uinteger toct, uinteger index){
 #ifdef __AMSDEBUG__
 assert(toct<OctagonNo());
@@ -1198,7 +1384,7 @@ return _OctagonDimensions[toct][index];
 
 char* TRDDBc::CodeLad(uinteger gid){
  static char output[3]={'\0','\0','\0'};
- static char code[]="QWERTYUIOPASFGHJKLZXCVNM1234567890";
+ static char code[]="QWERTYUIOPASFGHJKLZXVNM1234567890";
  integer size=strlen(code);
  if(gid<size*size){
   output[0]=code[gid%size]; 

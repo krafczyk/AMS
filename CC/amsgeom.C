@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.118 2001/03/29 12:17:05 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.119 2001/04/01 19:31:43 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2922,6 +2922,7 @@ ostrstream ost(name,sizeof(name));
 
 #include <trddbc.h>
 void amsgeom::trdgeom02(AMSgvolume & mother){
+using trdconst::maxco;
 using trdconst::maxbulk;
 using trdconst::maxlay;
 using trdconst::maxlad;
@@ -2980,26 +2981,53 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
 for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
   // Put in the bulkheads
- int j;
- for(j=0;j<TRDDBc::BulkheadsNo(i);j++){
+ int b,j,k,l;
+ for(b=0;b<TRDDBc::BulkheadsNo(i);b++){
 
    int ip;
    gid=i+1;
    ost.seekp(0);  
    // Need to modify if TRDOctagonNo()>1
-   ost << "TRB"<<j<<ends;
-   TRDDBc::GetBulkhead(j,i,status,coo,nrm,rgid);
-   for(ip=0;ip<4;ip++)par[ip]=TRDDBc::BulkheadsDimensions(i,j,ip);
+   ost << "TRB"<<b<<ends;
+   TRDDBc::GetBulkhead(b,i,status,coo,nrm,rgid);
+   for(ip=0;ip<4;ip++)par[ip]=TRDDBc::BulkheadsDimensions(i,b,ip);
    int itrd=TRDDBc::NoTRDOctagons(i);
    //         cout <<name<<" "<<j<<" "<<
    //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
    //	   par[0]<<" "<<par[1]<<" "<<par[2]<<" "<<par[4]<<endl;
-   //   dau=oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
-   //    nrot++,name,"TRD1",par,4,coo,nrm,"ONLY",0,gid,1));
- }
+      dau=oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
+      nrot++,name,"TRD1",par,4,coo,nrm,"ONLY",0,gid,1));
+
+      // Add the cutout daughters here
+
+      for (j=0;j<TRDDBc::LayersNo(i);j++)
+	{
+	  for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
+	    for(l=0;l<TRDDBc::CutoutsNo(i,j,k);l++) {
+	      int bhno;
+	      bhno=TRDDBc::CutoutsBH(i,j,l);
+	      if (bhno == b)
+		{
+		  ost.seekp(0);  
+		  ost << "TCUT"<<ends;
+		  gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
+		  
+		  TRDDBc::GetCutout(l,k,j,i,status,coo,nrm,rgid);  
+		  int ip;
+		  for(ip=0;ip<3;ip++)
+		    par[ip]=TRDDBc::CutoutsDimensions(i,j,k,ip);
+
+		  // First one made is j=4, in bh 0
+		  dau->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
+					  0,name,"BOX",par,3,coo,nrm,"MANY", 
+					  j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
+		}
+	    }
+	  }
+	}
+  }
 
   // Now the ladders and their contents
- int k;
  for(j=0;j<TRDDBc::LayersNo(i);j++){
   for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
    int ip;
