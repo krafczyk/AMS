@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.16 2003/11/19 09:41:19 choutko Exp $
+#  $Id: POADBServer.pm,v 1.17 2004/01/21 11:14:48 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -350,9 +350,14 @@ OUT:
           if($ok){
               $ref->{dsts}=$hash{dsts};           
              if($rc eq "Update"){
+                  my @j_first=split /\:/,$ri->{Name};
+                  my @j_last=split /\//,$ri->{Name};
+                  my $first=$j_first[0];
+                  my $last=$j_last[$#j_last];
                  for my $i (0 ... $#{$ref->{dsts}}){
                      my $arel=$ref->{dsts}[$i];
-                     if($ri->{Name} eq $arel->{Name}){
+# Change name to host/file  check only
+                     if($arel->{Name}=~/^$first/ and $arel->{Name}=~/$last$/){
                          $ref->{dsts}[$i]=$ri;
                          $hash{dsts}=$ref->{dsts};
                          untie %hash;

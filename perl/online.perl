@@ -1,4 +1,4 @@
-# $Id: online.perl,v 1.2 2004/01/20 19:59:20 choutko Exp $
+# $Id: online.perl,v 1.3 2004/01/21 11:14:46 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
@@ -80,7 +80,8 @@ _filled[Set]->Draw();
 gPadSave->cd();
 }
 void AMSEverything::Fill(AMSNtupleR * ntuple){
-int i=0;\n";
+int i=0;\nfloat t;\n";
+
 while (my $line=<FILEI>){
     if($line=~/^\// ){
       next;
@@ -118,11 +119,17 @@ while (my $line=<FILEI>){
      if($junk3[0]=~/\,/){
          my @junk5=split /[\<&]/,$line;
           print FILEO "for( int j=0;j\<$junk5[1];j++){\n";
-          print FILEO " for(int loc=0;loc<ntuple->$junk4[$tag]();loc++)_filled[i]->Fill(ntuple->".$fun.'(j,loc),1.);'."\ni++;\n";
+          print FILEO " for(int loc=0;loc<ntuple->$junk4[$tag]();loc++){
+          t=ntuple->$fun\(j,loc\);
+          if(fabs(t)<1e20)_filled[i]->Fill(t,1.);\n";
+          print FILEO "}\ni++;\n";   
           print FILEO "}\n";   
      }
      else{
-     print FILEO "for(int loc=0;loc<ntuple->$junk4[$tag]();loc++)_filled[i]->Fill(ntuple->".$fun.'(loc),1.);'."\ni++;\n";
+          print FILEO " for(int loc=0;loc<ntuple->$junk4[$tag]();loc++){
+          t=ntuple->$fun\(loc\);
+          if(fabs(t)<1e20)_filled[i]->Fill(t,1.);\n";
+          print FILEO "}\ni++;\n";   
      }
     }
 }
