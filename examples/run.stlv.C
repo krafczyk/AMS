@@ -9,9 +9,9 @@ gROOT->Reset();
 // (it must have been created with EXACTLY the same "root.h" include file 
 //  the you will use inside "stlv.C")
 // For Linux load
-gSystem->Load("/afs/ams.cern.ch/offline/vdev/lib/linux/ntuple.so");
+gSystem->Load("/afs/ams.cern.ch/Offline/vdev/lib/linux/ntuple.so");
 // For Digital Unix, i.e. ams.cern.ch load 
-//gSystem->Load(""/afs/ams.cern.ch/offline/vdev/lib/osf1/ntuple.so");
+//gSystem->Load("/afs/ams.cern.ch/Offline/vdev/lib/osf1/ntuple.so");
 
 // Add all AMS Root files to be analyzed 
 TChain chain("AMSRoot");

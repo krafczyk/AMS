@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.137 2004/02/12 14:59:11 alcaraz Exp $
+//  $Id: root.h,v 1.138 2004/02/12 16:10:55 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3005,31 +3005,10 @@ ClassDef(AMSEventR,1)       //AMSEventR
 
 //!  AMSChain class
 /*!
-  Contains:
-
   Utility class, to simplify the interactive analysis on AMS data with 
-  Cint/Python/Ruby interpreters.
+  Cint/Python/Ruby interpreters. Example of use with Cint:
 
-  Example of use with Cint:
-
-  - {
-      - gROOT->Reset();
-      - gSystem->Load("$AMSDir/lib/linux/icc/ntuple.so");
-      - AMSChain ams;
-      - ams.Add("/f2users/choutko/g3v1g3.root");
-      - TH1F* hrig = new TH1F ("hrig", "Momentum (GeV)", 50, -10., 10.);
-      - int ndata = ams.GetEntries();
-      - for (int entry=0; entry<ndata; entry++) {
-            - AMSEventR* ev = ams.GetEvent();
-            - if (ev==NULL) break;
-            - for (int i=0; i<ev->nParticle(); i++) {
-                  - ParticleR part = ev->Particle(i);
-                  - hrig->Fill(part.Momentum);
-            - }
-      - }
-      - hrig->Draw();
-      - cout << "We have processed: " << ndata << " events" << endl;
-  - }
+  \include ana.root_cint.C
 
   \author juan.alcaraz@cern.ch
 
@@ -3064,10 +3043,11 @@ public:
 
 //!  AMSEventList class
 /*!
-  Contains:
-
   Utility class, to select a set of events and then having the possibility to write
-  them into a new files, possibly with just a set of selected branches
+  them into a new files, possibly with just a set of selected branches. 
+  Example:
+
+  \include select_entries.C
 
   \author juan.alcaraz@cern.ch
 
@@ -3117,31 +3097,13 @@ namespace AMSMyTrackConst {
 
 //!  AMSMyTrack class
 /*! 
-  Contains:
+  Utility class, to define and fit your own tracks directly on the ROOT 
+  file, with your own selected hits and optionally without magnetic field
+  (straight line fit). No multiple scattering is included for the moment.
+  Example of usage:
 
-  - Utility class, to use your and fit your own tracks directly on the ROOT 
-    file, with your own selected hits and optionally without magnetic field
-    (straight line fit). No multiple scattering is included for the moment.
-
-  - Example of usage:
+  \include my_tracks.C
    
-        - AMSMyTrack new_track;
-        - // AMSMyTrack new_track(0); // (fit without magnetic field)
-        - for (int i=0; i<nTrTrack(); i++) {
-             - TrTrackR track = TrTrack(i);
-             - new_track.use_hits_from(&track);
-             - for (int j=5; j<track.NTrRecHit(); j++) {
-                   - new_track.del_hit(track.pTrRecHit(j));
-             - }
-             - if (new_track.Fit()) {
-                   - cout << "Track number= " << i; 
-                   - cout << ", Old rig:" << track.Rigidity; 
-                   - cout << ", New Rig:" << new_track.Rigidity;
-                   - cout << endl;
-             - }
-        - }
-          
-                      
   \author juan.alcaraz@cern.ch
   
 */
