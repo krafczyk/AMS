@@ -1,11 +1,10 @@
-#  $Id: 00index.txt,v 1.34 2003/12/11 20:14:29 choutko Exp $
-****NB ___  OBSOLETE SCHEME ___ USE NEW ONE SEE BOTTOM OF THIS FILE ****
+#  $Id: 00index.txt,v 1.35 2003/12/17 13:22:50 choutko Exp $
 
-Mopt_ntuple // makefile to gmake geant batch  (obslolete, not recommended)
+Makefile //  General Makefile
+Makefile.Linux // OS dep
+Makefile.OSf1 //  OS dep
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv AMSPROFILE 1  adds gprof
-Mopt      // same + ability to write root files   (Recommended)
-Mgxint    // makefile to gmake geant interactive  g3
 Moptg4    // makefile to gmake g4 batch
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv O4 1   super-opt option (alpha only)
@@ -13,51 +12,16 @@ Moptg4    // makefile to gmake g4 batch
 Moptg4i    // makefile to gmake geant interactive  g4
 
 
-To create standalone simulation/reconstruction program (without db) use:
 
- batch                   gmake -if Mopt (Moptg4)
- interactive(g3 )   gmake -if  Mgxint  (undefine AMSICC; gmake -f Mopt first)
- interactive(g4 )   gmake -if  Moptg4i  
-
-To use gnu g77 compiler  (not recommended,-40% program speed, still needed for interactive geant3)
-unsetenv AMSICC 
-gmake -if Mopt
-
-To create production server:
-
- gmake server -f Mopt2   ! NB Orbit2/RH9 only
-
-
-To create gbatch_producer to server:
-
- gmake producer -f Mopt2  ! NB Orbit2/RH9 only
-
-
-
-
-
-To build ams "ROOT" shared library  ntuple.so
-
- gmake -f Mopt shared
-
-
-**** END OBSOLETE SCHEME *******
-
-
-
--NB -  New Scheme  by R. Laurier -  NB - 
-Makefile //  General Makefile
-Makefile.Linux // OS dep
-Makefile.OSf1 //  OS dep
+Overall:
 
 gmake gbatch     // builds g3 gbatch with root
-gmake gxint      // builds g3 gxint
+gmake gxint      // builds g3 gxint !undefine AMSICC first
 gmake shared     // builds root shared library
 gmake producer  // builds gbatch-orbit (Linux rh9 orbit2 only)
 gmake server    // builds server (Linux rh9 orbit2 only)
 
-
-
-
+gmake -f Moptg4   //builds g4 batch (not supported at the moment)
+gmake -f Moptg4i  //builds g4 interactive (not supported at the moment)
 
 

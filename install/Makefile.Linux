@@ -47,6 +47,17 @@ else
   LIB=$(AMSWD)/lib/linux/
   SHLD=$(LIB)/ntuple.so
 endif
+ifdef AMSINT
+  CERNLIBS = -lpacklib -lmathlib -lkernlib
+  SHIFTLIB = 
+  CC=g++ -Wno-deprecated -mcpu=i686 
+  FF=g77
+  LD=g++
+  BIN=$(AMSWD)/bin/linux/
+  EXE=$(AMSWD)/exe/linux/
+  LIB=$(AMSWD)/lib/linux/
+  SHLD=$(LIB)/ntuple.so
+endif
 
 LDFLAGSI=    -static  -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib  -lgeant321  -lpawlib -llapack3 -lpacklib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/local/lib   -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib   -lcrypt -ldl   -L$(AMSLIB) -lamsut -lkernlib -lg2c
 
