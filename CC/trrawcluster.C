@@ -566,7 +566,7 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
          }
        }
      }
-     else {
+     else if(tdrn<24){
        // K Side
        len=384;
        for(j=0;j<4;j++){
@@ -592,6 +592,9 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
           buildpreclusters(idd,len,id);
          }
        }
+     }
+     else {
+       cerr<<"trrawcluster::buildrawRawB-ETDRNOutOfRange "<<tdrn<<endl;
      }
      ptr+=lrec;
     }
@@ -897,7 +900,7 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
           if(j==0)conn=1;
           else conn=0;
          }
-         else {
+         else{
           if(j==0)conn=3;
           else conn=2;
          }
@@ -916,7 +919,7 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
          }
        }
      }
-     else {
+     else if(tdrn<24){
        // K Side
        len=384;
        for(j=0;j<4;j++){
@@ -942,9 +945,12 @@ void AMSTrRawCluster::updpedSRaw(integer n, int16u* p){
          }
        }
      }
+     else {
+       cerr <<"trrawcluster::updpedSRaw-E-TDRNOutOfRange "<<tdrn<<endl;
+     }
      ptr+=lrec;
     }
-    ptr+=2;
+    ptr+=3;
   }
 
 
@@ -1066,7 +1072,7 @@ void AMSTrRawCluster::updsigSRaw(integer n, int16u* p){
          }
        }
      }
-     else {
+     else if(tdrn<24){
        // K Side
        len=384;
        for(j=0;j<4;j++){
@@ -1092,9 +1098,12 @@ void AMSTrRawCluster::updsigSRaw(integer n, int16u* p){
          }
        }
      }
+     else{
+       cerr<<"AMSTrRawCluster::updsigSRaw-E-TDRNOutOfRange "<<tdrn<<endl;
+     }
      ptr+=lrec;
     }
-    ptr+=2;
+    ptr+=3;
   }
 
 
@@ -1227,7 +1236,7 @@ void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
   int16u * ptr=p+1;
   // Main loop
   while (ptr<p+n){
-    // Read two tdrs
+    // Read two tdrsn
     //    if(*ptr != 3084){
     //  cerr <<"updpedsRaw-E-bad event length, skipped "<<*ptr<<endl; 
     //  return;
@@ -1298,7 +1307,7 @@ void AMSTrRawCluster::updstatusSRaw(integer n, int16u* p){
      }
      ptr+=lrec;
     }
-    ptr+=2;
+    ptr+=3;
   }
 
 

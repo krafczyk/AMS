@@ -309,8 +309,8 @@ out:
               //cout <<cntdr<<" "<<Record[14]<<" "<<pData[cntdr][0]<<endl;
               cntdr++;
             }
-          Record[14]+=2;  //crc
-         }
+           Record[14]+=3;  //crc + junk
+          }
           //   cout << " Output record "<<Record[14]<<endl;
          frp=16;
          int cntdr=0;
@@ -333,26 +333,29 @@ out:
            frp++;
            Record[frp]=0;
            frp++;
+           Record[frp]=0;
+           frp++;
          }
 
 
         }
         else {
+          cntdr=0;
           //raw first
           for(int k=0;k<nblk;k++){
             Record[14]+=2;
             for(int j=0;j<pntdr[k];j++){
               Record[14]+=1+pData[cntdr++][1];
             }
-           Record[14]+=2;  //crc
+           Record[14]+=3;  //crc
           }
-          //cout << " Output record mixed"<<Record[14]<<endl;
+          // cout << " Output record mixed"<<Record[14]<<endl;
          frp=16;
          int cntdr=0;
          int icntdr=0;         
          for(ll=0;ll<nblk;ll++){
            // find the correct raw length
-           int rawl=2+2;
+           int rawl=2+3;
             for(int j=0;j<pntdr[ll];j++){
               rawl+=1+pData[icntdr++][1];
             }
@@ -370,6 +373,8 @@ out:
            }
            cntdr++;
           }   
+           Record[frp]=0;
+           frp++;
            Record[frp]=0;
            frp++;
            Record[frp]=0;

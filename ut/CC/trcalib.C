@@ -1076,7 +1076,7 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
          }
        }
      }
-     else {
+     else if(tdrn<24){
        // K Side
        len=384;
        for(j=0;j<4;j++){
@@ -1102,6 +1102,9 @@ void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
           buildpreclusters(idd,len,id);
          }
        }
+     }
+     else{
+       cerr<<"AMSTrIdCalib::buildSigmaPedB-E-TDRNOutOfRange "<<tdrn<<endl;
      }
      ptr+=lrec;
     }
