@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.6 2003/07/17 16:38:53 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.7 2003/07/18 08:50:59 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -84,12 +84,6 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         case 7014:
          type=kgeometry;
           break;
-        case 7015:
-         gAMSDisplay->ShowTrClProfile()=!_pvis[parm1%100-1]->GetState();
-         gAMSDisplay->GetNtuple()->Prepare(ktrclusters);
-         gAMSDisplay->SetView(gAMSDisplay->GetView());
-         gAMSDisplay->DrawTitle();
-         return true;
       }
       if(parm1/1000==7){
         gAMSDisplay->SetVisible(type, _pvis[parm1%100-1]->GetState());
@@ -168,6 +162,30 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       break;
     case kCM_MENU:
       switch   (parm1){
+      case 101:
+       gAMSDisplay->ShowTrClProfile()=!gAMSDisplay->ShowTrClProfile();
+        fOptionMenu->DeleteEntry(101);
+        if(gAMSDisplay->ShowTrClProfile()){
+          fOptionMenu->AddEntry("&Draw TrClusters As Simple Boxes",101,0,0,fOptionMenu->GetEntry(102));
+        }
+        else{
+          fOptionMenu->AddEntry("&Draw TrClusters As Clusters",101,0,0,fOptionMenu->GetEntry(102));
+        }
+         gAMSDisplay->GetNtuple()->Prepare(ktrclusters);
+         gAMSDisplay->SetView(gAMSDisplay->GetView());
+         gAMSDisplay->DrawTitle();
+        break;
+      case 102:
+        gAMSDisplay->UseSolidStyle()=!gAMSDisplay->UseSolidStyle();
+        fOptionMenu->DeleteEntry(102);
+        if(gAMSDisplay->UseSolidStyle()){
+         fOptionMenu->AddEntry("&Use Hollow Style",102);
+        }
+        else   fOptionMenu->AddEntry("&Use Solid Style",102);
+        gAMSDisplay->GetNtuple()->Prepare(kall);
+        gAMSDisplay->SetView(gAMSDisplay->GetView());
+        gAMSDisplay->DrawTitle();
+        break;
       case 5:
         gApplication->SetReturnFromRun(0);
         gApplication->Terminate(1);
@@ -235,11 +253,18 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
 
     fSaveAsMenu->Associate(this);
     
+    fOptionMenu=new TGPopupMenu(fClient->GetRoot());
+    fOptionMenu->AddEntry("&Draw TrClusters As Simple Boxes",101);
+    fOptionMenu->AddEntry("&Use Hollow Style",102);
+    fOptionMenu->Associate(this);
+    
+
 
    // Create menubar
     fMenuBar = new TGMenuBar(this, 1, 1, kHorizontalFrame);
     
     fMenuBar->AddPopup("&File", fSaveAsMenu, fMenuBarItemLayout);
+    fMenuBar->AddPopup("&Options", fOptionMenu, fMenuBarItemLayout);
     AddFrame(fMenuBar, fMenuBarLayout);
     ULong_t tggcolor,tgbcolor,tgccolor,tgblcolor;
     gClient->GetColorByName("#808080",tggcolor);
@@ -332,13 +357,14 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     _pvis.push_back(new TGCheckButton(_pvisfr,"Particles",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"MC Info",marker++));
     _pvis.push_back(new TGCheckButton(_pvisfr,"Geometry",marker++));
-    _pvis.push_back(new TGCheckButton(_pvisfr,"TrClustersAsBoxes",marker++));
+//    _pvis.push_back(new TGCheckButton(_pvisfr,"SolidStyle",marker++));
+//    _pvis.push_back(new TGCheckButton(_pvisfr,"TrClustersAsBoxes",marker++));
     for(int i=0;i<_pvis.size();i++){
          _pvis[i]->ChangeBackground(tggcolor);
          _pvisfr->AddFrame(_pvis[i],fL1);
          _pvis[i]->Associate(this);
     }
-    for(int i=1;i<_pvis.size()-1;i++){
+    for(int i=1;i<_pvis.size();i++){
      _pvis[i]->SetState(kButtonDown);
     }
      gAMSDisplay->SetVisible(kusedonly,_pvis[0]->GetState());

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.26 2003/07/17 16:38:53 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.27 2003/07/18 08:50:59 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -48,6 +48,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple):
      m_scale=1;   
      m_chain=0; 
      m_trclpr=true;
+      m_drawsolid=true;
  
    // Initialize display default parameters
     SetGeometry(geo);

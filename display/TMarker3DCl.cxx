@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl.cxx,v 1.1 2003/07/17 16:38:54 choutko Exp $
+//  $Id: TMarker3DCl.cxx,v 1.2 2003/07/18 08:50:59 choutko Exp $
 
 
 
@@ -12,7 +12,7 @@
 #include "TH1.h"
 #include "TH3.h"
 #include "TFile.h"
-
+#include "TPad.h"
 ClassImp(TMarker3DCl)
 
 //______________________________________________________________________________
@@ -225,22 +225,23 @@ void TMarker3DCl::Paint(Option_t *option)
     buff->polys = new Int_t[buff->numPolys*6];
     if (buff->polys) {
       int step=0;
-        buff->polys[step+ 0] = c;   buff->polys[step+ 1] = 4;  buff->polys[step+ 2] = 0;
-        buff->polys[step+ 3] = 9;   buff->polys[step+ 4] = 4;  buff->polys[step+ 5] = 8;
-        buff->polys[step+ 6] = c+1; buff->polys[step+ 7] = 4;  buff->polys[step+ 8] = 1;
-        buff->polys[step+ 9] = 10;  buff->polys[step+10] = 5;  buff->polys[step+11] = 9;
-        buff->polys[step+12] = c;   buff->polys[step+13] = 4;  buff->polys[step+14] = 2;
-        buff->polys[step+15] = 11;  buff->polys[step+16] = 6;  buff->polys[step+17] = 10;
-        buff->polys[step+18] = c+1; buff->polys[step+19] = 4;  buff->polys[step+20] = 3;
-        buff->polys[step+21] = 8;   buff->polys[step+22] = 7;  buff->polys[step+23] = 11;
-        buff->polys[step+24] = c+2; buff->polys[step+25] = 4;  buff->polys[step+26] = 0;
-        buff->polys[step+27] = 3;   buff->polys[step+28] = 2;  buff->polys[step+29] = 1;
-        buff->polys[step+30] = c+3; buff->polys[step+31] = 4;  buff->polys[step+32] = 4;
-        buff->polys[step+33] = 5;   buff->polys[step+34] = 6;  buff->polys[step+35] = 7;
+        buff->polys[step+ 0] = c;   buff->polys[step+ 1] = 0;  buff->polys[step+ 2] = 1;
+        buff->polys[step+ 3] = 5;   buff->polys[step+ 4] = 4;  buff->polys[step+ 5] = 8;
+        buff->polys[step+ 6] = c+1; buff->polys[step+ 7] = 1;  buff->polys[step+ 8] = 2;
+        buff->polys[step+ 9] = 6;  buff->polys[step+10] = 5;  buff->polys[step+11] = 9;
+        buff->polys[step+12] = c;   buff->polys[step+13] = 0;  buff->polys[step+14] = 1;
+        buff->polys[step+15] = 2;  buff->polys[step+16] = 3;  buff->polys[step+17] = 10;
+        buff->polys[step+18] = c+1; buff->polys[step+19] = 0;  buff->polys[step+20] = 3;
+        buff->polys[step+21] = 7;   buff->polys[step+22] = 4;  buff->polys[step+23] = 11;
+        buff->polys[step+24] = c+2; buff->polys[step+25] = 3;  buff->polys[step+26] = 2;
+        buff->polys[step+27] = 6;   buff->polys[step+28] = 7;  buff->polys[step+29] = 1;
+        buff->polys[step+30] = c+3; buff->polys[step+31] = 5;  buff->polys[step+32] = 6;
+        buff->polys[step+33] = 7;   buff->polys[step+34] = 4;  buff->polys[step+35] = 7;
     }
 
     //*-* Paint in the pad
-    PaintShape(buff,rangeView);
+    if(GetFillStyle()==1001)PaintShape3D(buff,rangeView);
+    else PaintShape(buff,rangeView);
 
     if (strstr(option, "x3d")) {
         if(buff && buff->points && buff->segs)
@@ -267,7 +268,66 @@ void TMarker3DCl::PaintGLPoints(Float_t *vertex)
 //*-*                  ===================================
     gVirtualGL->PaintBrik(vertex);
 }
+//______________________________________________________________________________
+void TMarker3DCl::PaintShape3D(X3DBuffer *buff, Bool_t rangeView)
+{
+//*-*-*-*-*Paint 3-D marker in current pad with its current attributes*-*-*-*-*
+//*-*      ==========================================================
 
+    //*-* Paint in the pad
+
+    Float_t points[12];
+    Double_t x0, y0, z0, x1, y1, z1;
+    const Int_t kExpandView = 2;
+    int i0;
+
+    x0 = y0 = z0 = x1 = y1 = z1 = buff->points[0];
+
+    TAttLine::Modify();  //Change line attributes only if necessary
+    TAttFill::Modify();  //Change fill area attributes only if necessary
+
+    for (Int_t i = 0; i < buff->numPolys; i++) {
+    for(int kx=0;kx<fNx;kx++){
+     for(int ky=0;ky<fNy;ky++){
+      int step=24*(kx+ky*fNx);
+        i0 = 3*buff->polys[6*i+1];
+        points[0] = buff->points[step+i0++];
+        points[1] = buff->points[step+i0++];
+        points[2] = buff->points[step+i0];
+
+        i0 = 3*buff->polys[6*i+2];
+        points[3] = buff->points[step+i0++];
+        points[4] = buff->points[step+i0++];
+        points[5] = buff->points[step+i0];
+
+        i0 = 3*buff->polys[6*i+3];
+        points[6] = buff->points[step+i0++];
+        points[7] = buff->points[step+i0++];
+        points[8] = buff->points[step+i0];
+
+        i0 = 3*buff->polys[6*i+4];
+        points[9] = buff->points[step+i0++];
+        points[10] = buff->points[step+i0++];
+        points[11] = buff->points[step+i0];
+        x0 = points[0] < x0 ? points[0] : x0;
+        y0 = points[1] < y0 ? points[1] : y0;
+        z0 = points[2] < z0 ? points[2] : z0;
+        x1 = points[0] > x1 ? points[0] : x1;
+        y1 = points[1] > y1 ? points[1] : y1;
+        z1 = points[2] > z1 ? points[2] : z1;
+
+       if (!rangeView) ((TPad*)gPad)->PaintFillArea3D(4,points);
+//       cout <<i<<" painting  "<<points[0]<<" "<<points[1]<<" "<<points[2];
+//       cout <<" "<<points[4]<<" "<<points[5]<<" "<<points[6]<<endl;
+    }
+    }
+    }
+    if (rangeView){
+      TView *view = gPad->GetView();
+      if (view->GetAutoRange()) view->SetRange(x0,y0,z0,x1,y1,z1,kExpandView);
+    }
+
+}
 
 //______________________________________________________________________________
 void TMarker3DCl::PaintShape(X3DBuffer *buff, Bool_t rangeView)

@@ -1,4 +1,4 @@
-//  $Id: TMarker3DCl.h,v 1.1 2003/07/17 16:38:54 choutko Exp $
+//  $Id: TMarker3DCl.h,v 1.2 2003/07/18 08:50:59 choutko Exp $
 
 #ifndef ROOT_TMarker3DCl
 #define ROOT_TMarker3DCl
@@ -81,6 +81,8 @@ public:
 
     virtual void    Paint(Option_t *option);
     virtual void    PaintShape(X3DBuffer *buff, Bool_t rangeView=kFALSE);
+    void            PaintShape3D(X3DBuffer *buff, Bool_t rangeView=kFALSE);
+
     virtual void    SavePrimitive(ofstream &out, Option_t *option);
     virtual void    SetPoints(Float_t *buff);
     virtual void    SetDirection(Float_t theta, Float_t phi);

@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.h,v 1.1 2003/07/08 16:22:03 choutko Exp $
+//  $Id: ControlFrame.h,v 1.2 2003/07/18 08:50:59 choutko Exp $
 #ifndef __CONTROLFRAME__
 #define __CONTROLFRAME__
 #include <stdlib.h>
@@ -37,7 +37,7 @@ protected:
   TGCheckButton * _pauto;
   TGMenuBar           *fMenuBar;            // menubar
   TGPopupMenu         *fSaveAsMenu;        //  saveas
-    
+  TGPopupMenu         *fOptionMenu;     
   
   TGLayoutHints       *fMenuBarLayout;      // menubar layout hints
   TGLayoutHints       *fMenuBarItemLayout;  // layout hints for menu in menubar

@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.7 2003/07/17 16:38:53 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.8 2003/07/18 08:50:59 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -53,11 +53,11 @@ Int_t DistancetoPrimitive(Int_t px, Int_t py){
 }
 };
 
-class TofClusterV: public AMS3DMarker, public AMSDrawI{
+class TofClusterV: public TMarker3DCl, public AMSDrawI{
 protected:
 public:
-TofClusterV():AMSDrawI(NULL,-1),AMS3DMarker(){};
-TofClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
+TofClusterV():AMSDrawI(NULL,-1),TMarker3DCl(){};
+TofClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
  TofClusterR *pcl=ev->pTofCluster(ref);
 if(pcl){
   SetSize(pcl->ErrorCoo[0],pcl->ErrorCoo[1],sqrt(pcl->Edep/2)<8?sqrt(pcl->Edep/2):8);
@@ -67,7 +67,8 @@ if(pcl){
    SetLineWidth(3);
    SetLineColor(3);             // light green
    SetFillColor(3);
-   SetFillStyle(1001);          // solid filling (not working now....)
+   SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
+
 
 }
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTofCluster(fRef)->Info(fRef):0;}
@@ -104,6 +105,7 @@ if(pcl){
    SetLineWidth(size);
    SetLineColor(4);             // blue
    SetFillColor(4);
+   SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
    SetFillStyle(1001);          // solid filling (not working now....)
 
 }
@@ -112,20 +114,19 @@ char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTrRecHit(fRef)->Inf
 };
 
 
-class TrdClusterV: public AMS3DMarker, public AMSDrawI{
+class TrdClusterV: public TMarker3DCl, public AMSDrawI{
 protected:
 public:
-TrdClusterV():AMSDrawI(NULL,-1),AMS3DMarker(){};
-TrdClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
+TrdClusterV():AMSDrawI(NULL,-1),TMarker3DCl(){};
+TrdClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
  TrdClusterR *pcl=ev->pTrdCluster(ref);
 if(pcl){
   SetPosition(pcl->Coo[0],pcl->Coo[1],pcl->Coo[2]);
 
   float ercoo[3];
-//  ercoo[pcl->Direction]=pcl->ClSizeZ*0.9;
-  ercoo[pcl->Direction]=pcl->ClSizeR*3;
-  ercoo[1-pcl->Direction]=pcl->ClSizeR*pcl->Multip;
-  ercoo[2]=sqrt(pcl->EDep/2);
+  ercoo[pcl->Direction]=sqrt(pcl->EDep/2);
+  ercoo[1-pcl->Direction]=2*pcl->ClSizeR*pcl->Multip;
+  ercoo[2]=2*pcl->ClSizeR;
   SetSize(ercoo[0],ercoo[1],ercoo[2]);
  
 
@@ -134,7 +135,7 @@ if(pcl){
    SetLineWidth(3);
    SetLineColor(46);             // dark red
    SetFillColor(46);
-   SetFillStyle(1001);          // solid filling (not working now....)
+   SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
 
 }
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pTrdCluster(fRef)->Info(fRef):0;}
@@ -158,18 +159,18 @@ if(pcl){
    SetLineWidth(3);
    SetLineColor(30);             // purple
    SetFillColor(30);
-   SetFillStyle(1001);          // solid filling (not working now....)
+   SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
 
 }
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pAntiCluster(fRef)->Info(fRef):0;}
 
 };
 
-class RichHitV: public AMS3DMarker, public AMSDrawI{
+class RichHitV: public TMarker3DCl, public AMSDrawI{
 protected:
 public:
-RichHitV():AMSDrawI(NULL,-1),AMS3DMarker(){};
-RichHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
+RichHitV():AMSDrawI(NULL,-1),TMarker3DCl(){};
+RichHitV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
  RichHitR *pcl=ev->pRichHit(ref);
  int size=gAMSDisplay->Focus()==0?2:1;
 if(pcl){
@@ -185,18 +186,18 @@ if(pcl){
    SetLineWidth(size);
    SetLineColor(9);             // purple
    SetFillColor(9);
-   SetFillStyle(1001);          // solid filling (not working now....)
+   SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
 
 }
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pRichHit(fRef)->Info(fRef):0;}
 
 };
 
-class EcalClusterV: public AMS3DMarker, public AMSDrawI{
+class EcalClusterV: public TMarker3DCl, public AMSDrawI{
 protected:
 public:
-EcalClusterV():AMSDrawI(NULL,-1),AMS3DMarker(){};
-EcalClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),AMS3DMarker(){
+EcalClusterV():AMSDrawI(NULL,-1),TMarker3DCl(){};
+EcalClusterV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TMarker3DCl(){
  EcalClusterR *pcl=ev->pEcalCluster(ref);
 if(pcl){
   SetPosition(pcl->Coo[0],pcl->Coo[1],pcl->Coo[2]);
@@ -214,7 +215,7 @@ if(pcl){
    SetLineWidth(gAMSDisplay->Focus()==0?1:2);
    SetLineColor(7);             // purple
    SetFillColor(7);
-   SetFillStyle(1001);          // solid filling (not working now....)
+   SetFillStyle(gAMSDisplay->UseSolidStyle()?1001:0);          // solid filling (not working now....)
 
 }
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pEcalCluster(fRef)->Info(fRef):0;}
