@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.368 2001/05/02 15:53:41 choutko Exp $
+// $Id: job.C,v 1.369 2001/05/03 14:06:32 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2606,16 +2606,16 @@ end.tm_mday=TRDMCFFKEY.day[1];
 end.tm_mon=TRDMCFFKEY.mon[1];
 end.tm_year=TRDMCFFKEY.year[1];
  TID.add (new AMSTimeID(AMSID("TRDPedestals",isRealData()),
-    begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::NROCh(),
+    begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::getpedsize(),
     (void*)AMSTRDIdSoft::_ped,server));
  TID.add (new AMSTimeID(AMSID("TRDGains",isRealData()),
-    begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::NROCh(),
+    begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
     (void*)AMSTRDIdSoft::_gain,server));
  TID.add (new AMSTimeID(AMSID("TRDSigmas",isRealData()),
-    begin,end,sizeof(AMSTRDIdSoft::_sig[0])*AMSTRDIdSoft::NROCh(),
+    begin,end,sizeof(AMSTRDIdSoft::_sig[0])*AMSTRDIdSoft::getsigsize(),
     (void*)AMSTRDIdSoft::_sig,server));
  TID.add (new AMSTimeID(AMSID("TRDStatus",isRealData()),
-    begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::NROCh(),
+    begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
     (void*)AMSTRDIdSoft::_status,server));
 }
 

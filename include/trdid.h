@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.4 2001/05/02 15:53:45 choutko Exp $
+//  $Id: trdid.h,v 1.5 2001/05/03 14:06:35 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include <typedefs.h>
@@ -114,6 +114,10 @@ friend class AMSTRDIdGeom;
 friend class AMSJob;
 AMSTRDIdSoft(const  AMSTRDIdGeom & o);
 static uinteger CalcBadCh(uinteger crate);
+static uinteger getpedsize(){return maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;}
+static uinteger getsigsize(){return maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;}
+static uinteger getstasize(){return maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;}
+static uinteger getgaisize(){return maxtube*trdconst::maxlad*trdconst::maxlay+maxtube*trdconst::maxlad+maxtube;}
 };
 
 

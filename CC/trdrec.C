@@ -19,7 +19,12 @@ integer AMSTRDCluster::build(int rerun){
        integer ilay=id.getlayer();
        integer ilad=id.getladder();
        if(ptr->testlast()){
-        adc[ptr->getidsoft().gettube()]=ptr->Amp()/id.getgain();
+        adc[ptr->getidsoft().gettube()]=ptr->Amp()/(id.getgain()>0?id.getgain():1);
+#ifdef __AMSDEBUG__
+        if(id.getgain()<=0){
+         cerr <<"AMSTRDCluster::build-E-zero gain for "<<id<<" "<<id.getgain()<<endl;
+        }
+#endif
         number ref=-FLT_MAX;
         int status=0;
         for(int i=0;i<trdconst::maxtube;i++){

@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.5 2001/05/02 15:53:41 choutko Exp $
+//  $Id: trdid.C,v 1.6 2001/05/03 14:06:32 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -91,12 +91,11 @@ for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
           }
       }
 }
-int size=maxtube*maxlad*maxlay+maxtube*maxlad+maxtube;
-_ped=new geant[size];
-_sig=new geant[size];
-_gain=new geant[size];
-_status=new uinteger[size];
-cout <<"AMSTRDIdSoft::init()-I-"<<_NROCh<<"/"<<size<<" readout channels initialized"<<endl;
+_ped=new geant[getpedsize()];
+_sig=new geant[getsigsize()];
+_gain=new geant[getgaisize()];
+_status=new uinteger[getstasize()];
+cout <<"AMSTRDIdSoft::init()-I-"<<_NROCh<<"/"<<getpedsize()<<" readout channels initialized"<<endl;
 }
 
 
@@ -120,13 +119,16 @@ geant * AMSTRDIdSoft::_sig=0;
 
 uinteger AMSTRDIdSoft::CalcBadCh(uinteger crateno){
 uinteger badch=0;
+uinteger zerog=0;
 for (int i=0;i<TRDDBc::LayersNo(0);i++){
   for(int j=0;j<TRDDBc::LaddersNo(0,i);j++){
     for(int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
     AMSTRDIdSoft id(i,j,k);
     if(id.getcrate()==crateno && id.checkstatus(AMSDBc::BAD))badch++;
-    }
+    if(id.getcrate()==crateno && id.getgain()==0)zerog++;
+     }
   }
 }
+if(zerog)cerr<<" Some gains are zeros!!! "<<zerog<<endl;
 return badch;
 }
