@@ -13,7 +13,7 @@
 #include <mccluster.h>
 #include <iostream>
 //#include <vector>
-#include <valarray>
+//#include <valarray>
 void AMSRichRawEvent::mc_build(){
   // Add noise...
 

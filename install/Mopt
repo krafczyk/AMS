@@ -1,7 +1,7 @@
 #
 SHELL=/bin/sh
 #
-ifeq  "$(shell uname)"  "AIX" 
+ifeq  "$(shell uname)"  "AIXold" 
 SHLDFLAGS=/usr/lpp/xlC/bin/makeC++SharedLib $(ROOTLIBS) -lm -lcurses -p 0
 ROOTLIBS=
 ifdef AMSDEBUG
@@ -87,6 +87,32 @@ LD=g++
 BIN=../bin/linux/
 EXE=/exe/linux
 LIB=/lib/linux
+TIMEL=
+endif
+
+ifeq  "$(shell uname)"  "AIX"
+ifdef AMSDEBUG
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  
+CFLAGSTOFSIM= $(CFLAGS)
+CFLAGSn=      $(CFLAGS)
+CFLAGSDAQ=    $(CFLAGS)
+FFLAGS=   -qextname -g -I../include  -d
+else
+CFLAGSB=      -D__BATCH__      -I../include   -I../db  
+CFLAGSTOFSIM= $(CFLAGSB)     -O1   
+CFLAGSDAQ=    $(CFLAGSB) 
+CFLAGSn=      $(CFLAGSB) -O2
+CFLAGS=      $(CFLAGSB) -O2
+FFLAGS=   -qextname -qsave -O -I../include
+endif
+DFLAGS=       -I/usr/include  -I../include  -I/usr/local/lib/g++-include
+LDFLAGS=       -lxlf90 -lxlf    -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag     -L/afs/cern.ch/exp/ams/Offline/lib/aix -lamsut
+CC=g++ 
+FF=xlf
+LD=g++ 
+BIN=../bin/aix/
+EXE=/exe/aix
+LIB=/lib/aix
 TIMEL=
 endif
 
@@ -242,6 +268,11 @@ $(BIN)mtx.o:                   ../F/mtx77.F
 	g77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
 endif
 ifeq  "$(shell uname)"  "AIX" 
+
+$(BIN)mtx.o:                   ../F/mtx.F
+	xlf90 -c $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
+endif
+ifeq  "$(shell uname)"  "AIXold" 
 
 $(BIN)mtx.o:                   ../F/mtx.F
 	xlf90 -c $(FFLAGS)      ../F/mtx.F -o $(BIN)mtx.o
