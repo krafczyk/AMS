@@ -1,4 +1,4 @@
-//  $Id: AMSR_MCParticle.h,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_MCParticle.h,v 1.3 2001/08/18 17:01:54 kscholbe Exp $
 #ifndef AMSR_MCParticle_H
 #define AMSR_MCParticle_H
 
@@ -31,7 +31,7 @@ private:
 public:
                   AMSR_MCParticle() {;}
    virtual       ~AMSR_MCParticle() {;}
-   virtual char  *GetObjectInfo(Int_t px, Int_t py);
+   virtual char  *GetObjectInfo(Int_t px, Int_t py) const;
            void   SetHelix();
    virtual void   Paint(Option_t *option="");
 

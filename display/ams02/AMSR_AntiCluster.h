@@ -1,4 +1,4 @@
-//  $Id: AMSR_AntiCluster.h,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_AntiCluster.h,v 1.3 2001/08/18 17:01:52 kscholbe Exp $
 
 #ifndef AMSR_AntiCluster_H
 #define AMSR_AntiCluster_H
@@ -34,7 +34,7 @@ private:
 				Float_t * coo, Float_t * ercoo,
 				Int_t ntracks, TObjArray * tracks);
    virtual       ~AMSR_AntiCluster() {;}
-   virtual char  *GetObjectInfo(Int_t px, Int_t py);
+   virtual char  *GetObjectInfo(Int_t px, Int_t py) const;
    virtual void   Paint(Option_t *option="");
    virtual void   Clear(Option_t *option="");
 

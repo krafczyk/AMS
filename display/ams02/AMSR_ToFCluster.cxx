@@ -1,4 +1,4 @@
-//  $Id: AMSR_ToFCluster.cxx,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_ToFCluster.cxx,v 1.3 2001/08/18 17:01:54 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -49,7 +49,7 @@ AMSR_ToFCluster::AMSR_ToFCluster(Int_t status, Int_t plane, Int_t bar,
 }
 
 //______________________________________________________________________________
-char *AMSR_ToFCluster::GetObjectInfo(Int_t px, Int_t py)
+char *AMSR_ToFCluster::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[64];
    sprintf(info,"ToF S%dB%d: time=%3.1f+-%3.1f, Edep=%4.1f, at (%5.1f,%5.1f,%5.1f)+-(%5.1f,%5.1f,%5.1f)",

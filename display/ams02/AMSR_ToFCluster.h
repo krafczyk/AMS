@@ -1,4 +1,4 @@
-//  $Id: AMSR_ToFCluster.h,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_ToFCluster.h,v 1.3 2001/08/18 17:01:54 kscholbe Exp $
 
 #ifndef AMSR_ToFCluster_H
 #define AMSR_ToFCluster_H
@@ -45,7 +45,7 @@ private:
 				Int_t ncells, Int_t npart,
 				Int_t ntracks, TObjArray * tracks);
    virtual       ~AMSR_ToFCluster() {;}
-   virtual char  *GetObjectInfo(Int_t px, Int_t py);
+   virtual char  *GetObjectInfo(Int_t px, Int_t py) const;
    virtual void   Paint(Option_t *option="");
    virtual void   Clear(Option_t *option="");
 

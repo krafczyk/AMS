@@ -1,4 +1,4 @@
-//  $Id: AMSR_Particle.h,v 1.3 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_Particle.h,v 1.4 2001/08/18 17:01:54 kscholbe Exp $
 #ifndef AMSR_Particle_H
 #define AMSR_Particle_H
 
@@ -44,7 +44,7 @@ public:
                   AMSR_Particle() {;}
 //                AMSR_Particle(Int_t status, Int_t pattern);
    virtual       ~AMSR_Particle() {;}
-   virtual char  *GetObjectInfo(Int_t px, Int_t py);
+   virtual char  *GetObjectInfo(Int_t px, Int_t py) const;
            void   SetHelix();
    virtual void   Paint(Option_t *option="");
 

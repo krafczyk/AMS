@@ -1,4 +1,4 @@
-//  $Id: AMSR_TrdCluster.h,v 1.1 2001/08/05 22:43:56 kscholbe Exp $
+//  $Id: AMSR_TrdCluster.h,v 1.2 2001/08/18 17:01:55 kscholbe Exp $
 
 #ifndef AMSR_TrdCluster_H
 #define AMSR_TrdCluster_H
@@ -23,7 +23,7 @@ private:
    AMSR_TrdCluster(Float_t* coo, Float_t* ercoo);
 
    virtual       ~AMSR_TrdCluster() {;}
-   virtual char  *GetObjectInfo(Int_t px, Int_t py);
+   virtual char  *GetObjectInfo(Int_t px, Int_t py) const;
    virtual void   Paint(Option_t *option="");
    virtual void   Clear(Option_t *option="");
 

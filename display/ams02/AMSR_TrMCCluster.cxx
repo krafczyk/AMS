@@ -1,4 +1,4 @@
-//  $Id: AMSR_TrMCCluster.cxx,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_TrMCCluster.cxx,v 1.3 2001/08/18 17:01:54 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -36,7 +36,7 @@ AMSR_TrMCCluster::AMSR_TrMCCluster(Int_t part, Float_t signal,
 }
 
 //______________________________________________________________________________
-char *AMSR_TrMCCluster::GetObjectInfo(Int_t px, Int_t py)
+char *AMSR_TrMCCluster::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[90];
    sprintf(info,"TrMC: Particle=%d Signal=%4.1f, at (%5.1f,%5.1f,%5.1f)+-(%5.1f,%5.1f,%5.1f)",

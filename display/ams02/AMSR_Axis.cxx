@@ -1,4 +1,4 @@
-//  $Id: AMSR_Axis.cxx,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_Axis.cxx,v 1.3 2001/08/18 17:01:52 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -92,7 +92,7 @@ void AMSR_Axis::Paint(Option_t *option)
 }
 
 //_____________________________________________________________________________
-char * AMSR_Axis::GetObjectInfo(Int_t px, Int_t py)
+char * AMSR_Axis::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[30];
    sprintf(info,"%s axis", m_Title);

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Particle.cxx,v 1.5 2001/08/10 16:18:50 choutko Exp $
+//  $Id: AMSR_Particle.cxx,v 1.6 2001/08/18 17:01:54 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -76,7 +76,7 @@ void AMSR_Particle::Paint(Option_t *option)
 }
 
 //_____________________________________________________________________________
-char * AMSR_Particle::GetObjectInfo(Int_t px, Int_t py)
+char * AMSR_Particle::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[255];
    info[0]='\0';

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.7 2001/08/04 21:25:12 kscholbe Exp $
+//  $Id: AMSR_Display.cxx,v 1.8 2001/08/18 17:01:53 kscholbe Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -1077,7 +1077,7 @@ void AMSR_Display::ExecuteEvent(Int_t event, Int_t px, Int_t py)
 //}
 
 //_____________________________________________________________________________
-char *AMSR_Display::GetObjectInfo(Int_t px, Int_t py)
+char *AMSR_Display::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[80];
    sprintf(info, "%d, %d", px, py);

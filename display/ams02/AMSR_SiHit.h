@@ -1,4 +1,4 @@
-//  $Id: AMSR_SiHit.h,v 1.2 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_SiHit.h,v 1.3 2001/08/18 17:01:54 kscholbe Exp $
 
 #ifndef AMSR_SiHit_H
 #define AMSR_SiHit_H
@@ -35,7 +35,7 @@ private:
 				Float_t ampl, Float_t asym,
 				TObjArray * tracks);
    virtual       ~AMSR_SiHit() {;}
-   virtual char  *GetObjectInfo(Int_t px, Int_t py);
+   virtual char  *GetObjectInfo(Int_t px, Int_t py) const;
    virtual void   Paint(Option_t *option="");
    virtual void   Clear(Option_t *option="");
 

@@ -1,4 +1,4 @@
-//  $Id: AMSR_3DCluster.h,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_3DCluster.h,v 1.3 2001/08/18 17:01:52 kscholbe Exp $
 #ifndef AMSR_3DCluster_H
 #define AMSR_3DCluster_H
 
@@ -32,7 +32,7 @@ public:
 			      Float_t *cos, Int_t range=5);
    virtual          ~AMSR_3DCluster() {;}
    virtual void      Delete(Option_t *option="") {;}
-   virtual char     *GetObjectInfo(Int_t px, Int_t py);
+   virtual char     *GetObjectInfo(Int_t px, Int_t py) const;
      Float_t const * GetPosition();
      Float_t const * GetSize();
 //   virtual void      Paint(Option_t* option);

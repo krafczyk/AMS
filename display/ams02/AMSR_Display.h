@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.h,v 1.4 2001/06/25 20:12:41 kscholbe Exp $
+//  $Id: AMSR_Display.h,v 1.5 2001/08/18 17:01:53 kscholbe Exp $
 #ifndef AMSR_Display_H
 #define AMSR_Display_H
 
@@ -153,7 +153,7 @@ public:
    virtual void        PaintParticles(Option_t *option="");
    Float_t             PTcut() {return m_PTcut;}
    Float_t             PTcutEGMUNU() {return m_PTcutEGMUNU;}
-   virtual char       *GetObjectInfo(Int_t px, Int_t py);
+   virtual char       *GetObjectInfo(Int_t px, Int_t py) const;
    virtual void        SetDrawParticles(Bool_t draw=kTRUE) {m_DrawParticles=draw;} // *MENU*
    virtual void        SetPTcut(Float_t ptcut=0.4); // *MENU*
    virtual void        SetPTcutEGMUNU(Float_t ptcut=5); // *MENU*

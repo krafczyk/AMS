@@ -1,4 +1,4 @@
-//  $Id: AMSR_Track.cxx,v 1.4 2001/08/10 16:18:50 choutko Exp $
+//  $Id: AMSR_Track.cxx,v 1.5 2001/08/18 17:01:55 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -56,7 +56,7 @@ void AMSR_Track::Paint(Option_t *option)
 }
 
 //_____________________________________________________________________________
-char * AMSR_Track::GetObjectInfo(Int_t px, Int_t py)
+char * AMSR_Track::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[255];
    sprintf(info,"#%d, (Rigidity,theta,phi)=(%4.1lf+-%4.1lf,%4.1f,%4.1f), %d hits, pattern=%d", m_ID,

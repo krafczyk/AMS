@@ -1,4 +1,4 @@
-//  $Id: AMSR_AntiCluster.cxx,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_AntiCluster.cxx,v 1.3 2001/08/18 17:01:52 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -38,7 +38,7 @@ AMSR_AntiCluster::AMSR_AntiCluster(Int_t status, Int_t sector,
 }
 
 //______________________________________________________________________________
-char *AMSR_AntiCluster::GetObjectInfo(Int_t px, Int_t py)
+char *AMSR_AntiCluster::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[90];
    sprintf(info,"Anti S%d: Signal=%4.1f, at (%5.1f,%5.1f,%5.1f)+-(%5.1f,%5.1f,%5.1f)",

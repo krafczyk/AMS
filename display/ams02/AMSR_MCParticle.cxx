@@ -1,4 +1,4 @@
-//  $Id: AMSR_MCParticle.cxx,v 1.4 2001/08/10 16:18:50 choutko Exp $
+//  $Id: AMSR_MCParticle.cxx,v 1.5 2001/08/18 17:01:53 kscholbe Exp $
 #include <iostream.h>
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -75,7 +75,7 @@ void AMSR_MCParticle::Paint(Option_t *option)
 }
 
 //_____________________________________________________________________________
-char * AMSR_MCParticle::GetObjectInfo(Int_t px, Int_t py)
+char * AMSR_MCParticle::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[255];
    info[0]='\0';

@@ -1,4 +1,4 @@
-//  $Id: AMSR_EcalShower.cxx,v 1.1 2001/08/10 16:18:50 choutko Exp $
+//  $Id: AMSR_EcalShower.cxx,v 1.2 2001/08/18 17:01:53 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -53,7 +53,7 @@ void AMSR_EcalShower::Paint(Option_t *option)
 }
 
 //_____________________________________________________________________________
-char * AMSR_EcalShower::GetObjectInfo(Int_t px, Int_t py)
+char * AMSR_EcalShower::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[255];
    sprintf(info,"#%d, (energy,theta,phi)=(%4.1lf+-%4.1lf,%4.1f,%4.1f), Status=%d, Chi2=%5.1f", m_ID,m_Energy,m_ErrEnergy,m_FTheta,m_FPhi,m_Status,m_FChi2);

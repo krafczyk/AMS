@@ -1,4 +1,4 @@
-//  $Id: AMSR_EcalShower.h,v 1.1 2001/08/10 16:18:50 choutko Exp $
+//  $Id: AMSR_EcalShower.h,v 1.2 2001/08/18 17:01:53 kscholbe Exp $
 #ifndef AMSR_EcalShower_H
 #define AMSR_EcalShower_H
 
@@ -38,7 +38,7 @@ private:
 public:
                   AMSR_EcalShower() {;}
    virtual       ~AMSR_EcalShower() {;}
-   virtual char  *GetObjectInfo(Int_t px, Int_t py);
+   virtual char  *GetObjectInfo(Int_t px, Int_t py) const;
            void   SetHelix();
    virtual void   Paint(Option_t *option="");
 

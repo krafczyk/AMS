@@ -1,4 +1,4 @@
-//  $Id: AMSR_Axis.h,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_Axis.h,v 1.3 2001/08/18 17:01:53 kscholbe Exp $
 #ifndef AMSR_Axis_H
 #define AMSR_Axis_H
 
@@ -25,7 +25,7 @@ public:
                   AMSR_Axis(Float_t end[3], char * title);
                   AMSR_Axis(Float_t x, Float_t y, Float_t z, char * title);
    virtual       ~AMSR_Axis() { delete m_Title;}
-   virtual char  *GetObjectInfo(Int_t px, Int_t py);
+   virtual char  *GetObjectInfo(Int_t px, Int_t py) const;
    virtual void   Paint(Option_t *option="");
 
    ClassDef(AMSR_Axis, 0)   //AMS axis class

@@ -1,4 +1,4 @@
-//  $Id: AMSR_TrdCluster.cxx,v 1.1 2001/08/05 22:43:56 kscholbe Exp $
+//  $Id: AMSR_TrdCluster.cxx,v 1.2 2001/08/18 17:01:55 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -31,7 +31,7 @@ AMSR_TrdCluster::AMSR_TrdCluster(Float_t* coo, Float_t* ercoo)
 }
 
 //______________________________________________________________________________
-char *AMSR_TrdCluster::GetObjectInfo(Int_t px, Int_t py)
+char *AMSR_TrdCluster::GetObjectInfo(Int_t px, Int_t py) const
 {
    static char info[64];
    sprintf(info,"Trd");
