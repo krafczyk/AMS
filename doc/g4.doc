@@ -1,4 +1,4 @@
-#  $Id: g4.doc,v 1.30 2002/12/16 10:34:00 choutko Exp $
+#  $Id: g4.doc,v 1.31 2003/01/08 10:32:47 choutko Exp $
 -------
 Platform:
 linux-gcc2.95.3 ($G4SYSTEM=Linux-g++)
@@ -7,7 +7,8 @@ linux-gcc2.95.3 ($G4SYSTEM=Linux-g++)
 Installer:
 
 
-source AMS/install/g4i (v4.4.1, Linux-g++) 
+source AMS/install/g4i.old (v4.4.1, Linux-g++) 
+source AMS/install/g4i      (v4.5.0, Linux-g++)
 source AMS/install/g4i.new  (v4.5.0, Linux-g++)
 
 see $G4INSTALL/ReleaseNotes.VC for ams specifics
@@ -95,6 +96,15 @@ run time g3g4 comparison AMS/examples/g4.test.job,(g4)g3.test.job :
 Memory(mb)         100                   180
 CPU/Event(au) 0.8(ifc)  1(g77)           17 
 
+"50 gev Ideal electrons" comparison (/offline/vdev/prod/mc/ideal.job,ideal4.job)
+                    G3                    G4
+CPU/Event(au)      0.78(ifc),1(g77)       25
+
+Problem in g4 total energy distribution detected, E_calorimeter(g4,50 gev, average) = 46 gev
+apparently ecal hit energy distribution is same as in g3, but number of hits is ~ 10% less
+
+ 
+     
 
 
 
