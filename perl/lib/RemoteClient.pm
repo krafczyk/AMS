@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.179 2003/05/22 11:50:26 choutko Exp $
+# $Id: RemoteClient.pm,v 1.180 2003/05/22 14:46:12 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3237,8 +3237,8 @@ print qq`
                 print "Output file Type ";
           print "<BR>";
    print qq`
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 2=" CHECKED>Ntuple
-<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 127=2 128=" >RootFile<BR>
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=3 168=120000000 2=" CHECKED>Ntuple
+<INPUT TYPE="radio" NAME="RootNtuple" VALUE="1=0 168=200000000 127=2 128=" >RootFile<BR>
 `;
                 print "Root/Ntuple Write Mode ";
           print "<BR>";
@@ -4038,6 +4038,8 @@ print qq`
                  $tmpb=~ s/pl1/ecalpl1/;
              }
          }
+#change file size
+         $tmpb=~ s/168=120000000//;         
          print FILE $tmpb;
          close FILE;
          my $j=system("chmod +x  $root"); 
@@ -7440,8 +7442,8 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=2 128=\" CHECKED><b> ROOT </b><BR>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\"><b> NTUPLE </b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=200000000 127=2 128=\" CHECKED><b> ROOT </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000000 2=\"><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
 }
