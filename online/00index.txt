@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.13 2004/01/22 17:55:38 choutko Exp $
+#  $Id: 00index.txt,v 1.14 2004/01/29 10:45:11 choutko Exp $
 
 =========================================================================
 
@@ -33,6 +33,7 @@ of AMS offline monitor into it.
 	gmake osdepend    (using dynamic (shared) libraries called offmonc)
         setenv AMSICC     if you have icc compiler (gains exec speed)
         unsetenv AMSICC   -----  don;t  --------------- 
+        setenv RH9        if your system is linux9   (need ctype.o vc hacked)
 
 -------------------------------------------------------------------------
 3. Running the program

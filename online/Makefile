@@ -1,7 +1,10 @@
-#  $Id: Makefile,v 1.10 2004/01/22 17:55:39 choutko Exp $
+#  $Id: Makefile,v 1.11 2004/01/29 10:45:11 choutko Exp $
 
 PLATFORM      =  Linux
-
+RH9add=
+ifdef RH9
+ RH9add=-pthread /usr/lib/ctype-info.o
+endif
 ifdef AMSICC
 CXX           =  icc
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2  -tpp6 -mp1 -xi 
@@ -20,7 +23,7 @@ NOOPT         = -g
 LD            = g++
 LDFLAGS       = -g 
 endif
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
 
 LIBS          =  $(ROOTLIBS) -lm -ldl
 GLIBS         = -L$(ROOTSYS)/lib -lGX11TTF  -lCore -lCint -lHist -lGraf -lGraf3d -lGui -lGpad -lGX11  -lTree -lRint -lPostscript -lMatrix -lPhysics  -lHistPainter -lMinuit -L/usr/X11R6/lib  -lXmu -lXt -lXext -lX11 -lXpm -lm -ldl 
