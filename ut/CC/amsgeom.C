@@ -45,7 +45,8 @@ extern void antigeom01(AMSgvolume &);
 extern void antigeom02(AMSgvolume &);
 extern void antigeom002(AMSgvolume &);
 #ifdef __G4AMS__
- extern void antigeom02g4(AMSgvolume &);
+extern void antigeom02g4(AMSgvolume &);
+extern void antigeom01g4(AMSgvolume &);
 extern void testg4geom(AMSgvolume &);
 #endif
 extern void pshgeom(AMSgvolume &);
