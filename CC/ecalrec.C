@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.54 2002/09/26 12:29:34 choutko Exp $
+//  $Id: ecalrec.C,v 1.55 2002/09/26 14:07:10 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -31,7 +31,7 @@ geant AMSEcalRawEvent::trsum=0.;// just memory reservation/initialization for st
 void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   int i,j,k;
   integer sta,status,dbstat,id,idd,isl,pmc,subc;
-  geant padc[2];
+  integer padc[2];
   number radc[2]; 
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
   integer ovfl[2];
@@ -111,7 +111,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
   geant lfs,lsl,ffr;
   geant pedh[4],pedl[4],sigh[4],sigl[4],pedd,sigd;
   AMSEcalMCHit * ptr;
-  integer id,sta,adc[2],scsta,nslmx,npmmx;
+  integer id,sta,scsta,nslmx,npmmx;
+  integer adc[2];
   number dyresp,dyrespt,toftrtm;// dynode resp. in mev(~mV) (for trigger)
   number an4resp,an4respt;// (for trigger)
 //
@@ -451,7 +452,7 @@ integer AMSEcalRawEvent::lvl3format(int16 *ptr, integer rest){
 void AMSEcalHit::build(int &stat){
   int i,j,k;
   integer sta,status,dbstat,id,idd,isl,pmc,subc,nraw,nhits;
-  geant padc[2];
+  integer padc[2];
   integer proj,plane,cell,icont;
   number radc[2],edep,adct,fadc,emeast,coot,cool,cooz; 
   geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
@@ -2311,18 +2312,14 @@ void AMSEcalRawEvent::TestThreshold(){
  geant LowThr=1;
  geant LowAmp=10;
  AMSECIdSoft id(_idsoft);
- _padc[0]=_padc[0]-id.getped(0);
- _padc[1]=_padc[1]-id.getped(1);
-// if(id.getslay()==5 && id.getpmtno()==1 ){
-//   cout <<" chan "<<id.getchannel()<<" "<<_padc[0]<<" "<<_padc[1]<<" "<<id.getped(0)<<" "<<id.getped(1)<<endl;
-// }
- if((_padc[0]> id.getsig(0)*HighThr) ||  (_padc[0]> LowAmp && _padc[0]> id.getsig(0)*LowThr)){
-// ok
-   if(_padc[0]==0){
-    cerr<<"  zero found "<<id.getsig(0)<<endl;
+ float x0=_padc[0]-id.getped(0);
+ if((x0> id.getsig(0)*HighThr) ||  (x0> LowAmp && x0> id.getsig(0)*LowThr)){
+   for(int i=0;i<2;i++){
+      _padc[i]=floor((_padc[i]-id.getped(i)+1/ECALDBc::scalef())*ECALDBc::scalef());
+      if(_padc[i]<0)_padc[i]=0;
    }
 }
- else setstatus(AMSDBc::DELETED);;
+ else setstatus(AMSDBc::DELETED);
 }
 
 

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.25 2002/09/26 08:04:17 choutko Exp $
+//  $Id: ecalrec.h,v 1.26 2002/09/26 14:07:00 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -21,7 +21,7 @@ private:
   static geant trsum;// Trigger sum(dynodes,gev)
   integer _gain; // 0: High, 1: Low, 2: Both
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
-  geant _padc[2];// Anode pulse hights (ADC-channels)[HighGain,LowGain]
+  integer _padc[2];// Anode pulse hights (ADC-channels)[HighGain,LowGain]
 public:
 
   AMSEcalRawEvent(integer idsoft, integer status,  
@@ -44,11 +44,11 @@ public:
 //
   integer getid() const {return _idsoft;}
   uint16 getgain() const {return _gain;}
-  void getpadc(float padc[2]){for(int i=0;i<2;i++)padc[i]=_padc[i];}
-  float getadc(int16u gain) const{return gain<2?_padc[gain]:-1;}
+  void getpadc(int padc[2]){for(int i=0;i<2;i++)padc[i]=_padc[i];}
+  int getadc(int16u gain) const{return gain<2?_padc[gain]:-1;}
   void setgain(int16u gain){_gain=gain;}
   void TestThreshold();
-  void setadc(float adc, int16u gain){if(gain<2)_padc[gain]=adc;}
+  void setadc(int adc, int16u gain){if(gain<2)_padc[gain]=adc;}
   integer lvl3format(int16 * ptr, integer rest);
   int16 getslay(){return _idsoft/1000-1;}
 //
@@ -101,10 +101,10 @@ public:
 #ifdef __WRITEROOTCLONES__
   friend class EcalHitRoot;
 #endif
-  AMSEcalHit(integer status, integer id, geant adc[2], integer proj, integer plane, integer cell,
+  AMSEcalHit(integer status, integer id, integer adc[2], integer proj, integer plane, integer cell,
          number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(id),
 	 _proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz)
-	 {for(int i=0;i<2;i++)_adc[i]=adc[i];};
+	 {for(int i=0;i<2;i++)_adc[i]=adc[i]/ECALDBc::scalef();}
   AMSEcalHit(integer status, integer proj, integer plane, integer cell,
          number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(0),_proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz)
 	 {for(int i=0;i<2;i++)_adc[i]=0;};
