@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.73 2003/01/07 18:38:07 jorgec Exp $
+//  $Id: ntuple.h,v 1.74 2003/01/21 16:37:26 alexei Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -768,6 +768,8 @@ public:
   RICMCNtuple* Get_richmc() {return &_richmc;}
   RICEventNtuple* Get_richevent() {return &_richevent;}
   RICRing* Get_ring(){return &_ring;}
+
+  void MemMonitor(const int n, int N);
 
 #ifdef __WRITEROOT__
   EventRoot02* Get_evroot02() {return &_evroot02;}

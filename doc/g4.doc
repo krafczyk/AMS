@@ -1,4 +1,4 @@
-#  $Id: g4.doc,v 1.31 2003/01/08 10:32:47 choutko Exp $
+#  $Id: g4.doc,v 1.32 2003/01/21 16:37:20 alexei Exp $
 -------
 Platform:
 linux-gcc2.95.3 ($G4SYSTEM=Linux-g++)
@@ -25,6 +25,14 @@ gmake -if install/Moptg4i  (interactive{ batch first} (only Linux-g++))
 n.b
 setenv AMSDEBUG 1 switch on debug mode (compiler's one)
 unsetenv AMSDEBUG switch it off
+
+setenv   AMSMEMMONITOR 1 switch on monitoring of memory usage 
+unsetenv  AMSMEMMONITOR
+rm ../bin/linux/ntuple.o or rm ../bin/linuxr/ntuple_r.o
+gmake -f Mopt
+if AMSMEMMONITOR == 1 then 5 histograms (ROOT or HBOOK) will be filled 
+every 100 events to monitor memory utilization
+../CC/ntuple.C - AMSNtuple::MemMonitor subroutine for more details
 
 --------
 Physics Lists 

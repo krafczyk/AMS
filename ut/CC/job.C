@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.435 2002/12/18 15:09:41 choutko Exp $
+// $Id: job.C,v 1.436 2003/01/21 16:37:12 alexei Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2804,6 +2804,7 @@ cout <<"AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::get
 
 AMSJob::~AMSJob(){
   cout << "~AMSJob called "<<endl;
+  HPRINT(9797+1);
   _signendjob();
   if(isSimulation())uhend(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
   else uhend();

@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.34 2003/01/10 16:27:36 choutko Exp $
+#  $Id: Mopt_Root,v 1.35 2003/01/21 16:37:36 alexei Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -330,8 +330,11 @@ $(BIN)user.o:    	 $(SCC)user.C
 	$(CC) -c $(CFLAGS) $(SCC)user.C -o $(BIN)user.o
 
 $(BIN)ntuple_r.o:    	 $(SCC)ntuple.C
+ifdef AMSMEMMONITOR
+	$(CC) -c -D__MEMMONITOR__ $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple_r.o
+else
 	$(CC) -c $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple_r.o
-
+endif
 $(BIN)root_r.o:    	 $(SCC)root.C
 	$(CC) -c $(CFLAGS) $(SCC)root.C -o $(BIN)root_r.o
 

@@ -152,7 +152,7 @@ if ($force && $update) {
 # check dirpath
 
 if (substr($input, 0, 1) ne '/' or substr($output, 0, 1) ne '/' ) {
-    print "castor.cp $input $output\n";
+    print "castor.cmp $input $output\n";
     die "castor.cp -E- Invalid sintaksis.  Specify directory explicitly";
 }
     $self->{source} = $input;
@@ -472,6 +472,11 @@ sub doCopy {
 
     print "***** Input directory $input \n";
     print "***** Output directory $output \n";
+    if ($update) {
+      print "***** -update mode -I-  copy only new or modified files \n";
+    } else {
+      print "***** -force mode -I- copy ALL files \n";
+    } 
 
     my $inputdir  = "local";
     my $outputdir = "local";
@@ -527,7 +532,7 @@ sub doCopy {
     my $ifile    => undef; # input file path
 
     while ($i <= $#inputFiles) {
-        print "inputFiles[$i]... $inputFiles[$i] \n";
+     if ($verbose) {print "inputFiles[$i]... $inputFiles[$i] \n";}
      $newdir = 0;
      if ($inputdir eq "local") {
       if (-d $inputFiles[$i]) { $newdir = 1;}
@@ -544,7 +549,6 @@ sub doCopy {
        if ($dir ne $output) { # assume that top directory always exists
         $j  = 0;
         while ($j<= $#outputFiles && $founddir == 0) {
-           print "$j, $outputFiles[$j] \n";
         if ($outputFiles[$j] eq $dir) {
              $founddir = 1;
             }
@@ -572,15 +576,26 @@ sub doCopy {
          if ($update) {
           $j = 0;
           while ($j<= $#outputFiles && $docopy==1) {
-           if ($outputFiles[$j] eq $ifile) {
+           my $ofile = $outputFiles[$j];
+              $ofile =~ s/$output//;
+           if ($ofile eq $ifile) {
             if ($outputSizes[$j] == $isize) {
-             $docopy = 0;
-            }
+              $docopy = 0;
+              if ($verbose) {
+                  print "not overwrite -I- $outputFiles[$j] is the same size \n";
+              }
+             } else {
+               if ($verbose) {
+                   print "overwrite $outputFiles[$j] by $ifile \n";
+                   print "input  file size = $isize \n";
+                   print "output file size = $outputSizes[$j] \n";
+               }
+             }
            }
            $j++;
           }
          } 
-         if ($docopy) {         
+         if ($docopy == 1) {         
           my $ofile=$output.$ifile;
           $cmd = "/usr/local/bin/rfcp $inputFiles[$i] $ofile >> $logfile";
           $status = systemCmd($cmd);
@@ -776,9 +791,23 @@ sub systemCmd {
      if ($verbose) {
         print "$cmd \n";
      }
-     $status     = system($cmd);
-     if ($status != 0) {
-       die "cannot execute $cmd , ret code $status\n";
+     my $rc     = system($cmd);
+     if ($rc != 0) {
+         if ($rc == 0xff00) {
+             print "command failed : $! \n";
+         } elsif (($rc & 0xff) == 0) {
+             if ($rc >>=8) {
+              print "ran with non-zero exit status $rc \n";
+             }
+         } else {
+             print "ran with ";
+             if ($rc & 0x80) {
+                 $rc &= ~0x80;
+                 print "coredump from ";
+             }
+             print "signal $rc \n";
+         }
+       die "cannot execute $cmd , ret code $rc\n";
      }
    } else {
      die "systemCmd is called with undefined argument \n";

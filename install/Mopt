@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.237 2002/12/16 14:13:19 choutko Exp $
+#  $Id: Mopt,v 1.238 2003/01/21 16:37:32 alexei Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -410,8 +410,11 @@ $(BIN)gamma.o:    	 $(SCC)gamma.C
 	$(CC) -c $(CFLAGS) $(SCC)gamma.C -o $(BIN)gamma.o
 
 $(BIN)ntuple.o:    	 $(SCC)ntuple.C
+ifdef AMSMEMMONITOR
+	$(CC) -c $(CFLAGS) -D__MEMMONITOR__ $(SCC)ntuple.C -o $(BIN)ntuple.o
+else
 	$(CC) -c $(CFLAGS) $(SCC)ntuple.C -o $(BIN)ntuple.o
-
+endif
 $(BIN)root.o:    	 $(SCC)root.C
 	$(CC) -c $(CFLAGS) $(SCC)root.C -o $(BIN)root.o
 

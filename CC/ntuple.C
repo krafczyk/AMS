@@ -1,21 +1,44 @@
-//  $Id: ntuple.C,v 1.129 2003/01/08 10:32:27 choutko Exp $
+//  $Id: ntuple.C,v 1.130 2003/01/21 16:37:12 alexei Exp $
+//
+//  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
 //                             for any class inheriting from TObject
 //                             and containing character string;
-//
+//  
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
 #include <job.h>
 #include <ecaldbc.h>
+
+
+#include <iostream>
+#include <iomanip>
+#include <malloc.h>
+#include <time.h>
+#include <strstream>
+#include <fstream>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+
 #ifdef __WRITEROOT__
 #include <TBranch.h>
+#include "TH1.h"
+
+
 TTree* AMSNtuple::_tree=0;
 TFile* AMSNtuple::_rfile=0;
 const int branchSplit=1;
+
 #endif
+
+const int MEMUPD = 100; // update Memory Monitor Histograms each 
+                        // MEMUPD events 
+
 AMSNtuple::~AMSNtuple(){
 #ifdef __WRITEROOT__
  if(_rfile){
@@ -159,8 +182,10 @@ void AMSNtuple::init(){
 }
 void AMSNtuple::reset(int full){
 #ifdef __WRITEROOT__
-    clearClones();
+  //- Jan 21.03    clearClones();
+    deleteClones();
     expandClones();
+  //  createClones();
 #endif
    _beta02.Nbeta= 0;
    _charge02.Ncharge = 0;
@@ -218,6 +243,10 @@ void AMSNtuple::clearClones()
   // clear clones arrays
   // (used Delete() in expandClones() if class containing char)
   //
+#ifdef __AMSDEBUG__
+    cout<<"clearClones -I- clear clone arrays"<<endl;
+#endif
+
 #ifdef __WRITEROOTCLONES__
   if ((void*)&_evroot02) {
     if (_evroot02.fAntiCluster)    _evroot02.fAntiCluster -> Clear();
@@ -260,11 +289,21 @@ void AMSNtuple::deleteClones()
   // clear clones arrays
   // (used Delete() in expandClones() if class containing char)
   //
+#ifdef __AMSDEBUG__
+    cout<<"deleteClones -I- delete clone arrays"<<endl;
+#endif
+
 #ifdef __WRITEROOTCLONES__
   if ((void*)&_evroot02) {
-    if (_evroot02.fAntiCluster)    _evroot02.fAntiCluster -> Delete();
-    if (_evroot02.fAntiMCCluster)  _evroot02.fAntiMCCluster -> Delete();
-    if (_evroot02.fAntiRawCluster) _evroot02.fAntiRawCluster -> Delete();
+    if (_evroot02.fAntiCluster)   {
+     _evroot02.fAntiCluster -> Delete();
+    }  
+    if (_evroot02.fAntiMCCluster)  {
+      _evroot02.fAntiMCCluster -> Delete();
+    }
+    if (_evroot02.fAntiRawCluster) { 
+      _evroot02.fAntiRawCluster -> Delete();
+    }
     if (_evroot02.fBeta)           _evroot02.fBeta -> Delete();
     if (_evroot02.fCharge)         _evroot02.fCharge -> Delete();
     if (_evroot02.fECALcluster)    _evroot02.fECALcluster -> Delete();
@@ -303,7 +342,6 @@ void AMSNtuple::expandClones()
   //
 {
 #ifdef __WRITEROOTCLONES__
-
   if ((void*)&_evroot02) {
 #ifdef __AMSDEBUG__
     cout<<"expandClones -I- expand clone arrays to nominal values"<<endl;
@@ -363,8 +401,9 @@ void AMSNtuple::createClones()
 
   if ((void*)&_evroot02) {
 
-    clearClones();
-    cout<<"AMSNtuple::createClones -I- create clone arrays..."<<endl;
+    //- Jan 21.03. clearClones();
+    deleteClones();
+
     if (!_evroot02.fAntiCluster)    _evroot02.fAntiCluster   = new TClonesArray("AntiClusterRoot",MAXANTICL);
     if (!_evroot02.fAntiMCCluster)  _evroot02.fAntiMCCluster = new TClonesArray("ANTIMCClusterRoot",MAXANTIMC);
     if (!_evroot02.fAntiRawCluster) _evroot02.fAntiRawCluster = new TClonesArray("AntiRawClusterRoot",MAXANTIRAW);
@@ -379,12 +418,12 @@ void AMSNtuple::createClones()
     if (!_evroot02.fMCeventg)       _evroot02.fMCeventg      = new TClonesArray("MCEventGRoot02",MAXMCG02);
     if (!_evroot02.fMCtrtrack)      _evroot02.fMCtrtrack     = new TClonesArray("MCTrackRoot",MAXMCVOL);
     if (!_evroot02.fParticle)       _evroot02.fParticle      = new TClonesArray("ParticleRoot02",MAXPART02);
-    if (!_evroot02.fRICMC)          _evroot02.fRICMC          = new TClonesArray("RICMCRoot",MAXRICMC);
-    if (!_evroot02.fRICEvent)       _evroot02.fRICEvent       = new TClonesArray("RICEventRoot",MAXRICHITS);
-    if (!_evroot02.fRICRing)        _evroot02.fRICRing        = new TClonesArray("RICRingRoot",MAXRICHRIN);
+    if (!_evroot02.fRICMC)          _evroot02.fRICMC         = new TClonesArray("RICMCRoot",MAXRICMC);
+    if (!_evroot02.fRICEvent)       _evroot02.fRICEvent      = new TClonesArray("RICEventRoot",MAXRICHITS);
+    if (!_evroot02.fRICRing)        _evroot02.fRICRing       = new TClonesArray("RICRingRoot",MAXRICHRIN);
     if (!_evroot02.fTOFcluster)     _evroot02.fTOFcluster    = new TClonesArray("TOFClusterRoot",MAXTOF);
     if (!_evroot02.fTOFMCcluster)   _evroot02.fTOFMCcluster  = new TClonesArray("TOFMCClusterRoot",MAXTOFMC);
-    if (!_evroot02.fTOFRawCluster)  _evroot02.fTOFRawCluster  = new TClonesArray("TOFRawClusterRoot",MAXTOFRAW);
+    if (!_evroot02.fTOFRawCluster)  _evroot02.fTOFRawCluster = new TClonesArray("TOFRawClusterRoot",MAXTOFRAW);
     if (!_evroot02.fTRDMCCluster)   _evroot02.fTRDMCCluster  = new TClonesArray("TRDMCClusterRoot",MAXTRDCLMC);
     if (!_evroot02.fTRDrawhit)      _evroot02.fTRDrawhit     = new TClonesArray("TRDRawHitRoot",MAXTRDRHT);
     if (!_evroot02.fTRDcluster)     _evroot02.fTRDcluster    = new TClonesArray("TRDClusterRoot",MAXTRDCL);
@@ -430,6 +469,11 @@ void AMSNtuple::initR(char* fname){
 cerr <<" RootFileOutput is Not supported in this version "<<endl;
 exit(1);
 #endif
+
+#ifdef __MEMMONITOR__
+   int NEVENTS = GCFLAG.NEVENT;
+   MemMonitor(MEMUPD, NEVENTS);
+#endif
 }
 void AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
@@ -440,9 +484,107 @@ void AMSNtuple::writeR(){
     //    deleteClones();
     //    createClones();
 #endif
+#ifdef __MEMMONITOR__
+    int NEVENTS = GCFLAG.NEVENT;
+    MemMonitor(MEMUPD,NEVENTS);
+#endif
 }
 
 
 uinteger AMSNtuple::getrun(){
     return _event02.Run;
 }
+
+// Author S.Gerassimov TUM/COMPASS (sergei.gerassimov@cern.ch)
+// adapted Jan 21, 2003. ak.
+//
+// Fill memory consumption histograms
+// every n-th call up to N
+// Example:
+// if to call every event MemMonitor(100, 100000);
+// at the end you will get histogram with memory consumption evolution
+// 'till event # 100000, sampled every 100 events
+
+void AMSNtuple::MemMonitor(const int n, int N = 0)
+{
+  static int nevt    =0;
+  static int nperiod =0;
+  static int nmaximum=0;
+
+  struct mallinfo m;
+
+#ifdef __WRITEROOT__
+  static TH1D* mm [5];
+#endif
+
+  if(nevt == 0) {      // booking
+    nperiod = n;
+    nmaximum= N;
+    int nbins = N/n;
+    cout<<"PaUtils::MemMonitor ==> Book histograms "<<endl;
+    // Jan 21. 03 explanation for pedestrians (a.k.)
+    // arena    - This is the total size of memory allocated with `sbrk'
+    // hblkhd   - This is the total size of memory allocated with `mmap'
+    // uordblks - This is the total size of memory occupied by chunks 
+    // fordblks - This is the total size of memory occupied by free chanks
+    // keepcost - This is the size of the top-most releasable chunk that
+    //            normally borders the end of the heap (i.e. the high end of
+    //            the virtual address space's data segment).
+
+    // 
+#ifdef __WRITEROOT__
+    mm[0]=new TH1D( "MemMon_00","'malloc'      memory VS event number", nbins,  0, N);
+    mm[1]=new TH1D( "MemMon_01","'mmap'        memory VS event number", nbins,  0, N);
+    mm[2]=new TH1D( "MemMon_02","'used chunks' memory VS event number", nbins,  0, N);
+    mm[3]=new TH1D( "MemMon_03","'free chunks' memory VS event number", nbins,  0, N);
+    mm[4]=new TH1D( "MemMon_04","'keepcost'    memory VS event number", nbins,  0, N);
+#else
+    char cdir[256];
+    HCDIR(cdir,"R");
+    HMDIR("//PAWC/MEMMON","S");
+
+    HBOOK1(9795,"'malloc'      memory VS event number",nbins,0,N,0);
+    HBOOK1(9796,"'mmap'      memory VS event number",nbins,0,N,0);
+    HBOOK1(9797,"'used chunks'      memory VS event number",nbins,0,N,0);
+    HBOOK1(9798,"'free chunks'      memory VS event number",nbins,0,N,0);
+    HBOOK1(9799,"'keepcost'      memory VS event number",nbins,0,N,0);
+
+    char hp[9]="//PAWC";
+    HCDIR(hp," ");
+    HCDIR (cdir, " ");
+
+#endif
+}
+  if(++nevt >= nmaximum) return; // out of histogramm limit
+
+  if(nevt%nperiod == 0) {     // filling
+    m=mallinfo();
+#ifdef __WRITEROOT__
+    mm[0]->Fill(nevt, double(m.arena   /1048576.));
+    mm[1]->Fill(nevt, double(m.hblkhd  /1048576.));
+    mm[2]->Fill(nevt, double(m.uordblks/1048576.));
+    mm[3]->Fill(nevt, double(m.fordblks/1048576.));
+    mm[4]->Fill(nevt, double(m.keepcost/1048576.));
+#else
+    char cdir[256];
+    char *BLANK=" ";
+    char memdir[256]="//PAWC/MEMMON";
+    HCDIR(cdir,"R");
+    HCDIR(memdir,BLANK);
+
+    HF1(9795,float(nevt), float(m.arena   /1048576.));   
+    HF1(9796,float(nevt), float(m.hblkhd  /1048576.));
+    HF1(9797,float(nevt), float(m.uordblks/1048576.));
+    HF1(9798,float(nevt), float(m.fordblks/1048576.));
+    HF1(9797,float(nevt), float(m.keepcost/1048576.));
+
+    char hp[9]="//PAWC";
+    HCDIR(hp," ");
+    HCDIR (cdir, " ");
+#endif
+  }
+  return;
+}
+
+
+
