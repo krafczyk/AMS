@@ -1,11 +1,11 @@
-//  $Id: richrec.h,v 1.7 2001/01/22 17:32:44 choutko Exp $
+//  $Id: richrec.h,v 1.8 2001/05/09 15:16:41 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
 #include <richdbc.h>
 #include <iostream>
 // Define Safe if you want to use safe arrays (under construction)
-#define __SAFE__
+//#define __SAFE__
 
 
 PROTOCCALLSFSUB6(SOLVE,solve,FLOAT,FLOAT,FLOAT,FLOAT,FLOATV,INT)
@@ -102,11 +102,12 @@ protected:
 
 class AMSRichRing: public AMSlink{
 private:
-  integer _track;
+  AMSTrTrack* _ptrack;
   integer _used;
   integer _charge;
-  geant _beta;
-  geant _quality; //probability per hit for the cluster
+  number  _beta;
+  number  _errorbeta;
+  number  _quality; //probability per hit for the cluster
 
 // A parametrisation
   static inline geant Sigma(geant beta,geant A,geant B){
@@ -127,23 +128,24 @@ private:
     else    {if(a<c) return 0; else return 2;}
   }
 
+protected:
+  void _printEl(ostream &stream){stream<<" Beta "<<_beta<<" Error "<<_errorbeta<<endl;}
+  void _writeEl();
+  void _copyEl(){};
+  void CalcBetaError();
 public:
-  AMSRichRing(int track,int used,geant beta,geant quality,int charge):AMSlink(),
-   _track(track),_used(used),_beta(beta),_quality(quality),_charge(charge){};
+  AMSRichRing(AMSTrTrack* track,int used,geant beta,geant quality,int charge):AMSlink(),
+   _ptrack(track),_used(used),_beta(beta),_quality(quality),_charge(charge){CalcBetaError();};
   ~AMSRichRing(){};
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 
   static void build();
-  integer gettrack(){return _track;}
+  AMSTrTrack* gettrack(){return _ptrack;}
   integer getused(){return _used;}
   integer getcharge(){return _charge;}
-  geant getbeta(){return _beta;}
-  geant getquality(){return _quality;}
-
-protected:
-  void _printEl(ostream &stream){};
-  void _writeEl();
-  void _copyEl(){};
+  number getbeta(){return _beta;}
+  number geterrorbeta(){return _errorbeta;}
+  number getquality(){return _quality;}
 };
 
 

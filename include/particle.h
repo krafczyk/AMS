@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.28 2001/04/27 21:50:33 choutko Exp $
+//  $Id: particle.h,v 1.29 2001/05/09 15:16:41 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -20,6 +20,7 @@
 #include <charge.h>
 #include <ctc.h>
 #include <trdrec.h>
+#include <richrec.h>
 class AntiMatter: public AMSlink{
 protected: 
  integer _pid;
@@ -38,6 +39,7 @@ protected:
   AMSCharge * _pcharge;      // pointer to charge
   AMSTrTrack * _ptrack;      // pointer to track;
   AMSTRDTrack * _ptrd;       // pointer to trd track 
+  AMSRichRing * _prich;      // pointer to rich ring
 
   integer _GPart;        // Geant particle ID
 
@@ -45,6 +47,8 @@ protected:
   number  _ErrMass;
   number  _Momentum;
   number  _ErrMomentum;
+  number  _Beta;
+  number  _ErrBeta;
   number  _Charge;
   number  _Theta;
   number  _Phi;
@@ -85,11 +89,12 @@ static void monit(number & a, number & b,number sim[], int & n, int & s, int & n
 static void alfun(integer & n, number xc[], number & fc, AMSParticle * ptr);
  void _writeEl();
  static integer _partP[38];
-  static void _build(number rid, number err, number charge,AMSBeta *p, 
+  static void _calcmass(number momentum,number emom, number beta, number ebeta, number &mass, number &emass);
+  static void _build(number rid, number err, number charge,number beta, number ebeta, 
   number &mass, number &emass, number &mom, number &emom);
 public:
   AMSParticle *  next(){return (AMSParticle*)_next;}
-  AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0),_ptrd(0)
+  AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0),_ptrd(0),_prich(0)
  {
     int i;
     for(i=0;i<2;i++){
@@ -103,12 +108,13 @@ public:
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
     }    
+     _TRDCoo=AMSPoint(0,0,0);
  }
   AMSParticle(AMSBeta * pbeta, AMSCharge * pcharge, AMSTrTrack * ptrack,
-  number mass, number errmass, number momentum, number errmomentum,
+  number beta, number ebeta,number mass, number errmass, number momentum, number errmomentum,
   number charge, number theta, number phi, AMSPoint coo): 
   _pbeta(pbeta), _pcharge(pcharge), _ptrack(ptrack), 
-  _Mass(mass),
+  _Mass(mass),_Beta(beta),_ErrBeta(ebeta),
   _ErrMass(errmass), _Momentum(momentum), _ErrMomentum(errmomentum),
   _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo)
  {
@@ -131,6 +137,7 @@ public:
   void antifit(); // Anti fit
   void ecalfit(); // Ecal fit
   void trdfit(); //  trd fit
+  void richfit(); //  rich fit
   void pid();   // particle identification
   void refit(int i=0); // refit if necessary;
   static integer build(integer refit=0);

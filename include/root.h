@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.40 2001/04/27 21:50:33 choutko Exp $
+//  $Id: root.h,v 1.41 2001/05/09 15:16:41 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -308,6 +308,7 @@ public:
   int   ChargeP[MAXPART02];
   int   TrackP[MAXPART02];
   int   TRDP[MAXPART02];
+  int   RICHP[MAXPART02];
   int   Particle[MAXPART02];
   int   ParticleVice[MAXPART02];
   float Prob[MAXPART02][2];
@@ -316,6 +317,8 @@ public:
   float ErrMass[MAXPART02];
   float Momentum[MAXPART02];
   float ErrMomentum[MAXPART02];
+  float Beta[MAXPART02];
+  float ErrBeta[MAXPART02];
   float Charge[MAXPART02];
   float Theta[MAXPART02];
   float Phi[MAXPART02];
@@ -1063,6 +1066,7 @@ public:
   int track[MAXTRTR02];
   int used[MAXTRTR02];
   float beta[MAXTRTR02];
+  float errorbeta[MAXTRTR02];
   float quality[MAXTRTR02];
   integer Z[MAXTRTR02];
 

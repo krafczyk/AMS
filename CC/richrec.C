@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.20 2001/05/08 14:20:15 choutko Exp $
+//  $Id: richrec.C,v 1.21 2001/05/09 15:16:37 choutko Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -296,12 +296,13 @@ void AMSRichRing::build(){
   // All these arrays are for speed up the reconstruction
   // They should be move to a dynamic list (like the containers)
   // using, for example, a structure (~completely public class)
+
+  int ARRAYSIZE=(AMSEvent::gethead()->getC("AMSRichRawEvent",0))->getnelem();
+  if(ARRAYSIZE==0) return;
   
 #ifdef __SAFE__
   //  safe_array<geant_small_array,MAXRICHITS> recs,mean,probs;
   //  safe_array<integer_small_array,MAXRICHITS> size;
-  int ARRAYSIZE=(AMSEvent::gethead()->getC("AMSRichRawEvent",0))->getnelem();
-  if(ARRAYSIZE==0) return;
   //  safe_array<geant_small_array,3*MAXRICHITS> recs,mean,probs;
   //  safe_array<integer_small_array,3*MAXRICHITS> size;
   safe_array<geant_small_array,1> recs(ARRAYSIZE),mean(ARRAYSIZE),probs(ARRAYSIZE);
@@ -531,7 +532,7 @@ void AMSRichRing::build(){
 	// Fill the container
 	
 	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
-				     new AMSRichRing(track->getpos(),
+				     new AMSRichRing(track,
 						     beta_used,
 						     beta_track,
 						     chi2/geant(beta_used),
@@ -541,7 +542,7 @@ void AMSRichRing::build(){
       } else {
 //	// Add empty ring to keep track of no recostructed tracks
 //	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
-//				     new AMSRichRing(track->getpos(),
+//				     new AMSRichRing(track,
 //						     0,
 //						     0.,
 //						     0.,
@@ -561,18 +562,16 @@ void AMSRichRing::_writeEl(){
   
   if(cluster->NRings>=MAXTRTR02) return;
 
-  cluster->track[cluster->NRings]=_track;
+  cluster->track[cluster->NRings]=_ptrack->getpos();
   cluster->used[cluster->NRings]=_used;
   cluster->beta[cluster->NRings]=_beta;
+  cluster->errorbeta[cluster->NRings]=_errorbeta;
   cluster->quality[cluster->NRings]=_quality;
   cluster->Z[cluster->NRings]=_charge;
   cluster->NRings++;
 
 }
 
-
-
-
-
-
-
+ void AMSRichRing::CalcBetaError(){
+  _errorbeta=_used>0?sqrt(0.5+3./_used)/1000.*fabs ( _beta):1;
+ }

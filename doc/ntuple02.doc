@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.11 2001/05/09 08:34:19 choutko Exp $
+#  $Id: ntuple02.doc,v 1.12 2001/05/09 15:16:41 choutko Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -96,6 +96,9 @@ This is AMS02 Ntuple Description
 * I*4  *           * PARTICLE * ptrdp(npart)    // pointer to trd track, or
                                                   // -1 if particle doesn't
                                                   // contain a track
+* I*4  *           * PARTICLE * prichp(npart)    // pointer to rich ring, or
+                                                  // -1 if particle doesn't
+                                                  // contain a rich ring
 * I*4  *           * PARTICLE * pid(npart)        // Geant Particle Id
 * I*4  *           * PARTICLE * pidvice(npart)    // Geant vice-Particle Id
 * R*4  *           * PARTICLE * probpid(2,npart)  // probabilities 
@@ -106,6 +109,8 @@ This is AMS02 Ntuple Description
                                                   // (signed)
 * R*4  *           * PARTICLE * perrmom(npart)    // error in momentum
 * R*4  *           * PARTICLE * pcharge(npart)    // charge
+* R*4  *           * PARTICLE * pbeta(npart)      // beta
+* R*4  *           * PARTICLE * perrbeta(npart)      // err beta
 * R*4  *           * PARTICLE * ptheta(npart)     // theta (1st[last] 
 						  // tracker plane)
 * R*4  *           * PARTICLE * pphi(npart)       // phi (1st[last] tr. pl.)
