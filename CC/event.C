@@ -435,7 +435,7 @@ _sitrigevent();
 }
 
 void AMSEvent::_reamsevent(){
-#ifndef __AMSDEBUG__
+#ifndef __AMSDEBUG__  
   if(AMSJob::gethead()->isReconstruction() )_redaqevent();
 #else
   if(TOFMCFFKEY.fast==0)_redaqevent();
@@ -516,7 +516,7 @@ void AMSEvent::_catofevent(){
 //
   ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr)trflag=ptr->gettoflg();
-  if(trflag <= 0)return;// use only H/W-triggered event
+//  if(trflag <= 0)return;// use only H/W-triggered event tempor
   if(TOFRECFFKEY.relogic[0]==2)
            TOFTDIFcalib::select();// event selection for TOF TDIF-calibration
   if(TOFRECFFKEY.relogic[0]==3)
@@ -633,7 +633,7 @@ TriggerLVL1 *ptr;
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
       AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no h/w TOF-trigger"
+      return;// "no h/w TOF-trigger"   tempor
     }
     TOFJobStat::addre(1);
 //

@@ -85,16 +85,27 @@ void AMSTOFScan::build(){
   char name[80];
   char in[2]="0";
   char inum[11];
-  char verlst[20]="verslist.dat";
   char tdisfn[20]="tdisfmap";
 //
   strcpy(inum,"0123456789");
 //
 // ---> read version number of "tdisfmap"-file from verslist-file:
 //
+  integer cfvn;
+  cfvn=TOFCAFFKEY.cfvers%100;
+  if(AMSJob::gethead()->isMCData())strcpy(name,"tofverlistmc");
+  else strcpy(name,"tofverlistrl");
+  dig=cfvn/10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=cfvn%10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  strcat(name,".dat");
+//
   strcpy(fname,AMSDATADIR.amsdatadir);
 //  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
-  strcat(fname,verlst);
+  strcat(fname,name);
   cout<<"AMSTOFScan::build: Open file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
   if(!vlfile){
@@ -477,22 +488,21 @@ void AMSTOFTovt::inipsh(integer &nbn, geant arr[])
 // function below creates shaper stand. pulse shape array arr[] with bin=shaptb :
 // (this array is shaper responce to 1pC injection with duration=shaptb;
 //  shaper rise/fall times are shrtim<<shftim; nbn is array length,defined as
-//  boundary where charge becomes less than 0.001 of initial value(~6.91*Tfall)
-//  of the peak value)
+//  boundary where charge becomes less than 0.002 of initial value(~6.21*Tfall)
 //
 void AMSTOFTovt::inishap(integer &nbn, geant arr[])
 {
-  geant tr,tf,tmb,toti,rest,t1,t2,anr;
+  geant tr,tf,tmb,tmax,toti,rest,t1,t2,anr;
   integer i,imax,j,ifl(0);
   tr=TOFDBc::shrtim();
-  tf=TOFDBc::shftim();
+  tf=TOFDBc::shftim();// tempor->change later to tf from scbrcal-obj
   tmb=TOFDBc::shaptb();
-  imax=500;
+  imax=500;// max range
   arr[0]=1.-exp(-tmb/tr);// fast charge (neglect by discharge !)
   for(i=1;i<imax;i++){ // <--- time loop ---
     t1=i*tmb;
     arr[i]=arr[0]*exp(-t1/tf);
-    if(arr[i]<(0.001*arr[0])){
+    if(arr[i]<(0.002*arr[0])){
       nbn=i+1;
       if(TOFMCFFKEY.mcprtf[0] != 0){
         printf("Shaper pulse shape ready : nbins=% 3d\n",nbn);
@@ -507,8 +517,8 @@ void AMSTOFTovt::inishap(integer &nbn, geant arr[])
       return;
     }
   } // --- end if time loop --->
-  cerr<<"AMSTOFTovt-inishap-Fatal: array size too small ?!"<<'\n';
-  cerr<<"trise/tfall= "<<tr<<" "<<tf<<" nbins="<<i<<'\n';
+  cerr<<"AMSTOFTovt-ini_shaper-Fatal: pulse tail out of range !"<<'\n';
+  cerr<<"tr/tf= "<<tr<<" "<<tf<<" nbins="<<i<<'\n';
   exit(1);
 }
 //--------------------------------------------------------------------------
@@ -604,7 +614,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
   geant tshap1[SCSBMX+1]; // temporary shaper pulse array
   geant tshap2[SCSBMX+1]; // temporary shaper pulse array
   static integer first=0;
-  static integer nshbn,mxcon,mxshc;
+  static integer nshbn,mxcon,mxshc,mxshcg;
   static geant fladcb,shapb,cconv;
   geant daqt0,daqt1,daqt2,daqt3,daqt4;
   static geant daqp0,daqp2,daqp3,daqp4,daqp5,daqp6,daqp7,daqp8,daqp9,daqp10;
@@ -646,7 +656,8 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
   itau=scbrcal[ilay][ibar].getdipar(isid,0);// get D-integrator parameters
   it0=scbrcal[ilay][ibar].getdipar(isid,1);
   iq0=scbrcal[ilay][ibar].getdipar(isid,2);
-  daqt4=exp(it0/itau);// threshold for Dinode TovT measurement (pC)
+//  daqt4=exp(it0/itau);// threshold for Dynode(pC) (valid for old (=A) parametrization)
+  daqt4=daqt3;// tempor for new(Contin's) parametrization
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
 //
@@ -658,7 +669,8 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         for(i=SCTBMX-1;i>0;i--)
             if(tslice[i]!=0. && tslice[i-1]!=0. && tslice[i-2]!=0.)break;//find high limit
         imax=i+1;
-        imin=0;
+        for(i=0;i<SCTBMX;i++)if(tslice[i]>0.)break;//find low limit
+        imin=i;
 //
         charge=0.;
         _ntr1=0;
@@ -682,12 +694,17 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         upd31=0;// up/down flag for z>2 branch of discr.3 (dinode)
         tmd3d=-9999.;
         td3b1=-9999.;// down-time of discr-3 branch-1(z>2)
+//      _
+//    _| |_
+//___|     |___  PMT-pulse
+//   ^tmp
+//     ^tm
 //
         amx=0.;
-        tm=0.;
         amp=0.;
-        tmp=0.;
-        for(i=0;i<imax;i++){  //  <--- time bin loop for time measurements ---
+        tmp=fladcb*imin;
+        tm=tmp;
+        for(i=imin;i<imax;i++){  //  <--- time bin loop for time measurements ---
           tm+=fladcb;
           am=tslice[i];
           if(am>amx)amx=am;// tempor
@@ -831,6 +848,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 //
         mxcon=integer(imax*(fladcb/shapb))+1;// flash-adc useful t-range in shaper scale
         mxshc=mxcon+nshbn;// max. useful shaper channels
+//        mxshcg=integer(imin*(fladcb/shapb))+integer(TOFDBc::shctim()/shapb);// gated
 //
 // ====> convert flash-ADC array "tslice" to shaper pulse array "tshap2":
 //                 
@@ -876,11 +894,12 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         _nadca=0;
         updsh=0;
         tshd=-9999.;
+        tshup=9999.;
         tm=0;
         amp=0.;
         tmp=0.;
         amxq=0.;
-        for(i=0;i<mxshc;i++){  //  <--- time bin loop ---
+        for(i=0;i<mxshc;i++){  //  <--- time bin loop inside the gate---
           am=tshap2[i];
           if(am>amxq)amxq=am;
           tm+=shapb;
@@ -891,6 +910,21 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
                 updsh=1;
                 tshup=tmark;
               }
+            }
+            else{//a>thr,shaper is still up, check gate
+              if((tm-tshup)>TOFDBc::shctim()){//(duration out of gate)->clear
+                tshd=tm;
+                updsh=0;
+                if(_nadca<SCTHMX4){
+                  _tadca[_nadca]=tshup;// up-time
+                  _tadcad[_nadca]=tshd;  // down-time
+                  _nadca+=1;
+                }
+                else{
+                  cerr<<"AMSTOFTovt::build-warning: a-ADC hits ovfl"<<'\n';
+                  updsh=2;//blockade on overflow
+                }
+              }//end of out_of_gate
             }
           }
           else{
@@ -923,16 +957,17 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
       }
 // 
 //                      
-// ====> Time_over_threshold measurement for DINODE :
+// ====> Time_over_threshold measurement for DYNODE :
 //
         daqt4=daqt4/d2a;// to avoid multiplying am*d2a in the loop
         _nadcd=0;
         updsh=0;
         tshd=-9999.;
+        tshup=9999.;
         tm=0;
         amp=0.;
         tmp=0.;
-        for(i=0;i<mxshc;i++){  //  <--- time bin loop ---
+        for(i=0;i<mxshc;i++){  //  <--- time bin loop inside the gate ---
           am=tshap2[i];
           tm+=shapb;
           if(am>=daqt4){
@@ -942,6 +977,21 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
                 updsh=1;
                 tshup=tmark;
               }
+            }
+            else{//a>0,shaper is still up, check gate
+              if((tm-tshup)>TOFDBc::shctim()){//(duration out of gate)->clear
+                tshd=tm;
+                updsh=0;
+                if(_nadcd<SCTHMX4){
+                  _tadcd[_nadcd]=tshup;// up-time
+                  _tadcdd[_nadcd]=tshd;  // down-time
+                  _nadcd+=1;
+                }
+                else{
+                  cerr<<"AMSTOFTovt::build-warning: d-ADC hits ovfl"<<'\n';
+                  updsh=2;//blockade on overflow
+                }
+              }//end of out_of_gate
             }
           }
           else{
@@ -1392,7 +1442,7 @@ void AMSTOFRawEvent::mc_build(int &status)
   number tadca[SCTHMX4],tadcad[SCTHMX4],tadcd[SCTHMX4],tadcdd[SCTHMX4];
   int16u  ftdc[SCTHMX2*2],stdc[SCTHMX3*4],adca[SCTHMX4*2],adcd[SCTHMX4*2];
   number t,t1,t2,t3,t4,tprev,ttrig1,ttrig3,dt,tlev1,tl1d,ftrig;
-  geant charge,edep,strr[2],str;
+  geant charge,edep,strr[2][2],str,offs;
   int trcode,trcode3;
   integer trflag(0),trpatt3[SCLRS];
   integer trpatt[SCLRS]={0,0,0,0};
@@ -1441,7 +1491,8 @@ void AMSTOFRawEvent::mc_build(int &status)
       ibar=id%100-1;
       scbrcal[ilay][ibar].gtstrat(strr);// get str-ratios for two sides
       isd=idd%10-1;
-      str=strr[isd];// str-ratio for given TovT-hit
+      str=strr[isd][0];// str-ratio for given TovT-hit
+      offs=strr[isd][1];// offset in str-ratio for given TovT-hit
       _sta=ptr->getstat();
       charge=ptr->getcharg();
       edep=ptr->getedep();
@@ -1481,7 +1532,7 @@ void AMSTOFRawEvent::mc_build(int &status)
         t1=tstdc[jj]+rnormx()*TOFDBc::strjit1();//"start"-signal time + jitter
         t2=ftrig+rnormx()*TOFDBc::strjit2();//"stop"-signal = ftrig + jitter
         t3=t2+ftpw;//"dummy"-signal time (fixed delay = FT_coinc-pulse width)
-        t4=t2+(t2-t1)*str+rnormx()*TOFDBc::strflu();//"end-mark"-signal + fluct 
+        t4=t2+offs+(t2-t1)*str+rnormx()*TOFDBc::strflu();//"end-mark"_signal + offs + fluct
         dt=ftrig-t1;// total FT-delay wrt t1
         if(dt<=TOFDBc::ftdelm()){ // check max. delay of "fast-trigger" signal
           it0=integer((tlev1-TOFDBc::fstdcd())/TOFDBc::tdcbin(1));//sTDC is delayed wrt fTDC
@@ -1562,7 +1613,7 @@ void AMSTOFRawEvent::mc_build(int &status)
       }//--- end of adca-hits loop --->
 //--------------------
       _nadcd=0;
-      nadcd=ptr->getadcd(tadcd,tadcdd);// get number and up/down times of dinode-ADC hits
+      nadcd=ptr->getadcd(tadcd,tadcdd);// get number and up/down times of dynode-ADC hits
       for(j=0;j<nadcd;j++){// <--- adcd-hits loop ---
         jj=nadcd-j-1;// LIFO readout mode (last stored - first read)
         t1=tadcd[jj];

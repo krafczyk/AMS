@@ -11,7 +11,7 @@
 
 
 
-const int NWPAW=350000;
+const int NWPAW=700000;
 struct PAWC_DEF{
 float q[NWPAW];
 };

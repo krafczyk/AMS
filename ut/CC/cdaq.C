@@ -38,10 +38,11 @@ int main(int argc, char* argv[]){
 
 
 void convert(int ibeg, int iend,char in[], char out[]){
+uinteger _Length;
 integer BigEndian=0;
 static ofstream fbout;
 static int16u Record[100000];
-int16u pData[24][1536];
+int16u pData[2][24][1536];
   enum open_mode{binary=0x80};
   if(ibeg==0){
     fbout.open(out,ios::out|binary|ios::app);
@@ -85,13 +86,16 @@ int16u pData[24][1536];
 
   }
     
-    FILE * fbin=fopen(in,"r");
+    ifstream fbin;
+    fbin.open(in,ios::in|binary);
+    int fevt=1;
     static int gevt=0;
+    static int terr=0;
     int tevt=0;
-    int evt;
     char name[80];
-    strncpy(name,in+strlen(in)-9,5);
+    strncpy(name,in+strlen(in)-6,6);
     int run =atoi(name);    
+    run=run/100;
     cout <<"run "<<run<<endl;
     long id, size, flags;
     time_t time;
@@ -105,14 +109,11 @@ int16u pData[24][1536];
         cerr <<"cdaq=F-CouldNotOPenFileI "<<in<<endl;
         exit(1);
       }
-       integer cdr[24];
-       integer nrecords=0; 
-       {
-       for(int  ll=0;ll<24;ll++)cdr[ll]=-1;
-       }
-         nrecords=0;
-
+       int ncnt=0;
+       int eventok=0;
        do {
+       int16u tdrno=-1;
+       int16u evto=-1;
        int l16ptr=0;
        int tlength,ntdr,len,tdrn,ch1,ch2,elem;
        ie=fscanf(fbin,"%x",&tlength);
@@ -149,10 +150,15 @@ int16u pData[24][1536];
            for(int ll=0;ll<nrecords;ll++){
              if(cdr[ll]!=ll)cout <<"cdaq-OrderError"<<ll<<" "<<cdr[ll]<<endl;
            }
+          }
+          ncnt=0;
 
-         for( ll=0;ll<24;ll++)cdr[ll]=-1;
-         nrecords=0;
+
+
+       if(eventok){
          // read whole event; try to write it
+         fevt=0;
+         
          Record[1]=0x0;
          Record[2]=9;
          Record[3]=0x200;
@@ -164,11 +170,17 @@ int16u pData[24][1536];
          Record[9]=time&65535;
          Record[10]=(time>>16)&65535;
          Record[11]=0;
-         Record[12]=32*(640+1)+32*(384+1)+1;
-         Record[0]=Record[12]+1+Record[2]+1+1;
-         Record[13]= 2<<6 | 11 <<9;    // Crate 32; 5 for 72
-         int frp=14;
-         for (int k=0;k<16;k++){
+         _Length=Record[2]+1+1;
+         int frp=12;
+         // first crate
+         for(int icrt=0;icrt<2;icrt++){
+          Record[frp]=(32)*(640+1)+32*(384+1)+1;
+          _Length+=Record[frp]+1;
+          frp++;
+          if(icrt==0)Record[frp]= 2<<6 | 11 <<9;    // 2 Crate 32; 5 for 72
+          else Record[frp]= 5<<6 | 11 <<9; 
+          frp++;
+          for (int k=0;k<16;k++){
            for(int j=0;j<2;j++){
              // make address
              int16u conn, tdrs;
@@ -181,6 +193,7 @@ int16u pData[24][1536];
                else conn=3; 
              }
              tdrs=k/2;
+             //             if(icrt==0 && conn==2 && tdrs==7)continue;
              int16u addr=(conn<<10) | (tdrs <<12);
              Record[frp]=addr;
              frp++;
@@ -188,14 +201,14 @@ int16u pData[24][1536];
              if(j==0)lj=2;
              else lj=0;
              for(int l=0;l<320;l++){
-              Record[frp]=pData[k][lj*384+l];
+              Record[frp]=pData[icrt][k][lj*384+l];
               Record[frp]=Record[frp] | (1<<15);
               frp++;     
              }
              if(j==0)lj=3;
              else lj=1;
              for( l=0;l<320;l++){
-              Record[frp]=pData[k][lj*384+l];
+              Record[frp]=pData[icrt][k][lj*384+l];
               Record[frp]=Record[frp] | (1<<15);
               frp++;     
              }
@@ -215,8 +228,8 @@ int16u pData[24][1536];
                conn+= 4;
              }
              tdrk=(k-16)/2;
-             //swap 3.2 <-> 3.0
-             if(run >=21 && tdrk == 2){
+             //swap 3.2 <-> 3.0 for 32
+             if(icrt==0 && tdrk == 2){
               if(conn == 0)conn=3;
               else if (conn==3)conn=0;  
              }
@@ -225,31 +238,99 @@ int16u pData[24][1536];
              Record[frp]=addr;
              frp++;
              for(int l=0;l<384;l++){
-              Record[frp]=pData[k][j*384+l];
+              Record[frp]=pData[icrt][k][j*384+l];
               Record[frp]=Record[frp] | (1<<15);
               frp++;     
               
              }
            }
          }
-         int tl=Record[0]+1;
+         }
+         //make length
+          Record[0]=_Length%65536;
+          Record[1]=Record[1] | (_Length/65536);
+         int tl=_Length+1;
+         //         cout <<" tl "<<tl<<endl;
               //  Dump every 1000 event
-         //                  if(evt%1000 == 0){
-         //                    for(int itl=0;itl<tl;itl++){
-         //                      cout <<itl <<" "<<Record[itl]<<endl;
-         //                    }
-         //                  }
+         //                           if(evt%1000 == 0){
+         //                             for(int itl=0;itl<tl;itl++){
+         //                               cout <<itl <<" "<<Record[itl]<<endl;
+         //                             }
+         //                           }
          _convert(Record,tl,BigEndian);
+         // skip first event for safety
+         //cout <<" write " <<tevt << endl;
          if(tevt!=0)fbout.write((unsigned char*)Record,tl*sizeof(Record[0]));  
          tevt++;
        }
-      }while (ie!=EOF);
+
+
+
+        }  
+       if(fbin.good()&& !fbin.eof() ){
+       }
+       else{
+         
+         break;
+       }
+       fbin.read((unsigned char*)&tlength,sizeof(tlength));
+       _convertl(tlength,BigEndian);
+       //       cout << "tlength "<<tlength<<endl;
+       tlength++;
+       if(tlength != 3084 ){
+         cerr<<"cdaqn-S-Bad Total Length "<<tlength<<endl;
+         int nskp=0;
+         while(tlength !=3084 || !fbin.eof()){
+         fbin.read((unsigned char*)&tlength,sizeof(tlength));
+         _convertl(tlength,BigEndian);
+         tlength++;
+         nskp++;
+         }
+         cerr<<"cdaqn-S-"<<nskp<<" words skipped"<<endl;
+       }
+       l16ptr++;
+       fbin.read((unsigned char*)&ntdr,sizeof(ntdr));
+       _convertl(ntdr,BigEndian);
+       ncrt=0;
+       if(ntdr & (1<<12))ncrt=1;
+       ntdr=ntdr & ~(1<<12); 
+       ncnt++;
+       l16ptr++;
+       //cout << " tlength "<<tlength <<endl;
+       //cout << " ntdr "<<ntdr <<" "<<ncrt<<endl;
+       if(fbin.good()&& !fbin.eof() ){
+       }
+       else{
+         
+         break;
+       }
+       do{
+       tdrno=tdrn;       
+       fbin.read((unsigned char*)&tdrn,sizeof(tdrn));
+       fbin.read((unsigned char*)&len,sizeof(tdrn));
+       fbin.read((unsigned char*)&evt,sizeof(tdrn));
+       _convertl(tdrn,BigEndian);
+       _convertl(len,BigEndian);
+       _convertl(evt,BigEndian);
+       //cout << " ntdr "<<ntdr <<" "<<tdrn<<" "<<len<<" "<<evt<<" "<<ncrt<<" "<<ncnt<<endl;
+       if(len-4 != 1536){
+         cerr <<" Cdaq-S-wrong length event # "<<evt<<" "<<len-4<<endl;
+         // Try to skip to another event
+       }
+                assert(len-4 <= 1536);
+          fbin.read((unsigned char*)pData[ncrt][tdrn],sizeof(pData[0][0][0])*(len-4));
+          _convert(pData[ncrt][tdrn],len-4,BigEndian);
+          fbin.read((unsigned char*)&ch1,sizeof(ch1));
+          fbin.read((unsigned char*)&ch2,sizeof(ch2));
+          l16ptr+=len+1;         
+       }while (l16ptr<tlength);
+      }while (fbin.good() && !fbin.eof());
       
-  fclose(fbin);
+  fbin.close();
   gevt+=tevt-1;
   if(iend==0){
       fbout.close();
-      cout <<" Total of "<<gevt<<" events  converted"<<endl;
+      cout <<" Total of "<<gevt-terr<<" events  converted with "<<terr<<" errors"<<endl;
   }
 }
 

@@ -68,8 +68,9 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_seresv=0.8;     // PMT Single elec.responce variance(relative to Mean)
   geant TOFDBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
   geant TOFDBc::_shaptb=1.;      // MC shaper internal time binning (ns)
-  geant TOFDBc::_shrtim=0.5;     // MC shaper pulse rise time (ns)(exp)
-  geant TOFDBc::_shftim=50.;     // MC shaper pulse fall time (ns)(exp)
+  geant TOFDBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
+  geant TOFDBc::_shctim=300.;    // MC shaper pulse cut-time(gate width)(ns)
+  geant TOFDBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!
   geant TOFDBc::_strflu=0.05;    // Stretcher "end-mark" time fluctuations (ns)
   geant TOFDBc::_tdcbin[4]={
     1.,                            // pipe/line TDC binning for fast-tdc meas.
@@ -253,6 +254,7 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::shaptb(){return _shaptb;}
   geant TOFDBc::shrtim(){return _shrtim;}
   geant TOFDBc::shftim(){return _shftim;}
+  geant TOFDBc::shctim(){return _shctim;}
 //
   geant TOFDBc::strrat(){return _strrat;}
 //
@@ -303,9 +305,11 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  integer i1,i2,sta[2];
  geant r,eff1,eff2;
  integer sid,brt;
- geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2];
- geant slope,fstrd,tzer,tdif,mip2q,speedl;
- geant tzerf[SCLRS][SCMXBR],slpf,strf[SCBLMX][2],tdiff[SCBLMX],stat[SCBLMX][2];
+ geant gna[2],gnd[2],qath,qdth,a2dr[2],tth,strat[2][2];
+ geant slope,slpf,fstrd,tzer,tdif,mip2q,speedl;
+ geant tzerf[SCLRS][SCMXBR],tdiff[SCBLMX],stat[SCBLMX][2];
+ geant slops[2],slops1[SCLRS][SCMXBR],slops2[SCLRS][SCMXBR];
+ geant strf[SCBLMX][2],strof[SCBLMX][2];
  geant an2di[SCBLMX][2],gaina[SCBLMX][2],gaind[SCBLMX][2],m2q[SCBTPN];
  geant ipara[SCCHMX][SCIPAR]; 
  geant ipard[SCCHMX][SCIPAR]; 
@@ -331,7 +335,6 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //------------------------------
   char in[2]="0";
   char inum[11];
-  char verlst[20]="tofverslist.dat";
   int ctyp,ntypes,mcvern[10],rlvern[10];
   int mcvn,rlvn,dig;
 //
@@ -345,9 +348,21 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
 // ---> read file-versions file :
 //
+  integer cfvn;
+  cfvn=TOFCAFFKEY.cfvers%100;
+  if(AMSJob::gethead()->isMCData())strcpy(name,"tofverlistmc");
+  else strcpy(name,"tofverlistrl");
+  dig=cfvn/10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=cfvn%10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  strcat(name,".dat");
+//
   strcpy(fname,AMSDATADIR.amsdatadir);
 //  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");//tempor
-  strcat(fname,verlst);
+  strcat(fname,name);
   cout<<"TOFBrcal::build: Open file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed tdfmap-file for reading
   if(!vlfile){
@@ -363,7 +378,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
 //------------------------------
 //
-//   --->  Read (lspeed/tdiffs + slope/tzeros) calibration file :
+//   --->  Read (lspeed/tdiffs + slope(s)/tzeros) calibration file :
 //
  ctyp=3;
  strcpy(name,"tzcalib");
@@ -399,7 +414,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  cout<<"Open file : "<<fname<<'\n';
  ifstream tcfile(fname,ios::in); // open  file for reading
  if(!tcfile){
-   cerr <<"TOFBrcal_build: missing Lspeed/Tdif/Tzero/Slope-file "<<fname<<endl;
+   cerr <<"TOFBrcal_build: missing Lspeed/Tdif/Tzero/Slope(s)-file "<<fname<<endl;
    exit(1);
  }
 //
@@ -411,12 +426,20 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    tcfile >> tdiff[cnum];
  }
  }
-// ---> read Slope/Tzeros:
+// ---> read Slope(s)/Tzeros:
  tcfile >> slpf;
  for(ila=0;ila<SCLRS;ila++){ 
- for(ibr=0;ibr<SCMXBR;ibr++){
-   tcfile >> tzerf[ila][ibr];
- } 
+   for(ibr=0;ibr<SCMXBR;ibr++){
+     tcfile >> slops1[ila][ibr];
+   } 
+   for(ibr=0;ibr<SCMXBR;ibr++){
+     tcfile >> slops2[ila][ibr];
+   } 
+ }
+ for(ila=0;ila<SCLRS;ila++){ 
+   for(ibr=0;ibr<SCMXBR;ibr++){
+     tcfile >> tzerf[ila][ibr];
+   } 
  }
  tcfile.close();
 //
@@ -466,8 +489,10 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
      cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
      scfile >> strf[cnum][0];
+     scfile >> strof[cnum][0];
      scfile >> stat[cnum][0];
      scfile >> strf[cnum][1];
+     scfile >> strof[cnum][1];
      scfile >> stat[cnum][1];
    } // --- end of bar loop --->
    } // --- end of layer loop --->
@@ -632,11 +657,15 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     }
   //
     sid=100*(ila+1)+(ibr+1);
-    strat[0]=strf[cnum][0];//from ext.file
-    strat[1]=strf[cnum][1];
+    strat[0][0]=strf[cnum][0];//stretcher param. from ext.file
+    strat[1][0]=strf[cnum][1];
+    strat[0][1]=strof[cnum][0];
+    strat[1][1]=strof[cnum][1];
     sta[0]=stat[cnum][0];
     sta[1]=stat[cnum][1];
-    slope=slpf;//was read from ext. file
+    slope=slpf;// common slope from ext. file
+    slops[0]=slops1[ila][ibr];// indiv.slopes from ext.file
+    slops[1]=slops2[ila][ibr];
     tzer=tzerf[ila][ibr];//was read from ext. file
     tdif=tdiff[cnum];//was read from ext. file 
     td2p[0]=speedl;//mean speed of the light was read from external file
@@ -648,7 +677,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     if(aip[0][0]==0.)sta[0]=1;// set status 1(bad) for missing channels (tauf==0)
     if(aip[1][0]==0.)sta[1]=1;
     scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,a2dr,asatl,tth,
-                              strat,fstrd,tzer,slope,tdif,td2p,mip2q,scp,rlo,
+                              strat,fstrd,tzer,slope,slops,tdif,td2p,mip2q,scp,rlo,
                               aip,dip);
 //
   } // --- end of bar loop --->
@@ -681,16 +710,21 @@ void TOFBrcal::q2t2q(int cof, int sdf, int adf, number &tovt, number &q){
 // Q(pC) <-> Tovt(ns) to use in sim./rec. programs (cof=0/1-> Q->Tovt/Tovt->Q)
 //                                                 (sdf=0/1-> bar side 1/2   )
 //                                                 (adf=0/1-> for anode/dinode)
-  number qoffs,shft,qthr;
+  number qoffs,shft,qthr,p1,p2,dt;
   if(adf==0){
     shft=aipar[sdf][0];
     qthr=exp(aipar[sdf][1]/shft);//to match old parametrization
     qoffs=aipar[sdf][2];
   }
   else{
-    shft=dipar[sdf][0];
-    qthr=exp(dipar[sdf][1]/shft);
-    qoffs=dipar[sdf][2];
+//    shft=dipar[sdf][0];//tempor (to accept tempor.parametrization for dynode) 
+//    qthr=exp(dipar[sdf][1]/shft);
+//    qoffs=dipar[sdf][2];
+    shft=aipar[sdf][0];//anode param.needed for dynode reco
+    qthr=exp(aipar[sdf][1]/shft);
+    qoffs=aipar[sdf][2];
+    p1=dipar[sdf][0];//dynode param.
+    p2=dipar[sdf][1];
   }
 // 
   if(cof==0){ // q->tovt
@@ -698,7 +732,11 @@ void TOFBrcal::q2t2q(int cof, int sdf, int adf, number &tovt, number &q){
     else tovt=0.;
   }
   else{       // tovt->q
-    q=qoffs+qthr*exp(tovt/shft);
+    if(adf==0)q=qoffs+qthr*exp(tovt/shft);//for anode
+    else{// for dynode
+      dt=(tovt-p1)/p2;
+      q=qoffs+qthr*exp(dt/shft);
+    }
   }
 }
 //------
@@ -707,7 +745,8 @@ geant TOFBrcal::amd2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
   for(int isd=0;isd<2;isd++){
     if(status[isd]==0){
       q2t2q(1,isd,1,amf[isd],q);
-      qt+=(q*an2dir[isd]/gaind[isd]);// Qd->Qd_gain_corrected
+//      qt+=(q*an2dir[isd]/gaind[isd]);// Qd->Qd_gain_corrected
+      qt+=(q/gaind[isd]);// (for new Dynode integ.parametrization don't need an2dir !!!) 
     }
   }
   qt=qt/mip2q; // Q(pC)->Mev
@@ -747,7 +786,7 @@ geant TOFBrcal::tm2t(number tmf[2], number amf[2]){//(2-sides_times/Tovt)->Time 
   if(status[0]==0 && status[1]==0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-      uv+=(exp(aipar[isd][1]/aipar[isd][0]))/qs;// summing Qthr/Q
+      uv+=slops[isd]/qs;// summing slops/Q
     }
   }
 //  uv=exp(-amf[0]/shft)+exp(-amf[1]/shft);// old parametrization
@@ -763,7 +802,7 @@ void TOFBrcal::tmd2p(number tmf[2], number amf[2],
   if(status[0]==0 && status[1]==0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-      uv+=(1-2*isd)*(exp(aipar[isd][1]/aipar[isd][0]))/qs;// subtr Qthr/Q
+      uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q
     }
   }
 //  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
@@ -781,7 +820,7 @@ void TOFBrcal::td2ctd(number tdo, number amf[2],
   if(status[0]==0 && status[1]==0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-      uv+=(1-2*isd)*(exp(aipar[isd][1]/aipar[isd][0]))/qs;// subtr Qthr/Q
+      uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q
     }
   }
 //  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
@@ -822,7 +861,7 @@ void TOFJobStat::print(){
   printf(" AMPL: no interaction    : % 6d\n",recount[13]);
   printf(" AMPL: Track momentum OK : % 6d\n",recount[14]);
   printf(" AMPL: TOF-TRK match OK  : % 6d\n",recount[15]);
-  printf(" Entries to STRR-calibr. : % 6d\n",recount[16]);
+  printf(" Entr to STRR/AVSD-calibr: % 6d\n",recount[16]);
   printf(" Entries to TDIF-calibr. : % 6d\n",recount[17]);
   printf(" TDIF: multiplicity OK   : % 6d\n",recount[18]);
 //  printf(" TDIF: matching OK       : % 6d\n",recount[19]);

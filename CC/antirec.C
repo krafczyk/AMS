@@ -574,7 +574,7 @@ integer AMSAntiRawEvent::calcdaqlength(int16u blid){
                         ->getheadC("AMSAntiRawEvent",0);
 //
   rcrat=(blid>>6)&7;// requested crate #
-  fmt=blid&63;// 0-raw, 1-reduced
+  fmt=1-(blid&63);// 0-raw, 1-reduced
 //
   if((2&(DAQSBlock::getdmsk(rcrat))) > 0){ // AntiSubdet. is in this crate 
   while(ptr){
@@ -636,7 +636,7 @@ void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
   phbtp=SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
 //
   rcrat=(blid>>6)&7;// requested crate #
-  fmt=blid&63;// 0-raw, 1-reduced
+  fmt=1-(blid&63);// 0-raw, 1-reduced
   len=0;
   if(2&DAQSBlock::getdmsk(rcrat) == 0)return;//no AntiSubdet. in this crate (len=0)
 //
@@ -790,13 +790,12 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
   maxv=phbit-1;// max TDC value
   phbtp=SCPHBPA;//take uniq phase-bit position used in Raw format for address-word
   lentot=*(p-1);// total length of the block(incl. block_id)
-  lentot-=1;// total length of the block(excl. block_id)
   bias=len;
 //
 // decoding of block-id :
 //
   crate=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
-  dtyp=blid&63;// data_type ("0"->RawTDC; "1"->ReducedTDC)
+  dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
 #ifdef __AMSDEBUG__
   if(ANTIRECFFKEY.reprtf[1]>=1){
     cout<<"Anti::decoding: crate/format="<<crate<<" "<<dtyp<<"  bias="<<bias<<endl;
@@ -876,9 +875,14 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
     }
 //
     ic=1;// for Raw format start from the beginning of block + 1
+//    ic=bias;// tempor
     while(ic<lentot){ // <---  words loop
       tdcw=*(p+ic++);// chip# + tdc_value
       chip=(tdcw>>15);// TDC-chip number(0-1)
+      if(ic>=lentot){
+        cout<<"ANTI:RawFmt:read_error: attempt to read Extra-word ic="<<ic<<" blocklength="<<lentot<<endl;
+        break;   
+      }
       adrw=*(p+ic++);// phbit + chipc + slotaddr.
       slad=adrw&15;// get SFEx h/w address(card-id) ((0,1,2,5)-TOF, (7)-C, (6)-A)
       sfet=DAQSBlock::slnumb(slad);// sequential slot number (0-5, or =DAQSSLT if slad invalid)) 
@@ -962,7 +966,7 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //
 #ifdef __AMSDEBUG__
   if(ANTIRECFFKEY.reprtf[1]>=1){
-    cout<<"AntiRawEventBuild::decoding: FOUND "<<len<<" words, hex/bit dump follows:"<<endl;
+    cout<<"AntiRawEventBuild::decoding: FOUND "<<len<<" good words, hex/bit dump follows:"<<endl;
     int16u tstw,tstb;
     for(i=0;i<len;i++){
       tstw=*(p+i+bias);

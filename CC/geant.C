@@ -447,8 +447,8 @@ extern "C" void guout_(){
 extern "C" void gukine_(){
 
 static integer event=0;
-
-
+time_t tm;// tempor
+time(&tm);// tempor
 
 #ifdef __DB_All__
   if (AMSFFKEY.Read > 1) {
@@ -500,6 +500,8 @@ static integer event=0;
       AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
       new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
       pdaq->runtype(),pdaq->time(),pdaq->usec())));
+//      pdaq->runtype(),tm,pdaq->usec()))); // tempor
+//<------      
       AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
       guout_();
       if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;

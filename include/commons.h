@@ -228,6 +228,8 @@ integer refbid[5];//ref. id's list to use for longit. uniformity meas.
 geant plhec[2];//low/high cuts on tracker mom. for earth calibration
 geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
 integer tofcoo;// 0/1-> use transv/longit coord. from TOF
+integer dynflg;// 0/1-> use stand/special(Contin's) dynode calibr.
+integer cfvers;// 1-99 -> vers.number for tofverslistNN.dat file
 };
 #define TOFCAFFKEY COMMON_BLOCK(TOFCAFFKEY,tofcaffkey)
 COMMON_BLOCK_DEF(TOFCAFFKEY_DEF,TOFCAFFKEY);
@@ -270,7 +272,7 @@ public:
 };
 #define CTCMCFFKEY COMMON_BLOCK(CTCMCFFKEY,ctcmcffkey)
 COMMON_BLOCK_DEF(CTCMCFFKEY_DEF,CTCMCFFKEY);
-
+//
 class CTCRECFFKEY_DEF {
   public:
   geant Thr1;  // limit on max
@@ -286,7 +288,13 @@ class CTCRECFFKEY_DEF {
 };
 #define CTCRECFFKEY COMMON_BLOCK(CTCRECFFKEY,ctcrecffkey)
 COMMON_BLOCK_DEF(CTCRECFFKEY_DEF,CTCRECFFKEY);
-
+//
+class CTCCAFFKEY_DEF {
+  public:
+  integer cfvers; // vers.number NN for ctcverlist(mc/rl)NN.dat file
+};
+#define CTCCAFFKEY COMMON_BLOCK(CTCCAFFKEY,ctccaffkey)
+COMMON_BLOCK_DEF(CTCCAFFKEY_DEF,CTCCAFFKEY);
 //==============================================================
 
 class LVL1FFKEY_DEF {

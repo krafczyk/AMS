@@ -143,11 +143,22 @@ void CTCCCcal::build(){
 //
   strcpy(inum,"0123456789");
 //
-// ---> read versions file :
+// ---> read cal.file-versions file :
 //
+  integer cfvn;
+  cfvn=CTCCAFFKEY.cfvers%100;
+  if(AMSJob::gethead()->isMCData())strcpy(name,"ctcverlistmc");
+  else strcpy(name,"ctcverlistrl");
+  dig=cfvn/10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=cfvn%10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  strcat(name,".dat");
   strcpy(fname,AMSDATADIR.amsdatadir);
 //  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/ctcca/");//tempor
-  strcat(fname,verlst);
+  strcat(fname,name);
   cout<<"CTCCCcal::build: Open file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed verslist-file for reading
   if(!vlfile){

@@ -177,6 +177,8 @@ M A I N  ->      gbatch.C
  |        |    |    |->_retofevent     Reconstruct TOF
  |        |    |    |     |
  |        |    |    |     |->AMSTOFRawEvent::validate  RawEvent-->RawEvent
+ |        |    |    |     |  (also includes STRR+AVSD calibration if selected)
+ |        |    |    |     |                        
  |        |    |    |     |->AMSTOFRawCluster::build   RawEvent-->RawCluster
  |        |    |    |     |->AMSTOFCluster::build      RawCluster-->Cluster
  |        |    |    |
@@ -223,7 +225,10 @@ M A I N  ->      gbatch.C
  |        |          |->_catofevent      TOF
  |        |          |      |
  |        |          |      |->TOFTZSLcalib::select() Event selection for
- |        |          |                                TOF TZSL-calibration
+ |        |          |      |                         TOF TZSL-calibration
+ |        |          |      |->TOFTDIFcalib::select() .... for TDIF-calibration
+ |        |          |      |->TOFAMPLcalib::select() .... for AMPL-calibration
+ |        |          |
  |        |          |->_cactcevent       Cerenkov
  |        |          |
  |        |          | 

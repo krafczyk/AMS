@@ -100,7 +100,7 @@ I 4   Print-flag(0)       // 0/1/2->not/printDAQdecoding/printDAQdecoding+encodi
 I 5   Print-flag(0)       // print RECO-histograms (if=1)
 I 6   Print-flag(0)       // separate flag for TDC-hit multiplicity histograms(112 hist)
 I 7   Print-flag(0)       // spare
-I 8   RECO logic-flag(0)  // Normal/Stretch_ratio/TDIF/TZSL/AMPL-calibr_run(if=0/1/2/3/4)
+I 8   RECO logic-flag(0)  // Normal/STRR+AVSD/TDIF/TZSL/AMPL-calibr_run(if=0/1/2/3/4)
 I 9   RECO logic-flag(0)  // spare
 I 10  RECO logic-flag(0)  // spare
 I 11  RECO logic-flag(0)  // spare
@@ -151,7 +151,9 @@ I 21 refbid[4]     // ......................................
 R 22 plhec[0] (0.05) // mom. low-cut for earth calibr.
 R 23 plhec[0] (10)   // mom. high-cut for earth calibr.
 R 24 bgcut[0] (2)   // beta*gamma low-cut for mip in abs.calibr.
-R 24 bgcut[1] (10)  // beta*gamma high-cut for mip in abs.calibr.
+R 25 bgcut[1] (10)  // beta*gamma high-cut for mip in abs.calibr.
+I 27 dynflg    (1)  // 0/1-> use stand/special(Contin's) dynode-calibration
+I 28 cfvers    (1)  // 01-99 vers.number NN for tofverlist(mc/rl)NN.dat file 
 //---------------------------------------------------------------------------------
 
 // CTC  Simulation

@@ -22,12 +22,12 @@ integer DAQSBlock::format=1; // default format (reduced), redefined by data card
 int16u DAQSBlock::subdmsk[DAQSBLK]={7,7,1,5,7,7,1,5};
 // ( mask of detectors in given block(each number: lsbit->msbit => tof/anti/ctc))
 //
-int16u DAQSBlock::slotadr[DAQSSLT]={0,1,2,3,4,5};// h/w address of slots (card-ID's)
+int16u DAQSBlock::slotadr[DAQSSLT]={0,1,2,3,4,5};// h/w addr(card-ID) vs sequent. slot#
 //
 int16u DAQSBlock::sblids[DAQSFMX][DAQSBLK]=  //valid S-block_id's for each format
   {
-    {0x1400,0x1440,0x1480,0x14C0,0x1500,0x1540,0x1580,0x15C0}, //  Raw
-    {0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1}  //  Reduced
+    {0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1},  //  Raw
+    {0x1400,0x1440,0x1480,0x14C0,0x1500,0x1540,0x1580,0x15C0} //  Reduced
   };
 //
 int16u DAQSBlock::tofmtyp[SCTOFC][4]={
@@ -36,6 +36,17 @@ int16u DAQSBlock::tofmtyp[SCTOFC][4]={
                                       {3,4,2,1},    // mtypes in 3rd TOFchannel of SFET
                                       {1,2,3,4},    // mtypes in 4th TOFchannel of SFET
                                      };
+//
+int16u DAQSBlock::tempch[SCCRAT][SCSFET]={   // TOFch#, occupied by temper. in crate/sfet
+                                          {0,0,4,0},  // cr=1(01) inverted !
+                                          {0,4,0,0},  // cr=2(03)
+                                          {0,0,4,0},  // cr=3(31) inverted !
+                                          {0,4,0,0},  // cr=4(33)
+                                          {0,0,4,0},  // cr=5(41) inverted !
+                                          {0,4,0,0},  // cr=6(43)
+                                          {0,0,4,0},  // cr=7(71) inverted !
+                                          {0,4,0,0},  // cr=8(73)
+                                         };
 //
 number DAQSBlock::rwtemp[DAQSTMX]={0,0,0,0,0,0,0,0, // just mem. reservation
                                    0,0,0,0,0,0,0,0,
@@ -49,10 +60,27 @@ integer DAQSBlock::isSFET(int16u slota){ // "slota" means card-id (h/w address)
   else return(0);
 }
 //
-integer DAQSBlock::isSFETT(int16u slota){
-  if(slota==1)return(1);
-//  else if(slota==3)return(2); // missing in Levi/Federico sceme !!!
-  else return(0);
+int16u DAQSBlock::isSFETT(int16u crat, int16u slota){
+  int16u i,j,sln(0);
+  for(i=0;i<SCSFET;i++){ // get sequential number of slot
+    if(slotadr[i]==slota)break;
+  }
+  if(tempch[crat][i]>0){//get sequential number of "temperature"-slot
+    for(j=0;j<=i;j++)if(tempch[crat][j]>0)sln+=1;
+  }
+  return(sln);
+}
+//
+int16u DAQSBlock::isSFETT2(int16u crat, int16u slotn){
+  int16u i,sln(0);
+  if(tempch[crat][slotn]>0){//get sequential number of "temperature"-slot
+    for(i=0;i<=slotn;i++)if(tempch[crat][i]>0)sln+=1;
+  }
+  return(sln);
+}
+//
+int16u DAQSBlock::gettempch(int16u crat, int16u sfet){ // tempch=1-4 !!! (0 if missing)
+  return(tempch[crat][sfet]);
 }
 //
 integer DAQSBlock::isSFEA(int16u slota){
@@ -85,7 +113,7 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   btyp=blid>>13;// block_type ("0" for event data)
   ntyp=(blid>>9)&15;// node_type ("10" for TOF/ANTI/CTC)
   naddr=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
-  dtyp=blid&63;// data_type ("0"->RawTDC; "1"->ReducedTDC)
+  dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
   msk=subdmsk[naddr];
 #ifdef __AMSDEBUG__
   if(TOFRECFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
@@ -118,7 +146,7 @@ void DAQSBlock::buildraw(integer len, int16u *p){
     chan=im*naddr+i;
     rwtemp[chan]=0;
   }
-  lent=1;//initial block length (block_id word)
+  lent=1;//initial block length (block_id word was read)
 //
 //---> TOF decoding:
   if(lent<len && (msk&1)>0){
