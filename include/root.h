@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.149 2005/02/18 11:02:24 alcaraz Exp $
+//  $Id: root.h,v 1.150 2005/03/05 16:56:57 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -2053,6 +2053,41 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
    vector<float>         fAux;
 
    public:
+
+     /// Get into memory contents for all branches 
+     void GetAllContents() {
+            bHeader->GetEntry(_Entry);
+            bEcalHit->GetEntry(_Entry);
+            bEcalCluster->GetEntry(_Entry);
+            bEcal2DCluster->GetEntry(_Entry);
+            bEcalShower->GetEntry(_Entry);
+            bRichHit->GetEntry(_Entry);
+            bRichRing->GetEntry(_Entry);
+            bTofRawCluster->GetEntry(_Entry);
+            bTofCluster->GetEntry(_Entry);
+            bAntiCluster->GetEntry(_Entry);
+            bTrRawCluster->GetEntry(_Entry);
+            bTrCluster->GetEntry(_Entry);
+            bTrRecHit->GetEntry(_Entry);
+            bTrTrack->GetEntry(_Entry);
+            bTrdRawHit->GetEntry(_Entry);
+            bTrdCluster->GetEntry(_Entry);
+            bTrdSegment->GetEntry(_Entry);
+            bTrdTrack->GetEntry(_Entry);
+            bLevel1->GetEntry(_Entry);
+            bLevel3->GetEntry(_Entry);
+            bBeta->GetEntry(_Entry);
+            bVertex->GetEntry(_Entry);
+            bCharge->GetEntry(_Entry);
+            bParticle->GetEntry(_Entry);
+            bAntiMCCluster->GetEntry(_Entry);
+            bTrMCCluster->GetEntry(_Entry);
+            bTofMCCluster->GetEntry(_Entry);
+            bTrdMCCluster->GetEntry(_Entry);
+            bRichMCCluster->GetEntry(_Entry);
+            bMCTrack->GetEntry(_Entry);
+            bMCEventg->GetEntry(_Entry);
+      }
 
       ///  \return number of EcalHitR
       unsigned int   NEcalHit()  {
