@@ -93,7 +93,7 @@ VII.  Standalone version
           tar -cvf ~/ams.tar v3.00/*.dat 
           tar -uvf ~/ams.tar v3.00/T*
           tar -uvf ~/ams.tar v3.00/t*
-          tar -uvf ~/ams.tar DataBase/MagneticFieldMap/977*
+          tar -uvf ~/ams.tar DataBase/MagneticFieldMap/9*
           tar -uvf ~/ams.tar DataBase/Tracker*.2*
           tar -uvf ~/ams.tar DataBase/Tracker*2
           tar -uvf ~/ams.tar DataBase/*of*/*.0.*
