@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.69 2003/04/01 09:11:47 choutko Exp $
+# $Id: RemoteClient.pm,v 1.70 2003/04/01 10:29:44 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -321,10 +321,13 @@ my %mv=(
           push @{$self->{DataSetsT}}, $dataset;
        foreach my $job (@jobs){
         if($job =~ /\.job$/){
+        if($job =~ /^\./){
+            next;
+        }
            my $template={};
            my $full="$newfile/$job";
            my $buf;
-           open(FILE,"<".$full) or die "Unable to open file $full \n";
+           open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
            read(FILE,$buf,1638400) or next;
            close FILE;
            $template->{filename}=$job;
@@ -3505,11 +3508,9 @@ sub getrndm(){
         else{
             $maxrun=$res->[0][0];
         }
-        $sql="select rndm1 from RNDM where rid=$maxrun";
-        my $res1=$self->{sqlserver}->Query($sql);
-        $sql="select rndm2 from RNDM where rid=$maxrun";
-        my $res2=$self->{sqlserver}->Query($sql);
-        if( not defined $res1->[0][0] or not defined $res2->[0][0]){
+        $sql="select rndm1,rndm2 from RNDM where rid=$maxrun";
+        my $res=$self->{sqlserver}->Query($sql);
+        if( not defined $res->[0][0] ){
           my $big=2147483647;
           my $rndm1=int (rand $big);
           my $rndm2=int (rand $big);
@@ -3517,14 +3518,14 @@ sub getrndm(){
 
           return ($rndm1,$rndm2);
          }
-    my $rndm1=$res1->[0][0];
-    my $rndm2=$res2->[0][0];
+    my $rndm1=$res->[0][0];
+    my $rndm2=$res->[0][1];
              $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";
              $self->{sqlserver}->Update($sql);
              $maxrun=-$maxrun+1;
              $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";
              $self->{sqlserver}->Update($sql);
-           return ($res1->[0][0],$res2->[0][0]);
+             return ($rndm1,$rndm2);
  
     }
 
