@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.119 2002/05/21 09:03:42 alexei Exp $
+//  $Id: mceventg.C,v 1.120 2002/05/21 10:36:11 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -301,22 +301,23 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
     }
     else if(low==1){
       cout <<"AMSMceventg::setspectra-W-UnderCutoffParticleGeneratorChosen"<<endl;
-   
+      if(ipart!=14){
+        cerr<<"AMSMCeventg::setspectra-F-OnlyProtonsAreCurrentlySupprted"<<endl;
+       abort();
+      }
       integer nchan=500;
       geant binw;
-      if(mass < 0.938)binw=40;
-      else  binw=40*mass/0.938/charge;
+      binw=40;
       geant al=binw/2;
-      
       geant bl=binw/2+nchan*binw;
       HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
       for(int i=0;i<nchan;i++){
         geant xm=i*binw+al+binw/2;
         number xmom=xm/1000;
        number xr=xmom/charge;
-        number xkin=(sqrt(xmom*xmom+mass*mass)-mass)*1000;
-        geant y=10*exp(-2.6*xr);
-        if(xkin>5*charge*charge)HF1(_hid,xm,y);
+        number xkin=(sqrt(xmom*xmom+mass*mass)-mass);
+        geant y=2.4*exp(-0.8*xkin)+100*exp(-4.26*xkin);
+        if(xkin>0.005)HF1(_hid,xm,y);
      }
           
           HPRINT(_hid);
@@ -1065,7 +1066,7 @@ if(GCKINE.ipart==48 && scan){
  radl+=GCTRAK.step/GCMATE.radl;
  absl+=GCTRAK.step/GCMATE.absl;
  char nvol[5]="EXIT";
- if(GCTRAK.inwvol==1 && GCVOLU.nlevel<3){
+ if(GCTRAK.inwvol==1 && GCVOLU.nlevel<4){
        for(int i=0;i<4;i++)nvol[i]=GCVOLU.names[GCVOLU.nlevel-1][i];
        AMSmctrack* genp=new AMSmctrack(radl,absl,GCTRAK.vect,nvol);
        AMSEvent::gethead()->addnext(AMSID("AMSmctrack",0), genp);

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.59 2002/05/21 09:03:46 alexei Exp $
+//  $Id: root.h,v 1.60 2002/05/21 10:36:12 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -17,9 +17,9 @@ class AMSNtuple;
 namespace root{
 const int MAXBETA02    = 50;
 const int MAXCHARGE02  = 30;
-const int MAXPART02    =  20;
-const int MAXTOF     =    20;
-const int MAXTOFRAW  =    20;
+const int MAXPART02    =  10;
+const int MAXTOF     =    40;
+const int MAXTOFRAW  =    40;
 const int MAXTOFMC   =   200;
 const int MAXANTICL  =    16;
 const int MAXANTIRAW =    32;

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.404 2002/04/29 07:28:52 choumilo Exp $
+// $Id: job.C,v 1.405 2002/05/21 10:36:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -180,7 +180,7 @@ IOPA.hlun=0;
 VBLANK(IOPA.hfile,40);
 IOPA.ntuple=1;
 IOPA.Portion=.1;
-IOPA.WriteAll=2;
+IOPA.WriteAll=102;
 VBLANK(IOPA.TriggerC,40);
 VBLANK(AMSFFKEY.TDVC,400);
 char amsp[12]="AMSParticle";

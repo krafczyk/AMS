@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.282 2002/05/21 09:03:42 alexei Exp $
+//  $Id: event.C,v 1.283 2002/05/21 10:36:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -447,12 +447,15 @@ void AMSEvent::_signinitevent(){
   // Allocate time & define the geographic coordinates
   if(AMSJob::gethead()->isSimulation() && !rec){
     static number dtime=AMSmceventg::Orbit.FlightTime/
-      (GCFLAG.NEVENT);
+      (GCFLAG.NEVENT+1);
     static number curtime=0;
     geant dd; 
     int i;
     number xsec=0;
-      xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
+      if(CCFFKEY.low==0){
+       xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
+      }
+      else xsec+=dtime*(AMSmceventg::Orbit.Nskip+1);
     curtime+=xsec;
     if(curtime>AMSmceventg::Orbit.FlightTime){
       curtime=AMSmceventg::Orbit.FlightTime;
@@ -970,7 +973,7 @@ for(int il=0;il<2;il++){
 
    
   if(IOPA.hlun || IOPA.WriteRoot){
-    AMSJob::gethead()->getntuple()->reset(1);
+    AMSJob::gethead()->getntuple()->reset(IOPA.WriteRoot);
     _writeEl();
     AMSNode * cur;
     for (int i=0;;){
