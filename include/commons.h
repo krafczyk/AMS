@@ -4,7 +4,7 @@
 #define __AMSCOMMONS__
 #include <cern.h>
 
-const int NWPAW=300000;
+const int NWPAW=1000000;
 struct PAWC_DEF{
 float q[NWPAW];
 };

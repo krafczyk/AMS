@@ -44,6 +44,7 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
 * I*4  *              * EVENTH   * AntiClusters     // No of Amti clusters
 * I*4  *              * EVENTH   * EventStatus      // EventStatus (see status.doc)
+* R*4  *              * EVENTH   * Dummy[3]         // Dummies to be filled
 
 * I*4  * [0,10]       * BETA     * nbeta             // betas number
 * I*4  *              * BETA     * betastatus        // 4 - ambig
@@ -75,15 +76,12 @@ Below there is a description of a  ntuple.
 * R*4  *              * CHARGE   * truntracker            // Trun (-1) mean
 
 * I*4  * [0,10]       * PARTICLE * npart                   // particles number
+* I*4  *              * PARTICLE * pctcp(2,npart)    // pointer(s) to cerenkov
+                                                     // cluster (matched)
 * I*4  *              * PARTICLE * pbetap(npart)     // pointer to beta
 * I*4  *              * PARTICLE * pchargep(npart)   // pointer to charge
 * I*4  *              * PARTICLE * ptrackp(npart)    // pointer to track
 * I*4  *              * PARTICLE * pid(npart)        // Geant Particle Id
-* I*4  *              * PARTICLE * pidvice(npart)    // ---//--- vice Id
-* R*4  *              * PARTICLE * probpid(2,npart)  // probabilties to be pid
-       *              *          *                   // a-la Lebedev/Gauss
-* R*4  *              * PARTICLE * fitmom(npart)     // momentum
-*      *              *          *                   //  if pmass=mass(pid)
 * R*4  *              * PARTICLE * pmass(npart)      // particle mass 
 * R*4  *              * PARTICLE * perrmass(npart)   // error in particle mass
 * R*4  *              * PARTICLE * pmom(npart)       // particle momentum
@@ -95,16 +93,17 @@ Below there is a description of a  ntuple.
 * R*4  *              * PARTICLE * thetagl(npart)    // theta global **)
 * R*4  *              * PARTICLE * phigl(npart)      // phi global
 * R*4  *              * PARTICLE * pcoo(3,npart)     // coo  -----------
-* R*4  *              * PARTICLE * signalctc(2,npart)  // ctcsignal(s)
-* R*4  *              * PARTICLE * betactc(2,npart)   // ctc beta            
-* R*4  *              * PARTICLE * errorbetactc(2,npart)   // ctcerror beta
-* R*4  *              * PARTICLE * cooctc(3,2,npart)    // tracker extrapol   in ctc
-* R*4  *              * PARTICLE * cootof(3,4,npart)    // tracker extrapol   in tof
-* R*4  *              * PARTICLE * cooanti(3,2,npart)   // tracker extrapol   in anti
-* R*4  *              * PARTICLE * cootr(3,6,npart)     // tracker extrapol   in tr
-
-
-
+* I*4  *              * PARTICLE * atcnbcel(2,npart) // nb of acrossed cells
+* R*4  *              * PARTICLE * atcnbphe(2,npart) // nb of photoelectrons
+* I*4  *              * PARTICLE * atcidcel(2,npart) // cells id
+* I*4  *              * PARTICLE * atcdispm(2,npart) // PM minimal distance
+* I*4  *              * PARTICLE * atcdaero(2,npart) // Aerogel path length
+* I*4  *              * PARTICLE * atcstatu(2,npart) // Bad ATC cells
+* R*4  *              * PARTICLE * atcbeta(npart)    // velocity from ATC
+* R*4  *              * PARTICLE * cooctc(3,2,npart) // tracker extrapol in ctc
+* R*4  *              * PARTICLE * cootof(3,4,npart) // tracker extrapol in tof
+* R*4  *              * PARTICLE * cooanti(3,2,npart)// tracker extrapol in anti
+* R*4  *              * PARTICLE * cootr(3,6,npart)  // tracker extrapol in tr
 
 
 * I*4  * [0,20]       * TOFCLUST * ntof                // TOF clusters number
@@ -119,13 +118,13 @@ Below there is a description of a  ntuple.
 * I*4  *              * TOFCLUST * plane(ntof)         // Tof counter no
                                                        //1..4 up..down
 * I*4  *              * TOFCLUST * bar(ntof)           //  TOF bar no
-* I*4  *              * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
 * R*4  *              * TOFCLUST * TOFEdep(ntof)      // TOF energy loss(MeV) from Anode
 * R*4  *              * TOFCLUST * TOFEdepd(ntof)     // TOF energy loss(MeV) from Dynode
 * R*4  *              * TOFCLUST * TOFTime(ntof)      // TOF time (sec)
 * R*4  *              * TOFCLUST * TOFETime(ntof)     // Error in TOF time
 * R*4  *              * TOFCLUST * TOFCoo(3,ntof)     // TOF Coo (cm)
 * R*4  *              * TOFCLUST * TOFErCoo(3,ntof)   //
+* I*4  *              * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
 
 
 * I*4  * [0,200]      * TOFMCCLU * ntofmc            // TOF MC hits number
@@ -181,9 +180,7 @@ Below there is a description of a  ntuple.
 * R*4  *              * TRRECHIT * hitr(3,ntrrh) // gl 3dim coordinates
 * R*4  *              * TRRECHIT * ehitr(3,ntrrh) // error to above
 * R*4  *              * TRRECHIT * sumr(ntrrh)    // Amplitude
-* R*4  *              * TRRECHIT * difosum(ntrrh) (A_x-A_y)/(A_x+A_y) 
-* R*4  *              * TRRECHIT * cofgx(ntrrh)   // local cofgx around max
-* R*4  *              * TRRECHIT * cofgy(ntrrh)   // localf cofgy around max
+* R*4  *              * TRRECHIT * difosum(ntrrh) (A_x-A_y)/(A_x+A_y)
 
 
 * I*4  * [0,20]       * TRTRACK  * ntrtr          // tracks number
@@ -365,8 +362,7 @@ Below there is a description of a  ntuple.
 14 - FalseX, x-coordinate built but not measured (Trck)  (status&8192  !=0)
 15 - FalseTOFX, x-coordinates from TOF (Trck)            (status&16384 !=0)
 16 - 4th tof plane was recovered using tracker           (status&32768 !=0)
-17 - Local db used for tracker alignment                 (status&32768*2 !=0)
-18 - global tracker alignment was used                   (status&32768*4 !=0)
+
 
 
 

@@ -19,6 +19,10 @@
 #include <ntuple.h>
 #include <antirec.h>
 
+extern "C" void atcrec_(const integer & run, integer & nctcht, geant cooctc[1][2][3], int la[], int co[], int ro[], geant sig[],
+                   int atcnbcel[], geant atcnbphe[], int atcidcel[], int atcdispm[], int atcdaero[], int atcstatu[], float & atcbeta);
+
+
 PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
 #define PROB(A2,A3)  CCALLSFFUN2(PROB,prob,FLOAT,INT,A2,A3)
 
@@ -313,9 +317,6 @@ void AMSParticle::_writeEl(){
   PN->PhiGl[PN->Npart]=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
   for(i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
   for(i=0;i<CTCDBc::getnlay();i++){
-    PN->Value[0][PN->Npart][i]=_Value[i].getsignal();
-    PN->Value[1][PN->Npart][i]=_Value[i].getbeta();
-    PN->Value[2][PN->Npart][i]=_Value[i].geterbeta();
     PN->CooCTC[PN->Npart][i][0]=_Value[i].getcoo()[0];
     PN->CooCTC[PN->Npart][i][1]=_Value[i].getcoo()[1];
     PN->CooCTC[PN->Npart][i][2]=_Value[i].getcoo()[2];
@@ -336,6 +337,75 @@ void AMSParticle::_writeEl(){
       PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
     }
   }
+
+// New ATC association
+  const integer maxh=100;
+  integer ctchitstatus[maxh];
+  integer ctchitlayer[maxh];
+  integer ctchitcolumn[maxh];
+  integer ctchitrow[maxh];
+  geant ctchitsignal[maxh]; 
+  integer nhits=0;
+ for(integer kk=0;kk<CTCDBc::getnlay();kk++){
+  AMSCTCRawHit *ptr=(AMSCTCRawHit*)AMSEvent::gethead()->
+  getheadC("AMSCTCRawHit",kk);
+  while (ptr){
+   ctchitsignal[nhits]=ptr->getsignal();
+   ctchitstatus[nhits]=ptr->getstatus();
+   ctchitlayer[nhits]=ptr->getlayno();
+   ctchitrow[nhits]=ptr->getrowno();
+   ctchitcolumn[nhits]=ptr->getcolno();
+   if(nhits<maxh)nhits++;
+   ptr=ptr->next();
+  }
+ }
+/*
+
+
+********************************************************************
+      SUBROUTINE atcrec(run,nctcht,cooctc,ctchitlayer,ctchitcolumn,ctchitrow,c
+     +                  tchitsignal,
+     +                  atcnbcel,atcnbphe,atcidcel,atcdispm,
+     +                  atcdaero,atcstatu,atcbeta)
+********************************************************************
+*   F. Barao (30/Nov/98)
+*
+*   AIMS: get ATC detailed information per event
+*     IN:
+*    OUT: atcnbcel(1:2) = nb cells acrossed
+*         atcnbphe(1:2) =
+*         atcidcel(1:2) =
+*         atcdispm(1:2) =
+*         atcdaero(1:2) =
+*         atcstatu(1:2) =
+*         atcbeta       =
+********************************************************************
+      real cooctc(3,2,1)
+      real ctchitsignal(1)
+      integer ctchitcolumn(1),ctchitrow(1),ctchitlayer(1),run,nctcht
+
+
+
+*/
+
+/*
+  int   ATCnbcel[MAXPART][2];
+  float ATCnbphe[MAXPART][2];
+  int   ATCidcel[MAXPART][2];
+  int   ATCdispm[MAXPART][2];
+  int   ATCdaero[MAXPART][2];
+  int   ATCstatu[MAXPART][2];
+  float ATCbeta[MAXPART];
+*/ 
+
+atcrec_(AMSEvent::gethead()->getrun(), nhits, PN->CooCTC, ctchitlayer, ctchitcolumn, ctchitrow, ctchitsignal,  
+        PN->ATCnbcel[PN->Npart], PN->ATCnbphe[PN->Npart],   PN->ATCidcel[PN->Npart],  PN->ATCdispm[PN->Npart], 
+        PN->ATCdaero[PN->Npart], PN->ATCstatu[PN->Npart], PN->ATCbeta[PN->Npart]); 
+
+// cout << "ATC debug" << PN->ATCnbcel[PN->Npart][1] << PN->ATCnbcel[PN->Npart][1] << endl;
+
+
+ //next
 
   PN->Npart++;
 }
