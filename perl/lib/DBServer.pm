@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.14 2004/10/06 08:32:07 choutko Exp $
+# $Id: DBServer.pm,v 1.15 2004/10/13 08:29:34 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -563,6 +563,21 @@ sub InitDBFile{
          $ref->{dbfile}=$amsprodlogdir."/db/".$ref->{dbfile};
      }
 #        die "trying to open dbfile $ref->{dbfile}\n";
+
+        my $lock="$ref->{dbfile}.lock";
+        sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
+        my $ntry=0;
+     until (flock LOCK, LOCK_EX|LOCK_NB){
+         sleep 2;
+         $ntry=$ntry+1;
+         if($ntry>10){
+           $ref->Exiting("Unable to get lock for $lock","CInAbort");
+           close(LOCK);
+          return 0;
+         }
+     }
+        
+
          if(defined $amsprodlogdir){
             $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
         }
@@ -580,27 +595,31 @@ sub InitDBFile{
     }
      if(not $db){
       $ref->Exiting("Unable to tie db_file $ref->{dbfile}","CInAbort");
+      close(LOCK);
       return 0;
       }
-      my $fd=$db->fd;
-      my $ok=open DBM, "<&=$fd";
-      if( not $ok){
-       $ref->Exiting("Unable to dup DBM for lock: $!","CInAbort");
-       return 0;
-      }
-     my $ntry=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 1;
-         $ntry=$ntry+1;
-         if($ntry>10){
-           $ref->Exiting("Unable to get lock for $ref->{dbfile}","CInAbort");
-          return 0;
-         }
-     }
+#      my $fd=$db->fd;
+#      my $ok=open DBM, "<&=$fd";
+#      if( not $ok){
+#       $ref->Exiting("Unable to dup DBM for lock: $!","CInAbort");
+#       close(LOCK);
+#       return 0;
+#      }
+#     my $ntry=0;
+#     until (flock DBM, LOCK_EX|LOCK_NB){
+#         sleep 1;
+#         $ntry=$ntry+1;
+#         if($ntry>10){
+#           $ref->Exiting("Unable to get lock for $ref->{dbfile}","CInAbort");
+#          close(LOCK);
+#          return 0;
+#         }
+#     }
       undef $db;
     if($init){
         if(not $ref->UpdateEverything()){
           $ref->Exiting("Unable to get Tables From Server","CInAbort");
+          close(LOCK);
           return 0;
         }       
         $hash{nhl}=$ref->{nhl};
@@ -651,6 +670,7 @@ sub InitDBFile{
         if(defined $amsprodlogdir){
           if( not $ref->UpdateEverything(1)){
           $ref->Exiting("Unable to send Tables To Server","CInAbort");
+          close(LOCK);
           return 0;
           }
           else{
@@ -661,6 +681,7 @@ sub InitDBFile{
         }       
     }
     untie %hash;
+    close(LOCK);
     return 1;
 
 }
@@ -672,30 +693,46 @@ sub OpenDBFile{
     my $db;
     my ($ref,$amsprodlogdir)=@_;
     if (defined $ref->{dbfile}){
+        my $lock="$ref->{dbfile}.lock";
+        sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
+        my $ntry=0;
+     until (flock LOCK, LOCK_EX|LOCK_NB){
+         sleep 2;
+         $ntry=$ntry+1;
+         if($ntry>10){
+           $ref->Exiting("Unable to get lock for $lock","CInAbort");
+           close(LOCK);
+          return 0;
+         }
+     }
+        
+
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
     }
     else{
         return 0;
     }
      if(not $db){
+      close(LOCK);
       return 0;
       }
-      my $fd=$db->fd;
-      my $ok=open DBM, "<&=$fd";
-      if( not $ok){
-       untie %hash;
-       return 0;
-      }
-     my $ntry=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-          untie %hash;
-          return 0;
-         }
-     }
+#      my $fd=$db->fd;
+#      my $ok=open DBM, "<&=$fd";
+#      if( not $ok){
+#       untie %hash;
+#       return 0;
+#      }
+#     my $ntry=0;
+#     until (flock DBM, LOCK_EX|LOCK_NB){
+#         sleep 2;
+#         $ntry=$ntry+1;
+#         if($ntry>10){
+#          untie %hash;
+#          return 0;
+#         }
+#     }
 #      undef $db;
+    close(LOCK);
     return 1,$db,%hash;
 
 }
@@ -715,6 +752,19 @@ sub sendRunEvInfo{
     local *DBM;
     my $db;
     if (defined $ref->{dbfile}){
+        my $lock="$ref->{dbfile}.lock";
+        sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
+        my $ntry=0;
+     until (flock LOCK, LOCK_EX|LOCK_NB){
+         sleep 2;
+         $ntry=$ntry+1;
+         if($ntry>10){
+           $ref->Exiting("Unable to get lock for $lock","CInAbort");
+           close(LOCK);
+           goto OUT;
+         }
+     }
+        
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
     }
     else{
@@ -723,22 +773,22 @@ sub sendRunEvInfo{
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
+#      my $fd=$db->fd;
+#      $ok=open DBM, "<&=$fd";
+#      if( not $ok){
+#        untie %hash;
+#        goto OUT;
+#      }
+#     my $ntry=0;
+#     $ok=0;
+#     until (flock DBM, LOCK_EX|LOCK_NB){
+#         sleep 2;
+#         $ntry=$ntry+1;
+#         if($ntry>10){
+#             untie %hash;
+#             goto OUT;
+#         }
+#     }
     $ok=1;
 OUT:
       undef $db;
@@ -752,7 +802,8 @@ OUT:
                          $ref->{rtb}[$i]=$ri;
                          $hash{rtb}=$ref->{rtb};
                          untie %hash;
-                         return;
+                        close(LOCK);
+                        return;
                      } 
                  }
       
@@ -765,6 +816,7 @@ OUT:
                          $#{$ref->{rtb}}=$#{$ref->{rtb}}-1;
                          $hash{rtb}=$ref->{rtb};
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -779,6 +831,7 @@ OUT:
                          $ref->{rtb}[$#{$ref->{rtb}}]=$ri;
                          $hash{rtb}=$ref->{rtb};
                          untie %hash;
+                         close(LOCK);
                          return;
       
              }
@@ -788,6 +841,7 @@ OUT:
                          $ref->{rtb}[$#{$ref->{rtb}}]=$ri;
                          $hash{rtb}=$ref->{rtb};
                          untie %hash;
+                         close(LOCK);
                          return;
       
              }
@@ -815,32 +869,48 @@ sub InitDBFileNew{
     $amsprodlogdir="/afs/ams.cern.ch/AMSDataDir/prod.log";
         my $tmpname=tmpnam();
         $ref->{dbfile}=$amsprodlogdir."/".unpack("x5 A*",$tmpname);
+        my $lock="$ref->{dbfile}.lock";
+        sysopen(LOCK,$lock,O_RDONLY|O_CREAT) or die " Unable to open lock file $lock\n";
+        my $ntry=0;
+     until (flock LOCK, LOCK_EX|LOCK_NB){
+         sleep 2;
+         $ntry=$ntry+1;
+         if($ntry>10){
+           $ref->Exiting("Unable to get lock for $lock","CInAbort");
+           close(LOCK);
+          return 0;
+         }
+     }
+        
         $db=tie %hash, "MLDBM",$ref->{dbfile},O_CREAT | O_RDWR, 0644 ;
         system "chmod o+w $ref->{dbfile}";
         $init=1;
      if(not $db){
       $ref->Exiting("Unable to tie db_file $ref->{dbfile}","CInAbort");
+           close(LOCK);
+    
     return 0;
       }
-      my $fd=$db->fd;
-      my $ok=open DBM, "<&=$fd";
-      if( not $ok){
-       $ref->Exiting("Unable to dup DBM for lock: $!","CInAbort");
-       return 0;
-      }
-     my $ntry=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 1;
-         $ntry=$ntry+1;
-         if($ntry>10){
-           $ref->Exiting("Unable to get lock for $ref->{dbfile}","CInAbort");
-          return 0;
-         }
-     }
+#      my $fd=$db->fd;
+#      my $ok=open DBM, "<&=$fd";
+#      if( not $ok){
+#       $ref->Exiting("Unable to dup DBM for lock: $!","CInAbort");
+#       return 0;
+#      }
+#     my $ntry=0;
+#     until (flock DBM, LOCK_EX|LOCK_NB){
+#         sleep 1;
+#         $ntry=$ntry+1;
+#         if($ntry>10){
+#           $ref->Exiting("Unable to get lock for $ref->{dbfile}","CInAbort");
+#          return 0;
+#         }
+#     }
       undef $db;
     if($init){
         if(not $ref->UpdateEverything()){
           $ref->Exiting("Unable to get Tables From Server","CInAbort");
+           close(LOCK);
           return 0;
         }
        $hash{nhl}=$ref->{nhl};
@@ -866,6 +936,7 @@ sub InitDBFileNew{
         $hash{rtb_maxr}=$ref->{rtb_maxr};
     }
     untie %hash;
+           close(LOCK);
     return 1;
 
 }
