@@ -10,7 +10,7 @@
 class AMSNode : public AMSID{
 // Simple Node Class V.Choutko 3/20/96
  protected:
- AString _message;
+  AString _message;
   AMSNode *_next;
   AMSNode *_prev;
   AMSNode *_up;

@@ -104,7 +104,7 @@ public:
  virtual void KillClients(const DPS::Client::CID &cid)=0;
  virtual AMSServerI * getServer()=0;
 
-  void PropagateAC( DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc,int uid=100000000);
+  void PropagateAC( DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
 
   bool InactiveClientExists();
   void RegisteredClientExists();
@@ -133,6 +133,8 @@ MO _orbmap;
 AMSServerI *   _pser;
 public:
 AMSServer(int argc, char *argv[]);
+void StopEverything();
+void DumpIOR();
 static AMSServer* & Singleton(){return _Head;};
 void Listening(int sleeptime=0);
 void UpdateDB();
@@ -170,9 +172,11 @@ public:
 void _PurgeQueue();
   void _init();
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
+  void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
   int getNC(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)throw (CORBA::SystemException);
   int getNK(const DPS::Client::CID &cid, DPS::Client::NCS_out nc)throw (CORBA::SystemException);
-   int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, int maxcid=100000000)throw (CORBA::SystemException);
+   int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0)throw (CORBA::SystemException);
+   bool ARSaux(DPS::Client::AccessType type,uinteger id,uinteger compare);
    int getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException);
    void sendAC(const DPS::Client::CID &cid,  DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
@@ -208,9 +212,13 @@ typedef list<DPS::Producer::RunEvInfo_var> RL;
 typedef list<DPS::Producer::RunEvInfo_var>::iterator RLI;
 RL _rl;
 
-typedef list<DST_var> DSTL;
-typedef list<DST_var>::iterator DSTLI;
-DSTL _ntuple;
+typedef multimap<DSTType,DST_var> DSTL;
+typedef multimap<DSTType,DST_var>::iterator DSTLI;
+DSTL _dst;
+
+typedef list<DSTInfo_var> DSTIL;
+typedef list<DSTInfo_var>::iterator DSTILI;
+DSTIL _dstinfo;
 
 
 class RA{
@@ -239,7 +247,7 @@ DSTA(const DST & a,DPS::Client::RecordChange rc):_a(a),_rc(rc){}
 };
 typedef list<DSTA> DSTAL;
 typedef list<DSTA>::iterator DSTALI;
-DSTAL _ntqueue;
+DSTAL _dstqueue;
 
 
 public:
@@ -257,32 +265,43 @@ public:
  virtual void KillClients(const DPS::Client::CID &cid);
   void RunFailed(const DPS::Client::ActiveClient & ac);
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
-   int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, int maxcid=100000000)throw (CORBA::SystemException);
+   int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars,  DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
   int getTDV(const DPS::Client::CID & cid,  TDVName & tdvname, TDVbody_out body)throw (CORBA::SystemException);
   void sendTDV(const DPS::Client::CID & cid, const TDVbody & tdv, TDVName & tdvname )throw (CORBA::SystemException);
+  void sendTDVUpdate(const DPS::Client::CID & cid, const TDVName & tdvname )throw (CORBA::SystemException);
+  void sendTDVUpdate(const DPS::Client::CID & cid,  TDVName & tdvname )throw (CORBA::SystemException);
 
   TIDI & _findTDV(const TDVName & tdv);  
   int getTDVTable(const DPS::Client::CID & cid,TDVName & tdvname, unsigned int run, TDVTable_out table)throw (CORBA::SystemException);
 
 
+  int getDSTInfoS(const DPS::Client::CID &cid, DSTIS_out res)throw (CORBA::SystemException);
+  void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
   int getRunEvInfoS(const DPS::Client::CID &cid, RES_out res, unsigned int & maxrun)throw (CORBA::SystemException);
-   void getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out rv)throw (CORBA::SystemException);
+   void getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out rv, DSTInfo_out dv)throw (CORBA::SystemException);
 
   void sendRunEvInfo(const  RunEvInfo & ne,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
 
-  int getNtupleS(const DPS::Client::CID & ci, DSTS_out dsts)throw (CORBA::SystemException);
+  int getDSTS(const DPS::Client::CID & ci, DSTS_out dsts)throw (CORBA::SystemException);
 
   void sendCurrentInfo(const DPS::Client::CID & ci, const  CurrentInfo &ci)throw (CORBA::SystemException);
 
-  void sendNtupleEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException);
+  void sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException);
 
-  void sendEventStatusEnd(const DPS::Client::CID & ci,const  EventStatusEnd & ne,  DPS::Client::RecordChange rc)throw (CORBA::SystemException);
+uinteger getSmartFirst(uinteger run);
 
+void PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange rc,  DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
+void PropagateDST(const DST & ri, DPS::Client::RecordChange rc,  DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
 
-void PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange rc, int uid=100000000);
-void PropagateNtuple(const DST & ri, DPS::Client::RecordChange rc, int uid=100000000);
-
+class DSTInfo_find: public unary_function<DSTInfo,bool>{
+DPS::Client::CID _cid;
+public:
+ explicit DSTInfo_find(const DPS::Client::CID & cid):_cid(cid){};
+ bool operator()(const DSTInfo & a){
+  return  strstr((const char *) _cid.HostName, (const char *) a.HostName);
+}
+};
 class REInfo_find: public unary_function<RunEvInfo,bool>{
 DPS::Client::CID _cid;
 RunStatus _rs;
@@ -329,25 +348,6 @@ public:
 
 
 
-class Less{
-public:
-bool operator () (const DPS::Client::ActiveClient & a,const DPS::Client::ActiveClient & b){return a.id.uid<b.id.uid;}
-//bool operator () (const DPS::Client::ActiveClient_var & a,const DPS::Client::ActiveClient_var & b){return a->id.uid<b->id.uid;}
-
-bool operator()(const DPS::Producer::RunEvInfo &a,const DPS::Producer::RunEvInfo &b){
-if(a.Priority!=b.Priority)return a.Priority>b.Priority;
-else return a.Status<b.Status;
-}
-
-bool operator ()(const DPS::Client::ActiveHost &a,const DPS::Client::ActiveHost &b){
-if(a.Status == b.Status || b.Status==DPS::Client::OK)return false;
-else if(a.Status != DPS::Client::NoResponse)return true;
-else return false;
-
-}
-
-
-};
 
 
 

@@ -27,6 +27,7 @@
 #include <richdbc.h>
 #include <producer.h>
 #include <geantnamespace.h>         
+#include <status.h>
 #ifdef __AMSDEBUG__
 static integer globalbadthinghappened=0;
 
@@ -666,6 +667,7 @@ try{
     DAQEvent::InitResult res=DAQEvent::init();
     for(;;){
      if(res==DAQEvent::OK){ 
+        AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
        pdaq = new DAQEvent();
        uinteger run;
        uinteger event;
@@ -678,7 +680,7 @@ try{
         new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
         pdaq->runtype(),pdaq->time(),pdaq->usec())));
         AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
-        if(SELECTFFKEY.Run==SELECTFFKEY.RunE && SELECTFFKEY.EventE && AMSEvent::gethead()->getid()>SELECTFFKEY.EventE){
+        if(SELECTFFKEY.Run==SELECTFFKEY.RunE && SELECTFFKEY.EventE && AMSEvent::gethead()->getid()>=SELECTFFKEY.EventE){
          pdaq->SetEOFIn();    
         } 
         if(GCFLAG.IEORUN==2){
@@ -722,6 +724,39 @@ try{
 #ifdef __CORBA__
     try{
      AMSJob::gethead()->uhend(run,event,tt);
+     AMSID tdvs=AMSEvent::getTDVStatus();
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
+  if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
+     AMSID tdvs=AMSEvent::getTDVStatus();
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(tdvs);
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      time_t begino,endo,inserto;
+      ptdv->gettime(inserto,begino,endo);
+      time_t begin,end,insert;
+      begin=AMSJob::gethead()->getstatustable()->getbegin();
+      end=AMSJob::gethead()->getstatustable()->getend();
+      time(&insert);
+      ptdv->SetTime(insert,begin,end);
+      cout <<" Event Status info  info has been updated for "<<*ptdv;
+      ptdv->gettime(insert,begin,end);
+      cout <<" Time Insert "<<ctime(&insert);
+      cout <<" Time Begin "<<ctime(&begin);
+      cout <<" Time End "<<ctime(&end);
+      cout << " Starting to update "<<*ptdv; 
+      bool fail=false;
+      if(  !ptdv->write(AMSDATADIR.amsdatabase)){
+         cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*ptdv;
+          fail=true;
+      }
+      AMSStatus *p=AMSJob::gethead()->getstatustable();
+      uinteger first,last;
+      p->getFL(first,last);
+      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
+      ptdv->SetTime(inserto,begino,endo);
+      AMSJob::gethead()->getstatustable()->reset();      
+  }
+
      AMSProducer::gethead()->sendRunEnd(res);
      AMSProducer::gethead()->getRunEventInfo();
      res=DAQEvent::init();

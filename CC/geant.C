@@ -170,7 +170,6 @@ void gams::UGINIT(int argc,  char * argv[]){
 #endif
   if(!AMSJob::gethead()->isProduction())AMSJob::gethead()->uhinit();
   AMSJob::gethead()->urinit();
-  AMSJob::map(1);
 #ifndef __BATCH__
 #ifdef __G4AMS__
 if(MISCFFKEY.G3On)

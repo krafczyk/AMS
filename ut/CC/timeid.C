@@ -230,7 +230,8 @@ if(_Type!=Client){
     buf+=dir;
     buf+=getname();
     system((char *)buf);     
-
+// now put the record intodb
+      updatemap(dir);       
       return fbin.good();
     }
      else{
@@ -544,7 +545,6 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
         free (namelistsubdir);
         // sort
         //AMSsortNAGa(_pDataBaseEntries[0],_DataBaseSize);
-        
         uinteger **padd= new uinteger*[_DataBaseSize+1];
         uinteger *tmp=  new uinteger[_DataBaseSize+1];
 #ifdef __AMSDEBUG__
@@ -570,23 +570,13 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
         delete[] tmp;
     }
       // Rewrite map file;
-      fbin.open(fmap,ios::out|ios::trunc);
-      if(fbin){
-#ifdef __AMSDEBUG__
-        cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmap<<endl; 
-#endif
-        fbin<<_DataBaseSize<<endl;
-        for(i=0;i<5;i++){
-          for(int k=0;k<_DataBaseSize;k++){
-            fbin<<_pDataBaseEntries[i][k]<<endl;
-          }
-        }
-        char cmd[255];
-        sprintf(cmd,"chmod g+w %s",(const char*)fmap);
-        system(cmd);
-        fbin.close();
-      }
-      else cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
+
+      if(!updatemap(dir))cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
+
+
+
+
+
       cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "
            <<getname()<<endl; 
     }
@@ -855,4 +845,70 @@ for (int i=0;i<_DataBaseSize;i++){
 cout <<" AMSTimeID::findsubtable-I-"<<_ibe.size()<<" Entries Found "<<endl;
 #endif
 return _ibe;
+}
+
+
+
+bool AMSTimeID::updatemap(const char *dir){
+
+    AString fmap(dir);
+    fmap+=".";
+    fmap+=getname();
+    fmap+=getid()==0?".0.map":".1.map";
+    fstream fbin;
+      fbin.open(fmap,ios::out|ios::trunc);
+      if(fbin){
+#ifdef __AMSDEBUG__
+        cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmap<<endl; 
+#endif
+        fbin<<_DataBaseSize<<endl;
+        for(int i=0;i<5;i++){
+          for(int k=0;k<_DataBaseSize;k++){
+            fbin<<_pDataBaseEntries[i][k]<<endl;
+          }
+        }
+        char cmd[255];
+        sprintf(cmd,"chmod g+w %s",(const char*)fmap);
+        system(cmd);
+        fbin.close();
+        return true;
+      }
+      return false;
+}
+
+bool AMSTimeID::updatedb(){
+
+       uinteger *tmpa[5];
+       int i;
+       for( i=0;i<5;i++){
+        tmpa[i]=new uinteger[_DataBaseSize+1];
+       for(int j=0;j<_DataBaseSize;j++)tmpa[i][j]=_pDataBaseEntries[i][j];
+       delete [] _pDataBaseEntries[i];
+       _pDataBaseEntries[i]=tmpa[i];
+       }
+       _DataBaseSize++;
+        uinteger **padd= new uinteger*[_DataBaseSize+1];
+        uinteger *tmp=  new uinteger[_DataBaseSize+1];
+#ifdef __AMSDEBUG__
+        assert(padd!=NULL && tmp!=NULL);
+#endif
+        for(i=0;i<_DataBaseSize;i++){
+          tmp[i]=_pDataBaseEntries[3][i];
+          _pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
+          padd[i]=tmp+i;
+        }
+        AMSsortNAG(padd,_DataBaseSize);
+        AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
+        for(i=0;i<4;i++){
+          int k;
+          for(k=0;k<_DataBaseSize;k++){
+            tmp[k]=_pDataBaseEntries[i][k];
+          }
+          for(k=0;k<_DataBaseSize;k++){
+            _pDataBaseEntries[i][k]=*(padd[k]);
+          }
+        }
+        delete[] padd;
+        delete[] tmp;
+
 }

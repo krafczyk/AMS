@@ -30,8 +30,16 @@ else fnam=logdir;
  fnam+=time;
  _fbin.open(fnam,ios::out);
  AString a("AMSClient::_openLogFile-F-UnableOpenLogFile ");
- a+=fnam; 
- if(!_fbin)FMessage((char *) a,DPS::Client::CInAbort);
+ if(!_fbin){
+    AString a("AMSClient::_openLogFile-F-UnableOpenLogFile ");
+     a+=fnam; 
+    FMessage((char *) a,DPS::Client::CInAbort);
+  }
+ else{
+    AString a("AMSClient::_openLogFile-I-opened");
+     a+=fnam; 
+     IMessage((const char *) a);
+ }
 }
 
 extern "C" pid_t getpid();
@@ -45,10 +53,19 @@ bool AMSClient::_getpidhost(uinteger uid, const char * iface){
  int len=255;
  if(gethostname(name,len))return false;
 else{
-   AString as=name;
-   if(iface && strcmp(iface,"default")){
-    as+=".";
-    as+=iface;
+   AString as=(const char *)name;
+   if(!iface || strcmp(iface,"default")){
+    int newlength=as.length();
+    for (int i=0;i<as.length();i++){
+      if (as[i]=='.'){
+        newlength=i;
+      }
+      if(i>newlength-1)as[i]='\0';
+    }
+     if(iface){
+      as+=".";
+      as+=iface;
+     }
    }
   _pid.HostName=(const char*)as;
   return true;
@@ -61,7 +78,7 @@ cerr<<message<<endl;
    if(_fbin){
      time_t tcur;
      time(&tcur);
-     _fbin<<message << " -F-  "<<ctime(&tcur)<<endl;
+     _fbin<<" -F-  "<<ctime(&tcur)<<endl<<message << endl;
    }
    AMSClientError a(message,res);
    Error()=a;
@@ -75,7 +92,7 @@ cerr<<message<<endl;
    if(_fbin){
      time_t tcur;
      time(&tcur);
-     _fbin<<message << " -E- "<<ctime(&tcur)<<endl;
+     _fbin <<" -E- "<<ctime(&tcur)<<endl<<message <<endl;
    }
 }
 
@@ -86,7 +103,7 @@ cout<<message<<endl;
    if(_fbin){
      time_t tcur;
      time(&tcur);
-     _fbin<<message << " -I- "<<ctime(&tcur)<<endl;
+     _fbin <<" -I- "<<ctime(&tcur)<<endl<<message <<endl;
    }
 }
 
@@ -143,7 +160,7 @@ return _streambuffer;
 
 char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes << " DST "<<a.Name <<" Insert "<<a.Insert<<" Begin "<<((a.Begin))<<" End "<<((a.End))<<" Run "<<a.Run << " 1stEvent "<<a.FirstEvent<<" LastEvent "<<a.LastEvent<<" Status "<<DSTS2string(a.Status)<<" Total "<<a.EventNumber<<ends;
+_ost<<mes << "DST Type "<<DSTT2string(a.Type)<<" "<<a.Name <<" Insert "<<a.Insert<<" Begin "<<((a.Begin))<<" End "<<((a.End))<<" Run "<<a.Run << " 1stEvent "<<a.FirstEvent<<" LastEvent "<<a.LastEvent<<" Status "<<DSTS2string(a.Status)<<" Total "<<a.EventNumber<<ends;
 return _streambuffer;
 }
 
@@ -158,6 +175,12 @@ _ost.seekp(0);
 _ost<<mes<<" REI ID "<<a.uid<<" Run "<<a.Run<<" 1st Event "<<a.FirstEvent<<" Last Event "<<a.LastEvent<<" Prio "<<a.Priority<<" Path "<<a.FilePath<< "Status "<<RS2string(a.Status)<<"History "<<RS2string(a.History)<<" Client id "<<a.cuid<<" SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
 print(a.cinfo,_ost);
 _ost<<ends;
+return _streambuffer;
+}
+
+char * AMSClient::print(const DPS::Producer::DSTInfo & a,const char * mes){
+_ost.seekp(0);
+_ost<<mes<<" host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<"NtupleOutput "<<a.OutputDirPath<<ends;
 return _streambuffer;
 }
 
@@ -221,6 +244,22 @@ case DPS::Client::LastClientFailed:
 return "LastClientFailed";
 case DPS::Client::OK:
 return "OK";
+case DPS::Client::InActive:
+return "InActive";
+}
+return " ";
+}
+
+char * AMSClient::RunMode2string(DPS::Producer::RunMode a){
+switch (a){
+case DPS::Producer::RILO:
+return "RILO";
+case DPS::Producer::LILO:
+return "LILO";
+case DPS::Producer::RIRO:
+return "RIRO";
+case DPS::Producer::LIRO:
+return "LIRO";
 }
 return " ";
 }
@@ -267,6 +306,18 @@ case DPS::Producer::InProgress:
 return "InProgress";
 case DPS::Producer::Failure:
 return "Failure";
+}
+return " ";
+}
+
+char * AMSClient::DSTT2string(DPS::Producer::DSTType a){
+switch (a){
+case DPS::Producer::Ntuple:
+return "Ntuple";
+case DPS::Producer::EventTag:
+return "EventTag";
+case DPS::Producer::RootFile:
+return "RootFile";
 }
 return " ";
 }

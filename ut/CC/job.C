@@ -1607,7 +1607,7 @@ _reamsinitjob();
 
 if(isCalibration())_caamsinitjob();
 _timeinitjob();
-
+map(1);
 _dbinitjob();
 cout << *this;
 }
@@ -2266,10 +2266,6 @@ AMSgtmed * AMSJob::getmed(AMSID id){
   return (AMSgtmed*)AMSJob::JobMap.getp(id);
 }
 
-AMSNtuple * AMSJob::getntuple(AMSID id){
-  if(id.getname() ==0 && id.getid()==0)id=AMSID("AMS Ntuple",0);
-  return (AMSNtuple*)AMSJob::JobMap.getp(id);
-}
 
 void AMSJob::setsetup(char *setup){
   if(setup && (strlen(setup)>1 || AMSFFKEY.ZeroSetupOk))strcpy(_Setup,setup);
@@ -2831,7 +2827,7 @@ AMSTimeID * AMSJob::gettimestructure(){
       exit(1);
       return 0;
      }
-     else return  (AMSTimeID*)p;
+     else return  dynamic_cast<AMSTimeID*>(p);
 }
 AMSNode * AMSJob::getaligstructure(){
       AMSTrAligFit a;
@@ -2851,7 +2847,7 @@ AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
       exit(1);
       return 0;
      }
-     else return  (AMSTimeID*)p;
+     else return  dynamic_cast<AMSTimeID*>(p);
 }
 
 AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype),_pAMSG4Physics(0),_pAMSG4GeneratorInterface(0),_NtupleActive(false)
@@ -2953,7 +2949,6 @@ void AMSJob::urinit(integer eventno){
     if(_pntuple)_pntuple->initR(filename);
     else{
         _pntuple = new AMSNtuple(filename);
-        gethead()->addup(_pntuple);
     }
   }
 }
@@ -2993,7 +2988,6 @@ throw (amsglobalerror){
     if(_pntuple)_pntuple->init();
     else{
         _pntuple = new AMSNtuple(IOPA.ntuple,"AMS Ntuple");
-        gethead()->addup(_pntuple);
     }
   }
    HBOOK1(200101,"Number of Nois Hits x",100,-0.5,99.5,0.);
@@ -3149,9 +3143,9 @@ void AMSJob::_dbendjob(){
 
 
   //Status Stuff
-
+#ifndef __CORBA__
   if( AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
-      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::getTDVStatus());
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
       time_t begin,end,insert;
@@ -3165,7 +3159,7 @@ void AMSJob::_dbendjob(){
       cout <<" Time Begin "<<ctime(&begin);
       cout <<" Time End "<<ctime(&end);
   }
-
+#endif
   if( AMSFFKEY.Update && AMSStatus::isDBUpdateR()   ){
     AMSStatus::UpdateStatusTableDB();
   }

@@ -66,7 +66,7 @@ catch (std::bad_alloc aba){
 }
 #ifdef __CORBA__
 catch (AMSClientError & ab){
- cerr<<ab.getMessage()<<" "<<endl;
+ cerr<<ab.getMessage()<<" 1"<<endl;
  if(AMSProducer::gethead()){
   AMSProducer::gethead()->Error()=ab;
  }

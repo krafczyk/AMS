@@ -43,6 +43,7 @@ public:
   }
   AMSStatus (): AMSNode(0),_Nelem(0){};
   AMSStatus (const char name[], integer version): AMSNode(0),_Accepted(0),_Rejected(0),_Errors(0),_Hint(0),_Nelem(0),_Begin(0),_End(0),_Run(0){setname(name);setid(version);}
+  integer getnelem()const{return _Nelem;}
   AMSStatus * next(){return (AMSStatus *)AMSNode::next();}
   AMSStatus * prev(){return (AMSStatus *)AMSNode::prev();}
   AMSStatus * up(){return   (AMSStatus *)AMSNode::up();}
@@ -63,8 +64,10 @@ public:
   static integer isDBUpdateR(){return _Mode==3;}
   integer isFull(uinteger run, uinteger evt, time_t time);
   void reset(){_Nelem=0;}
-  time_t getbegin(){return _Begin;}
-  time_t getend(){return _End;}
+  time_t getbegin()const{return _Begin;}
+  time_t getend()const{return _End;}
+  uinteger getrun()const {return _Run;}
+  void getFL(uinteger &first, uinteger & last){first=_Status[0][0];last=_Status[0][_Nelem-1];}
 };
 
 #endif

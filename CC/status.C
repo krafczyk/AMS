@@ -19,11 +19,11 @@ ostream & AMSStatus::print(ostream & stream)const{
 AMSStatus* AMSStatus::create(int version){
  if( version==0){ 
    static AMSStatus tstatus("EventStatusTable",version);
-   return (AMSStatus*)AMSJob::gethead()->addup(&tstatus);
+   return &tstatus;
  }
 else{
    static AMSStatus tstatus("EventStatus2Table",version);
-   return (AMSStatus*)AMSJob::gethead()->addup(&tstatus);
+   return &tstatus;
 }
 
 }
@@ -146,9 +146,8 @@ void AMSStatus::geteventpos(uinteger run, uinteger evt, uinteger curevent){
 
 
 void AMSStatus::init(){
-   AMSJob::map(1);
   _Mode=1;
-  if(AMSFFKEY.Update){
+  if(  AMSFFKEY.Update){
     AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(AMSEvent::gethead()->getTDVStatus());
     for(int i=0;i<AMSJob::gethead()->gettdvn();i++){
       if( strcmp(AMSJob::gethead()->gettdvc(i),ptdv->getname())==0 ){
@@ -161,6 +160,7 @@ void AMSStatus::init(){
            begin=begin-3e7;
            end=end+3e7;
            ptdv->SetTime(insert,begin,end);
+          
        }
        else {
          _Mode=3;

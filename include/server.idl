@@ -2,12 +2,12 @@
 module DPS{
    typedef unsigned long time;
   interface Client{
-
+   enum AccessType{Any,LessThan,Self,AnyButSelf,GreaterThan};
    enum RecordChange{Delete,Update,Create};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
    enum ClientType{Generic,Server,Consumer,Producer,Monitor};
    enum ClientExiting{NOP,CInExit,SInExit,CInAbort,SInAbort,SInKill};
-   enum HostStatus{NoResponse,LastClientFailed,OK};
+   enum HostStatus{NoResponse,InActive,LastClientFailed,OK};
 
     struct CID{
     string HostName;
@@ -20,6 +20,7 @@ module DPS{
     };
 
     boolean sendId(inout CID id, in time TimeOut);      
+    void getId(out CID id);
 
    struct NominalClient{
     short MaxClients;
@@ -41,7 +42,7 @@ module DPS{
     }; 
 
     typedef sequence<ActiveRef> ARS;
-    long getARS(in CID cid, out ARS ars, in long maxcid);
+    long getARS(in CID cid, out ARS ars, in DPS::Client::AccessType type,in unsigned long id);
 
     struct ActiveClient{
      CID id;
@@ -92,7 +93,8 @@ module DPS{
 
     enum RunStatus{ToBeRerun, Failed,Processing, Finished};
     enum DSTStatus{Success,InProgress,Failure};
-
+    enum RunMode{RILO,LILO,RIRO,LIRO};
+    enum DSTType{Ntuple,EventTag,RootFile};
     struct TDVTableEntry{
      unsigned long id;
      time Insert;
@@ -112,6 +114,7 @@ module DPS{
     typedef sequence<unsigned long> TDVbody;
     long getTDV(in DPS::Client::CID cid,inout TDVName tdvname, out TDVbody body);
     void sendTDV(in DPS::Client::CID cid,in TDVbody tdv, inout TDVName tdvname );
+    void sendTDVUpdate(in DPS::Client::CID cid, in TDVName tdvname );
 
 
     typedef sequence<TDVTableEntry> TDVTable; 
@@ -129,9 +132,16 @@ module DPS{
       string HostName;
     }; 
     void sendCurrentInfo(in CID id,in CurrentInfo ci); 
- 
 
+    struct DSTInfo{
+     string HostName;
+     string OutputDirPath;
+     RunMode Mode;
+     long UpdateFreq;
+     long DieHard;
+    };
 
+     
      struct RunEvInfo{
      unsigned long uid;
      unsigned long Run;
@@ -143,16 +153,16 @@ module DPS{
      string FilePath;
      RunStatus Status;
      RunStatus History;
-     string OutputDirPath;
-     long DieHard;
-     long UpdateFreq;
      time SubmitTime;
      unsigned long cuid;
      CurrentInfo cinfo;     
     };
+    typedef sequence<DSTInfo> DSTIS;
+    long getDSTInfoS(in CID id, out DSTIS dsti);
+
     typedef sequence<RunEvInfo> RES;
     long getRunEvInfoS(in CID id, out RES res, inout unsigned long maxr); 
-    void getRunEvInfo(in CID id, out RunEvInfo rv);
+    void getRunEvInfo(in CID id, out RunEvInfo rv, out DSTInfo dv);
     void sendRunEvInfo(in RunEvInfo ri, in RecordChange rch);
 
     struct DST{
@@ -164,18 +174,14 @@ module DPS{
      long   LastEvent;
      long   EventNumber;
      DSTStatus Status;
+     DSTType Type;
      string Name;
     };    
 
-    void sendNtupleEnd(in CID id, in DST ne, in RecordChange re); 
+    void sendDSTEnd(in CID id, in DST ne, in RecordChange re); 
     typedef sequence<DST> DSTS;
-    long getNtupleS(in CID id, out DSTS dsts);     
+    long getDSTS(in CID id, out DSTS dsts);     
 
-    struct EventStatusEnd{
-     TDV body;
-     DST dn;
-    };
-    void sendEventStatusEnd(in CID id, in EventStatusEnd ee, in RecordChange re); 
     
     
   };

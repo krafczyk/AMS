@@ -6,9 +6,44 @@
 #include <unistd.h>
 #include <algorithm>
 #include <amsdbc.h>
+#include <signal.h>         
 AMSServer* AMSServer::_Head=0;
+void (handler)(int);   
+void (handler)(int sig){    
+switch (sig){
+case SIGTERM: 
+AMSServer::Singleton()->FMessage("Interrupt Received",DPS::Client::CInExit);
+break;
+case SIGXCPU:
+AMSServer::Singleton()->FMessage("Interrupt Received",DPS::Client::CInExit);
+break;
+case SIGINT:
+AMSServer::Singleton()->FMessage("Interrupt Received",DPS::Client::CInExit);
+break;
 
+case SIGUSR1:
+// stop everything;
+AMSServer::Singleton()->StopEverything();
+break;
+case SIGUSR2:
+//dump IOR in logfile
+AMSServer::Singleton()->DumpIOR();
+break;
+case SIGHUP:
+// artificial loop
+cout <<"Artificial loop " <<endl;
+for(;;){
+}
+break;
+}
+}
 int main(int argc, char * argv[]){
+     *signal(SIGTERM, handler);
+     *signal(SIGXCPU,handler);
+     *signal(SIGINT, handler);
+     *signal(SIGUSR1, handler);
+     *signal(SIGUSR2, handler);
+     *signal(SIGHUP, handler);
 
  try{
     AMSServer::Singleton()=new AMSServer(argc,argv);
@@ -41,9 +76,8 @@ int main(int argc, char * argv[]){
       catch (AMSClientError a){
       cerr<<a.getMessage()<<endl;
       break;
-      }
+          }
     }
- delete AMSServer::Singleton();
  return 0;
 }
 
@@ -62,12 +96,17 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
  char *nproducer=0;
  char *ntuplestring=0;
  char *eventtagstring=0;
+ char *amsd=0;
  
  for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--)){
     pchar++;
     switch (*pchar){
     case 'D':    //debuf
      _debug=atoi(++pchar);
+     break;
+    case 'A':   //AMSDataDir
+     amsd=++pchar;
+      setenv("AMSDataDir",amsd,1);
      break;
     case 'I':   //Interface
      iface=++pchar;
@@ -93,7 +132,7 @@ AMSServer::AMSServer(int argc, char* argv[]):_GlobalError(false){
     case 'P':   //NominalProducer
      nproducer=++pchar;
      break;
-    case 'N':   //NtupleOutputDir
+    case 'N':   //NominalNtuple
      ntuplestring=++pchar;
      break;
     case 'T':   //EventTagOutputDir
@@ -118,6 +157,7 @@ else _pid.Interface= (const char *)"default";
     amsdatadir+="/DataBase/";
      AMSDBc::amsdatabase=new char[strlen((const char*)amsdatadir)+1];
      strcpy(AMSDBc::amsdatabase,(const char *)amsdatadir);
+     cout <<"amsdatadir  "<<AMSDBc::amsdatabase<<endl;
 if(niface){
  ifstream fbin;
  fbin.open(niface);
@@ -282,14 +322,14 @@ void AMSServerI::_UpdateACT(const DPS::Client::CID & cid, DPS::Client::ClientSta
      }
 }
 
-void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc,int uid){
+void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc,DPS::Client::AccessType type, uinteger uid){
   if(_ActivateQueue)_acqueue.push_back(ACA(ac,rc));
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   DPS::Client::CID cid;
   cid.Type=_pser->getType();
   cid.Interface= (const char *) " ";
     DPS::Client::ARS * pars;
-    int length=_pser->getARS(cid,pars,uid);
+    int length=_pser->getARS(cid,pars,type,uid);
     DPS::Client::ARS_var arf=pars;
   if(length==0){
       _parent->EMessage(AMSClient::print(ac,"PropagateAC-getARS retrurns 0"));
@@ -314,7 +354,7 @@ for(ACLI li= _pser->getacl().begin();li!=_pser->getacl().end();++li){
  if(!_ActivateQueue){
    if(_parent->Debug())_parent->IMessage("Queue Activated");
    _ActivateQueue=true;
-   _RecID=(*li)->id.uid;
+   _RecID=((*li)->id.uid);
  }   
    return;
  }
@@ -532,7 +572,7 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
  _ahl.sort(Less());
  for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
   if(_acl.size()<(*_ncl.begin())->MaxClients ){
-  if((*i)->Status!=NoResponse){
+  if((*i)->Status!=NoResponse && (*i)->Status!=InActive){
     if((*i)->ClientsRunning>=(*i)->ClientsAllowed)continue;
     // HereStartClient
    CORBA::String_var _refstring=_refmap.find((const char *)((*i)->Interface))->second;
@@ -563,6 +603,11 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     submit+= _iface;
     submit+=" -I";
     submit+=(const char*)(*i)->Interface;
+#ifdef __AMSDEBUG__
+    submit+=" -D1";
+#endif
+    submit+=" -A";
+     submit+=getenv("AMSDataDir");
     if((*cli)->LogInTheEnd){
      submit+=" ";
      submit+=(const char*)((*cli)->LogPath);  
@@ -570,10 +615,7 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
      submit+=tmp;
      submit+=".log ";
     }
-#ifdef __AMSDEBUG__
-    submit+=" -D1";
-    cout <<submit<<endl;
-#endif
+    if(_parent->Debug())_parent->IMessage(submit);
     submit+=" &";
     int out=system(submit);
     if(out==0){
@@ -794,22 +836,39 @@ return length;
 
 
 
+bool Server_impl::ARSaux(DPS::Client::AccessType type,uint id, uint compare){
+ switch (type){
+  case DPS::Client::Any:
+  return true;
+  case DPS::Client::LessThan:
+   return compare<id;
+  case DPS::Client::Self:
+   return compare==id;
+  case DPS::Client::AnyButSelf:
+   return compare!=id;
+  case DPS::Client::GreaterThan:
+   return compare>id;
+  default:
+   return false;
+ }
+}
 
 
-
-int Server_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out  arf,int maxcid)throw (CORBA::SystemException){
+int Server_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out  arf,DPS::Client::AccessType type,uinteger maxcid)throw (CORBA::SystemException){
 DPS::Client::ARS_var arv=new ARS();
 int length=0;
 for (ACLI li=_acl.begin();li!=_acl.end();++li){
-    int uid=(*li)->id.uid;
-  for (int i=0;i<((*li)->ars).length();i++){
-    if( (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)cid.Interface) && (uid<maxcid || uid==-maxcid)){
+    bool pred=ARSaux(type,maxcid,(*li)->id.uid);
+  if(pred){
+   for (int i=0;i<((*li)->ars).length();i++){
+    if( (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)cid.Interface)){
       length++;
     }
-    else if( !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface) && (uid<maxcid || uid==-maxcid)){
+    else if( !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface)){
       length++;
     }
   }
+ }
 }
 
 if(length==0){ 
@@ -819,15 +878,17 @@ if(length==0){
 else arv->length(length);
 length=0;
 for (ACLI li=_acl.begin();li!=_acl.end();++li){
-    int uid=(*li)->id.uid;
+    bool pred=ARSaux(type,maxcid,(*li)->id.uid);
+  if(pred){
   for (int i=0;i<((*li)->ars).length();i++){
-    if( (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)cid.Interface) && (uid<maxcid || uid==-maxcid)){
+    if( (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)cid.Interface)){
       arv[length++]=((*li)->ars)[i];
     }
-    else if( !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface) && (uid<maxcid || uid==-maxcid)){
+    else if( !strcmp(" ", (const char *)cid.Interface) && (((*li)->ars)[i]).Type == cid.Type && !strcmp((const char *)  (((*li)->ars)[i]).Interface, (const char *)((*li)->id).Interface)){
       arv[length++]=((*li)->ars)[i];
     }
   }
+ }
 }
 
 
@@ -1141,6 +1202,53 @@ if(NC){
 else{
  _parent->FMessage("Producer_impl::Producer_impl-F-UnableToFindNCFile ",DPS::Client::CInAbort);
 }
+
+if(NS){
+ ifstream fbin;
+ fbin.open(NS);
+ if(fbin){
+   DSTInfo_var ncl= new DSTInfo();
+   if(fbin.get()=='#')fbin.ignore(1024,'\n');
+   else fbin.seekg(fbin.tellg()-sizeof(char));
+    char tmpbuf[1024];
+  while(!fbin.eof() && fbin.good()){ 
+   fbin>>tmpbuf;
+   ncl->HostName=(const char*)tmpbuf;
+   int imode;
+   fbin>>imode;
+   switch (imode){
+     case 0:
+     ncl->Mode=RILO;
+     break;
+     case 1:
+     ncl->Mode=LILO;
+     break;
+     case 2:
+     ncl->Mode=RIRO;
+     break;
+     case 3:
+     ncl->Mode=LIRO;
+     break;
+     default:
+     ncl->Mode=RILO;
+     break;
+   }
+   fbin>>ncl->UpdateFreq;
+   fbin>>tmpbuf;
+    ncl->OutputDirPath=(const char*)tmpbuf;
+    ncl->DieHard=0;
+    
+    if(fbin.good())_dstinfo.push_back(ncl);
+  }
+ }
+ else{
+ _parent->FMessage("Producer_impl::Producer_impl-F-UnableToOpenNtupeFile ",DPS::Client::CInAbort);
+}
+}
+else{
+ _parent->FMessage("Producer_impl::Producer_impl-F-UnableToFindNtupeFile ",DPS::Client::CInAbort);
+}
+
 //Here read runfiletable
 if(RF){
  ifstream fbin;
@@ -1158,9 +1266,6 @@ if(RF){
    if(re.LastEvent<re.FirstEvent)re.LastEvent=2000000000;
    re.Status=DPS::Producer::ToBeRerun;
    re.History=DPS::Producer::ToBeRerun;
-   re.UpdateFreq=100;
-   re.DieHard=0;
-   re.OutputDirPath=(const char*)NS;
    time_t tt;
    time(&tt);
    re.SubmitTime=tt; 
@@ -1267,6 +1372,21 @@ if(_ahl.size()){
   } 
    if(CORBA::is_nil(_pvar))_parent->FMessage("Producer_impl::ctor-UnableToGetpvar",DPS::Client::CInAbort);  
 
+//Read dstinfo
+
+//Here read runfiletable
+DSTIS * pdstis;
+length=_pvar->getDSTInfoS(cid, pdstis);
+DSTIS_var dstis=pdstis; 
+
+for(int i=0;i<length;i++){
+DSTInfo_var vre= new DSTInfo(dstis[i]);
+ _dstinfo.push_back(vre);
+}
+ cout <<"DSTinfosize "<<_dstinfo.size()<<endl;
+
+
+
 //Here read runfiletable
 RES * pres;
 length=_pvar->getRunEvInfoS(cid, pres,_RunID);
@@ -1283,11 +1403,11 @@ RunEvInfo_var vre= new RunEvInfo(res[i]);
 //Now Read Ntuple
 
 DSTS * pdsts;
-length=_pvar->getNtupleS(cid,pdsts);
+length=_pvar->getDSTS(cid,pdsts);
 DSTS_var dsts=pdsts;
 for(int i=0;i<length;i++){
 DST_var vdst= new DST(dsts[i]);
- _ntuple.push_back(vdst);
+ _dst.insert(make_pair(vdst->Type,vdst));
 }
 
 }
@@ -1340,7 +1460,7 @@ if(getServer()->InactiveClientExists())return;
  _ahl.sort(Less());
  for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
   if(_acl.size()<(*_ncl.begin())->MaxClients && _acl.size()<count_if(_rl.begin(),_rl.end(),REInfo_Count())){
-  if((*i)->Status!=NoResponse){
+  if((*i)->Status!=NoResponse && (*i)->Status!=InActive){
     if((*i)->ClientsRunning>=(*i)->ClientsAllowed)continue;
     // HereStartClient
    CORBA::String_var _refstring=_refmap.find((const char *)((*i)->Interface))->second;
@@ -1367,6 +1487,11 @@ if(getServer()->InactiveClientExists())return;
     submit+=(const char*) _refstring;
     submit+=" -U";
     submit+=tmp;
+#ifdef __AMSDEBUG__
+    submit+=" -D1";
+#endif
+    submit+=" -A";
+     submit+=getenv("AMSDataDir");
     if((*cli)->LogInTheEnd){
      submit+=" ";
      submit+=(const char*)((*cli)->LogPath);  
@@ -1375,7 +1500,6 @@ if(getServer()->InactiveClientExists())return;
      submit+=".log ";
     }
 #ifdef __AMSDEBUG__
-    submit+=" -D1";
     cout <<submit<<endl;
 #endif
     submit+=" &";
@@ -1514,19 +1638,20 @@ CORBA::Boolean Producer_impl::sendId(DPS::Client::CID & cid, uinteger timeout) t
        return true;
       }
      }
+       _parent->EMessage(AMSClient::print(cid,"Producer_impl::sendId-E-RegClientNotFound "));
      return false;
 
 
 }
 
 
-int Producer_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, int maxcid)throw (CORBA::SystemException){
+int Producer_impl::getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out arf, DPS::Client::AccessType type, uinteger id)throw (CORBA::SystemException){
 
 
 
  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 
-return _pser->getARS(cid, arf,maxcid);
+return _pser->getARS(cid, arf,type,id);
 
 }
 
@@ -1607,9 +1732,47 @@ e=tdvname.Entry.End;
 li->second->SetTime(i,b,e);
 li->second->CopyIn(tdv.get_buffer()); 
  tdvname.Success=li->second->write((const char*)AMSDBc::amsdatabase,1);
-// Here ohe has to update map as well
+
+  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+  DPS::Client::CID pid;
+  pid.Type=getType();
+  pid.Interface= (const char *) " ";
+    DPS::Client::ARS * pars;
+    int length=_pser->getARS(pid,pars);
+    DPS::Client::ARS_var arf=pars;
+  for(int i=0;i<length;i++){
+  try{
+    CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+    DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
+    _pvar->sendTDVUpdate(cid,tdvname);
+   }
+   catch (CORBA::SystemException &ex){
+     // Have to Kill Servers Here
+   }
+  }
+
+
+
 }
 }
+
+void Producer_impl::sendTDVUpdate(const DPS::Client::CID & cid,  const TDVName & tdvname )throw (CORBA::SystemException){
+TIDI li=_findTDV(tdvname);
+if(li!=_tid.end()){
+time_t i,b,e;
+i=tdvname.Entry.Insert;
+b=tdvname.Entry.Begin;
+e=tdvname.Entry.End;
+li->second->SetTime(i,b,e);
+try{
+li->second->updatedb();
+}
+catch (bad_alloc aba){
+ _parent->EMessage("sendTDVUpdate::NoMemoryAvailable");
+}
+}
+}
+
   
 int Producer_impl::getTDVTable(const DPS::Client::CID & cid, TDVName & tdvname, unsigned int id, TDVTable_out table)throw (CORBA::SystemException){
 
@@ -1663,9 +1826,15 @@ return li;
 
 
 
+void Producer_impl::getId(DPS::Client::CID_out  cid)throw (CORBA::SystemException){
 
-
-
+  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+   _pser->getId(cid);
+}
+void Server_impl::getId(DPS::Client::CID_out  cid)throw (CORBA::SystemException){
+DPS::Client::CID_var cvar=new DPS::Client::CID(_parent->getcid());
+cid=cvar._retn();
+}
 
  int Producer_impl::getRunEvInfoS(const DPS::Client::CID &cid, RES_out res, unsigned int & maxrun)throw (CORBA::SystemException){
  
@@ -1687,22 +1856,41 @@ res=acv._retn();
 return length;
 }
 
+ int Producer_impl::getDSTInfoS(const DPS::Client::CID &cid, DSTIS_out res)throw (CORBA::SystemException){
+ 
+DSTIS_var acv= new DSTIS();
+int length=0;
+length=_dstinfo.size();
+if(length==0){
+acv->length(1);
+}
+else{
+acv->length(length);
+length=0;
+for(DSTILI li=_dstinfo.begin();li!=_dstinfo.end();++li){
+ acv[length++]=*li;
+}
+}
+res=acv._retn();
+return length;
+}
 
 
 
-void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro)throw (CORBA::SystemException){
+
+void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro,DSTInfo_out dso)throw (CORBA::SystemException){
 DPS::Client::CID pid;
 pid.Interface=(const char *)" ";
 pid.Type=getType();
 DPS::Client::ARS * pars;      
-int length=getARS(pid,pars,_parent->getcid().uid);
+int length=getARS(pid,pars,DPS::Client::LessThan,_parent->getcid().uid);
 DPS::Client::ARS_var arf=pars; 
  for(int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
      cout <<" transferred to master "<<_parent->getcid().uid<<endl;
-    _pvar->getRunEvInfo(cid,ro);
+    _pvar->getRunEvInfo(cid,ro,dso);
     return;
   }
     catch (CORBA::SystemException &ex){
@@ -1712,21 +1900,30 @@ DPS::Client::ARS_var arf=pars;
  cout <<" Master getrunevinfo "<<_parent->getcid().uid<<endl;
 _rl.sort(Less());
 RunEvInfo_var rv=new RunEvInfo(); 
+DSTInfo_var dv;
+{
+DSTILI li=find_if(_dstinfo.begin(),_dstinfo.end(),DSTInfo_find(cid));
+if(li==_dstinfo.end())li=_dstinfo.begin();
+dv= *li;
+}
 RLI li=find_if(_rl.begin(),_rl.end(),REInfo_find(cid,ToBeRerun));
 if(li==_rl.end()){
  li=find_if(_rl.begin(),_rl.end(),REInfo_find(cid,Failed));
- if(li==_rl.end())rv->DieHard=1;
+ if(li==_rl.end())dv->DieHard=1;
  else if(_parent->Debug()){
    cout <<  "****FAILED RUN RERUN "<<(*li)->Run<<" was "<<(*li)->cinfo.HostName <<" by "<<cid.HostName<<endl;
  }
 }
-if(li==_rl.end())rv->DieHard=1;
-else if ( find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid))!=_rl.end()){
-rv->DieHard=1;
+if(li==_rl.end())dv->DieHard=1;
+else if( find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid))!=_rl.end()){
+ dv->DieHard=1;
 if(_parent->Debug())_parent->IMessage(AMSClient::print(cid,"Die HARD  !!!!!!!"));
 }
 else {
  rv=*li;
+ if(rv->Priority==3){
+    cout <<"found "<<rv->Run<<endl;
+ }
  rv->Status=Processing;
  rv->cuid=cid.uid;
   if(_parent->Debug()){
@@ -1735,7 +1932,18 @@ else {
   }
  PropagateRun(rv, DPS::Client::Update);
 }
+if(dv->DieHard !=1){
+  uinteger smartfirst=getSmartFirst(rv->Run);
+ if( smartfirst>rv->FirstEvent){
+   rv->FirstEvent=smartfirst;
+   if(smartfirst>rv->LastEvent){
+   _parent->EMessage(AMSClient::print(rv,"***SMART PROBLEM***"));
+    
+   }
+ }
+}
 ro=rv._retn();
+dso=dv._retn();
 _UpdateACT(cid,DPS::Client::Active);
 }
 
@@ -1767,19 +1975,19 @@ void Producer_impl::sendRunEvInfo(const  RunEvInfo & ne, DPS::Client::RecordChan
 }
 
 
-int Producer_impl::getNtupleS(const DPS::Client::CID & ci, DSTS_out dsts)throw (CORBA::SystemException){
+int Producer_impl::getDSTS(const DPS::Client::CID & ci, DSTS_out dsts)throw (CORBA::SystemException){
 
 DSTS_var acv= new DSTS();
 int length=0;
-length=_ntuple.size();
+length=_dst.size();
 if(length==0){
 acv->length(1);
 }
 else{
 acv->length(length);
 length=0;
-for(DSTLI li=_ntuple.begin();li!=_ntuple.end();++li){
- acv[length++]=*li;
+for(DSTLI li=_dst.begin();li!=_dst.end();++li){
+ acv[length++]=*(li->second);
 }
 }
 dsts=acv._retn();
@@ -1819,53 +2027,54 @@ else{
 
 
 
-void Producer_impl::sendNtupleEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+void Producer_impl::sendDSTEnd(const DPS::Client::CID & ci, const  DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 if(_parent->Debug()){
-  _parent->IMessage(AMSClient::print(ci,"sendntupleinfo get from "));
+  _parent->IMessage(AMSClient::print(ci,"senddstinfo get from "));
   _parent->IMessage(AMSClient::print(ne));
 }
  DST_var vne= new DST(ne);
+ pair<DSTLI,DSTLI>b=_dst.equal_range(ne.Type);
  switch (rc){
  case DPS::Client::Create:
- for(DSTLI li=_ntuple.begin();li!=_ntuple.end();++li){
-  if(!strcmp((const char *)(*li)->Name,(const char *)ne.Name)){
-   _parent->EMessage(AMSClient::print(*li,"Create:Ntuple Already exists"));
+ for(DSTLI li=b.first;li!=b.second;++li){
+  if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
+   _parent->EMessage(AMSClient::print(li->second,"Create:DST Already exists"));
    return;
   }
  }
- _ntuple.push_back(vne);
+ _dst.insert(make_pair(ne.Type,vne));
+  if(ci.Type==DPS::Client::Producer)PropagateDST(ne,DPS::Client::Create,DPS::Client::AnyButSelf,_parent->getcid().uid);
  break;
  case DPS::Client::Update:
- for(DSTLI li=_ntuple.begin();li!=_ntuple.end();++li){
-  if(!strcmp((const char *)(*li)->Name,(const char *)ne.Name)){
-   switch ((*li)->Status){
+ for(DSTLI li=b.first;li!=b.second;++li){
+  if(!strcmp((const char *)(li->second)->Name,(const char *)ne.Name)){
+   switch ((li->second)->Status){
     case InProgress:
-     *li=vne;
+     (li->second)=vne;
+      if(ci.Type==DPS::Client::Producer)PropagateDST(ne,DPS::Client::Update,DPS::Client::AnyButSelf,_parent->getcid().uid);
       return;
     default:
-    _parent->EMessage(AMSClient::print(vne,"Update:Ntuple Already Exists "));
+    _parent->EMessage(AMSClient::print(vne,"Update:DST Already Exists "));
     return;
    }
    break;
   }
  }
-    _parent->EMessage(AMSClient::print(vne,"Update:Ntuple Not Found "));
+    _parent->EMessage(AMSClient::print(vne,"Update:DST Not Found "));
  
 }
 }
 
-void Producer_impl::sendEventStatusEnd(const DPS::Client::CID & ci,const  EventStatusEnd & ne,  DPS::Client::RecordChange rc)throw (CORBA::SystemException){
-}
 
 
-void Producer_impl::PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange rc, int uid){
+void Producer_impl::PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange rc, DPS::Client::AccessType type, uinteger uid){
   if(_ActivateQueue)_runqueue.push_back(RA(ri,rc));
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   DPS::Client::CID cid;
   cid.Type=getType();
   cid.Interface= (const char *) " ";
     DPS::Client::ARS * pars;
-    int length=_pser->getARS(cid,pars,uid);
+    int length=_pser->getARS(cid,pars,type,uid);
     DPS::Client::ARS_var arf=pars;
   for(int i=0;i<length;i++){
   try{
@@ -1875,26 +2084,25 @@ void Producer_impl::PropagateRun(const RunEvInfo & ri, DPS::Client::RecordChange
    }
    catch (CORBA::SystemException &ex){
      // Have to Kill Servers Here
-      cid.Type=_pser->getType();
    }
   } 
 
 }
 
-void Producer_impl::PropagateNtuple(const DST & ri, DPS::Client::RecordChange rc, int uid){
-  if(_ActivateQueue)_ntqueue.push_back(DSTA(ri,rc));
+void Producer_impl::PropagateDST(const DST & ri, DPS::Client::RecordChange rc, DPS::Client::AccessType type,uinteger uid){
+  if(_ActivateQueue)_dstqueue.push_back(DSTA(ri,rc));
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
   DPS::Client::CID cid;
   cid.Type=getType();
   cid.Interface= (const char *) " ";
     DPS::Client::ARS * pars;
-    int length=_pser->getARS(cid,pars,uid);
+    int length=_pser->getARS(cid,pars,type,uid);
     DPS::Client::ARS_var arf=pars;
   for(int i=0;i<length;i++){
   try{
     CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
     DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
-    _pvar->sendNtupleEnd(_parent->getcid(),ri,rc);
+    _pvar->sendDSTEnd(_parent->getcid(),ri,rc);
    }
    catch (CORBA::SystemException &ex){
    }
@@ -1925,10 +2133,27 @@ _parent->IMessage(AMSClient::print((*li),"Host "));
 }
 
 cout <<"DST status ******" <<endl;
-for (DSTLI li=_ntuple.begin();li!=_ntuple.end();++li){
-_parent->IMessage(AMSClient::print((*li),"Ntuple "));
-}
+{
+ pair<DSTLI,DSTLI>b=_dst.equal_range(Ntuple);
 
+for (DSTLI li=b.first;li!=b.second;++li){
+_parent->IMessage(AMSClient::print((li->second),"DST "));
+}
+}
+{
+ pair<DSTLI,DSTLI>b=_dst.equal_range(RootFile);
+
+for (DSTLI li=b.first;li!=b.second;++li){
+_parent->IMessage(AMSClient::print((li->second),"DST "));
+}
+}
+{
+ pair<DSTLI,DSTLI>b=_dst.equal_range(EventTag);
+
+for (DSTLI li=b.first;li!=b.second;++li){
+_parent->IMessage(AMSClient::print((li->second),"DST "));
+}
+}
  }
 //
 }
@@ -1942,7 +2167,7 @@ DPS::Client::CID cid;
 cid.Interface=(const char *)" ";
 cid.Type=getType();
 DPS::Client::ARS * pars;
-int length=getARS(cid,pars,_parent->getcid().uid);
+int length=getARS(cid,pars,DPS::Client::LessThan,_parent->getcid().uid);
 DPS::Client::ARS_var arf=pars;
  for(int i=0;i<length;i++){
   try{
@@ -2001,7 +2226,7 @@ integer Server_impl::Kill(const DPS::Client::ActiveClient & ac, int signal, bool
      submit+=".log ";
     }
 
-    cout <<"kill "<<submit;
+    cout <<"kill "<<submit<<endl;
     return system(submit);
 }
 
@@ -2081,8 +2306,7 @@ bool Server_impl::PingServer(const DPS::Client::ActiveClient & ac){
     cid.Type=getType();
     cid.Interface= (const char *)" ";
     DPS::Client::ARS * pars;
-    int i=-ac.id.uid;
-    int length=getARS(cid,pars,i);
+    int length=getARS(cid,pars,DPS::Client::Self,ac.id.uid);
     DPS::Client::ARS_var arf=pars;
   for(int i=0;i<length;i++){
   try{
@@ -2103,7 +2327,7 @@ bool Server_impl::PingServer(const DPS::Client::ActiveClient & ac){
 void Server_impl::_PurgeQueue(){
 for(ACALI li=_acqueue.begin();li!=_acqueue.end();++li){
 if(_parent->Debug())_parent->IMessage(AMSClient::print(li->getacv(),"PurgingACQueue"));
- PropagateAC(li->getacv(),li->getaction(),_RecID);
+ PropagateAC(li->getacv(),li->getaction(),DPS::Client::Self,_RecID);
 }
 _acqueue.clear();
 }
@@ -2111,18 +2335,75 @@ _acqueue.clear();
 void Producer_impl::_PurgeQueue(){
 for(ACALI li=_acqueue.begin();li!=_acqueue.end();++li){
 if(_parent->Debug())_parent->IMessage(AMSClient::print(li->getacv(),"PurgingACQueue"));
- PropagateAC(li->getacv(),li->getaction(),_RecID);
+ PropagateAC(li->getacv(),li->getaction(),DPS::Client::Self,_RecID);
 }
 _acqueue.clear();
 for(RALI li=_runqueue.begin();li!=_runqueue.end();++li){
 if(_parent->Debug())_parent->IMessage(AMSClient::print(li->getacv(),"PurgingRunQueue"));
- PropagateRun(li->getacv(),li->getaction(),_RecID);
+ PropagateRun(li->getacv(),li->getaction(),DPS::Client::Self,_RecID);
 }
 _runqueue.clear();
-for(DSTALI li=_ntqueue.begin();li!=_ntqueue.end();++li){
-if(_parent->Debug())_parent->IMessage(AMSClient::print(li->getacv(),"PurgingNTQueue"));
- PropagateNtuple(li->getacv(),li->getaction(),_RecID);
+for(DSTALI li=_dstqueue.begin();li!=_dstqueue.end();++li){
+if(_parent->Debug())_parent->IMessage(AMSClient::print(li->getacv(),"PurgingDSTQueue"));
+ PropagateDST(li->getacv(),li->getaction(),DPS::Client::Self,_RecID);
 }
-_ntqueue.clear();
+_dstqueue.clear();
 
+}
+
+void AMSServer::StopEverything(){
+for (AMSServerI * pser=_pser;pser;pser=pser->down()?pser->down():pser->next()){
+   Server_impl *ptrue=dynamic_cast<Server_impl*>(pser->getServer());
+  if(ptrue){
+    for (AMSServerI::AHLI li=pser->getahl().begin();li!=pser->getahl().end();++li){
+     (*li)->Status=DPS::Client::InActive;
+   }
+   for (AMSServerI::ACLI li=pser->getacl().begin();li!=pser->getacl().end();++li){
+    if((*li)->id.uid!=_pid.uid || (*li)->id.pid!=_pid.pid)ptrue->Kill(*li,SIGTERM,true);
+  }
+ }
+}
+IMessage("Raising SIGTERM ");
+raise(SIGTERM);
+}
+
+
+void AMSServer::DumpIOR(){
+IMessage("DumpIOR");
+ for(map<AString,CORBA::String_var>::iterator li=_pser->getrefmap().begin();li!=_pser->getrefmap().end();++li){
+IMessage((const char*)li->first);
+IMessage((const char*)li->second);
+}
+}
+
+
+uinteger Producer_impl::getSmartFirst(uinteger run){
+ pair<DSTLI,DSTLI>dst[3];
+ bool present[3];
+ dst[0]=_dst.equal_range(Ntuple);
+ dst[1]=_dst.equal_range(RootFile);
+ dst[2]=_dst.equal_range(EventTag);
+  bool check=false;
+ for (int i=0;i<3;i++){
+  if(dst[i].first==dst[i].second)present[i]=false;
+  else present[i]=true;
+   check=check || present[i];
+ }
+  if(!check)return 0;
+  uinteger first[3]={INT_MAX,INT_MAX,INT_MAX};
+ for(int i=0;i<3;i++){
+  if(present[i]){
+   first[i]=0;
+   for(DSTLI li=dst[i].first;li!=dst[i].second;++li){
+    if((li->second)->Status ==Success && (li->second)->Run==run){
+     if(first[i]<((li->second)->LastEvent)+1)first[i]=((li->second)->LastEvent)+1;
+    }
+   }
+  }
+ }
+ uinteger veryfirst=INT_MAX;
+ for(int i=0;i<3;i++){
+  if(veryfirst>first[i])veryfirst=first[i];
+ }
+ return veryfirst;
 }

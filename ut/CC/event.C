@@ -69,7 +69,9 @@ static time_t  T0    = 0;
 extern LMS* lms;
 
 #endif
-
+#ifdef __CORBA__
+#include <producer.h>
+#endif
 //
 //
 integer AMSEvent::debug=0;
@@ -81,7 +83,7 @@ integer AMSEvent::PosGlobal=0;
 void AMSEvent::_init(){
   SetTimeCoo(IOPA.mode==1);
   // Status stuff
-  if( AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
+  if(AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
     if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime())){
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
       ptdv->UpdateMe()=1;
@@ -99,11 +101,29 @@ void AMSEvent::_init(){
       cout <<" Time Begin "<<ctime(&begin);
       cout <<" Time End "<<ctime(&end);
       cout << " Starting to update "<<*ptdv; 
-      if(  !ptdv->write(AMSDATADIR.amsdatabase))
-        cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*ptdv;
+      bool fail=false;
+      if(  !ptdv->write(AMSDATADIR.amsdatabase)){
+         cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*ptdv;
+          fail=true;
+      }
+#ifdef __CORBA__
+      AMSStatus *p=AMSJob::gethead()->getstatustable();
+      uinteger first,last;
+      p->getFL(first,last);
+      AMSProducer::gethead()->sendEventTagEnd(ptdv->getname(),p->getrun(),insert,begin,end,first,last,p->getnelem(),fail);       
+#endif
       ptdv->SetTime(inserto,begino,endo);
       AMSJob::gethead()->getstatustable()->reset();      
     }
+#ifdef __CORBA__
+    else if(AMSJob::gethead()->getstatustable()->getnelem()==1){
+      AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
+      AMSStatus *p=AMSJob::gethead()->getstatustable();
+      uinteger first,last;
+      p->getFL(first,last);
+     AMSProducer::gethead()->sendEventTagBegin(ptdv->getname(),p->getrun(),first);       
+    }
+#endif
   }
   // check old run & 
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
@@ -369,12 +389,10 @@ if(AMSJob::gethead()->isProduction() ){
  if(!SRun){
   HDELET(0);
   AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
-  AMSJob::map(1);
  }
  else{
 #ifdef __CORBA__
   AMSJob::gethead()->uhinit(getrun(),getid(),gettime());
-  AMSJob::map(1);
 #endif
  }
 
@@ -1146,9 +1164,10 @@ void AMSEvent::event(){
    }
    catch (AMSLVL3Error e){
      // No LVL3
-   if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR())
+   if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR()){
     setstatus((AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())).getp());
    }
+  }
     if(AMSStatus::isDBWriteR()){
       AMSJob::gethead()->getstatustable()->adds(getrun(),getid(),getstatus(),gettime());
     }

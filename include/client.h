@@ -48,6 +48,7 @@ static char * print(const DPS::Client::CID & a, const char *m=" ");
 static ostream &  print(const DPS::Client::CID & a, ostream & o);
 static char * print(const DPS::Client::ActiveHost & a, const char *m=" ");
 static char * print(const DPS::Producer::RunEvInfo & a, const char *m=" ");
+static char * print(const DPS::Producer::DSTInfo & a, const char *m=" ");
 static char * print(const DPS::Server::CriticalOps & a,const  char *m=" ");
 static char * print(const DPS::Producer::CurrentInfo & a, const char *m=" ");
 static ostream & print(const DPS::Producer::CurrentInfo & a, ostream & o);
@@ -59,7 +60,33 @@ static char * CSE2string(DPS::Client::ClientExiting);
 static char * HS2string(DPS::Client::HostStatus a);
 static char * RS2string(DPS::Producer::RunStatus a);
 static char * DSTS2string(DPS::Producer::DSTStatus a);
+static char * DSTT2string(DPS::Producer::DSTType a);
+static char * RunMode2string(DPS::Producer::RunMode a);
 static char * OPS2string(DPS::Server::OpType a);
 };
+
+class Less{
+protected:
+
+public:
+
+
+bool operator () (const DPS::Client::ActiveClient & a,const DPS::Client::ActiveClient & b){return a.id.uid<b.id.uid;}
+
+bool operator()(const DPS::Producer::RunEvInfo &a,const DPS::Producer::RunEvInfo &b){
+if(a.Priority!=b.Priority)return a.Priority>b.Priority;
+else return a.Status<b.Status;
+}
+
+bool operator ()(const DPS::Client::ActiveHost &a,const DPS::Client::ActiveHost &b){
+if(a.Status == b.Status || b.Status==DPS::Client::OK)return false;
+else if(a.Status != DPS::Client::NoResponse)return true;
+else return false;
+
+}
+
+
+};
+
 
 #endif
