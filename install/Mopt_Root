@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.50 2003/05/16 16:54:16 choutko Exp $
+#  $Id: Mopt_Root,v 1.51 2003/05/21 13:52:57 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -8,6 +8,44 @@ CERNSRCDIR = /cern/$(CERN_LEVEL)
 ifndef AMSWD
 AMSWD := ..
 endif
+
+
+ifeq  "$(shell uname)"  "SunOS" 
+
+CC=CC
+FF=f77
+LD=CC
+BIN=$(AMSWD)/bin/sunosr/
+EXE=$(AMSWD)/exe/sunosr/
+LIB=$(AMSWD)/lib/sunosr/
+INCLUDE=../include/
+IFLAGS= -I/usr/include -I$(SRC)  -I$(ROOTSYS)/include
+ifdef AMSDEBUG
+CFLAGS=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include   -I../db  -D__WRITEROOT__  -I$(ROOTSYS)/include
+CFLAGSTOFSIM= $(CFLAGS)
+CFLAGSn=      $(CFLAGS)
+CFLAGSDAQ=    $(CFLAGS) 
+FFLAGS=   -g -I../include  
+FFLAGSn=   -g -I../include  
+CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db -D__WRITEROOT__  -I$(ROOTSYS)/include
+else
+#CFLAGSB=      -D__BATCH__   -library=rwtools7,iostream,Cstd,Crun    -I../include   -I../db -D__WRITEROOT__
+#CFLAGSB=      -D__BATCH__       -I../include     -mt -lpthread
+CFLAGSB=      -D__BATCH__       -I../include    -O4 -xarch=v8plusa -D__WRITEROOT__  -I$(ROOTSYS)/include
+CFLAGSTOFSIM= $(CFLAGSB)
+CFLAGSDAQ=    $(CFLAGSB)
+CFLAGSn=      $(CFLAGSB)
+CFLAGS=      $(CFLAGSB) 
+FFLAGS=   -O4 -xarch=v8plusa -I../include
+FFLAGSn=    -I../include
+endif
+DFLAGS=       -I/usr/include  -I../include   -I$(SRC)
+LDFLAGSSTATIC=   -O4 -xarch=v8plusa -Bstatic  -library=f77,Cstd,Crun -lm -L$ROOTSYS/lib -lRoot  -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift -L/afs/cern.ch/sw/nag/mark18/sun/flsol18da -lnag - -L/usr/lib -lm -lsocket  -L/usr/lib   -lnsl  -lm      -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L$ROOTSYS/lib -lRoot
+#LDFLAGS=   -Bstatic -library=f77,Cstd,Crun -lm   -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sun4x_56/nagfl16df -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L/usr/ucblib -lucb -Bdynamic -L/usr/lib -ldl 
+TIMEL=
+endif
+
+
 
 #################################################
 
@@ -64,10 +102,10 @@ FFLAGS=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian
 FFLAGSn=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 DFLAGS=     -I/usr/include  -I../include 
 LDFLAGS=    -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag $(ROOTLIBS) -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut 
-LDFLAGSSTATIC=    -L$(ROOTSYS)/lib -lRoot $(ROOTSYS)/lib/R__dummy.o -lcxxstd -lcxx -lexc -lots -lc  -lUfor   -lfor -lFutil -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag  -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut 
+LDFLAGSSTATIC=    -non_shared   -L$(ROOTSYS)/lib -lRoot -lcxx -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321  -lmathlib -lpacklib -lkernlib -lshift -L/afs/cern.ch/sw/nag/mark18/dec/fldau18da/  -lnag -L/usr/lib -lUfor   -lfor -lFutil -lots -lm -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut -lm -lcxx -lm 
 SHLDFLAGS=    -lshift -lUfor   -lfor -lFutil -lots -lm -L$(CERNDIR)/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  $(ROOTLIBS) -L/afs/cern.ch/exp/ams/Offline/lib/osf1 -lamsut 
 SOFLAGS =  -v -Wl,-expect_unresolved,* -shared
-FLAGSSTATIC= -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved "*" -g0 -O1 
+#FLAGSSTATIC= -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved "*" -g0 -O1 
 CC=cxx 
 ifeq "$(shell cxx -V | grep -c 6.)" "1"
 CC=cxx  
@@ -330,7 +368,7 @@ INCS= $(wildcard ../include/*.h)
 IDLFLAGS=-D__CORBA__ -I$(BIN)
 FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)mceventg.C ../F/tkmccl.F ../F/fint_my.F ../F/geocoor.F  $(SCC)rnormx.C  $(SCC)trid.C $(SCC)trdid.C $(SCC)link.C $(SCC)trrec.C $(SCC)trdsim.C $(SCC)trdrec.C $(SCC)uzstat.C ../F/amstkshc++.F  ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec02.C $(SCC)tofonline02.C $(SCC)tofuser02.C  $(SCC)antirec02.C $(SCC)tofsim02.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc02.C $(SCC)tofcalib02.C $(SCC)tofid.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger102.C $(SCC)trigger302.C $(SCC)antidbc02.C $(SCC)daqevt.C $(SCC)astring.C $(SCC)daqs2block.C ../F/mfield.F  ../F/egzav.F  ../F/tkfit.F  $(SCC)tkdbc.C $(SCC)trddbc.C  $(SCC)ntuple.C $(SCC)root.C $(BIN)rootdict.C $(SCC)gamma.C $(SCC)user.C $(SCC)status.C $(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecid.C $(SCC)ecalrec.C $(SCC)ecalcalib.C $(SCC)richdbc.C $(SCC)richrec.C $(SCC)richid.C $(SCC)richgeom.C ../F/gtckov.F ../F/graylc.F ../F/cerenkov.F $(SCC)producer.C $(SCC)client.C $(SCC)server.C $(SCC)dbserver.C
 OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)tofsim02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o $(BIN)rootdict.o $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)flinit.o $(BIN)fint_my.o
-OBJECTSA= $(BIN)gbatch_a.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)tofsim02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o $(BIN)rootdict.o $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)flinit.o $(BIN)fint_my.o  $(BIN)ins_dummy.o
+OBJECTSA= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)tofsim02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)tofid.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o $(BIN)rootdict.o $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)flinit.o $(BIN)fint_my.o  $(BIN)ins_dummy.o
 
 OBJECTSC= $(BIN)gbatch_c.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant_c.o $(BIN)geant3_c.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec.o $(BIN)trdsim.o $(BIN)trdrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job_c.o $(BIN)event_c.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec02.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02.o $(BIN)tofsim02.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)tofid.o $(BIN)timeid_c.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o  $(BIN)trigger102.o $(BIN)trigger302.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple.o $(BIN)root.o $(BIN)rootdict.o $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)flinit.o $(BIN)producer.o $(BIN)client.o $(BIN)fint_my.o $(BIN)ins_dummy.o
 
@@ -374,9 +412,6 @@ $(BIN)rootdict_s.o:         $(BIN)rootdict_s.C
  
 $(BIN)gbatch.o:         $(SCC)gbatch.C
 	$(CC) -c $(CFLAGS) $(SCC)gbatch.C -o $(BIN)gbatch.o
-
-$(BIN)gbatch_a.o:         $(SCC)gbatch.C
-	$(CC) -c $(CFLAGS)  -D__ROOTA__ $(SCC)gbatch.C -o $(BIN)gbatch_a.o
 
 $(BIN)job.o:    	 $(SCC)job.C
 	$(CC) -c $(CFLAGS) $(SCC)job.C -o $(BIN)job.o
@@ -493,6 +528,11 @@ $(BIN)mtx2.o:         ../F/mtx2.F
 $(BIN)amstkshc++.o:            ../F/amstkshc++.F
 	$(FF) -c $(FFLAGS) -I$(CERNDIR)/include    ../F/amstkshc++.F -o $(BIN)amstkshc++.o
 
+ifeq  "$(shell uname)"  "SunOS" 
+
+$(BIN)mtx.o:                   ../F/mtx77.F
+	f77 -c $(FFLAGS)      ../F/mtx77.F -o $(BIN)mtx.o
+endif
 ifeq  "$(shell uname)"  "HP-UX" 
 
 $(BIN)mtx.o:                   ../F/mtx77.F
