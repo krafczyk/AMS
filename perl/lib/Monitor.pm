@@ -64,9 +64,6 @@ sub Connect{
      $ref->{ok}=0;
  my $ior=getior();
  if(not defined $ior){ 
-     $ior=getior2();
- }
- if(not defined $ior){ 
 
   $ior= shift @ARGV;
   unshift @ARGV, $ior;
@@ -326,7 +323,7 @@ sub getior{
     my $pid=$Monitor::Singleton->{cid}->{pid};
     my $file ="/tmp/o."."$pid";
     my $fileo ="/tmp/oo."."$pid";
-    my $i=system "bjobs -q linux_server >$file" ;
+    my $i=system "/usr/local/lsf/bin/bjobs -q linux_server -u all>$file" ;
     if($i){
         unlink $file;
         return undef;
@@ -337,7 +334,7 @@ sub getior{
         if (  $_ =~/^\d/){
             if($ii>0 || 1){
             my @args=split ' ';
-            $i=system "bpeek $args[0] >$fileo";
+            $i=system "/usr/local/lsf/bin/bpeek $args[0] >$fileo";
             if($i){
                 next;
             }
@@ -355,7 +352,7 @@ sub getior{
     }
     close (FILEO);
     unlink $file,$fileo;
-    return undef;
+    return getior2();
 }
 sub getior2{
     my $file ="/tmp/DumpIOR";

@@ -13,22 +13,22 @@ use lib::monitorHTML;
 my $monitor=new Monitor();
 
 
-
-
-
-#get ior from server and connect to
-
-my $ok=$monitor->Connect();
-
 #activate CGI
 
 my $html=new monitorHTML;
 
 
+ my $ok=$monitor->Connect();
+
+#get ior from server and connect to
+
+
+
  if($ok){
    $html->Update();
-   exit;
  }
-if(not $ok){
+ else{
   $html->Warning();
-}
+ }
+
+

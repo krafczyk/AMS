@@ -10,6 +10,14 @@ use lib::Monitor;
 sub new{
 my %fields=(
             q=>undef,
+            read=>0,
+            PAH=>undef,
+            PAC=>undef,
+            Runs=>undef,
+            Ntuples=>undef,
+            CAC=>undef,
+            DB=>undef,
+            Control=>undef,
             );
     my $type=shift;
     my $self={
@@ -18,7 +26,53 @@ my %fields=(
 
 
     $self->{q}=new CGI;
-    
+
+#open FILE,">/tmp/query" or die $!;
+#$self->{q}->save(\*FILE);
+#print $self->{q}->header("text/plain"),"File Saved\n";
+
+    if ($self->{q}->param("Monitor")){
+        $self->{read}=1;
+        foreach my $value ($self->{q}->param("Objects2Monitor")){
+            $self->{$value}=1;
+        }
+        
+    }elsif($self->{q}->param("Control")){
+        $self->{read}=2;
+        $self->{Control} =$self->{q}->param("Objects2Control");
+    }
+    else{
+            if(defined $self->{q}->param("TOTAL")){
+                my $total=$self->{q}->param("TOTAL");
+                my $name=$self->{q}->param("NAME");
+                for my $i (0...$total){
+                 my $string="MyControl$i";
+                 my $action=$self->{q}->param($string);
+                 if(defined $action){
+                     my @data;
+                     foreach my $value ($self->{q}->param("TextField")){
+                         push @data,$value;
+                     }
+                     my ($monitor, $ok)=Monitor::Update();
+                     if(not $ok){
+                  Warning::error($self->{q},
+                  "Unable to Connect to Servers");
+                         return;
+                     }
+                     Monitor::sendback($name,$action,$i,@data);
+                     goto NEXT;
+                 }
+             }
+                if(not defined $name){
+                    $name="Undefined";
+                }
+                  Warning::error($self->{q},
+                  "Unable To Send Data for $name");
+                   return;
+NEXT:
+            }
+        $self->{read}=0;
+    }
     my $mybless=bless $self,$type;
     if(ref($monitorHTML::Singleton)){
         croak "Only Single monitorHTML Allowed\n";
@@ -33,19 +87,49 @@ sub Warning{
 }
 
 sub Update{
-
+    my $ref=$monitorHTML::Singleton;
+    if($ref->{read}){
      my ($monitor, $ok)=Monitor::Update();
      if(not $ok){
          Warning();
          return;
      }
+ }
     my $q=$monitorHTML::Singleton->{q};
-
     print $q->header( "text/html" ),
     $q->start_html( "Connected To Servers Succesfully" );
 
     print $q->h1( "Connected To Servers Succesfully" );
-
+    if($ref->{read}==0){
+        print $q->start_form(-method=>"GET", 
+          -action=>"/cgi-bin/mon/monitor.cgi");
+        print $q->p ("Monitor:");
+   print qq`
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="PAH" CHECKED>Producer Active Hosts<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="PAC" CHECKED>Producer Active Clients<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="Runs">Runs Table<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="Ntuples" >Ntuples Table<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="CAC" CHECKED>Server Active Clients<BR>
+<INPUT TYPE="checkbox" NAME="Objects2Monitor" VALUE="DB" CHECKED>Disk Space<BR>
+`;
+        print $q->submit(-value=>"SubmitRequest", -name=>"Monitor");
+        print $q->end_form();
+        print $q->start_form(-method=>"GET", 
+          -action=>"/cgi-bin/mon/monitor.cgi");
+        print $q->p ("Control:");
+   print qq`
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerClient" CHECKED>Producer Nominal Client<BR>
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerHost" >Producer Nominal Host<BR>
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="Ntuple" >Producer Nominal Ntuple<BR>
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="Run" >Producer Run Table<BR>
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="ServerClient" >Server Nominal Client<BR>
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="ServerHost" >Server Nominal Host<BR>
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="Killer" >Server Nominal Killer<BR>
+`;
+        print $q->submit(-name=>"Control", -value=>"SubmitRequest");
+        print $q->end_form();
+          
+    }elsif($ref->{read} == 1){
 
     my @titles;
     $#titles=-1;
@@ -65,12 +149,13 @@ sub Update{
 	    "Status ",
 	);
 
-    my @output=Monitor::getactivehosts();
+    if($ref->{PAH}){
+     my @output=Monitor::getactivehosts();
      my $buffer="Producer_ActiveHosts";
 
      print_table($q,$buffer,$#titles,@titles,@output);
-
-
+    
+    }
 
 
      $#titles=-1;
@@ -85,10 +170,11 @@ sub Update{
             "Status",
                                    );
 
-      $buffer="Producer_ActiveClients";
-     @output=Monitor::getactiveclients("Producer");
+    if($ref->{PAC}){
+     my $buffer="Producer_ActiveClients";
+     my @output=Monitor::getactiveclients("Producer");
      print_table($q,$buffer,$#titles,@titles,@output);
-
+    }
 
       
 
@@ -105,11 +191,11 @@ sub Update{
             "Status ",
                                    );
 
-     $buffer="Producer_Ntuples";
-
-     @output=Monitor::getntuples();
+    if($ref->{Ntuples}){
+     my $buffer="Producer_Ntuples";
+     my @output=Monitor::getntuples();
      print_table($q,$buffer,$#titles,@titles,@output);
-
+ }
 
      $#titles=-1;
                         @titles = (
@@ -120,12 +206,14 @@ sub Update{
             "LastUpdate Time",
             "Status",
                                    );
+ 
+    if($ref->{CAC}){
 
-     $buffer="Server_ActiveClients";
+     my $buffer="Server_ActiveClients";
 
-     @output=Monitor::getactiveclients("Server");
+    my @output=Monitor::getactiveclients("Server");
      print_table($q,$buffer,$#titles,@titles,@output);
-
+ }
         @titles = (
             "FileSystem",
             "Total (Mbytes)",
@@ -133,10 +221,11 @@ sub Update{
             "% Free",
 #            "OK",
                    );
-     @output=Monitor::getdbok();
-     $buffer="DiskUsage";
+    if($ref->{CAC}){
+     my @output=Monitor::getdbok();
+     my $buffer="DiskUsage";
      print_table($q,$buffer,$#titles,@titles,@output);
-
+ }
 
 
      $#titles=-1;
@@ -150,10 +239,127 @@ sub Update{
             "Status ",
                                    );
 
-     $buffer="Producer_Runs";
-     @output=Monitor::getruns();
+    if($ref->{Runs}){
+     my $buffer="Producer_Runs";
+     my @output=Monitor::getruns();
      print_table($q,$buffer,$#titles,@titles,@output);
+   }
 
+}elsif($ref->{read}==2){
+
+    my $name=$ref->{Control};
+    my @output=Monitor::getcontrolthings($name);
+    my @titles;    
+    if( $name eq "ServerClient"){
+        $#titles=-1;
+        @titles=(
+          "Uid",
+          "Type",
+          "MaxClients",
+          "CPU",
+           "Memory",
+             "ScriptPath",
+            "LogPath",
+            "Submit",
+            "HostName",
+           "LogInTheEnd",
+                 );
+    }elsif( $name eq "ProducerClient"){
+        $#titles=-1;
+        @titles=(
+          "Uid",
+          "Type",
+          "MaxClients",
+          "CPU",
+           "Memory",
+             "ScriptPath",
+            "LogPath",
+            "Submit",
+            "HostName",
+           "LogInTheEnd",
+                 );
+    }elsif( $name eq "ServerHost"){
+        $#titles=-1;
+        @titles=(
+"HostName",
+"Interface",
+"OS",
+"CPUNumber",
+"Memory",
+"Clock",
+"Clients Allowed",
+"Status",
+                 );
+    }elsif( $name eq "ProducerHost"){
+        $#titles=-1;
+        @titles=(
+"HostName",
+"Interface",
+"OS",
+"CPUNumber",
+"Memory",
+"Clock",
+"Clients Allowed",
+"Status",
+                 );
+}elsif( $name eq "Ntuple"){
+    $#titles=-1;
+        @titles=(
+         "Uid",
+        "HostName",
+        "OutputDirPath",
+        "RunMode",
+        "UpdateFreq",
+                 );
+}elsif( $name eq "Run"){
+    $#titles=-1;
+        @titles=(
+"Uid",
+"Run",
+"FirstEvent",
+"LastEvent",
+"Priority",
+"FilePath",
+"Status",
+"History",
+                 );
+}elsif( $name eq "Killer"){
+    $#titles=-1;
+        @titles=(
+          "Uid",
+          "Type",
+          "MaxClients",
+          "CPU",
+           "Memory",
+             "ScriptPath",
+            "LogPath",
+            "Submit",
+            "HostName",
+           "LogInTheEnd",
+                 );
+}
+    for my $i (0 ... $#output){
+        print $q->start_form(-method=>"GET", 
+          -action=>"/cgi-bin/mon/monitor.cgi");
+        my @text=@{$output[$i]};
+        my $string="";
+     for my $j (0...$#titles){
+         $string=$string.$titles[$j];
+         my $substr=$titles[$j];
+         $string=$string."<INPUT TYPE=\"TEXT\" NAME=\"TextField\" VALUE=$text[$j]><BR>";
+     }
+        print $string;
+        print $q->submit(-name=>"MyControl$i", -value=>"Create");
+        print $q->submit(-name=>"MyControl$i", -value=>"Update");
+        print $q->submit(-name=>"MyControl$i", -value=>"Delete");
+        print qq`
+        <INPUT TYPE="hidden" NAME="TOTAL" VALUE=$#output>
+        <INPUT TYPE="hidden" NAME="NAME" VALUE=$name>
+        `;        
+         print $q->end_form;
+    }
+
+}
 
       print $q->end_html;
 
