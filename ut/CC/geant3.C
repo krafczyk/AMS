@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.81 2003/04/26 13:26:55 choutko Exp $
+//  $Id: geant3.C,v 1.82 2003/05/22 12:01:59 mdelgado Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -462,9 +462,14 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
     }
 
 
-    if(GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='A' &&
-     GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]==' '){
-      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+
+     // Added the counters for the NAF
+
+     if((GCVOLU.names[lvl][0]=='R' && GCVOLU.names[lvl][1]=='A' &&
+	 GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]==' ')||
+	(GCVOLU.names[lvl][0]=='N' && GCVOLU.names[lvl][1]=='A' &&
+	 GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]==' ')){
+       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
 
       if(GCTRAK.nstep!=0){
        for(integer i=0;i<GCTRAK.nmec;i++)

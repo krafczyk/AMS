@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.83 2003/04/07 08:48:34 choutko Exp $
+//  $Id: gmat.C,v 1.84 2003/05/22 12:01:58 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -542,6 +542,7 @@ AMSJob::gethead()->addup(&tmed);
 tmed.add (new AMSgtmed("AIR","AIR",0));
 tmed.add (new AMSgtmed("MAGNET","MAGNET",0));
 AMSgtmed * pvac;
+AMSgtmed * rich_pvac;
 {
 // vacuum has to be trd aware
  geant uwbuf[5];
@@ -559,7 +560,8 @@ else{
   uwbuf[1]=TRDMCFFKEY.mode;
   uwbuf[3]=0;
   uwbuf[4]=0;
- pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);
+ pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);  
+  rich_pvac=pvac;   // DO NOT MODIFY
  uwbuf[2]=6;
  pvac->setubuf(nwbuf,uwbuf);
  tmed.add (pvac );
@@ -715,7 +717,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
       index[iw]=1;
     }
 //  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
-  pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
+    rich_pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 
 // LG mirrors
@@ -765,7 +767,7 @@ pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
       abs_l[iw]=1e5;
       index[iw]=1;
     }
-  pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);  
+  rich_pvac->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);  
 
 }
 //---------------
