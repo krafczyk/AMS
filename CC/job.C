@@ -326,7 +326,7 @@ BETAFITFFKEY.pattern[5]=0;
 BETAFITFFKEY.pattern[6]=0;
 BETAFITFFKEY.pattern[7]=0;
 BETAFITFFKEY.pattern[8]=0;
-BETAFITFFKEY.Chi2=3;
+BETAFITFFKEY.Chi2=5;
 BETAFITFFKEY.SearchReg[0]=3.;
 BETAFITFFKEY.SearchReg[1]=3.;
 BETAFITFFKEY.SearchReg[2]=3.;
@@ -586,57 +586,19 @@ void AMSJob::_retrdinitjob(){
 }
 
 AMSgvolume * AMSJob::getgeom(AMSID id){
-  if(id.getname() ==0 && id.getid()==0){
-    // Default
-    for(int i=0;;){
-     AMSNode *p=JobMap.getid(i++);
-     if(!p){
-      cerr << "AMSJob::getgeom-F-nodefault geom"<<endl;
-      break;
-     }
-     if(strncmp(p->getname(),"AMSG",4)==0)
-     return  (AMSgvolume*)p;
-    }
-  }
-  else    return (AMSgvolume*)AMSJob::JobMap.getp(id);
-  return 0;
+  if(id.getname() ==0 && id.getid()==0)id=AMSID(AMSDBc::ams_name,1);
+  return (AMSgvolume*)AMSJob::JobMap.getp(id);
 }
 
 
 AMSgmat * AMSJob::getmat(AMSID id){
-  if(id.getname() ==0 && id.getid()==0){
-    // Default
-    for(int i=0;;){
-     AMSNode *p=JobMap.getid(i++);
-     if(!p){
-      cerr << "AMSJob::getmat-F-nomaterials found"<<endl;
-      exit(1);
-      break;
-     }
-     if(strncmp(p->getname(),"Materials:",10)==0)
-     return  (AMSgmat*)p;
-    }
-  }
-  else    return (AMSgmat*)AMSJob::JobMap.getp(id);
-  return 0;
+  if(id.getname() ==0 && id.getid()==0)id=AMSID("Materials:",0);
+  return (AMSgmat*)AMSJob::JobMap.getp(id);
 }
 
 AMSgtmed * AMSJob::getmed(AMSID id){
-  if(id.getname() ==0 && id.getid()==0){
-    // Default
-    for(int i=0;;){
-     AMSNode *p=JobMap.getid(i++);
-     if(!p){
-      cerr << "AMSJob::getgeom-F-notracking media found"<<endl;
-      exit(1);
-      break;
-     }
-     if(strncmp(p->getname(),"TrackingMedia:",14)==0)
-     return  (AMSgtmed*)p;
-    }
-  }
-  else    return (AMSgtmed*)AMSJob::JobMap.getp(id);
-  return 0;
+  if(id.getname() ==0 && id.getid()==0)id=AMSID("TrackingMedia:",0);
+  return (AMSgtmed*)AMSJob::JobMap.getp(id);
 }
 
 void AMSJob::setsetup(char *setup){
@@ -776,17 +738,13 @@ if (AMSFFKEY.Update){
 
 
 AMSTimeID * AMSJob::gettimestructure(){
-    int i;
-    for( i=0;;){
-     AMSNode *p=JobMap.getid(i++);
+      AMSID id("TDV:",0);    
+     AMSNode *p=JobMap.getp(id);
      if(!p){
       cerr << "AMSJob::gettimestructer-F-no time structre found"<<endl;
       exit(1);
-      break;
      }
-     if(strncmp(p->getname(),"TDV:",4)==0)
-     return  (AMSTimeID*)p;
-    }
+     else return  (AMSTimeID*)p;
 }
 
 

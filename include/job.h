@@ -67,7 +67,7 @@ integer getjobtype() const{return _jobtype;}
 integer&  setjobtype() {return _jobtype;}
 AMSNode * getnodep(AMSID  id) const{return JobMap.getp(id);}
 AMSgvolume * getgeom(AMSID id=0);
-AMSgvolume * getgeomvolume(AMSID id){return   (AMSgvolume*)AMSgObj::GVolMap.getp(id);}
+AMSgvolume * getgeomvolume(AMSID id){return   (AMSgvolume*)JobMap.getp(id);}
 AMSgmat * getmat(AMSID id=0);
 AMSgtmed * getmed(AMSID id=0);
 void data();

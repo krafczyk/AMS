@@ -1,1 +1,63 @@
-time dep values ( see timeid.h for the moment)
+Invented to manipualte time or "run" dependent variables : calibration const,
+pedestals etc etc etc.
+
+For each set of such variables (e.g. array or class instance) 
+the following instance of timeid class should be set up in 
+AMSJob::_timeinitjob()
+
+TID.add ( new AMSTimeID ( char * id, tm begin, tm end, nbytes, void * pdata);
+
+where 
+
+*id is unique string identifier ( arbitary size)
+tm begin - start validity time
+tme end  - end   validity time
+nbytes - sizeof data in bytes
+pdat - pointer to first byte of the data 
+
+
+tm structrure is defined in sys <time.h>
+
+relevant elements:
+
+class tm{
+
+...
+
+int tm_sec;    // seconds 0-59
+int tm_min;    // minutes 0-59
+int tm_hour   //  hours   0-23
+int tm_mday   //  day in month 1-31
+int tm_mon    //  month   0-11
+int tm_year   //  year from 1900 (96 for 1996)
+...
+}
+
+---------
+
+The AMSFFKEY.Update datacard is foreseen to write the timeids into objectivity
+dbase
+
+------------
+
+The following methods exist to exchange dbase<->timeid
+
+access :
+
+AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();       
+AMSTimeID * offspring=(AMSTimeID*)ptid->down();  // get first timeid instance
+while(offspring){
+.........
+
+    offspring=(AMSTimeID*)offspring->next();   // get one by one
+}
+
+
+public methods:
+
+integer GetNbytes()     // get number of bytes
+integer CopyOut(void *pdataNew) // copy timeid-> pdatanew
+integer CopyIn(void *pdataNew)  // copy pdatanew->timeid
+void gettime(time_t & insert, time_t & begin, time_t & end) // get times
+void SetTime (time_t insert, time_t begin, time_t end) // set times
+

@@ -38,7 +38,7 @@ static integer ini=0;
 integer curp=0;
  number phi;
  number theta;
-if(_fixedmom)_mom=_momrange[0];
+ if(_fixedmom)_mom=_momrange[0];
 else {
  integer id;
  if(_ipart%100==67)id=20006;  
@@ -51,6 +51,7 @@ else {
  if(ini==0){
    ini=1;
    spectra_();
+   
    HPRINT(id);
  }
  number ee=HRNDM1(id);

@@ -536,9 +536,9 @@ extern "C" void uglast_(){
 #ifndef __DB__
        if(AMSJob::debug){
          // AMSJob::gethead()->printN(cout);
-          AMSNode* p=AMSJob::gethead()->getnodep(AMSID("Materials:",0));
+          AMSNode* p=AMSJob::gethead()->getmat();
           assert(p!=NULL);
-          p=AMSJob::gethead()->getnodep(AMSID("TrackingMedia:",0));
+          p=AMSJob::gethead()->getmed();
           assert(p!=NULL);
           AMSgvolume * pg=AMSJob::gethead()->getgeom();
           assert(pg!=NULL);

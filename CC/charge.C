@@ -164,9 +164,9 @@ void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
     if(getchargeTOF() != getchargeTracker()){
       cout <<" TOF & Tracker disagree . TOF says particle charge is "<<
       getchargeTOF()<<" Tracker - "<<getchargeTracker()<<endl;
+    }        
 #endif
 
-    }        
 }
 
 integer AMSCharge::_refit(number rid,number yy[],integer nx){

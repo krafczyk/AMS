@@ -2,9 +2,10 @@
 SHELL=/bin/sh
 #
 ifeq  "$(shell uname)"  "AIX" 
-CFLAGS=   -D__BATCH__ -O4   -I../include -I../include/stl
-FFLAGS=   -O -I../include -qextname -d
-DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
+CFLAGS=   -D__BATCH__ -O2   -I../include -I../include/stl
+CFLAGSn=   -D__BATCH__ -g   -I../include -I../include/stl
+FFLAGS=    -I../include -O -qextname 
+DFLAGS=  -D__AMSDEBUG__     -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
 LDFLAGS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag 
 CC=xlC
 FF=xlf
@@ -15,6 +16,7 @@ TIMEL=../bin/aix/timel.o
 endif
 ifeq  "$(shell uname)"  "OSF1" 
 CFLAGS=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I../include/stl -define_templates 
+CFLAGSn=  -D__BATCH__ -D__ALPHA__  -O4     -I../include -I../include/stl -define_templates 
 FFLAGS=   -O -I../include  -d -static -nofor_main -convert big_endian
 DFLAGS=  -g   -I/usr/include  -I../include -I../include/stl -I/usr/include/cxx
 LDFLAGS= -g -lUfor   -lfor -lFutil -lots -lm -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag 
@@ -26,10 +28,11 @@ EXE=/exe/osf1
 TIMEL=../bin/osf1/timel.o
 endif
 ifeq  "$(shell uname)"  "HP-UX" 
-CFLAGS=     -D__BATCH__  -O4   -fhandle-exceptions  -I../include -I../include/stl  
-FFLAGS=   -K +ppu -O -I../include 
+CFLAGS=     -D__BATCH__     -fhandle-exceptions  -I../include -I../include/stl  
+CFLAGSn=     -D__BATCH__  -g   -fhandle-exceptions  -I../include -I../include/stl  
+FFLAGS=   -K +ppu  -I../include 
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl -I/usr/local/lib/g++-include
-LDFLAGS=  -g  -L/cern/95a/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lm -lg++ -lstdc++  -lcl -lisamstub -L/usr/local/lib/gcc-lib/hppa1.1-hp-hpux9.05/2.7.2 -lgcc /usr/lib/end.o
+LDFLAGS=  -g  -L/cern/95a/lib  -lgeant321  -lpacklib -lmathlib -lkernlib   -L/afs/cern.ch/asis/packages/licensed/nag-mark16/hp700_ux100/nagfl16df -lnag -L/usr/local/lib -lm -lg++ -lstdc++  -lcl -lisamstub -L/usr/local/lib/gcc-lib/hppa1.1-hp-hpux9.05/2.7.2 -lgcc 
 CC=g++
 FF=f77
 LD=g++
@@ -167,7 +170,7 @@ endif
 	$(CC) -c $(CFLAGS) ../CC/geant.C -o ..$(BIN)/geant.o
 
 ..$(BIN)/mceventg.o: 	 ../CC/mceventg.C
-	$(CC) -c $(CFLAGS) ../CC/mceventg.C -o ..$(BIN)/mceventg.o
+	$(CC) -c $(CFLAGSn) ../CC/mceventg.C -o ..$(BIN)/mceventg.o
 
 ..$(BIN)/mccluster.o: 	 ../CC/mccluster.C
 	$(CC) -c $(CFLAGS) ../CC/mccluster.C -o ..$(BIN)/mccluster.o

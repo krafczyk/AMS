@@ -1,15 +1,25 @@
-                                                       Last Edit: Sep 30, 1996
 
+Compile Time
+-------------
+
+1. mceventg.C should be compiled with -g option on aix&hpux
+
+
+
+Run Time
+----------
 1. AMSgSen::getsenstrip-S-Error.  
    Probably geant tracking bug. Happens rarely.
 
 2. The event sequences for OSF1 & AIX are different.
    Probably due to different geant tracking.
 
-3. Ntuples produced by OSF1 can be read only on OSF1. The same for AIX.
-   Probably one of the numerous PAW bugs.
 
-4. ooddlx (DDL processor) complains about definition of 
+
+DB related
+-----------
+
+1. ooddlx (DDL processor) complains about definition of 
                extern     int      class(double);
   in /usr/include/math.h 
 
