@@ -46,7 +46,8 @@
 class AMSNodePool: public AMSNode{
 private:
 void * _address;
-void _init(){}
+void _init(){};
+virtual ostream & print(ostream &) const;  
 public:
 AMSNodePool():_address(0),AMSNode(){}
 AMSNodePool(integer id, void *p):_address(p),AMSNode(id){}
