@@ -35,7 +35,7 @@ geant AMSCharge::_lkhdSlopTOF[TOFTypes][ncharge];
 geant AMSCharge::_lkhdSlopTracker[TrackerTypes][ncharge];
 integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
 integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
-char AMSCharge::_fnam[128]="lkhd_v216.1.data";
+char AMSCharge::_fnam[128]="lkhd_v216.data";
 
 number AMSCharge::getprobcharge(integer charge){
 charge=fabs(charge);
@@ -56,7 +56,7 @@ integer AMSCharge::getvotedcharge(int & index){
 
 // Only tracker above this value
   if (_ChargeTOF>CHARGEFITFFKEY.TrackerOnly){
-    index=_ChargeTracker;
+    index=_iTracker;
     return _ChargeTracker;
   }
 // Exclude bad measurement if possible
@@ -89,6 +89,27 @@ integer AMSCharge::build(integer refit){
   integer TypeTOF[TOFMaxHits];
   integer TypeTracker[TrackerMaxHits];
   const number fac=AMSTrRawCluster::ADC2KeV();
+
+// Temporary fix for simulation
+  if (!AMSJob::gethead()->isRealData()){
+    CHARGEFITFFKEY.ResCut[0]=-1.;     // no incompatible TOF clus exclusion
+    CHARGEFITFFKEY.ResCut[1]=-1.;     // no incompatible Tracker clus exclusion
+    CHARGEFITFFKEY.TrMeanRes=0;       // calculate truncated mean
+    CHARGEFITFFKEY.ChrgMaxAnode=10;   // no use of dynodes for TOF charge 
+    CHARGEFITFFKEY.TrackerForceSK=1;  // force tracker hit energies to be x+y
+    CHARGEFITFFKEY.TrackerKSRatio=1.; // average x/y tracker energy ratio
+    static first=1;
+    if(first){
+      first=0;
+      cout<<"AMSCharge::build - MC forced with following datacards:"<<endl;
+      cout<<" ResCut[0]: "<<CHARGEFITFFKEY.ResCut[0]<<endl
+          <<" ResCut[1]: "<<CHARGEFITFFKEY.ResCut[1]<<endl
+          <<" TrMeanRes: "<<CHARGEFITFFKEY.TrMeanRes<<endl
+          <<" ChrgMaxAnode: "<<CHARGEFITFFKEY.ChrgMaxAnode<<endl
+          <<" TrackerForceSK: "<<CHARGEFITFFKEY.TrackerForceSK<<endl
+          <<" TrackerKSRatio: "<<CHARGEFITFFKEY.TrackerKSRatio<<endl;
+    }
+  }
 
   int patb;
   for(patb=0; patb<npatb; patb++){
@@ -293,7 +314,7 @@ integer AMSCharge::FitTOF(int toffit, number beta, int bstatus, int nhitTOF, AMS
 
 // refit using dynodes if required
     _ChargeTOF=_chargeTOF[_iTOF];
-    if (!toffit && _ChargeTOF>3 && nhittofd){
+    if (!toffit && _ChargeTOF>CHARGEFITFFKEY.ChrgMaxAnode && nhittofd){
       for(i=0; i<nhitTOF; i++)
        if(typetof[i]>=0 && bstatus) pTOFc[i]->clearstatus(AMSDBc::CHARGEUSED);
       toffit++;
@@ -344,21 +365,33 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
   for(i=0; i<TrackerTypes; i++) nhittrktyp[i]=0;
   for(i=0; i<nhitTracker; i++){
     typetrk[i]=-1;
-    if (CHARGEFITFFKEY.Tracker>0 && etrk[1][i]>0 && etrk[0][i]>0){
-      typetrk[i]=2;
-      etrkh[i]=etrk[1][i]+etrk[0][i];
-      if(trkfit>=0 && bstatus) pTrackerc[1][i]->setstatus(AMSDBc::CHARGEUSED);
-      if(trkfit>=0 && bstatus) pTrackerc[0][i]->setstatus(AMSDBc::CHARGEUSED);
+    if (CHARGEFITFFKEY.TrackerForceSK){
+      if(etrk[1][i]>0){
+        typetrk[i]=2;
+        etrkh[i]=etrk[0][i]>0?etrk[1][i]+etrk[0][i]:etrk[1][i]*(1.+CHARGEFITFFKEY.TrackerKSRatio);
+        if(trkfit>=0 && bstatus){
+          pTrackerc[1][i]->setstatus(AMSDBc::CHARGEUSED);
+          if(etrk[0][i]>0) pTrackerc[0][i]->setstatus(AMSDBc::CHARGEUSED);
+        }
+      }
     }
-    else if(etrk[1][i]>0){
-      typetrk[i]=0;
-      etrkh[i]=etrk[1][i];
-      if(trkfit>=0 && bstatus) pTrackerc[1][i]->setstatus(AMSDBc::CHARGEUSED);
-    }
-    else if(CHARGEFITFFKEY.Tracker>1 && etrk[0][i]>0){
-      typetrk[i]=1;
-      etrkh[i]=etrk[0][i];
-      if(trkfit>=0 && bstatus) pTrackerc[0][i]->setstatus(AMSDBc::CHARGEUSED);
+    else{
+      if (CHARGEFITFFKEY.Tracker>0 && etrk[1][i]>0 && etrk[0][i]>0){
+        typetrk[i]=2;
+        etrkh[i]=etrk[1][i]+etrk[0][i];
+        if(trkfit>=0 && bstatus) pTrackerc[1][i]->setstatus(AMSDBc::CHARGEUSED);
+        if(trkfit>=0 && bstatus) pTrackerc[0][i]->setstatus(AMSDBc::CHARGEUSED);
+      }
+      else if(etrk[1][i]>0){
+        typetrk[i]=0;
+        etrkh[i]=etrk[1][i];
+        if(trkfit>=0 && bstatus) pTrackerc[1][i]->setstatus(AMSDBc::CHARGEUSED);
+      }
+      else if(CHARGEFITFFKEY.Tracker>1 && etrk[0][i]>0){
+        typetrk[i]=1;
+        etrkh[i]=etrk[0][i];
+        if(trkfit>=0 && bstatus) pTrackerc[0][i]->setstatus(AMSDBc::CHARGEUSED);
+      }
     }
     if(typetrk[i]>=0){
       nhittrktyp[typetrk[i]]++;
@@ -378,9 +411,9 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
     _ChargeTracker=_chargeTracker[_iTracker];
     if(!trkfit && probtrk<CHARGEFITFFKEY.ProbTrkRefit){
       for(i=0; i<nhitTracker; i++){
-        if((typetrk[i]==0 || typetrk[i]==2) && bstatus)
+        if(etrk[1][i]>0 && (typetrk[i]==0 || typetrk[i]==2) && bstatus)
          pTrackerc[1][i]->clearstatus(AMSDBc::CHARGEUSED);
-        if((typetrk[i]==1 || typetrk[i]==2) && bstatus)
+        if(etrk[0][i]>0 && (typetrk[i]==1 || typetrk[i]==2) && bstatus)
          pTrackerc[0][i]->clearstatus(AMSDBc::CHARGEUSED);
       }
       trkfit++;

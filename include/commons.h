@@ -439,6 +439,9 @@ public:
   integer TrMeanRes;
   geant ProbMin;
   integer TrackerOnly;
+  integer ChrgMaxAnode;
+  integer TrackerForceSK;
+  geant TrackerKSRatio;
 };
 //
 

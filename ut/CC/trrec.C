@@ -809,6 +809,16 @@ number AMSTrCluster::_etacor(integer side, number eta) {
   number cor=1.;
   integer i;
 
+// no eta correction for simulation
+  if (!AMSJob::gethead()->isRealData()){
+    static first=1;
+    if(first){
+      first=0;
+      cout<<"AMSTrCluster::_etacor - No eta corrections on MC"<<endl;
+    }
+    return cor;
+  }
+
 // no eta correction for S side
   if (side==1) return cor;
 
@@ -818,6 +828,7 @@ number AMSTrCluster::_etacor(integer side, number eta) {
     for (i=0;i<5;i++) sum+=etack[i]*pow(eta,i);
     cor=etagk/sum;
   }
+cout<<" K side corrections applied. cor= "<<cor<<endl;
   return cor;
 }
 
