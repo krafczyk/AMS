@@ -8,12 +8,34 @@
 #include <fstream.h>
 #include <commons.h>
 #include <sys/types.h>
-#include <sys/dir.h>
 #include <trcalib.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#ifndef __IBMAIX__
+#include <sys/dir.h>
+#else
+
+#define _D_NAME_MAX 255
+
+struct  dirent {
+        ulong_t         d_offset;       /* real off after this entry */
+        ino_t           d_ino;          /* inode number of entry */
+                                        /* make ino_t when it's ulong */
+        ushort_t        d_reclen;       /* length of this record */
+        ushort_t        d_namlen;       /* length of string in d_name */
+        char            d_name[_D_NAME_MAX+1];  /* name must be no longer than t
+his */
+                                        /* redefine w/#define when name decided
+*/
+};
+
+
+extern "C" int scandir(		const char *, struct dirent ***, 
+                                int (*)(struct dirent *),  
+                                int (*)(struct dirent **, struct dirent **));
+#endif
 
 extern char *tdvNameTab[maxtdv];
 extern int  tdvIdTab[maxtdv];

@@ -2,7 +2,7 @@
 SHELL=/bin/sh
 #
 ifeq  "$(shell uname)"  "AIX" 
-CFLAGS=   -D__BATCH__ -O2   -I../include -I../include/stl
+CFLAGS=   -D__BATCH__ -O2   -D__IBMAIX__ -I../include -I../include/stl
 CFLAGSn=   -D__BATCH__ -g   -I../include -I../include/stl
 FFLAGS=    -I../include -O -qextname 
 DFLAGS=  -D__AMSDEBUG__     -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl

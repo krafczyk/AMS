@@ -2,8 +2,8 @@
 #define __AMSTimeID__
 #include <time.h>
 #include <node.h>
-#include <dirent.h>
 #include <astring.h>
+struct dirent;
 class AMSTimeID: public AMSNode {
 protected:
 
