@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.146 2003/05/03 12:30:12 alexei Exp $
+# $Id: RemoteClient.pm,v 1.147 2003/05/05 07:49:19 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3566,7 +3566,10 @@ print qq`
         my $ret = $self->{sqlserver}->Query($sql);
   
         if (defined $ret->[0][0]) {
-         $note ="DST directory path : $ret->[0][0]/nt \n Journal files directory path : $ret->[0][0]/jou \n";
+         $note ="DST directory path : $ret->[0][0]/nt 
+                \n Journal files directory path : $ret->[0][0]/jou 
+                \n Validation log files directory path : $ret->[0][0]/log
+                \n";
          }         
         print FILE  $note;
         close FILE;
