@@ -74,8 +74,8 @@ endif
 #                       #
 #########################
 
-BOOTF=../db/boot/LOM
-BOOT=../db/boot/LOM
+BOOTF=/temp/tmp/choutko/AMS/db/boot/LOM
+BOOT=/afs/cern.ch/user/c/choutko/public/objectivity/LOM
 #include config.user
 include config.$(ARCH)
 #########################
