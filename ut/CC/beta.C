@@ -30,14 +30,16 @@ integer AMSBeta::build(integer refit){
  AMSPoint SearchReg(BETAFITFFKEY.SearchReg[0],BETAFITFFKEY.SearchReg[1],
  BETAFITFFKEY.SearchReg[2]);
 
+// Loop first on tracks with K-hits, second on FalseTOFX
+   for( int Sonly=0; Sonly<2; Sonly++){
+
+
 // Loop on TOF patterns
  for ( int patb=0; patb<npatb; patb++){
    if(!BETAFITFFKEY.pattern[patb]) continue;
    number theta=0;
    number td;
 
-// Loop first on tracks with K-hits, second on FalseTOFX
-   for( int Sonly=0; Sonly<2; Sonly++){
 
 // Loop on track patterns
     for( int patt=0; patt<npat; patt++){
@@ -57,7 +59,7 @@ integer AMSBeta::build(integer refit){
        for ( ; phit[0]; phit[0]=phit[0]->next()) {
          number chi2space=0;
          if(phit[0]->checkstatus(AMSDBc::BAD)) continue;
-         if (!BETAFITFFKEY.FullReco && !ptrack->checkstatus(AMSDBc::FalseTOFX)) {
+         if (!BETAFITFFKEY.FullReco && (!ptrack->checkstatus(AMSDBc::FalseTOFX)|| ptrack->checkstatus(AMSDBc::RELEASED))) {
            if (phit[0]->checkstatus(AMSDBc::USED)) continue;
          }
          AMSPoint dst=AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
@@ -69,7 +71,7 @@ integer AMSBeta::build(integer refit){
          phit[1]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][1]-1);
          for ( ; phit[1]; phit[1]=phit[1]->next()) {
            if(phit[1]->checkstatus(AMSDBc::BAD)) continue;
-           if (!BETAFITFFKEY.FullReco && !ptrack->checkstatus(AMSDBc::FalseTOFX)) {
+           if (!BETAFITFFKEY.FullReco && (!ptrack->checkstatus(AMSDBc::FalseTOFX)|| ptrack->checkstatus(AMSDBc::RELEASED))) {
              if (phit[1]->checkstatus(AMSDBc::USED)) continue;
            }
            AMSPoint dst=AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
@@ -87,7 +89,7 @@ integer AMSBeta::build(integer refit){
            phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
            for ( ; phit[2]; phit[2]=phit[2]->next()) {
              if(phit[2]->checkstatus(AMSDBc::BAD)) continue;
-             if (!BETAFITFFKEY.FullReco && !ptrack->checkstatus(AMSDBc::FalseTOFX)) {
+             if (!BETAFITFFKEY.FullReco && (!ptrack->checkstatus(AMSDBc::FalseTOFX)|| ptrack->checkstatus(AMSDBc::RELEASED))) {
              if (phit[2]->checkstatus(AMSDBc::USED)) continue;
                }
              AMSPoint dst=AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
@@ -105,7 +107,7 @@ integer AMSBeta::build(integer refit){
              phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
              for ( ; phit[3]; phit[3]=phit[3]->next()) {
                if(phit[3]->checkstatus(AMSDBc::BAD)) continue;
-               if (!BETAFITFFKEY.FullReco && !ptrack->checkstatus(AMSDBc::FalseTOFX)){
+               if (!BETAFITFFKEY.FullReco && (!ptrack->checkstatus(AMSDBc::FalseTOFX)|| ptrack->checkstatus(AMSDBc::RELEASED))){
                  if (phit[3]->checkstatus(AMSDBc::USED)) continue;
                }
                AMSPoint dst=AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
@@ -182,9 +184,21 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
            pthit[i]->setstatus(AMSDBc::USED);
          }
 
+
+/* Set the ambiguity bit for tracks sharing the same TOF hits */
+/* This is necessary for FalseTOFX tracks */
+         for (i=0;i<nhit;i++){
+           if (pthit[i]->checkstatus(AMSDBc::AMBIG) && !pthit[i]->checkstatus(AMSDBc::RELEASED)) {
+             pbeta->setstatus(AMSDBc::AMBIG);
+             break;  
+           }
+         }
+
+
 /* RELEASE hits for 1234, 123, 234 patters if beta is too low */
 /* and wait for use with pattern 23 */
-         if(fabs(pbeta->getbeta()) < BETAFITFFKEY.LowBetaThr && pat !=7){
+         if(fabs(pbeta->getbeta()) < BETAFITFFKEY.LowBetaThr && pat !=7 &&
+         !pbeta->checkstatus(AMSDBc::AMBIG)){
            //release track
            ptrack->clearstatus(AMSDBc::USED);
            ptrack->setstatus(AMSDBc::RELEASED);
@@ -199,14 +213,6 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
            if(pat==0 || pat==1 || pat==4)pbeta->setstatus(AMSDBc::AMBIG);
          }                  
 
-/* Set the ambiguity bit for tracks sharing the same TOF hits */
-/* This is necessary for FalseTOFX tracks */
-         for (i=0;i<nhit;i++){
-           if (pthit[i]->checkstatus(AMSDBc::AMBIG)) {
-             pbeta->setstatus(AMSDBc::AMBIG);
-             break;  
-           }
-         }
 
          // permanently add;
          
@@ -214,8 +220,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
           pbeta=new AMSBeta(beta);
 #endif
           AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
-          if(pbeta->checkstatus(AMSDBc::AMBIG))return 0;
-          else return 1;
+          return 1;
    }
 #ifndef __UPOOL__
        delete pbeta;
