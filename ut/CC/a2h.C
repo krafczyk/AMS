@@ -18,18 +18,18 @@ void convert(int, int, char[]);
 int UnixFilestat(const char *path, long *id, long *size,
                               long *flags, time_t *modtime);
 int main(int argc, char* argv[]){
-      switch (argc) {
-      case 1:
-        cerr <<"a2h-F-Please give an input file name as first parameter "<<endl;
-        return 1;
-      default:
-       break;
-      }
+        switch (argc) {
+        case 1:
+         cerr <<"a2h-F-Please give input file name(s) as  parameter(s) "<<endl;
+         return 1;
+        default:
+         break;
+        }
       int i,k,ok;
-       for(i=1;i<argc;i++){
-         cout <<"a2h-I-Open I file "<<argv[i]<<endl;
-         convert(i-1,argc-i-1,argv[i]);
-       }
+             for(i=1;i<argc;i++){
+               cout <<"a2h-I-Open I file "<<argv[i]<<endl;
+               convert(i-1,argc-i-1,argv[i]);
+             }
    return 0;
 }
 
@@ -109,7 +109,7 @@ int16u pheader[12];
       exit(1);
     }
     int crtn= name[0]=='3'?2:5;    
-    //    cout <<" a2h-I-crate" <<crtn<<endl;
+     cout <<"a2h-I-FoundCrate " <<(crtn==2?"32":"72")<<endl;
     long id, size, flags;
     time_t time;
     int suc=UnixFilestat(in, &id, &size,&flags, &time);
@@ -129,7 +129,9 @@ int16u pheader[12];
        }
          nrecords=0;
          int nblk=0;
+       int evto=-1;
        do {
+out:
         int l16ptr=0;
         int tlength,ntdr,len,tdrn,ch1,ch2,elem;
         ie=fscanf(fbin,"%x",&tlength);
@@ -142,7 +144,7 @@ int16u pheader[12];
         pnblk[nblk]=tlength;
         ntdr=ntdr & 31;
         pntdr[nblk++]=ntdr;
-        //cout << " tlength "<<tlength <<endl;
+        //        cout << " tlength "<<tlength <<endl;
         //cout << " ntdr "<<ntdr <<" "<<pntdr[nblk-1]<<" "<<nblk-1<<endl;
         //cout <<" datatype "<<datatype<<endl;
         if(ie!=EOF && ntdr>0){
@@ -155,14 +157,23 @@ int16u pheader[12];
         ie=fscanf(fbin,"%x",&tdrn);
         ie=fscanf(fbin,"%x",&len);
         ie=fscanf(fbin,"%x",&evt);
-        cdr[nrecords++]=tdrn;
+        l16ptr+=3;
         //cout << " ntdr "<<ntdr <<" "<<tdrn<<" "<<len<<" "<<evt<<endl;
+        if(tdrn > 23){
+          cerr <<"a2h-E-BadTDRNumber "<<tdrn<<"  event will be skipped"<<endl;
+          for(int ks=l16ptr;ks<tlength;ks++){
+           ie=fscanf(fbin,"%x",&elem);
+          }  
+          cerr<<"a2h-E-skipped "<<tlength-l16ptr<<" words"<<endl;
+           goto out; 
+        }
+         cdr[nrecords++]=tdrn;
          pData[tdrn][0]=len;
          for(int i=1;i<len-1;i++){
           ie=fscanf(fbin,"%x",&elem);
           pData[tdrn][i]=elem;
          }                
-          l16ptr+=len+1;         
+          l16ptr+=len-2;         
        }while (l16ptr<tlength-2);
         ie=fscanf(fbin,"%x",&ch1);
         ie=fscanf(fbin,"%x",&ch2);
