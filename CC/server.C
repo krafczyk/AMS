@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.79 2002/02/20 17:59:26 choutko Exp $
+//  $Id: server.C,v 1.80 2002/03/12 14:05:51 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -2253,6 +2253,7 @@ if(li!=_acl.end()){
     }
 } 
       (*li)->id.Status=DPS::Client::SInKill;
+      (*li)->Status=DPS::Client::Killed;
       DPS::Client::ActiveClient_var acv=*li;
       PropagateAC(acv,DPS::Client::Update);
 //    PropagateAC(acv,DPS::Client::Delete);

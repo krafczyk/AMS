@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.6 2002/03/12 13:26:50 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.7 2002/03/12 14:05:52 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -239,7 +239,7 @@ sub Create{
     $dbh->do("insert into Environment values('filedb','ams02mcdb.tar')") or die "cannot do: ".$dbh->errstr();     
     $dbh->do("insert into Environment values('dbversion','v3.00')") or die "cannot do: ".$dbh->errstr();     
     $dbh->do("insert into Environment values('AMSProdDir','prod')") or die "cannot do: ".$dbh->errstr();     
-    my $apd='$AMSProdDir/starttagmtb_db_mc';
+    my $apd='$AMSProdDir/prod/starttagmtb_db_mc';
     $dbh->do("insert into Environment values('amsserver','$apd')") or die "cannot do: ".$dbh->errstr();     
     my $run=110;
   $dbh->do("insert into Cites values(1,'cern',0,

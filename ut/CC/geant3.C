@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.62 2002/02/27 16:19:54 mdelgado Exp $
+//  $Id: geant3.C,v 1.63 2002/03/12 14:05:51 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -475,9 +475,9 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
   GCTRAK.upwght=1; //cerenkov tracked first  
   for(integer i=0;i<GCKIN2.ngphot;i++){
     if(RICHDB::detcer(GCKIN2.xphot[i][6])){
-//       if(GCNUMX.NALIVE>2000)throw AMSTrTrackError("SecondaryPhStackOverflows");
+       if(GCNUMX.NALIVE>5000)throw AMSTrTrackError("SecondaryPhStackOverflows");
        GSKPHO(i+1);
-//       cout << " NALIVE " <<GCNUMX.NALIVE<<endl;
+//       cout << " NALIVE " <<GCNUMX.NALIVE<< " "<<GCKIN2.ngphot<<endl;
     }
   }
   GCTRAK.upwght=0;  

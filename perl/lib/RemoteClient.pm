@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.12 2002/03/12 13:26:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.13 2002/03/12 14:05:52 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -210,10 +210,10 @@ my %mv=(
      $sql="select myvalue from Environment where mykey='".$key."'";
      $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
-     $self->{$key}="$self->{AMSDataDir}/".$ret->[0][0];
+     $self->{$key}="$self->{AMSSoftwareDir}/".$ret->[0][0];
  }
     else{    
-     $self->{$key}="$self->{AMSDataDir}/prod";
+     $self->{$key}="$self->{AMSSoftwareDir}/prod";
     }
     $ENV{$key}=$self->{$key};
 
@@ -486,7 +486,7 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
            $ref->ErrorPlus("Unable To Connect to Server");
        }
          else{
-             $ref->ErrorPlus("Attempt to Restart Server Has Been Made.");
+             $ref->ErrorPlus("Attempt to Restart Server Has Been Made.\n Please check bjobs -q linux_server -u all in few minutes");
          }
       };
 
@@ -564,7 +564,7 @@ sub RestartServer{
               my $full="$self->{UploadsDir}/ServerRestart";
            open(FILE,">".$full) or die "Unable to open file $full \n";
               print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
-              print FILE "export AMSProdDir=$self->{AMSProdDir} \n";
+              print FILE "export AMSProdDir=$self->{AMSProdDir}/../ \n";
               print FILE "$submit -B$self->{dbfile} \n";
            close FILE;
 #           my $i=system("$submit -B$self->{dbfile}" );
