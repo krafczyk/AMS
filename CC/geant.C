@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.109 2003/04/23 09:41:02 choutko Exp $
+//  $Id: geant.C,v 1.110 2003/05/20 09:06:23 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -206,6 +206,9 @@ AMSJob::map(1);
 
 
 void gams::UGLAST(const char *message){
+#ifdef __CORBA__
+try{
+#endif
 if(message)AMSJob::gethead()->setMessage(message);
 #ifdef __G4AMS__
 if(MISCFFKEY.G4On)g4ams::G4LAST();
@@ -213,10 +216,16 @@ if(MISCFFKEY.G3On)
 #endif
 GLAST();
 
-#ifdef __DB__
-     dbout.dbend();
-#endif
        delete AMSJob::gethead();
+
+#ifdef __CORBA__
+}
+catch (AMSClientError & ab){
+  cerr<<ab.getMessage()<< endl;
+    return 1;
+}
+#endif
+
 }
 //------------------------------------------------------------------------------------
 extern "C" void readDB(){

@@ -21,7 +21,7 @@
 
 ///  This is an example of user class to process AMS Root Files 
 /*!
- This class is derived from the ROOT class TSelector. \n
+ This class is derived from the AMSEventR class. \n
  The following members functions are called by the TTree::Process() functions: \n
     UBegin():       called everytime a loop on the tree starts, \n
                     a convenient place to create your histograms. \n
@@ -40,15 +40,11 @@
 class stlv : public AMSEventR {
    public :
 
-    vector<TH1F*>   h1A;   ///< An (alt) way of having array of histos
-    
+   static  vector<TH1F*>   h1A;   ///< An (alt) way of having array of histos
    stlv(TTree *tree=0){ };
 
-   ~stlv() { 
-    for(unsigned int i=0;i<h1A.size();i++)delete h1A[i];
-        h1A.clear(); 
+   ~stlv()  {
    }
-
 
    /// User Function called before starting the event loop.
    /// Book Histos
@@ -63,11 +59,12 @@ class stlv : public AMSEventR {
    virtual void    UTerminate();
 };
 
+vector<TH1F*>   stlv::h1A;
 
 //create here pointers to histos and/or array of histos
 
     TH1F * acc[20]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; 
-
+    TH1F * h1=0; 
 
 
 
@@ -77,9 +74,12 @@ void stlv::UBegin(){
    //here create histograms
 
    float al1=log(0.5);
-   float al2=log(200.);
-   int nch=12;
-    
+   float al2=log(8000.);
+   int nch=24;
+    for(unsigned int i=0;i<h1A.size();i++)delete h1A[i];
+        h1A.clear();
+
+ 
     for (int j = 0; j < sizeof(acc)/sizeof(acc[0]); j++) {
       char AccName[255];
       sprintf(AccName,"acc%03d",j);
@@ -88,10 +88,15 @@ void stlv::UBegin(){
 //
 //    another way of def histos
 //
+
+      
       sprintf(AccName,"accv%03d",j);
       h1A.push_back(new TH1F(AccName,"acceptance",nch,al1,al2));         
-   } 
-   
+   }
+    char *name="Layers";
+   if(h1)delete h1;
+   h1=new TH1F(name,name,10,-0.5,9.5);
+    
    
 
 }
@@ -111,13 +116,13 @@ void stlv::ProcessFill(Int_t entry)
       acc[0]->Fill(xm,1);
       h1A[0]-> Fill(xm,1);
      if(nParticle()>0){
-       int ptrack = Particle(0).TrTrack();
-       int ptrd = Particle(0).TrdTrack();
+       int ptrack = Particle(0).iTrTrack();
+       int ptrd = Particle(0).iTrdTrack();
        if(NParticle()== 1 && ptrack>=0 && ptrd>=0){ //final if
          acc[1]->Fill(xm,1);
          h1A[1]-> Fill(xm,1);
      
-        int pbeta = Particle(0).iBeta();   // here iBeta, not Beta
+        int pbeta = Particle(0).iBeta();   
         BetaR *pb =  Particle(0).pBeta();   // another way 
         if(pbeta>=0){			//check beta
 	  BetaR BetaI=Beta(pbeta);
@@ -126,18 +131,20 @@ void stlv::ProcessFill(Int_t entry)
 	    Int_t Layer1 =0;
             Int_t Layer2 =0;  
              TrTrackR tr_tr=TrTrack(ptrack);
-		 int  ptrh=tr_tr.TrRecHit(0);			//pht1
+		 int  ptrh=tr_tr.iTrRecHit(0);			//pht1
    	          Layer1=TrRecHit(ptrh).Layer;
 		    
 		 
-		  ptrh=tr_tr.TrRecHit(tr_tr.NTrRecHit()-1);			//pht2
+		  ptrh=tr_tr.iTrRecHit(tr_tr.NTrRecHit()-1);			//pht2
    	           Layer2=TrRecHit(ptrh).Layer;
 
  // alt method
 
                   TrRecHitR* pph=tr_tr.pTrRecHit(tr_tr.NTrRecHit()-1);
                   int l2=pph->Layer;
-                  cout <<"l "<<Layer2<<l2<<endl;                           
+                  for (int k=0;k<tr_tr.NTrRecHit();k++){
+                     h1->Fill(tr_tr.pTrRecHit(k)->Layer,1);
+                   }
 }
 }
 }

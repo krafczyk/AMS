@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.77 2003/05/14 21:42:50 choutko Exp $
+//  $Id: gbatch.C,v 1.78 2003/05/20 09:06:23 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -93,8 +93,13 @@ catch (AMSClientError & ab){
  }
 }
 #endif
+try{
     UGLAST();
-    
+}
+catch (amsglobalerror & a){
+ cerr<<a.getmessage()<< " in UGLAST" <<endl;
+ return 1;
+}    
 return 0;
 }
 void (handler)(int sig){

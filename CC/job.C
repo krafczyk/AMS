@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.447 2003/05/16 22:10:15 choutko Exp $
+// $Id: job.C,v 1.448 2003/05/20 09:06:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -2934,7 +2934,7 @@ throw (amsglobalerror){
       }
       sprintf(event,"%d",run);
       strcat(_rootfilename,event);
-      sprintf(event,".%d",eventno);
+      sprintf(event,".%07d",eventno);
       strcat(_rootfilename,event);
       strcat(_rootfilename,".root");
      }

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.44 2003/05/16 16:53:57 choutko Exp $
+//  $Id: root.C,v 1.45 2003/05/20 09:06:24 choutko Exp $
 //
 #include <root.h>
 #include <ntuple.h>
@@ -1241,6 +1241,7 @@ void AMSEventR::AddAMSObject(AMSTrCluster *ptr){
 void AMSEventR::AddAMSObject(AMSTrRecHit *ptr)
 {
   if (ptr) {
+    if(fTrRecHit.size()>root::MAXTRRH02*2 && !ptr->checkstatus(AMSDBc::USED))return;
   fTrRecHit.push_back(TrRecHitR(ptr));
   ptr->SetClonePointer(fTrRecHit.size()-1);
   }  else {
@@ -1359,6 +1360,7 @@ void AMSEventR::AddAMSObject(AMSParticle *ptr, float phi, float phigl)
 void AMSEventR::AddAMSObject(AMSAntiMCCluster *ptr)
 {
   if (ptr) {
+   if( fAntiMCCluster.size()>root::MAXANTIMC*2)return; 
   fAntiMCCluster.push_back(AntiMCClusterR(ptr));
   ptr->SetClonePointer(fAntiMCCluster.size()-1);  
   }  else {
@@ -1397,6 +1399,7 @@ void AMSEventR::AddAMSObject(AMSTOFMCCluster *ptr)
 void AMSEventR::AddAMSObject(AMSTrMCCluster *ptr)
 {
   if (ptr) {
+   if( fTrMCCluster.size() > root::MAXTRCLMC * 2)return;
   fTrMCCluster.push_back(TrMCClusterR(ptr));
   ptr->SetClonePointer( fTrMCCluster.size()-1);
   }  else {
@@ -1420,6 +1423,7 @@ void AMSEventR::AddAMSObject(AMSTRDMCCluster *ptr)
 void AMSEventR::AddAMSObject(AMSmceventg *ptr)
 {
   if (ptr) {
+  if(fMCEventg.size()>root::MAXMCG02 * 2)return;
   fMCEventg.push_back(MCEventgR(ptr));
   ptr->SetClonePointer( fMCEventg.size()-1);
   }  else {
