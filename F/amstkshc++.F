@@ -792,14 +792,14 @@ CDECK  ID>, ABSIEL.
 CDECK  ID>, ABSIIN. 
        subroutine absiin(a_p,z_p,a_t,z_t,pmom_p,nsec,p_sec,ierr)
 *        input
-*        pmom_p(5)   u,v,w,etotal,mass
+*        pmom_p(6)   u,v,w,ptotal,mass,etotal
 *        a_p,t atomic weight
 *        z_p,t 
 *        output p_sec(6,1000)   // as in gkin
          real *4 p_sec(6,*)
          real *4 u(3),pmom_p(5)
          a_p=int(a_p+0.5)
-         ekin=(pmom_p(4)-pmom_p(5))/a_p
+         ekin=(pmom_p(6)-pmom_p(5))/a_p
 *
 *   call to rqmd
 *
@@ -815,7 +815,7 @@ CDECK  ID>, ABSIIN.
 c         px=0
 c         py=0
 c         pz=0
-c         ptot=sqrt((pmom_p(4)-pmom_p(5))*(pmom_p(4)+pmom_p(5)))
+c         ptot=pmom_p(4)
          call conv_r_p(pmom_p(1),pmom_p(2),pmom_p(3),th,ph,r)
 c         u(1)=0
 c         u(2)=0
@@ -1396,7 +1396,7 @@ CDE, FCONS.
       parameter (xm_proton=0.938)
               common /hvsec/ihvse(2)
       REAL RNDMm(1)
-      real *4 pmom_p(5),pmom_t(6)
+      real *4 pmom_p(6),pmom_t(6)
       parameter (nsecm=1000)
       real *4 p_sec(6,nsecm)
 *
@@ -1432,6 +1432,7 @@ c      IF (GEKIN.LE.CUTHAD.or.poo/amass.le.ddcutt)then
          pmom_p(3)=tzi
          pmom_p(4)=poo
          pmom_p(5)=amass
+         pmom_p(6)=getot
 888      CALL GRNDM(RNDmM,1)
 c      RNDEVT=RNDmM(1)
       RNDEVT=RNDm(dd)
