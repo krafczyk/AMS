@@ -107,7 +107,7 @@ integer AMSVtx::set_all(){
      number u[3];
      for (int i=0; i<_Ntracks; i++) { 
 	 number rig =  _Ptrack[i]->getpirid();
-	 number en =  abs(rig);
+	 number en =  fabs(rig);
 	 number erig =  _Ptrack[i]->getepirid();
 	 _Momentum += en;
 	 _Charge += (rig>=0.0)? 1:-1;
@@ -154,7 +154,7 @@ void AMSVtx::set_vertex(){
     AMSPoint deltax =  _Ptrack[0]->getpiP0() - _Ptrack[1]->getpiP0();
 
     number lambda[2];
-    if (abs(dirprod)<1.) {
+    if (fabs(dirprod)<1.) {
        AMSPoint aux = dir[0] - dir[1]*dirprod;
        lambda[0] = - deltax.prod(aux) / (1.-dirprod*dirprod);
        aux = dir[1] - dir[0]*dirprod;
@@ -164,7 +164,7 @@ void AMSVtx::set_vertex(){
          _Vertex[j] = 0.0;
          for (int i=0; i<2; i++) {
            poi[i] = AMSPoint(_Ptrack[i]->getpiP0()+dir[i]*lambda[i]);
-           _Vertex[j] += poi[i][j] * abs(_Ptrack[i]->getpirid())/_Momentum;
+           _Vertex[j] += poi[i][j] * fabs(_Ptrack[i]->getpirid())/_Momentum;
          }
        }
     }
