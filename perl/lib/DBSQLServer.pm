@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.3 2002/03/11 16:41:46 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.4 2002/03/12 08:17:26 alexei Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -324,7 +324,7 @@ sub Update{
     my $self=shift;
     my $query=shift;
     my $dbh=$self->{dbhandler};
-    $dbh->do($query) or die "Cannot do ".$dbh->errstr();
+    $dbh->do($query) or die "Cannot do query : $query ".$dbh->errstr();
 }
 
 

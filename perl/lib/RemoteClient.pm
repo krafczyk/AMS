@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.8 2002/03/11 16:41:46 alexei Exp $
+# $Id: RemoteClient.pm,v 1.9 2002/03/12 08:17:26 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -676,15 +676,11 @@ sub Connect{
      my $cem=$self->{q}->param("CEM");
      if(validate_email_address($cem)){
         if ($self->findemail($cem)){
-            my $cite=$self->{q}->param("CCA");
-            if(not defined $cite or $cite eq ""){
-                $cite=$self->{q}->param("CCAS");
-            }
-            my $sql="SELECT cid FROM Cites WHERE name='$cite'";
+            my $sql="SELECT cid FROM Mails WHERE address='$cem'";
             my $ret=$self->{sqlserver}->Query($sql);
             my $cid=$ret->[0][0];
             if (not defined $cid) {
-              $self->ErrorPlus("Unknown cite $cite. Check spelling.");
+              $self->ErrorPlus("Unknown cite for user $cem. Check spelling.");
             }
             $sql="SELECT rSite FROM Mails WHERE address='$cem' AND cid=$cid";
             $ret=$self->{sqlserver}->Query($sql);
@@ -692,6 +688,9 @@ sub Connect{
             $sql="SELECT name FROM Mails WHERE address='$cem' AND cid=$cid";
             $ret=$self->{sqlserver}->Query($sql);
             my $name = $ret->[0][0];
+            $sql="SELECT name FROM Cites WHERE cid=$cid";
+            $ret=$self->{sqlserver}->Query($sql);
+            my $cite = $ret->[0][0];
             htmlTop();
             if ($resp == 1) {
              print "<TR><B><font color=green size= 5> Select Form Type or Production DataSet: </font>";
@@ -1919,11 +1918,17 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
          $buf=~s/\(/\\\(/g;
          $buf=~s/\)/\\\)/g;
          $buf=~s/\'/\\'/g;
+# 12.03.02 ak.
+         $buf =~ s/'/''/g;
+#
          $tmpb=~s/\"/\\\"/g;
          $tmpb=~s/\(/\\\(/g;
          $tmpb=~s/\)/\\\)/g;
          $tmpb=~s/\$/\\\$/g;
          $tmpb=~s/\'/\\'/g;
+# 12.03.02 ak.
+         $tmpb =~ s/'/''/g;
+#
          my $ctime=time();
          my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb')";
          $self->{sqlserver}->Update($sql);
