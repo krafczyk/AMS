@@ -1854,7 +1854,7 @@ if(DAQCFFKEY.LCrateinDAQ){
 //           tracker reduced
 
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrRawCluster::buildrawMixed);
-    if(DAQCFFKEY.TrFormatInDAQ & 1)
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidCompressed,&AMSTrRawCluster::buildrawCompressed);
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
     &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);

@@ -79,7 +79,7 @@ _ptr[0]=0;
 
 int16 *  TriggerAuxLVL3::readtracker(integer begin){
 if(begin)_ctr=0;
-else if (_ctr < _ltr)_ctr=_ctr+(((_ptr[_ctr])&255)+3);
+else if (_ctr < _ltr)_ctr=_ctr+(((_ptr[_ctr])&63)+3);
 return _ctr < _ltr ? _ptr+_ctr : 0;
 }
 
@@ -587,9 +587,9 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
       (ptr[1],strip,va,side,half,drp);
      if(side != 0 && (LVL3FFKEY.NoK || _TrackerAux[drp][half])){
       integer layer=_TrackerDRP2Layer[drp][half];
-      integer num = ((*ptr)&255);
+      integer num = ((*ptr)&63);
       if(LVL3FFKEY.SeedThr>0){
-        if(((*((int16u*)ptr)>>8) & 63) <LVL3FFKEY.SeedThr)goto next;
+        if(((*((int16u*)ptr)>>6) & 63) <LVL3FFKEY.SeedThr)goto next;
         int count=0;
         for(int k=2;k<num+3;k++){
           if(*(ptr+k)>=16)count++;
@@ -600,7 +600,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
       }
       else{
         // set failsafe cluster def > 1 strip || ( > 2 && two adj to max >=0)
-        integer nmax= (*(int16u*)ptr)>>8;
+        integer nmax= (*(int16u*)ptr)>>6;
         if(nmax == 0 || nmax==num){
           // probably reduced mode
           if(num == 0)goto next;

@@ -26,7 +26,7 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic)
    AMSTrIdSoft id(_address);
   int16 pos =0;
   id.upd(_strip);
-  if (nmax-pos < 2+_nelem || _nelem > 255 || _nelem==0) return pos;
+  if (nmax-pos < 2+_nelem || _nelem > 63 || _nelem==0) return pos;
   adc[pos+1]=id.gethaddr(pedantic);
   integer imax=0;
   geant rmax=-1000000;
@@ -43,8 +43,8 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic)
    adc[pos+i+2]=int16(_array[i]);
   }
   //  if(id.getside()==1)cout <<"sn "<<sn<<endl;
-  if(LVL3FFKEY.SeedThr>0)adc[pos]=(_nelem-1) | (sn<<8); 
-  else  adc[pos]=(_nelem-1) | (imax<<8); 
+  if(LVL3FFKEY.SeedThr>0)adc[pos]=(_nelem-1) | (sn<<6); 
+  else  adc[pos]=(_nelem-1) | (imax<<6); 
     pos+=2+_nelem;
  return pos; 
 }
@@ -236,6 +236,12 @@ int16u AMSTrRawCluster::getdaqidMixed(int i){
 else return 0x0;
 }
 
+int16u AMSTrRawCluster::getdaqidCompressed(int i){
+  if (i==0)return (14 | 2<<6 | 11 <<9);
+  else if(i==1)return (14 | 5<<6 | 11 <<9);
+else return 0x0;
+}
+
 integer AMSTrRawCluster::checkdaqid(int16u id){
 if(id==getdaqid(0))return 1;
 else if(id==getdaqid(1))return 2 ;
@@ -251,6 +257,12 @@ else return 0;
 integer AMSTrRawCluster::checkdaqidMixed(int16u id){
 if(id==getdaqidMixed(0))return 1;
 else if(id==getdaqidMixed(1))return 2 ;
+else return 0;
+}
+
+integer AMSTrRawCluster::checkdaqidCompressed(int16u id){
+if(id==getdaqidCompressed(0))return 1;
+else if(id==getdaqidCompressed(1))return 2 ;
 else return 0;
 }
 
@@ -357,7 +369,7 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
   int16u * ptr;
   
   for(ptr=p+1;ptr<p+n-1;ptr+=leng+3){      // cluster length > 1 
-     leng=(*ptr)&255;
+     leng=(*ptr)&63;
      AMSTrIdSoft id(ic,int16u(*(ptr+1)));
      if(!id.dead() ){
        if(id.teststrip(id.getstrip()+leng)){
@@ -798,7 +810,7 @@ void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
       int16u *p2=ptr;
       int leng=0;
       for(p2=ptr+2;p2<ptr+rl-1;p2+=leng+3){
-        leng=(*p2)&255;
+        leng=(*p2)&63;
         AMSTrIdSoft id(ic,int16u(*(p2+1)));
         if(!id.dead() ){
           if(id.teststrip(id.getstrip()+leng)){
@@ -861,6 +873,101 @@ void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
 
 
 }
+
+
+
+
+void AMSTrRawCluster::buildrawCompressed(integer n, int16u *p){
+  integer const ms=640;
+  integer len;
+  static geant id[ms];
+  //VZERO(id,ms*sizeof(id[0])/sizeof(integer));
+  int i,j,k;
+  integer ic=checkdaqidCompressed(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+    // Read two tdrs
+    integer subl=*ptr;
+    int16u *ptro=ptr;
+    integer ntdr = *(ptr+1) & 31;
+    //cout <<"ntdr "<<subl<<" "<<ntdr<<endl;
+    ptr+=2;
+    for(i=0;i<ntdr;i++){
+     int16u tdrn=*ptr;
+     
+     //cout <<"tdrn "<<tdrn<<" "<<lrec<<endl;
+     ptr+=1;
+     int rl=*ptr;
+      int16u *p2=ptr;
+      int leng=0;
+      for(p2=ptr+2;p2<ptr+rl-1;p2+=leng+3){
+        leng=(*p2)&63;
+        AMSTrIdSoft id(ic,int16u(*(p2+1)));
+        if(!id.dead() ){
+          if(id.teststrip(id.getstrip()+leng)){
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+            AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
+            (int16*)p2+2));
+            //cout <<" ok "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
+          }
+          else {
+            // split into two clusters;
+            //cout <<" split "<<id.getaddr()<<" "<<id.getstrip()<<" "<<leng<<endl;
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+            AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getmaxstrips(),
+           (int16*)p2+2));
+            integer second=id.getstrip()+leng-id.getmaxstrips();
+            id.upd(0);
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
+            AMSTrRawCluster(id.getaddr(),id.getstrip(),second,
+            (int16*)p2+2+leng-second));
+          }
+        }
+        #ifdef __AMSDEBUG__
+        else cerr <<" AMSTrRawCluster::buildrawCompressed-E-Id.Dead "<<id.gethaddr()<<endl;
+        #endif
+        //     cout <<"br- "<<ic<<" "<<id.getaddr()<<" "
+        // <<id.getstrip()<<" "<<leng<<" "<<*((int16*)p2+2)<<endl;
+      } 
+     ptr+=rl;
+     
+    }
+      ptr=ptro+subl;         // add one word
+      
+  }
+
+  // Get rid of K without S 
+
+  for (int crate=0;crate<2;crate++){
+   AMSTrRawCluster *pk=(AMSTrRawCluster*)AMSEvent::gethead()->
+    getheadC("AMSTrRawCluster",crate);
+   AMSTrRawCluster *pb=pk;
+    while(pk){
+       AMSTrIdSoft idk(pk->_address);
+       if(idk.getside()==0){
+        AMSTrRawCluster *ps=pb;
+        while(ps){
+          AMSTrIdSoft ids(ps->_address);
+          if(ids.getside()==1 && ids.getdrp()==idk.getdrp()&& ids.getlayer()==idk.getlayer()){
+            pk->setstatus(AMSTrRawCluster::MATCHED);
+            break;
+          }
+          ps=ps->next();
+        }          
+       } 
+       pk=pk->next();
+    }             
+
+  }
+         
+
+
+}
+
+
+
+
 
 
 
