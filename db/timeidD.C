@@ -110,6 +110,7 @@ integer AMSTimeIDD::CopyIn(integer nbytes, uinteger *pdata, uinteger CRC) {
      uinteger tmp = pdata[i];
      _pData.set(i,tmp);
     }
-    pdata[n] = CRC;
+    _pData.set(n,CRC);
+
  return 0;
 }
