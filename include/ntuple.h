@@ -351,7 +351,7 @@ private:
   int Ntrraw;
   int address[MAXTRRAW];
   int nelem[MAXTRRAW];
-
+  float s2n[MAXTRRAW];
 friend class AMSTrRawCluster;
 friend class AMSNtuple;
 };

@@ -63,7 +63,7 @@ AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
   "nctcht[0,50],CTChitStatus(nctcht):I,CTChitLayer(nctcht):I,ctchitcolumn(nctcht):I,ctchitrow(nctcht):I,ctchitsignal(nctcht)");
 
   HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
-  "ntrraw[0,500],rawaddress(ntrraw):I,rawlength(ntrraw):I");
+  "ntrraw[0,500],rawaddress(ntrraw):I,rawlength(ntrraw):I,s2n(ntrraw):R");
 
   HBNAME(_lun,"AntiRawC",&_antiraw.Nantiraw,
   "nantiraw[0,32],antirawstatus(nantiraw):I,antirawsector(nantiraw):I,antirawupdown(nantiraw):I,antirawsignal(nantiraw)");

@@ -18,6 +18,7 @@ protected:
 integer _address;   // as for idsoft
 integer _strip;
 integer _nelem;
+geant _s2n;      // signal to noise for triggered strip
 integer * _array;
 void _init(){};
 AMSTrRawCluster(const AMSTrRawCluster &){_next=0;};
@@ -26,8 +27,6 @@ void _printEl(ostream & stream);
 void _writeEl();
 public:
     static const integer MATCHED;
-//static int16 mkaddress(int16 strip, int16 va, int16 half, int16 icmpt, integer pedantic=0)
-//{return pedantic==0?strip | va<<6 | icmpt << 10 | half<<15:strip | va<<6 | icmpt << 10;}
 
 static integer Out(integer);
 static void lvl3CompatibilityAddress(int16u address, 
@@ -45,9 +44,9 @@ integer operator < (AMSlink & o) const {
 }
 ~AMSTrRawCluster();
 AMSTrRawCluster(integer id=0):AMSlink(),_address(id),_strip(0),_nelem(0),
-_array(0){}
-AMSTrRawCluster(integer id,  integer nleft, integer nright,geant *p);
-AMSTrRawCluster(integer id,  integer nleft, integer nright,int16 *p);
+_array(0),_s2n(0){}
+AMSTrRawCluster(integer id,  integer nleft, integer nright,geant *p, geant s2n);
+AMSTrRawCluster(integer id,  integer nleft, integer nright,int16 *p, geant s2n);
 void expand( number *p) const ;
 integer lvl3format(int16 * ptr, integer nmax, integer pedantic=0);
 static void sitkdigi();
