@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.80 2003/03/18 09:11:42 choutko Exp $
+//  $Id: gmat.C,v 1.81 2003/03/18 11:43:08 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -423,7 +423,7 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
    geant z[]={6.,1.};
    geant a[]={12.,1.};
    geant w[]={1,2};
-   mat.add (new AMSgmat("TRDRadiator",a,z,w,2,0.063));
+   mat.add (new AMSgmat("TRDRadiator",a,z,w,2,0.06));
 }
 
 }

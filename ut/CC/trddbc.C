@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.24 2003/03/18 09:11:43 choutko Exp $
+//  $Id: trddbc.C,v 1.25 2003/03/18 11:43:08 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -1141,8 +1141,10 @@ void TRDDBc::init(){
 //            Now   ladder length 
 
               number r=rmin+tang*(LadderLowestZ-OctagonDimensions(NoTRDOctagons(i),4));
+//              cout <<"jka  "<<j<<" "<<k<<" "<< LaddersDimensions(i,j,k,2)<<endl;
               LaddersDimensions(i,j,k,2)=LadderCornerCoo<r*tan(ang)?r:r-(LadderCornerCoo-r*tan(ang))*tan(2*ang);
 
+//              cout <<"jkb  "<<j<<" "<<k<<" "<< LaddersDimensions(i,j,k,2)<<endl;
 
 	  }  
 	}
@@ -2649,7 +2651,7 @@ return _TubesDimensions[toct][lay][lad][index];
 number & TRDDBc::SpacerDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index, uinteger spacerpart){  //spacerpart: 0 -inner
 #ifdef __AMSDEBUG__
 _check(toct,lay,lad);
-assert(index<sizeof(_SpacerDimensions)/sizeof(_TubesDimensions[0][0][0][0][0])/mtrdo/maxlay/maxlad/2);
+assert(index<sizeof(_SpacerDimensions)/sizeof(_SpacerDimensions[0][0][0][0][0])/mtrdo/maxlay/maxlad/2);
 assert(spacerpart<2);
 #endif
 return _SpacerDimensions[toct][lay][lad][index][spacerpart];

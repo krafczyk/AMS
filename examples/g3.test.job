@@ -6,7 +6,7 @@
 if [ "$UNAME" = "AIX" ] ; then
    MACHINE="aix"
 elif [ "$UNAME" = "OSF1" ] ; then
-    MACHINE="DEC-cxx"
+    MACHINE="osf1"
 elif [ "$UNAME" = "Linux" ] ; then
     MACHINE="linux/icc"
 elif [ "$UNAME" = "SunOS" ] ; then

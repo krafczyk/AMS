@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.154 2003/03/18 09:11:40 choutko Exp $
+//  $Id: amsgeom.C,v 1.155 2003/03/18 11:43:06 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2097,14 +2097,15 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 		  // First one made is j=4, in bulkhead 0
 		  
 // temporary disable cutouts completely  VC 12-mar-2003
-/*
 
 #ifdef __G4AMS__
                  if(MISCFFKEY.G4On)
                   for(int i=0;i<3;i++)coo[i]-=daug4->getcoo(i);
 		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
-                 else
 #endif
+// do not need to put cutouts in g3 at all
+/*
+                 else
 
 		  oct[itrd]->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
 			 0,name,"BOX",par,3,coo,nrm,"ONLY", 
@@ -2163,7 +2164,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::StripsDim(ip)/2;
    coo[0]=TRDDBc::StripsCoo(0);
    number spacing=TRDDBc::StripsCoo(1);
-   for(l=0;fabs(coo[0])-par[0]<TRDDBc::LaddersDimensions(i,j,k,0);l+=4){
+   for(l=0;fabs(coo[0])<TRDDBc::LaddersDimensions(i,j,k,0)-2;l+=4){
     gid=maxstrips*maxlad*maxlay*i+maxstrips*maxlad*j+maxstrips*k+l+1;  //assume strips<maxtube here;
    dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
         0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid++,1));    
