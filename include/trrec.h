@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.71 2003/11/07 17:35:23 alcaraz Exp $
+//  $Id: trrec.h,v 1.72 2003/12/03 16:14:21 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -150,6 +150,7 @@ number       _Sum;
 number       _DifoSum;
 number       _cofgx;
 number       _cofgy;
+AMSPoint     _Bfield;
 
 static AMSTrRecHit* _Head[trconst::maxlay];
 static void _addnext(AMSgSen * p, integer ,integer ,number, number, AMSTrCluster *, 
@@ -189,7 +190,7 @@ static AMSTrRecHit* firstgood_path(integer pattern, integer index, number par[2]
 AMSTrRecHit* nextgood_path(number par[2][3]);
 static integer markAwayTOFHits();
 integer is_in_path(number par[2][3]){
-   return fabs(par[0][1]+par[0][0]*_Hit[2]-_Hit[0]) < 3.*TRFITFFKEY.SearchRegStrLine*par[0][2] 
+   return fabs(par[0][1]+par[0][0]*_Hit[2]-_Hit[0]) < 3.*TRFITFFKEY.SearchRegStrLine*par[0][2]
        && fabs(par[1][1]+par[1][0]*_Hit[2]-_Hit[1]) < TRFITFFKEY.SearchRegCircle*par[1][2];
 }
 
@@ -220,9 +221,9 @@ static AMSTrRecHit * gethead(integer i=0){
 
 
 AMSTrRecHit(AMSgSen *p, integer good,integer layer, number cofgx, number cofgy,AMSTrCluster * xcl, AMSTrCluster * ycl,
-            const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs): AMSlink(good,0),
+            const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs, const AMSPoint & bfield): AMSlink(good,0),
             _pSen(p), _Layer(layer),_Xcl(xcl),_cofgx(cofgx),_cofgy(cofgy),
-            _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs){};
+            _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs),_Bfield(bfield){};
 AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0),_cofgx(0),_cofgy(0){};
 static integer build(integer refit=0);
 static integer buildWeak(integer refit=0);
@@ -235,6 +236,7 @@ AMSgSen * getpsen()const{return _pSen;}
 inline  AMSPoint  getHit(){return _Hit;}
 AMSPoint  getlocHit(){ return (_pSen->up())->gl2loc(_Hit);}
 inline  AMSPoint  getEHit(){return _EHit;}
+inline  AMSPoint  getBfield(){return _Bfield;}
 integer       getLayer() const            {return _Layer;}
 AMSTrCluster* getClusterP(integer n) const {
                                               if(n==0)return _Xcl;

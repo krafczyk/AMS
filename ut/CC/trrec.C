@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.155 2003/11/10 11:16:58 alcaraz Exp $
+//  $Id: trrec.C,v 1.156 2003/12/03 16:14:18 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1128,8 +1128,11 @@ integer AMSTrRecHit::markAwayTOFHits(){
        GOOD=0;
       }
     }
+    geant bfield[3], ghit[3];
+    for (int j=0;j<3;j++) { ghit[j] = (float)hit[j]; }
+    GUFLD(ghit, bfield);
     AMSlink * ptr = AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",layer-1),
-    new     AMSTrRecHit(pSen, status,layer,cofgx,cofgy,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2)));
+    new     AMSTrRecHit(pSen, status,layer,cofgx,cofgy,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2),(AMSPoint)bfield));
 //    cout <<"cfgx  "<<cofgx<<" "<<ptr<<" "<<layer<<" "<<cofgy<<endl;
     if(ptr && GOOD)ptr->setstatus(AMSDBc::GOOD);  
 }
@@ -1291,6 +1294,7 @@ integer AMSTrTrack::build(integer refit){
             int fp=TKDBc::patpoints(pat)-1;    
             for (phit[0]=AMSTrRecHit::firstgood(pat,0);
                               phit[0]; phit[0]=phit[0]->nextgood()){
+               AMSPoint x0 = phit[0]->getHit();
                for (phit[fp]=AMSTrRecHit::firstgood(pat,fp);
                               phit[fp]; phit[fp]=phit[fp]->nextgood()){
 
@@ -1303,15 +1307,23 @@ integer AMSTrTrack::build(integer refit){
                         return NTrackFound;
 	            }
 
+
+                  // Skip whole pattern if not hits in the relevant layers
+                  for (int ilay=1;ilay<fp;ilay++){
+                        phit[ilay]=AMSTrRecHit::firstgood(pat,ilay);
+                        if (phit[ilay]==NULL) {
+                              goto next_pattern;
+                        }
+                  }
+
                   // Parameters to check distance to a straight line
+                  AMSPoint xp = phit[fp]->getHit();
 	            number par[2][3];
-                  par[0][0]=(phit[fp]->getHit()[0] - phit[0]->getHit()[0])/
-                        (phit[fp]->getHit()[2] - phit[0]->getHit()[2]);
-                  par[0][1]=phit[0]->getHit()[0] - par[0][0]*phit[0]->getHit()[2];
+                  par[0][0]=(xp[0] - x0[0])/(xp[2] - x0[2]);
+                  par[0][1]=x0[0] - par[0][0]*x0[2];
                   par[0][2]=sqrt(1+par[0][0]*par[0][0]);
-                  par[1][0]=(phit[fp]->getHit()[1] - phit[0]->getHit()[1])/
-                        (phit[fp]->getHit()[2] - phit[0]->getHit()[2]);
-                  par[1][1]=phit[0]->getHit()[1] - par[1][0]*phit[0]->getHit()[2];
+                  par[1][0]=(xp[1] - x0[1])/(xp[2] - x0[2]);
+                  par[1][1]=x0[1] - par[1][0]*x0[2];
                   par[1][2]=sqrt(1+par[1][0]*par[1][0]);
        
                   // Initial hit choice on intermediate layers
@@ -1348,7 +1360,9 @@ integer AMSTrTrack::build(integer refit){
 	                  }
 
                         // Break when no more intermediate hit combinations
-                        if ( !ptest.next_combination(1,fp-1,par) ) break;
+                        if ( !ptest.next_combination(1,fp-1,par) ) {
+                              break;
+                        }
 
                   }
                }
@@ -1356,9 +1370,10 @@ integer AMSTrTrack::build(integer refit){
             }
 
             // Wait for next pattern only if the number of hits is the same...
-            if (ptrack && pat+1<TKDBc::npat()) {
-                  if (TKDBc::patpoints(pat+1)<TKDBc::patpoints(pat)) break;
-            }
+            if (ptrack) break;
+
+next_pattern:
+            continue;
 
       }
 
@@ -1902,14 +1917,19 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
 // Get hit positions and uncertainties
 // Scale errors (we will use sigmas in microns)
   AMSPoint hits[trconst::maxlay];
+  AMSPoint b[trconst::maxlay];
   AMSPoint sigma[trconst::maxlay];
   for (int i=0;i<_NHits;i++){
     hits[i] = _Pthit[i]->getHit();
+    b[i] = _Pthit[i]->getBfield();
     sigma[i] = ehit*1.e4;
 #ifdef __AMSDEBUG__
 //    cout << " i, hits, sigma: " << i << ",";
 //    for (int j=0;j<3;j++){ cout << " " << hits[i][j];}
 //    for (int j=0;j<3;j++){ cout << " " << 1.e-4*sigma[i][j];}
+//    cout << endl;
+//    cout << " i, bfield: " << i << ",";
+//    for (int j=0;j<3;j++){ cout << " " << b[i][j];}
 //    cout << endl;
 #endif
   }
@@ -1931,62 +1951,27 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
   number PathIntegral_x[trconst::maxlay][3];
   number PathIntegral_u[trconst::maxlay][3];
 
-  for (int i=0;i<_NHits;i++){
+  for (int j=0;j<3;j++){
+        PathIntegral_x[0][j] = 0.;
+        PathIntegral_u[0][j] = 0.;
+  }
 
+  for (int i=1;i<_NHits;i++){
+
+    number u[3], bave[3];
     for (int j=0;j<3;j++){
-        PathIntegral_x[i][j] = 0.;
-        PathIntegral_u[i][j] = 0.;
-    }
-    if (i==0) continue;
-
-    integer ntot=int((fabs(hits[i][2]-hits[i-1][2])+0.5)/2.);
-    if (ntot<2) {
-            ntot=2;
-    } else {
-            if ((ntot%2)==1) ntot++;
-    }
-
-#ifdef __AMSDEBUG__
-//    cout << " i, i, ntot: " << i-1 << ", " << i << ", " << ntot <<endl;
-#endif
-
-    for (int l=0;l<=ntot;l++){
-      number alpha = float(l)/ntot;
-
-	number fact;
-      if (l==0 || l==ntot) {
-        fact = 1.;
-	}
-      else if ((l%2)==1) {
-        fact = 4.;
-	}
-      else {
-        fact = 2.;
-	}
-
-      geant x[3], u[3], b[3];
-      for (int j=0;j<3;j++){
-        x[j] = hits[i-1][j] + alpha*(hits[i][j]-hits[i-1][j]);
         u[j] = (hits[i][j]-hits[i-1][j])/len[i];
-      }
-      GUFLD(x,b);
-
-      PathIntegral_x[i][0] += fact*(1.-alpha)*(u[1]*b[2]-u[2]*b[1]);
-      PathIntegral_x[i][1] += fact*(1.-alpha)*(u[2]*b[0]-u[0]*b[2]);
-      PathIntegral_x[i][2] += fact*(1.-alpha)*(u[0]*b[1]-u[1]*b[0]);
-
-      PathIntegral_u[i][0] += fact*(u[1]*b[2]-u[2]*b[1]);
-      PathIntegral_u[i][1] += fact*(u[2]*b[0]-u[0]*b[2]);
-      PathIntegral_u[i][2] += fact*(u[0]*b[1]-u[1]*b[0]);
+        bave[j] = (b[i-1][j]+b[i][j])/2;
     }
 
-    number fact3 = 3.*ntot;
-    PathIntegral_x[i][0] /= fact3;
-    PathIntegral_x[i][1] /= fact3;
-    PathIntegral_x[i][2] /= fact3;
-    PathIntegral_u[i][0] /= fact3;
-    PathIntegral_u[i][1] /= fact3;
-    PathIntegral_u[i][2] /= fact3;
+    PathIntegral_x[i][0] = (u[1]*b[i-1][2]-u[2]*b[i-1][1])/2;
+    PathIntegral_x[i][1] = (u[2]*b[i-1][0]-u[0]*b[i-1][2])/2;
+    PathIntegral_x[i][2] = (u[0]*b[i-1][1]-u[1]*b[i-1][0])/2;
+
+    PathIntegral_u[i][0] = u[1]*bave[2]-u[2]*bave[1];
+    PathIntegral_u[i][1] = u[2]*bave[0]-u[0]*bave[2];
+    PathIntegral_u[i][2] = u[0]*bave[1]-u[1]*bave[0];
+
   }
 
 // F and G matrices
@@ -3392,7 +3377,6 @@ AMSTrRecHit* AMSTrRecHit::firstgood(integer pattern, integer index){
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
-         phit=phit->next();
        }
 
        return phit;
@@ -3412,7 +3396,6 @@ AMSTrRecHit* AMSTrRecHit::firstgood_path(integer pattern, integer index,number p
                                                             continue;
          if (!phit->is_in_path(par)) continue;
          break;
-         phit=phit->next();
        }
 
        return phit;
@@ -3431,7 +3414,6 @@ AMSTrRecHit* AMSTrRecHit::nextgood(){
             && phit->getLayer()>AMSTrTrack::_min_layers_with_different_hits) 
                                                             continue;
          break;
-         phit=phit->next();
        }
 
        return phit;
@@ -3451,7 +3433,6 @@ AMSTrRecHit* AMSTrRecHit::nextgood_path(number par[2][3]){
                                                             continue;
          if (!phit->is_in_path(par)) continue;
          break;
-         phit=phit->next();
        }
 
        return phit;
