@@ -35,8 +35,7 @@ void AMSRichRawEvent::mc_build(){
 }  
   
   // Fill it with the values stored on AMSRichMCHit
-
-  for(AMSRichMCHit* hits=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",1);
+  for(AMSRichMCHit* hits=(AMSRichMCHit *)AMSEvent::gethead()->getheadC("AMSRichMCHit",0,1);
       hits;hits=hits->next())
     {
       uinteger pmt=hits->getid();
@@ -63,6 +62,7 @@ void AMSRichRawEvent::mc_build(){
       }
       if(hits->testlast()){
        for(int j=0;j<RICnwindows;j++){
+	if(n_hits[j]==0) continue;
         integer adc=integer(RICHDB::pmt_response(n_hits[j]));
 #ifdef __AMSDEBUG__
         if(n_hits[j]>0) total++;
