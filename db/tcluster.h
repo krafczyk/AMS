@@ -1,4 +1,4 @@
-/* C++ header file: Objectivity/DB DDL version 3.8.1 */
+/* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef TCLUSTER_H
 #define TCLUSTER_H
@@ -22,9 +22,6 @@ class opiDummyDeclaration;
 #line 21 "tcluster.ddl"
 declare(ooVArray,number)
 
-
-
-
 class AMSTrClusterD : public ooObj { 
 
 
@@ -45,7 +42,7 @@ ooVArray(number) _pValues;
 
 
 protected: void _printEl(); 
-#line 55
+#line 49
 public: AMSTrClusterD(); 
 AMSTrClusterD(class AMSTrCluster *); 
 
@@ -80,14 +77,30 @@ void setValues(number *);
 	return objH;
       }
     ooHandle(AMSTrClusterD) ooThis(ooMode aMode = oocNoOpen) const;
-    void* operator new(size_t, const ooHandle(ooObj)& nearH = oovTopDB);
-    void* operator new(size_t, const ooId& nearId);
-    void* operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t, const ooHandle(ooObj) &nearH = oovTopDB);
+    void *operator new(size_t, const ooId& nearId);
+    void *operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t,
+		       const ooHandle(ooObj) &nearH,
+		       const char *typeName);
+#ifdef OO_ODMG
+    void *operator new(size_t  size,
+		       d_Database *odmg_db)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSTrClusterD), odmg_db);
+      }	
+    void *operator new(size_t  size,
+		       d_Database *odmg_db,
+		       const char *)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSTrClusterD), odmg_db);
+      }	
+#endif
     static const ooTypeNumber opiTypeN;
     static void ooAssocRegister();
     ooRef(AMSTrClusterD)& ooThis(ooRef(AMSTrClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTrClusterD(ooInternalObj iobj);
-#line 80 "tcluster.ddl"
+#line 74 "tcluster.ddl"
 }; 
 
 #endif /* !defined(TCLUSTER_H) */

@@ -1,4 +1,4 @@
-/* C++ header file: Objectivity/DB DDL version 3.8.1 */
+/* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef TRRECHIT_H
 #define TRRECHIT_H
@@ -30,8 +30,6 @@ class ooShortRef(AMSTrClusterD);
 #line 16 "trrechit.ddl"
 class AMSTrClusterD; 
 
-
-
 class AMSTrRecHitD : public ooObj { 
 
 
@@ -48,10 +46,10 @@ integer _Position;
 
 integer _gid; 
 char _name[80]; 
-#line 42 "trrechit.ddl"
+#line 38 "trrechit.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 42 "trrechit.ddl"
+#line 38 "trrechit.ddl"
     ooRef(AMSTrClusterD) pClusterX : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pClusterX */
@@ -74,7 +72,7 @@ public:
     ooRef(AMSTrClusterD)& pClusterX(ooRef(AMSTrClusterD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 43 "trrechit.ddl"
+#line 39 "trrechit.ddl"
     ooRef(AMSTrClusterD) pClusterY : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pClusterY */
@@ -96,7 +94,7 @@ public:
     static ooAssocNumber pClusterY_ooAssocN;
     ooRef(AMSTrClusterD)& pClusterY(ooRef(AMSTrClusterD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 47 "trrechit.ddl"
+#line 42 "trrechit.ddl"
 AMSTrRecHitD(); 
 AMSTrRecHitD(class AMSTrRecHit *); 
 
@@ -108,13 +106,14 @@ inline AMSPoint getEHit() { return _EHit; }
 inline number getSum() { return _Sum; }
 inline number getDSum() { return _DifoSum; }
 inline integer getPosition() { return _Position; }
-void copy(AMSTrRecHit *); 
 inline integer getgid() { return _gid; }
 inline char *getname() { return _name; }
+
+void copy(AMSTrRecHit *); 
+
+
 inline void setgid(integer gid) { _gid = gid; }
 inline void setname(char *name) { if (name) strcpy (_name, name); }
-
-
 inline void setPosition(integer pos) { _Position = pos; }
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
@@ -126,14 +125,30 @@ inline void setPosition(integer pos) { _Position = pos; }
 	return objH;
       }
     ooHandle(AMSTrRecHitD) ooThis(ooMode aMode = oocNoOpen) const;
-    void* operator new(size_t, const ooHandle(ooObj)& nearH = oovTopDB);
-    void* operator new(size_t, const ooId& nearId);
-    void* operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t, const ooHandle(ooObj) &nearH = oovTopDB);
+    void *operator new(size_t, const ooId& nearId);
+    void *operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t,
+		       const ooHandle(ooObj) &nearH,
+		       const char *typeName);
+#ifdef OO_ODMG
+    void *operator new(size_t  size,
+		       d_Database *odmg_db)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSTrRecHitD), odmg_db);
+      }	
+    void *operator new(size_t  size,
+		       d_Database *odmg_db,
+		       const char *)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSTrRecHitD), odmg_db);
+      }	
+#endif
     static const ooTypeNumber opiTypeN;
     static void ooAssocRegister();
     ooRef(AMSTrRecHitD)& ooThis(ooRef(AMSTrRecHitD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTrRecHitD(ooInternalObj iobj);
-#line 69 "trrechit.ddl"
+#line 65 "trrechit.ddl"
 }; 
 
 #endif /* !defined(TRRECHIT_H) */

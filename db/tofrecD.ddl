@@ -4,14 +4,15 @@
 // Aug  21st, 1996. Remove Event TOFCluster bidirectional link
 //                  change the place of members in the class
 // Mar 05th, 1997.  up to date version
+//                  one directional link for beta/tof
 //
-// Last Edit: Mar 05, 1997 ak.
+// Last Edit: Mar 31, 1997 ak.
 //
 #include <typedefs.h>
 #include <point.h>
 #include <tofrec.h>
 
-class AMSBetaD;
+//class AMSBetaD;
 
 class AMSTOFClusterD: public ooObj {
 protected:
@@ -32,7 +33,7 @@ protected:
 
 public:
 // Associations
- ooRef(AMSBetaD)  pBetaTOF  <-> pTOFBeta[];
+// ooRef(AMSBetaD)  pBetaTOF  <-> pTOFBeta[];
 
 static const integer BAD;
 static const integer USED;

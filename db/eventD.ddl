@@ -17,8 +17,12 @@
 //                    keep number of tracks, clusters, hits per event
 //                    use short instead of integer for runtype and errorcode
 // Feb 27, 1997.  ak. remove fID
+// Apr 01, 1997.  ak. VArray to store all TOFMCCluster(s)
+//                    VArray to store all TrMCCluster(s)
+//                    unidirectional link between track and event
+//                    unidirectional link between beta and event
 //
-// Last Edit: Mar 12, 1997. ak.
+// Last Edit: Apr 08, 1997. ak.
 
 #include <typedefs.h>
 
@@ -31,14 +35,14 @@ class AMSTrClusterD;
 class AMSTrTrackD;
 #pragma ooclassref AMSTrTrackD <ttrack_ref.h>
 
-class AMSTrMCClusterD;
-#pragma ooclassref AMSTrMCClusterD <tmccluster_ref.h>
-
 class AMSTOFClusterD;
 #pragma ooclassref AMSTOFClusterD <tofrecD_ref.h>
 
-class AMSTOFMCClusterD;
-#pragma ooclassref AMSTOFMCClusterD <mctofclusterD_ref.h>
+class AMSTrMCClusterV;
+#pragma ooclassref AMSTrMCClusterV <tmcclusterV_ref.h>
+
+class AMSTOFMCClusterV;
+#pragma ooclassref AMSTOFMCClusterV <mctofclusterV_ref.h>
 
 class AMSCTCClusterD;
 #pragma ooclassref AMSCTCClusterD <ctcrecD_ref.h>
@@ -65,8 +69,6 @@ class AMSEventD : public ooObj {
 
  private:
 
-//  ooVString    fID;
-   
   time_t     _time;             // time of the trigger
   integer    _runNumber;        // run number
   short      _runType;          // type of Run
@@ -96,13 +98,13 @@ class AMSEventD : public ooObj {
   ooRef(AMSTrRecHitD)      pTrRecHitS[]     : delete (propagate);
   ooRef(AMSTOFClusterD)    pTOFCluster[]    : delete (propagate);
   ooRef(AMSCTCClusterD)    pCTCCluster[]    : delete (propagate);
-  ooRef(AMSTrMCClusterD)   pMCCluster[]     : delete (propagate);
-  ooRef(AMSTOFMCClusterD)  pTOFMCCluster[]  : delete (propagate);
+  ooRef(AMSTrMCClusterV)   pMCCluster       : delete (propagate);
+  ooRef(AMSTOFMCClusterV)  pTOFMCCluster    : delete (propagate);
   ooRef(AMSCTCMCClusterD)  pCTCMCCluster[]  : delete (propagate);
   ooRef(AMSAntiMCClusterD) pAntiMCCluster[] : delete (propagate);
-  ooRef(AMSmceventgD)      pmcEventg[]      : delete (propagate);
-  ooRef(AMSTrTrackD)       pTrack[]       <-> pEventT  : delete (propagate);
-  ooRef(AMSBetaD)          pBeta[]        <-> pEventB  : delete (propagate);
+  ooRef(AMSmceventgD)      pmcEventg        : delete (propagate);
+  ooRef(AMSTrTrackD)       pTrack[]         : delete (propagate);
+  ooRef(AMSBetaD)          pBeta[]          : delete (propagate);
   ooHandle(AMSChargeD)     pChargeE[]     <-> pEventCh : delete (propagate);
   ooHandle(AMSParticleD)   pParticleE[]   <-> pEventP  : delete (propagate);
 
@@ -119,7 +121,6 @@ class AMSEventD : public ooObj {
   inline   uinteger& getevent()         {return _eventNumber;}
   inline   time_t&   TriggerTime()      {return _time;}
   inline   uinteger& Trigmask()         {return _triggerMask;}
-//inline   short&    ErrorCode()        {return _errorCode;}
   integer  getPosition()                { return _Position;}
   void     getNumbers
              (integer& run, integer& runtype, uinteger& eventn, time_t& time);

@@ -1,4 +1,4 @@
-/* C++ header file: Objectivity/DB DDL version 3.8.1 */
+/* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef MCANTICLUSTER_D_H
 #define MCANTICLUSTER_D_H
@@ -30,15 +30,17 @@ integer _idsoft;
 number _tof; 
 number _edep; 
 
-integer _Position; 
-#line 27
+
+
 inline AMSAntiMCClusterD() { }
 AMSAntiMCClusterD(class AMSAntiMCCluster *); 
 
-void copy(AMSAntiMCCluster *); 
 
-inline integer getPosition() { return _Position; }
-inline void setPosition(integer pos) { _Position = pos; }
+void copy(AMSAntiMCCluster *); 
+inline integer getid() { return _idsoft; }
+inline AMSPoint getcoo() { return _xcoo; }
+inline number gettof() { return _tof; }
+inline number getedep() { return _edep; }
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -49,14 +51,30 @@ inline void setPosition(integer pos) { _Position = pos; }
 	return objH;
       }
     ooHandle(AMSAntiMCClusterD) ooThis(ooMode aMode = oocNoOpen) const;
-    void* operator new(size_t, const ooHandle(ooObj)& nearH = oovTopDB);
-    void* operator new(size_t, const ooId& nearId);
-    void* operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t, const ooHandle(ooObj) &nearH = oovTopDB);
+    void *operator new(size_t, const ooId& nearId);
+    void *operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t,
+		       const ooHandle(ooObj) &nearH,
+		       const char *typeName);
+#ifdef OO_ODMG
+    void *operator new(size_t  size,
+		       d_Database *odmg_db)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSAntiMCClusterD), odmg_db);
+      }	
+    void *operator new(size_t  size,
+		       d_Database *odmg_db,
+		       const char *)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSAntiMCClusterD), odmg_db);
+      }	
+#endif
     static const ooTypeNumber opiTypeN;
     static void ooAssocRegister();
     ooRef(AMSAntiMCClusterD)& ooThis(ooRef(AMSAntiMCClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSAntiMCClusterD(ooInternalObj iobj);
-#line 35 "mcanticlusterD.ddl"
+#line 33 "mcanticlusterD.ddl"
 }; 
 
 #endif /* !defined(MCANTICLUSTER_D_H) */

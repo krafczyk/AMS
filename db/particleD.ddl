@@ -7,8 +7,9 @@
 //                   set one to many assoc., between particle and event
 //                   V1.27, add CTC
 // Mar 20, 1997. ak. pointers to CTC clusters
+// Apr 08, 1997. ak. unidirectional link particle/track
 //
-// Last Edit : Mar 21, 1997. ak
+// Last Edit : Apr 08, 1997. ak
 //
 #include <typedefs.h>
 #include <point.h>
@@ -58,9 +59,9 @@ public:
 
 // Associations
  ooHandle(AMSEventD)      pEventP  <-> pParticleE[] ;
- ooHandle(AMSBetaD)       pBetaP   <-> pParticleB ;
- ooHandle(AMSTrTrackD)    pTrackP  <-> pParticleT ;
  ooHandle(AMSChargeD)     pChargeP <-> pParticleC ;
+ ooHandle(AMSBetaD)       pBetaP   : copy (delete);
+ ooHandle(AMSTrTrackD)    pTrackP  : copy (delete);
  ooHandle(AMSCTCClusterD) pCTCClusterP[] : copy (delete);
 
  void   copy(AMSParticle* p);

@@ -1,6 +1,6 @@
 // MC CTC class schema file, Sep. 30, 1996. ak.
 //
-// Last Edit : Mar 06, 1997. ak.
+// Last Edit : Apr 08, 1997. ak.
 //
 
 
@@ -19,20 +19,21 @@ public:
  number   _charge;  // charge
  number   _edep;    // energy deposition
  number   _beta;    // particle velocity
-
  integer  _idsoft;   // barnumber +(1-if agel;2-if wls)*100
- integer  _Position;
 
-// Associations
 
 // Constructor
 
  AMSCTCMCClusterD() {};
  AMSCTCMCClusterD(AMSCTCMCCluster* p);
 
+// methods
  void  copy(AMSCTCMCCluster* p);
-
- inline integer getPosition()            {return _Position;}
- inline void    setPosition(integer pos) {_Position = pos;}
-
+ inline AMSPoint getxcoo() { return _xcoo;}
+ inline AMSPoint getxdir() { return _xdir;}
+ inline number   getstep() { return _step;}
+ inline number   getcharge() { return _charge;}
+ inline number   getedep() { return _edep;}
+ inline number   getbeta() { return _beta;}
+ inline integer  getid()   { return _idsoft;}
 };

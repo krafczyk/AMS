@@ -1,4 +1,4 @@
-/* C++ header file: Objectivity/DB DDL version 3.8.1 */
+/* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef EVENT_D_H
 #define EVENT_D_H
@@ -49,20 +49,20 @@ class ooRef(AMSCTCClusterD);
 class ooShortRef(AMSCTCClusterD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-class AMSTrMCClusterD;
+class AMSTrMCClusterV;
 #ifndef OO_BUGGY_TEMPLATES
-class ooHandle(AMSTrMCClusterD);
-class ooItr(AMSTrMCClusterD);
-class ooRef(AMSTrMCClusterD);
-class ooShortRef(AMSTrMCClusterD);
+class ooHandle(AMSTrMCClusterV);
+class ooItr(AMSTrMCClusterV);
+class ooRef(AMSTrMCClusterV);
+class ooShortRef(AMSTrMCClusterV);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-class AMSTOFMCClusterD;
+class AMSTOFMCClusterV;
 #ifndef OO_BUGGY_TEMPLATES
-class ooHandle(AMSTOFMCClusterD);
-class ooItr(AMSTOFMCClusterD);
-class ooRef(AMSTOFMCClusterD);
-class ooShortRef(AMSTOFMCClusterD);
+class ooHandle(AMSTOFMCClusterV);
+class ooItr(AMSTOFMCClusterV);
+class ooRef(AMSTOFMCClusterV);
+class ooShortRef(AMSTOFMCClusterV);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
 class AMSCTCMCClusterD;
@@ -121,7 +121,7 @@ class ooRef(AMSParticleD);
 class ooShortRef(AMSParticleD);
 #endif // !defined(OO_BUGGY_TEMPLATES)
 
-#line 25 "eventD.ddl"
+#line 29 "eventD.ddl"
 class AMSTrRecHitD; 
 #ifdef OO_DDL_TRANSLATION
 #pragma ooclassref AMSTrRecHitD <trrechit_ref.h>
@@ -146,14 +146,6 @@ class AMSTrTrackD;
 #endif
 class opiDummyDeclaration;
 
-class AMSTrMCClusterD; 
-#ifdef OO_DDL_TRANSLATION
-#pragma ooclassref AMSTrMCClusterD <tmccluster_ref.h>
-#else
-#include <tmccluster_ref.h>
-#endif
-class opiDummyDeclaration;
-
 class AMSTOFClusterD; 
 #ifdef OO_DDL_TRANSLATION
 #pragma ooclassref AMSTOFClusterD <tofrecD_ref.h>
@@ -162,11 +154,19 @@ class AMSTOFClusterD;
 #endif
 class opiDummyDeclaration;
 
-class AMSTOFMCClusterD; 
+class AMSTrMCClusterV; 
 #ifdef OO_DDL_TRANSLATION
-#pragma ooclassref AMSTOFMCClusterD <mctofclusterD_ref.h>
+#pragma ooclassref AMSTrMCClusterV <tmcclusterV_ref.h>
 #else
-#include <mctofclusterD_ref.h>
+#include <tmcclusterV_ref.h>
+#endif
+class opiDummyDeclaration;
+
+class AMSTOFMCClusterV; 
+#ifdef OO_DDL_TRANSLATION
+#pragma ooclassref AMSTOFMCClusterV <mctofclusterV_ref.h>
+#else
+#include <mctofclusterV_ref.h>
 #endif
 class opiDummyDeclaration;
 
@@ -227,7 +227,9 @@ class AMSmceventgD;
 class opiDummyDeclaration;
 
 class AMSEventD : public ooObj { 
-#line 70
+
+
+
 time_t _time; 
 integer _runNumber; 
 short _runType; 
@@ -245,10 +247,10 @@ short _nParticles;
 
 
 integer _Position; 
-#line 94 "eventD.ddl"
+#line 96 "eventD.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 94 "eventD.ddl"
+#line 96 "eventD.ddl"
     ooRef(AMSTrClusterD) pCluster[] : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pCluster[] */
@@ -288,7 +290,7 @@ public:
     static ooAssocNumber pCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 96 "eventD.ddl"
+#line 98 "eventD.ddl"
     ooRef(AMSTrRecHitD) pTrRecHitS[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pTrRecHitS[] */
@@ -328,7 +330,7 @@ public:
     static ooAssocNumber pTrRecHitS_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 97 "eventD.ddl"
+#line 99 "eventD.ddl"
     ooRef(AMSTOFClusterD) pTOFCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pTOFCluster[] */
@@ -368,7 +370,7 @@ public:
     static ooAssocNumber pTOFCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 98 "eventD.ddl"
+#line 100 "eventD.ddl"
     ooRef(AMSCTCClusterD) pCTCCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pCTCCluster[] */
@@ -408,87 +410,53 @@ public:
     static ooAssocNumber pCTCCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 99 "eventD.ddl"
-    ooRef(AMSTrMCClusterD) pMCCluster[] : delete(propagate);
+#line 101 "eventD.ddl"
+    ooRef(AMSTrMCClusterV) pMCCluster : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for unidirectional association link: pMCCluster[] */
-    ooStatus pMCCluster(ooItr(AMSTrMCClusterD)& itr, ooMode mode = oocNoOpen) const;
-    ooStatus pMCCluster(ooItr(AMSTrMCClusterD)& itr, const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSEventD,pMCCluster),
-				    predicate,
-				    oocPublic,
-				    oocNoOpen);
-      }
-    ooStatus pMCCluster(ooItr(AMSTrMCClusterD)& itr,
-		 ooMode mode,
-		 const ooAccessMode access,
-		 const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSEventD,pMCCluster),
-				    predicate,
-				    access,
-				    mode);
-      }
-    ooStatus add_pMCCluster(const ooHandle(AMSTrMCClusterD)& newObjH);
-    ooStatus sub_pMCCluster(const ooHandle(AMSTrMCClusterD)& objH, uint32 number = 1);
+    /* Methods for unidirectional association link: pMCCluster */
+#if !defined(__DECCXX) || !defined(OO_VMS)
+    ooHandle(AMSTrMCClusterV) pMCCluster(ooMode mode = oocNoOpen) const;
+#endif
+    ooHandle(AMSTrMCClusterV)& pMCCluster(ooHandle(AMSTrMCClusterV)& objH,
+		       ooMode mode = oocNoOpen) const;
+    ooStatus set_pMCCluster(const ooHandle(AMSTrMCClusterV)& objH);
     ooStatus del_pMCCluster()
       {
-	return opiDelUssoc(ooDysoc(), ooAssocN(AMSEventD,pMCCluster));
+	return opiDelUssoc_1(ooDysoc(), ooAssocN(AMSEventD,pMCCluster));
       }
-    ooBoolean exist_pMCCluster(const ooHandle(AMSTrMCClusterD)& objH) const;
+    ooBoolean exist_pMCCluster(const ooHandle(AMSTrMCClusterV)& objH) const;
     ooBoolean exist_pMCCluster() const
       {
-        return this->exist_pMCCluster((ooHandle(AMSTrMCClusterD)&) (oocNullHandle));
+        return this->exist_pMCCluster((ooHandle(AMSTrMCClusterV)&) (oocNullHandle));
       }
     static ooAssocNumber pMCCluster_ooAssocN;
+    ooRef(AMSTrMCClusterV)& pMCCluster(ooRef(AMSTrMCClusterV)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 100 "eventD.ddl"
-    ooRef(AMSTOFMCClusterD) pTOFMCCluster[] : delete(propagate);
+#line 102 "eventD.ddl"
+    ooRef(AMSTOFMCClusterV) pTOFMCCluster : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for unidirectional association link: pTOFMCCluster[] */
-    ooStatus pTOFMCCluster(ooItr(AMSTOFMCClusterD)& itr, ooMode mode = oocNoOpen) const;
-    ooStatus pTOFMCCluster(ooItr(AMSTOFMCClusterD)& itr, const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSEventD,pTOFMCCluster),
-				    predicate,
-				    oocPublic,
-				    oocNoOpen);
-      }
-    ooStatus pTOFMCCluster(ooItr(AMSTOFMCClusterD)& itr,
-		 ooMode mode,
-		 const ooAccessMode access,
-		 const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSEventD,pTOFMCCluster),
-				    predicate,
-				    access,
-				    mode);
-      }
-    ooStatus add_pTOFMCCluster(const ooHandle(AMSTOFMCClusterD)& newObjH);
-    ooStatus sub_pTOFMCCluster(const ooHandle(AMSTOFMCClusterD)& objH, uint32 number = 1);
+    /* Methods for unidirectional association link: pTOFMCCluster */
+#if !defined(__DECCXX) || !defined(OO_VMS)
+    ooHandle(AMSTOFMCClusterV) pTOFMCCluster(ooMode mode = oocNoOpen) const;
+#endif
+    ooHandle(AMSTOFMCClusterV)& pTOFMCCluster(ooHandle(AMSTOFMCClusterV)& objH,
+		       ooMode mode = oocNoOpen) const;
+    ooStatus set_pTOFMCCluster(const ooHandle(AMSTOFMCClusterV)& objH);
     ooStatus del_pTOFMCCluster()
       {
-	return opiDelUssoc(ooDysoc(), ooAssocN(AMSEventD,pTOFMCCluster));
+	return opiDelUssoc_1(ooDysoc(), ooAssocN(AMSEventD,pTOFMCCluster));
       }
-    ooBoolean exist_pTOFMCCluster(const ooHandle(AMSTOFMCClusterD)& objH) const;
+    ooBoolean exist_pTOFMCCluster(const ooHandle(AMSTOFMCClusterV)& objH) const;
     ooBoolean exist_pTOFMCCluster() const
       {
-        return this->exist_pTOFMCCluster((ooHandle(AMSTOFMCClusterD)&) (oocNullHandle));
+        return this->exist_pTOFMCCluster((ooHandle(AMSTOFMCClusterV)&) (oocNullHandle));
       }
     static ooAssocNumber pTOFMCCluster_ooAssocN;
+    ooRef(AMSTOFMCClusterV)& pTOFMCCluster(ooRef(AMSTOFMCClusterV)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 101 "eventD.ddl"
+#line 103 "eventD.ddl"
     ooRef(AMSCTCMCClusterD) pCTCMCCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pCTCMCCluster[] */
@@ -528,7 +496,7 @@ public:
     static ooAssocNumber pCTCMCCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 102 "eventD.ddl"
+#line 104 "eventD.ddl"
     ooRef(AMSAntiMCClusterD) pAntiMCCluster[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pAntiMCCluster[] */
@@ -568,37 +536,19 @@ public:
     static ooAssocNumber pAntiMCCluster_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 103 "eventD.ddl"
-    ooRef(AMSmceventgD) pmcEventg[] : delete(propagate);
+#line 105 "eventD.ddl"
+    ooRef(AMSmceventgD) pmcEventg : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for unidirectional association link: pmcEventg[] */
-    ooStatus pmcEventg(ooItr(AMSmceventgD)& itr, ooMode mode = oocNoOpen) const;
-    ooStatus pmcEventg(ooItr(AMSmceventgD)& itr, const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSEventD,pmcEventg),
-				    predicate,
-				    oocPublic,
-				    oocNoOpen);
-      }
-    ooStatus pmcEventg(ooItr(AMSmceventgD)& itr,
-		 ooMode mode,
-		 const ooAccessMode access,
-		 const char* predicate) const
-      {
-	return opiInitAssocVPredItr(((ooHandle(ooObj) &) (itr)),
-				    ooDysoc(),
-				    ooAssocN(AMSEventD,pmcEventg),
-				    predicate,
-				    access,
-				    mode);
-      }
-    ooStatus add_pmcEventg(const ooHandle(AMSmceventgD)& newObjH);
-    ooStatus sub_pmcEventg(const ooHandle(AMSmceventgD)& objH, uint32 number = 1);
+    /* Methods for unidirectional association link: pmcEventg */
+#if !defined(__DECCXX) || !defined(OO_VMS)
+    ooHandle(AMSmceventgD) pmcEventg(ooMode mode = oocNoOpen) const;
+#endif
+    ooHandle(AMSmceventgD)& pmcEventg(ooHandle(AMSmceventgD)& objH,
+		       ooMode mode = oocNoOpen) const;
+    ooStatus set_pmcEventg(const ooHandle(AMSmceventgD)& objH);
     ooStatus del_pmcEventg()
       {
-	return opiDelUssoc(ooDysoc(), ooAssocN(AMSEventD,pmcEventg));
+	return opiDelUssoc_1(ooDysoc(), ooAssocN(AMSEventD,pmcEventg));
       }
     ooBoolean exist_pmcEventg(const ooHandle(AMSmceventgD)& objH) const;
     ooBoolean exist_pmcEventg() const
@@ -606,12 +556,13 @@ public:
         return this->exist_pmcEventg((ooHandle(AMSmceventgD)&) (oocNullHandle));
       }
     static ooAssocNumber pmcEventg_ooAssocN;
+    ooRef(AMSmceventgD)& pmcEventg(ooRef(AMSmceventgD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 104 "eventD.ddl"
-    ooRef(AMSTrTrackD) pTrack[] <-> pEventT : delete(propagate);
+#line 106 "eventD.ddl"
+    ooRef(AMSTrTrackD) pTrack[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for bidirectional association link: pTrack[] */
+    /* Methods for unidirectional association link: pTrack[] */
     ooStatus pTrack(ooItr(AMSTrTrackD)& itr, ooMode mode = oocNoOpen) const;
     ooStatus pTrack(ooItr(AMSTrTrackD)& itr, const char* predicate) const
       {
@@ -635,10 +586,10 @@ public:
 				    mode);
       }
     ooStatus add_pTrack(const ooHandle(AMSTrTrackD)& newObjH);
-    ooStatus sub_pTrack(const ooHandle(AMSTrTrackD)& objH);
+    ooStatus sub_pTrack(const ooHandle(AMSTrTrackD)& objH, uint32 number = 1);
     ooStatus del_pTrack()
       {
-	return opiDelAssoc(ooDysoc(), ooAssocN(AMSEventD,pTrack));
+	return opiDelUssoc(ooDysoc(), ooAssocN(AMSEventD,pTrack));
       }
     ooBoolean exist_pTrack(const ooHandle(AMSTrTrackD)& objH) const;
     ooBoolean exist_pTrack() const
@@ -648,10 +599,10 @@ public:
     static ooAssocNumber pTrack_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 105 "eventD.ddl"
-    ooRef(AMSBetaD) pBeta[] <-> pEventB : delete(propagate);
+#line 107 "eventD.ddl"
+    ooRef(AMSBetaD) pBeta[] : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
-    /* Methods for bidirectional association link: pBeta[] */
+    /* Methods for unidirectional association link: pBeta[] */
     ooStatus pBeta(ooItr(AMSBetaD)& itr, ooMode mode = oocNoOpen) const;
     ooStatus pBeta(ooItr(AMSBetaD)& itr, const char* predicate) const
       {
@@ -675,10 +626,10 @@ public:
 				    mode);
       }
     ooStatus add_pBeta(const ooHandle(AMSBetaD)& newObjH);
-    ooStatus sub_pBeta(const ooHandle(AMSBetaD)& objH);
+    ooStatus sub_pBeta(const ooHandle(AMSBetaD)& objH, uint32 number = 1);
     ooStatus del_pBeta()
       {
-	return opiDelAssoc(ooDysoc(), ooAssocN(AMSEventD,pBeta));
+	return opiDelUssoc(ooDysoc(), ooAssocN(AMSEventD,pBeta));
       }
     ooBoolean exist_pBeta(const ooHandle(AMSBetaD)& objH) const;
     ooBoolean exist_pBeta() const
@@ -688,7 +639,7 @@ public:
     static ooAssocNumber pBeta_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 106 "eventD.ddl"
+#line 108 "eventD.ddl"
     ooRef(AMSChargeD) pChargeE[] <-> pEventCh : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pChargeE[] */
@@ -728,7 +679,7 @@ public:
     static ooAssocNumber pChargeE_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 107 "eventD.ddl"
+#line 109 "eventD.ddl"
     ooRef(AMSParticleD) pParticleE[] <-> pEventP : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pParticleE[] */
@@ -767,7 +718,7 @@ public:
       }
     static ooAssocNumber pParticleE_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 111 "eventD.ddl"
+#line 113 "eventD.ddl"
 AMSEventD(); 
 AMSEventD(integer, uinteger, integer, time_t); 
 
@@ -779,7 +730,6 @@ inline short &RunType() { return _runType; }
 inline uinteger &getevent() { return _eventNumber; }
 inline time_t &TriggerTime() { return _time; }
 inline uinteger &Trigmask() { return _triggerMask; }
-
 inline integer getPosition() { return _Position; }
 void getNumbers(integer &, integer &, uinteger &, time_t &); 
 
@@ -832,14 +782,30 @@ void Print();
 	return objH;
       }
     ooHandle(AMSEventD) ooThis(ooMode aMode = oocNoOpen) const;
-    void* operator new(size_t, const ooHandle(ooObj)& nearH = oovTopDB);
-    void* operator new(size_t, const ooId& nearId);
-    void* operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t, const ooHandle(ooObj) &nearH = oovTopDB);
+    void *operator new(size_t, const ooId& nearId);
+    void *operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t,
+		       const ooHandle(ooObj) &nearH,
+		       const char *typeName);
+#ifdef OO_ODMG
+    void *operator new(size_t  size,
+		       d_Database *odmg_db)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSEventD), odmg_db);
+      }	
+    void *operator new(size_t  size,
+		       d_Database *odmg_db,
+		       const char *)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSEventD), odmg_db);
+      }	
+#endif
     static const ooTypeNumber opiTypeN;
     static void ooAssocRegister();
     ooRef(AMSEventD)& ooThis(ooRef(AMSEventD)& objId, ooMode aMode = oocNoOpen) const;
     AMSEventD(ooInternalObj iobj);
-#line 166 "eventD.ddl"
+#line 167 "eventD.ddl"
 }; 
 
 #endif /* !defined(EVENT_D_H) */

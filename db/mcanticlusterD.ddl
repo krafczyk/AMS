@@ -1,7 +1,7 @@
 // Sep 30, 1996. ak. AMSMCAntiClusterD Objectivity Class
 // Mar  6, 1997. ak. up to date
 //
-// Last Edit : Oct 10, 1996. ak.
+// Last Edit : Apr 08, 1996. ak.
 //
 
 #include <typedefs.h>
@@ -18,18 +18,16 @@ public:
  number    _tof;
  number    _edep;
 
- integer   _Position;
-
-// Associations
-
 // Constructor
 
  AMSAntiMCClusterD() {};
  AMSAntiMCClusterD(AMSAntiMCCluster* p);
 
+// methods
  void copy(AMSAntiMCCluster* p);
-
- inline integer getPosition()            {return _Position;}
- inline void    setPosition(integer pos) {_Position = pos;}
+ inline integer  getid()   {return _idsoft;}
+ inline AMSPoint getcoo()  {return _xcoo;}
+ inline number   gettof()  {return _tof;}
+ inline number   getedep() {return _edep;}
 
 };

@@ -105,9 +105,7 @@ class AMSEventList : public ooContObj {
    ooStatus  CopyParticle(ooHandle(AMSEventD)&  eventH, ooMode mode);
 
    ooStatus  LinkHitClusterD(const integer N, ooHandle(AMSEventD)& eventH);
-   ooStatus  LinkHitClusterM(ooHandle(AMSEventD)& eventH);
    ooStatus  LinkTrackHitD(ooHandle(AMSEventD)& eventH);
-   ooStatus  LinkTrackHitM(ooHandle(AMSEventD)& eventH);
 
    void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode);
    void CopyByPtr(AMSNode *ptr);
@@ -168,8 +166,6 @@ class AMSEventList : public ooContObj {
    void    incNAntiMCClusters()          {_nAntiMCClusters++;}
    integer getNmcEventg()                {return _nmcEventg;}
    void    incNmcEventg()                {_nmcEventg++;}
-
-   ooStatus GetKeepingList(ooHandle(AMSEventList)& mylistH);
 
    void setsetup(char* setup);
    void setlistname(char* listname);

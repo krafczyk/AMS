@@ -1,4 +1,4 @@
-/* C++ header file: Objectivity/DB DDL version 3.8.1 */
+/* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef GMAT_D_H
 #define GMAT_D_H
@@ -69,9 +69,25 @@ ooStatus CmpMaterials(integer, AMSgmat *);
 	return objH;
       }
     ooHandle(AMSgmatD) ooThis(ooMode aMode = oocNoOpen) const;
-    void* operator new(size_t, const ooHandle(ooObj)& nearH = oovTopDB);
-    void* operator new(size_t, const ooId& nearId);
-    void* operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t, const ooHandle(ooObj) &nearH = oovTopDB);
+    void *operator new(size_t, const ooId& nearId);
+    void *operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t,
+		       const ooHandle(ooObj) &nearH,
+		       const char *typeName);
+#ifdef OO_ODMG
+    void *operator new(size_t  size,
+		       d_Database *odmg_db)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSgmatD), odmg_db);
+      }	
+    void *operator new(size_t  size,
+		       d_Database *odmg_db,
+		       const char *)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSgmatD), odmg_db);
+      }	
+#endif
     static const ooTypeNumber opiTypeN;
     static void ooAssocRegister();
     ooRef(AMSgmatD)& ooThis(ooRef(AMSgmatD)& objId, ooMode aMode = oocNoOpen) const;

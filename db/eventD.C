@@ -1,7 +1,7 @@
 // method source file for the object AMSEvent
 // May 06, 1996. ak. First try with Objectivity 
 //
-// last edit Mar 12, 1997. ak.
+// last edit Apr 01, 1997. ak.
 
 #include <iostream.h>
 #include <string.h>
@@ -10,8 +10,8 @@
 #include <typedefs.h>
 #include <trrechit_ref.h>
 #include <tcluster_ref.h>
-#include <tmccluster_ref.h>
-#include <mctofclusterD_ref.h>
+#include <tmcclusterV_ref.h>
+#include <mctofclusterV_ref.h>
 #include <ttrack_ref.h>
 #include <tofrecD_ref.h>
 #include <tbeta_ref.h>
@@ -28,7 +28,6 @@ AMSEventD::AMSEventD (integer run, uinteger eventNumber, integer runtype,
   _runType     = runtype;
   _time        = time;
   _triggerMask = 0;
-  //_errorCode   = 0;
 }
 
 void AMSEventD::Print()

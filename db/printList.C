@@ -19,6 +19,8 @@ ooMode               _openMode = oocRead;
 implement (ooVArray, geant)   //;
 implement (ooVArray, number)  //;
 implement (ooVArray, integer) //;
+implement (ooVArray, AMSTOFMCClusterD) //;
+implement (ooVArray, AMSTrMCClusterD) //;
 
 LMS                  dbout(oocRead);
 

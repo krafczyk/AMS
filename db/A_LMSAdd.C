@@ -13,7 +13,7 @@
 //                    no map anymore, use indexes
 // Mar  18, 1997. ak. Getmceventg and GetNEvents are modified
 //                    setup moved to AMSsetupDB
-// last edit Mar 25, 1997, ak.
+// last edit Apr 10, 1997, ak.
 //
 
 #include <stdio.h>
@@ -115,8 +115,8 @@ ooStatus   LMS::AddEvent(char* listName,
           if (rstatus != oocSuccess) {
            strcpy(err_mess, "Cannot add the event to the list");
           } else {
-           cout <<"AddEvent -I- event "<<eventNumber<<", run "<<runNumber
-               <<" added to the list "<<endl;
+           if (dbg_prtout) cout <<"AddEvent -I- event "<<eventNumber<<", run "
+                                <<runNumber<<" added to the list "<<endl;
           }
          } else {
           cout <<"AddEvent -E- cannot find list "<<listName<<endl;
@@ -159,11 +159,14 @@ error:
 	return rstatus;
 }
 
-ooStatus	LMS::AddList(char* listName, 
-                                integer eventW, ooHandle(AMSEventList)& listH)
-  // listName - name of container to store events
-  // eventW   - AMSFFKEY.Write
-  // listH    - pointer to the created container
+ooStatus	LMS::AddList(char* listName, integer listType, 
+                             integer eventType, char* setup,
+                             ooHandle(AMSEventList)& listH)
+  // listName  - name of container to store events
+  // listType  - type of list corresponds to AMSJob::jobtype()
+  // eventType - AMSFFKEY.Write
+  // setup     - name of setup
+  // listH     - pointer to the created container
 {
 	ooStatus	rstatus = oocError;	// Return status
 
@@ -180,19 +183,19 @@ ooStatus	LMS::AddList(char* listName,
           return oocError;
        }
         // Create the list, if it doesn't exist
-        char* setup = AMSJob:: gethead() -> getsetup();
+        //char* setup = AMSJob:: gethead() -> getsetup();
         listH = new(listName,1,0,0,_databaseH) AMSEventList(listName, setup);
 
-        if (setup) listH -> setsetup(setup); 
-        integer type = AMSJob:: gethead() -> jobtype();
-        listH -> setlisttype(type); 
-        listH -> setEventType(eventW);
+        //if (setup) listH -> setsetup(setup); 
+        //integer type = AMSJob:: gethead() -> jobtype();
+        listH -> setlisttype(listType); 
+        listH -> setEventType(eventType);
 
         // Create key
         ooHandle(ooKeyField) keyFieldH;
         ooHandle(ooKeyDesc)  keyDescH;
 
-        if ((eventW/DBWriteMCEv)%2 != 1) {
+        if ((eventType/DBWriteMCEv)%2 != 1) {
          keyDescH  = new(listH) ooKeyDesc(ooTypeN(AMSEventD),oocTrue);
          keyFieldH = new(keyDescH) ooKeyField(ooTypeN(AMSEventD),"_runNumber");
          keyDescH  -> addField(keyFieldH);

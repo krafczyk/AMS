@@ -1,4 +1,4 @@
-// Last Edit : Mar 07, 1997. ak.
+// Last Edit : Mar 26, 1997. ak.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,29 +60,32 @@ ooStatus      LMS::DeleteSetup(char* setup) {
 	ooStatus 	     rstatus = oocError;	// Return status
         char*                contName;
         ooMode               mode = oocUpdate;
-        ooHandle(ooContObj)  containerH;
+        ooHandle(ooDBObj)    dbH;
+        ooHandle(ooContObj)  contH;
 
-//
-// Start the transaction
-        rstatus = Start(oocUpdate);
+        rstatus = Start(oocUpdate); // Start the transaction
         if (rstatus != oocSuccess) return rstatus;
-// Get pointer to default database
-        _databaseH = _session -> DefaultDatabase();
-        if (_databaseH != NULL) {
+
+        rstatus = CheckDB("AMSsetupDB", mode, dbH); // Check setup dbase
+        if (rstatus != oocSuccess || dbH == NULL) {
+          cerr<<"DeleteSetup -E- Cannot open setup dbase in oocUpdate mode"
+              <<endl;
+          return oocError;
+        }
 
 // delete geometry container
         contName = new char[strlen(setup)+10];
         strcpy(contName,"Geometry_");
         strcat(contName,setup);
-        if (containerH.exist(_databaseH,contName,mode)) ooDelete(containerH);
+        if (contH.exist(dbH,contName,mode)) ooDelete(contH);
         cout<<"Container "<<contName<<" is deleted "<<endl;
-        delete [] contName;
+        delete [] contName;                    
 
 // delete materials container
         contName = new char[strlen(setup)+11];
         strcpy(contName,"Materials_");
         strcat(contName,setup);
-        if (containerH.exist(_databaseH,contName,mode)) ooDelete(containerH);
+        if (contH.exist(dbH,contName,mode)) ooDelete(contH);
         cout<<"Container "<<contName<<" is deleted "<<endl;
         delete [] contName;
 
@@ -90,7 +93,7 @@ ooStatus      LMS::DeleteSetup(char* setup) {
         contName = new char[strlen(setup)+8];
         strcpy(contName,"TMedia_");
         strcat(contName,setup);
-        if (containerH.exist(_databaseH,contName,mode)) ooDelete(containerH);
+        if (contH.exist(dbH,contName,mode)) ooDelete(contH);
         cout<<"Container "<<contName<<" is deleted "<<endl;
         delete [] contName;
 
@@ -98,7 +101,7 @@ ooStatus      LMS::DeleteSetup(char* setup) {
         contName = new char[strlen(setup)+8];
         strcpy(contName,"amsdbc_");
         strcat(contName,setup);
-        if (containerH.exist(_databaseH,contName,mode)) ooDelete(containerH);
+        if (contH.exist(dbH,contName,mode)) ooDelete(contH);
         cout<<"Container "<<contName<<" is deleted "<<endl;
         delete [] contName;
 
@@ -106,19 +109,17 @@ ooStatus      LMS::DeleteSetup(char* setup) {
         contName = new char[strlen(setup)+10];
         strcpy(contName,"Time_Var_");
         strcat(contName,setup);
-        if (containerH.exist(_databaseH,contName,mode)) ooDelete(containerH);
+        if (contH.exist(dbH,contName,mode)) ooDelete(contH);
         cout<<"Container "<<contName<<" is deleted "<<endl;
         delete [] contName;
         
         rstatus = oocSuccess;
-      }
-
 
 error:
         if (rstatus == oocSuccess) {
 	  rstatus = Commit(); 	           // Commit the transaction
         } else {
-         rstatus = Abort();  // or Abort it
+         rstatus = Abort();                // or Abort it
         }
 
         return rstatus;

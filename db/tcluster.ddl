@@ -11,7 +11,7 @@
 //                   use uni directional assoc between cluster and hits
 //                   add AMSTrIdSoft
 //
-// Last Edit : Mar 20, 1997. ak
+// Last Edit : Apr 8, 1997. ak
 //
 
 #include <typedefs.h>
@@ -19,9 +19,6 @@
 #include <trrec.h>
 
 declare (ooVArray, number);
-
-//class AMSTrRecHitD;
-//class AMSEventD;
 
 class AMSTrClusterD : public ooObj {
 
@@ -47,9 +44,6 @@ class AMSTrClusterD : public ooObj {
  public:
 
 // Assosiations
-//   ooRef(AMSTrRecHitD) pTrRecHitX[] <-> pClusterX;
-//   ooRef(AMSTrRecHitD) pTrRecHitY[] <-> pClusterY;
-//   ooRef(AMSEventD)    pEventCl     <-> pCluster[];
 
 // Constructor
   AMSTrClusterD();

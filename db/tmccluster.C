@@ -34,6 +34,29 @@ AMSTrMCClusterD::AMSTrMCClusterD (AMSTrMCCluster* p)
     }
   }
 }
+void AMSTrMCClusterD::add(AMSTrMCCluster* p)
+{
+  integer i, j;
+
+  _idsoft = p -> _idsoft;
+  _itra   = p -> _itra;
+  for (i=0; i<2; i++)
+    {
+      _left[i]   = p -> _left[i];
+      _center[i] = p -> _center[i];
+      _right[i]  = p -> _right[i];
+    }
+  _xca    = p -> _xca;
+  _xcb    = p -> _xcb;
+  _xgl    = p -> _xgl;
+  _sum    = p -> _sum;
+  for( i=0; i<2; i++) {
+    for (j = 0; j<5; j++) {
+     _ss[i][j]= p -> _ss[i][j];
+    }
+  }
+}
+
  void   AMSTrMCClusterD::copy(AMSTrMCCluster* p)
 {
   integer i, j;

@@ -1,4 +1,4 @@
-/* C++ header file: Objectivity/DB DDL version 3.8.1 */
+/* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef MCCTCCLUSTER_D_H
 #define MCCTCCLUSTER_D_H
@@ -29,17 +29,23 @@ number _step;
 number _charge; 
 number _edep; 
 number _beta; 
-
 integer _idsoft; 
-integer _Position; 
-#line 30
+
+
+
+
 inline AMSCTCMCClusterD() { }
 AMSCTCMCClusterD(class AMSCTCMCCluster *); 
 
-void copy(AMSCTCMCCluster *); 
 
-inline integer getPosition() { return _Position; }
-inline void setPosition(integer pos) { _Position = pos; }
+void copy(AMSCTCMCCluster *); 
+inline AMSPoint getxcoo() { return _xcoo; }
+inline AMSPoint getxdir() { return _xdir; }
+inline number getstep() { return _step; }
+inline number getcharge() { return _charge; }
+inline number getedep() { return _edep; }
+inline number getbeta() { return _beta; }
+inline integer getid() { return _idsoft; }
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -50,14 +56,30 @@ inline void setPosition(integer pos) { _Position = pos; }
 	return objH;
       }
     ooHandle(AMSCTCMCClusterD) ooThis(ooMode aMode = oocNoOpen) const;
-    void* operator new(size_t, const ooHandle(ooObj)& nearH = oovTopDB);
-    void* operator new(size_t, const ooId& nearId);
-    void* operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t, const ooHandle(ooObj) &nearH = oovTopDB);
+    void *operator new(size_t, const ooId& nearId);
+    void *operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t,
+		       const ooHandle(ooObj) &nearH,
+		       const char *typeName);
+#ifdef OO_ODMG
+    void *operator new(size_t  size,
+		       d_Database *odmg_db)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSCTCMCClusterD), odmg_db);
+      }	
+    void *operator new(size_t  size,
+		       d_Database *odmg_db,
+		       const char *)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSCTCMCClusterD), odmg_db);
+      }	
+#endif
     static const ooTypeNumber opiTypeN;
     static void ooAssocRegister();
     ooRef(AMSCTCMCClusterD)& ooThis(ooRef(AMSCTCMCClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSCTCMCClusterD(ooInternalObj iobj);
-#line 38 "mcctcclusterD.ddl"
+#line 39 "mcctcclusterD.ddl"
 }; 
 
 #endif /* !defined(MCCTCCLUSTER_D_H) */

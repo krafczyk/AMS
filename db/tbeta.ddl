@@ -1,12 +1,13 @@
-// V. Choutko 5-june-96
 // A.Klimentov July 10, 1996. Objectivity version
 //             July 25, 1996. add #pragma
 //             Aug  22, 1996. change the position of memebers in the class
 //             Sep  26, 1996. add getpattern function
 //             Mar  06, 1997. up to date.
+//                            one directional link for beta/TOF
+//             Apr  08, 1997. one directional link event/beta
+//                            one directional link beta/track
+// Last Edit Apr 09, 1997. ak 
 //
-// Last Edit Oct 04, 1996. ak 
-
 #include <cern.h>
 #include <typedefs.h>
 #include <beta.h>
@@ -14,17 +15,8 @@
 class AMSTrTrackD;
 #pragma ooclassref AMSTrTrackD <ttrack_ref.h>
 
-class AMSEventD;
-#pragma ooclassref AMSEventD <eventD_ref.h>
-
 class AMSTOFClusterD;
 #pragma ooclassref AMSTOFClusterD <tofrecD_ref.h>
-
-class AMSChargeD;
-#pragma ooclassref AMSChargeD <chargeD_ref.h>
-
-class AMSParticleD;
-#pragma ooclassref AMSParticleD <particleD_ref.h>
 
 class AMSBetaD: public ooObj {
 
@@ -42,11 +34,8 @@ public:
 
 // Assosiations
  
- ooRef(AMSTOFClusterD)  pTOFBeta[] <-> pBetaTOF;
- ooRef(AMSEventD)       pEventB    <-> pBeta[];
- ooHandle(AMSTrTrackD)  pTrackBeta <-> pBetaT;
- ooHandle(AMSChargeD)   pChargeB   <-> pBetaCh;
- ooHandle(AMSParticleD) pParticleB <-> pBetaP;
+ ooRef(AMSTOFClusterD)  pTOFBeta[] : copy (delete);
+ ooHandle(AMSTrTrackD)  pTrackBeta : copy (delete);
 
 // Constructor
 

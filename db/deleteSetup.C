@@ -15,9 +15,11 @@
 
 ooMode               _openMode = oocUpdate;
 
-implement (ooVArray, geant)  //;
-implement (ooVArray, number) //;
+implement (ooVArray, geant)   //;
+implement (ooVArray, number)  //;
 implement (ooVArray, integer) //;
+implement (ooVArray, AMSTOFMCClusterD) //;
+implement (ooVArray, AMSTrMCClusterD) //;
 
 LMS                  dbout(oocUpdate);
 

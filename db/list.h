@@ -1,4 +1,4 @@
-/* C++ header file: Objectivity/DB DDL version 3.8.1 */
+/* C++ header file: Objectivity/DB DDL version 4.0.2 */
 
 #ifndef LIST_H
 #define LIST_H
@@ -125,13 +125,11 @@ ooStatus CopyCharge(ooHandle(AMSEventD) &, ooMode);
 ooStatus CopyParticle(ooHandle(AMSEventD) &, ooMode); 
 
 ooStatus LinkHitClusterD(const integer, ooHandle(AMSEventD) &); 
-ooStatus LinkHitClusterM(ooHandle(AMSEventD) &); 
 ooStatus LinkTrackHitD(ooHandle(AMSEventD) &); 
-ooStatus LinkTrackHitM(ooHandle(AMSEventD) &); 
 
 void CopyByPos(ooHandle(AMSgvolumeD) &, ooMode); 
 void CopyByPtr(AMSNode *); 
-#line 119
+#line 117
 inline integer ListType() { return _listType; }
 inline integer EventType() { return _eventType; }
 inline const char *ListName() { return _listName; }
@@ -185,8 +183,6 @@ inline void incNAntiMCClusters() { _nAntiMCClusters ++; }
 inline integer getNmcEventg() { return _nmcEventg; }
 inline void incNmcEventg() { _nmcEventg ++; }
 
-ooStatus GetKeepingList(ooHandle(AMSEventList) &); 
-
 void setsetup(char *); 
 void setlistname(char *); 
 void SetContainersNames(); 
@@ -222,9 +218,25 @@ ooStatus DeleteAllContainers();
 	return objH;
       }
     ooHandle(AMSEventList) ooThis(ooMode aMode = oocNoOpen) const;
-    void* operator new(size_t, const ooHandle(ooObj)& nearH = oovTopDB);
-    void* operator new(size_t, const ooId& nearId);
-    void* operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t, const ooHandle(ooObj) &nearH = oovTopDB);
+    void *operator new(size_t, const ooId& nearId);
+    void *operator new(size_t, ooConstCPtr(ooObj) nearObj);
+    void *operator new(size_t,
+		       const ooHandle(ooObj) &nearH,
+		       const char *typeName);
+#ifdef OO_ODMG
+    void *operator new(size_t  size,
+		       d_Database *odmg_db)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSEventList), odmg_db);
+      }	
+    void *operator new(size_t  size,
+		       d_Database *odmg_db,
+		       const char *)
+      {
+	return opiODMGDatabaseNew(size, ooTypeN(AMSEventList), odmg_db);
+      }	
+#endif
     static const ooTypeNumber opiTypeN;
     static void ooAssocRegister();
     void* operator new(size_t, const char*, uint32, uint32,
@@ -235,7 +247,7 @@ ooStatus DeleteAllContainers();
 		       uint32, ooConstCPtr(ooObj) nearObj);
     ooRef(AMSEventList)& ooThis(ooRef(AMSEventList)& objId, ooMode aMode = oocNoOpen) const;
     AMSEventList(ooInternalObj iobj);
-#line 200 "list.ddl"
+#line 196 "list.ddl"
 }; 
 
 #endif /* !defined(LIST_H) */

@@ -14,8 +14,6 @@
 #include <trrec.h>
 
 class AMSTrClusterD;
-//class AMSTrTrackD;
-//class AMSEventD;
 
 class AMSTrRecHitD : public ooObj {
 
@@ -37,11 +35,8 @@ class AMSTrRecHitD : public ooObj {
  public:
 
 // Assosiations
-//   ooRef(AMSTrClusterD) pClusterX     <-> pTrRecHitX[];
-//   ooRef(AMSTrClusterD) pClusterY     <-> pTrRecHitY[];
    ooRef(AMSTrClusterD) pClusterX : copy(delete);
    ooRef(AMSTrClusterD) pClusterY : copy(delete);
-//   ooRef(AMSTrTrackD)   pTrackH[]     <-> pTrRecHitT[];
 
 // Constructor
   AMSTrRecHitD();
@@ -55,13 +50,14 @@ class AMSTrRecHitD : public ooObj {
    number   getSum()      {return _Sum;}
    number   getDSum()     {return _DifoSum;}
    integer  getPosition() {return _Position;}
-   void     copy(AMSTrRecHit* p);
    integer  getgid()      {return _gid;}
    char*    getname()     {return _name;}
-   void     setgid(integer gid) {_gid = gid;}
-   void     setname(char* name) {if (name) strcpy (_name,name);}
+
+   void     copy(AMSTrRecHit* p);
 
 // Set Methods
+   void     setgid(integer gid) {_gid = gid;}
+   void     setname(char* name) {if (name) strcpy (_name,name);}
    void     setPosition(integer pos ) {_Position = pos;}
 
 // Add Methods

@@ -1,71 +1,54 @@
-/* C++ header file: Objectivity/DB DDL version 3.8.1 */
+#ifndef __AMSTrMCClusterD__
+#define __AMSTrMCClusterD__
+// class AMSTrMCCluster
+// June 04, 1996. First try with Objectivity 
+// Aug  21, 1996. Remove MCCluster <-> Event bidirectional link
+//                change the place of members in the class
+// Mar  06, 1997. up to date
+// Apr  01, 1997. non persisten class
+//
+// Last Edit : Apr 9, 1997. ak
+//
 
-#ifndef TMCCLUSTER_H
-#define TMCCLUSTER_H
-
-#ifdef OO_DDL_TRANSLATION
-#pragma ooddlout "tmccluster.ddl"
-class opiDummyDeclaration;
-#endif
-
-#ifndef OO_H
-#include <oo.h>
-#endif
 #include <typedefs.h>
 #include <point.h>
 #include <mccluster.h>
 
-#ifndef TMCCLUSTER_REF_H
-#include "tmccluster_ref.h"
+
+class AMSTrMCClusterD {
+
+protected:
+
+ AMSPoint  _xca;
+ AMSPoint  _xcb;
+ AMSPoint  _xgl;
+ number    _sum;
+
+ geant     _ss[2][5];
+
+ integer   _idsoft;
+ integer   _itra;
+ integer   _left[2];
+ integer   _center[2];
+ integer   _right[2];
+
+public:
+
+// Constructor for noise &crosstalk
+  AMSTrMCClusterD(){};
+  AMSTrMCClusterD(AMSTrMCCluster* p);
+
+// Get/Set Methods
+ void   add(AMSTrMCCluster* p);
+ void   copy(AMSTrMCCluster* p);
+
+ inline integer  getid()   {return _idsoft;}
+ inline AMSPoint getxca()  {return _xca;}
+ inline AMSPoint getxcb()  {return _xcb;}
+ inline AMSPoint getxgl()  {return _xgl;}
+ inline number   getsum()  {return _sum;}
+ inline integer  getitra() {return _itra;}
+
+};
+
 #endif
-
-#line 16 "tmccluster.ddl"
-class AMSTrMCClusterD : public ooObj { 
-
-
-
-protected: class AMSPoint _xca; 
-AMSPoint _xcb; 
-AMSPoint _xgl; 
-number _sum; 
-
-geant _ss[2][5]; 
-
-integer _idsoft; 
-integer _itra; 
-integer _left[2]; 
-integer _center[2]; 
-integer _right[2]; 
-
-integer _Position; 
-#line 40
-public: inline AMSTrMCClusterD() { }
-AMSTrMCClusterD(class AMSTrMCCluster *); 
-
-
-void copy(AMSTrMCCluster *); 
-inline void setsum(number sum) { _sum = sum; }
-inline number getsum() { return _sum; }
-inline integer getPosition() { return _Position; }
-inline void setPosition(integer pos) { _Position = pos; }
-    virtual ooTypeNumber ooGetTypeN() const;
-    virtual char* ooGetTypeName() const;
-    ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
-    ooHandle(AMSTrMCClusterD)& ooThis(ooHandle(AMSTrMCClusterD)& objH,
-			 ooMode aMode = oocNoOpen) const
-      {
-	opiGetObjHandle(ooDysoc(), objH, aMode);
-	return objH;
-      }
-    ooHandle(AMSTrMCClusterD) ooThis(ooMode aMode = oocNoOpen) const;
-    void* operator new(size_t, const ooHandle(ooObj)& nearH = oovTopDB);
-    void* operator new(size_t, const ooId& nearId);
-    void* operator new(size_t, ooConstCPtr(ooObj) nearObj);
-    static const ooTypeNumber opiTypeN;
-    static void ooAssocRegister();
-    ooRef(AMSTrMCClusterD)& ooThis(ooRef(AMSTrMCClusterD)& objId, ooMode aMode = oocNoOpen) const;
-    AMSTrMCClusterD(ooInternalObj iobj);
-#line 49 "tmccluster.ddl"
-}; 
-
-#endif /* !defined(TMCCLUSTER_H) */

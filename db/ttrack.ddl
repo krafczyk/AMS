@@ -2,28 +2,30 @@
 // May  29, 1996. Objectivity DDL;
 // July 10, 1996, add AMSBetaD assosiation;
 //                add #pragma
-// Aug  07, 1996, V124.
-// Aug  22, 1996. change the place of members in the class
+// Aug    , 1996, V124.
+//                change the place of members in the class
 // Mar  06, 1997  up to date
 //                use uni-directional association between track and hits
+// Apr  08, 1997. unidirectional link between event and track
+//                unidirectional link between beta/track, particle/track
 //
-// Last Edit: Mar 7, 1997. ak. 
+// Last Edit: Apr 8, 1997. ak. 
 //
 #include <typedefs.h>
 #include <point.h>
 #include <trrec.h>
 
-class AMSEventD;
-#pragma ooclassref AMSEventD <eventD_ref.h>
+//class AMSEventD;
+//#pragma ooclassref AMSEventD <eventD_ref.h>
 
 class AMSTrRecHitD;
 #pragma ooclassref AMSTrRecHitD <trrechit_ref.h>
 
-class AMSBetaD;
-#pragma ooclassref AMSBetaD <tbeta_ref.h>
+//class AMSBetaD;
+//#pragma ooclassref AMSBetaD <tbeta_ref.h>
 
-class AMSParticleD;
-#pragma ooclassref AMSParticleD <particleD_ref.h>
+//class AMSParticleD;
+//#pragma ooclassref AMSParticleD <particleD_ref.h>
 
 
 class AMSTrTrackD: public ooObj {
@@ -69,11 +71,10 @@ integer _Position;  //pos from link.h
 public:
 
 // Assosiations
-ooRef(AMSEventD)       pEventT      <-> pTrack[] ;
-//ooRef(AMSTrRecHitD)    pTrRecHitT[] <-> pTrackH[];
+//ooRef(AMSEventD)       pEventT      <-> pTrack[] ;
 ooRef(AMSTrRecHitD)    pTrRecHitT[] : copy(delete);
-ooHandle(AMSBetaD)     pBetaT       <-> pTrackBeta;
-ooHandle(AMSParticleD) pParticleT   <-> pTrackP;
+//ooHandle(AMSBetaD)     pBetaT       <-> pTrackBeta;
+//ooHandle(AMSParticleD) pParticleT   <-> pTrackP;
 
 //constructor 
 
@@ -83,6 +84,8 @@ AMSTrTrackD(AMSTrTrack* p);
 // get methods
 integer getPosition() {return _Position;}
 integer getPattern()  {return _Pattern;}
+integer getnhits()    {return _NHits;}
+
 void    copy(AMSTrTrack* p);
 
 // set methods

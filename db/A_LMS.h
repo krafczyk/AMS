@@ -12,7 +12,7 @@
 // Mar  22, 1997 ak new function dbend()
 //                  add class member setupdbH
 //
-// Last Edit Mar 25, 1997. ak.
+// Last Edit Apr 10, 1997. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -23,8 +23,8 @@
 #include <eventD_ref.h>
 #include <mceventD_ref.h>
 #include <tcluster_ref.h>
-#include <tmccluster_ref.h>
-#include <mctofclusterD_ref.h>
+#include <tmcclusterV_ref.h>
+#include <mctofclusterV_ref.h>
 #include <trrechit_ref.h>
 #include <ttrack_ref.h>
 #include <tofrecD_ref.h>
@@ -44,7 +44,9 @@
 #include <mceventD.h>
 #include <tcluster.h>
 #include <tmccluster.h>
+#include <tmcclusterV.h>
 #include <mctofclusterD.h>
+#include <mctofclusterV.h>
 #include <trrechit.h>
 #include <ttrack.h>
 #include <tofrecD.h>
@@ -75,34 +77,17 @@ private:
 
 	void	       SetCurrentList(char* listName);
 
-        // Menu Methods
-
-        void            DisplayTopMenu();
-        void            DisplayAddMenu();
-        void            DisplayDeleteMenu();
-        void            DisplayFillMenu();
 public:
-        void            AddListPrompts();
-        void            AddEventPrompts(integer N);
-        void            AddGeometryPrompts();
-        void            AddMaterialPrompts();
-        void            AddTMediaPrompts();
-        void            FillEventPrompts(integer N);
-        void            FillGeometryPrompts();
-        void            FillMaterialPrompts();
-        void            FillTMediaPrompts();
-
-        void            DeleteEventPrompts();
         char*           PromptForValue(char* promptString);
-        void            SetCurrentListPrompts();
 
         integer         getNTransStart()  { return _transStart;}
         integer         getNTransCommit() { return _transCommit;}
         integer         getNTransAbort()  { return _transAbort;}
 
 	// Action Methods
-	ooStatus	AddList(char* listName, 
-                                integer flag, ooHandle(AMSEventList)& listH);
+	ooStatus	AddList(char* listName, integer listType,
+                                integer eventType, char* setup,
+                                ooHandle(AMSEventList)& listH);
 	ooStatus	AddEvent(char* listName, integer run, uinteger event,
                                  integer WriteStartEnd, integer eventW);
 	ooStatus	AddGeometry(char* listName);
@@ -116,7 +101,7 @@ public:
 	ooStatus	FillTDV(char* listName);
 
 	ooStatus	DeleteEvent
-                             (char* listName, integer run, uinteger event);
+                              (char* listName, integer run, uinteger event);
 	ooStatus	DeleteSetup(char* setup);
 
         ooStatus        Start(ooMode mode); // start a transaction
@@ -138,8 +123,6 @@ public:
 	LMS(ooMode openMode); 
        ~LMS(); 
 
-	// Session Methods
-	void		Interactive();
 
         //Get Methods
         inline ooHandle(ooDBObj)&    databaseH()   {return _databaseH;}

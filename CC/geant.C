@@ -13,9 +13,7 @@
 //                              ReadStartEnd  =  1 start read transaction
 //                             (WriteStartEnd)= -1 commit read transaction
 //                                            = -2 read/commit
-//           Sep      1996 ak.  AMSFFKEY.Read =  1 read events
-//                              AMSFFKEY.Read = 10 read setup
-//                              V1.25, VArray of numbers
+//           Sep      1996 ak.  V1.25, VArray of numbers
 //                              call AddList at the beginning of the run
 //                              The argument list of AddList is modified
 //                              Count number of transactions
@@ -23,13 +21,13 @@
 //           Oct  02, 1996 ak.  modification in Read and Write cards 
 //                              put AMSFFKey.Read/Write interpretation in 
 //                              uginit, eventR, eventW
-//           Oct  09, 1996 ak.  use CCFFKEY.run  
+//                              use CCFFKEY.run  
 //                              write geometry to dbase before event processing
 //           Feb  14, 1997 ak.  AMSmceventD
 //           Mar  19, 1997 ak.  see db_comm.h about new eventR/eventW
 //                              call dbend from uglast
 //                              eventRtype 
-//  Last Edit: Mar 24, 1997. ak
+//  Last Edit: Mar 27, 1997. ak
 //
 
 #include <typedefs.h>
@@ -65,11 +63,11 @@
 integer trigEvents;               // number of events written to the DBase
 integer notrigEvents;             // ALL events - trigEvents
 integer readEvents;               // events read from the DBase
-integer interactive = 0;          //
 static  integer eventR;           // = AMSFFKEY.Read
 static  integer eventW;           // = AMSFFKEY.Write
 static  integer ReadStartEnd = 1; // Start a transaction
 static  integer eventNu;          // event number to read from DB
+static  integer jobtype;          // AMSJob::jobtype()
 #endif
 
 PROTOCCALLSFSUB0(UGLAST,uglast)
@@ -83,15 +81,11 @@ class AMSEventList;
 implement (ooVArray, geant)   //;
 implement (ooVArray, number)  //;
 implement (ooVArray, integer) //;
+implement (ooVArray, AMSTOFMCClusterD) //;
+implement (ooVArray, AMSTrMCClusterD) //;
 
 LMS	               dbout(oocUpdate);
 
-void lmsStart(integer run, integer event, char* jobname, integer WriteStartEnd)
-{
-  if(!interactive)dbout.AddEvent
-                       (jobname,run,event,WriteStartEnd,eventW);
-  if (interactive) dbout.Interactive();
-}
 #endif
 
 void uhinit(){
@@ -131,7 +125,8 @@ extern "C" void uginit_(){
    ooMode   mrowmode;
    eventR = AMSFFKEY.Read;
    eventW = AMSFFKEY.Write;
-   char* jobname = AMSJob::gethead()->getname();
+   char* jobname = AMSJob::gethead()-> getname();
+         jobtype = AMSJob:: gethead() -> jobtype();
    if (eventW > 0) mode = oocUpdate;
    if (eventW < DBWriteGeom) {
      mode = oocRead;
@@ -357,6 +352,7 @@ extern "C" void guout_(){
      AMSEvent::gethead()->write();
      AMSEvent::gethead()->copy();
    }
+
 #ifdef __DB__
 //+
    if(trig) {
@@ -367,7 +363,7 @@ extern "C" void guout_(){
      integer event = AMSEvent::gethead() -> getEvent();
      integer WriteStartEnd = 0;
      if (trigEvents == 0 && AMSFFKEY.Read < 10)     WriteStartEnd = 1;
-     lmsStart(run, event, jobname, WriteStartEnd);
+     dbout.AddEvent(jobname,run,event,WriteStartEnd,eventW);
      trigEvents++;
     } 
     if (dbg_prtout != 0 && eventW < DBWriteGeom) cout <<
@@ -377,10 +373,10 @@ extern "C" void guout_(){
    }
 //-
 #endif
+
    AMSEvent::gethead()->remove();
    AMSEvent::sethead(0);
    UPool.erase(2000000);
-   //   cout <<" guout out "<<endl; 
 }
 
 extern "C" void gukine_(){
@@ -514,7 +510,7 @@ extern "C" void writeGeomDB(){
       cout <<"            for the job with name "<<jobname<<endl;
       ooHandle(AMSEventList) listH;
       ooStatus rstatus = oocSuccess;
-      rstatus = dbout.AddList(jobname,eventW,listH);
+      rstatus = dbout.AddList(jobname,jobtype,eventW,setup,listH);
       dbout.AddMaterial(jobname);
       dbout.AddTMedia(jobname);
       dbout.AddGeometry(jobname);
@@ -550,7 +546,7 @@ extern "C" void readGeomDB(){
     rstatus = dbout.Commit();
    }
   } else {
-   rstatus = dbout.AddList(jobname,eventW,listH);
+   rstatus = dbout.AddList(jobname,jobtype,eventW,setup,listH);
   }
 
   if ( (AMSFFKEY.Read%2) == 0) {

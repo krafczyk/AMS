@@ -1,11 +1,11 @@
 //
 // July 13, 1996.  ak  Objectivity version
-// July 25, 1996.  ak. Add #pragma
+//                     Add #pragma
 // Aug  22, 1996.  ak. Rearrange the position of members in class
 // Sep  24, 1996.  ak. set one to many assoc, between charge and event
 // Mar   6, 1997.  ak. up to date
 //
-// Last Edit : Oct 10, 1996
+// Last Edit : Apr 9, 1997
 
 #include <typedefs.h>
 #include <charge.h> 
@@ -43,8 +43,8 @@ public:
 // Assosiations
 
   ooHandle(AMSEventD)    pEventCh    <-> pChargeE[];
-  ooHandle(AMSBetaD)     pBetaCh     <-> pChargeB;
   ooHandle(AMSParticleD) pParticleC  <-> pChargeP;
+  ooHandle(AMSBetaD)     pBetaCh     : copy (delete);
 
   void   copy(AMSCharge* p);
 

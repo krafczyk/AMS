@@ -1,62 +1,42 @@
-/* C++ header file: Objectivity/DB DDL version 3.8.1 */
+#ifndef __AMSMCTOFClusterD__
+#define __AMSMCTOFClusterD__
+// Author V. Choutko 24-may-1996
+//
+// July 22, 1996. ak. AMSMCTOFClusterD Objectivity Class
+// Aug  21, 1996. ak. remove TOFMCCluster <-> Event bidirectional link
+//                    rearrange the position of members inside the class
+// Mar   6, 1997. ak. up to date.
+// Apr   1, 1997. ak. no persistence, put all AMSTOFMCClusterD objects in 
+//                    VArray
+// Last Edit : Apr 08, 1997. ak.
+//
 
-#ifndef MCTOFCLUSTER_D_H
-#define MCTOFCLUSTER_D_H
-
-#ifdef OO_DDL_TRANSLATION
-#pragma ooddlout "mctofclusterD.ddl"
-class opiDummyDeclaration;
-#endif
-
-#ifndef OO_H
-#include <oo.h>
-#endif
 #include <typedefs.h>
 #include <point.h>
 #include <mccluster.h>
 
-#ifndef MCTOFCLUSTER_D_REF_H
-#include "mctofclusterD_ref.h"
+class AMSTOFMCClusterD {
+
+public:
+
+ AMSPoint  _xcoo;
+
+ number    _tof;
+ number    _edep;
+
+ integer   _idsoft;
+
+// Constructor
+
+ AMSTOFMCClusterD() {};
+ AMSTOFMCClusterD(AMSTOFMCCluster* p);
+
+// methods
+ void add(AMSTOFMCCluster* p);
+ void copy(AMSTOFMCCluster* p);
+ inline AMSPoint getxcoo() {return _xcoo;}
+ inline number   gettof()  {return _tof;}
+ inline number   getedep() {return _edep;}
+ inline integer  getid()   {return _idsoft;}
+};
 #endif
-
-#line 17 "mctofclusterD.ddl"
-class AMSTOFMCClusterD : public ooObj { 
-
-
-public: class AMSPoint _xcoo; 
-
-integer _idsoft; 
-
-number _tof; 
-number _edep; 
-
-integer _Position; 
-#line 33
-inline AMSTOFMCClusterD() { }
-AMSTOFMCClusterD(class AMSTOFMCCluster *); 
-
-void copy(AMSTOFMCCluster *); 
-
-inline integer getPosition() { return _Position; }
-inline void setPosition(integer pos) { _Position = pos; }
-    virtual ooTypeNumber ooGetTypeN() const;
-    virtual char* ooGetTypeName() const;
-    ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
-    ooHandle(AMSTOFMCClusterD)& ooThis(ooHandle(AMSTOFMCClusterD)& objH,
-			 ooMode aMode = oocNoOpen) const
-      {
-	opiGetObjHandle(ooDysoc(), objH, aMode);
-	return objH;
-      }
-    ooHandle(AMSTOFMCClusterD) ooThis(ooMode aMode = oocNoOpen) const;
-    void* operator new(size_t, const ooHandle(ooObj)& nearH = oovTopDB);
-    void* operator new(size_t, const ooId& nearId);
-    void* operator new(size_t, ooConstCPtr(ooObj) nearObj);
-    static const ooTypeNumber opiTypeN;
-    static void ooAssocRegister();
-    ooRef(AMSTOFMCClusterD)& ooThis(ooRef(AMSTOFMCClusterD)& objId, ooMode aMode = oocNoOpen) const;
-    AMSTOFMCClusterD(ooInternalObj iobj);
-#line 41 "mctofclusterD.ddl"
-}; 
-
-#endif /* !defined(MCTOFCLUSTER_D_H) */
