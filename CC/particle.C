@@ -425,10 +425,13 @@ void AMSParticle::refit(){
       if(_ErrMomentum>FLT_MAX)_ErrMomentum=FLT_MAX;
       integer oldpart=_GPart;
       pid();
+#ifdef __AMSDEBUG__
       if(_GPart != oldpart){ 
+
         cout <<"AMSParticle::refit-W-ParticleIdChanged: was "<<oldpart <<" "<<
         " now "<<_GPart<<endl; 
       }
+#endif
      }
     }
    }
