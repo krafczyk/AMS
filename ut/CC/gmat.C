@@ -116,10 +116,10 @@ z[0]=14.; z[1]=8.;  z[2]=1.;
 w[0]=1.;  w[1]=4.;  w[2]=4.;
 mat.add (new AMSgmat( 32,"SIAEROGEL",a,z,w,3, 0.24));
 //
-// Si-aerogel(SiO(CH3)3) for CTC-MEW :
+// Si-aerogel(SiO2(CH3)3) for CTC-MEW :
 a[0]=28.; a[1]=16.; a[2]=12.; a[3]=1.;
 z[0]=14.; z[1]=8.;  z[2]=6.; z[3]=1.;
-w[0]=1.;  w[1]=1.;  w[2]=3.; w[3]=9.;
+w[0]=1.;  w[1]=2.;  w[2]=3.; w[3]=9.;
 mat.add (new AMSgmat( 33,"MEWAEROGEL",a,z,w,4, 0.125));
 
 
