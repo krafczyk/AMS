@@ -1334,7 +1334,7 @@ char   *ids_names[]  = {"Length (words) GenBlock    ",
     HBOOK1(300000,"Length (words) event",300,0.,1500.,0.);
     HBOOK1(300001,"Length (words) TOF",200,0.,600.,0.);
     HBOOK1(300002,"Length (words) Tracker",300,0.,1500.,0.);
-    HBOOK1(300003,"Time Difference(msec)",500,-0.02,40.-0.02,0);
+    HBOOK1(300003,"Time Difference(msec)",500,-0.02,80.-0.02,0);
 }
 
 void AMSJob::_retrdinitjob(){
