@@ -62,8 +62,8 @@ void AMSTrRawCluster::extend(integer nleft,integer nright,geant *p){
        id.upd(i);
        //       cout << " construction of array "<<id.getlayer()<<" "<<id.getside()<<
        //       " "<<i<<" "<<*(p+i)<<endl;
-       *(_last->array+i+1-nleft)=id.getgain()*(*(p+i)+id.getsig()*rnormx())+
-        id.getcmnnoise()+id.getped()+0.5;
+       *(_last->array+i+1-nleft)=(integer)(id.getgain()*(*(p+i)+id.getsig()*rnormx())+
+        id.getcmnnoise()+id.getped()+0.5);
       if(*(_last->array+i+1-nleft)> TRMCFFKEY.adcoverflow)
       *(_last->array+i+1-nleft)=TRMCFFKEY.adcoverflow;
       if(*(_last->array+i-nleft)<0)*(_last->array+i-nleft)=0;

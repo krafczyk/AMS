@@ -216,17 +216,18 @@ extern "C" void gustep_(){
       if(iprt==iprto && numv==numvo && de!=0.){// same part. in the same volume
         dtr2=(x-xpr)*(x-xpr)+(y-ypr)*(y-ypr);
         if(dtr2>trcut2){// too big transv. shift: subdivide step
-          nd=sqrt(dtr2/trcut2);
+          nd=(integer)sqrt(dtr2/trcut2);
           nd+=1;
+	  geant vect[3],destep; 
           for(i=1;i<=nd;i++){//loop over subdivisions
             div=geant(i)/geant(nd);
-            GCTRAK.vect[0]=xpr+(x-xpr)*div;
-            GCTRAK.vect[1]=ypr+(y-ypr)*div;
-            GCTRAK.vect[2]=zpr+(z-zpr)*div;
+            vect[0]=xpr+(x-xpr)*div;
+            vect[1]=ypr+(y-ypr)*div;
+            vect[2]=zpr+(z-zpr)*div;
             GCTRAK.destep=de/geant(nd);
             tof=tpr+(t-tpr)*div;
             GBIRK(dee);
-            AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof);
+            AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
           }
         }
         else{
