@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.80 2004/10/28 07:50:12 choutko Exp $
+# $Id: Monitor.pm,v 1.81 2004/11/08 17:25:29 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -587,28 +587,48 @@ sub getdbok{
       push @text ,0;
   }
     push @output, [@text];
-     $#text=-1;
-    push @text, $Monitor::Singleton->{rn}->{fs};
-    push @text, int $Monitor::Singleton->{rn}->{dbtotal};
-    push @text, int $Monitor::Singleton->{rn}->{dbfree};
-    push @text, int $Monitor::Singleton->{rn}->{dbfree}/$Monitor::Singleton->{rn}->{dbtotal}*100;
-    if($text[1]<0 or $text[2]<0 or $text[2]<2000){
-      push @text ,1;
-  }elsif($text[2]<1000){
-      push @text ,2;
-  }else{
-      push @text ,0;
-  }
-    push @output, [@text];
+#     $#text=-1;
+#    push @text, $Monitor::Singleton->{rn}->{fs};
+#    push @text, int $Monitor::Singleton->{rn}->{dbtotal};
+#    push @text, int $Monitor::Singleton->{rn}->{dbfree};
+#    push @text, int $Monitor::Singleton->{rn}->{dbfree}/$Monitor::Singleton->{rn}->{dbtotal}*100;
+#    if($text[1]<0 or $text[2]<0 or $text[2]<2000){
+#      push @text ,1;
+#  }elsif($text[2]<1000){
+#      push @text ,2;
+#  }else{
+#      push @text ,0;
+#  }
+#    push @output, [@text];
     my $i;
-    for $i (0 ... $#{$Monitor::Singleton->{dsti}}){
+    my %fst;
+    my %fsf;
+     sub prioi{ $a->{Insert} <=> $b->{Insert};}
+     my @sortedrtb=sort prioi @{$Monitor::Singleton->{dsts}};
+    for $i (0 ... $#sortedrtb){
+     my $hash=$sortedrtb[$i];
+     my $tring=$hash->{Name};
+     my @spar= split /\//,$tring;
+     my $string;
+     if($spar[1]=~/^f/){
+      $string="/".$spar[1];
+#      warn "  $tring $hash->{TotalSpace}; \n"
+  }
+     else{
+      $string=$spar[0]."/".$spar[1];
+ }
+     $fsf{$string}=$hash->{FreeSpace};
+     $fst{$string}=$hash->{TotalSpace};
+#     warn "  string in crt $string $hash->{Version} $hash->{TotalSpace}\n";
+    }
+    foreach my $string (sort keys %fst){
      $#text=-1;
-     my $hash=$Monitor::Singleton->{dsti}[$i];
-     my $string=$hash->{HostName}.":".$hash->{OutputDirPath};
+     
+#     warn "  string in rd $string \n";
     push @text, $string;
-    push @text, int $hash->{TotalSpace}/1024;           
-    push @text, int $hash->{FreeSpace}/1024;           
-    push @text, int $hash->{FreeSpace}/$hash->{TotalSpace}*100;           
+    push @text, int $fst{$string}/1024;           
+    push @text, int $fsf{$string}/1024;           
+    push @text, int $fsf{$string}/($fst{$string}+2)*100;           
     if($text[1]<0 or $text[2]<0 or $text[2]<2000){
       push @text ,1;
   }elsif($text[2]<1000){
@@ -1945,7 +1965,7 @@ foreach my $file (@allfiles){
     if($file=~/\.journal$/){
         my @junk=split '\.', $file;
         my $run=int($junk[0]);
-        if($run>1100 && $run<12000){
+        if($run>1218 && $run<12000){
             my $full=$joudir.$file;
             open(FILE,"<".$full) or die "Unable to open journal file $full \n";
             my $buf;
@@ -2130,12 +2150,12 @@ FoundRun:
            last;
          }
      }
-
+return
 opendir THISDIR ,$dir or die "unable to open $dir";
 @allfiles= readdir THISDIR;
 closedir THISDIR;
 
-for my $run (1167...100000){
+for my $run (1220...100000){
 foreach my $file (@allfiles){
     if ($file =~/^cern\.$run/){
                my %rdst; 
