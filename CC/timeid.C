@@ -110,9 +110,9 @@ integer AMSTimeID::CopyOut(void *pdata){
 
 integer AMSTimeID::validate(time_t & Time, integer reenter){
 AMSgObj::BookTimer.start("TDV");
-read(AMSDATADIR.amsdatabase,reenter);
+int ok=read(AMSDATADIR.amsdatabase,reenter);
 if (Time >= _Begin && Time <= _End){
-  if(_CRC == _CalcCRC()){
+  if(ok==-1 || _CRC == _CalcCRC()){
      AMSgObj::BookTimer.stop("TDV");
      return 1;
   }
@@ -120,8 +120,8 @@ if (Time >= _Begin && Time <= _End){
       cerr<<"AMSTimeID::validate-S-CRC Error "<<getname()<<" Old CRC "
       <<_CRC<<" New CRC "   <<_CalcCRC()<<endl;
   }
-  AMSgObj::BookTimer.stop("TDV");
   if(!reenter)validate(Time,1);
+  AMSgObj::BookTimer.stop("TDV");
   return 0;
 }
 }
@@ -211,9 +211,9 @@ integer AMSTimeID::read(char * dir, integer reenter){
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
-    fnam+=getname();
-    fnam+= getid()==0?".0":".1";
     if(run>0 && !reenter){
+     fnam+=getname();
+     fnam+= getid()==0?".0":".1";
      char name[255];
      ostrstream ost(name,sizeof(name));
      ost << "."<<run<<ends;
@@ -221,9 +221,11 @@ integer AMSTimeID::read(char * dir, integer reenter){
     }
 
     else if(run==0 || reenter){
+      fnam+=getname();
+      fnam+= getid()==0?".0":".1";
       cout <<"AMSTimeID::read-W-Default value for TDV "<<getname()<<" will be used."<<endl;
     }
-    else return 0;
+    else return -1;
     fbin.open((const char *)fnam,ios::in|binary);
     if(fbin){
 

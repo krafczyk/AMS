@@ -51,8 +51,8 @@ AMSNodeMap AMSEvent::EventMap;
 integer AMSEvent::SRun=0;
 void AMSEvent::_init(){
   // check old run & 
-  if(_run != SRun){
    _validate();
+  if(_run != SRun){
    cout <<" AMS-I-New Run "<<_run<<endl;
    DAQEvent::initO(_run);
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
@@ -79,7 +79,7 @@ void AMSEvent::_init(){
 
 
   if(_run != SRun){
-    if (AMSFFKEY.Update){
+    if (AMSFFKEY.Update && !AMSJob::gethead()->isCalibration()){
      AMSTimeID * offspring = 
      (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
      while(offspring){
