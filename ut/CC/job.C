@@ -624,7 +624,7 @@ void AMSJob::_siantidata(){
 //================================================================================
 
 void AMSJob::_sitrddata(){
-TRDMCFFKEY.mode=0;
+TRDMCFFKEY.mode=-1;
 TRDMCFFKEY.g3trd=123654;
 TRDMCFFKEY.cor=0.68;
 TRDMCFFKEY.alpha=0;
@@ -1239,6 +1239,12 @@ for(i=159;i>=0;i--){
   if(strlen(AMSDATADIR.fname)<=1)strcpy(AMSDATADIR.fname,"fld97int.txt");
 }
 
+
+if(TRDMCFFKEY.mode<0){
+ if(!strstr(getsetup(),"AMSSHUTTLE")){
+    TRDMCFFKEY.mode=-TRDMCFFKEY.mode;
+ }
+}
 
 // check delta etc
 if(TRMCFFKEY.gammaA[0]<0){

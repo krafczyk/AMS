@@ -790,9 +790,22 @@ CDECK  ID>, ABSIEL.
        call ucopy(u(1),pmom_p(1),3)
        end
 CDECK  ID>, ABSIIN. 
-       subroutine absiin
+       subroutine absiin(p_p,p_t,i_p,i_t)
+*   
+*        p_p(5)   u,v,w,p,m   
+*        p_t(5)   u,v,w,p,m   
+*        i_p      geant id p
+*        i_t      geant id t
+
 *
-* should be replaced by FRITIOF 7.0 or HIC-3.
+*   call to rqmd
+*
+
+
+*
+*   fill geant secondary common
+*
+
 *
        end
 
@@ -1442,10 +1455,35 @@ c         write(*,*)iqi,(sela+sqel)/fsig
 c           goto 888
             call abinelset(vect,ipart)
             if(ihvse(2).eq.1)then
-            ISTOP = 1
-            DESTEP = DESTEP + GETOT
+             ISTOP = 1
+             DESTEP = DESTEP + GETOT
+            else if(ihvse(2).eq.0)then
+             GO TO 110
+            else
+*
+* here inelastic kinematics will play
+*
+         IF(NCOMP.LE.1) THEN
+            pmom_t(5)=amm*xm_proton
+            zmed=z
+         ELSE
+            CALL GRNDM(RNDMm,1)
+            RCONT=qeXNOR*RNDM(dd)
+            DO   I=1,NCOMP
+               IF(RCONT.LE.ABqeX(I)) GO TO 501
+            enddo
+            I=NCOMP
+ 501        CONTINUE
+            zmed=Q(JMIXT+NCOMP+i)
+            pmom_t(5)=q(jmixt+i)*xm_proton
+         END IF
+            igepar=IAFPAR(zmed)
+             pmom_t(1)=0  
+             pmom_t(2)=0  
+             pmom_t(3)=0  
+             pmom_t(4)=0
+            call absiin(pmom_p,pmom_t,ipart,igepar)
             endif
-            GO TO 110
       endif
    80 IF(INT.Eq.1.or.int.eq.2)then
          VECT(4)=pmom_p(1)
@@ -5760,7 +5798,7 @@ CDECK  ID>, TKFINI.
            ialg=1
            iver=0
            ini=1
-           nitm=100
+           nitm=1000
            maxcal=8
            smax=50.
            fieldmm=20.

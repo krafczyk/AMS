@@ -684,7 +684,10 @@ I2 HISA(0)              // additional switch hisw dependent
 
 
 TRDMC
-I1 mode        //0: saveliev 1: saveliev+Pai 2: garibyan + Pai 
+I1 mode(1)        //0: saveliev-GenerTransportIoniz
+                  //1: saveliev-GenerTransport  pai-Ioniz
+                  //2: saveliev-Gener pai-TransportIoniz
+                  //3: gaibyan-Gener pai-TransportIoniz
 I2 g3trd        // g3identifier for trd aware media
 R3 cor
 R4 alpha
