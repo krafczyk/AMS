@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.367 2001/05/01 09:59:59 choumilo Exp $
+// $Id: job.C,v 1.368 2001/05/02 15:53:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -886,9 +886,26 @@ TRDMCFFKEY.f2i=8;
 TRDMCFFKEY.adcoverflow=4095;
 TRDMCFFKEY.ped=500;
 TRDMCFFKEY.sigma=6;
+TRDMCFFKEY.cmn=15;
 TRDMCFFKEY.NoiseOn=1;
 TRDMCFFKEY.GeV2ADC=1.e8;
 TRDMCFFKEY.Thr1R=3.5;
+TRDMCFFKEY.sec[0]=0;
+TRDMCFFKEY.sec[1]=0;
+TRDMCFFKEY.min[0]=0;
+TRDMCFFKEY.min[1]=0;
+TRDMCFFKEY.hour[0]=0;
+TRDMCFFKEY.hour[1]=0;
+TRDMCFFKEY.day[0]=1;
+TRDMCFFKEY.day[1]=1;
+TRDMCFFKEY.mon[0]=0;
+TRDMCFFKEY.mon[1]=0;
+TRDMCFFKEY.year[0]=101;
+TRDMCFFKEY.year[1]=108;
+TRDMCFFKEY.GenerateConst=0;
+TRDMCFFKEY.NoiseLevel=0.01;
+TRDMCFFKEY.DeadLevel=0.015;
+
 FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -1543,6 +1560,7 @@ else{
   }
 
   TKDBc::init();
+  TRDDBc::init();
 {
 int len=cl-1;
 
@@ -1628,12 +1646,13 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::inittable(2);
     }
     else {
-      cerr<<"AMSJob::_retkinitjob-E-NoAMSTrIdSoftTable exists for setup "<<
+      cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
         getsetup()<< "yet "<<endl;
         exit(1);
     }
        AMSTrIdSoft::init();
 
+       AMSTRDIdSoft::init();
 
 
       // TraligGlobalFit
@@ -1925,6 +1944,38 @@ void AMSJob::_sictcinitjob(){
 }
 
 void AMSJob::_sitrdinitjob(){
+
+  if(TRDMCFFKEY.GenerateConst){
+      HBOOK1(8001,"trd ped",1000,0.,1000.,0.);
+      HBOOK1(8002,"trd sig",1000,0.,50.,0.);
+      HBOOK1(8003,"trd gain",1000,0.,2.,0.);
+       for (int i=0;i<TRDDBc::LayersNo(0);i++){
+         for (int j=0;j<TRDDBc::LaddersNo(0,i);j++){
+           for (int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
+             geant d;
+             AMSTRDIdSoft id(i,j,k);
+             id.setped()=TRDMCFFKEY.ped*(0.75+0.5*RNDM(d));
+             id.clearstatus(~0);
+             id.setsig()=TRDMCFFKEY.sigma*(0.9+0.2*RNDM(d));
+             if(RNDM(d)<TRDMCFFKEY.NoiseLevel){
+              id.setsig()=id.getsig()*10;
+             }
+             id.setgain()=TRDMCFFKEY.gain*(0.9+0.2*RNDM(d));
+             if(RNDM(d)<TRDMCFFKEY.DeadLevel){
+              id.setgain()=id.getgain()*0.1;
+              id.setstatus(AMSDBc::BAD);
+             }
+             HF1(8001,id.getped(),1.);
+             HF1(8002,id.getsig(),1.);
+             HF1(8003,id.getgain(),1.);
+//
+//  common noise not yet defined
+//             id.setcmnnoise()=TRDMCFFKEY.cmn*(0.5+RNDM(d));
+           }
+         }
+       }
+    }
+    else TRDMCFFKEY.year[1]=TRDMCFFKEY.year[0]-1;
 
  AMSTRDMCCluster::init();
  AMSgObj::BookTimer.book("SITRDDigi");
@@ -2352,7 +2403,6 @@ if (AMSJob::gethead()->isMonitoring()) {
 
 void AMSJob::_retrdinitjob(){
 AMSgObj::BookTimer.book("RETRDEVENT"); 
-       AMSTRDIdSoft::init();
 }
 void AMSJob::_resrdinitjob(){
 AMSgObj::BookTimer.book("RESRDEVENT"); 
@@ -2531,6 +2581,48 @@ end.tm_year=TRMCFFKEY.year[1];
 
 
 
+//----------------------------
+//
+// Pedestals, Gains,  Sigmas & commons noise for trd
+//      
+
+    if(!strstr(getsetup(),"AMSSHUTTLE") ){    
+{
+tm begin;
+tm end;
+begin.tm_isdst=0;
+end.tm_isdst=0;
+begin.tm_sec=TRDMCFFKEY.sec[0];
+begin.tm_min=TRDMCFFKEY.min[0];
+begin.tm_hour=TRDMCFFKEY.hour[0];
+begin.tm_mday=TRDMCFFKEY.day[0];
+begin.tm_mon=TRDMCFFKEY.mon[0];
+begin.tm_year=TRDMCFFKEY.year[0];
+
+end.tm_sec=TRDMCFFKEY.sec[1];
+end.tm_min=TRDMCFFKEY.min[1];
+end.tm_hour=TRDMCFFKEY.hour[1];
+end.tm_mday=TRDMCFFKEY.day[1];
+end.tm_mon=TRDMCFFKEY.mon[1];
+end.tm_year=TRDMCFFKEY.year[1];
+ TID.add (new AMSTimeID(AMSID("TRDPedestals",isRealData()),
+    begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::NROCh(),
+    (void*)AMSTRDIdSoft::_ped,server));
+ TID.add (new AMSTimeID(AMSID("TRDGains",isRealData()),
+    begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::NROCh(),
+    (void*)AMSTRDIdSoft::_gain,server));
+ TID.add (new AMSTimeID(AMSID("TRDSigmas",isRealData()),
+    begin,end,sizeof(AMSTRDIdSoft::_sig[0])*AMSTRDIdSoft::NROCh(),
+    (void*)AMSTRDIdSoft::_sig,server));
+ TID.add (new AMSTimeID(AMSID("TRDStatus",isRealData()),
+    begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::NROCh(),
+    (void*)AMSTRDIdSoft::_status,server));
+}
+
+
+}
+
+
 
 //---------------------------------------
 //
@@ -2703,6 +2795,7 @@ end.tm_year=TRMCFFKEY.year[1];
  }
 }
 //
+    if(strstr(getsetup(),"AMSSHUTTLE") ){    
 //-----------------------------------------
 //
 //   CTC : calibration parameters for all combinations
@@ -2730,6 +2823,7 @@ end.tm_year=CTCRECFFKEY.year[1];
 TID.add (new AMSTimeID(AMSID("CTCccal",isRealData()),
    begin,end,CTCCCMX*sizeof(ctcfcal[0]),
    (void*)&ctcfcal[0],server));
+}
 }
 //---------------------------------------
 //

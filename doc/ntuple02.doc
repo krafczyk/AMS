@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.8 2001/04/27 21:50:33 choutko Exp $
+#  $Id: ntuple02.doc,v 1.9 2001/05/02 15:53:45 choutko Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -413,20 +413,21 @@ This is AMS02 Ntuple Description
  * I*4  *          * TRDCLU   * ptrdrht(ntrdcl)       // pointer to max trdrht
  * I*4  *          * TRDSEG   * ntrdseg
  * I*4  *          * TRDSEG   * trdsegstatus(ntrdseg)
- * U*4  *          * TRDSEG   * trdsegor(ntrdseg)
- * R*4  *          * TRDSEG   * trdsegfpar(2,ntrdseg)
- * R*4  *          * TRDSEG   * trdsegchi2(ntrdseg)
- * U*4  *          * TRDSEG   * trdsegpat(ntrdseg)
- * U*4  *          * TRDSEG   * trdsegnh(ntrdseg)
- * I*4  *          * TRDSEG   * trdsegpcl(12,ntrdseg)
- * I*4  *          * TRDTRK   * ntrdtrk
- * I*4  *          * TRDTRK   * trdtrkstatus(ntrdtrk)
- * R*4  *          * TRDTRK   * trdtrkcoo(3,ntrdtrk)
- * R*4  *          * TRDTRK   * trdtrkercoo(3,ntrdtrk)
- * R*4  *          * TRDTRK   * trdtrkphi(ntrdtrk)
- * R*4  *          * TRDTRK   * trdtrktheta(ntrdtrk)
- * R*4  *          * TRDTRK   * trdtrkchi2(ntrdtrk)
- * I*4  *          * TRDTRK   * trdtrkps(ntrdtrk)
+ * U*4  *          * TRDSEG   * trdsegor(ntrdseg)     // segment orientation
+                                                         0-1 (x-y)
+ * R*4  *          * TRDSEG   * trdsegfpar(2,ntrdseg) // str line fit par 
+ * R*4  *          * TRDSEG   * trdsegchi2(ntrdseg)   // -------   chi2
+ * U*4  *          * TRDSEG   * trdsegpat(ntrdseg)    // segment pattern no
+ * U*4  *          * TRDSEG   * trdsegnh(ntrdseg)     // number of hists
+ * I*4  *          * TRDSEG   * trdsegpcl(12,ntrdseg) // pointers to hits
+ * I*4  *          * TRDTRK   * ntrdtrk               
+ * I*4  *          * TRDTRK   * trdtrkstatus(ntrdtrk) 
+ * R*4  *          * TRDTRK   * trdtrkcoo(3,ntrdtrk)  // track x,y,z par
+ * R*4  *          * TRDTRK   * trdtrkercoo(3,ntrdtrk)// err to x,y,z
+ * R*4  *          * TRDTRK   * trdtrkphi(ntrdtrk)    // phi 
+ * R*4  *          * TRDTRK   * trdtrktheta(ntrdtrk)  //theta
+ * R*4  *          * TRDTRK   * trdtrkchi2(ntrdtrk)   //chi2
+ * I*4  *          * TRDTRK   * trdtrkps(ntrdtrk)    // pointer to segments
 
 ---------------------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.91 2001/04/27 21:49:59 choutko Exp $
+//  $Id: particle.C,v 1.92 2001/05/02 15:53:41 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -287,7 +287,29 @@ number theta, phi, sleng;
    AMSPoint tmp;
    _ptrack->interpolate(coo,dir,tmp,theta,phi,sleng);
    number d2=(coo-tmp).norm();
-   if(d2<5*ptr->getECooStr().norm()){
+   AMSPoint error=ptr->getECooStr();
+   number d3;
+   if(_ptrack->checkstatus(AMSDBc::NOTRACK)){
+     integer ntof;
+     if(_pbeta->getpattern()==0){
+      ntof=4;
+     }
+     else if(_pbeta->getpattern()<5){
+      ntof=3;
+     }
+     else {
+      ntof=2;
+      }
+     AMSPoint tofe(0,0,0);
+     for(int kk=0;kk<ntof;kk++){
+      AMSTOFCluster* pcl=_pbeta->getpcluster(kk);
+      tofe=tofe+pcl->getecoo();
+     }
+     tofe=tofe/ntof;
+     d3=5*sqrt(error.prod(error)+tofe.prod(tofe)); 
+    }
+     else d3=5*error.norm();
+   if(d2<d3){
     if(d2<dist){
      dist=d2;
      _TRDCoo=tmp;

@@ -19,7 +19,7 @@ integer AMSTRDCluster::build(int rerun){
        integer ilay=id.getlayer();
        integer ilad=id.getladder();
        if(ptr->testlast()){
-        adc[ptr->getidsoft().gettube()]=ptr->Amp();
+        adc[ptr->getidsoft().gettube()]=ptr->Amp()/id.getgain();
         number ref=-FLT_MAX;
         int status=0;
         for(int i=0;i<trdconst::maxtube;i++){
@@ -767,14 +767,21 @@ void AMSTRDTrack::alfun(integer &n, number xc[], number &fc, AMSTRDTrack *p){
   AMSPoint sp(xc[0],xc[1],xc[2]);
   for (int i=0;i<p->_Base._NHits;i++){
    AMSPoint dc=sp-p->_Base._PCluster[i]->getCoo();
-   AMSPoint di=sdir.crossp(dc);
-   AMSPoint alpha=sdir.crossp(p->_Base._PCluster[i]->getCooDir());
-   AMSPoint beta= sdir.crossp(dc);
-   number t=alpha.prod(beta)/alpha.prod(alpha);
-   AMSPoint dct=dc-p->_Base._PCluster[i]->getCooDir()*t;
-   AMSPoint alphat=sdir.crossp(dct);
-   fc+=alphat.prod(alphat)/p->_Base._PCluster[i]->getEHit()/p->_Base._PCluster[i]->getEHit();
+   AMSDir gamma=sdir.cross(p->_Base._PCluster[i]->getCooDir());
+    number d;
+    if(gamma.norm()!=0){
+     d=dc.prod(gamma);
+    }
+    else{
+      AMSPoint beta= sdir.crossp(dc);
+      d=beta.norm();
+    }
+   fc+=d*d/p->_Base._PCluster[i]->getEHit()/p->_Base._PCluster[i]->getEHit();
    if(p->_update){
+    AMSPoint di=sdir.crossp(dc);
+    AMSPoint alpha=sdir.crossp(p->_Base._PCluster[i]->getCooDir());
+    AMSPoint beta= sdir.crossp(dc);
+    number t=alpha.prod(beta)/alpha.prod(alpha);
      p->_Base._Hit[i]=(p->_Base._PCluster[i]->getCoo()+p->_Base._PCluster[i]->getCooDir()*t);
      p->_Base._EHit[i]=AMSPoint(p->_Base._PCluster[i]->getEHit(),p->_Base._PCluster[i]->getEHit(),p->_Base._PCluster[i]->getEHit());
    }

@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.4 2001/04/27 21:49:59 choutko Exp $
+//  $Id: trdid.C,v 1.5 2001/05/02 15:53:41 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -65,6 +65,7 @@ AMSTRDIdSoft::AMSTRDIdSoft(const AMSTRDIdGeom & s){
 _layer=s._layer;
 _ladder=s._ladder;
 _tube=s._tube;
+_address=cmpta();
 #ifdef __AMSDEBUG__
 _check();
 #endif
@@ -76,7 +77,7 @@ return maxtube*maxlad*_layer+maxtube*_ladder+_tube+1;
 }
 
 uinteger AMSTRDIdSoft::cmpta() const{
-return maxtube*maxlad*_layer+maxlad*_ladder;
+return maxtube*maxlad*_layer+maxtube*_ladder;
 }
 
 
@@ -90,7 +91,12 @@ for ( int i=0;i<TRDDBc::TRDOctagonNo();i++){
           }
       }
 }
-cout <<"AMSTRDIdSoft::init()-I-"<<_NROCh<<" readout channels initialized"<<endl;
+int size=maxtube*maxlad*maxlay+maxtube*maxlad+maxtube;
+_ped=new geant[size];
+_sig=new geant[size];
+_gain=new geant[size];
+_status=new uinteger[size];
+cout <<"AMSTRDIdSoft::init()-I-"<<_NROCh<<"/"<<size<<" readout channels initialized"<<endl;
 }
 
 
@@ -106,3 +112,21 @@ void AMSTRDIdSoft::_check(){
 }
 
 
+geant * AMSTRDIdSoft::_gain=0;
+geant * AMSTRDIdSoft::_ped=0;
+uinteger * AMSTRDIdSoft::_status=0;
+geant * AMSTRDIdSoft::_sig=0;
+
+
+uinteger AMSTRDIdSoft::CalcBadCh(uinteger crateno){
+uinteger badch=0;
+for (int i=0;i<TRDDBc::LayersNo(0);i++){
+  for(int j=0;j<TRDDBc::LaddersNo(0,i);j++){
+    for(int k=0;k<TRDDBc::TubesNo(0,i,j);k++){
+    AMSTRDIdSoft id(i,j,k);
+    if(id.getcrate()==crateno && id.checkstatus(AMSDBc::BAD))badch++;
+    }
+  }
+}
+return badch;
+}

@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.16 2001/04/27 21:49:59 choutko Exp $
+//  $Id: trddbc.C,v 1.17 2001/05/02 15:53:41 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -905,15 +905,15 @@ void TRDDBc::init(){
  integer * TRDDBc::_patallow2;
  uinteger TRDDBc::_Npat=0;
 
+ uinteger TRDDBc::_Nseg=4;
+ uinteger TRDDBc::_NlayH[trdconst::maxseg]={4,6,6,4,0};
+ integer  TRDDBc::_oriseg[trdconst::maxseg]={0,1,1,0,0};
  integer  TRDDBc::_segconf[trdconst::maxseg][trdconst::maxhits]={
   1, 2, 3, 4, 0,0,0,0,0,0,0,0,
   5, 6, 7, 8, 9,10,0,0,0,0,0,0,
  11,12,13,14,15,16,0,0,0,0,0,0,
  17,18,19,20,0,0,0,0,0,0,0,0
 };
- integer  TRDDBc::_oriseg[trdconst::maxseg]={0,1,0.0,0};
- uinteger TRDDBc::_Nseg=4;
- uinteger TRDDBc::_NlayH[trdconst::maxseg]={4,6,6,4,0};
 
 /*
  uinteger TRDDBc::_Nseg=3;
@@ -923,9 +923,17 @@ void TRDDBc::init(){
   5, 6, 7, 8, 9,10,11,12,13,14,15,16,
  17,18,19,20,0,0,0,0,0,0,0,0
 };
- integer  TRDDBc::_oriseg[trdconst::maxseg]={0,1,1,0,0};
+ integer  TRDDBc::_oriseg[trdconst::maxseg]={0,1,0,0,0};
 */
-
+/*
+ uinteger TRDDBc::_Nseg=2;
+ uinteger TRDDBc::_NlayH[trdconst::maxseg]={8,12,0,0,0};
+ integer  TRDDBc::_segconf[trdconst::maxseg][trdconst::maxhits]={
+  1, 2, 3, 4, 17,18,19,20,0,0,0,0,
+  5, 6, 7, 8, 9,10,11,12,13,14,15,16
+};
+ integer  TRDDBc::_oriseg[trdconst::maxseg]={0,1,0,0,0};
+*/
 
  integer  TRDDBc::_segpoints[trdconst::maxseg];
 
@@ -1347,7 +1355,7 @@ else if (nlayS()==trdconst::maxseg-1){
         }
 }
 }
-else{
+else if (nlayS()==trdconst::maxseg-2){
       for(int cpat=0;cpat<npatS();cpat++){
          if(_patpointsS[cpat]==2){
           for (int k=0;k<_patpointsS[cpat];k++){
@@ -1362,6 +1370,13 @@ else{
           }
         }
 }
+}
+else{
+      for(int cpat=0;cpat<npatS();cpat++){
+         if(_patpointsS[cpat]==2){
+             _patallowS[cpat]=1;
+        }
+      }
 }
        int allow=0;
        int allow2=0;
@@ -1578,7 +1593,6 @@ for(int iseg=0;iseg<nlayS();iseg++){
 }
 void TRDDBc::read(){
 
-init();
 
 }
 

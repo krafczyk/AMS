@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.3 2001/04/27 21:50:33 choutko Exp $
+//  $Id: trdid.h,v 1.4 2001/05/02 15:53:45 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include <typedefs.h>
@@ -51,15 +51,22 @@ class AMSTRDIdSoft{
 uinteger _layer;    // from 0 to TRDDBc::LayersNo(_octagon)-1
 uinteger _ladder;   // from 0 to TRDDBc::LaddersNo(_octagon,_layer)-1
 uinteger _tube;   // from 0 to TRDDBc::TubesNo(_octagon,_layer,_ladder)-1
+uinteger _address; // aux address (== cmpta)
 void _check();
+static geant *_ped;
+static geant *_sig;
+static geant *_gain;
+static uinteger *_status;
+static integer _NROCh;
 public:
 friend ostream &operator << (ostream &o, const  AMSTRDIdSoft &b )
    {return o<<" lay "<<b._layer<<" lad "<<b._ladder<<" tube "<<b._tube<<endl;}
-AMSTRDIdSoft():_layer(0),_ladder(0),_tube(0){};
+AMSTRDIdSoft():_layer(0),_ladder(0),_tube(0),_address(0){};
 ~AMSTRDIdSoft(){};
-static uinteger ncrates() {return 1;}
+
 AMSTRDIdSoft(integer layer,integer ladder,integer tube):
 _layer(layer),_ladder(ladder),_tube(tube){
+_address=cmpta();
 #ifdef __AMSDEBUG__
 _check();
 #endif
@@ -71,28 +78,42 @@ void upd(uinteger tubeno){
 assert(tubeno<maxtube);
 #endif
 _tube=tubeno;
-
 }
+
+static uinteger ncrates() {return 1;}
+uinteger getcrate(){return 0;}
+
+
+geant & setped()  {return _ped[_address+_tube];}
+geant & setsig()  {return _sig[_address+_tube];}
+geant & setgain()  {return _gain[_address+_tube];}
+void  setstatus(integer changer)  
+{_status[_address+_tube]=_status[_address+_tube] | changer;}
+void  clearstatus(integer changer)  
+{_status[_address+_tube]=_status[_address+_tube] & ~changer;}
+integer checkstatus(integer checker) const 
+{return _status[_address+_tube] & checker;}
+
+
 inline uinteger getlayer() const {return _layer;}
 inline uinteger getladder()const {return _ladder;}
 inline uinteger gettube()const {return _tube;}
+
 // Have to be changed in the future
-geant getped(){return TRDMCFFKEY.ped;}
-geant getsig(){return TRDMCFFKEY.sigma;}
-geant getgain(){return TRDMCFFKEY.gain;}
-integer checkstatus(integer checker) const 
-{return 0 & checker;}
+geant getped(){return _ped[_address+_tube];}
+geant getsig(){return _sig[_address+_tube];}
+geant getgain(){return _gain[_address+_tube];}
 static integer overflow(){return TRDMCFFKEY.adcoverflow;}
-uinteger getcrate(){return 0;}
 //
-static integer _NROCh;
 static integer NROCh(){return _NROCh;}
 uinteger cmpt() const;
 uinteger cmpta() const;
 static void init();
+static void inittable();
 friend class AMSTRDIdGeom;
+friend class AMSJob;
 AMSTRDIdSoft(const  AMSTRDIdGeom & o);
-
+static uinteger CalcBadCh(uinteger crate);
 };
 
 

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.154 2001/04/27 21:50:33 choutko Exp $
+//  $Id: commons.h,v 1.155 2001/05/02 15:53:45 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -203,11 +203,21 @@ float beta;    //  garibyan par
 geant ped;     
 geant sigma;
 geant gain;
+geant cmn;
 int   f2i;
 integer adcoverflow;
 integer NoiseOn;
 float GeV2ADC;
 float Thr1R;
+integer GenerateConst;
+geant NoiseLevel;
+geant DeadLevel;
+integer sec[2];
+integer min[2];
+integer hour[2];
+integer day[2];
+integer mon[2];
+integer year[2];
 };
 #define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
 COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);

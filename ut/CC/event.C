@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.261 2001/04/27 21:49:58 choutko Exp $
+//  $Id: event.C,v 1.262 2001/05/02 15:53:40 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1959,6 +1959,10 @@ void AMSEvent::_rectcinitrun(){
 void AMSEvent::_reecalinitrun(){
 }
 void AMSEvent::_retrdinitrun(){
+   for (int i=0;i<AMSTRDIdSoft::ncrates();i++){
+      cout <<"AMSEvent::_retrdevent-I-"<<AMSTRDIdSoft::CalcBadCh(i)<<
+      " bad channels found for crate "<<i<<endl;
+}
 }
 void AMSEvent::_resrdinitrun(){
 }

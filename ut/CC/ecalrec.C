@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.20 2001/05/01 09:59:59 choumilo Exp $
+//  $Id: ecalrec.C,v 1.21 2001/05/02 15:53:40 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -340,7 +340,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
       if(ECMCFFKEY.mcprtf==1 && an4respt<esep2)HF1(ECHIST+15,widatpk,1.);
       if(an4respt<esep2 && widatpk>=wdcut)goto nonEM;// ---> too high width(LE)
       trigfl=2;
-nonEM:      
+nonEM:
+        rrr=0;    
     }
     if(an4respt>ECALVarp::ecalvpar.daqthr(3))trigfl+=10;//high energy
   }
