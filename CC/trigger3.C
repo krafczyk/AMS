@@ -151,6 +151,26 @@ VZERO(_nhits,nl);
 }
 
 
+ TriggerLVL3::TriggerLVL3(integer tra, integer tof, integer anti,integer ntr, integer npat,
+                          integer pat[], number res[], number time):_AntiTrigger(anti),
+                          _TOFTrigger(tof),_TrackerTrigger(tra),_NPatFound(npat),_Time(time),
+                          _NTrHits(ntr){
+  
+  // Ctor
+
+_Residual[0]=res[0];
+_Residual[1]=res[1];
+_Pattern[0]=pat[0];
+_Pattern[1]=pat[1];
+VZERO(_NTOF,SCLRS);
+VZERO(_TrackerAux,NTRHDRP*2);
+VZERO(_nhits,nl);
+
+}
+
+
+
+
 
 void TriggerLVL3::init(){
  int i,j;
@@ -603,3 +623,46 @@ integer TriggerLVL3::_UpdateOK(geant s, integer pat){
 
 
 }
+
+
+
+void TriggerLVL3::builddaq(integer n, uinteger *p){
+  TriggerLVL3 *ptr=(TriggerLVL3*)AMSEvent::gethead()->
+  getheadC("TriggerLVL3",0);
+  if(ptr){
+    *p=uinteger((ptr->_TrackerTrigger) | 
+    (ptr->_TOFTrigger)<<16 | (ptr->_AntiTrigger)<<24);
+    int16 res=int16(ptr->_Residual[0]*1000);
+    *(p+1)=uinteger(int16u(res) | (ptr->_Pattern[0])<<16 | (ptr->_NPatFound)<<22 | (ptr->_NTrHits)<<24);
+  }
+  else for(int i=0;i<n;i++)*(p+i)=0;
+}
+
+void TriggerLVL3::buildraw(integer n, uinteger *p){
+
+  {
+    AMSContainer *ptr=AMSEvent::gethead()->getC("TriggerLVL3",0);
+   if(ptr)ptr->eraseC();
+   else cerr <<"TriggerLVL3::buildraw-S-NoContainer"<<endl;
+  }
+
+ integer tra,tof,anti,ntr,npat,pat[2];
+ number res[2],time;
+ time=0;
+ res[1]=0;
+ pat[1]=-1;
+ tra=(*p)&65535;
+ tof=((*p)>>16)&255;
+ anti=((*p)>>24)&255;
+ int16u res16=int16u((*(p+1))&65535); 
+ res[0]=int16(res16)/1000.;
+ pat[0]=((*(p+1))>>16)&63;
+ npat=((*(p+1))>>22)&3;
+ ntr=((*(p+1))>>24)&255;
+if(tra >= LVL3FFKEY.Accept)
+  AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0), new
+ TriggerLVL3( tra,  tof,  anti, ntr,  npat,
+  pat,  res,  time));
+
+}
+

@@ -31,6 +31,7 @@ geant _polephi;
 geant _stationtheta;
 geant _stationphi;
 integer _nskip;
+static integer _Ntot;
 public:
 AMSIO():_run(0),_event(0){};
 AMSIO(integer run, integer event, time_t time,integer ipart, 
@@ -56,6 +57,7 @@ void write();
 static char * fnam;
 static fstream fbin;
 static void init(integer mode, integer format=0);
+static integer getntot(){return _Ntot;}
 friend class AMSmceventg;
 
 #ifdef __DB__

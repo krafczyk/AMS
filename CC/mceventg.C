@@ -176,6 +176,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
   Orbit.PoleTheta=78.6/AMSDBc::raddeg;
   Orbit.Nskip=0;
+  Orbit.Ntot=AMSIO::getntot();
 if(ipart == 3 && low ){
  HBOOK1(_hid,"Low Electron Spectrum",12,0.,6.,0.);
  HF1(_hid,0.75,12900.);
@@ -280,6 +281,7 @@ void AMSmceventg::setcuts(geant coo[6], geant dir[6],
 }
 
 integer AMSmceventg::accept(){
+  _nskip=Orbit.Ntot;
   if(_coo >= _coorange[0] && _coo <= _coorange[1]){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
@@ -342,8 +344,7 @@ integer AMSmceventg::EarthModulation(){
   number mom=52.5*pow(cl,4)/pow(sqrt(1.-cth*pow(cl,3))+1,2)*fabs(_charge);
   if (_mom > mom)return 1;
   else {
-    _nskip=++Orbit.Nskip;
-   
+    ++Orbit.Nskip;   
    return 0;
   }
 }
@@ -441,6 +442,7 @@ stream <<" Random numbers "<<_seed[0]<<" "<<_seed[1]<<endl;
 }
 
 void AMSmceventg::_copyEl(){
+  if(IOPA.mode ==2 || IOPA.mode==3){
   // write elem  for simple i/o
    integer run,event;
    run=AMSEvent::gethead()->getrun();
@@ -450,6 +452,7 @@ void AMSmceventg::_copyEl(){
    AMSIO io(run,event,AMSEvent::gethead()->gettime(),_ipart,_seed,_coo,_dir,_mom,
    pole,theta,phi,_nskip);
    io.write();
+  }
 }
 
 void AMSmceventg::_writeEl(){

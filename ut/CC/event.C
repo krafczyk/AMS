@@ -72,7 +72,6 @@ _reaxinitrun();
 
 void AMSEvent::_siamsinitevent(){
  _signinitevent();
- _sitriginitevent();
  _sitkinitevent();
  _sitrdinitevent();
  _sitofinitevent();
@@ -83,6 +82,7 @@ void AMSEvent::_siamsinitevent(){
 void AMSEvent::_reamsinitevent(){
  _redaqinitevent();
  _retkinitevent();
+ _retriginitevent();
  _retrdinitevent();
  _retofinitevent();
  _reantiinitevent();
@@ -128,13 +128,14 @@ void AMSEvent::SetTimeCoo(){
    _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
    GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
    AMSmceventg::Orbit.Nskip=0;        
+   AMSmceventg::Orbit.Ntot++;
   }
   else {
    number t2=
    AMSJob::Orbit.AlphaTanThetaMax*AMSJob::Orbit.AlphaTanThetaMax;
 
    number xsec=difftime(_time,AMSJob::Orbit.Begin);
-   _NorthPolePhi=fmod(_NorthPolePhi+
+   _NorthPolePhi=fmod(AMSJob::Orbit.PolePhi+
    AMSJob::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
 
    number phil=
@@ -144,7 +145,7 @@ void AMSEvent::SetTimeCoo(){
    phil=fmod(phil+AMSJob::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
    number phi=atan2(sin(phil),cos(phil)*sqrt(1+t2));
    if(phi < 0)phi=phi+AMSDBc::twopi;
-   _StationTheta==atan(AMSJob::Orbit.AlphaTanThetaMax*sin(phi));
+   _StationTheta=atan(AMSJob::Orbit.AlphaTanThetaMax*sin(phi));
    _StationPhi=fmod(phi+AMSJob::Orbit.PhiZero,AMSDBc::twopi);
   }
 }
@@ -156,7 +157,7 @@ void AMSEvent::_sitkinitevent(){
 }
 
 
-void AMSEvent::_sitriginitevent(){
+void AMSEvent::_retriginitevent(){
 
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:TriggerLVL1",0),0));
@@ -349,7 +350,6 @@ for (int i=0;;){
 }
 
 void AMSEvent::copy(){
-if(IOPA.mode ==2 || IOPA.mode==3){
 _copyEl();
 AMSNode * cur;
 for (int i=0;;){
@@ -362,7 +362,7 @@ for (int i=0;;){
 }
 
 
-}
+
 }
 
 void AMSEvent::event(){

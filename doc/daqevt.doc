@@ -33,8 +33,8 @@ word3   antipattern  + z<<16
 b.Trig3 Event Format 
 
 Word1
-8 bit tracker  output + 8 bit tof output + 8 bit antioutput + 8 bit reserved
-
+16 bit tracker  output + 8 bit tof output  +8 bit anti output
+Word2 16 bit(signed) residual in mkm + 8 bit pattern + 8 bit nhits
 c.TOF Event Format
 
 To be filled

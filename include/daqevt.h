@@ -33,7 +33,7 @@ friend class DAQEvent;
 
 class DAQEvent : public AMSlink{
 protected:
-
+integer _Length;
 uinteger *  _pcur;
 uinteger * _pData;
 static DAQSubDet * _pFirst;
@@ -41,24 +41,28 @@ integer _CRCok();
 uinteger _makeCRC();
 integer  _findid(AMSID id);
 void _convert();
+void _convertl();
+integer _create();
 void _copyEl();
 void _writeEl(){}
 void _printEl(ostream& o){}
 public:
 ~DAQEvent();
-DAQEvent(): AMSlink(),_pcur(0),_pData(0){}
+DAQEvent(): AMSlink(),_Length(0),_pcur(0),_pData(0){}
 integer *  getsdid(AMSID id);
 void buildDAQ();
 void buildRawStructures();
 void write();
 integer read();
+void shrink();
+integer getlength() const {return _Length;}
 void close(){ fbin.close();fbout.close();}
 static char * ifnam;
 static fstream fbin;
 static char * ofnam;
 static fstream fbout;
 
-static void init(integer mode);
+static void init(integer mode, integer format=0);
 static void addsubdetector(pid pgetid, pgetput pget, pgetput pput,
                             pgetl pgl);
 
@@ -69,7 +73,21 @@ time_t  & time() {return *((time_t*)(_pData+7));}
 uinteger & crc() { return *(_pData+3);}
 
 static void setfiles(char *ifile, char *ofile);
-
+static void _InitTable();
+static uinteger * _Table;
+static const uinteger CRC32;
 };
+
+class DAQEventI{
+public:
+DAQEventI();
+~DAQEventI();
+private:
+static integer _Count;
+};
+static DAQEventI DAQEventI;
+
+
+
 
 #endif

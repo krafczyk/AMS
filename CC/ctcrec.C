@@ -442,3 +442,44 @@ return (WriteAll || status);
 
 
 
+
+integer AMSCTCRawCluster::calcdaqlength(){
+  AMSContainer *ptr=AMSEvent::gethead()->getC("AMSCTCRawCluster",0);
+  return ptr->getnelem();
+}
+
+
+void AMSCTCRawCluster::builddaq(integer n, uinteger *p){
+  AMSCTCRawCluster *ptr=(AMSCTCRawCluster*)AMSEvent::gethead()->
+  getheadC("AMSCTCRawCluster",0);
+  integer count=0;
+  while(ptr){
+    *(p+count++)=uinteger((ptr->_column-1) | (ptr->_row-1)<<5 | (ptr->_layer-1)<<10 | 
+                 ((ptr->_status)&31)<<11 | (int16u(ptr->_signal))<<16);
+   ptr=ptr->next();
+   
+  }
+}
+
+void AMSCTCRawCluster::buildraw(integer n, uinteger *p){
+
+    {
+      AMSContainer *ptr=AMSEvent::gethead()->getC("AMSCTCRawCluster",0);
+      ptr->eraseC();
+    }
+
+    for(int i=0;i<n;i++){
+      int col=(((*(p+i)))&31)+1;    
+      int row=(((*(p+i))>>5)&31)+1;    
+      int layer=(((*(p+i))>>10)&1)+1;    
+      int status=(((*(p+i))>>11)&31);
+      uinteger signal=(((*(p+i))>>16)&65535);    
+        
+       AMSEvent::gethead()->addnext(AMSID("AMSCTCRawCluster",0),
+       new AMSCTCRawCluster(status,row,layer,signal,col));
+    }
+
+
+
+}
+

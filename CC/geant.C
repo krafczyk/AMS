@@ -317,6 +317,7 @@ extern "C" void guout_(){
    }
 #endif
 
+   if(AMSJob::gethead()->isSimulation())
    AMSgObj::BookTimer.stop("GEANTTRACKING");
 
    try{
@@ -417,7 +418,6 @@ extern "C" void gukine_(){
 static integer event=0;
 
 
-   AMSgObj::BookTimer.start("GEANTTRACKING");
 
 #ifdef __DB__
   if (AMSFFKEY.Read > 1) {
@@ -427,6 +427,7 @@ static integer event=0;
 #endif
 // create new event & initialize it
   if(AMSJob::gethead()->isSimulation()){
+    AMSgObj::BookTimer.start("GEANTTRACKING");
    if(IOPA.mode !=1 ){
     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
     new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0)));
@@ -461,24 +462,25 @@ static integer event=0;
     //
     // read daq    
     //
-    DAQEvent * pdaq = new DAQEvent();
-    integer ok=pdaq->read();
-    if(ok==1){ 
-     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-     new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
-     pdaq->runtype(),pdaq->time())));
-     AMSEvent::gethead()->addnext(AMSID("DAQEvt",0), pdaq);
+    DAQEvent * pdaq=0;
+    for(;;){
+      pdaq = new DAQEvent();
+      if(!(pdaq->read()))break;
+      AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+      new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
+      pdaq->runtype(),pdaq->time())));
+      AMSEvent::gethead()->addnext(AMSID("DAQEvent",0), pdaq);
+      guout_();
+      if(GCFLAG.IEOTRI)break;
+      GCFLAG.IEVENT++;
     }
-    else if (ok==0){
-     delete pdaq;
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
-    }   
-    else delete pdaq;
+     return; 
   }   
 }
 
-//-----------------------------------------------------------------------------
+
 extern "C" void uglast_(){
        GLAST();
 #ifdef __DB__

@@ -75,14 +75,36 @@ HFNTB(IOPA.ntuple,"LVL1");
 }
 
 
-integer TriggerLVL1::calcdaqlength(){
- return 0;
-}
 
 void TriggerLVL1::builddaq(integer n, uinteger *p){
+  TriggerLVL1 *ptr=(TriggerLVL1*)AMSEvent::gethead()->
+  getheadC("TriggerLVL1",0);
+  if(ptr){
+   *p= uinteger(ptr->_tofpatt[0] | (ptr->_tofpatt[1])<<16); 
+   *(p+1)= uinteger(ptr->_tofpatt[2] | (ptr->_tofpatt[3])<<16); 
+   *(p+2)=uinteger(ptr->_antipatt | ptr->_tofflag<<16 | ptr->_TriggerMode <<24);
+  }
+  else for(int i=0;i<n;i++)*(p+i)=0;
 }
 
 void TriggerLVL1::buildraw(integer n, uinteger *p){
+  {
+   AMSContainer *ptr=AMSEvent::gethead()->getC("TriggerLVL1",0);
+   if(ptr)ptr->eraseC();
+   else cerr <<"TriggerLVL1::buildraw-S-NoContainer"<<endl;
+
+  }
+  integer z,mode,antip,tofp[4];  
+  tofp[0]=(*p)&65535;
+  tofp[1]=((*p)>>16)&65535;
+  tofp[2]=(*(p+1))&65535;
+  tofp[3]=((*(p+1))>>16)&65535;
+  antip=(*(p+2))&65535;
+  z=((*(p+2))>>16)&255;
+  mode=((*(p+2))>>24)&255;
+  AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
+  TriggerLVL1(mode,z,tofp,antip));
+
 }
 
  

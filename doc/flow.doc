@@ -129,7 +129,6 @@ M A I N  ->      gbatch.C
  |    |   |    |    |
  |    |   |    |    |->_signinitevent
  |    |   |    |    |->_sitkinitevent
- |    |   |    |    |->_sitriginitevent
  |    |   |    |    |->_sitofinitevent
  |    |   |    |    |->_siantiinitevent
  |    |   |    |    |->_sitrdinitevent
@@ -138,6 +137,7 @@ M A I N  ->      gbatch.C
  |    |   |    |->_reamsinitevent
  |    |   |    |    |
  |    |   |    |    |->_redaqinitevent
+ |    |   |    |    |->_retriginitevent
  |    |   |    |    |->_retkinitevent
  |    |   |    |    |->_retofinitevent
  |    |   |    |    |->_reantiinitevent

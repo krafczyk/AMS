@@ -654,16 +654,6 @@ for (i=158; i>=0; i--) {
  else break;
 }
 
-if(IOPA.mode && isSimulation()){
-   AMSIO::setfile(ffile);
-   AMSIO::init(IOPA.mode);
-}
-if(isReconstruction() && DAQCFFKEY.mode%10 ==0)DAQCFFKEY.mode=DAQCFFKEY.mode+1;
-if(isSimulation() && DAQCFFKEY.mode%10 == 1)DAQCFFKEY.mode=DAQCFFKEY.mode-1;
-if(DAQCFFKEY.mode){
-   DAQEvent::setfiles(ifile,ofile);
-   DAQEvent::init(DAQCFFKEY.mode);
-}
 //-
 
 int len;
@@ -703,6 +693,21 @@ uinteger ical=(AMSFFKEY.Jobtype/100)%10;
 uinteger ucal=1;
 if(ical)_jobtype=setjobtype(ucal<<(ical+1));
 
+
+
+if(IOPA.mode && isSimulation()){
+   AMSIO::setfile(ffile);
+   AMSIO::init(IOPA.mode);
+}
+if(isReconstruction() && DAQCFFKEY.mode%10 ==0)DAQCFFKEY.mode=DAQCFFKEY.mode+1;
+if(isSimulation() && DAQCFFKEY.mode%10 == 1)DAQCFFKEY.mode=DAQCFFKEY.mode-1;
+if(DAQCFFKEY.mode){
+   DAQEvent::setfiles(ifile,ofile);
+   DAQEvent::init(DAQCFFKEY.mode);
+}
+
+
+
 //
 // Read/Write Synchronization
 if(AMSFFKEY.Read > 10 && AMSFFKEY.Read%2==0)AMSFFKEY.Read++;
@@ -738,16 +743,20 @@ if(AMSFFKEY.Update){
 
 
 void AMSJob::init(){
-if(isSimulation())_siamsinitjob();
+
+AMSEvent::debug=AMSFFKEY.Debug;
+
+//if(isSimulation())_siamsinitjob();
+_siamsinitjob();
+
 _reamsinitjob();
 if(isCalibration())_caamsinitjob();
 _timeinitjob();
 cout << *this;
 }
 void AMSJob::_siamsinitjob(){
-  AMSEvent::debug=AMSFFKEY.Debug;
   _sitkinitjob();
-  _signinitjob();
+  if(isSimulation())_signinitjob();
   _sitofinitjob();
   _siantiinitjob();
   _sitrdinitjob();
@@ -830,11 +839,14 @@ void AMSJob::_sitofinitjob(){
       HBOOK1(1071,"Total bar pulse-charge(pC),L-1",80,0.,1600.,0.);
       HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,0.,16000.,0.);
     }
-//--------------
+
     AMSTOFScan::build();// create scmcscan-objects for all sc. bars,
                         // using MC t/eff-distributions from ext. files
+
+
+
 }
-//----------------------------------------------------------------------------------
+
 void AMSJob::_siantiinitjob(){
 
   AMSgvolume *pg=AMSJob::gethead()->getgeomvolume(AMSID("ANTS",1));
@@ -919,6 +931,8 @@ AMSgObj::BookTimer.book("TrTrack");
 }
 //--------------------------------------------------------------------------
 void AMSJob::_retofinitjob(){
+
+
     AMSgObj::BookTimer.book("RETOFEVENT");
     AMSgObj::BookTimer.book("TOF:DAQ->RwEv");
     AMSgObj::BookTimer.book("TOF:validation");
@@ -1445,6 +1459,8 @@ void AMSJob::_setorbit(){
 }
 {
     //lvl3
+    DAQEvent::addsubdetector(&TriggerLVL3::getdaqid,&TriggerLVL3::builddaq,
+    &TriggerLVL3::buildraw,&TriggerLVL3::calcdaqlength);
 
 }    
 {
@@ -1456,6 +1472,8 @@ void AMSJob::_setorbit(){
 
 {
     //ctc
+    DAQEvent::addsubdetector(&AMSCTCRawCluster::getdaqid,&AMSCTCRawCluster::builddaq,
+    &AMSCTCRawCluster::buildraw,&AMSCTCRawCluster::calcdaqlength);
 }    
 
 

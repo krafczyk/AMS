@@ -208,9 +208,10 @@ void AMSTrRawCluster::builddaq(integer n, uinteger *p){
 #endif
   if(AMSDBc::BigEndian){
    // convert to little endian if big endian
+   int16u *p16u= (int16u*)p;
    for (int i=0;i<n;i++){
-    int16u  tmp1=*(p16+2*i);
-    int16u  tmp2=*(p16+2*i+1);
+    int16u  tmp1=*(p16u+2*i);
+    int16u  tmp2=*(p16u+2*i+1);
     *(p+i)=tmp1+(tmp2<<16);
    }
   }
@@ -266,9 +267,10 @@ void AMSTrRawCluster::buildraw(integer n, uinteger *p){
 
   if(AMSDBc::BigEndian){
    // convert to little endian if big endian
+   ptru= (int16u*)p;
    for (int i=0;i<n;i++){
-    int16u  tmp1=*(ptr+2*i);
-    int16u  tmp2=*(ptr+2*i+1);
+    int16u  tmp1=*(ptru+2*i);
+    int16u  tmp2=*(ptru+2*i+1);
     *(p+i)=tmp1+(tmp2<<16);
    }
   }

@@ -3,6 +3,7 @@
 #include <io.h>
 #include <commons.h>
 #include <amsdbc.h>
+integer AMSIO::_Ntot=0;
 char * AMSIO::fnam=0;
 fstream AMSIO::fbin;
 AMSIO::AMSIO(integer run, integer event, time_t time, integer ipart, 
@@ -38,7 +39,7 @@ void AMSIO::init(integer mode,integer format){
           integer runold=0;
           integer pidold=0;
           integer ok=1;
-          integer seed0,seed1;
+          integer seed0,seed1,skip;
           number theta,phi,pole;
           time_t time;
           while(ok){
@@ -50,6 +51,7 @@ void AMSIO::init(integer mode,integer format){
              phi=io.getsphi();
              pole=io.getpolephi();
              time=io.gettime();
+             skip=io.getskip();
            }
            if(format==1 && (io.getrun()!=runold || ok==0)){
              if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
@@ -88,7 +90,8 @@ void AMSIO::init(integer mode,integer format){
              cout<<"AMSIO::init-I-Total of "<<ipos-1
              <<" events have been read."<<endl;
              cout <<" Last Run & Event "<<io.getrun()<<" "<<io.getevent()<<endl;
-             cout << " Last Random Number "<<seed0<<" "<<seed1    <<endl;
+            cout<<"Last MC Event "<<skip<<endl;
+            cout << " Last Random Number "<<seed0<<" "<<seed1    <<endl;
              cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
              cout << " Time "<<ctime(&time)<<endl;
              fbin.close();
@@ -129,10 +132,12 @@ void AMSIO::init(integer mode,integer format){
               theta=io.getstheta()*AMSDBc::raddeg;
               phi=io.getsphi()*AMSDBc::raddeg;
               pole=io.getpolephi()*AMSDBc::raddeg;
+              _Ntot=io.getskip();
               time=io.gettime();
               seed[0]=io.getseed(0);
               seed[1]=io.getseed(1);
               cout<<"AMSIO::init-I-Last Event "<<event<<endl;
+              cout<<"Last MC Event "<<_Ntot<<endl;
               cout << " Last time "<<ctime(&time)    <<endl;
               cout << " Last Random Number "<<seed[0]<<" "<<seed[1]<<endl;
               cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
