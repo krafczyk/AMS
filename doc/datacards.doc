@@ -136,20 +136,25 @@ R  3 meanbeta(0.996);// mean proton velocity in this range
 R  4 T0-ref1(6.);   // T0 for ref. counters
 R  5 T0-ref2(6.);   // T0 for ref. counters
 R  6 slope(3.2);    // def. slope
-R  7 invstr(0.025); // def. inv. stratcher ratio
+R  7 meanbeta(.998); // mean muon velocity (for earth calibr.)
 I  8 id-ref1(108);  // LBB for first ref. counter (if non zero)
 I  9 id-ref2(0);    // LBB for second ref. counter (if nonzero)
 I 10 fix-slope(1); // =0/1 to fix/release slope param.
-I 11 fix-invstr(0);// =0/1 to fix/release str.ratio param.
+I 11 calibr.type(0);// =0/1 space/earth calibration
+I 12 truse(0);     // =0/1 to soft/hard usage of tracker info
   AMPL-calibration:
-I 12 truse(1);     // =1/0 to use/not tracker info
-R 13 plhc[0](0.5)  // low cut on tracker momentum (Gev/c)
-R 14 plhc[1](0.5)  // high cut on tracker momentum (Gev/c)
-I 15 minev(20)     // min.events needed for measurement in channel or bin
+I 12 truse(0);     // =1/0 to use/not tracker info
+R 13 plhc[0](2)  // low cut on tracker momentum (Gev/c) for space calibr.
+R 14 plhc[1](30)  // high cut on tracker momentum (Gev/c) ....
+I 15 minev(100)     // min.events needed for measurement in channel or bin
 R 16 trcut(0.85)   // cut to use for "truncated average" calculation
 I 17 refbid[0]     // ref.bar id's list (LBB) for btype=1->5 
    ...             // ......................................
 I 21 refbid[4]     // ......................................
+R 22 plhec[0] (0.05) // mom. low-cut for earth calibr.
+R 23 plhec[0] (10)   // mom. high-cut for earth calibr.
+R 24 bgcut[0] (2)   // beta*gamma low-cut for mip in abs.calibr.
+R 24 bgcut[1] (10)  // beta*gamma high-cut for mip in abs.calibr.
 //---------------------------------------------------------------------------------
 
 // CTC  Simulation

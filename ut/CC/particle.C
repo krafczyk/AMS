@@ -144,6 +144,7 @@ for(kk=0;kk<CTCDBc::getnlay();kk++){
    signal=0;
    beta=0;
    ebeta=1;
+
    AMSCTCRawHit d(1,kk+1,1);
    AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
    if(p)

@@ -134,10 +134,11 @@ void AMSCTCRawHit::_printEl(ostream & stream){
   stream <<"AMSCTCRawHit row "<<_row<<" col  "<<_column<<" lay  "<<_layer<<
     " soft  "<<_idsoft<<" sig "<<_signal<<endl;
 }
-
+//-----------
 integer * AMSCTCRawHit::_pMap[4]={0,0,0,0};
 
 integer AMSCTCRawHit::_nelem=0;
+//
 void AMSCTCRawHit::init(){
   int icnt;
   for(icnt=0;icnt<CTCDBc::getnlay();icnt++){

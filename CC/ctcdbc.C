@@ -1,7 +1,22 @@
+#include <typedefs.h>
+#include <commons.h>
+#include <math.h>
+#include <job.h>
+#include <stdio.h>
+#include <iostream.h>
+#include <fstream.h>
+#include <iomanip.h>
+#include <tofdbc.h>
 #include <ctcdbc.h>
+//
+// initialize some parameters :
+//
 integer CTCDBc::_geomId=0;
 integer CTCDBc::_nlay=0;
-  number CTCDBc::getagsize(integer index) {
+geant CTCDBc::_tdcabw=1.;// TDC-A(T) bin width (ns)
+geant CTCDBc::_ftpulw=50.;// FT-pusle width(ns) an TDC input
+//----------------------------------------------------------
+number CTCDBc::getagsize(integer index) {
 #ifdef __AMSDEBUG__
 assert (index >=0 && index <=2);
 #endif
@@ -98,4 +113,154 @@ _geomId=iflag;
    else if(_geomId==1)return 2*getnblk();
    else return getnx()*getny();
   }
+//======================================================================
+//
+CTCCCcal ctcfcal[CTCCCMX];// reserve array of CTC calibr. objects
+//                 (for each config. combination(softid in RawEvent class)) 
+// CTCCCcal class member functions:
+//
+void CTCCCcal::build(){
+  integer i,j,nm;
+  integer ncomb,nmem[CTCCCMX];
+  integer mem[CTCCMMX],memb[CTCCCMX][CTCCMMX];
+  integer sta[CTCCMMX],stat[CTCCCMX][CTCCMMX];
+  geant gn,gain[CTCCCMX];
+  geant q2pe=1.;//tempor q(pC)->pe conv.factor (pe/pC)
+  geant ftdl;// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
+  char fname[80];
+  char name[80];
+  char vers1[3]="mc";
+  char vers2[3]="rl";
+  geant aip[3]={50.,62.6,1.3};
+//      ( def.param. for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs))
+//------------------------------------
+// ------> read conf.combinations file:
+  strcpy(name,"ctconf");
+ if(AMSJob::gethead()->isMCData()) //      for MC-event
+ {
+       cout <<" CTCCCcal_build: MC-config.file is used"<<endl;
+       strcat(name,vers1);
+ }
+ else                              //      for Real events
+ {
+       cout <<" CTCCCcal_build: REAL-config.file is used"<<endl;
+       strcat(name,vers2);
+ }
+//
+ strcat(name,".dat");
+// strcpy(fname,AMSDATADIR.amsdatadir);    
+  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/ctcca/");//tempor
+  strcat(fname,name);
+  cout<<"Open file : "<<fname<<'\n';
+  ifstream tcfile(fname,ios::in); // open  file for reading
+  if(!tcfile){
+   cerr <<"CTCCCcal_build: Error opening  "<<fname<<endl;
+   exit(1);
+  }
+  tcfile >> ncomb; // real number of combinations
+  for(i=0;i<ncomb;i++){// <-- comb. loop
+    tcfile >> nm; // number of members
+    nmem[i]=nm;
+    for(j=0;j<nm;j++){// <-- memb. loop
+      tcfile >> memb[i][j];// member (LXY=LCR)
+      tcfile >> stat[i][j];// status 
+    }
+  }
+//-------------------------------------------
+// -------> read integrator parameters file :
+//-------------------------------------------
+// -------> now create calibr. objects:
+  for(i=0;i<ncomb;i++){
+    nm=nmem[i];
+    gn=1.;//tempor. (later from calibr.file)
+    for(j=0;j<nm;j++)mem[j]=memb[i][j];
+    for(j=0;j<nm;j++)sta[j]=stat[i][j];
+    ftdl=TOFDBc::ftdelf();// tempor (as for TOF)
+    ctcfcal[i]=CTCCCcal(i,nm,mem,sta,ftdl,q2pe,gn,aip);//create calibr. object
+  }
+}
+//---
+void CTCCCcal::q2t2q(int cof, number &tovt, number &q){  
+// Q(pC) <-> Tovt(ns) to use in sim./rec. programs (cof=0/1-> Q->Tovt/Tovt->Q)
+  number qoffs,shft,qthr;
+  shft=aipar[0];
+  qthr=exp(aipar[1]/shft);//to match old parametrization
+  qoffs=aipar[2];
+// 
+  if(cof==0){ // q->tovt
+    if(q>qoffs)tovt=shft*log((q-qoffs)/qthr);
+    else tovt=0.;
+  }
+  else{       // tovt->q
+    q=qoffs+qthr*exp(tovt/shft);
+  }
+}
+//----------------------------------------------------------------------------
+//=====================================================================  
+//
+//   CTCJobStat static variables definition (memory reservation):
+//
+integer CTCJobStat::mccount[CTCJSTA];
+integer CTCJobStat::recount[CTCJSTA];
+integer CTCJobStat::chcount[CTCCCMX][CTCCSTA];
+//
+// function to print Job-statistics at the end of JOB(RUN):
+//
+void CTCJobStat::print(){
+  int i,j,ic;
+  integer nmemb,mblst[CTCCMMX];
+  geant rc,rc1,rc2,rc3,rc4;
+//
+  cout<<endl<<endl;;
+  cout<<"    ============ JOB CTC-statistics ============="<<endl<endl;
+  cout<<" MC: entries             : "<<mccount[0]<<endl;
+  cout<<" MC: Ghits->RawHit OK    : "<<mccount[1]<<endl;
+  cout<<" MC: RawHit->RawEvent OK : "<<mccount[2]<<endl;
+  cout<<" RECO-entries            : "<<recount[0]<<endl;
+  cout<<" RawEvent-validation OK  : "<<recount[1]<<endl;
+  cout<<" RawEvent->RawHits OK    : "<<recount[2]<<endl;
+  cout<<" RawHits->Cluster OK     : "<<recount[3]<<endl;
+  cout<<endl;
+//
+//
+  cout<<"        ===========> Channels validation report :"<<endl<<endl;
+//
+  cout<<"comb.#"<<" id(LXXY)         "<<"h/w stat OK"<<" A-bad seq(%)  FT-bad seq(%)"<<endl;
+  cout.setf(ios::fixed);
+    for(ic=0;ic<CTCCCMX;ic++){
+      cout<<"   "<<ic<<"  ";
+      nmemb=ctcfcal[ic].getmembers(mblst);
+      for(j=0;j<nmemb;j++)cout<<mblst[j]<<" ";
+      cout<<chcount[ic][0]<<"      ";
+      rc=geant(chcount[ic][0]);
+      if(rc>0.){
+        rc1=100.*geant(chcount[ic][1])/rc;
+        rc2=100.*geant(chcount[ic][2])/rc;
+      }
+      cout<<setw(6)<<setprecision(2)<<rc1<<"             "<<rc2<<endl;
+    }
+    cout<<endl;
+//
+  cout<<"============> Channels reconstruction report :"<<endl<<endl;
+//
+  cout<<"comb.#"<<" id's (LXXY)   "<<"h/w stat OK"<<" A-TDC ON(%)  Nhit=1(pair)";
+  cout<<"T-TDC ON(%)   Nhit=1(pair)"<<endl;
+    for(ic=0;ic<CTCCCMX;ic++){
+      cout<<"   "<<ic<<"  ";
+      nmemb=ctcfcal[ic].getmembers(mblst);
+      for(j=0;j<nmemb;j++)cout<<mblst[j]<<" ";
+      cout<<chcount[ic][4]<<"      ";
+      rc=geant(chcount[ic][4]);
+      if(rc>0.){
+        rc1=100.*geant(chcount[ic][5])/rc;
+        rc2=100.*geant(chcount[ic][6])/rc;
+        rc3=100.*geant(chcount[ic][7])/rc;
+        rc4=100.*geant(chcount[ic][8])/rc;
+      }
+      cout<<setw(6)<<setprecision(2)<<rc1<<"      "<<rc2<<"      "<<rc3<<"      "<<rc4<<endl;
+    }
+    cout<<endl;
+//
+}
+//======================================================================
 

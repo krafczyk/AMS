@@ -25,6 +25,7 @@
 #include <trcalib.h>
 #include <tofdbc.h>
 #include <antidbc.h>
+#include <ctcdbc.h>
 #include <tofsim.h>
 #include <tofrec.h>
 #include <tofcalib.h>
@@ -70,6 +71,7 @@ extern AMSTOFScan scmcscan[SCBLMX];// TOF MC time/eff-distributions
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// TOF individual sc.bar parameters 
 TOFVarp tofvpar; // TOF general parameters (not const !)
 extern ANTIPcal antisccal[MAXANTI]; // ANTI-counter individ.parameters
+extern CTCCCcal ctcfcal[CTCCCMX];//  CTC calibr. objects
 //
 void AMSJob::data(){
 #ifdef __HPUX__
@@ -302,7 +304,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[2]=0;     // ...................... histograms
   TOFMCFFKEY.mcprtf[3]=0;     // spare
   TOFMCFFKEY.mcprtf[4]=0;     // spare
-  TOFMCFFKEY.trlogic[0]=0; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
+  TOFMCFFKEY.trlogic[0]=1; // MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
   TOFMCFFKEY.trlogic[1]=0; // ......................(=0/1-> ANY3/ALL4 layer coincidence) 
   TOFMCFFKEY.fast=0;       // 0/1-> fast/slow simulation algorithm
   TOFMCFFKEY.birks=1;       // 0/1->  not apply/apply birks corrections
@@ -567,9 +569,9 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.relogic[3]=0;// RECO logic flag 
   TOFRECFFKEY.relogic[4]=0;// RECO logic flag
 //
-  TOFRECFFKEY.daqthr[0]=20.;//thresh(mV) for discr. of "z>=1"-trig (fast/slow_TDC) 
-  TOFRECFFKEY.daqthr[1]=40.;//thresh(mV) for discr. of "z>1"-trig  
-  TOFRECFFKEY.daqthr[2]=150.;//thresh(mV) for discr. of "z>2"-trig  
+  TOFRECFFKEY.daqthr[0]=35.;//Fast discr. thresh(mV) for fast/slow_TDC 
+  TOFRECFFKEY.daqthr[1]=150.;//Fast discr. thresh(mV) for FT-trigger (z>=1)  
+  TOFRECFFKEY.daqthr[2]=150.;//thresh(mV) for discr. of "z>2"-trig (dinode) 
   TOFRECFFKEY.daqthr[3]=3.5;//thresh(pC) for anode Time_over_Thresh. discr.  
   TOFRECFFKEY.daqthr[4]=3.5;//thresh(pC) for dinode Time_over_Thresh. discr.
 //
@@ -609,28 +611,33 @@ void AMSJob::_retofdata(){
 
 //    defaults for calibration:
 // TZSL-calibration:
-  TOFCAFFKEY.pcut[0]=8.;// track mom. low limit (gev/c)
-  TOFCAFFKEY.pcut[1]=25.;// track mom. high limit
-  TOFCAFFKEY.bmean=0.996;// mean prot. velocity 
-  TOFCAFFKEY.tzref[0]=6.;// T0 for ref. counters
-  TOFCAFFKEY.tzref[1]=6.;// T0 for ref. counters
-  TOFCAFFKEY.fixsl=3.2;// def. slope
-  TOFCAFFKEY.fixstr=1./TOFDBc::strrat();// def. inv. stratcher ratio from TOFDBc
-  TOFCAFFKEY.idref[0]=108;//LBB for first ref. counter (if non zero)
-  TOFCAFFKEY.idref[1]=0;//LBB for second ref. counter (if nonzero)
-  TOFCAFFKEY.ifsl=1;// 0/1 to fix/release slope param.
-  TOFCAFFKEY.ifstr=0;// 0/1 to fix/release str.ratio param.
+  TOFCAFFKEY.pcut[0]=8.;// (1)track mom. low limit (gev/c) (prot, 0.85 for mu)
+  TOFCAFFKEY.pcut[1]=50.;// (2)track mom. high limit
+  TOFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in the above range
+  TOFCAFFKEY.tzref[0]=6.;// (4)T0 for ref. counters
+  TOFCAFFKEY.tzref[1]=6.;// (5)T0 for ref. counters
+  TOFCAFFKEY.fixsl=3.2;// (6)def. slope
+  TOFCAFFKEY.bmeanmu=0.998;// (7)mean muon velocity in the above range
+  TOFCAFFKEY.idref[0]=108;//(8)LBB for first ref. counter 
+  TOFCAFFKEY.idref[1]=0;//(9)LBB for second ref. counter (if nonzero)
+  TOFCAFFKEY.ifsl=1;//(10) 0/1 to fix/release slope param.
+  TOFCAFFKEY.caltyp=0;// (11) 0/1->space/earth calibration
 // AMPL-calibration:
-  TOFCAFFKEY.truse=0; // 1/0-> to use/not tracker
-  TOFCAFFKEY.plhc[0]=0.5;// track mom. low limit(gev/c)
-  TOFCAFFKEY.plhc[1]=20.;// track mom. high limit(gev/c)
-  TOFCAFFKEY.minev=30;// min.events needed for measurement in channel or bin
-  TOFCAFFKEY.trcut=0.85;// cut to use for "truncated average" calculation
-  TOFCAFFKEY.refbid[0]=201;//ref.bar id's list (LBB) for btype=1->5
+  TOFCAFFKEY.truse=0; // (12) 1/0-> to use/not tracker
+  TOFCAFFKEY.plhc[0]=2.;// (13) track mom. low limit(gev/c) for space calibr
+  TOFCAFFKEY.plhc[1]=30.;// (14) track mom. high limit(gev/c) ..............
+  TOFCAFFKEY.minev=100;// (15)min.events needed for measurement in channel or bin
+  TOFCAFFKEY.trcut=0.85;// (16) cut to use for "truncated average" calculation
+  TOFCAFFKEY.refbid[0]=201;//(17) ref.bar id's list (LBB) for btype=1->5
   TOFCAFFKEY.refbid[1]=202; 
   TOFCAFFKEY.refbid[2]=203; 
   TOFCAFFKEY.refbid[3]=204; 
-  TOFCAFFKEY.refbid[4]=108; 
+  TOFCAFFKEY.refbid[4]=108;//(21)
+  TOFCAFFKEY.plhec[0]=0.05;//(22)plow-cut for earth calibration
+  TOFCAFFKEY.plhec[1]=10;  //(23)phigh-cut ...................
+  TOFCAFFKEY.bgcut[0]=2; //(24) beta*gamma low-cut to be in mip-region(abs.calib)
+  TOFCAFFKEY.bgcut[1]=10;//(25) beta*gamma high-cut ...
+  TOFCAFFKEY.tofcoo=0; // 0/1-> use transv/longit coord. from TOF 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
@@ -642,7 +649,7 @@ void AMSJob::_reantidata(){
   ANTIRECFFKEY.PhEl2MeV=0.05;// reco conv. Phel->Mev(Mev/pe)( =Elos/2sides_signal measured at center)
   ANTIRECFFKEY.dtthr=3.; // trig.discr.theshold (same for all sides now) (p.e.'s for now)
   ANTIRECFFKEY.dathr=6.; // Amplitude(charge) discr.threshold(...) (p.e.)
-  ANTIRECFFKEY.ftwin=100.;// t-window for true ADCA-hit search (ns)
+  ANTIRECFFKEY.ftwin=100.;// t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT) 
   ANTIRECFFKEY.sec[0]=0; 
   ANTIRECFFKEY.sec[1]=0;
   ANTIRECFFKEY.min[0]=0;
@@ -662,6 +669,22 @@ void AMSJob::_reantidata(){
 void AMSJob::_rectcdata(){
   CTCRECFFKEY.Thr1=1.;
   CTCRECFFKEY.ThrS=1.;
+  CTCRECFFKEY.reprtf[0]=0;// Reco print_hist flag (0/1->no/yes)
+  CTCRECFFKEY.reprtf[1]=0;// DAQ-print (1/2->print for decoding/decoding+encoding)
+  CTCRECFFKEY.reprtf[2]=0;//spare
+  CTCRECFFKEY.ftwin=100.;// t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
+  CTCRECFFKEY.sec[0]=0; 
+  CTCRECFFKEY.sec[1]=0;
+  CTCRECFFKEY.min[0]=0;
+  CTCRECFFKEY.min[1]=0;
+  CTCRECFFKEY.hour[0]=0;
+  CTCRECFFKEY.hour[1]=0;
+  CTCRECFFKEY.day[0]=1;
+  CTCRECFFKEY.day[1]=1;
+  CTCRECFFKEY.mon[0]=0;
+  CTCRECFFKEY.mon[1]=0;
+  CTCRECFFKEY.year[0]=96;
+  CTCRECFFKEY.year[1]=99;
   FFKEY("CTCREC",(float*)&CTCRECFFKEY,sizeof(CTCRECFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
@@ -950,9 +973,12 @@ void AMSJob::_sitofinitjob(){
       HBOOK1(1061,"Geant-Edep(mev) in layer-1",80,0.,240.,0.);
       HBOOK1(1062,"Geant-Edep(mev) in layer-3",80,0.,24.,0.);
       HBOOK1(1063,"Geant-Edep(mev) in layer-3",80,0.,240.,0.);
-      HBOOK1(1070,"Log(PulseTotCharge(pC)),Sd-1,L-1",60,1.,10.,0.);
+      HBOOK2(1070,"Log(Qa) vs TovT,all channels",70,0.,280.,70,0.,8.4,0.);
       HBOOK1(1071,"Total bar pulse-charge(pC),L-1",80,0.,1600.,0.);
       HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,0.,16000.,0.);
+      HBOOK1(1073,"PMT-pulse amplitude(mV,id=108,s1)",80,0.,1000.,0.);
+      HBOOK1(1074,"Shaper amplitude (pC),all channels",80,0.,160.,0.);
+      HBOOK1(1075,"L=1,PM=1,Shaper TovT (ns)",80,50.,290.,0.);
     }
 
 
@@ -975,7 +1001,7 @@ void AMSJob::_siantiinitjob(){
 }
 
 void AMSJob::_sictcinitjob(){
-     AMSgObj::BookTimer.book("SICTCDIGI");
+     AMSgObj::BookTimer.book("SICTCEVENT");
 }
 
 void AMSJob::_sitrdinitjob(){
@@ -1085,6 +1111,7 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
       HBOOK1(1534,"(T2-T4)(ns),corr,ideal evnt",50,3.,6.,0.);
       HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",50,-2.,2.,0.);
+      HBOOK1(1545,"(T1-T4),(ns),uncorr,ideal evnt",50,3.5,6.5,0.);
       HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
       HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
       HBOOK1(1537,"L=1,TOF Eclust(mev)",80,0.,240.,0.);
@@ -1094,42 +1121,16 @@ void AMSJob::_retofinitjob(){
       HBOOK1(1541,"L=2,TOF Eclust(mev)",80,0.,240.,0.);
       HBOOK1(1542,"L=4,TOF Eclust(mev)",80,0.,240.,0.);
       if(TOFRECFFKEY.relogic[0]==1){ // STRR-calibration
-        HBOOK1(1200,"Stretcher-ratio for indiv. channel(R1)",80,30.,50.,0.);
-        HBOOK1(1201,"Stretcher-ratio for indiv. channel(R2)",80,30.,50.,0.);
-        HBOOK1(1202,"Error of str-ratio for indiv. channel(SR1)",80,0.,0.8,0.);
-        HBOOK1(1203,"Error of str-ratio for indiv. channel(SR2)",80,0.,0.8,0.);
+        HBOOK1(1200,"Stretcher-ratio for indiv. channel(R1)",80,35.,45.,0.);
+        HBOOK1(1201,"Stretcher-ratio for indiv. channel(R2)",80,35.,45.,0.);
+        HBOOK1(1202,"Error of str-ratio for indiv. channel(SR1)",80,0.,0.4,0.);
+        HBOOK1(1203,"Error of str-ratio for indiv. channel(SR2)",80,0.,0.4,0.);
         HBOOK1(1204,"Correl.factor of R1/R2",60,0.,1.2,0.);
       }
       if(TOFRECFFKEY.relogic[0]==3){ // TZSL-calibration
         HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
-        HBOOK1(1501,"Proton beta",80,0.9,1.1,0.);
+        HBOOK1(1501,"Particle beta(tracker)",80,0.9,1.1,0.);
         HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
-        HBOOK2(1502,"Layer-1,T vs exp(-A)",50,0.,0.3,50,23.,26.,0.);
-        HBOOK2(1503,"Layer-2,T vs exp(-A)",50,0.,0.3,50,23.,26.,0.);
-        HBOOK2(1504,"Layer-3,T vs exp(-A)",50,0.,0.3,50,19.,22.,0.);
-        HBOOK2(1505,"Layer-4,T vs exp(-A)",50,0.,0.3,50,19.,22.,0.);
-        HBOOK1(1508,"T1-T3, not corrected",50,3.,6.,0.);
-        HBOOK1(1509,"T2-T4, not corrected",50,3.,6.,0.);
-        HBOOK1(1510,"Layer-1 PM-1 s-time,noncor",80,18.,28.,0.);
-        HBOOK1(1511,"Layer-1 PM-2 s-time,noncor",80,18.,28.,0.);
-        HBOOK1(1512,"Layer-1 PM-1 a-ampl,noncor",80,50.,290.,0.);
-        HBOOK1(1513,"Layer-1 PM-2 a-ampl,noncor",80,50.,290.,0.);
-         HBOOK1(1514,"Layer-2 PM-1 s-time,noncor",80,18.,28.,0.);
-         HBOOK1(1515,"Layer-2 PM-2 s-time,noncor",80,18.,28.,0.);
-         HBOOK1(1516,"Layer-2 PM-1 a-ampl,noncor",80,50.,290.,0.);
-         HBOOK1(1517,"Layer-2 PM-2 a-ampl,noncor",80,50.,290.,0.);
-        HBOOK1(1518,"Layer-3 PM-1 s-time,noncor",80,18.,28.,0.);
-        HBOOK1(1519,"Layer-3 PM-2 s-time,noncor",80,18.,28.,0.);
-        HBOOK1(1520,"Layer-3 PM-1 a-ampl,noncor",80,50.,290.,0.);
-        HBOOK1(1521,"Layer-3 PM-2 a-ampl,noncor",80,50.,290.,0.);
-         HBOOK1(1522,"Layer-4 PM-1 s-time,noncor",80,18.,28.,0.);
-         HBOOK1(1523,"Layer-4 PM-2 s-time,noncor",80,18.,28.,0.);
-         HBOOK1(1524,"Layer-4 PM-1 a-ampl,noncor",80,50.,290.,0.);
-         HBOOK1(1525,"Layer-4 PM-2 a-ampl,noncor",80,50.,290.,0.);
-      }
-      if(TOFRECFFKEY.relogic[0]==4){ // AMPL-calibration
-        HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
-        HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
         HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
         HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
         HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
@@ -1141,19 +1142,65 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
         HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
         HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
+        HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
+        HBOOK1(1505,"Qmax ratio",80,0.,16.,0.);
+        HBOOK1(1507,"T0-difference inside bar-types 5",80,-0.4,0.4,0.);
+        HBOOK2(1502,"Layer-1,T vs exp(-A)",50,0.,0.2,50,5.,10.,0.);
+        HBOOK2(1504,"Layer-3,T vs exp(-A)",50,0.,0.2,50,0.,5.,0.);
+        HBOOK1(1508,"T1-T3, not A-corrected",80,2.5,7.3,0.);
+        HBOOK1(1509,"T2-T4, not A-corrected",80,3.5,8.3,0.);
+        HBOOK1(1510,"L-1 PM-1 slow-time,A-noncor,calib.events",80,50.,60.,0.);
+        HBOOK1(1511,"L-1 PM-2 slow-time,A-noncor,calib.events",80,50.,60.,0.);
+        HBOOK1(1512,"L-1 PM-1 TovTa(ns),calib.events",80,50.,290.,0.);
+        HBOOK1(1513,"L-1 PM-2 TovTa(ns),calib.events",80,50.,290.,0.);
+        HBOOK1(1518,"L-3 PM-1 slow-time,A-noncor,calib.events",80,45.,55.,0.);
+        HBOOK1(1519,"L-3 PM-2 slow-time,A-noncor,calib.events",80,45.,55.,0.);
+        HBOOK1(1520,"L-3 PM-1 TovTa(ns),calib.events",80,50.,290.,0.);
+        HBOOK1(1521,"L-3 PM-2 TovTa(ns),calib.events",80,50.,290.,0.);
+        HBOOK1(1522,"L-4 PM-1 slow-time,A-noncor,calib.events",80,45.,55.,0.);
+        HBOOK1(1523,"L-4 PM-2 slow-time,A-noncor,calib.events",80,45.,55.,0.);
+        HBOOK1(1524,"TRlen13-TRlen24",80,-3.2,3.2,0.);
+//        HBOOK1(1550,"Bar-time(corected),L=1",80,24.,26.,0.);
+//        HBOOK1(1551,"Bar-time(corected),L=2",80,23.5,25.5,0.);
+//        HBOOK1(1552,"Bar-time(corected),L=3",80,19.5,21.5,0.);
+//        HBOOK1(1553,"Bar-time(corected),L=4",80,19.,21.,0.);
+      }
+      if(TOFRECFFKEY.relogic[0]==4){ // AMPL-calibration
+        HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
+        HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+        HBOOK1(1501,"Particle beta(tracker)",80,0.5,1.,0.);
+        HBOOK1(1502,"Particle beta(tof)",80,0.5,1.,0.);
+        HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
+        HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
+        HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
+        HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
+        HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
+        HBOOK1(1204,"Mass",80,0.,1.6,0.);
+        HBOOK1(1207,"Mass in working betga-range",80,0.,1.6,0.);
+        HBOOK1(1205,"Chisq (tof-beta-fit)",50,0.,10.,0.);
+        HBOOK1(1206,"Tzer (tof-beta-fit)",50,-2.5,2.5,0.);
+        HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
+        HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
+        HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
+        HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
+        HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
+        HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
+        HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
+        HBOOK2(1218,"TOF-beta vs TRACKER-momentum",80,0.,4.,60,0.5,1.1,0.);
+        HBOOK2(1219,"Q(ref.btyp=5) vs Log(beta*gamma)",50,-0.1,1.9,80,0.,240.,0.);
 // hist.# 1220-1239 are reserved for imp.point distr.(later in TOFAMPLcalib.init()
 //        HBOOK2(1248,"Ref.bar(type=5) D-signal vs A-signal",80,0.,160.,80,2.,18.,0.);
         HBOOK2(1249,"Ref.bar(type=5) A2D-ratio vs A-signal",80,0.,160.,50,5.,15.,0.);
         HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,160.,0.);        
         HBOOK1(1251,"Ref.bar(type=5) Q-distr.(s=2,centre)",80,0.,240.,0.);
-        HBOOK1(1252,"Relative anode-gains(all channels)",80,0.6,1.4,0.);
+        HBOOK1(1252,"Relative anode-gains(all channels)",80,0.7,1.3,0.);
         HBOOK1(1254,"Ref.bar A-profile (type-1)",70,-70.,70.,0.);        
         HBOOK1(1255,"Ref.bar A-profile (type-2)",70,-70.,70.,0.);        
         HBOOK1(1256,"Ref.bar A-profile (type-3)",70,-70.,70.,0.);        
         HBOOK1(1257,"Ref.bar A-profile (type-4)",70,-70.,70.,0.);        
         HBOOK1(1258,"Ref.bar A-profile (type-5)",70,-70.,70.,0.);        
-        HBOOK1(1259,"Anode_to_Dinode signal ratio(all channels)",80,8.,12.,0.);
-        HBOOK1(1260,"Anode_to_Dinode ratio error(all channels)",80,0.,4.,0.);
+        HBOOK1(1259,"Anode_to_Dinode signal ratio(all channels)",80,9.,11.,0.);
+        HBOOK1(1260,"Anode_to_Dinode ratio error(all channels)",80,0.,0.4,0.);
       }
       if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
         for(i=0;i<SCLRS;i++){
@@ -1204,7 +1251,14 @@ void AMSJob::_reantiinitjob(){
 //===================================================================
 void AMSJob::_rectcinitjob(){
 AMSgObj::BookTimer.book("RECTCEVENT");
-AMSCTCRawHit::init();
+// AMSCTCRawHit::init();
+  if(CTCRECFFKEY.reprtf[0]>0){
+    HBOOK1(3000,"CTC total signal(raw,pe)",80,0.,20.,0.);
+    HBOOK1(3001,"CTC_channel: T_tdca-Ttdct (reco,ns)",80,-20.,220.,0.);
+  }
+// ===> create ctcfcal-objects(TDV) for each CTC cells group (combination) :
+//
+    CTCCCcal::build();
 }
 
 void AMSJob::_reaxinitjob(){
@@ -1397,6 +1451,32 @@ TID.add (new AMSTimeID(AMSID("Antisccal",isRealData()),
 //   (void*)&antivpar));
    
 }
+//-----------------------------------------
+//
+//   CTC : calibration parameters for all combinations
+//
+{
+tm begin;
+tm end;
+begin.tm_sec=CTCRECFFKEY.sec[0];
+begin.tm_min=CTCRECFFKEY.min[0];
+begin.tm_hour=CTCRECFFKEY.hour[0];
+begin.tm_mday=CTCRECFFKEY.day[0];
+begin.tm_mon=CTCRECFFKEY.mon[0];
+begin.tm_year=CTCRECFFKEY.year[0];
+
+end.tm_sec=CTCRECFFKEY.sec[1];
+end.tm_min=CTCRECFFKEY.min[1];
+end.tm_hour=CTCRECFFKEY.hour[1];
+end.tm_mday=CTCRECFFKEY.day[1];
+end.tm_mon=CTCRECFFKEY.mon[1];
+end.tm_year=CTCRECFFKEY.year[1];
+
+   
+TID.add (new AMSTimeID(AMSID("CTCccal",isRealData()),
+   begin,end,CTCCCMX*sizeof(ctcfcal[0]),
+   (void*)&ctcfcal[0]));
+}
 //---------------------------------------
 //
 // Data to fit particle charge magnitude
@@ -1511,11 +1591,15 @@ void AMSJob::_tkendjob(){
 
 }
 
-
+//------------------------------------------------------------------
 void AMSJob::_ctcendjob(){
-
+  if(CTCRECFFKEY.reprtf[0]>0){
+    HPRINT(3001);
+  }
+//
+  CTCJobStat::print(); // Print CTC JOB-statistics
 }
-
+//
 //-------------------------------------------------------------------
 void AMSJob::_tofendjob(){
   int i,j,k,ich;
@@ -1532,6 +1616,9 @@ void AMSJob::_tofendjob(){
          HPRINT(1070);
          HPRINT(1071);
          HPRINT(1072);
+         HPRINT(1073);
+         HPRINT(1074);
+         HPRINT(1075);
        }
        if(TOFRECFFKEY.reprtf[2]!=0){ // tempor! print RECO-hists
          HPRINT(1535);
@@ -1559,6 +1646,7 @@ void AMSJob::_tofendjob(){
            HPRINT(1543);
            HPRINT(1544);
            HPRINT(1534);
+           HPRINT(1545);
          }
          if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
            for(i=0;i<SCLRS;i++){
@@ -1579,34 +1667,8 @@ void AMSJob::_tofendjob(){
          if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
            HPRINT(1502);
            HPRINT(1503);
-           HPRINT(1504);
            HPRINT(1505);
-           HPRINT(1508);
-           HPRINT(1509);
-           HPRINT(1510);
-           HPRINT(1511);
-           HPRINT(1512);
-           HPRINT(1513);
-           HPRINT(1514);
-           HPRINT(1515);
-           HPRINT(1516);
-           HPRINT(1517);
-           HPRINT(1518);
-           HPRINT(1519);
-           HPRINT(1520);
-           HPRINT(1521);
-           HPRINT(1522);
-           HPRINT(1523);
-           HPRINT(1524);
-           HPRINT(1525);
-           TOFTZSLcalib::mfit();
-         }
-       }
-//
-       if(TOFRECFFKEY.relogic[0]==4){// for AMPL-calibr. runs
-         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
-           HPRINT(1506);
-           HPRINT(1500);
+           HPRINT(1504);
            HPRINT(1200);
            HPRINT(1201);
            HPRINT(1202);
@@ -1618,6 +1680,52 @@ void AMSJob::_tofendjob(){
            HPRINT(1215);
            HPRINT(1216);
            HPRINT(1217);
+           HPRINT(1508);
+           HPRINT(1509);
+           HPRINT(1510);
+           HPRINT(1511);
+           HPRINT(1512);
+           HPRINT(1513);
+           HPRINT(1518);
+           HPRINT(1519);
+           HPRINT(1520);
+           HPRINT(1521);
+           HPRINT(1522);
+           HPRINT(1523);
+           HPRINT(1524);
+//           HPRINT(1550);
+//           HPRINT(1551);
+//           HPRINT(1552);
+//           HPRINT(1553);
+           TOFTZSLcalib::mfit();
+           HPRINT(1507);
+         }
+       }
+//
+       if(TOFRECFFKEY.relogic[0]==4){// for AMPL-calibr. runs
+         if(isRealData() || (!isRealData() && TOFMCFFKEY.fast==0)){
+           HPRINT(1506);
+           HPRINT(1500);
+           HPRINT(1501);
+           HPRINT(1502);
+           HPRINT(1205);
+           HPRINT(1206);
+           HPRINT(1503);
+           HPRINT(1200);
+           HPRINT(1201);
+           HPRINT(1202);
+           HPRINT(1203);
+           HPRINT(1210);
+           HPRINT(1211);
+           HPRINT(1212);
+           HPRINT(1213);
+           HPRINT(1215);
+           HPRINT(1216);
+           HPRINT(1217);
+           HPRINT(1218);
+           HPRINT(1219);
+           HPRINT(1204);
+           HPRINT(1207);
 //           HPRINT(1248);
            HPRINT(1249);
            HPRINT(1250);

@@ -80,8 +80,8 @@ mat.add (new AMSgmat(23,"MAGNET",a,z,w,3,7.45));
 mat.add (new AMSgmat( 24,"AL-HONEYC",26.98, 13., 0.04, 600., 2660.));
      // effective material for PMT-boxes (low dens.(1:10) iron):
 mat.add (new AMSgmat(25,"LOW_DENS_Fe",55.85,26.,0.787,17.6,168.));
-     // low density(1.2:2.265) carbon (carb.fiber) for TOF sc_cover :
-mat.add (new AMSgmat(26,"CARBONF", 12.01, 6., 1.2 , 35.5, 72.));
+     // low density(1.3 eff) carbon (carb.fiber+mylar) for TOF sc_cover :
+mat.add (new AMSgmat(26,"CARBONF", 12.01, 6., 1.3 , 33., 66.));
 
 // WLS for CTC (same polystiren as for TOF scint)
 a[0]=12.;a[1]=1.;

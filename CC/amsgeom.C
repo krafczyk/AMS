@@ -173,7 +173,7 @@ dau=mother.add(new AMSgvolume(
 //----------------------------------------------------------------------
 //             <-- create/position S1-S4 sc. planes :
 //
-dx=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(7);// dx(width) of sc.counter(bar+cover)
+dx=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);// dx(width) of sc.counter(bar+cover)
 dz=TOFDBc::plnstr(6)+2.*TOFDBc::plnstr(7);// dz(thickn)of sc.counter(bar+cover)
 pr[0]=dx/2.;
 pr[2]=dz/2.; 
@@ -182,7 +182,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 //
   nbm=SCBRS[ip];                      // num. of bars in layer ip
   dxt=(nbm-1)*(dx-TOFDBc::plnstr(4)); // first-last sc.count. bars distance 
-//                                       (taking into account overlaping)
+//                                   (betw.centers, taking into account overlaping)
   if(ip<2){
     co[0]=TOFDBc::supstr(3);// <--top TOF-subsystem X-shift
     co[1]=TOFDBc::supstr(4);// <--top TOF-subsystem Y-shift
@@ -232,7 +232,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 //-------
 //        <-- cr/position scintillator inside counter
 //
-    par[0]=pr[0]-TOFDBc::plnstr(7);// pure scint. x-size/2
+    par[0]=pr[0]-TOFDBc::plnstr(13);// pure scint. x-size/2
     par[1]=pr[1]-TOFDBc::plnstr(11);// pure scint. y-size/2 (minus light guide)
     par[2]=pr[2]-TOFDBc::plnstr(7);// pure scint. z-size/2
     amsid=AMSID(0,"TOF_SCINT");  // set amsid for scint. itself

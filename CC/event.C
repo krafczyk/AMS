@@ -30,6 +30,7 @@
 #include <trigger1.h>
 #include <trigger3.h>
 #include <antirec.h>
+#include <ctcsim.h>
 extern "C" void uglast_();
  
 #ifdef __DB__
@@ -244,7 +245,7 @@ void AMSEvent::_reantiinitevent(){
       AMSEvent::gethead()->add(
       new AMSContainer(AMSID("AMSContainer:AMSAntiCluster",0),0));
 }
-
+//=====================================================================
 void AMSEvent::_retofinitevent(){
   integer i;
   AMSNode *ptr;
@@ -267,6 +268,10 @@ void AMSEvent::_retofinitevent(){
 //=====================================================================
 void AMSEvent::_rectcinitevent(){
   integer i;
+
+  AMSEvent::gethead()->add(
+  new AMSContainer(AMSID("AMSContainer:AMSCTCRawEvent",0),0));
+      
   for(i=0;i<CTCDBc::getnlay();i++){
 
    AMSEvent::gethead()->add (
@@ -411,7 +416,7 @@ _sitofevent();
 _siantievent(); 
 _sictcevent(); 
 _sitrigevent(); 
-if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
+ if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
 }
 
 void AMSEvent::_reamsevent(){
@@ -553,11 +558,17 @@ void AMSEvent::_reantievent(){
   else{                                                        // slow algorithm
 //
     AMSAntiRawEvent::validate(stat);// RawEvent-->RawEvent
-    if(stat!=0)return;
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("REANTIEVENT");
+      return;
+    }
     ANTIJobStat::addre(1);
 //
     AMSAntiRawCluster::build(stat);// RawEvent->RawCluster
-    if(stat!=0)return;
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("REANTIEVENT");
+      return;
+    }
     ANTIJobStat::addre(2);
 //
   }
@@ -581,7 +592,10 @@ TriggerLVL1 *ptr;
     TOFJobStat::addre(0);
     ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr)trflag=ptr->gettoflg();
-    if(trflag<=0)return;// "no h/w TOF-trigger"
+    if(trflag<=0){
+      AMSgObj::BookTimer.stop("RETOFEVENT");
+      return;// "no h/w TOF-trigger"
+    }
     TOFJobStat::addre(1);
 //
     if(AMSJob::gethead()->isSimulation() && TOFMCFFKEY.fast==1){
@@ -590,9 +604,12 @@ TriggerLVL1 *ptr;
 //
       AMSgObj::BookTimer.start("TOF:RwCl->Cl");
       AMSTOFCluster::build(stat);    // "RawCluster-->Cluster"
-      if(stat!=0)return;
-      TOFJobStat::addre(4);
       AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
+      if(stat!=0){
+        AMSgObj::BookTimer.stop("RETOFEVENT");
+        return;
+      }
+      TOFJobStat::addre(4);
     }
     else{
 //                   ===> reco of real events or simulated by slow MC:
@@ -601,18 +618,27 @@ TriggerLVL1 *ptr;
       AMSgObj::BookTimer.start("TOF:validation");
       AMSTOFRawEvent::validate(stat);// RawEvent-->RawEvent
       AMSgObj::BookTimer.stop("TOF:validation");
-      if(stat!=0)return;
+      if(stat!=0){
+        AMSgObj::BookTimer.stop("RETOFEVENT");
+        return;
+      }
       TOFJobStat::addre(2);
       AMSgObj::BookTimer.start("TOF:RwEv->RwCl");
       AMSTOFRawCluster::build(stat); // RawEvent-->RawCluster
       AMSgObj::BookTimer.stop("TOF:RwEv->RwCl");
-      if(stat!=0)return;
+      if(stat!=0){
+        AMSgObj::BookTimer.stop("RETOFEVENT");
+        return;
+      }
       TOFJobStat::addre(3);
 //
       AMSgObj::BookTimer.start("TOF:RwCl->Cl");
       AMSTOFCluster::build(stat);    // RawCluster-->Cluster
       AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
-      if(stat!=0)return;
+      if(stat!=0){
+        AMSgObj::BookTimer.stop("RETOFEVENT");
+        return;
+      }
       TOFJobStat::addre(4);
     }
 //
@@ -623,12 +649,33 @@ TriggerLVL1 *ptr;
 }
 //========================================================================
 void AMSEvent::_rectcevent(){
-AMSgObj::BookTimer.start("RECTCEVENT");
-AMSCTCCluster::build();
-#ifdef __AMSDEBUG__
-if(AMSEvent::debug)AMSCTCCluster::print();
-#endif
-AMSgObj::BookTimer.stop("RECTCEVENT");
+  int stat(0);
+  AMSgObj::BookTimer.start("RECTCEVENT");
+//
+  CTCJobStat::addre(0);
+//
+//
+  AMSCTCRawEvent::validate(stat);// RawEvent-->RawEvent
+  if(stat!=0){
+    AMSgObj::BookTimer.stop("RECTCEVENT");
+    return;
+  }
+  ANTIJobStat::addre(1);
+//
+  AMSCTCRawHit::build(stat);// RawEvent-->RawHit
+  if(stat!=0){
+    AMSgObj::BookTimer.stop("RECTCEVENT");
+    return;
+  }
+  ANTIJobStat::addre(2);
+//
+  AMSCTCCluster::build();// RawHit-->Cluster
+  ANTIJobStat::addre(3);
+//
+  #ifdef __AMSDEBUG__
+  if(AMSEvent::debug)AMSCTCCluster::print();
+  #endif
+  AMSgObj::BookTimer.stop("RECTCEVENT");
 }
 
 //========================================================================
@@ -759,17 +806,23 @@ void AMSEvent:: _sitofevent(){
    AMSgObj::BookTimer.start("TOF:Tovt->RwEv");
    AMSTOFRawEvent::mc_build(stat); // Tovt_hits-->RawEvent_hits
    AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
-   if(stat!=0)return; // no MC-trigger
+   if(stat!=0){
+     AMSgObj::BookTimer.stop("SITOFDIGI");
+     return; // no MC-trigger
+   }
    TOFJobStat::addmc(1);
   }
   else{    //                         ===> fast algorithm:
     TOFJobStat::addmc(0);
     AMSTOFRawCluster::sitofdigi(stat);//Geant_hit->RawCluster
-    if(stat!=0)return; // no MC-trigger
+    if(stat!=0){
+      AMSgObj::BookTimer.stop("SITOFDIGI");
+      return; // no MC-trigger
+    }
     TOFJobStat::addmc(2);
   }
-
   AMSgObj::BookTimer.stop("SITOFDIGI");
+//
 #ifdef __AMSDEBUG__
   //  p =getC("AMSTOFRawEvent",0);
   //  if(p && AMSEvent::debug)p->printC(cout);
@@ -780,15 +833,29 @@ void AMSEvent:: _sitofevent(){
 #endif
 }
 
-
+//=============================================================
 void AMSEvent:: _sictcevent(){
-   AMSCTCRawHit::sictcdigi();
+  int stat(0);
+//
+  AMSgObj::BookTimer.start("SICTCEVENT");
+  CTCJobStat::addmc(0);
+  AMSCTCRawHit::sictcdigi();// Ghits-->RawHit
+  CTCJobStat::addmc(1);
+//
+  AMSCTCRawEvent::mc_build(stat);// RawHit-->RawEvent
+  if(stat!=0){
+    AMSgObj::BookTimer.stop("SICTCEVENT");
+    return; // no MC-TOFtrigger
+  }
+  TOFJobStat::addmc(2);
+//
 #ifdef __AMSDEBUG__
   AMSContainer *p =getC("AMSCTCRawCluster",0);
   if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
+  AMSgObj::BookTimer.stop("SICTCEVENT");
 }
-
+//=============================================================
 
 
 

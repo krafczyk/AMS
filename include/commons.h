@@ -212,19 +212,22 @@ class TOFCAFFKEY_DEF {
 public:
 // TZSL-calibration :
 geant pcut[2];//low/high limits on momentum of calibr. events
-geant bmean;// mean proton velocity in this mom. range
+geant bmeanpr;// mean proton velocity in this mom. range
 geant tzref[2];// def. T0 for two reference counters
 geant fixsl;// def. for slope
-geant fixstr;// def. for inverse (<1) stratcher ratio
+geant bmeanmu;// mean muon velocity in this mom. range
 integer idref[2];// LBB for two ref.counter 
 integer ifsl;// 0/1 to fix/release slope param.
-integer ifstr;// 0/1 to fix/release str. param
+integer caltyp;// 0/1 to select space/earth calibration
 // AMPL-calibration :
 integer truse;// 1/0 to use/not tracker
-geant plhc[2];//low/high limits on tracker mom. of calibr.events
+geant plhc[2];//low/high cuts on tracker mom. for space calibration
 integer minev;// min.events needed for measurement in channel or bin
 geant trcut;// cut to use for "truncated average" calculation (0.85)
 integer refbid[5];//ref. id's list to use for longit. uniformity meas.
+geant plhec[2];//low/high cuts on tracker mom. for earth calibration
+geant bgcut[2];// beta*gamma low/high cuts for mip in abs.calibration
+integer tofcoo;// 0/1-> use transv/longit coord. from TOF
 };
 #define TOFCAFFKEY COMMON_BLOCK(TOFCAFFKEY,tofcaffkey)
 COMMON_BLOCK_DEF(TOFCAFFKEY_DEF,TOFCAFFKEY);
@@ -268,9 +271,17 @@ public:
 COMMON_BLOCK_DEF(CTCMCFFKEY_DEF,CTCMCFFKEY);
 
 class CTCRECFFKEY_DEF {
-public:
-geant Thr1;  // limit on max
-geant ThrS;  // limit on sum
+  public:
+  geant Thr1;  // limit on max
+  geant ThrS;  // limit on sum
+  integer reprtf[3];//  print flag
+  geant ftwin; // time_window(ns) in true TDCA-hits search wrt TDCT-hit(FT)
+  integer sec[2];
+  integer min[2];
+  integer hour[2];
+  integer day[2];
+  integer mon[2];
+  integer year[2];
 };
 #define CTCRECFFKEY COMMON_BLOCK(CTCRECFFKEY,ctcrecffkey)
 COMMON_BLOCK_DEF(CTCRECFFKEY_DEF,CTCRECFFKEY);

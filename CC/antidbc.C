@@ -63,10 +63,15 @@ void ANTIPcal::build(){ // fill array of objects with data
   integer sta[2]={0,0}; // all  are alive for now
   geant tthr[2]; // trigger threshold for one side.(p.e. for now)
   geant athr[2]; // TovT threshold for one side.(p.e.)
-  geant slop[2];
+  geant q2pe=1.;//tempor q(pC)->pe conv.factor (pe/pC)
   geant mip2q;   // conv.factor for Mev->pe (Pe/Mev)
   geant gain[2];
   geant ftdl[2];// TDCT(FTrig)_hit delay wrt TDCA_hit delay (ns)
+  geant aip[2][3]={
+    {50.,62.6,1.3},
+    {50.,62.6,1.3}
+  }; 
+// (def.param. for anode integrator(shft,t0(qthr=exp(t0/shft)),qoffs))
 //
   if(AMSJob::gethead()->isMCData()){ //            =====> For MC data:
     for(i=0;i<MAXANTI;i++){
@@ -74,14 +79,13 @@ void ANTIPcal::build(){ // fill array of objects with data
       tthr[1]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
       athr[0]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
       athr[1]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
-      slop[0]=1.; // if TovT is in shaper_decay_time units
-      slop[1]=1.; 
       mip2q=ANTIMCFFKEY.MeV2PhEl; // (pe/mev)
       gain[0]=1.; // tempor
       gain[1]=1.;
       ftdl[0]=TOFDBc::ftdelf();// tempor (as for TOF)
       ftdl[1]=TOFDBc::ftdelf();// tempor
-      antisccal[i]=ANTIPcal(i,sta,tthr,athr,slop,mip2q,gain,ftdl);// create ANTIPcal object
+      antisccal[i]=ANTIPcal(i,sta,tthr,athr,ftdl,mip2q,q2pe,
+                                         gain,aip);// create ANTIPcal object
     }
   }
 //---------------------------------------------------------------------
@@ -91,15 +95,31 @@ void ANTIPcal::build(){ // fill array of objects with data
       tthr[1]=ANTIRECFFKEY.dtthr; // take trig. threshold from data card for now
       athr[0]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
       athr[1]=ANTIRECFFKEY.dathr; // take TovT threshold from data card for now
-      slop[0]=1.; // if TovT is in shaper_decay_time units
-      slop[1]=1.; 
       mip2q=1./ANTIRECFFKEY.PhEl2MeV; // (pe/mev)
       gain[0]=1.; // tempor
       gain[1]=1.;
       ftdl[0]=TOFDBc::ftdelf();// tempor (as for TOF)
       ftdl[1]=TOFDBc::ftdelf();// tempor
-      antisccal[i]=ANTIPcal(i,sta,tthr,athr,slop,mip2q,gain,ftdl);// create ANTIPcal object
+      antisccal[i]=ANTIPcal(i,sta,tthr,athr,ftdl,mip2q,q2pe,
+                                         gain,aip);// create ANTIPcal object
     }
+  }
+}
+//----
+void ANTIPcal::q2t2q(int cof, int sdf, number &tovt, number &q){  
+// Q(pC) <-> Tovt(ns) to use in sim./rec. programs (cof=0/1-> Q->Tovt/Tovt->Q)
+//                                                 (sdf=0/1-> bar side 1/2   )
+  number qoffs,shft,qthr;
+  shft=aipar[sdf][0];
+  qthr=exp(aipar[sdf][1]/shft);//to match old parametrization
+  qoffs=aipar[sdf][2];
+// 
+  if(cof==0){ // q->tovt
+    if(q>qoffs)tovt=shft*log((q-qoffs)/qthr);
+    else tovt=0.;
+  }
+  else{       // tovt->q
+    q=qoffs+qthr*exp(tovt/shft);
   }
 }
 //=====================================================================  

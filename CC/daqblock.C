@@ -13,18 +13,28 @@
 #include <tofsim.h>
 #include <antidbc.h>
 #include <antirec.h>
+#include <ctcdbc.h>
+#include <ctcrec.h>
+#include <ctcsim.h>
 //
 integer DAQSBlock::format=1; // default format (reduced), redefined by data card
 //
 int16u DAQSBlock::subdmsk[DAQSBLK]={7,7,1,5,7,7,1,5};//defaul mask(lsbit->msbit: tof/anti/ctc)
 //
-int16u DAQSBlock::slotadr[DAQSSLT]={1,2,3,6,8,7};// h/w address of slots 
+int16u DAQSBlock::slotadr[DAQSSLT]={0,1,2,5,6,7};// h/w address of slots (card-ID's)
 //
 int16u DAQSBlock::sblids[DAQSFMX][DAQSBLK]=  //valid S-block_id's for each format
   {
     {0x1400,0x1440,0x1480,0x14C0,0x1500,0x1540,0x1580,0x15C0}, //  Raw
     {0x1401,0x1441,0x1481,0x14C1,0x1501,0x1541,0x1581,0x15C1}  //  Reduced
   };
+//
+int16u DAQSBlock::tofmtyp[SCTOFC][4]={
+                                      {3,4,2,1},    // mtypes in 1st TOFchannel of SFET
+                                      {1,2,3,4},    // mtypes in 2nd TOFchannel of SFET
+                                      {3,4,2,1},    // mtypes in 3rd TOFchannel of SFET
+                                      {1,2,3,4},    // mtypes in 4th TOFchannel of SFET
+                                     };
 //
 number DAQSBlock::rwtemp[DAQSTMX]={0,0,0,0,0,0,0,0, // just mem. reservation
                                    0,0,0,0,0,0,0,0,
@@ -38,23 +48,23 @@ number DAQSBlock::rwtemp[DAQSTMX]={0,0,0,0,0,0,0,0, // just mem. reservation
 // functions for S-blocks class:
 //
 integer DAQSBlock::isSFET(int16u slota){
-  if(slota==1 || slota==2 || slota==3 || slota==6)return(1);
+  if(slota==0 || slota==1 || slota==2 || slota==5)return(1);
   else return(0);
 }
 //
 integer DAQSBlock::isSFETT(int16u slota){
-  if(slota==2)return(1);
-  else if(slota==6)return(2);
+  if(slota==1)return(1);
+  else if(slota==5)return(2);
   else return(0);
 }
 //
 integer DAQSBlock::isSFEA(int16u slota){
-  if(slota==7)return(1);
+  if(slota==6)return(1);
   else return(0);
 }
 //
 integer DAQSBlock::isSFEC(int16u slota){
-  if(slota==8)return(1);
+  if(slota==7)return(1);
   else return(0);
 }
 //
@@ -81,7 +91,7 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   dtyp=blid&63;// data_type ("0"->RawTDC; "1"->ReducedTDC)
   msk=subdmsk[naddr];
 #ifdef __AMSDEBUG__
-  if(TOFRECFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1){
+  if(TOFRECFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
     cout<<"-----------------------------------------------------------"<<endl;
     cout<<"DAQ::decoding: block_id="<<hex<<blid<<dec<<endl; 
     cout<<"  block_type="<<btyp<<" node_type="<<ntyp<<endl;
@@ -119,11 +129,11 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   }
 //
 //---> CTC decoding:
-//  if(lent<len && (msk&4)>0){
-//    dlen=lent;//bias to first CTC_data_word (=1+TOF_data_length)
-//    AMSCTCRawEvent::buildraw(blid, dlen, p);
-//    lent+=dlen;
-//  }
+  if(lent<len && (msk&4)>0){
+    dlen=lent;//bias to first CTC_data_word (=1+TOF_data_length)
+    AMSCTCRawEvent::buildraw(blid, dlen, p);
+    lent+=dlen;
+  }
 //
 //---> ANTI decoding:
   if(lent<len && (msk&2)>0){
@@ -148,7 +158,7 @@ integer DAQSBlock::calcblocklength(integer ibl){
   msk=subdmsk[ibl];// subdetectors in crate (mask)
   if((msk&1)>0)tofl=AMSTOFRawEvent::calcdaqlength(blid);
   if((msk&2)>0)antil=AMSAntiRawEvent::calcdaqlength(blid);
-//  if((msk&4)>0)ctcl=AMSCTCRawEvent::calcdaqlength(blid);
+  if((msk&4)>0)ctcl=AMSCTCRawEvent::calcdaqlength(blid);
   lent=(1+tofl+antil+ctcl);//"1" for block-id word.
   return lent;
 }
@@ -160,7 +170,7 @@ void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
 // on input: len=tot_block_length as was defined by call to calcblocklength
 //           *p=pointer_to_beggining_of_block_data (block-id word)
 //
-  integer dlen,clen,fmt,lent(0);
+  integer i,dlen,clen,fmt,lent(0);
   int16u *next=p;
   int16u blid,msk;
 //
@@ -174,19 +184,12 @@ void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
 //--------------
   dlen=0;
   if((msk&1)>0)AMSTOFRawEvent::builddaq(blid, dlen, next);
-#ifdef __AMSDEBUG__
-  if(ibl==(DAQSBLK-1))  //clear AMSTOFRawEvent container after last block processed
-  {
-    AMSContainer *ptr=AMSEvent::gethead()->getC("AMSTOFRawEvent",0);
-    ptr->eraseC();
-  }
-#endif
 //
   lent+=dlen;
   next+=dlen;
 //---------------
   dlen=0;
-//  if((msk&4)>0)AMSCTCRawEvent::builddaq(blid, dlen, next);
+  if((msk&4)>0)AMSCTCRawEvent::builddaq(blid, dlen, next);
   lent+=dlen;
   next+=dlen;
 //---------------
@@ -205,4 +208,24 @@ void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
     cout<<"DAQSBlock::buildblock: length-mismatch !!! for block "<<ibl<<endl;
     cout<<"Initially declared length="<<len<<" but was written "<<lent<<endl;
   }
+//---------------
+#ifdef __AMSDEBUG__
+  if(ibl==(DAQSBLK-1))  //clear RawEvent/Hit container after last block processed
+  {
+    AMSContainer *ptr1=AMSEvent::gethead()->getC("AMSTOFRawEvent",0);
+    ptr1->eraseC();
+//
+    AMSContainer *ptr2=AMSEvent::gethead()->getC("AMSAntiRawEvent",0);
+    ptr2->eraseC();
+//
+    AMSContainer *ptr3=AMSEvent::gethead()->getC("AMSCTCRawEvent",0);
+    ptr3->eraseC();
+//
+    for(i=0;i<2;i++){
+      AMSContainer *ptr4=AMSEvent::gethead()->getC("AMSCTCRawHit",i);
+      ptr4->eraseC();
+    }
+  }
+#endif
+//--------------
 }

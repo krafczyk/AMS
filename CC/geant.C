@@ -181,7 +181,8 @@ extern "C" void gustep_(){
   char media[21]="dummy_media         ";
   geant de,dee,dtr2,div,tof;
   static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
-  geant trcut2(0.09);// Max. transv.shift (0.3cm)**2
+  geant trcut2(0.1);// Max. transv.shift (0.316cm)**2
+  geant vect[3],dx,dy,dz,dt; 
   int i,nd,numv,iprt,numl;
   static int numvo(-999),iprto(-999);
   if(GCVOLU.nlevel >1 && GCVOLU.names[1][0]== 'T' && GCVOLU.names[1][1]=='O' &&
@@ -193,7 +194,7 @@ extern "C" void gustep_(){
     z=GCTRAK.vect[2];
     t=GCTRAK.tofg;
     de=GCTRAK.destep;
-    if(GCTRAK.inwvol==1){// new volume or track : stor param.
+    if(GCTRAK.inwvol==1){// new volume or track : store param.
       iprto=iprt;
       numvo=numv;
       xpr=x;
@@ -203,30 +204,46 @@ extern "C" void gustep_(){
     }
     else{
       if(iprt==iprto && numv==numvo && de!=0.){// same part. in the same volume
-        dtr2=(x-xpr)*(x-xpr)+(y-ypr)*(y-ypr);
+        dx=(x-xpr);
+        dy=(y-ypr);
+        dz=(z-zpr);
+        dt=(t-tpr);
+        dtr2=dx*dx+dy*dy;
+//
         if(dtr2>trcut2){// too big transv. shift: subdivide step
-          nd=(integer)sqrt(dtr2/trcut2);
+          nd=integer(sqrt(dtr2/trcut2));
           nd+=1;
-	  geant vect[3]; 
+          dx=dx/geant(nd);
+          dy=dy/geant(nd);
+          dz=dz/geant(nd);
+          dt=dt/geant(nd);
+          GCTRAK.destep=de/geant(nd);
           for(i=1;i<=nd;i++){//loop over subdivisions
-            div=geant(i)/geant(nd);
-            vect[0]=xpr+(x-xpr)*div;
-            vect[1]=ypr+(y-ypr)*div;
-            vect[2]=zpr+(z-zpr)*div;
-            GCTRAK.destep=de/geant(nd);
-            tof=tpr+(t-tpr)*div;
+            vect[0]=xpr+dx*(i-0.5);
+            vect[1]=ypr+dy*(i-0.5);
+            vect[2]=zpr+dz*(i-0.5);
+            tof=tpr+dt*(i-0.5);
             dee=GCTRAK.destep;
             if(TOFMCFFKEY.birks)GBIRK(dee);
             AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
           }
         }
         else{
+          vect[0]=xpr+0.5*dx;
+          vect[1]=ypr+0.5*dy;
+          vect[2]=zpr+0.5*dz;
+          tof=tpr+0.5*dt;
           dee=GCTRAK.destep;
           if(TOFMCFFKEY.birks)GBIRK(dee);
-          AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,t);
-        }
+          AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
+        }// end of "big step" test
+//
+        xpr=x;
+        ypr=y;
+        zpr=z;
+        tpr=t;
       }// end of "same part/vol, de>0"
-    }
+    }// end of new volume test
   }// end of "in TOFS"
 //-------------------------------------
 
@@ -256,26 +273,24 @@ extern "C" void gustep_(){
 
   // ANTI,  mod. by E.C.
   numl=GCVOLU.nlevel;
-//  numv=GCVOLU.number[numl-1];
+  numv=GCVOLU.number[numl-1];
 //  for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-1][i];
-//  cerr<<"Volume "<<name<<" number="<<numv<<" level="<<numl<<endl;
+//  cout<<"Volume "<<name<<" number="<<numv<<" level="<<numl<<endl;
 //  iprt=GCKINE.ipart;
 //  x=GCTRAK.vect[0];
 //  y=GCTRAK.vect[1];
 //  z=GCTRAK.vect[2];
 //  t=GCTRAK.tofg;
 //  de=GCTRAK.destep;
-//  cerr<<"Part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<endl;
+//  cout<<"Part="<<iprt<<" x/y/z="<<x<<" "<<y<<" "<<z<<endl;
 //  UHTOC(GCTMED.natmed,4,media,20);
-//  cerr<<" Media "<<media<<endl;
+//  cout<<" Media "<<media<<endl;
   int manti(0);
   if(numl==3 && GCVOLU.names[numl-1][0]== 'A' && GCVOLU.names[numl-1][1]=='N'
                                        && GCVOLU.names[numl-1][2]=='T')manti=1;
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
-     geant dee;
      GBIRK(dee);
-     AMSAntiMCCluster::siantihits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
-     dee,GCTRAK.tofg);
+     AMSAntiMCCluster::siantihits(numv,GCTRAK.vect,dee,GCTRAK.tofg);
   }
   GSKING(0);
 #ifndef __BATCH__

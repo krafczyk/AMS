@@ -172,19 +172,20 @@ void AMSTOFScan::build()
 void AMSTOFTovt::build()
 {
 //      <--- prepare PM single electron pulse height distribution:
-  static geant arr[19]={5.,20.,39.7,46.5,52.3,54.6,52.7,47.6,40.7,
+  static geant arr[19]={50.,20.,39.7,46.5,52.3,54.6,52.7,47.6,40.7,
                           32.5,23.9,16.7,11.,7.,4.5,3.,1.5,1.,0.5};
-  static AMSDistr scpmsesp(19,0.,0.253,arr);// p/h spectrum ready
-//                   ( scale in mV@50ohm to have 1.39mV as m.p. value!!!)
+  static AMSDistr scpmsesp(19,0.,0.279,arr);// p/h spectrum ready
+//                   ( scale in mV@50ohm to have 1.5mV as m.p. value!!!)
 //
   integer i1,i2,id,idN,idd,ibar,ilay,ibtyp,cnum;
   static geant tslice1[SCTBMX+1]; //  flash ADC array for side-1
   static geant tslice2[SCTBMX+1]; //  flash ADC array for side-2
+  static geant tslice[SCTBMX+1]; //  flash ADC array 
   int i,ii,j,jj,jm,k,stat(0),nelec,ierr(0);
   integer nhitl[SCLRS];
   geant edepl[SCLRS],edepb;
   geant dummy(-1);
-  geant time,x,y,z,am,r,rnd,eff,de,tm,eps(0.002);
+  geant time,x,y,z,am,am2,r,rnd,eff,de,tm,eps(0.002);
   geant vl,vh;
   geant nel0,nel,nphot;
   AMSPoint cloc(999.,999.,999.);
@@ -194,21 +195,26 @@ void AMSTOFTovt::build()
 //
   static integer first=0;
   static integer npshbn;
-  static geant pmplsh[200];  // PM s.e. pulse shape
-  static geant fadcb,ifadcb,trts,tmax,zlmx,convr;
+  static geant pmplsh[1000];  // PM s.e. pulse shape
+  static geant fadcb,ifadcb,trts,tmax,zlmx,convr,seres,sesig;
 //
   if(first++==0){
+    seres=TOFDBc::seresp();
+    sesig=seres*TOFDBc::seresv();
     AMSTOFTovt::inipsh(npshbn,pmplsh); // prepare PM s.e. pulse shape arr.
     HBOOK1(1111,"Single electron spectrum,mV",65,0.,13.,0.);
-    for(i=0;i<1000;i++){
-      rnd=RNDM(dummy);
-      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
+    for(i=0;i<3000;i++){
+//      rnd=RNDM(dummy);
+//      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
+      am=seres+sesig*rnormx();
+      if(am<0)am=0;
       HF1(1111,am,1.);
     }
     HPRINT(1111);
     HDELET(1111);
     for(i=0;i<SCTBMX+1;i++)tslice1[i]=0.;// clear flash ADC arrays
     for(i=0;i<SCTBMX+1;i++)tslice2[i]=0.;
+    for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
     fadcb=TOFDBc::fladctb();
     ifadcb=1./fadcb;
     tmax=SCTBMX*fadcb;
@@ -265,14 +271,15 @@ void AMSTOFTovt::build()
       rnd=RNDM(dummy);
       tm=scmcscan[cnum].gettm1(rnd,r,i1,i2);//phel.arrival time from interpol.distr.
       tm=tm+time;// TOF+delay(incl.trans.time spread from LTRANS progr.)
-      rnd=RNDM(dummy);
-      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
-//----->  summing of all photoelectrons as fixed shape pulses:
-      ii=integer(tm*ifadcb);
-      jm=ii+npshbn;
-      if(jm>SCTBMX)jm=SCTBMX+1;
-      for(j=ii;j<jm;j++)
-                        tslice1[j]+=am*pmplsh[j-ii];
+//      rnd=RNDM(dummy);
+//      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
+      am=seres+sesig*rnormx();//amplitude from single elect. spectrum
+//----->  summing of all amplitudes from photoelectrons :
+      if(am>0){
+        ii=integer(tm*ifadcb);
+        if(ii>SCTBMX)ii=SCTBMX;
+        tslice1[ii]+=am;
+      }
     } // >>>----- end of PM-1 loop ------>
 //
 // PM-2 actions --->
@@ -284,35 +291,60 @@ void AMSTOFTovt::build()
       rnd=RNDM(dummy);
       tm=scmcscan[cnum].gettm2(rnd,r,i1,i2);//phel.arrival time from interpol. distr.
       tm=tm+time;// TOF+delay(incl.trans.time spread from LTRANS progr.)
-      rnd=RNDM(dummy);
-      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
-//----->  summing of all photoelectrons as fixed shape pulses:
-      ii=integer(tm*ifadcb);
-      jm=ii+npshbn;
-      if(jm>SCTBMX)jm=SCTBMX+1;
-      for(j=ii;j<jm;j++)
-                        tslice2[j]+=am*pmplsh[j-ii];
+//      rnd=RNDM(dummy);
+//      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
+      am=seres+sesig*rnormx();//amplitude from single elect. spectrum
+//----->  summing of all amplitudes from photoelectrons :
+      if(am>0){
+        ii=integer(tm*ifadcb);
+        if(ii>SCTBMX)ii=SCTBMX;
+        tslice2[ii]+=am;
+      }
     } // >>>----- end of PM-2 loop ------>
 //-----------------------------------
       ptrN=ptr->next();
       idN=0; 
       if(ptrN)idN=ptrN->getid();// id of the next G-hit
-      if(idN != id){ // --> last or new bar -> create Tovt-objects :
-        edepb*=1000.;
-        idd=id*10+1;
-        if(edepb>TOFMCFFKEY.Thr)
-                 AMSTOFTovt::totovt(idd,edepb,tslice1);// Tovt-obj for side(PM)-1
-        if(TOFMCFFKEY.mcprtf[1] != 0)
-                      AMSTOFTovt::displ_a(idd,20,tslice1);//print PMT pulse
-        idd=id*10+2;
-        if(edepb>TOFMCFFKEY.Thr)
-                 AMSTOFTovt::totovt(idd,edepb,tslice2);// Tovt-obj for side(PM)-2
-        if(TOFMCFFKEY.mcprtf[1] != 0)
-                      AMSTOFTovt::displ_a(idd,20,tslice2);//print PMT pulse
+      if(idN != id){ // <---- last or new bar -> create Tovt-objects :
+        edepb*=1000.;// --->MeV
+        if(edepb>TOFMCFFKEY.Thr){// process only bar with Edep>Ethr
+// PM-1 loop to apply pulse shape :
+          idd=id*10+1;//LBBS
+          for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
+          for(i=0;i<SCTBMX;i++){
+            am=tslice1[i];
+            if(am>0){
+              jm=i+npshbn;
+              if(jm>SCTBMX)jm=SCTBMX+1;
+              for(j=i;j<jm;j++)
+                          tslice[j]+=am*pmplsh[j-i];
+            }
+          }        
+          AMSTOFTovt::totovt(idd,edepb,tslice);// Tovt-obj for side(PM)-1
+          if(TOFMCFFKEY.mcprtf[1] != 0)
+                        AMSTOFTovt::displ_a(idd,20,tslice);//print PMT pulse
+//        
+// PM-2 loop to apply pulse shape :
+          idd=id*10+2;
+          for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
+          for(i=0;i<SCTBMX;i++){
+            am=tslice2[i];
+            if(am>0){
+              jm=i+npshbn;
+              if(jm>SCTBMX)jm=SCTBMX+1;
+              for(j=i;j<jm;j++)
+                          tslice[j]+=am*pmplsh[j-i];
+            }
+          }        
+          AMSTOFTovt::totovt(idd,edepb,tslice);// Tovt-obj for side(PM)-2
+          if(TOFMCFFKEY.mcprtf[1] != 0)
+                        AMSTOFTovt::displ_a(idd,20,tslice);//print PMT pulse
+        }// ---> end of edep check
+//
         for(i=0;i<SCTBMX+1;i++)tslice1[i]=0.;//clear flash ADC arrays for next bar
         for(i=0;i<SCTBMX+1;i++)tslice2[i]=0.;
         edepb=0.;// clear Edep
-      }
+      }// ---> end of next/last bar check
 //
     ptr=ptr->next();
   }// ------ end of geant hits loop ---->
@@ -333,15 +365,20 @@ void AMSTOFTovt::build()
 //  peak value = 1.(e.g. 1mV@50ohm)
 void AMSTOFTovt::inipsh(integer &nbn, geant arr[])
 {
-  static geant pmpsh[15]={0.,0.026,0.175,0.422,0.714,0.942,1.,0.935,
-       0.753,0.584,0.442,0.305,0.182,0.078,0.};// pulse heights at time points
-  static geant pmpsb[15]={0.,0.5,1.,1.5,2.,2.5,3.,3.5,4.,4.5,5.,
-       5.5,6.,6.5,7.}; // time points (min. step should be above fladctb)
+  static integer tbins=12;
+//  static geant pmpsh[15]={0.,0.026,0.175,0.422,0.714,0.942,1.,0.935,
+//       0.753,0.584,0.442,0.305,0.182,0.078,0.};// pulse heights at time points
+//  static geant pmpsb[15]={0.,0.5,1.,1.5,2.,2.5,3.,3.5,4.,4.5,5.,
+//       5.5,6.,6.5,7.}; // time points (min. step should be above fladctb)
+  static geant pmpsh[12]={0.,0.132,0.85,1.,0.83,0.68,0.35,0.15,0.078,
+       0.059,0.029,0.};// pulse heights at time points
+  static geant pmpsb[12]={0.,1.,2.25,3.5,4.75,6.,8.5,11.,13.5,16.,18.5,
+                      21.}; // time points (min. step should be above fladctb)
   integer i,io,ib;
   geant bl,bh,bol,boh,ao1,ao2,tgo,al,ah,tota;
   tota=0.;
   io=0;
-  for(ib=0;ib<200;ib++){
+  for(ib=0;ib<1000;ib++){
     bl=ib*TOFDBc::fladctb();
     bh=bl+TOFDBc::fladctb();
     bol=pmpsb[io];
@@ -362,7 +399,7 @@ void AMSTOFTovt::inipsh(integer &nbn, geant arr[])
       tgo=(ao2-ao1)/(boh-bol);
       al=ao1+tgo*(bl-bol);
       io+=1;
-      if((io+1)<15){
+      if((io+1)<tbins){
         bol=pmpsb[io];
         boh=pmpsb[io+1];
         ao1=pmpsh[io];
@@ -397,10 +434,11 @@ void AMSTOFTovt::inipsh(integer &nbn, geant arr[])
 }
 //--------------------------------------------------------------------------
 //
-// function below creates shaper stand. pulse shape array arr[] with bin shaptb :
-// (this array is shaper responce to A=1 input pulse with pulse_width=shaptb;
+// function below creates shaper stand. pulse shape array arr[] with bin=shaptb :
+// (this array is shaper responce to 1pC injection with duration=shaptb;
 //  shaper rise/fall times are shrtim<<shftim; nbn is array length,defined as
-//  boundary where the pulse amplitude is less than 0.0005 of the peak value)
+//  boundary where charge becomes less than 0.001 of initial value(~6.91*Tfall)
+//  of the peak value)
 //
 void AMSTOFTovt::inishap(integer &nbn, geant arr[])
 {
@@ -409,12 +447,12 @@ void AMSTOFTovt::inishap(integer &nbn, geant arr[])
   tr=TOFDBc::shrtim();
   tf=TOFDBc::shftim();
   tmb=TOFDBc::shaptb();
-  imax=SCSBMX/2;
+  imax=500;
   arr[0]=1.-exp(-tmb/tr);// fast charge (neglect by discharge !)
   for(i=1;i<imax;i++){ // <--- time loop ---
     t1=i*tmb;
     arr[i]=arr[0]*exp(-t1/tf);
-    if(arr[i]<(0.0005*arr[0])){
+    if(arr[i]<(0.001*arr[0])){
       nbn=i+1;
       if(TOFMCFFKEY.mcprtf[0] != 0){
         printf("Shaper pulse shape ready : nbins=% 3d\n",nbn);
@@ -506,12 +544,13 @@ void AMSTOFTovt::displ_as(const int id, const int mf, const geant arr[]){
 void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 {
   integer i,j,ij,ilay,ibar,isid,id,_sta,stat(0);
-  geant tm,a,am,amd,tmp,amp;
+  geant tm,a,am,amd,tmp,amp,amx,amxq;
   integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadca,_nadcd;
   number _ttr1[SCTHMX1],_ttr2[SCTHMX1],_ttr3[SCTHMX1];
   number _tftdc[SCTHMX2],_tftdcd[SCTHMX2];
   number _tstdc[SCTHMX3];
   number _tadca[SCTHMX4],_tadcad[SCTHMX4],_tadcd[SCTHMX4],_tadcdd[SCTHMX4];
+  number tovt;
   int upd1,upd2,upd3; // up/down flags for 3 fast discr. (z>=1;z>1;z>2)
   int upd11,upd12,upd13,upd21,upd31;
   int updsh;
@@ -527,9 +566,9 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
   static integer nshbn,mxcon,mxshc;
   static geant fladcb,shapb,cconv;
   geant daqt0,daqt1,daqt2,daqt3,daqt4;
-  static geant daqp0,daqp3,daqp4,daqp5,daqp6,daqp7,daqp8,daqp9,daqp10;
+  static geant daqp0,daqp2,daqp3,daqp4,daqp5,daqp6,daqp7,daqp8,daqp9,daqp10;
   static geant daqp11,daqp12;
-  static geant shplsh[SCSBMX/2];  // Shaper standard pulse shape array
+  static geant shplsh[500];  // Shaper standard pulse shape array
 //
   id=idd/10;// LBB
   isid=idd%10-1;// side
@@ -541,26 +580,29 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
     fladcb=TOFDBc::fladctb();          // and other time-stable parameters
     shapb=TOFDBc::shaptb();
     cconv=fladcb/50.; // for mV->pC (50 Ohm load)
-    daqp0=TOFDBc::daqpwd(0);
-    daqp3=TOFDBc::daqpwd(3);
+    daqp0=TOFDBc::daqpwd(0);//max(=min now) duration of FT(Z>=1) trig.pulse 
+    daqp2=TOFDBc::daqpwd(2);//max(=min now) duration of Z>2 trig.pulse 
+    daqp3=TOFDBc::daqpwd(3);//dead time for fast-TDC signal (dbl-pulse resol)
     daqp4=TOFDBc::daqpwd(4);
     daqp5=TOFDBc::daqpwd(5);
     daqp6=TOFDBc::daqpwd(6);
-    daqp7=TOFDBc::daqpwd(7);
-    daqp10=TOFDBc::daqpwd(10);// intrinsic t-dispersion of comparator.
-    daqp11=TOFDBc::daqpwd(11);// min.duration time of comparator.
+    daqp7=TOFDBc::daqpwd(7);// dead time for z>=1(FT) branch of adode-discr.
+    daqp9=TOFDBc::daqpwd(9);// dead time for z>2 branch of dinode-discr.
+    daqp10=TOFDBc::daqpwd(10);// intrinsic t-dispersion of comparator(on low thr.outp)
+    daqp11=TOFDBc::daqpwd(11);// min.duration time of comparator(..................)
   }
 // time-dependent parameters !!! :
-  daqt0=tofvpar.daqthr(0); // thr.for discr. "Z>=1" (fast discr)
+  daqt0=tofvpar.daqthr(0); // fast discr. thresh. for slow/fast TDC branch
+  daqt1=tofvpar.daqthr(1); // fast discr. thresh. for z>=1 (FT) branch
   scbrcal[ilay][ibar].geta2dr(a2dr);//get anode_to_dinode ratio
-  daqt2=tofvpar.daqthr(2)*a2dr[isid];// discr."Z>2" thresh., multipl. by anode/dinode ratio
+  daqt2=tofvpar.daqthr(2)*a2dr[isid];//dinode discr.("Z>2") thresh., multipl. by a2d ratio
   d2a=1./a2dr[isid];//dinode-to-anode ratio
   daqt3=tofvpar.daqthr(3);//threshold for anode TovT measurement (pC)
   daqt4=tofvpar.daqthr(4);//threshold for dinode TovT measurement (pC)
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
 //
-        if(tslice[SCTBMX]>0.){
+        if(tslice[SCTBMX]>0){
           cerr<<"SITOFTovt-warning: MC_flash-ADC overflow, id="<<idd<<
              "  A-last= "<<tslice[SCTBMX]<<'\n';
 //          if(TOFMCFFKEY.mcprtf[2])AMSTOFTovt::displ_a(idd,125,tslice);//print PMT pulse
@@ -593,16 +635,18 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         tmd3d=-9999.;
         td3b1=-9999.;// down-time of discr-3 branch-1(z>2)
 //
+        amx=0.;
         tm=0.;
         amp=0.;
         tmp=0.;
         for(i=0;i<imax;i++){  //  <--- time bin loop for time measurements ---
           tm+=fladcb;
           am=tslice[i];
+          if(am>amx)amx=am;// tempor
 //          am=am+8.*rnormx();//tempor to test noncorr. noise 8mv(rms)
           charge+=am;
 //--------------------------          
-// discr-1(comp.for "z>=1") up/down setting :
+// discr-1(anode,fast comparator for TDC/z>=1 ) up/down setting with LOW thr.:
           if(am>=daqt0){
             if(upd1 ==0){
               tmd1u=tmp+fladcb*(daqt0-amp)/(am-amp);// up time of discr.1
@@ -617,7 +661,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
             }
           }
 //----------
-// discr-3(comp.for "z>2") up/down setting :
+// discr-3( dinode comp.for "z>2") up/down setting :
           if(am>=daqt2){
             if(upd3 ==0){
               tmd3u=tm;// up time of discr.3 ("Z>2")
@@ -633,15 +677,15 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
           amp=am;// store ampl to use as "previous" one in next i-loop
           tmp=tm;// .......
 //--------------------------
-// try set all branches of discr-1(comp. "z>=1) when it is up: 
+// try set all branches of discr-1  when it is up: 
           if(upd1>0){
 //
-// branch-1 "z>=1 logic" :
-            if(upd11==0){
+// branch-1 "z>=1(FT)" logic (with HIGH thresh.!!!) :
+            if(upd11==0 && am>=daqt1){
               if((tm-td1b1)>daqp7){//dead time check for z>=1 signal
                 upd11=1;  // set flag for branch z>=1
                 if(_ntr1<SCTHMX1){
-                  _ttr1[_ntr1]=tmark;
+                  _ttr1[_ntr1]=tm;//don't need accurate up-time for trigger
                   _ntr1+=1;
                 }
                 else{
@@ -677,16 +721,16 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
           }//<-- end of discr-1 up-check
 //---------------------------
 // try reset all branches:
-// "z>=1"
+// "z>=1(FT)"
           if(upd11==1){// "z>=1 logic" reset
-            if((tm-_ttr1[_ntr1-1])>daqp0){//pulse width check
+            if((tm-_ttr1[_ntr1-1])>daqp0){//min duration (pulse width) check
               upd11=0;                    // for self-clear
               td1b1=tm;
             }
           }
 // f-tdc 
           if(upd12==1){ 
-            if(upd1 ==0){//"f-TDC" clear when discr.1 down(? may be some min.duration)
+            if(upd1 ==0){//"f-TDC" clear when discr.1 down (tempor)
               upd12=0;
               td1b2d=tm;
               if(_nftdc<SCTHMX2){
@@ -709,7 +753,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 //  set :
           if(upd3>0){
             if(upd31==0){
-              if((tm-td3b1)>daqp7){//dead time check for z>2 signal
+              if((tm-td3b1)>daqp9){//dead time check for z>2 signal
                 upd31=1;  // set flag for branch z>2
                 if(_ntr3<SCTHMX1){
                   _ttr3[_ntr3]=tmd3u;//up-time
@@ -724,7 +768,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
           }
 // reset :
           if(upd31==1){// "z>2 logic" reset
-            if((tm-_ttr3[_ntr3-1])>daqp0){//pulse width check
+            if((tm-_ttr3[_ntr3-1])>daqp2){//pulse width check
               upd31=0;                    // for self-clear
               td3b1=tm;
             }
@@ -746,7 +790,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         for(j=0;j<mxcon;j++)tshap1[j]=0.; // clear shaper input array
         j=0;                 
         for(i=0;i<imax;i++){
-          am=tslice[i];
+          am=tslice[i];//mV in fladcb-bin
           bo1=i*fladcb;
           bo2=bo1+fladcb;
           bn1=j*shapb;
@@ -787,8 +831,10 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
         tm=0;
         amp=0.;
         tmp=0.;
+        amxq=0.;
         for(i=0;i<mxshc;i++){  //  <--- time bin loop ---
           am=tshap2[i];
+          if(am>amxq)amxq=am;
           tm+=shapb;
           if(am>=daqt3){
             if(updsh==0){
@@ -818,6 +864,15 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
           amp=am;// store as "previous" value for next loop
           tmp=tm;
         }                    // --- end of time bin loop --->
+//
+      if(TOFMCFFKEY.mcprtf[2]!=0){// hist.for Qa<->TovT
+        tovt=0;
+        if(_nadca>0)tovt=_tadcad[0]-_tadca[0];// TovT for first hit
+        if(charge>0)HF2(1070,geant(tovt),log(charge),1.);
+        if(idd==1081)HF1(1073,amx,1.);// ampl.spectrum for ref.bar
+        HF1(1074,amxq,1.);
+        if(idd==1081)HF1(1075,geant(tovt),1.);
+      }
 // 
 //                      
 // ====> Time_over_threshold measurement for DINODE :
@@ -1295,7 +1350,7 @@ void AMSTOFRawEvent::mc_build(int &status)
   integer trpatt[SCLRS]={0,0,0,0};
   integer it,it1,it2,it3,it4,it0;
   int16u phbit,maxv;
-  static geant ftpw=TOFDBc::daqpwd(12);// FT-pulse width
+  static geant ftpw=TOFDBc::daqpwd(12);// FT_coincidence-pulse width
   AMSTOFTovt *ptr;
   AMSTOFTovt *ptrN;
   status=1;// bad
@@ -1374,7 +1429,7 @@ void AMSTOFRawEvent::mc_build(int &status)
         jj=nstdc-j-1;// LIFO readout mode (last stored - first read)
         t1=tstdc[jj]+rnormx()*TOFDBc::strjit1();//"start"-signal time + jitter
         t2=ftrig+rnormx()*TOFDBc::strjit2();//"stop"-signal = ftrig + jitter
-        t3=t2+ftpw;//"dummy"-signal time (fixed delay = FT-pulse width)
+        t3=t2+ftpw;//"dummy"-signal time (fixed delay = FT_coinc-pulse width)
         t4=t2+(t2-t1)*TOFDBc::strrat()+rnormx()*TOFDBc::strflu();//"end-mark"-signal + fluct 
         dt=ftrig-t1;// total FT-delay wrt t1
         if(dt<=TOFDBc::ftdelm()){ // check max. delay of "fast-trigger" signal

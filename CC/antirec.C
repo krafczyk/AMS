@@ -53,7 +53,7 @@ void AMSAntiRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   if(ANTIRECFFKEY.reprtf[1]>=1)
   cout<<endl<<"=======> Anti::validation: for event "<<(AMSEvent::gethead()->getid())<<endl;
 #endif
-//                             <---- loop over TOF RawEvent hits -----
+//                             <---- loop over ANTI RawEvent hits -----
   bad=1;
   while(ptr){
 #ifdef __AMSDEBUG__
@@ -128,13 +128,13 @@ void AMSAntiRawEvent::validate(int &status){ //Check/correct RawEvent-structure
 }
 //----------------------------------------------------
 void AMSAntiRawEvent::mc_build(int &stat){
-  geant up(0),down(0),slope[2],athr[2],tovt,tau;
+  geant up(0),down(0),slope[2],athr[2],tau,q2pe;
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
   integer i,j,nup,ndown,sector,ierr,trflag(0),it,sta[2];
   integer sbt,trpatt(0),lsbit(1);
   int16u phbit,maxv,id,chsta,ntdca,tdca[ANAHMX],ntdct,tdct[ANAHMX],itt;
-  number edep,ede,edept(0),time,z,c0,c1,tlev1,ftrig,t1,t2,dt;
+  number edep,ede,edept(0),time,z,c0,c1,tlev1,ftrig,t1,t2,dt,tovt;
   static number esignal[2][MAXANTI];
   static number tsignal[2][MAXANTI];
   VZERO(esignal,2*MAXANTI*sizeof(esignal[0][0])/sizeof(geant));
@@ -208,14 +208,15 @@ void AMSAntiRawEvent::mc_build(int &stat){
 //
   tau=ANTIDBc::shprdt();
   for (i=0;i<2;i++){ // <--- top/bot loop
-    antisccal[i].gettthr(athr);// threshold in TovT(p.e.!!!)
-    antisccal[i].getslope(slope);// slope in Ln(Q(p.e.))_vs_TovT(ns/tau) calibration
     for (j=0;j<MAXANTI;j++){ // <--- sector loop
+      antisccal[j].gettthr(athr);// threshold in TovT(p.e.!!!)
+      q2pe=antisccal[j].getq2pe();//Q->pe conv.factor (pe/pC)
       edep=esignal[i][j]; // p.e.
       time=tsignal[i][j]; // ns
       tovt=0;
       if(edep>athr[i]){ // above TovT-measurement threshold
-        tovt=tau*log(edep/athr[i])/slope[i];// TovT-time in ns
+        ede=edep/q2pe;// convert signal pe->pC 
+        antisccal[j].q2t2q(0,i,tovt,ede);// Q(pC)->TovT(ns)
         t1=time;// TovT-pulse up-edge (ns) abs.time
         t2=time+tovt;// TovT-pulse down-edge (ns) abs.time
 //
@@ -304,7 +305,6 @@ void AMSAntiRawCluster::build(int &status){
     antisccal[sector].getstat(statdb); // "alive" status from DB
     antisccal[sector].getftd(ftdel); // FTrig delay wrt ADCA-hit
     antisccal[sector].gettthr(athr);// threshold in TovT(p.e.!!!)
-    antisccal[sector].getslope(slope);// slope in Ln(Q(p.e.))_vs_TovT(ns/tau) calibration
     if(statdb[isid] == 0){  // channel alive
 //channel statistics :
       ANTIJobStat::addch(chnum,0); 
@@ -624,7 +624,7 @@ void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
   int16u ibar,isid,id;
   int16u phbit,maxv,ntdc,tdc[ANAHMX*2],ntdct,tdct[ANAHMX*2];
   int16u mtyp,hwid,hwch,swid,swch,htmsk,mskb,fmt,shft,hitc;
-  int16u slad,tdcw,adrw,adr,chipc;
+  int16u slad,tdcw,adrw,adr,chipc,chc;
   int16u phbtp;  
   int16u crate,rcrat,tdcc,chip,tdccm;
   AMSAntiRawEvent *ptr;
@@ -677,6 +677,7 @@ void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
     ichm=ic;// bias to bitmask word (where nonzero tdc-channels bits are set)
     ic+=1;
     if(nanti>0){ // nonempty SFEA
+      shft=0;
       nzch=0;//counts all nonzero TDC-channels (incl. FT)
       nanti=0;// counts only Anti TDC-channels
       for(tdcc=0;tdcc<ANCHSF;tdcc++){// <--- TDC-channels loop (16) (some of them are FT)
@@ -723,13 +724,16 @@ void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
 //
     ic=0;
     if(nanti>0){ // nonempty SFEA check
-      for(tdcc=0;tdcc<ANCHSF;tdcc++){// <--- TDC-channels loop (16)
+      for(tdcc=0;tdcc<ANCHSF;tdcc++){// <--- TDC-channels loop (0-15)
         chip=tdcc/8;//0-1
         chipc=tdcc%8;//chann.inside chip (0-7)
+        chc=((chipc&1)<<2);//convert chipc to reverse bit pattern
+        chc|=(chipc&2);
+        chc|=((chipc&4)>>2);
         ntdc=0;
-        slad=DAQSBlock::sladdr(int16u(ANSLOT-1));// slot-address (h/w address of SFEA in crate)
+        slad=DAQSBlock::sladdr(int16u(ANSLOT-1));//slot-addr(h/w addr of SFEA in crate)
         adrw=slad;// put slot-addr in address word
-        adrw|=(chipc<<8);// add channel number(inside of TDC-chip)
+        adrw|=(chc<<12);// add channel number(inside of TDC-chip)
         mtyp=1;// measur.type (1->TDCA)
         if(chipc==7){  //this TDC-channel contain FT-hits
           mtyp=2;// means FT measurements
@@ -758,7 +762,7 @@ void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
 //
 #ifdef __AMSDEBUG__
   if(ANTIRECFFKEY.reprtf[1]==2){
-    cout<<"AntiDAQBuild::encoding: written "<<len<<" words, hex dump follows:"<<endl;
+    cout<<"AntiDAQBuild::encoding: WRITTEN "<<len<<" words, hex dump follows:"<<endl;
     for(i=0;i<len;i++)cout<<hex<<(*(p+i))<<endl;
     cout<<dec<<endl<<endl;
   }
@@ -773,9 +777,9 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //            len=bias_to_first_Anti_data_word
 // on output: len=Anti_data_length.
 //
-  integer i,j,ic,ibar,isid,lentot,bias;
+  integer i,j,jj,ic,ibar,isid,lentot,bias;
   integer val;
-  int16u btyp,ntyp,naddr,dtyp,crate,sfet,tdcc,hwch,hmsk,slad,chip,chipc;
+  int16u btyp,ntyp,naddr,dtyp,crate,sfet,tdcc,hwch,hmsk,slad,chip,chipc,chc;
   int16u swid[ANCHCH],mtyp,hcnt,shft,nhit,nzch,nzcch,sbit;
   int16u phbit,maxv,phbt,phbtp; 
   int16u ids,stat,chan;
@@ -873,19 +877,22 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
     ic=1;// for Raw format start from the beginning of block + 1
     while(ic<lentot){ // <---  words loop
       tdcw=*(p+ic++);// chip# + tdc_value
-      chip=tdcw>>15;// TDC-chip number(0-1)
+      chip=(tdcw>>15);// TDC-chip number(0-1)
       adrw=*(p+ic++);// phbit + chipc + slotaddr.
-      slad=adrw&15;// get SFEx h/w address ((1,2,3,6)-TOF, (8)-C, (7)-A)
+      slad=adrw&15;// get SFEx h/w address(card-id) ((0,1,2,5)-TOF, (7)-C, (6)-A)
       sfet=DAQSBlock::slnumb(slad);// sequential slot number (0-5, or =DAQSSLT if slad invalid)) 
       if(sfet==DAQSSLT)continue; //---> invalid slad: try to take next pair
       if(DAQSBlock::isSFEA(slad)){ // SFEA data : write to buffer
         lent+=2;
-        chipc=(adrw>>8)&7;// channel inside TDC-chip (0-7)
+        chipc=(adrw>>12)&7;// channel inside TDC-chip (0-7)(reverse bit pattern!!!)
+        chc=((chipc&1)<<2);//convert chipc to normal bit pattern
+        chc|=(chipc&2);
+        chc|=((chipc&4)>>2);
         if((adrw & phbtp)>0)
                             phbt=1; // check/set phase-bit flag
         else
                             phbt=0;
-        tdcc=8*chip+chipc; // channel inside SFEA(0-15)
+        tdcc=8*chip+chc; // channel inside SFEA(0-15)
         hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
         if(nhits[tdcc]<16){
           hits[tdcc][nhits[tdcc]]=hitv;
@@ -954,8 +961,18 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //
 #ifdef __AMSDEBUG__
   if(ANTIRECFFKEY.reprtf[1]>=1){
-    cout<<"AntiRawEventBuild::decoding: read "<<len<<" words, hex dump follows:"<<endl;
-    for(i=0;i<len;i++)cout<<hex<<(*(p+i+bias))<<endl;
+    cout<<"AntiRawEventBuild::decoding: FOUND "<<len<<" words, hex/bit dump follows:"<<endl;
+    int16u tstw,tstb;
+    for(i=0;i<len;i++){
+      tstw=*(p+i+bias);
+      cout<<hex<<tstw<<"  |"<<dec;
+      for(j=0;j<16;j++){
+        tstb=(1<<(15-j));
+        if((tstw&tstb)!=0)cout<<"x"<<"|";
+        else cout<<" "<<"|";
+      }
+      cout<<endl;
+    }
     cout<<dec<<endl<<endl;
   }
 #endif
