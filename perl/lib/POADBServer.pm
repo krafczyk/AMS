@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.14 2003/11/12 15:22:56 choutko Exp $
+#  $Id: POADBServer.pm,v 1.15 2003/11/18 08:53:40 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -78,7 +78,6 @@ OUT:
 }
 
 sub getRunEvInfo(){
-
     my $ref=$DBServer::Singleton;
     my ($class,$cid)=@_;
 #        my ($ok,%hash)=$ref->OpenDBFile();
@@ -140,6 +139,7 @@ OUT:
             foreach my $rtb (@sortedrtb){
                 $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly" ){
+                
                 if($rtb->{History} ne "Failed" and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
    if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
    $sortedrtb[$i]->{Status}="Processing";
@@ -161,10 +161,10 @@ else {
             }
             $i=-1;
             foreach my $rtb (@sortedrtb){
-                $i=$i+1;
+                 $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly"){
-                if($rtb->{History} eq "Failed" && $host ne $rtb->{cinfo}->{HostName} and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
-   if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
+                 if($rtb->{History} eq "Failed" and ($host ne $rtb->{cinfo}->{HostName} or $rtb->{Status} ne "ToBeRerun") and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
+    if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
    $sortedrtb[$i]->{Status}="Processing";
 }
 else {
