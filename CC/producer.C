@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.57 2002/04/03 11:04:57 choutko Exp $
+//  $Id: producer.C,v 1.58 2002/04/10 10:35:48 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -649,6 +649,9 @@ catch  (CORBA::SystemException & a){}
 
 
 void AMSProducer::UpdateARS(){
+if(AMSJob::gethead()->isSimulation()){
+ return;
+}
 for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
 try{
 if(!CORBA::is_nil(*li)){
@@ -1160,6 +1163,7 @@ void AMSProducer::sendDSTInfo(){
     _OnAir=false;
       }
       catch  (CORBA::SystemException & a){
+      cerr<<" sendDSTInfo-E-UnableToSend "<<endl; 
     _OnAir=false;
       }
     }
@@ -1216,7 +1220,7 @@ bool AMSProducer::getior(const char * getiorvar){
 char iort[1024];
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv(getiorvar);
-int maxtries=4;
+int maxtries=5;
 int delay=1;
 if(exedir && nve && AMSCommonsI::getosname()){
  char t1[1024];
@@ -1277,6 +1281,9 @@ if(exedir && nve && AMSCommonsI::getosname()){
    }
   }
 }
+}
+else{
+    EMessage("AMSProducer::getior-E-UnableToTryToGetIORBecauseSomeVarAreNull");
 }
 return false;
 }

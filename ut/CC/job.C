@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.401 2002/04/10 10:05:47 choumilo Exp $
+// $Id: job.C,v 1.402 2002/04/10 10:35:47 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1109,7 +1109,7 @@ BETAFITFFKEY.pattern[5]=1;
 BETAFITFFKEY.pattern[6]=1;
 BETAFITFFKEY.pattern[7]=1;
 BETAFITFFKEY.pattern[8]=1;
-BETAFITFFKEY.Chi2=15;
+BETAFITFFKEY.Chi2=50;
 BETAFITFFKEY.Chi2S=15;
 BETAFITFFKEY.SearchReg[0]=3.;
 BETAFITFFKEY.SearchReg[1]=3.;

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.13 2002/04/10 10:05:48 choumilo Exp $
+//  $Id: tofrec02.C,v 1.14 2002/04/10 10:35:48 choutko Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -1489,7 +1489,7 @@ cout<<"Enter TOFCluster::recovers2"<<endl;
 
 integer TOF2RawCluster::Out(integer status){
 static integer init=0;
-static integer WriteAll=0;
+static integer WriteAll=1;
 if(init == 0){
  init=1;
  integer ntrig=AMSJob::gethead()->gettriggerN();
