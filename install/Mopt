@@ -172,6 +172,9 @@ $(BIN)tofdbc.o:         $(SCC)tofdbc.C
 $(BIN)tofcalib.o:         $(SCC)tofcalib.C
 	$(CC) -c $(CFLAGS) $(SCC)tofcalib.C -o $(BIN)tofcalib.o
 
+$(BIN)ctccalib.o:         $(SCC)ctccalib.C
+	$(CC) -c $(CFLAGS) $(SCC)ctccalib.C -o $(BIN)ctccalib.o
+
 $(BIN)ctcdbc.o:         $(SCC)ctcdbc.C
 	$(CC) -c $(CFLAGS) $(SCC)ctcdbc.C -o $(BIN)ctcdbc.o
 
