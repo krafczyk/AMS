@@ -301,7 +301,7 @@ c       write(*,*)' Starting converting'
      + 'ntofmc[0,200],TOFMCIdsoft(ntofmc):I,'//
      + 'TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),'//
      + 'TOFMCedep(ntofmc)')
-      
+
       call hbname(1,cblock(7), ntrcl,
      + 'ntrcl[0,200],Idsoft(ntrcl):I,Statust(ntrcl):I,'//
      + 'NelemL(ntrcl):I,NelemR(ntrcl):I,'//
