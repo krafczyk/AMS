@@ -476,10 +476,12 @@ void AMSTimeID::_fillfromDB()
     const integer E = 3;
     integer nobj = 0;
  
-    integer *pS = new integer[1000];
-    time_t  *pI = new time_t[1000];
-    time_t  *pB = new time_t[1000];
-    time_t  *pE = new time_t[1000];
+    lms -> GetNTDV(getname(), getid(), nobj);
+
+    integer *pS = new integer[nobj];
+    time_t  *pI = new time_t[nobj];
+    time_t  *pB = new time_t[nobj];
+    time_t  *pE = new time_t[nobj];
 
     lms -> GetAllTDV(getname(), getid(), pS, pI, pB, pE, nobj);
     if(nobj > 0) {
@@ -506,12 +508,13 @@ void AMSTimeID::_fillfromDB()
 
 integer AMSTimeID::readDB(integer reenter){
 
+  integer rec = -1;
 #ifdef __DB__
 
   time_t  I, B, E;
   integer S;
 
-  integer rec =_getDBRecord(AMSEvent::gethead()->gettime());
+  rec =_getDBRecord(AMSEvent::gethead()->gettime());
   if (rec != -1) {
    S    = _pDataBaseEntries[0][rec];
    if (S > 0) {

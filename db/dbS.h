@@ -17,7 +17,7 @@
 //                  'short' version (setups only)
 //                  add tdv dbase
 //
-// Last Edit March 25, 1997. ak.
+// Last Edit March 27, 1997. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -83,6 +83,7 @@ public:
                                 time_t I, time_t B, time_t E, uinteger* buff);
 	ooStatus	GetAllTDV(char* name, integer id, integer* S,
                               time_t* I, time_t* B, time_t* E, integer &nobj);
+	ooStatus	GetNTDV(char* name, integer id, integer &nobj);
         ooStatus        ReadTKDBc();
 
 	ooStatus	DeleteSetup(char* setup);

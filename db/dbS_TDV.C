@@ -400,3 +400,52 @@ ooStatus   LMS::GetAllTDV(char* tdvname, integer id, integer *S,
 
   return rstatus;
 }
+
+ooStatus   LMS::GetNTDV(char* tdvname, integer id, integer &nobj) 
+//
+// how many objects with name and id
+// 
+//
+{
+	ooStatus 	       rstatus = oocError;	// Return status
+        ooHandle(AMSdbs)       dbTabH;                  // catalog of dbases
+        ooHandle(ooDBObj)      dbH;                     // tdv dbase
+        ooHandle(ooContObj)    contH;                   // TDV container
+        ooItr(AMSTimeIDD)      tdvItr;                  // TDVObj iterator
+        char*                  contName;
+
+  if (simulation()) 
+   contName = StrDup("Time_Dep_Var_S");
+  else
+   contName = StrDup("Time_Dep_Var");
+
+#ifdef __AMSDEBUG__
+  cout <<"GetNTDV -I-  container "<<contName<<endl;
+#endif
+  
+  StartRead(oocMROW);
+  dbTabH = Tabdb();
+  if (dbTabH == NULL) Fatal("GetNObj : dbTabH is NULL");
+  integer ntdvdbs = dbTabH -> size(dbtdv);          // number of TDV dbases
+  char pred[120];
+  (void) sprintf(pred,"_id=%d &&_name=~%c%s%c",id,'"',tdvname,'"');
+#ifdef __AMSDEBUG__
+  cout<<"GetNTDV -I- search for "<<pred<<endl;
+#endif
+  nobj = 0;
+  for (int i=0; i<ntdvdbs; i++) {
+   dbH = dbTabH -> getDB(dbtdv,i);
+   if (dbH == NULL) Fatal("GetNTDV : Cannot open tdv dbase ");
+   if (contH.exist(dbH, contName, oocRead)) {
+    rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
+    if (rstatus != oocSuccess) Fatal("GetNTDV : container scan failed");
+    while (tdvItr.next()) nobj++;
+   }
+  }
+
+  Commit();
+
+  if (contName) delete [] contName;
+
+  return rstatus;
+}
