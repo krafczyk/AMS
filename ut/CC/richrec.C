@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.42 2002/11/20 12:35:00 choutko Exp $
+//  $Id: richrec.C,v 1.43 2002/12/05 18:41:36 delgadom Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -230,7 +230,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   static const geant H=RICHDB::rich_height+RICHDB::foil_height+
                        RICradmirgap+RIClgdmirgap
                        -RICHDB::foil_height;   // Correction due to high index
-  static const geant n=index;
+  geant n=index;
   
   geant u=fabs(sin(theta)/n);
   integer time_out=0;
@@ -580,8 +580,8 @@ getnelem();
   
   
   // Reconstruction threshold: maximum beta admited
-  geant betamax=1.+3.e-2*(A+B);
-    //geant betamax=1.+5.e-2*(A+B);
+  //geant betamax=1.+3.e-2*(A+B);
+  geant betamax=1.+5.e-2*(A+B);
 
 
   // Next obtained by Casaus: minimum beta admited to avoid noise caused
@@ -674,7 +674,7 @@ getnelem();
   
   // Look for clusters
 
-  uinteger current_ring_status=0;
+  uinteger current_ring_status=_kind_of_tile==naf_kind?naf_ring:0;
 
 
   do{
@@ -935,6 +935,11 @@ void RichRadiatorTile::Init(){
  
   // In we have chosen Naf put a 3x3 array of Naf right in the center
   if(RICCONTROL.setup==1){
+
+    for(int i=(_number_of_rad_tiles-1)/2-1;i<=(_number_of_rad_tiles-1)/2+1;i++)
+      for(int j=(_number_of_rad_tiles-1)/2-1;j<=(_number_of_rad_tiles-1)/2+1;j++)
+	_kind_of_tile[i*_number_of_rad_tiles+j]=naf_kind;
+
   }
 
 
@@ -1383,6 +1388,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
   /* propagate to foil end */
     l=RICHDB::foil_height/u1[2];
     for(i=0;i<3;i++) r1[i]=r1[i]+l*u1[i];
+
     if (sqrt(SQR(r1[0])+SQR(r1[1]))>RICHDB::top_radius){
       *tflag=2;
       return 0;
@@ -1410,7 +1416,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
   
   
   /* propagate to top of mirror */
-  l=RICradmirgap;
+  l=RICradmirgap/u1[2];
   for(i=0;i<3;i++) r1[i]+=l*u1[i];
   rbase=sqrt(SQR(r1[0])+SQR(r1[1]));
   if (rbase>RICHDB::top_radius){   
@@ -1418,13 +1424,13 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     return 0;
   }
   
-  
+
   
   /* propagate to base of mirror*/
   l=RICHDB::rich_height/u1[2];
   
   for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
-  
+
   
   /* hole, direct or reflected */
   rbase=sqrt(SQR(r2[0])+SQR(r2[1]));
@@ -1436,6 +1442,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     for(i=0;i<3;i++) r2[i]+=l*u1[i];
     *xb=r2[0];
     *yb=r2[1];
+
     *beff=AMSRICHIdGeom::get_channel_from_top(r2[0],r2[1])<0?0:1;
     *tflag=*beff?3:5;
     return (*beff)*lgeff(r2,u1,lguide); 
@@ -1481,19 +1488,16 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
       return 0;
     }
 
-    l=RIClgdmirgap/u2[2];
 
-    for(i=0;i<3;i++) r3[i]+=l*u2[i];
     *xb=r3[0];
     *yb=r3[1];
-    
-
     
     //    //    if (fabs(r3[0])<bx && fabs(r3[1])<by){
     //    //      *tflag=1;
     //    //      return 0;
     //    //    }
     
+
     *beff=mir_eff*(AMSRICHIdGeom::get_channel_from_top(r3[0],r3[1])==0?0:1);
     *tflag=*beff?4:5;
     return *beff*lgeff(r3,u2,lguide);
@@ -1533,26 +1537,44 @@ float AMSRichRing::generated(geant length,
   const float ALPHA=0.0072973530764; 
 
   static float factor=1.;
-  static int first=1;
+  static int veryfirst=1;
+  static int first[radiator_kinds];
   static float k,abslref,tl;
   const int ENTRIES=RICmaxentries;
-  static float l[ENTRIES],r[ENTRIES],a[ENTRIES],b[ENTRIES],g[ENTRIES],t[ENTRIES];
-  static float effg[NRAD],ring[NRAD];
-  static float effr[NRAD][NFOIL],rinr[NRAD][NFOIL];
-  static float effb[NRAD][NFOIL],rinb[NRAD][NFOIL];
-  static float effd[NRAD][NFOIL][NGUIDE],rind[NRAD][NFOIL][NGUIDE];
+  static float l[ENTRIES][radiator_kinds],
+    r[ENTRIES][radiator_kinds],
+    a[ENTRIES][radiator_kinds],
+    b[ENTRIES][radiator_kinds],
+    g[ENTRIES][radiator_kinds],
+    t[ENTRIES][radiator_kinds];
+  static float effg[NRAD][radiator_kinds],
+    ring[NRAD][radiator_kinds];
+  static float effr[NRAD][NFOIL][radiator_kinds],
+    rinr[NRAD][NFOIL][radiator_kinds];
+  static float effb[NRAD][NFOIL][radiator_kinds],
+    rinb[NRAD][NFOIL][radiator_kinds];
+  static float effd[NRAD][NFOIL][NGUIDE][radiator_kinds],
+    rind[NRAD][NFOIL][NGUIDE][radiator_kinds];
   float rmn=0,rmx=2.0*_height;
   float fmn=RICHDB::foil_height,fmx=1.5*RICHDB::foil_height;
   float gmn=RICHDB::lg_height,gmx=1.7*RICHDB::lg_height;
   int i,lr,lf,lg,nf;
   float beta;
   float f=0.;
+
+
+  if(veryfirst){for(int i=0;i<radiator_kinds;i++) first[i]=1;veryfirst=0;}
+
+
   if(_kind_of_tile==naf_kind){
     rmx=6.0*_height;
     fmx=3.0*RICHDB::foil_height;}
   
-  if(first){
-    first=0;
+
+
+
+  if(first[_kind_of_tile-1]){
+    first[_kind_of_tile-1]=0;
     k=2*PI*ALPHA;
     tl=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index);
     abslref=(RICHDB::lg_abs[0]+RICHDB::lg_abs[1])/2;
@@ -1565,13 +1587,13 @@ float AMSRichRing::generated(geant length,
     for(i=0;i<ENTRIES-1;i++){
       float dl=1.e-3*(RICHDB::wave_length[i]-RICHDB::wave_length[i+1]);
       float q=1.e-2*(RICHDB::eff[i]+RICHDB::eff[i+1])/2;
-      l[i]=1.e-3*(RICHDB::wave_length[i]+RICHDB::wave_length[i+1])/2;
-      r[i]=(_index_tbl[i]+_index_tbl[i+1])/2;
-      a[i]=(_abs_len[i]+_abs_len[i+1])/2;
-      b[i]=(RICHDB::lg_abs[i]+RICHDB::lg_abs[i+1])/2;
-      g[i]=q*dl/SQR(l[i]);
-      t[i]=4*r[i]/SQR(1+r[i]);
-      if(RICHDB::foil_height>0) t[i]*=RICHDB::foil_index*(1+r[i])/(r[i]+SQR(RICHDB::foil_index));
+      l[i][_kind_of_tile-1]=1.e-3*(RICHDB::wave_length[i]+RICHDB::wave_length[i+1])/2;
+      r[i][_kind_of_tile-1]=(_index_tbl[i]+_index_tbl[i+1])/2;
+      a[i][_kind_of_tile-1]=(_abs_len[i]+_abs_len[i+1])/2;
+      b[i][_kind_of_tile-1]=(RICHDB::lg_abs[i]+RICHDB::lg_abs[i+1])/2;
+      g[i][_kind_of_tile-1]=q*dl/SQR(l[i][_kind_of_tile-1]);
+      t[i][_kind_of_tile-1]=4*r[i][_kind_of_tile-1]/SQR(1+r[i][_kind_of_tile-1]);
+      if(RICHDB::foil_height>0) t[i][_kind_of_tile-1]*=RICHDB::foil_index*(1+r[i][_kind_of_tile-1])/(r[i][_kind_of_tile-1]+SQR(RICHDB::foil_index));
     }
     nf=RICHDB::foil_height>0?NFOIL:1;
 #ifdef __AMSDEBUG__
@@ -1585,40 +1607,40 @@ float AMSRichRing::generated(geant length,
 
     for(lr=0;lr<NRAD;lr++){
      float rl=rmn+lr*(rmx-rmn)/NRAD;
-     effg[lr]=0;
-     ring[lr]=0;
+     effg[lr][_kind_of_tile-1]=0;
+     ring[lr][_kind_of_tile-1]=0;
      for(lf=0;lf<nf;lf++){
       float fl=fmn+lf*(fmx-fmn)/nf;
-      effr[lr][lf]=0;
-      rinr[lr][lf]=0;
-      effb[lr][lf]=0;
-      rinb[lr][lf]=0;
+      effr[lr][lf][_kind_of_tile-1]=0;
+      rinr[lr][lf][_kind_of_tile-1]=0;
+      effb[lr][lf][_kind_of_tile-1]=0;
+      rinb[lr][lf][_kind_of_tile-1]=0;
       for(lg=0;lg<NGUIDE;lg++){
        float gl=gmn+lg*(gmx-gmn)/NGUIDE;
-       effd[lr][lf][lg]=0;
-       rind[lr][lf][lg]=0;
+       effd[lr][lf][lg][_kind_of_tile-1]=0;
+       rind[lr][lf][lg][_kind_of_tile-1]=0;
        for(i=0;i<ENTRIES-1;i++){
-         float cr=1./exp(rl*_clarity/SQR(SQR(l[i])));
-         float ar=1./exp(rl/a[i]);
-         float af=1./exp(fl/b[i]);
-         float al=1./exp(gl*(1./b[i]-1./abslref));
-         effd[lr][lf][lg]+=g[i]*t[i]*cr*ar*af*al;
-         rind[lr][lf][lg]+=r[i]*g[i]*t[i]*cr*ar*af*al;
+         float cr=1./exp(rl*_clarity/SQR(SQR(l[i][_kind_of_tile-1])));
+         float ar=1./exp(rl/a[i][_kind_of_tile-1]);
+         float af=1./exp(fl/b[i][_kind_of_tile-1]);
+         float al=1./exp(gl*(1./b[i][_kind_of_tile-1]-1./abslref));
+         effd[lr][lf][lg][_kind_of_tile-1]+=g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af*al;
+         rind[lr][lf][lg][_kind_of_tile-1]+=r[i][_kind_of_tile-1]*g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af*al;
          if(!lg){
           if(!lf){
-           effg[lr]+=g[i];
-           ring[lr]+=r[i]*g[i];}
-          effr[lr][lf]+=g[i]*t[i]*cr*ar*af;
-          rinr[lr][lf]+=r[i]*g[i]*t[i]*cr*ar*af;
-          effb[lr][lf]+=g[i]*t[i]*cr*ar*af*tl;
-          rinb[lr][lf]+=r[i]*g[i]*t[i]*cr*ar*af*tl;}
+           effg[lr][_kind_of_tile-1]+=g[i][_kind_of_tile-1];
+           ring[lr][_kind_of_tile-1]+=r[i][_kind_of_tile-1]*g[i][_kind_of_tile-1];}
+          effr[lr][lf][_kind_of_tile-1]+=g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af;
+          rinr[lr][lf][_kind_of_tile-1]+=r[i][_kind_of_tile-1]*g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af;
+          effb[lr][lf][_kind_of_tile-1]+=g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af*tl;
+          rinb[lr][lf][_kind_of_tile-1]+=r[i][_kind_of_tile-1]*g[i][_kind_of_tile-1]*t[i][_kind_of_tile-1]*cr*ar*af*tl;}
        }
-       rind[lr][lf][lg]/=effd[lr][lf][lg];
+       rind[lr][lf][lg][_kind_of_tile-1]/=effd[lr][lf][lg][_kind_of_tile-1];
       }
-      rinr[lr][lf]/=effr[lr][lf];
-      rinb[lr][lf]/=effb[lr][lf];
+      rinr[lr][lf][_kind_of_tile-1]/=effr[lr][lf][_kind_of_tile-1];
+      rinb[lr][lf][_kind_of_tile-1]/=effb[lr][lf][_kind_of_tile-1];
      }
-     ring[lr]/=effg[lr];
+     ring[lr][_kind_of_tile-1]/=effg[lr][_kind_of_tile-1];
     }
 #ifdef __AMSDEBUG__
     printf("....End of Tables!\n\n");
@@ -1646,10 +1668,10 @@ float AMSRichRing::generated(geant length,
     lg=NGUIDE-1;}
   else if(lg<0)lg=0;
 
-  f=1.e4*k*(1.-1./SQR(_beta*rind[lr][lf][lg]))*factor*effd[lr][lf][lg];
-  *fg=1.e4*k*(1.-1./SQR(_beta*ring[lr]))*effg[lr];
-  *fr=1.e4*k*(1.-1./SQR(_beta*rinr[lr][lf]))*effr[lr][lf];
-  *fb=1.e4*k*(1.-1./SQR(_beta*rinb[lr][lf]))*effb[lr][lf];
+  f=1.e4*k*(1.-1./SQR(_beta*rind[lr][lf][lg][_kind_of_tile-1]))*factor*effd[lr][lf][lg][_kind_of_tile-1];
+  *fg=1.e4*k*(1.-1./SQR(_beta*ring[lr][_kind_of_tile-1]))*effg[lr][_kind_of_tile-1];
+  *fr=1.e4*k*(1.-1./SQR(_beta*rinr[lr][lf][_kind_of_tile-1]))*effr[lr][lf][_kind_of_tile-1];
+  *fb=1.e4*k*(1.-1./SQR(_beta*rinb[lr][lf][_kind_of_tile-1]))*effb[lr][lf][_kind_of_tile-1];
   return f;
 
 }

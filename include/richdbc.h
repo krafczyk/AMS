@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.31 2002/10/30 14:57:21 mdelgado Exp $
+//  $Id: richdbc.h,v 1.32 2002/12/05 18:41:48 delgadom Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -116,6 +116,10 @@ const geant npe_crossed_signature=6.;  // Minimum number of p.e. to consider
 // Dword for ring status
 const uinteger dirty_ring_bit=0;
 const uinteger dirty_ring=uinteger(1)<<dirty_ring_bit;
+const uinteger naf_ring_bit=1;
+const uinteger naf_ring=uinteger(1)<<naf_ring_bit; 
+
+
 
 // Radiator kinds
 const integer radiator_kinds=2; 

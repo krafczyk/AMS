@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.17 2002/10/30 14:58:16 mdelgado Exp $
+//  $Id: richgeom.C,v 1.18 2002/12/05 18:41:34 delgadom Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -774,7 +774,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
       
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On)
-	Put_rad((AMSgvolume *)rad2,copia2-1);
+	Put_rad((AMSgvolume *)rad2,copia2-1,naf_kind);
 #endif
 
 
@@ -786,7 +786,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   if(MISCFFKEY.G3On){
 #endif
     if(rad1)Put_rad((AMSgvolume *)rad1,1);
-    if(rad2)Put_rad((AMSgvolume *)rad2,1);
+    if(rad2)Put_rad((AMSgvolume *)rad2,1,naf_kind);
 #ifdef __G4AMS__
   }
 #endif
