@@ -175,6 +175,7 @@ void LMS::CheckConstants()
       if (amsdbcItr.next()) {
        cout <<"AMSEventList::CheckConstants -I- check amsdbc"<<endl;
        rstatus = amsdbcItr -> CmpConstants();
+       if (rstatus != oocSuccess) goto error;
       } 
       
       integer Read = 0;
@@ -188,11 +189,11 @@ void LMS::CheckConstants()
         goto error;
        }
       } 
+
       ctcdbcItr.scan(contH, mode);
       if (ctcdbcItr.next()) {
        cout <<"AMSEventList::CheckConstants -I- check ctcdbc"<<endl;
        rstatus = ctcdbcItr -> CmpConstants();
-       rstatus = oocSuccess;
       } 
 
         }
