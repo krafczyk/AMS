@@ -378,9 +378,11 @@ void AMSParticle::pid(){
       ptrack=ptrack->next();
     }
   }
-  if(antimatter || _Momentum <0){
+  if( _Momentum <0){
    if(_GPart < 40 )_GPart++;
    else _GPart=_GPart+100;
+  }
+  if(antimatter || _Momentum <0){
    
    AMSEvent::gethead()->addnext(AMSID("AntiMatter",0),new AntiMatter(_GPart));
    
