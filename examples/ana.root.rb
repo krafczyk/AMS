@@ -2,7 +2,7 @@
 
 # The following line is not necessary if the AMS library is
 # already installed as a general Ruby library 
-$LOAD_PATH << "/afs/ams.cern.ch/Offline/vdev/ruby/linux"
+$LOAD_PATH.unshift(ENV['AMSDir'] + "/ruby/linux")
 
 require 'AMS'
 include AMS

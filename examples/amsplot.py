@@ -108,7 +108,7 @@ def make_amsplot_file(filearray, options, full_variable):
 
       amsplot_file.write("int amsplot() {\n")
       amsplot_file.write("\tgROOT->Reset();\n")
-      amsplot_file.write("\tgSystem->Load(\"$AMSDir/lib/linux/icc/ntuple.so\");\n")
+      amsplot_file.write("\tgSystem->Load(\"$AMSDir/lib/linux/ntuple.so\");\n")
       amsplot_file.write("\n\tTChain chain(\"AMSRoot\");\n")
 
       for filename in filearray:

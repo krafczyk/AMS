@@ -61,7 +61,7 @@ WARN_LOGFILE           =
 INPUT            =  ../doc ../include ../CC  ../examples /
 FILE_PATTERNS    =  root.h root_methods.h root.C stlv.h  stlv.C run.stlv.C \
                     plot.root.doc plot.root.C ana.root_cint.C amsplot.doc amsplot.py \
-                    introduction.doc SimpleFit.doc SimpleFit.h \
+                    introduction.doc \
                     ams_inspect.doc ams_inspect.rb ana.root.py ana.root.rb \
                     ana.root_compiled.doc ana.root_cint.doc \
                     ana.root_python.doc ana.root.py ana.root_ruby.doc ana.root.rb \

@@ -2,7 +2,7 @@
 gROOT->Reset();
 
 // for linux load
-gSystem->Load("/offline/vdev/lib/linux/icc/ntuple.so");
+gSystem->Load("/offline/vdev/lib/linux/ntuple.so");
 //
 //  for dunix aka ams.cern.ch load 
 //  gSystem->Load("/offline/vdev/lib/osf1/ntuple.so");

@@ -2,8 +2,8 @@
 
 # The following two lines are not necessary if the AMS module is
 # already installed as a general Python module 
-import sys
-sys.path.append("/afs/ams.cern.ch/Offline/vdev/python/linux")
+import sys, os
+sys.path.insert(0,os.environ['AMSDir'] + '/python/linux')
 
 from AMS import *
 

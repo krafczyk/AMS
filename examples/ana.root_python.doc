@@ -1,7 +1,7 @@
 /*! \example ana.root_python.doc
  *
  *    - Example of AMS analysis with Python. To run it:
- *                 - setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/Linux/new
+ *                 - setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/Linux/pro
  *                 - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
  *                 - ana.root.py
  *

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.134 2004/02/07 11:46:14 alcaraz Exp $
+//  $Id: root.h,v 1.135 2004/02/11 17:47:03 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -16,6 +16,7 @@
 #include <TSelector.h>
 #include <TROOT.h>
 #include <TBranch.h>
+#include <TMatrixD.h>
 #include <list>
 #include <vector>
 #include <iostream>
@@ -3007,32 +3008,32 @@ ClassDef(AMSEventR,1)       //AMSEventR
   Contains:
 
   Utility class, to simplify the interactive analysis on AMS data with 
-  Cint/Python/Ruby interpreters
+  Cint/Python/Ruby interpreters.
 
   Example of use with Cint:
 
-  {
-      gROOT->Reset();
-      gSystem->Load("$AMSDir/lib/linux/icc/ntuple.so");
+  - {
+      - gROOT->Reset();
+      - gSystem->Load("$AMSDir/lib/linux/icc/ntuple.so");
 
-      AMSChain ams;
-      ams.Add("/f2users/choutko/g3v1g3.root");
+      - AMSChain ams;
+      - ams.Add("/f2users/choutko/g3v1g3.root");
 
-      TH1F* hrig = new TH1F ("hrig", "Momentum (GeV)", 50, -10., 10.);
+      - TH1F* hrig = new TH1F ("hrig", "Momentum (GeV)", 50, -10., 10.);
       
-      int ndata = ams.GetEntries();
-      for (int entry=0; entry<ndata; entry++) {
-            AMSEventR* ev = ams.GetEvent();
-            if (ev==NULL) break;
-            for (int i=0; i<ev->nParticle(); i++) {
-                  ParticleR part = ev->Particle(i);
-                  hrig->Fill(part.Momentum);
-            }
-      }
+      - int ndata = ams.GetEntries();
+      - for (int entry=0; entry<ndata; entry++) {
+            - AMSEventR* ev = ams.GetEvent();
+            - if (ev==NULL) break;
+            - for (int i=0; i<ev->nParticle(); i++) {
+                  - ParticleR part = ev->Particle(i);
+                  - hrig->Fill(part.Momentum);
+            - }
+      - }
 
-      hrig->Draw();
-      cout << "We have processed: " << ndata << " events" << endl;
-  }
+      - hrig->Draw();
+      - cout << "We have processed: " << ndata << " events" << endl;
+  - }
 
   \author juan.alcaraz@cern.ch
 
@@ -3046,24 +3047,23 @@ private:
 
 public:
       AMSChain(const char* name="AMSRoot"):TChain(name),_ENTRY(0),_EVENT(NULL),_NAME(name){};
-      ~AMSChain(){
+      virtual ~AMSChain(){
             if (_EVENT) delete _EVENT;
       };
 
-      void Add(const char* filename); ///<Add an AMS ROOT file to the chain
+      Int_t Add(const char* name, Int_t nentries = kBigNumber); ///<Add an AMS ROOT file to the chain
       int GetEntries(); ///<Number of data entries being analyzed
 
-      AMSEventR* GetEntry(Int_t entry=0); ///<Get AMSEventR at position "entry"
       AMSEventR* GetEvent(); ///<Get next AMSEventR object in the chain
       AMSEventR* GetEvent(Int_t ev); ///<Get AMSEventR with event number "ev"
       AMSEventR* GetEvent(Int_t run, Int_t ev); ///<Get AMSEventR with run number "run" and event number "ev"
       void Rewind() {_ENTRY=0;}; ///<Rewind the chain (go back to first entry)
 
-      unsigned int current_entry() {return _ENTRY;};///<Get the current entry number to be read
-      AMSEventR* current_event_pointer() {return _EVENT;}; ///<Get the current event pointer
-      const char* chain_name() {return _NAME;}; ///<Get the name of the tree
+      unsigned int Entry() {return _ENTRY;};///<Get the current entry number to be read
+      AMSEventR* pEvent() {return _EVENT;}; ///<Get the current event pointer
+      const char* ChainName() {return _NAME;}; ///<Get the name of the tree
 
-      ClassDef(AMSChain,2)       //AMSChain
+      ClassDef(AMSChain,3)       //AMSChain
 };
 
 //!  AMSEventList class
@@ -3092,7 +3092,7 @@ public:
             _EVENTs.reserve(10000);
             Read(filename);
       };
-      ~AMSEventList(){};
+      virtual ~AMSEventList(){};
 
       void Add(int run, int event); ///<Add a (run,event) number to the list
       void Add(AMSEventR* pev); ///<Add the (run,event) number of this AMSEventR object to the list
@@ -3111,6 +3111,67 @@ public:
       int GetEvent(int i){return _EVENTs[i];}; ///<Retrieve event number for entry i
 
       ClassDef(AMSEventList,1)       //AMSEventList
+};
+
+//!  AMSMyTrack class
+/*! 
+  - Contains:
+
+  - Utility class, to use your and fit your own tracks directly on the ROOT 
+    file, with your own selected hits and optionally without magnetic field
+    (straight line fit). No multiple scattering is included for the moment.
+
+  - Example of usage:
+   
+        - AMSMyTrack new_track;
+        - // AMSMyTrack new_track(0); // (fit without magnetic field)
+        - for (int i=0; i<nTrTrack(); i++) {
+             - TrTrackR track = TrTrack(i);
+             - new_track.use_hits_from(&track);
+             - for (int j=5; j<track.NTrRecHit(); j++) {
+                   - new_track.del_hit(track.pTrRecHit(j));
+             - }
+             - if (new_track.Fit()) {
+                   - cout << "Track number= " << i; 
+                   - cout << ", Old rig:" << track.Rigidity; 
+                   - cout << ", New Rig:" << new_track.Rigidity;
+                   - cout << endl;
+             - }
+        - }
+          
+                      
+  \author juan.alcaraz@cern.ch
+  
+*/
+
+namespace AMSMyTrackConst {
+        const int MAXLAY = 8;
+}
+
+class AMSMyTrack {
+private:
+      TrRecHitR* pHit[AMSMyTrackConst::MAXLAY]; ///> Pointers to reconstructed hits 
+public:
+      bool BFieldOn;                ///> Fit with Magnetic field? (default = true)
+      int NHits;                    ///> Number of track hits in use
+      float Chi2StrLine;            ///> Chi2/ndof in the XZ plane from fit
+      float Chi2;                   ///> Chi2/ndof in 3D from fit
+      float Rigidity;               ///> Rigidity from fit (GV)
+      float ErrRigidity;            ///> Error on 1/Rigidity (1/GV) from fit
+      float Theta;                  ///> Theta from fit
+      float Phi;                    ///> Phi from fit
+      float P0[3];                  ///> Reference point from fit (cm)
+
+      AMSMyTrack(bool bflag=1):BFieldOn(bflag),NHits(0){};
+      virtual ~AMSMyTrack(){};
+
+      void add_hit(TrRecHitR* phit); ///> Add hit pointed by phit
+      void del_hit(TrRecHitR* phit); ///> Remove hit pointed by phit
+      void reset();                  ///> Reset track (NHits=0)
+      void use_hits_from(TrTrackR* ptrack); ///> Reset and add hits from track at ptrack
+      bool Fit();                     ///> Perform the fit (return true if succesful)
+
+      ClassDef(AMSMyTrack,1)         //AMSMyTrack
 };
 
 #endif

@@ -33,7 +33,7 @@ fi
 OS=`uname`
 if [ "${OS}" = "Linux" ]; then
    GC="g++"
-   EXTRALIBS="-ldl -lcrypt"
+   EXTRALIBS="-ldl -lcrypt -lshift"
    AMSOBJS="${AMSWD}/bin/linux/icc/root_rs.o ${AMSWD}/bin/linux/icc/rootdict_s.o"
 elif [ "${OS}" = "OSF1" ]; then
    GC="cxx"
@@ -44,9 +44,11 @@ else
   exit
 fi
 
-ROOTSYS="/afs/cern.ch/exp/ams/Offline/root/${OS}/new"
-INCS="-I${AMSWD}/include -I${ROOTSYS}/include"
-ROOTLIBS="-L${ROOTSYS}/lib -lRoot"
+ROOTSYS="/afs/cern.ch/exp/ams/Offline/root/${OS}/pro"
+ROOTINCDIR=`$ROOTSYS/bin/root-config --incdir`
+ROOTLIBDIR=`$ROOTSYS/bin/root-config --libdir`
+INCS="-I${AMSWD}/include -I${ROOTINCDIR}"
+ROOTLIBS="-L${ROOTLIBDIR} -lRoot"
 
 echo -e "\n>>> COMPILING and LINKING: ${file}"
 

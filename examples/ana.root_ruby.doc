@@ -1,7 +1,7 @@
 /*! \example ana.root_ruby.doc
  *
  *    - Example of AMS analysis with Ruby. To run it:
- *                 - setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/Linux/new
+ *                 - setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/Linux/pro
  *                 - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
  *                 - ana.root.rb
  *
@@ -35,8 +35,8 @@
  *            - input_file = TFile.new("test.root")
  *            - hist = input_file.Get("Test").to_TH1F
  *
- *    - You can use Ruby arrays whenever ROOT expects a C-Float array as input. 
- *      Example:
+ *    - You can use Ruby arrays whenever ROOT expects a C-int or a C-float array 
+ *      as input. Example:
  *            - a = [0.0, 1.0, 2.0]
  *            - b = [-1.0, 0.0, 1.0]
  *            - my_graph = TGraph.new(3, a, b)
