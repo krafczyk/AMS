@@ -30,8 +30,9 @@ AMSgvolumeD::AMSgvolumeD(integer id, AMSgvolume* p, char name[], integer pos)
   for (i=0; i<6; i++) { _par[i] = p -> _par[i];}
   for (i=0; i<3; i++) {
     for (j=0; j<3; j++) { 
-     _nrm[i][j]  = p -> _nrm[i][j];
-     _nrmA[i][j] = p -> _nrmA[i][j];
+     _nrm[i][j]   = p -> _nrm[i][j];
+     _nrmA[i][j]  = p -> _nrmA[i][j];
+     _inrmA[i][j] = p -> _inrmA[i][j];
     }
   }
 
@@ -62,6 +63,8 @@ void AMSgvolumeD::getnrm(number* nbuff0) {
                                UCOPY( &_nrm, nbuff0, sizeof(number)*3*3/4); }
 void AMSgvolumeD::getnrmA(number* nbuff0) { 
                               UCOPY( &_nrmA, nbuff0, sizeof(number)*3*3/4); }
+void AMSgvolumeD::getinrmA(number* nbuff0) { 
+                               UCOPY( &_inrmA, nbuff0, sizeof(number)*3*3/4); }
 ooStatus AMSgvolumeD::CmpGeometry(integer id, AMSgvolume* p)
 {
   ooStatus rstatus = oocSuccess;

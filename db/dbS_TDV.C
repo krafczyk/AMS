@@ -20,8 +20,9 @@
 // Nov    , 1997. ak. FillTDV is modified, use one iteration cycle to get 
 //                    all tdv's.
 //                    ReadTDV search by name,id,i,b,e
+// Dec    , 1997. ak. Modify the logic in AddTDV
 //
-// last edit Dec 9, 1997, ak.
+// last edit Dec 28, 1997, ak.
 //
 
 #include <stdio.h>
@@ -52,8 +53,9 @@ extern int  ntdvNames;
 
 ooStatus   LMS::AddAllTDV()
 //
-// Check update flag for all TDV objects in memory and write them to the database 
-// if flag == 1 and the there is no object with the same crc
+//  Check update flag for all TDV objects in memory and write them 
+//  to the database if flag == 1 and 
+//  there is no object with the same crc and the the same begin/end time
 //
 {
 	ooStatus 	           rstatus = oocError;	// Return status
@@ -75,7 +77,7 @@ ooStatus   LMS::AddAllTDV()
   else
    contName = StrCat("Time_Dep_Var",_version);
 
-  StartRead(oocMROW); // Start the transaction
+  StartUpdate(); // Start the transaction
 
   dbTabH = Tabdb();
   if (dbTabH == NULL) Fatal("AddAllTDV : dbTabH is NULL");
@@ -108,13 +110,27 @@ ooStatus   LMS::AddAllTDV()
        tdvItr.scan(contH, Mode(), oocAll, pred);
        while (tdvItr.next() ) {
          uinteger crcd = tdvItr -> getCRC();
+         tdvItr -> GetTime(insertd, begind, endd);
+         pp -> gettime(insert, begin, end);
          if (crc != crcd) {
-          Message("AddTDV : CRC is different, do update later");
+          if (begind == begin && endd == endd) {
+           Message("AddTDV : CRC is different, but begin/end are the same");
+           Message("AddTDV : delete the old object and add the new one");
+           tdvH = tdvItr;
+           ooDelete(tdvH);
+          } else {
+           Message("AddTDV : CRC, begin/end are different, do update later");
+          }
          } else {
-          if (insert != insertd ) Message
-          ("AddTDV Insert time is different, but CRC is the same. Do nothing");
-          pp -> UpdateMe() = 0;     // reset UpdateMe
-          break;
+          if (begind == begin && endd == endd) {
+           Message
+           ("AddTDV: Begin/End time and CRC are the same. Do nothing");
+           pp -> UpdateMe() = 0;     // reset UpdateMe
+          } else {
+           Message
+           ("AddTDV: CRC is the same, but Begin/End time is different");
+           Message("AddTDV: do update later");
+          }
          }
        } // iterate over all obj with pred for the container and reset 
          // UpdateMe if CRC and CRC of database object are the same

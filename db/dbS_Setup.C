@@ -330,6 +330,7 @@ ooStatus LMS::CopyGeometry()
    number                   nbuff0[9];
    number                   nrmA[3][3];
    number                   nrm[3][3];
+   number                   inrmA[3][3];
    char                     gonly[5];
    char                     shape[5];
 

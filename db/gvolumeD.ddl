@@ -6,8 +6,9 @@
 // July 01, 1997. ah. CmpGeometry method defined 
 // Nov  04, 1997. ak. inrm replaced by nrmA
 //                    add coo
+// Dec  27, 1997. ak. add _inrmA
 //
-// Last Edit : Nov 5, 1997. ak.
+// Last Edit : Dec 27, 1997. ak.
 // 
 
 #include <iostream.h>
@@ -37,7 +38,7 @@ class AMSgvolumeD : public ooObj
    AMSPoint _cooA;    //   ! geant volume coord _cooA in gvolume.h
    number  _nrm[3][3];   //   ! normales  with resp to mother
    number  _nrmA[3][3];  //   ! norm absolute
-
+   number  _inrmA[3][3]; //   ! inv norm absolute
    integer _ContPos;  // position in the container
    integer _posN;     // pointer to the Next
    integer _posP;     //                Previous
@@ -58,8 +59,9 @@ class AMSgvolumeD : public ooObj
  AMSgvolumeD  (integer id, AMSgvolume* p, char name[], integer pos);
 
  // Set/Get Methods
- void getnrm  ( number* nbuff0);
- void getnrmA ( number* nbuff0);
+ void getnrm   ( number* nbuff0);
+ void getnrmA  ( number* nbuff0);
+ void getinrmA ( number* nbuff0);
  inline integer getid() {return _id;}
         char*   getname() {return _name;}
  inline integer getmatter() {return _matter;}

@@ -87,6 +87,10 @@ static char    *tdvnames[] = {
    "TrackerPedestals.r",
    "TrackerGains.l",
    "TrackerGains.r",
+   "TrackerRawSigmas.l",
+   "TrackerRawSigmas.r",
+   "TrackerRhoMatrix.l",
+   "TrackerRhoMatrix.r",
    "TrackerSigmas.l",
    "TrackerSigmas.r",
    "TrackerStatus.l",
@@ -104,6 +108,7 @@ static char    *tdvnames[] = {
    "ChargeLkhd5",
    "ChargeLkhd6"
 };
+
 
 
 class tdv_time {
@@ -139,7 +144,7 @@ class tdv_time {
 //
 };
 
-const int ntdv = 21;
+const int ntdv = 26;
 
 static tdv_time*              tdv;
 static integer                ptr_start[ntdv];
@@ -165,6 +170,7 @@ int main(int argc, char** argv)
 
  LMS                    lms;
  ooHandle(ooDBObj)      dbH;
+ ooHandle(AMSdbs)        dbTabH;
  ooHandle(ooDBObj)      _catdbH;
  ooHandle(ooContObj)    contH;
  ooItr(ooContObj)       contItr;
@@ -188,9 +194,10 @@ int main(int argc, char** argv)
  
  // if oosession has not been initialised do it now
  lms.Init(oocRead,oocMROW);
+
+ // start Transaction in READ mode
  lms.StartRead(oocMROW);
 
- ooHandle(AMSdbs)        dbTabH;
 
  _catdbH = lms.db("DbList");
  lms.ContainersC(_catdbH, dbTabH);
@@ -269,7 +276,7 @@ int main(int argc, char** argv)
   }
   if (ptr_end[i] > 0) ptr_start[i] = jj_start;
  }
- delete [] tdvt; 
+ if (tdvt) delete [] tdvt; 
 
  for (i=0; i< ntdv; i++) {
    cout<<tdvnames[i]<<endl;
@@ -279,5 +286,6 @@ int main(int argc, char** argv)
      if (ref) ref -> PrintTime();
    }
  }  
+
  lms.Commit();
 }

@@ -4,8 +4,9 @@
 // Sep 17, 1997. ak. don't write timeid to files in dbase version
 // Oct  1, 1997. ak. add FindTheBestTDV, FillTDVTable functions
 // Nov   , 1997. ak. FindTheBestTDV, check id's
+// Dec   , 1997. ak. dbendjob is modified
 //
-// Last Edit : Nov 24, 1997. ak. 
+// Last Edit : Dec 27, 1997. ak. 
 //
 #include <amsgobj.h>
 #include <cern.h>
@@ -42,9 +43,15 @@
  int             tdvIdTab[maxtdv];
 //
 #ifdef __DB__
+
+#include <dbS.h>
+
 integer*   AMSJob::_ptr_start;
 integer*   AMSJob::_ptr_end;
 tdv_time*  AMSJob::_tdv;
+
+extern LMS* lms;
+
 #endif
 //-
 
@@ -1899,7 +1906,17 @@ void AMSJob::_axendjob(){
     AMSUser::EndJob(); 
 }
 
-void AMSJob::_dbendjob(){} // moved to A_LMS.C
+void AMSJob::_dbendjob()
+{
+#ifdef __DB__
+  if (AMSEvent::_checkUpdate() == 1) {
+   Message("AMSJob::_dbendjob -I- UpdateMe is set. Update database and tables.");
+   int rstatus = lms -> AddAllTDV();
+  } else {
+   Message("AMSJob::_dbendjob -I- UpdateMe != 1. NO UPDATE");
+  }
+#endif
+} 
 
 
 

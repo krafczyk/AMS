@@ -97,7 +97,7 @@ void AMSTimeIDD::copy(uinteger* tmp) {
 
 void AMSTimeIDD::PrintTime() {
   cout<<"Time (insert, begin, end) "<<endl;
-  cout<<"                          "<<asctime(localtime(&_Insert))<<endl;
-  cout<<"                          "<<asctime(localtime(&_Begin))<<endl;
-  cout<<"                          "<<asctime(localtime(&_End))<<endl;
+  cout<<"   "<<asctime(localtime(&_Insert))
+      <<"   "<<asctime(localtime(&_Begin))
+      <<"   "<<asctime(localtime(&_End))<<endl;
 }

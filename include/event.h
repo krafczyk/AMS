@@ -139,7 +139,7 @@ void printA(integer debugl=0);
 void event();
 //+
 uinteger getEvent() {return uinteger(_id);}
-integer _checkUpdate();
+static integer _checkUpdate();
 //-
 integer addnext(AMSID id, AMSlink * p);
 integer replace(AMSID id, AMSlink * p, AMSlink *prev);
