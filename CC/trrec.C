@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.166 2004/02/24 19:25:11 alcaraz Exp $
+//  $Id: trrec.C,v 1.167 2004/02/26 13:17:38 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1508,6 +1508,7 @@ next_pattern:
       }
 
   }
+  return NTrackFound;
 
 }
 
