@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: monmcdb.o.cgi,v 1.1 2002/03/14 14:13:32 choutko Exp $
+#  $Id: monmcdb.o.cgi,v 1.2 2003/10/23 15:10:28 choutko Exp $
 use Gtk;
 use strict;
 
@@ -27,8 +27,9 @@ my $monitor=new Monitor();
 
 my $html=new monitorHTML;
 
-
  my $ok=$monitor->Connect();
+ $monitor->Update();
+die "pizdec";
 
 #get ior from server and connect to
 
