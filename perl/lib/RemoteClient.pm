@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.88 2003/04/07 12:08:37 choutko Exp $
+# $Id: RemoteClient.pm,v 1.89 2003/04/08 12:50:46 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -80,6 +80,7 @@ my %fields=(
        CEM=>undef,
        CECT=>undef,
        tsyntax=>undef,
+       cputypes=>undef,
        arsref=>[],
        arpref=>[],
        ardref=>[],
@@ -119,6 +120,20 @@ sub Init{
 #just temporary skeleton to check basic princ
 #should be replaced by real db servers
 
+#cpu types
+
+    my %cputypes=(
+     'Pentium II'=>1.07,
+     'Pentium III'=>1.0,
+     'Pentium III Xeon'=>1.05,
+     'Pentium IV Xeon'=>0.8,
+     'Pentium IV'=>0.7,
+     'AMD Athlon'=>1.15
+                   );
+
+    $self->{cputypes}=\%cputypes;
+
+
 #syntax (momenta,perticles, ...
 
     my $tsyntax={};
@@ -154,6 +169,8 @@ sub Init{
                    );
     $tsyntax->{particles}=\%particles;
    
+
+
     my %spectra=(
       cosmic=>0,
 undercutoff=>1,
@@ -2156,6 +2173,14 @@ DDTAB:         $self->htmlTemplateTable(" ");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               $q->param("QEv",0);
               htmlTextField("CPU Time Limit Per Job","number",9,80000,"QCPUTime"," sec");  
+            print "<tr valign=middle><td align=left><b><font  size=\"-1\"> CPU Type :</b></td><td colspan=1>\n";
+            print "<select name=\"QCPUType\" >\n";
+              my %hash=%{$self->{cputypes}};
+              my @keysa=sort {$hash{$b} <=>$hash{$a}} keys %{$self->{cputypes}};
+            foreach my $cputype (@keysa) {
+                 print "<option value=\"$cputype\">$cputype </option>\n";
+            }
+            print "</select>\n";
               htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
               htmlTextField("Total Jobs Requested","number",7,5.,"QRun"," ");  
               htmlTextField("Total  Real Time Required","number",3,10,"QTimeOut"," (days)");  
@@ -2605,7 +2630,11 @@ print qq`
                 }
                 my $evno=$q->param("QEv");
                 if(not $evno =~/^\d+$/ or $evno <1 or $evno>$tmp->{TOTALEVENTS}){
-                    $evno=$q->param("QCPUTime")*$q->param("QCPU")/1000./$tmp->{CPUPEREVENTPERGHZ};
+                    my $corr=1;
+                    if (defined $q->param("QCPUType")){
+                        $corr=$self->{cputypes}->{$q->param("QCPUType")};
+                    }
+                    $evno=$q->param("QCPUTime")*$q->param("QCPU")/1000./$tmp->{CPUPEREVENTPERGHZ}*$corr;
                     $evno=int($evno/1000)*1000*$q->param("QRun");                                     if($evno>$tmp->{TOTALEVENTS}){
                         $evno=$tmp->{TOTALEVENTS};
                     }
