@@ -110,6 +110,10 @@ sin(particle_dir,geomag_meridian)
 0<0
 1>0
 
+error bit
+0 no error
+1    error
+
 correspondance between bits & status datacards words:
 
 values 0123...etc --> 1 10 100 1000 
