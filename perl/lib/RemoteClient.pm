@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.22 2002/03/14 17:02:08 alexei Exp $
+# $Id: RemoteClient.pm,v 1.23 2002/03/15 18:05:13 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2761,7 +2761,7 @@ sub listMails {
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT address, mails.name, rsite, requests, mails.cid, cites.cid, 
               cites.name, mails.status FROM  mails, cites WHERE cites.cid=mails.cid 
-              ORDER BY cites.name";
+              ORDER BY cites.name, mails.name";
 
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
@@ -2810,8 +2810,8 @@ sub listServers {
       foreach my $srv (@{$r3}){
           my $name      = $srv->[0];
           my $status    = $srv->[1];
-          my $lastupd   = $srv->[3];
           my $starttime = EpochToDDMMYYHHMMSS($srv->[2]); 
+          my $lastupd   = $srv->[3];
           my $lasttime  = EpochToDDMMYYHHMMSS($lastupd);
           my $time      = time();
           if ($time - $lasttime < $srvtimeout) {
@@ -2832,7 +2832,6 @@ sub listJobs {
     my $self = shift;
      print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
      htmlTable("MC02 Jobs");
-              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT jobs.jid, jobs.jobname, jobs.cid, jobs.mid, jobs.time, jobs.triggers,
                      cites.cid, cites.name,
                      mails.mid, mails.name
@@ -2840,15 +2839,8 @@ sub listJobs {
               WHERE  jobs.cid=cites.cid AND jobs.mid=mails.mid
               ORDER  BY cites.name, jobs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
-              print "<tr><td><b><font color=\"blue\" >Cite </font></b></td>";
-              print "<td><b><font color=\"blue\">JobId </font></b></td>";
-              print "<td><b><font color=\"blue\" >Owner </font></b></td>";
-              print "<td><b><font color=\"blue\" >JobName </font></b></td>";
-              print "<td><b><font color=\"blue\" >Submit Time </font></b></td>";
-              print "<td><b><font color=\"blue\" >Triggers </font></b></td>";
-              print "<td><b><font color=\"blue\" >Status </font></b></td>";
-             print "</tr>\n";
      print_bar($bluebar,3);
+     my $newline = " ";
      if(defined $r3->[0][0]){
       foreach my $job (@{$r3}){
           my $jid       = $job->[0];
@@ -2865,7 +2857,29 @@ sub listJobs {
               $status = $r3->[0][0];
               $color  = statusColor($status);
           }
-           print "<td><b><font color=$color> $cite </font></td></b>
+          if ($newline ne $cite) { 
+              $sql="SELECT descr from Cites WHERE name='$cite'";
+              $r3=$self->{sqlserver}->Query($sql);
+              my $citedescr = "Test Test";
+              if (defined $r3->[0][0]) {
+               $citedescr = $r3->[0][0];
+               $newline = $cite;
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td><font color=green size=\"+1\"><b>$citedescr ($cite)</b></font></td>\n";
+               print "</table>\n";
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+#               print "<tr><td><b><font color=\"blue\" >Cite </font></b></td>";
+               print "<td><b><font color=\"blue\">JobId </font></b></td>";
+               print "<td><b><font color=\"blue\" >Owner </font></b></td>";
+               print "<td><b><font color=\"blue\" >JobName </font></b></td>";
+               print "<td><b><font color=\"blue\" >Submit Time </font></b></td>";
+               print "<td><b><font color=\"blue\" >Triggers </font></b></td>";
+               print "<td><b><font color=\"blue\" >Status </font></b></td>";
+              print "</tr>\n";
+           }
+          }
+#          print "<td><b><font color=$color> $cite </font></td></b>
+           print "
                   <td><b><font color=$color> $jid </font></td></b>
                   <td><b><font color=$color> $user </font></b></td>
                   <td><b><font color=$color> $name </font></td></b>
