@@ -453,7 +453,7 @@ if(imax >=0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
     && row-1+i < CTCDBc::getny()*2){ 
     if(k>=0 && k<maxpl && xplane[k]>0){
      AMSCTCRawHit d(row+i,layer,col+j);
-     AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
+     AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(2));
      if(p){
       cofg=cofg+p->loc2gl(AMSPoint(0,0,0))*xplane[k];
       edep+=xplane[k];

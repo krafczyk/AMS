@@ -148,7 +148,7 @@ for(kk=0;kk<CTCDBc::getnlay();kk++){
    ebeta=1;
 
    AMSCTCRawHit d(1,kk+1,1);
-   AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
+   AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(2));
    if(p)
    _ptrack->interpolate(p->loc2gl(AMSPoint(0,0,0)),dir,outp,theta,phi,sleng);
    else {
