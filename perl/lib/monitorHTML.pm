@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.12 2001/06/06 10:43:54 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.13 2002/01/08 13:43:51 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -128,9 +128,11 @@ sub Update{
           -action=>"/cgi-bin/mon/monitor.cgi");
         print $q->p ("Control:");
    print qq`
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerActiveClient" CHECKED>Producer Active Client<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerClient" CHECKED>Producer Nominal Client<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerHost" >Producer Nominal Host<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="Ntuple" >Producer Nominal Ntuple<BR>
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="PNtuple" >Producer Produced Ntuple<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="Run" >Producer Run Table<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ServerClient" >Server Nominal Client<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ServerHost" >Server Nominal Host<BR>
@@ -308,6 +310,15 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
             "HostName",
            "LogInTheEnd",
                  );
+    }elsif( $name eq "ProducerActiveClient"){
+        $#titles=-1;
+        @titles=(
+          "Uid",
+          "HostName",
+          "pid",
+          "Status",
+          "Type",
+                 );
     }elsif( $name eq "ServerHost"){
         $#titles=-1;
         @titles=(
@@ -331,6 +342,18 @@ Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
 "Clock",
 "Clients Allowed",
 "Status",
+                 );
+}elsif( $name eq "PNtuple"){
+    $#titles=-1;
+        @titles=(
+         "Run",
+        "Time",
+        "FirstEvent",
+        "LastEvent",
+        "Name",
+        "Size",
+        "Status",
+        "Type",
                  );
 }elsif( $name eq "Ntuple"){
     $#titles=-1;

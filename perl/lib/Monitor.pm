@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.42 2001/08/01 13:28:52 choutko Exp $
+# $Id: Monitor.pm,v 1.43 2002/01/08 13:43:51 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -873,6 +873,17 @@ int($hash->{CPUNeeded}*10)/10,
          $hash->{SubmitCommand}, $hash->{HostName}, $hash->{LogInTheEnd},$hash;
          push @output, [@text];   
      }
+    }elsif( $name eq "ProducerActiveClient"){           
+     for my $i (0 ... $#{$Monitor::Singleton->{acl}}){
+         $#text=-1;
+         my $hash=$Monitor::Singleton->{acl}[$i];
+         push @text, $hash->{id}->{uid};
+         push @text, $hash->{id}->{HostName};
+         push @text, $hash->{id}->{pid};
+         push @text, $hash->{Status};
+         push @text, $hash->{StatusType};
+         push @output, [@text];   
+     }
     }elsif( $name eq "ServerHost"){       
      for my $i (0 ... $#{$Monitor::Singleton->{nhl}}){
          $#text=-1;
@@ -927,6 +938,30 @@ int($hash->{CPUNeeded}*10)/10,
          push @text, $hash->{uid}, $hash->{HostName},$hash->{OutputDirPath},$hash->{Mode},$hash->{UpdateFreq},$hash->{type};
          push @output, [@text];   
      }
+    }elsif( $name eq "PNtuple"){        
+     my @houtput=();
+     for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
+         my $hash=$Monitor::Singleton->{dsts}[$i];
+         if($hash->{Type} eq "Ntuple"){
+          push @houtput, $hash;
+         }
+     }
+sub PNtupleSort{
+    if( $a->{Status} ne $b->{Status}){
+        return $a->{Status} cmp $b->{Status};
+    }
+    else{
+        return $a->{Run}<=>$b->{Run};
+    }
+}
+
+         my @sortedoutput=sort PNtupleSort @houtput;
+         for my $i (0 ... $#sortedoutput){
+          $#text=-1;
+          my $hash=$sortedoutput[$i];
+          push @text, $hash->{Run}, $hash->{Insert},$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$hash->{size},$hash->{Status},$hash->{Type};
+          push @output, [@text];   
+      }
     }elsif( $name eq "Run"){        
      for my $i (0 ... $#{$Monitor::Singleton->{rtb}}){
          $#text=-1;
@@ -937,7 +972,6 @@ int($hash->{CPUNeeded}*10)/10,
          $hash->{Status}, $hash->{History};
          push @output, [@text];   
      }
-     
     }elsif( $name eq "Killer"){        
      for my $i (0 ... $#{$Monitor::Singleton->{nkl}}){
          $#text=-1;
@@ -1033,6 +1067,50 @@ sub sendback{
                 warn "sendback corba exc";
             };
         }
+   }elsif($name eq "ProducerActiveClient"){
+        my $ref=$Monitor::Singleton;
+        my %ac=%{${$ref->{acl}}[$row]};
+        shift @data;
+        shift @data;
+        shift @data;
+        shift @data;
+        $ac{StatusType}=shift @data;
+        my $arsref;
+        foreach $arsref (@{$ref->{arsref}}){
+            try{
+                my $hash_ac=\%ac;
+                my %cid=%{$ac{id}};
+                $arsref->sendAC(\%cid,\$hash_ac,"Update");
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                my %cid=%{$ac{id}};
+                my $hash=\%cid;
+                my $hash_ac=\%ac;
+            try{
+                $arsref->sendAC($hash,\$hash_ac,"Update");
+            }  catch DPS::DBProblem   with{
+                my $e=shift;
+                warn "DBProblem: $e->{message}\n";
+            }
+            catch CORBA::SystemException with{
+                 $arsref->sendACPerl($hash,$hash_ac,"Update");
+            };
+                last;
+            }
+            catch DPS::DBProblem   with{
+                my $e=shift;
+                warn "DBProblem: $e->{message}\n";
+            }
+            catch CORBA::SystemException with{
+                warn "Exiting corba exc";
+            };
+}
+
     }elsif($name eq "Killer"){
         my $ref=$Monitor::Singleton;
         my %nc=%{${$ref->{nkl}}[$row]};
@@ -1089,6 +1167,36 @@ sub sendback{
         foreach $arsref (@{$ref->{ardref}}){
             try{
                 $arsref->sendDSTInfo(\%nc,$action);
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+    }elsif($name eq "PNtuple"){
+        my $ref=$Monitor::Singleton;
+        my %nc=%{${$ref->{dsts}}[$row]};
+        $nc{Run}=shift @data;
+        $nc{Insert}=shift @data;
+        $nc{FirstEvent}=shift @data;
+        $nc{LastEvent}=shift @data;
+        $nc{Name}=shift @data;
+        $nc{size}=shift @data;
+        $nc{Status}=shift @data;
+        $nc{Type}=shift  @data;
+        my $arsref;
+                my %cid=%{$ref->{cid}};
+        foreach $arsref (@{$ref->{arpref}}){
+            try{
+                $arsref->sendDSTEnd(\%cid,\%nc,$action);
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendDSTEnd(\%cid,\%nc,$action);
                 last;
             }
             catch CORBA::SystemException with{
@@ -1281,6 +1389,7 @@ sub Exiting{
 
 
 sub SendId{
+    use Error qw(:try);
     my $ref=$Monitor::Singleton;
         my $arsref;
         foreach $arsref (@{$ref->{arsref}}){
@@ -1308,6 +1417,10 @@ sub SendId{
             try{
                 $arsref->sendAC($hash,\$hash_ac,"Create");
             }            
+            catch DPS::DBProblem   with{
+                my $e=shift;
+                warn "DBProblem: $e->{message}\n";
+            }
             catch CORBA::SystemException with{
                  $arsref->sendACPerl($hash,$hash_ac,"Create");
             };

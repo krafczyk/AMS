@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.26 2001/06/26 15:07:27 choutko Exp $
+#  $Id: monitorUI.pm,v 1.27 2002/01/08 13:43:51 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1153,6 +1153,11 @@ sub update_list{
         $list_item->show;
         $list_item->{name}="ProducerClient";
         $list_item->{clist}=undef;
+        $list_item = new Gtk::ListItem "Active Client";
+        $s1->add($list_item);
+        $list_item->show;
+        $list_item->{name}="ProducerActiveClient";
+        $list_item->{clist}=undef;
         $list_item = new Gtk::ListItem "Nominal Host";
         $s1->add($list_item);
         $list_item->show;
@@ -1162,6 +1167,11 @@ sub update_list{
         $s1->add($list_item);
         $list_item->show;
         $list_item->{name}="Ntuple";
+        $list_item->{clist}=undef;
+        $list_item = new Gtk::ListItem "Produced Ntuple";
+        $s1->add($list_item);
+        $list_item->show;
+        $list_item->{name}="PNtuple";
         $list_item->{clist}=undef;
         $list_item = new Gtk::ListItem "Run Table";
         $s1->add($list_item);
@@ -1230,6 +1240,16 @@ sub show_sample{
            "LogInTheEnd",
              );                        
 
+    }elsif( $name eq "ProducerActiveClient"){
+        $#titles=-1;
+        @titles=(
+          "Uid",
+          "HostName",
+          "pid",
+          "Status",
+          "Type",
+             );                        
+
     }elsif( $name eq "ServerHost"){
         $#titles=-1;
         @titles=(
@@ -1264,6 +1284,18 @@ sub show_sample{
         "RunMode",
         "UpdateFreq",
         "DSTType",
+                 );
+    }elsif( $name eq "PNtuple"){
+        $#titles=-1;
+        @titles=(
+         "Run",
+        "Time",
+        "FirstEvent",
+        "LastEvent",
+        "Path",
+        "Size",
+        "Status",
+        "Type",
                  );
     }elsif( $name eq "Run"){
         $#titles=-1;

@@ -1,4 +1,4 @@
-#  $Id: ActiveClient.pm,v 1.4 2001/02/02 16:22:48 choutko Exp $
+#  $Id: ActiveClient.pm,v 1.5 2002/01/08 13:43:51 choutko Exp $
 package ActiveClient;
 use strict;
 @ActiveClient::EXPORT = qw(new);
@@ -13,6 +13,7 @@ sub new{
       LastUpdate=>time(),
       Start=>$start,
       Status=>"Active",
+      StatusType=>"Permanent",
     };
     my $arf={
       IOR=>$ior,

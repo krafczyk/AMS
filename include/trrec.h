@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.55 2001/08/10 12:59:47 choutko Exp $
+//  $Id: trrec.h,v 1.56 2002/01/08 13:43:42 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -288,8 +288,9 @@ number _RidgidityMS;
 number _GRidgidityMS;
 void SimpleFit(AMSPoint err);
 void TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit);
-static void _Start(){_Time=HighResTime();}
-static geant _CheckTime(){return HighResTime()-_Time;}
+static void _Start(){TIMEX(_Time);}
+static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
+
 static bool _NoMoreTime();
 static geant _Time;
 static geant _TimeLimit;

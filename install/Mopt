@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.206 2001/12/12 10:17:07 choutko Exp $
+#  $Id: Mopt,v 1.207 2002/01/08 13:43:49 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -49,12 +49,12 @@ CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db
 else
 #CFLAGSB=      -D__BATCH__   -library=rwtools7,iostream,Cstd,Crun    -I../include   -I../db 
 #CFLAGSB=      -D__BATCH__       -I../include     -mt -lpthread
-CFLAGSB=      -D__BATCH__       -I../include    
-CFLAGSTOFSIM= $(CFLAGSB)     -O1   
-CFLAGSDAQ=    $(CFLAGSB) -O2 
-CFLAGSn=      $(CFLAGSB) -O2
-CFLAGS=      $(CFLAGSB) -O2
-FFLAGS=   -O -I../include
+CFLAGSB=      -D__BATCH__       -I../include    -O4 -xarch=v8plusa
+CFLAGSTOFSIM= $(CFLAGSB)
+CFLAGSDAQ=    $(CFLAGSB)
+CFLAGSn=      $(CFLAGSB)
+CFLAGS=      $(CFLAGSB) 
+FFLAGS=   -O4 -xarch=v8plusa -I../include
 FFLAGSn=    -I../include
 endif
 DFLAGS=       -I/usr/include  -I../include   -I$(SRC)

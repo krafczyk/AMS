@@ -36,7 +36,6 @@ C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=10.   4=0  5=0   46='AMS02' 
 C 87=88 88='EventStatus2Table' 
 L3REC 11=0
-TRMC 36=1
 TIME 3=10000000
 TERM 1=1234567890
 MISC 4=1 5=0

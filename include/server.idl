@@ -1,11 +1,15 @@
 #pragma prefix "ams.cern.ch"
 module DPS{
    typedef unsigned long time;
+    exception DBProblem{
+       string message;
+    };
   interface Client{
    enum AccessType{Any,LessThan,Self,AnyButSelf,GreaterThan};
    enum RecordChange{Delete,Update,Create};
    enum ErrorType{Info,Warning,Error,Severe};
    enum ClientStatus{Lost,Unknown,Submitted,Registered,Active,TimeOut,Killed};
+   enum ClientStatusType{Permanent,OneRunOnly};
    enum ClientType{Generic,Server,Consumer,Producer,Monitor,Killer,DBServer,ODBServer};
    enum ClientExiting{NOP,CInExit,SInExit,CInAbort,SInAbort,SInKill};
    enum HostStatus{NoResponse,InActive,LastClientFailed,OK};
@@ -20,9 +24,9 @@ module DPS{
     string Interface;
     };
 
-    exception DBProblem{
-     string message;
-    };
+//    exception DBProblem{
+//     string message;
+//    };
 
 
 
@@ -61,6 +65,7 @@ module DPS{
      time LastUpdate;
      time Start;
      ClientStatus Status;
+     ClientStatusType StatusType;
    };
     typedef sequence<ActiveClient> ACS;
     typedef sequence<NominalClient> NCS;
@@ -271,9 +276,6 @@ module DPS{
   };
   
   interface DBServer: Server, Producer{
-    //    exception DBProblem{
-    //     string message;
-    //    };
     string getDBFilePath(in CID id)raises(DBProblem);
     long getRunEvInfoSPerl(in CID id, out RES res, in unsigned long maxr,out unsigned long maxro)raises(DBProblem); 
     void sendACPerl(in CID id, in ActiveClient ac,in RecordChange rc)raises(DBProblem);

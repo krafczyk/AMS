@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.6 2001/12/18 17:34:35 choutko Exp $
+#  $Id: POADBServer.pm,v 1.7 2002/01/08 13:43:51 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -73,7 +73,7 @@ OUT:
             return ($length,$ref->{rtb},$ref->{rtb_maxr});
           }
          else{
-              throw DPS::DBServer::DBProblem message=>"Unable to Open DB File";
+              throw DPS::DBProblem message=>"Unable to Open DB File";
          }
 }
 
@@ -164,7 +164,7 @@ OUT:
                     return (${$ref->{rtb}}[0],$dv);
          }
        else{
-             throw DPS::DBServer::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"Unable to Open DB File";
        } 
    }
 
@@ -254,10 +254,10 @@ OUT:
       
              }
                          untie %hash;
-              throw DPS::DBServer::DBProblem message=>"Unable to $rc the rtb $ri->{uid}";
+              throw DPS::DBProblem message=>"Unable to $rc the rtb $ri->{uid}";
           }
           else{
-             throw DPS::DBServer::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"Unable to Open DB File";
           } 
 }
 
@@ -342,10 +342,10 @@ OUT:
       
                      }
                          untie %hash;
-              throw DPS::DBServer::DBProblem message=>"Unable to $rc the dsts $ri->{uid}";
+              throw DPS::DBProblem message=>"Unable to $rc the dsts $ri->{uid}";
           }
           else{
-             throw DPS::DBServer::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"Unable to Open DB File";
           } 
 }
 sub sendDSTInfo{
@@ -429,14 +429,14 @@ OUT:
       
                      }
                          untie %hash;
-              throw DPS::DBServer::DBProblem message=>"Unable to $rc the dsti $ri->{uid}";
+              throw DPS::DBProblem message=>"Unable to $rc the dsti $ri->{uid}";
           }
           else{
-             throw DPS::DBServer::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"Unable to Open DB File";
           } 
 }
 sub sendAC{
-    throw DPS::DBServer::DBProblem message=>"No such routine";
+    throw DPS::DBProblem message => 'No such routine';
 }
 sub sendACPerl{
     my $ref=$DBServer::Singleton;
@@ -542,10 +542,10 @@ OUT:
       
                      }
                          untie %hash;
-              throw DPS::DBServer::DBProblem  message=>"Unable to $rc the $tag $cid->{uid}";
+              throw DPS::DBProblem  message=>"Unable to $rc the $tag $cid->{uid}";
           }
           else{
-             throw DPS::DBServer::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"Unable to Open DB File";
           } 
 }
 
@@ -647,10 +647,10 @@ OUT:
       
                      }
                          untie %hash;
-              throw DPS::DBServer::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
+              throw DPS::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
           }
           else{
-             throw DPS::DBServer::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"Unable to Open DB File";
           } 
 }
 
@@ -735,10 +735,10 @@ OUT:
       
                      }
                          untie %hash;
-              throw DPS::DBServer::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
+              throw DPS::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
           }
           else{
-             throw DPS::DBServer::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"Unable to Open DB File";
           } 
 }
 sub getGeneric{
@@ -785,7 +785,7 @@ OUT:
                untie %hash;
            }
           else{
-             throw DPS::DBServer::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"Unable to Open DB File";
          }
 }
 
@@ -838,7 +838,7 @@ sub getAHS{
                $tag="ahls";
               }
               else{
-               throw DPS::DBServer::DBProblem message=>"Unable to getahs for $cid->{Type}";
+               throw DPS::DBProblem message=>"Unable to getahs for $cid->{Type}";
               }
    
     getGeneric($cid,$tag);
@@ -857,7 +857,7 @@ sub getNC{
                $tag="ncl";
               }
               else{
-               throw DPS::DBServer::DBProblem message=>"Unable to getnc for $cid->{Type}";
+               throw DPS::DBProblem message=>"Unable to getnc for $cid->{Type}";
               }
    
     getGeneric($cid,$tag);
@@ -905,7 +905,7 @@ sub getACS{
                push @tag,"aml","aml_maxc";
               }
               else{
-               throw DPS::DBServer::DBProblem message=>"Unable to getacs for $cid->{Type}";
+               throw DPS::DBProblem message=>"Unable to getacs for $cid->{Type}";
               }
    
     getGeneric($cid,@tag);
@@ -972,6 +972,6 @@ sub getFreeHost{
                return (0,$ref->{ahlp}[0]);             
 }
               else{
-               throw DPS::DBServer::DBProblem message=>"Unable to getahs for $cid->{Type}";
+               throw DPS::DBProblem message=>"Unable to getahs for $cid->{Type}";
               }
 }

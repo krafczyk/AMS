@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.6 2001/11/13 11:30:02 choutko Exp $
+//  $Id: trdrec.h,v 1.7 2002/01/08 13:43:42 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include <trdid.h>
@@ -217,8 +217,8 @@ integer operator < (AMSlink & o) const {
 }
 
 bool IsHighGammaTrack();
-static void _Start(){_Time=HighResTime();}
-static geant _CheckTime(){return HighResTime()-_Time;}
+static void _Start(){TIMEX(_Time);}
+static geant _CheckTime(){geant tt1;TIMEX(tt1);return tt1-_Time;}
 static bool _NoMoreTime();
 static geant _Time;
 static geant _TimeLimit;

@@ -1,11 +1,11 @@
 # Host      Interface   OS         CPU Mem Clock
 pcamsp1      hrdl  Linux-g++        2  384  450
-pcamsf0      hrdl  Linux-g++        2  512  933
-pcamsp0      hrdl  Linux-g++        2  384  450
+pcamsf0      hrdl  Linux-g++        1  512  933
+pcamsp0      cern.ch  Linux-g++        2  384  450
 pcamsa0      hrdl  Linux-g++        2  384  450
-pcamsf1      hrdl  Linux-g++        2  512  2100  
-pcamsf2      hrdl  Linux-g++        2  1024 1500
+pcamsf1      hrdl  Linux-g++        2  512  1533  
+pcamsf2      hrdl  Linux-g++        2  1024 2000
 pcamsf3      hrdl  Linux-g++        1  256  1200
-pcamsf4      hrdl  Linux-g++        2  1024 2101
-pcamsf5      hrdl  Linux-g++        2  1024 2100
+pcamsf4      hrdl  Linux-g++        2  1024 1534
+pcamsf5      hrdl  Linux-g++        2  1024 1533
 pcamst0      hrdl  Linux-g++        2  512  600
