@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.173 2003/05/16 17:10:06 alexei Exp $
+# $Id: RemoteClient.pm,v 1.174 2003/05/17 12:18:26 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1743,8 +1743,9 @@ sub Connect{
          my $outform=>undef;
          my $ntchain="NTchain";
          my $ntout=$q->param("NTOUT");
+         my $dstformat=undef;
          if ($q->param("NTOUT") eq "ALL") {
-          $outform = "List ALL NTuples matching to query";
+          $outform = "List ALL DSTs matching to query";
          } elsif ($q->param("NTOUT") eq "RUNS") { 
           $outform = "List Runs matching to query";
          } elsif ($q->param("NTOUT") eq "NTCHAIN") {
@@ -1755,9 +1756,21 @@ sub Connect{
          } else {
              $outform = "Print summary for NTuples matching query";
          }
+         my $dsttype = "ALL DSTs (RootFiles and NTuples)";
+          if (defined $q->param("DST")) {
+           if ($q->param("DST") eq "NTUPLE") {
+              $dsttype = "DSTs (NTuples only)";
+           } elsif ($q->param("DST") eq "ROOT") {
+              $dsttype = "DSTs (RootFiles only)";
+           } 
+           $dstformat=$q->param("DST");
+          }
          print "<tr><td><font size=\"3\" color=\"green\"><b>Output Format : </b></td><td><b> $outform</b></td></tr>\n";
+         print "<tr><td><font size=\"3\" color=\"green\"><b>DSTs Type : </b></td><td><b> $dsttype</b></td></tr>\n";
+
       print "<INPUT TYPE=\"hidden\" NAME=\"NTOUT\" VALUE=\"$ntout\">\n"; 
       print "<INPUT TYPE=\"hidden\" NAME=\"NTCHAIN\" VALUE=\"$ntchain\">\n"; 
+      print "<INPUT TYPE=\"hidden\" NAME=\"DST\" VALUE=\"$dstformat\">\n";
 
      }
         $sql=$sql." runcatalog.TIMESTAMP != 0 ORDER BY PART, RUN ";
@@ -1790,6 +1803,7 @@ sub Connect{
       htmlTop();
       my $sql=>undef;
       my $ntout="ALL";
+      my $dstformat="ALL";
       my $totalev=0;
       my $totalnt=0;
       my $mintm  = time();
@@ -1800,7 +1814,10 @@ sub Connect{
       if (defined $q->param("SQLQUERY")) {
         $sql = $q->param("SQLQUERY");
         if (defined $q->param("NTOUT")) {
-            $ntout=$q->param("NTOUT");
+         $ntout=$q->param("NTOUT");
+         if (defined $q->param("DST")) {
+          $dstformat = $q->param("DST");
+         } 
         }
              if ($ntout eq "RUNS") {
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -1821,7 +1838,19 @@ sub Connect{
              my $part=>undef;
              $sql="SELECT jobname, runs.submit FROM Jobs, Runs 
                      WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run ORDER BY Runs.run";
+             if (defined $dstformat) {
+              if ($dstformat eq "NTUPLE") {
+               $sql="SELECT jobname, runs.submit FROM Jobs, Runs, NTuples 
+                      WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run AND 
+                            NTuples.jid = Jobs.jid AND NTuples.type='Ntuple' ORDER BY Runs.run";
+               } elsif ($dstformat eq "ROOT") {
+                $sql="SELECT jobname, runs.submit FROM Jobs, Runs, NTuples 
+                      WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run AND 
+                            NTuples.jid = Jobs.jid AND NTuples.type='RootFile' ORDER BY Runs.run";
+              }
+             }
              my $r3=$self->{sqlserver}->Query($sql);
+
              if (defined $r3->[0][0]) {
               my $ts=$self->{tsyntax};
               my %hash=%{$ts->{particles}};
@@ -1842,7 +1871,7 @@ sub Connect{
                   $submittime= localtime($submit);
               }
               if ($ntout eq "ALL") {
-               print "<tr><td><b><font size=\"4\" color=$color> Job : <i>$jobname </i>, Run : <i>$run </i>, Particle : <i> $part </i>,  Submitted : <i> $submittime </i></font></b></td></tr>\n";
+               print "<tr><td><b><font size=\"3\" color=$color> Job : $jobname, Run : $run, Particle : $part,  Submitted : $submittime </font></b></td></tr>\n";
            }
             if ($ntout eq "RUNS") {
                my $color="black";
@@ -1921,6 +1950,11 @@ sub Connect{
    
                my $jobname=$r3->[0][0];
                $sql="SELECT PATH, NEVENTS, NEVENTSERR, TIMESTAMP, STATUS, SIZEMB FROM Ntuples WHERE RUN=$run ";
+               if ($dstformat eq "NTUPLE") {
+                   $sql=$sql."AND TYPE = 'Ntuple'";
+               } elsif ($dstformat eq "ROOT") {
+                   $sql=$sql."AND TYPE ='RootFile'";
+               }
                my $r4=$self->{sqlserver}->Query($sql);
                if (defined $r4->[0][0]) {
                  foreach my $nt (@{$r4}){
@@ -2135,10 +2169,15 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
 #           htmlTableEnd();
       htmlTableEnd();
    print "<p><br>\n";
-   print "<b> Print <INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" CHECKED> Full Listing\n";
+   print "<b><font color=green> Print :  </font><INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" CHECKED> Full Listing\n";
    print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers (or file names);\n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\"> Summary \n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"NTCHAIN\"> NTchain <INPUT TYPE=\"text\" name=\"NTCHAIN\">";
+   print "<TR></TR>\n";
+   print "<b>       \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"DST\" VALUE=\"ALL\" CHECKED> NTuples and RootFiles \n";
+   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"DST\" VALUE=\"NTUPLE\"> Only NTuples;\n";
+   print "<INPUT TYPE=\"radio\" NAME=\"DST\" VALUE=\"ROOT\"> Only RootFiles \n";
    print "</b><p><br>\n";
      print "<p><br>\n";
      print "<input type=\"submit\" name=\"queryDB\" value=\"Submit\">        ";
@@ -2152,7 +2191,9 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
       print "<b>JobID : </b> <input type =\"text\" name=\"JobID\">\n";
       print "<input type=\"submit\" name=\"getJobID\" value=\"Submit\"> \n";
       print "</form>\n";
+      print "</table> \n";
        print "<tr></tr>\n";
+       print "<br><p>\n";
        print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
        print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
        print "Find Run : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
@@ -2160,14 +2201,18 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
        print "<b>RunID : </b> <input type =\"text\" name=\"RunID\">\n";
        print "<input type=\"submit\" name=\"getRunID\" value=\"Submit\"> \n";
        print "</form>\n";
+       print "</table> \n";
+       print "<br><p>\n";
         print "<tr></tr>\n";
+        print "<p></p>\n";
         print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
         print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
-        print "Find Ntuple(s) : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
+        print "Find DST(s) : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
         print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
         print "<b>RunID : </b> <input type =\"text\" name=\"DSTID\">\n";
         print "<input type=\"submit\" name=\"getDSTID\" value=\"Submit\"> \n";
         print "</form>\n";
+        print "</table> \n";
   htmlBottom();
   }
  }
