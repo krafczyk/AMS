@@ -38,6 +38,11 @@ number DipolePhi;
 AMSDir Axis;
 tm Begin;
 tm End;
+void UpdateOrbit(number curtime, geant & ThetaS, geant & PhiS,
+            geant & PolePhi, time_t & time); 
+void UpdateOrbit(number theta,number phi, integer dir);
+orbit(geant ThetaI,geant PhiI, geant PolePhi, integer Dir);
+orbit(){};
 ~orbit(){cout <<"Nskip "<<Nskip<<" Nskip2 "<<Nskip2<<endl;}
 };
 
@@ -94,7 +99,6 @@ integer EarthModulation();
 static void setcuts( geant [],geant[],geant[],integer,geant,geant);
 static void setspectra(integer begind, integer begint, integer endd, 
 integer endt, integer ipart, integer low);
-static void UpdateOrbit(number theta,number phi, integer dir);
 static integer _hid;
 AMSmceventg *  next(){return (AMSmceventg*)_next;}
  // Interface with DAQ

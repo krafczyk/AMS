@@ -134,7 +134,12 @@ void AMSEvent::_init(){
      }
     }
     if(SRun  && TRCALIB.CalibProcedureNo == 3)AMSTrIdCalib::ntuple(SRun);
-    if(SRun  && TRCALIB.CalibProcedureNo == 4)AMSTrIdCalib::addonemorecalib();
+    if(SRun  && TRCALIB.CalibProcedureNo == 4){
+      if(gettime()>TRCALIB.MultiRun){
+       raise(SIGTERM);
+      }
+      AMSTrIdCalib::addonemorecalib();
+    }
     SRun=_run;
     PosInRun=0;
 #ifndef __DB__
@@ -387,30 +392,17 @@ void AMSEvent::_signinitevent(){
   if(AMSJob::gethead()->isSimulation() && !rec){
     static number dtime=AMSmceventg::Orbit.FlightTime/
       (GCFLAG.NEVENT+1-GCFLAG.IEVENT);
-    number t2=
-      AMSmceventg::Orbit.AlphaTanThetaMax*AMSmceventg::Orbit.AlphaTanThetaMax;
     static number curtime=0;
-    static number theta=AMSmceventg::Orbit.ThetaI;
-    static number philocal=
-      atan2(sin(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero)*sqrt(1+t2),
-            cos(AMSmceventg::Orbit.PhiI-AMSmceventg::Orbit.PhiZero));
-    static number pole=AMSmceventg::Orbit.PolePhi;
     geant dd; 
     int i;
     number xsec=0;
     for(i=0;i<AMSmceventg::Orbit.Nskip+1;i++)
       xsec+=-dtime*log(RNDM(dd)+1.e-30);
     curtime+=xsec;
-    pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
-    philocal=fmod(philocal+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
-    number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
-    if(phi < 0)phi=phi+AMSDBc::twopi;
-    theta=asin(sin(atan(AMSmceventg::Orbit.AlphaTanThetaMax))*sin(philocal));
-    _time=integer(mktime(&AMSmceventg::Orbit.Begin)+curtime);
+    _NorthPolePhi=AMSmceventg::Orbit.PolePhi;
+    AMSmceventg::Orbit.UpdateOrbit(curtime, _StationTheta,_StationPhi,
+    _NorthPolePhi,_time);
     _usec=(curtime-integer(curtime))*1000000000;  // nsec for mc
-    _NorthPolePhi=pole;
-    _StationTheta=theta;
-    _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
     GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
     AMSmceventg::Orbit.Nskip=0;        
     AMSmceventg::Orbit.Ntot++;
@@ -440,7 +432,7 @@ void AMSEvent::_signinitevent(){
     AMSDir ax2=AMSmceventg::Orbit.Axis.cross(ax1);
     if(ax1.prod(AMSmceventg::Orbit.Axis)>1e-4){
      cerr<<"AMSEvent::SetTimeCoo-W-RedefinitionOfOrbit.AxisWillBeDone "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
-     AMSmceventg::UpdateOrbit(_StationTheta,_StationPhi,_StationTheta-StTheta>00?1:-1);
+     AMSmceventg::Orbit.UpdateOrbit(_StationTheta,_StationPhi,_StationTheta-StTheta>00?1:-1);
      StTheta=_StationTheta;
     }
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();

@@ -2419,6 +2419,7 @@ depend:
 ../bin/osf1/io.o: /usr/include/sys/procset.h /usr/include/time.h
 ../bin/osf1/io.o: /usr/include/sys/timers.h /usr/include/sys/times.h
 ../bin/osf1/io.o: ../include/commons.h ../include/amsdbc.h
+../bin/osf1/io.o: ../include/mceventg.h
 ../bin/osf1/trcalib.o: ../include/trcalib.h ../include/typedefs.h
 ../bin/osf1/trcalib.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/iostream.h

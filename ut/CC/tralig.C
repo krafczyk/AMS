@@ -722,7 +722,7 @@ cout <<" AMSTrAligFit::Anal called for pattern "<<_Pattern<<" "<<_Address<<endl;
     integer iostat;
     integer rsize=1024;
     char event[80];
-    HROPEN(IOPA.hlun+1,"tralig",filename,"N",rsize,iostat);
+    HROPEN(IOPA.hlun+1,"tralig",filename,"NP",rsize,iostat);
     if(iostat){
      cerr << "Error opening tralig ntuple file "<<filename<<endl;
     }
@@ -813,7 +813,7 @@ cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<end
     integer iostat;
     integer rsize=1024;
     char event[80];
-    HROPEN(IOPA.hlun+1,"tralig",filename,"N",rsize,iostat);
+    HROPEN(IOPA.hlun+1,"tralig",filename,"NP",rsize,iostat);
     if(iostat){
      cerr << "Error opening tralig ntuple file "<<filename<<endl;
     }

@@ -159,7 +159,6 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
                              integer enddate, integer endtime, 
                               integer ipart,  integer low){
 
-  const number MIR=51.65;
   Orbit.Begin.tm_year  =  begindate%10000-1900;
   Orbit.Begin.tm_mon = (begindate/10000)%100-1;
   Orbit.Begin.tm_mday   = (begindate/1000000)%100;
@@ -184,8 +183,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   }  
   Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
   Orbit.PhiI=fmod(CCFFKEY.phi/AMSDBc::raddeg+AMSDBc::twopi,AMSDBc::twopi);
+  const number MIR=51.65;
   Orbit.AlphaTanThetaMax=tan(MIR/AMSDBc::raddeg);
-  UpdateOrbit(Orbit.ThetaI,Orbit.PhiI,CCFFKEY.sdir);
+  Orbit.UpdateOrbit(Orbit.ThetaI,Orbit.PhiI,CCFFKEY.sdir);
   Orbit.AlphaSpeed=AMSDBc::twopi/90.8/60.;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
   Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
@@ -392,6 +392,7 @@ integer AMSmceventg::acceptio(){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
           if(!MISCFFKEY.BeamTest || (_ipart==GCKINE.ikine || (_ipart>0  && GCKINE.ikine==-1)))return 1;
+          else EarthModulation();
       }
     }
   }
@@ -681,27 +682,65 @@ integer AMSmceventg::calcdaqlength(integer i){
  else return 1;
 }
 
-void AMSmceventg::UpdateOrbit(number theta, number phi, integer sdir){
-  Orbit.ThetaI=theta;
-  Orbit.PhiI=phi;
-  number MIR=atan(Orbit.AlphaTanThetaMax);
-  number r= tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
+void orbit::UpdateOrbit(number theta, number phi, integer sdir){
+  ThetaI=theta;
+  PhiI=phi;
+  number MIR=atan(AlphaTanThetaMax);
+  number r= tan(ThetaI)/AlphaTanThetaMax;
   if(r > 1 || r < -1){
-    cerr <<"AMSMCEVENTG::setspectra-ThetaI too high "<<Orbit.ThetaI<<endl;
-    if(Orbit.ThetaI < 0 )Orbit.ThetaI = -MIR;
-    else Orbit.ThetaI= MIR;
-    cerr <<"AMSMCEVENTG::setspectra-ThetaI brought to "<<Orbit.ThetaI<<endl;
-    r=tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
+    cerr <<"AMSMCEVENTG::setspectra-ThetaI too high "<<ThetaI<<endl;
+    if(ThetaI < 0 )ThetaI = -MIR;
+    else ThetaI= MIR;
+    cerr <<"AMSMCEVENTG::setspectra-ThetaI brought to "<<ThetaI<<endl;
+    r=tan(ThetaI)/AlphaTanThetaMax;
   }
-  Orbit.PhiZero=Orbit.PhiI-atan2(r,sdir*sqrt(1-r*r));
-  Orbit.Axis[0]=sin(MIR)*sin(Orbit.PhiZero);
-  Orbit.Axis[1]=-sin(MIR)*cos(Orbit.PhiZero);
-  Orbit.Axis[2]=cos(MIR);
-  AMSDir ax1(AMSDBc::pi/2-Orbit.ThetaI,Orbit.PhiI);
-  AMSDir ax2(AMSDBc::pi/2,Orbit.PhiZero);
-  if(ax1.prod(Orbit.Axis)>1.e-5){
-   cerr<<"AMSmceventg::setspectra-F-OrbitParametersWrong "<<ax1.prod(Orbit.Axis);
+  PhiZero=PhiI-atan2(r,sdir*sqrt(1-r*r));
+  Axis[0]=sin(MIR)*sin(PhiZero);
+  Axis[1]=-sin(MIR)*cos(PhiZero);
+  Axis[2]=cos(MIR);
+  AMSDir ax1(AMSDBc::pi/2-ThetaI,PhiI);
+  AMSDir ax2(AMSDBc::pi/2,PhiZero);
+  if(ax1.prod(Axis)>1.e-5){
+   cerr<<"AMSmceventg::setspectra-F-OrbitParametersWrong "<<ax1.prod(Axis);
   exit(1);
   }
+}
+
+void orbit::UpdateOrbit(number xsec, geant & ThetaS, geant & PhiS,
+                        geant & PolePhi, time_t & time){
+
+    number t2=
+      AlphaTanThetaMax*AlphaTanThetaMax;
+    number theta=ThetaI;
+    number philocal=
+      atan2(sin(PhiI-PhiZero)*sqrt(1+t2),
+            cos(PhiI-PhiZero));
+    number pole=PolePhi;
+    pole=fmod(pole+EarthSpeed*xsec,AMSDBc::twopi);
+    philocal=fmod(philocal+AlphaSpeed*xsec,AMSDBc::twopi);
+    number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
+    if(phi < 0)phi=phi+AMSDBc::twopi;
+    theta=asin(sin(atan(AlphaTanThetaMax))*sin(philocal));
+    time=integer(mktime(&Begin)+xsec);
+    ThetaS=theta;
+    PolePhi=pole;
+    PhiS=fmod(phi+PhiZero,AMSDBc::twopi);
+}
+
+orbit::orbit(geant Th,geant Ph, geant Pole, integer Dir):
+ThetaI(Th),PolePhi(Pole){
+  PhiI=fmod(Ph+AMSDBc::twopi,AMSDBc::twopi);
+  const number MIR=51.65;
+  AlphaTanThetaMax=tan(MIR/AMSDBc::raddeg);
+  UpdateOrbit(ThetaI,PhiI,Dir);
+  AlphaSpeed=AMSDBc::twopi/90.8/60.;
+  EarthSpeed=AMSDBc::twopi/24/3600;
+  Begin.tm_year  =  98;
+  Begin.tm_mon = 05;
+  Begin.tm_mday   = 2;
+  Begin.tm_hour  = 12;
+  Begin.tm_min= 0;
+  Begin.tm_sec=0;
+  Begin.tm_isdst =  0;
 
 }

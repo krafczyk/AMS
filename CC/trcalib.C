@@ -415,7 +415,7 @@ cout <<" AMSTrCalibFit::Anal called for pattern "<<_Pattern<<" "<<_Algorithm<<en
     integer iostat;
     integer rsize=1024;
     char event[80];  
-    HROPEN(IOPA.hlun+1,"tralig",filename,"N",rsize,iostat);
+    HROPEN(IOPA.hlun+1,"tralig",filename,"NP",rsize,iostat);
     if(iostat){
      cerr << "Error opening tralig ntuple file "<<filename<<endl;
      exit(1);
@@ -737,7 +737,7 @@ void AMSTrIdCalib::ntuple(integer s){
     char event[80];  
     sprintf(event,"%d",s);
     strcat(filename,event);
-    HROPEN(IOPA.hlun+1,"trcalibration",filename,"N",rsize,iostat);
+    HROPEN(IOPA.hlun+1,"trcalibration",filename,"NP",rsize,iostat);
     if(iostat){
      cerr << "Error opening trcalib ntuple file "<<filename<<endl;
      exit(1);
@@ -1866,38 +1866,34 @@ void AMSTrIdCalib::getaverage(){
       AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVped(k));
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
-      // dummy insert begin end
-      insert=1;
-      begin=1;
-      end=1;
+      time(&insert);
+      begin=SELECTFFKEY.Run;
+      end=TRCALIB.MultiRun;
       ptdv->SetTime(insert,begin,end);
 
       ptdv = 
       AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVsigma(k));
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
-      // dummy insert begin end
-      insert=1;
-      begin=1;
-      end=1;
+      time(&insert);
+      begin=SELECTFFKEY.Run;
+      end=TRCALIB.MultiRun;
       ptdv->SetTime(insert,begin,end);
       ptdv = 
       AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVCmnNoise());
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
-      // dummy insert begin end
-      insert=1;
-      begin=1;
-      end=1;
+      time(&insert);
+      begin=SELECTFFKEY.Run;
+      end=TRCALIB.MultiRun;
       ptdv->SetTime(insert,begin,end);
       ptdv = 
       AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVstatus(k));
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
-      // dummy insert begin end
-      insert=1;
-      begin=1;
-      end=1;
+      time(&insert);
+      begin=SELECTFFKEY.Run;
+      end=TRCALIB.MultiRun;
       ptdv->SetTime(insert,begin,end);
      }
 
@@ -1921,7 +1917,7 @@ void AMSTrIdCalib::getaverage(){
     integer iostat;
     integer rsize=1024;
     char event[80];  
-    HROPEN(IOPA.hlun+1,"trcalibration",filename,"N",rsize,iostat);
+    HROPEN(IOPA.hlun+1,"trcalibration",filename,"NP",rsize,iostat);
     if(iostat){
      cerr << "Error opening trcalib ntuple file "<<filename<<endl;
      exit(1);
