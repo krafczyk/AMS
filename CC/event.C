@@ -864,7 +864,7 @@ void  AMSEvent::write(int trig){
     }
    }
     // check if one want to close ntuple 
-    if(IOPA.MaxNtupleEntries && AMSJob::gethead()->isProduction()){
+    if(IOPA.MaxNtupleEntries){
       //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries){
         AMSJob::gethead()->uhend();
@@ -2372,7 +2372,22 @@ void AMSEvent::setfile(char file[]){
           _SelectedEvents[nline].Event=0;
           SELECTFFKEY.Run=_SelectedEvents[0].Run;
           SELECTFFKEY.Event=-1;
-
+          // check for same events;
+          int nlineo=nline;
+          for( int nev=nline-1;nev>0;nev--){
+            if(_SelectedEvents[nev].Run==_SelectedEvents[nev-1].Run &&
+               _SelectedEvents[nev].Event==_SelectedEvents[nev-1].Event){
+              // squeeze
+              cerr<< " AMSEvent::setfile-W-DuplicatedEventFound "<<_SelectedEvents[nev-1].Run<<" "<<_SelectedEvents[nev-1].Event<<endl;
+             for(int isq=nev;isq<nline;isq++){
+               _SelectedEvents[isq]=_SelectedEvents[isq+1];    
+             }
+             nline--;
+            }
+          }
+          if(nlineo!=nline){
+            cout <<"AMSEvent::setfile-I-"<<nline<<" events will be processed"<<endl;
+          }
          }
        }
        else cerr<<" AMSEvent::setfile-E-UnableToAllMemory for "<<nline<< 
@@ -2426,4 +2441,9 @@ void AMSEvent::getmag(float & thetam, float & phim){
    thetam=(float)(AMSDBc::pi/2-StationGEOM.gettheta());
    phim=(float)StationGEOM.getphi();
 
+}
+
+integer AMSEvent::getselrun(integer i){
+ if(_SelectedEvents)return _SelectedEvents[i].Run;
+ else return -1;
 }

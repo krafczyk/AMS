@@ -381,20 +381,5 @@ GTOD
 
 Known bugs:
 
-1. if beta<0 then ~%50 non-proton events have wrong info in particle block
-      namely pmom,pid,probpid,pmass (angles are O.K.)
-      thanks to:
-        geane backtracking bug
-
-   partial work around:
-   
-
-      if(geanefitdone(ptrackp(1)).ne.0 .and. gridgidity(ptrackp(1))/
-     +  ridgidity(ptrackp(1)).lt.0.5 .and. beta(pbetap(1)).lt.0.and.
-     +  pid(1).ne.14)then
-       pmom(1)=pmom(1)*ridgidity(ptrackp(1))/gridgidity(ptrackp(1))
-       pmass(1)=pmass(1)*
-     + abs(ridgidity(ptrackp(1))/gridgidity(ptrackp(1)))
-      endif
 
 

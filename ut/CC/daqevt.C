@@ -744,8 +744,14 @@ for(int i=0;i<strlen(entry->d_name);i++){
  sscanf(entry->d_name,"%d",&e1);
  if(e1<SELECTFFKEY.Run)return 0;
  else {
-//     cout <<e1 << " "<<SELECTFFKEY.Run<<" "<<entry->d_name<<endl;
-     return 1;
+     if(AMSEvent::getselrun(0)>0){
+      for(int i=0;;i++){
+       if(e1==AMSEvent::getselrun(i))return 1;
+       else if(!AMSEvent::getselrun(i))break;
+      }
+      return 0;
+     }
+     else return 1;
  }
 }
 
