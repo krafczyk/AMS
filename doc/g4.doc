@@ -1,7 +1,7 @@
-#  $Id: g4.doc,v 1.24 2002/01/17 14:33:51 choutko Exp $
+#  $Id: g4.doc,v 1.25 2002/02/08 13:48:20 choutko Exp $
 -------
 Platform:
-linux-gcc2.95 
+linux-gcc2.95.3 
 dec/cxx 6.2
 -------
 Installer:
@@ -71,14 +71,20 @@ CC/gmat.C    << new geant4  constructors
 
 
 
-Status (geant4.4.0):
+Status (geant4.4.0 patch 1)
 
-still same extremely slow initialization  (~ 10 minutes)
-more memory required: 320 gb on linux 
+still same extremely slow initialization  (~5 minutes amd-mp1533)
+
 
 linux:
 
-problems with soilds (patch eill be rele soon?)
+ok
+
+run time g3g4 comparison:
+
+                   G3      G4         
+Memory(mb)         60     180
+CPU/Event(au)       1      16
 
 dec:
 
