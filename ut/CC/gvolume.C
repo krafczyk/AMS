@@ -285,6 +285,7 @@ integer AMSgvolume::_Norp=0;
      }
      else if (shape =="SPHE"){
        psolid=new G4Sphere(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*degree,_par[3]*degree-_par[2]*degree,_par[4]*degree,_par[5]*degree-_par[4]*degree);
+         if(maxstep>_par[1]-_par[0] && _par[1]-_par[0]>0 )maxstep=_par[1]-_par[0];
      }
      else if (shape =="PGON"){
        integer nsurf=_par[3];
@@ -360,7 +361,7 @@ integer AMSgvolume::_Norp=0;
            if(offspring()){
             offspring()->removeboolean();
            }
-           return psolid;
+           else return psolid;
          }
          
       }
@@ -610,12 +611,18 @@ void AMSgvolume::MakeG3Volumes(){
     if(up()){
      geant coo[3];
      _coo.getp(coo[0],coo[1],coo[2]);
+     // check gonly;
+     char gonly[5];
+     if(strstr(_gonly,"BOO")){
+       strcpy(gonly,"MANY");
+     } 
+     else strcpy(gonly,_gonly);
      if(_posp){
-       GSPOSP(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,_gonly,
+       GSPOSP(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,gonly,
           _par,_npar);
      }
      else {
-      GSPOS(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,_gonly);
+      GSPOS(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,gonly);
      } 
     }
     if(down())down()->MakeG3Volumes();

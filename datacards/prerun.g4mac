@@ -1,0 +1,6 @@
+  /vis/scene/create
+  /vis/sceneHandler/create OGLSX
+  /vis/viewer/create
+/vis/draw/current
+/vis/camera/viewpoint 90 0
+/vis/refresh/view

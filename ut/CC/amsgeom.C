@@ -45,6 +45,9 @@ extern void richgeom02(AMSgvolume &);
 extern void ecalgeom02(AMSgvolume &);
 extern void trdgeom02(AMSgvolume &);
 extern void srdgeom02(AMSgvolume &);
+#ifdef __G4AMS__
+extern void testboolgeom(AMSgvolume &);
+#endif
 AMSID amsid;
 geant par[3];
 geant parf[3];
@@ -90,6 +93,7 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  tkgeom02(mother);
 
 #ifdef  __G4AMS__
+ //testboolgeom(mother);
 if(!G4FFKEY.UniformMagField){
  trdgeom02(mother);
  srdgeom02(mother);
@@ -509,10 +513,10 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
     if(ip==1||ip==3)coo[2]=co[2]-TOFDBc::plnstr(12);
 //                                   <=== create pmt1-box
     gid=1000+100*(ip+1)+ib+1;
-/*
+///*
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
-*/
+//*/
 //-----
     if(TOFDBc::plrotm(ip)==0){
       coo[0]=co[0]-dxt/2.+ib*(dx-TOFDBc::plnstr(4));
@@ -524,10 +528,10 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
     }
 //                                   <=== create pmt2-box
     gid=2000+100*(ip+1)+ib+1;
-/*
+///*
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",nrot,"TOFB","BOX",par,3,coo,nrm,"ONLY",1,gid,1));
-*/
+//*/
 //
   }      //   <<<============= end of sc. bars loop ==========
 }   //   <<<============= end of sc. planes loop =============
@@ -2813,6 +2817,82 @@ cout <<"amsgeom::srdgeom02-I-SRDGeometryDone"<<endl;
 
 }
 
+#ifdef __G4AMS__
+void testboolgeom(AMSgvolume &mother){
+  AMSgvolume *dummy;
+  geant par[11],coo[3];
+  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz}
+  number nrm1[3][3]={0,0,1,1,0,0,0,1,0};
+  integer gid=1,  
+          rel=1, 
+          posp=0;
+  par[0]=0;
+  par[1]=90;
+  par[2]=31;
+  coo[0]=0;
+  coo[1]=0;
+  coo[2]=-103.66;
+  dummy=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("IRON",
+				0,
+				"RICH",
+				"TUBE",
+				par,
+				3,
+				coo,
+				nrm,
+//				"ONLY",
+				"BOOL",
+				posp,
+				gid,
+				rel)));
+				
+  //cyl
+  par[0]=0;
+  par[1]=10;
+  par[2]=31;
+  coo[0]=0;
+  coo[1]=0;
+  coo[2]=0;
+
+                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","TUBE",par,3,coo,nrm,"BOO-",posp,gid,rel));
+/*
+  //box
+  par[0]=10;
+  par[1]=2;
+  par[2]=40;
+  coo[0]=-110;
+  coo[1]=0;
+  coo[2]=0;
+                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","BOX",par,3,coo,nrm1,"BOO+",posp,gid,rel));
+  //cyl
+  par[0]=0;
+  par[1]=10;
+  par[2]=31;
+  coo[0]=90;
+  coo[1]=0;
+  coo[2]=0;
+
+                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","TUBE",par,3,coo,nrm,"BOO-",posp,gid,rel));
+
+//two spheres;
+par[0]=0;
+par[1]=10;
+par[2]=0;
+par[3]=180;
+par[4]=0;
+par[5]=360;
+  coo[0]=-95;
+  coo[1]=-10;
+  coo[2]=-11;
+                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","SPHE",par,6,coo,nrm,"BOO+",posp,gid,rel));
+  coo[0]=-95;
+  coo[1]=+10;
+  coo[2]=-11;
+                 dummy->addboolean(new AMSgvolume("IRON",1,"RICH","SPHE",par,6,coo,nrm,"BOO+",posp,gid,rel));
+*/
+}
+
+#endif
 
 #define NO_REPLICATE
 #define SQR(x) ((x)*(x))
