@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.18 2003/07/08 16:17:33 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.19 2003/07/08 16:26:05 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -23,7 +23,6 @@
 #include <X3DBuffer.h>
 
 #include "AMSDisplay.h"
-#include "TSwitch.h"
 #include "AMSR_Axis.h"
 #include "AMSR_GeometrySetter.h"
 #include "TGRunEventDialog.h"
