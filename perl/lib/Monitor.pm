@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.58 2003/05/08 11:23:20 choutko Exp $
+# $Id: Monitor.pm,v 1.59 2003/05/08 14:32:52 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -895,7 +895,11 @@ sub getntuples{
      if($hash->{Type} eq "Ntuple"){
          if($hash->{Status} eq $sort[$j]){
      my $ctime=localtime($hash->{Insert});
-     push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$hash->{size},$hash->{Status};
+     my $smartsize=$hash->{size};
+     if($smartsize>2000){
+        $smartsize=int($smartsize/1024/1024+0.5);
+    }
+     push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$smartsize,$hash->{Status};
          my $dt=time()-$hash->{Insert};
      if ($hash->{Status} eq "InProgress"){
          if($dt>3600*12 && $dt<3600*24){
@@ -1035,7 +1039,11 @@ sub PNtupleSort{
          for my $i (0 ... $#sortedoutput){
           $#text=-1;
           my $hash=$sortedoutput[$i];
-          push @text, $hash->{Run}, $hash->{Insert},$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$hash->{size},$hash->{Status},$hash->{Type};
+     my $smartsize=$hash->{size};
+     if($smartsize>2000){
+        $smartsize=int($smartsize/1024/1024+0.5);
+    }
+          push @text, $hash->{Run}, $hash->{Insert},$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$smartsize,$hash->{Status},$hash->{Type};
           push @output, [@text];   
       }
     }elsif( $name eq "Run"){        
