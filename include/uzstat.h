@@ -51,6 +51,7 @@ public:
   ~AMSStat();
   void book(char * name);
   void start(char * name);
+  number check(char *name);
   void stop(char * name);
   void print();
 };
