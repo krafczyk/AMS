@@ -46,7 +46,7 @@ protected:
   number  _Phi;
   number  _ThetaGl;
   number  _PhiGl;
-  number  _SinMagMeridian;
+  number  _CutoffMomentum;
   AMSPoint _Coo;
   CTC    _Value[2];
   AMSPoint _TOFCoo[4];  
@@ -123,7 +123,7 @@ public:
   void refit(int i=0); // refit if necessary;
   static integer build(integer refit=0);
   static void print();
-  number getsinmagmer()const{return _SinMagMeridian;}
+  number getcutoffmomentum() const {return _CutoffMomentum;}
 //+
 
    AMSPoint getcoo() {return _Coo;}
