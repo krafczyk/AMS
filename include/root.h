@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.60 2002/05/21 10:36:12 choutko Exp $
+//  $Id: root.h,v 1.61 2002/05/21 11:08:08 alexei Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -90,7 +90,7 @@ public:
   int TRDTracks;
   int EventStatus[2];
 
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   int          fNbeta;
   TClonesArray *fBeta; 
 
@@ -301,7 +301,6 @@ public:
   TClonesArray *Get_fricring()   {return fRICRing;}
   int           Get_fNricring()  {return fNRICRing;}
   void          Set_fNricring(int N) {fNRICRing = N;}
-
 #endif
 #ifdef __WRITEROOT__
 EventNtuple02();

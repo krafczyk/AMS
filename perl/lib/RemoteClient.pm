@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.44 2002/05/21 09:03:48 alexei Exp $
+# $Id: RemoteClient.pm,v 1.45 2002/05/21 11:08:09 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2102,8 +2102,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
        }
       }
     }
-#MyQuery ends here
-    
+#MyQuery ends here    
     if ($self->{q}->param("MyQuery")){
         $self->{read}=1;
         my $cem=lc($self->{q}->param("CEM"));
@@ -2932,6 +2931,11 @@ print qq`
          my $ctime=time();
          my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',$ctime)";
          $self->{sqlserver}->Update($sql);
+#
+         my $nickname = $q->param("QNick");
+         $sql="insert into JobsNick values($run,'$nickname')";
+         $self->{sqlserver}->Update($sql);
+#
 #creat corresponding runevinfo
          my $ri={};
          $ri->{uid}=0;
