@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.40 2001/02/07 16:16:56 choutko Exp $
+//  $Id: server.C,v 1.41 2001/02/09 13:08:49 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -646,7 +646,7 @@ for(int i=0;i<length;i++){
  DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
  _acl.push_back(vac);
 }
- cout <<"ACL size"<<_acl.size()<<" "<<(*_ncl.begin())->MaxClients<<endl;
+ cout <<"ACL size"<<_acl.size()<<" "<<(*_ncl.begin())->MaxClients<<" "<<_Submit<<" "<<endl;
 
 }
 
@@ -713,6 +713,7 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
     submit+= _iface;
     submit+=" -I";
     submit+=(const char*)(ahlv)->Interface;
+    if(_parent->IsOracle())submit+=" -O";
     if(_parent->Debug())submit+=" -D1";
     UpdateDBFileName(); 
     if(_parent->getdbfile()){
@@ -960,6 +961,32 @@ else if(cid.Type==DPS::Client::DBServer){
 
 int Server_impl::getNC(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::SystemException){
 
+
+ if(_parent->DBServerExists()){
+        Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     DPS::Client::CID pid=_parent->getcid();
+     pid.Type=DPS::Client::DBServer;
+     pid.Interface= (const char *) " ";
+     DPS::Client::ARS * pars;
+     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
+     DPS::Client::ARS_var arf=pars;
+     for(int i=0;i<length;i++){
+      try{
+       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
+          return _pvar->getNC(cid,acs);
+       }
+       catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       }
+       catch (CORBA::SystemException &ex){
+        // Have to Kill Servers Here
+        _parent->EMessage("dbserver corba error during getnc" );   
+       }
+     }
+ }
+
+
 NCS_var acv= new NCS();
 int length=0;
 for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down()){
@@ -984,6 +1011,29 @@ return length;
 }
 
 int Server_impl::getNK(const DPS::Client::CID &cid, NCS_out acs)throw (CORBA::SystemException){
+ if(_parent->DBServerExists()){
+        Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     DPS::Client::CID pid=_parent->getcid();
+     pid.Type=DPS::Client::DBServer;
+     pid.Interface= (const char *) " ";
+     DPS::Client::ARS * pars;
+     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
+     DPS::Client::ARS_var arf=pars;
+     for(int i=0;i<length;i++){
+      try{
+       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
+          return _pvar->getNK(cid,acs);
+       }
+       catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       }
+       catch (CORBA::SystemException &ex){
+        // Have to Kill Servers Here
+        _parent->EMessage("dbserver corba error during getnk" );   
+       }
+     }
+ }
 
 NCS_var acv= new NCS();
 int length=0;
@@ -1082,6 +1132,32 @@ return length;
 
 
 int Server_impl::getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException){
+
+ if(_parent->DBServerExists()){
+        Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     DPS::Client::CID pid=_parent->getcid();
+     pid.Type=DPS::Client::DBServer;
+     pid.Interface= (const char *) " ";
+     DPS::Client::ARS * pars;
+     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
+     DPS::Client::ARS_var arf=pars;
+     for(int i=0;i<length;i++){
+      try{
+       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
+          return _pvar->getACS(cid,acs,maxc);
+       }
+       catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       }
+       catch (CORBA::SystemException &ex){
+        // Have to Kill Servers Here
+        _parent->EMessage("dbserver corba error during getacs" );   
+       }
+     }
+ }
+
+
 //_parent->IMessage(AMSClient::print(cid," type "));
 ACS_var acv= new ACS();
 int length=0;
@@ -1169,6 +1245,7 @@ return 0;
         if(_parent->Debug())_parent->IMessage(AMSClient::print(ac,"added client "));
         DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(ac);
        pcur->getacl().push_back(vac);
+       cout <<pcur->getacl().size()<<endl;
 //     Here find the corr ahost and update it
          for(AHLI i=pcur->getahl().begin();i!=pcur->getahl().end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(vac->id).HostName)){
@@ -1287,6 +1364,32 @@ else{
 
 int Server_impl::getNHS(const DPS::Client::CID &cid, NHS_out acs)throw (CORBA::SystemException){
 
+ if(_parent->DBServerExists()){
+        Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     DPS::Client::CID pid=_parent->getcid();
+     pid.Type=DPS::Client::DBServer;
+     pid.Interface= (const char *) " ";
+     DPS::Client::ARS * pars;
+     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
+     DPS::Client::ARS_var arf=pars;
+     for(int i=0;i<length;i++){
+      try{
+       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
+          return _pvar->getNHS(cid,acs);
+       }
+       catch(DPS::DBServer::DBProblem &dbl){
+       _parent->EMessage((const char*)dbl.message); 
+       }
+       catch (CORBA::SystemException &ex){
+        // Have to Kill Servers Here
+        _parent->EMessage("dbserver corba error during getnhs" );   
+       }
+     }
+ }
+
+
+
 NHS_var acv= new NHS();
 int length=0;
 for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down()){
@@ -1312,8 +1415,37 @@ return length;
 
 int Server_impl::getAHS(const DPS::Client::CID &cid, AHS_out acs)throw (CORBA::SystemException){
 
+
+
+ if(_parent->DBServerExists()){
+        Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     DPS::Client::CID pid=_parent->getcid();
+     pid.Type=DPS::Client::DBServer;
+     pid.Interface= (const char *) " ";
+     DPS::Client::ARS * pars;
+     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
+     DPS::Client::ARS_var arf=pars;
+     for(int i=0;i<length;i++){
+      try{
+       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
+          return _pvar->getAHS(cid,acs);
+       }
+       catch(DPS::DBServer::DBProblem &dbl){
+        _parent->EMessage((const char*)dbl.message); 
+       }
+       catch (CORBA::SystemException &ex){
+        // Have to Kill Servers Here
+        _parent->EMessage("dbserver corba error during getahs" );   
+       }
+
+     }
+ }
+
+
 AHS_var acv= new AHS();
 int length=0;
+
 for(AMSServerI * pser=this;pser;pser= pser->next()?pser->next():pser->down()){
 if(pser->getType()==cid.Type){
 length=pser->getahl().size();
@@ -1422,7 +1554,7 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
      }
    DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(as);
    PropagateAC(acv,rc);
-     DPS::Client::CID asid=as.id;
+   DPS::Client::CID asid=as.id;
     sendAC(asid,as,rc);
 }
 
@@ -1629,6 +1761,7 @@ for(int i=0;i<length;i++){
  _acl.push_back(vac);
 }
 
+ cout <<"ACL size pr"<<_acl.size()<<" "<<(*_ncl.begin())->MaxClients<<" "<<_Submit<<" "<<endl;
 
 }
 
@@ -3093,12 +3226,12 @@ _UpdateACT(cid,DPS::Client::Active);
      fname=gtv;
      fname+="/";
    }
-   else throw FailedOp("Server-F-AMSProdOutputDir NotDefined");
+   else throw FailedOp((const char*)"Server-F-AMSProdOutputDir NotDefined");
    fname+=(const char*)fpath.fname;
  ofstream fbin;
  fbin.open((const char*)fname,ios::out|ios::app);
  if(!fbin){
-  throw FailedOp("Server-F-Unable to open file");
+  throw FailedOp((const char*)"Server-F-Unable to open file");
  }
  fbin.write(( char*)run.get_buffer(),run.length());
  if(!fbin.good()){
@@ -3310,7 +3443,7 @@ for(int i=0;i<length;i++){
  DPS::Client::ActiveClient_var vac= new DPS::Client::ActiveClient(acs[i]);
  _acl.push_back(vac);
 }
- cout <<"AML size "<<_acl.size()<<endl;
+ cout <<"AML size "<<_acl.size()<<" "<<_Submit<<endl;
 
 }
 

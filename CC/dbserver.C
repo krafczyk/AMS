@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.5 2001/02/08 10:32:03 choutko Exp $
+//  $Id: dbserver.C,v 1.6 2001/02/09 13:08:32 choutko Exp $
 #include <dbserver.h>
 
 
@@ -55,7 +55,11 @@ for(int i=0;i<length;i++){
 //  functions to fill with oracle stuff
 //  see  examples in ~/AMS/perl/lib/POADBServer.pm
 //  cid.Type should be used in general to discriminate between requests 
+//  error should manifest via throwing an exception:
+//  throw DBProblem((const char*)"Some Error");
 
+
+ 
 void  DBServer_impl::_init(){
     // here oracle connect
 }
@@ -101,6 +105,8 @@ void  DBServer_impl::_init(){
 }
 
    int  DBServer_impl::getAHS(const DPS::Client::CID &cid,AHS_out ahl){
+   //throw DBProblem((const char*)"Some Error");
+
 }
 
 

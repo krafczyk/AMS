@@ -225,7 +225,7 @@ module DPS{
     void ping();
     boolean TypeExists(in DPS::Client::ClientType type);
 
-    long getACS(in CID id, out ACS acl, inout unsigned long maxc);
+    long getACS(in CID id, out ACS acl, out unsigned long maxc);
     void sendAC(in CID id, inout ActiveClient ac,in RecordChange rc);
 
     long getNC(in CID id, out NCS acl);
@@ -258,9 +258,9 @@ module DPS{
      string message;
     };
 
-    string getDBFilePath(in CID id);
+    string getDBFilePath(in CID id)raises(DBProblem);
     long getRunEvInfoSPerl(in CID id, out RES res, in unsigned long maxr,out unsigned long maxro)raises(DBProblem); 
     void sendACPerl(in CID id, in ActiveClient ac,in RecordChange rc)raises(DBProblem);
-    long getFreeHost(in CID id, out ActiveHost host);
+    long getFreeHost(in CID id, out ActiveHost host)raises(DBProblem);
   };
 };

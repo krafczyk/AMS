@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.21 2001/02/06 10:54:45 choutko Exp $
+#  $Id: monitorUI.pm,v 1.22 2001/02/09 13:08:50 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -631,6 +631,20 @@ sub notebook_create_pages {
         $policy_y='automatic';
                 $buffer="DBServer_ActiveClients";
                 create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
+                        $#titles=-1;
+                	@titles = (
+	    "ID",
+	    "HostName",
+	    "Process ID",
+	    "Start Time",
+	    "LastUpdate Time",
+            "Status",
+	);
+
+        $policy_x='automatic';
+        $policy_y='automatic';
+                $buffer="Monitor_ActiveClients";
+#                create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
               }elsif($i==3){
 	@titles = (
 	    "FileSystem",
@@ -894,6 +908,25 @@ sub Update{
      $clist->thaw();
 
 }
+#{
+#     my $clist=$monitorUI::Singleton->{clist}->{Monitor_ActiveClients};
+#     $clist->freeze();   
+#     $clist->clear();
+#     my @output=$monitor->getactiveclients("Monitor");     
+#     my $i;
+#     $monitorUI::Singleton->{notebook}[2]=0;
+#     for $i (0 ... $#output){
+#         my @text=@{$output[$i]};
+#     $clist->append(@text);
+#         my $pmc=$#text-1;
+#     $clist->set_pixtext($i, $pmc, $text[$pmc], 5, $monitorUI::Singleton->{pixmap}[$text[$pmc+1]], $monitorUI::Singleton->{mask}[$text[$pmc+1]]);
+#         if($text[$pmc+1]>$monitorUI::Singleton->{notebook}[2]){
+#             $monitorUI::Singleton->{notebook}[2]=$text[$pmc+1];
+#         }
+#     }
+#     $clist->thaw();
+#
+#}
 
 {
      my $clist=$monitorUI::Singleton->{clist}->{DiskUsage};

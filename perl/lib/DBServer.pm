@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.4 2001/02/07 14:17:01 choutko Exp $
+# $Id: DBServer.pm,v 1.5 2001/02/09 13:08:49 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -37,11 +37,13 @@ my %fields=(
      ahls=>undef,
      ahlp=>undef,
      acl=>undef,
+     aml=>undef,
      asl=>undef,
      adbsl=>undef,
-     acl_maxc=>-1,
-     asl_maxc=>-1,
-     adbsl_maxc=>-1,
+     acl_maxc=>0,
+     aml_maxc=>0,
+     asl_maxc=>0,
+     adbsl_maxc=>0,
      nsl=>undef,
      ncl=>undef,
      nkl=>undef,
@@ -98,7 +100,7 @@ sub UpdateEverything{
              $ref->{ahls}=$ahl;
          }
          my $maxc=0;
-      ($length,$ahl)=$arsref->getACS(\%cid,\$maxc);
+      ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
          if($length==0){
              $ref->{asl}=undef;
               
@@ -144,7 +146,7 @@ sub UpdateEverything{
           ($ok, $dhl)=$arsref->getDBSpace(\%cid,$path,$addpath);
          $ref->{rn}=$dhl;
          $cid{Type}="Producer";
-      ($length,$ahl)=$arsref->getACS(\%cid,\$maxc);
+      ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
          if($length==0){
              $ref->{acl}=undef;
          }
@@ -167,13 +169,23 @@ sub UpdateEverything{
              $ref->{ncl}=$ahl;
          }
          $cid{Type}="DBServer";
-      ($length,$ahl)=$arsref->getACS(\%cid,\$maxc);
+      ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
          if($length==0){
              $ref->{adbsl}=undef;
          }
          else {
              $ref->{adbsl}=$ahl;
              $ref->{adbsl_maxc}=$maxc;
+         }
+         goto NEXT;
+         $cid{Type}="Monitor";
+      ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
+         if($length==0){
+             $ref->{aml}=undef;
+         }
+         else {
+             $ref->{aml}=$ahl;
+             $ref->{aml_maxc}=$maxc;
          }
          goto NEXT;
      }
@@ -484,11 +496,13 @@ sub InitDBFile{
         $hash{ahls}=$ref->{ahls};
         $hash{ahlp}=$ref->{ahlp};
         $hash{acl}=$ref->{acl};
+        $hash{aml}=$ref->{aml};
         $hash{asl}=$ref->{asl};
         $hash{asl_maxc}=$ref->{asl_maxc};
         $hash{adbsl}=$ref->{adbsl};
         $hash{adbsl_maxc}=$ref->{adbsl_maxc};
         $hash{acl_maxc}=$ref->{acl_maxc};
+        $hash{aml_maxc}=$ref->{aml_maxc};
         $hash{nsl}=$ref->{nsl};
         $hash{nkl}=$ref->{nkl};
         $hash{ncl}=$ref->{ncl};
@@ -505,11 +519,13 @@ sub InitDBFile{
         $ref->{ahls}=$hash{ahls};
         $ref->{ahlp}=$hash{ahlp};
         $ref->{acl}=$hash{acl};
+        $ref->{aml}=$hash{aml};
         $ref->{asl}=$hash{asl};
         $ref->{asl_maxc}=$hash{asl_maxc};
         $ref->{adbsl}=$hash{adbsl};
         $ref->{adbsl_maxc}=$hash{adbsl_maxc};
         $ref->{acl_maxc}=$hash{acl_maxc};
+        $ref->{aml_maxc}=$hash{aml_maxc};
         $ref->{nsl}=$hash{nsl};
         $ref->{nkl}=$hash{nkl};
         $ref->{ncl}=$hash{ncl};

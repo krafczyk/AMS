@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.30 2001/02/08 10:42:59 choutko Exp $
+# $Id: Monitor.pm,v 1.31 2001/02/09 13:08:50 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -27,9 +27,11 @@ my %fields=(
      ahls=>undef,
      ahlp=>undef,
      acl=>undef,
+     aml=>undef,
      asl=>undef,
      adbsl=>undef,
      acl_maxc=>undef,
+     aml_maxc=>-1,
      asl_maxc=>undef,
      adbsl_maxc=>undef,
      nsl=>undef,
@@ -121,7 +123,7 @@ sub UpdateEverything{
              $ref->{ahls}=$ahl;
          }
          my $maxc=0;
-      ($length,$ahl)=$arsref->getACS(\%cid,\$maxc);
+      ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
          if($length==0){
              $ref->{asl}=undef;
          }
@@ -166,7 +168,7 @@ sub UpdateEverything{
           ($ok, $dhl)=$arsref->getDBSpace(\%cid,$path,$addpath);
          $ref->{rn}=$dhl;
          $cid{Type}="Producer";
-      ($length,$ahl)=$arsref->getACS(\%cid,\$maxc);
+      ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
          if($length==0){
              $ref->{acl}=undef;
          }
@@ -189,13 +191,22 @@ sub UpdateEverything{
              $ref->{ncl}=$ahl;
          }
          $cid{Type}="DBServer";
-      ($length,$ahl)=$arsref->getACS(\%cid,\$maxc);
+      ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
          if($length==0){
              $ref->{adbsl}=undef;
          }
          else {
              $ref->{adbsl}=$ahl;
              $ref->{adbsl_maxc}=$maxc;
+         }
+         $cid{Type}="Monitor";
+      ($length,$ahl,$maxc)=$arsref->getACS(\%cid);
+         if($length==0){
+             $ref->{aml}=undef;
+         }
+         else {
+             $ref->{aml}=$ahl;
+             $ref->{aml_maxc}=$maxc;
          }
          goto NEXT;
      }
@@ -612,8 +623,10 @@ sub getactiveclients{
         $xmax=$#{$Monitor::Singleton->{acl}};
  }elsif($producer eq "Server"){
         $xmax=$#{$Monitor::Singleton->{asl}};
- }else{
+ }elsif($producer eq "DBServer"){
         $xmax=$#{$Monitor::Singleton->{adbsl}};
+ }else{
+        $xmax=$#{$Monitor::Singleton->{aml}};
  }
     for my $i (0 ... $xmax){
         $#text=-1;
@@ -621,8 +634,10 @@ sub getactiveclients{
         $hash=$Monitor::Singleton->{acl}[$i];
  }elsif($producer eq "Server"){
         $hash=$Monitor::Singleton->{asl}[$i];
- }else{
+ }elsif($producer eq "DBServer"){
         $hash=$Monitor::Singleton->{adbsl}[$i];
+ }else{
+        $hash=$Monitor::Singleton->{aml}[$i];
  }
         push @text, $hash->{id}->{uid};
         push @text, $hash->{id}->{HostName};
@@ -1193,6 +1208,25 @@ sub SendId{
                 my $hash_ac=\%ac;
                 $arsref->sendAC($hash,\$hash_ac,"Update");
                 $ref->{ac}=$hash_ac;
+            }
+            catch CORBA::SystemException with{
+                warn "Exiting corba exc";
+            };
+        }
+        foreach $arsref (@{$ref->{ardref}}){
+            try{
+                my %cid=%{$ref->{cid}};
+                my $hash=\%cid;
+                my %ac=%{$ref->{ac}};
+                my $hash_ac=\%ac;
+            try{
+                $arsref->sendAC($hash,\$hash_ac,"Create");
+            }            
+            catch CORBA::SystemException with{
+                 $arsref->sendACPerl($hash,$hash_ac,"Create");
+            };
+                $ref->{ac}=$hash_ac;
+                last;
             }
             catch CORBA::SystemException with{
                 warn "Exiting corba exc";
