@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.218 2003/10/23 15:10:32 choutko Exp $
+# $Id: RemoteClient.pm,v 1.219 2003/11/17 11:52:00 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -748,9 +748,10 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
          my %cid=%{$ref->{cid}};
              try{
                my $dbfile=$ard->getDBFilePath(\%cid);
+               
                if(not defined $ref->{dbfile} or $ref->{dbfile} ne $dbfile){
 # put another server into dead mode 
-                   my $sql="update Servers set status='Dead' where dbfilename='$ref->{dbfile}'";
+                   my $sql="update Servers set status='Dead' where dbfilename !=  '$dbfile'";
                    $ref->{sqlserver}->Update($sql);
                    $ref->{dbfile}=$dbfile;
                    $ref->{IORP}=undef;

@@ -13,7 +13,7 @@ my $dbserver=new DBServer();
 #open db file and connect to server
 
 my $ok=$dbserver->Init();
-
+warn "  init $ok \n";
 if($ok){
 #
 #   update pdb
@@ -52,7 +52,10 @@ foreach my $chop  (@ARGV){
           }
           } 
          }
+          warn " IORP $sqls->{IORP} \n";
+          warn " IORS $sqls->{IORS} \n";
           if(defined $sqls->{IORP} and defined $sqls->{IORS}){
+            warn " updating sql \n"; 
             my $createt=time();
             my $sql="delete from Servers where dbfilename='$dbserver->{dbfile}'";
             $sqls->Update($sql);
@@ -62,7 +65,7 @@ foreach my $chop  (@ARGV){
         }
       }
      }        
-}
+ }
     $dbserver->{orb}->run();
 }
 
