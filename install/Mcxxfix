@@ -888,38 +888,6 @@ depend:
 ../bin/osf1/apool.o: /usr/include/malloc.h ../include/hbook.h
 ../bin/osf1/apool.o: ../include/geant321.h ../include/geant321g.h
 ../bin/osf1/apool.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/osf1/cxxfix.o: ../include/typedefs.h /usr/include/assert.h
-../bin/osf1/cxxfix.o: /usr/include/standards.h /usr/include/cxx/iostream.h
-../bin/osf1/cxxfix.o: /usr/include/cxx/iostream.hxx /usr/include/cxx/cxxl.hxx
-../bin/osf1/cxxfix.o: /usr/include/cxx/cxxl_share.hxx
-../bin/osf1/cxxfix.o: /usr/include/cxx/messages.hxx /usr/include/stddef.h
-../bin/osf1/cxxfix.o: /usr/include/stdio.h /usr/include/limits.h
-../bin/osf1/cxxfix.o: ../include/cern.h ../include/cfortran.h
-../bin/osf1/cxxfix.o: /usr/include/string.h /usr/include/sys/types.h
-../bin/osf1/cxxfix.o: /usr/include/malloc.h ../include/hbook.h
-../bin/osf1/cxxfix.o: ../include/geant321.h ../include/geant321g.h
-../bin/osf1/cxxfix.o: ../include/mceventg.h ../include/point.h
-../bin/osf1/cxxfix.o: /usr/include/math.h ../include/link.h
-../bin/osf1/cxxfix.o: ../include/upool.h /usr/include/cxx/new.h
-../bin/osf1/cxxfix.o: /usr/include/cxx/new.hxx ../include/apool.h
-../bin/osf1/cxxfix.o: ../include/node.h ../include/id.h
-../bin/osf1/cxxfix.o: /usr/include/cxx/strstream.h
-../bin/osf1/cxxfix.o: /usr/include/cxx/strstream.hxx /usr/include/stdlib.h
-../bin/osf1/cxxfix.o: ../include/snode.h ../include/amsgobj.h
-../bin/osf1/cxxfix.o: ../include/uzstat.h ../include/commons.h
-../bin/osf1/cxxfix.o: ../include/trid.h ../include/amsdbc.h
-../bin/osf1/cxxfix.o: ../include/amsstl.h ../include/extC.h ../include/job.h
-../bin/osf1/cxxfix.o: ../include/gvolume.h ../include/gmat.h
-../bin/osf1/cxxfix.o: /usr/include/cxx/iomanip.h /usr/include/cxx/iomanip.hxx
-../bin/osf1/cxxfix.o: /usr/include/cxx/generic.hxx /usr/include/sys/time.h
-../bin/osf1/cxxfix.o: /usr/include/sys/limits.h /usr/include/sys/signal.h
-../bin/osf1/cxxfix.o: /usr/include/machine/signal.h /usr/include/sys/time.h
-../bin/osf1/cxxfix.o: /usr/include/sys/times.h /usr/include/unistd.h
-../bin/osf1/cxxfix.o: /usr/include/sys/access.h ../include/mccluster.h
-../bin/osf1/cxxfix.o: ../include/gsen.h ../include/event.h ../include/cont.h
-../bin/osf1/cxxfix.o: ../include/trrec.h ../include/tofdbc.h
-../bin/osf1/cxxfix.o: ../include/tofcalib.h ../include/trrawcluster.h
-../bin/osf1/cxxfix.o: ../include/tofrec.h ../include/ntuple.h
 ../bin/osf1/tofdbc.o: /usr/include/math.h /usr/include/standards.h
 ../bin/osf1/tofdbc.o: ../include/tofdbc.h /usr/include/string.h
 ../bin/osf1/tofdbc.o: /usr/include/sys/types.h ../include/typedefs.h

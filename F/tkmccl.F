@@ -1,5 +1,5 @@
-           function sitkfint2(a,b,av,dav,dlx)
-            real *8 a,b,av,dav,dlx,fint2,dlmax,dlmin
+           double precision function sitkfint2(a,b,av,dav,dlx)
+            real *8 a,b,av,dav,dlx,dlmax,dlmin
             real *8 fint_l,fint_r,fint_c,sitkfint_s
             if(abs(dav)/dlx.le.0.01)then
              sitkfint2=sitkfint_s(a-av,b-av)

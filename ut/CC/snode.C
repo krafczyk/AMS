@@ -79,7 +79,8 @@ void AMSNodeMap::unmap(){
         throw AMSNodeMapError("AMSNodeMap::add-F-CNNTALLMEM");
         }
         //UCOPY(_hash,tmp,sizeof(_hash[0])*i/4);
-                for (int j=0;j<i;j++)tmp[j]=_hash[j];
+         int j;
+                for ( j=0;j<i;j++)tmp[j]=_hash[j];
         tmp[i]=&o;
         //UCOPY(_hash+i,tmp+i+1,sizeof(_hash[0])*(_numo-i)/4);
                 for (j=i+1;j<_numo;j++)tmp[j]=_hash[j-1];
