@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.200 2003/07/25 09:04:35 alexei Exp $
+# $Id: RemoteClient.pm,v 1.201 2003/07/25 10:21:58 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -899,6 +899,7 @@ sub ValidateRuns {
      if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
          (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
         ){
+     print "<td><tr> $run->{Run}/$run->{Status} ; </td></tr>";
         my $fevent =  1;
         my $levent =  0;
 # check if corresponding job exist
@@ -915,7 +916,7 @@ sub ValidateRuns {
          } else {
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
-          if ($jobcontent =~ m/-GR/) {
+          if ($jobcontent =~ m/-GR/ ) {
 #
 # remote job
 #            update jobinfo first
@@ -4089,7 +4090,7 @@ print qq`
            $buf=~ s/COSMAX=/COSMAX=$cosmax/;         
            $buf=~ s/FOCUS=/FOCUS=$focus/;         
            $buf=~ s/PLANENO=/PLANENO=$plane/;         
-           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
+#           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
            $buf=~ s/TRIGGER=/TRIGGER=$trtype/;         
            $buf=~ s/SETUP=/SETUP=$setup/;         
            $buf=~ s/OUPUTMODE=/OUPUTMODE=$rno/;         
@@ -4099,9 +4100,12 @@ print qq`
                $buf=~ s/$cn/$cn$ccc/;         
            }
        }
-       if ($self->{q}->param("ProductionQuery")) {
+         if (defined $rootntuple) {
           $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
-        }
+         }
+#       if ($self->{q}->param("ProductionQuery")) {
+#          $buf=~ s/ROOTNTUPLE=/ROOTNTUPLE=\'$rootntuple\'/;         
+#        }
          if($i > 1){
             my $rid=1; 
             ($rid,$rndm1,$rndm2) = $self->getrndm($dataset);
