@@ -132,19 +132,19 @@ sub UpdateEverything{
          my ($ok, $dhl)=$arsref->getDBSpace(\%cid);
          $ref->{db}=$dhl;
          $cid{Type}="Producer";
-       ($length,$ahl)=$arsref->getAHS(\%cid);
-         if($length==0){
-             $ref->{ahlp}=undef;
-         }
-         else {
-             $ref->{ahlp}=$ahl;
-         }
       ($length,$ahl)=$arsref->getACS(\%cid,\$maxc);
          if($length==0){
              $ref->{acl}=undef;
          }
          else {
              $ref->{acl}=$ahl;
+         }
+       ($length,$ahl)=$arsref->getAHS(\%cid);
+         if($length==0){
+             $ref->{ahlp}=undef;
+         }
+         else {
+             $ref->{ahlp}=$ahl;
          }
         ($length,$ahl)=$arsref->getNC(\%cid);
          if($length==0){
@@ -636,11 +636,86 @@ int($hash->{CPUNeeded}*10)/10,
          push @output, [@text];   
      }
     }elsif( $name eq "ProducerClient"){           
-    }elsif( $name eq "ServerHost"){        
+     for my $i (0 ... $#{$Monitor::Singleton->{ncl}}){
+         $#text=-1;
+         my $hash=$Monitor::Singleton->{ncl}[$i];
+         
+         push @text,  $hash->{uid},$hash->{Type},$hash->{MaxClients}, 
+int($hash->{CPUNeeded}*10)/10,
+        $hash->{MemoryNeeded}, $hash->{WholeScriptPath}, $hash->{LogPath}, 
+         $hash->{SubmitCommand}, $hash->{HostName}, $hash->{LogInTheEnd},$hash;
+         push @output, [@text];   
+     }
+    }elsif( $name eq "ServerHost"){       
+     for my $i (0 ... $#{$Monitor::Singleton->{nhl}}){
+         $#text=-1;
+         my $hash=$Monitor::Singleton->{nhl}[$i];
+         
+         push @text,  $hash->{HostName},$hash->{Interface},$hash->{OS}, 
+         $hash->{CPUNumber}, $hash->{Memory}, $hash->{Clock};
+#        find status;
+                
+     for my $j (0 ... $#{$Monitor::Singleton->{ahls}}){
+         my $ahl=$Monitor::Singleton->{ahls}[$j];
+         if( $ahl->{HostName} eq $hash->{HostName}){
+            push @text,$ahl->{Status}; 
+            goto FOUND1;
+         }
+     }
+         push @text,"NotFound";
+     FOUND1:    
+         push @output, [@text];   
+     }
     }elsif( $name eq "ProducerHost"){        
+     for my $i (0 ... $#{$Monitor::Singleton->{nhl}}){
+         $#text=-1;
+         my $hash=$Monitor::Singleton->{nhl}[$i];
+         
+         push @text,  $hash->{HostName},$hash->{Interface},$hash->{OS}, 
+         $hash->{CPUNumber}, $hash->{Memory}, $hash->{Clock};
+#        find status;
+                
+     for my $j (0 ... $#{$Monitor::Singleton->{ahlp}}){
+         my $ahl=$Monitor::Singleton->{ahlp}[$j];
+         if( $ahl->{HostName} eq $hash->{HostName}){
+            push @text,$ahl->{Status}; 
+            goto FOUND;
+         }
+     }
+         push @text,"NotFound";
+     FOUND:    
+         push @output, [@text];   
+     }
     }elsif( $name eq "Ntuple"){        
+     for my $i (0 ... $#{$Monitor::Singleton->{dsti}}){
+         $#text=-1;
+         my $hash=$Monitor::Singleton->{dsti}[$i];
+         
+         push @text, $hash->{uid}, $hash->{HostName},$hash->{OutputDirPath},$hash->{Mode},$hash->{UpdateFreq};
+         push @output, [@text];   
+     }
     }elsif( $name eq "Run"){        
+     for my $i (0 ... $#{$Monitor::Singleton->{rtb}}){
+         $#text=-1;
+         my $hash=$Monitor::Singleton->{rtb}[$i];
+         
+         push @text,  $hash->{uid},$hash->{Run},$hash->{FirstEvent}, 
+        $hash->{LastEvent}, $hash->{Priority}, $hash->{FilePath}, 
+         $hash->{Status}, $hash->{History};
+         push @output, [@text];   
+     }
+     
     }elsif( $name eq "Killer"){        
+     for my $i (0 ... $#{$Monitor::Singleton->{nkl}}){
+         $#text=-1;
+         my $hash=$Monitor::Singleton->{nkl}[$i];
+         
+         push @text,  $hash->{uid},$hash->{Type},$hash->{MaxClients}, 
+int($hash->{CPUNeeded}*10)/10,
+        $hash->{MemoryNeeded}, $hash->{WholeScriptPath}, $hash->{LogPath}, 
+         $hash->{SubmitCommand}, $hash->{HostName}, $hash->{LogInTheEnd},$hash;
+         push @output, [@text];   
+     }
     }
     return @output;
 

@@ -11,6 +11,7 @@
 #include <tofsim.h>
 #include <antirec.h>
 #include <ntuple.h>
+#include <mceventg.h>
 //
 TriggerLVL1::Scalers TriggerLVL1::_scaler;
 void TriggerLVL1::build(){
@@ -72,7 +73,17 @@ void TriggerLVL1::build(){
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   // mark default as error here
   integer tm=floor(TOFVarp::tofvpar.getmeantoftemp(0));   
-     if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData() )AMSEvent::gethead()->seterror();
+     if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData()){
+        AMSEvent::gethead()->seterror();
+        // get shuttle pos
+      double pole,theta,phi;
+      AMSEvent::gethead()->GetGeographicCoo(pole,theta,phi);
+      double thetas=theta;
+      double phis=fmod(phi-(pole-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
+      if(thetas<0 && thetas > -1 && (phis<0.4 || phis>4.8)){
+         return;
+      }
+    }
   if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti && (sumsc<LVL1FFKEY.MaxScalersRate || lifetime>LVL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new TriggerLVL1(lifetime*1000+tm*10000,tofflag,tofpatt,antipatt));

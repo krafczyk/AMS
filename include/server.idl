@@ -225,8 +225,10 @@ module DPS{
     long getNC(in CID id, out NCS acl);
     void sendNC(in CID id, in NominalClient nc,in RecordChange rc);
     long getNK(in CID id, out NCS acl);
+    void sendNK(in CID id, in NominalClient nc,in RecordChange rc);
 
     long getNHS(in CID id, out NHS nhs);
+    void sendNH(in CID id, inout NominalHost ah,in RecordChange rc);
     
 
     long getAHS(in CID id, out AHS ahl);

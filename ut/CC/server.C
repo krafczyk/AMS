@@ -572,6 +572,7 @@ length=_pvar->getAHS(cid,pahs);
 AHS_var ahs=pahs;
 for(int i=0;i<length;i++){
  DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
+ _parent->IMessage(AMSClient::print(vah, "getAHS: "));
  _ahl.push_back(vah);
 }
 
@@ -1055,9 +1056,10 @@ return 0;
       AHLI li=find_if(pcur->getahl().begin(),pcur->getahl().end(),Eqs_h(ah));
       switch (rc){
        case DPS::Client::Update:
-       if(li==pcur->getahl().end())_parent->EMessage(AMSClient::print(cid,"Host not found for editing"));
+       if(li==pcur->getahl().end())_parent->EMessage(AMSClient::print(ah,"Host not found for editing"));
        else{
         DPS::Client::ActiveHost_var vac= new DPS::Client::ActiveHost(ah);
+        cout <<" SendAH-I-"<<" "<<cid.Type<<" "<<ah.HostName<<" "<<(*li)->HostName<<endl;
         replace_if(li,pcur->getahl().end(),Eqs_h(ah),vac);
        }
        break;
@@ -1069,7 +1071,49 @@ return 0;
        }
        break;
        case DPS::Client::Create:
+       if(li!=pcur->getahl().end())_parent->EMessage(AMSClient::print(ah,"Host already exists"));
+       else{
+        DPS::Client::ActiveHost_var vac= new DPS::Client::ActiveHost(ah);
+         pcur->getahl().push_back(vac);
+       }
        break;
+       default:
+        _parent->EMessage(AMSClient::print(ah,"sendAH-Unknown rc value"));
+      }
+    break;
+    }
+}
+}
+
+
+   void Server_impl::sendNH(const DPS::Client::CID &  cid,  DPS::Client::NominalHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+    if(pcur->getType()==cid.Type){
+      NHLI li=find_if(pcur->getnhl().begin(),pcur->getnhl().end(),Eqs_nh(ah));
+      switch (rc){
+       case DPS::Client::Update:
+       if(li==pcur->getnhl().end())_parent->EMessage(AMSClient::print(cid,"Host not found for editing"));
+       else{
+        DPS::Client::NominalHost_var vac= new DPS::Client::NominalHost(ah);
+        replace_if(li,pcur->getnhl().end(),Eqs_nh(ah),vac);
+       }
+       break;
+       case DPS::Client::Delete:
+       if(li==pcur->getnhl().end())_parent->EMessage(AMSClient::print(cid,"Host not found for deleting"));
+       else{
+        if(_parent->Debug())_parent->IMessage(AMSClient::print(ah,"Deleting Host "));
+        pcur->getnhl().erase(li);
+       }
+       break;
+       case DPS::Client::Create:
+       if(li!=pcur->getnhl().end())_parent->EMessage(AMSClient::print(ah,"Host already exists"));
+       else{
+        DPS::Client::NominalHost_var vac= new DPS::Client::NominalHost(ah);
+         pcur->getnhl().push_back(vac);
+       }
+       break;
+       default:
+        _parent->EMessage(AMSClient::print(ah,"sendNH-Unknown rc value"));
       }
     break;
     }
@@ -1415,6 +1459,7 @@ DPS::Client::AHS * pahs;
 AHS_var ahs=pahs;
 for(int i=0;i<length;i++){
  DPS::Client::ActiveHost_var vah= new DPS::Client::ActiveHost(ahs[i]);
+ _parent->IMessage(AMSClient::print(vah, "getAHSP: ")); 
  _ahl.push_back(vah);
 }
 
@@ -2096,8 +2141,27 @@ void Producer_impl::sendDSTInfo(const  DSTInfo & ne, DPS::Client::RecordChange r
  switch (rc){
  case DPS::Client::Update:
   if(li==_dstinfo.end())_parent->EMessage(AMSClient::print(ne,"DSTInfo not found for editing"));
-  else *li=new DSTInfo(ne);
+  else {
+        DSTInfo_var vac= new DSTInfo(ne);
+        replace_if(li,_dstinfo.end(),DSTInfo_Eqs(ne),vac);
+  }
   break;
+ case DPS::Client::Create:
+       if(li!=_dstinfo.end())_parent->EMessage(AMSClient::print(ne,"DSTInfo already exists"));
+       else{
+        DSTInfo_var vac= new DSTInfo(ne);
+         _dstinfo.push_back(vac);
+       }
+  break;
+ case DPS::Client::Delete:
+       if(li==_dstinfo.end())_parent->EMessage(AMSClient::print(ne,"DSTInfo not found for deleting"));
+       else{
+         _dstinfo.erase(li);
+       }
+  break;
+ default:
+        _parent->EMessage(AMSClient::print(ne,"sendDSTInfo-Unknown rc value"));
+
 }
 }
 
@@ -2611,11 +2675,57 @@ void Server_impl::sendNC(const DPS::Client::CID &  cid, const  DPS::Client::Nomi
         replace_if(li,pcur->getncl().end(),Eqs_n(nc),vac);
        }
        break;
+       case DPS::Client::Create:
+       if(li!=pcur->getncl().end())_parent->EMessage(AMSClient::print(nc,"Client already exists"));
+       else{
+        DPS::Client::NominalClient_var vac= new DPS::Client::NominalClient(nc);
+         pcur->getncl().push_back(vac);
+       }
+       break;
+       case DPS::Client::Delete:
+       if(li==pcur->getncl().end())_parent->EMessage(AMSClient::print(nc,"Client not found for deleting"));
+       else{
+         pcur->getncl().erase(li);
+       }
+       break;
+       default:
+        _parent->EMessage(AMSClient::print(nc,"sendNC-Unknown rc value"));
      }
 
    }
  }
 }
+
+void Server_impl::sendNK(const DPS::Client::CID &  cid, const  DPS::Client::NominalClient & nc, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+
+
+      NCLI li=find_if(_nki.begin(),_nki.end(),Eqs_n(nc));
+      switch (rc){
+       case DPS::Client::Update:
+       if(li==_nki.end())_parent->EMessage(AMSClient::print(nc,"sendNK-Client not found for editing"));
+       else{
+        DPS::Client::NominalClient_var vac= new DPS::Client::NominalClient(nc);
+        replace_if(li,_nki.end(),Eqs_n(nc),vac);
+       }
+       break;
+       case DPS::Client::Create:
+       if(li!=_nki.end())_parent->EMessage(AMSClient::print(nc,"sendNK-Client already exists"));
+       else{
+        DPS::Client::NominalClient_var vac= new DPS::Client::NominalClient(nc);
+         _nki.push_back(vac);
+       }
+       break;
+       case DPS::Client::Delete:
+       if(li==_nki.end())_parent->EMessage(AMSClient::print(nc,"sendNK-Client not found for deleting"));
+       else{
+         _nki.erase(li);
+       }
+       break;
+       default:
+        _parent->EMessage(AMSClient::print(nc,"sendNK-Unknown rc value"));
+     }
+
+   }
 
 #include <sys/statfs.h>
 CORBA::Boolean Server_impl::getDBSpace(const DPS::Client::CID &cid, DB_out dbo)throw (CORBA::SystemException){

@@ -49,6 +49,7 @@ static char * print(const DPS::Client::NominalClient & a, const char *m=" ");
 static char * print(const DPS::Client::CID & a, const char *m=" ");
 static ostream &  print(const DPS::Client::CID & a, ostream & o);
 static char * print(const DPS::Client::ActiveHost & a, const char *m=" ");
+static char * print(const DPS::Client::NominalHost & a, const char *m=" ");
 static char * print(const DPS::Producer::RunEvInfo & a, const char *m=" ");
 static char * print(const DPS::Producer::DSTInfo & a, const char *m=" ");
 static char * print(const DPS::Server::CriticalOps & a,const  char *m=" ");

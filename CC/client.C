@@ -170,6 +170,12 @@ _ost<<mes <<" AH "<<a.HostName<<" "<<a.Interface<<" Status  "<<HS2string(a.Statu
 return _streambuffer;
 }
 
+char * AMSClient::print(const DPS::Client::NominalHost & a,const char * mes){
+_ost.seekp(0);
+_ost<<mes <<" NH "<<a.HostName<<" "<<a.Interface<<"OS  "<<a.OS<< " CPU "<<a.CPUNumber<<" Memory "<<a.Memory<<" Clock "<<a.Clock<<ends;
+return _streambuffer;
+}
+
 char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
 _ost.seekp(0);
 _ost<<mes << "DST Type "<<DSTT2string(a.Type)<<" "<<a.Name <<" Insert "<<a.Insert<<" Begin "<<((a.Begin))<<" End "<<((a.End))<<" Run "<<a.Run << " 1stEvent "<<a.FirstEvent<<" LastEvent "<<a.LastEvent<<" Status "<<DSTS2string(a.Status)<<" Total "<<a.EventNumber<<ends;

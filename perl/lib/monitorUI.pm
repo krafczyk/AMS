@@ -1032,13 +1032,16 @@ sub show_sample{
     }elsif( $name eq "Ntuple"){
         $#titles=-1;
         @titles=(
+         "Uid",
         "HostName",
         "OutputDirPath",
         "RunMode",
+        "UpdateFreq",
                  );
     }elsif( $name eq "Run"){
         $#titles=-1;
         @titles=(
+"Uid",
 "Run",
 "FirstEvent",
 "LastEvent",
@@ -1050,6 +1053,7 @@ sub show_sample{
     }elsif( $name eq "Killer"){
         $#titles=-1;
         @titles=(
+          "Uid", 
           "Type",
           "MaxClients",
           "CPU",

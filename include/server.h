@@ -83,7 +83,13 @@ virtual void _PurgeQueue()=0;
  DPS::Client::ActiveHost _b;
  public:
  explicit Eqs_h( const  DPS::Client::ActiveHost & b):_b(b){}
-  bool operator () (const DPS::Client::ActiveHost_var & b){return !strstr((const char*)(b->HostName),(const char *)(_b.HostName));}
+  bool operator () (const DPS::Client::ActiveHost_var & b){return strstr((const char*)(b->HostName),(const char *)(_b.HostName));}
+};
+ class Eqs_nh{
+ DPS::Client::NominalHost _b;
+ public:
+ explicit Eqs_nh( const  DPS::Client::NominalHost & b):_b(b){}
+  bool operator () (const DPS::Client::NominalHost_var & b){return strstr((const char*)(b->HostName),(const char *)(_b.HostName));}
 };
  class find :public unary_function<DPS::Client::ActiveClient,bool>{
  DPS::Client::ClientStatus _st;
@@ -194,7 +200,9 @@ void _PurgeQueue();
    int getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException);
    void sendAC(const DPS::Client::CID &cid,  DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
    void sendAH(const DPS::Client::CID &cid,  DPS::Client::ActiveHost & ah,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
+   void sendNH(const DPS::Client::CID &cid,  DPS::Client::NominalHost & ah,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
    void sendNC(const DPS::Client::CID &cid,  const DPS::Client::NominalClient & nc,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
+   void sendNK(const DPS::Client::CID &cid,  const DPS::Client::NominalClient & nc,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
    CORBA::Boolean getDBSpace(const DPS::Client::CID &cid, DB_out db)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
    int getNHS(const DPS::Client::CID &cid,NHS_out nhl)throw (CORBA::SystemException);
