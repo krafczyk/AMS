@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.21 2001/05/02 15:53:40 choutko Exp $
+//  $Id: ecalrec.C,v 1.22 2001/05/17 12:10:12 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -283,15 +283,17 @@ void AMSEcalRawEvent::mc_build(int &stat){
   } // ------------> end of super-layer loop
 //
 //                          <--- some variables for "electromagneticity" calc.
-  geant rrr,efrnt,efrnta,ebase,epeak,epeaka,p2brat,p2frat,widatpk(0.);
-  geant etratpk[ECPMSMX],esep1,esep2,p2bcut,p2fcut,wdcut,wdthr;
+  geant rrr,efrnt,efrnta,ebase,epeak,epeaka,p2brat,p2frat,trwid1,trwid2;
+  geant esep1,esep2,p2bcut,p2fcut,wdcut1,wdcut2,wdthr;
+  geant etrsum1[ECPMSMX],etrsum2[ECPMSMX];
 //
   esep1=ECALVarp::ecalvpar.daqthr(5);// separation.energy for p2b,p2f cuts
   p2bcut=ECALVarp::ecalvpar.daqthr(6);
   esep2=2.*esep1;//separation.energy for width cut;
   p2fcut=ECALVarp::ecalvpar.daqthr(7);
   wdthr=ECALVarp::ecalvpar.daqthr(8);
-  wdcut=ECALVarp::ecalvpar.daqthr(9);
+  wdcut1=ECALVarp::ecalvpar.daqthr(9);//L=1,7,2(bend.proj)
+  wdcut2=ECALVarp::ecalvpar.daqthr(9)-2.;//L=2,8,2
 //
   efrnt=pmlprof[0]+pmlprof[1]+pmlprof[2];//energy in 1st 3SL's(~5X0)
   efrnta=(pmlprof[0]+pmlprof[1]+pmlprof[2])/3.;//aver.energy/sl in 1st 3SL's(~5X0)
@@ -307,10 +309,17 @@ void AMSEcalRawEvent::mc_build(int &stat){
   else p2frat=9.8;
   if(p2frat>9.8)p2frat=9.8;
 //
-  for(pm=0;pm<npmmx;pm++){ // get transv.profile at longit.peak position
-    etratpk[pm]=0.;
-    for(il=1;il<5;il++)etratpk[pm]+=pmtmap[il][pm];
-    if(etratpk[pm]>wdthr)widatpk+=1.;
+  trwid1=0.;
+  for(pm=0;pm<npmmx;pm++){ // get summed over depth transv.profile(pr=1)
+    etrsum1[pm]=0.;
+    for(il=0;il<7;il+=2)etrsum1[pm]+=pmtmap[il][pm];
+    if(etrsum1[pm]>wdthr)trwid1+=1.;
+  }
+  trwid2=0.;
+  for(pm=0;pm<npmmx;pm++){ // get summed over depth transv.profile(pr=2)
+    etrsum2[pm]=0.;
+    for(il=1;il<8;il+=2)etrsum2[pm]+=pmtmap[il][pm];
+    if(etrsum2[pm]>wdthr)trwid2+=1.;
   }
 //
   if(ECMCFFKEY.mcprtf==1){
@@ -324,21 +333,31 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //  ---> create ECAL H/W-trigger(0->non;1->MIP+nonEM;2->EM;prev+10->HighEn):
 //
   if(an4respt>ECALVarp::ecalvpar.daqthr(1)){// mip thr.cut
+    EcalJobStat::addsr(0);
     trigfl=1;// at least MIP (some non-zero activity in EC)
 //
     if(efrnt>ECALVarp::ecalvpar.daqthr(2)){ //<--- Efront cut
+      EcalJobStat::addsr(1);
       if(ECMCFFKEY.mcprtf==1 && an4respt<esep1){
         HF1(ECHIST+11,p2brat,1.);
         HF1(ECHIST+12,ebase,1.);
       }
       if(an4respt<esep1 && p2brat<p2bcut)goto nonEM;// ---> too low Peak/base(LE)
+      EcalJobStat::addsr(2);
 //
       if(ECMCFFKEY.mcprtf==1 && an4respt>esep1)HF1(ECHIST+13,p2frat,1.);
       if(an4respt>esep1 && p2frat<p2fcut)goto nonEM;// ---> too low Peak/front(HE)
+      EcalJobStat::addsr(3);
 //
-      for(pm=0;pm<npmmx;pm++)if(etratpk[pm]>0.)HF1(ECHIST+14,etratpk[pm],1.);
-      if(ECMCFFKEY.mcprtf==1 && an4respt<esep2)HF1(ECHIST+15,widatpk,1.);
-      if(an4respt<esep2 && widatpk>=wdcut)goto nonEM;// ---> too high width(LE)
+      for(pm=0;pm<npmmx;pm++)if(etrsum1[pm]>0.)HF1(ECHIST+14,etrsum1[pm],1.);
+      for(pm=0;pm<npmmx;pm++)if(etrsum2[pm]>0.)HF1(ECHIST+16,etrsum2[pm],1.);
+      if(ECMCFFKEY.mcprtf==1 && an4respt<esep2){
+        HF1(ECHIST+15,trwid1,1.);
+        HF1(ECHIST+17,trwid2,1.);
+      }
+      if(ECMCFFKEY.mcprtf==1)HF1(ECHIST+18,geant(an4respt),1.);
+      if(an4respt<esep2 && (trwid1>=wdcut1 || trwid2>=wdcut2))goto nonEM;// ---> too high width(LE)
+      EcalJobStat::addsr(4);
       trigfl=2;
 nonEM:
         rrr=0;    
@@ -350,8 +369,8 @@ nonEM:
   integer tofflag(0);
   tofflag=TOF2RawEvent::gettrfl();
   if(ECMCFFKEY.mcprtf==1){
-    HF1(ECHIST+16,geant(trigfl),1.);
-    if(tofflag>0)HF1(ECHIST+17,geant(trigfl),1.);
+    HF1(ECHIST+19,geant(trigfl),1.);
+    if(tofflag>0)HF1(ECHIST+20,geant(trigfl),1.);
   }
   if(trigfl>0)stat=0;
   return;

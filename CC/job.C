@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.369 2001/05/03 14:06:32 choutko Exp $
+// $Id: job.C,v 1.370 2001/05/17 12:10:13 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -652,14 +652,14 @@ void AMSJob::_reecaldata(){
 // Run-time DAQ-thresholds(time dependent):
   ECREFFKEY.thresh[0]=2.;     // (9)  Anode(High-chan) readout threshold(ADCch)
   ECREFFKEY.thresh[1]=120.;   // (10) Anode(high,tot) "mip"-trig.thresh(mev tempor)
-  ECREFFKEY.thresh[2]=450.;   // (11) ... 1st 3SL "em"-trig.thresh(mev tempor)
+  ECREFFKEY.thresh[2]=500.;   // (11) ... 1st 3SL "em"-trig.thresh(mev tempor)
   ECREFFKEY.thresh[3]=3000.;  // (12) Anode(high,tot) min.Et-cut to be "HighEnergy"(mev tempor)
   ECREFFKEY.thresh[4]=2.;     // (13) Low-chan. readout thershold(ADCch)
   ECREFFKEY.thresh[5]=10000.; // (14) energy upp.limit for action of cut below (mev tempor)  
   ECREFFKEY.thresh[6]=3.5;    // (15) min Epeak/Ebase (add. to #11 for "electromagneticity")
   ECREFFKEY.thresh[7]=1.;     // (16) min Epeak/Efron .....................................
   ECREFFKEY.thresh[8]=25.;    // (17) Anode(high) chan.threshold for width calc.(mev tempor) 
-  ECREFFKEY.thresh[9]=15.;    // (18) min. width (add. to #11 for "electromagneticity")
+  ECREFFKEY.thresh[9]=12.;    // (18) min. transv.width (add. to #11 for "electromagneticity")
 // Run-time RECO-thresholds(time dependent):
   ECREFFKEY.cuts[0]=5.;   // (19) mev/cell thresh. to create cluster(~2adc) 
   ECREFFKEY.cuts[1]=0.;   // (20)

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.262 2001/05/02 15:53:40 choutko Exp $
+//  $Id: event.C,v 1.263 2001/05/17 12:10:12 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1230,7 +1230,6 @@ void AMSEvent::event(){
     } 
     _sitkevent(); 
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-//cout<<"Bef.siecalevent"<<endl;
       _siecalevent(); 
       _sitrdevent(); 
       _sisrdevent();
@@ -1239,7 +1238,6 @@ void AMSEvent::event(){
      else{
       _sictcevent(); 
      }
-//cout<<"Bef.sitrigevent"<<endl;
     _sitrigevent(); 
     _sidaqevent(); //DAQ-simulation 
   AMSgObj::BookTimer.stop("SIAMSEVENT");
@@ -1300,11 +1298,8 @@ void AMSEvent::_reamsevent(){
     _retkevent(); 
     _rectcevent(); 
   } 
-//cout<<"Bef.reaxevent"<<endl;
   _reaxevent();
-//cout<<"Bef.reaxevent"<<endl;
    AMSUser::Event();
-//cout<<"Aft.amsuser"<<endl;
    AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
@@ -1549,6 +1544,7 @@ void AMSEvent::_reantievent(){
 //-------------------------------------
 void AMSEvent::_reanti2event(){
   integer trflag(0);
+  uinteger ecalflg(0);
   int stat;
 //
   AMSgObj::BookTimer.start("REANTIEVENT");
@@ -1558,10 +1554,13 @@ void AMSEvent::_reanti2event(){
 //
 //
     Trigger2LVL1 *ptr=(Trigger2LVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
-    if(ptr)trflag=ptr->gettoflg();
+    if(ptr){
+      trflag=ptr->gettoflg();
+      ecalflg=ptr->getecflg();
+    }
     if(trflag<=0){
       AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;// "no LVL1-trigger"  tempor commented
+      return;// "no TOF in LVL1-trigger"(need TOF-f.trig for digitization)
     }
     ANTI2JobStat::addre(1);
 //

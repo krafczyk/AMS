@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.12 2001/03/06 16:37:05 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.13 2001/05/17 12:10:32 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -90,7 +90,8 @@ private:
 //          i=1 -> 
   static integer cacount[ECJSTA];// event passed CALIB-cut "i"
 //          i=0 -> entries
-//          i=1 -> 
+//          i=1 ->
+  static integer srcount[10];// service counters 
 public:
   static geant zprmc1[ECSLMX];// mc-hit average Z-profile(SL-layers) 
   static geant zprmc2[ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
@@ -116,6 +117,12 @@ public:
       assert(i>=0 && i< ECJSTA);
     #endif
     cacount[i]+=1;
+  }
+  static void addsr(int i){
+    #ifdef __AMSDEBUG__
+      assert(i>=0 && i< 10);
+    #endif
+    srcount[i]+=1;
   }
   static integer getca(int i){
     #ifdef __AMSDEBUG__

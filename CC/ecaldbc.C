@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.22 2001/05/01 09:59:58 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.23 2001/05/17 12:10:12 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -369,6 +369,7 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
 integer EcalJobStat::mccount[ECJSTA];
 integer EcalJobStat::recount[ECJSTA];
 integer EcalJobStat::cacount[ECJSTA];
+integer EcalJobStat::srcount[10];
 geant EcalJobStat::zprmc1[ECSLMX];// mc-hit average Z-profile(SL-layers) 
 geant EcalJobStat::zprmc2[ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
 geant EcalJobStat::zprofa[2*ECSLMX];// average Z-profile(scPlanes) 
@@ -382,6 +383,7 @@ void EcalJobStat::clear(){
   for(i=0;i<ECJSTA;i++)mccount[i]=0;
   for(i=0;i<ECJSTA;i++)recount[i]=0;
   for(i=0;i<ECJSTA;i++)cacount[i]=0;
+  for(i=0;i<10;i++)srcount[i]=0;
   for(i=0;i<ECSLMX;i++)zprmc1[i]=0;
   for(i=0;i<ECSLMX;i++)zprmc2[i]=0;
   for(i=0;i<2*ECSLMX;i++)zprofa[i]=0;
@@ -398,6 +400,11 @@ void EcalJobStat::printstat(){
   printf("\n");
   printf(" MC: entries                       : % 6d\n",mccount[0]);
   printf(" MC: MCHit->RawEven(ECTrigfl>0) OK : % 6d\n",mccount[1]);
+  printf(" MC Trig.procedure: entries        : % 6d\n",srcount[0]);
+  printf("                    Efront OK      : % 6d\n",srcount[1]);
+  printf("                    Epk/Ebs OK     : % 6d\n",srcount[2]);
+  printf("                    Epk/Efr OK     : % 6d\n",srcount[3]);
+  printf("                    TrWidth OK     : % 6d\n",srcount[4]);
   printf(" RECO-entries                      : % 6d\n",recount[0]);
   printf(" LVL1-trig includes ECAL           : % 6d\n",recount[1]);
   printf(" Validation OK                     : % 6d\n",recount[2]);
@@ -463,7 +470,7 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
       HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);
       HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
-      HBOOK1(ECHISTR+30,"ECRE: Trigger flag(validate)",10,0.,10.,0.);
+      HBOOK1(ECHISTR+30,"ECRE: Trigger flag(validate)",30,0.,30.,0.);
 //
       if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// RLGA/FIAT part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
@@ -591,15 +598,18 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+6,"ECMC: 4xA-hit/D-hit ratio",50,0.,50.,0.);
       HBOOK1(ECHIST+7,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
       HBOOK1(ECHIST+8,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
-      HBOOK1(ECHIST+9,"ECMC: Etot(temp.trig.sum,mev)",100,0.,15000.,0.);
+      HBOOK1(ECHIST+9,"ECMC: Etot(temp.trig.sum,mev)",100,0.,20000.,0.);
       HBOOK1(ECHIST+10,"ECMC: 1ST 3SL signal(mev)",80,0.,1600.,0.);
       HBOOK1(ECHIST+11,"ECMC: Epk/Ebase Ratio(F,LE)",80,0.,40.,0.);
       HBOOK1(ECHIST+12,"ECMC: Ebase",80,0.,800.,0.);
       HBOOK1(ECHIST+13,"ECMC: Epk/Efr Ratio(F+P2B,HE)",50,0.,10.,0.);
-      HBOOK1(ECHIST+14,"ECMC: Pm-signals(sl2-5,L-cuts)",100,0.,300.,0.);
-      HBOOK1(ECHIST+15,"ECMC: Width at Peak(L-cuts,LE)",80,0.,80.,0.);
-      HBOOK1(ECHIST+16,"ECMC: ECTriggerFlag",30,0.,30.,0.);
-      HBOOK1(ECHIST+17,"ECMC: ECTriggerFlag(when TOFTrFlag)",30,0.,30.,0.);
+      HBOOK1(ECHIST+14,"ECMC: Pm-signals(sl1,7,2;L-cuts)",100,0.,300.,0.);
+      HBOOK1(ECHIST+15,"ECMC: Transv.Width(proj1,L-cuts,LE)",80,0.,80.,0.);
+      HBOOK1(ECHIST+16,"ECMC: Pm-signals(sl2,8,2;L-cuts)",100,0.,300.,0.);
+      HBOOK1(ECHIST+17,"ECMC: Transv.Width(proj2,L-cuts,LE)",80,0.,80.,0.);
+      HBOOK1(ECHIST+18,"ECMC: Etot(trig.sum,L-cuts,mev)",100,0.,20000.,0.);
+      HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag",30,0.,30.,0.);
+      HBOOK1(ECHIST+20,"ECMC: ECTriggerFlag(when TOFTrFlag)",30,0.,30.,0.);
     }
 }
 //----------------------------
@@ -754,6 +764,9 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+15);
       HPRINT(ECHIST+16);
       HPRINT(ECHIST+17);
+      HPRINT(ECHIST+18);
+      HPRINT(ECHIST+19);
+      HPRINT(ECHIST+20);
     }
 }
 //==========================================================================
