@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.135 2003/04/28 12:39:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.136 2003/04/28 15:07:11 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4818,7 +4818,8 @@ sub listStat {
        $timestart = $r0->[0][0];
      }
      $sql="SELECT Jobs.jid, Jobs.triggers FROM Jobs, Cites 
-            WHERE Jobs.cid=Cites.cid and Cites.cid!=(SELECT cites.cid FROM Cites WHERE name='test')";
+            WHERE Jobs.cid=Cites.cid AND 
+                  Cites.cid!=(SELECT cites.cid FROM Cites WHERE name='test')";
      my $r3=$self->{sqlserver}->Query($sql);
      print_bar($bluebar,3);
      my $newline = " ";
@@ -4908,7 +4909,65 @@ sub listStat {
  
   }
        htmlTableEnd();
+     htmlTableEnd();
+     print_bar($bluebar,3);
+     print "<p></p>\n";
+
+     htmlTable("MC02 Datasets");
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<td align=center><b><font color=\"blue\">Dataset </font></b></td>";
+     print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
+     print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
+     print "</tr>\n";
+     print "<td align=center><b><font color=\"blue\">           </font></b></td>";
+     print "<td align=center><b><font color=\"blue\"> Requested </font></b></td>";
+     print "<td align=center><b><font color=\"blue\" >Processed</font></b></td>";
+     print "</tr>\n";
+
+
+     $sql = "SELECT did, name FROM datasets where did>132";
+     my $r5=$self->{sqlserver}->Query($sql);
+     print_bar($bluebar,3);
+     if(defined $r5->[0][0]){
+      foreach my $ds (@{$r5}){
+          my $did       = $ds->[0];
+          my $dataset   = trimblanks($ds->[1]);
+          $sql = "SELECT SUM(triggers) FROM Jobs, Runs 
+                  WHERE 
+                    Jobs.did = $did AND
+                    Jobs.jid = Runs.jid AND  
+                    (Runs.status='Completed' OR Runs.status='Finished')";
+           my $r6=$self->{sqlserver}->Query($sql);
+           my $events = 0;
+           if(defined $r6->[0][0]){
+             $events = $r6->[0][0];
+             if ($events > 1000 && $events <= 1000000) {
+                 $events=sprintf("%.2fK",$events/1000);
+             } elsif ($events > 1000000) {
+                 $events=sprintf("%.2fM",$events/1000000);
+             }
+           }            
+          $sql = "SELECT SUM(triggers) FROM Jobs  
+                  WHERE Jobs.did = $did";
+          my $r7=$self->{sqlserver}->Query($sql);
+          my $triggers = 0;
+           if(defined $r7->[0][0]){
+             $triggers = $r7->[0][0];
+             if ($triggers > 1000 && $triggers <= 1000000) {
+                 $triggers=sprintf("%.2fK",$triggers/1000);
+             } elsif ($triggers > 1000000) {
+                 $triggers=sprintf("%.2fM",$triggers/1000000);
+             }
+           }            
+       print "<td align=left><b><font color=\"black\"> $dataset </font></b></td>";
+       print "<td align=center><b><font color=\"black\"> $triggers </font></b></td>";
+       print "<td align=center><b><font color=\"black\" >$events</font></b></td>";
+       print "</tr>\n";
+      }
       htmlTableEnd();
+    }
+                   
+     htmlTableEnd();
      print_bar($bluebar,3);
      print "<p></p>\n";
 }
@@ -6061,6 +6120,7 @@ foreach my $block (@blocks) {
 #
     my @junk = split "/",$closedst[3];
     my $dstfile = trimblanks($junk[$#junk]);
+    my $filename= $dstfile;
     $dstfile=$dirpath."/".$dstfile;
     my $dstsize = -1;
     $dstsize = (stat($dstfile)) [7] or $dstsize = -1;
@@ -6073,10 +6133,11 @@ foreach my $block (@blocks) {
      $dstsize = sprintf("%.1f",$dstsize/1000/1000);
      $closedst[0] = "CloseDST";
      $timestamp = time();
-     my $sql = "SELECT run,path FROM ntuples 
-                   WHERE run=$closedst[10] AND path like '%$closedst[3]%'";
+     my $sql = "SELECT run, path FROM ntuples 
+                   WHERE run=$closedst[10] AND path like '%$filename%'";
      my $ret = $self->{sqlserver}->Query($sql);
      if(not defined $ret->[0][0]){
+      print "$dstfile.... \n";
       my $badevents=$closedst[14];
       my $ntevents =$closedst[13];
       my $ntstatus ="OK";                     
@@ -6091,6 +6152,7 @@ foreach my $block (@blocks) {
         my $validatecmd = 
            "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $dstfile $closedst[13]";
         $i=system($validatecmd);
+        print FILE "$validatecmd : Status : $i \n";
       }
        if( ($i == 0xff00) or ($i & 0xff)){
        if($closedst[1] ne "Validated"){
@@ -6116,7 +6178,7 @@ foreach my $block (@blocks) {
        }
          else{
           $ntstatus="OK";
-          $ntevents=$closedst[12];
+          $ntevents=$closedst[13];
           $badevents=int($i*$closedst[13]/100);
           $validated++;
           my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc);
@@ -6231,7 +6293,7 @@ foreach my $block (@blocks) {
   print FILE "Update Runs : $sql \n";
  }
  close FILE;
-
+ 
 }
 
 
