@@ -13,7 +13,9 @@
 //                    no map anymore, use indexes
 // Mar  18, 1997. ak. Getmceventg and GetNEvents are modified
 //                    setup moved to AMSsetupDB
-// last edit Apr 10, 1997, ak.
+// May    , 1997. ak. 
+//
+// last edit June 04, 1997, ak.
 //
 
 #include <stdio.h>
@@ -237,11 +239,11 @@ ooStatus LMS::AddEvent(uinteger run, uinteger eventNumber, time_t time,
     if (tageventH == NULL) {
                      tageventH = new(_tagcontH) AMSEventTag(run, eventNumber);
                      tagCont()  -> incNEvents();
+                     tageventH -> SetGeographicCoo(pole, stationT, stationP);
     }
 
     if (mcevents() || mceventg()) {
-     rstatus = AddMCEvent(tageventH, run, eventNumber, time, runtype, 
-                         pole, stationT, stationP);
+     rstatus = AddMCEvent(tageventH, run, eventNumber, time, runtype);
      if (rstatus != oocSuccess) Fatal("Cannot add MC event");
      mcCont() -> incNEvents();
     }
@@ -566,13 +568,10 @@ ooStatus LMS::ReadEvents(uinteger& run, uinteger& eventNumber,
 
     if (StartCommit == 1 || StartCommit == -2) { //init Itr if Start
       if (run < 1) {
-        //(void) sprintf(pred,"_runUni>%d",run);
         (void) sprintf(pred,"_run>%d",run);
       } else {
-        //if (run > 0) (void) sprintf(pred,"_runUni=%d",run);
        if (run > 0) (void) sprintf(pred,"_run=%d",run);
        if (eventNumber > 0) (void)
-        //sprintf(pred,"_runUni=%d && _eventNumber >=%d",run,eventNumber);
          sprintf(pred,"_run=%d && _eventNumber >=%d",run,eventNumber);
       }
       tageventItr.scan(tagContH, mode, oocAll, pred);
@@ -580,17 +579,60 @@ ooStatus LMS::ReadEvents(uinteger& run, uinteger& eventNumber,
     }
 
     rstatus = oocSuccess;
+    number                pole, stationtheta, stationphi;
+    integer               runtype = 0;
+    ooHandle(ooDBObj)      dbH;
+    ooHandle(AMSEventList) listH;
+    ooHandle(AMSeventD)    eventH;
+
     if (tageventItr.next() != NULL) {
      tageventItr -> itsRecEvent(eventItr);
      if (eventItr != NULL) {
-       eventItr -> readEvent(run, eventNumber, time);
-       NN_events++;
-     } 
-     if (NN_events > nevents) do_commit = 1;
-     if (NN_events%NR_commit == 0) {
-       //do_commit = 1;
+      tageventItr -> GetGeographicCoo(pole, stationphi, stationtheta);
+      eventItr -> readEvent(run, eventNumber, time);
+      eventItr -> print();
+      if(dbread_only != 0)  //create event
+       AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
+                    new AMSEvent(AMSID("Event",eventNumber),run,runtype,time,
+                                 pole, stationtheta, stationphi)));
+     eventH = eventItr;
+     if(recoevents()) { // read full reconstructed event from dbase
+      dbH = recodb();
+      if (dbH == NULL) Fatal("ReadEvents : pointer to event database is NULL");
+      listH = recoCont();
+      if (listH == NULL) Fatal("ReadEvents: pointer to the container is NULL");
+
+       rstatus = listH -> CopyTrCluster(eventH);
+       if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read TrCluster");
+
+       rstatus = listH -> CopyTrRecHit(eventH);
+       if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read TrRecHit");
+
+       rstatus = listH -> CopyTrTrack(eventH);
+       if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read TrTrack");
+
+       rstatus = listH -> CopyTOFCluster(eventH);
+       if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read TOFCluster");
+
+       rstatus = listH -> CopyCTCCluster(eventH);
+       if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read CTCCluster");
+
+       rstatus = listH -> CopyBeta(eventH);
+       if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read Beta");
+
+       rstatus = listH -> CopyCharge(eventH);
+       if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read Charge");
+
+       rstatus = listH -> CopyParticle(eventH);
+       if(rstatus != oocSuccess) Fatal("ReadEvents: cannot read Particle");
      }
-    } else {
+      NN_events++;
+      if (NN_events > nevents) do_commit = 1;
+      if (NN_events%NR_commit == 0) {
+       //do_commit = 1;
+      }
+     } 
+   } else {
       do_commit = 1;
       if (NN_events == 0) Warning("ReadEvents: no events match to the query ");
     }

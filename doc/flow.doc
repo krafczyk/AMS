@@ -33,6 +33,7 @@ M A I N  ->      gbatch.C
  |    |        
  |    |->GFFGO  
  |    |->AMSJob::udata     read user data cards
+ |#ifndef __DB__
  |    |->AMSgmat::amsmat   AMS materials definitions
  |    |->AMSgvolume::amsgeom AMS geometry
  |    |   |     
@@ -41,6 +42,17 @@ M A I N  ->      gbatch.C
  |    |   |->antigeom      Anti counter geometry
  |    |   |->tkgeom        Tracker geometry
  |    |   |->ctcgeom       CTC      geometry
+ |#else
+ |    |->initDB
+ |    |   |->    setapplicationName = jobname
+ |    |   |->    setprefix          = jobname
+ |    |   |->    setsetup           = datacards setup
+ |    |   |->    settypeR           = datacards Read
+ |    |   |->    settypeW           = datacards Write
+ |    |   |->    ClusteringInit   
+ |    |->readGeomDB        read geometry, materials definitions from dbase
+ |    |->CheckConstants    check amsdbc, antidbc, ctcdbc, tofdbc
+ |#endif
  |    |   
  |    |->AMSJob::init      User initialization routine 
  |    |   |
@@ -74,7 +86,12 @@ M A I N  ->      gbatch.C
  |    |   |->_timeinitjob   Initialization time dependent vars
  |    |
  |    |->map               Map Job tree       
-|     |   
+ |    |   
+ |#ifdef __DB__
+ |    |-> CheckCommons     compare common blocks in database and memory
+ |    |-> WriteGeomDB      write geometry, materials definition, TDV, 
+ |    |                    constants  to the database if required.
+ |#endif
  |    |->uhinit            Book histograms/ntuples
  |
  |
@@ -226,8 +243,12 @@ M A I N  ->      gbatch.C
  |        |       
  |        |->AMSEvent::write         Write event output to ntuple
  |        |       
- |        |->AMSEvent::copy          Write event output to Objectivity db
- |        |       
+ |        |->AddEvent                Write event output to Objectivity db
+ |             |
+ |             |-> AddTagEvent           write tag information
+ |             |-> AddMCEvent            add MC objects
+ |             |-> AddRecoEvent          add reconstructed objects
+ |        |
  |        |->AMSEvent::remove        Clear event
  |        |       
  |        |->UPool.erase             Reset memory pool

@@ -22,7 +22,7 @@
 //                    unidirectional link between track and event
 //                    unidirectional link between beta and event
 //
-// Last Edit: May 07, 1997. ak.
+// Last Edit: Jun 04, 1997. ak.
 
 #include <typedefs.h>
 #include <dbevent.h>
@@ -48,9 +48,6 @@ class AMSmcevent : public dbEvent {
 
  private:
 
-  number  _NorthPolePhi;
-  number  _StationTheta;
-  number  _StationPhi;
   integer _runtype;
 
  public:
@@ -66,13 +63,11 @@ class AMSmcevent : public dbEvent {
 //Constructors
 
   AMSmcevent();
-  AMSmcevent(integer run, uinteger event, time_t time, integer runtype,
-             number northpolephi, number stationtheta, number stationphi);
+  AMSmcevent(integer run, uinteger event, time_t time, integer runtype);
 
 // Get Methods
-  void readEvent(uinteger& run, uinteger& event, time_t& time,
-                 integer& runtype,
-                 number& pole, number& stationtheta, number& stationphi);
+  void 
+    readEvent(uinteger& run, uinteger& event, time_t& time, integer& runtype);
 
 };
 

@@ -13,7 +13,9 @@
 //                    no map anymore, use indexes
 // Mar  18, 1997. ak. Getmceventg and GetNEvents are modified
 //                    setup moved to AMSsetupDB
-// last edit May 9, 1997, ak.
+// June   , 1997. ak. Geographic coordinates are moved to tag event
+//
+// last edit June 4, 1997, ak.
 //
 
 #include <stdio.h>
@@ -64,9 +66,7 @@ static  ooItr(AMSEventTag)     tageventItr;
 
 ooStatus LMS::AddMCEvent(ooHandle(AMSEventTag)&  tageventH,
                          uinteger run, uinteger eventNumber,
-                         time_t time, integer runtype,
-                         number pole, number stationT, number stationP)
-                         
+                         time_t time, integer runtype)
 //
 // listH         - pointer to the container to place event in
 // run           - unique run number
@@ -85,8 +85,7 @@ ooStatus LMS::AddMCEvent(ooHandle(AMSEventTag)&  tageventH,
 
 
     ooHandle(AMSmcevent)     eventH;
-    eventH = new(listH) AMSmcevent(run, eventNumber, time, runtype, 
-                                   pole, stationT, stationP);
+    eventH = new(listH) AMSmcevent(run, eventNumber, time, runtype);
 
     rstatus = tageventH -> set_itsMCEvent(eventH);
 
@@ -157,8 +156,8 @@ ooStatus LMS::ReadMCEvents(uinteger& run, uinteger& eventn,
     if (tageventItr.next() != NULL) {
      tageventItr -> itsMCEvent(eventItr);
      if (eventItr != NULL) {
-       eventItr -> readEvent(run, eventn, time, runtype, pole,
-                             stationphi, stationtheta);
+       tageventItr -> GetGeographicCoo(pole, stationphi, stationtheta);
+       eventItr -> readEvent(run, eventn, time, runtype);
        eventItr -> print();
        //create event
        AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(

@@ -6,7 +6,7 @@ typedef double       number;
 typedef int          integer;
 typedef unsigned int uinteger;
 typedef double       float_d;
-typedef float        fload_r;
+typedef float        float_r;
 typedef long         int_L;
 // Root only
 typedef int          Int_t;

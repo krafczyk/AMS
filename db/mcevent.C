@@ -12,29 +12,19 @@
 
 
 AMSmcevent::AMSmcevent (integer run, uinteger eventNumber, time_t time,
-                        integer runtype, number northpolephi, 
-                        number stationtheta, number stationphi)
-{
+                        integer runtype){
   setrun(run);
   setevent(eventNumber);
   settime(time);
-  _NorthPolePhi  = northpolephi;
-  _StationTheta  = stationtheta;
-  _StationPhi    = stationphi;
   _runtype       = runtype;
 }
 
 
 void AMSmcevent::readEvent(uinteger& run, uinteger& eventNumber, time_t& time,
-                           integer& runtype, number& northpolephi, 
-                           number& stationtheta, number& stationphi)
-
+                           integer& runtype)
 {
   run          = Run();
   eventNumber  = Event();
   time         = Time();
-  northpolephi = _NorthPolePhi;
-  stationtheta = _StationTheta;
-  stationphi   = _StationPhi;
   runtype      = _runtype;
 }

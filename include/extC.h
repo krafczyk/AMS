@@ -31,6 +31,7 @@ extern "C" void tkfitpar_(geant init[7], geant & chrg, geant point[6],
                 geant out[7], number m55[5][5], geant & step);
 #define TKFITPAR tkfitpar_
 
+extern "C" void initDB();
 extern "C" void readDB();
 extern "C" void readGeomDB();
 extern "C" void writeGeomDB();

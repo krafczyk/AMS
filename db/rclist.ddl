@@ -112,6 +112,16 @@ ooStatus  AddParticleS(ooHandle(AMSeventD)&  eventH);
 ooStatus  LinkHitClusterD(const integer N, ooHandle(AMSeventD)& eventH);
 ooStatus  LinkTrackHitD(ooHandle(AMSeventD)& eventH);
 
+// Copy Objects
+ooStatus CopyBeta(ooHandle(AMSeventD)& eventH);
+ooStatus CopyCharge(ooHandle(AMSeventD)& eventH);
+ooStatus CopyCTCCluster(ooHandle(AMSeventD)& eventH);
+ooStatus CopyParticle(ooHandle(AMSeventD)& eventH);
+ooStatus CopyTOFCluster(ooHandle(AMSeventD)& eventH);
+ooStatus CopyTrCluster(ooHandle(AMSeventD)& eventH);
+ooStatus CopyTrRecHit(ooHandle(AMSeventD)& eventH);
+ooStatus CopyTrTrack(ooHandle(AMSeventD)& eventH);
+
 };
 
 #endif

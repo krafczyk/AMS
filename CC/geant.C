@@ -142,26 +142,9 @@ extern "C" void uginit_(){
   GPART();
   GPIONS(4);
 #ifdef __DB__
-   ooMode   mode;
-   ooMode   mrowmode;
-   eventR = AMSFFKEY.Read;
-   eventW = AMSFFKEY.Write;
-   if (eventW > 0) mode = oocUpdate;
-   if (eventW < DBWriteGeom) {
-     mode = oocRead;
-     mrowmode = oocMROW;
-   }
-   char* jobname = AMSJob::gethead()-> getname();
-   char* setup     = AMSJob::gethead() -> getsetup();
-   cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
-   cout <<"                       setup "<<setup<<endl;
-   dbout.setapplicationName(jobname);
-   dbout.setprefix(jobname);
-   dbout.setsetup(setup);
-   dbout.settypeR(eventR);
-   dbout.settypeW(eventW);
-   dbout.ClusteringInit(mode,mrowmode);
+   initDB();
    readGeomDB();
+   dbout.CheckConstants();
 #else
    AMSgmat::amsmat();
    AMSgvolume::amsgeom();
@@ -174,6 +157,7 @@ GDINIT();
 #endif
 
 #ifdef __DB__
+  dbout.CheckCommons();
   writeGeomDB();
 #endif
 
@@ -551,24 +535,42 @@ extern "C" void readGeomDB(){
 
 #ifdef __DB__
 
-  char* jobname = AMSJob::gethead()->getname();
-  char* setup = AMSJob::gethead() -> getsetup();
-
   if ( (AMSFFKEY.Read%2) == 0) {
-    cout <<"uginit_ -I- geometry and setup will be created now "<<endl;
-    cout <<"            for the job with name "<<jobname<<endl;
    AMSgmat::amsmat();
    AMSgvolume::amsgeom();
   }  
   if ((AMSFFKEY.Read%2) == 1)   {
-   dbout.CheckConstants();
-   cout <<"uginit_ -I- geometry and setup will be read from database"<<endl;
-   cout <<"            for the job with name "<<jobname<<endl;
+    //dbout.CheckConstants();
    dbout.ReadMaterial();
    GPMATE(0);
    dbout.ReadTMedia();
    GPTMED(0);
    dbout.ReadGeometry();
   }
+#endif
+}
+
+extern "C" void initDB() 
+{
+#ifdef __DB__
+   ooMode   mode;
+   ooMode   mrowmode;
+   eventR = AMSFFKEY.Read;
+   eventW = AMSFFKEY.Write;
+   if (eventW > 0) mode = oocUpdate;
+   if (eventW < DBWriteGeom) {
+     mode = oocRead;
+     mrowmode = oocMROW;
+   }
+   char* jobname = AMSJob::gethead()-> getname();
+   char* setup     = AMSJob::gethead() -> getsetup();
+   cout <<"_uginit -I- LMS init for job "<<jobname<<endl;
+   cout <<"                       setup "<<setup<<endl;
+   dbout.setapplicationName(jobname);
+   dbout.setprefix(jobname);
+   dbout.setsetup(setup);
+   dbout.settypeR(eventR);
+   dbout.settypeW(eventW);
+   dbout.ClusteringInit(mode,mrowmode);
 #endif
 }

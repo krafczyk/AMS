@@ -12,7 +12,7 @@
 // Mar  22, 1997 ak new function dbend()
 //                  add class member setupdbH
 //
-// Last Edit May 08, 1997. ak.
+// Last Edit June 06, 1997. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -122,9 +122,7 @@ public:
 
         ooStatus        AddMCEvent(ooHandle(AMSEventTag)&  tageventH,
                                  uinteger run, uinteger eventNumber,
-                                 time_t time, integer runtype,
-                                 number pole, number stationT, 
-                                 number stationP);
+                                 time_t time, integer runtype);
 
 	ooStatus	AddGeometry();
         ooStatus        WriteGeometry();
@@ -176,6 +174,7 @@ public:
         void            dbend();
 
         void            CheckConstants();
+        void            CheckCommons();
         
 //Print Methods
 

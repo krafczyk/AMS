@@ -1,8 +1,9 @@
 // AMS common blocks
 // Objectivity version Oct 08, 1996 ak
 // Nov 12, 1996. ak. remove amsffkey and iopa from class definition
+// June add anti.
 //
-// Last Edit : Mar 06, 1997. ak.
+// Last Edit : Jun 05, 1997. ak.
 //
 
 #include <typedefs.h>
@@ -14,19 +15,31 @@ class AMScommonsD : public ooObj {
 
 protected :
  
- ooVArray(integer) tofmcffkeyD;
- ooVArray(integer) tofrecffkeyD;
+ ooVArray(integer) antigeomffkey;
+ ooVArray(integer) antimcffkey;
+ ooVArray(integer) antirecffkey;
+
+ ooVArray(integer) betafitffkeyD;
+
+ ooVArray(integer) ccffkeyD;
+ ooVArray(integer) chargefitffkeyD;
+
  ooVArray(integer) ctcgeomffkeyD;
  ooVArray(integer) ctcmcffkeyD;
  ooVArray(integer) ctcrecffkeyD;
- ooVArray(integer) trmcffkeyD;
- ooVArray(integer) betafitffkeyD;
- ooVArray(integer) chargefitffkeyD;
- ooVArray(integer) trfitffkeyD;
- ooVArray(integer) ccffkeyD;
- ooVArray(integer) trclffkeyD;
+
+ ooVArray(integer) tofcaffkey;
+ ooVArray(integer) tofmcffkeyD;
+ ooVArray(integer) tofrecffkeyD;
+
  ooVArray(integer) trcalibD;
+ ooVArray(integer) trmcffkeyD;
+ ooVArray(integer) trfitffkeyD;
+ ooVArray(integer) trclffkeyD;
+
  ooVArray(integer) trigffkeyD;
+
+ ooVArray(integer) tkfield;
 
 //
 public:

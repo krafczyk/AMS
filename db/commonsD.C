@@ -1,11 +1,13 @@
 // AMS common blocks method file
 // Objectivity version Oct 08, 1996 ak
-// Oct 14, 1996. ak. don't compare ccffkey run
+// Oct  14, 1996. ak. don't compare ccffkey run
+// June 06, 1997. ak. add anti, no geom overwriting.
 //
-// Last Edit : May 12, 1996. ak.
+// Last Edit : June 06, 1997. ak.
 //
 
 #include <typedefs.h>
+#include <rd45.h>
 #include <commonsD.h>
 
 
@@ -15,6 +17,39 @@ AMScommonsD::AMScommonsD() {
   integer* buff;
 
   cout <<"AMScommonsD -I- constructor "<<endl;
+//antigeomffkey
+  l = sizeof(ANTIGEOMFFKEY);
+  antigeomffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&ANTIGEOMFFKEY,l);
+  for (i=0; i<l/4; i++) { antigeomffkey.set(i,buff[i]);}
+  delete [] buff;
+
+//antimcffkey
+  l = sizeof(ANTIMCFFKEY);
+  antimcffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&ANTIMCFFKEY,l);
+  for (i=0; i<l/4; i++) { antimcffkey.set(i,buff[i]);}
+  delete [] buff;
+
+//antirecffkey
+  l = sizeof(ANTIRECFFKEY);
+  antirecffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&ANTIRECFFKEY,l);
+  for (i=0; i<l/4; i++) { antirecffkey.set(i,buff[i]);}
+  delete [] buff;
+
+
+//tofcaffkey
+  l = sizeof(TOFCAFFKEY);
+  tofcaffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TOFCAFFKEY,l);
+  for (i=0; i<l/4; i++) { tofcaffkey.set(i,buff[i]);}
+  delete [] buff;
+
 //tofmcffkey
   l = sizeof(TOFMCFFKEY);
   tofmcffkeyD.resize(l/4);
@@ -119,13 +154,14 @@ AMScommonsD::AMScommonsD() {
   for (i=0; i<l/4; i++) { trigffkeyD.set(i,buff[i]);}
   delete [] buff;
 
-
 }
 
 ooStatus AMScommonsD::CmpConstants(integer Write) {
 
 //
-// Write == AMSFFKEY.Write
+// Write - if read geometry from DBASE or geometry already exists, then 
+//         overwrite geom commons in memory,
+//         if they are different from the dbase ones. 
 //
  ooStatus rstatus = oocSuccess;
  integer  i;
@@ -217,26 +253,28 @@ ctcgeomffkey:
    }
    delete [] buff;
 
-   if (Write != 0 && set_geom !=0 ) {
-    cout<<"AMScommonsD::CmpConstants -E- please write new CTCGEOM"<<endl;
+   //if (Write != 0 && set_geom !=0 ) {
+   if(set_geom) {
+    Error("AMScommonsD::CmpConstants: please write new CTCGEOM. Quit");
     set_geom = 0;
     return oocError;
    }
      
+   /*
    if(set_geom != 0) {
     set_geom = 0;
-    cout<<"AMScommonsD::CmpConstants -W- CTCGEOMFFKEY  are different "
-        <<" and will be set to DBASE values"<<endl;
+    Warning
+    ("AMScommonsD::CmpConstants : CTCGEOMFFKEY  will be set to DBASE values");
     buff = new integer[ld];
     for (i=0; i< ld; i++) {buff[i] = ctcgeomffkeyD[i]; }
     memcpy (&CTCGEOMFFKEY,buff,ld*4);
     delete [] buff;
    }
-
+   */
 ctcrecffkey:
   ld = trmcffkeyD.size();
-  cout<<"AMScommonsD::CmpConstants -I- TRMCFFKEY, size "<<ld
-      <<" int words"<<endl;
+  cout
+   <<"AMScommonsD::CmpConstants -I- TRMCFFKEY, size "<<ld<<" int words"<<endl;
   lm = sizeof(TRMCFFKEY);
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TRMCFFKEY and trmcffkeyD size are"
@@ -381,7 +419,7 @@ trigffkey:
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TRIGFFKEY and trigffkeyD "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
-   goto cmpend;
+   goto antigeom;
   }
   buff = new integer[lm/4];
   memcpy(buff,&TRIGFFKEY,lm);
@@ -391,6 +429,105 @@ trigffkey:
         <<" is different "<<buff[i]<<", "<<trigffkeyD[i]<<endl;
     }
   }
+  delete [] buff;
+
+antigeom:
+  ld = antigeomffkey.size();
+  cout<<"AMScommonsD::CmpConstants -I- antigeomffkey, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(ANTIGEOMFFKEY);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- ANTIGEOMFFKEY and antigeomffkey "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   return oocError;
+  }
+
+   buff = new integer[lm/4];
+   memcpy(buff,&ANTIGEOMFFKEY,lm);
+   for (i=0; i<ld; i++) { 
+     if (buff[i] != antigeomffkey[i]) {
+      cout<<"AMScommonsD::CmpConstants -W- ANTIGEOMFFKEY element "<<i
+          <<" is different "<<buff[i]<<", "<<antigeomffkey[i]<<endl;
+      set_geom = 1;
+     }
+   }
+  delete [] buff;
+
+  //if (Write != 0 && set_geom !=0 ) {
+  if(set_geom) {
+   Error("AMScommonsD::CmpConstants: please write new AntiGEOM. Quit");
+   set_geom = 0;
+   return oocError;
+  }
+   /*
+  if(set_geom != 0) {
+   set_geom = 0;
+   Warning
+    ("AMScommonsD::CmpConstants : AntiGEOM  will be set to DBASE values");
+    buff = new integer[ld];
+    for (i=0; i< ld; i++) {buff[i] = antigeomffkey[i]; }
+    memcpy (&ANTIGEOMFFKEY,buff,ld*4);
+    delete [] buff;
+   }
+   */
+antimc:
+  ld = antimcffkey.size();
+  cout<<"AMScommonsD::CmpConstants -I- antimcffkey, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(ANTIMCFFKEY);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- ANTIMCFFKEY and antimcffkey "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto antirec;
+  }
+   buff = new integer[lm/4];
+   memcpy(buff,&ANTIMCFFKEY,lm);
+   for (i=0; i<ld; i++) { 
+     if (buff[i] != antimcffkey[i]) {
+      cout<<"AMScommonsD::CmpConstants -W- ANTIMCFFKEY element "<<i
+          <<" is different "<<buff[i]<<", "<<antimcffkey[i]<<endl;
+     }
+   }
+  delete [] buff;
+
+antirec:
+  ld = antirecffkey.size();
+  cout<<"AMScommonsD::CmpConstants -I- antirecffkey, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(ANTIRECFFKEY);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- ANTIRECFFKEY and antirecffkey "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto tofca;
+  }
+   buff = new integer[lm/4];
+   memcpy(buff,&ANTIRECFFKEY,lm);
+   for (i=0; i<ld; i++) { 
+     if (buff[i] != antirecffkey[i]) {
+      cout<<"AMScommonsD::CmpConstants -W- ANTIRECFFKEY element "<<i
+          <<" is different "<<buff[i]<<", "<<antirecffkey[i]<<endl;
+     }
+   }
+  delete [] buff;
+
+tofca:
+  ld = tofcaffkey.size();
+  cout<<"AMScommonsD::CmpConstants -I- tofcaffkey, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(TOFCAFFKEY);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- TOFCAFFKEY and tofcaffkey "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto cmpend;
+  }
+   buff = new integer[lm/4];
+   memcpy(buff,&TOFCAFFKEY,lm);
+   for (i=0; i<ld; i++) { 
+     if (buff[i] != tofcaffkey[i]) {
+      cout<<"AMScommonsD::CmpConstants -W- TOFCAFFKEY element "<<i
+          <<" is different "<<buff[i]<<", "<<tofcaffkey[i]<<endl;
+     }
+   }
   delete [] buff;
 
 cmpend:
@@ -523,6 +660,39 @@ void AMScommonsD::CopyConstants() {
   buff = new integer[l/4];
   memcpy(buff,&TRIGFFKEY,l);
   for (i=0; i<l/4; i++) { trigffkeyD.set(i,buff[i]);}
+  delete [] buff;
+
+//antigeomffkey
+  l = sizeof(ANTIGEOMFFKEY);
+  antigeomffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&ANTIGEOMFFKEY,l);
+  for (i=0; i<l/4; i++) { antigeomffkey.set(i,buff[i]);}
+  delete [] buff;
+
+//antimcffkey
+  l = sizeof(ANTIMCFFKEY);
+  antimcffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&ANTIMCFFKEY,l);
+  for (i=0; i<l/4; i++) { antimcffkey.set(i,buff[i]);}
+  delete [] buff;
+
+//antirecffkey
+  l = sizeof(ANTIRECFFKEY);
+  antirecffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&ANTIRECFFKEY,l);
+  for (i=0; i<l/4; i++) { antirecffkey.set(i,buff[i]);}
+  delete [] buff;
+
+
+//tofcaffkey
+  l = sizeof(TOFCAFFKEY);
+  tofcaffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TOFCAFFKEY,l);
+  for (i=0; i<l/4; i++) { tofcaffkey.set(i,buff[i]);}
   delete [] buff;
 
 

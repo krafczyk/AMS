@@ -45,6 +45,7 @@
 #include <gmatD_ref.h>
 #include <gtmedD_ref.h>
 #include <amsdbcD_ref.h>
+#include <antidbcD_ref.h>
 #include <ctcdbcD_ref.h>
 #include <tofdbcD_ref.h>
 #include <commonsD_ref.h>
@@ -55,6 +56,7 @@
 #include <gmatD.h>
 #include <gtmedD.h>
 #include <amsdbcD.h>
+#include <antidbcD.h>
 #include <ctcdbcD.h>
 #include <tofdbcD.h>
 #include <commonsD.h>
@@ -87,6 +89,7 @@ ooHandle(AMSgvolumeD)      geometryH;
 ooHandle(AMSgmatD)         gmatH;                      
 ooHandle(AMSgtmedD)        gtmedH;                      
 ooHandle(AMSDBcD)          amsdbcH;
+ooHandle(AntiDBcD)         antidbcH;
 ooHandle(CTCDBcD)          ctcdbcH;
 ooHandle(TOFDBcD)          tofdbcH;
 ooHandle(AMScommonsD)      commonsH;
@@ -97,6 +100,7 @@ ooItr(AMSgmatD)        gmatItr;                 // material
 ooItr(AMSgtmedD)       gtmedItr;                // tmedia
 
 ooItr(AMSDBcD)         amsdbcItr;               // amsdbc
+ooItr(AntiDBcD)        antidbcItr;               // amsdbc
 ooItr(TOFDBcD)         tofdbcItr;               // tofdbc
 ooItr(AMScommonsD)     commonsItr;              // commons
 ooItr(CTCDBcD)         ctcdbcItr;               // ctcdbc
@@ -612,6 +616,7 @@ ooStatus   LMS::Addamsdbc()
          commonsH = new(contH) AMScommonsD();
          ctcdbcH  = new(contH) CTCDBcD();
          tofdbcH  = new(contH) TOFDBcD();
+         antidbcH  = new(contH) AntiDBcD();
         } else {
           cout << "Addamsdbc -I- Found container "<<contName<< endl;
           amsdbcItr.scan(contH, Mode());
@@ -646,6 +651,16 @@ ooStatus   LMS::Addamsdbc()
            if (rstatus != oocSuccess) Fatal(
             "Addamsdbc: tofdbc comparison failed. Please, write new setup");
           }
+
+
+          antidbcItr.scan(contH, Mode());
+          if (antidbcItr.next()) {
+           Message("Addamsdbc : check antidbc");
+           rstatus = antidbcItr -> CmpConstants();
+           if (rstatus != oocSuccess) Fatal(
+            "Addamsdbc: antidbc comparison failed. Please, write new setup");
+          }
+
         }
           
           rstatus = oocSuccess;
@@ -813,12 +828,12 @@ end:
 
 void LMS::CheckConstants()
 {
-	ooStatus 	     rstatus = oocError;	// Return status
+	ooStatus 	     rstatus = oocError;      // Return status
         ooHandle(ooContObj)  contH;                   // container
         ooItr(AMSDBcD)       amsdbcItr;               // amsdbc
-        ooItr(AMScommonsD)   commonsItr;              // commons
         ooItr(CTCDBcD)       ctcdbcItr;               // ctcdbc
         ooItr(TOFDBcD)       tofdbcItr;               // tofdbc
+        ooItr(AntiDBcD)       antidbcItr;             // antidbc
         ooHandle(ooDBObj)    dbH;
         char*                contName;
         integer              Read = 0;
@@ -845,16 +860,6 @@ void LMS::CheckConstants()
        if (rstatus != oocSuccess) goto end;
       } 
       
-      commonsItr.scan(contH, Mode());
-      if (commonsItr.next()) {
-       Message("CheckConstants : check commons");
-       rstatus = commonsItr -> CmpConstants(Read);
-       if (rstatus != oocSuccess) {
-        rstatus = oocError;
-        goto end;
-       }
-      } 
-
       ctcdbcItr.scan(contH, Mode());
       if (ctcdbcItr.next()) {
        Message("CheckConstants : check ctcdbc");
@@ -868,14 +873,67 @@ void LMS::CheckConstants()
 
       tofdbcItr.scan(contH, Mode());
       if (tofdbcItr.next()) {
-       Message("CheckConstants -I- check tofdbc");
+       Message("CheckConstants: check tofdbc");
        rstatus = tofdbcItr -> CmpConstants();
        if (rstatus != oocSuccess) {
         rstatus = oocError;
         goto end;
        }
-      } 
+      }
+      antidbcItr.scan(contH, Mode());
+      if (antidbcItr.next()) {
+       Message("CheckConstants : check antidbc");
+       rstatus = antidbcItr -> CmpConstants();
+       if (rstatus != oocSuccess) {
+        rstatus = oocError;
+        goto end;
+       }
+      }
 
+
+end:
+        if (contName) delete [] contName;
+        if (rstatus == oocSuccess) {
+	  Commit(); 	           // Commit the transaction
+          if (rstatus != oocSuccess) exit (1);
+        } else {
+          Abort();
+          Fatal("CheckConstants : Quit");
+        }
+}
+
+void LMS::CheckCommons()
+{
+	ooStatus 	     rstatus = oocError;      // Return status
+        ooHandle(ooContObj)  contH;                   // container
+        ooItr(AMScommonsD)   commonsItr;              // commons
+        ooHandle(ooDBObj)    dbH;
+        char*                contName;
+        integer              Read = 0;
+
+        StartRead(oocMROW);
+
+        dbH = setupdb();
+        if (dbH == NULL) Fatal("CheckConstants : Cannot open setup dbase ");
+
+        char *setup = StrDup(_setup);
+        contName = StrCat("amsdbc_",setup);
+        if(setup) delete [] setup;  
+        if (!contH.exist(dbH, contName, oocRead)) {
+         rstatus = oocError;
+         cout<<"CheckCommons : cannot open a container "<<contName<<endl;
+         goto end;
+        }
+
+      commonsItr.scan(contH, Mode());
+      if (commonsItr.next()) {
+       Message("CheckConstants : check commons");
+       rstatus = commonsItr -> CmpConstants(Read);
+       if (rstatus != oocSuccess) {
+        rstatus = oocError;
+        goto end;
+       }
+      } 
 
 end:
         if (contName) delete [] contName;
