@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.206 2001/12/20 13:13:45 mdelgado Exp $
+#  $Id: datacards.doc,v 1.207 2001/12/20 14:57:11 mdelgado Exp $
 Datacards
 
 // Protection from some myst bug
@@ -235,7 +235,7 @@ I 13   mcprtf(0)                // print MC-hist. if !=0
     RICH simulation
 
 
-RICGEOM                         // Card currently disabled
+RICGEOM                         // Card currently disabled <<<<<<<<<<<<<<<<<<<
 R 1  top_radius(63.6)           // Top radius of rich
 R 2  bottom_radius(80)		// Bottom radius
 R 3  hole_radius(40)		// Central hole radius
@@ -253,9 +253,12 @@ RICCONT
 I 1  iflgk_flag(0)              // Activate the use of the GCTRAK.iflgk=1 in the tracking
 I 2  recon(1)                   // RICH reconstruction (1) or not (0)
 I 3  setup(0)                   // Use official geometry with 1000 PMTs (0) or unofficial one
-                                // with 732 (1) 
-
-
+                                // with 732 PMTs (1).
+                                // By default the old (and official) geometry is chosen. The
+                                // new one is chosen using the following datacard:
+                                //           RICCONT 3=1
+                                // The only difference between the new and the old geometries
+                                // is the number of PMTs and their arrangement.
 //--------------------------------------------------------------------------------
 
 // Tracker Cluster  Simulation
