@@ -100,6 +100,7 @@ void AMSR_ParticleReader::Make()
 
       new(particles[k]) AMSR_Particle();
       AMSR_Particle * t = (AMSR_Particle *) particles[k];
+/* need to be updated according to the AMS ntuple structure, 15/12/98, YeSW
       for (i=0; i<2; i++) {
         t->m_PCerenkov[i]   = _ntuple->pctcp[k][i];
         t->m_SignalCTC[i]   = _ntuple->signalctc[k][i];
@@ -107,6 +108,7 @@ void AMSR_ParticleReader::Make()
         t->m_ErrBetaCTC[i]  = _ntuple->errorbetactc[k][i];
 //      t->m_PositionCTC[i] = _ntuple->cooctc[k][i];	// trouble here
       }
+*/
       t->m_PBeta            = _ntuple->pbetap[k];
       t->m_PCharge          = _ntuple->pchargep[k];
       t->m_PTrack           = _ntuple->ptrackp[k];

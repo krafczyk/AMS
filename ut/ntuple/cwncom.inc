@@ -6,46 +6,55 @@
 *
 *     Ntuple Id:      1    
 *     Ntuple Title:   AMS Ntuple
-*     Creation:       09/09/98 16.51.22
+*     Creation:       15/12/98 18.14.15
 *
 *********************************************************
 *
       REAL RadS,ThetaS,PhiS,YawS,PitchS,RollS,VelocityS,VelTheta,VelPhi
+     + ,ThetaM,PhiM
       INTEGER eventno,run,runtype,time,RawWords,Particles,Tracks,Betas
      + ,Charges,TrRecHits,TrClusters,TrRawClusters,TrMCClusters
      + ,TOFClusters,TOFMCClusters,CTCClusters,CTCMCClusters
      + ,AntiMCClusters,AntiClusters,EventStatus
       COMMON /EVENTH/ eventno,run,runtype,time(2),RawWords,RadS,ThetaS
-     + ,PhiS,YawS,PitchS,RollS,VelocityS,VelTheta,VelPhi,Particles
-     + ,Tracks,Betas,Charges,TrRecHits,TrClusters,TrRawClusters
-     + ,TrMCClusters,TOFClusters,TOFMCClusters,CTCClusters,CTCMCClusters
-     + ,AntiMCClusters,AntiClusters,EventStatus
+     + ,PhiS,YawS,PitchS,RollS,VelocityS,VelTheta,VelPhi,ThetaM,PhiM
+     + ,Particles,Tracks,Betas,Charges,TrRecHits,TrClusters
+     + ,TrRawClusters,TrMCClusters,TOFClusters,TOFMCClusters,CTCClusters
+     + ,CTCMCClusters,AntiMCClusters,AntiClusters,EventStatus
 *
-      REAL beta,betaerror,betachi2,betachi2s
+      REAL beta,betac,betaerror,betaerrorc,betachi2,betachi2s
       INTEGER nbeta,betastatus,betapattern,betantof,betaptof,betaptr
-      COMMON /BETA/ nbeta,betastatus(100),betapattern(100),beta(100)
-     + ,betaerror(100),betachi2(100),betachi2s(100),betantof(100)
-     + ,betaptof(4,100),betaptr(100)
+      COMMON /BETA/ nbeta,betastatus(150),betapattern(150),beta(150)
+     + ,betac(150),betaerror(150),betaerrorc(150),betachi2(150)
+     + ,betachi2s(150),betantof(150),betaptof(4,150),betaptr(150)
 *
-      REAL probtof,probtracker,truntof,truntracker
+      REAL probtof,probtracker,proballtracker,truntof,truntofd
+     + ,truntracker
       INTEGER ncharge,chargestatus,chargebetap,chargetof,chargetracker
-      COMMON /CHARGE/ ncharge,chargestatus(10),chargebetap(10)
-     + ,chargetof(10),chargetracker(10),probtof(10,10)
-     + ,probtracker(10,10),truntof(10),truntracker(10)
+     + ,chintof,chintracker
+      COMMON /CHARGE/ ncharge,chargestatus(150),chargebetap(150)
+     + ,chargetof(150),chargetracker(150),probtof(4,150),chintof(4,150)
+     + ,probtracker(4,150),chintracker(4,150),proballtracker(150)
+     + ,truntof(150),truntofd(150),truntracker(150)
 *
-      REAL pmass,perrmass,pmom,perrmom,pcharge,ptheta,pphi,thetagl,phigl
-     + ,pcoo,signalctc,betactc,errorbetactc,cooctc,cootof,cooanti,cootr
-      INTEGER npart,pctcp,pbetap,pchargep,ptrackp,pid
-      COMMON /PARTICLE/ npart,pctcp(2,10),pbetap(10),pchargep(10)
-     + ,ptrackp(10),pid(10),pmass(10),perrmass(10),pmom(10),perrmom(10)
-     + ,pcharge(10),ptheta(10),pphi(10),thetagl(10),phigl(10),pcoo(3,10)
-     + ,signalctc(2,10),betactc(2,10),errorbetactc(2,10),cooctc(3,2,10)
-     + ,cootof(3,4,10),cooanti(3,2,10),cootr(3,6,10)
+      REAL probpid,fitmom,pmass,perrmass,pmom,perrmom,pcharge,ptheta
+     + ,pphi,thetagl,phigl,pcoo,atcnbphe,atcbeta,cooctc,cootof,cooanti
+     + ,cootr
+      INTEGER npart,pbetap,pchargep,ptrackp,pid,pidvice,atcnbcel
+     + ,atcidcel,atcdispm,atcdaero,atcstatu
+      COMMON /PARTICLE/ npart,pbetap(100),pchargep(100),ptrackp(100)
+     + ,pid(100),pidvice(100),probpid(2,100),fitmom(100),pmass(100)
+     + ,perrmass(100),pmom(100),perrmom(100),pcharge(100),ptheta(100)
+     + ,pphi(100),thetagl(100),phigl(100),pcoo(3,100),atcnbcel(2,100)
+     + ,atcnbphe(2,100),atcidcel(2,100),atcdispm(2,100),atcdaero(2,100)
+     + ,atcstatu(2,100),atcbeta(100),cooctc(3,2,100),cootof(3,4,100)
+     + ,cooanti(3,2,100),cootr(3,6,100)
 *
-      REAL TOFEdep,TOFTime,TOFETime,TOFCoo,TOFErCoo
-      INTEGER ntof,TOFStatus,plane,bar
-      COMMON /TOFCLUST/ ntof,TOFStatus(20),plane(20),bar(20),TOFEdep(20)
-     + ,TOFTime(20),TOFETime(20),TOFCoo(3,20),TOFErCoo(3,20)
+      REAL TOFEdep,TOFEdepd,TOFTime,TOFETime,TOFCoo,TOFErCoo
+      INTEGER ntof,TOFStatus,plane,bar,nmemb
+      COMMON /TOFCLUST/ ntof,TOFStatus(20),plane(20),bar(20),nmemb(20)
+     + ,TOFEdep(20),TOFEdepd(20),TOFTime(20),TOFETime(20),TOFCoo(3,20)
+     + ,TOFErCoo(3,20)
 *
       REAL TOFMCXcoo,TOFMCtof,TOFMCedep
       INTEGER ntofmc,TOFMCIdsoft
@@ -64,25 +73,27 @@
      + ,Center(2,200),Right(2,200),ss(5,2,200),xca(3,200),xcb(3,200)
      + ,xgl(3,200),summc(200)
 *
-      REAL hitr,ehitr,sumr,difosum
+      REAL hitr,ehitr,sumr,difosum,cofgx,cofgy
       INTEGER ntrrh,px,py,statusr,Layer
       COMMON /TRRECHIT/ ntrrh,px(500),py(500),statusr(500),Layer(500)
-     + ,hitr(3,500),ehitr(3,500),sumr(500),difosum(500)
+     + ,hitr(3,500),ehitr(3,500),sumr(500),difosum(500),cofgx(500)
+     + ,cofgy(500)
 *
       REAL Chi2StrLine,Chi2Circle,CircleRidgidity,Chi2FastFit,Ridgidity
      + ,ErrRidgidity,Theta,phi,p0,gchi2,gridgidity,gerrridgidity,gtheta
      + ,gphi,gp0,hchi2,HRidgidity,HErrRidgidity,htheta,hphi,hp0,fchi2ms
      + ,gchi2ms,ridgidityms,gridgidityms
-      INTEGER ntrtr,trstatus,pattern,nhits,phits,FastFitDone
+      INTEGER ntrtr,trstatus,pattern,address,nhits,phits,FastFitDone
      + ,GeaneFitDone,AdvancedFitDone
-      COMMON /TRTRACK/ ntrtr,trstatus(20),pattern(20),nhits(20)
-     + ,phits(6,20),FastFitDone(20),GeaneFitDone(20),AdvancedFitDone(20)
-     + ,Chi2StrLine(20),Chi2Circle(20),CircleRidgidity(20)
-     + ,Chi2FastFit(20),Ridgidity(20),ErrRidgidity(20),Theta(20),phi(20)
-     + ,p0(3,20),gchi2(20),gridgidity(20),gerrridgidity(20),gtheta(20)
-     + ,gphi(20),gp0(3,20),hchi2(2,20),HRidgidity(2,20)
-     + ,HErrRidgidity(2,20),htheta(2,20),hphi(2,20),hp0(3,2,20)
-     + ,fchi2ms(20),gchi2ms(20),ridgidityms(20),gridgidityms(20)
+      COMMON /TRTRACK/ ntrtr,trstatus(200),pattern(200),address(200)
+     + ,nhits(200),phits(6,200),FastFitDone(200),GeaneFitDone(200)
+     + ,AdvancedFitDone(200),Chi2StrLine(200),Chi2Circle(200)
+     + ,CircleRidgidity(200),Chi2FastFit(200),Ridgidity(200)
+     + ,ErrRidgidity(200),Theta(200),phi(200),p0(3,200),gchi2(200)
+     + ,gridgidity(200),gerrridgidity(200),gtheta(200),gphi(200)
+     + ,gp0(3,200),hchi2(2,200),HRidgidity(2,200),HErrRidgidity(2,200)
+     + ,htheta(2,200),hphi(2,200),hp0(3,2,200),fchi2ms(200),gchi2ms(200)
+     + ,ridgidityms(200),gridgidityms(200)
 *
       REAL coo,dir,momentum,mass,charge
       INTEGER nmcg,nskip,Particle
@@ -129,15 +140,16 @@
 *
       REAL s2n
       INTEGER ntrraw,rawaddress,rawlength
-      COMMON /TRRAWCL/ ntrraw,rawaddress(500),rawlength(500),s2n(500)
+      COMMON /TRRAWCL/ ntrraw,rawaddress(300),rawlength(300),s2n(300)
 *
       REAL antirawsignal
       INTEGER nantiraw,antirawstatus,antirawsector,antirawupdown
       COMMON /ANTIRAWC/ nantiraw,antirawstatus(32),antirawsector(32)
      + ,antirawupdown(32),antirawsignal(32)
 *
-      REAL tofrtovta,tofrtovtd,tofrsdtm
+      REAL tofrtovta,tofrtovtd,tofrsdtm,tofreda,tofredd,tofrtm,tofrcoo
       INTEGER ntofraw,tofrstatus,tofrplane,tofrbar
       COMMON /TOFRAWCL/ ntofraw,tofrstatus(20),tofrplane(20),tofrbar(20)
-     + ,tofrtovta(2,20),tofrtovtd(2,20),tofrsdtm(2,20)
+     + ,tofrtovta(2,20),tofrtovtd(2,20),tofrsdtm(2,20),tofreda(20)
+     + ,tofredd(20),tofrtm(20),tofrcoo(20)
 *

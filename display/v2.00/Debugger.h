@@ -23,6 +23,8 @@ public:
   ClassDef(Debugger, 1)		// Debug message printing class
 };
 
+#ifndef __CINT__
 EXTERN Debugger debugger;
+#endif
 
 #endif

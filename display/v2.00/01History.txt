@@ -1,3 +1,8 @@
+1998.12.15      Shuwei YE
+  - Modify Debugger.h to avoid a bug in ROOT2.00/13 cint(it is said to have
+    been corrected already)
+  - Update new AMS ntuple format with 245 variables
+
 1998.11.09      Shuwei YE
   - Change mainRint.cxx and main.cxx, and add IdleHandle_c.C to replace the
     function of mainc.cxx (RealTime monitor).

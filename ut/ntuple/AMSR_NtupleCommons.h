@@ -36,6 +36,8 @@ struct EVENTH_DEF {
    float Velocitys;
    float Veltheta;
    float Velphi;
+   float Thetam;
+   float Phim;
    int   Particles;
    int   Tracks;
    int   Betas;
@@ -55,13 +57,15 @@ struct EVENTH_DEF {
 #define blkEventh COMMON_BLOCK(EVENTH,eventh)
 COMMON_BLOCK_DEF(EVENTH_DEF,blkEventh);
 
-static const int NBETA = 100;
+static const int NBETA = 150;
 struct BETA_DEF {
    int   nbeta;
    int   betastatus[NBETA];
    int   betapattern[NBETA];
    float beta[NBETA];
+   float betac[NBETA];
    float betaerror[NBETA];
+   float betaerrorc[NBETA];
    float betachi2[NBETA];
    float betachi2s[NBETA];
    int   betantof[NBETA];
@@ -71,29 +75,35 @@ struct BETA_DEF {
 #define blkBeta COMMON_BLOCK(BETA,beta)
 COMMON_BLOCK_DEF(BETA_DEF,blkBeta);
 
-static const int NCHARGE = 10;
+static const int NCHARGE = 150;
 struct CHARGE_DEF {
    int   ncharge;
    int   chargestatus[NCHARGE];
    int   chargebetap[NCHARGE];
    int   chargetof[NCHARGE];
    int   chargetracker[NCHARGE];
-   float probtof[NCHARGE][10];
-   float probtracker[NCHARGE][10];
+   float probtof[NCHARGE][4];
+   float chintof[NCHARGE][4];
+   float probtracker[NCHARGE][4];
+   float chintracker[NCHARGE][4];
+   float proballtracker[NCHARGE];
    float truntof[NCHARGE];
+   float truntofd[NCHARGE];
    float truntracker[NCHARGE];
 };
 #define blkCharge COMMON_BLOCK(CHARGE,charge)
 COMMON_BLOCK_DEF(CHARGE_DEF,blkCharge);
 
-static const int NPART = 10;
+static const int NPART = 100;
 struct PARTICLE_DEF {
    int   npart;
-   int   pctcp[NPART][2];
    int   pbetap[NPART];
    int   pchargep[NPART];
    int   ptrackp[NPART];
    int   pid[NPART];
+   int   pidvice[NPART];
+   int   probpid[NPART][2];
+   int   fitmom[NPART];
    float pmass[NPART];
    float perrmass[NPART];
    float pmom[NPART];
@@ -104,9 +114,13 @@ struct PARTICLE_DEF {
    float thetagl[NPART];
    float phigl[NPART];
    float pcoo[NPART][3];
-   float signalctc[NPART][2];
-   float betactc[NPART][2];
-   float errorbetactc[NPART][2];
+   int   atcnbcel[NPART][2];
+   float atcnbphe[NPART][2];
+   int   atcidcel[NPART][2];
+   int   atcdispm[NPART][2];
+   int   atcdaero[NPART][2];
+   int   atcstatu[NPART][2];
+   float atcbeta[NPART];
    float cooctc[NPART][2][3];
    float cootof[NPART][4][3];
    float cooanti[NPART][2][3];
@@ -121,7 +135,9 @@ struct TOFCLUST_DEF {
    int   Tofstatus[NTOF];
    int   plane[NTOF];
    int   bar[NTOF];
+   int   nmemb[NTOF];
    float Tofedep[NTOF];
+   float Tofedepd[NTOF];
    float Toftime[NTOF];
    float Tofetime[NTOF];
    float Tofcoo[NTOF][3];
@@ -186,15 +202,18 @@ struct TRRECHIT_DEF {
    float ehitr[NTRRH][3];
    float sumr[NTRRH];
    float difosum[NTRRH];
+   float cofgx[NTRRH];
+   float cofgy[NTRRH];
 };
 #define blkTrrechit COMMON_BLOCK(TRRECHIT,trrechit)
 COMMON_BLOCK_DEF(TRRECHIT_DEF,blkTrrechit);
 
-static const int NTRTR = 20;
+static const int NTRTR = 200;
 struct TRTRACK_DEF {
    int   ntrtr;
    int   trstatus[NTRTR];
    int   pattern[NTRTR];
+   int   address[NTRTR];
    int   nhits[NTRTR];
    int   phits[NTRTR][6];
    int   Fastfitdone[NTRTR];
@@ -334,7 +353,7 @@ struct CTCHIT_DEF {
 #define blkCtchit COMMON_BLOCK(CTCHIT,ctchit)
 COMMON_BLOCK_DEF(CTCHIT_DEF,blkCtchit);
 
-static const int NTRRAW = 500;
+static const int NTRRAW = 300;
 struct TRRAWCL_DEF {
    int   ntrraw;
    int   rawaddress[NTRRAW];
@@ -364,13 +383,17 @@ struct TOFRAWCL_DEF {
    float tofrtovta[NTOFRAW][2];
    float tofrtovtd[NTOFRAW][2];
    float tofrsdtm[NTOFRAW][2];
+   float tofreda[NTOFRAW];
+   float tofredd[NTOFRAW];
+   float tofrtm[NTOFRAW];
+   float tofrcoo[NTOFRAW];
 };
 #define blkTofrawcl COMMON_BLOCK(TOFRAWCL,tofrawcl)
 COMMON_BLOCK_DEF(TOFRAWCL_DEF,blkTofrawcl);
 
 //-----------------------------------------------
 // end definition of common blocks in AMS Ntuple
-// =====               ------------     =========      
+// =====               ------------     =========
 //************************************************
 
 

@@ -135,8 +135,9 @@ ifeq "$(OS)"  "Linux"
  SOFLAGS       = -shared
  SOGFLAGS      = $(SOFLAGS)
 
+ FORLIBS       = $(CERNLIBS) -lf2c
 # FORLIBS       = $(CERNLIBS) -lf2c -lF77 -lI77 -lc
- FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lf2c /usr/lib/libstdc++.so
+# FORLIBS       = $(CERNLIBS) -L/usr/local/lib -lf2c /usr/lib/libstdc++.so
  ADDLIBS       = $(FORLIBS)
  LIBS          = $(ROOTLIBS) -lg++ -lm -ldl -rdynamic
  GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -L/usr/X11R6/lib \

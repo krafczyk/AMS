@@ -7,14 +7,14 @@ set os = `uname`
 
 if ($os == "AIX") then
 
-  setenv LIBPATH $ROOTSYS/lib':'`pwd`/bin;
+  setenv LIBPATH $ROOTSYS/lib':'`pwd`/$os/bin;
 
 else if ($os == "OSF1" || $os == "Linux") then
 
-  setenv LD_LIBRARY_PATH $ROOTSYS/lib':'`pwd`/bin;
+  setenv LD_LIBRARY_PATH $ROOTSYS/lib':'`pwd`/$os/bin;
 
 else if ($os == "HP-UX") then
 
-  setenv SHLIB_PATH $ROOTSYS/lib':'`pwd`/bin;
+  setenv SHLIB_PATH $ROOTSYS/lib':'`pwd`/$os/bin;
 
 endif
