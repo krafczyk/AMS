@@ -38,12 +38,14 @@ module DPS{
     typedef sequence<NominalClient> NCS;
     void  getNCL(out NCS ncl);
       
-    void sendId(in CID id, in long Propagate, in long Error);      
+    boolean sendId(in CID id, in long Propagate, in long Error);      
    
    enum HostStatus{NoResponse,LastClientFailed,OK};
    struct ActiveHost{
       string HostName;
       HostStatus Status;
+      short ClientsRunning;
+      short ClientsAllowed; 
       long ClientsProcessed;
       long ClientsFailed;
       time LastUpdate;
@@ -66,6 +68,7 @@ module DPS{
      string OutputDirPath;
      long UpdateFreq;
      long DieHard;
+     time SubmitTime;
     };
 /*
     enum RunStatus{ToBeRerun, Processing, Finished};
@@ -157,6 +160,7 @@ module DPS{
     void ping();
    struct NominalHost{
     string HostName;
+    string Interface;
     string OS;
     short   CPUNumber;
     short   Memory;

@@ -26,7 +26,8 @@ const char* getMessage() const {return (const char*)_message;}
 int getSeverity() const {return _severity;}
 };
 public:
-AMSProducer(int argc,  char * argv[], int debug) throw (Error);
+AMSProducer(int argc,  char * argv[], int debug) throw (AMSProducer::Error);
+void Message(const char * ch, int stream=0);
 static AMSProducer* gethead(){return _Head;}
 int  Debug() const{return _debug;}
 void getTDVTable(uinteger size, uinteger * db[5]);

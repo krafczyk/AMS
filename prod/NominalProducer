@@ -1,2 +1,4 @@
-#Max CPU Mem  Job                                       Log              Submit
- 100 0.9 100 /Offline/vdev/datacards/StandardNtuple.job /dat0/local/logs rsh
+#Max CPU Mem  Job                                         Log     //   Submit
+ 1 0.9 100 /Offline/vdev/datacards/StandardNtuple.job -o /dat0/local/logs/
+ bsub -q linux_mc_1nm -m
+

@@ -107,7 +107,7 @@ SRCS= $(SRC)server-stubs.c $(SRC)server-skels.c $(SRC)server-common.c
 SRCSCPP= $(SRC)server-cpp-stubs.cc $(SRC)server-cpp-skels.cc
 OBJECTCO=$(BIN)server-stubs.o $(BIN)server-skels.o $(BIN)server-common.o 
 OBJECTCL= $(BIN)server-cpp-stubs.o 
-OBJECTSEAUX=$(BIN)id.o $(BIN)node.o
+OBJECTSEAUX=$(BIN)id.o $(BIN)node.o $(BIN)astring.o
 OBJECTSE= $(BIN)server-cpp-skels.o   $(OBJECTCL) 
 endif
 
@@ -543,7 +543,7 @@ $(BIN)producer.o: 	 $(SCC)producer.C
 	$(CC) -c $(CFLAGS) $(IDLFLAGS) $(SCC)producer.C -o $(BIN)producer.o
 
 $(BIN)server.o: 	 $(SCC)server.C
-	$(CC)  -c $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
+	$(CC)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)server.C -o $(BIN)server.o
 
 
 

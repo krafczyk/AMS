@@ -1,6 +1,10 @@
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
+#include <astring.h>
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 AMSServer* AMSServer::_Head=0;
 
 int main(int argc, char * argv[]){
@@ -79,10 +83,10 @@ AMSServer::AMSServer(int argc, char* argv[]){
   _poa=PortableServer::POA::_narrow(obj);
   _mgr=_poa->the_POAManager();
   _mgr->activate();
-  _pser= new Server_impl(_poa,nserver,nhost);
+  _pser= new Server_impl(_poa,_orb,nserver,nhost);
  if(ior==0){      //  Primary
   if(rfile){  
-   _pser->add(new Producer_impl(_poa,nproducer,rfile,ntuplestring,eventtagstring));
+   _pser->add(new Producer_impl(_poa,_orb,nproducer,rfile,ntuplestring,eventtagstring));
   }  
   
  }
@@ -92,11 +96,11 @@ AMSServer::AMSServer(int argc, char* argv[]){
 
 }
 
-Producer_impl::Producer_impl(PortableServer::POA_ptr poa, char * NC, char *RF, char *NS, char *TS): POA_DPS::Producer(),AMSServerI(AMSID("Producer",0)){
+Producer_impl::Producer_impl(PortableServer::POA_ptr poa, CORBA::ORB_ptr orb, char * NC, char *RF, char *NS, char *TS): POA_DPS::Producer(),AMSServerI(AMSID("Producer",0)){
 
  PortableServer::ObjectId_var oid=poa->activate_object(this);
  _ref = reinterpret_cast<DPS::Producer_ptr>(poa->id_to_reference(oid));
-
+ _refstring=orb->object_to_string(_ref);
 // Here read nominalclients
    
 if(NC){
@@ -110,9 +114,9 @@ if(NC){
    char tmpbuf[1024];
    fbin>>tmpbuf;
    _ncl->WholeScriptPath=(const char*)tmpbuf;
-   fbin>>tmpbuf;
+   fbin.getline(tmpbuf,1024);
    _ncl->LogPath= (const char*)tmpbuf;
-   fbin>>tmpbuf;
+   fbin.getline(tmpbuf,1024);
     _ncl->SubmitCommand=(const char*)tmpbuf;
  }
  else{
@@ -137,8 +141,11 @@ if(RF){
    re->Status=DPS::Producer::ToBeRerun;
    re->UpdateFreq=100;
    re->DieHard=0;
-   re->FilePath=(const char*)NS;
-   _rq.push(re); 
+   re->OutputDirPath=(const char*)NS;
+   time_t tt;
+   time(&tt);
+   re->SubmitTime=tt; 
+   if(fbin.good())_rq.push(re); 
 //    cout <<++cur<<" "<<re->Run<<endl;
   }
  }
@@ -150,25 +157,26 @@ else{
 }
 }
 
-Server_impl::Server_impl(PortableServer::POA_ptr poa, char* NS, char * NH): POA_DPS::Server(),AMSServerI(AMSID("Server",0)){
+Server_impl::Server_impl(PortableServer::POA_ptr poa, CORBA::ORB_ptr orb, char* NS, char * NH): POA_DPS::Server(),AMSServerI(AMSID("Server",0)){
 //Here init asl
 
  PortableServer::ObjectId_var oid=poa->activate_object(this);
  _ref = reinterpret_cast<DPS::Server_ptr>(poa->id_to_reference(oid));
+ _refstring=orb->object_to_string(_ref);
 if(NS){
  ifstream fbin;
  fbin.open(NS);
  if(fbin){
-   DPS::Client::NominalClient_var _ncl= new DPS::Client::NominalClient();
+   _ncl= new DPS::Client::NominalClient();
    if(fbin.get()=='#')fbin.ignore(1024,'\n');
    else fbin.seekg(fbin.tellg()-sizeof(char));
    fbin>>_ncl->MaxClients>>_ncl->CPUNeeded>>_ncl->MemoryNeeded;
    char tmpbuf[1024];
    fbin>>tmpbuf;
    _ncl->WholeScriptPath=(const char*)tmpbuf;
-   fbin>>tmpbuf;
+   fbin.getline(tmpbuf,1024);
    _ncl->LogPath= (const char*)tmpbuf;
-   fbin>>tmpbuf;
+   fbin.getline(tmpbuf,1024);
     _ncl->SubmitCommand=(const char*)tmpbuf;
  }
  else{
@@ -188,9 +196,15 @@ if(NH){
    fbin>>tmpbuf;
    nh->HostName=(const char*)tmpbuf;
    fbin>>tmpbuf;
+   nh->Interface=(const char*)tmpbuf;
+   AString hn((const char*)(nh->HostName));
+   hn+=".";
+   hn+=(const char*)nh->Interface;
+   nh->HostName=(const char *)hn;
+   fbin>>tmpbuf;
    nh->OS= (const char*)tmpbuf;
    fbin>>nh->CPUNumber>>nh->Memory>>nh->Clock;
-   _nhl.push_back(nh);  
+   if(fbin.good())_nhl.push_back(nh);  
  }
  }
  else{
@@ -198,6 +212,7 @@ if(NH){
   abort();
 }
 }
+     _init();
 
 }
 
@@ -214,6 +229,9 @@ void Producer_impl::_init(){
    else ah->Status=DPS::Client::NoResponse; 
    ah->ClientsProcessed=0;
    ah->ClientsFailed=0;
+   ah->ClientsRunning=0;
+   ah->ClientsAllowed=min((*i)->CPUNumber/_ncl->CPUNeeded,(*i)->Memory/float(_ncl->MemoryNeeded));
+ 
    time_t tt;
    time(&tt);
    ah->LastUpdate=tt;
@@ -226,8 +244,83 @@ void Producer_impl::_init(){
  }
 }
 
+void Server_impl::_init(){
+// here connect to servers
+ Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+ if(_pser){
+  typedef list<DPS::Server::NominalHost_var>::const_iterator NHLI;
+  typedef list<DPS::Server::NominalHost_var> NHL;
+  for(NHLI i=(_pser->getNHL()).begin();i!=(_pser->getNHL()).end();++i){
+   DPS::Client::ActiveHost_var ah= new DPS::Client::ActiveHost();
+   ah->HostName=CORBA::string_dup((*i)->HostName);
+   if(_pser->pingHost((const char*)(ah->HostName)))ah->Status=DPS::Client::OK; 
+   else ah->Status=DPS::Client::NoResponse; 
+   ah->ClientsProcessed=0;
+   ah->ClientsFailed=0;
+   ah->ClientsRunning=0;
+   ah->ClientsAllowed=min((*i)->CPUNumber/_ncl->CPUNeeded,(*i)->Memory/float(_ncl->MemoryNeeded));
+ 
+   time_t tt;
+   time(&tt);
+   ah->LastUpdate=tt;
+   _ahl.push_back(ah);
+  }
+ }
+ else{
+  cerr<<"Server_impl::_init-F-UnableToConnectToServer"<<endl;
+  abort();
+ }
+ // Registered itself in _acl
+DPS::Client::ActiveClient_var as= new DPS::Client::ActiveClient();
+     
+     (as->id).uid=_Submit;
+     (as->id).pid=getpid();
+     (as->id).ppid=getppid();
+     char name[256];
+     int len=255;
+     if(gethostname(name,len)){
+       cerr<<"Server_impl-ctor-S-UnableToGetHostName"<<endl;
+       (as->id).HostName=(const char *) " ";
+     }
+     else (as->id).HostName=(const char *) name;
+     as->IOR= CORBA::string_dup(_refstring);
+     as->Type=DPS::Client::Server;
+     as->Status=DPS::Client::Registered;
+     time_t tt;
+     time(&tt);
+     as->LastUpdate=tt;     
+     as->Start=tt;
+     _asl.push_back(as);
+//   Find corr server
+ for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+  if(strstr((const char *)((*i)->HostName),(const char *)((as->id).HostName))){
+   ((*i)->ClientsRunning)++;
+   break;
+  }
+ }
 
-void Producer_impl::sendId(const DPS::Client::CID& cid, int p, int e) throw (CORBA::SystemException){
+}
+
+
+CORBA::Boolean Producer_impl::sendId(const DPS::Client::CID& cid, int p, int e) throw (CORBA::SystemException){
+     for(ACLI j=_acl.begin();j!=_acl.end();++j){
+      if(((*j)->id).uid==cid.uid){
+       ((*j)->id).pid=cid.pid;
+       ((*j)->id).ppid=cid.ppid;
+       (*j)->Status=DPS::Client::Registered;
+       time_t tt;
+       time(&tt);
+       (*j)->LastUpdate=tt;
+#ifdef __AMSDEBUG__
+       cout <<"Producer_impl::sendId-I-RegClient "<<cid.pid<<" "<<cid.ppid<<endl;
+       return false;
+#endif 
+       return true;
+      }
+     }
+     return false;
+
+
 }
 
 
@@ -270,7 +363,7 @@ DPS::Producer::RunEvInfo *  Producer_impl::getRunEvInfo(int p,int e) throw (CORB
 
 
 
-  void Server_impl::sendId(const DPS::Client::CID& cid, int p, int e) throw (CORBA::SystemException){
+  CORBA::Boolean Server_impl::sendId(const DPS::Client::CID& cid, int p, int e) throw (CORBA::SystemException){
 }
 
    void Server_impl::getACL(ACS_out acl)throw (CORBA::SystemException){
@@ -310,7 +403,7 @@ DPS::Producer::RunEvInfo *  Producer_impl::getRunEvInfo(int p,int e) throw (CORB
 void AMSServer::SystemCheck(){
 // Here run Start,Stop,Kill,Check Clients
 
-for(AMSServerI * pcur=_pser; pcur; pcur->down()?pcur->down():pcur->next()){
+for(AMSServerI * pcur=_pser; pcur; pcur=pcur->down()?pcur->down():pcur->next()){
  pcur->StartClients();
  pcur->CheckClients();
  pcur->KillClients();
@@ -326,12 +419,66 @@ void AMSServer::UpdateDB(){
 
 void Producer_impl::StartClients(){
 
-if(_acl.size()<_ncl->MaxClients && _acl.size()<_rq.size()){
  // Check if there are some hosts to run on
- 
+ _ahl.sort(Prio());
+ for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+  if(_acl.size()<_ncl->MaxClients && _acl.size()<_rq.size()){
+  if((*i)->Status!=NoResponse){
+    int curc=0;
+    for(ACLI j=_acl.begin();j!=_acl.end();++j){
+     if( ((*j)->id).HostName == (*i)->HostName){
+      if(++curc>=(*i)->ClientsAllowed)break;
+     } 
+    }   
+    if(curc>=(*i)->ClientsAllowed)break;
+    // HereStartClient
+#ifdef __AMSDEBUG__
+    cout <<_refstring<<endl;
+#endif
+    AString submit;
+    submit+=(const char*)(_ncl->SubmitCommand);  
+    submit+=" ";
+    submit+=(const char*)((*i)->HostName);
+    submit+=" ";
+    submit+=(const char*)(_ncl->LogPath);  
+    _Submit++;
+    submit+="Producer.";
+    char tmp[80];
+    sprintf(tmp,"%d",_Submit);
+    submit+=tmp;
+    submit+=".log ";
+    submit+=(const char*)(_ncl->WholeScriptPath);  
+    submit+=" -";
+    submit+=(const char*) _refstring;
+    submit+=" -U";
+    submit+=tmp;
+#ifdef __AMSDEBUG__
+    submit+=" -D1";
+#endif
+    int out=system(submit);
+    if(out==0){
+     // Add New Active Client
+     DPS::Client::ActiveClient_var ac=new DPS::Client::ActiveClient();
+     (ac->id).HostName=CORBA::string_dup((*i)->HostName);
+     (ac->id).uid=_Submit;
+     ac->IOR= (const char *) " ";
+     ac->Type=DPS::Client::Producer;
+     ac->Status=DPS::Client::Submitted;
+     time_t tt;
+     time(&tt);
+     ac->LastUpdate=tt;     
+     ac->Start=tt;
+     _acl.push_back(ac);
+     ((*i)->ClientsRunning)++;
+    }
+    else{
+     cerr<<"Producer_impl::StartClients-E-UnableToStartClient "<<submit<<endl;
+    }
+   }
+  } 
+ }  
 }
 
-}
 
 void Producer_impl::KillClients(){
 }
@@ -340,6 +487,9 @@ void Producer_impl::CheckClients(){
 }
 
 void Server_impl::StartClients(){
+if(_asl.size()<_ncl->MaxClients ){
+  //Starting Servers Here
+}
 }
 
 void Server_impl::KillClients(){

@@ -12,6 +12,8 @@
 #include <node.h>
 
 class AMSServerI : public AMSNode{
+ protected:
+ unsigned long _Submit;
  public:
  virtual void StartClients()=0;
  virtual void CheckClients()=0; 
@@ -21,7 +23,7 @@ class AMSServerI : public AMSNode{
   AMSServerI * prev(){return dynamic_cast<AMSServerI*>(AMSNode::prev());}
   AMSServerI * up(){return   dynamic_cast<AMSServerI*>(AMSNode::up());}
   AMSServerI * down(){return dynamic_cast<AMSServerI*>(AMSNode::down());}
-  AMSServerI(AMSID id):AMSNode(id){};
+  AMSServerI(AMSID id):AMSNode(id),_Submit(0){};
 };
 
 class Producer_impl : public virtual POA_DPS::Producer, public AMSServerI{
@@ -30,10 +32,16 @@ class Prio{
  public:
  bool operator()(const DPS::Producer::RunEvInfo_var &a,const DPS::Producer::RunEvInfo_var &b){
  return a->Priority<b->Priority;}
+ bool operator()(const DPS::Client::ActiveHost_var &a,const DPS::Client::ActiveHost_var &b){
+if(a->Status == b->Status || b->Status==OK)return false;
+else if(a->Status != NoResponse)return true;
+else return false;
+}
 };
 typedef  priority_queue<DPS::Producer::RunEvInfo_var,vector<DPS::Producer::RunEvInfo_var>,Prio> RunQueue;
 //typedef list<DPS::Producer::RunEvInfo> RunQueue;
 DPS::Producer_mgr _ref;
+CORBA::String_var _refstring;
 RunQueue _rq;
 typedef list<DPS::Client::ActiveClient_var> ACL;
 typedef list<DPS::Client::ActiveClient_var>::iterator ACLI;
@@ -47,7 +55,7 @@ public:
  virtual void StartClients();
  virtual void CheckClients(); 
  virtual void KillClients();
-   void sendId(const DPS::Client::CID& cid, int p, int e) throw (CORBA::SystemException);
+   CORBA::Boolean sendId(const DPS::Client::CID& cid, int p, int e) throw (CORBA::SystemException);
   void _init();
   virtual void getACL(ACS_out acl)throw (CORBA::SystemException);
   virtual void getNCL(NCS_out ncl)throw (CORBA::SystemException);
@@ -60,25 +68,29 @@ public:
   void sendEndRunInfo(const  EndRunInfo & ne, int Propagate, int Error)throw (CORBA::SystemException);
 
   virtual DPS::Producer::RunEvInfo *  getRunEvInfo(int p,int e)throw (CORBA::SystemException);
-  Producer_impl(PortableServer::POA_ptr poa, char * NC=0, char* RF=0, char* NS=0, char * TS=0);
+  Producer_impl(PortableServer::POA_ptr poa, CORBA::ORB_ptr orb, char * NC=0, char* RF=0, char* NS=0, char * TS=0);
 };
 class Server_impl : public virtual POA_DPS::Server, public AMSServerI{
 protected:
+typedef list<DPS::Client::ActiveHost_var> AHL;
+typedef list<DPS::Client::ActiveHost_var>::iterator AHLI;
+AHL  _ahl;
 typedef list<DPS::Client::ActiveClient_var> ACL;
 typedef list<DPS::Client::ActiveClient_var>::iterator ACLI;
-ACL  _acl;
+ACL  _asl;     // Active Server List
 DPS::Client::NominalClient_var _ncl;
 typedef list<DPS::Server::NominalHost_var> NHL;
 NHL  _nhl;
 DPS::Server_mgr _ref;
+CORBA::String_var _refstring;
 public:
  NHL & getNHL(){return _nhl;}
  AMSServerI * getServer(){return this;}
  virtual void StartClients();
  virtual void CheckClients(); 
  virtual void KillClients();
-  void _init(){};
-  virtual void sendId(const DPS::Client::CID& cid, int p, int e) throw (CORBA::SystemException);
+  void _init();
+  CORBA::Boolean sendId(const DPS::Client::CID& cid, int p, int e) throw (CORBA::SystemException);
    void getACL(ACS_out acl)throw (CORBA::SystemException);
    void getAHL(AHS_out ahl)throw (CORBA::SystemException);
    void getNCL(NCS_out ncl)throw (CORBA::SystemException);
@@ -87,7 +99,7 @@ public:
   void sendAHL(const AHS & ahl, int Propagate,int Error)throw (CORBA::SystemException);
   void sendNCL(const NCS & ncl, int Propagate,int Error)throw (CORBA::SystemException);
   void ping()throw (CORBA::SystemException);
-  Server_impl(PortableServer::POA_ptr poa, char * NS=0, char* NH=0);
+  Server_impl(PortableServer::POA_ptr poa, CORBA::ORB_ptr orb, char * NS=0, char* NH=0);
   ~Server_impl(){if(_down)_down->remove();}
   bool pingHost(const char * host);
 };
