@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.21 2001/05/17 22:13:53 choutko Exp $
+//  $Id: richdbc.C,v 1.22 2001/05/21 13:32:34 choutko Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -314,9 +314,9 @@ geant RICHDB::max_step(){
         197.327*6.28*(1/RICHDB::wave_length[RICmaxentries-1]
 	-1/RICHDB::wave_length[0])*charge*charge;
   geant max=RICmaxphotons/dndl;
-#ifdef __AMSDEBUG__
-  cout << "Max step "<<max<<" cm"<<RICmaxphotons<<endl;
-#endif
+//#ifdef __AMSDEBUG__
+  cout << "Max step "<<max<<" cm "<<charge<<endl;
+//#endif
   return max;
 }
 

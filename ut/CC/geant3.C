@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.52 2001/05/17 22:13:52 choutko Exp $
+//  $Id: geant3.C,v 1.53 2001/05/21 13:32:34 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -418,13 +418,13 @@ extern "C" void gustep_(){
 //     GCKING.iflgk[i]=1;
    }
   }
-  GCTRAK.upwght=0; 
+  GCTRAK.upwght=0;
+  if(GCNUMX.NALIVE+GCKING.ngkine>2000)throw AMSTrTrackError("SecondaryStackOverflows"); 
   GSKING(0);
   GCTRAK.upwght=1; //cerenkov tracked first  
   for(integer i=0;i<GCKIN2.ngphot;i++){
     if(RICHDB::detcer(GCKIN2.xphot[i][6])){
-       if(GCNUMX.NALIVE>2000)throw AMSTrTrackError("SecondaryStackOverflows");
-
+       if(GCNUMX.NALIVE>2000)throw AMSTrTrackError("SecondaryPhStackOverflows");
        GSKPHO(i+1);
        //cout << " NALIVE " <<GCNUMX.NALIVE<<endl;
     }
@@ -455,8 +455,8 @@ GDCXYZ();
 //    AMSEvent::gethead()->Recovery();
     }
    catch (AMSTrTrackError e){
-    cerr << "GUSTEP  "<< e.getmessage();
-    GCTRAK.istop =1;
+    cerr << "GUSTEP  "<< e.getmessage()<<endl;
+     AMSEvent::gethead()->seterror(2);
    }
   if(trig==0 && freq>1)AMSgObj::BookTimer.stop("GUSTEP");
    //  cout <<" gustep out"<<endl;

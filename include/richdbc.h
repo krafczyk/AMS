@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.19 2001/05/17 22:13:54 choutko Exp $
+//  $Id: richdbc.h,v 1.20 2001/05/21 13:32:35 choutko Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -48,7 +48,7 @@ const integer RICentries=44;   // no. of entries in wave_length,eff...
 const integer RICmaxpmts=2000; // max no. of pmts
 const integer RICnwindows=16;  // Number of windows for pmt
 const integer RIChistos=30000; // Starting point for RICH histos 
-const integer RICmaxphotons=800; //Max mean number of photons generated
+const integer RICmaxphotons=500; //Max mean number of photons generated
 
 // Particle types
 
