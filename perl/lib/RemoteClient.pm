@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.42 2002/04/11 14:17:56 choutko Exp $
+# $Id: RemoteClient.pm,v 1.43 2002/05/16 11:07:25 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -1372,8 +1372,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              foreach my $dataset (@{$self->{DataSetsT}}){
               print "<INPUT TYPE=\"radio\" NAME=\"CTT\" VALUE=$dataset->{name} >$dataset->{name}<BR>\n";
              print "</b></font></td></tr>\n";
-             print "</TABLE>\n";
           }
+           print "</TABLE>\n";
           print "</TABLE>\n";
           print "<p>\n";
           print "<br>\n";
@@ -1704,6 +1704,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           }
           print "</select>\n";
           print "</b></td></tr>\n";
+          htmlTextField("Nick Name","text",24,"MC02-basic","QNick"," ");  
           print "</TABLE>\n";
 # Run Parameters
           print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
@@ -1801,6 +1802,12 @@ DDTAB:         $self->htmlTemplateTable(" ");
          } elsif($self->{q}->param("CTT") eq "Advanced"){
              htmlTop();
              $self->htmlTemplateTable("Select  Parameters for Advanced Request");
+# Job Nick Name
+          print "<tr><td><b><font color=\"red\">Job Nick Name</font></b>\n";
+          print "</td><td>\n";
+          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+          htmlTextField("Nick Name","text",24,"MC02-advanced","QNick"," ");  
+          print "</TABLE>\n";
 # Run Parameters
               print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
               print "</td><td>\n";
@@ -2007,6 +2014,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
             }
             print "</select>\n";
             print "</b></td></tr>\n";
+            htmlTextField("Nick Name","text",24,"MC02-dataset","QNick"," ");  
             print "</TABLE>\n";
 # Run Parameters
               print "<tr><td><b><font color=\"blue\">Run Parameters</font></b>\n";
