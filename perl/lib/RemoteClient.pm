@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.263 2004/04/26 13:58:07 alexei Exp $
+# $Id: RemoteClient.pm,v 1.264 2004/05/06 07:29:57 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1164,7 +1164,7 @@ sub ValidateRuns {
                                      TIMESTAMP=$timenow  
                             WHERE JID = $run->{Run}";
           $self->{sqlserver}->Update($sql);
-          print FILEV $sql;
+          print FILEV "$sql \n";
 # validate ntuples
 # Find corresponding ntuples from server
              foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
@@ -1274,7 +1274,7 @@ sub ValidateRuns {
                                 $cmd = "rm -i $outputpath";
                                }
                                my $rstat = system($cmd);
-                               print FILEV "Remove bad file $cmd";
+                               print FILEV "Remove bad file $cmd \n";
                            }
                          }
                        }  # ntuple status 'OK'
@@ -6409,12 +6409,14 @@ sub listJobs {
     my $sql  = undef;
     my $href = undef;    
 
+    my $timenow = time();
+    my $timelate= $timenow - 30*24*60*60 +1; # list jobs submitted 30 days ago or earlier
 
     my @runId     = ();
     my @runStatus = ();
 
     print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
-    htmlTable("MC02 Jobs (only 25 latest jobs/cite are printed)");
+    htmlTable("MC02 Jobs (25 latest jobs per cite submitted earlier than 30 days ago)");
     print_bar($bluebar,3);
 
 
@@ -6440,7 +6442,8 @@ sub listJobs {
                  Mails.name  
            FROM   Jobs, Cites, Mails  
             WHERE  Jobs.cid=Cites.cid AND 
-                     Jobs.mid=Mails.mid 
+                     Jobs.mid=Mails.mid AND
+                      Jobs.timestamp > $timelate 
              ORDER  BY Cites.name, Jobs.jid DESC";
 
      my $r3=$self->{sqlserver}->Query($sql);
@@ -9123,8 +9126,8 @@ sub getOutputPath {
 #
 
 # get production set path
-     $sql = "SELECT disk, path, available  FROM filesystems WHERE AVAILABLE > $MIN_DISK_SPACE
-                   ORDER BY priority DESC, available DESC";
+     $sql = "SELECT disk, path, available, allowed  FROM filesystems WHERE AVAILABLE > $MIN_DISK_SPACE
+                  AND allowed > occupied+10 ORDER BY priority DESC, available DESC";
      $ret = $self->{sqlserver}->Query($sql);
      foreach my $disk (@{$ret}) {
       $outputdisk = trimblanks($disk->[0]);
@@ -9789,9 +9792,11 @@ sub getEventsLeft {
    $perc = sprintf("%2.1f",($TotalProcessed*100/$TotalTotal));
   }
 
+  my $cpud = sprintf("%6.1f",$TotalCPU);
+  my $cpum = sprintf("%6.1f",$TotalMore);
   my $perccpu = sprintf("%3.1f",($TotalCPU*100/($TotalMore+$TotalCPU)));
   print "Total Events : $TotalTotal, Processed : $TotalProcessed, % Events : $perc\n";
-  print "CPU : $TotalCPU days,  CPU more  : $TotalMore CPU days, % CPU : $perccpu \n";
+  print "CPU : $cpud days,  CPU more  : $cpum CPU days, % CPU : $perccpu \n";
   
 }
 
