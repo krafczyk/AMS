@@ -158,7 +158,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
     int nh;
     integer status;
     TriggerLVL3 *plvl3=(TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0); 
-    if(!ptrack->checkstatus(AMSDBc::FalseTOFX) &&( (!ptrack->checkstatus(AMSDBc::FalseX) && !ptrack->checkstatus(AMSDBc::WEAK)) || (!plvl3 || plvl3->LVL3HeavyIon() ))){ 
+    if(!ptrack->checkstatus(AMSDBc::FalseTOFX) &&  !ptrack->checkstatus(AMSDBc::WEAK) && ( (!ptrack->checkstatus(AMSDBc::FalseX) ) || (!plvl3 || plvl3->LVL3HeavyIon() ))){ 
      for(nh=0;nh<nhit;nh++){
       status=pthit[nh]->getstatus();
       if((status&SCBADB2)!=0 && (status&SCBADB5)!=0){//tempor  use now only TOF-recovered
