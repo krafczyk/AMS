@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.120 2003/04/24 11:24:24 alexei Exp $
+# $Id: RemoteClient.pm,v 1.121 2003/04/24 11:37:01 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2159,21 +2159,21 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           print "</b></td></tr>\n";
           htmlTextField("Nick Name","text",24,"MC02-basic","QNick"," ");  
           print "</TABLE>\n";
-# Cite HW Parameters
-          print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b></i> \n";
-          print "</td><td>\n";
-          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+# Cite Parameters
+              print "<tr><td><b><font color=\"blue\">Cite HW Parameters</font></b>\n";
+              print "</td><td>\n";
+              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
               print "<tr valign=middle><td align=left><b><font  size=\"-1\"> CPU Type :</b>
                      </td><td colspan=1>\n";
               print "<select name=\"QCPUType\" >\n";
                my %hash=%{$self->{cputypes}};
-               my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$self->{cputypes}};
+               my @keysa=sort {$hash{$b} <=>$hash{$a}} keys %{$self->{cputypes}};
               foreach my $cputype (@keysa) {
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-          htmlTextField("CPU clock","number",8,100,"QCPU"," [MHz]");  
-          htmlTableEnd();
+              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");  
+              htmlTableEnd();
 # Job Parameters
           print "<tr><td><b><font color=\"blue\">Job Parameters</font><font color=\"black\">
                  <i> (if in italic then cannot be changed)</font></b></i> \n";
@@ -2211,16 +2211,14 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-# Apr 1.2003 set default transfer to 'No' for both mode - remote/local
-#            if ($self->{CCT} eq "remote") {
-#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
-#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
-#            } 
-#
-#else {
+            if ($self->{CCT} eq "remote") {
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+            } 
+
+else {
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
-#            }
+            }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
             if ($self->{CCT} eq "remote") {
@@ -2229,8 +2227,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Standalone </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> Client </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" CHECKED><b> Standalone </b><BR>\n";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
@@ -2298,7 +2295,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-              htmlTextField("CPU clock","number",10,100,"QCPU"," [MHz]");  
+              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");  
               htmlTableEnd();
 # Job Parameters
               print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
@@ -2353,18 +2350,11 @@ DDTAB:         $self->htmlTemplateTable(" ");
            htmlTableEnd();
             if ($self->{CCT} eq "remote") {
              print "<tr><td>\n";
-             print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
-             print "<font color=\"green\" size=2>
-                  <i>(<b> STANDALONE</b>  mode if <b> Yes </b>, <BR>\n";
-             print "  communicate via <b> SERVER </b> if <b> NO</b>)
-                      </i></font></b>\n";
-
+             print "<b><font color=\"green\">MC Production Mode</font></b><BR>\n";
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> No </b><BR>\n";
-#             print "<input type=\"checkbox\" name=\"STALONE\" value=\"No\"><b> Yes </b>";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" CHECKED><b> Standalone </b><BR>\n";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
@@ -2373,13 +2363,12 @@ DDTAB:         $self->htmlTemplateTable(" ");
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
 # Apr 1.2003 set default transfer to 'No' for both mode - remote/local
-#            if ($self->{CCT} eq "remote") {
-#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" CHECKED><b> Yes </b><BR>\n";
-#             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" ><b> No </b><BR>\n";
-#            } else {
+            if ($self->{CCT} eq "remote") {
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+            } else {
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
              print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
-#            }
+            }
             print "</b></font></td></tr>\n";
            htmlTableEnd();
             print "<tr><td><b><font color=\"red\">Spectrum and Focusing</font></b>\n";
@@ -2499,7 +2488,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                   push @tempnam, $cite->{filename};
                   $hash->{$cite->{filename}}=$cite->{filedesc};
                   push @desc, $hash -> {$cite->{filename}}=$cite->{filedesc};
-                 }
+              }
              }
              htmlTop();
              $self->htmlTemplateTable("Select  Parameters for Dataset Request");
@@ -3562,7 +3551,7 @@ print qq`
          $ri->{cinfo}->{HostName}=" ";
          push @{$self->{Runs}}, $ri; 
          $run=$run+1;
-     }
+        }
          if ($self->{CCT} eq "remote"){
           my $i=system("gzip -f $file2tar");
           if($i){
@@ -3631,13 +3620,15 @@ print qq`
 #
 # Add files to server
 #                    
-        if(defined $self->{dbserver}){
+        if(defined $self->{dbserver} ){
+            if($self->{dwldaddon}==0){
             foreach my $ri (@{$self->{Runs}}){
               DBServer::sendRunEvInfo($self->{dbserver},$ri,"Create");
             }
             my $lu=time();
             $sql="update Servers set lastupdate=$lu where dbfilename='$self->{dbfile}'";
             $self->{sqlserver}->Update($sql);
+            }
         }
         else{
             $self->ErrorPlus("Unable To Communicate With Server");
