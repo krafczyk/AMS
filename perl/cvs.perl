@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w       
+#!/usr/local/bin/perl -w       
 use strict;
 use Carp;
 my $cvsroot=$ENV{CVSROOT};
