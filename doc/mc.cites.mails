@@ -26,7 +26,8 @@ diego.caraffini@pg.infn.it         : Diego Caraffini         : 0 : 12 : 0 : :
 mariusz.sapinski@gamum2.in2p3.fr   : Mariusz Sapinski        : 1 :  8 : 0 : :
 paolo.maestro@pi.infn.it           : Paolo Maestro           : 1 : 13 : 0 : :
 alexandre.eline@cern.ch            : Alexandre Eline         : 0 :  1 : 0 : :
-alexandre.malinine@cern.ch         : Alexandre Malinine      : 0 : 16 : 0 : :
+alexandre.malinine@cern.ch         : Alexandre Malinine      : 1 : 16 : 0 : :
+chikanian@hepmail.physics.yale.edu : Alexei Chikanian        : 1 : 17 : 0 : : 
 #----------------------------------------------------------------------------
 #                                                                         Last Edit : Apr 23, 2003
 # CITES
@@ -49,6 +50,7 @@ INFN and Univ. Siena                    : siena   : 13  :  0   : remote : /f2use
 Academia Sinica Taiwan                  : taiwan  : 14  :  0   : remote : /f2users/scratch/MC : 47 :
 IN2P3 Annecy                            : lyon    : 15  :  0   : remote : /f2users/scratch/MC : 17 :
 University of Mariland                  : umd     : 16  :  0   : remote : /f2users/scratch/MC : 10 :
+Yale University                         : yale    : 17  :  0   : remote : /f2users/scratch/MC :  2 :
 #----------------------------------------------------------------------------------------------------
 #
 # FILESYSTEMS
