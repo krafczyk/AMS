@@ -36,7 +36,7 @@
  */
 
 #!/usr/bin/env python2.2
-# If the previous commans does not work, look for something like: 
+# If the previous command does not work, look for something like: 
 #  /afs/cern.ch/asis/packages/GNU.LANG/python-2.2.2/i386_redhat73/usr.local/bin/python2.2
 #
 #   Program to plot any AMS variable
