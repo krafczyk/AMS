@@ -85,7 +85,7 @@ int main (int argc, char *argv[]) {
          if(nptr>0){
           cout <<"ShuttlePar-I-Found "<<nptr <<" entries"<< endl;
            int i;
-           for(i=0;i<nptr;i++)cout<<namelist[i]->d_name<<endl;    
+           //for(i=0;i<nptr;i++)cout<<namelist[i]->d_name<<endl;    
            for(i=0;i<nptr;i++){
              convert(i,nptr-i-1,namelist[i]->d_name);
            }
