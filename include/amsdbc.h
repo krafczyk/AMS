@@ -39,7 +39,7 @@ private:
    static const integer _boundladshuttle[nl];
    static const number _PlMarkerPos[2][nl][4][3];  // 1st wjb
                                                    // 2nd hasan
-
+   static uinteger * _Cumulus;
 public:
 
 #ifdef __DB__
@@ -73,7 +73,7 @@ public:
      static const integer FalseX;
      static const integer FalseTOFX;
      static const integer RECOVERED;
-
+     static const integer LocalDB;
 
 // machine dependent values
 
@@ -120,6 +120,8 @@ inline static  number  PlMarkerPos(int i,int j,int k,int l)
    inline static number zelec(integer i, integer j){return _zelec[i][j];}
 
    inline static integer nlay(){return _nlay;}
+   static uinteger Cumulus(integer ilay);
+
    inline static integer nlad(integer ilay){
      #ifdef __AMSDEBUG__
      if(AMSDBc::debug){

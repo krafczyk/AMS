@@ -246,13 +246,14 @@ public:
 class AMSTrTrack: public AMSlink{
 protected:
 AMSTrRecHit * _Pthit[6];
-
+uinteger _Address;
 integer _Pattern;
 integer _NHits;
 integer _FastFitDone;
 integer _GeaneFitDone;
 integer _AdvancedFitDone;
-
+AMSPoint _Hit[6];
+AMSPoint _EHit[6];
 number _Chi2StrLine;
 number _Chi2Circle;
 number _CircleRidgidity;
@@ -298,6 +299,10 @@ static integer patpoints[npat];
 static integer patconf[npat][6];
 static integer patmiss[npat][6];
 static integer _RefitIsNeeded;
+void _crHit();
+inline  AMSPoint  getHit(int i){return _Hit[i];}
+inline  AMSPoint  getEHit(int i){return _EHit[i];}
+void _buildaddress();
 public:
   integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
@@ -306,7 +311,9 @@ integer operator < (AMSlink & o) const {
   if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
   else return 0;
 }
-
+  friend class AMSTrAligFit;
+  friend class AMSTrAligData;
+uinteger getaddress(){return _Address;}
 void   AdvancedFit(int forced=0);
 integer getpattern()const{return _Pattern;}
 static integer Out(integer);
@@ -376,6 +383,7 @@ number getgrid() const {return _GRidgidity;}
 number getrid() const {return _Ridgidity;}
 number gettheta() const {return _Theta;}
 number getphi() const {return _Phi;}
+friend class AMSTrCalibFit;
 };
 
 #endif

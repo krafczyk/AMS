@@ -101,12 +101,13 @@ public:
   number getsinmagmer()const{return _SinMagMeridian;}
 //+
 
+   AMSPoint getcoo() {return _Coo;}
+   AMSPoint gettofcoo(integer i) {return _TOFCoo[i];}
 #ifdef __DB__
    friend class AMSParticleD;
 
    number  geterrmass() {return _ErrMass;}
    number  geterrmomentum() {return _ErrMomentum;}
-   AMSPoint getcoo() {return _Coo;}
 
 
 #endif
@@ -118,6 +119,7 @@ AMSCTCCluster* getpctc(int n)   {  return n>=0 && n<2 ? _pctc[n]:0;}
 number  getmass() const {return _Mass;}
 number  getmomentum() const {return _Momentum;}
 number getcharge() const {return _Charge;}
+AMSPoint getcoo() const { return _Coo;}
    number  gettheta() {return _Theta;}
    number  getphi() {return _Phi;}
 

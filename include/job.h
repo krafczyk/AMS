@@ -139,8 +139,8 @@ void _tofendjob();
 void _antiendjob();
 void _axendjob();
 void _timeinitjob();
-static AMSNodeMap JobMap;
 public:
+static AMSNodeMap JobMap;
 
 
 #ifdef __DB__
@@ -233,6 +233,7 @@ void uhinit(integer run=0,integer pass=0);
 void urinit(integer pass=0);
 void uhend();
 AMSTimeID * gettimestructure();
+AMSNode * getaligstructure();
 AMSTimeID * gettimestructure(const AMSID & id);
 void printJ(ostream & stream);
 static integer debug;

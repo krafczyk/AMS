@@ -19,6 +19,7 @@
 #include <cont.h>
 #include <tkdbc.h>
 #include <trigger3.h>
+#include <tralig.h>
 
 
 
@@ -1984,6 +1985,10 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
   // fit =4  fast fit with ims=0
   // fit =5  geane fit with ims=0
 
+
+   // Create Proper Hit/Ehit things
+   _crHit();
+
   // Protection from too low mass
     if(ipart==2)ipart=5;
     if(ipart==3)ipart=6;
@@ -2006,8 +2011,8 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
     for(i=0;i<_NHits;i++){
      for(int j=0;j<3;j++){
       if (_Pthit[i]) {
-       hits[i][j]=_Pthit[i]->getHit()[j];
-       sigma[i][j]=_Pthit[i]->getEHit()[j];
+       hits[i][j]=getHit(i)[j];
+       sigma[i][j]=getEHit(i)[j];
       } else {
         cout <<"AMSTrTrack::Fit -W- _Pthit["<<i<<"] = NULL, j"<<j<<endl;
       }
@@ -2019,12 +2024,12 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       //fit 124
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=_Pthit[0]->getHit()[j];
-      sigma[0][j]=_Pthit[0]->getEHit()[j];
-      hits[1][j]=_Pthit[1]->getHit()[j];
-      sigma[1][j]=_Pthit[1]->getEHit()[j];
-      hits[2][j]=_Pthit[3]->getHit()[j];
-      sigma[2][j]=_Pthit[3]->getEHit()[j];
+      hits[0][j]=getHit(0)[j];
+      sigma[0][j]=getEHit(0)[j];
+      hits[1][j]=getHit(1)[j];
+      sigma[1][j]=getEHit(1)[j];
+      hits[2][j]=getHit(3)[j];
+      sigma[2][j]=getEHit(3)[j];
      }
       
     }
@@ -2032,12 +2037,12 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       //fit 123
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=_Pthit[0]->getHit()[j];
-      sigma[0][j]=_Pthit[0]->getEHit()[j];
-      hits[1][j]=_Pthit[1]->getHit()[j];
-      sigma[1][j]=_Pthit[1]->getEHit()[j];
-      hits[2][j]=_Pthit[2]->getHit()[j];
-      sigma[2][j]=_Pthit[2]->getEHit()[j];
+      hits[0][j]=getHit(0)[j];
+      sigma[0][j]=getEHit(0)[j];
+      hits[1][j]=getHit(1)[j];
+      sigma[1][j]=getEHit(1)[j];
+      hits[2][j]=getHit(2)[j];
+      sigma[2][j]=getEHit(2)[j];
      }
     }
     else{
@@ -2050,36 +2055,36 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       // fit 356
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=_Pthit[2]->getHit()[j];
-      sigma[0][j]=_Pthit[2]->getEHit()[j];
-      hits[1][j]=_Pthit[4]->getHit()[j];
-      sigma[1][j]=_Pthit[4]->getEHit()[j];
-      hits[2][j]=_Pthit[5]->getHit()[j];
-      sigma[2][j]=_Pthit[5]->getEHit()[j];
+      hits[0][j]=getHit(2)[j];
+      sigma[0][j]=getEHit(2)[j];
+      hits[1][j]=getHit(4)[j];
+      sigma[1][j]=getEHit(4)[j];
+      hits[2][j]=getHit(5)[j];
+      sigma[2][j]=getEHit(5)[j];
      }
     }
     else if(_Pattern <7){
       // fit 345
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=_Pthit[2]->getHit()[j];
-      sigma[0][j]=_Pthit[2]->getEHit()[j];
-      hits[1][j]=_Pthit[3]->getHit()[j];
-      sigma[1][j]=_Pthit[3]->getEHit()[j];
-      hits[2][j]=_Pthit[4]->getHit()[j];
-      sigma[2][j]=_Pthit[4]->getEHit()[j];
+      hits[0][j]=getHit(2)[j];
+      sigma[0][j]=getEHit(2)[j];
+      hits[1][j]=getHit(3)[j];
+      sigma[1][j]=getEHit(3)[j];
+      hits[2][j]=getHit(4)[j];
+      sigma[2][j]=getEHit(4)[j];
      }
     }
     else if(_Pattern <npat){
       // fit 234
       npt=3;
      for(int j=0;j<3;j++){
-      hits[0][j]=_Pthit[1]->getHit()[j];
-      sigma[0][j]=_Pthit[1]->getEHit()[j];
-      hits[1][j]=_Pthit[2]->getHit()[j];
-      sigma[1][j]=_Pthit[2]->getEHit()[j];
-      hits[2][j]=_Pthit[3]->getHit()[j];
-      sigma[2][j]=_Pthit[3]->getEHit()[j];
+      hits[0][j]=getHit(1)[j];
+      sigma[0][j]=getEHit(1)[j];
+      hits[1][j]=getHit(2)[j];
+      sigma[1][j]=getEHit(2)[j];
+      hits[2][j]=getHit(3)[j];
+      sigma[2][j]=getEHit(3)[j];
      }
     }
     else{
@@ -2093,6 +2098,12 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
 integer ims; 
 if(fit<4)ims=1;
 else ims=0;
+    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
+    if(pmcg){
+     number charge=pmcg->getcharge();    
+     number momentum=pmcg->getmom();
+     out[0]=charge/momentum;
+    }
 TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,out);
 if(fit==0){
 _FastFitDone=1;
@@ -2841,4 +2852,46 @@ integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number 
     }
   }
   return 1;
+}
+
+void AMSTrTrack::_crHit(){
+ // build address
+
+ _buildaddress();
+ integer found=0;
+ AMSTrAligPar * par(0);
+ if(!TRALIG.UpdateDB)AMSTrAligPar::SearchDB(_Address, found);
+  if(found){
+   for(int i=0;i<_NHits;i++){
+    int plane=patconf[_Pattern][i]-1;
+    for(int j=0;j<3;j++){
+     _Hit[i][j]=(par[plane].getcoo())[j]+
+      (par[plane].getmtx(j)).prod(_Pthit[i]->getHit());
+     _EHit[i][j]=(par[plane].getmtx(j)).prod(_Pthit[i]->getEHit());
+    }
+   }
+   setstatus(AMSDBc::LocalDB);
+  }
+  else{
+   for(int i=0;i<_NHits;i++){
+    int plane=patconf[_Pattern][i]-1;
+    for(int j=0;j<3;j++){
+     _Hit[i][j]=_Pthit[i]->getHit()[j];
+     _EHit[i][j]=_Pthit[i]->getEHit()[j];
+    }
+   }
+  }
+}
+
+void AMSTrTrack::_buildaddress(){
+  _Address=0;
+  for(int i=0;i<_NHits;i++){
+    AMSTrIdSoft id = _Pthit[i]->getClusterP(1)->getid();
+    int layer=id.getlayer();
+    int ladder=id.getdrp();
+    int half=id.gethalf();
+    _Address+=AMSDBc::Cumulus(layer)*(ladder+half*(AMSDBc::nlad(layer)));
+  } 
+  
+
 }

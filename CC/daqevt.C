@@ -760,5 +760,6 @@ void DAQEvent::SetEOFIn(){
    fbin.clear(fbin.rdstate() | ios::eofbit);
    if(fbin.eof())cout <<"DAQEvent::SetEOFIn-I-EOFSetForRun "<<_Run<<" "<<endl;
    else cerr <<"DAQEvent::SetEOFIn-E-EOFSetFailedForRun "<<_Run<<" "<<endl;
+   GCFLAG.IEORUN=0;
   }
 }

@@ -145,7 +145,7 @@ static void alfun(integer & n, number xc[], number & fc, AMSTrCalibFit * ptr);
 public:
 AMSTrCalibFit();
 AMSTrCalibFit(integer pattern, integer data, integer iter, integer alg, integer ipart);
-integer Test();
+integer Test(int i=0);
 void Fit();
 void Anal();
 static void SAnal();

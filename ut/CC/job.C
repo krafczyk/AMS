@@ -40,6 +40,7 @@
 #include <daqblock.h>
 #include <ntuple.h>
 #include <user.h>
+#include <tralig.h>
 //+
  integer        ntdvNames;               // number of TDV's types
  char*          tdvNameTab[maxtdv];      // TDV's nomenclature
@@ -294,7 +295,7 @@ for(i=0;i<2;i++){
 }
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
-TRCALIB.CalibProcedureNo=1;
+TRCALIB.CalibProcedureNo=0;
 TRCALIB.EventsPerCheck=100;
 TRCALIB.PedAccRequired[0]=0.12;
 TRCALIB.PedAccRequired[1]=0.09;
@@ -342,16 +343,47 @@ TRCALIB.Chi2Cut[1]=3;
 TRCALIB.Chi2Cut[2]=100;
 TRCALIB.Chi2Cut[3]=100;
 TRCALIB.PatStart=0;
+TRCALIB.MultiRun=0;
+TRCALIB.EventsPerRun=1001;
 for(int i=0;i<6;i++){
   TRCALIB.Ladder[i]=0;
   TRCALIB.ActiveParameters[i][0]=1;   // x
   TRCALIB.ActiveParameters[i][1]=1;   // y
   TRCALIB.ActiveParameters[i][2]=0;   // z
-  TRCALIB.ActiveParameters[i][3]=0;   // pitch
-  TRCALIB.ActiveParameters[i][4]=1;   // yaw
-  TRCALIB.ActiveParameters[i][5]=0;   // roll
+  TRCALIB.ActiveParameters[i][3]=0;   // pitch  zx
+  TRCALIB.ActiveParameters[i][4]=1;   // yaw    xy
+  TRCALIB.ActiveParameters[i][5]=0;   // roll   yz
 }
-FFKEY("TRCALIB",(float*)&TRCALIB,sizeof(TRCALIB_DEF)/sizeof(integer),"MIXED");
+ FFKEY("TRCALIB",(float*)&TRCALIB,sizeof(TRCALIB_DEF)/sizeof(integer),"MIXED");
+
+
+
+ TRALIG.InitDB=0;
+ TRALIG.ReWriteDB=0;
+ TRALIG.UpdateDB=0;
+ TRALIG.MaxPatternsPerJob=50;
+ TRALIG.MaxEventsPerFit=9999;
+ TRALIG.MinEventsPerFit=99;
+ for(i=0;i<9;i++){
+  TRALIG.Cuts[i][0]=0;
+  TRALIG.Cuts[i][1]=0;
+}
+  TRALIG.Cuts[0][1]=1;      // chi2 cut for alg=0
+  TRALIG.Cuts[1][0]=0.998;   // cos  cut for alg =0 
+  TRALIG.Cuts[2][0]=0.2;
+  TRALIG.Cuts[2][1]=5;
+TRALIG.Algorithm=0;
+for( i=0;i<6;i++){
+  TRALIG.ActiveParameters[i][0]=1;   // x
+  TRALIG.ActiveParameters[i][1]=1;   // y
+  TRALIG.ActiveParameters[i][2]=1;   // z
+  TRALIG.ActiveParameters[i][3]=1;   // pitch  zx
+  TRALIG.ActiveParameters[i][4]=1;   // yaw    xy
+  TRALIG.ActiveParameters[i][5]=1;   // roll   yz
+}
+
+ FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
+
 
 }
 
@@ -1233,6 +1265,11 @@ void AMSJob::_catkinitjob(){
 cout <<" AMSJob::_catkinitjob()-i_Initialized for Proc no  "<<TRCALIB.CalibProcedureNo<<endl;
 AMSgObj::BookTimer.book("CalTrFill");
 AMSgObj::BookTimer.book("CalTrFit");
+if(TRALIG.UpdateDB){
+
+  gethead()->addup( new AMSTrAligFit());
+
+}
 if(TRCALIB.CalibProcedureNo == 1 || TRCALIB.CalibProcedureNo==4){
   AMSTrIdCalib::initcalib();
 }
@@ -1842,6 +1879,23 @@ if(MISCFFKEY.BeamTest){
                           getstatustable()->getptr()));
 }
 
+{
+  tm begin;
+  tm end;
+  if(AMSFFKEY.Update==89){
+    begin=AMSmceventg::Orbit.Begin;
+    end=AMSmceventg::Orbit.End;
+    if(TRALIG.InitDB)AMSTrAligPar::InitDB();
+  }
+  else{
+     begin=AMSmceventg::Orbit.End;
+     end=AMSmceventg::Orbit.Begin;
+  }
+  AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID("TrAligDB",
+                          isRealData()),begin,end,AMSTrAligPar::gettraligdbsize(),
+                          AMSTrAligPar::gettraligdbp()));
+}
+
 
 if (AMSFFKEY.Update){
 
@@ -1872,6 +1926,15 @@ AMSTimeID * AMSJob::gettimestructure(){
       exit(1);
      }
      else return  (AMSTimeID*)p;
+}
+AMSNode * AMSJob::getaligstructure(){
+      AMSTrAligFit a;
+     AMSNode *p=JobMap.getp(AMSID(a.getname(),a.getid()));
+     if(!p){
+      cerr << "AMSJob::getaligtructure-F-no time structure found"<<endl;
+      exit(1);
+     }
+     else return  p;
 }
 
 AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
@@ -1987,13 +2050,27 @@ void AMSJob::uhinit(integer run, integer eventno){
 }
 
 void AMSJob::_tkendjob(){
-
+  if(isCalibration() & CTracker){
+    if(TRALIG.UpdateDB){
+       AMSTrAligFit::Test(1);  
+    }
+  }
   if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
     AMSTrIdCalib::check(1);
     AMSTrIdCalib::printbadchanlist();
   }
   if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 2){
    int i,j;
+for(i=0;i<nalg;i++){
+  if(TRCALIB.Method==0 || TRCALIB.Method==i){
+   for(j=TRCALIB.PatStart;j<tkcalpat;j++){
+     if(AMSTrCalibFit::getHead(i,j)->Test(1)){
+      AMSTrCalibFit::getHead(i,j)->Fit();
+     }
+  }
+ }
+}
+
    for(i=0;i<nalg;i++){
    if(TRCALIB.Method==0 || TRCALIB.Method==i){
     for(j=TRCALIB.PatStart;j<tkcalpat;j++){

@@ -29,6 +29,7 @@
 #include <ctcdbc.h>
 #include <timeid.h>
 #include <trcalib.h>
+#include <tralig.h>
 #include <trigger1.h>
 #include <trigger3.h>
 #include <antirec.h>
@@ -581,7 +582,7 @@ void AMSEvent::_regnevent(){
         seterror();
         cerr<<"Event & BeamPar disagree event says runtype = "<<hex<<
         AMSEvent::gethead()->getruntype()%32768<<" BeamPar says "<<hex<<
-        ArrayB[chint].RunTag<<" "<<dec<<chint<<" "<< ArrayB[chint].Time<< endl;
+        ArrayB[chint].RunTag<<" "<<dec<<chint<<" "<< ArrayB[chint].Time<<" ok"<< endl;
      }
       
       geant mom(ArrayB[chint].Mom);
@@ -958,6 +959,7 @@ void AMSEvent::_reamsevent(){
       // skip event if there is no mceventg record
       AMSContainer *p=getC("AMSmceventg",0);
       if(!p || p->getnelem()==0){
+        cerr <<"_reamsevent-E-NomceventgRecord" <<getrun()<<endl;
         if(!GCFLAG.IEORUN && MISCFFKEY.BeamTest>1)GCFLAG.IEORUN=2;  //skip entire run
         return;
       }
@@ -995,6 +997,7 @@ void AMSEvent::_caamsinitevent(){
 }
 
 void AMSEvent::_catkinitevent(){
+
   if(TRCALIB.CalibProcedureNo == 2){
    AMSEvent::gethead()->add (
    new AMSContainer(AMSID("AMSContainer:AMSTrCalibration",0),0));
@@ -1025,6 +1028,7 @@ void AMSEvent::_caamsevent(){
 
 void AMSEvent::_catkevent(){
   AMSgObj::BookTimer.start("CalTrFill");
+    if(TRALIG.UpdateDB)AMSTrAligFit::Test();
   if(TRCALIB.CalibProcedureNo == 1){
     AMSTrIdCalib::check();
   }
@@ -1032,7 +1036,10 @@ void AMSEvent::_catkevent(){
 int i,j;
 for(i=0;i<nalg;i++){
   if(TRCALIB.Method==0 || TRCALIB.Method==i){
-   for(j=TRCALIB.PatStart;j<tkcalpat;j++){
+   int ps=TRCALIB.PatStart;
+   int pe=tkcalpat;
+   if(TRCALIB.MultiRun)pe=ps+2;
+   for(j=ps;j<pe;j++){
      if(AMSTrCalibFit::getHead(i,j)->Test()){
       AMSgObj::BookTimer.start("CalTrFit");
       AMSTrCalibFit::getHead(i,j)->Fit();

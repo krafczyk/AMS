@@ -482,7 +482,22 @@ R45 Chi2Cut[4](3.,3.,100.,100.)                 // chi2 ---------------
 I49 ActiveParamaters[6][6];           // for each plane x,y,z, pitch,yaw,roll
 I85 Ladder[6](6*0)                    // ladder*10+half no for each plane 0=al 
 I91 PatStart(0) 
+I92 MultiRun(0)
+I93 EventsPerRun(2000)
 };
+
+
+TRALIG     // Tracker Alignment
+I1     InitDB(0);
+I2     ReWriteDB;(0)
+I3     UpdateDB(0);    // main switch
+I4     MaxEventsPerFit(9999);
+I5     MinEventsPerFit(999);
+I6     MaxPatternsPerJob(99);
+R7     Cuts[10][2];    // Cuts (left - right), not yet completely defined
+I27 Algorithm(0)    // 0 - exect mom, 1 - mom from beta
+I28 ActiveParameters[6][6](all 1); //   for each plane: x,y,z, pitch, yaw, roll
+
 
 
 

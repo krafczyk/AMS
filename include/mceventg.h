@@ -78,6 +78,9 @@ void gener();
 number getcharge()const {return _charge;}
 AMSDir getdir()const {return _dir;}
 number getmom()const {return _mom;}
+void setmom(number mom) { _mom=mom;}
+integer getpid()const {return _ipart;}
+number getmass() const {return _mass;}
 integer accept();
 integer acceptio();
 integer EarthModulation();

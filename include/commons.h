@@ -622,9 +622,29 @@ geant Chi2Cut[nalg];                // chi2 ---------------
 integer ActiveParameters[6][6]; //   for each plane: x,y,z, pitch, yaw, roll
 integer Ladder[6];            // ladder*10+half no for each plane 0 == all
 integer PatStart;
+integer MultiRun;
+integer EventsPerRun;
 };
 #define TRCALIB COMMON_BLOCK(TRCALIB,trcalib)
 COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);
+
+
+
+
+class TRALIG_DEF{
+public:
+integer InitDB;    
+integer ReWriteDB;
+integer UpdateDB;
+integer MaxEventsPerFit;
+integer MinEventsPerFit;
+integer MaxPatternsPerJob;
+geant Cuts[10][2];  
+integer Algorithm;     
+integer ActiveParameters[6][6]; //   for each plane: x,y,z, pitch, yaw, roll
+};
+#define TRALIG COMMON_BLOCK(TRALIG,tralig)
+COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);
 
 
 

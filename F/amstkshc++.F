@@ -5560,14 +5560,18 @@ CDECK  ID>, TKFITG.
 *
 *          if initial ims ==0 keep it switched off
 *
-           integer imsinit/0/,imskeep
+           integer imsinit/0/,imskeep/0/,ialgkeep/0/
            if(imsinit.eq.0)then
                imsinit=1
                imskeep=ims
+               ialgkeep=ialg
            endif
             call gfpart(ipart,cnn,itrt7,xmass,chrg,tlt7,uwb,nwb)
              if(imskeep.ne.0)then
               ims=imsa
+             endif
+             if(ialgkeep/10.ne.0)then
+               if(ialgo.eq.1)ialgo=11
              endif
              call tkfini
              ialg=mod(ialgo,10)
@@ -6057,6 +6061,13 @@ c                xms(i)=fact(i)*(xp(3,i)-xp(3,i-1))**2*(i-2)*2  ! last 2 - tubes
               enddo
              enddo
             enddo
+           if(icase/10.ne.0)then
+            do i=1,4
+             gg(i,5)=0
+             gg(5,i)=0
+            enddo
+            
+           endif
            call dsinv(5,gg(1,1),5,ifail)
            if(ifail.ne.0)then
              write(*,*) 'sinv gg ',ifail

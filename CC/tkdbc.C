@@ -3,6 +3,7 @@
 #include <astring.h>
 #include <job.h>
 #include <commons.h>
+#include <trcalib.h>
 TKDBc * TKDBc::_HeadSensor=0;
 TKDBc * TKDBc::_HeadLayer=0;
 TKDBc * TKDBc::_HeadLadder[2]={0,0};
@@ -110,6 +111,7 @@ else {
  _ReadOK=1;
  cout <<"TKDBc::read-I-"<<active<<" active sensors have been read from "<<fnam<<endl;
   compileg();
+  updatef();
 }
 
 }
@@ -122,7 +124,7 @@ else {
 }
 
 void TKDBc::compileg(){
-if(!TKGEOMFFKEY.UpdateGeomFile)return;
+if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
 
    // modify some sensors
    (_HeadSensor[621])._status=0;
@@ -181,11 +183,13 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
      char junk[256];
      for(j=0;j<80;j++){
        int ladder=10-j/20;
-       if(il==5)ladder=6+j/20;
+// Modified
+//       if(il==5)ladder=6+j/20;
        int seg=(j%20)/5;
        
        int half= seg%2==0?1:0;
-       if(il==5)half= seg%2==0?0:1;
+// Modified
+//       if(il==5)half= seg%2==0?0:1;
        int meas;
        if(seg==0)meas=j%20;
        else if(seg==1)meas=j%20-5;
@@ -199,7 +203,8 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
        fbin.ignore(INT_MAX,'\n');
        //cout <<meas <<" "<<j<<" "<<half<<" "<<ladder<<" "<<il<<endl;
        //cout <<CooLadder[ladder][half][meas]<<endl;
-       if(il==0){
+// Modified added
+       if(il==0 || il==5){
         CooLadder[ladder][half][meas][0]=-CooLadder[ladder][half][meas][0];
         CooLadder[ladder][half][meas][1]=-CooLadder[ladder][half][meas][1];
        }
@@ -211,7 +216,8 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
     for(j=0;j<4;j++){
      fbin>>junk>>junk;
        int meas;
-       if(il==0){
+// Modified added
+       if(il==0 || il==5){
         if(j==0)meas=1;
         else if(j==1)meas=0;
         else if(j==2)meas=3;
@@ -228,10 +234,11 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
        fbin>>CooMarkers[il][meas][2]>>junk;
        fbin.ignore(INT_MAX,'\n');
        // change here as plane 6 was wrong positioned
-       if(il==0){
+// Modified added
+       if(il==0 || il==5){
         CooMarkers[il][meas][0]*=-1;
         CooMarkers[il][meas][1]*=-1;
-       }
+      } 
        CooMarkers[il][meas][0]/=10.;
        CooMarkers[il][meas][1]/=10.;
        CooMarkers[il][meas][2]=0; 
@@ -254,7 +261,8 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
        }
       }
      }
-     if(il==0){
+// modified
+     if(il==0 || il==5){
       for(int k=6;k<12;k++){
        xPosLadder[k][0][0]=151;
        xPosLadder[k][0][1]=110;
@@ -777,9 +785,7 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
          integer status;
          integer rgid;
          GetLayer(TRLYGM.Layer,status,TRLYGM.CooO,nrm,rgid);
-         if(TKGEOMFFKEY.UpdateGeomFile==1 || TRLYGM.Layer!=1){
-          SetLayer(TRLYGM.Layer,status,TRLYGM.Coo,LayerNrm[il],rgid);
-         }
+         SetLayer(TRLYGM.Layer,status,TRLYGM.Coo,LayerNrm[il],rgid);
          TRLYGM.NrmO[0][0]=nrm[0][0];
          TRLYGM.NrmO[0][1]=nrm[1][0];
          TRLYGM.NrmO[0][2]=nrm[2][0];
@@ -809,127 +815,54 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
 
 
 void TKDBc::updatef(){
-char dum;
-number rdum;
-if(!TKGEOMFFKEY.UpdateGeomFile)return;
-
-// First planes
-
-//   (_HeadLayer[0])._coo[2]= 50.949;
-//   (_HeadLayer[1])._coo[2]=  29.2141;
-//   (_HeadLayer[2])._coo[2]= 7.78935;
-//   (_HeadLayer[3])._coo[2]= -7.78935;
-//   (_HeadLayer[4])._coo[2]= -29.14585;
-//   (_HeadLayer[5])._coo[2]=  -50.99;
-
-
-
+if(TKGEOMFFKEY.UpdateGeomFile!=2)return;
+// open file 
+char fnam[]="../metro/update.file";
+AMSTrCalibPar x[6];
+AMSPoint coo,angle;
+ifstream ifile;
+ifile.open(fnam);
+if(ifile){
 {
-   AString fnam="../../metro/metr.m.2";
-   ifstream iftxt((const char *)fnam,ios::in);
-      if(iftxt){
-          for(int i=0;i<AMSDBc::nlay();i++){
-         for(int l=0;l<3;l++)iftxt >>(_HeadLayer[i])._coo[l];
+ for(int i=0;i<6;i++){
+  ifile >> coo[0]>>coo[1]>>coo[2];
+  ifile >> angle[0]>>angle[1]>>angle[2];
+  if(ifile.eof()){
+   cerr<<"TKDBc::updatef-F-UnexpectedEOF "<<i<<endl;
+   exit(1);
+  }
+  x[i]=AMSTrCalibPar(coo,angle);
+ }
+ }
+   for(int i=0;i<6;i++){
+       //update layer
+         integer status;
+         integer rgid;
+         geant coo[3];
+         number nrm[3][3];
+         TKDBc::GetLayer(i+1,status,coo,nrm,rgid);
+         AMSPoint Coo(coo);
+         number nrmN[3][3];
+         x[i].updmtx();
          for(int j=0;j<3;j++){
-          for(int k=0;k<3;k++)iftxt >>(_HeadLayer[i])._nrm[k][j];
+           for(int k=0;k<3;k++){
+            AMSDir stipud_cxx=x[i].getmtx(j);
+            nrmN[j][k]=stipud_cxx[k];
+           }
          }
-    }
-    iftxt.close();
-      }
-   else {
-    cerr <<"TKDBc::update-E-CouldNotOpenFile "<<fnam<<endl;
-   }
-}  
+         for(j=0;j<3;j++){
+          coo[j]=x[i].getcoo()[j]+(x[i].getmtx(j)).prod(Coo);
+         }
+         mm3(nrmN,nrm,0);
+         TKDBc::SetLayer(i+1,status,coo,nrm,rgid);
+     }
 
-// Temporary adjust to 1234 center
-{
-   number cp=0;
-   for(int i=1;i<5;i++)cp+=_HeadLayer[i]._coo[2];
-   cp=cp/4;
-   for( i=0;i<AMSDBc::nlay();i++)_HeadLayer[i]._coo[2]+=-cp;
+       write(TKGEOMFFKEY.UpdateGeomFile);
+       exit(1);
+
 }
-  
-
-   //Now modify some sensors
-   (_HeadSensor[621])._status=0;
-   (_HeadSensor[1288])._status=0;
-   (_HeadSensor[1407])._status=0;
-   (_HeadSensor[1122])._nrm[0][0]=cos(1.5e-3);
-   (_HeadSensor[1122])._nrm[1][0]=sin(1.5e-3);
-   (_HeadSensor[1122])._nrm[0][1]=-sin(1.5e-3);
-   (_HeadSensor[1122])._nrm[1][1]=cos(1.5e-3);
-
-
-   AString fnam="../../metro/wjb/results.my";
-   ifstream iftxt((const char *)fnam,ios::in);
-   if(iftxt){
-
-
-   // Now read Markers
-   {
-   iftxt >>dum>>dum>>dum>>dum>>dum>>dum>>dum;
-   int i;
-   for(i=0;i<AMSDBc::nlay();i++){
-     for(int k=0;k<4;k++){
-       for(int l=0;l<2;l++)iftxt>>(_HeadMarker[0][i*4+k])._coo[l];
-       iftxt >> rdum ;   // Don't want z at the moment
-     }
-   }
-
-   } 
-   // now Ladders
-   integer nladders=0;
-   {
-   integer ilay,ilad,ihalf,istat;
-   for(;;){
-     iftxt >> dum>>dum>>dum>>dum>>dum>>dum;
-     iftxt >> ilay >> ilad >> ihalf>>istat;
-     if(iftxt.eof())break;
-     integer numl=getnumd(ilay-1,ilad-1);
-     (_HeadLadder[ihalf][numl])._status=istat;
-     for(int i=0;i<3;i++)iftxt >> (_HeadLadder[ihalf][numl])._coo[i];
-     cout <<ilay<<" "<<ilad<<" "<<ihalf<<" "<<
-     (_HeadLadder[ihalf][numl])._coo[0]<<" "<<
-     (_HeadLadder[ihalf][numl])._coo[1]<<" "<<
-     (_HeadLadder[ihalf][numl])._coo[2]<<endl;
-     number xy,zx,zy;
-     iftxt >> xy >> zx >> zy;
-     number cx=sqrt(1.-(xy*xy+zx*zx));
-     number cy=sqrt(1.-(xy*xy+zy*zy));
-     number cz=sqrt(1.-(zx*zx+zy*zy));
-     //     goto nahui;
-     if(ihalf==0){ 
-      (_HeadLadder[ihalf][numl])._nrm[0][0]=cx;
-      (_HeadLadder[ihalf][numl])._nrm[1][0]=xy;
-      (_HeadLadder[ihalf][numl])._nrm[2][0]=zx;
-      (_HeadLadder[ihalf][numl])._nrm[0][1]=-xy;
-      (_HeadLadder[ihalf][numl])._nrm[1][1]=cy;
-      (_HeadLadder[ihalf][numl])._nrm[2][1]=zy;
-      (_HeadLadder[ihalf][numl])._nrm[0][2]=-zx;
-      (_HeadLadder[ihalf][numl])._nrm[1][2]=-zy;
-      (_HeadLadder[ihalf][numl])._nrm[2][2]=cz;
-     }
-     else {
-      (_HeadLadder[ihalf][numl])._nrm[0][0]=-cx;
-      (_HeadLadder[ihalf][numl])._nrm[1][0]=-xy;
-      (_HeadLadder[ihalf][numl])._nrm[2][0]=zx;
-      (_HeadLadder[ihalf][numl])._nrm[0][1]=xy;
-      (_HeadLadder[ihalf][numl])._nrm[1][1]=-cy;
-      (_HeadLadder[ihalf][numl])._nrm[2][1]=zy;
-      (_HeadLadder[ihalf][numl])._nrm[0][2]=zx;
-      (_HeadLadder[ihalf][numl])._nrm[1][2]=zy;
-      (_HeadLadder[ihalf][numl])._nrm[2][2]=cz;
-     }
-     //   nahui: 
-    nladders++;
-   }
-
-   }
-   cout <<"TKDBc::update-I-GeomFileUpdated for "<<nladders<<" ladders"<<endl;
-   write(1);
-}
-else {
-  cerr <<"TKDBc::update-E-CouldNotOpenFile "<<fnam<<endl;
+else{
+cerr<< "TKDBc::updatef-E-CouldNotOPenfile "<<fnam<<endl;
 }
 }
 

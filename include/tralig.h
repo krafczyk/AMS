@@ -1,0 +1,166 @@
+// Author V. Choutko 13-nov-1998
+
+#ifndef __AMSTRALIG__
+#define __AMSTRALIG__
+#include <typedefs.h>
+#include  <commons.h>
+#include <link.h>
+#include <point.h>
+#include <particle.h>
+#include <trid.h>
+#include <mceventg.h>
+class AMSTrAligDB;
+class AMSTrAligPar{
+public:
+class AMSTrAligDBEntry{
+public:
+ uinteger address;
+ geant coo[6][3];
+ geant angle[6][3];
+ int operator < (const AMSTrAligDBEntry&o) const{ return address<o.address;}
+ int operator == (const AMSTrAligDBEntry&o) const{ return address==o.address;}
+ AMSTrAligDBEntry(uinteger _address=0):address(_address){};
+ AMSTrAligDBEntry(uinteger _address,  AMSTrAligPar o[6]):address(_address){
+  for(int i=0;i<6;i++){
+   for(int k=0;k<3;k++){
+    coo[i][k]=o[i].getcoo()[k];
+    angle[i][k]=o[i].getang()[k];
+   }
+  }
+}
+};
+class AMSTrAligDB{
+ public:
+ uinteger Nentries;
+ AMSTrAligPar::AMSTrAligDBEntry arr[10000];
+AMSTrAligDB():Nentries(0){};
+};
+
+protected:
+
+AMSPoint _Coo;
+AMSPoint _Angles;
+AMSDir _Dir[3];
+void _a2m();
+static AMSTrAligDB _traldb;
+static AMSTrAligPar par[6];
+public:
+AMSTrAligPar():_Coo(0,0,0),_Angles(0,0,0){};
+AMSTrAligPar(const AMSPoint & coo, const AMSPoint & angles);
+AMSTrAligPar(const AMSTrAligDBEntry * ptr, integer i);
+AMSPoint  getcoo()const {return _Coo;}
+AMSPoint  getang()const {return _Angles;}
+void setcoo(const AMSPoint & o) {_Coo=o;}
+void setpar(const AMSPoint & coo, const AMSPoint & angle);
+AMSDir   getmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
+AMSDir &  setmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
+void updmtx(){_a2m();}
+AMSTrAligPar  operator +(const AMSTrAligPar &o){
+return AMSTrAligPar(_Coo+o._Coo,_Angles+o._Angles);
+}         
+AMSTrAligPar  operator -(const AMSTrAligPar &o){
+return AMSTrAligPar(_Coo-o._Coo,_Angles-o._Angles);
+}         
+AMSTrAligPar  operator *(const AMSTrAligPar &o){
+return AMSTrAligPar(_Coo*o._Coo,_Angles*o._Angles);
+}         
+AMSTrAligPar  operator /(number o){
+return AMSTrAligPar(_Coo/o,_Angles/o);
+}
+static integer  getdbentries(){return  _traldb.Nentries;}
+static void  incdbentries(){  _traldb.Nentries++;}
+static integer maxdbentries(){return 10000;}
+static AMSTrAligDBEntry * getdbtopp(){return _traldb.arr;}
+static AMSTrAligPar * getparp(){return par;}
+static void InitDB(){_traldb.Nentries=0;}
+static AMSTrAligPar * SearchDB(uinteger address, integer & found);
+static integer UpdateDB(uinteger address, AMSTrAligPar o[]  );
+static AMSTrAligDB * gettraligdbp(){ return & _traldb;}
+static integer gettraligdbsize(){ return sizeof(_traldb);}
+
+friend ostream &operator << (ostream &o, const  AMSTrAligPar &b )
+  {return o<<" "<<b._Coo<<" "<<b._Angles<<" "<<b._Dir[0]<<" "<<b._Dir[1]<<" "<<b._Dir[2];}
+};
+
+class AMSTrAligDB{
+ public:
+ uinteger Nentries;
+ AMSTrAligPar::AMSTrAligDBEntry arr[10000];
+AMSTrAligDB():Nentries(0){};
+friend class  AMSTrAligPar;
+};
+
+
+
+class AMSTrAligData{
+protected:
+  integer _NHits;
+  AMSPoint * _Hits;
+  AMSPoint * _EHits;
+  integer _Pid;
+  geant _InvRigidity;
+  geant _ErrInvRigidity;
+  
+public:
+AMSTrAligData():_NHits(0),_Hits(0),_EHits(0),_Pid(0),
+_InvRigidity(0),_ErrInvRigidity(0){};
+void Init(AMSParticle * ptr, AMSmceventg * pgen);
+friend class AMSTrAligFit;
+~AMSTrAligData(){ delete [] _Hits; delete[] _EHits;}
+};
+
+
+class AMSTrAligFit: public AMSNode{
+class TrAlig_def{
+public:
+integer Pattern;
+integer Alg;
+integer Address;
+geant FCN;
+geant FCNI;
+geant Pfit;
+geant Pfitsig;
+geant Coo[6][3];
+geant Angle[6][3];
+};
+protected:
+uinteger _Address;
+integer  _Pattern; 
+integer _PlaneNo[36];
+integer _ParNo[36];
+integer _NoActivePar;
+integer _PositionData;
+integer _NData;
+integer _Algorithm;
+AMSTrAligData * _pData;
+integer _flag;    // 
+number _tmp;
+number _tmppav;
+number _tmppsi;
+number _fcn;   // pointer to fcns;
+number _fcnI;   // pointer to fcns;
+number _pfit;  //pointer to fitterd mom
+number _pfits;  //pointer to fitterd mom sigma
+AMSTrAligPar _pParC[6];
+static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
+{};
+static void alfun(integer & n, number xc[], number & fc, AMSTrAligFit * ptr);
+void _init(){};
+public:
+  AMSTrAligFit *  next(){return (AMSTrAligFit*)_next;}           
+AMSTrAligFit();
+AMSTrAligFit(uinteger _Address, integer pattern, integer data, integer alg, integer nodeno);
+static void Test(int i=0);
+static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
+void Fit();
+void Anal();
+uinteger getaddress(){ return _Address;}
+~AMSTrAligFit();
+
+};
+
+
+
+
+
+#endif

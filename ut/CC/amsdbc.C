@@ -21,6 +21,7 @@ const integer AMSDBc::AwayTOF=4096;
 const integer AMSDBc::FalseX=8192;
 const integer AMSDBc::FalseTOFX=16384;
 const integer AMSDBc::RECOVERED=16384*2;
+const integer AMSDBc::LocalDB=16384*2*2;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;
@@ -96,6 +97,7 @@ const number AMSDBc::_nrml[_nlay][3][3]={
                                           0,1,0,
                                           0,0,1};
    const integer AMSDBc::_nlad[_nlay]={17,14,14,14,14,17};
+   uinteger * AMSDBc::_Cumulus=0;
    const integer AMSDBc::_nsen[_nlay][_maxnlad]={15,20,23,26,28,29,30,30,30,30,30,
                                  29,28,26,23,20,15,
                                  7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
@@ -240,3 +242,13 @@ integer AMSDBc::activeladdshuttle(int i,int j, int s){
 }
 
 
+uinteger AMSDBc::Cumulus(integer layer){
+if(!_Cumulus){
+ _Cumulus = new uinteger[nlay()];
+ _Cumulus[0]=1;
+  for(int i=1;i<nlay();i++){
+   _Cumulus[i]=_Cumulus[i-1]*(1+2*nlad(layer));
+  }
+}
+return _Cumulus[layer-1];
+}
