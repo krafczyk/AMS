@@ -1,3 +1,4 @@
+
       subroutine prodcorr
       LOGICAL         CHAIN
       CHARACTER*128   CFILE
@@ -417,6 +418,16 @@ c     +   betantof(ipb),betapattern(ipb),betachi2(ipb),betachi2s(ipb)
           perrbeta(1)=pbeta(1)**2*betaerror(pbetap(1))
          endif
               if(pbetaold*pbeta(1).lt.0)pmom(1)=-pmom(1)
+*
+* Update mass 
+*
+          if(abs(pbeta(1)).gt.1)then
+            pbb=pbeta(1)
+          else if(abs(pbeta(1)).gt.0)then
+            pbb=1/pbeta(1)
+          endif
+          pmass(1)=abs(pmom(1))*sqrt(pbb**2-1)
+
          else
          write(*,*)' bad beta ',xchi2,ifound
          xchi2max=0
@@ -444,6 +455,39 @@ c     +   betantof(ipb),betapattern(ipb),betachi2(ipb),betachi2s(ipb)
          endif
         goto 20
        endif
+      else if(iver.lt.1000)then
+         if(prichp(1).gt.0)then
+            xbeta=1/abs(beta(pbetap(1)))
+            xebeta=betaerror(pbetap(1))
+            xebeta=xebeta**2
+            b1=1/rcribeta(prichp(1))
+            b2=b1**2*rcriebeta(prichp(1))
+            b2=b2*b2
+            if(abs(b1-xbeta).lt.4*sqrt(b2+xebeta) .or.
+     +       xbeta.lt.1.05)then
+              xbeta=(xbeta/xebeta+b1/b2)/(1/xebeta+1/b2)
+              xebeta=1/(1/xebeta+1/b2)
+              pbeta(1)=xbeta
+              if(beta(pbetap(1)).lt.0)pbeta(1)=-xbeta
+              perrbeta(1)=sqrt(xebeta)/xbeta/xbeta
+            else
+             write(*,*)'tof /rich disagree ',b1,xbeta
+             pbeta(1)=beta(pbetap(1))
+             perrbeta(1)=pbeta(1)**2*betaerror(pbetap(1))
+            endif
+         else
+          pbeta(1)=beta(pbetap(1))
+          perrbeta(1)=pbeta(1)**2*betaerror(pbetap(1))
+         endif
+*  rebuiold mass
+          if(abs(pbeta(1)).gt.1)then
+            pbb=pbeta(1)
+          else if(abs(pbeta(1)).gt.0)then
+            pbb=1/pbeta(1)
+          endif
+          pmass(1)=abs(pmom(1))*sqrt(pbb**2-1)
       endif
       return
       end
+
+

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.104 2001/10/02 13:22:45 choutko Exp $
+//  $Id: particle.C,v 1.105 2001/10/16 09:12:35 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -109,8 +109,6 @@ out:
            for (int id=0;id<2;id++){
            AMSParticle *ppart=(AMSParticle*)AMSEvent::gethead()->getheadC("AMSParticle",id);
            while(ppart){
-           ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
-          if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
            if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
             AMSgObj::BookTimer.start("ReCTCRefit");  
             ppart->ctcfit();
@@ -121,6 +119,8 @@ out:
             ppart->richfit();
              AMSgObj::BookTimer.stop("ReRICHRefit"); 
            }
+           ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
+          if(!(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
            AMSgObj::BookTimer.start("ReTOFRefit"); 
            ppart->toffit();
            ppart->antifit();
