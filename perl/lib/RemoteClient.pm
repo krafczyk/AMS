@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.50 2002/07/17 14:14:38 choutko Exp $
+# $Id: RemoteClient.pm,v 1.51 2002/07/17 14:30:41 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2706,7 +2706,7 @@ print qq`
         $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
         my @sta = stat $filedb;
         if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] ){
-#           $self->{senddb}=1;
+           $self->{senddb}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
         $key='dbversion';
         $sql="select myvalue from Environment where mykey='".$key."'";
@@ -2741,13 +2741,13 @@ print qq`
           unlink "$filedb.o";
        }
         elsif($sta[9]>$self->{TU1}){
-#            $self->{senddb}=1;
+            $self->{senddb}=2;
         }
         $filedb_att="$self->{UploadsDir}/ams02mcdb.att.tar.gz";
         @sta = stat $filedb_att;
 
         if($#sta<0 or $sta[9]-time() >86400*7  or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
-#           $self->{sendaddon}=1;
+           $self->{sendaddon}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.att.tar.$run";
          my $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
           if($i){
@@ -2770,7 +2770,7 @@ print qq`
           unlink "$filedb_att.o";
        }
         elsif($sta[9]>$self->{TU2}){
-#            $self->{sendaddon}=1;
+            $self->{sendaddon}=2;
         }
 
     
@@ -2994,11 +2994,11 @@ print qq`
                 
                   my $attach;
        if ($self->{CCT} eq "remote"){
-          if($self->{senddb}){
+          if($self->{senddb}==1){
           $self->{TU1}=time();
            $attach="$file2tar.gz,ams02mcscripts.tar.gz;$filedb,ams02mcdb.tar.gz";
           }
-          elsif($self->{sendaddon}){
+          elsif($self->{sendaddon}==1){
               $self->{TU2}=time();
               $self->{sendaddon}=0;
              $attach= "$file2tar.gz,ams02mcscripts.tar.gz;$filedb_att,ams02mcdb.addon.tar.gz";
@@ -3008,7 +3008,7 @@ print qq`
           }
                   $self->sendmailmessage($address,$subject,$message,$attach);
                   my $i=unlink "$file2tar.gz";
-                  if($self->{sendaddon}){
+                  if($self->{sendaddon}==1){
                    $self->{TU2}=time();
                    $attach="$filedb_att,ams02mcdb.addon.tar.gz";
                    $subject="Addon To AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
