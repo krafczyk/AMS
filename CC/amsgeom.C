@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.161 2003/03/21 14:29:28 choutko Exp $
+//  $Id: amsgeom.C,v 1.162 2003/03/21 15:55:23 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2208,9 +2208,6 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
     geant cool[3];
     number nrml[3][3];
     TRDDBc::GetLadder(k,j,i,status,cool,nrml,rgid);
-    cout <<nrml[0][0]<<" "<<nrml[1][0]<<" "<<nrml[2][0]<<" "<<endl;
-    cout <<nrml[0][1]<<" "<<nrml[1][1]<<" "<<nrml[2][1]<<" "<<endl;
-    cout <<nrml[0][2]<<" "<<nrml[1][2]<<" "<<nrml[2][2]<<" "<<endl;
        oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
 	nrot++,name,"BOX",par,3,coo,nrml, "MANY",i==0 && j==0 && k==0?1:-1,gid,1));    
 
