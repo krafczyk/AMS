@@ -913,6 +913,8 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  res[1]=int16(*(p+4))/1000.;
  pat[0]=((*(p+6)))&63;
  pat[1]=((*(p+6))>>6)&63;
+ if(pat[0]==63)pat[0]=-1;
+ if(pat[1]==63)pat[1]=-1;
  npat=((*(p+5)))&15;
  ntr=((*(p+5))>>4)&255;
  eloss=int16(*(p+7));
