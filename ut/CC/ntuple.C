@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.131 2003/01/22 11:32:00 choutko Exp $
+//  $Id: ntuple.C,v 1.132 2003/02/17 15:56:23 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -507,6 +507,8 @@ uinteger AMSNtuple::getrun(){
 
 void AMSNtuple::MemMonitor(const int n, int N = 0)
 {
+#ifndef sun
+
   static int nevt    =0;
   static int nperiod =0;
   static int nmaximum=0;
@@ -583,6 +585,7 @@ void AMSNtuple::MemMonitor(const int n, int N = 0)
     HCDIR (cdir, " ");
 #endif
   }
+#endif
   return;
 }
 

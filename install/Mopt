@@ -1,9 +1,9 @@
-#  $Id: Mopt,v 1.240 2003/02/13 12:32:34 choutko Exp $
+#  $Id: Mopt,v 1.241 2003/02/17 15:56:34 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
 CERNDIR = /cern/$(CERN_LEVEL)
-CERNSRCDIR = /cern/$(CERN_LEVEL)
+CERNSRCDIR = /afs/cern.ch/asis/share/cern/$(CERN_LEVEL)
 
 
 
@@ -69,7 +69,7 @@ FFLAGS=   -O4 -xarch=v8plusa -I../include
 FFLAGSn=    -I../include
 endif
 DFLAGS=       -I/usr/include  -I../include   -I$(SRC)
-LDFLAGS=   -O4 -xarch=v8plusa -Bstatic  -library=f77,Cstd,Crun -lm   -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/sw/nag/mark18/sun/flsol18da -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut 
+LDFLAGS=   -O4 -xarch=v8plusa -Bstatic  -library=f77,Cstd,Crun -lm   -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/usr/local/lib -lshift -L/afs/cern.ch/sw/nag/mark18/sun/flsol18da -lnag - -L/usr/lib -lm -lsocket  -L/usr/lib   -lnsl  -lm      -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut 
 #LDFLAGS=   -Bstatic -library=f77,Cstd,Crun -lm   -L$(CERNDIR)/lib   -lgeant321   -lpacklib -lmathlib -lkernlib -L/afs/cern.ch/asis/packages/licensed/nag-mark16/sun4x_56/nagfl16df -lnag -L/usr/lib -lm  -L/usr/lib  -lsocket -lnsl  -lm -lc     -L/afs/cern.ch/exp/ams/Offline/lib/sunos -lamsut -L/usr/ucblib -lucb -Bdynamic -L/usr/lib -ldl 
 TIMEL=
 endif
