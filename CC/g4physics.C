@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.22 2002/09/20 09:30:27 choutko Exp $
+//  $Id: g4physics.C,v 1.23 2003/02/04 15:02:03 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.22 2002/09/20 09:30:27 choutko Exp $
+// $Id: g4physics.C,v 1.23 2003/02/04 15:02:03 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -84,10 +84,15 @@ void AMSG4Physics::ConstructProcess()
 {
   AddTransportation();
   theParticleIterator->reset();
+  bool first=true;
   while( (*theParticleIterator)() ){
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
     if(G4FFKEY.Geant3CutsOn)pmanager->AddDiscreteProcess(new AMSUserSpecialCuts());
+    else if(first){
+      cout <<"  AMSG4Physics-I-Geant3LikeCutsSwitchedOff"<<endl;
+      first=false;
+    }
   }
 
    if(G4FFKEY.PhysicsListUsed==0){
@@ -145,6 +150,8 @@ void AMSG4Physics::ConstructProcess()
 #include "G4LowEnergyGammaConversion.hh"
 #include "G4LowEnergyPhotoElectric.hh"
 #include "G4LowEnergyRayleigh.hh"
+#include "G4LowEnergyIonisation.hh"
+#include "G4LowEnergyBremsstrahlung.hh"
 
 #include "G4MultipleScattering.hh"
 
@@ -169,19 +176,29 @@ void AMSG4Physics::ConstructEM()
      
     if (particleName == "gamma") {
     // gamma
+    if(!G4FFKEY.LowEMagProcUsed){
       // Construct processes for gamma
       pmanager->AddDiscreteProcess(new G4PhotoElectricEffect());
       pmanager->AddDiscreteProcess(new G4ComptonScattering());      
       pmanager->AddDiscreteProcess(new G4GammaConversion());
-/*
+    }
+    else{
       pmanager->AddDiscreteProcess(new G4LowEnergyPhotoElectric() );
       pmanager->AddDiscreteProcess(new G4LowEnergyCompton());
       pmanager->AddDiscreteProcess(new G4LowEnergyRayleigh());
       pmanager->AddDiscreteProcess(new G4LowEnergyGammaConversion());
-*/
+    }
     }
     else if (particleName == "e-") {
     //electron
+    if(G4FFKEY.LowEMagProcUsed){
+      G4MultipleScattering* aMultipleScattering = new G4MultipleScattering();
+                pmanager->AddProcess(aMultipleScattering,     -1, 1, 1);
+                pmanager->AddProcess(new G4LowEnergyIonisation(),-1,2,2);
+                pmanager->AddProcess(new G4LowEnergyBremsstrahlung(),-1,-1,3); 
+    }
+    else{   
+
       // Construct processes for electron
       G4VProcess* theeminusMultipleScattering = new G4MultipleScattering();
       G4VProcess* theeminusIonisation = new G4eIonisation();
@@ -198,16 +215,26 @@ void AMSG4Physics::ConstructEM()
       pmanager->SetProcessOrdering(theeminusIonisation, idxPostStep, 2);
       pmanager->SetProcessOrdering(theeminusBremsstrahlung, idxPostStep, 3);
 
-/*
-
-                pmanager->AddProcess(new G4LowEnergyIonisation(),-1,-1,2);
-                pmanager->AddProcess(new G4LowEnergyBremsstrahlung(),-1,-1,3);      
-*/
-
+    }
 
     } else if (particleName == "e+") {
     //positron
       // Construct processes for positron
+
+
+    if(G4FFKEY.LowEMagProcUsed){
+
+        G4MultipleScattering* aMultipleScattering = new G4MultipleScattering();
+        pmanager->AddProcess(aMultipleScattering,     -1, 1, 1);
+        pmanager->AddProcess(new G4eIonisation(),     -1, 2, 2);
+        pmanager->AddProcess(new G4eBremsstrahlung(), -1,-1, 3);
+        pmanager->AddProcess(new G4eplusAnnihilation(),0,-1, 4);
+
+
+    }
+    else{   
+
+    
       G4VProcess* theeplusMultipleScattering = new G4MultipleScattering();
       G4VProcess* theeplusIonisation = new G4eIonisation();
       G4VProcess* theeplusBremsstrahlung = new G4eBremsstrahlung();
@@ -229,7 +256,7 @@ void AMSG4Physics::ConstructEM()
       pmanager->SetProcessOrdering(theeplusAnnihilation, idxPostStep, 4);
 
 
-
+    }
 
   
     } else if( particleName == "mu+" || 
@@ -809,11 +836,11 @@ void AMSG4Physics::SetCuts()
 //  SetCutsWithDefault();   
 
    G4double cut = defaultCutValue;
-
+   cout <<"AMSG4Physics::SetCuts-I-DefaultCut "<<cut<<endl;
 
   // set cut values for gamma at first and for e- second and next for e+,
   // because some processes for e+/e- need cut values for gamma
-  SetCutValue(cut, "gamma");
+  SetCutValue(cut/10., "gamma");
   SetCutValue(cut/10., "xrayphoton");
   SetCutValue(cut/10., "e-");
   SetCutValue(cut/10., "e+");

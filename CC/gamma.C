@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.29 2003/01/31 15:18:17 glamanna Exp $
+//  $Id: gamma.C,v 1.30 2003/02/04 15:02:03 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -5825,7 +5825,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
       SLOPE=M1[lb1];
       INTER=Q1[lb1];
       if (fabs(x2t[lb2]-(M1[lb1]*z2t[lb2]+Q1[lb1])) > 3 || 
-          fabs(M1[lb1]-((x2t[lb2]-x1t[lb1])/(z2t[lb2]-z1t[lb1]))) > 0.25){
+          (z2t[lb2]-z1t[lb1] !=0 && fabs(M1[lb1]-((x2t[lb2]-x1t[lb1])/(z2t[lb2]-z1t[lb1]))) > 0.25)){
         fbot=1;
         ftop=0;
         x_star=x1b[lb1];

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.179 2002/12/18 15:09:52 choutko Exp $
+//  $Id: commons.h,v 1.180 2003/02/04 15:02:13 choutko Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -841,6 +841,7 @@ float Delta;
 int UniformMagField;
 int Geant3CutsOn;
 int PhysicsListUsed;
+int LowEMagProcUsed;
 };
 #define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
 COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);

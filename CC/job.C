@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.438 2003/01/27 14:31:50 choutko Exp $
+// $Id: job.C,v 1.439 2003/02/04 15:02:04 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -497,6 +497,7 @@ G4FFKEY.Delta=0.001;
 G4FFKEY.UniformMagField=0;
 G4FFKEY.Geant3CutsOn=1;
 G4FFKEY.PhysicsListUsed=1;
+G4FFKEY.LowEMagProcUsed=0;
 FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
 PRODFFKEY.Debug=0;
@@ -581,10 +582,10 @@ FFKEY("MAGS",(float*)&MAGSFFKEY,sizeof(MAGSFFKEY_DEF)/sizeof(integer),"MIXED");
 void AMSJob::_siecaldata(){
   ECMCFFKEY.fastsim=0;     //(1) 1/0-> fast/slow simulation algorithm(missing fast TBD)
   ECMCFFKEY.mcprtf=0;       //(2) print_hist flag (0/1->no/yes)
-  ECMCFFKEY.cutge=0.001;    //(3) cutgam=cutele cut for EC_volumes
+  ECMCFFKEY.cutge=0.0005;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) spare
-  ECMCFFKEY.mev2mev=59.27;  //(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)
+  ECMCFFKEY.mev2mev=59.27/1.007;  //(6) Geant dE/dX(MeV)->MCEmeas(MeV) conv.factor(at EC-center)  ! corrected for  500 kev geant3 cut
   ECMCFFKEY.mev2adc=0.873;  //(7) MCEmeas(MeV)->ADCch factor(MIP-m.p.->10th channel)(...)
   ECMCFFKEY.safext=0.;      //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
   ECMCFFKEY.mev2pes=55.;    //(9) PM ph.electrons/Mev(dE/dX)(8000*0.0344*0.2)

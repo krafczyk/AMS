@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.69 2003/01/07 18:35:58 jorgec Exp $
+*  $Id: amstkshc++.F,v 1.70 2003/02/04 15:02:10 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -5953,6 +5953,7 @@ CDECK  ID>, TKFITG.
 *               =1     V. Choutko  fit (5X5 matrix inv, mscat included)
 *               =2     GEANE banded matrix inv
 *               =3     GEANE Kalman filter
+*               =4     Juan algo
 *
 * Output   out(9) ! x0,y0,z0,theta,phi,rig,chi2,ier, err(1/rig)
 *
@@ -9134,9 +9135,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.69 2003/01/07 18:35:58 jorgec Exp $
+* $Id: amstkshc++.F,v 1.70 2003/02/04 15:02:10 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.70  2003/02/04 15:02:10  choutko
+* geant 3.2.1 compat added + gamma back
+*
 * Revision 1.69  2003/01/07 18:35:58  jorgec
 * Zine bug fixed
 * better track of secondaries
