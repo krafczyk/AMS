@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.188 2003/06/10 15:46:54 alexei Exp $
+# $Id: RemoteClient.pm,v 1.189 2003/06/13 16:04:09 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5233,7 +5233,7 @@ sub listStat {
      htmlTable("MC02 Jobs");
 
 # first job timestamp
-      $sql="SELECT MIN(Jobs.timestamp) FROM Jobs, Cites 
+      $sql="SELECT MIN(Jobs.time) FROM Jobs, Cites 
                 WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
       $ret=$self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
@@ -6718,6 +6718,12 @@ foreach my $block (@blocks) {
        system("mv $inputfile $inputfile.0"); 
        return;
    }
+
+   if ($self->getRunStatus($jobid,0) eq 'Completed') {
+       print FILE "Job : $jobid Status : Completed. Return \n";
+       return;
+   }  
+
    if ($patternsmatched == $#StartingJobPatterns) { 
     $startingjob[0] = "StartingJob";
     $lastjobid = $startingjob[2];
@@ -7483,6 +7489,30 @@ sub findJob {
 
     return $rstatus;
 }
+
+sub getRunStatus {
+
+    my $self = shift;
+    my $jid  = shift;
+    my $run  = shift;
+
+    my $sql    = undef;
+    my $status = "Unknown";
+
+    if ($jid > 0) {
+        $sql = "SELECT status FROM Runs WHERE jid=$jid";
+    } elsif ($run > 0) {
+        $sql = "SELECT status FROM Runs WHERE run=$run";
+    }    
+
+    my $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+        $status = $ret->[0][0];
+    }
+
+    return $status;
+}
+
 
 sub insertNtuple {
   my $self     = shift;
