@@ -35,6 +35,14 @@ integer Event;
 #define SELECTFFKEY COMMON_BLOCK(SELECTFFKEY,selectffkey)
 COMMON_BLOCK_DEF(SELECTFFKEY_DEF,SELECTFFKEY);
 
+class STATUSFFKEY_DEF {
+public:
+uinteger status[33];
+};
+#define STATUSFFKEY COMMON_BLOCK(STATUSFFKEY,statusffkey)
+COMMON_BLOCK_DEF(STATUSFFKEY_DEF,STATUSFFKEY);
+
+
 class DAQCFFKEY_DEF {
 public:
 integer mode;

@@ -22,6 +22,7 @@
 #include <timeid.h>
 #include <commons.h>
 #include <ntuple.h>
+#include <status.h>
 #ifdef __DB__
 #include <db_comm.h>
 #endif
@@ -129,6 +130,7 @@ void _cactcinitjob();
 void _catofinitjob();
 void _cantinitjob();
 void _caaxinitjob();
+void _dbinitjob();
 void _dbendjob();
 void _tkendjob();
 void _trdendjob();
@@ -218,6 +220,7 @@ uinteger isRawBanks()  { return (_eventRtype/DBWriteRawE)%2;}
 AMSNode * getnodep(AMSID  id) const{return JobMap.getp(id);}
 AMSgvolume * getgeom(AMSID id=0);
 AMSgvolume * getgeomvolume(AMSID id){return   (AMSgvolume*)JobMap.getp(id);}
+AMSStatus * getstatustable();
 AMSgmat * getmat(AMSID id=0);
 AMSgtmed * getmed(AMSID id=0);
 AMSNtuple * getntuple(AMSID id=0);

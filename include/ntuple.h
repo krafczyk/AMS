@@ -54,7 +54,7 @@ private:
   int CTCMCClusters;
   int AntiMCClusters;
   int AntiClusters;
-
+  int EventStatus; 
 friend class AMSEvent;
 friend class AMSNtuple;
 };
@@ -83,8 +83,10 @@ private:
   int BetaP[MAXCHARGE];
   int ChargeTOF[MAXCHARGE];
   int ChargeTracker[MAXCHARGE];
-  float ProbTOF[MAXCHARGE][7];
-  float ProbTracker[MAXCHARGE][7];
+  float ProbTOF[MAXCHARGE][10];
+  float ProbTracker[MAXCHARGE][10];
+  float TrunTOF[MAXCHARGE];
+  float TrunTracker[MAXCHARGE];
 
 friend class AMSCharge;
 friend class AMSNtuple;

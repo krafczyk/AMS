@@ -712,7 +712,9 @@ template <class T> integer AMSbins(T a[],  T obj, integer i){
 integer il=0;
 integer ih=i;
 integer im;
-if(obj<a[0])return 0;
+i=cmpT(obj,a[0]);
+if(i<0)return 0;
+else if(i==0)return 1;
 while(1)
   {
     if((ih-il)<=1)return(-il-1);

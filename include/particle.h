@@ -99,11 +99,8 @@ public:
 #ifdef __DB__
    friend class AMSParticleD;
 
-   number  getmass() {return _Mass;}
    number  geterrmass() {return _ErrMass;}
-   number  getmomentum() {return _Momentum;}
    number  geterrmomentum() {return _ErrMomentum;}
-   number  getcharge() {return _Charge;}
    number  gettheta() {return _Theta;}
    number  getphi() {return _Phi;}
    AMSPoint getcoo() {return _Coo;}
@@ -115,6 +112,8 @@ AMSCharge*     getpcharge()     { return _pcharge;}
 AMSTrTrack*    getptrack()      { return _ptrack;}
 AMSCTCCluster* getpctc(int n)   {  return n>=0 && n<2 ? _pctc[n]:0;}
 
+number  getmass() const {return _Mass;}
+number  getmomentum() const {return _Momentum;}
 number getcharge() const {return _Charge;}
 void       setpbeta(AMSBeta* p)     {_pbeta   = p;}
 void       setpcharge(AMSCharge* p) {_pcharge = p;}

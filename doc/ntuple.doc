@@ -18,7 +18,7 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * rawwords         // Event Lenght in bytes
 * R*4  *              * EVENTH   * GrMedPhi         // Greenwich meridian phi 
 * R*4  *              * EVENTH   * RadS             // Shuutle Altitude (cm)
-* R*4  *              * EVENTH   * ThetaS           // Shuttle Theta (rad)
+* R*4  *              * EVENTH   * ThetaS           // Shuttle Lattitude (rad)
 * R*4  *              * EVENTH   * PhiS             // Shuttle phi (rad)
 * R*4  *              * EVENTH   * YawS             // Shuttle yaw (rad) 
 * R*4  *              * EVENTH   * PitchS           //         pitch
@@ -40,7 +40,7 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * CTCMCClusters    // No of Cerenkov MC hits
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
 * I*4  *              * EVENTH   * AntiClusters     // No of Amti clusters
-
+* I*4  *              * EVENTH   * EventStatus      // EventStatus (see status.doc)
 
 
 * I*4  * [0,10]       * BETA     * nbeta             // betas number
@@ -63,11 +63,12 @@ Below there is a description of a  ntuple.
 * R*4  *              * CHARGE   * chargebetap(ncharge)   //pointer to velocity
 * I*4  *              * CHARGE   * chargetof(ncharge)    // TOF charge
 * I*4  *              * CHARGE   * chargetracker(ncharge)  // Tracker Charge
-* R*4  *              * CHARGE   * probtof(7,ncharge)      // TOF Probabilities
+* R*4  *              * CHARGE   * probtof(10,ncharge)      // TOF Probabilities
                                                            //
-* R*4  *              * CHARGE   * probtracker(7,ncharge)  // Tracker Probs
+* R*4  *              * CHARGE   * probtracker(10,ncharge)  // Tracker Probs
                                                            // charge.doc
-
+* R*4  *              * CHARGE   * truntof                 // Trun (-1) mean
+* R*4  *              * CHARGE   * truntracker            // Trun (-1) mean
 
 * I*4  * [0,10]       * PARTICLE * npart                   // particles number
 * I*4  *              * PARTICLE * pctcp(2,npart)    // pointer(s) to cerenkov

@@ -394,7 +394,8 @@ c                   cuts(8)=.true.
                       call hf1(972,xx,1.)
                     endif
                     call hf2(971,cooctc(1,1,1),cooctc(2,1,1),1.)
-                    cuts(9)=cuts(9).and.xx.lt.1..or.
+                    xx1=signalctc(1,1)+signalctc(2,1)
+                    cuts(9)=(cuts(9).and.(xx.lt.1..or.xx1.eq.0)).or.
      +              abs(beta(pbetap(1))).lt.0.
                     if(cuts(9))then
                     do i=1,ntrclmc
@@ -436,10 +437,10 @@ c                   cuts(8)=.true.
                             sr=sin(rolls)
                             cp=cos(pitchs)
                             sp=sin(pitchs)
-                            cost=-sr*sy*sp+cr*cp
+                           cost=-sr*sy*sp+cr*cp
 
                     if(pmass(1).gt.0.5.and.pmass(1).lt.3.
-     +               .and.cost.gt.0.7)then
+     +               )then
                      rke=(pmom(1)**2+0.88)**0.5-0.938
                      if(ig.eq.2)call hf1(1014,rke,1.)
                      if(ig.eq.2)call hf1(1013,rke,1.)
@@ -474,7 +475,7 @@ c     +               betachi2(pbetap(1))
                       call hf1(1969,panti,1.)
                       call hf1(1912,float(tofclusters),1.)
                       call hf1(1970,betachi2(pbetap(1)),1.)
-                      write(*,*)run,eventno
+                      write(*,*)run,eventno,pmass(1),pmom(1)
                     do i=1,ntrclmc
                      call hf1(1702,float(itra(i)),1.)
 c                     write(*,*)itra(i) 

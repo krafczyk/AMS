@@ -546,3 +546,18 @@ I 1 ReadGeomFromFile(1)
 I 2 WriteGeomToFile(0)
 I 3 UpdateGeomFile(0)
 
+
+STATUS // Select events with corresponding properties ,all statuses combined by AND, all bits inside statuses combined by OR, 0 means select everything  (see status.doc for details)
+I 1  status[32](32*0)    // 
+                             [1] lvl3
+                             [2] prescaled event
+                             [3] charge
+                             [4] momentumsign                       
+                             [5] velocitysign                       
+                             [6] trackerpattern
+                             [7] betapattern
+                             [8] ctclayerfired
+                             [9] antisectorfired
+                             [10] npartfound
+                                                   
+        

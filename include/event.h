@@ -35,6 +35,7 @@ private:
    geant SunPhi;
    time_t Time;
   };
+uinteger _status;
 uinteger _run;
 uinteger _runtype;
 geant _StationRad;    //cm 
@@ -113,6 +114,7 @@ void _cantievent();
 void _cactcevent();
 void _caaxevent();
 void _validate(int i=0);
+void _collectstatus();
 //+
 void _validateDB();
 //-
@@ -124,10 +126,10 @@ void _findC(AMSID & id);
 AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
-uinteger usec,geant pole, geant stationT, geant stationP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0,geant SunT=0, geant SunP=0):AMSNode(id),_run(run),
+uinteger usec,geant pole, geant stationT, geant stationP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0,geant SunT=0, geant SunP=0):AMSNode(id),_run(run),_status(0),
 _time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_SunTheta(SunT),_SunPhi(SunP){_Head=this;}
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
-   _runtype(runtype), _time(time), _usec(usec){
+   _runtype(runtype), _time(time), _usec(usec),_status(0){
    _Head=this;
 }
 ~AMSEvent(){_Head=0;}
@@ -149,7 +151,7 @@ integer setheadC( AMSID id, AMSlink *p){return _setheadC(id,p);}
 AMSContainer * getC(char name[], integer id){return _getC(AMSID(name,id));}
 AMSContainer * getC( AMSID id){return _getC(id);}
 integer getnC (char name[]);
-void SetTimeCoo();
+void SetTimeCoo(integer rec=0);
 void GetGeographicCoo(number & pole, number & theta, number &phi){
 pole=_NorthPolePhi;theta=_StationTheta;phi=_StationPhi;}
 static void  sethead(AMSEvent* head) 
@@ -167,6 +169,7 @@ static integer _checkUpdate();
 integer addnext(AMSID id, AMSlink * p);
 integer replace(AMSID id, AMSlink * p, AMSlink *prev);
 uinteger getrun() const{return _run;}
+uinteger  getstatus()const {return _status;}
 geant getpitch() const{return _Pitch;}
 geant getroll() const{return _Roll;}
 geant getyaw() const{return _Yaw;}
@@ -186,7 +189,7 @@ inline AMSNode * getp(const AMSID & id, char hint=0) const{
 inline void printH(){
   AMSEvent::EventMap.print();
 }
-
+static AMSID getTDVStatus();
 // Interface with DAQ
 static int16u  getdaqid(int btype){return 0x200 | btype <<13;}
 static integer checkdaqid(int16u id);

@@ -181,7 +181,7 @@
          call hbook1(906,'dist 3',100,-0.-0.05,0.05,0.)
          call hbook1(907,'chi dif',200,0.,10.,0.)
          call hbook1(908,'dist 4',100,0.,0.05,0.)
-         call hbook1(961,'pat',20,-0.5,19.5,0.)
+         call hbook1(961,'pat',26,-0.5,25.5,0.)
          call hbook1(962,'mom',100,-50,0.,0.)
          call hbook1(963,'mom g',100,0,50.,0.)
          call hbook1(964,'mom/g',100,-2.,0.,0.)
@@ -280,7 +280,7 @@
        endif
        idsofttr(5,i)=mod(idsoft(i)/10000,1000)
       enddo
-      if(npart.gt.0.and.pcharge(1).gt.1.5)then
+      if(npart.gt.0.and.pcharge(1).eq.2.)then
       call hf1(2,float(npart),1.)
       if(npart.eq.1)then
 *
@@ -371,10 +371,10 @@ c                   cuts(8)=.true.
 *
 * Cerenkov cuts
 *
-                    xll=-57.
-                    xlr=58.
-                    yll=-38.
-                    ylr=43.
+                    xll=-570.
+                    xlr=580.
+                    yll=-380.
+                    ylr=430.
                     xx=0
                     do i=1,nctcht
                      xx=xx+ctchitsignal(i)
@@ -392,7 +392,7 @@ c                   cuts(8)=.true.
                       call hf1(972,xx,1.)
                     endif
                     call hf2(971,cooctc(1,1,1),cooctc(2,1,1),1.)
-                    cuts(9)=cuts(9).and.xx.lt.1.or.
+                    cuts(9)=cuts(9).and.xx.lt.100.or.
      +              abs(beta(pbetap(1))).lt.0.
                     if(cuts(9))then
                     do i=1,ntrclmc
@@ -419,7 +419,6 @@ c                   cuts(8)=.true.
                      r2=sqrt(r2)
                     call hf1(908,r1,1.)
                     call hf1(908,r2,1.)
-                    call hf1(961,float(pattern(iptr)),1.)
                     call hf1(962,pmom(1),1.)
                     call hf1(965,charge(1),1.)
                     call hf1(966,beta(1),1.)
@@ -428,7 +427,15 @@ c                   cuts(8)=.true.
                     call hf1(969,panti,1.)
                     r=chi2fastfit(iptr)-hchi2(1,iptr)-hchi2(2,iptr)
                     call hf1(1973,pmass(1),1.)
-                    if(pmass(1).gt.1.5)then
+                    xp=perrmass(1)
+                    if(xp.gt.1.e6)xp=1.e6
+                    if((pmass(1)+xp*1.5.gt.3.2.and.
+     +                 pmass(1)-xp*1.5.lt.3.7).and.
+     +                 probtof(3,1)*probtracker(3,1).gt.0.06)then
+                      write(*,*)run,eventno,pmass(1),pmom(1),pcharge(1),
+     +               probtof(pcharge(1)+1,1)*probtracker(pcharge(1)+1,1)
+     +               ,pattern(iptr)
+                     call hf1(961,float(pattern(iptr)),1.)
                      rke=(pmom(1)**2+0.88*16)**0.5-0.938*4
                      call hf1(1014,rke,1.)
                      call hf1(1013,rke,1.)
