@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.218 2002/12/06 14:43:37 choumilo Exp $
+#  $Id: datacards.doc,v 1.219 2002/12/18 15:09:49 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -758,19 +758,20 @@ R 34   TranShowerSize2d(10) // transwersal shower size (cm) (to add orphaned clu
 R 35   SimpleRearLeak[4](0.01,0.94e-3,3.7*0.8,0.975e-3)  // parameters to correct rear leak (see EcalShower::EnergyFit)
 R 39   CalorTransSize(32)  // trans calorimeter size (cm)     
 R 40   EMDirCorrection(1.035)  // em shower shape direction correction 
-
-R 41 sec[0](0)               // cards below are used as validity time when need to write
-R 42 sec[1](0)                // to DB new calibration/status parameters
-R 43 min[0](0)                //
-R 44 min[1](0)                //
-R 45 hour[0](0)               //
-R 46 hour[1](0)               //
-R 47 day[0](1)                //
-R 48 day[1](1)                //
-R 49 mon[0](0)                //
-R 50 mon[1](0)                //
-R 51 year[0](101)             //
-R 52 year[1](108)             //
+R 41   HiEnThr(1650)           // pmt saturation limit (gev)
+R 42   HiEnCorFac(0.225)       // energy correction as (1-HiEnCorFac)/(1-HiEnCorFac*Energy/HiEnThr) 
+R 43 sec[0](0)               // cards below are used as validity time when need to write
+R 44 sec[1](0)                // to DB new calibration/status parameters
+R 45 min[0](0)                //
+R 46 min[1](0)                //
+R 47 hour[0](0)               //
+R 48 hour[1](0)               //
+R 49 day[0](1)                //
+R 50 day[1](1)                //
+R 51 mon[0](0)                //
+R 52 mon[1](0)                //
+R 53 year[0](101)             //
+R 54 year[1](108)             //
 
    ECAL calibration:
 

@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.24 2002/12/16 09:55:17 glamanna Exp $
+//  $Id: gamma.C,v 1.25 2002/12/18 15:09:40 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -60,7 +60,7 @@ void AMSTrTrackGamma::_SingleHit(integer FLPAT[], double CE[], int LA){
   double VARR;
 
  for(int i=0;i<TKDBc::nlay();i++){
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
    cout << "In SingleHIt  FLPAT["<<i<<"] ="<<FLPAT[i]<<endl;
    cout << "In SingleHIt     CE["<<i<<"]= "<< CE[i]<<endl;
 #endif
@@ -128,7 +128,7 @@ double newmid[8]={10000,10000,10000,10000,10000,10000,10000,10000};
 
     dlinearme(L,z_ce,y_ce,AF,BF,VARR);         // linear fit
     middle[i]=(BF*z_ref)+AF;
-    #ifdef __AMSDEBUG__
+    #ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
     cout<< "AF,BF,z_ref  "<< AF<<" "<<BF<<" "<<z_ref<<endl; 
     cout<< "VARR "<<VARR <<endl; 
     cout<< "****into single LFIT middle["<<i<<"]= "<< middle[i]<<endl;
@@ -155,7 +155,7 @@ double newmid[8]={10000,10000,10000,10000,10000,10000,10000,10000};
      }
 
    }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 cout<< "****into single CE["<<i<<"]= "<< CE[i]<<endl;
 #endif
  }
@@ -216,7 +216,7 @@ cout<< "****into single CE["<<i<<"]= "<< CE[i]<<endl;
    }
  }
  //
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  for(int i=0;i<TKDBc::nlay();i++){
    cout<< "******into SingleHIt CE["<<i<<"]= "<< CE[i]<<endl;
  }
@@ -411,7 +411,7 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
 
   for(int i=0;i<TKDBc::nlay();i++){
     z_tkl[i]=TKDBc::zposl(i);
-#ifdef __AMSDEBUG__  
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__  
   cout<<"esc_1 esc_2 "<<esc_1<<" "<<esc_2<<endl;
     cout << "z_tkl["<<i<<"] ="<<z_tkl[i]<<endl;
     cout << "FLPAT["<<i<<"] ="<<FLPAT[i]<<endl;
@@ -512,13 +512,13 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
 	  //
 	  if (esc_1 >= 3){  
 	    dlsqp2me((ja+1),z_fi,res_,AA0,AA1,AA2,SDW);
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 	    cout << "AA0,AA1,AA2,SDW"<<AA0<<" "<<AA1<<" "<<AA2<<" "<<SDW<<endl;
 	    cout << "res_["<<ja<<"] = "<<res_[ja]<<endl;
 #endif
 	    if (AA0 == 0 && AA1 == 0 && AA2 == 0 && SDW  == 10000){
 	      dlinearme((ja+1),z_fi,mid,A0,A1,VAR);
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 	      cout << "POLY 2 DOES NOT WORK, WE USE AN ALTERNATIVE"<<endl;
 	      cout <<"rbef= "<<rbef<<endl;
 	      cout << "res_["<<ja<<"] "<<res_[ja]<<endl;
@@ -554,7 +554,7 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
 	       (z_fi[ja] > z_fi[1] && res_[ja] <= res_[1]))){
 	    
 	    dlsqp2me((ja+1),z_fi,res_,AA0,AA1,AA2,SDW);
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 	    cout << "AA0,AA1,AA2,SDW"<<AA0<<" "<<AA1<<" "<<AA2<<" "<<SDW<<endl;
 #endif
           if (AA0 == 0 && AA1 == 0 && AA2 == 0 && SDW  == 10000){
@@ -582,7 +582,7 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
 	//
       }
     }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
       cout << "FINALLY  res_["<<ja<<"] "<<res_[ja]<<endl;
       cout << "FINALLY  l_["<<i<<"] "<<l_[i]<<endl;
 #endif
@@ -590,7 +590,7 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
       if (l_[i] != 10000){
         res_[ja]=res_LR[l_[i]][i];
       }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
       cout << "FINALLY  res_["<<ja<<"] "<<res_[ja]<<endl;
 #endif
     //    if (i == 0){ // first plane
@@ -912,7 +912,7 @@ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN){
   	   if (CEN==10000){
             pre->setstatus(AMSDBc::GAMMARIGHT);
             pre->setstatus(AMSDBc::GAMMALEFT);
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 	     cout<< "Single Hit****RIGHT cha & p_hi[1 .. 3] = "<< cha<< " "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
 	     cout<< "Single Hit****LEFT cha &  p_hi[1 .. 3] = "<< cha<< " "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
 #endif
@@ -936,7 +936,7 @@ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN){
 	    pre->clearstatus(AMSDBc::GAMMARIGHT);
 	    pre->clearstatus(AMSDBc::GAMMALEFT);
             pre->setstatus(AMSDBc::GAMMARIGHT);
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 	    	     cout<< "single in RIGHT cha & p_hi[1 .. 3] = "<< cha<< " "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
 #endif
 	    //             cout<< "ambiguity =" <<xambig<<endl;
@@ -955,7 +955,7 @@ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN){
 	    pre->clearstatus(AMSDBc::GAMMALEFT);
             pre->setstatus(AMSDBc::GAMMALEFT);
 
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 	    cout<< "single in LEFT  cha & p_hi[1 .. 3] = "<< cha<< " "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
 #endif
 
@@ -1005,7 +1005,7 @@ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN){
               pre->clearstatus(AMSDBc::GAMMARIGHT);
 	     } 
 
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
             if (pre->checkstatus(AMSDBc::GAMMARIGHT)){ 
 	    cout<< "*********RIGHT cha & p_hi[1 .. 3] = "<<cha <<" " <<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
 	    }
@@ -1023,7 +1023,7 @@ void AMSTrTrackGamma::_LeftRight(vector<double> HH, integer inhi, number CEN){
               pre->clearstatus(AMSDBc::GAMMALEFT);
 	     } 
 	    //        
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 
              if (pre->checkstatus(AMSDBc::GAMMALEFT)){ 
 	     cout<< "*********LEFT cha & p_hi[1 .. 3] = "<<cha <<" " <<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl;
@@ -1096,13 +1096,8 @@ integer AMSTrTrackGamma::build(integer refit){
    Nlayu[i]+=(AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
   }
 
-  uinteger evn=AMSEvent::gethead()->getEvent();
-  uinteger Run=AMSEvent::gethead()->getrun();
 
 
-  //  cout << "  #####   #####  #####  Run "<<Run<< " "<< "Event " <<evn <<endl;
-  AMSmceventg::PrintSeeds(cout);
-  //  cout << " ##### Nuser which should correspond to ntrrh =   " << Nuser <<endl;
 
 
   for(int i=0;i<TKDBc::nlay();i++){
@@ -1118,7 +1113,7 @@ integer AMSTrTrackGamma::build(integer refit){
 
   if (FLPAT[7] == 2 || FLPAT[0] == 2){
  _LookOneEight(FLPAT,H);
- //#ifdef __AMSDEBUG__
+ //#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
   for(int i=0;i<TKDBc::nlay();i++){
     //   cout << "AFTER Look FLPAT["<<i<<"] ="<<FLPAT[i]<<endl;
    for(int j=0;j<FLPAT[i];j++){
@@ -1142,7 +1137,7 @@ integer AMSTrTrackGamma::build(integer refit){
  int esc_all=0;
 
   for(int i=0;i<TKDBc::nlay();i++){
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
       for(int j=0;j<FLPAT[i];j++){
       cout << "before********* H["<<i<<"]["<<j<<"]=  "<< H[i][j] <<endl;       
       }
@@ -1195,7 +1190,7 @@ _LSQP2(FLPAT,H,esc_1,esc_2);
      return 0;
    }
    //
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
    for(int j=0;j<FLPAT[i];j++){
      cout << "After *** H["<<i<<"]["<<j<<"]=  "<< H[i][j] <<endl;       
    }
@@ -1213,7 +1208,7 @@ _LSQP2(FLPAT,H,esc_1,esc_2);
 _SingleHit(FLPAT,CE,esc_22);
 
  for(int i=0;i<TKDBc::nlay();i++){
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  cout<< "******1 in piu` CE["<<i<<"]= "<< CE[i]<<endl;
 #endif
 _LeftRight(H[i],i,CE[i]);
@@ -1221,7 +1216,7 @@ _LeftRight(H[i],i,CE[i]);
 _SingleCommonHit(FLPAT,H);
 
 XZLine_TOF RoadXZ(ii,neca,tm34,ecc);
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  cout << "ii[0] "<<ii[0]<<" ii[1] "<<ii[1]<<" ii[2] "<<ii[2]<< endl;
  cout << "ii[3] "<<ii[3]<<" ii[4] "<<ii[4]<<endl;
  cout << "tm34  "<<tm34<<endl;
@@ -1246,7 +1241,7 @@ RoadXZ.makeEC_out(ecc,out);
  if (out==0){
 RoadXZ.Lines_Top_Bottom(out);
  }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  cout << "AAA ii[0] "<<ii[0]<<" ii[1] "<<ii[1]<<" ii[2] "<<ii[2]<< endl;
  cout << "ii[3] "<<ii[3]<<" ii[4] "<<ii[4]<<endl;
 #endif
@@ -1262,7 +1257,7 @@ RoadXZ.LastCheckTRDX(slo,inte,chit);
    INTERf=inte;
  }
  }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  cout << "AGAIN FINE: fbotf = "<<fbotf<<" ftopf = "<<ftopf<<endl;
  cout << "x_starf z_starf= "<<x_starf<<" "<<z_starf<<endl;
  cout << "SLOPEf INTERf = "<<SLOPEf<<" "<<INTERf<<endl;
@@ -1317,7 +1312,7 @@ RoadXZ.LastCheckTRDX(slo,inte,chit);
     }
     if (init_R==0 || init_L==0) return 0;
     if (firR == lasR || firL == lasL) return 0;
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
     if (init_R==0 || init_L==0){
       cout<<"NO SUFFICIENT HITS FOR DOUBLE TRACK RECOGNITION "<<endl;
     }
@@ -1333,7 +1328,7 @@ RoadXZ.LastCheckTRDX(slo,inte,chit);
  for(int i=0;i<TKDBc::nlay();i++){
    xsRL+=FLPAT[i];
  }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
    cout <<" xsR xsL          =   "<<xsR<<" "<<xsL<<endl; 
    cout <<"                 xsRL          =   "<<xsRL<<endl; 
 #endif
@@ -1367,7 +1362,7 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
  
  int recowrong=0;
  for(int i=0;i<TKDBc::nlay();i++){
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
    cout<<" Let's check that I have maximum 2 hits per plane: INDEXPL["<<i<<"]= "<<INDEXPL[i]<<endl;
 #endif
    if (INDEXPL[i] < FLPAT[i]) recowrong++;
@@ -1377,7 +1372,7 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
   }
    if (slr == 200 && qlr == 200)refitting++;
  }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  cout << "             BE CAREFUL : recowrong = "<<recowrong<<endl;
 #endif
  for(int i=0;i<TKDBc::nlay();i++){
@@ -1396,7 +1391,7 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
                       firR,lasR,firL,lasL,fir_planeR,fir_planeL,
                      las_planeR,las_planeL,slr,qlr);
  }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  for(int i=0;i<TKDBc::nlay();i++){
    cout<< "*$$        INDEXPL["<<i<<"]= "<<INDEXPL[i]<<endl; 
  }
@@ -1432,7 +1427,7 @@ RecoLeftRight(refitting,FLPAT,SLOPEf,INTERf,x_starf,z_starf,fbotf,ftopf,
      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
      if (p->checkstatus(AMSDBc::GAMMARIGHT)){
       AMSPoint p_hi = p->getHit(); 
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 cout<< "*$$$$$$$ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
 #endif
           nright++;
@@ -1449,7 +1444,7 @@ cout<< "*$$$$$$$ RIGHT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<en
      if(p->checkstatus(AMSDBc::FalseX) || p->checkstatus(AMSDBc::FalseTOFX))continue;
      if (p->checkstatus(AMSDBc::GAMMALEFT)){
       AMSPoint p_hi = p->getHit(); 
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 cout<< "*$$$$$$$ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<endl; 
 #endif
          nleft++;
@@ -1458,14 +1453,14 @@ cout<< "*$$$$$$$ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<end
      }
    }
   }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  for(int i=0;i<TKDBc::nlay();i++){
    cout<<" AGAIN Let's check that I have maximum 2 hits per plane: INDEXPL["<<i<<"]= "<<INDEXPL[i]<<endl;
  }
 #endif
   nleft=nleft+1;
   nright=nright+1;
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
   cout <<"1   nleft nright"<<nleft<<" "<< nright<<endl;
 #endif
   //
@@ -1480,7 +1475,7 @@ cout<< "*$$$$$$$ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<end
     int plusminus=0;
     if (nleft >=3 && nright >= 3){
     pntLR->Fit(5,2);
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
     cout << "_GRidgidityMSR          " <<pntLR->_GRidgidityMSR<< endl; 
     cout << "_GRidgidityMSL          " <<pntLR->_GRidgidityMSL<< endl; 
     cout << "Now we are after  Fit(5,2)"<< endl;
@@ -1641,7 +1636,7 @@ double z_tkl[trconst::maxlay];
 	   }
 AMSPoint ZEL(pntLR->_GP0MSL[0],pntLR->_GP0MSL[1],z_tkl[j]);
 AMSPoint ZER(pntLR->_GP0MSR[0],pntLR->_GP0MSR[1],z_tkl[j]);
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 cout<< "    INTERPOLING PLANE  "<<j+1<<endl;
 cout<< "AMSPoint ZEL =  "<<ZEL[0]<<" "<<ZEL[1]<<" "<<ZEL[2]<<endl;
 cout<< "AMSPoint ZER =  "<<ZER[0]<<" "<<ZER[1]<<" "<<ZER[2]<<endl;
@@ -1735,7 +1730,7 @@ pntLR->PAIR2GAMMA(counting,plusminus);
   if (nright >= 3){
    NGammaFound++;
   }
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
 cout << " FINALLY 8-------------- PGAMM "<<pntLR->_PGAMM<<endl;
 #endif
 if (nleft >=3 && nright >= 3){
@@ -1912,7 +1907,7 @@ void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag
   
   for(int i1=0;i1<_NhLeft;i1++){
     //
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
     cout << "_HLEFT[i1][0 ... 2] = "<<_HLEFT[i1][0]<< " "<< _HLEFT[i1][1]<< " "<<  _HLEFT[i1][2]<<endl;
 #endif
     for(int i2=0;i2<_NhRight;i2++){
@@ -1945,7 +1940,7 @@ void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag
     z_fi0[i]=z_fi[i];
   }
   //**************************************************************************
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
   cout << "LR_RES_STUDY3------before while (SDW >= 0.32)"<< endl;
   for(int i=0;i<TKDBc::nlay();i++){
     cout <<  "z_fi[i] res_[i] = "<<z_fi[i]<< " "<<  res_[i]<<endl;
@@ -1973,7 +1968,7 @@ void AMSTrTrackGamma::LR_RES_STUDY3(integer INDEXPL[], double res_d[], int& flag
   iu++;
   flag=0; // loop times counter and flag for poly2 accomplishment
 
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
   for(int i=0;i<(iu+1);i++){
     cout <<  "z_fi3[i] res_3["<<i<<"] = "<<z_fi3[i]<< " "<<  res_3[i]<<endl;
   }
@@ -3246,7 +3241,7 @@ void AMSTrTrackGamma::RecoLeftRight(int& refitting, integer FLPAT[], double   SL
                                     double firR,double lasR,double firL,double lasL,
                                     int fir_planeR, int  fir_planeL,int las_planeR,int las_planeL,double & slr, double & qlr){
 
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  cout << "INTO RecoLeftRight: fbotf = "<<fbotf<<" ftopf = "<<ftopf<<endl;
  cout << "x_starf z_starf= "<<x_starf<<" "<<z_starf<<endl;
  cout << "SLOPEf INTERf = "<<SLOPEf<<" "<<INTERf<<endl;
@@ -3284,7 +3279,7 @@ AMSPoint p_hi;
    X2P=SLOPEf*firL+INTERf;
    X3P=SLOPEf*lasL+INTERf;
 
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  cout << "LEFT X2P = "<<X2P<< "X3P = "<<X3P<<endl;
  // cout << "x2l = "<<DeltaRecoTop<< " x3l = "<<DeltaRecoBottom<<endl;
 #endif
@@ -4638,7 +4633,7 @@ _MyVertex(n_L,n_R);
 
 
  //----
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  cout << "_PGAMM = "<<_PGAMM<<endl;
  cout << "_PhTheta _PhPhi= "<<_PhTheta<<"  "<<_PhPhi<<endl;
  cout << "_Gacosd= "<<_Gacosd<<endl;
@@ -5217,7 +5212,7 @@ MYlfit::MYlfit(int M, double* xp, double* yp){
   L=M;
   x=xp;
   y=yp;
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
    cout<< "MYlfit L "<< L <<endl; 
    for (int ig=0;ig<L;ig++){
      cout<< "MYlfit y["<<ig<<"] "<<y[ig]<<endl; 
@@ -5238,7 +5233,7 @@ getEcalMul(0,nm,ec);
     LL=mul;
     tm34=tm;
     ecc=ec;
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
     cout<<  "XZLine_TOF     NN    "<<NN[0]<<" "<<NN[1]<<" "<<NN[2]  <<endl;
     cout << "XZLine_TOF     LL[0] "<<LL[0]<<" LL[1] "<<LL[1]<<" LL[2] "<<LL[2]<< endl;
     cout << "               LL[3] "<<LL[3]<<" LL[4] "<<LL[4]<<endl; 
@@ -5485,7 +5480,7 @@ void XZLine_TOF::Lines_Top_Bottom(int& out){
       }
 
 
-#ifdef __AMSDEBUG__
+#ifdef __AMSDEBUGSHOULDNOTBEUSEDLIKETHAT__
  cout << "Lines_Top_Bottom: fbot = "<<fbot <<" ftop = "<<ftop<<endl;
  cout << "x_star z_star= "<<x_star<<" "<<z_star<<endl;
  cout << "SLOPE INTER = "<<SLOPE<<" "<<INTER<<endl;
@@ -6075,7 +6070,6 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
     AMSPoint beta=dirL.crossp(p1L-p1R);
     number t=alpha.prod(beta)/alpha.prod(alpha);
 //    if(t>0)t=0;   // min vertex 
-//     t=0;
     _P0R=p1R+dirR*t;
     _P0L=p1L+dirL*t;
     AMSPoint dc=p1L-_P0R;
@@ -6098,26 +6092,6 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
      if (dirL[2]>0)dirL=dirL*(-1);
      if (dirR[2]>0)dirR=dirR*(-1);
     }
-
-
-/*
-{
-  ca=dirL.prod(dirR);
-  if(ca>1)ca=1;
-
-    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid(method))*fabs(_pntTrL->getrid(method))*(1-ca)));
-    cout <<" final "<<180/3.1415926*acos(ca)<<" "<<_MGAM<<endl;
-
-    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
-    if(pmcg){
-     AMSPoint pge=dirR*fabs(_pntTrR->getrid(method))+dirL*fabs(_pntTrL->getrid(method));
-     number cag=pmcg->getdir().prod(AMSDir(pge));
-    if(cag>1)cag=1;
-    cout <<" final2 "<<180/3.1415926*acos(cag)<<" "<<endl;
-    }
-}
-*/
-
 
 
 
@@ -6153,7 +6127,7 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
    _PhTheta=AMSDir(pge).gettheta();
     _PhPhi=AMSDir(pge).getphi();
     number ca=dirL.prod(dirR);
-    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid())*fabs(_pntTrL->getrid())*(1-ca)));
+    _MGAM=sqrt(fabs(2*fabs(_pntTrR->getrid(method))*fabs(_pntTrL->getrid(method))*(1-ca)));
            
   return;
  } 

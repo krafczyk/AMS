@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.178 2002/12/06 14:43:38 choumilo Exp $
+//  $Id: commons.h,v 1.179 2002/12/18 15:09:52 choutko Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -297,6 +297,8 @@ public:
   float SimpleRearLeak[4];
   float CalorTransSize;
   float EMDirCorrection;
+  float HiEnThr;
+  float HiEnCorFac;
   integer sec[2];
   integer min[2];
   integer hour[2];
