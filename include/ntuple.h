@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.55 2002/07/16 05:43:23 kscholbe Exp $
+//  $Id: ntuple.h,v 1.56 2002/07/16 05:57:38 kscholbe Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -137,7 +137,6 @@ public:
   int   EcalP[MAXPART02];
   int   Particle[MAXPART02];
   int   ParticleVice[MAXPART02];
-  float TRDLikelihood[MAXPART02];
   float Prob[MAXPART02][2];
   float FitMom[MAXPART02];
   float Mass[MAXPART02];
@@ -162,6 +161,7 @@ public:
   float RichPath[MAXPART02][2];
   float RichPathBeta[MAXPART02][2];
   float RichLength[MAXPART02];
+  float TRDLikelihood[MAXPART02];
 friend class AMSParticle;
 friend class AMSNtuple;
 };
