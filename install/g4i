@@ -23,8 +23,8 @@ setenv G4VIS_BUILD_OPENGLX_DRIVER     1  # Uses OpenGL and Motif
 setenv G4VIS_USE_OPENGLX     1
 setenv G4VIS_BUILD_RAYX_DRIVER         1
 setenv G4VIS_USE_RAYX         1
-setenv G4VIS_BUILD_OPACS_DRIVER         1
-setenv G4VIS_USE_OPACS         1
+#setenv G4VIS_BUILD_OPACS_DRIVER         1
+#setenv G4VIS_USE_OPACS         1
 setenv G4DAWNFILE_VIEWER david
 setenv OGLHOME /usr/local
 #setenv G4LEVELGAMMADATA $G4INSTALL/data/PhotonEvaporation
