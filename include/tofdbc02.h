@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.12 2002/12/06 14:43:40 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.13 2003/02/25 09:42:02 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -286,6 +286,11 @@ private:
 //          i=1 => TovT->RawEvent OK
 //          i=2 => Ghits->RawCluster OK
 //          i=3 => Out-of-volume hit
+//          i=4 => Fired TOF-bars
+//          i=5 => MC flash-ADC overflows
+//          i=6 => MC stretch-TDC overflows
+//          i=7 => MC anode-ADC overflows
+//          i=8 => MC dynode-ADC overflows
   static integer recount[TOF2GC::SCJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
 //          i=1 -> H/W TOF-trigger OK

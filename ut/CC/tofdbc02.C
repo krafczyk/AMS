@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.18 2003/02/21 16:23:26 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.19 2003/02/25 09:41:53 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -1719,6 +1719,10 @@ void TOF2JobStat::printstat(){
   printf("   MC: Ghits->RawCluster OK : % 6d\n",mccount[2]);
   printf("   MC: Bars with OutOfHits  : % 6d\n",mccount[3]);
   printf("   MC: Bars fired           : % 6d\n",mccount[4]);
+  printf("   MC: Flash-ADC overflows  : % 6d\n",mccount[5]);
+  printf("   MC: Stretch-TDC overflows: % 6d\n",mccount[6]);
+  printf("   MC: Anode-ADC overflows  : % 6d\n",mccount[7]);
+  printf("   MC: Dynode-ADC overflows : % 6d\n",mccount[8]);
   printf(" RECO-entries               : % 6d\n",recount[0]);
   printf("   LVL1-trig OK             : % 6d\n",recount[1]);
   printf("   Usage of TOF in LVL1     : % 6d\n",recount[33]);

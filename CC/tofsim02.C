@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.19 2002/12/06 14:43:22 choumilo Exp $
+//  $Id: tofsim02.C,v 1.20 2003/02/25 09:41:54 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
@@ -768,7 +768,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
     daqp10=TOF2DBc::daqpwd(10);// intrinsic t-dispersion of comparator(on low thr.outp)
     daqp11=TOF2DBc::daqpwd(11);// min.duration time of comparator(..................)
   }
-// time-dependent parameters(threshols mainly) !!! :
+// time-dependent parameters(thresholds mainly) !!! :
   daqt0=TOF2Varp::tofvpar.daqthr(0); // fast discr. thresh(low) for slow/fast TDC branch
   fdaqt0=0.1*daqt0;// lowered threshold to select "working" part of pulse(m.b. loose some charge !!!)
   daqt1=TOF2Varp::tofvpar.daqthr(1); // fast discr. thresh(high) for Z>=1 (FT) branch
@@ -776,10 +776,13 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
 //
-        if(tslice[TOF2GC::SCTBMX]>daqt0){
+        if(tslice[TOF2GC::SCTBMX]>daqt0){//test last bin ob flash-ADC
+          TOF2JobStat::addmc(5);
+#ifdef __AMSDEBUG__
           cout<<"SITOFTovt-warning: MC_flash-ADC overflow, id="<<idd<<
-             "  A-last= "<<tslice[TOF2GC::SCTBMX]<<'\n';
-//          if(TFMCFFKEY.mcprtf[2])TOF2Tovt::displ_a(idd,125,tslice);//print PMT pulse
+             "  A-last-bin= "<<tslice[TOF2GC::SCTBMX]<<'\n';
+          if(TFMCFFKEY.mcprtf[2])TOF2Tovt::displ_a(idd,125,tslice);//print PMT pulse
+#endif
         }
         for(i=TOF2GC::SCTBMX-1;i>0;i--)
             if(tslice[i]>fdaqt0 && tslice[i-1]>fdaqt0)break;//find high limit
@@ -1627,7 +1630,7 @@ void TOF2RawEvent::mc_build(int &status)
         dt=tl1d-t2;// follow LIFO mode of readout : down-edge - first hit
         it=integer(floor(dt/TOF2DBc::tdcbin(0))); // conv. to fast-TDC (history) t-binning
         if(it>maxv){
-          cout<<"TOF2RawEvent_mc: warning : Hist-TDC down-time overflow !!!"<<'\n';
+          cout<<"TOF2RawEvent_mc: warning : Hist-TDC overflow(down edge) !!!"<<'\n';
           it=maxv;
         }
         itt=int16u(it);
@@ -1637,7 +1640,7 @@ void TOF2RawEvent::mc_build(int &status)
         dt=tl1d-t1;// follow LIFO mode of readout : leading(up) edge - second
         it=integer(floor(dt/TOF2DBc::tdcbin(0))); // conv. to fast-TDC (history) t-binning
         if(it>maxv){
-          cout<<"TOF2RawEvent_mc: warning : Hist-TDC up-time overflow !!!"<<'\n';
+          cout<<"TOF2RawEvent_mc: warning : Hist-TDC overflow(up edge) !!!"<<'\n';
           it=maxv;
         }
         itt=int16u(it);
@@ -1664,7 +1667,10 @@ void TOF2RawEvent::mc_build(int &status)
           it4=integer(floor(t4/TOF2DBc::tdcbin(1)));
           it=it0-it4;// time wrt lev-1 signal
           if(it>maxv){
-            cout<<"TOF2RawEvent_mc: warning : 4-th edge TDC overflow !!!"<<'\n';
+            TOF2JobStat::addmc(6);
+#ifdef __AMSDEBUG__
+            cout<<"TOF2RawEvent_mc-W: Stretcher-TDC overflow(4th edge) !!!"<<'\n';
+#endif
             it=maxv;
           }
           itt=int16u(it);
@@ -1675,7 +1681,7 @@ void TOF2RawEvent::mc_build(int &status)
           it3=integer(floor(t3/TOF2DBc::tdcbin(1)));
           it=it0-it3;// time wrt lev-1 signal
           if(it>maxv){
-            cout<<"TOF2RawEvent_mc: warning : 3-rd edge TDC overflow !!!"<<'\n';
+            cout<<"TOF2RawEvent_mc-W: Stretcher-TDC overflow(3rd edge) !!!"<<'\n';
             it=maxv;
           }
           itt=int16u(it);
@@ -1686,7 +1692,7 @@ void TOF2RawEvent::mc_build(int &status)
           it2=integer(floor(t2/TOF2DBc::tdcbin(1)));
           it=it0-it2;// time wrt lev-1 signal
           if(it>maxv){
-            cout<<"TOF2RawEvent_mc: warning : 2-nd edge TDC overflow !!!"<<'\n';
+            cout<<"TOF2RawEvent_mc-W: Stretcher-TDC overflow(2nd edge) !!!"<<'\n';
             it=maxv;
           }
           itt=int16u(it);
@@ -1697,7 +1703,7 @@ void TOF2RawEvent::mc_build(int &status)
           it1=integer(floor(t1/TOF2DBc::tdcbin(1)));
           it=it0-it1;// time wrt lev-1 signal
           if(it>maxv){
-            cout<<"TOF2RawEvent_mc: warning : 1-st edge TDC overflow !!!"<<'\n';
+            cout<<"TOF2RawEvent_mc-W: Stretcher-TDC overflow(1st edge) !!!"<<'\n';
             it=maxv;
           }
           itt=int16u(it);
@@ -1718,7 +1724,10 @@ void TOF2RawEvent::mc_build(int &status)
 	amp=tadca[jj];// here charge is quantized by "adc2q" but not "integerized"
         iamp=integer(floor(amp));//go to real ADC-channels("integerization")
         if(iamp>TOF2GC::SCADCMX){
-          cout<<"TOF2RawEvent::mc_build warning: anode ADC overflow,id="<<idd<<'\n';
+          TOF2JobStat::addmc(7);
+#ifdef __AMSDEBUG__
+          cout<<"TOF2RawEvent_mc-W: Anode-ADC overflow,id="<<idd<<'\n';
+#endif
           iamp=TOF2GC::SCADCMX;
         }
 	amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
@@ -1741,7 +1750,10 @@ void TOF2RawEvent::mc_build(int &status)
 	amp=tadcd[jj];// here charge is quantized by "adc2q" but not "integerized"
         iamp=integer(floor(amp));//go to real ADC-channels("integerization")
         if(iamp>TOF2GC::SCADCMX){
+          TOF2JobStat::addmc(8);
+#ifdef __AMSDEBUG__
           cout<<"TOF2RawEvent::mc_build warning: dynode(h) ADC overflow,id="<<idd<<'\n';
+#endif
           iamp=TOF2GC::SCADCMX;
         }
 	amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)

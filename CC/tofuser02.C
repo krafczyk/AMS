@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.6 2002/12/06 14:43:22 choumilo Exp $
+//  $Id: tofuser02.C,v 1.7 2003/02/25 09:41:54 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>
@@ -131,11 +131,11 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     AMSCharge  *pcharge;
     int ntrk,ipatt;
     ntrk=0;
-    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
+    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get pointer to part-envelop
     if(cptr)
            ntrk+=cptr->getnelem();
     if(TFREFFKEY.reprtf[2]>0)HF1(1506,geant(ntrk),1.);
-    if(ntrk!=1)return;// require events with 1 track 
+    if(ntrk<1)return;// require events with 1 particle at least 
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){

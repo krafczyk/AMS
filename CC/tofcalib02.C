@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.9 2003/02/21 16:23:25 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.10 2003/02/25 09:41:52 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <typedefs.h>
@@ -955,10 +955,10 @@ else{// <------- use Tracker to find track crossing points:
     AMSTrTrack *ptrack;
     int ntrk,ipatt;
     ntrk=0;
-    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
+    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get pointer to part-envelop
     if(cptr)
            ntrk+=cptr->getnelem();
-    if(ntrk!=1)return;// require events with 1 track.
+    if(ntrk<1)return;// require events with 1 particle at least
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){
@@ -1561,7 +1561,7 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
   geant ttop=0;
   geant tbot=0;
   if(ltim[0]!=0 && ltim[1]!=0)ttop=ltim[0]+ltim[1];
-  if(ltim[2]!=0 && ltim[1]!=3)tbot=ltim[3]+ltim[3];
+  if(ltim[2]!=0 && ltim[3]!=0)tbot=ltim[2]+ltim[3];
   betof=0;
   if(ttop!=0 && tbot!=0){
     betof=2.*lflgt/(ttop-tbot)/cvel;//under.TOFbeta based on prev.calibr.
@@ -1586,11 +1586,11 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
     AMSCharge  *pcharge;
     int ntrk,ipatt;
     ntrk=0;
-    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
+    cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get pointer to part-envelop
     if(cptr)
            ntrk+=cptr->getnelem();
     if(TFREFFKEY.reprtf[2]>0)HF1(1506,geant(ntrk),1.);
-    if(ntrk!=1 && TFCAFFKEY.truse>=0)return;// require events with 1 track 
+    if(ntrk<1 && TFCAFFKEY.truse>=0)return;// require events with 1 particle at least
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){
