@@ -72,11 +72,11 @@ double Radius(matr3 M) {
 }
 
 /* Transformation of coordinates */
-int Coordinates(matr3 Coo_M1950, matr3 Vel_M1950, double q[4], time_t utime, polar *Ge, double *V_a, Euler *E_LVLH, polar *Sol, double *Green_Phi) {
+int Coordinates(matr3 Coo_M1950, matr3 Vel_M1950, double q[4], time_t utime, polar *Ge, polar *Ge_G, double *V_a, Euler *E_LVLH, polar *Sol, double *Green_Phi, polar *Geo_Vel, polar *Geo_G_Vel) {
   double R, JC2000_0UT, time_of_day;
   int i,j=0,ii,jj;
-  polar Geo, Solar;
-  double Vel_angle, Greenw_Phi;
+  polar Geo, Solar, Geo_V, Geo_G_V;
+  double Vel_angle, Greenw_Phi, dd;
   Euler Euler_LVLH;
 
   /* M1950------> J2000 */
@@ -96,12 +96,16 @@ int Coordinates(matr3 Coo_M1950, matr3 Vel_M1950, double q[4], time_t utime, pol
   Geo.Teta=asin(Coo_2000[2]/Geo.R);   
   /* geographical longitude, radians */
   Geo.Phi =atan2(Coo_2000[1],Coo_2000[0]);
+  /* polar coord velocity */
+  Geo_V.R=R;
+  Geo_V.Teta=asin(Vel_2000[2]/Geo_V.R);   
+  Geo_V.Phi =atan2(Vel_2000[1],Vel_2000[0]);
 
   *Ge=Geo;
+  *Geo_Vel=Geo_V;
 
   Vel_angle = R/Geo.R; /* angular velocity, rad/sec */
-  *V_a=Vel_angle;
-
+ 
   /* --- J2000 -------> inertial true-of-date ------*/
   /* accounting for precession */
   R=1.;
@@ -188,6 +192,24 @@ int Coordinates(matr3 Coo_M1950, matr3 Vel_M1950, double q[4], time_t utime, pol
   matr3x3Xmatr3(Coo_GTOD, EITOD_GTOD, Coo_ITOD);
   matr3x3Xmatr3(Vel_GTOD, EITOD_GTOD, Vel_ITOD);
 
+  Geo.R=Radius(Coo_GTOD);  /* cm */
+  R=Radius(Vel_GTOD);      /* cm */
+  /* geographical latitude, radians */
+  Geo.Teta=asin(Coo_GTOD[2]/Geo.R);   
+  /* geographical longitude, radians */
+  Geo.Phi =atan2(Coo_GTOD[1],Coo_GTOD[0]);
+
+  *Ge_G=Geo;
+
+  Geo_G_V.R=R;
+  Geo_G_V.Teta=asin(Vel_GTOD[2]/Geo_G_V.R);   
+  Geo_G_V.Phi =atan2(Vel_GTOD[1],Vel_GTOD[0]);
+
+  *Geo_G_Vel=Geo_G_V;
+
+
+  *V_a=Vel_angle;
+
   matr3x3Xmatr3(Buf3, EITOD_GTOD, Buf31); /* Greenwich 2000 in GTOD */ 
 
   Greenw_Phi =atan2(Buf3[1],Buf3[0]); /* Greenwich 2000 in GTOD, phi */
@@ -255,19 +277,19 @@ int Coordinates(matr3 Coo_M1950, matr3 Vel_M1950, double q[4], time_t utime, pol
   *E_LVLH = Euler_LVLH;
 
 /* ============ SOLAR ANGLES calculation ========== */
-  Med = C[0] + C[1]*JD1900; /* mean anomaly of the sun, deg. */
+  Med = modf((C[0] + C[1]*JD1900)/360.,&dd)*360.; /* mean anomaly of the sun, deg. */
   longi = C[2]+C[3]*JD1900+C[4]*sind(Med)+C[5]*sind(2*Med); /* deg. */
   /* Sun position in ITOD */
   R_sun = AE*(1.00014-0.01671*cosd(Med)-0.00014*cosd(2*Med)); /* Sun-earth dist*/
-  S_ITOD[0]=cosd(longi)*R_sun;
-  S_ITOD[1]=sind(longi)*cosd(eps)*R_sun;
-  S_ITOD[2]=sind(longi)*sind(eps)*R_sun;
+  S_ITOD[0]=cosd(longi);
+  S_ITOD[1]=sind(longi)*cosd(eps);
+  S_ITOD[2]=sind(longi)*sind(eps);
   /* Sun position in GTOD */
   matr3x3Xmatr3(S_GTOD, EITOD_GTOD, S_ITOD);
-  Solar.R=Radius(S_GTOD);
+  Solar.R=R_sun;
   Solar.Phi =atan2(S_GTOD[1],S_GTOD[0]); 
   /* geographical longitude */
-  Solar.Teta =asin(S_GTOD[2]/Solar.R);
+  Solar.Teta =asin(S_GTOD[2]);
 
   *Sol = Solar;
 

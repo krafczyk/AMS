@@ -1,78 +1,454 @@
-
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <typedefs.h>
+#include <cern.h>
+#include <ctype.h>
 #include <iostream.h>
+#include <fstream.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/times.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+#include <stdio.h>
+#include <iomanip.h>
+#include <dirent.h>                   
 #include <ams/types.h>
 #include <ams/castcp.h>
-#include <fstream.h>
+#include "Coordinates.h"
+#include <astring.h>
 
-#include "Coordinates.h" // cooradinate recalculation 
-#include "file_reading.h" // reading CAS files
+int NAME;
+const int NWPAW=700000;
+struct PAWC_DEF{
+float q[NWPAW];
+};
+#define PAWC COMMON_BLOCK(PAWC,pawc)
+#define N_bad 500   // maximum number of bad CAS blocks
 
-
-#define foot_cm 30.48
-#define debug 0
-
-CASblock  buffer;
-#if 0
-
-typedef struct  {
-  int   size;                        /* Actual size in little endian         */
-  int   pktNum;                      /* Packet number for first NASCOM block */
-  int   gsedTime[CAS_TAGS_INDEX+1];  /* gsed time for each NASCOM block      */
-  int   nasTime[CAS_TAGS_INDEX+1];   /* NASCOM time for each NASCOM block    */
-  byte  CASmsg[16*600];              /* Unmodified CAS message.              */
-                                     /* (Can't be bigger than this.)         */
-} CASblock;
-
-#endif
-int day, current_block=0;
+COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
+PAWC_DEF PAWC;
 
 
-double CASvalue (int offset, int length) {
+   static const int debug=0;
+  class ShuttlePar{
+  public:
+    float StationR;
+    float StationTheta;
+    float StationPhi;
+    float GrMedPhi;
+    float StationYaw;
+    float StationPitch;
+    float StationRoll;
+    float StationSpeed;
+    float SunR;
+    float SunTheta;
+    float SunPhi;
+    float StThetaGTOD;
+    float StPhiGTOD;
+    float VelTheta;
+    float VelPhi;
+    float VelThetaGTOD;
+    float VelPhiGTOD;
+   time_t Time;
+  };
+
+   char *CAS_dir;
+   char *Coo_db_dir;
+   integer td2f(double d);
+   float d2f(double d);
+   integer Cas2Shuttle(CASblock & b1, ShuttlePar & b32);
+   int updShuttle(ShuttlePar &b, integer close);
+   int _select(dirent *entry);
+   int _sort(dirent ** e1, dirent ** e2);
+   void convert(int,int, char*);
+   int ClockTune(time_t Time);
+   double CASvalue (CASblock & buffer, int offset, int length, uint &ofset);
+   double CAStime(CASblock & buffer, int offset);
+   int badlist_open(uint & cur);
+   int badlist_search(time_t t, uint & cur);
+   int badlist_close(uint & cur);
+   time_t badlist[N_bad];
+   FILE *fpbad;
+   uint nach=0, cur=0, bad_s;
+
+int main (int argc, char *argv[]) {
+
+        switch (argc) {
+        case 1:
+         cerr <<"ShuttlePar-F-Please give input file name(s) as  parameter(s) or + for whole directory"<<endl;
+	 return 1;
+        default:
+         break;
+        }
+         CAS_dir=getenv("CASDataDir");
+         Coo_db_dir=getenv("CooDbDir");
+//             convert(0,0,"037000");
+        int iostat,rsize=1024;
+        HLIMIT(NWPAW);
+        HROPEN(3,"output","cas_time","N",rsize,iostat);
+           if(iostat){
+             cerr << "Error opening Histo file cas"<<endl;
+             exit(1);
+           }
+           else cout <<"Histo file "<<"cas"<<" opened."<<endl;
+
+	   if(argv[1][0]=='+'){
+	   if (1) {
+	     	   
+	     sscanf(argv[1],"%d",&NAME);
+         cout <<" Only files with name >= " <<NAME<<" will be scanned"<<endl;
+         int i;
+         cout <<"ShuttlePar-I-Scanning directory "<<CAS_dir<<endl;
+         dirent ** namelist;                            
+         int nptr=scandir(CAS_dir,&namelist,&_select,&_sort);    
+         if(nptr>0){
+          cout <<"ShuttlePar-I-Found "<<nptr <<" entries"<< endl;
+           int i;
+           //for(i=0;i<nptr;i++)cout<<namelist[i]->d_name<<endl;    
+	   
+	   bad_s=badlist_open(cur);
+
+           for(i=0;i<nptr;i++){
+             convert(i,nptr-i-1,namelist[i]->d_name);
+           }
+	   if (badlist)
+	     badlist_close(cur);
+	   
+         }
+         else{
+           cerr<<"ShuttlePar-F-NoCasFilefound in "<<CAS_dir<<endl;
+           exit(1);
+         } 
+        }
+        else{ 
+         int i;
+          cout <<"ShuttlePar-I-Found "<<argc-1 <<" entrie(s)"<< endl;
+         for(i=1;i<argc;i++){
+            convert(i-1,argc-i-1,argv[i]);
+          }
+        }
+
+        return 0;
+}
+
+
+
+void convert (int begin, int end,char file[]){
+           ifstream fin;   // CAS 
+           static integer count=0;
+           uinteger length;
+           CASblock buffer;
+           ShuttlePar block;
+	   time_t badt=0;
+           if(begin==0){
+              HBNT(1,"CAS Data"," ");
+              HBNAME(1,"CASData",(int*)(&block),"StationR,StationTheta,StationPhi,GrMedPhi,StationYaw,StationPitch,StationRoll,StationSpeed,SunR,SunTheta,SunPhi,StThetaGTOD,StPhiGTOD,VelTheta,VelPhi,VelThetaGTOD,VelPhiGTOD,Time:I");
+
+           }
+           // open fin;
+           AString fname(CAS_dir);
+           fname+="/";
+           fname+=file;
+           fin.open(fname);
+           if(fin){
+              cout <<"convert-I-Openfile "<<fname<<" ("<<++count<<")"<<endl;
+              while(!fin.eof()){
+                fin.read((char*)(&length),sizeof(integer));
+                fin.seekg(fin.tellg()+20*sizeof(integer));
+                fin.read((char*)(&(buffer.CASmsg)),length-20*sizeof(integer)); 
+                int ret=Cas2Shuttle(buffer,block);
+                if(ret>0){
+		  if(updShuttle(block,0))HFNT(1);
+                 }
+                 else {
+		   cerr<<"Error no "<< ret <<" decoding block in file "<<fname<<endl;
+		 }
+	      }
+              fin.close();
+	   }
+           else{
+             cerr <<"convert-E-UnableToOpenfile "<<fname<<endl;
+             return;
+           }
+           if(end==0){
+                // last file 
+                // close everything
+	     updShuttle(block,1);
+                int ntuple_entries;
+                HNOENT(1, ntuple_entries);
+                cout << " Closing CAS ntuple  with "<< ntuple_entries 
+                << " events" << endl;
+                char hpawc[256]="//PAWC";
+                HCDIR (hpawc, " ");
+                char houtput[9]="//output";
+                HCDIR (houtput, " ");
+                integer ICYCL=0;
+                HROUT (1, ICYCL, " ");
+                HREND ("output");
+                CLOSEF(1);
+
+
+           }
+      
+       }
+
+
+       int _select(dirent *entry){
+        for(int i=0;i<strlen(entry->d_name);i++){
+         if(!isdigit((entry->d_name)[i]))return 0;
+        }
+        int e1;
+         sscanf(entry->d_name,"%d",&e1);
+         if(e1<NAME)return 0;
+         else return 1;
+
+
+       }
+       
+int ClockTune(time_t Time){
+         static time_t begin=Year1998+153*86400;
+         return 4+(Time-begin)/50000;
+       }
+float d2f(double d){
+  if(fabs(d)<1.e30)return float(d);
+  else if (d>1.e30)return 1.e30;
+  else return -1e30;
+}
+integer td2f(double d, double lim_low, double lim_up){
+  if((fabs(d)<=lim_up)&&(fabs(d)>=lim_low)) return 1;
+  else return 0;
+}
+integer Cas2Shuttle(CASblock & buffer, ShuttlePar & block){
+        /* Reading M1950 coordinates and velocities from CAs */
+      const int foot_cm=30.48;
+double Coo_M1950[3], Vel_M1950[3], q[4], Greenw_Phi, Vel_angle;
+polar Geo,Geo_G,Solar,Geo_Vel,Geo_G_Vel;
+Euler Euler_LVLH;
+uint para,statu;
+
+      para=1;  
+      Coo_M1950[0]=CASvalue(buffer,(4490),8,statu) * foot_cm;
+      if (statu!=0) para=0;
+      Coo_M1950[1]=CASvalue(buffer,(4508),8,statu) * foot_cm;
+      if (statu!=0) para=0;
+      Coo_M1950[2]=CASvalue(buffer,(4526),8,statu) * foot_cm;
+      if (statu!=0) para=0;
+
+      Vel_M1950[0]=CASvalue(buffer,(4687),8,statu) * foot_cm;
+      if (statu!=0) para=0;
+      Vel_M1950[1]=CASvalue(buffer,(4701),8,statu) * foot_cm;
+      if (statu!=0) para=0;
+      Vel_M1950[2]=CASvalue(buffer,(4715),8,statu) * foot_cm;
+      if (statu!=0) para=0;
+
+      q[0]=CASvalue(buffer,(3291),8,statu);
+      if (statu!=0) para=0;
+      q[1]=CASvalue(buffer,(3305),8,statu);
+      if (statu!=0) para=0;      
+      q[2]=CASvalue(buffer,(3319),8,statu);
+      if (statu!=0) para=0;
+      q[3]=CASvalue(buffer,(3333),8,statu);
+      if (statu!=0) para=0;
+      double times= CAStime(buffer,10);                
+      time_t utime = time_t(times+0.5) + Year1998;      
+      // check record
+
+      if (utime>896825174) nach=1;
+	
+      if((Radius(Coo_M1950)>.1) && (Radius(Vel_M1950)>.1) && (times>0)) {
+
+	
+     // convert here 
+	Coordinates(Coo_M1950,Vel_M1950,q,utime,&Geo,&Geo_G,&Vel_angle,&Euler_LVLH,&Solar,&Greenw_Phi,&Geo_Vel,&Geo_G_Vel);
+      
+	if(!td2f(Geo.Teta,-.92, 1.))para=0;
+	if(!td2f(Geo.Phi,-3.1416, 3.1416))para=0;
+	if(!td2f(Geo.R,6.25e8,6.7e8))para=0;
+	if(!td2f(Greenw_Phi,0,1.e20))para=0;
+	if(!td2f(Euler_LVLH.Yaw,-1.571,1.571))para=0;
+	if(!td2f(Euler_LVLH.Pitch,-3.1416,3.1416))para=0;
+	if(!td2f(Euler_LVLH.Roll,-3.1416,3.1416))para=0;
+	if(!td2f(Vel_angle,0,0.00125))para=0;
+	if(!td2f(Solar.R,0,1.e20))para=0;
+	if(!td2f(Solar.Phi,0,1.e20))para=0;
+	if(!td2f(Solar.Teta,0,1.e20))para=0;
+	if(!td2f(Geo_G.Teta,-.92, 1.))para=0;
+	if(!td2f(Geo_G.Phi,-3.1416, 3.1416))para=0;
+	if(!td2f(Geo_Vel.Teta,-1.571, 1.571))para=0;
+	if(!td2f(Geo_Vel.Phi,-3.1416, 3.1416))para=0;
+	if(!td2f(Geo_G_Vel.Teta,-1.57, 1.57))para=0;
+	if(!td2f(Geo_G_Vel.Phi,-3.1416, 3.1416))para=0;
+	if(!td2f(utime+0.,1.,897678150.))para=0;
+      }
+      else {
+	para=0;
+      }
+	
+      	if ((badlist) && (para)) {
+	  if (badlist_search(utime, cur)) {
+	    para=0;
+	  }
+	}
+      if (para==0) {
+	return -1;
+      }
+
+      if (!nach) return -1;
+
+      block.StationTheta=d2f(Geo.Teta);
+      block.StationPhi=d2f(Geo.Phi);
+      block.StationR=d2f(Geo.R);
+      block.GrMedPhi=d2f(Greenw_Phi);
+      block.StationYaw=d2f(Euler_LVLH.Yaw);
+      block.StationPitch=d2f(Euler_LVLH.Pitch);  
+      block.StationRoll=d2f(  Euler_LVLH.Roll);
+      block.StationSpeed=d2f(  Vel_angle);
+      block.SunR=d2f(Solar.R);
+      block.SunPhi=d2f(Solar.Phi);
+      block.SunTheta=d2f(Solar.Teta);
+      block.StThetaGTOD=d2f(Geo_G.Teta);
+      block.StPhiGTOD=d2f(Geo_G.Phi);
+      block.VelThetaGTOD=d2f(Geo_G_Vel.Teta);
+      block.VelPhiGTOD=d2f(Geo_G_Vel.Phi);
+      block.VelTheta=d2f(Geo_Vel.Teta);
+      block.VelPhi=d2f(Geo_Vel.Phi);
+
+
+      //cout <<" "<<ClockTune(utime)<<" "<<ctime(&utime)<<endl;
+      block.Time=utime-ClockTune(utime);
+}
+
+int updShuttle(ShuttlePar & record, int close){
+   static ofstream fout;
+   static integer Arrp=-1;
+   static ShuttlePar Array[60];
+   static time_t Insert=0;
+   if(close){
+     if(fout && Arrp>=0){
+      for( int i=Arrp+1;i<60;i++)Array[i]=record;
+      uinteger crc=_CalcCRC((uinteger*)Array,sizeof(Array));
+      AString fname(Coo_db_dir);
+      fname+="/";
+      fname+="ShuttlePar.1.";
+      char file[256];
+      sprintf(file,"%d",Array[0].Time);
+      fname+=file;
+      fout.open(fname);
+      if(fout){
+        fout.write((char*)Array,sizeof(Array));
+        fout.write((char*)(&crc),sizeof(crc));
+        time_t newi;
+        time(&newi);
+        if(newi!=Insert)Insert=newi;
+        else Insert++;
+        fout.write((char*)(&Insert),sizeof(Insert)); 
+        fout.write((char*)(&(Array[0].Time)),sizeof(time_t)); 
+        time_t end=(Array[59].Time+61);
+        fout.write((char*)(&end),sizeof(time_t)); 
+        fout.close();
+        cout <<"ShuttlePar-I-writeFile "<<fname<<" "<<endl;
+        cout <<"Insert "<<ctime(&Insert)<<endl;
+        cout <<"Begin "<<ctime(&Array[0].Time)<<endl;
+        cout <<"End "<<ctime(&end)<<endl;
+      }
+      else{
+        cerr <<"ShuttlePAr-F-UnableToOPenFile "<<fname<<endl;
+        exit(1);
+      }
+     }
+   }
+   else {
+       // validate record first
+       if(Arrp<0 || (record.Time>Array[Arrp].Time && record.Time<Array[Arrp].Time+36000))Arrp++;
+       else {
+         cerr<<"Errror no 1 "<<Arrp<< " "<<record.Time<<" "<<Array[Arrp].Time<<endl;
+         return 0;
+       }
+     if(Arrp==60 || (Arrp>0 && record.Time>Array[Arrp-1].Time+3600)){
+       for( int i=Arrp;i<60;i++)Array[i]=Array[Arrp-1];
+          // close file
+        AString fname(Coo_db_dir);
+        fname+="/";
+        fname+="ShuttlePar.1.";
+        char file[256];
+        sprintf(file,"%d",Array[0].Time);
+        fname+=file;
+        fout.open(fname);
+        if(fout){
+          uinteger crc=_CalcCRC((uinteger*)Array,sizeof(Array));
+          fout.write((char*)Array,sizeof(Array));
+          fout.write((char*)(&crc),sizeof(crc));
+          time_t newi;
+          time(&newi);
+          if(newi!=Insert)Insert=newi;
+          else Insert++;
+          fout.write((char*)(&Insert),sizeof(Insert)); 
+          fout.write((char*)(&(Array[0].Time)),sizeof(time_t)); 
+          time_t end=(Array[59].Time+1);
+          fout.write((char*)(&end),sizeof(time_t)); 
+          fout.close();
+          cout <<"ShuttlePar-I-writeFile "<<fname<<endl;
+          cout <<"Insert "<<ctime(&Insert)<<endl;
+          cout <<"Begin "<<ctime(&Array[0].Time)<<endl;
+          cout <<"End "<<ctime(&end)<<endl;
+        }
+        else{
+          cerr <<"ShuttlePAr-F-UnableToOPenFile "<<fname<<endl;
+          exit(1);
+        }
+          Arrp=0;
+     }
+     Array[Arrp]=record;
+   }
+   return 1;
+}
+
+        
+
+double CASvalue (CASblock & buffer, int ofset, int length, uint &statu) {
   byte val[8];
   double dval=0;
   int i;
 
+  statu=buffer.CASmsg[ofset-4];
   for (i=0; i<length; i++) {
-    val[i]=buffer.CASmsg[offset+length-i-4];
+    val[i]=buffer.CASmsg[ofset+length-i-4];
     if (debug){
       cout <<" value = "<<val[i]<<endl;
     }
   }
-   
+
   dval=(double)*((double*)val);
   return dval;
 }
 
-double CAStime(int offset) { /* based on H.Suter's function */
+
+double CAStime(CASblock & buffer, int offset) { /* based on H.Suter's function */
   ulong musec, sec, min, hours, days, time;
   double times;
   int i;
   union {
     ulong val;
     struct {
-      uint msec : 13;		// microseconds
-      uint nil  :  5;		// void
-      uint usec :  4;		// units of seconds
-      uint tsec :  3;		// tens of seconds
-      uint umin :  4;		// units of minutes
-      uint tmin :  3;		// tens of minute
-      uint uhour:  4;		// units of hours
-      uint thour:  2;		// tens of hours
-      uint uday :  4;		// units of days
-      uint tday :  4;		// tens of days
-      uint hday :  2;		// hundreds of days
+      uint msec : 13;           // microseconds
+      uint nil  :  5;           // void
+      uint usec :  4;           // units of seconds
+      uint tsec :  3;           // tens of seconds
+      uint umin :  4;           // units of minutes
+      uint tmin :  3;           // tens of minute
+      uint uhour:  4;           // units of hours
+      uint thour:  2;           // tens of hours
+      uint uday :  4;           // units of days
+      uint tday :  4;           // tens of days
+      uint hday :  2;           // hundreds of days
     } CASdate;
   } t;
 
   if (buffer.CASmsg[offset-4] == 0) {
     time = buffer.CASmsg[offset-3];
-    for (i=1; i<6; i++) 
+    for (i=1; i<6; i++)
       time = time << 8 | buffer.CASmsg[offset-3+i];
     t.val=time;
     musec = t.CASdate.msec / 8;
@@ -85,287 +461,61 @@ double CAStime(int offset) { /* based on H.Suter's function */
 
     return times;
   }
-  else 
+  else
     return 0;
 }
 
-float double_float(double *a) {
-  float b;
-  if ((*a == 0) || (abs(*a)>3.4e+30) || (abs(*a)<3.4e-30))
-    return 0.;
-  b=(float) (*a);
-  return b;
+int _sort(dirent ** e1, dirent ** e2){
+ return strcmp((*e1)->d_name,(*e2)->d_name);
 }
 
-int main(int argc, char *argv[]) {
-
-double Coo_M1950[3], Vel_M1950[3], q[4], Greenw_Phi, Vel_angle, times;
-polar Geo,Solar;
-Euler Euler_LVLH;
-FILE *fp, *ftemp, *fout, *fl;
-int i,k, file_nu, ii=30, bad_stat=0;
-uint Data[Record_nbytes/4], *pData;
-uint crc;
-time_t cur_time;
-float fbuf;
-int block_size;
-char current_f_name[120], chb80[120];
-time_t umaxx;
-time_t xvar;
-ifstream fbin;
-fbin.open("/Offline/vdev/slow/clock");
-if(fbin){
-fbin>>xvar;
-if(fbin.eof()){
-        cerr <<"Unexpected end of clock file "<<xvar<<endl;
-        xvar=15;
-}
-}
-else{
-cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
-xvar=15;
-}
-cout <<"clock set to "<<xvar <<" sec"<<endl;
-fbin.close();
-file_n=0;
-record_n=Umax=0;
-Umin = 999999999;
-
-  CAS_dir=getenv("CASDataDir");
-  last_name=getenv("RUNFile");
-  Coo_db_dir=getenv("CooDbDir");
-  setbuf(stdout,NULL);
-
-  //puts("********************");
-  cout <<"********************"<<endl;
-  while(1) {  /*GLOBAL LOOP */
- 
-NEW_FILES: /* look for new files in the directory */
-  fbin.open("/Offline/vdev/slow/clock");
-if(fbin){
-fbin>>xvar;
-if(fbin.eof()){
-        cerr <<"Unexpected end of clock file "<<xvar<<endl;
-        xvar=15;
-}
-}
-else{
-cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
-xvar=15;
-}
-cout <<"clock set to "<<xvar <<" sec"<<endl;
-fbin.close();
-    file_n=0;
-    record_n=Umax=0;
-    Umin = 999999999;
-    new_files=0;
-    new_file_c=0;
-    new_files=new_files_coming();
-    //cout <<" new files "<<new_files<<" "<<new_file_c<<endl;
-    if (!new_files) {
-      ii++;
-      if (ii>3) {
-	time(&cur_time);
-	//printf("no new files. waiting......%s\n",ctime(&cur_time));
-        cout <<"no new files. waiting.... "<<ctime(&cur_time)<<endl;
-	ii=0;
-      }
-      sleep(60);
-      goto NEW_FILES;
-    }
-    
-    for (file_nu=0; file_nu<= new_file_c; file_nu++) { /* Main Loop */
-      fp = open_file(file_nu);
-         if (fp == NULL){
-           cerr <<"cannot open file "<<new_file_n[file_nu]<<endl;
-	   continue;
-         }      
-      int trys=0;
-  BEG: ;
-      if (feof(fp)) {
-	fclose(fp);
-	goto END_LOOP;
-      }
-    /*reading data */
-      fread(&block_size,sizeof(int),1,fp);
-      trys++;
-      for (i=0; i<20; i++) 
-	fread(&k, sizeof(int),1,fp);
-      fread(buffer.CASmsg,1,(block_size-20*4),fp);
-
-
-      if (record_n>=Record_in_file) {
-	fclose(ftemp);
-	ftemp=fopen(temp_file,"r");
-	fread(Data,Record_nbytes,1,ftemp);
-	fclose(ftemp);
-	pData = &Data[0];
-	crc = _CalcCRC(pData);
-        sleep(2);
-	time(&cur_time);
-	sprintf(current_f_name,"%s/ShuttlePar.1.%d",Coo_db_dir,Umin);
-      if (((Umax-Umin)>3600) || (Umax<Umin)) {
-	sprintf(chb80,"rm %s",current_f_name);
-	cerr<<"Timing corrupted. File skipped "<<current_f_name<<endl;
-      }
-      else{
-	fout=fopen(current_f_name,"w");
-        if(fout){
-	  fwrite(Data,1,Record_nbytes,fout);
-	  fwrite(&crc,sizeof(time_t),1,fout);
-	  fwrite(&cur_time,sizeof(time_t),1,fout);
-	  fwrite(&Umin,sizeof(time_t),1,fout);
-          umaxx=Umax+61; 
-	  fwrite(&umaxx,sizeof(time_t),1,fout);
-	  fclose(fout);
-        }
-	else {
-          cerr<<" Unable to open file "<<current_f_name<<endl;
-        }
-      }
-	sprintf(chb80,"rm %s",temp_file);
-	system(chb80);
-	//printf("======================%d\n",file_n);
-	cout <<"write "<<current_f_name<<" "<<ctime(&Umin)<<endl;
-	file_n++;
-	record_n=Umax=0;
-	Umin = 999999999;
-	fclose(fout);
-      }
-	/* Reading M1950 coordinates and velocities from CAs */
-      bad_stat=0;
-      Coo_M1950[0]=CASvalue((4490),8) * foot_cm;
-      Coo_M1950[1]=CASvalue((4508),8) * foot_cm;
-      Coo_M1950[2]=CASvalue((4526),8) * foot_cm;
-
-      Vel_M1950[0]=CASvalue((4687),8) * foot_cm;
-      Vel_M1950[1]=CASvalue((4701),8) * foot_cm;
-      Vel_M1950[2]=CASvalue((4715),8) * foot_cm;
-//        printf(".......................... %d %d\n",record_n,Umin); 
-
-	/* Reading quaterions from CAS */
-      q[0]=CASvalue((3291),8);
-      q[1]=CASvalue((3305),8);
-      q[2]=CASvalue((3319),8);
-      q[3]=CASvalue((3333),8);
-
-      times = CAStime(10);   
-      utime = (time_t) (times) + Year1998-xvar;      // correction 15 sec is here
-      
-      if ((Radius(Coo_M1950)<=.1) || (Radius(Vel_M1950)<=.1) || (times<=0)){
-	cerr <<" Some Parameters are Zero, record skipped"<<endl;
-	goto BEG;
-	bad_stat=1;
-      }
-      if ((Radius(Coo_M1950)>.1) && (Radius(Vel_M1950)>.1)){
-	//cout <<" call "<<endl;
-	Coordinates(Coo_M1950,Vel_M1950,q,utime,&Geo,&Vel_angle,&Euler_LVLH,&Solar,&Greenw_Phi);
-      }
-        
-      if (record_n == 0)
-	ftemp=fopen(temp_file,"w");
-      
-      if (!bad_stat) {
-        if(fabs(Geo.R)<FLT_MAX){ 
-          fbuf=(float)(Geo.R);
-        }
-        else {
-          cerr<<"Geo.R corrupted "<<Geo.R<<endl;
-          fbuf=0;
-        }
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Geo.Teta);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Geo.Phi);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Greenw_Phi);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Euler_LVLH.Yaw);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Euler_LVLH.Pitch);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Euler_LVLH.Roll);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-        if(fabs(Vel_angle)<FLT_MAX){ 
-          fbuf=(float)(Vel_angle);
-        }
-        else {
-          cerr<<"Vel_angle corrupted "<<Vel_angle<<endl;
-          fbuf=0;
-        }
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Solar.R);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Solar.Teta);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Solar.Phi);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fwrite(&utime,sizeof(time_t),1,ftemp);
-	if (utime<Umin) Umin=utime;
-	if (utime>=Umax) Umax=utime+1;
-	record_n++;
-      }
-
-      memset( (char *) &buffer, 0, sizeof(buffer));
-      goto BEG;
-
-    END_LOOP:;
-      fl=fopen(last_name,"w");
-      fprintf(fl,"%u\n",new_file_t[new_file_c]);
-      fclose(fl);
-    }
-    //cout <<" record "<<record_n<<endl;
-    if (record_n>0) { 
-      for (i=record_n; i<Record_in_file; i++) {
-	fbuf=(float)(Geo.R);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Geo.Teta);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Geo.Phi);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Greenw_Phi);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Euler_LVLH.Yaw);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Euler_LVLH.Pitch);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Euler_LVLH.Roll);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Vel_angle);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Solar.R);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Solar.Teta);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fbuf=(float)(Solar.Phi);
-	fwrite(&fbuf,sizeof(float),1,ftemp);
-	fwrite(&utime,sizeof(time_t),1,ftemp);
-      }
-      fclose(ftemp);
-      ftemp=fopen(temp_file,"r");
-      fread(Data,Record_nbytes,1,ftemp);
-      fclose(ftemp);
-      pData = &Data[0];
-      crc = _CalcCRC(pData);
-      sleep(2);
-      time(&cur_time);
-      sprintf(current_f_name,"%s/ShuttlePar.1.%d",Coo_db_dir,Umin);
-      if (((Umax-Umin)>3600) || (Umax<Umin)) {
-	sprintf(chb80,"rm %s",current_f_name);
-	cerr<<"Timing corrupted. File skipped "<<current_f_name<<endl;
-      }
-      else{
-        fout=fopen(current_f_name,"w");
-        fwrite(Data,1,Record_nbytes,fout);
-        fwrite(&crc,sizeof(time_t),1,fout);
-        fwrite(&cur_time,sizeof(time_t),1,fout);
-        fwrite(&Umin,sizeof(time_t),1,fout);
-        umaxx=Umax+61; 
-        fwrite(&umaxx,sizeof(time_t),1,fout);
-        fclose(fout);    
-      }
-    }
-    goto NEW_FILES;
+// opening badlist file
+int badlist_open(uint & cur) {
+  int i,n=0;
+  char * ch, ch80[80];
+  
+  fpbad=fopen("CAS_bad_manual.list","r");
+  if (fpbad==NULL) {
+    cout<<"WARNING:cannot open CAS_bad_manual.list"<<endl;
+    sleep(2);
+    return 0;
   }
-  return(0);
+  ch=fgets(ch80,80,fpbad);
+
+  while (!feof(fpbad)) {
+    ch=fgets(ch80,80,fpbad);
+    badlist[n]=strtoul(ch,NULL,10);
+    n++;
+  }
+  for (i=n; i<N_bad; i++)
+    badlist[i]=899000000;
+  cur=0;
+
+  return 1;
+}
+
+//c losing badlist file
+int badlist_close(uint & cur) {
+  fclose(fpbad);
+  return 1;
+}
+
+// search badlist file, assuming it is sorted
+int badlist_search(time_t t, uint &cur) {
+  int i;
+
+  for (i=cur; i<N_bad; i++) {
+    if (badlist[i]==t) {
+      cur=i;
+      return 1;
+    }
+    if (badlist[i]>t) {
+      cur=i;
+      return 0;
+    }
+  }
+  cur=N_bad;
+  cout<<">>>>>>>>>> time= "<<t<<" badlist["<<i<<"] = "<<badlist[i]<<endl;
+  exit(1);
+  return 0;
 }
