@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.62 2003/04/07 08:48:35 choutko Exp $
+//  $Id: producer.C,v 1.63 2003/04/23 09:41:03 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -103,7 +103,7 @@ void AMSProducer::sendid(){
 if (_Solo){
       _pid.Type=DPS::Producer::Standalone;
       _pid.StatusType=DPS::Producer::OneRunOnly;
-      LMessage(AMSClient::print(_pid,""));
+      LMessage(AMSClient::print(_pid,"StartingJob"));
       return;
 }
 
@@ -214,6 +214,7 @@ again:
     GCFLAG.IEVENT=_reinfo->FirstEvent;
     if(GCFLAG.IEVENT>1 ){
      // should call the rndm odnako
+     cerr<<"AMSProducer::getRunEventInfo-W-ChangingRNDMBecauseFirstEventNumberNotOne"<<endl;
      geant dum;
      RNDM(dum);
     }
@@ -438,7 +439,7 @@ ntend->ErrorNumber=0;
 // add validation
 const char *exedir=getenv("ExeDir");
 const char *nve=getenv("NtupleValidatorExec");
-if(exedir && nve && AMSCommonsI::getosname()){
+if(IOPA.hlun && exedir && nve && AMSCommonsI::getosname()){
  AString systemc(exedir);
   systemc+="/";
   systemc+=AMSCommonsI::getosname();

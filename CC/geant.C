@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.108 2002/03/27 10:41:59 choutko Exp $
+//  $Id: geant.C,v 1.109 2003/04/23 09:41:02 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -129,6 +129,7 @@ void gams::UGINIT(int argc,  char * argv[]){
   new AMSJob();
   AMSJob::gethead()->data();
   GCTLIT.ITCKOV=1;
+  GCPHYS.IRAYL=1;
   integer mone=-1;
   GFFGO();
    AMSJob::gethead()->udata();

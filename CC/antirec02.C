@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.10 2003/04/10 14:48:10 choutko Exp $
+//  $Id: antirec02.C,v 1.11 2003/04/23 09:41:02 choutko Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -123,8 +123,9 @@ void Anti2RawEvent::mc_build(int &stat){
   geant up(0),down(0),slope[2],athr[2],tau,q2pe;
   geant eup(0),edown(0),tup(0),tdown(0);
   geant thresh[2];
-  int i,j,ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,trflag(0),it,sta[2];
-  int ibmn[2],ibmx[2],nsides(0);
+  int ii,nup,ndown,nupt,ndownt,sector,sectorN,ierr,trflag(0),it,sta[2];
+  uinteger ibmn[2],ibmx[2],i,j;
+  int nsides(0);
   uinteger ectrfl(0),trpatt(0),hcount[4],cbit,lsbit(1);
   int16u atrpat[2]={0,0};
   int16u phbit,maxv,id,chsta,nadca,adca[ANTI2C::ANAHMX];
@@ -219,7 +220,7 @@ void Anti2RawEvent::mc_build(int &stat){
     nupt+=nup;
     if(nup>0){ 
       tup=(time+(padl-z)/ATMCFFKEY.LSpeed);
-      j=integer(floor(tup/ANTI2DBc::fadcbw()));//time-bin number
+      j=uinteger(floor(tup/ANTI2DBc::fadcbw()));//time-bin number
       if(j<ibmn[1])ibmn[1]=j;//min.bin
       for(i=0;i<nshap;i++){//"dispersion"
         ii=i+j;
@@ -235,7 +236,7 @@ void Anti2RawEvent::mc_build(int &stat){
     ndownt+=ndown;
     if(ndown>0){ 
       tdown=(time+(padl+z)/ATMCFFKEY.LSpeed);
-      j=integer(floor(tdown/ANTI2DBc::fadcbw()));
+      j=uinteger(floor(tdown/ANTI2DBc::fadcbw()));
       if(j<ibmn[0])ibmn[0]=j;//min.bin
       for(i=0;i<nshap;i++){//"dispersion"
         ii=i+j;

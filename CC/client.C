@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.23 2003/04/07 08:48:34 choutko Exp $
+//  $Id: client.C,v 1.24 2003/04/23 09:41:02 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -149,7 +149,7 @@ cout<<message<<endl;
    if(_fbin2){
      time_t tcur;
      time(&tcur);
-     _fbin2 <<endl<<"-I-TimeStamp "<<tcur<<" "<<ctime(&tcur)<<message <<endl;
+     _fbin2 <<endl<<"-I-TimeStamp "<<tcur<<" "<<ctime(&tcur)<<", "<<message <<endl;
    }
 }
 
