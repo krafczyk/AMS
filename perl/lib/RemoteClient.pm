@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.178 2003/05/22 08:40:56 alexei Exp $
+# $Id: RemoteClient.pm,v 1.179 2003/05/22 11:50:26 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3742,7 +3742,7 @@ print qq`
         if($self->{CCT} eq "remote"){
         $filedb="$self->{UploadsDir}/$self->{FileDB}";
         my @sta = stat $filedb;
-        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] ){
+        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
            $self->{senddb}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
         $key='dbversion';
@@ -3797,15 +3797,22 @@ print qq`
         $filedb_att="$self->{UploadsDir}/$self->{FileAttDB}";
         @sta = stat $filedb_att;
           
+         my @stag3=stat "$self->{AMSDataDir}/DataBase";
+        if($#stag3<0){
+              $self->ErrorPlus("Unable to find $self->{AMSDataDir}/DataBase on the Server ");
+        }
 
-        if(($#sta<0 or $sta[9]-time() >86400*7  or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]) and $self->{dwldaddon}==1){
+        if(($#sta<0 or $sta[9]-time() >86400*7  or $stag3[9] > $sta[9] ) and $self->{dwldaddon}==1){
            $self->{sendaddon}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$run";
         my $i=system "mkdir -p $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
-        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Anti* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof*2 $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tofpeds* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tof*MS $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase"; 
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Ecal* $self->{UploadsDir}/DataBase";
@@ -4007,10 +4014,30 @@ print qq`
              my $sbuf;
              read(FILEI,$sbuf,16384);
              close FILEI; 
-             $buf=~ s/export/$sbuf\nexport/;
+             my @ssbuf = split ',;',$sbuf;
+             if($#ssbuf ne 1){
+              die " Could not parse script $newfile $#ssbuf";
+             }
+              
+             $buf=~ s/export/$ssbuf[0]\nexport/;
+             $tmpb =~ s/\!/\!\n$ssbuf[1]/;
          }
 
          print FILE $buf;
+#  change tmpb to include pl1 dependence
+         if($tmpb =~/15=0/){
+             if($tmpb =~/34=1/){
+                 $tmpb=~ s/pl1/ecal/;
+             }
+             else{ 
+                 $tmpb=~ s/pl1/none/;
+             }
+         }
+         elsif($tmpb =~/15=1/){
+             if($tmpb =~/34=1/){
+                 $tmpb=~ s/pl1/ecalpl1/;
+             }
+         }
          print FILE $tmpb;
          close FILE;
          my $j=system("chmod +x  $root"); 
