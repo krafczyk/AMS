@@ -29,11 +29,11 @@ extern "C" int _sorta(const dirent ** e1, const dirent ** e2);
       dirent ** namelist;
       dirent ** namelistsubdir;
       int nptrdir=scandir((const char *)fdir,&namelistsubdir,&_selectsdir,&_sort);
-       for(int is=0;is<nptrdir;is++){
+       for(int is=nptrdir-1;is<nptrdir;is++){
         AString fsdir(fdir);
-        fsdir+="/";     
-        fsdir+=namelistsubdir[is]->d_name;
-        int nptr=scandir((const char *)fsdir,&namelist,_select,_sorta);
+//        fsdir+="/";     
+//        fsdir+=namelistsubdir[is]->d_name;
+       int nptr=scandir((const char *)fsdir,&namelist,_select,_sorta);
         for(int ii=0;ii<nptr;ii++){
          AString fnam(fsdir);
          fnam+="/";

@@ -1,4 +1,4 @@
-//  $Id: beta.C,v 1.45 2002/06/03 14:53:34 alexei Exp $
+//  $Id: beta.C,v 1.46 2002/12/05 14:16:09 choutko Exp $
 // Author V. Choutko 4-june-1996
 // 31.07.98 E.Choumilov. Cluster Time recovering(for 1-sided counters) added.
 //
@@ -390,24 +390,47 @@ return outp;
 
 
 integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
-        AMSTOFCluster* pthit[4],AMSTrTrack * ptrack, number theta, number c2s){
+        AMSTOFCluster* pthit[4],AMSTrTrack * ptrackc, number theta, number c2s){
         c2s=c2s/nhit;
+        number slengc[4];
+//   find optimal ptrack
+     for(AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);ptrack;ptrack=ptrack->next()){
+      if(TKDBc::patpoints(ptrack->getpattern())!=TKDBc::patpoints(ptrackc->getpattern()))continue;    
+      if(ptrackc->checkstatus(AMSDBc::FalseTOFX) && !ptrack->checkstatus(AMSDBc::FalseTOFX))continue;
+      if(ptrack->checkstatus(AMSDBc::FalseTOFX) && !ptrackc->checkstatus(AMSDBc::FalseTOFX))continue;
+      if(ptrack->checkstatus(AMSDBc::FalseX) && !ptrackc->checkstatus(AMSDBc::FalseX))continue;
+       number td;
+       number chi2space=0;
+       for (int k=0;k<nhit;k++){
+          AMSPoint dst=Distance(pthit[k]->getcoo(),pthit[k]->getecoo(),
+         ptrack,slengc[k],td);
+         chi2space+=sqrt(dst[0]*dst[0]+dst[1]*dst[1]);
+       }
+       chi2space/=nhit;
+       if(chi2space<c2s){
+        c2s=chi2space;
+        ptrackc=ptrack;
+        for(int k=0;k<4;k++)sleng[k]=slengc[k];
+       }
+     }
+
+     
 #ifdef __UPOOL__
-    AMSBeta beta(pat,  pthit, ptrack, c2s);
+    AMSBeta beta(pat,  pthit, ptrackc, c2s);
     AMSBeta *pbeta=   &beta;
 #else
-    AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrack,c2s);
+    AMSBeta *pbeta=new AMSBeta(pat,  pthit, ptrackc,c2s);
 #endif
 //----> recover 1-sided TOFRawCluster/TOFClusters using track info 
     int nh;
     integer status;
     TriggerLVL302 *plvl3=(TriggerLVL302*)AMSEvent::gethead()->getheadC("TriggerLVL3",0); 
-    if(!ptrack->checkstatus(AMSDBc::FalseTOFX) &&  !ptrack->checkstatus(AMSDBc::WEAK) && ( (!ptrack->checkstatus(AMSDBc::FalseX) ) || (!plvl3 || plvl3->LVL3HeavyIon() ))){ 
+    if(!ptrackc->checkstatus(AMSDBc::FalseTOFX) &&  !ptrackc->checkstatus(AMSDBc::WEAK) && ( (!ptrackc->checkstatus(AMSDBc::FalseX) ) || (!plvl3 || plvl3->LVL3HeavyIon() ))){ 
      for(nh=0;nh<nhit;nh++){
       status=pthit[nh]->getstatus();
       if((status&TOFGC::SCBADB2)!=0 && (status&TOFGC::SCBADB5)!=0){//tempor  use now only TOF-recovered
         pbeta->setstatus(AMSDBc::RECOVERED);
-        pthit[nh]->recovers2(ptrack);
+        pthit[nh]->recovers2(ptrackc);
       }
      }
     }
@@ -418,7 +441,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 //    number edepd[TOF2GC::SCLRS]={0.,0.,0.,0.};
 //    number edamx(0.),eddmx(0.),avera(0.),averd(0.),za,zd,sig,sigo;
 //
-//    if(!ptrack->checkstatus(AMSDBc::FalseTOFX)){
+//    if(!ptrackc->checkstatus(AMSDBc::FalseTOFX)){
 // 
 //    for(nh=0;nh<nhit;nh++){ // <-- calc. trunc.eloss 
 //      status=pthit[nh]->getstatus();
@@ -472,11 +495,11 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
     pbeta->SimpleFit(nhit, sleng);
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 ){
       // Mark Track as used
-         if(ptrack->checkstatus(AMSDBc::USED)) 
-           ptrack->setstatus(AMSDBc::AMBIG);
-         if(ptrack->checkstatus(AMSDBc::RELEASED)) 
-           ptrack->setstatus(AMSDBc::AMBIG);
-         ptrack->setstatus(AMSDBc::USED);
+         if(ptrackc->checkstatus(AMSDBc::USED)) 
+           ptrackc->setstatus(AMSDBc::AMBIG);
+         if(ptrackc->checkstatus(AMSDBc::RELEASED)) 
+           ptrackc->setstatus(AMSDBc::AMBIG);
+         ptrackc->setstatus(AMSDBc::USED);
       // Mark TOF hits as USED
          int i;
          for( i=0;i<nhit;i++){
@@ -503,8 +526,8 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
          if(fabs(pbeta->getbeta()) < BETAFITFFKEY.LowBetaThr && pat !=7 &&
          !pbeta->checkstatus(AMSDBc::AMBIG)){
            //release track
-           ptrack->clearstatus(AMSDBc::USED);
-           ptrack->setstatus(AMSDBc::RELEASED);
+           ptrackc->clearstatus(AMSDBc::USED);
+           ptrackc->setstatus(AMSDBc::RELEASED);
            // release hits if pat # 7 and low beta
            for( i=0;i<nhit;i++){
             if(pthit[i]->getntof() ==2)pthit[i]->clearstatus(AMSDBc::USED);

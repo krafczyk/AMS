@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.20 2002/11/08 15:43:11 choutko Exp $
+//  $Id: trddbc.C,v 1.21 2002/12/05 14:16:09 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -2568,7 +2568,7 @@ char* TRDDBc::CodeLad(uinteger gid){
 
 
 uinteger TRDDBc::Cnk(uinteger n,uinteger k){
-  if (n>0 && k<=n && k>=0){
+  if (n>0 && k<=n ){
    uinteger result=1;
     uinteger nk=n-k;
    if(k<=n-k){
