@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.73 2004/02/13 15:23:30 alcaraz Exp $
+//  $Id: root.C,v 1.74 2004/02/16 12:05:01 alcaraz Exp $
 //
 
 #include <root.h>
@@ -59,6 +59,9 @@ using namespace root;
   ClassImp(MCEventgR)
 */
   ClassImp(AMSEventR)
+  ClassImp(AMSChain)
+  ClassImp(AMSEventList)
+  ClassImp(AMSMyTrack)
 
 
 
@@ -2260,31 +2263,36 @@ void AMSEventR::UProcessFill(){
 void AMSEventR::UTerminate(){
 }
 
-AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(0),_NAME(name){
-      _EVENT = new AMSEventR;
-      this->SetBranchAddress("ev.",&_EVENT);
-      _EVENT->Head() = _EVENT;
+AMSChain::AMSChain(const char* name):TChain(name),_ENTRY(0),_NAME(name),_EVENT(NULL){
 }
 
-AMSEventR* AMSChain::GetEvent(){ 
-        if (GetEntry(_ENTRY)==0) return (AMSEventR*) NULL;
-        _ENTRY++;
-        return _EVENT;
-};
-
 AMSEventR* AMSChain::GetEvent(Int_t entry){
-      if (GetEntry(entry)==0) return (AMSEventR*) NULL;
+      if (_EVENT==NULL) {
+           _EVENT = new AMSEventR;
+           this->SetBranchAddress("ev.",&_EVENT);
+           _EVENT->Head() = _EVENT;
+           _EVENT->GetBranch((TTree*)this);
+      }
+      if (_EVENT->ReadHeader(entry)==false) {
+              return (AMSEventR*) NULL;
+              delete _EVENT; _EVENT = NULL;
+      }
       _ENTRY = entry;
       return _EVENT;
 };
 
+AMSEventR* AMSChain::GetEvent(){ 
+        if (GetEvent(_ENTRY)) _ENTRY++;
+        return _EVENT;
+};
+
 AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
       for (int entry=0; entry<GetEntries(); entry++) {
-            if (GetEntry(entry)==0) return (AMSEventR*) NULL;
-            if (_EVENT->Run()!=run) continue;
-            if (_EVENT->Event()!=ev) continue;
-            _ENTRY = entry;
-            break;
+            if (!GetEvent(entry)) break;
+            if (_EVENT->Run()==run && _EVENT->Event()==ev) {
+                  _ENTRY = entry;
+                  break;
+            }
       }
       return _EVENT;
 };
