@@ -18,7 +18,7 @@ int _select(dirent *d1);
 void check(char *buf, int del);
 int backup(char * dir1 , char * dir2, int del);
 int main (int argc, char *argv[]) {
-int delay = 360; /* dlay in minutes */
+int delay = 360*2; /* dlay in minutes */
 int erase = 7*24*60;
 
 char *dir1, *dir2;

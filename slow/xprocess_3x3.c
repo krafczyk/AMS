@@ -11,10 +11,10 @@ int write_status();
 int statu[N_comp];
 
 int main (int argc, char *argv[]) {
-char chbuf[80],chbuf1[80],chbuf2[80], ch[256], *ch1, *ch2;
-ch256 chh[30];
+char chbuf[80],chbuf1[80],chbuf2[80],chb_t[80], ch[256], *ch1, *ch2;
+ch256 chh[30], ch256;
 int i,j,nn,er,count[8],disk_space,timer, time_int,dt, time_sleep, cpu_t;
-int date1,date2,h1,h2,m1,m2,cpu,cpu_lim,cpu_cont,conn; 
+int date1,date2,h1,h2,m1,m2,cpu,cpu_lim,cpu_cont,conn,cpu_b,cpu_tb,numb; 
 time_t stat_loc[N_comp][N_comp+1];
 struct stat stat_buf; 
 FILE *fp;
@@ -49,7 +49,6 @@ pid_t pid;
   sprintf(a_name,"tmp.%d",pid);
   sprintf(temp_name,"temp.%d",pid);
 
-  er = read_status();
   /* --- Form Initialising -----------*/
   for (i=0; i<N_comp*2; i++) {
     i_log[i]=0;
@@ -82,7 +81,9 @@ pid_t pid;
 
 
       if (j<N_comp) { /*  !!!! <(N_comp)
+                          
       /* ------------ read statistics */
+        er = read_status();
         for (i=0; i<6; i++) 
           stat_loc[i][j]=0;
         er = stat(a_name,&stat_buf);
@@ -94,7 +95,7 @@ pid_t pid;
         system(chbuf);
         er = stat(a_name,&stat_buf);
         if ((er<0)||(stat_buf.st_size<10)) {
-          puts("\acannot open /dat0/local/logs/run_prod.log file");
+          puts("cannot open /dat0/local/logs/run_prod.log file");
           statu[j]=1;
           fl_set_object_label(stati_[j],"------");
           for (i=0; i<6; i++) {
@@ -131,6 +132,8 @@ pid_t pid;
       if (j<N_comp) {  /* !!!! <N_comp */
       /*----------- check for gbatch ----------- */
       cpu_cont=2;
+      cpu=0;
+      cpu_t=0;
     CPU:
       count[0]=0;   
       if (strlen(names[0][j])>0) {
@@ -155,20 +158,20 @@ pid_t pid;
               if (j<N_comp-2) {
                 ch1=fgets(ch,15,fp);
                 ch1=fgets(chbuf1,5,fp);
-                cpu=atoi(chbuf1);
+                cpu_b=atoi(chbuf1);
                 ch1=fgets(ch,17,fp);
                 ch1=fgets(ch,15,fp);
               }
               else {
                 ch1=fgets(ch,9,fp);
                 ch1=fgets(chbuf1,5,fp);
-                cpu=atoi(chbuf1);
+                cpu_b=atoi(chbuf1);
                 ch1=fgets(ch,33,fp);
                 ch1=fgets(ch,9,fp);
               }
 	      strcpy(chbuf,ch1);
               sprintf(chbuf2,"%s cpu %s",chbuf1,chbuf);
-              cpu_t=atoi(chbuf);
+              cpu_tb=atoi(chbuf);
               token=strtok(ch1,delim_);
               token=strtok(NULL,delim_);
               if (token!=NULL) {
@@ -179,9 +182,15 @@ pid_t pid;
               }
 	      ch1=fgets(ch,256,fp);
 	      /*token=strtok(ch1,delimiter);*/
-	      if ((strncmp(ch1,"grep",4)!=0) && (strncmp(ch1,"sh -c",5)!=0)) {
+	      if ((strncmp(ch1,"grep",4)!=0) && (strncmp(ch1,"sh -c",5)!=0)&&
+                  (strncmp(ch1," grep",5)!=0) && (strncmp(ch1," sh -c",6))) {
 		count[0]=1;
-		goto CONT;
+                if (j==1)
+                  i=j;
+                sprintf(chb_t," %s",chbuf);
+                cpu+=cpu_b;
+                cpu_t+=cpu_tb;
+		goto REP;
 	      }
 	      goto REP;
 	    }
@@ -190,7 +199,8 @@ pid_t pid;
 	  fclose(fp);
           sprintf(ch,"rm %s",a_name);
 	  system(ch);
-	}  
+          sprintf(chbuf2,"%d cpu %s",cpu,chb_t);
+        }  
       END_gb:
         if ((count[0]>0)&&(cpu<cpu_lim)) {
           if (cpu_cont) {
@@ -199,6 +209,7 @@ pid_t pid;
           }
           count[0]=2;
         }
+        sprintf(chbuf2,"%d cpu %s",cpu,chb_t);
         switch (count[0]) {
 	case 2:
           fl_set_object_color(check_[0][j],FL_YELLOW,FL_YELLOW);
@@ -331,14 +342,19 @@ pid_t pid;
               if (strcmp(ch2,".hbk\n")==0)
                 nn++;
             }
+            else nn--;
           }
 	}
         fclose(fp);
-        if (nn<=0)
+        if (nn<=0) {
+          count[2]=2;
           goto END_nt;
-
-	if (nn>1) {
-	  token=strtok(chh[1],delim);
+        }
+        numb=0;
+      LNC:
+	if (nn>numb+1) {
+          sprintf(ch256,"%s",chh[numb+1]);
+	  token=strtok(ch256,delim);
 	  for (i=1; i<8; i++) {
 	    token=strtok(NULL,delim);
 	  }
@@ -353,7 +369,8 @@ pid_t pid;
 	  token=strtok(NULL,delim);
           count[2]=0;
 	}
-	token=strtok(chh[0],delim);
+        sprintf(ch256,"%s",chh[numb]);
+	token=strtok(ch256,delim);
 	for (i=1; i<8; i++) {
 	  token=strtok(NULL,delim);
 	}
@@ -367,12 +384,16 @@ pid_t pid;
 	m2=atoi(chbuf);
 	token=strtok(NULL,delim);
 	
-	if (nn<2) 
+	if (nn<numb+2) 
 	  dt=0;
 	else {
 	  if (date2 != date1)
 	    h2 += 24;
 	  dt=(h2-h1)*60+(m2-m1);
+          if (dt<=3) {
+            numb++;
+            goto LNC;
+          }
 	  if (dt>time_int) {
             if (cpu_t>time_int)
               count[2]=1;
