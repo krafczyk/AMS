@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.58 2002/08/07 13:27:47 alexei Exp $
+# $Id: RemoteClient.pm,v 1.59 2002/08/08 08:02:30 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -3768,11 +3768,11 @@ sub queryDB {
             print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";  
             print "</b></font></tr>\n";
             print "<tr><td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Max : X : <input type=\"number\" size=5 value=-195 name=\"QXU\"></td>\n";  
+            print "<b> Max : X : <input type=\"number\" size=5 value=195 name=\"QXU\"></td>\n";  
             print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYU\"></td>\n";  
+            print "<b> Y : <input type=\"number\" size=5 value=195 name=\"QYU\"></td>\n";  
             print "<td width=\"30%\"><font size=\"2\">\n";
-            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZU\"> (cm)</td>\n";  
+            print "<b> Z : <input type=\"number\" size=5 value=195 name=\"QZU\"> (cm)</td>\n";  
             print "</b></font></tr>\n";
             htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
             @keysa=sort keys %{$ts->{planes}};
