@@ -6105,7 +6105,7 @@ c                xms(i)=fact(i)*(xp(3,i)-xp(3,i-1))**2*(i-2)*2  ! last 2 - tubes
              write(*,*) 'sinv gg ',ifail
              goto 999
            endif
-           er=sqrt(2*gg(5,5))/chrg
+           er=sqrt(2*gg(5,5))
            dlt=(fc-fcb)/(fcb+2*npoint-5+1.e-3)
            fcb=fc
            if(abs(dlt).le.tol)then
