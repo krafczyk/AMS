@@ -325,25 +325,48 @@ void AMSgvolume::MakeG4Volumes(){
   _Nrm++;
   _Nph++;
   AMSgvolume *cur = up() && prev()?prev():up();
-
+    int newrm=1;
     while (cur){
      if(VolumeHasSameRotationMatrixAs(cur)){
       pg4rm()=cur->pg4rm();
       _Nrm--;
+      newrm=0;
       break;
      }
      cur=cur->up() && cur->prev()?cur->prev():cur->up();
     }
-
+    if(newrm){
+     cur = up() && prev()?prev():0;
+     while (cur){
+      if(VolumeHasSameRotationMatrixAs(cur)){
+       pg4rm()=cur->pg4rm();
+       _Nrm--;
+       break;
+      }
+      cur=cur->up() && cur->prev()?cur->prev():cur->down();
+     }
+    }
+    int newv=1;
     cur = up() && prev()?prev():up();
-
     while (cur){
+      if(VolumeHasSameG4AttributesAs(cur)){
+       pg4l()=cur->pg4l(); 
+       _Nlog--;
+       newv=0;
+       break;  
+      }
+     cur=cur->up() && cur->prev()?cur->prev():cur->up();
+    }
+    if(newv){
+     cur = up() && prev()?prev():0;
+     while (cur){
       if(VolumeHasSameG4AttributesAs(cur)){
        pg4l()=cur->pg4l(); 
        _Nlog--;
        break;  
       }
-     cur=cur->up() && cur->prev()?cur->prev():cur->up();
+      cur=cur->up() && cur->prev()?cur->prev():cur->down();
+     }
     }
     _MakeG4Volumes();
      if(down())down()->MakeG4Volumes();
@@ -421,6 +444,18 @@ void AMSgvolume::MakeG3Volumes(){
      cur=cur->up() && cur->prev()?cur->prev():cur->up();
     }
     if(newrm){
+      cur =up() && prev()?prev():0;
+      while (cur){
+      if(VolumeHasSameRotationMatrixAs(cur)){
+       _Nrm--;
+       newrm=0;
+       _rotmno=cur->getrotmatrixno();
+       break;
+      }
+      cur=cur->up() && cur->prev()?cur->prev():cur->down();
+      }
+    }
+    if(newrm){
       if(_rotmno){
         _rotmno=++_GlobalRotMatrixNo;
         geant r[3],sph,cth,cph,sth,theta[3],phi[3];
@@ -450,9 +485,21 @@ void AMSgvolume::MakeG3Volumes(){
      cur=cur->up() && cur->prev()?cur->prev():cur->up();
     }
     if(newv){
+     cur = up() && prev()?prev():0;
+     while (cur){
+      if(VolumeHasSameG3AttributesAs(cur)){
+       _Nlog--;
+       newv=0;
+       break;  
+      }
+      cur=cur->up() && cur->prev()?cur->prev():cur->down();
+     }
+    }
+    if(newv){
        int ivol;
        if(!_posp)GSVOLU(_name,_shape,_matter,_par,_npar,ivol);
        else if(_posp>0)  GSVOLU(_name,_shape,_matter,_par,0,ivol);
+//       else   GSVOLU(_name,_shape,_matter,_par,0,ivol);
     }    
 // Position
     if(up()){
@@ -466,7 +513,6 @@ void AMSgvolume::MakeG3Volumes(){
       GSPOS(_name,_gid,up()->_name,coo[0],coo[1],coo[2],_rotmno,_gonly);
      } 
     }
-
     if(down())down()->MakeG3Volumes();
     if(up() && next())next()->MakeG3Volumes();
      

@@ -388,6 +388,9 @@ depend:         $(BIN)Make-depend
 touch_depend:
 		touch $(BIN)Make-depend
 $(BIN)Make-depend:    $(INCS)
+ifneq "$(shell du -a  $(BIN)Make-depend | grep -c  ake)" "1"
+		touch $(BIN)Make-depend
+endif
 		makedepend -f $(BIN)Make-depend  $(DFLAGS)  $(FILES) -p$(BIN)
 		cat  $(BIN)Make-depend | sed -e 'sx/../CC/x/x1' > $(BIN)Make-depend.new
 		rm -f $(BIN)Make-depend

@@ -79,6 +79,7 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
  cout <<" AMSGeom-I-AMS02Test setup selected."<<endl;
 }
 else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+ cout <<" AMSGeom-I-AMS02 setup selected."<<endl;
  magnetgeom02(mother);
  tofgeom02(mother);
 #ifndef  __G4AMS__
@@ -92,7 +93,6 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  trdgeom02(mother);
  srdgeom02(mother);
 #endif
- cout <<" AMSGeom-I-AMS02 setup selected."<<endl;
 }
 else{ 
  cerr <<" AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
@@ -107,7 +107,7 @@ if(MISCFFKEY.G3On){
 #endif
 false_mother.MakeG3Volumes();
 
-  cout << "AMSGeom::-I-"<<getNpv()<<" Physical volumes, "<<getNlv()<<" logical volumes and "<<getNrm()<<" rotation matrixes have beem created "<<endl;
+  cout << "AMSGeom::-I-"<<getNpv()<<" Physical volumes, "<<getNlv()<<" logical volumes and "<<getNrm()<<" rotation matrixes have been created "<<endl;
 GGCLOS();
 cout <<" AMSGeom-I-TotalOf "<<GlobalRotMatrixNo()<<" rotation matrixes  created"<<endl;
 

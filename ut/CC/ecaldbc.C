@@ -395,8 +395,8 @@ geant ECALDBc::_mev2mev=36.16; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50ge
 	}
 	for(i=0;i<4;i++)coot[pm][i]/=geant(nf[i]);// t-COG's (ECAL r.s.)
       }
-// print some control numbers:
 #ifdef __AMSDEBUG__
+// print some control numbers:
       cout<<"ECALDBc::getscinfo-test:"<<endl;
       cout<<"     1st fiber t-coo for 1st/2nd f-layer(t1/t2)="<<t1<<" "<<t2<<endl;
       cout<<"    last fiber t-coo(tt[f-layer]):"<<endl;
@@ -498,12 +498,14 @@ geant ECALDBc::_mev2mev=36.16; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50ge
 	coot[pm][1]=t+pxsiz/2;
 	coot[pm][3]=coot[pm][1];
       }
+#ifdef __AMSDEBUG__
       cout<<"ECALDBc::getscinfo-test:"<<endl;
       cout<<"1st SubCell in 1st plane coot(EC r.s.)/cooz="<<coot[0][0]<<" "<<cooz[0][0]<<endl;      
       cout<<"last SubCell in 1st plane coot(EC r.s.)/cooz="<<coot[npm-1][1]<<" "<<cooz[0][1]<<endl;      
       cout<<"1st SubCell in last plane coot(EC r.s.)/cooz="<<coot[0][2]<<" "<<cooz[nsl-1][2]<<endl;      
       cout<<"last SubCell in last plane coot(EC r.s.)/cooz="<<coot[npm-1][3]<<" "<<cooz[nsl-1][3]<<endl;      
 //
+#endif
     }
 //----------- each call actions :
     else{
