@@ -47,6 +47,9 @@ number dist(AMSPoint o)const{return sqrt((_x-o._x)*(_x-o._x)+
                                          (_z-o._z)*(_z-o._z));}
 number &  operator[](integer i){
   if(i<=0)return _x;else if(i==1)return _y; else return _z;}
+number   operator[](integer i) const{
+  if(i<=0)return _x;else if(i==1)return _y; else return _z;}
+
 friend ostream &operator << (ostream &o, const  AMSPoint &b )
    {return o<<" "<<b._x<<" "<<b._y<<" "<<b._z;}
 };

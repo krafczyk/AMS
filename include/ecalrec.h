@@ -15,7 +15,6 @@
 class AMSEcalRawEvent: public AMSlink{
 private:
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
-//integer _status; // status (0/1/... -> alive/dead/...) (It is really in AMSlink !!!)
   integer _padc;// Pulse hight (ADC-channels)
 public:
   AMSEcalRawEvent(integer idsoft, integer status,  

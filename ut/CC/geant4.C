@@ -5,6 +5,7 @@
 #include <daqevt.h>
 #include <mceventg.h>
 #include <geant4.h>
+#include <astring.h>
 #include <g4physics.h>
 #include "G4FieldManager.hh"
 #include "G4ChordFinder.hh"
@@ -369,6 +370,13 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 if(!_pv){
   cout << "AMSG4DetectorInterface::Construct-I-Building Geometry "<<endl;
   AMSJob::gethead()->getgeom()->MakeG4Volumes();
+// Attention as step volumes are linked to false_mother, not mother as other ones
+ AString fnam(AMSDATADIR.amsdatadir);
+ fnam+="amsstp_";
+ fnam+=AMSJob::gethead()->getsetup();
+ fnam+= AMSJob::gethead()->isRealData()?".1":".0";
+// as usual doesn't work...
+//  AMSJob::gethead()->getgeom()->ReadG4StepVolumes((char*)fnam);  
   cout << "AMSG4DetectorInterface::Construct-I-"<<AMSgvolume::getNpv()<<" Physical volumes, "<<AMSgvolume::getNlv()<<" logical volumes and "<<AMSgvolume::getNrm()<<" rotation matrixes have been created "<<endl;
  _pv=AMSJob::gethead()->getgeom()->pg4v();
 }

@@ -25,7 +25,7 @@ PAWC_DEF PAWC;
 //
 void (handler)(int);
 
-main(){
+int main(){
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);

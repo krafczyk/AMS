@@ -88,6 +88,8 @@ class AMSgvolume : public AMSNode {
     AMSgtmed* getpgtmed() const {return _pgtmed;}
 #ifdef __G4AMS__
  void MakeG4Volumes();
+void ReadG4StepVolumes(char * fnam);
+
   AMSgvolume* offspring(){return _offspring;}
   integer & Smartless(){return _smartless;}
   void addboolean(char shape[], geant par[], integer npar,  geant coo[], number nrm[3][3],char ops);

@@ -63,6 +63,10 @@ geant parf[3];
 geant coo[3]={0,0,0};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=1;
+if (strstr(AMSJob::gethead()->getsetup(),"BIG")){
+ cout<<"AMSGeom-I-BIGSetupSelected"<<endl;
+ for(int i=0;i<3;i++)AMSDBc::ams_size[i]*=10;
+}
       parf[0]=AMSDBc::ams_size[0]/2+0.2;   // just trying to find geant4 bugs
       parf[1]=AMSDBc::ams_size[1]/2+0.2;
       parf[2]=AMSDBc::ams_size[2]/2+0.2;

@@ -4,6 +4,7 @@
 #include <gmat.h>
 #ifdef __G4AMS__
 #include <commons.h>
+#include <astring.h>
 #include "G4LogicalVolume.hh"
 #include "G4ThreeVector.hh"
 #include "G4VSolid.hh"
@@ -25,6 +26,8 @@
 #include <geant4.h>
 #include "G4VisAttributes.hh"
 #include "G4PVReplica.hh"
+#include "G4Assembly.hh"
+#include "G4AssemblyCreator.hh"
 #endif
 integer AMSgvolume::debug=0;
 AMSgvolume::_amsrm AMSgvolume::_UnitRM;
@@ -579,6 +582,41 @@ if(strstr(_gonly,"BOO")){
   }
 }
 return 1;
+}
+
+
+void AMSgvolume::ReadG4StepVolumes(char *fnam){
+  G4AssemblyCreator MyAC(fnam);
+   MyAC.ReadStepFile();
+  STEPentity* ent=0;
+  MyAC.CreateG4Geometry(*ent);
+  void *tmp =  MyAC.GetCreatedObject();
+  G4Assembly* assembly = new G4Assembly();
+  assembly->SetPlacedVector(*(G4PlacedVector*)tmp);
+  G4PlacedSolid* ps=0;
+  int solids = assembly->GetNumberOfSolids();
+  cout <<"AMSgvolume::ReadG4StepVolumes-I-"<<solids<<" step volumes have been read"<<endl;
+     for(int c=0;c<solids;c++){
+      ps = assembly->GetPlacedSolid(c);
+      if(ps && ps->GetSolid()){
+       cout <<c<<" "<<ps->GetSolid()->GetName()<<endl;
+       G4LogicalVolume* lv = new G4LogicalVolume(ps->GetSolid(),_pgtmed->getpgmat()->getpamsg4m(),"STEPlog");
+       G4UserLimits *pul=_pg4l->GetUserLimits();
+       G4Track dummytrack;
+       double maxstep=pul->GetMaxAllowedStep(dummytrack);
+       lv->SetUserLimits(new G4UserLimits(maxstep));
+       G4ThreeVector* tr = ps->GetTranslation();
+       new G4PVPlacement(ps->GetRotation(),
+                        *tr,
+                        ps->GetSolid()->GetName(),
+                        lv,
+                        _pg4v,
+                        false,
+                        c);
+    } 
+   }
+
+
 }
 
 #endif
