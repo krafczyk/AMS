@@ -2,4 +2,6 @@
  *  \htmlinclude ana.root_compiled.html
  *  \include run.stlv.C
  *  \include stlv.C
+ *  \include run.MyAnal.C
+ *  \include MyAnal.C
  */ 

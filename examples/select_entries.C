@@ -7,14 +7,6 @@
       AMSChain *ams = new AMSChain;              
       ams->Add("/f2users/choutko/g3v1g3.root");
 
-      // BEGIN of block: How to read just few branches ->
-      ams->SetBranchStatus("*",0); // this disables all branches by default
-      ams->SetBranchStatus("ev.",1); // mother branch
-      ams->SetBranchStatus("ev.fHeader",1); // HeaderR class information IN 
-                                            // (mandatory for AMSEventList)
-      ams->SetBranchStatus("ev.fBeta",1); // BetaR class information IN
-      // END of block
-
 // Initialize selection list
       AMSEventList list;
 // Alternative if you have already a list

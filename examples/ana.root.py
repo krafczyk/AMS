@@ -5,7 +5,7 @@
 import sys, os
 sys.path.insert(0,os.environ['AMSDir'] + '/python/linux')
 
-from AMS import *
+from AMS import AMSChain, TRint, TFile, TH1F
 
 app = TRint("", 0, [])
 

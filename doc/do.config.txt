@@ -68,7 +68,8 @@ FILE_PATTERNS    =  root.h root_methods.h root.C stlv.h  stlv.C run.stlv.C \
                     ana.root_static.doc ana.root_static.C \
                     ams_run.sh \
                     select_entries.doc select_entries.C \
-                    my_tracks.doc my_tracks.C
+                    my_tracks.doc my_tracks.C \
+                    run.MyAnal.C MyAnal.C
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
