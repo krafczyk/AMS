@@ -20,6 +20,8 @@
 #include <ntuple.h>
 #include <antirec02.h>
 #include <antirec.h>
+#include <ecaldbc.h>
+#include <ecalrec.h>
 #include <mceventg.h>
 
 
@@ -76,6 +78,9 @@ integer AMSParticle::build(integer refit){
            }
            ppart->toffit();
            ppart->antifit();
+           if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+            ppart->ecalfit();
+           }
           }
           AMSgObj::BookTimer.stop("ReAxRefit");
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",ppart->contnumber()),ppart);
@@ -247,6 +252,27 @@ for(int kk=0;kk<2;kk++){
 }
 }
 
+
+
+
+void AMSParticle::ecalfit(){
+AMSDir dir(0,0,1.);
+AMSPoint coo;
+number theta, phi, sleng;
+AMSEcalCluster * ptr;   
+integer maxpl,ipl;
+maxpl=2*ECALDBc::slstruc(3);
+for(ipl=0;ipl<maxpl;ipl++){ //loop over containers(planes)
+  ptr=(AMSEcalCluster*)AMSEvent::gethead()->getheadC("AMSEcalCluster",ipl,0);
+  if(ptr){
+    coo=ptr->getcoo();//use only first cluster in container(really need only Z-coo)
+    _ptrack->interpolate(coo,dir,_EcalCoo[ipl],theta,phi,sleng);
+  }
+  else { // no clusters in this plane -> put "0"
+    _EcalCoo[ipl]=AMSPoint(0,0,0);
+  }
+}
+}
 
 
 
@@ -434,6 +460,11 @@ else{
     for(int j=0;j<3;j++){
       PN->AntiCoo[PN->Npart][i][j]=_AntiCoo[i][j];
 //      cout <<i<<" "<<j<<" "<<_AntiCoo[i][j]<<endl;
+    }
+  }
+  for(i=0;i<2*ECSLMX;i++){ // ECAL-crossings
+    for(int j=0;j<3;j++){
+      PN->EcalCoo[PN->Npart][i][j]=_EcalCoo[i][j];
     }
   }
   for(i=0;i<TKDBc::nlay();i++){

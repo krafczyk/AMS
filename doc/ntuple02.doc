@@ -37,8 +37,8 @@ This is AMS02 Ntuple Description
 * I*4  *              * EVENTH   * TrMCClusters     // No of Tr MC hits
 * I*4  *              * EVENTH   * TOFClusters      // No of TOF Clusters
 * I*4  *              * EVENTH   * TOFMCClusters    // No of TOF MC Hits
-* I*4  *              * EVENTH   * CTCClusters      // No of Cerenkov clusters
-* I*4  *              * EVENTH   * CTCMCClusters    // No of Cerenkov MC hits
+* I*4  *              * EVENTH   * RICHits          // No of RICH Hits
+* I*4  *              * EVENTH   * RICMCClusters    // No of RICH MC clusters
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
 * I*4  *              * EVENTH   * AntiClusters     // No of Anti clusters
 * I*4  *              * EVENTH   * EcalClusters     // No of ECAL Clusters
@@ -112,6 +112,9 @@ This is AMS02 Ntuple Description
 * R*4  *              * PARTICLE * cootof(3,4,npart) // tracker extrapol in tof
 * R*4  *              * PARTICLE * cooanti(3,2,npart)// tracker extrapol in anti
 * R*4  *              * PARTICLE * cootr(3,6,npart)  // tracker extrapol in tr *****)                                                      
+* R*4  *              * PARTICLE * cooecal(3,18,npart)// tracker extrapol in each of
+                                                         18 ECAL planes, cooecal(3,ipl,npart)=0
+							 if no cluster found in plane ipl)                                                      
 
 
 * I*4  * [0,20]       * TOFCLUST * ntof             // TOF clusters number
@@ -315,10 +318,9 @@ This is AMS02 Ntuple Description
  * I*4  *             * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
                                                          // 16-23 bits  
                                                          // as in daqevt.doc 
- * I*4  *             * LVL1     * LVL1ECALflag(nlvl1)   // ecalflag (AMS02: 1->MIP,
+ * I*4  *             * LVL1     * LVL1ECALflag(nlvl1)   // ecalflag (1->MIP,
                                                          // 2->EM-obj, +10->HiEnergy
-                                                         // object (ANTI-count. have
-                                                         // to be not in the trigger)
+                                                         // object
 
 
 
@@ -413,59 +415,7 @@ GTOD
      GEOMz=-d, GEOMy=GEOMz x S  (d: dipole direction, S: geographic South)
 
 
-****) The ATC information can be decoded through the following scheme 
-      for the plane k (k=1,2)
 
-      cells ID:            mod(atcidcel(k)/10**(2*i-2),100)     (i=1,nb cells)
-      aerogel path:        mod(atcdaero(k)/10**(2*i-2),100)/10. (i=1,nb cells) 
-      PM impact parameter: mod(atcdispm(k)/10**(2*i-2),100)/10. (i=1,nb cells)
-      bad cells:           
-           plane 1 - mod(atcstatu(1)/10**(2*i-1),100)     (i=1,mod(atcstatu(1),10))
-           plane 2 - mod(atcstatu(2)/10**(2*i-1),100)+80  (i=1,mod(atcstatu(2),10))
-                           Cells 166 and 168 are allways dead (dead channell) 
-                           Cell 175 means module L5
-
-Addendum (V.Choutko + F.Barao) : The code below should do the job
-
-         subroutine decatc(iflag,path,pimpact)
-*
-* Input   from paw common
-*
-* Output
-*        iflag : 0 ok; 1,2,3 bad
-*        path : famous path
-*        pimpact : distance to pm
-*        Note: path & pimpact  are calculated only if iflag==0
-
-         iflag=0
-         path=0
-         pimpact=10000
-         do i=1,2
-          do k=1,atcnbcel(i,1)
-           idc=mod(atcidcel(i,1)/10**(2*k-2),100)+80*(i-1)
-           if(idc.eq.166.or.idc.eq.168)then
-            iflag=3
-            return
-           endif
-           path=path+   mod(atcdaero(i,1)/10**(2*k-2),100)/10.
-           pil=mod(atcdispm(i,1)/10**(2*k-2),100)/10.
-           if(pimpact.gt.pil)pimpact=pil
-           ibad=mod(atcstatu(i,1),10)
-           do l=1,ibad
-             if(mod(atcstatu(i,1)/10**(2*l-1),100)+80*(i-1).eq.175)then
-               if (idc/16+1.eq.10) then
-                  iflag=2
-                  return
-               endif
-             endif
-             if(idc.eq.mod(atcstatu(i,1)/10**(2*l-1),100)+80*(i-1))then
-              iflag=1
-              return
-             endif
-           enddo
-          enddo
-         enddo
-         end
 
 
 

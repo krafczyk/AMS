@@ -2,6 +2,7 @@
 #include <node.h>
 #include <ntuple.h>
 #include <job.h>
+#include <ecaldbc.h>
 #ifdef __WRITEROOT__
 #include <TBranch.h>
 TTree* AMSNtuple::_tree=0;
@@ -105,22 +106,23 @@ else{
 "RICMCClusters[0,10000]:I,RICHits[0,10000]:I,EventStatus(2):I"); //CJM
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
-      "nbeta[0,150],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
+      "nbeta[0,100],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
 
   HBNAME(_lun,"Charge",&_charge.Ncharge,
-    "ncharge[0,150],chargestatus(ncharge):I,chargebetap(ncharge)[-1,30000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,probtof(4,ncharge),chintof(4,ncharge)[0,100]:I,probtracker(4,ncharge),chintracker(4,ncharge)[0,100]:I,proballtracker(ncharge),truntof(ncharge),truntofd(ncharge),truntracker(ncharge)");
+    "ncharge[0,100],chargestatus(ncharge):I,chargebetap(ncharge)[-1,30000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,probtof(4,ncharge),chintof(4,ncharge)[0,100]:I,probtracker(4,ncharge),chintracker(4,ncharge)[0,100]:I,proballtracker(ncharge),truntof(ncharge),truntofd(ncharge),truntracker(ncharge)");
 
   HBNAME(_lun,"TRDMCCl",&_trdclmc.Ntrdclmc,
   "ntrdmccl[0,200],trdlayer(ntrdmccl)[0,20]:I,trdladder(ntrdmccl)[0,40]:I,trdtube(ntrdmccl)[0,100]:I,trdtrack(ntrdmccl)[0,1000]:I,trdedep(ntrdmccl),trdekin(ntrdmccl),trdxgl(3,ntrdmccl)");
 
   HBNAME(_lun,"Particle",&_part02.Npart,
-  "npart[0,100],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cootr(3,8,npart)");
+ 
+"npart[0,50],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,18,npart),cootr(3,8,npart)");
 //
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
 //
   HBNAME(_lun,"EcalClus",&_ecclust.Neccl,
-  "neccl[0,50],EcalStatus(neccl):I,EcalProj(neccl)[0,1]:I,EcalPlane(neccl)[0,20]:I,EcalNmemb(neccl)[0,72]:I,EcalEdep(neccl),EcalCoo(3,neccl),EcalErrCoo(3,neccl)");
+ "neccl[0,50],EcclStatus(neccl):I,EcclProj(neccl)[0,1]:I,EcclPlane(neccl)[0,20]:I,EcclNmemb(neccl)[0,72]:I,EcclEdep(neccl),EcclCoo(3,neccl),EcclErrCoo(3,neccl)");
 //
   HBNAME(_lun,"EcalHits",&_ecalhit.Necht,
   "necht[0,500],EchtStatus(necht):I,EchtIdsoft(necht):I,EchtProj(necht)[0,1]:I,EchtPlane(necht)[0,20]:I,EchtCell(necht)[0,80]:I,EchtEdep(necht),EchtCoo(3,necht)");

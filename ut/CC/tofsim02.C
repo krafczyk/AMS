@@ -1106,7 +1106,7 @@ void TOF2Tovt::mfun(int &np, number grad[], number &f, number x[]
 //---------------------------------------------------------------------
 //
 // function to get absolute time of the FIRST trigger(coincidence) "z>=1";
-// trcode - trigger code (pattern) =-1/n, n>=0 -> missing plane #, 
+// trcode - trigger code (pattern) =-1/n, n>=0 -> missing planeN(if <=4), 
 // =-1 -> no trigger.
 //
 number TOF2Tovt::tr1time(int &trcode, integer toftrp[]){
@@ -1166,11 +1166,11 @@ number TOF2Tovt::tr1time(int &trcode, integer toftrp[]){
         intrig=TriggerLVL3::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
         if(intrig<1)trbc.bitclr(1,0); // counter not in trigger !!!                                  
         trbl[ilay]=trbl[ilay] | trbc; // summing OR within the layer
-        trbc.testbit(i1,i2);// bit-pattern of the fired counters in layer:
+        trbc.testbit(i1,i2);// check bit-pattern of the counter:
         if(i2>=i1){
           npdpl[ilay]+=1;
           sbt=lsbit<<ibar;
-          toftrp[ilay]|=sbt;
+          toftrp[ilay]|=sbt; // add bit to bit-pattern of fired counters
         }
         isds=0; // reset c.sides variables ...
         trbs[0].bitclr(1,0);
@@ -1189,13 +1189,13 @@ number TOF2Tovt::tr1time(int &trcode, integer toftrp[]){
   rr2=trbl[2]&trbl[3];
   coinc1234=rr1&rr2;
   coinc1234.testbit(i1,i2);
-  if(i2>=i1){// have 4-fold coincidence
+  if(i2>=i1){// was 4-fold coincidence
     trcode=0;
     t1=i1*trigb;
     return t1;
   }
   else{   // check 3-fold coincidence:
-    if(TFMCFFKEY.trlogic[1] == 1)return t1;// if ALL4 was requested
+    if(TFMCFFKEY.trlogic[1] == 1)return t1;// bad: ALL4 was requested
     int imin=9999;
     AMSBitstr coinc0234=trbl[1]&trbl[2]&trbl[3];
     AMSBitstr coinc1034=trbl[0]&trbl[2]&trbl[3];
@@ -1221,17 +1221,69 @@ number TOF2Tovt::tr1time(int &trcode, integer toftrp[]){
       imin=i1;
       trcode=4;
     }
-    if(imin!=9999){
+    if(imin!=9999){ // was 3-fold coincidence
       t1=imin*trigb;
       toftrp[trcode-1]=-toftrp[trcode-1];// mark missing layer
+      return t1;
     }
-    return t1;
-  }
+    else{ // check 2-fold coincidence:
+      if(TFMCFFKEY.trlogic[1] == 0)return t1; // bad: at least ANY3 was requested
+      imin=9999;
+      integer misl1,misl2;
+      AMSBitstr coinc13=trbl[0]&trbl[2];
+      AMSBitstr coinc14=trbl[0]&trbl[3];
+      AMSBitstr coinc23=trbl[1]&trbl[2];
+      AMSBitstr coinc24=trbl[1]&trbl[3];
+      AMSBitstr coinc34=trbl[2]&trbl[3];
+      coinc13.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=5;
+	misl1=2;
+	misl2=4;
+      }
+      coinc14.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=6;
+	misl1=2;
+	misl2=3;
+      }
+      coinc23.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=7;
+	misl1=1;
+	misl2=4;
+      }
+      coinc24.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=8;
+	misl1=1;
+	misl2=3;
+      }
+      coinc34.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=9;
+	misl1=1;
+	misl2=2;
+      }
+      if(imin!=9999){ // was 2-fold coincidence
+        t1=imin*trigb;
+        toftrp[misl1-1]=-toftrp[misl1-1];// mark 1st missing layer
+        toftrp[misl2-1]=-toftrp[misl2-1];// mark 2nd missing layer
+        return t1;
+      }
+      else return t1;// bad
+    } // <--- end of 2-coinc. check
+  } // <--- end of 3-coinc. check
 }
 //---------------------------------------------------------------------
 //
 // function to get absolute time of the FIRST trigger(coincidence) "z>2";
-// trcode - trigger code (pattern) =-1/n, n>=0 -> missing plane #, 
+// trcode - trigger code (pattern) =-1/n, n>=0 -> missing planeN(if <=4), 
 // =-1 -> no trigger.
 //
 number TOF2Tovt::tr3time(int &trcode, integer toftrp[]){
@@ -1290,11 +1342,11 @@ number TOF2Tovt::tr3time(int &trcode, integer toftrp[]){
         intrig=TriggerLVL3::TOFInFastTrigger(uinteger(ibar),uinteger(ilay));
         if(intrig<1)trbc.bitclr(1,0); // counter not in trigger !!!                                  
         trbl[ilay]=trbl[ilay] | trbc; // summing OR within the layer
-        trbc.testbit(i1,i2);// bit-pattern of the fired counters in layer:
+        trbc.testbit(i1,i2);// check bit-pattern of the counter:
         if(i2>=i1){
           npdpl[ilay]+=1;
           sbt=lsbit<<ibar;
-          toftrp[ilay]|=sbt;
+          toftrp[ilay]|=sbt; // add bit to bit-pattern of fired counters
         }
         isds=0; // reset c.sides variables ...
         trbs[0].bitclr(1,0);
@@ -1313,13 +1365,13 @@ number TOF2Tovt::tr3time(int &trcode, integer toftrp[]){
   rr2=trbl[2]&trbl[3];
   coinc1234=rr1&rr2;
   coinc1234.testbit(i1,i2);
-  if(i2>=i1){// have 4-fold coincidence
+  if(i2>=i1){// was 4-fold coincidence
     trcode=0;
     t1=i1*trigb;
     return t1;
   }
   else{   // check 3-fold coincidence:
-    if(TFMCFFKEY.trlogic[1] == 1)return t1;// if ALL4 was requested
+    if(TFMCFFKEY.trlogic[1] == 1)return t1;// bad: ALL4 was requested
     int imin=9999;
     AMSBitstr coinc0234=trbl[1]&trbl[2]&trbl[3];
     AMSBitstr coinc1034=trbl[0]&trbl[2]&trbl[3];
@@ -1345,12 +1397,64 @@ number TOF2Tovt::tr3time(int &trcode, integer toftrp[]){
       imin=i1;
       trcode=4;
     }
-    if(imin!=9999){
+    if(imin!=9999){ // was 3-fold coincidence
       t1=imin*trigb;
       toftrp[trcode-1]=-toftrp[trcode-1];// mark missing layer
+      return t1;
     }
-    return t1;
-  }
+    else{ // check 2-fold coincidence:
+      if(TFMCFFKEY.trlogic[1] == 0)return t1; // bad: at least ANY3 was requested
+      imin=9999;
+      integer misl1,misl2;
+      AMSBitstr coinc13=trbl[0]&trbl[2];
+      AMSBitstr coinc14=trbl[0]&trbl[3];
+      AMSBitstr coinc23=trbl[1]&trbl[2];
+      AMSBitstr coinc24=trbl[1]&trbl[3];
+      AMSBitstr coinc34=trbl[2]&trbl[3];
+      coinc13.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=5;
+	misl1=2;
+	misl2=4;
+      }
+      coinc14.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=6;
+	misl1=2;
+	misl2=3;
+      }
+      coinc23.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=7;
+	misl1=1;
+	misl2=4;
+      }
+      coinc24.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=8;
+	misl1=1;
+	misl2=3;
+      }
+      coinc34.testbit(i1,i2);
+      if((i2>=i1) && (i1<imin)){
+        imin=i1;
+        trcode=9;
+	misl1=1;
+	misl2=2;
+      }
+      if(imin!=9999){ // was 2-fold coincidence
+        t1=imin*trigb;
+        toftrp[misl1-1]=-toftrp[misl1-1];// mark 1st missing layer
+        toftrp[misl2-1]=-toftrp[misl2-1];// mark 2nd missing layer
+        return t1;
+      }
+      else return t1;
+    } // <--- end of 2-coinc. check
+  } // <--- end of 3-coinc. check
 }
 //=====================================================================
 //

@@ -19,7 +19,8 @@ void Trigger2LVL1::build(){
 // TOF : 
   int i;
   integer ntof=0;
-  uinteger tofpatt[TOF2GC::SCLRS]={0,0,0,0};
+  integer tofpatt[TOF2GC::SCLRS]={0,0,0,0};
+  uinteger ttrpatt[TOF2GC::SCLRS]={0,0,0,0};
   integer tofflag(0);
   integer nanti=0;
   integer antipatt=0;
@@ -28,6 +29,10 @@ void Trigger2LVL1::build(){
     tofflag=TOF2RawEvent::gettrfl();
     TOF2RawEvent::getpatt(tofpatt);
     for(i=0;i<TOF2GC::SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
+    for(i=0;i<TOF2GC::SCLRS;i++){ // create unsigned pattern
+      if(tofpatt[i]>0)ttrpatt[i]=tofpatt[i];
+      else ttrpatt[i]=0;
+    }
 // ANTI :
     integer cbt,lsbit(1);
     antipatt=Anti2RawEvent::getpatt();
@@ -44,10 +49,10 @@ void Trigger2LVL1::build(){
     while(pcl){
      int plane=pcl->getntof()-1;
      int bar=pcl->getplane()-1;
-     tofpatt[plane]=tofpatt[plane] | ( 1 << bar);  
+     ttrpatt[plane]=ttrpatt[plane] | ( 1 << bar);  
      pcl=pcl->next();
     }
-    for(i=0;i<TOF2GC::SCLRS;i++)if(tofpatt[i]>0)ntof+=1;//counts coinc. planes
+    for(i=0;i<TOF2GC::SCLRS;i++)if(ttrpatt[i]>0)ntof+=1;//counts coinc. planes
 // ANTI :
     integer antip[2]={0,0};
     for(int k=0;k<2;k++){
@@ -69,8 +74,8 @@ void Trigger2LVL1::build(){
   }
 */
 //------
-  for(i=0;i<4;i++){
-    tofpatt[i]=tofpatt[i] | (tofpatt[i]<<16);
+  for(i=0;i<TOF2GC::SCLRS;i++){
+    ttrpatt[i]=ttrpatt[i] | (ttrpatt[i]<<16);// create AND+OR pattern 
   }
   geant sumsc=_scaler.getsum(AMSEvent::gethead()->gettime());
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
@@ -79,7 +84,7 @@ void Trigger2LVL1::build(){
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData() )
                                                      AMSEvent::gethead()->seterror();
 //
-// set combined (tof+anti+ecal)trigger flag(tempor. solution for e,p !)
+// check combined (tof+anti+ecal)trigger flag(tempor. solution for e,p !)
 //
   int tofok(0),antiok(0),comtrok(0);
   if(tofflag>0 && ntof >=TGL1FFKEY.ntof)tofok=1;
@@ -97,7 +102,7 @@ void Trigger2LVL1::build(){
 //
   if(comtrok>0 && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-                       new Trigger2LVL1(lifetime*1000+tm*10000,tofflag,tofpatt,antipatt,ectrigfl));
+                       new Trigger2LVL1(lifetime*1000+tm*10000,tofflag,ttrpatt,antipatt,ectrigfl));
   }
   else if(AMSJob::gethead()->isRealData() && sumsc>=TGL1FFKEY.MaxScalersRate && lifetime<=TGL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   

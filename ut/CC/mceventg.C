@@ -985,7 +985,7 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
      }
      if(first){
        first=0;
-       cout<<"z/r-anti="<<zanti<<" "<<ranti<<" zcal="<<zcal<<endl;
+       cout<<"AMSmceventg::fastcheck:z/r-anti="<<zanti<<" "<<ranti<<" zcal="<<zcal<<endl;
      }
      dxy=(zb-zanti)*sin(theta); // cr.with anti-top
      xcr=xin+dxy*cos(phi);

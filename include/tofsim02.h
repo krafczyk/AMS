@@ -264,7 +264,7 @@ private:
  static uinteger StartRun;//first run of the job
  static time_t StartTime;//first run time
  static integer trflag; // =0/1/2/3 -> "no_trig"/"z>=1"/"z>1"/"z>2"
- static integer trpatt[TOF2GC::SCLRS];// Triggered bars pattern
+ static integer trpatt[TOF2GC::SCLRS];// Fired bars pattern
  static number trtime; //  abs. FTrigger time (ns) 
  int16u idsoft;        // LayBarBarSide: LBBS (as in Phel,Tovt MC-obj)
  int16u status;        // channel status (alive/dead/ ... --> 0/1/...)
@@ -317,7 +317,7 @@ public:
  static void setpatt(integer patt[]){
    for(int i=0;i<TOF2GC::SCLRS;i++)trpatt[i]=patt[i];
  }
- static void getpatt(uinteger patt[]){
+ static void getpatt(integer patt[]){
    for(int i=0;i<TOF2GC::SCLRS;i++)patt[i]=trpatt[i];
  }
  static void settrfl(integer trfl){trflag=trfl;}

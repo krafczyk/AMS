@@ -568,7 +568,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[3]=0;     //(9) spare
   TOFMCFFKEY.mcprtf[4]=0;     //(10) spare
   TOFMCFFKEY.trlogic[0]=1; //(11) MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
-  TOFMCFFKEY.trlogic[1]=0; //(12)......................(=0/1-> ANY3/ALL4 layer coincidence) 
+  TOFMCFFKEY.trlogic[1]=0; //(12)..............(=0/1-> ANY3/ALL4 layer coincidence) 
   TOFMCFFKEY.fast=0;       //(13) 0/1->off/on fast generation in mceventg.C
   TOFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
   TOFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
@@ -593,7 +593,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.mcprtf[3]=0;     //(9) spare
   TFMCFFKEY.mcprtf[4]=0;     //(10) spare
   TFMCFFKEY.trlogic[0]=1; //(11) MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
-  TFMCFFKEY.trlogic[1]=0; //(12)......................(=0/1-> ANY3/ALL4 layer coincidence) 
+  TFMCFFKEY.trlogic[1]=0; //(12)........(=0/1/2-> accept at least ANY3/ALL4/SPECIAL2 layer coincidence) 
   TFMCFFKEY.fast=0;       //(13) 0/1->off/on fast generation in mceventg.C
   TFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
   TFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections

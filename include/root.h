@@ -8,11 +8,12 @@
 #include <TROOT.h>
 #endif
 #include <tkdbc.h>
+#include <ecaldbc.h>
 class AMSNtuple;
 namespace root{
-const int MAXBETA    =   150;
-const int MAXCHARGE  =   150;
-const int MAXPART    =   100;
+const int MAXBETA    =   100;
+const int MAXCHARGE  =   100;
+const int MAXPART    =   50;
 const int MAXTOF     =    20;
 const int MAXTOFRAW  =    20;
 const int MAXTOFMC   =   200;
@@ -257,6 +258,7 @@ public:
   float Cutoff[MAXPART];
   float TOFCoo[MAXPART][4][3];
   float AntiCoo[MAXPART][2][3];
+  float EcalCoo[MAXPART][2*ECSLMX][3];
   float TrCoo[MAXPART][trconst::maxlay][3];
 friend class AMSParticle;
 friend class AMSNtuple;

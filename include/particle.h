@@ -14,6 +14,7 @@
 #include <trrec.h>
 #include <tofrec02.h>
 #include <tofrec.h>
+#include <ecaldbc.h>
 #include <beta.h>
 #include <charge.h>
 #include <ctc.h>
@@ -52,6 +53,7 @@ protected:
   CTC    _Value[2];
   AMSPoint _TOFCoo[4];  
   AMSPoint _AntiCoo[2];  
+  AMSPoint _EcalCoo[2*ECSLMX];  
   AMSPoint _TrCoo[trconst::maxlay];  
   number   _Local[trconst::maxlay];
 
@@ -93,6 +95,7 @@ public:
     }
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2*ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
@@ -113,6 +116,7 @@ public:
     }
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2*ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
      _Local[i]=0;
@@ -122,6 +126,7 @@ public:
   void ctcfit(); // CTC fit
   void toffit(); // TOF fit
   void antifit(); // Anti fit
+  void ecalfit(); // Ecal fit
   void pid();   // particle identification
   void refit(int i=0); // refit if necessary;
   static integer build(integer refit=0);
@@ -131,6 +136,7 @@ public:
 
    AMSPoint getcoo() {return _Coo;}
    AMSPoint gettofcoo(integer i) {return _TOFCoo[i];}
+   AMSPoint getecalcoo(integer i) {return _EcalCoo[i];}
 #ifdef __DB__
    friend class AMSParticleD;
 
