@@ -214,7 +214,8 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
           pbeta=new AMSBeta(beta);
 #endif
           AMSEvent::gethead()->addnext(AMSID("AMSBeta",pat),pbeta);
-          return 1;
+          if(pbeta->checkstatus(AMSDBc::AMBIG))return 0;
+          else return 1;
    }
 #ifndef __UPOOL__
        delete pbeta;
