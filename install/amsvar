@@ -1,8 +1,8 @@
-#  $Id: amsvar,v 1.42 2003/10/29 15:25:33 choutko Exp $
+#  $Id: amsvar,v 1.44 2004/01/29 10:03:09 choutko Exp $
 setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/new
 #setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/$OS/v3.05.05gcc322.debug
 #setenv ROOTSYS    /f2users/rdm/root
-setenv ROOTSYS /f2users/choutko/root/vdev
+#setenv ROOTSYS /f2users/choutko/root/vdev
 #setenv ROOTSYS /f2users/choutko/root/rh9 
 set path=($ROOTSYS/bin $path . /usr/sbin  )
 setenv LD_LIBRARY_PATH .:$ROOTSYS/lib
@@ -21,8 +21,8 @@ setenv AMSGeoDir         $Offline/vdev/display/v2.00
 setenv amsed02           $Offline/vdev/display/ams02/$OS/bin/amsed      
 setenv amsed            $Offline/vdev/display/amsed
 setenv amsedc           $Offline/vdev/display/amsedc
-setenv amsoffmon        $Offline/vdev/online/offmon      
-setenv amsoffmonc        $Offline/vdev/online/offmonc      
+setenv offmon        $Offline/vdev/online/offmon      
+setenv offmonc        $Offline/vdev/online/offmonc      
 setenv AMSICC 1
 limit core 0
 limit data 700000
