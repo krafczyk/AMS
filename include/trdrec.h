@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.1 2001/04/27 21:50:33 choutko Exp $
+//  $Id: trdrec.h,v 1.2 2001/05/09 08:34:19 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include <trdid.h>
@@ -59,6 +59,7 @@ number _FitPar[2];
 number _Chi2;
 uinteger _NHits;
 integer _Pattern;
+integer _SuperLayer;
 AMSTRDCluster * _pCl[trdconst::maxhits];
 void _init(){}
 void _printEl(ostream &o);
@@ -71,13 +72,13 @@ static integer _TrSearcher(int icall,uinteger iseg);
 static integer _addnext(integer pat, integer nhit, uinteger iseg,AMSTRDCluster* pthit[]);
 void _addnextR(uinteger iseg);
 public:
-AMSTRDSegment():AMSlink(),_Chi2(-1),_Orientation(-1),_NHits(0),_Pattern(-1){
+AMSTRDSegment():AMSlink(),_Chi2(-1),_Orientation(-1),_NHits(0),_Pattern(-1),_SuperLayer(-1){
 _FitPar[0]=_FitPar[1]=0;
 for(int i=0;i<trdconst::maxhits;i++){
   _pCl[i]=0;
 }
 }
-AMSTRDSegment(integer Pattern,uinteger nhits,integer ori,AMSTRDCluster *pcl[]):_Chi2(-1),_Orientation(ori),_NHits(nhits),_Pattern(Pattern){
+AMSTRDSegment(integer slay,integer Pattern,uinteger nhits,integer ori,AMSTRDCluster *pcl[]):_Chi2(-1),_Orientation(ori),_NHits(nhits),_Pattern(Pattern),_SuperLayer(slay){
 _FitPar[0]=_FitPar[1]=0;
 for(int i=0;i<(_NHits<trdconst::maxhits?_NHits:trdconst::maxhits);i++){
  _pCl[i]=pcl[i];
@@ -90,6 +91,7 @@ integer operator < (AMSlink & o) const {
   else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
   else return !p || _Pattern < p->_Pattern;
 }
+integer getslayer()const{return _SuperLayer;}
 uinteger getNHits()const {return _NHits;}
 number getFitPar(uinteger i)const {return i<2?_FitPar[i]:0;}
 AMSTRDCluster *getpHit(uinteger i){return i<_NHits?_pCl[i]:0;}

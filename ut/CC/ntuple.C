@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.74 2001/05/02 15:53:41 choutko Exp $
+//  $Id: ntuple.C,v 1.75 2001/05/09 08:34:18 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -123,7 +123,7 @@ else{
   "ntrdseg[0,100],trdsegstatus(ntrdseg):I,trdsegor(ntrdseg)[0,10]:I,trdsegfpar(2,ntrdseg),trdsegchi2(ntrdseg),trdsegpat(ntrdseg)[0,100]:I,trdsegnh(ntrdseg)[0,12]:I,trdsegpcl(12,ntrdseg):I");
 
   HBNAME(_lun,"TRDTRK",&_trdtrk.Ntrdtrk,
-  "ntrdtrk[0,40],trdtrkstatus(ntrdtrk):I,trdtrkcoo(3,ntrdtrk),trdtrkercoo(3,ntrdtrk),trdtrkphi(ntrdtrk),trdtrktheta(ntrdtrk),trdtrkchi2(ntrdtrk),trdtrkns(ntrdtrk)[0,5]:I,trdtrkpat(ntrdtrk)[0,100]:I,trdtrkps(ntrdtrk):I");
+  "ntrdtrk[0,40],trdtrkstatus(ntrdtrk):I,trdtrkcoo(3,ntrdtrk),trdtrkercoo(3,ntrdtrk),trdtrkphi(ntrdtrk),trdtrktheta(ntrdtrk),trdtrkchi2(ntrdtrk),trdtrkns(ntrdtrk)[0,5]:I,trdtrkpat(ntrdtrk)[0,100]:I,trdtrkps(5,ntrdtrk):I");
 
   HBNAME(_lun,"TRDClu",&_trdcl.Ntrdcl,
   "ntrdcl[0,100],trdclstatus(ntrdcl):I,trdclcoo(3,ntrdcl),trdlayer(ntrdcl)[0,20]:I,trddir(3,ntrdcl),trdmul(ntrdcl)[0,31]:I,trdhmul(ntrdcl)[0,31]:I,trdedep(ntrdcl),ptrdrht(ntrdcl):I");

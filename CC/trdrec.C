@@ -290,7 +290,7 @@ integer AMSTRDSegment::_addnext(integer pat, integer nhit, uinteger iseg, AMSTRD
 cerr<< "AMSTRSegment::_addnext-F-UPOOL not supported yet"<<endl;
 abort();
 #else
-    AMSTRDSegment *ptrack=   new AMSTRDSegment(pat, nhit ,TRDDBc::oriseg(iseg),pthit);
+    AMSTRDSegment *ptrack=   new AMSTRDSegment(iseg,pat, nhit ,TRDDBc::oriseg(iseg),pthit);
 #endif
 
     ptrack->Fit();
@@ -372,14 +372,14 @@ TRDSegmentNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdseg();
    for (int i=0;i<_NHits;i++){
     TrN->PCl[TrN->Ntrdseg][i]=_pCl[i]->getpos();
    if(AMSTRDCluster::Out(IOPA.WriteAll%10==1)){
-      for(int j=0;j<trdconst::maxlay;j++){
+      for(int j=0;j<_pCl[i]->getlayer();j++){
         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTRDCluster",j);
         TrN->PCl[TrN->Ntrdseg][i]+=pc->getnelem();
       }
    }
     else{
       //Write only USED hits
-      for(int j=0;j<trdconst::maxlay;j++){
+      for(int j=0;j<_pCl[i]->getlayer();j++){
         AMSTRDCluster *ptr=(AMSTRDCluster*)AMSEvent::gethead()->getheadC("AMSTRDCluster",j);
         while(ptr && ptr->checkstatus(AMSDBc::USED) ){
          TrN->PCl[TrN->Ntrdseg][i]++;
@@ -521,18 +521,18 @@ TRDTrackNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trdtrk();
    TrN->NSeg[TrN->Ntrdtrk]=_BaseS._NSeg;
    TrN->Pattern[TrN->Ntrdtrk]=_BaseS._Pattern;
 
-   for (int i=0;i<trdconst::maxseg;i++)TrN->pSeg[TrN->Ntrdtrk][i]=0;
+   for (int i=0;i<TRDDBc::nlayS();i++)TrN->pSeg[TrN->Ntrdtrk][i]=0;
    for (int i=0;i<_BaseS._NSeg;i++){
     TrN->pSeg[TrN->Ntrdtrk][i]=_BaseS._PSeg[i]->getpos();
    if(AMSTRDSegment::Out(IOPA.WriteAll%10==1)){
-      for(int j=0;j<TRDDBc::nlayS();j++){
+      for(int j=0;j<_BaseS._PSeg[i]->getslayer();j++){
         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTRDSegment",j);
         TrN->pSeg[TrN->Ntrdtrk][i]+=pc->getnelem();
       }
    }
     else{
       //Write only USED hits
-      for(int j=0;j<TRDDBc::nlayS();j++){
+      for(int j=0;j<_BaseS._PSeg[i]->getslayer();j++){
         AMSTRDSegment *ptr=(AMSTRDSegment*)AMSEvent::gethead()->getheadC("AMSTRDSegment",j);
         while(ptr && ptr->checkstatus(AMSDBc::USED) ){
          TrN->pSeg[TrN->Ntrdtrk][i]++;
