@@ -12,6 +12,7 @@ SRCS          = AMSDisplay.cxx \
                 AMSLVL1Hist.cxx\
                 AMSLVL3Hist.cxx\
                 AMSAxAMSHist.cxx\
+                AMSNtuple.cxx\
 		TRadioButton.cxx TSwitch.cxx Debugger.cxx 
 
 HDRS          = TRadioButton.h TSwitch.h \
@@ -26,6 +27,7 @@ HDRS          = TRadioButton.h TSwitch.h \
                 AMSLVL1Hist.h\
                 AMSLVL3Hist.h\
                 AMSAxAMSHist.h\
+                AMSNtuple.h\
                 LinkDef.h
 
                 

@@ -53,7 +53,7 @@ theApp->SetIdleTimer(5,"");
   amd->AddSubDet(antih);
   AMSTrackerHist  trackerh("Tracker","Tracker  Hists",2,0);
   amd->AddSubDet(trackerh);
-  AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",2,0);
+  AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",1,1);
   amd->AddSubDet(LVL1h);
   AMSLVL3Hist  LVL3h("LVL3","LVL3  Hists",2,0);
   amd->AddSubDet(LVL3h);
@@ -65,9 +65,14 @@ theApp->SetIdleTimer(5,"");
   amd->AddSubDet(AxAMSh);
   amd->Init();
   amd->SetApplication(theApp);
+  int Begin=0;
+  int Sample=200;
       for(;;){
+        amd->Fill(Begin,Sample);
+        Begin+=Sample;
         amd->DispatchProcesses();  
         theApp->Run();
+        
       }        
       return ;
   

@@ -17,6 +17,7 @@
 #pragma link C++ class AMSLVL1Hist;
 #pragma link C++ class AMSLVL3Hist;
 #pragma link C++ class AMSAxAMSHist;
+#pragma link C++ class AMSNtuple;
 #pragma link C++ class TRadioButton;
 #pragma link C++ class TSwitch;
 

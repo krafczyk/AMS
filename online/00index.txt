@@ -52,10 +52,18 @@ Only 3 things needs to be set:
 
 Then you are ready to go.
 Type h2root your_converted_ntuple_file_name your_preferred_name
-Type amsed your_preferred_name.
+Type offmon your_preferred_name.
 
 
 
 
 
-4. Files
+4. Relevant files
+
+a. *.h
+TCanvasImp.h          //aux
+TMotifCanvas.h        //aux
+TRadioButton.h        //aux
+TSwitch.h             //aux
+LinkDef.h             //aux
+main.h                //main

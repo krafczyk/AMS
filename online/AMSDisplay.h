@@ -12,6 +12,7 @@
 #include <TApplication.h>
 #include "AMSCanvas.h"
 #include "AMSHist.h"
+#include "AMSNtuple.h"
 class TCanvas;
 class TPad;
 class TArc;
@@ -25,6 +26,7 @@ class TList;
 class AMSOnDisplay : public TObject {
 
 protected:
+   AMSNtuple *      m_ntuple;
    TFile *          m_file;
    Bool_t           m_logx;
    Bool_t           m_logy;
@@ -52,6 +54,7 @@ public:
    virtual void      Draw(Option_t *option="");
            void      DrawTitle(Option_t *option="");
            void      DrawRunInfo(Option_t *option="");
+           AMSNtuple *      GetNtuple()const{return m_ntuple;}
     AMSHist *            getCurSubDet(){return _subdet[_cursubdet];}
     TFile            *GetRootFile()const {return m_file;}
    TPad             *GetPad() {return m_Pad;}
@@ -66,6 +69,7 @@ public:
    Bool_t   IsLogZ()const {return m_logz;} 
   static AMSOnDisplay * GetAMSDisplay(){return _Head;}
    void Init();
+   void Fill(Int_t Begin, Int_t Sample);
    Int_t Dispatch(Int_t subdet, Int_t set=-1);
    void DispatchProcesses();
    void AddSubDet( AMSHist & subdet);

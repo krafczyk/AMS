@@ -17,10 +17,10 @@ void AMSAntiHist::_Fill(){
 void AMSAntiHist::_Fetch(){
 char text[80];
 _m2fetched=16;
-_fetched2= new TObject*[_m2fetched];
+_fetched2= new TH1*[_m2fetched];
 for(int i=0;i<16;i++){
   sprintf(text,"h1%02d3",i+1);
-  _fetched2[i]=gAMSDisplay->GetRootFile()->Get(text);
+  _fetched2[i]=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
   if(_fetched2[i]){
   }
   else{

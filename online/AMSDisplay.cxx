@@ -62,7 +62,7 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
    _Head=this;
    _cursubdet=0;
    gAMSDisplay=this;
-
+   m_ntuple = new AMSNtuple(file);
    // Constructor of AMSOnDisplay
    //
 
@@ -276,7 +276,7 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
    TVirtualPad * gPadSave = gPad;
    m_RunInfoPad->cd();
 
-   sprintf(atext,"Run %d",101);
+   sprintf(atext,"Run %d",m_ntuple->GetRun());
    for (Int_t i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
    atext[kTMAX-1] = 0;
 
@@ -290,7 +290,7 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
    text->SetTextAlign(12);
    text->SetTextSize(0.3);
    text->Draw();
-   //   sprintf(atext,"%s",gAMSRoot->GetTime());
+   sprintf(atext,"%s",m_ntuple->GetTime());
     for ( i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
       atext[kTMAX-1] = 0;
    
@@ -347,11 +347,14 @@ void AMSOnDisplay::AddSubDet(  AMSHist & subdet){
 
 
 Int_t AMSOnDisplay::Dispatch(Int_t subdet, Int_t set){
+   
    TVirtualPad * gPadSave = gPad;
    m_Pad->cd();
    Int_t retcode;
    if(subdet>=0 && subdet<_msubdet ){
       retcode=_subdet[subdet]->DispatchHist(set);
+      _cursubdet=subdet;
+      Draw();
    }   
    gPadSave->cd();
    m_Canvas->Update();
@@ -381,6 +384,13 @@ void AMSOnDisplay::DispatchProcesses(){
    while(!_subdet[_cursubdet]->IsActive()){
     _cursubdet=(_cursubdet+1)%_msubdet;
    }
-   Draw();    
    change=Dispatch(_cursubdet);
+}
+void AMSOnDisplay::Fill(Int_t Begin, Int_t Sample){
+  for(int i=Begin;i<Begin+Sample;i++){
+  if(!m_ntuple->ReadOneEvent(i))break;
+     for(int j=0;j<_msubdet;j++){
+      _subdet[j]->Fill(m_ntuple);
+     }
+  }
 }

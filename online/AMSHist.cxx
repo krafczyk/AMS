@@ -17,8 +17,9 @@ Int_t AMSHist::DispatchHist(Int_t cset){
 
 
  AMSHist::~AMSHist(){
- if(_fetched1)delete[] _fetched1;
- if(_fetched2)delete[] _fetched1;
- if(_filled1)delete[] _fetched2;
+ if(_fetched2)delete[] _fetched2;
  if(_filled2)delete[] _filled2;
+}
+
+void AMSHist::Fill(AMSNtuple *ntuple){
 }
