@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.7 2002/11/26 11:54:00 choutko Exp $
+//  $Id: gamma.h,v 1.8 2002/11/29 08:23:50 glamanna Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -137,7 +137,7 @@ inline  AMSPoint  getEHleft(int i){return _EHLEFT[i];}
 inline  AMSPoint  getHright(int i, int dir=0){return _HRIGH[dir==0?i:_NhRight-1-i];}
 inline  AMSPoint  getEHright(int i){return _EHRIGH[i];}
 //_____-
-static void _LeftRight(vector<double>, integer , number, integer &, const AMSPoint &, const AMSPoint &);
+static void _LeftRight(vector<double>, integer , number);
 //-----
 public:
 static void _Combi(integer&, integer, integer);
@@ -169,7 +169,6 @@ void PAIR2GAMMA(int&, int&);
 void addtracks(int&);
 void _MyVertex(double n_L[],double n_R[]);
 void LR_RES_STUDY3(integer [], double [], int & );
-void LR_RES_MINI(int &, double zed[],  double [], double );
 static void dlsqp2me(integer M, double v[], double w[], double & a0, double & a1, double & a2, double & chi);
 static void dlinearme(integer M, double v[], double w[], double & a0, double & a1, double & chi);
 double _vdmax(double v[], int size);
@@ -177,11 +176,12 @@ double _vdmin(double v[], int size);
 void interpolate(int which, AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
                  number & theta, number & phi, number & length);
 //
-static void RecoLeftRight(int refitting, integer FLPAT[],double SLOPEf, double INTERf,double x_starf,
+static void RecoLeftRight(int & refitting, integer FLPAT[], double SLOPEf, double INTERf,double x_starf,
                    double z_starf,int fbotf,int ftopf,
                    double firR,double lasR,double firL,double lasL,
                    int fir_planeR, int fir_planeL,
-                   int las_planeR,int las_planeL);
+                   int las_planeR,int las_planeL,double & slr, double & qlr);
+
 //
 void HITRESEARCH(int pla, double RES_REF, AMSPoint P_0L2, AMSPoint P_0R2);
 static integer Out(integer);
@@ -231,12 +231,13 @@ public:
    MY = (Y2-Y1)/(Z2-Z1);
   // intercept in YZ : QY 
     QY = Y1- (Z1*(Y2-Y1))/(Z2-Z1);}
- void _getTofMul(int, int mul[], double&);
- void _getEcalMul(int, int nn[], number&);
+ void getTofMul(int, int mul[], double&);
+ void getEcalMul(int, int nn[], number&);
  void TopSplash(double&);
  void Check_TRD_TK1(int,vector<double>,int jj[]);
  void makeEC_out(number&, int&);
  void Lines_Top_Bottom(int&);
+ void LastCheckTRDX(double& , double& , double& );
  void getParRoadXZ(int& bott, int& topp, double& x_ss, double& z_ss, double& SLL, double& INTT)const;
 };
 
