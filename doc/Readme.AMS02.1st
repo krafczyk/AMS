@@ -2,7 +2,7 @@ Dear AMS User,
 below are some (useful) info to make you more familiar  with AMS02 software.
 
 
-I. The following hardware platfoorms are currently supported:
+I. The following hardware platforms are currently supported:
  DEC/OSF1/cxx  6.2
  Linux/gcc2.95.2   
 
@@ -96,7 +96,10 @@ VII.  Standalone version
            tar -xvf ams.tar
            setenv AMSDataDir mydir
              
-
+      c.  Third party libraries you may want to install
+          i)   cernlib (ask you know whom)
+          ii)  naglib  (same, except for linux ask V.Choutko)
+          iii) libamsut   (in /afs/cern.ch/exp/ams/Offline/lib)  
 
 
 VIII. Current (2nd Half  1999) computer situation
