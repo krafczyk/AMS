@@ -126,4 +126,12 @@ c. SoftWare/DataAccess
   AMSDataBase is in $AMSDataDir/DataBase 
 
    http://ams.cern.ch/AMS/Analysis/hpl3itp1/prv3.job contains relevant datacards
+
+IX  Misc
+
+    you may need to override some default shell limits to run offline program
+    recommending settings are (in c-shell)
+    limit stack 8191
+    limit data 256000
+
 Comments, questions to shoutko@vxcern.cern.ch
