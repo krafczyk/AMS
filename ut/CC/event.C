@@ -965,9 +965,12 @@ void AMSEvent::event(){
     AMSUser::InitEvent();
    try{
     if(AMSJob::gethead()->isSimulation())_siamsevent();
+    if(!CCFFKEY.Fast && !(!IOPA.hlun && !IOPA.WriteRoot && (DAQCFFKEY.mode/10)%10)){
+
     _reamsevent();
     if(AMSJob::gethead()->isCalibration())_caamsevent();
     _collectstatus();
+}
    }
    catch (AMSLVL3Error e){
      // No LVL3
