@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.38 2001/06/14 08:48:29 choutko Exp $
+# $Id: Monitor.pm,v 1.39 2001/06/25 16:45:38 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -105,6 +105,31 @@ sub Connect{
  return $ref->{ok};
 
  }
+
+sub ResetFailedRuns{
+ my $ref=shift;
+      for my $j (0 ... $#{$ref->{rtb}}){
+        my %rdst=%{${$ref->{rtb}}[$j]};
+       if($rdst{Status} eq "Failed"){
+         $rdst{Status}="ToBeRerun";
+         $rdst{History}="ToBeRerun";
+         $rdst{cuid}=0;
+         my $rdstc=$rdst{cinfo};
+         $rdstc->{HostName}="      ";
+        my $arsref;
+        foreach $arsref (@{$ref->{arpref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Update");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+        }
+
+     }
+}
+}
 
 sub ForceCheck{
  my $ref=shift;
@@ -1079,6 +1104,10 @@ sub sendback{
         $nc{FilePath}=shift @data;
         $nc{Status}=shift @data;
         $nc{History}=shift @data;
+        if($nc{History} eq "ToBeRerun"){
+         my $rdstc=$nc{cinfo};
+         $rdstc->{HostName}="      ";
+        }
         my $arsref;
         foreach $arsref (@{$ref->{arpref}}){
             try{
@@ -1087,7 +1116,7 @@ sub sendback{
             catch CORBA::SystemException with{
                 warn "sendback corba exc";
             };
-        }
+}
         foreach $arsref (@{$ref->{ardref}}){
             try{
                 $arsref->sendRunEvInfo(\%nc,$action);
