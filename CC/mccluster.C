@@ -60,7 +60,7 @@ void AMSTRDMCCluster::init(){
 #ifdef __G4AMS__
 if(MISCFFKEY.G3On){
 #endif
-if(TRDMCFFKEY.mode<3){
+if(TRDMCFFKEY.mode<3 && TRDMCFFKEY.mode>=0){
 indetra_();
 cerr<< "AMSJob::_sitrdinitjob-I-TRDOption "<<TRDMCFFKEY.mode<<" Initialized"<<endl;
 }

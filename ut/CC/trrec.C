@@ -1116,7 +1116,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 void AMSTrRecHit::_writeEl(){
  TrRecHitNtuple* THN = AMSJob::gethead()->getntuple()->Get_trrh();
 
-  if (THN->Ntrrh>=MAXTRRH) return;
+  if (THN->Ntrrh>=root::MAXTRRH) return;
 
 // Fill the ntuple 
   integer flag =    (IOPA.WriteAll%10==1)
@@ -1197,6 +1197,18 @@ geant AMSTrTrack::_Time=0;
 
 
 integer AMSTrTrack::build(integer refit){
+
+  {
+    int nrh=0;
+    for(int i=0;i<TKDBc::nlay();i++){
+     nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
+    }
+    if(nrh>root::MAXTRRH){
+      AMSEvent::gethead()->seterror();
+      return 0;
+    }
+  }
+
   integer NTrackFound=-1;
   // pattern recognition + fit
   if(refit){
@@ -1270,6 +1282,17 @@ return NTrackFound;
 
 
 integer AMSTrTrack::buildWeak(integer refit){
+  {
+    int nrh=0;
+    for(int i=0;i<TKDBc::nlay();i++){
+     nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
+    }
+    if(nrh>root::MAXTRRH){
+      AMSEvent::gethead()->seterror();
+      return 0;
+    }
+  }
+
   integer NTrackFound=-1;
   // pattern recognition + fit
   if(refit){
@@ -1326,6 +1349,17 @@ return NTrackFound;
 
 
 integer AMSTrTrack::buildFalseX(integer nptmin){
+  {
+    int nrh=0;
+    for(int i=0;i<TKDBc::nlay();i++){
+     nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
+    }
+    if(nrh>root::MAXTRRH){
+      AMSEvent::gethead()->seterror();
+      return 0;
+    }
+  }
+
   integer NTrackFound=-1;
   // pattern recognition + fit
   _RefitIsNeeded=0;
@@ -2583,6 +2617,17 @@ integer AMSTrTrack::makeFalseTOFXHits(){
 }
 
 integer AMSTrTrack::buildFalseTOFX(integer refit){
+  {
+    int nrh=0;
+    for(int i=0;i<TKDBc::nlay();i++){
+     nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
+    }
+    if(nrh>root::MAXTRRH){
+      AMSEvent::gethead()->seterror();
+      return 0;
+    }
+  }
+
   integer NTrackFound=-1;
   // pattern recognition + fit
   if(refit){

@@ -9,6 +9,7 @@
 #endif
 #include <tkdbc.h>
 class AMSNtuple;
+namespace root{
 const int MAXBETA    =   150;
 const int MAXCHARGE  =   150;
 const int MAXPART    =   100;
@@ -21,8 +22,8 @@ const int MAXANTIMC  =   200;
 const int MAXTRCL    =   200;
 const int MAXTRRAW   =   300;
 const int MAXTRCLMC  =   200;
-const int MAXTRRH    =   500;
-const int MAXTRTR    =   200;
+const int MAXTRRH    =   666;
+const int MAXTRTR    =   100;
 const int MAXMCG     =    20;
 const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;
@@ -34,7 +35,8 @@ const int MAXLVL1    =     2;
 const int MAXRICMC   =   100;
 const int MAXRICHITS =   100;
 const int MAXTRDCLMC   =   200;
-
+};
+using namespace root;
 #ifdef __WRITEROOT__
 class EventNtuple: public TObject {
 #else

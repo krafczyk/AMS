@@ -88,9 +88,9 @@ void AMSgtmed::_init(){
   if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>1){
    GSTPAR(_itmed,"CUTGAM",1.01e-6);
   }
-  if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]!=0){
+  if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>0){
    if(IsSensitive()){
-    GSTPAR(_itmed,"CUTELE",1.01e-6);
+    GSTPAR(_itmed,"CUTELE",20.01e-6);
     GSTPAR(_itmed,"STRA",1);
    }
   }

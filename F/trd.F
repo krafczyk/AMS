@@ -47,7 +47,8 @@ C...
       IF (JTM.LE.0)GO TO 99
       NWBUF = IQ(JTM-1) - 14
       IF(NWBUF.LT.4) GO TO 99
-      if(Q(JTM+14+1).ne.g3trd.or.Q(JTM+14+2).gt.2)goto 99
+      if(Q(JTM+14+1).ne.g3trd.or.
+     +(Q(JTM+14+2).gt.2.or.Q(JTM+14+2).lt.0))goto 99
       if(Q(JTM+14+3).eq.3)then
        CALL GENTRDI(ABS(CHARGE),GAMMA,STEP,NTR,ETR,STR)
       else
@@ -207,7 +208,8 @@ C
       IF (JTM.LE.0)GO TO 99
       NWBUF = IQ(JTM-1) - 14
       IF(NWBUF.LT.4) GO TO 99
-      if(Q(JTM+14+1).ne.g3trd.or.Q(JTM+14+2).eq.0
+      if(Q(JTM+14+1).ne.g3trd.or.
+     + Q(JTM+14+2).ne.0
      + .or.Q(JTM+14+3).ne.3)goto 99     ! 3 trd-gas
       
         
@@ -438,7 +440,8 @@ C...
       IF (JTM.LE.0)GO TO 1
       NWBUF = IQ(JTM-1) - 14
       IF(NWBUF.LT.4) GO TO 1
-      if(Q(JTM+14+1).ne.g3trd.or.Q(JTM+14+2).gt.1)goto 1
+      if(Q(JTM+14+1).ne.g3trd.or.
+     +(Q(JTM+14+2).gt.1.or.Q(JTM+14+2).lt.0))goto 1
 
 
         IM=Q(JTM+14+3)

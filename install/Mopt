@@ -151,7 +151,7 @@ $(BIN)root.o:    	 $(SCC)root.C
 	$(CC) -c $(CFLAGS) $(SCC)root.C -o $(BIN)root.o
 
 $(BIN)id.o:    	 $(SCC)id.C
-	$(CC) -c $(CFLAGS) $(SCC)id.C -o $(BIN)id.o
+	$(CC) -c $(CFLAGS)  $(SCC)id.C -o $(BIN)id.o
 
 $(BIN)bcorr.o:    	 $(SCC)bcorr.C
 	$(CC) -c $(CFLAGS) $(SCC)bcorr.C -o $(BIN)bcorr.o
@@ -297,7 +297,7 @@ $(BIN)upool.o:	         $(SCC)upool.C
 	$(CC) -c $(CFLAGS) $(SCC)upool.C -o $(BIN)upool.o
 
 $(BIN)apool.o:	         $(SCC)apool.C
-	$(CC) -c $(CFLAGS) $(SCC)apool.C -o $(BIN)apool.o
+	$(CC) -c $(CFLAGS)  $(SCC)apool.C -o $(BIN)apool.o
 
 $(BIN)gmat.o:         	 $(SCC)gmat.C
 	$(CC) -c $(CFLAGS) $(SCC)gmat.C -o $(BIN)gmat.o

@@ -24,25 +24,45 @@
 #include <daqevt.h>
 #include <iostream.h>
 #include <richdbc.h>
+
+#ifdef __AMSDEBUG__
+static integer globalbadthinghappened=0;
+
+void DumpG3Commons(ostream & o){
+  o<< " DumpG3Commons  "<<endl;
+  o<< GCKINE.ipart<<endl;
+  for(int i=0;i<7;i++)o<<GCTRAK.vect[i]<<" ";
+  o<<endl;
+  o<<GCTRAK.gekin<<" "<<GCKING.ngkine<<" "<<GCTMED.numed<<endl;
+}
+#endif
+
 extern "C" void simde_(int&);
 extern "C" void trphoton_(int&);
 extern "C" void simtrd_(int& );
 extern "C" void gustep_(){
-
+#ifdef __AMSDEBUG__
+  if( globalbadthinghappened){
+    cerr<<" a " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
+    DumpG3Commons(cerr);
+  }
+#endif
   static integer freq=10;
   static integer trig=0;
   trig=(trig+1)%freq;
+
   if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit){
     freq=1;
     GCTRAK.istop =1;
     return;
   }
   else if(freq<10)freq=10;
+
 //
 // TRD here
 //
 // AMSgObj::BookTimer.start("TrdRadiationGen");
-  if(TRDMCFFKEY.mode <3) {
+  if(TRDMCFFKEY.mode <3 && TRDMCFFKEY.mode >=0) {
     //saveliev
     simtrd_(TRDMCFFKEY.g3trd);
     if(TRDMCFFKEY.mode<2)trphoton_(TRDMCFFKEY.g3trd);
@@ -52,6 +72,11 @@ extern "C" void gustep_(){
     // garibyan
    
   }
+#ifdef __AMSDEBUG__
+  if( globalbadthinghappened){
+    cerr<<" b " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
+  }
+#endif
 // AMSgObj::BookTimer.stop("TrdRadiationGen");
 
 
@@ -66,7 +91,11 @@ extern "C" void gustep_(){
 
 } 
 }
-
+#ifdef __AMSDEBUG__
+  if( globalbadthinghappened){
+    cerr<<" c " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
+  }
+#endif
 
   //  Tracker
   int lvl= GCVOLU.nlevel-1;  
@@ -77,6 +106,11 @@ extern "C" void gustep_(){
      AMSTrMCCluster::sitkhits(GCVOLU.number[lvl],GCTRAK.vect,
      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
 
+#ifdef __AMSDEBUG__
+  if( globalbadthinghappened){
+    cerr<<" d " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
+  }
+#endif
   // TOF
 
   geant t,x,y,z;
@@ -150,6 +184,12 @@ extern "C" void gustep_(){
   }// end of "in TOFS"
 //-------------------------------------
 
+#ifdef __AMSDEBUG__
+  if( globalbadthinghappened){
+    cerr<<" e " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
+  }
+#endif
+
   // CTC
 
 
@@ -195,6 +235,12 @@ extern "C" void gustep_(){
 //     HF1(1510,geant(iprt),1.);
   }
 //
+#ifdef __AMSDEBUG__
+  if( globalbadthinghappened){
+    cerr<<" f " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
+  }
+#endif
+
 // -----> ECAL 1.0-version by E.C.
     if(GCTRAK.destep != 0.){
       if(lvl==6 && GCVOLU.names[lvl][0]== 'E' && GCVOLU.names[lvl][1]=='C'
@@ -211,6 +257,11 @@ extern "C" void gustep_(){
     }
 //
 
+#ifdef __AMSDEBUG__
+  if( globalbadthinghappened){
+    cerr<<" g " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
+  }
+#endif
 
     // Deal with Cerenkov photons
 
@@ -266,9 +317,21 @@ extern "C" void gustep_(){
    	}
     }
    
+#ifdef __AMSDEBUG__
+  if( globalbadthinghappened){
+    cerr<<" h " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
+  }
+#endif
+
   AMSmceventg::FillMCInfo();
   GSKING(0);
   GSKPHO(0);
+#ifdef __AMSDEBUG__
+  if( globalbadthinghappened){
+    cerr<<" i " <<AMSgObj::BookTimer.check("GEANTTRACKING")<<endl;
+  }
+#endif
+
 #ifndef __BATCH__
   GSXYZ();
 #endif
@@ -309,8 +372,19 @@ extern "C" void guout_(){
    if(AMSJob::gethead()->isSimulation()){
       number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
 //        cout <<  "  tt   " <<tt<<endl;
+#ifdef __AMSDEBUG__
+      globalbadthinghappened=0;
+#endif
       if(tt > AMSFFKEY.CpuLimit){
-       cerr<<" GEANTTRACKING Time Spent"<<tt<<" "<<((AMSEvent::gethead()->getC("AMSmceventg",0))->getnelem())<<" Secondaries Generated"<<endl;
+       int nsec=(AMSEvent::gethead()->getC("AMSmceventg",0))->getnelem();
+        cerr<<" GEANTTRACKING Time Spent"<<tt<<" "<<nsec<<" Secondaries Generated"<<endl;
+        if(nsec==1 && tt>AMSFFKEY.CpuLimit*1.2 ){
+// bad thing
+          (AMSEvent::gethead()->getC("AMSmceventg",0))->printC(cerr);
+#ifdef __AMSDEBUG__
+      globalbadthinghappened=1;
+#endif
+        }
        throw AMSTrTrackError("SimCPULimit exceeded");
       }
    }
