@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.20 2002/12/05 09:16:25 glamanna Exp $
+//  $Id: gamma.C,v 1.21 2002/12/05 14:52:22 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -370,20 +370,21 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
   }
   // 
   int ja;
+  const int maxsize=500;
   double res_[trconst::maxlay];
   double mid[trconst::maxlay];
   double z_fi[trconst::maxlay];
-  double res_LR[500][trconst::maxlay];
+  double res_LR[maxsize][trconst::maxlay];
   
   for(int i=0;i<TKDBc::nlay();i++){
     z_fi[i]=10000;
     res_[i]=10000;
-    for(int k=0;k<500;k++){
+    for(int k=0;k<maxsize;k++){
       res_LR[k][i]=10000;
     }
   }
-  double CHI2[500];
-  double LCHI2[500];
+  double CHI2[maxsize];
+  double LCHI2[maxsize];
   double AA0;
   double AA1;
   double AA2;
@@ -443,6 +444,7 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
       for(int i1=0;i1<FLPAT[i]-1;i1++){
 	for(int i2=i1+1;i2<FLPAT[i];i2++){
 	  j++;
+          if(j>maxsize)break;
 	  res_LR[j][i]=fabs(H[i][i1]-H[i][i2]);
 	  res_[ja]=res_LR[j][i];
 	  // for the alternative let's do the centers in y
