@@ -1931,20 +1931,19 @@ li->second->gettime(i,b,e);
  TDVbody_var vbody=new TDVbody();
  if(tdvname.Success){
   length=li->second->GetNbytes()/sizeof(uinteger);
-  int last=length-pos;
   const int maxs=400000;
   vbody->length(length);
   li->second->CopyOut(vbody->get_buffer());
-  if(last>maxs){
-   length=maxs;
-   for (uinteger i=0;i<pos;i++){
+  length-=pos;
+  if(length>maxs)length=maxs;
+  else st=End;
+   if(pos){
+    for (uinteger i=0;i<length;i++){
       vbody[i]=vbody[i+pos];
-   }        
+    }        
+   }
    vbody->length(length);
    pos+=length;
-  }
-  else st=End;
-  
  }
  else{
   vbody->length(1);

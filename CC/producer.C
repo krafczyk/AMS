@@ -500,12 +500,12 @@ name.Entry.Insert=i;
 name.Entry.Begin=b;
 name.Entry.End=e;
  int length=0;
- int suc=0;
  uinteger pos=0;
  DPS::Producer::TransferStatus st=DPS::Producer::Begin;
  DPS::Producer::TDVbody_var vb2=new DPS::Producer::TDVbody();
  uinteger totallength=0;
  while (st!=DPS::Producer::End){
+ int suc=0;
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   
   try{
@@ -515,16 +515,21 @@ name.Entry.End=e;
   }
   catch  (CORBA::SystemException & a){
   }
- }
+}
 if(!suc){
  FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
  return false;
 }
+if(!totallength){
+  vb2=pbody;
+}
+else{
  DPS::Producer::TDVbody_var vbody=pbody;
  vb2->length(totallength+length);
  for(int i=0;i<length;i++){
   vb2[i+totallength]=vbody[i];
  }
+}
 totallength+=length;
 }
 if(name.Success){
