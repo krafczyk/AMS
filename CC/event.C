@@ -56,7 +56,7 @@ integer AMSEvent::SRun=0;
 integer AMSEvent::PosInRun=0;
 integer AMSEvent::PosGlobal=0;
 void AMSEvent::_init(){
-  SetTimeCoo(0);
+  SetTimeCoo(IOPA.mode==1);
   // Status stuff
   if( AMSFFKEY.Update && AMSStatus::isDBWriteR()  ){
     if(AMSJob::gethead()->getstatustable()->isFull(getrun(),getid(),gettime())){
@@ -129,6 +129,7 @@ void AMSEvent::_init(){
      }
     }
     if(SRun  && TRCALIB.CalibProcedureNo == 3)AMSTrIdCalib::ntuple(SRun);
+    if(SRun  && TRCALIB.CalibProcedureNo == 4)AMSTrIdCalib::addonemorecalib();
     SRun=_run;
     PosInRun=0;
 #ifndef __DB__
@@ -319,7 +320,6 @@ AMSUser::InitRun();
 
 
 void AMSEvent::_siamsinitevent(){
- _signinitevent();
  _sitkinitevent();
  _sitofinitevent();
  _siantiinitevent();
@@ -327,6 +327,7 @@ void AMSEvent::_siamsinitevent(){
 }
 
 void AMSEvent::_reamsinitevent(){
+  _signinitevent();
  _redaqinitevent();
  _retkinitevent();
  _retriginitevent();
@@ -388,6 +389,23 @@ void AMSEvent::SetTimeCoo(integer rec){
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
   }
+
+
+  else if(AMSJob::gethead()->isSimulation() && rec){
+    _Yaw=0;
+    _Roll=0;
+    _Pitch=0;
+    _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
+    _StationRad=AMSmceventg::Orbit.AlphaAltitude;
+    _SunRad=0;
+    // get velocity parameters from orbit par
+    AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
+    AMSDir ax2=ax1.cross(AMSmceventg::Orbit.Axis);
+    _VelTheta=AMSDBc::pi/2-ax2.gettheta();
+    _VelPhi=ax2.getphi();
+  }
+
+
   else if(!AMSJob::gethead()->isSimulation() && rec){
     static integer hint=0;
     //get right record
@@ -1867,6 +1885,8 @@ uinteger _event=uinteger(_Head->_id);
 *(p+10)=int16u(_Head->_usec&65535);
 *(p+9)=int16u((_Head->_usec>>16)&65535);
 }
+
+
 void AMSEvent::buildTrackerHKdaq(integer i, integer length, int16u *p){
 
 *p= getdaqid(4);
@@ -1882,6 +1902,51 @@ uinteger _event=uinteger(_Head->_id);
 *(p+10)=int16u(_Head->_usec&65535);
 *(p+9)=int16u((_Head->_usec>>16)&65535);
 }
+
+
+
+
+void AMSEvent::builddaqSh(integer i, integer length, int16u *p){
+
+*p= getdaqidSh();
+uinteger tmp;
+memcpy(&tmp,&_Head->_StationRad,sizeof(tmp));
+*(p+2)=int16u(tmp&65535);
+*(p+1)=int16u((tmp>>16)&65535);
+
+memcpy(&tmp,&_Head->_StationTheta,sizeof(tmp));
+*(p+4)=int16u(tmp&65535);
+*(p+3)=int16u((tmp>>16)&65535);
+
+memcpy(&tmp,&_Head->_StationPhi,sizeof(tmp));
+*(p+6)=int16u(tmp&65535);
+*(p+5)=int16u((tmp>>16)&65535);
+memcpy(&tmp,&_Head->_Yaw,sizeof(tmp));
+*(p+8)=int16u(tmp&65535);
+*(p+7)=int16u((tmp>>16)&65535);
+memcpy(&tmp,&_Head->_Pitch,sizeof(tmp));
+*(p+10)=int16u(tmp&65535);
+*(p+9)=int16u((tmp>>16)&65535);
+memcpy(&tmp,&_Head->_Roll,sizeof(tmp));
+*(p+12)=int16u(tmp&65535);
+*(p+11)=int16u((tmp>>16)&65535);
+memcpy(&tmp,&_Head->_StationSpeed,sizeof(tmp));
+*(p+14)=int16u(tmp&65535);
+*(p+13)=int16u((tmp>>16)&65535);
+memcpy(&tmp,&_Head->_VelTheta,sizeof(tmp));
+*(p+16)=int16u(tmp&65535);
+*(p+15)=int16u((tmp>>16)&65535);
+
+memcpy(&tmp,&_Head->_VelPhi,sizeof(tmp));
+*(p+18)=int16u(tmp&65535);
+*(p+17)=int16u((tmp>>16)&65535);
+
+memcpy(&tmp,&_Head->_NorthPolePhi,sizeof(tmp));
+*(p+20)=int16u(tmp&65535);
+*(p+19)=int16u((tmp>>16)&65535);
+
+}
+
 
 
 void AMSEvent::buildraw(
@@ -1902,6 +1967,32 @@ void AMSEvent::buildraw(
 
 }
 
+void AMSEvent::buildrawSh(integer length, int16u *p){
+
+    uinteger tmp=(*(p+2)) |  (*(p+1))<<16;
+    memcpy(&_Head->_StationRad,&tmp,sizeof(tmp));
+     tmp=(*(p+4)) |  (*(p+3))<<16;
+    memcpy(&_Head->_StationTheta,&tmp,sizeof(tmp));
+     tmp=(*(p+6)) |  (*(p+5))<<16;
+    memcpy(&_Head->_StationPhi,&tmp,sizeof(tmp));
+     tmp=(*(p+8)) |  (*(p+7))<<16;
+    memcpy(&_Head->_Yaw,&tmp,sizeof(tmp));
+     tmp=(*(p+10)) |  (*(p+9))<<16;
+    memcpy(&_Head->_Pitch,&tmp,sizeof(tmp));
+     tmp=(*(p+12)) |  (*(p+11))<<16;
+    memcpy(&_Head->_Roll,&tmp,sizeof(tmp));
+     tmp=(*(p+14)) |  (*(p+13))<<16;
+    memcpy(&_Head->_StationSpeed,&tmp,sizeof(tmp));
+     tmp=(*(p+16)) |  (*(p+15))<<16;
+    memcpy(&_Head->_VelTheta,&tmp,sizeof(tmp));
+     tmp=(*(p+18)) |  (*(p+17))<<16;
+    memcpy(&_Head->_VelPhi,&tmp,sizeof(tmp));
+     tmp=(*(p+20)) |  (*(p+19))<<16;
+    memcpy(&_Head->_NorthPolePhi,&tmp,sizeof(tmp));
+
+
+}
+
 
 integer AMSEvent::checkdaqid(int16u id){
 if(id==getdaqid(0))return 1;
@@ -1909,6 +2000,11 @@ else if(id==getdaqid(4))return 5 ;
 else return 0;
 
 
+}
+
+integer AMSEvent::checkdaqidSh(int16u id){
+ if(id==getdaqidSh())return 1;
+ else return 0;
 }
 
 integer AMSEvent::calcTrackerHKl(integer i){

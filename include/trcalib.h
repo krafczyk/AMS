@@ -159,6 +159,8 @@ static time_t _CurTime;
 static uinteger _CurRun;
 
 public:
+static void getaverage();
+static void addonemorecalib();
 static void offmonhist();
 static void printbadchanlist();
 static integer CalcBadCh(integer half, integer side);
@@ -177,6 +179,9 @@ geant getcmnnoise() const {return _CmnNoise[_VANumber][_addr];}
 void updcmnnoise(geant cmn){(_CmnNoise[_VANumber][_addr])+=cmn*cmn;}
 void updcmnnoiseC(){(_CmnNoiseC[_VANumber][_addr])++;}
 void updADC(geant ped){(_ADC[getchannel()])+=ped;}
+number getADC(){return _ADC[getchannel()];}
+number getADCRaw(){return _ADCRaw[getchannel()];}
+geant getBadCh(){return _BadCh[getchannel()];}
 void updBadCh(){_BadCh[getchannel()]++;}
 void updADC2(geant ped){(_ADC2[getchannel()])+=ped*ped;}
 void updADCRaw(geant ped){(_ADCRaw[getchannel()])+=ped;}

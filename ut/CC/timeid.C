@@ -311,6 +311,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
       }
       else {
         cout<<"AMSTimeID::read-W-Problems to Read File "<<fnam<<endl;
+        if(dflt)exit(1);
       }
       fbin.close();
       delete [] pdata;

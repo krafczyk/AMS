@@ -204,12 +204,18 @@ static AMSID getTDVStatus();
 // Interface with DAQ
 static int16u  getdaqid(int btype){return 0x200 | btype <<13;}
 static integer checkdaqid(int16u id);
+static int16u  getdaqidSh(){return 1 | 14<<9;}
+static integer checkdaqidSh(int16u id);
+static void buildrawSh(integer length, int16u *p);
 static void buildraw(integer length, int16u *p, uinteger &run, uinteger &event,
 uinteger & runtype, time_t & time, uinteger & usec); 
 static integer getmaxblocks(){return 1;}
+static integer getmaxblocksSh(){return 1;}
 static integer calcdaqlength(integer i){return 1+2+2+2+4;}
+static integer calcdaqlengthSh(integer i){return 21;}
 static integer calcTrackerHKl(integer i);
 static void builddaq(integer i, integer length, int16u *p);
+static void builddaqSh(integer i, integer length, int16u *p);
 static void buildTrackerHKdaq(integer i, integer length, int16u *p);
 
 friend class AMSJob;

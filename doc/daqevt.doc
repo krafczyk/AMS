@@ -1,10 +1,10 @@
 
-I. Proposed Daq Event format  (based on lebedev&capell 15/7/97)
+I. Daq Event format  (based on lebedev&capell 15/7/97)
                                 & updated 12/02/1998
 All 16 bit unsigned integers. 32 & more bits are now in BIG(!) endian,i.e.
  unsigned short int ui16[2];
  integer r;
- ui16[1[=((unsigned integer)r)&65535;
+ ui16[1]=((unsigned integer)r)&65535;
  ui16[0]=(((unsigned integer)r)>>16)&65535;
 
  
@@ -379,11 +379,36 @@ WordSL-2 CRC1
 WordSL-1 CRC2
 WordSL   Junk
 
+p. MC Particle
+
+ID =  14 <<9 
 
 
 
+Word1     Particle id
+Word2-3   Momentum (MeV/c)
+Word4     Direction_x (+1 *1000)
+Word5     Direction_y  
+Word6     Direction_z
+Word7-8   Coo_x (+1 0000 0000 mkm)  
+Word9-10  Coo_y  
+Word11-12 Coo_z
+
+n. Shuttle Paramaters
+
+ID =  14 <<9   |     1 
 
 
+Word1-2    Altitude (cm)
+Word3-4    Lattitude
+Word5-6    Longitude
+Word7-8    Yaw
+Word9-10   Pitch
+Word11-12  Roll
+Word13-14  Speed(rad/sec)
+Word15-16  Speed_Theta
+Word17-18  Speed_Phi
+Word19-20  NorthPole_Phi
 
 
 

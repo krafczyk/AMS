@@ -1478,3 +1478,211 @@ void AMSTrIdCalib::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[]){
 
 
 }
+
+
+
+void AMSTrIdCalib::addonemorecalib(){
+
+
+   int i,j,k,l,m;
+    for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<AMSDBc::nlay();i++){
+       for(j=0;j<AMSDBc::nlad(i+1);j++){
+        AMSTrIdSoft cid(i+1,j+1,k,l,0);
+        AMSTrIdCalib id(cid);
+        if(id.dead())continue;
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+          id.upd(m);
+          id.updADC(id.getped());
+          id.updADCRaw(id.getsig());
+          if(id.checkstatus(AMSDBc::BAD))id.updBadCh();
+          id.updcounter();
+          if(m%64==0){
+           id.updcmnnoise(id.getcmnnoise());
+           id.updcmnnoiseC();
+          }
+         }
+        }
+       }
+     }
+    }
+
+
+
+}
+
+
+
+void AMSTrIdCalib::getaverage(){
+
+
+    //get average
+   int i,j,k,l,m;
+
+    for(i=0;i<10;i++){
+      for(j=0;j<ms;j++){
+       if(_CmnNoiseC[i][j]>0){
+        _CmnNoise[i][j]=sqrt(_CmnNoise[i][j]/_CmnNoiseC[i][j]);
+       }
+      }
+    }
+
+    for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<AMSDBc::nlay();i++){
+       for(j=0;j<AMSDBc::nlad(i+1);j++){
+        AMSTrIdSoft cid(i+1,j+1,k,l,0);
+        AMSTrIdCalib id(cid);
+        if(id.dead())continue;
+        geant xn=0;
+        geant localbad[640];
+        geant * localbada[640];
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+          id.upd(m);
+          if(id.getcount())id.setped()=id.getADC()/id.getcount();
+          if(id.getcount())id.setsig()=id.getADCRaw()/id.getcount();
+          localbada[m]=localbad+m;
+          if(id.getcount()){
+            localbad[m]=id.getBadCh()/id.getcount();
+            xn+=localbad[m];
+          }
+          else localbad[m]=0;
+          id.clearstatus(AMSDBc::BAD);
+          if(m%64==0){
+           id.setcmnnoise()=id.getcmnnoise();
+          }
+         }
+        // now set up bad channels
+        int nbad=floor(xn+0.5);
+        cout <<"nbad "<<nbad<<endl;;
+        // now order the localbad
+        AMSsortNAG(localbada,AMSDBc::NStripsDrp(i+1,l));
+        for(m=AMSDBc::NStripsDrp(i+1,l)-1;m>AMSDBc::NStripsDrp(i+1,l)-1-nbad;m--){
+          integer la=localbada[m]-localbad;
+          cout <<la<<" "<<localbad[la]<<endl;
+          id.upd(la);
+          id.setstatus(AMSDBc::BAD);
+        }
+       }
+      }
+     }
+    }
+
+
+
+
+
+   //update db
+    AMSTimeID *ptdv;
+     time_t begin,end,insert;
+     for( k=0;k<2;k++){
+      ptdv = 
+      AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVped(k));
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      // dummy insert begin end
+      insert=1;
+      begin=1;
+      end=1;
+      ptdv->SetTime(insert,begin,end);
+
+      ptdv = 
+      AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVsigma(k));
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      // dummy insert begin end
+      insert=1;
+      begin=1;
+      end=1;
+      ptdv->SetTime(insert,begin,end);
+      ptdv = 
+      AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVCmnNoise());
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      // dummy insert begin end
+      insert=1;
+      begin=1;
+      end=1;
+      ptdv->SetTime(insert,begin,end);
+      ptdv = 
+      AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVstatus(k));
+      ptdv->UpdateMe()=1;
+      ptdv->UpdCRC();
+      // dummy insert begin end
+      insert=1;
+      begin=1;
+      end=1;
+      ptdv->SetTime(insert,begin,end);
+     }
+
+    if (AMSFFKEY.Update==2 ){
+     AMSTimeID * offspring = 
+     (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
+     while(offspring){
+       if(offspring->UpdateMe())cout << " Starting to update "<<*offspring; 
+      if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+      cerr <<"AMSJob::_dbendjob-S-ProblemtoUpdate "<<*offspring;
+      offspring=(AMSTimeID*)offspring->next();
+     }
+    }
+
+   // write ntuple
+  if(1){
+    char hfile[161];
+    UHTOC(IOPA.hfile,40,hfile,160);  
+    char filename[256];
+    strcpy(filename,hfile);
+    integer iostat;
+    integer rsize=1024;
+    char event[80];  
+    HROPEN(IOPA.hlun+1,"trcalibration",filename,"N",rsize,iostat);
+    if(iostat){
+     cerr << "Error opening trcalib ntuple file "<<filename<<endl;
+     exit(1);
+    }
+    else cout <<"trcalib ntuple file "<<filename<<" opened."<<endl;
+
+   TrCalib_def TRCALIB;
+   HBNT(IOPA.ntuple,"Tracker Calibaration"," ");
+   HBNAME(IOPA.ntuple,"TrCalib",(int*)(&TRCALIB),"PSLayer:I,PSLadder:I,PSHalf:I,PSSide:I, PSStrip:I,Ped:R,Sigma:R,BadCh:R,CmnNoise:R");
+   int i,j,k,l,m;
+    for(l=0;l<2;l++){
+    for(k=0;k<2;k++){
+     for(i=0;i<AMSDBc::nlay();i++){
+       for(j=0;j<AMSDBc::nlad(i+1);j++){
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
+        if(id.dead())continue;
+        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+          id.upd(m);
+          TRCALIB.Layer=i+1;
+          TRCALIB.Ladder=j+1;
+          TRCALIB.Half=k;
+          TRCALIB.Side=l;
+          TRCALIB.Strip=m;
+          TRCALIB.Ped=id.getped();
+          TRCALIB.Sigma=id.getsig();
+          TRCALIB.BadCh=id.checkstatus(AMSDBc::BAD);
+          TRCALIB.CmnNoise=id.getcmnnoise();
+          HFNT(IOPA.ntuple);
+         }
+        }
+       }
+     }
+    }
+  char hpawc[256]="//PAWC";
+  HCDIR (hpawc, " ");
+  char houtput[]="//trcalibration";
+  HCDIR (houtput, " ");
+  integer ICYCL=0;
+  HROUT (1, ICYCL, " ");
+  HREND ("trcalibration");
+  CLOSEF(IOPA.hlun+1);
+
+}
+  
+
+}
+
+
+

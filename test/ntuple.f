@@ -33,7 +33,7 @@
            if(newwrite.eq.1)then
             newwrite=0
             if(fast.eq.1)then
-             call hgntb(1,'EVENTH',ipos,ierr)
+             call hgntv(1,'eventstatus',1,ipos,ierr)
             else 
              call hgnt(1,ipos,ierr)
             endif
@@ -305,7 +305,7 @@
 *  write only heavy ions or negative momentum 
 *       
          userok=0
-         if(particles.gt.0)then
+         if(mod(eventstatus/2097152,4).gt.0)then
           ic=mod(eventstatus/32,8)
           im=mod(eventstatus/256,2)
           if(ic.gt.0.or.im.eq.0)userok=1

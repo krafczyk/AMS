@@ -35,6 +35,19 @@ for(i=0;i<3;i++){
 InitSeed();
 }
 
+
+AMSmceventg::AMSmceventg(integer ipart, geant mom, AMSPoint & coo,
+AMSDir & dir){
+_nskip=0;
+init(ipart);
+_mom=mom;
+int i;
+for(i=0;i<3;i++){
+ _coo[i]=coo[i];
+ _dir[i]=dir[i];
+}
+}
+
 void AMSmceventg::gener(){
   if(CCFFKEY.low ==2){
     geant mom,themu,phimu,chmu,xmu,ymu,zmu;
@@ -405,12 +418,12 @@ integer AMSmceventg::EarthModulation(){
   number l3=-sr*sy*cp-cr*sp;
   number m3=-sr*cy;
   number n3=-sr*sy*sp+cr*cp;
-  amsx[0]=l1*amsxg[0]+m1*amsyg[0]+n1*amszg[0];
-  amsx[1]=l1*amsxg[1]+m1*amsyg[1]+n1*amszg[1];
-  amsx[2]=l1*amsxg[2]+m1*amsyg[2]+n1*amszg[2];
-  amsy[0]=l2*amsxg[0]+m2*amsyg[0]+n2*amszg[0];
-  amsy[1]=l2*amsxg[1]+m2*amsyg[1]+n2*amszg[1];
-  amsy[2]=l2*amsxg[2]+m2*amsyg[2]+n2*amszg[2];
+  amsx[0]=-(l1*amsxg[0]+m1*amsyg[0]+n1*amszg[0]);
+  amsx[1]=-(l1*amsxg[1]+m1*amsyg[1]+n1*amszg[1]);
+  amsx[2]=-(l1*amsxg[2]+m1*amsyg[2]+n1*amszg[2]);
+  amsy[0]=-(l2*amsxg[0]+m2*amsyg[0]+n2*amszg[0]);
+  amsy[1]=-(l2*amsxg[1]+m2*amsyg[1]+n2*amszg[1]);
+  amsy[2]=-(l2*amsxg[2]+m2*amsyg[2]+n2*amszg[2]);
   amsz[0]=l3*amsxg[0]+m3*amsyg[0]+n3*amszg[0];
   amsz[1]=l3*amsxg[1]+m3*amsyg[1]+n3*amszg[1];
   amsz[2]=l3*amsxg[2]+m3*amsyg[2]+n3*amszg[2];
@@ -554,3 +567,64 @@ void AMSmceventg::_writeEl(){
 }
 
 
+integer AMSmceventg::checkdaqid(int16u id){
+if(id==getdaqid())return 1;
+else return 0;
+}
+
+void AMSmceventg::builddaq(integer i, integer length, int16u *p){
+  AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->
+  getheadC("AMSmceventg",0);
+ *p=getdaqid();
+while(ptr){ 
+ const uinteger c=65535;
+ *(p+1)=ptr->_ipart;
+ uinteger momentum=uinteger(ptr->_mom*1000);
+ *(p+3)=int16u(momentum&c);
+ *(p+2)=int16u((momentum>>16)&c);
+ int16u d=int16u((ptr->_dir[0]+1)*10000);
+ *(p+4)=d;
+ d=int16u((ptr->_dir[1]+1)*10000);
+ *(p+5)=d;
+ d=int16u((ptr->_dir[2]+1)*10000);
+ *(p+6)=d;
+ integer big=10000;
+ for(int k=0;k<3;k++){
+ if(ptr->_coo[k]+big<0){
+  cerr<<"AMSmceventg::builddaq-E-NegativeCoo "<<ptr->_coo[k]<<endl;
+ }
+ uinteger cd=(ptr->_coo[k]+big)*10000;
+ *(p+8+2*k)=int16u(cd&c);
+ *(p+7+2*k)=int16u((cd>>16)&c);
+ }
+ ptr=ptr->next();
+ p+=12;
+}
+
+}
+
+
+void AMSmceventg::buildraw(integer n, int16u *p){
+ integer ip;
+ geant mom;
+ for(int16u *ptr=p+1;ptr<p+n;ptr+=12){ 
+  ip=*(ptr);
+  uinteger momi= (*(ptr+2)) | (*(ptr+1))<<16;
+  mom=momi/1000.;
+  AMSDir dir(integer(*(ptr+3))-10000,integer(*(ptr+4))-10000,integer(*(ptr+5))-10000);
+  uinteger cdx=  (*(ptr+7)) | (*(ptr+6))<<16;  
+  uinteger cdy=  (*(ptr+9)) | (*(ptr+8))<<16;  
+  uinteger cdz=  (*(ptr+11)) | (*(ptr+10))<<16;  
+  AMSPoint coo(cdx/10000.-10000.,cdy/10000.-10000.,cdz/10000.-10000.);
+        AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), new
+        AMSmceventg(ip,mom,coo,dir));
+
+}
+
+} 
+
+integer AMSmceventg::calcdaqlength(integer i){
+ AMSContainer *p = AMSEvent::gethead()->getC("AMSmceventg");
+ if(p)return 1+12*p->getnelem();
+ else return 1;
+}

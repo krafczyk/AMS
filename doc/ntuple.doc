@@ -1,4 +1,4 @@
-p
+
 Thanks to Juan's courtesy there is no more dumb ntuple, only
 clever one survived. No more nconvert.
 
@@ -86,7 +86,7 @@ Below there is a description of a  ntuple.
 * R*4  *              * PARTICLE * pcharge(npart)    // charge
 * R*4  *              * PARTICLE * ptheta(npart)     // theta (1st(last) tracker plane)
 * R*4  *              * PARTICLE * pphi(npart)       // phi  -----------
-* R*4  *              * PARTICLE * thetagl(npart)    // theta global
+* R*4  *              * PARTICLE * thetagl(npart)    // theta global **)
 * R*4  *              * PARTICLE * phigl(npart)      // phi global
 * R*4  *              * PARTICLE * pcoo(3,npart)     // coo  -----------
 * R*4  *              * PARTICLE * signalctc(2,npart)  // ctcsignal(s)
@@ -345,5 +345,14 @@ Below there is a description of a  ntuple.
 15 - FalseTOFX, x-coordinates from TOF (Trck)            (status&16384 !=0)
 
 
-**) Pointers to beta, charge, track, trrechit, trclusters are OK now
 
+
+
+**) AMS global system definition :
+
+Z axis :
+From center of earth to shuttle   (i.e. to zenith)
+X axis: 
+along velocity vector
+Y axis:
+complementary to right handed system.

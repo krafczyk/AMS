@@ -1181,7 +1181,7 @@ if(isCalibration() & CAMS)_caaxinitjob();
 void AMSJob::_catkinitjob(){
 AMSgObj::BookTimer.book("CalTrFill");
 AMSgObj::BookTimer.book("CalTrFit");
-if(TRCALIB.CalibProcedureNo == 1){
+if(TRCALIB.CalibProcedureNo == 1 || TRCALIB.CalibProcedureNo==4){
   AMSTrIdCalib::initcalib();
 }
 else if(TRCALIB.CalibProcedureNo == 2){
@@ -1918,6 +1918,9 @@ void AMSJob::_tkendjob(){
   if(TRCALIB.CalibProcedureNo == 3){
     AMSTrIdCalib::ntuple(AMSEvent::getSRun());
   }
+  if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 4){
+    AMSTrIdCalib::getaverage();
+  }
   if(isMonitoring() & (AMSJob::MTracker | AMSJob::MAll)){
    AMSTrIdCalib::offmonhist();    
   }
@@ -2034,6 +2037,21 @@ void AMSJob::_dbendjob(){
     if(!strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){    
     // Add subdetectors to daq
     //
+
+  {  // mc
+    if(!isRealData()){
+    DAQEvent::addsubdetector(&AMSmceventg::checkdaqid,&AMSmceventg::buildraw);
+    DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
+    &AMSmceventg::builddaq);
+
+    DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
+    DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
+    &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
+    }
+
+  }
+
+
   {
     // lvl1
 

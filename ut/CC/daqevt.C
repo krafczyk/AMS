@@ -100,7 +100,7 @@ void DAQEvent::setfiles(char *ifile, char *ofile){
    InputFiles=parser(ifile,ifnam);
    if(InputFiles)
     cout <<"DAQEvent::setfiles-I-"<<InputFiles<<" input files parsed"<<endl;
-   else{
+   else if(DAQCFFKEY.mode%10){
     cerr <<"DAQEvent::setfiles-F-No input files parsed"<<endl; 
     exit(1);   
    }

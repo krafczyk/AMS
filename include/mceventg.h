@@ -64,6 +64,7 @@ static orbit Orbit;
 integer getseed(integer i)const{return (i>=0 && i<2) ? _seed[i]: 0;}
 void setseed(integer seed[2]){_seed[0]=seed[0];_seed[1]=seed[1];}
 static integer debug;
+AMSmceventg(integer ip, geant mom, AMSPoint & coo, AMSDir & dir);
 AMSmceventg(integer seed[2]){_next=0;_nskip=0;setseed(seed);}
 AMSmceventg( const AMSIO & io);
 ~AMSmceventg(){}
@@ -80,7 +81,14 @@ static void setspectra(integer begind, integer begint, integer endd,
 integer endt, integer ipart, integer low);
 static integer _hid;
 AMSmceventg *  next(){return (AMSmceventg*)_next;}
-//+
+ // Interface with DAQ
+
+ static int16u getdaqid(){return (14 <<9);}
+ static integer checkdaqid(int16u id);
+ static integer calcdaqlength(integer i);
+ static integer getmaxblocks(){return 1;}
+ static void builddaq(integer i, integer n, int16u *p);
+ static void buildraw(integer n, int16u *p);
 AMSmceventg(){_next=0;}
 #ifdef __DB__
    friend class AMSmceventgD;

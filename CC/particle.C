@@ -506,12 +506,14 @@ void AMSParticle::_loc2gl(){
   number m3=-sr*cy;
   number n3=-sr*sy*sp+cr*cp;
   number amsx[3],amsy[3],amsz[3];
-  amsx[0]=l1*amsxg[0]+m1*amsyg[0]+n1*amszg[0];
-  amsx[1]=l1*amsxg[1]+m1*amsyg[1]+n1*amszg[1];
-  amsx[2]=l1*amsxg[2]+m1*amsyg[2]+n1*amszg[2];
-  amsy[0]=l2*amsxg[0]+m2*amsyg[0]+n2*amszg[0];
-  amsy[1]=l2*amsxg[1]+m2*amsyg[1]+n2*amszg[1];
-  amsy[2]=l2*amsxg[2]+m2*amsyg[2]+n2*amszg[2];
+  // (-) due to fact that ams coo system is rotated by 180^o with
+  //    respect to shuttle one
+  amsx[0]=-(l1*amsxg[0]+m1*amsyg[0]+n1*amszg[0]);
+  amsx[1]=-(l1*amsxg[1]+m1*amsyg[1]+n1*amszg[1]);
+  amsx[2]=-(l1*amsxg[2]+m1*amsyg[2]+n1*amszg[2]);
+  amsy[0]=-(l2*amsxg[0]+m2*amsyg[0]+n2*amszg[0]);
+  amsy[1]=-(l2*amsxg[1]+m2*amsyg[1]+n2*amszg[1]);
+  amsy[2]=-(l2*amsxg[2]+m2*amsyg[2]+n2*amszg[2]);
   amsz[0]=l3*amsxg[0]+m3*amsyg[0]+n3*amszg[0];
   amsz[1]=l3*amsxg[1]+m3*amsyg[1]+n3*amszg[1];
   amsz[2]=l3*amsxg[2]+m3*amsyg[2]+n3*amszg[2];
