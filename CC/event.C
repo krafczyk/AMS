@@ -242,7 +242,7 @@ void AMSEvent::_endofrun() {
   char aster[4]  = "  *";
   
   geant cputime = Tcpu1 - Tcpu0;
-  int   icputime;
+  int   icputime=cputime;
 
   if (SRun > 0) {
    strcpy(time1,ctime(&T0));
@@ -330,7 +330,7 @@ void AMSEvent::_endofrun() {
   cout<<"EndOfRun statistics."<<endl;
   cout<<"Events processed : "<<eventsp<<endl;
   cout<<"Elapsed time (s) : "<<T1-T0<<endl;
-  cout<<"CPU time     (s) : "<<icputime<<endl;
+  cout<<"CPU time     (s) : "<<cputime<<endl;
   if (eventsp > 100) {
    float ft = T1 - T0;
    cout<<"Performance      : "<<ft/fp<<"/"<<cputime/fp<<endl;
