@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.256 2004/03/12 10:24:01 alexei Exp $
+# $Id: RemoteClient.pm,v 1.257 2004/03/12 16:40:57 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8859,6 +8859,7 @@ sub updateFilesProcessing {
 sub printWarn {
     my $self = shift;
     my $warn = shift;
+
     if ($webmode == 1) {
      htmlText($warn," ");
     } else {
@@ -8873,11 +8874,6 @@ sub stopParseJournalFiles {
 #
     my $self = shift;
 
-    if( not $self->Init()){
-      die "stopParser -F- Unable To Init";
-    } else {
-        if ($verbose == 1) {$self->amsprint("stopParser -I- Init done ",0);}
-    }
 
     my $whoami = getlogin();
     if ($whoami =~ 'ams' || $whoami =~ 'alexei') {

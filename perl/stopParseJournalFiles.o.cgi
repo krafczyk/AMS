@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: stopParseJournalFiles.o.cgi,v 1.1 2004/02/27 10:09:58 alexei Exp $
+#  $Id: stopParseJournalFiles.o.cgi,v 1.2 2004/03/12 16:40:49 alexei Exp $
 use Gtk;
 use strict;
 
@@ -18,7 +18,8 @@ unshift @ARGV, "-N/cgi-bin/mon/validateRuns.o.cgi";
 my $nocgi=1;
 my $html=new RemoteClient($nocgi);
 
-my $ok = $html->stopParseJournalFiles();
+my $ok = $html->ConnectOnlyDB();
+   $ok = $html->stopParseJournalFiles();
 
 
 
