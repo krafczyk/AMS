@@ -15,11 +15,6 @@ fi
 
 
 
-if [ "$UNAME" = "HP-UX" ] ; then
-cd /user/choutko/AMS/datacards
-else
-cd /afs/cern.ch/user/c/choutko/AMS/datacards
-fi
 ../exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14 
