@@ -1,7 +1,9 @@
-# $Id: RemoteClient.pm,v 1.98 2003/04/10 13:00:49 choutko Exp $
+# $Id: RemoteClient.pm,v 1.99 2003/04/14 09:14:16 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
+# to add - standalone/client type,
+#          CPU, elapsed time, cite and host info into Job table
 #
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -3217,7 +3219,15 @@ print qq`
     }
          my $ctime=time();
          my $nickname = $q->param("QNick");
-         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',$ctime,'$nickname')";
+         my $stalone  = "STANDALONE";
+         if ($q->param("STALONE") eq "No") {
+          my $stalone  = "CLIENT";
+         }
+         my $sql="insert into Jobs values
+                  ($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',
+                   $ctime,'$nickname',' ',' ',0,0,0,0,'$stalone')";
+#         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},
+#                                          $did,$ctime,$evts,$timeout,'$buf$tmpb',$ctime,'$nickname')";
          $self->{sqlserver}->Update($sql);
 #
 #         $sql="insert into JobsNick values($run,'$nickname')";
@@ -4131,11 +4141,10 @@ sub listCites {
     my $self = shift;
     print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
      htmlTable("MC02 Cites");
-              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-#     my $sql="SELECT cid, descr, name, status, maxrun FROM Cites ORDER by cid";
-     my $sql="SELECT cid,descr, name, status, maxrun FROM Cites ORDER by descr";
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     my $sql="SELECT cid,descr, name, status, maxrun FROM Cites ORDER by name";
      my $r3=$self->{sqlserver}->Query($sql);
-              print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
+              print "<td><b><font color=\"blue\">Cite </font></b></td>";
 #              print "<td><b><font color=\"blue\" >ID </font></b></td>";
               print "<td><b><font color=\"blue\" >Type </font></b></td>";
               print "<td><b><font color=\"blue\" >Jobs Ends</font></b></td>";

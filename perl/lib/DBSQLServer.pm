@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.38 2003/04/10 09:07:03 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.39 2003/04/14 09:14:16 alexei Exp $
 
 #
 #
@@ -22,6 +22,10 @@
 # Apr  2, 2003 a.k. create indecies for RNDM table (it takes a while)
 #                   insert CITES and MAILS info from ../doc/mc.cites.mails
 #                          FILESYSTEMS          from ../doc/mc.filesystems
+# to add  - standalone/client type,
+#          CPU, elapsed time, cite and host info into Job table
+#
+#
 package DBSQLServer;
 use Error qw(:try);
 use lib::CID;
@@ -171,16 +175,36 @@ sub Create{
        timeu2    INT)",
       "CREATE TABLE Jobs 
       (jid     INT NOT NULL,
-       jobname VARCHAR(255),
-       mid     INT,
-       cid     INT,
-       did     INT,
-       time    INT,
-       triggers INT,
-       timeout  INT,
-       content TEXT,
+       jobname   VARCHAR(255),
+       mid       INT,
+       cid       INT,
+       did       INT,
+       time      INT,
+       triggers  INT,
+       timeout   INT,
+       content   TEXT,
        timestamp INT,
-       nickname VARCHAR(80))",
+       nickname VARCHAR(80),
+        cite      VARCHAR(20),
+        host      VARCHAR(20),
+        events    INT,
+        errors    int,
+        cputime   int,
+        elapsed   int,
+       jobtype   VARCHAR(20))",
+#      "CREATE TABLE Jobs 
+#      (jid     INT NOT NULL,
+#       jobname VARCHAR(255),
+#       mid     INT,
+#       cid     INT,
+#       did     INT,
+#       time    INT,
+#       triggers INT,
+#       timeout  INT,
+#       content TEXT,
+#       timestamp INT,
+#       nickname VARCHAR(80))",
+
       "CREATE TABLE RNDM
       (rid     INT NOT NULL,
        rndm1   INT,
