@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.237 2004/01/22 16:29:13 choutko Exp $
+# $Id: RemoteClient.pm,v 1.238 2004/01/30 09:13:34 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20,7 +20,10 @@
 #                 validateRuns is modified - add clock for local hosts
 # Dec 4 2003    : increase number of cites to 32 (16/32, 27/26)
 #
-# Jan 6 2004    : queryDB changed drastically -> queryDB04
+# Jan  6 2004    : queryDB changed drastically -> queryDB04
+# Jan 16 2004    : parsejournalfile : closedst block, do nothing if DST file status ne "Validated"
+# Jan 30 2004    : NFS, Web, CASTOR files access mode
+#                  TriggerLVl1 - default trigger type
 #
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
@@ -38,7 +41,7 @@ use Time::Local;
 use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs updateHostInfo parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsPerSite updateHostInfo parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
 my     $bluebar      = '/AMS/icons/bar_blue.gif';
 my     $maroonbullet = '/AMS/icons/bullet_maroon.gif';
@@ -74,6 +77,7 @@ my     $PrintMaxJobsPerCite = 25;
 
 my     $MAX_CITES       = 32; # maximum number of allowed cites
 my     $MAX_RUN_POWER   = 26; # 
+
 
 sub new{
     my $type=shift;
@@ -186,8 +190,8 @@ sub Init{
     $self->{cputypes}=\%cputypes;
 
 my %triggertypes=(
-     'TriggerLVL1'=>0,
-     'AMSParticle'=>1
+     'AMSParticle'=>0,
+     'TriggerLVL1'=>1
                  );
     $self->{triggertypes}=\%triggertypes;
 
@@ -943,7 +947,7 @@ sub ValidateRuns {
         my $fevent =  1;
         my $levent =  0;
 # check if corresponding job exist
-         $sql   = "SELECT runs.status, jobs.content, cites.status 
+         $sql   = "SELECT runs.status, jobs.content, cites.status  
                     FROM runs,jobs,cites 
                      WHERE jobs.jid=$run->{Run} AND runs.jid=jobs.jid AND cites.cid=jobs.cid";
          my $r1 = $self->{sqlserver}->Query($sql);
@@ -987,12 +991,14 @@ sub ValidateRuns {
               foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
 #              if($ntuple->{Type} eq "Ntuple" and ($ntuple->{Status} eq "Success" or 
 #                $ntuple->{Status} eq "Validated") and $ntuple->{Run}== $run->{Run}){
+#              print "$ntuple->{Name} $ntuple->{Status} $ntuple->{Run}\n";
               if(($ntuple->{Status} eq "Success" or $ntuple->{Status} eq "Validated") and $
                   ntuple->{Run}== $run->{Run}){
                   $levent += $ntuple->{LastEvent}-$ntuple->{FirstEvent}+1;
                   $ntuple->{Name}=~s/\/\//\//;                  
                   my @fpatha=split ':', $ntuple->{Name};
                   my $fpath=$fpatha[$#fpatha];
+                  print "$fpath \n";
                   my $suc=open(FILE,"<".$fpath);
                   my $badevents=$ntuple->{ErrorNumber};
                   my $events=$ntuple->{EventNumber};
@@ -1222,7 +1228,7 @@ sub doCopy {
                $outputpath = $outputpath."/".$file;
                $cmd = "cp -pi -d -v $inputfile  $outputpath >> $logfile";
                $cmdstatus = system($cmd);
-               print "docopy - $cmd \n";
+               print "********* docopy - $cmd \n";
                if ($cmdstatus == 0 ) {
                  my $crccmd  = "$self->{AMSSoftwareDir}/exe/linux/crc $outputpath $crc";
                  my $rstatus = system($crccmd);
@@ -1821,611 +1827,6 @@ CheckCite:            if (defined $q->param("QCite")) {
  }
 # getDSTID end here
 #
-
-    if ($self->{q}->param("queryDB")) {
-     $self->{read}=1;
-     if ($self->{q}->param("queryDB") eq "Submit") {
-        $sql="SELECT RUN, PART FROM runcatalog WHERE ";
-        htmlTop();
-        my $nickname=>undef;
-        my $cutoff=>undef;
-        my $dataset=>undef;
-        my $file=>undef;
-        my $focus=>undef;
-        my $qcos=>undef;
-        my $qmomi=>undef;
-        my $qmoma=>undef;
-        my $qplanes=>undef;
-        my $qxl=>undef;
-        my $qyl=>undef;
-        my $qzl=>undef;
-        my $qxu=>undef;
-        my $qyu=>undef;
-        my $qzu=>undef;
-        my $particle=>undef;
-        my $setup=>undef;
-        my $spectrum=>undef;
-        my $trtype=>undef;
-        my $color="green";
-
-
-        my @tempnam=();
-        my $hash={};
-        my @desc=();
-        my $cite={};
-
-        foreach my $subdataset (@{$self->{DataSetsT}}){
-           foreach my $cite (@{$subdataset->{jobs}}){
-            if(not ($cite->{filename} =~/^\./)){
-               push @tempnam, $cite->{filename};
-                $hash->{$cite->{filename}}=$cite->{filedesc};
-                my @description = split /Total/,$hash -> {$cite->{filename}}=$cite->{filedesc};
-                push @desc, $description[0];
-                 }
-             }
-       }
-
-        $self->htmlTemplateTable("Selected Query Keys :");
-
-
-        if (defined $q->param("QTempDataset") and $q->param("QTempDataset") ne "Any") {
-         $dataset = $desc[$q->param("QTempDataset")];
-         $dataset = trimblanks($dataset);
-         my $sdataset = $dataset;
-         $sdataset =~ s/ /\%/g;
-         $sql = $sql." jobname like '%$sdataset%' AND ";
-         print "<tr><td><font size=\"3\" color=\"red\"><b>Job Dataset :</b></td><td><b> $dataset</b></td></tr>\n";
-        }
-        if (defined $q->param("QPart") and $q->param("QPart") ne "Any") {
-         $particle = $q->param("QPart");
-         print "<tr><td><font size=\"3\" color=$color><b>Particle : </b></td><td><b> $particle</b></td></tr>\n";
-         my $particleid=$self->{tsyntax}->{particles}->{$particle};
-         $sql=$sql."PART=".$particleid." AND ";
-      }
-        if (defined $q->param("QMomI")) {
-         $qmomi = $q->param("QMomI");
-         print "<tr><td><font size=\"3\" color=$color><b>Momentum min [Gev/c] </b></td><td><b> >= $qmomi</b></td></tr>\n";
-         $sql=$sql." PMIN >= $qmomi AND ";
-      }
-        if (defined $q->param("QMomA")) {
-         my $qmoma = $q->param("QMomA");
-         print "<tr><td><font size=\"3\" color=$color><b>Momentum max [Gev/c] </b></td><td><b> =< $qmoma</b></td></tr>\n";
-         $sql=$sql." PMAX <= $qmoma AND ";
-     }
-        if (defined $q->param("QTrType")) {
-         $trtype = $q->param("QTrType");
-         print "<tr><td><font size=\"3\" color=$color><b>Trigger Type : </b></td><td><b> $trtype</b></td></tr>\n";
-         $sql=$sql." TRTYPE= '$trtype' AND ";
-      }
-        if (defined $q->param("QSetup")) {
-         $setup = $q->param("QSetup");
-         print "<tr><td><font size=\"3\" color=$color><b>Setup : </b></td><td><b> $setup</b></td></tr>\n";
-         $sql=$sql." SETUP= '$setup' AND ";
-      }
-        if (defined $q->param("NTOUT")) {
-         my $outform=>undef;
-         my $ntchain="NTchain";
-         my $ntout=$q->param("NTOUT");
-         my $dstformat=undef;
-         if ($q->param("NTOUT") eq "ALL") {
-          $outform = "List ALL DSTs matching to query";
-         } elsif ($q->param("NTOUT") eq "RUNS") { 
-          $outform = "List Runs matching to query";
-         } elsif ($q->param("NTOUT") eq "FILES") { 
-          $outform = "List Files matching to query";
-         } elsif ($q->param("NTOUT") eq "NTCHAIN") {
-          if ( defined $q->param("NTCHAIN")) {
-           $ntchain=$q->param("NTCHAIN");
-          }
-          $outform = "List  NTuples names for chain '$ntchain'";
-         } else {
-             $outform = "Print summary for NTuples matching query";
-         }
-         my $dsttype = "ALL DSTs (RootFiles and NTuples)";
-          if (defined $q->param("DST")) {
-           if ($q->param("DST") eq "NTUPLE") {
-              $dsttype = "DSTs (NTuples only)";
-           } elsif ($q->param("DST") eq "ROOT") {
-              $dsttype = "DSTs (RootFiles only)";
-           } 
-           $dstformat=$q->param("DST");
-          }
-         print "<tr><td><font size=\"3\" color=\"green\"><b>Output Format : </b></td><td><b> $outform</b></td></tr>\n";
-         print "<tr><td><font size=\"3\" color=\"green\"><b>DSTs Type : </b></td><td><b> $dsttype</b></td></tr>\n";
-        my $dstversion  = undef;
-        if (defined $q->param("QDSTVERSION")) {
-         if ($q->param("DSTV") ne "All" and 
-             $q->param("DSTV") ne "all" and
-             $q->param("DSTV") ne "ALL") {
-              $dstversion = $q->param("QDSTVERSION");
-              print "<tr><td><font size=\"3\" color=\"green\"><b>DST Version : </b></td><td><b> $dstversion</b></td></tr>\n";
-          }
-        }
-        my $scriptfile = undef;
-        my $dirstructure = undef;
-        $self->{ScriptFileDir} = "XYZ";
-        if (defined $q->param("SCRIPT")) {
-          $scriptfile   = trimblanks($q->param("SCRIPT"));
-          if ($scriptfile ne '') {
-           $dirstructure = $q->param("DIRSTR");         
-          print "<tr><td><font size=\"3\" color=$color><b>Script path : </b></td><td><b> $scriptfile</b></td></tr>\n";
-         } else {
-          my $scriptfile = "XYZ";
-         }
-        }
-
-      print "<INPUT TYPE=\"hidden\" NAME=\"NTOUT\" VALUE=\"$ntout\">\n"; 
-      print "<INPUT TYPE=\"hidden\" NAME=\"NTCHAIN\" VALUE=\"$ntchain\">\n"; 
-      print "<INPUT TYPE=\"hidden\" NAME=\"DST\" VALUE=\"$dstformat\">\n";
-      if (defined $scriptfile and defined $dirstructure) {
-       print "<INPUT TYPE=\"hidden\" NAME=\"SCRIPT\" VALUE=\"$scriptfile\">\n";
-       print "<INPUT TYPE=\"hidden\" NAME=\"DIRSTR\" VALUE=\"$dirstructure\">\n";
-      }
-      if (defined $dstversion) {
-       print "<INPUT TYPE=\"hidden\" NAME=\"DSTV\" VALUE=\"$dstversion\">\n";
-      }
-     }
-     
-        $sql=$sql." runcatalog.TIMESTAMP != 0 ORDER BY PART, RUN ";
-      htmlTableEnd();
-#                  RUN          NUMBER       NOT NULL
-#  $particle       PART         NUMBER(10)
-#  $qmomi          PMIN         NUMBER(24)
-#  $qmoma          PMAX         NUMBER(24)
-#  $trtype         TRTYPE       VARCHAR(255)
-#  $spectrum       SPECTRUM     VARCHAR(255)
-#  $setup          SETUP        VARCHAR(255)
-#  $cutoff         CUTOFF       NUMBER(3)
-#  $focus          FOCUS        VARCHAR(255)
-#  $qplanes        SURFACE      VARCHAR(255)
-#  $qcos           COSTHETA     NUMBER(10)
-#  $qxl            XL           NUMBER(24)
-#  $qyl            YL           NUMBER(24)
-#  $qzl            ZL           NUMBER(24)
-#  $qxu            XU           NUMBER(24)
-#  $qyu            YU           NUMBER(24)
-#  $qzu            XU           NUMBER(24)
-#                  timestamp    NUMBER(24)
-#
-#        print "$sql \n";
-     print "<INPUT TYPE=\"hidden\" NAME=\"SQLQUERY\" VALUE=\"$sql\">\n"; 
-     print "<input type=\"submit\" name=\"queryDB\" value=\"DoQuery\">        ";
-     htmlReturnToQuery();
-    htmlBottom();
-  } elsif ($self->{q}->param("queryDB") eq "DoQuery") {
-      htmlTop();
-      my $sql=undef;
-      my $ntout="ALL";
-      my $dstformat="ALL";
-      my $totalev=0;
-      my $totalnt=0;
-      my $mintm  = time();
-      my $maxtm  = 0;
-      my $totaljobs= 0;
-      my $plist=" ";
-      my $pold=undef;
-      my $scriptfile=undef;
-      my $dirstructure=0;
-      my $dstversion  = undef;
-
-      my $timenow = time();
-      $timenow = EpochToDDMMYYHHMMSS($timenow);
-
-      if (defined $q->param("SQLQUERY")) {
-        $sql = $q->param("SQLQUERY");
-        if (defined $q->param("NTOUT")) {
-         $ntout=$q->param("NTOUT");
-         if (defined $q->param("DST")) {
-          $dstformat = $q->param("DST");
-         }
-         if (defined $q->param("DSTV")) {
-          $dstversion = $q->param("DSTV");
-         }
-         if (defined $q->param("SCRIPT")) {
-          if ($q->param("SCRIPT") eq "XYZ" and 
-              $q->param("DIRSTR") eq "XYZ") {
-             $dirstructure=-1;
-          } else {
-           $scriptfile   = $q->param("SCRIPT"); 
-           if ($q->param("DIRSTR") eq "HIER") {
-               $dirstructure = 1;
-           }
-           $self->scriptfile($scriptfile,0,0);
-          }
-         }
-        }
-             if ($ntout eq "RUNS") {
-               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-               print "<td><b><font color=\"blue\" >Particle </font></b></td>";
-               print "<td><b><font color=\"blue\">Job </font></b></td>";
-               print "<td><b><font color=\"blue\" >Run </font></b></td>";
-               print "<td><b><font color=\"blue\" >Job Submit Time </font></b></td>\n";
-               print "</tr>\n";
-           }
-             if ($ntout eq "FILES") {
-               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-               print "<td><b><font color=\"blue\" >File Path </font></b></td>";
-               print "</tr>\n";
-           }
-
-
-       my $ret=$self->{sqlserver}->Query($sql);
-       if (defined $ret->[0][0]) {
-         my $newchain = 0;
-         foreach my $r (@{$ret}){
-             $totaljobs++;
-             my $run=$r->[0];
-             my $particleid=$r->[1];
-             my $part=>undef;
-
-             $sql="SELECT jobname, runs.submit FROM Jobs, Runs   
-                     WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run";
-             if (defined $dstformat) {
-              if ($dstformat eq "NTUPLE") {
-               $sql="SELECT jobname, runs.submit  
-                      FROM Jobs, Runs, NTuples 
-                      WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run AND 
-                            NTuples.jid = Jobs.jid AND NTuples.type='Ntuple' ";
-               } elsif ($dstformat eq "ROOT") {
-                $sql="SELECT jobname, runs.submit FROM Jobs, Runs, NTuples 
-                      WHERE Jobs.jid=Runs.jid AND Runs.RUN=$run AND 
-                            NTuples.jid = Jobs.jid AND NTuples.type='RootFile' ";
-              }
-             }
-             if (defined $dstversion) {
-              if ($dstversion ne "All") {
-                  $sql = $sql." AND NTuples.run=Runs.run AND NTuples.version like '%$dstversion%' ";
-              }
-             }
-             $sql = $sql." ORDER By Runs.run";
-             my $r3=$self->{sqlserver}->Query($sql);
-
-             if (defined $r3->[0][0]) {
-              my $ts=$self->{tsyntax};
-              my %hash=%{$ts->{particles}};
-              my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
-              foreach my $particle (@keysa){
-                if ($particleid eq $self->{tsyntax}->{particles}->{$particle}) {
-                    $part=$particle;
-                    last;
-              }
-            }
-              my $color = Color($particleid);
-              my $jobname=>undef;
-              my $submittime=>undef;
-             
-              foreach my $job (@{$r3}) {
-                  $jobname   = $job->[0];
-                  my $submit = $job->[1];
-                  $submittime= localtime($submit);
-              }
-              if ($ntout eq "ALL") {
-               print "<tr><td><b><font size=\"3\" color=$color> Job : $jobname, Run : $run, Particle : $part,  Submitted : $submittime </font></b></td></tr>\n";
-           }
-            if ($ntout eq "RUNS") {
-               my $color="black";
-               print "
-                  <td><b><font color=$color> $part </font></td></b>
-                  <td><b><font color=$color> $jobname </font></td></b>
-                  <td><b><font color=$color> $run </font></b></td>
-                  <td><b><font color=$color> $submittime </font></b></td>\n";
-               print "</font></tr>\n";
-           }
-            if ($ntout eq "FILES") {
-               my $sql = "SELECT path From Ntuples WHERE Run=$run";
-               my $r4=$self->{sqlserver}->Query($sql);
-               my $color="black";
-               my $i = 0;
-               foreach my $path (@{$r4}) {
-                print "<td><b><font color=$color> $path->[$i] </font></td></b></font></tr>\n";
-                $i++;
-               }
-           }
-
-# oracle specific SUM, COUNT, MIN, MAX
-       if ($ntout eq "SUMM") {
-           if ($pold ne $part) {
-            $plist=$plist." ".$part;
-            $pold=$part;
-           }
-           $sql="SELECT COUNT(NEVENTS) From Ntuples WHERE RUN=$run";
-           my $rsum=$self->{sqlserver}->Query($sql);
-           if (defined $rsum->[0][0]) {
-            $totalnt=$totalnt+$rsum->[0][0];
-            $sql="SELECT SUM(NEVENTS) FROM Ntuples WHERE RUN=$run";
-            my $rev=$self->{sqlserver}->Query($sql);
-            if (defined $rsum->[0][0]) {
-             $totalev=$totalev+$rev->[0][0];
-            }
-            $sql="SELECT MIN(timestamp) FROM Ntuples WHERE RUN=$run";
-            my $rtm=$self->{sqlserver}->Query($sql);
-            if (defined $rtm->[0][0]) {
-                if ($mintm > $rtm->[0][0]) {
-                    $mintm=$rtm->[0][0];
-                }
-            }
-            $sql="SELECT MAX(timestamp) FROM Ntuples WHERE RUN=$run";
-            $rtm=$self->{sqlserver}->Query($sql);
-            if (defined $rtm->[0][0]) {
-                if ($maxtm < $rtm->[0][0]) {
-                    $maxtm=$rtm->[0][0];
-                }
-            }
-        }
-       }
-      if ($ntout eq "NTCHAIN") {
-        my $ntchainname=$q->param("NTCHAIN");
-        print "<TABLE BORDER=\"0\" WIDTH=\"100%\">";
-        if ($newchain == 0) {
-         print("<TR><TD width=\"10%\" align=\"Left\"><B> Chain   </B> </TD>
-                   <TD width=\"20%\" align=\"Center\"><B> Name </B></TD>
-                   <TD width=\"40%\" align=\"Center\"><B> FilePath </B></TD></TR>\n");
-         $newchain = 1;
-        }
-        $sql="SELECT PATH FROM Ntuples WHERE RUN=$run ";
-        my $r4=$self->{sqlserver}->Query($sql);
-        if (defined $r4->[0][0]) {
-            foreach my $nt (@{$r4}) {
-             my $filepath=$nt->[0];
-             my ($disk,$file) = split(/:/,$filepath);
-             if (not defined $file) { $file=$filepath;}
-             print("<TR><TD width = \"10\%\" align=\"Left\"> nt/chain </TD>
-                       <TD width = \"20\%\" align=\"Center\"> $ntchainname </TD>
-                       <TD width = \"40\%\" align=\"Left\">   $file    </TD></TR>");
-            if ($dirstructure >=0 && defined $scriptfile) {
-              $self->$scriptfile($file,$dirstructure,7);
-             }
-          }
-        }
-      htmlTableEnd();
-    }
-       if ($ntout eq "ALL") {
-        print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
-              print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-              print "<tr><td width=10% align=left><b><font color=\"blue\" > NTuple </font></b></td>";
-              print "<td width=10%><b><font color=\"blue\"> Events </font></b></td>";
-              print "<td width=15%><b><font color=\"blue\" > Errors </font></b></td>";
-              print "<td width=15%><b><font color=\"blue\" > Size[MB] </font></b></td>";
-              print "<td td align=middle><b><font color=\"blue\" > Produced </font></b></td>";
-              print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
-             print "</tr>\n";
-   
-               my $jobname=$r3->[0][0];
-               $sql="SELECT PATH, NEVENTS, NEVENTSERR, TIMESTAMP, STATUS, SIZEMB FROM Ntuples WHERE RUN=$run ";
-               if ($dstformat eq "NTUPLE") {
-                   $sql=$sql."AND TYPE = 'Ntuple'";
-               } elsif ($dstformat eq "ROOT") {
-                   $sql=$sql."AND TYPE ='RootFile'";
-               }
-               my $r4=$self->{sqlserver}->Query($sql);
-               if (defined $r4->[0][0]) {
-                 foreach my $nt (@{$r4}){
-                  my $path  = trimblanks($nt->[0]);
-                  my $timel =localtime($nt->[3]);
-                  my ($wday,$mon,$day,$time,$year) = split " ",$timel;
-                  my $status=$nt->[4];
-                  my $color=statusColor($status);
-                  print "<td><b> $path    </td></b><td><b> $nt->[1] </td>
-                         <td><b> $nt->[2] </b></td>
-                         <td><b> $nt->[5] </b></td>
-                         <td><b> $mon $day, $time, $year </b></td> 
-                         <td align=middle><b><font color=$color> $status </font></b></td> \n";
-                  print "</font></tr>\n";
-                  if ($dirstructure >=0 && defined $scriptfile) {
-                   $self->scriptfile($path,$dirstructure,7);
-                  } 
-              }
-             }
-            htmlTableEnd();
-         print "<BR><BR>\n";
-      }   
-     }
-    }
-    if ($dirstructure >=0 && defined $scriptfile) {
-     $self->scriptfile(' ',0,7)
-    }
-   } else {
-         print "<TR><TD><font color=\"magenta\"><B> Nothing Found for SQL request : </B></font></TD></TR>\n";
-         print "<TR><TD><i>$sql</i></td></tr>\n";
-       }
-   } else {
-           $self->ErrorPlus("Unrecognized SQL request.");
-          }
-
-   if ($ntout eq "SUMM") {
-       my $from=localtime($mintm);
-       my $to  =localtime($maxtm);
-    print "<tr><td><b><font size=\"4\" color=\"red\"><ul>  For Particles : <i> $plist </i></b></font></td></tr>\n";
-    print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  Jobs Completed : $totaljobs </b></font></td></tr>\n";
-    print "<tr><td><b><font size=\"4\" color=\"green\"><ul>  $from / $to </b></font></td></tr>\n";
-    print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   NTuples : $totalnt  </b></font></td></tr>\n";
-    
-    print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Events : $totalev  </b></font></td></tr>\n";
-   }      
-   if ($ntout eq "RUNS") {
-       htmlTableEnd();
-    }
- 
-      htmlReturnToQuery();
-      htmlBottom();
-  } else {
-   htmlTop();
-   print "<basefont face=\"verdana,arial,helvetica,sans-serif\">\n";
-   print "<table border=0   cellpadding=5 cellspacing=0 width=\"100%\">\n";
-   print "<tr bgcolor=\"#ffdc99\">\n";
-   print "<td align=left> <font size=\"-1\"><b>\n";
-   print "<a href=$amshome_page>AMS</a>\n";
-   print "&nbsp; <a href=$amscomp_page>Computing</a>\n";
-   print "</b>\n";
-   my $href=$self->{HTTPhtml}."/mm.html";
-   print "&nbsp;<b><a href=$href>MC production</a>\n";
-   print "</b></td>\n";
-   print "<td align=right> <font size=\"-1\"> &nbsp;  <!-- top right corner  --> </font></td>\n";
-   print "</tr>\n";
-   print "<tr bgcolor=\"#ffdc9f\"><td align=center colspan=2><font size=\"+2\" color=\"#3366ff\"> <b>\n";
-   print "AMS02 MC  Database Query Form";
-   print "</b></font></td></tr>\n";
-   print "<tr bgcolor=\"#ffdc9f\">\n";
-   print "<td align=left> <font size=\"-1\"><!-- lower left text --> &nbsp;</td>\n";
-   print "<td align=right> <font size=\"-1\"> &nbsp; </font></td></tr>\n";
-   print "<tr><td colspan=2 align=right> <font size=\"-1\">\n";
-   print " </font></td></tr>\n";
-   print "</table>\n";
-   print "<p>\n";
-   print "<ul>\n";
-   print "<font size=\"3\"><TR><TD><b>\n";
-   print " This is an interface to the AMS MC02 Remote/Client Database </TD></TR> \n";
-   print "<TR><TD> \n";
-   print "All comments (to <font color=\"green\"> alexei.klimentov\@cern.ch, vitali.choutko\@cern.ch </font>) appreciated (items in <font color=\"tomato\"> tomato </font> are not implemented yet). Basic query keys are 
-in <font color=\"green\"> green </font>, advanced query keys are in <font color=\"blue\"> blue.</TD></TR>\n";
-   print "</ul>\n";
-   print "<font size=\"2\" color=\"black\">\n";
-   print "<li> Catalogues are updated nightly.\n";
-   $href = $self->{HTTPcgi}."/print.gamma.test.cgi";
-   print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=$href> here </a>\n";
-   print "<p>\n";
-    print "<TR><B><font color=green size= 4> Select by key(s) (you can select multiple keys) </font>";
-    print "<p>\n";
-    print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
-    print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
-# print templates files and datasets
-             my @tempnam=();
-             my $hash={};
-             foreach my $cite (@{$self->{TempT}}){
-              if(not ($cite->{filename} =~/^\./)){
-               push @tempnam, $cite->{filename};
-               $hash->{$cite->{filename}}=$cite->{filedesc};
-             }
-          }
-          print "<tr><td><b><font color=\"green\" size=2>Job Template</font></b>\n";
-          print "</td><td>\n";
-          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-           my $found=0;
-           @tempnam=();
-           $hash={};
-           my @desc=();
-           my $cite={};
-           foreach my $dataset (@{$self->{DataSetsT}}){
-                 foreach $cite (@{$dataset->{jobs}}){
-                 if(not ($cite->{filename} =~/^\./)){
-                  push @tempnam, $cite->{filename};
-                  $hash->{$cite->{filename}}=$cite->{filedesc};
-                  my @description = split /Total/,$hash -> {$cite->{filename}}=$cite->{filedesc};
-                  push @desc, $description[0];
-                 }
-             }
-            }
-            print "<tr valign=middle><td align=left><b><font color=\"tomato\" size=\"-1\"> Dataset :</b></td><td colspan=1>\n";
-            print "<select name=\"QTempDataset\" >\n";
-            print "<option value=\"Any\">  </option>\n";
-            my $i=0;
-            foreach my $template (@tempnam) {
-             my $subdataset = $i;
-             print "<option value=\"$subdataset\">$desc[$i] </option>\n";
-             $i++;
-            }
-        htmlTableEnd();
-# Job Parameters
-          print "<tr><td><b><font color=\"green\" size=2>Job Parameters</font></b>\n";
-          print "</td><td>\n";
-          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-          print "<tr valign=middle><td align=left><b><font size=\"-1\"> Particle : </b></td> <td colspan=1>\n";
-          print "<select name=\"QPart\" >\n";
-              my $ts=$self->{tsyntax};
-              my %hash=%{$ts->{particles}};
-              my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$ts->{particles}};
-              print "<option value=\"Any\">  </option>\n";
-              foreach my $particle (@keysa) {
-                print "<option value=\"$particle\">$particle </option>\n";
-              }
-          print "</select>\n";
-          print "</b></td></tr>\n";
-            htmlTextField("Momentum min >=","number",7,1.,"QMomI","[GeV/c]");  
-            htmlTextField("Momentum max =<","number",7,2000.,"QMomA","[GeV/c]");  
-            htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
-            htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
-           htmlTableEnd();
-# Job Parameters
-          print "<tr><td><b><font color=\"green\" size=2>DST Parameters</font></b>\n";
-          print "</td><td>\n";
-          print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            htmlTextField("Version","text",20,"All","QDSTVERSION"," ");
-            print "<tr><b>
-                   (give full or part of the string, e.g. <font color=blue><i>79</i>
-                   </font> is enough to search for 
-                   <font color=blue><i>v4.00/build79/os2</i></font>)</tr>\n";
-          htmlTableEnd();
-      htmlTableEnd();
-   print "<p><br>\n";
-   print "<b><font color=green> Print :  </font><INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ALL\" CHECKED> Full Listing\n";
-   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"RUNS\"> Only run numbers;\n";
-   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Only file names;\n";
-   print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\"> Summary \n";
-   print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"NTCHAIN\"> NTchain <INPUT TYPE=\"text\" name=\"NTCHAIN\">";
-   print "<TR></TR>\n";
-   print "<b>       \n";
-   print "<INPUT TYPE=\"radio\" NAME=\"DST\" VALUE=\"ALL\" CHECKED> NTuples and RootFiles \n";
-   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"DST\" VALUE=\"NTUPLE\"> Only NTuples;\n";
-   print "<INPUT TYPE=\"radio\" NAME=\"DST\" VALUE=\"ROOT\"> Only RootFiles \n";
-   print "</b><p><br>\n";
-   print "<TR></TR>\n";
-   print "<font size=3> Create script file to set links to selected DST files in your working directory.\n";
-   print "<br>Directory structure can be hierarchical : <i><b>mydir/MC/AMS02/DataSet/particle/job/</i> or linear : <i><b>mydir/dstfile </i>\n";
-   print "<br><font color=blue> be sure that apache server has 'write' access to script file path</font>\n";
-   print "<TR></TR><br>\n";
-   print "<b><font color=green> Script path : </font><INPUT TYPE=\"text\" name=\"SCRIPT\" Value=\"\" >  ";
-   print "<b><font color=green> Directory Structure : </font><INPUT TYPE=\"radio\" name=\"DIRSTR\" VALUE=\"HIER\"> Hierarchical";
-   print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"DIRSTR\" VALUE=\"LINEAR\" CHECKED> Linear;\n";
-   print "<TR></TR>\n";
-     print "<p><br>\n";
-     print "<input type=\"submit\" name=\"queryDB\" value=\"Submit\">        ";
-     print "<input type=\"reset\" name=\"queryDB\" value=\"Reset\"></br><br>        ";
-     print "</form>\n";
-      print "<tr></tr>\n";
-      print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
-      print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
-      print "Find Job : (eg 805306383 or From-To) </B></font></td></tr></table> \n";
-      print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
-      print "<b>JobID : </b> <input type =\"text\" name=\"JobID\">\n";
-
-          print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cite : </b></td> <td colspan=1>\n";
-          print "<select name=\"QCite\" >\n";
-          print "<option value=\"Any\">Any </option>\n";
-          foreach my $cite (@{$self->{CiteT}}){
-              print "<option value=\"$cite->{name}\">$cite->{name} </option>\n";
-          }
-          print "</select>\n";
-          print "</b></td></tr>\n";
-
-      print "<input type=\"submit\" name=\"getJobID\" value=\"Submit\"> \n";
-      print "</form>\n";
-      print "</table> \n";
-       print "<tr></tr>\n";
-       print "<br><p>\n";
-       print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
-       print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
-       print "Find Run : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
-       print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
-       print "<b>RunID : </b> <input type =\"text\" name=\"RunID\">\n";
-       print "<input type=\"submit\" name=\"getRunID\" value=\"Submit\"> \n";
-       print "</form>\n";
-       print "</table> \n";
-       print "<br><p>\n";
-        print "<tr></tr>\n";
-        print "<p></p>\n";
-        print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
-        print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
-        print "Find DST(s) : (eg 1073741826  or From-To) </B></font></td></tr></table> \n";
-        print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
-        print "<b>RunID : </b> <input type =\"text\" name=\"DSTID\">\n";
-        print "<input type=\"submit\" name=\"getDSTID\" value=\"Submit\"> \n";
-        print "</form>\n";
-        print "</table> \n";
-  htmlBottom();
-  }
- }
-#queryDB end here
-
 #queryDB04
    if ($self->{q}->param("queryDB04")) {
      $self->{read}=1;
@@ -2457,11 +1858,14 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
        $dataset = $q->param("QTempDataset");
        $dataset = trimblanks($dataset);
        $qtemplate = $dataset;
-       $dataset =~ s/ /\%/g;
+       $dataset =~ s/ /\% /g;
        $sql = "SELECT runs.run, jobs.jobname, runs.submit FROM runs, jobs, runcatalog  
                    WHERE runs.jid=jobs.jid AND 
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
                         runs.status='Completed'";
+#       htmlTop();
+#       print "$sql \n";
+#       htmlBottom();
 # check TriggerType
        if (defined $q->param("QTrType") and $q->param("QTrType") ne "Any") {
            my $trtype = trimblanks($q->param("QTrType"));
@@ -2701,8 +2105,21 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
     print "<tr><td><b><font size=\"4\" color=\"blue\"><ul>   Events : $nevents  </b></font></td></tr>\n";
 
   } elsif ($q->param("NTOUT") eq "ROOT") {
-    
 #... write RootAnalysisTemplate
+      my $RootAnalysisTextNFS = 
+         "// ROOT files accessed via NFS
+         "; 
+      my $RootAnalysisTextCastor = 
+         "// it is assumed that CASTOR directory 
+             structure is similar to one on AMS disks.
+             /castor/cern.ch/ams/ProductionPeriod/...
+         ";
+      my $RootAnalysisTextHTTP = 
+         "// wildcards are not implemented yet in ROOT. 
+             still  have to check what is the HTTPD protocol for
+             getting a list of files.
+         ";
+     
       my $RootAnalysisTemplateTxt = 
          "gROOT->Reset(); 
           // for linux load
@@ -2713,6 +2130,20 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
           //
           TChain chain(\"AMSRoot\");
       ";
+#...... check files access option
+      my $accessmode = "NFS";
+      my $prefix     = "xyz";
+      if (defined $q->param("ROOTACCESS")) {
+          if ($q->param("ROOTACCESS") eq "HTTP") {
+              $accessmode = "HTTP";
+              $prefix     = "http://$self->{HTTPserver}";
+          }
+          if ($q->param("ROOTACCESS") eq "CASTOR") {
+              $accessmode = "CASTOR";
+              $prefix     = "/castor/cern.ch/ams/";
+          }
+      }
+
 
     my $filename=$q->param("ROOT");
     my $buff=undef;
@@ -2720,8 +2151,18 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
     print "<td><b><i>will be written into file : </i><font color=\"blue\" > $filename </font> </b></td>";
     print "</tr>\n";
-         $buff=$RootAnalysisTemplateTxt;
+      if ($accessmode eq "HTTP") {
+         $buff = $RootAnalysisTextHTTP;
+         print "<tr><td>$RootAnalysisTextHTTP</td></tr>\n";
+     } elsif ($accessmode eq "CASTOR") {
+         $buff = $RootAnalysisTextCastor;
+         print "<tr><td>$RootAnalysisTextCastor</td></tr>\n";
+     } else {
+         $buff = $RootAnalysisTextNFS;
+         print "<tr><td>$RootAnalysisTextNFS</td></tr>\n";
+     }
          $buff=$buff."\n";
+         $buff=$buff.$RootAnalysisTemplateTxt."\n";
          print "<tr><td>gROOT->Reset();</td></tr>\n";
          print "<tr><td>// for linux load</td></tr>\n";
          print "<tr><td>gSystem->Load(\"/offline/vdev/lib/linux/icc/ntuple.so\");</tr></td>\n";
@@ -2730,6 +2171,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
          print "<tr><td>//  gSystem->Load(\"/offline/vdev/lib/osf1/ntuple.so\");</tr></td>\n";
          print "<tr><td>//</tr></td>\n";
          print "<tr><td>TChain chain(\"AMSRoot\");</tr></td>\n";
+# 
+      if ($accessmode eq "NFS") {
          foreach my $run (@runs){
           my $sql = "SELECT path From Ntuples WHERE Run=$run";
           my $r1=$self->{sqlserver}->Query($sql);
@@ -2740,6 +2183,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
            for (my $i=1; $i<$#junk; $i++) {
              $tdir = $tdir."/".$junk[$i];
          }
+         $tdir = trimblanks($tdir);
          my $dirfound = 0;
          foreach my $dir (@dirs) {
           if ($dir eq $tdir) {
@@ -2752,11 +2196,56 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
          } else {
           $dirs[$#dirs] = $tdir;
           my $s = "chain.Add(\"".$tdir."/*.root\");";
-         print "<tr><td> $s </tr></td>\n";
-         $buff = $buff.$s."\n";
+          print "<tr><td> $s </tr></td>\n";
+          $buff = $buff.$s."\n";
+          push @dirs, $tdir;
         }
      }
-    }
+      }
+     } elsif ($accessmode eq "HTTP") {
+         foreach my $run (@runs){
+          my $sql = "SELECT path From Ntuples WHERE Run=$run";
+          my $r1=$self->{sqlserver}->Query($sql);
+          foreach my $path (@{$r1}) {
+           $path=trimblanks($path->[0]);
+           my $httppath=$prefix.$path;
+           my $s = "chain.Add(\"$httppath\");";
+           print "<tr><td> $s </tr></td>\n";
+           $buff = $buff.$s."\n";
+          }
+      }
+     } elsif ($accessmode eq "CASTOR") {
+         foreach my $run (@runs){
+          my $sql = "SELECT path From Ntuples WHERE Run=$run";
+          my $r1=$self->{sqlserver}->Query($sql);
+          foreach my $path (@{$r1}) {
+           $path=trimblanks($path->[0]);
+           my @junk = split '/',$path;
+           my $tdir ="";
+           for (my $i=2; $i<$#junk; $i++) {
+             $tdir = $tdir."/".$junk[$i];
+         }
+         $tdir = trimblanks($tdir);
+         my $dirfound = 0;
+         foreach my $dir (@dirs) {
+          if ($dir eq $tdir) {
+           $dirfound = 1;
+           last;
+          } 
+         }
+         if ($dirfound == 1) {
+# skip it
+         } else {
+          $dirs[$#dirs] = $tdir;
+          my $s = "chain.Add(\"".$prefix.$tdir."/*.root\");";
+          print "<tr><td> $s </tr></td>\n";
+          $buff = $buff.$s."\n";
+          push @dirs, $tdir;
+        }
+       }
+      }
+     }
+
      htmlTableEnd();
       if (defined $buff) {
        $self-> writetofile($filename,$buff);
@@ -2834,6 +2323,11 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
    print "&nbsp;<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"FILES\"> Only file names;\n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"SUMM\"> Summary \n";
    print "<INPUT TYPE=\"radio\" NAME=\"NTOUT\" VALUE=\"ROOT\"> ROOT Analysis Filename <INPUT TYPE=\"text\" name=\"ROOT\">";
+   print "<br><TR></TR>";
+   print "<b><font color=green> ROOT Files Access Mode :  </font>\n";
+   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"NFS\">  NFS \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"HTTP\"> via WebServer \n";
+   print "<INPUT TYPE=\"radio\" NAME=\"ROOTACCESS\" VALUE=\"CASTOR\">  rfio CASTOR\n";
    print "<TR></TR>\n";
 
      print "<p><br>\n";
@@ -6047,69 +5541,6 @@ sub queryDB {
             htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
             htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
-# spectrum and focusing
-#            print "<tr><td><b><font color=\"green\" size=2>Spectrum and Focusing</font></b>\n";
-#            print "</td><td>\n";
-#            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-#            $ts=$self->{tsyntax};
-#            @keysa=sort keys %{$ts->{spectra}};
-#              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Input Spectrum : </b></td> <td colspan=1>\n";
-#              print "<select name=\"QSpec\" >\n";
-#              print "<option value=\"Any\">  </option>\n";
-#              foreach my $spectrum (@keysa) {
-#                print "<option value=\"$spectrum\">$spectrum </option>\n";
-#              }
-#              print "</select>\n";
-#              print "</b></td></tr>\n";
-#           @keysa=sort keys %{$ts->{focus}};
-#              print "<tr valign=middle><td align=left><b><font size=\"-1\"> Focusing : </b></td> <td colspan=1>\n";
-#              print "<select name=\"QFocus\" >\n";
-#              print "<option value=\"Any\">  </option>\n";
-#              foreach my $focus (@keysa) {
-#                print "<option value=\"$focus\">$focus </option>\n";
-#              }
-#              print "</select>\n";
-#              print "</b></td></tr>\n";
-#           htmlTableEnd();
-## geo magnetic cutoff
-#            print "<tr><td><b><font color=\"magenta\" size=2>GeoMagnetic Cutoff</font></b>\n";
-#            print "</td><td>\n";
-#            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-#            print "<tr><td><font size=\"-1\"<b>\n";
-#             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"1\" CHECKED><b> Yes </b>\n";
-#             print "<INPUT TYPE=\"radio\" NAME=\"GCF\" VALUE=\"0\" ><b> No </b><BR>\n";
-#             print "</b></font></td></tr>\n";
-#           htmlTableEnd();
-## cube coordinates
-#            print "<tr><td><b><font color=\"blue\" size=2>Cube Coordinates</font></b>\n";
-#            print "</td><td>\n";
-#            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-#            print "<tr><td width=\"30%\"><font size=\"2\">\n";
-#            print "<b> Min : X : <input type=\"number\" size=5 value=-195 name=\"QXL\"></td>\n";  
-#            print "<td width=\"30%\"><font size=\"2\">\n";
-#            print "<b> Y : <input type=\"number\" size=5 value=-195 name=\"QYL\"></td>\n";  
-#            print "<td width=\"30%\"><font size=\"2\">\n";
-#            print "<b> Z : <input type=\"number\" size=5 value=-195 name=\"QZL\"> (cm)</td>\n";  
-#            print "</b></font></tr>\n";
-#            print "<tr><td width=\"30%\"><font size=\"2\">\n";
-#            print "<b> Max : X : <input type=\"number\" size=5 value=195 name=\"QXU\"></td>\n";  
-#            print "<td width=\"30%\"><font size=\"2\">\n";
-#            print "<b> Y : <input type=\"number\" size=5 value=195 name=\"QYU\"></td>\n";  
-#            print "<td width=\"30%\"><font size=\"2\">\n";
-#            print "<b> Z : <input type=\"number\" size=5 value=195 name=\"QZU\"> (cm)</td>\n";  
-#            print "</b></font></tr>\n";
-#            htmlTextField("Cos Theta Max ","number",5,0.25,"QCos"," ");
-#            @keysa=sort keys %{$ts->{planes}};
-#         print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cube Surface Generation : </b></td> <td colspan=1>\n";
-#              print "<select name=\"QFocus\" >\n";
-#              print "<option value=\"Any\">  </option>\n";
-#              foreach my $surface (@keysa) {
-#                print "<option value=\"$surface\">$surface </option>\n";
-#              }
-#              print "</select>\n";
-#              print "</b></td></tr>\n";
-#           htmlTableEnd();
-#    
       htmlTableEnd();
      print "<p><br>\n";
      print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
@@ -7914,28 +7345,32 @@ foreach my $block (@blocks) {
      $copyfailed = 1;
      last;
     } else {
-     $dstsize = sprintf("%.1f",$dstsize/1000/1000);
-     $closedst[0] = "CloseDST";
-#- mv to insertNtuple 
-#     my $sql = "SELECT run, path FROM ntuples 
-#                   WHERE run=$closedst[10] AND path like '%$filename%'";
-#     my $ret = $self->{sqlserver}->Query($sql);
-#     if(not defined $ret->[0][0]){
-#-
-      print FILE "$dstfile.... \n";
-      my $badevents=$closedst[14];
-      my $ntevents =$closedst[13];
-      my $ntstatus ="OK";                     
-      my $run      =$closedst[10];
-      my $jobid    =$closedst[10];
-      my $ntcrc    =$closedst[6];
-      my $nttype   =$closedst[2];
-      my $version  =$closedst[4];
-
+     if ($closedst[1] ne "Validated" and $closedst[1] ne "Success" and $closedst[1] ne "OK") {
+      $copyfailed = 1;
+      print FILE "parseJournalFile -W- CloseDST block : DST status  $closedst[1]. Quit.\n";
+      last;
+     } else {
+      $dstsize = sprintf("%.1f",$dstsize/1000/1000);
+      $closedst[0] = "CloseDST";
+       print FILE "$dstfile.... \n";
+       my $badevents=$closedst[14];
+       my $ntevents =$closedst[13];
+       my $ntstatus ="OK";                     
+       my $run      =$closedst[10];
+       my $jobid    =$closedst[10];
+       my $ntcrc    =$closedst[6];
+       my $nttype   =$closedst[2];
+       my $version  =$closedst[4];
+#
+# print warning if DST's version < Declared version for the current production set
+# Jan 19, 2004, set error flag, from now skip DST if version doesn't match
+#
      if ($self->checkDSTVersion($version) != 1) {
       print "------------ Check DST; Version : $version / Min production version : $self->{Version} \n";
+      $unchecked++;
+      $copyfailed = 1;
+      last;
      }
-
       $levent += $closedst[12]-$closedst[11]+1;
       my $i = 0;
       my $crccmd = "$self->{AMSSoftwareDir}/exe/linux/crc $dstfile $ntcrc";
@@ -7966,7 +7401,7 @@ foreach my $block (@blocks) {
          else{
            $thrusted++;
                       }
-      }
+     }
         else{
           $i=($i>>8);
           if(int($i/128)){
@@ -8005,13 +7440,11 @@ foreach my $block (@blocks) {
 
            print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
           push @cpntuples, $dstfile;
-        }
+         }
        }
       }
-#     } else {
-#        print FILE "parseJournalFile -W- CloseDST: ntuple exist - $closedst[3]\n";
-#     }
      }
+    }
    } else  {
      print FILE "parseJournalFiles -W- CloseDST - cannot find all patterns \n";
    }
@@ -8223,7 +7656,8 @@ sub updateRunCatalog {
                 }              
                 if ($ent=~/TRIGGER/) {
                  $sql0=$sql0.", TRTYPE";
-                 $sql1=$sql1.", 'AMSParticle'";
+#                 $sql1=$sql1.", 'AMSParticle'";
+                 $sql1=$sql1.", 'TriggerLVL1'";
                 }
               }              
               last;
@@ -8715,7 +8149,11 @@ sub getProductionVersion {
 }
 
 sub checkDSTVersion  {
-
+#
+# compare DST version with min allowed 
+# version for the 'Active' productionset
+# send '0' if DST version < MIN
+#
     my $self = shift;
     my $dstv = shift;
 
@@ -8742,63 +8180,6 @@ sub checkDSTVersion  {
     return $rstatus;
 }
 
-sub scriptfile {
-    my $self         = shift;
-    my $file         = shift;
-    my $dirstructure = shift;
-    my $flag         = shift;
-    my $subdir       = undef;
-    my $oldsubdir    = $self->{ScriptFileDir};
-    
-    if ($flag == 0) {
-# open new file
-           my $timenow = time();
-           open(SCRIPTFILE,">".$file) or die "Unable to open file $file\n";
-           print SCRIPTFILE "#!/bin/csh \n";
-           print SCRIPTFILE "# \n";
-           print SCRIPTFILE "# Set links to selected DST files \n";
-           print SCRIPTFILE "# Script path : $file, Directory structure : $dirstructure \n";
-           print SCRIPTFILE "# cd mydir \n";
-           print SCRIPTFILE "# cp $file mydir \n";
-           print SCRIPTFILE "# chmod 755 $file \n";
-           print SCRIPTFILE "# ./$file \n";
-           print SCRIPTFILE "# Last Edit : $timenow \n";
-           print SCRIPTFILE "# \n";
-       } elsif ($flag == 1) {
-# write to file
-      } elsif ($flag == 7) {
-# dirpath
-          my $path = $file;
-          if ($path =~ m/:/) {
-           print SCRIPTFILE "# no link : $path \n";
-          } else {
-            if ($dirstructure == 0) {
-             print SCRIPTFILE "ln -s $path \n";
-            } else {
-             my @junk   = split '/',$path;
-             # junk[0] - disk name - skip it
-             if ($#junk > 1) {
-              $subdir = $junk[2];
-              for (my $i=3; $i<$#junk; $i++) {
-               $subdir = $subdir."/".$junk[$i];
-              }
-              if (defined $subdir) {
-               if ($oldsubdir ne $subdir) {
-                print SCRIPTFILE "/bin/mkdir -p $subdir \n";
-               }
-               $self->{ScriptFileDir} = $subdir;
-               $subdir = $subdir."/";
-               print SCRIPTFILE "ln -s $path $subdir \n"; 
-              }
-             }         
-         }
-        }
-      } elsif ($flag == 777) {
-# close file
-           close SCRIPTFILE;
-       }
-}
-
 sub writetofile {
     my $self         = shift;
     my $file         = shift;
@@ -8811,4 +8192,46 @@ sub writetofile {
            print FILE "# \n";
            print FILE "$buff";
            close FILE;
+}
+
+sub getHostsPerSite {
+    my $self = shift;
+    my $lcid = -1;
+    my $nhosts = 0;
+    my $lhost  = 'xyz';
+    my $sql  = "SELECT cid,host FROM Jobs WHERE host != 'host' ORDER BY cid,host";
+    my $r=$self->{sqlserver}->Query($sql);
+    print "CID   Site    #Jobs    #Hosts \n";
+     if(defined $r->[0][0]){
+       foreach my $s (@{$r}){
+           my $cid  = $s->[0];
+           if ($cid == $lcid) {
+            my $host = trimblanks($s->[1]);
+            if ($host eq $lhost) {
+            } else {
+             $nhosts++;
+             $lhost=$host;
+            }
+           } else {
+             my $jobs = 0;
+             my $cite = 'xyz';
+             if ($lcid != -1) {
+              $sql = "SELECT COUNT(JID) FROM Jobs WHERE cid=$lcid";
+              my $r1=$self->{sqlserver}->Query($sql);
+              if(defined $r1->[0][0]){ 
+               $jobs = $r1->[0][0];
+              }
+              $sql = "SELECT NAME FROM Cites WHERE cid=$lcid"; 
+              my $r2=$self->{sqlserver}->Query($sql);
+              if(defined $r2->[0][0]){ 
+               $cite = $r2->[0][0];
+              }
+              print "$lcid $cite $jobs $nhosts \n";
+          } 
+            $lcid   = $cid;
+            $nhosts = 0;
+            $lhost  = 'xyz';
+        }
+       }
+   }
 }
