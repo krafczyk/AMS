@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.175 2003/05/16 22:04:06 schol Exp $
+//  $Id: amsgeom.C,v 1.176 2003/05/16 22:10:14 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2007,7 +2007,7 @@ using trdconst::TRDROTMATRIXNO;
 
    TRDDBc::read();
 
-geant par[11]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,5*0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 number inrm[3][3];
 char name[5];
