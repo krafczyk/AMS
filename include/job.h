@@ -26,7 +26,6 @@
 #include <db_comm.h>
 #endif
 
-
 class AMSNtuple;
 const integer maxtrig=20;
 const integer maxtdv=255;
@@ -82,7 +81,6 @@ integer _TriggerN;
 integer _TriggerOr;
 char _TDVC[maxtdv][maxtdvsize];
 integer _TDVN;
-
 static AMSJob* _Head;
 static AMSNtuple* _pntuple;
 void _init(){};
@@ -147,7 +145,6 @@ void _timeinitjob();
 public:
 static AMSNodeMap JobMap;
 
-
 #ifdef __DB__
 //+ ak, Oct 1, 1997
 static tdv_time*              _tdv;
@@ -162,13 +159,9 @@ static integer SetTDVPtrs(integer start[], integer end[]);
 //-
 #endif
 
-AMSJob(AMSID id=0,uinteger jobtype=0):AMSNode(id),_jobtype(jobtype)
-{_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
-_TDVC[0][0]='\0',_TDVN=0;cout <<
-"AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::getbuildno()<<endl;}
+AMSJob(AMSID id=0,uinteger jobtype=0);
 ~AMSJob();
 static AMSJob* gethead(){return _Head;}
-static AMSJob * & sethead(){return _Head;}
 void setsetup(char * setup);
 void settrigger(char * triggerC, integer triggerN, 
 integer triggerOr);

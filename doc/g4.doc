@@ -1,0 +1,60 @@
+Foreseend changes for geant4 incorporation into AMS
+
+-------
+Platform:
+linux only (at the moment?)
+
+-------
+Installer:
+
+install/Moptg4
+
+
+--------
+Datacards Switch:
+
+MISCFFKEY.G4On=1
+
+
+
+---------
+New Files:
+
+
+CC/geant4.C include/geant4.h
+
+--> should contain analogs of gukine,guout,gustep,
+    wrapper for gufld, etc
+
+maybe (or in geant.C)
+CC/g4utils.C include/f4utils.h
+
+--> g3 particle <-> g4 particle
+    g3 flags <-> g4 flags 
+    "amssolids"  (need because of geant3 "idsofts") ??? 
+   
+-----------
+Modified files:
+
+CC/gbatch.C <-- Main program <-- choose geant3/geant4 chain
+                                 
+CC/geant.C  <-- geant(3,4) initialization in uginit/uglast 
+
+CC/gvolume.C <-- New constructor for geant4 boolean volumes
+             <-- Modify constructors for geant3/4 
+
+CC/gmat.C   <-- new geant4  constructors
+
+F/rndm.F  <-- heprandom
+
+CC/trrec.C <-- if geant3 geometry not created geane should be switched off
+
+-------------
+That's all folks.
+
+
+
+
+
+
+

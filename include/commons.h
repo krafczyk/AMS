@@ -31,8 +31,9 @@ public:
 integer BTempCorrection;
 integer BeamTest;
 float   BZCorr; 
+integer G3On;
+integer G4On;
 };
-#define MISCFFKEY COMMON_BLOCK(MISCFFKEY,miscffkey)
 COMMON_BLOCK_DEF(MISCFFKEY_DEF,MISCFFKEY);
 
 

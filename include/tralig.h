@@ -9,6 +9,7 @@
 #include <particle.h>
 #include <trid.h>
 #include <mceventg.h>
+using namespace amsprotected;
 class AMSTrAligDB;
 class AMSTrAligPar{
 public:

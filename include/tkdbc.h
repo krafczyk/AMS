@@ -6,7 +6,6 @@
 #include <fstream.h>
 
 
-
 #ifdef __NAMESPACE__
 namespace trconst{
 const integer maxlay=8;

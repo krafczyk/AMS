@@ -61,8 +61,10 @@ PROTOCCALLSFSUB6(MNEXCM,mnexcm,ROUTINE,STRING,DOUBLEV,INT,PINT,INT)
   
 // Private part  
 //
+namespace amsprotected{
 extern void mm3( number [3][3],   number [3][3], int choise);
 extern void transpose( number [][3],   number [][3]);
+}
 PROTOCCALLSFSUB1(CLOSEF,closef,INT)
 #define CLOSEF(I1) CCALLSFSUB1(CLOSEF,closef,INT,I1)
 

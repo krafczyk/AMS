@@ -8,6 +8,7 @@
 #include <point.h>
 #include <particle.h>
 #include <trid.h>
+using namespace amsprotected;
 const integer nrho=64;
 class PSStr_def{
 public:

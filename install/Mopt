@@ -78,8 +78,8 @@ endif
 #
 SCC=../CC/
 SHLD=..$(LIB)/ntuple.so
-FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)mceventg.C ../F/tkmccl.F ../F/geocoor.F  $(SCC)rnormx.C  $(SCC)trid.C $(SCC)link.C $(SCC)trrec.C $(SCC)uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec.C $(SCC)tofonline.C $(SCC)tofuser1.C  $(SCC)antirec.C $(SCC)tofsim.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc.C $(SCC)ctcrec.C $(SCC)ctcsim.C $(SCC)ctcdbc.C $(SCC)tofcalib.C $(SCC)ctccalib.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger1.C $(SCC)trigger3.C $(SCC)antidbc.C $(SCC)daqevt.C $(SCC)astring.C $(SCC)daqblock.C ../F/mfield.F  ../F/atcnewntu.F ../F/egzav.F  ../F/tkfit.F  $(SCC)tkdbc.C $(SCC)ntuple.C $(SCC)root.C $(SCC)user.C $(SCC)status.C $(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecalrec.C
-OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)link.o $(BIN)trrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec.o $(BIN)tofonline.o $(BIN)tofuser1.o $(BIN)antirec.o $(BIN)tofsim.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc.o $(BIN)ctcrec.o $(BIN)ctcsim.o $(BIN)ctcdbc.o $(BIN)tofcalib.o $(BIN)ctccalib.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger1.o $(BIN)trigger3.o $(BIN)antidbc.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqblock.o $(BIN)mfield.o $(BIN)atcnewntu.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)ntuple.o $(BIN)root.o  $(BIN)user.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecalrec.o
+FILES= $(SCC)id.C $(SCC)node.C $(SCC)snode.C  $(SCC)gbatch.C $(SCC)gvolume.C  $(SCC)amsdbc.C $(SCC)cern.C $(SCC)gsen.C $(SCC)point.C $(SCC)upool.C $(SCC)gmat.C $(SCC)amsgobj.C $(SCC)amsgeom.C $(SCC)geant.C $(SCC)geant3.C $(SCC)mceventg.C ../F/tkmccl.F ../F/geocoor.F  $(SCC)rnormx.C  $(SCC)trid.C $(SCC)link.C $(SCC)trrec.C $(SCC)uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F $(SCC)job.C $(SCC)event.C $(SCC)cont.C $(SCC)mccluster.C $(SCC)trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F $(SCC)tofrec.C $(SCC)tofonline.C $(SCC)tofuser1.C  $(SCC)antirec.C $(SCC)tofsim.C $(SCC)beta.C $(SCC)charge.C $(SCC)particle.C $(SCC)commons.C $(SCC)apool.C $(SCC)tofdbc.C $(SCC)ctcrec.C $(SCC)ctcsim.C $(SCC)ctcdbc.C $(SCC)tofcalib.C $(SCC)ctccalib.C $(SCC)timeid.C $(SCC)io.C $(SCC)trcalib.C $(SCC)tralig.C ../F/mtx2.F ../F/e04ccf.f $(SCC)trigger1.C $(SCC)trigger3.C $(SCC)antidbc.C $(SCC)daqevt.C $(SCC)astring.C $(SCC)daqblock.C ../F/mfield.F  ../F/atcnewntu.F ../F/egzav.F  ../F/tkfit.F  $(SCC)tkdbc.C $(SCC)ntuple.C $(SCC)root.C $(SCC)user.C $(SCC)status.C $(SCC)bcorr.C $(SCC)ecaldbc.C $(SCC)ecalrec.C
+OBJECTS= $(BIN)gbatch.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant.o $(BIN)geant3.o $(BIN)mceventg.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)link.o $(BIN)trrec.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job.o $(BIN)event.o $(BIN)cont.o $(BIN)trrawcluster.o $(BIN)mccluster.o $(BIN)rndm.o $(BIN)tofrec.o $(BIN)tofonline.o $(BIN)tofuser1.o $(BIN)antirec.o $(BIN)tofsim.o $(BIN)beta.o $(BIN)charge.o $(BIN)particle.o $(BIN)apool.o $(BIN)tofdbc.o $(BIN)ctcrec.o $(BIN)ctcsim.o $(BIN)ctcdbc.o $(BIN)tofcalib.o $(BIN)ctccalib.o $(BIN)timeid.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o $(BIN)trigger1.o $(BIN)trigger3.o $(BIN)antidbc.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqblock.o $(BIN)mfield.o $(BIN)atcnewntu.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)ntuple.o $(BIN)root.o  $(BIN)user.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecalrec.o
 ..$(EXE)/gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS) ../F/timel.F -o $(BIN)timel.o
 	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
@@ -262,6 +262,9 @@ $(BIN)amsgeom.o: 	 $(SCC)amsgeom.C
 
 $(BIN)geant.o: 	 $(SCC)geant.C
 	$(CC) -c $(CFLAGS) $(SCC)geant.C -o $(BIN)geant.o
+
+$(BIN)geant3.o: 	 $(SCC)geant3.C
+	$(CC) -c $(CFLAGS) $(SCC)geant3.C -o $(BIN)geant3.o
 
 $(BIN)mceventg.o: 	 $(SCC)mceventg.C
 	$(CC) -c $(CFLAGSn) $(SCC)mceventg.C -o $(BIN)mceventg.o
@@ -467,6 +470,7 @@ depend:
 ../bin/osf1/gbatch.o: ../include/upool.h ../include/apool.h
 ../bin/osf1/gbatch.o: ../include/snode.h ../include/status.h
 ../bin/osf1/gbatch.o: /usr/include/time.h /usr/include/sys/timers.h
+../bin/osf1/gbatch.o: ../include/commons.h ../include/geantnamespace.h
 ../bin/osf1/gvolume.o: ../include/gvolume.h ../include/node.h
 ../bin/osf1/gvolume.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/gvolume.o: /usr/include/standards.h
@@ -840,7 +844,70 @@ depend:
 ../bin/osf1/geant.o: ../include/mccluster.h ../include/gsen.h
 ../bin/osf1/geant.o: ../include/ctcdbc.h ../include/event.h
 ../bin/osf1/geant.o: ../include/cont.h ../include/daqevt.h
-../bin/osf1/geant.o: ../include/trrec.h
+../bin/osf1/geant.o: ../include/trrec.h ../include/geantnamespace.h
+../bin/osf1/geant3.o: ../include/typedefs.h /usr/include/assert.h
+../bin/osf1/geant3.o: /usr/include/standards.h
+../bin/osf1/geant3.o: /usr/include/cxx/iostream.h
+../bin/osf1/geant3.o: /usr/include/cxx/iostream.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/compnent.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/iostream_impl.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/cxxl.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/cxxl_share.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/messages.hxx
+../bin/osf1/geant3.o: /usr/include/stddef.h /usr/include/stdio.h
+../bin/osf1/geant3.o: /usr/include/sys/seek.h /usr/include/va_list.h
+../bin/osf1/geant3.o: /usr/include/sys/types.h
+../bin/osf1/geant3.o: /usr/include/mach/machine/vm_types.h
+../bin/osf1/geant3.o: /usr/include/sys/select.h /usr/include/getopt.h
+../bin/osf1/geant3.o: /usr/include/sys/limits.h
+../bin/osf1/geant3.o: /usr/include/sys/machine/machlimits.h
+../bin/osf1/geant3.o: /usr/include/sys/syslimits.h
+../bin/osf1/geant3.o: /usr/include/sys/machine/machtime.h
+../bin/osf1/geant3.o: /usr/include/sys/rt_limits.h
+../bin/osf1/geant3.o: /usr/include/limits.h /usr/include/memory.h
+../bin/osf1/geant3.o: /usr/include/string.h /usr/include/strings.h
+../bin/osf1/geant3.o: ../include/cern.h ../include/cfortran.h
+../bin/osf1/geant3.o: /usr/include/stdlib.h ../include/hbook.h
+../bin/osf1/geant3.o: ../include/geant321.h ../include/geant321g.h
+../bin/osf1/geant3.o: ../include/mceventg.h ../include/point.h
+../bin/osf1/geant3.o: /usr/include/math.h ../include/link.h
+../bin/osf1/geant3.o: ../include/upool.h /usr/include/cxx/new.h
+../bin/osf1/geant3.o: /usr/include/cxx/new.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/exception
+../bin/osf1/geant3.o: /usr/include/cxx/stdcomp /usr/include/cxx/stddefs
+../bin/osf1/geant3.o: ../include/apool.h ../include/node.h
+../bin/osf1/geant3.o: ../include/id.h /usr/include/cxx/strstream.h
+../bin/osf1/geant3.o: /usr/include/cxx/strstream.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/strstream_impl.hxx
+../bin/osf1/geant3.o: ../include/snode.h ../include/io.h
+../bin/osf1/geant3.o: /usr/include/cxx/fstream.h
+../bin/osf1/geant3.o: /usr/include/cxx/fstream.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/fstream_impl.hxx
+../bin/osf1/geant3.o: /usr/include/sys/time.h /usr/include/sys/signal.h
+../bin/osf1/geant3.o: /usr/include/sys/siginfo.h
+../bin/osf1/geant3.o: /usr/include/sys/sysmisc.h
+../bin/osf1/geant3.o: /usr/include/machine/signal.h
+../bin/osf1/geant3.o: /usr/include/machine/context.h
+../bin/osf1/geant3.o: /usr/include/sys/procset.h /usr/include/time.h
+../bin/osf1/geant3.o: /usr/include/sys/timers.h
+../bin/osf1/geant3.o: /usr/include/sys/times.h ../include/amsgobj.h
+../bin/osf1/geant3.o: ../include/uzstat.h ../include/commons.h
+../bin/osf1/geant3.o: ../include/trid.h ../include/amsdbc.h
+../bin/osf1/geant3.o: ../include/amsstl.h ../include/job.h
+../bin/osf1/geant3.o: ../include/gvolume.h ../include/gmat.h
+../bin/osf1/geant3.o: /usr/include/cxx/iomanip.h
+../bin/osf1/geant3.o: /usr/include/cxx/iomanip.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/iomanip_impl.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/generic.hxx
+../bin/osf1/geant3.o: /usr/include/cxx/mutex.hxx ../include/timeid.h
+../bin/osf1/geant3.o: ../include/astring.h ../include/status.h
+../bin/osf1/geant3.o: ../include/tkdbc.h ../include/extC.h
+../bin/osf1/geant3.o: ../include/trigger3.h ../include/tofdbc.h
+../bin/osf1/geant3.o: /usr/include/unistd.h /usr/include/sys/access.h
+../bin/osf1/geant3.o: ../include/mccluster.h ../include/gsen.h
+../bin/osf1/geant3.o: ../include/ctcdbc.h ../include/event.h
+../bin/osf1/geant3.o: ../include/cont.h ../include/daqevt.h
+../bin/osf1/geant3.o: ../include/trrec.h
 ../bin/osf1/mceventg.o: ../include/mceventg.h ../include/point.h
 ../bin/osf1/mceventg.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/mceventg.o: /usr/include/standards.h
@@ -1253,7 +1320,7 @@ depend:
 ../bin/osf1/event.o: ../include/bcorr.h ../include/antirec.h
 ../bin/osf1/event.o: ../include/antidbc.h ../include/user.h
 ../bin/osf1/event.o: /usr/include/signal.h ../include/ecaldbc.h
-../bin/osf1/event.o: ../include/ecalrec.h
+../bin/osf1/event.o: ../include/ecalrec.h ../include/geantnamespace.h
 ../bin/osf1/cont.o: ../include/cont.h ../include/typedefs.h
 ../bin/osf1/cont.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/cont.o: /usr/include/cxx/iostream.h
