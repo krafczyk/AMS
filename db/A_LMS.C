@@ -169,7 +169,7 @@ ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix)
     _databaseH = _session -> DefaultDatabase();
     if (_databaseH != NULL) {
 
-    contName = new char[strlen(prefix)+5];
+    contName = new char[strlen(prefix)+6];
     strcpy(contName,"Maps_");
     strcat(contName,prefix);
     if (!_mapsH.exist(_session -> DefaultDatabase(),contName,_openMode) &&

@@ -4,7 +4,7 @@
 #include <snode.h>
 #include <amsgobj.h>
 #include <job.h>
-integer AMSgmat::debug=0;
+integer AMSgmat::debug=1;
 void AMSgmat::_init(){
   if(_npar == 1)   GSMATE(_imate,_name,_a[0],_z[0],_rho,_radl,_absl,_ubuf,1);
 
@@ -14,7 +14,7 @@ void AMSgmat::_init(){
 ostream & AMSgmat::print(ostream & stream)const{
 return(AMSID::print(stream)  <<  " GSMATE" << endl);
 }
-integer AMSgtmed::debug=0;
+integer AMSgtmed::debug=1;
 void AMSgtmed::_init(){
   GSTMED(_itmed,_name,_itmat,_isvol,_ifield,_fieldm,_tmaxfd,
   _stemax,_deemax,_epsil,_stmin,_ubuf,1);

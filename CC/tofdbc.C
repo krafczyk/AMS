@@ -34,6 +34,12 @@ const integer TOFDBc::_plrotm[SCLRS]={
   0,1,1,0
 };
 //---> honeycomb supporting str. data:
+const number TOFDBc::_mcfpar[10]={
+  8000.,   // i=1  Mev to photons convertion factor in scintillator.
+  0.19,    // i=2  PMT mean quantum efficiency
+  0.14,    // i=3  PMT transition time spread (ns)
+  0.,0.,0.,0.,0.,0.,0.
+};
 const number TOFDBc::_supstr[10]={
    59.9,    // i=1    Z-coo of TOP honeycomb (BOT-side)
   -59.9,    //  =2    Z-coo    BOT           (TOP     )

@@ -136,7 +136,7 @@ extern "C" void uginit_(){
   AMSJob::sethead() = new AMSJob();
   AMSJob::gethead()->data();
   GFFGO();
-  AMSJob::gethead()->udata();
+   AMSJob::gethead()->udata();
   // Geant initialization
   GZINIT();
   GPART();

@@ -317,6 +317,7 @@ void AMSJob::_retrddata(){
 }
 
 
+
 void AMSJob::udata(){
 char jobname[160];
 char setupname[160];
@@ -328,15 +329,31 @@ jobname[159]='\0';
 setupname[159]='\0';
 triggername[159]='\0';
 int i;
+//+
+for (i=158; i>0; i--) {        // should be at least 1 char
+ if(jobname[i] == ' ') jobname[i]='\0';
+ else break;
+}
+for (i=158; i>=0; i--) {
+ if(setupname[i] == ' ') setupname[i]='\0';
+ else break;
+}
+
+//-
 int len;
-for(i=158;i>0;i--){
+for(i=158;i>=0;i--){
    if(triggername[i]==' '){
     triggername[i]='\0';
     len=i+1;
    }
+   else break;
 }
-setname(jobname);
 setsetup(setupname);
+if(getsetup())setname(strcat(jobname,getsetup()));
+else{
+  cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
+  exit(1);
+}
 integer ntrig=0;
 integer nold=0;
 integer or=0;
@@ -350,7 +367,12 @@ for (i=0;i<len;i++){
   }
 }
 _jobtype=AMSFFKEY.Jobtype;
+//
+// Read/Write Synchronization
+if(AMSFFKEY.Read > 10 && AMSFFKEY.Read%2==0)AMSFFKEY.Read++;
+if(AMSFFKEY.Write > 0 && AMSFFKEY.Write%2==0)AMSFFKEY.Write++;
 }
+
 
 void AMSJob::init(){
 if(_jobtype ==AMSFFKEY.Simulation)_siamsinitjob();

@@ -519,16 +519,16 @@ void AMSEvent::_sitofinitrun(){
                                 ,strat,fstrd,tzer,mip2q,scp,rlo);
     }
   }
-  int16u vtes1(0);
-  cerr<<"*int16u* test :"<<sizeof(vtes1)<<'\n';
-  int vtes2(0);
-  cerr<<"*int* test :"<<sizeof(vtes2)<<'\n';
-  integer vtes3(0);
-  cerr<<"*integer* test :"<<sizeof(vtes3)<<'\n';
-  float vtes4(0);
-  cerr<<"*float* test :"<<sizeof(vtes4)<<'\n';
-  number vtes5(0);
-  cerr<<"*number* test :"<<sizeof(vtes5)<<'\n';
+  //int16u vtes1(0);
+  //  cerr<<"*int16u* test :"<<sizeof(vtes1)<<'\n';
+  //int vtes2(0);
+  //  cerr<<"*int* test :"<<sizeof(vtes2)<<'\n';
+  //  integer vtes3(0);
+  //  cerr<<"*integer* test :"<<sizeof(vtes3)<<'\n';
+  //  float vtes4(0);
+  //  cerr<<"*float* test :"<<sizeof(vtes4)<<'\n';
+  //  number vtes5(0);
+  //  cerr<<"*number* test :"<<sizeof(vtes5)<<'\n';
 //
  } // <--- end of MC branch --
 //---------------------------------------------------------------------

@@ -22,7 +22,7 @@ CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__DB__
 CCFLAGS = -g
 FFLAGS=   -g -I../include -qextname -d
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include -I/usr/lpp/xlC/include -I../include -I../include/stl
-GLIBS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/pro/lib  -lgeant321 -lmathlib\
+GLIBS= -g -bloadmap:map -lxlf90 -lxlf -L/cern/96a/lib  -lgeant321 -lmathlib\
         -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/rs_aix32/nagfl16df -lnag
 
 
@@ -49,7 +49,7 @@ FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl \
          -I/usr/include/cxx
 
-GLIBS = -g -lUfor   -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag
+GLIBS = -g -lUfor   -lfor -lFutil -lots -lm -L/cern/old/lib  -lgeant321 -lmathlib -lpacklib -lkernlib  -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag
 
 CC=cxx
 FF=f77
@@ -258,7 +258,7 @@ GEANT_OBJS= $(BIN)/gbatch.o $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN
 
 endif
 
-CERN_LIBS       = -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib
+CERN_LIBS       = -L/cern/96a/lib  -lgeant321 -lmathlib -lpacklib -lkernlib
 
 all:	$(LMS)
 
