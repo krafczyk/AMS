@@ -2521,6 +2521,13 @@ ooStatus AMSEventList::AddMaterial()
   ooStatus  rstatus = oocError;
   ooMode    mode    = oocUpdate;
   ooHandle(ooDBObj)    databaseH;
+  AMSNode*  p;
+  AMSgmat*  pp;
+  integer   id;
+  geant     a[3];
+  geant     z[3];
+  geant     w[3];
+  char*     name;
 
   ooThis().containedIn(databaseH);
 
@@ -2541,26 +2548,42 @@ ooStatus AMSEventList::AddMaterial()
       cout << "AMSEventList:: -I- Create container "<<contName<< endl;
     } else {
       cout << "AMSEventList:: -I- Found container "<<contName<< endl;
-      gmatItr.scan(contgmatH, mode);
-      if (gmatItr.next()) {
-        cout <<"AMSEventList:: -W- container "<<contName<<" is not empty. "
-             <<" Quit"<<endl;
-        return oocSuccess;
+      p = AMSJob::gethead()->getnodep(AMSID("Materials:",0));
+      if (p != NULL) {
+       p = p -> down();
+       gmatItr.scan(contgmatH, mode);
+       while (gmatItr.next()) {
+        if (p == NULL) {
+         cout<<"AMSEventList::AddMaterials -E- comparison failed"<<endl;
+         cout<<"AMSEventList::AddMaterials -E- AMSgmat == NULL"<<endl;
+         cout<<"AMSEventList::AddMaterials -E- please write new setup"<<endl;
+         return oocError;
+        }
+        pp = (AMSgmat*)p;
+        id = p -> getid();
+        rstatus = gmatItr -> CmpMaterials(id, pp);
+        if (rstatus != oocSuccess) {
+         cout<<"AMSEventList::AddMaterials -E- comparison failed"<<endl;
+         cout<<"AMSEventList::AddMaterials -E- please write new setup"<<endl;
+         return oocError;
+        }
+        p = p -> next();
+       }
+      } else {
+      cout <<"AddMaterial - E - cannot find the virtual top of gmat"<<endl; 
+      return oocError;
       }
+      return oocSuccess;
     }
- // get pointer to the top
-  integer  id;
-  geant    a[3];
-  geant    z[3];
-  geant    w[3];
-  char*    name;
 
-  AMSNode* p = AMSJob::gethead()->getnodep(AMSID("Materials:",0));
+ // get pointer to the top
+
+  p = AMSJob::gethead()->getnodep(AMSID("Materials:",0));
   if (p != NULL) {
    p = p -> down();
    while (p != NULL) {
      if (dbg_prtout) cout<<p -> getid() <<" "<<p -> getname();
-     AMSgmat* pp = (AMSgmat*)p;
+     pp = (AMSgmat*)p;
      integer npar = pp -> getnpar();
      id = p -> getid();
      name = p -> getname();
@@ -2569,8 +2592,8 @@ ooStatus AMSEventList::AddMaterial()
      p = p -> next();
    }
   } else {
-    cout <<"AddMaterial - W - cannot find the virtual top of gmat"<<endl; 
-    return oocSuccess;
+    cout <<"AddMaterial - E - cannot find the virtual top of gmat"<<endl; 
+    return oocError;
   }
  
   return oocSuccess;

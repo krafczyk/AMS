@@ -3,7 +3,7 @@
 // Sep 05, 1996. ak. First try with Objectivity
 //                   Add _id and _name. The order of variables is changed
 //
-// Last Edit : Oct 14, 1996. ak.
+// Last Edit : Nov 27, 1996. ak.
 // 
 
 #include <iostream.h>
@@ -49,4 +49,5 @@ class AMSgmatD : public ooObj
  void   getNumbers(integer& id, integer& imate,  
                    geant& rho, geant& radl, geant& absl,
                    geant* a, geant* z, geant* w);
+ ooStatus CmpMaterials(integer id, AMSgmat* p);
 };

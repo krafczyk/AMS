@@ -56,6 +56,9 @@ inline integer getid() { return _id; }
 inline char *getname() { return _name; }
 inline integer getnpar() { return _npar; }
 void getNumbers(integer &, integer &, geant &, geant &, geant &, geant *, geant *, geant *); 
+
+
+ooStatus CmpMaterials(integer, AMSgmat *); 
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -73,7 +76,7 @@ void getNumbers(integer &, integer &, geant &, geant &, geant &, geant *, geant 
     static void ooAssocRegister();
     ooRef(AMSgmatD)& ooThis(ooRef(AMSgmatD)& objId, ooMode aMode = oocNoOpen) const;
     AMSgmatD(ooInternalObj iobj);
-#line 52 "gmatD.ddl"
+#line 53 "gmatD.ddl"
 }; 
 
 #endif /* !defined(GMAT_D_H) */

@@ -187,7 +187,7 @@ ctcgeomffkey:
    }
    delete [] buff;
 
-   if (Write != 0) {
+   if (Write != 0 && set_geom !=0 ) {
     cout<<"AMScommonsD::CmpConstants -E- please write new CTCGEOM"<<endl;
     set_geom = 0;
     return oocError;

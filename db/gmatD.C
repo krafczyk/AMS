@@ -1,6 +1,7 @@
 // Sep 05, 1996. ak. First try with Objectivity. Method file for AMSgvolume
-//                   
-// Last Edit : Sep 09, 1996. ak.
+// Nov 27, 1996. ak. new function CmpMaterials
+//                  
+// Last Edit : Nov 27, 1996. ak.
 // 
 
 #include <iostream.h>
@@ -55,3 +56,53 @@ void   AMSgmatD::getNumbers(integer& id, integer& imate,
    w[i] = _w[i];
   }
  }
+
+ooStatus AMSgmatD::CmpMaterials(integer id, AMSgmat* p)
+{
+  integer rstatus = oocSuccess;
+
+  cout <<"AMSgmatD::CmpMaterials -I- "<<_name<<endl;
+  if (_id != id) {
+    cout<<"AMSgmatD::CmpMaterials -E- id "<<_id<<", "<<id<<endl;
+    return oocError;
+  }
+  if (_imate   != p -> _imate) {
+   cout<<"AMSgmatD::CmpMaterials -E- imate "<<_imate<<", "<<p ->_imate<<endl;
+   rstatus = oocError; 
+  }
+  if (_npar   != p -> _npar) {
+   cout<<"AMSgmatD::CmpMaterials -E- npar "<<_npar<<", "<<p ->_npar<<endl;
+   rstatus = oocError; 
+  }
+  if (_rho   != p -> _rho) {
+   cout<<"AMSgmatD::CmpMaterials -E- rho "<<_rho<<", "<<p->_rho<<endl;
+   rstatus = oocError; 
+  }
+  if (_radl   != p -> _radl) {
+   cout<<"AMSgmatD::CmpMaterials -E- radl "<<_radl<<", "<<p->_radl<<endl;
+   rstatus = oocError; 
+  }
+  if (_absl   != p -> _absl) {
+   cout<<"AMSgmatD::CmpMaterials -E- absl "<<_absl<<", "<<p->_absl<<endl;
+   rstatus = oocError; 
+  }
+
+  if (_npar == p -> _npar) {
+   geant a[3], z[3], w[3];
+   p -> getNumbers(a, z, w);
+   for (integer i =0; i< _npar; i++)
+     {
+      if (_a[i] != a[i] ||
+          _z[i] != z[i] ||
+          _w[i] != w[i] ) {
+        cout<<"AMSgmatD::CmpMaterials -E- a,w,z are different"<<endl;
+        return oocError;
+      }
+     }
+  } else {
+   cout<<"AMSgmatD::CmpMaterials -E- npar "<<_npar<<", "
+       <<p -> _npar<<endl;
+   rstatus = oocError; 
+  }  
+ return rstatus;
+}
