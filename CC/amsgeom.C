@@ -28,7 +28,7 @@ extern "C" void mtx_(geant nrm[][3],geant vect[]);
 extern "C" void mtx2_(number nrm[][3],geant  xnrm[][3]);
 #define MTX mtx_
 #define MTX2 mtx2_
-void AMSgvolume::amsgeom(){
+namespace amsgeom{
 extern void tkgeom(AMSgvolume &);
 extern void tkgeom02(AMSgvolume &);
 extern void magnetgeom(AMSgvolume &);
@@ -38,16 +38,23 @@ extern void tofgeom(AMSgvolume &);
 extern void tofgeom02(AMSgvolume &);
 extern void antigeom(AMSgvolume &);
 extern void antigeom02(AMSgvolume &);
+#ifdef __G4AMS__
+ extern void antigeom02g4(AMSgvolume &);
+extern void testg4geom(AMSgvolume &);
+#endif
 extern void pshgeom(AMSgvolume &);
 extern void pshgeom02(AMSgvolume &);
 extern void ctcgeom(AMSgvolume &);
+extern void ctcgeomE(AMSgvolume &, integer iflag);
+extern void ctcgeomAG(AMSgvolume& );
+extern void ctcgeomAGPlus(AMSgvolume& );
 extern void richgeom02(AMSgvolume &);
 extern void ecalgeom02(AMSgvolume &);
 extern void trdgeom02(AMSgvolume &);
 extern void srdgeom02(AMSgvolume &);
-#ifdef __G4AMS__
-extern void testg4geom(AMSgvolume &);
-#endif
+};
+using namespace amsgeom;
+void AMSgvolume::amsgeom(){
 AMSID amsid;
 geant par[3];
 geant parf[3];
@@ -151,7 +158,7 @@ getNrm()=0;
 //#endif
 }
 
-void magnetgeom(AMSgvolume & mother){
+void amsgeom::magnetgeom(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 char name[5]="MAGN";
@@ -196,7 +203,7 @@ AMSgtmed *p;
     
 }
 //-------------------------------------------------------------------
-void tofgeom(AMSgvolume & mother){ 
+void amsgeom::tofgeom(AMSgvolume & mother){ 
 number pr[3]={0.,0.,0.};
 geant par[6]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
@@ -383,7 +390,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 
 // for future AMS02 setup:
 //
-void tofgeom02(AMSgvolume & mother){ 
+void amsgeom::tofgeom02(AMSgvolume & mother){ 
 number pr[3]={0.,0.,0.};
 geant par[6]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0., 0.,1.,0., 0.,0.,1.};
@@ -554,7 +561,7 @@ for (int ip=0;ip<SCLRS;ip++){ //  <<<=============== loop over sc. planes
 
 
 //---------------------------------------------------------------
-void antigeom(AMSgvolume & mother){
+void amsgeom::antigeom(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
@@ -681,10 +688,7 @@ AMSNode * p;
 }
 //---------------------------------------------------------------------
 
-void ctcgeom(AMSgvolume & mother){
-extern void ctcgeomE(AMSgvolume &, integer iflag);
-extern void ctcgeomAG(AMSgvolume& );
-extern void ctcgeomAGPlus(AMSgvolume& );
+void amsgeom::ctcgeom(AMSgvolume & mother){
 if(strstr(AMSJob::gethead()->getsetup(),"CTCAnnecyPlus")){
   ctcgeomAGPlus(mother);
   cout<<" CTCGeom-I-Annecy+Lead setup for CTC selected"<<endl;
@@ -922,7 +926,7 @@ if(iflag==1){
 //-----
 
 }
-void ctcgeomAG(AMSgvolume & mother){
+void amsgeom::ctcgeomAG(AMSgvolume & mother){
   // A. Gougas version   
   // modified by V.Choutko 24/04/97
   // The AGLx, PMTx and PTFx (x=L,U,E) volumes are now at the level 2 ( from 0)
@@ -1261,7 +1265,7 @@ void ctcgeomAG(AMSgvolume & mother){
  }
 }
 
-void ctcgeomAGPlus(AMSgvolume & mother){
+void amsgeom::ctcgeomAGPlus(AMSgvolume & mother){
   // 3 rad leangth ( 1.05 cm) of Tungsten added between 1 & 2 layers
   // A. Gougas version   
   // modified by V.Choutko 24/04/97
@@ -1546,7 +1550,7 @@ void ctcgeomAGPlus(AMSgvolume & mother){
 
 
 
-void tkgeom(AMSgvolume &mother){
+void amsgeom::tkgeom(AMSgvolume &mother){
    TKDBc::read();
 
 
@@ -1881,7 +1885,7 @@ ostrstream ost(name,sizeof(name));
 
 
 
-void pshgeom(AMSgvolume & mother){
+void amsgeom::pshgeom(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
@@ -2074,7 +2078,7 @@ AMSgtmed *p;
 
        
 }
-void magnetgeom02(AMSgvolume & mother){
+void amsgeom::magnetgeom02(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 char name[5]="MAGN";
@@ -2126,7 +2130,7 @@ AMSgtmed *p;
 */
     
 }
-void magnetgeom02Test(AMSgvolume & mother){
+void amsgeom::magnetgeom02Test(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 char name[5]="MAGN";
@@ -2171,10 +2175,10 @@ AMSgtmed *p;
       "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
 }
-void pshgeom02(AMSgvolume & mother){
+void amsgeom::pshgeom02(AMSgvolume & mother){
 }
 
-void tkgeom02(AMSgvolume & mother){
+void amsgeom::tkgeom02(AMSgvolume & mother){
 
    TKDBc::read();
 
@@ -2431,7 +2435,7 @@ ostrstream ost(name,sizeof(name));
 }
 
 #include <trddbc.h>
-void trdgeom02(AMSgvolume & mother){
+void amsgeom::trdgeom02(AMSgvolume & mother){
 using trdconst::maxlay;
 using trdconst::maxlad;
 using trdconst::maxo;
@@ -2548,15 +2552,14 @@ cout <<"amsgeom::trdgeom02-I-TRDGeometryDone"<<endl;
 
 }
 
-void antigeom02(AMSgvolume & mother){
+void amsgeom::antigeom02(AMSgvolume & mother){
 #ifdef __G4AMS__
- extern void antigeom02g4(AMSgvolume &);
  if(MISCFFKEY.G4On){
    antigeom02g4(mother);
  }
  else if(MISCFFKEY.G3On){
 #endif
- antigeom(mother);
+ amsgeom::antigeom(mother);
 #ifdef __G4AMS__
 }
 #endif
@@ -2564,7 +2567,7 @@ void antigeom02(AMSgvolume & mother){
 
 #ifdef __G4AMS__
 //---------------------------------------------------------------
-void antigeom02g4(AMSgvolume & mother){
+void amsgeom::antigeom02g4(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
@@ -2668,7 +2671,7 @@ AMSgvolume *dummy;
 }
 #endif
 //---------------------------------------------------------------------
-void ecalgeom02(AMSgvolume & mother){
+void amsgeom::ecalgeom02(AMSgvolume & mother){
 //
   geant par[6]={0.,0.,0.,0.,0.,0.};
   number nrm[3][3];
@@ -2886,7 +2889,7 @@ void ecalgeom02(AMSgvolume & mother){
 }
 //------------------------------------------------------------
 #include <srddbc.h>
-void srdgeom02(AMSgvolume & mother){
+void amsgeom::srdgeom02(AMSgvolume & mother){
 using srdconst::maxo;
 using srdconst::SRDROTMATRIXNO;
    SRDDBc::read();
@@ -2947,7 +2950,7 @@ cout <<"amsgeom::srdgeom02-I-SRDGeometryDone"<<endl;
 }
 
 #ifdef __G4AMS__
-void testg4geom(AMSgvolume &mother){
+void amsgeom::testg4geom(AMSgvolume &mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 char name[]="MyFirstReplica";
@@ -2998,11 +3001,11 @@ AMSgtmed *p;
 
 #define SQR(x) ((x)*(x))
 
-void richgeom02(AMSgvolume & mother)
+void amsgeom::richgeom02(AMSgvolume & mother)
 {
   // New Rich Geometry by Carlos Delgado (CIEMAT)
 
-  AMSNode *rich;
+  AMSgvolume *rich;
   AMSNode *dummy;
   AMSNode *lig,*rad;
   geant par[11],coo[3];
@@ -3041,7 +3044,7 @@ void richgeom02(AMSgvolume & mother)
   coo[1]=0;
   coo[2]=-103.66;
 
-  rich=mother.add(new AMSgvolume("VACUUM",
+  rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("VACUUM",
 				0,
 				"RICH",
 				"TUBE",
@@ -3052,11 +3055,14 @@ void richgeom02(AMSgvolume & mother)
 				"ONLY",
 				0,
 				1,
-				rel));
+				rel)));
 				
   
 
   // Inside RICH put all the elements
+#ifdef __G4AMS__
+        rich->Smartless()=-2;
+#endif
 
  
   coo[0]=0;
@@ -3404,11 +3410,13 @@ void richgeom02(AMSgvolume & mother)
 				     nrm,
 				     "ONLY",
 				     1,
-				     1,
+				     4*(copia-2)+1,
 				     rel));
        
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
        coo[1]*=-1;
-       
        
        dummy=lig->add(new AMSgvolume("RICH SHIELD",
 				     0,
@@ -3420,9 +3428,12 @@ void richgeom02(AMSgvolume & mother)
 				     nrm,
 				     "ONLY",
 				     1,
-				     2,
+				     4*(copia-2)+2,
 				     rel));
        
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
        
        par[0]=RICGEOM.light_guides_length/2-RICotherthk;
        par[1]=RICotherthk/2;
@@ -3440,9 +3451,12 @@ void richgeom02(AMSgvolume & mother)
 				     nrma,
 				     "ONLY",
 				     1,
-				     3,
+				     4*(copia-2)+3,
 				     rel));
        
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
        coo[0]*=-1;
        
        dummy=lig->add(new AMSgvolume("RICH SHIELD",
@@ -3455,10 +3469,13 @@ void richgeom02(AMSgvolume & mother)
 				     nrma,
 				     "ONLY",
 				     1,
-				     4,
+				     4*(copia-2)+4,
 				     rel));	
        
        
+#ifdef __G4AMS__
+       ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
        
        par[0]=RICGEOM.light_guides_length/2-RICotherthk;
        par[1]=RICGEOM.light_guides_length/2-RICotherthk;
@@ -3479,9 +3496,12 @@ void richgeom02(AMSgvolume & mother)
 				     nrm,
 				     "ONLY",
 				     0,
-				     1,
+				     (copia-2)+1,
 				     rel));
        
+#ifdef __G4AMS__
+        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
        // Photocatode: 
        
        par[0]=0.875; // The HAMAMATSU R5900 cathode length
@@ -3501,9 +3521,12 @@ void richgeom02(AMSgvolume & mother)
 				     nrm,
 				     "ONLY",
 				     0,
-				     1,
+				      (copia-2)+1,
 				     rel));
        
+#ifdef __G4AMS__
+//        ((AMSgvolume*)dummy)->Smartless()=-2;
+#endif
        
      } // PMT put. Now we're going for the light-guides
 
@@ -3521,6 +3544,7 @@ void richgeom02(AMSgvolume & mother)
 
 #ifdef __G4AMS__
     if(MISCFFKEY.G4On){
+      if(copia==2 && i==0){
 
       AMSgvolume *mirror;
 
@@ -3550,7 +3574,7 @@ void richgeom02(AMSgvolume & mother)
 				nrm,
 				"BOOL",
 				0,
-				0,
+				 (copia-2)+1,
 				rel)));
       coo[0]=-d1;
       coo[1]=0;
@@ -3646,7 +3670,7 @@ void richgeom02(AMSgvolume & mother)
 	
       mirror->addboolean("TRAP",par,11,coo,nrma,'+');
 
-      
+   }   
     }
     else if(MISCFFKEY.G3On){
       
