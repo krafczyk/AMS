@@ -29,7 +29,7 @@ int firstevent=-1;
  else if(nev>nevents)return -3;
  else if(nev<nevents)return -4;
   AMSEventR *pev = new AMSEventR();
-  tree->SetMakeClass(1);
+//  tree->SetMakeClass(1);
   pev->SetBranchA(tree);
   pev->GetBranch(tree);
   int nbadev=0;
