@@ -1,0 +1,195 @@
+Dumb ntuples produced by the program are of a little use.
+There is a special standalone program analysis/convert.f
+which converts these dumb ntuples into more useful ones.
+
+Below there is a description of a converted ntuple.
+
+
+
+
+ ********************************************
+* Type *    Range     *  Block   *  Name    *
+ ********************************************               
+* I*4  *              * EVENTH   * eventno          // Event no
+* I*4  *              * EVENTH   * run              // run no
+* I*4  *              * EVENTH   * runtype          //
+* I*4  *              * EVENTH   * time(2)          // Event time
+* I*4  *              * EVENTH   * Particles        // No of Particles
+* I*4  *              * EVENTH   * Tracks           // No of Tracks                      
+* I*4  *              * EVENTH   * Betas            // No of Betas
+* I*4  *              * EVENTH   * Charges          // No of Charges
+* I*4  *              * EVENTH   * TrRecHits        // No of 3 dim trackerpoints
+* I*4  *              * EVENTH   * TrClusters       // No of Tr Clusters
+* I*4  *              * EVENTH   * TrMCClusters     // No of Tr MC hits
+* I*4  *              * EVENTH   * TOFClusters      // No of TOF Clusters
+* I*4  *              * EVENTH   * TOFMCClusters    // No of TOF MC Hits
+* I*4  *              * EVENTH   * CTCClusters      // No of Cerenkov clusters
+* I*4  *              * EVENTH   * CTCMCClusters    // No of Cerenkov MC hits
+* I*4  * [0,10]       * BETA     * nbeta            // betas number
+* I*4  *              * BETA     * betapattern(nbeta) // beta pattern(beta.doc) 
+* R*4  *              * BETA     * beta(nbeta)        // velocity
+* R*4  *              * BETA     * betaerror(nbeta)   // error in velocity 
+* R*4  *              * BETA     * betachi2(nbeta)    // chi2 of beta fit
+* I*4  * [0,10]       * CHARGE   * ncharge            // charges number
+* R*4  *              * CHARGE   * chargebetap(ncharge)   //pointer to velocity
+* I*4  *              * CHARGE   * chargetof(ncharge)    // TOF charge
+* I*4  *              * CHARGE   * chargetracker(ncharge)  // Tracker Charge
+* R*4  *              * CHARGE   * probtof(7,ncharge)      // TOF Probabilities
+                                                           //
+* R*4  *              * CHARGE   * probtracker(7,ncharge)  // Tracker Probs
+                                                           // charge.doc
+* I*4  * [0,10]       * PARTICLE * npart                   // particles number
+* I*4  *              * PARTICLE * pctcp(2,npart)    // pointer(s) to cerenkov
+                                                     // cluster (matched)
+* I*4  *              * PARTICLE * pbetap(npart)     // pointer to beta
+* I*4  *              * PARTICLE * pchargep(npart)   // pointer to charge
+* I*4  *              * PARTICLE * ptrackp(npart)    // pointer to track
+* I*4  *              * PARTICLE * pid(npart)        // Geant Particle Id
+* R*4  *              * PARTICLE * pmass(npart)      // particle mass
+* R*4  *              * PARTICLE * perrmass(npart)   // error in particle mass
+* R*4  *              * PARTICLE * pmom(npart)       // particle momentum
+                                                     //  (signed)
+* R*4  *              * PARTICLE * perrmom(npart)    // error in momentum
+* R*4  *              * PARTICLE * pcharge(npart)    // charge
+* R*4  *              * PARTICLE * ptheta(npart)     // theta (on entry)
+* R*4  *              * PARTICLE * pphi(npart)       // phi  -----------
+* R*4  *              * PARTICLE * pcoo(3,npart)     // coo  -----------
+* R*4  *              * PARTICLE * panti(npart)      // sum of anti energy(mev)
+* R*4  *              * PARTICLE * signalctc(2,npart)  // ctcsignal(s)
+* R*4  *              * PARTICLE * betactc(2,npart)   // ctc beta            
+* R*4  *              * PARTICLE * errorbetactc(2,npart)   // ctcerror beta
+* R*4  *              * PARTICLE * cooctc(3,2,npart)    // tracker coordinates
+                                                       // extrapolated into ctc
+* I*4  * [0,20]       * TOFCLUST * ntof                // TOF clusters number
+* I*4  *              * TOFCLUST * TOFStatus(ntof)     // Status *)
+* I*4  *              * TOFCLUST * plane(ntof)         // Tof counter no
+                                                       //1..4 up..down
+* I*4  *              * TOFCLUST * bar(ntof)           //  TOF bar no
+* R*4  *              * TOFCLUST * TOFEdep(ntof)      // TOF energy dep (MeV)
+* R*4  *              * TOFCLUST * TOFTime(ntof)      // TOF time (sec)
+* R*4  *              * TOFCLUST * TOFETime(ntof)     // Error in TOF time
+* R*4  *              * TOFCLUST * TOFCoo(3,ntof)     // TOF Coo (cm)
+* R*4  *              * TOFCLUST * TOFErCoo(3,ntof)   //
+* I*4  * [0,200]      * TOFMCCLU * ntofmc            // TOF MC hits number
+* I*4  *              * TOFMCCLU * TOFMCIdsoft(ntofmc)    // Idsoft
+                                                       // Ask E. Choumilov
+                                                       // if needed
+                                                       //
+* R*4  *              * TOFMCCLU * TOFMCXcoo(3,ntofmc)// coo
+* R*4  *              * TOFMCCLU * TOFMCtof(ntofmc)   // time
+* R*4  *              * TOFMCCLU * TOFMCedep(ntofmc)  // energy(meV) 
+* I*4  * [0,50]       * TRCLUSTE * ntrcl              // Tracker clusters number
+* I*4  *              * TRCLUSTE * Idsoft(ntrcl)     // Idsoft
+                                                     // mod(id,10) layer 
+                                                      // mod(id/10,100) ladder                                                     // i=mod(id/1000,10)
+                                                      // i==0 x 1st half
+                                                     // i==1 x 2nd half
+                                                     // i==2 y 1st half
+                                                     // i==3 y 2nd half
+                                                     // id/10000 strip
+* I*4  *              * TRCLUSTE * Statust(ntrcl)   // Status *)
+* I*4  *              * TRCLUSTE * NelemL(ntrcl)    // -Number of strips left to max
+* I*4  *              * TRCLUSTE * NelemR(ntrcl)    // Number of strips right to max 
+* R*4  *              * TRCLUSTE * Sumt(ntrcl)      // Amplitude total
+* R*4  *              * TRCLUSTE * Sigmat(ntrcl)    // Sigma total
+* R*4  *              * TRCLUSTE * Meant(ntrcl)     // CofG (local)
+* R*4  *              * TRCLUSTE * RMSt(ntrcl)      // RMS cluster
+* R*4  *              * TRCLUSTE * ErrorMeant(ntrcl) // error in CofG
+* R*4  *              * TRCLUSTE * Amplitude(5,ntrcl) // strips ampl
+* I*4  * [0,200]      * TRMCCLUS * ntrclmc          // Tracker MC hits number
+* I*4  *              * TRMCCLUS * IdsoftMC(ntrclmc) // Idsoft
+                                                      // mod(id,10) layer
+                                                      // mod(id/10,100) ladder
+                                                      // id/1000 sensor
+* I*4  *              * TRMCCLUS * Itra(ntrclmc)    // Particle Id (or 555 if noise)
+* I*4  *              * TRMCCLUS * Left(2,ntrclmc)  // left strip no 
+* I*4  *              * TRMCCLUS * Center(2,ntrclmc) // center strip no
+* I*4  *              * TRMCCLUS * Right(2,ntrclmc)  // right stip no
+* R*4  *              * TRMCCLUS * ss(5,2,ntrclmc)  // Strip amplitudes
+* R*4  *              * TRMCCLUS * xca(3,ntrclmc)   // local input coo
+* R*4  *              * TRMCCLUS * xcb(3,ntrclmc)  // local output coo
+* R*4  *              * TRMCCLUS * xgl(3,ntrclmc)  // global coo
+* R*4  *              * TRMCCLUS * summc(ntrclmc)  // total amplitude
+* I*4  * [0,200]      * TRRECHIT * ntrrh          // tracker 3dim points number
+* I*4  *              * TRRECHIT * px(ntrrh)     // pointer to x track clster
+* I*4  *              * TRRECHIT * py(ntrrh)     //  --------  y --------
+* I*4  *              * TRRECHIT * statusr(ntrrh) // Status *)
+* I*4  *              * TRRECHIT * Layer(ntrrh)  // Layer no 1-6 up-down
+* R*4  *              * TRRECHIT * hitr(3,ntrrh) // gl 3dim coordinates
+* R*4  *              * TRRECHIT * ehitr(3,ntrrh) // error to above
+* R*4  *              * TRRECHIT * sumr(ntrrh)    // Amplitude
+* R*4  *              * TRRECHIT * difosum(ntrrh) (A_x-A_y)/(A_x+A_y)
+* I*4  * [0,20]       * TRTRACK  * ntrtr          // tracks number
+* I*4  *              * TRTRACK  * trstatus(ntrtr) // Status *)
+* I*4  *              * TRTRACK  * pattern(ntrtr)  // Pattern (datacards.doc)
+* I*4  *              * TRTRACK  * nhits(ntrtr)    // number of hits 
+* I*4  *              * TRTRACK  * phits(6,ntrtr)  // pointers to trrechit
+* I*4  *              * TRTRACK  * GeaneFitDone(ntrtr) // != 0 if done
+* I*4  *              * TRTRACK  * AdvancedFitDone(ntrtr) --------------
+* R*4  *              * TRTRACK  * Chi2StrLine(ntrtr) // chi2 sz fit
+* R*4  *              * TRTRACK  * Chi2Circle(ntrtr) // chi2 circular fit
+* R*4  *              * TRTRACK  * CircleRidgidity(ntrtr) // circular rigidity
+* R*4  *              * TRTRACK  * Chi2FastFit(ntrtr) // chi2 fast nonl fit
+* R*4  *              * TRTRACK  * Ridgidity(ntrtr) // fast nonl rigidity
+* R*4  *              * TRTRACK  * ErrRidgidity(ntrtr) // err to above
+* R*4  *              * TRTRACK  * Theta(ntrtr) // theta (from fast)
+* R*4  *              * TRTRACK  * phi(ntrtr)   // phi ---------
+* R*4  *              * TRTRACK  * p0(3,ntrtr)  // coords ----------
+* R*4  *              * TRTRACK  * gchi2(ntrtr) // geane chi2
+* R*4  *              * TRTRACK  * gridgidity(ntrtr)// ------ rigidity
+* R*4  *              * TRTRACK  * gerrridgidity(ntrtr) //error to above
+* R*4  *              * TRTRACK  * gtheta(ntrtr)// -------- theta
+* R*4  *              * TRTRACK  * gphi(ntrtr)  // -------- phi
+* R*4  *              * TRTRACK  * gp0(3,ntrtr) // ------ coords
+* R*4  *              * TRTRACK  * hchi2(2,ntrtr) // two halves chi2s
+* R*4  *              * TRTRACK  * HRidgidity(2,ntrtr) //-------- rigities
+* R*4  *              * TRTRACK  * HErrRidgidity(2,ntrtr) // errors to above
+* R*4  *              * TRTRACK  * htheta(2,ntrtr) // ------- thetas
+* R*4  *              * TRTRACK  * hphi(2,ntrtr) // ------ phis
+* R*4  *              * TRTRACK  * hp0(3,2,ntrtr) // ------- coords
+* R*4  *              * TRTRACK  * fchi2ms(ntrtr) // fast chi2 mscat off
+* R*4  *              * TRTRACK  * gchi2ms(ntrtr) // geane chi2 mscat off
+* R*4  *              * TRTRACK  * ridgidityms(ntrtr) // fast rigidity mscat off
+* R*4  *              * TRTRACK  * gridgidityms(ntrtr) // geane rigidity mscat off
+* I*4  * [0,20]       * MCEVENTG * nmcg // Number of input particles in MC gen
+* I*4  *              * MCEVENTG * Particle(nmcg) // Geant particle id
+* R*4  *              * MCEVENTG * coo(3,nmcg)  // geant particle coos
+* R*4  *              * MCEVENTG * dir(3,nmcg)  // ------- dir cos
+* R*4  *              * MCEVENTG * momentum(nmcg) // momentum
+* R*4  *              * MCEVENTG * mass(nmcg)   // mass
+* R*4  *              * MCEVENTG * charge(nmcg) // charge
+* I*4  * [0,20]       * CTCCLUST * nctccl    // cerenkov clusters number
+* I*4  *              * CTCCLUST * CTCStatus(nctccl)  // Status *)
+* I*4  *              * CTCCLUST * CTCLayer(nctccl)  // layer no
+* R*4  *              * CTCCLUST * ctccoo(3,nctccl)  // coords
+* R*4  *              * CTCCLUST * ctcercoo(3,nctccl) // errors to above
+* R*4  *              * CTCCLUST * ctcrawsignal(nctccl) // raw signals
+* R*4  *              * CTCCLUST * ctcsignal(nctccl) // corrected ones
+* R*4  *              * CTCCLUST * ctcesignal(nctccl) // error to above
+* I*4  * [0,200]      * CTCMCCLU * nctcclmc    // cerenkov mc hits number
+* I*4  *              * CTCMCCLU * CTCMCIdsoft(nctcclmc) // Idsoft
+                                                         // Ask E. Choumilov
+                                                         // if needed
+                                                         //
+                                                         //
+* R*4  *              * CTCMCCLU * CTCMCXcoo(3,nctcclmc) // coords
+* R*4  *              * CTCMCCLU * CTCMCXdir(3,nctcclmc) // dir cos
+* R*4  *              * CTCMCCLU * CTCstep(nctcclmc)     // step size (cm)
+* R*4  *              * CTCMCCLU * ctccharge(nctcclmc)   // particle charge
+* R*4  *              * CTCMCCLU * ctcbeta(nctcclmc)     // velocity
+* R*4  *              * CTCMCCLU * ctcedep(nctcclmc)     // energy dep (MeV)
+
+---------------------------------------------------------------------------
+
+*) Status bits
+
+All:
+16 -BAD
+32 -USED
+
+Tracker clusters:
+1- WIDE cluster
+2- two clusters near each other
+
+**) Pointers are not all ok at the moment( 27/01/97)
+ Hopefully will be fixed in 1-2 weeks

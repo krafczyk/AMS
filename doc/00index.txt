@@ -17,6 +17,7 @@ job.doc             // job class
 known_bugs.doc      // known bugs
 mccluster.doc       // mccluster classes
 node.doc            // mode class
+ntuple.doc          // ntuple description
 particle.doc        // particle reconstruction
 pool.doc            // memory pool
 port_g++.doc        // notes about hp/g++
