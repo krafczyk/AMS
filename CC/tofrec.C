@@ -993,19 +993,21 @@ void AMSTOFRawCluster::build(int &status){
 //
   if(TOFRECFFKEY.reprtf[2]>0 || 
      (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
-      for(il=0;il<SCLRS;il++){// fill de/dx hist. for each bar
-        ib=brnl[il];
-        brnum=il*SCMXBR+ib;//sequential bar numbering
-        elosn=edepa[il]/cosi;//normalized  to norm.inc.
-        HF1(1140+brnum,elosn,1.);
-      }
       HF1(1532,td13,1.);//ToF for L0->L2
       HF1(1534,td24,1.);//ToF for L1->L3
       HF1(1544,(td13-td24),1.);
-      HF1(1529,edepa[0],1.); //layer=0 Anode-reconstructed Edep
-      HF1(1526,edepa[0],1.); //layer=0 Anode-reconstructed Edep
-      HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
-      HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
+      if(TOFRECFFKEY.reprtf[2]>1){ 
+        for(il=0;il<SCLRS;il++){// fill de/dx hist. for each bar
+          ib=brnl[il];
+          brnum=il*SCMXBR+ib;//sequential bar numbering
+          elosn=edepa[il]/cosi;//normalized  to norm.inc.
+          HF1(1140+brnum,elosn,1.);
+        }
+        HF1(1529,edepa[0],1.); //layer=0 Anode-reconstructed Edep
+        HF1(1526,edepa[0],1.); //layer=0 Anode-reconstructed Edep
+        HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
+        HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
+      }
 //      HF1(1533,tdiff[0],1.);//layer=0
 //      HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
       if(AMSJob::gethead()->isSimulation()){

@@ -184,6 +184,9 @@ public:
   geant dtthr; // trig.discr.theshold (same for all sides now) (p.e.'s for now)
   geant dathr; // Amplitude(charge) discr.threshold(...) (p.e.)
   geant ftwin; // time_window in true TDCA-hits search (ns) 
+//
+  integer ReadConstFiles;
+//
   integer sec[2];
   integer min[2];
   integer hour[2];
@@ -300,6 +303,9 @@ class CTCRECFFKEY_DEF {
   geant ftwin; // time_window(ns) in true TDCA-hits search wrt TDCT-hit(FT)
   geant q2pe;  // charge to photoelectrons conversion
   integer ft2edg;//  0/1 -> 1/2 edges readout for FT pulse
+//
+  integer ReadConstFiles;
+//
   integer sec[2];
   integer min[2];
   integer hour[2];

@@ -376,7 +376,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   geant slops[2];
   number shft,ftdel,qtotl[SCLRS],qsd1[SCLRS],qsd2[SCLRS],eanti(0),meanq,rr,qmax;
   number eacut=0.6;// cut on E-anti (mev). tempor (no calibration)
-  number qrcut=8.;// cut on max/mean-charge ratio
+  number qrcut=9.;// cut on max/mean-charge ratio
   number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   number *pntr[SCLRS];
   AMSTOFRawCluster *ptr;
@@ -445,7 +445,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   qmax=*pntr[SCLRS-1];
   rr=qmax/meanq;
   HF1(1505,geant(rr),1.);
-  if(rr>qrcut)return; // remove events with "spike" dE/dX.  tempor commented
+  if(rr>qrcut)return; // remove events with "spike" dE/dX. 
   TOFJobStat::addre(8);
 //------>
     number t1,t2,t3,t4,t13,t24;
@@ -522,12 +522,12 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     } 
     else rid=0;
     pmom=fabs(rid);
-    if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
+    HF1(1500,geant(pmom),1.);
     if(TOFCAFFKEY.truse>=0)
        if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom.
     if(TOFCAFFKEY.caltyp==0)bet=pmom/sqrt(pmom*pmom+pmas*pmas);// space calibration
     else bet=pmom/sqrt(pmom*pmom+mumas*mumas);// earth calibration
-    if(TOFRECFFKEY.reprtf[2]>0)HF1(1501,bet,1.);
+    HF1(1501,bet,1.);
 //
     TOFJobStat::addre(9);
 //
@@ -554,8 +554,8 @@ void TOFTZSLcalib::select(){  // calibr. event selection
           ctran=Cout[1];// transv. coord.(abs. r.s.)(Y-cross) 
         }
         dy=coot[il]-coo[il];//Long.coo_track-Long.coo_sc
+        HF1(1200+il,geant(dy),1.);
         if(TOFRECFFKEY.reprtf[2]>0){
-          HF1(1200+il,geant(dy),1.);
           HF2(1204+il,geant(coot[il]),geant(dy),1.);
         }
         dx=ctran-TOFDBc::gettsc(il,ib);//Transv.coo_tracker-Transv.coo_scint
@@ -917,7 +917,7 @@ else{// <------- use Tracker to find track crossing points:
     else rid=0;
     pmom=fabs(rid);
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
-    if(pmom<=0.1 || pmom>=50.)return;//remove events with suspicious mom.
+    if(pmom<=0.2 || pmom>=50.)return;//remove events with suspicious mom.
     TOFJobStat::addre(19);
     C0[0]=0.;
     C0[1]=0.;
@@ -1365,7 +1365,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
   number ltim[4],tdif[4],trle[4],fpnt,bci,sut,sul,sul2,sutl,tzer,chsq,betof;
   number sigt(0.121),cvel(29.979);// time meas.accuracy and light velocity 
   number eacut=0.6;// cut on E-anti (mev)
-  number dscut=5.6;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
+  number dscut=8.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   AMSTOFRawCluster *ptr;
   AMSAntiCluster *ptra;
   ptr=(AMSTOFRawCluster*)AMSEvent::gethead()->
@@ -1428,7 +1428,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
 //------> get parameters from tracker:
 //
     static number pmas(0.938),mumas(0.1057),imass;
-    number pmom,mom,bet,chi2,betm,pcut[2];
+    number pmom,mom,bet,chi2,betm,pcut[2],massq;
     number the,phi,trl,rid,err,ctran;
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
@@ -1463,10 +1463,8 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
       pcut[0]=TOFCAFFKEY.plhec[0];
       pcut[1]=TOFCAFFKEY.plhec[1];
     }
-    if(TOFRECFFKEY.reprtf[2]>0){
-      HF1(1500,geant(pmom),1.);
-      HF1(1501,bet,1.);
-    }
+    HF1(1500,geant(pmom),1.);
+    HF1(1501,bet,1.);
 //
     bad=0;
     if(pmom<=pcut[0] || pmom>=pcut[1])bad=1;// out of needed mom.range
@@ -1497,7 +1495,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
           ctran=Cout[1];// transv. coord.(abs. r.s.)(Y-cross) 
         }
         dy=coot[il]-coo[il];//Long.coo_track-Long.coo_sc
-        if(TOFRECFFKEY.reprtf[2]>0)HF1(1200+il,geant(dy),1.);
+        HF1(1200+il,geant(dy),1.);
         dx=ctran-TOFDBc::gettsc(il,ib);//Transv.coo_tracker-Transv.coo_scint
         if(TOFRECFFKEY.reprtf[2]>0)HF1(1210+il,geant(dx),1.);
         if(fabs(dx)>dscut || fabs(dy)>dscut)bad=1;//too big dist. of tof-tracker
@@ -1529,7 +1527,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     tgx=(x[0]-x[1])/(zx[0]-zx[1]);
     tgy=(y[0]-y[1])/(zy[0]-zy[1]);
     cosc=1./sqrt(1.+tgx*tgx+tgy*tgy);
-    HF1(1217,cosc,1.);
+    if(TOFRECFFKEY.reprtf[2]>0)HF1(1217,cosc,1.);
 //
 //--------> find beta from TOF :
 //
@@ -1560,26 +1558,23 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     chsq/=pow(sigt,2);
     chsq/=number(fpnt-2);
     betof=1./bci/cvel;
-    if(chsq>8.)betof=-1.;//cut on chi2
-    if(TOFRECFFKEY.reprtf[2]>0){
-      if(chsq<=8.)HF1(1502,betof,1.);
-      HF1(1205,chsq,1.);
-      HF1(1206,tzer,1.);
-    }
+    if(chsq>8. || betof<0.1)return;//cut on chi2/beta
+    HF1(1502,betof,1.);
+    HF1(1205,chsq,1.);
+    HF1(1206,tzer,1.);
 //
 // ---> look at mass :
 //
-    number betg(0.000001);
-    geant mass(-1.);
-    if(betof<1. && betof>=0.)betg=betof/sqrt(1.-betof*betof);
+    number betg(4.);//default (no tracker)
+    massq=imass*imass;//default m**2 (no tracker)
     if(TOFCAFFKEY.truse == 1){
-      if(betof<1. && betof>=0.)mass=geant(pmom/betg);
-      if(TOFRECFFKEY.reprtf[2]>0){
-        HF1(1204,mass,1.);
-        if(betg>TOFCAFFKEY.bgcut[0] && betg<TOFCAFFKEY.bgcut[1])HF1(1207,mass,1.);
-        HF1(1215,(cost-cosc)/cost,1.);
-        HF2(1218,geant(pmom),geant(betof),1.);
-      }
+      massq=pmom*pmom*(1.-betof*betof)/betof/betof;
+      betg=pmom/imass;//use "tracker-defined" betg
+      HF1(1204,geant(massq),1.);
+      if(betof<0.92)HF1(1207,geant(massq),1.);
+      HF1(1208,geant(betg),1.);
+      HF1(1215,(cost-cosc)/cost,1.);
+      HF2(1218,geant(pmom),geant(betof),1.);
     }
 //
 // ------> normalize charge to normal incidence :
@@ -1603,13 +1598,12 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
       if(TOFCAFFKEY.truse == 1){
         cinp=coot[il];// loc.r.s.!!!
         TOFAMPLcalib::fill(il,ib,ainp,cinp);
-        TOFAMPLcalib::fillabs(il,ib,ainp,cinp,pmom,betof);
+        TOFAMPLcalib::fillabs(il,ib,ainp,cinp,massq,betg);
       }
       else{
         cinp=coo[il];// loc.r.s.!!!
         TOFAMPLcalib::fill(il,ib,ainp,cinp);
-        mom=imass*betg;// fictitious mom. to give implied mass
-        TOFAMPLcalib::fillabs(il,ib,ainp,cinp,mom,betof);
+        if(betof>0.85)TOFAMPLcalib::fillabs(il,ib,ainp,cinp,massq,betg);
       }
     }
 }
@@ -1681,14 +1675,13 @@ void TOFAMPLcalib::fill(integer il, integer ib, geant am[2], geant coo){
 //--------------------------------------
 //            ---> program to accumulate data for abs.normalization:
 void TOFAMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
-                                     number mom, number btof){
+                                     number massq, number betg){
 //
   integer i,id,idr,ibt,btyp,mflg(0),bgflg(0);
   static geant cbin(15.);// centr. bin half-width for gain calibr.
-  static geant prcut[2]={0.5,1.5};
-  static geant mucut[2]={0.,0.5};
-  number betg(0.000001);
-  geant amt,mass(-1),mcut[2];
+  static geant prcut[2]={0.3,3.};
+  static geant mucut[2]={-0.3,0.3};
+  geant amt,mcut[2];
 //
   ibt=TOFDBc::brtype(il,ib);// bar type (1-5)
   btyp=ibt-1;
@@ -1698,11 +1691,6 @@ void TOFAMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
   if(id != idr)return;//only for ref.counters
   if(fabs(coo) > cbin)return;// select only central incidence(+- cbin cm)
 //
-  if(btof<1. && btof>=0.){
-    betg=btof/sqrt(1-btof*btof);
-    mass=geant(mom/betg);
-  }
-//  
   amt=(am[0]+am[1]);
 //
   if(TOFCAFFKEY.caltyp==0){// space (prot) calibr.
@@ -1713,7 +1701,7 @@ void TOFAMPLcalib::fillabs(integer il, integer ib, geant am[2], geant coo,
     mcut[0]=mucut[0];
     mcut[1]=mucut[1];
   }
-  if(mass>mcut[0] && mass<mcut[1])mflg=1;
+  if(massq>mcut[0] && massq<mcut[1])mflg=1;
   if(betg>TOFCAFFKEY.bgcut[0] && betg<TOFCAFFKEY.bgcut[1])bgflg=1;
 //
   if(id==rbls[4])HF2(1219,geant(betg),amt,1.);// for ref.bar type=5

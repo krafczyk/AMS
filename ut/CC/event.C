@@ -549,7 +549,7 @@ void AMSEvent::_catofevent(){
 //
   ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr)trflag=ptr->gettoflg();
-  if(trflag <= 0)return;// use only H/W-triggered event tempor
+//  if(trflag <= 0)return;// use only H/W-triggered event tempor
   if(TOFRECFFKEY.relogic[0]==2)
            TOFTDIFcalib::select();// event selection for TOF TDIF-calibration
   if(TOFRECFFKEY.relogic[0]==3)

@@ -82,7 +82,10 @@ R 5 PhEl2MeV(0.05)        // Conversion p.e. -> mev
 R 6 dtthr(3)              // discr.threshold(pe) to create trigger signal
 R 7 dathr(6)              // ..................... TovT measurement (ADCA)
 R 8 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
-I 9-20                    // sec,min,hour,day,mon,year fro DB update
+//
+I 9 ReadConstFiles(0)     // read const. from DB/myFiles (0/1)
+//  
+I 10-21                    // sec,min,hour,day,mon,year fro DB update
 
 // Anti Calibration
 
@@ -290,7 +293,11 @@ I 4       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encodi
 I 5       [2] (0)         // spare
 R 6 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
 R 7 q2pe(0.1)             // charge 2 phel conv factor
-I 8-19                    // sec,min,hour,day,mon,year for DB update
+I 8 ft2edg(1)             // 0/1-> 1/2 edges readout for FT signal
+//
+I 9  ReadConstFiles(0)   // read constants(calibr) from DB/Ext_Files(0/1)
+//
+I 10-21                    // sec,min,hour,day,mon,year for DB update
 
 // CTC Calibration
 

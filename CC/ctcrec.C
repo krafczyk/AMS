@@ -292,7 +292,7 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
     for(i=0;i<nmemb;i++){
       if(mbstat[i]==0){ 
         ngmem+=1;// count alive members
-        gain+=(ctcfcal[chnum].getgain(i));// add gains for averaging
+        gain+=(ctcfcal[chnum].getgain(i));// sum gains for averaging
       }
     }
     if(ngmem>0)gain=gain/geant(ngmem);// readout-channel average gain
@@ -338,8 +338,8 @@ void AMSCTCRawHit::build(int &stat){// build from CTCRawEvent
       for(i=0;i<nmemb;i++){
         gid=mblist[i];//LXXY=LCCR
         layer=gid/1000;
-        col=(gid%1000)/10;
-        row=(gid%1000)%10;
+        col=(gid%1000)/10;//1-11
+        row=(gid%1000)%10;//1-8
         status=mbstat[i];
         if(status==0){
           stat=0;//event ok ( at least one object created)
@@ -396,7 +396,7 @@ for(i=0;;i++){
 }
 
 
-
+//-----------------------------------------------------------------
 void AMSCTCCluster::build(){
 if(CTCDBc::getgeom()<2){
   cerr << " Non Annecy setups are not supported any more "<<endl;

@@ -1332,7 +1332,7 @@ void TOFJobStat::bookhist(){
     HBOOK1(1100,"Fast-Slow hit time-difference(single hist/slow-hit measurements)",80,0.,80.,0.);
     HBOOK1(1105,"Anode-Slow hit time-difference(single an/slow-hit measurements)",80,-40.,120.,0.);
     HBOOK1(1106,"Dynode-Slow hit time-difference(single dyn/slow-hit measurements)",80,-40.,120.,0.);
-    HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,0.,1000.,0.);
+    HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,1.,1001.,0.);
     HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
     HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
     HBOOK1(1103,"Time_history: TovT(ns)",80,0.,80.,0.);
@@ -1347,19 +1347,25 @@ void TOFJobStat::bookhist(){
     HBOOK1(1117,"dEdX vs bar (norm.inc.,L=2)",14,0.,14.,0.);
     HBOOK1(1118,"dEdX vs bar (norm.inc.,L=3)",14,0.,14.,0.);
     HBOOK1(1119,"dEdX vs bar (norm.inc.,L=4)",14,0.,14.,0.);
-    for(il=0;il<SCLRS;il++){
-      for(ib=0;ib<SCMXBR;ib++){
-	strcpy(htit1,"dE/dX (norm.inc) for bar(LBB) ");
-	in[0]=inum[il+1];
-	strcat(htit1,in);
-	ii=(ib+1)/10;
-	jj=(ib+1)%10;
-	in[0]=inum[ii];
-	strcat(htit1,in);
-	in[0]=inum[jj];
-	strcat(htit1,in);
-	ich=SCMXBR*il+ib;
-	HBOOK1(1140+ich,htit1,50,0.,15.,0.);
+    if(TOFRECFFKEY.reprtf[2]>1){
+      HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,16.,0.);
+      HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,80.,0.);
+      HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,16.,0.);
+      HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,80.,0.);
+      for(il=0;il<SCLRS;il++){
+        for(ib=0;ib<SCMXBR;ib++){
+    	  strcpy(htit1,"dE/dX (norm.inc) for bar(LBB) ");
+  	  in[0]=inum[il+1];
+  	  strcat(htit1,in);
+  	  ii=(ib+1)/10;
+	  jj=(ib+1)%10;
+	  in[0]=inum[ii];
+	  strcat(htit1,in);
+	  in[0]=inum[jj];
+	  strcat(htit1,in);
+	  ich=SCMXBR*il+ib;
+	  HBOOK1(1140+ich,htit1,50,0.,15.,0.);
+        }
       }
     }
     if(TOFRECFFKEY.reprtf[2]>1){
@@ -1382,10 +1388,6 @@ void TOFJobStat::bookhist(){
     }
 //    HBOOK1(1138,"W1,L4-B3-S1",50,0.,200.,0.);
 //    HBOOK1(1139,"W3,L1-B12-S2",60,0.,6000.,0.);
-    HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,16.,0.);
-    HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,80.,0.);
-    HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,16.,0.);
-    HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,80.,0.);
     HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
 //    HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
 //    HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
@@ -1425,7 +1427,7 @@ void TOFJobStat::bookhist(){
     }
     if(TOFRECFFKEY.relogic[0]==3){ // TZSL-calibration
       HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
-      HBOOK1(1501,"Particle beta(tracker)",80,0.9,1.1,0.);
+      HBOOK1(1501,"Particle beta(tracker)",80,0.8,1.,0.);
       HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
       HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
       HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
@@ -1463,8 +1465,9 @@ void TOFJobStat::bookhist(){
       HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
       HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
       HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
-      HBOOK1(1204,"Mass",80,0.,1.6,0.);
-      HBOOK1(1207,"Mass in working betga-range",80,0.,1.6,0.);
+      HBOOK1(1204,"Mass**2",80,-1.6,3.2,0.);
+      HBOOK1(1207,"Mass**2 for beta<0.92",80,-1.6,3.2,0.);
+      HBOOK1(1208,"Ptr/impl.mass",80,0.,16.,0.);
       HBOOK1(1205,"Chisq (tof-beta-fit)",50,0.,10.,0.);
       HBOOK1(1206,"Tzer (tof-beta-fit)",50,-2.5,2.5,0.);
       HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
@@ -1558,18 +1561,24 @@ void TOFJobStat::outp(){
          HPRINT(1112);
          HPRINT(1113);
          HPRINT(1114);
-         for(i=0;i<SCLRS;i++){
-           for(j=0;j<SCMXBR;j++){
-             ich=SCMXBR*i+j;
-             HPRINT(1140+ich);
-             dedx[j]=0.;
-             dedxe[j]=0.;
-             dedx[j]=HSTATI(1140+ich,1," ",0);
-             dedxe[j]=HSTATI(1140+ich,2," ",0);
+         if(TOFRECFFKEY.reprtf[2]>1){
+           HPRINT(1529);
+           HPRINT(1526);
+           HPRINT(1528);
+           HPRINT(1531);
+           for(i=0;i<SCLRS;i++){
+             for(j=0;j<SCMXBR;j++){
+               ich=SCMXBR*i+j;
+               HPRINT(1140+ich);
+               dedx[j]=0.;
+               dedxe[j]=0.;
+               dedx[j]=HSTATI(1140+ich,1," ",0);
+               dedxe[j]=HSTATI(1140+ich,2," ",0);
+             }
+             HPAK(1116+i,dedx);
+             HPAKE(1116+i,dedxe);
+             HPRINT(1116+i);
            }
-           HPAK(1116+i,dedx);
-           HPAKE(1116+i,dedxe);
-           HPRINT(1116+i);
          }
            if(TOFRECFFKEY.reprtf[2]>1){
              HPRINT(1120);
@@ -1591,10 +1600,6 @@ void TOFJobStat::outp(){
            }
 //       HPRINT(1138);
 //       HPRINT(1139);
-           HPRINT(1529);
-           HPRINT(1526);
-           HPRINT(1528);
-           HPRINT(1531);
            HPRINT(1532);
 //           HPRINT(1533);
 //           HPRINT(1543);
@@ -1666,6 +1671,7 @@ void TOFJobStat::outp(){
            HPRINT(1219);
            HPRINT(1204);
            HPRINT(1207);
+           HPRINT(1208);
            HPRINT(1250);
            HPRINT(1251);
              TOFAMPLcalib::fit();

@@ -700,7 +700,7 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.truse=1; // (12) 1/-1-> to use/not tracker
   TOFCAFFKEY.plhc[0]=1.;// (13) track mom. low limit(gev/c) for space calibr
   TOFCAFFKEY.plhc[1]=100.;// (14) track mom. high limit(gev/c) ..............
-  TOFCAFFKEY.minev=100;// (15)min.events needed for measurement in channel or bin
+  TOFCAFFKEY.minev=50;// (15)min.events needed for measurement in channel or bin
   TOFCAFFKEY.trcut=0.90;// (16) cut to use for "truncated average" calculation
   TOFCAFFKEY.refbid[0]=201;//(17) ref.bar id's list (LBB) for btype=1->5
   TOFCAFFKEY.refbid[1]=202; 
@@ -708,9 +708,9 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.refbid[3]=104; 
   TOFCAFFKEY.refbid[4]=107;//(21)
   TOFCAFFKEY.plhec[0]=0.1;//(22)plow-cut for earth calibration
-  TOFCAFFKEY.plhec[1]=10;  //(23)phigh-cut ...................
-  TOFCAFFKEY.bgcut[0]=2; //(24) beta*gamma low-cut to be in mip-region(abs.calib)
-  TOFCAFFKEY.bgcut[1]=10;//(25) beta*gamma high-cut ...
+  TOFCAFFKEY.plhec[1]=20.;  //(23)phigh-cut ...................
+  TOFCAFFKEY.bgcut[0]=2.; //(24) beta*gamma low-cut to be in mip-region(abs.calib)
+  TOFCAFFKEY.bgcut[1]=10.;//(25) beta*gamma high-cut ...
 //
   TOFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TOFCAFFKEY.dynflg=1; // (27) 0/1-> use stand/special(Contin's) dynode-calibration
@@ -721,20 +721,23 @@ void AMSJob::_retofdata(){
 }
 //======================================================================
 void AMSJob::_reantidata(){
-  ANTIRECFFKEY.reprtf[0]=0;// Reco print_hist flag (0/1->no/yes)
-  ANTIRECFFKEY.reprtf[1]=0;// DAQ-print (1/2->print for decoding/decoding+encoding)
-  ANTIRECFFKEY.reprtf[2]=0;//spare
-  ANTIRECFFKEY.ThrS=6;// threshold to create Cluster object (p.e.)
-  ANTIRECFFKEY.PhEl2MeV=0.05;// reco conv. Phel->Mev(Mev/pe)( =Elos/2sides_signal measured at center)
-  ANTIRECFFKEY.dtthr=3.; // trig.discr.theshold (same for all sides now) (p.e.'s for now)
-  ANTIRECFFKEY.dathr=6.; // Amplitude(charge) discr.threshold(...) (p.e.)
-  ANTIRECFFKEY.ftwin=100.;// t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT) 
-  ANTIRECFFKEY.sec[0]=0; 
-  ANTIRECFFKEY.sec[1]=0;
-  ANTIRECFFKEY.min[0]=0;
-  ANTIRECFFKEY.min[1]=0;
-  ANTIRECFFKEY.hour[0]=0;
-  ANTIRECFFKEY.hour[1]=0;
+  ANTIRECFFKEY.reprtf[0]=0;//(1) Reco print_hist flag (0/1->no/yes)
+  ANTIRECFFKEY.reprtf[1]=0;//(2) DAQ-print (1/2->print for decoding/decoding+encoding)
+  ANTIRECFFKEY.reprtf[2]=0;//(3)spare
+  ANTIRECFFKEY.ThrS=6;//(4) threshold to create Cluster object (p.e.)
+  ANTIRECFFKEY.PhEl2MeV=0.05;//(5) reco conv. Phel->Mev(Mev/pe)( =Elos/2sides_signal measured at center)
+  ANTIRECFFKEY.dtthr=3.; //(6) trig.discr.theshold (same for all sides now) (p.e.'s for now)
+  ANTIRECFFKEY.dathr=6.; //(7) Amplitude(charge) discr.threshold(...) (p.e.)
+  ANTIRECFFKEY.ftwin=100.;//(8) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT) 
+//
+  ANTIRECFFKEY.ReadConstFiles=0;//(9)read const. from DB/myFiles (0/1)
+//  
+  ANTIRECFFKEY.sec[0]=0;//(10) 
+  ANTIRECFFKEY.sec[1]=0;//(11)
+  ANTIRECFFKEY.min[0]=0;//(12)
+  ANTIRECFFKEY.min[1]=0;//(13)
+  ANTIRECFFKEY.hour[0]=0;//(14)
+  ANTIRECFFKEY.hour[1]=0;//(15)
   ANTIRECFFKEY.day[0]=1;
   ANTIRECFFKEY.day[1]=1;
   ANTIRECFFKEY.mon[0]=0;
@@ -743,7 +746,7 @@ void AMSJob::_reantidata(){
   ANTIRECFFKEY.year[1]=99;
   FFKEY("ANRE",(float*)&ANTIRECFFKEY,sizeof(ANTIRECFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
-  ANTICAFFKEY.cfvers=1; // (01-99) vers.number NN for antiverlistNN.dat file
+  ANTICAFFKEY.cfvers=2; // (01-99) vers.number NN for antiverlistNN.dat file
   FFKEY("ANCA",(float*)&ANTICAFFKEY,sizeof(ANTICAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //========================================================================
@@ -756,12 +759,15 @@ void AMSJob::_rectcdata(){
   CTCRECFFKEY.ftwin=100.;//(6) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT)
   CTCRECFFKEY.q2pe=0.1;  //(7)
   CTCRECFFKEY.ft2edg=1;  //(8) 0/1-> 1/2 edges readout for FT signal
-  CTCRECFFKEY.sec[0]=0; 
-  CTCRECFFKEY.sec[1]=0;
-  CTCRECFFKEY.min[0]=0;
-  CTCRECFFKEY.min[1]=0;
-  CTCRECFFKEY.hour[0]=0;
-  CTCRECFFKEY.hour[1]=0;
+//
+  CTCRECFFKEY.ReadConstFiles=0;//(9)read const. from DB/myFiles (0/1)
+//  
+  CTCRECFFKEY.sec[0]=0; //(10)
+  CTCRECFFKEY.sec[1]=0; //(11)
+  CTCRECFFKEY.min[0]=0; //(12)
+  CTCRECFFKEY.min[1]=0; //(13)
+  CTCRECFFKEY.hour[0]=0; //(14)
+  CTCRECFFKEY.hour[1]=0; //(15)
   CTCRECFFKEY.day[0]=1;
   CTCRECFFKEY.day[1]=1;
   CTCRECFFKEY.mon[0]=0;
@@ -1246,7 +1252,12 @@ void AMSJob::_reantiinitjob(){
 //
     ANTIJobStat::clear();// Clear JOB-statistics counters for SIM/REC
 //-----------
-    ANTIPcal::build();//create calibr.objects(antisccal-objects for each sector) 
+  if(ANTIRECFFKEY.ReadConstFiles){// Constants will be taken from ext.files
+     ANTIPcal::build();//create calibr.objects(antisccal-objects for each sector)
+  }
+  else{ // Constants will be taken from DB (TDV)
+    ANTIRECFFKEY.year[1]=ANTIRECFFKEY.year[0]-1;    
+  } 
 }
 //===================================================================
 void AMSJob::_rectcinitjob(){
@@ -1262,7 +1273,12 @@ AMSgObj::BookTimer.book("RECTCEVENT");
 //
 // ===> create ctcfcal-objects(TDV) for each CTC cells group (combination) :
 //
+  if(CTCRECFFKEY.ReadConstFiles){// Constants will be taken from ext.files
     CTCCCcal::build();
+  }
+  else{ // Constants will be taken from DB (TDV)
+    CTCRECFFKEY.year[1]=CTCRECFFKEY.year[0]-1;    
+  } 
 }
 
 void AMSJob::_reaxinitjob(){
