@@ -33,12 +33,21 @@ LIB=/lib/osf1
 TIMEL=../bin/osf1/timel.o
 endif
 ifeq  "$(shell uname)"  "Linux"
+ifndef AMSDEBUG
+CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include   -I../db
+CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__    -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
+CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
+CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include   -I../db
+CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include   -I../db
+FFLAGS=   -fno-automatic -g -I../include
+else
 CFLAGS=      -D__BATCH__  -O2    -I../include   -I../db
 CFLAGS4=      -D__BATCH__ -O2     -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
 CFLAGS4P=      -D__BATCH__      -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
 CFLAGSTOFSIM=      -D__BATCH__ -O1      -I../include   -I../db
 CFLAGSn=      -D__BATCH__  -O2    -I../include   -I../db
 FFLAGS=   -fno-automatic -O -I../include
+endif
 DFLAGS=    -g   -I/usr/include  -I../include  -I/usr/local/lib/g++-include
 XLDFLAGS=  /cern/pro/lib/lnblnk_.o  -static  -L/cern/pro/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -ln  -L/usr/local/lib  -lf2c  -lm
 CC=g++ -D__NAMESPACE__ -D__G4AMS__
