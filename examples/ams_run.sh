@@ -30,8 +30,9 @@ OS=`uname`
 ARCH=`$ROOTSYS/bin/root-config --arch`
 
 if [ "$ARCH" = "linuxicc" ]; then
-   GC="/opt/intel/compiler70/ia32/bin/icc -static -w"
-   if [ ! -e "$GC" ]; then
+   if [ -e "/opt/intel/compiler70/ia32/bin/icc" ]; then
+      GC="/opt/intel/compiler70/ia32/bin/icc -static -w"
+   else
       echo "You have no access to $GC."
       echo "Please use a Root version compiled with g++."
       exit
@@ -43,8 +44,8 @@ elif [ "${OS}" = "Linux" ]; then
    EXTRALIBS="-ldl -lcrypt"
    AMSLIB="${AMSWD}/lib/linux/libntuple.a"
 elif [ "${OS}" = "OSF1" ]; then
-   GC="cxx -w"
-   EXTRALIBS="-lm"
+   GC="cxx -non_shared -w"
+   EXTRALIBS="-lcxx -lm"
    AMSLIB="${AMSWD}/lib/osf1/libntuple.a"
 else
   echo "This script only runs on Linux and on OSF1; EXIT"
