@@ -335,9 +335,9 @@ void AMSTrIdSoft::init(){
      integer idsoft;
      VZERO(idsoft2linear,ms*sizeof(integer)/4);
      int i,k;
+       int j;
      for(k=0;k<2;k++){
       for ( i=0;i<AMSDBc::nlay();i++){
-       int j;
        for ( j=0;j<AMSDBc::nlad(i+1);j++){
            idsoft=AMSTrIdSoft(i+1,j+1,k,0,0).getaddr();
            idsoft2linear[idsoft]=num;
@@ -361,7 +361,7 @@ void AMSTrIdSoft::init(){
      gains=new geant[num];
      sigmas=new geant[num];
      for(i=0;i<10;i++){
-      for(int k=0;k<ms;k++)cmnnoise[i][k]=0;
+      for( k=0;k<ms;k++)cmnnoise[i][k]=0;
      }     
      indnoise=new geant[num];
      _numel=num;
@@ -370,14 +370,14 @@ void AMSTrIdSoft::init(){
      //     integer AMSTrIdSoft::_GetGeo[ncrt][ntdr][2][3];
      //     integer AMSTrIdSoft::_GetHard[nl][nld][2][3];     
      for(i=0;i<ncrt;i++){
-       for(int j=0;j<ntdr;j++){
+       for( j=0;j<ntdr;j++){
         for(k=0;k<2;k++){
          for(l=0;l<3;l++)_GetGeo[i][j][k][l]=-1;
         }
        }
      }
      for(i=0;i<nl;i++){
-       for(int j=0;j<nld;j++){
+       for( j=0;j<nld;j++){
          for(k=0;k<2;k++){
           for(int l=0;l<3;l++)_GetHard[i][j][k][l]=-1;
          }
