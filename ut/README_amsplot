@@ -1,0 +1,32 @@
+#
+# amsplot; python script; J. Alcaraz 09-Dec-2003
+#
+SCRIPT amsplot: 
+		amsplot [options] [variable] [files]
+	 to plot one AMS variable from a set of root files
+
+	a) It checks the validity of [variable] and the existence of [files]
+	b) It creates the files "amsplot.C" and "amsplot_anal.C"
+	c) It executes "root amsplot.C" at the end (use "--test" to avoid this)
+USAGES: 
+	amsplot [variable] [root_file1] [root_file2] ...
+	amsplot --list [variable] [file_with_list_of_root_files]
+	amsplot --test [variable] [root_file1] [root_file2] ...
+	amsplot --test --list [variable] [file_with_list_of_root_files]
+EXAMPLES: 
+	amsplot nTrTrack proton_1.root               --> #tracks in event
+	amsplot nTrTrack proton_1.root proton_2.root --> #tracks in event
+	amsplot nTrTrack proton*.root                --> #tracks in event
+	amsplot '1<=nTrTrack<=5' gammas_*_*.root     --> #tracks in a range
+	amsplot Header.Run helium.root.*             --> Run number
+	amsplot Run helium.root.*                    --> Run number
+	amsplot TrTrack.Rigidity ntp/*.root.*        --> Track rigidities
+	amsplot 'TrTrack.Rigidity>0' my_file.root    --> Track rigidities>0
+	amsplot 'TrTrack.NTrRecHit()' my_file.root   --> #hits on tracks
+	amsplot 'TrTrack.HPhi[1]' my_file.root       --> Phi of first half-track
+	amsplot 'TrTrack.HPhi[1]!=0' my_file.root    --> (HPhi==0 => not filled)
+	amsplot 'TrTrack.iTrRecHit(2)' my_file.root  --> link to 2nd hit on track
+	amsplot --test nParticle my_file.root        --> #particles; test mode
+	amsplot --list nParticle list_of_root_files  --> #particles; list mode
+IMPORTANT: 
+	Please set the $AMSDir environment variable before using the script

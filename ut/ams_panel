@@ -1,0 +1,428 @@
+#!/usr/bin/wish -f
+
+##############################################################################
+# AMS Software Panel, coded using Tcl/Tk
+##############################################################################
+# You may want to redefine here the AMS software directory (AMSDir) 
+#   and/or
+# your preferred XWindow editor (XEDITOR),
+#
+# By default, we try to take set AMSDir form the environemnt variable
+# $AMSDir. If it is not defined, you will get an error message to help
+# 
+# In addition, you can change here below:
+#    your preferred fonts (XFONTS_BUTTONS, XFONTS_TEXT),
+#    your preferred height for the log window (Y_WIDTH_LOG),
+#...
+
+set XEDITOR "emacs"
+set AMSDir ""
+
+if {[catch {exec which $XEDITOR}]} {
+  puts "Your \"XEDITOR\" editor is NOT WELL DEFINED." 
+  puts "Please change the default value at the beginning "
+  puts "of the \"ams_panel\" script "
+  exit
+}
+
+if {"$AMSDir" == ""} {
+  if {[catch {set AMSDir $env(AMSDir)}]} {
+    puts "Your \"AMSDir\" environment variable is UNDEFINED." 
+    puts "Example to define it:"
+    puts "  On /bin/bash: export AMSDir=/f2users/$env(LOGNAME)/ams/AMS"
+    puts "  On /bin/tcsh: setenv AMSDir /f2users/$env(LOGNAME)/ams/AMS"
+    puts ""
+    puts "Alternatively, you can set AMSDir directly inside the \"ams_panel\" script,"
+    puts "You may also change the default XWindow editor (XEDITOR variable)"
+    exit
+  }
+}
+
+set XFONTS_BUTTONS "lucidasans-bold-14"
+set XFONTS_TEXT "lucidasans-bold-14"
+set Y_WIDTH_LOG "30"
+##############################################################################
+#################################################################3333
+
+# Set initial current working directory and disable CDPATH searches
+cd $AMSDir
+set env(CDPATH) "."
+
+# Previous commands in text entries are recovered
+# via "arrayfile", "arraygrep" and "arraycomm" arrays
+set indexfile 0
+set arrayfile(0) ""
+set file ""
+
+set indexgrep 0
+set arraygrep(0) ""
+set grepfile ""
+
+set indexcomm 0
+set arraycomm(0) ""
+set commfile ""
+
+# Main window title
+wm title . "AMS Software Station"
+
+# Top part of the panel (frame ".top")
+frame .top -borderwidth 10
+pack .top -side top -fill x
+
+# Subframes on top of each other and inside ".top"
+frame .top.t1 -borderwidth 10
+frame .top.t2 -borderwidth 10
+frame .top.t3 -borderwidth 10
+frame .top.t4 -borderwidth 10
+pack .top.t1 .top.t2 .top.t3 .top.t4 -side top
+
+# Subframe ".top.t1" contains all buttons, horizontally from left to right
+button .top.t1.exit -background green -text Exit -font $XFONTS_BUTTONS -command exit
+set make [button .top.t1.make -background cyan -text "Create gbatch.exe" -font $XFONTS_BUTTONS -command AMSMake]
+button .top.t1.root -background cyan -text "Create Root Library" -font $XFONTS_BUTTONS -command AMSRoot
+button .top.t1.clean -background red -text "Make Clean" -font $XFONTS_BUTTONS -command AMSClean 
+button .top.t1.update -background green -text "CVS Update" -font $XFONTS_BUTTONS -command AMSUpdate
+pack .top.t1.exit .top.t1.update .top.t1.make .top.t1.root .top.t1.clean -side left -padx 10 -fill x
+
+# Subframe ".top.t2" contains text entries 
+# (to edit files)
+# The thing is again displayed horizontally from left to right
+label .top.t2.label1 -width 15 -text "Edit AMS file:" -font $XFONTS_BUTTONS -anchor e
+entry .top.t2.edit -width 50 -background white -relief sunken -font $XFONTS_TEXT -textvariable file
+pack .top.t2.label1 .top.t2.edit -side left -padx 5
+
+# Subframe ".top.t3" contains text entries 
+# (to search via "grep [ams_files] -r -e $*")
+# The thing is again displayed horizontally from left to right
+label .top.t3.label1 -width 15 -text "Search AMS term:" -font $XFONTS_BUTTONS -anchor e
+entry .top.t3.grep -width 50 -background white -relief sunken -font $XFONTS_TEXT -textvariable grepterm
+pack .top.t3.label1 .top.t3.grep -side left -padx 5
+
+# Subframe ".top.t4" contains text entries 
+# The thing is again displayed horizontally from left to right
+label .top.t4.label1 -width 15 -text "Shell command:" -font $XFONTS_BUTTONS -anchor e
+entry .top.t4.comm -width 50 -background white -relief sunken -font $XFONTS_TEXT -textvariable commterm
+pack .top.t4.label1 .top.t4.comm -side left -padx 5
+
+# What to do for the entry ".top.t2.edit" after <Return> is pressed...
+# a) Edit the given file, also searching in $AMSDir 
+#    subdirectories ("CC","F","include","doc")
+# b) The given input is kept in the array "arrayfile"
+bind .top.t2.edit <Return> {
+  global EditInput file log indexfile arrayfile AMSDir
+  set file [string trim $file]
+
+  if { "$file" != ""} {
+    if {![catch {open "$AMSDir/CC/$file" r} EditInput]} {
+        open "|$XEDITOR $AMSDir/CC/$file"
+    } elseif {![catch {open "$AMSDir/include/$file" r} EditInput]} {
+        open "|$XEDITOR $AMSDir/include/$file"
+    } elseif {![catch {open "$AMSDir/F/$file" r} EditInput]} {
+        open "|$XEDITOR $AMSDir/F/$file"
+    } elseif {![catch {open "$AMSDir/doc/$file" r} EditInput]} {
+        open "|$XEDITOR $AMSDir/doc/$file"
+    } elseif {![catch {open "$AMSDir/$file" r} EditInput]} {
+        open "|$XEDITOR $AMSDir/$file"
+    } elseif {![catch {open "$file" r} EditInput]} {
+        open "|$XEDITOR $file"
+    } else {
+        $log insert end "\n>\n"
+        $log insert end "> File $file not found. We tried (in order):\n"
+        $log insert end ">   \$AMSDir/CC/$file\n"
+        $log insert end ">   \$AMSDir/include/$file\n"
+        $log insert end ">   \$AMSDir/F/$file\n"
+        $log insert end ">   \$AMSDir/doc/$file\n"
+        $log insert end ">   \$AMSDir/$file\n"
+        $log insert end ">   $file\n"
+        $log insert end "\n>\n"
+        $log see end
+    }
+    set indexfile [array size arrayfile]
+    set arrayfile($indexfile) ""
+    set arrayfile([expr $indexfile-1]) $file
+    set file ""
+  }
+
+}
+
+# What to do for the entry ".top.t2.edit" after <Up> or <Down> are pressed...
+# They recover "previous" and "next" files in the "arrayfile" array
+# The thing works like in "bash" or "tcsh" shell environments
+bind .top.t2.edit <Up> {
+ global file indexfile arrayfile
+ if {"$indexfile" > "0"} {
+   set indexfile [expr $indexfile - 1]
+   set file ""
+   .top.t2.edit insert 0 $arrayfile($indexfile)
+ }
+}
+
+bind .top.t2.edit <Down> {
+ global file indexfile arrayfile
+ set next [expr $indexfile + 1]
+ if [info exists arrayfile($next)] {
+   set indexfile $next
+   set file ""
+   .top.t2.edit insert 0 $arrayfile($next)
+ }
+}
+
+# What to do for the entry ".top.t3.grep" after <Return> is pressed...
+# a) Search for the given file in $AMSDir subdirectories ("CC","F","include")
+# b) The given input is kept in the array "arraygrep"
+bind .top.t3.grep <Return> {
+  global grepterm GrepInput log AMSDir
+  set grepterm [string trim $grepterm]
+
+  if { "$grepterm" != ""} {
+    set command "bash -c \"cd $AMSDir ; grep */*.C */*.h */*.F -r -e $grepterm \""
+    if {[catch {open "|$command |& cat"} GrepInput]} {
+          $log insert end $GrepInput\n
+    } else {
+        fileevent $GrepInput readable {
+          if {[eof $GrepInput]} {
+            catch {close $GrepInput}
+            $log insert end "\n< [pwd] >"
+            $log see end
+            set indexgrep [array size arraygrep]
+            set arraygrep($indexgrep) ""
+            set arraygrep([expr $indexgrep-1]) $grepterm
+            set grepterm ""
+          } else {
+                  gets $GrepInput line
+                  $log insert end \n$line
+                  $log see end
+          }
+        }
+    }
+  }
+}
+
+# What to do for the entry ".top.t3.grep" after <Up> or <Down> are pressed...
+# They recover "previous" and "next" files in the "arraygrep" array
+# The thing works like in "bash" or "tcsh" shell environments
+bind .top.t3.grep <Up> {
+ global grepterm indexgrep arraygrep
+ if {"$indexgrep" > "0"} {
+   set indexgrep [expr $indexgrep - 1]
+   set grepterm ""
+   .top.t3.grep insert 0 $arraygrep($indexgrep)
+ }
+}
+
+bind .top.t3.grep <Down> {
+ global grepterm indexgrep arraygrep
+ set next [expr $indexgrep + 1]
+ if [info exists arraygrep($next)] {
+   set indexgrep $next
+   set grepterm ""
+   .top.t3.grep insert 0 $arraygrep($next)
+ }
+}
+
+# What to do for the entry ".top.t4.comm" after <Return> is pressed...
+# a) Execute the given command from the $AMSDir directory
+bind .top.t4.comm <Return> {
+  global commterm CommInput log AMSDir
+  set commterm [string trim $commterm]
+  if { [regexp {;} $commterm] } {
+    set commterm ""
+    return "Only one command at the time, please!!"
+  }
+  if {[regexp {^cd} $commterm match]} {
+    if {[regexp {cd +[$]+([^/]*)/?([^\s;]*)} $commterm match environ newpwd]} {
+      if { "$environ" != "" } {
+        if {[catch {cd $env($environ)} CommInput]} {
+          $log insert end $CommInput\n
+        }
+      } 
+      if { "$newpwd" != "" } {
+        if {[catch {cd $newpwd} CommInput]} {
+          $log insert end $CommInput\n
+        }
+      }
+    } elseif {[regexp {cd +([^\s;]*)} $commterm match newpwd]} {
+      if {[catch {cd $newpwd} CommInput]} {
+        $log insert end $CommInput\n
+      }
+    } else {
+      cd ~
+    }
+    $log insert end "\n< [pwd] >"
+    $log see end
+    set indexcomm [array size arraycomm]
+    set arraycomm($indexcomm) ""
+    set arraycomm([expr $indexcomm-1]) $commterm
+    set commterm ""
+
+  } elseif { "$commterm" != ""} {
+    set command "bash -c \"$commterm\""
+    if {[catch {open "|$command |& cat"} CommInput]} {
+          $log insert end $CommInput\n
+    } else {
+        fileevent $CommInput readable {
+          if {[eof $CommInput]} {
+            catch {close $CommInput}
+            $log insert end "\n< [pwd] >"
+            $log see end
+            set indexcomm [array size arraycomm]
+            set arraycomm($indexcomm) ""
+            set arraycomm([expr $indexcomm-1]) $commterm
+            set commterm ""
+          } else {
+                  gets $CommInput line
+                  $log insert end \n$line
+                  $log see end
+          }
+        }
+    }
+  }
+}
+
+# What to do for the entry ".top.t4.comm" after <Up> or <Down> are pressed...
+# They recover "previous" and "next" files in the "arraycomm" array
+# The thing works like in "bash" or "tcsh" shell environments
+bind .top.t4.comm <Up> {
+ global commterm indexcomm arraycomm
+ if {"$indexcomm" > "0"} {
+   set indexcomm [expr $indexcomm - 1]
+   set commterm ""
+   .top.t4.comm insert 0 $arraycomm($indexcomm)
+ }
+}
+
+bind .top.t4.comm <Down> {
+ global commterm indexcomm arraycomm
+ set next [expr $indexcomm + 1]
+ if [info exists arraycomm($next)] {
+   set indexcomm $next
+   set commterm ""
+   .top.t4.comm insert 0 $arraycomm($next)
+ }
+}
+
+# Bottom part of the panel (frame ".t")
+# Inside, we will log the output of all commands ("text" object ".t.log")
+# We will associate the vertical scrollbar ".t.scroll" on the right side
+frame .t 
+set log [text .t.log -height $Y_WIDTH_LOG \
+         -background white -foreground black -font $XFONTS_TEXT \
+         -borderwidth 2 -setgrid true \
+         -yscrollcommand {.t.scroll set} ]
+
+scrollbar .t.scroll -command {.t.log yview}
+pack .t.scroll -side right -fill y
+pack .t.log -side top -fill both -expand true
+pack .t -side bottom -fill both -expand true
+$log insert end "< [pwd] >"
+
+# One can exit the panel by pressing <Control-q> on any text entry or on 
+# the log zone 
+bind .t.log <Control-q> exit
+bind .top.t2.edit <Control-q> exit
+bind .top.t3.grep <Control-q> exit
+bind .top.t4.comm <Control-q> exit
+
+# Focus follows mouse
+bind all <Enter> {focus %W}
+
+# Command to be executed when the ".top.t1.make" button is pressed
+# a) gmake -if Mopt ; output is shown in the log zone ".t.log"
+# b) During execution, the button becomes "Stop  gbatch.exe" (to kill/stop the command)
+proc AMSMake {} {
+  global MakeInput log make AMSDir
+  set command "bash -c \"cd $AMSDir/install; gmake -if Mopt\""
+  if {[catch {open "|$command |& cat"} MakeInput]} {
+        $log insert end $MakeInput\n
+        $log see end
+  } else {
+      $log insert end "> Executing: $command ... \n"
+      fileevent $MakeInput readable {
+        if {[eof $MakeInput]} {
+          catch {close $MakeInput}
+          $log insert end "\n< [pwd] >"
+          $log see end
+          $make config -text "Create gbatch.exe" -command AMSMake
+        } else {
+                gets $MakeInput line
+                $log insert end \n$line
+                $log see end
+        }
+      }
+      $make config -text "Stop (gbatch.exe)" -command {
+        catch {close $MakeInput}
+        $log insert end "\n>... Stopped\n"
+        $log see end
+        $make config -text "Create gbatch.exe" -command AMSMake
+      }
+  }
+}
+
+# Command to be executed when the ".top.t1.update" button is pressed
+# a) cvs update -d ; output is shown in the log zone ".t.log"
+proc AMSUpdate {} {
+  global UpdateInput log AMSDir
+  set command "bash -c \"cd $AMSDir; cvs update -d\""
+  if {[catch {open "|$command |& cat"} UpdateInput]} {
+        $log insert end $UpdateInput\n
+  } else {
+      $log insert end "> Executing: $command ... \n"
+      fileevent $UpdateInput readable {
+        if {[eof $UpdateInput]} {
+          catch {close $UpdateInput}
+          $log insert end "\n< [pwd] >"
+          $log see end
+        } else {
+                gets $UpdateInput line
+                $log insert end \n$line
+                $log see end
+        }
+      }
+  }
+}
+
+# Command to be executed when the ".top.t1.root" button is pressed
+# a) gmake shared -f Mopt; output is shown in the log zone ".t.log"
+proc AMSRoot {} {
+  global RootInput log AMSDir
+  set command "bash -c \"cd $AMSDir/install; gmake shared -f Mopt\""
+  if {[catch {open "|$command |& cat"} RootInput]} {
+        $log insert end $RootInput\n
+  } else {
+      $log insert end "> Executing: $command ... \n"
+      fileevent $RootInput readable {
+        if {[eof $RootInput]} {
+          catch {close $RootInput}
+          $log insert end "\n< [pwd] >"
+          $log see end
+        } else {
+                gets $RootInput line
+                $log insert end \n$line
+                $log see end
+        }
+      }
+  }
+}
+
+# Command to be executed when the ".top.t1.clean" button is pressed
+# a) gmake -if Mopt clean; output is shown in the log zone ".t.log"
+proc AMSClean {} {
+  global CleanInput log AMSDir
+  set command "bash -c \"cd $AMSDir/install; gmake -if Mopt clean\""
+  if {[catch {open "|$command |& cat"} CleanInput]} {
+        $log insert end $CleanInput\n
+  } else {
+      $log insert end "> Executing: $command ... \n"
+      fileevent $CleanInput readable {
+        if {[eof $CleanInput]} {
+          catch {close $CleanInput}
+          $log insert end "\n< [pwd] >"
+          $log see end
+        } else {
+                gets $CleanInput line
+                $log insert end \n$line
+                $log see end
+        }
+      }
+  }
+}
