@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.239 2004/09/27 15:00:58 choumilo Exp $
+#  $Id: datacards.doc,v 1.240 2004/09/29 10:52:13 alcaraz Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -250,8 +250,8 @@ R49  ResCutCircle(0.5)      // --- circlefit  (not yet impl)
 R50  SearchRegFastFit(1)    // Max distance in cm between point 
                                   // and extrapolated curve to include
                                   // point in the pattern
-R51  SearchRegStrLine(0.5)  // ------- strline fit
-R52  SearchRegCircle(1)     // ---------- circle fit
+R51  SearchRegStrLine(1.5)  // ------- strline fit
+R52  SearchRegCircle(10)    // ---------- circle fit
 R53  RidgidityMin(0.2)      // Minimal ridgidity in GV     
 I54  FullReco(0)            // Use(1) or not use(0) "used "clusters to build 
                             // tracks
