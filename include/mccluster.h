@@ -130,7 +130,7 @@ public:
 
   AMSRichMCHit(integer id,integer channel,geant counts,AMSPoint origin,AMSPoint direction) :
     AMSlink(),_id(id),_channel(channel),_counts(counts),_origin(origin),_direction(direction){};
-  AMSRichMCHit():AMSlink(){};
+  AMSRichMCHit():AMSlink(),_counts(0){};
   ~AMSRichMCHit(){};
 
   void _printEl(ostream &stream){stream <<"AMSRichMCHit "<<_channel<<endl;}

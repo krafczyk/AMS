@@ -629,6 +629,7 @@ TRDMCFFKEY.g3trd=123654;
 TRDMCFFKEY.cor=0.68;
 TRDMCFFKEY.alpha=0;
 TRDMCFFKEY.beta=0;
+FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
 void AMSJob::_sisrddata(){
@@ -1446,6 +1447,7 @@ void AMSJob::_sictcinitjob(){
 
 void AMSJob::_sitrdinitjob(){
 
+  AMSgObj::BookTimer.book("TrdRadiationGen");
  AMSTRDMCCluster::init();
 }
 void AMSJob::_sisrdinitjob(){

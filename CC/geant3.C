@@ -24,15 +24,35 @@
 #include <daqevt.h>
 #include <iostream.h>
 #include <richdbc.h>
+extern "C" void simde_(int&);
+extern "C" void trphoton_(int&);
+extern "C" void simtrd_(int& );
 extern "C" void gustep_(){
 
+//
+// TRD here
+//
+ AMSgObj::BookTimer.start("TrdRadiationGen");
+  if(TRDMCFFKEY.mode <2) {
+    //saveliev
+    simtrd_(TRDMCFFKEY.g3trd);
+  }
+  else{
+    // garibyan
+   
+  }
+  if(TRDMCFFKEY.mode==0){
+   trphoton_(TRDMCFFKEY.g3trd);
+   simde_(TRDMCFFKEY.g3trd);
+  }
+ AMSgObj::BookTimer.stop("TrdRadiationGen");
 
 
   try{
 {
    // TRD
  int lvl=GCVOLU.nlevel-1;
- if(GCTMED.isvol != 0 && GCVOLU.names[lvl][0]=='T' && GCVOLU.names[lvl][1]=='R'  && GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]=='T'){
+ if(GCTRAK.destep != 0 && GCTMED.isvol != 0 && GCVOLU.names[lvl][0]=='T' && GCVOLU.names[lvl][1]=='R'  && GCVOLU.names[lvl][2]=='D' && GCVOLU.names[lvl][3]=='T'){
 
      AMSTRDMCCluster::sitrdhits(GCVOLU.number[lvl],GCTRAK.vect,
         GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart);   

@@ -11,7 +11,9 @@
 #include <cont.h>
 #include <ntuple.h>
 #include <richdbc.h>
-
+#ifndef __G4AMS__
+extern "C" void indetra_();
+#endif
 
 integer AMSTRDMCCluster::_NoiseMarker(555);
 
@@ -55,13 +57,20 @@ stream <<"AMSTRDMCCluster "<<_idsoft<<" "
 }
 
 void AMSTRDMCCluster::init(){
+#ifdef __G4AMS__
+if(MISCFFKEY.G3On){
+#endif
 if(TRDMCFFKEY.mode<2){
+indetra_();
+cerr<< "AMSJob::_sitrdinitjob-I-TRDOption "<<TRDMCFFKEY.mode<<" Initialized"<<endl;
 }
 else{
 cerr<< "AMSJob::_sitrdinitjob-F-Option "<<TRDMCFFKEY.mode<<" NotYetImplemented"<<endl;
 exit(1);
 }
-
+#ifdef __G4AMS__
+}
+#endif
 }
 
 

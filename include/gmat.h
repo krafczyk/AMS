@@ -110,9 +110,10 @@ class AMSgtmed : public AMSNode
     _stemax(stemax),_deemax(deemax),_epsil(epsil),_stmin(stmin),_yb(yb),_nwbuf(0),_uwbuf(0),
     AMSNode(){
    _pgmat=AMSgmat::getpmat(matname); 
-#ifdef __AMSDEBUG__
-   assert(_pgmat>0);
-#endif
+   if(!_pgmat){
+    cerr<<"AMSgtmed-ctor-F-NoMaterialFound "<<matname <<" for media "<<name<<endl;
+    exit(1);
+   }
    setname(name);
    setid(0); 
    

@@ -80,5 +80,8 @@ trd aware media will have defined 4 to 5 user words:
 3rd word   material type                      1 radiator
                                               2 straw
                                               3 gas
-                                              4+ reserved
+                                              4 wire?
+                                              5 air
+                                              6 vacuum
+                                              
 4+ word option dependent                       

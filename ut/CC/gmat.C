@@ -87,8 +87,8 @@ void AMSgtmed::_init(){
   }
   if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]!=0){
    GSTPAR(_itmed,"STRA",1);
-   GSTPAR(_itmed,"CUTGAM",1.e-6);
-   if(IsSensitive())GSTPAR(_itmed,"CUTELE",1.e-6);
+   GSTPAR(_itmed,"CUTGAM",4e-6);
+   if(IsSensitive())GSTPAR(_itmed,"CUTELE",60.e-6);
   }
 }      
 void AMSgtmed::setubuf(int nwbuf,geant ubuf[]){
@@ -128,7 +128,9 @@ mat.add (new AMSgmat("LEAD",207.19,82., 11.35 ,0.56,18.5));
 mat.add (new AMSgmat("URANIUM",238.03,92., 18.95 ,0.32,12. ));
 mat.add (new AMSgmat("AIR",14.61,7.3, 0.001205,30423.24,67500.));
 mat.add (new AMSgmat("MYLAR",  8.7   ,4.5,  1.39  ,28.7, 43.));
+mat.add (new AMSgmat("MYLARTRD",  8.7   ,4.5,  1.39  ,28.7, 43.));
 mat.add (new AMSgmat("VACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
+mat.add (new AMSgmat("VACUUMTRD",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
 geant a[]={20.18,12.01,1.01,0};
 geant z[]={10.,6.,1.,0};
 geant w[]={4.,1.,4.,0};
@@ -299,13 +301,13 @@ mat.add (new AMSgmat( "TRDHC",26.98, 13., rho, 24./rho, 106/rho));
 rho=1.6;
 mat.add (new AMSgmat("TRDCarbonFiber", 12.01, 6., rho , 42.7/rho, 86.3/rho));
 
-// Gas (Xe/CF4) (80/20) 1.1% X0
+// Gas (Xe/CO2) (80/20) 1.1% X0
 
 {
-   geant z[]={54.,6.,7.};
-   geant a[]={131.3,12.,14.};
-   geant w[]={8,2,8};
-   mat.add (new AMSgmat("XECF4_80/20",a,z,w,3,5.3e-3));
+   geant z[]={54.,6.,8.};
+   geant a[]={131.3,12.,16.};
+   geant w[]={8,2,4};
+   mat.add (new AMSgmat("XECO2_80/20",a,z,w,3,5.1e-3));
 }
 // TRDFoam
 //   just plain carbon with 0.08 0.4% X0
@@ -321,7 +323,7 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
    geant z[]={6.,1.};
    geant a[]={12.,1.};
    geant w[]={1,2};
-   mat.add (new AMSgmat("TRDRadiator",a,z,w,2,0.06));
+   mat.add (new AMSgmat("TRDRadiator",a,z,w,2,0.063));
 }
 
 }
@@ -360,7 +362,26 @@ AMSJob::gethead()->addup(&tmed);
 
 tmed.add (new AMSgtmed("AIR","AIR",0));
 tmed.add (new AMSgtmed("MAGNET","MAGNET",0));
-tmed.add (new AMSgtmed("VACUUM","VACUUM",0));
+
+{
+// vacuum has to be trd aware
+ geant uwbuf[5];
+ integer nwbuf=5;
+ uwbuf[0]=TRDMCFFKEY.g3trd;
+ uwbuf[1]=TRDMCFFKEY.mode;
+ if(TRDMCFFKEY.mode<2){
+  uwbuf[3]=TRDMCFFKEY.cor;
+  uwbuf[4]=0;
+ }
+ else{
+  uwbuf[3]=TRDMCFFKEY.alpha;
+  uwbuf[4]=TRDMCFFKEY.beta;
+ }
+ AMSgtmed * pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);
+ uwbuf[2]=6;
+ pvac->setubuf(nwbuf,uwbuf);
+ tmed.add (pvac );
+}
 
 int vac_med=GetLastMedNo();
 
@@ -520,14 +541,19 @@ uwbuf[4]=TRDMCFFKEY.beta;
 }
 tmed.add (new AMSgtmed("TRDHC","TRDHC",0));
 tmed.add (new AMSgtmed("TRDCarbonFiber","TRDCarbonFiber",0));
+
 uwbuf[2]=3;
-AMSgtmed * pgas=new AMSgtmed("TRDGas","XECF4_80/20",1);
+AMSgtmed * pgas=new AMSgtmed("TRDGas","XECO2_80/20",1);
 pgas->setubuf(nwbuf,uwbuf);
 tmed.add (pgas);
 
-tmed.add (new AMSgtmed("TRDFoam","TRDFoam",0));
+AMSgtmed *pfoam = new AMSgtmed("TRDFoam","TRDFoam",0);
 uwbuf[2]=2;
-AMSgtmed * pwall=new AMSgtmed("TRDCapton","MYLAR",0);
+pfoam->setubuf(nwbuf,uwbuf);
+tmed.add (pfoam);
+
+AMSgtmed * pwall=new AMSgtmed("TRDCapton","MYLARTRD",0);
+uwbuf[2]=2;
 pwall->setubuf(nwbuf,uwbuf);
 tmed.add (pwall);
 
