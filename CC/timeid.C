@@ -341,7 +341,6 @@ void AMSTimeID::_convert(uinteger *pdata, integer n){
 
 }
 integer AMSTimeID::_getDBRecord(uinteger time){
- 
  integer index=AMSbiel(_pDataBaseEntries[3],time,_DataBaseSize);
  //cout <<getname()<<" "<<index<<" "<<time<<" "<<_pDataBaseEntries[3][index]<<" "<<_DataBaseSize<<endl;
   int rec=-1;
@@ -354,12 +353,12 @@ integer AMSTimeID::_getDBRecord(uinteger time){
  }
 
 #ifndef __DB__
-   if(time<_Begin || time>_End)return rec<0?0:_pDataBaseEntries[0][rec];
+   if(time<_Begin || time>_End )return rec<0?0:_pDataBaseEntries[0][rec];
+   else if (rec>=0)return  _pDataBaseEntries[0][rec];
    else return -1;
 #endif
 #ifdef __DB__
-   if(time<_Begin || time>_End) return rec;
-   else return -1;
+   return rec;
 #endif
 
 //Old

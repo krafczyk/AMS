@@ -1,5 +1,5 @@
 close 4
- hi/file 4 /offdata/ntuples/new/[1].hbk.part.1 0
+hi/file 4 /offdata/ntuples/new/[1].hbk.part.1 0
 hi/file 4 /offdata/ntuples/new/[1].hbk.lvl3.1 0
  title [1]
 nt/loop 1 every.f

@@ -9,7 +9,7 @@ DISPLAY=$DISPLAY
 export DISPLAY
 export  AMSEDDataDir
 export LD_LIBRARY_PATH
-while( amsedv )
+while( nice -18 amsedv )
 do
 echo amsedv terminated
 done
