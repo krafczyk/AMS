@@ -5,7 +5,13 @@
 
 {
 gROOT->Reset();
+
+// for linux load
 gSystem->Load("/offline/vdev/lib/linux/icc/ntuple.so");
+//
+//  for dunix aka ams.cern.ch load 
+//  gSystem->Load("/offline/vdev/lib/osf1/ntuple.so");
+//
 TChain chain("AMSRoot");
 chain.Add("/f2users/choutko/root/dst/g3v1g3.root");
 chain.Add("/f2users/choutko/root/dst/g3v1g3.full.root");

@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.78 2003/05/20 09:06:23 choutko Exp $
+//  $Id: gbatch.C,v 1.79 2003/05/22 12:25:52 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -23,16 +23,9 @@ float q[NWGEAN];
 COMMON_BLOCK_DEF(GCBANK_DEF,GCBANK);
 GCBANK_DEF GCBANK;
 
-#ifdef __ROOTA__
-// Jul 23, 02 Root version 3.03.07
-//#define PAWC COMMON_BLOCK(PAWC,pawc)
-//COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
-//PAWC_DEF PAWC;
-#else
 #define PAWC COMMON_BLOCK(PAWC,pawc)
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 PAWC_DEF PAWC;
-#endif
 
 void (handler)(int);
  namespace glconst{

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.84 2003/05/22 12:01:58 mdelgado Exp $
+//  $Id: gmat.C,v 1.85 2003/05/22 12:25:52 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -541,7 +541,6 @@ AMSJob::gethead()->addup(&tmed);
 
 tmed.add (new AMSgtmed("AIR","AIR",0));
 tmed.add (new AMSgtmed("MAGNET","MAGNET",0));
-AMSgtmed * pvac;
 AMSgtmed * rich_pvac;
 {
 // vacuum has to be trd aware
@@ -560,7 +559,7 @@ else{
   uwbuf[1]=TRDMCFFKEY.mode;
   uwbuf[3]=0;
   uwbuf[4]=0;
- pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);  
+AMSgtmed * pvac=new AMSgtmed("VACUUM","VACUUMTRD",0);  
   rich_pvac=pvac;   // DO NOT MODIFY
  uwbuf[2]=6;
  pvac->setubuf(nwbuf,uwbuf);

@@ -1,6 +1,5 @@
 #include <tofid.h>
 using namespace TOF2GC;
-  int16u AMSTOFIds::sidlst[TOF2GC::SCCRAT*TOF2GC::SCSLOT*TOF2GC::SCRDCH];//swid-list(vs hwch) 
   int16u AMSTOFIds::hidlst[TOF2GC::SCLRS*TOF2GC::SCMXBR*2*TOF2GC::SCMTYP];//hwid-list(vs swch)
   int16u AMSTOFIds::sltypes[TOF2GC::SCCRAT][TOF2GC::SCSLOT]; 
   int16u AMSTOFIds::cardids[TOF2GC::SCCRAT][TOF2GC::SCSLOT]; 
@@ -77,7 +76,8 @@ int16 AMSTOFIds::crdid2sl(int16u crate, int16u crdid){//sequential slot# vs crdi
 }
 //--------
 void AMSTOFIds::inittable(){
-  int16u sidlst[TOF2GC::SCCRAT*TOF2GC::SCSLOT*TOF2GC::SCRDCH]={
+}
+  int16u AMSTOFIds::sidlst[TOF2GC::SCCRAT*TOF2GC::SCSLOT*TOF2GC::SCRDCH]={
     0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  //sl1cr1(24ch)						       
     0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  //sl2cr1(24ch)						       
     0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  //sl3cr1(24ch)						       
@@ -107,7 +107,6 @@ void AMSTOFIds::inittable(){
     0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0   //sl6cr4(24ch)
     						       
   }; 
-}
 
 
 

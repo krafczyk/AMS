@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.45 2003/05/16 21:24:59 schol Exp $
+//  $Id: trddbc.C,v 1.46 2003/05/22 12:25:53 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -2683,6 +2683,7 @@ for(int iseg=0;iseg<nlayS();iseg++){
      _patconfH[iseg][nl]=new integer[_NpatH[iseg]];
    }   
    _patpointsH[iseg] =new integer[_NpatH[iseg]];
+   for(int i=0;i<_NpatH[iseg];i++)_patpointsH[iseg][i]=0;
    _patallowH[iseg] =new integer[_NpatH[iseg]];
    _patallow2H[iseg] =new integer[_NpatH[iseg]];
    int cpat=0;

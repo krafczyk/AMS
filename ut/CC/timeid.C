@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.79 2003/04/07 08:48:35 choutko Exp $
+//  $Id: timeid.C,v 1.80 2003/05/22 12:25:53 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -325,7 +325,7 @@ if(_Type!=Client){
        return true;
       }
       else {
-        cerr<<"AMSTimeID::read-E-Problems to Read File "<<fnam<<endl;
+        cerr<<"AMSTimeID::read-E-Problems to Read File "<<fnam<<" size declared "<<ns<<endl;
         fbin.close();
         delete [] pdata;
         return false;
@@ -756,7 +756,7 @@ void AMSTimeID::_rewrite(const char *dir, AString & ffile){
                 }
                 else {
                   cout<<"AMSTimeID::read-W-Problems to Read File "<<
-                  ffile<<endl;//tempor
+                  ffile<<" size declared "<<ns<<endl;//tempor
                   fbin.close();
                   delete [] pdata;
                 }
