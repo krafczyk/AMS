@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.5 2004/02/11 13:25:29 choutko Exp $
+#  $Id: Makefile,v 1.6 2004/02/12 14:59:53 alcaraz Exp $
 
 #rl october 2003
 
@@ -404,6 +404,14 @@ clean :
 	rm -f $(BIN)*.h
 	rm -f $(EXE)gbatch_r.exe
 	rm -f $(EXE)gbatch.exe
+
+cleanlibs:
+	rm -f $(BIN)/root*.o
+	rm -f $(AMSLIB)/*.so
+	rm -f $(AMSICCLIB)/*.so
+	cd ../ruby; gmake clean
+	cd ../python; gmake clean
+	cd ../install
 
 ##### DEPENDENCIES #####
 ifneq ($(MAKECMDGOALS),touch_depend)
