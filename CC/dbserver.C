@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.10 2001/02/28 09:17:08 alexei Exp $
+//  $Id: dbserver.C,v 1.11 2001/02/28 09:17:56 alexei Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -610,7 +610,7 @@ void  DBServer_impl::_init(){
 {
 
 int length=0;
-TDVbody_var vbody=0;
+TDVbody_var vbody=new TDVbody();
 
   int  rstat = -1;
   unsigned int *pdata = 0;
@@ -640,7 +640,6 @@ TDVbody_var vbody=0;
     cout<<"           i/b/e               "<<tdvname.Entry.Insert<<"/"
         <<tdvname.Entry.Begin<<"/"<<tdvname.Entry.End<<endl;
   }
- vbody=new TDVbody();
 
  if(tdvname.Success){
   vbody->length(length);
