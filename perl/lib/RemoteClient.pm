@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.306 2005/03/16 11:02:29 alexei Exp $
+# $Id: RemoteClient.pm,v 1.307 2005/03/16 13:09:15 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -78,6 +78,8 @@
 #                   new subs, remove $ActiveProductionSet use @productionPeriods
 #
 # Mar  9, 2005    : Protection against invalid JID in parsejournalfiles
+#
+# Mar 16, 2005    : DBQuery04 performance is improved
 #
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -2266,7 +2268,8 @@ CheckCite:            if (defined $q->param("QCite")) {
                    WHERE runs.jid=jobs.jid AND 
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
                         runs.status='Completed'";
-       $sqlNT = "SELECT ntuples.path 
+       $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                  FROM runs, jobs, runcatalog, ntuples   
                    WHERE runs.jid=jobs.jid AND 
                         (runcatalog.jobname LIKE '%$dataset%' AND runcatalog.run=runs.run) AND 
@@ -2309,7 +2312,8 @@ CheckCite:            if (defined $q->param("QCite")) {
                     FROM Runs, Jobs, runcatalog  
                      WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
                             Runs.run=runcatalog.run AND Runs.Status='Completed'";
-           $sqlNT = "SELECT Ntuples.path 
+           $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
+                        Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                     FROM Runs, Jobs, runcatalog, NTuples   
                      WHERE Jobs.DID=$did AND Jobs.JID=Runs.JID AND 
                             Runs.run=Ntuples.run AND  
@@ -2351,7 +2355,8 @@ CheckCite:            if (defined $q->param("QCite")) {
         $sql = "SELECT Runs.RUN, Jobs.JOBNAME, Runs.SUBMIT 
                     FROM Runs, Jobs, runcatalog  
                      WHERE Runs.JID=Jobs.JID AND Runs.Status='Completed' and Runs.run = runcatalog.run ";
-        $sqlNT = "SELECT Ntuples.path  
+        $sqlNT = "SELECT Ntuples.path, Ntuples.run, Ntuples.nevents, Ntuples.neventserr, 
+                         Ntuples.timestamp, Ntuples.status, Ntuples.sizemb, Ntuples.castortime 
                     FROM Runs, Jobs, runcatalog, Ntuples   
                      WHERE 
                         Runs.JID=Jobs.JID AND 
@@ -2435,6 +2440,10 @@ CheckCite:            if (defined $q->param("QCite")) {
 
        if ($q->param("NTOUT") eq "ROOT") {
         $rootfile = $q->param("ROOT");
+        if (not $rootfile =~ /\//  ) {
+            my $ctime = time();
+            $rootfile = "/tmp/".$ctime.$rootfile;
+        }
         print "<tr><td><b><font size=\"4\" color=\"blue\">ROOT script  ";
         print "</font></b></td>";
          if (defined $q->param("ROOTACCESS")) {
@@ -2453,35 +2462,47 @@ CheckCite:            if (defined $q->param("QCite")) {
        }
 # ....print 'ALL' information
        if ($q->param("NTOUT") eq "ALL") {
-              my $i = 0;
-              foreach my $run (@runs){
-               my $printit = 1;
-               if ($accessmode eq "REMOTE") {
-                $sql = "SELECT run FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
-                my $r0=$self->{sqlserver}->Query($sql);
-                if (not defined $r0->[0]) {
-                 $printit = 0;
+              my $i       = 0;
+              my $runold  = 0;
+              my $run     = 0;
+              $sql = $sqlNT;
+              my $r0=$self->{sqlserver}->Query($sql);
+              if (defined $r0->[0][0]) {
+               foreach my $nt (@{$r0}){
+                my $printit = 1;
+                $run = $nt->[1];
+                if ($run != $runold) {
+                 if ($accessmode eq "REMOTE") {
+                  $sql = "SELECT run FROM MC_DST_COPY WHERE run=$run AND cite='$remotecite'";
+                  my $r0=$self->{sqlserver}->Query($sql);
+                  if (not defined $r0->[0]) {
+                   $printit = 0;
+                  }
+                 }
+                 if ($printit == 1) {
+                  $i = 0;
+                  foreach my $r (@runs) {
+                   if ($r == $run) {
+                    my $jobname = $jobnames[$i];
+                    my $submit  = $submits[$i];
+                    print "<tr><td><b><font size=\"3\" color=$color> Job : $jobname, Run : $run, Submitted : $submit";
+                    print "</font></b></td></tr>\n";
+                    if ($runold != 0) {            htmlTableEnd();}
+                    print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
+                    print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+                    print "<tr><td width=10% align=left><b><font color=\"blue\" > NTuple </font></b></td>";
+                    print "<td width=10%><b><font color=\"blue\"> Events </font></b></td>";
+                    print "<td width=15%><b><font color=\"blue\" > Errors </font></b></td>";
+                    print "<td width=15%><b><font color=\"blue\" > Size[MB] </font></b></td>";
+                    print "<td td align=middle><b><font color=\"blue\" > Produced </font></b></td>";
+                    print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
+                    print "</tr>\n";
+                   }
+                   $i++;
+                  }
+                 }
+                 $runold = $run;
                 }
-               }
-               if ($printit == 1) {
-                my $jobname = $jobnames[$i];
-                my $submit  = $submits[$i];
-                $i++;
-                print "<tr><td><b><font size=\"3\" color=$color> Job : $jobname, Run : $run, Submitted : $submit";
-                print "</font></b></td></tr>\n";
-                print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
-                print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-                print "<tr><td width=10% align=left><b><font color=\"blue\" > NTuple </font></b></td>";
-                print "<td width=10%><b><font color=\"blue\"> Events </font></b></td>";
-                print "<td width=15%><b><font color=\"blue\" > Errors </font></b></td>";
-                print "<td width=15%><b><font color=\"blue\" > Size[MB] </font></b></td>";
-                print "<td td align=middle><b><font color=\"blue\" > Produced </font></b></td>";
-                print "<td width=10%><b><font color=\"blue\" > Status </font></b></td>";
-                print "</tr>\n";
-                $sql="SELECT PATH, NEVENTS, NEVENTSERR, TIMESTAMP, STATUS, SIZEMB FROM Ntuples WHERE RUN=$run ";
-                my $r1=$self->{sqlserver}->Query($sql);
-               if (defined $r1->[0][0]) {
-                foreach my $nt (@{$r1}){
                  my $path    = trimblanks($nt->[0]);
                  if ($accessmode eq "REMOTE") {
                   my $subpath = getPathNoDisk($path);
@@ -2496,22 +2517,20 @@ CheckCite:            if (defined $q->param("QCite")) {
                   }
                  }
                  if ($printit == 1) {
-                  my $timel =localtime($nt->[3]);
+                  my $timel =localtime($nt->[4]);
                   my ($wday,$mon,$day,$time,$year) = split " ",$timel;
-                  my $status=$nt->[4];
+                  my $status=$nt->[5];
                   my $color=statusColor($status);
-                  print "<td width=50%><b> $path    </td></b><td><b> $nt->[1] </td>
-                        <td align=middle width=5%><b> $nt->[2] </b></td>
-                        <td align=middle width=5%><b> $nt->[5] </b></td>
+                  print "<td width=50%><b> $path    </td></b><td><b> $nt->[2] </td>
+                        <td align=middle width=5%><b> $nt->[3] </b></td>
+                        <td align=middle width=5%><b> $nt->[6] </b></td>
                         <td align=middle width=25%><b> $mon $day, $time, $year </b></td> 
                         <td align=middle width=10%><b><font color=$color> $status </font></b></td> \n";
                  print "</font></tr>\n";
               }
-             }
             }
             htmlTableEnd();
             print "<BR><BR>\n";
-            }
            }
    } elsif ($q->param("NTOUT") eq "RUNS") {  
 # ... print Runs
@@ -2676,19 +2695,22 @@ CheckCite:            if (defined $q->param("QCite")) {
       my $sql = $sqlNT;
       my $r1=$self->{sqlserver}->Query($sql);
       if ($rootfileaccess eq "NFS") {
-          foreach my $path (@{$r1}) {
-           $path=trimblanks($path->[0]);
-           my @junk = split '/',$path;
-           my $tdir ="";
-           for (my $i=1; $i<$#junk; $i++) {
+          foreach my $nt (@{$r1}) {
+           my $path=trimblanks($nt->[0]);
+           if ($path =~ m/castor/) {
+#           skip it, file has only archived copy only
+           } else {
+            my @junk = split '/',$path;
+            my $tdir ="";
+            for (my $i=1; $i<$#junk; $i++) {
              $tdir = $tdir."/".$junk[$i];
-         }
-         $tdir = trimblanks($tdir);
-         my $dirfound = 0;
-         foreach my $dir (@dirs) {
-          if ($dir eq $tdir) {
-           $dirfound = 1;
-           last;
+            }
+            $tdir = trimblanks($tdir);
+            my $dirfound = 0;
+            foreach my $dir (@dirs) {
+             if ($dir eq $tdir) {
+              $dirfound = 1;
+              last;
           } 
          }
          if ($dirfound == 1) {
@@ -2701,47 +2723,65 @@ CheckCite:            if (defined $q->param("QCite")) {
           push @dirs, $tdir;
         }
        }
+      }
      } elsif ($rootfileaccess eq "HTTP") {
-       foreach my $path (@{$r1}) {
-           $path=trimblanks($path->[0]);
+       foreach my $nt (@{$r1}) {
+          my $path=trimblanks($nt->[0]);
+          if ($path =~ m/castor/) {
+#          skip it, file has only archived copy only
+          } else {
            my $httppath=$prefix.$path;
            my $s = "chain.Add(\"$httppath\");";
            print "<tr><td> $s </tr></td>\n";
            $buff = $buff.$s."\n";
-          }
+       }
+      }
      } elsif ($rootfileaccess eq "REMOTE") {
-          foreach my $p (@{$r1}) {
+        my $rrun = 0; # run 
+        foreach my $nt (@{$r1}) {
+         if ($rrun != $nt->[1]) {
+           $rrun = $nt->[1]; # run 
+           my $sql = "SELECT prefix,path From MC_DST_COPY WHERE Run=$rrun AND Cite='$remotecite'";
+           my $r1=$self->{sqlserver}->Query($sql);
+           if (defined $r1->[0][0]) {
+            foreach my $p (@{$r1}) {
               my $prefix = trimblanks($p->[0]);
               my $local  = trimblanks($p->[1]);
               my $path=$prefix."/".$local;
               my $s = "chain.Add(\"$path\");";
               print "<tr><td> $s </tr></td>\n";
               $buff = $buff.$s."\n";
-          }
+           }
+        }
+       }
+      }
      } elsif ($rootfileaccess eq "CASTOR") {
-          foreach my $path (@{$r1}) {
-           $path=trimblanks($path->[0]);
-           my @junk = split '/',$path;
-           my $tdir ="";
-           for (my $i=2; $i<$#junk; $i++) {
+          foreach my $nt (@{$r1}) {
+# check castortime
+           if ($nt->[7] > 0) {
+            my $path=trimblanks($nt->[0]);
+            my @junk = split '/',$path;
+            my $tdir ="";
+            for (my $i=2; $i<$#junk; $i++) {
              $tdir = $tdir."/".$junk[$i];
-         }
-         $tdir = trimblanks($tdir);
-         my $dirfound = 0;
-         foreach my $dir (@dirs) {
-          if ($dir eq $tdir) {
-           $dirfound = 1;
-           last;
-          } 
-         }
-         if ($dirfound == 1) {
+            }
+           $tdir = trimblanks($tdir);
+           my $dirfound = 0;
+           foreach my $dir (@dirs) {
+           if ($dir eq $tdir) {
+            $dirfound = 1;
+            last;
+           } 
+          }
+          if ($dirfound == 1) {
 # skip it
-         } else {
-          $dirs[$#dirs] = $tdir;
-          my $s = "chain.Add(\"".$prefix.$tdir."/*.root\");";
-          print "<tr><td> $s </tr></td>\n";
-          $buff = $buff.$s."\n";
-          push @dirs, $tdir;
+          } else {
+           $dirs[$#dirs] = $tdir;
+           my $s = "chain.Add(\"".$prefix.$tdir."/*.root\");";
+           print "<tr><td> $s </tr></td>\n";
+           $buff = $buff.$s."\n";
+           push @dirs, $tdir;
+         }
         }
        }
       }
@@ -2752,7 +2792,7 @@ CheckCite:            if (defined $q->param("QCite")) {
    }
      htmlReturnToQuery();
     htmlBottom();
-  }
+   }
 # queryDB04 / doQuery ends here
   } elsif ($self->{q}->param("queryDB04") eq "Continue") {
      my $query=$q->param("QPart");
