@@ -678,7 +678,7 @@ void AMSmceventg::_writeEl(){
   if (GN->Nmcg>=MAXMCG) return;
 
 // Fill the ntuple
-if( Out(_ipart>0 )){
+if( Out(_ipart>0 || IOPA.WriteAll%10==1 )){
   GN->Nskip[GN->Nmcg]=_nskip;
   GN->Particle[GN->Nmcg]=_ipart;
   int i;

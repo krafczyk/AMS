@@ -142,6 +142,7 @@ extern "C" void gustep_(){
     z=GCTRAK.vect[2];
     t=GCTRAK.tofg;
     de=GCTRAK.destep;
+//    if(iprt>40)cout <<iprt<<" "<<de<<" "<<GCTRAK.inwvol<<" "<<z<<" "<<GCTRAK.istop<<endl;
     if(GCTRAK.inwvol==1){// new volume or track : store param.
       iprto=iprt;
       numvo=numv;

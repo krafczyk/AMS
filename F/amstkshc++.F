@@ -808,6 +808,7 @@ CDECK  ID>, ABSIIN.
              nsec=0
              goto 999
          endif
+
 *
 * Rotate back
 *
@@ -823,6 +824,7 @@ c         u(3)=ptot
 c          call rotate(th,2,u(1),u(2),u(3),tst)
 c          call rotate(ph,3,u(1),u(2),u(3),tst)
 c           write(*,*)u
+c        write(*,*)'proj targe ',a_p,z_p,a_t,z_t,ekin
          do i=1,nsec
           call rotate(th,2,p_sec(1,i),p_sec(2,i),p_sec(3,i),tst)
           call rotate(ph,3,p_sec(1,i),p_sec(2,i),p_sec(3,i),tst)
@@ -832,11 +834,12 @@ c           write(*,*)u
 c          px=px+p_sec(1,i)
 c          py=py+p_sec(2,i)
 c          pz=pz+p_sec(3,i)
+c         write(*,*)i,p_sec(3,i),p_sec(4,i),p_sec(5,i)
          enddo
 c         write(*,*)'*** secondary *****'
 c         write(*,*)px,py,pz,pmom_p(1)*ptot,
 c     +    pmom_p(2)*ptot,pmom_p(3)*ptot
-
+          
 *
  999     end
 
@@ -1153,6 +1156,7 @@ C
          IF ( NCOMP .LE. 1) THEN
             a_t = a
             Z_t = z
+c            write(*,*)'ncomp ',z_t,a_t,dens
             CALL abcr2(1,a_p,z_p,a_t,z_t,p_p,ipart)
             if(sigma_t(1)-sigma_el(1,1)-sigma_q(1,1).gt.0)then
              zin=a*avogmb/(sigma_t(1)-sigma_el(1,1)-sigma_q(1,1))
@@ -1174,7 +1178,6 @@ C
             IF (Zqe.LT.BIG) THEN
                Zqel = Zqe/DENS
             END IF
-
          ELSE
             zin1 = 0.
             zel1=0
@@ -1395,7 +1398,7 @@ CDE, FCONS.
 
       parameter (xm_proton=0.938)
               common /hvsec/ihvse(2)
-      REAL RNDMm(1)
+c      REAL RNDMm(1)
       real *4 pmom_p(6),pmom_t(6)
       parameter (nsecm=1000)
       real *4 p_sec(6,nsecm)
@@ -1433,7 +1436,8 @@ c      IF (GEKIN.LE.CUTHAD.or.poo/amass.le.ddcutt)then
          pmom_p(4)=poo
          pmom_p(5)=amass
          pmom_p(6)=getot
-888      CALL GRNDM(RNDmM,1)
+888      continue
+c       CALL GRNDM(RNDmM,1)
 c      RNDEVT=RNDmM(1)
       RNDEVT=RNDm(dd)
       IF ( RNDEVT .le. Sela/FSIG) THEN
@@ -1474,7 +1478,7 @@ c         write(*,*)iqi,(sela+sqel)/fsig
 *
 
          ELSE
-            CALL GRNDM(RNDMm,1)
+c            CALL GRNDM(RNDMm,1)
             RCONT=qeXNOR*RNDM(dd)
             DO 400  I=1,NCOMP
                IF(RCONT.LE.ABqeX(I)) GO TO 500
@@ -1492,6 +1496,9 @@ c           goto 888
             if(ihvse(2).eq.1)then
              ISTOP = 1
              DESTEP = DESTEP + GEKIN
+             GEKIN  = 0.
+             GETOT  = AMASS
+             VECT(7) = 0.
             else if(ihvse(2).eq.0)then
              GO TO 110
             else
@@ -1499,16 +1506,23 @@ c           goto 888
 * here inelastic kinematics will play
 *
              ISTOP = 1
+             GEKIN  = 0.
+             GETOT  = AMASS
+             VECT(7) = 0.
              IF(NCOMP.LE.1) THEN
                a_t = a
                Z_t = z
                pmom_t(5)=amm*xm_proton
                zmed=z
+c               write(*,*)'nc ',a_t,z_t,amm
              ELSE
-              CALL GRNDM(RNDMm,1)
-              RCONT=qeXNOR*RNDM(dd)
+c              CALL GRNDM(RNDMm,1)
+              RCONT=anxnor*RNDM(dd)
+c              do i=1,ncomp
+c                write(*,*)i,anxnor,abinx(i),Q(JMIXT+I)
+c               enddo
               DO   I=1,NCOMP
-               IF(RCONT.LE.ABqeX(I)) GO TO 501
+               IF(RCONT.LE.ABinx(I)) GO TO 501
               enddo
               I=NCOMP
  501          CONTINUE

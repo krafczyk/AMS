@@ -37,7 +37,7 @@ O4F=-g -D__AMSDEBUG__
 else
 ifdef O4
 O4=O4
-O4F=O4
+O4F=O
 else
 O4=O
 O4F=O
