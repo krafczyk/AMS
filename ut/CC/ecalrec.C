@@ -416,6 +416,7 @@ void AMSEcalCell::_writeEl(){
 
   if (TN->Ncelle>=MAXECELL) return;
 
+  if(AMSEcalCell::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
 //  Fill the ntuple
     TN->EdepCell[TN->Ncelle]=_edepcell;
     TN->EdepAtt[TN->Ncelle]=_edepatt;
@@ -423,7 +424,8 @@ void AMSEcalCell::_writeEl(){
     TN->Photomultiplier[TN->Ncelle]=_photomultiplier;
     TN->SubCell[TN->Ncelle]=_subcell;
     TN->Ncelle++;
-//  }
+  }
+
 }    
 //---------------------------------------------------
 void AMSEcalCluster::_copyEl(){
@@ -447,20 +449,19 @@ if(init == 0){
 }
 return (WriteAll || status);
 }
-//---------------------------------------------------
-//integer AMSEcalCell::Out(integer status){
-//static integer init=0;
-//static integer WriteAll=1;
-//if(init == 0){
-// init=1;
-// integer ntrig=AMSJob::gethead()->gettriggerN();
-// for(int n=0;n<ntrig;n++){
-//   if(strcmp("AMSEcalCell",AMSJob::gethead()->gettriggerC(n))==0){
-//     WriteAll=1;
-//     break;
-//   }
-// }
-//}
-//return (WriteAll || status);
-//}
-//---------------------------------------------------
+
+integer AMSEcalCell::Out(integer status){
+static integer init=0;
+static integer WriteAll=1;
+if(init == 0){
+ init=1;
+ integer ntrig=AMSJob::gethead()->gettriggerN();
+ for(int n=0;n<ntrig;n++){
+   if(strcmp("AMSEcalCell",AMSJob::gethead()->gettriggerC(n))==0){
+     WriteAll=1;
+     break;
+   }
+ }
+}
+return (WriteAll || status);
+}
