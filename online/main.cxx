@@ -52,7 +52,7 @@ void main(int argc, char *argv[])
   amd->AddSubDet(antih);
   AMSTrackerHist  trackerh("Tracker","Tracker  Hists",5,1);
   amd->AddSubDet(trackerh);
-  AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",3,1);
+  AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",4,1);
   amd->AddSubDet(LVL1h);
   AMSLVL3Hist  LVL3h("LVL3","LVL3  Hists",2,1);
   amd->AddSubDet(LVL3h);

@@ -78,6 +78,7 @@ public:
    static void        LVL1Set0CB(Widget, XtPointer, XtPointer);
    static void        LVL1Set1CB(Widget, XtPointer, XtPointer);
    static void        LVL1Set2CB(Widget, XtPointer, XtPointer);
+   static void        LVL1Set3CB(Widget, XtPointer, XtPointer);
    // Level3
    static void        LVL3Set0CB(Widget, XtPointer, XtPointer);
    static void        LVL3Set1CB(Widget, XtPointer, XtPointer);

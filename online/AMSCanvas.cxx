@@ -105,7 +105,8 @@ MenuDesc_t AMSCanvas::fgAMSFileTOF[] = {
 MenuDesc_t AMSCanvas::fgAMSFileLVL1[] = {
    { kAction, "Occupancies Distibutions", LVL1Set0CB, NULL },
    { kAction, "LVL1 vs TOF",  LVL1Set1CB, NULL },
-   { kAction, "Trigger Pattern",  LVL1Set2CB, NULL },
+   { kAction, "TOF Trigger Pattern",  LVL1Set2CB, NULL },
+   { kAction, "LVL1 vs Anti",  LVL1Set3CB, NULL },
    { kEnd },
 };
 
@@ -549,6 +550,11 @@ void AMSCanvas::LVL1Set1CB(Widget wid, XtPointer cd, XtPointer pointer)
 void AMSCanvas::LVL1Set2CB(Widget wid, XtPointer cd, XtPointer pointer)
 {
    gAMSDisplay->Dispatch(2,2);
+   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
+}
+void AMSCanvas::LVL1Set3CB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   gAMSDisplay->Dispatch(2,3);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }
 void AMSCanvas::TrackerSet0CB(Widget wid, XtPointer cd, XtPointer pointer)
