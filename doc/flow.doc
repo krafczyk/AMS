@@ -41,6 +41,8 @@ M A I N  ->      gbatch.C
  |    |   
  |    |->AMSJob::init      User initialization routine 
  |    |   |
+ |    |   |->_timeinitjob   Initialization time dependent vars
+ |    |   |
  |    |   |->_siamsinitjob   Simulation initialization
  |    |   |    | 
  |    |   |    |->_sitkinitjob
@@ -67,6 +69,8 @@ M A I N  ->      gbatch.C
  |    |   |
  |    |   |->AMSEvent::sethead()   Create new event structure 
  |    |   |    |
+ |    |   |    |->_validate        Validate time dep constants
+ |    |   |    | 
  |    |   |    |->_siamsinitrun    Initialize if run no changed
  |    |   |    |    |
  |    |   |    |    |->_sitkinitrun

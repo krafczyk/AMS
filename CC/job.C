@@ -16,6 +16,7 @@
 #include <event.h>
 #include <charge.h>
 #include <ctcdbc.h>
+#include <timeid.h>
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
 integer AMSJob::debug=1;
@@ -38,6 +39,7 @@ void AMSJob::data(){
   AMSFFKEY.CpuLimit=10;
   AMSFFKEY.Read=0;
   AMSFFKEY.Write=1;
+  AMSFFKEY.Update=0;
   VBLANK(AMSFFKEY.Jobname,40);
   VBLANK(AMSFFKEY.Setupname,40);
   AMSFFKEY.ZeroSetupOk=0;
@@ -85,7 +87,18 @@ TRMCFFKEY.cmn[0]=50;
 TRMCFFKEY.cmn[1]=50;
 TRMCFFKEY.adcoverflow=32767;
 TRMCFFKEY.NoiseOn=1;
-
+TRMCFFKEY.sec[0]=0;
+TRMCFFKEY.sec[1]=0;
+TRMCFFKEY.min[0]=0;
+TRMCFFKEY.min[1]=0;
+TRMCFFKEY.hour[0]=0;
+TRMCFFKEY.hour[1]=0;
+TRMCFFKEY.day[0]=1;
+TRMCFFKEY.day[1]=1;
+TRMCFFKEY.mon[0]=0;
+TRMCFFKEY.mon[1]=0;
+TRMCFFKEY.year[0]=96;
+TRMCFFKEY.year[1]=98;
 FFKEY("TRMC",(float*)&TRMCFFKEY,sizeof(TRMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
@@ -376,6 +389,7 @@ if(AMSFFKEY.Write > 0 && AMSFFKEY.Write%2==0)AMSFFKEY.Write++;
 
 
 void AMSJob::init(){
+_timeinitjob();
 if(_jobtype ==AMSFFKEY.Simulation)_siamsinitjob();
 _reamsinitjob();
 cout << *this;
@@ -621,3 +635,138 @@ void AMSJob::settrigger(char *setup, integer N, integer I,integer or){
   _TriggerOr=or;
   _TriggerN=N+1;
 }
+
+void AMSJob::_timeinitjob(){
+static AMSTimeID TID("TDV:");
+gethead()->addup( &TID);
+//
+// Magnetic Field Map
+//
+{
+tm begin;
+tm end;
+begin.tm_sec=TKFIELD.isec[0];
+begin.tm_min=TKFIELD.imin[0];
+begin.tm_hour=TKFIELD.ihour[0];
+begin.tm_mday=TKFIELD.iday[0];
+begin.tm_mon=TKFIELD.imon[0];
+begin.tm_year=TKFIELD.iyear[0];
+end.tm_sec=TKFIELD.isec[1];
+end.tm_min=TKFIELD.imin[1];
+end.tm_hour=TKFIELD.ihour[1];
+end.tm_mday=TKFIELD.iday[1];
+end.tm_mon=TKFIELD.imon[1];
+end.tm_year=TKFIELD.iyear[1];
+TID.add (new AMSTimeID("MagneticFieldMap",
+   begin,end,sizeof(TKFIELD_DEF),(void*)&TKFIELD));
+}
+//
+// Pedestals, Gains,  Sigmas & commons noise for tracker
+//      
+
+{
+tm begin;
+tm end;
+begin.tm_sec=TRMCFFKEY.sec[0];
+begin.tm_min=TRMCFFKEY.min[0];
+begin.tm_hour=TRMCFFKEY.hour[0];
+begin.tm_mday=TRMCFFKEY.day[0];
+begin.tm_mon=TRMCFFKEY.mon[0];
+begin.tm_year=TRMCFFKEY.year[0];
+
+end.tm_sec=TRMCFFKEY.sec[1];
+end.tm_min=TRMCFFKEY.min[1];
+end.tm_hour=TRMCFFKEY.hour[1];
+end.tm_mday=TRMCFFKEY.day[1];
+end.tm_mon=TRMCFFKEY.mon[1];
+end.tm_year=TRMCFFKEY.year[1];
+
+
+TID.add (new AMSTimeID("TrackerPedestals",
+   begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numel,
+   (void*)AMSTrIdSoft::peds));
+TID.add (new AMSTimeID("TrackerGains",
+   begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numel,
+   (void*)AMSTrIdSoft::gains));
+TID.add (new AMSTimeID("TrackerSigmas",
+   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numel,
+   (void*)AMSTrIdSoft::sigmas));
+TID.add (new AMSTimeID("TrackerStatus",
+   begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numel,
+   (void*)AMSTrIdSoft::status));
+TID.add (new AMSTimeID("TrackerIndNoise",
+   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
+   (void*)AMSTrIdSoft::indnoise));
+TID.add (new AMSTimeID("TrackerCommonNoise",
+   begin,end,sizeof(AMSTrIdSoft::cmnnoise[0])*ms,
+   (void*)AMSTrIdSoft::cmnnoise));
+}
+
+//
+// Data to fit particle charge magnitude
+//
+{
+tm begin;
+tm end;
+begin.tm_sec=AMSCharge::_sec[0];
+begin.tm_min=AMSCharge::_min[0];
+begin.tm_hour=AMSCharge::_hour[0];
+begin.tm_mday=AMSCharge::_day[0];
+begin.tm_mon=AMSCharge::_mon[0];
+begin.tm_year=AMSCharge::_year[0];
+
+end.tm_sec=AMSCharge::_sec[1];
+end.tm_min=AMSCharge::_min[1];
+end.tm_hour=AMSCharge::_hour[1];
+end.tm_mday=AMSCharge::_day[1];
+end.tm_mon=AMSCharge::_mon[1];
+end.tm_year=AMSCharge::_year[1];
+
+
+
+TID.add (new AMSTimeID("ChargeLkhd1",
+   begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTracker[0][0]),
+   (void*)AMSCharge::_lkhdTracker[0]));
+TID.add (new AMSTimeID("ChargeLkhd2",
+   begin,end,100*ncharge*sizeof(AMSCharge::_lkhdTOF[0][0]),
+   (void*)AMSCharge::_lkhdTOF[0]));
+TID.add (new AMSTimeID("ChargeLkhd3",
+   begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTOF[0]),
+   (void*)AMSCharge::_lkhdStepTOF));
+TID.add (new AMSTimeID("ChargeLkhd4",
+   begin,end,ncharge*sizeof(AMSCharge::_lkhdStepTracker[0]),
+   (void*)AMSCharge::_lkhdStepTracker));
+TID.add (new AMSTimeID("ChargeLkhd5",
+   begin,end,ncharge*sizeof(AMSCharge::_chargeTOF[0]),
+   (void*)AMSCharge::_chargeTOF));
+TID.add (new AMSTimeID("ChargeLkhd6",
+   begin,end,ncharge*sizeof(AMSCharge::_chargeTracker[0]),
+   (void*)AMSCharge::_chargeTracker));
+
+
+}
+
+if (AMSFFKEY.Update){
+
+  // Here update dbase
+}
+
+
+}
+
+
+AMSTimeID * AMSJob::gettimestructure(){
+    int i;
+    for( i=0;;){
+     AMSNode *p=JobMap.getid(i++);
+     if(!p){
+      cerr << "AMSJob::gettimestructer-F-no time structre found"<<endl;
+      exit(1);
+      break;
+     }
+     if(strncmp(p->getname(),"TDV:",4)==0)
+     return  (AMSTimeID*)p;
+    }
+}
+
+

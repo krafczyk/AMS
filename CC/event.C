@@ -21,6 +21,7 @@
 #include <tofcalib.h>
 #include <ntuple.h>
 #include <ctcdbc.h>
+#include <timeid.h>
 //
 AMSTOFScan scmcscan[SCBTPN];// some "temporary" TOF solution
 TOFBrcal scbrcal[SCLRS][SCMXBR];// ...................
@@ -33,6 +34,8 @@ void AMSEvent::_init(){
   // check old run & 
   if(_run != SRun){
    SRun=_run;
+   cout <<" AMS-I-New Run "<<_run<<endl;
+   _validate();
    if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation)_siamsinitrun();
    _reamsinitrun();
   }
@@ -792,4 +795,28 @@ integer AMSEvent::addnext(AMSID id, AMSlink *p){
 #endif
     return 0;
    }
+}
+
+void AMSEvent::_validate(){
+AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
+AMSTimeID * offspring=(AMSTimeID*)ptid->down();
+while(offspring){
+  //
+  // Here should be update for db version
+  // 
+
+  if(offspring->validate(_time)){
+    cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" validated."<<endl;
+  }
+    else {
+      cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated."<<endl;
+      time_t b,e,i;
+      offspring->gettime(i,b,e);
+      cerr<<" Begin : " <<ctime(&b)<<endl; 
+      cerr<<" End : " <<ctime(&e)<<endl; 
+      cerr<<" Insert : " <<ctime(&i)<<endl; 
+      exit(1);
+    }
+    offspring=(AMSTimeID*)offspring->next();
+}
 }

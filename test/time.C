@@ -7,19 +7,16 @@
 #include <math.h>
 main(){
 time_t Time;
-time(&Time);
-timestruc_t TimeStruct;
-//curtime(&TimeStruct);
-//Time=TimeStruct.tv_sec;
-char  TimeC[26];
-//TimeC=ctime(&Time);
-char * str=new char[200];
-strcat(str,"jopa333 ");
-strcat(str,ctime(&Time));
-strcat(str," jopa444");
-cout <<str<<endl;
-cout <<Time<<endl;
-double t=-1.345;
-cout <<abs(t)<<endl;
+tm begin;
+begin.tm_sec=10;
+begin.tm_min=20;
+begin.tm_hour=10;
+begin.tm_mday=2;
+begin.tm_mon=1;
+begin.tm_year=96;
+//begin.tm_wday=0;
+//begin.tm_yday=0;
+Time=mktime(&begin);
+cout <<ctime(&Time)<<endl;
 return 0;
 }

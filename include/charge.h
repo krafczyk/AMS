@@ -28,13 +28,19 @@ protected:
   void _printEl(ostream & stream){ stream << " ChargeTOF "<<_ChargeTOF<<" ChargeTracker "<<_ChargeTracker<<" ProbTOF "<<_ProbTOF[0]<<" "<<
 _ProbTOF[1]<<" "<<_ProbTOF[2]<<" "<<_ProbTOF[3]<<" "<<_ProbTOF[4]<<" "<<_ProbTOF[5]<<" "<<_ProbTOF[6]<<" "<<" ProbTracker "<<_ProbTracker[0]<<" "<<_ProbTracker[1]<<" "<<_ProbTracker[2]<<" "<<_ProbTracker[3]<<" "<<_ProbTracker[4]<<" "<<_ProbTracker[5]<<" "<<_ProbTracker[6]<<" "<<endl;}
  void _writeEl();
- static number _lkhdTracker[ncharge][100];
- static number _lkhdTOF[ncharge][100];
- static number _lkhdStepTracker[ncharge];
- static number _lkhdStepTOF[ncharge];
- static integer _chargeTracker[ncharge];
- static integer _chargeTOF[ncharge];
  static char _fnam[128];
+   static integer _sec[2];
+   static integer _min[2];
+   static integer _hour[2];
+   static integer _day[2];
+   static integer _mon[2];
+   static integer _year[2];
+   static number _lkhdTracker[ncharge][100];
+   static number _lkhdTOF[ncharge][100];
+   static number _lkhdStepTracker[ncharge];
+   static number _lkhdStepTOF[ncharge];
+   static integer _chargeTracker[ncharge];
+   static integer _chargeTOF[ncharge];
 public:
   AMSCharge *  next(){return (AMSCharge*)_next;}
   AMSCharge(): AMSlink(0),  _pbeta(0){}
@@ -55,7 +61,7 @@ public:
 #endif
 void setBetaP (AMSBeta* p) { _pbeta = p;}
 //-
-
+friend class AMSJob;
 };
 
 

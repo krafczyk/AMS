@@ -85,6 +85,7 @@ friend ostream &operator << (ostream &o, const  AMSTrIdSoft &b )
    {return o<<" "<<b._layer<<" "<<b._drp<<" "<<b._side<<" "<<b._half<<" "<<b._strip<<" ";}
 static void init();
 integer operator < (const AMSTrIdSoft & o)const;
+
 inline integer getnchan()const {return _numel;}
 inline integer getaddr() const {return _addr;}
 inline integer getstatus(integer checker) const 
@@ -103,6 +104,7 @@ geant & setcmnnoise()  {return cmnnoise[_addr];}
 void  setstatus(integer changer)  
 {status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] & changer;}
 friend class AMSTrIdGeom;
+friend class AMSJob;
 AMSTrIdSoft(const AMSTrIdGeom &,integer side);
 AMSTrIdSoft():_pid(0){};
 AMSTrIdSoft( const AMSTrIdSoft& o):_layer(o._layer),_drp(o._drp),

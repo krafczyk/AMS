@@ -15,6 +15,12 @@
 #include <ntuple.h>
 #include <cern.h>
 
+integer AMSCharge::_sec[2];
+integer AMSCharge::_min[2];
+integer AMSCharge::_hour[2];
+integer AMSCharge::_day[2];
+integer AMSCharge::_mon[2];
+integer AMSCharge::_year[2];
 number AMSCharge::_lkhdTOF[ncharge][100];
 number AMSCharge::_lkhdTracker[ncharge][100];
 number AMSCharge::_lkhdStepTOF[ncharge];
@@ -260,7 +266,58 @@ int i,j;
       cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
       exit(1);
     }
+    for(j=0;j<2;j++) {
+     iftxt >> _sec[j];
+    }
+
+    if(iftxt.eof() ){
+      cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
+      exit(1);
+    }
+    for(j=0;j<2;j++) {
+     iftxt >> _min[j];
+    }
+
+    if(iftxt.eof() ){
+      cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
+      exit(1);
+    }
+    for(j=0;j<2;j++) {
+     iftxt >> _hour[j];
+    }
+
+    if(iftxt.eof() ){
+      cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
+      exit(1);
+    }
+    for(j=0;j<2;j++) {
+     iftxt >> _day[j];
+    }
+
+    if(iftxt.eof() ){
+      cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
+      exit(1);
+    }
+    for(j=0;j<2;j++) {
+     iftxt >> _mon[j];
+    }
+
+    if(iftxt.eof() ){
+      cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
+      exit(1);
+    }
+    for(j=0;j<2;j++) {
+     iftxt >> _year[j];
+    }
+
+    if(iftxt.eof() ){
+      cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
+      exit(1);
+    }
+
   iftxt.close();
+
+
   for(i=1;i<4;i++){
    UCOPY(_lkhdTOF[2],_lkhdTOF[2+i],100*sizeof(number)/4);
    UCOPY(_lkhdTracker[2],_lkhdTracker[2+i],100*sizeof(number)/4);

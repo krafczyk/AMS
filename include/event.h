@@ -60,6 +60,7 @@ void _retofevent();
 void _retrdevent();
 void _rectcevent();
 void _reaxevent();
+void _validate();
 AMSlink * _getheadC( AMSID id, integer sorted=0);
 integer _setheadC( AMSID id, AMSlink * p);
 AMSContainer * _getC(AMSID id);

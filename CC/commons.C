@@ -28,4 +28,7 @@ GCTMED_DEF GCTMED;
 GCTRAK_DEF GCTRAK;
 GCKINE_DEF GCKINE;
 
+// Fortran commons
+//TKFIELD_DEF TKFIELD;
+
 #endif /* !defined(COMMONS_C) */

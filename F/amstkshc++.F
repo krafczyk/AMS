@@ -6157,7 +6157,9 @@ CDECK  ID>, TKFLD.
           DIMENSION Bx(nx,ny,nz), by(nx,ny,nz),
      +    BZ(nx,ny,nz)
          dimension xyz(nx+ny+nz)
-      common /tkfield/iniok,x,y,z,bx,by,bz,xyz
+         integer isec(2),imin(2),ihour(2),iday(2),imon(2),iyear(2)
+      common /tkfield/iniok,x,y,z,bx,by,bz,xyz,
+     + isec,imin,ihour,iday,imon,iyear
           DIMENSION BDx(nx,ny,nz,2), bDy(nx,ny,nz,2),
      +    BdZ(nx,ny,nz,2)
          real xx(3),hxy(3,3),x1(3)
@@ -7725,7 +7727,9 @@ C---------------------------------------------------------------------
           DIMENSION Bx(nx,ny,nz), by(nx,ny,nz),
      +    BZ(nx,ny,nz)
          dimension xyz(nx+ny+nz)
-      common /tkfield/iniok,x,y,z,bx,by,bz,xyz
+         integer isec(2),imin(2),ihour(2),iday(2),imon(2),iyear(2)
+      common /tkfield/iniok,x,y,z,bx,by,bz,xyz,
+     + isec,imin,ihour,iday,imon,iyear
         parameter (idai=1)
       DIMENSION V(3),B(3),VV(3)
       real x1(3)
@@ -7770,6 +7774,12 @@ C
           call ucopy(x(1),xyz(1),nx)
           call ucopy(y(1),xyz(1+nx),ny)
           call ucopy(z(1),xyz(1+nx+ny),nz)
+          read(21,*)isec
+          read(21,*)imin
+          read(21,*)ihour
+          read(21,*)iday
+          read(21,*)imon
+          read(21,*)iyear
       PRINT *,'Closing field map...'
       iniok=1
       close(21)

@@ -9,6 +9,7 @@
 #include <gmat.h>
 #include <iomanip.h>
 #include <amsgobj.h>
+#include <timeid.h>
 const integer maxtrig=20;
 class AMSJob : public AMSNode{
 private:
@@ -46,6 +47,7 @@ void _retrdinitjob();
 void _rectcinitjob();
 void _retofinitjob();
 void _reaxinitjob();
+void _timeinitjob();
 static AMSNodeMap JobMap;
 public:
 AMSJob(AMSID id=0,integer jobtype=0):AMSNode(id),_jobtype(jobtype)
@@ -71,6 +73,7 @@ AMSgtmed * getmed(AMSID id=0);
 void data();
 void udata();
 void init();
+AMSTimeID * gettimestructure();
 void printJ(ostream & stream);
 static integer debug;
 static void map(){JobMap.map(*_Head);}

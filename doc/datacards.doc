@@ -13,7 +13,7 @@ I 6  Jobname(' ')    // Jobname == list in db (<160 bytes)
 I46  Setupname(' ')  // Setupname == Setup Name (<160 bytes)
                      // see setup.doc for details
 I86  ZeroSetupOK(0)  // Internal
-
+I87  Update(0)       // DB related
 //IO
 
 IOPA 
@@ -96,9 +96,14 @@ R10   gain[2](1,1)          // gains for x & y
 R12   thr[2](17,12)         // threshold to save cluster
 I14   neib[2)(2,2)          // number of neibours from one side
 I16   cmn[2](50,50)         // common noise for x & y
-I18   adcoverflow(32767)     // 16 bit adc
+I18   adcoverflow(32767)    // 16 bit adc
 I19   NoiseOn(1)            // Generate(1) do not generate(0) noise in tracker
-
+I20   sec[2](0,0)           // 
+I22   min[2](0,0)           //
+I24   hour[2](0,0)          // Validity time
+I26   day[2](1,1)           //
+I28   mon[2](1,1)           //
+I30   year[2](1996,1998)    //
 
 // MC particle generation
 
