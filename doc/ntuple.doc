@@ -194,7 +194,7 @@ Below there is a description of a  ntuple.
 
 * I*4  *              * TRTRACK  * nhits(ntrtr)    // number of hits 
 * I*4  *              * TRTRACK  * phits(6,ntrtr)  // pointers to trrechit
-* I*4  *              * TRTRACK  * FastFitDone(ntrtr) // != 0 if done
+* R*4  *              * TRTRACK  * LocDbAver      // rel mom from testbeam
 * I*4  *              * TRTRACK  * GeaneFitDone(ntrtr) // != 0 if done
 * R*4  *              * TRTRACK  * Dbase(2,ntrtr)      // chi2_after/Chi2_before; dp/p from database if any
 * I*4  *              * TRTRACK  * AdvancedFitDone(ntrtr) --------------

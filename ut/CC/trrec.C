@@ -2288,7 +2288,7 @@ void AMSTrTrack::_writeEl(){
     }
   
   
-    TrTN->FastFitDone[TrTN->Ntrtr]=_FastFitDone;
+    TrTN->LocDBAver[TrTN->Ntrtr]=_Dbase[1];
     TrTN->GeaneFitDone[TrTN->Ntrtr]=_GeaneFitDone;
     TrTN->AdvancedFitDone[TrTN->Ntrtr]=_AdvancedFitDone;
     TrTN->Chi2StrLine[TrTN->Ntrtr]=geant(_Chi2StrLine);

@@ -303,7 +303,7 @@ public:
   int Address[MAXTRTR];
   int NHits[MAXTRTR];
   int pHits[MAXTRTR][6];
-  int FastFitDone[MAXTRTR];
+  float LocDBAver[MAXTRTR];
   int GeaneFitDone[MAXTRTR];
   int AdvancedFitDone[MAXTRTR];
   float Chi2StrLine[MAXTRTR];
