@@ -76,7 +76,7 @@ AMSDisplay::AMSDisplay() : AMSVirtualDisplay()
 
 
 //_____________________________________________________________________________
-AMSDisplay::AMSDisplay(const char *title, TGeometry * geo) 
+AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, int resx, int resy) 
    : AMSVirtualDisplay()
 {
    m_theapp=0;
@@ -115,7 +115,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
 
    // Create display canvas
 //   m_Canvas = new TCanvas("Canvas", (char*)title,14,47,740,650);
-   m_Canvas = new AMSCanvas("Canvas", (Text_t*)title,1024,768);
+   m_Canvas = new AMSCanvas("Canvas", (Text_t*)title,resx,resy);
    m_Canvas->SetEditable(kIsNotEditable);
 
    //

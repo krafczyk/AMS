@@ -102,7 +102,7 @@ private:
 public:
 
                      AMSDisplay();
-                     AMSDisplay(const char *title, TGeometry * geo=0);
+                     AMSDisplay(const char *title, TGeometry * geo=0, int resx=1024, int resy=768);
    virtual          ~AMSDisplay();
    virtual void      SetApplication(TApplication* papp){m_theapp=papp;}
    virtual Bool_t    AllViews() {return (m_View == kAllView);}

@@ -33,7 +33,7 @@ Myapp *theApp = new Myapp("App", &argc, argv);
 theApp->SetIdleTimer(12,"");
 /*
 // Do drawing and all everything else you want
-TCanvas *c = new TCanvas("Picture", "The Alignment Geometry", 1024, 768);
+TCanvas *c = new TCanvas("Picture", "The Alignment Geometry", 640, 480);
 c->Show();
 
 TLine *l = new TLine(0.1,0.2,0.5,0.9);
@@ -91,7 +91,7 @@ out:
    amsroot.MakeTree("AMSTree", "AMS Display Tree");
    TFile fgeo("ams_group.root");
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
-   AMSDisplay display("AMSRoot Event Display", geo, 1024, 768);
+   AMSDisplay display("AMSRoot Event Display", geo,1280,1024);
        display.SetApplication(theApp);
        display.SetView (kTwoView);
       for(int i=0;;i++){

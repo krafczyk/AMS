@@ -62,7 +62,7 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
    amsroot.MakeTree("AMSTree", "AMS Display Tree");
    TFile fgeo("ams_group.root");
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
-   AMSDisplay display("AMSRoot Event Display", geo);
+   AMSDisplay display("AMSRoot Event Display", geo,1024,768);
        display.SetApplication(theApp);
    display.SetView (kTwoView);
       for(int i=1;;i++){
