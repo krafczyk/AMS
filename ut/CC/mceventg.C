@@ -311,7 +311,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           
           HPRINT(_hid);
     }
-    else {
+    else if (low==0){
       integer nchan=10000;
       geant binw;
       if(mass < 0.938)binw=100;
@@ -353,7 +353,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           y=700./1.5/pow(xt,3.3);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
         }
-        else if (ipart < 15 ){
+        else if (ipart ==14 ){
           // a-la proton
           y=1.5e4/beta/pow(xrig,2.74);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
@@ -372,6 +372,10 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           number ampl=0.1;
           y=ampl*pow(zz,xa)/(pow(zz,xa+xb)+1.);
           y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+        }
+        else {
+         cerr<<"AMSmceventg::setspectra-F-NoPrimarySpectraDefinedForParticle "<<ipart<<endl;
+         exit(1);
         }
         HF1(_hid,xm,y);
         HF1(_hid+1,xm,y);
