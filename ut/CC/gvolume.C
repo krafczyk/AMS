@@ -112,7 +112,7 @@ number nrm[3][3];
 if(cur)_gl2loc(cur,coo);
 else return;
  transpose(cur->_nrm,nrm);
- mm3(nrm,_nrm,1);
+ mm3(nrm,_nrm,0);
  coo=(coo-cur->_coo).mm3(nrm);
 }
 
@@ -130,7 +130,7 @@ void AMSgvolume::_init(){
    coo=0;
    while (cur){
       coo=coo.mm3(cur->_nrm)+cur->_coo;
-      mm3(cur->_nrm,nrm,1);
+      mm3(cur->_nrm,nrm,0);
       cur=cur->up();
    }
    _cooA=coo;

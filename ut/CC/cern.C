@@ -2,7 +2,7 @@
  
 #include <typedefs.h>
 #include <cern.h>
-void mm3(  number m1[][3],  number m2[][3], int choise){
+void mm3(  number m1[3][3],  number m2[3][3], int choise){
   const int s=3;
   static number tmp[s][s];
   for (int i=0;i<s;i++){
