@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.126 2004/01/07 17:31:15 choutko Exp $
+//  $Id: root.h,v 1.127 2004/01/12 15:51:01 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -410,128 +410,6 @@ ClassDef(EcalShowerR,1)       //EcalShowerR
 
 
 
-//!  Rich Hits Structure
-
-/*!
- \author Carlos.Jose.Delgado.Mendez@cern.ch
-*/
-
-class RichHitR {
-static char _Info[255];
-public:
-   unsigned int Status;   ///< statusword
-                         /*!<
-
-*********) Status bits (counting from 1 to 32)
-
-1- Hit used in a larger (ring number 1) object
-2- Hit used in a larger (ring number 2) object 
-3- Hit used in a larger (ring number 3) object
-.
-.
-.
-10- Hit used in a larger (ring number 10) object 
-11- Unused
-.
-.
-.
-29- Unused
-30- Gain mode chosen for the hit: 0=x1(low)  1=x5(high)
-31- Hit belongs to a PMT apparently crossed by a charged particle
-          
-*/
-
-  int   Channel;    ///<  channel number  
-  int   Counts;     ///< ADC counts above the pedestal
-  float Npe;        ///< ADC counts above the pedestal/gain of the channel 
-  float Coo[3];         ///<  Hit coordinates
-
-  RichHitR(){};
-  RichHitR(AMSRichRawEvent *ptr, float x, float y, float z);
-    /// \param number index in container
-  /// \return human readable info about RichHitR
-  char * Info(int number=-1){
-    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d ",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2],Status%2048,(Status>>29)%2?5:1,(Status>>30));
-  return _Info;
-  } 
-
-ClassDef(RichHitR,2)       // RichHitR
-};
-
-
-  class TrTrackR;
-//!  Rich Ring Structure
-
-/*!
- \author Carlos.Jose.Delgado.Mendez@cern.ch
-*/
-
-class RichRingR {
-static char _Info[255];
-public:
-
- unsigned int Status;     ///< status word
-                           /*!<
-
-**********) Ring status bits (counting from 1 to 32)
-1- Ring has been rebuild after cleaning PMTs apparently crossed by a charged particle.
-   If the rebuilding has been succesful it is stored in the next ring.  
-   To confirm that the next ring is a rebuilding of the current one check
-   if both fTrTrack are pointing to the same track number.   
-	    
-2- Rins reconstructed using the NaF radiator in the double radiator configuration
-
-14 - used in a particle
-
-31 - associated to a track used in a gamma
-
-*/
-
-  int   Used;  ///< Nb. of RICH hits in a ring 
-  int   UsedM; ///< Nb. of RICH mirrored hits in a ring 
-  float Beta;  ///< Reconstructed velocity
-  float ErrorBeta;  ///< Error in the velocity
-  float Chi2;       ///< chi2/ndof for the beta fit
-  float BetaRefit;  ///< Beta refitted
-  float Prob;       ///< probability to be a good ring
-  float NpExp;      ///< number of expected photoelectrons for Z=1 charge
-  float NpCol;      ///< number of collected photoelectrons 
-  float Theta;      ///< Recontructed emission angle
-  float ErrorTheta; ///< Error of the reconstructed emission angle
-  float TrRadPos[3];///< Mean emission point of the Cerenkov photons
-  float TrPMTPos[3];///< Intersection point of the track with the PMT plane
-  int   lipHitsUsed;///< Nb. of used hits in LIP beta rec.
-  float lipThetaC;  ///< Cherenkov angle reconstructed in LIP beta rec.
-  float lipBeta;    ///< Beta from LIP beta rec.
-  float lipErrorBeta;///< Error in beta from LIP beta rec. 
-  float lipLikelihoodProb;///<Likelihood from LIP beta rec.
-  float lipChi2;     ///< Chi2 from LIP beta rec.
-  float lipRecProb;  ///< Probabbility from LIP beta rec. 
-
-
-  protected:
-  int fTrTrack;   ///< index of  TrTrackR  in collection
-  public:
-  /// access function to TrTrackR object used
-  /// \return index of TrTrackR object in collection or -1
-  int iTrTrack()const {return fTrTrack;}
-  /// access function to TrTrackR object used
-  /// \return pointer to TrTrackR object or 0
-  TrTrackR * pTrTrack();
-
-  RichRingR(){};
-  RichRingR(AMSRichRing *ptr);
-  friend class AMSRichRing;
-  friend class AMSEventR;
-  /// \param number index in container
-  /// \return human readable info about RichRingR
-  char * Info(int number=-1){
-    sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
-    return _Info;
-  } 
-  ClassDef(RichRingR,6)           // RichRingR
-}; 
-
 
 /// TofRawClusterR structure
 
@@ -838,6 +716,127 @@ ClassDef(TrTrackR,5)       //TrTrackR
 friend class AMSTrTrack;
 friend class AMSEventR;
 };
+
+//!  Rich Hits Structure
+
+/*!
+ \author Carlos.Jose.Delgado.Mendez@cern.ch
+*/
+
+class RichHitR {
+static char _Info[255];
+public:
+   unsigned int Status;   ///< statusword
+                         /*!<
+
+*********) Status bits (counting from 1 to 32)
+
+1- Hit used in a larger (ring number 1) object
+2- Hit used in a larger (ring number 2) object 
+3- Hit used in a larger (ring number 3) object
+.
+.
+.
+10- Hit used in a larger (ring number 10) object 
+11- Unused
+.
+.
+.
+29- Unused
+30- Gain mode chosen for the hit: 0=x1(low)  1=x5(high)
+31- Hit belongs to a PMT apparently crossed by a charged particle
+          
+*/
+
+  int   Channel;    ///<  channel number  
+  int   Counts;     ///< ADC counts above the pedestal
+  float Npe;        ///< ADC counts above the pedestal/gain of the channel 
+  float Coo[3];         ///<  Hit coordinates
+
+  RichHitR(){};
+  RichHitR(AMSRichRawEvent *ptr, float x, float y, float z);
+    /// \param number index in container
+  /// \return human readable info about RichHitR
+  char * Info(int number=-1){
+    sprintf(_Info,"RichHit No %d Channel=%d Ampl=%d No_{PhotoEl}=%5.2f, Coo=(%5.2f,%5.2f,%5.2f) Status=%u Gain=%d HotSpot=%d ",number,Channel,Counts,Npe,Coo[0],Coo[1],Coo[2],Status%2048,(Status>>29)%2?5:1,(Status>>30));
+  return _Info;
+  } 
+
+ClassDef(RichHitR,2)       // RichHitR
+};
+
+
+//!  Rich Ring Structure
+
+/*!
+ \author Carlos.Jose.Delgado.Mendez@cern.ch
+*/
+
+class RichRingR {
+static char _Info[255];
+public:
+
+ unsigned int Status;     ///< status word
+                           /*!<
+
+**********) Ring status bits (counting from 1 to 32)
+1- Ring has been rebuild after cleaning PMTs apparently crossed by a charged particle.
+   If the rebuilding has been succesful it is stored in the next ring.  
+   To confirm that the next ring is a rebuilding of the current one check
+   if both fTrTrack are pointing to the same track number.   
+	    
+2- Rins reconstructed using the NaF radiator in the double radiator configuration
+
+14 - used in a particle
+
+31 - associated to a track used in a gamma
+
+*/
+
+  int   Used;  ///< Nb. of RICH hits in a ring 
+  int   UsedM; ///< Nb. of RICH mirrored hits in a ring 
+  float Beta;  ///< Reconstructed velocity
+  float ErrorBeta;  ///< Error in the velocity
+  float Chi2;       ///< chi2/ndof for the beta fit
+  float BetaRefit;  ///< Beta refitted
+  float Prob;       ///< probability to be a good ring
+  float NpExp;      ///< number of expected photoelectrons for Z=1 charge
+  float NpCol;      ///< number of collected photoelectrons 
+  float Theta;      ///< Recontructed emission angle
+  float ErrorTheta; ///< Error of the reconstructed emission angle
+  float TrRadPos[3];///< Mean emission point of the Cerenkov photons
+  float TrPMTPos[3];///< Intersection point of the track with the PMT plane
+  int   lipHitsUsed;///< Nb. of used hits in LIP beta rec.
+  float lipThetaC;  ///< Cherenkov angle reconstructed in LIP beta rec.
+  float lipBeta;    ///< Beta from LIP beta rec.
+  float lipErrorBeta;///< Error in beta from LIP beta rec. 
+  float lipLikelihoodProb;///<Likelihood from LIP beta rec.
+  float lipChi2;     ///< Chi2 from LIP beta rec.
+  float lipRecProb;  ///< Probabbility from LIP beta rec. 
+
+
+  protected:
+  int fTrTrack;   ///< index of  TrTrackR  in collection
+  public:
+  /// access function to TrTrackR object used
+  /// \return index of TrTrackR object in collection or -1
+  int iTrTrack()const {return fTrTrack;}
+  /// access function to TrTrackR object used
+  /// \return pointer to TrTrackR object or 0
+  TrTrackR * pTrTrack();
+
+  RichRingR(){};
+  RichRingR(AMSRichRing *ptr);
+  friend class AMSRichRing;
+  friend class AMSEventR;
+  /// \param number index in container
+  /// \return human readable info about RichRingR
+  char * Info(int number=-1){
+    sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
+    return _Info;
+  } 
+  ClassDef(RichRingR,6)           // RichRingR
+}; 
 
 /// TRDRawHitR structure
 /*!
