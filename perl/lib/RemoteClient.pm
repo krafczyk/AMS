@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.68 2003/03/25 15:04:15 choutko Exp $
+# $Id: RemoteClient.pm,v 1.69 2003/04/01 09:11:47 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -3493,11 +3493,14 @@ END_OF_MESSAGE2
  }
 
 sub getrndm(){
+    my $self=shift;
         my $sql="select rid from RNDM WHERE rid<0";
         my $res=$self->{sqlserver}->Query($sql);
         my $maxrun;
         if(not defined $res->[0][0]){
-            $maxrun=1;
+            $sql="UPDATE RNDM SET rid=-rid where rid=1";
+             $self->{sqlserver}->Update($sql);
+            $maxrun=-1;
         }
         else{
             $maxrun=$res->[0][0];
@@ -3510,14 +3513,16 @@ sub getrndm(){
           my $big=2147483647;
           my $rndm1=int (rand $big);
           my $rndm2=int (rand $big);
+           Warning::error($self->{q},"unable to read rndm table $maxrun");
+
           return ($rndm1,$rndm2);
          }
-          my $rndm1=int (rand $big);
-          my $rndm2=int (rand $big);
-             $sql="UPDATE RNDM SET rid=-$maxrun where rid=$maxrun";
+    my $rndm1=$res1->[0][0];
+    my $rndm2=$res2->[0][0];
+             $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";
              $self->{sqlserver}->Update($sql);
-             $maxrun=$maxrun-1;
-             $sql="UPDATE RNDM SET rid=$maxrun where rid=-$maxrun";
+             $maxrun=-$maxrun+1;
+             $sql="UPDATE RNDM SET rid=-rid where rid=$maxrun";
              $self->{sqlserver}->Update($sql);
            return ($res1->[0][0],$res2->[0][0]);
  
