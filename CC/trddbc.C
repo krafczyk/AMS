@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.8 2001/01/22 17:32:23 choutko Exp $
+//  $Id: trddbc.C,v 1.9 2001/02/09 18:40:45 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -107,7 +107,7 @@ void TRDDBc::init(){
       OctagonDimensions(1,9)=OctagonDimensions(1,6)+2*fabs(OctagonDimensions(1,4))*tan(ang);
 
 //      OctagonDimensions(2,4)=-175./20;
-      OctagonDimensions(2,4)=-45./20;// tempor solution by E.Choumilov
+      OctagonDimensions(2,4)=-45./20;// temporary solution by E.Choumilov
       OctagonDimensions(2,5)=0;
 //      OctagonDimensions(2,6)=1698./20;
       OctagonDimensions(2,6)=1600./20;
