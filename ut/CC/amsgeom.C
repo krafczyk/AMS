@@ -2778,7 +2778,7 @@ void richgeom02(AMSgvolume & mother)
   integer gid=1,  
           rel=1, 
           posp=0,
-          nrot=30001; // Numbre of the 90 degrees rotation
+          nrot=30001; // Number of the 90 degrees rotation matrix
 
   
   // Define the RICH volume
@@ -2809,10 +2809,10 @@ void richgeom02(AMSgvolume & mother)
   // Radiator
 
   par[0]=0;
-  par[1]=63.6;
-  par[2]=1;
+  par[1]=RICGEOM.radiator_radius;
+  par[2]=RICGEOM.radiator_height/2;
 
-  coo[2]=30;  
+  coo[2]=31-par[2];  
   
   dummy=rich->add(new AMSgvolume("RICH RAD", // Material: Aerogel in the future
 				0,          // No rotation
@@ -2829,13 +2829,13 @@ void richgeom02(AMSgvolume & mother)
   
   // Lateral walls
 
-  par[0]=25;
-  par[1]=80;
-  par[2]=80+.5;
-  par[3]=63.6; 
-  par[4]=63.6+.5;
+  par[0]=RICGEOM.height/2;
+  par[1]=RICGEOM.bottom_radius;
+  par[2]=par[1]+.5;
+  par[3]=RICGEOM.top_radius; 
+  par[4]=par[3]+.5;
 
-  coo[2]=4;
+  coo[2]=31-par[0]-RICGEOM.radiator_height;
 
   dummy=rich->add(new AMSgvolume("RICH MIRRORS",  // Material
 				0,         // No rotation
@@ -2852,27 +2852,29 @@ void richgeom02(AMSgvolume & mother)
   
   // Inner mirror... maybe it won't exist in the future
   
-  
+  if(RICGEOM.inner_mirror_flag){
 
-  par[0]=25;  
-  par[3]=0;   
-  par[4]=0.5;     
-  par[1]=40-.5;
-  par[2]=40;   
+    par[0]=RICGEOM.inner_mirror_height/2;  
+    par[3]=0;   
+    par[4]=0.5;     
+    par[1]=RICGEOM.hole_radius-.5;
+    par[2]=RICGEOM.hole_radius;   
+    
+    coo[2]=31-RICGEOM.radiator_height-RICGEOM.height+par[0];
 
-  dummy=rich->add(new AMSgvolume("RICH MIRRORS",  // Material
-				 0,         // No rotation
-				 "IMIR",     // Name 
-				 "CONE",    // Shape
-				 par,       // Geant parameters
-				 5,         // # of parameters
-				 coo,       // coordinates 
-				 nrm,       // Matrix of normals
-				 "ONLY",    
-				 posp,
-				 gid,
-				 rel));
-  
+    dummy=rich->add(new AMSgvolume("RICH MIRRORS",  // Material
+				   0,         // No rotation
+				   "IMIR",     // Name 
+				   "CONE",    // Shape
+				   par,       // Geant parameters
+				   5,         // # of parameters
+				   coo,       // coordinates 
+				   nrm,       // Matrix of normals
+				   "ONLY",    
+				   posp,
+				   gid,
+				   rel));
+  }
 
   /*************************************************/
 
@@ -2899,11 +2901,11 @@ void richgeom02(AMSgvolume & mother)
     lg=SQR(xedge+1.5)+SQR(yedge+1.5);
     cl=SQR(xedge-1.5)+SQR(yedge-1.5);
 
-    if(lg>SQR(40) && cl<SQR(80)) // Put a PMT here
+    if(lg>SQR(RICGEOM.hole_radius) && cl<SQR(RICGEOM.bottom_radius)) // Put a PMT here
       {
 	coo[0]=xedge;
 	coo[1]=yedge;
-	coo[2]=-31+5;
+	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-5;
 	par[0]=1.5;
 	par[1]=1.5;
 	par[2]=5;
@@ -3291,7 +3293,7 @@ void richgeom02(AMSgvolume & mother)
 	
 	coo[0]=-xedge;
 	coo[1]=yedge;
-	coo[2]=-31+5;
+	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-5;
 	par[0]=1.5;
 	par[1]=1.5;
 	par[2]=5;
@@ -3315,7 +3317,7 @@ void richgeom02(AMSgvolume & mother)
 	
 	coo[0]=xedge;
 	coo[1]=-yedge;
-	coo[2]=-31+5;
+	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-5;
 	par[0]=1.5;
 	par[1]=1.5;
 	par[2]=5;
@@ -3337,7 +3339,7 @@ void richgeom02(AMSgvolume & mother)
 	    
 	coo[0]=-xedge;
 	coo[1]=-yedge;
-	coo[2]=-31+5;
+	coo[2]=31-RICGEOM.radiator_height-RICGEOM.height-5;
 	par[0]=1.5;
 	par[1]=1.5;
 	par[2]=5;
@@ -3362,9 +3364,9 @@ void richgeom02(AMSgvolume & mother)
     
     xedge+=3.;
     
-    if(xedge>80) {xedge=1.5;yedge+=3;}
+    if(xedge>RICGEOM.bottom_radius) {xedge=1.5;yedge+=3;}
     
-  }while(yedge<80);
+  }while(yedge<RICGEOM.bottom_radius);
 
   cout<< "RICH geometry finished" << endl;
 
