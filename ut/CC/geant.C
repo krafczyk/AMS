@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.103 2001/08/03 17:28:03 choutko Exp $
+//  $Id: geant.C,v 1.104 2002/02/08 13:48:02 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -175,7 +175,7 @@ void gams::UGINIT(int argc,  char * argv[]){
     AMSTimeID * phead=AMSJob::gethead()->gettimestructure();
     AMSTimeID * down=(AMSTimeID *)phead->down();
     int nb=down->GetNbytes();
- AMSProducer::gethead()->getRunEventInfo();
+   AMSProducer::gethead()->getRunEventInfo();
 #endif
   if(!AMSJob::gethead()->isProduction())AMSJob::gethead()->uhinit();
 //  AMSJob::gethead()->urinit();
@@ -199,7 +199,6 @@ if(MISCFFKEY.G4On)g4ams::G4INIT();
 #endif
 GPHYSI();
 AMSJob::map(1);
-
 }
 
 

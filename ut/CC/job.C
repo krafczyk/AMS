@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.394 2002/01/17 14:33:44 choutko Exp $
+// $Id: job.C,v 1.395 2002/02/08 13:48:02 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -250,7 +250,7 @@ void AMSJob::_sirichdata(){
 
   RICCONTROL.iflgk_flag=0;  // This should be always zero
   RICCONTROL.recon=1;       // Reconstruct
-  RICCONTROL.setup=0;       // Choose the right setup from all of them
+  RICCONTROL.setup=1;       // Choose the right setup from all of them
 //  FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
   FFKEY("RICCONT",(float *)&RICCONTROL,sizeof(RICCONTROL_DEF)/sizeof(integer),"MIXED");
 }
@@ -576,6 +576,7 @@ CCFFKEY.Fast=0;
 CCFFKEY.StrCharge=2;
 CCFFKEY.StrMass=12;
 CCFFKEY.SpecialCut=0;
+CCFFKEY.curtime=0;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
@@ -694,6 +695,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.SimpleRearLeak[0]=0.01;
   ECREFFKEY.SimpleRearLeak[1]=0.94e-3;
   ECREFFKEY.SimpleRearLeak[2]=2.75;   // was 3.7*0.8  for 18 lay
+   ECREFFKEY.SimpleRearLeak[2]=3.7*0.8;
   ECREFFKEY.SimpleRearLeak[3]=0.975e-3;
   ECREFFKEY.CalorTransSize=32;
   ECREFFKEY.EMDirCorrection=1.035;
@@ -3215,7 +3217,8 @@ cout <<"AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::get
 AMSJob::~AMSJob(){
   cout << "~AMSJob called "<<endl;
   _signendjob();
-  uhend();
+  if(isSimulation())uhend(CCFFKEY.run,GCFLAG.IEVENT,CCFFKEY.curtime);
+  else uhend();
   cout <<"uhend finished"<<endl;
   _tkendjob();
   cout <<"tkendjob finished"<<endl;
@@ -3244,6 +3247,9 @@ _dbendjob();
   cout <<"dbendjob finished"<<endl;
 _axendjob();
   cout <<"axendjob finished"<<endl;
+#ifdef __CORBA__
+if(isSimulation())AMSProducer::gethead()->sendRunEndMC();
+#endif
 delete _pntuple;
   cout <<"pntuple deleted"<<endl;
 #ifdef __CORBA__

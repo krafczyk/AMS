@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.91 2002/01/17 14:33:45 choutko Exp $
+//  $Id: ntuple.C,v 1.92 2002/02/08 13:48:03 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -176,7 +176,7 @@ else{
   "nantimc[0,200],AntiMCIdsoft(nantimc):I,AntiMCXcoo(3,nantimc),AntiMCtof(nantimc),AntiMCedep(nantimc)");
 
   HBNAME(_lun,"LVL3",&_lvl302.Nlvl3,
-  "nlvl3[0,2],LVL3TOF(nlvl3)[-1,254],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,31],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R");
+  "nlvl3[0,2],LVL3TOF(nlvl3)[-1,254],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,63],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R");
 
   HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
  "nlvl1[0,2],mode(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1)");

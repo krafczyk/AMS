@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.44 2002/01/08 13:43:12 choutko Exp $
+//  $Id: producer.C,v 1.45 2002/02/08 13:48:03 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -14,11 +14,11 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 AMSProducer * AMSProducer::_Head=0;
-AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_OnAir(false),_FreshMan(true){
+AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_RemoteDST(false),_OnAir(false),_FreshMan(true),_Local(true){
 DPS::Producer_var pnill=DPS::Producer::_nil();
 _plist.push_back(pnill);
 if(_Head){
- FMessage("AMSProducer::::AMSProducer-E-AMSProducerALreadyExists",DPS::Client::CInAbort);
+ FMessage("AMSProducer::AMSProducer-E-AMSProducerALreadyExists",DPS::Client::CInAbort);
 }
 else{
  char * ior=0;
@@ -38,13 +38,23 @@ else{
     case 'U':   //uid
      uid=atoi(++pchar);
      break;
+    case 'G':   //local
+     _Local=false;
+     if(pchar+1 && *(pchar+1)=='R'){
+        _RemoteDST=true;
+        cout<< "AMSProducer::AMSProducer-I-RemoteDSTSelected "<<endl;
+     }
+     break;
     case 'A': //amsdatadir
       setenv("AMSDataDir",++pchar,1);
       break;
   }
  }
   if(!ior){
-   if(_debug)_openLogFile("Producer");
+   if(_debug){
+     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer");
+     else _openLogFile("Producer");
+   }
 //   _Head=this;
 // return;
    FMessage("AMSProducer::AMSProducer-F-NoIOR",DPS::Client::CInAbort);
@@ -58,10 +68,16 @@ else{
      _plist.clear();
      _plist.push_front(_pvar);
      if(!_getpidhost(uid)){
-      if(_debug)_openLogFile("Producer");
+   if(_debug){
+     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer");
+     else _openLogFile("Producer");
+   }
       FMessage("AMSProducer::AMSProducer-F-UnableToGetHostName", DPS::Client::CInAbort);
      }
-     if(_debug)_openLogFile("Producer");
+   if(_debug){
+     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer");
+     else _openLogFile("Producer");
+   }
      time_t cput=3*AMSFFKEY.CpuLimit;
      if(!(_pvar->sendId(_pid,cput))){
        sleep(10);
@@ -115,7 +131,17 @@ UpdateARS();
     _cinfo.CPUTimeSpent=0;
     _cinfo.TimeSpent=0;
 
-
+   if(AMSJob::gethead()->isSimulation()){
+    GCFLAG.IEVENT=_reinfo->FirstEvent;
+    if(GCFLAG.IEVENT>1){
+     // should call the rndm odnako
+     geant dum;
+     RNDM(dum);
+    }
+    GCFLAG.NEVENT=_reinfo->LastEvent;
+    CCFFKEY.run=_reinfo->Run;
+   }
+   else{
 
     if(_dstinfo->Mode==DPS::Producer::RILO || _dstinfo->Mode==DPS::Producer::RIRO){ 
      DAQEvent::setfile((const char *)(_reinfo->FilePath));
@@ -161,6 +187,8 @@ else{
     }
     fbin.close();
 }
+}
+   if(IsLocal()){
     AString ntpath=(const char *)_dstinfo->OutputDirPath;
     ntpath+="/";
     char tmp[80];
@@ -176,6 +204,14 @@ else{
     else{
        IOPA.hlun=1;
        AMSJob::gethead()->SetNtuplePath((const char *)ntpath);
+    }
+    }
+    else{
+     _dstinfo->OutputDirPath=AMSJob::gethead()->GetNtuplePath();
+     if(_RemoteDST){
+       if(_dstinfo->Mode==DPS::Producer::LILO)_dstinfo->Mode=DPS::Producer::LIRO;
+       if(_dstinfo->Mode==DPS::Producer::RILO)_dstinfo->Mode=DPS::Producer::RIRO;
+    }
     }
     struct timeb  ft;
     ftime(&ft);
@@ -331,7 +367,8 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
      fbin.close();
      unlink( ((const char*)a(bstart)));
       a=(const char*)_pid.HostName;
-     a+=":REMOTE:";
+//     a+=":REMOTE:";
+       a+=":";
      a+=(const char*)fpath.fname;
      ntend->Name=(const char *)a;
      for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
@@ -571,6 +608,7 @@ void AMSProducer::sendRunEnd(DAQEvent::InitResult res){
 if(_dstinfo->Mode ==DPS::Producer::LILO || _dstinfo->Mode==DPS::Producer::LIRO){
 unlink( DAQEvent::getfile());
 }
+     if(res!=DAQEvent::OK)FMessage("AMSProducer::sendRunEnd-F-RunFailed ",DPS::Client::CInAbort);
 _cinfo.Status= (res==DAQEvent::OK)?DPS::Producer::Finished: DPS::Producer::Failed;
 
     struct timeb  ft;
@@ -587,6 +625,7 @@ UpdateARS();
     _OnAir=true;
     (*li)->sendCurrentInfo(_pid,_cinfo,0);
     _OnAir=false;
+
      return;
    }
   }
@@ -598,6 +637,38 @@ FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::CInAbo
 
 
 }
+void AMSProducer::sendRunEndMC(){
+if(GCFLAG.NEVENT > GCFLAG.IEVENT+1 ){
+        FMessage("RunIncomplete ", DPS::Client::CInAbort); 
+}
+_cinfo.Status= DPS::Producer::Finished;
+
+    struct timeb  ft;
+    ftime(&ft);
+    double st=ft.time+ft.millitm/1000.;
+_cinfo.TimeSpent=st-_ST0;
+
+TIMEX(_cinfo.CPUTimeSpent);
+_cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
+UpdateARS();
+ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
+  try{
+   if(!CORBA::is_nil(*li)){
+    _OnAir=true;
+    (*li)->sendCurrentInfo(_pid,_cinfo,0);
+    _OnAir=false;
+
+     return;
+   }
+  }
+  catch  (CORBA::SystemException & a){
+    _OnAir=false;
+  }
+}
+FMessage("AMSProducer::sendRunEndMC-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
+
+
+}
 
 void AMSProducer::AddEvent(){
 if(_cinfo.Run == AMSEvent::gethead()->getrun()){
@@ -606,24 +677,22 @@ if(_cinfo.Run == AMSEvent::gethead()->getrun()){
   if(!AMSEvent::gethead()->HasNoErrors())_cinfo.ErrorsFound++;
   if(!AMSEvent::gethead()->HasNoCriticalErrors())_cinfo.CriticalErrorsFound++;
 }
+    struct timeb  ft;
+    ftime(&ft);
+    double st=ft.time+ft.millitm/1000.;
+
 if(!(AMSEvent::gethead()->HasNoCriticalErrors())){
   TIMEX(_cinfo.CPUTimeSpent);
   _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
 
-    struct timeb  ft;
-    ftime(&ft);
-    double st=ft.time+ft.millitm/1000.;
     _cinfo.TimeSpent=st-_ST0;
 
   sendCurrentRunInfo();
 }
-else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 ){
+else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 || st-_ST0-_cinfo.TimeSpent>2*AMSFFKEY.CpuLimit){
   TIMEX(_cinfo.CPUTimeSpent);
   _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
 
-    struct timeb  ft;
-    ftime(&ft);
-    double st=ft.time+ft.millitm/1000.;
     _cinfo.TimeSpent=st-_ST0;
 
   sendCurrentRunInfo(_cinfo.EventsProcessed%(_dstinfo->UpdateFreq*10)==1);

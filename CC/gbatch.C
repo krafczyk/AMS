@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.63 2002/01/11 16:09:33 choutko Exp $
+//  $Id: gbatch.C,v 1.64 2002/02/08 13:48:01 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -99,7 +99,6 @@ using namespace glconst;
   case SIGTERM: case SIGINT: 
     cerr <<" SIGTERM intercepted"<<endl;
     GCFLAG.IEORUN=1;
-    GCFLAG.IEOTRI=1;
     AMSStatus::setmode(0);
     break;
   case SIGQUIT:

@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.60 2002/01/17 14:33:44 choutko Exp $
+//  $Id: geant3.C,v 1.61 2002/02/08 13:48:02 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -483,6 +483,9 @@ if(    AMSEvent::gethead()->HasNoCriticalErrors()){
   RICHDB::Nph()=0;
    try{
    if(AMSJob::gethead()->isSimulation()){
+         CCFFKEY.curtime=AMSEvent::gethead()->gettime();
+      if(GCFLAG.IEOTRI)AMSJob::gethead()->uhend(AMSEvent::gethead()->getrun(),
+AMSEvent::gethead()->getid(),AMSEvent::gethead()->gettime());
       number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
       AMSTrTrack::TimeLimit()=AMSFFKEY.CpuLimit-tt;
 //        cout <<  "  tt   " <<tt<<endl;
@@ -563,7 +566,7 @@ if(    AMSEvent::gethead()->HasNoCriticalErrors()){
 #endif
       AMSgObj::BookTimer.start("GUOUT");
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
-         GCFLAG.IEVENT==GCFLAG.NEVENT)
+         GCFLAG.IEVENT>=GCFLAG.NEVENT)
       AMSEvent::gethead()->printA(AMSEvent::debug);
      integer trig;
      if(AMSJob::gethead()->gettriggerOr()){

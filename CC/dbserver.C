@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.24 2001/08/07 07:20:18 alexei Exp $
+//  $Id: dbserver.C,v 1.25 2002/02/08 13:48:01 choutko Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -1811,7 +1811,7 @@ void  DBServer_impl::_init(){
 
 
 
-  int  DBServer_impl::sendFile(const DPS::Client::CID &cid, const FPath & fpath, const  RUN & file,TransferStatus & st)throw (CORBA::SystemException,DPS::DBServer::FailedOp){
+  int  DBServer_impl::sendFile(const DPS::Client::CID &cid,  FPath & fpath, const  RUN & file,TransferStatus & st)throw (CORBA::SystemException,DPS::DBServer::FailedOp){
 }
 
 
@@ -2150,7 +2150,7 @@ void  DBServer_impl::setEnv(const DPS::Client::CID &cid,const char * env, const 
 
 
 
-int  DBServer_impl::sendFile(const DPS::Client::CID &cid, const FPath & fpath, const  RUN & file,TransferStatus &st)throw (CORBA::SystemException,DPS::DBServer::FailedOp){
+int  DBServer_impl::sendFile(const DPS::Client::CID &cid,  FPath & fpath, const  RUN & file,TransferStatus &st)throw (CORBA::SystemException,DPS::DBServer::FailedOp){
 }
 
 

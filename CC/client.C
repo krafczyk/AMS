@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.18 2001/03/09 16:42:24 choutko Exp $
+//  $Id: client.C,v 1.19 2002/02/08 13:48:01 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -165,7 +165,7 @@ return _streambuffer;
 
 
 ostream & AMSClient::print(const DPS::Client::CID & a, ostream & o){
-return o<<a.HostName<<" "<<a.Interface<<"  UID "<<a.uid<<" PID "<<a.pid<<" "<<a.ppid<<" Type "<<CT2string(a.Type)<<" ExitStatus "<<CSE2string(a.Status);
+return o<<a.HostName<<" "<<a.Interface<<"  UID "<<a.uid<<" PID "<<a.pid<<" "<<a.ppid<<" Type "<<CT2string(a.Type)<<" ExitStatus "<<CSE2string(a.Status)<<" StatusType "<<CST2string(a.StatusType);
 }
 
 
@@ -265,6 +265,18 @@ return " ";
 }
 
 
+char * AMSClient::CST2string(DPS::Client::ClientStatusType a){
+switch (a){
+case DPS::Client::Permanent:
+return "Permanent ";
+case DPS::Client::OneRunOnly:
+return "OneRunOnly";
+}
+return " ";
+}
+
+
+
 char * AMSClient::HS2string(DPS::Client::HostStatus a){
 switch (a){
 case DPS::Client::NoResponse:
@@ -321,6 +333,10 @@ case DPS::Producer::Failed:
 return "Failed";
 case DPS::Producer::Processing:
 return "Processing";
+case DPS::Producer::Allocated:
+return "Allocated";
+case DPS::Producer::Foreign:
+return "Foreign";
 case DPS::Producer::Finished:
 return "Finished";
 }
