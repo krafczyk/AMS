@@ -1,4 +1,4 @@
-#  $Id: cont.doc,v 1.5 2001/11/19 14:39:22 choutko Exp $
+#  $Id: cont.doc,v 1.6 2004/02/24 18:22:16 choutko Exp $
 // How to manipulate with containers
 
 A) User class format ;
@@ -18,7 +18,7 @@ protected:
  AMSID crgid(){...]      // To make geant volume id corr given element
  integer operator < (AMSlink & o)const {// "<" relationship between instances
   // No RTTI - take a "risk"here        // Needed only for "sorted" containers
-  XXX * p =(XXX*)(&o);                  // a-la Pavel
+  XXX * p =(XXX*)(&o);                  // 
   ... ;
  } 
 ...
@@ -77,7 +77,7 @@ XXX *ptr=(XXX*)AMSEvent::gethead()->
 XXX * ptrN;
 ptrN=ptr->next(); // ptrN points to next element now (=0 if no more)
 
-// sorted a-la Pavel one
+// sorted  one
 
 
 XXX *ptr=(XXX*)AMSEvent::gethead()->
@@ -102,3 +102,18 @@ F)  Number of elements in container
     int nelem=0;    
     if(pcon)nelem=pcon->getnelem();
     else cerr<<" no such container "<<AMSID(cont_name,cont_id)<<endl;
+
+G)  Status  word
+    void setstatus(bit)
+    bool checkstatus(bit)
+    void clearstatus(bit)
+
+    status bits are generally subdetector dependent,
+    (see e.g. ../CC/amsdbc.C for some of them)
+    There is however one exception:
+    AMSDBc::USED  (32)   bit is used exclusively to mark an object
+    on thich there is a reference from another object.
+    Normally it happens when given (USED) object is used to build another
+    (derived) object.   
+
+  
