@@ -46,7 +46,6 @@ protected:
   number   _Charge;
   number   _Theta;
   number   _Phi;
-  number   _SumAnti;
 
   integer  _GPart;
   integer  _Position;
@@ -78,6 +77,5 @@ public:
  number  gettheta()               {return _Theta;}
  number  getPhi()                 {return _Phi;}
  AMSPoint getCoo()                {return _Coo;}
- number   getSumAnti()            {return _SumAnti;}
   
 };

@@ -13,17 +13,17 @@
 
  AMSAntiMCClusterD:: AMSAntiMCClusterD(AMSAntiMCCluster* p)
 {
-  _idsoft   = p -> idsoft;
-  _xcoo     = p -> xcoo;
-  _tof      = p -> tof;
-  _edep     = p -> edep;
+  _idsoft   = p -> _idsoft;
+  _xcoo     = p -> _xcoo;
+  _tof      = p -> _tof;
+  _edep     = p -> _edep;
 }
  
 void AMSAntiMCClusterD::copy(AMSAntiMCCluster* p)
 {
-  p -> idsoft = _idsoft;
-  p -> xcoo   = _xcoo;     
-  p -> tof    = _tof;      
-  p -> edep   = _edep;     
+  p -> _idsoft = _idsoft;
+  p -> _xcoo   = _xcoo;     
+  p -> _tof    = _tof;      
+  p -> _edep   = _edep;     
 }
  

@@ -7,12 +7,13 @@
 // Feb 28, 1997. ak.   TOFDBcD up to date
 // Mar 24, 1997. ak.   CmpConstants is significantly modified
 //
-//Last Edit : Mar 24, 1997. ak.
+//Last Edit : May 23, 1997. ak.
 //
 
 #include <iostream.h>
 #include <string.h>
 #include <cern.h>
+#include <rd45.h>
 
 #include <tofdbc.h>
 #include <tofdbcD.h>
@@ -23,48 +24,54 @@ TOFDBcD::TOFDBcD()
   integer i;
   
   for (i=0; i<SCBLMX; i++) {
-    _brtypeD[i] = TOFDBc::_brtype[i];
+    _brtype[i] = TOFDBc::_brtype[i];
   }
 
   for (i=0; i<SCLRS; i++) {
-    _plrotmD[i] = TOFDBc::_plrotm[i];
+    _plrotm[i] = TOFDBc::_plrotm[i];
   }
 
   for (i=0; i<SCBTPN; i++) {
-    _brlenD[i] = TOFDBc::_brlen[i];
+    _brlen[i] = TOFDBc::_brlen[i];
   }
 
   for (i=0; i<10; i++) {
-    _supstrD[i] = TOFDBc::_supstr[i];
+    _supstr[i] = TOFDBc::_supstr[i];
   }
 
   for (i=0; i<15; i++) {
-    _plnstrD[i] = TOFDBc::_plnstr[i];
+    _plnstr[i] = TOFDBc::_plnstr[i];
   }
 
 
-  _edep2phD = TOFDBc::_edep2ph;
-  _fladctbD     = TOFDBc::_fladctb;
-  _shaptbD      = TOFDBc::_shaptb;
-  _shrtimD      = TOFDBc::_shrtim;
-  _shftimD      = TOFDBc::_shftim;
+  _edep2ph     = TOFDBc::_edep2ph;
+  _fladctb     = TOFDBc::_fladctb;
+  _shaptb      = TOFDBc::_shaptb;
+  _shrtim      = TOFDBc::_shrtim;
+  _shftim      = TOFDBc::_shftim;
   for (i=0; i<4; i++) {
-  _tdcbinD[i]   = TOFDBc::_tdcbin[i];
+  _tdcbin[i]   = TOFDBc::_tdcbin[i];
   }
-  _trigtbD      = TOFDBc::_trigtb;
-  _strfluD      = TOFDBc::_strflu;
-  for (i=0; i<2; i++) {
-  _accdelD[i]   = TOFDBc::_accdel[i];
-  }
-  for (i=0; i<2; i++) {
-  _accdelmxD[i] = TOFDBc::_accdelmx[i];
-  }
+  _trigtb      = TOFDBc::_trigtb;
+  _strflu      = TOFDBc::_strflu;
 
   for (i=0; i<15; i++) {
-  _daqpwdD[i]  = TOFDBc::_daqpwd[i];
+  _daqpwd[i]  = TOFDBc::_daqpwd[i];
   }
-  _di2anrD      = TOFDBc::_di2anr;
-  _strratD      = TOFDBc::_strrat;
+  _di2anr      = TOFDBc::_di2anr;
+  _strrat      = TOFDBc::_strrat;
+  _strjit1     = TOFDBc::_strjit1;
+  _strjit2     = TOFDBc::_strjit2;
+  _ftdelf      = TOFDBc::_ftdelf;
+  _ftdelm      = TOFDBc::_ftdelm;
+
+  _accdel      = TOFDBc::_accdel;
+
+  _fstdcd      = TOFDBc::_fstdcd;
+  _fatdcd      = TOFDBc::_fatdcd;
+
+  _pbonup      = TOFDBc::_pbonup;
+
 }
 ooStatus TOFDBcD::CmpConstants() 
 {
@@ -74,179 +81,217 @@ ooStatus TOFDBcD::CmpConstants()
   cout<<"TOFDBcD::CmpConstants -I- start comparison "<<endl;
 
   for (i=0; i<SCBLMX; i++) {
-    if (_brtypeD[i] != TOFDBc::_brtype[i]) {
+    if (_brtype[i] != TOFDBc::_brtype[i]) {
       rstatus = oocError;
-      cout<<"TOFDBc::CmpConstants -I- _brtype is different "<<endl;
-      cout<<"i,_brtype: dbase, mem "<<i<<", "<<_brtypeD[i]<<", "
+      Warning("TOFDBc::CmpConstants :_brtype is different ");
+      cout<<"i,_brtype: dbase, mem "<<i<<", "<<_brtype[i]<<", "
           <<TOFDBc::_brtype[i]<<endl;
     }
    if (rstatus == oocError) break;
   }
   if (rstatus == oocError) {
-    cout<<"TOFDBc::CmpConstants -I- _brtype will be set as in dbase "<<endl;
-    for (i=0; i<SCBLMX; i++) {TOFDBc::_brtype[i] = _brtypeD[i];}
+    Warning("TOFDBc::CmpConstants :_brtype will be set as in dbase ");
+    for (i=0; i<SCBLMX; i++) {TOFDBc::_brtype[i] = _brtype[i];}
     rstatus = oocSuccess;
   }
 
 
   for (i=0; i<SCLRS; i++) {
-    if (_plrotmD[i] != TOFDBc::_plrotm[i]) {
+    if (_plrotm[i] != TOFDBc::_plrotm[i]) {
       rstatus = oocError;
-      cout<<"TOFDBc::CmpConstants -I- _plrotm is different "<<endl;
-      cout<<"i, _plrotm: dbase, mem "<<i<<", "<<_plrotmD[i]<<", "
+      Warning("TOFDBc::CmpConstants :_plrotm is different ");
+      cout<<"i, _plrotm: dbase, mem "<<i<<", "<<_plrotm[i]<<", "
           <<TOFDBc::_plrotm[i]<<endl;
     }
    if (rstatus == oocError) break;
   }
   if (rstatus == oocError) {
-    cout<<"TOFDBc::CmpConstants -I- _plrotm will be set as in dbase "<<endl;
-    for (i=0; i<SCLRS; i++) {TOFDBc::_plrotm[i] = _plrotmD[i];}
+    Warning("TOFDBc::CmpConstants :_plrotm will be set as in dbase ");
+    for (i=0; i<SCLRS; i++) {TOFDBc::_plrotm[i] = _plrotm[i];}
     rstatus = oocSuccess;
   }
 
   for (i=0; i<SCBTPN; i++) {
-    if(_brlenD[i] != TOFDBc::_brlen[i]) {
+    if(_brlen[i] != TOFDBc::_brlen[i]) {
       rstatus = oocError;
-      cout<<"TOFDBc::CmpConstants -I- _brlen is different "<<endl;
-      cout<<"i, _brlen: dbase, mem "<<i<<", "<<_brlenD[i]<<", "
+      Warning("TOFDBc::CmpConstants :_brlen is different ");
+      cout<<"i, _brlen: dbase, mem "<<i<<", "<<_brlen[i]<<", "
           <<TOFDBc::_brlen[i]<<endl;
     }
    if (rstatus == oocError) break;
   }
   if (rstatus == oocError) {
-    cout<<"TOFDBc::CmpConstants -I- _brlen will be set as in dbase "<<endl;
-    for (i=0; i<SCBTPN; i++) {TOFDBc::_brlen[i] = _brlenD[i];}
+    Warning("TOFDBc::CmpConstants :_brlen will be set as in dbase ");
+    for (i=0; i<SCBTPN; i++) {TOFDBc::_brlen[i] = _brlen[i];}
     rstatus = oocSuccess;
   }
 
 
   for (i=0; i<10; i++) {
-    if (_supstrD[i] != TOFDBc::_supstr[i]) {
+    if (_supstr[i] != TOFDBc::_supstr[i]) {
       rstatus = oocError;
-      cout<<"TOFDBc::CmpConstants -E- _supstr is different "<<endl;
-      cout<<"i, _supstr: dbase, mem "<<i<<", "<<_supstrD[i]<<", "
+      Warning("TOFDBc::CmpConstants : _supstr is different ");
+      cout<<"i, _supstr: dbase, mem "<<i<<", "<<_supstr[i]<<", "
           <<TOFDBc::_supstr[i]<<endl;
     }
     if (rstatus == oocError) break;
   }
   if (rstatus == oocError) {
-    cout<<"TOFDBc::CmpConstants -I- _supstr will be set as in dbase "<<endl;
-    for (i=0; i<10; i++) {TOFDBc::_supstr[i] = _supstrD[i];}
+    Warning("TOFDBc::CmpConstants :_supstr will be set as in dbase ");
+    for (i=0; i<10; i++) {TOFDBc::_supstr[i] = _supstr[i];}
     rstatus = oocSuccess;
   }
 
   for (i=0; i<15; i++) {
-    if (_plnstrD[i] != TOFDBc::_plnstr[i]) {
+    if (_plnstr[i] != TOFDBc::_plnstr[i]) {
       rstatus = oocError;
-      cout<<"TOFDBc::CmpConstants -I- _plnstr is different "<<endl;
-      cout<<"i, _plnstr: dbase, mem "<<i<<", "<<_plnstrD[i]<<", "
+      Warning("TOFDBc::CmpConstants :_plnstr is different ");
+      cout<<"i, _plnstr: dbase, mem "<<i<<", "<<_plnstr[i]<<", "
           <<TOFDBc::_plnstr[i]<<endl;
     }
     if (rstatus == oocError) break;
   }
   if (rstatus == oocError) {
-    cout<<"TOFDBc::CmpConstants -I- _plnstr will be set as in dbase "<<endl;
-    for (i=0; i<15; i++) {TOFDBc::_plnstr[i] = _plnstrD[i];}
+    Warning("TOFDBc::CmpConstants :_plnstr will be set as in dbase ");
+    for (i=0; i<15; i++) {TOFDBc::_plnstr[i] = _plnstr[i];}
     rstatus = oocSuccess;
   }
 
 
-  if (_edep2phD != TOFDBc::_edep2ph) {
+  if (_edep2ph != TOFDBc::_edep2ph) {
       rstatus = oocError;
-      cerr<<"TOFDBc::CmpConstants -E- _edep2ph is different "<<endl;
-      cerr<<" _edep2ph: dbase, mem "<<_edep2phD<<", "<<TOFDBc::_edep2ph<<endl;
+      Error("TOFDBc::CmpConstants :_edep2ph is different ");
+      cerr<<" _edep2ph: dbase, mem "<<_edep2ph<<", "<<TOFDBc::_edep2ph<<endl;
   }
 
 
-  if (_fladctbD     != TOFDBc::_fladctb) {
+  if (_fladctb     != TOFDBc::_fladctb) {
       rstatus = oocError;
-      cerr<<"TOFDBc::CmpConstants -E- _fladctb is different "<<endl;
-      cerr<<" _faldctb: dbase, mem "<<_fladctbD<<", "<<TOFDBc::_fladctb<<endl;
+      Error("TOFDBc::CmpConstants :_fladctb is different ");
+      cerr<<" _faldctb: dbase, mem "<<_fladctb<<", "<<TOFDBc::_fladctb<<endl;
   }
 
-  if (_shaptbD      != TOFDBc::_shaptb) {
+  if (_shaptb      != TOFDBc::_shaptb) {
       rstatus = oocError;
-      cerr<<"TOFDBc::CmpConstants -E- _shaptb is different "<<endl;
-      cerr<<" dbase, mem "<<_shaptbD<<", "<<TOFDBc::_shaptb<<endl;
+      Error("TOFDBc::CmpConstants :_shaptb is different ");
+      cerr<<" dbase, mem "<<_shaptb<<", "<<TOFDBc::_shaptb<<endl;
   }
 
-  if (_shrtimD      != TOFDBc::_shrtim) {
+  if (_shrtim      != TOFDBc::_shrtim) {
       rstatus = oocError;
-      cerr<<"TOFDBc::CmpConstants -E- _shrtim is different "<<endl;
-      cerr<<" _shrtim: dbase, mem "<<_shrtimD<<", "<<TOFDBc::_shrtim<<endl;
+      Error("TOFDBc::CmpConstants :_shrtim is different ");
+      cerr<<" _shrtim: dbase, mem "<<_shrtim<<", "<<TOFDBc::_shrtim<<endl;
   }
 
-  //exit
-  if (_shftimD      != TOFDBc::_shftim) {
+
+  if (_shftim      != TOFDBc::_shftim) {
       rstatus = oocError;
-      cerr<<"TOFDBc::CmpConstants -E- _shftim is different "<<endl;
-      cerr<<" _shftim: dbase, mem "<<_shftimD<<", "<<TOFDBc::_shftim<<endl;
+      Error("TOFDBc::CmpConstants :_shftim is different ");
+      cerr<<" _shftim: dbase, mem "<<_shftim<<", "<<TOFDBc::_shftim<<endl;
   }
 
   for (i=0; i<4; i++) {
-    if (_tdcbinD[i]   != TOFDBc::_tdcbin[i]) {
+    if (_tdcbin[i]   != TOFDBc::_tdcbin[i]) {
       rstatus = oocError;
-      if (i==0) cerr<<"TOFDBc::CmpConstants -E- _tdcbin is different "<<endl;
-      cerr<<"i, dbase, mem "<<i<<", "<<_tdcbinD[i]<<", "
+      if (i==0) Error("TOFDBc::CmpConstants :_tdcbin is different ");
+      cerr<<"i, dbase, mem "<<i<<", "<<_tdcbin[i]<<", "
           <<TOFDBc::_tdcbin[i]<<endl;
     }
   }
 
-  if(_trigtbD      != TOFDBc::_trigtb) {
+  if(_trigtb      != TOFDBc::_trigtb) {
       rstatus = oocError;
-      if (i==0) cerr<<"TOFDBc::CmpConstants -E- _trigtb is different "<<endl;
-      cerr<<" _tdcbin: dbase, mem "<<_trigtbD<<", "<<TOFDBc::_trigtb<<endl;
+      if (i==0) Error("TOFDBc::CmpConstants :_trigtb is different ");
+      cerr<<" _tdcbin: dbase, mem "<<_trigtb<<", "<<TOFDBc::_trigtb<<endl;
   }
 
-  if (_strfluD      != TOFDBc::_strflu) {
+  if (_strflu      != TOFDBc::_strflu) {
       rstatus = oocError;
-      if (i==0) cerr<<"TOFDBc::CmpConstants -E- _strflu is different "<<endl;
-      cerr<<" _strflu: dbase, mem "<<_strfluD<<", "<<TOFDBc::_strflu<<endl;
-  }
-
-  for (i=0; i<2; i++) {
-    if (_accdelD[i]   != TOFDBc::_accdel[i]) {
-      rstatus = oocError;
-      if (i==0) cerr<<"TOFDBc::CmpConstants -E- _accdel is different "<<endl;
-      cerr<<"i, _accdel: dbase, mem "<<i<<", "<<_accdelD[i]<<", "
-          <<TOFDBc::_accdel[i]<<endl;
-   }
-  }
-
-
-  for (i=0; i<2; i++) {
-    if (_accdelmxD[i] != TOFDBc::_accdelmx[i]) {
-      rstatus = oocError;
-      if (i==0) cerr<<"TOFDBc::CmpConstants -E- _accdelmx is different "<<endl;
-      cerr<<"i, _accdelmx: dbase, mem "<<i<<", "<<_accdelmxD[i]<<", "
-          <<TOFDBc::_accdelmx[i]<<endl;
-   }
+      if (i==0) Error("TOFDBc::CmpConstants :_strflu is different ");
+      cerr<<" _strflu: dbase, mem "<<_strflu<<", "<<TOFDBc::_strflu<<endl;
   }
 
 
   for (i=0; i<15; i++) {
-    if (_daqpwdD[i]  != TOFDBc::_daqpwd[i]) {
+    if (_daqpwd[i]  != TOFDBc::_daqpwd[i]) {
       rstatus = oocError;
-      if (i==0) cerr<<"TOFDBc::CmpConstants -E- _daqpwd is different "<<endl;
-      cerr<<"i, _daqpwd: dbase, mem "<<i<<", "<<_daqpwdD[i]<<", "
+      if (i==0) Error("TOFDBc::CmpConstants : _daqpwd is different ");
+      cerr<<"i, _daqpwd: dbase, mem "<<i<<", "<<_daqpwd[i]<<", "
           <<TOFDBc::_daqpwd[i]<<endl;
    }
   }
 
-  if (_di2anrD      != TOFDBc::_di2anr) {
+  if (_di2anr      != TOFDBc::_di2anr) {
       rstatus = oocError;
-      cerr<<"TOFDBc::CmpConstants -E- _di2anr is different "<<endl;
-      cerr<<" _di2anr: dbase, mem "<<_di2anrD<<", "<<TOFDBc::_di2anr<<endl;
+      Error("TOFDBc::CmpConstants :_di2anr is different ");
+      cerr<<" _di2anr: dbase, mem "<<_di2anr<<", "<<TOFDBc::_di2anr<<endl;
   }
 
 
-  if (_strratD      != TOFDBc::_strrat) {
+  if (_strrat      != TOFDBc::_strrat) {
       rstatus = oocError;
-      cerr<<"TOFDBc::CmpConstants -E- _strrat is different "<<endl;
-      cerr<<" _strrat: dbase, mem "<<_strratD<<", "<<TOFDBc::_strrat<<endl;
+      Error("TOFDBc::CmpConstants :_strrat is different ");
+      cerr<<" _strrat: dbase, mem "<<_strrat<<", "<<TOFDBc::_strrat<<endl;
   }
 
- cout<<"TOFDBcD::CmpConstants -I- comparison done "<<endl;
- return rstatus;
+
+  if (_strjit1      != TOFDBc::_strjit1) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants :_strjit1 is different ");
+      cerr<<" _strrat: dbase, mem "<<_strjit1<<", "<<TOFDBc::_strjit1<<endl;
+  }
+
+  if (_strjit2      != TOFDBc::_strjit2) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants :_strjit2 is different ");
+      cerr<<" _strrat: dbase, mem "<<_strjit2<<", "<<TOFDBc::_strjit2<<endl;
+  }
+
+
+  if (_ftdelf      != TOFDBc::_ftdelf) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants :_ftdelf is different ");
+      cerr<<" _strrat: dbase, mem "<<_ftdelf<<", "<<TOFDBc::_ftdelf<<endl;
+  }
+
+  if (_ftdelm      != TOFDBc::_ftdelm) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants :_ftdelm is different ");
+      cerr<<" _strrat: dbase, mem "<<_ftdelm<<", "<<TOFDBc::_ftdelm<<endl;
+  }
+
+
+
+  if (_accdel      != TOFDBc::_accdel) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants :_accdel is different ");
+      cerr<<" _strrat: dbase, mem "<<_accdel<<", "<<TOFDBc::_accdel<<endl;
+  }
+
+  if (_fstdcd != TOFDBc::_fstdcd) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants :_fstdcd is different ");
+      cerr<<" _strrat: dbase, mem "<<_fstdcd<<", "<<TOFDBc::_fstdcd<<endl;
+  }
+
+  if (_fatdcd != TOFDBc::_fatdcd) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants : _fatdcd is different ");
+      cerr<<" _strrat: dbase, mem "<<_fatdcd<<", "<<TOFDBc::_fatdcd<<endl;
+  }
+
+  if (_pbonup != TOFDBc::_pbonup) {
+      rstatus = oocError;
+      Error("TOFDBc::CmpConstants :_pbonup is different ");
+      cerr<<" _strrat: dbase, mem "<<_pbonup<<", "<<TOFDBc::_pbonup<<endl;
+  }
+
+
+  if (rstatus == oocSuccess)
+   Message("TOFDBcD::CmpConstants : comparison done ");
+  else
+   Error("TOFDBcD::CmpConstants : comparison done. CONSTANTS ARE DIFFERENT ");
+
+  return rstatus;
 
 }

@@ -54,8 +54,9 @@
 //                                                  AMSCharge
 //                                                  AMSParticle
 //                                                  AMSmceventg
+// Jun 01, 1997. ak. add anticlusters
 //
-// last edit May 09, 1997, ak.
+// last edit Jun 01, 1997, ak.
 //
 //
 #include <iostream.h>
@@ -72,6 +73,7 @@
 #include <rclist_ref.h>
 #include <rclist.h>
 
+#include <anticlusterD_ref.h>
 #include <chargeD_ref.h>
 #include <ctcrecD_ref.h>
 #include <recevent_ref.h>
@@ -82,6 +84,7 @@
 #include <trrechit_ref.h>
 #include <ttrack_ref.h>
 
+#include <anticlusterD.h>
 #include <chargeD.h>
 #include <ctcrecD.h>
 #include <recevent.h>
@@ -92,6 +95,7 @@
 #include <trrechit.h>
 #include <ttrack.h>
 
+#include <antirec.h>
 #include <trrec.h>
 #include <tofrec.h>
 #include <beta.h>
@@ -105,6 +109,7 @@
   char       nameC[2][11] = {"TrClusterX","TrClusterY"};
   char       nameS[4][9] = {"ScLayer1","ScLayer2","ScLayer3","ScLayer4"};
 
+  static char* anticlusterCont;
   static char* betaCont;
   static char* chargeCont;
   static char* ctcclusterCont;
@@ -118,6 +123,7 @@
 static integer NO_AMS = 0;
 //
 // Containers
+ooHandle(ooContObj)  contAntiClusterH;        // betas  
 ooHandle(ooContObj)  contBetaH;               // betas  
 ooHandle(ooContObj)  contChargeH;             // charges  
 ooHandle(ooContObj)  contClusterH[2];         // tracker cluster 
@@ -127,13 +133,9 @@ ooHandle(ooContObj)  contParticleH;           // Particle
 ooHandle(ooContObj)  contTrackH;              // tracks 
 ooHandle(ooContObj)  contTrLayerH[6];         // tracker layers
 
-//ooHandle(ooContObj)  contGeometryH;           // geometry 
-//ooHandle(ooContObj)  contgmatH;               // material
-//ooHandle(ooContObj)  contgtmedH;              // tracking media
-//ooHandle(ooContObj)  conttdvH;                // Time dependent var
-
 // ooObj classes
 
+ooHandle(AMSAntiClusterD)  anticlusterH;
 ooHandle(AMSBetaD)         betaH;
 ooHandle(AMSChargeD)       chargeH;
 ooHandle(AMSTrClusterD)    clusterH;
@@ -178,6 +180,7 @@ void AMSEventList::resetRCCounters()
   for (i=0; i<2; i++)         _nClusters[i]    = 0;
   for (i=0; i<6; i++)         _nHits[i]        = 0;
   for (i=0; i<4; i++)         _nTOFClusters[i] = 0;
+  _nAntiClusters = 0;
   _nBetas    = 0;
   _nCharges  = 0;
   _nParticles= 0;
@@ -188,6 +191,10 @@ void AMSEventList::SetContainersNames()
 {
   char*   name;
   integer i;
+
+//AntiClusters
+   if (!anticlusterCont)  
+                   anticlusterCont =  StrCat("AntiCluster_",ListName());
 
 //TrLayer
    char       nameTrL[6][10] = {
@@ -564,8 +571,7 @@ ooStatus      AMSEventList::AddBeta(ooHandle(AMSeventD) & eventH)
            betaH = new(contBetaH) AMSBetaD(p);
            rstatus = eventH -> add_pBeta(betaH);
            if (rstatus != oocSuccess) {
-            cerr << "AMSEventList:AddBeta: Error - cannot set the "
-                 << "Beta to Event 'pEventB' association." << endl;
+            Error("AddBeta: cannot set Beta to Event association.");
             return rstatus;
            }
            // set Beta <-> Track link
@@ -582,8 +588,7 @@ ooStatus      AMSEventList::AddBeta(ooHandle(AMSeventD) & eventH)
              while (trTrackItr.next()) {                   // get position of  
               rstatus = betaH -> set_pTrackBeta(trTrackItr);
               if (rstatus != oocSuccess) {
-               cerr << "AMSEventList:AddBeta: Error - cannot set the "
-                    << "Beta to Track 'pTrackBeta' association." << endl;
+               Error("AddBeta: cannot set Beta to Track association.");
                return rstatus;
               }
              }
@@ -605,8 +610,7 @@ ooStatus      AMSEventList::AddBeta(ooHandle(AMSeventD) & eventH)
               while (tofClusterItr.next()) {               // get position of  
                rstatus = betaH -> add_pTOFBeta(tofClusterItr);
                if (rstatus != oocSuccess) {
-                cerr << "AMSEventList:AddBeta: Error - cannot set the "
-                     << "Beta to TOFCluster 'pTOFBeta' association." << endl;
+                Error("AddBeta: cannot set Beta to TOFCluster association.");
                 return rstatus;
                }
               }
@@ -656,7 +660,7 @@ ooStatus      AMSEventList::AddCharge(ooHandle(AMSeventD) & eventH)
         AMSCharge* p = (AMSCharge*)AMSEvent::gethead() -> 
                                                getheadC("AMSCharge",0);
         if (p == NULL) {
-         cout <<"AMSEventList::AddCharge-I- AMSCharge* p == NULL"<<endl;
+         Message("AddCharge : AMSCharge* p == NULL");
          return oocSuccess;
         }
 
@@ -664,9 +668,8 @@ ooStatus      AMSEventList::AddCharge(ooHandle(AMSeventD) & eventH)
           chargeH = new(contChargeH) AMSChargeD(p);
           rstatus = eventH -> add_pChargeE(chargeH);
           if (rstatus != oocSuccess) {
-          cerr << "AMSEventList:AddCharge: Error - cannot set the "
-               << "Charge to Event 'pEventCh' association." << endl;
-          return rstatus;
+           Error("AddCharge: cannot set Charge to Event association.");
+           return rstatus;
           }
          
          // set Beta <-> Charge link
@@ -682,8 +685,7 @@ ooStatus      AMSEventList::AddCharge(ooHandle(AMSeventD) & eventH)
               integer posBd = betaItr -> getPosition(); // assoc. beta in db
                rstatus = chargeH -> set_pBetaCh(betaItr);
                if (rstatus != oocSuccess) {
-                cerr << "AMSEventList:AddCharge: Error - cannot set the "
-                     << "Charge to Beta 'pChargeB' association." << endl;
+                Error("AddCharge: cannot set Charge to Beta association.");
                 return rstatus;
                }
              }
@@ -724,8 +726,7 @@ ooStatus      AMSEventList::AddCTCCluster(ooHandle(AMSeventD)& eventH)
           ctcclusterH = new(contCTCClusterH) AMSCTCClusterD(p);
           rstatus = eventH -> add_pCTCCluster(ctcclusterH);
           if (rstatus != oocSuccess) {
-           cerr << "AMSEventList:AddCTCCluster: Error - cannot set the "
-                << "CTCCluster to Event 'pCTCCluster' association." << endl;
+           Error("AddCTCCluster: cannot set CTCCluster to Event assoc.");
            return rstatus;
           }
           ctccl++;
@@ -760,16 +761,15 @@ ooStatus      AMSEventList::AddParticle(ooHandle(AMSeventD) & eventH)
         AMSParticle* p = (AMSParticle*)AMSEvent::gethead() -> 
                                                getheadC("AMSParticle",0);
         if (p == NULL) {
-        cout <<"AMSEventList::AddParticle-I- AMSParticle* p == NULL"<<endl;
-        return oocSuccess;
+         Message("AddParticle : AMSParticle* p == NULL");
+         return oocSuccess;
         }
 
         while (p != NULL) {
          particleH = new(contParticleH) AMSParticleD(p);
          rstatus = eventH -> add_pParticleE(particleH);
          if (rstatus != oocSuccess) {
-          cerr << "AMSEventList:AddParticle: Error - cannot set the "
-               << "Particle to Event 'pEventP' association." << endl;
+          Error("AddParticle: cannot set Particle to Event assoc.");
           return rstatus;
          }
          // set Beta <-> Particle link
@@ -784,8 +784,7 @@ ooStatus      AMSEventList::AddParticle(ooHandle(AMSeventD) & eventH)
              while (betaItr.next()) {                   // get position of  
                rstatus = particleH -> set_pBetaP(betaItr);
                if (rstatus != oocSuccess) {
-                cerr << "AMSEventList:AddParticle: Error - cannot set the "
-                     << "Particle to Beta 'pChargeP' association." << endl;
+                Error("AddParticle: cannot set Particle to Beta assoc.");
                 return rstatus;
                }
              // set Particle <-> Track link
@@ -794,8 +793,7 @@ ooStatus      AMSEventList::AddParticle(ooHandle(AMSeventD) & eventH)
               rstatus = particleH -> set_pTrackP(trackH);
               if (rstatus != oocSuccess) return rstatus;
              } else {
-              cout << "AMSEventList:AddParticle: Error - cannot find an "
-                    <<" assoc. track "<<endl;
+              Warning("AddParticle: cannot find an associated track ");
               }
              }
             }
@@ -812,8 +810,7 @@ ooStatus      AMSEventList::AddParticle(ooHandle(AMSeventD) & eventH)
              while (chargeItr.next()) {                   
                rstatus = particleH -> set_pChargeP(chargeItr);
                if (rstatus != oocSuccess) {
-                cerr << "AMSEventList:AddParticle -E- cannot set the "
-                     << "Particle to Charge 'pChargeP' association." << endl;
+                Error("AddParticle : cannot set Particle to Charge assoc.");
                 return rstatus;
                }
              }
@@ -830,14 +827,13 @@ ooStatus      AMSEventList::AddParticle(ooHandle(AMSeventD) & eventH)
                 (void) sprintf(pred,"_Position=%d",posCTC);
                 eventH -> pCTCCluster(ctcClusterItr,oocUpdate,oocAll,pred);
                 while (ctcClusterItr.next()) {          // get position of  
-                  rstatus = particleH -> add_pCTCClusterP(ctcClusterItr);
-                  if (rstatus != oocSuccess) {
-                   cerr << "AMSEventList:AddParticle-E- cannot set the "
-                        << "Particle to CTC 'pChargeP' association." << endl;
-                   return rstatus;
-                  }
+                 rstatus = particleH -> add_pCTCClusterP(ctcClusterItr);
+                 if (rstatus != oocSuccess) {
+                  Error("AddParticle : cannot set Particle to CTC assoc.");
+                  return rstatus;
+                 }
                   break;
-                }
+                 }
                 }
                }
             }
@@ -936,7 +932,7 @@ ooStatus      AMSEventList::AddParticleS(ooHandle(AMSeventD) & eventH)
                             p -> getgpart(), p -> getmass(), p -> geterrmass(),
                             p -> getmomentum(), p -> geterrmomentum(), 
                             p -> getcharge(), p -> gettheta(), p -> getphi(),
-                            p -> getcoo(), p -> getsumanti());
+                            p -> getcoo());
          particles[i] = particle;
          i++;
          p = p -> next();
@@ -946,5 +942,49 @@ ooStatus      AMSEventList::AddParticleS(ooHandle(AMSeventD) & eventH)
 
         rstatus = oocSuccess;
 
+        return rstatus;
+}
+
+ooStatus      AMSEventList::AddAntiCluster(ooHandle(AMSeventD) & eventH)
+
+{
+	ooStatus	        rstatus = oocSuccess;	// Return status
+        ooHandle(AMSEventList)  listH = ooThis();
+
+
+        if (contAntiClusterH == NULL) {
+         rstatus = CheckContainer(anticlusterCont,oocUpdate,contAntiClusterH);
+         if (rstatus != oocSuccess) return rstatus;
+        }
+
+        // get number of clusters so far
+        integer clusters  = listH -> getNAntiClusters();
+        if (dbg_prtout) cout 
+            <<"AddAntiClusters -I-  anticlusters in the list "<<clusters<<endl;
+        if (NO_AMS == 1) return oocSuccess;
+
+        AMSContainer* pCont = AMSEvent::gethead() -> getC("AMSAntiCluster",0);
+        if (pCont != NULL) {
+         integer nelem = pCont -> getnelem();
+         if (nelem == 0) 
+          if(dbg_prtout != 0) cout 
+                              <<"AddAntiClusters -I- elements "<<nelem<<endl;
+         if ( nelem > 0) {
+          AMSAntiCluster* p = (AMSAntiCluster*)AMSEvent::gethead() -> 
+                                                 getheadC("AMSAntiCluster",0);
+           while (p != NULL) {
+            anticlusterH = new(contAntiClusterH) AMSAntiClusterD(p);
+            clusters++;
+            listH  -> incNAntiClusters();
+            rstatus = eventH -> add_pAntiCluster(anticlusterH);
+            eventH -> incAntiClusters();
+            p = p -> next();
+           }
+         } else {
+           Warning("AddAntiCluster : AMSAntiCluster container is empty");
+         }
+        } else {
+         Warning("AddAntiCluster: pointer to AMSAntiCluster container is 0");
+        }
         return rstatus;
 }

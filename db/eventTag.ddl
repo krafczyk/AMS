@@ -1,7 +1,7 @@
 // Author A. Klimentov  10-Apr-1997
 //
 //
-// Last Edit: Apr 29, 1997 ak.
+// Last Edit: May 30, 1997 ak.
 //
 #include <typedefs.h>
 #include <cern.h>
@@ -26,8 +26,13 @@ private:
 
 uinteger _runAux;        // auxillary run number
 uinteger _status;        // event status, tag, label, type
+
 uinteger _runOff;        // run number set by offline
 uinteger _statusR;       // reco status
+
+number   _NorthPolePhi;
+number   _StationTheta;
+number   _StationPhi;
 
 public:
 
@@ -50,8 +55,13 @@ uinteger runAux()   const { return _runAux;}
 uinteger runUni()         {return Run();}
 uinteger status()   const { return _status;}
 uinteger runOff()   const {return  _runOff;}
+void GetGeographicCoo(number & pole, number & theta, number &phi){
+                      pole=_NorthPolePhi;theta=_StationTheta;phi=_StationPhi;}
 
 void     setrunOff(uinteger run) {_runOff = run;}
-
+void SetGeographicCoo(number pole, number theta, number phi){
+                      _NorthPolePhi = pole;
+                      _StationTheta = theta;
+                     _StationPhi    = phi;}
 };
 

@@ -3,8 +3,9 @@
 // July 13, 1996.  ak.  Objectivity version
 // Sep  10, 1996.  ak.  V1.25
 // Dec  13, 1996.  ak.  _Value[0], temporary solution
+// May  31, 1997.  ak.  no _SumAnti 
 //
-// Last Edit May 21, 1997. a.k.
+// Last Edit May 31, 1997. a.k.
 //
 #include <iostream.h>
 #include <string.h>
@@ -27,7 +28,6 @@ AMSParticleD:: AMSParticleD(AMSParticle* p) {
   _GPart          = p -> _GPart;
   _Value[0]       = p -> _Value[0];  
   _Value[1]       = p -> _Value[1];  
-  _SumAnti        = p -> _SumAnti;
   _Mass           = p -> _Mass;
   _ErrMass        = p -> _ErrMass;
   _Momentum       = p -> _Momentum;
@@ -44,7 +44,6 @@ void   AMSParticleD::copy(AMSParticle* p)
    p -> _GPart   = _GPart;
    p -> _Value[0]= _Value[0]; 
    p -> _Value[1]= _Value[1]; 
-   p -> _SumAnti = _SumAnti;
    p -> _Mass    = _Mass;
    p -> _ErrMass = _ErrMass;        
    p -> _Momentum = _Momentum;

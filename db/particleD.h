@@ -116,7 +116,6 @@ number _ErrMomentum;
 number _Charge; 
 number _Theta; 
 number _Phi; 
-number _SumAnti; 
 
 integer _GPart; 
 integer _Position; 
@@ -127,7 +126,7 @@ integer _Position;
 public: AMSParticleD(); 
 AMSParticleD(class AMSParticle *); 
 #ifdef OO_DDL_TRANSLATION
-#line 61 "particleD.ddl"
+#line 60 "particleD.ddl"
     ooRef(AMSeventD) pEventP <-> pParticleE[];
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pEventP */
@@ -150,7 +149,7 @@ AMSParticleD(class AMSParticle *);
     ooRef(AMSeventD)& pEventP(ooRef(AMSeventD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 62 "particleD.ddl"
+#line 61 "particleD.ddl"
     ooRef(AMSChargeD) pChargeP <-> pParticleC;
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for bidirectional association link: pChargeP */
@@ -173,7 +172,7 @@ AMSParticleD(class AMSParticle *);
     ooRef(AMSChargeD)& pChargeP(ooRef(AMSChargeD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 63 "particleD.ddl"
+#line 62 "particleD.ddl"
     ooRef(AMSBetaD) pBetaP : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pBetaP */
@@ -196,7 +195,7 @@ AMSParticleD(class AMSParticle *);
     ooRef(AMSBetaD)& pBetaP(ooRef(AMSBetaD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 64 "particleD.ddl"
+#line 63 "particleD.ddl"
     ooRef(AMSTrTrackD) pTrackP : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pTrackP */
@@ -219,7 +218,7 @@ AMSParticleD(class AMSParticle *);
     ooRef(AMSTrTrackD)& pTrackP(ooRef(AMSTrTrackD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 65 "particleD.ddl"
+#line 64 "particleD.ddl"
     ooRef(AMSCTCClusterD) pCTCClusterP[] : copy(delete);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: pCTCClusterP[] */
@@ -258,7 +257,7 @@ AMSParticleD(class AMSParticle *);
       }
     static ooAssocNumber pCTCClusterP_ooAssocN;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 67 "particleD.ddl"
+#line 66 "particleD.ddl"
 void copy(AMSParticle *); 
 
 inline integer getPosition() { return _Position; }
@@ -273,7 +272,6 @@ inline number getCharge() { return _Charge; }
 inline number gettheta() { return _Theta; }
 inline number getPhi() { return _Phi; }
 inline AMSPoint getCoo() { return _Coo; }
-inline number getSumAnti() { return _SumAnti; }
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -307,7 +305,7 @@ inline number getSumAnti() { return _SumAnti; }
     static void ooAssocRegister();
     ooRef(AMSParticleD)& ooThis(ooRef(AMSParticleD)& objId, ooMode aMode = oocNoOpen) const;
     AMSParticleD(ooInternalObj iobj);
-#line 83 "particleD.ddl"
+#line 81 "particleD.ddl"
 }; 
 
 #endif /* !defined(PARTICLE_D_H) */

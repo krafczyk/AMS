@@ -13,7 +13,7 @@
 //                   new function dbend
 //                   use contH instead of trclusterH, etc
 //
-// last edit May 08, 1997, ak.
+// last edit Jun 01, 1997, ak.
 //
 
 #include <stdio.h>
@@ -285,6 +285,13 @@ void LMS::ContainersR(ooHandle(ooDBObj) & dbH, char* listname)
     }
     Message("ScLayers are opened/created");
 
+
+    // create the "AntiCluster" container, if it does not exist
+    contName = StrCat("AntiCluster_",listname);
+    if (!contH.exist(dbH, contName, openMode)&& openMode == oocUpdate)
+      contH    = new(contName,0,0,0,dbH) ooContObj;
+      delete [] contName;
+      Message("AntiCluster is opened/created");
 
    // create the "CTCCluster" container, if it does not exist
     contName = StrCat("CTCCluster_",listname);

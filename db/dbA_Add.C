@@ -281,6 +281,11 @@ ooStatus LMS::AddEvent(uinteger run, uinteger eventNumber, time_t time,
      if (rstatus != oocSuccess) Fatal("Cannot link Track to hit");
     
 
+     //AddAntiCluster
+     rstatus = listH -> AddAntiCluster(eventH);
+     if (rstatus != oocSuccess) 
+                           Fatal("Cannot add TOF Cluster to the container");
+
      //AddTOFCluster
      for (i=0; i<4; i++) {
       rstatus = listH -> AddTOFCluster(i, eventH);

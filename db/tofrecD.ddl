@@ -12,7 +12,6 @@
 #include <point.h>
 #include <tofrec.h>
 
-//class AMSBetaD;
 
 class AMSTOFClusterD: public ooObj {
 protected:
@@ -32,8 +31,6 @@ protected:
  integer  _Position;
 
 public:
-// Associations
-// ooRef(AMSBetaD)  pBetaTOF  <-> pTOFBeta[];
 
 static const integer BAD;
 static const integer USED;

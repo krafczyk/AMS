@@ -1,9 +1,8 @@
 // Objectivity class Oct 08, 1996 ak.
 // ( origianal TOFDBcD class by E.Choumilov 13.06.96.)
 //
-// Last Edit : Mar 21, 1997. 
+// Last Edit : May 23, 1997. 
 //
-// TOFDBcD should be modified according to the last E.C. version
 //
 #include <string.h>
 #include <typedefs.h>
@@ -16,25 +15,32 @@ class TOFDBcD : public ooObj{
 //
 private:
 // geom. constants:
-  integer _brtypeD[SCBLMX];  // map of bar types (diff. by length)
-  integer _plrotmD[SCLRS];   // TOF planes rotation mask
-  geant   _brlenD[SCBTPN];   // bar lengthes for SCBTPN types
-  geant   _supstrD[10];      // supp. structure parameters
-  geant   _plnstrD[15];      // sc. plane structure param.
+  integer _brtype[SCBLMX];   // map of bar types (diff. by length)
+  integer _plrotm[SCLRS];    // TOF planes rotation mask
+  geant   _brlen[SCBTPN];    // bar lengthes for SCBTPN types
+  geant   _supstr[10];       // supp. structure parameters
+  geant   _plnstr[15];       // sc. plane structure param.
 // MC/RECO constants:
-  geant _edep2phD;     // MC edep(Mev)-to-Photons convertion
-  geant _fladctbD;     // MC flash-ADC time binning (ns)
-  geant _shaptbD;      // MC shaper pulse time binning
-  geant _shrtimD;      // MC shaper pulse rise time (ns)
-  geant _shftimD;      // MC shaper pulse fall time (ns)
-  geant _tdcbinD[4];   // pipe-line TDC binning for ftdc/stdc/adca/adcd
-  geant _trigtbD;      // MC time-binning in logic(trig) pulse handling
-  geant _strfluD;      // Stretcher "end-mark" time fluctuations (ns)
-  geant _accdelD[2];   // fixed(h/w) lev-1 "accept" delays(ns)(f/s_tdc)
-  geant _accdelmxD[2]; // max. lev-1 "accept" delays (incl. above fixed)
-  geant _daqpwdD[15];  // MC DAQ-system pulse_widths/dead_times/...
-  geant _di2anrD;      // default(MC inp) dinode-to-anode signal ratio
-  geant _strratD;      // default(MC inp) stretcher ratio (~10)
+  geant _edep2ph;     // MC edep(Mev)-to-Photons convertion
+  geant _fladctb;     // MC flash-ADC time binning (ns)
+  geant _shaptb;      // MC shaper pulse time binning
+  geant _shrtim;      // MC shaper pulse rise time (ns)
+  geant _shftim;      // MC shaper pulse fall time (ns)
+  geant _tdcbin[4];   // pipe-line TDC binning for ftdc/stdc/adca/adcd
+  geant _trigtb;      // MC time-binning in logic(trig) pulse handling
+  geant _strflu;      // Stretcher "end-mark" time fluctuations (ns)
+  geant _daqpwd[15];  // MC DAQ-system pulse_widths/dead_times/...
+  geant _di2anr;      // default(MC inp) dinode-to-anode signal ratio
+  geant _strrat;      // default(MC inp) stretcher ratio (~10)
+  geant _strjit1;
+  geant _strjit2;
+  geant _ftdelf;
+  geant _ftdelm;
+  geant _accdel;       // fixed(h/w) lev-1 "accept" delays(ns)(f/s_tdc)
+  geant _fstdcd;
+  geant _fatdcd;
+  geant _pbonup;  
+
 //
 public:  
 // constructor;

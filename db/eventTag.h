@@ -78,12 +78,17 @@ class AMSEventTag : public dbEvent {
 
 uinteger _runAux; 
 uinteger _status; 
+
 uinteger _runOff; 
 uinteger _statusR; 
-#line 35 "eventTag.ddl"
+
+number _NorthPolePhi; 
+number _StationTheta; 
+number _StationPhi; 
+#line 40 "eventTag.ddl"
 public: 
 #ifdef OO_DDL_TRANSLATION
-#line 35 "eventTag.ddl"
+#line 40 "eventTag.ddl"
     ooRef(AMSraweventD) itsRawEvent : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: itsRawEvent */
@@ -106,7 +111,7 @@ public:
     ooRef(AMSraweventD)& itsRawEvent(ooRef(AMSraweventD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 36 "eventTag.ddl"
+#line 41 "eventTag.ddl"
     ooRef(AMSeventD) itsRecEvent : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: itsRecEvent */
@@ -129,7 +134,7 @@ public:
     ooRef(AMSeventD)& itsRecEvent(ooRef(AMSeventD)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
 #ifdef OO_DDL_TRANSLATION
-#line 37 "eventTag.ddl"
+#line 42 "eventTag.ddl"
     ooRef(AMSmcevent) itsMCEvent : delete(propagate);
 #else /* !defined(OO_DDL_TRANSLATION) */
     /* Methods for unidirectional association link: itsMCEvent */
@@ -151,17 +156,23 @@ public:
     static ooAssocNumber itsMCEvent_ooAssocN;
     ooRef(AMSmcevent)& itsMCEvent(ooRef(AMSmcevent)& objId, ooMode mode = oocNoOpen) const;
 #endif /* !defined(OO_DDL_TRANSLATION) */
-#line 41 "eventTag.ddl"
+#line 46 "eventTag.ddl"
 inline AMSEventTag() { }
 AMSEventTag(uinteger, uinteger); 
 AMSEventTag(uinteger, uinteger, uinteger, time_t, uinteger); 
-#line 49
+#line 54
 inline uinteger runAux() const { return _runAux; }
 inline uinteger runUni() { return Run (); }
 inline uinteger status() const { return _status; }
 inline uinteger runOff() const { return _runOff; }
+inline void GetGeographicCoo(number &pole, number &theta, number &phi) {
+                      pole = _NorthPolePhi; theta = _StationTheta; phi = _StationPhi; }
 
 inline void setrunOff(uinteger run) { _runOff = run; }
+inline void SetGeographicCoo(number pole, number theta, number phi) {
+                      _NorthPolePhi = pole;
+                      _StationTheta = theta;
+                     _StationPhi = phi; }
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -195,7 +206,7 @@ inline void setrunOff(uinteger run) { _runOff = run; }
     static void ooAssocRegister();
     ooRef(AMSEventTag)& ooThis(ooRef(AMSEventTag)& objId, ooMode aMode = oocNoOpen) const;
     AMSEventTag(ooInternalObj iobj);
-#line 56 "eventTag.ddl"
+#line 66 "eventTag.ddl"
 }; 
 
 #endif /* !defined(EVENT_TAG_H) */

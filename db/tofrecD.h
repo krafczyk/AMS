@@ -19,7 +19,7 @@ class opiDummyDeclaration;
 #include "tofrecD_ref.h"
 #endif
 
-#line 17 "tofrecD.ddl"
+#line 16 "tofrecD.ddl"
 class AMSTOFClusterD : public ooObj { 
 
 
@@ -36,7 +36,9 @@ integer _ntof;
 integer _plane; 
 
 integer _Position; 
-#line 38
+
+
+
 public: static const integer BAD; 
 static const integer USED; 
 
@@ -90,7 +92,7 @@ AMSTOFClusterD(AMSTOFCluster *);
     static void ooAssocRegister();
     ooRef(AMSTOFClusterD)& ooThis(ooRef(AMSTOFClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSTOFClusterD(ooInternalObj iobj);
-#line 58 "tofrecD.ddl"
+#line 55 "tofrecD.ddl"
 }; 
 
 #endif /* !defined(TOFREC_D_H) */

@@ -21,8 +21,10 @@
 //                    VArray to store all TrMCCluster(s)
 //                    unidirectional link between track and event
 //                    unidirectional link between beta and event
+// May 29, 1997.  ak. add AntiClusters
 //
-// Last Edit: Apr 08, 1997. ak.
+// Last Edit: May 29, 1997. ak.
+//
 
 #include <typedefs.h>
 #include <dbevent.h>
@@ -41,7 +43,6 @@ class ParticleS {
   number   _Charge;
   number   _Theta;
   number   _Phi;
-  number   _SumAnti;
 
   integer  _GPart;        // Geant particle ID
 
@@ -50,13 +51,13 @@ class ParticleS {
   ParticleS() {};
   ParticleS(integer gpart, number mass, number errmass, number momentum, 
            number errmomentum, number charge, number theta, number phi, 
-           AMSPoint coo, number sumanti): 
+           AMSPoint coo): 
   _GPart(gpart),  _Mass(mass), _ErrMass(errmass), _Momentum(momentum), 
   _ErrMomentum(errmomentum), _Charge(charge), _Theta(theta), _Phi(phi), 
-  _Coo(coo), _SumAnti(sumanti) {};
+  _Coo(coo) {};
  void  setAll(integer gpart, number mass, number errmass, number momentum, 
               number errmomentum, number charge, number theta, number phi, 
-              AMSPoint coo, number sumanti)
+              AMSPoint coo)
  {
   _GPart   = gpart;
   _Mass    = mass;
@@ -67,9 +68,11 @@ class ParticleS {
   _Theta   = theta;
   _Phi     = phi; 
   _Coo     = coo;
-  _SumAnti = sumanti;
  }
 };
+
+class AMSAntiClusterD;
+#pragma ooclassref AMSAntiClusterD <anticlusterD_ref.h>
 
 class AMSTOFClusterD;
 #pragma ooclassref AMSTOFClusterD <tofrecD_ref.h>
@@ -104,6 +107,7 @@ class AMSeventD : public dbEvent {
    
   ooVArray(ParticleS)  particleS;
 
+  short      _nAntiClusters;    // number of Betas
   short      _nBetas;           // number of Betas
   short      _nCharges;         // number of Charges
   short      _nCTCClusters;     // number of CTCClusters
@@ -117,6 +121,7 @@ class AMSeventD : public dbEvent {
  public:
 
 //Assosiations
+  ooRef(AMSAntiClusterD)   pAntiCluster[] : delete (propagate);
   ooRef(AMSTOFClusterD)    pTOFCluster[]  : delete (propagate);
   ooRef(AMSTrClusterD)     pCluster[]     : delete (propagate);  
   ooRef(AMSTrRecHitD)      pTrRecHitS[]   : delete (propagate);
@@ -136,37 +141,41 @@ class AMSeventD : public dbEvent {
 
   void     clearCounts();
 
-  inline void incTrHits() {_nTrHits++;}
-  inline void decTrHits() {_nTrHits--;}
-  inline short& TrHits()  {return _nTrHits;}
+  inline void  incAntiClusters() {_nAntiClusters++;}
+  inline void  decAntiClusters() {if(_nAntiClusters > 0) _nAntiClusters--;}
+  inline short AntiVlusters()  {return _nAntiClusters;}
 
-  inline void incTrClusters() {_nTrClusters++;}
-  inline void decTrClusters() {_nTrClusters--;}
-  inline short& TrClusters()  {return _nTrClusters;}
+  inline void  incTrHits() {_nTrHits++;}
+  inline void  decTrHits() {if(_nTrHits > 0) _nTrHits--;}
+  inline short TrHits()    {return _nTrHits;}
+
+  inline void  incTrClusters() {_nTrClusters++;}
+  inline void  decTrClusters() {if(_nTrClusters>0) _nTrClusters--;}
+  inline short TrClusters()    {return _nTrClusters;}
 
   inline void incTOFClusters() {_nTOFClusters++;}
-  inline void decTOFClusters() {_nTOFClusters--;}
-  inline short& TOFClusters()  {return _nTOFClusters;}
+  inline void decTOFClusters() {if(_nTOFClusters > 0) _nTOFClusters--;}
+  inline short TOFClusters()   {return _nTOFClusters;}
 
   inline void incCTCClusters() {_nCTCClusters++;}
-  inline void decCTCClusters() {_nCTCClusters--;}
-  inline short& CTCClusters()  {return _nCTCClusters;}
+  inline void decCTCClusters() {if(_nCTCClusters > 0) _nCTCClusters--;}
+  inline short CTCClusters()   {return _nCTCClusters;}
 
   inline void incTracks() {_nTracks++;}
-  inline void decTracks() {_nTracks--;}
-  inline short& Tracks()  {return _nTracks;}
+  inline void decTracks() {if(_nTracks>0) _nTracks--;}
+  inline short Tracks()   {return _nTracks;}
 
   inline void incBetas()        {_nBetas++;}
-  inline void decBetas()        {_nBetas--;}
-  inline short& Betas()         {return _nBetas;}
+  inline void decBetas()        {if (_nBetas>0) _nBetas--;}
+  inline short Betas()          {return _nBetas;}
 
   inline void incCharges()      {_nCharges++;}
-  inline void decCharges()      {_nCharges--;}
-  inline short& Charges()       {return _nCharges;}
+  inline void decCharges()      {if (_nCharges>0) _nCharges--;}
+  inline short Charges()        {return _nCharges;}
 
   inline void incParticles()    {_nParticles++;}
-  inline void decParticles()    {_nParticles--;}
-  inline short& Particles()     {return _nParticles;}
+  inline void decParticles()    {if (_nParticles>0) _nParticles--;}
+  inline short Particles()      {return _nParticles;}
 
 //
   void addParticle(int npart, ParticleS* particle);
