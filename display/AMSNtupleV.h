@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.5 2003/07/11 07:37:06 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.6 2003/07/11 09:36:58 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -257,11 +257,11 @@ if(pcl){
    for(int k=0;k<3;k++)array[3+3*15+3*i+k]=pcl->EcalCoo[i][k];
   } 
    SetPolyLine(npoint,array);
-}
    SetLineColor(2);
    SetLineWidth(1);
    SetLineStyle(1);
-
+   if(pcl->Charge==0)SetLineStyle(2);
+}
 }
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pParticle(fRef)->Info(fRef):0;}
 

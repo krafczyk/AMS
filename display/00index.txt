@@ -17,7 +17,7 @@
 -------------------------------------------------------------------------
 0. Introduction
 ---------------
-   Main features: 3D, rotate with mouse, 
+   Main features: 3D, rotate with mouse, zooming
 
 
    Data format: root
@@ -46,7 +46,7 @@ of AMS event display into it.
 ---------------------
         cd display
         setenv AMSWD  {your scratch dir}
-        mkdir $AMSWD/online
+        mkdir $AMSWD/display
 	gmake standalone  (static version of the program called amsed)
 	gmake osdepend    (using dynamic (shared) libraries called amsedc)
 
@@ -84,11 +84,9 @@ Please note the amsedc should be relinked in case opsys is not rh7.3
 4. Future Plan for the program
 ------------------------------
 
-   There are still a large room for improvement.  The following is on
-my list:
 
 
-1.    Move to new TGeoManager instead of TGeometry
+1.    Move to new TGeoManager instead of TGeometry (M.Levtchenko)
 2.    Add some more objects (by user req)
 
 5. Known bags
@@ -102,9 +100,8 @@ main                //main
 AMSNtupleV          // read root, make graphics objects
 AMSDisplay          // Main GUI Class
 ControlFrame        // Control Frame
-AMSR_GeometrySetter  //  geometry setter (obsolete, should be replaced
-                     //  with new TGeoManager package 
+AMSR_GeometrySetter  //  geometry setter
 TGRunEventDialog    //   popup dialog for run/event 
-AMSR_Axis           //  aux class to draw axis
+AMSR_Axis           //  aux class to draw axis (taken from old amsed)
 AMSNtupleSelect.C   //  user selection function
 
