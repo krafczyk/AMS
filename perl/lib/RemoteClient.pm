@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.207 2003/08/07 10:56:51 alexei Exp $
+# $Id: RemoteClient.pm,v 1.208 2003/08/08 13:11:50 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13,6 +13,7 @@
 #                 ValidateRuns : "local" runs
 # Aug 2003      : remove explicit server name, e.g. pcamsf0.cern.ch
 #                 from scripts names
+# ToDo : checkJobsTimeout - reduce number of SQLs
 #
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2255,7 +2256,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
    print "</ul>\n";
    print "<font size=\"2\" color=\"black\">\n";
    print "<li> Catalogues are updated nightly.\n";
-   my $href = $self->{HTTPcgi}."/print.gamma.test.cgi";
+   $href = $self->{HTTPcgi}."/print.gamma.test.cgi";
    print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=$href> here </a>\n";
    print "<p>\n";
     print "<TR><B><font color=green size= 4> Select by key(s) (you can select multiple keys) </font>";
@@ -5070,6 +5071,17 @@ sub checkJobsTimeout {
     my $timenow = time();
     $self->htmlTop();
 #
+    htmlTable("Jobs below will be deleted from the database");
+     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+     print "<td><b><font color=\"blue\">Cite </font></b></td>";
+     print "<td><b><font color=\"blue\" >JobID </font></b></td>";
+     print "<td><b><font color=\"blue\" >Submitted</font></b></td>";
+     print "<td><b><font color=\"blue\" >Expired</font></b></td>";
+     print "<td><b><font color=\"blue\" >Status</font></b></td>";
+     print "<td><b><font color=\"blue\" >Owner</font></b></td>";
+     print "</tr>\n";
+     print_bar($bluebar,3);
+#
 # 1st update runs.status from 'Finished'/'Failed' to 'Completed' if 
 # at least one DST is copied to final destination 
 #
@@ -5078,7 +5090,9 @@ sub checkJobsTimeout {
     my $r0 = $self->{sqlserver}->Query($sql);
     if (defined $r0->[0][0]) {
      $pset=trimblanks($r0->[0][0]);
-     $sql = "SELECT runs.run FROM runs WHERE runs.status != 'Completed'";
+     $sql = "SELECT runs.run 
+              FROM runs 
+               WHERE runs.status != 'Completed' AND runs.status != 'TimeOut'";
      my $r1=$self->{sqlserver}->Query($sql);
      if( defined $r1->[0][0]){
       foreach my $r (@{$r1}){
@@ -5093,18 +5107,6 @@ sub checkJobsTimeout {
      }
     }
 #
-    htmlTable("Jobs below will be deleted from the database");
-     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     print "<td><b><font color=\"blue\">Cite </font></b></td>";
-     print "<td><b><font color=\"blue\" >JobID </font></b></td>";
-     print "<td><b><font color=\"blue\" >Submitted</font></b></td>";
-     print "<td><b><font color=\"blue\" >Expired</font></b></td>";
-     print "<td><b><font color=\"blue\" >Status</font></b></td>";
-     print "<td><b><font color=\"blue\" >Owner</font></b></td>";
-     print "</tr>\n";
-     print_bar($bluebar,3);
-
-
     $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid, 
                  cites.name FROM jobs, cites 
           WHERE jobs.time+jobs.timeout <  $timenow AND 
@@ -5136,7 +5138,7 @@ sub checkJobsTimeout {
 
          $sql="SELECT runs.run, runs.status 
                 FROM runs 
-                WHERE runs.jid = $jid";
+                WHERE runs.jid = $jid ";
          $r4=$self->{sqlserver}->Query($sql); 
          if (defined $r4->[0][0]) {
              $jobstatus = $r4->[0][1];
@@ -5633,7 +5635,7 @@ sub listStat {
 sub listCites {
     my $self = shift;
     print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
-     htmlTable("MC02 Cites (only 25 latest jobs/cite are printed)");
+     htmlTable("MC02 Cites ");
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT cid,descr, name, status, maxrun FROM Cites ORDER by name";
      my $r3=$self->{sqlserver}->Query($sql);
@@ -6025,7 +6027,7 @@ sub listJobs {
     my $href = undef;    
 
     print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
-    htmlTable("MC02 Jobs");
+    htmlTable("MC02 Jobs (only 25 latest jobs/cite are printed)");
     print_bar($bluebar,3);
 
     $sql = "SELECT name FROM cites ORDER BY name";
@@ -6037,7 +6039,7 @@ sub listJobs {
       my $rc = $cite->[0];
       print "</th> <th><small> \n";
       $href = $self->{HTTPcgi}."/rc.dsp.cgi\#jobs-".$rc;
-      print "<a href= $href target=\"status\"> <b><font color=blue>$rc</b></font></a>\n";
+      print "<a href= $href target=\"status\"> <b><font color=tomato>$rc</b></font></a>\n";
      }
      print "</TR></TABLE> \n";
     }
@@ -6087,8 +6089,10 @@ sub listJobs {
               if (defined $r3->[0][0]) {
                $citedescr = $r3->[0][0];
                $newline = $cite;
+               print "</table></p> \n";
+               print "<p>";
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-               print "<td><font color=green size=\"+1\"><b>$citedescr ($cite)</b></font></td>\n";
+               print "<td><font color=tomato size=\"+1\"><b>$citedescr ($cite)</b></font></td>\n";
                print "</table>\n";
                my $citename="jobs-".$cite;
                print "<A Name = $citename> </a>\n";
@@ -6117,7 +6121,7 @@ sub listJobs {
              }
           $njobs++;
       }
-      htmlTableEnd();
+#      htmlTableEnd();
     }  
      htmlTableEnd();
      print_bar($bluebar,3);
@@ -6397,11 +6401,11 @@ sub PrintDownloadTable {
      print "<br><br>";
 #
 ## book-keeping tar
-     my $file= $self->{FileBookKeeping};
+     $file= $self->{FileBookKeeping};
      print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  AMS mysql book-keeping  execs and docs (tar.gz) - <i> optional </i></a>
            </font>";
-     my $dtime=EpochToDDMMYYHHMMSS($self->{FileBookKeepingTimestamp});
+     $dtime=EpochToDDMMYYHHMMSS($self->{FileBookKeepingTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>";   
  }
@@ -7962,7 +7966,6 @@ sub scriptfile {
     my $flag         = shift;
     my $subdir       = undef;
     my $oldsubdir    = $self->{ScriptFileDir};
-    my $subdir       = undef;
     
     if ($flag == 0) {
 # open new file
