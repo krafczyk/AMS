@@ -625,7 +625,7 @@ if(TRCALIB.Pass ==2){
 #endif             
           if( TRCALIB.Pass >= 2){
             geant thr=TRCALIB.BadChanThr[1]*_Count[ch];
-            if(thr<3)thr=3;
+            if(thr<4)thr=4;
             if(_BadCh[ch]*_Count[ch]>thr || cid.getsig()==0 ){ 
               cid.setstatus(AMSDBc::BAD);
 #ifdef __AMSBADLIST__

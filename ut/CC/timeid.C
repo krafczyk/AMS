@@ -7,13 +7,17 @@
 #include <astring.h>
 #include <fstream.h>
 #include <commons.h>
+#include <sys/types.h>
+#include <sys/dir.h>
 #include <trcalib.h>
+#include <ctype.h>
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0, 
                      void *pdata=0):
            AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0){
       _Nbytes=nbytes;
+      _fillDB(AMSDATADIR.amsdatabase);
 #ifdef __AMSDEBUG__
       if(_Nbytes%sizeof(uinteger)!=0){
         cerr <<"AMSTimeID-ctor-F-Nbytes not aligned "<<_Nbytes<<endl;
@@ -110,9 +114,9 @@ if (Time >= _Begin && Time <= _End){
   }
   return 0;
 }
-else if(reenter <2){
+else if(!reenter){
   // try to read it from file ....
-  read(AMSDATADIR.amsdatabase,reenter);
+  read(AMSDATADIR.amsdatabase);
   return validate(Time,reenter+1);
 }
 else return 0;
@@ -190,21 +194,32 @@ integer AMSTimeID::write(char * dir){
 }
 
 
-integer AMSTimeID::read(char * dir, integer reenter){
+integer AMSTimeID::read(char * dir){
+
+  // first get a run no from dbase
+  uinteger run=_getRun(AMSEvent::gethead()->getrun());
 
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    if( reenter==0){
+    if(run){
      char name[255];
      ostrstream ost(name,sizeof(name));
-     ost << "."<<AMSEvent::gethead()->getrun()<<ends;
+     ost << "."<<run<<ends;
      fnam+=name;     
+    }
+
+    else {
+      cout <<"AMSTimeID::read-W-Default value for TDV "<<getname()<<" will be used."<<endl;
     }
     fbin.open((const char *)fnam,ios::in|binary);
     if(fbin){
+#ifdef __AMSDEBUG__
+      cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
+#endif
+
      uinteger * pdata;
      integer ns=_Nbytes/sizeof(pdata[0])+3;
      pdata =new uinteger[ns];
@@ -255,5 +270,58 @@ void AMSTimeID::_convert(uinteger *pdata, integer n){
    }
   }
 
+
+}
+uinteger AMSTimeID::_getRun(uinteger run){
+
+integer index=AMSbiel(_pDataBaseEntries,run,_DataBaseSize);
+
+if(index <0)return 0;
+else if (index>=_DataBaseSize)return _pDataBaseEntries[_DataBaseSize-1];
+else{
+if(_pDataBaseEntries[index] ==run)return run;
+else return index>0?_pDataBaseEntries[index-1]:0;
+}
+
+
+
+
+}
+
+AString * AMSTimeID::_selectEntry=0;
+
+integer AMSTimeID::_select(dirent *entry){
+return strstr(entry->d_name,(char*)*_selectEntry)!=NULL;    
+}
+
+void AMSTimeID::_fillDB(const char *dir){
+  //typedef integer (*pselect)(dirent * entry);
+_pDataBaseEntries=0;
+_DataBaseSize=0;
+    AString fnam(getname());
+    fnam+= getid()==0?".0":".1";
+    _selectEntry=&fnam;
+    dirent ** namelist;
+    int nptr=scandir(dir,&namelist,&_select,NULL);     
+    if(nptr){
+     _pDataBaseEntries=new uinteger[nptr];
+     for(int i=0;i<nptr;i++) {
+      int valid=0;
+      int kvalid=0;
+      for(int k=strlen((char*)fnam);k<namelist[i]->d_namlen-1;k++){
+       if((namelist[i]->d_name)[k]=='.' )valid++;
+       if((namelist[i]->d_name)[k]=='.')kvalid=k;
+      }
+      if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1]))sscanf((namelist[i]->d_name)+kvalid+1,"%d",
+                         _pDataBaseEntries+_DataBaseSize++);
+      free(namelist[i]);
+     }
+    AMSsortNAGa(_pDataBaseEntries,_DataBaseSize);
+    free(namelist);
+
+    }
+#ifdef __AMSDEBUG__
+    cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "<<fnam<<endl; 
+#endif
 
 }

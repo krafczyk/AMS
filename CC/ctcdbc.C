@@ -318,7 +318,7 @@ void CTCJobStat::print(){
   geant rc,rc1,rc2,rc3,rc4;
 //
   cout<<endl<<endl;;
-  cout<<"    ============ JOB CTC-statistics ============="<<endl<endl;
+  cout<<"    ============ JOB CTC-statistics ============="<<endl<<endl;
   cout<<" MC: entries             : "<<mccount[0]<<endl;
   cout<<" MC: Ghits->RawHit OK    : "<<mccount[1]<<endl;
   cout<<" MC: RawHit->RawEvent OK : "<<mccount[2]<<endl;

@@ -72,6 +72,7 @@ template <class T> integer AMSbiel(const T a[],  T obj, integer i){
 // output :
 //       min {a[]} obj<=a[output]
 //
+if(i<=0)return -1;
 integer ia=0;
 integer il=1;
 integer ir=1;

@@ -1,5 +1,5 @@
-#ifndef __ASTRING_
-#define __STRING___
+#ifndef __ASTRING___
+#define __ASTRING___
 
 
 
