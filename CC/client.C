@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.32 2005/03/01 17:46:53 choutko Exp $
+//  $Id: client.C,v 1.33 2005/03/29 10:11:25 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -231,21 +231,21 @@ return _streambuffer;
 
 
 ostream & AMSClient::print(const DPS::Client::CID & a, ostream & o){
-return o<<a.HostName<<" "<<a.Interface<<" , UID "<<a.uid<<" , PID "<<a.pid<<" "<<a.ppid<<" , Type "<<CT2string(a.Type)<<" , ExitStatus "<<CSE2string(a.Status)<<" , StatusType "<<CST2string(a.StatusType)<<" , Mips "<<a.Mips;
+return o<<a.HostName<<" "<<(a.Interface?a.Interface:" ")<<" , UID "<<a.uid<<" , PID "<<a.pid<<" "<<a.ppid<<" , Type "<<CT2string(a.Type)<<" , ExitStatus "<<CSE2string(a.Status)<<" , StatusType "<<CST2string(a.StatusType)<<" , Mips "<<a.Mips;
 }
 
 
 char * AMSClient::print(const DPS::Client::ActiveHost & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes <<" AH "<<a.HostName<<" "<<a.Interface<<" Status  "<<HS2string(a.Status)<< " CRun "<<a.ClientsRunning<<" CAll "<<a.ClientsAllowed<<" CProcessed "<<a.ClientsProcessed<<" CFailed "<<a.ClientsFailed<<" CKilled "<<a.ClientsKilled<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Clock "<<a.Clock<<ends;
+_ost<<mes <<" AH "<<a.HostName<<" "<<(a.Interface?a.Interface:" ")<<" Status  "<<HS2string(a.Status)<< " CRun "<<a.ClientsRunning<<" CAll "<<a.ClientsAllowed<<" CProcessed "<<a.ClientsProcessed<<" CFailed "<<a.ClientsFailed<<" CKilled "<<a.ClientsKilled<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Clock "<<a.Clock<<ends;
 return _streambuffer;
 }
 
 char * AMSClient::print(const DPS::Client::NominalHost & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes <<" NH "<<a.HostName<<" "<<a.Interface<<"OS  "<<a.OS<< " CPU "<<a.CPUNumber<<" Memory "<<a.Memory<<" Clock "<<a.Clock<<ends;
+_ost<<mes <<" NH "<<a.HostName<<" "<<(a.Interface?a.Interface:" ")<<"OS  "<<a.OS<< " CPU "<<a.CPUNumber<<" Memory "<<a.Memory<<" Clock "<<a.Clock<<ends;
 return _streambuffer;
 }
 
@@ -260,7 +260,7 @@ return _streambuffer;
 char * AMSClient::print(const DPS::Producer::RunEvInfo & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes<<" REI, ID "<<a.uid<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , Prio "<<a.Priority<<" , Path "<<a.FilePath<< " , Status "<<RS2string(a.Status)<<" , History "<<RS2string(a.History)<<" Failed "<<a.CounterFail<<" , ClientID "<<a.cuid<<" , SubmitTimeU "<<a.SubmitTime<<" , SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
+_ost<<mes<<" REI, ID "<<a.uid<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , Prio "<<a.Priority<<" , Path "<<(a.FilePath?a.FilePath:" ")<< " , Status "<<RS2string(a.Status)<<" , History "<<RS2string(a.History)<<" Failed "<<a.CounterFail<<" , ClientID "<<a.cuid<<" , SubmitTimeU "<<a.SubmitTime<<" , SubmitTime "<<ctime((const time_t *)&a.SubmitTime);
 print(a.cinfo,_ost);
 _ost<<ends;
 return _streambuffer;
@@ -269,7 +269,7 @@ return _streambuffer;
 char * AMSClient::print(const DPS::Producer::DSTInfo & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes<<" "<<a.uid<<" Host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<" DSType "<<DSTT2string(a.type)<<" NtupleOutput "<<a.OutputDirPath<<" FreeKb "<<a.FreeSpace<<" TotalKb "<<a.TotalSpace<<ends;
+_ost<<mes<<" "<<a.uid<<" Host "<<a.HostName<<" Mode "<<RunMode2string(a.Mode)<<" UpdateFreq "<<a.UpdateFreq<<" DSType "<<DSTT2string(a.type)<<" NtupleOutput "<<(a.OutputDirPath?a.OutputDirPath:" ")<<" FreeKb "<<a.FreeSpace<<" TotalKb "<<a.TotalSpace<<ends;
 return _streambuffer;
 }
 
@@ -277,7 +277,7 @@ return _streambuffer;
 char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
 _ost.clear();
 _ost.seekp(0);
-_ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<a.Name<<" , Version "<<a.Version<<" , Size "<<a.size<<" , crc "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<ends;
+_ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<(a.Name?a.Name:" ")<<" , Version "<<a.Version<<" , Size "<<a.size<<" , crc "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<ends;
 return _streambuffer;
 }
 
