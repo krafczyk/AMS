@@ -522,15 +522,6 @@ return true;
 }
 
 void AMSProducer::sendEventTagEnd(const char * name,uinteger run,time_t insert, time_t begin,time_t end,uinteger first,uinteger last,integer nelem, bool fail){
-AString a=name;
-a+=".";
-char tmp[80];
-sprintf(tmp,"%d",run);
-a+=tmp;
-a+=".";
-sprintf(tmp,"%d",first);
-a+=tmp;
-_evtag.Name=(const char *)a;
 _evtag.Status=fail?DPS::Producer::Failure:DPS::Producer::Success;
 _evtag.EventNumber=nelem;
 _evtag.FirstEvent=first;

@@ -1057,7 +1057,8 @@ return 0;
        case DPS::Client::Update:
        if(li==pcur->getahl().end())_parent->EMessage(AMSClient::print(cid,"Host not found for editing"));
        else{
-        (*li)->Status=ah.Status;
+        DPS::Client::ActiveHost_var vac= new DPS::Client::ActiveHost(ah);
+        replace_if(li,pcur->getahl().end(),Eqs_h(ah),vac);
        }
        break;
        case DPS::Client::Delete:

@@ -268,9 +268,11 @@ sub UpdateARS{
              try{
               my $newref=$ref->{orb}->string_to_object($ior->{IOR});
               if(rand >0.5){
+#                  warn "unshift"; 
                   unshift @{$ref->{arpref}}, $newref;
               }
               else{
+#                  warn "push"; 
                   push @{$ref->{arpref}}, $newref;
               }
              }
@@ -394,7 +396,7 @@ sub getactivehosts{
     push @text, $string;
     push @text, int $hash->{ClientsRunning};           
     push @text, int $hash->{ClientsAllowed};           
-    push @text, int $hash->{ClientsFailed};           
+    push @text, int $hash->{ClientsFailed}+$hash->{ClientsKilled};           
      my $ntp=0;
      my $evtag=0;
      my @dummy=split '\.', $string;
@@ -441,7 +443,9 @@ sub getactivehosts{
      $total_cpu+=$cpu;
      $total_time+=$time;
      $total_ev+=$evt;
-   my $cpuper=int ($cpu*1000/($evt+1));
+     my $proc=$hash->{ClientsRunning}==0?1:$hash->{ClientsRunning};
+   my $cpuper=int ($cpu*1000/($evt+1)/$proc);
+   
     my $effic=$time==0?0:int ($cpu*100/$time); 
   push @text, $cpuper/1000., $effic/100.;
      push @text, $hash->{Status};
@@ -559,7 +563,7 @@ sub getruns{
     for my $i (0 ... $#{$Monitor::Singleton->{rtb}}){
      $#text=-1;
      my $hash=$Monitor::Singleton->{rtb}[$i];
-     if ($hash->{Status} eq $sort[$j]){
+     if ($hash->{Status} eq $sort[$j] or $hash->{History} eq $sort[$j]){
      my $ctime=localtime($hash->{TFEvent});
      push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Priority},$hash->{History},$hash->{Status};
      if ($hash->{Status} eq "Failed" and $hash->{History} eq "Failed"){
@@ -592,11 +596,52 @@ sub getntuples{
          if($hash->{Status} eq $sort[$j]){
      my $ctime=localtime($hash->{Insert});
      push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$hash->{Status};
+     if ($hash->{Status} eq "InProgress"){
+         my $dt=time()-$hash->{Insert};
+         if($dt>3600*12){
+             push @text,2;
+         }elsif($dt>3600*6){
+             push @text,1;
+         }
+         else{
+             push @text,0;
+         }
+     }else{
+         push @text, 0;
+     }
+
      push @output, [@text];
  }
  }
  }
 }
+    return @output;
+
+}
+
+
+sub getcontrolthings{
+    my $name=shift;
+    my @output=();
+    my @text=();
+    if( $name eq "ServerClient"){    
+     for my $i (0 ... $#{$Monitor::Singleton->{nsl}}){
+         $#text=-1;
+         my $hash=$Monitor::Singleton->{nsl}[$i];
+         
+         push @text, $hash->{Type},$hash->{MaxClients}, 
+int($hash->{CPUNeeded}*10)/10,
+         $hash->{MemoryNeeded}, $hash->{WholeScriptPath}, $hash->{LogPath}, 
+         $hash->{SubmitCommand}, $hash->{HostName}, $hash->{LogInTheEnd},$hash;
+         push @output, [@text];   
+     }
+    }elsif( $name eq "ProducerClient"){           
+    }elsif( $name eq "ServerHost"){        
+    }elsif( $name eq "ProducerHost"){        
+    }elsif( $name eq "Ntuple"){        
+    }elsif( $name eq "Run"){        
+    }elsif( $name eq "Killer"){        
+    }
     return @output;
 
 }

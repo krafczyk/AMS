@@ -629,11 +629,59 @@ sub notebook_create_pages {
 #
 # Control page
 #
+                  my $cframe=new Gtk::Frame("Control");
+                  my $lframe=new Gtk::Frame("List");
+                  my $aframe=new Gtk::Frame("Action");
+                  $child->pack_start($cframe,0,1,0);
+                  $child->pack_start($lframe,0,1,0);
+                  $child->pack_start($aframe,0,1,0);
 
-              } 	
 
+		my $scrolled_win = new Gtk::ScrolledWindow(undef, undef);
+		$scrolled_win->set_policy("automatic", "automatic");
+                  $scrolled_win->{clist}=undef;
+                $lframe->add($scrolled_win); 
+                  my $rb_p= new Gtk::RadioButton "Producer";
+                  my $rb_s= new Gtk::RadioButton "Server", $rb_p ;
+                  $rb_p->set_active(1);  
+                  my $hbox=new Gtk::HBox(1,1);
+                  my $vbox= new Gtk::VBox(1,1);
+                  $cframe->add($hbox);
+                  $hbox->pack_start($vbox,0,0,0);
+                  $vbox->pack_start($rb_p,0,0,0);
+                  $vbox->pack_start($rb_s,0,0,0);
+                  my $list_scroller = new Gtk::ScrolledWindow(undef, undef);
+                  $list_scroller->set_policy(-automatic, -automatic);
+                  $list_scroller->border_width(5);
+                  my $list=new Gtk::List;
+                  $list->set_selection_mode(-single);
+                  $list->signal_connect( "select_child" => sub {
+                      show_sample($_[1]->{name},$scrolled_win);
+                  } );
+                  update_list($list, "Producer");
+                  $list_scroller->add_with_viewport($list);
+                  $hbox->pack_start($list_scroller,1,1,0);            
+                  $rb_s->signal_connect( "clicked" => sub {
+                      update_list($list, "Server");});
+                  $rb_p->signal_connect( "clicked" => sub {
+                      update_list($list, "Producer");});
 
+                  my $abutton= new Gtk::Button("Add");
+                  my $rbutton= new Gtk::Button("Remove");
+                  my $ebutton= new Gtk::Button("Replace");
+                  my $sbutton = new Gtk::Button("Send");
+                  $abutton->signal_connect( 'clicked', \&ares,"Add",$scrolled_win);
+                  $ebutton->signal_connect( 'clicked', \&ares,"Replace",$scrolled_win);
+                  $rbutton->signal_connect( 'clicked', \&ares,"Remove",$scrolled_win);
+                  $sbutton->signal_connect( 'clicked', \&ares,"Send",$scrolled_win);
+                  my $ahbox=new Gtk::HBox(1,10);
+    $ahbox->pack_start($abutton,1,1,0);
+    $ahbox->pack_start($ebutton,1,1,0);
+    $ahbox->pack_start($rbutton,1,1,0);
+    $ahbox->pack_start($sbutton,1,1,0);
+                  $aframe->add($ahbox);
 
+              }
 
         }
         my $Singleton=$monitorUI::Singleton;	
@@ -763,6 +811,11 @@ sub Update{
      for $i (0 ... $#output){
          my @text=@{$output[$i]};
      $clist->append(@text);
+         my $pmc=$#text-1;
+     $clist->set_pixtext($i, $pmc, $text[$pmc], 5, $monitorUI::Singleton->{pixmap}[$text[$pmc+1]], $monitorUI::Singleton->{mask}[$text[$pmc+1]]);
+         if($text[$pmc+1]>$monitorUI::Singleton->{notebook}[1]){
+             $monitorUI::Singleton->{notebook}[1]=$text[$pmc+1];
+         }
      }
      $clist->thaw();
 
@@ -869,4 +922,228 @@ sub create_frame{
                         $box->add($scr);
                         $child->add( $box );
 		        $boxa->pack_start($child, 0,1,0);
+}
+
+
+sub update_list{
+
+    my ($s1,$s2)=@_;
+    my $list_item;
+    $s1->clear_items(0,-1);
+    if ($s2 eq "Producer"){
+        $list_item = new Gtk::ListItem "Nominal Client";
+        $s1->add($list_item);
+        $list_item->show;
+        $list_item->{name}="ProducerClient";
+        $list_item->{clist}=undef;
+        $list_item = new Gtk::ListItem "Nominal Host";
+        $s1->add($list_item);
+        $list_item->show;
+        $list_item->{name}="ProducerHost";
+        $list_item->{clist}=undef;
+        $list_item = new Gtk::ListItem "Nominal Ntuple";
+        $s1->add($list_item);
+        $list_item->show;
+        $list_item->{name}="Ntuple";
+        $list_item->{clist}=undef;
+        $list_item = new Gtk::ListItem "Run Table";
+        $s1->add($list_item);
+        $list_item->show;
+        $list_item->{name}="Run";
+        $list_item->{clist}=undef;
+    }elsif($s2 eq "Server"){
+        $list_item = new Gtk::ListItem "Nominal Client";
+        $list_item->{name}="ServerClient";
+        $list_item->{clist}=undef;
+        $s1->add($list_item);
+        $list_item->show;
+        $list_item = new Gtk::ListItem "Nominal Host";
+        $list_item->{name}="ServerHost";
+        $list_item->{clist}=undef;
+        $s1->add($list_item);
+        $list_item->show;
+        $list_item = new Gtk::ListItem "Nominal Killer";
+        $list_item->{name}="Killer";
+        $list_item->{clist}=undef;
+        $s1->add($list_item);
+        $list_item->show;
+    }
+    $s1->show();
+
+}
+
+sub show_sample{
+    my $name=shift;
+    my $scr=shift;
+    if(defined $scr->{clist}){
+         $scr->remove($scr->{clist});
+    }
+    my @titles;
+    if( $name eq "ServerClient"){
+        $#titles=-1;
+        @titles=(
+          "Type",
+          "MaxClients",
+          "CPU",
+           "Memory",
+             "ScriptPath",
+            "LogPath",
+            "Submit",
+            "HostName",
+           "LogInTheEnd",
+             );                        
+    }elsif( $name eq "ProducerClient"){
+        $#titles=-1;
+        @titles=(
+          "Type",
+          "MaxClients",
+          "CPU",
+           "Memory",
+             "ScriptPath",
+            "LogPath",
+            "Submit",
+            "HostName",
+           "LogInTheEnd",
+             );                        
+
+    }elsif( $name eq "ServerHost"){
+        $#titles=-1;
+        @titles=(
+"HostName",
+"Interface",
+"OS",
+"CPUNumber",
+"Memory",
+"Clock",
+"Status",
+                 );
+    }elsif( $name eq "ProducerHost"){
+        $#titles=-1;
+        @titles=(
+"HostName",
+"Interface",
+"OS",
+"CPUNumber",
+"Memory",
+"Clock",
+"Status",
+                 );
+    }elsif( $name eq "Ntuple"){
+        $#titles=-1;
+        @titles=(
+        "HostName",
+        "OutputDirPath",
+        "RunMode",
+                 );
+    }elsif( $name eq "Run"){
+        $#titles=-1;
+        @titles=(
+"Run",
+"FirstEvent",
+"LastEvent",
+"Priority",
+"FilePath",
+"Status",
+"History",
+                 );
+    }elsif( $name eq "Killer"){
+        $#titles=-1;
+        @titles=(
+          "Type",
+          "MaxClients",
+          "CPU",
+           "Memory",
+             "ScriptPath",
+            "LogPath",
+            "Submit",
+            "HostName",
+           "LogInTheEnd",
+             );                        
+    }
+		my $clist = new_with_titles Gtk::CList(@titles);
+		$clist->set_row_height(20);
+                $scr->{clist}=$clist;
+		$clist->signal_connect('select_row', \&select_clist);
+		$clist->signal_connect('unselect_row', \&unselect_clist);      
+
+
+		$clist->set_selection_mode('single');
+        for my $i (0 ... $#titles){
+		$clist->set_column_justification($i, 'center');
+		$clist->set_column_min_width($i, 20);
+		$clist->set_column_auto_resize($i, 1);
+            }
+		$clist->border_width(5);
+		$scr->add($clist);
+    $clist->show;
+    $scr->show;
+    $clist->freeze();
+    $clist->clear();
+    my @output=Monitor::getcontrolthings($name);
+    for my $i (0 ... $#output){
+        my @text=@{$output[$i]};
+        $clist->append(@text);
+        }
+    $clist->thaw();
+}               
+
+sub unselect_clist{
+
+    my($widget, $row, $column, $event) = @_;             
+    #create text entry - modal;
+    $widget->{row}=undef;
+    $widget->{column}=undef;
+}
+sub select_clist{
+
+    my($widget, $row, $column, $event) = @_;             
+    #create text entry - modal;
+    $widget->{row}=$row;
+    $widget->{column}=$column;
+
+
+my $window  =   new Gtk::Widget    "Gtk::Window",
+                "GtkWidget::has_focus"            =>      1,
+                "GtkWindow::type"                 =>      -toplevel,
+                "GtkWindow::title"                =>      "Dialog",
+                "GtkWindow::allow_grow"           =>      1,
+                "GtkWindow::modal"                =>      1,
+                "GtkWindow::window_position"             =>      -center,
+                "GtkWindow::allow_shrink"         =>      0,
+    "GtkContainer::border_width"      =>      10;
+
+		$window->signal_connect( 'destroy', \&Gtk::Widget::destroyed, \$window );
+
+
+    $window->realize();
+    my $box = new Gtk::VBox(1,0);
+    $window->add($box);
+    my $label_box = new Gtk::HBox 0, 0;
+    my $label = new Gtk::Label "Enter New Value:";
+    $label_box->pack_start($label, 0, 1, 0);
+
+    my $entry = new Gtk::Entry;
+    my $text=$widget->get_text($row,$column);
+    $entry->set_text($text);
+    $entry->select_region(0, length($entry->get_text));
+#    $entry->select_region(0, -1);
+    $label_box->pack_start($entry, 0, 1, 0);                
+    my $button = new Gtk::Button( 'OK' );
+    $button->signal_connect( 'clicked', sub { 
+        my $newtext=$entry->get_text();
+        $widget->set_text($row,$column,$newtext);
+        $window->destroy; 
+ }
+ );
+    $box->pack_start($label_box,0,1,0);
+    $box->pack_start($button,0,1,0);
+    show_all $window;
+
+    
+}
+
+sub ares{
+    my ($widget,$action,$scr)=@_;
+    if(defined $scr->{clist}){    
+    }
 }
