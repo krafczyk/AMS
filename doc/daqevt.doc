@@ -52,11 +52,11 @@ Word4  8 bit pattern + 8 bit nhits
 
 c.TOF Event Format
 
- ----> Reduced format (upto 8 blocks):
+ ----> Reduced format :
     one block consists of :
     
     Block_Length
-    Block_id: 000 0100 nnn 000001   // nnn=0-7
+    Block_id: 000 1010 nnn 000001   // nnn=0-7 is block(node) number
     TOF_data_SFET-1
     TOF_data_SFET-2
     TOF_data_SFET-3
@@ -65,11 +65,11 @@ c.TOF Event Format
   where any TOF_data_SFET-n block has the following structure:
   
     hit_mask //16bits, always present, each bit means non-empty TDC channel 
-    hit_counters // one 16bits word : 4x4bits hit-counters for first 4 nonempty TDC channel
+    hit_counters // one 16bits word : 4x4bits hit-counters for first <=4 nonempty TDC channel
     TDC_value    // tdc-hits for first four non empty TDC channels
        .
        . 
-    hit_counters // 4x4bits hit-counters for second 4 nonempty TDC channel (if needed)
+    hit_counters // 4x4bits hit-counters for second <=4 nonempty TDC channel (if needed)
     TDC_value    // tdc-hits for second four non empty TDC channels
        .
        . 
@@ -78,13 +78,15 @@ c.TOF Event Format
   Each TDC_value is 16 bits word: bits (0-13)-> edge time, (14)->edge phase, (15)->reserved
   
  ----> Raw format: 
+    one block consists of :
 
     Block_Length
-    Block_id: 000 0100 nnn 000000   // nnn=0-7
-    header_word // Temporarily !!! :  
-    TDC_value    //
-       .
-       .
+    Block_id: 000 1010 nnn 000000   // nnn=0-7 is block(node) number
+    header_word // Not final !!! : bits(12-15)->SFET_number(0-7); (8-11)->tdc_ch(0-15)
+                                     bit(0)->phase_bit 
+    TDC_value    
+    
+       .         // next pair of (header_word + TDC_value)
        .
     
     

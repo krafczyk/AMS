@@ -40,7 +40,6 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   ntyp=(blid>>9)&15;// node_type ("10" for TOF/ANTI/CTC)
   naddr=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
   dtyp=blid&63;// data_type ("0"->RawTDC; "1"->ReducedTDC)
-  assert(btyp==0 && ntyp==10);// TOF/ANTI/CTC-data 
   msk=subdmsk[naddr];
 //
   dlen=1;
@@ -54,10 +53,9 @@ void DAQSBlock::buildraw(integer len, int16u *p){
 integer DAQSBlock::calcblocklength(integer ibl){
   integer tofl(0),antil(0),ctcl(0),fmt;
   int16u blid,msk;
-  assert(ibl>=0 && ibl<DAQSBLK);// 0-7
+//
   fmt=TOFMCFFKEY.daqfmt;
-  assert(fmt>=0 && fmt<=1);
-  format=fmt;// redefined by data card value
+  format=fmt;// class variable is redefined by data card 
   blid=sblids[format][ibl];// valid block_id
   msk=subdmsk[ibl];// subdetectors in crate (mask)
   if((msk&1)>0)tofl=AMSTOFRawEvent::calcdaqlength(blid);
@@ -73,7 +71,6 @@ void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
   int16u *next=p;
   int16u blid,msk;
 //
-  assert(ibl>=0 && ibl<DAQSBLK);// 0-7
   blid=sblids[format][ibl];// valid block_id
   msk=subdmsk[ibl];
   dlen=len;

@@ -960,8 +960,6 @@ integer AMSTOFRawEvent::calcdaqlength(int16u blid){
   fmt=blid&63;// 0-raw, 1-reduced
 //  cout<<"---> In RawEv::calcdaqlen: blid="<<hex<<blid<<dec<<endl;//tempor
 //  cout<<"ask crate/fmt="<<rcrat<<" "<<fmt<<endl;// tempor
-  assert(fmt>=0 && fmt<2);
-  assert(rcrat>=0 && rcrat<SCCRAT);
 //
   while(ptr){
     idd=ptr->getid();// LBBS
@@ -970,7 +968,6 @@ integer AMSTOFRawEvent::calcdaqlength(int16u blid){
     ibar=id%100-1;
     isid=idd%10-1;
     hwid=AMSTOFRawEvent::sw2hwid(ilay,ibar,isid);// CST
-    assert(hwid>0 && hwid<=844);
     tofc=hwid%10-1;
     sfet=(hwid/10)%10-1;
     crate=hwid/100-1;
@@ -1021,8 +1018,6 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
 //
   rcrat=(blid>>6)&7;// requested crate #
   fmt=blid&63;// 0-raw, 1-reduced
-  assert(fmt>=0 && fmt<2);
-  assert(rcrat>=0 && rcrat<SCCRAT);
   hbyted=0;// default value of header byte (without phase-bit)
 //
 //
@@ -1041,7 +1036,6 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
     ibar=id%100-1;
     isid=idd%10-1;
     hwid=AMSTOFRawEvent::sw2hwid(ilay,ibar,isid);
-    assert(hwid>0 && hwid<=844);
     tofc=hwid%10-1;
     sfet=(hwid/10)%10-1;
     crate=hwid/100-1;
@@ -1265,7 +1259,6 @@ void AMSTOFRawEvent::buildraw(integer &len, int16u *p){
 //   cout<<"new sfet/tofc/subd    sf0/tofco/n4ch="<<sfeto<<" "<<tofco<<n4ch<<endl;//tempor
         if(n4ch>0){// create AMSTOFRawEvent object for previous !=0 "4xTDC"==TOFch
           swid=AMSTOFRawEvent::hw2swid(crate, sfeto, tofco);// LBBS
-          assert(swid>0 && swid<=4142); // valid id ?
 //      cout<<"---> Raw fmt: creating object for swid="<<swid<<endl;//tempor
           ids=swid;// LBBS
           stat=0; // tempor ?
@@ -1309,7 +1302,6 @@ void AMSTOFRawEvent::buildraw(integer &len, int16u *p){
 //--------
     if(n4ch>0){ // save last tofc(when it was last in the block) :
         swid=AMSTOFRawEvent::hw2swid(crate, sfeto, tofco);// LBBS
-        assert(swid>0 && swid<=4142); // valid id ?
 //      cout<<"---> Raw fmt: creating object for swid="<<swid<<endl;//tempor
         ids=swid;// LBBS
         stat=0; // tempor ?
@@ -1359,9 +1351,11 @@ int16u AMSTOFRawEvent::hw2swid(int16u a1, int16u a2, int16u a3){
   4012,4022,4032,4042, 4052,4062,4072,4082, 4092,4102,4112,4122, 4132,4142,0,0,
   };
 //
+#ifdef __AMSDEBUG__
   assert(a1>=0 && a1<SCCRAT);//crate(0-7)
   assert(a2>=0 && a2<SCSFET);//sfet(0-3)
   assert(a3>=0 && a3<SCTOFC);//tofch(0-3)
+#endif
   hwch=int16u(SCTOFC*SCSFET*a1+SCTOFC*a2+a3);// hardware-channel
   swid=sidlst[hwch]; // software-id LBBS
 //  cout<<"hwch->swid: "<<hwch<<" "<<swid<<endl;//tempor
@@ -1377,9 +1371,11 @@ int16u AMSTOFRawEvent::sw2hwid(int16u a1, int16u a2, int16u a3){
   int16u ilay,ibar,isid,swch,swid,hwid,crate,sfet,tofc;
   static int16u hidlst[SCLRS*SCMXBR*2]; // hardw.id list
 //
+#ifdef __AMSDEBUG__
   assert(a1>=0 && a1<SCLRS);// layer(0-3)
   assert(a2>=0 && a2<SCMXBR);// bar(0-13)
   assert(a3>=0 && a3<2); // side(0-1)
+#endif
 //
   if(first==0){ // create hardw.id list:
     first=1;

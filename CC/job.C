@@ -840,8 +840,15 @@ void AMSJob::_signinitjob(){
 }
 //----------------------------------------------------------------------------------------
 void AMSJob::_sitofinitjob(){
-  if(TOFMCFFKEY.fast==1)cout <<"_sitofinit-I-Fast/Crude TOF simulation algorithm selected."<<endl;
-  else cout <<"_sitofinit-I-Slow/Accurate TOF simulation algorithm selected."<<endl;
+  if(TOFMCFFKEY.fast==1)cout <<"_sitofinit-I-Fast(Crude) simulation algorithm selected."<<endl;
+  else cout <<"_sitofinit-I-Slow(Accurate) simulation algorithm selected."<<endl;
+//
+  if(TOFMCFFKEY.daqfmt==0)cout<<"_sitofinit-I-Raw TDC_Format selected"<<endl;
+  else if(TOFMCFFKEY.daqfmt==1)cout<<"_sitofinit-I-Reduced TDC_Format selected"<<endl;
+  else {
+    cout<<"_sitofinit-I- Unknown TDC_Format !!!"<<endl;
+    exit(1);
+  }
 //
     AMSgObj::BookTimer.book("SITOFDIGI");
     AMSgObj::BookTimer.book("TOF:Ghit->Tovt");

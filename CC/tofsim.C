@@ -240,7 +240,9 @@ void AMSTOFTovt::build()
     AMSPoint cglo(x,y,z);
     p=AMSJob::gethead()->
            getgeomvolume(AMSID("TOFS",id));// pointer to volume "TOFS",id
+#ifdef __AMSDEBUG__
     assert(p != NULL);
+#endif
     cloc=p->gl2loc(cglo);// convert global coord. to local
     x=cloc[0];
     y=cloc[1];
@@ -848,6 +850,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 //
 //------------------------------
 // now create/fill AMSTOFTovt object (id=idd) with above digi-data:
+      if(_ntr1>0 && _nftdc>0){ 
         _sta=0;    
         stat=0;
         stat=AMSEvent::gethead()->addnext(AMSID("AMSTOFTovt",ilay), new
@@ -855,6 +858,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
              _ntr1,_ttr1,_ntr3,_ttr3,
              _nftdc,_tftdc,_tftdcd,_nstdc,_tstdc,
              _nadca,_tadca,_tadcad,_nadcd,_tadcd,_tadcdd));
+      }
         return;
 //
 //
@@ -1118,8 +1122,10 @@ void AMSBitstr::bitset(const int il, const int ih){
        0x8000,0x4000,0x2000,0x1000,0x0800,0x0400,0x0200,0x0100,
        0x0080,0x0040,0x0020,0x0010,0x0008,0x0004,0x0002,0x0001};
   int i,iw1,iw2,i1,i2,nw;
+#ifdef __AMSDEBUG__
   assert(il>=0 && ih>=0);
   assert(il<SCBITM && ih<SCBITM);
+#endif
   iw1=il/16;
   i1=il-16*iw1;
   if(il==ih){
@@ -1155,8 +1161,10 @@ void AMSBitstr::bitclr(const int il, const int ih){
         0x7FFF,0xBFFF,0xDFFF,0xEFFF,0xF7FF,0xFBFF,0xFDFF,0xFEFF,
         0xFF7F,0xFFBF,0xFFDF,0xFFEF,0xFFF7,0xFFFB,0xFFFD,0xFFFE};
   int i,iw1,iw2,i1,i2,nw;
+#ifdef __AMSDEBUG__
   assert(il>=0 && ih>=0);
   assert(il<SCBITM && ih<SCBITM);
+#endif
   iw1=il/16;
   i1=il-16*iw1;
   if(il==ih){
