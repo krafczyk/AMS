@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.105 2003/08/18 11:55:53 mdelgado Exp $
+//  $Id: root.h,v 1.106 2003/09/19 10:59:39 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1740,7 +1740,16 @@ public:
    /// Place to book histos etc
    /// \sa stlv.C
    virtual void UBegin();
-   /// User Analysis Function called at the end of a loop on the tree,
+   /// User Selection function called event by event
+   /// May return false as soon as a bad event is detected.\n
+   /// \sa stlv.C
+   /// \return false if error;
+   virtual inline bool UProcessCut(){return true;}
+   /// User Analysis function called event by event
+   /// Place to fill in histograms etc
+   /// \sa stlv.C
+   virtual inline void UProcessFill(){;}
+   /// User Termination Function called at the end of a loop on the tree,
    /// a convenient place to draw/fit your histograms. \n
    /// \sa stlv.C
    virtual void UTerminate();
@@ -1756,7 +1765,17 @@ public:
    /// \return false if error;
    Bool_t  ProcessCut(int entry){return ReadHeader(entry);}
 
-  ///  Reads Header 
+   /// Analysis kernel function.
+   /// Entry is the entry number in the current tree.
+   /// Should Not be modified by (Non)Advanced User\n
+   /// \sa stlv.C
+   /// \param entry - event no
+   void ProcessFill(int entry){ 
+           if (!UProcessCut()) return; 
+           UProcessFill();
+   };
+ 
+   ///  Reads Header 
   /// \param Entry - event no
    /// \return false if error;
   bool ReadHeader(int Entry);
