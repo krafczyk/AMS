@@ -3,7 +3,7 @@
 #include <ntuple.h>
 
 AMSNtuple::AMSNtuple(integer lun, char* name) : AMSNode(AMSID(name,0)) {
-
+  _Nentries=0;
   _lun = lun;
 
   HBNT(_lun, name," ");
@@ -97,6 +97,7 @@ void AMSNtuple::reset(){
   _tofraw.Ntofraw = 0;
 }
 
-void AMSNtuple::write(){
+void AMSNtuple::write(integer addentry){
   HFNT(_lun);
+  if(addentry)_Nentries++;
 }

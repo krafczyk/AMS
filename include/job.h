@@ -228,6 +228,7 @@ void data();
 void udata();
 void init();
 void uhinit(integer pass=0);
+void uhend();
 AMSTimeID * gettimestructure();
 AMSTimeID * gettimestructure(const AMSID & id);
 void printJ(ostream & stream);

@@ -31,8 +31,8 @@ C npars ims
   5     1   
 C          Nparticles 
 MCGEN  1=-150. 2=-150. 4=150. 5=150. 12=-0.75 15=1 18=1 19=102004 
-IOPA 1=3 2='pr.hbk'
-45='AMSmceventg'
+IOPA 1=3 2='pr.hbk' 43=1012 126=1030
+45='AMSParticle'
 RNDM 191483093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=5.   4=0  5=0   6='v203 Protons ' 

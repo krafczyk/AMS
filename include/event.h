@@ -52,6 +52,8 @@ geant _SunPhi;
 time_t _time;
 uinteger _usec;
 static integer SRun;
+static integer PosInRun;
+static integer PosGlobal;
 static AMSEvent * _Head;
 static AMSNodeMap EventMap;
 static ShuttlePar Array[60];

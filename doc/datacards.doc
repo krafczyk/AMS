@@ -44,7 +44,7 @@ I88  TDVC(1600*' ')  // TDV Names, separated by |, which will be updated
 //IO
 
 IOPA 
-I 1    hlun(0)                   // lun number for ntuple file (=0 no output)
+I 1    hlun(0)                   // hlun lun number for ntuple file (=0 no output)
 I 2    hfile(160*' ')            // ntuple output file name
 I42    ntupleId(1)               // Ntuple Id
 I43    WriteAll(2)               // Flag to write objects into the ntuple
@@ -53,6 +53,8 @@ I43    WriteAll(2)               // Flag to write objects into the ntuple
                                  // 10+X=Dump header, X=0,1,2 as  above
                                  // but header block in the ntuple is filled
                                  // also if trigger condition is not matched.
+                                 // n*1000+X - always write first n*1000 events
+                                 // from every run
 R44    Portion(1.1)              // Process event if RNDM(d)<Portion) 
 I45    TriggerC('AMSParticle')   // Container names, separated by
                                  // & or | to trigger write 
@@ -60,7 +62,7 @@ I45    TriggerC('AMSParticle')   // Container names, separated by
 I85    mode(0)                   // 4th vectors i/0 mode switch
                                  // 0 - nothing 1 -read 2 - write 3 - append
 I86   ffile(' ')                 // 4th vectors file name
-
+I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
 //---------------------------------------------------------------------
 
 //Anti Simulation

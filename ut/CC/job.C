@@ -9,6 +9,7 @@
 // Last Edit : Dec 27, 1997. ak. 
 //
 #include <amsgobj.h>
+#include <astring.h>
 #include <cern.h>
 #include <math.h>
 #include <amsdbc.h>
@@ -153,6 +154,7 @@ char amsp[12]="AMSParticle";
 UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
+IOPA.MaxNtupleEntries=100000;
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
 TRMFFKEY.OKAY=0;
 FFKEY("TERM",(float*)&TRMFFKEY,sizeof(TRMFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1762,7 +1764,13 @@ _antiendjob();
 _trdendjob();
 _dbendjob();
 _axendjob();
+uhend();
 
+
+
+}
+
+void AMSJob::uhend(){
 if(IOPA.hlun){
   int ntuple_entries;
   HNOENT(IOPA.ntuple, ntuple_entries);
@@ -1777,30 +1785,40 @@ if(IOPA.hlun){
   HREND ("output");
   CLOSEF(IOPA.hlun);
 }
-
-
 }
 
-
-void AMSJob::uhinit(integer pass){
+void AMSJob::uhinit(integer eventno){
 
   
   if(IOPA.hlun){
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
+    char filename[256];
+    strcpy(filename,hfile);
     integer iostat;
     integer rsize=8000;
-    HROPEN(IOPA.hlun,"output",hfile,"N",rsize,iostat);
+    if(eventno){
+      char event[80];  
+      sprintf(event,".%d",eventno);
+      strcat(filename,event);
+    }
+    HROPEN(IOPA.hlun,"output",filename,"N",rsize,iostat);
     if(iostat){
-     cerr << "Error opening Histo file "<<hfile<<endl;
+     cerr << "Error opening Histo file "<<filename<<endl;
      exit(1);
     }
-    else cout <<"Histo file opened."<<endl;
+    else cout <<"Histo file "<<filename<<" opened."<<endl;
 
 // Open the n-tuple
-    static AMSNtuple ntuple(IOPA.ntuple,"AMS Ntuple");
-    gethead()->addup(&ntuple);
-
+    static AMSNtuple * pntuple=0;
+    if(pntuple){
+        delete pntuple;
+        pntuple = new AMSNtuple(IOPA.ntuple,"AMS Ntuple");
+    }
+    else{
+        pntuple = new AMSNtuple(IOPA.ntuple,"AMS Ntuple");
+        gethead()->addup(pntuple);
+    }
   }
    HBOOK1(200101,"Number of Nois Hits x",100,-0.5,99.5,0.);
    HBOOK1(200102,"Number of Nois Hits y",100,-0.5,99.5,0.);

@@ -127,6 +127,7 @@ float   Portion;
 integer TriggerC[40];
 integer mode;
 integer ffile[40];
+integer MaxNtupleEntries;
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);

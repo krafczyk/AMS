@@ -50,6 +50,8 @@ integer AMSEvent::debug=0;
 AMSEvent* AMSEvent::_Head=0;
 AMSNodeMap AMSEvent::EventMap;
 integer AMSEvent::SRun=0;
+integer AMSEvent::PosInRun=0;
+integer AMSEvent::PosGlobal=0;
 void AMSEvent::_init(){
   SetTimeCoo(0);
   // Status stuff
@@ -120,12 +122,14 @@ void AMSEvent::_init(){
      }
     }
     SRun=_run;
+    PosInRun=0;
 #ifndef __DB__
    _validate(1);
 #endif
   }
   SetTimeCoo(1);
-
+  PosInRun++;
+  PosGlobal++;
 }
 
 void AMSEvent::_siamsinitrun(){
@@ -521,14 +525,21 @@ void  AMSEvent::write(int trig){
       }
       else break;
     }
-    if(trig){
+    if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
 // if event has been selected write it straight away
-    AMSJob::gethead()->getntuple()->write();
+    // check if one want to close ntuple first
+    if(IOPA.MaxNtupleEntries){
+      if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries){
+        AMSJob::gethead()->uhend();
+        AMSJob::gethead()->uhinit(PosGlobal);
+      }
+    }        
+            AMSJob::gethead()->getntuple()->write(1);
     }
     else {
 // if event was not selected check if at least header should be written
 // in the ntuples
-      if((IOPA.WriteAll-IOPA.WriteAll%10)==10){
+      if((IOPA.WriteAll/10)%10){
       AMSJob::gethead()->getntuple()->reset();
       AMSJob::gethead()->getntuple()->write();
     }
@@ -587,7 +598,7 @@ void AMSEvent::event(){
     uinteger status=AMSJob::gethead()->getstatustable()->getstatus(getid());
     // compare status 
     if(!(status & (1<<32))){    // Status exists
-      const int nsta=12;
+      const int nsta=13;
       uinteger Status[nsta];
       Status[0]=((status & ((1<<4)-1)))+1;
       Status[1]=((status>>4) & ((1<<1)-1))+1;
@@ -601,6 +612,7 @@ void AMSEvent::event(){
       Status[9]=((status>>21) & ((1<<2)-1))+1;
       Status[10]=((status>>23) & ((1<<2)-1))+1;
       Status[11]=((status>>25) & ((1<<2)-1))+1;
+      Status[12]=((status>>27) & ((1<<2)-1))+1;
 
         uinteger local=0;
       for(int i=0;i<nsta;i++){
@@ -1833,4 +1845,14 @@ void AMSEvent::_collectstatus(){
       _status=_status | (ncl<<19);
   }
      
+  // Now collect geomag latitude 
+     number cosgm=fabs(sin(_StationTheta)*sin(AMSmceventg::Orbit.PoleTheta)+
+     cos(_StationTheta)*cos(AMSmceventg::Orbit.PoleTheta)*cos(_StationPhi-_NorthPolePhi));
+     integer icos;
+     if(cosgm<0.1736)icos=0;
+     else if(cosgm<0.5)icos=1;
+     else if(cosgm<0.766)icos=2;
+     else icos=3;
+      _status=_status | (icos<<27);
+
 }

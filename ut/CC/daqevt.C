@@ -1,8 +1,36 @@
 #include <stdio.h>
-
 #include <daqevt.h>
 #include <event.h>
 #include <commons.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+#include <ctype.h>
+#ifndef __IBMAIX__
+#include <dirent.h>
+#else
+
+#define _D_NAME_MAX 255
+
+struct  dirent {
+        ulong_t         d_offset;       /* real off after this entry */
+        ino_t           d_ino;          /* inode number of entry */
+                                        /* make ino_t when it's ulong */
+        ushort_t        d_reclen;       /* length of this record */
+        ushort_t        d_namlen;       /* length of string in d_name */
+        char            d_name[_D_NAME_MAX+1];  /* name must be no longer than t
+his */
+                                        /* redefine w/#define when name decided
+*/
+};
+
+
+extern "C" int scandir(		const char *, struct dirent ***, 
+                                int (*)(struct dirent *),  
+                                int (*)(struct dirent **, struct dirent **));
+#endif
+
+
+
 
 integer DAQEvent::_Buffer[50000];
 integer DAQEvent::_BufferLock=0;
@@ -580,6 +608,27 @@ int DAQEvent::parser(char a[], char **& fname){
   }
   if(kl<0)kl=0;
   // cout << " kl "<<kl<<endl;
+
+  if(kl==0 || kl==strlen(a)){
+      // Whole directory  wanted
+      dirent ** namelist;
+      AString fdir(a);
+      
+      ntot=scandir((const char *)fdir,&namelist,&_select,NULL);     
+      if(ntot){
+          fname =new char*[ntot];
+          for(int i=0;i<ntot;i++){
+            fname[i]=new char[strlen(a)+strlen(namelist[i]->d_name)+1];
+            strcpy(fname[i],a);
+            strcat(fname[i],namelist[i]->d_name);
+            free(namelist[i]);
+          }
+          free(namelist);
+      }
+      return ntot;      
+  }
+
+
   {
   int coma=kl-1;
   for(int i=kl;i<strlen(a)+1;i++){
@@ -660,3 +709,6 @@ int DAQEvent::parser(char a[], char **& fname){
 
 
 
+integer DAQEvent::_select(dirent *entry){
+return isdigit((entry->d_name)[0]);    
+}

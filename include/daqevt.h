@@ -51,7 +51,7 @@ _maxbl(0),_plength(0){}
 
 friend class DAQEvent;
 };
-
+struct dirent;
 const integer nbtps=8;    // blocks num 
 class DAQEvent : public AMSlink{
 protected:
@@ -79,6 +79,7 @@ void _writeEl(){}
 void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
+static integer _select(dirent * entry=0);
 public:
 uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();

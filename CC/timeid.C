@@ -268,6 +268,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
     }
 
     else if(run==0 || reenter){
+      fnam+=".";
       fnam+=getname();
       fnam+= getid()==0?".0":".1";
       cout <<"AMSTimeID::read-W-Default value for TDV "<<getname()<<" will be used."<<endl;
@@ -404,6 +405,7 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
     AString fdir(dir);
     fdir+=getname();
     fdir+="/";
+    fmap+=".";
     fmap+=getname();
     fmap+=getid()==0?".0.map":".1.map";
     fstream fbin;

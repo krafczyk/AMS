@@ -395,6 +395,7 @@ class AMSNtuple : public AMSNode {
 
 protected:
   integer _lun;
+  integer _Nentries;
   EventNtuple _event;
   BetaNtuple _beta;
   ChargeNtuple _charge;
@@ -423,8 +424,8 @@ public:
 
   AMSNtuple(integer lun, char* name);
   void reset();
-  void write();
-
+  void write(integer addentry=0);
+  integer getentries(){return _Nentries;}
   EventNtuple* Get_event() {return &_event;}
   BetaNtuple* Get_beta() { return &_beta;}
   ChargeNtuple* Get_charge() { return &_charge;}

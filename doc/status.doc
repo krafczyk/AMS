@@ -29,8 +29,8 @@ bit 0
 24   -----
 25   track quality
 26   ------
-27   free
-28   free
+27   geomagnetic latitude
+28   geomagnetic latitude
 29   free
 30   free
 31   status not found
@@ -100,6 +100,13 @@ track quality
 1  - at least 4S+4K
 2  - at least 4S+3K
 3  - at least 4S
+
+geomagnetic latitude
+0 < 10 degres  cos <0.1736
+1 < 30 degrees cos <0.5
+2 < 50 degrees cos < 0.766
+3 > 50 degrees cos > 0.766
+
 
 correspondance between bits & status datacards words:
 
