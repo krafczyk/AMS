@@ -80,7 +80,8 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0,
       for(i=0;i<AMSJob::gethead()->gettdvn();i++){
         if( (
            strcmp(AMSJob::gethead()->gettdvc(i),getname())==0 ||
-           strcmp(AMSJob::gethead()->gettdvc(i),"UpdateAllTDV")==0) ){
+           strcmp(AMSJob::gethead()->gettdvc(i),"UpdateAllTDV")==0) &&
+           (_Begin < _End) ){
          _UpdateMe=1;
          time(&_Insert);
          cout <<"AMSTimeID-ctor-I-Update for "<<getname()<<" "<<getid()<<
