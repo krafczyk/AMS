@@ -1,4 +1,4 @@
-#  $Id: Mopt2,v 1.2 2003/10/29 15:25:33 choutko Exp $
+#  $Id: Mopt2,v 1.3 2003/11/10 09:39:53 choutko Exp $
 #
 
 SHELL=/bin/sh
@@ -119,7 +119,7 @@ CC=cxx
 endif
 FF=f77
 LD=cxx
-BIN=$(AMSWD)/bin/osf1r/
+BIN=$(AMSWD)/bin/osf1/
 EXE=$(AMSWD)/exe/osf1/
 LIB=$(AMSWD)/lib/osf1/
 SHLD=$(LIB)/ntuple.so

@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.32 2003/10/26 14:11:37 choutko Exp $
+#  $Id: 00index.txt,v 1.33 2003/11/10 09:39:53 choutko Exp $
 Mopt_ntuple // makefile to gmake geant batch  (obslolete, not recommended)
           // setenv AMSDEBUG 1 debug version; unsetenv AMSDEBUG opt version
           // setenv AMSPROFILE 1  adds gprof
@@ -41,6 +41,16 @@ To build ams "ROOT" shared library  ntuple.so
 
 
 
+-NB -  New Scheme  by R. Laurier -  NB - 
+Makefile //  General Makefile
+Makefile.Linux // OS dep
+Makefile.OSf1 //  OS dep
+
+gmake gbatch     // builds g3 gbatch with root
+gmake gxint      // builds g3 gxint
+gmake shared     // builds root shared library
+gmake producer  // builds gbatch-orbit (Linux rh9 orbit2 only)
+gmake server    // builds server (Linux rh9 orbit2 only)
 
 
 
