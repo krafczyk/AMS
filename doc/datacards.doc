@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.214 2002/09/20 09:30:35 choutko Exp $
+#  $Id: datacards.doc,v 1.215 2002/10/03 16:24:36 choumilo Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -701,7 +701,24 @@ R 8    safext                    // extention(>0)/reduction(<0) of EC transv. si
 R 9    mev2pes(55)               // Geant dE/dE(mev) to PM photoelectrons conversion.
 R 10   pmseres(0.8)              // PM single-elecrton ampl.resolution
 R 11   mev2adcd(1.576)           // Dynode Emeas(MeV)->ADCch factor(MIP-m.p. -> 2nd channel)
-R 12   an2dyr(10)                // Anode/dynode ratio
+R 12   an2dyr(25)                // Anode/dynode ratio
+R 13   pedh(150)                 // Default Ped-HiCh    
+R 14   pedvh(30)                 // Default ch-to-ch variation(%)     
+R 15   pedl(150)                 // ........Ped-LoCh    
+R 16   pedvl(30)                 // ........ch-to-ch variations(%)
+R 17   pedsh(0.55)               // ........PedSig-HiCh     
+R 18   pedsvh(30)                // ........ch-to-ch variation(%)     
+R 19   pedsl(0.55)               // ........PedSig-LoCh    
+R 20   pedsvl(30)                // ........ch-to-ch variation(%)
+//
+I 21   generpeds(0)              // 1/0->generate_def_PedS/read_them_from_DB
+// 
+I 22-23 sec[2](0,0)              // PedSig-update begin/end time (sec) 
+I 24-25 min[2](0,0               // ............................ (min)
+I 26-27 hour[2](0,0)             // ............................ (hour)
+I 28-29 day[2](1,1)              // ............................ (day)
+I 30-31 mon[2](0,0)              // ............................ (month)
+I 32-33 year[2](101,110)         // ............................ (year)
 
     ECAL reconstruction:
 
@@ -715,11 +732,11 @@ I 5    relogic[1](0)       // 0/1/2...-> normal/RLGA_calib/RLGA+FIAT_calib/ANOR_
 I 6    relogic[2](0)       // 0/1/2->Nholes/Ebackgr/Both_type cuts in ANOR_calib logic
 I 7,8................        //    spares
 
-R 9    thresh[0](2)        // HighGain-chan. readout threshold(ADCch)    
+R 9    thresh[0](3)        // HighGain-chan. readout threshold(in PEDsigma units)    
 R 10   thresh[1](120)      // Anode(high-ch,tot) "mip"-trig.thresh(mev tempor)     
 R 11   thresh[2](450)      // ............ ,1st 3sl) "elec"-trig.thresh(mev tempor)    
 R 12   thresh[3](3000)     // Anode(high-ch,tot) "HighEnergy"-trig.thresh(mev tempor)     
-R 13   thresh[4](2)        // LowGain-chan. readout thershold(ADCch)    
+R 13   thresh[4](3)        // LowGain-chan. readout thershold(in PEDsigma units)    
 R 14   thresh[5](10000)    // energy upp.limit for action of cut below (mev tempor)   
 R 15   thresh[6](3.5)      // min Epeak/Ebase (add. to #11 for "electromagneticity")
 R 16   thresh[7](1.)       // min Epeak/Efron .....................................

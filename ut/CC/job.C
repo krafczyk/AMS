@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.419 2002/10/03 14:35:19 choutko Exp $
+// $Id: job.C,v 1.420 2002/10/03 16:24:35 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -564,6 +564,29 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.adsimpl=0;    //(16) 1/0->use/not simple Anode-TovT simulation(not used now)
   TFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
   TFMCFFKEY.hfnoise=5.;   //(18) high freq. noise .......   
+  TFMCFFKEY.pedh=100;     //(19)Ped-HiCh    
+  TFMCFFKEY.pedvh=10;     //(20)ch-to-ch variation(%)     
+  TFMCFFKEY.pedl=100;     //(21)Ped-LoCh    
+  TFMCFFKEY.pedvl=10;     //(22)ch-to-ch variations(%)
+  TFMCFFKEY.pedsh=0.5;    //(23)PedSig-HiCh     
+  TFMCFFKEY.pedsvh=10;    //(24)ch-to-ch variation(%)     
+  TFMCFFKEY.pedsl=0.5;    //(25)PedSig-LoCh    
+  TFMCFFKEY.pedsvl=10;    //(26)ch-to-ch variation(%)
+//     
+  TFMCFFKEY.generpeds=1;  //(27)1/0->generate_def_PedS/read_them_from_DB
+// 
+  TFMCFFKEY.sec[0]=0;     //(28) 
+  TFMCFFKEY.sec[1]=0;     //(29)
+  TFMCFFKEY.min[0]=0;     //(30)
+  TFMCFFKEY.min[1]=0;     //(31)
+  TFMCFFKEY.hour[0]=0;    //(32)
+  TFMCFFKEY.hour[1]=0;    //(33)
+  TFMCFFKEY.day[0]=1;     //(34)
+  TFMCFFKEY.day[1]=1;     //(35)
+  TFMCFFKEY.mon[0]=0;     //(36)
+  TFMCFFKEY.mon[1]=0;     //(37)
+  TFMCFFKEY.year[0]=101;  //(38)
+  TFMCFFKEY.year[1]=110;  //(39)
 FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -596,7 +619,7 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.pedsl=0.55;     //(19)PedSig-LoCh    
   ECMCFFKEY.pedsvl=30;      //(20)ch-to-ch variation(%)
 //     
-  ECMCFFKEY.generpeds=1;//(21)1/0->generate_def_PedS/read_them_from_DB
+  ECMCFFKEY.generpeds=0;//(21)1/0->generate_def_PedS/read_them_from_DB
 // 
   ECMCFFKEY.sec[0]=0;//(22) 
   ECMCFFKEY.sec[1]=0;//(23)
@@ -642,7 +665,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.cuts[3]=0.;//    (22)
   ECREFFKEY.cuts[4]=0.65;//  (23) LVL3-trig. EC-algorithm: "peak"/"average" methode boundary
 //
-  ECREFFKEY.ReadConstFiles=1;//(24)read const. from DB/RawFiles (0/1)
+  ECREFFKEY.ReadConstFiles=0;//(24)read const. from DB/RawFiles (0/1)
 //
   ECREFFKEY.Thr1DSeed=10;
   ECREFFKEY.Thr1DRSeed=0.18;
@@ -657,7 +680,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.SimpleRearLeak[0]=-0.01;
   ECREFFKEY.SimpleRearLeak[1]=0.94e-3;
   ECREFFKEY.SimpleRearLeak[2]=2.75;   // was 3.7*0.8  for 18 lay
-   ECREFFKEY.SimpleRearLeak[2]=3.7*0.8;
+  ECREFFKEY.SimpleRearLeak[2]=3.7*0.8;
   ECREFFKEY.SimpleRearLeak[3]=0.975e-3;
   ECREFFKEY.CalorTransSize=32;
   ECREFFKEY.EMDirCorrection=1.035;
@@ -1679,8 +1702,9 @@ void AMSJob::_siecalinitjob(){
 //
     EcalJobStat::bookhistmc();
 //
-// ===> Generate pedestals is requested, otherwise take them from DB
+// ===> Generate pedestals if requested, otherwise take them from DB
   if(ECMCFFKEY.generpeds>0){
+    cout <<"_siecalinitjob: prepare default pedestals ..."<<endl;
     ECPMPeds::mcbuild();
   }
   else{

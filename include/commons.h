@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.176 2002/10/01 15:53:52 choumilo Exp $
+//  $Id: commons.h,v 1.177 2002/10/03 16:24:37 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -161,6 +161,21 @@ integer birks;     // 0/1  not apply/apply birks corrections
 integer adsimpl;   // 0/1->precise/simplified sim. of A/D-TovT
 geant blshift;     // base line shift
 geant hfnoise;     // high freq. noise
+geant pedh; //Ped-HiCh    
+geant pedvh;//ch-to-ch variation(%)     
+geant pedl; //Ped-LoCh    
+geant pedvl;//ch-to-ch variations(%)
+geant pedsh;//PedSig-HiCh     
+geant pedsvh;//ch-to-ch variation(%)     
+geant pedsl;//PedSig-LoCh    
+geant pedsvl;//ch-to-ch variation(%)
+integer generpeds;     
+integer sec[2];
+integer min[2];
+integer hour[2];
+integer day[2];
+integer mon[2];
+integer year[2];
 };
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);

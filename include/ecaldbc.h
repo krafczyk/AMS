@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.23 2002/10/03 08:10:25 choutko Exp $
+//  $Id: ecaldbc.h,v 1.24 2002/10/03 16:24:37 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -152,7 +152,7 @@ class ECcalib{
 //
 private:
   integer _softid;  // SSPP (SS->S-layer number, PP->PMcell number)
-  integer _status[4];  //4-SubCells calib.status(MN->Hch/Lch, M(N)=0/../9->OK/../DEAD) 
+  integer _status[4];  //4-SubCells calib.status(MN->Hch/Lch, M(N)=0/../9 -> OK/../DEAD) 
   geant _pmrgain;    // PM relative(to ref.PM) gain (if A=(sum of 4 SubCells) pmrgain = Agiven/Aref)
   geant _scgain[4]; // relative(to averaged) gain of 4 SubCells(highGain chain)(average_of_four=1 !!!)
   geant _hi2lowr[4]; // ratio of gains of high- and low-chains (for each of 4 SubCells)

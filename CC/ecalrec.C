@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.59 2002/10/03 08:10:36 choutko Exp $
+//  $Id: ecalrec.C,v 1.60 2002/10/03 16:24:33 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -219,7 +219,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       
         EcalJobStat::zprmc2[il]+=sum[i][k];//geant SL(PM-assigned)-profile
         h2lr=ECcalib::ecpmcal[il][i].hi2lowr(k);//PM subcell high/low ratio from DB
-	geant scgn=ECcalib::ecpmcal[il][i].pmscgain(k);//SubCell gain
+	geant scgn=ECcalib::ecpmcal[il][i].pmscgain(k);//SubCell gain(really 1/pmrg/scgn)
 	ares=0.;
 	phel=sum[i][k]*ECMCFFKEY.mev2pes;//numb.of photoelectrons
 	if(phel>=1){
@@ -234,13 +234,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
 // ---------> digitization+DAQ-scaling:
 // High-gain channel:
         if(ECMCFFKEY.silogic[0]==0){
-	  radc=edepr*scgn*mev2adc+pedh[k]+sigh[k]*rnormx();//Em(mev)->Em(adc)+ped+noise
+	  radc=edepr*mev2adc/scgn+pedh[k]+sigh[k]*rnormx();//Em(mev)->Em(adc)+ped+noise
 	}
 	else if(ECMCFFKEY.silogic[0]==1){
-	  radc=edepr*scgn*mev2adc+pedh[k];//Em(mev)->Em(adc)+ped
+	  radc=edepr*mev2adc/scgn+pedh[k];//Em(mev)->Em(adc)+ped
 	}
 	else if(ECMCFFKEY.silogic[0]==2){
-	  radc=edepr*scgn*mev2adc;//Em(mev)->Em(adc)
+	  radc=edepr*mev2adc/scgn;//Em(mev)->Em(adc)
 	}
 	else{
 	}
@@ -254,13 +254,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	else{ adch=0;}
 // Low-gain channel:
         if(ECMCFFKEY.silogic[0]==0){
-	  radc=edepr*scgn*mev2adc/h2lr+pedl[k]+sigl[k]*rnormx();//Em(mev)->Em/h2lr(adc)+ped+noise
+	  radc=edepr*mev2adc/h2lr/scgn+pedl[k]+sigl[k]*rnormx();//Em(mev)->Em/h2lr(adc)+ped+noise
 	}
 	else if(ECMCFFKEY.silogic[0]==1){
-	  radc=edepr*scgn*mev2adc/h2lr+pedl[k];//Em(mev)->Em/h2lr(adc)+ped
+	  radc=edepr*mev2adc/h2lr/scgn+pedl[k];//Em(mev)->Em/h2lr(adc)+ped
 	}
 	else if(ECMCFFKEY.silogic[0]==2){
-	  radc=edepr*scgn*mev2adc/h2lr;//Em(mev)->Em/h2lr(adc)
+	  radc=edepr*mev2adc/h2lr/scgn;//Em(mev)->Em/h2lr(adc)
 	}
 	else{
 	}
@@ -463,7 +463,7 @@ void AMSEcalHit::build(int &stat){
   adct=0.;
   emeast=0.;
 //
-  for(int nc=0;nc<AMSECIdSoft::ncrates();nc++){ // <-------------- super-layer loop
+  for(int nc=0;nc<AMSECIdSoft::ncrates();nc++){ // <-------------- cr. loop
     ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
                getheadC("AMSEcalRawEvent",nc,0);
     while(ptr){ // <--- RawEvent-hits loop in superlayer:
@@ -504,14 +504,14 @@ void AMSEcalHit::build(int &stat){
 // take decision which chain to use for energy calc.(Hi or Low):
       sta=0;
       fadc=0.;
-      if(ovfl[0]==0 && !ids.HCHisBad()){
+      if(radc[0]>0 && ovfl[0]==0 && !ids.HCHisBad()){
         fadc=radc[0];//use highCh.
       }
-      else if(radc[1]>0 && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl -> use Lch
+      else if(radc[1]>3*sl && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl -> use Lch
         fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
-	    sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
+	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
 //
-        if(AMSJob::gethead()->isRealData()){// tempor RealData corr.
+        if(AMSJob::gethead()->isRealData()){// tempor RealData Lch-corr.
 //      assume tri-angular  h/l correction;
 
         number ped=ph;
@@ -543,9 +543,10 @@ void AMSEcalHit::build(int &stat){
 	    sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
       }
       else {
-	    sta|=AMSDBc::AMSDBc::BAD;// bad or 0 amplitude channel
+	    sta|=AMSDBc::BAD;// bad or 0 amplitude channel
       }
-      edep=fadc*ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//gain corr.
+      edep=fadc*ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//gain corr(really 1/pmrg/pmscg
+//       because in Calib.object pmsc-gain was defined as 1/pmrg/pmscg)
       if(ECREFFKEY.reprtf[0]>0){
         HF1(ECHISTR+16,geant(edep),1.);
         HF1(ECHISTR+17,geant(edep),1.);
@@ -564,7 +565,7 @@ void AMSEcalHit::build(int &stat){
       ptr=ptr->next();  
     } // ---> end of RawEvent-hits loop in superlayer
 //
-  } // ---> end of super-layer loop
+  } // ---> end of crate loop
 //
   if(ECREFFKEY.reprtf[0]>0){
     HF1(ECHISTR+10,geant(nraw),1.);

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.38 2002/10/01 15:53:39 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.39 2002/10/03 16:24:33 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -1328,7 +1328,9 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
       sid=(ipm+1)+100*(isl+1);
       for(isc=0;isc<4;isc++)sta[isc]=status[cnum][isc];
       pmrg=pmrgn[cnum];
-      for(isc=0;isc<4;isc++)scrg[isc]=pmscgn[cnum][isc];
+      for(isc=0;isc<4;isc++)scrg[isc]=1/(pmrg*pmscgn[cnum][isc]);
+//(1/(..) ->  to have mult. instead of dev. in RECO(for speed); pmrg included
+//  in pmscgn because in simu/reco product of pmrg*pmscgn is used really(or pmrg alone)
       for(isc=0;isc<4;isc++)h2lr[isc]=sch2lr[cnum][isc];
       a2dr=an2dyr[cnum];
       lfs=lfast[cnum];
@@ -1342,13 +1344,12 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
 //
 //==========================================================================
 integer ECcalib::BadCell(integer plane, integer cell){
-  integer sl,pm,sc,dbsta;
+  integer sl,pm,sc;
   sl=plane/2;
   pm=cell/2;
   if(plane%2==0)sc=cell%2;
   else sc=cell%2+2;
-  dbsta=ecpmcal[sl][pm].getstat(sc);
-  if(dbsta<0)return(1);
+  if(ecpmcal[sl][pm].HCHisBad(sc) || ecpmcal[sl][pm].LCHisBad(sc))return(1);
   else return(0);
 }
 //

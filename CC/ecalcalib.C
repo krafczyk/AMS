@@ -706,10 +706,10 @@ void ECREUNcalib::mfit(){
 //	sbcres[i][j]/=tevsbf[i][j];// aver.signal(using "fired" counter)
       } 
       if(eff<0.3){
-        if(eff>0.1)pxstat[i][j]=1;//limited quality subc(low eff)
-        else pxstat[i][j]=-1;//unusable subc(very low eff or statistics)
+        if(eff>0.1)pxstat[i][j]=10;//limited quality subc(low eff)
+        else pxstat[i][j]=90;//unusable subc(very low eff or statistics)
       }
-      if(pxstat[i][j]==-1)
+      if(pxstat[i][j]==90)
           cout<<"ECREUNcalib:unusable SubCell!!,sl="<<sl<<" pm="<<pm<<" sc="<<j<<endl;
       if(pxstat[i][j]>=0){
         sum4+=sbcres[i][j];
@@ -982,7 +982,7 @@ void ECREUNcalib::mfit(){
   number t0,slo,t,tq,co,dis,nevf,bins,avs,avo;
   number sumc,sumt,sumct,sumc2,sumt2,sumid,nonzer;
   number chi2[ECPMSL*4],slop[ECPMSL*4],offs[ECPMSL*4];
-  integer ibinw;
+  integer hchok[ECPMSL*4],ibinw;
 //
   ibinw=floor(number(ECCADCR)/ECCHBMX);
   avs=0.;
@@ -1001,6 +1001,7 @@ void ECREUNcalib::mfit(){
     slop[i]=0.;
     offs[i]=0.;
     chi2[i]=0.;
+    hchok[i]=0;
     for(j=0;j<ECCHBMX;j++){//<-- HchADC bin loop
       nevf=number(tevhlc[i][j]);
       co=(number(j)+0.5)*ibinw;// mid. of High-chan. bin
@@ -1028,11 +1029,12 @@ void ECREUNcalib::mfit(){
       chi2[i]=sumt2+t0*t0*sumid+slo*slo*sumc2
         -2.*t0*sumt-2.*slo*sumct+2.*t0*slo*sumc;
       chi2[i]/=(bins-2.);
-      slop[i]=1./slo;
+      slop[i]=1./slo;// goto "hi vs low" slope
       offs[i]=t0;
       nonzer+=1.;
       avs+=slop[i];
       avo+=offs[i];
+      hchok[i]=1;
       if(ECREFFKEY.reprtf[0]!=0){
         HF1(ECHISTC+20,geant(slop[i]),1.);
         HF1(ECHISTC+21,geant(offs[i]),1.);
@@ -1048,9 +1050,18 @@ void ECREUNcalib::mfit(){
   for(i=0;i<ECPMSL*4;i++){ // <-- SubCell-chan. loop
     pmsl=i/4;
     sc=i%4;
-    if(chi2[i]>0. && chi2[i]<10.)hi2lowr[pmsl][sc]=slop[i];//tempor test 
-    else {
-//      pxstat[pmsl][sc]=-1;//bad SubCel
+    if(hchok[i]==1){
+      if(chi2[i]>0 && chi2[i]<10){
+        hi2lowr[pmsl][sc]=slop[i];
+      } 
+      else if(chi2[i]>10){
+        hi2lowr[pmsl][sc]=slop[i];
+        pxstat[pmsl][sc]+=1;//suspicious LchSubCel
+      }
+      else{
+        hi2lowr[pmsl][sc]=avs;
+        pxstat[pmsl][sc]+=9;//bad LchSubCel
+      }
     }
   }
 //------------> write outp.files :
@@ -2019,7 +2030,7 @@ void ECREUNcalib::mfite(){
   hflen=ECALDBc::gendim(2)/2.;// 0.5*fiber(EC) length in Y-dir(=X)
   ad2mv=ECcalib::ecpmcal[refsl-1][refpm-1].adc2mev();// ADCch->Emeasured(MeV) factor(OLD!)
 //
-// ---> fir histogr. Epart/Eecal with gaussian:
+// ---> fit histogr. Epart/Eecal with gaussian:
 //
   par[0]=200.;//amplitude
   par[1]=1.;//most prob.
