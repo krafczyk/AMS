@@ -30,6 +30,8 @@ ooVArray(TKDBcD) _HeadSensor;
 ooVArray(TKDBcD) _HeadLayer;   
 ooVArray(TKDBcD) _HeadLadder0;   
 ooVArray(TKDBcD) _HeadLadder1;   
+ooVArray(TKDBcD) _HeadMarker0;   
+ooVArray(TKDBcD) _HeadMarker1;   
 
 integer          _ReadOK;
 

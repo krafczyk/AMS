@@ -1,6 +1,6 @@
 // Objectivity class Nov 06, 1997 ak
 //
-// Last edit : Nov 6, 1997 ak
+// Last edit : Dec 10, 1997 ak
 //
 
 #include <typedefs.h> 
@@ -64,6 +64,25 @@ TKDBcV::TKDBcV()
   }
  }
 
+// markers
+  int nmarker = TKDBc::_NumberMarkers;
+  if (nmarker) {
+   _HeadMarker0.resize(nmarker);
+   _HeadMarker1.resize(nmarker);
+   for (int ii=0; ii<2; ii++) {
+    for (i=0; i<nmarker; i++) {
+     tkdbc._status = TKDBc::_HeadMarker[ii][i]._status;
+     tkdbc._gid    = TKDBc::_HeadMarker[ii][i]._gid;
+     for (j=0; j<3; j++) {
+      tkdbc._coo[j] = TKDBc::_HeadMarker[ii][i]._coo[j];
+      for (k=0; k<3; k++) tkdbc._nrm[j][k] = TKDBc::_HeadMarker[ii][i]._nrm[j][k];
+    }
+    if (ii == 0) _HeadMarker0.set(i,tkdbc);
+    if (ii == 1) _HeadMarker1.set(i,tkdbc);
+   }
+  }
+ }
+
 }
 
 ooStatus TKDBcV::CmpConstants() 
@@ -75,6 +94,7 @@ ooStatus TKDBcV::CmpConstants()
   integer nsen    = _HeadSensor.size();
   integer nlayer  = _HeadLayer.size();
   integer nladder = _HeadLadder0.size();
+  integer nmarker = _HeadMarker0.size();
 
   if (nsen == TKDBc::_NumberSen) {
    cout<<"TKDBcV::CmpConstants -I- sensors"<<endl;
@@ -195,6 +215,50 @@ ooStatus TKDBcV::CmpConstants()
    return rstatus;
  }
 
+  if (nmarker == TKDBc::_NumberMarkers) {
+   cout<<"TKDBcV::CmpConstants -I- markers"<<endl;
+   for (int ii=0; ii<2; ii++) {
+    for (i=0; i<nmarker; i++) {
+     if (ii==0) tkdbc = _HeadMarker0[i];
+     if (ii==1) tkdbc = _HeadMarker1[i];
+     if ( tkdbc._status != TKDBc::_HeadMarker[ii][i]._status) {
+      cerr<<"TKDBcV::CmpConstants -E- status "<<tkdbc._status
+          <<", "<<TKDBc::_HeadMarker[ii][i]._status<<endl;
+      return rstatus;
+    }
+    if (tkdbc._gid    != TKDBc::_HeadMarker[ii][i]._gid) {
+      cerr<<"TKDBcV::CmpConstants -E- gid "<<tkdbc._gid
+          <<", "<<TKDBc::_HeadMarker[ii][i]._gid<<endl;
+      return rstatus;
+    }
+
+    for (j=0; j<3; j++) {
+     if( tkdbc._coo[j] != TKDBc::_HeadMarker[ii][i]._coo[j]) {
+      cerr<<"TKDBcV::CmpConstants -E- coo "<<tkdbc._coo[j]
+          <<", "<<TKDBc::_HeadMarker[ii][i]._coo[j]<<endl;
+      return rstatus;
+    }
+   }
+
+    for (j=0; j<3; j++) {
+     for (k=0; k<3; k++) {
+      if (tkdbc._nrm[j][k] != TKDBc::_HeadMarker[ii][i]._nrm[j][k]) {
+       cerr<<"TKDBcV::CmpConstants -E- _nrm "<<tkdbc._nrm[j][k]
+           <<", "<<TKDBc::_HeadMarker[ii][i]._nrm[j][k]<<endl;
+       return rstatus;
+     }
+    }
+   }
+  }
+ }
+ } else {
+   cerr<<"TKDBcV::CmpConstants -E- number of markers is different "
+       <<nmarker<<", "<<TKDBc::_NumberMarkers;
+   return rstatus;
+ }
+
+
+
   rstatus = oocSuccess;
 
   return rstatus;
@@ -209,6 +273,7 @@ ooStatus TKDBcV::ReadTKDBc()
   integer nsen    = _HeadSensor.size();
   integer nlayer  = _HeadLayer.size();
   integer nladder = _HeadLadder0.size();
+  integer nmarker = _HeadMarker0.size();
 
   if (nsen == TKDBc::_NumberSen) {
    cout<<"TKDBcV::ReadTKDBc -I- sensors"<<endl;
@@ -262,6 +327,28 @@ ooStatus TKDBcV::ReadTKDBc()
   } else {
    cerr<<"TKDBcV::readTKDbc -E- number of ladders is different "
        <<nladder<<", "<<TKDBc::_NumberLadder<<endl;
+   return rstatus;
+ }
+
+
+  if (nmarker == TKDBc::_NumberMarkers) {
+   cout<<"TKDBcV::ReadTKDBc -I- markers"<<endl;
+   for (int ii=0; ii<2; ii++) {
+    for (i=0; i<nmarker; i++) {
+     if (ii==0) tkdbc = _HeadMarker0[i];
+     if (ii==1) tkdbc = _HeadMarker1[i];
+     TKDBc::_HeadMarker[ii][i]._status = tkdbc._status;
+     TKDBc::_HeadMarker[ii][i]._gid    = tkdbc._gid;
+     for (j=0; j<3; j++) {
+      TKDBc::_HeadMarker[ii][i]._coo[j] = tkdbc._coo[j];
+      for (k=0; k<3; k++) 
+                    TKDBc::_HeadMarker[ii][i]._nrm[j][k] = tkdbc._nrm[j][k];
+      }
+     }
+   }
+  } else {
+   cerr<<"TKDBcV::readTKDbc -E- number of markers is different "
+       <<nmarker<<", "<<TKDBc::_NumberMarkers<<endl;
    return rstatus;
  }
 
