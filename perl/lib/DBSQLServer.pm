@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.13 2002/03/26 09:29:01 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.14 2002/03/26 19:21:21 alexei Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -77,10 +77,16 @@ return $mybless;
 sub Connect{
     my $self=shift;
     my $user   = "amsdes";
-    my $pwd    = "ams";
+    my $pwd;
     if($self->{dbdriver} =~ m/Oracle/){
      set_oracle_env();
     }
+    my $oracle="/home/httpd/cgi-bin/mon/lib/.oracle.oracle";
+    open(FILE,"<".$oracle) or die "Unable to open file $oracle \n";
+    while  (<FILE>){
+        $pwd=$_;
+    }
+    close FILE;
     if($self->{dbinit}){
     $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 0, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
       $self->Create();
@@ -90,35 +96,6 @@ sub Connect{
         return 1;
     }
 }
-
-
-sub test_connect_to_oracle {
-
-    my $user   = "amsdes";
-    my $pwd    = "ams";
-    my $dbname = "DBI:Oracle:amsdb";
-
-# This sets up the HTML header and table
-
-
-    print "Content-Type: text/html\n";
-    print "Pragma: no-cache\n\n";
-    print "<HTML>\n<HEAD><CENTER>\n\n";
-    print "<H2>\ntest</H2>\n</HEAD>\n";
-    print "<BODY>\n<CENTER>";
-
-    my $dbh = DBI->connect( $dbname,$user, $pwd, 'Oracle'
-                      ) || die print "Can't connect : $DBI::errstr";
-
-
-    print "connected";
-
-    print "</BODY>\n</HTML>\n";
-
-    my $rc = $dbh->disconnect  || warn $dbh->errstr;
-
-}
-
 
 sub Create{
 # creates a database
@@ -227,6 +204,11 @@ sub Create{
     my $sth=$dbh->prepare($createtables[$i]) or die "cannot prepare: ".$dbh->errstr();
     $sth->execute() or die "cannot execute: ".$dbh->errstr();
     $sth->finish();    
+     if ($tables[$i] eq "Servers" and $self->{dbdriver} =~ m/Oracle/) {
+         $sth=$dbh->prepare("grant select on servers to amsro") or die "cannot prepare".$dbh->errstr();
+         $sth->execute() or die "cannot execute: ".$dbh->errstr();
+         $sth->finish();    
+     }
     print "$tables[$i]\n";
      if($self->{dbdriver} =~ m/CSV/){
          system "chmod o+w $self->{dbfile}"."/"."$table";

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#  $Id: getior.cgi,v 1.4 2002/03/26 18:03:21 alexei Exp $
+#  $Id: getior.cgi,v 1.5 2002/03/26 19:21:16 alexei Exp $
 use Gtk;
 use strict;
 use DBI;
@@ -54,9 +54,6 @@ sub connect_to_oracle {
     my $user   = "amsro";
     my $pwd    = "amsMC02";
     my $dbname = "DBI:Oracle:amsdb";
-
-# This sets up the HTML header and table
-
 
     $dbh = DBI->connect( $dbname,$user, $pwd, 
                       ) || die print "Can't connect : $DBI::errstr";

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.26 2002/03/26 09:29:02 alexei Exp $
+# $Id: RemoteClient.pm,v 1.27 2002/03/26 19:21:21 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2125,11 +2125,6 @@ print qq`
           if($self->{CCT} eq "local"){
               print "<TR><B><font color=magenta size= 4><i> the password is required </i></font></TR></B>";
          }
-#                print $q->header( "text/html" ),
-#                $q->start_html( "Welcome");
-#                print $q->h1( "Below is the Script Example. Click Save if you wish to continue.");
-#                print $q->start_form(-method=>"GET", 
-#                -action=>$self->{Name});
           print "<input type=\"hidden\" name=\"CEM\" value=$cem>        ";
           print "<input type=\"hidden\" name=\"FEM\" value=$save>        ";
           print $q->textarea(-name=>"CCA",-default=>"$buf$tmpb",-rows=>30,-columns=>80);
@@ -2280,41 +2275,9 @@ print qq`
 
 
 #here the default action
-    if($self->{read}==0){
-    print $q->header( "text/html" ),
-    $q->start_html(-title=>'Welcome');
-#       -bgcolor=>'blue.jpg' );
-#print qq`
-#<TITLE> Welcome </TITLE>
-#<body background="blue.jpg" >
-#<hr>
-#`;
-    print $q->h1( "Welcome to the AMS02 RemoteClient MC Request Form" );
-        print $q->start_form(-method=>"GET", 
-          -action=>$self->{Name});
-    print qq`
- Client E-Mail Address<INPUT TYPE="text" NAME="CEM" VALUE="" SIZE=32>
-`;
-       print $q->submit(-name=>"MyRegister", -value=>"Register");
-    print "<BR>";
-    print "Please Choose Basic or Advanced Request Form Below";
-         print "<BR>";
-   print qq`
-<INPUT TYPE="radio" NAME="CTT" VALUE="Basic" CHECKED>Basic<BR>
-<INPUT TYPE="radio" NAME="CTT" VALUE="Advanced" >Advanced<BR>
-`;
-    print "<BR>";
-    print "Production DataSets (Cite's Responsible Only)";
-    print "<BR>";
-    foreach my $dataset (@{$self->{DataSetsT}}){
-print qq`
-<INPUT TYPE="radio" NAME="CTT" VALUE="$dataset->{name}" >$dataset->{name}<BR>
-`;
-    }
-       print $q->submit(-name=>"MyQuery", -value=>"Click Here To Begin");
-       print $q->reset(-name=>"Reset");
-         print $q->end_form;
-}
+ if($self->{read}==0){
+    $self->listAll();
+} # default action
     elsif($self->{read}==1){
         if(defined $self->{FinalMessage}){
            $self->InfoPlus($self->{FinalMessage});
@@ -2819,7 +2782,8 @@ sub listServers {
           if ($time - $lasttime < $srvtimeout) {
            print "<td><b> $name </td><td><b> $starttime </td><td><b> $lasttime </td><td><b> $status </td> </b>\n";
           } else {
-           print "<td><b> $name </td><td><b> $starttime </td><td><b><font color=magenta> $lasttime </font></td><td><b><font color=magenta> $status </font></td> </b>\n";
+           my $color = statusColor($status);
+           print "<td><b> $name </td><td><b> $starttime </td><td><b><font color=$color> $lasttime </font></td><td><b><font color=$color> $status </font></td> </b>\n";
          } 
           print "</font></tr>\n";
       }
@@ -3150,6 +3114,9 @@ sub statusColor {
     } 
     elsif ($status eq "Active") {
                $color = "blue";
+    } 
+    elsif ($status eq "Dead") {
+               $color = "magenta";
     } 
     else {
                $color = "red";
