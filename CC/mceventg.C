@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.125 2003/02/11 15:27:38 choutko Exp $
+//  $Id: mceventg.C,v 1.126 2003/03/19 17:17:28 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -1070,7 +1070,7 @@ if(GCKINE.itra==1 && scan && GCKINE.ikine==GCKINE.ipart){
  radl+=GCTRAK.step/GCMATE.radl;
  absl+=GCTRAK.step/GCMATE.absl;
  char nvol[5]="EXIT";
- if(GCTRAK.inwvol==1 && GCVOLU.nlevel<4){
+ if(GCTRAK.inwvol==1 && GCVOLU.nlevel<500){
        for(int i=0;i<4;i++)nvol[i]=GCVOLU.names[GCVOLU.nlevel-1][i];
        AMSmctrack* genp=new AMSmctrack(radl,absl,GCTRAK.vect,nvol);
        AMSEvent::gethead()->addnext(AMSID("AMSmctrack",0), genp);

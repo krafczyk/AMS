@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.157 2003/03/19 12:27:04 choutko Exp $
+//  $Id: amsgeom.C,v 1.158 2003/03/19 17:17:28 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2090,9 +2090,10 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 #ifdef __G4AMS__
      if(MISCFFKEY.G4On){
-       daug4 = 
-      (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
-       nrot++,name,"TRD1",par,4,coo,nrm,"BOOL",0,gid,1));
+// no bulkheads in g4
+//       daug4 = 
+//      (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
+//       nrot++,name,"TRD1",par,4,coo,nrm,"BOOL",0,gid,1));
      }
      else
 #endif
@@ -2109,12 +2110,11 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 	      bhno=TRDDBc::CutoutsBH(i,j,l);
 	      if (bhno == b)
 		{
+// temporary disable cutouts completely  VC 12-mar-2003
+/*
 		  ost.seekp(0);  
 		  ost << "TRCO"<<ends;
 		  gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
-//                  if(gid==261){
-//                    cout <<"nunu"<<endl;
-//                  }		  
 		  TRDDBc::GetCutout(l,k,j,i,status,coo,nrm,rgid);  
 		  int ip;
 		  for(ip=0;ip<3;ip++)
@@ -2122,22 +2122,17 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 		  // First one made is j=4, in bulkhead 0
 		  
-// temporary disable cutouts completely  VC 12-mar-2003
-
 #ifdef __G4AMS__
                  if(MISCFFKEY.G4On)
                   for(int i=0;i<3;i++)coo[i]-=daug4->getcoo(i);
 		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
-#endif
-// do not need to put cutouts in g3 at all
-/*
                  else
-
+#endif
 		  oct[itrd]->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
 			 0,name,"BOX",par,3,coo,nrm,"ONLY", 
 			 j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
-
 */
+
 		}
 	    }
 	  }
@@ -2164,13 +2159,13 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    if(MISCFFKEY.G4On){
    dau=(AMSgvolume*)oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
        nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
-//   ((AMSgvolume*) dau)->Smartless()=1;
+   ((AMSgvolume*) dau)->Smartless()=1;
     }
     else{
 #endif
     for(ip=0;ip<3;ip++)coo[ip]+=oct[itrd]->getcooA(ip);
    dau=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::LaddersMedia(),
-       nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
+       nrot++,name,"BOX",par,3,coo,nrm, "MANY",0,gid,1));
 #ifdef __G4AMS__
     }
 #endif

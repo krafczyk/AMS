@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.26 2003/03/19 12:27:05 choutko Exp $
+//  $Id: trddbc.C,v 1.27 2003/03/19 17:17:28 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -299,14 +299,8 @@ const number  TRDDBc::_StripsDim[3]={0.6,9.2,0.03};
 const number  TRDDBc::_StripsCoo[2]={10.69,10.};
 const number  TRDDBc::_BulkheadWidth=0.3;
 const number  TRDDBc::_LadderThickness=2.9;
-//      changed by VC 12-03-2002
-//const number  TRDDBc::_CutoutThickness=0.88;
-const number  TRDDBc::_CutoutThickness=0.78;
-//      changed by VC 12-03-2002
-//const number  TRDDBc::_CutoutWidth=10.2;
-const number  TRDDBc::_CutoutWidth=10.1;
-//      changed by VC 12-03-2002
-//const number  TRDDBc::_FirstLayerHeight = 1.7; // Distance of first layer-line from bottom (center of bottom main octagon skin)
+const number  TRDDBc::_CutoutThickness=0.88;
+const number  TRDDBc::_CutoutWidth=10.2;
 const number  TRDDBc::_FirstLayerHeight = 1.65; // Distance of first layer-line from bottom (center of bottom main octagon skin)
 const number TRDDBc::_WirePosition = 0.725; // Distance of wire below layer-line
 const number TRDDBc::_ManifoldThickness = 0.70; // Z-height of manifold
@@ -867,6 +861,7 @@ void TRDDBc::init(){
 
 	      // z
 	      CutoutsDimensions(i,j,k,2) = CutoutThickness();
+	      CutoutsDimensions(i,j,k,2) = LadderThickness();
 
 	      // Half-dimensions
 	    for(int l=0;l<3;l++)CutoutsDimensions(i,j,k,l)/=2.;
@@ -1049,8 +1044,8 @@ void TRDDBc::init(){
 	    coo[2]*=2;
 	
 //	   cout <<j<<" "<<k<<" "<<j+1<<" "<<num_from_center<<" "<<deg<<" "<<past_corner<<" "<<coo[2]<<" "<<_LaddersLength[j][k]<<" "<<coo[2]-_LaddersLength[j][k]<<endl;
+            coo[2]=_LaddersLength[j][k];
 	    for(int l=0;l<3;l++)LaddersDimensions(i,j,k,l)=coo[l]/2;          
-            LaddersDimensions(i,j,k,2)=_LaddersLength[j][k]/2;
 	  }  
 	}
 
@@ -1106,27 +1101,33 @@ void TRDDBc::init(){
 
 	 for (b=0;b<CutoutsNo(i,j,k);b++)
 	   {
-/*
 	     int bhno;
 	     bhno = CutoutsBH(i,j,b);
 	     
 	     geant blkcoo[3];
 	     
 	     GetBulkhead(bhno,i,status,blkcoo,nrm,gid);
-*/
 	     geant cocoo[3];
-	 // x
-	     cocoo[0] = coo[1-LadderOrientation(i,j)];
-
-         //y 
-	     cocoo[1] = 0.;
-
+         if(LadderOrientation(i,j)==0){
+	     cocoo[0] = blkcoo[0];
+	     cocoo[1] = coo[1]+blkcoo[1];
+         }
+         else{
+	     cocoo[1] = blkcoo[1];
+	     cocoo[0] = coo[0]+blkcoo[0];
+         }
          // z
-	//     cocoo[2] = coo[2]-blkcoo[2]-WirePosition()+0.9/10.;
-        //     changed by VC 12-mar-2003
-	     cocoo[2] = coo[2]-WirePosition()+0.9/10.;
+	     cocoo[2] = coo[2];
 
+	     int 	  ggid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*b+1;
 	     SetCutout(b,k,j,i,status,cocoo,unitnrm,gid);
+//             cout <<" cutout id "<<ggid<<endl;
+//             cout <<" cutout coo "<<cocoo[0]<<" "<<cocoo[1]<<" "<<cocoo[2]<<endl;
+//             cout <<" blk coo "<<blkcoo[0]<<" "<<blkcoo[1]<<" "<<blkcoo[2]<<" "<<bhno<<endl;
+//             cout <<" blk dim "<<BulkheadsDimensions(i,bhno,0)<<" "<<BulkheadsDimensions(i,bhno,1)<<" "<<BulkheadsDimensions(i,bhno,2)<<" "<<BulkheadsDimensions(i,bhno,3)<<endl;
+//             cout <<" cutout dim "<<CutoutsDimensions(i,j,k,0)<<" "<<CutoutsDimensions(i,j,k,1)<<" "<<CutoutsDimensions(i,j,k,2)<<endl;
+//             cout <<" ladder coo "<<coo[0]<<" "<<coo[1]<<" "<<coo[2]<<endl;
+//             cout <<" ladder dim "<<LaddersDimensions(i,j,k,0)<<" "<<LaddersDimensions(i,j,k,1)<<" "<<LaddersDimensions(i,j,k,2)<<endl;
 	   }
         }
        }
