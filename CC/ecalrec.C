@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.91 2004/09/27 15:00:30 choumilo Exp $
+//  $Id: ecalrec.C,v 1.92 2004/10/12 07:10:24 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -104,7 +104,6 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number attfdir,attfrfl,ww[4],anen,dyen;
   number sum[ECPMSMX][4],pmtmap[ECSLMX][ECPMSMX],pmlprof[ECSLMX];
   int dytmap[ECSLMX][ECPMSMX],dytrc[ECSLMX];
-//  number dycog[ECSLMX];
   int dycog[ECSLMX];//to work with integer as in real EC trigger
   number pmedepr[4];
   integer zhitmap[ECSLMX];
@@ -278,13 +277,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	}
 	else{
 	}
-	adch=floor(radc);//"digitization"
+	adch=integer(floor(radc));//"digitization"
 	if(adch>adchmx)adchmx=adch;
 	if(adch>=ECADCMX[0])adch=ECADCMX[0];//"ADC-saturation (12 bit)"
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adch)-pedh[k];// ped-subtraction
 	else radc=number(adch);//no ped-subtr.
         if(radc>=sigh[k]*ECALVarp::ecalvpar.daqthr(0)){// use only hits above DAQ-readout threshold
-	  adch=floor(radc*ECALDBc::scalef()+0.5);//DAQ scaling
+	  adch=integer(floor(radc*ECALDBc::scalef()+0.5));//DAQ scaling
 	}
 	else{ adch=0;}
 // Low-gain channel:
@@ -300,13 +299,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	}
 	else{
 	}
-	adcl=floor(radc);//"digitization")
+	adcl=integer(floor(radc));//"digitization")
 	if(adcl>adclmx)adclmx=adcl;
 	if(adcl>=ECADCMX[1])adcl=ECADCMX[1];//"ADC-saturation (12 bit)"
 	if(ECMCFFKEY.silogic[0]<2)radc=number(adcl)-pedl[k];// ped-subtraction
 	else radc=number(adcl);//no ped-subtr.
         if(radc>=sigl[k]*ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
-	  adcl=floor(radc*ECALDBc::scalef()+0.5);//DAQ scaling
+	  adcl=integer(floor(radc*ECALDBc::scalef()+0.5));//DAQ scaling
 	}
 	else{ adcl=0;}
 // <---------
@@ -339,13 +338,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
       }
       else{
       }
-      adcd=floor(radc);//"digitization")
+      adcd=integer(floor(radc));//"digitization")
       if(adcd>adcdmx)adcdmx=adcd;
       if(adcd>=ECADCMX[2])adcd=ECADCMX[2];//"ADC-saturation (12 bit)"
       if(ECMCFFKEY.silogic[0]<2)radc=number(adcd)-pedd;// ped-subtraction
       else radc=number(adcd);//no ped-subtr.
       if(radc>=ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
-	adcd=floor(radc*ECALDBc::scalef()+0.5);//DAQ scaling
+	adcd=integer(floor(radc*ECALDBc::scalef()+0.5));//DAQ scaling
       }
       else{ adcd=0;}
 //
@@ -547,7 +546,7 @@ else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: italy
     }
     if(dytrc[il]>0){
       dycog[il]*=64;//as in real trigger electronics(according Stefano Di Falco)
-      dycog[il]=geant(dycog[il])/dytrc[il];//layer COG
+      dycog[il]=integer(geant(dycog[il])/dytrc[il]);//layer COG
     }
   }
 //
@@ -592,10 +591,10 @@ else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: italy
       else dbym=dby57;
     }
 //
-    if((dytrc[3]+dytrc[5])<ECALVarp::ecalvpar.rtcuts(2))wdxcut=64*ECALVarp::ecalvpar.rtcuts(0);
-    else wdxcut=64*ECALVarp::ecalvpar.rtcuts(1);
-    if((dytrc[4]+dytrc[6])<ECALVarp::ecalvpar.rtcuts(3))wdycut=64*ECALVarp::ecalvpar.rtcuts(0);
-    else wdycut=64*ECALVarp::ecalvpar.rtcuts(1);
+    if((dytrc[3]+dytrc[5])<ECALVarp::ecalvpar.rtcuts(2))wdxcut=integer(64*ECALVarp::ecalvpar.rtcuts(0));
+    else wdxcut=integer(64*ECALVarp::ecalvpar.rtcuts(1));
+    if((dytrc[4]+dytrc[6])<ECALVarp::ecalvpar.rtcuts(3))wdycut=integer(64*ECALVarp::ecalvpar.rtcuts(0));
+    else wdycut=integer(64*ECALVarp::ecalvpar.rtcuts(1));
 //"64" to convert logic cuts into real electronics scale (according to Stefano Di Falco)   
     if(ECMCFFKEY.mcprtf>0){
       HF1(ECHIST+41,geant(dbym/64),1.);//"64" to view variables in the logic scale

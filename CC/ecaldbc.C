@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.50 2004/09/27 15:00:30 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.51 2004/10/12 07:10:24 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -112,49 +112,49 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
 //---
 //
   geant ECALDBc::gendim(integer i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(ECALDBc::debug){
         assert(i>0 && i <= 10);
       }
-    #endif
+#endif
     return _gendim[i-1];
   }
 //
   geant ECALDBc::fpitch(integer i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(ECALDBc::debug){
         assert(i>0 && i <= 3);
       }
-    #endif
+#endif
     return _fpitch[i-1];
   }
 //
   geant ECALDBc::rdcell(integer i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(ECALDBc::debug){
         assert(i>0 && i <= 10);
       }
-    #endif
+#endif
     return _rdcell[i-1];
   }
 //
 
  
   integer ECALDBc::slstruc(integer i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(ECALDBc::debug){
         assert(i>0 && i <= 6);
       }
-    #endif
+#endif
     return _slstruc[i-1];
   }
 //
   integer ECALDBc::nfibpl(integer i){
-    #ifdef __AMSDEBUG__
+#ifdef __AMSDEBUG__
       if(ECALDBc::debug){
         assert(i>0 && i <= 2);
       }
-    #endif
+#endif
     return _nfibpl[i-1];
   }
 //
@@ -517,7 +517,7 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+12,"ECRE: RawEvent-hits ADCtot(gain-corr)",100,0.,500.,0.);
       HBOOK1(ECHISTR+13,"ECRE: EcalHit-hits number",80,0.,160.,0.);
       HBOOK1(ECHISTR+14,"ECRE: EcalHit-hits Etot(NoDynCorr,Mev)",200,0.,200000,0.);
-      HBOOK1(ECHISTR+9,"ECRE: EcalHit-hit Energy(Mev)",100.,0.,100.,0.);
+      HBOOK1(ECHISTR+9,"ECRE: EcalHit-hit Energy(Mev)",100,0.,100.,0.);
       HBOOK1(ECHISTR+15,"ECRE: EcalHit-hits DyCorrectionEn(tot,Mev)",100,0.,100000,0.);
       HBOOK1(ECHISTR+16,"ECRE: RawEvent-hits value(adc,gain-corr)",200,0.,10000.,0.);
       HBOOK1(ECHISTR+17,"ECRE: RawEvent-hits value(adc,gain-corr)",100,0.,100.,0.);
@@ -1438,6 +1438,7 @@ number ECcalib::pmsatf1(int dir,number q){//simulate PM-anode saturation, i.e. Q
   } 
     cerr<<"ECcalib::pmsatf1: wrong dir parameter or logic error"<<dir<<endl;
     abort();
+    return(0);
 }  
 //==========================================================================
 //  ECcalibMS class functions :

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.h,v 1.18 2004/10/08 12:02:52 choumilo Exp $
+//  $Id: tofdbc02.h,v 1.19 2004/10/12 07:10:37 choumilo Exp $
 // Author E.Choumilov 13.06.96.
 //
 // Last edit : Jan 21, 1997 ak. !!!! put back friend class TOFDBcD
@@ -46,7 +46,7 @@ const integer PMTSMX=3; // MAX number of PMTs per side
 const integer TOFPNMX=1000;// max integral-bins  in TOFTpoints class
 const integer SCANPNT=15; //max scan points in MC/REC t/a-calibration
 const integer SCANTDL=400;//scan time distribution max.length(should be SCANTDL<AMSDISL) 
-const integer SCANWDS=10; //max. width-divisions in the sc.paddle scan
+const integer SCANWDS=4; //max. width-divisions in the sc.paddle scan
 const integer SCTBMX=10000;//length of MC "flash-ADC" buffer(-> 1mks with 0.1ns binning)
 // 
 //DAQ

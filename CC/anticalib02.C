@@ -407,7 +407,7 @@ void AntiCalib::fit(){
 //
   for(isec=0;isec<ANTI2C::ANTISRS;isec++){//<--- PhysSector loop
     cout<<"===> AntiCalibFit:PhysSector="<<isec+1<<endl;
-    lsec=floor(number(isec)/2.);
+    lsec=integer(floor(number(isec)/2.));
     adc2pe=ANTI2SPcal::antispcal[lsec].getadc2pe();
     for(isd=0;isd<2;isd++){
       cout<<"    ===> side="<<isd+1<<endl;
@@ -431,8 +431,8 @@ void AntiCalib::fit(){
 //	    aval[isd]/=geant(nev);
             for(k=0;k<nev;k++)pntr[k]=&ambinl[chan][k];//pointers to event-signals of chan=i 
             AMSsortNAG(pntr,nev);//sort in increasing order
-            nmax=floor(nev*0.98);// to keep 98% of lowest amplitudes
-            nmin=floor(nev*0.02);// to remove 2 % of lowest amplitudes
+            nmax=integer(floor(nev*0.98));// to keep 98% of lowest amplitudes
+            nmin=integer(floor(nev*0.02));// to remove 2 % of lowest amplitudes
 //            if(nmin==0)nmin=1; 
 	    aver=0;
             for(j=nmin;j<nmax;j++)aver+=(*pntr[j]);//lowest event is not used
@@ -453,8 +453,8 @@ void AntiCalib::fit(){
 //	    avah[isd]/=geant(nev);
             for(k=0;k<nev;k++)pntr[k]=&ambinh[chan][k];//pointers to event-signals of chan=i 
             AMSsortNAG(pntr,nev);//sort in increasing order
-            nmax=floor(nev*0.97);// to keep 90% of lowest amplitudes
-            nmin=floor(nev*0.02);// to remove 2 % of lowest amplitudes
+            nmax=integer(floor(nev*0.97));// to keep 90% of lowest amplitudes
+            nmin=integer(floor(nev*0.02));// to remove 2 % of lowest amplitudes
             if(nmin==0)nmin=1; 
 	    aver=0;
             for(j=nmin;j<nmax;j++)aver+=(*pntr[j]);//lowest event is not used

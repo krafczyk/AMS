@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.27 2004/09/27 15:00:32 choumilo Exp $
+//  $Id: tofrec02.C,v 1.28 2004/10/12 07:10:24 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -350,6 +350,7 @@ void TOF2RawCluster::build(int &ostatus){
                                                      ){//<--- check hit DB(cal+ped)-status
 //      hwid=TOF2RawEvent::sw2hwid(ilay,ibar,isid);//tempor(no tofid !)
 //      crat=hwid/100-1;
+        crat=0;
 //      slnu=1;//sequential number of slot with temp. (only 1 exists) 
 //       fill working arrays for given side:
       isds+=1;
@@ -1492,6 +1493,7 @@ integer AMSTOFCluster::Out(integer status){
 // function returns number of TOF_data-words for given block/format
 //
 integer TOF2RawEvent::calcdaqlength(int16u blid){
+  return(0);
 }
 //--------------------------------------------------------------------
 void TOF2RawEvent::builddaq(int16u blid, integer &len, int16u *p){

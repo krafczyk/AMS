@@ -407,7 +407,7 @@ void ECREUNcalib::select(){
     }
     pmdis=fabs(clcr-clpm);//cr.point dist. from PM (0-2*hflen)
     binw=2.*hflen/ECCLBMX;
-    lbin=floor(pmdis/binw);//longit.crossing bin
+    lbin=integer(floor(pmdis/binw));//longit.crossing bin
     expm=2.*exsc; 
 //
     for(pmt=0;pmt<npmx;pmt++){ // <======== loop over PM's to find crossed and fired cells
@@ -981,7 +981,7 @@ void ECREUNcalib::mfit(){
 //
   for(i=0;i<ECPMSL;i++){// <--- PM*SL loop
     pm=i%ECPMSMX+1;
-    sl=floor(number(i)/ECPMSMX)+1;
+    sl=integer(floor(number(i)/ECPMSMX))+1;
     sum4=0.;
     nof4=0;
     for(j=0;j<4;j++){// <--- 4 subcell loop
@@ -1270,7 +1270,7 @@ void ECREUNcalib::mfit(){
   number chi2[ECPMSL*4],slop[ECPMSL*4],offs[ECPMSL*4];
   integer hchok[ECPMSL*4],ibinw;
 //
-  ibinw=floor(number(ECCADCR)/ECCHBMX);
+  ibinw=integer(floor(number(ECCADCR)/ECCHBMX));
   avs=0.;
   avo=0.;
   nonzer=0.;
@@ -1599,11 +1599,11 @@ void ECREUNcalib::fill_2(integer sl, integer pm, integer sc, number adc[2]){
 //
   if(first++==0){
     slpmcr=4*(ECCAFFKEY.refpid%100-1)+4*ECPMSMX*(ECCAFFKEY.refpid/100-1);//ref.SC
-    binw=floor(number(ECCADCR)/ECCHBMX);
+    binw=integer(floor(number(ECCADCR)/ECCHBMX));
   }
 //
   slpmc=sc+pm*4+sl*4*ECPMSMX;//continious numbering of sl,pm,sc
-  i=floor(adc[0]/binw);// Hchannel bin (in Lch vs Hch dependence)
+  i=integer(floor(adc[0]/binw));// Hchannel bin (in Lch vs Hch dependence)
   if(i<ECCHBMX){
     tevhlc[slpmc][i]+=1.;
     sbchlc[slpmc][i]+=adc[1];
@@ -2823,7 +2823,7 @@ void AMSECIdCalib::buildPedDiff(integer n, int16u *p){
            AMSECIdSoft id(ic,pmt,channel);
            if(!id.dead()){
              AMSECIdCalib idc(id);
-              idc.updADC((value-id.getped(gain))*8,gain);
+              idc.updADC(uinteger((value-id.getped(gain))*8),gain);
            }
  count++;
 }
