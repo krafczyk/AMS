@@ -411,6 +411,7 @@ for( i=0;i<6;i++){
 
 G4FFKEY.BFOrder=4;
 G4FFKEY.Delta=0.001;
+G4FFKEY.UniformMagField=0;
 FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
 

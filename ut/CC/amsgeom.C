@@ -84,10 +84,12 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  antigeom02(mother);
  pshgeom02(mother);
  tkgeom02(mother);
+#ifndef __G4AMS__ 
  richgeom02(mother);
  ecalgeom02(mother);
  trdgeom02(mother);
  srdgeom02(mother);
+#endif
  cout <<" AMSGeom-I-AMS02 setup selected."<<endl;
 }
 else{ 
