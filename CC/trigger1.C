@@ -12,6 +12,7 @@
 #include <antirec.h>
 #include <ntuple.h>
 //
+TriggerLVL1::Scalers TriggerLVL1::_scaler;
 void TriggerLVL1::build(){
 // Trigger mode 1 : ntof >= LVL1FFKEY.ntof + nanti <= LVL1FFKEY.nanti
 // TOF : 
@@ -76,7 +77,7 @@ void TriggerLVL1::build(){
   }
   if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-                       new TriggerLVL1(1,tofflag,tofpatt,antipatt));
+                       new TriggerLVL1(_scaler.lifetime,tofflag,tofpatt,antipatt));
   }
 
 
@@ -107,7 +108,7 @@ void TriggerLVL1::_writeEl(){
   if (lvl1N->Nlvl1>=MAXLVL1) return;
 
 // Fill the ntuple
-  lvl1N->Mode[lvl1N->Nlvl1]=0;
+  lvl1N->Mode[lvl1N->Nlvl1]=_LifeTime;
   lvl1N->TOFlag[lvl1N->Nlvl1]=_tofflag;
   int i;
   for(i=0;i<4;i++)lvl1N->TOFPatt[lvl1N->Nlvl1][i]=_tofpatt[i];
@@ -302,7 +303,7 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   antip = xpos | (xneg <<4);
   antip = antip | (a2<<16);
   if(z>0)AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
-  TriggerLVL1(mode,z,tofp,tofp1,antip));
+  TriggerLVL1(_scaler.lifetime,z,tofp,tofp1,antip));
 
   // ---> TOF Online histograms
   if(AMSJob::gethead()->isMonitoring() & 

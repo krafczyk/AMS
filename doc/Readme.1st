@@ -5,8 +5,9 @@ below are some (useful) info to make you more familiar  with AMS software.
 I. The following hardware platfoorms are fully(F) or partly(P) supported:
 a) IBM/AIX/xlC    (F)
 b) DEC/OSF1/cxx   (F)
-c) HP-UX/g++2.7.2 (P)     ! Dbase version is not supported
-d) SGI/IRIX32/g++2.7.2 (P)  ! Dbase version is not supported
+c) HP-UX/g++2.7.2 (P)     ! Support is marginal
+d) SGI/IRIX/g++2.7.2 (P)  ! Support is disconnected
+e) Linux/egcs1.0.3   (P)  ! Dbase version is not supported
 
 II. Software management:
     cvs  ( Concurrent Version System)
@@ -40,28 +41,24 @@ Method I : Pick up the //hpl3itp1.cern.ch:8081/ams.tar.gz file
           gzip -d then tar -xvf it. You will get an AMS directory tree.
           (see VII. for standalone environment)          
 
-Method II(Recommended): Get an account on some AMS computers  
-                        (ask Alexei.Klimentov@cern.ch to do that).
+Method II(Recommended): Get an account on  shift51.cern.ch computer  
+                        (ask PierAntonio.Marchesini@cern.ch to do that).
+                        setenv $Offline /shift/shift51/data18/xv/choutko/Offline
+                        source $Offline/vdev/install/amsvar
                         The last released version of the AMS software is in
-                        /Offline/tag directory on boron
-                        /Offprod/tag directory on helium
-                        
-                        current (16-mar-1998) tag == v2.14
-                                    
-                        Development version is in 
-                        /Offline/vdev   directory    (boron)                
-                        /Offprod/vdev   directory (helium)                   
+                        $Offline/vdev
 
 b) As a developper :
 
-  i)You should have an  account on AMS computers (see above how to get it)
-  ii)You should be a member of "simu" group on eth-z computers
+  i)You should have an  account on  ams alpha's computers 
+   (See VIII about current situation with the computers )
+  ii)You should be a member of "simu" group on ams computers
   (ask Vitaly.Choutko@cern.ch about it)                                                
-  iiii) define following variables in your shell:
-                  setenv CVSROOT /Offline/CVS (/Offprod/CVS)
+  iiii) define the following varaible in your shell
+                  
+                  setenv CVSROOT $Offline/CVS  (see VIII about $Offline)
                   setenv EDITOR {put your fav editor here}
                   setenv CVSEDITOR {put your fav editor here}
-                  setenv AMSDataDir /Offline/AMSDataDir (/Offprod/AMSDataDir)
 
    iv) cvs checkout AMS   // creates a local copy of AMS files (latest revision)
                           // You will be able to update/commit 
@@ -74,7 +71,6 @@ b) As a developper :
          cvs remove file
 
          To make the changes available to others (update CVS master rep) :
-         in ~/AMS/CC/commons.C increase build var by one
          cvs commit   // Please ensure the files you changed at least compilable :)
                       // Please not change the makefiles in install dir,
                       // create your own instead
@@ -85,14 +81,14 @@ b) As a developper :
 
 
 
-VII.  Standalone version 
+VII.  Standalone version   - Support is disabled, ignore it. 
 
 If you have neither account on cernsp nor afs server,
    below are some hints how to build the standalone version of AMS 
    (without dbase):
 
 a) Set up CERN libraries 
-   eq. -L/cern/95a/lib  -lgeant321  -lpacklib -lmathlib -lkernlib
+   eq. -L/cern/pro/lib  -lgeant321  -lpacklib -lmathlib -lkernlib
 
 b) copy files from /afs/cern.ch/user/c/choutko/public/data
    or  AMS.html("Data files for standalone version")
@@ -102,16 +98,38 @@ c) setenv AMSDataDir  <your preferred dir>
 
 
 
-VIII.  Bug reports.
+VIII. Current (Aug 11 1998) computer situation
 
-Please send together with the description of the bug the following:
+a. Accounts
+   To get AFS account and account on shift51,rsplus,dxplus
+    ask Pierantonio.Marchesini@cern.ch      ;
+   To get local accounts on helium & ahelium ask
+   Alexei.Klimentov@cern.ch                 ;
+   To get AFS accounts on afl3u0, afl3u1 ask Vitaly.Choutko@cern.ch
+   (you have to have AFS account before)
+   
+b. Disk space
+   AFS account can be as large as 300 mbytes
+   Local ams scratch disks will be organized later.
 
-a. Hardware platform on which crash happened
-b. version of AMS software  
-c. Log file 
-d. DataCards
+c. DataAccess
 
+   setenv Offline   as:
+   /shift/shift51/data18/xv/choutko/Offline if on shift51
+   /Offline                                  ams alphas,pentiums
+   /afs/cern.ch/exp/ams/Offline              all others 
+                                            (e.g.rsplus,dxplus,hpplus)
 
+  source $Offline/vdev/install/amsvar
+
+  vdev version is in $Offline/vdev  (v 2.17 build 14)
+
+  AMSDataBase is in $AMSDataDir/DataBase 
+  runs in $RunsDir  (samples) [those with .0 are bad]
+  
+  Database Related Ntuples in $AMSDataDir/ntuples  [only on ams alphas now]
+ 
+  Datacards to run real data $Offline/vdev/datacards/rt_all.job  
 
 
 Comments, questions to shoutko@vxcern.cern.ch

@@ -96,6 +96,7 @@ const uinteger AMSJob::Monitoring=(AMSJob::MTracker)+
                                   (AMSJob::MLVL3)+
                                   (AMSJob::MAxAMS)+
                                   (AMSJob::MAll);
+const uinteger AMSJob::Production=4096*64;
 //
 extern AMSTOFScan scmcscan[SCBLMX];// TOF MC time/eff-distributions
 extern TOFBrcal scbrcal[SCLRS][SCMXBR];// TOF individual sc.bar parameters 
@@ -947,8 +948,8 @@ if(ical)_jobtype=setjobtype(ucal<<(ical+1));
 uinteger imon=(AMSFFKEY.Jobtype/1000)%10;
 uinteger umon=1;
 if(imon)_jobtype=setjobtype(umon<<(imon+1+8));
-
-
+uinteger iprod=(AMSFFKEY.Jobtype/10000)%10;
+if(iprod)_jobtype=setjobtype(1<<(1+1+8+8));
 
 if(IOPA.mode && isSimulation()){
    AMSIO::setfile(ffile);
@@ -1709,6 +1710,16 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
                          tofvpar.gettoftsize(),(void*)tofvpar.gettoftp()));
    
 }
+{
+  // Scaler Data
+
+   tm begin=AMSmceventg::Orbit.End;
+   tm end=AMSmceventg::Orbit.Begin;
+   TID.add (new AMSTimeID(AMSID("Scaler",isRealData()),
+                         begin,end,
+                         TriggerLVL1::getscalerssize(),(void*)TriggerLVL1::getscalersp()));
+   
+}
 
 {
   tm begin=AMSmceventg::Orbit.Begin;
@@ -1833,7 +1844,7 @@ void AMSJob::urinit(integer eventno){
 
 
 void AMSJob::uhinit(integer run, integer eventno){
-  if(IOPA.hlun){
+  if(IOPA.hlun ){
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
     char filename[256];
@@ -1846,11 +1857,12 @@ void AMSJob::uhinit(integer run, integer eventno){
       strcat(filename,event);
       sprintf(event,".%d",eventno);
       strcat(filename,event);
-    }
+      strcat(filename,".hbk");
+     }
+    
     HROPEN(IOPA.hlun,"output",filename,"N",rsize,iostat);
     if(iostat){
      cerr << "Error opening Histo file "<<filename<<endl;
-     exit(1);
     }
     else cout <<"Histo file "<<filename<<" opened."<<endl;
 

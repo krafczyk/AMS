@@ -28,6 +28,7 @@ I 1  Jobtype(0)      // 1 - Reconstruction ( 0 Simulation)
                      //6000 - LVL3 Monitoring 
                      //7000 - AxAMS Monitoring 
                      //8000 - Everything Monitoring 
+                     //10000- Production
                      // 
 I 2  Debug(1)        // 0 - Off   ; 1 - On
 R 3  CpuLimit(10.)   // CpuLimit in native sec per event
@@ -45,7 +46,8 @@ I88  TDVC(1600*' ')  // TDV Names, separated by |, which will be updated
 
 IOPA 
 I 1    hlun(0)                   // hlun lun number for ntuple file (=0 no output)
-I 2    hfile(160*' ')            // ntuple output file name
+I 2    hfile(160*' ')            // ntuple output file name 
+                                 // (program will add run.1stevent.hbk clause)
 I42    ntupleId(1)               // Ntuple Id
 I43    WriteAll(2)               // Flag to write objects into the ntuple
                                  // 1=All; 0=Only "used" objects

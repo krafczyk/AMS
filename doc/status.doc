@@ -30,7 +30,7 @@ status word definition
 26   ------
 27   geomagnetic latitude
 28   geomagnetic latitude
-29   free
+29   cos (track,plane of geommeridian) 
 30   free
 31   status not found
 

@@ -198,12 +198,14 @@ const static uinteger MLVL3;
 const static uinteger MAxAMS;
 const static uinteger MAll;
 const static uinteger Monitoring;
+const static uinteger Production;
 uinteger isReconstruction(){return _jobtype & Reconstruction;}
 uinteger isSimulation(){return !isReconstruction();}
 uinteger isCalibration(){return _jobtype & Calibration;}
 uinteger isMonitoring(){return _jobtype & Monitoring;}
 uinteger isRealData(){return _jobtype & RealData;}
 uinteger isMCData(){ return !isRealData();}
+uinteger isProduction(){ return _jobtype & Production;}
 uinteger jobtype() {return _jobtype;}
 uinteger setjobtype(uinteger checker){return _jobtype | checker;}   
 

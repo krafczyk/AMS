@@ -534,7 +534,6 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
        getheadC("TriggerLVL1",0);
      if(plvl1){
        int16 * ptr;
-       integer mode = plvl1->getmode();
        number tt1,tt2;
        TriggerAuxLVL3 aux;
        aux.fill();
