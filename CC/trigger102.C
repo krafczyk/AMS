@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.10 2001/04/18 08:32:07 choumilo Exp $
+//  $Id: trigger102.C,v 1.11 2001/05/01 09:59:59 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -90,19 +90,35 @@ void Trigger2LVL1::build(){
 // check combined (tof+anti+ecal)trigger flag:
 //
   bool tofok(0),antiok(0),ecok(0),ec1ok(0),ec2ok(0),comtrok(0);
+  bool unbtr1(0),unbtr2(0),unbtr3(0),zge1ptr(0),zg2ptr(0),elpotr(0),photr(0),unitr(0);
+//
   if(tofflag>0 && ntof >=TGL1FFKEY.ntof)tofok=1;
   if(nanti <= TGL1FFKEY.nanti)antiok=1;
   if(ectrigfl>0)ecok=1;//"at least MIP" activity in ECAL
-  if(ectrigfl>1)ec1ok=1;//"beyond MIP" activity in ECAL
+  if(ectrigfl>10)ec1ok=1;//"high energy" in ECAL
   if(ectrigfl>11)ec2ok=1;//"High EM-energy" in ECAL
-  if((TGL1FFKEY.trtype%10)==0)comtrok=((tofok && (antiok || ec1ok)) || ec2ok);//true combined
-  else if((TGL1FFKEY.trtype%10)==1)comtrok=(tofok && (antiok || ec1ok));//no EC hi-energy 
-  else if((TGL1FFKEY.trtype%10)==2)comtrok=(tofok && antiok);// classical(no EC) 
+//
+  unbtr1=tofok;//unbiased#1 trigger (TOF only)
+  unbtr2=ecok;//unbiased#2 trigger (EC(ectrigfl>0) only)
+  unbtr3=tofok && ecok;//unbiased#3 trigger (TOF+EC(ectrigfl>0))
+  zge1ptr=tofok && antiok && (ectrigfl%10<=1);// Z>=1 particle trigger
+  zg2ptr=tofok && (tofflag>2) && antiok && (ectrigfl%10<=1);// Z>2 particle trigger
+  elpotr=tofok && (ectrigfl%10==2);//e+- trigger(EM_in_EC +TOF)
+  photr=(ectrigfl==12);//photon trigger (High_EM_in_EC)
+  unitr=zge1ptr || zg2ptr || elpotr || photr;//univers.trigger
+//
+  if(TGL1FFKEY.trtype==0)comtrok=unitr;
+  else if(TGL1FFKEY.trtype==1)comtrok=unbtr1; 
+  else if(TGL1FFKEY.trtype==2)comtrok=unbtr2; 
+  else if(TGL1FFKEY.trtype==3)comtrok=unbtr3; 
+  else if(TGL1FFKEY.trtype==4)comtrok=zge1ptr; 
+  else if(TGL1FFKEY.trtype==5)comtrok=zg2ptr; 
+  else if(TGL1FFKEY.trtype==6)comtrok=elpotr; 
+  else if(TGL1FFKEY.trtype==7)comtrok=photr; 
   else{
     cout<<"Trigger2LVL1::build Error: unknown trigger type "<<TGL1FFKEY.trtype<<endl;
     exit(10);
   }
-  if(TGL1FFKEY.trtype/10>0)comtrok=(comtrok && ecok);//require at least MIP in ECAL 
 // 
 //cout<<"comtr="<<comtrok<<"tof/anti/ec="<<tofok<<" "<<antiok<<" "<<ectrigfl<<endl;
 //

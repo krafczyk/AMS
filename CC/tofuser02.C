@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.3 2001/01/22 17:32:23 choutko Exp $
+//  $Id: tofuser02.C,v 1.4 2001/05/01 09:59:59 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>
@@ -301,7 +301,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
 void TOF2User::InitJob(){
   int i;
   if(TFREFFKEY.reprtf[2]>0){
-    HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+    HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,16.,0.);
     HBOOK1(1501,"Particle beta(tracker)",80,0.5,1.,0.);
     HBOOK1(1502,"Particle beta(tof)",80,0.7,1.2,0.);
     HBOOK1(1504,"T13-T24(ns,high momentum)",80,-4.,4.,0.);

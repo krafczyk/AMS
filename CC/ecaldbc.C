@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.21 2001/04/18 08:32:06 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.22 2001/05/01 09:59:58 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -589,13 +589,17 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+4,"ECMC: GeantEmeas(prim.electron)(AnodeTot,MeV)",400,0.,20000.,0.);
       HBOOK1(ECHIST+5,"ECMC: Dyn.hit value(tempor 4xAnodE/a2dr,i.e.in mev",100,0.,100.,0.);
       HBOOK1(ECHIST+6,"ECMC: 4xA-hit/D-hit ratio",50,0.,50.,0.);
-      HBOOK1(ECHIST+7,"ECMC: 1ST 4X0 signal(mev)",100,0.,2000.,0.);
-      HBOOK1(ECHIST+8,"ECMC: Tail2Peak Ratio",50,0.,1.,0.);
-      HBOOK1(ECHIST+9,"ECMC: ECTriggerFlag",30,0.,30.,0.);
-      HBOOK1(ECHIST+10,"ECMC: ECTriggerFlag(when TOFTrFlag)",30,0.,30.,0.);
-      HBOOK1(ECHIST+11,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
-      HBOOK1(ECHIST+12,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
-      
+      HBOOK1(ECHIST+7,"ECMC: EmcHits SL-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
+      HBOOK1(ECHIST+8,"ECMC: EmcHits SL(PM-assigned)-profile",ECSLMX,1.,geant(ECSLMX+1),0.);
+      HBOOK1(ECHIST+9,"ECMC: Etot(temp.trig.sum,mev)",100,0.,15000.,0.);
+      HBOOK1(ECHIST+10,"ECMC: 1ST 3SL signal(mev)",80,0.,1600.,0.);
+      HBOOK1(ECHIST+11,"ECMC: Epk/Ebase Ratio(F,LE)",80,0.,40.,0.);
+      HBOOK1(ECHIST+12,"ECMC: Ebase",80,0.,800.,0.);
+      HBOOK1(ECHIST+13,"ECMC: Epk/Efr Ratio(F+P2B,HE)",50,0.,10.,0.);
+      HBOOK1(ECHIST+14,"ECMC: Pm-signals(sl2-5,L-cuts)",100,0.,300.,0.);
+      HBOOK1(ECHIST+15,"ECMC: Width at Peak(L-cuts,LE)",80,0.,80.,0.);
+      HBOOK1(ECHIST+16,"ECMC: ECTriggerFlag",30,0.,30.,0.);
+      HBOOK1(ECHIST+17,"ECMC: ECTriggerFlag(when TOFTrFlag)",30,0.,30.,0.);
     }
 }
 //----------------------------
@@ -731,20 +735,25 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+4);
       HPRINT(ECHIST+5);
       HPRINT(ECHIST+6);
-      HPRINT(ECHIST+7);
-      HPRINT(ECHIST+8);
-      HPRINT(ECHIST+9);
-      HPRINT(ECHIST+10);
       if(mccount[1]>0){
         for(int i=0;i<ECSLMX;i++){
           zprmc1[i]/=geant(mccount[1]);
           zprmc2[i]/=geant(mccount[1]);
 	}
       }
-      HPAK(ECHIST+11,zprmc1);
-      HPAK(ECHIST+12,zprmc2);
+      HPAK(ECHIST+7,zprmc1);
+      HPAK(ECHIST+8,zprmc2);
+      HPRINT(ECHIST+7);
+      HPRINT(ECHIST+8);
+      HPRINT(ECHIST+9);
+      HPRINT(ECHIST+10);
       HPRINT(ECHIST+11);
       HPRINT(ECHIST+12);
+      HPRINT(ECHIST+13);
+      HPRINT(ECHIST+14);
+      HPRINT(ECHIST+15);
+      HPRINT(ECHIST+16);
+      HPRINT(ECHIST+17);
     }
 }
 //==========================================================================

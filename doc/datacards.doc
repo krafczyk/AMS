@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.190 2001/04/27 21:50:32 choutko Exp $
+#  $Id: datacards.doc,v 1.191 2001/05/01 10:00:09 choumilo Exp $
 Datacards
 
 // Protection from some myst bug
@@ -738,13 +738,18 @@ R1 time        // max time allowd for prog execution
 ----------------------------------------------------------------
 TGL1    // LVL1 Trigger 
 I 1 trtype(0)          //TriggerType:
-                           //0->{TOF&(ANTI || ECALflag>1)} || ECALflag>11 (true combined)
-                           //1->{TOF&(ANTI || ECALflag>1)}         (EC hi-energy not included)
-			   //2->TOF&ANTI  (classical, no ECAL)
-			   // +10-> require at least MIP activity in ECAL
+                           //0->universal trigger (OR of types 4,5,6,7)
+                           //1->unbiased#1 trigger (TOF only)
+			   //2->unbiased#2 trigger (EC(ectrflag>0) only)
+			   //3->inbiased#3 trigger (TOF+EC(ectrflag>0))
+			   //4->Z>=1 particles trigger (TOF+ANTI+(ECtrflag=0,1,11))
+			   //5->Z>2 particles trigger (TOF(tofflag>2)+ANTI(ECtrflag=0,1,11))
+			   //6->e+- particles trigger (TOF+EC(ectrflag=2,12)), i.e.EMtrigger(no ANTI)
+			   //7->Photon trigger (EC(ectrflag=12) only) 
 			   // Note: ECAL "HighEnergy" threshold(to have ECflag=1,2 or 11,12)
 			   // is defined in ECRE 12 (in mev); ECflag=1->MIP
 			   //                                       =2->"electromagneticity"
+			   //                                       above+10-> high energy
 I 2 ntof(3)                           // min number of tof planes in trig
 I 3 nanti(2)                         // max number of anti counters in trig
 I 4 RebuildLVL1(0)                   // Rebuild or not lvl1 if reconstruction
@@ -879,12 +884,14 @@ I 7,8................        //    spares
 
 R 9    thresh[0](2)        // HighGain-chan. readout threshold(ADCch)    
 R 10   thresh[1](120)      // Anode(high-ch,tot) "mip"-trig.thresh(mev tempor)     
-R 11   thresh[2](300)      // ............ ,1st 4X0) "elec"-trig.thresh(mev tempor)    
-R 12   thresh[3](8000)     // Anode(high-ch,tot) "HighEnergy"-trig.thresh(mev tempor)     
+R 11   thresh[2](450)      // ............ ,1st 3sl) "elec"-trig.thresh(mev tempor)    
+R 12   thresh[3](3000)     // Anode(high-ch,tot) "HighEnergy"-trig.thresh(mev tempor)     
 R 13   thresh[4](2)        // LowGain-chan. readout thershold(ADCch)    
-R 14   thresh[5](8000)     // energy upp.limit for action of cut below (mev tempor)   
-R 15   thresh[6](0.15)     // cut on Etail/Epeak (add. to #11 for "electromagneticity")
-R 18.................      // spares
+R 14   thresh[5](10000)    // energy upp.limit for action of cut below (mev tempor)   
+R 15   thresh[6](3.5)      // min Epeak/Ebase (add. to #11 for "electromagneticity")
+R 16   thresh[7](1.)       // min Epeak/Efron .....................................
+R 17   thresh[8](25.)      // Anode(high) chan.threshold for width calc.(mev tempor) 
+R 18   thresh[9](15.)      // min. width (add. to #11 for "electromagneticity")
 
 R 19   cuts[0](5)          // mev/cell threshold for cluster search(~2adc)
 R 23.................      // spares

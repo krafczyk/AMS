@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.366 2001/04/27 21:49:58 choutko Exp $
+// $Id: job.C,v 1.367 2001/05/01 09:59:59 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -303,7 +303,7 @@ void AMSJob::_sitrigdata(){
 //----------
 //
 void AMSJob::_sitrig2data(){
-  TGL1FFKEY.trtype=0; //trigger type (0/1/2)
+  TGL1FFKEY.trtype=0; //trigger type (0/1/2/3/4/5/6/7)
 // TOF :
 // these are additional requir. to "hardware"-defined TOFMCFFKEY.trlogic[]
   TGL1FFKEY.ntof=3;// min. fired TOF-planes
@@ -632,8 +632,8 @@ void AMSJob::_siecaldata(){
   ECMCFFKEY.cutge=0.001;    //(3) cutgam=cutele cut for EC_volumes
   ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
   ECMCFFKEY.silogic[1]=0;   //(5) spare
-  ECMCFFKEY.mev2mev=34.33;  //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
-  ECMCFFKEY.mev2adc=0.3788; //(7) Emeas(MeV)->ADCch conv.factor(to put MIP-m.p. in 5th channel)
+  ECMCFFKEY.mev2mev=33.00;  //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
+  ECMCFFKEY.mev2adc=0.394; //(7) Emeas(MeV)->ADCch factor(MIP-m.p. -> 5th channel)
   ECMCFFKEY.safext=10.;     //(8) Extention(cm) of EC transv.size when TFMC 13=2 is used
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -652,14 +652,14 @@ void AMSJob::_reecaldata(){
 // Run-time DAQ-thresholds(time dependent):
   ECREFFKEY.thresh[0]=2.;     // (9)  Anode(High-chan) readout threshold(ADCch)
   ECREFFKEY.thresh[1]=120.;   // (10) Anode(high,tot) "mip"-trig.thresh(mev tempor)
-  ECREFFKEY.thresh[2]=300.;   // (11) ... 1st 4X0 "em"-trig.thresh(mev tempor)
-  ECREFFKEY.thresh[3]=400.;   // (12) Anode(high,tot) min.Et-cut to be "HighEn-em"(mev tempor)
+  ECREFFKEY.thresh[2]=450.;   // (11) ... 1st 3SL "em"-trig.thresh(mev tempor)
+  ECREFFKEY.thresh[3]=3000.;  // (12) Anode(high,tot) min.Et-cut to be "HighEnergy"(mev tempor)
   ECREFFKEY.thresh[4]=2.;     // (13) Low-chan. readout thershold(ADCch)
   ECREFFKEY.thresh[5]=10000.; // (14) energy upp.limit for action of cut below (mev tempor)  
-  ECREFFKEY.thresh[6]=0.2;    // (15) cut on Etail/Epeak (add. to #11,16 for "electromagneticity")
-  ECREFFKEY.thresh[7]=400.;   // (16) Anode(high,tot) min.Et-cut to be "em"(mev tempor)
-  ECREFFKEY.thresh[8]=0.;     // (17) 
-  ECREFFKEY.thresh[9]=0.;     // (18) 
+  ECREFFKEY.thresh[6]=3.5;    // (15) min Epeak/Ebase (add. to #11 for "electromagneticity")
+  ECREFFKEY.thresh[7]=1.;     // (16) min Epeak/Efron .....................................
+  ECREFFKEY.thresh[8]=25.;    // (17) Anode(high) chan.threshold for width calc.(mev tempor) 
+  ECREFFKEY.thresh[9]=15.;    // (18) min. width (add. to #11 for "electromagneticity")
 // Run-time RECO-thresholds(time dependent):
   ECREFFKEY.cuts[0]=5.;   // (19) mev/cell thresh. to create cluster(~2adc) 
   ECREFFKEY.cuts[1]=0.;   // (20)

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.19 2001/03/29 15:23:37 choumilo Exp $
+//  $Id: ecalrec.C,v 1.20 2001/05/01 09:59:59 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -38,7 +38,7 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
   if(ptrt){
     tofflg=ptrt->gettoflg();
     ecalflg=ptrt->getecflg();
-    HF1(ECHIST+30,geant(ecalflg),1.);
+    HF1(ECHISTR+30,geant(ecalflg),1.);
   }
 //
 //
@@ -103,10 +103,12 @@ void AMSEcalRawEvent::mc_build(int &stat){
   geant lfs,lsl,ffr;
   geant pedh[4],pedl[4],sigh[4],sigl[4];
   AMSEcalMCHit * ptr;
-  integer id,sta,adc[2],scsta;
+  integer id,sta,adc[2],scsta,nslmx,npmmx;
   number dyresp,dyrespt;// dynode resp. in mev(~mV) (for trigger)
   number an4resp,an4respt;// (for trigger)
 //
+  nslmx=ECALDBc::slstruc(3);
+  npmmx=ECALDBc::slstruc(4);
   stat=1;//bad
   trigfl=0;//reset tigger-flag
   edept=0.;
@@ -123,10 +125,10 @@ void AMSEcalRawEvent::mc_build(int &stat){
     for(i=0;i<ECPMSMX;i++)pmtmap[il][i]=0.;
   }
 //
-  for(il=0;il<ECALDBc::slstruc(3);il++){ // <-------------- super-layer loop
+  for(il=0;il<nslmx;il++){ // <-------------- super-layer loop
     ptr=(AMSEcalMCHit*)AMSEvent::gethead()->
                getheadC("AMSEcalMCHit",il,0);
-    for(i=0;i<ECALDBc::slstruc(4);i++)
+    for(i=0;i<npmmx;i++)
                                      for(k=0;k<4;k++)sum[i][k]=0.;
     nslhits=0;
     while(ptr){ // <------------------- geant-hits loop in superlayer:
@@ -186,9 +188,9 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //
 //    if(nslhits==0)continue;//low noise(no noise hits will be added later in this empty sl)
 //
-    for(i=0;i<ECALDBc::slstruc(4);i++){ // <------- loop over PM's in this(il) S-layer
+    for(i=0;i<npmmx;i++){ // <------- loop over PM's in this(il) S-layer
       a2dr=ECcalib::ecpmcal[il][i].an2dyr();//take some param.from DB
-      mev2adc=ECMCFFKEY.mev2adc;// MC GeantEmeas->ADCchannel to have MIP-m.p. in 5th channel
+      mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 5th channel
 //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
       pmrgn=1.;//MC: variations of PM/SC gains(electronics,HV's) are not included;
 //          variations due to different number of fibers per pixel are automatically included
@@ -209,7 +211,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	if(scsta<0)scgn=0.;//dead SubCells
         edepr=sum[i][k]*ECMCFFKEY.mev2mev;//Geant_dE/dX(Mev)->Emeas(Mev)
 	emeast+=edepr;
-	anen+=edepr;
+	anen+=edepr+sigh[k]*rnormx()/mev2adc;//add noise in 4xSubc. signal(for trig.study)
 	dyen+=edepr;
 // ---------> digitization+DAQ-scaling:
 // High-gain channel:
@@ -217,7 +219,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  radc=edepr*pmrgn*scgn*mev2adc+pedh[k]+sigh[k]*rnormx();//Em(mev)->Em(adc)+ped+noise
 	}
 	else if(ECMCFFKEY.silogic[0]==1){
-	  radc=edepr*pmrgn*scgn*mev2adc+pedh[k];//Em(mev)->Em(adc)+ped
+	  radc=edepr*pmrgn*scgn*mev2adc+pedh[k];//Emeas(mev)->Em(adc)+ped
 	}
 	else if(ECMCFFKEY.silogic[0]==2){
 	  radc=edepr*pmrgn*scgn*mev2adc;//Em(mev)->Em(adc)
@@ -281,44 +283,76 @@ void AMSEcalRawEvent::mc_build(int &stat){
   } // ------------> end of super-layer loop
 //
 //                          <--- some variables for "electromagneticity" calc.
-  geant e4x0,epeaka,etaila,rrr;
-  e4x0=pmlprof[0]+pmlprof[1];//energy in 1st 4X0's(sl1+sl2) of Z-profile
-  epeaka=(pmlprof[2]+pmlprof[3])/2.;//aver.energy in peak(sl3+sl4) of Z-profile
-  etaila=pmlprof[ECALDBc::slstruc(3)-1];//aver.energy in tail(sl9 now) ...
-  rrr=0.;
-  if(epeaka>0.)rrr=etaila/epeaka;
-  if(rrr>0.99)rrr=0.99;
+  geant rrr,efrnt,efrnta,ebase,epeak,epeaka,p2brat,p2frat,widatpk(0.);
+  geant etratpk[ECPMSMX],esep1,esep2,p2bcut,p2fcut,wdcut,wdthr;
+//
+  esep1=ECALVarp::ecalvpar.daqthr(5);// separation.energy for p2b,p2f cuts
+  p2bcut=ECALVarp::ecalvpar.daqthr(6);
+  esep2=2.*esep1;//separation.energy for width cut;
+  p2fcut=ECALVarp::ecalvpar.daqthr(7);
+  wdthr=ECALVarp::ecalvpar.daqthr(8);
+  wdcut=ECALVarp::ecalvpar.daqthr(9);
+//
+  efrnt=pmlprof[0]+pmlprof[1]+pmlprof[2];//energy in 1st 3SL's(~5X0)
+  efrnta=(pmlprof[0]+pmlprof[1]+pmlprof[2])/3.;//aver.energy/sl in 1st 3SL's(~5X0)
+  ebase=pmlprof[0]+pmlprof[nslmx-1];//esum in 1st+last SL's
+  epeak=pmlprof[1]+pmlprof[2]+pmlprof[3];//esum aroud peak(low energies)
+  epeaka=(pmlprof[2]+pmlprof[3]+pmlprof[4])/3.;//aver.energy/sl aroud peak(high energies)
+//
+  if(ebase>0.)p2brat=epeak/ebase;
+  else p2brat=39.5;
+  if(p2brat>39.5)p2brat=39.5;
+//
+  if(efrnta>0.)p2frat=epeaka/efrnta;
+  else p2frat=9.8;
+  if(p2frat>9.8)p2frat=9.8;
+//
+  for(pm=0;pm<npmmx;pm++){ // get transv.profile at longit.peak position
+    etratpk[pm]=0.;
+    for(il=1;il<5;il++)etratpk[pm]+=pmtmap[il][pm];
+    if(etratpk[pm]>wdthr)widatpk+=1.;
+  }
 //
   if(ECMCFFKEY.mcprtf==1){
     HF1(ECHIST+1,geant(nhits),1.);
     HF1(ECHIST+2,geant(edept),1.);
     HF1(ECHIST+3,geant(edeprt),1.);
     HF1(ECHIST+4,geant(emeast),1.);
-    HF1(ECHIST+7,e4x0,1.);
-    HF1(ECHIST+8,rrr,1.);
+    HF1(ECHIST+9,geant(an4respt),1.);
+    HF1(ECHIST+10,efrnt,1.);
   }
-//  ---> create ECAL H/W-trigger(Ec<MIP,Ec>=MIP"em-type",HighEn in EC):
+//  ---> create ECAL H/W-trigger(0->non;1->MIP+nonEM;2->EM;prev+10->HighEn):
 //
-  if(an4respt>ECALVarp::ecalvpar.daqthr(1)){
+  if(an4respt>ECALVarp::ecalvpar.daqthr(1)){// mip thr.cut
     trigfl=1;// at least MIP (some non-zero activity in EC)
-    if(e4x0>ECALVarp::ecalvpar.daqthr(2)){
-      trigfl=2;// EM-object !
-      if(an4respt<ECALVarp::ecalvpar.daqthr(5) &&
-                       rrr>ECALVarp::ecalvpar.daqthr(6))trigfl=1;//cut on Etail/Epeak !
-      if(an4respt<ECALVarp::ecalvpar.daqthr(7))trigfl=1;//cut on Etot !
-      if(an4respt>ECALVarp::ecalvpar.daqthr(3))trigfl+=10;// High-En in ECAL
+//
+    if(efrnt>ECALVarp::ecalvpar.daqthr(2)){ //<--- Efront cut
+      if(ECMCFFKEY.mcprtf==1 && an4respt<esep1){
+        HF1(ECHIST+11,p2brat,1.);
+        HF1(ECHIST+12,ebase,1.);
+      }
+      if(an4respt<esep1 && p2brat<p2bcut)goto nonEM;// ---> too low Peak/base(LE)
+//
+      if(ECMCFFKEY.mcprtf==1 && an4respt>esep1)HF1(ECHIST+13,p2frat,1.);
+      if(an4respt>esep1 && p2frat<p2fcut)goto nonEM;// ---> too low Peak/front(HE)
+//
+      for(pm=0;pm<npmmx;pm++)if(etratpk[pm]>0.)HF1(ECHIST+14,etratpk[pm],1.);
+      if(ECMCFFKEY.mcprtf==1 && an4respt<esep2)HF1(ECHIST+15,widatpk,1.);
+      if(an4respt<esep2 && widatpk>=wdcut)goto nonEM;// ---> too high width(LE)
+      trigfl=2;
+nonEM:      
     }
+    if(an4respt>ECALVarp::ecalvpar.daqthr(3))trigfl+=10;//high energy
   }
-  if(trigfl==0)return;//No signal in ECAL
-  stat=0;
 //
 //---
   integer tofflag(0);
   tofflag=TOF2RawEvent::gettrfl();
   if(ECMCFFKEY.mcprtf==1){
-    HF1(ECHIST+9,geant(trigfl),1.);
-    if(tofflag>0)HF1(ECHIST+10,geant(trigfl),1.);
+    HF1(ECHIST+16,geant(trigfl),1.);
+    if(tofflag>0)HF1(ECHIST+17,geant(trigfl),1.);
   }
+  if(trigfl>0)stat=0;
   return;
 }
 //---------------------------------------------------
