@@ -8,8 +8,9 @@
 //                    remove fRunNumber class member from list.ddl
 //                    set map per list, not map per dbase as before
 // Nov    , 1996. ak. exit, if Addamsdbc fails
+// Dec  16, 1996. ak. oocMROW if mode == oocREAD
 //
-// last edit Nov 21, 1996, ak.
+// last edit Dec 16, 1996, ak.
 //
 
 #include <stdio.h>
@@ -222,7 +223,8 @@ ooStatus LMS::GetEvent(char* listName, char* eventID, integer run,
         char                   err_mess[80];
 
         if (ReadStartEnd == 1 || ReadStartEnd == -2) {
-         rstatus = Start(mode);
+         if (mode == oocRead)  rstatus = Start(mode, oocMROW);
+         else rstatus = Start(mode);
          if (rstatus != oocSuccess) return rstatus;
          cout <<"GetEvent:: -I- StartTransaction"<<endl;
         }
@@ -423,7 +425,7 @@ error:
 
 ooStatus LMS::GetNEvents
             (char* listName, char* eventID, integer run, integer eventN, 
-             integer N, ooMode mode, integer eventR)
+             integer N, ooMode mode, ooMode mrowmode, integer eventR)
 //+
 //
 // listName  - name of List
@@ -445,7 +447,10 @@ ooStatus LMS::GetNEvents
           return oocError;
         }
 
-        rstatus = Start(mode);
+        if (mode == oocRead)
+          rstatus = Start(mode,mrowmode);
+        else 
+          rstatus = Start(mode);
         if (rstatus != oocSuccess) return rstatus;
         cout <<"LMS::GetNEvents -I- StartTransaction"<<endl;
 
@@ -517,7 +522,7 @@ error:
 
 ooStatus LMS::Getmceventg
             (char* listName, char* eventID, integer run, integer eventN, 
-             ooMode mode, integer ReadStartEnd)
+             ooMode mode, ooMode mrowmode, integer ReadStartEnd)
 //+
 //
 // listName     - name of List
@@ -540,6 +545,9 @@ ooStatus LMS::Getmceventg
         integer                do_commit = 0;
 
         if (ReadStartEnd == 1 || ReadStartEnd == -2) {
+         if (mode == oocRead)
+          rstatus = Start(mode,mrowmode);
+         else
          rstatus = Start(mode);
          if (rstatus != oocSuccess) return rstatus;
          cout <<"LMS::Getmceventg: -I- StartTransaction"<<endl;

@@ -7,8 +7,9 @@
 // Oct  02, 1996 ak merge GetEvent&GetMCEvent, GetNevents&GetNMCEvents
 //                  add eventR, eventW flags
 // Nov  27, 1996 ak MROW mode 
+// Dec  12, 1996 ak MROW in LMSInit, etc
 //
-// Last Edit Nov 27, 1996. ak.
+// Last Edit Dec 12, 1996. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -122,7 +123,7 @@ public:
 
         ooStatus        FindEventList (char* listName, ooMode mode, 
                                        ooHandle(AMSEventList)& listH);
-        ooStatus        LMSInit(ooMode mode, char* prefix);
+        ooStatus        LMSInit(ooMode mode, ooMode mrowmode, char* prefix);
 
         void            CheckConstants();
 
@@ -155,13 +156,13 @@ public:
                            integer eventR);
         ooStatus GetNEvents (char* listName, char* eventID, integer run, 
                              integer eventN, integer N, ooMode mode, 
-                             integer eventR);
+                             ooMode mrowmode, integer eventR);
         ooStatus Getmceventg (char* listName, char* eventID, integer run,
-                               integer eventN, ooMode mode, 
+                               integer eventN, ooMode mode, ooMode mrowmode,
                                integer ReadStartEnd);
 
-        ooStatus PrintList(ooMode mode);
-        ooStatus PrintList(char* listName, ooMode mode);
+        ooStatus PrintList(ooMode mode, char* printMode);
+        ooStatus PrintList(char* listName, ooMode mode, char* printMode);
 };
 #endif
 

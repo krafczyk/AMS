@@ -1,7 +1,8 @@
 // May 29, 1996. ak.  Fill methods, objectivity first try
 // Oct 02, 1996. ak.  remove most of Fill subroutines
+// Dec 16, 1996. ak.  check mode before starting of transaction
 //
-// last edit Nov 26, 1996, ak.
+// last edit Dec 16, 1996, ak.
 //
 
 #include <stdio.h>
@@ -26,7 +27,8 @@ ooStatus   LMS::FillGeometry(char* listName)
 //
 	strcpy(err_mess, "Error Error");
 // Start the transaction
-        rstatus = Start(mode);
+        if (mode == oocRead) rstatus = Start(mode,oocMROW);
+        else rstatus = Start(mode);
         if (rstatus != oocSuccess) return rstatus;
 // Get pointer to default database
         _databaseH = _session -> DefaultDatabase();
@@ -68,7 +70,8 @@ ooStatus   LMS::FillMaterial(char* listName)
 //
 	strcpy(err_mess, "Error Error");
 // Start the transaction
-        rstatus = Start(mode);
+        if (mode == oocRead) rstatus = Start(mode,oocMROW);
+        else rstatus = Start(mode);
         if (rstatus != oocSuccess) return rstatus;
 // Get pointer to default database
         _databaseH = _session -> DefaultDatabase();
@@ -111,7 +114,8 @@ ooStatus   LMS::FillTMedia(char* listName)
 //
 	strcpy(err_mess, "Error Error");
 // Start the transaction
-        rstatus = Start(mode);
+        if (mode == oocRead) rstatus = Start(mode,oocMROW);
+        else rstatus = Start(mode);
         if (rstatus != oocSuccess) return rstatus;
 // Get pointer to default database
         _databaseH = _session -> DefaultDatabase();
@@ -154,8 +158,9 @@ void LMS::CheckConstants()
 
 //
 // Start the transaction
-        rstatus = Start(mode);
-        if (rstatus != oocSuccess) return;
+        if (mode == oocRead) rstatus = Start(mode,oocMROW);
+        else rstatus = Start(mode);
+        if (rstatus != oocSuccess) goto error;
 // Get pointer to default database
         _databaseH = _session -> DefaultDatabase();
         if (_databaseH != NULL) {

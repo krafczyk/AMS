@@ -26,11 +26,15 @@ int main(int argc, char** argv)
 {
  ooStatus               rstatus;
  char*                  listName = NULL;
+ char*                  printMode = "S";
 
- if(argc == 2) {
-  listName = argv[1];
-  dbout.PrintList(listName, _openMode);
+ cout<<" "<<endl;
+ if(argc > 1) {
+  listName = argv[2];
+  printMode = argv[1];
+  if (argc == 3) dbout.PrintList(listName, _openMode, printMode);
+  if (argc == 2) dbout.PrintList(_openMode, printMode);
  } else {
-  dbout.PrintList(_openMode);
+  dbout.PrintList(_openMode, printMode);
  } 
 }

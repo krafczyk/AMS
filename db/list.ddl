@@ -12,7 +12,7 @@
 //                   modify number of parameters of AddTrTrack
 // Oct    ,1996      add ooVstring listName
 //
-// last edit Nov 01, 1996, ak.
+// last edit Dec 11, 1996, ak.
 //
 
 #include <ooMap.h>
@@ -204,7 +204,7 @@ class AMSEventList : public ooContObj {
    ooBoolean  CheckListSstring(char* sstring);
 
    ooStatus PrintMapStatistics(ooMode mode);
-   ooStatus PrintListStatistics();
+   ooStatus PrintListStatistics(char* printMode);
 
 // Delete Methods
    ooStatus DeleteEventList();

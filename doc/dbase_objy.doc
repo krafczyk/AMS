@@ -116,8 +116,9 @@ HOW TO BUILD CERNSP VERSION OF PROGRAM TO ACCESS dbase PLACED ON AMS ALPHA
 
 AMS DBASE UTILITIES (../exe/$(ARCH) )
 
- printList [listname]  - prints information about list with name listname or
-                         about all lists 
+ printList [flag] [listname]  - prints full (flag = F/f) or short (flag = S/s) 
+                                information about the list with name listname 
+                                or about all lists 
  deleteRun             - delete all events of the particular run (works only on
                          aix, because of bug in Objectivity)
  deleteList            - delete list and all associated containers

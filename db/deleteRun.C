@@ -23,7 +23,7 @@ LMS                  dbout(oocUpdate);
 
 int main()
 {
- integer                i, N = 0, Ncl = 0;
+ integer                i, N = 0, Ncl = 0, Ne = 0;
  char*                  listName = NULL;
  char*                  runName  = NULL;
  char*                  mapName  = NULL;
@@ -38,6 +38,7 @@ int main()
  ooHandle(AMSEventList) listH;        
  ooHandle(ooMap)        mapH;
  ooHandle(AMSEventD)    eventH;
+ ooHandle(AMSEventD)    *eventHT;
  ooItr(AMSEventD)       eventItr;
  ooItr(AMSTrClusterD)   trClusterItr;            // cluster iterator
 
@@ -82,50 +83,57 @@ int main()
       if (mapH != NULL) {
        if (k == 0) {
        (void) sprintf(predE,"_run=%d",runNumber);
+        integer nevents = listH -> getNEvents();
+        eventHT = new ooHandle(AMSEventD) [nevents];
         eventItr.scan(listH, _openMode, oocAll, predE);
         while (eventItr.next()) {
-        N++;
-        rstatus = mapH -> lookup(eventItr -> GetID(), eventH, _openMode);
-        if (rstatus == oocSuccess) {
-         rstatus = mapH -> remove(eventItr -> GetID());
+         N++;
+         rstatus = mapH -> lookup(eventItr -> GetID(), eventH, _openMode);
+         if (rstatus == oocSuccess) {
+          eventH -> pCluster(trClusterItr, _openMode);
+          while (trClusterItr.next()) {
+           Ncl++;
+           trClusterItr -> setPosition(-777); 
+          }
+          if ( N > nevents) {
+           cout<<"Fatal Error. Found more events than expected "<<endl;
+           cout <<"N ... "<<N<<", nevents... "<<nevents<<endl;
+           rstatus = oocError;
+           goto end;
+          }
+          eventHT[N-1] = eventH;
         } else {
           cout <<"cannot find event with ID "<<eventItr -> GetID()<<endl;
         }
-        }
-       cout <<N<<" objects are removed from the map "<<mapname<<endl;
-       (void) sprintf(predE,"_run=%d",runNumber);
-       (void) sprintf(predC,"_Position=%d",-777);
-        for (i=0; i<N; i++) {
-        eventItr.scan(listH, _openMode, oocAll, predE);
-        eventH = eventItr;
-        //cout <<"delete event with ID "<<eventH -> GetID()<<endl;
-        eventH -> pCluster(trClusterItr, _openMode);
-        while (trClusterItr.next()) {
-         Ncl++;
-         trClusterItr -> setPosition(-777); 
-        }
-         rstatus = ooDelete(eventH);
-         listH -> decNEvents();
-        }
-       cout <<"deleted "<<i<<" events of run "<<runNumber<<" list "<<listName
+       } 
+       cout <<N<<" objects will be removed from the map "<<mapname<<endl;
+       for (integer i=0; i<N; i++) {
+        rstatus = mapH -> remove(eventHT[i] -> GetID());
+        rstatus = ooDelete(eventHT[i]);
+        if (rstatus != oocSuccess) {
+           cout<<"Fatal Error. cannot delete event "<<endl;
+           rstatus = oocError;
+           goto end;
+        }                   
+        listH -> decNEvents();
+       }       
+       cout <<"deleted "<<N<<" events of run "<<runNumber<<" list "<<listName
             <<endl;
+       delete [] eventHT;
        }
-      
-       if (k == 1) {
+
+
+       (void) sprintf(predC,"_Position=%d",-777);
+       if (k == 1 && Ncl != 0) {
         integer j;
         cout<<"delete "<<Ncl<<" clusters now "<<endl;
+        
         for (i=0; i<2; i++) {
          trClusterItr.scan(contClusterH[i],predC);
-         j = 0;
          while (trClusterItr.next()) {
-           //cout <<j<<" clusters are deleted in container "
-           //<<trclusterCont[i]<<endl;
           ooHandle(AMSTrClusterD) clusterH = trClusterItr;
            if (clusterH != NULL) {
-             //cout <<clusterH -> getPosition()<<endl;
-            //rstatus = ooDelete(clusterH);
             delete (AMSTrClusterD*) clusterH;
-           j++;
           }
         }
         }
@@ -143,6 +151,7 @@ int main()
    cout <<"cannot start a transaction "<<endl;
  }
 
+end:
  if (rstatus == oocSuccess) {
    rstatus = dbout.Commit();
    cout <<"LMS::Constructor Commit Done"<<endl;

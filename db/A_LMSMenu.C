@@ -269,6 +269,11 @@ char*   LMS::PromptForValue(char* promptString)
 
 	cout << promptString;
 	cin.getline(buffer, 256);
+        
+        for (integer i=255; i>0; i--) {
+         if (buffer[i] == ' ') buffer[i] = '\0';
+         else break;
+        }
 
 	returnString = new char[strlen(buffer) + 1];
 	if (returnString)

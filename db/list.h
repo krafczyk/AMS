@@ -219,7 +219,7 @@ void CopyByPtr(AMSNode *);
 ooBoolean CheckListSstring(char *); 
 
 ooStatus PrintMapStatistics(ooMode); 
-ooStatus PrintListStatistics(); 
+ooStatus PrintListStatistics(char *); 
 
 
 ooStatus DeleteEventList(); 

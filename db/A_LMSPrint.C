@@ -7,7 +7,7 @@
 #include <A_LMS.h>
 
 
-ooStatus	LMS::PrintList(ooMode mode)
+ooStatus	LMS::PrintList(ooMode mode, char* printMode)
 {
 	ooStatus	       rstatus = oocError;	// Return status
         ooItr(AMSEventList)    listItr;
@@ -22,7 +22,8 @@ ooStatus	LMS::PrintList(ooMode mode)
         rstatus = listItr.scan(_databaseH, oocNoOpen);
         if (rstatus == oocSuccess) {
          while (listItr.next()) {
-          listItr -> PrintListStatistics();
+          cout<<" "<<endl;
+          listItr -> PrintListStatistics(printMode);
          }
         } else {
          cout<<"LMS::PrintList-E- scan operation failed"<<endl;
@@ -38,20 +39,20 @@ ooStatus	LMS::PrintList(ooMode mode)
 	return rstatus;
 }
 
-ooStatus	LMS::PrintList(char* listName, ooMode mode)
+ooStatus	LMS::PrintList(char* listName, ooMode mode, char* printMode)
 {
 	ooStatus	       rstatus = oocError;	// Return status
         ooHandle(AMSEventList) listH;
         ooItr(AMSEventList)    listItr;
         
 
-        rstatus = Start(mode);
+        if (mode == oocRead) rstatus = Start(mode, oocMROW);
+        if (mode != oocRead) rstatus = Start(oocRead);
         if (rstatus != oocSuccess) return rstatus;
-
 
         rstatus = FindEventList(listName, mode, listH);
         if (rstatus == oocSuccess) {
-         listH -> PrintListStatistics();
+         listH -> PrintListStatistics(printMode);
         } else {
          cout<<"LMS::PrintList-I- search for the list which has substring "
              <<listName<<endl;
@@ -61,7 +62,8 @@ ooStatus	LMS::PrintList(char* listName, ooMode mode)
          if (rstatus == oocSuccess) {
           while (listItr.next()) {
            if (listItr -> CheckListSstring(listName)) {
-            listItr -> PrintListStatistics();
+            cout<<" "<<endl;
+            listItr -> PrintListStatistics(printMode);
            }            
           }
         } else {

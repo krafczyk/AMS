@@ -1,5 +1,5 @@
 INSTALL_DIR	= /afs/cern.ch/rd45/objectivity
 ARCH		= ibmrs6000
-LS_HOST		= sp056.cern.ch
-FDID		= 19267
+LS_HOST		= cernsp.cern.ch
+FDID		= 6486
 PAGESIZE	= 8192

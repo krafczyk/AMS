@@ -155,7 +155,7 @@ integer LMS::getTransLevel()   // get a transaction nesting level
     return _session -> getTransLevel();
 }
 
-ooStatus LMS::LMSInit(ooMode openMode, char* prefix) 
+ooStatus LMS::LMSInit(ooMode openMode, ooMode mrowmode, char* prefix) 
 {	
   integer              i;
   ooStatus             rstatus;
@@ -163,7 +163,8 @@ ooStatus LMS::LMSInit(ooMode openMode, char* prefix)
   char*                contName;
 
    _openMode = openMode;
-   rstatus = Start(_openMode);
+   if (openMode == oocRead) rstatus = Start(_openMode, mrowmode);
+   if (openMode != oocRead) rstatus = Start(_openMode);
    if (rstatus == oocSuccess) {
     _databaseH = _session -> DefaultDatabase();
     if (_databaseH != NULL) {

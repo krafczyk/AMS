@@ -3330,7 +3330,7 @@ ooStatus AMSEventList::DeleteMap()
      return oocSuccess;
 }
 
-ooStatus AMSEventList::PrintListStatistics()
+ooStatus AMSEventList::PrintListStatistics(char* printMode)
 {
      ooStatus               rstatus = oocSuccess;
      ooItr(AMSEventD)       eventItr;                 
@@ -3339,29 +3339,31 @@ ooStatus AMSEventList::PrintListStatistics()
      cout<<"List... "<<_listName<<" of type "<<_listType<<endl;
      cout<<"with setup... "<<_Setup <<" has "<<_nEvents<<" events"<<endl;
 
-     if (!listH.isUpdated()) {
-      rstatus = eventItr.scan(listH,oocRead);
-      if (rstatus == oocSuccess) {
-       integer run     = 0;
-       integer nevents = 0;
-       while(eventItr.next()) {
-        integer r = eventItr -> RunNumber();
-        if (r == run) {
-         nevents++;
-        } else {
-         if (run != 0) cout<<"run "<<run<<", events "<<nevents<<endl;
-         run = r;
-         nevents = 1; 
+     if (strcmp(printMode, "F") == 0 || strcmp(printMode, "f")== 0 ) {
+      if (!listH.isUpdated()) {
+       rstatus = eventItr.scan(listH,oocRead);
+       if (rstatus == oocSuccess) {
+        integer run     = 0;
+        integer nevents = 0;
+        while(eventItr.next()) {
+         integer r = eventItr -> RunNumber();
+         if (r == run) {
+          nevents++;
+         } else {
+          if (run != 0) cout<<"run "<<run<<", events "<<nevents<<endl;
+          run = r;
+          nevents = 1; 
+         }
         }
+         cout<<"run "<<run<<", events "<<nevents<<endl;
+       } else {
+         cout<<"AMSEventList::PrintListStatistics -E- scan failed "<<endl;
        }
-        cout<<"run "<<run<<", events "<<nevents<<endl;
       } else {
-        cout<<"AMSEventList::PrintListStatistics -E- scan failed "<<endl;
-      }
-     } else {
-       cout <<"AMSEventList::PrintListStatistics -I- cannot provide more "
-            <<", list is opened in Update mode by another process"<<endl; 
-     }      
+        cout <<"AMSEventList::PrintListStatistics -I- cannot provide more "
+             <<", list is opened in Update mode by another process"<<endl; 
+      }      
+     }
    return rstatus;
 }
 
