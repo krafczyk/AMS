@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.82 2003/04/04 14:02:43 choutko Exp $
+# $Id: RemoteClient.pm,v 1.83 2003/04/04 14:44:07 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1448,9 +1448,9 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             my $cite = $ret->[0][0];
             htmlTop();
             if ($resp == 1) {
-             print "<TR><B><font color=green size= 5> Select Form Type or Production DataSet: </font>";
+             print "<TR><B><font color=green size= 5> Select Template or Production DataSet: </font>";
             } else { 
-             print "<TR><B><font color=green size= 5> Select Form Type : </font>";
+             print "<TR><B><font color=green size= 5> Select Template : </font>";
             }
             print "<p>\n";
             print "<FORM METHOD=\"POST\" action=\"$self->{Name}\">\n";
@@ -1460,14 +1460,14 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<i><b>e-mail : </td><td><input type=\"text\" size=18 value=$cem name=\"CEM\" onFocus=\"this.blur()\" ></i>\n";
+            print "<i><b>e-mail : </td><td><input type=\"text\" size=24 value=$cem name=\"CEM\" onFocus=\"this.blur()\" ></i>\n";
             print "</b></font></td></tr>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<i><b>cite : </td><td><input type=\"text\" size=18 value=$cite name=\"CCA\" onFocus=\"this.blur()\"></i>\n";
             print "</b></font></td></tr>\n";
             print "</TABLE>\n";
             print "<tr><td>\n";
-            print "<b><font color=\"red\" size=\"3\">Form Type</font></b>\n";
+            print "<b><font color=\"red\" size=\"3\">Template</font></b>\n";
             print "</td><TD>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
@@ -1758,9 +1758,15 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
      $self->{read}=1;
      $self->{CEM}=$self->{q}->param("CEM");
      my $upl0=$self->{q}->param("UPL0");
+     my $upl1=$self->{q}->param("UPL1");
      my $time = time();
-     $sql=
-      "update Mails set timeu1=$upl0, timeu2=$upl0, timestamp=$time WHERE address='$self->{CEM}'";
+     if ($upl1 > 0) {
+      $sql=
+      "update Mails set timeu1=$upl0, timeu2=$upl1, timestamp=$time WHERE address='$self->{CEM}'";
+     } else {
+      $sql=
+      "update Mails set timeu1=$upl0, timestamp=$time WHERE address='$self->{CEM}'";
+     } 
      $self->{sqlserver}->Update($sql);
      $self->AllDone();
    }
@@ -3141,7 +3147,6 @@ print qq`
                  }
                  else{
                    $message=$self->{tsyntax}->{headers}->{readmecorba};
-                   
                  }                
                   my $attach;
        if ($self->{CCT} eq "remote"){
@@ -3246,11 +3251,20 @@ print qq`
         $self->{FileAttDBTimestamp}=$sta1[9];
         $self->{FileDBLastLoad}=$uplt0;
         $self->{FileAttDBLastLoad}=$uplt1;
-        if($uplt0 == 0 or $uplt0 < $sta0[9] or $uplt1 == 0 or $uplt1 < $sta1[9]) {
+        if ($self->{dwldaddon} == 1) {
+         if($uplt0 == 0 or $uplt0 < $sta0[9] or $uplt1 == 0 or $uplt1 < $sta1[9]) {
+            $self->Download();
+         } else {
+          $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
+         } 
+        } else {
+         if($uplt0 == 0 or $uplt0 < $sta0[9]) {
             $self->Download();
         } else {
          $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
-      }             
+         } 
+       }
+            
      } else { 
       $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
      }
@@ -4438,9 +4452,10 @@ sub Download {
      $mode = "Standalone";
     }
     print "<br><b><font color=\"blue\" size=\"4\"> $self->{CEM}, mode :  $mode </b></font>\n";
-    my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBLastLoad});
-    print "<br><font color=\"green\" size=\"4\"><b><i> Last downloaded  : </i></font><b> $dtime </b>\n";
-    $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
+    my $dtime0=EpochToDDMMYYHHMMSS($self->{FileDBLastLoad});
+    my $dtime1=EpochToDDMMYYHHMMSS($self->{FileAttDBLastLoad});
+    print "<br><font color=\"green\" size=\"4\"><b><i> Last downloaded  : </i></font><b> $dtime0, $dtime1 </b>\n";
+    my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
     print "<br><font color=\"green\" size=\"4\"><b><i>Files updated    : </i></font><b> $dtime </b>\n";
     print "<br><font color=\"red\" size=\"5\"><b><i> It is absolutely mandatory to download files</b></i></font>\n";
     $self->PrintDownloadTable();
@@ -4450,6 +4465,11 @@ sub Download {
           $time = time();
           print "<input type=\"hidden\" name=\"CEM\" value=$self->{CEM}>\n";
           print "<input type=\"hidden\" name=\"UPL0\" value=$time>\n";
+          if ($self->{dwldaddon} == 1) {
+           print "<input type=\"hidden\" name=\"UPL1\" value=$time>\n";
+          } else {
+           print "<input type=\"hidden\" name=\"UPL1\" value=0>\n";
+          }
           print "<input type=\"submit\" name=\"Download\" value=\"Finish\">\n";
     print "</FORM>\n";
     print "</BODY>\n";
