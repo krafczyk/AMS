@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.21 2002/03/14 15:22:48 choutko Exp $
+# $Id: RemoteClient.pm,v 1.22 2002/03/14 17:02:08 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2844,8 +2844,9 @@ sub listJobs {
               print "<td><b><font color=\"blue\">JobId </font></b></td>";
               print "<td><b><font color=\"blue\" >Owner </font></b></td>";
               print "<td><b><font color=\"blue\" >JobName </font></b></td>";
-              print "<td><b><font color=\"blue\" >Started </font></b></td>";
+              print "<td><b><font color=\"blue\" >Submit Time </font></b></td>";
               print "<td><b><font color=\"blue\" >Triggers </font></b></td>";
+              print "<td><b><font color=\"blue\" >Status </font></b></td>";
              print "</tr>\n";
      print_bar($bluebar,3);
      if(defined $r3->[0][0]){
@@ -2856,9 +2857,22 @@ sub listJobs {
           my $trig      = $job->[5];
           my $cite      = $job->[7];
           my $user      = $job->[9];
-           print "<td><b> $cite </td></b><td><b> $jid </td><td><b> $user </td>
-                  <td><b>$name </td></b><td><b> $starttime </b></td>
-                  <td><b> $trig </b></td> \n";
+          $sql="SELECT status from Runs WHERE jid=$jid";
+          $r3=$self->{sqlserver}->Query($sql);
+          my $status    = "Submitted";
+          my $color     = "black";
+          if (defined $r3->[0][0]) {
+              $status = $r3->[0][0];
+              $color  = statusColor($status);
+          }
+           print "<td><b><font color=$color> $cite </font></td></b>
+                  <td><b><font color=$color> $jid </font></td></b>
+                  <td><b><font color=$color> $user </font></b></td>
+                  <td><b><font color=$color> $name </font></td></b>
+                  <td><b><font color=$color> $starttime </font></b></td>
+                  <td><b><font color=$color> $trig </font></b></td>
+                  <td><b><font color=$color> $status </font></b></td>\n";
+
           print "</font></tr>\n";
       }
   }
@@ -2890,9 +2904,10 @@ sub listRuns {
           my $jid       = $run->[1];
           my $starttime = EpochToDDMMYYHHMMSS($run->[3]); 
           my $status    = $run->[4];
-           print "<td><b> $jid </td></b><td><b> $nn </td>
-                  <td><b> $starttime </b></td>
-                  <td><b> $status </b></td> \n";
+          my $color = statusColor($status);
+           print "<td><b><font color=$color> $jid       </font></td></b><td><b> $nn </td>
+                  <td><b><font color=$color> $starttime </font></b></td>
+                  <td><b><font color=$color> $status    </font></b></td> \n";
           print "</font></tr>\n";
       }
   }
@@ -2931,13 +2946,14 @@ sub listNtuples {
           my $nerrors   = $nt->[3];
           my $starttime = EpochToDDMMYYHHMMSS($nt->[4]); 
           my $status    = $nt->[5];
+          my $color     = statusColor($status);
           my $path      = $nt->[6];
            print "<td><b> $jid </td></b><td><b> $run </td>
                   <td><b> $starttime </b></td>
                   <td><b> $path </b></td> 
                   <td align=middle><b> $nevents </b></td> 
                   <td align=middle><b> $nerrors </b></td> 
-                  <td align=middle><b> $status </b></td> \n";
+                  <td align=middle><b><font color=$color> $status </font></b></td> \n";
           print "</font></tr>\n";
       }
   }
@@ -3041,6 +3057,9 @@ sub ht_Menus {
  print "<dt><img src=\"$bluebullet\">&#160;&#160;
         <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\">
         <b><font color=green> Submit MC Job </b></font></a>\n";
+ print "<dt><img src=\"$maroonbullet\">&#160;&#160;
+        <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\">
+        <b><font color=green> User and/or Cite Registration Form </b></font></a>\n";
 }
 
 sub lastDBUpdate {
@@ -3097,3 +3116,14 @@ sub lastDBUpdate {
 
   return $lastupd;
  }
+sub statusColor {
+    my $status = shift;
+    my $color  = "magenta";
+
+              if ($status eq "Finished" or $status eq "OK") {
+               $color  = "green";
+           } else {
+               $color = "red";
+           }
+    return $color;
+}
