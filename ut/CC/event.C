@@ -467,7 +467,7 @@ _sitrigevent();
 void AMSEvent::_reamsevent(){
 
   geant d;
-  if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion){
+  if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
     // skip event
      return;    
   }

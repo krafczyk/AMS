@@ -1285,7 +1285,7 @@ C.
       CALL GSPART( 62,'LI7  ',itrt,   6.53536,  3., 1000., UBUF,0)
       CALL GSPART( 63,'BE7  ',itrt,   6.53622,  4., 1000., UBUF,0)
       CALL GSPART( 64,'BE9  ',itrt,   8.39479,  4., 1000., UBUF,0)
-      CALL GSPART( 65,'B10  ',itrt,   9.32699,  5., 1000., UBUF,0)
+      CALL GSPART( 65,'B10  ',itrt,   9.32699,  4., 1000., UBUF,0)
       CALL GSPART( 66,'B11  ',itrt,  10.25510,  5., 1000., UBUF,0)
       CALL GSPART( 67,'C12  ',itrt,  11.17793,  6., 1000., UBUF,0)
       CALL GSPART( 68,'N14  ',itrt,  13.04378,  7., 1000., UBUF,0)
