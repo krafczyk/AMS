@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.71 2002/12/06 14:43:40 choumilo Exp $
+//  $Id: root.h,v 1.72 2002/12/10 11:56:20 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -307,6 +307,7 @@ public:
   float RearLeak;
   float DeadLeak;
   float AttLeak;
+  float NLinLeak;
   float OrpLeak;
   float Orp2DEnergy;
   float Chi2Profile;

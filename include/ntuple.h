@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.71 2002/12/06 14:43:39 choumilo Exp $
+//  $Id: ntuple.h,v 1.72 2002/12/10 11:56:20 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -209,6 +209,7 @@ public:
   float RearLeak[MAXECSHOW];
   float DeadLeak[MAXECSHOW];
   float AttLeak[MAXECSHOW];
+  float NLinLeak[MAXECSHOW];
   float OrpLeak[MAXECSHOW];
   float Orp2DEnergy[MAXECSHOW];
   float Chi2Profile[MAXECSHOW];

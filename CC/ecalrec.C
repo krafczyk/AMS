@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.73 2002/12/06 14:43:16 choumilo Exp $
+//  $Id: ecalrec.C,v 1.74 2002/12/10 11:56:12 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1642,7 +1642,7 @@ return found;
 }
 
 
-EcalShower::EcalShower(Ecal2DCluster *px, Ecal2DCluster *py):AMSlink(),_Et(0),_AttLeak(0){
+EcalShower::EcalShower(Ecal2DCluster *px, Ecal2DCluster *py):AMSlink(),_Et(0),_AttLeak(0),_NLinLeak(0){
 _Orp2DEnergy=0;
 _pCl[0]=px;
 _pCl[1]=py;
@@ -1725,6 +1725,7 @@ void EcalShower::_writeEl(){
     TN->DeadLeak[TN->Necsh]=_DeadLeak;
     TN->OrpLeak[TN->Necsh]=_OrpLeak;
     TN->AttLeak[TN->Necsh]=_AttLeak;
+    TN->NLinLeak[TN->Necsh]=_NLinLeak;
     TN->Orp2DEnergy[TN->Necsh]=_Orp2DEnergy;
      TN->Chi2Profile[TN->Necsh]=_ProfilePar[4+_Direction*5];
      for(int i=0;i<4;i++){
@@ -2004,6 +2005,7 @@ void EcalShower::EnergyFit(){
     _OrpLeak=ECREFFKEY.SimpleRearLeak[3]*_OrpLeak;
     _DeadLeak=ECREFFKEY.SimpleRearLeak[3]*_DeadLeak;
     _AttLeak=ECREFFKEY.SimpleRearLeak[3]*_AttLeak;
+    _NLinLeak=ECREFFKEY.SimpleRearLeak[3]*_NLinLeak;
   }
   if(_EnergyC){
    _RearLeak/=_EnergyC;
@@ -2011,6 +2013,7 @@ void EcalShower::EnergyFit(){
    _DeadLeak/=_EnergyC;
    _SideLeak/=_EnergyC;
    _AttLeak/=_EnergyC;
+   _NLinLeak/=_EnergyC;
   }
 
 
@@ -2645,7 +2648,7 @@ AMSEcalRawEvent::AMSEcalRawEvent(const AMSECIdSoft & id, int16u dynode,int16u ga
 
 
 void EcalShower::_AttCorr(){
-//  Attenuation Energy Corr
+//  Attenuation Energy Corr & pmtnonl corr
    for(int i=0;i<_N2dCl;i++){
     for(int j=0;j<_pCl[i]->getNClust();j++){
       for (int k=0;k<_pCl[i]->getpClust(j)->getNHits();k++){
@@ -2659,7 +2662,10 @@ void EcalShower::_AttCorr(){
          }
          _pCl[i]->getpClust(j)->getphit(k)->attcor(coo);
          _AttLeak+=_pCl[i]->getpClust(j)->getphit(k)->getattcor();
+         _NLinLeak+=_pCl[i]->getpClust(j)->getphit(k)->getedepc();
       }
     }
    }
+
+
 }

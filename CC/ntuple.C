@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.126 2002/12/06 14:43:19 choumilo Exp $
+//  $Id: ntuple.C,v 1.127 2002/12/10 11:56:13 choutko Exp $
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
@@ -86,7 +86,7 @@ void AMSNtuple::init(){
  "nec2d[0,10],ec2dstatus(nec2d):I,Ec2dProj(nec2d)[0,1]:I,Ec2dNmemb(nec2d):I,Ec2dEdep(nec2d),Ec2dCoo(nec2d),ec2dtan(nec2d),ec2dchi2(nec2d),ec2dpcl(18,nec2d)[0,1000]:I");
 
   HBNAME(_lun,"EcalShow",&_ecshow.Necsh,
- "necsh[0,5],ecshstatus(necsh):I,Ecshdir(3,necsh),ecshemdir(3,necsh),Ecshentry(3,necsh),Ecshexit(3,necsh),Ecshcofg(3,necsh),EcshErdir(necsh),ecshchi2dir(necsh),ecshfrontedep(necsh),EcshEn(necsh),ecsherat(3,necsh),Ecshener(necsh),ecshdifosum(necsh),EcshsLeak(necsh),EcshrLeak(necsh),EcshdLeak(necsh),EcshaLeak(necsh),EcshoLeak(necsh),ecsho2de(necsh),ecshchi2P(necsh),ecshparP(4,necsh),ecshchi2T(necsh),ecshspev(3,necsh),ecshncl(necsh)[0,7]:I,ecshpcl(2,necsh):I");
+ "necsh[0,5],ecshstatus(necsh):I,Ecshdir(3,necsh),ecshemdir(3,necsh),Ecshentry(3,necsh),Ecshexit(3,necsh),Ecshcofg(3,necsh),EcshErdir(necsh),ecshchi2dir(necsh),ecshfrontedep(necsh),EcshEn(necsh),ecsherat(3,necsh),Ecshener(necsh),ecshdifosum(necsh),EcshsLeak(necsh),EcshrLeak(necsh),EcshdLeak(necsh),EcshaLeak(necsh),EcshnLeak(necsh),EcshoLeak(necsh),ecsho2de(necsh),ecshchi2P(necsh),ecshparP(4,necsh),ecshchi2T(necsh),ecshspev(3,necsh),ecshncl(necsh)[0,7]:I,ecshpcl(2,necsh):I");
 //
   HBNAME(_lun,"EcalHits",&_ecalhit.Necht,
  

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.32 2002/12/06 14:43:39 choumilo Exp $
+//  $Id: ecalrec.h,v 1.33 2002/12/10 11:56:20 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -351,6 +351,7 @@ number  _RearLeak;
 number  _SideLeak;
 number  _DeadLeak;
 number  _AttLeak;
+number  _NLinLeak;
 number  _ErrEnergyC;
 number  _Orp2DEnergy;
 AMSPoint _CofG;

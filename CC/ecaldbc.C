@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.42 2002/12/06 14:43:15 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.43 2002/12/10 11:56:12 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -1362,6 +1362,7 @@ void ECcalib::build(){// <--- create MC/RealData ecpmcal-objects
 }
 //---------------
 number ECcalib::pmsatf1(int dir,number q){//simulate PM-anode saturation, i.e. Qmeas/Qin
+//   return 1;
 //(imply satur.origin as voltage drop on last devider resistor,i.e. depends on TOTAL
 // PM charge(4xSubc. peak current)); dir=0/1->(Qin->Qmeas)/(Qmeas->Qin)
 //                                return Qmeas/Qin(dir=0) or  Qin/Qmeas(dir=1)
@@ -1374,29 +1375,28 @@ number ECcalib::pmsatf1(int dir,number q){//simulate PM-anode saturation, i.e. Q
      else if(q>=qin[npnt-1])return qme[npnt-1]/q;
      else{
        for(i=1;i<npnt;i++){
-         if(q<qin[i])break;
+         if(q<qin[i]){
+           return (qme[i-1]+(qme[i]-qme[i-1])*(q-qin[i-1])/(qin[i]-qin[i-1]))/q;//r=Qme/Qin<1
+         }
        }
-       return (qme[i-1]+(qme[i]-qme[i-1])*(q-qin[i-1])/(qin[i]-qin[i-1]))/q;//r=Qme/Qin<1
      }
   }
   else if(dir==1){//Qmeas->Qin
     if(q<=qme[0])return 1;
     else if(q>(0.95*qme[npnt-1])){
-      cout<<"ECcalib::pmsatf1:Qmeas saturation !"<<endl;
+      cerr<<"ECcalib::pmsatf1:Qmeas saturation !"<<endl;
       return -qin[npnt-1]/q;//r=Qin/Qmeas
     }
     else{
       for(i=1;i<npnt;i++){
-         if(q<qme[i])break;
-      }
-      return (qin[i-1]+(qin[i]-qin[i-1])*(q-qme[i-1])/(qme[i]-qme[i-1]))/q;//r=Qin/Qmeas>1
+         if(q<qme[i]){
+           return (qin[i-1]+(qin[i]-qin[i-1])*(q-qme[i-1])/(qme[i]-qme[i-1]))/q;//r=Qin/Qmeas>1
+         }
     }
-  }
-  else{
-    cerr<<"ECcalib::pmsatf1: wrong dir parameter "<<dir<<endl;
-    return 0;
-    exit(10);
-  }
+   }
+  } 
+    cerr<<"ECcalib::pmsatf1: wrong dir parameter or logic error"<<dir<<endl;
+    abort();
 }  
 //==========================================================================
 //  ECcalibMS class functions :
