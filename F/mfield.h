@@ -1,7 +1,7 @@
-      PARAMETER (nx=33,ny=33,nz=227)
+      PARAMETER (nx=41,ny=41,nz=130)
       DIMENSION X(nx),y(ny),z(nz)
       DIMENSION Bx(nx,ny,nz), by(nx,ny,nz),
-     +          BZ(nx,ny,nz) 
+     +          BZ(nx,ny,nz)
       dimension xyz(nx+ny+nz)    
       DIMENSION BDx(nx,ny,nz,2), bDy(nx,ny,nz,2),
      +          BdZ(nx,ny,nz,2)
