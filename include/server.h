@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.35 2001/03/09 16:41:18 choutko Exp $
+//  $Id: server.h,v 1.36 2001/03/13 11:25:21 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -10,7 +10,7 @@
 #include <queue>
 #include <server-cpp-common.hh> 
 #include <server-cpp-skels.hh>
-#include <ORBitservices/CosNaming.hh>
+//#include <ORBitservices/CosNaming.hh>
 #include <node.h>
 #include <astring.h>
 #include <client.h>

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.56 2001/03/09 16:42:25 choutko Exp $
+//  $Id: server.C,v 1.57 2001/03/13 11:25:20 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -700,7 +700,15 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
      submit+=tmp;
      submit+=".log ";
     }
-    submit+=(const char*)((*cli)->WholeScriptPath);  
+     char* gtv=getenv((const char*)((*cli)->WholeScriptPath));
+     if(!gtv){
+        AString a("CouldNot getenv for ");
+        a+=(const char*)((*cli)->WholeScriptPath);
+        a+=" ContinueWithFingersCrossing";
+       _parent->EMessage((const char *)a);
+       submit+=(const char*)((*cli)->WholeScriptPath);  
+     }
+     else submit+=(const char*)gtv;
     submit+=" -C";
     submit+=(const char*) _refstring;
     submit+=" -U";
@@ -1916,7 +1924,15 @@ if(pcur->InactiveClientExists(getType()))return;
      submit+=tmp;
      submit+=".log ";
     }
-    submit+=(const char*)((*cli)->WholeScriptPath);  
+     char* gtv=getenv((const char*)((*cli)->WholeScriptPath));
+     if(!gtv){
+        AString a("CouldNot getenv for ");
+        a+=(const char*)((*cli)->WholeScriptPath);
+        a+=" ContinueWithFingersCrossing";
+       _parent->EMessage((const char *)a);
+       submit+=(const char*)((*cli)->WholeScriptPath);  
+     }
+     else submit+=(const char*)gtv;
     submit+=" -";
     submit+=(const char*) _refstring;
     submit+=" -U";
