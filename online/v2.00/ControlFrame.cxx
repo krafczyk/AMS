@@ -80,7 +80,7 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       break;
     case kCM_MENU:
       if(parm1/100 >= 7){//TOF channel selection
-	AMSTOFHist TOFch;
+	AMSTOFHist *TOFch;
 	int ilay=0,ibar=0,isid=0;
 	ilay=(parm1-701)/28+1;
 	ibar=((parm1-701)%28)/2+1;

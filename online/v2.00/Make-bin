@@ -33,7 +33,6 @@ HDRS          = TRadioButton.h TSwitch.h \
                 AMSNtuple.h\
                 LinkDef.h
 
-                
 
 DICT          = AMSCint.cxx
 DICTH         = $(DICT:.cxx=.h)
@@ -131,7 +130,7 @@ depend:
 
 dist:
 		rm -f $(AMSPRG).tar.gz ; \
-		tar cvf $(AMSPRG).tar $(ALLSRCS)  Make* ;\
+		tar cvf $(AMSPRG).tar $(ALLSRCS)  Make* \
 		gzip $(AMSPRG).tar
 
 clean:
