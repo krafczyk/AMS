@@ -43,6 +43,7 @@ main(){
      *signal(SIGTERM, handler);
      *signal(SIGINT, handler);
      *signal(SIGQUIT, handler);
+     *signal(SIGUSR1, handler); 
     AMSgvolume::debug=0;
     cout.sync_with_stdio();
     GZEBRA(NWGEAN);
@@ -69,6 +70,10 @@ void (handler)(int sig){
     break;
   case SIGCONT:
       cerr <<" Process resumed"<<endl;
+      break;
+  case SIGUSR1:
+      cerr<< "New Run Forced"<<endl;
+      GCFLAG.IEORUN=1;
       break;
   }
 }

@@ -226,25 +226,27 @@ void AMSEvent::_endofrun() {
       strcpy(prodlogdir,"/offline/logs.local/run_prod.log");
      }
      ofstream rfile(prodlogdir,ios::out|ios::app);
-     rfile.setf(ios::dec);
-     host = getenv("HOST");
-
-     if (host) strcpy(hh,host);
-     if (hh[0] == 'H' || hh[0] == 'h') strcpy(comp,he);
-     if (hh[0] == 'C' || hh[0] == 'c') strcpy(comp,c);
-     if (hh[1] == 'H' || hh[1] == 'h') strcpy(comp,ahe);
-     if (hh[1] == 'C' || hh[1] == 'c') strcpy(comp,ac);
-     if (hh[0] == 'P' || hh[0] == 'p') {
+     if(rfile){
+      rfile.setf(ios::dec);
+      host = getenv("HOST");
+      if (host) strcpy(hh,host);
+      if (hh[0] == 'H' || hh[0] == 'h') strcpy(comp,he);
+      if (hh[0] == 'C' || hh[0] == 'c') strcpy(comp,c);
+      if (hh[1] == 'H' || hh[1] == 'h') strcpy(comp,ahe);
+      if (hh[1] == 'C' || hh[1] == 'c') strcpy(comp,ac);
+      if (hh[0] == 'P' || hh[0] == 'p') {
        if (hh[6] == '0') strcpy(comp,p0);
        if (hh[6] == '1') strcpy(comp,p1);
-     }
-
-     int  icputime = cputime;
-     rfile<<setw(10)<<SRun<<" "<<setw(7)<<events<<" "<<setw(7)
+      }
+      int  icputime = cputime;
+      rfile<<setw(10)<<SRun<<" "<<setw(7)<<events<<" "<<setw(7)
           <<eventsp<<" "<<setw(7)<<T1-T0<<setw(7)<<icputime<<" "<<setw(16)
           <<time11<<setw(7)<<comp<<endl;
-
-      rfile.close();
+       rfile.close();
+     }
+     else{
+      cerr<<"AMSEvent::_endofrun-E-CouldNotOpenFile "<<rfile<<endl;
+     }
     fclose(runs);
     }
   } // if SRun != 0
@@ -1449,15 +1451,15 @@ void AMSEvent::_printEl(ostream & stream){
  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
    ctime(&_time)<<"."<<_usec<<" R "<<_StationRad<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<" Speed "<<_StationSpeed<<
    " Pole "<<_NorthPolePhi*AMSDBc::raddeg<<endl;
-// stream <<" TOFTemperature (dC) crates 01,31,41,71,03,33,43,73 ";
-// stream <<TOFVarp::getmeantoftemp(01)<<" ";
-// stream <<TOFVarp::getmeantoftemp(31)<<" ";
-// stream <<TOFVarp::getmeantoftemp(41)<<" ";
-// stream <<TOFVarp::getmeantoftemp(71)<<" ";
-// stream <<TOFVarp::getmeantoftemp(03)<<" ";
-// stream <<TOFVarp::getmeantoftemp(33)<<" ";
-// stream <<TOFVarp::getmeantoftemp(43)<<" ";
-// stream <<TOFVarp::getmeantoftemp(73)<<endl;
+ stream <<" TOFTemperature (dC) crates 01,31,41,71,03,33,43,73 ";
+ stream <<TOFVarp::getmeantoftemp(01)<<" ";
+ stream <<TOFVarp::getmeantoftemp(31)<<" ";
+ stream <<TOFVarp::getmeantoftemp(41)<<" ";
+ stream <<TOFVarp::getmeantoftemp(71)<<" ";
+ stream <<TOFVarp::getmeantoftemp(03)<<" ";
+ stream <<TOFVarp::getmeantoftemp(33)<<" ";
+ stream <<TOFVarp::getmeantoftemp(43)<<" ";
+ stream <<TOFVarp::getmeantoftemp(73)<<endl;
 }
 
 void AMSEvent::_writeEl(){

@@ -110,6 +110,7 @@ static integer KIFiles;
 static fstream fbin;
 static char * ofnam;
 static fstream fbout;
+void SetEOFIn();
 
 static void init(integer mode, integer format=0);
 static void initO(integer run);

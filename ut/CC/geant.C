@@ -482,6 +482,10 @@ time(&tm);// tempor
 //      pdaq->runtype(),tm,pdaq->usec()))); // tempor introduced to read PC-made files
 //<------      
       AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
+      if(GCFLAG.IEORUN){
+        pdaq->SetEOFIn();    
+        GCFLAG.IEORUN=0;
+      }
       guout_();
       if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;
       GCFLAG.IEVENT++;

@@ -743,3 +743,11 @@ int DAQEvent::_sort(dirent ** e1,  dirent ** e2){
  return strcmp((*e1)->d_name,(*e2)->d_name);
 
 }
+
+void DAQEvent::SetEOFIn(){
+  if(fbin){
+   fbin.clear(fbin.rdstate() | ios::eofbit);
+   if(fbin.eof())cout <<"DAQEvent::SetEOFIn-I-EOFSetForRun "<<_Run<<" "<<endl;
+   else cerr <<"DAQEvent::SetEOFIn-E-EOFSetFailedForRun "<<_Run<<" "<<endl;
+  }
+}
