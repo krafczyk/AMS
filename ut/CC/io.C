@@ -78,11 +78,14 @@ void AMSIO::init(integer mode,integer format){
             if(format==0)cerr <<"AMSIO::init-F-Failed to select Run = "<<SELECTFFKEY.Run<<
               " Event >= "<<SELECTFFKEY.Event<<endl;
           if(format==1){
+            fbin.seekg(fbin.tellg()-2*sizeof(io));
+            ok=io.read();
             theta=theta*AMSDBc::raddeg;
             phi=phi*AMSDBc::raddeg;
             pole=pole*AMSDBc::raddeg;
              cout<<"AMSIO::init-I-Total of "<<ipos-1
              <<" events have been read."<<endl;
+             cout <<" Last Run & Event "<<io.getrun()<<" "<<io.getevent()<<endl;
              cout << " Last Random Number "<<seed0<<" "<<seed1    <<endl;
              cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
              cout << " Time "<<ctime(&time)<<endl;

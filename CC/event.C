@@ -105,7 +105,7 @@ static number dtime=AMSmceventg::Orbit.FlightTime/
   curtime+=xsec;
   pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
   phi=fmod(phi+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
-  theta=asin(AMSmceventg::Orbit.AlphaSinThetaMax*
+  theta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*
         cos(phi-AMSmceventg::Orbit.PhiZero));
   _time=mktime(&AMSmceventg::Orbit.Begin)+curtime+0.5;
   _NorthPolePhi=pole;

@@ -155,14 +155,14 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   
   Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
   Orbit.PhiI=CCFFKEY.phi/AMSDBc::raddeg;
-  Orbit.AlphaSinThetaMax=sin(MIR/AMSDBc::raddeg);
-  number r= sin(Orbit.ThetaI)/Orbit.AlphaSinThetaMax;
+  Orbit.AlphaTanThetaMax=tan(MIR/AMSDBc::raddeg);
+  number r= tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
   if(r > 1 || r < -1){
     cerr <<"AMSMCEVENTG::setspectra-ThetaI too high "<<Orbit.ThetaI<<endl;
     if(Orbit.ThetaI < 0 )Orbit.ThetaI = -MIR/AMSDBc::raddeg;
     else Orbit.ThetaI= MIR/AMSDBc::raddeg;
     cerr <<"AMSMCEVENTG::setspectra-ThetaI brought to "<<Orbit.ThetaI<<endl;
-    r=sin(Orbit.ThetaI)/Orbit.AlphaSinThetaMax;
+    r=tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
   }
   Orbit.PhiZero=Orbit.PhiI+CCFFKEY.sdir*fabs(acos(r));
 

@@ -18,7 +18,7 @@
 class orbit{
 public:
 integer Nskip;
-number AlphaSinThetaMax;
+number AlphaTanThetaMax;
 number AlphaSpeed;
 number ThetaI;
 number PhiI;
