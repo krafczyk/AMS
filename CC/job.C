@@ -2174,8 +2174,8 @@ else {
 
 #ifdef __DB__
 
-integer AMSJob::FindTheBestTDV(char* name, integer id, time_t timeV, integer &S, 
-                               time_t &I, time_t &B, time_t &E)
+integer AMSJob::FindTheBestTDV(char* name, integer id, time_t timeV, 
+                              integer &S, time_t &I, time_t &B, time_t &E)
 //
 //  (1) find TDV by name in tdvNameTab
 //  (2) find timeB =< timeV =< timeE
@@ -2238,7 +2238,7 @@ integer AMSJob::FindTheBestTDV(char* name, integer id, time_t timeV, integer &S,
          cerr <<"AMSJob::FindTheBestTDV -W- cannot find TDV for "<<name<<endl;
          cerr <<"time "<<asctime(localtime(&timeV))<<endl;
        }
-    break;
+      break;
      } else {
        cout<<"AMSJob::FindTheBestTDV -W- no TDV for "<<name<<endl;
        rstatus = -1;

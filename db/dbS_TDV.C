@@ -321,6 +321,7 @@ ooStatus   LMS::ReadTDV(char* tdvname, integer id,
     while (tdvItr.next()) {
       cout<<"ReadTDV -I- found TDV in database for "<<tdvname<<endl;
       tdvItr -> PrintTime();
+      cout<<"ReadTDV -I- CRC "<<tdvItr -> getCRC()<<endl;
       tdvItr -> copy(buff);
       found = 1;
       break;

@@ -34,6 +34,7 @@ AMSTimeIDD(char* name, integer id, time_t begin, time_t insert, time_t end);
 inline integer getid()          {return _id;}
        char*   getname()        {return _name;}
 uinteger       getCRC() const   {return _CRC;}
+void           setCRC(uinteger crc)    {_CRC = crc;}
 integer getsize()               { return _pData.size();}
 
 void    SetTime(time_t insert, time_t begin, time_t end);

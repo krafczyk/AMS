@@ -4,7 +4,7 @@
 //
 // Use original code from V.Choutko to read TDV
 //
-// Last Edit : Feb 21, 1998. ak
+// Last Edit : Feb 24, 1998. ak
 //
 #include <iostream.h>
 #include <fstream.h>
@@ -290,6 +290,7 @@ int main(int argc, char* argv[])
    l  = strlen(filename);
    int lastdot    = -1;
    int prelastdot = -1;
+   for (i=0; i<120; i++) objname[i] = '\0';
    for (i=l; i>0; i--) {
      if(filename[i] == dot[0]) {
        if(lastdot < 0)  
@@ -311,7 +312,7 @@ int main(int argc, char* argv[])
       break;
      }
     }
-    objname[i++] = '\0';
+    objname[i] = '\0';
     id[j+1] = '\0';
   } else {
     for (i=0; i<lastdot; i++) objname[i] = filename[i];
@@ -342,6 +343,7 @@ int main(int argc, char* argv[])
        Begin  = time_t(pdata[Nbytes/sizeof(pdata[0])+1]);
        End    = time_t(pdata[Nbytes/sizeof(pdata[0])+2]);
        CRC    = pdata[ns-1];
+       cout <<"CRC... "<<CRC<<endl;
       }
        else {
         cerr<<"Error - Problems to Read File "<<filepath<<endl;
@@ -461,6 +463,7 @@ int main(int argc, char* argv[])
    if (status != -1) {
     tdvH = new(contH) AMSTimeIDD(objname, iid, Begin, Insert, End);
     tdvH -> CopyIn(Nbytes, pdata);
+    tdvH -> setCRC(CRC);
     lms.Commit();
     Message("Write TDV's to the database and Commit");
    } else {

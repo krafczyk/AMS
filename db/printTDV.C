@@ -96,7 +96,6 @@ static char    *tdvnames[] = {
    "TrackerStatus.l",
    "TrackerStatus.r",
    "TrackerCmnNoise",
-   "TrackerIndNoise",
    "Tofbarcal1",
    "Tofvpar",
    "Tofmcscans",
