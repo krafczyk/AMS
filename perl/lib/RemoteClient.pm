@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.3 2002/02/21 13:14:53 choutko Exp $
+# $Id: RemoteClient.pm,v 1.4 2002/02/26 13:28:41 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -18,6 +18,7 @@ sub new{
 my %fields=(
         FinalMessage=>undef,
         Runs=>[],
+        DataSetsT=>[],
         TempT=>[],
         MailT=>[],
         CiteT=>[],
@@ -25,7 +26,7 @@ my %fields=(
         AMSDataDir=>undef,
         CERN_ROOT=>undef,
         UploadsDir=>undef,
-        RemoteClientsDir=>"prod.log/scripts/",
+        LocalClientsDir=>"prod.log/scripts/",
         Name=>'/cgi-bin/mon/rc.cgi',
         DataMC=>0,
         IOR=>undef,
@@ -172,6 +173,116 @@ my %mv=(
  }
     $self->{UploadsDir}="/home/httpd/cgi-bin/AMS02MCUploads";
     $self->{AMSSoftwareDir}="$self->{AMSDataDir}/DataManagement";
+#sqlserver
+    $self->{sqlserver}=new DBSQLServer();
+    $self->{sqlserver}->Connect();
+#datasets
+{
+     $dir="$self->{AMSSoftwareDir}/DataSets";
+     opendir THISDIR ,$dir or die "unable to open $dir";
+     my @allfiles= readdir THISDIR;
+     closedir THISDIR;    
+    foreach my $file (@allfiles){
+        my $newfile="$dir/$file";
+        if(readlink $newfile or  $file =~/^\./){
+         next;
+        }
+       my @sta = stat $newfile;
+      if($sta[2]<32000){
+          my $dataset={};
+          $dataset->{name}=$file;
+          $dataset->{jobs}=[];
+       opendir THISDIR, $newfile or die "unable to open $newfile";
+       my @jobs=readdir THISDIR;
+       closedir THISDIR;
+          push @{$self->{DataSetsT}}, $dataset;
+       foreach my $job (@jobs){
+        if($job =~ /\.job$/){
+           my $template={};
+           my $full="$newfile/$job";
+           my $buf;
+           open(FILE,"<".$full) or die "Unable to open file $full \n";
+           read(FILE,$buf,1638400) or next;
+           close FILE;
+           $template->{filename}=$job;
+           my @sbuf=split "\n",$buf;
+           my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND");
+           foreach my $ent (@farray){
+            foreach my $line (@sbuf){
+               if($line =~/$ent=/){
+                   my @junk=split "$ent=",$line;                 
+                   $template->{$ent}=$junk[$#junk];
+                   $buf=~ s/$ent=/C$ent=/;
+                   last;
+               }
+            }         
+           }
+           $template->{initok}=1;
+           foreach my $ent (@farray){
+             if(not defined $template->{$ent}){
+               $template->{initok}=undef;
+             }
+           }
+#
+# get no of events
+#
+              my $sql="select did from DataSets where name='$dataset->{name}'";
+              my $ret=$self->{sqlserver}->Query($sql);
+              if( defined $ret->[0][0]){
+                 $dataset->{did}=$ret->[0][0];    
+                 $sql="select jid,time,triggers,timeout from Jobs where did=$ret->[0][0] and jobname like '%$template->{filename}'";
+                 my $r2= $self->{sqlserver}->Query($sql);
+                 if(defined $r2->[0][0]){
+                     foreach my $job (@{$r2}){
+                         if ($job->[1]-time()>$job->[3]){
+                             $sql="select FEvent,LEvent from Runs where jid=$job->[0] and status='Finished'";
+                             my $r3=$self->{sqlserver}->Query($sql);
+                             if(defined $r3->[0][0]){
+                              foreach my $run (@{$r3}){
+                               $template->{TOTALEVENTS}-=$run->[0];
+                              } 
+                             }
+                         }
+                         else {
+#
+# subtract allocated events
+                             $template->{TOTALEVENTS}-=$job->[2];
+#
+                         }
+                     }
+                 }
+             }
+           else{
+               $sql="select did from DataSets";
+               $ret=$self->{sqlserver}->Query($sql);
+               my $did=0;
+               if(defined $ret->[0][0]){
+                   foreach my $ds (@{$ret}){
+                       if($ds->[0]>$did){
+                           $did=$ds->[0];
+                       }
+                   }
+               }
+               $did++;
+               $dataset->{did}=$did;
+             $sql="insert into DataSets values($did,'$dataset->{name}')";
+             $self->{sqlserver}->Update($sql); 
+           }
+          
+           if($sbuf[0] =~/^#/ && defined $template->{initok}){
+
+            $buf=~ s/#/C /;
+            $template->{filebody}=$buf;
+            my $desc=$sbuf[0];
+            substr($desc,0,1)=" ";
+            $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
+           push @{$dataset->{jobs}}, $template; 
+           }        
+       }        
+    }
+      }
+    }
+}
 #templates
 
      $dir="$self->{AMSSoftwareDir}/Templates";
@@ -181,12 +292,12 @@ my %mv=(
 foreach my $file (@allfiles){
     if($file =~ /\.job$/){
         my $temp={};
-        $temp->{filename}=$file;
         my $full=$dir."/$file";
         open(FILE,"<".$full) or die "Unable to open file $full \n";
         my $buf;
         read(FILE,$buf,1638400) or next;
         close FILE;
+        $temp->{filename}=$file;
         my @sbuf=split "\n",$buf;
         if($sbuf[0] =~/^#/){
            $buf=~ s/#/C /;
@@ -216,9 +327,6 @@ foreach my $file (@allfiles){
         die "No Basic Templates Available";
     }
 
-#sqlserver
-    $self->{sqlserver}=new DBSQLServer();
-    $self->{sqlserver}->Connect();
 #cites table
     my $sql="select * from Cites";
     my ($values, $fields)=$self->{sqlserver}->QueryAll($sql);
@@ -679,6 +787,7 @@ sub Connect{
                 -action=>$self->{Name});
 print qq`
          <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem> 
+         <INPUT TYPE="hidden" NAME="DID" VALUE=0> 
 `;
          print "<BR>Basic Templates";
          my @tempnam=();
@@ -745,6 +854,7 @@ print qq`
                 -action=>$self->{Name});
 print qq`
          <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem> 
+         <INPUT TYPE="hidden" NAME="DID" VALUE=0> 
 `;
 #         print "<BR>Basic Templates";
 #         my @tempnam=();
@@ -776,7 +886,7 @@ print qq`
           print "<BR>";
                 print "Total Number of Events ";
           print $q->textfield(-name=>"QEv",-default=>1000000);
-                print "Number of Runs (Max 100)";
+                print "Number of Jobs (Max 100)";
           print $q->textfield(-name=>"QRun",-default=>3);
                 my ($rndm1,$rndm2) = $self->getrndm();
           print "<BR>";
@@ -855,18 +965,79 @@ print qq`
           print "<BR>";
           print $q->submit(-name=>"AdvancedQuery", -value=>"Submit");
           print $q->reset(-name=>"Reset");
-          }
+            }
           else{
+            
               my $query=$self->{q}->param("CTT");
+              my $found=0;
+           
+         foreach my $dataset (@{$self->{DataSetsT}}){
+             if($dataset->{name} eq $query){
+                 $found=1;
+                 if(not $self->{CCR}){
+                   $self->{FinalMessage}=" Sorry Only Cite Responsible Is allowed to Request Production DataSets";
+                 }
+                 else{                   
+                print $q->header( "text/html" ),
+                $q->start_html( "Welcome");
+                print $q->h1( "Welcome   $self->{CEM}. How are you today?");
+                print $q->start_form(-method=>"GET", 
+                -action=>$self->{Name});
+print qq`
+         <INPUT TYPE="hidden" NAME="CEM" VALUE=$cem> 
+         <INPUT TYPE="hidden" NAME="DID" VALUE=$dataset->{did}> 
+`;
+              print "<BR>Templates";
+         my @tempnam=();
+             my $hash={};
+         foreach my $cite (@{$dataset->{jobs}}){
+             if(not ($cite->{filename} =~/^\./)){
+              push @tempnam, $cite->{filename};
+              $hash->{$cite->{filename}}=$cite->{filedesc};
+          }
+         }
+         print $q->popup_menu(
+          -name=>"QTemp",
+          -values=>\@tempnam,
+          -default=>$tempnam[0],
+          -labels=>$hash);
+          print "<BR>";
+                print "Remote Computer Clock (MhZ)";
+          print $q->textfield(-name=>"QCPU",-default=>1000);
+          print "<BR>";
+                print "Total Number of Events ";
+          print $q->textfield(-name=>"QEv",-default=>1000000);
+                print "Number of Runs (Max 100)";
+          print $q->textfield(-name=>"QRun",-default=>3);
+          print "<BR>";
+                print "Approximate Jobs Total Elapsed Time (days)";
+          print $q->textfield(-name=>"QTimeOut",-default=>7);
+          print "<BR>";
+         print "Automatic NtupleFile Transfer to Server";
+          print "<BR>";
+   print qq`
+<INPUT TYPE="radio" NAME="AFT" VALUE="R" CHECKED>Yes<BR>
+<INPUT TYPE="radio" NAME="AFT" VALUE="L" >No<BR>
+`;
+
+          print "<BR>";
+          print $q->submit(-name=>"ProductionQuery", -value=>"Submit");
+          print $q->reset(-name=>"Reset");
+                 }
+                 last;
+             }
+         }
+              if(not $found){
             $self->{FinalMessage}=" Sorry  $query Query Not Yet Implemented";     
+        }
           }
          #$self->{FinalMessage}=" Your request was succsesfully sent to $self->{CEM}";     
 
         }
-}
+    }
 
 
-    if ($self->{q}->param("BasicQuery") or $self->{q}->param("AdvancedQuery")){
+    if ($self->{q}->param("BasicQuery") or $self->{q}->param("AdvancedQuery") or $self->{q}->param("ProductionQuery")){
         $self->{read}=1;
 #  check par
         my $cem=lc($q->param("CEM"));
@@ -879,7 +1050,17 @@ print qq`
         }
 
 #        $self->ErrorPlus(" $self->{CCA} $self->{CCT} $self->{CCID} $self->{CEM} $self->{CEMA} $self->{CEMID}");
-        if($self->{q}->param("BasicQuery") eq "Save" or $self->{q}->param("AdvancedQuery") eq "Save"){
+        if($self->{q}->param("BasicQuery") eq "Save" or $self->{q}->param("AdvancedQuery") eq "Save"  or $self->{q}->param("ProductionQuery") eq "Save"){
+            my $pass=$q->param("password");
+            if($self->{CCT} ne "remote" or defined $pass){
+            my $crypt=crypt($pass,"ams");
+            if($crypt ne "amGzkSRlnSMUU"){
+                   $self->sendmailerror("User authorization failed","$self->{CEM}");
+                  $self->ErrorPlus("User Authorization Failed. All Your Activity is Logged.");
+                   return;
+
+                }
+           }
          my $filename=$q->param("FEM");
          $q=get_state($filename);          
          if(not defined $q){
@@ -889,29 +1070,71 @@ print qq`
          unlink $filename;
         }
         my $aft=$q->param("AFT");
-        my $timbeg=$q->param("QTimeB");
-        my $timend=$q->param("QTimeE");
         my $templatebuffer=undef;
         my $template=undef;
-        if ($self->{q}->param("BasicQuery")){
-         $template=$q->param("QTemp");
+        my $did=$q->param("DID");
+        my $timeout=3600*24*35;
+        my $dataset=undef;
+        foreach my $ds (@{$self->{DataSetsT}}){
+            if ($ds->{did}==$did){
+                $dataset=$ds;
+                last;
+            }
         }
-        else{
+        if ($self->{q}->param("AdvancedQuery") ){
             $template='.Advanced.job';
         }
+        else{
+         $template=$q->param("QTemp");
+        }
+        if(defined $dataset){
+         foreach my $tmp (@{$dataset->{jobs}}) {
+            if($template eq $tmp->{filename}){
+                $templatebuffer=$tmp->{filebody};
+                my ($rndm1,$rndm2) = $self->getrndm();
+                if(not defined $q->param("QRNDM1")){
+                    $q->param("QRNDM1",$rndm1);
+                }
+                if(not defined $q->param("QRNDM2")){
+                    $q->param("QRNDM2",$rndm2);
+                }
+                if(not defined $q->param("QTimeB")){
+                    $q->param("QTimeB",$tmp->{TIMBEG});
+                }
+                if(not defined $q->param("QTimeE")){
+                    $q->param("QTimeE",$tmp->{TIMEND});
+                }
+                if(not defined $q->param("QMomI")){
+                    $q->param("QMomI",$tmp->{PMIN});
+                }
+                if(not defined $q->param("QMomA")){
+                    $q->param("QMomA",$tmp->{PMAX});
+                }
+                if(not defined $q->param("QPart")){
+                    $q->param("QPart",$tmp->{PART});
+                }
+                my $evno=$q->param("QEv");
+                if(not $evno =~/^\d+$/ or $evno <1 or $evno>$tmp->{TOTALEVENTS}){
+                    $q->param("QEv",$tmp->{TOTALEVENTS});
+                }
+                last;
+      
+            }
+        }
+     }
+        else{  
          foreach my $tmp (@{$self->{TempT}}){
             if($template eq $tmp->{filename}){
                 $templatebuffer=$tmp->{filebody};
                 last;
             }
          }
+        }
         if(not defined $templatebuffer){
             $self->ErrorPlus("Could not find file for $template template.");
         }
-        my $particle=$q->param("QPart");
-        my $particleid=$self->{tsyntax}->{particles}->{$particle};
         my $a=1;
-        my $b=2147483647;
+        my $b=2147483647000;
         my $rndm1=$q->param("QRNDM1");
         my $rndm2=$q->param("QRNDM2");
         if(not $rndm1 =~/^\d+$/ or $rndm1 <$a or $rndm1>$b){
@@ -922,13 +1145,13 @@ print qq`
              $self->ErrorPlus("RNDM2 $rndm1 is out of range ($a,$b)");
          
         }
-        my $pmin=$q->param("QMomI");
-        my $pmax=$q->param("QMomA");
+         my $pmin=$q->param("QMomI");
+          my $pmax=$q->param("QMomA");
         if(not $pmin =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/){
              $self->ErrorPlus("pmin $pmin is not a float number ");
         }
         if(not $pmax =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/){
-             $self->ErrorPlus("pmax $pmin is not a float number ");
+             $self->ErrorPlus("pmax $pmax is not a float number ");
         }
 #randomize pmin
         if($pmin>$pmax){
@@ -947,31 +1170,6 @@ print qq`
         }
         $cput=50+$pmax*1000/$cput;
         
-        if(not $timbeg =~/^\d+$/ ){
-             $self->ErrorPlus("TimeBegin $timbeg is not an integer");
-        }
-        my $year=$timbeg%10000-1900;
-        my $month=int($timbeg/10000)%100-1;
-        my $date=int($timbeg/1000000)%100;
-        if($year < 96 or $year > 110 or $month<0 or $month>11 or $date<1 or $date>31){
-             $self->ErrorPlus("TimeBegin $timbeg is out of range $date $month $year");
-        }
-        my $timbegu=timelocal(1,0,8,$date,$month,$year);
-        if(not $timend =~/^\d+$/ ){
-             $self->ErrorPlus("TimeEnd $timend is not an integer");
-        }
-        $year=$timend%10000-1900;
-        $month=int($timend/10000)%100-1;
-        $date=int($timend/1000000)%100;
-        if($year < 96 or $year > 110 or $month<0 or $month>11 or $date<1 or $date>31){
-             $self->ErrorPlus("TimeEnd $timend is out of range $date $month $year");
-        }
-        my $timendu=timelocal(1,0,8,$date,$month,$year);
-#check if remote
-       
-            if ($self->{CCT} ne "remote"){
-                $self->ErrorPlus("$self->{CCT} requests are not yet supported.");
-            } 
         my $evno=$q->param("QEv");
         my $runno=$q->param("QRun");
         if(not $evno =~/^\d+$/ or $evno <$a or $evno>$b){
@@ -985,8 +1183,47 @@ print qq`
              $self->ErrorPlus("Runs no $runno greater than events no $evno");
          }
         my $evperrun=int ($evno/$runno);
+        if($evperrun > (1<<31)-1){
+            $self->ErrorPlus('EventsPerRun Exceeds 2^31-1 :'."$evperrun");
+        } 
         my $lastrunev=$evno-$evperrun*($runno-1);
-
+        my ($particleid,$timbeg,$timend,$timbegu,$timendu);
+         $timbeg=$q->param("QTimeB");
+         $timend=$q->param("QTimeE");
+        if(not $timbeg =~/^\d+$/ ){
+             $self->ErrorPlus("TimeBegin $timbeg is not an integer");
+        }
+        my $year=$timbeg%10000-1900;
+        my $month=int($timbeg/10000)%100-1;
+        my $date=int($timbeg/1000000)%100;
+        if($year < 96 or $year > 110 or $month<0 or $month>11 or $date<1 or $date>31){
+             $self->ErrorPlus("TimeBegin $timbeg is out of range $date $month $year");
+        }
+         $timbegu=timelocal(1,0,8,$date,$month,$year);
+        if(not $timend =~/^\d+$/ ){
+             $self->ErrorPlus("TimeEnd $timend is not an integer");
+        }
+        $year=$timend%10000-1900;
+        $month=int($timend/10000)%100-1;
+        $date=int($timend/1000000)%100;
+        if($year < 96 or $year > 110 or $month<0 or $month>11 or $date<1 or $date>31){
+             $self->ErrorPlus("TimeEnd $timend is out of range $date $month $year");
+        }
+         $timendu=timelocal(1,0,8,$date,$month,$year);
+        if($self->{q}->param("ProductionQuery")){
+          $timeout=$q->param("QTimeOut");
+          if(not $timeout =~/^-?(?:\d+(?:\.\d*)?|\.\d+)$/ or $timeout <1 or $timeout>31){
+             $self->ErrorPlus("Time  $evno is out of range (1,31) days. ");
+          }
+          $timeout=int($timeout*1.41*3600*24);
+          $particleid= $q->param("QPart");
+        }
+        else{
+#basic only
+       
+        my $particle=$q->param("QPart");
+         $particleid=$self->{tsyntax}->{particles}->{$particle};
+     }
 # advanced only
         my ($setup,$trtype,$rootntuple,$rno,$spectrum,$focus,$cosmax,$geocutoff,$plane);
             my @cubes=();
@@ -1082,7 +1319,10 @@ print qq`
         if($#stag<0){
               $self->ErrorPlus("Unable to find gbatch-orbit on the Server ");
         }
-        my $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
+        my $file2tar;
+        my $filedb;
+        if($self->{CCT} eq "remote"){
+        $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
         my @sta = stat $filedb;
         if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9]){
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
@@ -1116,24 +1356,26 @@ print qq`
         open(FILE,">".$readme) or die "Unable to open file $readme\n";
         print FILE  $self->{tsyntax}->{headers}->{readme};
         close FILE;
-        my $file2tar="$self->{UploadsDir}/ams02mcscript.$run.tar";
+         $file2tar="$self->{UploadsDir}/ams02mcscript.$run.tar";
         my $i=system("tar -C$self->{UploadsDir} -cf  $file2tar README.$run"); 
           if($i){
               $self->ErrorPlus("Unable to tar readme to $file2tar ");
           }
         unlink $readme;
-        for $i (1 ... $runno){
+    }
+        
+        for my $i (1 ... $runno){
          #find buffer and patch it accordingly
          my $evts=$evperrun;
          if($i eq $runno){
              $evts=$lastrunev;
          }              
 #read header
-         my $buf=$self->{tsyntax}->{headers}->{remote};
+         my $buf=$self->{tsyntax}->{headers}->{$self->{CCT}};
          my $tmpb=$templatebuffer;
          if(not defined $buf){
-             $self->ErrorPlus("Unable to find  remote header file. ");
-         }        
+             $self->ErrorPlus("Unable to find   header file. ");
+         } 
          my $start=$timbegu+int(($timendu-$timbegu)/$runno)*($i-1);
              my $end=$start+int(($timendu-$timbegu)/$runno);
              my ($s,$m,$h,$date,$mon,$year)=localtime($start);
@@ -1182,15 +1424,21 @@ print qq`
          $buf=~ s/CPULIM=/CPULIM=$cputf/;         
          $buf=~ s/PMIN=/PMIN=$pminf/;         
          $buf=~ s/PMAX=/PMAX=$pmaxf/;         
+         if($self->{CCT} eq "local"){
+           $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
+         }       
+         else{
           $buf=~ s/gbatch-orbit.exe/gbatch-orbit.exe -$self->{IORP} -U$run -M -D1 -G$aft/;
+      }
          my $script="$self->{CCA}.$run.$template";
-         my $root="$self->{UploadsDir}/$script";
-         if($self->{q}->param("AdvancedQuery") eq "Submit" or $self->{q}->param("BasicQuery") eq "Submit"){
+         my $root=$self->{CCT} eq "remote"?"$self->{UploadsDir}/$script":
+         "$self->{AMSDataDir}/$self->{LocalClientsDir}/$script";
+         if($self->{q}->param("AdvancedQuery") eq "Submit" or $self->{q}->param("BasicQuery") eq "Submit" or $self->{q}->param("ProductionQuery") eq "Submit"){
 # add one more check here using save state
             $sql="update Cites set state=0 where name='$self->{CCA}'";
             $self->{sqlserver}->Update($sql);
              my $save="$self->{UploadsDir}/$self->{CCA}.$run.$self->{CEMID}save";
-             my $param=$self->{q}->param("AdvancedQuery")?"AdvancedQuery":"BasicQuery";
+             my $param=$self->{q}->param("AdvancedQuery")?"AdvancedQuery":($self->{q}->param("ProductionQuery")?"ProductionQuery":"BasicQuery");
             $q->param($param,"Save");
             $q->param("FEM",$save);
              save_state($q,$save);
@@ -1205,6 +1453,13 @@ print qq`
 `;
          print $q->textarea(-name=>"CCA",-default=>"$buf$tmpb",-rows=>30,-columns=>80);
              print "<BR>";
+         if($self->{CCT} eq "local"){
+
+   print qq`
+Password: <INPUT TYPE="password" NAME="password" VALUE="" ><BR>
+`;
+}
+             print "<BR>";
          print $q->submit(-name=>$param, -value=>"Save");
          return 1;   
          }
@@ -1213,10 +1468,13 @@ print qq`
          print FILE $tmpb;
          close FILE;
          my $j=system("chmod +x  $root"); 
+         if($self->{CCT} eq "remote"){
          $j=system("tar -C$self->{UploadsDir} -uf  $file2tar $script"); 
           if($j){
               $self->ErrorPlus("Unable to tar $script to $file2tar ");
           }
+          unlink $root;
+         }
          $buf=~s/\$/\\\$/g;
          $buf=~s/\"/\\\"/g;
          $buf=~s/\(/\\\(/g;
@@ -1227,9 +1485,9 @@ print qq`
          $tmpb=~s/\)/\\\)/g;
          $tmpb=~s/\$/\\\$/g;
          $tmpb=~s/\'/\\'/g;
-         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},'$buf$tmpb')";
+         my $ctime=time();
+         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb')";
          $self->{sqlserver}->Update($sql);
-         unlink $root;
 #creat corresponding runevinfo
          my $ri={};
          $ri->{uid}=0;
@@ -1240,10 +1498,18 @@ print qq`
          $ri->{TLEvent}=$timendu;
          $ri->{Priority}=0;
          $ri->{FilePath}=$script;
-         $ri->{Status}="Foreign";
-         $ri->{History}="Foreign";
+       
+            if ($self->{CCT} eq "remote"){
+             $ri->{Status}="Foreign";
+             $ri->{History}="Foreign";
+             $ri->{cuid}=$ri->{Run};
+            } 
+            else{
+             $ri->{Status}="ToBeRerun";
+             $ri->{History}="ToBeRerun";
+             $ri->{cuid}=0;
+            }
          $ri->{SubmitTime}=time();
-         $ri->{cuid}=$ri->{Run};
          $ri->{cinfo}={};
          $ri->{cinfo}->{Run}=$ri->{Run};
          $ri->{cinfo}->{EventsProcessed}=0;
@@ -1257,20 +1523,23 @@ print qq`
          push @{$self->{Runs}}, $ri; 
          $run=$run+1;
      }
-          $i=system("gzip -f $file2tar");
+         if ($self->{CCT} eq "remote"){
+          my $i=system("gzip -f $file2tar");
           if($i){
               $self->ErrorPlus("Unable to gzip  $file2tar");
           }
-         
-                  my $address=$self->{CEM};
+        }     
+        my $address=$self->{CEM};
         my $frun=$run-$runno;
         my $lrun=$run-1;
         my $subject="AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
                   my $message=$self->{tsyntax}->{headers}->{readme};
                   my $attach="$file2tar.gz,ams02mcscripts.tar.gz;$filedb,ams02mcdb.tar.gz";
 #                  my $attach="$file2tar.gz,ams02mcscripts.tar.gz";
+         if ($self->{CCT} eq "remote"){
                   $self->sendmailmessage($address,$subject,$message,$attach);
-                  $i=unlink "$file2tar.gz";
+                  my $i=unlink "$file2tar.gz";
+         }
          my $totalreq=$self->{CEMR}+$runno;
          $sql="Update Mails set requests=$totalreq where mid=$self->{CEMID}";
          $self->{sqlserver}->Update($sql);              
@@ -1348,7 +1617,15 @@ print qq`
 <INPUT TYPE="radio" NAME="CTT" VALUE="Basic" CHECKED>Basic<BR>
 <INPUT TYPE="radio" NAME="CTT" VALUE="Advanced" >Advanced<BR>
 `;
-       print $q->submit(-name=>"MyQuery", -value=>"Submit");
+    print "<BR>";
+    print "Production DataSets (Cite's Responsible Only)";
+    print "<BR>";
+    foreach my $dataset (@{$self->{DataSetsT}}){
+print qq`
+<INPUT TYPE="radio" NAME="CTT" VALUE="$dataset->{name}" >$dataset->{name}<BR>
+`;
+    }
+       print $q->submit(-name=>"MyQuery", -value=>"Click Here To Begin");
        print $q->reset(-name=>"Reset");
          print $q->end_form;
 }
@@ -1478,7 +1755,7 @@ sub findemail(){
     my $self=shift;
         my $cem=shift;
         foreach my $chop (@{$self->{MailT}}) {
-            if($chop->{address} eq $cem ){
+            if($chop->{address} eq $cem  and $cem ne "" and $cem ne " " and defined $cem){
                 $self->{CEM}=$cem;
                 $self->{CEMA}=$chop->{status};
                 $self->{CEMID}=$chop->{mid};
@@ -1488,13 +1765,14 @@ sub findemail(){
                         $self->{CCA}=$cite->{name};
                         $self->{CCT}=$cite->{status};
                         $self->{CCID}=$cite->{cid};
+                        $self->{CCR}=$chop->{rSite} ;
                         last;
                     }
                 }  
                 last;
             }
             elsif (defined $chop->{alias} and $chop->{status} eq "Active"){
-             if($chop->{alias} eq $cem){
+             if($chop->{alias} eq $cem and $cem ne "" and $cem ne " " and defined $cem){
                 $self->{CEM}=$cem;
                 $self->{CEMA}=$chop->{status};
                 $self->{CEMID}=$chop->{mid};
@@ -1504,6 +1782,7 @@ sub findemail(){
                         $self->{CCA}=$cite->{name};
                         $self->{CCT}=$cite->{status};
                         $self->{CCID}=$cite->{cid};
+                        $self->{CCR}=$chop->{rSite};
                         last;
                     }
                 }  

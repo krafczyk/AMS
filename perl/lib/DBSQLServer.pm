@@ -1,5 +1,5 @@
 
-# $Id: DBSQLServer.pm,v 1.1 2002/02/20 18:00:24 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.2 2002/02/26 13:28:41 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -92,7 +92,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples");
+    my @tables=("filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples","DataSets");
 
     my @createtables=("    CREATE TABLE filesystems
     (fid         CHAR(4) NOT NULL,
@@ -124,7 +124,10 @@ sub Create{
        jobname VARCHAR(255),
        mid     INT,
        cid     INT,
+       did     INT,
        time    INT,
+       triggers INT,
+       timeout  INT,
        content TEXT )",
       "CREATE TABLE Servers
        (dbfilename VARCHAR(255) NOT NULL,
@@ -155,7 +158,13 @@ sub Create{
          date   INT,
          sizemb   INT,
          status   VARCHAR(64),
-         path   VARCHAR(255))"
+         path   VARCHAR(255))",
+        "CREATE TABLE DataSets
+         (did    INT NOT NULL,
+          name   VARCHAR(255))",
+        "CREATE TABLE Environment
+         (key    VARCHAR(255) NOT NULL,
+          value   VARCHAR(255))"
          );
 # status ntuples:  OK, Unchecked, Errors
 #      
@@ -183,7 +192,7 @@ sub Create{
  }
 
 # initialize 
-    my $run=100;
+    my $run=110;
   $dbh->do("insert into Cites values(1,'cern',0,
             'local',$run,0)")or die "cannot do: ".$dbh->errstr();    
      $run=(1<<27)+1;
