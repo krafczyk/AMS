@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.49 2002/07/15 15:21:32 alexei Exp $
+# $Id: RemoteClient.pm,v 1.50 2002/07/17 14:14:38 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2722,7 +2722,7 @@ print qq`
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/ri* $self->{UploadsDir}/$dbversion";
         $i=system "tar -C$self->{UploadsDir} -h -cf $filen $dbversion";
           if($i){
-              $self->ErrorPlus("Unable to tar $dbversion to $filen");
+              $self->ErrorPlus("Unable to tar $self->{UploadsDir} $dbversion to $filen");
           }
          $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gbatch") ;
           if($i){
@@ -3067,14 +3067,52 @@ print qq`
                        unlink $file;
                      }
                   }                      
-                  $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";                     print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/download.o.cgi\"><b><font color=green> download </font></a><font size=3><i> (Click <b><i>download </i></b> to obtain exe and data files)</font></i></font></B></TR>";
+                  $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
+#                print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/download.o.cgi\"><b><font color=green> download </font></a><font size=3><i> (Click <b><i>download </i></b> to obtain exe and data files)</font></i></font></B></TR>";
              
     }
 
 
 #here the default action
  if($self->{read}==0){
-    $self->listAll();
+
+
+    print $q->header( "text/html" ),
+    $q->start_html(-title=>'Welcome');
+#       -bgcolor=>'blue.jpg' );
+#print qq`
+#<TITLE> Welcome </TITLE>
+#<body background="blue.jpg" >
+#<hr>
+#`;
+    print $q->h1( "Welcome to the AMS02 RemoteClient MC Request Form" );
+        print $q->start_form(-method=>"GET", 
+          -action=>$self->{Name});
+    print qq`
+ Client E-Mail Address<INPUT TYPE="text" NAME="CEM" VALUE="" SIZE=32>
+`;
+       print $q->submit(-name=>"MyRegister", -value=>"Register");
+    print "<BR>";
+    print "Please Choose Basic or Advanced Request Form Below";
+         print "<BR>";
+   print qq`
+<INPUT TYPE="radio" NAME="CTT" VALUE="Basic" CHECKED>Basic<BR>
+<INPUT TYPE="radio" NAME="CTT" VALUE="Advanced" >Advanced<BR>
+`;
+    print "<BR>";
+    print "Production DataSets (Cite's Responsible Only)";
+    print "<BR>";
+    foreach my $dataset (@{$self->{DataSetsT}}){
+print qq`
+<INPUT TYPE="radio" NAME="CTT" VALUE="$dataset->{name}" >$dataset->{name}<BR>
+`;
+    }
+       print $q->submit(-name=>"MyQuery", -value=>"Click Here To Begin");
+       print $q->reset(-name=>"Reset");
+         print $q->end_form;
+
+
+#    $self->listAll();
 } # default action
     elsif($self->{read}==1){
         if(defined $self->{FinalMessage}){
