@@ -40,6 +40,7 @@ DICTO         = $(DICT:.cxx=.o)
 
 
 MAIN          = main.cxx
+MAINH         = $(MAIN:.cxx=.h)
 MAINO         = $(MAIN:.cxx=.o)
 
 MAINC          = mainc.cxx
@@ -49,7 +50,7 @@ OBJS          = $(SRCS:.cxx=.o) $(DICTO)
 
 
 ALLDICT       = $(DICT) $(DICTH) 
-ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN)
+ALLSRCS       = $(SRCS)  $(HDRS)  $(ALLDICT) $(MAIN) $(MAINH)
 ALLOBJS       = $(OBJS) $(MAINO)
 
 
@@ -130,7 +131,7 @@ depend:
 
 dist:
 		rm -f $(AMSPRG).tar.gz ; \
-		tar cvf $(AMSPRG).tar $(ALLSRCS)  Make* ; \
+		tar cvf $(AMSPRG).tar $(ALLSRCS) 00index.txt Make* ; \
 		gzip $(AMSPRG).tar
 
 clean:

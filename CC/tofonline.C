@@ -226,8 +226,8 @@ void AMSJob::_retofonlineinitjob(){
 }
 //-----------------------------------------------------
 void AMSTOFRawEvent::tofonlinefill1(integer ilay, integer ibar, integer isid,
-					   int nedges[4], int num, int den,
-					   number Atovt, number Dtovt){
+				    int nedges[4], int num, int den,
+				    number Atovt, number Dtovt){
 // Histograms booking
 
 //   cerr<<"ilay="<<ilay<<"\tibar="<<ibar<<"\tisid="<<isid<<endl;
@@ -278,17 +278,20 @@ void AMSTOFRawEvent::tofonlinefill1(integer ilay, integer ibar, integer isid,
   }
 
   // Anode and dynode charge spectra (pC)
-  scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),0,Atovt,q);
-  hisID=ANODESTART+(ilay-1)*30+(14-ibar)+dir*14;
-  if(q>FLT_MAX)q=FLT_MAX-1;
-  else if(q<-FLT_MAX)q=-FLT_MAX+1;
-  HFF1(hisID,nIDhis[hisID-5000],geant(q),1.);
-  scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),1,Dtovt,q);
-  if(q>FLT_MAX)q=FLT_MAX-1;
-  else if(q<-FLT_MAX)q=-FLT_MAX+1;
-
-  hisID=DYNODESTART+(ilay-1)*30+(14-ibar)+dir*14;
-  HFF1(hisID,nIDhis[hisID-5000],geant(q),1.);
+  if(nedges[2]){
+    scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),0,Atovt,q);
+    hisID=ANODESTART+(ilay-1)*30+(14-ibar)+dir*14;
+    if(q>FLT_MAX)q=FLT_MAX-1;
+    else if(q<-FLT_MAX)q=-FLT_MAX+1;
+    HFF1(hisID,nIDhis[hisID-5000],geant(q),1.);
+  }
+  if(nedges[3]){
+    scbrcal[ilay-1][ibar-1].q2t2q(1,int(isid-1),1,Dtovt,q);
+    if(q>FLT_MAX)q=FLT_MAX-1;
+    else if(q<-FLT_MAX)q=-FLT_MAX+1;
+    hisID=DYNODESTART+(ilay-1)*30+(14-ibar)+dir*14;
+    HFF1(hisID,nIDhis[hisID-5000],geant(q),1.);
+  }
 
   // Time Expansion
   scbrcal[ilay-1][ibar-1].gtstrat(strat);
