@@ -58,6 +58,16 @@ geant NoiseProb[2];
 #define LVL3SIMFFKEY COMMON_BLOCK(LVL3SIMFFKEY,lvl3simffkey)
 COMMON_BLOCK_DEF(LVL3SIMFFKEY_DEF,LVL3SIMFFKEY);
 
+class LVL3EXPFFKEY_DEF{
+public:
+integer NEvents;
+integer ToBad;
+integer TryAgain;
+geant   Range[3][2];
+};
+#define LVL3EXPFFKEY COMMON_BLOCK(LVL3EXPFFKEY,lvl3expffkey)
+COMMON_BLOCK_DEF(LVL3EXPFFKEY_DEF,LVL3EXPFFKEY);
+
 
 
 class LVL3FFKEY_DEF {

@@ -26,6 +26,8 @@
 #include <trigger1.h>
 #include <trigger3.h>
 #include <antirec.h>
+extern "C" void uglast_();
+
 //
 //
 integer AMSEvent::debug=0;
@@ -958,6 +960,7 @@ while(offspring){
       cerr<<" Begin : " <<ctime(&b)<<endl; 
       cerr<<" End : " <<ctime(&e)<<endl; 
       cerr<<" Insert : " <<ctime(&i)<<endl; 
+      uglast_();
       exit(1);
     }
     offspring=(AMSTimeID*)offspring->next();

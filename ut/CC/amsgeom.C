@@ -423,8 +423,15 @@ AMSNode * p;
 void ctcgeom(AMSgvolume & mother){
 extern void ctcgeomE(AMSgvolume &, integer iflag);
 extern void ctcgeomAG(AMSgvolume& );
-ctcgeomAG(mother);
+extern void ctcgeomAGPlus(AMSgvolume& );
+if(strstr(AMSJob::gethead()->getsetup(),"CTCAnnecyPlus")){
+ctcgeomAGPlus(mother);
+  cout<<" CTCGeom-I-AnnecyPlus setup for CTC selected"<<endl;
+}
+else{
+  ctcgeomAG(mother);
   cout<<" CTCGeom-I-Annecy setup for CTC selected"<<endl;
+}
 }
 
 
@@ -723,6 +730,286 @@ void ctcgeomAG(AMSgvolume & mother){
       pLayer=mother.add(new AMSgvolume(
        "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
     }
+  //<--- Introduce the walls between modules
+
+     for(i=0;i<3;i++)parwal[i] = 0.5*CTCDBc::getwallsize(i);
+     coo[0] = 5.*0.5*CTCDBc::getcellsize(0)+5.*parwal[0];
+     coo[1] = 0.;
+     coo[2] = -0.5*CTCDBc::getupsize(2)+parwal[2];
+     for(i=0;i<CTCDBc::getnx()+1;i++){ //<---- Separators (WALL) loop ----
+       gid=1000000*ilay+10000*(i+1);
+       char cvolw[]="WALU";
+       cvolw[3]=cdum[ilay-1][0];
+       pLayer->add(new AMSgvolume(
+       "CTC_WALL",0,cvolw,"BOX ",parwal,3,coo,nrm,"ONLY",1,gid,1));
+       coo[0]+=  -CTCDBc::getcellsize(0)-2.*parwal[0];
+     } //<--- End of Separators (WALL) loop ----
+     for(i=0;i<CTCDBc::getny();i++){
+       for(j=0;j<CTCDBc::getnx();j++){
+        for(k=0;k<3;k++)par[k]=0.5*CTCDBc::getcellsize(k);
+        for(k=0;k<3;k++)pay[k]=0.5*CTCDBc::getygapsize(k);
+        coo[0]=(CTCDBc::getnx()-1)*(par[0]+parwal[0]);
+        coo[0]-=(par[0]+parwal[0])*2*j;
+        coo[1]=(CTCDBc::getny()-1)*(par[1]+pay[1]);
+        coo[1]-=(par[1]+pay[1])*2*i;
+        coo[2]=0.;
+        coy[0]=coo[0];
+        coy[1]=coo[1]-par[1]-pay[1];
+        coy[2]=coo[2];
+        gid=1000000*ilay+1000*(i+1)+100*(j+1);
+        char cvolc[]="CELU";
+        cvolc[3]=cdum[ilay-1][0];
+        pCell=pLayer->add(new AMSgvolume(
+        "CTC_DUMMYMED",0,cvolc,"BOX ",par,3,coo,nrm,"MANY",1,gid,1));
+        gid+=100000;
+        char cvolg[]="YGAU";
+        cvolg[3]=cdum[ilay-1][0];
+        pLayer->add(new AMSgvolume(
+        "CTC_DUMMYMED",0,cvolg,"BOX ",pay,3,coy,nrm,"ONLY",1,gid,1));
+        //  Put 4 pmt,ptfe & agel 
+        //<--- UPPER/ LOWER layer PTFE   up, PMT down         
+         int ix,iy,iz;
+          for(iy=0;iy<2;iy++){
+           for (ix=0;ix<2;ix++){
+            geant parptf[3],paragl[3],parpmt[3];
+            geant cooptf[3],coopmt[3],cooagl[3];
+            for(k=0;k<3;k++)parptf[k]=0.5*CTCDBc::getptfesize(k);
+            cooptf[0]=coo[0]+parptf[0]*(2*ix-1);
+            cooptf[1]=coo[1]+parptf[1]*(2*iy-1);
+            cooptf[2]=coo[2]-(-0.5*CTCDBc::getcellsize(2)+
+            parptf[2]);
+            char cvolptf[]="PTFU";
+            cvolptf[3]=cdum[ilay-1][0];
+            gid=1000000*ilay+1000*(i+1)+100*(j+1)+10+ix+1+2*iy;
+            pLayer->add(new AMSgvolume(
+            "ATC_PTFE",0,cvolptf,"BOX ",parptf,3,cooptf,nrm,"MANY",1,gid,1));
+            for(iz=0;iz<2;iz++){
+             //put two agel blocks
+             for(k=0;k<3;k++)paragl[k]=0.5*CTCDBc::getagelsize(k);
+             paragl[2]=(paragl[2]-ptfe)/2;
+             cooagl[0]=cooptf[0];
+             cooagl[1]=cooptf[1];
+             cooagl[2]=cooptf[2]+(2*iz-1)*(paragl[2]+ptfe/2);
+             gid=1000000*ilay+1000*(i+1)+100*(j+1)+20+ix+1+2*iy+4*iz;
+             char cvola[]="AGLU";
+             cvola[3]=cdum[ilay-1][0];
+             pLayer->add(new AMSgvolume(
+             "ATC_AEROGEL",0,cvola,"BOX ",paragl,3,cooagl,nrm,"ONLY",1,gid,1));
+            }
+            for(k=0;k<3;k++)parpmt[k]=0.5*CTCDBc::getpmtsize(k);
+            coopmt[0]=cooptf[0];
+            coopmt[1]=cooptf[1];
+            coopmt[2]=coo[2]-(0.5*CTCDBc::getcellsize(2)
+            -parpmt[2]);  
+            char cvolpmt[]="PMTU";
+            cvolpmt[3]=cdum[ilay-1][0];
+            gid=1000000*ilay+1000*(i+1)+100*(j+1)+30+ix+1+2*iy;
+            pLayer->add(new AMSgvolume(
+            "TOF_PMT_BOX",0,cvolpmt,"BOX ",parpmt,3,coopmt,nrm,"ONLY",1,gid,1));
+           }
+         }
+       }
+     }
+  }
+
+ }
+   // Create an ETXRa half-sized module
+  {
+  integer ilay;
+  AMSNode *pLayer;
+  AMSNode *pCell;
+  char cdum[2][5];
+  strcpy(cdum[0],"UPPE");
+  strcpy(cdum[1],"EXTR");
+  for(ilay=2;ilay<3;ilay++){
+    if(ilay==1){
+     for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
+     coo[0]=coo[1]=0.;
+     coo[2]=zr+0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
+     pLayer=mother.add(new AMSgvolume(
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000));
+    }
+    else{
+      par[0]= 0.25*CTCDBc::getcellsize(0)+0.5*CTCDBc::getwallsize(0);
+      for(i=1;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
+      coo[0]=5.5-0.5*CTCDBc::getupsize(0)-0.25*CTCDBc::getcellsize(0)-
+      CTCDBc::getwallsize(0);
+      coo[1]=5.5;
+      coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
+      pLayer=mother.add(new AMSgvolume(
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
+    }
+  //<--- Introduce the walls between modules
+
+     for(i=0;i<3;i++)parwal[i] = 0.5*CTCDBc::getwallsize(i);
+     coo[0] = 0.25*CTCDBc::getcellsize(0)+parwal[0];
+     coo[1] = 0.;
+     coo[2] = -0.5*CTCDBc::getupsize(2)+parwal[2];
+     for(i=CTCDBc::getnx()+1;i<CTCDBc::getnx()+2;i++){ //<---- Separators (WALL) loop ----
+       gid=1000000*ilay+10000*(i+1);
+       char cvolw[]="WALU";
+       cvolw[3]=cdum[ilay-1][0];
+       pLayer->add(new AMSgvolume(
+       "CTC_WALL",0,cvolw,"BOX ",parwal,3,coo,nrm,"ONLY",1,gid,1));
+       coo[0]+=  -CTCDBc::getcellsize(0)-2.*parwal[0];
+     } //<--- End of Separators (WALL) loop ----
+     for(i=0;i<CTCDBc::getny();i++){
+       for(j=CTCDBc::getnx();j<CTCDBc::getnx()+1;j++){
+        for(k=0;k<3;k++)par[k]=0.5*CTCDBc::getcellsize(k);
+        par[0]=par[0]/2.;
+        for(k=0;k<3;k++)pay[k]=0.5*CTCDBc::getygapsize(k);
+        pay[0]=pay[0]/2.;
+//        coo[0]=(CTCDBc::getnx()-1)*(par[0]+parwal[0]);
+//        coo[0]-=(par[0]+parwal[0])*2*j;
+//        coo[0]=(par[0]+parwal[0]);
+//        coo[0]-=(par[0]+parwal[0])*2;
+        coo[0]=0.;
+        coo[1]=(CTCDBc::getny()-1)*(par[1]+pay[1]);
+        coo[1]-=(par[1]+pay[1])*2*i;
+        coo[2]=0.;
+        coy[0]=coo[0];
+        coy[1]=coo[1]-par[1]-pay[1];
+        coy[2]=coo[2];
+        gid=1000000*ilay+1000*(i+1)+100*(j+1);
+        char cvolc[]="CELU";
+        cvolc[3]=cdum[ilay-1][0];
+        pCell=pLayer->add(new AMSgvolume(
+        "CTC_DUMMYMED",0,cvolc,"BOX ",par,3,coo,nrm,"MANY",1,gid,1));
+        gid+=100000;
+        char cvolg[]="YGAU";
+        cvolg[3]=cdum[ilay-1][0];
+        pLayer->add(new AMSgvolume(
+        "CTC_DUMMYMED",0,cvolg,"BOX ",pay,3,coy,nrm,"ONLY",1,gid,1));
+        //  Put 4 pmt,ptfe & agel 
+        //<--- UPPER/ LOWER layer PTFE   up, PMT down         
+         int ix,iy,iz;
+          for(iy=0;iy<2;iy++){
+           for (ix=0;ix<1;ix++){
+            geant parptf[3],paragl[3],parpmt[3];
+            geant cooptf[3],coopmt[3],cooagl[3];
+            for(k=0;k<3;k++)parptf[k]=0.5*CTCDBc::getptfesize(k);
+//            cooptf[0]=coo[0]+parptf[0]*(2*ix-1);
+            cooptf[0]=coo[0];
+            cooptf[1]=coo[1]+parptf[1]*(2*iy-1);
+            cooptf[2]=coo[2]-(-0.5*CTCDBc::getcellsize(2)+
+            parptf[2]);
+            char cvolptf[]="PTFU";
+            cvolptf[3]=cdum[ilay-1][0];
+            gid=1000000*ilay+1000*(i+1)+100*(j+1)+10+ix+1+2*iy;
+            pLayer->add(new AMSgvolume(
+            "ATC_PTFE",0,cvolptf,"BOX ",parptf,3,cooptf,nrm,"MANY",1,gid,1));
+            for(iz=0;iz<2;iz++){
+             //put two agel blocks
+             for(k=0;k<3;k++)paragl[k]=0.5*CTCDBc::getagelsize(k);
+             paragl[2]=(paragl[2]-ptfe)/2;
+             cooagl[0]=cooptf[0];
+             cooagl[1]=cooptf[1];
+             cooagl[2]=cooptf[2]+(2*iz-1)*(paragl[2]+ptfe/2);
+             gid=1000000*ilay+1000*(i+1)+100*(j+1)+20+ix+1+2*iy+4*iz;
+             char cvola[]="AGLU";
+             cvola[3]=cdum[ilay-1][0];
+             pLayer->add(new AMSgvolume(
+             "ATC_AEROGEL",0,cvola,"BOX ",paragl,3,cooagl,nrm,"ONLY",1,gid,1));
+            }
+            for(k=0;k<3;k++)parpmt[k]=0.5*CTCDBc::getpmtsize(k);
+            coopmt[0]=cooptf[0];
+            coopmt[1]=cooptf[1];
+            coopmt[2]=coo[2]-(0.5*CTCDBc::getcellsize(2)
+            -parpmt[2]);  
+            char cvolpmt[]="PMTU";
+            cvolpmt[3]=cdum[ilay-1][0];
+            gid=1000000*ilay+1000*(i+1)+100*(j+1)+30+ix+1+2*iy;
+            pLayer->add(new AMSgvolume(
+            "TOF_PMT_BOX",0,cvolpmt,"BOX ",parpmt,3,coopmt,nrm,"ONLY",1,gid,1));
+           }
+         }
+       }
+     }
+  }
+
+ }
+}
+
+void ctcgeomAGPlus(AMSgvolume & mother){
+  // 3 rad leangth ( 0.96 cm) of Tungsten added between 1 & 2 layers
+  // A. Gougas version   
+  // modified by V.Choutko 24/04/97
+  // The AGLx, PMTx and PTFx (x=L,U,E) volumes are now at the level 2 ( from 0)
+  //  and their geant id (== copy number) are :
+  //
+  // 1000000*layer+1000*i+100*j+kn*10+iz*4+iy*2+ix+1
+  //
+  // where
+  //
+  // layer = 1,2    layer number up(1) down(2)
+  // i     = 1...4  supercell y index
+  // j     = 1...5(6)  supercell x index
+  // kn    = 1...3  ptf(1) agl(2) pmt(3)
+  // iz    = 0..1   agl only
+  // ix    = 0..1   x index inside supercell
+  // iy    = 0..1   y index inside supercell
+  //
+  // Changes by A.K.Gougas 1/05/97
+  // The Support structure is 60 mm thick, the PMT's of UPPER layer are
+  // in the support structure, the UPPER aerogel layer is close to the TOF
+  // (i.e. in both layers PMT's are "face-up")
+
+   CTCDBc::setgeom(2);
+
+  geant par[6]={0.,0.,0.,0.,0.,0.};
+  geant pay[6]={0.,0.,0.,0.,0.,0.};
+  geant parpmt[6]={0.,0.,0.,0.,0.,0.};
+  geant parwal[6]={0.,0.,0.,0.,0.,0.};
+  geant parptf[6]={0.,0.,0.,0.,0.,0.};
+  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+  geant coo[3],coy[3];
+  integer nmed,nptfe,i,j,k,gid;
+  //
+  number zr=CTCDBc::getsupzc(); //<---- Position of center of Honeycomb
+  number ptfe=CTCDBc::getptfeth();//<-- PTFE single layer thickness
+  //
+  // <--- create supporting honeycomb plate in mother volume
+  for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getthcsize(i);
+  coo[0]=coo[1]=0.;
+  coo[2]=zr; // support structure's centre z-position
+  mother.add(new AMSgvolume(
+      "CTC_HONEYCOMB",0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,3000000));
+  //
+  // <---- 
+  //
+  // Create two layers of ctc
+  {
+  integer ilay;
+  AMSNode *pLayer;
+  AMSNode *pCell;
+  char cdum[2][5];
+  strcpy(cdum[0],"UPPE");
+  strcpy(cdum[1],"LOWE");
+  // Add Tungsten first
+      for(i=0;i<2;i++)par[i]=0.5*CTCDBc::getupsize(i);
+      par[2]=0.48;
+      coo[0]=coo[1]=5.5;
+      coo[2]=zr-0.5*CTCDBc::getthcsize(2)-0.5;   // for W
+      pLayer=mother.add(new AMSgvolume(
+       "TUNGSTEN",0,"AMPL","BOX ",par,3,coo,nrm,"ONLY",0,3000000));
+  
+
+  for(ilay=1;ilay<3;ilay++){
+    if(ilay==1){
+     for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
+     coo[0]=coo[1]=0.;
+     coo[2]=zr+0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2);
+     pLayer=mother.add(new AMSgvolume(
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,1000000));
+    }
+    else{
+      for(i=0;i<3;i++)par[i]=0.5*CTCDBc::getupsize(i);
+      coo[0]=coo[1]=5.5;
+      coo[2]=zr-0.5*CTCDBc::getupsize(2)-0.5*CTCDBc::getthcsize(2)-1.;   // for W
+      pLayer=mother.add(new AMSgvolume(
+       "CTC_DUMMYMED",0,cdum[ilay-1],"BOX ",par,3,coo,nrm,"MANY",0,2000000));
+    }
+    
   //<--- Introduce the walls between modules
 
      for(i=0;i<3;i++)parwal[i] = 0.5*CTCDBc::getwallsize(i);

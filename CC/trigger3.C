@@ -7,6 +7,7 @@
 #include <antirec.h>
 #include <trrawcluster.h>
 #include <ntuple.h>
+
 void TriggerAuxLVL3::fill(){
 
 
@@ -34,11 +35,12 @@ void TriggerAuxLVL3::fill(){
     if(strip >= AMSDBc::NStripsDrp(1,i))strip=AMSDBc::NStripsDrp(1,i)-1;
     va=side >0 ? strip/64 : strip/64+10;
     strip=strip%64;
-    if(maxtr-_ltr > 3){
-     _ptr[_ltr]=0;
+    if(maxtr-_ltr > 4){
+     _ptr[_ltr]=1;   // length + max strp
      _ptr[_ltr+1]=AMSTrRawCluster::mkaddress(strip,va,half,drp);
      _ptr[_ltr+2]=1000;
-     _ltr+=3;
+     _ptr[_ltr+3]=1000;
+     _ltr+=4;
     }    
     else return;
    }  
@@ -70,10 +72,10 @@ else if (_ctr < _ltr)_ctr=_ctr+(((_ptr[_ctr])&255)+3);
 return _ctr < _ltr ? _ptr+_ctr : 0;
 }
 
-
+  TriggerExpertLVL3 * TriggerExpertLVL3::pExpert=0;
   integer TriggerLVL3::_TOFPattern[SCMXBR][SCMXBR];
   integer TriggerLVL3::_TOFStatus[SCLRS][SCMXBR];
-  integer TriggerLVL3::_TrackerStatus[NTRHDRP][2];
+  integer TriggerLVL3::_TrackerStatus[NTRHDRP2];
   integer TriggerLVL3::_TrackerAux[NTRHDRP][2];
   integer TriggerLVL3::_TOFAux[SCLRS][SCMXBR];
   integer TriggerLVL3::_NTOF[SCLRS];
@@ -217,8 +219,8 @@ void TriggerLVL3::init(){
 
   // Tracker
 
-    for(i=0;i<NTRHDRP;i++){
-     for(j=0;j<2;j++)_TrackerStatus[i][j]=0;
+    for(i=0;i<NTRHDRP2;i++){
+     _TrackerStatus[i]=0;
     }
     char one[]="123456";
     char plane[]="PLAN";
@@ -256,6 +258,9 @@ void TriggerLVL3::init(){
         else cerr <<"TriggerLVL3-Init-S-TrackerVolumeNotFound"<<AMSID(plane,
         10*lad+lay);
     }
+    // Debug only!!!!!
+    //    _TrackerCoo[1][0][1]=_TrackerCoo[1][0][1]-0.1; 
+    //    _TrackerCoo[1][1][1]=_TrackerCoo[1][1][1]+0.1; 
 
     for (i=0;i<NTRHDRP;i++){
       integer lay,lad;
@@ -263,7 +268,13 @@ void TriggerLVL3::init(){
      _TrackerDRP2Layer[i]=lay-1;
     }
 
-
+    // Expert
+    TriggerExpertLVL3::pExpert= new 
+     TriggerExpertLVL3(LVL3EXPFFKEY.NEvents,LVL3EXPFFKEY.ToBad,
+                       LVL3EXPFFKEY.TryAgain,LVL3EXPFFKEY.Range);
+    #ifdef __AMSDEBUG__
+       assert( TriggerExpertLVL3::pExpert != NULL);
+    #endif
 
     
 }
@@ -390,7 +401,8 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
   while(ptr){
      integer drp,half,va,strip,side;
      AMSTrRawCluster::getaddress(ptr[1],strip,va,side,half,drp);
-     if(side == 0 )_TrackerAux[drp][half]=1;
+     if(side == 0  && _TrackerStatus[drp+half*NTRHDRP] == 0)
+     _TrackerAux[drp][half]=1;
    ptr = aux.readtracker();    
   }
 
@@ -400,6 +412,18 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
      AMSTrRawCluster::getaddress(ptr[1],strip,va,side,half,drp);
      if(side != 0 && _TrackerAux[drp][half]){
       integer layer=_TrackerDRP2Layer[drp];
+      // set filsafe cluster def > 1 strip || ( > 2 && two adj to max >=0)
+      integer nmax= (*ptr)>>8;
+      integer num = ((*ptr)&255);
+      if(nmax == 0 || nmax==num){
+        // probably reduced mode
+        if(num == 0)goto next;
+      }  
+      else {
+        // Probably normal mode
+        if(*(ptr+1+nmax)< 0 || *(ptr+3+nmax) < 0)goto next;
+      } 
+      
       float coo=0;
       //      float amp=0;
       //      for (int i=2;i<((*(ptr))&255);i++){
@@ -410,24 +434,25 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
       //
       // Just take strip as cofg
       //
-      coo=(strip+0.5+((*ptr)>>8))*_stripsize;
+      coo=(strip+0.5+nmax)*_stripsize;
       coo+=_TrackerCoo[drp][half][1];
       if (coo > plvl3->getlowlimitY(layer) && coo < plvl3->getupperlimitY(layer)){
         if(( half ==0 && plvl3->getlowlimitX(layer) < 0) ||
            ( half ==1 && plvl3->getupperlimitX(layer) > 0) ){
-           if(!(plvl3->addnewhit(coo,layer))){
+           if(!(plvl3->addnewhit(coo,layer,drp+half*NTRHDRP))){
            plvl3->TrackerTrigger()=2;
            goto formed;
            }             
         }
       }
-     } 
+     }
+     next:
      ptr = aux.readtracker();    
   }
   plvl3->fit(idum);
 
  formed:
-          
+  TriggerExpertLVL3::pExpert->update(plvl3);        
   tt2=HighResTime();
        }
        if(plvl3->TrackerTrigger() >= LVL3FFKEY.Accept){ 
@@ -478,10 +503,12 @@ HFNTB(IOPA.ntuple,"LVL3");
 }
 
 
-integer TriggerLVL3::addnewhit(geant coo, integer layer){
+integer TriggerLVL3::addnewhit(geant coo, integer layer, integer drp){
   if( _nhits[layer]>= maxtrpl)return 0; 
   _coo[layer][_nhits[layer]]=coo;
+  _drp[layer][_nhits[layer]]=drp;
   _nhits[layer]=_nhits[layer]+1;
+  
   return 1;
   }
 
@@ -628,7 +655,7 @@ integer TriggerLVL3::_UpdateOK(geant s, integer pat){
 void TriggerLVL3::builddaq(integer i, integer n, int16u *p){
   TriggerLVL3 *ptr=(TriggerLVL3*)AMSEvent::gethead()->
   getheadC("TriggerLVL3",i);
-  *p=getdaqid();
+  *p=getdaqid(i);
   if(ptr){
     *(p+1)=int16u(ptr->_TrackerTrigger);
     *(p+2)=(ptr->_TOFTrigger) | (ptr->_AntiTrigger)<<8;
@@ -636,13 +663,15 @@ void TriggerLVL3::builddaq(integer i, integer n, int16u *p){
     *(p+3)=int16u(res);
     *(p+4)= ptr->_Pattern[0] | (ptr->_NPatFound)<<6 | (ptr->_NTrHits)<<8;
   }
-  else for(int i=1;i<n;i++)*(p+i)=0;
+  else {
+    cerr <<"TriggerLVL3::builddaq-E-No Trigger for "<<i<<endl;
+  }
 }
 
 void TriggerLVL3::buildraw(integer n, int16u *p){
-
+  integer ic=checkdaqid(*p)-1;
   {
-    AMSContainer *ptr=AMSEvent::gethead()->getC("TriggerLVL3",0);
+    AMSContainer *ptr=AMSEvent::gethead()->getC("TriggerLVL3",ic);
    if(ptr)ptr->eraseC();
    else cerr <<"TriggerLVL3::buildraw-S-NoContainer"<<endl;
   }
@@ -660,9 +689,147 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  npat=((*(p+4))>>6)&3;
  ntr=((*(p+4))>>8)&255;
 if(tra >= LVL3FFKEY.Accept)
-  AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0), new
+  AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",ic), new
  TriggerLVL3( tra,  tof,  anti, ntr,  npat,
   pat,  res,  time));
 
+}
+
+
+
+
+TriggerExpertLVL3::TriggerExpertLVL3(integer countermax, integer tobad,
+                   integer tryagain, geant badrange[NDSTR][2]):
+  _CounterMax(countermax),_ToBadSwitch(tobad),_TryAgainSwitch(tryagain){
+  int i,j;
+  for(i=0;i<NDSTR;i++){
+   for(j=0;j<2;j++)_BadRange[i][j]=badrange[i][j];
+  }
+  _Counter=0;
+  if(_CounterMax <=0 )_CounterMax=1024;
+  _Relative[0]=1;
+  _Relative[1]=0;
+  _Relative[2]=1;
+  for(j=0;j<NTRHDRP2;j++)_DRPBad[j]=0;
+  for(j=0;j<NTRHDRP2;j++)_DRPOff[j]=0;
+  for(i=0;i<NDSTR;i++){
+   _Mean[i]=0;
+   _Sigma[i]=0;
+   _XCount[i]=0;
+   for(j=0;j<NTRHDRP2;j++)_Distributions[i][j]=0;
+  }  
+  for(j=0;j<NTRHDRP2;j++)_Distributions[NDSTR][j]=0;
+}
+
+void TriggerExpertLVL3::update(const TriggerLVL3 *  plvl3){
+  int i,j;
+integer where;
+static integer local[NTRHDRP2];
+if(plvl3->_TrackerTrigger==1)where=0;
+else if(plvl3->_TrackerTrigger==2 || plvl3->_TrackerTrigger==4)where=1;
+else if(plvl3->_TrackerTrigger==7)where=2;
+else return;
+  // Update Here
+  for(i=0;i<NTRHDRP2;i++)local[i]=0;
+  for(i=0;i<nl;i++){
+    for(j=0;j<plvl3->_nhits[i];j++)local[plvl3->_drp[i][j]]=1;
+  }
+
+  for(i=0;i<NTRHDRP2;i++){
+   if(local[i])_Distributions[where][i]++;
+  }
+_Counter=(_Counter+1)%_CounterMax;
+if(_Counter == 0)analyse(plvl3);
+}
+
+void TriggerExpertLVL3::analyse(const TriggerLVL3 *  plvl3){
+  // analyse here
+  int i,j;
+  for(i=0;i<NTRHDRP2;i++){
+   for(j=0;j<NDSTR;j++)_Distributions[NDSTR][i]+=_Distributions[j][i];
+  }
+  for (i=0;i<NDSTR;i++){
+    if(_Relative[i]){
+      for(j=0;j<NTRHDRP2;j++){
+        if(_Distributions[NDSTR][j] != 0){ 
+         _Distributions[i][j]=_Distributions[i][j]/_Distributions[NDSTR][j];
+        }
+      }
+    }
+  }
+  for (i=0;i<NDSTR;i++){
+     for(j=0;j<NTRHDRP2;j++){
+      if(_Distributions[NDSTR][j] != 0){ 
+       _Mean[i]+=_Distributions[i][j];
+       _Sigma[i]+=_Distributions[i][j]*_Distributions[i][j];
+       _XCount[i]++;
+      }
+     }
+     if(_XCount[i] !=0){
+      _Mean[i]=_Mean[i]/_XCount[i];
+      _Sigma[i]=sqrt(_Sigma[i]/_XCount[i]-_Mean[i]*_Mean[i]);
+     }
+  }
+  for(j=0;j<NTRHDRP2;j++){
+    if(plvl3->_TrackerStatus[j] == 0){
+      integer bad=0;
+      for(i=0;i<NDSTR;i++){
+        if(_Distributions[i][j] < _Mean[i]-_Sigma[i]*_BadRange[i][0] || 
+           _Distributions[i][j] > _Mean[i]+_Sigma[i]*_BadRange[i][1]){
+           bad++;
+           cerr <<"TriggerExpertLVL3-I-DRP "<<j<<" out of limits "<<
+             _Mean[i]<<" "<<i<<" "<<_Mean[i]-_Sigma[i]*_BadRange[i][0]<<" "
+                <<_Distributions[i][j]<<
+             " "<<_Mean[i]+_Sigma[i]*_BadRange[i][1]<<endl;
+        }
+      }
+      if(bad)_DRPBad[j]++;
+      else _DRPBad[j]=0;
+    }
+    else _DRPOff[j]++;
+    if(_DRPBad[j]>=_ToBadSwitch){
+     _DRPBad[j]=0;
+     plvl3->_TrackerStatus[j]=1;
+     cerr <<"TriggerExpertLVL3-W-DRP "<<j<<" declared bad"<<endl;
+    }
+    if(_DRPOff[j]>_TryAgainSwitch){
+     _DRPOff[j]=0;
+     plvl3->_TrackerStatus[j]=0;
+     cout <<" TriggerExpertLVL3-W-DRP "<<j<<" brought back to on"<<endl;
+    }
+  }
+
+  for(i=0;i<NDSTR;i++){
+   _Mean[i]=0;
+   _Sigma[i]=0;
+   _XCount[i]=0;
+   for(j=0;j<NTRHDRP2;j++)_Distributions[i][j]=0;
+  }  
+  for(j=0;j<NTRHDRP2;j++)_Distributions[NDSTR][j]=0;
+
+
+}
+
+
+void TriggerExpertLVL3::print(){
+}
+
+integer TriggerLVL3::checkdaqid(int16u id){
+int i;
+for(i=0;i<getmaxblocks();i++){
+ if(id==getdaqid(i)){
+  return i+1;
+ }
+}
+return 0;
+}
+
+
+
+integer TriggerLVL3::calcdaqlength(integer i){
+  TriggerLVL3 *ptr=(TriggerLVL3*)AMSEvent::gethead()->
+  getheadC("TriggerLVL3",i);
+  if(ptr)return 5;
+  else return 0;
 }
 

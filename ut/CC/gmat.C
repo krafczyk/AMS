@@ -172,6 +172,7 @@ tmed.add (new AMSgtmed(24,"ANTI_WRAP",17,0));//  tempor. mylar
 //
 tmed.add (new AMSgtmed(25,"ANTI_SUPTB",26,0));//  tempor. carb.fiber
 //
+tmed.add (new AMSgtmed(26,"TUNGSTEN",12,0));
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__
 if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();

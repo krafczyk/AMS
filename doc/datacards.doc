@@ -366,12 +366,22 @@ L3REC    // LVL3 Trigger Rec
 I 1 MinTOFPlanesFired(3)               // min number of tof planes in trig
 I 2 UseTightTOF(1)                     // Use(1) notUse(0) "Pattern" trigger
 R 3 TrTOFSearchReg(6)                  // Road width to match TOF/Tracker (cm)
-R 4 TrMinResidual(0.02)                // Min Residual to keep event (cm)
+R 4 TrMinResidual(0.03)                // Min Residual to keep event (cm)
 R 5 TrMaxResidual[3](0.9,0.1,0.2)     // Max Residuals to keep event (cm)
 I 8 TrMaxHits(20)                      // Max Number of hits in Tracker
 R 9 Splitting(0.04)                    // Min distance between hits
 I10 Nrep(1)                            // Aux no of rep to calc lvl3 time
 I11 Accept(0)                        // Min value of lvl3 trigger to accept
+
+
+L3EXP   // LVL3 Expert 
+
+I 1 NEvents(1024)                       // Number of Events in Sequence 
+I 2 ToBad(3)                            // Number of conseq sequences to declare bad
+I 3 TryAgain(10)                        // Number of sequences to unlock bad
+R 4 Range[3][2](3,3,100000,3,3,3)       // Bad Range in sigmas
+
+
 
 SELECT   // Choose run & event
 
@@ -387,6 +397,6 @@ DAQC    //   DAQ Control
 I 1 mode(0)                         // 0 do nothing
                                     // mode%10 = 1 read daq if isReconstruction()
                                     // mode/10 = 1 write daq (noreplace)
-                                    // mode/10 = 1 write daq (append)
+                                    // mode/10 = 2 write daq (append)
 I 2 ifile[40]("")                   // input file name
 I42 ofile[40]("")                   // output file name

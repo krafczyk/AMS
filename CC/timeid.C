@@ -94,12 +94,13 @@ if (Time >= _Begin && Time <= _End){
       cerr<<"AMSTimeID::validate-S-CRC Error "<<getname()<<" Old CRC "
       <<_CRC<<" New CRC "   <<_CalcCRC()<<endl;
   }
- return 0;
+  return 0;
 }
 else if(reenter ==0){
   // try to read it from file ....
   if(read(AMSDATADIR.amsdatadir))
   return validate(Time,1);
+  else return 0;
 }
 else return 0;
 }

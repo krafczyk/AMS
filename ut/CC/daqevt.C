@@ -80,7 +80,7 @@ integer ntot=0;
 while(fpl){
  for(int i=0;i<fpl->_maxbl;i++){
    *(fpl->_plength+i)=(fpl->_pgetlength)(i)+1;
-   ntot+=*(fpl->_plength+i);
+   if(*(fpl->_plength+i)>1)ntot+=*(fpl->_plength+i);
  }
  fpl=fpl->_next;
 }
@@ -99,10 +99,12 @@ if(_create() ){
  fpl=_pBT;
  while(fpl){
  for(int i=0;i<fpl->_maxbl;i++){
-   *_pcur=*(fpl->_plength+i)-_OffsetL;
-   int16u *psafe=_pcur+1;
-   fpl->_pgetdata(i,*(fpl->_plength+i)-1,psafe);
-   _pcur=_pcur+*_pcur+_OffsetL;
+   if(*(fpl->_plength+i)>1){
+    *_pcur=*(fpl->_plength+i)-_OffsetL;
+    int16u *psafe=_pcur+1;
+    fpl->_pgetdata(i,*(fpl->_plength+i)-1,psafe);
+    _pcur=_pcur+*_pcur+_OffsetL;
+   }
  }
  fpl=fpl->_next;
  }

@@ -191,8 +191,8 @@ void AMSTrRawCluster::_printEl(ostream & stream){
 
 
 int16u AMSTrRawCluster::getdaqid(int i){
-  if (i==0)return (1 | 2<<6 | 5 <<9);
-  else if(i==1)return (1 | 5<<6 | 5 <<9);
+  if (i==0)return (1 | 2<<6 | 11 <<9);
+  else if(i==1)return (1 | 5<<6 | 11 <<9);
 else return 0x0;
 }
 
@@ -222,7 +222,8 @@ void AMSTrRawCluster::builddaq(integer i, integer n, int16u *p){
 integer AMSTrRawCluster::calcdaqlength(integer i){
   AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
   getheadC("AMSTrRawCluster",i);
-  integer l=1;
+  integer l=0;
+  if(ptr)l=1;
   while (ptr){
    l+=ptr->_nelem+2;
    ptr=ptr->next();

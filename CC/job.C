@@ -134,10 +134,23 @@ void AMSJob::_sitrigdata(){
   FFKEY("L3SIM",(float*)&LVL3SIMFFKEY,sizeof(LVL3SIMFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
+  LVL3EXPFFKEY.NEvents=2048;
+  LVL3EXPFFKEY.ToBad=3;
+  LVL3EXPFFKEY.TryAgain=10;
+  LVL3EXPFFKEY.Range[0][0]=2.5;
+  LVL3EXPFFKEY.Range[0][1]=2.;
+  LVL3EXPFFKEY.Range[1][0]=1000000;
+  LVL3EXPFFKEY.Range[1][1]=3;
+  LVL3EXPFFKEY.Range[2][0]=2.;
+  LVL3EXPFFKEY.Range[2][1]=2.5;
+
+  FFKEY("L3EXP",(float*)&LVL3EXPFFKEY,sizeof(LVL3EXPFFKEY_DEF)/sizeof(integer),"MIXED");
+
+
   LVL3FFKEY.MinTOFPlanesFired=3;
   LVL3FFKEY.UseTightTOF=1;
   LVL3FFKEY.TrTOFSearchReg=6;
-  LVL3FFKEY.TrMinResidual=0.02;
+  LVL3FFKEY.TrMinResidual=0.03;
   LVL3FFKEY.TrMaxResidual[0]=0.9;
   LVL3FFKEY.TrMaxResidual[1]=0.1;
   LVL3FFKEY.TrMaxResidual[2]=0.2;
@@ -330,7 +343,7 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.ydiv=4;
   CTCMCFFKEY.Refraction[0]=1.036;   // Refraction indexes
   CTCMCFFKEY.Refraction[1]=1.58;
-  CTCMCFFKEY.Path2PhEl[0]=25;   // Path to photoelectrons conv fact
+  CTCMCFFKEY.Path2PhEl[0]=20;   // Path to photoelectrons conv fact
   CTCMCFFKEY.Path2PhEl[1]=28;
   CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
   CTCMCFFKEY.AbsLength[1]=100;
