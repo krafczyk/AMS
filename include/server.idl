@@ -213,6 +213,8 @@ module DPS{
      string Name;
      string Version;
      unsigned long crc;
+     long FreeSpace;
+     long TotalSpace;
     };    
 
     void sendDSTEnd(in CID id, in DST ne, in RecordChange re)raises(DBProblem); 
