@@ -2154,9 +2154,9 @@ void AMSEvent::_collectstatus(){
       else srig=3;
       _status=_status | (srig<<23);
       uinteger trquality;
-      if(ptr->checkstatus(AMSDBc::FalseTOFX))trquality=3;
-      else if( ptr->checkstatus(AMSDBc::FalseX))trquality=2;
-      else if(ptr->checkstatus(AMSDBc::WEAK) )trquality=1;
+      if((ptr->getptrack())->checkstatus(AMSDBc::FalseTOFX))trquality=3;
+      else if( (ptr->getptrack())->checkstatus(AMSDBc::FalseX))trquality=2;
+      else if((ptr->getptrack())->checkstatus(AMSDBc::WEAK) )trquality=1;
       else trquality=0;   
       _status=_status | (trquality<<25);
       uinteger singeo;
@@ -2192,7 +2192,8 @@ void AMSEvent::_collectstatus(){
       _status=_status | (icos<<27);
    
   // Now Set Event Error
-     if(_Error==1)_status=_status | (1<<30);
-     
+     if(_Error==1){
+      _status=_status | (1<<30);
+    } 
 }
 
