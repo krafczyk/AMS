@@ -619,7 +619,7 @@ void AMSParticle::_loc2gl(){
   number we=_dir[0]*amsx[2]+_dir[1]*amsy[2]+_dir[2]*amsz[2];
   AMSDir global(ue,ve,we);
   _ThetaGl=global.gettheta();
-  _PhiGl= fmod(global.getphi()-(polephi-PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
+  _PhiGl=global.getphi()-(polephi-PolePhiStatic);
 
   //
   // Dipole direction
@@ -661,9 +661,11 @@ void AMSParticle::_loc2gl(){
   number cth=ue*uv+ve*vv+we*wv;
   number xfac=57.576*EarthR/rgm*EarthR/rgm;
   number chsgn=_Momentum/fabs(_Momentum);
-  number mom=xfac*pow(cl,4)/pow(sqrt(1.-chsgn*cth*pow(cl,3))+1,2)*_Charge;
+  number cl3=cl*cl*cl;
+  number cl4=cl*cl*cl*cl;
+  number mom=xfac*cl4/(sqrt(1.-chsgn*cth*cl3)+1)/(sqrt(1.-chsgn*cth*cl3)+1)*_Charge;
   _CutoffMomentum=chsgn*mom;
-  integer rgcutoff=min((int)(mom/_Charge*10+.5),1<<10-1);
+  integer rgcutoff=(int)(mom/_Charge*10+.5)<(1<<10)-1?(int)(mom/_Charge*10+.5):(1<<10)-1;
   _pbeta->setstatus(rgcutoff<<20);
     
           AMSgObj::BookTimer.stop("part::loc2gl");

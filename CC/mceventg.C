@@ -487,7 +487,9 @@ integer AMSmceventg::EarthModulation(){
   number cth=ue*uv+ve*vv+we*wv;
   number xfac=57.576*Orbit.EarthR/rgm*Orbit.EarthR/rgm;
   number chsgn=_charge/fabs(_charge);
-  number mom=xfac*pow(cl,4)/pow(sqrt(1.-chsgn*cth*pow(cl,3))+1,2)*fabs(_charge);
+  number cl3=cl*cl*cl;
+  number cl4=cl*cl*cl*cl;
+  number mom=xfac*cl4/(sqrt(1.-chsgn*cth*cl3)+1)/(sqrt(1.-chsgn*cth*cl3)+1)*fabs(_charge);
   if (_mom > mom)return 1;
   else {
     ++Orbit.Nskip;   
