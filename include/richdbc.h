@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.15 2001/01/22 17:32:44 choutko Exp $
+//  $Id: richdbc.h,v 1.16 2001/02/20 16:26:15 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -6,7 +6,7 @@
 #define __RICHDB__ 
 
 
-// Undefine next one to use solid guides
+// Undefine next one to use solid guides with opaque walls separating each section 
 #undef __HOLLOW__
 
 #include<job.h>
@@ -15,6 +15,8 @@
 // Constants
 namespace richconst{
 const integer RICnrot=30001;   // Rot. matrix no.
+
+// Geometry parameters
 
 const geant   RICmithk=0.2;         // Mirror and 2*aerogel support thickness
 const geant   RICaethk=0.1;         // Light guides thickness
@@ -25,15 +27,22 @@ const geant   RICcatolength=1.75;   // cathode window length
 const geant   RICpmtlength=2.5;     // phototube length
 const geant   RICeleclength=2.5;    // electronics
 const geant   RICpmtsupport=0.4;    // suppot structure thickness
-const geant   RICshiheight=8.0;     // NEW!
+const geant   RICshiheight=8.0;     // NEW! Magnetic shielding height
 
 const geant   RICradpos=-75.26;// Top of the radiator position
 const geant   sq2=1.4142135623;// useful constant:sqrt(2)
 
 const geant   RICepsln=0.002;  // Useful to simulate absence of optical contact
 
+// Entries in the tables of materials
+
 const integer RICmaxentries=44;
 const integer RICmaxrows=100;
+
+// Threshold, in % of the total beta range, to avoid  the reconstruction
+// of secondaries
+
+const geant RICthreshold=0.16; //16%
 
 const integer RICentries=44;   // no. of entries in wave_length,eff...   
 const integer RICmaxpmts=2000; // max no. of pmts

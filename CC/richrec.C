@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.16 2001/01/22 17:32:21 choutko Exp $
+//  $Id: richrec.C,v 1.17 2001/02/20 16:25:51 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -397,7 +397,7 @@ void AMSRichRing::build(){
       // by the particle going through the PMTs
       //    geant betamin=(1.+0.05*(RICHDB::rad_index-1.))/RICHDB::rad_index;
       // Value corrected by Carlos D.
-      geant betamin=(1.+0.16*(RICHDB::rad_index-1.))/RICHDB::rad_index;
+      geant betamin=(1.+RICthreshold*(RICHDB::rad_index-1.))/RICHDB::rad_index;
       
       
       
