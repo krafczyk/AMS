@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.22 2001/10/02 12:57:24 choutko Exp $
+#  $Id: ntuple02.doc,v 1.23 2001/10/02 13:23:03 choutko Exp $
 This is AMS02 Ntuple Description
 
 
@@ -93,7 +93,7 @@ This is AMS02 Ntuple Description
 
 
 * I*4  * [0,10]    * PARTICLE * npart             // particles number
-* I*4  *           * PARTICLE * pbetap(npart)     // pointer to beta
+* I*4  *           * PARTICLE * pbetap(npart)     // pointer to TOF beta
 * I*4  *           * PARTICLE * pchargep(npart)   // pointer to charge
 * I*4  *           * PARTICLE * ptrackp(npart)    // pointer to track, or
                                                   // -1 if particle doesn't
@@ -117,7 +117,7 @@ This is AMS02 Ntuple Description
                                                   // (signed)
 * R*4  *           * PARTICLE * perrmom(npart)    // error in momentum
 * R*4  *           * PARTICLE * pcharge(npart)    // charge
-* R*4  *           * PARTICLE * pbeta(npart)      // beta
+* R*4  *           * PARTICLE * pbeta(npart)      // beta (tof + rich)
 * R*4  *           * PARTICLE * perrbeta(npart)      // err beta
 * R*4  *           * PARTICLE * ptheta(npart)     // theta (1st[last] 
 						  // tracker plane)
