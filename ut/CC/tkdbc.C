@@ -1252,7 +1252,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
 void TKDBc::read(){
 if(!TKGEOMFFKEY.ReadGeomFromFile)return;
 
-AString fnam(AMSDATADIR.amsdatadir);
+AString fnam=(const char*)AMSDATADIR.amsdatadir;
 fnam+="TKGeom_";
 fnam+=AMSJob::gethead()->getsetup();
 fnam+= AMSJob::gethead()->isRealData()?".1":".0";

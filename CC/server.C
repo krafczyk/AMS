@@ -227,7 +227,7 @@ else{
      DPS::Server_var _svar=DPS::Server::_narrow(obj);
      if(!CORBA::is_nil(_svar)){
          
-        if(!(_svar->sendId(_pid,60))){
+        if(!(_svar->sendId(_pid,90))){
          FMessage("Server Requested Termination after sendID ",DPS::Client::SInAbort);
         }
         else{
@@ -601,9 +601,7 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     submit+= _iface;
     submit+=" -I";
     submit+=(const char*)(*i)->Interface;
-#ifdef __AMSDEBUG__
-    submit+=" -D1";
-#endif
+    if(_parent->Debug())submit+=" -D1";
     submit+=" -A";
      submit+=getenv("AMSDataDir");
     if((*cli)->LogInTheEnd){
@@ -718,7 +716,7 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
     DPS::Client::ActiveClient_var acv=*li;
     acv->Status=DPS::Client::TimeOut;
     if(_parent->Debug())_parent->EMessage(AMSClient::print(acv,"Client TIMEOUT"));
-    PropagateAC(acv,DPS::Client::Update);
+    PropagateAC(acv,DPS::Client::Update,DPS::Client::AnyButSelf,acv->id.uid);
  }
  }
 }
@@ -768,7 +766,7 @@ if(_ahl.size())return;
 
 
   CORBA::Boolean Server_impl::sendId(DPS::Client::CID& cid, uinteger timeout) throw (CORBA::SystemException){
- if(timeout>_KillTimeOut)_KillTimeOut=timeout;
+ _KillTimeOut=timeout;
 
      for(ACLI j=_acl.begin();j!=_acl.end();++j){
       if(((*j)->id).uid==cid.uid){
@@ -1490,9 +1488,7 @@ if(getServer()->InactiveClientExists())return;
     submit+=(const char*) _refstring;
     submit+=" -U";
     submit+=tmp;
-#ifdef __AMSDEBUG__
-    submit+=" -D1";
-#endif
+    if(_parent->Debug())submit+=" -D1";
     submit+=" -A";
      submit+=getenv("AMSDataDir");
     if((*cli)->LogInTheEnd){
@@ -1585,7 +1581,7 @@ if(li!=_acl.end()){
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Update);
-    //_pser->Kill((*li),SIGTERM,true);
+    _pser->Kill((*li),SIGHUP,true);
  }
 }
 

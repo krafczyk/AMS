@@ -105,9 +105,9 @@ using namespace glconst;
       cerr <<" Process resumed"<<endl;
       break;
   case SIGHUP:
-      cerr <<" Artificial Loop"<<endl;
-      for(;;){
-      }
+#ifdef __CORBA__
+if(AMSProducer::gethead())AMSProducer::gethead()->sendCurrentRunInfo();
+#endif
       break;
   case SIGUSR1:
       cerr<< "New Run Forced"<<endl;

@@ -191,7 +191,6 @@ bool AMSTimeID::write(const char * dir, int slp){
 
 // add explicitely one second delay to prevent same insert time
    if(slp)sleep(1);
-#ifndef __DB__
 if(_Type!=Client){
   enum open_mode{binary=0x80};
     fstream fbin;
@@ -242,7 +241,6 @@ if(_Type!=Client){
     else {
       cerr<<"AMSTimeID::write-E-CouldNot open file "<<fnam<<endl;
     }
-#endif
 
     return false;
 
