@@ -615,7 +615,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.daqthr[3]=0.;//spare  
   TOFRECFFKEY.daqthr[4]=0.;//spare
 //
-  TOFRECFFKEY.cuts[0]=20.;//t-window(ns) for "the same hit" search in f/s_tdc
+  TOFRECFFKEY.cuts[0]=50.;//t-window(ns) for "the same hit" search in f/s_tdc
   TOFRECFFKEY.cuts[1]=15.;//"befor"-cut in time history (ns)(max.PMT-pulse length?)
   TOFRECFFKEY.cuts[2]=400.;//"after"-cut in time history (ns)(max. shaper integr.time?)
   TOFRECFFKEY.cuts[3]=0.;// spare
