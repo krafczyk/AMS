@@ -382,3 +382,31 @@ c        print*, ' l, b= ', l, b
       
 *                                  END PATH_INTEGRAL
       END
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      SUBROUTINE INVERTMATRIX (A, N0, N1, IFAIL)
+*
+* a) Simplified calling sequence to invert a square matrix. 
+*    It calls DINV.
+* b) If A is not symmetric and the subroutine is called from C++ code, 
+*    one has to interchange rows and columns before calling it.
+*
+* Input: 
+*        A              double precision array containing the A matrix
+*        N0             dimension of A is N0 x N0 in the definition
+*        N1             We want the N1 x N1 submatrix of A
+*        IFAIL          <0 in case of problems (singularities,...)
+*
+*                                         J. Alcaraz (2003)
+*******************************************************************
+      IMPLICIT NONE
+      INTEGER IFAIL, N0, N1
+      DOUBLE PRECISION A(N0*N0)
+      INTEGER IDAUX(2*N0)
+*
+***---------------------------------------------------------------
+*
+      CALL DINV (N0, A, N1, IDAUX, IFAIL)
+
+999   CONTINUE
+*                                            END INVERTMATRIX
+      END
