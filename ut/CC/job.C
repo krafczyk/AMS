@@ -358,6 +358,7 @@ for(int i=0;i<6;i++){
 
 
 
+ TRALIG.GlobalFit=0;
  TRALIG.InitDB=0;
  TRALIG.ReWriteDB=0;
  TRALIG.UpdateDB=0;
@@ -1279,7 +1280,6 @@ AMSgObj::BookTimer.book("CalTrFit");
 if(TRALIG.UpdateDB){
 
   gethead()->addup( new AMSTrAligFit());
-
 }
 if(TRCALIB.CalibProcedureNo == 1 || TRCALIB.CalibProcedureNo==4){
   AMSTrIdCalib::initcalib();
@@ -1942,7 +1942,7 @@ AMSNode * AMSJob::getaligstructure(){
       AMSTrAligFit a;
      AMSNode *p=JobMap.getp(AMSID(a.getname(),a.getid()));
      if(!p){
-      cerr << "AMSJob::getaligtructure-F-no time structure found"<<endl;
+      cerr << "AMSJob::getaligtructure-F-no alig structure found"<<endl;
       exit(1);
      }
      else return  p;

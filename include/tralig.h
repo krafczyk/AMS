@@ -81,8 +81,9 @@ static integer maxdbentries(){return 15000;}
 static AMSTrAligDBEntry * getdbtopp(){return _traldb.arr;}
 static AMSTrAligPar * getparp(){return par;}
 static void InitDB(){_traldb.Nentries=0;}
-static AMSTrAligPar * SearchDB(uinteger address, integer & found);
+static AMSTrAligPar * SearchDB(uinteger address, integer & found, number DB[2]);
 static void UpdateDB(uinteger address,  AMSTrAligPar o[], number _fcnb, number _fcna, number _pav, number _pav2  );
+static void UpdateDBgl();
 static void LockDB();
 static void UnlockDB();
 static void _lockunlock(integer lock);
@@ -169,11 +170,14 @@ public:
 AMSTrAligFit();
 AMSTrAligFit(uinteger _Address, integer pattern, integer data, integer alg, integer nodeno);
 static void Test(int i=0);
+static void Testgl(int i=0);
 static integer Select(AMSParticle * & ptr, AMSmceventg * & mcg, integer alg);
 integer AddressOK(uinteger address, integer strict=0);
 void Fit();
 void Fitgl();
 void Anal();
+void Analgl();
+
 uinteger getaddress(){ return _Address;}
 ~AMSTrAligFit();
 

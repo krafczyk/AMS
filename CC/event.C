@@ -1033,7 +1033,10 @@ void AMSEvent::_caamsevent(){
 
 void AMSEvent::_catkevent(){
   AMSgObj::BookTimer.start("CalTrFill");
-    if(TRALIG.UpdateDB)AMSTrAligFit::Test();
+    if(TRALIG.UpdateDB){
+      if(!TRALIG.GlobalFit)AMSTrAligFit::Test();
+      else AMSTrAligFit::Testgl();
+    }
   if(TRCALIB.CalibProcedureNo == 1){
     AMSTrIdCalib::check();
   }
@@ -1707,7 +1710,10 @@ void AMSEvent::_writeEl(){
   EN->CTCMCClusters=0;
   EN->AntiClusters=0;
   EN->AntiMCClusters=0;
-
+  for(i=0;i<3;i++){
+   EN->Dummy[i]=0;
+  }
+  getmag(EN->ThetaM,EN->PhiM);
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSParticle",i);
    if(p) EN->Particles+=p->getnelem();
@@ -2347,4 +2353,10 @@ void AMSEvent::setfile(char file[]){
       cerr<<"AMSEvent::setfile-E-UnableToOpenFile" <<file<<endl;
     }
   }
+}
+
+void AMSEvent::getmag(float & thetam, float & phim){
+ // to be done
+ thetam=0;
+ phim=0;
 }

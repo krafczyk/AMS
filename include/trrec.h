@@ -254,6 +254,7 @@ integer _GeaneFitDone;
 integer _AdvancedFitDone;
 AMSPoint _Hit[6];
 AMSPoint _EHit[6];
+number _Dbase[2];
 number _Chi2StrLine;
 number _Chi2Circle;
 number _CircleRidgidity;

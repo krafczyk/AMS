@@ -59,13 +59,16 @@ _a2m();
 }
 
 
-
-AMSTrAligPar * AMSTrAligPar::SearchDB(uinteger address, integer & found){
+AMSTrAligPar * AMSTrAligPar::SearchDB(uinteger address, integer & found, number db[2]){
   AMSTrAligPar::AMSTrAligDBEntry e(address);
   integer out=AMSbins(getdbtopp(),e,getdbentries());
+  db[0]=0;
+  db[1]=0;
   if(out >0){
     if((getdbtopp()+out-1)->status)found=1;
     else found=-1;
+    db[0]=((getdbtopp()+out-1)->chi2a)/((getdbtopp()+out-1)->chi2b+1.e-10);
+    db[1]=((getdbtopp()+out-1)->pav2);
     for(int i=0;i<6;i++){
      *(getparp()+i)=AMSTrAligPar(getdbtopp()+out-1,i);
     }
@@ -202,51 +205,53 @@ if(_Address==1){
   }
 _NoActivePar=0;
 for(i=0;i<6;i++){
- for(int k=1;k<6;k++){
- if(i==AMSTrTrack::patconf[pattern][k]-1){
   int nprp=0;
   for(int j=0;j<6;j++){
     if(TRALIG.ActiveParameters[i][j]){
-//       _PlaneNo[_NoActivePar+nprp]=i;
-//       _ParNo[_NoActivePar+nprp]=j;
-       nprp++;
+      nprp++;
     }
   }
  _NoActivePar+=nprp;
- break;
+}
+
+
+// Find No of ladders
+int nladders=0;
+for(i=0;i<6;i++){
+ for(int j=0;j<nld;j++){
+  for(int s=0;s<2;s++){
+    if(AMSDBc::activeladdshuttle(i+1,j+1,s))nladders++;
+  }
  }
 }
-}
-_NoActivePar*=nld*2;
+_NoActivePar*=nladders;
+cout <<"GlobalFit-I-NoActivePar "<<_NoActivePar<<" "<<nladders<<endl;
+
 _PlaneNo= new integer[_NoActivePar];
 _ParNo= new integer[_NoActivePar];
 _LadderNo=new integer[_NoActivePar];
 _HalfNo=new integer[_NoActivePar];
 _NoActivePar=0;
-for(i=0;i<6;i++){
- for(int k=1;k<6;k++){
- if(i==AMSTrTrack::patconf[pattern][k]-1){
-  int nprp=0;
-  for(int j=0;j<6;j++){
-    if(TRALIG.ActiveParameters[i][j]){
-    for(int l=0;l<nld;l++){
-     for(int m=0;m<2;m++){
-       _PlaneNo[_NoActivePar+nprp]=i;
-       _ParNo[_NoActivePar+nprp]=j;
-       _LadderNo[_NoActivePar+nprp]=l;
-       _HalfNo[_NoActivePar+nprp]=m;
-       nprp++;
-     }
-    }
-    }
-  }
- _NoActivePar+=nprp;
- break;
- }
-}
-}
 
-
+    for( i=0;i<6;i++){
+      for(int l=0;l<nld;l++){
+       for(int m=0;m<2;m++){
+         if(AMSDBc::activeladdshuttle(i+1,l+1,m)){
+          int nprp=0;
+          for(int j=0;j<6;j++){
+           if(TRALIG.ActiveParameters[i][j]){
+            _PlaneNo[_NoActivePar+nprp]=i;
+            _ParNo[_NoActivePar+nprp]=j;
+            _LadderNo[_NoActivePar+nprp]=l;
+            _HalfNo[_NoActivePar+nprp]=m;
+            nprp++;
+           }
+          }
+          _NoActivePar+=nprp;
+         }
+       }
+      }
+    }
 
 
 }
@@ -335,7 +340,8 @@ if(forced==0){
      if(found==1)return; 
       if(nnodes<TRALIG.MaxPatternsPerJob){
            integer found=0;
-           AMSTrAligPar::SearchDB(ptrack->getaddress(),found);
+           number db[2];
+           AMSTrAligPar::SearchDB(ptrack->getaddress(),found,db);
            if(TRALIG.ReWriteDB  || found<=0){
             pal=new AMSTrAligFit(ptrack->getaddress(),
             ptrack->getpattern(), TRALIG.MaxEventsPerFit, TRALIG.Algorithm, nnodes+1);
@@ -375,6 +381,68 @@ else {
 
 }
 }
+
+
+
+
+void AMSTrAligFit::Testgl(integer forced){
+
+AMSNode *pnode =AMSJob::gethead()->getaligstructure();
+AMSTrAligFit * pal = (AMSTrAligFit *)pnode->down();
+
+if(forced==0){
+ AMSParticle * ptr=0;
+ AMSmceventg * ptrg=0;
+  if(Select(ptr,ptrg,TRALIG.Algorithm)){
+     AMSTrTrack * ptrack= ptr->getptrack();
+     integer nnodes=0;
+     integer found=0;
+      while(pal){
+        nnodes++;
+        if(pal->AddressOK(1,1)){
+           if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
+           return;
+        }
+        pal=pal->next(); 
+     }
+      if(nnodes<TRALIG.MaxPatternsPerJob){
+           integer found=0;
+            pal=new AMSTrAligFit(1,0, TRALIG.MaxEventsPerFit, TRALIG.Algorithm, nnodes+1);
+            if(pal->_PositionData<pal->_NData)(pal->_pData[(pal->_PositionData)++]).Init(ptr,ptrg);
+            pnode->add(pal);       
+            cout <<"AMSTrAligFit::TestGl-I-PatternAdded " <<1<<" "<<TRALIG.Algorithm<<endl;
+           }
+      }
+  }
+
+
+
+else {
+
+
+   // Open Ntuple Fit/fill Ntuple & update Db
+
+     if(pal){
+         pal->Fitgl();
+     }
+  // close ntuple
+
+  char hpawc[256]="//PAWC";
+  HCDIR (hpawc, " ");
+  char houtput[]="//tralig";
+  HCDIR (houtput, " ");
+  integer ICYCL=0;
+  HROUT (0, ICYCL, " ");
+  HREND ("tralig");
+  CLOSEF(IOPA.hlun+1);
+
+
+
+
+}
+}
+
+
 
 void AMSTrAligFit::Fit(){
     void (*palfun)(int &n, double x[], double &f, AMSTrAligFit *p)=&AMSTrAligFit::alfun;
@@ -492,7 +560,7 @@ void AMSTrAligFit::Fitgl(){
      _pfit=_tmppav;
       cout <<"tmpav "<<_tmppav<<" "<<_tmppsi<<endl;
      _pfits=_tmppsi;
-     Anal();
+     Analgl();
      }
     else cerr <<"FIt-E-IfailNotZero "<<ifail<<endl;
 
@@ -552,6 +620,64 @@ cout <<" AMSTrAligFit::Anal called for pattern "<<_Pattern<<" "<<_Address<<endl;
 
 
 }
+
+
+
+
+void AMSTrAligFit::Analgl(){
+
+cout <<" AMSTrAligFit::Analgl called for pattern "<<_Pattern<<" "<<_Address<<endl;
+  static  AMSTrAligFit::TrAlig_def TRALIGG;
+  static integer action=0;
+  static integer upddone=0;
+  if(action==0){
+    action=1;
+    char hfile[161];
+    UHTOC(IOPA.hfile,40,hfile,160);
+    char filename[256];
+    strcpy(filename,hfile);
+    integer iostat;
+    integer rsize=1024;
+    char event[80];
+    HROPEN(IOPA.hlun+1,"tralig",filename,"N",rsize,iostat);
+    if(iostat){
+     cerr << "Error opening tralig ntuple file "<<filename<<endl;
+    }
+    else cout <<"tralig ntuple file "<<filename<<" opened."<<endl;
+
+   HBNT(IOPA.ntuple+1,"Tracker Alignment"," ");
+   HBNAME(IOPA.ntuple+1,"TrAlig",(int*)(&TRALIGG),"Pattern:I,Alg:I,Address:I,FCN:R,FCNI:R,PFIT:R,PFITS:R,Coo(3,6):R,Angle(3,6):R");
+
+  }
+  int i,j,k,l;
+     for(int nlad=0;nlad<nld;nlad++){
+       for(int side=0;side<2;side++){
+        if(AMSDBc::activeladdshuttle(i+1,nlad+1,side)){
+          TRALIGG.Pattern=_Pattern;
+          TRALIGG.Alg=_Algorithm;
+          TRALIGG.Address=_Address;
+          TRALIGG.FCN=_fcn;
+          TRALIGG.FCNI=_fcnI;
+          TRALIGG.Pfit=_pfit;
+          TRALIGG.Pfitsig=_pfits;
+           for(j=0;j<6;j++){
+            for(k=0;k<3;k++){
+            TRALIGG.Coo[j][k]=_pPargl[nlad][side][j].getcoo()[k];
+            TRALIGG.Angle[j][k]=_pPargl[nlad][side][j].getang()[k];
+           }
+          }
+         }
+        }
+       }
+    HFNT(IOPA.ntuple+1);
+
+   // updatedb
+   AMSTrAligPar::UpdateDBgl;
+
+
+}
+
+
 
 
 integer AMSTrAligFit::Select(AMSParticle * & ppart, AMSmceventg * & pmcg, integer alg){
@@ -1021,6 +1147,13 @@ else{
  }
  exit(1);
 }
+
+
+}
+
+void AMSTrAligPar::UpdateDBgl(){
+
+
 
 
 }

@@ -2232,6 +2232,9 @@ void AMSTrTrack::_writeEl(){
     TrTN->Status[TrTN->Ntrtr]=_status;
     TrTN->Pattern[TrTN->Ntrtr]=_Pattern;
     TrTN->NHits[TrTN->Ntrtr]=_NHits;
+    TrTN->Address[TrTN->Ntrtr]=_Address;
+    for(i=0;i<2;i++)TrTN->Dbase[TrTN->Ntrtr][i]=_Dbase[i];
+    
     for(int k=_NHits;k<AMSDBc::nlay();k++)TrTN->pHits[TrTN->Ntrtr][k]=0;
     for(k=0;k<_NHits;k++){
      TrTN->pHits[TrTN->Ntrtr][k]=_Pthit[k]->getpos();
@@ -2861,7 +2864,7 @@ void AMSTrTrack::_crHit(){
  //decodeaddress();
  integer found=0;
  AMSTrAligPar * par(0);
- if(!TRALIG.UpdateDB)par=AMSTrAligPar::SearchDB(_Address, found);
+ if(!TRALIG.UpdateDB)par=AMSTrAligPar::SearchDB(_Address, found,_Dbase);
   if(found){
    for(int i=0;i<_NHits;i++){
     int plane=patconf[_Pattern][i]-1;

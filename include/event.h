@@ -166,6 +166,7 @@ AMSlink * _getheadC( AMSID id, integer sorted=0);
 AMSlink * _getlastC( AMSID id);
 integer _setheadC( AMSID id, AMSlink * p);
 void _findC(AMSID & id);
+void getmag(float & thetam, float & phim);
 AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,

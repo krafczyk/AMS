@@ -644,6 +644,7 @@ integer MaxPatternsPerJob;
 geant Cuts[10][2];  
 integer Algorithm;     
 integer ActiveParameters[6][6]; //   for each plane: x,y,z, pitch, yaw, roll
+integer GlobalFit;
 };
 #define TRALIG COMMON_BLOCK(TRALIG,tralig)
 COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);

@@ -49,6 +49,8 @@ public:
   float VelocityS;
   float VelTheta;
   float VelPhi;
+  float ThetaM;
+  float PhiM;
   int Particles;
   int Tracks;
   int Betas;
@@ -64,6 +66,8 @@ public:
   int AntiMCClusters;
   int AntiClusters;
   int EventStatus; 
+  float Dummy[3];
+  
 friend class AMSEvent;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
@@ -279,11 +283,13 @@ public:
   int Ntrtr;
   int Status[MAXTRTR];
   int Pattern[MAXTRTR];
+  int Address[MAXTRTR];
   int NHits[MAXTRTR];
   int pHits[MAXTRTR][6];
   int FastFitDone[MAXTRTR];
   int GeaneFitDone[MAXTRTR];
   int AdvancedFitDone[MAXTRTR];
+  float Dbase[MAXTRTR][2];
   float Chi2StrLine[MAXTRTR];
   float Chi2Circle[MAXTRTR];
   float CircleRidgidity[MAXTRTR];
