@@ -81,7 +81,7 @@ void AMSNtuple::init(){
   "nlvl3[0,2],LVL3TOFTr(nlvl3)[0,10],LVL3AntiTr(nlvl3)[0,10],LVL3TrackerTr(nlvl3),LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pattern(2,nlvl3)[-1,100],LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R");
 
   HBNAME(_lun,"LVL1",&_lvl1.Nlvl1,
-  "nlvl1[0,2],LVL1LifeTime(nlvl1)[0,1023],LVL1Flag(nlvl1)[-10,10],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1)");
+  "nlvl1[0,2],LVL1LifeTime(nlvl1),LVL1Flag(nlvl1)[-10,10],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1)");
 
   HBNAME(_lun,"CTCHit",&_ctcht.Nctcht,
   "nctcht[0,50],CTChitStatus(nctcht):I,CTChitLayer(nctcht)[0,10]:I,ctchitcolumn(nctcht)[0,100]:I,ctchitrow(nctcht)[0,100]:I,ctchitsignal(nctcht)");

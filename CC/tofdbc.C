@@ -1849,6 +1849,14 @@ break;
 case 73:
 return float(tftt.tofav[7])/10.;
 break;
+case 0:
+int i;
+geant tsum;
+for(i=0;i<8;i++){
+ tsum+=tftt.tofav[i]/10.;
+}
+return tsum;
+break;
 default:
 cerr <<"TOFVarp::getmeantoftemp-E-NoCrateFound "<<crate<<endl;
 return 0.;

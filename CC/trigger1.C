@@ -77,10 +77,11 @@ void TriggerLVL1::build(){
   }
   geant sumsc=_scaler.getsum()/96;
   // mark default as error here
+  integer tm=floor(TOFVarp::getmeantoftemp(0));   
      if(_scaler.lifetime/1000.>1.)AMSEvent::gethead()->seterror();
   if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti && (sumsc<LVL1FFKEY.MaxScalersRate || _scaler.lifetime/1000.>LVL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-                       new TriggerLVL1(_scaler.lifetime,tofflag,tofpatt,antipatt));
+                       new TriggerLVL1(_scaler.lifetime+tm*10000,tofflag,tofpatt,antipatt));
   }
   else if(sumsc>=LVL1FFKEY.MaxScalersRate && _scaler.lifetime/1000.<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   
@@ -308,10 +309,11 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   antip = xpos | (xneg <<4);
   antip = antip | (a2<<16);
   geant sumsc=_scaler.getsum()/96;
+  integer tm=floor(TOFVarp::getmeantoftemp(0));   
   // mark default as error here
      if(_scaler.lifetime/1000.>1.)AMSEvent::gethead()->seterror();
   if(z>0 && (sumsc<LVL1FFKEY.MaxScalersRate || _scaler.lifetime/1000.>LVL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
-  TriggerLVL1(_scaler.lifetime,z,tofp,tofp1,antip));
+  TriggerLVL1(_scaler.lifetime+tm*10000,z,tofp,tofp1,antip));
   else if(sumsc>=LVL1FFKEY.MaxScalersRate && _scaler.lifetime/1000.<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   // ---> TOF Online histograms
   if(AMSJob::gethead()->isMonitoring() & 
