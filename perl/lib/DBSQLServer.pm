@@ -1,5 +1,19 @@
-# $Id: DBSQLServer.pm,v 1.28 2002/07/19 16:07:21 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.29 2002/08/07 12:09:42 alexei Exp $
 
+#
+#
+# Input parameters :
+#                   -Iforce    - dbinit 
+#                                    2 - recreate all tables
+#                   -Ddbdriver - database driver 
+#                                                oracle
+#                                                mysql
+#                   -Fdbfile   - database name or databasefile
+#                                (can also include host name)
+#                                for mysql : AMSMC02:pcamsf0
+# example :
+#           ./dbsqlserver.perl -Iforce -Dmysql -F:AMSMC02:pcamsf0
+#
 package DBSQLServer;
 use Error qw(:try);
 use lib::CID;
@@ -87,6 +101,9 @@ sub Connect{
         $pwd=$_;
     }
     close FILE;
+    print "dbinfo.......DBI:$self->{dbdriver}$self->{dbfile} \n";
+    print "user.........$user identified by pwd\n";
+    print "init level...$self->{dbinit}\n";
     if($self->{dbinit}){
     $self->{dbhandler}=DBI->connect('DBI:'.$self->{dbdriver}.$self->{dbfile},$user,$pwd,{PrintError => 0, AutoCommit => 1}) or die "Cannot connect: ".$DBI::errstr;
       $self->Create();
@@ -198,13 +215,14 @@ sub Create{
 #     next;
 #    } 
     if($self->{dbinit}<2){
+       print "Create -I- check table $table \n";
        my $ok =$dbh->do("select * from $table");
       if(defined $ok){
         warn "Table $table already exist";
         $i=$i+1;
         next;
       }
-     }
+    }
     if($self->{dbdriver} =~ m/CSV/){
          system "mkdir -p $self->{dbfile}";
          system "rm -f $self->{dbfile}"."/"."$table";
