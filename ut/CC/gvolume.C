@@ -402,7 +402,8 @@ integer AMSgvolume::_Norp=0;
      else {
       _pg4l->SetUserLimits(new G4UserLimits(maxstep*cm));
      }    
-     _pg4l->SetSmartless(_smartless);
+     _pg4l->SetSmartless(abs(_smartless));
+     if(_smartless<0)_pg4l->SetVisAttributes (G4VisAttributes::Invisible);
 //     cout <<" smart "<<getname()<<" "<<_pg4l->GetSmartless()<<endl;
 
    }

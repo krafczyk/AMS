@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.11 1999/11/25 14:04:05 choutko Exp $
+// $Id: g4physics.C,v 1.12 1999/12/08 15:53:00 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -25,7 +25,7 @@
 #include "G4BosonConstructor.hh"
 #include "G4LeptonConstructor.hh"
 #include "G4MesonConstructor.hh"
-#include "G4BarionConstructor.hh"
+#include "G4BaryonConstructor.hh"
 #include "G4IonConstructor.hh"
 #include "G4IonTable.hh"
 #include "G4ShortLivedConstructor.hh"
@@ -746,7 +746,7 @@ void AMSG4Physics::ConstructAllMesons()
 void AMSG4Physics::ConstructAllBarions()
 {
   //  Construct all barions
-  G4BarionConstructor pConstructor;
+  G4BaryonConstructor pConstructor;
   pConstructor.ConstructParticle();
 }
 
@@ -883,7 +883,7 @@ for(ipart=0;ipart<1000;ipart++){
        }
        if(fdelta<0.01*g3mass[ipart]*GeV){
         g3tog4p[ipart]=cand;
-//       cout <<" c "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
+       // cout <<" c "<<g3pid[ipart]<<" "<<g3tog4p[ipart]->GetParticleName()<<endl;
        }
        else{
         cerr <<"AMSG4Physics-WG4IonNotFound "<<g3pid[ipart]<<" "<<fdelta<<" "<<g3mass[ipart]*GeV<<endl;

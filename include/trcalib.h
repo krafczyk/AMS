@@ -9,7 +9,6 @@
 #include <particle.h>
 #include <trid.h>
 class AMSmceventg;
-using trid::ms;
 using namespace amsprotected;
 const integer nrho=64;
 class PSStr_def{
@@ -171,8 +170,8 @@ static number * _ADC2;
 static number * _ADCRho[nrho];
 static number * _ADC2Raw;
 static number * _ADCRaw;
-static integer  _CmnNoiseC[10][ms];
-static geant  _CmnNoise[10][ms];
+static integer  _CmnNoiseC[10][trid::ms];
+static geant  _CmnNoise[10][trid::ms];
 static void _calc();
 static void _hist();
 static void _update();

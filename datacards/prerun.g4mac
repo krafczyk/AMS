@@ -6,6 +6,6 @@
 /vis/refresh/view
 /vis/set/section_plane on 0 0 0 mm 1 0 0
 /vis/refresh/view
-/vis/camera/zoom 1.7
+/vis/camera/zoom 1.5
 /vis/camera/pan 500 0 0 
 /vis/refresh/view

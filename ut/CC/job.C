@@ -8,6 +8,9 @@
 //
 // Last Edit : Dec 27, 1997. ak. 
 //
+#ifdef __G4AMS__
+#include "globals.hh"
+#endif
 #include <amsgobj.h>
 #include <astring.h>
 #include <cern.h>
@@ -16,7 +19,7 @@
 #include <commons.h>
 #include <iostream.h>
 #include <fstream.h>
-#include <trid.h>
+//#include <trid.h>
 #include <mccluster.h>
 #include <extC.h>
 #include <job.h>
@@ -2270,7 +2273,7 @@ if(MISCFFKEY.G4On){
 #ifndef G4VIS_USE
 delete &(AMSgObj::BookTimer);
 #endif
-exit(1);
+G4Exception("It seems there is no other way to terminate geant4");
 }
 #endif
 }

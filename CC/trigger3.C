@@ -488,7 +488,10 @@ out:
   }
 
 
+geant TriggerLVL3::Discriminator(integer nht){
 
+   return max(LVL3FFKEY.TrMaxResidual[2],LVL3FFKEY.TrMaxResidual[0]-LVL3FFKEY.TrMaxResidual[1]*nht);
+}
 
 
   void TriggerLVL3::build(){
