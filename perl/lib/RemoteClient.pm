@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.15 2002/03/13 14:22:25 alexei Exp $
+# $Id: RemoteClient.pm,v 1.16 2002/03/13 14:59:27 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2032,15 +2032,15 @@ print qq`
          $buf=~s/\(/\\\(/g;
          $buf=~s/\)/\\\)/g;
          $buf=~s/\'/\\'/g;
-    if($self->{dbdriver} =~ m/Oracle/){
+         if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
             $buf =~ s/'/''/g;
-     }
+         }
          $tmpb=~s/\"/\\\"/g;
          $tmpb=~s/\(/\\\(/g;
          $tmpb=~s/\)/\\\)/g;
          $tmpb=~s/\$/\\\$/g;
          $tmpb=~s/\'/\\'/g;
-    if($self->{dbdriver} =~ m/Oracle/){
+    if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
          $tmpb =~ s/'/''/g;
     }
          my $ctime=time();
@@ -2656,7 +2656,8 @@ sub listMails {
 sub listServers {
     my $self = shift;
      print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
-     htmlTable("MC02 Servers");
+     htmlTable("MC Servers");
+     print "<a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.cgi\"><b><font color=blue> Click  here to check current production status</font></a>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT dbfilename, status, createtime, lastupdate FROM servers";
      my $r3=$self->{sqlserver}->Query($sql);
@@ -2765,6 +2766,7 @@ sub listNtuples {
     my $self = shift;
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
      htmlTable("MC02 Ntuples");
+     print "<a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/validate.o.cgi\"><b><font color=red> Click  here to validate NTuples</font></a>\n";
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT ntuples.run, ntuples.jid, ntuples.nevents, ntuples.neventserr, 
                      ntuples.timestamp, ntuples.status, ntuples.path
