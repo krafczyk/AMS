@@ -220,7 +220,7 @@ static integer _checkUpdate();
 AMSlink * addnext(AMSID id, AMSlink * p);
 integer replace(AMSID id, AMSlink * p, AMSlink *prev);
 uinteger getrun() const{return _run;}
-uinteger  getstatus()const {return _status;}
+uinteger  & getstatus() {return _status;}
 geant getpitch() const{return _Pitch;}
 geant getveltheta() const{return _VelTheta;}
 geant getvelphi() const{return _VelPhi;}
