@@ -46,24 +46,24 @@ integer AMSBeta::build(integer refit){
      if(BETAFITFFKEY.pattern[patb]){
       phit[0]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][0]-1);
       while( phit[0]){
-       if(phit[0]->checkstatus(AMSDBc::USED)==0 ){
+       if(BETAFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0 ){
         if(AMSBeta::Distance(phit[0]->getcoo(),phit[0]->getecoo(),
         ptrack,sleng[0],td)<SearchReg){
          phit[1]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][1]-1);
          while( phit[1]){
-          if(phit[1]->checkstatus(AMSDBc::USED)==0 ){
+          if(BETAFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0 ){
            if(AMSBeta::Distance(phit[1]->getcoo(),phit[1]->getecoo(),
            ptrack,sleng[1],td)<SearchReg){
             if(AMSBeta::patpoints[patb] >2){
              phit[2]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][2]-1);
              while( phit[2]){
-              if(phit[2]->checkstatus(AMSDBc::USED)==0 ){
+              if(BETAFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0 ){
                if(AMSBeta::Distance(phit[2]->getcoo(),phit[2]->
                getecoo(),ptrack,sleng[2],td) < SearchReg){
                 if(AMSBeta::patpoints[patb] >3){
                 phit[3]=AMSTOFCluster::gethead(AMSBeta::patconf[patb][3]-1);
                 while( phit[3]){
-                if(phit[3]->checkstatus(AMSDBc::USED)==0 ){
+                if(BETAFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0 ){
                  if(AMSBeta::Distance(phit[3]->getcoo(),phit[3]->
                  getecoo(),ptrack,sleng[3],td) < SearchReg){
                    //4  point combination found
@@ -133,7 +133,11 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 && fabs(pbeta->getbeta())<1.41){
          // Mark hits as USED
          int i;
-         for( i=0;i<nhit;i++)pthit[i]->setstatus(AMSDBc::USED);
+         for( i=0;i<nhit;i++){
+           if(pthit[i]->checkstatus(AMSDBc::USED))
+           pthit[i]->setstatus(AMSDBc::AMBIG);
+           pthit[i]->setstatus(AMSDBc::USED);
+         }
          if(fabs(pbeta->getbeta()) < BETAFITFFKEY.LowBetaThr && pat !=7){
           // release hits if pat # 7 and low beta
           for( i=0;i<nhit;i++){

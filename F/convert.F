@@ -1027,7 +1027,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
 *    idet=8
 *
        common /trmcclusC/TrMCCluster,IdsoftMC,Itra,Left,Center,
-     +  Right,ss,xca,xcb,xgl,summc
+     +  Right,ss,xca,xcb,xgl,summc,xd(100)
 *
 *    idet=9
 *
@@ -1183,7 +1183,11 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
         do i=1,nmax
          if(i.eq.1)write(*,*)cblock(idet)(1:8),' Started'
          call hgntb(1,cblock(idet),i,ierr)
-         if(ierr.eq.1.or.(ierr.eq.2.and. cblock(idet).eq.'EVENTH')
+c         if(mod(i,10).eq.1)write(*,*)i
+         if(ierr.ne.0)write(*,*)ierr
+         if(ierr.ne.0.or.
+     +   (ierr.eq.2.and. cblock(idet).eq.'EVENTH').or.
+     +   (ierr.eq.2.and. cblock(idet).eq.'TRMCCLUS')
      +   )then
           if( cblock(idet).eq.'EVENTH')then
             write(*,*)' Last Run&Event # ',run,eventno

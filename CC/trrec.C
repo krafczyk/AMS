@@ -1363,7 +1363,8 @@ void AMSTrTrack::AdvancedFit(){
 }
 
 integer AMSTrTrack::TOFOK(){
-  if (TRFITFFKEY.UseTOF && (_Pattern == 17 || _Pattern > 21)){
+  //  if (TRFITFFKEY.UseTOF && (_Pattern == 17 || _Pattern > 21)){
+    if (TRFITFFKEY.UseTOF ){
    // Cycle thru all TOF clusters;
    // at least UseTOF of them should be matched with the track
    integer i;

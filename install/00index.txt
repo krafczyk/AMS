@@ -1,6 +1,5 @@
-Cgbatch   // compile +link user file for geant batch
+Cgbatch   // compile +link user file for AMS batch
 Cgxint    // compile +link user file for geant interactive
-Lgbatch   // makefile t gmake geant batch from binary library
 Makelib   // makefile to gmake amslib
 Mconvert  // makefile for convert ntuples program
 Mgbatch   // makefile to gmake geant batch     
@@ -12,10 +11,15 @@ Mreadio   // readio makefile
 InitDB    // makefile, to make database init exe, to create all containers 
 config.*  // configuration files for Objectivity. Moved to ../db
 
-To create standalone simulation program (without db) use:
+To create standalone simulation/reconstruction program (without db) use:
 
+either ( if developper == use cvs before)
  batch         clmake Mgbatch or Mopt *)
  interactive   clmake Mgxint  (batch program should be created first)
+
+or (user == use of $AMSDataDir../vdev only) 
+ batch         Cgbatch user or  $AMSDataDir../vdev/exe/osf1/gbatch.exe 
+ interactive   $AMSDataDir../vdev/exe/osf1/gxint.exe 
 
 
 Instructions how to create & run db connected batch simulation program

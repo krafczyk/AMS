@@ -97,7 +97,7 @@ void AMSTrMCClusterReader::Make()
    debugger.Print("AMSTrMCClusterReader::Make(): making %d clusters.\n",
 	  _ntuple.ntrmc);
    for (k=0; k<_ntuple.ntrmc; k++) {
-      AddCluster(_ntuple.TrMCParticle[k],
+      if(_ntuple.TrMCParticle[k]!=555)AddCluster(_ntuple.TrMCParticle[k],
                  _ntuple.TrMCSignal[k],
                 &_ntuple.TrMCCoo[k][0],
                 &_ntuple.TrMCErCoo[k][0]);
@@ -145,7 +145,7 @@ void  AMSTrMCClusterReader::AddCluster(Int_t part,
    TClonesArray &clusters = *(TClonesArray*)m_Fruits;
    debugger.Print("--- AMSTrMCClusterReader: will add a cluster at %0lx\n", clusters[m_Nclusters]);
    new(clusters[m_Nclusters++]) AMSTrMCCluster(part, 
-	signal,coo, ercooA, ntracks, tracks);
+	signal*10000,coo, ercooA, ntracks, tracks);
 
 }
 

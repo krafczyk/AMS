@@ -753,7 +753,27 @@ AMSgObj::BookTimer.stop("REAXEVENT");
 
 
 void AMSEvent::_sitkinitrun(){
+
+     for(int l=0;l<2;l++){
+       for (int i=0;i<AMSDBc::nlay();i++){
+         for (int j=0;j<AMSDBc::nlad(i+1);j++){
+           for (int s=0;s<2;s++){
+            AMSTrIdSoft id(i+1,j+1,s,l,0);
+            if(id.dead())continue;
+            number oldone=0;
+            for(int k=0;k<AMSDBc::NStripsDrp(i+1,l);k++){
+             id.upd(k);
+             geant d;
+             id.setindnoise()=oldone+
+             AMSTrMCCluster::sitknoiseprob(id ,id.getsig()*TRMCFFKEY.thr1R[l]);
+             oldone=id.getindnoise();
+            }
+           }
+         }
+       }
+     }
 }
+
 
 
 void AMSEvent::_sitofinitrun(){

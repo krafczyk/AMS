@@ -391,7 +391,7 @@ R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
 
 R14 LowBetaThr(0.4)        // below this the refit will be done using pat #7 
                               if possible 
-
+I15 FullReco(0)
 
 CHARGEFIT
 R 1 Thr(1.)   // Refit charge if Fisher's criterium is satisfied(1.=67%,2.=95%)

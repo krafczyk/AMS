@@ -762,6 +762,7 @@ BETAFITFFKEY.SearchReg[0]=3.;
 BETAFITFFKEY.SearchReg[1]=3.;
 BETAFITFFKEY.SearchReg[2]=3.;
 BETAFITFFKEY.LowBetaThr=0.4;
+BETAFITFFKEY.FullReco=0;
 FFKEY("BETAFIT",(float*)&BETAFITFFKEY,sizeof(BETAFITFFKEY_DEF)/sizeof(integer),"MIXED");
 FFKEY("CHARGEFIT",(float*)&CHARGEFITFFKEY,sizeof(CHARGEFITFFKEY_DEF)/sizeof(integer),"MIXED");
 }
@@ -1505,9 +1506,9 @@ TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.r",isRealData()),
 TID.add (new AMSTimeID(AMSID("TrackerCmnNoise",isRealData()),
    begin,end,sizeof(AMSTrIdSoft::cmnnoise),
    (void*)AMSTrIdSoft::cmnnoise));
-TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
-   (void*)AMSTrIdSoft::indnoise));
+//TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
+//   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
+//   (void*)AMSTrIdSoft::indnoise));
 }
 
 

@@ -19,10 +19,10 @@ int main(int argc, char* argv[]){
   switch (argc) {
   case 1:
     cerr <<"convert-F-Please give an input file name as first parameter "<<endl;
-    return 1;
+            return 1;
   case 2:
     cerr <<"convert-F-Please give an output file name as last parameter "<<endl;
-    return 1;
+            return 1;
   default:
    break;
   }
@@ -30,9 +30,11 @@ int main(int argc, char* argv[]){
   int i,k,ok;
    for(i=1;i<argc-1;i++){
      cout <<"convert-I-Open I file "<<argv[i]<<endl;
-     PREPARE(argv[i]); 
+               PREPARE(argv[i]); 
    }
+   //     PREPARE("../datacards/mc.w.hbk"); 
   cout <<"convert-I-Open O file "<<argv[argc-1]<<endl;
   CONVERT(argv[argc-1]);
+  //CONVERT("/dev/null");
 return 0;
 }

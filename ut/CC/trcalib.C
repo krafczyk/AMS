@@ -814,17 +814,17 @@ void AMSTrIdCalib::_update(){
       cout <<" Time End "<<ctime(&end);
 
 
-      ptdv = 
-      AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVIndNoise());
-      ptdv->UpdateMe()=1;
-      ptdv->UpdCRC();
-      time(&insert);
-      ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
-      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
-      ptdv->gettime(insert,begin,end);
-      cout <<" Time Insert "<<ctime(&insert);
-      cout <<" Time Begin "<<ctime(&begin);
-      cout <<" Time End "<<ctime(&end);
+      //      ptdv = 
+      //      AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVIndNoise());
+      //      ptdv->UpdateMe()=1;
+      //      ptdv->UpdCRC();
+      //      time(&insert);
+      //      ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],_CurTime+TRCALIB.Validity[1]);
+      //      cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+      //      ptdv->gettime(insert,begin,end);
+      //      cout <<" Time Insert "<<ctime(&insert);
+      //      cout <<" Time Begin "<<ctime(&begin);
+      //      cout <<" Time End "<<ctime(&end);
 
 
      }

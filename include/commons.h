@@ -370,7 +370,8 @@ public:
   geant Chi2;  //  Max acceptable chi2 for betafit
   geant SearchReg[3]; // Max distance between track & tof hit
   geant LowBetaThr;   // Threshold below refit should be done if possible 
-                           // using 2 & 3 (comb # 7)
+                           // using 2 & 3 (comb # 7)i
+  integer FullReco;
 };
 //
 
