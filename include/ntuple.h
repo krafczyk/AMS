@@ -199,6 +199,17 @@ friend class AMSAntiCluster;
 
 };
 
+class AntiRawClusterNtuple: public AMSNtuple{
+private:
+int Status;
+int Sector;
+int UpDown;
+float Signal;
+
+friend class AMSAntiRawCluster;
+
+};
+
 class TrClusterNtuple: public AMSNtuple{
 private:
 int Idsoft;

@@ -87,7 +87,7 @@ extern CTCCCcal ctcfcal[CTCCCMX];//  CTC calibr. objects
 void AMSJob::data(){
 #ifdef __HPUX__
   AMSTrIdSoft::init();
-  AMSCharge::init();
+  //AMSCharge::init();
   AMSgObj::GTrMedMap=*(new  AMSNodeMap() );
   AMSgObj::GVolMap= *(new  AMSNodeMap() );
   AMSgObj::BookTimer= *(new AMSStat() );
@@ -1377,6 +1377,7 @@ AMSgObj::BookTimer.book("RECTCEVENT");
 
 void AMSJob::_reaxinitjob(){
 AMSgObj::BookTimer.book("REAXEVENT");
+AMSCharge::init();
 }
 
 void AMSJob::_retrdinitjob(){

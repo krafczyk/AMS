@@ -56,7 +56,8 @@
      +  CTCMCClusters,Nskip,AntiMCClusters,AntiClusters,
      +  AntiMCEvent,AntiMCIdsoft,AntiCluster, AntiSector, AntiStatus,
      +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow,
-     +  Rawaddress,rawlength,trrawcluster,betaptr
+     +  Rawaddress,rawlength,trrawcluster,betaptr,
+     +  Antirawcluster,antirawstatus,antirawupdown,antirawsector
       
 *
 *
@@ -71,6 +72,7 @@
       parameter(maxtof=20)
       parameter(maxtofmc=200)
       parameter(maxanti=16)
+      parameter(maxantiraw=32)
       parameter(maxantimc=200)
       parameter(maxtrcl=200)
       parameter(maxtrraw=500)
@@ -181,6 +183,10 @@
      + AntiStatus(maxanti),Antisector(maxanti),
      + AntiEdep(maxanti), AntiCoo(3,maxanti), AntiErCoo(3,maxanti)
 
+      common /antirawclustC/ nantiraw,
+     + AntirawStatus(maxantiraw),Antirawsector(maxantiraw),
+     + antirawupdown(maxantiraw),Antirawsignal(maxantiraw)
+
        common /antimcccluC/nantimc, 
      + AntiMCIdsoft(maxantimc) ,AntiMCXcoo(3,maxantimc),
      + AntiMCtof(maxantimc),  AntiMCedep(maxantimc)
@@ -198,7 +204,7 @@
 
 
       character *64 cdet
-      parameter (ndet=19)
+      parameter (ndet=20)
       character *64 cblock(ndet)
       integer events(ndet),eof(ndet)
       common /quest/iquest(100)
@@ -233,6 +239,7 @@ c       write(*,*)' Starting converting'
        cblock(17)='LVL1'
        cblock(18)='CTCHIT'
        cblock(19)='TRRAWCL'
+       cblock(20)='ANTIRAWC'
 
        do idet=1,ndet
         open(40+idet,file=cblock(idet),status='old',
@@ -361,6 +368,11 @@ c       write(*,*)' Starting converting'
       call hbname(1,cblock(19),ntrraw,
      + 'ntrraw[0,500],rawaddress(ntrraw):I,'//
      + 'rawlength(ntrraw):I')
+
+      call hbname(1,cblock(20),nantiraw,
+     + 'nantiraw[0,32],antirawstatus(nantiraw):I,'//
+     + 'antirawsector(nantiraw):I,antirawupdown(nantiraw):I,'//
+     + 'antirawsignal(nantiraw)')
         runold=-1
         do i=1,ndet
           events(idet)=0
@@ -949,6 +961,38 @@ c            write(*,*)' ntrrh eq 0 ', events
            ntrraw=min(ntrraw+1,maxtrraw)
         enddo   
  180     continue
+
+
+        idet=20
+        lun=40+idet
+        nantiraw=1
+        do while(truth)
+           iostat=1
+           if(eof(idet).eq.0)read(lun,end=205)
+     +     ne,antirawstatus(nantiraw),
+     +     antirawsector(nantiraw),antirawupdown(nantiraw),
+     +     antirawsignal(nantiraw)
+
+           goto 206
+ 205       eof(idet)=1
+ 206       continue
+          if(eof(idet).ne.0)then
+             events(idet)=0
+           else
+            if(events(idet).gt.ne)newrun=.true.
+            events(idet)=ne
+           endif              
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
+          if(eof(idet).eq.0)backspace lun
+           nantiraw=nantiraw-1
+           newrun=.false.
+          goto 190
+          else if (events(idet).lt.events(1))then
+              nantiraw=nantiraw-1
+         endif
+           nantiraw=min(nantiraw+1,maxantiraw)
+        enddo   
+ 190     continue
         
 
 
@@ -1029,7 +1073,9 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +  TrMCClusters , TOFClusters , TOFMCClusters , 
      +  CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters,
      +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow,ctchit,
-     +  rawhit,Rawaddress,rawstrip,rawlength,betaptr,trrawclusters
+     +  rawhit,Rawaddress,rawstrip,rawlength,betaptr,trrawclusters,
+     +  Antirawcluster,antirawstatus,antirawupdown,antirawsector
+
 *
 *
 *
@@ -1169,8 +1215,20 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
       common /TrRawClusterC/rawhit,
      + rawaddress,rawlength
 
+*
+*    idet=20
+*
+
+
+
+      common /antirawclustC/ nantiraw,
+     + AntirawStatus,Antirawsector,
+     + antirawupdown,Antirawsignal
+
+
+
       character *64 cdet
-      parameter (ndet=19)
+      parameter (ndet=20)
       character *64 cblock(ndet)
       integer events(10000),nevent
 *
@@ -1204,6 +1262,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        cblock(17)='LVL1'
        cblock(18)='CTCHIT'
        cblock(19)='TRRAWCL'
+       cblock(20)='ANTIRAWC'
        do idet=1,ndet
         open(21,file=cblock(idet),status='unknown',
      +  form='unformatted',position='append')
@@ -1248,6 +1307,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +  call hbname(1,cblock(idet),ctchit,'$SET') 
         if(cblock(idet).eq.'TRRAWCL')
      +  call hbname(1,cblock(idet),rawhit,'$SET') 
+        if(cblock(idet).eq.'ANTIRAWC')
+     +  call hbname(1,cblock(idet),nantiraw,'$SET') 
         do i=1,nmax
          if(i.eq.1)write(*,*)cblock(idet)(1:8),' Started'
          call hgntb(1,cblock(idet),i,ierr)
@@ -1335,6 +1396,11 @@ c         if(mod(i,10).eq.1)write(*,*)i
 
            else if( cblock(idet).eq.'TRRAWCL')then          
             write(21)rawhit,rawaddress,rawlength
+
+           else if( cblock(idet).eq.'ANTIRAWC')then          
+            write(21)nantiraw,
+     + AntirawStatus,Antirawsector,
+     + antirawupdown,Antirawsignal
 
 
            else

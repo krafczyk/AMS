@@ -415,6 +415,23 @@ void AMSAntiRawCluster::siantinoise(number counter1[], number counter2[], intege
 
 
 void AMSAntiRawCluster::_writeEl(){
+  // fill the ntuple
+  if(AMSAntiRawCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+static AntiRawClusterNtuple TN;
+static integer init=0;
+if(init++==0){
+  //book the ntuple block
+  HBNAME(IOPA.ntuple,"AntiRawC",TN.getaddress(),
+  "AntiRawCluster:I*4,AntiRawStatus:I*4,AntiRawSector:I*4,AntiRawUpdown:I*4,AntiRawSignal:R*4");
+
+}
+TN.Event()=AMSEvent::gethead()->getid();
+  TN.Status=_status;
+  TN.Sector=_sector;
+  TN.UpDown=_updown;
+  TN.Signal=_signal;
+  HFNTB(IOPA.ntuple,"AntiRawC");
+  }
 }
 
 void AMSAntiRawCluster::_copyEl(){
@@ -559,6 +576,23 @@ integer AMSAntiCluster::Out(integer status){
   }
   return (WriteAll || status);
 }
+
+integer AMSAntiRawCluster::Out(integer status){
+  static integer init=0;
+  static integer WriteAll=1;
+  if(init == 0){
+    init=1;
+    integer ntrig=AMSJob::gethead()->gettriggerN();
+    for(int n=0;n<ntrig;n++){
+      if(strcmp("AMSAntiRawCluster",AMSJob::gethead()->gettriggerC(n))==0){
+        WriteAll=1;
+        break;
+      }
+    }
+  }
+  return (WriteAll || status);
+}
+
 //===================================================================================
 //  DAQ-interface functions :
 //

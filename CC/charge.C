@@ -18,6 +18,7 @@
 #include <ntuple.h>
 #include <cern.h>
 #include <trrawcluster.h>
+#include <job.h>
 integer AMSCharge::_sec[2];
 integer AMSCharge::_min[2];
 integer AMSCharge::_hour[2];
@@ -242,15 +243,17 @@ void AMSCharge::print(){
 
 
 void AMSCharge::init(){
-#ifdef __ALPHA__
-  // yet another dec cxx compiler bug
-  AMSCommonsI cmni;
-  cmni.init();
-#endif
+  //#ifdef __ALPHA__
+  //  // yet another dec cxx compiler bug
+  //  AMSCommonsI cmni;
+  //  cmni.init();
+  //#endif
 int i,j;
 char fnam[256]="";
 strcpy(fnam,AMSDATADIR.amsdatadir);
 strcat(fnam,_fnam);
+if(AMSJob::gethead()->isRealData())strcat(fnam,".1");
+else strcat(fnam,".0");
   ifstream iftxt(fnam,ios::in);
   if(!iftxt){
      cerr <<"AMSCharge::init-F-Error open file "<<fnam<<endl;
@@ -350,6 +353,6 @@ strcat(fnam,_fnam);
 
 
 AMSChargeI::AMSChargeI(){
- if(_Count++==0)AMSCharge::init();
+  // if(_Count++==0)AMSCharge::init();
 }
 integer AMSChargeI::_Count=0;

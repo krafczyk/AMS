@@ -1249,6 +1249,22 @@ for (int i=0;i<maxpl;i++){
 
 
 
+integer AMSTOFRawCluster::Out(integer status){
+static integer init=0;
+static integer WriteAll=1;
+if(init == 0){
+ init=1;
+ integer ntrig=AMSJob::gethead()->gettriggerN();
+ for(int n=0;n<ntrig;n++){
+   if(strcmp("AMSTOFRawCluster",AMSJob::gethead()->gettriggerC(n))==0){
+     WriteAll=1;
+     break;
+   }
+ }
+}
+return (WriteAll || status);
+}
+
 integer AMSTOFCluster::Out(integer status){
 static integer init=0;
 static integer WriteAll=1;
