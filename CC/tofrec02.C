@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.28 2004/10/12 07:10:24 choumilo Exp $
+//  $Id: tofrec02.C,v 1.29 2005/01/04 16:48:01 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -771,10 +771,10 @@ void TOF2RawCluster::build(int &ostatus){
               dedep=elosd;
 //---> store raw(but converted from daq-format) ADCs in RawCl-obj for calibr.purpose:
 	      for(int ip=0;ip<npmts;ip++){
-		adcdr[0][ip]=number(adcd1[ip]*TOF2DBc::tdcbin(2));
-		adcdr[1][ip]=number(adcd2[ip]*TOF2DBc::tdcbin(2));
-		adcdlr[0][ip]=number(adcdl1[ip]*TOF2DBc::tdcbin(2));
-		adcdlr[1][ip]=number(adcdl2[ip]*TOF2DBc::tdcbin(2));
+		if(nadcd[0]>0)adcdr[0][ip]=number(adcd1[ip]*TOF2DBc::tdcbin(2));
+		if(nadcdl[0]>0)adcdlr[0][ip]=number(adcdl1[ip]*TOF2DBc::tdcbin(2));
+		if(nadcd[1]>0)adcdr[1][ip]=number(adcd2[ip]*TOF2DBc::tdcbin(2));
+		if(nadcdl[1]>0)adcdlr[1][ip]=number(adcdl2[ip]*TOF2DBc::tdcbin(2));
               }
 //
 //-->

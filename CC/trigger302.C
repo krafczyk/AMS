@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.27 2003/05/03 08:43:55 choutko Exp $
+//  $Id: trigger302.C,v 1.28 2005/01/04 16:48:01 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -1192,9 +1192,9 @@ int TriggerLVL302::eccrosscheck(geant ect){
             ecolx=0;
             ecoly=0;
             for(sl=0;sl<ECSLMX-1;sl+=2)ecoly+=ECemap[sl][pm];
-            if(ecoly>ewthr)ncoly+=1.;
+            if(ecoly>ewthr)ncoly+=1;
             for(sl=1;sl<ECSLMX-1;sl+=2)ecolx+=ECemap[sl][pm];
-            if(ecolx>ewthr)ncolx+=1.;
+            if(ecolx>ewthr)ncolx+=1;
             if(ECREFFKEY.reprtf[0]!=0){
               if(ecolx>0)HF1(ECHISTR+37,ecolx,1.);
               if(ecoly>0)HF1(ECHISTR+38,ecoly,1.);

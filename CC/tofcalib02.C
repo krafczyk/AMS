@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.12 2004/09/27 15:00:31 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.13 2005/01/04 16:48:00 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <typedefs.h>
@@ -1057,7 +1057,7 @@ void TOF2TDIFcalib::fill(integer il,integer ib, number td, number co){//--->fill
     col=co-coh[0];
   }
   if((col<-hlen) || (col>=hlen))return;// out of range
-  nbin=(col+hlen)/bin;
+  nbin=integer(floor((col+hlen)/bin));
   chan=TOF2DBc::barseqn(il,ib);
   nevnt[chan][nbin]+=1;
   clong[chan][nbin]+=col;
@@ -1334,6 +1334,7 @@ number TOF2AMPLcalib::emchar[TOF2GC::SCPRBM];
 number TOF2AMPLcalib::aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP];// A-profile parameters(ref.bars)
 number TOF2AMPLcalib::clent;
 integer TOF2AMPLcalib::cbtyp;//bar-type (1-11)
+integer TOF2AMPLcalib::fitflg;//(0,1)to communicate with FCN
 number TOF2AMPLcalib::arefb[TOF2GC::SCBTPN][TOF2GC::SCACMX];// tot-signals for each ref_bar/event
 integer TOF2AMPLcalib::nrefb[TOF2GC::SCBTPN];// numb.of events accum. per ref_bar
 //
@@ -1524,10 +1525,14 @@ void TOF2AMPLcalib::init(){ // ----> initialization for AMPL-calibration
     aprofp[i][1]=195.;//              (Lh)
     aprofp[i][2]=0.;//                (Wl)
     aprofp[i][3]=10.;//               (Ll)
-    aprofp[i][4]=aprofp[i][0];//defaults param. for A-profile fit(s2)
-    aprofp[i][5]=aprofp[i][1];
-    aprofp[i][6]=aprofp[i][2];
-    aprofp[i][7]=aprofp[i][3];
+    aprofp[i][4]=0.;//                (Abk)
+    aprofp[i][5]=10.;//               (Lbk)
+    aprofp[i][6]=aprofp[i][0];//defaults param. for A-profile fit(s2)
+    aprofp[i][7]=aprofp[i][1];
+    aprofp[i][8]=aprofp[i][2];
+    aprofp[i][9]=aprofp[i][3];
+    aprofp[i][10]=aprofp[i][4];               
+    aprofp[i][11]=aprofp[i][5];               
   }
 //
 }
@@ -1886,6 +1891,20 @@ void TOF2AMPLcalib::select(){ // ------> event selection for AMPL-calibration
       HF2(1218,geant(pmom),geant(betof),1.);
     }
 //
+// ---> Normalize low beta Edep to MIP(p/m=4) :
+//
+    number betnor,absbet;
+    absbet=fabs(betof);  
+    if(absbet<0.97)betnor=pow(absbet,number(5./3))
+                       /pow(number(0.97),number(5./3));//norm.factor to MIP
+    else betnor=1;
+//    
+    for(il=0;il<TOF2GC::SCLRS;il++){
+      am1[il]*=betnor;
+      am2[il]*=betnor;
+      edep[il]*=betnor;
+    }
+//
 // ------> <-- Remove events with high(ions) or too low edep.:
 //
     bad=0;
@@ -2063,7 +2082,7 @@ void TOF2AMPLcalib::filldh2l(int chnum, int np, number amd[TOF2GC::PMTSMX],numbe
 //                             ---> fill arrays for h/l ratios:
   for(i=0;i<np;i++){//pmts loop
     r=0;
-    if(amdl[i]>20 && amd[i]>0 && nevendr[chnum][i]<2000){
+    if(amdl[i]>20 && amd[i]>1 && nevendr[chnum][i]<2000){
       amd[i]+=0.5;
       amdl[i]+=0.5;
       r=amd[i]/amdl[i];
@@ -2071,6 +2090,9 @@ void TOF2AMPLcalib::filldh2l(int chnum, int np, number amd[TOF2GC::PMTSMX],numbe
       dh2lr2[chnum][i]+=(r*r);
       nevendr[chnum][i]+=1;
       if(chnum==6 && i==0)HF1(1245,r,1.);//inst.Dh(pm)/Dl(pm) for LBBS=1041, pm=1
+      if(chnum==7 && i==0)HF1(1243,r,1.);//inst.Dh(pm)/Dl(pm) for LBBS=1042, pm=1
+      if(r<4.)
+         cout<<"wrong r="<<r<<" chnum="<<chnum<<" pm="<<i<<" Dh/l="<<amd[i]<<" "<<amdl[i]<<endl;
     }
   }
 }
@@ -2287,8 +2309,8 @@ void TOF2AMPLcalib::fit(){
         if(nev>=TFCAFFKEY.minev){
           for(k=0;k<nev;k++)pntr[k]=&amchan[ic][k];//pointers to event-signals of chan=i 
           AMSsortNAG(pntr,nev);//sort in increasing order
-          nmax=floor(nev*TFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
-          nmin=floor(nev*0.015);// to remove 1.5 % of lowest amplitudes
+          nmax=int(floor(nev*TFCAFFKEY.trcut));// to keep (100*trcut)% of lowest amplitudes
+          nmin=int(floor(nev*0.015));// to remove 1.5 % of lowest amplitudes
           if(nmin==0)nmin=1;
 //          for(j=nmin;j<nmax;j++)aver+=(*pntr[j]);
 //          if((nmax-nmin)>0)gains[i]=geant(aver/(nmax-nmin));
@@ -2467,8 +2489,8 @@ void TOF2AMPLcalib::fit(){
         if(isd==0)for(k=0;k<nev;k++)pntr[k]=&ambin1[bchan][k];//pointers to event-signals of chan=bchan
         else for(k=0;k<nev;k++)pntr[k]=&ambin2[bchan][k];//pointers to event-signals of chan=bchan
         AMSsortNAG(pntr,nev);//sort in increasing order
-        nmax=floor(nev*TFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
-        nmin=floor(nev*0.015);// to remove 1.5 % of lowest amplitudes
+        nmax=int(floor(nev*TFCAFFKEY.trcut));// to keep (100*trcut)% of lowest amplitudes
+        nmin=int(floor(nev*0.02));// to remove 2 % of lowest amplitudes
         if(nmin==0)nmin=1;
 //        for(k=nmin;k<nmax;k++)aver+=(*pntr[k]);
 //        if((nmax-nmin)>0)btamp[bchan]=geant(aver/(nmax-nmin));
@@ -2507,7 +2529,7 @@ void TOF2AMPLcalib::fit(){
             jmax=j;
           }
         }
-        if(TFREFFKEY.reprtf[2]>1)HPRINT(1599);
+        if(TFREFFKEY.reprtf[2]>1 || (ibt==0 || ibt==2 || ibt==4 || ibt==7)&&(ibn<3 || ibn>nbnr-4))HPRINT(1599);
         strcpy(eltit,htit1);
 //---
         prl[1]=bnl;// some more realistic init.values from histogr.
@@ -2572,63 +2594,57 @@ void TOF2AMPLcalib::fit(){
   number argl[10];
   int iargl[10];
   number start[TOF2GC::SCPROFP],pstep[TOF2GC::SCPROFP],plow[TOF2GC::SCPROFP],phigh[TOF2GC::SCPROFP];
-  strcpy(pnam[0],"aside");
+  strcpy(pnam[0],"aforw");
   strcpy(pnam[1],"lenhi");
-  strcpy(pnam[2],"wmixt");
+  strcpy(pnam[2],"wmilo");
   strcpy(pnam[3],"lenlo");
+  strcpy(pnam[4],"aback");
+  strcpy(pnam[5],"lenbk");
 //
-  start[0]=100.;
+  start[0]=50.;
   start[1]=195.;
-  start[2]=0.;//in AMS01 was 0.28
-  start[3]=15.;
+  start[2]=0.;
+  start[3]=18.;
+  start[4]=0.;
+  start[5]=11.;
 //
 //  if(AMSJob::gethead()->isMCData()){ // tempor solution for MC
 //    start[1]=190.;
 //    start[3]=5.;
 //  }
 //
-  pstep[0]=10.;
+  pstep[0]=5.;
   pstep[1]=10.;
   pstep[2]=0.1;
-  pstep[3]=1.;
+  pstep[3]=3.;
+  pstep[4]=5.;
+  pstep[5]=3.;
 //
   plow[0]=1.;
-  plow[1]=1.;
+  plow[1]=50.;
   plow[2]=-0.001;
-  plow[3]=1.;
+  plow[3]=2.;
+  plow[4]=0.;
+  plow[5]=2.;
 //
   phigh[0]=500.;
-  phigh[1]=1000.;
-  phigh[2]=0.5;
+  phigh[1]=800.;
+  phigh[2]=1.;
   phigh[3]=50.;
+  phigh[4]=500.;
+  phigh[5]=50.;
 //
-  for(i=0;i<TOF2GC::SCPROFP;i++)ifit[i]=1;
-  ifit[2]=0;
-  ifit[3]=0;
-// ------------> initialize parameters for Minuit:
+  for(i=0;i<TOF2GC::SCPROFP;i++)ifit[i]=1;//release all parms
+// ------------> initialize some parameters for Minuit:
   MNINIT(5,6,6);
   MNSETI("Ampl<->Position dependence calibration for TOF-system");
   argl[0]=number(-1);
   MNEXCM(mfun,"SET PRINT",argl,1,ier,0);
-  for(i=0;i<TOF2GC::SCPROFP;i++){
-    strcpy(pnm,pnam[i]);
-    ier=0;
-    MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
-    if(ier!=0){
-      cout<<"TOF-calib: Param-init problem for par-id="<<pnam[i]<<'\n';
-      exit(10);
-    }
-    argl[0]=number(i+1);
-    if(ifit[i]==0){
-      ier=0;
-      MNEXCM(mfun,"FIX",argl,1,ier,0);
-      if(ier!=0){
-        cout<<"TOF-calib: Param-fix problem for par-id="<<pnam[i]<<'\n';
-        exit(10);
-      }
-    }
-  }
-//----
+  argl[0]=number(1);//UP(=1-> chi2 methode, =0.5->likelihood)
+  MNEXCM(mfun,"SET ERR",argl,1,ier,0);
+//
+//------> start fit for each bar-type:
+//
   for(ibt=0;ibt<TOF2GC::SCBTPN;ibt++){// <------ loop over bar-types
     id=rbls[ibt];
     if(id==0)continue;//skip dummy bar types
@@ -2654,7 +2670,7 @@ void TOF2AMPLcalib::fit(){
           mcharge[nbinr]=btamp[isd][bchan];
           emchar[nbinr]=ebtamp[isd][bchan];
           mcoord[nbinr]=profp[ibt][j];
-          cout<<"       q/coo="<<mcharge[nbinr]<<" "<<mcoord[nbinr]<<endl;
+          cout<<"       q/err="<<mcharge[nbinr]<<" "<<emchar[nbinr]<<" coo="<<mcoord[nbinr]<<endl;
           nbinr+=1;
         }
       }// ---> endof bins loop
@@ -2662,27 +2678,130 @@ void TOF2AMPLcalib::fit(){
       cout<<"    Good statistics bins:"<<nbinr<<endl;
       if(nbinr<5)goto nextsd;//too few bins, skip this side
 //
-      for(i=0;i<TOF2GC::SCPROFP;i++){//<--- reinitialize all non-fixed parameters
-        if(ifit[i]==1){
-          strcpy(pnm,pnam[i]);
-	  if(i==0){// better "0" value for 1st param.
-	    if(isd==0)start[i]=mcharge[0];
-	    if(isd==1)start[i]=mcharge[nbinr-1];
+      start[0]=50.;
+      start[1]=195.;
+      start[2]=0.;
+      start[3]=18.;//Llow= specific to normal count.
+      if(ibt==0 || ibt==2 || ibt==4 || ibt==7)start[3]=7.;//Llow= specific to trapezoidal
+      start[4]=0.;
+      start[5]=11.;//Lback= specific to trapez. count
+      for(i=0;i<TOF2GC::SCPROFP;i++){//<--- initialize all parameters
+        strcpy(pnm,pnam[i]);
+	if(i==0){// more realistic "start" value for 1st param.
+	  if(isd==0)start[i]=mcharge[0];
+	  if(isd==1)start[i]=mcharge[nbinr-1];
+	}
+	if(i==4){// more realistic "start" value for 5th param("aback").
+	  if(ibt==2 || ibt==4 || ibt==7){//non-zero 5th param("aback") for trapez.counters
+	    if(isd==0)start[i]=mcharge[nbinr-1];
+	    if(isd==1)start[i]=mcharge[0];
 	  }
-//	  cout<<"Prof.fit:StartParN/val="<<i+1<<" "<<start[i]<<" pl/ph="<<plow[i]<<" "<<phigh[i]<<endl;
+	}
+	cout<<"Init:StartParN/val="<<i+1<<" "<<start[i]<<" pl/ph="<<plow[i]<<" "<<phigh[i]<<endl;
+        ier=0;
+        MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);//init
+        if(ier!=0){
+          cout<<"TOF-calib:LprofileFit: Param-init problem for par-id="<<pnam[i]<<'\n';
+          exit(10);
+        }
+      }// ---> endof initialize
+//
+      if(ibt==0 || ibt==2 || ibt==4 || ibt==7){//<--- fix/rel some pars. for trapezoidal counters
+        fitflg=1;//use formula with "back" (reflection) part
+	if(ifit[1]==0){//rel
+          ifit[1]=1;
+          argl[0]=number(2);//lenhi
           ier=0;
-          MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
+          MNEXCM(mfun,"RELEASE",argl,1,ier,0);
           if(ier!=0){
-            cout<<"TOF-calib:LprofileFit: Param-init problem for par-id="<<pnam[i]<<'\n';
+            cout<<"TOF-calib: LProfileParam-fix problem for par-id="<<pnam[1]<<'\n';
             exit(10);
           }
 	}
-      }// ---> endof reinitialize
+	if(ifit[3]==1){//fix
+          ifit[3]=0;
+          argl[0]=number(4);//"lenlo"
+          ier=0;
+          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          if(ier!=0){
+            cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[3]<<'\n';
+            exit(10);
+          }
+	}
+	if(ifit[4]==0){//release
+          ifit[4]=1;
+          argl[0]=number(5);//"aback"
+          ier=0;
+          MNEXCM(mfun,"RELEASE",argl,1,ier,0);
+          if(ier!=0){
+            cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[4]<<'\n';
+            exit(10);
+          }
+	}
+	if(ifit[5]==1){//fix
+          ifit[5]=0;
+          argl[0]=number(6);//"lenbk
+          ier=0;
+          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          if(ier!=0){
+            cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[5]<<'\n';
+            exit(10);
+          }
+	}
+      }
+//
+      else{//                          <--- Fix/rel some params. for other types counters
+        fitflg=0;//use formula with "front" second slope
+	
+	if(ifit[1]==0){//rel
+          ifit[1]=1;
+          argl[0]=number(2);//"lenhi"
+          ier=0;
+          MNEXCM(mfun,"RELEASE",argl,1,ier,0);
+          if(ier!=0){
+            cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[1]<<'\n';
+            exit(10);
+          }
+	}
+	
+	if(ifit[3]==1){//fix
+          ifit[3]=0;
+          argl[0]=number(4);//"lenlo"
+          ier=0;
+          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          if(ier!=0){
+            cout<<"TOF-calib: LProfileParam-release problem for par-id="<<pnam[3]<<'\n';
+            exit(10);
+          }
+	}
+	if(ifit[4]==1){//fix
+          ifit[4]=0;
+          argl[0]=number(5);//"aback"
+          ier=0;
+          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          if(ier!=0){
+            cout<<"TOF-calib: LProfileParam-fix problem for par-id="<<pnam[4]<<'\n';
+            exit(10);
+          }
+	}
+	if(ifit[5]==1){//fix
+          ifit[5]=0;
+          argl[0]=number(6);//"lenbk"
+          ier=0;
+          MNEXCM(mfun,"FIX",argl,1,ier,0);
+          if(ier!=0){
+            cout<<"TOF-calib: LProfileParam-fix problem for par-id="<<pnam[5]<<'\n';
+            exit(10);
+          }
+	}
+      }
+      cout<<"Param-release mask:"<<100000*ifit[0]+10000*ifit[1]+1000*ifit[2]+100*ifit[3]+10*ifit[4]+ifit[5]<<endl;
 //
 // ------> start minimization:
-      argl[0]=0.;
+      argl[0]=number(1000);//max calls
+      argl[1]=number(1);//tolerance, minim. stops when dist<0.001*tolerance*UP
       ier=0;
-      MNEXCM(mfun,"MINIMIZE",argl,0,ier,0);
+      MNEXCM(mfun,"MINIMIZE",argl,2,ier,0);
       if(ier!=0){
         cout<<"TOF-calib:LprofileFit: MINIMIZE problem !"<<'\n';
         goto nextsd;
@@ -2753,8 +2872,8 @@ void TOF2AMPLcalib::fit(){
     if(nev>=TFCAFFKEY.minev){
       for(k=0;k<nev;k++)pntr[k]=&arefb[ibt][k];//pointers to event-signals of chan=bchan
       AMSsortNAG(pntr,nev);//sort in increasing order
-      nmax=floor(nev*TFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
-      nmin=floor(nev*0.015);// to remove 1.5 % of lowest amplitudes
+      nmax=int(floor(nev*TFCAFFKEY.trcut));// to keep (100*trcut)% of lowest amplitudes
+      nmin=int(floor(nev*0.015));// to remove 1.5 % of lowest amplitudes
       if(nmin==0)nmin=1;
       strcpy(htit1,"Q-tot(X=0) for ref.bar type ");
       in[0]=inum[ibt+1];
@@ -3253,7 +3372,7 @@ void TOF2AMPLcalib::fit(){
 //
   ofstream tcfile(fname,ios::out|ios::trunc);
   if(!tcfile){
-    cerr<<"TOF2AMPLcalib:error opening file for output"<<fname<<'\n';
+    cerr<<"TOF2AMPLcalib:error opening file for output "<<fname<<'\n';
     exit(8);
   }
   cout<<"Open file for AMPL-calibration output, fname:"<<fname<<'\n';
@@ -3399,24 +3518,52 @@ void TOF2AMPLcalib::mfun(int &np, number grad[], number &f, number x[]
   f=0.;
   if(iside==0){
     for(i=0;i<nbinr;i++){
-      ff=(mcharge[i]-(x[0]*(exp(-(clent/2.+mcoord[i])/x[1])
-        +x[2]*exp(-(clent/2.+mcoord[i])/x[3]))))/emchar[i];
+      if(fitflg==0)ff=(mcharge[i]-(x[0]*((1-x[2])*exp(-(clent/2.+mcoord[i])/x[1])
+                     +x[2]*exp(-(clent/2.+mcoord[i])/x[3])))
+		                                            )/emchar[i];//normal counters
+      else         ff=(mcharge[i]-(x[0]*((1-x[2])*exp(-(clent/2.+mcoord[i])/x[1])
+                     +x[2]*exp(-(clent/2.+mcoord[i])/x[3]))
+		     +x[4]*exp(-(clent/2.-mcoord[i])/x[5]))
+		                                            )/emchar[i];//some trapez.counters
       f+=(ff*ff);
     }
   }
   else{
     for(i=0;i<nbinr;i++){
-      ff=(mcharge[i]-(x[0]*(exp(-(clent/2.-mcoord[i])/x[1])
-        +x[2]*exp(-(clent/2.-mcoord[i])/x[3]))))/emchar[i];
+      if(fitflg==0)ff=(mcharge[i]-(x[0]*((1-x[2])*exp(-(clent/2.-mcoord[i])/x[1])
+                     +x[2]*exp(-(clent/2.-mcoord[i])/x[3])))
+		                                            )/emchar[i];//normal counters
+      else         ff=(mcharge[i]-(x[0]*((1-x[2])*exp(-(clent/2.-mcoord[i])/x[1])
+                     +x[2]*exp(-(clent/2.-mcoord[i])/x[3]))
+		     +x[4]*exp(-(clent/2.+mcoord[i])/x[5]))
+		                                            )/emchar[i];//some trapez.counters
       f+=(ff*ff);
     }
   }
   if(flg==3){
     f=sqrt(f/number(nbinr));
-    cout<<"    Fit::Btype="<<cbtyp<<" side="<<iside+1<<"  funct:nbins="<<f<<endl;
+    cout<<"    FitResult::Btype="<<cbtyp<<" Fitflg="<<fitflg<<" side="<<iside+1<<"  funct:nbins="<<f<<endl;
     for(i=0;i<TOF2GC::SCPROFP;i++){
       aprofp[cbtyp-1][iside*TOF2GC::SCPROFP+i]=x[i];
       cout<<"    parnumb/par="<<i<<" "<<x[i]<<endl;
+    }
+    cout<<"      Function values vs coo:"<<endl;
+    for(i=0;i<nbinr;i++){
+      if(iside==0){
+       if(fitflg==0)ff=x[0]*((1-x[2])*exp(-(clent/2.+mcoord[i])/x[1])
+                      +x[2]*exp(-(clent/2.+mcoord[i])/x[3]));//normal counters
+       else         ff=x[0]*((1-x[2])*exp(-(clent/2.+mcoord[i])/x[1])
+                      +x[2]*exp(-(clent/2.+mcoord[i])/x[3]))
+		      +x[4]*exp(-(clent/2.-mcoord[i])/x[5]);       
+      }
+      else{
+       if(fitflg==0)ff=x[0]*((1-x[2])*exp(-(clent/2.-mcoord[i])/x[1])
+                      +x[2]*exp(-(clent/2.-mcoord[i])/x[3]));//normal counters
+       else         ff=x[0]*((1-x[2])*exp(-(clent/2.-mcoord[i])/x[1])
+                      +x[2]*exp(-(clent/2.-mcoord[i])/x[3]))
+		      +x[4]*exp(-(clent/2.+mcoord[i])/x[5]);
+      }
+      cout<<"      ff/coo="<<ff<<" "<<mcoord[i]<<endl;
     }
   }
 }
@@ -4094,7 +4241,7 @@ void TOF2AVSDcalib::init(){ // ----> initialization for AVSD-calibration
     for(j=0;j<TOF2GC::SCACHB;j++){
       dtdyn[i][j]=0.;
       dtdyn2[i][j]=0.;
-      nevdyn[i][j]=0.;
+      nevdyn[i][j]=0;
     }
     nevdynt[i]=0;
   }

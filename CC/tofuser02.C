@@ -1,4 +1,4 @@
-//  $Id: tofuser02.C,v 1.9 2004/10/08 12:02:43 choumilo Exp $
+//  $Id: tofuser02.C,v 1.10 2005/01/04 16:48:01 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <event.h>
@@ -131,14 +131,16 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     }
     ptra=ptra->next();
   }// --- end of hits loop --->
-  if(TFREFFKEY.reprtf[2]>0)HF1(1505,geant(nanti),1.);
+  if(TFREFFKEY.reprtf[2]>0){
+    HF1(1505,geant(nanti),1.);
+    if(bad==0)HF1(1514,geant(nanti),1.);
+  }
 //
-//  if(nanti>1)return;// remove events with >1 sector(e>ecut) in Anti
+  if(nanti>1)return;// remove events with >1 sector(e>ecut) in Anti
   TOF2JobStat::addre(22);
   if(bad==1)return; // remove events with clust/layer != 1
   TOF2JobStat::addre(23);
 //
-  if(TFREFFKEY.reprtf[2]>0)HF1(1514,geant(nanti),1.);
   for(i=0;i<TOF2GC::SCLRS;i++){
     HF1(5040+i,geant(brnl[i]+1),1.);
   }

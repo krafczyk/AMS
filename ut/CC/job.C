@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.469 2004/10/08 09:11:45 choutko Exp $
+// $Id: job.C,v 1.470 2005/01/04 16:48:00 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1105,26 +1105,26 @@ void AMSJob::_retof2data(){
 //
 // AMPL-calibration:
   TFCAFFKEY.truse=1; // (12) 1/-1-> to use/not tracker
-  TFCAFFKEY.plhc[0]=2.;// (13) track mom. low limit(gev/c) for space calibr
-  TFCAFFKEY.plhc[1]=500.;// (14) track mom. high limit(gev/c) ..............
+  TFCAFFKEY.plhc[0]=0.5;// (13) track mom. low limit(gev/c) for space calibr
+  TFCAFFKEY.plhc[1]=47.;// (14) track mom. high limit(gev/c) ..............
   TFCAFFKEY.minev=80;// (15)min.events needed for measurement in channel or bin
-  TFCAFFKEY.trcut=0.9;// (16) cut to use for "truncated average" calculation
+  TFCAFFKEY.trcut=0.92;// (16) cut to use for "truncated average" calculation
   TFCAFFKEY.spares[0]=0;//spare integers
   TFCAFFKEY.spares[1]=0;//spare integers
   TFCAFFKEY.spares[2]=0;//spare integers
   TFCAFFKEY.spares[3]=0;//spare integers
   TFCAFFKEY.adc2q=1.;//(21)adc->charge conv.factor(pC/ADCch, hope = for all ADC chips)
-  TFCAFFKEY.plhec[0]=0.8;//(22)plow-cut for earth calibration
-  TFCAFFKEY.plhec[1]=20.;  //(23)phigh-cut ...................
-  TFCAFFKEY.bgcut[0]=2.; //(24) beta*gamma low-cut to be in mip-region(abs.calib)
-  TFCAFFKEY.bgcut[1]=50.;//(25) beta*gamma high-cut ...
+  TFCAFFKEY.plhec[0]=0.5;//(22)plow-cut for earth calibration
+  TFCAFFKEY.plhec[1]=7.;  //(23)phigh-cut ...................
+  TFCAFFKEY.bgcut[0]=0.58; //(24) beta*gamma low-cut to be around mip-region(abs.calib)
+  TFCAFFKEY.bgcut[1]=50.;//(25) beta*gamma high-cut ..............................
 //
   TFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TFCAFFKEY.dynflg=0; // (27)  not used now
   TFCAFFKEY.cfvers=6; // (28) 1-999 -> vers.number for tof2cvlistNNN.dat file
   TFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TFCAFFKEY.mcainc=0;// (30) =1->Anode-integrators calibration(MC only)(not used now)
-  TFCAFFKEY.tofbetac=0.6;// (31) if nonzero->low beta cut (own TOF measurements !!!)
+  TFCAFFKEY.tofbetac=0.5;// (31) if nonzero->low beta cut (own TOF measurements !!!)
   FFKEY("TFCA",(float*)&TFCAFFKEY,sizeof(TFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================

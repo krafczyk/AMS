@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.133 2004/09/27 15:00:31 choumilo Exp $
+//  $Id: mceventg.C,v 1.134 2005/01/04 16:48:00 choumilo Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -1469,7 +1469,7 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
      dxy=(zb+zanti)*sin(theta); // cr.with anti-bot
      xcr=xin+dxy*cos(phi);
      ycr=yin+dxy*sin(phi);
-     if((xcr*xcr+ycr*ycr)>(ranti*ranti))return 0;
+//     if((xcr*xcr+ycr*ycr)>(ranti*ranti))return 0;
      if(TFMCFFKEY.fast==2){//<-- check ECAL sens.volume if needed
        dxy=(zb-zcal)*sin(theta); // cr.with calor-top
        xcr=xin+dxy*cos(phi);

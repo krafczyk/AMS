@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.24 2004/10/08 12:02:42 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.25 2005/01/04 16:48:01 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -455,7 +455,7 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
  geant an2di[TOF2GC::SCBLMX][2],gaina[TOF2GC::SCBLMX][2],m2q[TOF2GC::SCBTPN];
  geant aprofp[TOF2GC::SCBTPN][2*TOF2GC::SCPROFP],apr[2*TOF2GC::SCPROFP],hblen;
  geant a2drf[TOF2GC::SCBLMX][2];
- geant p1s1,p2s1,p3s1,p4s1,p1s2,p2s2,p3s2,p4s2,nom,denom; 
+ geant p1s1,p2s1,p3s1,p4s1,p5s1,p6s1,p1s2,p2s2,p3s2,p4s2,p5s2,p6s2,nom,denom; 
  char fname[80];
  char name[80];
  geant a2q,td2p[2];
@@ -956,24 +956,43 @@ void TOF2Brcal::build(){// create scbrcal-objects for each sc.bar
     mip2q=m2q[brt-1];//(pC/mev),dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
     fstrd=TOF2Varp::tofvpar.sftdcd();//(ns),same hit(up-edge)delay in f/sTDC(const. for now)
 //
-//-->prepare position correction array (valid for local !!! r.c.):
+//-->prepare position correction array (valid for local !!! r.s.):
 //
       for(i=0;i<2*TOF2GC::SCPROFP;i++)apr[i]=aprofp[brt-1][i];
       p1s1=aprofp[brt-1][0];
       p2s1=aprofp[brt-1][1];
       p3s1=aprofp[brt-1][2];
       p4s1=aprofp[brt-1][3];
-      p1s2=aprofp[brt-1][4];
-      p2s2=aprofp[brt-1][5];
-      p3s2=aprofp[brt-1][6];
-      p4s2=aprofp[brt-1][7];
+      p5s1=aprofp[brt-1][4];
+      p6s1=aprofp[brt-1][5];
+      p1s2=aprofp[brt-1][6];
+      p2s2=aprofp[brt-1][7];
+      p3s2=aprofp[brt-1][8];
+      p4s2=aprofp[brt-1][9];
+      p5s2=aprofp[brt-1][10];
+      p6s2=aprofp[brt-1][11];
       mrfp=nsp/2;//central point (coo=0.)
-      denom=p1s1*(exp(-(hblen+scp[mrfp])/p2s1)+p3s1*exp(-(hblen+scp[mrfp])/p4s1))
-           +p1s2*(exp(-(hblen-scp[mrfp])/p2s2)+p3s2*exp(-(hblen-scp[mrfp])/p4s2));
-      for(isp=0;isp<nsp;isp++){ // fill 2-ends rel. l.output at scan-points
-        nom=p1s1*(exp(-(hblen+scp[isp])/p2s1)+p3s1*exp(-(hblen+scp[isp])/p4s1))
-           +p1s2*(exp(-(hblen-scp[isp])/p2s2)+p3s2*exp(-(hblen-scp[isp])/p4s2));
-        rlo[isp]=nom/denom;
+      if(brt==1 || brt==3 || brt==5 || brt==8){//trapez.counters
+        denom=p1s1*((1-p3s1)*exp(-(hblen+scp[mrfp])/p2s1)+p3s1*exp(-(hblen+scp[mrfp])/p4s1))
+	     +p5s1*exp(-(hblen-scp[mrfp])/p6s1)
+             +p1s2*((1-p3s2)*exp(-(hblen-scp[mrfp])/p2s2)+p3s2*exp(-(hblen-scp[mrfp])/p4s2))
+	     +p5s2*exp(-(hblen+scp[mrfp])/p6s2);
+        for(isp=0;isp<nsp;isp++){ // fill 2-ends rel. l.output at scan-points
+          nom=p1s1*((1-p3s1)*exp(-(hblen+scp[isp])/p2s1)+p3s1*exp(-(hblen+scp[isp])/p4s1))
+	     +p5s1*exp(-(hblen-scp[isp])/p6s1)
+             +p1s2*((1-p3s2)*exp(-(hblen-scp[isp])/p2s2)+p3s2*exp(-(hblen-scp[isp])/p4s2))
+	     +p5s2*exp(-(hblen+scp[isp])/p6s2);
+          rlo[isp]=nom/denom;
+        }
+      }
+      else{//normal counters
+        denom=p1s1*((1-p3s1)*exp(-(hblen+scp[mrfp])/p2s1)+p3s1*exp(-(hblen+scp[mrfp])/p4s1))
+             +p1s2*((1-p3s2)*exp(-(hblen-scp[mrfp])/p2s2)+p3s2*exp(-(hblen-scp[mrfp])/p4s2));
+        for(isp=0;isp<nsp;isp++){ // fill 2-ends rel. l.output at scan-points
+          nom=p1s1*((1-p3s1)*exp(-(hblen+scp[isp])/p2s1)+p3s1*exp(-(hblen+scp[isp])/p4s1))
+             +p1s2*((1-p3s2)*exp(-(hblen-scp[isp])/p2s2)+p3s2*exp(-(hblen-scp[isp])/p4s2));
+          rlo[isp]=nom/denom;
+        }
       }
 //
     sid=100*(ila+1)+(ibr+1);
@@ -1950,8 +1969,8 @@ void TOF2JobStat::printstat(){
   }
   else{
     printf(" TOFUser entries            : % 6d\n",recount[21]);
-    printf("   TOFU: no ANTI-sectors    : % 6d\n",recount[22]);
-    printf("   TOFU: 1 Clust/layer OK   : % 6d\n",recount[23]);
+    printf("   TOFU: NofANTIsectors Low : % 6d\n",recount[22]);
+    printf("   TOFU: Clusters/layer Low : % 6d\n",recount[23]);
     printf("   TOFU: ParticleWithTrack  : % 6d\n",recount[24]);
     printf("   TOFU: TrkMom/FalsTofX OK : % 6d\n",recount[25]);
     printf("   TOFU: TOF-TRK match OK   : % 6d\n",recount[26]);
@@ -2562,15 +2581,15 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
       HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
       HBOOK2(1218,"TOF-beta vs TRACKER-momentum",80,0.,4.,60,0.5,1.1,0.);
-      HBOOK2(1219,"Q(ref.btyp=2) vs (beta*gamma)",50,0.,20.,80,0.,400.,0.);
+      HBOOK2(1219,"Q(ref.btyp=2) vs (beta*gamma)",80,0.,40.,60,0.,300.,0.);
 // hist.# 1220-1239 are reserved for imp.point distr.(later in TOFAMPLcalib.init()
 //
       HBOOK1(1240,"Instant Ah/Dl(pm-sum)(LBBS=1041,midd.bin)",50,5.,15.,0.);
       HBOOK1(1241,"Instant Dh(pm) rel.gain(LBBS=1041,PM=1,midd.bin)",50,0.5,1.5,0.);
       HBOOK1(1242,"Instant Dh(pm) rel.gain(LBBS=1041,PM=2,midd.bin)",50,0.5,1.5,0.);
-// spare     HBOOK2(1243,"Ah/Dh vs Ah",50,50.,2050.,50,7.5,17.5,0.);
       HBOOK1(1244,"Instant Ah/Al for LBBS=1041",60,2.,8.,0.);
       HBOOK1(1245,"Instant Dh(pm)/Dl(pm) for LBBS=1041,PM=1",50,0.,10.,0.);
+      HBOOK1(1243,"Instant Dh(pm)/Dl(pm) for LBBS=1042,PM=1",50,0.,10.,0.);
       HBOOK1(1246,"Average Ah/Dh(pm-sum) (all chan, midd.bin)",50,7.5,12.5,0.);
       HBOOK1(1247,"RelatRMS of  aver. Ah/Dh(pm-sum) (all chan, midd.bin)",50,0.,1.,0.);
       HBOOK1(1248,"Average Dh(pm) rel.gains(all chan/pm,m.bin)",50,0.5,1.5,0.);
@@ -2578,7 +2597,7 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1276,"Average Ah/Al(all chan, midd.bin)",50,2.5,7.5,0.);
       HBOOK1(1277,"RelatRMS of aver. Ah/Al(all chan, midd.bin)",50,0.,5.,0.);
       HBOOK1(1278,"Average Dh/Dl(all chan/pm, midd.bin)",50,2.5,7.5,0.);
-      HBOOK1(1279,"RelatRMS of aver. Dh/Dl(all chan/pm, midd.bin)",50,0.,5.,0.);
+      HBOOK1(1279,"RelatRMS of aver. Dh/Dl(all chan/pm, midd.bin)",50,0.,2.5,0.);
 // hist.1800-1911 are booked in init-function for D(h) vs A(h) correlation!!!
 //
       HBOOK1(1250,"Ref.bar(type=2) Q-distr.(s=1,centre)",80,0.,160.,0.);        
@@ -2822,9 +2841,9 @@ void TOF2JobStat::outp(){
 	    HPRINT(1240);
 	    HPRINT(1241);
 	    HPRINT(1242);
-//spare	    HPRINT(1243);
 	    HPRINT(1244);
 	    HPRINT(1245);
+	    HPRINT(1243);
 	    HPRINT(1246);
 	    HPRINT(1247);
 	    HPRINT(1248);

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.180 2004/09/27 15:00:29 choumilo Exp $
+//  $Id: amsgeom.C,v 1.181 2005/01/04 16:47:59 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2509,10 +2509,13 @@ geant coo[3]={0.,0.,0.};
 integer i,nrot,gid=0,gidd=0;
 geant scradi,scinth,scleng,wrapth,groovr,pdlgap,stradi,stleng,stthic;
 geant rs,phi,phib,dphis,dphi,dphig,phigr;
+geant dx1g,dx2g,dzg,dyg;
+geant dx1b,dx2b,dzb,dyb;
+geant ddfi;
 geant degrad,raddeg;
 integer nscpad;
 AMSNode * pAmother;
-AMSgvolume * pSegm;
+AMSNode * pSegm;
 AMSNode * pGroov;
 AMSNode * p;
 AMSgvolume *dummy;
@@ -2534,6 +2537,16 @@ AMSgvolume *dummy;
   dphi=360./float(nscpad);
   dphig=raddeg*pdlgap/scradi;// phi-thickness of paddle gap(degree)
   dphis=dphi-dphig;
+// bump dim. (as TRD1)
+  dx1b=0.516;
+  dx2b=0.17;
+  dyb=scleng;
+  dzb=0.3;
+// groove
+  dx1g=0.645;
+  dx2g=0.30;
+  dyg=scleng;
+  dzg=0.3;
 //
 // create ANTI-counter supp.tube volume as  cylinder:
 //
@@ -2563,7 +2576,6 @@ AMSgvolume *dummy;
   for(i=0;i<nscpad;i++){
     phi=i*dphi;
     phib=phi+dphis;
-    phigr=phi-dphig;
 //
 //     create/pos sc. segment in A-mother:
 //
@@ -2581,23 +2593,55 @@ AMSgvolume *dummy;
 //
 //     Subtr. groove from Segm:
 //
-    coo[0]=rs*cos(phigr*degrad);
-    coo[1]=rs*sin(phigr*degrad);
+    ddfi=atan(0.5*dzg/rs);
+    nrd[0][0]=cos(phi*degrad);// rot.matrix(wrt Amother) for bump(1s-col)
+    nrd[1][0]=sin(phi*degrad);
+    nrd[2][0]=0.;
+    
+    nrd[0][1]=0.;//2nd-col
+    nrd[1][1]=0.;
+    nrd[2][1]=-1.;
+    
+    nrd[0][2]=-sin(phi*degrad);//3rd-col
+    nrd[1][2]=cos(phi*degrad);
+    nrd[2][2]=0.;
+    
+    coo[0]=sqrt(rs*rs+0.25*dzg*dzg)*cos(phi*degrad+ddfi);
+    coo[1]=sqrt(rs*rs+0.25*dzg*dzg)*sin(phi*degrad+ddfi);
     coo[2]=0.;
-    par[0]=0.;
-    par[1]=groovr;
-    par[2]=0.5*scleng;
-    pSegm->addboolean("TUBE",par,3,coo,nrm,'-');
+    
+    par[0]=dx1g/2;
+    par[1]=dx2g/2;
+    par[2]=dyg/2;
+    par[3]=dzg/2;
+    
+    pSegm->addboolean("TRD1",par,4,coo,nrd,'-');
 //
 //     add sc. bump to Segm:
 //
-    coo[0]=rs*cos(phib*degrad);
-    coo[1]=rs*sin(phib*degrad);
+    ddfi=atan(0.5*dzb/rs);
+    nrd[0][0]=cos(phib*degrad);// rot.matrix(wrt Amother) for bump(1s-col)
+    nrd[1][0]=sin(phib*degrad);
+    nrd[2][0]=0.;
+    
+    nrd[0][1]=0.;//2nd-col
+    nrd[1][1]=0.;
+    nrd[2][1]=-1.;
+    
+    nrd[0][2]=-sin(phib*degrad);//3rd-col
+    nrd[1][2]=cos(phib*degrad);
+    nrd[2][2]=0.;
+    
+    coo[0]=sqrt(rs*rs+0.25*dzb*dzb)*cos(phib*degrad+ddfi);
+    coo[1]=sqrt(rs*rs+0.25*dzb*dzb)*sin(phib*degrad+ddfi);
     coo[2]=0.;
-    par[0]=0.;
-    par[1]=groovr-pdlgap;
-    par[2]=0.5*scleng;
-    pSegm->addboolean("TUBE",par,3,coo,nrm,'+');
+    
+    par[0]=dx1b/2;
+    par[1]=dx2b/2;
+    par[2]=dyb/2;
+    par[3]=dzb/2;
+    
+    pSegm->addboolean("TRD1",par,4,coo,nrd,'+');
   }// ---> end of sector loop
 //
    cout<<"ANTI02-geometry(G4-version) done !.."<<endl;

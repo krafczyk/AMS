@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.92 2004/10/12 07:10:24 choumilo Exp $
+//  $Id: ecalrec.C,v 1.93 2005/01/04 16:48:00 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -488,40 +488,60 @@ else if(TGL1FFKEY.ectrlog==2){//<===== logic-type-2:new my_simple+ansi
   wdcut1=ECALVarp::ecalvpar.daqthr(9);//L=1,7,2(bend.proj)
   wdcut2=ECALVarp::ecalvpar.daqthr(9)-3;//L=2,8,2(nonbend)
   trigfl=0;
-  if(dyrespt>ethrmip)trflen=1;//at least MIP
-  if(dyrespt>ethrsoft)trflen=2;//at least EtotSoft
-  if(dyrespt>ethrhard)trflen=3;//at least EtotHard
+  EcalJobStat::addsr(0);
+  if(dyrespt>ethrmip){
+    trflen=1;//at least MIP
+  }
+  if(dyrespt>ethrsoft){
+    trflen=2;//at least EtotSoft
+  }
+  if(dyrespt>ethrhard){
+    trflen=3;//at least EtotHard
+  }
 //
   if(dyrespt>ethrmip){
+    EcalJobStat::addsr(1);
     if(dyrespt<=esep1){//width-cut 1st energy range
+      EcalJobStat::addsr(2);
       if(ECMCFFKEY.mcprtf>0){
         HF1(ECHIST+15,trwid1,1.);
         HF1(ECHIST+17,trwid2,1.);
       }
-      if(trwid1<wdcut1 && trwid2<wdcut2)trflwd=2;//width EM
+      if(trwid1<wdcut1 && trwid2<wdcut2){
+        trflwd=2;//width EM
+        EcalJobStat::addsr(3);
+      }
       else trflwd=1;//nonEM
     }
     else if(dyrespt>esep1 && dyresp<=esep2){//width-cut 2nd energy range
+      EcalJobStat::addsr(4);
       if(ECMCFFKEY.mcprtf>0){
         HF1(ECHIST+26,trwid1,1.);
         HF1(ECHIST+27,trwid2,1.);
       }
-      if(trwid1<1.2*wdcut1 && trwid2<1.2*wdcut2)trflwd=2;//width EM
+      if(trwid1<1.2*wdcut1 && trwid2<1.2*wdcut2){
+        trflwd=2;//width EM
+        EcalJobStat::addsr(5);
+      }
       else trflwd=1;//nonEM
     }
     else{
+      EcalJobStat::addsr(6);
       if(ECMCFFKEY.mcprtf>0){
         HF1(ECHIST+28,trwid1,1.);
         HF1(ECHIST+29,trwid2,1.);
       }
-      if(trwid1<1.4*wdcut1 && trwid2<1.4*wdcut2)trflwd=2;//width EM
+      if(trwid1<1.4*wdcut1 && trwid2<1.4*wdcut2){
+        trflwd=2;//width EM
+        EcalJobStat::addsr(7);
+      }
       else trflwd=1;//nonEM
     }
   }
   trigfl=10*trflen+trflwd;//MN, M->EnergyFlag,N->WidthFlag
 }
 //-----
-else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: italy
+else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: Pisa
 //
   int nprx(0),npry(0);
   number dyslmx[ECSLMX]={0.,0.,0.,0.,0.,0.,0.,0.,0.};
@@ -558,9 +578,19 @@ else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: italy
     if(dytrc[il+1]>0)nprx+=1;//counts SLs with PMs above threshold
     if(dytrc[il+2]>0)npry+=1;
   }
-  if(dytrsum>ethrmip)trflen=1;//at least MIP
-  if(nprx>0 && npry>0)trflen=2;//tempor
-  if(nprx>=2 && npry>=2)trflen=3;//tempor
+  EcalJobStat::addsr(0);
+  if(dytrsum>ethrmip){
+    trflen=1;//at least MIP
+    EcalJobStat::addsr(1);
+  }
+  if(nprx>0 && npry>0){
+    trflen=2;//tempor
+    EcalJobStat::addsr(2);
+  }
+  if(nprx>=2 && npry>=2){
+    trflen=3;//tempor
+    EcalJobStat::addsr(3);
+  }
   if(ECMCFFKEY.mcprtf>0){
     HF1(ECHIST+39,geant(npry),1.);
     HF1(ECHIST+40,geant(nprx),1.);
@@ -600,7 +630,10 @@ else if(TGL1FFKEY.ectrlog==3){//<===== logic-type-3: italy
       HF1(ECHIST+41,geant(dbym/64),1.);//"64" to view variables in the logic scale
       HF1(ECHIST+42,geant(dbxm/64),1.);
     }
-    if(dbxm<wdxcut && dbym<wdycut)trflwd=2;//EM
+    if(dbxm<wdxcut && dbym<wdycut){
+      trflwd=2;//EM
+      EcalJobStat::addsr(4);
+    }
     else trflwd=1;//nonEM
   }
 //

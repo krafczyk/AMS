@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.23 2004/09/27 15:00:32 choumilo Exp $
+//  $Id: trigger102.C,v 1.24 2005/01/04 16:48:01 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -118,7 +118,7 @@ void Trigger2LVL1::build(){
   geant sumsc=_scaler.getsum(AMSEvent::gethead()->gettime());
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   // mark default as error here
-  integer tm=floor(TOF2Varp::tofvpar.getmeantoftemp(0));   
+  integer tm=int(floor(TOF2Varp::tofvpar.getmeantoftemp(0)));   
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData() )
                                                      AMSEvent::gethead()->seterror();
 //
@@ -423,7 +423,7 @@ void Trigger2LVL1::buildraw(integer n, int16u *p){
   //
   geant sumsc=_scaler.getsum(AMSEvent::gethead()->gettime());
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
-  integer tm=floor(TOF2Varp::tofvpar.getmeantoftemp(0));   
+  integer tm=int(floor(TOF2Varp::tofvpar.getmeantoftemp(0)));   
   // mark default as error here
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData())AMSEvent::gethead()->seterror();
   if(z>0 && (sumsc<TGL1FFKEY.MaxScalersRate || lifetime>TGL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new

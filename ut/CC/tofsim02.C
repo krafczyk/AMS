@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.27 2004/09/27 15:00:32 choumilo Exp $
+//  $Id: tofsim02.C,v 1.28 2005/01/04 16:48:01 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 // Modified to work with width-divisions by Choumilov.E. 19.06.2002
 #include <tofdbc02.h>
@@ -1058,6 +1058,10 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
         _adcal=0;
         _nadcd=0;
         _nadcdl=0;
+	for(int ipm=0;ipm<TOF2GC::PMTSMX;ipm++){
+	  _adcd[ipm]=0.;
+	  _adcdl[ipm]=0.;
+	}
         aqin=number(charge);// anode signal in pC (ref.bar !)
 	aqin*=TOFBrcalMS::scbrcal[ilay][ibar].getagain(isid);//in current bars("seed" gains)
 //anode(h):
@@ -1087,6 +1091,10 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 	  sig=TOFBPeds::scbrped[ilay][ibar].asigd(isid,ipm);
           _adcd[_nadcd]=adcs+ped+sig*rnormx();// Dh(pm) adc+ped (float)
           _nadcd+=1;//really it is number of PMTs/side because all adcd's accepted
+//if(adcs>2500){
+//  cout<<"---> TofSimDh:L/B/S="<<ilay<<" "<<ibar<<" "<<isid<<" pm="<<ipm<<" eqs="<<eqs<<endl;
+//  cout<<" adc/adc+ped="<<adcs<<" "<<_adcd[_nadcd]<<" shar="<<shar[ipm]<<" pmgn="<<pmgn<<endl;
+//}
 	}
 //dynode(l):
 	for(int ipm=0;ipm<npmts;ipm++){
@@ -1097,6 +1105,10 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[], geant shar[])
 	  sig=TOFBPeds::scbrped[ilay][ibar].asigdl(isid,ipm);
           _adcdl[_nadcdl]=adcs+ped+sig*rnormx();// Dl(pm) adc+ped (float))
           _nadcdl+=1;
+//if(adcs>2500){
+//  cout<<"TofSimDl:L/B/S="<<ilay<<" "<<ibar<<" "<<isid<<" pm="<<ipm<<" eqs="<<eqs<<" dh2l="<<dh2lr<<endl;
+//  cout<<" adc/adc+ped="<<adcs<<" "<<_adcdl[_nadcdl]<<" shar="<<shar[ipm]<<" pmgn="<<pmgn<<endl;
+//}
 	}
 	eqs/=sdh2l;//average Dl(pm) for histogram
 	if(TFMCFFKEY.mcprtf[2]!=0)
@@ -2078,9 +2090,9 @@ void TOF2RawEvent::mc_build(int &status)
 //--------------------
 //dynode(h):
     _nadcd=0;
+    for(j=0;j<TOF2GC::PMTSMX;j++)adcd[j]=0;
     nadcd=ptr->getadcd(tadcd);// get number of D(h)-pmts(upto PMTSMX) and its ADCs(incl=0)
     for(j=0;j<nadcd;j++){// <--- D(h)-pmts loop ---
-      adcd[j]=0;
       if(TOFBrcalMS::scbrcal[ilay][ibar].DHchOK(isd,j)){//D(h)-PMch alive in "MC Seeds" DB
 	amp=tadcd[j];// here charge is quantized by "adc2q" but not "integerized"
         iamp=integer(floor(amp));//go to real ADC-channels("integerization")
@@ -2108,9 +2120,9 @@ void TOF2RawEvent::mc_build(int &status)
 //---------------------
 //dynode(l):
     _nadcdl=0;
+    for(j=0;j<TOF2GC::PMTSMX;j++)adcdl[j]=0;
     nadcdl=ptr->getadcdl(tadcdl);// get number of D(l)-pmts(upto PMTSMX) and its ADCs
     for(j=0;j<nadcdl;j++){// <--- D(l)-pmts loop ---
-      adcdl[j]=0;
       if(TOFBrcalMS::scbrcal[ilay][ibar].DLchOK(isd,j)){//D(l)-ch alive in "MC Seeds" DB
 	amp=tadcdl[j];// here charge is quantized by "adc2q" but not "integerized"
         iamp=integer(floor(amp));//go to real ADC-channels("integerization")

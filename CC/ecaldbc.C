@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.51 2004/10/12 07:10:24 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.52 2005/01/04 16:48:00 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -456,11 +456,30 @@ void EcalJobStat::printstat(){
   printf("\n");
   printf(" MC: entries                       : % 6d\n",mccount[0]);
   printf(" MC: MCHit->RawEven(ECTrigfl>0) OK : % 6d\n",mccount[1]);
-  printf(" MC Trig.procedure: entries(>=MIP) : % 6d\n",srcount[0]);
-  printf("                    Efront OK      : % 6d\n",srcount[1]);
-  printf("                    Epk/Ebs OK     : % 6d\n",srcount[2]);
-  printf("                    Epk/Efr OK     : % 6d\n",srcount[3]);
-  printf("                    TrWidth OK     : % 6d\n",srcount[4]);
+  if(TGL1FFKEY.ectrlog==1){
+    printf(" MCTrigBuild:  entries(>=MIP)      : % 6d\n",srcount[0]);
+    printf("               Efront OK           : % 6d\n",srcount[1]);
+    printf("               Epk/Ebs OK          : % 6d\n",srcount[2]);
+    printf("               Epk/Efr OK          : % 6d\n",srcount[3]);
+    printf("               TrWidth OK          : % 6d\n",srcount[4]);
+  }
+  else if(TGL1FFKEY.ectrlog==2){
+    printf(" MCTrigBuild:  entries             : % 6d\n",srcount[0]);
+    printf("               Etot>=MIP           : % 6d\n",srcount[1]);
+    printf("               EtotIn1stRange      : % 6d\n",srcount[2]);
+    printf("               EmWidth(1stRange)   : % 6d\n",srcount[3]);
+    printf("               EtotIn2ndRange      : % 6d\n",srcount[4]);
+    printf("               EmWidth(2ndRange)   : % 6d\n",srcount[5]);
+    printf("               EtotIn3rdRange      : % 6d\n",srcount[6]);
+    printf("               EmWidth(3rdRange)   : % 6d\n",srcount[7]);
+  }
+  else{
+    printf(" MCTrigBuild:  entries             : % 6d\n",srcount[0]);
+    printf("               Etot>=MIP           : % 6d\n",srcount[1]);
+    printf("               Mult>=Low           : % 6d\n",srcount[2]);
+    printf("               Mult=High           : % 6d\n",srcount[3]);
+    printf("               EmWidth(Mult=High)  : % 6d\n",srcount[4]);
+  }
   printf(" RECO-entries                      : % 6d\n",recount[0]);
   printf(" LVL1-trigs with ECAL flag         : % 6d\n",recount[1]);
   printf(" Validation OK                     : % 6d\n",recount[2]);
