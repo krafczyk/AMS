@@ -389,7 +389,7 @@ pid_t pid;
 }
 
 int open_log(int j) {
-int er;
+int er, ii;
 char *ch1, ch[256], chb[256], *token, chbuf[80];
 struct stat stat_buf;
 FILE *fp;
@@ -421,10 +421,12 @@ CONT:
     system(chbuf);
     return -1;
   }
-  ch1=fgets(ch,60,fp);
   ch1=fgets(ch,256,fp);
-  sprintf(chb,"%s",ch);
   token=strtok(ch1,delime);
+  for (ii=1; ii<10; ii++) 
+     token=strtok(NULL,delime);
+  sprintf(chb,"%s",token);
+  /*  token=strtok(NULL,delime);*/
   if (isdigit(token[0]==0))
     goto CONT;
   token=strtok(NULL,delime);
@@ -432,10 +434,14 @@ CONT:
   if (strcmp(ch,"log\n")!=0)
     goto CONT;   
   fclose(fp);
-  token=strtok(chb,del);
-  sprintf(ch,"/usr/sue/bin/rsh %s cat /dat0/local/logs/%s > %s",host_name[j],token,temp_name);
-  system(ch);
-
+  /*  token=strtok(chb,del);*/
+  sprintf(ch,"%s.log",chb);
+  sprintf(ch,"/usr/sue/bin/rsh %s cat /dat0/local/logs/%s > %s",host_name[j],ch,temp_name);
+  er=system(ch);
+  if (er<0){
+    puts("\acannot open log file");
+    return -1;
+  }
   ind_l++;
   if (ind_l>13) {
     puts("\a too many logs open\n");
@@ -449,7 +455,7 @@ CONT:
 }
 
 int open_elog(int j) {
-int er;
+int er,ii;
 char *ch1, ch[256], chb[256], *token, chbuf[80];
 struct stat stat_buf;
 FILE *fp;
@@ -481,10 +487,12 @@ CONT:
     system(chbuf);
     return -1;
   }
-  ch1=fgets(ch,60,fp);
   ch1=fgets(ch,256,fp);
-  sprintf(chb,"%s",ch);
   token=strtok(ch1,delime);
+  for (ii=1; ii<10; ii++) 
+     token=strtok(NULL,delime);
+  sprintf(chb,"%s",token);
+  /*  token=strtok(NULL,delime);*/
   if (isdigit(token[0]==0))
     goto CONT;
   token=strtok(NULL,delime);
@@ -496,10 +504,14 @@ CONT:
   if (strcmp(ch,"log\n")!=0)
     goto CONT;   
   fclose(fp);
-  token=strtok(chb,del);
-  sprintf(ch,"/usr/sue/bin/rsh %s cat /dat0/local/logs/%s > %s",host_name[j],token,temp_name);
-  system(ch);
-
+  /*  token=strtok(chb,del);*/
+  sprintf(ch,"%s.e.log",chb);
+  sprintf(ch,"/usr/sue/bin/rsh %s cat /dat0/local/logs/%s > %s",host_name[j],ch,temp_name);
+  er=system(ch);
+  if (er<0){
+    puts("\acannot open log file");
+    return -1;
+  }
   ind_l++;
   if (ind_l>13) {
     puts("\a too many logs open\n");
