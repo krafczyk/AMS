@@ -56,6 +56,10 @@ extern "C" void gustep_(){
     DumpG3Commons(cerr);
   }
 #endif
+  if(!AMSEvent::gethead()->HasNoCriticalErrors()){
+   GCTRAK.istop=1;
+   return;
+  }
   static integer freq=10;
   static integer trig=0;
   trig=(trig+1)%freq;
@@ -417,12 +421,14 @@ GDCXYZ();
    catch (AMSuPoolError e){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;
-     AMSEvent::gethead()->Recovery();
+    AMSEvent::gethead()->seterror(2);
+//     AMSEvent::gethead()->Recovery();
     }
    catch (AMSaPoolError e){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;
-    AMSEvent::gethead()->Recovery();
+    AMSEvent::gethead()->seterror(2);
+//    AMSEvent::gethead()->Recovery();
     }
    catch (AMSTrTrackError e){
     cerr << "GUSTEP  "<< e.getmessage();
@@ -433,6 +439,7 @@ GDCXYZ();
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
+if(!
 #ifdef __DB__
    if (dbg_prtout != 0 && eventR > DBWriteGeom) {
      cout <<"guout_: read event of type "<<AMSJob::gethead() -> eventRtype()
