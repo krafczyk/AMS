@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.16 2003/07/28 17:00:45 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.17 2003/09/22 08:44:44 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -40,7 +40,7 @@ class TPolyLine3D;
 class TList;
 class AMSR_GeometrySetter;
 enum EAMSR_View { kNoView=-1,kFrontView=0, kSideView=1, kTopView=2, kAllView=3, kTwoView=4 };
-enum EAMSType { kall=-1,kusedonly=0,ktrdtracks=1, ktrdclusters=2,kanticlusters=3,ktofclusters=4,ktrtracks=5,ktrclusters=6,krichrings=7,krichhits=8,kecalshowers=9,kecalclusters=10,kparticles=11,kmcinfo=12,kgeometry=13};
+enum EAMSType { kall=-1,kusedonly=0,ktrdtracks=1, ktrdclusters=2,kanticlusters=3,ktofclusters=4,ktrtracks=5,ktrclusters=6,krichrings=7,krichhits=8,kecalshowers=9,kecalclusters=10,kparticles=11,kmcinfo=12,kgeometry=13,ktrig=14};
 
 
 class AMSDisplay : public TObject {
@@ -128,6 +128,7 @@ public:
            void        DrawTitle(Option_t *option="");
            void        DrawCaption(Option_t *option="");
            void        DrawAxis(Int_t index=0, Option_t *option="");
+           void        DrawTrigger();
     bool & ShowTrClProfile(){return m_trclpr;}
     bool & UseSolidStyle(){return m_drawsolid;} 
     void        DrawView(Double_t theta=9999, Double_t phi=9999, Int_t index=0);

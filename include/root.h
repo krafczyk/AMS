@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.108 2003/09/19 14:23:16 alcaraz Exp $
+//  $Id: root.h,v 1.109 2003/09/22 08:44:50 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -110,6 +110,7 @@ class EventNtuple02{};
 
 */
 class HeaderR{
+static char _Info[255];
  public:
 
 
@@ -192,6 +193,20 @@ public:
   void   Set(EventNtuple02 *ptr);
 #endif
   friend class AMSEventR;
+  /// \return human readable info about HeaderR
+  char * Info(){
+                         double cp=cos(Pitch);
+                         double sp=sin(Pitch);
+                         double cy=cos(Yaw);
+                         double sy=sin(Yaw);
+                         double cr=cos(Roll);
+                         double sr=sin(Roll);
+                         double cams=-sr*sy*sp+cr*cp;
+                         cams=acos(cams)*180/3.1415926; 
+    sprintf(_Info,"Header: Lat %6.1f^{o}, Long %6.1f^{o}, Rad %7.1f km, Velocity %7.2f km/s,  #Theta^{M} %6.2f^{o}, Zenith %7.2f^{o}",ThetaS*180/3.1415926,PhiS*180/3.1415926,RadS/100000,VelocityS*RadS/100000, ThetaM*180/3.1415926,cams);
+  return _Info;
+  }
+
   ClassDef(HeaderR,2)       //HeaderR
 };
 
@@ -958,6 +973,9 @@ ClassDef(TrdTrackR,1)       //TrdTrackR
 */
 
 class Level1R {
+static char _Info[255];
+ bool IsECHighEnergy()const {return EcalFlag/10>0;}
+ bool IsECEMagEnergy()const {return EcalFlag%10==2;}
 public:
   int   Mode;   ///< 9 lsbits-> pattern of (requested & fired)-branches
                     /*!<
@@ -990,6 +1008,19 @@ public:
 
   Level1R(){};
   Level1R(Trigger2LVL1 *ptr);
+  /// \param number index in container
+  /// \return human readable info about Level1R
+  char * Info(int number=-1){
+    int antif=0;
+    for(int k=0;k<8;k++){
+     if( (AntiPatt & (1<<(k))) && (AntiPatt & (1<<(k+8)))){
+       antif++;
+     }
+    }
+    
+    sprintf(_Info,"TrLevel1: TofFlag %s, Z %d, AntiFired %d, EcalFlag  %s %s, EcalSum %5.1f GeV",TofFlag%10==0?"4/4":"3/4",TofFlag/10>0?2:1,antif,IsECHighEnergy()?"High":"Low",IsECEMagEnergy()?" EMag ":" ",EcalTrSum);
+  return _Info;
+  }
 ClassDef(Level1R,1)       //Level1R
 };
 
@@ -1001,6 +1032,7 @@ ClassDef(Level1R,1)       //Level1R
 */
 
 class Level3R {
+static char _Info[512];
 public:
   int   TOFTr;  ///< TOF Trigger
                 /*!<
@@ -1072,6 +1104,74 @@ public:
 
   Level3R(){};
   Level3R(TriggerLVL302 *ptr);
+  /// \param number index in container
+  /// \return human readable info about Level3R
+  char * Info(int number=-1){
+    char infol[500];
+    strcpy(infol,"");
+    for(int k=0;k<18;k++){
+     if( MainTr & (1<<k)){
+      switch (k) {
+       case 0:
+        strcat(infol,"NoTrTracks ");
+        break;
+       case 1:
+        strcat(infol,"TManyTrHits ");
+        break;
+       case 2:
+        strcat(infol,"TManyTrdHits ");
+        break;
+       case 3:
+        strcat(infol,"TManyTofHits ");
+        break;
+       case 4:
+        strcat(infol,"NoTrdTracks ");
+        break;
+       case 5:
+        strcat(infol,"Upgoing ");
+        break;
+       case 6:
+        strcat(infol,"NoTofTime ");
+        break;
+       case 7:
+        strcat(infol,"Rig+ ");
+        break;
+       case 8:
+        strcat(infol,"AmbA ");
+        break;
+       case 9:
+        strcat(infol,"AmbB ");
+        break;
+       case 10:
+        strcat(infol,"Rig- ");
+        break;
+       case 11:
+        strcat(infol,"High#gamma ");
+        break;
+       case 12:
+        strcat(infol,"HeavyIon ");
+        break;
+       case 13:
+        strcat(infol,"Prescaled ");
+        break;
+       case 14:
+        strcat(infol,"NoEcal ");
+        break;
+       case 15:
+        strcat(infol,"EcalEmag ");
+        break;
+       case 16:
+        strcat(infol,"EcalTrack ");
+        break;
+       case 17:
+        strcat(infol,"EcalTrackMatch ");
+        break;
+      }
+     }
+    }
+    sprintf(_Info,"TrLevel3: %s",infol);
+  return _Info;
+  }
 ClassDef(Level3R,1)       //Level3R
 };
 

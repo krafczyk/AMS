@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.31 2003/09/05 12:59:31 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.32 2003/09/22 08:44:44 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -392,6 +392,45 @@ void AMSDisplay::DrawAxis(Int_t index, Option_t * option)
 
 }
 
+
+
+void AMSDisplay::DrawTrigger(){
+   //
+   // Aux pad to help see Trigger/etc service info in lowerright corner of current pad
+   //
+   // This appends the axisPad to the current pad and then updates the axis
+
+   TView *eventView = gPad->GetView();
+   Double_t longitude = eventView->GetLongitude();
+   Double_t latitude  = eventView->GetLatitude();
+
+
+   TPad * trigPad = new TPad("trig","trig", 0.85, 0.0, 1.0, 0.15);
+					// this will be deleted when
+					// the parent pad calls Clear()
+
+   
+
+   trigPad->SetBorderSize(1);
+   trigPad->SetBorderMode(1);
+   trigPad->Draw();	// append to current pad
+
+   TVirtualPad * gPadSave = gPad;
+   trigPad->cd();
+   m_ntuple->Draw(ktrig);
+       
+   //
+   // Force update the drawing
+   //
+   trigPad->Modified();
+   trigPad->Update();
+
+   gPadSave->cd();
+
+}
+
+
+
 void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
 //    Draw a view of AMS
 
@@ -428,6 +467,7 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
      if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
    if( m_PrevView!=m_View){
      DrawAxis(index);
+     //DrawTrigger();
    }
    else if ( theta != 9999 && phi != 9999 ){
     m_AxisPad[index]->GetView()->SetView(phi,theta,0,iret);

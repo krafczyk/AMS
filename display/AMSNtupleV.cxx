@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.11 2003/07/28 17:00:45 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.12 2003/09/22 08:44:44 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -6,6 +6,48 @@ char * AMSNtupleV::GetObjInfo(int px, int py){
 static char* info=0;
 int dist=99999;
 info=0;
+
+
+
+{
+ int cand=-1;
+ for(int i=0;i<fTrigger1V.size();i++){
+   int current=fTrigger1V[i].DistancetoPrimitive(px,py);
+  if(abs(current)<abs(dist)){
+   dist=current;
+   cand=i;
+  }
+ }
+  if(dist<7 && cand>=0)info=fTrigger1V[cand].GetObjectInfo(px,py);
+}
+
+{
+ int cand=-1;
+ for(int i=0;i<fTrigger3V.size();i++){
+   int current=fTrigger3V[i].DistancetoPrimitive(px,py);
+  if(abs(current)<abs(dist)){
+   dist=current;
+   cand=i;
+  }
+ }
+  if(dist<7 && cand>=0)info=fTrigger3V[cand].GetObjectInfo(px,py);
+}
+{
+ int cand=-1;
+ for(int i=0;i<fHeaderV.size();i++){
+   int current=fHeaderV[i].DistancetoPrimitive(px,py);
+  if(abs(current)<abs(dist)){
+   dist=current;
+   cand=i;
+  }
+ }
+  if(dist<7 && cand>=0)info=fHeaderV[cand].GetObjectInfo(px,py);
+}
+
+  if(info)return info; 
+
+
+
 {
  int cand=-1;
  for(int i=0;i<fTofClusterV.size();i++){
@@ -185,7 +227,11 @@ if(info)return info;
 
 
 return info;
+
+
+
 }
+
 
 void AMSNtupleV::Prepare( EAMSType type){
 
@@ -198,6 +244,21 @@ if(type==kall || type==kusedonly || type==kanticlusters){
  }
 }
 
+if(type==kall){
+  fTrigger1V.clear();
+  for(int i=0;i<NLevel1();i++){
+   fTrigger1V.push_back( Trigger1V(this,i));
+  }
+  fTrigger3V.clear();
+  for(int i=0;i<NLevel3();i++){
+   fTrigger3V.push_back( Trigger3V(this,i));
+  }
+  fHeaderV.clear();
+  for(int i=0;i<1;i++){
+   fHeaderV.push_back( HeaderV(this,i));
+  }
+
+}
 
 if(type==kall || type==kusedonly || type==ktofclusters){
  fTofClusterV.clear();
@@ -336,6 +397,17 @@ if(type==kall || type==kparticles){
 
 void AMSNtupleV::Draw( EAMSType type){
 
+ for(int i=0;i<fTrigger1V.size();i++){
+   fTrigger1V[i].AppendPad();
+  }
+ for(int i=0;i<fTrigger3V.size();i++){
+   fTrigger3V[i].AppendPad();
+  }
+
+ for(int i=0;i<fHeaderV.size();i++){
+   fHeaderV[i].AppendPad();
+  }
+
 
  for(int i=0;i<fRichRingV.size();i++){
    fRichRingV[i].AppendPad();
@@ -391,7 +463,6 @@ void AMSNtupleV::Draw( EAMSType type){
  for(int i=0;i<fMCEventgV.size();i++){
    fMCEventgV[i].AppendPad();
   }
-
 
 }
 
