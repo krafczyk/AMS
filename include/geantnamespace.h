@@ -13,4 +13,8 @@ namespace gams{
   void UGINIT();
   void UGLAST();
 }
+
+class G4VPhysicalVolume;
+typedef G4VPhysicalVolume amsg4pv;
+
 #endif

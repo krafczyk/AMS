@@ -162,7 +162,7 @@ C
          enddo
         enddo
         b=b/11/11/11
-        write(*,*)'getfield-AverageMagField ',-b/10
+        write(*,*)'getfield-AverageMagField ',-b/10 , ' Tesla'
        endif
        bt=-b/10
       end    

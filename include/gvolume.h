@@ -12,9 +12,10 @@
 #include <cern.h>
 #include <amsdbc.h>
 #include <point.h>
-class AMSgvolume : public AMSNode 
-{
+#include <geantnamespace.h>
+class AMSgvolume : public AMSNode {
  protected:
+    amsg4pv * _pg4v;
    void _init();
    AMSgvolume (const AMSgvolume&);   // do not want cc
    AMSgvolume &operator=(const AMSgvolume&); // do not want ass
@@ -40,8 +41,8 @@ class AMSgvolume : public AMSNode
 
  public:
   static void amsgeom();
-  AMSgvolume (): AMSNode(0){};
-
+  AMSgvolume (): AMSNode(0),_pg4v(0){};
+  amsg4pv * getg4pv() const {return _pg4v;}
 
   AMSgvolume (integer matter,integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar,
@@ -58,7 +59,7 @@ class AMSgvolume : public AMSNode
            geant coo[] ,  number nrm1[3] , number nrm2[3], number nrm3[3],
            const char gonly[] , 
            integer posp,integer gid, integer rel=0);
-
+  
   number getnrm(integer i ,integer j)const{return _nrm[i][j];}
   number getnrmA(integer i ,integer j)const{return _nrmA[i][j];}
   number getcoo(integer i) {return _coo[i];}

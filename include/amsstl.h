@@ -691,6 +691,7 @@ L120:
     }
 } 
 
+#ifndef G4USE_STL
 template <class T>
 inline const T& min(const T& a, const T& b) {
   return b < a ? b : a;
@@ -700,6 +701,7 @@ template <class T>
 inline const T& max(const T& a, const T& b) {
   return  a < b ? b : a;
 }
+#endif
 //
 template <class T> integer AMSbins(T a[],  T obj, integer i){
 // Modified analog of FORTRAN's LOCATF/LOKATI binary search functions.

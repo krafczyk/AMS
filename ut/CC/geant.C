@@ -123,12 +123,26 @@ void gams::UGINIT(){
   // Geant initialization
 
 #ifdef __G4AMS__
-  if(MISCFFKEY.G4On)g4ams::G4INIT();
   if(MISCFFKEY.G3On){
 #endif
   GZINIT();
   GPART();
   GPIONS(4);
+/*
+{
+ for(int ipart=0;ipart<1000;ipart++){
+    char chp[22]="";
+    integer itrtyp=0;
+    geant mass=0;
+    geant charge=0;
+    geant tlife=0;
+    geant ub[1];
+    integer nwb=0;
+    GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
+    cout <<ipart <<" "<<itrtyp<<endl;  
+ }
+}
+*/
 #ifdef __G4AMS__
 }
 #endif
@@ -150,7 +164,7 @@ void gams::UGINIT(){
   AMSJob::map(1);
 #ifndef __BATCH__
 #ifdef __G4AMS__
-if(MISCFFKET.G4On)
+if(MISCFFKEY.G3On)
 #endif
 GDINIT();
 #endif
@@ -164,9 +178,11 @@ GDINIT();
   AMSJob::gethead() -> seteventRtype(eventR);
 #endif
 #ifdef __G4AMS__
+if(MISCFFKEY.G4On)g4ams::G4INIT();
 if(MISCFFKEY.G3On)
 #endif
 GPHYSI();
+AMSJob::map(1);
 
 }
 

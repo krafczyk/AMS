@@ -406,6 +406,12 @@ for( i=0;i<6;i++){
  FFKEY("TRALIG",(float*)&TRALIG,sizeof(TRALIG_DEF)/sizeof(integer),"MIXED");
 
 
+
+G4FFKEY.BFOrder=4;
+G4FFKEY.Delta=0.001;
+FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
+
+
 }
 
 void AMSJob::_signdata(){
@@ -1652,6 +1658,10 @@ void AMSJob::_retrdinitjob(){
 AMSgvolume * AMSJob::getgeom(AMSID id){
   if(id.getname() ==0 && id.getid()==0)id=AMSID(AMSDBc::ams_name,1);
   return (AMSgvolume*)AMSJob::JobMap.getp(id);
+}
+AMSG4Physics * AMSJob::getg4physics(){
+    AMSID id("AMSG4Physics",0);
+    return (AMSG4Physics*)AMSJob::JobMap.getp(id);
 }
 
 AMSStatus * AMSJob::getstatustable(){

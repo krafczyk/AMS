@@ -693,6 +693,16 @@ COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);
 
 
 
+class G4FFKEY_DEF{
+public:
+int BFOrder;
+float Delta;
+};
+#define G4FFKEY COMMON_BLOCK(G4FFKEY,g4ffkey)
+COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);
+
+
+
 
 
 class AMSCommonsI{

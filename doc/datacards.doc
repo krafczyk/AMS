@@ -647,3 +647,9 @@ I 2 BeamTest(0)             // BeamTest data(1) not(0)
 R 3 BZCorr(1.)              // Z scale for b field (test only)
 I 4 G3On(1)                 // 0 off 1 on geant3
 I 5 G4On(0)                 // 0 off 1 on geant4
+
+
+
+G4FF    // Geant4 Datacards
+I 1 BFOrder(4)    // Runge Kutta order 
+R 2 Delta(0.001)  // Runge Kutta delta

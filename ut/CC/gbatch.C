@@ -2,7 +2,6 @@
 // Author V. Choutko 24-may-1996
  
 #include <iostream.h>
-#include <gvolume.h>
 #include <signal.h>
 #include <unistd.h> 
 #include <new.h>
@@ -27,7 +26,6 @@ void (handler)(int);
      *signal(SIGQUIT, handler);
      *signal(SIGUSR1, handler); 
      *signal(SIGUSR2, handler); 
-    AMSgvolume::debug=0;
     cout.sync_with_stdio();
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);

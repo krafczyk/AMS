@@ -1,5 +1,3 @@
-
-
 # DO NOT DELETE
 
 ../bin/Linux-g++/id.o: ../include/id.h ../include/typedefs.h
@@ -48,40 +46,37 @@
 ../bin/Linux-g++/snode.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
 ../bin/Linux-g++/snode.o: /usr/include/stdio_lim.h ../include/hbook.h
 ../bin/Linux-g++/snode.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/gbatch.o: ../include/gvolume.h ../include/node.h
-../bin/Linux-g++/gbatch.o: ../include/typedefs.h /usr/include/assert.h
+../bin/Linux-g++/gbatch.o: /usr/include/signal.h
 ../bin/Linux-g++/gbatch.o: /usr/include/features.h
 ../bin/Linux-g++/gbatch.o: /usr/include/sys/cdefs.h
-../bin/Linux-g++/gbatch.o: /usr/include/gnu/stubs.h ../include/id.h
-../bin/Linux-g++/gbatch.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stddef.h
-../bin/Linux-g++/gbatch.o: /usr/include/stdlib.h
-../bin/Linux-g++/gbatch.o: /usr/include/sys/types.h
-../bin/Linux-g++/gbatch.o: /usr/include/gnu/types.h /usr/include/time.h
-../bin/Linux-g++/gbatch.o: /usr/include/endian.h /usr/include/bytesex.h
-../bin/Linux-g++/gbatch.o: /usr/include/sys/select.h
-../bin/Linux-g++/gbatch.o: /usr/include/selectbits.h
-../bin/Linux-g++/gbatch.o: /usr/include/alloca.h /usr/include/string.h
-../bin/Linux-g++/gbatch.o: ../include/cern.h ../include/cfortran.h
-../bin/Linux-g++/gbatch.o: /usr/include/stdio.h /usr/include/libio.h
-../bin/Linux-g++/gbatch.o: /usr/include/_G_config.h
-../bin/Linux-g++/gbatch.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
-../bin/Linux-g++/gbatch.o: /usr/include/stdio_lim.h ../include/hbook.h
-../bin/Linux-g++/gbatch.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/gbatch.o: ../include/amsdbc.h ../include/point.h
-../bin/Linux-g++/gbatch.o: /usr/include/math.h /usr/include/huge_val.h
-../bin/Linux-g++/gbatch.o: /usr/include/mathcalls.h
-../bin/Linux-g++/gbatch.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
-../bin/Linux-g++/gbatch.o: /usr/include/signal.h /usr/include/sigset.h
-../bin/Linux-g++/gbatch.o: /usr/include/signum.h
+../bin/Linux-g++/gbatch.o: /usr/include/gnu/stubs.h
+../bin/Linux-g++/gbatch.o: /usr/include/gnu/types.h
+../bin/Linux-g++/gbatch.o: /usr/include/sigset.h /usr/include/signum.h
 ../bin/Linux-g++/gbatch.o: /usr/include/sigaction.h
 ../bin/Linux-g++/gbatch.o: /usr/include/sigcontext.h
 ../bin/Linux-g++/gbatch.o: /usr/include/asm/sigcontext.h
+../bin/Linux-g++/gbatch.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stddef.h
 ../bin/Linux-g++/gbatch.o: /usr/include/sigstack.h
 ../bin/Linux-g++/gbatch.o: /usr/include/unistd.h
 ../bin/Linux-g++/gbatch.o: /usr/include/posix_opt.h
 ../bin/Linux-g++/gbatch.o: /usr/include/confname.h ../include/upool.h
-../bin/Linux-g++/gbatch.o: ../include/apool.h ../include/snode.h
-../bin/Linux-g++/gbatch.o: ../include/status.h ../include/commons.h
+../bin/Linux-g++/gbatch.o: ../include/typedefs.h /usr/include/assert.h
+../bin/Linux-g++/gbatch.o: /usr/include/string.h ../include/apool.h
+../bin/Linux-g++/gbatch.o: ../include/node.h ../include/id.h
+../bin/Linux-g++/gbatch.o: /usr/include/stdlib.h
+../bin/Linux-g++/gbatch.o: /usr/include/sys/types.h /usr/include/time.h
+../bin/Linux-g++/gbatch.o: /usr/include/endian.h /usr/include/bytesex.h
+../bin/Linux-g++/gbatch.o: /usr/include/sys/select.h
+../bin/Linux-g++/gbatch.o: /usr/include/selectbits.h
+../bin/Linux-g++/gbatch.o: /usr/include/alloca.h ../include/snode.h
+../bin/Linux-g++/gbatch.o: ../include/status.h ../include/cern.h
+../bin/Linux-g++/gbatch.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/Linux-g++/gbatch.o: /usr/include/libio.h
+../bin/Linux-g++/gbatch.o: /usr/include/_G_config.h
+../bin/Linux-g++/gbatch.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
+../bin/Linux-g++/gbatch.o: /usr/include/stdio_lim.h ../include/hbook.h
+../bin/Linux-g++/gbatch.o: ../include/geant321.h ../include/geant321g.h
+../bin/Linux-g++/gbatch.o: ../include/amsdbc.h ../include/commons.h
 ../bin/Linux-g++/gbatch.o: ../include/geantnamespace.h
 ../bin/Linux-g++/gvolume.o: ../include/gvolume.h ../include/node.h
 ../bin/Linux-g++/gvolume.o: ../include/typedefs.h /usr/include/assert.h
@@ -108,6 +103,7 @@
 ../bin/Linux-g++/gvolume.o: /usr/include/huge_val.h
 ../bin/Linux-g++/gvolume.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/gvolume.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/gvolume.o: ../include/geantnamespace.h
 ../bin/Linux-g++/gvolume.o: ../include/amsgobj.h ../include/snode.h
 ../bin/Linux-g++/gvolume.o: ../include/upool.h ../include/uzstat.h
 ../bin/Linux-g++/gvolume.o: /usr/include/limits.h
@@ -178,13 +174,13 @@
 ../bin/Linux-g++/gsen.o: /usr/include/math.h /usr/include/huge_val.h
 ../bin/Linux-g++/gsen.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/gsen.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
-../bin/Linux-g++/gsen.o: ../include/trid.h ../include/amsstl.h
-../bin/Linux-g++/gsen.o: ../include/upool.h ../include/commons.h
-../bin/Linux-g++/gsen.o: /usr/include/link.h /usr/include/elf.h
-../bin/Linux-g++/gsen.o: /usr/include/elfclass.h ../include/job.h
-../bin/Linux-g++/gsen.o: ../include/snode.h ../include/gmat.h
-../bin/Linux-g++/gsen.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/Linux-g++/gsen.o: /usr/include/limits.h
+../bin/Linux-g++/gsen.o: ../include/geantnamespace.h ../include/trid.h
+../bin/Linux-g++/gsen.o: ../include/amsstl.h ../include/upool.h
+../bin/Linux-g++/gsen.o: ../include/commons.h /usr/include/link.h
+../bin/Linux-g++/gsen.o: /usr/include/elf.h /usr/include/elfclass.h
+../bin/Linux-g++/gsen.o: ../include/job.h ../include/snode.h
+../bin/Linux-g++/gsen.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/gsen.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/gsen.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/gsen.o: /usr/include/local_lim.h
 ../bin/Linux-g++/gsen.o: /usr/include/linux/limits.h
@@ -241,9 +237,9 @@
 ../bin/Linux-g++/gmat.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/gmat.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
 ../bin/Linux-g++/gmat.o: ../include/job.h ../include/gvolume.h
-../bin/Linux-g++/gmat.o: ../include/point.h ../include/timeid.h
-../bin/Linux-g++/gmat.o: ../include/astring.h ../include/commons.h
-../bin/Linux-g++/gmat.o: ../include/status.h
+../bin/Linux-g++/gmat.o: ../include/point.h ../include/geantnamespace.h
+../bin/Linux-g++/gmat.o: ../include/timeid.h ../include/astring.h
+../bin/Linux-g++/gmat.o: ../include/commons.h ../include/status.h
 ../bin/Linux-g++/amsgobj.o: ../include/node.h ../include/typedefs.h
 ../bin/Linux-g++/amsgobj.o: /usr/include/assert.h
 ../bin/Linux-g++/amsgobj.o: /usr/include/features.h
@@ -304,6 +300,7 @@
 ../bin/Linux-g++/amsgeom.o: /usr/include/math.h /usr/include/huge_val.h
 ../bin/Linux-g++/amsgeom.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/amsgeom.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/amsgeom.o: ../include/geantnamespace.h
 ../bin/Linux-g++/amsgeom.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/amsgeom.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/amsgeom.o: /usr/include/posix1_lim.h
@@ -350,18 +347,17 @@
 ../bin/Linux-g++/geant.o: ../include/commons.h ../include/trid.h
 ../bin/Linux-g++/geant.o: ../include/amsdbc.h ../include/amsstl.h
 ../bin/Linux-g++/geant.o: ../include/job.h ../include/gvolume.h
-../bin/Linux-g++/geant.o: ../include/gmat.h ../include/timeid.h
-../bin/Linux-g++/geant.o: ../include/astring.h ../include/status.h
-../bin/Linux-g++/geant.o: ../include/tkdbc.h ../include/extC.h
-../bin/Linux-g++/geant.o: ../include/trigger3.h ../include/tofdbc.h
-../bin/Linux-g++/geant.o: /usr/include/unistd.h
+../bin/Linux-g++/geant.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/Linux-g++/geant.o: ../include/timeid.h ../include/astring.h
+../bin/Linux-g++/geant.o: ../include/status.h ../include/tkdbc.h
+../bin/Linux-g++/geant.o: ../include/extC.h ../include/trigger3.h
+../bin/Linux-g++/geant.o: ../include/tofdbc.h /usr/include/unistd.h
 ../bin/Linux-g++/geant.o: /usr/include/posix_opt.h
 ../bin/Linux-g++/geant.o: /usr/include/confname.h
 ../bin/Linux-g++/geant.o: ../include/mccluster.h ../include/apool.h
 ../bin/Linux-g++/geant.o: ../include/gsen.h ../include/ctcdbc.h
 ../bin/Linux-g++/geant.o: ../include/event.h ../include/cont.h
 ../bin/Linux-g++/geant.o: ../include/daqevt.h ../include/trrec.h
-../bin/Linux-g++/geant.o: ../include/geantnamespace.h
 ../bin/Linux-g++/geant3.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/Linux-g++/geant3.o: /usr/include/features.h
 ../bin/Linux-g++/geant3.o: /usr/include/sys/cdefs.h
@@ -400,6 +396,7 @@
 ../bin/Linux-g++/geant3.o: ../include/commons.h ../include/trid.h
 ../bin/Linux-g++/geant3.o: ../include/amsdbc.h ../include/amsstl.h
 ../bin/Linux-g++/geant3.o: ../include/job.h ../include/gvolume.h
+../bin/Linux-g++/geant3.o: ../include/geantnamespace.h
 ../bin/Linux-g++/geant3.o: ../include/gmat.h ../include/timeid.h
 ../bin/Linux-g++/geant3.o: ../include/astring.h ../include/status.h
 ../bin/Linux-g++/geant3.o: ../include/tkdbc.h ../include/extC.h
@@ -430,7 +427,52 @@
 ../bin/Linux-g++/geant4.o: /usr/include/selectbits.h
 ../bin/Linux-g++/geant4.o: /usr/include/alloca.h ../include/hbook.h
 ../bin/Linux-g++/geant4.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/geant4.o: ../include/geantnamespace.h
+../bin/Linux-g++/geant4.o: ../include/geantnamespace.h ../include/job.h
+../bin/Linux-g++/geant4.o: ../include/node.h ../include/id.h
+../bin/Linux-g++/geant4.o: ../include/snode.h ../include/upool.h
+../bin/Linux-g++/geant4.o: ../include/gvolume.h ../include/amsdbc.h
+../bin/Linux-g++/geant4.o: ../include/point.h /usr/include/math.h
+../bin/Linux-g++/geant4.o: /usr/include/huge_val.h
+../bin/Linux-g++/geant4.o: /usr/include/mathcalls.h
+../bin/Linux-g++/geant4.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/geant4.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/geant4.o: ../include/uzstat.h /usr/include/limits.h
+../bin/Linux-g++/geant4.o: /usr/include/posix1_lim.h
+../bin/Linux-g++/geant4.o: /usr/include/local_lim.h
+../bin/Linux-g++/geant4.o: /usr/include/linux/limits.h
+../bin/Linux-g++/geant4.o: /usr/include/posix2_lim.h
+../bin/Linux-g++/geant4.o: ../include/timeid.h ../include/astring.h
+../bin/Linux-g++/geant4.o: ../include/commons.h ../include/status.h
+../bin/Linux-g++/geant4.o: ../include/g4physics.h
+../bin/Linux-g++/g4physics.o: ../include/g4physics.h ../include/node.h
+../bin/Linux-g++/g4physics.o: ../include/typedefs.h
+../bin/Linux-g++/g4physics.o: /usr/include/assert.h
+../bin/Linux-g++/g4physics.o: /usr/include/features.h
+../bin/Linux-g++/g4physics.o: /usr/include/sys/cdefs.h
+../bin/Linux-g++/g4physics.o: /usr/include/gnu/stubs.h ../include/id.h
+../bin/Linux-g++/g4physics.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stddef.h
+../bin/Linux-g++/g4physics.o: /usr/include/stdlib.h
+../bin/Linux-g++/g4physics.o: /usr/include/sys/types.h
+../bin/Linux-g++/g4physics.o: /usr/include/gnu/types.h
+../bin/Linux-g++/g4physics.o: /usr/include/time.h /usr/include/endian.h
+../bin/Linux-g++/g4physics.o: /usr/include/bytesex.h
+../bin/Linux-g++/g4physics.o: /usr/include/sys/select.h
+../bin/Linux-g++/g4physics.o: /usr/include/selectbits.h
+../bin/Linux-g++/g4physics.o: /usr/include/alloca.h ../include/cern.h
+../bin/Linux-g++/g4physics.o: ../include/cfortran.h
+../bin/Linux-g++/g4physics.o: /usr/include/stdio.h /usr/include/libio.h
+../bin/Linux-g++/g4physics.o: /usr/include/_G_config.h
+../bin/Linux-g++/g4physics.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
+../bin/Linux-g++/g4physics.o: /usr/include/stdio_lim.h
+../bin/Linux-g++/g4physics.o: /usr/include/string.h ../include/hbook.h
+../bin/Linux-g++/g4physics.o: ../include/geant321.h
+../bin/Linux-g++/g4physics.o: ../include/geant321g.h
+../bin/Linux-g++/g4physics.o: ../include/commons.h ../include/amsstl.h
+../bin/Linux-g++/g4physics.o: /usr/include/math.h
+../bin/Linux-g++/g4physics.o: /usr/include/huge_val.h
+../bin/Linux-g++/g4physics.o: /usr/include/mathcalls.h
+../bin/Linux-g++/g4physics.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/g4physics.o: ../include/upool.h
 ../bin/Linux-g++/mceventg.o: ../include/mceventg.h ../include/point.h
 ../bin/Linux-g++/mceventg.o: ../include/typedefs.h
 ../bin/Linux-g++/mceventg.o: /usr/include/assert.h
@@ -466,6 +508,7 @@
 ../bin/Linux-g++/mceventg.o: ../include/job.h ../include/node.h
 ../bin/Linux-g++/mceventg.o: ../include/id.h ../include/snode.h
 ../bin/Linux-g++/mceventg.o: ../include/upool.h ../include/gvolume.h
+../bin/Linux-g++/mceventg.o: ../include/geantnamespace.h
 ../bin/Linux-g++/mceventg.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/mceventg.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/mceventg.o: /usr/include/posix1_lim.h
@@ -526,8 +569,9 @@
 ../bin/Linux-g++/trid.o: ../include/job.h ../include/node.h
 ../bin/Linux-g++/trid.o: ../include/id.h ../include/snode.h
 ../bin/Linux-g++/trid.o: ../include/gvolume.h ../include/point.h
-../bin/Linux-g++/trid.o: ../include/gmat.h ../include/amsgobj.h
-../bin/Linux-g++/trid.o: ../include/uzstat.h /usr/include/limits.h
+../bin/Linux-g++/trid.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/Linux-g++/trid.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/Linux-g++/trid.o: /usr/include/limits.h
 ../bin/Linux-g++/trid.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/trid.o: /usr/include/local_lim.h
 ../bin/Linux-g++/trid.o: /usr/include/linux/limits.h
@@ -565,12 +609,12 @@
 ../bin/Linux-g++/trrec.o: /usr/include/math.h /usr/include/huge_val.h
 ../bin/Linux-g++/trrec.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/trrec.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
-../bin/Linux-g++/trrec.o: ../include/trid.h ../include/amsstl.h
-../bin/Linux-g++/trrec.o: ../include/commons.h /usr/include/link.h
-../bin/Linux-g++/trrec.o: /usr/include/elf.h /usr/include/elfclass.h
-../bin/Linux-g++/trrec.o: ../include/job.h ../include/gmat.h
-../bin/Linux-g++/trrec.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/Linux-g++/trrec.o: /usr/include/limits.h
+../bin/Linux-g++/trrec.o: ../include/geantnamespace.h ../include/trid.h
+../bin/Linux-g++/trrec.o: ../include/amsstl.h ../include/commons.h
+../bin/Linux-g++/trrec.o: /usr/include/link.h /usr/include/elf.h
+../bin/Linux-g++/trrec.o: /usr/include/elfclass.h ../include/job.h
+../bin/Linux-g++/trrec.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/trrec.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/trrec.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/trrec.o: /usr/include/local_lim.h
 ../bin/Linux-g++/trrec.o: /usr/include/linux/limits.h
@@ -656,27 +700,27 @@
 ../bin/Linux-g++/job.o: ../include/amsstl.h /usr/include/link.h
 ../bin/Linux-g++/job.o: /usr/include/elf.h /usr/include/elfclass.h
 ../bin/Linux-g++/job.o: ../include/job.h ../include/gvolume.h
-../bin/Linux-g++/job.o: ../include/point.h ../include/gmat.h
-../bin/Linux-g++/job.o: ../include/timeid.h ../include/status.h
-../bin/Linux-g++/job.o: ../include/tkdbc.h ../include/mccluster.h
-../bin/Linux-g++/job.o: ../include/apool.h ../include/gsen.h
-../bin/Linux-g++/job.o: ../include/ctcdbc.h ../include/tofdbc.h
-../bin/Linux-g++/job.o: ../include/extC.h ../include/event.h
-../bin/Linux-g++/job.o: ../include/cont.h /usr/include/sys/time.h
-../bin/Linux-g++/job.o: /usr/include/timebits.h ../include/mceventg.h
-../bin/Linux-g++/job.o: ../include/io.h /usr/include/sys/times.h
-../bin/Linux-g++/job.o: ../include/daqevt.h ../include/charge.h
-../bin/Linux-g++/job.o: ../include/trrec.h ../include/tofrec.h
-../bin/Linux-g++/job.o: ../include/beta.h ../include/ctcrec.h
-../bin/Linux-g++/job.o: ../include/ctcsim.h ../include/trcalib.h
-../bin/Linux-g++/job.o: ../include/particle.h ../include/ctc.h
-../bin/Linux-g++/job.o: ../include/antidbc.h ../include/tofsim.h
-../bin/Linux-g++/job.o: ../include/tofcalib.h ../include/ecaldbc.h
-../bin/Linux-g++/job.o: ../include/trigger1.h ../include/trigger3.h
-../bin/Linux-g++/job.o: ../include/bcorr.h ../include/trrawcluster.h
-../bin/Linux-g++/job.o: ../include/daqblock.h ../include/ntuple.h
-../bin/Linux-g++/job.o: ../include/root.h ../include/user.h
-../bin/Linux-g++/job.o: ../include/tralig.h
+../bin/Linux-g++/job.o: ../include/point.h ../include/geantnamespace.h
+../bin/Linux-g++/job.o: ../include/gmat.h ../include/timeid.h
+../bin/Linux-g++/job.o: ../include/status.h ../include/tkdbc.h
+../bin/Linux-g++/job.o: ../include/mccluster.h ../include/apool.h
+../bin/Linux-g++/job.o: ../include/gsen.h ../include/ctcdbc.h
+../bin/Linux-g++/job.o: ../include/tofdbc.h ../include/extC.h
+../bin/Linux-g++/job.o: ../include/event.h ../include/cont.h
+../bin/Linux-g++/job.o: /usr/include/sys/time.h /usr/include/timebits.h
+../bin/Linux-g++/job.o: ../include/mceventg.h ../include/io.h
+../bin/Linux-g++/job.o: /usr/include/sys/times.h ../include/daqevt.h
+../bin/Linux-g++/job.o: ../include/charge.h ../include/trrec.h
+../bin/Linux-g++/job.o: ../include/tofrec.h ../include/beta.h
+../bin/Linux-g++/job.o: ../include/ctcrec.h ../include/ctcsim.h
+../bin/Linux-g++/job.o: ../include/trcalib.h ../include/particle.h
+../bin/Linux-g++/job.o: ../include/ctc.h ../include/antidbc.h
+../bin/Linux-g++/job.o: ../include/tofsim.h ../include/tofcalib.h
+../bin/Linux-g++/job.o: ../include/ecaldbc.h ../include/trigger1.h
+../bin/Linux-g++/job.o: ../include/trigger3.h ../include/bcorr.h
+../bin/Linux-g++/job.o: ../include/trrawcluster.h ../include/daqblock.h
+../bin/Linux-g++/job.o: ../include/ntuple.h ../include/root.h
+../bin/Linux-g++/job.o: ../include/user.h ../include/tralig.h
 ../bin/Linux-g++/event.o: ../include/trrawcluster.h ../include/upool.h
 ../bin/Linux-g++/event.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/Linux-g++/event.o: /usr/include/features.h
@@ -703,6 +747,7 @@
 ../bin/Linux-g++/event.o: /usr/include/math.h /usr/include/huge_val.h
 ../bin/Linux-g++/event.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/event.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/event.o: ../include/geantnamespace.h
 ../bin/Linux-g++/event.o: ../include/event.h ../include/job.h
 ../bin/Linux-g++/event.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/event.o: ../include/uzstat.h /usr/include/limits.h
@@ -738,7 +783,6 @@
 ../bin/Linux-g++/event.o: /usr/include/asm/sigcontext.h
 ../bin/Linux-g++/event.o: /usr/include/sigstack.h ../include/ecaldbc.h
 ../bin/Linux-g++/event.o: ../include/ecalrec.h
-../bin/Linux-g++/event.o: ../include/geantnamespace.h
 ../bin/Linux-g++/cont.o: ../include/cont.h ../include/typedefs.h
 ../bin/Linux-g++/cont.o: /usr/include/assert.h /usr/include/features.h
 ../bin/Linux-g++/cont.o: /usr/include/sys/cdefs.h
@@ -794,9 +838,10 @@
 ../bin/Linux-g++/mccluster.o: /usr/include/elfclass.h ../include/job.h
 ../bin/Linux-g++/mccluster.o: ../include/node.h ../include/id.h
 ../bin/Linux-g++/mccluster.o: ../include/snode.h ../include/gvolume.h
-../bin/Linux-g++/mccluster.o: ../include/point.h ../include/gmat.h
-../bin/Linux-g++/mccluster.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/Linux-g++/mccluster.o: /usr/include/limits.h
+../bin/Linux-g++/mccluster.o: ../include/point.h
+../bin/Linux-g++/mccluster.o: ../include/geantnamespace.h
+../bin/Linux-g++/mccluster.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/mccluster.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/mccluster.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/mccluster.o: /usr/include/local_lim.h
 ../bin/Linux-g++/mccluster.o: /usr/include/linux/limits.h
@@ -853,8 +898,9 @@
 ../bin/Linux-g++/trrawcluster.o: ../include/job.h ../include/node.h
 ../bin/Linux-g++/trrawcluster.o: ../include/id.h ../include/snode.h
 ../bin/Linux-g++/trrawcluster.o: ../include/gvolume.h
-../bin/Linux-g++/trrawcluster.o: ../include/point.h ../include/gmat.h
-../bin/Linux-g++/trrawcluster.o: ../include/amsgobj.h
+../bin/Linux-g++/trrawcluster.o: ../include/point.h
+../bin/Linux-g++/trrawcluster.o: ../include/geantnamespace.h
+../bin/Linux-g++/trrawcluster.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/trrawcluster.o: ../include/uzstat.h
 ../bin/Linux-g++/trrawcluster.o: /usr/include/limits.h
 ../bin/Linux-g++/trrawcluster.o: /usr/include/posix1_lim.h
@@ -902,9 +948,10 @@
 ../bin/Linux-g++/tofrec.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
 ../bin/Linux-g++/tofrec.o: /usr/include/stdio_lim.h ../include/hbook.h
 ../bin/Linux-g++/tofrec.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/tofrec.o: ../include/amsdbc.h ../include/gmat.h
-../bin/Linux-g++/tofrec.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/Linux-g++/tofrec.o: /usr/include/limits.h
+../bin/Linux-g++/tofrec.o: ../include/amsdbc.h
+../bin/Linux-g++/tofrec.o: ../include/geantnamespace.h
+../bin/Linux-g++/tofrec.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/tofrec.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/tofrec.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/tofrec.o: /usr/include/local_lim.h
 ../bin/Linux-g++/tofrec.o: /usr/include/linux/limits.h
@@ -958,6 +1005,7 @@
 ../bin/Linux-g++/tofonline.o: /usr/include/huge_val.h
 ../bin/Linux-g++/tofonline.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/tofonline.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/tofonline.o: ../include/geantnamespace.h
 ../bin/Linux-g++/tofonline.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/tofonline.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/tofonline.o: /usr/include/posix1_lim.h
@@ -999,6 +1047,7 @@
 ../bin/Linux-g++/tofuser1.o: /usr/include/stdio_lim.h
 ../bin/Linux-g++/tofuser1.o: ../include/hbook.h ../include/geant321.h
 ../bin/Linux-g++/tofuser1.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/Linux-g++/tofuser1.o: ../include/geantnamespace.h
 ../bin/Linux-g++/tofuser1.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/tofuser1.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/tofuser1.o: /usr/include/posix1_lim.h
@@ -1053,6 +1102,7 @@
 ../bin/Linux-g++/antirec.o: /usr/include/stdio_lim.h ../include/hbook.h
 ../bin/Linux-g++/antirec.o: ../include/geant321.h
 ../bin/Linux-g++/antirec.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/Linux-g++/antirec.o: ../include/geantnamespace.h
 ../bin/Linux-g++/antirec.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/antirec.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/antirec.o: /usr/include/posix1_lim.h
@@ -1106,12 +1156,13 @@
 ../bin/Linux-g++/tofsim.o: /usr/include/linux/limits.h
 ../bin/Linux-g++/tofsim.o: /usr/include/posix2_lim.h ../include/event.h
 ../bin/Linux-g++/tofsim.o: ../include/job.h ../include/gvolume.h
-../bin/Linux-g++/tofsim.o: ../include/amsdbc.h ../include/gmat.h
-../bin/Linux-g++/tofsim.o: ../include/timeid.h ../include/astring.h
-../bin/Linux-g++/tofsim.o: ../include/commons.h ../include/status.h
-../bin/Linux-g++/tofsim.o: /usr/include/link.h /usr/include/elf.h
-../bin/Linux-g++/tofsim.o: /usr/include/elfclass.h ../include/cont.h
-../bin/Linux-g++/tofsim.o: /usr/include/sys/time.h
+../bin/Linux-g++/tofsim.o: ../include/amsdbc.h
+../bin/Linux-g++/tofsim.o: ../include/geantnamespace.h
+../bin/Linux-g++/tofsim.o: ../include/gmat.h ../include/timeid.h
+../bin/Linux-g++/tofsim.o: ../include/astring.h ../include/commons.h
+../bin/Linux-g++/tofsim.o: ../include/status.h /usr/include/link.h
+../bin/Linux-g++/tofsim.o: /usr/include/elf.h /usr/include/elfclass.h
+../bin/Linux-g++/tofsim.o: ../include/cont.h /usr/include/sys/time.h
 ../bin/Linux-g++/tofsim.o: /usr/include/timebits.h
 ../bin/Linux-g++/tofsim.o: ../include/mceventg.h ../include/io.h
 ../bin/Linux-g++/tofsim.o: /usr/include/sys/times.h ../include/daqevt.h
@@ -1146,7 +1197,8 @@
 ../bin/Linux-g++/beta.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
 ../bin/Linux-g++/beta.o: /usr/include/stdio_lim.h ../include/hbook.h
 ../bin/Linux-g++/beta.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/beta.o: ../include/amsdbc.h ../include/gmat.h
+../bin/Linux-g++/beta.o: ../include/amsdbc.h
+../bin/Linux-g++/beta.o: ../include/geantnamespace.h ../include/gmat.h
 ../bin/Linux-g++/beta.o: ../include/amsgobj.h ../include/uzstat.h
 ../bin/Linux-g++/beta.o: /usr/include/limits.h
 ../bin/Linux-g++/beta.o: /usr/include/posix1_lim.h
@@ -1194,9 +1246,10 @@
 ../bin/Linux-g++/charge.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
 ../bin/Linux-g++/charge.o: /usr/include/stdio_lim.h ../include/hbook.h
 ../bin/Linux-g++/charge.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/charge.o: ../include/amsdbc.h ../include/gmat.h
-../bin/Linux-g++/charge.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/Linux-g++/charge.o: /usr/include/limits.h
+../bin/Linux-g++/charge.o: ../include/amsdbc.h
+../bin/Linux-g++/charge.o: ../include/geantnamespace.h
+../bin/Linux-g++/charge.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/charge.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/charge.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/charge.o: /usr/include/local_lim.h
 ../bin/Linux-g++/charge.o: /usr/include/linux/limits.h
@@ -1254,12 +1307,14 @@
 ../bin/Linux-g++/particle.o: /usr/include/elfclass.h ../include/trrec.h
 ../bin/Linux-g++/particle.o: ../include/apool.h ../include/gsen.h
 ../bin/Linux-g++/particle.o: ../include/gvolume.h ../include/amsdbc.h
-../bin/Linux-g++/particle.o: ../include/point.h ../include/trid.h
-../bin/Linux-g++/particle.o: ../include/amsstl.h ../include/job.h
-../bin/Linux-g++/particle.o: ../include/gmat.h ../include/timeid.h
-../bin/Linux-g++/particle.o: ../include/astring.h ../include/status.h
-../bin/Linux-g++/particle.o: ../include/tkdbc.h ../include/cont.h
-../bin/Linux-g++/particle.o: ../include/event.h /usr/include/sys/time.h
+../bin/Linux-g++/particle.o: ../include/point.h
+../bin/Linux-g++/particle.o: ../include/geantnamespace.h
+../bin/Linux-g++/particle.o: ../include/trid.h ../include/amsstl.h
+../bin/Linux-g++/particle.o: ../include/job.h ../include/gmat.h
+../bin/Linux-g++/particle.o: ../include/timeid.h ../include/astring.h
+../bin/Linux-g++/particle.o: ../include/status.h ../include/tkdbc.h
+../bin/Linux-g++/particle.o: ../include/cont.h ../include/event.h
+../bin/Linux-g++/particle.o: /usr/include/sys/time.h
 ../bin/Linux-g++/particle.o: /usr/include/timebits.h
 ../bin/Linux-g++/particle.o: ../include/mceventg.h ../include/io.h
 ../bin/Linux-g++/particle.o: /usr/include/sys/times.h
@@ -1346,6 +1401,7 @@
 ../bin/Linux-g++/tofdbc.o: ../include/id.h ../include/snode.h
 ../bin/Linux-g++/tofdbc.o: ../include/upool.h ../include/gvolume.h
 ../bin/Linux-g++/tofdbc.o: ../include/amsdbc.h ../include/point.h
+../bin/Linux-g++/tofdbc.o: ../include/geantnamespace.h
 ../bin/Linux-g++/tofdbc.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/tofdbc.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/tofdbc.o: /usr/include/posix1_lim.h
@@ -1391,9 +1447,10 @@
 ../bin/Linux-g++/ctcrec.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
 ../bin/Linux-g++/ctcrec.o: /usr/include/stdio_lim.h ../include/hbook.h
 ../bin/Linux-g++/ctcrec.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/ctcrec.o: ../include/amsdbc.h ../include/gmat.h
-../bin/Linux-g++/ctcrec.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/Linux-g++/ctcrec.o: /usr/include/limits.h
+../bin/Linux-g++/ctcrec.o: ../include/amsdbc.h
+../bin/Linux-g++/ctcrec.o: ../include/geantnamespace.h
+../bin/Linux-g++/ctcrec.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/ctcrec.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/ctcrec.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/ctcrec.o: /usr/include/local_lim.h
 ../bin/Linux-g++/ctcrec.o: /usr/include/linux/limits.h
@@ -1442,9 +1499,10 @@
 ../bin/Linux-g++/ctcsim.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/stdarg.h
 ../bin/Linux-g++/ctcsim.o: /usr/include/stdio_lim.h ../include/hbook.h
 ../bin/Linux-g++/ctcsim.o: ../include/geant321.h ../include/geant321g.h
-../bin/Linux-g++/ctcsim.o: ../include/amsdbc.h ../include/gmat.h
-../bin/Linux-g++/ctcsim.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/Linux-g++/ctcsim.o: /usr/include/limits.h
+../bin/Linux-g++/ctcsim.o: ../include/amsdbc.h
+../bin/Linux-g++/ctcsim.o: ../include/geantnamespace.h
+../bin/Linux-g++/ctcsim.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/ctcsim.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/ctcsim.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/ctcsim.o: /usr/include/local_lim.h
 ../bin/Linux-g++/ctcsim.o: /usr/include/linux/limits.h
@@ -1487,6 +1545,7 @@
 ../bin/Linux-g++/ctcdbc.o: ../include/id.h ../include/snode.h
 ../bin/Linux-g++/ctcdbc.o: ../include/upool.h ../include/gvolume.h
 ../bin/Linux-g++/ctcdbc.o: ../include/amsdbc.h ../include/point.h
+../bin/Linux-g++/ctcdbc.o: ../include/geantnamespace.h
 ../bin/Linux-g++/ctcdbc.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/ctcdbc.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/ctcdbc.o: /usr/include/posix1_lim.h
@@ -1525,6 +1584,7 @@
 ../bin/Linux-g++/tofcalib.o: /usr/include/stdio_lim.h
 ../bin/Linux-g++/tofcalib.o: ../include/hbook.h ../include/geant321.h
 ../bin/Linux-g++/tofcalib.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/Linux-g++/tofcalib.o: ../include/geantnamespace.h
 ../bin/Linux-g++/tofcalib.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/tofcalib.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/tofcalib.o: /usr/include/posix1_lim.h
@@ -1579,6 +1639,7 @@
 ../bin/Linux-g++/ctccalib.o: /usr/include/stdio_lim.h
 ../bin/Linux-g++/ctccalib.o: ../include/hbook.h ../include/geant321.h
 ../bin/Linux-g++/ctccalib.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/Linux-g++/ctccalib.o: ../include/geantnamespace.h
 ../bin/Linux-g++/ctccalib.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/ctccalib.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/ctccalib.o: /usr/include/posix1_lim.h
@@ -1630,6 +1691,7 @@
 ../bin/Linux-g++/timeid.o: /usr/include/math.h /usr/include/huge_val.h
 ../bin/Linux-g++/timeid.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/timeid.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/timeid.o: ../include/geantnamespace.h
 ../bin/Linux-g++/timeid.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/timeid.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/timeid.o: /usr/include/posix1_lim.h
@@ -1719,6 +1781,7 @@
 ../bin/Linux-g++/trcalib.o: ../include/node.h ../include/id.h
 ../bin/Linux-g++/trcalib.o: ../include/snode.h ../include/gsen.h
 ../bin/Linux-g++/trcalib.o: ../include/gvolume.h ../include/amsdbc.h
+../bin/Linux-g++/trcalib.o: ../include/geantnamespace.h
 ../bin/Linux-g++/trcalib.o: ../include/trid.h ../include/amsstl.h
 ../bin/Linux-g++/trcalib.o: ../include/job.h ../include/gmat.h
 ../bin/Linux-g++/trcalib.o: ../include/amsgobj.h ../include/uzstat.h
@@ -1771,6 +1834,7 @@
 ../bin/Linux-g++/tralig.o: ../include/node.h ../include/id.h
 ../bin/Linux-g++/tralig.o: ../include/snode.h ../include/gsen.h
 ../bin/Linux-g++/tralig.o: ../include/gvolume.h ../include/amsdbc.h
+../bin/Linux-g++/tralig.o: ../include/geantnamespace.h
 ../bin/Linux-g++/tralig.o: ../include/trid.h ../include/amsstl.h
 ../bin/Linux-g++/tralig.o: ../include/job.h ../include/gmat.h
 ../bin/Linux-g++/tralig.o: ../include/amsgobj.h ../include/uzstat.h
@@ -1838,6 +1902,7 @@
 ../bin/Linux-g++/trigger1.o: /usr/include/huge_val.h
 ../bin/Linux-g++/trigger1.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/trigger1.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/trigger1.o: ../include/geantnamespace.h
 ../bin/Linux-g++/trigger1.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/trigger1.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/trigger1.o: /usr/include/posix1_lim.h
@@ -1892,6 +1957,7 @@
 ../bin/Linux-g++/trigger3.o: /usr/include/huge_val.h
 ../bin/Linux-g++/trigger3.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/trigger3.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/trigger3.o: ../include/geantnamespace.h
 ../bin/Linux-g++/trigger3.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/trigger3.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/trigger3.o: /usr/include/posix1_lim.h
@@ -1941,6 +2007,7 @@
 ../bin/Linux-g++/antidbc.o: /usr/include/huge_val.h
 ../bin/Linux-g++/antidbc.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/antidbc.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/antidbc.o: ../include/geantnamespace.h
 ../bin/Linux-g++/antidbc.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/antidbc.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/antidbc.o: /usr/include/posix1_lim.h
@@ -1985,6 +2052,7 @@
 ../bin/Linux-g++/daqevt.o: /usr/include/math.h /usr/include/huge_val.h
 ../bin/Linux-g++/daqevt.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/daqevt.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/daqevt.o: ../include/geantnamespace.h
 ../bin/Linux-g++/daqevt.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/daqevt.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/daqevt.o: /usr/include/posix1_lim.h
@@ -2041,6 +2109,7 @@
 ../bin/Linux-g++/daqblock.o: /usr/include/huge_val.h
 ../bin/Linux-g++/daqblock.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/daqblock.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
+../bin/Linux-g++/daqblock.o: ../include/geantnamespace.h
 ../bin/Linux-g++/daqblock.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/daqblock.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/daqblock.o: /usr/include/posix1_lim.h
@@ -2088,8 +2157,9 @@
 ../bin/Linux-g++/tkdbc.o: /usr/include/huge_val.h
 ../bin/Linux-g++/tkdbc.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/tkdbc.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
-../bin/Linux-g++/tkdbc.o: ../include/gmat.h ../include/amsgobj.h
-../bin/Linux-g++/tkdbc.o: ../include/uzstat.h /usr/include/limits.h
+../bin/Linux-g++/tkdbc.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/Linux-g++/tkdbc.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/Linux-g++/tkdbc.o: /usr/include/limits.h
 ../bin/Linux-g++/tkdbc.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/tkdbc.o: /usr/include/local_lim.h
 ../bin/Linux-g++/tkdbc.o: /usr/include/linux/limits.h
@@ -2161,12 +2231,12 @@
 ../bin/Linux-g++/user.o: /usr/include/math.h /usr/include/huge_val.h
 ../bin/Linux-g++/user.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/user.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
-../bin/Linux-g++/user.o: ../include/trid.h ../include/amsstl.h
-../bin/Linux-g++/user.o: ../include/commons.h /usr/include/link.h
-../bin/Linux-g++/user.o: /usr/include/elf.h /usr/include/elfclass.h
-../bin/Linux-g++/user.o: ../include/job.h ../include/gmat.h
-../bin/Linux-g++/user.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/Linux-g++/user.o: /usr/include/limits.h
+../bin/Linux-g++/user.o: ../include/geantnamespace.h ../include/trid.h
+../bin/Linux-g++/user.o: ../include/amsstl.h ../include/commons.h
+../bin/Linux-g++/user.o: /usr/include/link.h /usr/include/elf.h
+../bin/Linux-g++/user.o: /usr/include/elfclass.h ../include/job.h
+../bin/Linux-g++/user.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/user.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/user.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/user.o: /usr/include/local_lim.h
 ../bin/Linux-g++/user.o: /usr/include/linux/limits.h
@@ -2208,12 +2278,14 @@
 ../bin/Linux-g++/status.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/status.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
 ../bin/Linux-g++/status.o: ../include/job.h ../include/gvolume.h
-../bin/Linux-g++/status.o: ../include/point.h ../include/gmat.h
-../bin/Linux-g++/status.o: ../include/timeid.h ../include/astring.h
-../bin/Linux-g++/status.o: ../include/commons.h ../include/amsstl.h
-../bin/Linux-g++/status.o: ../include/event.h /usr/include/link.h
-../bin/Linux-g++/status.o: /usr/include/elf.h /usr/include/elfclass.h
-../bin/Linux-g++/status.o: ../include/cont.h /usr/include/sys/time.h
+../bin/Linux-g++/status.o: ../include/point.h
+../bin/Linux-g++/status.o: ../include/geantnamespace.h
+../bin/Linux-g++/status.o: ../include/gmat.h ../include/timeid.h
+../bin/Linux-g++/status.o: ../include/astring.h ../include/commons.h
+../bin/Linux-g++/status.o: ../include/amsstl.h ../include/event.h
+../bin/Linux-g++/status.o: /usr/include/link.h /usr/include/elf.h
+../bin/Linux-g++/status.o: /usr/include/elfclass.h ../include/cont.h
+../bin/Linux-g++/status.o: /usr/include/sys/time.h
 ../bin/Linux-g++/status.o: /usr/include/timebits.h
 ../bin/Linux-g++/status.o: ../include/mceventg.h ../include/io.h
 ../bin/Linux-g++/status.o: /usr/include/sys/times.h ../include/daqevt.h
@@ -2242,8 +2314,9 @@
 ../bin/Linux-g++/bcorr.o: /usr/include/math.h /usr/include/huge_val.h
 ../bin/Linux-g++/bcorr.o: /usr/include/mathcalls.h
 ../bin/Linux-g++/bcorr.o: /usr/lib/gcc-lib/i386-redhat-linux/2.7.2.3/include/float.h
-../bin/Linux-g++/bcorr.o: ../include/gmat.h ../include/amsgobj.h
-../bin/Linux-g++/bcorr.o: ../include/uzstat.h /usr/include/limits.h
+../bin/Linux-g++/bcorr.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/Linux-g++/bcorr.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/Linux-g++/bcorr.o: /usr/include/limits.h
 ../bin/Linux-g++/bcorr.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/bcorr.o: /usr/include/local_lim.h
 ../bin/Linux-g++/bcorr.o: /usr/include/linux/limits.h
@@ -2282,9 +2355,10 @@
 ../bin/Linux-g++/ecaldbc.o: ../include/node.h ../include/id.h
 ../bin/Linux-g++/ecaldbc.o: ../include/snode.h ../include/upool.h
 ../bin/Linux-g++/ecaldbc.o: ../include/gvolume.h ../include/amsdbc.h
-../bin/Linux-g++/ecaldbc.o: ../include/point.h ../include/gmat.h
-../bin/Linux-g++/ecaldbc.o: ../include/amsgobj.h ../include/uzstat.h
-../bin/Linux-g++/ecaldbc.o: /usr/include/limits.h
+../bin/Linux-g++/ecaldbc.o: ../include/point.h
+../bin/Linux-g++/ecaldbc.o: ../include/geantnamespace.h
+../bin/Linux-g++/ecaldbc.o: ../include/gmat.h ../include/amsgobj.h
+../bin/Linux-g++/ecaldbc.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/ecaldbc.o: /usr/include/posix1_lim.h
 ../bin/Linux-g++/ecaldbc.o: /usr/include/local_lim.h
 ../bin/Linux-g++/ecaldbc.o: /usr/include/linux/limits.h
@@ -2319,6 +2393,7 @@
 ../bin/Linux-g++/ecalrec.o: /usr/include/stdio_lim.h ../include/hbook.h
 ../bin/Linux-g++/ecalrec.o: ../include/geant321.h
 ../bin/Linux-g++/ecalrec.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/Linux-g++/ecalrec.o: ../include/geantnamespace.h
 ../bin/Linux-g++/ecalrec.o: ../include/gmat.h ../include/amsgobj.h
 ../bin/Linux-g++/ecalrec.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/Linux-g++/ecalrec.o: /usr/include/posix1_lim.h

@@ -27,6 +27,7 @@
 #endif
 
 class AMSNtuple;
+class AMSG4Physics;
 const integer maxtrig=20;
 const integer maxtdv=255;
 const integer maxtdvsize=256;
@@ -219,6 +220,7 @@ uinteger isRawBanks()  { return (_eventRtype/DBWriteRawE)%2;}
 
 AMSNode * getnodep(AMSID  id) const{return JobMap.getp(id);}
 AMSgvolume * getgeom(AMSID id=0);
+AMSG4Physics * getg4physics();
 AMSgvolume * getgeomvolume(AMSID id){return   (AMSgvolume*)JobMap.getp(id);}
 AMSStatus * getstatustable();
 AMSgmat * getmat(AMSID id=0);

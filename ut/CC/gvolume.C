@@ -2,7 +2,7 @@
 #include <math.h>
 #include <amsgobj.h>
 #include <gmat.h>
-integer AMSgvolume::debug=1;
+integer AMSgvolume::debug=0;
 geant AMSgvolume::dgeant=1.e-4;
 
 
@@ -13,6 +13,7 @@ AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[],
     _matter(matter),_rotmno(rotmno), _npar(npar), _posp(posp),
      _gid(gid),_cooA(coo[0],coo[1],coo[2]),_rel(rel),AMSNode(0){
    setname(name);
+   _pg4v=0;
    _coo=_cooA;
    if(shape)strcpy(_shape,shape);
    if(gonly)strcpy(_gonly,gonly);
@@ -44,7 +45,7 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
         cerr<<"AMSgvolume-ctor-F-NoSuchMedium "<<matter<<endl;
         exit(1);
       }
-
+   _pg4v=0;
    setname(name);
    _coo=_cooA;
    if(shape)strcpy(_shape,shape);
@@ -78,6 +79,7 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
         cerr<<"AMSgvolume-ctor-F-NoSuchMedium "<<matter<<endl;
         exit(1);
       }
+
 
    setname(name);
    _coo=_cooA;

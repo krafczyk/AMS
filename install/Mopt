@@ -448,17 +448,7 @@ depend:
 ../bin/osf1/gbatch.o: /usr/include/sys/rt_limits.h
 ../bin/osf1/gbatch.o: /usr/include/limits.h /usr/include/memory.h
 ../bin/osf1/gbatch.o: /usr/include/string.h /usr/include/strings.h
-../bin/osf1/gbatch.o: ../include/gvolume.h ../include/node.h
-../bin/osf1/gbatch.o: ../include/typedefs.h /usr/include/assert.h
-../bin/osf1/gbatch.o: ../include/id.h /usr/include/cxx/strstream.h
-../bin/osf1/gbatch.o: /usr/include/cxx/strstream.hxx
-../bin/osf1/gbatch.o: /usr/include/cxx/strstream_impl.hxx
-../bin/osf1/gbatch.o: /usr/include/stdlib.h ../include/cern.h
-../bin/osf1/gbatch.o: ../include/cfortran.h ../include/hbook.h
-../bin/osf1/gbatch.o: ../include/geant321.h ../include/geant321g.h
-../bin/osf1/gbatch.o: ../include/amsdbc.h ../include/point.h
-../bin/osf1/gbatch.o: /usr/include/math.h /usr/include/signal.h
-../bin/osf1/gbatch.o: /usr/include/sys/siginfo.h
+../bin/osf1/gbatch.o: /usr/include/signal.h /usr/include/sys/siginfo.h
 ../bin/osf1/gbatch.o: /usr/include/sys/sysmisc.h
 ../bin/osf1/gbatch.o: /usr/include/machine/signal.h
 ../bin/osf1/gbatch.o: /usr/include/machine/context.h
@@ -467,10 +457,19 @@ depend:
 ../bin/osf1/gbatch.o: /usr/include/cxx/new.hxx
 ../bin/osf1/gbatch.o: /usr/include/cxx/exception
 ../bin/osf1/gbatch.o: /usr/include/cxx/stdcomp /usr/include/cxx/stddefs
-../bin/osf1/gbatch.o: ../include/upool.h ../include/apool.h
-../bin/osf1/gbatch.o: ../include/snode.h ../include/status.h
-../bin/osf1/gbatch.o: /usr/include/time.h /usr/include/sys/timers.h
-../bin/osf1/gbatch.o: ../include/commons.h ../include/geantnamespace.h
+../bin/osf1/gbatch.o: ../include/upool.h ../include/typedefs.h
+../bin/osf1/gbatch.o: /usr/include/assert.h ../include/apool.h
+../bin/osf1/gbatch.o: ../include/node.h ../include/id.h
+../bin/osf1/gbatch.o: /usr/include/cxx/strstream.h
+../bin/osf1/gbatch.o: /usr/include/cxx/strstream.hxx
+../bin/osf1/gbatch.o: /usr/include/cxx/strstream_impl.hxx
+../bin/osf1/gbatch.o: /usr/include/stdlib.h ../include/snode.h
+../bin/osf1/gbatch.o: ../include/status.h ../include/cern.h
+../bin/osf1/gbatch.o: ../include/cfortran.h ../include/hbook.h
+../bin/osf1/gbatch.o: ../include/geant321.h ../include/geant321g.h
+../bin/osf1/gbatch.o: ../include/amsdbc.h /usr/include/time.h
+../bin/osf1/gbatch.o: /usr/include/sys/timers.h ../include/commons.h
+../bin/osf1/gbatch.o: ../include/geantnamespace.h
 ../bin/osf1/gvolume.o: ../include/gvolume.h ../include/node.h
 ../bin/osf1/gvolume.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/gvolume.o: /usr/include/standards.h
@@ -500,9 +499,10 @@ depend:
 ../bin/osf1/gvolume.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/gvolume.o: ../include/geant321.h ../include/geant321g.h
 ../bin/osf1/gvolume.o: ../include/amsdbc.h ../include/point.h
-../bin/osf1/gvolume.o: /usr/include/math.h ../include/amsgobj.h
-../bin/osf1/gvolume.o: ../include/snode.h ../include/upool.h
-../bin/osf1/gvolume.o: /usr/include/cxx/new.h /usr/include/cxx/new.hxx
+../bin/osf1/gvolume.o: /usr/include/math.h ../include/geantnamespace.h
+../bin/osf1/gvolume.o: ../include/amsgobj.h ../include/snode.h
+../bin/osf1/gvolume.o: ../include/upool.h /usr/include/cxx/new.h
+../bin/osf1/gvolume.o: /usr/include/cxx/new.hxx
 ../bin/osf1/gvolume.o: /usr/include/cxx/exception
 ../bin/osf1/gvolume.o: /usr/include/cxx/stdcomp
 ../bin/osf1/gvolume.o: /usr/include/cxx/stddefs ../include/uzstat.h
@@ -587,14 +587,15 @@ depend:
 ../bin/osf1/gsen.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/gsen.o: ../include/geant321.h ../include/geant321g.h
 ../bin/osf1/gsen.o: ../include/amsdbc.h ../include/point.h
-../bin/osf1/gsen.o: /usr/include/math.h ../include/trid.h
-../bin/osf1/gsen.o: ../include/amsstl.h ../include/upool.h
-../bin/osf1/gsen.o: /usr/include/cxx/new.h /usr/include/cxx/new.hxx
-../bin/osf1/gsen.o: /usr/include/cxx/exception /usr/include/cxx/stdcomp
-../bin/osf1/gsen.o: /usr/include/cxx/stddefs ../include/commons.h
-../bin/osf1/gsen.o: ../include/link.h ../include/apool.h
-../bin/osf1/gsen.o: ../include/snode.h ../include/job.h
-../bin/osf1/gsen.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/gsen.o: /usr/include/math.h ../include/geantnamespace.h
+../bin/osf1/gsen.o: ../include/trid.h ../include/amsstl.h
+../bin/osf1/gsen.o: ../include/upool.h /usr/include/cxx/new.h
+../bin/osf1/gsen.o: /usr/include/cxx/new.hxx /usr/include/cxx/exception
+../bin/osf1/gsen.o: /usr/include/cxx/stdcomp /usr/include/cxx/stddefs
+../bin/osf1/gsen.o: ../include/commons.h ../include/link.h
+../bin/osf1/gsen.o: ../include/apool.h ../include/snode.h
+../bin/osf1/gsen.o: ../include/job.h ../include/gmat.h
+../bin/osf1/gsen.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/gsen.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/gsen.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/gsen.o: /usr/include/cxx/generic.hxx
@@ -691,6 +692,7 @@ depend:
 ../bin/osf1/gmat.o: ../include/amsgobj.h ../include/uzstat.h
 ../bin/osf1/gmat.o: /usr/include/math.h ../include/job.h
 ../bin/osf1/gmat.o: ../include/gvolume.h ../include/point.h
+../bin/osf1/gmat.o: ../include/geantnamespace.h
 ../bin/osf1/gmat.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/gmat.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/gmat.o: /usr/include/cxx/iomanip_impl.hxx
@@ -773,7 +775,8 @@ depend:
 ../bin/osf1/amsgeom.o: /usr/include/cxx/fstream_impl.hxx
 ../bin/osf1/amsgeom.o: ../include/job.h ../include/gvolume.h
 ../bin/osf1/amsgeom.o: ../include/point.h /usr/include/math.h
-../bin/osf1/amsgeom.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/amsgeom.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/amsgeom.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/amsgeom.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/amsgeom.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/amsgeom.o: /usr/include/cxx/generic.hxx
@@ -832,7 +835,8 @@ depend:
 ../bin/osf1/geant.o: ../include/commons.h ../include/trid.h
 ../bin/osf1/geant.o: ../include/amsdbc.h ../include/amsstl.h
 ../bin/osf1/geant.o: ../include/job.h ../include/gvolume.h
-../bin/osf1/geant.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/geant.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/geant.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/geant.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/geant.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/geant.o: /usr/include/cxx/generic.hxx
@@ -844,7 +848,7 @@ depend:
 ../bin/osf1/geant.o: ../include/mccluster.h ../include/gsen.h
 ../bin/osf1/geant.o: ../include/ctcdbc.h ../include/event.h
 ../bin/osf1/geant.o: ../include/cont.h ../include/daqevt.h
-../bin/osf1/geant.o: ../include/trrec.h ../include/geantnamespace.h
+../bin/osf1/geant.o: ../include/trrec.h
 ../bin/osf1/geant3.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/geant3.o: /usr/include/standards.h
 ../bin/osf1/geant3.o: /usr/include/cxx/iostream.h
@@ -894,8 +898,8 @@ depend:
 ../bin/osf1/geant3.o: ../include/uzstat.h ../include/commons.h
 ../bin/osf1/geant3.o: ../include/trid.h ../include/amsdbc.h
 ../bin/osf1/geant3.o: ../include/amsstl.h ../include/job.h
-../bin/osf1/geant3.o: ../include/gvolume.h ../include/gmat.h
-../bin/osf1/geant3.o: /usr/include/cxx/iomanip.h
+../bin/osf1/geant3.o: ../include/gvolume.h ../include/geantnamespace.h
+../bin/osf1/geant3.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/geant3.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/geant3.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/geant3.o: /usr/include/cxx/generic.hxx
@@ -957,7 +961,8 @@ depend:
 ../bin/osf1/mceventg.o: /usr/include/sys/timers.h
 ../bin/osf1/mceventg.o: /usr/include/sys/times.h ../include/amsdbc.h
 ../bin/osf1/mceventg.o: ../include/event.h ../include/job.h
-../bin/osf1/mceventg.o: ../include/gvolume.h ../include/gmat.h
+../bin/osf1/mceventg.o: ../include/gvolume.h
+../bin/osf1/mceventg.o: ../include/geantnamespace.h ../include/gmat.h
 ../bin/osf1/mceventg.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/mceventg.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/mceventg.o: /usr/include/cxx/iomanip_impl.hxx
@@ -1027,7 +1032,8 @@ depend:
 ../bin/osf1/trid.o: /usr/include/cxx/strstream_impl.hxx
 ../bin/osf1/trid.o: ../include/snode.h ../include/job.h
 ../bin/osf1/trid.o: ../include/gvolume.h ../include/point.h
-../bin/osf1/trid.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/trid.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/trid.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/trid.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/trid.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/trid.o: /usr/include/cxx/generic.hxx
@@ -1102,10 +1108,10 @@ depend:
 ../bin/osf1/trrec.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/trrec.o: ../include/geant321g.h ../include/amsdbc.h
 ../bin/osf1/trrec.o: ../include/point.h /usr/include/math.h
-../bin/osf1/trrec.o: ../include/trid.h ../include/amsstl.h
-../bin/osf1/trrec.o: ../include/commons.h ../include/link.h
-../bin/osf1/trrec.o: ../include/job.h ../include/gmat.h
-../bin/osf1/trrec.o: /usr/include/cxx/iomanip.h
+../bin/osf1/trrec.o: ../include/geantnamespace.h ../include/trid.h
+../bin/osf1/trrec.o: ../include/amsstl.h ../include/commons.h
+../bin/osf1/trrec.o: ../include/link.h ../include/job.h
+../bin/osf1/trrec.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/trrec.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/trrec.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/trrec.o: /usr/include/cxx/generic.hxx
@@ -1221,7 +1227,8 @@ depend:
 ../bin/osf1/job.o: ../include/amsstl.h ../include/link.h
 ../bin/osf1/job.o: ../include/apool.h ../include/job.h
 ../bin/osf1/job.o: ../include/gvolume.h ../include/point.h
-../bin/osf1/job.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/job.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/job.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/job.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/job.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/job.o: /usr/include/cxx/generic.hxx
@@ -1285,7 +1292,8 @@ depend:
 ../bin/osf1/event.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/event.o: ../include/geant321g.h ../include/amsdbc.h
 ../bin/osf1/event.o: ../include/point.h /usr/include/math.h
-../bin/osf1/event.o: ../include/event.h /usr/include/cxx/fstream.h
+../bin/osf1/event.o: ../include/geantnamespace.h ../include/event.h
+../bin/osf1/event.o: /usr/include/cxx/fstream.h
 ../bin/osf1/event.o: /usr/include/cxx/fstream.hxx
 ../bin/osf1/event.o: /usr/include/cxx/fstream_impl.hxx ../include/job.h
 ../bin/osf1/event.o: ../include/gmat.h /usr/include/cxx/iomanip.h
@@ -1320,7 +1328,7 @@ depend:
 ../bin/osf1/event.o: ../include/bcorr.h ../include/antirec.h
 ../bin/osf1/event.o: ../include/antidbc.h ../include/user.h
 ../bin/osf1/event.o: /usr/include/signal.h ../include/ecaldbc.h
-../bin/osf1/event.o: ../include/ecalrec.h ../include/geantnamespace.h
+../bin/osf1/event.o: ../include/ecalrec.h
 ../bin/osf1/cont.o: ../include/cont.h ../include/typedefs.h
 ../bin/osf1/cont.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/cont.o: /usr/include/cxx/iostream.h
@@ -1392,7 +1400,8 @@ depend:
 ../bin/osf1/mccluster.o: /usr/include/cxx/strstream_impl.hxx
 ../bin/osf1/mccluster.o: ../include/snode.h ../include/job.h
 ../bin/osf1/mccluster.o: ../include/gvolume.h ../include/point.h
-../bin/osf1/mccluster.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/mccluster.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/mccluster.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/mccluster.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/mccluster.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/mccluster.o: /usr/include/cxx/generic.hxx
@@ -1460,6 +1469,7 @@ depend:
 ../bin/osf1/trrawcluster.o: /usr/include/cxx/strstream_impl.hxx
 ../bin/osf1/trrawcluster.o: ../include/snode.h ../include/job.h
 ../bin/osf1/trrawcluster.o: ../include/gvolume.h ../include/point.h
+../bin/osf1/trrawcluster.o: ../include/geantnamespace.h
 ../bin/osf1/trrawcluster.o: ../include/gmat.h
 ../bin/osf1/trrawcluster.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/trrawcluster.o: /usr/include/cxx/iomanip.hxx
@@ -1525,8 +1535,8 @@ depend:
 ../bin/osf1/tofrec.o: ../include/gvolume.h ../include/cern.h
 ../bin/osf1/tofrec.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/tofrec.o: ../include/geant321.h ../include/geant321g.h
-../bin/osf1/tofrec.o: ../include/amsdbc.h ../include/gmat.h
-../bin/osf1/tofrec.o: /usr/include/cxx/iomanip.h
+../bin/osf1/tofrec.o: ../include/amsdbc.h ../include/geantnamespace.h
+../bin/osf1/tofrec.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/tofrec.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/tofrec.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/tofrec.o: /usr/include/cxx/generic.hxx
@@ -1591,7 +1601,8 @@ depend:
 ../bin/osf1/tofonline.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/tofonline.o: ../include/geant321g.h ../include/amsdbc.h
 ../bin/osf1/tofonline.o: ../include/point.h /usr/include/math.h
-../bin/osf1/tofonline.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/tofonline.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/tofonline.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/tofonline.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/tofonline.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/tofonline.o: /usr/include/cxx/generic.hxx
@@ -1644,7 +1655,8 @@ depend:
 ../bin/osf1/tofuser1.o: ../include/cern.h ../include/cfortran.h
 ../bin/osf1/tofuser1.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/tofuser1.o: ../include/geant321g.h ../include/amsdbc.h
-../bin/osf1/tofuser1.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/tofuser1.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/tofuser1.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/tofuser1.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/tofuser1.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/tofuser1.o: /usr/include/cxx/generic.hxx
@@ -1712,7 +1724,8 @@ depend:
 ../bin/osf1/antirec.o: ../include/cern.h ../include/cfortran.h
 ../bin/osf1/antirec.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/antirec.o: ../include/geant321g.h ../include/amsdbc.h
-../bin/osf1/antirec.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/antirec.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/antirec.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/antirec.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/antirec.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/antirec.o: /usr/include/cxx/generic.hxx
@@ -1775,8 +1788,8 @@ depend:
 ../bin/osf1/tofsim.o: /usr/include/cxx/fstream.hxx
 ../bin/osf1/tofsim.o: /usr/include/cxx/fstream_impl.hxx
 ../bin/osf1/tofsim.o: ../include/job.h ../include/gvolume.h
-../bin/osf1/tofsim.o: ../include/amsdbc.h ../include/gmat.h
-../bin/osf1/tofsim.o: /usr/include/cxx/iomanip.h
+../bin/osf1/tofsim.o: ../include/amsdbc.h ../include/geantnamespace.h
+../bin/osf1/tofsim.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/tofsim.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/tofsim.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/tofsim.o: /usr/include/cxx/generic.hxx
@@ -1834,8 +1847,8 @@ depend:
 ../bin/osf1/beta.o: ../include/gvolume.h ../include/cern.h
 ../bin/osf1/beta.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/beta.o: ../include/geant321.h ../include/geant321g.h
-../bin/osf1/beta.o: ../include/amsdbc.h ../include/gmat.h
-../bin/osf1/beta.o: /usr/include/cxx/iomanip.h
+../bin/osf1/beta.o: ../include/amsdbc.h ../include/geantnamespace.h
+../bin/osf1/beta.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/beta.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/beta.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/beta.o: /usr/include/cxx/generic.hxx
@@ -1898,7 +1911,8 @@ depend:
 ../bin/osf1/charge.o: ../include/cern.h ../include/cfortran.h
 ../bin/osf1/charge.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/charge.o: ../include/geant321g.h ../include/amsdbc.h
-../bin/osf1/charge.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/charge.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/charge.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/charge.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/charge.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/charge.o: /usr/include/cxx/generic.hxx
@@ -1960,9 +1974,10 @@ depend:
 ../bin/osf1/particle.o: ../include/link.h ../include/apool.h
 ../bin/osf1/particle.o: ../include/trrec.h ../include/gsen.h
 ../bin/osf1/particle.o: ../include/gvolume.h ../include/amsdbc.h
-../bin/osf1/particle.o: ../include/point.h ../include/trid.h
-../bin/osf1/particle.o: ../include/amsstl.h ../include/job.h
-../bin/osf1/particle.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/particle.o: ../include/point.h ../include/geantnamespace.h
+../bin/osf1/particle.o: ../include/trid.h ../include/amsstl.h
+../bin/osf1/particle.o: ../include/job.h ../include/gmat.h
+../bin/osf1/particle.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/particle.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/particle.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/particle.o: /usr/include/cxx/generic.hxx
@@ -2082,8 +2097,8 @@ depend:
 ../bin/osf1/tofdbc.o: /usr/include/cxx/exception
 ../bin/osf1/tofdbc.o: /usr/include/cxx/stdcomp /usr/include/cxx/stddefs
 ../bin/osf1/tofdbc.o: ../include/gvolume.h ../include/amsdbc.h
-../bin/osf1/tofdbc.o: ../include/point.h ../include/gmat.h
-../bin/osf1/tofdbc.o: /usr/include/cxx/iomanip.h
+../bin/osf1/tofdbc.o: ../include/point.h ../include/geantnamespace.h
+../bin/osf1/tofdbc.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/tofdbc.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/tofdbc.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/tofdbc.o: /usr/include/cxx/generic.hxx
@@ -2144,8 +2159,8 @@ depend:
 ../bin/osf1/ctcrec.o: ../include/gvolume.h ../include/cern.h
 ../bin/osf1/ctcrec.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/ctcrec.o: ../include/geant321.h ../include/geant321g.h
-../bin/osf1/ctcrec.o: ../include/amsdbc.h ../include/gmat.h
-../bin/osf1/ctcrec.o: /usr/include/cxx/iomanip.h
+../bin/osf1/ctcrec.o: ../include/amsdbc.h ../include/geantnamespace.h
+../bin/osf1/ctcrec.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/ctcrec.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/ctcrec.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/ctcrec.o: /usr/include/cxx/generic.hxx
@@ -2209,7 +2224,8 @@ depend:
 ../bin/osf1/ctcsim.o: ../include/cern.h ../include/cfortran.h
 ../bin/osf1/ctcsim.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/ctcsim.o: ../include/geant321g.h ../include/amsdbc.h
-../bin/osf1/ctcsim.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/ctcsim.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/ctcsim.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/ctcsim.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/ctcsim.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/ctcsim.o: /usr/include/cxx/generic.hxx
@@ -2265,8 +2281,8 @@ depend:
 ../bin/osf1/ctcdbc.o: /usr/include/cxx/exception
 ../bin/osf1/ctcdbc.o: /usr/include/cxx/stdcomp /usr/include/cxx/stddefs
 ../bin/osf1/ctcdbc.o: ../include/gvolume.h ../include/amsdbc.h
-../bin/osf1/ctcdbc.o: ../include/point.h ../include/gmat.h
-../bin/osf1/ctcdbc.o: /usr/include/cxx/iomanip.h
+../bin/osf1/ctcdbc.o: ../include/point.h ../include/geantnamespace.h
+../bin/osf1/ctcdbc.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/ctcdbc.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/ctcdbc.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/ctcdbc.o: /usr/include/cxx/generic.hxx
@@ -2316,7 +2332,8 @@ depend:
 ../bin/osf1/tofcalib.o: ../include/cern.h ../include/cfortran.h
 ../bin/osf1/tofcalib.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/tofcalib.o: ../include/geant321g.h ../include/amsdbc.h
-../bin/osf1/tofcalib.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/tofcalib.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/tofcalib.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/tofcalib.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/tofcalib.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/tofcalib.o: /usr/include/cxx/generic.hxx
@@ -2381,7 +2398,8 @@ depend:
 ../bin/osf1/ctccalib.o: ../include/cern.h ../include/cfortran.h
 ../bin/osf1/ctccalib.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/ctccalib.o: ../include/geant321g.h ../include/amsdbc.h
-../bin/osf1/ctccalib.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/ctccalib.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/ctccalib.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/ctccalib.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/ctccalib.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/ctccalib.o: /usr/include/cxx/generic.hxx
@@ -2445,8 +2463,8 @@ depend:
 ../bin/osf1/timeid.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/timeid.o: ../include/geant321.h ../include/geant321g.h
 ../bin/osf1/timeid.o: ../include/amsdbc.h ../include/point.h
-../bin/osf1/timeid.o: /usr/include/math.h ../include/gmat.h
-../bin/osf1/timeid.o: /usr/include/cxx/iomanip.h
+../bin/osf1/timeid.o: /usr/include/math.h ../include/geantnamespace.h
+../bin/osf1/timeid.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/timeid.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/timeid.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/timeid.o: /usr/include/cxx/generic.hxx
@@ -2563,9 +2581,9 @@ depend:
 ../bin/osf1/trcalib.o: /usr/include/math.h ../include/particle.h
 ../bin/osf1/trcalib.o: ../include/trrec.h ../include/gsen.h
 ../bin/osf1/trcalib.o: ../include/gvolume.h ../include/amsdbc.h
-../bin/osf1/trcalib.o: ../include/trid.h ../include/amsstl.h
-../bin/osf1/trcalib.o: ../include/job.h ../include/gmat.h
-../bin/osf1/trcalib.o: /usr/include/cxx/iomanip.h
+../bin/osf1/trcalib.o: ../include/geantnamespace.h ../include/trid.h
+../bin/osf1/trcalib.o: ../include/amsstl.h ../include/job.h
+../bin/osf1/trcalib.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/trcalib.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/trcalib.o: /usr/include/cxx/generic.hxx
@@ -2629,9 +2647,9 @@ depend:
 ../bin/osf1/tralig.o: /usr/include/math.h ../include/particle.h
 ../bin/osf1/tralig.o: ../include/trrec.h ../include/gsen.h
 ../bin/osf1/tralig.o: ../include/gvolume.h ../include/amsdbc.h
-../bin/osf1/tralig.o: ../include/trid.h ../include/amsstl.h
-../bin/osf1/tralig.o: ../include/job.h ../include/gmat.h
-../bin/osf1/tralig.o: /usr/include/cxx/iomanip.h
+../bin/osf1/tralig.o: ../include/geantnamespace.h ../include/trid.h
+../bin/osf1/tralig.o: ../include/amsstl.h ../include/job.h
+../bin/osf1/tralig.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/tralig.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/tralig.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/tralig.o: /usr/include/cxx/generic.hxx
@@ -2704,7 +2722,8 @@ depend:
 ../bin/osf1/trigger1.o: /usr/include/cxx/fstream_impl.hxx
 ../bin/osf1/trigger1.o: ../include/job.h ../include/gvolume.h
 ../bin/osf1/trigger1.o: ../include/point.h /usr/include/math.h
-../bin/osf1/trigger1.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/trigger1.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/trigger1.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/trigger1.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/trigger1.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/trigger1.o: /usr/include/cxx/generic.hxx
@@ -2769,7 +2788,8 @@ depend:
 ../bin/osf1/trigger3.o: /usr/include/cxx/fstream_impl.hxx
 ../bin/osf1/trigger3.o: ../include/job.h ../include/gvolume.h
 ../bin/osf1/trigger3.o: ../include/point.h /usr/include/math.h
-../bin/osf1/trigger3.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/trigger3.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/trigger3.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/trigger3.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/trigger3.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/trigger3.o: /usr/include/cxx/generic.hxx
@@ -2828,8 +2848,8 @@ depend:
 ../bin/osf1/antidbc.o: /usr/include/cxx/stdcomp
 ../bin/osf1/antidbc.o: /usr/include/cxx/stddefs ../include/gvolume.h
 ../bin/osf1/antidbc.o: ../include/amsdbc.h ../include/point.h
-../bin/osf1/antidbc.o: /usr/include/math.h ../include/gmat.h
-../bin/osf1/antidbc.o: /usr/include/cxx/iomanip.h
+../bin/osf1/antidbc.o: /usr/include/math.h ../include/geantnamespace.h
+../bin/osf1/antidbc.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/antidbc.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/antidbc.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/antidbc.o: /usr/include/cxx/generic.hxx
@@ -2892,7 +2912,8 @@ depend:
 ../bin/osf1/daqevt.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/daqevt.o: ../include/geant321g.h ../include/amsdbc.h
 ../bin/osf1/daqevt.o: ../include/point.h /usr/include/math.h
-../bin/osf1/daqevt.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/daqevt.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/daqevt.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/daqevt.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/daqevt.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/daqevt.o: /usr/include/cxx/generic.hxx
@@ -2975,7 +2996,8 @@ depend:
 ../bin/osf1/daqblock.o: ../include/event.h ../include/job.h
 ../bin/osf1/daqblock.o: ../include/gvolume.h ../include/amsdbc.h
 ../bin/osf1/daqblock.o: ../include/point.h /usr/include/math.h
-../bin/osf1/daqblock.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/daqblock.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/daqblock.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/daqblock.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/daqblock.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/daqblock.o: /usr/include/cxx/generic.hxx
@@ -3038,7 +3060,8 @@ depend:
 ../bin/osf1/tkdbc.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/tkdbc.o: ../include/geant321.h ../include/geant321g.h
 ../bin/osf1/tkdbc.o: ../include/point.h /usr/include/math.h
-../bin/osf1/tkdbc.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/tkdbc.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/tkdbc.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/tkdbc.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/tkdbc.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/tkdbc.o: /usr/include/cxx/generic.hxx
@@ -3154,10 +3177,10 @@ depend:
 ../bin/osf1/user.o: ../include/snode.h ../include/gsen.h
 ../bin/osf1/user.o: ../include/gvolume.h ../include/amsdbc.h
 ../bin/osf1/user.o: ../include/point.h /usr/include/math.h
-../bin/osf1/user.o: ../include/trid.h ../include/amsstl.h
-../bin/osf1/user.o: ../include/commons.h ../include/link.h
-../bin/osf1/user.o: ../include/job.h ../include/gmat.h
-../bin/osf1/user.o: /usr/include/cxx/iomanip.h
+../bin/osf1/user.o: ../include/geantnamespace.h ../include/trid.h
+../bin/osf1/user.o: ../include/amsstl.h ../include/commons.h
+../bin/osf1/user.o: ../include/link.h ../include/job.h
+../bin/osf1/user.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/user.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/user.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/user.o: /usr/include/cxx/generic.hxx
@@ -3213,7 +3236,8 @@ depend:
 ../bin/osf1/status.o: ../include/amsgobj.h ../include/uzstat.h
 ../bin/osf1/status.o: /usr/include/math.h ../include/job.h
 ../bin/osf1/status.o: ../include/gvolume.h ../include/point.h
-../bin/osf1/status.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/status.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/status.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/status.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/status.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/status.o: /usr/include/cxx/generic.hxx
@@ -3267,8 +3291,8 @@ depend:
 ../bin/osf1/bcorr.o: ../include/cfortran.h ../include/hbook.h
 ../bin/osf1/bcorr.o: ../include/geant321.h ../include/geant321g.h
 ../bin/osf1/bcorr.o: ../include/amsdbc.h ../include/point.h
-../bin/osf1/bcorr.o: /usr/include/math.h ../include/gmat.h
-../bin/osf1/bcorr.o: /usr/include/cxx/iomanip.h
+../bin/osf1/bcorr.o: /usr/include/math.h ../include/geantnamespace.h
+../bin/osf1/bcorr.o: ../include/gmat.h /usr/include/cxx/iomanip.h
 ../bin/osf1/bcorr.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/bcorr.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/bcorr.o: /usr/include/cxx/generic.hxx
@@ -3321,7 +3345,8 @@ depend:
 ../bin/osf1/ecaldbc.o: /usr/include/cxx/stdcomp
 ../bin/osf1/ecaldbc.o: /usr/include/cxx/stddefs ../include/gvolume.h
 ../bin/osf1/ecaldbc.o: ../include/amsdbc.h ../include/point.h
-../bin/osf1/ecaldbc.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/ecaldbc.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/ecaldbc.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/ecaldbc.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/ecaldbc.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/ecaldbc.o: /usr/include/cxx/generic.hxx
@@ -3371,7 +3396,8 @@ depend:
 ../bin/osf1/ecalrec.o: ../include/cern.h ../include/cfortran.h
 ../bin/osf1/ecalrec.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/ecalrec.o: ../include/geant321g.h ../include/amsdbc.h
-../bin/osf1/ecalrec.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/ecalrec.o: ../include/geantnamespace.h ../include/gmat.h
+../bin/osf1/ecalrec.o: /usr/include/cxx/iomanip.h
 ../bin/osf1/ecalrec.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/ecalrec.o: /usr/include/cxx/iomanip_impl.hxx
 ../bin/osf1/ecalrec.o: /usr/include/cxx/generic.hxx

@@ -30,7 +30,7 @@ class AMSID
    AMSID operator*(const AMSID&);
    friend ostream &operator << (ostream &o, const AMSID &b );
 // compare
-   int operator < (const AMSID&) const;
+   virtual int operator < (const AMSID&) const;
    int operator == (const AMSID&) const;
 // get
    inline integer getid() const{return _id;}
@@ -45,4 +45,30 @@ class AMSID
   static void PrintError();
 
 };
+class AMSIDi : public AMSID{
+ public:
+   AMSIDi (): AMSID(){};
+   AMSIDi (const AMSID&a): AMSID(a){}
+   AMSIDi (int i): AMSID(i,0){}
+ int operator < (const AMSID& a) const{
+  return getid() < a.getid()? 1:0;
+ }
+
+};
+class AMSIDs : public AMSID{
+ public:
+   AMSIDs (): AMSID(){};
+   AMSIDs (const AMSID&a): AMSID(a){}
+   AMSIDs (const char name[]):AMSID(0,name){}
+ int operator < (const AMSID&a) const{
+  int i;
+  if(getname() && a.getname())i=strcmp(getname(),a.getname());
+  else if (!a.getname() && !getname())i=0;
+  else if (!a.getname())i=1;
+  else i=-1;
+  return i<0?1:0;
+}
+
+};
+
 #endif
