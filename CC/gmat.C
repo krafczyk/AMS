@@ -308,7 +308,19 @@ for(iw=0;iw<44;iw++)
       abs_l[iw]=1.; // Reflectivity=90%
   index[0]=0;
   GSCKOV(GetLastMatNo(),44,p,abs_l,dummy,index);
+
+  // Carbon fiber for the aerogel support structure
+
+  mat.add (new AMSgmat("RICH_CARBONF", 12.01, 6., 1.3 , 33., 66.));
+  GSCKOV(GetLastMatNo(),44,p,abs_l,dummy,index);
+
+  // Magnetic shielding
+  mat.add (new AMSgmat("RICH_BSHIELD",55.85,26.,0.787,17.6,168.));
+  GSCKOV(GetLastMatNo(),44,p,abs_l,dummy,index);
 }
+
+
+
 
 mat.add (new AMSgmat("VACUUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));
 // Define vaccum optical properties
@@ -472,6 +484,9 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
   tmed.add (new AMSgtmed("RICH MIRRORS","RICH_MIRRORS",0));//33
   tmed.add (new AMSgtmed("RICH WALLS","RICH_WALLS",0)); //34
   tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",1));   //35
+  tmed.add (new AMSgtmed("RICH CARBON","RICH_CARBONF",0));
+  tmed.add (new AMSgtmed("RICH SHIELD","RICH_BSHIELD",0));
+  tmed.add (new AMSgtmed("RICH GLUE","RICH_WALLS",1));
 }
 //---------------
 //  ECAL media
