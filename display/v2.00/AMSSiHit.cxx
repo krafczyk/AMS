@@ -47,11 +47,11 @@ AMSSiHit::AMSSiHit(Int_t status, Int_t plane, Int_t px, Int_t py,
 char *AMSSiHit::GetObjectInfo(Int_t px, Int_t py)
 {
    static char info[64];
-   sprintf(info,"Si Layer %d: Ampl=%4.1f, at (%5.1f,%5.1f,%5.1f)+-(%5.3f,%5.3f,%5.3f)",
+   sprintf(info,"Si Layer %d: Ampl=%4.1f, at (%5.1f,%5.1f,%5.1f)+-(%5.3f,%5.3f,%5.3f, asym=%4.1f, status=%x)",
 		m_Plane, 		// m_X, m_Y, 
 		m_Amplitude, 
 		fX, fY, fZ,
-		m_ErrPosition[0], m_ErrPosition[1], m_ErrPosition[2]);
+		m_ErrPosition[0], m_ErrPosition[1], m_ErrPosition[2],m_AsymAmpl,m_Status);
    return info;
 }
 

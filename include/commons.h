@@ -84,6 +84,7 @@ integer Accept;
 integer RebuildLVL3;
 integer NoK;
 geant TrHeavyIonThr;
+integer SeedThr;
 };
 #define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
 COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);

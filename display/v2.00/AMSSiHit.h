@@ -24,7 +24,6 @@ private:
    Float_t	  m_ErrPosition[3]; // Error of m_Position[]
    Float_t	  m_Amplitude;	    // Amplitude
    Float_t	  m_AsymAmpl;	    // Asymmetry of amplitudes in X vs Y side
-
    TObjArray *    m_Tracks;         // Tracks that pass this hit
 
 
