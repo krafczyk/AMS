@@ -1,0 +1,33 @@
+# Makefile for Atlfast for alpha/cxx 
+
+PLATFORM      = alpha
+#SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
+#                -expect_unresolved -g0 -O1 -shared /usr/lib/cmplrs/cc/crt0.o \
+#                /usr/lib/cmplrs/cxx/_main.o
+SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
+                -expect_unresolved -g -shared /usr/lib/cmplrs/cc/crt0.o \
+                /usr/lib/cmplrs/cxx/_main.o
+
+CXX           =  cxx
+CXXFLAGS      =  -I$(ROOTSYS)/include -I/usr/include
+OPT           = -g -DROOT10308
+NOOPT         = 
+LD            = cxx 
+LDFLAGS       = -g
+SOFLAGS       = -b
+SOGFLAGS      = -b
+LIBS          = $(ROOTLIBS) -lm 
+GLIBS         = $(ROOTLIBS) $(ROOTGLIBS) -lXm -lXt -lX11 -lm -lPW
+
+PYTHIALIB     = -L$(PYTHIA) -lPythia
+
+
+##### MACROS and TARGETS #####
+
+include Make-macros.alpha
+
+
+##### DEPENDENCIES #####
+
+include Make-depend
+
