@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.53 2001/02/28 14:44:54 choutko Exp $
+//  $Id: server.C,v 1.54 2001/02/28 14:55:53 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -2305,6 +2305,16 @@ catch (bad_alloc aba){
   
 int Producer_impl::getTDVTable(const DPS::Client::CID & cid, TDVName & tdvname, unsigned int id, TDVTable_out table)throw (CORBA::SystemException){
 _UpdateACT(cid,DPS::Client::Active);
+ if( _parent->IsOracle()){
+     Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+     for (AMSServerI* pcur=_pser;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+     if(DBServer_impl* pdb=dynamic_cast<DBServer_impl*>(pcur)){
+          return pdb->getTDVTable(cid,tdvname,id,table);
+       }
+    }
+
+ }
+ else{
 
 TIDI li=_findTDV(tdvname);
 tdvname.Success=false;
@@ -2331,7 +2341,7 @@ if(length==0){
 table= vtable._retn();
 return length;
 }
-
+}
 #include <new.h>
 Producer_impl::TIDI & Producer_impl::_findTDV(const TDVName & tdv){
 AMSID id((const char*)tdv.Name,tdv.DataMC);
