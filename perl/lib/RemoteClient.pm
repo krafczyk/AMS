@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.309 2005/03/21 08:18:36 alexei Exp $
+# $Id: RemoteClient.pm,v 1.310 2005/03/23 10:19:50 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -81,6 +81,8 @@
 #
 # Mar 16, 2005    : DBQuery04 performance is improved
 # Mar 18, 2005.   : Table Jobs add pid - production period ID
+#                   queries are modified accordingly
+# Mar 22, 2005.   : use views instead of table (see listStat sub)
 #
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
@@ -110,10 +112,7 @@ my $t0Init = 0;
 my $tsInit = 0;
 my $teInit = 0;
 my $tdInit = 0;
-my $td0    = 0;
-my $td1    = 0;
-my $td2    = 0;
-my $td3    = 0;
+my @td;
 #
 
 struct ProductionPeriod => { 
@@ -168,7 +167,8 @@ my     $rmprompt        = 1; # prompt before files removal
  my $copyTime     = 0;
  my $copyCalls    = 0;
 #-
-
+ my $TestCiteId   = undef;
+#
 
  my $defROOT    = "CHECKED";
  my $defNTUPLE  = " ";
@@ -691,7 +691,7 @@ my %mv=(
        open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
        read(FILE,$buf,1638400) or next;
        close FILE;
-       $td3 = time();
+       $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
        my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
@@ -1898,6 +1898,7 @@ sub ConnectOnlyDB{
          }
      }
 
+    $TestCiteId = $self->getTestCiteId();
 }
 
 sub ConnectDB{
@@ -1909,6 +1910,7 @@ sub ConnectDB{
     else{
         $self->{ok}=1;
     }
+    $TestCiteId = $self->getTestCiteId();
 }
 
 sub Connect{
@@ -3112,16 +3114,16 @@ CheckCite:            if (defined $q->param("QCite")) {
              if ($benchmarking == 1) {
               print "<TR></TR>\n";
 
-              my $elapsed = timediff($td3,$td0);
+              my $elapsed = timediff($td[3],$td[0]);
               my $tstrelapsed = timestr($elapsed);
               print "<TR><TD><font color=green size= 3> Total time : $tstrelapsed</font></TD></TR>\n";
-               $elapsed = timediff($td1,$td0);
+               $elapsed = timediff($td[1],$td[0]);
                $tstrelapsed = timestr($elapsed);
                print "<TR><TD><font color=green size= 2> read datasets dir: $tstrelapsed</font></TD></TR>\n";
-                $elapsed = timediff($td2,$td1);
+                $elapsed = timediff($td[2],$td[1]);
                 $tstrelapsed = timestr($elapsed);
                 print "<TR><TD><font color=green size= 2> read jobs dir: $tstrelapsed</font></TD></TR>\n";
-                 $elapsed = timediff($td3,$td2);
+                 $elapsed = timediff($td[3],$td[2]);
                  $tstrelapsed = timestr($elapsed);
                  print "<TR><TD><font color=green size= 2> parse ALL jobs for ALL datasets: $tstrelapsed</font></TD></TR>\n";
                  print "<TR><TD><font color=green size= 2> parse ALL jobs for ALL datasets: $tstrelapsed</font></TD></TR>\n";
@@ -6489,14 +6491,21 @@ sub listProductionSetPeriods {
 sub listStat {
     my $self = shift;
 
-    my $jobsreq    = 0;  # active jobs
-    my $jobsdone   = 0;  # successfully finished
-    my $jobsfailed = 0;  # failed
-    my $jobstimeout= 0;  # timeout
-    my $trigreq    = 0;  # requested events
-    my $trigdone   = 0;  # processed levent-fevent+1
-    my $timestart  = 0;  # 1st job request time
-    my $lastupd    = 0;  # last job request time
+#   $self->  getProductionPeriods(0);
+#   $self -> listProductionSetPeriods();
+
+    my $jobsreq;     # active jobs
+    my $jobsdone;    # successfully finished
+    my $jobsfailed;  # failed
+    my $jobstimeout; # timeout
+    my $trigreq;     # requested events
+    my $trigdone;    # processed levent-fevent+1
+    my $timestart;   # 1st job request time
+    my $lastupd;     # last job request time
+    my $nntuples;
+    my $nsizegb;
+    my $cntuples;
+    my $csizegb;
 
     my $sql        = undef;
     my $ret        = undef;
@@ -6506,102 +6515,68 @@ sub listStat {
 
     foreach my $ds (@productionPeriods) {
      if ($ds->{status} =~ 'Active') {
+
+       $jobsreq    = 0;  # active jobs
+       $jobsdone   = 0;  # successfully finished
+       $jobsfailed = 0;  # failed
+       $jobstimeout= 0;  # timeout
+       $trigreq    = 0;  # requested events
+       $trigdone   = 0;  # processed levent-fevent+1
+       $timestart  = 0;  # 1st job request time
+       $lastupd    = 0;  # last job request time
+       $nntuples   = 0;  # ntuples
+       $nsizegb    = 0;  # NT size in GB
+       $cntuples   = 0;  # NT copied to CASTOR
+       $csizegb    = 0;  #                     GB
+
        my $datasetStartTime = $ds->{begin};
        my $datasetId        = $ds->{id};
        my $datasetVDB       = $ds->{vdb};
-# first job timestamp
-       $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
-             WHERE 
-              Jobs.cid=Cites.cid and Cites.name!='test' AND 
-                Jobs.pid=$datasetId";
+       my $datasetName      = $ds->{name};
+# first job timestamp and running (active jobs)
+       $td[0] = time();
+       if ($ds->{name} =~ /2005A/) {
+         $sql="SELECT 
+                stat_2005A_Jobs.firstjobtime,stat_2005A_Jobs.lastjobtime,
+                stat_2005A_Jobs.totaljobs,stat_2005A_Jobs.totaltriggers,
+                stat_2005A_EndRuns.TotalRuns,stat_2005A_EndRuns.SumFEvent,stat_2005A_EndRuns.SumLEvent,
+                stat_2005A_FailedRuns.TotalRuns,
+                stat_2005A_TimeoutRuns.TotalRuns,
+                stat_2005A_NTuples.TotalFiles, stat_2005A_NTuples.SizeMB,    
+                stat_2005A_CastorNTuples.TotalFiles, stat_2005A_CastorNTuples.SizeMB
+               FROM 
+                  stat_2005A_Jobs, stat_2005A_EndRuns, stat_2005A_FailedRuns, stat_2005A_TimeoutRuns, 
+                  stat_2005A_NTuples,stat_2005A_CastorNTuples";
+         } elsif ($ds->{name} =~ /2005B/) {
+         $sql="SELECT 
+                 stat_2005B_Jobs.firstjobtime,stat_2005B_Jobs.lastjobtime,
+                 stat_2005B_Jobs.totaljobs,stat_2005B_Jobs.totaltriggers,
+                 stat_2005B_EndRuns.TotalRuns,stat_2005B_EndRuns.SumFEvent,stat_2005B_EndRuns.SumLEvent,
+                 stat_2005B_FailedRuns.TotalRuns,
+                 stat_2005B_TimeoutRuns.TotalRuns,
+                 stat_2005B_NTuples.TotalFiles, stat_2005B_NTuples.SizeMB,    
+                 stat_2005B_CastorNTuples.TotalFiles, stat_2005B_CastorNTuples.SizeMB
+                FROM 
+                  stat_2005B_Jobs, stat_2005B_EndRuns, stat_2005B_FailedRuns, stat_2005B_TimeoutRuns, 
+                  stat_2005B_NTuples,stat_2005B_CastorNTuples";
+
+        }
        $ret=$self->{sqlserver}->Query($sql);
        if (defined $ret->[0][0]) {
         $timestart = $ret->[0][0];
-       }
-       if (defined $ret->[0][1]) {
         $lastupd=localtime($ret->[0][1]);
-       }
-
-# running (active jobs)
-      $sql = "SELECT COUNT(jobs.jid), SUM(triggers) FROM Jobs, Cites WHERE 
-                     (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) AND 
-                      Jobs.pid=$datasetId";
-      $ret = $self->{sqlserver}->Query($sql);
-      if (defined $ret->[0][0]) {
-         $jobsreq = $ret->[0][0];
-         $trigreq = $ret->[0][1];
-      }
-     $sql = "SELECT COUNT(runs.jid) FROM Jobs, Runs, Cites   
-              WHERE  runs.jid = jobs.jid AND
-                     (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) AND
-                      Jobs.pid=$datasetId";
-      $ret = $self->{sqlserver}->Query($sql);
-      if (defined $ret->[0][0]) {
-         $jobsreq = $jobsreq - $ret->[0][0];
-      }
-    $sql = "SELECT COUNT(runs.jid) FROM Jobs, Runs, Cites 
-              WHERE  runs.jid = jobs.jid AND 
-                     (runs.status='Foreign' OR runs.status='Processing') AND
-                     (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) AND
-                      Jobs.pid=$datasetId";
-    $ret = $self->{sqlserver}->Query($sql);
-    if (defined $ret->[0][0]) {
-         $jobsreq += $ret->[0][0];
-     }
-
-# finished/completed jobs
-    $sql = "SELECT COUNT(runs.jid), sum(fevent), sum(levent) FROM Runs, Jobs  
-                WHERE (status='Finished' OR status='Completed') AND 
-                Runs.jid=Jobs.jid AND Jobs.pid=$datasetId";
-
-    $ret = $self->{sqlserver}->Query($sql);
-    if (defined $ret->[0][0]) {
-         $jobsdone = $ret->[0][0];
-         $trigdone = $ret->[0][2] - $ret->[0][1] + $jobsdone
-     }
-
-# failed/unchecked jobs
-    $sql = "SELECT COUNT(Runs.jid) FROM Runs, Jobs 
-                WHERE (status='Failed' OR status='Unchecked') AND 
-                Runs.jid=Jobs.jid AND Jobs.pid=$datasetId";
-
-
-    $ret = $self->{sqlserver}->Query($sql);
-    if (defined $ret->[0][0]) {
-         $jobsfailed = $ret->[0][0];
-     }
-
-# timeout jobs
-    $sql = "SELECT COUNT(Runs.jid) FROM Runs 
-                WHERE status='TimeOut' AND submit > $datasetStartTime";
-    $ret = $self->{sqlserver}->Query($sql);
-    if (defined $ret->[0][0]) {
-         $jobstimeout = $ret->[0][0];
-     }
-
-# ntuples, runs
-               $sql="SELECT COUNT(ntuples.run), SUM(ntuples.SIZEMB) from ntuples, runs, jobs  
-               WHERE (ntuples.run=runs.run) AND Runs.jid=Jobs.jid AND Jobs.pid=$datasetId";
-               $ret=$self->{sqlserver}->Query($sql);
-               my $nntuples=0;
-               my $nsizegb =0;
-               if(defined $ret->[0][0]){
-                $nntuples= $ret->[0][0];
-                $nsizegb = sprintf("%.1f",$ret->[0][1]/1000);
-               }
-# GB on CASTOR
-               $sql="SELECT COUNT(ntuples.run), SUM(ntuples.SIZEMB) from ntuples, runs, jobs 
-                     where (ntuples.run=runs.run) AND castortime !=0 AND Runs.jid=Jobs.jid AND Jobs.pid=$datasetId";
-               $ret=$self->{sqlserver}->Query($sql);
-               my $cntuples=0;
-               my $csizegb =0;
-               if(defined $ret->[0][0]){
-                $cntuples= $ret->[0][0];
-                $csizegb = sprintf("%.1f",$ret->[0][1]/1000);
-               }
+        $jobsreq     = $ret->[0][2];
+        $trigreq     = $ret->[0][3];
+        $jobsdone    = $ret->[0][4];
+        $trigdone    = $ret->[0][6] - $ret->[0][5] + $jobsdone;
+        $jobsfailed  = $ret->[0][7];
+        $jobstimeout = $ret->[0][8];
+        $nntuples    = $ret->[0][9];
+        $nsizegb     = sprintf("%.1f",$ret->[0][10]/1000);
+        $cntuples    = $ret->[0][11];
+        $csizegb     = sprintf("%.1f",$ret->[0][12]/1000);
+        $jobsreq     = $jobsreq - $jobsdone - $jobsfailed;
+    }
 #
                my ($prodstart,$prodlastupd,$totaldays) = $self->getRunningDays($datasetStartTime);
                
@@ -6665,6 +6640,14 @@ sub listStat {
      print_bar($bluebar,3);
      print "<p></p>\n";
     }
+       $td[8] = time();
+#-       for my $j (0..7) {
+#           my $n = $j+1;
+#           my $d = $td[$n] - $td[$j];
+#           print "$n - $j :   $td[$n] - $td[$j] = $d secs \n"; 
+#       }
+#     my $d = $td[8] - $td[0];
+#-     print "Jobs : $td[8] - $td[0] = $d secs\n";
  }
 
      htmlTable("Datasets");
@@ -6696,15 +6679,19 @@ sub listStat {
          foreach my $ds (@{$r5}){
            my $did       = $ds->[0];
            my $dataset   = trimblanks($ds->[1]);
-           $sql = "SELECT SUM(levent), SUM(fevent), COUNT(fevent) FROM Jobs, Runs, Cites  
+           $td[0] = time();
+           $sql = "SELECT SUM(levent), SUM(fevent), COUNT(fevent) FROM Jobs, Runs 
                   WHERE 
                     Jobs.did = $did AND
                     Jobs.jid = Runs.jid AND  
                     (Runs.status='Completed' OR Runs.status='Finished') AND 
-                    (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) 
-                      AND Jobs.pid = $periodId";
+                      Jobs.cid != $TestCiteId AND
+                       Jobs.pid = $periodId";
            my $r6=$self->{sqlserver}->Query($sql);
+           $td[1] = time();
+#           my $d = $td[1] - $td[0];
+#           print "$sql \n";
+#           print "******** $did, $d secs \n";
            my $events = 0;
            if(defined $r6->[0][0]){
              $events = $r6->[0][0] - $r6->[0][1] + $r6->[0][2];
@@ -6714,10 +6701,9 @@ sub listStat {
                  $events=sprintf("%.2fM",$events/1000000);
              }
            }            
-           $sql = "SELECT SUM(triggers) FROM Jobs, Cites   
+           $sql = "SELECT SUM(triggers) FROM Jobs 
                   WHERE Jobs.did = $did AND
-                    (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test')) 
+                     Jobs.cid != $TestCiteId
                       AND Jobs.pid = $periodId";
            my $r7=$self->{sqlserver}->Query($sql);
            my $triggers = 0;
@@ -7197,19 +7183,21 @@ sub listJobs {
 sub listRuns {
     my $self = shift;
     my $rr   = 0;
-    my ($period, $periodStartTime, $periodId) = $self->getActiveProductionPeriod();
+    my $time24h = time() - 24*60*60;
 
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
      my $href=$self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
-     print "<tr><font color=blue><b><i> Only recent 50 runs are listed,  to get complete list 
+     print "<tr><font color=blue><b><i> Only 50 runs submitted/finished during last 24h are listed,  to get complete list 
             <a href=$href> click here</a>
             </b><i></font></tr>\n";
 
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT Runs.run, Runs.jid, Runs.submit, Runs.status 
-              FROM   Runs WHERE Runs.submit> $periodStartTime 
-              ORDER  BY Runs.submit DESC, Runs.jid";
+               FROM   Runs, Jobs 
+                 WHERE Runs.jid=Jobs.jid AND 
+                   (Runs.submit> $time24h OR Jobs.timestamp > $time24h)
+                    ORDER  BY Runs.submit DESC, Runs.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\" >JobId </font></b></td>";
               print "<td><b><font color=\"blue\">Run </font></b></td>";
@@ -10158,14 +10146,14 @@ sub getActiveProductionPeriod {
      my $self = shift;
      
 
-     my $sql  = undef;
+     my $sql  = undef; 
      my $ret  = undef;
 
      my $period = $UNKNOWN;
      my $begin  = 0;
      my $pid    = -1;
 
-      $sql = "SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active'";
+      $sql = "SELECT NAME, BEGIN, DID  FROM ProductionSet WHERE STATUS='Active' ORDER BY DID";
       $ret = $self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $period=trimblanks($ret->[0][0]);
@@ -10310,8 +10298,8 @@ sub getRunningDays {
     my $timepassed= 0;
     my $timenow   = time();
 # first job timestamp
-      $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
-                WHERE Jobs.cid=Cites.cid and Cites.name!='test' and Jobs.time >= $periodStartTime";
+      $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs  
+                WHERE Jobs.cid != $TestCiteId and Jobs.time >= $periodStartTime";
       $ret=$self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $timestart = $ret->[0][0];
@@ -11078,8 +11066,7 @@ sub getEventsLeft {
                     Jobs.jobname like '%$job' AND 
                     Jobs.jid = Runs.jid AND  
                     (Runs.status='Completed' OR Runs.status='Finished') AND 
-                    (Jobs.cid != Cites.cid AND
-                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
+                     Jobs.cid != $TestCiteId ";
 #                 print "$sql \n";
                  my $r2= $self->{sqlserver}->Query($sql);
                  $totalprocessed = 0;
@@ -12132,7 +12119,7 @@ sub readDataSets() {
    }
     if ($verbose == 1) {print "\n \n Datasets directory : $topdir \n";}
 
-   $td0 = time();
+   $td[0] = time();
 
    my $ndatasets  =0; # total datasets scanned
    my $nfiles  =0; # total jobs scanned
@@ -12220,7 +12207,7 @@ sub readDataSets() {
        open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
        read(FILE,$buf,1638400) or next;
        close FILE;
-       $td3 = time();
+       $td[3] = time();
        $template->{filename}=$job;
        my @sbuf=split "\n",$buf;
        my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
@@ -12330,9 +12317,8 @@ sub readDataSets() {
 
 
  $tdInit = time();
- my $elapsed = $tdInit - $td0;
+ my $elapsed = $tdInit - $td[0];
  print "Datasets scanned : $ndatasets , jobs : $nfiles \n";
- print "Total time : $td0, $tdInit, $elapsed (sec) \n";
 }
 
 
@@ -12351,4 +12337,19 @@ sub getProductionSetIdByDatasetId() {
      } 
 
      return $pid;
+ }
+
+sub getTestCiteId() {
+
+     my $self = shift;
+     my $tid  = undef;
+
+     my $sql = "SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'";
+     my $ret=$self->{sqlserver}->Query($sql);
+     if (defined $ret->[0][0]) { 
+      $tid = $ret->[0][0];
+  }  else {
+      $tid = -1;
+  }
+     return $tid;
  }
