@@ -922,7 +922,7 @@ void  AMSEvent::write(int trig){
 
   AMSEvent::gethead()->getheadC("AMSTrCluster",0,2); 
   AMSEvent::gethead()->getheadC("AMSTrCluster",1,2); 
-  AMSEvent::gethead()->getheadC("AMSTrTrack",0,2); 
+  AMSEvent::gethead()->getheadC("AMSmceventg",0,2); 
  
 for(int il=0;il<TKDBc::nlay();il++){
   AMSEvent::gethead()->getheadC("AMSTrRecHit",il,2); 
