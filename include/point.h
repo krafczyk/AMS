@@ -1,4 +1,4 @@
-//  $Id: point.h,v 1.11 2001/04/27 21:50:33 choutko Exp $
+//  $Id: point.h,v 1.12 2001/10/02 12:57:24 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSPOINT__
@@ -37,6 +37,7 @@ AMSPoint  operator*( AMSPoint o)const{
 AMSPoint  operator*( number o)const{return AMSPoint(_x*o,_y*o,_z*o);}
 AMSPoint  operator/( AMSPoint o)const{
                      return AMSPoint(_x/o._x,_y/o._y,_z/o._z);}
+AMSPoint  operator+( number o)const{return AMSPoint(_x+o,_y+o,_z+o);}
 AMSPoint  operator/( number o)const{return AMSPoint(_x/o,_y/o,_z/o);}
 AMSPoint  operator/( integer o)const{return AMSPoint(_x/o,_y/o,_z/o);}
 AMSPoint&  operator =(integer o){_x=o;_y=o;_z=o;return *this;}

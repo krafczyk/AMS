@@ -1,4 +1,4 @@
-               subroutine prodcorr
+      subroutine prodcorr
       LOGICAL         CHAIN
       CHARACTER*128   CFILE
       INTEGER         IDNEVT,NCHEVT,ICHEVT
@@ -137,11 +137,12 @@
      + ,tofrsdtm,tofreda,tofredd,tofrtm,tofrcoo,nsignals,sid,origin
      + ,direction,RICstatus,nphgen,phit,Rhits,Rchtchannel,Rchtadc,Rchtx
      + ,Rchty,nrings,rcritrackn,rcrihused,rcribeta,rcriebeta,rcrichi2
-
+      real brtime(12,4)
       real bramp(12,4),brlco(12,4),brtco,brzco
       real scamp(16),sclco(16)
-
-
+      real xtofcoo(4),xtofecoo(4),xtofchi2(4)
+      integer usedtofcoo(20)
+      integer itofcoo(4)
       iver=rawwords/2**20
       if(iver.le.995)then
       do k=1,necsh
@@ -163,14 +164,14 @@
          ecshen(k)=rxc*momentum(1)
       enddo 
       endif
-
       if(iver.le.996)then
 c <--------- TOF
-      if(nlvl1.eq.0.or.lvl1flag(1).gt.0)return
+      if(nlvl1.eq.0.or.lvl1flag(1).gt.0)goto 999
       ntof=0
       nanti=0
       do il=1,4
       do ib=1,12
+        brtime(ib,il)=100000.
         bramp(ib,il)=0.
 	brlco(ib,il)=0.
       enddo
@@ -182,6 +183,7 @@ c <--------- TOF
 	de=1000.*TOFMCedep(mch) ! in mev
 	x=TOFMCXcoo(1,mch)
 	y=TOFMCXcoo(2,mch)
+        if(tofmctof(mch).lt.brtime(ib,il))brtime(ib,il)=tofmctof(mch)
 	bramp(ib,il)=bramp(ib,il)+de
 	if(il.eq.1.or.il.eq.4)then ! along X
 	  brlco(ib,il)=brlco(ib,il)+x*de
@@ -201,13 +203,14 @@ c
 	  brlco(ib,il)=brlco(ib,il)+2.6*r  ! use accur.in long.coo 2.6cm
 	  call rannor(r,rdummy)
           bramp(ib,il)=bramp(ib,il)+0.1*bramp(ib,il)*r ! use de/dx accur. 10%
-	  if(bramp(ib,il).gt.0.4)then  ! Bar_energy > thresh. -> write it
+	  if(bramp(ib,il).gt.0.2)then  ! Bar_energy > thresh. -> write it
 	    ntof=ntof+1
             if(ntof.gt.20)ntof=20
 	    plane(ntof)=il
 	    bar(ntof)=ib
 	    nmemb(ntof)=1
 	    TOFEdep(ntof)=bramp(ib,il)
+            toftime(ntof)=brtime(ib,il)+rdummy*0.15e-9 
 	    if(il.eq.1.or.il.eq.4)then ! along X
 	      TOFCoo(1,ntof)=brlco(ib,il)
 	      TOFCoo(2,ntof)=brtco
@@ -236,8 +239,8 @@ c
       enddo
       enddo
 c <--------- ANTI
-      if(nantimc.eq.0)return
-      do is=1,16
+      if(nantimc.eq.0)goto 999
+       do is=1,16
         scamp(is)=0.
         sclco(is)=0.
       enddo
@@ -277,8 +280,141 @@ c
       enddo
 c 
       endif
+ 999  continue
+      if(iver.lt.999)then
+*
+*     Rebuild Beta
+*       
+      if(nlvl1.eq.0.or.lvl1flag(1).eq.0)return
+       if(ntof.gt.5.and.necsh.gt.0.and.npart.gt.0.and.
+     +  ptrackp(1).gt.0)then
+        do i=1,20
+         usedtofcoo(i)=0
+        enddo
+ 20     continue
+        do i=1,4
+         xtofcoo(i)=100000000
+         itofcoo(i)=0
+        enddo
+        do i=1,ntof
+         if(usedtofcoo(i).eq.0)then
+         ip=plane(i)
+         xmax=3
+         xp1=abs(cootof(1,ip,1)-tofcoo(1,i))/tofercoo(1,i)
+         xp2=abs(cootof(2,ip,1)-tofcoo(2,i))/tofercoo(2,i)
+         xp3=abs(cootof(3,ip,1)-tofcoo(3,i))/tofercoo(3,i)
+c         write(*,*)xp1,xp2,xp3
+         if(xp1.lt.xmax.and.xp2.lt.xmax.and.xp3.lt.xmax)then
+         xp=sqrt(xp1**2+xp2**2+xp3**2)
+         if(xp.lt.xtofcoo(ip))then
+          xtofcoo(ip)=xp
+          itofcoo(ip)=i
+         endif
+         endif
+         endif
+        enddo
+        ifound=0
+        do i=1,4
+         if(itofcoo(i).gt.0)ifound=ifound+1
+        enddo
+c        write(*,*)'ifound ',ifound
+        if(ifound.lt.3)then
+         return
+        else
+         xx=0
+         yy=0
+         xy=0
+         x2=0
+         y2=0
+         iff=0
+         do i=1,4
+          if(itofcoo(i).gt.0)then
+           ip=itofcoo(i)
+           if(iff.eq.0)then
+            iff=ip
+           else
+            dl=(tofcoo(3,ip)-tofcoo(3,iff))/abs(cos(ptheta(1)))
+            xx=xx+dl/tofetime(ip)/tofetime(ip)
+            x2=x2+(dl/tofetime(ip))**2
+            xy=xy+toftime(ip)*dl/tofetime(ip)/tofetime(ip)
+          endif
+           yy=yy+toftime(ip)/tofetime(ip)/tofetime(ip)
+           y2=y2+1/tofetime(ip)/tofetime(ip)
+          endif
+         enddo                 
+         xx=xx/y2
+         yy=yy/y2
+         x2=x2/y2
+         xy=xy/y2
+         a=(xy-xx*yy)/(x2-xx*xx)
+         b=yy-a*xx
+         xchi2=0
+         iff=0
+         do i=1,4
+          if(itofcoo(i).gt.0)then
+           ip=itofcoo(i)
+           if(iff.eq.0)then
+            iff=ip
+            dl=0
+           else
+            dl=(tofcoo(3,ip)-tofcoo(3,iff))/abs(cos(ptheta(1)))
+           endif
+           xchi2=xchi2+(a*dl+b-toftime(ip))**2/
+     +                 (tofetime(ip))**2
+          endif
+         enddo
+         xchi2=xchi2/(ifound-2)
+         if(xchi2.lt.15)then
+           ipb=pbetap(1)
+           beta(ipb)=-1/a/2.99792e10
+           betaerror(ipb)=sqrt(1/y2)/sqrt(x2-xx*xx)*2.99792e10
+           betachi2(ipb)=xchi2
+           betachi2s(ipb)=0
+           imiss=0
+           ikk=0
+         do i=1,4
+          if(itofcoo(i).gt.0)then
+           betachi2s(ipb)=betachi2s(ipb)+xtofcoo(i)
+           ip=itofcoo(i)
+           ikk=ikk+1
+           betaptof(ikk,ipb)=ip
+           usedtofcoo(ip)=1
+          else
+           imiss=i
+          endif
+         enddo
+          betapattern(ipb)=imiss 
+          betantof(ipb)=ifound
+c         write(*,*)'beta found ',beta(ipb),betaerror(ipb),
+c     +   betantof(ipb),betapattern(ipb),betachi2(ipb),betachi2s(ipb)
+                  
+         else
+         write(*,*)' bad beta ',xchi2,ifound
+         xchi2max=0
+         ichi2max=0
+         do i=1,4
+          if(itofcoo(i).gt.0)then
+           ip=itofcoo(i)
+           if(iff.eq.0)then
+            iff=ip
+            dl=0
+           else
+            dl=(tofcoo(3,ip)-tofcoo(3,iff))/abs(cos(ptheta(1)))
+           endif
+           xchi2=(a*dl+b-toftime(ip))**2/
+     +                 (tofetime(ip))**2
+           if(xchi2max.lt.xchi2)then
+             xchi2max=xchi2
+             ichi2max=ip
+            endif
+          endif
+         enddo
+         usedtofcoo(ichi2max)=1
+ 
+         endif
+         endif
+        goto 20
+       endif
+      endif
       return
       end
-      
-
-

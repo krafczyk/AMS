@@ -1,5 +1,5 @@
-//  $Id: commons.h,v 1.160 2001/09/25 08:06:51 choutko Exp $
-// Author V. Choutko 24-may-1996
+//  $Id: commons.h,v 1.161 2001/10/02 12:57:24 choutko Exp $
+//  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
 #define __AMSCOMMONS__

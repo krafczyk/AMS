@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.21 2001/09/11 08:07:21 choutko Exp $
+#  $Id: ntuple02.doc,v 1.22 2001/10/02 12:57:24 choutko Exp $
 This is AMS02 Ntuple Description
 
 
@@ -457,7 +457,7 @@ This is AMS02 Ntuple Description
  * I*4  * [0,100]  * RING     * nrings                // Nb of rings created in rich rec
  * I*4  *          * RING     * rcritrackn(nrings)        // Pointer to track
  * I*4  *          * RING     * rcrihused(nrings)         // Nb. of RICH hits in a ring matching the track
- * R*4  *          * RING     * rcrirbeta(nrings)         // Reconstructed beta
+ * R*4  *          * RING     * rcribeta(nrings)         // Reconstructed beta
  * R*4  *          * RING     * rcriebeta(nrings)         // error beta
  * R*4  *          * RING     * rcrichi2(nrings)       // Chi2/ndof for the beta
 
@@ -491,8 +491,8 @@ This is AMS02 Ntuple Description
  * R*4  *          * TRDSEG   * trdsegfpar(2,ntrdseg) // str line fit par 
  * R*4  *          * TRDSEG   * trdsegchi2(ntrdseg)   // -------   chi2
  * U*4  *          * TRDSEG   * trdsegpat(ntrdseg)    // segment pattern no
- * U*4  *          * TRDSEG   * trdsegnh(ntrdseg)     // number of hists
- * I*4  *          * TRDSEG   * trdsegpcl(12,ntrdseg) // pointers to hits
+ * U*4  *          * TRDSEG   * trdsegnh(ntrdseg)     // number of clu
+ * I*4  *          * TRDSEG   * trdsegpcl(12,ntrdseg) // pointers to clu
  * I*4  *          * TRDTRK   * ntrdtrk               
  * I*4  *          * TRDTRK   * trdtrkstatus(ntrdtrk) 
  * R*4  *          * TRDTRK   * trdtrkcoo(3,ntrdtrk)  // track x,y,z par

@@ -1,4 +1,4 @@
-//  $Id: tofrec02.h,v 1.3 2001/01/22 17:32:45 choutko Exp $
+//  $Id: tofrec02.h,v 1.4 2001/10/02 12:57:24 choutko Exp $
 // June, 23, 1996. ak. add getNumbers function
 //
 // Oct  04, 1996.  ak _ContPos is moved to AMSLink
@@ -112,6 +112,14 @@ protected:
 
 public:
 
+  integer operator < (AMSlink & o)const{
+   AMSTOFCluster *p =dynamic_cast<AMSTOFCluster*>(&o);
+   if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
+   else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
+   else return !p || _time < p->_time;
+  }
+
+
  static integer Out(integer);
  static void init();
  static integer planes(){return _planes;}
@@ -168,7 +176,7 @@ public:
  static AMSTOFCluster * gethead(integer i=0){
   if(i>=0 && i<4){
     if(!_Head[i])_Head[i]=(AMSTOFCluster*)AMSEvent::gethead()
-    ->getheadC("AMSTOFCluster",i);
+    ->getheadC("AMSTOFCluster",i,1);
     return _Head[i];
   }
   else {
