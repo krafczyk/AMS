@@ -10,7 +10,7 @@ GENERATE_MAN     = NO
 GENERATE_RTF     = NO
 CASE_SENSE_NAMES = NO
 SEARCH_INCLUDES        = YES
-INCLUDE_PATH           = ../include ../doc
+INCLUDE_PATH           = ../include ../doc 
 INCLUDE_FILE_PATTERNS  = *.h *.doc
 EXAMPLE_PATH            = ../examples
 
@@ -59,7 +59,7 @@ WARN_LOGFILE           =
 # configuration options related to the input files
 #---------------------------------------------------------------------------
 INPUT            =  ../doc ../include ../CC  ../examples /
-FILE_PATTERNS    =  root.h root.C stlv.h  stlv.C run.stlv.C beta.doc
+FILE_PATTERNS    =  root.h root.C stlv.h  stlv.C run.stlv.C beta.doc introduction.doc
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
