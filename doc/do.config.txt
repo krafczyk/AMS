@@ -10,9 +10,9 @@ GENERATE_MAN     = NO
 GENERATE_RTF     = NO
 CASE_SENSE_NAMES = NO
 SEARCH_INCLUDES        = YES
-INCLUDE_PATH           = /offline/vdev/include /offline/vdev/doc
+INCLUDE_PATH           = ../include ../doc
 INCLUDE_FILE_PATTERNS  = *.h *.doc
-EXAMPLE_PATH            = /afs/cern.ch/user/c/choutko/AMS/examples
+EXAMPLE_PATH            = ../examples
 
 EXTRACT_ALL            = NO
 EXTRACT_PRIVATE        = YES
@@ -58,7 +58,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT            =  /afs/cern.ch/user/c/choutko/AMS/doc /afs/cern.ch/user/c/choutko/AMS/include /afs/cern.ch/user/c/choutko/AMS/CC  /afs/cern.ch/user/c/choutko/AMS/examples /
+INPUT            =  ../doc ../include ../CC  ../examples /
 FILE_PATTERNS    =  root.h root.C stlv.h  stlv.C run.stlv.C beta.doc
 RECURSIVE              = NO
 EXCLUDE                = 
