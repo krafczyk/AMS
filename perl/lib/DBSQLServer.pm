@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.36 2003/04/01 12:02:57 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.37 2003/04/02 14:09:56 alexei Exp $
 
 #
 #
@@ -19,8 +19,9 @@
 #
 # Aug  7, 2002 a.k. Tables names are case sensitive in MySQL
 # Mar 30, 2003 a.k. '/vicepa,b,c' directory paths
-# Apr  1, 2003 a.k. create indecies for RNDM table (it takes a while)
-#
+# Apr  2, 2003 a.k. create indecies for RNDM table (it takes a while)
+#                   insert CITES and MAILS info from ../doc/mc.cites.mails
+#                          FILESYSTEMS          from ../doc/mc.filesystems
 package DBSQLServer;
 use Error qw(:try);
 use lib::CID;
@@ -30,9 +31,13 @@ use Carp;
 use Fcntl ":flock";
 use Fcntl;
 use POSIX qw(tmpnam);
+use POSIX qw(strtod);             
 use MLDBM qw(DB_File Storable);
 use DBI;
 use Time::localtime;
+
+my $MCCitesMailsFile = "../doc/mc.cites.mails"; # file with cites and mails definitions
+my $MCFilesystems="../doc/mc.filesystems";      # file with filesystems definitions
 
 @DBSQLServer::EXPORT= qw(new Connect QueryAll Query Update set_oracle_env);
 my %fields=(
@@ -326,25 +331,40 @@ while ( $line = <FILEI>){
   if ($cnt == 0) {
    my $time=time();
    my $run=110;
-   $dbh->do("insert into Cites values(1,'cern',0,
-            'local',$run,0,'CERN',$time)")or die "cannot do: ".$dbh->errstr();    
-     $run=(1<<27)+1;
-   $dbh->do("insert into Cites values(2,'test',0,
-            'remote',$run,0,'Test',$time)")or die "cannot do: ".$dbh->errstr();    
-     $run=(2<<27)+1;
-   $dbh->do("insert into Cites values(3,'bolo',0,
-            'remote',$run,0,'INFN Bologna',$time)")or die "cannot do: ".$dbh->errstr();    
-     $run=(3<<27)+1;
-   $dbh->do("insert into Cites values(4,'ethz',0,
-            'remote',$run,0,'ETH Zurich',$time)")or die "cannot do: ".$dbh->errstr();    
-     $run=(4<<27)+1;
-   $dbh->do("insert into Cites values(5,'mila',0,
-            'remote',$run,0,'INFN Milano',$time)")or die "cannot do: ".$dbh->errstr();    
-     $run=(5<<27)+1;
-   $dbh->do("insert into Cites values(6,'knu',0,
-            'remote',$run,0,'Kyungpook Nat. Univ.',$time)")or die "cannot do: ".$dbh->errstr();    
-     $run=(6<<27)+1;
-  } else {
+   my $n  =  0;
+   open(FILE,"<",$MCCitesMailsFile) or die "Unable to open $MCFilesystems";
+   my @lines = <FILE>;
+   close FILE;
+   my $mails = 0;
+   my $cites = 0;
+   foreach my $line (@lines) {
+   if ($line =~/^#/) {
+     if ($line =~/MAILS/) {
+         $mails = 1;
+         $cites = 0;
+     } 
+     if ($line =~/CITES/) {
+         $cites = 1;
+         $mails = 0
+     } 
+   } else {
+     if ($cites == 1) {
+       my ($description,$name,$cid,$stat,$status,@junk) = split ":",$line;
+       if (defined $description and defined $status) {
+         $description = trimblanks($description);
+         $name        = trimblanks($name);
+         $cid         = strtod($cid);
+         $stat        = strtod($stat);
+         $status      = trimblanks($status);
+         $dbh->do("insert into Cites values($cid,$name,0,$status,$run,$stat,$description,$time)")
+         or die "cannot do: ".$dbh->errstr();    
+         $n++;
+         $run=($n<<27)+1;
+     }
+    }
+   }
+  } # foreach my $line
+ } else {
     warn "Table Cites has $cnt entries. Not initialized";
  }
 
@@ -358,54 +378,39 @@ while ( $line = <FILEI>){
 }
   if ($cnt == 0) {
    my $time=time();
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (1,'pcamsa0','/a0dah1','/AMS02/MC/ntuples',87,87,0,30,'Full',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (2,'pcamsa0','/a0dat1','/AMS02/MC/ntuples',53,43,10,20,'Active',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (3,'pcamsa0','/a0dat2','/AMS02/MC/ntuples',53,48,5,20,'Active',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (4,'pcamsp0','/p0dah1','/AMS02/MC/ntuples',97,87,5,20,'Active',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (5,'pcamsp0','/p0dat1','/AMS02/MC/ntuples',105,86,13,20,'Active',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (6,'pcamsp1','/p1dah1','/AMS02/MC/ntuples',65,60,1,20,'Full',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (7,'pcamsp1','/p1dat1','/AMS02/MC/ntuples',98,84,9,20,'Active',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (9,'pcamsf0','/vicepb','/afs/ams.cern.ch/data/data1/AMS02/MC',246,195,39,240,'Active',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (11,'pcamsf0','/f0dah1','/AMS02/MC/ntuples',220,158,51,60,'Active',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (12,'pcamsf2','/f2dat1','/AMS02/MC/ntuples',1040,889,140,20,'Active',1,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (13,'pcamsf2','/f2dah1','/AMS02/MC/ntuples',807,635,163,20,'Active',1,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (14,'pcamsf3','/f3dah1','/AMS02/MC/ntuples',221,201,9,120,'Active',1,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (15,'pcamsf4','/vicepa','/afs/ams.cern.ch/data/data2/AMS02/MC',346,275,53,246,'Active',1,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (16,'pcamsf4','/vicepc','/afs/ams.cern.ch/data/data3',523,52,466,480,'Active',1,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-    (17,'pcamsf5','/f5dah1','/AMS02/MC/ntuples',228,190,95,40,'Active',1,$time)")
-    or die "cannot do: ".$dbh->errstr();    
-   $dbh->do("INSERT INTO Filesystems VALUES
-     (20,'pcamst0','/t0dah1','/AMS02/MC/ntuples',221,178,32,20,'Full',0,$time)")
-    or die "cannot do: ".$dbh->errstr();    
+   open(FILE,"<",$MCFilesystems) or die "Unable to open $MCFilesystems";
+   my @lines = <FILE>;
+   close FILE;
+
+   my $fs = 0;
+   my $fid= 0;
+   foreach my $line (@lines) {
+    if ($line =~/^#/) {
+     if ($line =~/FILESYSTEMS/) {
+         $fs = 1;
+     } 
+    } else {
+     if ($fs == 1) {
+         my ($host,$disk,$path,$total,$occup,$avail,$allow,$status,$prio,@junk) = split ":",$line;
+         if (defined $host and defined $prio) {
+          $fid++;
+          $host    = trimblanks($host);
+          $disk    = trimblanks($disk);
+          $path    = trimblanks($path);
+          $total   = strtod($total);
+          $occup   = strtod($occup);
+          $avail   = strtod($avail);
+          $allow   = strtod($allow);
+          $status  = trimblanks($status);
+          $prio    = strtod($prio);
+#          print "$host,$disk,$path,$total,$occup,$avail,$allow,$status\n";
+          $dbh->do("INSERT INTO Filesystems VALUES
+           ($fid,$host,$disk,$path,$total,$occup,$avail,$allow,$status,$prio,$time)")
+           or die "cannot do: ".$dbh->errstr();    
+      }
+     }
+   }
+  }
   } else {
     warn "Table Filesystems has $cnt entries. Not initialized";
   }
@@ -419,32 +424,43 @@ while ( $line = <FILEI>){
     }
 }
    if ($cnt == 0) {
-    my $address='v.choutko@cern.ch';           
-    my $alias='vitali.choutko@cern.ch';
-    my $time = time();        
-   $dbh->do("insert into Mails values(1,'$address','$alias','Vitali Choutko',1,1,1,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
-     $address='vitali@afl3u1.cern.ch';        
-   $dbh->do("insert into Mails values(2,'$address',NULL,'Vitali Choutko',1,0,2,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
-     $address='a.klimentov@cern.ch';        
-     $alias='alexei.klimentov@cern.ch';
-   $dbh->do("insert into Mails values(3,'$address','$alias','Alexei Klimentov',1,1,1,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
-     $address='biland@particle.phys.ethz.ch';
-     $alias='adrian.biland@cern.ch';      
-  $dbh->do("insert into Mails values(4,'$address','$alias','Adrian Biland',1,0,4,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
-    $address='diego.casadei@bo.infn.it';
-    $alias='diego.casadei@cern.ch'; 
-  $dbh->do("insert into Mails values(5,'$address','$alias','Diego Casadei',1,0,3,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
-    $address='davide.grandi@mib.infn.it';
-    $alias='davide.grandi@cern.ch'; 
-  $dbh->do("insert into Mails values(6,'$address','$alias','Davide Grandi',1,0,5,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
-    $address='evgueni.choumilov@cern.ch';
-    $alias='e.choumilov@cern.ch'; 
-  $dbh->do("insert into Mails values(7,'$address','$alias','Eugeni Choumilov',0,0,2,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
-    $address='gnkim@knu.ac.kr';
-    $alias='guinyun.kim@cern.ch'; 
-  $dbh->do("insert into Mails values(8,'$address','$alias','Guinyun Kim',1,0,6,'Active',0,$time,0,0)")or die "cannot do: ".$dbh->errstr();    
-    $time=time();
-    warn $time;
+    my $mid  = 1;
+    my $time = time();    
+    open(FILE,"<",$MCCitesMailsFile) or die "Unable to open $MCCitesMailsFile";
+    my @lines = <FILE>;
+    close FILE;
+    my $mails = 0;
+    my $cites = 0;             
+    foreach my $line (@lines) {
+    if ($line =~/^#/) {
+     if ($line =~/MAILS/) {
+         $mails = 1;
+         $cites = 0;
+     } 
+     if ($line =~/CITES/) {
+         $cites = 1;
+         $mails = 0
+     } 
+    } else {
+     if ($mails == 1) {
+         my ($address,$name,$r,$cid,$rs,$alias,@junk) = split ":",$line;
+         if (defined $address and defined $alias) {
+          $address = trimblanks($address);
+          $alias   = trimblanks($alias);
+          $name    = trimblanks($name);
+          $r       = strtod($r);
+          $rs      = strtod($rs);
+          $cid     = strtod($cid);
+          $dbh->do
+           ("insert into Mails values($mid,'$address','$alias',$name,$r,$rs,$cid,'Active',0,$time,0,0)")
+           or die "cannot do: ".$dbh->errstr();    
+          $mid++;
+      }
+     }
+    }
+   } # foreach my $line 
+   $time=time();
+   warn $time;
 #find responsible
     $sql="select cid from Cites";
     my $ret=$self->Query($sql);
@@ -523,4 +539,13 @@ sub DESTROY{
         $self->{dbhandler}->disconnect();
     }
     warn "DESTROYING $self";
+}
+
+sub trimblanks {
+    my @inp_string = @_;
+    for (@inp_string) {
+        s/^\s+//;        
+        s/\s+$//;
+    }
+    return wantarray ? @inp_string : $inp_string[0];
 }
