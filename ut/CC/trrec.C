@@ -1532,7 +1532,11 @@ AMSgObj::BookTimer.start("TrFalseX");
                   while(py){
                     AMSTrIdSoft idy=py->getid();
                     if(idy.getlayer()==id.getlayer() && abs(idy.getdrp()-id.getladder())<1){
-                      if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1)){
+//                      if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1)){   // This is sometimes  wrong and somewhen
+//                                                                                            //   should be replaced
+//                                                                                            // on something more robust 
+//                                                                                            //  but I am somewhere lazy
+                        if(idy.gethalf()==id.gethalf()){
                         //  Create False RawHit and put it in the corr container 
                         AMSPoint loc=pls->gl2loc(P1);
                         id.R2Gy(idy.getstrip());
@@ -1540,6 +1544,7 @@ AMSgObj::BookTimer.start("TrFalseX");
                         AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
                                      TRFITFFKEY.SearchRegStrLine,TRFITFFKEY.SearchRegStrLine);
                         if((hit-P1).abs() < Err){
+//                          cout <<id.getlayer()<<" "<<P1<<"  " <<hit<<" "<<idy.gethalf()<<endl;
                           AMSTrRecHit::_addnext(pls,AMSDBc::FalseX,id.getlayer(),-1,-1,0,py,hit,
                                                 AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
                           pointfound++;
@@ -2439,6 +2444,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       gloerr[2] = (number)TRCLFFKEY.ErrZ;
 
 // Create a new Fake hit with TOF on X
+     if(idsoft.gethalf()==idgeom.gethalf())
       AMSTrRecHit::_addnext(
         psensor,
         AMSDBc::FalseTOFX,
@@ -2449,6 +2455,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
         py,
         glopos,
         gloerr );
+//         cout <<idsoft.getlayer()<<" "<<idsoft.gethalf()<<" "<<glopos<<" "<<idgeom.getsensor()<<" "<<idsoft.gethalf()<<" "<<idgeom.gethalf()<<endl;
         // cout << "makeFalseTOFXHits: New Hit done at plane " << 
         //           idsoft.getlayer() << glopos << gloerr << endl;
     }
