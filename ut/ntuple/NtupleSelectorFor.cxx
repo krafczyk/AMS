@@ -320,7 +320,7 @@ int NtupleSelectorFor::OpenNewNtuple(char *ntpfile)
 
    printf("Opening new ntuple file =%s\n",ntpfile);
 
-   HROPEN(m_NewLun, top_new, ntpfile, "N", m_RecLen, istat);
+   HROPEN(m_NewLun, top_new, ntpfile, "NP", m_RecLen, istat);
    if (istat != 0) {
       fprintf(stderr,"OpenNewNtuple, Failure in opening ntuple file %s\n",
               ntpfile);
@@ -372,7 +372,7 @@ int NtupleSelectorFor::OpenOldNtuple(char *ntpfile)
    }
 
    reclen = 0;
-   HROPEN(m_OldLun, top_old, ntpfile, "X", reclen, istat);
+   HROPEN(m_OldLun, top_old, ntpfile, "XP", reclen, istat);
    if (istat != 0) {
       fprintf(stderr,"OpenOldNtuple, Failure in opening ntuple file %s\n",
               ntpfile);
