@@ -525,7 +525,7 @@ sub notebook_create_pages {
 		
 		
 		$notebook->append_page_menu($child, $label_box, $menu_box);
-            $child->set_usize(900,400);
+            $child->set_usize(1100,400);
           my (@titles,$policy_x,$policy_y);
             if($i==0){
                 	@titles = (
@@ -544,10 +544,10 @@ sub notebook_create_pages {
 	    "Status ",
 	);
 
-        $policy_x="never";
+        $policy_x="automatic";
         $policy_y="automatic";
                 $buffer="Producer_ActiveHosts";
-                create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
+                create_frame ($child,$self,$buffer,$policy_x,$policy_y,18,@titles);
 
                         $#titles=-1;
                 	@titles = (

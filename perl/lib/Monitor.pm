@@ -34,6 +34,7 @@ my %fields=(
      ok=>0,
      registered=>0,
             );
+
 sub new{
     my $type=shift;
     my $self={
@@ -963,7 +964,7 @@ sub SendId{
             try{
                 my %cid=%{$ref->{cid}};
                 my $hash=\%cid;
-                my ($ok,$ok2)=$arsref->sendId(\$hash,1000);
+                my ($ok,$ok2)=$arsref->sendId(\$hash,600);
                 $ref->{cid}=$hash;
                 $ref->{ac}->{id}=$hash;
                 my %ac=%{$ref->{ac}};

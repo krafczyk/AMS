@@ -11,8 +11,17 @@ sub new{
 
 
 sub HostStatusChanged{
+    my ($class,$cid,$ah)=@_;
+
+}
+sub  ClientToKill{
+    my ($class,$cid,$ac)=@_;
+    
+    return 1;
 }
 
+sub ping{
+}
 
 package NominalHost;
 package NominalClient;

@@ -70,6 +70,8 @@ virtual void _PurgeQueue()=0;
  class Eqs{
  DPS::Client::ActiveClient _a;
  public:
+ 
+
  explicit Eqs( const  DPS::Client::ActiveClient & a):_a(a){}
   bool operator () (const DPS::Client::ActiveClient_var & a){return _a.id.uid==a->id.uid;}
 };
@@ -104,12 +106,16 @@ public:
  bool operator()(const DPS::Client::NominalClient & a){
   return strstr((const char *) _a, (const char *) a.HostName);
 }
+
+
+
 };
 
 
+CORBA::ORB_ptr  getdefaultorb()const {return _defaultorb;}
   uinteger getmaxcl() const {return _Submit;}
   void addone(){++_Submit;}
-  COL & getcol(){return _col;}
+ COL & getcol(){return _col;}
   ACL & getacl(){return _acl;}
   AHL & getahl(){return _ahl;}
   NHL & getnhl(){return _nhl;}
@@ -167,15 +173,16 @@ void Exiting(const char * message=0);
 
 class Client_impl : public virtual POA_DPS::Client, public AMSServerI{
 protected:
-  void _init(){};
+  void _init();
   void _PurgeQueue(){};
 public:
-  Client_impl(DPS::Client::ClientType type=DPS::Client::Generic, const char* ctype="Generic",AMSClient * parent=0):POA_DPS::Client(),AMSServerI(AMSID(ctype,0),parent,type){};
+  Client_impl(DPS::Client::ClientType type=DPS::Client::Generic, const char* ctype="Generic",AMSClient * parent=0):POA_DPS::Client(),AMSServerI(AMSID(ctype,0),parent,type){}
   Client_impl(DPS::Client::ClientType type, const char* ctype,DPS::Server_ptr _svar, DPS::Client::CID  cid,AMSClient * parent);
   void UpdateDB(bool force){};
   void StartClients(const DPS::Client::CID &cid);
   void CheckClients(const DPS::Client::CID &cid);
   void KillClients(const DPS::Client::CID &cid);
+  bool Master();
   CORBA::Boolean sendId(DPS::Client::CID & cid, uinteger timeout) throw (CORBA::SystemException);
   void getId(DPS::Client::CID_out cid) throw (CORBA::SystemException);
    int getARS(const DPS::Client::CID & cid, DPS::Client::ARS_out ars, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0)throw (CORBA::SystemException);
@@ -200,6 +207,7 @@ public:
  bool Master();
  integer Kill(const DPS::Client::ActiveClient & ac, int signal, bool self);
  bool PingServer(const DPS::Client::ActiveClient & ac);
+ bool PingClient(const DPS::Client::ActiveClient & ac);
  bool Lock(const DPS::Client::CID & cid, OpType op, DPS::Client::ClientType type, int Time);
  void setInterface(const char * iface){_iface=iface;}
  AMSServerI * getServer(){return this;}
@@ -228,7 +236,8 @@ void _PurgeQueue();
 
    void ping()throw (CORBA::SystemException);
    void sendCriticalOps(const DPS::Client::CID &cid, const CriticalOps & op)throw (CORBA::SystemException);
-
+   bool MonitorSaysOkToKill(const DPS::Client::ActiveClient & ac);
+   void MonitorHostNoResponse(const DPS::Client::ActiveHost & ah);
   bool pingHost(const char * host);
   CORBA::Boolean TypeExists(DPS::Client::ClientType type)throw (CORBA::SystemException);
 

@@ -725,13 +725,14 @@ if(li!=_acl.end()){
     for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
       if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
        (*i)->Status=NoResponse;
+       _pser->MonitorHostNoResponse(*i);
     }
 }  
    (*li)->id.Status=DPS::Client::SInKill;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Delete);
  }
- else{
+ else if(_pser->MonitorSaysOkToKill(*li)){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
@@ -1734,6 +1735,7 @@ if(li!=_acl.end()){
     for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
       if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
        (*i)->Status=NoResponse;
+       _pser->MonitorHostNoResponse(*i);
     }
 }  
 
@@ -1741,7 +1743,7 @@ if(li!=_acl.end()){
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Delete);
  }
- else{
+ else if(_pser->MonitorSaysOkToKill(*li)){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
@@ -2854,15 +2856,55 @@ for(int i=0;i<length;i++){
 
 }
 
+void Client_impl::_init(){
+  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+  _defaultorb=_pser->getdefaultorb();
+}
 
 
 void Client_impl::StartClients(const DPS::Client::CID & pid){
 }
 
-void Client_impl::CheckClients(const DPS::Client::CID & pid){
+void Client_impl::CheckClients(const DPS::Client::CID & cid){
+if(!Master())return;
+Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+if(!_pser->Lock(cid,DPS::Server::CheckClient,getType(),_KillTimeOut))return;
+time_t tt;
+time(&tt);
+for(ACLI li=_acl.begin();li!=_acl.end();++li){
+ // find clients with timeout
+ if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+_KillTimeOut<tt){
+   if(_pser->PingClient(*li)){
+    _UpdateACT((*li)->id,DPS::Client::Active);
+   }
+   else{
+    DPS::Client::ActiveClient_var acv=*li;
+    acv->Status=DPS::Client::TimeOut;
+    if(_parent->Debug())_parent->EMessage(AMSClient::print(acv,"Client TIMEOUT"));
+    PropagateAC(acv,DPS::Client::Update);
+ }
+ }
+}
+
+_pser->Lock(cid,DPS::Server::ClearCheckClient,getType(),_KillTimeOut);
+
 }
 
 void Client_impl::KillClients(const DPS::Client::CID & pid){
+
+if(!Master())return;
+Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+if(!_pser->Lock(pid,DPS::Server::KillClient,getType(),_KillTimeOut))return;
+
+ ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::TimeOut)); 
+ if(li!=_acl.end()){
+    DPS::Client::ActiveClient_var acv=*li;
+    PropagateAC(acv,DPS::Client::Delete);
+ }
+
+_pser->Lock(pid,DPS::Server::ClearKillClient,getType(),_KillTimeOut);
+
+
 }
 
 
@@ -2881,3 +2923,84 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
 }
 
 }
+bool Server_impl::MonitorSaysOkToKill(const DPS::Client::ActiveClient & ac){
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+    if(pcur->getType()==DPS::Client::Monitor){
+     for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+       CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[0].IOR);
+       if(!CORBA::is_nil(obj)){
+        DPS::Monitor_var _mvar=DPS::Monitor::_narrow(obj);
+       if(!CORBA::is_nil(_mvar)){
+        try{
+         CORBA::Boolean kill=_mvar->ClientToKill(_parent->getcid(),ac);
+         return kill;
+        }
+        catch (CORBA::SystemException &ex){
+         cerr<<" oops corba exc talking monitor"<<endl;
+        }
+       }
+       }
+     }
+     break;
+    }
+  }
+  return true;
+}
+
+void Server_impl::MonitorHostNoResponse(const DPS::Client::ActiveHost & ah){
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+    if(pcur->getType()==DPS::Client::Monitor){
+     for (ACLI li=pcur->getacl().begin();li!=pcur->getacl().end();++li){
+       CORBA::Object_var obj=_defaultorb->string_to_object(((*li)->ars)[0].IOR);
+       if(!CORBA::is_nil(obj)){
+        DPS::Monitor_var _mvar=DPS::Monitor::_narrow(obj);
+       if(!CORBA::is_nil(_mvar)){
+        try{
+         _mvar->HostStatusChanged(_parent->getcid(),ah);
+         return;
+        }
+        catch (CORBA::SystemException &ex){
+         cerr<<" oops corba exc talking monitor"<<endl;
+        }
+       }
+       }
+     }
+     break;
+    }
+  }
+  
+}
+
+bool Server_impl::PingClient(const DPS::Client::ActiveClient & ac){
+       if(ac.id.Type==DPS::Client::Monitor){
+        try{
+        CORBA::Object_var obj=_defaultorb->string_to_object((ac.ars)[0].IOR);
+        if(!CORBA::is_nil(obj)){
+        DPS::Monitor_var _mvar=DPS::Monitor::_narrow(obj);
+        if(!CORBA::is_nil(_mvar)){
+         try{
+          _mvar->ping();
+          return true;
+         }
+         catch (CORBA::SystemException &ex){
+         cerr<<" oops corba exc talking monitor"<<endl;
+         }
+        }
+       }
+      }
+      catch (CORBA::SystemException &ex){
+         cerr<<" oops corba exc init monitor"<<endl;
+      }
+      return false;
+   }
+   return true;
+}
+
+
+
+bool Client_impl::Master(){
+ Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+
+return _pser->Master();
+}
+
