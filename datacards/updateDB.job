@@ -47,7 +47,7 @@ AMSJOB 1=11   2=0      3=50.   4=0  5=1 6='v203a'
 C Special HP-UX
 TIME 3=10000000
 TERM 1=1234567890
-DAQC 1=1 2='/offruns/runs/889434325'
+DAQC 1=1 2='/offruns/runs/890142804'
 END
 
 

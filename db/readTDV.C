@@ -374,8 +374,8 @@ int main(int argc, char* argv[])
   cout<<"i,b,e "<<ctime(&Insert)<<"      "<<ctime(&Begin)
                                 <<"      "<<ctime(&End)<<endl;
  char*                  dbase = "TDV";
- char*                  contname  = "Time_Dep_Var_";
- char*                  contnameS = "Time_Dep_Var_S_";
+ char*                  contname  = "Time_Dep_Var";
+ char*                  contnameS = "Time_Dep_Var_S";
  char                   contName[255];
 
  LMS                    lms;
@@ -419,7 +419,7 @@ int main(int argc, char* argv[])
 
  if (iid == 2) strcpy(contName,contname);
  if (iid == 1) strcpy(contName,contnameS);
- strcat(contName,version); 
+ //strcat(contName,version); 
 
   char pred[200];
   (void) sprintf(pred,"_id=%d && _name=~%c%s%c",iid,'"',objname,'"');

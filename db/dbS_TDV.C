@@ -21,8 +21,9 @@
 //                    all tdv's.
 //                    ReadTDV search by name,id,i,b,e
 // Dec    , 1997. ak. Modify the logic in AddTDV
+// March 26,1998. ak. remove version number from TDV container name  
 //
-// last edit Dec 28, 1997, ak.
+// last edit March 26, 1998, ak.
 //
 
 #include <stdio.h>
@@ -73,9 +74,9 @@ ooStatus   LMS::AddAllTDV()
         char*      contName;
 
   if (simulation()) 
-   contName = StrCat("Time_Dep_Var_S",_version);
+   contName = StrDup("Time_Dep_Var_S");
   else
-   contName = StrCat("Time_Dep_Var",_version);
+   contName = StrDup("Time_Dep_Var");
 
   StartUpdate(); // Start the transaction
 
@@ -199,9 +200,9 @@ ooStatus   LMS::FillTDV(integer ntdv)
 
   char* contName;
   if (simulation()) 
-   contName = StrCat("Time_Dep_Var_S",_version);
+   contName = StrDup("Time_Dep_Var_S");
   else
-   contName = StrCat("Time_Dep_Var",_version);
+   contName = StrDup("Time_Dep_Var");
   cout <<"FillTDV -I-  container "<<contName<<endl;
   
   StartRead(oocMROW);
@@ -299,10 +300,13 @@ ooStatus   LMS::ReadTDV(char* tdvname, integer id,
         integer                found = 0;
 
   if (simulation()) 
-   contName = StrCat("Time_Dep_Var_S",_version);
+   contName = StrDup("Time_Dep_Var_S");
   else
-   contName = StrCat("Time_Dep_Var",_version);
+   contName = StrDup("Time_Dep_Var");
+
+#ifdef __AMSDEBUG__
   cout <<"ReadTDV -I-  container "<<contName<<endl;
+#endif
   
   StartRead(oocMROW);
   dbTabH = Tabdb();
@@ -311,7 +315,9 @@ ooStatus   LMS::ReadTDV(char* tdvname, integer id,
   char pred[120];
   (void) sprintf(pred,"_Insert=%d && _Begin=%d && _End=%d && _id=%d &&_name=~%c%s%c",
                  I,B,E,id,'"',tdvname,'"');
+#ifdef __AMSDEBUG__
   cout<<"ReadTDV -I- search for "<<pred<<endl;
+#endif
   for (int i=0; i<ntdvdbs; i++) {
    dbH = dbTabH -> getDB(dbtdv,i);
    if (dbH == NULL) Fatal("ReadTDV : Cannot open tdv dbase ");
@@ -319,9 +325,11 @@ ooStatus   LMS::ReadTDV(char* tdvname, integer id,
     rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
     if (rstatus != oocSuccess) Fatal("ReadTDV : container scan failed");
     while (tdvItr.next()) {
+#ifdef __AMSDEBUG__
       cout<<"ReadTDV -I- found TDV in database for "<<tdvname<<endl;
       tdvItr -> PrintTime();
       cout<<"ReadTDV -I- CRC "<<tdvItr -> getCRC()<<endl;
+#endif
       tdvItr -> copy(buff);
       found = 1;
       break;
@@ -329,7 +337,62 @@ ooStatus   LMS::ReadTDV(char* tdvname, integer id,
    }
    if (found == 1) break;
   }
-  if(found != 1) Message("ReadTDV : cannot find TDV in database");
+  if(found != 1) Warning("ReadTDV : cannot find TDV in database");
+
+  Commit();
+
+  if (contName) delete [] contName;
+
+  return rstatus;
+}
+
+ooStatus   LMS::GetAllTDV(char* tdvname, integer id, integer *S,
+                         time_t* I, time_t* B, time_t* E, integer &nobj)
+//
+// find all TDV's (with name && id) in database and copy to buff
+// 
+//
+{
+	ooStatus 	       rstatus = oocError;	// Return status
+        ooHandle(AMSdbs)       dbTabH;                  // catalog of dbases
+        ooHandle(ooDBObj)      dbH;                     // tdv dbase
+        ooHandle(ooContObj)    contH;                   // TDV container
+        ooItr(AMSTimeIDD)      tdvItr;                  // TDVObj iterator
+        char*                  contName;
+        time_t                 insert, begin, end;
+
+  nobj = 0;
+  if (simulation()) 
+   contName = StrDup("Time_Dep_Var_S");
+  else
+   contName = StrDup("Time_Dep_Var");
+  cout <<"ReadTDV -I-  container "<<contName<<endl;
+  
+  StartRead(oocMROW);
+  dbTabH = Tabdb();
+  if (dbTabH == NULL) Fatal("GetAllTDV : dbTabH is NULL");
+  integer ntdvdbs = dbTabH -> size(dbtdv);          // number of TDV dbases
+  char pred[120];
+  (void) sprintf(pred,"_id=%d &&_name=~%c%s%c", id,'"',tdvname,'"');
+  cout<<"GetAllTDV -I- search for "<<pred<<endl;
+  for (int i=0; i<ntdvdbs; i++) {
+   dbH = dbTabH -> getDB(dbtdv,i);
+   if (dbH == NULL) Fatal("GetAllTDV : Cannot open tdv dbase ");
+   if (contH.exist(dbH, contName, oocRead)) {
+    rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
+    if (rstatus != oocSuccess) Fatal("GetAllTDV : container scan failed");
+    while (tdvItr.next()) {
+      cout<<"GetAllTDV -I- found TDV in database for "<<tdvname<<endl;
+      tdvItr -> PrintTime();
+      tdvItr -> GetTime(insert, begin, end);
+      S[nobj]    = tdvItr -> getsize();
+      I[nobj]    = insert;
+      B[nobj]    = begin;
+      E[nobj]    = end;
+      nobj++;
+    }
+   }
+  }
 
   Commit();
 

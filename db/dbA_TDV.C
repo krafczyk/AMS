@@ -326,9 +326,12 @@ integer ndiff =  nTransStart() - nTransCommit();
   if (dbTabH == NULL) Fatal("ReadTDV : dbTabH is NULL");
   integer ntdvdbs = dbTabH -> size(dbtdv);          // number of TDV dbases
   char pred[120];
-  (void) sprintf(pred,"_Insert=%d && _Begin=%d && _End=%d && _id=%d &&_name=~%c%s%c",
-                 I,B,E,id,'"',tdvname,'"');
+  (void) sprintf
+       (pred,"_Insert=%d && _Begin=%d && _End=%d && _id=%d &&_name=~%c%s%c",
+              I,B,E,id,'"',tdvname,'"');
+#ifdef __AMSDEBUG__
   cout<<"ReadTDV -I- search for "<<pred<<endl;
+#endif
   for (int i=0; i<ntdvdbs; i++) {
    dbH = dbTabH -> getDB(dbtdv,i);
    if (dbH == NULL) Fatal("ReadTDV : Cannot open tdv dbase ");
@@ -336,8 +339,10 @@ integer ndiff =  nTransStart() - nTransCommit();
     rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
     if (rstatus != oocSuccess) Fatal("ReadTDV : container scan failed");
     while (tdvItr.next()) {
+#ifdef __AMSDEBUG__
       cout<<"ReadTDV -I- found TDV in database for "<<tdvname<<endl;
       tdvItr -> PrintTime();
+#endif
       tdvItr -> copy(buff);
       found = 1;
       break;
@@ -345,7 +350,7 @@ integer ndiff =  nTransStart() - nTransCommit();
    }
    if (found == 1) break;
   }
-  if(found != 1) Message("ReadTDV : cannot find TDV in database");
+  if(found != 1) Warning("ReadTDV : cannot find TDV in database");
 
 //   if ( !ntranscount() ) Commit();
    if ( ndiff > 1 ) Commit();

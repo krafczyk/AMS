@@ -22,6 +22,7 @@ static void _InitTable();
 static uinteger * _Table;
 void _convert(uinteger *pdata, integer nw);
 void _fillDB(const char * dir);
+void _fillfromDB();
 integer _getDBRecord(uinteger time);
 static integer _select(dirent * entry);
 static AString *_selectEntry;
@@ -45,6 +46,7 @@ void SetTime (time_t insert, time_t begin, time_t end) ;
 integer validate(time_t & Time,integer reenter=0);
 integer write(char * dir );
 integer read(char * dir, integer reenter=0);
+integer readDB(integer reenter=0);
 };
 
 #endif
