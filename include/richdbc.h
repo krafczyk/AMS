@@ -19,7 +19,7 @@ const geant   RICcatolength=2*.875; // cathode window length
 const geant   RICpmtlength=4.5;     // phototube length
 const geant   RICeleclength=0.5;    // electronics
 const geant   RICpmtsupport=1.5;   // suppot structure thickness
-
+const integer Cerenkov_Photon=50;   // may be different in geant4???? check
 
 const geant   RICradpos=-76.66;// Top of the radiator position
 const geant   sq2=1.4142135623;// useful constant:sqrt(2)

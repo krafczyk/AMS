@@ -3,8 +3,8 @@ below are some (useful) info to make you more familiar  with AMS02 software.
 
 
 I. The following hardware platfoorms are currently supported:
- DEC/OSF1/cxx >= 6.1
- Linux/egcs1.1.2   
+ DEC/OSF1/cxx  6.2
+ Linux/gcc2.95.2   
 
 II. Software management:
     cvs  ( Concurrent Version System)

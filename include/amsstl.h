@@ -7,6 +7,7 @@
 #include <typedefs.h>  
 #include <cern.h>
 #include <upool.h>
+#include <algorithm>
 //template <class T> int    cmp( const T* keyval,  const T* datum){
 //// for bsearch; isnot really a template;
 //typedef int D;
@@ -690,15 +691,14 @@ L120:
 
     }
 } 
-
-#ifndef G4USE_STL
+#ifdef OBSOLETSOFTWARE
 template <class T>
-inline const T& min(const T& a, const T& b) {
+inline  T min(const T& a, const T& b) {
   return b < a ? b : a;
 }
 
 template <class T>
-inline const T& max(const T& a, const T& b) {
+inline  T max(const T& a, const T& b) {
   return  a < b ? b : a;
 }
 #endif

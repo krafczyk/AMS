@@ -4,9 +4,7 @@
 #include <job.h>
 #include <commons.h>
 #include <trcalib.h>
-#ifdef __NAMESPACE__
 using namespace trconst;
-#endif
 TKDBc * TKDBc::_HeadSensor=0;
 TKDBc * TKDBc::_HeadLayer=0;
 TKDBc * TKDBc::_HeadLadder[2]={0,0};

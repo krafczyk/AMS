@@ -153,8 +153,8 @@ public:
   number getenergy() const {return _energy;}
   integer getkind() const {return _kind;}
   geant getcoo(integer i){return i>=0 && i<3 ? _xcoo[i]:0;} 
-  geant getorigin(integer i){return i>=0 && i<3 ? _origin[i]:0;}
-  geant getmomentum(integer i){return i>=0 && i<3 ? _momentum[i]:0;}
+  const AMSPoint & getorigin(){return _origin;}
+  const AMSPoint & getmomentum(){return  _momentum;}
 };
 
 

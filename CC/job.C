@@ -125,7 +125,9 @@ void AMSJob::data(){
   SELECTFFKEY.Run=0;
   SELECTFFKEY.Event=0;
   VBLANK(SELECTFFKEY.File,40);
-  FFKEY("SELECT",(float*)&SELECTFFKEY,sizeof(SELECTFFKEY_DEF)/sizeof(integer),"MIXED");
+  char * SELECT="SELECT";
+  char * MIXED="MIXED";
+  FFKEY(SELECT,(float*)&SELECTFFKEY,sizeof(SELECTFFKEY_DEF)/sizeof(integer),MIXED);
 
   { 
     for(int i=0;i<32;i++){

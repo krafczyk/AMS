@@ -56,6 +56,7 @@ public:
 
     // Conversions
     inline		operator char *() ;
+    inline		operator const char *() ;
     inline		operator const char *() const;
 
     // Operators
@@ -117,6 +118,23 @@ inline AString::operator char *(
 
 {
    _mutator(); return pData->pString;
+}
+inline AString::operator const char *(
+    ) 
+
+//++
+//  FUNCTIONAL DESCRIPTION:
+//
+//	This is a conversion operator from AString to const char *.
+//
+//  RETURN VALUE:
+//
+//      The char * representation of the AString, as internally stored in the
+//	pString part of its pDataprivate data member.
+//--
+
+{
+    return (const char *)(pData->pString);
 }
 inline AString::operator const char *(
     ) const

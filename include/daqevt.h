@@ -14,6 +14,7 @@
 #include <link.h>
 #include <fstream.h>
 #include <time.h>
+#include <dirent.h>
 typedef integer (*pid)(int16u id);
 typedef void  (*pputdata)(integer n, int16u* data);
 
@@ -51,7 +52,6 @@ _maxbl(0),_plength(0){}
 
 friend class DAQEvent;
 };
-struct dirent;
 const integer nbtps=8;    // blocks num 
 class DAQEvent : public AMSlink{
 protected:
@@ -80,10 +80,10 @@ void _printEl(ostream& o){}
 static integer _Buffer[50000];
 static integer _BufferLock;
 static integer _select(dirent * entry=0);
-#ifdef __HPUX__
-static integer _sort(const dirent ** e1, const dirent ** e2);
+#ifndef __ALPHA__
+static int _sort(const dirent **e1, const dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #else
-static integer _sort( dirent ** e1,  dirent ** e2);
+static int _sort(dirent ** e1,  dirent ** e2){return strcmp((*e1)->d_name,(*e2)->d_name);}
 #endif
 public:
 uinteger GetBlType(){return _GetBlType();}

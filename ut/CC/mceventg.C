@@ -45,9 +45,11 @@ init(ipart);
 
 void AMSmceventg::gener(){
      char cdir[256];
-    HCDIR(cdir,"R");
+    char *R="R";
+    HCDIR(cdir,R);
     char hpawc[256]="//PAWC/GEN";
-    HCDIR (hpawc," ");
+     char *BLANK=" ";
+    HCDIR (hpawc,BLANK);
   if(CCFFKEY.low ==2){
     geant mom,themu,phimu,chmu,xmu,ymu,zmu;
     CMGENE(mom,themu,phimu,chmu,xmu,ymu,zmu);

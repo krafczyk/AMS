@@ -6,16 +6,11 @@
 #include <fstream.h>
 
 
-#ifdef __NAMESPACE__
 namespace trconst{
 const integer maxlay=8;
 const integer maxlad=17;
 }
 using namespace trconst;
-#else
-const integer maxlay=8; 
-const integer maxlad=17; 
-#endif
 
 class AMSPoint;
 class TKDBc{

@@ -6,10 +6,7 @@
 #include <sys/file.h>
 #include <ctype.h>
 #include <astring.h>
-#ifndef __IBMAIX__
-#include <dirent.h>
-#else
-
+#ifdef __IBMAIX__
 #define _D_NAME_MAX 255
 
 struct  dirent {
@@ -757,15 +754,6 @@ for(int i=0;i<strlen(entry->d_name);i++){
      }
      else return 1;
  }
-}
-
-#ifdef __HPUX__
-int DAQEvent::_sort(const dirent ** e1, const dirent ** e2){
-#else
-int DAQEvent::_sort(dirent ** e1,  dirent ** e2){
-#endif
- return strcmp((*e1)->d_name,(*e2)->d_name);
-
 }
 
 void DAQEvent::SetEOFIn(){
