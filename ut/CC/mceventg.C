@@ -46,7 +46,7 @@ else {
  if(_mass< 0.9)_mom=sqrt(ee*(ee+2*_mass));
  else _mom=sqrt(ee*(ee+2*0.938))*_mass/0.938;
  // special low energy electron background !!!!
- if(_ipart==3)_mom=HRNDM1(id)/1000.;
+ if(_ipart==3 && CCFFKEY.low==1)_mom=HRNDM1(id)/1000.;
 }
 
 if(_fixeddir){
