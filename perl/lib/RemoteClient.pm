@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.55 2002/07/19 16:07:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.56 2002/07/23 14:35:40 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -3902,12 +3902,12 @@ sub listDisksAMS {
              print "</TR>\n";
              print "</TABLE>\n";
              print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
-             print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
+#             print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
              print "</TR>\n";
              print "</TABLE>\n";
             }
            }
-           print "<B>$dd->[0].cern.ch </B><BR>\n";
+           print "<p><B>$dd->[0].cern.ch </B><BR>\n";
            $host=$dd->[0];
            $j=0;
           }
@@ -3926,8 +3926,8 @@ sub listDisksAMS {
            print "</TABLE>\n";
            print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
            print "<TR>\n";
-           print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
-           print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$dd->[1]</FONT></SMALL></TD>\n";
+#           print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
+#           print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$dd->[1]</FONT></SMALL></TD>\n";
            print "<TD WIDTH=5></TD>\n";
            print "</TR>\n";
            print "</TABLE>\n";
@@ -3939,7 +3939,7 @@ sub listDisksAMS {
              print "</TR>\n";
              print "</TABLE>\n";
              print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
-             print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
+#             print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
              print "</TR>\n";
              print "</TABLE>\n";
             }
