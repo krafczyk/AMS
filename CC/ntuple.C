@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.86 2001/08/24 09:52:37 kscholbe Exp $
+//  $Id: ntuple.C,v 1.87 2001/10/22 14:31:39 mdelgado Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -199,7 +199,9 @@ else{
 
   HBNAME(_lun,"Ring",&_ring.NRings,
   	 "nrings[0,100]:I,rcritrackn(nrings):I,"
-  	 "rcrihused(nrings):I,rcribeta(nrings),rcriebeta(nrings),rcrichi2(nrings)");
+  	 "rcrihused(nrings):I,rcrimhused(nrings):I,"
+	 "rcribeta(nrings),rcriebeta(nrings),"
+	 "rcrichi2(nrings)");
 
 }
 }

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.48 2001/08/31 23:24:53 kscholbe Exp $
+//  $Id: root.h,v 1.49 2001/10/22 14:31:39 mdelgado Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -1257,6 +1257,7 @@ public:
   int NRings;
   int track[MAXTRTR02];
   int used[MAXTRTR02];
+  int mused[MAXTRTR02];
   float beta[MAXTRTR02];
   float errorbeta[MAXTRTR02];
   float quality[MAXTRTR02];

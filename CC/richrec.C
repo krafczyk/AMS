@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.25 2001/09/11 08:06:44 choutko Exp $
+//  $Id: richrec.C,v 1.26 2001/10/22 14:31:38 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -316,6 +316,7 @@ void AMSRichRing::build(){
   geant mean[RICmaxpmts*RICnwindows/2][3];
   geant probs[RICmaxpmts*RICnwindows/2][3];
   integer size[RICmaxpmts*RICnwindows/2][3];
+  integer mirrored[RICmaxpmts*RICnwindows/2][3];
 #endif
   
 
@@ -461,7 +462,7 @@ void AMSRichRing::build(){
 	  for(integer j=0;j<3;j++)
 	    if(recs[actual][j]>0){
 	      mean[actual][j]=recs[actual][j];
-	      size[actual][j]=1;
+	      size[actual][j]=1;mirrored[actual][j]=j>0?1:0;
 	      probs[actual][j]=0;}
 	  actual++;
 	}
@@ -490,6 +491,7 @@ void AMSRichRing::build(){
 	    if(prob<9){ //aprox. (3 sigmas)**2
 	      probs[i][k]+=exp(-.5*prob);
 	      mean[i][k]+=recs[j][better];
+              if(better>0) mirrored[i][k]++;
 	      size[i][k]++;
 	    }
 	  }
@@ -525,6 +527,7 @@ void AMSRichRing::build(){
 	}
 	
 	integer beta_used=size[best_cluster[0]][best_cluster[1]];
+        integer mirrored_used=mirrored[best_cluster[0]][best_cluster[1]];
 	beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
 
 	
@@ -537,6 +540,7 @@ void AMSRichRing::build(){
 	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
 				     new AMSRichRing(track,
 						     beta_used,
+						     mirrored_used,
 						     beta_track,
 						     chi2/geant(beta_used),
 						     1.  //Unused by now
@@ -596,6 +600,7 @@ void AMSRichRing::rebuild(AMSTrTrack *track){
   geant mean[RICmaxpmts*RICnwindows/2][3];
   geant probs[RICmaxpmts*RICnwindows/2][3];
   integer size[RICmaxpmts*RICnwindows/2][3];
+  integer mirrored[RICmaxpmts*RICnwindows/2][3];
 #endif
   
 
@@ -736,7 +741,7 @@ void AMSRichRing::rebuild(AMSTrTrack *track){
 	  for(integer j=0;j<3;j++)
 	    if(recs[actual][j]>0){
 	      mean[actual][j]=recs[actual][j];
-	      size[actual][j]=1;
+	      size[actual][j]=1;mirrored[actual][j]=j>0?1:0;
 	      probs[actual][j]=0;}
 	  actual++;
 	}
@@ -765,6 +770,7 @@ void AMSRichRing::rebuild(AMSTrTrack *track){
 	    if(prob<9){ //aprox. (3 sigmas)**2
 	      probs[i][k]+=exp(-.5*prob);
 	      mean[i][k]+=recs[j][better];
+              if(better>0) mirrored[i][k]++;
 	      size[i][k]++;
 	    }
 	  }
@@ -800,6 +806,7 @@ void AMSRichRing::rebuild(AMSTrTrack *track){
 	}
 	
 	integer beta_used=size[best_cluster[0]][best_cluster[1]];
+        integer mirrored_used=mirrored[best_cluster[0]][best_cluster[1]];
 	beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
 
 	
@@ -812,6 +819,7 @@ void AMSRichRing::rebuild(AMSTrTrack *track){
 	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
 				     new AMSRichRing(track,
 						     beta_used,
+                                                     mirrored_used,
 						     beta_track,
 						     chi2/geant(beta_used),
 						     1.  //Unused by now
@@ -843,6 +851,7 @@ void AMSRichRing::_writeEl(){
   else if(_ptrack->checkstatus(AMSDBc::ECALTRACK))cluster->track[cluster->NRings]=-1;
   else cluster->track[cluster->NRings]=_ptrack->getpos();
   cluster->used[cluster->NRings]=_used;
+  cluster->mused[cluster->NRings]=_mused;
   cluster->beta[cluster->NRings]=_beta;
   cluster->errorbeta[cluster->NRings]=_errorbeta;
   cluster->quality[cluster->NRings]=_quality;

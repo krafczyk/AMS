@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.10 2001/09/11 08:07:21 choutko Exp $
+//  $Id: richrec.h,v 1.11 2001/10/22 14:31:39 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -109,6 +109,7 @@ private:
 
   AMSTrTrack* _ptrack;
   integer _used;
+  integer _mused;
   integer _charge;
   number  _beta;
   number  _errorbeta;
@@ -139,8 +140,8 @@ protected:
   void _copyEl(){};
   void CalcBetaError();
 public:
-  AMSRichRing(AMSTrTrack* track,int used,geant beta,geant quality,int charge):AMSlink(),
-   _ptrack(track),_used(used),_beta(beta),_quality(quality),_charge(charge){CalcBetaError();};
+  AMSRichRing(AMSTrTrack* track,int used,int mused,geant beta,geant quality,int charge):AMSlink(),
+   _ptrack(track),_used(used),_mused(mused),_beta(beta),_quality(quality),_charge(charge){CalcBetaError();};
   ~AMSRichRing(){};
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 
