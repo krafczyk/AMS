@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.76 2004/02/16 18:17:27 alcaraz Exp $
+//  $Id: root.C,v 1.77 2004/02/17 11:08:17 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2228,8 +2228,10 @@ void AMSEventR::Init(TTree *tree){
 //   Set branch addresses
    if (tree == 0) return;
    _Tree    = tree;
-   _Tree->SetMakeClass(1);
-   SetBranchA(_Tree);
+   //_Tree->SetMakeClass(1);
+   //SetBranchA(_Tree);
+   Head() = this;
+   _Tree->SetBranchAddress("ev.",&Head());
    
 }
 
@@ -2243,7 +2245,7 @@ void AMSEventR::ProcessFill(int entry){
 void AMSEventR::Terminate()
 {
    // Function called at the end of the event loop.
-   _Tree->SetMakeClass(0);
+   //_Tree->SetMakeClass(0);
    fService._w.Stop();
    cout <<"AMSEventR::Terminate-I-CputimeSpent "<<fService._w.CpuTime()<<" sec"<<endl;
    UTerminate();
@@ -2359,6 +2361,9 @@ void AMSEventList::Read(const char* filename){
             int run, event;
             while ( fscanf(listfile,"%d %d\n", &run, &event)==2 ) Add(run, event);
             fclose(listfile);
+        } else {
+            cout << "AMSEvelist: Error opening file '" << filename << "';";
+            cout << " assuming an empty list" << endl;
         }
 };
 
@@ -2382,10 +2387,9 @@ void AMSEventList::Write(const char* filename){
         fclose(listfile);
 };
 
-void AMSEventList::Write(TChain* chain, const char* filename){
+void AMSEventList::Write(TTree* chain, TFile* file){
         AMSEventR* amsevent = new AMSEventR;
         chain->SetBranchAddress("ev.",&amsevent);
-        TFile* newfile = new TFile(filename,"RECREATE");
         TTree *amsnew = chain->CloneTree(0);
         for (int i=0; i<chain->GetEntries(); i++) {
                 if (!chain->GetEntry(i)) break;
@@ -2400,10 +2404,9 @@ void AMSEventList::Write(TChain* chain, const char* filename){
                 amsnew->Fill();
         }
         cout << "AMSEventList::Writing AMS ROOT file \"";
-        cout << filename << "\" with " << this->GetEntries(); 
+        cout << file->GetName() << "\" with " << this->GetEntries(); 
         cout << " selected events" << endl;
-        newfile->Write();
-        newfile->Close();
+        file->Write();
 };
 
 int AMSEventList::GetEntries(){return _RUNs.size();};
