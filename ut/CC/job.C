@@ -217,6 +217,7 @@ _sirichdata();
 _siecaldata();
 _sitrddata();
 _sisrddata();
+_simag2data();
 
 }
 //
@@ -606,6 +607,13 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.blshift=0.;   //(17) base line shift at fast discr.input (mv)
   TFMCFFKEY.hfnoise=5.;   //(18) high freq. noise .......   
 FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
+}
+//===============================================================================
+void AMSJob::_simag2data(){
+  MAGSFFKEY.magstat=1;    //(1) -1/0/1->warm/cold_OFF/cold_ON 
+  MAGSFFKEY.fscale=1.;    //(2) rescale factor (wrt nominal field) (if any) 
+  MAGSFFKEY.ecutge=0.002; //(3) e/g ener.cut for tracking in magnet materials(Gev) 
+FFKEY("MAGS",(float*)&MAGSFFKEY,sizeof(MAGSFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
 void AMSJob::_siecaldata(){

@@ -181,6 +181,15 @@ geant hfnoise;     // high freq. noise
 #define TFMCFFKEY COMMON_BLOCK(TFMCFFKEY,tfmcffkey)
 COMMON_BLOCK_DEF(TFMCFFKEY_DEF,TFMCFFKEY);
 //==============================================================
+class MAGSFFKEY_DEF {
+public:
+integer magstat; // status: 0/1-> off/on
+geant fscale;    // nom.field reduction
+geant ecutge;    // e/g energy cut for tracking in magnet materials
+};
+#define MAGSFFKEY COMMON_BLOCK(MAGSFFKEY,magsffkey)
+COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
+//==============================================================
 
 class TRDMCFFKEY_DEF{
 public:

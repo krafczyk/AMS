@@ -913,4 +913,12 @@ I 1 cfvers(2)             // version number(01-99) for antiverlistNN.dat file
 
 //------------------------------------------------------------------------------
 
+  AMS02 Magnet Simulation/status
+
+MAGS
+I 1 magstat (1)     // -1/0/1->warm/cold_OFF/cold_ON
+R 2 fscale  (1.)    // rescale factor (wrt nominal field) (if any)
+R 3 ecutge (0.002)  // e/g ener.cut for tracking in magnet materials(Gev) 
+//------------------------------------------------------------------------------
+
 	   

@@ -5,7 +5,7 @@
 // Passive Shield Geometry V. Choutko 22-jul-1996
 // CTC (Cherenkov Thresh. Counter) geometry E.Choumilov 26-sep-1996
 // ATC (Aerogel Threshold Cerenkov) geometry A.K.Gougas 14-Mar-1997
-// MAGNET geometry v0.0  E.Choumilov 17.11.2000
+// AMS02 MAGNET geometry v1.0  E.Choumilov 17.11.2000
 // 
 //
 #include <typedefs.h>
@@ -2381,6 +2381,7 @@ AMSgtmed *p;
        
 }
 void amsgeom::magnetgeom02o(AMSgvolume & mother){
+// old (a la AMS01) design.
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
 char name[5]="MAGN";
@@ -2434,26 +2435,34 @@ AMSgtmed *p;
 }
 //------------------------------------------------
 void amsgeom::magnetgeom02(AMSgvolume & mother){
-//
+// "real" AMS02 design, but the shape of coils/he-vess is rectang. 
+// with "the same weight(cross-section area)" dimensions.
 AMSID amsid;
 geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
 geant coo[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+int ii,kk;
+char inum[11];
+char in[2]="0";
+char vname[5];
 integer gid;
 AMSNode * mmoth ;
 AMSNode * mivol;
 AMSNode * coil;
+AMSNode * lhves;
 AMSNode * cur;
      geant casl1=40.;     //vac.case half-length at inner radious
      geant casl2;//      .......................... outer .......
      geant casl1i,casl2i; // same for its internal surface
      geant tancon,coscon;
      geant conang=27.;    //flange angl(degr,wrt horizont)
-     geant casr1=55.8;    //vac.case inner radious
+     geant casr1=55.75;    //vac.case inner radious
      geant casr2=134.;    //vac.case outer radious
      geant cylit=0.3;     //inner cyl. thickness
      geant cylot=0.2;     //outer cyl. thickness
      geant flant=0.2;     //flange thickness
+//
+     strcpy(inum,"0123456789");
 //
      tancon=tan(conang/AMSDBc::raddeg);
      coscon=cos(conang/AMSDBc::raddeg);
@@ -2475,6 +2484,9 @@ AMSNode * cur;
      par[12]=casl2;
      par[13]=casr2;
      par[14]=casr2;
+     coo[0]=0.; 
+     coo[1]=0.; 
+     coo[2]=0.; 
      gid=1;
      mmoth=mother.add(new AMSgvolume(
           "MVCASEMED",0,"MMOT","PCON",par,15,coo,nrm,"ONLY",1,gid,1));//magnet case vol.
@@ -2493,42 +2505,113 @@ AMSNode * cur;
      mivol=mmoth->add(new AMSgvolume(
           "MVACMED",0,"MVOL","PCON",par,15,coo,nrm,"ONLY",1,gid,1));//inner vac.volume
 //
-// ---> coils:
+// -----> return coils:
 //
-     geant ctth=5.;         //thickness of coil turn
-     geant cgap=6.;         //coil-intern.cylinder gap
-     geant crsz=31.;        //coil radial size
-     geant chzs=38.;        //coil half z-size(imply rectang.shape)
-     par[0]=casr1+cylit+cgap;//rmin
-     par[1]=casr1+cylit+cgap+crsz;//rmax
-     par[2]=chzs;//dz
-     par[3]=0.;//phi1 tempor 
-     par[4]=360.;//phi2 tempor 
+     geant rcrads=33.8;        //ret-coil radial size(Rout-Rint) incl.supp.
+     geant rctrth=10.3;        //ret-coil trancv.(x/y) thickness(at mid.radious)
+     geant rcradp=77.5;        //ret-coil radial pos.(in x-y plane)
+     geant rchozs=39.3;        //ret-coil half out.z-size(rect! shape, 260+pi*169/4 mm)
+     geant rchizs=32.8;        //ret-coil half inn.z-size(rect! shape, 260+pi*87/4 mm)
+     geant rcrth=8.2;          //ret-coil tot.radial thickness of turns+supp(169-87mm)
+     integer nrcoils=12;       //tot.number of ret-coils
+     geant rcphis=360.*rctrth/rcradp/AMSDBc::twopi; //ret-coil phi-size (degree)
+     geant rcphip[12]={60.,72.,84.,96.,108.,120.,240.,252.,264.,276.,288.,300.};
+//                (ret-coils phi-positions)
+     for(int nc=0;nc<nrcoils;nc++){
+       strcpy(vname,"MR");
+       kk=nc+1;
+       ii=kk/10;
+       in[0]=inum[ii];
+       strcat(vname,in);
+       ii=kk%10;
+       in[0]=inum[ii];
+       strcat(vname,in);
+       par[0]=rcradp-rcrads/2.;//rmin
+       par[1]=rcradp+rcrads/2.;//rmax
+       par[2]=rchozs;//dz
+       par[3]=rcphip[nc]-rcphis/2.;//phi1  
+       par[4]=rcphip[nc]+rcphis/2.;//phi2  
+       gid=nc+1;
+       coil=mivol->add(new AMSgvolume(
+          "MCOILMED",0,vname,"TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//ret-coil
+       par[0]=rcradp-rcrads/2.+rcrth;//rmin
+       par[1]=rcradp+rcrads/2.-rcrth;//rmax
+       par[2]=rchizs;//dz
+       cur=coil->add(new AMSgvolume(
+          "MVACMED",0,"MRHO","TUBS",par,5,coo,nrm,"ONLY",gid==1?1:-1,gid,1));//ret-coil hole
+     }
+//
+// -----> dipole coils:
+//
+     geant dczth=19.;       //dip-coil tot.z-thick. of turns+supp(365-175mm)
+     geant dczhs=36.5;      //dip-coil z half-size,incl.supp
+     geant dcxpos=66.4;     //dip-coil x-pos
+     geant dcxth=8.76;      //dip-coil x thickness
+     geant dcohys=48.7;     //dip-coil out.half y-size,incl.supp(200+pi*365/4 mm)
+     geant dcihys=33.7;     //dip-coil inn.half y-size,incl.supp(200+pi*175/4 mm)
+//
+     par[0]=dcxth/2.;//dx
+     par[1]=dcohys;  //dy
+     par[2]=dczhs;   //dz
+     coo[0]=dcxpos;//x-pos
+     coo[1]=0.;//y-pos
+     coo[2]=0.;//z-pos 
      gid=1;
      coil=mivol->add(new AMSgvolume(
-          "MCOILMED",0,"COIL","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//solid coil
-     par[0]=casr1+cylit+cgap+ctth;//rmin
-     par[1]=casr1+cylit+cgap+crsz-ctth;//rmax
-     par[2]=chzs-ctth;//dz
-     par[3]=0.;//phi1 tempor 
-     par[4]=360.;//phi2 tempor
+          "MCOILMED",0,"MDC1","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//main coil-1
+     par[1]=dcihys;//dy
+     par[2]=dczhs-dczth;//dz
+     coo[0]=0.;
      gid=1;
      cur=coil->add(new AMSgvolume(
-          "MVACMED",0,"COIH","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//coil hole
-//
-// ---> liq.helium(withought its vessel):
-//
-     geant hvgap=40.;    //he_vessel-intern.cylinder gap
-     geant hvrsz=31.;    //he_vessel radial size
-     geant hvhzs=54.;    //he_vessel half z-size(imply rectang.shape)
-     par[0]=casr1+cylit+hvgap;//rmin
-     par[1]=casr1+cylit+hvgap+hvrsz;//rmax
-     par[2]=hvhzs;//dz
-     par[3]=0.;//phi1 tempor 
-     par[4]=360.;//phi2 tempor 
+          "MVACMED",0,"MDH1","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//coil-1 hole
+//----
+     par[0]=dcxth/2.;//dx
+     par[1]=dcohys;   //dy
+     par[2]=dczhs;   //dz
+     coo[0]=-dcxpos;//x-pos
      gid=1;
-     cur=mivol->add(new AMSgvolume(
-          "MLHEMED",0,"LIHE","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//liq.helium
+     coil=mivol->add(new AMSgvolume(
+          "MCOILMED",0,"MDC2","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//main coil-2
+     par[1]=dcihys;//dy
+     par[2]=dczhs-dczth;//dz
+     coo[0]=0.;
+     gid=1;
+     cur=coil->add(new AMSgvolume(
+          "MVACMED",0,"MDH2","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//coil-2 hole
+//
+// -----> liq.helium vessel + helium/vacuum:
+//
+     geant hvrpos=112.5;    //he_vessel radial pos.
+     geant hvrs=33.;        //he_vessel radial size
+     geant hvohzs=55.5;     //he_vessel out.half z-size(425+pi*165/4 mm)
+     geant hvihzs=55.26;     //he_vessel inn.half z-size(425+pi*162.5/4 mm)
+     geant hvwth=0.25;      //he_vessel average wall(radial) thickness
+//
+     par[0]=hvrpos-hvrs/2.;//rmin
+     par[1]=hvrpos+hvrs/2.;//rmax
+     par[2]=hvohzs;//dz
+     coo[0]=0.; 
+     coo[1]=0.; 
+     coo[2]=0.; 
+     gid=1;
+     lhves=mivol->add(new AMSgvolume(
+          "MLHVMED",0,"MLHV","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));//vessel
+//     
+     par[0]=hvrpos-hvrs/2.+hvwth;//rmin
+     par[1]=hvrpos+hvrs/2.-hvwth;//rmax
+     par[2]=hvihzs;//dz
+     if(MAGSFFKEY.magstat>=0){
+       cur=lhves->add(new AMSgvolume(
+          "MLHEMED",0,"MLHE","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));//liq.helium
+       cout<<"AMSGEOM: MAGNET02 - cold state selected"<<endl;
+     }
+     else{
+       cur=lhves->add(new AMSgvolume(
+          "MVACMED",0,"MLHE","TUBE",par,3,coo,nrm,"ONLY",1,gid,1));//vacuum
+       cout<<"AMSGEOM: MAGNET02 - warm state selected"<<endl;
+      }
+//
   cout<<"AMSGEOM: MAGNET02-geometry(G3/G4-compatible) done!"<<endl;
 }
 //

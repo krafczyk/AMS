@@ -89,6 +89,7 @@ static char _ntuplefilename[256];
 AMSG4Physics* _pAMSG4Physics;
 AMSG4GeneratorInterface* _pAMSG4GeneratorInterface;
 void _init(){};
+void _simag2data();
 void _sitrigdata();
 void _sitrig2data();
 void _siamsdata();
