@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.25 2002/03/25 16:44:06 alexei Exp $
+# $Id: RemoteClient.pm,v 1.26 2002/03/26 09:29:02 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -2171,7 +2171,7 @@ print qq`
          $tmpb =~ s/'/''/g;
     }
          my $ctime=time();
-         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,$ctime,'$buf$tmpb')";
+         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,$ctime,'$buf$tmpb',$ctime)";
          $self->{sqlserver}->Update($sql);
 #creat corresponding runevinfo
          my $ri={};

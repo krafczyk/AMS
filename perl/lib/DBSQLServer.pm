@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.12 2002/03/25 16:44:06 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.13 2002/03/26 09:29:01 alexei Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -168,8 +168,8 @@ sub Create{
        timestamp INT)",
       "CREATE TABLE Servers
        (dbfilename VARCHAR(255) NOT NULL,
-        IORS   TEXT,
-        IORP   TEXT,
+        IORS   TEXT NOT NULL,
+        IORP   TEXT NOT NULL,
         IORD   TEXT,
         status VARCHAR(64),
         createtime INT,
