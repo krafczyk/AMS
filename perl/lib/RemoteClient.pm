@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.266 2004/05/13 08:51:24 choutko Exp $
+# $Id: RemoteClient.pm,v 1.267 2004/05/17 12:49:09 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -7366,7 +7366,7 @@ my $jobmips = -1;
    my $unchecked=0; 
 
 
-   my $run  = 0;
+    my $run  = 0;
 
     open(FILE,"<",$inputfile) or die "Unable to open $inputfile";
     my $buf;
@@ -7611,7 +7611,7 @@ foreach my $block (@blocks) {
 
 
    
-   if ($patternsmatched == $#StartingRunPatterns+3) { # Ignore one 'Run' 
+   if ($patternsmatched == $#StartingRunPatterns+3 || $patternsmatched == $#StartingRunPatterns+4) { 
     $run = $startingrun[2];
     $startingrun[0] = "StartingRun";
     $startingrunR   = 1;
@@ -7640,6 +7640,7 @@ foreach my $block (@blocks) {
      $self->{sqlserver}->Update($sql);
    } else  {
        print FILE "StartingRun - cannot find all patterns $patternsmatched/$#StartingRunPatterns \n";
+       print "StartingRun -W- cannot find all patterns $patternsmatched/$#StartingRunPatterns \n";
    }
    # end StartingRun 
    #
@@ -7659,8 +7660,7 @@ foreach my $block (@blocks) {
        my $found = 0;
        my $j     = 0;
         while ($j<$#OpenDSTPatterns+1 && $found == 0) { 
-            my $pattern = $OpenDSTPatterns[$j]; 
-            if ($pattern eq 'CRC') { $pattern="crc";}
+         my $pattern = lc($OpenDSTPatterns[$j]); 
          if ($jj[0] eq $OpenDSTPatterns[$j] || $jj[0] eq $pattern) {
             $opendst[$j] = trimblanks($jj[1]);
             $patternsmatched++;
@@ -7700,8 +7700,7 @@ foreach my $block (@blocks) {
        my $found = 0;
        my $j     = 0;
        while ($j<$#CloseDSTPatterns+1 && $found == 0) { 
-        my $pattern = $CloseDSTPatterns[$j]; 
-        if ($pattern eq 'CRC') { $pattern="crc";}
+        my $pattern = lc($CloseDSTPatterns[$j]); 
         if ($jj[0] eq $CloseDSTPatterns[$j] || $jj[0] eq $pattern) {
           $closedst[$j] = trimblanks($jj[1]);
           $patternsmatched++;
@@ -7904,7 +7903,7 @@ foreach my $block (@blocks) {
     return; 
    }
   } #if defined $utime 
- }
+}
 
  if ($startingrunR == 1 || $runfinishedR == 1) {
   $status="Failed";
