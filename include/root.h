@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.78 2003/04/11 09:31:03 glamanna Exp $
+//  $Id: root.h,v 1.79 2003/05/03 08:44:50 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -11,11 +11,9 @@
 #include "TRefArray.h"
 #include "TRef.h"
 #include <antidbc02.h>
-#endif
-
-const int NClassAMS = 50;
-
-#ifdef __WRITEROOT__
+#include <list>
+#include <vector>
+using namespace std;
 class AMSAntiCluster;
 class AMSAntiMCCluster;
 class AMSBeta;
@@ -97,83 +95,6 @@ ClassDef(AMSEventHeaderRoot,1)       //AMSEventHeaderRoot
 };
 
 
-class EventRoot02: public TObject {
-public:
-  AMSEventHeaderRoot  Header;
-
-
-  TClonesArray *fBeta; 
-  TClonesArray *fCharge;  
-  TClonesArray *fParticle;  
-  TClonesArray *fTOFcluster;  
-  TClonesArray *fECALshower;
-  TClonesArray *fECALcluster;
-  TClonesArray *fECAL2Dcluster;
-  TClonesArray *fECALhit;
-  TClonesArray *fTOFMCcluster;
-  TClonesArray *fTrCluster;
-  TClonesArray *fTrMCCluster;
-  TClonesArray *fTRDMCCluster;
-  TClonesArray *fTRDrawhit;
-  TClonesArray *fTRDcluster;
-  TClonesArray *fTRDsegment;
-  TClonesArray *fTRDtrack;
-  TClonesArray *fTRrechit;
-  //--  TClonesArray *fTrGamma;
-  TClonesArray *fTRtrack;
-  TClonesArray *fMCtrtrack;
-  TClonesArray *fMCeventg;
-  TClonesArray *fAntiCluster;
-  TClonesArray *fAntiMCCluster;
-  TClonesArray *fLVL3;
-  TClonesArray *fLVL1;
-  TClonesArray *fTrRawCluster;
-  TClonesArray *fTOFRawCluster;
-  TClonesArray *fRICMC;
-  TClonesArray *fRICEvent;
-  TClonesArray *fRICRing;
-  TClonesArray *fTrTrack; //gamma
-
-
-EventRoot02() {};
-void Set(AMSEvent *ptr, int rawwords);
-~EventRoot02(){};
-void         AddAMSObject(AMSAntiCluster *ptr);
-void         AddAMSObject(AMSAntiMCCluster *ptr);
-void         AddAMSObject(AMSBeta *ptr);
-void         AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
-                          float probtr[], int chintr[], float probrc[], 
-                          int chinrc[], float proballtr);
-void         AddAMSObject(AMSEcalHit *ptr);
-void         AddAMSObject(AMSmceventg *ptr);
-void         AddAMSObject(AMSmctrack *ptr);
-void         AddAMSObject(AMSParticle *ptr, float phi, float phigl);
-void         AddAMSObject(AMSRichMCHit *ptr, int numgen);
-void         AddAMSObject(AMSRichRing *ptr);
-void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y);
-void         AddAMSObject(AMSTOFCluster *ptr, int p2memb[]);
-void         AddAMSObject(AMSTOFMCCluster *ptr);
-void         AddAMSObject(AMSTrRecHit *ptr);
-void         AddAMSObject(AMSTRDCluster *ptr);
-void         AddAMSObject(AMSTRDMCCluster *ptr);
-void         AddAMSObject(AMSTRDRawHit *ptr);
-void         AddAMSObject(AMSTRDSegment *ptr);
-void         AddAMSObject(AMSTRDTrack *ptr);
-void         AddAMSObject(AMSTrCluster *ptr, float ampl[]);
-void         AddAMSObject(AMSTrMCCluster *ptr);
-void         AddAMSObject(AMSTrRawCluster *ptr, int addr);
-void         AddAMSObject(AMSTrTrack *ptr);
-//void         AddAMSObject(AMSTrTrackGamma *ptr);
-void         AddAMSObject(Ecal1DCluster *ptr);
-void         AddAMSObject(Ecal2DCluster  *ptr);
-void         AddAMSObject(EcalShower  *ptr);
-void         AddAMSObject(TOF2RawCluster *ptr);
-void         AddAMSObject(Trigger2LVL1 *ptr);
-void         AddAMSObject(TriggerLVL302 *ptr);
-
-
-ClassDef(EventRoot02,1)       //EventRoot02
-};
 
 class BetaRoot02 : public TObject {
  public:
@@ -185,10 +106,13 @@ class BetaRoot02 : public TObject {
   float     ErrorC;
   float     Chi2;
   float     Chi2S;
-
+#ifndef __ROOTPOINTERS__
   TRef      fTrTrack;
   TRefArray *fTOFCluster;
-
+#else
+  int   fTrTrack;
+  vector<int> fTOFCluster;
+#endif
   ~BetaRoot02();
    BetaRoot02();
    BetaRoot02(AMSBeta *ptr);
@@ -199,8 +123,6 @@ class BetaRoot02 : public TObject {
 class ChargeRoot02 : public TObject {
 public:
   int Status;
-  int BetaP;
-  int RichP;
   int ChargeTOF;
   int ChargeTracker;
   int ChargeRich;
@@ -214,10 +136,13 @@ public:
   float TrunTOF;
   float TrunTOFD;
   float TrunTracker;
-
+#ifndef __ROOTPOINTERS__
   TRef  fBeta;
   TRef  fRich;
-
+#else
+  int  fBeta;
+  int  fRich;
+#endif
   ChargeRoot02();
   ~ChargeRoot02();
   ChargeRoot02(AMSCharge *ptr, float probtof[],int chintof[],
@@ -258,13 +183,21 @@ public:
   float Local[8];
   float TRDLikelihood;
 
+#ifndef __ROOTPOINTERS__
   TRef  fBeta;
   TRef  fCharge;
   TRef  fTrack;      // pointer to track;
   TRef  fTRD;        // pointer to trd track
   TRef  fRich;       // pointer to rich ring
   TRef  fShower;     // pointer to shower;
-
+#else
+  int  fBeta;
+  int  fCharge;
+  int  fTrack;      // pointer to track;
+  int  fTRD;        // pointer to trd track
+  int  fRich;       // pointer to rich ring
+  int  fShower;     // pointer to shower;
+#endif
 
   ParticleRoot02();
   ~ParticleRoot02(){};
@@ -322,8 +255,11 @@ public:
   float SphericityEV[3];
   int   N2dCl;
 
+#ifndef __ROOTPOINTERS__
   TRefArray *fEcal2DCluster;
-
+#else
+  vector <int> fEcal2DCluster;
+#endif
   EcalShowerRoot();
   ~EcalShowerRoot();
   EcalShowerRoot(EcalShower *ptr);
@@ -347,8 +283,11 @@ public:
   float Coo[3];
   int NHits;
 
+#ifndef __ROOTPOINTERS__
   TRefArray  *fEcalHit;
-
+#else
+  vector <int> fEcalHit;
+#endif
   EcalClusterRoot();
   ~EcalClusterRoot();
   EcalClusterRoot(Ecal1DCluster *ptr);
@@ -366,8 +305,11 @@ public:
   float Tan;
   float Chi2;
 
+#ifndef __ROOTPOINTERS__
   TRefArray *fEcal1DCluster;
-
+#else
+  vector <int> fEcal1DCluster;
+#endif
   Ecal2DClusterRoot();
   ~Ecal2DClusterRoot();
   Ecal2DClusterRoot(Ecal2DCluster *ptr);
@@ -487,8 +429,11 @@ public:
   int   HMultip;
   float EDep;
 
+#ifndef __ROOTPOINTERS__
   TRef  fTRDRawHit;
- 
+#else
+  int fTRDRawHit;
+#endif 
   TRDClusterRoot();
   ~TRDClusterRoot(){};
   TRDClusterRoot(AMSTRDCluster *ptr);
@@ -504,7 +449,11 @@ public:
   int   Pattern;
   int   Nhits;
  
+#ifndef __ROOTPOINTERS__
   TRefArray *fTRDCluster;
+#else 
+  vector<int> fTRDCluster;
+#endif
   TRDSegmentRoot();
   ~TRDSegmentRoot();
   TRDSegmentRoot(AMSTRDSegment *ptr);
@@ -524,8 +473,11 @@ public:
   int   NSeg;
   int   Pattern;
 
+#ifndef __ROOTPOINTERS__
   TRefArray *fTRDSegment;
- 
+#else
+  vector<int> fTRDSegment;
+#endif 
   TRDTrackRoot();
   ~TRDTrackRoot();
   TRDTrackRoot(AMSTRDTrack *ptr);
@@ -545,11 +497,14 @@ public:
   float CofgX;
   float CofgY;
 
+#ifndef __ROOTPOINTERS__
   TRef  fTrClusterX;
   TRef  fTrClusterY;
-
+#else
+  int  fTrClusterX;
+  int  fTrClusterY;
+#endif
   TrRecHitRoot02();
-  ~TrRecHitRoot02(){};
   TrRecHitRoot02(AMSTrRecHit *ptr);
 ClassDef(TrRecHitRoot02,1)       //TrRecHitRoot02
 };
@@ -577,8 +532,11 @@ public:
   float JChi2l;
   float JChi2r;
 
+#ifndef __ROOTPOINTERS__
   TRefArray *fTrTrack;
-
+#else
+  vector<int> fTrTrack;
+#endif
   TrGammaRoot02();
   ~TrGammaRoot02();
   TrGammaRoot02(AMSTrTrackGamma *ptr);
@@ -586,7 +544,6 @@ public:
 ClassDef(TrGammaRoot02,1)       //TrGammaRoot02
 };
 */
-
 class TrTrackRoot02 : public TObject {
 public:
   int Status;
@@ -619,7 +576,12 @@ public:
   float RigidityMS;
   float PiRigidity;
 
+
+#ifndef __ROOTPOINTERS__
   TRefArray *fTrRecHit;
+#else
+  vector<int> fTrRecHit;
+#endif
   TrTrackRoot02();
   ~TrTrackRoot02();
   TrTrackRoot02(AMSTrTrack *ptr);
@@ -815,13 +777,127 @@ public:
   float npexpr;
   float npexpb;
 
+#ifndef __ROOTPOINTERS__
   TRef  fTrack;
+#else
+  int fTrack;
+#endif
   RICRingRoot();
   ~RICRingRoot(){};
   RICRingRoot(AMSRichRing *ptr);
 ClassDef(RICRingRoot,1)           // RICRingRoot
 }; 
+
+
+class EventRoot02: public TObject {
+public:
+  AMSEventHeaderRoot  Header;
+
+#ifdef __WRITEROOTCLONES__
+  TClonesArray *fBeta; 
+  TClonesArray *fCharge;  
+  TClonesArray *fParticle;  
+  TClonesArray *fTOFcluster;  
+  TClonesArray *fECALshower;
+  TClonesArray *fECALcluster;
+  TClonesArray *fECAL2Dcluster;
+  TClonesArray *fECALhit;
+  TClonesArray *fTOFMCcluster;
+  TClonesArray *fTrCluster;
+  TClonesArray *fTrMCCluster;
+  TClonesArray *fTRDMCCluster;
+  TClonesArray *fTRDrawhit;
+  TClonesArray *fTRDcluster;
+  TClonesArray *fTRDsegment;
+  TClonesArray *fTRDtrack;
+  TClonesArray *fTRrechit;
+  TClonesArray *fTRtrack;
+  TClonesArray *fMCtrtrack;
+  TClonesArray *fMCeventg;
+  TClonesArray *fAntiCluster;
+  TClonesArray *fAntiMCCluster;
+  TClonesArray *fLVL3;
+  TClonesArray *fLVL1;
+  TClonesArray *fTrRawCluster;
+  TClonesArray *fTOFRawCluster;
+  TClonesArray *fRICMC;
+  TClonesArray *fRICEvent;
+  TClonesArray *fRICRing;
+//  TClonesArray *fTrGamma; 
+#else
+  vector<BetaRoot02> fBeta; 
+  vector<ChargeRoot02> fCharge;  
+  vector<ParticleRoot02> fParticle;  
+  vector<TOFClusterRoot> fTOFcluster;  
+  vector<EcalShowerRoot> fECALshower;
+  vector<EcalClusterRoot> fECALcluster;
+  vector<Ecal2DClusterRoot> fECAL2Dcluster;
+  vector<EcalHitRoot> fECALhit;
+  vector<TOFMCClusterRoot> fTOFMCcluster;
+  vector<TrClusterRoot> fTrCluster;
+  vector<TrMCClusterRoot> fTrMCCluster;
+  vector<TRDMCClusterRoot> fTRDMCCluster;
+  vector<TRDRawHitRoot> fTRDrawhit;
+  vector<TRDClusterRoot> fTRDcluster;
+  vector<TRDSegmentRoot> fTRDsegment;
+  vector<TRDTrackRoot> fTRDtrack;
+  vector<TrRecHitRoot02> fTRrechit;
+  vector<TrTrackRoot02> fTRtrack;
+  vector<MCTrackRoot> fMCtrtrack;
+  vector<MCEventGRoot02> fMCeventg;
+  vector<AntiClusterRoot> fAntiCluster;
+  vector<ANTIMCClusterRoot> fAntiMCCluster;
+  vector<LVL3Root02> fLVL3;
+  vector<LVL1Root02> fLVL1;
+  vector<TrRawClusterRoot> fTrRawCluster;
+  vector<TOFRawClusterRoot> fTOFRawCluster;
+  vector<RICMCRoot> fRICMC;
+  vector<RICEventRoot> fRICEvent;
+  vector<RICRingRoot> fRICRing;
+//  vector<TrGammaRoot02> fTrGamma; 
+  vector<int>         fAux;
 #endif
 
+EventRoot02();
+void Set(AMSEvent *ptr, int rawwords);
+~EventRoot02(){};
+void         AddAMSObject(AMSAntiCluster *ptr);
+void         AddAMSObject(AMSAntiMCCluster *ptr);
+void         AddAMSObject(AMSBeta *ptr);
+void         AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
+                          float probtr[], int chintr[], float probrc[], 
+                          int chinrc[], float proballtr);
+void         AddAMSObject(AMSEcalHit *ptr);
+void         AddAMSObject(AMSmceventg *ptr);
+void         AddAMSObject(AMSmctrack *ptr);
+void         AddAMSObject(AMSParticle *ptr, float phi, float phigl);
+void         AddAMSObject(AMSRichMCHit *ptr, int numgen);
+void         AddAMSObject(AMSRichRing *ptr);
+void         AddAMSObject(AMSRichRawEvent *ptr, float x, float y);
+void         AddAMSObject(AMSTOFCluster *ptr, int p2memb[]);
+void         AddAMSObject(AMSTOFMCCluster *ptr);
+void         AddAMSObject(AMSTrRecHit *ptr);
+void         AddAMSObject(AMSTRDCluster *ptr);
+void         AddAMSObject(AMSTRDMCCluster *ptr);
+void         AddAMSObject(AMSTRDRawHit *ptr);
+void         AddAMSObject(AMSTRDSegment *ptr);
+void         AddAMSObject(AMSTRDTrack *ptr);
+void         AddAMSObject(AMSTrCluster *ptr, float ampl[]);
+void         AddAMSObject(AMSTrMCCluster *ptr);
+void         AddAMSObject(AMSTrRawCluster *ptr, int addr);
+void         AddAMSObject(AMSTrTrack *ptr);
+//void         AddAMSObject(AMSTrTrackGamma *ptr);
+void         AddAMSObject(Ecal1DCluster *ptr);
+void         AddAMSObject(Ecal2DCluster  *ptr);
+void         AddAMSObject(EcalShower  *ptr);
+void         AddAMSObject(TOF2RawCluster *ptr);
+void         AddAMSObject(Trigger2LVL1 *ptr);
+void         AddAMSObject(TriggerLVL302 *ptr);
+void clear();
+
+ClassDef(EventRoot02,4)       //EventRoot02
+};
+
+#endif
 
 #endif

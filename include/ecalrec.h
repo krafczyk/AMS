@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.34 2003/04/09 14:05:16 choumilo Exp $
+//  $Id: ecalrec.h,v 1.35 2003/05/03 08:44:49 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -117,7 +117,7 @@ private:
   number  _cooz;
   number _attcor; //att length correction
 public:
-#ifdef __WRITEROOTCLONES__
+#ifdef __WRITEROOT__
   friend class EcalHitRoot;
 #endif
   AMSEcalHit(integer status, integer id, integer adc[3], integer proj, integer plane, integer cell,
@@ -376,7 +376,7 @@ void _writeEl();
 void _printEl(ostream &stream){
 stream << "  EcalShower Energy "<<_EnergyC<<" Status "<<_status<<endl;
 }
-void _copyEl(){};
+void _copyEl();
 void DirectionFit();
 void ProfileFit();
 void EnergyFit();

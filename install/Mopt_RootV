@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.45 2003/05/03 08:44:57 choutko Exp $
+#  $Id: Mopt_RootV,v 1.1 2003/05/03 08:44:57 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -56,9 +56,9 @@ O4=-O
 O4F=-O
 endif
 endif
-CFLAGS=    -D__BATCH__ -D__ALPHA__   $(O4) -D__WRITEROOTCLONES__ -D__WRITEROOT__  -I../include -I$(ROOTSYS)/include -tlocal
-CFLAGSTOFSIM=    -D__BATCH__ -D__ALPHA__   $(O4) -D__WRITEROOTCLONES__ -D__WRITEROOT__  -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
-CFLAGSn=    -D__BATCH__ -D__ALPHA__   $(O4)  -D__WRITEROOTCLONES__ -D__WRITEROOT__  -I../include -I$(ROOTSYS)/include  -tlocal
+CFLAGS=    -D__BATCH__ -D__ALPHA__   $(O4) -D__ROOTPOINTERS__ -D__WRITEROOT__  -I../include -I$(ROOTSYS)/include -tlocal
+CFLAGSTOFSIM=    -D__BATCH__ -D__ALPHA__   $(O4) -D__ROOTPOINTERS__ -D__WRITEROOT__  -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGSn=    -D__BATCH__ -D__ALPHA__   $(O4)  -D__ROOTPOINTERS__ -D__WRITEROOT__  -I../include -I$(ROOTSYS)/include  -tlocal
 CFLAGSDAQ= $(CFLAGS)
 FFLAGS=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
 FFLAGSn=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
@@ -102,7 +102,7 @@ ifdef AMSICC
     FF=/opt/intel/compiler70/ia32/bin/ifc
   endif
   BINMT=$(AMSWD)/bin/linux/icc/mt/
-  BIN=$(AMSWD)/bin/linuxr/icc/
+  BIN=$(AMSWD)/bin/linuxrv/icc/
   EXE=$(AMSWD)/exe/linux/icc/
   LIB=$(AMSWD)/lib/linux/icc/
   CC=g++ -Wno-deprecated -mcpu=i686
@@ -136,7 +136,7 @@ else
   CC=g++ -Wno-deprecated -mcpu=i686 
   FF=g77
   LD=g++
-  BIN=$(AMSWD)/bin/linuxr/
+  BIN=$(AMSWD)/bin/linuxrv/
   EXE=$(AMSWD)/exe/linux/
   LIB=$(AMSWD)/lib/linux/
   SHLD=$(LIB)/ntuple.so
@@ -161,9 +161,9 @@ ifdef AMSPROFILE
 endif
 
 ifdef AMSDEBUG
-  CFLAGSB=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -I../db  -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include $(PFLAGS)
+  CFLAGSB=    -D__AMSDEBUG__  -D__BATCH__  -g    -I../include  -I../db  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include $(PFLAGS)
 else
-  CFLAGSB=      -D__BATCH__  -I../include    -D__WRITEROOT__ -D__WRITEROOTCLONES__ -I$(ROOTSYS)/include  $(PFLAGS)
+  CFLAGSB=      -D__BATCH__  -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include  $(PFLAGS)
 endif
 
 ifdef AMSICC
@@ -333,10 +333,10 @@ OBJECTSA= $(BIN)gbatch_a.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)nod
 
 OBJECTSC= $(BIN)gbatch_c.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)node.o $(BIN)snode.o $(BIN)cern.o $(BIN)amsdbc.o $(BIN)gsen.o  $(BIN)mtx.o $(BIN)point.o $(BIN)amstkshc++.o  $(BIN)sgif.o $(BIN)upool.o $(BIN)gmat.o $(BIN)amsgobj.o $(BIN)amsgeom.o  $(BIN)geant_c.o $(BIN)geant3_c.o $(BIN)mceventg_r.o $(BIN)tkmccl.o $(BIN)geocoor.o $(BIN)rnormx.o  $(BIN)trid.o $(BIN)trdid.o $(BIN)link.o $(BIN)trrec_r.o $(BIN)trdsim_r.o $(BIN)trdrec_r.o $(BIN)uzstat.o $(BIN)tptcir.o $(BIN)trafit.o $(BIN)tcircf.o $(BIN)tszfit.o $(BIN)txyfit.o  $(BIN)job_c.o $(BIN)event_c.o $(BIN)cont.o $(BIN)trrawcluster_r.o $(BIN)mccluster_r.o $(BIN)rndm.o $(BIN)tofrec02_r.o $(BIN)tofonline02.o $(BIN)tofuser02.o $(BIN)antirec02_r.o $(BIN)tofsim02_r.o $(BIN)beta_r.o $(BIN)charge_r.o $(BIN)particle_r.o $(BIN)apool.o $(BIN)tofdbc02.o $(BIN)tofcalib02.o $(BIN)tofid.o $(BIN)timeid_c.o $(BIN)io.o $(BIN)trcalib.o $(BIN)tralig.o $(BIN)mtx2.o $(BIN)e04ccf.o  $(BIN)trigger102_r.o $(BIN)trigger302_r.o $(BIN)antidbc02.o $(BIN)daqevt.o $(BIN)astring.o $(BIN)daqs2block.o $(BIN)mfield.o $(BIN)egzav.o $(BIN)tkfit.o $(BIN)tkdbc.o $(BIN)trddbc.o  $(BIN)ntuple_r.o $(BIN)root_r.o $(BIN)rootdict.o $(BIN)user.o $(BIN)gamma.o $(BIN)status.o $(BIN)bcorr.o $(BIN)ecaldbc.o $(BIN)ecid.o $(BIN)ecalrec_r.o $(BIN)ecalcalib.o $(BIN)richdbc.o $(BIN)richrec_r.o $(BIN)richid.o $(BIN)richgeom.o $(BIN)gtckov.o $(BIN)graylc.o $(BIN)cerenkov.o $(BIN)grfile.o $(BIN)flinit.o $(BIN)producer.o $(BIN)client.o $(BIN)fint_my.o $(BIN)ins_dummy.o
 
-static: $(EXE)gbatch_ra.exe
+static: $(EXE)gbatch_rav.exe
 
-$(EXE)gbatch_ra.exe:	$(OBJECTSA)
-	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch_ra.exe $(OBJECTSA) $(TIMEL) $(LDFLAGSSTATIC)
+$(EXE)gbatch_rav.exe:	$(OBJECTSA)
+	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatch_rav.exe $(OBJECTSA) $(TIMEL) $(LDFLAGSSTATIC)
 
 standalone: $(EXE)/gbatch_r.exe
 
@@ -351,13 +351,13 @@ $(EXE)gbatchr_orbit.exe:	$(OBJECTCO) $(OBJECTCL) $(OBJECTSA)
 	$(LD) $(FLAGSSTATIC) -v -o  $(EXE)gbatchr_orbit.exe $(OBJECTSA) $(OBJECTCL) $(OBJECTCO) $(TIMEL) $(LDFLAGSSTATICIDL) $(LDFLAGSSTATIC)
 
 
-shared :	$(BIN)root_r.o ../include/root_R.h ../include/root.h $(BIN)rootdict.o
+shared :	$(BIN)root_r.o ../include/root_RV.h ../include/root.h $(BIN)rootdict.o
 	$(LD) -O  $(SOFLAGS) $(BIN)/root_r.o $(BIN)/rootdict.o $(SHLDFLAGS) -o  $(SHLD)
 
 
-$(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_R.h ../include/root.h
+$(BIN)rootdict.C:    ../include/linkdef.h  ../include/root_RV.h ../include/root.h
 	@echo "Generating dictionary"
-	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/root_R.h ../include/linkdef.h
+	$(ROOTSYS)/bin/rootcint    -f $(BIN)rootdict.C -c ../include/root_RV.h ../include/linkdef.h
 	@echo "OK"
 
 $(BIN)rootdict.o:         $(BIN)rootdict.C

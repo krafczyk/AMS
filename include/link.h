@@ -1,4 +1,4 @@
-//  $Id: link.h,v 1.13 2003/05/02 09:28:13 choutko Exp $
+//  $Id: link.h,v 1.14 2003/05/03 08:44:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 04, 1996. add _ContPos
@@ -16,8 +16,11 @@ class TObject;
 class AMSlink {
 protected:
  uinteger _status;
- integer _pos;
- TObject *_ptr; 
+ integer _pos; 
+ TObject *_ptr;
+#ifdef __ROOTPOINTERS__
+ int _vpos;
+#endif
   virtual void _copyEl()=0;
   virtual void _printEl(ostream &stream)=0;
   virtual void _writeEl()=0;
@@ -25,15 +28,28 @@ public:
  uinteger checkstatus(integer checker) const{return _status & checker;}
  uinteger getstatus() const{return _status;}
  void setstatus(uinteger status){_status=_status | status;}
- void clearstatus(uinteger status){_status=_status & ~status;}    
+ void clearstatus(uinteger status){_status=_status & ~status;}
+#ifdef __ROOTPOINTERS__
+ int      GetClonePointer(){return _vpos;}
+#else    
  TObject *GetClonePointer(){ return _ptr;}
- void SetClonePointer(TObject *ptr){ _ptr=ptr;}
+#endif
+ void SetClonePointer(TObject *ptr, int vpos=-1){
+ _ptr=ptr;
+#ifdef __ROOTPOINTERS__
+_vpos=vpos;
+#endif
+}
  virtual void resethash(integer id, AMSlink *head){};
   virtual AMSID crgid(integer i=0){return AMSID();}
   virtual integer operator < ( AMSlink & o) const;
   AMSlink * _next;
   AMSlink(uinteger status,AMSlink * n=0): 
-  _next(n),_pos(0), _ptr(0),_status(status){};
+  _next(n),_pos(0), _ptr(0),_status(status){
+#ifdef __ROOTPOINTERS__
+  _vpos=-1;
+#endif
+};
   AMSlink(integer status=0): 
   _next(0),_pos(0), _ptr(0),_status(status){};
   virtual ~AMSlink(){};
