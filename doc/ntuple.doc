@@ -1,3 +1,4 @@
+p
 Thanks to Juan's courtesy there is no more dumb ntuple, only
 clever one survived. No more nconvert.
 
@@ -85,6 +86,8 @@ Below there is a description of a  ntuple.
 * R*4  *              * PARTICLE * pcharge(npart)    // charge
 * R*4  *              * PARTICLE * ptheta(npart)     // theta (1st(last) tracker plane)
 * R*4  *              * PARTICLE * pphi(npart)       // phi  -----------
+* R*4  *              * PARTICLE * thetagl(npart)    // theta global
+* R*4  *              * PARTICLE * phigl(npart)      // phi global
 * R*4  *              * PARTICLE * pcoo(3,npart)     // coo  -----------
 * R*4  *              * PARTICLE * signalctc(2,npart)  // ctcsignal(s)
 * R*4  *              * PARTICLE * betactc(2,npart)   // ctc beta            
