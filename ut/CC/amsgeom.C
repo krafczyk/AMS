@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.173 2003/04/13 14:30:45 schol Exp $
+//  $Id: amsgeom.C,v 1.174 2003/04/20 16:51:50 schol Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1998,6 +1998,7 @@ using trdconst::maxbulk;
 using trdconst::maxlay;
 using trdconst::maxlad;
 using trdconst::maxhole;
+using trdconst::maxsidehole;
 using trdconst::maxo;
 using trdconst::mtrdo;
 using trdconst::maxtube;
@@ -2157,6 +2158,37 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 	}
   }
 
+   // Radiator side holes (daughters of octagon)
+
+   for (int h=0;h<TRDDBc::SideHolesNo(i);h++){
+     for (l=0;l<TRDDBc::SideHolesPieceNo(i,h);l++){
+      TRDDBc::GetRadiatorSideHolePiece(l,h,i,status,coo,nrm,rgid);
+      int itrd=TRDDBc::NoTRDOctagons(i);
+
+      int ip;
+      for(ip=0;ip<11;ip++)par[ip]=
+            TRDDBc::RadiatorSideHolePieceDimensions(i,h,l,ip);
+      gid=maxsidehole*h+l+1;
+
+         ost.seekp(0);
+         ost << "TRR1"<<ends;
+
+// Bottom ones only for now
+	if (h<2){
+
+//	cout << "amsgeom RSHPD: ";
+//         for (ip=0;ip<11;ip++){ cout << par[ip]<<" ";}
+         
+
+         oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorHoleMedia(),
+			       0,name,"TRAP",par,11,coo,nrm,"ONLY",h==0 && l==0?1:-1,gid,1));    }
+        }
+
+      }
+
+ 
+
+
   // Now the ladders and their contents
   // ladders should go directly to mother volume now
   // assuming no rotations etc for octagons
@@ -2192,12 +2224,12 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
    // Radiator holes (daughters of octagon)
    // Bottom layer has no radiator below the tubes
-   // 90 deg ladders only for now
 
    for (l=0;l<3;l++){
 
      geant cool[3];	
      TRDDBc::GetRadiatorHole(l,k,j,i,status,cool,nrm,rgid);
+
      for(ip=0;ip<11;ip++)par[ip]=TRDDBc::RadiatorHoleDimensions(i,j,k,l,ip);
      gid=i+mtrdo*j+mtrdo*maxlay*k+maxhole*l+1;
 
@@ -2220,7 +2252,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
         }
 
       }
-  
+
 
    // Wires (disabled for now)
    /*

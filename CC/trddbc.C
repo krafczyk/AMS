@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.43 2003/04/13 14:30:51 schol Exp $
+//  $Id: trddbc.C,v 1.44 2003/04/20 16:51:46 schol Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -274,6 +274,7 @@ uinteger TRDDBc::_PrimaryOctagonNo=6;
 uinteger TRDDBc::_TRDOctagonNo=1;
 uinteger TRDDBc::_OctagonNo=maxo;
 uinteger TRDDBc::_BulkheadsNo[mtrdo]={maxbulk};
+uinteger TRDDBc::_SideHolesNo[mtrdo]={maxsidehole};
 uinteger TRDDBc::_LayersNo[mtrdo]={maxlay};
 uinteger TRDDBc::_LaddersNo[mtrdo][maxlay]={14,14,14,14,16,16,16,16,16,16,16,16,18,18,18,18,18,18,18,18};
 
@@ -284,9 +285,13 @@ uinteger TRDDBc::_CutoutsBH[mtrdo][maxlay][maxco]={4,5,4,5,4,5,4,5,0,1,0,1,0,1,0
 
 uinteger TRDDBc::_TubesNo[mtrdo][maxlay][maxlad];
 uinteger TRDDBc::_HolesNo[mtrdo][maxlay][maxlad];
+uinteger TRDDBc::_SideHolesPieceNo[mtrdo][maxsidehole];
+
 
 uinteger   TRDDBc::_NumberTubes=0;
 uinteger   TRDDBc::_NumberHoles=0;
+uinteger   TRDDBc::_NumberSideHoles=0;
+uinteger   TRDDBc::_NumberSideHolePieces=0;
 uinteger   TRDDBc::_NumberLadders=0;
 uinteger   TRDDBc::_NumberCutouts=0;
 uinteger   TRDDBc::_NumberBulkheads=0;
@@ -350,6 +355,7 @@ number TRDDBc::_WiresDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_SpacerDimensions[mtrdo][trdconst::maxlay][trdconst::maxlad][3][2];    
 number TRDDBc::_TubesBoxDimensions[mtrdo][maxlay][maxlad][10];    
 number TRDDBc::_RadiatorHoleDimensions[mtrdo][maxlay][maxlad][maxhole][11];
+number TRDDBc::_RadiatorSideHolePieceDimensions[mtrdo][maxsidehole][maxhole][11];
 
   // Positions & Orientations
   
@@ -358,6 +364,7 @@ TRDDBc* TRDDBc::_HeadBulkheadPos=0;
 TRDDBc* TRDDBc::_HeadCutoutPos=0;
 TRDDBc* TRDDBc::_HeadLadderPos=0;
 TRDDBc* TRDDBc::_HeadRadiatorHolePos=0;
+TRDDBc* TRDDBc::_HeadRadiatorSideHolePiecePos=0;
 TRDDBc* TRDDBc::_HeadTubeBoxPos=0;
 TRDDBc* TRDDBc::_HeadTubePos=0;
 
@@ -380,6 +387,13 @@ void TRDDBc::init(){
       }
      }
     }
+
+    for(i=0;i<TRDOctagonNo();i++){
+     for(j=0;j<SideHolesNo(i);j++){
+       _SideHolesPieceNo[i][j]=maxhole;
+     }
+    }
+
 
     for(i=0;i<TRDOctagonNo();i++){
      for(j=0;j<LayersNo(i);j++){
@@ -415,6 +429,23 @@ void TRDDBc::init(){
        }
 
 
+  // calculate sideholesno #
+       for ( i=0;i<TRDOctagonNo();i++){
+          for(l=0;l<SideHolesNo(i);l++){
+           _NumberSideHoles++;
+          }
+       }
+
+
+  // calculate sideholespieceno #
+       for ( i=0;i<TRDOctagonNo();i++){
+         for(j=0;j<SideHolesNo(i);j++){
+          for(k=0;k<SideHolesPieceNo(i,j);k++){
+           _NumberSideHolePieces++;
+          }
+        }
+       }
+
        cout <<"TRDDBcI-I-Total of " <<_NumberTubes<< "  tubes initialized."<<endl;
   // calculate ladder #
        for ( i=0;i<TRDOctagonNo();i++){
@@ -444,6 +475,7 @@ void TRDDBc::init(){
        _HeadBulkheadPos=new TRDDBc[_NumberBulkheads];
        _HeadCutoutPos=new TRDDBc[_NumberCutouts];
        _HeadRadiatorHolePos=new TRDDBc[_NumberHoles];
+       _HeadRadiatorSideHolePiecePos=new TRDDBc[_NumberSideHolePieces];
        _HeadTubeBoxPos=new TRDDBc[_NumberLadders];
        _HeadTubePos=new TRDDBc[_NumberTubes];
        _HeadOctagonPos= new TRDDBc[OctagonNo()]; 
@@ -1465,6 +1497,281 @@ void TRDDBc::init(){
 	}
        } 
 
+
+// Radiator side holes
+   i=0;
+  
+// Bottom ones along x-dir:  radiator side holes numbers 0 and 1
+
+// dz: distance from bottom of layer 4 tube to bottom of octagon
+// All 3 pieces on each side have the same height
+
+    integer itrd=TRDDBc::NoTRDOctagons(i);
+
+
+     RadiatorSideHolePieceDimensions(i,0,0,0) = 
+            RadiatorSideHolePieceDimensions(i,1,0,0) = 
+     RadiatorSideHolePieceDimensions(i,0,1,0) = 
+            RadiatorSideHolePieceDimensions(i,1,1,0) = 
+     RadiatorSideHolePieceDimensions(i,0,2,0) = 
+            RadiatorSideHolePieceDimensions(i,1,2,0) = 
+                (FirstLayerHeight()-
+	           2./10. -WirePosition() + 4.*LadderThickness()
+                    - (TubeInnerDiameter()+2*TubeWallThickness()
+                       +2*TubeBoxThickness()+2*Safety)/2.)/2.;
+
+// h1
+
+     RadiatorSideHolePieceDimensions(i,0,0,3) = 
+            RadiatorSideHolePieceDimensions(i,1,0,3) = 
+     RadiatorSideHolePieceDimensions(i,0,1,3) = 
+            RadiatorSideHolePieceDimensions(i,1,1,3) = 
+     RadiatorSideHolePieceDimensions(i,0,2,3) = 
+            RadiatorSideHolePieceDimensions(i,1,2,3) = 
+	     (OctagonDimensions(itrd,6)
+                           -7.*ManifoldWidth()-BulkheadGap())/2.;
+
+
+// h2 
+
+     RadiatorSideHolePieceDimensions(i,0,0,7) = 
+            RadiatorSideHolePieceDimensions(i,1,0,7) = 
+     RadiatorSideHolePieceDimensions(i,0,1,7) = 
+            RadiatorSideHolePieceDimensions(i,1,1,7) = 
+     RadiatorSideHolePieceDimensions(i,0,2,7) = 
+            RadiatorSideHolePieceDimensions(i,1,2,7) = 
+	     (OctagonDimensions(itrd,6)
+                -7.*ManifoldWidth()-BulkheadGap()
+                + 2.*RadiatorSideHolePieceDimensions(i,0,0,0)*tan(ang))/2.;
+
+
+
+//  bottom half lengths: bl1 and tl1
+
+   // central one between bulkheads
+
+	RadiatorSideHolePieceDimensions(i,0,1,4) =
+            RadiatorSideHolePieceDimensions(i,1,1,4) =
+	RadiatorSideHolePieceDimensions(i,0,1,5) = 
+            RadiatorSideHolePieceDimensions(i,1,1,5) =
+                                      3.*ManifoldWidth();
+
+  // On either side of bulkhead
+
+
+
+      // bl1 
+
+      // k=0 ladder side:  bl1 is shorter side
+         RadiatorSideHolePieceDimensions(i,0,0,4)= 
+               RadiatorSideHolePieceDimensions(i,0,2,4)= 
+                    (OctagonDimensions(itrd,6)
+                                  - 4.*ManifoldWidth()  // for slope
+                                  - 2.*RadiatorSideHolePieceDimensions(i,0,0,3)
+                                    -3.*ManifoldWidth()-BulkheadGap())/2.;
+      // k=13 ladder side
+         RadiatorSideHolePieceDimensions(i,1,0,4)= 
+               RadiatorSideHolePieceDimensions(i,1,2,4)= 
+                    (OctagonDimensions(itrd,6)
+                                  - 4.*ManifoldWidth()  // for slope
+                                    -3.*ManifoldWidth()-BulkheadGap())/2.;
+
+
+      // tl1
+
+      // k=0 ladder side
+         RadiatorSideHolePieceDimensions(i,0,0,5)= 
+               RadiatorSideHolePieceDimensions(i,0,2,5)= 
+                    (OctagonDimensions(itrd,6)
+                                  - 4.*ManifoldWidth()  // for slope
+                                    -3.*ManifoldWidth()-BulkheadGap())/2.;
+      // k=13 ladder side
+         RadiatorSideHolePieceDimensions(i,1,0,5)= 
+               RadiatorSideHolePieceDimensions(i,1,2,5)= 
+                    (OctagonDimensions(itrd,6)
+                                  - 4.*ManifoldWidth()  // for slope
+                                  - 2.*RadiatorSideHolePieceDimensions(i,1,0,3)
+                                    -3.*ManifoldWidth()-BulkheadGap())/2.;
+
+        
+
+
+//  top half lengths: bl2 and tl2
+
+   // central one between bulkheads
+
+	RadiatorSideHolePieceDimensions(i,0,1,8) =
+            RadiatorSideHolePieceDimensions(i,1,1,8) =
+	RadiatorSideHolePieceDimensions(i,0,1,9) = 
+            RadiatorSideHolePieceDimensions(i,1,1,9) =
+                                      3.*ManifoldWidth();
+
+  // On either side of bulkhead
+
+
+
+      // bl2
+
+      // k=0 ladder side
+         RadiatorSideHolePieceDimensions(i,0,0,8)= 
+               RadiatorSideHolePieceDimensions(i,0,2,8)= 
+                    (OctagonDimensions(itrd,6)
+                        - 4.*ManifoldWidth()  // for slope
+                       - 2.*RadiatorSideHolePieceDimensions(i,0,0,7)
+                       -3.*ManifoldWidth()-BulkheadGap()
+                    +tan(ang)*RadiatorSideHolePieceDimensions(i,0,0,0)*2)/2.;
+
+
+      // k=13 ladder side
+         RadiatorSideHolePieceDimensions(i,1,0,8)= 
+               RadiatorSideHolePieceDimensions(i,1,2,8)= 
+                    (OctagonDimensions(itrd,6)
+                        - 4.*ManifoldWidth()  // for slope
+                   -3.*ManifoldWidth()-BulkheadGap()
+               +tan(ang)*RadiatorSideHolePieceDimensions(i,1,0,0)*2)/2.;
+
+
+      // tl2
+
+      // k=0 ladder side
+         RadiatorSideHolePieceDimensions(i,0,0,9)= 
+               RadiatorSideHolePieceDimensions(i,0,2,9)= 
+                    (OctagonDimensions(itrd,6)
+                        - 4.*ManifoldWidth()  // for slope
+                  -3.*ManifoldWidth()-BulkheadGap()
+               +tan(ang)*RadiatorSideHolePieceDimensions(i,0,0,0)*2)/2.;
+
+      // k=13 ladder side
+         RadiatorSideHolePieceDimensions(i,1,0,9)= 
+               RadiatorSideHolePieceDimensions(i,1,2,9)= 
+                    (OctagonDimensions(itrd,6)
+                        - 4.*ManifoldWidth()  // for slope
+               - 2.*RadiatorSideHolePieceDimensions(i,0,0,7)
+              -3.*ManifoldWidth()-BulkheadGap()
+               +tan(ang)*RadiatorSideHolePieceDimensions(i,1,0,0)*2)/2.;
+
+        
+// Angles
+
+	
+      // alpha1 
+
+     RadiatorSideHolePieceDimensions(i,0,0,6) =
+             atan((RadiatorSideHolePieceDimensions(i,0,0,5)
+                         - RadiatorSideHolePieceDimensions(i,0,0,4))/
+                         2./RadiatorSideHolePieceDimensions(i,0,0,3))*180./AMSDBc::pi;
+
+
+
+      RadiatorSideHolePieceDimensions(i,0,2,6) =
+             -atan((RadiatorSideHolePieceDimensions(i,0,2,5)
+                         - RadiatorSideHolePieceDimensions(i,0,2,4))/
+                         2./RadiatorSideHolePieceDimensions(i,0,2,3))*180./AMSDBc::pi;
+
+  
+
+     RadiatorSideHolePieceDimensions(i,1,0,6) =
+             atan((RadiatorSideHolePieceDimensions(i,1,0,5)
+                         - RadiatorSideHolePieceDimensions(i,1,0,4))/
+                         2./RadiatorSideHolePieceDimensions(i,1,0,3))*180./AMSDBc::pi;
+
+
+
+       RadiatorSideHolePieceDimensions(i,1,2,6) =
+             -atan((RadiatorSideHolePieceDimensions(i,1,2,5)
+                         - RadiatorSideHolePieceDimensions(i,1,2,4))/
+                         2./RadiatorSideHolePieceDimensions(i,1,2,3))*180./AMSDBc::pi;
+
+
+      RadiatorSideHolePieceDimensions(i,0,1,6) =
+              RadiatorSideHolePieceDimensions(i,1,1,6) = 0.;
+
+
+ 
+
+      // alpha2
+
+      RadiatorSideHolePieceDimensions(i,0,0,10) =
+             atan((RadiatorSideHolePieceDimensions(i,0,0,9)
+                         - RadiatorSideHolePieceDimensions(i,0,0,8))/
+                         2./RadiatorSideHolePieceDimensions(i,0,0,7))*180./AMSDBc::pi;
+
+
+
+      RadiatorSideHolePieceDimensions(i,0,2,10) =
+             -atan((RadiatorSideHolePieceDimensions(i,0,2,9)
+                         - RadiatorSideHolePieceDimensions(i,0,2,8))/
+                         2./RadiatorSideHolePieceDimensions(i,0,2,7))*180./AMSDBc::pi;
+
+
+       RadiatorSideHolePieceDimensions(i,1,0,10) =
+             atan((RadiatorSideHolePieceDimensions(i,1,0,9)
+                         - RadiatorSideHolePieceDimensions(i,1,0,8))/
+                         2./RadiatorSideHolePieceDimensions(i,1,0,7))*180./AMSDBc::pi;
+
+
+       RadiatorSideHolePieceDimensions(i,1,2,10) =
+             -atan((RadiatorSideHolePieceDimensions(i,1,2,9)
+                         - RadiatorSideHolePieceDimensions(i,1,2,8))/
+                         2./RadiatorSideHolePieceDimensions(i,1,2,7))*180./AMSDBc::pi;
+
+
+
+      RadiatorSideHolePieceDimensions(i,0,1,10) =
+              RadiatorSideHolePieceDimensions(i,1,1,10) = 0.;
+
+     // theta
+
+
+	for (int r=0;r<SideHolesNo(i);r++){
+          for (int s=0;s<SideHolesPieceNo(i,r);s++){
+
+      // "Center" is the intersection of the lines joining
+      // midpoints of each side, not the centroid
+
+	number bottom_xcent, bottom_ycent;
+	number top_xcent, top_ycent;
+  	number phi;
+	number xdiff,ydiff,zdiff;
+
+	bottom_ycent = RadiatorSideHolePieceDimensions(i,r,s,3);
+	top_ycent = RadiatorSideHolePieceDimensions(i,r,s,7);
+
+	bottom_xcent = (RadiatorSideHolePieceDimensions(i,r,s,4)
+                                 +RadiatorSideHolePieceDimensions(i,r,s,5))/2.;
+	top_xcent = (RadiatorSideHolePieceDimensions(i,r,s,8)
+                                 + RadiatorSideHolePieceDimensions(i,r,s,9))/2.;
+
+
+
+   	xdiff = top_xcent-bottom_xcent;
+	ydiff = top_ycent-bottom_ycent;
+        zdiff = 2.*RadiatorSideHolePieceDimensions(i,r,s,0);
+
+	number totR = sqrt(xdiff*xdiff+ydiff*ydiff+zdiff*zdiff);
+
+  	RadiatorSideHolePieceDimensions(i,r,s,1) = 
+	       acos(zdiff/totR)*180./AMSDBc::pi;
+
+           phi=atan(ydiff/xdiff)*180./AMSDBc::pi;           
+
+
+	   if (s==1 && r==0){
+	     phi =  -90.;
+ 	   }else if (s==1 && r==1) {
+	     phi =  +90.;
+           }
+	   if (r==0 && s==0) phi = -phi;
+	   if (r==0 && s==2) phi += 180.;
+	   if (r==1 && s==2) phi = -phi-180.;
+
+           RadiatorSideHolePieceDimensions(i,r,s,2) = phi;
+
+          
+         }
+        }
+
+
       // Tube sizes
 
       for(i=0;i<TRDOctagonNo();i++){
@@ -1512,6 +1819,65 @@ void TRDDBc::init(){
         }
        }
       }
+
+
+// Set the side radiator holes wrt the octagon
+
+    i=0;
+    coo[0]=coo[2]=coo[1]=0;
+
+
+//    for (int r=0;r<SideHolesNo(i);r++){
+    for (int r=0;r<2;r++){
+      for (int s=0;s<SideHolesPieceNo(i,r);s++){
+         number top_xcent = (RadiatorSideHolePieceDimensions(i,r,s,8)+
+                                 RadiatorSideHolePieceDimensions(i,r,s,9))/2.;
+         number bottom_xcent = (RadiatorSideHolePieceDimensions(i,r,s,4)+
+                                 RadiatorSideHolePieceDimensions(i,r,s,5))/2.;
+
+
+         coo[0]=0.;
+         if (s==0){
+
+           coo[0] = 3.*ManifoldWidth()+BulkheadGap()
+               + bottom_xcent + (top_xcent-bottom_xcent)/2.;
+
+         }
+	 else if (s==2){
+
+           coo[0] = -( 3.*ManifoldWidth()+BulkheadGap()
+                + bottom_xcent + (top_xcent-bottom_xcent)/2.);
+
+
+         } 
+ 
+
+
+	if (r==0){
+          coo[1] = -(7.*ManifoldWidth()+BulkheadGap()+
+              (RadiatorSideHolePieceDimensions(i,r,s,3)+
+                     RadiatorSideHolePieceDimensions(i,r,s,7))/2.);
+        }
+	else {
+         coo[1] = 7.*ManifoldWidth()+BulkheadGap()+
+              (RadiatorSideHolePieceDimensions(i,r,s,3)+
+                     RadiatorSideHolePieceDimensions(i,r,s,7))/2.;
+        }
+
+
+// Reminder:  OctagonDimensions(itrd,4) is negative
+
+          coo[2] = OctagonDimensions(itrd,4)
+                      +RadiatorSideHolePieceDimensions(i,r,s,0);
+
+
+           SetRadiatorSideHolePiece(s,r,i,status,coo,unitnrm,gid);
+
+         }
+       }	
+
+
+
       for(i=0;i<TRDOctagonNo();i++){
        for(j=0;j<LayersNo(i);j++){
         for(k=0;k<LaddersNo(i,j);k++){
@@ -1553,7 +1919,7 @@ void TRDDBc::init(){
 //         number radholenrm[3][3]={0,1,0,1,0,0,0,0,1};
 
 
-        // Set the 3 radiator holes
+        // Set the 3 radiator holes for the bottom ladders
 	SetRadiatorHole(1,k,j,i,status,coo,unitnrm,gid);
 
         number xlength_along_center_bottom = 
@@ -1580,8 +1946,6 @@ void TRDDBc::init(){
 
 	SetRadiatorHole(2,k,j,i,status,coo,unitnrm,gid);
 	
-
-
  
         for(int l=0;l<TubesNo(i,j,k);l++){
 
@@ -1626,7 +1990,6 @@ void TRDDBc::init(){
         }
        }
       }
-
 
 //   Now Final Set for Pipes & Spikes
 
@@ -2508,6 +2871,38 @@ uinteger TRDDBc::getnumBulkhead(uinteger bulkhead,uinteger oct){
 }
 
 
+uinteger TRDDBc::getnumSideHolePiece(uinteger hole,uinteger sidehole, uinteger oct){
+
+
+       int num=0;
+       int i,j,k,l;
+       for ( i=0;i<oct;i++){
+        for ( j=0;j<SideHolesNo(i);j++){
+         for ( k=0;k<SideHolesPieceNo(i,j);k++)num++;
+        }
+       }
+
+       for ( i=oct;i<oct+1;i++){
+        for ( j=0;j<sidehole;j++){
+         for ( k=0;k<SideHolesPieceNo(i,j);k++)num++;
+        }
+       }
+
+       for ( i=oct;i<oct+1;i++){
+        for ( j=sidehole;j<sidehole+1;j++){
+         for ( k=0;k<hole;k++)num++;
+        }
+       }
+
+#ifdef __AMSDEBUG__
+   assert(num<_NumberSideHolePieces);
+#endif
+     return num;
+
+
+}
+
+
 uinteger TRDDBc::getnumTube(uinteger tube,uinteger ladder, uinteger layer, uinteger oct){
        int num=0;
        int i,j,k,l;
@@ -2842,6 +3237,38 @@ void TRDDBc::GetRadiatorHole(uinteger hole,uinteger ladder, uinteger layer, uint
 
 }
 
+void TRDDBc::SetRadiatorSideHolePiece(uinteger hole,uinteger sidehole, uinteger oct,
+             uinteger  status, geant coo[],number nrm[3][3], uinteger gid){
+    oct=getnumSideHolePiece(hole,sidehole,oct);    
+
+   _HeadRadiatorSideHolePiecePos[oct]._status=status;     
+   _HeadRadiatorSideHolePiecePos[oct]._gid=gid;     
+   int i,j;
+   for(i=0;i<3;i++){
+    _HeadRadiatorSideHolePiecePos[oct]._coo[i]=coo[i];
+    for(j=0;j<3;j++){
+     _HeadRadiatorSideHolePiecePos[oct]._nrm[i][j]=nrm[i][j];
+    }
+   }
+}
+
+
+void TRDDBc::GetRadiatorSideHolePiece(uinteger hole, uinteger sidehole,uinteger oct,
+                          uinteger & status, geant coo[],number nrm[3][3],
+                          uinteger &gid){
+   oct=getnumSideHolePiece(hole,sidehole,oct);    
+   status=_HeadRadiatorSideHolePiecePos[oct]._status;     
+   gid=_HeadRadiatorSideHolePiecePos[oct]._gid;     
+   int i,j;
+   for(i=0;i<3;i++){
+    coo[i]=_HeadRadiatorSideHolePiecePos[oct]._coo[i];
+    for(j=0;j<3;j++){
+     nrm[i][j]=_HeadRadiatorSideHolePiecePos[oct]._nrm[i][j];
+    }
+   }
+
+}
+
 
 void TRDDBc::SetTubeBox(uinteger ladder, uinteger layer,uinteger oct,
              uinteger  status, geant coo[],number nrm[3][3], uinteger gid){
@@ -2952,6 +3379,10 @@ _check(toct,lay,lad);
 assert(index<sizeof(_RadiatorHoleDimensions)/sizeof(_RadiatorHoleDimensions[0][0][0][0][0])/mtrdo/maxlay/maxlad/maxhole);
 #endif
 return _RadiatorHoleDimensions[toct][lay][lad][hole][index];
+}
+
+number & TRDDBc::RadiatorSideHolePieceDimensions(uinteger toct, uinteger shole,uinteger hole, uinteger index){
+return _RadiatorSideHolePieceDimensions[toct][shole][hole][index];
 }
 
 number & TRDDBc::TubesBoxDimensions(uinteger toct, uinteger lay, uinteger lad,uinteger index){
