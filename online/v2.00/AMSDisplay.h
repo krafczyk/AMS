@@ -63,6 +63,7 @@ public:
           void      DrawRunInfo(Option_t *option="");
   AMSNtuple *       GetNtuple()const{return m_ntuple;}
   AMSHist *         getCurSubDet(){return _subdet[_cursubdetb];}
+  Int_t             getCurSubDetNo(){return _cursubdet;}
   char *            getGrSet(){return _grset;}
   TFile             *GetRootFile()const {return m_file;}
   TPad              *GetPad() {return m_Pad;}
@@ -82,6 +83,7 @@ public:
   void Filled(char *buf=0);
   Int_t Fill();
   Int_t Dispatch(Int_t subdet, Int_t set=-1);
+  Int_t RDispatch();
   void DispatchProcesses();
   void AddSubDet( AMSHist & subdet);
   AMSHist * getSubDet(Int_t subdet){return subdet>=0 && subdet<_msubdet?_subdet[subdet]:NULL;}

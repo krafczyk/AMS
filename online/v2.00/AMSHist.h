@@ -22,6 +22,7 @@ protected:
 
 public:
  Int_t & getCSet() {return _cSet;}
+ Int_t  getMSet() {return _mSet;}
  void Reset(); 
  virtual void Fill(AMSNtuple * ntuple);
  AMSHist(Text_t * name, Text_t * title, Int_t maxset=0, Int_t active=1):

@@ -56,6 +56,7 @@ TGHotString *ptg2=0;
                  break;
 
                 }
+                gAMSDisplay->RDispatch();
                 return kTRUE;
               }
               switch(parm1){

@@ -424,6 +424,27 @@ Int_t AMSOnDisplay::Dispatch(Int_t subdet, Int_t set){
    return retcode;
 }
 
+Int_t AMSOnDisplay::RDispatch(){
+  Int_t subdet=_cursubdetb;
+   TVirtualPad * gPadSave = gPad;
+   m_Pad->cd();
+   Int_t retcode;
+   _cursubdetb=subdet;
+   if(subdet>=0 && subdet<_msubdet ){
+      int temp=_cursubdet;
+      int tempset=_subdet[subdet]->getCSet()-1;
+      if(tempset<0)tempset=_subdet[subdet]->getMSet()-1;
+      retcode=_subdet[subdet]->DispatchHist(tempset);
+      _cursubdet=subdet;
+      cout <<" subdet "<<subdet<<" "<<" "<<tempset<<endl;
+      Draw();
+      _cursubdet=temp;
+   }   
+   gPadSave->cd();
+      m_Canvas->Update();
+   return retcode;
+}
+
 void AMSOnDisplay::DispatchProcesses(){
   // Check some of the subdet are active
   static Int_t change=1;
