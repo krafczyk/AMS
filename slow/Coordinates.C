@@ -225,7 +225,7 @@ int Coordinates(matr3 Coo_M1950, matr3 Vel_M1950, double q[4], time_t utime, pol
 
   /* GTOD -----> LVLH */
   a = Coo_GTOD[2]*Coo_GTOD[2]*Vel_GTOD[0] - Vel_GTOD[2]*Coo_GTOD[0]*Coo_GTOD[2]
-    - Coo_GTOD[0]*Coo_GTOD[1]*Vel_GTOD[1] + Vel_GTOD[0]*Coo_GTOD[2]*Coo_GTOD[2];
+    - Coo_GTOD[0]*Coo_GTOD[1]*Vel_GTOD[1] + Vel_GTOD[0]*Coo_GTOD[1]*Coo_GTOD[1];
   b = Coo_GTOD[0]*Coo_GTOD[0]*Vel_GTOD[1] - Vel_GTOD[0]*Coo_GTOD[0]*Coo_GTOD[1]
     - Coo_GTOD[1]*Coo_GTOD[2]*Vel_GTOD[2] + Vel_GTOD[1]*Coo_GTOD[2]*Coo_GTOD[2];
   c = Coo_GTOD[1]*Coo_GTOD[1]*Vel_GTOD[2] - Vel_GTOD[1]*Coo_GTOD[1]*Coo_GTOD[2]

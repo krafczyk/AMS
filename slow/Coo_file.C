@@ -115,15 +115,15 @@ time_t xvar;
 ifstream fbin;
 fbin.open("/Offline/vdev/slow/clock");
 if(fbin){
-fbin>>xvar;
-if(fbin.eof()){
-        cerr <<"Unexpected end of clock file "<<xvar<<endl;
-        xvar=15;
-}
+  fbin>>xvar;
+  if(fbin.eof()){
+    cerr <<"Unexpected end of clock file "<<xvar<<endl;
+    xvar=15;
+  }
 }
 else{
-cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
-xvar=15;
+  cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
+  xvar=15;
 }
 cout <<"clock set to "<<xvar <<" sec"<<endl;
 fbin.close();
@@ -131,30 +131,30 @@ file_n=0;
 record_n=Umax=0;
 Umin = 999999999;
 
-  CAS_dir=getenv("CASDataDir");
-  Coo_db_dir=getenv("CooDbDir");
-  setbuf(stdout,NULL);
+CAS_dir=getenv("CASDataDir");
+Coo_db_dir=getenv("CooDbDir");
+setbuf(stdout,NULL);
 
-  //puts("********************");
-  cout <<"********************"<<endl;
-  while(1) {  /*GLOBAL LOOP */
-  fbin.open("/Offline/vdev/slow/clock");
-if(fbin){
-fbin>>xvar;
-if(fbin.eof()){
-        cerr <<"Unexpected end of clock file "<<xvar<<endl;
-        xvar=15;
-}
-}
-else{
-cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
-xvar=15;
-}
-cout <<"clock set to "<<xvar <<" sec"<<endl;
-fbin.close();
- 
+//puts("********************");
+cout <<"********************"<<endl;
+while(1) {  /*GLOBAL LOOP */
+  
 NEW_FILES: /* look for new files in the directory */
-    file_n=0;
+  fbin.open("/Offline/vdev/slow/clock");
+  if(fbin){
+    fbin>>xvar;
+    if(fbin.eof()){
+      cerr <<"Unexpected end of clock file "<<xvar<<endl;
+      xvar=15;
+    }
+  }
+  else{
+    cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
+    xvar=15;
+  }
+  cout <<"clock set to "<<xvar <<" sec"<<endl;
+  fbin.close();
+  file_n=0;
     record_n=Umax=0;
     Umin = 999999999;
     new_files=0;
@@ -345,6 +345,6 @@ NEW_FILES: /* look for new files in the directory */
       }
     }
     goto NEW_FILES;
-  }
+}
   return(0);
 }
