@@ -1,4 +1,4 @@
-//  $Id: trigger1.C,v 1.42 2001/01/22 17:32:23 choutko Exp $
+//  $Id: trigger1.C,v 1.43 2001/02/14 09:20:42 choutko Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -15,7 +15,7 @@
 #include <mceventg.h>
 //
 TriggerLVL1::Scalers TriggerLVL1::_scaler;
-void TriggerLVL1::build(){
+void TriggerLVL1::build(){                        // !!!MC ONLY!!!
 // Trigger mode 1 : ntof >= LVL1FFKEY.ntof + nanti <= LVL1FFKEY.nanti
 // TOF : 
   int i;
@@ -76,14 +76,6 @@ void TriggerLVL1::build(){
   integer tm=floor(TOFVarp::tofvpar.getmeantoftemp(0));   
      if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData()){
         AMSEvent::gethead()->seterror();
-        // get shuttle pos
-      double pole,theta,phi;
-      AMSEvent::gethead()->GetGeographicCoo(pole,theta,phi);
-      double thetas=theta;
-      double phis=fmod(phi-(pole-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
-      if(thetas<0 && thetas > -1 && (phis<0.4 || phis>4.8)){
-         return;
-      }
     }
   if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti && (sumsc<LVL1FFKEY.MaxScalersRate || lifetime>LVL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
@@ -325,7 +317,28 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   integer tm=floor(TOFVarp::tofvpar.getmeantoftemp(0));   
   // mark default as error here
-     if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData())AMSEvent::gethead()->seterror();
+     if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData()){         AMSEvent::gethead()->seterror();
+                 // get shuttle pos
+      double pole,theta,phi;
+      AMSEvent::gethead()->GetGeographicCoo(pole,theta,phi);
+      double thetas=theta;
+      double phis=fmod(phi-(pole-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
+      if(thetas<0 && thetas > -1 && (phis<0.4 || phis>4.8)){
+         return;
+      }
+
+     }
+     if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData()){         AMSEvent::gethead()->seterror();
+                 // get shuttle pos
+      double pole,theta,phi;
+      AMSEvent::gethead()->GetGeographicCoo(pole,theta,phi);
+      double thetas=theta;
+      double phis=fmod(phi-(pole-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
+      if(thetas<0 && thetas > -1 && (phis<0.4 || phis>4.8)){
+         return;
+      }
+
+     }
   if(z>0 && (sumsc<LVL1FFKEY.MaxScalersRate || lifetime>LVL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
   TriggerLVL1(lifetime*1000+tm*10000,z,tofp,tofp1,antip));
   else if(AMSJob::gethead()->isRealData() && sumsc>=LVL1FFKEY.MaxScalersRate && lifetime<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
