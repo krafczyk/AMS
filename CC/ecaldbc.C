@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.28 2001/09/11 12:57:02 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.29 2001/09/19 08:56:55 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -26,17 +26,17 @@ integer ECALDBc::debug=1;
 //
 geant ECALDBc::_gendim[10]={
    65.8,65.8,0., // i=1-2  x,y-dimentions of EC-radiator; 3->spare
-   11.4,          //  =4    dx(dy) thickn.of (PMT+electronics)-volume
-   0.,0.,       //  =5,6    center shift in x,y   
-  -142.3,       //  =7      Radiator(incl.Al-plate !!!) front face Z-pozition
-   5.,          //  =8      top(bot) honeycomb thickness
-   1.75,        //  =9      lead thickness of 1 superlayer
-   0.05        //  =10      Thickness of Al-plate on top(bot) of superlayer 
+   8.2,          //  =4    dx(dy) thickn.of (PMT+electronics)-support(frame)
+   0.,0.,        //  =5,6    center shift in x,y   
+  -142.3,        //  =7      Radiator(incl.glue) front face Z-pozition
+   4.18,         //  =8      top(bot) honeycomb thickness
+   1.83,         //  =9      lead thickness of 1 superlayer
+   0.01          //  =10      Thickness of glue on top(bot) of superlayer 
 };
 //
 geant ECALDBc::_fpitch[3]={
    0.135,      // i=1   fiber pitch in X(Y) projection
-   0.173,0.   // i=2 fiber pitch in Z (inside super-layer); =3->spare
+   0.173,0.    // i=2 fiber pitch in Z (inside super-layer); =3->spare
 };
 //
 geant ECALDBc::_rdcell[10]={

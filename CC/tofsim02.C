@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.11 2001/09/13 09:48:53 choutko Exp $
+//  $Id: tofsim02.C,v 1.12 2001/09/19 08:56:55 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #include <tofdbc02.h>
 #include <iostream.h>
@@ -475,7 +475,7 @@ void TOF2Tovt::build()
 //      idN=0; 
 //      if(ptrN)idN=ptrN->getid();// id of the next G-hit
 //      if(idN != id){ // <---- last or new bar -> create Tovt-objects :
-        if(ptr->testlast()){
+      if(ptr->testlast()){ // <---- last or new bar -> create Tovt-objects :
         edepb*=1000.;// --->MeV
         if(edepb>TFMCFFKEY.Thr){// process only bar with Edep>Ethr
 // PM-1 loop to apply pulse shape :

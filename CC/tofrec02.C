@@ -1,4 +1,4 @@
-//  $Id: tofrec02.C,v 1.8 2001/09/13 09:48:53 choutko Exp $
+//  $Id: tofrec02.C,v 1.9 2001/09/19 08:56:55 choumilo Exp $
 // last modif. 10.12.96 by E.Choumilov - TOF2RawCluster::build added, 
 //                                       AMSTOFCluster::build rewritten
 //              16.06.97   E.Choumilov - TOF2RawEvent::validate added
@@ -915,7 +915,7 @@ void TOF2RawCluster::build(int &ostatus){
 //
   if((nbrch[0]+nbrch[1]) + (nbrch[2]+nbrch[3])>=1)ostatus=0; // good event
 // 
-// --->same multtipl. checks for single bar layers:
+// ---> multtipl. checks for single bar layers:
 //
   for(i=0;i<TOF2GC::SCLRS;i++){
     nbrch[i]=0;

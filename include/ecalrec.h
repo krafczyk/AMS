@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.15 2001/09/11 12:57:06 choumilo Exp $
+//  $Id: ecalrec.h,v 1.16 2001/09/19 08:56:56 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -18,7 +18,7 @@ private:
   static uinteger trigfl; // =1/2/3... -> "mip/low/high, =0->no trig.
   static number trigtm; // ECAL FT abs. time
   integer _idsoft; //readout cell ID=SSPPC (SS->S-layer,PP->PMcell, C->SubCell in PMcell)
-  integer _padc[2];// Pulse hight (ADC-channels)[HighGain,LowGain]
+  integer _padc[2];// Anode pulse hights (ADC-channels)[HighGain,LowGain]
 public:
   AMSEcalRawEvent(integer idsoft, integer status,  
         integer padc[2]):AMSlink(status,0),_idsoft(idsoft)

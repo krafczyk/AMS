@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.67 2001/09/11 12:57:03 choumilo Exp $
+//  $Id: gmat.C,v 1.68 2001/09/19 08:56:55 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -305,16 +305,23 @@ z[0]=6.; z[1]=1.;
 w[0]=8.; w[1]=8.;
 mat.add (new AMSgmat("ECSCINT",a,z,w,2,1.032));
 }
-//-------------------
-// effective material for ECAL PMT-boxes (low dens.(1:10) iron):
-mat.add (new AMSgmat("LOW_DENS_Fe_2",55.85,26.,0.787,17.6,168.));//tempor as for TOF
+//--------
+{
+//---> Effective material for ECAL PMT-boxes-frame (low dens.AL):
+  geant relden=0.91/2.7;//relat(to true AL) density 
+  mat.add (new AMSgmat("LOW_DENS_AL_2",26.98,13.,2.7*relden,8.9/relden,39.4/relden));
 //
-         // AL honeycomb structure for ECAL :
-mat.add (new AMSgmat( "EC-AL-HONEYC",26.98, 13., 0.04, 600., 2660.));//tempor as for TOF
+//---> AL honeycomb structure for ECAL:
+  relden=0.266/2.7;//relat(to true AL) density 
+  mat.add (new AMSgmat("EC-AL-HONEYC",26.98,13.,2.7*relden,8.9/relden,39.4/relden));
 //
-//        Al-plate for ECAL
-mat.add (new AMSgmat("ECALPALUM",26.98, 13., 1.35, 17.8, 74.4));//half-dens.AL
-//------------------
+//---> Al-plates for ECAL superlayer structure:
+//  relden=0.5;//relat(to true AL) density 
+//  mat.add (new AMSgmat("ECALPALUM",26.98,13.,2.7*relden,8.9/relden,39.4/relden));
+  mat.add (new AMSgmat("ECALPALUM",1.01,1., 1.e-21,1.E+22,1.E+22,0.1));// now this
+//should be glue, but for simplicity/speed reasons i use vacuum, because thickness is small
+}
+//--------
 { // Fiber wall(cladding+glue, ~ plexiglass):  
   geant a[]={12.01,1.01,16.0};
   geant z[]={6.,1.,8.};
@@ -694,7 +701,7 @@ pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_FWALL","ECFPLEX",0));
 pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_FIBER-cladd+glue
 pgtmed->CUTELE(ECMCFFKEY.cutge);
 //
-pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_Fe_2",0));
+pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_ELBOX","LOW_DENS_AL_2",0));
 pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_ELBOX
 pgtmed->CUTELE(ECMCFFKEY.cutge);
 //
@@ -703,7 +710,7 @@ pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_HONEYC
 pgtmed->CUTELE(ECMCFFKEY.cutge);
 //
 pgtmed=(AMSgtmed*)tmed.add (new AMSgtmed("EC_AL_PLATE","ECALPALUM",0));
-pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_AL_PLATE
+pgtmed->CUTGAM(ECMCFFKEY.cutge);// special cuts for EC_AL_PLATE(now glue)
 pgtmed->CUTELE(ECMCFFKEY.cutge);
 } 
 //----------------

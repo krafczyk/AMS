@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.132 2001/09/11 12:57:02 choumilo Exp $
+//  $Id: amsgeom.C,v 1.133 2001/09/19 08:56:54 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -68,6 +68,7 @@ extern void Put_rad(AMSgvolume *,integer);
 extern void Put_pmt(AMSgvolume *,integer);
 };
 using namespace amsgeom;
+//--------------------------------------------------
 void AMSgvolume::amsgeom(){
 AMSID amsid;
 geant par[10];
@@ -102,90 +103,92 @@ if (strstr(AMSJob::gethead()->getsetup(),"BIG")){
 else{
  for(int i=0;i<3;i++)amss[i]=AMSDBc::ams_size[i]*sqrt(2.);
 }
-      parf[0]=amss[0]/2;
-      parf[1]=amss[1]/2;
-      parf[2]=amss[2]/2;
-      par[0]=AMSDBc::ams_size[0]/2;
-      par[1]=AMSDBc::ams_size[1]/2;
-      par[2]=AMSDBc::ams_size[2]/2;
-      // to be able rotate ams as a whole
-static AMSgvolume false_mother("VACUUM",0,AMSDBc::ams_name,"BOX ",parf,3,coo,nrm,"ONLY",  0,gid,1);  // AMS false mother volume
-
-static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,AMSDBc::ams_nrm,"ONLY",  0,gid,1);  // AMS mother volume
+//
+parf[0]=amss[0]/2;
+parf[1]=amss[1]/2;
+parf[2]=amss[2]/2;
+par[0]=AMSDBc::ams_size[0]/2;
+par[1]=AMSDBc::ams_size[1]/2;
+par[2]=AMSDBc::ams_size[2]/2;
+// to be able rotate ams as a whole
+//
+//----> create mother volumes:
+//
+static AMSgvolume false_mother("VACUUM",0,AMSDBc::ams_name,"BOX ",parf,3,coo,nrm,"ONLY",0,gid,1);  // AMS false mother volume
+char optn[5];
+  if(strstr(AMSJob::gethead()->getsetup(),"BIG"))strcpy(optn,"MANY");
+  else strcpy(optn,"ONLY");
+static AMSgvolume mother("VACUUM",AMSDBc::ams_rotmno,"FMOT","BOX",par,3,AMSDBc::ams_coo,AMSDBc::ams_nrm,optn,0,gid,1);  // AMS mother volume
 AMSJob::gethead()->addup( &false_mother);
 false_mother.add(&mother);
-
-if (strstr(AMSJob::gethead()->getsetup(),"BIG")){
-
-number nrm1[3][3];
-integer nrot(1);
- number angle=10./180*AMSDBc::pi;
- nrm1[0][0]=cos(angle);
- nrm1[1][0]=0;
- nrm1[2][0]=-sin(angle);
- nrm1[0][1]=0;
- nrm1[1][1]=1;
- nrm1[2][1]=0;
- nrm1[0][2]=sin(angle);
- nrm1[1][2]=0;
- nrm1[2][2]=cos(angle);
-
-
-
-
+//
+//----> add solar pannels and part of ISS-base around AMS for "BIG" setup:
+//
+if(strstr(AMSJob::gethead()->getsetup(),"BIG")){
+  number nrm1[3][3];
+  integer nrot(1);
+  number angle=10./180*AMSDBc::pi;
+  nrm1[0][0]=cos(angle);
+  nrm1[1][0]=0;
+  nrm1[2][0]=-sin(angle);
+  nrm1[0][1]=0;
+  nrm1[1][1]=1;
+  nrm1[2][1]=0;
+  nrm1[0][2]=sin(angle);
+  nrm1[1][2]=0;
+  nrm1[2][2]=cos(angle);
+//
 // Add Solar Panel  // alpha=beta=90 
-
-   int inrm=1;
-   geant coosp[3]={500.,0.,0.};
-   geant parsp[3]={0.5,300.,1700.};
-   AMSgvolume *span = new AMSgvolume("VACUUM",inrm,"SPAN","BOX ",parsp,3,coosp,nrm1,"ONLY",0,1,1);
-    false_mother.add(span);
-
-   geant coos[3]={0.,0.,100.};
-   geant pars[3]={0.5,300.,800.};
-   coos[2]+=pars[2];
-   AMSgvolume *solar1 = new AMSgvolume("1/2ALUM",0,"SPA1","BOX ",pars,3,coos,nrm,"ONLY",0,1,1);
-   coos[2]*=-1;
-   AMSgvolume *solar2 = new AMSgvolume("1/2ALUM",0,"SPA2","BOX ",pars,3,coos,nrm,"ONLY",0,1,1);
-span->add(solar1);
-span->add(solar2);
 //
-// --------> add ISS payload place around AMS as polygon(6)(ISS "tube"):
-//
- geant issang=12./180.*AMSDBc::pi;// AMS slope along ISS "tube" axis
- geant issdfi=360./6;//PGON azimuthal phi-division
- geant isssin=sin(issang);
- geant isscos=cos(issang);
- geant issdz=800.;//"tube" length(its z-size)(limited by +-4m arount AMS att.point)
- geant issrad=200.;//"tube" radious
- geant issxp=issrad*isssin;//"tube" origin x-pos in AMS ref.syst.
- geant issyp=-90.;//"tube" origin y-pos
- geant isszp=-(182.6/isscos+issrad*isscos);//"tube" origin y-pos
- number issrm[3][3]={0.,-isssin,isscos,1.,0.,0.,0.,isscos,isssin};
-//
- par[0]=issdfi/2.;
- par[1]=360.;
- par[2]=6;
- par[3]=2;
- par[4]=-issdz/2.;
- par[5]=0.;
- par[6]=issrad;
- par[7]=issdz/2.;
- par[8]=0.;
- par[9]=issrad;
- coo[0]=issxp;
- coo[1]=issyp;
- coo[2]=isszp;
- gid=1;
-// dau=mother.add(new AMSgvolume(
-//     "ISSTUBEMED",nrot++,"ISST","PGON",par,10,coo,issrm,"ONLY",1,gid,1));// ISS "tube"
+  geant coosp[3]={500.,0.,0.};
+  geant parsp[3]={0.5,300.,1700.};
+  AMSgvolume *span = new AMSgvolume("VACUUM",nrot,"SPAN","BOX ",parsp,3,coosp,nrm1,"ONLY",0,1,1);
+  false_mother.add(span);
 
-// update amsg
- for(int i=0;i<3;i++)AMSDBc::ams_size[i]*=10;
+  geant coos[3]={0.,0.,100.};
+  geant pars[3]={0.5,300.,800.};
+  coos[2]+=pars[2];
+  AMSgvolume *solar1 = new AMSgvolume("1/2ALUM",0,"SPA1","BOX ",pars,3,coos,nrm,"ONLY",0,1,1);
+  coos[2]*=-1;
+  AMSgvolume *solar2 = new AMSgvolume("1/2ALUM",0,"SPA2","BOX ",pars,3,coos,nrm,"ONLY",0,1,1);
+  span->add(solar1);
+  span->add(solar2);
+//
+// -----> add ISS payload place around AMS as polygon(6)(ISS "tube"):
+//
+  geant issang=12./180.*AMSDBc::pi;// AMS slope along ISS "tube" axis
+  geant issdfi=360./6;//PGON azimuthal phi-division
+  geant isssin=sin(issang);
+  geant isscos=cos(issang);
+  geant issdz=800.;//"tube" length(its z-size)(limited by +-4m arount AMS att.point)
+  geant issrad=200.;//"tube" radious
+  geant issxp=issrad*isssin;//"tube" origin x-pos in AMS ref.syst.
+  geant issyp=-90.;//"tube" origin y-pos
+  geant isszp=-(182.6/isscos+issrad*isscos);//"tube" origin y-pos
+  number issrm[3][3]={0.,-isssin,isscos,1.,0.,0.,0.,isscos,isssin};
+//
+  par[0]=issdfi/2.;
+  par[1]=360.;
+  par[2]=6;
+  par[3]=2;
+  par[4]=-issdz/2.;
+  par[5]=0.;
+  par[6]=issrad;
+  par[7]=issdz/2.;
+  par[8]=0.;
+  par[9]=issrad;
+  coo[0]=issxp;
+  coo[1]=issyp;
+  coo[2]=isszp;
+  gid=1;
+  AMSgvolume *isst = new  AMSgvolume("ISSTUBEMED",nrot,"ISST","PGON",par,10,coo,issrm,"ONLY",1,gid,1);// ISS "tube"
+  false_mother.add(isst);
 
+//-----> update amsg
+  for(int i=0;i<3;i++)AMSDBc::ams_size[i]*=10;
 }
-
-
+//-----
+//
 if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
  magnetgeom(mother);
 // tofgeom(mother);//old
@@ -271,7 +274,7 @@ getNrm()=0;
 //// if(AMSgvolume::debug)AMSgObj::GVolMap.print();
 //#endif
 }
-
+//--------------------------------------------------------------
 void amsgeom::magnetgeom(AMSgvolume & mother){
 AMSID amsid;
 geant par[6]={0.,0.,0.,0.,0.,0.};
@@ -4044,12 +4047,12 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
   dxe=ECALDBc::gendim(4);// dx(dy)-thickness of (PMT+electronics)-volume 
   dy1=ECALDBc::gendim(2);// y-size of EC-rad
   dzrad1=ECALDBc::gendim(9);// z-size of one SL-radiator(lead only)
-  alpth=ECALDBc::gendim(10);// Al plate  thickness
+  alpth=ECALDBc::gendim(10);// Al(or glue) layer  thickness
   nsupl=ECALDBc::slstruc(3);// numb.of super-layers
   nflpsl=ECALDBc::slstruc(2);// numb.of fiber-layers per super-layer
   nfpl[0]=ECALDBc::nfibpl(1);// fibers/(1st layer) 
   nfpl[1]=ECALDBc::nfibpl(2);// fibers/(2nd layer)
-  dz=(dzrad1+2.*alpth)*nsupl;//EC rad. total thickness(incl. Al-plates, excl. Honeyc)
+  dz=(dzrad1+2.*alpth)*nsupl;//ECrad. tot.thickness(incl. Al-plates(now glue), excl. Honeyc)
   cout<<"EcalGeom: EC total radiator(incl.Al-plates) thickness "<<dz<<" cm"<<endl;
   dzh=ECALDBc::gendim(8);// Z-thickness of honeycomb
   xpos=ECALDBc::gendim(5);// x-pos EC-radiator center
@@ -4072,8 +4075,8 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
 //------------------------------------
 //  create top/bot honeycomb plate in ECAL-mother:
 //
-  par[0]=dx1/2.;
-  par[1]=dy1/2.;
+  par[0]=dx1/2.+dxe/2.;
+  par[1]=dy1/2.+dxe/2.;
   par[2]=dzh/2.;
   coo[0]=0.;
   coo[1]=0.;
@@ -4087,8 +4090,8 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
        "EC_HONEYC",0,"ECHN","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));// bot honeycomb plate
 //------------------------------------
 //
-// create EC-electronics boxes in ECAL-mother:
-//
+// create PM_support_structure(frame) around radiator(in ECAL-mother):
+//2 sides along Y:
   coo[2]=0.;
   par[2]=dz/2.;
   par[0]=dxe/2.;
@@ -4102,8 +4105,8 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
   gid=2;
   p=ECmother->add(new AMSgvolume(
        "EC_ELBOX",0,"ECEB","BOX",par,3,coo,nrm0,"ONLY",1,gid,1));//+X box
-//
-  par[0]=dx1/2.;
+//2 sides along X:
+  par[0]=dx1/2.+dxe;
   par[1]=dxe/2.;
   coo[0]=0.;
   coo[1]=-dy1/2.-dxe/2.;
