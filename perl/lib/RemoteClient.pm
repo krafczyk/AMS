@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.201 2003/07/25 10:21:58 alexei Exp $
+# $Id: RemoteClient.pm,v 1.202 2003/07/25 12:17:46 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -54,6 +54,7 @@ my     $rchtmlMySQL='http://ams.cern.ch/AMS/Computing/mcproduction/rc.mysql.html
 my     $validatecgi      ='http://pcamsf0.cern.ch/cgi-bin/mon/validate.o.cgi';
 my     $validatecgiMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/validate.mysql.cgi';
 
+my     $PrintMaxJobsPerCite = 25;
 sub new{
     my $type=shift;
 my %fields=(
@@ -899,12 +900,12 @@ sub ValidateRuns {
      if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
          (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
         ){
-     print "<td><tr> $run->{Run}/$run->{Status} ; </td></tr>";
         my $fevent =  1;
         my $levent =  0;
 # check if corresponding job exist
-         $sql   = "SELECT runs.status, jobs.content FROM runs,jobs 
-                          WHERE jobs.jid=$run->{Run} AND runs.jid=jobs.jid";
+         $sql   = "SELECT runs.status, jobs.content, cites.status 
+                    FROM runs,jobs,cites 
+                     WHERE jobs.jid=$run->{Run} AND runs.jid=jobs.jid AND cites.cid=jobs.cid";
          my $r1 = $self->{sqlserver}->Query($sql);
          if (not defined $r1->[0][0]) { 
           $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}"; 
@@ -916,7 +917,11 @@ sub ValidateRuns {
          } else {
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
-          if ($jobcontent =~ m/-GR/ ) {
+          my $citestatus = $r1->[0][2];
+# Jul 25, 2003 ak.
+# validate cite 'local' runs on the same way as 
+# '-GR' runs
+          if ($jobcontent =~ m/-GR/ || $citestatus eq "local") {
 #
 # remote job
 #            update jobinfo first
@@ -1026,7 +1031,7 @@ sub ValidateRuns {
                                                 $events,
                                                 $badevents,
                                                 $ntuple->{Insert},
-                                                $ntuple->{Size},
+                                                $ntuple->{size},
                                                 $status,
                                                 $outputpath,
                                                 $ntuple->{crc});
@@ -1174,11 +1179,13 @@ sub doCopy {
                $cmdstatus = system($cmd);
                print "docopy - $cmd \n";
                if ($cmdstatus == 0 ) {
-                 my $rstatus = system("$self->{AMSSoftwareDir}/exe/linux/crc $outputpath $crc");
+                 my $crccmd  = "$self->{AMSSoftwareDir}/exe/linux/crc $outputpath $crc";
+                 my $rstatus = system($crccmd);
                  $rstatus=($rstatus>>8);
                  if ($rstatus == 1) {
                    return $outputpath,1;
                  } else {
+                  htmlWarning("doCopy","$crccmd");
                   htmlWarning("doCopy","crc calculation failed for $outputpath");
                   htmlWarning("doCopy","crc calculation failed status $rstatus");
                   return $outputpath,0;
@@ -1477,7 +1484,7 @@ sub Connect{
      $self->{read}=1;
      if ($self->{q}->param("getJobID") eq "Submit") {
         htmlTop();
-        my $title = "Job : ";
+        my $title = "Jobs : ";
         my $jobid = 0;
         my $jobmin= 0;
         my $jobmax= 0;
@@ -1489,15 +1496,38 @@ sub Connect{
                                elapsed, cites.name, jobs.did, jobs.timestamp, jobs.jid   
                           FROM jobs, cites 
                           WHERE jobs.jid>$jobmin AND jobs.jid<$jobmax 
-                                AND jobs.cid=cites.cid ORDER BY jobs.jid";
+                                AND jobs.cid=cites.cid ";
+                if ($q->param("QCite")) {
+                 my $cite = trimblanks($q->param("QCite"));
+                 if ($cite ne 'Any') {
+                  $sql = $sql." AND cites.name = '$cite' ";
+                 }
+                 $title=$title." for Cite : $cite";
+                }
+                $sql = $sql." ORDER BY jobs.jid";
             } else {
              $jobid =  trimblanks($q->param("JobID"));
-             $title = $title.$jobid;
-             $sql = "SELECT jobname, triggers , host, events, errors, cputime, 
+             if ($jobid > 0) {
+              $title = $title.$jobid;
+              $sql = "SELECT jobname, triggers , host, events, errors, cputime, 
                             elapsed, cites.name, content, jobs.timestamp, jobs.jid 
                           FROM jobs, cites 
                           WHERE jobs.jid=$jobid AND jobs.cid=cites.cid";
-            }
+             } else {
+                 goto CheckCite;
+             }
+          }
+        } else {
+CheckCite:            if (defined $q->param("QCite")) {
+             my $cite = trimblanks($q->param("QCite"));
+             if ($cite ne 'Any') {
+              $sql = "SELECT jobname, triggers , host, events, errors, cputime, 
+                            elapsed, cites.name, content, jobs.timestamp, jobs.jid 
+                          FROM jobs, cites 
+                          WHERE cites.name='$cite' AND jobs.cid=cites.cid";
+              $title=$title." for Cite : $cite";
+             }
+         }
         }
         my $content = " ";
         $self->htmlTemplateTable($title);
@@ -1542,10 +1572,12 @@ sub Connect{
               }
              }
              $color="black";
-             if ($status eq 'Finished') {
+             if ($status eq 'Finished' or $status eq 'Completed') {
                  $color = "green";
-             } elsif ($status eq 'Failed') {
+             } elsif ($status eq 'Failed' or $status eq 'Unchecked') {
                  $color = "red";
+             } elsif ($status eq 'Processing') {
+                 $color = "blue";
              }
              if ($jobmax > 0) {
               print "
@@ -2384,6 +2416,16 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
       print "Find Job : (eg 805306383 or From-To) </B></font></td></tr></table> \n";
       print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
       print "<b>JobID : </b> <input type =\"text\" name=\"JobID\">\n";
+
+          print "<tr valign=middle><td align=left><b><font size=\"-1\"> Cite : </b></td> <td colspan=1>\n";
+          print "<select name=\"QCite\" >\n";
+          print "<option value=\"Any\">Any </option>\n";
+          foreach my $cite (@{$self->{CiteT}}){
+              print "<option value=\"$cite->{name}\">$cite->{name} </option>\n";
+          }
+          print "</select>\n";
+          print "</b></td></tr>\n";
+
       print "<input type=\"submit\" name=\"getJobID\" value=\"Submit\"> \n";
       print "</form>\n";
       print "</table> \n";
@@ -5566,7 +5608,7 @@ sub listStat {
 sub listCites {
     my $self = shift;
     print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
-     htmlTable("MC02 Cites");
+     htmlTable("MC02 Cites (only 25 latest jobs/cite are printed)");
      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT cid,descr, name, status, maxrun FROM Cites ORDER by name";
      my $r3=$self->{sqlserver}->Query($sql);
@@ -5965,7 +6007,7 @@ sub listJobs {
     $ret=$self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
      print " <Table> \n";
-     print " <TR><TH rowspan=2>MC Production Cites :<br> \n";
+     print " <TR><TH rowspan=2>MC Production Cites : <br> \n";
      foreach my $cite (@{$ret}) {
       my $rc = $cite->[0];
       print "</th> <th><small> \n";
@@ -5981,10 +6023,12 @@ sub listJobs {
                      Mails.mid, Mails.name
               FROM   Jobs, Cites, Mails
               WHERE  Jobs.cid=Cites.cid AND Jobs.mid=Mails.mid
-              ORDER  BY Cites.name, Jobs.jid";
+              ORDER  BY Cites.name, Jobs.jid DESC";
      my $r3=$self->{sqlserver}->Query($sql);
      print_bar($bluebar,3);
      my $newline = " ";
+     my $savcite = "unknown";
+     my $njobs   = 0;    
      if(defined $r3->[0][0]){
       foreach my $job (@{$r3}){
           my $jid       = $job->[0];
@@ -5998,6 +6042,10 @@ sub listJobs {
           my $expiretime= EpochToDDMMYYHHMMSS($texpire); 
           my $trig      = $job->[6];
           my $cite      = $job->[8];
+          if ($cite ne $savcite) {
+              $savcite = $cite;
+              $njobs   = 0;
+          }
           my $user      = $job->[10];
           $sql="SELECT status from Runs WHERE jid=$jid";
           $r3=$self->{sqlserver}->Query($sql);
@@ -6030,6 +6078,7 @@ sub listJobs {
                  print "</tr>\n";
              }
             }
+          if ($njobs < $PrintMaxJobsPerCite) {
                  print "
                   <td><b><font color=$color> $jid </font></td></b>
                   <td><b><font color=$color> $user </font></b></td>
@@ -6040,6 +6089,8 @@ sub listJobs {
                   <td><b><font color=$color> $status </font></b></td>\n";
 
                  print "</font></tr>\n";
+             }
+          $njobs++;
       }
       htmlTableEnd();
     }  
