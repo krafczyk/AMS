@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.4 2003/12/17 13:39:59 mdelgado Exp $
+#  $Id: Makefile,v 1.5 2004/02/11 13:25:29 choutko Exp $
 
 #rl october 2003
 
@@ -330,7 +330,7 @@ producer:	$(CLIENT)
 
 
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC)
-	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC) -pthread /usr/lib/ctype-info.o
+	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
 $(OBJECTSE):         $(SRCSCPP)
 	$(CPP)  -c $(CFLAGS) $(SRCSCPP) 

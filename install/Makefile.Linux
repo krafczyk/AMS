@@ -2,6 +2,10 @@
 #ifeq  "$(shell uname)"  "Linux"
 
 # DEFAULTS 
+RH9add=
+ifdef RH9
+ RH9add=-pthread  /usr/lib/ctype-info.o
+endif
 
 CERN_LEVEL = 2001
 CERNDIR = /cern/$(CERN_LEVEL)
@@ -31,7 +35,7 @@ ifdef AMSICC
   BINMT=$(AMSWD)/bin/linux/icc/mt/
   BIN=$(AMSWD)/bin/linux/icc/
   EXE=$(AMSWD)/exe/linux/icc/
-  LIB=$(AMSWD)/lib/linux/icc/
+  LIB=$(AMSWD)/lib/linux
   CC=g++ -Wno-deprecated -mcpu=i686
   LD=g++
   SHLD=$(LIB)/ntuple.so
@@ -148,7 +152,7 @@ ifdef AMSICC
 
     LDFLAGS=      -L/opt/intel/compiler70/ia32/lib  -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf -lcxa  -lPEPCF90 -lPOSF90 -limf -lirc -lcprts -L$(CERNDIR)/lib   -lgeant321  -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L/usr/local/lib    -lm  -L$(AMSICCLIB) -lamsut  -lkernlib  $(ROOTLIBS)   $(PFLAGS) -L/opt/intel/compiler70/ia32/lib    -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90 -lPEPCF90 -lPOSF90 -lintrins -limf -ldl
 
-    LDFLAGSSTATIC=  -static  -L/opt/intel/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321 -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L$(AMSICCLIB) -lamsut  -lkernlib $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90  -lPEPCF90 -lPOSF90 -lintrins -limf -L$(ROOTSYS)/lib -lRoot -lcrypt -ldl -lfreetype
+    LDFLAGSSTATIC=  -static  -L/opt/intel/compiler70/ia32/lib -lBINDF90 -lCEPCF90 -lIEPCF90 -lF90  -limf   -lPEPCF90 -lPOSF90  -limf -lirc -L$(ROOTSYS)/lib -lRoot -L$(CERNDIR)/lib   -lgeant321 -lpacklib -lmathlib -lkernlib -L$(NAGDIR) -lnag -lnsl -L$(AMSICCLIB) -lamsut  -lkernlib $(PFLAGS) -L/opt/intel/compiler70/ia32/lib   -lBINDF90 -lCEPCF90 -lIEPCF90  -lF90  -lPEPCF90 -lPOSF90 -lintrins -limf -L$(ROOTSYS)/lib -lRoot -lcrypt -ldl -lfreetype $(RH9add)
 
   endif
 
