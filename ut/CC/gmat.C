@@ -491,18 +491,15 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 // Radiator
 
   geant my_step=RICHDB::max_step();
-  geant my_epsil=my_step<0.001?my_step/10:0.001;
-
   AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH RAD",
-         "RICH_AEROGEL",1,'N',0,1,20,10,1000,-1,my_epsil,my_step));   //32
+         "RICH_AEROGEL",1,'N',0,1,20,10,my_step));   //32
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index,RICHDB::rad_clarity);
   
 // PMT window
   
-  my_step*=(1-1/1.458/1.458)/(1-1/RICHDB::rad_index/RICHDB::rad_index); // To be moved to RICH common
-  my_epsil=my_step<0.001?my_step/10:0.001;
-pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH PMTS",
-    "PMT_WINDOW",1,'N',0,1,20,10,1000,-1,my_epsil,my_step)); //35 to be moved to RICH commons
+//  my_step*=(1-1/1.458/1.458)/(1-1/RICHDB::rad_index/RICHDB::rad_index); // To be moved to RICH common
+    pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH PMTS",
+    "PMT_WINDOW",1)); //35 
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1.e-10;     //changed by VC 7-sep-2000

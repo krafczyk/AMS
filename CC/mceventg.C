@@ -123,9 +123,7 @@ if(_fixeddir){
   number y=_coorange[0][1];
   number z=_coorange[0][2];
   geant d(-1);
-  cout <<" qq in "<<endl;
   _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz*RNDM(d));
-  cout <<"coo "<<_coo<<endl;
  }
 }
 else {   // <--- random dir

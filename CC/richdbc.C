@@ -250,7 +250,7 @@ geant RICHDB::max_step(){
 	-1/RICHDB::wave_length[0])*charge*charge;
   geant max=RICmaxphotons/dndl;
 #ifdef __AMSDEBUG__
-  cout << "Max step "<<max<<" cm"<<endl;
+  cout << "Max step "<<max<<" cm"<<RICmaxphotons<<endl;
 #endif
   return max;
 }
