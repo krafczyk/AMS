@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.277 2004/09/22 18:52:50 alexei Exp $
+# $Id: RemoteClient.pm,v 1.278 2004/09/23 09:10:03 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -8697,6 +8697,14 @@ sub printMC02GammaTest {
 sub printJobParamFormatDST {
 
     my $self=shift;
+# check AMS01 / AMS02 production and set default output format accordingly
+    my $defROOT    = "CHECKED";
+    my $defNTUPLE  = " ";
+    if ($ActiveProductionSet =~ m/AMS01/) {
+        $defNTUPLE = "CHECKED";
+        $defROOT   = " ";
+    }
+
 
 # DST output format
             print "<tr><td><b><font color=\"green\">DST output format</font></b>\n";
@@ -8704,8 +8712,8 @@ sub printJobParamFormatDST {
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
             print "<tr><td><font size=\"-1\"<b>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=500000000 127=2 128=\" CHECKED><b> RootFile </b><BR>\n";
-            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000000 2=\"><b> NTUPLE </b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 168=500000000 127=2 128=\" $defROOT><b> RootFile </b><BR>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 168=120000000 2=\" $defNTUPLE><b> NTUPLE </b>\n";
             print "</b></font></td></tr>\n";
            htmlTableEnd();
 }
