@@ -170,6 +170,8 @@ FFKEY("TERM",(float*)&TRMFFKEY,sizeof(TRMFFKEY_DEF)/sizeof(integer),"MIXED");
 MISCFFKEY.BTempCorrection=1;
 MISCFFKEY.BeamTest=0;
 MISCFFKEY.BZCorr=1;
+MISCFFKEY.G3On=1;
+MISCFFKEY.G4On=0;
 FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -944,6 +946,16 @@ void AMSJob::_retrddata(){
 
 
 void AMSJob::udata(){
+if(!MISCFFKEY.G4On && !MISCFFKEY.G3On){
+cerr<<"AMSJob::udata-F-NeitherGeant3NorGeant4Selected"<<endl;
+exit(1);
+}
+else if(MISCFFKEY.G4On && MISCFFKEY.G3On){
+cerr<<"AMSJob::udata-W-BothGeant3AndGeant4Selected"<<endl;
+}
+else if(MISCFFKEY.G4On)cout<<"AMSJob::udata-I-Geant4Selected"<<endl;
+else cout<<"AMSJob::udata-I-Geant3Selected"<<endl;
+
 if(MISCFFKEY.BZCorr !=1){
 cout <<"AMSJob::udata-W-magneticFieldRescaleModeOnWithFactor "<<MISCFFKEY.BZCorr<<endl;
 }
@@ -2126,6 +2138,17 @@ AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
      else return  (AMSTimeID*)p;
 }
 
+AMSJob::AMSJob(AMSID id, uinteger jobtype):AMSNode(id),_jobtype(jobtype)
+{_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
+_TDVC[0][0]='\0';
+_TDVN=0;
+if(_Head){
+ cerr<<"AMSJob-ctor-F-OnlyOnejobAlowed"<<endl;
+ exit(1);
+}
+else _Head=this;
+cout <<"AMS Software version "<<AMSCommonsI::getversion()<<"/"<<AMSCommonsI::getbuildno()<<endl;
+}
 
 AMSJob::~AMSJob(){
   cout << "~AMSJob called "<<endl;

@@ -19,7 +19,7 @@ AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[],
    UCOPY(par,_par,6*sizeof(par[0])/4);
    UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
    UCOPY(nrm,_nrmA,3*3*sizeof(nrm[0][0])/4);
-   transpose(_nrmA,_inrmA);
+   amsprotected::transpose(_nrmA,_inrmA);
 //
 //  Part of geant initialization here
 //
@@ -52,7 +52,7 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
    UCOPY(par,_par,6*sizeof(par[0])/4);
    UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
    UCOPY(nrm,_nrmA,3*3*sizeof(nrm[0][0])/4);
-   transpose(_nrmA,_inrmA);
+   amsprotected::transpose(_nrmA,_inrmA);
 //
 //  Part of geant initialization here
 //
@@ -93,7 +93,7 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
      _nrmA[j][1]=nrm2[j];
      _nrmA[j][2]=nrm3[j];
    }
-     transpose(_nrmA,_inrmA);
+     amsprotected::transpose(_nrmA,_inrmA);
 //
 //  Part of geant initialization here
 //
@@ -111,8 +111,8 @@ cur=cur->up();
 number nrm[3][3];
 if(cur)_gl2loc(cur,coo);
 else return;
- transpose(cur->_nrm,nrm);
- mm3(nrm,_nrm,0);
+ amsprotected::transpose(cur->_nrm,nrm);
+ amsprotected::mm3(nrm,_nrm,0);
  coo=(coo-cur->_coo).mm3(nrm);
 }
 
@@ -130,7 +130,7 @@ void AMSgvolume::_init(){
    coo=0;
    while (cur){
       coo=coo.mm3(cur->_nrm)+cur->_coo;
-      mm3(cur->_nrm,nrm,0);
+      amsprotected::mm3(cur->_nrm,nrm,0);
       cur=cur->up();
    }
    _cooA=coo;
@@ -147,7 +147,7 @@ void AMSgvolume::_init(){
       _gl2loc(cur,coo);
     _coo=coo;     
   }
-   transpose(_nrmA,_inrmA);
+   amsprotected::transpose(_nrmA,_inrmA);
 
   if (_gid > 0) {
    int newv=0;

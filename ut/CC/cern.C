@@ -2,7 +2,8 @@
  
 #include <typedefs.h>
 #include <cern.h>
-void mm3(  number m1[3][3],  number m2[3][3], int choise){
+using namespace amsprotected;
+void amsprotected::mm3(  number m1[3][3],  number m2[3][3], int choise){
   const int s=3;
   static number tmp[s][s];
   for (int i=0;i<s;i++){
@@ -17,7 +18,7 @@ void mm3(  number m1[3][3],  number m2[3][3], int choise){
     UCOPY(tmp,m2,s*s*sizeof(tmp[0][0])/4);
 }
 
-void transpose( number m1[3][3], number m2[3][3]){
+void amsprotected::transpose( number m1[3][3], number m2[3][3]){
  m2[0][0]=m1[0][0];
  m2[0][1]=m1[1][0];
  m2[0][2]=m1[2][0];

@@ -9,48 +9,16 @@
 #include <upool.h>
 #include <apool.h>
 #include <status.h>
-
-
-
-const int NWPAW=2000000;
-struct PAWC_DEF{
-float q[NWPAW];
-};
-const int NWGEAN=4000000;
-struct GCBANK_DEF{
-float q[NWGEAN];
-};
-//
-#define GCBANK COMMON_BLOCK(GCBANK,gcbank)
-COMMON_BLOCK_DEF(GCBANK_DEF,GCBANK);
+#include <commons.h>
+#include <geantnamespace.h>
 GCBANK_DEF GCBANK;
-
-#define PAWC COMMON_BLOCK(PAWC,pawc)
-COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 PAWC_DEF PAWC;
-
-struct QUEST_DEF{
-int q[100];
-};
-#define QUEST COMMON_BLOCK(QUEST,quest)
-COMMON_BLOCK_DEF(QUEST_DEF,QUEST);
-QUEST_DEF QUEST;
-
-
-PROTOCCALLSFSUB0(UGINIT,uginit)
-#define UGINIT() CCALLSFSUB0(UGINIT,uginit)
-PROTOCCALLSFSUB0(UGLAST,uglast)
-#define UGLAST() CCALLSFSUB0(UGLAST,uglast)
-//
 void (handler)(int);
-#ifdef __NAMESPACE__
-namespace glconst{
-integer cpul=1;
-}
-#else
-integer cpul=1;
-#endif
-main(){
+ namespace glconst{
+  integer cpul=1;
+ }
+ main(){
+     using namespace gams;
      *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
@@ -63,9 +31,13 @@ main(){
     cout.sync_with_stdio();
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
-    QUEST.q[9]=64000;
     UGINIT();
+#ifdef __G4AMS__
+    if(MISCFFKEY.G4On)g4ams::G4RUN();
+    else if(MISCFFKEY.G3On)GRUN();
+#else
     GRUN();
+#endif
     UGLAST();
     
 return 0;

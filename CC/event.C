@@ -43,7 +43,7 @@
 #include <signal.h>
 #include <ecaldbc.h>
 #include <ecalrec.h>
-extern "C" void uglast_();
+#include <geantnamespace.h>
 
 static geant   Tcpu0 = 0; 
 static time_t  T0    = 0;
@@ -1976,7 +1976,7 @@ while(offspring){
       cerr<<" Begin : " <<ctime(&b)<<endl; 
       cerr<<" End : " <<ctime(&e)<<endl; 
       cerr<<" Insert : " <<ctime(&i)<<endl; 
-      uglast_();
+      gams::UGLAST();
       exit(1);
     }
     offspring=(AMSTimeID*)offspring->next();
