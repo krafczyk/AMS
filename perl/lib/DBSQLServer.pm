@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.55 2003/06/17 15:09:49 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.56 2003/08/04 10:48:08 alexei Exp $
 
 #
 #
@@ -356,7 +356,8 @@ my $sql;
      $dbh->do("insert into Environment values('gbatch','exe/linux/gbatch-orbit.exe')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('ntuplevalidator','exe/linux/fastntrd.exe')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('getior','exe/linux/getior.exe')") or die "cannot do: ".$dbh->errstr();     
-     $dbh->do("insert into Environment values('filebbftp','amsbbftp.tar.gz')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('FileBBFTP','amsbbftp.tar.gz')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('FileBookKeeping','amsbookkeeping.tar.gz')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('filedb','ams02mcdb.tar.gz')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('filedb.att','ams02mcdb.att.tar.gz')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('dbversion','v4.00')") or die "cannot do: ".$dbh->errstr();     

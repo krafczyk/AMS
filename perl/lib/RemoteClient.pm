@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.205 2003/07/29 15:35:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.206 2003/08/04 10:48:08 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -25,7 +25,8 @@ use POSIX  qw(strtod);
 
 @RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll listAllDisks listMin queryDB DownloadSA checkJobsTimeout deleteTimeOutJobs parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
-my     $bluebar      = 'http://pcamsf0.cern.ch/AMS/icons/bar_blue.gif';
+# my     $bluebar      = 'http://pcamsf0.cern.ch/AMS/icons/bar_blue.gif';
+my     $bluebar      = '/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://pcamsf0.cern.ch/AMS/icons/bullet_maroon.gif';
 my     $bluebullet   = 'http://pcamsf0.cern.ch/AMS/icons/bullet_blue.gif';
 my     $silverbullet = 'http://pcamsf0.cern.ch/AMS/icons/bullet_silver.gif';
@@ -80,9 +81,11 @@ my %fields=(
         FileDB=>undef,
         FileCRC=>undef,
         FileBBFTP=>undef,
+        FileBookKeeping=>undef,
         FileAttDB=>undef,
         FileCRCTimestamp=>undef,
         FileBBFTPTimestamp=>undef,
+        FileBookKeepingTimestamp=>undef,
         FileDBTimestamp=>undef,
         FileAttDBTimestamp=>undef,
         FileDBLastLoad=>undef,
@@ -360,6 +363,17 @@ my %mv=(
     }
     else{    
      $self->{$key}="ams02bbftp.tar.gz";
+    }
+
+
+    $key='FileBookKeeping';
+    $sql="select myvalue from Environment where mykey='".$key."'";
+    $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}=$ret->[0][0];
+    }
+    else{    
+     $self->{$key}="ams02bookkeeping.tar.gz";
     }
 
     $key='FileCRC';
@@ -6222,6 +6236,9 @@ sub DownloadTime {
         $filedb="$self->{UploadsDir}/$self->{FileBBFTP}";
         $self->{FileBBFTPTimestamp}=(stat($filedb))[9];
 
+        $filedb="$self->{UploadsDir}/$self->{FileBookKeeping}";
+        $self->{FileBookKeepingTimestamp}=(stat($filedb))[9];
+
         $filedb="$self->{UploadsDir}/$self->{FileCRC}";
         $self->{FileCRCTimestamp}=(stat($filedb))[9];
 
@@ -6273,6 +6290,7 @@ sub DownloadSA {
     $self->{FileDB}     ="ams02mcdb.tar.gz";
     $self->{FileAttDB}  ="ams02mcdb.addon.tar.gz";
     $self->{FileBBFTP}  ="ams02bbftp.tar.gz";
+    $self->{FileBookKeeping}  ="ams02bookkeeping.tar.gz";
     $self->{FileCRC}    ="ams02crc.tar.gz";
     $self->{dwldaddon}  = 1;
     $self->DownloadTime();
@@ -6296,17 +6314,17 @@ sub PrintDownloadTable {
     my $dtime= undef;
 
 
-    print "<tr><td width=600>\n";
+    print "<tr><td width=700>\n";
     print "<table border=\"0\" cellspacing=\"5\" cellpadding=\"5\">\n";
     print "<P>\n";
-    print "<p><tr><td bgcolor=\"#ffefd5\" width=600 valign=top colspan=2>\n";
+    print "<p><tr><td bgcolor=\"#ffefd5\" width=700 valign=top colspan=2>\n";
     print "<font face=\"myriad,arial,geneva,helvetica\">\n";
     print "<TABLE BORDER=2 cellpadding=3 cellspacing=3 BGCOLOR=#eed8ae align=center width=100%>\n";
     print "<TR><br>\n";
     print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download</b></font>:\n";
     print "<br><br>\n";
-#   print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileDB}>  filedb files (tar.gz)</a></font>";
-#ams02mcdb tar
+#
+##ams02mcdb tar
     my $download = 1;
     if (defined $self->{FileDBLastLoad}) {
         if ($self->{FileDBLastLoad} > $self->{FileDBTimestamp}) {
@@ -6330,7 +6348,8 @@ sub PrintDownloadTable {
      print "<br><br>";
    }
    $download = 1;
-#ams02mcdbaddon tar
+#
+## ams02mcdbaddon tar
     if (defined $self->{FileAttDBLastLoad}) {
         if ($self->{FileAttDBLastLoad} > $self->{FileAttDBTimestamp}) {
             $download = 0;
@@ -6354,7 +6373,8 @@ sub PrintDownloadTable {
       print "<font size=\"3\" color=\"green\"><i><b>       ( Up to date : $dtime)</b></i></font>\n";
       print "<br><br>\n";
       }
-#bbftp tar
+#
+## bbftp tar
      my $file= $self->{FileBBFTP};
      print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  bbftp files (tar.gz) - <i> optional </i></a>
@@ -6362,7 +6382,8 @@ sub PrintDownloadTable {
      my $dtime=EpochToDDMMYYHHMMSS($self->{FileBBFTPTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>";   
-#crc tar
+#
+## crc tar
      $file= $self->{FileCRC};
      print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>  CRC Linux exec (tar.gz) - <i> optional </i></a>
@@ -6370,6 +6391,15 @@ sub PrintDownloadTable {
      $dtime=EpochToDDMMYYHHMMSS($self->{FileCRCTimestamp});
      print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
      print "<br><br>";
+#
+## book-keeping tar
+     my $file= $self->{FileBookKeeping};
+     print "<br><font size=\"4\">
+           <a href=load.cgi?$self->{UploadsHREF}/$file>  AMS mysql book-keeping  execs and docs (tar.gz) - <i> optional </i></a>
+           </font>";
+     my $dtime=EpochToDDMMYYHHMMSS($self->{FileBookKeepingTimestamp});
+     print "<font size=\"3\" color=\"green\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+     print "<br><br>";   
  }
     print "</TD></TR>\n";
     print "</TABLE>\n";
