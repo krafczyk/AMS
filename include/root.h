@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.143 2004/02/19 11:50:23 alcaraz Exp $
+//  $Id: root.h,v 1.144 2004/02/19 17:30:36 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1830,6 +1830,7 @@ public:
  static TTree* & Tree()  {return _Tree;}
  static TTree* & ClonedTree()  {return _ClonedTree;}
  Int_t Fill();
+ TFile* & OutputFile(){return fService._pOut;};
 
 #ifdef __CINT__
 public:
