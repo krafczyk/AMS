@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.59 2002/08/08 08:02:30 alexei Exp $
+# $Id: RemoteClient.pm,v 1.60 2002/08/08 17:18:32 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -21,6 +21,23 @@ my     $purplebullet = 'http://ams.cern.ch/AMS/icons/bullet_purple.gif';
 
 my     $srvtimeout = 30; # server timeout 30 seconds
 my     @colors=("red","green","blue","magenta","orange","cyan","tomato");
+
+my     $dbqueryR   ='http://ams.cern.ch/AMS/Computing/dbqueryR.html';
+
+my     $downloadcgi       ='http://pcamsf0.cern.ch/cgi-bin/mon/download.o.cgi';
+my     $downloadcgiMySQL  ='http://pcamsf0.cern.ch/cgi-bin/mon/download.mysql.cgi';
+
+my     $monmcdb      ='http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.o.cgi';
+my     $monmcdbMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.mysql.cgi';
+
+my     $rccgi      ='http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form';
+my     $rccgiMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/rc.mysql.cgi?queryDB=Form';
+
+my     $rchtml='http://ams.cern.ch/AMS/Computing/mcproduction/rc.html';
+my     $rchtmlMySQL='http://ams.cern.ch/AMS/Computing/mcproduction/rc.mysql.html';
+
+my     $validatecgi      ='http://pcamsf0.cern.ch/cgi-bin/mon/validate.o.cgi';
+my     $validatecgiMySQL ='http://pcamsf0.cern.ch/cgi-bin/mon/validate.mysql.cgi';
 
 sub new{
     my $type=shift;
@@ -197,6 +214,15 @@ my %mv=(
     $self->{sqlserver}=new DBSQLServer();
     $self->{sqlserver}->Connect();
 
+# mySQL/Oracle 
+    if($self->{sqlserver}->{dbdriver} =~ m/mysql/){
+        $downloadcgi = $downloadcgiMySQL;
+        $monmcdb     = $monmcdbMySQL;
+        $rccgi       = $rccgiMySQL;
+        $rchtml      = $rchtmlMySQL;
+        $validatecgi = $validatecgiMySQL;
+    } 
+#
  $dir=$ENV{CERN_ROOT};
  if (defined $dir){
      $self->{CERN_ROOT}=$dir;
@@ -1210,7 +1236,7 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
    print "</ul>\n";
    print "<font size=\"2\" color=\"black\">\n";
    print "<li> Catalogues are updated nightly.\n";
-   print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=\"http://ams.cern.ch/AMS/Computing/dbqueryR.html\"> here </a>\n";
+   print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=$dbqueryR> here </a>\n";
    print "<p>\n";
     print "<TR><B><font color=green size= 4> Select by key(s) (you can select multiple keys) </font>";
     print "<p>\n";
@@ -3562,13 +3588,13 @@ sub htmlTextField {
 
 sub htmlReturnToMain {
             print "<p><tr><td><i>\n";
-            print "Return to <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\"> MC02 Remote Client Request</a>\n";
+            print "Return to <a href=$rchtml> MC02 Remote Client Request</a>\n";
             print "</i></td></tr>\n";
         }
 
 sub htmlReturnToQuery {
             print "<p><tr><td><i>\n";
-            print "Return to <a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/rc.o.cgi?queryDB=Form\"> MC02 Query Form</a>\n";
+            print "Return to <a href=$rccgi> MC02 Query Form</a>\n";
             print "</i></td></tr>\n";
         }
 
@@ -3587,7 +3613,7 @@ sub listAll {
     htmlTop();
     $self->ht_init();
     if ($show eq 'all') {
-     ht_Menus();
+     $self->ht_Menus();
      $self -> colorLegend();
     }
     
@@ -3653,7 +3679,7 @@ sub queryDB {
   print "</ul>\n";
   print "<font size=\"2\">\n";
   print "<li> Catalogues are updated nightly.\n";
-  print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=\"http://ams.cern.ch/AMS/Computing/dbqueryR.html\"> here </a>\n";
+  print "<li> To browse AMS01 data and AMS02 NTuples produced before March 2002 click <a href=$dbqueryR> here </a>\n";
   print "<p>\n";
    print "<TR><B><font color=green size= 4> Select by key(s) (you can select multiple keys) </font>";
    print "<p>\n";
@@ -3788,7 +3814,6 @@ sub queryDB {
     
       htmlTableEnd();
      print "<p><br>\n";
-#     print "<FORM METHOD=\"GET\" action=\"http://pcamsf0.cern.ch/cgi-bin/mon/rc.query.cgi\">\n";
      print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
      print "<input type=\"submit\" name=\"queryDB\" value=\"Submit\">        ";
      print "<input type=\"reset\" name=\"queryDB\" value=\"Reset\"></br><br>        ";
@@ -4042,7 +4067,7 @@ sub listMails {
 sub listServers {
     my $self = shift;
     print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
-     print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/monmcdb.o.cgi\"><b><font color=blue> MC Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
+     print "<TR><B><font color=green size= 5><a href=$monmcdb><b><font color=blue> MC Servers </font></a><font size=3><i>(Click  servers to check current production status)</font></i></font>";
     print "<p>\n";
     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -4189,7 +4214,7 @@ sub listRuns {
 sub listNtuples {
     my $self = shift;
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
-     print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/validate.o.cgi\"><b><font color=green> MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
+     print "<TR><B><font color=green size= 5><a href=$validatecgi><b><font color=green> MC NTuples </font></a><font size=3><i> (Click NTuples to validate)</font></i></font>";
      print "<p>\n";
      print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
               print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -4413,13 +4438,12 @@ sub ht_Menus {
  print "<dt><img src=\"$purplebullet\">&#160;&#160;
         <a href=\"#disks\"><b><font color=green>Disks and Filesystems \@CERN</b></font></a>\n";
  print "<dt><img src=\"$bluebullet\">&#160;&#160;
-        <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\">
+        <a href=$rchtml>
         <b><font color=green>Submit MC Job</b></font></a>\n";
- print "<dt><img src=\"$maroonbullet\">&#160;&#160;
-        <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\">
+ print "<dt><img src=\"$maroonbullet\">&#160;&#160;<a href=$rchtml>
         <b><font color=green>User and/or Cite Registration Form</b></font></a>\n";
  print "<dt><img src=\"$silverbullet\">&#160;&#160;
-        <a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/download.o.cgi\">
+        <a href=$downloadcgi>
         <b><font color=green>Download MC data and exec files</b></font></a>\n";
 }
 
