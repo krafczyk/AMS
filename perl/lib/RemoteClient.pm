@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.232 2004/01/09 12:47:05 alexei Exp $
+# $Id: RemoteClient.pm,v 1.233 2004/01/12 14:18:08 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6148,7 +6148,7 @@ sub listProductionSetPeriods {
           $name     = $mc->[1];
           $begin    = $mc->[2];
           $end      = $mc->[3];
-          $status   = $mc->[4];
+          $status   = trimblanks($mc->[4]);
           $version  = $mc->[5];
           $description = $mc->[6];
 
@@ -6157,10 +6157,9 @@ sub listProductionSetPeriods {
           if ($end == 0) { 
               $tend = '->';
           }
-          my $color="black";
-          if ($status eq "Active") {
-              $color = "green";
-          }
+
+          my $color=statusColor($status);
+
                print "<td align=center><b><font color=$color>$pid </font></b></td>";
                print "<td align=center><b><font color=$color >$name</font></b></td>";
                print "<td align=center><b><font color=$color >$tbegin </font></b></td>";
@@ -6671,7 +6670,7 @@ sub listDisks {
           my $size   = $dd->[3];
           my $used   = $dd->[4];
           my $avail  = $dd->[5];
-          my $status   = $dd->[6];
+          my $status   = trimblanks($dd->[6]);
           print "<tr><font size=\"2\">\n";
           my $color=statusColor($status);
           print "<td><b> $fs </b></td><td align=middle><b> $size </td><td align=middle><b> $used </td><td align=middle><b> $avail </b></td>
@@ -7342,12 +7341,12 @@ sub lastDBUpdate {
  }
 sub statusColor {
     my $status = shift;
-    my $color  = "magenta";
+    my $color  = "red";
 
     if ($status eq "Finished" or $status eq "OK" or $status eq "Validated" or $status eq "Completed") {
                $color  = "green";
     }
-    elsif ($status eq "TimeOut") {
+    elsif ($status eq "TimeOut" or $status eq "Pending") {
          $color="magenta";
     }
     elsif ($status eq "Success") {
@@ -7365,9 +7364,6 @@ sub statusColor {
     elsif ($status eq "Dead" or $status eq "Unknown" or $status eq "ToBeRerun") {
                $color = "magenta";
     } 
-    else {
-               $color = "red";
-           }
     return $color;
 }
 
