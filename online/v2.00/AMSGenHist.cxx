@@ -52,15 +52,15 @@ void AMSGenHist::_Fetch(){
 
 void AMSGenHist::ShowSet(Int_t Set){
 
-  TF1 f1("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0.4,10);
+  TF1 f1("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0.5,10);
   TF1 f2("vcg2","[0]*exp(-x*[1])",0.4,80);
   TF1 f3("vcg3","[0]*exp(-x*[1])",0.4,2.0);
   TF1 f4("vcg4","[0]*exp(-(x-[1])/[2]*(x-[1])/[2]/2)",3.,10);
   int choise=0;
-  f1.SetParameter(0,500.);
+  f1.SetParameter(0,5000.);
   f1.SetParameter(1,0.7);
-  f1.SetParameter(2,100.);
-  f1.SetParameter(3,6.);
+  f1.SetParameter(2,1000.);
+  f1.SetParameter(3,5.);
   f1.SetParameter(4,1.);
   f2.SetParameter(0,100.);
   f2.SetParameter(1,0.7);
