@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.33 2002/11/20 12:34:59 choutko Exp $
+//  $Id: richdbc.C,v 1.34 2003/01/24 11:17:19 delgadom Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -19,7 +19,7 @@ geant RICHDB::wave_length[RICmaxentries]={608.696, 605.797, 602.899, 600.000, 59
 					  288.406, 284.058, 279.71,  275.812, 272.464, 270.014,
 					  268.116, 266.667};
 
-geant RICHDB::rad_index=1.05;
+geant RICHDB::rad_index=1.02998;
 geant RICHDB::naf_index=1.33;
 
 // Fused SiO2 scaled to n=1.14
@@ -62,15 +62,15 @@ geant RICHDB::naf_index_table[RICmaxentries]={1.32526,1.32531,1.32535,1.32540,1.
 
 
 // Best fit to current measures 
-geant RICHDB::abs_length[RICmaxentries]={36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.,36.,
-					 36.,36.,36.,36.};
+geant RICHDB::abs_length[RICmaxentries]={100.,100.,100.,100.,100.,
+					 100.,100.,100.,100.,100.,
+					 100.,100.,100.,100.,100.,
+					 100.,100.,100.,100.,100.,
+					 100.,100.,100.,100.,100.,
+					 100.,100.,100.,100.,100.,
+					 100.,100.,100.,100.,100.,
+					 100.,100.,100.,100.,100.,
+					 100.,100.,100.,100.};
 
 
 
@@ -144,7 +144,7 @@ geant RICHDB::rich_height=45.8;        // Mirror height (for historical reasons)
 geant RICHDB::hole_radius[2]={63.8/2.,64.3/2};
 geant RICHDB::inner_mirror_height=50;  // UNUSED
 //geant RICHDB::rad_clarity=0.0193;      // Radiator clarity
-geant RICHDB::rad_clarity=0.0091;      // Radiator clarity
+geant RICHDB::rad_clarity=0.007598;      // Radiator clarity
 geant RICHDB::rad_radius=60.0;         // Radiator radius
 geant RICHDB::rad_height=3;            // Radiator support structure thickness. In principle== aerogel radiator thickness
 geant RICHDB::naf_height=0.5;

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.219 2002/12/18 15:09:49 choutko Exp $
+#  $Id: datacards.doc,v 1.220 2003/01/24 11:18:02 delgadom Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -95,7 +95,7 @@ I 1  iflgk_flag(0)              // Activate the use of the GCTRAK.iflgk=1 in the
 I 2  recon(11)                   // 0 -off; 1 RICH beta reconstruction ; 
 				 // 10 compute number of expected photons 
 				// (for charge reconstructtion)   
-I 3  setup(0)                    // 0 use a single radiador; 1 use a Naf 
+I 3  setup(1)                    // 0 use a single radiador; 1 use a Naf 
                                  // radiator in the center and agl all around
 //--------------------------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.45 2003/01/23 11:08:30 mdelgado Exp $
+//  $Id: richrec.C,v 1.46 2003/01/24 11:17:10 delgadom Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -797,7 +797,7 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
 						   current_ring_status,  //Status word
 						   RICCONTROL.recon/10
 						   ));
-      
+      bit++;  
     } else {
       //	// Add empty ring to keep track of no recostructed tracks
       //	AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),

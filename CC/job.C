@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.436 2003/01/21 16:37:12 alexei Exp $
+// $Id: job.C,v 1.437 2003/01/24 11:17:25 delgadom Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -243,7 +243,7 @@ void AMSJob::_sirichdata(){
 
   RICCONTROL.iflgk_flag=0;  // This should be always zero
   RICCONTROL.recon=11;       // Reconstruct charge and beta
-  RICCONTROL.setup=0;       // Choose the right setup from all of them
+  RICCONTROL.setup=1;       // Choose the right setup from all of them
 //  FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
   FFKEY("RICCONT",(float *)&RICCONTROL,sizeof(RICCONTROL_DEF)/sizeof(integer),"MIXED");
 
