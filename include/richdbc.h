@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.24 2002/05/21 16:35:13 delgadom Exp $
+//  $Id: richdbc.h,v 1.25 2002/07/01 09:23:39 delgadom Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -51,7 +51,8 @@ const geant      RICcatogap=0.03;      // Gap btwn PMT pixels
 const geant      RICpmtlength=2.0;     // phototube length including PMT window 
 const geant      RICeleclength=2.75;   // electronics length below PMT           
 const geant      RICpmtsupport=0.6;    // support structure thickness
-const geant      RICshiheight=7.5;     // PMT shield height from the bottom 
+//const geant      RICshiheight=7.5;     // PMT shield height from the bottom 
+const geant      RICshiheight=6.5;     // This for the new LG with 3.4
 const geant      RICpmtshield=0.1;     // PMT shield thickness 
 const geant      RICepsln=0.002;       // Epsilon
 const geant      RICpmtfoil=0.1;       // thickness of the goil over the LG
