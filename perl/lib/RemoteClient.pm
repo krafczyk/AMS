@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.94 2003/04/09 16:03:57 alexei Exp $
+# $Id: RemoteClient.pm,v 1.95 2003/04/10 09:07:03 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -129,6 +129,7 @@ sub Init{
      'Pentium III Xeon'=>1.05,
      'Pentium IV Xeon'=>0.8,
      'Pentium IV'=>0.7,
+     'AMD Duron'=>1.0,
      'AMD Athlon'=>1.15
                    );
 

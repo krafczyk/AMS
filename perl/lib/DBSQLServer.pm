@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.37 2003/04/02 14:09:56 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.38 2003/04/10 09:07:03 alexei Exp $
 
 #
 #
@@ -269,7 +269,9 @@ sub Create{
 
 # initialize rndm table;
 
-my $RNDMTable="/afs/cern.ch/user/b/biland/public/AMS/rndm.seeds";
+# my $RNDMTable="/afs/cern.ch/user/b/biland/public/AMS/rndm.seeds";
+my $RNDMTable="/scratchA/groupA/biland/seed_1E12";
+
 open(FILEI,"<".$RNDMTable) or die "Unable to open file $RNDMTable\n";
 
     my $line;
