@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.120 2001/04/04 08:28:01 choutko Exp $
+//  $Id: amsgeom.C,v 1.121 2001/04/04 21:48:54 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -3009,7 +3009,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 	      if (bhno == b)
 		{
 		  ost.seekp(0);  
-		  ost << "TCUT"<<ends;
+		  ost << "TRCO"<<ends;
 		  gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
 		  
 		  TRDDBc::GetCutout(l,k,j,i,status,coo,nrm,rgid);  
@@ -3018,9 +3018,9 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 		    par[ip]=TRDDBc::CutoutsDimensions(i,j,k,ip);
 
 		  // First one made is j=4, in bh 0
-		  dau->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
-					  0,name,"BOX",par,3,coo,nrm,"MANY", 
-					  j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
+		  //		  dau->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
+		  //		  0,name,"BOX",par,3,coo,nrm,"MANY", 
+		  //		  j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
 		}
 	    }
 	  }
