@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.28 2003/12/12 11:07:27 choutko Exp $
+//  $Id: client.C,v 1.29 2004/01/30 22:42:09 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
-
+#include <netdb.h>
 char AMSClient::_streambuffer[1024];
 ostrstream AMSClient::_ost(AMSClient::_streambuffer,sizeof(AMSClient::_streambuffer));
 void AMSClient::_openLogFile(char * prefix){
@@ -78,16 +78,21 @@ bool AMSClient::_getpidhost(uinteger uid, const char * iface){
  int len=255;
  if(gethostname(name,len))return false;
 else{
+   struct hostent *hent;
+   hent=gethostbyname(name);
+   strcpy(name,hent->h_name);
    AString as=(const char *)name;
    if(!iface || strcmp(iface,"default")){
     int newlength=as.length();
+    bool isdot=false;
     for (int i=0;i<as.length();i++){
       if (as[i]=='.'){
-        newlength=i;
+      //  newlength=i;
+          isdot=true;
       }
       if(i>newlength-1)as[i]='\0';
     }
-     if(iface){
+     if(iface && !isdot){
       as+=".";
       as+=iface;
      }

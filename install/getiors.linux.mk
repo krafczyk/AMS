@@ -9,7 +9,7 @@ PCCSRC=../CC/getior.pc
 cppbuild: 
 	$(PROC) $(PROCPPFLAGS) INCLUDE=$(PCINCLUDE) iname=$(PCCSRC) oname=$(BIN)
 	$(CPLUSPLUS) -w -g -c -fpermissive -I/usr/include  -I../include  -I/usr/local/include/g++ $(INCLUDE) $(BIN)
-	$(CPLUSPLUS) -static -w -o $(EXE) $(OBJS) -L$(LIBHOME) $(STATICCPPLDLIBS)
+	$(CPLUSPLUS) -static -w -o $(EXE) $(OBJS) -L$(LIBHOME) $(STATICCPPLDLIBS) -pthread /usr/lib/ctype-info.o
 
 $(CPPSAMPLES): cppdemo2
 	$(MAKE) -f $(MAKEFILE) OBJS=$@.o EXE=$@ cppbuild

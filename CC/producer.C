@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.84 2004/01/19 16:39:28 choutko Exp $
+//  $Id: producer.C,v 1.85 2004/01/30 22:42:09 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -181,6 +181,7 @@ if (_Solo){
      time(&ct);
      _reinfo->SubmitTime=ct;
      _reinfo->cuid=_pid.uid;
+//     _reinfo->pid=_pid.pid;
      _reinfo->cinfo.HostName=_pid.HostName; 
      _reinfo->cinfo.Status=DPS::Producer::Processing;
    if(AMSJob::gethead()->isSimulation()){

@@ -185,6 +185,7 @@ module DPS{
      unsigned long      CounterFail;
      time SubmitTime;
      unsigned long cuid;
+//     unsigned long pid;
      CurrentInfo cinfo;     
     };
     typedef sequence<DSTInfo> DSTIS;

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.106 2004/01/19 16:39:28 choutko Exp $
+//  $Id: server.C,v 1.107 2004/01/30 22:42:09 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -124,9 +124,11 @@ AMSServer::AMSServer(int argc, char* argv[]){
      _Oraperl=true;
      break;
     case 'O':    // Oracle
+/*     
       _Oracle=true;
       if(pchar+1 && *(pchar+1) =='I')_OracleW=true;
       if(pchar+1 && *(pchar+1) =='W')_OracleWarm=true;
+*/
       break;
     case 'D':    //debug
      _debug=atoi(++pchar);
@@ -1948,12 +1950,14 @@ if(RF){
       re.Status=DPS::Producer::ToBeRerun;
       re.History=DPS::Producer::ToBeRerun;
       re.cuid=0;
+      //re.pid=0;
       re.CounterFail=0;
    }
    else{
      re.Status=DPS::Producer::Foreign;
      re.History=DPS::Producer::Foreign;
      re.cuid=re.Run;
+     //re.pid=0;
      re.CounterFail=0;
    }
    time_t tt;
@@ -2590,6 +2594,7 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
       }
       else      rv->Status=DPS::Producer::Failed;
        rv->cuid=0;
+       //rv->pid=0;
        _parent->EMessage(AMSClient::print(rv, " run Failed "));
        Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
        _pser->MonInfo(AMSClient::print(rv, " Run Failed: "),DPS::Client::Error);
@@ -3030,6 +3035,7 @@ else {
   else rv->Status=DPS::Producer::Allocated;
   if(cid.uid)rv->cuid=cid.uid;
   else rv->cuid=rv->Run;
+  //rv->pid=cid.pid;
  }
 }
 
@@ -3170,6 +3176,7 @@ if(li !=_rl.end()){
       }
 */
       rv->cuid=0;
+      //rv->pid=0;
       rv->cinfo.HostName=cid.HostName;
       if(rv->Status==DPS::Producer::Failed && rv->History !=DPS::Producer::Failed){
         rv->Status=DPS::Producer::ToBeRerun;
@@ -3543,6 +3550,7 @@ void Producer_impl::RunFailed(const DPS::Client::ActiveClient & acv){
         }
        if(rv->Status!=DPS::Producer::Foreign){
            rv->cuid=0;
+           //rv->pid=0;
            rv->cinfo.HostName=(acv.id).HostName;
         }
         else rv->cinfo.HostName=(const char *)"  ";

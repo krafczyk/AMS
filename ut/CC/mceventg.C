@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.129 2003/09/26 13:53:33 isevilla Exp $
+//  $Id: mceventg.C,v 1.130 2004/01/30 22:42:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -222,7 +222,7 @@ void AMSmceventg::gener(){
           }
         } // ISN
         else if(_fixedplane==1){
-          cout << "fixed plane" << endl;
+//          cout << "fixed plane" << endl;
           _coo=AMSPoint(x0+lx*RNDM(d),y0+ly*RNDM(d),z0+lz);
         }
         else{
