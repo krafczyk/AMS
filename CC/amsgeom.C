@@ -3221,27 +3221,81 @@ void richgeom02(AMSgvolume & mother)
 			 
 	    // Photocatode: 
 
-	    par[0]=0.875; // The HAMAMATSU R5900 cathode length
-	    par[1]=0.875;
+	    par[0]=0.875/4; // The HAMAMATSU R5900 cathode length
+	    par[1]=0.875/4;
 	    par[2]=otherthk/2; // Thickness: 1mm
-
-	    coo[0]=0;
-	    coo[1]=0;
 	    coo[2]=3.5-RICGEOM.light_guides_height/2-otherthk/2;
+
+	    int cc=1;
 	    
-	    dummy=p->add(new AMSgvolume("RICH PMTS",
-					0,
-					"CATO",
-					"BOX",
-					par,
-					3,
-					coo,
-					nrm,
-					"ONLY",
-					posp,
-					1,
-					rel));
+	    for(int i=0;i<4;i++)
+	      {
+		coo[1]=.65656-i*.875/2;
+
+		coo[0]=-.65625;
+
+		dummy=p->add(new AMSgvolume("RICH PMTS",
+					    0,
+					    "CATO",
+					    "BOX",
+					    par,
+					    3,
+					    coo,
+					    nrm,
+					    "ONLY",
+					    1,
+					    cc++,
+					    rel));
+
+		coo[0]=-.21875;
+				
+		dummy=p->add(new AMSgvolume("RICH PMTS",
+					    0,
+					    "CATO",
+					    "BOX",
+					    par,
+					    3,
+					    coo,
+					    nrm,
+					    "ONLY",
+					    1,
+					    cc++,
+					    rel));
+
 	    
+		
+		coo[0]=.21875;
+		
+		dummy=p->add(new AMSgvolume("RICH PMTS",
+					    0,
+					    "CATO",
+					    "BOX",
+					    par,
+					    3,
+					    coo,
+					    nrm,
+					    "ONLY",
+					    1,
+					    cc++,
+					    rel));
+
+		coo[0]=.65625;
+
+		dummy=p->add(new AMSgvolume("RICH PMTS",
+					    0,
+					    "CATO",
+					    "BOX",
+					    par,
+					    3,
+					    coo,
+					    nrm,
+					    "ONLY",
+					    1,
+					    cc++,
+					    rel));
+	      }
+
+
 
 	    // Glue: Should be a polymer but this is good enough by now
 
