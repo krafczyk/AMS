@@ -1,4 +1,4 @@
-#  $Id: monitorHTML.pm,v 1.15 2002/02/11 11:14:35 choutko Exp $
+#  $Id: monitorHTML.pm,v 1.16 2002/02/20 18:00:25 choutko Exp $
 package monitorHTML;
 use Error qw(:try);
 use CGI qw(-unique_headers);;
@@ -29,6 +29,9 @@ my %fields=(
 foreach my $chop  (@ARGV){
     if($chop =~/^-m/){
         $self->{Name}="/cgi-bin/mon/monmc.cgi";
+     if ($Monitor::Singleton->{updatesviadb}){
+        $self->{Name}="/cgi-bin/mon/monmcdb.cgi";
+     }
     }
 }
 #warn $self->{Name};
@@ -135,7 +138,7 @@ sub Update{
         print $q->p ("Control:");
    print qq`
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerActiveClient" CHECKED>Producer Active Client<BR>
-<INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerClient" CHECKED>Producer Nominal Client<BR>
+<INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerClient" >Producer Nominal Client<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="ProducerHost" >Producer Nominal Host<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="Ntuple" >Producer Nominal Ntuple<BR>
 <INPUT TYPE="radio" NAME="Objects2Control" VALUE="PNtuple" >Producer Produced Ntuple<BR>

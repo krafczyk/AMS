@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.46 2002/02/11 11:14:35 choutko Exp $
+# $Id: Monitor.pm,v 1.47 2002/02/20 18:00:25 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -9,6 +9,7 @@ use lib::CID;
 use lib::ActiveClient;
 use lib::POAMonitor;
 use lib::DBServer;
+use lib::DBSQLServer;
 @Monitor::EXPORT= qw(new Update Connect);
 
 my %fields=(
@@ -48,7 +49,9 @@ my %fields=(
      ok=>0,
      registered=>0,
      updatesviadb=>0,
+     sqlserver=>undef,
      DataMC=>1,
+        IOR=>undef,
             );
 
 sub new{
@@ -71,6 +74,32 @@ foreach my $chop  (@ARGV){
     if($chop =~/^-m/){
         $self->{DataMC}=0;
     }
+    if($chop =~/^-d/){
+        $self->{updatesviadb}=1;
+#amsdatadir
+
+        my $dir=$ENV{AMSDataDir};
+        if (defined $dir){
+            $self->{AMSDataDir}=$dir;
+        }
+        else{
+            $self->{AMSDataDir}="/f2dat1/AMS01/AMSDataDir";
+            $ENV{AMSDataDir}=$self->{AMSDataDir};
+        }
+        $self->{sqlserver}=new DBSQLServer();
+        $self->{sqlserver}->Connect();
+#try to get ior
+    my $sql="select dbfilename,lastupdate,IORS from Servers where status='Active'";
+        my $ret=$self->{sqlserver}->Query($sql);
+        my $updlast=0;
+        foreach my $upd (@{$ret}){
+            if($upd->[1]> $updlast){
+                $updlast=$upd->[1];
+                $self->{dbfile}=$upd->[0];
+                $self->{IOR}=$upd->[2];
+            }
+        }
+    }
 }
     my $mc=shift;
     if(defined $mc){
@@ -91,8 +120,12 @@ return $mybless;
 }
 
 sub Connect{
+ 
  my $ref=shift;
      $ref->{ok}=0;
+ if(defined $ref->{IOR}){
+     return 1;
+ }
  my $ior=getior();
  if(not defined $ior){ 
 
@@ -453,7 +486,8 @@ sub Update{
     my  $ref=$Monitor::Singleton;
     my $ok=$ref->UpdateARS();
     if($ref->{updatesviadb}){
-      $ok=DBServer::InitDBFile(" ",$ref);
+      $ok=DBServer::InitDBFile(undef,$ref);
+      
     }
     else{
      if (not $ok){
@@ -745,6 +779,7 @@ if ($producer eq "Producer"){
        if( $rdst->{Status} eq "Processing"){
            if ($rdst->{cuid}==$hash->{id}->{uid}){
                $run=$rdst->{Run};
+#               warn "run ... $run \n";
                last;
            }
        }
@@ -754,7 +789,9 @@ if ($producer eq "Producer"){
      for my $j (0 ... $#{$Monitor::Singleton->{dsts}}){
        my $rdst=$Monitor::Singleton->{dsts}[$j];
        if( $rdst->{Type} eq "Ntuple"){
+#           warn "wasrun $run $rdst->{Run} \n";
            if ($rdst->{Run}==$run){
+#               warn "runfound $rdst->{FirstEvent} $lastev $rdst->{Name} \n";
                if($rdst->{FirstEvent}>$lastev){
                    $lastev=$rdst->{FirstEvent};
                    $ntuple=$rdst->{Name};
@@ -763,8 +800,8 @@ if ($producer eq "Producer"){
        }
    }
         push @text, $run;
-        my @dummy=split "//",$ntuple;
-        push @text, $dummy[1];
+        my @dummy=split "/",$ntuple;
+        push @text, $dummy[$#dummy];
         push @text, $hash->{Status};
         if ($hash->{Status} eq "Registered" or $hash->{Status} eq "Active"){
             if($lastev>0){
@@ -1409,7 +1446,11 @@ FOUND3:
 
 
 sub Exiting{
-    my $ref=$Monitor::Singleton;
+    my $ref=shift;
+    if(defined $ref->{IOR}){
+        $ref->ErrorPlus(shift);        
+    }
+    else{
         my $arsref;
         foreach $arsref (@{$ref->{arsref}}){
             try{
@@ -1421,10 +1462,12 @@ sub Exiting{
                 warn "Exiting corba exc";
             };
         }
+    } 
 }
 
 
 sub SendId{
+
     use Error qw(:try);
     my $ref=$Monitor::Singleton;
         my $arsref;
@@ -1470,3 +1513,7 @@ sub SendId{
 }
 
 
+sub ErrorPlus{
+   my $ref=shift;
+   die shift;
+}

@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.6 2002/02/08 13:48:54 choutko Exp $
+# $Id: DBServer.pm,v 1.7 2002/02/20 18:00:24 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -15,7 +15,7 @@ use POSIX qw(tmpnam);
 use MLDBM qw(DB_File Storable);
 
 
-@DBServer::EXPORT= qw(new Update Init);
+@DBServer::EXPORT= qw(new Update Init InitDBFile);
 my %lock=(
  dblock=>0,
  uid=>0,
@@ -257,7 +257,7 @@ NEXT:
      try{
          my %cid=%{$ref->{cid}};
          $cid{Type}="Producer";
-
+       
          my $maxr=0;
          if(defined $sendback and defined $ref->{rtb} and $#{$ref->{rtb}}>=0){
              my @rtb=@{$ref->{rtb}};
@@ -309,6 +309,7 @@ NEXT:
           goto LAST;
      }
      catch CORBA::SystemException with{
+
      };
  }
 
@@ -363,7 +364,6 @@ sub UpdateARS{
          }   
          $cid{Type}="Producer";
          ($length,$pars)=$arsref->getARS(\%cid,"Any",0,1);
-
          if($length==0 ){
             carp "updars returns zero \n";
             return 0;
@@ -394,7 +394,6 @@ sub UpdateARS{
              };
 
          }   
-
          last;
      }
     catch CORBA::SystemException with{
@@ -414,6 +413,7 @@ sub Exiting{
     my $ref=shift;
     my $message=shift;
     my $status=shift;
+    warn $message;
         my $arsref;
                 $ref->{cid}->{Status}=$status;
         foreach $arsref (@{$ref->{arsref}}){
@@ -537,12 +537,13 @@ sub InitDBFile{
     my $db;
     my $init=0;
     my $ref=shift;
-    my $amsprodlogdir;
+    my $amsprodlogdir=undef;
     if(ref($ref)){
      $amsprodlogdir=shift;
     }
      else{
          $ref=shift;
+#        $amsprodlogdir=shift;
       }
     if (defined $ref->{dbfile}){
 # check if dbfile already includes full path
@@ -551,13 +552,15 @@ sub InitDBFile{
         else{
          $ref->{dbfile}=$amsprodlogdir."/".$ref->{dbfile};
      }
-        warn "trying to open dbfile $ref->{dbfile}\n";
-      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
+#        die "trying to open dbfile $ref->{dbfile}\n";
+      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDONLY;
     }
     else{
+#        die " tried to init db file sobaka";
         my $tmpname=tmpnam();
         $ref->{dbfile}=$amsprodlogdir."/".unpack("x5 A*",$tmpname);
         $db=tie %hash, "MLDBM",$ref->{dbfile},O_CREAT | O_RDWR, 0644 ;
+        system "chmod o+w $ref->{dbfile}";
         $init=1;
     }
      if(not $db){
@@ -673,5 +676,104 @@ sub OpenDBFile{
 #      undef $db;
     return 1,$db,%hash;
 
+}
+
+
+
+sub sendRunEvInfo{
+    my $ref=shift;
+    if(not ref($ref)){
+         $ref=shift;
+    }
+    my ($ri,$rc)=@_;
+#        my ($ok,%hash)=$ref->OpenDBFile();
+# need to explicitely open db file in every sub 
+    my $ok=0;
+    my %hash;
+    local *DBM;
+    my $db;
+    if (defined $ref->{dbfile}){
+      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
+    }
+    else{
+        goto OUT;
+    }
+     if(not $db){
+        goto OUT;
+      }
+      my $fd=$db->fd;
+      $ok=open DBM, "<&=$fd";
+      if( not $ok){
+        untie %hash;
+        goto OUT;
+      }
+     my $ntry=0;
+     $ok=0;
+     until (flock DBM, LOCK_EX|LOCK_NB){
+         sleep 2;
+         $ntry=$ntry+1;
+         if($ntry>10){
+             untie %hash;
+             goto OUT;
+         }
+     }
+    $ok=1;
+OUT:
+      undef $db;
+          if($ok){
+              $ref->{rtb}=$hash{rtb};           
+              $ref->{rtb_maxr}=$hash{rtb_maxr}; 
+             if($rc eq "Update"){
+                 for my $i (0 ... $#{$ref->{rtb}} ){
+                     my $arel=$ref->{rtb}[$i];
+                     if($ri->{uid} ==$arel->{uid}){
+                         $ref->{rtb}[$i]=$ri;
+                         $hash{rtb}=$ref->{rtb};
+                         untie %hash;
+                         return;
+                     } 
+                 }
+      
+             }
+             elsif($rc eq "Delete"){
+                 for my $i (0 ... $#{$ref->{rtb}}){
+                     my $arel=$ref->{rtb}[$i];
+                     if($ri->{uid} ==$arel->{uid}){
+                         $ref->{rtb}[$i]=$ref->{rtb}[$#{$ref->{rtb}}];
+                         $#{$ref->{rtb}}=$#{$ref->{rtb}}-1;
+                         $hash{rtb}=$ref->{rtb};
+                         untie %hash;
+                         return;
+                     } 
+                 }
+      
+             }
+             elsif($rc eq "Create"){
+                 if($hash{rtb_maxr}>$ri->{uid}){
+                    $ri->{uid}=$hash{rtb_maxr};
+                 }
+                         $hash{rtb_maxr}=$ri->{uid}+1;
+                         $#{$ref->{rtb}}=$#{$ref->{rtb}}+1;
+                         $ref->{rtb}[$#{$ref->{rtb}}]=$ri;
+                         $hash{rtb}=$ref->{rtb};
+                         untie %hash;
+                         return;
+      
+             }
+             elsif($rc eq "ClearCreate"){
+                    $hash{rtb_maxr}=$ri->{uid}+1;
+                    $#{$ref->{rtb}}=0;
+                         $ref->{rtb}[$#{$ref->{rtb}}]=$ri;
+                         $hash{rtb}=$ref->{rtb};
+                         untie %hash;
+                         return;
+      
+             }
+                         untie %hash;
+              $ref->Exiting ("DPS::DBProblem message=>Unable to $rc the rtb $ri->{uid}");
+          }
+          else{
+             $ref->Exiting ("DPS::DBProblem Unable to Open DB File $ref->{dbfile}");
+          } 
 }
 

@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.8 2002/02/08 13:48:54 choutko Exp $
+#  $Id: POADBServer.pm,v 1.9 2002/02/20 18:00:25 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -68,7 +68,7 @@ OUT:
           if($ok){
             $ref->{rtb}=$hash{rtb};           
             $ref->{rtb_maxr}=$hash{rtb_maxr};           
-            my $length=$#{$ref->{rtb}};    
+            my $length=$#{$ref->{rtb}}+1;    
             untie %hash;
             return ($length,$ref->{rtb},$ref->{rtb_maxr});
           }
@@ -978,7 +978,7 @@ sub getFreeHost{
           $runstorerun=$runstorerun+1;
       }
         }
-        if($#{$ref->{acl}} <$runstorerun){
+        if($#{$ref->{acl}}+1 <$runstorerun){
         my @sortedahl=sort Clock @{$ref->{ahlp}};
               foreach my $ahl (@sortedahl){
                   if ($ahl->{Status} ne "NoResponse" and $ahl->{Status} ne "InActive" ){

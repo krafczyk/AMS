@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.28 2002/02/11 11:14:35 choutko Exp $
+#  $Id: monitorUI.pm,v 1.29 2002/02/20 18:00:25 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1107,7 +1107,7 @@ sub item_factory_cb {
         if($action==5){
            if($Monitor::Singleton->{ok}){
                if($Monitor::Singleton->{registered}){
-                 Monitor::Exiting();
+                 $Monitor::Singleton->Exiting();
                }
            }
             exit();
@@ -1120,7 +1120,7 @@ sub item_factory_cb {
                  Monitor::SendId();
                }
                else{
-                 Monitor::Exiting();
+                 $Monitor::Singleton->Exiting();
                }
            }
          }elsif($action==3){

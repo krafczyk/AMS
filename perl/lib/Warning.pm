@@ -1,4 +1,4 @@
-#  $Id: Warning.pm,v 1.2 2001/01/22 17:32:53 choutko Exp $
+#  $Id: Warning.pm,v 1.3 2002/02/20 18:00:25 choutko Exp $
 package Warning;
 
 @EXPORT = qw( error );
@@ -26,6 +26,28 @@ sub error {
           $q->p( $q->i( $error_message ) ),
           $q->end_html;
     exit;
+}
+
+sub info {
+    my( $q, $error_message ) = @_;
+
+    print $q->header( "text/html" ),
+          $q->start_html( "Success" ),
+          $q->h1( "Thank you for using AMS02 MC Request Form" ),
+          $q->p( $q->i( $error_message ) ),
+          $q->end_html;
+    exit;
+}
+
+sub warning {
+    my( $q, $error_message ) = @_;
+
+    print $q->header( "text/html" ),
+          $q->start_html( "Error" ),
+          $q->h1( "Warning" ),
+          $q->p( "Sorry, the following error has occurred: " ),
+          $q->p( $q->i( $error_message ) ),
+          $q->end_html;
 }
 
 
