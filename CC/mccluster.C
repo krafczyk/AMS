@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.60 2003/02/11 10:17:04 mdelgado Exp $
+//  $Id: mccluster.C,v 1.61 2003/02/11 15:27:38 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -610,6 +610,8 @@ geant AMSRichMCHit::adc_empty(integer channel,integer mode){ // ADC count withou
 
 
 geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the pedestal
+  AMSgObj::BookTimer.start("SIRINoise");
+  
   geant u1,u2,dummy,r;
 
   AMSRICHIdSoft current(channel);
@@ -633,6 +635,7 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
 
     if(loops>100){
       cout<<"AMSRichMCHit::noise--too many loops"<<endl; 
+      AMSgObj::BookTimer.stop("SIRINoise");
       return current.getthreshold(mode)*current.getsped(mode)+current.getped(mode)+1.;
     }
   }while(integer(u1+current.getped(mode))<integer(current.getthreshold(mode)*current.getsped(mode)+current.getped(mode)));
@@ -648,6 +651,7 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
   cout <<"Returning "<<u1<<" limit at "<<current.getsped(mode)*current.getthreshold(mode) <<endl;
 #endif
 
+  AMSgObj::BookTimer.stop("SIRINoise");
 
   return u1+current.getped(mode);
 }

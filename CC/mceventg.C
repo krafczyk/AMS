@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.124 2002/09/30 14:57:32 choutko Exp $
+//  $Id: mceventg.C,v 1.125 2003/02/11 15:27:38 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -1066,7 +1066,7 @@ if(GCTRAK.sleng==0){
 }
 int scan=0;
 getscanfl_(scan);
-if(GCKINE.ipart==48 && scan){
+if(GCKINE.itra==1 && scan && GCKINE.ikine==GCKINE.ipart){
  radl+=GCTRAK.step/GCMATE.radl;
  absl+=GCTRAK.step/GCMATE.absl;
  char nvol[5]="EXIT";

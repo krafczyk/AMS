@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.43 2003/02/04 15:53:53 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.44 2003/02/11 15:27:41 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -144,7 +144,7 @@ VII.  Standalone version
           iii) libamsut   (in /afs/cern.ch/exp/ams/Offline/lib)  
           iv)  in case of linux installation
                /usr/bin/dirent.h should be replaced by 
-               e.g. pcamsp1:/usr/bin/dirent.h
+               e.g. pcamsf2:/usr/bin/dirent.h
 
 VIII. Misc
 

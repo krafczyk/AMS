@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.439 2003/02/04 15:02:04 choutko Exp $
+// $Id: job.C,v 1.440 2003/02/11 15:27:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -1718,6 +1718,7 @@ void AMSJob::_siecalinitjob(){
 //-----------------------------------------------------------------------
 void AMSJob::_sirichinitjob(){
   AMSgObj::BookTimer.book("SIRICH");
+  AMSgObj::BookTimer.book("SIRINoise");
   RICHDB::bookhist();
 }
 
