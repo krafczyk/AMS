@@ -405,8 +405,7 @@ void AMSEvent::_signinitevent(){
     philocal=fmod(philocal+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
     number phi=atan2(sin(philocal),cos(philocal)*sqrt(1+t2));
     if(phi < 0)phi=phi+AMSDBc::twopi;
-    theta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*
-               sin(phi));
+    theta=asin(sin(atan(AMSmceventg::Orbit.AlphaTanThetaMax))*sin(philocal));
     _time=integer(mktime(&AMSmceventg::Orbit.Begin)+curtime);
     _usec=(curtime-integer(curtime))*1000000;
     _NorthPolePhi=pole;
@@ -424,6 +423,7 @@ void AMSEvent::_signinitevent(){
     // get velocity parameters from orbit par
     AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
     AMSDir ax2=ax1.cross(AMSmceventg::Orbit.Axis);
+    //cout <<" 2 "<<AMSmceventg::Orbit.Axis<<" "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
   }

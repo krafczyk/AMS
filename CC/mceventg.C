@@ -194,9 +194,15 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
     r=tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
   }
   Orbit.PhiZero=Orbit.PhiI-atan2(r,CCFFKEY.sdir*sqrt(1-r*r));
-  Orbit.Axis[0]=-sin(MIR/AMSDBc::raddeg)*cos(Orbit.PhiZero);
-  Orbit.Axis[1]=-sin(MIR/AMSDBc::raddeg)*sin(Orbit.PhiZero);
+  Orbit.Axis[0]=sin(MIR/AMSDBc::raddeg)*sin(Orbit.PhiZero);
+  Orbit.Axis[1]=-sin(MIR/AMSDBc::raddeg)*cos(Orbit.PhiZero);
   Orbit.Axis[2]=cos(MIR/AMSDBc::raddeg);
+  AMSDir ax1(AMSDBc::pi/2-Orbit.ThetaI,Orbit.PhiI);
+  AMSDir ax2(AMSDBc::pi/2,Orbit.PhiZero);
+  if(ax1.prod(Orbit.Axis)>1.e-5){
+   cerr<<"AMSmceventg::setspectra-F-OrbitParametersWrong "<<ax1.prod(Orbit.Axis);
+  exit(1);
+  }
   Orbit.AlphaSpeed=AMSDBc::twopi/90.8/60.;
   Orbit.AlphaAltitude=(6373+380)*1.e5;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
