@@ -1045,7 +1045,7 @@ void AMSTrRecHit::_writeEl(){
 static integer init=0;
 static TrRecHitNtuple THN;
 int i;
-if(AMSTrRecHit::Out( IOPA.WriteAll || checkstatus(AMSDBc::USED ))){
+if(AMSTrRecHit::Out( IOPA.WriteAll || checkstatus(AMSTrRecHit::AwayTOF)==0)){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrRecHit",THN.getaddress(),
@@ -1058,7 +1058,7 @@ if(init++==0){
   THN.pY=_Ycl->getpos();
    int i,pat;
     pat=1;
-    if(AMSTrCluster::Out(IOPA.WriteAll    )){
+    if(AMSTrCluster::Out(IOPA.WriteAll)){
       // Writeall
       for(i=0;i<pat;i++){
         AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrCluster",i);
@@ -1069,10 +1069,10 @@ if(init++==0){
       }
     }                                                        
     else {
-    //WriteUsedOnly
+    //Write Hits not Away from TOF Only
       for(i=0;i<pat;i++){
         AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-          while(ptr && ptr->checkstatus(AMSDBc::USED)){
+          while (ptr && ptr->checkstatus(AMSTrRecHit::AwayTOF)==0) {
             THN.pY++;
             ptr=ptr->next();
           }
