@@ -24,7 +24,7 @@ Below there is a description of a  ntuple.
 * R*4  *              * EVENTH   * PitchS           //         pitch
 * R*4  *              * EVENTH   * RollS            //         roll
 * R*4  *              * EVENTH   * VelocityS        // Shuttle speed (rad/sec)
-                                                    // * -1  if dir is from north to south
+                                                    
 * R*4  *              * EVENTH   * VelTheta         // speed theta (GTOD rad) 
 * R*4  *              * EVENTH   * VelPhi           // speed phi (GTOD rad) 
 * R*4  *              * EVENTH   * ThetaM           // Magnetic Latitude ***)
@@ -378,6 +378,5 @@ GTOD
 
 
 
-stationr   is in I2000
 
 
