@@ -1,4 +1,4 @@
-* $Id: richrec_lip.F,v 1.1 2003/12/17 13:00:01 mdelgado Exp $
+* $Id: richrec_lip.F,v 1.2 2004/01/16 12:03:43 mdelgado Exp $
 *// +LIP reconstruction interface
 * created        13/03/2003 
 * last change    03/12/2003
@@ -42,7 +42,8 @@
 * -----------------------------------
 
       if(ifirst.eq.0) then 
-*  matrix placing parameters (according to richid.C => DMECX e DMECY = 1.1)
+*  matrix placing 
+* (according to richid.C => DMECX e DMECY = 1.1)
        pitch=pmt_sidel+pmt_shdtk+pmt_suptk
        pitchx=pitch
        pitchy=pitch
@@ -70,9 +71,6 @@
       endif 
       ievnumb=ievt 
 
-C      print*,'<<<<<<<<<<<<<<<IEVNUMB>>>>>>>>>>>',ievnumb 
-C      print*,'<<<<<<<<<<<<<<<ITKNUMB>>>>>>>>>>>',itknumb 
-
       nbhits_used=0.
       thcrec     =0.
       betarec    =0.
@@ -88,7 +86,7 @@ C      print*,'<<<<<<<<<<<<<<<ITKNUMB>>>>>>>>>>>',itknumb
       npmtot=0  
       pmweigth=0.
 
-* ... rotation matrix between detector frame and particle frame             
+* ... rotation matrix detector->particle frame             
 
       irotflg=0
       if (irotflg.eq.0) then                                                
@@ -169,13 +167,11 @@ C         print*,'IPM > 1000',ipm
       do i=1,ipmmax
        pmweigth= nhpm(i)/(1.*nbhits_nass)
        if(nhpm(i).gt.0) then 
-CC        print*,'pm,weigth,var',i,nhpm(i),pmweigth,nhpm(i)*pmweigth
         if(nhpm(i).gt.3.and.pmweigth*nhpm(i).gt.1.1) then 
          do ih=1,nbhits 
           if(iflghit(ih).eq.0.and.int(hitshid(ih)/160.).eq.i) then 
             iflghit(ih)=3 
             nbhits_nass=nbhits_nass-1    
-CC            print*,'hit out',ih,'pm',i
           endif
          enddo 
         endif 
@@ -183,31 +179,19 @@ CC            print*,'hit out',ih,'pm',i
       enddo 
       if(nbhits_nass.lt.3) return 
 
-CC      print*,'LIP RECONSTRUCTION TRIAL!!!!!!!'
-CC      print*,'-------------------------------'
-CC      print*,' radiator , z (ph. emission) ', chradid , ztrial 
-CC      print*,' Nhits entering reconstruction',nbhits_nass
-
       call richlikebeta_lip(0,ireflec)
 
       if (ipthetac.ne.0.and.nbushits(ipthetac).gt.2) then
-
-CC       print*,' Nhits used in reconstruction ',nbushits(ipthetac)
 
        nbhits_used=nbushits(ipthetac)
        thcrec     =cangrec(ipthetac)  
        likep      =likerec(ipthetac)
        chi2beta   =chi2rec(ipthetac)    
 
-       ebetarec   =ireflec*1.  ! numero de hits reflectidos
-       rprob      =radtype*1.  ! tipo de radiador 1:AGL/2:NAF
+*       ebetarec   =ireflec*1.  ! numero de hits reflectidos
+*       rprob      =radtype*1.  ! tipo de radiador 1:AGL/2:NAF
       endif
 
-CC       print'(A,2x,F7.3,A,F7.3,A,F6.4)',
-CC     +                         '(recevent) THC(REC)/THC(EXP)/beta(REC)',
-CC     +                         RADDEG*cangrec(ipthetac),' / ',
-CC     +                         RADDEG*cerang,' / ',betarec
-CC       print*,'-----------------------------------------------'
 
       return
       end

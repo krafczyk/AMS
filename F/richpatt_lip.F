@@ -1,20 +1,5 @@
-* $Id: richpatt_lip.F,v 1.1 2003/12/17 13:00:00 mdelgado Exp $
+* $Id: richpatt_lip.F,v 1.2 2004/01/16 12:03:43 mdelgado Exp $
 *//+LIP pattern tracing routines
-******************************************************************
-* LIST OF SUBROUTINES AND FUNCTIONS                                        * ---------------------------------
-*                                                                  created last changed 
-* - subroutine patrace1(phig,cerang,xdet,ydet,nmiref,nerr,verr)      20/9    25/07/02  
-* - subroutine patrace_full(phig,cerang,xdet,ydet,nmiref,nerr,verr) 25/07/02   
-* - subroutine patrace2(phig,cerang,vdet,vdir,nmiref,nerr,verr)      20/9       : OUT  
-* - subroutine patphot(phig,cerang,coneg)                            20/9
-* - subroutine patints(p0,v0,CHOPT,ierr)                             20/9
-* - subroutine patrefr(CHIN,CHOUT,phdir,ierr)                        20/9
-* - subroutine patrefl(phpto,phdir)                              
-* - subroutine patmatr     
-*
-* - real function fphotdist(phig,thetac)                             20/9
-*
-*******************************************************************
 * ================================================================         
       subroutine patrace1(phig,cerangh,xdet,ydet,nmiref,nerr,verr)
 * ================================================================         
@@ -39,13 +24,13 @@
 *
 *      verr(1:20) : photon error coding
 *              10  - backward photon
-*              11  - out of RADIATOR but outside mirror acceptance
-*              12  - out of PLEXI but outside mirror acceptance
-*              13  - starts in PLEXI but outside mirror acceptance (rad=PLEXI)
-*              14  - out of PLEXI+AIRGAP but outside mirror acceptance
+*              11  - out of RADIATOR but outside mirror acc.
+*              12  - out of PLEXI but outside mirror acc.
+*              13  - starts PLEXI outside mirror acc.(rad=PLEXI)
+*              14  - out of PLEXI+AIRGAP but outside mirror acc.
 *              15  - total reflection in RADIATOR-PLEXI transition 
 *              16  - total reflection in PLEXI-AIR transition 
-*              17  - total reflection in RADIATOR-AIR transition (no PLEXI)
+*              17  - total reflection in RADIATOR-AIR (no PLEXI)
 *              18  - 
 *              19  - in NON-ACTIVE detection region 
 ******************************************************************         
@@ -60,7 +45,7 @@
 * --- init                                                                 
       nerr   = 0                                                           
       call vfill(verr,nphmax,0)                                                
-      nmiref = 0 ! number of mirror reflections or out of prototype PMT matrix 
+      nmiref = 0 
 *
       xdet = -999.                                                         
       ydet = -999.                                                         
@@ -89,44 +74,44 @@
 
       /* test photon origin medium */
 
-      if (chradid.eq.'AGL'.or. chradid.eq.'NAF') then !photons radiated in AGL or NAF
-         call patints(phpto,phdir,'RADB',ierr)  !intersection with radiator bottom  
+      if (chradid.eq.'AGL'.or. chradid.eq.'NAF') then 
+         call patints(phpto,phdir,'RADB',ierr)  
          if (ierr.ne.0) then                                             
             nerr = nerr + 1                                              
-            verr(nerr) = 11                     !photon going out of radiator 
+            verr(nerr) = 11                     
             return                                                       
          endif
          /* test plexiglass support */
          if (HPGL.ne.0.0) then
             chin = chradid 
-            call patrefr(chin,'PGL',phdir,ierr)  !refraction 
+            call patrefr(chin,'PGL',phdir,ierr) 
             if (ierr.ne.0) then                  
                nerr = nerr + 1                                             
-               verr(nerr) = 15                   !total reflection-in plexi 
+               verr(nerr) = 15                  
                return                                                      
             endif                                                          
             call patints(phpto,phdir,'PGLB',ierr)                          
             if (ierr.ne.0) then                                             
                nerr = nerr + 1                                              
-               verr(nerr) = 12                !photon going out of plexi
+               verr(nerr) = 12                
                return                                                       
             endif                                                           
-            call patrefr('PGL','AIR',phdir,ierr)  !refraction              
+            call patrefr('PGL','AIR',phdir,ierr) 
             if (ierr.ne.0) then                  
                nerr = nerr + 1                                             
-               verr(nerr) = 16                !refraction in transition   
+               verr(nerr) = 16               
                return                                                      
             endif
             call patints(phpto,phdir,'AGAP',ierr)                          
             if (ierr.ne.0) then                                             
                nerr = nerr + 1                                              
-               verr(nerr) = 14                !photon going out between mirror and pgl
+               verr(nerr) = 14               
                return                                                       
             endif                                                           
          else  ! NO PLEXIGLASS 
             chin = chradid 
-            call patrefr(chin,'AIR',phdir,ierr)  !refraction              
-            if (ierr.ne.0) then                  !total reflection         
+            call patrefr(chin,'AIR',phdir,ierr)
+            if (ierr.ne.0) then                
                nerr = nerr + 1                                             
                verr(nerr) = 17                                             
                return                                                      
@@ -134,24 +119,24 @@
             call patints(phpto,phdir,'AGAP',ierr)                          
             if (ierr.ne.0) then                                             
                nerr = nerr + 1                                              
-               verr(nerr) = 14  !photon going out in air gap above mirror 
+               verr(nerr) = 14  
                return                                                       
             endif                                                           
          endif
       /* photon starting in plexiglass */
       elseif (chradid.eq.'PGL') then
          if (HPGL.eq.0.0) then
-           print*,' >>> patrace1: photons starting in PGL when HPGL=0'
-           return 
+          print*,' >>> patrace1: photons starting in PGL when HPGL=0'
+          return 
          endif   
-         call patints(phpto,phdir,'PGLB',ierr) !intersection            
+         call patints(phpto,phdir,'PGLB',ierr) 
          if (ierr.ne.0) then                                             
             nerr = nerr + 1                                              
-            verr(nerr) = 13                !photon going out of radiator 
+            verr(nerr) = 13                
             return                                                       
          endif                                                           
-         call patrefr('PGL','AIR',phdir,ierr)  !refraction              
-         if (ierr.ne.0) then                  !total reflection         
+         call patrefr('PGL','AIR',phdir,ierr)
+         if (ierr.ne.0) then                 
             nerr = nerr + 1                                             
             verr(nerr) = 16                                             
             return                                                      
@@ -159,7 +144,7 @@
         call patints(phpto,phdir,'AGAP',ierr)                          
         if (ierr.ne.0) then                                             
            nerr = nerr + 1                                              
-           verr(nerr) = 14     !photon going out in air gap between mirror and pgl
+           verr(nerr) = 14     
            return                                                       
         endif                                                           
       endif                      
@@ -167,12 +152,12 @@
 CC    if (nerr.ne.0) return           
                                    
 * ... intersect photon with PMT plane
-      call patints(phpto,phdir,'PMTD',ierr)                         
+      call patints(phpto,phdir,'PMTD',ierr)                        
 *      print*,'>>>>>>>>>>>>>>>>>> richpatt,phpto',phpto 
 * ... propagating photons to pmt matrix  - FLIGHT
       rpoint = sqrt(phpto(1)**2+phpto(2)**2)                               
       do while (rpoint.gt.RBMIR+TGMIR*ZBMIRGAP)                                           
-        call patints(phpto,phdir,'MIRR',ierr) !intersec with mirror
+        call patints(phpto,phdir,'MIRR',ierr) 
         if (ierr.ne.0) return   
         rpoint = sqrt(phpto(1)**2+phpto(2)**2)                            
 
@@ -184,7 +169,7 @@ CC    if (nerr.ne.0) return
            nerr=nerr+1
            RETURN
           endif
-          call patrefl(phpto,phdir) !photon direction after reflection      
+          call patrefl(phpto,phdir) 
           call patints(phpto,phdir,'PMTD',ierr)                             
           rpoint = sqrt(phpto(1)**2+phpto(2)**2)                            
         endif 
@@ -199,9 +184,9 @@ CC    if (nerr.ne.0) return
       return                                                               
 
       end                                                                       
-* =====================================================================         
+* ===================================================================
       subroutine patrace_full(phig,cerangh,xdet,ydet,nmiref,nerr,verr)
-* =====================================================================         
+* ===================================================================
 #include "../include/richrec_lipf.h"
 
       integer nphmax  
@@ -243,8 +228,8 @@ CC    if (nerr.ne.0) return
 
       /* test photon origin medium */
 
-      if (chradid.eq.'AGL'.or. chradid.eq.'NAF') then ! photons radiated in AGL or NAF
-         call patints(phpto,phdir,'RADB',ierr)  ! intersection with radiator bottom 
+      if (chradid.eq.'AGL'.or. chradid.eq.'NAF') then 
+         call patints(phpto,phdir,'RADB',ierr) 
           if (ierr.ne.0) then                                             
             nerr = nerr + 1                                              
             verr(nerr) = 11   
@@ -255,8 +240,8 @@ CC    if (nerr.ne.0) return
 
          if (HPGL.ne.0.0) then
             chin = chradid 
-            call patrefr(chin,'PGL',phdir,ierr)  !refraction 
-            if (ierr.ne.0) then                  !total reflection         
+            call patrefr(chin,'PGL',phdir,ierr) 
+            if (ierr.ne.0) then                 
                nerr = nerr + 1                                             
                verr(nerr) = 15                                             
                return                                                      
@@ -264,11 +249,11 @@ CC    if (nerr.ne.0) return
             call patints(phpto,phdir,'PGLB',ierr)                          
             if (ierr.ne.0) then                                             
                nerr = nerr + 1                                              
-               verr(nerr) = 12                  !photon going out of radiator 
+               verr(nerr) = 12                  
                return                                                       
             endif                                                           
-            call patrefr('PGL','AIR',phdir,ierr)  !refraction              
-            if (ierr.ne.0) then                   !total reflection         
+            call patrefr('PGL','AIR',phdir,ierr)
+            if (ierr.ne.0) then                 
                nerr = nerr + 1                                             
                verr(nerr) = 16                                             
                return                                                      
@@ -276,13 +261,13 @@ CC    if (nerr.ne.0) return
             call patints(phpto,phdir,'AGAP',ierr)                          
             if (ierr.ne.0) then                                             
                nerr = nerr + 1                                              
-               verr(nerr) = 14                !photon going out between mirror and pgl
+               verr(nerr) = 14                
                return                                                       
             endif                                                           
          else
             chin = chradid 
-            call patrefr(chin,'AIR',phdir,ierr)  !refraction              
-            if (ierr.ne.0) then                  !total reflection         
+            call patrefr(chin,'AIR',phdir,ierr)
+            if (ierr.ne.0) then                
                nerr = nerr + 1                                             
                verr(nerr) = 17                                             
                return                                                      
@@ -290,7 +275,7 @@ CC    if (nerr.ne.0) return
             call patints(phpto,phdir,'AGAP',ierr)                          
             if (ierr.ne.0) then                                             
                nerr = nerr + 1                                              
-               verr(nerr) = 14                !photon going out between mirror and pgl
+               verr(nerr) = 14                
                return                                                       
             endif                                                           
         endif
@@ -300,19 +285,19 @@ CC    if (nerr.ne.0) return
 
       /* photon starting in plexiglass */
 
-         if (HPGL.eq.0.0) then
-           print*,'>>> patrace_full:photons starting in PGL when HPGL=0'
-           return 
-         endif   
+       if (HPGL.eq.0.0) then
+        print*,'>>> patrace_full:photons starting in PGL when HPGL=0'
+        return 
+       endif   
 
-         call patints(phpto,phdir,'PGLB',ierr) !intersection            
+         call patints(phpto,phdir,'PGLB',ierr) 
          if (ierr.ne.0) then                                             
             nerr = nerr + 1                                               
-            verr(nerr) = 13                    !photon going out of radiator 
+            verr(nerr) = 13                    
             return                                                       
          endif                                                           
-         call patrefr('PGL','AIR',phdir,ierr)  !refraction              
-         if (ierr.ne.0) then                   !total reflection         
+         call patrefr('PGL','AIR',phdir,ierr)  
+         if (ierr.ne.0) then                   
             nerr = nerr + 1                                             
             verr(nerr) = 16                                             
             return                                                      
@@ -320,7 +305,7 @@ CC    if (nerr.ne.0) return
         call patints(phpto,phdir,'AGAP',ierr)                          
         if (ierr.ne.0) then                                             
            nerr = nerr + 1                                              
-           verr(nerr) = 14                !photon going out between mirror and pgl
+           verr(nerr) = 14               
            return                                                       
         endif                                                           
       endif                      
@@ -336,11 +321,11 @@ CC    if (nerr.ne.0) return
       rpoint = sqrt(phpto(1)**2+phpto(2)**2)                               
       do while (rpoint.gt.RBMIR+TGMIR*ZBMIRGAP)                                           
 
-        call patints(phpto,phdir,'MIRR',ierr) !intersec with mirror
+        call patints(phpto,phdir,'MIRR',ierr) 
         if (ierr.ne.0) return   
         rpoint = sqrt(phpto(1)**2+phpto(2)**2)                            
 
-        if(phpto(3).gt.(zpmtdet-zbmirgap)) then ! photon between mirror and pmt matrix
+        if(phpto(3).gt.(zpmtdet-zbmirgap)) then 
           call patints(phpto,phdir,'PMTD',ierr)                             
         else       ! reflected photon
           nmiref = nmiref + 1                                               
@@ -348,7 +333,7 @@ CC    if (nerr.ne.0) return
            nerr=nerr+1
            RETURN
           endif
-          call patrefl(phpto,phdir) !photon direction after reflection      
+          call patrefl(phpto,phdir) 
           call patints(phpto,phdir,'PMTD',ierr)                             
           rpoint = sqrt(phpto(1)**2+phpto(2)**2)                            
         endif 
@@ -383,9 +368,9 @@ CC    if (nerr.ne.0) return
 * OUTSIDE PLANES:
 
          if(
-     +       (abs(phpto(1)).gt.XLIMH+9*PITCHX)        ! OUTSIDE PLANE (L/R)
+     +       (abs(phpto(1)).gt.XLIMH+9*PITCHX) 
      +         .or. 
-     +       (abs(phpto(2)).gt.YLIMV+9*PITCHY)        ! OUTSIDE PLANE (T/B)
+     +       (abs(phpto(2)).gt.YLIMV+9*PITCHY) 
      +     ) then
             nerr = nerr + 1                                                
             verr(nerr) = 19
@@ -397,15 +382,15 @@ CC    if (nerr.ne.0) return
          if(
      +       (phpto(2).gt.YLIMV.and.
      +        phpto(1).lt.-DX0 .and.
-     +        phpto(1).gt.-JUMP-DX0)    ! DIVISION BETWEEN MODULES (TOP) 
+     +        phpto(1).gt.-JUMP-DX0)    
      +         .OR.
      +       (phpto(2).lt.-YLIMV.and.
      +        phpto(1).gt. DX0.and.
-     +        phpto(1).lt. JUMP+DX0)    ! DIVISION BETWEEN MODULES (BOTTOM)   
+     +        phpto(1).lt. JUMP+DX0)    
      +         .OR.       
-     +        ABS(PHPTO(1)).GT.XLIMV.AND.ABS(PHPTO(1)).LT.XLIMH ! OUTSIDE MECH. DIV.
+     +        ABS(PHPTO(1)).GT.XLIMV.AND.ABS(PHPTO(1)).LT.XLIMH 
      +         .OR.       
-     +        ABS(PHPTO(2)).GT.YLIMH.AND.ABS(PHPTO(2)).LT.YLIMV ! OUTSIDE MECH. DIV.  
+     +        ABS(PHPTO(2)).GT.YLIMH.AND.ABS(PHPTO(2)).LT.YLIMV 
      +     ) then
             nerr = nerr + 1                                                
             verr(nerr) = 19
@@ -449,17 +434,17 @@ CC    if (nerr.ne.0) return
       return                                                               
       end                                                                       
 
-* =======================================================================
+* ==================================================================
       subroutine patphot(phig,cerang,coneg)
-* =======================================================================
-*************************************************************************+
+* ==================================================================
+********************************************************************
 *     AIMS       : Get photon direction in RICH-frame generated for 
 *                  a given phi angle
 *     PARAMETERS :
 *                   IN - PHIG   = photon PHI angle
 *                        CERANGH = cerenkov angle
 *                  OUT - CONEG  = photon direction
-*************************************************************************+
+********************************************************************
 
       integer irotflg
       real figrotm(3,3)
@@ -484,14 +469,14 @@ CC    if (nerr.ne.0) return
       return
       end
 
-* =======================================================================
+* ================================================================
       subroutine patints(p0,v0,CHOPT,ierr)
-* =======================================================================
+* ================================================================
 ******************************************************************
 *
-*     Intersection of a straight line (photon) with a surface Z=cte
+*   Intersection of a straight line (photon) with a surface Z=cte
 *     
-*     PARAMETERS:
+*   PARAMETERS:
 *     IN  - P0(3) = straight line point
 *           V0(3) = straight line direction
 *           CHOPT = defines surface ('RADB','MIRR', PMTD')
@@ -621,16 +606,16 @@ cc      root_minus = -0.5*B/A-0.5/A*sqrt((B**2-4.*A*C))
 * --- end
       return
       end
-* ===================================================================
+* =============================================================
       subroutine patrefr(CHIN,CHOUT,phdir,ierr)
-* ===================================================================
+* =============================================================
 ***************************************************************
 *
 *     It refracts the photon at the exit of the radiator
 *     PARAMETERS:
-*     IN     - ierr  = 1 photon not tranmitted due to critical angle
-*     IN/OUT - phdir = photon direection
-
+*     IN     - ierr  = 1 photon not tranmitted due to critical 
+*                        angle
+*     IN/OUT - phdir = photon direction
 ***************************************************************
 #include "../include/richrec_lipf.h"
 
@@ -640,7 +625,8 @@ cc      root_minus = -0.5*B/A-0.5/A*sqrt((B**2-4.*A*C))
 
 * --- init
       ierr = 0
-* --- normal to the radiator plane on the general frame (radiator inward)
+* --- normal to the radiator plane on the general frame 
+*    (radiator inward)
       vnormal(1) = 0.
       vnormal(2) = 0.
       vnormal(3) = -1.
@@ -682,9 +668,9 @@ cc      root_minus = -0.5*B/A-0.5/A*sqrt((B**2-4.*A*C))
 * --- end
       return
       end
-* =======================================================================
+* ===============================================================
       subroutine patrefl(phpto,phdir)
-* =======================================================================
+* ===============================================================
 *****************************************************************
 *
 *     It reflects the photon at the mirror 
@@ -734,9 +720,9 @@ C      print*,'thr=',acos(costhr)
 * --- end
       return
       end
-* ==========================================================================
+* ===========================================================
       subroutine patmatr
-* ==========================================================================
+* ===========================================================
 *************************************************************
 * 
 * gets (x,y,z) from (x',y',z') by defining FIGROTM matrix
@@ -832,12 +818,12 @@ C      print*,'*****************************'
 ***********************************************
 ************* FUNCTIONS ***********************
 ***********************************************
-* ==========================================================================
+* ================================================================
       real function fphotdist(phig)
-* ==========================================================================
-****************************************************************************
+* ================================================================
+******************************************************************
 *  It determines the distance crossed by a photon in the radiator
-****************************************************************************
+******************************************************************
 #include "../include/richrec_lipf.h"
 
       common/parfunc/par(10)
@@ -872,8 +858,9 @@ C      print*,'*****************************'
       end
 
       subroutine  pmtpos_flight(IPM,XL,XR,YU,YD,XC,YC,IFLG)
-**************************************************************************
-* AIMS  : get x and y position of pmt  (used by DISPLAY and by acceptance) 
+****************************************************************
+* AIMS  : get x and y position of pmt  
+*(used by DISPLAY and by acceptance) 
 * PARAMS:
 *        IN - pmtnb  = pmt number
 *        OUT- xleft  = X left limit     
@@ -885,7 +872,7 @@ C      print*,'*****************************'
 *        IFLG 1 - external contour -first out
 *             1 - internal non existing PMT
 *             3 - external non existing PMT 
-**************************************************************************
+****************************************************************
 #include "../include/richrec_lipf.h"
 
       integer IPM,IFLG
@@ -1018,7 +1005,7 @@ C      print*,'*****************************'
      &       IP.EQ.  7.OR.IP.EQ.  8.OR.IP.EQ. 17.OR.IP.EQ.26.OR.
      &       IP.EQ.134.OR.IP.EQ.143.OR.IP.EQ.151.OR.IP.EQ.152) IFLG=1
 
-      ELSEIF(IPM.GE.531.AND.IPM.LT.567) THEN ! 7TH PLANE(LOWER LEFT CORNER)
+      ELSEIF(IPM.GE.531.AND.IPM.LT.567) THEN ! 7TH PLANE(LOW LEFT)
 
        IP=IPM-531
        IDIF=IP 
@@ -1114,8 +1101,9 @@ C      print*,'*****************************'
       end
 
       subroutine  pmtnmb_flight(XPHOT,YPHOT,IPM,IFLG)
-**************************************************************************
-* AIMS  : get pmt nmb and flag (used by pattrace to flag path through matrix)
+********************************************************************
+* AIMS  : 
+*get pmt nmb and flag (used by pattrace to flag path through matrix)
 * PARAMS:
 *        IN - XPHOT,YPHOT
 *        OUT- IPM  PMT number
@@ -1123,7 +1111,7 @@ C      print*,'*****************************'
 *                   1 - external contour -first out
 *                   2 - internal non existing PMT
 *                   3 - external non existing PMT (dead areas)
-**************************************************************************
+********************************************************************
 #include "../include/richrec_lipf.h"
 
       integer IPM,IFLG
@@ -1162,9 +1150,10 @@ C      print*,'*****************************'
          ENDIF              
 
       ELSEIF(
+* TOP/BOTTOM PLANES : 3RD/4th/8TH/9th 
      & (ABS(XPHOT).LT.(XLIMV)).AND. 
      &   ABS(YPHOT).GT.YLIMV.AND.
-     &   ABS(YPHOT).LT.YLIMV+9*PITCHY) THEN ! TOP/BOTTOM PLANES : 3RD/4th/8TH/9th 
+     &   ABS(YPHOT).LT.YLIMV+9*PITCHY) THEN 
              IF((XPHOT.LT.-DX0.AND.YPHOT.GT.0).OR.
      &          (XPHOT.GT. DX0.AND.YPHOT.LT.0))THEN
                DXP=ABS(XPHOT+SIGN(-JUMP+XLIMV,XPHOT))
@@ -1193,9 +1182,9 @@ C      print*,'*****************************'
      &              IFLG=1
 
              ENDIF
-
+* CORNER PLANES 
       ELSEIF(ABS(XPHOT).gt.XLIMH.AND.
-     &       ABS(YPHOT).gt.YLIMV) THEN  ! CORNER PLANES 
+     &       ABS(YPHOT).gt.YLIMV) THEN  
 
         DXP=ABS(ABS(XPHOT)-XLIMH)
         DYP=ABS(ABS(YPHOT)-YLIMV)
@@ -1205,7 +1194,8 @@ C      print*,'*****************************'
         IP=0
 
 
-        IF(XPHOT*YPHOT.GT.0) THEN ! 2nd/5th planes (36 each)
+* 2nd/5th planes (36 each)
+        IF(XPHOT*YPHOT.GT.0) THEN 
          DO I=1,IY-1
             IP=IP+(8-(I-1))
          ENDDO 
@@ -1215,8 +1205,8 @@ C      print*,'*****************************'
           ELSE
            IPM= IP+3*153+2*36
           ENDIF
-
-        ELSEIF(XPHOT*YPHOT.LT.0)then    ! 7nd/10th planes (36 each)
+* 7nd/10th planes (36 each)
+        ELSEIF(XPHOT*YPHOT.LT.0)then    
          DO I=1,IX-1
             IP=IP+(8-(I-1))
          ENDDO 

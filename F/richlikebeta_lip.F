@@ -1,5 +1,5 @@
-* $Id: richlikebeta_lip.F,v 1.1 2003/12/17 13:00:00 mdelgado Exp $
-* +LIP  velocity reconstruction 
+*$Id: richlikebeta_lip.F,v 1.2 2004/01/16 12:03:43 mdelgado Exp $
+*+LIP  velocity reconstruction 
 
        subroutine richlikebeta_lip(iproc,ireflec)
 *=============================================================
@@ -23,13 +23,9 @@
       real thetbrack1, thetbrack2, thetbrack3, cangrecmat,cangrecmin,
      & fsigma2hint,chi2_evt,prob_evt
      
-      REAL TBETA1,TBETA2,TBETA3,TBETA4,TBETA5
-
 
 *  INITIALIZATION 
 * ================
-
-CC      CALL TIMED(TBETA1)
 
 * ..  reconstruction variables and parameters (angles in radians): 
       call vfill(cangrec,ntherecmax,-999.)
@@ -41,21 +37,21 @@ CC      CALL TIMED(TBETA1)
       cangrectol = degrad*0.01 
       if (chradid.eq.'AGL') then
          cangrecup  = acos(1./refindex)*1.05
-         cangreclow = 5.0*DEGRAD  ! minimum beta=0.9746(n=1.03)/0.956(n=1.05) 
-         PHISTEP    = 10.0        ! phi step for hit chi2 scanning 
-         THCSTEP    = 1.0         ! thetac step for Likelihood F. scanning 
-         FSIGMA2    = 0.3**2      ! likelihood function width 
-         FBACKGR    = 0.2         ! background fraction
+         cangreclow = 5.0*DEGRAD 
+         PHISTEP    = 10.0       
+         THCSTEP    = 1.0        
+         FSIGMA2    = 0.3**2     
+         FBACKGR    = 0.2        
       elseif (chradid.eq.'NAF' .or. chradid.eq.'PGL') then
          cangrecup  = acos(1./refindex)*1.05
-         cangreclow = acos(1./(refindex*0.97)) ! minimum beta=0.97
+         cangreclow = acos(1./(refindex*0.97)) 
          PHISTEP   =  5.     
-         THCSTEP    = 1.0         ! thetac step for Likelihood F. scanning 
+         THCSTEP    = 1.0   
          FSIGMA2   =  0.7**2 
          FBACKGR   =  0.1    
       endif
-      FDISTAN   =  100.                ! detector matrix dimension
-      CHI2HTCUT=  (4*sqrt(fsigma2))**2 ! chi2cut for a photon pattern hit
+      FDISTAN   =  100.                
+      CHI2HTCUT=  (4*sqrt(fsigma2))**2 
 
       if (iproc.lt.0) return 
 
@@ -63,7 +59,6 @@ CC      CALL TIMED(TBETA1)
 * ==> RECONSTRUCT CERENKOV ANGLE 
 * //////////////////////////////////////////////////////////////
 
-CC      CALL TIMED(TBETA2)
 
 * => find minimal solution analitically => phi(hit), best thc
 
@@ -75,12 +70,10 @@ CC      CALL TIMED(TBETA2)
             fliketot_buf = testval
             thetac_buf   = xthet
           endif
-CC          print*,'thetac.flike.buf',raddeg*xthet,testval,fliketot_buf   
       enddo   
  
       if(thetac_buf.eq.0) return
 
-CC      CALL TIMED(TBETA3)
 
 * => find minimum numerically => phifit(hit), better thc
       xthet=thetac_buf
@@ -90,7 +83,6 @@ CC      CALL TIMED(TBETA3)
           thetac_buf   = xthet
       endif
 
-CC      CALL TIMED(TBETA4)
 
 * => THC final minimization
 
@@ -109,16 +101,7 @@ CC      CALL TIMED(TBETA4)
      +fliketot_phihint,cangrectol,cangrecmin,iter)    
       prob_evt = fliketot_phihint(cangrecmin)
 
-CC      print*,'final >>>>>>>>> thetac.flike.buf',raddeg*cangrecmin,
-CC     & prob_evt
-
-CC      CALL TIMED(TBETA5)
  1    continue 
-
-CC      PRINT *,'T.Start           ',TBETA1,TBETA2
-CC      PRINT *,'Phi Mat, T.       ',thetac_buf,TBETA3
-CC      PRINT *,'Phi Hint, T.      ',thetac_hint,TBETA4
-CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
 
 * ... store reconstructed values       
 
@@ -154,11 +137,11 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
       end
 
       real function fliketot_phimat(cangrecx)
-*********************************************************************
+**************************************************************
 * DATE: 25/July/2002
 * calculates Likelihood function 
 * chi2, and phi(hits) are evaluated through an analytic method
-********************************************************************* 
+**************************************************************
        implicit none 
 
 *  DECLARATIONS 
@@ -234,9 +217,6 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
        ireflechit_fit(i)=0   
 
        if (iflghit(i).ne.0) then
-*         exclude hits associated to track (1)
-*         exclude hits already used by some reconstruction (2)
-*         exclude very distant hits from maximum cerenkov pattern or clusters(3)
             chi2hit_fit(i) = 999999.
             goto 1
        endif
@@ -254,7 +234,7 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
        phihit_fit(i) = real(phih)
        chi2hit_fit(i)= real(chi2min**2)  
 
-* ...... likelihood function (Lorentz function/Gauss+constant) for the hit
+* ...... likelihood function for the hit
 
        gcte   = 1./sqrt(twopi*fsigma2)
        fgaussct = -log( 
@@ -295,49 +275,49 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
 *     -------------- 
        real ztoprad_ams,zpmtdet,
      + hmir,rtmir,rbmir,emcxlim,emcylim,
-     + ztmirgap,zbmirgap,                                  ! dimensions
+     + ztmirgap,zbmirgap,                  
      + reflec, 
-     + lg_length,lg_height,                                 ! LG
+     + lg_length,lg_height,                
      + pmt_suptk,pmt_shdtk,pmt_sidel
 
 
-      common /lipgeo/ztoprad_ams,       ! top of radiator (AMS frame) (cm)
-     +               zpmtdet,           ! z of PMT matrix (RICH frame)
-     +               hmir,              ! mirror height (cm)
-     +               rtmir,             ! mirror top radius (cm)
-     +               rbmir,             !   "   bottom "    (cm)
-     +               emcxlim,           ! hole lim. x    
-     +               emcylim,           ! hole lim. y    
-     +               ztmirgap,          ! zgap betw. mirror and rad
-     +               zbmirgap,          ! zgap betw. mirror and lg
-     +               reflec,            ! mirror reflectivity
-     +               lg_length,         ! LG length (cm) 
-     +               lg_height,         ! LG height(cm) 
+      common /lipgeo/ztoprad_ams,       
+     +               zpmtdet,           
+     +               hmir,              
+     +               rtmir,             
+     +               rbmir,             
+     +               emcxlim,           
+     +               emcylim,           
+     +               ztmirgap,          
+     +               zbmirgap,          
+     +               reflec,            
+     +               lg_length,         
+     +               lg_height,         
      +               pmt_suptk,
      +               pmt_shdtk,
      +               pmt_sidel
 
        integer radtype,nabsrad
-       real hrad,refindex,clarity,rrad,ltile,labsrad,     ! radiator
-     + hpgl,pglix                                         ! foil
+       real hrad,refindex,clarity,rrad,ltile,labsrad,   
+     + hpgl,pglix                                       
 
        common/liprad/ 
-     +               hrad,              ! radiator thickness          (cm) 
-     +               refindex,          !   "      refractive index
-     +               clarity,           !   "      clarity
-     +               radtype,           ! 0(empty),1(agl),2(naf)
-     +               rrad,              ! radiator radius
-     +               ltile,             ! tile dimensions
-     +               nabsrad,           ! Nelm( absorption length)
-     +               labsrad(44),       ! absorption length                       
-     +               hpgl,              ! foil thickness(cm)
-     +               pglix              !  "   refractive index 
+     +               hrad,          
+     +               refindex,      
+     +               clarity,       
+     +               radtype,       
+     +               rrad,          
+     +               ltile,         
+     +               nabsrad,       
+     +               labsrad(44),   
+     +               hpgl,          
+     +               pglix          
 
 
 *     PARTICLE BLOCK       
 *     ---------------
       real pimp,pmom,pthe,pphi,pcoopmt,cerang,pbeta,pchg
-      common /liptrk/pimp(3),           ! particle ip in radiator (AMS frame)
+      common /liptrk/pimp(3),       
      +               pmom,
      +               pthe,
      +               pphi,
@@ -347,7 +327,7 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
      +               pchg 
 
         real pcervtx
-        common /richvtxc/ pcervtx(3)  ! cerenkov vertex
+        common /richvtxc/ pcervtx(3)
         real vtmir, tgmir
         common/miraux/vtmir(3), 
      +              tgmir    
@@ -436,10 +416,9 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
 
         Sa= 108.d0*Ap**2*( 1.D0-Ap**2 + T) + 2.d0*T**3
 
-*        print*,'>>>>>>>>>> ',-4*T**6+Sa**2
         if(-4.D0*T**6 + Sa**2.lt.0) then
-*         print*,'>>>>>>>>>> sqrt of negative nr in S0'
          return
+*         print*,'>>>>>>>>>> sqrt of negative nr in S0'
         endif
  
         S0=Sa+dsqrt(-4.D0*T**6+Sa**2)
@@ -448,13 +427,12 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
         S2  =  Ap**2 + (S0/C - 2*T + C*T**2/S0 )/3.D0
 
         if(S2.lt.0) then
-*         print*,'>>>>>>>>>> sqrt of negative nr in S2'
          return
+*         print*,'>>>>>>>>>> sqrt of negative nr in S2'
         endif
 
         S2  = dsqrt(S2)
 
-* -------------------------------------------------------
 
         r3=2.D0*Ap**2 - ( S0/C + 4.D0*T +  C*T**2/S0 )/3.D0  
 
@@ -464,8 +442,6 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
         endif
 
         r4=2.D0*Ap*(2.D0 - Ap**2 + T)/S2
-
-* --------------------------------------------------------
 
         ir=0 
 
@@ -598,14 +574,14 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
       end
 
       real function fliketot_phihint(cangrecx)
-*********************************************************************
+************************************************************
 * last upDATE: 03/12/2003
 *
 * calculates Likelihood function <- chi2
 *
 *   a numerical method is used 
 *   starting from the (THC,PHI(hits)) obtained previously
-******************************************************************** 
+************************************************************
       implicit none 
 
 *  DECLARATIONS
@@ -674,9 +650,6 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
 
       do 1 i=1,nbhits
        if (iflghit(i).ne.0) then
-*           exclude associated hits to track (1)
-*           exclude hits already used by some reconstruction (2)
-*           exclude very distant hits from maximum cerenkov pattern (3)
             chi2hit_fit(i) = 999999.
             goto 1
        endif
@@ -690,10 +663,8 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
          
 *        1ST CALL to fliketot_phihint ...
          IF (ievnumb.ne.ievbuff.or.itknumb.ne.itkbuff) THEN
-*--------------------------------------------------------------
-* CONVERSION TO PATRACE1 FRAME OF REFERENCE (USED IN FIT): 
+* conversion to patrace1 frame of reference (used in fit) 
 * Z points up,  x is the same , y changes sign 
-*--------------------------------------------------------------
            phihit_fit(i)=twopi-phihit_fit(i) 
            if(phihit_fit(i).gt.twopi) phihit_fit(i)=phihit_fit(i)-twopi 
            if(phihit_fit(i).lt.0)     phihit_fit(i)=phihit_fit(i)+twopi 
@@ -731,12 +702,12 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
      & phphimin = phphimin - int(phphimin/twopi)*twopi
          if(phphimin.lt.0.)
      & phphimin = phphimin + (int(phphimin/twopi)+1)*twopi
-*
+
        phihit_fit(i)     = phphimin                  
        chi2hit_fit(i)    = chi2_hit
        ireflechit_fit(i) = nmirefhit
 
-* .. LIKELIHOOD function (Lorentz function/Gauss+constant) for the hit
+* .. LIKELIHOOD function for the hit
 
        gcte   = 1./sqrt(twopi*fsigma2)
 
@@ -774,7 +745,7 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
       end
 
 
-* ////////////////////////////////////////////////////////////
+* //////////////////////////////////////////////////////
 
 *=======================================================
       real function fchi2hit(phphi)
@@ -822,52 +793,17 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
       end
 
 
-*******************************************************************************
-*    File with subroutines/ functions for numerical computation 
-*
-*
-*    INDEX (by apearing order):
-*
-*        -> Bracketing of minimum (for single-valued functions)
-* 
-*                   minbrack1
-*                   minbrack
-*        -> Finding of a minimum in a minimum bracket
-*                   brent1
-*                   brent2
-*                   golden1
-*                   golden2
-*        -> Bracketing of zeros (for single-valued functions)
-*      
-*                   zbrak
-*                   zbrak1
-*        -> Numerical Derivative by Ridders method 
-*                   dfridr 
-*
-*        -> Modified versions for some of previous routines/functions:
-*                   brentmod1
-*                   brentmod2
-*                   goldenmod1
-*                   goldenmod2
-*                   minbrackthe
-*                   minbrackphi
-*
-*******************************************************************************
-
-
-
       subroutine minbrack1(ax,bx,cx,fa,fb,fc,func,ierr)
-*******************************************************************************
-*     this routine makes the bracketing of a minimum of the function...
+********************************************************************
+*     this routine makes the bracketing of a minimum of the function
 *
 *     extracted from NUMERICAL RECIPES in Fortran
 *     Chapter. 10: Function Minimization
-* -----------------------------------------------------------------------------
-* the output bracket is given by ax,bx,cx where ax<bx<cx (or ax>bx>cx ) 
+* ------------------------------------------------------------------
+* the output bracket is given by ax,bx,cx where ax<bx<cx 
+*(or ax>bx>cx ) 
 * and f(ax)>f(bx) and f(cx)>f(bx)
-*
-*
-********************************************************************************
+********************************************************************
       implicit none
       REAL ax,bx,cx,fa,fb,fc,func,GOLD,GLIMIT,TINY
       EXTERNAL func
@@ -945,17 +881,14 @@ CC      PRINT *,'Thetac brent 2, T.',cangrecmin, TBETA5
       return
       END
 
-
-C=============================================================================
-
       subroutine minbrack(ax,bx,cx,fa,fb,fc,func,ierr)
-*******************************************************************************
-*     this routine makes the bracketing of a minimum of the function...
+********************************************************************
+* this routine makes the bracketing of a minimum of the function...
 *
-*     extracted from NUMERICAL RECIPES in Fortran
-*     Chapter. 10: Function Minimization
+* extracted from NUMERICAL RECIPES in Fortran
+* Chapter. 10: Function Minimization
 * 
-********************************************************************************
+********************************************************************
       implicit none
       REAL ax,bx,cx,fa,fb,fc,func,GOLD,GLIMIT,TINY
       EXTERNAL func
@@ -1033,9 +966,9 @@ C=============================================================================
       return
       END
 
-* ====================================================================
+* ============================================================
       FUNCTION brent1(ax,bx,cx,f,tol,xmin)                            
-* ====================================================================         
+* ============================================================
       implicit none
       INTEGER ITMAX
       REAL brent1,ax,bx,cx,tol,xmin,f,CGOLD,ZEPS
@@ -1119,9 +1052,9 @@ C=============================================================================
       brent1=fx
       return
       END
-* ====================================================================
+* ================================================================
       FUNCTION brent2(ax,bx,cx,f,tol,xmin)                            
-* ====================================================================  
+* ================================================================
       implicit none
       INTEGER ITMAX
       REAL brent2,ax,bx,cx,tol,xmin,f,CGOLD,ZEPS
@@ -1207,9 +1140,8 @@ C=============================================================================
       END
 
 ********************************************************
-********************************************************
-
       FUNCTION golden1(ax,bx,cx,f,tol,xmin)
+********************************************************
       implicit none
       REAL golden1,ax,bx,cx,tol,xmin,f,R,C
       EXTERNAL f
@@ -1298,13 +1230,6 @@ C=============================================================================
       return
       END
 
-
-
-
-
-
-* ===================================================================
-
 * ======================================================       
       subroutine zbrak(func,x1,x2,n,xb1,xb2,yb1,yb2,nb)               
 * ====================================================== 
@@ -1369,12 +1294,12 @@ C=============================================================================
 
 
 
-********************************************************************
+***************************************************************
 * numerical derivative by Ridders' method (5.7)
-********************************************************************
-* ==================================================================
+***************************************************************
+* =============================================================
       FUNCTION dfridr(func,x,h,err)
-* ==================================================================
+* =============================================================
       implicit none
       INTEGER NTAB
       REAL dfridr,err,h,x,func,CON,CON2,BIG,SAFE
@@ -1406,16 +1331,16 @@ CU    USES func
       END
 
 
-*#####################################################################*
-*                                                                     *
-*               MODIFIED SUBROUTINES                                  *
-*                                                                     *
-*#####################################################################*
+*###################################################################*
+*                                                                   *
+*               MODIFIED SUBROUTINES                                *
+*                                                                   *
+*###################################################################*
 
 
-* ====================================================================
+* ===================================================================
       real function brentmod1(ax,bx,cx,f,tol,xmin,iter)                      
-* ====================================================================         
+* ===================================================================         
       implicit none
       INTEGER ITMAX
 *      REAL brentmod1
@@ -1500,9 +1425,9 @@ CU    USES func
       brentmod1=fx
       return
       END
-* ====================================================================
+* ================================================================
       FUNCTION brentmod2(ax,bx,cx,f,tol,xmin,iter)
-* ====================================================================  
+* ================================================================
       implicit none
       INTEGER ITMAX
       REAL brentmod2,ax,bx,cx,tol,xmin,f,CGOLD,ZEPS
@@ -1533,7 +1458,7 @@ CU    USES func
           q=abs(q)
           etemp=e
           e=d
-          if(abs(p).ge.abs(.5*q*etemp).or.p.le.q*(a-x).or.p.ge.q*(b-x))
+        if(abs(p).ge.abs(.5*q*etemp).or.p.le.q*(a-x).or.p.ge.q*(b-x))
      *goto 1
           d=p/q
           u=x+d
@@ -1690,17 +1615,17 @@ CU    USES func
 
 
       subroutine minbrackthe(ax,bx,cx,fa,fb,fc,func,nmax,nstep,ierr)
-*******************************************************************************
+********************************************************************
 *     this routine makes the bracketing of a minimum of the function 
 *
 *     extracted from NUMERICAL RECIPES in Fortran
 *     Chapter. 10: Function Minimization
-* -----------------------------------------------------------------------------
-* the output bracket is given by ax,bx,cx where ax<bx<cx (or ax>bx>cx ) 
+* ------------------------------------------------------------------
+* the output bracket is given by ax,bx,cx where ax<bx<cx (or ax>bx>cx)
 * and f(ax)>f(bx) and f(cx)>f(bx)
 *
 *
-********************************************************************************
+*********************************************************************
       implicit none
       REAL ax,bx,cx,fa,fb,fc,func,GOLD,GLIMIT,TINY
       EXTERNAL func
@@ -1778,20 +1703,20 @@ CU    USES func
       END
 
 
-*==============================================================================
+*===================================================================
 
       subroutine minbrackphi(ax,bx,cx,fa,fb,fc,func,nmax,nstep,ierr)
-*******************************************************************************
-*     this routine makes the bracketing of a minimum of the function...
+********************************************************************
+*   this routine makes the bracketing of a minimum of the function.
 *
-*     extracted from NUMERICAL RECIPES in Fortran
-*     Chapter. 10: Function Minimization
+*   extracted from NUMERICAL RECIPES in Fortran
+*   Chapter. 10: Function Minimization
 *
-* -----------------------------------------------------------------------------
-*     Here no quadratic interpolation is done
+* ------------------------------------------------------------------
+*   Here no quadratic interpolation is done
 * 
-*     Borges 23/9/2002
-********************************************************************************
+*   Borges 23/9/2002
+********************************************************************
       implicit none
       REAL ax,bx,cx,fa,fb,fc,func,GOLD,GLIMIT,TINY
       EXTERNAL func

@@ -23,13 +23,13 @@
 
        real ztoprad_ams,zpmtdet,
      + hmir,rtmir,rbmir,emcxlim,emcylim,
-     + ztmirgap,zbmirgap,                                  ! dimensions
+     + ztmirgap,zbmirgap,                 ! dimensions
      + reflec, 
-     + lg_length,lg_height,                                 ! LG
+     + lg_length,lg_height,               ! LG
      + pmt_suptk,pmt_shdtk,pmt_sidel
 
 
-      common /lipgeo/ztoprad_ams,       ! top of radiator (AMS frame) (cm)
+      common /lipgeo/ztoprad_ams,       ! top of radiator (AMS frame) 
      +               zpmtdet,           ! z of PMT matrix (RICH frame)
      +               hmir,              ! mirror height (cm)
      +               rtmir,             ! mirror top radius (cm)
@@ -50,7 +50,7 @@
      + hpgl,pglix                                         ! foil
 
        common/liprad/ 
-     +               hrad,              ! radiator thickness          (cm) 
+     +               hrad,              ! radiator thickness          
      +               refindex,          !   "      refractive index
      +               clarity,           !   "      clarity
      +               radtype,           ! 0(empty),1(agl),2(naf)
@@ -75,7 +75,7 @@
 
       real pimp,pmom,pthe,pphi,pcoopmt,cerang,pbeta,pchg
 
-      common /liptrk/pimp(3),           ! particle ip in radiator (AMS frame)
+      common /liptrk/pimp(3),   ! particle ip in radiator (AMS frame)
      +               pmom,
      +               pthe,
      +               pphi,
@@ -87,7 +87,7 @@
       integer nbhits_used
       real thcrec,betarec,ebetarec,likep,chi2beta,rprob
 
-      common/lipvar/nbhits_used,  ! number of hits used in the reconstruction
+      common/lipvar/nbhits_used,  ! number of hits used 
      +              thcrec,       ! reconstructed Ck. angle
      +              betarec,      ! reconstructed velocity 
      +              ebetarec,     ! error on "      "
@@ -127,16 +127,16 @@
         common/genevent/ievnumb,itknumb
 
         integer nbhits_nass
-        common /richauxc/ nbhits_nass   ! nb hits non-associated to particle  
+        common /richauxc/ nbhits_nass   ! nb hits non-associated
 
 
        integer ihit,nmirefhit
        real curhit,hypthc
 
-        common /cerwrkc/  ihit,        ! hit number
+        common /cerwrkc/  ihit,       ! hit number
      +                   curhit(3),   ! coord of current hit
      +                   hypthc,      ! cerenkov angle being tested
-     +                   nmirefhit    ! nb of mirror reflections of current hit
+     +                   nmirefhit    ! nb of reflections of current hit
 
         real pcervtx
         common /richvtxc/ pcervtx(3)  ! cerenkov vertex
@@ -178,20 +178,20 @@
       real chi2hit,phihit,cangrecdif
 
       common /richbetc/ 
-     +         ipthetac,                       ! pointer to best fit
-     +         ntherec,                        ! nb of rec cerenkov theta
-     +         nbushits(ntherecmax),           ! nb hits close to rec pattern
-     +         ipushits(ntherecmax,nhitmax),   ! pointer to used hits
-     +         nbminshit(ntherecmax,nhitmax),  ! nb of phi minimums per hit
-     +         iflghit(nhitmax),               ! hit flag 
+     +         ipthetac,                     ! pointer to best fit
+     +         ntherec,                      ! nb of rec cerenkov theta
+     +         nbushits(ntherecmax),         ! nb hits close to pattern
+     +         ipushits(ntherecmax,nhitmax), ! pointer to used hits
+     +         nbminshit(ntherecmax,nhitmax),! nb of phi minimums/hits
+     +         iflghit(nhitmax),             ! hit flag 
 *                                                =1 assoc to track
 *                                                =2 used on 1st rec
-     +         ireflechit(ntherecmax,nhitmax), ! (=0 nonreflect,=1 reflect)
-     +         cangrec(ntherecmax),            ! cerenkov angle reconstr
+     +         ireflechit(ntherecmax,nhitmax), ! (=0 nonref,=1 reflect)
+     +         cangrec(ntherecmax),            ! cerenkov angle rec.
      +         chi2rec(ntherecmax),            ! reduced chi2 
      +         likerec(ntherecmax),            ! lorentzian event prob
      +         chi2hit(ntherecmax,nhitmax),    ! chi2 of all hits
-     +         phihit(ntherecmax,nhitmax),     ! hit phi from chosen minimum
+     +         phihit(ntherecmax,nhitmax),     ! hit phi from minimum
      +         cangrecdif(ntherecmax)          ! quality of minimum
 
 
@@ -200,13 +200,17 @@
 ************************************************************
 
       real phistep,chi2htcut,chi2hthint,fsigma2,fbackgr,fdistan,thcstep
-      common /liprecc/ PHISTEP,  !phi step for hit chi2 scanning and minimum finding  
-     +                 CHI2HTCUT,!chi2 max for a correlated hit with the photon pattern
-     +                 CHI2HTHINT,!chi2 max for a correlated hit with the photon pattern
+      common /liprecc/ PHISTEP,  !phi step for hit chi2 scanning 
+* and minimum finding  
+     +                 CHI2HTCUT,!chi2 max for a correlated hit 
+*with the photon pattern
+     +                 CHI2HTHINT,!chi2 max for a correlated hit 
+*with the photon pattern
      +                 FSIGMA2,  !lorentz function width 
      +                 FBACKGR,  !photon background fraction
      +                 FDISTAN,  !effective detector distance
-     +                 THCSTEP   !thetac step for lorentz scanning and minimum finding  
+     +                 THCSTEP   !thetac step for lorentz scanning 
+*and minimum finding  
 
 
 
