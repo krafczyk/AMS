@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.44 2003/04/20 16:51:46 schol Exp $
+//  $Id: trddbc.C,v 1.45 2003/05/16 21:24:59 schol Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -1750,11 +1750,19 @@ void TRDDBc::init(){
 
 	number totR = sqrt(xdiff*xdiff+ydiff*ydiff+zdiff*zdiff);
 
-  	RadiatorSideHolePieceDimensions(i,r,s,1) = 
+
+	if (fabs(totR)>0) { 
+           RadiatorSideHolePieceDimensions(i,r,s,1) = 
 	       acos(zdiff/totR)*180./AMSDBc::pi;
+	  }
+	else{
+           RadiatorSideHolePieceDimensions(i,r,s,1) = 0;
+           }
 
-           phi=atan(ydiff/xdiff)*180./AMSDBc::pi;           
-
+	   phi = 0.;
+	   if (fabs(xdiff)>0){
+             phi=atan(ydiff/xdiff)*180./AMSDBc::pi;           
+           }
 
 	   if (s==1 && r==0){
 	     phi =  -90.;
