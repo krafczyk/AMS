@@ -270,9 +270,13 @@ int updShuttle(ShuttlePar & record, int close){
    }
    else {
        // validate record first
-       if(Arrp<0 || (record.Time>Array[Arrp].Time && record.Time<Array[Arrp].Time+3600))Arrp++;
-       else return 0;
-     if(Arrp==60){
+       if(Arrp<0 || (record.Time>Array[Arrp].Time && record.Time<Array[Arrp].Time+36000))Arrp++;
+       else {
+         cerr<<"Errror no 1 "<<Arrp<< " "<<record.Time<<" "<<Array[Arrp].Time<<endl;
+         return 0;
+       }
+     if(Arrp==60 || record.Time>Array[Arrp-1].Time+3600){
+       for( int i=Arrp;i<60;i++)Array[i]=Array[Arrp-1];
           // close file
         AString fname(Coo_db_dir);
         fname+="/";
@@ -291,7 +295,7 @@ int updShuttle(ShuttlePar & record, int close){
           else Insert++;
           fout.write((char*)(&Insert),sizeof(Insert)); 
           fout.write((char*)(&(Array[0].Time)),sizeof(time_t)); 
-          time_t end=(record.Time+1);
+          time_t end=(Array[59].Time+1);
           fout.write((char*)(&end),sizeof(time_t)); 
           fout.close();
           cout <<"ShuttlePar-I-writeFile "<<fname<<endl;
