@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.27 2003/03/19 17:17:28 choutko Exp $
+//  $Id: trddbc.C,v 1.28 2003/03/19 20:58:39 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -317,6 +317,7 @@ number TRDDBc::_OctagonDimensions[maxo][10];
 number TRDDBc::_BulkheadsDimensions[mtrdo][maxbulk][4];
 number TRDDBc::_CutoutsDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_LaddersDimensions[mtrdo][maxlay][maxlad][3];
+number TRDDBc::_LaddersLengthShort[maxlay][maxlad];
 number TRDDBc::_LaddersLength[maxlay][maxlad]={
  92.63,111.13,133.03,151.53,156.75,155.55,156.75,155.55,156.75,155.55,153.23,131.33,112.83, 90.93,  0.00,  0.00,  0.00,  0.00,
  96.03,114.53,136.43,154.93,159.15,157.95,159.15,157.95,159.15,157.95,156.63,134.73,116.23, 94.33,  0.00,  0.00,  0.00,  0.00,
@@ -1141,9 +1142,6 @@ void TRDDBc::init(){
 //    VC 12-mar/2003
 //
 
-#ifdef __G4AMS__
-   if(MISCFFKEY.G4On){
-
 
       for(i=0;i<TRDOctagonNo();i++){
 
@@ -1169,18 +1167,17 @@ void TRDDBc::init(){
 //            Now   ladder length 
 
               number r=rmin+tang*(LadderLowestZ-OctagonDimensions(NoTRDOctagons(i),4));
-//              cout <<"jka  "<<j<<" "<<k<<" "<< LaddersDimensions(i,j,k,2)<<" "<<lcoo[0]<<" "<<lcoo[1]<<" "<<lcoo[2]<<endl;
-              LaddersDimensions(i,j,k,2)=LadderCornerCoo<r*tan(ang)?r:r-(LadderCornerCoo-r*tan(ang))*tan(2*ang);
-
-//              cout <<"jkb  "<<j<<" "<<k<<" "<< LaddersDimensions(i,j,k,2)<<endl;
-
+              _LaddersLengthShort[j][k]=LadderCornerCoo<r*tan(ang)?r:r-(LadderCornerCoo-r*tan(ang))*tan(2*ang);
+#ifdef __G4AMS__
+               if(MISCFFKEY.G4On){
+                 LaddersDimensions(i,j,k,2)= _LaddersLengthShort[j][k];
+               }
+#endif
 	  }  
 	}
 
       }
 
-}
-#endif
 
 
 
@@ -1192,7 +1189,7 @@ void TRDDBc::init(){
        for(j=0;j<LayersNo(i);j++){
         for(k=0;k<LaddersNo(i,j);k++){
 	  // width
-          RadiatorDimensions(i,j,k,0)=LaddersDimensions(i,j,k,0);
+          RadiatorDimensions(i,j,k,0)= LaddersDimensions(i,j,k,0);
           // height
 
           RadiatorDimensions(i,j,k,1)=LaddersDimensions(i,j,k,1)-(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness()+2*Safety)/2.;
@@ -1238,7 +1235,7 @@ void TRDDBc::init(){
 
 
           // length
-          RadiatorDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2);
+          RadiatorDimensions(i,j,k,2)=_LaddersLengthShort[j][k];
 
 
 

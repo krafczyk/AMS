@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.158 2003/03/19 17:17:28 choutko Exp $
+//  $Id: amsgeom.C,v 1.159 2003/03/19 20:58:37 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2164,7 +2164,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
     else{
 #endif
     for(ip=0;ip<3;ip++)coo[ip]+=oct[itrd]->getcooA(ip);
-   dau=(AMSgvolume*)mother.add(new AMSgvolume(TRDDBc::LaddersMedia(),
+   dau=(AMSgvolume*)mother.add(new AMSgvolume("VACUUM",
        nrot++,name,"BOX",par,3,coo,nrm, "MANY",0,gid,1));
 #ifdef __G4AMS__
     }
