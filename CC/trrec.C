@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.164 2004/01/21 07:29:10 alcaraz Exp $
+//  $Id: trrec.C,v 1.165 2004/01/21 09:18:48 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2500,10 +2500,12 @@ void AMSTrTrack::SimpleFit(AMSPoint ehit){
   number Covariance[5][5];
   for (int j=0;j<5;j++) {
     for (int k=0;k<5;k++) {
-      if (MAGSFFKEY.magstat>0 && k==5 && j==5) {
+      if (MAGSFFKEY.magstat>0) {
+            Covariance[j][k] = 0.;
+      } else if (k==4 && j==4) {
             Covariance[j][k] = 1.;
             continue;
-      } else if (MAGSFFKEY.magstat>0 && (k==5 || j==5) ) {
+      } else if (k==4 || j==4) {
             Covariance[j][k] = 0.;
             continue;
       } else {

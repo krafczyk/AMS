@@ -331,6 +331,9 @@ C Convert rigidity to GV
       IF (magstat.GT.0) THEN
             OUTPAR(5)=OUTPAR(5)/2.997E-4
             OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
+      ELSE 
+            OUTPAR(5)=0.
+            OUTPAR(6)=0.
       ENDIF
       IERR = 0
 
