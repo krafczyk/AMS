@@ -180,6 +180,10 @@ integer AMSStatus::_statusok(uinteger status){
         }
       }
     }
+    else if(isDBUpdateR()){
+     _Rejected++;
+     return 0;
+    }
     _Accepted++;
     return 1;
 
