@@ -1,9 +1,9 @@
 #!/usr/bin/env python2.2
 
-import sys, os
-# The following line is not necessary if the AMS module is
+# The following two lines are not necessary if the AMS module is
 # already installed as a general Python module 
-sys.path.append(os.environ['AMSWD'] + '/python/linux')
+import sys
+sys.path.append("/afs/ams.cern.ch/Offline/vdev/python/linux")
 
 from AMS import *
 

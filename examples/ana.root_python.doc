@@ -1,14 +1,15 @@
 /*! \example ana.root_python.doc
  *
- *    - Installation of the AMS Python library (only on LINUX for the moment):
- *       - Locally: "cd $AMSDir/python; gmake"
- *       - For all users in the machine: "cd $AMSDir/python; gmake; gmake install"
- *
  *    - Example of AMS analysis with Python. To run it:
+ *                 - setenv $ROOTSYS /afs/cern.ch/exp/ams/Offline/root/Linux/new
  *                 - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
  *                 - ana.root.py
  *
  *    - You can find few other examples in $AMSDir/python
+ *
+ *    - Installation of the AMS Python library (only on LINUX for the moment):
+ *       - Locally: "cd $AMSDir/python; gmake"
+ *       - For all users in the machine: "cd $AMSDir/python; gmake; gmake install"
  *
  *  \include ana.root.py
  */ 

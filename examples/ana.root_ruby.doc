@@ -1,14 +1,15 @@
 /*! \example ana.root_ruby.doc
  *
- *    - Installation of the AMS Ruby library (only on LINUX for the moment):
- *       - Locally: "cd $AMSDir/ruby; gmake"
- *       - For all users in the machine: "cd $AMSDir/ruby; gmake; gmake install"
- *
  *    - Example of AMS analysis with Ruby. To run it:
+ *                 - setenv $ROOTSYS /afs/cern.ch/exp/ams/Offline/root/Linux/new
  *                 - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
  *                 - ana.root.rb
  *
  *    - You can find few other examples in $AMSDir/ruby
+ *
+ *    - Installation of the AMS Ruby library (only on LINUX for the moment):
+ *       - Locally: "cd $AMSDir/ruby; gmake"
+ *       - For all users in the machine: "cd $AMSDir/ruby; gmake; gmake install"
  *
  *  \include ana.root.rb
  */ 
