@@ -158,11 +158,11 @@ as in example:
  //tracker
 
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,
-                             &AMSTrRawCluster::buildraw);
+                             &AMSTrRawCluster::buildraw, uinteger btype);
 
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
                            &AMSTrRawCluster::calcdaqlength,
-                           &AMSTrRawCluster::builddaq);
+                           &AMSTrRawCluster::builddaq, uinteger btype);
 
 
 

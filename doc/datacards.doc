@@ -410,7 +410,7 @@ I11 Accept(0)                        // Min value of lvl3 trigger to accept
 L3EXP   // LVL3 Expert 
 
 I 1 NEvents(1024)                       // Number of Events in Sequence 
-I 2 ToBad(3)                            // Number of conseq sequences to declare bad
+I 2 ToBad(10)                            // Number of conseq sequences to declare bad
 I 3 TryAgain(10)                        // Number of sequences to unlock bad
 R 4 Range[3][2](3,3,100000,3,3,3)       // Bad Range in sigmas
 

@@ -134,7 +134,7 @@ void AMSJob::_sitrigdata(){
 
 
   LVL3EXPFFKEY.NEvents=2048;
-  LVL3EXPFFKEY.ToBad=3;
+  LVL3EXPFFKEY.ToBad=10;
   LVL3EXPFFKEY.TryAgain=10;
   LVL3EXPFFKEY.Range[0][0]=2.5;
   LVL3EXPFFKEY.Range[0][1]=2.;

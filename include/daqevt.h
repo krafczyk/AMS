@@ -52,7 +52,7 @@ _maxbl(0),_plength(0){}
 friend class DAQEvent;
 };
 
-
+const integer nbtps=8;    // blocks num 
 class DAQEvent : public AMSlink{
 protected:
 integer _Checked;
@@ -63,14 +63,15 @@ uinteger _RunType;
 time_t _Time;
 int16u *  _pcur;
 int16u * _pData;
-static DAQSubDet * _pSD;
-static DAQBlockType * _pBT;
+static DAQSubDet * _pSD[nbtps];
+static DAQBlockType * _pBT[nbtps];
 static const integer _OffsetL;
 integer _EventOK();
 integer _HeaderOK();
 void _convert();
 void _convertl(int16u & l16);
-integer _create();
+integer _create(uinteger btype=0);
+uinteger _GetBlType(){return _pData[1]>>13;}
 void _copyEl();
 void _writeEl(){}
 void _printEl(ostream& o){}
@@ -83,7 +84,7 @@ uinteger & eventno(){return _Event;}
 uinteger & runno(){return _Run;}
 time_t   & time(){return _Time;}
 uinteger & runtype(){return _RunType;}
-void buildDAQ();
+void buildDAQ(uinteger btype=0);
 void buildRawStructures();
 void write();
 integer read();
@@ -96,8 +97,8 @@ static char * ofnam;
 static fstream fbout;
 
 static void init(integer mode, integer format=0);
-static void addsubdetector(pid pgetid, pputdata pput);
-static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget);
+static void addsubdetector(pid pgetid, pputdata pput, uinteger btype=0);
+static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget, uinteger btype=0);
 
 //+
 integer eventlength() {return _Length;}

@@ -23,26 +23,26 @@ _Time=0;
 _Checked=0;
 }
 
-DAQSubDet * DAQEvent::_pSD=0;
-DAQBlockType * DAQEvent::_pBT=0;
+DAQSubDet * DAQEvent::_pSD[nbtps]={0,0,0,0,0,0,0,0};
+DAQBlockType * DAQEvent::_pBT[nbtps]={0,0,0,0,0,0,0,0};
 
-void DAQEvent::addsubdetector(pid pgetid, pputdata pput){
+void DAQEvent::addsubdetector(pid pgetid, pputdata pput, uinteger btype){
   DAQSubDet * p= new DAQSubDet(pgetid, pput);
-  if(_pSD){
-    DAQSubDet *paux=_pSD;
+  if(_pSD[btype]){
+    DAQSubDet *paux=_pSD[btype];
     while(paux->_next)paux=paux->_next;
     paux->_next=p; 
   }
-  else _pSD=p;
+  else _pSD[btype]=p;
 }
-void DAQEvent::addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget){
+void DAQEvent::addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget,uinteger btype){
   DAQBlockType * p= new DAQBlockType(pgmb,pgl,pget);
-  if(_pBT){
-    DAQBlockType *paux=_pBT;
+  if(_pBT[btype]){
+    DAQBlockType *paux=_pBT[btype];
     while(paux->_next)paux=paux->_next;
     paux->_next=p; 
   }
-  else _pBT=p;
+  else _pBT[btype]=p;
   p->_maxbl=(p->_pgmb)();
   p->_plength=new integer[p->_maxbl];
   if(p->_plength == NULL){
@@ -72,9 +72,9 @@ void DAQEvent::setfiles(char *ifile, char *ofile){
 }
 
 
-void DAQEvent::buildDAQ(){
-DAQBlockType *fpl=_pBT;
-if(fpl == NULL){
+void DAQEvent::buildDAQ(uinteger btype){
+DAQBlockType *fpl=_pBT[btype];
+if(fpl == NULL && btype){
   cerr << "DAQEvent::build-S-NoSubdetectors in DAQ"<<endl;
   return;
 }
@@ -97,8 +97,8 @@ _Length=lover+ntot;
 assert(sizeof(time_t) == sizeof(integer));
 #endif
 
-if(_create() ){
- fpl=_pBT;
+if(_create(btype) ){
+ fpl=_pBT[btype];
  while(fpl){
  for(int i=0;i<fpl->_maxbl;i++){
    if(*(fpl->_plength+i)>1){
@@ -117,8 +117,8 @@ if(_create() ){
 
 integer DAQEvent::_EventOK(){
   if(_Length >1 && _pData ){
-    if( _pData[1]==0){
-      // AMS Event
+    if( _pData[1]<<3 ==0){
+      // env header
      integer ntot=0;
      _pcur=_pData+2;
      for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
@@ -143,7 +143,7 @@ integer DAQEvent::_HeaderOK(){
       return 1;
     }
   }
-  cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent"<<endl;
+  cerr<<"DAQEvent::_HeaderOK-E-NoHeaderinEvent Type "<<_pData[1]<<endl;
  return 0;
 }
 
@@ -152,8 +152,8 @@ integer DAQEvent::_HeaderOK(){
 
 
 void DAQEvent::buildRawStructures(){
-  if(_Checked ||(_EventOK()==1 && _HeaderOK())){
-   DAQSubDet * fpl=_pSD;
+  if(_Checked ||(_EventOK()==1 && (_GetBlType()!=0 || _HeaderOK()))){
+   DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
    for(_pcur=_pData+lover;_pcur < _pData+_Length;_pcur=_pcur+*_pcur+_OffsetL){
     if(fpl->_pgetid(*(_pcur+1))){
@@ -166,7 +166,7 @@ void DAQEvent::buildRawStructures(){
   }
   else if(_EventOK()==-1){
     // without envelop only one block
-   DAQSubDet * fpl=_pSD;
+   DAQSubDet * fpl=_pSD[_GetBlType()];
    while(fpl){
     _pcur=_pData;
     if(fpl->_pgetid(*(_pcur+1))){
@@ -215,7 +215,7 @@ integer DAQEvent::read(){
      else break;
     }
     else break;  
-  }while(_EventOK()==0 || _HeaderOK()==0);
+  }while(_EventOK()==0 || (_HeaderOK()==0 && _GetBlType()==0));
    return fbin.good() && !fbin.eof();
 }
 
@@ -352,7 +352,7 @@ DAQEventI::~DAQEventI(){
   }
 }
 
-integer DAQEvent::_create(){
+integer DAQEvent::_create(uinteger btype){
 #ifdef __AMSDEBUG__
 assert (_Length >0);
 #endif
@@ -362,7 +362,7 @@ _pData= (int16u*)UPool.insert(sizeof(_pData[0])*_Length);
 else _pData=(int16u*)_Buffer;
 if(_pData){
  _pData[0]=_Length-_OffsetL;
- _pData[1]=0x0;
+ _pData[1]=btype<<13;  // Event ID
  _pcur=_pData+2;
 }
 return _pData != NULL ;
