@@ -205,7 +205,6 @@ integer DAQEvent::_EventOK(){
     if(ntot != _Length-2){
        cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
          _Length<<" Blocks say length is "<<ntot+2<<endl;
-#ifdef __AMSDEBUG__
        cerr <<" SubBlock dump follows"<<endl;
      _pcur=_pData+2;
      for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
@@ -219,7 +218,6 @@ integer DAQEvent::_EventOK(){
       if(fbin.eof()){
         cerr<<"DAQEvent::_Eventok-W-UnexpectedEOF"<<endl;
       }
-#endif   
        return 0;
     }
      else return 1;    

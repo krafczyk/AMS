@@ -454,7 +454,8 @@ void AMSEvent::SetTimeCoo(integer rec){
       _VelTheta=Array[hint+1].VelTheta;
       _VelPhi=Array[hint+1].VelPhi;
     }
-    else{
+    else if(!MISCFFKEY.BeamTest && _StationRad>6.4e8){
+//    else if(!MISCFFKEY.BeamTest ){
       //interpolation needed
       number xsec=_time-Array[hint].Time;
       number dt=Array[hint+1].Time-Array[hint].Time;
@@ -517,6 +518,19 @@ void AMSEvent::SetTimeCoo(integer rec){
 }
 
      
+    }
+    else {
+      _NorthPolePhi=fmod(AMSmceventg::Orbit.PolePhiStatic+Array[0].GrMedPhi+AMSDBc::twopi,AMSDBc::twopi);
+      _StationTheta=Array[0].StationTheta;
+      _StationPhi=fmod(Array[0].StationPhi+AMSDBc::twopi,AMSDBc::twopi);
+      _Yaw=Array[0].StationYaw;
+      _Roll=Array[0].StationRoll;
+      _Pitch=Array[0].StationPitch;
+      _StationSpeed=Array[0].StationSpeed;
+      _StationRad=Array[0].StationR;
+      _SunRad=Array[0].SunR;
+      _VelTheta=Array[0].VelTheta;
+      _VelPhi=Array[0].VelPhi;
     }
     // Add mceventg if BeamTest
     if(MISCFFKEY.BeamTest){
