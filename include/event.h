@@ -170,8 +170,8 @@ void getmag(float & thetam, float & phim);
 AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
-uinteger usec,geant pole, geant stationT, geant stationP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0,geant SunT=0, geant SunP=0):AMSNode(id),_run(run),_status(0),
-_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_VelTheta(SunT),_VelPhi(SunP),_Error(0){_Head=this;}
+uinteger usec,geant pole, geant stationT, geant stationP, geant VelT, geant VelP, geant StationR=666000000,geant yaw=0,geant pitch=0,geant roll=0,geant StationS=1.16e-3, geant SunR=0):AMSNode(id),_run(run),_status(0),_VelTheta(VelT),_VelPhi(VelP),
+_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),_Roll(roll),_Yaw(yaw),_StationRad(StationR),_Pitch(pitch),_StationSpeed(StationS),_StationTheta(stationT),_SunRad(SunR),_Error(0){_Head=this;}
 AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
    _runtype(runtype), _time(time), _usec(usec),_status(0),_Error(0){
    _Head=this;
@@ -202,7 +202,7 @@ integer getnC (char name[]);
 void SetTimeCoo(integer rec=0);
 void GetGeographicCoo(number & pole, number & theta, number &phi){
 pole=_NorthPolePhi;theta=_StationTheta;phi=_StationPhi;}
-void GetStationRad(number & rad) {rad=_StationRad;}
+geant GetStationRad() const{return _StationRad;}
 static void  sethead(AMSEvent* head) 
 { _Head=head;if(_Head)AMSEvent::EventMap.map(*_Head);}
 integer removeC();
@@ -226,10 +226,12 @@ geant getveltheta() const{return _VelTheta;}
 geant getvelphi() const{return _VelPhi;}
 geant getroll() const{return _Roll;}
 geant getyaw() const{return _Yaw;}
+geant getangvel() const {return _StationSpeed;}
 uinteger& setrun() {return _run;}
 uinteger getruntype() const{return _runtype;}
 uinteger& setruntype() {return _runtype;}
 time_t gettime(){return _time;}
+time_t getusec()const {return _usec;}
 time_t& settime(){return _time;}
 void * operator new(size_t t, void *p) {return p;}
 void * operator new(size_t t) {return UPool.insert(t);}

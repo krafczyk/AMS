@@ -1,4 +1,4 @@
-/*------------------------------------------------------------------
+ /*------------------------------------------------------------------
 fortran filename   : gudcay.f
 ------------------------------------------------------------------*/
 
@@ -515,6 +515,94 @@ integer istory;
 
 #define GCTRAK COMMON_BLOCK(GCTRAK,gctrak)
 COMMON_BLOCK_DEF(GCTRAK_DEF,GCTRAK);
+
+
+
+//      COMMON/GCPHYS/IPAIR,SPAIR,SLPAIR,ZINTPA,STEPPA
+//     +             ,ICOMP,SCOMP,SLCOMP,ZINTCO,STEPCO
+//     +             ,IPHOT,SPHOT,SLPHOT,ZINTPH,STEPPH
+//     +             ,IPFIS,SPFIS,SLPFIS,ZINTPF,STEPPF
+//     +             ,IDRAY,SDRAY,SLDRAY,ZINTDR,STEPDR
+//     +             ,IANNI,SANNI,SLANNI,ZINTAN,STEPAN
+//     +             ,IBREM,SBREM,SLBREM,ZINTBR,STEPBR
+//     +             ,IHADR,SHADR,SLHADR,ZINTHA,STEPHA
+//     +             ,IMUNU,SMUNU,SLMUNU,ZINTMU,STEPMU
+//     +             ,IDCAY,SDCAY,SLIFE ,SUMLIF,DPHYS1
+//     +             ,ILOSS,SLOSS,SOLOSS,STLOSS,DPHYS2
+//     +             ,IMULS,SMULS,SOMULS,STMULS,DPHYS3
+//     +             ,IRAYL,SRAYL,SLRAYL,ZINTRA,STEPRA
+
+
+
+struct GCPHYS_DEF{
+int IPAIR;
+geant SPAIR;
+geant SLPAIR;
+geant ZINTPA;
+geant STEPPA;
+int ICOMP;
+geant SCOMP;
+geant SLCOMP;
+geant ZINTCO;
+geant STEPCO;
+int IPHOT;
+geant SPHOT;
+geant SLPHOT;
+geant ZINTPH;
+geant STEPPH;
+int IPFIS;
+geant SPFIS;
+geant SLPFIS;
+geant ZINTPF;
+geant STEPPF;
+int IDRAY;
+geant SDRAY;
+geant SLDRAY;
+geant ZINTDR;
+geant STEPDR;
+int IANNI;
+geant SANNI;
+geant SLANNI;
+geant ZINTAN;
+geant STEPAN;
+int IBREM;
+geant SBREM;
+geant SLBREM;
+geant ZINTBR;
+geant STEPBR;
+int IHADR;
+geant SHADR;
+geant SLHADR;
+geant ZINTHA;
+geant STEPHA;
+int IMUNU;
+geant SMUNU;
+geant SLMUNU;
+geant ZINTMU;
+geant STEPMU;
+int IDCAY;
+geant SDCAY;
+geant SLIFE;
+geant SUMLIF;
+geant DPHYS1;
+int ILOSS;
+geant SLOSS;
+geant SOLOSS;
+geant STLOSS;
+geant DPHYS2;
+int IMULS;
+geant SMULS;
+geant SOMULS;
+geant STMULS;
+geant DPHYS3;
+int IRAYL;
+geant SRAYL;
+geant SLRAYL;
+geant ZINTRA;
+geant STEPRA;
+};
+#define GCPHYS COMMON_BLOCK(GCPHYS,gcphys)
+COMMON_BLOCK_DEF(GCPHYS_DEF,GCPHYS);
 
 
 //      COMMON/GCTMED/NUMED,NATMED(5),ISVOL,IFIELD,FIELDM,TMAXFD,STEMAX

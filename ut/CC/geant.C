@@ -452,8 +452,9 @@ time(&tm);// tempor
     AMSIO io;
     if(io.read()){
      AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-     new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),0,
-     io.getpolephi(),io.getstheta(),io.getsphi())));
+     new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),io.getnsec(),
+     io.getpolephi(),io.getstheta(),io.getsphi(),io.getveltheta(),
+     io.getvelphi(),io.getrad(),io.getyaw(),io.getpitch(),io.getroll(),io.getangvel())));
      AMSmceventg* genp=new AMSmceventg(io);
      if(genp){
       AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);

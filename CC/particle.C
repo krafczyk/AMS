@@ -561,10 +561,10 @@ integer AMSParticle::_partP[38]={2,3,5,6,8,9,11,12,14,15,45,145,
 void AMSParticle::_loc2gl(){
           AMSgObj::BookTimer.start("part::loc2gl");
  // Get current station position from event bank
-  number StationRad,polephi,theta,phi;
+  number polephi,theta,phi;
 
   AMSEvent::gethead()->GetGeographicCoo(polephi, theta, phi);
-  AMSEvent::gethead()->GetStationRad(StationRad);
+  geant StationRad=AMSEvent::gethead()->GetStationRad();
   geant pitch=AMSEvent::gethead()->getpitch();
   geant roll=AMSEvent::gethead()->getroll();
   geant yaw=AMSEvent::gethead()->getyaw();

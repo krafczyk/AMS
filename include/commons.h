@@ -535,6 +535,7 @@ public:
   integer endtime;        // time end   format hhmmss
   integer sdir;            // direction + 1 to higher -1 to lower theta
   integer oldformat;
+  integer Fast;            // fast generation
 };
 //
 #define CCFFKEY COMMON_BLOCK(CCFFKEY,ccffkey)

@@ -1042,7 +1042,7 @@ depend:
 ../bin/osf1/trrec.o: ../include/particle.h ../include/beta.h
 ../bin/osf1/trrec.o: ../include/ctcrec.h ../include/ctcdbc.h
 ../bin/osf1/trrec.o: ../include/ctcsim.h ../include/charge.h
-../bin/osf1/trrec.o: ../include/ctc.h
+../bin/osf1/trrec.o: ../include/ctc.h ../include/mccluster.h
 ../bin/osf1/uzstat.o: ../include/uzstat.h ../include/cern.h
 ../bin/osf1/uzstat.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/uzstat.o: /usr/include/standards.h

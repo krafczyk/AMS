@@ -407,7 +407,7 @@ void AMSEvent::_signinitevent(){
     if(phi < 0)phi=phi+AMSDBc::twopi;
     theta=asin(sin(atan(AMSmceventg::Orbit.AlphaTanThetaMax))*sin(philocal));
     _time=integer(mktime(&AMSmceventg::Orbit.Begin)+curtime);
-    _usec=(curtime-integer(curtime))*1000000;
+    _usec=(curtime-integer(curtime))*1000000000;  // nsec for mc
     _NorthPolePhi=pole;
     _StationTheta=theta;
     _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
@@ -428,23 +428,25 @@ void AMSEvent::_signinitevent(){
     _VelPhi=ax2.getphi();
   }
   else if(AMSJob::gethead()->isSimulation() && rec){
+  if(CCFFKEY.oldformat){
    static number StTheta=0;
     _Yaw=0;
     _Roll=0;
     _Pitch=0;
     _StationSpeed=AMSmceventg::Orbit.AlphaSpeed;
     _StationRad=AMSmceventg::Orbit.AlphaAltitude;
-    _SunRad=0;
     // get velocity parameters from orbit par
     AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
     AMSDir ax2=AMSmceventg::Orbit.Axis.cross(ax1);
-    if(ax1.prod(AMSmceventg::Orbit.Axis)>1e-5){
+    if(ax1.prod(AMSmceventg::Orbit.Axis)>1e-4){
      cerr<<"AMSEvent::SetTimeCoo-W-RedefinitionOfOrbit.AxisWillBeDone "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
      AMSmceventg::UpdateOrbit(_StationTheta,_StationPhi,_StationTheta-StTheta>00?1:-1);
      StTheta=_StationTheta;
     }
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
+   }
+    _SunRad=0;
   }
   else if((!AMSJob::gethead()->isSimulation() && rec) || (AMSJob::gethead()->isSimulation() && IsTest())){
     static integer hint=0;
@@ -1728,7 +1730,8 @@ void AMSEvent::_writeEl(){
   EN->RawWords=nws;
   EN->Run=_run;
   EN->RunType=_runtype;
-  UCOPY(&_time,EN->Time,2*sizeof(integer)/4);
+  EN->Time[0]=_time;
+  EN->Time[1]=AMSJob::gethead()->isRealData()?_usec:_usec/1000;
   //EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
   EN->ThetaS=_StationTheta;
   EN->PhiS=fmod(_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
@@ -2338,8 +2341,7 @@ void AMSEvent::_collectstatus(){
 
 integer AMSEvent::IsTest(){
  
- if(MISCFFKEY.BeamTest || AMSmceventg::fixeddir() || AMSmceventg::fixedmom() ||
-    CCFFKEY.low)return 1;
+ if(MISCFFKEY.BeamTest || AMSmceventg::fixeddir() || AMSmceventg::fixedmom() )return 1;
  else return 0;   
 }
 

@@ -223,7 +223,7 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.TrMaxHits=20;
   LVL3FFKEY.Splitting=0.04;
   LVL3FFKEY.NRep=1;
-  LVL3FFKEY.Accept=0;
+  LVL3FFKEY.Accept=1;
   LVL3FFKEY.RebuildLVL3=2;
   LVL3FFKEY.NoK=1;
   LVL3FFKEY.TrHeavyIonThr=200;
@@ -432,6 +432,7 @@ CCFFKEY.begintime=170000;
 CCFFKEY.endtime=220000;
 CCFFKEY.oldformat=0;
 CCFFKEY.sdir=1;
+CCFFKEY.Fast=0;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
@@ -448,7 +449,7 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[3]=0;     //(9) spare
   TOFMCFFKEY.mcprtf[4]=0;     //(10) spare
   TOFMCFFKEY.trlogic[0]=1; //(11) MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
-  TOFMCFFKEY.trlogic[1]=1; //(12)......................(=0/1-> ANY3/ALL4 layer coincidence) 
+  TOFMCFFKEY.trlogic[1]=0; //(12)......................(=0/1-> ANY3/ALL4 layer coincidence) 
   TOFMCFFKEY.fast=0;       //(13) 1/0-> fast/slow simulation algorithm
   TOFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
   TOFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
@@ -945,7 +946,22 @@ void AMSJob::_retrddata(){
 
 
 void AMSJob::udata(){
+if(CCFFKEY.Fast){
+ GCPHYS.IHADR=0;
+ GCPHYS.IMULS=0;
+ GCPHYS.ILOSS=2;
+ GCPHYS.IPAIR=0;
+ GCPHYS.IBREM=0;
+ GCPHYS.ICOMP=0;
+ GCPHYS.IPHOT=0;
+ GCPHYS.IANNI=0;
+ TRMCFFKEY.NoiseOn=0;
+ TRFITFFKEY.FastTracking=4;
+ cout <<"AMSJob::udata-W-FastSimSelectedSomeDatacardsWereRedefined"<<endl;
+}
+
 {
+
         STATUSFFKEY.status[32]=0;
             for(int i=0;i<32;i++){
               STATUSFFKEY.status[32]=STATUSFFKEY.status[32] | 

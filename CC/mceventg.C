@@ -197,6 +197,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.PoleTheta=-79.397/AMSDBc::raddeg;        // Dipole Direction Lat   (rad)
   Orbit.PolePhiStatic=108.392/AMSDBc::raddeg;    //                  Lon   (rad)
   Orbit.Nskip=0;
+  Orbit.Nskip2=0;
   Orbit.Ntot=AMSIO::getntot();
   if(ipart==0){
     if(IOPA.mode!=1){
@@ -382,6 +383,8 @@ integer AMSmceventg::accept(){
       }
     }
   }
+  ++Orbit.Nskip;   
+  ++Orbit.Nskip2;   
   return 0;
 }
 integer AMSmceventg::acceptio(){
@@ -485,14 +488,14 @@ integer AMSmceventg::EarthModulation(){
   number we=_dir[0]*amsx[2]+_dir[1]*amsy[2]+_dir[2]*amsz[2];
   
   number cth=ue*uv+ve*vv+we*wv;
-  number xfac=57.576*Orbit.EarthR/rgm*Orbit.EarthR/rgm;
+  number xfac=(CCFFKEY.Fast?57.576:52.)*Orbit.EarthR/rgm*Orbit.EarthR/rgm;
   number chsgn=_charge/fabs(_charge);
   number cl3=cl*cl*cl;
   number cl4=cl*cl*cl*cl;
   number mom=xfac*cl4/(sqrt(1.-chsgn*cth*cl3)+1)/(sqrt(1.-chsgn*cth*cl3)+1)*fabs(_charge);
   if (_mom > mom)return 1;
   else {
-    ++Orbit.Nskip;   
+  ++Orbit.Nskip;   
    return 0;
   }
 }
@@ -588,8 +591,11 @@ void AMSmceventg::_copyEl(){
    event=AMSEvent::gethead()->getEvent();
    number pole,theta,phi;
    AMSEvent::gethead()->GetGeographicCoo(pole,theta,phi);
-   AMSIO io(run,event,AMSEvent::gethead()->gettime(),_ipart,_seed,_coo,_dir,_mom,
-   pole,theta,phi,_nskip);
+   AMSIO io(run,event,AMSEvent::gethead()->gettime(),AMSEvent::gethead()->getusec(),_ipart,_seed,_coo,_dir,
+   _mom,pole,theta,phi,_nskip,AMSEvent::gethead()->GetStationRad(),
+   AMSEvent::gethead()->getveltheta(),AMSEvent::gethead()->getvelphi(),
+   AMSEvent::gethead()->getyaw(),AMSEvent::gethead()->getroll(),
+   AMSEvent::gethead()->getpitch(),AMSEvent::gethead()->getangvel());
    io.write();
   }
 }

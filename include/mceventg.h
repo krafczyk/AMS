@@ -18,6 +18,7 @@
 class orbit{
 public:
 integer Nskip;
+integer Nskip2;
 integer Ntot;
 number AlphaTanThetaMax;
 number AlphaSpeed;
@@ -37,7 +38,9 @@ number DipolePhi;
 AMSDir Axis;
 tm Begin;
 tm End;
+~orbit(){cout <<"Nskip "<<Nskip<<" Nskip2 "<<Nskip2<<endl;}
 };
+
 class AMSmceventg: public AMSlink {
 private:
 

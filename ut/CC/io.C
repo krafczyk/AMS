@@ -3,14 +3,16 @@
 #include <io.h>
 #include <commons.h>
 #include <amsdbc.h>
+#include <mceventg.h>
 integer AMSIO::_Ntot=0;
 char * AMSIO::fnam=0;
 fstream AMSIO::fbin;
-AMSIO::AMSIO(integer run, integer event, time_t time, integer ipart, 
+AMSIO::AMSIO(integer run, integer event, time_t time, time_t nsec, integer ipart, 
 integer seed[], AMSPoint coo,AMSDir dir, number mom, number pole,
-number stheta, number sphi, integer nskip): _run(run),_event(event),
+number stheta, number sphi, integer nskip, number rad, number velt, number velp,number yaw, number roll, number pitch, number angvel): _run(run),_event(event),
   _ipart(ipart),_mom(mom),_time(time),_polephi(pole),_stationtheta(stheta),
-_stationphi(sphi),_nskip(nskip){
+_stationphi(sphi),_nskip(nskip),_rflight(rad),_veltheta(velt), _velphi(velp),
+_yaw(yaw),_pitch(pitch),_roll(roll),_angvel(angvel),_nsec(nsec){
 _seed[0]=seed[0];
 _seed[1]=seed[1];
 int i;
@@ -201,13 +203,17 @@ void AMSIO::write(){
 }
 integer AMSIO::read(){
    if(fbin.good() && !fbin.eof()){
-     fbin.read((char*)this,sizeof(AMSIO)-CCFFKEY.oldformat*4*sizeof(integer));
+     fbin.read((char*)this,sizeof(AMSIO)-CCFFKEY.oldformat*8*sizeof(geant));
      convert();
      if(CCFFKEY.oldformat){
-      _polephi=0;
-      _stationphi=0;
-      _stationtheta=0;
-      _nskip=0;
+      _rflight=AMSmceventg::Orbit.AlphaAltitude;
+      _velphi=0;
+      _veltheta=0;
+      _yaw=0;
+      _pitch=0;
+      _roll=0;
+      _angvel=AMSmceventg::Orbit.AlphaSpeed;
+      _nsec=0;
      }
    }
    return fbin.good() && !fbin.eof();

@@ -31,12 +31,21 @@ geant _polephi;
 geant _stationtheta;
 geant _stationphi;
 integer _nskip;
+geant _rflight;
+geant _velphi;
+geant _veltheta;
+geant _yaw;
+geant _pitch;
+geant _roll;
+geant _angvel;
+time_t _nsec;
 static integer _Ntot;
 public:
 AMSIO():_run(0),_event(0){};
-AMSIO(integer run, integer event, time_t time,integer ipart, 
+AMSIO(integer run, integer event, time_t time, time_t nsec, integer ipart, 
 integer seed[], AMSPoint coo,
-AMSDir dir, number mom, number pole, number stheta, number sphi, integer nskip);
+AMSDir dir, number mom, number pole, number stheta, number sphi, integer nskip,
+number rad, number velt, number velp, number yaw, number roll, number pitch, number angvel);
 ~AMSIO(){};
  friend ostream &operator << (ostream &o, const AMSIO &b );
 void convert();   
@@ -46,9 +55,17 @@ integer getpid() const {return _ipart;}
 integer getskip() const{return _nskip;}
 void setpid(integer pid)  {_ipart=pid;}
 time_t gettime() const {return _time;}
+time_t getnsec() const {return _nsec;}
 geant getpolephi() const{return _polephi;}
 geant getstheta() const{return _stationtheta;}
 geant getsphi() const{return _stationphi;}
+geant getvelphi() const{return _velphi;}
+geant getveltheta() const{return _veltheta;}
+geant getrad() const{return _rflight;}
+geant getyaw() const{return _yaw;}
+geant getroll() const{return _roll;}
+geant getpitch() const{return _pitch;}
+geant getangvel() const{return _angvel;}
 integer read();
 void close(){ fbin.close();}
 integer getseed(integer i){return i>=0 && i<2 ? _seed[i] : 0;} 
