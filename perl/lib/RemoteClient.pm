@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.301 2005/03/02 18:46:35 alexei Exp $
+# $Id: RemoteClient.pm,v 1.302 2005/03/09 09:47:13 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -10193,7 +10193,7 @@ sub getRunningDays {
     my $timenow   = time();
 # first job timestamp
       $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
-                WHERE Jobs.cid=Cites.cid and Cites.name!='test' and Jobs.timestamp >= $periodStartTime";
+                WHERE Jobs.cid=Cites.cid and Cites.name!='test' and Jobs.time >= $periodStartTime";
       $ret=$self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $timestart = $ret->[0][0];
