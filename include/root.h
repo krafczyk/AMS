@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.141 2004/02/17 14:33:54 alcaraz Exp $
+//  $Id: root.h,v 1.142 2004/02/19 11:22:24 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1830,7 +1830,7 @@ public:
  static TTree* & Tree()  {return _Tree;}
  static TTree* & ClonedTree()  {return _ClonedTree;}
  Int_t Fill();
-protected:
+
 //
 //  TSelector functions
 
@@ -1862,10 +1862,6 @@ protected:
    /// \param entry - event no
    void ProcessFill(int entry);
    bool Process(int entry){if(ProcessCut(entry))ProcessFill(entry);return true;}
-public:
-
-
-
 
 // TSelector user functions
  
