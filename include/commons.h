@@ -30,6 +30,7 @@ class MISCFFKEY_DEF{
 public:
 integer BTempCorrection;
 integer BeamTest;
+float   BZCorr; 
 };
 #define MISCFFKEY COMMON_BLOCK(MISCFFKEY,miscffkey)
 COMMON_BLOCK_DEF(MISCFFKEY_DEF,MISCFFKEY);

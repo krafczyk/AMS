@@ -78,9 +78,14 @@ C
         sx=sign(1.,vv(1))
         sy=sign(1.,vv(2))
         sz=sign(1.,vv(3))
-        do i=1,3
+        do i=1,2
           avv(i)=abs(vv(i))
         enddo
+*
+* Special trick if need
+*        
+       CALL BZCORR(xfac)
+       avv(3)=abs(vv(3))*xfac
 
         b(1) = FINT(3,avv(1),NA(1),xyz(1),Bx(1,1,1))
         b(2) = FINT(3,avv(1),NA(1),xyz(1),By(1,1,1))
@@ -108,9 +113,11 @@ C
           sx=sign(1.,xx(1))
           sy=sign(1.,xx(2))
           sz=sign(1.,xx(3))
-          do i=1,3
+          do i=1,2
             axx(i)=abs(xx(i))
           enddo
+          CALL BZCORR(xfac)
+          axx(3)=abs(xx(3))*xfac
 
           hxy(1,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdx(1,1,1,1))
           hxy(2,1) = FINT(3,aXx(1),NA(1),xyz(1),Bdy(1,1,1,1))

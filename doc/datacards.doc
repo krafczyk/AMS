@@ -633,3 +633,4 @@ MISC   // misc
 
 I 1 BTempCorrection(0)      // apply(1),not(0) temperature corrections to mfield
 I 2 BeamTest(0)             // BeamTest data(1) not(0)
+R 3 BZCorr(1.)              // Z scale for b field (test only)
