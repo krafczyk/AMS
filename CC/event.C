@@ -422,7 +422,7 @@ void AMSEvent::_signinitevent(){
     _SunRad=0;
     // get velocity parameters from orbit par
     AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
-    AMSDir ax2=ax1.cross(AMSmceventg::Orbit.Axis);
+    AMSDir ax2=AMSmceventg::Orbit.Axis.cross(ax1);
     //cout <<" 2 "<<AMSmceventg::Orbit.Axis<<" "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
@@ -437,7 +437,7 @@ void AMSEvent::_signinitevent(){
     _SunRad=0;
     // get velocity parameters from orbit par
     AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
-    AMSDir ax2=ax1.cross(AMSmceventg::Orbit.Axis);
+    AMSDir ax2=AMSmceventg::Orbit.Axis.cross(ax1);
     if(ax1.prod(AMSmceventg::Orbit.Axis)>1e-5){
      cerr<<"AMSEvent::SetTimeCoo-W-RedefinitionOfOrbit.AxisWillBeDone "<<ax1.prod(AMSmceventg::Orbit.Axis)<<endl;
      AMSmceventg::UpdateOrbit(_StationTheta,_StationPhi,_StationTheta-StTheta>00?1:-1);
@@ -1731,14 +1731,14 @@ void AMSEvent::_writeEl(){
   UCOPY(&_time,EN->Time,2*sizeof(integer)/4);
   //EN->GrMedPhi=_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic;;
   EN->ThetaS=_StationTheta;
-  EN->PhiS=_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic);
+  EN->PhiS=fmod(_StationPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
   EN->RadS=_StationRad;
   EN->Yaw=_Yaw;
   EN->Pitch=_Pitch;
   EN->Roll=_Roll;
   EN->VelocityS=_StationSpeed;
   EN->VelTheta=_VelTheta;
-  EN->VelPhi=_VelPhi;
+  EN->VelPhi=fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
   integer  i,nc;
   AMSContainer *p;
   EN->Particles=0;
@@ -2415,30 +2415,30 @@ void AMSEvent::setfile(char file[]){
 // extern "C" void geocoor_(const number & gt, const number &gp, const number &gr, geant &mt, geant &mp, geant &mr);
 
 void AMSEvent::getmag(float & thetam, float & phim){
-  const number DipShfRad=534.259e5;               // Dipole Shift Distance  (cm)
-  const number DipShfTheta=21.687/AMSDBc::raddeg; //              Latitude  (rad)
-  const number DipShfPhi=144.280/AMSDBc::raddeg;  //              Longitude (rad)
-  const number DipDirTheta=-79.397/AMSDBc::raddeg;// Dipole Direction Lat   (rad)
-  const number DipDirPhi=108.392/AMSDBc::raddeg;  //                  Lon   (rad)
+  number DipoleR      =AMSmceventg::Orbit.DipoleR;
+  number DipoleTheta  =AMSmceventg::Orbit.DipoleTheta;
+  number DipolePhi    =AMSmceventg::Orbit.DipolePhi;
+  number PoleTheta    =AMSmceventg::Orbit.PoleTheta;
+  number PolePhiStatic=AMSmceventg::Orbit.PolePhiStatic;
 
 //  geant drad;
 //  geocoor_(_StationTheta,_StationPhi,_StationRad/100000.,thetam,phim,drad);
 
   number zero=0, one=1;
   number StationTheta=_StationTheta;
-  number StationPhi=_StationPhi;
+  number StationPhi=_StationPhi-(_NorthPolePhi-PolePhiStatic);
   number StationRad=_StationRad;
 
 // Station GTOD coordinates referred to dipole center
   AMSPoint StationGOTD(cos(StationTheta)*cos(StationPhi),
                        cos(StationTheta)*sin(StationPhi),sin(StationTheta));
-  AMSPoint DipoleGTOD(cos(DipShfTheta)*cos(DipShfPhi),
-                      cos(DipShfTheta)*sin(DipShfPhi),sin(DipShfTheta));
-  AMSDir StationRedDirGTOD=AMSDir(StationGOTD*StationRad-DipoleGTOD*DipShfRad);
+  AMSPoint DipoleGTOD(cos(DipoleTheta)*cos(DipolePhi),
+                      cos(DipoleTheta)*sin(DipolePhi),sin(DipoleTheta));
+  AMSDir StationRedDirGTOD=AMSDir(StationGOTD*StationRad-DipoleGTOD*DipoleR);
 
 // Dipole direction
-  AMSDir DipoleDirGTOD=AMSDir(cos(DipDirTheta)*cos(DipDirPhi),
-                              cos(DipDirTheta)*sin(DipDirPhi),sin(DipDirTheta));
+  AMSDir DipoleDirGTOD=AMSDir(cos(PoleTheta)*cos(PolePhiStatic),
+                              cos(PoleTheta)*sin(PolePhiStatic),sin(PoleTheta));
 
 // For sake of clearness GEOM z axis is reversed, i.e. z = -DipoleDirGTOD, y= z x S
    AMSDir GTODs=AMSDir(zero,zero,-one);
