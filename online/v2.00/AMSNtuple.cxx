@@ -8,7 +8,11 @@ ClassImp(AMSNtuple)
     _h1->SetBranchAddress("eventno",&_Event.EventNo);
     _h1->SetBranchAddress("run",&_Event.Run);
     _h1->SetBranchAddress("runtype",&_Event.RunType);
-    _h1->SetBranchAddress("time",&_Event.Time);
+    _h1->SetBranchAddress("time",_Event.Time);
+    _h1->SetBranchAddress("Thetas",&_Event.Theta);
+    _h1->SetBranchAddress("Phis",&_Event.Phi);
+    _h1->SetBranchAddress("Rads",&_Event.Rad);
+    _h1->SetBranchAddress("Velocitys",&_Event.Speed);
  
     //LVL1
  
@@ -115,6 +119,6 @@ ClassImp(AMSNtuple)
     else{
       cerr<<"AMSNtuple::AMSNtuple-S-UnableInitializeNtuple"<<endl;
       _Event.Run=0;
-      _Event.Time=0;
+      _Event.Time[0]=0;
     }
 }

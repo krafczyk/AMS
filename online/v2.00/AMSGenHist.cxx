@@ -27,9 +27,34 @@ AMSGenHist::AMSGenHist(Text_t * name, Text_t * title, Int_t maxset, Int_t active
     _Fill();    
 }
 
-void AMSGenHist::_Fill(){}
-
-
+void AMSGenHist::_Fill(){
+  _m2filled=4;
+  _filled2= new TH1*[_m2filled];
+  for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
+  int i=0;
+  float ncha=200;
+  float a=0.5;
+  float b=200.5;
+  _filled2[i]=new TH1F("ThetaS","Shuttle Theta",ncha,a,b);
+  _filled2[i]->SetXTitle("Run Time (sec)");
+  _filled2[i]->SetFillColor(28+i);
+  _filled2[i++]->SetYTitle("Theta");
+  
+  _filled2[i]=new TH1F("PhiS","Shuttle Phi",ncha,a,b);
+  _filled2[i]->SetXTitle("Run Time (sec)");
+  _filled2[i]->SetFillColor(28+i);
+  _filled2[i++]->SetYTitle("Phi");
+  
+  _filled2[i]=new TH1F("RadiusS","Shuttle Altitude (km)",ncha,a,b);
+  _filled2[i]->SetXTitle("Run Time (sec)");
+  _filled2[i]->SetFillColor(28+i);
+  _filled2[i++]->SetYTitle("Altitude (km)");
+  
+  _filled2[i]=new TH1F("VelocityS","Shuttle Velocity",ncha,a,b);
+  _filled2[i]->SetXTitle("Run Time (sec)");
+  _filled2[i]->SetFillColor(28+i);
+  _filled2[i++]->SetYTitle("Velocity (rad/sec)");
+}
 
 void AMSGenHist::_Fetch(){
   char text[80];
@@ -70,69 +95,94 @@ void AMSGenHist::ShowSet(Int_t Set){
   // f1.SetParameter(5,1.);
   //  f1.SetParameter(6,0.2);
 
+
   const int sets = 5;
   gPad->Clear();
   int init[sets+1]    = {0, 4, 12, 14, 18, 19};
   int divideU[sets] = {2 , 4, 1, 2, 1};
   int divideL[sets] = {2 , 2, 2, 2, 1};
-  TVirtualPad * gPadSave;
-
+  TVirtualPad * gPadSave=gPad;
+  if(Set <5){
     int ii   = init[Set];
     gPadSave = gPad;
     gPad->Divide(divideU[Set],divideL[Set]);
-      for (int i=ii;i<init[Set+1];i++){
-	gPad->cd(i-ii+1);
-	gPad->SetLogx(gAMSDisplay->IsLogX());
-	gPad->SetLogy(gAMSDisplay->IsLogY());
-	gPad->SetLogz(gAMSDisplay->IsLogZ());
-        if (_fetched2[i]) {
-          if(Set==4){
-            _fetched2[i]->Fit("vcg2","VR");
-            double chi2=f2.GetChisquare();
-            if(chi2>1500){
-              choise=-1;
-            }
-            //if(chi2>200){
-            //choise=1;
-              //_fetched2[i]->Fit("vcg4","VR");
-              //_fetched2[i]->Fit("vcg3","VR");
-              //_fetched2[i]->Fit("vcg","VR");
-              //double chi2_2=f1.GetChisquare();
-              //if(chi2_2>chi2)choise=0;
-              //else if(chi2_2<500)choise=2;
-            //} 
+    for (int i=ii;i<init[Set+1];i++){
+      gPad->cd(i-ii+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
+      if (_fetched2[i]) {
+        if(Set==4){
+          _fetched2[i]->Fit("vcg2","VR");
+          double chi2=f2.GetChisquare();
+          if(chi2>1500){
+            choise=-1;
           }
-          _fetched2[i]->Draw();
-          if(Set==4){
-            char text[80];
-            TPaveText *lf=new TPaveText(0.2,0.8,0.5,0.9,"NDC");
-            lf->SetFillColor(18);
-            //if(choise==0)sprintf(text,"Input Rate (Hz) %f",f2.GetParameter(1)*1000);    
-            //else sprintf(text,"Input Rate (Hz) %f",f3.GetParameter(1)*1000);    
-            //  lf->AddText(text);
-            if(choise==0){
-              sprintf(text,"Input Rate (Hz) %f",1000*f2.GetParameter(1));    
-              lf->AddText(text);
-            }
-              sprintf(text,"Output Rate (Hz) %f",1000/_fetched2[i]->GetMean());    
-            lf->AddText(text);
-            if(choise==1){
-                sprintf(text,"DAQ Speed (Hz) %f",2000/f4.GetParameter(1));    
-                lf->AddText(text);
-            }
-            if(choise==2){
-                sprintf(text,"DAQ Speed (Hz) %f",2000/f1.GetParameter(3));    
-                lf->AddText(text);
-            }
-            lf->Draw();
-          }
+          //if(chi2>200){
+          //choise=1;
+          //_fetched2[i]->Fit("vcg4","VR");
+          //_fetched2[i]->Fit("vcg3","VR");
+          //_fetched2[i]->Fit("vcg","VR");
+          //double chi2_2=f1.GetChisquare();
+          //if(chi2_2>chi2)choise=0;
+          //else if(chi2_2<500)choise=2;
+          //} 
         }
-	gPadSave->cd();
+        _fetched2[i]->Draw();
+        if(Set==4){
+          char text[80];
+          TPaveText *lf=new TPaveText(0.2,0.8,0.5,0.9,"NDC");
+          lf->SetFillColor(18);
+          //if(choise==0)sprintf(text,"Input Rate (Hz) %f",f2.GetParameter(1)*1000);    
+          //else sprintf(text,"Input Rate (Hz) %f",f3.GetParameter(1)*1000);    
+          //  lf->AddText(text);
+          if(choise==0){
+            sprintf(text,"Input Rate (Hz) %f",1000*f2.GetParameter(1));    
+            lf->AddText(text);
+          }
+          sprintf(text,"Output Rate (Hz) %f",1000/_fetched2[i]->GetMean());    
+          lf->AddText(text);
+          if(choise==1){
+            sprintf(text,"DAQ Speed (Hz) %f",2000/f4.GetParameter(1));    
+            lf->AddText(text);
+          }
+          if(choise==2){
+            sprintf(text,"DAQ Speed (Hz) %f",2000/f1.GetParameter(3));    
+            lf->AddText(text);
+          }
+          lf->Draw();
+        }
       }
+      gPadSave->cd();
+    }
+  }
+  else if (Set==5){
+    gPad->Divide(2,2);
+    for(int i=0;i<4;i++){
+      gPad->cd(i+1);
+      gPad->SetLogx(gAMSDisplay->IsLogX());
+      gPad->SetLogy(gAMSDisplay->IsLogY());
+      gPad->SetLogz(gAMSDisplay->IsLogZ());
+      if(_filled2[i]){
+        _filled2[i]->Draw();
+      }
+      gPadSave->cd();
+    }
+  }
 }
 
 void AMSGenHist::Fill(AMSNtuple * ntuple){
- 
+static int oldt=ntuple->_Event.Run;
+int dt=ntuple->_Event.Time[0]-oldt;
+if(dt>0.5){
+  _filled2[0]->Fill(ntuple->_Event.Time[0]-ntuple->_Event.Run,ntuple->_Event.Theta);
+  _filled2[1]->Fill(ntuple->_Event.Time[0]-ntuple->_Event.Run,ntuple->_Event.Phi);
+  _filled2[2]->Fill(ntuple->_Event.Time[0]-ntuple->_Event.Run,ntuple->_Event.Rad/1.e5-6300);
+  _filled2[3]->Fill(ntuple->_Event.Time[0]-ntuple->_Event.Run,ntuple->_Event.Speed);
+  oldt=ntuple->_Event.Time[0];
+  
+}
+
 
  
 }

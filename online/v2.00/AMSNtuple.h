@@ -13,6 +13,7 @@
 #include "AMSAxAMSHist.h"
 #include "AMSLVL1Hist.h"
 #include "AMSLVL3Hist.h"
+#include "AMSGenHist.h"
 #include <time.h>
 const Int_t maxpart=20;
 const Int_t maxantiraw=32;
@@ -29,7 +30,11 @@ protected:
    Int_t Run;
    Int_t EventNo;
    Int_t RunType;
-   time_t Time;
+   time_t Time[2];
+   Float_t Theta;
+   Float_t Phi;
+   Float_t Rad;
+   Float_t Speed;
   };
   class AxAMS{
    public:
@@ -151,7 +156,7 @@ public:
 AMSNtuple(TFile * file);
 Int_t EventNo()const {return _Event.EventNo;}
 Int_t GetRun()const {return _Event.Run;}
-char* GetTime()const {return ctime(&_Event.Time);}
+char* GetTime()const {return ctime(&_Event.Time[0]);}
 //char* GetTime()const {return ctime(&_Event.Run);}
 Int_t ReadOneEvent(int event){return _h1?_h1->GetEvent(event):0;}
 friend class AMSTOFHist;
@@ -161,6 +166,7 @@ friend class AMSTrackerHist;
 friend class AMSLVL1Hist;
 friend class AMSLVL3Hist;
 friend class AMSAxAMSHist;
+friend class AMSGenHist;
 ClassDef(AMSNtuple,1)           // Ntuple Browser
 };
 #endif
