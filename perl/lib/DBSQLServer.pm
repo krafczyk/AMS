@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.40 2003/04/17 17:11:41 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.41 2003/04/20 10:01:20 alexei Exp $
 
 #
 #
@@ -138,7 +138,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "Environment");
+    my @tables=("Filesystems", "Cites","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -231,6 +231,11 @@ sub Create{
         "CREATE TABLE DataSets
          (did    INT NOT NULL,
           name   VARCHAR(255),
+          timestamp int)",
+        "CREATE TABLE DataSetFiles 
+         (did        INT NOT NULL,
+          name       VARCHAR(255),
+          filename   VARCHAR(255),
           timestamp int)",
         "CREATE TABLE Environment
          (mykey    VARCHAR(255),
@@ -497,6 +502,81 @@ my $sql;
               my ($junk,$dataset) = split "#",$line;                 
               $dbh->do(
                        "INSERT INTO datasets values($did,'$dataset',$timestamp)")
+              or die "cannot do: ".$dbh->errstr();    
+              $did++;
+              last;
+          }
+         }
+        }
+       }
+    }
+      } else {
+       die "$key is not defined in Environment table";
+    }
+ }
+#
+# end INSERT INTO datasets
+#
+#
+# INSERT INTO DataSetFiles
+#
+    $cnt = 0;
+    if($self->{dbdriver} =~ m/Oracle/){
+     $sql="SELECT COUNT(did) FROM datasetfiles";
+     $cntr=$self->Query($sql);
+     foreach my $ret (@{$cntr}) {
+        $cnt = $ret->[0];
+     }
+    }
+    if ($cnt == 0) {
+     my $did  = 0;
+     my $timestamp = time();    
+     my $dir  => undef;
+     my $key='AMSDataDir';
+     $sql="select myvalue from environment where mykey='".$key."'";
+     my $ret = $self->Query($sql);
+     if( defined $ret->[0][0]){
+      $dir=$ret->[0][0];
+     }
+     $key='AMSSoftwareDir';
+     $sql="select myvalue from environment where mykey='".$key."'";
+     $ret = $self->Query($sql);
+     if( defined $ret->[0][0]){
+      $dir=$dir."/".$ret->[0][0];
+     }
+     if (defined $dir) {
+      $dir="$dir/DataSets";  # top level directory for datasets
+      opendir THISDIR ,$dir or die "unable to open $dir";
+      my @allfiles= readdir THISDIR;
+      closedir THISDIR;    
+       foreach my $file (@allfiles){
+        my $newfile="$dir/$file";
+        if(readlink $newfile or  $file =~/^\./){
+         next;
+        }
+          my $dataset={};
+          my @tmpa;
+          opendir THISDIR, $newfile or die "unable to open $newfile";
+          my @jobs=readdir THISDIR;
+          closedir THISDIR;
+          foreach my $job (@jobs){
+           if($job =~ /\.job$/){
+            if($job =~ /^\./){
+             next;
+            }
+           my $template={};
+           my $full="$newfile/$job";
+           my $buf;
+           open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
+           read(FILE,$buf,1638400) or next;
+           close FILE;
+           my @sbuf=split "\n",$buf;
+           my $datasetdesc= "generate";
+           foreach my $line (@sbuf){
+            if($line =~/$datasetdesc/){
+              my ($junk,$dataset) = split "#",$line;                 
+              $dbh->do(
+                       "INSERT INTO datasetfiles values($did,'$dataset','$job',$timestamp)")
               or die "cannot do: ".$dbh->errstr();    
               $did++;
               last;

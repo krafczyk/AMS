@@ -3,7 +3,7 @@ package Mover;
 #
 my $help = "
 # Program copies files from 'source' directory to 'target'.
-# Program requests list of NTuples from server, 
+# Program requests list of NTuples from server (or finds it in database), 
 # finds NTuples with status Success or Validated and directory 
 # path matches to 'source' directory, validates NTuples if 
 # its status is Success, copies NTuples to Target directory 
@@ -14,7 +14,9 @@ my $help = "
 # -S    - source files path
 # -T    - target directory path
 # -h    - help
+# -db   - database mode (no connection to server)
 # -ior  - path to file with IOR                (optional)
+# -pwd  - pass to access Oracle
 # -v    - verbose                              (optional)
 #
 # March 22, 2002. A.Klimentov
@@ -32,6 +34,8 @@ use Sys::Hostname;
 #use lib::DBServer;
 use Time::Local;
 
+use DBI;
+
 @Mover::EXPORT= qw(new Connect doCopy);
 
 
@@ -47,6 +51,7 @@ my %fields=(
     AMSDataDir=>undef,
     AMSSoftwareDir=>undef,
     verbose=>undef,
+    database=>undef,
     ac=>undef,
     start=>undef,
     hostname=>undef,
@@ -62,6 +67,8 @@ my %fields=(
     registered=>0,
     DataMC=>1,
     IOR=>undef,
+    dbhandler=>undef,
+    dbpwd=>undef
             );
 
 
@@ -96,6 +103,14 @@ foreach my $chop  (@ARGV){
 
     if($chop =~/^-v/){
         $self->{verbose} = 1;
+    }
+
+    if ($chop =~/^-db/) {
+        $self->{database} = 1;
+    }
+
+    if ($chop =~/^-pwd/) {
+        $self->{dbpwd} = unpack("x4 A*",$chop);
     }
 
     if($chop =~/^-h/){
@@ -161,126 +176,238 @@ if (defined $f2) {
       die "not enough space on $output";
   }
 
-
+if (defined $self->{database}) {
+   set_oracle_env();
+   $self->{dbhandler}=connect_to_oracle($self->{dbpwd});
+} 
 # Corba part a la new in Monitor.pm
-$self->{start}=time();
-$self->{cid}=new CID;
-$self->{orb} = CORBA::ORB_init("orbit-local-orb");
-$self->{root_poa} = $self->{orb}->resolve_initial_references("RootPOA");
-$self->{root_poa}->_get_the_POAManager->activate;
-$self->{mypoamonitor}=new POAMonitor;
-my $id = $self->{root_poa}->activate_object($self->{mypoamonitor});
-$self->{myref}=$self->{root_poa}->id_to_reference ($id);
-$self->{myior} = $self->{orb}->object_to_string ($self->{myref});
-$self->{ac}= new ActiveClient($self->{myior},$self->{start},$self->{cid});
+ $self->{start}=time();
+ $self->{cid}=new CID;
+ $self->{orb} = CORBA::ORB_init("orbit-local-orb");
+ $self->{root_poa} = $self->{orb}->resolve_initial_references("RootPOA");
+ $self->{root_poa}->_get_the_POAManager->activate;
+ $self->{mypoamonitor}=new POAMonitor;
+ my $id = $self->{root_poa}->activate_object($self->{mypoamonitor});
+ $self->{myref}=$self->{root_poa}->id_to_reference ($id);
+ $self->{myior} = $self->{orb}->object_to_string ($self->{myref});
+ $self->{ac}= new ActiveClient($self->{myior},$self->{start},$self->{cid});
 #
 #
 #
 #amsdatadir
 
-my $dir=$ENV{AMSDataDir};
-if (defined $dir){
+if (defined $self->{database}) {
+    my $key = 'AMSDataDir';
+    my $sql = "select myvalue from Environment where mykey='".$key."'";
+    my $dbh = $self->{dbhandler};
+    my $ret =  Query($dbh,$sql);
+    if (defined $ret->[0][0]) {
+        $self->{AMSDataDir} = $ret->[0][0];
+        $ENV{AMSDataDir}=$self->{AMSDataDir};
+    }
+    $key='AMSSoftwareDir';
+    $sql = "select myvalue from Environment where mykey='".$key."'";
+    $ret = Query($dbh,$sql);
+    if (defined $ret->[0][0]) {
+        $self->{AMSSoftwareDir} = $ret->[0][0];
+        $ENV{AMSSoftwareDir}=$self->{AMSSoftwareDir};
+    }
+} else {
+ my $dir=$ENV{AMSDataDir};
+ if (defined $dir){
     $self->{AMSDataDir}=$dir;
-}
-else{
+ }
+ else{
     $self->{AMSDataDir}="/f0dat1/AMSDataDir";
     $ENV{AMSDataDir}=$self->{AMSDataDir};
-}
+ }
    $dir=$ENV{AMSSoftwareDir};
-if (defined $dir){
+ if (defined $dir){
     $self->{AMSSoftwareDir}=$dir;
-}
-else{
+ }
+ else{
     $self->{AMSSoftwareDir}="/offline/vdev";
     $ENV{AMSSoftwareDir}=$self->{AMSSoftwareDir};
+ }
 }
+
 if ($self->{verbose}) {
     print "Environment settings AMSDataDir : $self->{AMSDataDir}\n";
     print "Environment settings AMSSoftwareDir : $self->{AMSSoftwareDir}\n";
 }
 #
-my $mybless=bless $self,$type;
-if(ref($Mover::Singleton)){
-    croak "Only Single Mover Allowed\n";
-}
-$Mover::Singleton=$mybless;
-return $mybless;
 
+ my $mybless=bless $self,$type;
+ if(ref($Mover::Singleton)){
+    croak "Only Single Mover Allowed\n";
+ }
+  $Mover::Singleton=$mybless;
+  return $mybless;
 }
 
 
 
 
 sub doCopy {
-    my $status=>undef;
-    my @cpntuples=();
-    my @mvntuples=();
+    my $cmdstatus=>undef;
+    my @cpntuples=(); # full path to input directory files
+    my @mvntuples=(); # full path to output directory files
+    my $ntvalid  = 0; # number of validated ntuples
+    my $ntproblem= 0; # number of ntuples not found/not validated
     my $self = shift;
     my $input  = $self->{source};
     my $output = $self->{targetdir};
+    my $time = time();
+    my $logfile = "/tmp/cp.$time.log";
+    my $cmd = "touch $logfile";
+    $cmdstatus = system($cmd);
 
-    my $ref = $Mover::Singleton;
-    my $stat= $ref->readServer();
-    if ( not $stat) { 
-     die "Quit due to previous error";
-    }
-    my @data = $ref->getNTuples($input);
-    my $nnt = $#data/15;
-    if ($nnt > 0) {
-     if ($self->{verbose}) {
-        print "doCopy -I- $nnt files will be copied\n";
+    if (defined $self->{database}) {
+       my $dbh = $self->{dbhandler};
+       my $dir=$input;
+       opendir THISDIR ,$dir or die "unable to open $dir";
+       my @allfiles= readdir THISDIR;
+       closedir THISDIR;
+       foreach my $file (@allfiles){
+         if ($file =~/^\./){
+          next;
+         }
+         my $newfile=$dir."/".$file;
+         my $sql = "SELECT jid, status, crc, nevents FROM ntuples WHERE path='$newfile'";
+         my $ret = Query($dbh,$sql);
+         if (defined $ret->[0][0]) {
+             foreach my $nt (@{$ret}) {
+                 my $jid    = $nt->[0];
+                 my $status = $nt->[1];
+                 my $crc    = $nt->[2];
+                 my $events = $nt->[3];
+                  $sql  = "SELECT cites.name,jobname,jobs.jid  FROM jobs,cites 
+                           WHERE jid=$jid AND cites.cid=jobs.cid";
+                  my $r1 = Query($dbh,$sql);
+                  if (defined $r1->[0][0]) {
+                   foreach my $job (@{$r1}) {
+                     my $cite    = $job->[0];
+                     my $jobname = $job->[1];
+                     $jobname =~ s/$cite.//;
+                     $jobname =~ s/$jid.//;
+                     $jobname =~ s/.job//;
+                     my $outputpath = $output.$jobname."/".$file;
+                     push @cpntuples,$outputpath;
+                     push @mvntuples,$newfile;
+                     my $cmd = "cp -pi -d -v -r $newfile  $outputpath >> $logfile";
+                     $cmdstatus = system($cmd);
+                     if ($cmdstatus == 0) {
+                      my $vstatus = "BAD";
+                      if ($newfile =~ m/hbk/) {
+                       $vstatus=$self->doValidate($outputpath,$events);
+                      } else {
+                          print "doCopy - no validation for ROOT files : $outputpath\n";
+                          $vstatus = "OK";
+                      }
+                       if ($vstatus ne "OK") {
+                        print "doCopy -W- validation failed for $outputpath \n";
+                        print "doCopy -I- delete all previuosly copied NTuples and exit\n";
+                        $cmdstatus = -1;
+                       } else {
+                          if ($self->{verbose}) {
+                              print "doCopy -I- validated : $outputpath \n";
+                          }
+                        $sql = "UPDATE ntuples SET path='$outputpath', status='Validated', timestamp=$time 
+                                WHERE path='$newfile'";
+                        my $dbh=$self->{dbhandler};
+                        my $sth=$dbh->prepare($sql)  or die "Cannot prepare $sql ".$dbh->errstr();
+                        $sth->execute or die "Cannot execute $sql ".$dbh->errstr();
+                        $ntvalid++;
+                      }     
+                     } 
+                     if ($cmdstatus != 0) {
+                      print "doCopy -E- Copy or validation failed :  $cmd \n";
+                      $self->doRemove(@cpntuples);
+                      goto LAST;
+                     }
+                   }
+                  } else {
+                   print "Warning - Job : $jid, cannot find  description in Jobs and Cites tables\n";
+                   $ntproblem++;
+                  }
+             }
+          } else {
+              print "Warning - NTuple : $newfile not found in database table ntuples\n";
+              $ntproblem++;
+          }
+         }
+         if ($ntvalid > 0) {
+             print "doCopy - ntuples validated :  $ntvalid  \n";
+             print "doCopy - not validated and not copied : $ntproblem  \n";
+             my $sql = "commit";
+             my $dbh=$self->{dbhandler};
+             my $sth=$dbh->prepare($sql)  or die "Cannot prepare $sql ".$dbh->errstr();
+             $sth->execute or die "Cannot execute $sql ".$dbh->errstr();
+
+             doRemove(@mvntuples);
+
+             $cmdstatus = 1;
+         }
+    } else {
+     my $ref = $Mover::Singleton;
+     my $stat= $ref->readServer();
+     if ( not $stat) { 
+      die "Quit due to previous error";
      }
-     my $i = 0;
-     my $time = time();
-     my $logfile = "/tmp/cp.$time.log";
-     my $cmd = "touch $logfile";
-     $status = system($cmd);
-     while ($i < $#data) {
-      my ($host,$ntuple) = split(/:/,$data[$i+1]);
-      my $events         = $data[$i+2];
-      $ntuple=~s/\/\//\//;
-      my ($dir,$file) = parseArgs($ntuple);
-      my $tpath = $output.$file;
-      push @cpntuples,$tpath;
-      push @mvntuples,$ntuple;
-      $cmd = "cp -pi -d -v -r $ntuple  $tpath >> $logfile";
-      $status = system($cmd);
-      if ($status == 0) {
-       my $vstatus=$self->doValidate($tpath,$events);
-       if ($vstatus ne "OK") {
-           print "doCopy -W- validation failed for $tpath \n";
-           print "doCopy -I- delete all previuosly copied NTuples and exit\n";
-           $status = -1;
-       }
-     }
-     if ($status != 0) {
-      print "doCopy -E- Copy failed :  $cmd \n";
-      $self->doRemove(@cpntuples);
-      goto LAST;
-     }
-     $i=$i+16;
-  }
-  my $cpnt = $#cpntuples+1;
-  if ($self->{verbose}) {
-   print "doCopy -I- $cpnt files are copied to $output\n";
-  }
- } else {
-   print "doCopy -I- Nothing to copy\n";
-   print "doCopy -I- No Validated NTuples or/and NT's paths don't match to $input\n";
- }  
- if ($nnt > 0) {
+     my @data = $ref->getNTuples($input);
+     my $nnt = $#data/15;
+     if ($nnt > 0) {
+      if ($self->{verbose}) {
+         print "doCopy -I- $nnt files will be copied\n";
+      }
+      my $i = 0;
+      while ($i < $#data) {
+       my ($host,$ntuple) = split(/:/,$data[$i+1]);
+       my $events         = $data[$i+2];
+       $ntuple=~s/\/\//\//;
+       my ($dir,$file) = parseArgs($ntuple);
+       my $tpath = $output.$file;
+       push @cpntuples,$tpath;
+       push @mvntuples,$ntuple;
+       $cmd = "cp -pi -d -v -r $ntuple  $tpath >> $logfile";
+       $cmdstatus = system($cmd);
+       if ($cmdstatus == 0) {
+        my $vstatus=$self->doValidate($tpath,$events);
+        if ($vstatus ne "OK") {
+            print "doCopy -W- validation failed for $tpath \n";
+            print "doCopy -I- delete all previuosly copied NTuples and exit\n";
+            $cmdstatus = -1;
+        }
+      }
+      if ($cmdstatus != 0) {
+       print "doCopy -E- Copy failed :  $cmd \n";
+       $self->doRemove(@cpntuples);
+       goto LAST;
+      }
+      $i=$i+16;
+   }
+   my $cpnt = $#cpntuples+1;
+   if ($self->{verbose}) {
+    print "doCopy -I- $cpnt files are copied to $output\n";
+   }
+  } else {
+    print "doCopy -I- Nothing to copy\n";
+    print "doCopy -I- No Validated NTuples or/and NT's paths don't match to $input\n";
+  }  
+  if ($nnt > 0) {
 #
 # Update NTuples path
 # sendDSTEnd($action="Create","Delete")
 #
-    my $host = $self->{hostname};
-    updateNTuples("Create",$host,$output,@data);
-    updateNTuples("Delete",$host,$output,@data);
-    doRemove(@mvntuples);
-    $status = 1;
- }
+     my $host = $self->{hostname};
+     updateNTuples("Create",$host,$output,@data);
+     updateNTuples("Delete",$host,$output,@data);
+     doRemove(@mvntuples);
+     $cmdstatus = 1;
+   }
+  }
 LAST : 
-    return $status;
+    return $cmdstatus;
 }
 
 
@@ -463,7 +590,7 @@ sub doValidate {
     my $self   = shift;
     my $ntuple = shift;
     my $events = shift;
-    my $vexe   = $self->{AMSSoftwareDir}."/exe/linux/fastntrd.exe";
+    my $vexe   = $self->{AMSDataDir}."/".$self->{AMSSoftwareDir}."/exe/linux/fastntrd.exe";
     my @fpatha=split ':', $ntuple;
     my $fpath=$fpatha[$#fpatha];
     if ($self->{verbose}) {
@@ -598,8 +725,9 @@ sub ErrorPlus{
 # Corba Relates Subs
 
 sub Connect{
-    my $ior;
-    my $ref=shift;
+   my $ior;
+   my $ref=shift;
+   if (not defined $ref->{database}) {
     $ref->{ok}=0;
     if(defined $ref->{IOR}){
         return 1;
@@ -640,6 +768,9 @@ sub Connect{
     catch CORBA::SystemException with{
         carp "SystemException Error "."\n";
     };
+  } else {
+    $ref->{ok}=1;
+  }
     return $ref->{ok};
 }
 
@@ -814,3 +945,41 @@ sub UpdateARS{
  return 1;
 }
 
+# this function sets up the necessary environement variables
+# to be able to connect to Oracle
+sub set_oracle_env {
+    $ENV{"ORACLE_HOME"}='/afs/cern.ch/project/oracle/@sys/prod';
+    $ENV{"TNS_ADMIN"}='/afs/cern.ch/project/oracle/admin';
+    $ENV{"LD_LIBRARY_PATH"}=$ENV{"ORACLE_HOME"}."/lib";
+    1;
+}
+
+sub connect_to_oracle {
+
+    my $user   = "amsdes";
+    my $pwd    =  shift;
+    my $dbname = "DBI:Oracle:amsdb";
+
+    my $dbh = DBI->connect( $dbname,$user, $pwd, 
+                      ) || die print "Can't connect : $DBI::errstr";
+
+    return $dbh;
+}
+sub Query {
+
+    my $dbh =shift;
+    my $sql  =shift;
+    my $sth=$dbh->prepare($sql)  or die "Cannot prepare $sql ".$dbh->errstr();
+    $sth->execute or die "Cannot execute $sql ".$dbh->errstr();
+    my $ret=$sth->fetchall_arrayref();
+    $sth->finish();
+    return $ret;
+}
+sub trimblanks {
+    my @inp_string = @_;
+    for (@inp_string) {
+        s/^\s+//;        
+        s/\s+$//;
+    }
+    return wantarray ? @inp_string : $inp_string[0];
+}

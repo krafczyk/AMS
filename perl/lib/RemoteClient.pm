@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.107 2003/04/19 09:07:30 alexei Exp $
+# $Id: RemoteClient.pm,v 1.108 2003/04/20 10:01:21 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4041,7 +4041,7 @@ sub checkJobsTimeout {
          my $timestamp    = $job->[1];
          my $timeout      = $job->[2];
          my $mid          = $job->[3];
-         $sql="SELECT run FROM runs WHERE jid = $jid";
+         $sql="SELECT run FROM runs WHERE jid = $jid AND status != 'Finished'";
          my $r3=$self->{sqlserver}->Query($sql); 
          if (not defined $r3->[0][0]) {
           $sql="SELECT address FROM mails WHERE mid = $mid";
