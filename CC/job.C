@@ -1,7 +1,11 @@
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
- 
+// Sep 17, 1997. ak. don't write timeid to files in dbase version
+// Oct  1, 1997. ak. add FindTheBestTDV function
+// 
+// Last Edit : Oct 6, 1997. ak. 
+//
 #include <amsgobj.h>
 #include <cern.h>
 #include <math.h>
@@ -29,6 +33,15 @@
 #include <trrawcluster.h>
 #include <daqevt.h>
 #include <daqblock.h>
+
+//+
+ integer        ntdvNames;                       // number of TDV's types
+ char           *tdvNameTab[maxtdv];             // TDV's nomenclature
+//
+integer*   AMSJob::_ptr_start;
+integer*   AMSJob::_ptr_end;
+tdv_time* AMSJob::_tdv;
+//-
 
 realorbit AMSJob::Orbit;
 AMSJob* AMSJob::_Head=0;
@@ -188,7 +201,8 @@ TRMCFFKEY.day[0]=1;
 TRMCFFKEY.day[1]=1;
 TRMCFFKEY.mon[0]=0;
 TRMCFFKEY.mon[1]=0;
-TRMCFFKEY.year[0]=96;
+//TRMCFFKEY.year[0]=96;
+TRMCFFKEY.year[0]=95;
 TRMCFFKEY.year[1]=99;
 TRMCFFKEY.GenerateConst=0;
 TRMCFFKEY.thr1R[0]=4.5;
@@ -1399,6 +1413,9 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
 
 if (AMSFFKEY.Update){
 
+#ifdef __DB__
+  if (AMSFFKEY.Write == 0 ) {
+#endif
   // Here update dbase
 
     AMSTimeID * offspring=(AMSTimeID*)TID.down();
@@ -1407,6 +1424,9 @@ if (AMSFFKEY.Update){
       cerr <<"AMSJob::_timeinitjob-S-ProblemtoUpdate "<<*offspring;
     offspring=(AMSTimeID*)offspring->next();
     }
+#ifdef __DB__
+  } 
+#endif  
 }
 }
 
@@ -1712,7 +1732,9 @@ void AMSJob::_setorbit(){
     &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
 
 
-}    
+}   
+
+
 {
 //           tracker raw
 
@@ -1723,9 +1745,121 @@ void AMSJob::_setorbit(){
 
 }    
 
-}
+} 
 else {
       cerr <<"AMSJob::_redaqinitjob-E-NoYetDAQFormat for "<<
       AMSJob::gethead()->getsetup()<<endl;
 }
+
+
 }
+
+
+integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S, 
+                               time_t &I, time_t &B, time_t &E)
+//
+// name   - TDV's name
+// time   - TDV's time
+// S      - TDV size
+// I,B,E  - insert, begin, end time the most satisfies to 'time'
+//
+{
+  integer rstatus = -1;
+#ifdef __DB__
+
+  for (int i=0; i<ntdvNames; i++) {
+    if(strcmp(name,tdvNameTab[i]) == 0) {
+       integer  ptr = -1;
+       time_t   insert = 0;
+       for (int j=_ptr_start[i]; j<_ptr_end[i]; j++) {
+         if (timeV >= _tdv[j]._begin && timeV <= _tdv[j]._end) {
+           if (_ptr_end[i] - _ptr_start[i] - 1 != 0) {
+             if (insert == 0) {
+          insert = _tdv[j]._insert;
+          ptr    = j;
+             } else {
+               if (insert < _tdv[i]._insert) {
+           insert = _tdv[i]._insert;
+           ptr    = j;
+               }
+             }
+           } else {
+         ptr = j;
+           }
+         }
+       }
+       if (ptr > -1) {
+        I = _tdv[ptr]._insert;
+        B = _tdv[ptr]._begin;
+        E = _tdv[ptr]._end;
+        S = _tdv[ptr]._size;
+#ifdef __AMSDEBUG__
+         cout <<"found TDV for "<<tdvNameTab[i]<<", size "<<S<<endl;
+         cout <<"i/b/e "<<asctime(localtime(&_tdv[ptr]._insert))
+              <<"      "<<asctime(localtime(&_tdv[ptr]._begin))
+              <<"      "<<asctime(localtime(&_tdv[ptr]._end))<<endl;
+#endif
+       rstatus = 1;
+       } else {
+         cerr <<"AMSJob::FindTheBestTDV -W- cannot find TDV for "<<name<<endl;
+         cerr <<"time "<<asctime(localtime(&timeV))<<endl;
+       }
+    break;
+    }
+  }
+#endif
+ return rstatus;
+}
+
+
+
+
+integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
+//
+// Fill TDV table by values read from database
+//
+{
+  integer rstatus = -1;
+
+#ifdef __DB__
+  
+  if (nobj < 1) {
+    cerr <<"AMSJob::FillJobTDV -E- value out of range "<<nobj<<endl;
+    return rstatus;
+  }
+  _tdv = new tdv_time[nobj];
+  for (int i=0; i<nobj; i++) { _tdv[i] = tdv[i];}
+ 
+#endif
+  return 1;
+}
+
+integer AMSJob::SetTDVPtrs(integer start[], integer end[])
+//
+// Set start/end ptrs for TDV table 
+//
+{
+#ifdef __DB__
+  for (int i=0; i<ntdvNames; i++) {
+   _ptr_start[i] = start[i];
+   _ptr_end[i]   = end[i];
+  }
+#endif
+ return 1;
+}
+integer AMSJob::FillTDVTable(){
+
+AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
+AMSTimeID * offspring=(AMSTimeID*)ptid->down();
+integer nobj = 0;
+while(offspring){
+  tdvNameTab[nobj] = offspring -> getname();
+  nobj++;
+  offspring=(AMSTimeID*)offspring->next();
+}
+_ptr_start = new integer[nobj];
+_ptr_end = new integer[nobj];
+ntdvNames = nobj;
+return nobj;
+}
+

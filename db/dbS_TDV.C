@@ -15,7 +15,7 @@
 //                    setup moved to AMSsetupDB
 // May  05, 1997. ak. separate file for setup
 //
-// last edit Oct 02, 1997, ak.
+// last edit Oct 03, 1997, ak.
 //
 
 #include <stdio.h>
@@ -31,7 +31,7 @@
 
 #include <typedefs.h>
 #include <db_comm.h>
-#include <dbA.h>
+#include <dbS.h>
 
 
 #include <timeidD_ref.h>
@@ -40,11 +40,10 @@
 #include <job.h>
 #include <timeid.h>
 
+extern char *tdvNameTab[maxtdv];
+extern int  ntdvNames;
 
-
-
-
-ooStatus   LMS::AddTDV()
+ooStatus   LMS::AddAllTDV()
 {
 	ooStatus 	     rstatus = oocError;	// Return status
         ooHandle(ooDBObj)    dbH;
@@ -55,7 +54,6 @@ ooStatus   LMS::AddTDV()
         if (_setupdbH != dbH) _setupdbH = dbH;
 
   // Containers
-  ooHandle(ooContObj)  contH;                   // container
   ooHandle(ooContObj)  conttdvH;                // Time dependent var
   // ooObj classes
   ooHandle(AMSTimeIDD)       timedvH;
@@ -110,7 +108,7 @@ ooStatus   LMS::AddTDV()
         id = p -> getid();
         name = p -> getname();
         pp -> gettime(insert, begin, end);
-        char pred[60];
+        char pred[100];
         (void) sprintf(pred,"_id=%d && _name=~%c%s%c",id,'"',name,'"');
         cout<<"AddTDV : search for "<<pred<<endl;
         timedvItr.scan(conttdvH, Mode(), oocAll, pred);
@@ -118,9 +116,16 @@ ooStatus   LMS::AddTDV()
          timedvItr -> GetTime(insertd, begind, endd);
          if (begin == begind && end == endd) {
           found = 1;
-          if (insert != insertd) {
+          uinteger crcd = timedvItr -> getCRC();
+          uinteger crc  = pp -> getCRC();
+          if (insert != insertd ) {
            timedvItr -> update(pp);
-           cout <<"Insert time is different, update done"<<endl;
+           cout <<"AddTDV -I- Insert time is different, update done"<<endl;
+          } else {
+           if (crc != crcd) {
+            timedvItr -> update(pp);
+            cout <<"AddTDV -I- CRC is different, update done"<<endl;
+           }
           }
          }
          if (found == 1) break;
@@ -177,7 +182,6 @@ ooStatus   LMS::ReadAllTDV()
         if (_setupdbH != dbH) _setupdbH = dbH;
 
 // Containers
-  ooHandle(ooContObj)  contH;                   // container
   ooHandle(ooContObj)  conttdvH;                // Time dependent var
 // ooObj classes
   ooHandle(AMSTimeIDD)       timedvH;
@@ -197,6 +201,7 @@ ooStatus   LMS::ReadAllTDV()
   cout <<"ReadTDV -I- container : "<<contName<<endl;
   int status = Container(dbH, contName, conttdvH);
   if (status != 0) Fatal("ReadTDV : cannot find or open container ");
+  if(contName) delete [] contName;
 
      integer nobj = 0;
      timedvItr.scan(conttdvH, Mode());
@@ -219,7 +224,7 @@ ooStatus   LMS::ReadAllTDV()
      pp = (AMSTimeID*)p;
      id = p -> getid();
      name = p -> getname();
-     char pred[60];
+     char pred[100];
      (void) sprintf(pred,"_id=%d && _name=~%c%s%c",id,'"',name,'"');
      cout<<"ReadTDV -I- search for "<<pred<<endl;
      timedvItr.scan(conttdvH, Mode(), oocAll, pred);
@@ -251,7 +256,7 @@ end:
 	return rstatus;
 }
 
-ooStatus   LMS::FillTDV()
+ooStatus   LMS::FillTDV(integer ntdv)
 //
 // Fill AMSJob::tdv table from database
 // program reads (i,b,e) times from database for all TDV and writes them
@@ -265,12 +270,13 @@ ooStatus   LMS::FillTDV()
 
         integer                nobj = 0;                // number of TDVObj
   // get setup and container names
-  char* setup = AMSJob::gethead() -> getsetup();
-  cout <<"FillTDV -I-  setup "<<setup<<endl;
+  // char* setup = AMSJob::gethead() -> getsetup();
+  cout <<"ReadTDV -I-  setup "<<_setup<<endl;
 
-  char* contName = new char[strlen(setup)+8];
+  char* contName = new char[strlen(_setup)+8];
+
   strcpy(contName,"Time_Var_");
-  strcat(contName,setup);
+  strcat(contName,_setup);
   
   cout <<"FillTDV -I-  container "<<contName<<endl;
   
@@ -284,15 +290,17 @@ ooStatus   LMS::FillTDV()
    while (tdvItr.next()) nobj++;
    cout <<"FillTDV -I- found "<<nobj<<" TDV objects"<<endl;
    tdv_time *tdv = new tdv_time[nobj];
-   int       ptr_start[ntdv];
-   int       ptr_end[ntdv];
+   integer  *ptr_start = new integer[ntdv];
+   integer  *ptr_end   = new integer[ntdv];
 
    int jj = 0;
    for (int i=0; i<ntdv; i++) {
-    char name[80];
-    char pred[100];
-    strcpy(name,tdvnames[i]);
+     //char name[80];
+    char pred[256];
+    //strcpy(name,tdvNameTab[i]);
+    char* name = StrDup(tdvNameTab[i]);
     (void) sprintf(pred,"_name=~%c%s%c",'"',name,'"');
+    if (name) delete [] name;
     cout<<"TDV : search for "<<pred<<endl;
     rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
     if (rstatus != oocSuccess) Fatal("FillTDV : container scan failed");
@@ -314,6 +322,8 @@ ooStatus   LMS::FillTDV()
   }
   Commit();
 
+  if (contName) delete [] contName;
+
   return rstatus;
 
 }
@@ -332,12 +342,12 @@ ooStatus   LMS::ReadTDV
 
         integer                nobj = 0;                // number of TDVObj
   // get setup and container names
-  char* setup = AMSJob::gethead() -> getsetup();
-  cout <<"ReadTDV -I-  setup "<<setup<<endl;
+  // char* setup = AMSJob::gethead() -> getsetup();
+  cout <<"ReadTDV -I-  setup "<<_setup<<endl;
 
-  char* contName = new char[strlen(setup)+8];
+  char* contName = new char[strlen(_setup)+8];
   strcpy(contName,"Time_Var_");
-  strcat(contName,setup);
+  strcat(contName,_setup);
   
   cout <<"ReadTDV -I-  container "<<contName<<endl;
   
@@ -348,10 +358,11 @@ ooStatus   LMS::ReadTDV
 
   if (contH.exist(dbH, contName, oocRead)) {
     char name[80];
-    char pred[100];
+    char pred[120];
     strcpy(name,tdvname);
-    (void) sprintf(pred,"_name=~%c%s%c",'"',name,'"');
-    cout<<"TDV : search for "<<pred<<endl;
+    (void) sprintf(pred,"_Insert=%d && _Begin=%d && _End=%d &&_name=~%c%s%c",
+                   I,B,E,'"',name,'"');
+    cout<<"ReadTDV -I- search for "<<pred<<endl;
     rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
     if (rstatus != oocSuccess) Fatal("ReadTDV : container scan failed");
     time_t  insert, begin, end;
@@ -365,9 +376,12 @@ ooStatus   LMS::ReadTDV
      }
     }
   }
-   
+  if (rstatus != oocSuccess) 
+     cout<<"ReadTDV -W- cannot find TDV in database for "<<tdvname<<endl;
 
   Commit();
+
+  if (contName) delete [] contName;
 
   return rstatus;
 

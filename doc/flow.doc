@@ -1,5 +1,7 @@
               AMS Simulation program simplified flowchart
               -------------------------------------------
+                                                       Last Edit : Oct 7, 1997
+
 M A I N  ->      gbatch.C
  |
  |
@@ -146,7 +148,8 @@ M A I N  ->      gbatch.C
  |    |   |    |    |->_reaxinitevent
  |    |   |    |
  |    |   |    |->_validate        Validate time dep constants
- |    |   |   
+ |    |   |    |->_validateDB      Compare time dep constants in memory
+ |    |   |                        with ones in dbase
  |    |   |->AMSmceventg->run      Create MC Gen  structure
  |    |
  |    |

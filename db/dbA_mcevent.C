@@ -450,6 +450,7 @@ end:
         if(NN_events%NR_commit == 0 && StartCommit > -1) {
          mrowmode = mrowMode();
          StartRead(mrowmode);
+         Refresh();
         }
         Refresh();
       }

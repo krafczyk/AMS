@@ -1,6 +1,6 @@
                                                      Alexei Klimentov
                                                     (alexei.klimentov@cern.ch)
-Filename : dbase_objy.doc                            Last Edit : June 16, 1997.
+Filename : dbase_objy.doc                            Last Edit : Oct 7, 1997.
 
 General Information.
 
@@ -46,6 +46,8 @@ make files  *) :
               program. MakeDB uses AMS object files, created by Mgbatch 
               
   Makesr  - to create AMS+DB+ROOT version
+
+  MakeSDB - to create 'Setup' Database (no event's classes)
 
 *) goto ~/AMS/db directory first.
 

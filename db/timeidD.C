@@ -95,3 +95,9 @@ void AMSTimeIDD::copy(uinteger* tmp) {
   for (integer i=0; i<N; i++) { tmp[i] = _pData[i]; }
 }
 
+void AMSTimeIDD::PrintTime() {
+  cout<<"Time (insert, begin, end) "<<endl;
+  cout<<"                          "<<asctime(localtime(&_Insert))<<endl;
+  cout<<"                          "<<asctime(localtime(&_Begin))<<endl;
+  cout<<"                          "<<asctime(localtime(&_End))<<endl;
+}

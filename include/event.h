@@ -1,6 +1,9 @@
 // Author V. Choutko 24-may-1996
-// Last Edit June 12, 1996. ak. add getEvent function
-// 
+// June 12, 1996. ak. add getEvent function
+// Oct   1, 1997. ak. add TDV related functions
+//
+// Last Edit : Oct 2, 1997. ak.
+//
 #ifndef __AMSEVENT__
 #define __AMSEVENT__
 #include <job.h>
@@ -90,6 +93,7 @@ void _catrdevent();
 void _cactcevent();
 void _caaxevent();
 void _validate();
+void _validateDB();
 static const int16u _HDID;
 AMSlink * _getheadC( AMSID id, integer sorted=0);
 AMSlink * _getlastC( AMSID id);

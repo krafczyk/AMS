@@ -4,7 +4,7 @@
 //                   Add _id and _name. 
 // May 12, 1997. ak. CRC and data are uinteger instead on integer;
 //
-// Last Edit : May 12, 1997. ak.
+// Last Edit : Sep 17, 1997. ak.
 // 
 
 #include <typedefs.h>
@@ -39,6 +39,7 @@ integer getsize()               { return _pData.size();}
 
 void SetTime(time_t insert, time_t begin, time_t end);
 void GetTime(time_t & insert, time_t & begin, time_t & end);
+void PrintTime();
 void update(AMSTimeID* p);
 void copy(uinteger* tmp);
 };

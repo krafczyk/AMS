@@ -1,7 +1,8 @@
 // Oct 07, 1996. ak. first try with Objectivity
 //                   method source file of object AMSDBcD
+//                   AMBIG, BAD, USED, DELETED are not compared.
 //
-// Last Edit : Jun 19, 1996. ak.
+// Last Edit : Sep 15, 1997. ak.
 //
 
 #include <iostream.h>
@@ -32,10 +33,11 @@ AMSDBcD:: AMSDBcD()
    _nladD[i]  = AMSDBc::_nlad[i];
    _zposD[i]  = AMSDBc::_zpos[i];
    _c2cD[i]   = AMSDBc::_c2c[i];
-    _silicon_zD[i]  = AMSDBc::_silicon_z[i];
-   _support_wD[i]  = AMSDBc::_support_w[i];
-   _nladshuttle[i] = AMSDBc::_nladshuttle[i];
+    _silicon_zD[i]     = AMSDBc::_silicon_z[i];
+   _support_wD[i]      = AMSDBc::_support_w[i];
+   _nladshuttle[i]     = AMSDBc::_nladshuttle[i];
    _boundladshuttle[i] = AMSDBc::_boundladshuttle[i];
+   _halfldist[i]       = AMSDBc::_halfldist[i];
   }
 
   for (i = 0; i<nl; i++) {
@@ -64,8 +66,13 @@ AMSDBcD:: AMSDBcD()
    ams_cooD[i]  = AMSDBc::ams_coo[i];
   }
 
-  BADD = AMSDBc::BAD;
-  USEDD= AMSDBc::USED;
+  AMBIG   = AMSDBc::AMBIG;
+  BAD     = AMSDBc::BAD;
+  USED    = AMSDBc::USED;
+  DELETED = AMSDBc::DELETED;
+
+  BigEndian = BigEndian;
+
   if(AMSDBc::ams_name) strcpy (ams_nameD,AMSDBc::ams_name);  
 }
 
@@ -101,10 +108,11 @@ ooStatus AMSDBcD::CmpConstants()
        (_nladD[i]  != AMSDBc::_nlad[i])  ||
        (_zposD[i]  != AMSDBc::_zpos[i])  ||
        (_c2cD[i]   != AMSDBc::_c2c[i])   ||
-       (_silicon_zD[i]  != AMSDBc::_silicon_z[i]) ||
-       (_support_wD[i] != AMSDBc::_support_w[i])  ||
-       (_nladshuttle[i] != AMSDBc::_nladshuttle[i]) ||
-       (_boundladshuttle[i] != AMSDBc::_boundladshuttle[i]))
+       (_silicon_zD[i]      != AMSDBc::_silicon_z[i])       ||
+       (_support_wD[i]      != AMSDBc::_support_w[i])       ||
+       (_nladshuttle[i]     != AMSDBc::_nladshuttle[i])     ||
+       (_boundladshuttle[i] != AMSDBc::_boundladshuttle[i]) ||
+       (_halfldist[i]       != AMSDBc::_halfldist[i]))
       {
         rstatus = oocError;
         cout<<"zposl "<<_zposlD[i]<<" "<<AMSDBc::_zposl[i]<<endl;
@@ -117,6 +125,8 @@ ooStatus AMSDBcD::CmpConstants()
              <<AMSDBc::_nladshuttle[i]<<endl;
         cout<<"boundladshuttle "<<_boundladshuttle[i]<<" "
             <<AMSDBc::_boundladshuttle[i]<<endl;
+        cout<<"halfldist "<<_halfldist[i]<<" "
+            <<AMSDBc::_halfldist[i]<<endl;
         break;
       }
   }
@@ -181,25 +191,6 @@ ooStatus AMSDBcD::CmpConstants()
       }
   }
   return rstatus;
-}
-
-integer AMSDBcD::activeladdshuttle(int i,int j){
-
- // Shuttle ladders 
-
- if( i==1){
-  if(j>=7 && j<=10) return 1;
-  else return 0;
- }
- if( i>1 && i<6){
-  if(j>=5 && j<=10) return 1;
-  else return 0;
- }
- if( i==6){
-  if(j>=8 && j<=10) return 1;
-  else return 0;
- }
- else return 0;
 }
 
 

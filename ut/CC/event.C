@@ -1,5 +1,9 @@
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
+// add TDV/dbase version October 1, 1997. a.k.
+//
+// Last Edit : Oct 6, 1997. ak.
+//
 #include <typedefs.h> 
 #include <tofdbc.h> 
 #include <event.h>
@@ -27,6 +31,13 @@
 #include <trigger3.h>
 #include <antirec.h>
 extern "C" void uglast_();
+ 
+#ifdef __DB__
+
+#include <dbS.h>
+extern LMS* lms;
+
+#endif
 
 //
 //
@@ -51,6 +62,9 @@ void AMSEvent::_init(){
     SRun=_run;
    _validate();
   }
+#ifdef __DB__
+  _validateDB();
+#endif
 }
 
 void AMSEvent::_siamsinitrun(){
@@ -989,6 +1003,7 @@ integer AMSEvent::replace(AMSID id, AMSlink *p, AMSlink *prev){
 }
 
 void AMSEvent::_validate(){
+
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=(AMSTimeID*)ptid->down();
 while(offspring){
@@ -1003,8 +1018,8 @@ while(offspring){
   if(offspring->validate(_time)){
     cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<
       " validated. ("<<nb-sizeof(uinteger)<<" bytes ) CRC = "<<
-      offspring->getCRC()<<endl;                                                      
-  }
+      offspring->getCRC()<<endl;                                              
+   }
     else {
       cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated."<<endl;
       time_t b,e,i;
@@ -1016,7 +1031,53 @@ while(offspring){
       exit(1);
     }
     offspring=(AMSTimeID*)offspring->next();
+  }
 }
+
+void AMSEvent::_validateDB()
+//
+// compare TDV in memory with ones in DBASE
+// read from DBase and update memory tables is necessary
+//
+{
+#ifdef __DB__
+
+AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
+AMSTimeID * offspring=(AMSTimeID*)ptid->down();
+while(offspring){
+    if (AMSJob::gethead()->isReadSetup()) {
+     char *name=offspring -> getname();
+     time_t I, B, E;
+     time_t i, b, e;
+     integer S;
+     int rstat = AMSJob::FindTheBestTDV(name, _time, S, I, B, E); 
+     if (rstat) {
+       offspring -> gettime(i,b,e);
+       if (i==I && b==B && e==E) {
+#ifdef __AMSDEBUG__
+         cout<<"AMSEvent::_validate-I- i,b,e are up to date"<<endl;
+#endif
+       } else {
+         cerr<<"AMSEvent::_validate-W- i,b,e need to be updated "<<endl;
+         cerr<<"Insert "<<ctime(&i);
+         cerr<<"       "<<ctime(&I);
+         cerr<<"Begin  "<<ctime(&b);
+         cerr<<"       "<<ctime(&B);
+         cerr<<"End    "<<ctime(&e);
+         cerr<<"       "<<ctime(&E)<<endl;
+         uinteger* buff = new uinteger[S];
+         int rstatus = lms -> ReadTDV(name, I, B, E, buff);
+         if (rstatus == oocSuccess) {
+           offspring -> CopyIn((uinteger*)buff);
+           offspring -> SetTime(I,B,E);
+         } 
+         delete [] buff;
+       }
+     } 
+    }
+    offspring=(AMSTimeID*)offspring->next();
+ }
+#endif
 }
 
 

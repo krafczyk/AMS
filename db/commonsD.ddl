@@ -2,8 +2,9 @@
 // Objectivity version Oct 08, 1996 ak
 // Nov 12, 1996. ak. remove amsffkey and iopa from class definition
 // June add anti.
+// Sep  add tkfield
 //
-// Last Edit : Jun 05, 1997. ak.
+// Last Edit : Sep 16, 1997. ak.
 //
 
 #include <typedefs.h>
@@ -28,6 +29,8 @@ protected :
  ooVArray(integer) ctcmcffkeyD;
  ooVArray(integer) ctcrecffkeyD;
 
+ ooVArray(integer) tkfield;
+
  ooVArray(integer) tofcaffkey;
  ooVArray(integer) tofmcffkeyD;
  ooVArray(integer) tofrecffkeyD;
@@ -38,6 +41,7 @@ protected :
  ooVArray(integer) trclffkeyD;
 
  ooVArray(integer) lvl1ffkey;
+ ooVArray(integer) lvl3expffkey;
  ooVArray(integer) lvl3simffkey;
  ooVArray(integer) lvl3ffkey;
 

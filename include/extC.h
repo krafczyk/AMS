@@ -2,8 +2,10 @@
 //
 // Oct 06, 1996. ak. add readDB 
 // Oct 16, 1996. ak. add readGeomDB, writeGeomDB
+// Oct 03, 1997. ak.
 //
-// Last Edit :  Oct 16, 1996. ak.
+// Last Edit :  Oct 3, 1997. ak.
+//
 #include <typedefs.h>
 extern "C" number rnormx();
 extern "C" number sitkfint_s_(number &,number &);

@@ -2,7 +2,7 @@
 //                   method source file of object AntiDBcD
 //
 //
-//Last Edit : June 05, 1997. ak.
+//Last Edit : Sep 15, 1997. ak.
 //
 
 #include <iostream.h>
@@ -25,6 +25,9 @@ AntiDBcD::AntiDBcD()
   _stradi  =  ANTIDBc:: _stradi;
   _stleng  =  ANTIDBc:: _stleng;
   _stthic  =  ANTIDBc::_stthic;
+  _tdcabw  =  ANTIDBc::_tdcabw;
+  _shprdt  =  ANTIDBc::_shprdt;
+  _ftpulw  =  ANTIDBc::_ftpulw;
 }
 
 ooStatus AntiDBcD::CmpConstants() 
@@ -53,6 +56,7 @@ ooStatus AntiDBcD::CmpConstants()
     cout<<"ANTIDBcD::CmpConstants : _wrapth "<<_wrapth<<", "
         <<ANTIDBc::_wrapth<<". Set to "<<_wrapth<<endl;
     ANTIDBc::_wrapth = _wrapth;
+
    }
 
    if( _groovr  !=  ANTIDBc::_groovr){
@@ -83,6 +87,25 @@ ooStatus AntiDBcD::CmpConstants()
     cout<<"ANTIDBcD::CmpConstants : _stthic "<<_stthic<<", "
         <<ANTIDBc::_stthic<<". Set to "<<_stthic<<endl;
     ANTIDBc::_stthic = _stthic;
+   }
+
+
+   if( _tdcabw  !=  ANTIDBc::_tdcabw){
+    cout<<"ANTIDBcD::CmpConstants : _tdcabw "<<_tdcabw<<", "
+        <<ANTIDBc::_tdcabw<<". Set to "<<_tdcabw<<endl;
+    ANTIDBc::_tdcabw = _tdcabw;
+   }
+
+   if( _shprdt  !=  ANTIDBc::_shprdt){
+    cout<<"ANTIDBcD::CmpConstants : _shprdt "<<_shprdt<<", "
+        <<ANTIDBc::_shprdt<<". Set to "<<_shprdt<<endl;
+    ANTIDBc::_shprdt = _shprdt;
+   }
+
+   if( _ftpulw  !=  ANTIDBc::_ftpulw){
+    cout<<"ANTIDBcD::CmpConstants : _ftpulw "<<_ftpulw<<", "
+        <<ANTIDBc::_ftpulw<<". Set to "<<_ftpulw<<endl;
+    ANTIDBc::_ftpulw = _ftpulw;
    }
 
 

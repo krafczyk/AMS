@@ -13,8 +13,9 @@
 //                  add class member setupdbH
 // May    , 1997 ak raw, rec, tag, etc databases, dbA hep application
 // June   , 1997 ak db catalogs
+// Oct   1, 1997 ak FillTDV, ReadTDV functions
 //
-// Last Edit June 15, 1997. ak.
+// Last Edit Oct 2, 1997. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -141,6 +142,7 @@ public:
 	ooStatus	Addamsdbc();
 	ooStatus	AddTMedia();
 	ooStatus	AddTDV();
+	ooStatus	FillTDV();
 
 
         ooStatus        ReadEvents(uinteger& run, uinteger& eventNumber,
@@ -162,7 +164,9 @@ public:
         void CopyByPos(ooHandle(AMSgvolumeD)& ptr, ooMode mode);
 	ooStatus	ReadMaterial();
 	ooStatus	ReadTMedia();
-	ooStatus	ReadTDV();
+	ooStatus	ReadAllTDV();
+	ooStatus	ReadTDV(char* name, time_t I, time_t B, time_t E, 
+                                uinteger* buff);
 
         ooStatus        DeleteEvent
                           (uinteger run, uinteger eventNumber, integer flag);

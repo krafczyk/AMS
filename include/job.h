@@ -4,7 +4,9 @@
 //                       set it when read event from the database
 //                       functions to check it isMCBanks(), isRecoBanks(),
 //                       isRawBanks()
-// Last Edit: Mar 24, 1997.
+// Oct  1, 1997. ak. tdv dbase related modifications.
+//
+// Last Edit: Oct 3, 1997.
 // 
 #ifndef __AMSJOB__
 #define __AMSJOB__
@@ -34,10 +36,31 @@ number EarthSpeed;
 time_t Begin;
 };
 
-
 const integer maxtrig=20;
 const integer maxtdv=255;
 const integer maxtdvsize=256;
+
+//+ ak. Oct 1, 1997.
+// integer        ntdvNames;                       // number of TDV's types
+// char           *tdvNameTab[maxtdv];             // TDV's nomenclature
+class tdv_time {
+
+  public :
+   time_t  _insert;
+   time_t  _begin;
+   time_t  _end;
+   integer _size;
+  //
+     tdv_time() {_insert = _begin = _end = 0;}
+     tdv_time(time_t insert, time_t begin, time_t end) {
+    _insert = insert;
+    _begin  = begin;
+    _end    = end;
+     }
+};
+//-
+
+
 class AMSJob : public AMSNode{
 private:
 uinteger _jobtype;    // 0 == simulation
@@ -50,6 +73,7 @@ integer _TriggerN;
 integer _TriggerOr;
 char _TDVC[maxtdv][maxtdvsize];
 integer _TDVN;
+
 static AMSJob* _Head;
 void _init(){};
 void _setorbit();
@@ -105,6 +129,20 @@ void _axendjob();
 void _timeinitjob();
 static AMSNodeMap JobMap;
 public:
+
+
+//+ ak, Oct 1, 1997
+static tdv_time*              _tdv;
+static integer*               _ptr_start;
+static integer*               _ptr_end;
+
+static integer FindTheBestTDV(char* name, time_t timeV, integer &S, 
+                              time_t &I, time_t &B, time_t &E);
+static integer FillJobTDV(integer nobj, tdv_time* tdv);
+static integer SetTDVPtrs(integer start[], integer end[]);
+       integer FillTDVTable();
+//-
+
 static realorbit Orbit;
 AMSJob(AMSID id=0,uinteger jobtype=0):AMSNode(id),_jobtype(jobtype)
 {_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
@@ -150,6 +188,7 @@ uinteger eventRtype()     { return _eventRtype;}
 void     seteventRtype(integer eventR) {_eventRtype = eventR;}
 
 #ifdef __DB__
+uinteger isReadSetup() { return (_eventRtype/DBReadSetup)%2;}
 uinteger isMCBanks()   { return (_eventRtype/DBWriteMC)%2;}
 uinteger isRecoBanks() { return (_eventRtype/DBWriteRecE)%2;}
 uinteger isRawBanks()  { return (_eventRtype/DBWriteRawE)%2;}

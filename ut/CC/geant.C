@@ -76,20 +76,11 @@ PROTOCCALLSFSUB0(UGLAST,uglast)
 #ifdef __DB__
 class AMSEventList;
 
-#include <dbA.h>
+#include <dbS.h>
 
 // declaration ooVArray(...)
 #include <commonsD_ref.h>     
 #include <commonsD.h>
-
-#include <mctofclusterV_ref.h>
-#include <mctofclusterV.h>
-
-#include <tmcclusterV_ref.h>
-#include <tmcclusterV.h>
-
-#include <anticlusterV_ref.h>
-#include <anticlusterV.h>
 
 #include <dbcatalog_ref.h>
 #include <dbcatalog.h>
@@ -98,18 +89,11 @@ class AMSEventList;
 // -
 implement (ooVArray, uint16)
 implement (ooVArray, geant)   
-implement (ooVArray, number)  
 implement (ooVArray, integer) 
-implement (ooVArray, AMSAntiClusterD) 
-implement (ooVArray, AMSTOFMCClusterD) 
-implement (ooVArray, AMSTrMCClusterD) 
-implement (ooVArray, ParticleS) 
 implement (ooVArray, ooRef(ooDBObj)) 
-implement (ooVArray, ooRef(AMSEventList))
-implement (ooVArray, ooRef(AMSEventTagList))
-implement (ooVArray, ooRef(AMSMCEventList))
 
 LMS	               dbout;
+LMS*                   lms;
 
 #endif
 
@@ -147,8 +131,10 @@ extern "C" void uginit_(){
   GPIONS(4);
 #ifdef __DB__
    initDB();
+   lms = &dbout;
    readSetup();
-   if ((AMSFFKEY.Read%2) == 1) dbout.CheckConstants();
+   //   if ((AMSFFKEY.Read%2) == 1) dbout.CheckConstants();
+   if ((AMSFFKEY.Read%2) == 1) lms -> CheckConstants();
 #else
    AMSgmat::amsmat();
    AMSgvolume::amsgeom();
@@ -156,6 +142,11 @@ extern "C" void uginit_(){
   AMSJob::map();
   AMSJob::gethead()->init();
   AMSJob::map(1);
+#ifdef __DB__
+  int n = AMSJob::gethead()->FillTDVTable();
+  dbout.FillTDV(n);
+  AMSJob::gethead() -> seteventRtype(eventR);
+#endif
 #ifndef __BATCH__
 GDINIT();
 #endif
@@ -385,7 +376,7 @@ extern "C" void guout_(){
      AMSEvent::gethead()->copy();
    }
 
-#ifdef __DB__
+#ifdef __DB_All__
 //+
    if(trig) {
     if ( eventW > DBWriteGeom) {
@@ -497,7 +488,7 @@ extern "C" void uglast_(){
 //------------------------------------------------------------------------------------
 extern "C" void readDB(){
 
-#ifdef __DB__
+#ifdef __DB_All__
 
 ooHandle(AMSEventList) listH;
 ooStatus               rstatus;
@@ -559,7 +550,7 @@ extern "C" void writeSetup(){
       dbout.AddTMedia();
       dbout.AddGeometry();
       dbout.Addamsdbc();
-      dbout.AddTDV();
+      dbout.AddAllTDV();
      }
 #endif
 }

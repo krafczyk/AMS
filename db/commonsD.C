@@ -2,8 +2,9 @@
 // Objectivity version Oct 08, 1996 ak
 // Oct  14, 1996. ak. don't compare ccffkey run
 // June 06, 1997. ak. add anti, no geom overwriting.
+// Sep  16, 1997. ak. add tkfield
 //
-// Last Edit : June 06, 1997. ak.
+// Last Edit : Sep 16, 1997. ak.
 //
 
 #include <typedefs.h>
@@ -90,6 +91,46 @@ AMScommonsD::AMScommonsD() {
   for (i=0; i<l/4; i++) { ctcrecffkeyD.set(i,buff[i]);}
   delete [] buff;
 
+//lvl1ffkey
+  l = sizeof(LVL1FFKEY);
+  lvl1ffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&LVL1FFKEY,l);
+  for (i=0; i<l/4; i++) { lvl1ffkey.set(i,buff[i]);}
+  delete [] buff;
+
+//lvl3ffkey
+  l = sizeof(LVL3FFKEY);
+  lvl3ffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&LVL3FFKEY,l);
+  for (i=0; i<l/4; i++) { lvl3ffkey.set(i,buff[i]);}
+  delete [] buff;
+
+//lvl3expffkey
+  l = sizeof(LVL3EXPFFKEY);
+  lvl3expffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&LVL3EXPFFKEY,l);
+  for (i=0; i<l/4; i++) { lvl3expffkey.set(i,buff[i]);}
+  delete [] buff;
+
+//lvl3simffkey
+  l = sizeof(LVL3SIMFFKEY);
+  lvl3simffkey.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&LVL3SIMFFKEY,l);
+  for (i=0; i<l/4; i++) { lvl3simffkey.set(i,buff[i]);}
+  delete [] buff;
+
+//tkfield
+  l = sizeof(TKFIELD);
+  tkfield.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TKFIELD,l);
+  for (i=0; i<l/4; i++) { tkfield.set(i,buff[i]);}
+  delete [] buff;
+
 //trmcffkey
   l = sizeof(TRMCFFKEY);
   trmcffkeyD.resize(l/4);
@@ -146,28 +187,6 @@ AMScommonsD::AMScommonsD() {
   for (i=0; i<l/4; i++) { chargefitffkeyD.set(i,buff[i]);}
   delete [] buff;
 
-//trigffkey
-  l = sizeof(LVL1FFKEY);
-  lvl1ffkey.resize(l/4);
-  buff = new integer[l/4];
-  memcpy(buff,&LVL1FFKEY,l);
-  for (i=0; i<l/4; i++) { lvl1ffkey.set(i,buff[i]);}
-  delete [] buff;
-
-  l = sizeof(LVL3FFKEY);
-  lvl3ffkey.resize(l/4);
-  buff = new integer[l/4];
-  memcpy(buff,&LVL3FFKEY,l);
-  for (i=0; i<l/4; i++) { lvl3ffkey.set(i,buff[i]);}
-  delete [] buff;
-
-  l = sizeof(LVL3SIMFFKEY);
-  lvl3simffkey.resize(l/4);
-  buff = new integer[l/4];
-  memcpy(buff,&LVL3SIMFFKEY,l);
-  for (i=0; i<l/4; i++) { lvl3simffkey.set(i,buff[i]);}
-  delete [] buff;
-
 }
 
 ooStatus AMScommonsD::CmpConstants(integer Write) {
@@ -181,6 +200,7 @@ ooStatus AMScommonsD::CmpConstants(integer Write) {
  integer  i;
  integer  lm, ld;
  integer* buff;
+ integer  ndif;    // number of differencies
 
   cout<<"AMScommonsD::CmpConstants -I- started "<<endl;
 
@@ -472,7 +492,7 @@ lvl3sim:
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- LVL3SIMFFKEY and lvl3simffkey "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
-   goto antigeom;
+   goto lvl3exp;
   }
   buff = new integer[lm/4];
   memcpy(buff,&LVL3SIMFFKEY,lm);
@@ -480,6 +500,26 @@ lvl3sim:
    if (buff[i] != lvl3simffkey[i]) {
     cout<<"AMScommonsD::CmpConstants -W- LVL3SIMFFKEY element "<<i
         <<" is different "<<buff[i]<<", "<<lvl3simffkey[i]<<endl;
+    }
+  }
+  delete [] buff;
+
+lvl3exp:
+  ld = lvl3expffkey.size();
+  cout<<"AMScommonsD::CmpConstants -I- LVL3EXPFFKEY, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(LVL3EXPFFKEY);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- LVL3SIMFFKEY and lvl3simffkey "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto antigeom;
+  }
+  buff = new integer[lm/4];
+  memcpy(buff,&LVL3EXPFFKEY,lm);
+  for (i=0; i<ld; i++) {
+   if (buff[i] != lvl3expffkey[i]) {
+    cout<<"AMScommonsD::CmpConstants -W- LVL3EXPFFKEY element "<<i
+        <<" is different "<<buff[i]<<", "<<lvl3expffkey[i]<<endl;
     }
   }
   delete [] buff;
@@ -572,7 +612,7 @@ tofca:
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TOFCAFFKEY and tofcaffkey "
         <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
-   goto cmpend;
+   goto tkfld;
   }
    buff = new integer[lm/4];
    memcpy(buff,&TOFCAFFKEY,lm);
@@ -583,6 +623,34 @@ tofca:
      }
    }
   delete [] buff;
+
+tkfld:
+  ld = tkfield.size();
+  cout<<"AMScommonsD::CmpConstants -I- tkfield, size "<<ld
+      <<" int words"<<endl;
+  lm = sizeof(TKFIELD);
+  if (lm/4 != ld) {
+   cout <<"AMScommonsD::CmpConstants -W- TKFIELD and tkfield "
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
+   goto cmpend;
+  }
+   buff = new integer[lm/4];
+   memcpy(buff,&TKFIELD,lm);
+   ndif = 0;
+   for (i=0; i<ld; i++) { 
+     if (buff[i] != tkfield[i]) {
+      ndif++;
+      if (ndif > 20) {
+       cout <<"AMScommonsD::CmpConstants -W- TKFIELD : stop future comparison" 
+            <<" too many differencies"<<endl;
+       break;
+      }
+      cout<<"AMScommonsD::CmpConstants -W- TKFIELD element "<<i
+          <<" is different "<<buff[i]<<", "<<tkfield[i]<<endl;
+     }
+   }
+  delete [] buff;
+
 
 cmpend:
 
@@ -761,6 +829,14 @@ void AMScommonsD::CopyConstants() {
   buff = new integer[l/4];
   memcpy(buff,&TOFCAFFKEY,l);
   for (i=0; i<l/4; i++) { tofcaffkey.set(i,buff[i]);}
+  delete [] buff;
+
+//trcalib
+  l = sizeof(TKFIELD);
+  tkfield.resize(l/4);
+  buff = new integer[l/4];
+  memcpy(buff,&TKFIELD,l);
+  for (i=0; i<l/4; i++) { tkfield.set(i,buff[i]);}
   delete [] buff;
 
 

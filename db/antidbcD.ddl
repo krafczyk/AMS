@@ -1,7 +1,7 @@
 // Objectivity class June 06, 1997 ak.
 // ( origianal TOFDBcD class by E.Choumilov 2.07.97.)
 //
-// Last Edit : May 23, 1997. 
+// Last Edit : Sep 15, 1997. 
 //
 //
 #include <string.h>
@@ -22,6 +22,10 @@ private:
   geant   _stradi;   // support tube radious (internal)
   geant   _stleng;   //              length
   geant   _stthic;   //              thickness
+//MC/RECO const:
+  geant   _tdcabw;    // bin width (ns) in TovT TDC.
+  geant   _shprdt;    // shaper decay time (ns)
+  geant   _ftpulw;    // FTrigger pulse width (ns) 
 
 //
 public:  
