@@ -3,6 +3,7 @@
 #include <apool.h>
 #include <amsstl.h>
 #include <amsgobj.h>
+#include <new.h>
     AMSaPool APool(512000);
 #ifndef __UPOOL__
     AMSaPool UPool(512000);
@@ -29,15 +30,23 @@ void AMSNodeMapPool::put( integer * p ){
       if(_hsize<=_numo){
        int size=++_numo;
        AMSNode ** tmp;
+       try{ 
        do {
         _hsize=_numo+size;
         //    AMSgObj::BookTimer.start("putnew");
+       
          tmp=new AMSNode*[_hsize];
          //    AMSgObj::BookTimer.stop("putnew");
          size=(size/2>1)?size/2:1;
        }while (!tmp && size>1);
        if(!tmp){
-         if(AMSNodeMap::debug)cerr <<"AMSaPoolAMSNodeMap::add-F-Can not allocate " <<size
+         cerr <<"AMSaPoolAMSNodeMap::add-F-Can not allocate " <<size
+        <<" words"<<endl;
+        throw AMSNodeMapError("AMSNodeMap::add-F-CNNTALLMEM");
+       }
+       }
+       catch (bad_alloc a){  
+         cerr <<"AMSaPoolAMSNodeMap::add-F-Can not allocate " <<size
         <<" words"<<endl;
         throw AMSNodeMapError("AMSNodeMap::add-F-CNNTALLMEM");
        }
@@ -70,6 +79,7 @@ void * AMSaPool::insert(size_t st){
 #endif
       if(ptr) return ptr+sizeof(ALIGN);
       else{
+      try{
         if(_free==0 || _lc+st > _head->_length  ){
         AMSaPool::_grow(st); 
         }
@@ -88,6 +98,14 @@ void * AMSaPool::insert(size_t st){
          throw AMSaPoolError("AMSaPool-F-Memory exhausted");
          return 0;
         }
+       }
+       catch (bad_alloc a){  
+        _Count--; 
+        cerr <<" AMSaPool-F-Memory exhausted: Was "<<(_Nblocks-1)*_size<<
+        " Requested "<<st<<" bytes"<<endl;
+         throw AMSaPoolError("AMSaPool-F-Memory exhausted");
+         return 0;
+       }
       }
 }
  void AMSaPool::_grow(size_t st){
@@ -230,4 +248,8 @@ void AMSaPool::ReleaseLastResort(){
 
 void AMSaPool::StHandler(){
   cerr << "AMSaPool::StHandler-E-NoMemory"<<endl;
+}
+
+    ostream & AMSNodePool::print(ostream &o)const{
+    return(o <<_name << "  id = "<<_id << endl);
 }

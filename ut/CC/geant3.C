@@ -29,6 +29,15 @@ extern "C" void trphoton_(int&);
 extern "C" void simtrd_(int& );
 extern "C" void gustep_(){
 
+  static integer freq=10;
+  static integer trig=0;
+  trig=(trig+1)%freq;
+  if(trig==0 && AMSgObj::BookTimer.check("GEANTTRACKING")>AMSFFKEY.CpuLimit){
+    freq=1;
+    GCTRAK.istop =1;
+    return;
+  }
+  else if(freq<10)freq=10;
 //
 // TRD here
 //
@@ -299,6 +308,7 @@ extern "C" void guout_(){
    try{
    if(AMSJob::gethead()->isSimulation()){
       number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
+//        cout <<  "  tt   " <<tt<<endl;
       if(tt > AMSFFKEY.CpuLimit)throw AMSTrTrackError("SimCPULimit exceeded");
    }
           if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
@@ -321,7 +331,7 @@ extern "C" void guout_(){
      AMSEvent::gethead()->remove();
      UPool.Release(1);
      AMSEvent::sethead(0);
-      UPool.erase(0);
+      UPool.erase(512000);
       return;
    }
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
