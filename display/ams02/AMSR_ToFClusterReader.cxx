@@ -1,4 +1,4 @@
-//  $Id: AMSR_ToFClusterReader.cxx,v 1.3 2001/08/20 18:36:59 kscholbe Exp $
+//  $Id: AMSR_ToFClusterReader.cxx,v 1.4 2002/03/13 12:07:12 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -88,7 +88,20 @@ void AMSR_ToFClusterReader::Make()
                 &_ntuple->Tofcoo[k][0],
                 &_ntuple->Tofercoo[k][0]);
    }
+/*
+{
+   float coo[3]={-4.165,-63.25,-65.8};
+   float ecoo[3]={2.6,3.46,0.};
 
+   AddCluster(0,4,1,0.83,1.24e-8,1.e-8,&coo[0],&ecoo[0]);
+}
+{
+   float coo[3]={-23.5,-51.75,-64.35};
+   float ecoo[3]={2.6,3.46,0.};
+
+   AddCluster(0,4,2,0.45,1.64e-8,1.e-8,&coo[0],&ecoo[0]);
+}
+*/
    debugger.Print("AMSR_ToFClusterReader::Make(): %d clusters made.\n", m_Nclusters);
 }
 

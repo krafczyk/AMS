@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.29 2001/12/10 18:24:32 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.30 2002/03/13 12:05:51 choutko Exp $          
 
 
 
@@ -60,9 +60,9 @@ b) As a developper :
       log in ams.cern.ch
       cat ~ams/cvsams/.cvsams
 
-   iv) Either see http://pcamsp0/cgi-bin/viewcvs.cgi/ 
-      with username amscvs and password in iii)  or do
-      cvs login 
+   iv) Either see http://pcamsf0/cgi-bin/viewcvs.cgi/ 
+      with username amscvs and "access from web" password in iii)  or do
+      cvs login    (with "interactive access" password)
       cvs checkout AMS  
                          
           To synchronize your local copy with cvs rep:

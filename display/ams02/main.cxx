@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.5 2001/08/23 21:05:55 kscholbe Exp $
+//  $Id: main.cxx,v 1.6 2002/03/13 12:07:31 choutko Exp $
 
 
 //--------------------------------------------------------------------------
@@ -174,7 +174,7 @@ main(int argc, char *argv[])
   //
   // display next event automatically after each idleSec(d=5) seconds
   //
-  display.SetIdleTimer(idleSec,"IdleHandle(0)");
+  //display.SetIdleTimer(idleSec,"IdleHandle(0)");
 
   //
   //Open data file

@@ -1,4 +1,4 @@
-//  $Id: AMSR_AntiClusterReader.cxx,v 1.2 2001/01/22 17:32:34 choutko Exp $
+//  $Id: AMSR_AntiClusterReader.cxx,v 1.3 2002/03/13 12:07:12 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -72,7 +72,13 @@ void AMSR_AntiClusterReader::Make()
                 &_ntuple->Anticoo[k][0],
                 &_ntuple->Antiercoo[k][0]);
    }
-
+/*
+{
+   float coo[3]={53.8,-10.7,-12.59};
+   float ecoo[3]={-1.21,6.1,20.};
+  AddCluster(0,16,0.37,&coo[0],&ecoo[0]);
+}
+*/
    debugger.Print("AMSR_AntiClusterReader::Make(): %d clusters made.\n", m_Nclusters);
 }
 
