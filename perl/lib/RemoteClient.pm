@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.280 2004/09/23 14:42:01 alexei Exp $
+# $Id: RemoteClient.pm,v 1.281 2004/10/11 10:10:55 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1044,7 +1044,9 @@ sub ValidateRuns {
     $sql="SELECT run,submit FROM Runs";
     $ret=$self->{sqlserver}->Query($sql);
 # get list of runs from Server
-    if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- get list of runs from server \n";}
+    if ($webmode ==0  and $verbose ==1) { 
+       print "ValidateRuns -I- get list of runs from server \n";
+    }
     if( not defined $self->{dbserver}->{rtb}){
       DBServer::InitDBFile($self->{dbserver});
     }
@@ -1068,6 +1070,9 @@ sub ValidateRuns {
    $BadCRCi[0]     = 0;  #                 dsts with crc error (before copying)
    $gbDST[0]       = 0;
 
+    if ($webmode ==0  and $verbose ==1) { 
+       print "ValidateRuns -I- got from server :  $#{$self->{dbserver}->{rtb}} runs \n";
+    }
 
     foreach my $run (@{$self->{dbserver}->{rtb}}){
  # check flag
@@ -6200,7 +6205,8 @@ sub listStat {
      }
 
 # ntuples, runs
-               $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples WHERE ntuples.timestamp> $ProductionStartTime";
+               $sql="SELECT COUNT(ntuples.run), SUM(ntuples.SIZEMB) from ntuples, runs 
+               WHERE (ntuples.run=runs.run) and runs.submit> $ProductionStartTime";
                $ret=$self->{sqlserver}->Query($sql);
                my $nntuples=0;
                my $nsizegb =0;
@@ -6209,8 +6215,8 @@ sub listStat {
                 $nsizegb = sprintf("%.1f",$ret->[0][1]/1000);
                }
 # GB on CASTOR
-               $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples 
-                     where castortime !=0 AND ntuples.timestamp> $ProductionStartTime";
+               $sql="SELECT COUNT(ntuples.run), SUM(ntuples.SIZEMB) from ntuples, runs  
+                     where (ntuples.run=runs.run) AND castortime !=0 AND runs.submit> $ProductionStartTime";
                $ret=$self->{sqlserver}->Query($sql);
                my $cntuples=0;
                my $csizegb =0;
@@ -9336,7 +9342,7 @@ sub resetFilesProcessingFlag {
     if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
     } else {
       $self->amsprint("-ERROR- script cannot be run from account : $whoami",0);
-      die "bye";
+      die "-ERROR- script cannot be run from account : $whoami. bye";
     }
 
    my $timenow = time();
@@ -9387,7 +9393,9 @@ sub getOutputPath {
       }
       $mtime = (stat $outputpath)[9];
 #      print "$outputpath, mtime ... $mtime \n";
-      if ($mtime != 0) { $gb = $disk->[2]; last;}
+      if (defined $mtime) {
+       if ($mtime != 0) { $gb = $disk->[2]; last;}
+      }
   }
      return $outputpath, $gb;
 }
