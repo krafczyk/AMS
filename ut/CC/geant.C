@@ -30,7 +30,7 @@
 //           Oct  09, 1996 ak.  use CCFFKEY.run  
 //           Oct  16, 1996 ak.  write geometry to dbase before event processing
 //
-//  Last Edit: Oct 16, 1996. ak
+//  Last Edit: Oct 23, 1996. ak
 //
 
 #include <typedefs.h>
@@ -100,14 +100,9 @@ void lmsStart(integer run, integer event, char* jobname, integer WriteStartEnd)
   strcpy(runID,oss1.str());
   strcat(runID, eventID);
 
-  char    listName[256] = "Unknown";
- 
-  //if (jobname) strcpy (listName,jobname);
-
-  //cout<<"lmsStart "<<run<<", "<<event<<endl;
-    if(!interactive)dbout.AddEvent
+  if(!interactive)dbout.AddEvent
                        (jobname,run,event,runID,WriteStartEnd,eventW);
-    if (interactive) dbout.Interactive();
+  if (interactive) dbout.Interactive();
 }
 #endif
 
@@ -315,9 +310,6 @@ extern "C" void guout_(){
      run = CCFFKEY.run;
      char* jobname = AMSJob::gethead()->getname();
      integer event = AMSEvent::gethead() -> getEvent();
-     //if (event%100 == 1) 
-     // cout<<" Call lmsStart of run "<<run<<" jobname "<<jobname
-     //     <<" event "<<event<<" (event skipped "<<notrigEvents<<" )"<<endl;
      integer WriteStartEnd = 0;
      if (trigEvents == 0 && AMSFFKEY.Read < 10)     WriteStartEnd = 1;
      lmsStart(run, event, jobname, WriteStartEnd);
@@ -367,7 +359,6 @@ time_t         Time;
    AMSContainer *p = AMSEvent::gethead()->getC("AMSmceventg",0);
    if(p && AMSEvent::debug)p->printC(cout);
 #endif
-   //  cout <<" gukine out"<<endl;
 }
 
 
@@ -382,7 +373,12 @@ extern "C" void uglast_(){
      cout <<"uglast_ -W- Number of started transactions  "<<nST<<endl;
      cout <<"uglast_ -W- Number of commited transactions "<<nCT<<endl;
      cout <<"uglast_ -W- Number of aborted transactions  "<<nAT<<endl;
-     dbout.Commit();   // Commit transaction
+     //if (dbout.getTransLevel() != 0) {
+      cout <<"uglast_ -I- commit an active transaction "<<endl;
+      cout <<"uglast_ -I- transaction nesting level "
+           <<dbout.getTransLevel()<<endl;
+      dbout.Commit();   // Commit transaction
+      //}
     }
   }
     ooHandle(AMSEventList) listH;
@@ -390,7 +386,7 @@ extern "C" void uglast_(){
     ooStatus          rstatus;
     rstatus = dbout.Start(oocRead);
     rstatus = dbout.FindEventList(jobname,oocRead,listH);
-    if (rstatus == oocSuccess)  listH -> PrintMap(oocRead);
+    if (rstatus == oocSuccess)  listH -> PrintMapStatistics(oocRead);
     rstatus = dbout.Commit();
 //-
 #endif
@@ -515,7 +511,7 @@ extern "C" void readGeomDB(){
     } 
       integer nn = listH -> getNEvents();
       if (nn < GCFLAG.NEVENT && eventR > 1) {
-        cout <<"uginit_ -W- there are "<<nn<<" events in the list"
+        cout <<"uginit_ -W- there are "<<nn<<" events in the list "
              <<jobname<<endl;
         cout<<"uginit_ -W- GCFLAG.NEVENT will be set to "<<nn<<endl;
       }
