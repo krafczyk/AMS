@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.9 2003/07/11 21:58:34 choutko Exp $
+#  $Id: 00index.txt,v 1.10 2003/07/16 12:36:48 choutko Exp $
 =========================================================================
 
      Introduction  to  AMS    Event  Display  Based  on  ROOT
@@ -48,7 +48,7 @@ of AMS event display into it.
 -------------------------------------------------------------------------
 3. Running the program
 ----------------------
-$AMSWD/display/amsed{c} path/xyz.root  where path/xyz.root is the ams root file
+$AMSWD/display/amsed{c} [path/xyz.root]  where path/xyz.root is the ams root file
 
 Note that multiple files may be read at once using wildcards, e.g.
 

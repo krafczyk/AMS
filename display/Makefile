@@ -1,4 +1,4 @@
-#  $Id: Makefile,v 1.10 2003/07/11 14:52:45 choutko Exp $
+#  $Id: Makefile,v 1.11 2003/07/16 12:36:49 choutko Exp $
 
 PLATFORM      =  Linux
 
@@ -117,7 +117,7 @@ $(OBJSR): $(PREFIX)%.o : ../CC/%.C
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSN): $(PREFIX)%.o : %.cxx 
-	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
+	$(CXX) $(NOOPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSC): $(PREFIX)%.o : ../online/%.cxx 
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.11 2003/07/10 13:56:57 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.12 2003/07/16 12:36:49 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -25,6 +25,7 @@
 #include <TGSlider.h>
 #include <TGFileDialog.h>
 #include "ControlFrame.h"
+#include <TChain.h>
 class AMSNtupleV;
 
 #include <TApplication.h>
@@ -48,6 +49,7 @@ private:
    Double_t               fCooCur[2][3];
    Double_t               fCooDef[2][3];
    AMSNtupleV *          m_ntuple;   
+   TChain *          m_chain;   
    EAMSR_View            m_PrevView;		     //prevview
    EAMSR_View            m_View;		     //view
    bool                  m_zoom;
@@ -108,7 +110,7 @@ public:
                         }
                        }
             
-      AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple);
+      AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV *ntuple);
      virtual                  ~AMSDisplay(){};
             Bool_t      AllViews() {return (m_View == kAllView);}
            EAMSR_View    GetView() {return m_View;}
@@ -136,6 +138,7 @@ public:
     void        SetDrawParticles(Bool_t draw=kTRUE) {m_DrawParticles=draw;} // *MENU*
     void        SetGeometry(TGeometry * geo); // *--MENU*
     void ReSizeCanvas(Long_t zoom, bool draw);
+   void                OpenFileCB();
    void                PrintCB();
    void                SaveParticleCB();
    void                SaveParticleGIF();

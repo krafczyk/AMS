@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.24 2003/07/11 13:43:54 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.25 2003/07/16 12:36:49 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -33,7 +33,8 @@
 
 AMSDisplay *gAMSDisplay;
 
-AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV *ntuple):m_ntuple(ntuple), TObject(){
+AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV * ntuple):m_ntuple(ntuple), TObject(){
+
 
      fCooDef[0][0]=-65.;
      fCooDef[0][1]=-65.;
@@ -45,7 +46,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV *ntuple):m
      m_Geometry     = 0;
      m_selected=0;
      m_scale=1;   
- 
+     m_chain=0; 
  
    // Initialize display default parameters
     SetGeometry(geo);
@@ -124,6 +125,13 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV *ntuple):m
 
    gAMSDisplay    = this;
 
+
+
+  if(!m_ntuple)OpenFileCB();
+  if(!m_ntuple){
+   cerr <<"No file opened, exiting "<<endl;
+   exit(1);
+  } 
 
 }
 
@@ -802,3 +810,39 @@ void AMSDisplay::ReSizeCanvas(Long_t zoom, bool draw){
     frf->SetVsbPosition(hz*(1.-1./m_scale)/2);
 }
 }
+
+
+
+
+#include <TGFileDialog.h>
+void AMSDisplay::OpenFileCB(){
+static const char *gOpenTypes[] = { "Root files", "*.root*",
+                                    "All files",    "*",
+                                     0,              0 };
+
+  if(m_idle)m_theapp->StopIdleing();
+  static TGFileInfo * m_fi = new TGFileInfo;
+  //
+  // Open a dialog window to select or input filename
+  //
+  m_fi->fFileTypes = (const char **) gOpenTypes;
+  m_fi->fFilename = 0;
+  const TGWindow *main = gClient->GetRoot();
+  new TGFileDialog(main, (TRootCanvas*)m_Canvas->GetCanvasImp(), kFDOpen, m_fi);
+
+
+  char *filename = m_fi->fFilename;
+
+  if ( filename==0 || strlen(filename)==0 ) {			// user cancelled
+    if(m_idle)m_theapp->StartIdleing();
+    return;
+  }
+  if(m_ntuple)delete m_ntuple;
+  if(m_chain)delete m_chain;
+  m_chain=new TChain("AMSRoot");
+  m_chain->Add(filename);
+  m_ntuple=new AMSNtupleV(m_chain);
+  if(m_idle)m_theapp->StartIdleing();
+
+}
+

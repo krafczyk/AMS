@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.4 2003/07/11 07:37:07 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.5 2003/07/16 12:36:49 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -162,7 +162,7 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       break;
     case kCM_MENU:
       switch   (parm1){
-      case 4:
+      case 5:
         gApplication->SetReturnFromRun(0);
         gApplication->Terminate(1);
 	break;
@@ -174,6 +174,10 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;              
       case 3:
 	gAMSDisplay->PrintCB();
+	break;              
+      case 4:
+	gAMSDisplay->OpenFileCB();
+	gAMSDisplay->DrawEvent();
 	break;              
       }
     }
@@ -214,7 +218,9 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fSaveAsMenu->AddSeparator();
     fSaveAsMenu->AddEntry("P&rint",3);
     fSaveAsMenu->AddSeparator();
-    fSaveAsMenu->AddEntry("&Quit",4);
+    fSaveAsMenu->AddEntry("&New File",4);
+    fSaveAsMenu->AddSeparator();
+    fSaveAsMenu->AddEntry("&Quit",5);
     
     fMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 0, 0, 1, 1);
     fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);

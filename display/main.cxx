@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.20 2003/07/11 07:37:07 choutko Exp $
+//  $Id: main.cxx,v 1.21 2003/07/16 12:36:49 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -46,17 +46,19 @@ int main(int argc, char *argv[])
      *signal(SIGINT, handler);
      *signal(SIGQUIT, handler);
 
-  char * filename = "test.root";		// default file name
+  char * filename = 0;		// default file name
 
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
   }
 
-  
-  printf("opening file %s...\n", filename);
+  AMSNtupleV *pntuple=0;
   TChain chain("AMSRoot");
-  OpenChain(chain,filename); 
-  AMSNtupleV ntuple(&chain);
+  if(filename){
+   OpenChain(chain,filename); 
+   pntuple= new AMSNtupleV(&chain);
+  }  
+  printf("opening file %s...\n", filename);
   int err=0;
   int argcc=1;
   gVirtualX=new TGX11("X11","Root Interface to X11");
@@ -91,7 +93,7 @@ int main(int argc, char *argv[])
   }
 
 
-  AMSDisplay * amd= new AMSDisplay("AMSRoot Offline Display",geo,&ntuple);
+  AMSDisplay * amd= new AMSDisplay("AMSRoot Offline Display",geo,pntuple);
   amd->SetApplication(theApp);
   amd->Init();
    theApp->SetDisplay(amd);  
