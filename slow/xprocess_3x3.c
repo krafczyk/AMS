@@ -231,7 +231,7 @@ pid_t pid;
       if (j<N_comp+1) {
       /* ---- check for disk space -------- */
       count[1]=-1;
-      if (j<N_comp-2) 
+      if (j<N_comp) 
         sprintf(chbuf,"/usr/sue/bin/rsh %s df /dat0/local/amsdatantuple/ > %s",host_name[j],a_name);
       else 
         sprintf(chbuf,"df /Offline/ > %s",a_name);
