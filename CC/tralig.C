@@ -503,13 +503,16 @@ if(forced==0){
               }
              }
            }
-           else if (TRALIG.LayersOnly)Testgl(1);
+           else if (TRALIG.LayersOnly){
+              cout <<"AMSTrAligFit::Testgl-I-MaxEventNoReached.Terminating 0 "<<" " <<pal->_NData<<endl;
+                Testgl(1);
+           }
            else {
-              cout <<"AMSTrAligFit::Testgl-I-MaxEventNoReached.Terminating"<<endl;
+              cout <<"AMSTrAligFit::Testgl-I-MaxEventNoReached.Terminating 1 "<<pal->_NData<<endl;
               raise(SIGTERM);
            }
            if(skip++>TRALIG.EventsPerRun){
-              if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
+              //if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=2;
               skip=0;
            }
            return;

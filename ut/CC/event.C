@@ -217,7 +217,7 @@ void AMSEvent::_endofrun() {
   char p1[4]  = "P1";
   char u1[4]  = "U1";
   char p[4]  = "p";
-  char comp[4];
+  char comp[4]="";
 
   char aster[4] = "  *";
   
@@ -518,7 +518,7 @@ void AMSEvent::_signinitevent(){
       if(phi < 0)phi=phi+AMSDBc::twopi;
       _StationTheta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*sin(phi));
       _StationPhi=fmod(phi+PhiZero+AMSDBc::twopi,AMSDBc::twopi);
-      _StationSpeed*=idir;
+//      _StationSpeed*=idir;
       // Recalculate VelTheta,VelPhi
 {
         AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
