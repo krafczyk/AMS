@@ -619,6 +619,9 @@ number AMSTrCluster::getcofg(AMSTrIdGeom * pid){
   //
   // Here we are able to recalculate the center of gravity...
   //
+#ifdef __AMSDEBUG__
+  _Id.match(pid);
+#endif
  integer side=_Id.getside();
 number cofg=0;
 number eval=0;
@@ -2432,7 +2435,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       AMSPoint sensor_size(   psensor->getpar(0)
                               , psensor->getpar(1)
                               , psensor->getpar(2));
-      if(idgeom.FindAtt(glopos,sensor_size)==0) continue;
+      if(!idgeom.FindAtt(glopos,sensor_size) || idgeom.gethalf()!=idsoft.gethalf()) continue;
 // Go to local coordinates to get a better global position
       psensor=(AMSgSen*)AMSJob::gethead()->getgeomvolume(idgeom.crgid());
       AMSPoint locpos = psensor->gl2loc(glopos);
@@ -2444,7 +2447,6 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       gloerr[2] = (number)TRCLFFKEY.ErrZ;
 
 // Create a new Fake hit with TOF on X
-     if(idsoft.gethalf()==idgeom.gethalf())
       AMSTrRecHit::_addnext(
         psensor,
         AMSDBc::FalseTOFX,

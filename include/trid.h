@@ -138,6 +138,7 @@ static uinteger CrateNo(int i){return i>=0 && i<_ncrates? _CrateNo[i]:0;}
 static uinteger ndrp() {return _ncrates*ntdr;}
 static inline integer getnchan() {return _numel;}
 inline integer dead() const {return _dead==1;}
+integer match(AMSTrIdGeom * pid);
 void kill(); 
 static char * TrackerSigmas(int i){return i>=0 && i<2?_TSig[i]:0;}
 static char * TrackerPedestals(int i){return i>=0 && i<2?_TPed[i]:0;}

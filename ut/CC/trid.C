@@ -1174,3 +1174,12 @@ char *   AMSTrIdSoft::_TGa[2]={0,0};
 char *   AMSTrIdSoft::_TSt[2]={0,0};
 char *   AMSTrIdSoft::_TRM[2]={0,0};
 char *   AMSTrIdSoft::_TCm=0;
+
+integer AMSTrIdSoft::match(AMSTrIdGeom *pid){
+if( gethalf()==pid->gethalf() && getdrp() == pid->getladder() && getlayer() ==pid->getlayer())return 1;
+else{
+cerr <<"AMSTrIdsoft::match-E-SoftGeoMismatch "<<*pid<<" "<<*this<<endl;
+return 0;
+
+}
+}
