@@ -277,15 +277,15 @@ integer AMSTimeID::read(char * dir, integer reenter){
       dflt=1;
     }
     else return -1;
-    if(AMSFFKEY.Update){
-      for(int i=0;i<AMSJob::gethead()->gettdvn();i++){
-        if( strcmp(AMSJob::gethead()->gettdvc(i),getname())==0 ){
-          // Never read tdv 
-          cerr<<"AMSTimeID::read-W-UpdateTDVSet "<<getname()<<", reading from DB is disabled"<<endl;
-          return -1;
-        }
-      }
-    }
+//    if(AMSFFKEY.Update==1 && !dflt){
+//      for(int i=0;i<AMSJob::gethead()->gettdvn();i++){
+//        if( strcmp(AMSJob::gethead()->gettdvc(i),getname())==0 ){
+//          // Never read tdv 
+//          cerr<<"AMSTimeID::read-W-UpdateTDVSet "<<getname()<<", reading from DB is disabled"<<endl;
+//         return -1;
+//        }
+//      }
+//    }
     fbin.open((const char *)fnam,ios::in|binary);
     if(fbin){
 

@@ -627,7 +627,7 @@ TRFITFFKEY.RidgidityMin=0.2;
 TRFITFFKEY.FullReco=0;
 TRFITFFKEY.MinRefitCos[0]=0.7;
 TRFITFFKEY.MinRefitCos[1]=0.5;
-TRFITFFKEY.FastTracking=1;
+TRFITFFKEY.FastTracking=0;
 TRFITFFKEY.WeakTracking=1;
 TRFITFFKEY.FalseXTracking=1;
 TRFITFFKEY.Chi2FalseX=3.;
@@ -1721,7 +1721,6 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
   AMSTimeID * ptdv= (AMSTimeID*) TID.add(new AMSTimeID(AMSID(getstatustable()->getname(),
                           isRealData()),begin,end,getstatustable()->getsize(),
                           getstatustable()->getptr()));
-  ptdv->UpdateMe()=0;   
 }
 
 

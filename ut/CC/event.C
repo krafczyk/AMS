@@ -60,6 +60,8 @@ void AMSEvent::_init(){
       AMSTimeID *ptdv=AMSJob::gethead()->gettimestructure(getTDVStatus());
       ptdv->UpdateMe()=1;
       ptdv->UpdCRC();
+      time_t begino,endo,inserto;
+      ptdv->gettime(inserto,begino,endo);
       time_t begin,end,insert;
       begin=AMSJob::gethead()->getstatustable()->getbegin();
       end=AMSJob::gethead()->getstatustable()->getend();
@@ -73,6 +75,8 @@ void AMSEvent::_init(){
       cout << " Starting to update "<<*ptdv; 
       if(  !ptdv->write(AMSDATADIR.amsdatabase))
         cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*ptdv;
+      ptdv->SetTime(inserto,begino,endo);
+      AMSJob::gethead()->getstatustable()->reset();      
     }
   }
   // check old run & 
@@ -598,7 +602,8 @@ void AMSEvent::event(){
   if(STATUSFFKEY.status[32]){
     integer ok=AMSJob::gethead()->getstatustable()->statusok(getid(),getrun());
     if(!ok){
-      AMSJob::gethead()->getstatustable()->getnextok();
+      int skipped=AMSJob::gethead()->getstatustable()->getnextok();
+      GCFLAG.IEVENT+=skipped;
       AMSgObj::BookTimer.stop("EventStatus");
       return;
     }
@@ -1294,15 +1299,15 @@ void AMSEvent::_printEl(ostream & stream){
  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
    ctime(&_time)<<"."<<_usec<<" R "<<_StationRad<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<" Speed "<<_StationSpeed<<
    " Pole "<<_NorthPolePhi*AMSDBc::raddeg<<endl;
- stream <<" TOFTemperature (dC) crates 01,31,41,71,03,33,43,73 ";
- stream <<TOFVarp::getmeantoftemp(01)<<" ";
- stream <<TOFVarp::getmeantoftemp(31)<<" ";
- stream <<TOFVarp::getmeantoftemp(41)<<" ";
- stream <<TOFVarp::getmeantoftemp(71)<<" ";
- stream <<TOFVarp::getmeantoftemp(03)<<" ";
- stream <<TOFVarp::getmeantoftemp(33)<<" ";
- stream <<TOFVarp::getmeantoftemp(43)<<" ";
- stream <<TOFVarp::getmeantoftemp(73)<<endl;
+// stream <<" TOFTemperature (dC) crates 01,31,41,71,03,33,43,73 ";
+// stream <<TOFVarp::getmeantoftemp(01)<<" ";
+// stream <<TOFVarp::getmeantoftemp(31)<<" ";
+// stream <<TOFVarp::getmeantoftemp(41)<<" ";
+// stream <<TOFVarp::getmeantoftemp(71)<<" ";
+// stream <<TOFVarp::getmeantoftemp(03)<<" ";
+// stream <<TOFVarp::getmeantoftemp(33)<<" ";
+// stream <<TOFVarp::getmeantoftemp(43)<<" ";
+// stream <<TOFVarp::getmeantoftemp(73)<<endl;
 }
 
 void AMSEvent::_writeEl(){

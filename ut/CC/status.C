@@ -26,11 +26,13 @@ integer AMSStatus::isFull(uinteger run, uinteger evt, time_t time){
   oldtime=time;
   if(_Nelem>0 && evt<_Status[0][_Nelem-1]){
     cerr <<"AMSStatus::isFull-E-EventSequenceBroken "<<_Nelem<<" "<<run<<" "<<evt<<" "<<_Status[0][_Nelem-1]<<endl;
+   _Errors++;
    return 1;
   }
   if(_Nelem>=MAXDAQRATE+STATUSSIZE){
         cerr <<"AMSSTatus::isFull-E-MaxDAQRateExceeds "<<MAXDAQRATE<<
         " some of the events will be lost"<<endl;
+        _Errors++;
         return 1;
 }
   return (_Nelem>=STATUSSIZE && timechanged ) || (run!=_Run && _Nelem>0) ;
@@ -43,6 +45,7 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger status, time_t time){
     _Begin=time;
     if(_Begin==0){
       cerr <<"AMSStatus::adds-E-BeginTimeIsZeroForRun"<<" "<<_Run<<endl;
+      _Errors++;
     }
   }
   _End=time;
@@ -55,7 +58,10 @@ void AMSStatus::adds(uinteger run, uinteger evt, uinteger status, time_t time){
 void AMSStatus::updates(uinteger run, uinteger evt, uinteger status, time_t time){
   int out= AMSbins(_Status[0],evt,_Nelem);
   if(out>0)_Status[1][out-1]=status;
-  else cerr<<"AMSStatus::updates-E--NoMatchFoundRun "<<run<<" " <<evt<<endl;
+  else {
+      cerr<<"AMSStatus::updates-E--NoMatchFoundRun "<<run<<" " <<evt<<endl;
+      _Errors++;
+  }
   if(out==_Nelem && AMSFFKEY.Update && isDBUpdateR()){
    UpdateStatusTableDB();
   }
@@ -64,6 +70,7 @@ void AMSStatus::updates(uinteger run, uinteger evt, uinteger status, time_t time
 uinteger AMSStatus::getstatus(uinteger evt, uinteger run){
   if(_Run && run != _Run){
    cerr<<"AMSStatus::getstatus-E-WrongRun "<<run<<" Expected "<<_Run<<endl;
+   _Errors++;
    return (1<<31);
   }
   // try hint +
@@ -77,12 +84,14 @@ uinteger AMSStatus::getstatus(uinteger evt, uinteger run){
    return _Status[1][out-1]  ;
  }
  else if(repeat<10  ){
-   cerr<<"AMSStatus::getstatus-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<endl;
+   cerr<<"AMSStatus::getstatus-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
+   _Errors++;
    repeat++;
    return (1<<31);
  }
  else if(repeat==10 ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundLastMessage"<<out<<" "<<evt<<endl;
+   _Errors++;
    repeat++;
    return (1<<31);
  }
@@ -101,10 +110,22 @@ void AMSStatus::init(){
        if(!STATUSFFKEY.status[32]){   
          _Mode=2;
          cout <<"AMSStatus::init-I-WriteStatusDBRequested"<<endl;
+         // set begin,end to max
+           time_t begin,insert,end;
+           ptdv->gettime(insert,begin,end);
+           begin=begin-3e7;
+           end=end+3e7;
+           ptdv->SetTime(insert,begin,end);
        }
        else {
          _Mode=3;
          cout <<"AMSStatus::init-I-UpdateStatusDBRequested"<<endl;
+        // set begin>end
+           time_t begin,insert,end;
+           ptdv->gettime(insert,begin,end);
+           end=begin-1;
+           ptdv->SetTime(insert,begin,end);
+       
        }
       }
     }
@@ -152,28 +173,32 @@ integer AMSStatus::_statusok(uinteger status){
           }
         }
         if(!local){
+          _Rejected++;
           return 0;
         }
       }
     }
+    _Accepted++;
     return 1;
 
 }
 
 
-void AMSStatus::getnextok(){
-  
+integer AMSStatus::getnextok(){
+ int skipped=0;
  for(int i=_Hint;i<_Nelem;i++){
    if(_statusok(_Status[1][i])){
      ((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][i]);
      _Hint=i;
-     return;
+     return skipped;
    }
+   skipped++;
  }
  if(_Hint<_Nelem)((DAQEvent*)AMSEvent::gethead()->getheadC("DAQEvent",0))->setoffset(_Status[2][i]);
  else  if(AMSFFKEY.Update && isDBUpdateR()){
    UpdateStatusTableDB();
  }
+ return skipped;
 }
 
 void AMSStatus::UpdateStatusTableDB(){
