@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.76 2003/03/18 09:04:18 choumilo Exp $
+//  $Id: ntuple.h,v 1.77 2003/03/25 09:05:36 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -42,7 +42,7 @@ const int MAXTRDRHT   =   200;
 const int MAXTRDCL   =   100;
 const int MAXTRDSEG   =   100;
 const int MAXTRDTRK   =   40;
-const int MAXMCVOL   =   150;
+const int MAXMCVOL   =   200;
  const int NUMAMS     =   40;
 };
 using namespace root;

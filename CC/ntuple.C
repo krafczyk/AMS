@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.134 2003/03/18 13:20:36 choumilo Exp $
+//  $Id: ntuple.C,v 1.135 2003/03/25 09:05:20 choutko Exp $
 //
 //  Jan 2003, A.Klimentov implement MemMonitor from S.Gerassimov
 //
@@ -79,7 +79,7 @@ void AMSNtuple::init(){
     "ncharge[0,20],chargestatus(ncharge):I,chargebetap(ncharge)[-1,30000]:I,chargeringp(ncharge)[-1,30000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,chargerich(ncharge)[0,100]:I,probtof(4,ncharge),chintof(4,ncharge)[0,100]:I,probtracker(4,ncharge),chintracker(4,ncharge)[0,100]:I,probrich(4,ncharge),chinrich(4,ncharge)[0,100]:I,proballtracker(ncharge),truntof(ncharge),truntofd(ncharge),truntracker(ncharge)");
 
   HBNAME(_lun,"TRDMCCl",&_trdclmc.Ntrdclmc,
-  "ntrdmccl[0,200],trdlayermc(ntrdmccl)[0,20]:I,trdladdermc(ntrdmccl)[0,40]:I,trdtubemc(ntrdmccl)[0,100]:I,trdtrackmc(ntrdmccl)[0,32767]:I,trdedepmc(ntrdmccl),trdekinmc(ntrdmccl),trdxglmc(3,ntrdmccl),trdstepmc(ntrdmccl)");
+  "ntrdmccl[0,200],trdlayermc(ntrdmccl)[0,20]:I,trdladdermc(ntrdmccl)[0,40]:I,trdtubemc(ntrdmccl)[0,100]:I,trdtrackmc(ntrdmccl)[0,65536]:I,trdedepmc(ntrdmccl),trdekinmc(ntrdmccl),trdxglmc(3,ntrdmccl),trdstepmc(ntrdmccl)");
 
   HBNAME(_lun,"TRDRHT",&_trdht.Ntrdht,
   "ntrdht[0,200],trdhtlayer(ntrdht)[0,19]:I,trdhtladder(ntrdht)[0,17]:I,trdhttube(ntrdht)[0,15]:I,trdampht(ntrdht)");
@@ -135,7 +135,7 @@ void AMSNtuple::init(){
   "nmcg[0,100],nskip(nmcg):I,Particle(nmcg)[-200,500]:I,coo(3,nmcg),dir(3,nmcg),momentum(nmcg):R,mass(nmcg):R,charge(nmcg):R");
 
   HBNAME(_lun,"MCTrack",&_mct.Nmct,
-  "nmct[0,150],radl(nmct),absl(nmct),pos(3,nmct),vname(nmct):I");
+  "nmct[0,200],radl(nmct),absl(nmct),pos(3,nmct),vname(nmct):I");
 
   HBNAME(_lun,"AntiClus",&_anti.Nanti,
  "nanti[0,8],AntiStatus(nanti):I,AntiSector(nanti)[0,8]:I,AnNtimes(nanti)[0,16]:I,AnNpairs(nanti)[0,8]:I,AnTimes(16,nanti),AnTimesE(16,nanti),AntiEdep(nanti),AntiCoo(3,nanti),AntiErCoo(3,nanti)");

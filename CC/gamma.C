@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.32 2003/03/10 12:19:33 choutko Exp $
+//  $Id: gamma.C,v 1.33 2003/03/25 09:05:19 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -1737,7 +1737,7 @@ void AMSTrTrackGamma::_LSQP2(integer FLPAT[], vector<double> H[], integer esc_1,
 	  res_[ja]=res_LR[l_[i]][i];
 	}
 	
-	if (sdwini < 0.5 && sdwmax > 1.){
+	if (sdwini < 0.5 && sdwmax > 1.0){
 	  for(int jo=0;jo<FLPAT[i];jo++){
 	    H[i][jo]=10000;
 	  }
@@ -2284,7 +2284,8 @@ temp=10000;
   }
 
   for(int i=0;i<iy;i++){
-    if (z_fi3[iu] == z_fi4[i]){
+    // changed by VC 24-mar-2003 
+    if (iu>=0 && z_fi3[iu] == z_fi4[i]){
       if (res_4[i+1] >= res_4[i]){
 	z_fi3[iu+1]=z_fi4[i+1];
 	res_3[iu+1]=res_4[i+1];
