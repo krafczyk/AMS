@@ -128,6 +128,8 @@ integer operator < (AMSlink & o) const {
 };
 
 class AMSTrRecHit: public AMSlink{
+public:
+     static const integer FalseX;
 protected:
 AMSgSen * _pSen;
 AMSTrCluster *_Xcl;
@@ -212,6 +214,7 @@ void          setSensorP(AMSgSen* p) { _pSen = p;}
 
 //-
 ~AMSTrRecHit(){int i;for( i=0;i<6;i++)_Head[i]=0;};
+   friend class AMSTrTrack;
 
 };
 
@@ -270,9 +273,11 @@ static geant _Time;
   void _writeEl();
 
 static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
+static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer Distance(number par[2][2], AMSTrRecHit *ptr);
 static integer patpoints[npat];
 static integer patconf[npat][6];
+static integer patmiss[npat][6];
 static integer _RefitIsNeeded;
 public:
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
@@ -314,6 +319,7 @@ AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone
 void init( AMSTrRecHit * phit[]);
 static integer build(integer refit);
 static integer buildWeak(integer refit);
+static integer buildFalseX(integer refit);
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<6? _Pthit[i]:0;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 

@@ -9,7 +9,7 @@
 #include <cont.h>
 #include <amsstl.h>
 #include <commons.h>
-
+#include <trid.h>
 
 // Tracker RAW bank
 
@@ -71,6 +71,8 @@ static void sitkdigi();
  static void builddaqRaw(integer i, integer n, int16u *p);
  static void buildrawRaw(integer n, int16u *p);
  static void buildrawRawA(integer n, int16u *p);
+ static void buildrawRawB(integer n, int16u *p);
+ static void buildpreclusters( AMSTrIdSoft & idd, integer len, geant id[]);
  integer TestRawMode();
   // H/K data read
   static integer checkstatusSid(int16u id) ;

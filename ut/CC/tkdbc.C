@@ -215,8 +215,8 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
       (_HeadLadder[ihalf][numl])._nrm[0][1]=xy;
       (_HeadLadder[ihalf][numl])._nrm[1][1]=-cy;
       (_HeadLadder[ihalf][numl])._nrm[2][1]=zy;
-      (_HeadLadder[ihalf][numl])._nrm[0][2]=-zx;
-      (_HeadLadder[ihalf][numl])._nrm[1][2]=-zy;
+      (_HeadLadder[ihalf][numl])._nrm[0][2]=zx;
+      (_HeadLadder[ihalf][numl])._nrm[1][2]=zy;
       (_HeadLadder[ihalf][numl])._nrm[2][2]=cz;
      }
      //   nahui: 

@@ -256,6 +256,16 @@ integer tdrs=_GetHard[_layer-1][_drp-1][_half][_side];
   _haddr=strip | va<<6 | tdrs << 10 ;
  else _dead=1;
 }
+void AMSTrIdGeom::R2Gy(integer stripy){
+   if(AMSJob::gethead()->isRealData()){
+      if(stripy==0) _stripy=0;
+      else if(stripy== AMSDBc::NStripsSen(_layer,1)-1)
+        _stripy=stripy*2+4;
+      else  _stripy=stripy*2+2;
+   }
+   else _stripy=stripy;
+}
+
 void AMSTrIdGeom::R2Gx(integer stripx){
    if(AMSJob::gethead()->isRealData()){
      if(_layer == 1 || _layer ==6){
@@ -281,16 +291,11 @@ void AMSTrIdGeom::R2Gx(integer stripx){
 AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
   static AMSTrIdGeom spid[20];
     integer strip=_strip;
-    integer stripx,stripy;
+    integer stripx;
     namb=0; 
     _pid=spid;
   if( _side==0 && o._side==1) {
    if(AMSJob::gethead()->isRealData()){
-      if(o._strip==0) stripy=0;
-      else if(o._strip== AMSDBc::NStripsDrp(o._layer,o._side)-1)
-        stripy=o._strip*2+4;
-      else  stripy=o._strip*2+2;
-   
 
 
      integer isen=strip/AMSDBc::NStripsSen(_layer,_side)+1;
@@ -298,7 +303,7 @@ AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
       (_pid+namb)->_layer=_layer;
       (_pid+namb)->_ladder=_drp;
       (_pid+namb)->_sensor=isen+(_half==0?0:AMSDBc::nhalf(_layer,_drp));
-      (_pid+namb)->_stripy=stripy;
+      (_pid+namb)->R2Gy(o._strip);
       stripx=strip%AMSDBc::NStripsSen(_layer,_side);
       (_pid+namb)->R2Gx(stripx);
       strip=strip+AMSDBc::NStripsDrp(_layer,_side);
@@ -321,8 +326,7 @@ AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
       (_pid+namb)->_layer=_layer;
       (_pid+namb)->_ladder=_drp;
       (_pid+namb)->_sensor=isen+(_half==0?0:AMSDBc::nhalf(_layer,_drp));
-      stripy=o._strip;
-      (_pid+namb)->_stripy=stripy;
+      (_pid+namb)->R2Gy(o._strip);
       stripx=strip%AMSDBc::NStripsSen(_layer,_side);
       (_pid+namb)->R2Gx(stripx);
       strip=strip+AMSDBc::NStripsDrp(_layer,_side);
@@ -907,4 +911,45 @@ integer word=bit/32;
  bit=bit%32;
  rhomatrix[2*(idsoft2linear[_addr]+_strip)+word]=rhomatrix[2*(idsoft2linear[_addr]+_strip)+word] & ~(1<<bit);
 
+}
+
+integer AMSTrIdGeom::FindAtt(const AMSPoint & pnt,  AMSPoint  size){
+  // Assuming known layer, Find ladder & sensor and return 1;
+  // or return 0;
+  AMSPoint p2=pnt;
+  AMSgvolume *p =AMSJob::gethead()->getgeomvolume(crgid());
+  if(p){  
+   AMSPoint loc=p->gl2loc(pnt);
+    geant dl=floor(0.5+loc[1]/AMSDBc::c2c(_layer-1));
+    _ladder+=-dl;
+    if(_ladder<=0)_ladder=1;
+    if(_ladder>AMSDBc::nlad(_layer))_ladder=AMSDBc::nlad(_layer);
+    if(p2[0]<0){
+     _sensor=5;
+    }
+    else{
+     _sensor= AMSDBc::nsen(_layer,_ladder)-5;
+    }
+   p=  AMSJob::gethead()->getgeomvolume(crgid());
+   if(p){
+     geant dl=floor(0.5+loc[0]/AMSDBc::ssize_inactive(_layer-1,0));
+    _sensor+=dl;
+    p=  AMSJob::gethead()->getgeomvolume(crgid());
+    if(p){
+     AMSPoint loc=p->gl2loc(pnt);
+     loc=loc+size;
+     if( 
+      loc[1]>2*size[1]+200*AMSgvolume::dgeant  ||
+      loc[1]<-200*AMSgvolume::dgeant   ){
+#ifdef __AMSDEBUG__
+       cerr << "AMSgSen::FindAtt-S-Error loc " 
+       << loc << size << endl;
+#endif
+       return 0;
+     }
+     else return 1;   
+    }
+   }
+  }
+  return 0;
 }

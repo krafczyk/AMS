@@ -31,6 +31,7 @@
 #include <tofcalib.h>
 #include <trigger1.h>
 #include <trigger3.h>
+#include <trid.h>
 #include <trrawcluster.h>
 #include <daqevt.h>
 #include <daqblock.h>
@@ -482,8 +483,8 @@ TRCLFFKEY.Thr3R[1] =-2.;
 TRCLFFKEY.ThrClNMin[1]=2;
 TRCLFFKEY.ThrClNEl[1]=3;
 
-TRCLFFKEY.ThrClA[0]=52/fac;
-TRCLFFKEY.Thr1A[0] =40/fac;
+TRCLFFKEY.ThrClA[0]=37/fac;
+TRCLFFKEY.Thr1A[0] =30/fac;
 TRCLFFKEY.Thr2A[0] =15/fac;
 
 
@@ -556,6 +557,9 @@ TRFITFFKEY.pattern[18]=1;
 TRFITFFKEY.pattern[19]=1;
 TRFITFFKEY.pattern[20]=1;
 TRFITFFKEY.pattern[21]=1;
+{
+  for( int k=22;k<42;k++)TRFITFFKEY.pattern[k]=0;
+}
 TRFITFFKEY.UseTOF=1;
 TRFITFFKEY.Chi2FastFit=1000;
 TRFITFFKEY.Chi2StrLine=20;
@@ -572,6 +576,8 @@ TRFITFFKEY.MinRefitCos[0]=0.7;
 TRFITFFKEY.MinRefitCos[1]=0.5;
 TRFITFFKEY.FastTracking=0;
 TRFITFFKEY.WeakTracking=0;
+TRFITFFKEY.FalseXTracking=0;
+TRFITFFKEY.Chi2FalseX=3.;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }
@@ -709,6 +715,7 @@ void AMSJob::_rectcdata(){
 
 void AMSJob::_redaqdata(){
 DAQCFFKEY.mode=0;
+DAQCFFKEY.OldFormat=0;
 VBLANK(DAQCFFKEY.ifile,40);
 VBLANK(DAQCFFKEY.ofile,40);
   FFKEY("DAQC",(float*)&DAQCFFKEY,sizeof(DAQCFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -1954,13 +1961,17 @@ void AMSJob::_setorbit(){
 if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
 {
 
+  if(DAQCFFKEY.OldFormat || !isRealData()){
 // special tracker ped/sigma calc
     if(TRCALIB.Method == 1)
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPed);
     else
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,
 &AMSTrIdCalib::buildSigmaPedA);
-
+  }
+  else{
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPedB);
+  }
 
 }
 }
@@ -1980,10 +1991,15 @@ else {
 {
 //           tracker raw
 
+  if(DAQCFFKEY.OldFormat || !isRealData()){
     if(TRCALIB.Method == 1)
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRaw);
     else
     DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRawA);
+  }
+  else{
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRawB);
+  }
 
     DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocksRaw,
     &AMSTrRawCluster::calcdaqlengthRaw,&AMSTrRawCluster::builddaqRaw);

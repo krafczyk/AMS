@@ -40,6 +40,7 @@ public:
 integer mode;
 integer ifile[40];
 integer ofile[40];
+integer OldFormat;
 };
 #define DAQCFFKEY COMMON_BLOCK(DAQCFFKEY,daqcffkey)
 COMMON_BLOCK_DEF(DAQCFFKEY_DEF,DAQCFFKEY);
@@ -370,7 +371,7 @@ public:
 COMMON_BLOCK_DEF(CHARGEFITFFKEY_DEF,CHARGEFITFFKEY);
 
 //
-const integer npat=22;
+const integer npat=42;
 class TRFITFFKEY_DEF {
 public:
   integer pattern[npat];  //patterns  to fit; Priority decreases with number
@@ -397,6 +398,7 @@ public:
   //   19                   2356              4           off
   //   20                   2456              4           off
   //   21                   3456              4           off
+  //   .... 3 points .....
   integer UseTOF;     // Use(>=1)/Not use(0) 
                       // TOF info for pattern rec for pattern 16
   geant Chi2FastFit;  //  Max acceptable chi2 for tkhmd; 
@@ -413,6 +415,8 @@ public:
   geant MinRefitCos[2];
   integer FastTracking;
   integer WeakTracking;
+  integer FalseXTracking;
+  geant Chi2FalseX;
 };
 //
 

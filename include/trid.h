@@ -6,7 +6,6 @@
 #define __AMSTRID__
 #include <typedefs.h>
 #include <amsdbc.h>
-#include <trrawcluster.h>
 #include <iostream.h>
 #include <amsstl.h>
 #include <commons.h>
@@ -32,8 +31,10 @@ integer stripy);
 AMSTrIdGeom(integer idsoft, integer stripx=0, integer stripy=0);
 AMSTrIdGeom & operator = (const AMSTrIdGeom &o);
 AMSID crgid();
+integer FindAtt(const AMSPoint & pnt,  AMSPoint  size);
 integer operator == (const AMSTrIdGeom &o);
 void R2Gx(integer stripx);
+void R2Gy(integer stripy);
 number  getsize(integer side)const;
 number  getcofg(integer side, integer shift, integer & error)const;
 inline void upd(integer side,integer strip){

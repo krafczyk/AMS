@@ -1,5 +1,6 @@
 #include <iostream.h>
 #include <fstream.h>
+#include <astring.h>
 #include <stdlib.h>
 #include <typedefs.h>
 #include <sys/types.h>
@@ -41,18 +42,14 @@ void convert(int ibeg, int iend,char in[], char out[]){
 uinteger _Length;
 integer BigEndian=0;
 static ofstream fbout;
-static int16u Record[100000];
+static int16u Record[130000];
+static int16u Input[130000];
 int16u pData[2][24][1536];
+int15u pDataH[100];    // Header
+int16u pDataA[65535];   // scint etc....
+static integer _Srun =-1;
   enum open_mode{binary=0x80};
   if(ibeg==0){
-    fbout.open(out,ios::out|binary|ios::app);
-      if(fbout){
-       cout <<"cdaq-I-Open O file "<<out<<endl;
-      }
-      else {
-        cerr <<"cdaq=F-CouldNotOPenFileO "<<out<<endl;
-        exit(1);
-      }
 
 
 
@@ -92,15 +89,10 @@ int16u pData[2][24][1536];
     static int gevt=0;
     static int terr=0;
     int tevt=0;
-    char name[80];
-    strncpy(name,in+strlen(in)-6,6);
-    int run =atoi(name);    
-    run=run/100;
-    cout <<"run "<<run<<endl;
     long id, size, flags;
+    uinteger run;
     time_t time;
     int suc=UnixFilestat(in, &id, &size,&flags, &time);
-    cout <<ctime(&time);
     int ie;
       if(fbin){
        cout <<"cdaq-I-Open I file "<<in<<endl;
@@ -111,17 +103,23 @@ int16u pData[2][24][1536];
       }
        int ncnt=0;
        int eventok=0;
+       
        do {
+         // try to find something 
+         uinteger _Length;
+                             
        int16u tdrno=-1;
        int16u evto=-1;
        int l16ptr=0;
-       
+       int16u l16;
+        fbin.read((unsigned char *)&l16,sizeof(l16));
+        _convertl(l16,BigEndian);
+        _Length=l16+1;
+        fbin.read(unsigned char *)&l16,sizeof(l16));
+        _Length=_Length | ((l16 & 63)<<16);
+        fbin.seekg(fbin.tellg()-2*sizeof(l16));
+        fbin.read((unsigned char *)Input,sizeof(Input[0])*_Length);
        int16u tlength,ntdr,len,tdrn,ch1,ch2,elem,ncrt,evt;
-        fbin.seekg(fbin.tellg()+4*sizeof(tlength));
-        evto=evt;
-        fbin.read((unsigned char*)&evt,sizeof(evt));
-        fbin.seekg(fbin.tellg()-5*sizeof(tlength));
-        if(evt != evto || fbin.eof() || ncnt>= 24){
           // new event found
           evto=evt;
           if(ncnt == 24 && tdrn==23)eventok=1;
@@ -139,6 +137,18 @@ int16u pData[2][24][1536];
 
        if(eventok){
          // read whole event; try to write it
+         // if first event or run has been changed reopen the file
+         if(_SRun !=run){
+          if(fbout)fbout.close();
+          fbout.open(out,ios::out|binary|ios::app);
+          if(fbout){
+           cout <<"cdaq-I-Open O file "<<out<<endl;
+          }
+          else {
+           cerr <<"cdaq=F-CouldNotOPenFileO "<<out<<endl;
+           exit(1);
+          }
+         }
          fevt=0;
          
          Record[1]=0x0;

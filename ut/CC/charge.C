@@ -17,7 +17,7 @@
 #include <amsstl.h>
 #include <ntuple.h>
 #include <cern.h>
-
+#include <trrawcluster.h>
 integer AMSCharge::_sec[2];
 integer AMSCharge::_min[2];
 integer AMSCharge::_hour[2];

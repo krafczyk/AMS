@@ -30,6 +30,7 @@ const integer AMSTrCluster::WIDE=1;
 const integer AMSTrCluster::NEAR=2;
 const integer AMSTrCluster::REFITTED=4;
 const integer AMSTrCluster::WEAK=8;
+const integer AMSTrRecHit::FalseX=1;
 
 integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       1,2,3,4,6,0,   // 12346   1
@@ -52,9 +53,74 @@ integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
                                       2,3,4,6,0,0,   // 2346   18
                                       2,3,5,6,0,0,   // 2356   19
                                       2,4,5,6,0,0,   // 2456   20
-                                      3,4,5,6,0,0};  // 3456   21
+                                      3,4,5,6,0,0,   // 3456   21
+                                      1,2,3,0,0,0,   // 123    22
+                                      1,2,4,0,0,0,   // 124    23
+                                      1,2,5,0,0,0,   // 125    24
+                                      1,2,6,0,0,0,   // 126    25
+                                      1,3,4,0,0,0,   // 134    26
+                                      1,3,5,0,0,0,   // 135    27
+                                      1,3,6,0,0,0,   // 136    28
+                                      1,4,5,0,0,0,   // 145    29
+                                      1,4,6,0,0,0,   // 146    30
+                                      1,5,6,0,0,0,   // 156    31
+                                      2,3,4,0,0,0,   // 234    32
+                                      2,3,5,0,0,0,   // 235    33
+                                      2,3,6,0,0,0,   // 236    34
+                                      2,4,5,0,0,0,   // 245    35
+                                      2,4,6,0,0,0,   // 246    36
+                                      2,5,6,0,0,0,   // 256    37
+                                      3,4,5,0,0,0,   // 345    38
+                                      3,4,6,0,0,0,   // 346    39
+                                      3,5,6,0,0,0,   // 356    40
+                                      4,5,6,0,0,0    // 456    41
+                                      };  
+integer AMSTrTrack::patmiss[npat][6]={0,0,0,0,0,0,   // 123456  0
+                                      0,0,0,0,0,5,   // 12346   1
+                                      0,0,0,0,0,4,   // 12356   2
+                                      0,0,0,0,0,3,   // 12456   3
+                                      0,0,0,0,0,2,   // 13456   4
+                                      0,0,0,0,0,6,   // 12345   5
+                                      0,0,0,0,0,1,   // 23456   6
+                                      0,0,0,0,5,6,   // 1234    7
+                                      0,0,0,0,4,6,   // 1235    8
+                                      0,0,0,0,4,5,   // 1236    9
+                                      0,0,0,0,3,6,   // 1245   10
+                                      0,0,0,0,3,5,   // 1246   11
+                                      0,0,0,0,3,4,   // 1256   12
+                                      0,0,0,0,2,6,   // 1345   13 
+                                      0,0,0,0,2,5,   // 1346   14
+                                      0,0,0,0,2,4,   // 1356   15
+                                      0,0,0,0,2,3,   // 1456   16
+                                      0,0,0,0,1,6,   // 2345   17
+                                      0,0,0,0,1,5,   // 2346   18
+                                      0,0,0,0,1,4,   // 2356   19
+                                      0,0,0,0,1,3,   // 2456   20
+                                      0,0,0,0,1,2,   // 3456   21
+                                      0,0,0,4,5,6,   // 123    22
+                                      0,0,0,3,5,6,   // 124    23
+                                      0,0,0,3,4,6,   // 125    24
+                                      0,0,0,3,4,5,   // 126    25
+                                      0,0,0,2,5,6,   // 134    26
+                                      0,0,0,2,4,6,   // 135    27
+                                      0,0,0,2,4,5,   // 136    28
+                                      0,0,0,2,3,6,   // 145    29
+                                      0,0,0,2,3,5,   // 146    30
+                                      0,0,0,2,3,4,   // 156    31
+                                      0,0,0,1,5,6,   // 234    32
+                                      0,0,0,1,4,6,   // 235    33
+                                      0,0,0,1,4,5,   // 236    34
+                                      0,0,0,1,3,6,   // 245    35
+                                      0,0,0,1,3,5,   // 246    36
+                                      0,0,0,1,3,4,   // 256    37
+                                      0,0,0,1,2,6,   // 345    38
+                                      0,0,0,1,2,5,   // 346    39
+                                      0,0,0,1,2,4,   // 356    40
+                                      0,0,0,1,2,3    // 456    41
+                                      };  
 integer AMSTrTrack::patpoints[npat]=
-              {6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
+              {6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,3,3,3,
+               3,3,3,3,3,3,3,3,3,3,3,3,3,3};
 
 
 integer AMSTrCluster::build(integer refit=0){
@@ -93,8 +159,10 @@ integer AMSTrCluster::build(integer refit=0){
     // Unpack cluster into tmp space
     // find clusters
      id=AMSTrIdSoft(p->getid());
-     integer ilay=id.getlayer(); 
+     integer ilay=id.getlayer();
      integer side=id.getside();
+     // Very debug
+     //          if(ilay==3 && side==0){p=p->next();continue;}
      p->expand(adc+TRCLFFKEY.ThrClNEl[side]/2);
     if(p->testlast()){
               
@@ -287,9 +355,8 @@ integer AMSTrCluster::build(integer refit=0){
      }
      }
     AMSgObj::BookTimer.stop("TrClusterRefit");
-    return 1;
   }
-
+  return 1;
 }
 
 
@@ -319,6 +386,8 @@ integer AMSTrCluster::buildWeak(integer refit=0){
      id=AMSTrIdSoft(p->getid());
      integer ilay=id.getlayer(); 
      integer side=id.getside();
+     // Very debug
+     //         if(ilay==3 && side==0){p=p->next();continue;}
      p->expand(adc+TRCLFFKEY.ThrClNEl[side]/2);
     if(p->testlast()){
               
@@ -410,6 +479,8 @@ integer AMSTrCluster::buildWeak(integer refit=0){
         pos=pos+1*(j-center)*adc[j];
         rms=rms+pow(1*(j-center),2)*adc[j];
        }
+       else adc[j]=0;
+
       }
        if(sum !=0){
         rms=sqrt(fabs(rms*sum-pos*pos))/sum; 
@@ -694,10 +765,11 @@ integer AMSTrRecHit::buildWeak(integer refit=0){
  void AMSTrRecHit::_addnext(AMSgSen * pSen, integer status, integer layer, AMSTrCluster *x,
                             AMSTrCluster * y, const AMSPoint & hit,
                             const AMSPoint & ehit){
-    number s1=x->getVal();
-    number s2=y->getVal();
-    x->setstatus(AMSDBc::USED);
-    y->setstatus(AMSDBc::USED);
+    number s1,s2;
+    if(x)s1=x->getVal();
+    if(y)s2=y->getVal();
+    if(x)x->setstatus(AMSDBc::USED);
+    if(y)y->setstatus(AMSDBc::USED);
     AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",layer-1),
     new     AMSTrRecHit(pSen, status,layer,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2)));
       
@@ -717,8 +789,8 @@ if(init++==0){
 
 }
   THN.Event()=AMSEvent::gethead()->getid();
-  THN.pX=_Xcl->getpos();
-  
+  if(_Xcl)THN.pX=_Xcl->getpos();
+  else THN.pX=-1;
   THN.pY=_Ycl->getpos();
    int i,pat;
     pat=1;
@@ -744,8 +816,9 @@ if(init++==0){
     }
 
 
-  if(((_Xcl->getid()).getlayer() != _Layer) || 
-     ((_Ycl->getid()).getlayer() != _Layer)){
+  if(!checkstatus(AMSTrRecHit::FalseX) && 
+      ((_Xcl->getid()).getlayer() != _Layer) || 
+     ((_Ycl->getid()).getlayer() != _Layer) ){
     cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
       (_Ycl->getid()).getlayer()<<" "<<_Layer<<endl;
   }
@@ -771,6 +844,8 @@ for(int i=0;i<6;i++){
 }
 
 geant AMSTrTrack::_Time=0;
+
+
 integer AMSTrTrack::build(integer refit=0){
   integer NTrackFound=-1;
   // pattern recognition + fit
@@ -824,6 +899,7 @@ integer AMSTrTrack::build(integer refit=0){
           // Check if the point lies near the str line
            if(AMSTrTrack::Distance(par,phit[1]))
            {phit[1]=phit[1]->next();continue;}
+          if(AMSTrTrack::patpoints[pat] >3){         
          phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
          while(phit[2]){
           // Check if the point lies near the str line
@@ -874,6 +950,16 @@ integer AMSTrTrack::build(integer refit=0){
           }
           }
           phit[2]=phit[2]->next();
+          }
+          }
+          else{       // 3 points only
+                // 3 point combination found
+                
+                if(AMSTrTrack::_addnext(pat,3,phit)){
+                  NTrackFound++;
+                  goto out;
+                }                
+
          }
          }
          phit[1]=phit[1]->next();
@@ -913,7 +999,7 @@ integer AMSTrTrack::buildWeak(integer refit=0){
     if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
   }
 
-  for (int pat=7;pat<npat;pat++){
+  for (int pat=7;pat<22;pat++){
     // Only 4 points patterns used
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(TRFITFFKEY.pattern[pat]){
@@ -982,6 +1068,91 @@ return NTrackFound;
 
 
 
+
+
+integer AMSTrTrack::buildFalseX(integer refit=0){
+  integer NTrackFound=-1;
+  // pattern recognition + fit
+  if(refit){
+   return NTrackFound;
+  } 
+  _RefitIsNeeded=0;
+  _Start();
+  // Add test here
+   
+  { 
+    int xs=0; 
+    for (int kk=0;kk<6;kk++){
+    AMSTrRecHit * phit=AMSTrRecHit::gethead(kk);
+    if(phit)xs++;
+  }
+    if(xs>2)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
+  }
+
+  for (int pat=22;pat<npat;pat++){
+    // Only 3 points patterns used
+    AMSTrRecHit * phit[6]={0,0,0,0,0,0};
+    if(1  || TRFITFFKEY.pattern[pat]){
+      int fp=patpoints[pat]-1;    
+#ifdef __AMSDEBUG__
+     assert (fp==2);
+#endif 
+      // Try to make StrLine Fit
+      integer first=AMSTrTrack::patconf[pat][0]-1;
+      integer second=AMSTrTrack::patconf[pat][fp]-1;
+      phit[0]=AMSTrRecHit::gethead(first);
+      number par[2][2];
+      while( phit[0]){
+       if((TRFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0) &&
+          (phit[0]->checkstatus(AMSTrCluster::WEAK)==0)){
+       phit[fp]=AMSTrRecHit::gethead(second);
+       while( phit[fp]){
+        if(TRFITFFKEY.FullReco || phit[fp]->checkstatus(AMSDBc::USED)==0 &&
+          (phit[fp]->checkstatus(AMSTrCluster::WEAK)==0)){
+        par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
+        par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
+               (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
+        // Search for others
+        if(NTrackFound<0)NTrackFound=0;
+        phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
+        while(phit[1]){
+         if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
+          // Check if the point lies near the str line
+           if(AMSTrTrack::Distance(par,phit[1]))
+           {phit[1]=phit[1]->next();continue;}
+                // 3 point combination found
+                
+                if(AMSTrTrack::_addnextFalseX(pat,3,phit)){
+                  NTrackFound++;
+                  goto out;
+                }
+         }
+         phit[1]=phit[1]->next();
+        }
+        }         
+        phit[fp]=phit[fp]->next();
+       }
+       }  
+out:
+       phit[0]=phit[0]->next();
+      }
+      
+    }
+  }
+return NTrackFound;
+}
+
+
+
+
+
+
+
+
+
 integer AMSTrTrack::Distance(number par[2][2], AMSTrRecHit *ptr){
 const integer freq=10;
 static integer trig=0;
@@ -1013,8 +1184,8 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
      if(ptrack->_Chi2Circle< TRFITFFKEY.Chi2Circle && 
       fabs(ptrack->_CircleRidgidity)>TRFITFFKEY.RidgidityMin ){
           
-       if( TRFITFFKEY.FastTracking || (ptrack->Fit(0) < TRFITFFKEY.Chi2FastFit)
-            && ptrack->TOFOK()){
+       if( (TRFITFFKEY.FastTracking || (ptrack->Fit(0) < 
+            TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK()){
          ptrack->AdvancedFit();
          int i;   
          // Mark hits as USED
@@ -1031,7 +1202,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
            if(dc[n] > TRFITFFKEY.MinRefitCos[n]){
              for( i=0;i<nhit;i++){
               AMSTrCluster *pcl= pthit[i]->getClusterP(n);
-              pcl->setstatus(AMSTrCluster::REFITTED);
+              if(pcl)pcl->setstatus(AMSTrCluster::REFITTED);
               _RefitIsNeeded++;
              }
            }
@@ -1051,11 +1222,135 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
     return 0;
 }
 
+
+
+
+integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
+
+#ifdef __UPOOL__
+    AMSTrTrack track(pat, nhit ,pthit);
+    AMSTrTrack *ptrack=   &track;
+#else
+    AMSTrTrack *ptrack=   new AMSTrTrack(pat, nhit ,pthit);
+#endif
+
+    number gers=0.03;
+    ptrack->SimpleFit(AMSPoint(gers,gers,gers));
+    if(ptrack->_Chi2StrLine< TRFITFFKEY.Chi2StrLine){
+     if(ptrack->_Chi2Circle< TRFITFFKEY.Chi2Circle && 
+      fabs(ptrack->_CircleRidgidity)>TRFITFFKEY.RidgidityMin ){
+      if( (TRFITFFKEY.FastTracking || (ptrack->Fit(0) < TRFITFFKEY.Chi2FalseX))
+           && ptrack->TOFOK()){
+        // Here we should add at least one point and fit 
+        // First determine which planes are missed and interpolate to them,
+        // find corresponding sensor ID
+        // Then make additional  hit(s) and include them into fitting 
+        // finally change pattern according to new track and
+        // add "FalseX" bit into track status word
+
+        {
+          for(int i=nhit;i<6;i++){
+            integer ladder=8;
+            integer sensor=5;
+             AMSTrIdGeom id(patmiss[pat][i],ladder,sensor,0,0);
+             AMSgvolume* p= AMSJob::gethead()->getgeomvolume(id.crgid());
+            if(p){
+             AMSPoint  P1;
+{ 
+             AMSDir pntdir(0,0,1.);
+             AMSPoint pntplane(p->getcooA(0),p->getcooA(1),p->getcooA(2));
+             number theta,phi,length;
+             ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length); 
+}
+             // Now 2nd pass : find corresponding ladder & sensor
+             AMSTrCluster * py=
+             (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
+             integer yfound=0;  
+             integer yfound2=0;  
+             while(py){
+              AMSTrIdSoft idy=py->getid();
+              if(idy.getlayer()==id.getlayer()){
+                if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1))yfound++;
+              }
+              py=py->next();
+             }
+             if(yfound){
+              AMSgSen * pls=0;
+              AMSPoint PS(p->getpar(0),p->getpar(1),p->getpar(2));
+              if(id.FindAtt(P1,PS))pls=(AMSgSen*) AMSJob::gethead()->getgeomvolume(id.crgid());
+              if(pls){
+                // Here Search for corresponding y-hit in the container 
+              AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
+              AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
+              number theta,phi,length;
+              ptrack->interpolate(pntplane,pntdir,P1,theta,phi,length);
+              // Now check for the corr y-hit
+                
+           
+             py=
+             (AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",1,0); 
+             while(py){
+              AMSTrIdSoft idy=py->getid();
+              if(idy.getlayer()==id.getlayer() && abs(idy.getdrp()-id.getladder())<1){
+                if((P1[0]<0 && idy.gethalf()==0) || (P1[0]>0 && idy.gethalf()==1)){
+                  //  Create False RawHit and put it in the corr container 
+                   AMSPoint loc=pls->gl2loc(P1);
+                   id.R2Gy(idy.getstrip());
+                   AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(1,&id)); 
+                   AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
+                   TRFITFFKEY.SearchRegCircle,TRFITFFKEY.SearchRegStrLine);
+                   if((hit-P1).abs() < Err){
+                   AMSTrRecHit::_addnext(pls,AMSTrRecHit::FalseX,id.getlayer(),0,py,hit,
+                   AMSPoint((number)TRCLFFKEY.ErrZ*2,py->getecofg(),(number)TRCLFFKEY.ErrZ));
+                   yfound2++;
+                   } 
+                           
+                }
+              }
+              py=py->next();
+             }
+
+                
+             }
+
+#ifndef __UPOOL__
+                    delete ptrack;  
+#endif   
+                    return (yfound2>0);
+
+
+
+             }
+            }
+#ifdef __AMSDEBUG__
+             else  cerr <<" AMSTrTrack::_addnextFalseX-E-NoSensorsForPlaneFound "<<
+                patmiss[pat][i]<<endl;
+#endif
+          
+          }
+        }
+      }
+     }
+    }
+    
+        
+#ifndef __UPOOL__
+    delete ptrack;  
+#endif   
+    return 0;
+}
+
+
+
+
+
 void AMSTrTrack::AdvancedFit(){
   if(_Ridgidity < 0){
    if(TRFITFFKEY.FastTracking)Fit(0);
-   Fit(1);
-   Fit(2);
+   if(_Pattern <22){
+     Fit(1);
+     Fit(2);
+   }
    Fit(3);
    Fit(4);
    Fit(5);
@@ -1064,7 +1359,7 @@ void AMSTrTrack::AdvancedFit(){
 }
 
 integer AMSTrTrack::TOFOK(){
-  if (TRFITFFKEY.UseTOF && _Pattern == 17){
+  if (TRFITFFKEY.UseTOF && (_Pattern == 17 || _Pattern > 21)){
    // Cycle thru all TOF clusters;
    // at least UseTOF of them should be matched with the track
    integer i;

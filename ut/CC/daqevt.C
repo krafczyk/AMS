@@ -145,7 +145,7 @@ integer DAQEvent::_EventOK(){
 integer DAQEvent::_HeaderOK(){
   for(_pcur=_pData+lover;_pcur < _pData+_Length;_pcur=_pcur+*_pcur+_OffsetL){
     if(AMSEvent::checkdaqid(*(_pcur+1))){
-      AMSEvent::buildraw(*(_pcur)+_OffsetL-1,_pcur+1, _Run,_Event,_RunType,_Time);
+      AMSEvent::buildraw(*(_pcur)+_OffsetL-1,_pcur+1, _Run,_Event,_RunType,_Time,_usec);
       _Checked=1;
       return 1;
     }

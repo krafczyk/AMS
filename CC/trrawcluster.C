@@ -192,13 +192,13 @@ void AMSTrRawCluster::_printEl(ostream & stream){
 
 
 int16u AMSTrRawCluster::getdaqid(int i){
-  if (i==0)return (1 | 2<<6 | 11 <<9);
-  else if(i==1)return (1 | 5<<6 | 11 <<9);
+  if (i==0)return ( 2<<6 | 11 <<9);
+  else if(i==1)return ( 5<<6 | 11 <<9);
 else return 0x0;
 }
 int16u AMSTrRawCluster::getdaqidRaw(int i){
-  if (i==0)return (2<<6 | 11 <<9);
-  else if(i==1)return (5<<6 | 11 <<9);
+  if (i==0)return (1 | 2<<6 | 11 <<9);
+  else if(i==1)return (1 | 5<<6 | 11 <<9);
 else return 0x0;
 }
 
@@ -467,7 +467,122 @@ void AMSTrRawCluster::buildrawRawA(integer n, int16u *p){
       idd.upd(j);
       id[j]=float((*(ptr+1+j)) & 4095)-idd.getped(); 
      }
+     buildpreclusters(idd,len,id);
+
+     }
+     ptr=ptr+len+1;
+  }     
+
+
+
+
+#ifdef __AMSDEBUG__
+{
+  AMSContainer * ptrc =AMSEvent::gethead()->getC("AMSTrRawCluster",ic);
+  if(ptrc && AMSEvent::debug>1)ptrc->printC(cout);
+}
+#endif
+
+
+}
+
+
+
+
+
+void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
+  integer const ms=640;
+  integer len;
+  static geant id[ms];
+  //VZERO(id,ms*sizeof(id[0])/sizeof(integer));
+  int i,j,k;
+  integer ic=checkdaqidRaw(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+    // Read two tdrs
+    if(*ptr != 3084){
+      cerr <<"buildrawRaw-E-bad event length, skipped "<<*ptr<<endl; 
+      return;
+    }
+    ptr+=2;
+    for(i=0;i<2;i++){
+     int16u tdrn=*ptr;
+     int16u lrec=*(ptr+1);
+     ptr++;
+     if(lrec !=1540){
+      cerr <<"buildrawRaw-E-bad event sublength, skipped "<<lrec<<endl; 
+      return;
+     }   
+     if(tdrn < 16){
+       // S side
+       len=640;
+       for(j=0;j<2;j++){
+         int16u conn,tdrs;
+         tdrs=tdrn/2;
+         if(tdrn%2==0){
+          if(j==0)conn=1;
+          else conn=0;
+         }
+         else {
+          if(j==0)conn=3;
+          else conn=2;
+         }
+         int16u haddr=(conn<<10) | (tdrs <<12);
+         AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<320;k++){
+           idd.upd(k);
+           id[k]=float(*(ptr+2+k+j*768))-idd.getped(); 
+          }
+          for(k=320;k<640;k++){
+           idd.upd(k);
+           id[k]=float(*(ptr+2+k+64+j*768))-idd.getped(); 
+          }
+          buildpreclusters(idd,len,id);
+         }
+       }
+     }
+     else {
+       // K Side
+       len=384;
+       for(j=0;j<4;j++){
+          int16u conn, tdrk;
+          if(tdrn%2 ==0){
+            if(j<2)conn=j+2;
+            else conn=j-2;
+          }
+          else {
+           if(j<2)conn=j+2;
+           else conn=j-2;
+           conn+= 4;
+          }
+          tdrk=(tdrn-16)/2;
+          int16u haddr=(10<<6) |( conn<<10) | (tdrk <<13);
+          AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<384;k++){
+           idd.upd(k);
+          id[k]=float(*(ptr+2+k+j*384))-idd.getped(); 
+          }
+          buildpreclusters(idd,len,id);
+         }
+       }
+     }
+     ptr+=lrec;
+    }
+  }
+
+}
+
+void AMSTrRawCluster::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[]){
      // calc cmn noise
+  integer const maxva=64;
+  static geant idlocal[maxva];
+  integer ic=idd.gethalf();
+      int i,j,k;
       integer vamin,vamax,l;
       for (j=0;j<len;j+=maxva){
          idd.upd(j);
@@ -535,9 +650,7 @@ void AMSTrRawCluster::buildrawRawA(integer n, int16u *p){
          }
          }
 
-     }
-     ptr=ptr+len+1;
-  }     
+
 
 
 
@@ -551,6 +664,10 @@ void AMSTrRawCluster::buildrawRawA(integer n, int16u *p){
 
 
 }
+
+
+
+
 
 
 // H/K Static

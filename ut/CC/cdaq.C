@@ -119,7 +119,7 @@ int16u pData[24][1536];
        l16ptr++;
        ie=fscanf(fbin,"%x",&ntdr);
        l16ptr++;
-       //         cout << " tlength "<<tlength <<endl;
+                cout << " tlength "<<tlength <<endl;
        //         cout << " ntdr "<<ntdr <<endl;
        if(ie!=EOF && ntdr>0){
        }
@@ -132,7 +132,7 @@ int16u pData[24][1536];
        ie=fscanf(fbin,"%x",&len);
        ie=fscanf(fbin,"%x",&evt);
        cdr[nrecords++]=tdrn;
-       //         cout << " ntdr "<<ntdr <<" "<<tdrn<<" "<<len<<" "<<evt<<endl;
+                cout << " ntdr "<<ntdr <<" "<<tdrn<<" "<<len<<" "<<evt<<endl;
          assert(len-4 <= 1536);
          for(int i=0;i<len-4;i++){
           ie=fscanf(fbin,"%x",&elem);

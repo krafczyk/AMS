@@ -484,6 +484,15 @@ void AMSTrIdCalib::_hist(){
 
 
 void AMSTrIdCalib::_calc(){
+#ifdef __AMSBADLIST__
+  ofstream fcluster;
+  ofstream fcommon;
+if(TRCALIB.Pass ==2){
+  fcluster.open("../datacards/BadChannelList.Clusters",ios::out);
+  fcommon.open("../datacards/BadChannelList.CommonNoise",ios::out);
+}
+#endif
+
 
  int i,j,k,l,m;
  integer badp[2]={0,0};
@@ -519,17 +528,38 @@ void AMSTrIdCalib::_calc(){
           _ADC2Raw[ch]=sqrt(fabs(_ADC2Raw[ch]-_ADCRaw[ch]*_ADCRaw[ch]));
           //          if(_ADC2[ch]/sqrt(_Count[ch]-1)>4*TRCALIB.PedAccRequired[l]){
           if(cid.checkstatus(AMSDBc::BAD))badp[l]++;
+#ifdef __AMSBADLIST__
+            if( TRCALIB.Pass == 2){
+               // Put Here N. Produit chan
+              if(!cid.getsignsigraw())fcommon << hex<< cid.gethaddr()<<endl;
+            }
+#endif             
           if( TRCALIB.Pass >= 2){
             geant thr=TRCALIB.BadChanThr[1]*_Count[ch];
             if(thr<3)thr=3;
             if(_BadCh[ch]*_Count[ch]>thr || cid.getsig()==0 ){ 
               cid.setstatus(AMSDBc::BAD);
+#ifdef __AMSBADLIST__
+            if( TRCALIB.Pass == 2){
+               // Put Here N. Produit chan
+              fcluster << hex<< cid.gethaddr()<<endl;
+            }
+#endif             
               bad[l]++;
             }
             else cid.clearstatus(AMSDBc::BAD);
             // special ladder#6 layer #3 side# 0
-               if(cid.getlayer() == 3  && cid.getdrp() == 6 && cid.getside() == 0
-                  && cid.gethalf()==0)cid.setstatus(AMSDBc::BAD);            
+            //               if(cid.getlayer() == 3  && cid.getdrp() == 6 && cid.getside() == 0
+            //                  && cid.gethalf()==0){
+            //                   cid.setstatus(AMSDBc::BAD);            
+            //#ifdef __AMSBADLIST__
+            //            if( TRCALIB.Pass == 2){
+            //               // Put Here N. Produit chan
+            //              fcluster << hex <<cid.gethaddr()<<endl;
+            //            }
+            //#endif             
+
+            //               }
             // special ladder#9 layer #2 side# 0 half# 1
                //               if(cid.getlayer() == 2  && cid.getdrp() == 9 && cid.getside() == 0
                //                  && cid.gethalf()==1)cid.setstatus(AMSDBc::BAD);            
@@ -583,6 +613,13 @@ void AMSTrIdCalib::_calc(){
        }
      }
     }
+#ifdef __AMSBADLIST__
+            if( TRCALIB.Pass == 2){
+              fcluster.close();
+              fcommon.close();
+            }
+#endif             
+
     if(bad[l])cout <<"AMSTrIdCalib::_calc-W-bad channels found for side "<<l<<" : "<<bad[l]<<endl;
     if(badp[l])cout <<"AMSTrIdCalib::_calc-W-badp channels found for side "<<l<<" : "<<badp[l]<<endl;
     if(bada[l])cout <<"AMSTrIdCalib::_calc-W-bada channels found for side "<<l<<" : "<<bada[l]<<endl;
@@ -871,6 +908,106 @@ if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
 }
 
 
+void AMSTrIdCalib::buildSigmaPedB(integer n, int16u *p){
+   _CurTime=AMSEvent::gethead()->gettime();
+   if(_CurRun > 0 && _CurRun != AMSEvent::gethead()->getrun())check(1);
+   _CurRun=AMSEvent::gethead()->getrun();
+  integer static first=0;
+  if(first++ == 0){
+    _BeginTime=AMSEvent::gethead()->gettime();
+  }
+
+  integer const ms=640;
+  integer len;
+  static geant id[ms];
+  //VZERO(id,ms*sizeof(id[0])/sizeof(integer));
+  int i,j,k;
+  integer ic=AMSTrRawCluster::checkdaqidRaw(*p)-1;
+  int16u * ptr=p+1;
+  // Main loop
+  while (ptr<p+n){
+    // Read two tdrs
+    if(*ptr != 3084){
+      cerr <<"buildrawRaw-E-bad event length, skipped "<<*ptr<<endl; 
+      return;
+    }
+    ptr+=2;
+    for(i=0;i<2;i++){
+     int16u tdrn=*ptr;
+     int16u lrec=*(ptr+1);
+     ptr++;
+     if(lrec !=1540){
+      cerr <<"buildrawRaw-E-bad event sublength, skipped "<<lrec<<endl; 
+      return;
+     }   
+     if(tdrn < 16){
+       // S side
+       len=640;
+       for(j=0;j<2;j++){
+         int16u conn,tdrs;
+         tdrs=tdrn/2;
+         if(tdrn%2==0){
+          if(j==0)conn=1;
+          else conn=0;
+         }
+         else {
+          if(j==0)conn=3;
+          else conn=2;
+         }
+         int16u haddr=(conn<<10) | (tdrs <<12);
+         AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<320;k++){
+           idd.upd(k);
+           id[k]=float(*(ptr+2+k+j*768)); 
+          }
+          for(k=320;k<640;k++){
+           idd.upd(k);
+           id[k]=float(*(ptr+2+k+64+j*768)); 
+          }
+          buildpreclusters(idd,len,id);
+         }
+       }
+     }
+     else {
+       // K Side
+       len=384;
+       for(j=0;j<4;j++){
+          int16u conn, tdrk;
+          if(tdrn%2 ==0){
+            if(j<2)conn=j+2;
+            else conn=j-2;
+          }
+          else {
+           if(j<2)conn=j+2;
+           else conn=j-2;
+           conn+= 4;
+          }
+          tdrk=(tdrn-16)/2;
+          int16u haddr=(10<<6) |( conn<<10) | (tdrk <<13);
+          AMSTrIdSoft idd(ic,haddr);
+         if(!idd.dead()){
+          // copy to local buffer and subtract peds
+          for(k=0;k<384;k++){
+           idd.upd(k);
+          id[k]=float(*(ptr+2+k+j*384)); 
+          }
+          buildpreclusters(idd,len,id);
+         }
+       }
+     }
+     ptr+=lrec;
+    }
+  }
+
+
+
+
+
+}
+
+
 void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
    _CurTime=AMSEvent::gethead()->gettime();
    _CurRun=AMSEvent::gethead()->getrun();
@@ -1003,6 +1140,30 @@ void AMSTrIdCalib::buildSigmaPedA(integer n, int16u *p){
       cid.upd(j);
       id[j]=float((*(ptr+1+j)) & 4095);
      }
+       buildpreclusters(idd,len,id);
+       
+     }
+    ptr=ptr+len+1;
+
+  }
+}
+
+
+
+time_t AMSTrIdCalib::_BeginTime=0;
+time_t AMSTrIdCalib::_CurTime=0;
+uinteger AMSTrIdCalib::_CurRun=-1;
+
+
+
+void AMSTrIdCalib::buildpreclusters(AMSTrIdSoft & idd, integer len, geant id[]){
+     // calc cmn noise
+  integer const maxva=64;
+  static geant idlocal[maxva];
+  integer ic=idd.gethalf();
+      int i,j,k;
+      AMSTrIdCalib cid(idd);
+
      // calc cmn noise
       integer vamin,vamax,l;
       for (j=0;j<len;j+=maxva){
@@ -1076,15 +1237,4 @@ void AMSTrIdCalib::buildSigmaPedA(integer n, int16u *p){
 
         }
        }
-       
-   }
-    ptr=ptr+len+1;
-
-   }
- }
-
-
-
-time_t AMSTrIdCalib::_BeginTime=0;
-time_t AMSTrIdCalib::_CurTime=0;
-uinteger AMSTrIdCalib::_CurRun=-1;
+}

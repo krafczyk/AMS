@@ -26,6 +26,7 @@ number _NorthPolePhi;
 number _StationTheta;
 number _StationPhi;
 time_t _time;
+uinteger _usec;
 static integer SRun;
 static AMSEvent * _Head;
 static AMSNodeMap EventMap;
@@ -106,11 +107,11 @@ void _findC(AMSID & id);
 AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
-number pole, number stationT, number stationP ):AMSNode(id),_run(run),
-_time(time), _runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),
+uinteger usec,number pole, number stationT, number stationP ):AMSNode(id),_run(run),
+_time(time), _usec(usec),_runtype(runtype),_NorthPolePhi(pole),_StationPhi(stationP),
 _StationTheta(stationT){_Head=this;}
-AMSEvent(AMSID id, integer run, integer runtype, time_t time=0):AMSNode(id),_run(run),
-   _runtype(runtype), _time(time){
+AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMSNode(id),_run(run),
+   _runtype(runtype), _time(time), _usec(usec){
    SetTimeCoo();
    _Head=this;
 }
@@ -171,9 +172,9 @@ inline void printH(){
 static int16u  getdaqid(int btype){return 0x200 | btype <<13;}
 static integer checkdaqid(int16u id);
 static void buildraw(integer length, int16u *p, uinteger &run, uinteger &event,
-uinteger & runtype, time_t & time); 
+uinteger & runtype, time_t & time, uinteger & usec); 
 static integer getmaxblocks(){return 1;}
-static integer calcdaqlength(integer i){return 1+2+1+2+3;}
+static integer calcdaqlength(integer i){return 1+2+2+2+4;}
 static integer calcTrackerHKl(integer i);
 static void builddaq(integer i, integer length, int16u *p);
 static void buildTrackerHKdaq(integer i, integer length, int16u *p);

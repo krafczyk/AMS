@@ -152,8 +152,10 @@ AMSTrIdCalib():AMSTrIdSoft(){};
 AMSTrIdCalib(const AMSTrIdSoft & o):AMSTrIdSoft(o){};
 static void initcalib();
 static void check(integer forcedw=0);
+ static void buildpreclusters( AMSTrIdSoft & idd, integer len, geant id[]);
 static void buildSigmaPed(integer n, int16u* p);
 static void buildSigmaPedA(integer n, int16u* p);
+static void buildSigmaPedB(integer n, int16u* p);
 inline getcount() const {return _Count[getchannel()];}
 geant getcmnnoise() const {return _CmnNoise[_VANumber][_addr];}
 void updcmnnoise(geant cmn){(_CmnNoise[_VANumber][_addr])+=cmn;}

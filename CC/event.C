@@ -152,7 +152,8 @@ void AMSEvent::SetTimeCoo(){
    if(phi < 0)phi=phi+AMSDBc::twopi;
    theta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*
         sin(phi));
-   _time=integer(mktime(&AMSmceventg::Orbit.Begin)+curtime+0.5);
+   _time=integer(mktime(&AMSmceventg::Orbit.Begin)+curtime);
+   _usec=(curtime-integer(curtime))*1000000;
    _NorthPolePhi=pole;
    _StationTheta=theta;
    _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
@@ -336,11 +337,15 @@ void AMSEvent::_retkinitevent(){
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRecHitWeak",i),&AMSTrRecHit::buildWeak,0));
 
+
   for( i=0;i<npat;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrack",i),&AMSTrTrack::build,0));
 
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrackWeak",i),&AMSTrTrack::buildWeak,0));
+
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTrTrackFalseX",i),&AMSTrTrack::buildFalseX,0));
 }
 
 void  AMSEvent::write(){
@@ -561,7 +566,18 @@ AMSgObj::BookTimer.start("TrTrack");
 if( (buildC("AMSTrTrack",refit)==0) && TRFITFFKEY.WeakTracking ){
  buildC("AMSTrClusterWeak",refit);
  buildC("AMSTrRecHitWeak",refit);
- buildC("AMSTrTrackWeak",refit);
+ if(buildC("AMSTrTrackWeak",refit)==0 && TRFITFFKEY.FalseXTracking){
+  
+  integer itrk=buildC("AMSTrTrackFalseX",refit);
+  if(itrk>0){
+       itrk=buildC("AMSTrTrack",refit);
+  }
+#ifdef __AMSDEBUG__
+  if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
+   
+#endif
+ }
+ 
 }
 AMSgObj::BookTimer.stop("TrTrack");
 #ifdef __AMSDEBUG__
@@ -1036,7 +1052,7 @@ void AMSEvent::_copyEl(){
 
 void AMSEvent::_printEl(ostream & stream){
  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
-   ctime(&_time)<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<
+   ctime(&_time)<<"."<<_usec<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<
    " Pole "<<_NorthPolePhi*AMSDBc::raddeg<<endl;
 }
 
@@ -1374,35 +1390,40 @@ void AMSEvent::builddaq(integer i, integer length, int16u *p){
 *(p+1)=int16u(_Head->_run&65535);
 *(p+2)=int16u((_Head->_run>>16)&65535);
 *(p+3)=int16u(_Head->_runtype&65535);
+*(p+4)=int16u(_Head->_runtype>>16&65535);
 uinteger _event=uinteger(_Head->_id);
-*(p+4)=int16u(_event&65535);
-*(p+5)=int16u((_event>>16)&65535);
-*(p+6)=int16u(_Head->_time&65535);
-*(p+7)=int16u((_Head->_time>>16)&65535);
-*(p+8)=0;
+*(p+5)=int16u(_event&65535);
+*(p+6)=int16u((_event>>16)&65535);
+*(p+7)=int16u(_Head->_time&65535);
+*(p+8)=int16u((_Head->_time>>16)&65535);
+*(p+9)=int16u(_Head->_usec&65535);
+*(p+10)=int16u((_Head->_usec>>16)&65535);
 }
 void AMSEvent::buildTrackerHKdaq(integer i, integer length, int16u *p){
 
 *p= getdaqid(4);
-*(p+1)=int16u((_Head->_run+1)&65535);
-*(p+2)=int16u(((_Head->_run+1)>>16)&65535);
-*(p+3)=int16u(4&65535);
+*(p+1)=int16u(_Head->_run&65535);
+*(p+2)=int16u((_Head->_run>>16)&65535);
+*(p+3)=int16u(_Head->_runtype&65535);
+*(p+4)=int16u(_Head->_runtype>>16&65535);
 uinteger _event=uinteger(_Head->_id);
-*(p+4)=int16u(_event&65535);
-*(p+5)=int16u((_event>>16)&65535);
-*(p+6)=int16u(_Head->_time&65535);
-*(p+7)=int16u((_Head->_time>>16)&65535);
-*(p+8)=0;
+*(p+5)=int16u(_event&65535);
+*(p+6)=int16u((_event>>16)&65535);
+*(p+7)=int16u(_Head->_time&65535);
+*(p+8)=int16u((_Head->_time>>16)&65535);
+*(p+9)=int16u(_Head->_usec&65535);
+*(p+10)=int16u((_Head->_usec>>16)&65535);
 }
 
 
 void AMSEvent::buildraw(
               integer length, int16u *p, uinteger & run, uinteger &id,
-              uinteger &runtype, time_t & time){
+              uinteger &runtype, time_t & time, uinteger &usec){
   run=(*(p+1)) |  (*(p+2))<<16;
-  runtype=*(p+3);
-  id=(*(p+4)) |  (*(p+5))<<16;
-  time=(*(p+6)) |  (*(p+7))<<16;
+  runtype=(*(p+3)) |  (*(p+4))<<16;
+  id=(*(p+5)) |  (*(p+6))<<16;
+  time=(*(p+7)) |  (*(p+8))<<16;
+  usec=(*(p+9)) |  (*(p+10))<<16;
 
 }
 
@@ -1418,7 +1439,7 @@ else return 0;
 integer AMSEvent::calcTrackerHKl(integer i){
 static integer init =0;
 if(!TRMCFFKEY.WriteHK || abs(++init-TRMCFFKEY.WriteHK-1) >1)return 0;
-return 1+2+1+2+3;
+return 1+2+2+2+4;
 }
 
 integer AMSEvent::_checkUpdate(){

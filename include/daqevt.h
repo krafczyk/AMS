@@ -62,6 +62,7 @@ uinteger _Event;
 uinteger _Run;
 uinteger _RunType;
 time_t _Time;
+uinteger _usec;
 int16u *  _pcur;
 int16u * _pData;
 static DAQSubDet * _pSD[nbtps];
@@ -82,11 +83,12 @@ public:
 uinteger GetBlType(){return _GetBlType();}
 ~DAQEvent();
 DAQEvent(): AMSlink(),_Length(0),_Event(0),_Run(0),_pcur(0),_pData(0),_Checked(0),
-_Time(0),_RunType(0),_BufferOwner(0){}
+_Time(0),_RunType(0),_usec(0),_BufferOwner(0){}
 uinteger & eventno(){return _Event;}
 uinteger & runno(){return _Run;}
 time_t   & time(){return _Time;}
 uinteger & runtype(){return _RunType;}
+uinteger & usec(){return _usec;}
 void buildDAQ(uinteger btype=0);
 void buildRawStructures();
 void write();

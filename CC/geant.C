@@ -461,7 +461,7 @@ static integer event=0;
     AMSgObj::BookTimer.start("GEANTTRACKING");
    if(IOPA.mode !=1 ){
     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-    new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0)));
+    new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
     for(integer i=0;i<CCFFKEY.npat;i++){
     AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
@@ -474,7 +474,7 @@ static integer event=0;
     AMSIO io;
     if(io.read()){
      AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-     new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),
+     new AMSEvent(AMSID("Event",io.getevent()),io.getrun(),0,io.gettime(),0,
      io.getpolephi(),io.getstheta(),io.getsphi())));
      AMSmceventg* genp=new AMSmceventg(io);
      if(genp){
@@ -499,7 +499,7 @@ static integer event=0;
       if(!(pdaq->read()))break;
       AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
       new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
-      pdaq->runtype(),pdaq->time())));
+      pdaq->runtype(),pdaq->time(),pdaq->usec())));
       AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
       guout_();
       if(GCFLAG.IEOTRI || GCFLAG.IEVENT >= GCFLAG.NEVENT)break;

@@ -288,7 +288,7 @@ R71 ResFunX[3][6];      //
 
 // Tracker pattern recognition
 TRFIT
-I 1 Pattern[22](5*1,17*0)
+I 1 Pattern[42](22*1,20*0)
   //    Number              Descr             Points      Default
   //    0                   123456            6           on
   //    1                   12346             5           on
@@ -312,28 +312,30 @@ I 1 Pattern[22](5*1,17*0)
   //   19                   2356              4           off
   //   20                   2456              4           off
   //   21                   3456              4           off
-I23  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
+  ...   20 .... 3 points (see trrec.C)......
+I43  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
                                   // Not use(0) TOF  for pattern No 16
-R24  Chi2FastFit(20)              // Max  chi2 for tkhmd;
-R25  Chi2StrLine(20)              // The same for Straight line fit
-R26  Chi2Circle(20)         // The same for Circle fit
-R27  ResCutFastFit(0.5)     // Max residual distance in cm between 
+R44  Chi2FastFit(20)              // Max  chi2 for tkhmd;
+R45  Chi2StrLine(20)              // The same for Straight line fit
+R46  Chi2Circle(20)         // The same for Circle fit
+R47  ResCutFastFit(0.5)     // Max residual distance in cm between 
                                   // point and fitted curve (not yet impl)
-R28  ResCutStrLine(0.5)     // --- strline    (not yet impl)
-R29  ResCutCircle(0.5)      // --- circlefit  (not yet impl)
-R30  SearchRegFastFit(1)    // Max distance in cm between point 
+R48  ResCutStrLine(0.5)     // --- strline    (not yet impl)
+R49  ResCutCircle(0.5)      // --- circlefit  (not yet impl)
+R50  SearchRegFastFit(1)    // Max distance in cm between point 
                                   // and extrarpolated curve to include
                                   // point in the pattern
-R31  SearchRegStrLine(0.5)  // ------- strline fit
-R32  SearchRegCircle(1)     // ---------- circle fit
-R33  RidgidityMin(0.2)      // Minimal ridgidity in GV     
-I34  FullReco(0)            // Use(1) or not use(0) "used "clusters to build 
+R51  SearchRegStrLine(0.5)  // ------- strline fit
+R52  SearchRegCircle(1)     // ---------- circle fit
+R53  RidgidityMin(0.2)      // Minimal ridgidity in GV     
+I54  FullReco(0)            // Use(1) or not use(0) "used "clusters to build 
                             // tracks
-R35  MinRefitCos(0.7,0.5)      // min cos(tr angle) to refit track with wider
+R55  MinRefitCos(0.7,0.5)      // min cos(tr angle) to refit track with wider
                             // clusters
-I37  FastTracking(0)        // Make(1) do not make(0) nonlinear fitting
-I38  WeakTracking(0)        // Make(1) do not make(0) weak clusters fitting
-
+I57  FastTracking(0)        // Make(1) do not make(0) nonlinear fitting
+I58  WeakTracking(0)        // Make(1) do not make(0) weak clusters fitting
+I59  FalseXTracking(0)        // Make(1) do not make(0) 4y + 3x tracking
+R60  Chi2FalaseX(10.)       // Max Chi2 for 3point combinations
 
 
 // Tracker fitting
@@ -454,7 +456,7 @@ I 1 mode(0)                         // 0 do nothing
                                     // mode/10 = 2 write daq (append)
 I 2 ifile[40]("")                   // input file name
 I42 ofile[40]("")                   // output file name
-
+I83 OldFormat(0)                    // old(0) new(1) format
 
 
 BMAP   // Magnetic field control
