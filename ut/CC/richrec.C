@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.39 2002/10/30 14:57:10 mdelgado Exp $
+//  $Id: richrec.C,v 1.40 2002/11/06 18:20:46 delgadom Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -1136,8 +1136,8 @@ void AMSRichRing::ReconRingNpexp(geant window_size){ // Number of sigmas used
 
 
   static geant dfphi[NSTP],dfphih[NSTP];
-  static geant hitd[MAXRICHITS],hitp[MAXRICHITS];
-  static AMSRichRawEvent *used_hits[MAXRICHITS];
+  static geant hitd[RICmaxpmts*RICnwindows/2],hitp[RICmaxpmts*RICnwindows/2];
+  static AMSRichRawEvent *used_hits[RICmaxpmts*RICnwindows/2];
   
 
 

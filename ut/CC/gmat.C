@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.75 2002/10/30 14:57:09 mdelgado Exp $
+//  $Id: gmat.C,v 1.76 2002/11/06 18:20:47 delgadom Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -624,28 +624,28 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       p[iw]=2*3.1415926*197.327e-9/RICHDB::wave_length[iw]; // Photon momentum in GeV
-      dummy[iw]=1;
+      dummy[iw]=1.;
     }
 
 // Radiator
 
   geant my_step=RICHDB::max_step();
   AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH RAD",
-         "RICH_AEROGEL",1,'N',0,1,20,10,my_step));   //32
+           "RICH_AEROGEL",0,'N',0,1,20,10,my_step));   //32
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index,RICHDB::rad_clarity);
   
   // NaF (Secondary radiator)
   pgtmed=(AMSgtmed*)  tmed.add (new AMSgtmed("RICH NAF",
 					     "RICH_NaF",0));
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::naf_abs_length,dummy,
-		  RICHDB::naf_index_table,0);
+		  RICHDB::naf_index_table,0.);
   
 
 // PMT window
   
 //  my_step*=(1-1/1.458/1.458)/(1-1/RICHDB::rad_index/RICHDB::rad_index); // To be moved to RICH common
     pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH PMTS",
-    "PMT_WINDOW",1)); //35 
+    "PMT_WINDOW",0)); //35 
   for(iw=0;iw<RICHDB::entries;iw++)
     {
       abs_l[iw]=1.e-10;     //changed by VC 7-sep-2000
@@ -723,7 +723,7 @@ pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
 
 // Electronics
 
-   pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH GLUE","RICH_WALLS",1));
+   pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH GLUE","RICH_WALLS",0));
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 // transparent vaccum
