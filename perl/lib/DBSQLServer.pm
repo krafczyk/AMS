@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.60 2003/10/02 10:11:14 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.61 2003/12/04 10:42:59 alexei Exp $
 
 #
 #
@@ -327,7 +327,7 @@ my $cnt  = 0;
 my $sql;
 
    if($self->{dbdriver} =~ m/Oracle/){
-    print "Check and fill RNDM table from $RNDMTable \n";
+    print "Check RNDM table \n";
     $sql="SELECT COUNT(rid) FROM RNDM";
     $cntr=$self->Query($sql);
      foreach my $ret (@{$cntr}) {
@@ -335,6 +335,7 @@ my $sql;
      }
     }
     if ($cnt == 0) {
+     print "...and fill it from $RNDMTable \n";
      open(FILEI,"<".$RNDMTable) or die "Unable to open file $RNDMTable\n";
      my $line;
      while ( $line = <FILEI>){

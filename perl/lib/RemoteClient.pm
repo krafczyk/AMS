@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.222 2003/12/04 10:05:22 alexei Exp $
+# $Id: RemoteClient.pm,v 1.223 2003/12/04 10:42:59 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -18,9 +18,9 @@
 #                 add MIPS column into Jobs table
 # Oct 2003      : updateHostInfo and calculateMips functions
 #                 validateRuns is modified - add clock for local hosts
+# Dec 4 2003    : increase number of cites to 32 (16/32, 27/26)
 #
 # ToDo : checkJobsTimeout - reduce number of SQLs
-#        increase number of cites to 32 (16/32, 27/26)
 #
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
