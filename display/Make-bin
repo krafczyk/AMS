@@ -61,6 +61,9 @@ DICTGO        = # $(DICTG:.cxx=.o)
 MAIN          = main.cxx
 MAINO         = $(MAIN:.cxx=.o)
 
+MAINC          = mainc.cxx
+MAINOC         = $(MAINC:.cxx=.o)
+
 OBJS          = $(SRCS:.cxx=.o) $(DICTO)
 
 OBJSG         = # $(SRCSG:.cxx=.o) $(DICTGO)
@@ -77,6 +80,7 @@ AMSSHAREDLIB = libAMS.so
 #AMSGLIB      = libAMSg.so
 
 AMSPRG       = amsed
+AMSPRGC       = amsedc
 
 
 
@@ -84,6 +88,8 @@ AMSPRG       = amsed
 interprete:  $(AMSSHAREDLIB)
 
 standalone:  $(AMSPRG)
+
+realtime:  $(AMSPRGC)
 
 $(AMSLIB):     $(DICT) $(OBJS)
 		rm -f $(AMSLIB)
@@ -125,6 +131,9 @@ $(AMSSHAREDLIB):     $(DICT) $(OBJS)
 
 $(AMSPRG):	$(AMSSHAREDLIB) $(MAINO)
 		$(LD) $(LDFLAGS) $(MAINO) $(AMSSHAREDLIB) $(GLIBS) -o $(AMSPRG) 
+
+$(AMSPRGC):	$(AMSSHAREDLIB) $(MAINOC)
+		$(LD) $(LDFLAGS) $(MAINOC) $(AMSSHAREDLIB) $(GLIBS) -o $(AMSPRGC) 
 
 
 $(DICT):        $(HDRS)

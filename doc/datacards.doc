@@ -34,7 +34,7 @@ I 1    hlun(0)                   // lun number for ntuple file (=0 no output)
 I 2    hfile(160*' ')            // ntuple uutput file name
 I42    ntupleId(1)               // Ntuple Id
 I43    WriteAll(0)               // Flag to write all or  "used only" objects
-I44    TriggerI(1)               // Not used in v204++
+I44    SplitNtuple               // Max number events  in the ntuple
 I45    TriggerC('AMSParticle')   // Container names, separated by
                                  // & or | to trigger write 
                                  // the ntuple and/or db

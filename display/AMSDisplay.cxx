@@ -94,7 +94,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
 
    // Create display canvas
 //   m_Canvas = new TCanvas("Canvas", (char*)title,14,47,740,650);
-   m_Canvas = new AMSCanvas("Canvas", (Text_t*)title);
+   m_Canvas = new AMSCanvas("Canvas", (Text_t*)title,1024,768);
    m_Canvas->SetEditable(kIsNotEditable);
 
    //
@@ -631,7 +631,7 @@ void AMSDisplay::DrawEventInfo(Option_t *option)
    TVirtualPad * gPadSave = gPad;
    pad->cd();
 
-   sprintf(atext,"Run %d/Event %d",gAMSRoot->RunNum(), gAMSRoot->EventNum());
+   sprintf(atext,"Run %d/ %d",gAMSRoot->RunNum(), gAMSRoot->EventNum());
    for (Int_t i=strlen(atext);i<kTMAX-1;i++) atext[i] = ' ';
    atext[kTMAX-1] = 0;
 
@@ -642,7 +642,7 @@ void AMSDisplay::DrawEventInfo(Option_t *option)
 	text->SetText(0.04, 0.5,atext);
 
    text->SetTextAlign(12);
-   text->SetTextSize(0.60);
+   text->SetTextSize(0.55);
    text->Draw();
 
    gPadSave->cd();
@@ -812,13 +812,14 @@ void AMSDisplay::ExecuteEvent(Int_t event, Int_t px, Int_t py)
 }
 
 //_____________________________________________________________________________
-void AMSDisplay::GetEvent(Int_t event)
+Int_t AMSDisplay::GetEvent(Int_t event)
 {
 //    Read event in memory
 
-   gAMSRoot->GetEvent(event);
+   Int_t ret=gAMSRoot->GetEvent(event);
 
    Draw();
+   return ret;
 }
 
 //_____________________________________________________________________________

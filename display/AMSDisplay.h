@@ -102,7 +102,7 @@ public:
 //	   void      DoubleSize();
 //	   void      HalfSize();
    virtual void      ExecuteEvent(Int_t event, Int_t px, Int_t py);
-   virtual void      GetEvent(Int_t event); //*MENU*
+   virtual Int_t      GetEvent(Int_t event); //*MENU*
 // AMSKeyNode       *GetKeyNode() const { return m_KeyNode; }
    TPad             *Pad() {return m_Pad;}
    AMSCanvas        *GetCanvas() { return m_Canvas; }

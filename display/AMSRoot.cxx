@@ -346,21 +346,23 @@ void AMSRoot::Browse(TBrowser *b)
 }
 
 //_____________________________________________________________________________
-void AMSRoot::GetEvent(Int_t event)
+Int_t AMSRoot::GetEvent(Int_t event)
 {
+   Int_t ret=0;
    // Get one event into the result tree
    //
 
-   if (event<0) return;
+   if (event<0) return 0;
    //   cout << " Select Event No : ";
    //   cin >> event;
    //   cin.ignore(INT_MAX,'\n');
    //    Read event in input tree
    if (m_Input) {
      debugger.Print("AMSRoot::GetEvent(): doing m_Input->GetEvent(%d)\n", event);
-          m_Input->GetEvent(event);
+        ret= m_Input->GetEvent(event);
+        if(ret==0)return 0;
    }
-
+   else return 0;
    //
    // Make them into the result tree
    //
@@ -376,6 +378,7 @@ void AMSRoot::GetEvent(Int_t event)
    //
    // For data this is read in automatically
    m_Event = event;
+   return ret;
 }
 
 

@@ -87,7 +87,7 @@ public:
                       AMSRoot(const char *name, const char *title="The AMS Display with Root");
    virtual           ~AMSRoot();
    virtual void       Browse(TBrowser *b);
-   virtual void       GetEvent(Int_t event=1);      // *MENU*
+   virtual Int_t       GetEvent(Int_t event=1);      // *MENU*
    virtual void       SelectEvent();      // *MENU*
    virtual void       Init(TTree * h1=0);           //Initialize to read from h1
    virtual void       Finish();                     //Finish a run

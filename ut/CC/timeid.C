@@ -221,7 +221,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
       _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
       }
       else {
-        cerr<<"AMSTimeID::read-E-Problems to Read File "<<fnam<<endl;
+        cout<<"AMSTimeID::read-W-Problems to Read File "<<fnam<<endl;
       }
       fbin.close();
       delete [] pdata;

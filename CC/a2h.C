@@ -263,6 +263,7 @@ out:
         if (datatype==0){
           cntdr=0;
           // Compressed mode - get rid of junk
+          //cout <<"nblk "<<nblk<<endl;
           for(int k=0;k<nblk;k++){
             for(int j=0;j<pntdr[k];j++){
               Record[14]+=pData[cntdr++][0]-2;
@@ -274,25 +275,24 @@ out:
           for(int l1=0;l1<pntdr[ll];l1++){
            int len=0;
            int tlen=0;
-           for(int k=1;k<pData[cntdr][0]-2;k+=len){
+           int numm=0;
+           for(int k=1;k<pData[cntdr][0]-1;k+=len){
             len=(pData[cntdr][k]&255 )+3;
+            //cout <<"len "<<len<<endl;
             tlen+=len;
+            numm++;
             for(int lc=0;lc<len;lc++){
               Record[frp]=pData[cntdr][k+lc];
               if(lc==len-1)Record[frp]= Record[frp] & (~(1<<15));
-              //              if(evt==20)cout <<k<<" "<<len<<" "<<Record[frp]<<endl;   
               frp++;
             }
           
            }
-           //           if(tlen%2){
-           //             //if(evt==20)cout <<"subt"<<endl;
-           //             Record[14]--;
-           //           }
            cntdr++;
     
           }
-         } 
+         }
+         //cout <<"14 "<<Record[14]<<endl; 
         }
        
 

@@ -35,10 +35,10 @@ private:
 
 protected:
    static MenuDesc_t  fgAMSFilePane[];
-   static   void      AddParticleInfo();
    static TMotifCanvas * fTheCanvas;
 
 public:
+   static   void      AddParticleInfo();
                       AMSCanvas() : TCanvas()  {}
                       AMSCanvas(Text_t *name, Text_t *title="The AMS Display with Root", Int_t ww=700, Int_t wh=550);
    virtual           ~AMSCanvas() {}

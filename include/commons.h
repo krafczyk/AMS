@@ -114,7 +114,7 @@ integer hlun;
 integer hfile[40];
 integer ntuple;
 integer WriteAll;
-integer TriggerI;
+integer SplitNtuple;
 integer TriggerC[40];
 integer mode;
 integer ffile[40];

@@ -174,7 +174,7 @@ _TDVC[0][0]='\0',_TDVN=0;cout <<
 static AMSJob* gethead(){return _Head;}
 static AMSJob * & sethead(){return _Head;}
 void setsetup(char * setup);
-void settrigger(char * triggerC, integer triggerN, integer triggerI,
+void settrigger(char * triggerC, integer triggerN, 
 integer triggerOr);
 void settdv(char * TDVC, integer TDVN);
 inline char * getsetup(){return _Setup;}
@@ -224,6 +224,7 @@ AMSgtmed * getmed(AMSID id=0);
 void data();
 void udata();
 void init();
+void uhinit(integer pass=0);
 AMSTimeID * gettimestructure();
 AMSTimeID * gettimestructure(const AMSID & id);
 void printJ(ostream & stream);

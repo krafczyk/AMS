@@ -120,7 +120,7 @@ void AMSJob::_siamsdata(){
 IOPA.hlun=0;
 VBLANK(IOPA.hfile,40);
 IOPA.ntuple=1;
-IOPA.TriggerI=1;
+IOPA.SplitNtuple=1;
 IOPA.WriteAll=0;
 VBLANK(IOPA.TriggerC,40);
 VBLANK(AMSFFKEY.TDVC,400);
@@ -864,7 +864,7 @@ for (i=0;i<len;i++){
     // new trigger found
        if(triggername[i]=='|')or=1;
        triggername[i]='\0';
-       if(i-nold>0)settrigger(triggername+nold,ntrig++,IOPA.TriggerI,or);
+       if(i-nold>0)settrigger(triggername+nold,ntrig++,or);
        nold=i+1;
   }
 }
@@ -1403,12 +1403,12 @@ void AMSJob::setsetup(char *setup){
   else strcpy(_Setup,"AMSSHUTTLE");   //defaults
   
 }
-void AMSJob::settrigger(char *setup, integer N, integer I,integer or){
+void AMSJob::settrigger(char *setup, integer N,integer or){
   assert(N < maxtrig);
   if(setup){
     strcpy(_TriggerC[N],setup);
   }
-  _TriggerI=I;
+  _TriggerI=1;
   _TriggerOr=or;
   _TriggerN=N+1;
 }
@@ -1724,6 +1724,33 @@ if(IOPA.hlun){
 
 
 }
+
+
+void AMSJob::uhinit(integer pass){
+
+  
+  if(IOPA.hlun){
+    char hfile[161];
+    UHTOC(IOPA.hfile,40,hfile,160);  
+    integer iostat;
+    integer rsize=1024;
+    HROPEN(IOPA.hlun,"output",hfile,"N",rsize,iostat);
+    if(iostat){
+     cerr << "Error opening Histo file "<<hfile<<endl;
+     exit(1);
+    }
+    else cout <<"Histo file opened."<<endl;
+  }
+   HBOOK1(200101,"Number of Nois Hits x",100,-0.5,99.5,0.);
+   HBOOK1(200102,"Number of Nois Hits y",100,-0.5,99.5,0.);
+   HBOOK1(200103,"Normal Spectrum  x",200,-50.5,49.5,0.);
+   HBOOK1(200104,"Normal Spectrum y",200,-50.5,49.5,0.);
+   HBOOK1(200105,"Above threshold spectrum x",200,-0.5,49.5,0.);
+   HBOOK1(200106,"Above threshold spectrum y",200,-0.5,49.5,0.);
+   HBNT(IOPA.ntuple,"Simulation"," ");
+
+}
+
 
 void AMSJob::_tkendjob(){
 

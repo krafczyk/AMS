@@ -625,14 +625,14 @@ void AMSCanvas::AddParticleInfo()
   }
 
   debugger.Print("get particle info: %s\n", info);
-  char info1[80];
+  char info1[80]="\0";
   sprintf(info1, "Particle: %s", info);
   TText * text = new TText(0.01, 0.45, info1);	// should be 0.5 , but somehow 0.45 is better
   text->SetTextSize(0.60);	// 0.65 should be fine, but somehow 0.60 is better
 //  text->SetTextColor(0);
   text->SetTextAlign(12);
   text->Draw();
-
+  delete text;
    // then print it
    // TMotifCanvas *canv = (TMotifCanvas *) cd;
    //AMSCanvasImp *canv = (AMSCanvasImp *) cd;

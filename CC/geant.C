@@ -119,28 +119,6 @@ LMS*                   lms;
 
 #endif
 
-void uhinit(){
-  
-  if(IOPA.hlun){
-    char hfile[161];
-    UHTOC(IOPA.hfile,40,hfile,160);  
-    integer iostat;
-    integer rsize=1024;
-    HROPEN(IOPA.hlun,"output",hfile,"N",rsize,iostat);
-    if(iostat){
-     cerr << "Error opening Histo file "<<hfile<<endl;
-     exit(1);
-    }
-    else cout <<"Histo file opened."<<endl;
-  }
-   HBOOK1(200101,"Number of Nois Hits x",100,-0.5,99.5,0.);
-   HBOOK1(200102,"Number of Nois Hits y",100,-0.5,99.5,0.);
-   HBOOK1(200103,"Normal Spectrum  x",200,-50.5,49.5,0.);
-   HBOOK1(200104,"Normal Spectrum y",200,-50.5,49.5,0.);
-   HBOOK1(200105,"Above threshold spectrum x",200,-0.5,49.5,0.);
-   HBOOK1(200106,"Above threshold spectrum y",200,-0.5,49.5,0.);
-   HBNT(IOPA.ntuple,"Simulation"," ");
-}
 extern "C" void uginit_(){
   GINIT();
   AMSJob::sethead() = new AMSJob();
@@ -177,7 +155,7 @@ GDINIT();
 #endif
 
   GPHYSI();
-  uhinit();
+  AMSJob::gethead()->uhinit();
 }
 
 
