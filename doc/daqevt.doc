@@ -67,12 +67,14 @@ Word18   bit 0-13     Layer1 N13-0  Right   Z>1
 
 b.Trig3 Event Format 
 
-ID= 9 << 9 | {0,1,2,3,4,5} | <<6 
+ID= 9 << 9 | {0} | <<6 
 Word1  tracker  output 
 Word2  8 bit tof output  +8 bit anti output
-Word3  16 bit(signed) residual in mkm 
-Word4  8 bit pattern + 8 bit nhits
-Word5   Eloss
+Word3  16 bit(signed) residual(0)*1000 in cm 
+Word4  16 bit(signed) residual(1)*1000 in cm
+Wird5  n_of_hits << 4 | _npatfound
+Word6  _pattern[0] | _pattern[1] <<6 
+Word7   Eloss
 
 
 c.TOF Event Format
