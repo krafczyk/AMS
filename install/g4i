@@ -1,4 +1,4 @@
-#  $Id: g4i,v 1.32 2002/09/20 09:30:46 choutko Exp $
+#  $Id: g4i,v 1.33 2002/12/16 10:34:01 choutko Exp $
 setenv GEANT4NEW 1
 if $OS == "Linux"  then
 endif

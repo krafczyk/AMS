@@ -1,16 +1,14 @@
-#  $Id: g4.doc,v 1.29 2002/09/20 09:30:36 choutko Exp $
+#  $Id: g4.doc,v 1.30 2002/12/16 10:34:00 choutko Exp $
 -------
 Platform:
-linux-gcc2.95.3 ($G4SYSTEM=Linux-g++), linux-iccv6  ($G4SYSTEM=Linux-icc) 
+linux-gcc2.95.3 ($G4SYSTEM=Linux-g++)
 
 -------
 Installer:
 
 
-source AMS/install/g4i.old (v4.4.0, Linux-g++) 
 source AMS/install/g4i (v4.4.1, Linux-g++) 
-source AMS/install/g4i.new  (v4.4.1, Linux-g++)
-source AMS/install/g4i.icc.new  (v4.4.1, Linux-icc)
+source AMS/install/g4i.new  (v4.5.0, Linux-g++)
 
 see $G4INSTALL/ReleaseNotes.VC for ams specifics
 
@@ -28,7 +26,7 @@ setenv AMSDEBUG 1 switch on debug mode (compiler's one)
 unsetenv AMSDEBUG switch it off
 
 --------
-Physics Lists (New!) (geant4.4.1++ only)
+Physics Lists 
 
 Default Physics List Used = QGSP
 
@@ -59,7 +57,7 @@ Example
 AMS/datacards/g4.test.job
 
 ---------
-New Files:
+G4 code Files:
 
 
 CC/geant4.C                           <<  wrappers, analogs of 
@@ -71,77 +69,31 @@ CC/g4physics.C   <<- physics
 include,CC/g4util.h,C << utilities (rndm etc)  
 include,CC/g4xray.h,C << transition radiaton (g3 based)
 -----------
-Modified files
 
-CC/gbatch.C  << Main program <-- choose geant3/geant4 chain  
+G4 aware files: 
+
+CC/gbatch.C  << Main program <-- choose G4/G3 chain  
                                  
-CC/geant.C   << geant(3,4) initialization in uginit/uglast   
+CC/geant.C   << G4/G3 initialization in uginit/uglast   
 
-CC/gvolume.C << Constructor modified
+CC/gvolume.C << G4/G3 Constructor 
             
 
-CC/gmat.C    << new geant4  constructors
-
-Status (geant4.4.1 )
-
- initialization much improves, but still slow (~1 minutes amd-mp1533)
-
-
-Linux-g++:
-
-ok
-
-run time g3g4 comparison:
-
-                   G3      G4         
-Memory(mb)         60     160
-CPU/Event(au)       1       7 (13 if only GEANTRACKING time compared)      
-
-
-Linux-icc:
-
-ok, ~10% faster than g++ version
+CC/gmat.C    << G4/G3  constructors
 
 
 
 
+Status (geant4.5.0 )
 
-Status (geant4.4.0 patch 2)
-
-still same extremely slow initialization  (~5 minutes amd-mp1533)
-
-
-linux:
-
-ok
-
-run time g3g4 comparison:
-
-                   G3      G4         
-Memory(mb)         60     180
-CPU/Event(au)       1      16
-
-dec:
-
-memory fault i.e. doesnot work at all 
+ initialization   45'' on amd-mp-1533
 
 
+run time g3g4 comparison AMS/examples/g4.test.job,(g4)g3.test.job :
 
-
-
-
-
-
-Status (geant4.3.2):
-
-
-(Initialization extremely slow (10 minutes/piii-1ghz))
-memory:  240 mb on linux
-
-very slow but works
-
-geometry tested: tof,tracker,trd,srd,magnet,ecal,anti,rich
-
+                    G3                   G4         
+Memory(mb)         100                   180
+CPU/Event(au) 0.8(ifc)  1(g77)           17 
 
 
 
