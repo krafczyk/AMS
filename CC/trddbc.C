@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.47 2003/12/16 16:09:54 choutko Exp $
+//  $Id: trddbc.C,v 1.48 2003/12/19 10:49:24 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -2036,7 +2036,7 @@ void TRDDBc::init(){
     }
    }
    for (int j=0;j<3;j++)_SpikesPar[i][iq][j]=coo[j];
-   for (int j=0;j<3;j++)cout <<" "<<_SpikesPar[i][iq][j]<<endl;
+   //for (int j=0;j<3;j++)cout <<" "<<_SpikesPar[i][iq][j]<<endl;
   }
 } 
 }

@@ -1,4 +1,4 @@
-//  $Id: user.C,v 1.11 2002/03/20 09:41:26 choumilo Exp $
+//  $Id: user.C,v 1.12 2003/12/19 10:49:24 choutko Exp $
 #include <typedefs.h>
 #include <stdlib.h>
 #include <iostream.h>
@@ -37,14 +37,14 @@ void AMSUser::Event(){
       if(toftrigfl<=0 && ectrigfl<=0){
         return;// "no TOF/EC in LVL1-trigger"
       }
-      TOF2User::Event();
+//      TOF2User::Event();
   }
 }
 
 
 void AMSUser::EndJob(){
   if(!AMSJob::gethead()->isCalibration()){
-    TOF2User::EndJob();
+  //  TOF2User::EndJob();
   }
 }
 
