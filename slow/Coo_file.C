@@ -115,15 +115,15 @@ time_t xvar;
 ifstream fbin;
 fbin.open("/Offline/vdev/slow/clock");
 if(fbin){
-  fbin>>xvar;
-  if(fbin.eof()){
-    cerr <<"Unexpected end of clock file "<<xvar<<endl;
-    xvar=15;
-  }
+fbin>>xvar;
+if(fbin.eof()){
+        cerr <<"Unexpected end of clock file "<<xvar<<endl;
+        xvar=15;
+}
 }
 else{
-  cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
-  xvar=15;
+cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
+xvar=15;
 }
 cout <<"clock set to "<<xvar <<" sec"<<endl;
 fbin.close();
@@ -131,30 +131,30 @@ file_n=0;
 record_n=Umax=0;
 Umin = 999999999;
 
-CAS_dir=getenv("CASDataDir");
-Coo_db_dir=getenv("CooDbDir");
-setbuf(stdout,NULL);
+  CAS_dir=getenv("CASDataDir");
+  Coo_db_dir=getenv("CooDbDir");
+  setbuf(stdout,NULL);
 
-//puts("********************");
-cout <<"********************"<<endl;
-while(1) {  /*GLOBAL LOOP */
-  
+  //puts("********************");
+  cout <<"********************"<<endl;
+  while(1) {  /*GLOBAL LOOP */
+ 
 NEW_FILES: /* look for new files in the directory */
   fbin.open("/Offline/vdev/slow/clock");
-  if(fbin){
-    fbin>>xvar;
-    if(fbin.eof()){
-      cerr <<"Unexpected end of clock file "<<xvar<<endl;
-      xvar=15;
-    }
-  }
-  else{
-    cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
-    xvar=15;
-  }
-  cout <<"clock set to "<<xvar <<" sec"<<endl;
-  fbin.close();
-  file_n=0;
+if(fbin){
+fbin>>xvar;
+if(fbin.eof()){
+        cerr <<"Unexpected end of clock file "<<xvar<<endl;
+        xvar=15;
+}
+}
+else{
+cerr<<"unable to open file "<<"/Offline/vdev/slow/clock"<<endl;
+xvar=15;
+}
+cout <<"clock set to "<<xvar <<" sec"<<endl;
+fbin.close();
+    file_n=0;
     record_n=Umax=0;
     Umin = 999999999;
     new_files=0;
@@ -203,6 +203,11 @@ NEW_FILES: /* look for new files in the directory */
         sleep(2);
 	time(&cur_time);
 	sprintf(current_f_name,"%s/ShuttlePar.1.%d",Coo_db_dir,Umin);
+      if (((Umax-Umin)>3600) || (Umax<Umin)) {
+	sprintf(chb80,"rm %s",current_f_name);
+	cerr<<"Timing corrupted. File skipped "<<current_f_name<<endl;
+      }
+      else{
 	fout=fopen(current_f_name,"w");
         if(fout){
 	  fwrite(Data,1,Record_nbytes,fout);
@@ -214,8 +219,9 @@ NEW_FILES: /* look for new files in the directory */
 	  fclose(fout);
         }
 	else {
-         cerr<<" Unable to open file "<<current_f_name<<endl;
+          cerr<<" Unable to open file "<<current_f_name<<endl;
         }
+      }
 	sprintf(chb80,"rm %s",temp_file);
 	system(chb80);
 	//printf("======================%d\n",file_n);
@@ -331,20 +337,22 @@ NEW_FILES: /* look for new files in the directory */
       sleep(2);
       time(&cur_time);
       sprintf(current_f_name,"%s/ShuttlePar.1.%d",Coo_db_dir,Umin);
-      fout=fopen(current_f_name,"w");
-      fwrite(Data,1,Record_nbytes,fout);
-      fwrite(&crc,sizeof(time_t),1,fout);
-      fwrite(&cur_time,sizeof(time_t),1,fout);
-      fwrite(&Umin,sizeof(time_t),1,fout);
-      umaxx=Umax+60; 
-      fwrite(&umaxx,sizeof(time_t),1,fout);
-      fclose(fout);    
       if (((Umax-Umin)>3600) || (Umax<Umin)) {
 	sprintf(chb80,"rm %s",current_f_name);
-	cerr<<"Timing corrupted. File skipped"<<endl;
+	cerr<<"Timing corrupted. File skipped "<<current_f_name<<endl;
+      }
+      else{
+        fout=fopen(current_f_name,"w");
+        fwrite(Data,1,Record_nbytes,fout);
+        fwrite(&crc,sizeof(time_t),1,fout);
+        fwrite(&cur_time,sizeof(time_t),1,fout);
+        fwrite(&Umin,sizeof(time_t),1,fout);
+        umaxx=Umax+60; 
+        fwrite(&umaxx,sizeof(time_t),1,fout);
+        fclose(fout);    
       }
     }
     goto NEW_FILES;
-}
+  }
   return(0);
 }

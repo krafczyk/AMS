@@ -41,7 +41,7 @@ int new_files_coming() {
   }
   /* list directory */
   if ((dirp = opendir(CAS_dir)) == NULL) {
-    printf( "Coo_file: open (%s) fails. Stop. \nCheck CASDir set \n", CAS_dir);
+    cerr<< "Coo_file: open CASDir fails. Stop. Check CASDir set"<< CAS_dir<<endl;
     exit(0);
   }
   new_file_c=-1;
