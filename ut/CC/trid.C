@@ -177,14 +177,7 @@ AMSTrIdSoft::AMSTrIdSoft(const AMSTrIdGeom& idg, integer side){
     else _half=1;
 _addr=_layer+10*_drp+1000*_half+2000*_side;
 if(side==1){
- if(idg._stripy==0)_strip=idg._stripy;
- else if(idg._stripy==1 || idg._stripy==AMSDBc::NStripsSen(_layer,1)-2){
-  _strip=-1;
-  _dead=1;
- }
- else if(idg._stripy==AMSDBc::NStripsSen(_layer,1)-1)
- _strip=AMSDBc::NStripsDrp(_layer,1)-1;
- else _strip=idg._stripy-1;
+ _strip=idg._stripy;
 }
 else{
   integer tot=(idg._sensor-1-AMSDBc::nhalf(_layer,_drp)*_half)*
@@ -324,10 +317,7 @@ AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
       (_pid+namb)->_layer=_layer;
       (_pid+namb)->_ladder=_drp;
       (_pid+namb)->_sensor=isen+(_half==0?0:AMSDBc::nhalf(_layer,_drp));
-      if(o._strip==0)stripy=0;
-      else if(o._strip==AMSDBc::NStripsDrp(o._layer,o._side)-1)
-      stripy=AMSDBc::NStripsSen(o._layer,o._side)-1;
-      else stripy=o._strip+1;
+      stripy=o._strip;
       (_pid+namb)->_stripy=stripy;
       stripx=strip%AMSDBc::NStripsSen(_layer,_side);
       (_pid+namb)->R2Gx(stripx);
@@ -739,19 +729,29 @@ void AMSTrIdGeom::init(){
         _swxy[i][j]=new number[AMSDBc::NStripsSen(i+1,j)];
         if(j==0){
           if(i==0 || i==5){
-           for(k=0;k<64;k++)_swxy[i][j][k]=0.0156;
-           for(k=64;k<64+96;k++)_swxy[i][j][k]=0.0208;
-           for(k=64+96;k<64+96+63;k++)_swxy[i][j][k]=0.0156;
-           for(k=64+96+63;k<64+96+64;k++)_swxy[i][j][k]=0.0104;
+           number st=0.0052;
+           _swxy[i][j][0]=2*st;
+           for(k=1;k<63;k++)_swxy[i][j][k]=3*st;
+           _swxy[i][j][63]=3.5*st;
+           for(k=64;k<64+96;k++)_swxy[i][j][k]=4*st;
+           _swxy[i][j][160]=3.5*st;
+           for(k=161;k<161+62;k++)_swxy[i][j][k]=3*st;
+           _swxy[i][j][223]=2*st;
+          assert(AMSDBc::NStripsSen(i+1,j)-1  == 223);
           }
           else{
-           for(k=0;k<191;k++)_swxy[i][j][k]=0.0208;
-           for(k=191;k<192;k++)_swxy[i][j][k]=0.0156;
+           for(k=1;k<AMSDBc::NStripsSen(i+1,j)-2;k++)_swxy[i][j][k]=0.0208;
+           _swxy[i][j][0]=0.0052*2.5;
+           _swxy[i][j][AMSDBc::NStripsSen(i+1,j)-2]=0.0052*5;
+           _swxy[i][j][AMSDBc::NStripsSen(i+1,j)-1]=0.0052*3.5;
           }
         }
         else{
-           for(k=0;k< AMSDBc::NStripsSen(i+1,j);k++)_swxy[i][j][k]=0.011;
-
+           for(k=2;k< AMSDBc::NStripsSen(i+1,j)-2;k++)_swxy[i][j][k]=0.011;
+           _swxy[i][j][0]=2.5*0.0055; 
+           _swxy[i][j][1]=3*0.0055; 
+           _swxy[i][j][AMSDBc::NStripsSen(i+1,j)-2]=3*0.0055; 
+           _swxy[i][j][AMSDBc::NStripsSen(i+1,j)-1]=3.5*0.0055; 
         }
       }
     }

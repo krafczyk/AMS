@@ -3110,8 +3110,8 @@ PROTOCCALLSFSUB1(GDTHRZ,gdthrz,PFLOAT)
 fortran filename   : gdtom.f
 ------------------------------------------------------------------*/
 
-PROTOCCALLSFSUB3(GDTOM,gdtom,FLOATV,PFLOAT,INT)
-#define GDTOM(A1,A2,A3)  CCALLSFSUB3(GDTOM,gdtom,FLOATV,PFLOAT,INT,A1,A2,A3)
+PROTOCCALLSFSUB3(GDTOM,gdtom,FLOATV,FLOATV,INT)
+#define GDTOM(A1,A2,A3)  CCALLSFSUB3(GDTOM,gdtom,FLOATV,FLOATV,INT,A1,A2,A3)
 
 /*------------------------------------------------------------------
 fortran filename   : gdtr0.f
@@ -4331,8 +4331,8 @@ PROTOCCALLSFSUB2(GMCOUL,gmcoul,FLOAT,PFLOAT)
 fortran filename   : gmedia.f
 ------------------------------------------------------------------*/
 
-PROTOCCALLSFSUB2(GMEDIA,gmedia,FLOATV,PINT)
-#define GMEDIA(A1,A2)  CCALLSFSUB2(GMEDIA,gmedia,FLOATV,PINT,A1,A2)
+PROTOCCALLSFSUB2(GMEDIA,gmedia,FLOATV,INT)
+#define GMEDIA(A1,A2)  CCALLSFSUB2(GMEDIA,gmedia,FLOATV,INT,A1,A2)
 
 /*------------------------------------------------------------------
 fortran filename   : gmedin.f
@@ -4422,8 +4422,8 @@ PROTOCCALLSFSUB50(GMPLXS,gmplxs,FLOATV,INTV,INTV,INTV,INTV,INTV,INTV,INTV,PINT,P
 fortran filename   : gmtod.f
 ------------------------------------------------------------------*/
 
-PROTOCCALLSFSUB3(GMTOD,gmtod,FLOATV,PFLOAT,INT)
-#define GMTOD(A1,A2,A3)  CCALLSFSUB3(GMTOD,gmtod,FLOATV,PFLOAT,INT,A1,A2,A3)
+PROTOCCALLSFSUB3(GMTOD,gmtod,FLOATV,FLOATV,INT)
+#define GMTOD(A1,A2,A3)  CCALLSFSUB3(GMTOD,gmtod,FLOATV,FLOATV,INT,A1,A2,A3)
 
 /*------------------------------------------------------------------
 fortran filename   : gmulof.f
