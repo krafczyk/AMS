@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.390 2001/12/07 11:32:18 choutko Exp $
+// $Id: job.C,v 1.391 2001/12/10 10:41:31 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -54,6 +54,7 @@
 #include <tralig.h>
 #include <status.h>
 #include <richdbc.h>
+#include <richid.h>
 #include <mccluster.h>
 #include <sys/stat.h>
 #include <producer.h>
@@ -1676,6 +1677,7 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::inittable(2);
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
+       AMSRICHIdGeom::Init();
         AMSTRDIdSoft::inittable();
     }
     else {
