@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.71 2004/02/12 14:58:46 alcaraz Exp $
+//  $Id: root.C,v 1.72 2004/02/13 15:10:17 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2260,17 +2260,11 @@ void AMSEventR::UProcessFill(){
 void AMSEventR::UTerminate(){
 }
 
-Int_t AMSChain::Add(const char* filename, Int_t nentries) {
-      int stat = TChain::Add(filename, nentries);
-      if (_EVENT==NULL) {
-            _EVENT = new AMSEventR;
-            this->SetBranchAddress("ev.",&_EVENT);
-            _EVENT->Head() = _EVENT;
-      }
-      return stat;
-};
-
-int AMSChain::GetEntries(){return int(0.5+TChain::GetEntries());};
+AMSChain::AMSChain(const char* name="AMSRoot"):TChain(name),_ENTRY(0),_NAME(name){
+      _EVENT = new AMSEventR;
+      this->SetBranchAddress("ev.",&_EVENT);
+      _EVENT->Head() = _EVENT;
+}
 
 AMSEventR* AMSChain::GetEvent(){ 
         if (GetEntry(_ENTRY)==0) return (AMSEventR*) NULL;
@@ -2295,6 +2289,20 @@ AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
       return _EVENT;
 };
 
+unsigned AMSChain::int Entry() {return _ENTRY;};
+AMSEventR* AMSChain::pEvent() {return _EVENT;};
+const char* AMSChain::ChainName() {return _NAME;};
+
+AMSEventList::AMSEventList(){
+            _RUNs.reserve(10000);
+            _EVENTs.reserve(10000);
+};
+
+AMSEventList::AMSEventList(const char* filename){
+            _RUNs.reserve(10000);
+            _EVENTs.reserve(10000);
+            Read(filename);
+};
 void AMSEventList::Add(int run, int event){
         _RUNs.push_back(run);
         _EVENTs.push_back(event);
@@ -2388,6 +2396,12 @@ void AMSEventList::Write(TChain* chain, const char* filename){
         newfile->Write();
         newfile->Close();
 };
+
+int AMSEventList::GetEntries(){return _RUNs.size();};
+int AMSEventList::GetRun(int i){return _RUNs[i];};
+int AMSEventList::GetEvent(int i){return _EVENTs[i];};
+
+AMSMyTrack::AMSMyTrack(bool bflag=1):BFieldOn(bflag),NHits(0){}; 
 
 void AMSMyTrack::add_hit(TrRecHitR* phit) {
         if (NHits>=AMSMyTrackConst::MAXLAY) { 

@@ -19,7 +19,7 @@ hfile = TFile.new(chfile, "RECREATE")
 
 hrig = TH1F.new("hrig", "Momentum (GeV)", 50, -10.0, 10.0)
 
-ndata = ams.GetEntries
+ndata = ams.GetEntries.to_i
 
 ndata.times do
   ev = ams.GetEvent

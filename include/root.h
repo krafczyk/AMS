@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.138 2004/02/12 16:10:55 alcaraz Exp $
+//  $Id: root.h,v 1.139 2004/02/13 15:10:23 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -3021,24 +3021,19 @@ private:
       const char* _NAME;
 
 public:
-      AMSChain(const char* name="AMSRoot"):TChain(name),_ENTRY(0),_EVENT(NULL),_NAME(name){};
-      virtual ~AMSChain(){
-            if (_EVENT) delete _EVENT;
-      };
-
-      Int_t Add(const char* name, Int_t nentries = kBigNumber); ///<Add an AMS ROOT file to the chain
-      int GetEntries(); ///<Number of data entries being analyzed
+      AMSChain(const char* name="AMSRoot"); ///< Default constructor
+      virtual ~AMSChain(){ if (_EVENT) delete _EVENT; };
 
       AMSEventR* GetEvent(); ///<Get next AMSEventR object in the chain
       AMSEventR* GetEvent(Int_t entry); ///<Get AMSEventR in entry number "entry"
       AMSEventR* GetEvent(Int_t run, Int_t ev); ///<Get AMSEventR with run number "run" and event number "ev"
       void Rewind() {_ENTRY=0;}; ///<Rewind the chain (go back to first entry)
 
-      unsigned int Entry() {return _ENTRY;};///<Get the current entry number to be read
-      AMSEventR* pEvent() {return _EVENT;}; ///<Get the current event pointer
-      const char* ChainName() {return _NAME;}; ///<Get the name of the tree
+      unsigned int Entry(); ///<Get the current entry number
+      AMSEventR* pEvent(); ///<Get the current event pointer
+      const char* ChainName(); ///<Get the name of the tree
 
-      ClassDef(AMSChain,4)       //AMSChain
+      ClassDef(AMSChain,5)       //AMSChain
 };
 
 //!  AMSEventList class
@@ -3059,15 +3054,8 @@ private:
       vector<int> _EVENTs;
 
 public:
-      AMSEventList(){
-            _RUNs.reserve(10000);
-            _EVENTs.reserve(10000);
-      };
-      AMSEventList(const char* filename){
-            _RUNs.reserve(10000);
-            _EVENTs.reserve(10000);
-            Read(filename);
-      };
+      AMSEventList(); ///< Default Constructor
+      AMSEventList(const char* filename); ///< Constructor with an already existing list
       virtual ~AMSEventList(){};
 
       void Add(int run, int event); ///<Add a (run,event) number to the list
@@ -3082,9 +3070,9 @@ public:
       void Write(const char* filename); ///<Write "run event" list to ASCII file
       void Write(TChain* chain, const char* filename); ///<Write selected events from a chain to a new ROOT file
 
-      int GetEntries(){return _RUNs.size();}; ///<Number of events in the list
-      int GetRun(int i){return _RUNs[i];}; ///<Retrieve run number for entry i
-      int GetEvent(int i){return _EVENTs[i];}; ///<Retrieve event number for entry i
+      int GetEntries(); ///<Number of events in the list
+      int GetRun(int i); ///<Retrieve run number for entry i
+      int GetEvent(int i); ///<Retrieve event number for entry i
 
       ClassDef(AMSEventList,1)       //AMSEventList
 };
@@ -3112,7 +3100,7 @@ class AMSMyTrack {
 private:
       TrRecHitR* pHit[AMSMyTrackConst::MAXLAY];
 public:
-      AMSMyTrack(bool bflag=1):BFieldOn(bflag),NHits(0){};
+      AMSMyTrack(bool bflag=1); ///< Constructor (bflag=0 => straight line fitting)
       virtual ~AMSMyTrack(){};
 
       bool BFieldOn; ///< Fit with Magnetic field? (default = true)

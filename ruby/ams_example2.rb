@@ -13,7 +13,7 @@ hist = TH1F.new("hist","Z vertex position (cm)",25,-50.0,150.0)
 
 ams = AMSChain.new
 ams.Add("/f2users/choutko/g3v1g3.root")
-ndata = ams.GetEntries
+ndata = ams.GetEntries.to_i
 
 ndata.times do
   ev = ams.GetEvent
