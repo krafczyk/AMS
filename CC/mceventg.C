@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.130 2004/01/30 22:42:09 choutko Exp $
+//  $Id: mceventg.C,v 1.131 2004/02/26 07:17:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -29,6 +29,10 @@ integer  AMSmceventg::_fixedmom;
 number   AMSmceventg::_albedorate;
 number   AMSmceventg::_albedocz; 
 number   AMSmceventg::_planesw[6];
+int   AMSmceventg::_particle[30];
+int   AMSmceventg::_nucleons[30];
+geant*   AMSmceventg::_spectra[30];
+number   AMSmceventg::_flux[30];
 
 
 AMSmceventg::AMSmceventg(const AMSIO & io){
@@ -100,7 +104,24 @@ void AMSmceventg::gener(){
       number lrange=log(fabs(_momrange[1]))-log(fabs(_momrange[0]));
       _mom=_momrange[0]*exp(lrange*RNDM(d));
     }
-    else {
+    
+    else if(CCFFKEY.low==6){
+     //  get particle id
+     int xp=HRNDM1(_hid);
+     GCKINE.ikine=_particle[xp];
+     if(GCKINE.ikine<0){
+      cerr<<"  AMSmceventg::gener-F-WrongParticle "<<GCKINE.ikine<<endl;
+      abort();
+     }
+     GCKINE.ipart=GCKINE.ikine;
+     init(GCKINE.ikine);      
+     _mom=exp(HRNDM1(_hid+xp+1))/1000.;
+     number etot=_mom*_nucleons[xp]+_mass;
+     _mom=sqrt(etot*etot-_mass*_mass);
+//     if(_ipart>50)cout <<"  got "<<_ipart<<" "<<_charge<<" "<<_mom<<" "<<_nucleons[xp]<<" "<<xp<<endl;     
+    }
+     
+    else{
 #ifdef __G4AMS__
       if(MISCFFKEY.G4On){
         _mom=AMSRandGeneral::hrndm1(_hid)/1000.;
@@ -521,6 +542,114 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
         HF1(_hid+1,xm,y);
       }
     }
+    else if(low==6){
+    //read fluxfile
+      char fname[161];
+      UHTOC(CCFFKEY.FluxFile,40,fname,160);
+      char fnam[256];
+      strcpy(fnam,AMSDATADIR.amsdatadir);
+      strcat(fnam,fname);  
+      ifstream iftxt(fnam,ios::in);
+      if(!iftxt){
+       cerr <<"MCEventg::setcuts-F-UnableToOpenFluxFile "<<fnam<<endl;
+       exit(1);
+      }
+      while(iftxt.get()!='Z'  && iftxt.good()){
+      iftxt.ignore(1024,'%');
+      }      
+      if(iftxt.good()){
+       iftxt.ignore(1024,'=');
+       int zmin,zmax;
+       iftxt>>zmin;
+       iftxt.ignore(1024,'=');
+       iftxt>>zmax;
+       iftxt.ignore(1024,'%');
+       if(iftxt.good() && iftxt.get()=='P'){
+         iftxt.ignore(1024,'=');
+         if(zmax-zmin+1>sizeof(_particle)/sizeof(_particle[0])){
+          cerr <<"MCEventg::setcuts-F-ToManySpectraIn "<<fnam<<endl;
+          exit(1);
+         }
+         else {
+          for(int i=0;i<sizeof(_particle)/sizeof(_particle[0]);i++){
+           _particle[i]=-1;          
+           _flux[i]=0;          
+           _spectra[i]=0;          
+           }
+           HBOOK1(_hid,"Fluxes",zmax-zmin+1,0,zmax-zmin+1,0.);
+          }
+         for(int i=0;i<zmax-zmin+1;i++)iftxt>>_particle[i];
+         iftxt.ignore(1024,'%');
+         if(iftxt.good() && iftxt.get()=='N'){
+          iftxt.ignore(1024,'=');
+          for(int i=0;i<zmax-zmin+1;i++)iftxt>>_nucleons[i];
+         }
+         iftxt.ignore(1024,'%');
+         iftxt.ignore(1024,'%');
+         iftxt.ignore(1024,'\n');
+         double emin,emax;
+         int nbin;          
+         iftxt>>emin;
+         iftxt>>emax;
+         iftxt>>nbin;
+          double a=log(emin);
+          double b=log(emax);
+          double* ene=new double[nbin];
+         for(int i=0;i<nbin;i++){
+          ene[i]=exp(a+(b-a)*(float(i)/float(nbin-1)));
+         }        
+         for(int i=0;i<zmax-zmin+1;i++){
+          _spectra[i]=new float[nbin];
+          HBOOK1(_hid+i+1,"Spectra",nbin-1,a,b,0.);
+         }
+         int ntry=nbin/6;
+         iftxt.ignore(1024,'\n');
+         iftxt.ignore(1024,'\n');
+         iftxt.ignore(1024,'\n');
+         for (int i=0;i<zmax-zmin+1;i++){
+         for(int j=0;j<ntry;j++){
+           for(int k=0;k<6;k++){
+            iftxt>>_spectra[i][j*6+k];
+
+           }
+           iftxt.ignore(1024,'\n');
+         }
+         for(int j=1;j<nbin;j++){
+          double x=a+(b-a)/float(nbin-1)*float(j-1)+(b-a)/(nbin-1)/2.;
+          double y=(_spectra[i][j]+_spectra[i][j-1])*0.5*(ene[j]-ene[j-1]);
+          _flux[i]+=y;
+          HF1(_hid+i+1,float(x),float(y));
+         }
+         cout <<"  AMSmceventg::setspectra-I-Charge "<<zmin+i<<" Flux "<<_flux[i]<<endl;
+         HF1(_hid,float(i)+0.5,float(_flux[i]));
+         iftxt.ignore(1024,'\n');
+        }
+        HPRINT(_hid);
+        
+        delete[] ene;
+        if(!iftxt.good()){
+         cerr <<"MCEventg::setspectra-F-ProblemsToReadSpectraIn "<<fnam<<endl;
+         exit(1);
+        }
+        else{
+         cout <<"MCEventg::setspectra-I-"<<zmax-zmin+1<<" SpectraReadIn "<<fnam<<endl;
+        }
+       }
+       else{
+       cerr <<"MCEventg::setspectra-F-ProblemsToFindParticlesIn "<<fnam<<endl;
+       exit(1);
+
+       }              
+      }
+      else{
+       cerr <<"MCEventg::setspectra-F-ProblemsToReadFluxFile "<<fnam<<endl;
+       exit(1);
+      }
+      for(int i=0;i<sizeof(_spectra)/sizeof(_spectra[0]);i++){
+         if(_spectra[i])delete[] _spectra[i];
+      }        
+
+    }
 #ifdef __AMSDEBUG__
     //HPRINT(_hid);
 #endif
@@ -611,6 +740,9 @@ void AMSmceventg::setcuts(geant coo[6], geant dir[6],
     int i;
     for ( i=1;i<6;i++)area[i]=area[i]+area[i-1];
     for ( i=0;i<6;i++)_planesw[i]=area[5]>0?area[i]/area[5]:(i+1.)/6.;
+
+ 
+
 }
 
 bool AMSmceventg::SpecialCuts(integer cut){
