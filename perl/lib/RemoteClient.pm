@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.291 2005/02/04 15:01:14 choutko Exp $
+# $Id: RemoteClient.pm,v 1.292 2005/02/04 15:24:05 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -72,7 +72,8 @@
 #
 # Nov 23, 2004    : updateDataSetsDescription
 #
-
+# Feb  4, 2005    : AMS02/2005A correct minor bugs
+#
 my $nTopDirFiles = 0;     # number of files in (input/output) dir 
 my @inputFiles;           # list of file names in input dir
 
@@ -94,6 +95,7 @@ use File::Find;
 @RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
 
 # debugging
+my $debugging = 0;
 my $t0Init = 0;
 my $tsInit = 0;
 my $teInit = 0;
@@ -2887,8 +2889,12 @@ CheckCite:            if (defined $q->param("QCite")) {
             my $cite = $ret->[0][0];
             htmlTop();
             if ($resp == 1) {
-             print "<TR><B><font color=green size= 5> Select Template or Production DataSet: $t0/$ti</font>";
-             print "<TR><B><font color=green size= 3> ($t0Init/$tsInit/$teInit - ($td0,$td1,$td2,$td3,$td4)-$tdInit/$tfInit)</font>";
+             if ($debugging == 1) {
+              print "<TR><B><font color=green size= 5> Select Template or Production DataSet: $t0/$ti</font>";
+              print "<TR><B><font color=green size= 3> ($t0Init/$tsInit/$teInit - ($td0,$td1,$td2,$td3,$td4)-$tdInit/$tfInit)</font>";
+          } else {
+              print "<TR><B><font color=green size= 5> Select Template or Production DataSet: </font>";
+          }
             } else { 
              print "<TR><B><font color=green size= 5> Select Template : </font>";
             }
@@ -2942,8 +2948,7 @@ CheckCite:            if (defined $q->param("QCite")) {
 
             print "<TR><TD><font color=\"green\" size=\"3\"> Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
             print "<br>\n";
-            my $te = time();
-            print "<TR><TD><font color=\"tomato\" size=\"3\"> Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed ($te)</font></TD></TR>\n";
+            print "<TR><TD><font color=\"tomato\" size=\"3\"> Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed </font></TD></TR>\n";
           
           print "<p>\n";
           print "<br>\n";
@@ -3678,8 +3683,8 @@ DDTAB:          $self->htmlTemplateTable(" ");
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Standalone </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> Client </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" CHECKED><b> Standalone </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" ><b> Client </b><BR>\n";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
