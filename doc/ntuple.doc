@@ -1,5 +1,6 @@
 Dumb ntuples produced by the program are of a little use.
-There is a special standalone program analysis/convert.f
+There is a special standalone program nconvert (use clmake 
+Mconvert from ~/AMS/install to create it)
 which converts these dumb ntuples into more useful ones.
 
 Below there is a description of a converted ntuple.
