@@ -111,7 +111,7 @@ via
 ptmed.CUTRANGE()=range;
 
 For debug purposes all geant3-like cuts may be switch on/off via 
-
+G4FF 4=1/0   datacard
 
 
 
