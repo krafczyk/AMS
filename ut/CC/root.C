@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.26 2002/11/19 13:55:43 choutko Exp $
+//  $Id: root.C,v 1.27 2002/11/19 15:54:47 choutko Exp $
 #include <root.h>
 #include <ntuple.h>
 #include <antirec02.h>
@@ -37,6 +37,7 @@ ClassImp(TRDSegmentRoot)
 ClassImp(TRDTrackRoot)
 ClassImp(TrRecHitRoot02)
 ClassImp(TrTrackRoot02)
+//ClassImp(TrGammaRoot02)
 ClassImp(MCTrackRoot)
 ClassImp(MCEventGRoot02)
 ClassImp(AntiClusterRoot)

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.68 2002/11/19 15:48:13 choutko Exp $
+//  $Id: root.h,v 1.69 2002/11/19 15:54:56 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -163,7 +163,7 @@ void         AddAMSObject(AMSTrCluster *ptr, float ampl[]);
 void         AddAMSObject(AMSTrMCCluster *ptr);
 void         AddAMSObject(AMSTrRawCluster *ptr, int addr);
 void         AddAMSObject(AMSTrTrack *ptr);
-void         AddAMSObject(AMSTrTrackGamma *ptr);
+//void         AddAMSObject(AMSTrTrackGamma *ptr);
 void         AddAMSObject(Ecal1DCluster *ptr);
 void         AddAMSObject(Ecal2DCluster  *ptr);
 void         AddAMSObject(EcalShower  *ptr);
@@ -537,6 +537,7 @@ public:
 ClassDef(TrRecHitRoot02,1)       //TrRecHitRoot02
 };
 
+/*
 class TrGammaRoot02 : public TObject {
 public:
   int Ngam;
@@ -561,7 +562,7 @@ public:
 
 ClassDef(TrGammaRoot02,1)       //TrGammaRoot02
 };
-
+*/
 
 class TrTrackRoot02 : public TObject {
 public:
