@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.24 2002/03/22 17:57:09 alexei Exp $
+# $Id: RemoteClient.pm,v 1.25 2002/03/25 16:44:06 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -526,11 +526,12 @@ if( defined $ref->{dbfile}){
    if(DBServer::InitDBFile($dbserver)){
     foreach my $ac (@{$dbserver->{asl}}){
           my $arsa=$ac->{ars};
+          my $createt=$ac->{Start};
         foreach my $ars (@{$arsa}){
           if($ars->{Type} eq "Producer"){
                 if($ars->{Interface} eq "default"){
                  $ref->{IORP}=$ars->{IOR};
-                 my $createt=time();
+#                 my $createt=time();
                  my $sql="delete from Servers where dbfilename='$ref->{dbfile}'";
                  $ref->{sqlserver}->Update($sql);
                  $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}',NULL,'Active',$createt,$createt)";
@@ -2170,7 +2171,7 @@ print qq`
          $tmpb =~ s/'/''/g;
     }
          my $ctime=time();
-         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb')";
+         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,$ctime,'$buf$tmpb')";
          $self->{sqlserver}->Update($sql);
 #creat corresponding runevinfo
          my $ri={};
