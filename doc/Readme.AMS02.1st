@@ -95,8 +95,8 @@ VII.  Standalone version
            setenv AMSDataDir mydir
              
       c.  Third party libraries you may want to install
-          i)   cernlib (ask you know whom)
-          ii)  naglib  (same, except for linux ask V.Choutko@cern.ch)
+          i)   cernlib 
+          ii) nag fortran library  
           iii) libamsut   (in /afs/cern.ch/exp/ams/Offline/lib)  
 
 
@@ -132,11 +132,12 @@ c. SoftWare/DataAccess
 
 
 d.  Misc
-    you may need to override some default shell limits to run offline program;
-    recommended settings are (in c-shell) for ams-geant3 (geant4)
-    limit stack 8191
-    limit data 256000 (512000, yes, 512 megabytes) 
-    
+    i)  you may need to override default shell limits to run offline program;
+        recommended settings are (in c-shell) for ams-geant3 (geant4)
+        limit stack 8191
+        limit data 256000 (512000) 
+    ii) To creat Mgxint/dec-cxx cxx6.1 is needed (thanks to 6.2 bug)
+    iii)daqevt.C must be compiled without -O switch with egcs compiler
 
 
 Comments, questions to shoutko@vxcern.cern.ch
