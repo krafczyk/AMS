@@ -258,9 +258,11 @@ integer AMSTrCluster::build(integer refit){
        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
         if(j==ro+1 && status==AMSDBc::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
-        ssum=ssum+pow(id.getsig(),2.);
+//        ssum=ssum+pow(id.getsig(),2.);
+        ssum=ssum+id.getsig()*id.getsig();
         pos=pos+1*(j-center)*adc[j];
-        rms=rms+pow(1*(j-center),2)*adc[j];
+//        rms=rms+pow(1*(j-center),2)*adc[j];
+        rms=rms+(j-center)*(j-center)*adc[j];
       }
        if(sum !=0){
         rms=sqrt(fabs(rms*sum-pos*pos))/sum; 
@@ -498,9 +500,11 @@ integer AMSTrCluster::buildWeak(integer refit){
        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
         if(j==ro+1 && status==AMSDBc::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
-        ssum=ssum+pow(id.getsig(),2.);
+//        ssum=ssum+pow(id.getsig(),2.);
+        ssum=ssum+id.getsig()*id.getsig();
         pos=pos+1*(j-center)*adc[j];
-        rms=rms+pow(1*(j-center),2)*adc[j];
+//        rms=rms+pow(1*(j-center),2)*adc[j];
+        rms=rms+(j-center)*(j-center)*adc[j];
       }
 
 
@@ -620,9 +624,11 @@ integer AMSTrCluster::buildWeak(integer refit){
        if(adc[j]>TRCLFFKEY.Thr2A[side])above++;
         if(j==right+1 && status==AMSDBc::NEAR)sum+=adc[j]/2;
         else sum+=adc[j];
-        ssum=ssum+pow(id.getsig(),2.);
+//        ssum=ssum+pow(id.getsig(),2.);
+        ssum=ssum+id.getsig()*id.getsig();
         pos=pos+1*(j-center)*adc[j];
-        rms=rms+pow(1*(j-center),2)*adc[j];
+//        rms=rms+pow(1*(j-center),2)*adc[j];
+        rms=rms+(j-center)*(j-center)*adc[j];
        }
        else adc[j]=0;
 

@@ -77,8 +77,10 @@ integer AMSParticle::build(integer refit){
            number one=1;
            number gamma=sqrt(one/(one-beta*beta)); 
            mass=fabs(momentum/gamma/beta);
-           emass=mass*sqrt(pow(emomentum/momentum,2.)+pow(gamma,4)*
-           pow(ebeta/beta,2));
+//           emass=mass*sqrt(pow(emomentum/momentum,2.)+pow(gamma,4)*
+//           pow(ebeta/beta,2));
+           emass=mass*sqrt((emomentum/momentum)*(emomentum/momentum)+
+           (gamma*gamma*ebeta/beta)*(gamma*gamma*ebeta/beta));
           }
           if(beta<0)momentum=-momentum;
           ppart=new AMSParticle(pbeta, pcharge, ptrack,
