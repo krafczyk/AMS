@@ -47,8 +47,8 @@ public:
    virtual void      ShowNextEvent(Int_t delta=1) = 0;
 //   virtual void      SizeFruit() const;
    virtual void      SizeParticles() const;
-           void      SetGeo();
-           void      OkGeo();
+//         void      SetGeo();
+//         void      OkGeo();
 
    ClassDef(AMSVirtualDisplay, 0)   //Virtual base class for ATLFast event display
 };

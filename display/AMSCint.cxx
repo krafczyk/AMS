@@ -1392,80 +1392,73 @@ static int G__AMS3DCluster_SetPosition_0_1(G__value *result7,char *funcname,stru
    return(1);
 }
 
-static int G__AMS3DCluster_SetSize_1_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
-      G__setnull(result7);
-      ((AMS3DCluster*)(G__getstructoffset()))->SetSize((Float_t)G__double(libp->para[0]),(Float_t)G__double(libp->para[1])
-,(Float_t)G__double(libp->para[2]));
-   return(1);
-}
-
-static int G__AMS3DCluster_SetDirection_2_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_SetDirection_1_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMS3DCluster*)(G__getstructoffset()))->SetDirection((Float_t)G__double(libp->para[0]),(Float_t)G__double(libp->para[1]));
    return(1);
 }
 
-static int G__AMS3DCluster_Sizeof3D_3_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_Sizeof3D_2_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMS3DCluster*)(G__getstructoffset()))->Sizeof3D();
    return(1);
 }
 
-static int G__AMS3DCluster_DeclFileName_4_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_DeclFileName_3_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,67,(long)((AMS3DCluster*)(G__getstructoffset()))->DeclFileName());
    return(1);
 }
 
-static int G__AMS3DCluster_DeclFileLine_5_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_DeclFileLine_4_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMS3DCluster*)(G__getstructoffset()))->DeclFileLine());
    return(1);
 }
 
-static int G__AMS3DCluster_ImplFileName_6_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_ImplFileName_5_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,67,(long)((AMS3DCluster*)(G__getstructoffset()))->ImplFileName());
    return(1);
 }
 
-static int G__AMS3DCluster_ImplFileLine_7_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_ImplFileLine_6_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMS3DCluster*)(G__getstructoffset()))->ImplFileLine());
    return(1);
 }
 
-static int G__AMS3DCluster_Class_Version_8_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_Class_Version_7_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,115,(long)((AMS3DCluster*)(G__getstructoffset()))->Class_Version());
    return(1);
 }
 
-static int G__AMS3DCluster_Class_9_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_Class_8_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMS3DCluster*)(G__getstructoffset()))->Class());
    return(1);
 }
 
-static int G__AMS3DCluster_Dictionary_0_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_Dictionary_9_1(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMS3DCluster*)(G__getstructoffset()))->Dictionary();
    return(1);
 }
 
-static int G__AMS3DCluster_IsA_1_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_IsA_0_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMS3DCluster*)(G__getstructoffset()))->IsA());
    return(1);
 }
 
-static int G__AMS3DCluster_ShowMembers_2_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_ShowMembers_1_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMS3DCluster*)(G__getstructoffset()))->ShowMembers(*(TMemberInspector*)libp->para[0].ref,(char*)G__int(libp->para[1]));
    return(1);
 }
 
-static int G__AMS3DCluster_Streamer_3_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_Streamer_2_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMS3DCluster*)(G__getstructoffset()))->Streamer(*(TBuffer*)libp->para[0].ref);
    return(1);
 }
 
 // automatic copy constructor
-static int G__AMS3DCluster_AMS3DCluster_4_2(G__value *result7,char *funcname,struct G__param *libp,int hash)
+static int G__AMS3DCluster_AMS3DCluster_3_2(G__value *result7,char *funcname,struct G__param *libp,int hash)
 {
    AMS3DCluster *p;
    if(1!=libp->paran) ;
@@ -1478,7 +1471,7 @@ static int G__AMS3DCluster_AMS3DCluster_4_2(G__value *result7,char *funcname,str
 }
 
 // automatic destructor
-static int G__AMS3DCluster_wAAMS3DCluster_5_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMS3DCluster_wAAMS3DCluster_4_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    if(G__getaryconstruct())
      if(G__PVOID==G__getgvp())
        delete[] (AMS3DCluster *)(G__getstructoffset());
@@ -3012,73 +3005,61 @@ static int G__AMSVirtualDisplay_SizeParticles_1_2(G__value *result7,char *funcna
    return(1);
 }
 
-static int G__AMSVirtualDisplay_SetGeo_2_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
-      G__setnull(result7);
-      ((AMSVirtualDisplay*)(G__getstructoffset()))->SetGeo();
-   return(1);
-}
-
-static int G__AMSVirtualDisplay_OkGeo_3_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
-      G__setnull(result7);
-      ((AMSVirtualDisplay*)(G__getstructoffset()))->OkGeo();
-   return(1);
-}
-
-static int G__AMSVirtualDisplay_DeclFileName_4_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_DeclFileName_2_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,67,(long)((AMSVirtualDisplay*)(G__getstructoffset()))->DeclFileName());
    return(1);
 }
 
-static int G__AMSVirtualDisplay_DeclFileLine_5_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_DeclFileLine_3_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSVirtualDisplay*)(G__getstructoffset()))->DeclFileLine());
    return(1);
 }
 
-static int G__AMSVirtualDisplay_ImplFileName_6_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_ImplFileName_4_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,67,(long)((AMSVirtualDisplay*)(G__getstructoffset()))->ImplFileName());
    return(1);
 }
 
-static int G__AMSVirtualDisplay_ImplFileLine_7_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_ImplFileLine_5_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,105,(long)((AMSVirtualDisplay*)(G__getstructoffset()))->ImplFileLine());
    return(1);
 }
 
-static int G__AMSVirtualDisplay_Class_Version_8_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_Class_Version_6_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,115,(long)((AMSVirtualDisplay*)(G__getstructoffset()))->Class_Version());
    return(1);
 }
 
-static int G__AMSVirtualDisplay_Class_9_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_Class_7_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSVirtualDisplay*)(G__getstructoffset()))->Class());
    return(1);
 }
 
-static int G__AMSVirtualDisplay_Dictionary_0_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_Dictionary_8_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSVirtualDisplay*)(G__getstructoffset()))->Dictionary();
    return(1);
 }
 
-static int G__AMSVirtualDisplay_IsA_1_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_IsA_9_2(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__letint(result7,85,(long)((AMSVirtualDisplay*)(G__getstructoffset()))->IsA());
    return(1);
 }
 
-static int G__AMSVirtualDisplay_ShowMembers_2_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_ShowMembers_0_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSVirtualDisplay*)(G__getstructoffset()))->ShowMembers(*(TMemberInspector*)libp->para[0].ref,(char*)G__int(libp->para[1]));
    return(1);
 }
 
-static int G__AMSVirtualDisplay_Streamer_3_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_Streamer_1_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
       G__setnull(result7);
       ((AMSVirtualDisplay*)(G__getstructoffset()))->Streamer(*(TBuffer*)libp->para[0].ref);
    return(1);
 }
 
 // automatic destructor
-static int G__AMSVirtualDisplay_wAAMSVirtualDisplay_4_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
+static int G__AMSVirtualDisplay_wAAMSVirtualDisplay_2_3(G__value *result7,char *funcname,struct G__param *libp,int hash) {
    if(G__getaryconstruct())
      if(G__PVOID==G__getgvp())
        delete[] (AMSVirtualDisplay *)(G__getstructoffset());
@@ -6135,27 +6116,24 @@ static void G__setup_memfuncAMS3DCluster(void) {
    G__memfunc_setup("SetPosition",1153,G__AMS3DCluster_SetPosition_0_1,121,-1,-1,0,3,1,1,0,
 "f - 'Float_t' 0 - x f - 'Float_t' 0 - y "
 "f - 'Float_t' 0 - z",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("SetSize",711,G__AMS3DCluster_SetSize_1_1,121,-1,-1,0,3,1,1,0,
-"f - 'Float_t' 0 - dx f - 'Float_t' 0 - dy "
-"f - 'Float_t' 0 - dz",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("SetDirection",1229,G__AMS3DCluster_SetDirection_2_1,121,-1,-1,0,2,1,1,0,
+   G__memfunc_setup("SetDirection",1229,G__AMS3DCluster_SetDirection_1_1,121,-1,-1,0,2,1,1,0,
 "f - 'Float_t' 0 - theta f - 'Float_t' 0 - phi",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Sizeof3D",743,G__AMS3DCluster_Sizeof3D_3_1,121,-1,-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("DeclFileName",1145,G__AMS3DCluster_DeclFileName_4_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("DeclFileLine",1152,G__AMS3DCluster_DeclFileLine_5_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("ImplFileName",1171,G__AMS3DCluster_ImplFileName_6_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("ImplFileLine",1178,G__AMS3DCluster_ImplFileLine_7_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Class_Version",1339,G__AMS3DCluster_Class_Version_8_1,115,-1,G__defined_typename("Version_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Class",502,G__AMS3DCluster_Class_9_1,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Dictionary",1046,G__AMS3DCluster_Dictionary_0_2,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("IsA",253,G__AMS3DCluster_IsA_1_2,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("ShowMembers",1132,G__AMS3DCluster_ShowMembers_2_2,121,-1,-1,0,2,1,1,0,
+   G__memfunc_setup("Sizeof3D",743,G__AMS3DCluster_Sizeof3D_2_1,121,-1,-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("DeclFileName",1145,G__AMS3DCluster_DeclFileName_3_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("DeclFileLine",1152,G__AMS3DCluster_DeclFileLine_4_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileName",1171,G__AMS3DCluster_ImplFileName_5_1,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileLine",1178,G__AMS3DCluster_ImplFileLine_6_1,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class_Version",1339,G__AMS3DCluster_Class_Version_7_1,115,-1,G__defined_typename("Version_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class",502,G__AMS3DCluster_Class_8_1,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Dictionary",1046,G__AMS3DCluster_Dictionary_9_1,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("IsA",253,G__AMS3DCluster_IsA_0_2,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("ShowMembers",1132,G__AMS3DCluster_ShowMembers_1_2,121,-1,-1,0,2,1,1,0,
 "u 'TMemberInspector' - 1 - insp C - - 0 - parent",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("Streamer",835,G__AMS3DCluster_Streamer_3_2,121,-1,-1,0,1,1,1,0,"u 'TBuffer' - 1 - b",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Streamer",835,G__AMS3DCluster_Streamer_2_2,121,-1,-1,0,1,1,1,0,"u 'TBuffer' - 1 - b",(char*)NULL,(void*)NULL,1);
    // automatic copy constructor
-   G__memfunc_setup("AMS3DCluster",1082,G__AMS3DCluster_AMS3DCluster_4_2,(int)('i'),G__get_linked_tagnum(&G__AMSCintLN_AMS3DCluster),-1,0,1,1,1,0,"u 'AMS3DCluster' - 1 - -",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("AMS3DCluster",1082,G__AMS3DCluster_AMS3DCluster_3_2,(int)('i'),G__get_linked_tagnum(&G__AMSCintLN_AMS3DCluster),-1,0,1,1,1,0,"u 'AMS3DCluster' - 1 - -",(char*)NULL,(void*)NULL,0);
    // automatic destructor
-   G__memfunc_setup("~AMS3DCluster",1208,G__AMS3DCluster_wAAMS3DCluster_5_2,(int)('y'),-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("~AMS3DCluster",1208,G__AMS3DCluster_wAAMS3DCluster_4_2,(int)('y'),-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__tag_memfunc_reset();
 }
 
@@ -6453,21 +6431,19 @@ static void G__setup_memfuncAMSVirtualDisplay(void) {
    G__memfunc_setup("SetView",711,G__AMSVirtualDisplay_SetView_9_1,121,-1,-1,0,1,1,1,8,"i 'EAMSView' - 0 kFrontView newView",(char*)NULL,(void*)NULL,3);
    G__memfunc_setup("ShowNextEvent",1346,G__AMSVirtualDisplay_ShowNextEvent_0_2,121,-1,-1,0,1,1,1,8,"i - 'Int_t' 0 1 delta",(char*)NULL,(void*)NULL,3);
    G__memfunc_setup("SizeParticles",1346,G__AMSVirtualDisplay_SizeParticles_1_2,121,-1,-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("SetGeo",583,G__AMSVirtualDisplay_SetGeo_2_2,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("OkGeo",469,G__AMSVirtualDisplay_OkGeo_3_2,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("DeclFileName",1145,G__AMSVirtualDisplay_DeclFileName_4_2,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("DeclFileLine",1152,G__AMSVirtualDisplay_DeclFileLine_5_2,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("ImplFileName",1171,G__AMSVirtualDisplay_ImplFileName_6_2,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("ImplFileLine",1178,G__AMSVirtualDisplay_ImplFileLine_7_2,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Class_Version",1339,G__AMSVirtualDisplay_Class_Version_8_2,115,-1,G__defined_typename("Version_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Class",502,G__AMSVirtualDisplay_Class_9_2,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("Dictionary",1046,G__AMSVirtualDisplay_Dictionary_0_3,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
-   G__memfunc_setup("IsA",253,G__AMSVirtualDisplay_IsA_1_3,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("ShowMembers",1132,G__AMSVirtualDisplay_ShowMembers_2_3,121,-1,-1,0,2,1,1,0,
+   G__memfunc_setup("DeclFileName",1145,G__AMSVirtualDisplay_DeclFileName_2_2,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("DeclFileLine",1152,G__AMSVirtualDisplay_DeclFileLine_3_2,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileName",1171,G__AMSVirtualDisplay_ImplFileName_4_2,67,-1,-1,0,0,1,1,1,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("ImplFileLine",1178,G__AMSVirtualDisplay_ImplFileLine_5_2,105,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class_Version",1339,G__AMSVirtualDisplay_Class_Version_6_2,115,-1,G__defined_typename("Version_t"),0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Class",502,G__AMSVirtualDisplay_Class_7_2,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("Dictionary",1046,G__AMSVirtualDisplay_Dictionary_8_2,121,-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("IsA",253,G__AMSVirtualDisplay_IsA_9_2,85,G__get_linked_tagnum(&G__AMSCintLN_TClass),-1,0,0,1,1,8,"",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("ShowMembers",1132,G__AMSVirtualDisplay_ShowMembers_0_3,121,-1,-1,0,2,1,1,0,
 "u 'TMemberInspector' - 1 - insp C - - 0 - parent",(char*)NULL,(void*)NULL,1);
-   G__memfunc_setup("Streamer",835,G__AMSVirtualDisplay_Streamer_3_3,121,-1,-1,0,1,1,1,0,"u 'TBuffer' - 1 - b",(char*)NULL,(void*)NULL,1);
+   G__memfunc_setup("Streamer",835,G__AMSVirtualDisplay_Streamer_1_3,121,-1,-1,0,1,1,1,0,"u 'TBuffer' - 1 - b",(char*)NULL,(void*)NULL,1);
    // automatic destructor
-   G__memfunc_setup("~AMSVirtualDisplay",1820,G__AMSVirtualDisplay_wAAMSVirtualDisplay_4_3,(int)('y'),-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
+   G__memfunc_setup("~AMSVirtualDisplay",1820,G__AMSVirtualDisplay_wAAMSVirtualDisplay_2_3,(int)('y'),-1,-1,0,0,1,1,0,"",(char*)NULL,(void*)NULL,0);
    G__tag_memfunc_reset();
 }
 
@@ -6997,7 +6973,7 @@ class G__cpp_setup_initAMSCint {
 G__cpp_setup_initAMSCint G__cpp_setup_initializerAMSCint;
 
 //
-// File generated by rootcint at Sat Jan 10 20:46:57 1998.
+// File generated by rootcint at Mon Jan 12 18:55:25 1998.
 // Do NOT change. Changes will be lost next time file is generated
 //
 

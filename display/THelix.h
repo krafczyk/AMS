@@ -88,7 +88,7 @@ public:
 			         Double_t hx=0, Double_t hy=0, Double_t hz=1);
         virtual void    Sizeof3D() const;
 
-        ClassDef(THelix,0)  //A Helix drawn as a PolyLine3D
+        ClassDef(THelix,1)  //A Helix drawn as a PolyLine3D
 };
 
 #endif

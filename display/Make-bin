@@ -79,9 +79,9 @@ AMSPRG       = amsed
 
 
 ##### TARGETS #####
-interactive:  $(AMSSHAREDLIB)
+interprete:  $(AMSSHAREDLIB)
 
-batch:  $(AMSPRG)
+standalone:  $(AMSPRG)
 
 $(AMSLIB):     $(DICT) $(OBJS)
 		rm -f $(AMSLIB)

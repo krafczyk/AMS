@@ -40,7 +40,7 @@ ClassImp(AMSDisplay)
 
 
 
-/*
+
 //_____________________________________________________________________________
 AMSDisplay::AMSDisplay() : AMSVirtualDisplay()
 {
@@ -54,7 +54,7 @@ AMSDisplay::AMSDisplay() : AMSVirtualDisplay()
 //   m_DrawTwoViews = kFALSE;
    m_Geometry     = 0;
 }
-*/
+
 
 //_____________________________________________________________________________
 AMSDisplay::AMSDisplay(const char *title, TGeometry * geo) 

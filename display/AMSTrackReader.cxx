@@ -8,7 +8,7 @@
 #include "Debugger.h"
 
 #include <TClonesArray.h>
-#include <TMCParticle.h>
+//#include <TMCParticle.h>
 
 #include "AMSRoot.h"
 //#include "ATLFMCMaker.h"
@@ -32,7 +32,7 @@ static struct {
    Int_t           trstatus[20];
    Int_t           pattern[20];
    Int_t           nhits[20];
-   Int_t           phits[3][6];
+   Int_t           phits[20][6];
    Int_t           Fastfitdone[20];
    Int_t           Geanefitdone[20];
    Int_t           Advancedfitdone[20];

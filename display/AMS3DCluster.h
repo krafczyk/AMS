@@ -45,7 +45,7 @@ public:
    Int_t             DistancetoPrimitive(Int_t px, Int_t py);
    void              SetPoints(Float_t * buff);
    void		     SetPosition(Float_t x, Float_t y, Float_t z);
-   void		     SetSize(Float_t dx, Float_t dy, Float_t dz);
+//   void		     SetSize(Float_t dx, Float_t dy, Float_t dz);
    void		     SetDirection(Float_t theta, Float_t phi);
    void		     Sizeof3D() const;
 

@@ -546,6 +546,7 @@ Int_t THelix::minNSeg=5;	// at least 5 line segments in TPolyLine3D
 }
 
 
+/*
 //_______________________________________________________________________
  void THelix::Streamer(TBuffer &b)
 {
@@ -570,7 +571,7 @@ Int_t THelix::minNSeg=5;	// at least 5 line segments in TPolyLine3D
       fOption.Streamer(b);
    }
 }
-
+*/
 
 
 

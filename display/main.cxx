@@ -13,7 +13,7 @@ int Error; // needed by Motif
 
 TROOT root("AMS", "AMS ROOT", initfuncs);
 
-void main(int argc, char **argv)
+void main(int argc, char *argv[])
 {
 // First create application environment. If you replace TApplication
 // by TRint (which inherits from TApplication) you will be able
