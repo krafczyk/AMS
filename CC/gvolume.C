@@ -3,6 +3,7 @@
 #include <amsgobj.h>
 #include <gmat.h>
 #ifdef __G4AMS__
+#include <new.h>
 #include <commons.h>
 #include <astring.h>
 #include "G4LogicalVolume.hh"
@@ -396,6 +397,10 @@ integer AMSgvolume::_Norp=0;
 
 
      // Now logical volume
+     if(!psolid){
+       cerr<<"_MakeG4Volumes-F-UnableToInitializeSolidForShape "<<shape<<"  Try to increase heap memory"<<endl;
+       abort();
+     }
      _pg4l= new G4LogicalVolume(psolid,_pgtmed->getpgmat()->getpamsg4m(),G4String(_name));    
      if(_pgtmed->IsSensitive()){
       _pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
