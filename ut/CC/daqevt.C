@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.74 2004/10/08 10:04:51 choutko Exp $
+//  $Id: daqevt.C,v 1.75 2004/11/15 14:07:29 choutko Exp $
 #include <stdio.h>
 #include <daqevt.h>
 #include <event.h>
@@ -440,6 +440,7 @@ DAQEvent::InitResult DAQEvent::init(){
        cerr<<"DAQEvent::init-F-Interrupt"<<endl;
        return Interrupt;
       }
+      fbin.clear();
       ok=daq.read();
       if(ok){
        iposr++;
