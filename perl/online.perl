@@ -1,4 +1,4 @@
-# $Id: online.perl,v 1.3 2004/01/21 11:14:46 choutko Exp $
+# $Id: online.perl,v 1.4 2004/01/27 10:40:43 choutko Exp $
 #!/usr/bin/perl -w       
 use strict;
 use Carp;
@@ -35,7 +35,7 @@ while ( my $line = <FILEI>){
      if($junk3[0]=~/\,/){
 #    two arguments
 #      next;
-         if(not ($line=~/\(j</)){
+         if(not ($line=~/\j</)){
              next;
          }
          my @a3=split /\,/,$junk3[0];
@@ -43,10 +43,9 @@ while ( my $line = <FILEI>){
           next;
          }
      }
-
-     if($fun=~/size/){
-       next;
-     }
+     elsif($fun=~/size/){
+#        next;
+    }
      @junk=split /\_/,$fun;
      if($funo ne $junk[0]){
          $funo=$junk[0];
@@ -56,11 +55,19 @@ while ( my $line = <FILEI>){
           print FILEO '_filled.push_back(new TH1F("'.$junk4[1].'","'.$junk4[1].'",200,0,0));'."\n";
      } 
      if($junk3[0]=~/\,/){
+         if($line =~/size/){
+#             print "$line \n";
+      print FILEO 'AddSet("'.$fun.'");'."\n"; 
+      print FILEO '_filled.push_back(new TH1F("'.$fun.'","'.$fun.'",200,0,0));'."\n";
+             
+         }
+         else{
          my @junk5=split /[\<&]/,$line;
          for my $i (0...$junk5[1]-1){
           print FILEO 'AddSet("'.$fun."\_$i".'");'."\n"; 
           print FILEO '_filled.push_back(new TH1F("'.$fun."\_$i".'","'.$fun."\_$i".'",200,0,0));'."\n";
           }
+     }
      }
      else{
       print FILEO 'AddSet("'.$fun.'");'."\n"; 
@@ -95,21 +102,25 @@ while (my $line=<FILEI>){
      my $tag=1;
      if($junk3[0]=~/\,/){
          $tag=4;
-         if(not ($line=~/\(j</)){
+         if(not ($line=~/\j</)){
              next;
          }
          my @a3=split /\,/,$junk3[0];
          if($#a3>1){
           next;
-         }
+      }
 
 
      }
+     elsif($fun=~/size/){
+#        next;
+    }
+
      
      my @junk4=split /[ (]/,$junk3[1]; 
      $junk4[$tag]=~s/p/N/;
      if($fun=~/size/){
-       next;
+#       next;
      }
      @junk=split /\_/,$fun;
      if($funo ne $junk[0]){
@@ -117,19 +128,46 @@ while (my $line=<FILEI>){
          print FILEO "_filled[i]->Fill(ntuple->".$junk4[1].'(),1.);'."\ni++;\n";
      }
      if($junk3[0]=~/\,/){
-         my @junk5=split /[\<&]/,$line;
+          if($line =~/size/){
+              my @j1=split /</,$line; 
+              my @j2=split / \)/,$j1[1];
+              $j2[0]=~s/\(i\)/\(loc\)/;
+              my @j3=split /\(/,$j2[0];
+              $j3[0]=~s/p/N/; 
+              print FILEO " for(int loc=0;loc<ntuple->$j3[0]();loc++){
+  for( int j=0;j\<ntuple->$fun\_size(loc);j++){
+   t=ntuple->$fun\(j,loc\);
+   if(fabs(t)<1e20)_filled[i]->Fill(t,1.);
+  }
+ }\n";
+ print FILEO "i++;\n";   
+          }
+          else{
+       my @junk5=split /[\<&]/,$line;
           print FILEO "for( int j=0;j\<$junk5[1];j++){\n";
           print FILEO " for(int loc=0;loc<ntuple->$junk4[$tag]();loc++){
           t=ntuple->$fun\(j,loc\);
           if(fabs(t)<1e20)_filled[i]->Fill(t,1.);\n";
           print FILEO "}\ni++;\n";   
           print FILEO "}\n";   
+   }
      }
      else{
+          if($line =~/size/){
+              my @j1=split /\?/,$line;
+              my @j2=split/\(/,$j1[1];
+              $j2[0]=~s/p/N/;
+          print FILEO " for(int loc=0;loc<ntuple->$j2[0]();loc++){
+          t=ntuple->$fun\(loc\);
+          if(fabs(t)<1e20)_filled[i]->Fill(t,1.);\n";
+          print FILEO "}\ni++;\n";   
+          }
+          else{
           print FILEO " for(int loc=0;loc<ntuple->$junk4[$tag]();loc++){
           t=ntuple->$fun\(loc\);
           if(fabs(t)<1e20)_filled[i]->Fill(t,1.);\n";
           print FILEO "}\ni++;\n";   
+          }
      }
     }
 }
