@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.47 2003/05/08 16:42:19 choutko Exp $
+#  $Id: Mopt_Root,v 1.48 2003/05/12 21:40:48 choutko Exp $
 #
 SHELL=/bin/sh
 CERN_LEVEL = pro
@@ -176,8 +176,9 @@ ifdef AMSICC
 #PFLAGS+=  -D__ICC__ -tpp6 -mp1 -xi
   ifdef AMSDEBUG
     CFLAGS=      $(CFLAGSB)  
-    CFLAGSTOFSIM= $(CFLAGS)
-    CFLAGSDAQ=    $(CFLAGS)
+    CFLAGSTOFSIM= $(CFLAGSB)
+    CFLAGSDAQ=    $(CFLAGSB)
+    CFLAGSn=      $(CFLAGSB)
     FFLAGS=     -fp_port  -g -I../include   $(PFLAGS)
     FFLAGSn=    -fp_port   -g -I../include   $(PFLAGS)
     FFLAGS=     -D__ICC__ -tpp6 -mp1 -xi -fp_port  -g -I../include   $(PFLAGS)
@@ -195,9 +196,9 @@ ifdef AMSICC
 else
 #AMSICC not set
   ifdef AMSDEBUG
-    CFLAGSTOFSIM= $(CFLAGS)
-    CFLAGSn=      $(CFLAGS)
-    CFLAGSDAQ=    $(CFLAGS)
+    CFLAGSTOFSIM= $(CFLAGSB)
+    CFLAGSn=      $(CFLAGSB)
+    CFLAGSDAQ=    $(CFLAGSB)
     FFLAGS=   -fno-automatic -g -I../include  $(PFLAGS)
     FFLAGSn=   -fno-automatic -g -I../include $(PFLAGS) 
     CFLAGSB=   -D__AMSDEBUG__ -g   -D__BATCH__      -I../include   -I../db  
