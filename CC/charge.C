@@ -31,7 +31,7 @@ geant AMSCharge::_lkhdStepTOF[ncharge];
 geant AMSCharge::_lkhdStepTracker[ncharge];
 integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
 integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
-char AMSCharge::_fnam[128]="lkhd_v214+.data";
+char AMSCharge::_fnam[128]="lkhd_v215+.data";
 integer AMSCharge::getvotedcharge(){
 int i;
 number mp=0;
@@ -108,11 +108,20 @@ integer AMSCharge::build(integer refit){
            AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
            int good=!phit->checkstatus(AMSDBc::FalseX) && 
              !phit->checkstatus(AMSDBc::FalseTOFX);
-           geant sum=phit->getsum();
+           AMSTrCluster * pcls=phit->getClusterP(0);
+           int etaok=0;
+           if (pcls) {
+             number eta=pcls->geteta();
+             if (eta>CHARGEFITFFKEY.EtaMin[0] && eta<CHARGEFITFFKEY.EtaMax[0]) 
+              etaok=1;
+           }
+//           geant sum=phit->getsum();
+           geant sums=phit->getsonly()/2.;
+           geant sumk=phit->getkonly()/2.;
            _TrMeanTracker+=phit->getsonly();
            if(smax<phit->getsonly())smax=phit->getsonly();
            EdepTracker[nhitTracker]=AMSTrRawCluster::ADC2KeV()*
-             (good?sum:2*sum)*pow(min(one,pbeta->getbeta()),2)*
+             (good&&etaok?sums+sumk:1.67*sums)*pow(min(one,pbeta->getbeta()),2)*
              fabs(SenDir.prod(DTr));
          nhitTracker++;
          } else {

@@ -90,8 +90,12 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0,
            cout <<" But validity period is zero. Request rejected. "<<endl;
            _UpdateMe=0;
          }
-         cout <<" Begin "<<ctime(&_Begin)<<" End "<<ctime(&_End)<<
-           " Insert "<<ctime(&_Insert)<<endl;
+         time_t linuxcrazy=_Begin;
+         cout <<" Begin "<<ctime(&linuxcrazy);
+         linuxcrazy=_End;
+         cout <<" End "<<ctime(&linuxcrazy);
+          linuxcrazy=_Insert;
+          cout << " Insert "<<ctime(&linuxcrazy)<<endl;
          break;
         }
       }

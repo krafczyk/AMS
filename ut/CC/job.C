@@ -620,6 +620,8 @@ for(k=0;k<6;k++){
   TRCLFFKEY.CommonShift[0]=0.;
   TRCLFFKEY.CommonShift[1]=0.;
 
+  TRCLFFKEY.EtaCor[0]=1;
+  TRCLFFKEY.EtaCor[1]=0;
 
 
 FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -845,6 +847,10 @@ void AMSJob::_reaxdata(){
 // Fit beta & charge
 CHARGEFITFFKEY.Thr=1.;
 CHARGEFITFFKEY.OneChargeThr=200.;
+CHARGEFITFFKEY.EtaMin[0]=0.05;
+CHARGEFITFFKEY.EtaMin[1]=0.00;
+CHARGEFITFFKEY.EtaMax[0]=0.95;
+CHARGEFITFFKEY.EtaMax[1]=1.00;
 BETAFITFFKEY.pattern[0]=1;
 BETAFITFFKEY.pattern[1]=1;
 BETAFITFFKEY.pattern[2]=1;
@@ -1372,7 +1378,7 @@ void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("part::loc2gl");
   if(AMSFFKEY.Update){
     for(int i=0;i<gethead()->gettdvn();i++){
-      if( strcmp(gethead()->gettdvc(i),"ChargeLkhd")==0 ){
+      if( strcmp(gethead()->gettdvc(i),"ChargeLkhd1")==0 ){
         AMSCharge::init();
       }
     }

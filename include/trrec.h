@@ -57,13 +57,16 @@ number _Sigma;
 number _Mean;    // with respect to center
 number _Rms;
 number _ErrorMean; // Guessed Error
+number _Eta;
 
 number * _pValues;
 
 static void _addnext(const AMSTrIdSoft& id, integer status, integer nelemL,
-  integer nelemR, number sum,  number ssum, number pos, number rms, 
+  integer nelemR, number sum,  number ssum, number pos, number rms, number eta,
   number val[]);
 
+static number _etacalc(integer nelemL, integer nelemR, number val[]);
+static number _etacor(integer side, number eta);
 
 
 
@@ -74,6 +77,7 @@ number getVal(){return TRCLFFKEY.CommonGain[_Id.getside()]*(_Sum-TRCLFFKEY.Commo
 number getcofg(integer side, AMSTrIdGeom * id);
 number cfgCorFun(number s, AMSTrIdGeom * id);
 number getecofg(){return _ErrorMean;}
+number geteta(){return _Eta;}
 //+
 #ifdef __DB__
    friend class AMSTrClusterD;
@@ -99,7 +103,7 @@ integer getSide() {return _Id.getside();}
 
 AMSTrIdSoft getid()const {return _Id;}
 AMSTrCluster(const AMSTrIdSoft& id, integer status, integer nelemL, 
-integer nelemR, number sum,number ssum, number pos, number rms, 
+integer nelemR, number sum,number ssum, number pos, number rms, number eta,
 number val[]);
 AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
@@ -204,6 +208,7 @@ static void print();
 static integer Out(integer);
 number getsum()const{return _Sum;}
 number getsonly()const {return _Sum*(1-_DifoSum);}
+number getkonly()const {return _Sum*(1+_DifoSum);}
 AMSgSen * getpsen()const{return _pSen;}
 inline  AMSPoint  getHit(){return _Hit;}
 inline  AMSPoint  getEHit(){return _EHit;}

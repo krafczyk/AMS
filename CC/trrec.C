@@ -278,8 +278,11 @@ integer AMSTrCluster::build(integer refit){
            if(adc[left]>adc[right])right--;
            else left++;
          }
+         number eta=AMSTrCluster::_etacalc(left-center,right-center+1,adc+left);
+         number cor=1.;
+         if (TRCLFFKEY.EtaCor[side]) cor=AMSTrCluster::_etacor(side,eta);
          _addnext(
-         id,status,left-center,right-center+1,sum,ssum,pos,rms,adc+left);
+         id,status,left-center,right-center+1,cor*sum,cor*ssum,pos,rms,eta,adc+left);
            for (int j=left;j<right+1;j++){
              if(j==right+1 && status==AMSDBc::NEAR)adc[j]=adc[j]/2;
              else adc[j]=0;
@@ -648,8 +651,13 @@ integer AMSTrCluster::buildWeak(integer refit){
            else left++;
          }
          status=status | AMSDBc::WEAK;
-         if(id.getsig()!=0 )_addnext(
-         id,status,left-center,right-center+1,sum,ssum,pos,rms,adc+left);
+         if(id.getsig()!=0 ) {
+           number eta=AMSTrCluster::_etacalc(left-center,right-center+1,adc+left);
+           number cor=1.;
+           if (TRCLFFKEY.EtaCor[side]) cor=AMSTrCluster::_etacor(side,eta);
+           _addnext(
+           id,status,left-center,right-center+1,cor*sum,cor*ssum,pos,rms,eta,adc+left);
+         }
          status=status &  (~AMSDBc::WEAK);
            for (int j=left;j<right+1;j++){
              if(j==right+1 && status==AMSDBc::NEAR)adc[j]=adc[j]/2;
@@ -752,20 +760,71 @@ else  _ErrorMean =TRCLFFKEY.ErrX;
 #endif
 }
 
+number AMSTrCluster::_etacalc(integer nelemL, integer nelemR, number val[]) {
+  number eta=-1.;
+  int i;
+
+// no eta defined for 1 strip clusters
+  int nstrp=-nelemL+nelemR;
+  if (nstrp<2) return eta;
+
+// get eta value
+  int im=-1,in=-1;
+  number mx=0.;
+  for (i=0;i<nstrp;i++) {
+    if (val[i]>mx) {
+      mx=val[i];
+      im=i;
+    }
+  }
+  if (mx<=0. || im<0) {
+    cout << " cluster strips: " << nstrp << endl;
+    cout << " cluster amps: " <<val[0]<<" "<<val[1]<<" "<<val[2]<<" "
+                              <<val[3]<<" "<<val[4]<< endl;
+    cout << " max: " << im << " next: " << in << endl;
+    return eta; 
+  }
+  if (im==0 || im<nstrp-1&&val[im+1]>val[im-1]) {
+    in=im+1;
+  }
+  else in=im-1;
+
+  eta=val[max(im,in)]/(val[im]+val[in]);
+  if (eta<0. || eta>1.) eta=-1.;
+  return eta;
+}
+
+number AMSTrCluster::_etacor(integer side, number eta) {
+  static number etagk=.93078, etack[5]={1.5450,-5.3571,15.318,-20.002,10.048};
+  number cor=1.;
+  integer i;
+
+// no eta correction for S side
+  if (side==1) return cor;
+
+// apply corrections
+  if (eta>=0. && eta<=1.) {
+    number sum=0.;
+    for (i=0;i<5;i++) sum+=etack[i]*pow(eta,i);
+    cor=etagk/sum;
+  }
+  return cor;
+}
 
   void AMSTrCluster::_addnext(const AMSTrIdSoft & id, 
                           integer status, integer nelemL,integer nelemR, 
                          number sum, number ssum, number pos, number rms,
-                         number val[]) {
+                         number eta, number val[]) {
     AMSEvent::gethead()->addnext(AMSID("AMSTrCluster",id.getside()),
-    new AMSTrCluster(id,status,nelemL,nelemR,sum,ssum,pos,rms,val));
+    new AMSTrCluster(id,status,nelemL,nelemR,sum,ssum,pos,rms,eta,val));
 }
 
 AMSTrCluster::AMSTrCluster(const AMSTrIdSoft& id, integer status, 
                            integer nelemL, integer nelemR, number sum,
-                           number ssum, number pos,number rms,  number val[]):
+                           number ssum, number pos,number rms, number eta,
+                           number val[]):
     AMSlink(status,0),_Id(id),_NelemL(nelemL), _NelemR(nelemR),_Sum(sum), 
-    _Sigma(ssum), _Mean(pos), _Rms(rms){
+    _Sigma(ssum), _Mean(pos), _Rms(rms), _Eta(eta){
  _ErrorCalc();
  if(getnelem()>0){
   _pValues=(number*)UPool.insert(getnelem()*sizeof(number));
@@ -1244,7 +1303,6 @@ integer AMSTrTrack::build(integer refit){
            else{  // 5 points only
                 // 5 point combination found
              if(AMSTrTrack::_addnext(pat,5,phit)){
-                  ThreePointNotWanted=1;
                   NTrackFound++;
                   goto out;
              }
@@ -2630,10 +2688,8 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     if(xs>3)AMSEvent::gethead()->addnext(AMSID("Test",0),new Test());
     else return -1;
   }
-          integer       ThreePointNotWanted=0;
 
   for (int pat=0;pat<npat;pat++){
-    if(patpoints[pat]==3 && ThreePointNotWanted)continue;
     AMSTrRecHit * phit[6]={0,0,0,0,0,0};
     if(TRFITFFKEY.pattern[pat]){
       int fp=patpoints[pat]-1;    
@@ -2684,7 +2740,6 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
               if(AMSTrTrack::_addnext(pat,6,phit)){
                   // cout << "FalseTOFX track found with 5 hits" << endl;
                   NTrackFound++;
-                  ThreePointNotWanted=1;
                   goto out;
               }                
                 
@@ -2697,8 +2752,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
              if(AMSTrTrack::_addnext(pat,5,phit)){
                   // cout << "FalseTOFX track found with 5 hits" << endl;
                   NTrackFound++;
-                  ThreePointNotWanted=1;
-                 goto out;
+                  goto out;
              }
                 
            }

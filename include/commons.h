@@ -427,6 +427,8 @@ class CHARGEFITFFKEY_DEF {
 public:
   geant Thr;  // Threshold to refit
   geant OneChargeThr;
+  geant EtaMin[2];
+  geant EtaMax[2];
 };
 //
 
@@ -547,6 +549,7 @@ geant ResFunX[3][6];
 geant ResFunY[3][6];
 geant CommonGain[2];
 geant CommonShift[2];
+geant EtaCor[2];
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
 COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
