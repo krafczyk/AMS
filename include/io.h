@@ -42,6 +42,7 @@ void convert();
 integer getrun() const { return _run;}
 integer getevent() const { return _event;}
 integer getpid() const {return _ipart;}
+integer getskip() const{return _nskip;}
 void setpid(integer pid)  {_ipart=pid;}
 time_t gettime() const {return _time;}
 geant getpolephi() const{return _polephi;}

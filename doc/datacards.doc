@@ -178,7 +178,8 @@ I25 begindate(02041998)           // start date (ddmmyyyy)
 I26 begintime(080000)             // start time (hhmmss)
 I27 enddate(06041998)             // end date   (ddmmyyyy)
 I28 endtime(120000)               // end time   (hhmmss)
-I29 oldformat(0)                  // 1 if oldformat for io read is used
+I29 dir(1)                        // direction +1 to higher theta (-1 to lower)
+I30 oldformat(0)                  // 1 if oldformat for io read is used
 
 KINE 
 1 IPART        // Geant particle id

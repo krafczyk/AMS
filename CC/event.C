@@ -90,18 +90,18 @@ void AMSEvent::_signinitevent(){
 void AMSEvent::SetTimeCoo(){    
 
   // Allocate time & define the geographic coordinates
-
-  number sec=(AMSmceventg::Orbit.Nskip+1)*
-             AMSmceventg::Orbit.FlightTime/GCFLAG.NEVENT;
+static number dtime=AMSmceventg::Orbit.FlightTime/
+(GCFLAG.NEVENT+1-GCFLAG.IEVENT);
+             
   static number curtime=0;
   static number theta=AMSmceventg::Orbit.ThetaI;
   static number phi=AMSmceventg::Orbit.PhiI;
   static number pole=AMSmceventg::Orbit.PolePhi;
   geant dd,r; 
-  do {
-   r=RNDM(dd);
-  }while (r <= 0);
-  number xsec=-sec*log(r);
+  int i;
+  number xsec=0;
+  for(i=0;i<AMSmceventg::Orbit.Nskip+1;i++)
+  xsec+=-dtime*log(RNDM(dd)+1.e-30);
   curtime+=xsec;
   pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
   phi=fmod(phi+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
@@ -296,7 +296,7 @@ for (int i=0;;){
 }
 
 void AMSEvent::copy(){
-if(IOPA.mode ==2){
+if(IOPA.mode ==2 || IOPA.mode==3){
 _copyEl();
 AMSNode * cur;
 for (int i=0;;){

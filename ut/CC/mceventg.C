@@ -139,18 +139,18 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.Begin.tm_year  =  begindate%10000-1900;
   Orbit.Begin.tm_mon = (begindate/10000)%100-1;
   Orbit.Begin.tm_mday   = (begindate/1000000)%100;
-  Orbit.Begin.tm_hour  = (begintime/10000)%100-1;
+  Orbit.Begin.tm_hour  = (begintime/10000)%100;
   Orbit.Begin.tm_min= (begintime/100)%100;
   Orbit.Begin.tm_sec=(begintime)%100;
-  Orbit.Begin.tm_isdst = 0;
+  Orbit.Begin.tm_isdst =  Orbit.Begin.tm_mon>=3 &&  Orbit.Begin.tm_mon<=8;
 
   Orbit.End.tm_year  =  enddate%10000-1900;
   Orbit.End.tm_mon = (enddate/10000)%100-1;
   Orbit.End.tm_mday   = (enddate/1000000)%100;
-  Orbit.End.tm_hour  = (endtime/10000)%100-1;
+  Orbit.End.tm_hour  = (endtime/10000)%100;
   Orbit.End.tm_min=(endtime/100)%100;
   Orbit.End.tm_sec=(endtime)%100;
-  Orbit.End.tm_isdst = 0;
+  Orbit.End.tm_isdst = Orbit.End.tm_mon>=3 &&  Orbit.End.tm_mon<=8;
   Orbit.FlightTime=difftime(mktime(&Orbit.End),mktime(&Orbit.Begin));
   
   Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
@@ -164,8 +164,8 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
     cerr <<"AMSMCEVENTG::setspectra-ThetaI brought to "<<Orbit.ThetaI<<endl;
     r=sin(Orbit.ThetaI)/Orbit.AlphaSinThetaMax;
   }
-  Orbit.PhiZero=Orbit.PhiI-acos(r);
-  
+  Orbit.PhiZero=Orbit.PhiI+CCFFKEY.sdir*fabs(acos(r));
+
   Orbit.AlphaSpeed=AMSDBc::twopi/92.36/60.;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
   Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;

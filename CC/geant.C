@@ -399,7 +399,7 @@ static integer event=0;
 // create new event & initialize it
   if(IOPA.mode !=1){
   AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
-  new AMSEvent(AMSID("Event",++event),CCFFKEY.run,0)));
+  new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0)));
    for(integer i=0;i<CCFFKEY.npat;i++){
     AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){

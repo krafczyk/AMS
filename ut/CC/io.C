@@ -38,14 +38,16 @@ void AMSIO::init(integer mode,integer format){
           integer ok=1;
           integer seed0,seed1;
           number theta,phi,pole;
+          time_t time;
           while(ok){
            ok=io.read();
            if(ok){
              seed0=io.getseed(0);
              seed1=io.getseed(1);
-             theta=io.getstheta()*AMSDBc::raddeg;
-             phi=io.getsphi()*AMSDBc::raddeg;
-             pole=io.getpolephi()*AMSDBc::raddeg;
+             theta=io.getstheta();
+             phi=io.getsphi();
+             pole=io.getpolephi();
+             time=io.gettime();
            }
            if(format==1 && (io.getrun()!=runold || ok==0)){
              if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
@@ -60,8 +62,10 @@ void AMSIO::init(integer mode,integer format){
            }
            ipos++;
            iposr++;
-           if(io.getrun() == SELECTFFKEY.Run && io.getevent() >= 
-             SELECTFFKEY.Event)break; 
+           if(SELECTFFKEY.Event >=0 && io.getrun() == SELECTFFKEY.Run && 
+            io.getevent() >= SELECTFFKEY.Event)break; 
+           if(io.getrun() == SELECTFFKEY.Run && iposr == 
+             -SELECTFFKEY.Event)break; 
           }
           // pos back if fbin.good
           if(ok){
@@ -74,16 +78,89 @@ void AMSIO::init(integer mode,integer format){
             if(format==0)cerr <<"AMSIO::init-F-Failed to select Run = "<<SELECTFFKEY.Run<<
               " Event >= "<<SELECTFFKEY.Event<<endl;
           if(format==1){
+            theta=theta*AMSDBc::raddeg;
+            phi=phi*AMSDBc::raddeg;
+            pole=pole*AMSDBc::raddeg;
              cout<<"AMSIO::init-I-Total of "<<ipos-1
              <<" events have been read."<<endl;
              cout << " Last Random Number "<<seed0<<" "<<seed1    <<endl;
              cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
+             cout << " Time "<<ctime(&time)<<endl;
              fbin.close();
           }
           else  exit(1);
           }
           return;
         }
+    }
+    else if (mode ==3){
+
+
+        fbin.open(fnam,ios::in|binary);
+        if(fbin ){
+          // read one by one 
+          AMSIO io;
+          integer ipos=0;
+          integer iposr=0;
+          integer runold=0;
+          integer pidold=0;
+          integer ok=1;
+          time_t time;
+          number theta,phi,pole;
+          integer event;
+          while(ok){
+           ok=io.read();
+           if(ok){
+             event=io.getevent();
+             theta=io.getstheta();
+             phi=io.getsphi();
+             pole=io.getpolephi();
+             time=io.gettime();
+           }
+           if(format==1 && (io.getrun()!=runold || ok==0)){
+             if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
+                          " events with pid = "<<pidold<<endl;
+             if(io.getrun()<0){
+               cout <<"AMSIO::init-F-Negative run number "<< io.getrun()<<endl;
+               exit(1);
+             }
+             iposr=0;
+             pidold=io.getpid();
+             runold=io.getrun();
+           }
+           ipos++;
+           iposr++;
+          }
+             theta=theta*AMSDBc::raddeg;
+             phi=phi*AMSDBc::raddeg;
+              pole=pole*AMSDBc::raddeg;
+              cout<<"AMSIO::init-I-Last Event "<<event<<endl;
+             cout << " Last time "<<ctime(&time)    <<endl;
+             cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
+             fbin.clear();
+             fbin.seekg(fbin.tellg()-2*sizeof(io));
+             ok=io.read();
+             fbin.close();
+             if(ok){
+              CCFFKEY.theta=theta;
+              CCFFKEY.phi=phi;
+              CCFFKEY.polephi=pole;
+              GCFLAG.IEVENT=GCFLAG.IEVENT+event;
+              if(io.getstheta()*AMSDBc::raddeg > theta)CCFFKEY.sdir=-1;
+              else CCFFKEY.sdir=1;
+              tm *pb;
+              pb=localtime(&time);
+              CCFFKEY.begindate=1900+pb->tm_year+10000*(pb->tm_mon+1)+
+              1000000*pb->tm_mday;
+              CCFFKEY.begintime=pb->tm_sec+100*pb->tm_min+
+              10000*(pb->tm_hour);
+             }
+        }
+
+
+
+
+     fbin.open(fnam,ios::out|binary|ios::app);
     }
     else fbin.open(fnam,ios::out|binary|ios::app);
     if(fbin==0){

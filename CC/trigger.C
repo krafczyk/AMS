@@ -21,7 +21,7 @@ void Trigger::build(){
 #else
           // xxx code here
 #endif
-  if (tof >=3 && sumanti < 0.2)    // Hardwired here
+  if (tof >=3 && sumanti < 1.)    // Hardwired here
 AMSEvent::gethead()->addnext(AMSID("Trigger",0),new Trigger(1));
  
 

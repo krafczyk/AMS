@@ -298,6 +298,7 @@ public:
   integer begintime;      // time begin format hhmmss
   integer enddate;        // time end   format ddmmyyyy
   integer endtime;        // time end   format hhmmss
+  integer sdir;            // direction + 1 to higher -1 to lower theta
   integer oldformat;
 };
 //
