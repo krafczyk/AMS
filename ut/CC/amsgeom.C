@@ -2408,5 +2408,222 @@ void ecalgeom02(AMSgvolume & mother){
 }
 void srdgeom02(AMSgvolume & mother){
 }
-void richgeom02(AMSgvolume & mother){
+void richgeom02(AMSgvolume & mother)
+{
+  // RICH geometry by Carlos Delgado (CIEMAT) based on the official RICH 
+  // simulation by Fernando Barao et al. MAterials and media defined in gmat.C
+
+  // AMSID amsid; // Not used
+  geant par[6]={0.,0.,0.,0.,0.,0.};
+  char name[5]="RICH";
+  geant coo[3]={0.,0.,0.};
+  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+  integer gid=0,flag=1;
+  //  AMSNode * cur; // Not used
+  AMSNode * dau;
+  //  AMSgtmed *p;  // Not used
+  
+  
+  // Now I define all the parameters here so any further modification may be
+  // performed fast and easily
+
+  geant offset=-83.999-0.5; // Distance from the coordinates origin to top of
+                            // rich... I don't know this value yet.
+  // -83.999 from 0 to radiator -.5 because there is a black wall 
+  // The omnipresent - is due to the reference system Z grows form the PMT to 
+  // the radiator
+
+
+
+  geant thk=0.5; // Anything thickness
+
+  geant hrad=2;  //Radiator height
+  geant rrad=50; //Radiator radius
+  
+  geant h=55;    // Cone height
+  geant R=90;    // Larger radius
+  geant r=40;    // smaller radius
+
+
+
+  // Radiator
+
+  par[0]=0;   
+  par[1]=rrad; // radius
+  par[2]=hrad/2.;  // h/2
+  
+  coo[2]=offset-par[2];
+
+
+  dau=mother.add(new AMSgvolume("RICH RAD",  // Material: Aerogel in the future
+				0,         // No rotation
+				"RAD ",     // Name 
+				"TUBE",    // Shape
+				par,       // Geant parameters
+				3,         // # of parameters
+				coo,       // coordinates 
+				nrm,       // Matrix of normals
+				"ONLY",    
+				0,
+				gid++,
+				flag));
+
+  
+  // Inside conical mirror
+
+  par[0]=h/2.;  // height
+  par[3]=0;     // Inside radius at the vertex
+  par[4]=0;     // Outside radius at the vertex
+  par[1]=r-thk;// Inside radius at the bottom (0.5cm of thickness)
+  par[2]=r;    // Outside radius at the bottom
+
+  coo[2]=offset-hrad-par[0];
+
+  dau=mother.add(new AMSgvolume("RICH MIRRORS",  // Material
+				0,         // No rotation
+				"IMIR",     // Name 
+				"CONE",    // Shape
+				par,       // Geant parameters
+				5,         // # of parameters
+				coo,       // coordinates 
+				nrm,       // Matrix of normals
+				"ONLY",    
+				0,
+				gid++,
+				flag));
+
+  // Outside mirror
+
+  par[0]=h/2.;     // height
+  par[3]=rrad;     // Inside radius at the vertex
+  par[4]=rrad+thk; // Outside radius at the vertex
+  par[1]=R;        // Inside radius at the bottom (0.5cm of thickness)
+  par[2]=R+thk;    // Outside radius at the bottom
+
+  coo[2]=offset-hrad-par[0];
+
+  dau=mother.add(new AMSgvolume("RICH MIRRORS",  // Material
+				0,         // No rotation
+				"OMIR",     // Name 
+				"CONE",    // Shape
+				par,       // Geant parameters
+				5,         // # of parameters
+				coo,       // coordinates 
+				nrm,       // Matrix of normals
+				"ONLY",    
+				0,
+				gid++,
+				flag));
+    
+  // PMTs 
+
+  par[0]=r;
+  par[1]=R;
+  par[2]=thk/2;
+
+  coo[2]=offset-hrad-h-par[2];
+
+  dau=mother.add(new AMSgvolume("RICH PMTS",  // Material
+				0,         // No rotation
+				"PMTS",     // Name 
+				"TUBE",    // Shape
+				par,       // Geant parameters
+				3,         // # of parameters
+				coo,       // coordinates 
+				nrm,       // Matrix of normals
+				"ONLY",    
+				0,
+				gid++,
+				flag));
+
+
+  // And now some black walls... probably they will be remove in the future
+  
+  // Radiator lateral wall
+
+  par[0]=rrad;
+  par[1]=rrad+thk;
+  par[2]=hrad/2+thk/2;
+
+  coo[2]=offset-hrad+par[2];
+
+  
+  dau=mother.add(new AMSgvolume("RICH WALLS",  // Material: ? in the future
+				0,         // No rotation
+				"WALO",     // Name 
+				"TUBE",    // Shape
+				par,       // Geant parameters
+				3,         // # of parameters
+				coo,       // coordinates 
+				nrm,       // Matrix of normals
+				"ONLY",    
+				0,
+				gid++,
+				flag));
+
+  // On the top
+
+  par[0]=0;
+  par[1]=rrad;
+  par[2]=thk/2;
+
+  coo[2]=offset+par[2];
+
+
+  dau=mother.add(new AMSgvolume("RICH WALLS",  // Material: ? in the future
+				0,         // No rotation
+				"WALT",     // Name 
+				"TUBE",    // Shape
+				par,       // Geant parameters
+				3,         // # of parameters
+				coo,       // coordinates 
+				nrm,       // Matrix of normals
+				"ONLY",    
+				0,
+				gid++,
+				flag));
+
+  // On the bottom: added to simulate PMTS
+
+  par[0]=r;
+  par[1]=R+thk;
+  par[2]=thk/2;
+
+  coo[2]=offset-hrad-h-thk-par[2];
+
+  dau=mother.add(new AMSgvolume("RICH WALLS",  // Material: ? in the future
+				0,         // No rotation
+				"WALB",     // Name 
+				"TUBE",    // Shape
+				par,       // Geant parameters
+				3,         // # of parameters
+				coo,       // coordinates 
+				nrm,       // Matrix of normals
+				"ONLY",    
+				0,
+				gid++,
+				flag)); 
+
+  // SECOND WALL ON THE BOTTOM
+
+
+  par[0]=R;
+  par[1]=R+thk;
+  par[2]=thk/2;
+
+  coo[2]=offset-hrad-h-par[2];
+
+  dau=mother.add(new AMSgvolume("RICH WALLS",  // Material: ? in the future
+				0,         // No rotation
+				"WABB",     // Name 
+				"TUBE",    // Shape
+				par,       // Geant parameters
+				3,         // # of parameters
+				coo,       // coordinates 
+				nrm,       // Matrix of normals
+				"ONLY",    
+				0,
+				gid++,
+				flag)); 
+  
 }
