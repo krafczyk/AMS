@@ -347,7 +347,8 @@ $(BIN)ecaldbc.o: 	 $(SCC)ecaldbc.C
 	$(CC) -c $(CFLAGS) $(SCC)ecaldbc.C -o $(BIN)ecaldbc.o
 
 $(BIN)ecalrec.o: 	 $(SCC)ecalrec.C
-	$(CC) -c $(CFLAGS) $(SCC)ecalrec.C -o $(BIN)ecalrec
+	$(CC) -c $(CFLAGS) $(SCC)ecalrec.C -o $(BIN)ecalrec.o
+
 depend:         $(BIN)Make-depend
 touch_depend:
 		touch $(BIN)Make-depend
