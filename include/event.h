@@ -47,7 +47,7 @@ private:
     uinteger  Pid;   //Beam particle ID  == Geant One
     float Mom;   //Beam particle momentum (GeV/c) - 0-default
     float Intens;//Beam intensity (part/sec), 0-default
-    uinteger  Cond;  //Beam conditions, 0-default
+    uinteger  Cond;  //  Position no
     float BeamSize;  //beam size in cm;
  };
 
@@ -188,6 +188,7 @@ void copy();
 void printA(integer debugl=0);
 void event();
 void seterror(){_Error=1;}
+integer HasNoErrors(){return _Error==0;}
 //+
 uinteger getEvent() {return uinteger(_id);}
 static integer _checkUpdate();

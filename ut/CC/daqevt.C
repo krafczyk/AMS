@@ -396,6 +396,10 @@ void DAQEvent::init(integer mode, integer format){
      integer ok=1;
      integer iposr=0;
      while(ok){
+      if(GCFLAG.IEOTRI){
+       cerr<<"DAQEvent::init-F-Interrupt"<<endl;
+       exit(1);
+      }
       ok=daq.read();
       if(ok){
        iposr++;

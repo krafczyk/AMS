@@ -344,7 +344,7 @@ void AMSEvent::_signinitevent(){
   new AMSContainer(AMSID("AMSContainer:AMSmceventg",0),0));
 }
 
-void AMSEvent::SetTimeCoo(integer rec){    
+ void AMSEvent::SetTimeCoo(integer rec){    
   AMSgObj::BookTimer.start("SetTimeCoo");
   // Allocate time & define the geographic coordinates
   if(AMSJob::gethead()->isSimulation() && !rec){
@@ -390,8 +390,6 @@ void AMSEvent::SetTimeCoo(integer rec){
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
   }
-
-
   else if(AMSJob::gethead()->isSimulation() && rec){
     _Yaw=0;
     _Roll=0;
@@ -405,8 +403,6 @@ void AMSEvent::SetTimeCoo(integer rec){
     _VelTheta=AMSDBc::pi/2-ax2.gettheta();
     _VelPhi=ax2.getphi();
   }
-
-
   else if(!AMSJob::gethead()->isSimulation() && rec){
     static integer hint=0;
     //get right record
@@ -455,7 +451,6 @@ void AMSEvent::SetTimeCoo(integer rec){
       _VelPhi=Array[hint+1].VelPhi;
     }
     else if(!MISCFFKEY.BeamTest && _StationRad>6.4e8){
-//    else if(!MISCFFKEY.BeamTest ){
       //interpolation needed
       number xsec=_time-Array[hint].Time;
       number dt=Array[hint+1].Time-Array[hint].Time;
@@ -560,22 +555,27 @@ void AMSEvent::SetTimeCoo(integer rec){
     }
     else chint=hintb+1;
      // check the runtag
-     if(ArrayB[chint].RunTag!= AMSEvent::gethead()->getruntype()){
+     
+     if(ArrayB[chint].RunTag%32768!= AMSEvent::gethead()->getruntype()%32768){
         seterror();
         cerr<<"Event & BeamPar disagree event says runtype = "<<hex<<
         AMSEvent::gethead()->getruntype()<<" BeamPar says "<<hex<<
         ArrayB[chint].RunTag<<endl;
-     } 
-     geant mom(ArrayB[chint].Mom);
-     integer part(ArrayB[chint].Pid);
-     AMSDir dir(ArrayB[chint].Theta,ArrayB[chint].Phi);
-     AMSPoint x(ArrayB[chint].X,ArrayB[chint].Y,ArrayB[chint].Z);
-     AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0),
-     new AMSmceventg(part,mom,x,dir));
+     }
+     else { 
+      
+      geant mom(ArrayB[chint].Mom);
+      integer part(ArrayB[chint].Pid);
+      AMSDir dir(ArrayB[chint].Theta,ArrayB[chint].Phi);
+      AMSPoint x(ArrayB[chint].X,ArrayB[chint].Y,ArrayB[chint].Z);
+      AMSmceventg *pgen=new AMSmceventg(part,mom,x,dir,ArrayB[chint].Cond);
+      if(pgen->acceptio())AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0),pgen);
+      else seterror();
+     }
     }
   }
-  AMSgObj::BookTimer.stop("SetTimeCoo");
 
+  AMSgObj::BookTimer.stop("SetTimeCoo");
 }
 
 

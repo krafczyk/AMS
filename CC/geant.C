@@ -330,7 +330,7 @@ extern "C" void guout_(){
    AMSgObj::BookTimer.stop("GEANTTRACKING");
 
    try{
-          AMSEvent::gethead()->event();
+          if(AMSEvent::gethead()->HasNoErrors())AMSEvent::gethead()->event();
    }
    catch (AMSuPoolError e){
      cerr << e.getmessage()<<endl;

@@ -37,8 +37,7 @@ InitSeed();
 
 
 AMSmceventg::AMSmceventg(integer ipart, geant mom, AMSPoint & coo,
-AMSDir & dir){
-_nskip=0;
+AMSDir & dir, integer nskip):_nskip(nskip){
 init(ipart);
 _mom=mom;
 int i;
@@ -479,17 +478,6 @@ _charge=charge;
    geant plab[3],vertex[3];
    integer nvert=0;
    integer nt=0;
-    AMSPoint coo(_coo);
-    AMSDir dir(_dir);
-    number mom(_mom);
-    //    do{
-    //      gener();
-    //    }while(!accept());
-    //
-
-   _coo=coo;
-   _dir=dir;
-   _mom=mom;
    if(acceptio()){
     vertex[0]=_coo[0];
     vertex[1]=_coo[1];
