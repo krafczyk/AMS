@@ -51,20 +51,20 @@ const number AMSDBc::twopi=2*pi;
    }
    const integer AMSDBc::_maxnlad=nld;
    const number AMSDBc::_layd[_nlay][5]={
-                               2.5,0.,75., 0.,75.,
+                               5.3,0.,75., 0.,75.,
                                5.,0.,54.0,0.,54.0, 
                                5.,0.,54.0,0.,54.0, 
                                5.,0.,54.0,0.,54.0, 
                                5.,0.,54.0,0.,54.0, 
-                               2.5,0.,75. ,0.,75.};
+                               5.3,0.,75. ,0.,75.};
    const number AMSDBc::_halfldist[_nlay]={0.08,0.08,0.08,0.08,0.08,0.08};
    const number  AMSDBc::_xposl[_nlay]={0,0,0,0,0,0};
    const number  AMSDBc::_yposl[_nlay]={0,0,0,0,0,0};
    const number  AMSDBc::_zposl[_nlay]={50.985,29.185,7.785,-7.785,-29.185,-50.985};
 const number AMSDBc::_nrml[_nlay][3][3]={
                                           1,0,0,
-                                          0,1,0,
-                                          0,0,1,
+                                          0,-1,0,
+                                          0,0,-1,
                                           1,0,0,
                                           0,1,0,
                                           0,0,1,
@@ -78,8 +78,8 @@ const number AMSDBc::_nrml[_nlay][3][3]={
                                           0,-1,0,
                                           0,0,-1,
                                           1,0,0,
-                                          0,-1,0,
-                                          0,0,-1};
+                                          0,1,0,
+                                          0,0,1};
    const integer AMSDBc::_nlad[_nlay]={17,14,14,14,14,17};
    const integer AMSDBc::_nsen[_nlay][_maxnlad]={15,20,23,26,28,29,30,30,30,30,30,
                                  29,28,26,23,20,15,
@@ -108,12 +108,12 @@ const number  AMSDBc::_zpos[_nlay]={0,0,0,0,0,0};
                                                     4.13600,7.2045};
    const number  AMSDBc::_silicon_z[_nlay]={0.03,0.03,0.03,0.03,0.03,0.03};
    const number  AMSDBc::_zelec[_nlay][3]={
-                                           2.5,.8,-0.015,
                                            5.,.8,-0.015,
                                            5.,.8,-0.015,
                                            5.,.8,-0.015,
                                            5.,.8,-0.015,
-                                           2.5,.8,-0.015 };
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015 };
    const integer AMSDBc::_nladshuttle[_nlay]={4,6,6,6,6,3};
    const integer AMSDBc::_boundladshuttle[_nlay]={7,5,5,5,5,8};
 
@@ -122,11 +122,11 @@ const number  AMSDBc::_c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30};
 // support foam width;
 const number  AMSDBc::_support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5};
 // support hc width;
-const number  AMSDBc::_support_hc_w[_nlay]={1.236,1.236,1.236,1.236,1.236,1.236};
+const number  AMSDBc::_support_hc_w[_nlay]={4.,1.236,1.236,1.236,1.236,4.};
 // support hc radius;
-const number  AMSDBc::_support_hc_r[_nlay]={70.,53.6,53.6,53.6,53.6,70.};
+const number  AMSDBc::_support_hc_r[_nlay]={71.5,53.6,53.6,53.6,53.6,71.5};
 // support hc z;
-const number  AMSDBc::_support_hc_z[_nlay]={-1.67,-1.67,-1.67,-1.67,-1.67,-1.67};
+const number  AMSDBc::_support_hc_z[_nlay]={-3.052,-1.67,-1.67,-1.67,-1.67,-3.052};
 
    
 

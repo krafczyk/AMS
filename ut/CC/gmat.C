@@ -6,10 +6,21 @@
 #include <job.h>
 integer AMSgmat::debug=0;
 void AMSgmat::_init(){
-  if(_npar == 1)   GSMATE(_imate,_name,_a[0],_z[0],_rho,_radl,_absl,_ubuf,1);
+   geant *a=new geant[_npar];
+   geant *z=new geant[_npar];
+   geant *w=new geant[_npar];
+   for(int i=0;i<_npar;i++){
+     a[i]=_a[i];
+     if(_npar>1)w[i]=_w[i];
+     z[i]=_z[i];
+   }
+   
+  if(_npar == 1)   GSMATE(_imate,_name,a[0],z[0],_rho,_radl,_absl,_ubuf,1);
 
-  else    GSMIXT(_imate,_name,_a,_z,_rho,-_npar,_w);
-
+  else    GSMIXT(_imate,_name,a,z,_rho,-_npar,w);
+   delete []a;
+   delete []z;
+   delete []w;
 }      
 ostream & AMSgmat::print(ostream & stream)const{
 return(AMSID::print(stream)  <<  " GSMATE" << endl);

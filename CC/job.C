@@ -481,13 +481,14 @@ TRCLFFKEY.ErrZ=30.e-4;
 TRCLFFKEY.ThrDSide=1.;
 
 TRCLFFKEY.CorFunParA[0][0]=400e-4;
-TRCLFFKEY.CorFunParB[0][0]=0.85;
+//TRCLFFKEY.CorFunParB[0][0]=0.85;
+TRCLFFKEY.CorFunParB[0][0]=1.;
 TRCLFFKEY.CorFunParA[0][5]=400e-4;
-TRCLFFKEY.CorFunParB[0][5]=0.85;
+TRCLFFKEY.CorFunParB[0][5]=1.;
 int k;
 for (k=1;k<5;k++){
  TRCLFFKEY.CorFunParA[0][k]=400e-4;
- TRCLFFKEY.CorFunParB[0][k]=0.85;
+ TRCLFFKEY.CorFunParB[0][k]=1.;
 }
 for ( k=0;k<6;k++){
  TRCLFFKEY.CorFunParA[1][k]=65e-4;
@@ -899,12 +900,13 @@ void AMSJob::_sitkinitjob(){
          for (int j=0;j<AMSDBc::nlad(i+1);j++){
            for (int s=0;s<2;s++){
             AMSTrIdSoft id(i+1,j+1,s,l,0);
+            if(id.dead())continue;
             number oldone=0;
             for(int k=0;k<AMSDBc::NStripsDrp(i+1,l);k++){
              id.upd(k);
              geant d;
              id.setped()=TRMCFFKEY.ped[l]*(1+RNDM(d));
-             id.setstatus(0);
+             id.clearstatus(~0);
              id.setsig()=TRMCFFKEY.sigma[l]*(0.9+0.2*RNDM(d));
              id.setgain()=TRMCFFKEY.gain[l];
              id.setcmnnoise()=TRMCFFKEY.cmn[l]*(1+RNDM(d));

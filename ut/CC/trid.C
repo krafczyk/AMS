@@ -73,7 +73,9 @@ if(strip < 0 || strip >= getmaxstrips(side)){
 }
 else {
  error=0;
- return _swxyl[_layer-1][side][strip]+_swxy[_layer-1][side][strip]/2;
+ return  AMSJob::gethead()->isRealData()?
+   _swxyRl[_layer-1][side][strip]+_swxyR[_layer-1][side][strip]/2:
+  _swxyl[_layer-1][side][strip]+_swxy[_layer-1][side][strip]/2;
 }
 }
 
@@ -253,59 +255,92 @@ void AMSTrIdSoft::_mkhaddr(){
 integer va= getva();
 integer strip=getstripa();
 integer tdrs=_GetHard[_layer-1][_drp-1][_half][_side];
-#ifdef __AMSDEBUG__
- assert (tdrs>=0 && tdrs < ntdr);
-#endif
+ if (tdrs>=0 && tdrs < ntdr)
   _haddr=strip | va<<6 | tdrs << 10 ;
+ else _dead=1;
 }
+void AMSTrIdGeom::R2Gx(integer stripx){
+   if(AMSJob::gethead()->isRealData()){
+     if(_layer == 1 || _layer ==6){
+       //K7
+       if(stripx<64)_stripx=3*stripx;
+       else if (stripx<64+97)_stripx=63*3+(stripx-63)*4;
+       else _stripx=63*3+97*4+(stripx-64-96)*3;
+     }
+     else{
+       //K5
+       if(stripx== AMSDBc::NStripsSen(_layer,0)-1)
+        _stripx=AMSDBc::NStripsSenR(_layer,0)-1;
+       else _stripx=4*stripx;  
+       
+     }
+   }
+
+   else _stripx=stripx;
+
+}
+
 
 AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
   static AMSTrIdGeom spid[20];
-  if( _side==0 && o._side==1) {
     integer strip=_strip;
-    integer stripy;
+    integer stripx,stripy;
     namb=0; 
     _pid=spid;
-   if(_half==0 ){
+  if( _side==0 && o._side==1) {
+   if(AMSJob::gethead()->isRealData()){
+      if(o._strip==0) stripy=0;
+      else if(o._strip== AMSDBc::NStripsDrp(o._layer,o._side)-1)
+        stripy=o._strip*2+4;
+      else  stripy=o._strip*2+2;
+   
+
+
      integer isen=strip/AMSDBc::NStripsSen(_layer,_side)+1;
      do {
       (_pid+namb)->_layer=_layer;
       (_pid+namb)->_ladder=_drp;
-      (_pid+namb)->_sensor=isen;
-      if(o._strip==0)stripy=0;
-      else if(o._strip==AMSDBc::NStripsDrp(o._layer,o._side)-1)
-      stripy=AMSDBc::NStripsSen(o._layer,o._side)-1;
-      else stripy=o._strip+1;
+      (_pid+namb)->_sensor=isen+(_half==0?0:AMSDBc::nhalf(_layer,_drp));
       (_pid+namb)->_stripy=stripy;
-      (_pid+namb)->_stripx=strip%AMSDBc::NStripsSen(_layer,_side);
+      stripx=strip%AMSDBc::NStripsSen(_layer,_side);
+      (_pid+namb)->R2Gx(stripx);
       strip=strip+AMSDBc::NStripsDrp(_layer,_side);
       isen=strip/AMSDBc::NStripsSen(_layer,_side)+1;
       namb++;    
 #ifdef __AMSDEBUG__
       assert(namb<19);
 #endif    
-     }while (isen<=AMSDBc::nhalf(_layer,_drp));
-    }         
+     }while (isen<=(_half==0?
+                           AMSDBc::nhalf(_layer,_drp):
+                           AMSDBc::nsen(_layer,_drp)-AMSDBc::nhalf(_layer,_drp)));
+
+
+   
+     
+   }
    else{
      integer isen=strip/AMSDBc::NStripsSen(_layer,_side)+1;
      do {
       (_pid+namb)->_layer=_layer;
       (_pid+namb)->_ladder=_drp;
-      (_pid+namb)->_sensor=isen+AMSDBc::nhalf(_layer,_drp);
+      (_pid+namb)->_sensor=isen+(_half==0?0:AMSDBc::nhalf(_layer,_drp));
       if(o._strip==0)stripy=0;
       else if(o._strip==AMSDBc::NStripsDrp(o._layer,o._side)-1)
       stripy=AMSDBc::NStripsSen(o._layer,o._side)-1;
       else stripy=o._strip+1;
       (_pid+namb)->_stripy=stripy;
-      (_pid+namb)->_stripx=strip%AMSDBc::NStripsSen(_layer,_side);
+      stripx=strip%AMSDBc::NStripsSen(_layer,_side);
+      (_pid+namb)->R2Gx(stripx);
       strip=strip+AMSDBc::NStripsDrp(_layer,_side);
       isen=strip/AMSDBc::NStripsSen(_layer,_side)+1;
-      namb++;
+      namb++;    
 #ifdef __AMSDEBUG__
       assert(namb<19);
 #endif    
-     }while (isen<= AMSDBc::nsen(_layer,_drp)-AMSDBc::nhalf(_layer,_drp));
-    }         
+     }while (isen<=(_half==0?
+                           AMSDBc::nhalf(_layer,_drp):
+                           AMSDBc::nsen(_layer,_drp)-AMSDBc::nhalf(_layer,_drp)));
+   }
   }
   else{
    namb=0;
@@ -313,6 +348,7 @@ AMSTrIdGeom * AMSTrIdSoft::ambig(const AMSTrIdSoft &o, integer & namb) {
    if(AMSTrIdSoft::debug)cerr <<"AMSTrIdSoft::ambig-S-Side Error "<<
     _side<<" "<<o._side<<endl;
   } 
+  
 return _pid; 
 }
 
@@ -774,7 +810,7 @@ void AMSTrIdGeom::init(){
 
 integer AMSTrIdGeom::size2strip(integer side, number size){
      #ifdef __AMSDEBUG__
-       assert(side>=0 && side<2);
+       assert(side>=0 && side<2 &&  !AMSJob::gethead()->isRealData());
      #endif
        integer strip;
        strip= AMSbiel( _swxyl[_layer-1][side],  size,  

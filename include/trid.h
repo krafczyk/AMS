@@ -10,6 +10,7 @@
 #include <amsstl.h>
 #include <commons.h>
 #include <link.h>
+#include <job.h>
 const int ncrt=6;
 const int ntdr=32;
 class AMSTrIdGeom{
@@ -31,6 +32,7 @@ AMSTrIdGeom(integer idsoft, integer stripx=0, integer stripy=0);
 AMSTrIdGeom & operator = (const AMSTrIdGeom &o);
 AMSID crgid();
 integer operator == (const AMSTrIdGeom &o);
+void R2Gx(integer stripx);
 number  getsize(integer side)const;
 number  getcofg(integer side, integer shift, integer & error)const;
 inline void upd(integer side,integer strip){
@@ -49,13 +51,13 @@ inline integer cmpt()const {return _layer+10*_ladder+1000*_sensor;}
 inline integer getstrip (integer i) const{if(i==0)return _stripx;else return _stripy;} 
 inline number getmaxsize(integer i)  {return AMSDBc::ssize_active(_layer-1,i);}
 inline integer getmaxstrips(integer i) const
-{return AMSDBc::NStripsSen(_layer,i);}
+{return AMSJob::gethead()->isRealData()? AMSDBc::NStripsSenR(_layer,i):AMSDBc::NStripsSen(_layer,i);}
 integer size2strip(integer side, number size);
 
 
 inline number strip2size(integer side){
      #ifdef __AMSDEBUG__
-       assert(side>=0 && side<2);
+       assert(side>=0 && side<2 && !AMSJob::gethead()->isRealData());
      #endif
      if(side==0)return _swxyl[_layer-1][0][_stripx];
      else       return _swxyl[_layer-1][1][_stripy];
@@ -134,6 +136,8 @@ geant & setindnoise() {return indnoise[idsoft2linear[_addr]+_strip];}
 geant & setcmnnoise()  {return cmnnoise[_VANumber][_addr];}
 void  setstatus(integer changer)  
 {status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] | changer;}
+void  clearstatus(integer changer)  
+{status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] & ~changer;}
 friend class AMSTrIdGeom;
 friend class AMSJob;
 AMSTrIdSoft(int16u crate, int16u haddr);
