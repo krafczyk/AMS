@@ -1977,7 +1977,6 @@ void AMSJob::_axendjob(){
   }
 
     if(isProduction()){
-      AMSEvent::PosInRun++;
       AMSEvent::_endofrun();
     }
     AMSUser::EndJob(); 
