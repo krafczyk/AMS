@@ -1,4 +1,4 @@
-
+//
 // Author V. Choutko 24-may-1996
 // CTC codes added 29-sep-1996 by E.Choumilov 
 //
@@ -215,7 +215,8 @@ TRCLFFKEY.CorFunParA[0][0]=400e-4;
 TRCLFFKEY.CorFunParB[0][0]=0.85;
 TRCLFFKEY.CorFunParA[0][5]=400e-4;
 TRCLFFKEY.CorFunParB[0][5]=0.85;
-for (int k=1;k<5;k++){
+int k;
+for (k=1;k<5;k++){
  TRCLFFKEY.CorFunParA[0][k]=400e-4;
  TRCLFFKEY.CorFunParB[0][k]=0.85;
 }

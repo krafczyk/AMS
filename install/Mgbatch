@@ -213,3 +213,909 @@ depend:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
+../bin/hpux/id.o: ../include/id.h ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/id.o: /usr/include/sys/stdsyms.h
+../bin/hpux/id.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/id.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/id.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/id.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/id.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/id.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/id.o: /usr/local/lib/g++-include/strfile.h /usr/include/stddef.h
+../bin/hpux/id.o: /usr/include/stdlib.h /usr/include/string.h
+../bin/hpux/node.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/node.o: /usr/include/sys/stdsyms.h
+../bin/hpux/node.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/node.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/node.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/node.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/node.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/node.o: ../include/node.h ../include/id.h
+../bin/hpux/node.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/node.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/node.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/snode.o: ../include/node.h ../include/typedefs.h
+../bin/hpux/snode.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/snode.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/snode.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/snode.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/snode.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/snode.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/snode.o: ../include/id.h /usr/local/lib/g++-include/strstream.h
+../bin/hpux/snode.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/snode.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/snode.o: ../include/snode.h ../include/upool.h
+../bin/hpux/snode.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/snode.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/snode.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/snode.o: /usr/include/string.h ../include/amsstl.h
+../bin/hpux/snode.o: /usr/include/math.h ../include/cern.h
+../bin/hpux/snode.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/snode.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/snode.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/snode.o: ../include/geant321g.h
+../bin/hpux/gbatch.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/gbatch.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/gbatch.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/gbatch.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/gbatch.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/gbatch.o: ../include/gvolume.h ../include/node.h
+../bin/hpux/gbatch.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/gbatch.o: /usr/include/sys/stdsyms.h ../include/id.h
+../bin/hpux/gbatch.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/gbatch.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/gbatch.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/gbatch.o: /usr/include/string.h ../include/cern.h
+../bin/hpux/gbatch.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/gbatch.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/gbatch.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/gbatch.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/hpux/gbatch.o: ../include/point.h /usr/include/math.h
+../bin/hpux/gbatch.o: ../include/commons.h ../include/mceventg.h
+../bin/hpux/gbatch.o: ../include/link.h ../include/upool.h
+../bin/hpux/gbatch.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/gbatch.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/gbatch.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/gbatch.o: ../include/apool.h ../include/snode.h
+../bin/hpux/gbatch.o: /usr/include/signal.h /usr/include/sys/signal.h
+../bin/hpux/gbatch.o: /usr/include/sys/syscall.h
+../bin/hpux/gvolume.o: ../include/gvolume.h ../include/node.h
+../bin/hpux/gvolume.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/gvolume.o: /usr/include/sys/stdsyms.h
+../bin/hpux/gvolume.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/gvolume.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/gvolume.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/gvolume.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/gvolume.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/gvolume.o: ../include/id.h /usr/local/lib/g++-include/strstream.h
+../bin/hpux/gvolume.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/gvolume.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/gvolume.o: /usr/include/string.h ../include/cern.h
+../bin/hpux/gvolume.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/gvolume.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/gvolume.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/gvolume.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/hpux/gvolume.o: ../include/point.h /usr/include/math.h
+../bin/hpux/gvolume.o: ../include/amsgobj.h ../include/snode.h
+../bin/hpux/gvolume.o: ../include/upool.h /usr/local/lib/g++-include/new.h
+../bin/hpux/gvolume.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/gvolume.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/gvolume.o: ../include/uzstat.h /usr/include/limits.h
+../bin/hpux/gvolume.o: /usr/include/sys/param.h /usr/include/machine/param.h
+../bin/hpux/gvolume.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/gvolume.o: ../include/gmat.h
+../bin/hpux/amsdbc.o: /usr/include/math.h ../include/amsdbc.h
+../bin/hpux/amsdbc.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/amsdbc.o: /usr/include/sys/stdsyms.h
+../bin/hpux/amsdbc.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/amsdbc.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/amsdbc.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/amsdbc.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/amsdbc.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/amsdbc.o: ../include/amsstl.h /usr/include/stdlib.h
+../bin/hpux/amsdbc.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/amsdbc.o: /usr/include/stdio.h /usr/include/string.h
+../bin/hpux/amsdbc.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/amsdbc.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/amsdbc.o: ../include/geant321g.h ../include/upool.h
+../bin/hpux/amsdbc.o: /usr/include/stddef.h /usr/local/lib/g++-include/new.h
+../bin/hpux/amsdbc.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/amsdbc.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/cern.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/cern.o: /usr/include/sys/stdsyms.h
+../bin/hpux/cern.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/cern.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/cern.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/cern.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/cern.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/cern.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/cern.o: /usr/include/stdio.h /usr/include/string.h
+../bin/hpux/cern.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/cern.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/cern.o: ../include/geant321g.h
+../bin/hpux/gsen.o: ../include/gsen.h ../include/gvolume.h ../include/node.h
+../bin/hpux/gsen.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/gsen.o: /usr/include/sys/stdsyms.h
+../bin/hpux/gsen.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/gsen.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/gsen.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/gsen.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/gsen.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/gsen.o: ../include/id.h /usr/local/lib/g++-include/strstream.h
+../bin/hpux/gsen.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/gsen.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/gsen.o: /usr/include/string.h ../include/cern.h
+../bin/hpux/gsen.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/gsen.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/gsen.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/gsen.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/hpux/gsen.o: ../include/point.h /usr/include/math.h ../include/trid.h
+../bin/hpux/gsen.o: ../include/amsstl.h ../include/upool.h
+../bin/hpux/gsen.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/gsen.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/gsen.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/gsen.o: ../include/commons.h ../include/mceventg.h
+../bin/hpux/gsen.o: ../include/link.h ../include/apool.h ../include/snode.h
+../bin/hpux/point.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/point.o: /usr/include/sys/stdsyms.h
+../bin/hpux/point.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/point.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/point.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/point.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/point.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/point.o: ../include/point.h /usr/include/math.h
+../bin/hpux/upool.o: ../include/upool.h ../include/typedefs.h
+../bin/hpux/upool.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/upool.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/upool.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/upool.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/upool.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/upool.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/upool.o: /usr/include/stddef.h /usr/local/lib/g++-include/new.h
+../bin/hpux/upool.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/upool.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/upool.o: /usr/include/string.h ../include/apool.h
+../bin/hpux/upool.o: ../include/node.h ../include/id.h
+../bin/hpux/upool.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/upool.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/upool.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/gmat.o: ../include/gmat.h ../include/node.h ../include/typedefs.h
+../bin/hpux/gmat.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/gmat.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/gmat.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/gmat.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/gmat.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/gmat.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/gmat.o: ../include/id.h /usr/local/lib/g++-include/strstream.h
+../bin/hpux/gmat.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/gmat.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/gmat.o: /usr/include/string.h ../include/cern.h
+../bin/hpux/gmat.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/gmat.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/gmat.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/gmat.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/hpux/gmat.o: ../include/snode.h ../include/upool.h
+../bin/hpux/gmat.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/gmat.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/gmat.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/gmat.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/gmat.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/gmat.o: /usr/include/machine/param.h /usr/include/sys/sysmacros.h
+../bin/hpux/gmat.o: /usr/include/sys/time.h ../include/job.h
+../bin/hpux/gmat.o: ../include/gvolume.h ../include/point.h
+../bin/hpux/gmat.o: /usr/include/math.h /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/amsgobj.o: ../include/node.h ../include/typedefs.h
+../bin/hpux/amsgobj.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/amsgobj.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/amsgobj.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/amsgobj.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/amsgobj.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/amsgobj.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/amsgobj.o: ../include/id.h /usr/local/lib/g++-include/strstream.h
+../bin/hpux/amsgobj.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/amsgobj.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/amsgobj.o: ../include/snode.h ../include/upool.h
+../bin/hpux/amsgobj.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/amsgobj.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/amsgobj.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/amsgobj.o: /usr/include/string.h ../include/uzstat.h
+../bin/hpux/amsgobj.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/amsgobj.o: /usr/include/stdio.h /usr/include/malloc.h
+../bin/hpux/amsgobj.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/amsgobj.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/amsgobj.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/amsgobj.o: /usr/include/machine/param.h
+../bin/hpux/amsgobj.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/amsgobj.o: ../include/amsgobj.h
+../bin/hpux/amsgeom.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/amsgeom.o: /usr/include/sys/stdsyms.h
+../bin/hpux/amsgeom.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/amsgeom.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/amsgeom.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/amsgeom.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/amsgeom.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/amsgeom.o: ../include/node.h ../include/id.h
+../bin/hpux/amsgeom.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/amsgeom.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/amsgeom.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/amsgeom.o: ../include/snode.h ../include/upool.h
+../bin/hpux/amsgeom.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/amsgeom.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/amsgeom.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/amsgeom.o: /usr/include/string.h ../include/amsdbc.h
+../bin/hpux/amsgeom.o: ../include/tofdbc.h ../include/ctcdbc.h
+../bin/hpux/amsgeom.o: ../include/commons.h ../include/cern.h
+../bin/hpux/amsgeom.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/amsgeom.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/amsgeom.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/amsgeom.o: ../include/geant321g.h ../include/mceventg.h
+../bin/hpux/amsgeom.o: ../include/point.h /usr/include/math.h
+../bin/hpux/amsgeom.o: ../include/link.h ../include/apool.h ../include/gmat.h
+../bin/hpux/amsgeom.o: ../include/extC.h ../include/gvolume.h
+../bin/hpux/amsgeom.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/amsgeom.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/amsgeom.o: /usr/include/machine/param.h
+../bin/hpux/amsgeom.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/amsgeom.o: ../include/job.h /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/geant.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/geant.o: /usr/include/sys/stdsyms.h
+../bin/hpux/geant.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/geant.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/geant.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/geant.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/geant.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/geant.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/geant.o: /usr/include/stdio.h /usr/include/string.h
+../bin/hpux/geant.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/geant.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/geant.o: ../include/geant321g.h ../include/mceventg.h
+../bin/hpux/geant.o: ../include/point.h /usr/include/math.h ../include/link.h
+../bin/hpux/geant.o: ../include/upool.h /usr/include/stddef.h
+../bin/hpux/geant.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/geant.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/geant.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/geant.o: ../include/apool.h ../include/node.h ../include/id.h
+../bin/hpux/geant.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/geant.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/geant.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/geant.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/geant.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/geant.o: /usr/include/machine/param.h
+../bin/hpux/geant.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/geant.o: ../include/commons.h ../include/trid.h
+../bin/hpux/geant.o: ../include/amsdbc.h ../include/amsstl.h
+../bin/hpux/geant.o: ../include/extC.h ../include/job.h ../include/gvolume.h
+../bin/hpux/geant.o: ../include/gmat.h /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/geant.o: /usr/include/sys/times.h /usr/include/unistd.h
+../bin/hpux/geant.o: /usr/include/sys/unistd.h /usr/include/time.h
+../bin/hpux/geant.o: ../include/mccluster.h ../include/gsen.h
+../bin/hpux/geant.o: ../include/event.h ../include/cont.h ../include/trrec.h
+../bin/hpux/geant.o: ../include/tofdbc.h ../include/tofcalib.h
+../bin/hpux/mceventg.o: ../include/mceventg.h ../include/point.h
+../bin/hpux/mceventg.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/mceventg.o: /usr/include/sys/stdsyms.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/mceventg.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/mceventg.o: /usr/include/math.h ../include/cern.h
+../bin/hpux/mceventg.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/mceventg.o: /usr/include/string.h /usr/include/malloc.h
+../bin/hpux/mceventg.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/mceventg.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/mceventg.o: ../include/link.h ../include/upool.h
+../bin/hpux/mceventg.o: /usr/include/stddef.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/mceventg.o: ../include/apool.h ../include/node.h ../include/id.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/mceventg.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/mceventg.o: ../include/amsdbc.h ../include/event.h
+../bin/hpux/mceventg.o: ../include/job.h ../include/gvolume.h
+../bin/hpux/mceventg.o: ../include/gmat.h
+../bin/hpux/mceventg.o: /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/mceventg.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/mceventg.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/mceventg.o: /usr/include/machine/param.h
+../bin/hpux/mceventg.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/mceventg.o: ../include/cont.h /usr/include/time.h
+../bin/hpux/mceventg.o: ../include/commons.h ../include/ntuple.h
+../bin/hpux/rnormx.o: ../include/cern.h ../include/typedefs.h
+../bin/hpux/rnormx.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/rnormx.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/rnormx.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/rnormx.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/rnormx.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/rnormx.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/rnormx.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/rnormx.o: /usr/include/string.h /usr/include/malloc.h
+../bin/hpux/rnormx.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/rnormx.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/rnormx.o: /usr/include/math.h
+../bin/hpux/trid.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/trid.o: ../include/trid.h ../include/typedefs.h
+../bin/hpux/trid.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/trid.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/trid.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/trid.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/trid.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/trid.o: ../include/amsdbc.h ../include/amsstl.h
+../bin/hpux/trid.o: /usr/include/math.h /usr/include/stdlib.h
+../bin/hpux/trid.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/trid.o: /usr/include/stdio.h /usr/include/string.h
+../bin/hpux/trid.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/trid.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/trid.o: ../include/geant321g.h ../include/upool.h
+../bin/hpux/trid.o: /usr/include/stddef.h /usr/local/lib/g++-include/new.h
+../bin/hpux/trid.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/trid.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/trid.o: ../include/commons.h ../include/mceventg.h
+../bin/hpux/trid.o: ../include/point.h ../include/link.h ../include/apool.h
+../bin/hpux/trid.o: ../include/node.h ../include/id.h
+../bin/hpux/trid.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/trid.o: /usr/local/lib/g++-include/strfile.h ../include/snode.h
+../bin/hpux/link.o: ../include/link.h ../include/typedefs.h
+../bin/hpux/link.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/link.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/link.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/link.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/link.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/link.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/link.o: ../include/upool.h /usr/include/stddef.h
+../bin/hpux/link.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/link.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/link.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/link.o: /usr/include/string.h ../include/apool.h
+../bin/hpux/link.o: ../include/node.h ../include/id.h
+../bin/hpux/link.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/link.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/link.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/trrec.o: ../include/trrec.h ../include/upool.h
+../bin/hpux/trrec.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/trrec.o: /usr/include/sys/stdsyms.h
+../bin/hpux/trrec.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/trrec.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/trrec.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/trrec.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/trrec.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/trrec.o: /usr/include/stddef.h /usr/local/lib/g++-include/new.h
+../bin/hpux/trrec.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/trrec.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/trrec.o: /usr/include/string.h ../include/apool.h
+../bin/hpux/trrec.o: ../include/node.h ../include/id.h
+../bin/hpux/trrec.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/trrec.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/trrec.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/trrec.o: ../include/gsen.h ../include/gvolume.h ../include/cern.h
+../bin/hpux/trrec.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/trrec.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/trrec.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/trrec.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/hpux/trrec.o: ../include/point.h /usr/include/math.h ../include/trid.h
+../bin/hpux/trrec.o: ../include/amsstl.h ../include/commons.h
+../bin/hpux/trrec.o: ../include/mceventg.h ../include/link.h
+../bin/hpux/trrec.o: ../include/cont.h ../include/event.h ../include/job.h
+../bin/hpux/trrec.o: ../include/gmat.h /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/trrec.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/trrec.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/trrec.o: /usr/include/machine/param.h
+../bin/hpux/trrec.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/trrec.o: /usr/include/time.h ../include/trrawcluster.h
+../bin/hpux/trrec.o: ../include/extC.h ../include/tofrec.h
+../bin/hpux/trrec.o: ../include/tofdbc.h ../include/ntuple.h
+../bin/hpux/uzstat.o: ../include/uzstat.h ../include/cern.h
+../bin/hpux/uzstat.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/uzstat.o: /usr/include/sys/stdsyms.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/uzstat.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/uzstat.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/uzstat.o: /usr/include/string.h /usr/include/malloc.h
+../bin/hpux/uzstat.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/uzstat.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/uzstat.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/uzstat.o: /usr/include/machine/param.h
+../bin/hpux/uzstat.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/uzstat.o: ../include/node.h ../include/id.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/uzstat.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/uzstat.o: ../include/snode.h ../include/upool.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/uzstat.o: /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/tptcir.o: ../F/trfitcl.h
+../bin/hpux/trafit.o: ../F/trfitcl.h
+../bin/hpux/tcircf.o: ../F/trfitcl.h
+../bin/hpux/tszfit.o: ../F/trfitcl.h
+../bin/hpux/txyfit.o: ../F/trfitcl.h
+../bin/hpux/job.o: ../include/job.h ../include/typedefs.h
+../bin/hpux/job.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/job.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/job.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/job.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/job.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/job.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/job.o: ../include/node.h ../include/id.h
+../bin/hpux/job.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/job.o: /usr/local/lib/g++-include/strfile.h /usr/include/stddef.h
+../bin/hpux/job.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/job.o: ../include/upool.h /usr/local/lib/g++-include/new.h
+../bin/hpux/job.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/job.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/job.o: /usr/include/string.h ../include/gvolume.h
+../bin/hpux/job.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/job.o: /usr/include/stdio.h /usr/include/malloc.h
+../bin/hpux/job.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/job.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/job.o: ../include/amsdbc.h ../include/point.h /usr/include/math.h
+../bin/hpux/job.o: ../include/gmat.h /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/job.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/job.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/job.o: /usr/include/machine/param.h /usr/include/sys/sysmacros.h
+../bin/hpux/job.o: /usr/include/sys/time.h ../include/commons.h
+../bin/hpux/job.o: ../include/mceventg.h ../include/link.h ../include/apool.h
+../bin/hpux/job.o: ../include/tofdbc.h ../include/trid.h ../include/amsstl.h
+../bin/hpux/job.o: ../include/mccluster.h ../include/gsen.h ../include/extC.h
+../bin/hpux/job.o: ../include/event.h ../include/cont.h /usr/include/time.h
+../bin/hpux/job.o: ../include/charge.h ../include/trrec.h ../include/tofrec.h
+../bin/hpux/job.o: ../include/beta.h ../include/ctcrec.h ../include/ctcdbc.h
+../bin/hpux/event.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/event.o: /usr/include/sys/stdsyms.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/event.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/event.o: ../include/tofdbc.h /usr/include/string.h
+../bin/hpux/event.o: ../include/event.h ../include/job.h ../include/node.h
+../bin/hpux/event.o: ../include/id.h /usr/local/lib/g++-include/strstream.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/event.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/event.o: ../include/snode.h ../include/upool.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/event.o: ../include/gvolume.h ../include/cern.h
+../bin/hpux/event.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/event.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/event.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/event.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/hpux/event.o: ../include/point.h /usr/include/math.h ../include/gmat.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/event.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/event.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/event.o: /usr/include/machine/param.h
+../bin/hpux/event.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/event.o: ../include/link.h ../include/apool.h ../include/cont.h
+../bin/hpux/event.o: /usr/include/time.h ../include/commons.h
+../bin/hpux/event.o: ../include/mceventg.h ../include/trrawcluster.h
+../bin/hpux/event.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
+../bin/hpux/event.o: ../include/trrec.h ../include/mccluster.h
+../bin/hpux/event.o: ../include/tofrec.h ../include/beta.h
+../bin/hpux/event.o: ../include/ctcrec.h ../include/charge.h
+../bin/hpux/event.o: ../include/particle.h ../include/ctc.h
+../bin/hpux/event.o: /usr/local/lib/g++-include/fstream.h ../include/tofsim.h
+../bin/hpux/event.o: ../include/tofcalib.h ../include/ntuple.h
+../bin/hpux/event.o: ../include/ctcdbc.h
+../bin/hpux/cont.o: ../include/cont.h ../include/typedefs.h
+../bin/hpux/cont.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/cont.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/cont.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/cont.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/cont.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/cont.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/cont.o: ../include/link.h ../include/upool.h
+../bin/hpux/cont.o: /usr/include/stddef.h /usr/local/lib/g++-include/new.h
+../bin/hpux/cont.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/cont.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/cont.o: /usr/include/string.h ../include/apool.h
+../bin/hpux/cont.o: ../include/node.h ../include/id.h
+../bin/hpux/cont.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/cont.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/cont.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/cont.o: ../include/amsstl.h /usr/include/math.h ../include/cern.h
+../bin/hpux/cont.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/cont.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/cont.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/cont.o: ../include/geant321g.h
+../bin/hpux/mccluster.o: ../include/trid.h ../include/typedefs.h
+../bin/hpux/mccluster.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/mccluster.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/mccluster.o: ../include/amsdbc.h ../include/amsstl.h
+../bin/hpux/mccluster.o: /usr/include/math.h /usr/include/stdlib.h
+../bin/hpux/mccluster.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/mccluster.o: /usr/include/stdio.h /usr/include/string.h
+../bin/hpux/mccluster.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/mccluster.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/mccluster.o: ../include/geant321g.h ../include/upool.h
+../bin/hpux/mccluster.o: /usr/include/stddef.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/mccluster.o: ../include/commons.h ../include/mceventg.h
+../bin/hpux/mccluster.o: ../include/point.h ../include/link.h
+../bin/hpux/mccluster.o: ../include/apool.h ../include/node.h ../include/id.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/mccluster.o: ../include/snode.h ../include/mccluster.h
+../bin/hpux/mccluster.o: ../include/gsen.h ../include/gvolume.h
+../bin/hpux/mccluster.o: ../include/extC.h ../include/job.h ../include/gmat.h
+../bin/hpux/mccluster.o: /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/mccluster.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/mccluster.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/mccluster.o: /usr/include/machine/param.h
+../bin/hpux/mccluster.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/mccluster.o: ../include/event.h ../include/cont.h
+../bin/hpux/mccluster.o: /usr/include/time.h ../include/ntuple.h
+../bin/hpux/trrawcluster.o: ../include/trid.h ../include/typedefs.h
+../bin/hpux/trrawcluster.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/trrawcluster.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/trrawcluster.o: ../include/amsdbc.h ../include/amsstl.h
+../bin/hpux/trrawcluster.o: /usr/include/math.h /usr/include/stdlib.h
+../bin/hpux/trrawcluster.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/trrawcluster.o: /usr/include/stdio.h /usr/include/string.h
+../bin/hpux/trrawcluster.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/trrawcluster.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/trrawcluster.o: ../include/geant321g.h ../include/upool.h
+../bin/hpux/trrawcluster.o: /usr/include/stddef.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/trrawcluster.o: ../include/commons.h ../include/mceventg.h
+../bin/hpux/trrawcluster.o: ../include/point.h ../include/link.h
+../bin/hpux/trrawcluster.o: ../include/apool.h ../include/node.h
+../bin/hpux/trrawcluster.o: ../include/id.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/trrawcluster.o: ../include/snode.h ../include/trrawcluster.h
+../bin/hpux/trrawcluster.o: ../include/gsen.h ../include/gvolume.h
+../bin/hpux/trrawcluster.o: ../include/event.h ../include/job.h
+../bin/hpux/trrawcluster.o: ../include/gmat.h
+../bin/hpux/trrawcluster.o: /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/trrawcluster.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/trrawcluster.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/trrawcluster.o: /usr/include/machine/param.h
+../bin/hpux/trrawcluster.o: /usr/include/sys/sysmacros.h
+../bin/hpux/trrawcluster.o: /usr/include/sys/time.h ../include/cont.h
+../bin/hpux/trrawcluster.o: /usr/include/time.h ../include/extC.h
+../bin/hpux/trrawcluster.o: ../include/mccluster.h
+../bin/hpux/tofrec.o: ../include/point.h ../include/typedefs.h
+../bin/hpux/tofrec.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/tofrec.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/tofrec.o: /usr/include/math.h ../include/event.h ../include/job.h
+../bin/hpux/tofrec.o: ../include/node.h ../include/id.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/tofrec.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/tofrec.o: ../include/snode.h ../include/upool.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/tofrec.o: /usr/include/string.h ../include/gvolume.h
+../bin/hpux/tofrec.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/tofrec.o: /usr/include/stdio.h /usr/include/malloc.h
+../bin/hpux/tofrec.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/tofrec.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/tofrec.o: ../include/amsdbc.h ../include/gmat.h
+../bin/hpux/tofrec.o: /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/tofrec.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/tofrec.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/tofrec.o: /usr/include/machine/param.h
+../bin/hpux/tofrec.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/tofrec.o: ../include/link.h ../include/apool.h ../include/cont.h
+../bin/hpux/tofrec.o: /usr/include/time.h ../include/commons.h
+../bin/hpux/tofrec.o: ../include/mceventg.h ../include/mccluster.h
+../bin/hpux/tofrec.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
+../bin/hpux/tofrec.o: ../include/extC.h ../include/tofdbc.h
+../bin/hpux/tofrec.o: ../include/tofsim.h ../include/trrec.h
+../bin/hpux/tofrec.o: ../include/tofrec.h ../include/tofcalib.h
+../bin/hpux/tofsim.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/tofsim.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/tofsim.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/tofsim.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/tofsim.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/tofsim.o: /usr/include/stdio.h ../include/typedefs.h
+../bin/hpux/tofsim.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/tofsim.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/tofsim.o: /usr/include/string.h /usr/include/malloc.h
+../bin/hpux/tofsim.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/tofsim.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/tofsim.o: ../include/extC.h /usr/include/math.h
+../bin/hpux/tofsim.o: ../include/point.h ../include/amsgobj.h
+../bin/hpux/tofsim.o: ../include/node.h ../include/id.h
+../bin/hpux/tofsim.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/tofsim.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/tofsim.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/tofsim.o: ../include/snode.h ../include/upool.h
+../bin/hpux/tofsim.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/tofsim.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/tofsim.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/tofsim.o: ../include/uzstat.h /usr/include/limits.h
+../bin/hpux/tofsim.o: /usr/include/sys/param.h /usr/include/machine/param.h
+../bin/hpux/tofsim.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/tofsim.o: ../include/event.h ../include/job.h
+../bin/hpux/tofsim.o: ../include/gvolume.h ../include/amsdbc.h
+../bin/hpux/tofsim.o: ../include/gmat.h /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/tofsim.o: ../include/link.h ../include/apool.h ../include/cont.h
+../bin/hpux/tofsim.o: /usr/include/time.h ../include/amsstl.h
+../bin/hpux/tofsim.o: ../include/commons.h ../include/mceventg.h
+../bin/hpux/tofsim.o: ../include/tofdbc.h ../include/tofsim.h
+../bin/hpux/tofsim.o: ../include/mccluster.h ../include/gsen.h
+../bin/hpux/tofsim.o: ../include/trid.h
+../bin/hpux/beta.o: ../include/beta.h ../include/link.h ../include/typedefs.h
+../bin/hpux/beta.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/beta.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/beta.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/beta.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/beta.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/beta.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/beta.o: ../include/upool.h /usr/include/stddef.h
+../bin/hpux/beta.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/beta.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/beta.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/beta.o: /usr/include/string.h ../include/apool.h
+../bin/hpux/beta.o: ../include/node.h ../include/id.h
+../bin/hpux/beta.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/beta.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/beta.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/beta.o: ../include/tofrec.h ../include/point.h
+../bin/hpux/beta.o: /usr/include/math.h ../include/event.h ../include/job.h
+../bin/hpux/beta.o: ../include/gvolume.h ../include/cern.h
+../bin/hpux/beta.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/beta.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/beta.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/beta.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/hpux/beta.o: ../include/gmat.h /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/beta.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/beta.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/beta.o: /usr/include/machine/param.h /usr/include/sys/sysmacros.h
+../bin/hpux/beta.o: /usr/include/sys/time.h ../include/cont.h
+../bin/hpux/beta.o: /usr/include/time.h ../include/tofdbc.h
+../bin/hpux/beta.o: ../include/trrec.h ../include/gsen.h ../include/trid.h
+../bin/hpux/beta.o: ../include/amsstl.h ../include/commons.h
+../bin/hpux/beta.o: ../include/mceventg.h ../include/ctcrec.h
+../bin/hpux/beta.o: ../include/extC.h ../include/ntuple.h
+../bin/hpux/charge.o: ../include/beta.h ../include/link.h
+../bin/hpux/charge.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/charge.o: /usr/include/sys/stdsyms.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/charge.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/charge.o: ../include/upool.h /usr/include/stddef.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/charge.o: /usr/include/string.h ../include/apool.h
+../bin/hpux/charge.o: ../include/node.h ../include/id.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/charge.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/charge.o: ../include/tofrec.h ../include/point.h
+../bin/hpux/charge.o: /usr/include/math.h ../include/event.h ../include/job.h
+../bin/hpux/charge.o: ../include/gvolume.h ../include/cern.h
+../bin/hpux/charge.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/charge.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/charge.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/charge.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/hpux/charge.o: ../include/gmat.h /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/charge.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/charge.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/charge.o: /usr/include/machine/param.h
+../bin/hpux/charge.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/charge.o: ../include/cont.h /usr/include/time.h
+../bin/hpux/charge.o: ../include/tofdbc.h ../include/trrec.h
+../bin/hpux/charge.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
+../bin/hpux/charge.o: ../include/commons.h ../include/mceventg.h
+../bin/hpux/charge.o: ../include/ctcrec.h ../include/extC.h
+../bin/hpux/charge.o: ../include/charge.h
+../bin/hpux/charge.o: /usr/local/lib/g++-include/fstream.h
+../bin/hpux/charge.o: ../include/ntuple.h
+../bin/hpux/particle.o: ../include/commons.h ../include/cern.h
+../bin/hpux/particle.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/particle.o: /usr/include/sys/stdsyms.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/particle.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/particle.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/particle.o: /usr/include/string.h /usr/include/malloc.h
+../bin/hpux/particle.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/particle.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/particle.o: ../include/mceventg.h ../include/point.h
+../bin/hpux/particle.o: /usr/include/math.h ../include/link.h
+../bin/hpux/particle.o: ../include/upool.h /usr/include/stddef.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/particle.o: ../include/apool.h ../include/node.h ../include/id.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/particle.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/particle.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/particle.o: /usr/include/machine/param.h
+../bin/hpux/particle.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/particle.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/particle.o: ../include/extC.h ../include/charge.h
+../bin/hpux/particle.o: ../include/trrec.h ../include/gsen.h
+../bin/hpux/particle.o: ../include/gvolume.h ../include/amsdbc.h
+../bin/hpux/particle.o: ../include/trid.h ../include/amsstl.h
+../bin/hpux/particle.o: ../include/cont.h ../include/event.h ../include/job.h
+../bin/hpux/particle.o: ../include/gmat.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/particle.o: /usr/include/time.h ../include/tofrec.h
+../bin/hpux/particle.o: ../include/tofdbc.h ../include/beta.h
+../bin/hpux/particle.o: ../include/ctcrec.h
+../bin/hpux/particle.o: /usr/local/lib/g++-include/fstream.h
+../bin/hpux/particle.o: ../include/particle.h ../include/ctc.h
+../bin/hpux/particle.o: ../include/mccluster.h ../include/ctcdbc.h
+../bin/hpux/particle.o: ../include/ntuple.h
+../bin/hpux/commons.o: ../include/commons.h ../include/cern.h
+../bin/hpux/commons.o: ../include/typedefs.h /usr/include/assert.h
+../bin/hpux/commons.o: /usr/include/sys/stdsyms.h
+../bin/hpux/commons.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/commons.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/commons.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/commons.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/commons.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/commons.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/commons.o: /usr/include/string.h /usr/include/malloc.h
+../bin/hpux/commons.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/commons.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/commons.o: ../include/mceventg.h ../include/point.h
+../bin/hpux/commons.o: /usr/include/math.h ../include/link.h
+../bin/hpux/commons.o: ../include/upool.h /usr/include/stddef.h
+../bin/hpux/commons.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/commons.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/commons.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/commons.o: ../include/apool.h ../include/node.h ../include/id.h
+../bin/hpux/commons.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/commons.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/commons.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/apool.o: ../include/apool.h ../include/typedefs.h
+../bin/hpux/apool.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/apool.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/apool.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/apool.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/apool.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/apool.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/apool.o: /usr/include/stddef.h /usr/local/lib/g++-include/new.h
+../bin/hpux/apool.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/apool.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/apool.o: /usr/include/string.h ../include/node.h ../include/id.h
+../bin/hpux/apool.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/apool.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/apool.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/apool.o: ../include/upool.h ../include/amsstl.h
+../bin/hpux/apool.o: /usr/include/math.h ../include/cern.h
+../bin/hpux/apool.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/apool.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/apool.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/apool.o: ../include/geant321g.h ../include/amsgobj.h
+../bin/hpux/apool.o: ../include/uzstat.h /usr/include/limits.h
+../bin/hpux/apool.o: /usr/include/sys/param.h /usr/include/machine/param.h
+../bin/hpux/apool.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/tofdbc.o: /usr/include/math.h ../include/tofdbc.h
+../bin/hpux/tofdbc.o: /usr/include/string.h ../include/typedefs.h
+../bin/hpux/tofdbc.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/tofdbc.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/tofdbc.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/tofdbc.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/tofdbc.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/tofdbc.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/tofdbc.o: /usr/include/stdio.h
+../bin/hpux/ctcrec.o: ../include/ctcrec.h ../include/typedefs.h
+../bin/hpux/ctcrec.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/ctcrec.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/ctcrec.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/ctcrec.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/ctcrec.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/ctcrec.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/ctcrec.o: ../include/point.h /usr/include/math.h
+../bin/hpux/ctcrec.o: ../include/link.h ../include/upool.h
+../bin/hpux/ctcrec.o: /usr/include/stddef.h /usr/local/lib/g++-include/new.h
+../bin/hpux/ctcrec.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/ctcrec.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/ctcrec.o: /usr/include/string.h ../include/apool.h
+../bin/hpux/ctcrec.o: ../include/node.h ../include/id.h
+../bin/hpux/ctcrec.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/ctcrec.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/ctcrec.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/ctcrec.o: ../include/event.h ../include/job.h
+../bin/hpux/ctcrec.o: ../include/gvolume.h ../include/cern.h
+../bin/hpux/ctcrec.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/ctcrec.o: /usr/include/malloc.h /usr/include/sys/types.h
+../bin/hpux/ctcrec.o: ../include/hbook.h ../include/geant321.h
+../bin/hpux/ctcrec.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/hpux/ctcrec.o: ../include/gmat.h /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/ctcrec.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/ctcrec.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/ctcrec.o: /usr/include/machine/param.h
+../bin/hpux/ctcrec.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/ctcrec.o: ../include/cont.h /usr/include/time.h
+../bin/hpux/ctcrec.o: ../include/commons.h ../include/mceventg.h
+../bin/hpux/ctcrec.o: ../include/mccluster.h ../include/gsen.h
+../bin/hpux/ctcrec.o: ../include/trid.h ../include/amsstl.h ../include/extC.h
+../bin/hpux/ctcrec.o: ../include/tofdbc.h ../include/ctcdbc.h
+../bin/hpux/ctcrec.o: ../include/ntuple.h
+../bin/hpux/ctcdbc.o: ../include/ctcdbc.h ../include/commons.h
+../bin/hpux/ctcdbc.o: ../include/cern.h ../include/typedefs.h
+../bin/hpux/ctcdbc.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/ctcdbc.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/ctcdbc.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/ctcdbc.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/ctcdbc.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/ctcdbc.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/ctcdbc.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/hpux/ctcdbc.o: /usr/include/string.h /usr/include/malloc.h
+../bin/hpux/ctcdbc.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/ctcdbc.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/ctcdbc.o: ../include/mceventg.h ../include/point.h
+../bin/hpux/ctcdbc.o: /usr/include/math.h ../include/link.h
+../bin/hpux/ctcdbc.o: ../include/upool.h /usr/include/stddef.h
+../bin/hpux/ctcdbc.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/ctcdbc.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/ctcdbc.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/ctcdbc.o: ../include/apool.h ../include/node.h ../include/id.h
+../bin/hpux/ctcdbc.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/ctcdbc.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/ctcdbc.o: /usr/include/stdlib.h ../include/snode.h
+../bin/hpux/tofcalib.o: ../include/point.h ../include/typedefs.h
+../bin/hpux/tofcalib.o: /usr/include/assert.h /usr/include/sys/stdsyms.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/iostream.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/streambuf.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/libio.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/_G_config.h
+../bin/hpux/tofcalib.o: /usr/include/stdarg.h /usr/include/varargs.h
+../bin/hpux/tofcalib.o: /usr/include/math.h ../include/event.h
+../bin/hpux/tofcalib.o: ../include/job.h ../include/node.h ../include/id.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/strstream.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/strfile.h
+../bin/hpux/tofcalib.o: /usr/include/stddef.h /usr/include/stdlib.h
+../bin/hpux/tofcalib.o: ../include/snode.h ../include/upool.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/new.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/std/new.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/std/cstddef.h
+../bin/hpux/tofcalib.o: /usr/include/string.h ../include/gvolume.h
+../bin/hpux/tofcalib.o: ../include/cern.h ../include/cfortran.h
+../bin/hpux/tofcalib.o: /usr/include/stdio.h /usr/include/malloc.h
+../bin/hpux/tofcalib.o: /usr/include/sys/types.h ../include/hbook.h
+../bin/hpux/tofcalib.o: ../include/geant321.h ../include/geant321g.h
+../bin/hpux/tofcalib.o: ../include/amsdbc.h ../include/gmat.h
+../bin/hpux/tofcalib.o: /usr/local/lib/g++-include/iomanip.h
+../bin/hpux/tofcalib.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/hpux/tofcalib.o: /usr/include/limits.h /usr/include/sys/param.h
+../bin/hpux/tofcalib.o: /usr/include/machine/param.h
+../bin/hpux/tofcalib.o: /usr/include/sys/sysmacros.h /usr/include/sys/time.h
+../bin/hpux/tofcalib.o: ../include/link.h ../include/apool.h
+../bin/hpux/tofcalib.o: ../include/cont.h /usr/include/time.h
+../bin/hpux/tofcalib.o: ../include/commons.h ../include/mceventg.h
+../bin/hpux/tofcalib.o: ../include/mccluster.h ../include/gsen.h
+../bin/hpux/tofcalib.o: ../include/trid.h ../include/amsstl.h
+../bin/hpux/tofcalib.o: ../include/extC.h ../include/tofdbc.h
+../bin/hpux/tofcalib.o: ../include/tofsim.h ../include/trrec.h
+../bin/hpux/tofcalib.o: ../include/tofrec.h ../include/tofcalib.h
+../bin/hpux/tofcalib.o: ../include/particle.h ../include/beta.h
+../bin/hpux/tofcalib.o: ../include/ctcrec.h ../include/charge.h
+../bin/hpux/tofcalib.o: ../include/ctc.h
