@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.52 2002/07/17 17:56:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.53 2002/07/18 08:14:28 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -11,7 +11,7 @@ use lib::CID;
 use lib::DBServer;
 use Time::Local;
 use lib::DBSQLServer;
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll queryDB Download);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll queryDB DownloadSA);
 
 my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
 my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
@@ -3132,11 +3132,11 @@ print qq`
         my @sta0 = stat $filedb;
         $filedb="$self->{UploadsDir}/$self->{FileAttDB}";
         my @sta1 = stat $filedb;
+        $self->{FileDBTimestamp}=$sta0[9];
+        $self->{FileAttDBTimestamp}=$sta1[9];
+        $self->{FileDBLastLoad}=$uplt0;
+        $self->{FileAttDBLastLoad}=$uplt1;
         if($uplt0 == 0 or $uplt0 < $sta0[9] or $uplt1 == 0 or $uplt1 < $sta1[9]) {
-            $self->{FileDBTimestamp}=$sta0[9];
-            $self->{FileAttDBTimestamp}=$sta1[9];
-            $self->{FileDBLastLoad}=$uplt0;
-            $self->{FileAttDBLastLoad}=$uplt1;
             $self->Download();
         } else {
                   $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
@@ -4106,6 +4106,15 @@ sub AllDone{
     htmlBottom();
 }
 
+sub DownloadTime {
+        my $self = shift;
+        my $filedb="$self->{UploadsDir}/$self->{FileDB}";
+        my @sta0 = stat $filedb;
+        $filedb="$self->{UploadsDir}/$self->{FileAttDB}";
+        my @sta1 = stat $filedb;
+        $self->{FileDBTimestamp}=$sta0[9];
+        $self->{FileAttDBTimestamp}=$sta1[9];
+    }
 sub Download {
     my $self = shift;
     print "Content-type: text/html\n\n";
@@ -4121,25 +4130,7 @@ sub Download {
     $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
     print "<br><font color=\"green\" size=\"4\"><b><i>Files updated    : </i></font><b> $dtime </b>\n";
     print "<br><font color=\"red\" size=\"5\"><b><i> It is absolutely mandatory to download files</b></i></font>\n";
-    print "<tr>";
-    print "<td width=600>\n";
-    print "<table border=\"0\" cellspacing=\"5\" cellpadding=\"5\">\n";
-    print "<P>\n";
-    print "<p><tr><td bgcolor=\"#ffefd5\" width=600 valign=top colspan=2>\n";
-    print "<font face=\"myriad,arial,geneva,helvetica\">\n";
-    print "<TABLE BORDER=2 cellpadding=3 cellspacing=3 BGCOLOR=#eed8ae align=center width=100%>\n";
-    print "<TR><br>\n";
-    print "<TD><font color=#8b1a1a><b>The following files are avaialable for download</b></font>:\n";
-    print "<br><br>\n";
-    print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileDB}>  filedb files (tar.gz)</a></font>\n";
-    print "<br><br>";
-    print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileAttDB}>   filedb att.files (tar.gz)</a></font>\n";
-    print "<br><br>\n";
-    print "</TD></TR>\n";
-    print "</TABLE>\n";
-    print "</td></tr>\n";
-    print "</table>\n";
-    print "</td></tr>\n";
+    $self->PrintDownloadTable();
     print "</TABLE>\n";
     print "<p>\n";
           my $time; 
@@ -4152,6 +4143,52 @@ sub Download {
     print "</HTML>\n";
 }
 
+
+sub DownloadSA {
+    my $self = shift;
+    $self->{UploadsHREF}="AMS02MCUploads";
+    $self->{UploadsDir}="/var/www/cgi-bin/AMS02MCUploads";
+    $self->{FileDB}="ams02mcdb.tar.gz";
+    $self->{FileAttDB}="ams02mcdb.att.tar.gz";
+    print "Content-type: text/html\n\n";
+    print "<HTML>\n";
+    print "<body bgcolor=cornsilk text=black link=#007746 vlink=navy alink=tomato>\n";
+    print "<head>\n";
+    print "<TITLE>AMS Offline Software</TITLE></HEAD>\n";
+    print "<TABLE border=0 cellspacing=0 cellpadding=0>\n";
+    $self->PrintDownloadTable();
+    print "</TABLE>\n";
+    print "<p>\n";
+    print "</BODY>\n";
+    print "</HTML>\n";
+}
+
+sub PrintDownloadTable {
+    my $self = shift;
+    $self->DownloadTime();
+    print "<tr><td width=600>\n";
+    print "<table border=\"0\" cellspacing=\"5\" cellpadding=\"5\">\n";
+    print "<P>\n";
+    print "<p><tr><td bgcolor=\"#ffefd5\" width=600 valign=top colspan=2>\n";
+    print "<font face=\"myriad,arial,geneva,helvetica\">\n";
+    print "<TABLE BORDER=2 cellpadding=3 cellspacing=3 BGCOLOR=#eed8ae align=center width=100%>\n";
+    print "<TR><br>\n";
+    print "<TD><font color=#8b1a1a size=\"6\"><b>The following files are avaialable for download</b></font>:\n";
+    print "<br><br>\n";
+    print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileDB}>  filedb files (tar.gz)</a></font>";
+    my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
+    print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+    print "<br><br>";
+    print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileAttDB}>   filedb att.files (tar.gz)</a></font>\n";
+    $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
+    print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+    print "<br><br>\n";
+    print "</TD></TR>\n";
+    print "</TABLE>\n";
+    print "</td></tr>\n";
+    print "</table>\n";
+    print "</td></tr>\n";
+}
 sub ht_init{
   my $self = shift;
 
@@ -4231,26 +4268,26 @@ sub colorLegend {
 }
 
 sub ht_Menus {
- print "<dt><img src=\"$maroonbullet\">&#160;&#160;
-        <a href=\"#cites\"><b><font color=green> MC02 Productiction Cites</font></a>\n";
- print "<dt><img src=\"$bluebullet\">&#160;&#160;
-        <a href=\"#mails\"><b><font color=green> Authorized Users </b></font></a>\n";
- print "<dt><img src=\"$purplebullet\">&#160;&#160;
-        <a href=\"#servers\"><b><font color=green> Servers </b></font></a>\n";
+ print "<dt><img src=\"$maroonbullet\">&#160;&#160;<a href=\"#cites\"><b><font color=green> MC02 Productiction Cites</font></a>\n";
+ print "<dt><img src=\"$bluebullet\">&#160;&#160;<a href=\"#mails\"><b><font color=green>Authorized Users</b></font></a>\n";
+ print "<dt><img src=\"$purplebullet\">&#160;&#160;<a href=\"#servers\"><b><font color=green>Servers</b></font></a>\n";
  print "<dt><img src=\"$silverbullet\">&#160;&#160;
-        <a href=\"#jobs\"><b><font color=green> Jobs </b></font></a>\n";
+        <a href=\"#jobs\"><b><font color=green>Jobs</b></font></a>\n";
  print "<dt><img src=\"$bluebullet\">&#160;&#160;
-        <a href=\"#runs\"><b><font color=green> Runs </b></font></a>\n";
+        <a href=\"#runs\"><b><font color=green>Runs</b></font></a>\n";
  print "<dt><img src=\"$purplebullet\">&#160;&#160;
-        <a href=\"#ntuples\"><b><font color=green> Ntuples </b></font></a>\n";
+        <a href=\"#ntuples\"><b><font color=green>Ntuples</b></font></a>\n";
  print "<dt><img src=\"$purplebullet\">&#160;&#160;
-        <a href=\"#disks\"><b><font color=green> Disks and Filesystems \@CERN </b></font></a>\n";
+        <a href=\"#disks\"><b><font color=green>Disks and Filesystems \@CERN</b></font></a>\n";
  print "<dt><img src=\"$bluebullet\">&#160;&#160;
         <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\">
-        <b><font color=green> Submit MC Job </b></font></a>\n";
+        <b><font color=green>Submit MC Job</b></font></a>\n";
  print "<dt><img src=\"$maroonbullet\">&#160;&#160;
         <a href=\"http://ams.cern.ch/AMS/Computing/mcproduction/rc.html\">
-        <b><font color=green> User and/or Cite Registration Form </b></font></a>\n";
+        <b><font color=green>User and/or Cite Registration Form</b></font></a>\n";
+ print "<dt><img src=\"$silverbullet\">&#160;&#160;
+        <a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/download.o.cgi\">
+        <b><font color=green>Download MC data and exec files</b></font></a>\n";
 }
 
 sub lastDBUpdate {
