@@ -57,7 +57,9 @@ void DAQEvent::addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget,uinteger
 
 
 const integer DAQEvent::_OffsetL=1;
-char * DAQEvent::ifnam=0;
+char ** DAQEvent::ifnam=0;
+integer DAQEvent::InputFiles=0;
+integer DAQEvent::KIFiles=0;
 char * DAQEvent::ofnam=0;
 fstream DAQEvent::fbin;
 fstream DAQEvent::fbout;
@@ -65,8 +67,10 @@ fstream DAQEvent::fbout;
 
 void DAQEvent::setfiles(char *ifile, char *ofile){
   if(ifile){
-   ifnam=new char[strlen(ifile)+1];
-   strcpy(ifnam,ifile);
+   InputFiles=parser(ifile,ifnam);
+   cout <<"DAQEvent::setfiles-I-"<<InputFiles<<" input files parsed"<<endl;
+   //   ifnam=new char[strlen(ifile)+1];
+   //   strcpy(ifnam,ifile);
   }
   if(ofile){
    ofnam=new char[strlen(ofile)+1];
@@ -215,7 +219,19 @@ void DAQEvent::write(){
 
 
 integer DAQEvent::read(){
+  enum open_mode{binary=0x80};
   do{
+    if(fbin.eof() && KIFiles<InputFiles-1){
+     fbin.close();
+     fbin.open(ifnam[++KIFiles],ios::in|binary);
+     if(fbin){ 
+       cout <<"DAQEvent::read-I-opened file "<<ifnam[KIFiles]<<endl;
+     }    
+     else{
+       cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles]<<endl;
+       exit(1);
+     }
+    }
     if(fbin.good() && !fbin.eof()){
      int16u l16;
 #ifdef __AMSDEBUG__
@@ -229,6 +245,31 @@ integer DAQEvent::read(){
      _convertl(l16);
      _Length= _Length | ((l16 & 63)<<16);
      //cout <<" Length "<<_Length<<endl;
+
+    if(fbin.eof() && KIFiles<InputFiles-1){
+     fbin.close();
+     fbin.open(ifnam[++KIFiles],ios::in|binary);
+     if(fbin){ 
+       cout <<"DAQEvent::read-I-opened file "<<ifnam[KIFiles]<<endl;
+      fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
+      _convertl(l16);
+      _Length=l16+_OffsetL;
+      // get more length (if any)
+      fbin.read((unsigned char*)(&l16),sizeof(_pData[0]));
+      _convertl(l16);
+      _Length= _Length | ((l16 & 63)<<16);
+      //cout <<" Length "<<_Length<<endl;
+
+
+
+     }    
+     else{
+       cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles]<<endl;
+       exit(1);
+     }
+    }
+
+
      if(fbin.good() && !fbin.eof()){
       if(_create()){
        fbin.seekg(fbin.tellg()-2*sizeof(_pData[0]));
@@ -254,8 +295,8 @@ integer DAQEvent::read(){
 void DAQEvent::init(integer mode, integer format){
   enum open_mode{binary=0x80};
   if(mode%10 ==1 ){
-    if(ifnam){
-    fbin.open(ifnam,ios::in|binary);
+    if(ifnam[0]){
+    fbin.open(ifnam[0],ios::in|binary);
     if(fbin){ 
     if(SELECTFFKEY.Run){
      DAQEvent daq;
@@ -286,7 +327,7 @@ void DAQEvent::init(integer mode, integer format){
 
      }
      else {
-       if(format==0){
+       if(format==0 ){
         cerr <<"DAQEvent::init-F-Failed to select Run = "<<
         SELECTFFKEY.Run<<" Event >= "<<SELECTFFKEY.Event<<endl;
         exit(1);
@@ -300,7 +341,7 @@ void DAQEvent::init(integer mode, integer format){
     }
     }
     else{
-      cerr<<"DAQEvent::init-F-cannot open file "<<ifnam<<" in mode "<<mode<<endl;
+      cerr<<"DAQEvent::init-F-cannot open file "<<ifnam[KIFiles]<<" in mode "<<mode<<endl;
       exit(1);
     }
     }
@@ -461,4 +502,98 @@ void DAQEvent::dump(uint16 sdetid) {
   }
 }  
 //-  
+
+
+
+
+int DAQEvent::parser(char a[], char **& fname){
+
+
+  int ntot=0;
+  for(int kl=strlen(a);kl>=0;kl--){
+    if(a[kl]=='/'){
+     kl++;
+     break;
+    }
+  }
+  cout << " kl "<<kl<<endl;
+  {
+  int coma=kl-1;
+  for(int i=kl;i<strlen(a)+1;i++){
+    if(a[i]==',' || i==strlen(a)){
+      if(i-coma > 1){
+        // find -
+        int tire=0;
+        for(int j=coma+1;j<i;j++){
+          if(a[j]=='-' && j != coma+1 && j != i-1){
+           istrstream osta(a+coma+1,j-coma-1);
+           int ia= 1000000000;
+           int ib=-1000000000;
+           osta >>ia;   
+           istrstream ostb(a+j+1,i-j-1);
+           ostb >>ib;   
+           if(ib >=ia)ntot+=ib-ia+1;
+           tire=1;  
+          }
+        }
+        if(tire==0)ntot++; 
+        coma=i;
+      }
+      }
+    }
+}
+  //   cout << " ntot "<<ntot<<endl;
+  fname =new char*[ntot];
+  ntot=0;
+  {
+  int coma=kl-1;
+  for(int i=kl;i<strlen(a)+1;i++){
+    if(a[i]==',' || i==strlen(a)){
+      if(i-coma > 1){
+        // find -
+        int tire=0;
+        for(int j=coma+1;j<i;j++){
+          if(a[j]=='-' && j!=coma+1 && j!=i-1){
+           istrstream osta(a+coma+1,j-coma-1);
+           int ia= 1000000000;
+           int ib=-1000000000;
+           osta >>ia;   
+           istrstream ostb(a+j+1,i-j-1);
+           ostb >>ib;   
+           if(ib >=ia){
+             //add leading zero(s)
+             int lz=0;
+             for(int l=coma+1;l<j;l++){
+               if(a[l]=='0')lz++;
+               else break;
+             }
+             for(int k=ia;k<=ib;k++){
+              fname[ntot++]=new char[255];
+              for(l=0;l<kl;l++)fname[ntot-1][l]=a[l];
+              for(l=kl;l<kl+lz;l++)fname[ntot-1][l]='0';
+              for(l=kl+lz;l<255;l++)fname[ntot-1][l]='\0';
+              ostrstream ost(fname[ntot-1]+kl+lz,255-kl-lz);
+              ost <<k;
+             }
+           }
+           tire=1;  
+          }
+        }
+        if(tire==0){
+              fname[ntot++]=new char[255];
+              for(int l=0;l<255;l++)fname[ntot-1][l]='\0';
+              for(l=0;l<kl;l++)fname[ntot-1][l]=a[l];
+              for(l=kl;l<i-coma-1+kl;l++)fname[ntot-1][l]=a[l-kl+coma+1];
+        }
+        coma=i;
+      }
+      }
+    }
+  }
+  return ntot;  
+
+
+}
+
+
 

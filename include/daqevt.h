@@ -96,7 +96,9 @@ integer read();
 void shrink();
 integer getlength() const {return _Length*sizeof(_pData[0]);}
 void close(){ fbin.close();fbout.close();}
-static char * ifnam;
+static char ** ifnam;
+static integer InputFiles;
+static integer KIFiles;
 static fstream fbin;
 static char * ofnam;
 static fstream fbout;
@@ -113,6 +115,7 @@ integer sdet(uint16 sdetid);
 void    dump(uint16 sdetid); 
 //-  
 static void setfiles(char *ifile, char *ofile);
+static integer parser(char *ifile, char ** & ifnam); 
 };
 
 class DAQEventI{
