@@ -1,5 +1,4 @@
 #include <typedefs.h>
-
 #include <cern.h>
 #include <mceventg.h>
 #include <amsgobj.h>
@@ -28,6 +27,9 @@
 extern "C" void gustep_(){
 //if(GCKINE.ipart==50)cout <<"vlalalalalalalala"<<endl;
 //    cout <<"    ----> in gustep "<<endl;
+
+
+
   try{
 
   //  Tracker
@@ -173,59 +175,58 @@ extern "C" void gustep_(){
     }
 //
 
+
+    // Deal with Cerenkov photons
+
+
     if(GCVOLU.names[lvl][0]=='C' && GCVOLU.names[lvl][1]=='A' &&
      GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O' && 
      GCTRAK.inwvol==1)
     {
       switch(GCKINE.ipart)
 	{
-	case 0:
         case 50: // Cerenkov photons
-{	  // Do all the job: compute if the particle is detected
-	  // using the detection eff(iciency) array and put it in the
-	  // mccluster
-          integer i;
-	  geant wl=2*3.1415926*197.327e-9/GCTRAK.vect[6];
-	  if(wl<RICHDB::wave_length[0] && 
-	     wl>RICHDB::wave_length[RICHDB::entries]){
-	    for(i=0;i<RICHDB::entries;i++)
-	      if(RICHDB::wave_length[i]>wl && 
-		 RICHDB::wave_length[i+1]<wl) break;
-	    
-	    // linear interpolation of eff: it's good because the bining is 
-	    // small enough
+	  {	
+	    integer i;
+	    geant wl=2*3.1415926*197.327e-9/GCTRAK.vect[6];
 
-	    geant dummy=0;
-	    geant ieff=(RICHDB::eff[i+1]-RICHDB::eff[i])*
-	      (wl-RICHDB::wave_length[i])/
-	      (RICHDB::wave_length[i+1]-RICHDB::wave_length[i])
-	      +RICHDB::eff[i];
-	    geant rnumber=RNDM(dummy);
+	    GCTRAK.istop=1; // Absorb it
 
-	    if(100*rnumber<ieff) // Detected!!!
-	      { 
-//		cout << "IPART " << GCKINE.ipart << "detected at:" << endl;
-//		cout << GCVOLU.names[lvl][0] << GCVOLU.names[lvl][1] <<
-//		  GCVOLU.names[lvl][2] << GCVOLU.names[lvl][3] << " copy number " <<
-//		  GCVOLU.number[lvl] <<endl;
-//		cout << GCVOLU.names[lvl-1][0] << GCVOLU.names[lvl-1][1] <<
-//		  GCVOLU.names[lvl-1][2] << GCVOLU.names[lvl-1][3] << " copy number " <<
-//		  GCVOLU.number[lvl-1] <<endl;
-		AMSRichMCHit::sirichhits(GCVOLU.number[lvl]+10000*GCVOLU.number[lvl-1],
-					 GCTRAK.vect,
-					 GCTRAK.getot,
-					 0); // 0 means gamma
-					 
-	      }
-	  }
-	  GCTRAK.istop=1; // Absorb it
+
+             for(i=0;i<RICHDB::entries;i++)
+                if(RICHDB::wave_length[i]>wl &&
+                   RICHDB::wave_length[i+1]<wl) break;
+	      // linear interpolation of eff: it's good because the bining is 
+	      // small enough
+	      
+	      geant dummy=0;
+	      geant ieff=(RICHDB::eff[i+1]-RICHDB::eff[i])*
+		(wl-RICHDB::wave_length[i])/
+		(RICHDB::wave_length[i+1]-RICHDB::wave_length[i])
+		+RICHDB::eff[i];
+	      geant rnumber=RNDM(dummy);
+	      
+	      if(100*rnumber<ieff) // Detected!!!
+		{ 
+		  AMSRichMCHit::sirichhits(GCVOLU.number[lvl-1]-1,
+					   GCTRAK.vect,
+					   GCTRAK.getot,
+					   GCKINE.ipart,
+					   GCKINE.vert,
+					   GCKINE.pvert);
+		}
+
 	  break;
-}
+}	
+	 
+
 	default:
-	  AMSRichMCHit::sirichhits(GCVOLU.number[lvl]+10000*GCVOLU.number[lvl-1],
+	  AMSRichMCHit::sirichhits(GCVOLU.number[lvl-1]-1,
 				   GCTRAK.vect,
 				   GCTRAK.getot,
-				   GCKINE.ipart);
+				   GCKINE.ipart,
+				   GCKINE.vert,
+				   GCKINE.pvert);
 	  break;
    	}
     }

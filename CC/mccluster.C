@@ -399,12 +399,16 @@ void AMSEcalMCHit::_writeEl(){
 //--------RICH------------
 
 void AMSRichMCHit::sirichhits(integer idsoft , geant vect[],
-			      geant energy,integer kind)
+			      geant energy,integer kind,
+			      geant origin[],geant momentum[])
 {
 
   AMSPoint p(vect[0],vect[1],vect[2]);
+  AMSPoint r(origin[0],origin[1],origin[2]);
+  AMSPoint u(momentum[0],momentum[1],momentum[2]);
   AMSEvent::gethead()->addnext(AMSID("AMSRichMCHit",0),
-			       new AMSRichMCHit(idsoft,p,energy,kind));
+			       new AMSRichMCHit(idsoft,p,energy,kind,
+						r,u));
 }
 
 void AMSRichMCHit::_writeEl(){}

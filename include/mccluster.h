@@ -113,20 +113,30 @@ public:
 };
 
 //------------------------------------------------------
-// MC bank for RICH: Very preliminary
+// MC bank for RICH: Preliminary
 
 class AMSRichMCHit: public AMSlink{
 protected:
 
-  integer _idsoft; // PMT+10000* numberof window
-  AMSPoint _xcoo;  // Coordinates of input point. Unused 
-  number _energy;  // Particle energy
+// Information about the hit
+
+  integer _idsoft; // PMT number-1
+  AMSPoint _xcoo;  // Coordinates of the hit in the cathode 
+  number _energy;  // Particle energy on the hit
   integer _kind;   // Particle id to simulate the detector
+
+// Information about the particle
+
+  AMSPoint _origin; // Coordinates of the origin of the particle
+  AMSPoint _momentum; // Momentum at the origin
+
 
 public:
 
-  AMSRichMCHit(integer idsoft,AMSPoint xcoo,number energy,integer kind) :
-    _idsoft(idsoft),_xcoo(xcoo),_energy(energy),_kind(kind){_next=0;};
+  AMSRichMCHit(integer idsoft,AMSPoint xcoo,number energy,integer kind,
+	       AMSPoint origin,AMSPoint momentum) :
+    _idsoft(idsoft),_xcoo(xcoo),_energy(energy),_kind(kind),
+    _origin(origin),_momentum(momentum){_next=0;};
   AMSRichMCHit(){_next=0;};
   ~AMSRichMCHit(){};
 
@@ -137,12 +147,14 @@ public:
   integer operator < (AMSlink & o)const{
     return _idsoft < ((AMSRichMCHit*)(&o)) ->_idsoft;}
 
-  static void sirichhits(integer idsoft , geant vect[],geant energy,integer kind);
+  static void sirichhits(integer idsoft , geant vect[],geant energy,integer kind,geant origin[],geant momentum[]);
 
   integer getid() const {return _idsoft;}
   number getenergy() const {return _energy;}
   integer getkind() const {return _kind;}
-  geant getcoo(integer i){return i>=0 && i<3 ? _xcoo[i]:0;} // Just for debug
+  geant getcoo(integer i){return i>=0 && i<3 ? _xcoo[i]:0;} 
+  geant getorigin(integer i){return i>=0 && i<3 ? _origin[i]:0;}
+  geant getmomentum(integer i){return i>=0 && i<3 ? _momentum[i]:0;}
 };
 
 

@@ -73,7 +73,7 @@ geant RICHDB::ped=-0.2888;      // Values extracted from A. Contin talk
 geant RICHDB::sigma_ped=0.5335; // January 11 1999
 geant RICHDB::peak=22.75;
 geant RICHDB::sigma_peak=12.10;
-integer RICHDB::c_ped=integer(-.2888+3*0.5335); 
+integer RICHDB::c_ped=integer(-.2888+4*0.5335); 
 
 
 
@@ -182,7 +182,7 @@ geant RICHDB::pmt_response(integer n_photons){ // Quite unefficient
   geant u1,u2;
   geant dummy=0;
   geant r;
-
+do{
   do{
     u1=2*RNDM(dummy)-1;
     u2=2*RNDM(dummy)-1;
@@ -190,9 +190,11 @@ geant RICHDB::pmt_response(integer n_photons){ // Quite unefficient
     r=sqrt(u1*u1+u2*u2);
   }while(r>1);
 
-  return u1*sqrt(-2*log(r*r)/r/r)*sqrt(sigma_ped*sigma_ped+
+  u2=u1*sqrt(-2*log(r*r)/r/r)*sqrt(sigma_ped*sigma_ped+
 				       n_photons*sigma_peak*sigma_peak)+
     n_photons*peak+ped;  
+}while(u2<-2);
+return u2;
 }
 
 
@@ -201,7 +203,7 @@ geant RICHDB::pmt_response(integer n_photons){ // Quite unefficient
 void RICHDB::bookhist(){
 #ifdef __AMSDEBUG__
   // Number of hits detected
-  HBOOK1(RIChistos+0,"Number of hits",100.,0.,1000.,0);
+  HBOOK1(RIChistos+0,"Number of hits",99.,1.,200.,0);
   // Charge detected for good ones
   HBOOK1(RIChistos+1.,"ADC counts",100.,-10.,300.,0);
   //
