@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.2
-#If you do not find python2.2, try a path like the following:
-# /afs/cern.ch/asis/packages/GNU.LANG/python-2.2.2/i386_redhat73/usr.local/bin/python2.2
+# If the previous commans does not work, look for something like: 
+#  /afs/cern.ch/asis/packages/GNU.LANG/python-2.2.2/i386_redhat73/usr.local/bin/python2.2
 #
 #   Program to plot any AMS variable
 #   Juan Alcaraz, 18-Oct-2003
@@ -96,13 +96,20 @@ def process_variable(variable,root_h_file):
 
       return variable
 
-def make_amsplot_file(filearray, options):
+def make_amsplot_file(filearray, options, full_variable):
+      root_h = os.environ["AMSDir"] + "/include/root.h"
+      if os.path.exists(root_h):
+            root_h_file = file(root_h,"r")
+      else:
+            print "Header file \"" + root_h + "\" does not exist; EXIT"
+            sys.exit()
+
       amsplot_file = file("amsplot.C","w")
 
       amsplot_file.write("int amsplot() {\n")
       amsplot_file.write("\tgROOT->Reset();\n")
       amsplot_file.write("\tgSystem->Load(\"$AMSDir/lib/linux/icc/ntuple.so\");\n")
-      amsplot_file.write("\tTChain chain(\"AMSRoot\");\n")
+      amsplot_file.write("\n\tTChain chain(\"AMSRoot\");\n")
 
       for filename in filearray:
             if "--list" in options:
@@ -114,19 +121,9 @@ def make_amsplot_file(filearray, options):
             else:
                   amsplot_file.write("\tchain.Add(\"" + filename +"\");\n")
 
-      amsplot_file.write("\tchain.Process(\"amsplot_anal.C+\");\n")
-      amsplot_file.write("}\n")
-
-      amsplot_file.close()
-
-def make_amsplot_anal_file(full_variable):
-
-      root_h = os.environ["AMSDir"] + "/include/root.h"
-      if os.path.exists(root_h):
-            root_h_file = file(root_h,"r")
-      else:
-            print "Header file \"" + root_h + "\" does not exist; EXIT"
-            sys.exit()
+      amsplot_file.write("\tchain.SetMakeClass(1);\n")
+      amsplot_file.write("\n\tAMSEventR Event;\n")
+      amsplot_file.write("\tEvent.SetBranchA(&chain);\n")
 
       match1 = re.search(r'^([^<>!=]+)([<>=!]+)(\w+[^<>!=]+)([<>=!]+)([^<>=!]+)$',full_variable)
       match2 = re.search(r'^(\w+[^<>!=]+)([<>=!]+)([^<>=!]+)$',full_variable)
@@ -160,56 +157,42 @@ def make_amsplot_anal_file(full_variable):
             maxop = False
             maxcut = False
 
-      amsplot_anal_file = file("amsplot_anal.C","w")
-
-      amsplot_anal_file.write("#include <" + root_h + ">\n")
-      amsplot_anal_file.write("#include \"TH1.h\"\n\n")
-
-      amsplot_anal_file.write("class amsplot_anal : public AMSEventR {\n")
-      amsplot_anal_file.write("public :\n")
-      amsplot_anal_file.write("\tvoid    UBegin();\n")
-      amsplot_anal_file.write("\tvoid    UProcessFill();\n")
-      amsplot_anal_file.write("\tvoid    UTerminate();\n")
-      amsplot_anal_file.write("\tTH1F    *h_test;\n")
-      amsplot_anal_file.write("};\n\n")
-      
       splitvar = variable.split(".")
 
-      amsplot_anal_file.write("void amsplot_anal::UBegin() {\n")
-      amsplot_anal_file.write("\th_test = new TH1F(\"h_test\",\"" + full_variable + "\",100,0.,0.);\n")
-      amsplot_anal_file.write("}\n\n")
+      amsplot_file.write("\n\th_test = new TH1F(\"h_test\",\"" + full_variable + "\",100,0.,0.);\n\n")
 
-      amsplot_anal_file.write("void amsplot_anal::UProcessFill() {\n" )
+      amsplot_file.write("\tfor (int entry=0; entry<chain.GetEntries(); entry++) {\n")
+      amsplot_file.write("\t\tchain.GetEntry(entry);\n")
       if len(splitvar)>1:
             if splitvar[0]!="Header":
-                  amsplot_anal_file.write("\tfor (int i=0; i<n" + splitvar[0] + "(); i++){\n" )
+                  amsplot_file.write("\t\tfor (int i=0; i<Event.n" + splitvar[0] + "(); i++){\n" )
                   if  mincut:
-                        amsplot_anal_file.write("\t\tif (!(" + mincut + minop + splitvar[0] + "(i)." + splitvar[1] + ")) continue;\n")
+                        amsplot_file.write("\t\t\tif (!(" + mincut + minop + "Event." + splitvar[0] + "(i)." + splitvar[1] + ")) continue;\n")
                   if  maxcut:
-                        amsplot_anal_file.write("\t\tif (!(" + splitvar[0] + "(i)." + splitvar[1] + maxop + maxcut + ")) continue;\n")
-                  amsplot_anal_file.write("\t\th_test->Fill(" + splitvar[0] + "(i)." + splitvar[1] + ");\n")
-                  amsplot_anal_file.write("\t}\n")
+                        amsplot_file.write("\t\t\tif (!(Event." + splitvar[0] + "(i)." + splitvar[1] + maxop + maxcut + ")) continue;\n")
+                  amsplot_file.write("\t\t\th_test->Fill(Event." + splitvar[0] + "(i)." + splitvar[1] + ");\n")
+                  amsplot_file.write("\t\t}\n")
             else:
                   if  mincut:
-                        amsplot_anal_file.write("\tif (!(" + mincut + minop + "fHeader." + splitvar[1] + ")) return;\n")
+                        amsplot_file.write("\t\tif (!(" + mincut + minop + "Event." + splitvar[1] + "())) return;\n")
                   if  maxcut:
-                        amsplot_anal_file.write("\tif (!(fHeader." + splitvar[1] + maxop + maxcut + ")) return;\n")
-                  amsplot_anal_file.write("\th_test->Fill(fHeader." + splitvar[1] + ");\n")
+                        amsplot_file.write("\t\tif (!(Event." + splitvar[1] + "()" + maxop + maxcut + ")) return;\n")
+                  amsplot_file.write("\t\th_test->Fill(Event." + splitvar[1] + "());\n")
 
       else:
             if  mincut:
-                  amsplot_anal_file.write("\tif (!(" + mincut + minop + "n" + splitvar[0] + "())) return;\n")
+                  amsplot_file.write("\t\tif (!(" + mincut + minop + "Event.n" + splitvar[0] + "())) return;\n")
             if  maxcut:
-                  amsplot_anal_file.write("\tif (!(n" + splitvar[0] + "()" + maxop + maxcut + ")) return;\n")
-            amsplot_anal_file.write("\th_test->Fill(n" + splitvar[0] + "());\n")
+                  amsplot_file.write("\t\tif (!(Event.n" + splitvar[0] + "()" + maxop + maxcut + ")) return;\n")
+            amsplot_file.write("\t\th_test->Fill(Event.n" + splitvar[0] + "());\n")
 
-      amsplot_anal_file.write("}\n\n" )
+      amsplot_file.write("\t}\n\n" )
 
-      amsplot_anal_file.write("void amsplot_anal::UTerminate() {\n")
-      amsplot_anal_file.write("\th_test->Draw();\n")
-      amsplot_anal_file.write("}\n\n")
+      amsplot_file.write("\th_test->Draw();\n")
 
-      amsplot_anal_file.close()
+      amsplot_file.write("}\n\n")
+
+      amsplot_file.close()
 
 ### Now the main program...
 options = []
@@ -226,7 +209,7 @@ if "--help" in options:
       print "\t to plot one AMS variable from a set of root files"
       print ""
       print "\ta) It checks the validity of [variable] and the existence of [files]"
-      print "\tb) It creates the files \"amsplot.C\" and \"amsplot_anal.C\""
+      print "\tb) It creates the file \"amsplot.C\""
       print "\tc) It executes \"root amsplot.C\" at the end (use \"--test\" to avoid this)"
       print "USAGES: "
       print "\tamsplot [variable] [root_file1] [root_file2] ..."
@@ -276,14 +259,12 @@ for filename in filearray:
       if not os.path.exists(filename):
             print 'Root file "' + filename + '" does not exist; EXIT'
             sys.exit()
-make_amsplot_file(filearray, options)
-
 full_variable = parameters[0]
-make_amsplot_anal_file(full_variable)
+make_amsplot_file(filearray, options, full_variable)
 
 if "--test" in options:
   print "TEST mode> OK. Anyway:"
-  print "               a) Check files \"amsplot.C\" and \"amsplot_anal.C\""
+  print "               a) Check the file \"amsplot.C\""
   print "               b) Run \"root amsplot.C\" after user modifications"
 else:
   os.system("root amsplot.C")

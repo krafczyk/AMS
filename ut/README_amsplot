@@ -6,7 +6,7 @@ SCRIPT amsplot:
 	 to plot one AMS variable from a set of root files
 
 	a) It checks the validity of [variable] and the existence of [files]
-	b) It creates the files "amsplot.C" and "amsplot_anal.C"
+	b) It creates the file "amsplot.C"
 	c) It executes "root amsplot.C" at the end (use "--test" to avoid this)
 USAGES: 
 	amsplot [variable] [root_file1] [root_file2] ...
