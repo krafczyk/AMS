@@ -1,4 +1,4 @@
-//  $Id: tofsim.C,v 1.48 2001/03/27 15:52:07 choutko Exp $
+//  $Id: tofsim.C,v 1.49 2001/03/28 11:34:47 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 #include <iostream.h>
 #include <stdio.h>
@@ -303,8 +303,8 @@ void AMSTOFTovt::build()
   }
 //
   edepb=0.;// Edep in given bar
-  for(AMSTOFMCCluster *ptr=(AMSTOFMCCluster*)AMSEvent::gethead()->
-                                      getheadC("AMSTOFMCCluster",0,1);ptr;ptr=ptr->next()){
+  AMSTOFMCCluster *ptr=(AMSTOFMCCluster*)AMSEvent::gethead()->getheadC("AMSTOFMCCluster",0,1);
+    while(ptr){
     id=ptr->getid(); 
     ilay=id/100-1;
     nhitl[ilay]+=1;
@@ -455,6 +455,7 @@ void AMSTOFTovt::build()
      AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
      throw amsglobalerror("TOF:Ghit->Tovt-cpulimitExceeded");
     }
+    ptr=ptr->next();
   }// ------ end of geant hits loop ---->
 //
   if(TOFMCFFKEY.mcprtf[2]!=0){

@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.191 2001/03/27 15:52:13 choutko Exp $
+#  $Id: Mopt,v 1.192 2001/03/28 11:35:29 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -37,7 +37,7 @@ O4=-g -D__AMSDEBUG__
 O4F=-g -D__AMSDEBUG__
 CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 else
-CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   -O0     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
+CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   -g     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 ifdef O4
 O4=-O4
 O4F=-O
