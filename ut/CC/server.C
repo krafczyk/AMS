@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.52 2001/02/28 09:17:08 alexei Exp $
+//  $Id: server.C,v 1.53 2001/02/28 14:44:54 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -280,6 +280,7 @@ else{
      }
      if(InitOracle())pser->StartSelf(_pid,DPS::Client::Create);
    }
+   else pser->StartSelf(_pid,DPS::Client::Create);
 
   
  }
@@ -2137,30 +2138,13 @@ for( ACLI li=_acl.begin();li!=_acl.end();++li){
 int Producer_impl::getTDV(const DPS::Client::CID & cid,  TDVName & tdvname, TDVbody_out body)throw (CORBA::SystemException){
 _UpdateACT(cid,DPS::Client::Active);
 
- if(_parent->IsOracle()){
+ if( _parent->IsOracle()){
      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
-     DPS::Client::CID pid=_parent->getcid();
-     pid.Type=DPS::Client::DBServer;
-     pid.Interface= (const char *) " ";
-     DPS::Client::ARS * pars;
-     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
-     DPS::Client::ARS_var arf=pars;
-     for(int i=0;i<length;i++){
-      try{
-       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
-       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
-          return _pvar->getTDV(cid,tdvname,body);
+     for (AMSServerI* pcur=_pser;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+     if(DBServer_impl* pdb=dynamic_cast<DBServer_impl*>(pcur)){
+          return pdb->getTDV(cid,tdvname,body);
        }
-       catch (CORBA::SystemException &ex){
-        // Have to Kill Servers Here
-       }
-     }
-     TDVbody_var vbody=new TDVbody();
-     tdvname.Success=false;
-     vbody->length(1);
-     body=vbody._retn();
-     return 0;
-
+    }
 
  }
  else{
@@ -2194,30 +2178,13 @@ int Producer_impl::getSplitTDV(const DPS::Client::CID & cid,  unsigned int & pos
 _UpdateACT(cid,DPS::Client::Active);
 
 
- if(_parent->IsOracle()){
+ if( _parent->IsOracle()){
      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
-     DPS::Client::CID pid=_parent->getcid();
-     pid.Type=DPS::Client::DBServer;
-     pid.Interface= (const char *) " ";
-     DPS::Client::ARS * pars;
-     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
-     DPS::Client::ARS_var arf=pars;
-     for(int i=0;i<length;i++){
-      try{
-       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
-       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
-          return _pvar->getSplitTDV(cid,pos,tdvname,body,st);
+     for (AMSServerI* pcur=_pser;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+     if(DBServer_impl* pdb=dynamic_cast<DBServer_impl*>(pcur)){
+          return pdb->getSplitTDV(cid,pos,tdvname,body,st);
        }
-       catch (CORBA::SystemException &ex){
-        // Have to Kill Servers Here
-       }
-     }
-     TDVbody_var vbody=new TDVbody();
-     tdvname.Success=false;
-     vbody->length(1);
-     body=vbody._retn();
-     return 0;
-
+    }
 
  }
  else{
@@ -2241,7 +2208,7 @@ li->second->gettime(i,b,e);
  TDVbody_var vbody=new TDVbody();
  if(tdvname.Success){
   length=li->second->GetNbytes()/sizeof(uinteger);
-  const int maxs=400000;
+  const int maxs=500000;
   vbody->length(length);
   li->second->CopyOut(vbody->get_buffer());
   length-=pos;
@@ -2270,26 +2237,13 @@ _UpdateACT(cid,DPS::Client::Active);
 
 
 
- if(_parent->IsOracle()){
+ if( _parent->IsOracle()){
      Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
-     DPS::Client::CID pid=_parent->getcid();
-     pid.Type=DPS::Client::DBServer;
-     pid.Interface= (const char *) " ";
-     DPS::Client::ARS * pars;
-     int length=_pser->getARS(pid,pars,DPS::Client::Any,0,1);
-     DPS::Client::ARS_var arf=pars;
-     for(int i=0;i<length;i++){
-      try{
-       CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
-       DPS::DBServer_var _pvar=DPS::DBServer::_narrow(obj);
-         _pvar->sendTDV(cid,tdv,tdvname);
-         return;
+     for (AMSServerI* pcur=_pser;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+     if(DBServer_impl* pdb=dynamic_cast<DBServer_impl*>(pcur)){
+          return pdb->sendTDV(cid,tdv,tdvname);
        }
-       catch (CORBA::SystemException &ex){
-        // Have to Kill Servers Here
-       }
-     }
-
+    }
 
  }
  else{
@@ -3160,7 +3114,8 @@ uinteger Producer_impl::getSmartFirst(uinteger run){
 #include <sys/file.h>
 
 int Producer_impl::getRun(const DPS::Client::CID &cid, const FPath & fpath ,RUN_out run,TransferStatus & st)throw (CORBA::SystemException,FailedOp){
-const int maxs=16000000;
+
+const int maxs=2000000;
 _UpdateACT(cid,DPS::Client::Active);
  ifstream fbin;
  struct stat statbuf;
@@ -3188,7 +3143,7 @@ vrun->length(last);
 
 
 int Producer_impl::sendFile(const DPS::Client::CID &cid, const FPath & fpath ,const  RUN & run,TransferStatus & st)throw (CORBA::SystemException,FailedOp){
-const int maxs=16000000;
+const int maxs=2000000;
 _UpdateACT(cid,DPS::Client::Active);
    AString fname;
    char* gtv=getenv("AMSProdOutputDir");

@@ -1,4 +1,4 @@
-//  $Id: dbserver.C,v 1.11 2001/02/28 09:17:56 alexei Exp $
+//  $Id: dbserver.C,v 1.12 2001/02/28 14:44:54 choutko Exp $
 //
 //  Feb 14, 2001. a.k. ORACLE subroutines from server.C
 //  Feb 21, 2001. a.k. unique process identification -> ID+TYPE
@@ -662,13 +662,12 @@ TDVbody_var vbody=new TDVbody();
  st=Continue;
 
  int length=0;
- TDVbody_var vbody= 0;
+ TDVbody_var vbody= new TDVbody();
 
   int rstat = -1;
   unsigned int *pdata = 0;
   AMSoracle::TDVrec   *tdv = 0;
   tdvname.Success=false;
-  vbody=new TDVbody();
   tdv = new AMSoracle::TDVrec;
   tdv -> setname(tdvname.Name, tdvname.DataMC);
   if (tdvname.Entry.id != 0)     
@@ -679,15 +678,15 @@ TDVbody_var vbody=new TDVbody();
     tdv -> getutime(tdvname.Entry.Insert, tdvname.Entry.Begin, tdvname.Entry.End);
     int nbytes = tdv -> getsize();
     length = nbytes/sizeof(uinteger);
+    cout <<" length "<<length<<endl;;
     vbody->length(length);
-      if (AMSoracle::gettdvbody(tdv, vbody->get_buffer()) == 1) {
+      if ( AMSoracle::gettdvbody(tdv, vbody->get_buffer()) == 1) {
         //        AMSTimeID::_convert(pdata,length);
         length = length - 3; // i/b/e
         tdvname.Success=true;
       }
     }
-  // const int maxs=400000;
- const int maxs=20000;
+  const int maxs=500000;
  if(tdvname.Success){
 
   length-=pos;
