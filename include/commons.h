@@ -589,7 +589,7 @@ char amsdatabase[128];
 #define AMSDATADIR COMMON_BLOCK(AMSDATADIR,amsdatadir)
 COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);
 
-const integer nalg=3;
+const integer nalg=4;
 class TRCALIB_DEF{
 public:
 integer CalibProcedureNo;
@@ -615,8 +615,9 @@ geant HitsRatioCut[nalg];           // Hit Ratio  // cos(pred,fitted) for alg 3
                                  // Global fit cuts
 geant MomentumCut[nalg][2];         // momentum ----------
 geant Chi2Cut[nalg];                // chi2 --------------- 
-geant InitialCoo[6][3];          // Coordinates displacement
-geant InitialRM[6][3][3];        // Rot Matrix --------
+integer ActiveParameters[6][6]; //   for each plane: x,y,z, pitch, yaw, roll
+integer Ladder[6];            // ladder*10+half no for each plane 0 == all
+integer PatStart;
 };
 #define TRCALIB COMMON_BLOCK(TRCALIB,trcalib)
 COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);

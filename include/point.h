@@ -14,6 +14,7 @@ public:
 AMSPoint():_x(0),_y(0),_z(0){};
 AMSPoint(number x, number y,number z):_x(x),_y(y),_z(z){};
 AMSPoint(number coo[3]): _x(coo[0]),_y(coo[1]),_z(coo[2]){};
+AMSPoint(geant coo[3]): _x(coo[0]),_y(coo[1]),_z(coo[2]){};
 void setp(number x,number y,number z){_x=x;_y=y;_z=z;}
 void setp(number x[]){_x=x[0];_y=x[1];_z=x[2];}
 void getp(number &x, number &y, number &z)const{x=_x;y=_y;z=_z;}

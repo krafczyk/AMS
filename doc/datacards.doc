@@ -470,14 +470,15 @@ I14 UPDF;                               // Dynamic pedestal update freq
 I15 LaserRun(0)
 I16 PrintBadChList(0)                  //
                                        // TRCALIB # 2 starts here 
-I17  EventsPerIteration[3](100,100,100)    // Events in one bunch
-I20 NumberOfIterations[3](200,200,200)    // number of bunches
-R23 BetaCut[3][2](0.7,1.,0.7,10.,10.,1.4)    // Beta limits
-R29 HitsRatioCut[3](2.5,2.5,0.998)          // Hit Ratio Limits
-R32 MomentumCut[3][2](-inf,3,-inf,inf,inf,inf) // momentum ----------
-R38 Chi2Cut[3](3.,3.,100.)                 // chi2 ---------------
-R41 InitialCoo[6][3](0)               // Coordinates displacement
-R59 InitialRM[6][3][3](0)             // Rot Matrix --------
+I17  EventsPerIteration[4](100,100,100,100)    // Events in one bunch
+I21 NumberOfIterations[4](200,200,200,200)    // number of bunches
+R25 BetaCut[4][2](0.7,1.,0.7,0.7,10.,10.,1.4,1.4)    // Beta limits
+R33 HitsRatioCut[4](2.5,2.5,0.998,0.998)          // Hit Ratio Limits
+R37 MomentumCut[4][2](-inf,inf,3,inf,0.2,2.5,-inf,inf) // momentum ----------
+R45 Chi2Cut[4](3.,3.,100.,100.)                 // chi2 ---------------
+I49 ActiveParamaters[6][6];           // for each plane x,y,z, pitch,yaw,roll
+I85 Ladder[6](6*0)                    // ladder*10+half no for each plane 0=al 
+I91 PatStart(0) 
 };
 
 

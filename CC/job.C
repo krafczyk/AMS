@@ -311,33 +311,44 @@ TRCALIB.PrintBadChList=0;
 TRCALIB.EventsPerIteration[0]=100;
 TRCALIB.EventsPerIteration[1]=100;
 TRCALIB.EventsPerIteration[2]=100;
+TRCALIB.EventsPerIteration[3]=100;
 TRCALIB.NumberOfIterations[0]=100;
 TRCALIB.NumberOfIterations[1]=100;
 TRCALIB.NumberOfIterations[2]=100;
+TRCALIB.NumberOfIterations[3]=100;
 TRCALIB.BetaCut[0][0]=0.7;
 TRCALIB.BetaCut[0][1]=10.;
 TRCALIB.BetaCut[1][0]=1;
 TRCALIB.BetaCut[1][1]=10;
 TRCALIB.BetaCut[2][0]=0.7;
 TRCALIB.BetaCut[2][1]=1.4;
+TRCALIB.BetaCut[3][0]=0.7;
+TRCALIB.BetaCut[3][1]=1.4;
 TRCALIB.HitsRatioCut[0]=2.2;
 TRCALIB.HitsRatioCut[1]=2.2;
 TRCALIB.HitsRatioCut[2]=0.998;
+TRCALIB.HitsRatioCut[3]=0.998;
 TRCALIB.MomentumCut[0][0]=-FLT_MAX;
 TRCALIB.MomentumCut[0][1]=FLT_MAX;
 TRCALIB.MomentumCut[1][0]=3;
 TRCALIB.MomentumCut[1][1]=FLT_MAX;
-TRCALIB.MomentumCut[2][0]=-FLT_MAX;
-TRCALIB.MomentumCut[2][1]=FLT_MAX;
+TRCALIB.MomentumCut[2][0]=0.4;
+TRCALIB.MomentumCut[2][1]=2.5;
+TRCALIB.MomentumCut[3][0]=-FLT_MAX;
+TRCALIB.MomentumCut[3][1]=FLT_MAX;
 TRCALIB.Chi2Cut[0]=3;
 TRCALIB.Chi2Cut[1]=3;
 TRCALIB.Chi2Cut[2]=100;
-int i,j,k;
-for (i=0;i<6;i++){
- for(j=0;j<3;j++){
-   TRCALIB.InitialCoo[i][j]=0;
-   for(k=0;k<3;k++)TRCALIB.InitialRM[i][j][k]=0;
- }
+TRCALIB.Chi2Cut[3]=100;
+TRCALIB.PatStart=0;
+for(int i=0;i<6;i++){
+  TRCALIB.Ladder[i]=0;
+  TRCALIB.ActiveParameters[i][0]=1;   // x
+  TRCALIB.ActiveParameters[i][1]=1;   // y
+  TRCALIB.ActiveParameters[i][2]=0;   // z
+  TRCALIB.ActiveParameters[i][3]=0;   // pitch
+  TRCALIB.ActiveParameters[i][4]=1;   // yaw
+  TRCALIB.ActiveParameters[i][5]=0;   // roll
 }
 FFKEY("TRCALIB",(float*)&TRCALIB,sizeof(TRCALIB_DEF)/sizeof(integer),"MIXED");
 
@@ -1964,7 +1975,19 @@ void AMSJob::_tkendjob(){
     AMSTrIdCalib::check(1);
     AMSTrIdCalib::printbadchanlist();
   }
-  if(TRCALIB.CalibProcedureNo == 3){
+  if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 2){
+   int i,j;
+   for(i=0;i<nalg;i++){
+   if(TRCALIB.Method==0 || TRCALIB.Method==i){
+    for(j=TRCALIB.PatStart;j<tkcalpat;j++){
+      AMSTrCalibFit::getHead(i,j)->Anal();
+    }
+   }
+   }
+      AMSTrCalibFit::SAnal();
+
+  }
+  if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 3){
     AMSTrIdCalib::ntuple(AMSEvent::getSRun());
   }
   if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 4){
@@ -1973,6 +1996,9 @@ void AMSJob::_tkendjob(){
   if(isMonitoring() & (AMSJob::MTracker | AMSJob::MAll)){
    AMSTrIdCalib::offmonhist();    
   }
+
+
+
 }
 
 //------------------------------------------------------------------

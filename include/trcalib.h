@@ -22,6 +22,15 @@ geant BadCh;
 geant SigmaRaw;
 geant Rho[nrho];
 };
+class TrAlig_def{
+public:
+integer Pattern;
+integer Alg;
+geant FCN;
+geant FCNI;
+geant Coo[6][3];
+geant Angle[6][3];
+};
 class TrCalib_def{
 public:
 integer Layer;
@@ -37,36 +46,36 @@ geant CmnNoise;
 class AMSTrCalibPar{
 protected:
 AMSPoint _Coo;
+AMSPoint _Angles;
 AMSDir _Dir[3];
+void _a2m();
 public:
 AMSTrCalibPar(){};
-AMSTrCalibPar(AMSPoint coo, number nrm[3][3]);
-AMSTrCalibPar(AMSPoint coo, AMSDir dir[3]);
-AMSTrCalibPar(const AMSPoint & coo, const AMSDir & dir1, 
-const  AMSDir & dir2, const  AMSDir & dir3);
+AMSTrCalibPar(const AMSPoint & coo, const AMSPoint & angles);
 AMSPoint  getcoo()const {return _Coo;}
+AMSPoint  getang()const {return _Angles;}
 void setcoo(const AMSPoint & o) {_Coo=o;}
+void setpar(const AMSPoint & coo, const AMSPoint & angle);
 AMSDir   getmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
 AMSDir &  setmtx(integer i){assert(i>=0 && i<3);return _Dir[i];}
+void updmtx(){_a2m();}
 AMSTrCalibPar  operator +(const AMSTrCalibPar &o){
-return AMSTrCalibPar(_Coo+o._Coo,_Dir[0]+o._Dir[0],
-_Dir[1]+o._Dir[1],_Dir[2]+o._Dir[2]);
+return AMSTrCalibPar(_Coo+o._Coo,_Angles+o._Angles);
 }         
 AMSTrCalibPar  operator -(const AMSTrCalibPar &o){
-return AMSTrCalibPar(_Coo-o._Coo,_Dir[0]-o._Dir[0],
-_Dir[1]-o._Dir[1],_Dir[2]-o._Dir[2]);
+return AMSTrCalibPar(_Coo-o._Coo,_Angles-o._Angles);
 }         
 AMSTrCalibPar  operator *(const AMSTrCalibPar &o){
-return AMSTrCalibPar(_Coo*o._Coo,_Dir[0]*o._Dir[0],
-_Dir[1]*o._Dir[1],_Dir[2]*o._Dir[2]);
+return AMSTrCalibPar(_Coo*o._Coo,_Angles*o._Angles);
 }         
 AMSTrCalibPar  operator /(number o){
-return AMSTrCalibPar(_Coo/o,_Dir[0]/o,_Dir[1]/o,_Dir[2]/o);
+return AMSTrCalibPar(_Coo/o,_Angles/o);
 }
 void sqr();
 
+
 friend ostream &operator << (ostream &o, const  AMSTrCalibPar &b )
-  {return o<<" "<<b._Coo<<" "<<b._Dir[0]<<" "<<b._Dir[1]<<" "<<b._Dir[2];}
+  {return o<<" "<<b._Coo<<" "<<b._Angles<<" "<<b._Dir[0]<<" "<<b._Dir[1]<<" "<<b._Dir[2];}
 
 };
 
@@ -106,6 +115,9 @@ friend class AMSTrCalibFit;
 
 class AMSTrCalibFit{
 protected:
+integer _PlaneNo[36];
+integer _ParNo[36];
+integer _NoActivePar;
 integer  _Pattern; 
 integer _PositionData;
 integer _PositionIter;
@@ -113,11 +125,13 @@ integer _NData;
 integer _NIter;
 AMSTrCalibData * _pData;
 integer _Algorithm;
-integer _NSen;    // Sensor number
+integer _flag;    // 
+number _tmp;
+integer _NLad;    // Ladder No
 integer _Pid;   // presumed particleid 
+number* _fcn;   // pointer to fcns;
+number* _fcnI;   // pointer to fcns;
 AMSTrCalibPar * _pParC[6];       // pointer to fitted current par
-AMSTrCalibPar * _pParM;          // Pointer to fitted mean parameters
-AMSTrCalibPar * _pParS;          // Pointer to fitted sigmas parameters
 static  AMSTrCalibFit  * _pCalFit[nalg][tkcalpat];
 static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
 {};
@@ -128,14 +142,12 @@ AMSTrCalibFit(integer pattern, integer data, integer iter, integer alg, integer 
 integer Test();
 void Fit();
 void Anal();
-
+static void SAnal();
 static AMSTrCalibFit * getHead(integer alg, integer pat)
   {return pat>=0 && pat<tkcalpat && alg>=0 && alg<nalg ? _pCalFit[alg][pat]:0;}
 static void setHead(integer alg, integer pat, AMSTrCalibFit * ptr);
 integer getlayer(integer c);
 ~AMSTrCalibFit();
-AMSTrCalibPar * getparM(integer layer, integer ladder, integer sensor);
-AMSTrCalibPar * getparS(integer layer, integer ladder, integer sensor);
 
 };
 

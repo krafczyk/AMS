@@ -44,6 +44,7 @@ if(!TKGEOMFFKEY.ReadGeomFromFile)return;
 AString fnam(AMSDATADIR.amsdatadir);
 fnam+="TKGeom_";
 fnam+=AMSJob::gethead()->getsetup();
+fnam+= AMSJob::gethead()->isRealData()?".1":".0";
 ifstream iftxt((const char *)fnam,ios::in);
 int active=0;
 if(iftxt){
@@ -776,7 +777,9 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
          integer status;
          integer rgid;
          GetLayer(TRLYGM.Layer,status,TRLYGM.CooO,nrm,rgid);
-         SetLayer(TRLYGM.Layer,status,TRLYGM.Coo,LayerNrm[il],rgid);
+         if(TKGEOMFFKEY.UpdateGeomFile==1 || TRLYGM.Layer!=1){
+          SetLayer(TRLYGM.Layer,status,TRLYGM.Coo,LayerNrm[il],rgid);
+         }
          TRLYGM.NrmO[0][0]=nrm[0][0];
          TRLYGM.NrmO[0][1]=nrm[1][0];
          TRLYGM.NrmO[0][2]=nrm[2][0];
@@ -800,7 +803,7 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
   CLOSEF(IOPA.hlun+1);
 
    cout <<"TKDBc::update-I-GeomFileCompiled "<<endl;
-   write(1);
+   write(TKGEOMFFKEY.UpdateGeomFile);
 
 }
 
@@ -936,6 +939,8 @@ AString fnam(AMSDATADIR.amsdatadir);
 fnam+="TKGeom_";
 fnam+=AMSJob::gethead()->getsetup();
 if(update)fnam+=".update";
+if(update==2)fnam+=".2";
+else if (update==3)fnam+=".3";
 ofstream iftxt;
 if(update)iftxt.open((const char *)fnam,ios::out|ios::trunc);
 else iftxt.open((const char *)fnam,ios::out|ios::noreplace);
@@ -999,7 +1004,6 @@ if(iftxt){
  cout <<"TKDBC::write-I-GeometryWritten "<<fnam<<endl;
 }
 else cerr << " TKDBc::write-E-Error write "<<fnam <<endl;
-exit(1);
 }
 
 void TKDBc::SetSensor(integer layer, integer ladder, integer sensor,

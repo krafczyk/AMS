@@ -96,7 +96,6 @@ void   setValues(number* values)
    }
   }
 integer getSide() {return _Id.getside();}
-//-
 
 AMSTrIdSoft getid()const {return _Id;}
 AMSTrCluster(const AMSTrIdSoft& id, integer status, integer nelemL, 
@@ -208,18 +207,17 @@ number getsonly()const {return _Sum*(1-_DifoSum);}
 AMSgSen * getpsen()const{return _pSen;}
 inline  AMSPoint  getHit(){return _Hit;}
 inline  AMSPoint  getEHit(){return _EHit;}
+integer       getLayer() const            {return _Layer;}
+AMSTrCluster* getClusterP(integer n) const {
+                                              if(n==0)return _Xcl;
+                                              else if(n==1)return _Ycl;
+                                              else return 0;}
 //+
 #ifdef __DB__
    friend class AMSTrRecHitD;
 #endif
-inline  integer       getLayer()             {return _Layer;}
 inline  number        getSum()               { return _Sum;}
 inline  number        getDSum()              { return _DifoSum;}
-inline  AMSTrCluster* getClusterP(integer n) {
-                                              AMSTrCluster* p = _Xcl;
-                                              if(n == 1)    p = _Ycl;
-                                              return p;
-}
 void          setClusterP(AMSTrCluster* p,integer n) {
               if (n == 0) _Xcl = p;
               if (n == 1) _Ycl = p;
@@ -275,7 +273,7 @@ number _Chi2MS;
 number _GChi2MS;
 number _RidgidityMS;
 number _GRidgidityMS;
-void SimpleFit(AMSPoint err=0);
+void SimpleFit(AMSPoint err);
 void TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit);
 static void _Start(){_Time=HighResTime();}
 static geant _CheckTime(){return HighResTime()-_Time;}

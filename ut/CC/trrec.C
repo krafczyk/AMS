@@ -1981,13 +1981,13 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
   }  
   else if(fit ==2){
     if(_Pattern == 0 ){
-      // fit 346
+      // fit 356
       npt=3;
      for(int j=0;j<3;j++){
       hits[0][j]=_Pthit[2]->getHit()[j];
       sigma[0][j]=_Pthit[2]->getEHit()[j];
-      hits[1][j]=_Pthit[3]->getHit()[j];
-      sigma[1][j]=_Pthit[3]->getEHit()[j];
+      hits[1][j]=_Pthit[4]->getHit()[j];
+      sigma[1][j]=_Pthit[4]->getEHit()[j];
       hits[2][j]=_Pthit[5]->getHit()[j];
       sigma[2][j]=_Pthit[5]->getEHit()[j];
      }
