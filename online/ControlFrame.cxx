@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.2 2003/06/18 15:36:58 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.3 2003/06/18 16:37:20 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSTOFHist.h"
@@ -327,8 +327,9 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
 //   TGLabel *flabel=new TGLabel(_pcontrolfr,"Zoom");
    fslider=new TGHSlider(_pcontrolfr,150,kSlider1 | kScaleDownRight,601);
 //   fslider=new TGHSlider(_pcontrolfr,150,kSlider2 | kScaleDownRight,601);
-   fslider->SetRange(10,40);
-   fslider->SetPosition(1);
+   
+   fslider->SetRange(0,100*log(4.));
+   fslider->SetPosition(0);
    fslider->ChangeBackground(tggcolor);
    fslider->Associate(this);
   //   _pcontrolfr->AddFrame(flabel,fL1);

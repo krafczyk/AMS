@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.11 2003/06/18 15:36:58 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.12 2003/06/18 16:37:20 choutko Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -30,7 +30,7 @@ protected:
   Bool_t           m_logx;
   Bool_t           m_logy;
   Bool_t           m_logz;
-  UInt_t           m_scale;
+  double           m_scale;
   AMSControlFrame        *m_ControlFrame;               //Pointer to the display canvas
   TCanvas        *m_Canvas;               //Pointer to the display canvas
   TPad             *m_TrigPad;              //Pointer to the trigger pad 
@@ -59,7 +59,7 @@ public:
           int      ReLoad();
           void      DrawTitle(Option_t *option="");
           void      DrawRunInfo(Option_t *option="");
-  int   GetScale(){return (m_scale+5)/10;}
+  int   GetScale(){return m_scale+0.5;}
   AMSNtupleR *       GetNtuple()const{return m_ntuple;}
   AMSHist *         getCurSubDet(){return _subdet[_cursubdetb];}
   Int_t             getCurSubDetNo(){return _cursubdet;}

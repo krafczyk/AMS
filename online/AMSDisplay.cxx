@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.14 2003/06/18 15:36:58 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.15 2003/06/18 16:37:20 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -51,14 +51,14 @@ AMSOnDisplay::AMSOnDisplay() : TObject(){
    _grset[0]='\0';
    _Begin=0;
    _Sample=10000;
-   m_scale=10;
+   m_scale=1;
    gAMSDisplay=this;
 }
 
 
 //_____________________________________________________________________________
 AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file):TObject(){
-   m_scale=10;
+   m_scale=1;
    m_ControlFrame=0;
    m_ntuple=file;
    m_theapp=0;
@@ -476,15 +476,16 @@ void AMSOnDisplay::PrintCB()
 
 
 void AMSOnDisplay::ReSizeCanvas(Long_t zoom, bool draw){
-   static Long_t scaleprev=m_scale;
+   static double scaleprev=m_scale;
    if(!draw){
-    m_scale=zoom;
+    m_scale=exp(double(zoom)/100);
    }
    else if(m_scale){
     UInt_t w=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCwidth();
     UInt_t h=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCheight();
     UInt_t wz=w*m_scale/scaleprev;
     UInt_t hz=h*m_scale/scaleprev;
+//    cout <<" hw"<<w<<" "<<h<<" "<<wz<<" "<<hz<<" "<<m_scale<<" "<<scaleprev<<endl;
     m_Canvas->SetCanvasSize(wz,hz);
     scaleprev=m_scale;      
 }
