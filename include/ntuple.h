@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.48 2001/08/01 13:28:50 choutko Exp $
+//  $Id: ntuple.h,v 1.49 2001/09/02 12:48:25 kscholbe Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -118,7 +118,7 @@ public:
   RICRing* Get_ring(){return &_ring;}
 
 #ifdef __WRITEROOT__
-ClassDef(AMSNtuple ,1)       //AMSNtuple
+  //ClassDef(AMSNtuple ,1)       //AMSNtuple
 #endif
 };
 

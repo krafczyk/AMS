@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.8 2001/05/09 15:16:41 choutko Exp $
+//  $Id: richrec.h,v 1.9 2001/09/02 12:48:25 kscholbe Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -101,7 +101,12 @@ protected:
 // Container for rings. Each ring is a reconstructed track
 
 class AMSRichRing: public AMSlink{
+
+#ifdef __WRITEROOT__
+friend class AMSTrTrack;
+#endif
 private:
+
   AMSTrTrack* _ptrack;
   integer _used;
   integer _charge;
