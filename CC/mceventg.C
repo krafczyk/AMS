@@ -222,6 +222,8 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.Nskip=0;
   Orbit.Nskip2=0;
   Orbit.Ntot=AMSIO::getntot();
+
+  if(AMSJob::gethead()->isSimulation()){
   if(ipart==0){
     if(IOPA.mode!=1){
       cerr << "AMSmceventg::setspectra-F-PARTNotDefined"<<endl;
@@ -229,8 +231,6 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
     }
     return;
   }
-
-  if(AMSJob::gethead()->isSimulation()){
     char cdir[256];
     HCDIR(cdir,"R");
     HMDIR("//PAWC/GEN","S");

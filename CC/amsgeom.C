@@ -30,6 +30,7 @@ extern void tkgeom(AMSgvolume &);
 extern void tkgeom02(AMSgvolume &);
 extern void magnetgeom(AMSgvolume &);
 extern void magnetgeom02(AMSgvolume &);
+extern void magnetgeom02Test(AMSgvolume &);
 extern void tofgeom(AMSgvolume &);
 extern void tofgeom02(AMSgvolume &);
 extern void antigeom(AMSgvolume &);
@@ -62,6 +63,18 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
  tkgeom(mother);
  ctcgeom(mother);
  cout <<" AMSGeom-I-Shuttle setup selected."<<endl;
+}
+else if (strstr(AMSJob::gethead()->getsetup(),"AMS02Test")){
+ magnetgeom02Test(mother);
+ tofgeom02(mother);
+ antigeom02(mother);
+ pshgeom02(mother);
+ tkgeom02(mother);
+ richgeom02(mother);
+ ecalgeom02(mother);
+ trdgeom02(mother);
+ srdgeom02(mother);
+ cout <<" AMSGeom-I-AMS02Test setup selected."<<endl;
 }
 else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  magnetgeom02(mother);
@@ -2037,6 +2050,51 @@ AMSNode * cur;
 AMSNode * dau;
 AMSgtmed *p;
      geant magnetl=99.;
+      gid=1;
+      par[0]=113.2/2;
+      par[1]=129.6/2;
+      par[2]=magnetl/2.;
+      dau=mother.add(new AMSgvolume(
+      "MAGNET",0,name,"TUBE",par,3,coo,
+       nrm, "ONLY",0,gid,1));
+      gid=2;
+      par[0]=111.4/2.;
+      par[1]=112.0/2.;
+      par[2]=magnetl/2.;
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",0,"ALT1","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
+      gid=3;
+      par[0]=129.6/2.;
+      par[1]=130.4/2.;
+      par[2]=magnetl/2.;
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",0,"ALT2","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
+      par[0]=112/2.;
+      par[1]=165./2.;
+      par[2]=0.75;
+      coo[2]=magnetl/2.+par[2];
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",0,"ALT3","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
+    
+      par[0]=112/2.;
+      par[1]=165.6/2.;
+      par[2]=0.75;
+      coo[2]=-magnetl/2.-par[2];
+      dau=mother.add(new AMSgvolume(
+      "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
+    
+}
+void magnetgeom02Test(AMSgvolume & mother){
+AMSID amsid;
+geant par[6]={0.,0.,0.,0.,0.,0.};
+char name[5]="MAGN";
+geant coo[3]={0.,0.,0.};
+number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+integer gid=0;
+AMSNode * cur;
+AMSNode * dau;
+AMSgtmed *p;
+     geant magnetl=80.;
       gid=1;
       par[0]=113.2/2;
       par[1]=129.6/2;

@@ -1,5 +1,9 @@
 #include <event.h>
 #include <bcorr.h>
+#include <commons.h>
+extern "C" void bzcorr_(float& factor){
+ factor=MISCFFKEY.BZCorr;
+}
 extern "C" void btempcor_(float& factor) {
 
 // Default in absence of corrections

@@ -168,6 +168,7 @@ TRMFFKEY.OKAY=0;
 FFKEY("TERM",(float*)&TRMFFKEY,sizeof(TRMFFKEY_DEF)/sizeof(integer),"MIXED");
 MISCFFKEY.BTempCorrection=1;
 MISCFFKEY.BeamTest=0;
+MISCFFKEY.BZCorr=1;
 FFKEY("MISC",(float*)&MISCFFKEY,sizeof(MISCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
@@ -926,6 +927,9 @@ void AMSJob::_retrddata(){
 
 
 void AMSJob::udata(){
+if(MISCFFKEY.BZCorr !=1){
+cout <<"AMSJob::udata-W-magneticFieldRescaleModeOnWithFactor "<<MISCFFKEY.BZCorr<<endl;
+}
 
 if(CCFFKEY.Fast){
  GCPHYS.IHADR=0;
