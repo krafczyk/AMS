@@ -1400,6 +1400,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
   geant x[2],y[2],zx[2],zy[2],zc[4],tgx,tgy,cost,cosc;
   number ama[2],amd[2],coo[SCLRS],coot[SCLRS],cstr[SCLRS],dx,dy;
   number am1[SCLRS],am2[SCLRS],am1d[SCLRS],am2d[SCLRS],am[2],eanti(0);
+  number tovta1[SCLRS],tovta2[SCLRS],tovtd1[SCLRS],tovtd2[SCLRS];
   geant ainp[2],dinp[2],cinp,trlen[SCLRS];
   number ltim[4],tdif[4],trle[4];
   number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof,lflgt;
@@ -1428,7 +1429,11 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     scbrcal[ilay][ibar].ama2q(ama,am);// convert to charge
     am1[ilay]=am[0];
     am2[ilay]=am[1];
-    if(status>=0 && TOFCAFFKEY.dynflg==0){//for dyn-calibr.(old,not Contin's)
+    tovta1[ilay]=ama[0];
+    tovta2[ilay]=ama[1];
+    tovtd1[ilay]=amd[0];
+    tovtd2[ilay]=amd[1];
+    if(TOFCAFFKEY.dynflg==0){//for dyn-calibr.(old,not Contin's)
       scbrcal[ilay][ibar].amd2q(amd,am);// convert to charge
       am1d[ilay]=am[0];
       am2d[ilay]=am[1];
@@ -1472,8 +1477,8 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
 // -----> remove albedo and very slow part. :
 //
   lflgt=2.*TOFDBc::supstr(1)+TOFDBc::supstr(7);
-  betof=2.*lflgt/(ltim[0]+ltim[1]-ltim[2]-ltim[3])/cvel;//uderest.raw TOFbeta
-  if(betof<0.6)return;
+  betof=2.*lflgt/(ltim[0]+ltim[1]-ltim[2]-ltim[3])/cvel;//underest.raw TOFbeta
+  if(betof<(TOFCAFFKEY.tofbetac-0.1))return;
 //
   TOFJobStat::addre(13);
 //
@@ -1483,11 +1488,13 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     static number pmas(0.938),mumas(0.1057),imass;
     number pmom,mom,bet,chi2,betm,pcut[2],massq;
     number the,phi,trl,rid,err,ctran;
+    integer chargeTOF,chargeTracker;
     AMSPoint C0,Cout;
     AMSDir dir(0,0,1.);
     AMSContainer *cptr;
     AMSParticle *ppart;
     AMSTrTrack *ptrack;
+    AMSCharge  *pcharge;
     int ntrk,ipatt;
     ntrk=0;
     cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
@@ -1500,8 +1507,15 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     if(ppart){
       ptrack=ppart->getptrack();//get pointer of the track, used in given particle
       ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
+      pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
+      chargeTracker=pcharge->getchargeTracker();
+      chargeTOF=pcharge->getchargeTracker();
     } 
-    else rid=0;
+    else {
+      rid=0;
+      chargeTracker=0;
+      chargeTOF=0;
+    }
     pmom=fabs(rid);
 //
     if(TOFCAFFKEY.caltyp==0){ // space calibration
@@ -1618,7 +1632,7 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
     for(il=0;il<SCLRS;il++)chsq+=pow((tzer+bci*trle[il]-tdif[il])/sigt[il],2);
     chsq/=number(fpnt-2);
     betof=1./bci/cvel;
-    if(chsq>8. || betof<0.6)return;//cut on chi2/beta
+    if(chsq>8. || betof<TOFCAFFKEY.tofbetac)return;//cut on chi2/beta
     HF1(1502,betof,1.);
     HF1(1205,chsq,1.);
     HF1(1206,tzer,1.);
@@ -1958,7 +1972,7 @@ void TOFAMPLcalib::fit(){
           for(k=0;k<nev;k++)pntr[k]=&amchan[i][k];//pointers to event-signals of chan=i 
           AMSsortNAG(pntr,nev);//sort in increasing order
           nmax=floor(nev*TOFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
-          nmin=floor(nev*0.01);// to remove 1 % of lowest amplitudes
+          nmin=floor(nev*0.02);// to remove 1 % of lowest amplitudes
           if(nmin==0)nmin=1;
 //          for(j=nmin;j<nmax;j++)aver+=(*pntr[j]);
 //          if((nmax-nmin)>0)gains[i]=geant(aver/(nmax-nmin));
@@ -2123,7 +2137,7 @@ void TOFAMPLcalib::fit(){
         for(k=0;k<nev;k++)pntr[k]=&ambin[bchan][k];//pointers to event-signals of chan=bchan
         AMSsortNAG(pntr,nev);//sort in increasing order
         nmax=floor(nev*TOFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
-        nmin=floor(nev*0.01);// to remove 1 % of lowest amplitudes
+        nmin=floor(nev*0.02);// to remove 1 % of lowest amplitudes
         if(nmin==0)nmin=1;
 //        for(k=nmin;k<nmax;k++)aver+=(*pntr[k]);
 //        if((nmax-nmin)>0)btamp[bchan]=geant(aver/(nmax-nmin));
@@ -2358,7 +2372,7 @@ void TOFAMPLcalib::fit(){
       for(k=0;k<nev;k++)pntr[k]=&arefb[ibt][k];//pointers to event-signals of chan=bchan
       AMSsortNAG(pntr,nev);//sort in increasing order
       nmax=floor(nev*TOFCAFFKEY.trcut);// to keep (100*trcut)% of lowest amplitudes
-      nmin=floor(nev*0.01);// to remove 1 % of lowest amplitudes
+      nmin=floor(nev*0.02);// to remove 1 % of lowest amplitudes
       if(nmin==0)nmin=1;
       strcpy(htit1,"Q-tot(X=0) for ref.bar type(T) ");
       in[0]=inum[ibt+1];
@@ -2616,7 +2630,7 @@ void TOFAMPLcalib::fit(){
 //
 }
 //-----
-// This is standard Minuit FCN :
+// This is standard Minuit FCN for uniformity fit:
 void TOFAMPLcalib::mfun(int &np, number grad[], number &f, number x[]
                                                         , int &flg, int &dum){
   int i,j;
@@ -2639,6 +2653,7 @@ void TOFAMPLcalib::mfun(int &np, number grad[], number &f, number x[]
   }
 }
 //-----
+// This is standard Minuit FCN for Landau fit:
 void TOFAMPLcalib::melfun(int &np, number grad[], number &f, number x[]
                                                         , int &flg, int &dum){
   int i,j;
@@ -2755,7 +2770,7 @@ void TOFSTRRcalib::fill(integer ichan, number tm[3]){
   dti=tm[0]-tm[1];
   dto=tm[1]-tm[2];
   idto=integer(dto/SCSRCTB);// time bin = SCSRCTB ns
-  if(idto>=idtol[0] && idto<idtol[1] && dti>20. && dti<110.){
+  if(idto>=idtol[0] && idto<idtol[1] && dti>20. && dti<100.){
     nevnt[ichan][idto]+=1;
     dtin[ichan][idto]+=dti;
     dtinq[ichan][idto]+=(dti*dti);
@@ -2905,6 +2920,21 @@ void TOFSTRRcalib::outp(){
     }
     printf("\n\n");
   }
+//---
+  printf("Offsets(ns),bin-methode :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 6.1f",offs[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 6.1f",offs[ic]);
+    }
+    printf("\n\n");
+  }
+//
 //
 // <----------------------------"points=method"
 //
@@ -2923,7 +2953,7 @@ void TOFSTRRcalib::outp(){
     sumt2=ssumt2[ic]/dis;
     bins=sbins[ic];
 //
-    if(bins>=50.){// really number of events in channel ic
+    if(bins>=20.){// really number of events in channel ic
       t0=(sumt*sumc2-sumct*sumc)/(sumid*sumc2-(sumc*sumc));
       sl=(sumct*sumid-sumc*sumt)/(sumid*sumc2-(sumc*sumc));
       chi22[ic]=sumt2+t0*t0*sumid+sl*sl*sumc2
@@ -2967,18 +2997,32 @@ void TOFSTRRcalib::outp(){
     }
     printf("\n\n");
   }
+//---
+  printf("Offsets(ns),pnt-methode :\n\n");
+  for(il=0;il<SCLRS;il++){
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2;
+      printf(" % 6.1f",offs2[ic]);
+    }
+    printf("\n");
+    for(ib=0;ib<SCMXBR;ib++){
+      ic=il*SCMXBR*2+ib*2+1;
+      printf(" % 6.1f",offs2[ic]);
+    }
+    printf("\n\n");
+  }
+//
 //
 //<----- combine two methodes(bin-meth. is main):
 //
   for(ic=0;ic<SCCHMX;ic++){ // <-- chan. loop
     replf=0;
-    if(chi2[ic]>3. || strr[ic]==0.){//replace by better chi2 from pnt.methode
-      if(chi22[ic]<chi2[ic] && chi22[ic]>0.){
-        replf=1;
-      }
+    if(chi2[ic]>6. || strr[ic]==0.){//replace by better chi2 from pnt.methode
+      if(strr[ic]==0. && chi22[ic]>0.)replf=1;
+      if(chi2[ic]>0. && chi22[ic]<chi2[ic] && chi22[ic]>0.)replf=1;
     }
     if(replf==1){//cancel replacement if have bad strr in point-methode
-      if(strr2[ic]>47. || strr2[ic]<40.5)replf=0;
+      if(strr2[ic]>55. || strr2[ic]<40.)replf=0;
     }
     if(replf){
       chi2[ic]=chi22[ic];
@@ -3048,7 +3092,7 @@ void TOFSTRRcalib::outp(){
     printf("\n\n");
   }
 //---
-  printf("Offsets (ns) :\n\n");
+  printf("Offsets(ns),comb. :\n\n");
   for(il=0;il<SCLRS;il++){
     for(ib=0;ib<SCMXBR;ib++){
       ic=il*SCMXBR*2+ib*2;

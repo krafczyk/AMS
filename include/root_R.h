@@ -162,7 +162,9 @@ public:
   int Status[MAXTOF];
   int Layer[MAXTOF];
   int Bar[MAXTOF];
+  int Nmemb[MAXTOF];
   float Edep[MAXTOF];
+  float Edepd[MAXTOF];
   float Time[MAXTOF];
   float ErrTime[MAXTOF];
   float Coo[MAXTOF][3];

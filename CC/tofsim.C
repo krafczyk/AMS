@@ -261,7 +261,7 @@ void AMSTOFTovt::build()
     for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
     fadcb=TOFDBc::fladctb();
     ifadcb=1./fadcb;
-    tmax=SCTBMX*fadcb;
+    tmax=SCTBMX*fadcb-1.;// ns
     zlmx=TOFDBc::plnstr(6)/2.+eps;
     convr=1000.*TOFDBc::edep2ph();
   }
@@ -298,8 +298,8 @@ void AMSTOFTovt::build()
     x=cloc[0];
     y=cloc[1];
     z=cloc[2];
-    if(time>=tmax){
-      //      cout<<"TOF: Bad G-hit, id="<<id<<" t/de="<<time<<" "<<de<<'\n';
+    if((time>=tmax) || (time<0.)){
+//            cout<<"TOF: Bad G-hit, id="<<id<<" t/de="<<time<<" "<<de<<'\n';
       ptr=ptr->next(); // next hit
       continue;
     }

@@ -281,7 +281,7 @@ void ANTIPcal::q2t2q(int cof, int sdf, number &tovt, number &q){
 // 
   if(cof==0){ // q->tovt
     if(q>qoffs)tovt=shft*log((q-qoffs)/qthr);
-    else tovt=0.;
+    if(tovt<0.)tovt=0.;
   }
   else{       // tovt->q
     q=qoffs+qthr*exp(tovt/shft);

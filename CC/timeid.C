@@ -321,7 +321,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
 #endif
       }
       else {
-        cout<<"AMSTimeID::read-W-Problems to Read File "<<fnam<<endl;
+        cout<<"AMSTimeID::read-W-Problems to Read File "<<fnam<<endl;//tempor
         if(dflt)exit(1);
       }
       fbin.close();

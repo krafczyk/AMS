@@ -45,7 +45,8 @@ void AMSNtuple::init(){
   "npart[0,150],pctcp(2,npart)[-1,30000]:I,pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),signalctc(2,npart),betactc(2,npart),errorbetactc(2,npart),cooctc(3,2,npart),cootof(3,4,npart),cooanti(3,2,npart),cootr(3,6,npart)");
 
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
-  "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,100]:I,TOFEdep(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
+//  "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,100]:I,TOFEdep(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
+  "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
 
   HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
   "ntofmc[0,200],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");

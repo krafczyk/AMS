@@ -58,7 +58,7 @@ extern LMS* lms;
 
 #endif
 //-
-
+//
 AMSNtuple* AMSJob::_pntuple=0;
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
@@ -445,8 +445,8 @@ void AMSJob::_sitofdata(){
   TOFMCFFKEY.mcprtf[3]=0;     //(9) spare
   TOFMCFFKEY.mcprtf[4]=0;     //(10) spare
   TOFMCFFKEY.trlogic[0]=1; //(11) MC trigger logic flag (=0/1-> two-sides-AND/OR of counter) 
-  TOFMCFFKEY.trlogic[1]=0; //(12)......................(=0/1-> ANY3/ALL4 layer coincidence) 
-  TOFMCFFKEY.fast=0;       //(13) 0/1-> fast/slow simulation algorithm
+  TOFMCFFKEY.trlogic[1]=1; //(12)......................(=0/1-> ANY3/ALL4 layer coincidence) 
+  TOFMCFFKEY.fast=0;       //(13) 1/0-> fast/slow simulation algorithm
   TOFMCFFKEY.daqfmt=0;     //(14) 0/1-> raw/reduced TDC format for DAQ simulation
   TOFMCFFKEY.birks=1;      //(15) 0/1->  not apply/apply birks corrections
   TOFMCFFKEY.adsimpl=0;    //(16)0/1->precise/simplified sim. of A/D-TovT
@@ -737,7 +737,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
   TOFRECFFKEY.relogic[2]=0;//(10) 0/1-> force L4S2 suppression(useful for MC processing)
-  TOFRECFFKEY.relogic[3]=0;//(11) spare RECO logic flag 
+  TOFRECFFKEY.relogic[3]=1;//(11) 0/1-> use new/old parametrization for TOF integrators 
   TOFRECFFKEY.relogic[4]=0;//(12) spare RECO logic flag
 //
   TOFRECFFKEY.daqthr[0]=35.;//(13)Fast discr. thresh(mV) for fast/slow_TDC 
@@ -781,7 +781,7 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.bmeanpr=0.996;// (3)mean prot. velocity in the above range
   TOFCAFFKEY.tzref[0]=0.;// (4)T0 for ref. counters
   TOFCAFFKEY.tzref[1]=0.;// (5)T0 for ref. counters
-  TOFCAFFKEY.fixsl=6.;// (6)def. slope
+  TOFCAFFKEY.fixsl=8.02;// (6)def. slope
   TOFCAFFKEY.bmeanmu=0.997;// (7)mean muon velocity in the above range
   TOFCAFFKEY.idref[0]=108;//(8)LBB for first ref. counter 
   TOFCAFFKEY.idref[1]=0;//(9)LBB for second ref. counter (if nonzero)
@@ -800,17 +800,17 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.refbid[2]=103; 
   TOFCAFFKEY.refbid[3]=104; 
   TOFCAFFKEY.refbid[4]=107;//(21)
-  TOFCAFFKEY.plhec[0]=0.1;//(22)plow-cut for earth calibration
+  TOFCAFFKEY.plhec[0]=0.8;//(22)plow-cut for earth calibration
   TOFCAFFKEY.plhec[1]=20.;  //(23)phigh-cut ...................
   TOFCAFFKEY.bgcut[0]=2.; //(24) beta*gamma low-cut to be in mip-region(abs.calib)
-  TOFCAFFKEY.bgcut[1]=10.;//(25) beta*gamma high-cut ...
+  TOFCAFFKEY.bgcut[1]=50.;//(25) beta*gamma high-cut ...
 //
   TOFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TOFCAFFKEY.dynflg=1; // (27) 0/1-> use stand/special(Contin's) dynode-calibration
   TOFCAFFKEY.cfvers=1; // (28) 1-99 -> vers.number for tofverlistNN.dat file
   TOFCAFFKEY.cafdir=0;// (29) 0/1-> use official/private directory for calibr.files
   TOFCAFFKEY.mcainc=0;// (30) 0/1-> off/on A-integr. calibration in MC
-  TOFCAFFKEY.tofbetac=0.8;// (31) if nonzero->low beta cut (own TOF measurements !!!)
+  TOFCAFFKEY.tofbetac=0.6;// (31) if nonzero->low beta cut (own TOF measurements !!!)
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================

@@ -1157,7 +1157,7 @@ if(!LVL3FFKEY.Accept || (ptr1 && ptr && ptr->LVL3OK())){
 }  
   AMSgObj::BookTimer.stop("RETKEVENT");
 }
-
+//----------------------------------------------------------
 void AMSEvent::_reantievent(){
   integer trflag(0);
   TriggerLVL1 *ptr;
@@ -1175,8 +1175,8 @@ void AMSEvent::_reantievent(){
     ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
-//      AMSgObj::BookTimer.stop("REANTIEVENT");
-//      return;// "no h/w TOF-trigger"  tempor commented
+      AMSgObj::BookTimer.stop("REANTIEVENT");
+      return;// "no h/w TOF-trigger"  tempor commented
     }
     ANTIJobStat::addre(1);
 //
@@ -1216,8 +1216,8 @@ TriggerLVL1 *ptr;
     ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
-//      AMSgObj::BookTimer.stop("RETOFEVENT");
-//      return;// "no h/w TOF-trigger"   tempor commented
+      AMSgObj::BookTimer.stop("RETOFEVENT");
+      return;// "no h/w TOF-trigger"   tempor commented
     }
     TOFJobStat::addre(1);
 //
@@ -1282,8 +1282,8 @@ void AMSEvent::_rectcevent(){
   ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
   if(ptr)trflag=ptr->gettoflg();
   if(trflag<=0){
-//    AMSgObj::BookTimer.stop("RECTCEVENT");
-//    return;// "no h/w TOF-trigger"          // tempor commented
+    AMSgObj::BookTimer.stop("RECTCEVENT");
+    return;// "no h/w TOF-trigger"          // tempor commented
   }
 //
   CTCJobStat::addre(1);
@@ -1420,6 +1420,7 @@ void AMSEvent:: _sitkevent(){
 #endif
 }
 
+//----------------------------------------------------------------
 void AMSEvent:: _siantievent(){
   int stat;
   AMSgObj::BookTimer.start("SIANTIEVENT");

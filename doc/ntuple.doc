@@ -106,20 +106,24 @@ Below there is a description of a  ntuple.
 
 
 * I*4  * [0,20]       * TOFCLUST * ntof                // TOF clusters number
-* I*4  *              * TOFCLUST * TOFStatus(ntof)  // Status: 0->ok 
+* I*4  *              * TOFCLUST * TOFStatus(ntof)  // Status: 
                                                     // bit 4 - ambig
+                                                    // bit 128 -> problems with history
                                                     // bit 256 -> "1-sided" counter
                                                     // bit 512 -> bad t-measurement
                                                     //            on one of the sides
-                                                    // bit 128 -> problems with history
+                                                    // bit 2048 -> recovered from 1-sided
+                                                    //             (bit256 also set)
 * I*4  *              * TOFCLUST * plane(ntof)         // Tof counter no
                                                        //1..4 up..down
 * I*4  *              * TOFCLUST * bar(ntof)           //  TOF bar no
-* R*4  *              * TOFCLUST * TOFEdep(ntof)      // TOF energy dep (MeV)
+* R*4  *              * TOFCLUST * TOFEdep(ntof)      // TOF energy loss(MeV) from Anode
+* R*4  *              * TOFCLUST * TOFEdepd(ntof)     // TOF energy loss(MeV) from Dynode
 * R*4  *              * TOFCLUST * TOFTime(ntof)      // TOF time (sec)
 * R*4  *              * TOFCLUST * TOFETime(ntof)     // Error in TOF time
 * R*4  *              * TOFCLUST * TOFCoo(3,ntof)     // TOF Coo (cm)
 * R*4  *              * TOFCLUST * TOFErCoo(3,ntof)   //
+* I*4  *              * TOFCLUST * nmemb(ntof)        // Number of bars in cluster 
 
 
 * I*4  * [0,200]      * TOFMCCLU * ntofmc            // TOF MC hits number

@@ -193,9 +193,9 @@ void AMSAntiRawEvent::mc_build(int &stat){
   for(i=0;i<MAXANTI;i++){
     up=esignal[0][i];
     down=esignal[1][i];
-    antisccal[i].getstat(sta);
+    antisccal[i].getstat(sta);// =0/1-> alive/dead
     antisccal[i].gettthr(thresh);
-    if((up>thresh[1] || sta[0]>0) && (down>thresh[0] || sta[1]>0)){// require AND of both ends
+    if((up>thresh[1] && sta[0]==0) || (down>thresh[0] && sta[1]==0)){// require OR of both ends
       sbt=lsbit<<i;
       trpatt|=sbt;
     }
@@ -393,7 +393,7 @@ void AMSAntiRawCluster::siantidigi(){
     downam=counter[1][i];
     antisccal[i].getstat(sta);
     antisccal[i].gettthr(thresh);
-    if((upam>thresh[1] || sta[0]>0) && (downam>thresh[0] || sta[1]>0)){// require AND of both ends
+    if((upam>thresh[1] && sta[0]==0) || (downam>thresh[0] && sta[1]==0)){// require OR of both ends
       sbt=lsbit<<i;
       trpatt|=sbt;
     }

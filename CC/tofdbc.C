@@ -785,7 +785,8 @@ geant TOFBrcal::ama2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
   number q(0),qt(0);
   for(int isd=0;isd<2;isd++){
     if(status[isd]>=0){
-      q2t2q(1,isd,0,amf[isd],q);
+      if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)q2t2qmc(1,isd,0,amf[isd],q);
+      else q2t2q(1,isd,0,amf[isd],q);
       qt+=(q/gaina[isd]);// Qa->Qa_gain_corrected
     }
   }
@@ -797,11 +798,14 @@ void TOFBrcal::ama2q(number amf[2], number qs[2]){// side A-Tovt's(ns) -> Q(pC)
 //                                                 to use in calibr. program 
   for(int isd=0;isd<2;isd++){
     qs[isd]=0.;
-    if(status[isd]>=0)q2t2q(1,isd,0,amf[isd],qs[isd]);
+    if(status[isd]>=0){
+      if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)q2t2qmc(1,isd,0,amf[isd],qs[isd]);
+      else q2t2q(1,isd,0,amf[isd],qs[isd]);
+    }
   }
 }
 //------
-void TOFBrcal::q2t2q(int cof, int sdf, int adf, number &tovt, number &q){  
+void TOFBrcal::q2t2qmc(int cof, int sdf, int adf, number &tovt, number &q){  
 // Q(pC) <-> Tovt(ns) to use in sim./rec. programs (cof=0/1-> Q->Tovt/Tovt->Q)
 //                                                 (sdf=0/1-> bar side 1/2   )
 //                                                 (adf=0/1-> for anode/dinode)
@@ -812,9 +816,6 @@ void TOFBrcal::q2t2q(int cof, int sdf, int adf, number &tovt, number &q){
     qoffs=aipar[sdf][2];
   }
   else{
-//    shft=dipar[sdf][0];//tempor (to accept tempor.parametrization for dynode) 
-//    qthr=exp(dipar[sdf][1]/shft);
-//    qoffs=dipar[sdf][2];
     shft=aipar[sdf][0];//anode param.needed for dynode reco
     qthr=exp(aipar[sdf][1]/shft);
     qoffs=aipar[sdf][2];
@@ -835,13 +836,51 @@ void TOFBrcal::q2t2q(int cof, int sdf, int adf, number &tovt, number &q){
   }
 }
 //------
+void TOFBrcal::q2t2q(int cof, int sdf, int adf, number &tovt, number &q){  
+// Q(pC) <-> Tovt(ns) to use in sim./rec. programs (cof=0/1-> Q->Tovt/Tovt->Q)
+//                                                 (sdf=0/1-> bar side 1/2   )
+//                                                 (adf=0/1-> for anode/dinode)
+  number p1,p2,p3,dt,ddt;
+  if(adf==0){
+    p1=aipar[sdf][0];//anode param.
+    p2=aipar[sdf][1];
+    p3=aipar[sdf][2];
+  }
+  else{
+    p1=dipar[sdf][0];//dynode param.
+    p2=dipar[sdf][1];
+    p3=dipar[sdf][2];
+  }
+// 
+  if(cof==0){ // q->tovt
+    if(q>0.)tovt=p1+p2*log(q)+p3*log(q)*log(q);
+    if(tovt<0.)tovt=0.;
+  }
+  else{       // tovt->q
+    if(adf==0){//       for anode
+      ddt=(tovt-p1)/p2;
+      if(ddt>10.)ddt=10.;
+      q=exp(ddt);
+    }
+    else{//             for dynode
+      q=0.;
+      dt=p2*p2-4.*p3*(p1-tovt);
+      if(dt>0.){
+        ddt=-0.5*(p2-sqrt(dt))/p3;
+        if(ddt>10.)ddt=10.;
+        q=exp(ddt);
+      }
+    }
+  }
+}
+//------
 geant TOFBrcal::amd2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
   number q(0),qt(0);
   for(int isd=0;isd<2;isd++){
     if(status[isd]>=0){
-      q2t2q(1,isd,1,amf[isd],q);
-//      qt+=(q*an2dir[isd]/gaind[isd]);// Qd->Qd_gain_corrected
-      qt+=(q/gaind[isd]);// (for new Dynode integ.parametrization don't need an2dir !!!) 
+      if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)q2t2qmc(1,isd,1,amf[isd],q);
+      else q2t2q(1,isd,1,amf[isd],q);
+      qt+=(q/gaind[isd]); 
     }
   }
   qt=qt/mip2q; // Q(pC)->Mev
@@ -853,7 +892,10 @@ void TOFBrcal::amd2q(number amf[2], number qs[2]){// side A-Tovt's(ns) -> Q(pC)
   number q,qt(0);
   for(int isd=0;isd<2;isd++){
     qs[isd]=0.;
-    if(status[isd]>=0)q2t2q(1,isd,1,amf[isd],qs[isd]);
+    if(status[isd]>=0){
+      if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)q2t2qmc(1,isd,1,amf[isd],qs[isd]);
+      else q2t2q(1,isd,1,amf[isd],qs[isd]);
+    }
   }
 }
 //-----
@@ -880,8 +922,8 @@ geant TOFBrcal::tm2t(number tmf[2], number amf[2]){//(2-sides_times/Tovt)->Time 
   shft=TOFDBc::shftim();
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
-      q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-//      uv+=slops[isd]/qs;// summing slops/Q
+      if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)q2t2qmc(1,isd,0,amf[isd],qs);// TovT->Q
+      else q2t2q(1,isd,0,amf[isd],qs);
       uv+=slops[isd]/sqrt(qs);// summing slops/sqrt(Q), works sl.better
     }
   }
@@ -896,8 +938,8 @@ void TOFBrcal::tmd2p(number tmf[2], number amf[2],
   shft=TOFDBc::shftim();
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
-      q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-//      uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q
+      if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)q2t2qmc(1,isd,0,amf[isd],qs);// TovT->Q
+      else q2t2q(1,isd,0,amf[isd],qs);
       uv+=(1-2*isd)*slops[isd]/sqrt(qs);// subtr slops/sqrt(Q)
     }
   }
@@ -915,8 +957,8 @@ void TOFBrcal::td2ctd(number tdo, number amf[2],
   shft=TOFDBc::shftim();
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
-      q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-//      uv+=(1-2*isd)*slops[isd]/qs;// subtr slops/Q
+      if(AMSJob::gethead()->isMCData() || TOFRECFFKEY.relogic[3]==1)q2t2qmc(1,isd,0,amf[isd],qs);// TovT->Q
+      else q2t2q(1,isd,0,amf[isd],qs);
       uv+=(1-2*isd)*slops[isd]/sqrt(qs);// subtr slops/sqrt(Q)
     }
   }
@@ -1372,8 +1414,8 @@ void TOFJobStat::bookhist(){
     HBOOK1(1109,"True dynode hit position(0=nomatch,1=last in time)",16,0.,16.,0.);
     HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
     HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
-    HBOOK1(1103,"Time_history: TovT(ns)",80,0.,80.,0.);
-    HBOOK1(1104,"Anode TovT: TovT(ns)",80,0.,640.,0.);
+    HBOOK1(1103,"Time_history: TovT(ns)",80,0.,120.,0.);
+    HBOOK1(1104,"Anode TovT: TovT(ns)",80,0.,1200.,0.);
     HBOOK1(1110,"RawClusterLevel:Total fired layers per event",5,0.,5.,0.);
     HBOOK1(1111,"RawClusterLevel:Layer appearence frequency",4,0.5,4.5,0.);
     HBOOK1(1112,"RawClusterLevel:Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
@@ -1389,10 +1431,10 @@ void TOFJobStat::bookhist(){
     HBOOK1(1097,"Coord. diff",50,-15.,15.,0.);
     HBOOK1(1098,"Edep. diff",50,-5.,5.,0.);
     if(TOFRECFFKEY.reprtf[2]>1){
-      HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,16.,0.);
-      HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,80.,0.);
-      HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,16.,0.);
-      HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,80.,0.);
+      HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
+      HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
+      HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
+      HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
       for(il=0;il<SCLRS;il++){
         for(ib=0;ib<SCMXBR;ib++){
     	  strcpy(htit1,"dE/dX (norm.inc) for bar(LBB) ");
@@ -1462,12 +1504,12 @@ void TOFJobStat::bookhist(){
     HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",80,-4.,4.,0.);
     HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
     HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
-    HBOOK1(1537,"L=1,TOF Eclust(mev)",80,0.,240.,0.);
-    HBOOK1(1538,"L=3,TOF Eclust(mev)",80,0.,240.,0.);
+    HBOOK1(1537,"L=1,TOF D-Eclust(mev)",80,0.,240.,0.);
+    HBOOK1(1538,"L=3,TOF D-Eclust(mev)",80,0.,240.,0.);
     HBOOK1(1539,"L=2,TOF Eclust(mev)",80,0.,24.,0.);
     HBOOK1(1540,"L=4,TOF Eclust(mev)",80,0.,24.,0.);
-    HBOOK1(1541,"L=2,TOF Eclust(mev)",80,0.,240.,0.);
-    HBOOK1(1542,"L=4,TOF Eclust(mev)",80,0.,240.,0.);
+    HBOOK1(1541,"L=2,TOF D-Eclust(mev)",80,0.,240.,0.);
+    HBOOK1(1542,"L=4,TOF D-Eclust(mev)",80,0.,240.,0.);
     if(TOFRECFFKEY.relogic[0]==1){ // STRR-calibration
       HBOOK1(1200,"Stretcher-ratio for indiv. channel,bin.meth",80,35.,55.,0.);
       HBOOK1(1201,"Offsets for indiv. channels,bin.meth",80,-100.,2300.,0.);
