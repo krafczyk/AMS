@@ -1,5 +1,6 @@
 #include "AMSNtupleV.h"
-
+#include "TCONE.h"
+#include "TNode.h"
 char * AMSNtupleV::GetObjInfo(int px, int py){
 static char* info=0;
 int dist=99999;
@@ -222,7 +223,7 @@ if(type==kall || type==kusedonly || type==krichhits){
  fRichHitV.clear();
  if(gAMSDisplay->DrawObject(krichhits)){
   for(int i=0;i<NRichHit();i++){
-   if(!gAMSDisplay->DrawUsedOnly() || ((pRichHit(i)->Status)/32)%2)fRichHitV.push_back( RichHitV(this,i));
+   if(!gAMSDisplay->DrawUsedOnly() || (pRichHit(i)->Status)%1024)fRichHitV.push_back( RichHitV(this,i));
   }
  }
 }
@@ -415,17 +416,44 @@ RichRingV::RichRingV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
 
 for(int i=0;i<ev->nParticle();i++){
  if( ev->pParticle(i)->iRichRing() == ref){
+           TNode *obj=gAMSDisplay->GetGeometry()->GetNode("OMIR1");
+           TCONE * pcone= (TCONE*)obj->GetShape();
+           double r1=pcone->GetRmin2();
+           double r2=pcone->GetRmin();
+           double dz=pcone->GetDz();      
+           double xc=obj->GetX();
+           double yc=obj->GetY();
+           double zc=obj->GetZ();
+           double tc=(r1-r2)/2/dz;
+           obj=gAMSDisplay->GetGeometry()->GetNode("RICH1");
+           zc+=obj->GetZ();
+           double  z2=zc-dz;
+           
   const int npoint=360/5;
   float array[3*npoint];
   const double n_aero=1.02998;
-  const double n_naf=1.33;
+//  const double n_naf=1.68;
+  const double n_naf=1.336;
   double refi;
-  if(fabs(ev->pParticle(i)->RichCoo[0][0])<11.3/2 && fabs(ev->pParticle(i)->RichCoo[0][1])<11.3/2)refi=n_naf;
-  else refi=n_aero;
+   double rad_posz;
+  if(fabs(ev->pParticle(i)->RichCoo[0][0])<11.3*3/2 && fabs(ev->pParticle(i)->RichCoo[0][1])<11.3*3/2){
+    refi=n_naf;
+    rad_posz=-2.75;
+  }
+  else {
+   refi=n_aero;
+   rad_posz=-1.5;
+  }
   double    cc=1./ev->pRichRing(ref)->Beta/refi;
+   //cout <<" refi "<<refi<<" "<<cc<<" "<<ev->pParticle(i)->RichCoo[0][0]<<" "<<ev->pParticle(i)->RichCoo[0][1]<<" "<<ev->pParticle(i)->RichCoo[0][2]<<" "<<ev->pParticle(i)->RichCoo[1][2]<<" "<<ev->pRichRing(ref)->UsedM<<endl;
   if(cc<1){
    double theta=acos(cc);
     TVector3 z(ev->pParticle(i)->RichCoo[1][0]-ev->pParticle(i)->RichCoo[0][0],ev->pParticle(i)->RichCoo[1][1]-ev->pParticle(i)->RichCoo[0][1],ev->pParticle(i)->RichCoo[1][2]-ev->pParticle(i)->RichCoo[0][2]);
+    double rcoo[3];
+    rcoo[0]=ev->pParticle(i)->RichCoo[0][0]+z.X()/z.Z()*rad_posz;
+    rcoo[1]=ev->pParticle(i)->RichCoo[0][1]+z.Y()/z.Z()*rad_posz;
+    rcoo[2]=ev->pParticle(i)->RichCoo[0][2]+rad_posz;
+//    cout << rcoo[2]<<endl;
     TRotation r;
     r.SetZAxis(z);
    for( int k=0;k<npoint;k++){
@@ -435,10 +463,31 @@ for(int i=0;i<ev->nParticle();i++){
     double w=cos(theta);
     TVector3 ray(u,v,w);
     ray.Transform(r);
-    array[k*3+0]=ev->pParticle(i)->RichCoo[0][0]+ray.X()/ray.Z()*(ev->pParticle(i)->RichCoo[1][2]-ev->pParticle(i)->RichCoo[0][2]+3.2);
-    array[k*3+1]=ev->pParticle(i)->RichCoo[0][1]+ray.Y()/ray.Z()*(ev->pParticle(i)->RichCoo[1][2]-ev->pParticle(i)->RichCoo[0][2]+3.2);
+    array[k*3+0]=rcoo[0]+ray.X()/ray.Z()*(ev->pParticle(i)->RichCoo[1][2]-rcoo[2]+3.2);
+    array[k*3+1]=rcoo[1]+ray.Y()/ray.Z()*(ev->pParticle(i)->RichCoo[1][2]-rcoo[2]+3.2);
     array[k*3+2]=ev->pParticle(i)->RichCoo[1][2]+3.2;
-//    cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<endl;
+    double rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
+    double rc=sqrt(xc*xc+yc*yc)+r2+(array[k*3+2]-z2)*tc;
+    if(rp>rc){
+      //cout <<"  mirror found "<<k<<" "<<rp<<" "<<rc<<" "<<array[k*3+2]<<" "<<ev->pRichRing(ref)->UsedM<<endl;
+      double R1=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
+      double zi=(R1-rcoo[2]*tan(ray.Theta())-r2+z2*tc)/(tc-tan(ray.Theta()));
+      //cout <<" zi "<<zi<<endl;
+     // get norm vector to cone
+     double cw=sin(atan(tc));
+     double phin=atan2(rcoo[1]+ray.Y()/ray.Z()*(zi-rcoo[2]),rcoo[0]+ray.X()/ray.Z()*(zi-rcoo[2]));
+     double cu=cos(atan(tc))*cos(phin);
+     double cv=cos(atan(tc))*sin(phin);
+     //  reflect
+     double cc=ray.X()*cu+ray.Y()*cv+ray.Z()*cw;
+     double ru=ray.X()-2*cc*cu;
+     double rv=ray.Y()-2*cc*cv;
+     double rw=ray.Z()-2*cc*cw;
+    array[k*3+0]=rcoo[0]+ray.X()/ray.Z()*(zi-rcoo[2])+ru/rw*(ev->pParticle(i)->RichCoo[1][2]+3.2-zi);
+    array[k*3+1]=rcoo[1]+ray.Y()/ray.Z()*(zi-rcoo[2])+rv/rw*(ev->pParticle(i)->RichCoo[1][2]+3.2-zi);
+
+    //cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
+    }
    }   
    SetPolyLine(npoint,array);
    SetLineColor(6);

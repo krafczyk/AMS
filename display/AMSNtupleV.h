@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.3 2003/07/09 14:56:34 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.4 2003/07/10 13:56:57 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -107,7 +107,8 @@ if(pcl){
   SetPosition(pcl->Coo[0],pcl->Coo[1],pcl->Coo[2]);
 
   float ercoo[3];
-  ercoo[pcl->Direction]=pcl->ClSizeZ*0.9;
+//  ercoo[pcl->Direction]=pcl->ClSizeZ*0.9;
+  ercoo[pcl->Direction]=pcl->ClSizeR*3;
   ercoo[1-pcl->Direction]=pcl->ClSizeR*pcl->Multip;
   ercoo[2]=sqrt(pcl->EDep/2);
   SetSize(ercoo[0],ercoo[1],ercoo[2]);
@@ -160,7 +161,7 @@ if(pcl){
   float error[3];
   error[0]=error[1]=0.85/2*size;  //tmp
   error[2]=sqrt(pcl->Npe);
-  SetPosition(pcl->Coo[0],pcl->Coo[1],pcl->Coo[2]+error[2]/2);
+  SetPosition(pcl->Coo[0],pcl->Coo[1],pcl->Coo[2]+error[2]);
   SetSize(error[0],error[1],error[2]);
 //  cout <<"  rich hit "<<pcl->Coo[0]<<" "<<pcl->Coo[1]<<" "<<pcl->Coo[2]<<endl;
 //  cout <<error[0]<<" "<<error[1]<<" "<<error[2]<<" "<<endl;

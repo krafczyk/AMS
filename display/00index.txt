@@ -73,7 +73,12 @@ Dynamic  program allows user to load/run his/her own selection program via AMSNt
 the desired selection then click on "Load UF" button.
 Please note the amsedc should be relinked in case opsys is not rh7.3  
 
+3a.  Zooming may be done:
 
+1. by mouse drag if radiobutton "zoom" is selected 
+2. by choosing appropriate "focus" and/or the using "Zoom" ruler. 
+ In this case zooming is done by using the "window" techinique 
+ so all the pad may be seen using the hor/ver scroll bars. 
 
 -------------------------------------------------------------------------
 4. Future Plan for the program
@@ -84,11 +89,10 @@ my list:
 
 
 1.    Move to new TGeoManager instead of TGeometry
-2.    Draw Rich Rings
-3.    Add some more objects (by user req)
-4.    Add Zooming by mouse   
+2.    Add some more objects (by user req)
 
-
+5. Known bags
+   RichRings with NaF are not properly drawn. Under investigation
 
 
 5. Relevant files

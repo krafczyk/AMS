@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.10 2003/07/09 14:56:34 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.11 2003/07/10 13:56:57 choutko Exp $
 #ifndef AMSDisplay_H
 #define AMSDisplay_H
 
@@ -50,6 +50,7 @@ private:
    AMSNtupleV *          m_ntuple;   
    EAMSR_View            m_PrevView;		     //prevview
    EAMSR_View            m_View;		     //view
+   bool                  m_zoom;
    bool m_idle;                              // idleing
    TApplication *m_theapp;                   //  application
    TGeometry          *m_Geometry;	     //Pointer to the geometry
@@ -94,6 +95,7 @@ public:
                bool DrawGeometry()const {return d_geometry;}
                bool DrawUsedOnly()const {return d_usedonly;}
                bool DrawObject(EAMSType type)const;
+               TGeometry * GetGeometry()const {return m_Geometry;}
                void SetFocus(int selected);
                        double & CooDefMin(int i){return fCooDef[0][i];}
                        double & CooDefMax(int i){return fCooDef[1][i];}
@@ -125,7 +127,7 @@ public:
            void        AddParticleInfo(char *obj=0);
     void        ExecuteEvent(Int_t event, Int_t px, Int_t py);
     Bool_t      GotoRunEvent(); //*MENU*
-   Bool_t              Zoom();            
+   Bool_t    &          Zoom(){return m_zoom;}            
    TPad               *Pad() {return m_Pad;}
    TCanvas  *GetCanvas() { return m_Canvas; }
    TPad               *GetObjInfoPad() { return m_ObjInfoPad; }

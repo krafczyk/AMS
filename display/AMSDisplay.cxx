@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.21 2003/07/09 14:56:33 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.22 2003/07/10 13:56:57 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSDisplay                                                           //
@@ -29,7 +29,7 @@
 #include "TLatex.h"
 #include <dlfcn.h>
 #include "AMSNtupleV.h"
-
+#include "TAxis3D.h"
 
 AMSDisplay *gAMSDisplay;
 
@@ -54,6 +54,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV *ntuple):m
    m_Theta = 90;
    m_Phi   = -90;
    m_View = kTwoView;
+   m_zoom=false;
    m_PrevView=kNoView;
    m_DrawParticles = kTRUE;
    m_DrawGeometry  = kTRUE;
@@ -384,13 +385,13 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
 //    Draw a view of AMS
 
    static TPaveText * angle=0;
-   
+   m_Theta=theta;
+   m_Phi=phi; 
    gPad->SetFillColor(10);	//white for easy printing
    TView *view=gPad->GetView();
    if(  m_PrevView!=m_View){
     m_geosetter->UpdateGeometry(m_View);
     gPad->Clear();
-
     // add itself to the list
    m_ntuple->Draw();
    AppendPad();
@@ -398,10 +399,17 @@ void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
    // add the geomtry to the pad
     if(DrawGeometry())m_Geometry->Draw("same");
     view->SetRange(fCooCur[0][0], fCooCur[0][1],fCooCur[0][2],fCooCur[1][0],fCooCur[1][1],fCooCur[1][2]);
-
-
+     if(m_zoom){
+      TAxis3D *axis=TAxis3D::ToggleZoom(gPad);
+     if(axis){
+        axis->SetNdivisions(0);
+        axis->SetAxisColor(0);
+     } 
    }
-   else m_ntuple->Draw();
+   }
+   else {
+    m_ntuple->Draw();
+   }
      Int_t iret;
      if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
    if( m_PrevView!=m_View){
@@ -440,8 +448,14 @@ void AMSDisplay::DrawViewX3D()
 void AMSDisplay::ExecuteEvent(Int_t event, Int_t px, Int_t py){
 //*-*-*-*-*-*-*-*-*-*-*Execute action corresponding to one event*-*-*-*
 //*-*                  =========================================
-
    if (gPad->GetView()) {
+       if(m_zoom){
+         TAxis3D *axis=TAxis3D::GetPadAxis();
+         if(axis){
+           axis->ExecuteEvent(event,px,py);
+           return;
+         }
+       }
        gPad->GetView()->ExecuteRotateView(event, px, py);
       if (event == kButton1Up) {
         for(int i=0;i<4;i++){
@@ -521,8 +535,6 @@ Bool_t AMSDisplay::GotoRunEvent(){
    return retn;
 }
 
-Bool_t AMSDisplay::Zoom(){
-}
 
 void AMSDisplay::ShowNextEvent(Int_t delta){
 //  Display (current event_number+delta)
@@ -733,12 +745,12 @@ void AMSDisplay::SetFocus(int selected){
    fCooCur[1][2]=80; 
    break;
   case 3:   //Tracker
-   fCooCur[0][0]=-50; 
-   fCooCur[0][1]=-50; 
-   fCooCur[0][2]=-50; 
-   fCooCur[1][0]=50; 
-   fCooCur[1][1]=50; 
-   fCooCur[1][2]=50; 
+   fCooCur[0][0]=-45; 
+   fCooCur[0][1]=-45; 
+   fCooCur[0][2]=-45; 
+   fCooCur[1][0]=45; 
+   fCooCur[1][1]=45; 
+   fCooCur[1][2]=45; 
    break;
   case 4:   //TOF Bottom
    fCooCur[0][0]=-60; 
@@ -749,11 +761,11 @@ void AMSDisplay::SetFocus(int selected){
    fCooCur[1][2]=-60; 
    break;
   case 5:   //RICH
-   fCooCur[0][0]=-45; 
-   fCooCur[0][1]=-45; 
+   fCooCur[0][0]=-40; 
+   fCooCur[0][1]=-40; 
    fCooCur[0][2]=-130; 
-   fCooCur[1][0]=45; 
-   fCooCur[1][1]=45; 
+   fCooCur[1][0]=40; 
+   fCooCur[1][1]=40; 
    fCooCur[1][2]=-110; 
    break;
   case 6:   //ECAL

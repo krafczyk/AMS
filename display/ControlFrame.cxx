@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.2 2003/07/09 08:42:46 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.3 2003/07/10 13:56:57 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -97,6 +97,25 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
        }
       break;
      case kCM_RADIOBUTTON:
+      switch(parm1){
+        case 9001:
+         if(gAMSDisplay->Zoom()){
+           gAMSDisplay->Zoom()=false;
+           EAMSR_View mview=gAMSDisplay->GetView();
+           gAMSDisplay->ResetView();
+           gAMSDisplay->SetView(mview);          
+        }
+        break;
+        case 9002:
+         if(!gAMSDisplay->Zoom()){
+          gAMSDisplay->Zoom()=true;
+           EAMSR_View mview=gAMSDisplay->GetView();
+           gAMSDisplay->ResetView();
+           gAMSDisplay->SetView(mview);          
+         }
+        break;
+  
+      }
       break;
      case kCM_BUTTON:
       switch(parm1){

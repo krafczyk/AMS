@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.3 2003/07/09 14:56:34 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.4 2003/07/10 13:56:57 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -13,7 +13,7 @@
 #include <iostream.h>
 #include "AMSR_GeometrySetter.h"
 #include "TList.h"
-
+#include "TCONE.h"
 
 
 
@@ -132,7 +132,7 @@ void    AMSR_GeometrySetter::recur(TObjLink *lnk, char *exclude, bool what){
           if(off)obj->SetVisibility(what);
           if(obj->GetListOfNodes())recur(obj->GetListOfNodes()->FirstLink(),exclude,what); 
           lnk = lnk->Next();                                 
-         }  
+         } 
 }
 
 //_____________________________________________________________________________
@@ -202,9 +202,11 @@ void AMSR_GeometrySetter::UpdateGeometry(EAMSR_View mview){
           recur(lnk,"ST");          
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"RAD");          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"FOA");          
   }
   else{
-          TNode *first=(TNode*)m_Geometry->GetListOfNodes()->First();
+         TNode *first=(TNode*)m_Geometry->GetListOfNodes()->First();
           TObjLink *lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"T",true);          
           lnk = first->GetListOfNodes()->FirstLink();
@@ -215,6 +217,8 @@ void AMSR_GeometrySetter::UpdateGeometry(EAMSR_View mview){
           recur(lnk,"ST",true);          
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"RAD",true);          
+          lnk = first->GetListOfNodes()->FirstLink();
+          recur(lnk,"FOA",true);          
           lnk = first->GetListOfNodes()->FirstLink();
           recur(lnk,"TRDT");          
           lnk = first->GetListOfNodes()->FirstLink();
