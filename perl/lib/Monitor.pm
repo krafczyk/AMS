@@ -374,3 +374,217 @@ sub getdbok{
 
     return @output;
 }
+
+sub getactivehosts{
+    my @output=();
+    my @text=();
+    my @final_text=();
+     my $total_cpu=0;
+     my $total_ev=0;
+    my $i;
+    for $i (0 ... $#{$Monitor::Singleton->{ahlp}}){
+     $#text=-1;
+     my $hash=$Monitor::Singleton->{ahlp}[$i];
+     my $string=$hash->{HostName};
+    push @text, $string;
+    push @text, int $hash->{ClientsRunning};           
+    push @text, int $hash->{ClientsAllowed};           
+    push @text, int $hash->{ClientsFailed};           
+     my $ntp=0;
+     my $evtag=0;
+     my @dummy=split '\.', $string;
+     my $host=$dummy[0];
+     for my $j (0 ... $#{$Monitor::Singleton->{dsts}}){
+     my $hdst=$Monitor::Singleton->{dsts}[$j];
+      @dummy=split '\:', $hdst->{Name};
+     my $chop=$dummy[0];
+      if ( $chop eq $host){
+          if( $hdst->{Type} eq "Ntuple"){
+              $ntp++;
+          }elsif( $hdst->{Type} eq "EventTag"){
+              $evtag++;
+          }
+      }       
+    }   
+     push @text, $ntp;
+     push @text, $evtag;
+     my $evt=0;
+     my $lastevt=0;
+     my $err=0;
+     my $cpu=0;
+     my $total=0;
+     for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
+       my $rdst=$Monitor::Singleton->{rtb}[$j];
+       $total+=$rdst->{LastEvent}+1-$rdst->{FirstEvent};
+       my $rdstc=$rdst->{cinfo};
+       if( $rdst->{Status} eq "Finished" or   $rdst->{Status} eq "Processing"){
+           if( $rdstc->{HostName} eq $host){
+               $evt+=$rdstc->{EventsProcessed};
+               $lastevt+=$rdstc->{LastEventProcessed}+1-$rdst->{FirstEvent};
+               $err+=$rdstc->{ErrorsFound};
+               $cpu+=$rdstc->{CPUTimeSpent};
+           }
+       }
+   }
+   push @text, $evt; 
+   push @text, int(1000*$lastevt/$total)/10.; 
+   push @text, $err; 
+     $total_cpu+=$cpu;
+     $total_ev+=$evt;
+   my $cpuper=int ($cpu*1000/($evt+1));
+   push @text, $cpuper/1000.;
+     push @text, $hash->{Status};
+    if( $hash->{Status} eq "LastClientFailed"){
+      push @text ,1;
+  }elsif( $hash->{Status} eq "NoResponse"){
+      push @text ,2;
+  }else{
+      push @text ,0;
+  }
+     if($i==0){
+         @final_text=@text;
+         $final_text[0]="Total";
+         $final_text[10]="";
+         $final_text[11]=0;
+     }
+     else{
+        for my $i (1 ...8){ 
+         $final_text[$i]+=$text[$i];
+        }
+     }
+    push @output, [@text];
+ }
+    my $total_pr=$final_text[1]==0?1:$final_text[1];
+   my $cpuper=int ($total_cpu*1000/($total_ev+1)/$total_pr);
+   $final_text[9]= $cpuper/1000.;
+    
+    push @output, [@final_text];
+
+
+    return @output;
+}
+sub getactiveclients{
+    shift;
+    my $producer=shift;
+    my @output=();
+    my @text=();
+    my $hash;
+    my $xmax;
+    if($producer eq "Producer"){
+        $xmax=$#{$Monitor::Singleton->{acl}};
+ }else{
+        $xmax=$#{$Monitor::Singleton->{asl}};
+ }
+    for my $i (0 ... $xmax){
+        $#text=-1;
+    if($producer eq "Producer"){
+        $hash=$Monitor::Singleton->{acl}[$i];
+ }else{
+        $hash=$Monitor::Singleton->{asl}[$i];
+ }
+        push @text, $hash->{id}->{uid};
+        push @text, $hash->{id}->{HostName};
+        push @text, $hash->{id}->{pid};
+        my $time=localtime($hash->{Start});
+        push @text, $time;
+        my $dt=time()-$hash->{LastUpdate};
+        my $dts=$dt." sec ago";
+#        $time=localtime($hash->{LastUpdate});
+        push @text, $dts;
+if ($producer eq "Producer"){
+        my $run=-1;
+     for my $j (0 ... $#{$Monitor::Singleton->{rtb}}){
+       my $rdst=$Monitor::Singleton->{rtb}[$j];
+       my $rdstc=$rdst->{cinfo};
+       if( $rdst->{Status} eq "Processing"){
+           if ($rdst->{cuid}==$hash->{id}->{uid}){
+               $run=$rdst->{Run};
+               last;
+           }
+       }
+   }
+        my $ntuple=" // ";
+        my $lastev=0;
+     for my $j (0 ... $#{$Monitor::Singleton->{dsts}}){
+       my $rdst=$Monitor::Singleton->{dsts}[$j];
+       if( $rdst->{Type} eq "Ntuple"){
+           if ($rdst->{Run}==$run){
+               if($rdst->{FirstEvent}>$lastev){
+                   $lastev=$rdst->{FirstEvent};
+                   $ntuple=$rdst->{Name};
+               }
+           }
+       }
+   }
+        push @text, $run;
+        my @dummy=split "//",$ntuple;
+        push @text, $dummy[1];
+    }
+
+        push @text, $hash->{Status};
+        if ($hash->{Status} eq "Registered" or $hash->{Status} eq "Active"){
+         push @text, 0;
+     }elsif( $hash->{Status} eq "TimeOut" or $hash->{Status} eq "Submitted"){
+         push @text, 1;
+     }else{
+         push @text, 2;
+     }
+    push @output, [@text];
+}
+    return @output;
+
+}
+
+
+sub getruns{
+    my @output=();
+    my @text=();
+    my @final_text=();
+     my $total_cpu=0;
+     my $total_ev=0;
+    my @sort=( "Failed","Processing", "Finished","ToBeRerun");
+    for my $j (0 ... $#sort){
+    for my $i (0 ... $#{$Monitor::Singleton->{rtb}}){
+     $#text=-1;
+     my $hash=$Monitor::Singleton->{rtb}[$i];
+     if ($hash->{Status} eq $sort[$j]){
+     my $ctime=localtime($hash->{TFEvent});
+     push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Priority},$hash->{History},$hash->{Status};
+     if ($hash->{Status} eq "Failed" and $hash->{History} eq "Failed"){
+         push @text, 2;
+     }elsif($hash->{History} eq "Failed"){
+         push @text, 1;
+     }else{
+         push @text, 0;
+     }
+     push @output, [@text];
+ }
+ }
+}
+    return @output;
+
+}
+
+sub getntuples{
+    my @output=();
+    my @text=();
+    my @final_text=();
+     my $total_cpu=0;
+     my $total_ev=0;
+    my @sort=("Failure","InProgress","Success");
+    for my $j (0 ... $#sort){
+    for my $i (0 ... $#{$Monitor::Singleton->{dsts}}){
+     $#text=-1;
+     my $hash=$Monitor::Singleton->{dsts}[$i];
+     if($hash->{Type} eq "Ntuple"){
+         if($hash->{Status} eq $sort[$j]){
+     my $ctime=localtime($hash->{Insert});
+     push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Name},$hash->{Status};
+     push @output, [@text];
+ }
+ }
+ }
+}
+    return @output;
+
+}

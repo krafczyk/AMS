@@ -9,6 +9,7 @@
 #include <job.h>
 #include<algorithm>
 #include <sys/statfs.h>
+#include <sys/timeb.h>
 AMSProducer * AMSProducer::_Head=0;
 AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)){
 DPS::Producer_var pnill=DPS::Producer::_nil();
@@ -98,6 +99,7 @@ UpdateARS();
     _cinfo.ErrorsFound=0;
     _cinfo.Status=DPS::Producer::Processing;
     _cinfo.CPUTimeSpent=0;
+    _cinfo.TimeSpent=0;
 
 
 
@@ -153,6 +155,10 @@ else{
     ntpath+=tmp;
     ntpath+="/";
     AMSJob::gethead()->SetNtuplePath((const char *)ntpath);
+    struct timeb  ft;
+    ftime(&ft);
+    _ST0=ft.time+ft.millitm/1000.;
+    if(_debug)cout <<"ST0 "<<_ST0<<endl;
     TIMEX(_T0);
     if(_debug)cout <<"T0 "<<_T0<<endl;
     IMessage(AMSClient::print(_reinfo," get reinfo "));
@@ -327,6 +333,12 @@ command+=DAQEvent::getfile();
 system(command);
 }
 _cinfo.Status= (res==DAQEvent::OK)?DPS::Producer::Finished: DPS::Producer::Failed;
+
+    struct timeb  ft;
+    ftime(&ft);
+    double st=ft.time+ft.millitm/1000.;
+_cinfo.TimeSpent=st-_ST0;
+
 TIMEX(_cinfo.CPUTimeSpent);
 _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
 UpdateARS();
@@ -354,11 +366,23 @@ if(_cinfo.Run == AMSEvent::gethead()->getrun()){
 if(!(AMSEvent::gethead()->HasNoCriticalErrors())){
   TIMEX(_cinfo.CPUTimeSpent);
   _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
+
+    struct timeb  ft;
+    ftime(&ft);
+    double st=ft.time+ft.millitm/1000.;
+    _cinfo.TimeSpent=st-_ST0;
+
   sendCurrentRunInfo();
 }
 else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 ){
   TIMEX(_cinfo.CPUTimeSpent);
   _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
+
+    struct timeb  ft;
+    ftime(&ft);
+    double st=ft.time+ft.millitm/1000.;
+    _cinfo.TimeSpent=st-_ST0;
+
   sendCurrentRunInfo();
 }
 }

@@ -132,6 +132,7 @@ module DPS{
       long LastEventProcessed;
       long ErrorsFound;
       float CPUTimeSpent;
+      float TimeSpent;
       RunStatus Status;
       string HostName;
     }; 

@@ -206,7 +206,7 @@ return _streambuffer;
 
 
 ostream & AMSClient::print(const DPS::Producer::CurrentInfo & a, ostream & o){
-return o<<" Host " <<a.HostName <<" EventsProcessed "<<a.EventsProcessed<<" LastEvent "<<a.LastEventProcessed<<" Errors "<<a.ErrorsFound<<" CPU "<<a.CPUTimeSpent<<" CPU/Event "<<a.CPUTimeSpent/(a.EventsProcessed+1)<<" Status "<<RS2string(a.Status);
+return o<<" Host " <<a.HostName <<" EventsProcessed "<<a.EventsProcessed<<" LastEvent "<<a.LastEventProcessed<<" Errors "<<a.ErrorsFound<<" CPU "<<a.CPUTimeSpent<<" Elapsed "<<a.TimeSpent<<" CPU/Event "<<a.CPUTimeSpent/(a.EventsProcessed+1)<<" Status "<<RS2string(a.Status);
 }
 
 char * AMSClient::CS2string(DPS::Client::ClientStatus a){

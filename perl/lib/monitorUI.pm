@@ -197,8 +197,10 @@ sub new{
 my %fields=(
             window=>undef,
             clist=>{
-               Producer=>undef,
-               Server=>undef,
+#               Producer_ActiveHosts=>undef,
+#               Producer_ActiveClients=>undef,
+#               Producer_Runs=>undef,
+#               Server=>undef,
                DiskUsage=>undef,
                },
                pixmap=>[],
@@ -206,6 +208,7 @@ my %fields=(
                pixmapb=>[],
                maskb=>[],
                notebookw=>undef,
+               statusbar=>undef,
                notebook=>[0,0,0],
                current_page=>undef,
             );
@@ -231,23 +234,66 @@ $self->{window}  = new Gtk::Widget    "Gtk::Window",
 
 
 my $vbox= new_child {$self->{window}} "Gtk::VBox" ;
+
+#my $menubar = new Gtk::MenuBar;
+#$vbox->pack_start($menubar, 0, 1, 0);
+#my $menu = new Gtk::Menu;    
+#my $menuitem=new Gtk::MenuItem("Update Status");
+#$menuitem->signal_connect('activate',\&Update);
+#$menu->append($menuitem);
+#$menuitem=new Gtk::MenuItem("Quit");
+#$menuitem->signal_connect('activate',sub{exit();});
+#$menu->append($menuitem);
+#
+#$menuitem = new Gtk::MenuItem("File");
+#$menuitem->set_submenu($menu);
+#$menubar->append($menuitem);
+#$menuitem = new Gtk::MenuItem("Help");
+#$menubar->append($menuitem);
+#
+#$menuitem = new Gtk::MenuItem("About");
+#$menubar->append($menuitem);
+
+my @item_factory_entries = (
+	["/_File",	undef,	0,	"<Branch>"],
+	["/File/tearoff1",	undef,	0,	"<Tearoff>"],
+	["/File/_Update Status",	"<alt>U",	1],
+	["/File/sep1",	undef,	0,	"<Separator>"],
+	{
+		'path' => "/File/_Quit", 
+		'accelerator' => "<alt>Q",	
+		'action' => 5,
+		'type' => '<Item>'
+	},
+      ["/_Help",	undef,	0,	"<Item>"],
+      ["/_About",	undef,	0,	"<Item>"],
+                        );
+
+		my $accel_group = new Gtk::AccelGroup;
+		my $item_factory = new Gtk::ItemFactory('Gtk::MenuBar', "<main>", $accel_group);
+		
+		$accel_group->attach($self->{window});
+		foreach (@item_factory_entries) {
+			$item_factory->create_item($_, \&item_factory_cb);
+		}
+$vbox->pack_start($item_factory->get_widget('<main>'), 0, 0, 0);
 my $hbox= new Gtk::HBox 1, 0;
 $vbox->pack_start($hbox,1,1,0);
-my $bquit =   new Gtk::Widget "Gtk::Button",
-  "GtkButton::label"              =>      "Quit",
-  "GtkObject::signal::clicked"     =>      sub{exit();},
-  "GtkWidget::visible"              =>      1;
-my $bupdate =   new Gtk::Widget "Gtk::Button",
-  "GtkButton::label"                =>      "Update Status",
-  "GtkObject::signal::clicked"      =>      \&Update,
-  "GtkWidget::visible"              =>      1;
-my $bedit =   new Gtk::Widget "Gtk::Button",
-  "GtkButton::label"                =>      "Edit",
-  "GtkObject::signal::clicked"      =>      \&Edit,
-  "GtkWidget::visible"              =>      1;
-$hbox->pack_start($bquit,1,1,0);
-$hbox->pack_start($bupdate,1,1,0);
-$hbox->pack_start($bedit,1,1,0);
+#my $bquit =   new Gtk::Widget "Gtk::Button",
+#  "GtkButton::label"              =>      "Quit",
+#  "GtkObject::signal::clicked"     =>      sub{exit();},
+#  "GtkWidget::visible"              =>      1;
+#my $bupdate =   new Gtk::Widget "Gtk::Button",
+#  "GtkButton::label"                =>      "Update Status",
+#  "GtkObject::signal::clicked"      =>      \&Update,
+#  "GtkWidget::visible"              =>      1;
+#my $bedit =   new Gtk::Widget "Gtk::Button",
+#  "GtkButton::label"                =>      "Edit",
+#  "GtkObject::signal::clicked"      =>      \&Edit,
+#  "GtkWidget::visible"              =>      1;
+#$hbox->pack_start($bquit,1,1,0);
+#$hbox->pack_start($bupdate,1,1,0);
+#$hbox->pack_start($bedit,1,1,0);
 
 		
 my $separator = new Gtk::HSeparator();
@@ -282,10 +328,16 @@ $self->{pixmapb}[2]=$book_closed;
 $self->{maskb}[2]=$book_closed_mask;
 
 
-
-
 $self->notebook_create_pages($notebook, 0, 2);
-		
+
+my $statusbar = new Gtk::Statusbar;
+$vbox->pack_end($statusbar, 1, 1, 0);
+$self->{statusbar}=$statusbar;
+if (not $Monitor::Singleton->{ok}){
+    $statusbar->push(1," Unable to Connect Servers");
+}else{
+    $statusbar->push(1," Connected to Servers");
+}		
 Gtk->timeout_add(60000,\&Update);
 return $mybless;
 }
@@ -354,55 +406,21 @@ sub notebook_create_pages {
 		$buffer
 	);
 	
-
-# 
-          my @titles;
 	for $i ( $start .. $end ) {
             if($i==0){
-                	@titles = (
-	    "Title 0",
-	    "Title 1",
-	    "Title 2",
-	    "Title 3",
-	    "Title 4",
-	    "Title 5",
-	    "Title 6"
-	);
-
                 $buffer="Producer";
               }elsif($i==1){
-	@titles = (
-	    "Title 0",
-	    "Title 1",
-	    "Title 2",
-	    "Title 3",
-	    "Title 4",
-	    "Title 5",
-	    "Title 6"
-	);
-
                   $buffer="Server";
               }elsif($i==2){
-	@titles = (
-	    "FileSystem",
-	    "Total (Mbytes)",
-	    "Free (Mbytes)",
-	    "% Free",
-	    "OK",
-	);
                  $buffer="DiskUsage";
               } 	
-                        $child = new Gtk::Frame( $buffer );
-                        $child->border_width( 10 );
-                        $box = new Gtk::VBox( 1, 0 );
-                        $box->border_width( 10 );
-                        my ($scr, $clist)=create_clist(@titles);
-                        $self->{clist}->{$buffer}=$clist;                          
-                        $box->add($scr);
-                        $child->add( $box );
-                        $child->show_all();
+
+# 
+            $child = new Gtk::VBox (1,0);
+#            my $child2 = new Gtk::VBox (1,0);
+#            $child->pack_start($child2,0,1,0);
+            $child->show_all();
                 my $Singleton=$monitorUI::Singleton;	
-                                              
 		$label_box = new Gtk::HBox 0, 0;
                 my $num=$Singleton->{notebook}[$i];
 		my $pixwid = new Gtk::Pixmap $Singleton->{pixmapb}[$num],  $Singleton->{maskb}[$num];
@@ -421,7 +439,111 @@ sub notebook_create_pages {
 		
 		
 		$notebook->append_page_menu($child, $label_box, $menu_box);
-            }
+
+          my (@titles,$policy_x,$policy_y);
+            if($i==0){
+                	@titles = (
+	    "HostName",
+	    "Running Pr",
+	    "Allowed Pr",
+	    "Failed Pr",
+	    " Ntuples",
+            "EventTags ",
+	    " Events ",
+	    "  % of Total",
+	    " Errors  ",
+	    " CPU/Event (sec)",
+	    " Efficiency",
+	    "Status ",
+	);
+
+        $policy_x="never";
+        $policy_y="never";
+                $buffer="Producer_ActiveHosts";
+                create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
+
+                        $#titles=-1;
+                	@titles = (
+	    "ID",
+	    "HostName",
+	    "Process ID",
+	    "Start Time",
+	    "LastUpdate Time",
+            "Run",
+            "Ntuple",
+            "Status",
+	);
+
+        $policy_x='automatic';
+        $policy_y='automatic';
+                $buffer="Producer_ActiveClients";
+                create_frame ($child,$self,$buffer,$policy_x,$policy_y,18,@titles);
+
+                        $#titles=-1;
+                	@titles = (
+	    "Run",
+	    "Time",
+	    "First Event",
+	    "Last Event",
+	    "Priority ",
+	    "History ",
+	    "Status ",
+	);
+
+        $policy_x='automatic';
+        $policy_y='automatic';
+                $buffer="Producer_Runs";
+                create_frame ($child,$self,$buffer,$policy_x,$policy_y,16,@titles);
+
+                        $#titles=-1;
+                	@titles = (
+	    "Run",
+	    "Time",
+	    "First Event",
+	    "Last Event",
+	    "Ntuple",
+	    "Status ",
+	);
+
+        $policy_x='automatic';
+        $policy_y='automatic';
+                $buffer="Producer_Ntuples";
+                create_frame ($child,$self,$buffer,$policy_x,$policy_y,16,@titles);
+
+              }elsif($i==1){
+
+                        $#titles=-1;
+                	@titles = (
+	    "ID",
+	    "HostName",
+	    "Process ID",
+	    "Start Time",
+	    "LastUpdate Time",
+            "Status",
+	);
+
+        $policy_x='automatic';
+        $policy_y='automatic';
+                $buffer="Server_ActiveClients";
+                create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
+              }elsif($i==2){
+	@titles = (
+	    "FileSystem",
+	    "Total (Mbytes)",
+	    "Free (Mbytes)",
+	    "% Free",
+	    "OK",
+	);
+        $policy_x='automatic';
+        $policy_y='automatic';
+                 $buffer="DiskUsage";
+              create_frame ($child,$self,$buffer,$policy_x,$policy_y,20,@titles);
+              } 	
+
+
+
+
+        }
         my $Singleton=$monitorUI::Singleton;	
             
      my($pixmap, $mask) =create_from_xpm_d Gtk::Gdk::Pixmap( $Singleton->{window}->window, undef,  @green_xpm );
@@ -439,25 +561,25 @@ sub notebook_create_pages {
 
 
 sub create_clist {
-	my (@titles, @text, $clist, $box1, $box2, $button, $separator);
+	my (@titles, @text, $clist, $box1, $box2, $button, $separator, $policy_x,$policy_y, $size);
 
-	@titles = @_;
+	( $policy_x, $policy_y,$size, @titles) = @_;
 
 	my $i;
 		my $scrolled_win = new Gtk::ScrolledWindow(undef, undef);
-		$scrolled_win->set_policy('never', 'never');
+		$scrolled_win->set_policy($policy_x, $policy_y);
 
 		$clist = new_with_titles Gtk::CList(@titles);
-		$clist->set_row_height(30);
+		$clist->set_row_height($size);
 
 #		$clist->signal_connect('select_row', \&select_clist);
 #		$clist->signal_connect('unselect_row', \&unselect_clist);      
 
 
 		$clist->set_selection_mode('browse');
-        for $i (0 ... 5){
+        for $i (0 ... $#titles){
 		$clist->set_column_justification($i, 'center');
-		$clist->set_column_min_width($i, 100);
+		$clist->set_column_min_width($i, 20);
 		$clist->set_column_auto_resize($i, 1);
             }
 		$clist->border_width(5);
@@ -468,16 +590,115 @@ sub create_clist {
 
 
 sub Update{
+    $monitorUI::Singleton->{statusbar}->push(1," Retreiving Server Information");
+    while (Gtk->events_pending()){
+           Gtk->main_iteration();
+       }
      my ($monitor, $ok)=Monitor::Update();
      if(not $ok){
+         $monitorUI::Singleton->{statusbar}->push(1," Unable to Update Servers");
          Warning();
          return;
+     }else{
+       $monitorUI::Singleton->{statusbar}->push(1," Connected to Servers");
      }
+
+{
+     my $clist=$monitorUI::Singleton->{clist}->{Producer_ActiveHosts};
+     $clist->freeze();   
+     $clist->clear();
+     my @output=$monitor->getactivehosts();     
+     my $i;
+     $monitorUI::Singleton->{notebook}[0]=0;
+     for $i (0 ... $#output){
+         my @text=@{$output[$i]};
+     $clist->append(@text);
+     $clist->set_pixtext($i, 10, $text[10], 5, $monitorUI::Singleton->{pixmap}[$text[11]], $monitorUI::Singleton->{mask}[$text[11]]);
+         if($text[11]>$monitorUI::Singleton->{notebook}[0]){
+             $monitorUI::Singleton->{notebook}[0]=$text[11];
+         }
+     }
+     $clist->thaw();
+
+}
+{
+     my $clist=$monitorUI::Singleton->{clist}->{Producer_ActiveClients};
+     $clist->freeze();   
+     $clist->clear();
+     my @output=$monitor->getactiveclients("Producer");     
+     my $i;
+     for $i (0 ... $#output){
+         my @text=@{$output[$i]};
+     $clist->append(@text);
+         my $pmc=$#text-1;
+     $clist->set_pixtext($i, $pmc, $text[$pmc], 5, $monitorUI::Singleton->{pixmap}[$text[$pmc+1]], $monitorUI::Singleton->{mask}[$text[$pmc+1]]);
+         if($text[$pmc+1]>$monitorUI::Singleton->{notebook}[0]){
+             $monitorUI::Singleton->{notebook}[0]=$text[$pmc+1];
+         }
+     }
+     $clist->thaw();
+
+}
+
+
+{
+     my $clist=$monitorUI::Singleton->{clist}->{Producer_Runs};
+     $clist->freeze();   
+     $clist->clear();
+     my @output=$monitor->getruns;
+     my $i;
+     for $i (0 ... $#output){
+         my @text=@{$output[$i]};
+     $clist->append(@text);
+         my $pmc=$#text-1;
+     $clist->set_pixtext($i, $pmc, $text[$pmc], 5, $monitorUI::Singleton->{pixmap}[$text[$pmc+1]], $monitorUI::Singleton->{mask}[$text[$pmc+1]]);
+     }
+     $clist->thaw();
+
+}
+
+{
+     my $clist=$monitorUI::Singleton->{clist}->{Producer_Ntuples};
+     $clist->freeze();   
+     $clist->clear();
+     my @output=$monitor->getntuples;
+     my $i;
+     for $i (0 ... $#output){
+         my @text=@{$output[$i]};
+     $clist->append(@text);
+     }
+     $clist->thaw();
+
+}
+
+
+{
+     my $clist=$monitorUI::Singleton->{clist}->{Server_ActiveClients};
+     $clist->freeze();   
+     $clist->clear();
+     my @output=$monitor->getactiveclients("Server");     
+     my $i;
+     $monitorUI::Singleton->{notebook}[1]=0;
+     for $i (0 ... $#output){
+         my @text=@{$output[$i]};
+     $clist->append(@text);
+         my $pmc=$#text-1;
+     $clist->set_pixtext($i, $pmc, $text[$pmc], 5, $monitorUI::Singleton->{pixmap}[$text[$pmc+1]], $monitorUI::Singleton->{mask}[$text[$pmc+1]]);
+         if($text[$pmc+1]>$monitorUI::Singleton->{notebook}[1]){
+             $monitorUI::Singleton->{notebook}[1]=$text[$pmc+1];
+         }
+     }
+     $clist->thaw();
+
+}
+
+{
      my $clist=$monitorUI::Singleton->{clist}->{DiskUsage};
      $clist->freeze();   
      $clist->clear();
      my @output=$monitor->getdbok();     
      my $i;
+     $monitorUI::Singleton->{notebook}[2]=0;
      for $i (0 ... $#output){
          my @text=@{$output[$i]};
      $clist->append(@text);
@@ -487,7 +708,11 @@ sub Update{
          }
      }
      $clist->thaw();
+
+}
+
      notebook_update_pages $monitorUI::Singleton->{notebookw}, 0, 2;
+    warn "herehere ";
 }
 
 sub Warning(){
@@ -525,4 +750,26 @@ my $window  =   new Gtk::Widget    "Gtk::Window",
                 $box->pack_start($button,0,1,0);
 #                Gtk->grab_add($window);
                 show_all $window;
+}
+
+sub item_factory_cb {
+	my ($widget, $action, @data) = @_;
+        if($action==5){
+            exit();
+        }elsif($action==1){
+          Update();
+        }
+}
+
+sub create_frame{
+    my ($boxa,$self,$buffer,$policy_x, $policy_y, $size,@titles )= @_;
+                        my $child = new Gtk::Frame( $buffer );
+                        $child->border_width( 10 );
+                        my $box = new Gtk::VBox( 1, 0 );
+                        $box->border_width( 10 );
+                        my ($scr, $clist)=create_clist($policy_x, $policy_y, $size,@titles);
+                        $self->{clist}->{$buffer}=$clist;                          
+                        $box->add($scr);
+                        $child->add( $box );
+		        $boxa->pack_start($child, 0,1,0);
 }

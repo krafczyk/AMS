@@ -748,7 +748,8 @@ for(ACLI li=_acl.begin();li!=_acl.end();++li){
  if((*li)->Status!=DPS::Client::Killed && (*li)->LastUpdate+_KillTimeOut<tt){
    ;
    if(PingServer(*li)){
-    (*li)->LastUpdate=tt;
+    _UpdateACT(cid,DPS::Client::Active);
+//    (*li)->LastUpdate=tt;
    }
    else{
     DPS::Client::ActiveClient_var acv=*li;

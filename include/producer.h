@@ -5,6 +5,7 @@
 #include <client.h>
 #include <node.h>
 #include <timeid.h>
+#include <sys/time.h>
 class AMSProducer: public AMSClient, public AMSNode{
 protected:
 
@@ -16,6 +17,7 @@ DPS::Producer::DST   _ntend;
 DPS::Producer::DST   _evtag;
 DPS::Producer::RunEvInfo_var   _reinfo;
 DPS::Producer::DSTInfo_var   _dstinfo;
+double _ST0;
 float _T0;
 void _init(){};
 public:
