@@ -55,7 +55,7 @@ Below there is a description of a  ntuple.
 * R*4  *              * BETA     * betachi2s(nbeta)  // chi2 of beta fit(space)
 * I*4  *              * BETA     * betantof(nbeta)   // number of tof planes
 * I*4  *              * BETA     * betaptof(4,nbeta) // pointers to tof planes
-* I*4  *              * BETA     * betatrp(nbeta)    // pointer to track
+* I*4  *              * BETA     * betaptr(nbeta)    // pointer to track
 
 
 

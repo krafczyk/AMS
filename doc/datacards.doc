@@ -395,7 +395,7 @@ I57  FastTracking(1)        // 0-1-2-3-4 faster-faster-faster-faster
 I58  WeakTracking(1)        // Make(1) do not make(0) weak clusters fitting
 I59  FalseXTracking(1)      // Make(1) do not make(0) 4y + 3x tracking
 R60  Chi2FalseX(10.)        // Max Chi2 for 3point combinations
-I61  ForceFalseTOFX(0)      // Force additional FalseTOFX track in each event
+I61  ForceFalseTOFX(1)      // Force additional FalseTOFX track in each event
 I62  FalseTOFXTracking(1)   // Try(1) or do not try(0) 4y + TOF tracking
                             // if anything else fails
 I63  TOFTracking(1)         // Filter out(1) or not(0) hits inconsistent with TOF
