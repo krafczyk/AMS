@@ -431,20 +431,20 @@ void AMSTrIdCalib::_hist(){
          cid.upd(m);
          if(cid.getcount()>1){
           int ch=cid.getchannel();
-          HF1(400000+1,_ADC[ch]-peds[ch],1.);
+          HF1(400000+1,_ADC[ch]-cid.getped(),1.);
           HF1(400010+1,_ADC[ch],1.);
-          HF1(400020+1,peds[ch],1.);
-          HF1(400000+2,_ADC2[ch]-sigmas[ch],1.);
+          HF1(400020+1,cid.getped(),1.);
+          HF1(400000+2,_ADC2[ch]-cid.getsig(),1.);
           HF1(400010+2,_ADC2[ch],1.);
-          HF1(400020+2,sigmas[ch],1.);
+          HF1(400020+2,cid.getsig(),1.);
           HF1(400000+3,_ADC2[ch]/sqrt(_Count[ch]),1.);
 
-          HF1(400000+(l+1)*100+1,_ADC[ch]-peds[ch],1.);
+          HF1(400000+(l+1)*100+1,_ADC[ch]-cid.getped(),1.);
           HF1(400010+(l+1)*100+1,_ADC[ch],1.);
-          HF1(400020+(l+1)*100+1,peds[ch],1.);
-          HF1(400000+(l+1)*100+2,_ADC2[ch]-sigmas[ch],1.);
+          HF1(400020+(l+1)*100+1,cid.getped(),1.);
+          HF1(400000+(l+1)*100+2,_ADC2[ch]-cid.getsig(),1.);
           HF1(400010+(l+1)*100+2,_ADC2[ch],1.);
-          HF1(400020+(l+1)*100+2,sigmas[ch],1.);
+          HF1(400020+(l+1)*100+2,cid.getsig(),1.);
           HF1(400000+(l+1)*100+3,_ADC2[ch]/sqrt(_Count[ch]),1.);
          }
         }
@@ -506,7 +506,7 @@ void AMSTrIdCalib::_calc(){
 
 void AMSTrIdCalib::_update(){
  int i,j,k,l,m;
-  
+  int total=0;
   for(k=0;k<2;k++){
     for(l=0;l<2;l++){
      for(i=0;i<AMSDBc::nlay();i++){
@@ -516,14 +516,16 @@ void AMSTrIdCalib::_update(){
         for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()){
+          total++;
           int ch=cid.getchannel();
-          id.setped()=_ADC[ch];
-          id.setsig()=_ADC2[ch];
+          cid.setped()=_ADC[ch];
+          cid.setsig()=_ADC2[ch];
          }
         }
        }
      }
     }
+    cout << "AMSTrIdCalib::_update-I-total of "<<total<<" channels updated"<<endl;
     AMSTimeID * ptdv = 
     AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVped(k));
     ptdv->UpdateMe()=1;
