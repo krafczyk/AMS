@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.31 2001/08/07 15:21:23 choutko Exp $
+//  $Id: ecalrec.C,v 1.32 2001/09/04 13:20:49 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1214,7 +1214,7 @@ integer EcalShower::build(int rerun){
 
 
 
-
+return 1;
 }
 
 
@@ -1532,8 +1532,14 @@ void EcalShower::EnergyFit(){
    }
    // Now Add RearLeak
    if(_Edep[Maxrow-1]>ECREFFKEY.SimpleRearLeak[0]){
-    _RearLeak= ECREFFKEY.SimpleRearLeak[1]*ec*_Edep[Maxrow-1]*ECREFFKEY.SimpleRearLeak[2];
-    _EnergyC= ECREFFKEY.SimpleRearLeak[1]*ec+_RearLeak;
+    number alpha=1-_Edep[Maxrow-1]*ECREFFKEY.SimpleRearLeak[2];
+    if(alpha<=0){
+     setstatus(AMSDBc::CATLEAK);
+     cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<<_Edep[Maxrow-1]<<endl;
+     alpha=ECREFFKEY.SimpleRearLeak[1]*ec/FLT_MAX;
+    }
+    _EnergyC= ECREFFKEY.SimpleRearLeak[1]*ec/alpha;
+    _RearLeak= _EnergyC-ECREFFKEY.SimpleRearLeak[1]*ec;
 //    cout <<" case 1 "<<_EnergyC<<" "<<_RearLeak<<endl;
    }
    else{
@@ -1550,6 +1556,13 @@ void EcalShower::EnergyFit(){
    _OrpLeak/=_EnergyC;
    _DeadLeak/=_EnergyC;
    _SideLeak/=_EnergyC;
+  }
+
+// Final EnergyCorrection
+   _EnergyCorr();
+
+  if(_ShowerMax==Maxrow-1 || _ShowerMax==0){
+   setstatus(AMSDBc::CATLEAK);
   }
   _AngleRes();
   _EnergyRes(); 
@@ -1874,6 +1887,22 @@ if(_EnergyC>0){
  return sqrt(0.35*0.35+100/_EnergyC);
 }
 else return 1;
+}
+
+void EcalShower::_EnergyCorr(){
+
+//Try to take into account lower energy + adcoverflow
+//pure phenomelogical one, should be replaced by more smart one...
+if(_EnergyC){
+ number minen=_EnergyC>2?_EnergyC:2;
+ number lowencorr=1.0067-6.6e-2/pow(minen,0.5);
+ _EnergyC/=lowencorr;
+ if(_EnergyC>2500){
+  number maxen=_EnergyC>15000?15000:_EnergyC;
+  number hiencorr=(1-0.165)/(1-0.165*maxen/2500.);
+  _EnergyC*=hiencorr;
+ }
+}
 }
 
 

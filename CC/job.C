@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.378 2001/08/01 13:28:43 choutko Exp $
+// $Id: job.C,v 1.379 2001/09/04 13:20:49 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -681,7 +681,7 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.TransShowerSize2D=10;
   ECREFFKEY.SimpleRearLeak[0]=0.01;
   ECREFFKEY.SimpleRearLeak[1]=0.94e-3;
-  ECREFFKEY.SimpleRearLeak[2]=3.7;
+  ECREFFKEY.SimpleRearLeak[2]=3.7*0.8;
   ECREFFKEY.SimpleRearLeak[3]=0.975e-3;
   ECREFFKEY.CalorTransSize=32;
   ECREFFKEY.EMDirCorrection=1.035;
@@ -1078,7 +1078,7 @@ TRFITFFKEY.UseTRD=1;
 TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;
 TRFITFFKEY.Chi2StrLine=9;
-TRFITFFKEY.Chi2Circle=4;
+TRFITFFKEY.Chi2Circle=5;
 TRFITFFKEY.ResCutFastFit=0.5;
 TRFITFFKEY.ResCutStrLine=0.5;
 TRFITFFKEY.ResCutCircle=0.5;
