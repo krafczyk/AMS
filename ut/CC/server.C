@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.60 2001/03/26 14:19:26 alexei Exp $
+//  $Id: server.C,v 1.61 2001/05/29 13:29:59 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -1894,7 +1894,7 @@ else{
    ah.ClientsKilled=0;
    ah.ClientsRunning=0;
    ah.Clock=(*i)->Clock;  
-   ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
+   ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded+0.5f,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
 
    time_t tt;
    time(&tt);

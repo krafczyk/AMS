@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.264 2001/05/23 14:37:21 choutko Exp $
+//  $Id: event.C,v 1.265 2001/05/29 13:29:59 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -3075,8 +3075,8 @@ void AMSEvent::_collectstatus(){
 
 
 
- uinteger __status=0;
   if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+      uinteger __status=0;
 
   {
     TriggerLVL3 *ptr=(TriggerLVL3*)getheadC("TriggerLVL3",0);
@@ -3164,13 +3164,26 @@ void AMSEvent::_collectstatus(){
      else if(cosgm<0.766)icos=2;
      else icos=3;
       __status=__status | (icos<<27);
-}   
   // Now Set Event Error
      if(_Error==1){
       __status=__status | (1<<30);
-    } 
- _status[0]=__status;
- _status[1]=0;
+     }
+      _status[0]=__status;
+      _status[1]=0;
+}
+else{
+ uinteger __status=0;
+ uinteger __status1=0;
+  // Now Set Event Error
+     if(_Error==1){
+      __status=__status | (1<<30);
+
+     }   
+
+      _status[0]=__status;
+      _status[1]=__status1;
+
+}
 }
 
 
