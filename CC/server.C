@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.117 2005/01/04 20:57:16 choutko Exp $
+//  $Id: server.C,v 1.118 2005/01/26 12:57:46 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -44,10 +44,9 @@ break;
 }
 }
 
-
 int main(int argc, char * argv[]){
 // myst thing
-     CORBA::MARSHAL a;
+//     CORBA::MARSHAL a;
      *signal(SIGTERM, handler);
      *signal(SIGXCPU,handler);
      *signal(SIGINT, handler);
@@ -276,9 +275,11 @@ if(niface){
    cout << " tmp init started "<<endl;
    Server_impl * ptr= new Server_impl();
    PortableServer::ObjectId_var oid=e._poa->activate_object(ptr);
-   DPS::Server_var _ref = reinterpret_cast<DPS::Server_ptr>(e._poa->id_to_reference(oid));
-   cout <<" orb "<<&(e._orb)<<endl;
-   CORBA::String_var str=e._orb->object_to_string(_ref);
+   static DPS::Server_var _ref = reinterpret_cast<DPS::Server_ptr>(e._poa->id_to_reference(oid));
+   cout <<" orb "<<&(e._orb)<<" "<<_ref<<" "<<endl;
+   CORBA::Object *ppp=(void*)_ref;
+   cout <<"  ppp "<<ppp<<endl;
+   CORBA::String_var str=e._orb->object_to_string(ppp);
    cout << str<<endl;
 
 
@@ -617,8 +618,9 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new Server_impl());
   PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
-   DPS::Server_ptr _ref = reinterpret_cast<DPS::Server_ptr>((i->second)._poa->id_to_reference(oid));
-   _refmap[i->first]=(i->second)._orb->object_to_string(_ref);
+   static DPS::Server_ptr _ref = reinterpret_cast<DPS::Server_ptr>((i->second)._poa->id_to_reference(oid));
+  CORBA::Object *ppp=(void*)_ref; 
+   _refmap[i->first]=(i->second)._orb->object_to_string(ppp);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
     _defaultorb=(i->second)._orb;
     
@@ -1847,8 +1849,10 @@ for(MOI i=mo.begin();i!=mo.end();++i){
    if(!pcur)pcur=this;
 //   else add(pcur = new Producer_impl());
  PortableServer::ObjectId_var oid=(i->second)._poa->activate_object(pcur);
-  DPS::Producer_ptr _ref = reinterpret_cast<DPS::Producer_ptr>((i->second)._poa->id_to_reference(oid));
-   _refmap[i->first]=((i->second)._orb)->object_to_string(_ref);
+  static DPS::Producer_ptr _ref = reinterpret_cast<DPS::Producer_ptr>((i->second)._poa->id_to_reference(oid));
+     
+   CORBA::Object *ppp=(void*)_ref;
+   _refmap[i->first]=((i->second)._orb)->object_to_string(ppp);
    if(!strcmp((const char *)(i->first),(const char*)cid.Interface)){
     _defaultorb=(i->second)._orb;
    }

@@ -1,5 +1,5 @@
-#!/usr/bin/perl -w
-#  $Id: monitor.perl,v 1.9 2003/10/23 15:10:28 choutko Exp $
+#!/usr/local/bin/perl -w
+#  $Id: monitor.perl,v 1.10 2005/01/26 12:57:56 choutko Exp $
 
 use Error qw(:try);
 use Gtk;
@@ -33,7 +33,6 @@ my $window=new monitorUI;
 
 
 #show window and run orbit
-
  if($ok){
   $ok=$window->Update();
  }

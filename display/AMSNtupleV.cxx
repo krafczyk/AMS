@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.15 2004/02/22 15:27:16 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.16 2005/01/26 12:57:50 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -508,7 +508,11 @@ static TNode *rich=gAMSDisplay->GetGeometry()->GetNode("RICH1");
   float array[3*npointm];
   double rad_thick;
   const double rad_length=-3;
-  const double n_aero=1.02998;
+  double n_aero;
+  if(ev->Version()<130){
+    n_aero=1.02998;
+  }
+  else n_aero=1.0529;
   const double n_naf=1.33;
   const double n_naf_Spread=0.01; 
    if(ev->Version() <89){

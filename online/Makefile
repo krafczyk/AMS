@@ -1,11 +1,23 @@
-#  $Id: Makefile,v 1.13 2004/02/22 15:39:40 choutko Exp $
+#  $Id: Makefile,v 1.14 2005/01/26 12:57:53 choutko Exp $
 
 PREFIX        = $(AMSWD)/online/
 ARCH         := $(shell $(ROOTSYS)/bin/root-config --arch)
 PLATFORM      =  Linux
 RH9add=
+RH9adda=
 ifdef RH9
- RH9add=-pthread /usr/lib/ctype-info.o
+ RH9add=-pthread  /usr/lib/ctype.o
+ RH9adda=-pthread  /usr/lib/ctype-info.o
+endif
+
+ifneq "$(shell uname -r )" "2.4.20-24.7.cernsmp"
+ RH9add=-pthread  /usr/lib/ctype.o
+ RH9adda=-pthread  /usr/lib/ctype-info.o
+endif
+
+ifeq "$(wildcard /usr/lib/ctype-info.o)" ""
+ RH9adda=
+ RH9add=
 endif
 ifeq ($(ARCH),linuxicc)
 CXX           =  icc
@@ -16,9 +28,10 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = icc
 LDFLAGS       = 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
 
-LIBS          =  $(ROOTLIBS) -lm -ldl
+LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
+LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
 else
 CXX           =  g++ -Wno-deprecated
 CXXFLAGS      =   -D__WRITEROOT__ -D__ROOTSHAREDLIBRARY__  -I../include -I$(ROOTSYS)/include -I/usr/include/freetype2 
@@ -27,9 +40,10 @@ OPTC          = -O0
 NOOPT         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11 $(RH9add) -lshift
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm -lXmu -lXt -lXext -lX11  -lshift
 
-LIBS          =  $(ROOTLIBS) -lm -ldl
+LIBS          =  $(ROOTLIBS) $(RH9add) -lm -ldl
+LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm -ldl
 endif
 ifeq ($(ARCH),win32gcc)
 PREFIX        = $(AMSWD)/online/cygwin/
@@ -41,8 +55,9 @@ NOOPT         = -g
 NOOPTC         = -g
 LD            = g++
 LDFLAGS       = -g 
-ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm.dll -lX11.dll $(RH9add) -L/usr/lib -lshift
-LIBS          =  $(ROOTLIBS) -lm 
+ROOTLIBS      =  -L$(ROOTSYS)/lib -lRoot -lfreetype -lcrypt -L/usr/X11R6/lib  -lXpm.dll -lX11.dll  -L/usr/lib -lshift
+LIBS          =  $(ROOTLIBS) $(RH9add) -lm 
+LIBSA          =  $(ROOTLIBS) $(RH9adda) -lm
 endif
 ifeq ($(ARCH),win32)
 PREFIX   = $(AMSWD)/online/wingdk/
@@ -136,7 +151,7 @@ osdepend:  $(AMSPRGC)
 
 
 $(AMSPRG):      $(ALLOBJS) $(DICTO) $(MAINH) $(OBJSR) $(OBJSC)
-		$(LD)  -static  $(LDFLAGS) $(ALLOBJS) $(OBJSR)  $(OBJSC) $(DICTO)  $(LIBS)  \
+		$(LD)  -static  $(LDFLAGS) $(ALLOBJS) $(OBJSR)  $(OBJSC) $(DICTO)  $(LIBSA)  \
 		-o $(@) 
 		@echo "$(AMSPRG) done"
 
@@ -181,7 +196,7 @@ clean:
 
 ##### RULES #####
 
-$(ALLOBJS): $(PREFIX)%.o : %.cxx 
+$(ALLOBJS): $(PREFIX)%.o : %.cxx ../include/root_methods.h
 	$(CXX) $(OPT) $(CXXFLAGS) -c $(<)  -o $(@)
 
 $(OBJSC): $(PREFIX)%.o : %.cxx 
