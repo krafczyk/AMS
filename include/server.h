@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.40 2002/02/08 13:48:27 choutko Exp $
+//  $Id: server.h,v 1.41 2002/03/26 21:21:58 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -19,6 +19,7 @@
 class AMSServerI : public AMSNode{
 protected:
 
+uinteger _SubmitTime;
 uinteger _Submit;    // in fact active client ID
 uinteger  _KillTimeOut;  // Kill Client Timeout
 uinteger  _StartTimeOut;  // Start Client Timeout
@@ -116,6 +117,7 @@ public:
 
 CORBA::ORB_ptr  getdefaultorb()const {return _defaultorb;}
   uinteger getmaxcl() const {return _Submit;}
+  uinteger getSubmitTime() const {return _SubmitTime;}
   void setmaxcl(uinteger maxcl)  {_Submit=maxcl;}
   void addone(){++_Submit;}
  COL & getcol(){return _col;}
@@ -147,7 +149,7 @@ CORBA::ORB_ptr  getdefaultorb()const {return _defaultorb;}
   AMSServerI * up(){return   dynamic_cast<AMSServerI*>(AMSNode::up());}
   AMSServerI * down(){return dynamic_cast<AMSServerI*>(AMSNode::down());}
 
-  AMSServerI(AMSID id, AMSClient * parent=0,DPS::Client::ClientType type=DPS::Client::Generic):_Type(type),AMSNode(id),_Submit(0),_StartTimeOut(60),_KillTimeOut(180),_parent(parent),_ActivateQueue(false),_RecID(0){};
+  AMSServerI(AMSID id, AMSClient * parent=0,DPS::Client::ClientType type=DPS::Client::Generic):_Type(type),AMSNode(id),_Submit(0),_StartTimeOut(60),_KillTimeOut(180),_parent(parent),_ActivateQueue(false),_RecID(0),_SubmitTime(0){};
 };
 
 
@@ -329,6 +331,7 @@ public:
   Producer_impl(const map<AString, AMSServer::OrbitVars> & mo, DPS::Server_ptr _cvar,DPS::Client::CID  cid, AMSClient * parent);
   void _PurgeQueue();
   void _init();
+ void pingp()throw (CORBA::SystemException);
  virtual void ReReadTables(DPS::Server_ptr pvar);
  virtual void ReWriteTables(DPS::DBServer_ptr pvar);
  virtual void UpdateDB(bool force=false);

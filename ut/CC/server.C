@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.80 2002/03/12 14:05:51 choutko Exp $
+//  $Id: server.C,v 1.81 2002/03/26 21:21:54 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -110,6 +110,9 @@ AMSServer::AMSServer(int argc, char* argv[]){
      break;
     case 'M':    // Multithread
      _MT=true;
+     break;
+    case 'o':    // OraclePerl
+     _Oraperl=true;
      break;
     case 'O':    // Oracle
       _Oracle=true;
@@ -1608,6 +1611,8 @@ return length;
 
   void Server_impl::ping()throw (CORBA::SystemException){
   }
+  void Producer_impl::pingp()throw (CORBA::SystemException){
+  }
 
   void Server_impl::SystemCheck()throw (CORBA::SystemException){
    _parent->GlobalError()=false;
@@ -1674,6 +1679,10 @@ return false;
 
 void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordChange rc){
 
+     time_t tt;
+     time(&tt);
+
+     _SubmitTime=tt;
 
 
  // Registered itself in _acl
@@ -1681,8 +1690,6 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
      as.id= cid;
      as.Status=DPS::Client::Active;
      as.StatusType=DPS::Client::Permanent;
-     time_t tt;
-     time(&tt);
      as.LastUpdate=tt;     
      as.TimeOut=_KillTimeOut;
      as.Start=tt;
@@ -2221,8 +2228,12 @@ if(!_pser->Lock(pid,DPS::Server::KillClient,getType(),_KillTimeOut))return;
 
 time_t tt;
 time(&tt);
+
+
 ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
-if(li!=_acl.end() && (*li)->LastUpdate+1.41*((*li)->TimeOut)<tt){
+ uinteger TimeCheckValue=0;
+ if(li!=_acl.end())TimeCheckValue=(*li)->LastUpdate>getSubmitTime()?(*li)->LastUpdate+1.41*((*li)->TimeOut):getSubmitTime()+((*li)->TimeOut);
+if(li!=_acl.end() && TimeCheckValue<tt){
    if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
  //kill by -9 here
  
@@ -3819,6 +3830,9 @@ void Client_impl::StartClients(const DPS::Client::CID & pid){
                if(_parent->getdbfile()){
                  submit+=" -F";
                  submit+=_parent->getdbfile();
+               }
+               if(_parent->IsOraperl()){
+                 submit+=" -o";
                }
                 submit+=" -A";
                 submit+=getenv("AMSDataDir");

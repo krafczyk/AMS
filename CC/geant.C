@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.106 2002/03/20 09:41:17 choumilo Exp $
+//  $Id: geant.C,v 1.107 2002/03/26 21:21:53 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -137,13 +137,17 @@ void gams::UGINIT(int argc,  char * argv[]){
  
 #ifdef __CORBA__
   AMSJob::gethead()->add( new AMSProducer(argc,argv,PRODFFKEY.Debug));
+  cout <<"  qq "<<endl;
+  AMSProducer::gethead()->sendid();
   AMSJob::gethead()->setjobtype(AMSJob::Production);  
 #endif
 
 
   // Geant initialization
 
+  cout <<"  qq 2"<<endl;
   GZINIT();
+  cout <<"  qq 3"<<endl;
   GPART();
   GPIONS(4);
   int itrt=4;

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.27 2002/03/26 19:21:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.28 2002/03/26 21:21:59 choutko Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -534,7 +534,7 @@ if( defined $ref->{dbfile}){
 #                 my $createt=time();
                  my $sql="delete from Servers where dbfilename='$ref->{dbfile}'";
                  $ref->{sqlserver}->Update($sql);
-                 $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}',NULL,'Active',$createt,$createt)";
+                 $sql="insert into Servers values('$ref->{dbfile}','$ref->{IOR}','$ref->{IORP}',NULL,'Active',$ac->{Start},$createt)";
                  $ref->{sqlserver}->Update($sql);
                  last;
                 }
@@ -574,7 +574,12 @@ sub RestartServer{
            open(FILE,">".$full) or die "Unable to open file $full \n";
               print FILE "export AMSDataDir=$self->{AMSDataDir} \n";
               print FILE "export AMSProdDir=$self->{AMSProdDir}/../ \n";
-              print FILE "$submit -B$self->{dbfile} \n";
+             if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
+               print FILE "$submit -o -B$self->{dbfile} \n";
+           }
+             else{
+               print FILE "$submit  -B$self->{dbfile} \n";
+             }
            close FILE;
 #           my $i=system("$submit -B$self->{dbfile}" );
               my $i=system("chmod +x $full");
@@ -1974,6 +1979,17 @@ print qq`
         if($#stag<0){
               $self->ErrorPlus("Unable to find gbatch-orbit on the Server ");
         }
+        $key='getior';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive getior name from db");
+        }
+         my $gr=$ret->[0][0];
+         my @stag2=stat "$self->{AMSSoftwareDir}/$gr";
+        if($#stag2<0){
+              $self->ErrorPlus("Unable to find $gr on the Server ");
+        }
         $key='ntuplevalidator';
         $sql="select myvalue from Environment where mykey='".$key."'";
         $ret=$self->{sqlserver}->Query($sql);
@@ -1987,10 +2003,11 @@ print qq`
         }
         my $file2tar;
         my $filedb;
+        my $filedb_att;
         if($self->{CCT} eq "remote"){
         $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
         my @sta = stat $filedb;
-        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] or $stag1[9] > $sta[9]){
+        if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] ){
         my $filen="$self->{UploadsDir}/ams02mcdb.tar.$run";
         $key='dbversion';
         $sql="select myvalue from Environment where mykey='".$key."'";
@@ -2011,10 +2028,6 @@ print qq`
           if($i){
               $self->ErrorPlus("Unable to tar gbatch-orbit to $filen ");
           }
-         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
-          if($i){
-              $self->ErrorPlus("Unable to tar $nv to $filen ");
-          }
          $i=system("tar -C$self->{CERN_ROOT} -uf $filen lib/flukaaf.dat") ;
           if($i){
               $self->ErrorPlus("Unable to tar flukaaf.dat to $filen ");
@@ -2027,6 +2040,34 @@ print qq`
           $i=system("mv $filen.gz $filedb");
           unlink "$filedb.o";
     }
+
+
+        $filedb_att="$self->{UploadsDir}/ams02mcdb.att.tar.gz";
+        @sta = stat $filedb_att;
+
+        if($#sta<0 or $sta[9]-time() >86400*7  or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
+        my $filen="$self->{UploadsDir}/ams02mcdb.att.tar.$run";
+         my $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $nv to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gr") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $gr to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen prod/tnsnames.ora") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar prod/tnsnames.ora to $filen ");
+          }
+          $i=system("gzip -f $filen");
+                      if($i){
+              $self->ErrorPlus("Unable to gzip  $filen");
+          }
+          $i=system("mv $filedb_att $filedb_att.o");
+          $i=system("mv $filen.gz $filedb_att");
+          unlink "$filedb_att.o";
+    }
+
     
 # write readme file
         my $readme="$self->{UploadsDir}/README.$run";
@@ -2166,7 +2207,7 @@ print qq`
          $tmpb =~ s/'/''/g;
     }
          my $ctime=time();
-         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,$ctime,'$buf$tmpb',$ctime)";
+         my $sql="insert into Jobs values($run,'$script',$self->{CEMID},$self->{CCID},$did,$ctime,$evts,$timeout,'$buf$tmpb',$ctime)";
          $self->{sqlserver}->Update($sql);
 #creat corresponding runevinfo
          my $ri={};
@@ -2218,11 +2259,15 @@ print qq`
          if ($self->{CCT} eq "remote"){
                   $self->sendmailmessage($address,$subject,$message,$attach);
                   my $i=unlink "$file2tar.gz";
+                  $attach="$filedb_att,ams02mcdb.addon.tar.gz";
+                  $subject="Addon To AMS02 MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
+                  $self->sendmailmessage($address,$subject,$message,$attach);
          }
          my $totalreq=$self->{CEMR}+$runno;
          my $time=time();
          $sql="Update Mails set requests=$totalreq, timestamp=$time where mid=$self->{CEMID}";
          $self->{sqlserver}->Update($sql);              
+         $subject="MC Request Form Output Runs for $address $frun...$lrun Cite $self->{CCA}";
          $self->sendmailerror($subject," ");
          $sql="SELECT mid FROM Cites WHERE cid=$self->{CCID}";
          $ret=$self->{sqlserver}->Query($sql);

@@ -1,2 +1,2 @@
 source $AMSProdDir/prod/AMSProdVar
-bsub -q linux_server -m pcamsf0 -o $AMSProdDir/logs/Server.1.log $AMSProdDir/prod/starttagmt_db_mc $1
+bsub -q linux_server -m pcamsf0 -o $AMSProdDir/logs/Server.1.log $AMSProdDir/prod/starttagmt_db_mc $1 $2

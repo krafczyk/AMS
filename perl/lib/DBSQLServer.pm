@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.14 2002/03/26 19:21:21 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.15 2002/03/26 21:21:59 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -236,8 +236,9 @@ sub Create{
      $dbh->do("insert into Environment values('DataSets','DataSets')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('gbatch','exe/linux/gbatch-orbit.exe')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('ntuplevalidator','exe/linux/fastntrd.exe')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('getior','exe/linux/getior.exe')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('filedb','ams02mcdb.tar')") or die "cannot do: ".$dbh->errstr();     
-     $dbh->do("insert into Environment values('dbversion','v3.00')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('dbversion','v4.00')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('AMSProdDir','prod')") or die "cannot do: ".$dbh->errstr();     
      my $apd='$AMSProdDir/prod/starttagmtb_db_mc';
      $dbh->do("insert into Environment values('amsserver','$apd')") or die "cannot do: ".$dbh->errstr();     
@@ -266,6 +267,9 @@ sub Create{
      $run=(3<<27)+1;
    $dbh->do("insert into Cites values(4,'ethz',0,
             'remote',$run,0,'ETH Zurich',$time)")or die "cannot do: ".$dbh->errstr();    
+   $dbh->do("insert into Cites values(5,'mila',0,
+            'remote',$run,0,'INFN Milano',$time)")or die "cannot do: ".$dbh->errstr();    
+     $run=(4<<27)+1;
   } else {
     warn "Table Cites has $cnt entries. Not initialized";
  }
@@ -294,9 +298,12 @@ sub Create{
     $address='diego.casadei@bo.infn.it';
     $alias='diego.casadei@cern.ch'; 
   $dbh->do("insert into Mails values(5,'$address','$alias','Diego Casadei',1,0,3,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+    $address='davide.grandi@mib.infn.it';
+    $alias='davide.grandi@cern.ch'; 
+  $dbh->do("insert into Mails values(6,'$address','$alias','Davide Grandi',1,0,5,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
     $address='evgueni.choumilov@cern.ch';
     $alias='e.choumilov@cern.ch'; 
-  $dbh->do("insert into Mails values(6,'$address','$alias','Eugeni Choumilov',0,0,2,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
+  $dbh->do("insert into Mails values(7,'$address','$alias','Eugeni Choumilov',0,0,2,'Active',0,$time)")or die "cannot do: ".$dbh->errstr();    
     $time=time();
     warn $time;
 #find responsible

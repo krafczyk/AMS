@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.51 2002/03/22 13:07:35 choutko Exp $
+//  $Id: producer.C,v 1.52 2002/03/26 21:21:53 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -50,7 +50,8 @@ else{
       break;
   }
  }
-  if(!ior){
+  if(!ior ){
+    
    if(_debug){
      if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer");
      else _openLogFile("Producer");
@@ -67,51 +68,72 @@ else{
     if(!CORBA::is_nil(_pvar)){
      _plist.clear();
      _plist.push_front(_pvar);
-     if(!_getpidhost(uid)){
+  if(!_getpidhost(uid)){
    if(_debug){
      if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer");
      else _openLogFile("Producer");
    }
       FMessage("AMSProducer::AMSProducer-F-UnableToGetHostName", DPS::Client::CInAbort);
-     }
+ }
    if(_debug){
      if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer");
      else _openLogFile("Producer");
    }
+     _Head=this;
+     return;
+}
+}
+
+}
+  catch (CORBA::SystemException & a){
+  FMessage("AMSProducer::AMSProducer-F-CORBA::SystemError",DPS::Client::CInAbort);
+  }
+
+}
+FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
+
+}
+
+void AMSProducer::sendid(){
+again:
+
+     list<DPS::Producer_var>::iterator li = _plist.begin();
      time_t cput=3*AMSFFKEY.CpuLimit;
      time_t cpug=12*3600;
      if(!IsLocal() && cput<cpug)cput=cpug; 
      cout <<"   TimeOut sending "<<cput<<endl;
-     if(!(_pvar->sendId(_pid,cput))){
+  try{
+     if(!((*li)->sendId(_pid,cput))){
        sleep(10);
-      if(!(_pvar->sendId(_pid,cput))){
+      if(!((*li)->sendId(_pid,cput))){
        // dieHard
        FMessage("Server Requested Termination after sendID ",DPS::Client::SInAbort);
       }
      }
-     _Head=this;
      IMessage(AMSClient::print(_pid,"sendID-I-Success"));
+      cout << " ret now "<<endl;
       return;       
      }
-    }
-   }
    catch (CORBA::MARSHAL a){
-   FMessage("AMSProducer::AMSProducer-F-CORBA::MARSHAL",DPS::Client::CInAbort);
+   if(getior("GetIorExec"))goto again;
+   else FMessage("AMSProducer::AMSProducer-F-CORBA::MARSHAL",DPS::Client::CInAbort);
   }
   catch (CORBA::COMM_FAILURE a){
-   FMessage("AMSProducer::AMSProducer-F-CORBA::COMM_FAILURE",DPS::Client::CInAbort);
+   if(getior("GetIorExec"))goto again;
+   else FMessage("AMSProducer::AMSProducer-F-CORBA::COMM_FAILURE",DPS::Client::CInAbort);
   }
   catch (CORBA::SystemException & a){
-   FMessage("AMSProducer::AMSProducer-F-CORBA::SystemError",DPS::Client::CInAbort);
+   if(getior("GetIorExec"))goto again;
+   else FMessage("AMSProducer::AMSProducer-F-CORBA::SystemError",DPS::Client::CInAbort);
   }
 }
-FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
-}
+
 
 
 
 void AMSProducer::getRunEventInfo(){
 UpdateARS();
+again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
     (*li)->getRunEvInfo(_pid,_reinfo,_dstinfo);
@@ -230,7 +252,8 @@ else{
   catch  (CORBA::SystemException & a){
   }
  }
- FMessage("AMSProducer::getRunEventinfo-F-UnableToGetRunEvInfo",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+ else FMessage("AMSProducer::getRunEventinfo-F-UnableToGetRunEvInfo",DPS::Client::CInAbort);
 }
 
 void AMSProducer::sendCurrentRunInfo(bool force){
@@ -411,6 +434,7 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
      a+=(const char*)fpath.fname;
      ntend->Name=(const char *)a;
      if(ntend->Status !=DPS::Producer::Failure)ntend->Status=DPS::Producer::Success;
+     again:
      for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
       try{
        if(!CORBA::is_nil(*li)){
@@ -424,7 +448,8 @@ for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li
       _OnAir=false;
      }
     }
-FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+ else FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
 }
    else FMessage("AMSProducer::sendNtupleEnd-F-UnableToSendNtuplein mode RO ",DPS::Client::CInAbort);
 
@@ -436,6 +461,7 @@ FMessage("AMSProducer::sendRunEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CIn
 
 
 else{
+ again1:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -450,7 +476,8 @@ else{
     _OnAir=false;
   }
 }
-FMessage("AMSProducer::sendNtupleEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again1;
+ else FMessage("AMSProducer::sendNtupleEnd-F-UnableToSendNtupleEndInfo ",DPS::Client::CInAbort);
 }
 }
 else{
@@ -494,7 +521,7 @@ UpdateARS();
 
 
 sendDSTInfo();
-
+again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -508,7 +535,8 @@ sendDSTInfo();
     _OnAir=false;
   }
 }
-FMessage("AMSProducer::sendNtupleStart-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+else FMessage("AMSProducer::sendNtupleStart-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
 }
 else{
 FMessage("AMSProducer::sendNtupleEnd-F-UNknownDSTType ",DPS::Client::CInAbort);
@@ -540,7 +568,7 @@ UpdateARS();
 
 sendDSTInfo();
 cout <<" sendntupleupdate middle "<<endl;
-
+again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -555,7 +583,8 @@ cout <<" sendntupleupdate middle "<<endl;
     _OnAir=false;
   }
 }
-FMessage("AMSProducer::sendNtupleUpdate-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+else FMessage("AMSProducer::sendNtupleUpdate-F-UnableToSendNtupleStartInfo ",DPS::Client::CInAbort);
 }
 else{
 FMessage("AMSProducer::sendNtupleUpdate-F-UNknownDSTType ",DPS::Client::CInAbort);
@@ -669,6 +698,7 @@ _cinfo.TimeSpent=st-_ST0;
 TIMEX(_cinfo.CPUTimeSpent);
 _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
 UpdateARS();
+again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -683,7 +713,8 @@ UpdateARS();
     _OnAir=false;
   }
 }
-FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+else FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
 
 
 }
@@ -704,6 +735,7 @@ _cinfo.TimeSpent=st-_ST0;
 TIMEX(_cinfo.CPUTimeSpent);
 _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
 UpdateARS();
+again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -718,7 +750,8 @@ UpdateARS();
     _OnAir=false;
   }
 }
-FMessage("AMSProducer::sendRunEndMC-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+else FMessage("AMSProducer::sendRunEndMC-F-UnableToSendRunEndInfo ",DPS::Client::CInAbort);
 
 
 }
@@ -777,6 +810,7 @@ DPS::Producer::TDVTable * ptdv;
 //IMessage(AMSClient::print(a," INITDV "));
  int suc=0;
  int length;
+again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   
   try{
@@ -790,7 +824,10 @@ DPS::Producer::TDVTable * ptdv;
     _OnAir=false;
   }
  }
-if(!suc)FMessage("AMSProducer::getinitTDV-F-UnableTogetTDVTable",DPS::Client::CInAbort);
+if(!suc){
+ if(getior("GetIorExec"))goto again;
+ else FMessage("AMSProducer::getinitTDV-F-UnableTogetTDVTable",DPS::Client::CInAbort);
+}
 DPS::Producer::TDVTable_var tvar=ptdv;
 uinteger *ibe[5];
 
@@ -845,7 +882,8 @@ again:
  }
 if(!suc){
  if(oncemore){
-  FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+  else FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
   return false;
  }
  else{
@@ -888,6 +926,7 @@ name.Entry.End=e;
  uinteger totallength=0;
  while (st!=DPS::Producer::End){
  int suc=0;
+ again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   
   try{
@@ -902,7 +941,8 @@ name.Entry.End=e;
   }
 }
 if(!suc){
- FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+ else FMessage("AMSProducer::getTDV-F-UnableTogetTDV",DPS::Client::CInAbort);
  return false;
 }
 if(!totallength){
@@ -995,6 +1035,7 @@ _evtag.Type=DPS::Producer::EventTag;
 _evtag.size=0;
 
 UpdateARS();
+again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -1009,7 +1050,8 @@ UpdateARS();
     _OnAir=false;
   }
 }
-FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagEndInfo ",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+else FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagEndInfo ",DPS::Client::CInAbort);
 
 
 
@@ -1040,6 +1082,7 @@ _evtag.Type=DPS::Producer::EventTag;
 
 
 UpdateARS();
+again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
    if(!CORBA::is_nil(*li)){
@@ -1054,7 +1097,8 @@ UpdateARS();
     _OnAir=false;
   }
 }
-FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagBeginInfo ",DPS::Client::CInAbort);
+ if(getior("GetIorExec"))goto again;
+else FMessage("AMSProducer::sendRunEnd-F-UnableToSendEventTagBeginInfo ",DPS::Client::CInAbort);
 
 
 
@@ -1131,4 +1175,73 @@ break;
 default:
 return 0;
 }
+}
+
+bool AMSProducer::getior(const char * getiorvar){
+char iort[1024];
+const char *exedir=getenv("ExeDir");
+const char *nve=getenv(getiorvar);
+int maxtries=4;
+int delay=1;
+if(exedir && nve && AMSCommonsI::getosname()){
+ char t1[1024];
+ strcpy(t1,exedir);
+ strcat(t1,"/../prod");
+ setenv("TNS_ADMIN",t1,1);
+ for (int tries=0;tries<maxtries;tries++){
+  sleep(delay);
+  delay+=3600*(tries+1);
+  AString systemc(exedir);
+  systemc+="/";
+  systemc+=AMSCommonsI::getosname();
+  systemc+="/";
+  systemc+=nve;
+  systemc+=" > /tmp/getior.";
+  char tmp[80];
+  sprintf(tmp,"%d",getpid());
+  systemc+=tmp;
+  int i=system(systemc);
+  if(i){
+   cerr <<" AMSProducer::getenv-E-UnableTo "<<systemc<<endl;
+   systemc="rm /tmp/getior."; 
+   systemc+=tmp;
+//   system(systemc);
+   continue;
+  }
+  else{
+   systemc="/tmp/getior."; 
+   systemc+=tmp;
+   ifstream fbin;
+   fbin.open(systemc);
+   iort[0]='\0';
+   fbin>>iort;
+   fbin.close();
+   systemc="rm /tmp/getior."; 
+   systemc+=tmp;
+   system(systemc);
+   if(iort[0]=='-'){
+    cerr <<" AMSProducer::getenv-E-UnableToGetIOR "<<iort<<endl;
+    continue;
+   }
+   else{
+   try{
+    cout <<" AMSProducer::getenv-I-GetIOR "<<iort<<endl;
+    CORBA::Object_var obj=_orb->string_to_object(iort);
+    if(!CORBA::is_nil(obj)){
+     DPS::Producer_var _pvar=DPS::Producer::_narrow(obj);
+     _pvar->pingp();
+     _plist.clear();
+     _plist.push_front(_pvar);
+     return true;
+    }
+   }
+  catch (CORBA::SystemException & a){
+    EMessage("AMSProducer::getior-E-UnableToUpdateIOR");
+    continue;
+  }
+   }
+  }
+}
+}
+return false;
 }
