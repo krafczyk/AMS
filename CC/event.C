@@ -1881,6 +1881,9 @@ extern "C" void btempcor_(float& factor) {
   static float coef[NPER][NORD+1]={0.};
   static int first=1;
 
+// Default in absence of corrections
+  factor = 1.;
+
 // init coefficients
   if (first) {
     first=0;
@@ -1916,13 +1919,12 @@ extern "C" void btempcor_(float& factor) {
 
   }
 
-
 // evaluate temperature
   time_t utime = AMSEvent::gethead()->gettime();
   float t=(float)(utime-ufirst)/daysec;
 
   if (t<0.) t=1.e-3;
-  if (t>TMAX[NPER-1]) t=TMAX[NPER-1];
+  if (t>TMAX[NPER-1]) return; // Not valid for time > Shuttle Flight Period
 
   int iper=0;
   while (TMAX[iper]<t) {iper++;}
