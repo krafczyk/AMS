@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.18 2002/12/02 12:06:41 choutko Exp $
+//  $Id: gamma.C,v 1.19 2002/12/02 13:59:35 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -3694,13 +3694,16 @@ void AMSTrTrackGamma::PAIR2GAMMA(int & counting, int & plusminus){
     pmeno=(_GRidgidityMSR<0)?_GRidgidityMSR:_GRidgidityMSL;
     ppiu=(_GRidgidityMSR<0)?_GRidgidityMSL:_GRidgidityMSR;
     plusminus=0;
+    _Charge=0;
   }
   if (_GRidgidityMSR * _GRidgidityMSL > 0){
     plusminus=1;
+    _Charge=2;
     pmeno=_GRidgidityMSR;
      ppiu= _GRidgidityMSL;
   } 
  if (_GRidgidityMSR * _GRidgidityMSL == 0){
+    _Charge=2;
     plusminus=2;
     pmeno=_GRidgidityMSR;
      ppiu= _GRidgidityMSL;
@@ -5202,8 +5205,8 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
     AMSDir dirL1(thetaL,phiL); 
     AMSDir dirR1(thetaR,phiR); 
     if(1 && dirL1.prod(dirR1)>=ca){
-     _pntTrL->SetPar(_pntTrL->getgrid(),thetaL,phiL,_P0L,method);
-     _pntTrR->SetPar(_pntTrR->getgrid(),thetaR,phiR,_P0R,method);
+     _pntTrL->SetPar(_pntTrL->getrid(method),thetaL,phiL,_P0L,method);
+     _pntTrR->SetPar(_pntTrR->getrid(method),thetaR,phiR,_P0R,method);
      dirL=dirL1;
      dirR=dirR1;
      if (dirL[2]>0)dirL=dirL*(-1);
@@ -5236,7 +5239,7 @@ void AMSTrTrackGamma::_ConstructGamma(int method){
 //  set gamma parameters  (assuming direction for top to bottom)
 
     _Charge=(_pntTrL->getrid(method)>0?1:-1)+(_pntTrR->getrid(method)>0?1:-1);
-    cout <<" final charge "<<_Charge<<endl;
+//    cout <<" final charge "<<_Charge<<endl;
     AMSPoint pge=dirR*fabs(_pntTrR->getrid(method))+dirL*fabs(_pntTrL->getrid(method));
     number err_1=pow(_pntTrL->geterid()*_pntTrL->getrid()*_pntTrL->getrid(),2)+pow(_pntTrL->geterid()*_pntTrL->getrid()*_pntTrL->getrid(),2);
    AMSPoint p1=dirR*fabs(_pntTrR->getrid(2))+dirL*fabs(_pntTrL->getrid(2));
