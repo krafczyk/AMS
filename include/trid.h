@@ -115,7 +115,7 @@ void _mkcrate();
 
 public:
 friend ostream &operator << (ostream &o, const  AMSTrIdSoft &b )
-   {return o<<" "<<b._layer<<" "<<b._drp<<" "<<b._side<<" "<<b._half<<" "<<b._strip<<" "<<b._dead<<endl;}
+   {return o<<" lay "<<b._layer<<" lad "<<b._drp<<" side "<<b._side<<" half "<<b._half<<" "<<b._strip<<" "<<b._dead<<endl;}
 static void init();
 static void inittable();
 integer operator < (const AMSTrIdSoft & o)const;
