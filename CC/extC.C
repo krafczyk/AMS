@@ -27,7 +27,7 @@ extern "C" void btempcor_(float& factor) {
   const int ufirst=896836164;
   const int daysec=86400;
 
-  const float dBdT=0.14e-2;
+  const float dBdT=0.13e-2;
   const float TETH=18.5;
 
   static float coef[NPER][NORD+1]={0.};
