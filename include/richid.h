@@ -2,6 +2,7 @@
 #define __RICHID__
 
 #include "richdbc.h"
+#include "cfortran.h"
 
 class AMSRICHIdGeom{
 private:
@@ -56,9 +57,11 @@ public:
 
 };
 
-
-
-// Future class prototype
+// Define the calls to richpmtlib
+PROTOCCALLSFFUN3(FLOAT,PDENS,pdens,FLOAT,FLOAT,FLOAT)
+#define PDENS(A1,A2,A3) CCALLSFFUN3(PDENS,pdens,FLOAT,FLOAT,FLOAT,A1,A2,A3)
+PROTOCCALLSFSUB4(GETRMURSG,getrmursg,FLOAT,FLOAT,PFLOAT,PFLOAT)
+#define GETRMURSG(A1,A2,A3,A4) CCALLSFSUB4(GETRMURSG,getrmursg,FLOAT,FLOAT,PFLOAT,PFLOAT,A1,A2,A3,A4)
 
 class AMSRICHIdSoft{  // Soft Id (Readout)
 private:
@@ -85,6 +88,10 @@ private:
   static integer *_gain_mode_boundary;  // Value to swith to low gain
   static integer *_status;     // channel status 1=OK 0=Off
 
+  static uinteger _nbins;
+  static geant *_cumulative_prob; // Cumulative probability for a single
+                                   // p.e. in order to get a better simulation 
+  static geant *_step;
 public:		 		     
 
   // constructors
@@ -104,21 +111,32 @@ public:
 
 
   static void Init();
+  static void fill_probability();
 
 
   // Getting calibration values
   inline geant getped(int id){return _ped[(id<=0?0:1)+2*_address];}
-  inline geant getgain(int id){return _scale[(id<=0?0:1)+2*_address]*
-			  (_lambda[(id<=0?0:1)+2*_address]+1);}
+  //  inline geant getgain(int id){return _scale[(id<=0?0:1)+2*_address]*
+  //			  (_lambda[(id<=0?0:1)+2*_address]+1);}
+  inline geant getgain(int id){
+    geant gain,sgain;
+    GETRMURSG(_lambda[(id<=0?0:1)+2*_address],_scale[(id<=0?0:1)+2*_address],gain,sgain);
+    return gain;
+  }
+
   inline geant getsped(int id){return _sig_ped[(id<=0?0:1)+2*_address];} 
-  inline geant getsgain(int id){return _scale[(id<=0?0:1)+2*_address]*
-			   sqrt(_lambda[(id<=0?0:1)+2*_address]);}
+  //  inline geant getsgain(int id){return _scale[(id<=0?0:1)+2*_address]*
+  //			   sqrt(_lambda[(id<=0?0:1)+2*_address]);}
+  inline geant getsgain(int id){
+    geant gain,sgain;
+    GETRMURSG(_lambda[(id<=0?0:1)+2*_address],_scale[(id<=0?0:1)+2*_address],gain,sgain);
+    return sgain;
+  }
+
+
   inline geant getthreshold(int id){return _threshold[(id<=0?0:1)+2*_address];}
   inline integer getboundary() {return _gain_mode_boundary[_address];}
   inline integer getstatus(){return _status[_address];}
-
-
-
 
 
 
@@ -132,13 +150,11 @@ public:
     // Get the total charge as mesured in the high gain mode
     // If the charge is to high, switch to low gain mode 
   }
-
-  // Get the response for a single p.e. 
-  geant simulate_single(){}
-  
-
   integer simulate_dark_current(){}
   */
+
+  geant simulate_single_pe(int mode);
+
 
   friend class AMSJob;
 
