@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.150 2003/05/06 18:11:17 alexei Exp $
+# $Id: RemoteClient.pm,v 1.151 2003/05/07 07:14:51 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -785,14 +785,12 @@ sub ValidateRuns {
         die "ValidateRuns -F- Unable To Connect To Server";
     }
 #
-    $sql="SELECT myvalue FROM Environment WHERE mykey='ValidationDirPath'";
-    $ret = $self->{sqlserver}->Query($sql);
-    if (not defined $ret->[0][0]) {
-       die " failed - $sql \n";
-    } else {
-        $vdir = $ret->[0][0];
-    }
+    $vdir=$self->getValidationDir();
+    if (not defined $vdir) {
+      die " ValidateRuns -F- cannot get path to ValidationDir \n";
+     }
     $vlog = $vdir."/validateRuns.log.".$timenow;   
+
     open(FILE,">".$vlog) or die "Unable to open file $vlog\n";
 
     
@@ -988,7 +986,7 @@ sub ValidateRuns {
           foreach my $ntuple (@cpntuples) {
            my $cmd="rm -i $ntuple";
            system($cmd);
-           $warn = "Validation done : system command rm -i $ntuple \n";
+           $warn = "Validation done : $cmd \n";
            print FILE $warn;
            htmlText($warn," ");
          }
@@ -1001,7 +999,7 @@ sub ValidateRuns {
                $status='Unchecked';
                foreach my $ntuple (@mvntuples) {
                 my $cmd = "rm -i $ntuple";
-                $warn="Validation failed : system command rm -i $ntuple\n";
+                $warn="Validation failed : $cmd \n";
                 print FILE $warn;
                 htmlText($warn," ");
                 system($cmd);
@@ -1538,7 +1536,7 @@ sub Connect{
          $dataset = $desc[$q->param("QTempDataset")];
          $dataset = trimblanks($dataset);
          my $sdataset = $dataset;
-         my $sdataset =~ s/ /\%/g;
+         $sdataset =~ s/ /\%/g;
          $sql = $sql." jobname like '%$sdataset%' AND ";
          print "<tr><td><font size=\"3\" color=\"red\"><b>Job Dataset :</b></td><td><b> $dataset</b></td></tr>\n";
         }
@@ -4612,8 +4610,7 @@ sub checkJobsTimeout {
        my $deletetime = localtime($timenow+60*60);
        my $sujet = "Job : $jid - expired";
        my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. 
-                         \n Job will be removed from database.
-                         \n Not earlier than  : $deletetime.
+                         \n Job will be removed from database (Not earlier than  : $deletetime).
                          \n MC Production Team.";
         $self->sendmailmessage($address,$sujet,$message);
 
@@ -5099,7 +5096,7 @@ sub listCites {
                      Jobs.jid=Runs.jid AND cid=$cid AND 
                      (Runs.Status = 'Finished' OR 
                       Runs.Status = 'Completed')";
-          my $r4=$self->{sqlserver}->Query($sql);
+          $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsc = $r4->[0][0]};
 
 
@@ -5109,7 +5106,7 @@ sub listCites {
                      (Runs.Status = 'Failed' OR 
                       Runs.Status = 'TimeOut' OR 
                       Runs.Status = 'Unchecked')";
-          my $r4=$self->{sqlserver}->Query($sql);
+          $r4=$self->{sqlserver}->Query($sql);
           if (defined $r4->[0][0]) {$jobsf = $r4->[0][0]};
 
           print "<tr><font size=\"2\">\n";
@@ -6137,6 +6134,9 @@ foreach my $block (@blocks) {
                    WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
+     $sql = "UPDATE Runs SET LEVENT=$runincomplete[4] WHERE run=$run";
+     $self->{sqlserver}->Update($sql);
+     print FILE "$sql \n";
     }
    } else {
        print FILE "parseJournalFile -W- RunIncomplete - cannot find all patterns \n";
@@ -6484,20 +6484,19 @@ foreach my $block (@blocks) {
        $patternsmatched == $#RunFinishedPatterns) { #RunFinsihed has a pair CInfo
     $runfinished[0] = "RunFinished";
     $runfinishedR   = 1;
-    my $sql = "SELECT run FROM runs WHERE run = $run AND levent=$runfinished[3]";
-    my $ret = $self->{sqlserver}->Query($sql);
-    if (not defined $ret->[0][0]) {
-     my $cputime = sprintf("%.0f",$runfinished[6]);
-     my $elapsed = sprintf("%.0f",$runfinished[7]);
-     $sql = "update jobs set events=$runfinished[3], errors=$runfinished[5], 
+    $sql = "UPDATE Runs SET LEVENT=$runfinished[4] WHERE run=$run";
+    print FILE "$sql \n";
+    $self-{sqlserver}->Update($sql);
+    my $cputime = sprintf("%.0f",$runfinished[6]);
+    my $elapsed = sprintf("%.0f",$runfinished[7]);
+    $sql = "update jobs set events=$runfinished[3], errors=$runfinished[5], 
                                    cputime=$cputime, elapsed=$elapsed,
                                    host='$runfinished[1]',timestamp = $timestamp 
                                where jid = (select runs.jid from runs where runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
-    }
    } else {
-       print FILE "parseJournalFile -W- RunFinished - cannot find all patterns $patternsmatched/$#RunFinishedPatterns\n";
+     print FILE "parseJournalFile -W- RunFinished - cannot find all patterns $patternsmatched/$#RunFinishedPatterns\n";
    }
    #
    # end RunFinished
@@ -6680,15 +6679,28 @@ sub deleteTimeOutJobs {
 
     my $self = shift;
 
-    $self->htmlTop();
+    my $vdir = undef;
+    my $vlog = undef;
+    my $timenow = time();
 
+#
     if( not $self->Init()){
         die "deleteTimeoutJobs -F- Unable To Init";
-#        
     }
     if (not $self->ServerConnect()){
         die "deleteTimeOutJobs -F- Unable To Connect To Server";
     }
+#
+    $vdir=$self->getValidationDir();
+    if (not defined $vdir) {
+      die " deleteTimeOurJobs -F- cannot get path to ValidationDir \n";
+     }
+    $vlog = $vdir."/deleteTimeOutJobs.log.".$timenow;   
+
+    open(FILE,">".$vlog) or die "Unable to open file $vlog\n";
+#
+    $self->htmlTop();
+
 # get list of runs from Server
     if( not defined $self->{dbserver}->{rtb}){
       DBServer::InitDBFile($self->{dbserver});
@@ -6729,9 +6741,11 @@ sub deleteTimeOutJobs {
             $self->{sqlserver}->Update($sql);
             $sql = "DELETE Jobs WHERE jid=$jid";
             $self->{sqlserver}->Update($sql);
+            print FILE "$sql \n";
             foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
              if($runinfo->{Run}=$jid) {
               DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
+              print FILE "send Delete to DBServer, run=$runinfo->{Run}\n";
               last;
              }
             }
@@ -6793,10 +6807,11 @@ sub deleteTimeOutJobs {
             $self->{sqlserver}->Update($sql);
             $sql = "DELETE Jobs WHERE jid=$jid";
             $self->{sqlserver}->Update($sql);
-
+            print FILE "$sql \n";
             foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
              if($runinfo->{Run}=$jid) {
               DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
+              print FILE "send Delete to DBServer, run=$runinfo->{Run}\n";
               last;
              }
          }
@@ -6817,6 +6832,7 @@ sub deleteTimeOutJobs {
 
     htmlTableEnd();
     $self->htmlBottom();
+    close FILE;
 }
 
 sub insertRun {
@@ -6869,4 +6885,16 @@ sub insertRun {
         $self->{sqlserver}->Update($sql);
         print "$sql \n";
    }
+}
+
+sub getValidationDir {
+    my $self = shift;
+    my $dir  = undef;
+
+    my $sql="SELECT myvalue FROM Environment WHERE mykey='ValidationDirPath'";
+    my $ret = $self->{sqlserver}->Query($sql);
+    if (defined $ret->[0][0]) {
+        $dir = $ret->[0][0];
+    }
+    return $dir;
 }
