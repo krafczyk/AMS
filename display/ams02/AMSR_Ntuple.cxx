@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.11 2001/08/05 22:43:54 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.12 2001/08/06 15:59:23 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -408,7 +408,7 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("Lvl3eloss", m_BlkLvl3->Lvl3eloss, "Lvl3eloss[nlvl3]/F");
 
    m_Tree->Branch("nlvl1", &m_BlkLvl1->nlvl1, "nlvl1/I");
-   m_Tree->Branch("Lvl1lifetime", m_BlkLvl1->mode, "lvl1lifetime[nlvl1]/I");
+   m_Tree->Branch("Lvl1lifetime", m_BlkLvl1->mode, "mode[nlvl1]/I");
 
    m_Tree->Branch("Lvl1tofflag", m_BlkLvl1->Lvl1tofflag, "Lvl1flag[nlvl1]/I");
    m_Tree->Branch("Lvl1tofpatt", m_BlkLvl1->Lvl1tofpatt, "Lvl1tofpatt[nlvl1][4]/I");
