@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.16 2002/07/03 21:12:05 schol Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.17 2002/07/16 05:59:07 kscholbe Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -134,7 +134,8 @@ struct PARTICLE_DEF {
    float coorich[NPART][2][3];
    float pathrich[NPART][2];
    float pathbetarich[NPART][2];
-  float lengthrich[NPART][2];
+   float lengthrich[NPART][2];
+   float trdlikelihood[NPART];
 };
 #define blkParticle COMMON_BLOCK(PARTICLE,particle)
 COMMON_BLOCK_DEF(PARTICLE_DEF,blkParticle);
