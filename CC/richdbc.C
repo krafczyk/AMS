@@ -1,6 +1,7 @@
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
+#include<mceventg.h>
 #include<iostream.h>
 
 // defaults
@@ -233,3 +234,23 @@ integer RICHDB::detcer(geant photen)
 //  return 1;
 //}
 
+
+geant RICHDB::max_step(){
+  AMSmceventg dummy(GCKINE.ikine,0.,AMSPoint(),AMSDir());
+  number charge=dummy.getcharge();
+
+#ifdef __AMSDEBUG__
+  cout<< "Particle Id "<<GCKINE.ikine << endl
+      << "Charge "<< charge <<endl;
+#endif
+
+  if(charge==0) return 1000.;
+  geant dndl=370*(1-1/RICHDB::rad_index/RICHDB::rad_index)*
+        197.327*6.28*(1/RICHDB::wave_length[RICmaxentries-1]
+	-1/RICHDB::wave_length[0])*charge*charge;
+  geant max=RICmaxphotons/dndl;
+#ifdef __AMSDEBUG__
+  cout << "Max step "<<max<<" cm"<<endl;
+#endif
+  return max;
+}

@@ -32,6 +32,7 @@ const integer RICentries=44;   // no. of entries in wave_length,eff...
 const integer RICmaxpmts=2000; // max no. of pmts
 const integer RICnwindows=16;  // Number of windows for pmt
 const integer RIChistos=30000; // Starting point for RICH histos 
+const integer RICmaxphotons=200; //Max mean number of photons generated
 
 // Particle types
 
@@ -125,6 +126,7 @@ public:
   static geant lg_mirror_angle(integer);
   static geant lg_mirror_pos(integer);
   static integer detcer(geant);
+  static geant max_step();
 };
 
 #endif

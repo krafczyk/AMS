@@ -489,8 +489,8 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
     }
 
 // Radiator
-  
-  AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH RAD","RICH_AEROGEL",1));   //32
+  AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH RAD",
+         "RICH_AEROGEL",1,'N',0,1,5,10,RICHDB::max_step()));   //32
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index,RICHDB::rad_clarity);
   
 // PMT window
