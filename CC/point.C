@@ -1,4 +1,4 @@
-//  $Id: point.C,v 1.6 2001/01/22 17:32:21 choutko Exp $
+//  $Id: point.C,v 1.7 2001/04/27 21:49:59 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <typedefs.h>
@@ -45,5 +45,11 @@ AMSDir AMSDir::cross(const AMSDir & o){
  number y=_z*o._x-_x*o._z;
  number z=_x*o._y-_y*o._x;
  return AMSDir(x,y,z);
+}
+AMSPoint AMSPoint::crossp(const AMSPoint & o){
+ number x=_y*o._z-_z*o._y;
+ number y=_z*o._x-_x*o._z;
+ number z=_x*o._y-_y*o._x;
+ return AMSPoint(x,y,z);
 }
 

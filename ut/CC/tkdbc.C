@@ -1,4 +1,4 @@
-//  $Id: tkdbc.C,v 1.29 2001/01/22 17:32:21 choutko Exp $
+//  $Id: tkdbc.C,v 1.30 2001/04/27 21:49:59 choutko Exp $
 #include <tkdbc.h>
 #include <amsdbc.h>
 #include <astring.h>
@@ -427,7 +427,7 @@ const number  support_hc_z[_nlay]={-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-1.
          //ams02
          if(_patpoints[cpat]>4)_patallow[cpat]=1;
          else _patallow[cpat]=0;
-         if(_patpoints[cpat]>3)_patallow2[cpat]=1;
+         if(_patpoints[cpat]>4)_patallow2[cpat]=1;
          else _patallow2[cpat]=0;
       }
 
@@ -1122,7 +1122,7 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
          //ams02
          if(_patpoints[cpat]>4)_patallow[cpat]=1;
          else _patallow[cpat]=0;
-         if(_patpoints[cpat]>3)_patallow2[cpat]=1;
+         if(_patpoints[cpat]>4)_patallow2[cpat]=1;
          else _patallow2[cpat]=0;
       }
 
@@ -1189,9 +1189,11 @@ const number  support_hc_z[_nlay]={-3.052,-1.477,-1.477,-1.477,-1.477,-1.477,-1.
      cerr <<" AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
       exit(1);
    }
-
-  
-    cout <<"AMSTKDBc::init-I-PatternsInitialized "<<_Npat<<endl;
+    int allow=0;
+    for(int i=0;i<npat();i++){
+      if(patallow(i))allow++;
+    }  
+    cout <<"AMSTKDBc::init-I-PatternsInitialized/Allowed "<<_Npat<<"/"<<allow<<endl;
     #ifdef __AMSDEBUG__
        int cpat,ilay;
       for(cpat=0;cpat<nlay();cpat++)cout<<"_patd["<<cpat<<"] "<<_patd[cpat]<<endl; 
@@ -2777,6 +2779,16 @@ void TKDBc::InitPattern(){
        }
      }
    }
+#ifdef __AMSDEBUG__
+      for (int cpat=0;cpat<npat();cpat++){
+        cout <<" cpat "<<cpat<<" "<<_patpoints[cpat]<<endl;
+        for(int k=0;k<nlay();k++)cout <<" " <<_patconf[k][cpat];       
+        cout <<endl;
+        for(int k=0;k<nlay();k++)cout <<" " <<_patmiss[k][cpat];       
+        cout <<endl;
+      }
+#endif
+
 }
 
 

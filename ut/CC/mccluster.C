@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.43 2001/03/06 16:37:02 choumilo Exp $
+//  $Id: mccluster.C,v 1.44 2001/04/27 21:49:59 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -26,12 +26,17 @@ integer idsoft , geant vect[],geant edep, geant ekin, geant step, integer itra )
 
 
         AMSPoint xgl(vect[0],vect[1],vect[2]);
+        AMSDir xvec(vect[3],vect[4],vect[5]);
       AMSEvent::gethead()->addnext(AMSID("AMSTRDMCCluster",0),
-      new AMSTRDMCCluster(idsoft,xgl,ekin,edep,itra));
+      new AMSTRDMCCluster(idsoft,xgl,xvec,step,ekin,edep,itra));
 
 
 
 }
+
+void AMSTRDMCCluster::sitrdnoise(){
+}
+
 
 void AMSTRDMCCluster::_writeEl(){
   TRDMCClusterNtuple* TRDMCClusterN = AMSJob::gethead()->getntuple()->Get_trdclmc();
@@ -48,6 +53,7 @@ void AMSTRDMCCluster::_writeEl(){
     TRDMCClusterN->Ekin[TRDMCClusterN->Ntrdclmc]=_ekin;
     TRDMCClusterN->TrackNo[TRDMCClusterN->Ntrdclmc]=_itra;
     for(int i=0;i<3;i++)TRDMCClusterN->Xgl[TRDMCClusterN->Ntrdclmc][i]=_xgl[i];
+    TRDMCClusterN->Step[TRDMCClusterN->Ntrdclmc]=_step;
     TRDMCClusterN->Ntrdclmc++;
 }   
 }
@@ -324,6 +330,23 @@ void AMSTrMCCluster::_writeEl(){
     for(i=0;i<3;i++)TrMCClusterN->Xcb[TrMCClusterN->Ntrclmc][i]=_xcb[i];
     for(i=0;i<3;i++)TrMCClusterN->Xgl[TrMCClusterN->Ntrclmc][i]=_xgl[i];
     TrMCClusterN->Sum[TrMCClusterN->Ntrclmc]=_sum;
+/*
+    cout <<" *** start *** "<<getpos()<<endl;
+    cout <<TrMCClusterN->Idsoft[TrMCClusterN->Ntrclmc]<<" " <<_idsoft<<endl;
+    cout <<TrMCClusterN->TrackNo[TrMCClusterN->Ntrclmc]<<" " <<_itra<<endl;
+    for(i=0;i<2;i++)cout <<TrMCClusterN->Left[TrMCClusterN->Ntrclmc][i]<<" " <<_left[i]<<endl;
+    for(i=0;i<2;i++)cout <<TrMCClusterN->Center[TrMCClusterN->Ntrclmc][i]<<" " <<_center[i]<<endl;
+    for(i=0;i<2;i++)cout <<TrMCClusterN->Right[TrMCClusterN->Ntrclmc][i]<<" " <<_right[i]<<endl;
+    for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][0]<<" " <<_ss[i][0]<<endl;
+    for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][1]<<" " <<_ss[i][1]<<endl;
+    for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][2]<<" " <<_ss[i][2]<<endl;
+    for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][3]<<" " <<_ss[i][3]<<endl;
+    for(i=0;i<2;i++)cout <<TrMCClusterN->SS[TrMCClusterN->Ntrclmc][i][4]<<" " <<_ss[i][4]<<endl;
+    for(i=0;i<3;i++)cout <<TrMCClusterN->Xca[TrMCClusterN->Ntrclmc][i]<<" " <<_xca[i]<<endl;
+    for(i=0;i<3;i++)cout <<TrMCClusterN->Xcb[TrMCClusterN->Ntrclmc][i]<<" " <<_xcb[i]<<endl;
+    for(i=0;i<3;i++)cout <<TrMCClusterN->Xgl[TrMCClusterN->Ntrclmc][i]<<" " <<_xgl[i]<<endl;
+    cout <<TrMCClusterN->Sum[TrMCClusterN->Ntrclmc]<<" " <<_sum<<endl;
+*/
     TrMCClusterN->Ntrclmc++;
   }
 

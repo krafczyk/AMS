@@ -1,4 +1,4 @@
-//  $Id: mccluster.h,v 1.28 2001/03/06 16:37:05 choumilo Exp $
+//  $Id: mccluster.h,v 1.29 2001/04/27 21:50:33 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // June 12, 1996. ak. add set/getnumbers function to AMSTrMCCluster
@@ -260,8 +260,14 @@ public:
  AMSTrMCCluster
  (AMSPoint xgl, integer itra):
   _idsoft(0),_xca(0,0,0),_xcb(0,0,0),_xgl(xgl),_sum(0),_itra(itra)
- {_next=0;}
-
+ {_next=0;
+   for(int i=0;i<2;i++){
+    _left[i]=0;
+    _center[i]=0;
+    _right[i]=0;
+    for(int k=0;k<5;k++)_ss[i][k]=0;
+   }
+  }
  AMSTrMCCluster(){_next=0;};
  ~AMSTrMCCluster(){};
   AMSTrIdGeom getid();
@@ -317,6 +323,7 @@ protected:
  AMSTRDIdGeom _idsoft;   // geant stray id
  integer _itra;     // geant itra
  AMSPoint _xgl;     // global coo (cm)
+ number _step;      // track length (cm)
  number   _edep;      // energy deposition (GeV)
  number   _ekin;      // total particle energy
  void _printEl(ostream & stream);
@@ -325,27 +332,28 @@ protected:
  static integer _NoiseMarker;
  static integer Out(integer);
 public:
- // Constructor for noise &crosstalk
- AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra):AMSlink(){};
+ // Constructor for noise and crosstalk
+ AMSTRDMCCluster(const AMSTRDIdGeom & id ,geant energy, integer itra):AMSlink(),_idsoft(id),_xgl(0,0,0),_step(0),_edep(energy),_itra(itra),_ekin(0){};
  // Constructor for geant track
- AMSTRDMCCluster(integer idsoft , AMSPoint xgl, geant energy, geant edep, integer itra):AMSlink(),
-_idsoft(idsoft),_ekin(energy),_edep(edep),_itra(itra),_xgl(xgl){}
+ AMSTRDMCCluster(integer idsoft , AMSPoint xgl, AMSDir xdir, geant step,geant energy, geant edep, integer itra):AMSlink(),
+_idsoft(idsoft),_ekin(energy),_edep(edep),_itra(itra),_step(step),_xgl(xgl){}
 
  static void    sitrdhits(integer idsoft ,geant vect[],
         geant destep, geant ekin, geant step,integer ipart);   
 
  // Constructor for daq
  AMSTRDMCCluster (AMSPoint xgl, integer itra): AMSlink(),
-  _idsoft(0),_xgl(xgl),_edep(0),_ekin(0),_itra(itra){}
+  _idsoft(0),_xgl(xgl),_edep(0),_ekin(0),_step(0),_itra(itra){}
 
  AMSTRDMCCluster():AMSlink(){};
  ~AMSTRDMCCluster(){};
   integer IsNoise(){return _itra==_NoiseMarker;}
   AMSPoint getHit(){return _xgl;}
   static integer noisemarker(){return _NoiseMarker;}
-  
+  geant getedep()const {return _edep;}
+  AMSTRDIdGeom getid()const {return _idsoft;}
   AMSTRDMCCluster *  next(){return (AMSTRDMCCluster*)_next;}
- static void sitrdnoise(){};
+ static void sitrdnoise();
  static void init();
  integer operator < (AMSlink & o)const{
  return _idsoft.cmpt() < (((AMSTRDMCCluster*)(&o)) ->_idsoft).cmpt();}

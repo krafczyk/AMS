@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.8 2001/04/01 19:32:07 kscholbe Exp $
+//  $Id: trddbc.h,v 1.9 2001/04/27 21:50:33 choutko Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -12,6 +12,8 @@ const uinteger maxo=9;
 const uinteger mtrdo=1;   
 const uinteger maxbulk=6;
 const uinteger maxlay=20;
+const uinteger maxseg=5;
+const uinteger maxhits=12;
 const uinteger maxlad=18;
 const uinteger maxco=2;
 const uinteger maxtube=16;
@@ -91,10 +93,73 @@ private:
   static uinteger _check(uinteger oct, uinteger layer=0,
   uinteger ladder=0,uinteger tube=0);
 
+
+  // Track Reconstruction
+
+ static integer * _patconf[trdconst::maxlay];
+ static integer * _patpoints;
+ static integer * _patmiss[trdconst::maxlay];
+ static integer   _patd[trdconst::maxlay]; 
+ static integer * _patallow;
+ static integer * _patallow2;
+ static uinteger _Npat;
+
+
+ static integer    _oriseg[trdconst::maxseg];
+ static integer * _patconfS[trdconst::maxseg];
+ static integer * _patpointsS;
+ static integer * _patmissS[trdconst::maxseg];
+ static integer   _patdS[trdconst::maxseg]; 
+ static integer * _patallowS;
+ static integer * _patallow2S;
+ static uinteger _NpatS;
+ static integer  _segconf[trdconst::maxseg][trdconst::maxhits];
+ static integer  _segpoints[trdconst::maxseg];
+ static uinteger _Nseg;
+ static integer * _patconfH[trdconst::maxseg][trdconst::maxhits];
+ static integer * _patpointsH[trdconst::maxseg];
+ static integer * _patmissH[trdconst::maxseg][trdconst::maxhits];
+ static integer   _patdH[trdconst::maxseg][trdconst::maxhits]; 
+ static integer * _patallowH[trdconst::maxseg];
+ static integer * _patallow2H[trdconst::maxseg];
+ static uinteger _NlayH[trdconst::maxseg];
+ static uinteger _NpatH[trdconst::maxseg];
+
 public:
+  static integer oriseg(uinteger lay){return _oriseg[lay];}
+  static integer patmiss(uinteger pat, uinteger lay){return _patmiss[lay][pat];}
+  static integer patconf(uinteger pat, uinteger lay){return _patconf[lay][pat];}
+  static integer patd(uinteger lay){return _patd[lay];}
+  static integer patallow(uinteger pat){return pat<_Npat?_patallow[pat]:-1;}
+  static integer patpoints(uinteger pat){return pat<_Npat?_patpoints[pat]:-1;}
+  static uinteger npat(){return _Npat;}
+  static uinteger Cnk(uinteger n,uinteger k);
+
+  static integer patmissS(uinteger pat, uinteger lay){return _patmissS[lay][pat];}
+  static integer patconfS(uinteger pat, uinteger lay){return _patconfS[lay][pat];}
+  static integer patdS(uinteger lay){return _patdS[lay];}
+  static integer patallowS(uinteger pat){return pat<_NpatS?_patallowS[pat]:-1;}
+  static integer patallow2S(uinteger pat){return pat<_NpatS?_patallow2S[pat]:-1;}
+  static integer patpointsS(uinteger pat){return pat<_NpatS?_patpointsS[pat]:-1;}
+  static uinteger npatS(){return _NpatS;}
+
+  static integer segconf(uinteger seg, uinteger lay){return _segconf[seg][lay];}
+  static integer segpoints(uinteger seg){return seg<_Nseg?_segpoints[seg]:-1;}
+
+  static uinteger nlayS(){return _Nseg;}
+
+  static integer patmissH(uinteger pat, uinteger lay,uinteger seg){return _patmissH[seg][lay][pat];}
+  static integer patconfH(uinteger pat, uinteger lay,uinteger seg){return segconf(seg,_patconfH[seg][lay][pat]-1);}
+  static integer patdH(uinteger lay,uinteger seg){return _patdH[seg][lay];}
+  static integer npatH(uinteger iseg){return iseg<trdconst::maxseg?_NpatH[iseg]:0;}
+  static uinteger patallowH(uinteger pat,uinteger seg){return pat<npatH(seg)?_patallowH[seg][pat]:0;}
+  static uinteger patallow2H(uinteger pat,uinteger seg){return pat<npatH(seg)?_patallow2H[seg][pat]:0;}
+  static uinteger patpointsH(uinteger pat,uinteger seg){return pat<npatH(seg)?_patpointsH[seg][pat]:0;}
+  static uinteger nlayH(uinteger iseg){return iseg<trdconst::maxseg?_NlayH[iseg]:0;}
 
   TRDDBc(): _status(0){}
    static void init( );
+   static void InitPattern();
    static void read();
    static void write();
    static char* CodeLad(uinteger gid); 
@@ -210,7 +275,7 @@ public:
    static char* TubesBoxMedia(){return _TubesBoxMedia;}
    static char* LaddersMedia(){return _OctagonMedia[_NoTRDOctagons[0]];}
    static char* CutoutsMedia(){return _CutoutsMedia;}
-
+   static uinteger nlay(){return trdconst::maxlay;}
 
 
   

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.71 2001/03/09 16:42:24 choutko Exp $
+//  $Id: ntuple.C,v 1.72 2001/04/27 21:49:59 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -104,21 +104,33 @@ else{
 // -----> Station :
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EcalClusters[0,50]:I,EcalHits[0,500]:I,"
-"RICMCClusters[0,10000]:I,RICHits[0,10000]:I,EventStatus(2):I"); //CJM
+"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,EcalClusters[0,50]:I,EcalHits[0,500]:I,"
+"RICMCClusters[0,10000]:I,RICHits[0,10000]:I,TRDRawHits[0,2000]:I,TRDClusters[0,1000]:I,TRDSegments[0,500]:I,TRDTracks[0,255]:I,EventStatus(2):I"); 
 
   HBNAME(_lun,"Beta",&_beta02.Nbeta,
-      "nbeta[0,100],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
+      "nbeta[0,50],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
 
   HBNAME(_lun,"Charge",&_charge02.Ncharge,
-    "ncharge[0,100],chargestatus(ncharge):I,chargebetap(ncharge)[-1,30000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,probtof(4,ncharge),chintof(4,ncharge)[0,100]:I,probtracker(4,ncharge),chintracker(4,ncharge)[0,100]:I,proballtracker(ncharge),truntof(ncharge),truntofd(ncharge),truntracker(ncharge)");
+    "ncharge[0,30],chargestatus(ncharge):I,chargebetap(ncharge)[-1,30000]:I,chargetof(ncharge)[0,100]:I,chargetracker(ncharge)[0,100]:I,probtof(4,ncharge),chintof(4,ncharge)[0,100]:I,probtracker(4,ncharge),chintracker(4,ncharge)[0,100]:I,proballtracker(ncharge),truntof(ncharge),truntofd(ncharge),truntracker(ncharge)");
 
   HBNAME(_lun,"TRDMCCl",&_trdclmc.Ntrdclmc,
-  "ntrdmccl[0,200],trdlayer(ntrdmccl)[0,20]:I,trdladder(ntrdmccl)[0,40]:I,trdtube(ntrdmccl)[0,100]:I,trdtrack(ntrdmccl)[0,1000]:I,trdedep(ntrdmccl),trdekin(ntrdmccl),trdxgl(3,ntrdmccl)");
+  "ntrdmccl[0,200],trdlayermc(ntrdmccl)[0,20]:I,trdladdermc(ntrdmccl)[0,40]:I,trdtubemc(ntrdmccl)[0,100]:I,trdtrackmc(ntrdmccl)[0,1000]:I,trdedepmc(ntrdmccl),trdekinmc(ntrdmccl),trdxglmc(3,ntrdmccl),trdstepmc(ntrdmccl)");
+
+  HBNAME(_lun,"TRDRHT",&_trdht.Ntrdht,
+  "ntrdht[0,200],trdidht(ntrdht):I,trdampht(ntrdht)");
+
+  HBNAME(_lun,"TRDSEG",&_trdseg.Ntrdseg,
+  "ntrdseg[0,100],trdsegstatus(ntrdseg):I,trdsegor(ntrdseg)[0,10]:I,trdsegfpar(2,ntrdseg),trdsegchi2(ntrdseg),trdsegpat(ntrdseg)[0,100]:I,trdsegnh(ntrdseg)[0,12]:I,trdsegpcl(12,ntrdseg):I");
+
+  HBNAME(_lun,"TRDTRK",&_trdtrk.Ntrdtrk,
+  "ntrdtrk[0,40],trdtrkstatus(ntrdtrk):I,trdtrkcoo(3,ntrdtrk),trdtrkercoo(3,ntrdtrk),trdtrkphi(ntrdtrk),trdtrktheta(ntrdtrk),trdtrkchi2(ntrdtrk),trdtrkns(ntrdtrk)[0:5]:I,trdtrkpat(ntrdtrk)[0:100]:I,trdtrkps(ntrdtrk):I");
+
+  HBNAME(_lun,"TRDClu",&_trdcl.Ntrdcl,
+  "ntrdcl[0,100],trdclstatus(ntrdcl):I,trdclcoo(3,ntrdcl),trdlayer(ntrdcl)[0,20]:I,trddir(3,ntrdcl),trdmul(ntrdcl)[0,31]:I,trdhmul(ntrdcl)[0,31]:I,trdedep(ntrdcl),ptrdrht(ntrdcl):I");
 
   HBNAME(_lun,"Particle",&_part02.Npart,
  
-"npart[0,50],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,18,npart),cootr(3,8,npart)");
+"npart[0,20],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,ptrdp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,18,npart),cootr(3,8,npart),cootrd(3,npart)");
 //
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
@@ -131,16 +143,12 @@ else{
 //
   HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
   "ntofmc[0,200],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");
-
   HBNAME(_lun,"TrCluste",&_trcl.Ntrcl, 
   "Ntrcl[0,200],Idsoft(ntrcl):I,Statust(ntrcl):I,NelemL(ntrcl)[-100,100]:I,NelemR(ntrcl)[0,100]:I,Sumt(ntrcl),Sigmat(ntrcl),Meant(ntrcl):R,RMSt(ntrcl),ErrorMeant(ntrcl),Amplitude(5,ntrcl):R");
-
   HBNAME(_lun,"TrMCClus",&_trclmc.Ntrclmc,
   "ntrclmc[0,200],IdsoftMC(ntrclmc),Itra(ntrclmc),Left(2,ntrclmc):I,Center(2,ntrclmc):I,Right(2,ntrclmc):I,ss(5,2,ntrclmc),xca(3,ntrclmc),xcb(3,ntrclmc),xgl(3,ntrclmc),summc(ntrclmc)");
-
   HBNAME(_lun,"TrRecHit",&_trrh02.Ntrrh,
   "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[0,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
-
   HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,
   "ntrtr[0,100],trstatus(ntrtr):I,pattern(ntrtr)[0,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvancedFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRidgidity(ntrtr),Chi2FastFit(ntrtr),Ridgidity(ntrtr),ErrRidgidity(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),gridgidity(ntrtr),gerrridgidity(ntrtr),gtheta(ntrtr),gphi(ntrtr),gp0(3,ntrtr),hchi2(2,ntrtr),HRidgidity(2,ntrtr),HErrRidgidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),ridgidityms(ntrtr),pirigidity(ntrtr)");
 
@@ -159,8 +167,6 @@ else{
 
   HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
  "nlvl1[0,2],LVL1LifeTime(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1)");
-
-
   HBNAME(_lun,"TrRawCl",&_trraw.Ntrraw,
   "ntrraw[0,300],rawaddress(ntrraw):I,rawlength(ntrraw)[-1,30000]:I,s2n(ntrraw):R");
 
@@ -169,7 +175,6 @@ else{
 
   HBNAME(_lun,"TOFRawCl",&_tofraw.Ntofraw,
   "ntofraw[0,20],tofrstatus(ntofraw):I,tofrplane(ntofraw)[0,7]:I,tofrbar(ntofraw)[0,31]:I,tofrtovta(2,ntofraw),tofrtovtd(2,ntofraw),tofrsdtm(2,ntofraw),tofreda(ntofraw),tofredd(ntofraw),tofrtm(ntofraw),tofrcoo(ntofraw)");
-
   HBNAME(_lun,"RICMCCl",&_richmc.NMC,
   	 "nsignals[0,300],sid(nsignals):I,"
   	 "origin(3,nsignals),direction(3,nsignals),RICstatus(nsignals):I,"
@@ -204,6 +209,10 @@ int sto=0;
     VZERO(&_trcl.Ntrcl,(sizeof(_trcl)-sto)/sizeof(integer));
     VZERO(&_trclmc.Ntrclmc,(sizeof(_trclmc)-sto)/sizeof(integer));
     VZERO(&_trdclmc.Ntrdclmc,(sizeof(_trdclmc)-sto)/sizeof(integer));
+    VZERO(&_trdcl.Ntrdcl,(sizeof(_trdcl)-sto)/sizeof(integer));
+    VZERO(&_trdht.Ntrdht,(sizeof(_trdht)-sto)/sizeof(integer));
+    VZERO(&_trdtrk.Ntrdtrk,(sizeof(_trdtrk)-sto)/sizeof(integer));
+    VZERO(&_trdseg.Ntrdseg,(sizeof(_trdseg)-sto)/sizeof(integer));
     VZERO(&_trrh.Ntrrh,(sizeof(_trrh)-sto)/sizeof(integer));
     VZERO(&_trrh02.Ntrrh,(sizeof(_trrh02)-sto)/sizeof(integer));
     VZERO(&_trtr.Ntrtr,(sizeof(_trtr)-sto)/sizeof(integer));
@@ -238,6 +247,10 @@ int sto=0;
    _tofmc.Ntofmc = 0;
    _trcl.Ntrcl = 0;
    _trdclmc.Ntrdclmc=0;
+   _trdcl.Ntrdcl=0;
+   _trdht.Ntrdht=0;
+   _trdtrk.Ntrdtrk=0;
+   _trdseg.Ntrdseg=0;
     VZERO(&_trclmc.Ntrclmc,(sizeof(_trclmc)-sto)/sizeof(integer));
    _trrh.Ntrrh = 0;
    _trrh02.Ntrrh = 0;
@@ -358,6 +371,14 @@ void AMSNtuple::initR(char* fname){
    TBranch *bd=_tree->Branch("trrh02", "TrRecHitNtuple02",  &pevd, 64000,1);
    static void *pevb=(void*)&_trdclmc;
    TBranch *bb=_tree->Branch("trdclmc", "TRDMCClusterNtuple",  &pevb, 64000,1);
+   static void *pevb1=(void*)&_trdcl;
+   TBranch *bb=_tree->Branch("trdcl", "TRDClusterNtuple",  &pevb1, 64000,1);
+   static void *pevb2=(void*)&_trdht;
+   TBranch *bb=_tree->Branch("trdht", "TRDRawHitNtuple",  &pevb2, 64000,1);
+   static void *pevb3=(void*)&_trdtrk;
+   TBranch *bb=_tree->Branch("trdtrk", "TRDTrackNtuple",  &pevb3, 64000,1);
+   static void *pevb4=(void*)&_trdseg;
+   TBranch *bb=_tree->Branch("trdseg", "TRDSegmentNtuple",  &pevb4, 64000,1);
    static void *pevf=(void*)&_trtr02;
    TBranch *bf=_tree->Branch("trtr02", "TrTrackNtuple02",  &pevf, 64000,1);
    static void *pevgg=(void*)&_mcg02;

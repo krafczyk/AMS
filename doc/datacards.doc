@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.189 2001/04/18 08:32:29 choumilo Exp $
+#  $Id: datacards.doc,v 1.190 2001/04/27 21:50:32 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -442,6 +442,7 @@ I64  ForceAdvencedFit(1)    // Force(1) or not advanced fit for all particles
 R65  ThrClA[2](0,0)         // mark trreccl good if ampl > ThrClA
 R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
 I69  MaxTrRecHitsPerLayer(50) // to try pattern rec
+I70  UseTRD(1)                    // Use(>=1 == Min No TOF clusters matched)/
 
 // Tracker fitting
 
@@ -680,7 +681,7 @@ I2 HISA(2)              // 0: record collision; 1:0+stop particle; 2:rqmd
 
 
 
-TRDMC
+TRDMC   
 I1 mode(1)        //0: saveliev-GenerTransportIoniz
                   //1: saveliev-GenerTransport  pai-Ioniz
                   //2: saveliev-Gener pai-TransportIoniz
@@ -689,6 +690,42 @@ I2 g3trd        // g3identifier for trd aware media
 R3 cor
 R4 alpha
 R5 beta
+R6   ped(500)       // pedestals 
+R7   sigma(6)       // sigma
+R8   gain(1)        //gain
+I9   f2i(8)         // float to int convertor in raw format
+I10   adcoverflow(4095)    // 12 bit adc 
+I11   NoiseOn(1)            // Generate(1) do not generate(0) noise in trd
+R12   GeV2ADC(1e8)
+R13   Thr1R(3.5)    // in sigmas
+
+
+TRDCL   // TRD clustering
+
+R1 ADC2KeV;         //
+R2 Thr1A(33)          // cluster threshold amp kev
+R3 Thr1S(0.11)           // cluster threshold sigma kev
+R4 Thr1R(6)           // cluster threshold ratio kev
+R5 Thr1H(5)           // cluster threshold high amp kev
+I6 MaxHitsInCluster(3)  //
+
+
+TRDREC   // TRD Segment Reconstruction
+
+R1 Chi2StrLine(3)     //  fit max chi2
+R2 ResCutStrLine(1)   // Max acc distance between point and fitted curve cm
+R3 SearchRegStrLine(3);  //  Max distance point/curve to include it the fit err
+
+
+TRDFIT  // TRD Fit & other
+
+R1 Chi2StrLine(3)     //  fit max chi2
+R2 ResCutStrLine(1)   // Max acc distance between point and fitted curve cm
+R3 SearchRegStrLine(3);  //  Max distance point/curve to include it the fit err
+I4 MinFitPoints(6);     // min number of hits in str/real fit
+R5 TwoSegMatch(0.05);  // max ang diff allowed while matching segments
+
+
 
 TIME (See geant3 manual)
 R1 time        // max time allowd for prog execution 
@@ -989,3 +1026,4 @@ R 3 ecutge (0.001)  // e/g ener.cut for tracking in magnet materials(Gev)
 //------------------------------------------------------------------------------
 
 	   
+

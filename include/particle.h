@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.27 2001/01/22 17:32:44 choutko Exp $
+//  $Id: particle.h,v 1.28 2001/04/27 21:50:33 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -19,7 +19,7 @@
 #include <beta.h>
 #include <charge.h>
 #include <ctc.h>
-
+#include <trdrec.h>
 class AntiMatter: public AMSlink{
 protected: 
  integer _pid;
@@ -37,6 +37,7 @@ protected:
   AMSBeta * _pbeta;          // pointer to beta 
   AMSCharge * _pcharge;      // pointer to charge
   AMSTrTrack * _ptrack;      // pointer to track;
+  AMSTRDTrack * _ptrd;       // pointer to trd track 
 
   integer _GPart;        // Geant particle ID
 
@@ -56,6 +57,7 @@ protected:
   AMSPoint _AntiCoo[2];  
   AMSPoint _EcalCoo[2*ECSLMX];  
   AMSPoint _TrCoo[trconst::maxlay];  
+  AMSPoint _TRDCoo;  
   number   _Local[trconst::maxlay];
 
 // new
@@ -87,7 +89,7 @@ static void alfun(integer & n, number xc[], number & fc, AMSParticle * ptr);
   number &mass, number &emass, number &mom, number &emom);
 public:
   AMSParticle *  next(){return (AMSParticle*)_next;}
-  AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0)
+  AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0),_ptrd(0)
  {
     int i;
     for(i=0;i<2;i++){
@@ -128,6 +130,7 @@ public:
   void toffit(); // TOF fit
   void antifit(); // Anti fit
   void ecalfit(); // Ecal fit
+  void trdfit(); //  trd fit
   void pid();   // particle identification
   void refit(int i=0); // refit if necessary;
   static integer build(integer refit=0);

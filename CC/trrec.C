@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.126 2001/02/12 10:32:37 choutko Exp $
+//  $Id: trrec.C,v 1.127 2001/04/27 21:49:59 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -23,7 +23,7 @@
 #include <trigger3.h>
 #include <tralig.h>
 #include <mccluster.h>
-
+#include <trdrec.h>
 
 
 
@@ -1327,7 +1327,7 @@ integer AMSTrTrack::build(integer refit){
   }
           integer       ThreePointNotWanted=0;
 
-  for (pat=0;pat<npat;pat++){
+  for (pat=0;pat<TKDBc::npat();pat++){
     if(TKDBc::patpoints(pat)==3 && ThreePointNotWanted)continue;
     if(TKDBc::patallow(pat)){
       int fp=TKDBc::patpoints(pat)-1;    
@@ -1399,7 +1399,7 @@ integer AMSTrTrack::buildWeak(integer refit){
   _Start();
    
 
-  for (pat=0;pat<npat;pat++){
+  for (pat=0;pat<TKDBc::npat();pat++){
     // Only 4 points patterns used
       int fp=TKDBc::patpoints(pat)-1;    
     if(TKDBc::patallow(pat) && fp<=TKDBc::nlay()-3){
@@ -1467,7 +1467,7 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
   _Start();
  AMSgObj::BookTimer.start("TrFalseX");
 
-  for (pat=0;pat<npat;pat++){
+  for (pat=0;pat<TKDBc::npat();pat++){
     if(TKDBc::patpoints(pat)<=nptmin && TKDBc::patallowFalseX(pat)){
       int fp=TKDBc::patpoints(pat)-1;    
       // Try to make StrLine Fit
@@ -1548,7 +1548,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trcon
       fabs(ptrack->_CircleRidgidity)>TRFITFFKEY.RidgidityMin ){
           
        if( (  (ptrack->Fit(0) < 
-            TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK()){
+            TRFITFFKEY.Chi2FastFit)) && ptrack->TOFOK() ){
          // permanently add;
 #ifdef __UPOOL__
           ptrack=new AMSTrTrack(track);
@@ -1753,6 +1753,24 @@ void AMSTrTrack::AdvancedFit(){
 }
 
 integer AMSTrTrack::TOFOK(){
+    if(TRFITFFKEY.UseTRD &&(TRFITFFKEY.UseTRD>1 || TKDBc::ambig(_Pattern) || 
+                              checkstatus(AMSDBc::FalseX) ||
+                              checkstatus(AMSDBc::FalseTOFX))){
+    AMSContainer *pc=AMSEvent::gethead()->getC("AMSTRDTrack",0);
+    if(pc){
+      AMSTRDTrack * ptrd = (AMSTRDTrack*)pc->gethead();
+      AMSPoint SearchReg(5,5,5);
+      while(ptrd){
+       AMSPoint Res;
+       number theta,phi,sleng;
+       interpolate(ptrd->getCooStr() ,AMSPoint(0,0,1), Res, theta, phi, sleng);
+       if( ((ptrd->getCooStr()-Res)/ptrd->getECooStr()).abs()< SearchReg){
+         return 1;
+       }
+       ptrd=ptrd->next();
+      }
+    }
+    }
     if (TRFITFFKEY.UseTOF && (TKDBc::ambig(_Pattern) || 
                               checkstatus(AMSDBc::FalseX) ||
                               checkstatus(AMSDBc::FalseTOFX))){
@@ -2376,7 +2394,7 @@ void AMSTrTrack::_copyEl(){
 
 
 void AMSTrTrack::print(){
-for(int i=0;i<npat;i++){
+for(int i=0;i<TKDBc::npat();i++){
  AMSContainer *p =AMSEvent::gethead()->getC("AMSTrTrack",i);
  if(p && TKDBc::patallow(i))p->printC(cout);
 }
@@ -2778,7 +2796,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
   }
           integer       ThreePointNotWanted=0;
 
-  for (pat=0;pat<npat;pat++){
+  for (pat=0;pat<TKDBc::npat();pat++){
     if(TKDBc::patallow(pat)){
     if(TKDBc::patpoints(pat)==3 && ThreePointNotWanted)continue;
       int fp=TKDBc::patpoints(pat)-1;    

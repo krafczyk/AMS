@@ -5,54 +5,42 @@
 if [ "$UNAME" = "AIX" ] ; then
    MACHINE="aix"
 elif [ "$UNAME" = "OSF1" ] ; then
-    MACHINE="DEC-cxx"
+    MACHINE="osf1"
 elif [ "$UNAME" = "HP-UX" ] ; then
     MACHINE="hpux"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="Linux-g++"
+    MACHINE="linux"
 else
 echo $UNAME is not supported yet
 
 fi
 
-
-ORDER=$1
-DELTA=$2
-UNIFORM=$3
-G4ON=$4
-$AMSWD/exe/$MACHINE/gbatch.exe <<!
+PMOM=$1
+../exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 14 
 MULS 1 
-C MSEL 1=0
 LOSS  1
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
-HADR 0 
-TRIG 4400
-DEBUG -1 10 1
-C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
-TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 
-C npars ims 
-  5     1   
+HADR 1 
+TRIG 1000300
+DEBUG -1 10 1000
 C          Nparticles 
-MCGEN  1=-1. 2=-1.  3=120. 4=-1. 5=-1. 6=120.
- 7=0. 8=0.   9=-1. 10=0. 11=0.
- 12=-1.  13=3. 14=3. 15=1 18=1 19=102004
-IOPA 1=3 2='prv3t.bk' 43=1 
-45='WriteAll       '
+MCGEN  1=-75. 2=-75. 3=150.  4=75. 5=75. 6=150. 
+  12=-0.7   
+   13=$PMOM 14=$PMOM 15=1 18=1 19=102004 20=4 
+IOPA 1=3 2='1.hbk' 43=1 
+45='AMSParticle '
 RNDM 191473093 131623257
 C      Simul Debug    CpuLim  Read Write Jobname
-AMSJOB 1=0   2=0      3=5.   4=0  5=0   46='AMS02' 
-L3REC 11=1
+AMSJOB 1=0   2=0      3=10.   4=0  5=0   46='AMS02' 
+C 87=88 88='EventStatus2Table' 
+L3REC 11=0
+TRMC 36=1
 TIME 3=10000000
 TERM 1=1234567890
-C TOFMC 13=1
-MISC 5=1
-C TKGEOM 1=0
-C G4FF $ORDER $DELTA $UNIFORM
-C G4FF 0 
-C G4FF 1=0 2=0.01 3=-1 
-G4FF  1=4  2=0.001 3=0 
+MISC 4=1 5=0
+G4FF  3=1 
 END
 
 !

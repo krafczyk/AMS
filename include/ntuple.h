@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.44 2001/03/09 16:41:17 choutko Exp $
+//  $Id: ntuple.h,v 1.45 2001/04/27 21:50:33 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -25,6 +25,10 @@ protected:
   TrClusterNtuple _trcl;
   TrMCClusterNtuple _trclmc;
   TRDMCClusterNtuple _trdclmc;
+  TRDClusterNtuple _trdcl;
+  TRDSegmentNtuple _trdseg;
+  TRDTrackNtuple _trdtrk;
+  TRDRawHitNtuple _trdht;
   TrRecHitNtuple _trrh;
   TrRecHitNtuple02 _trrh02;
   TrTrackNtuple _trtr;
@@ -80,6 +84,10 @@ public:
   TrClusterNtuple* Get_trcl() {return &_trcl;}
   TrMCClusterNtuple* Get_trclmc() {return &_trclmc;}
   TRDMCClusterNtuple* Get_trdclmc() {return &_trdclmc;}
+  TRDClusterNtuple* Get_trdcl() {return &_trdcl;}
+  TRDSegmentNtuple* Get_trdseg() {return &_trdseg;}
+  TRDTrackNtuple* Get_trdtrk() {return &_trdtrk;}
+  TRDRawHitNtuple* Get_trdht() {return &_trdht;}
   TrRecHitNtuple* Get_trrh() {return &_trrh;}
   TrRecHitNtuple02* Get_trrh02() {return &_trrh02;}
   TrTrackNtuple* Get_trtr() {return &_trtr;}

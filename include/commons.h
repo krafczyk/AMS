@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.153 2001/04/18 08:32:30 choumilo Exp $
+//  $Id: commons.h,v 1.154 2001/04/27 21:50:33 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -192,6 +192,7 @@ geant ecutge;    // e/g energy cut for tracking in magnet materials
 COMMON_BLOCK_DEF(MAGSFFKEY_DEF,MAGSFFKEY);
 //==============================================================
 
+
 class TRDMCFFKEY_DEF{
 public:
 integer mode; // 0: saveliev 1: saveliev+Pai 2: garibyan + Pai
@@ -199,9 +200,50 @@ integer g3trd;  // g3identifier for trd aware media
 float cor;     // saveliev parameter
 float alpha;    // garibyan pars
 float beta;    //  garibyan par
+geant ped;     
+geant sigma;
+geant gain;
+int   f2i;
+integer adcoverflow;
+integer NoiseOn;
+float GeV2ADC;
+float Thr1R;
 };
 #define TRDMCFFKEY COMMON_BLOCK(TRDMCFFKEY,trdmcffkey)
 COMMON_BLOCK_DEF(TRDMCFFKEY_DEF,TRDMCFFKEY);
+
+
+class TRDFITFFKEY_DEF{
+public:
+  float Chi2StrLine;     //  fit max chi2
+  float ResCutStrLine;   // Max acc distance between point and fitted curve 
+  float SearchRegStrLine;  
+  int MinFitPoints;
+  float TwoSegMatch;
+  float MaxSegAllowed; 
+};
+#define TRDFITFFKEY COMMON_BLOCK(TRDFITFFKEY,trdfitffkey)
+COMMON_BLOCK_DEF(TRDFITFFKEY_DEF,TRDFITFFKEY);
+
+class TRDRECFFKEY_DEF{
+public:
+  float Chi2StrLine;     //  fit max chi2
+  float ResCutStrLine;   // Max acc distance between point and fitted curve 
+  float SearchRegStrLine;  
+};
+#define TRDRECFFKEY COMMON_BLOCK(TRDRECFFKEY,trdrecffkey)
+COMMON_BLOCK_DEF(TRDRECFFKEY_DEF,TRDRECFFKEY);
+class TRDCLFFKEY_DEF{
+public:
+  float ADC2KeV;         //
+  float Thr1A;           // cluster threshold amp kev
+  float Thr1S;           // cluster threshold sigma kev
+  float Thr1R;           // cluster threshold ratio kev
+  float Thr1H;           // cluster threshold high amp kev
+  int   MaxHitsInCluster; 
+};
+#define TRDCLFFKEY COMMON_BLOCK(TRDCLFFKEY,trdclffkey)
+COMMON_BLOCK_DEF(TRDCLFFKEY_DEF,TRDCLFFKEY);
 
 
 //==================================================================
@@ -742,6 +784,7 @@ public:
   geant ThrClA[2];
   geant ThrClR[2];
   integer MaxTrRecHitsPerLayer;
+  integer UseTRD;     // Use(>=1)/Not use(0) 
 };
 //
 
@@ -975,6 +1018,11 @@ COMMON_BLOCK_DEF(PRODFFKEY_DEF,PRODFFKEY);
 
 
 
+
+
+
+
+
 class AMSCommonsI{
 private:
  static integer _Count;
@@ -993,4 +1041,8 @@ static AMSCommonsI cmnI;
 
 
 
+
+
+
 #endif
+

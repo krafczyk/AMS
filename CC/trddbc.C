@@ -1,7 +1,8 @@
-//  $Id: trddbc.C,v 1.15 2001/04/01 19:31:42 kscholbe Exp $
+//  $Id: trddbc.C,v 1.16 2001/04/27 21:49:59 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
+#include <tkdbc.h>
 using namespace trdconst;
 char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 "TRDCarbonFiber","TRDCarbonFiber","TRDCarbonFiber","TRDHC","TRDHC",
@@ -891,8 +892,690 @@ void TRDDBc::init(){
         }
        }
       }
+      InitPattern();
 }
 
+
+
+ integer * TRDDBc::_patconf[trdconst::maxlay];
+ integer * TRDDBc::_patpoints;
+ integer * TRDDBc::_patmiss[trdconst::maxlay];
+ integer   TRDDBc::_patd[trdconst::maxlay]; 
+ integer * TRDDBc::_patallow;
+ integer * TRDDBc::_patallow2;
+ uinteger TRDDBc::_Npat=0;
+
+ integer  TRDDBc::_segconf[trdconst::maxseg][trdconst::maxhits]={
+  1, 2, 3, 4, 0,0,0,0,0,0,0,0,
+  5, 6, 7, 8, 9,10,0,0,0,0,0,0,
+ 11,12,13,14,15,16,0,0,0,0,0,0,
+ 17,18,19,20,0,0,0,0,0,0,0,0
+};
+ integer  TRDDBc::_oriseg[trdconst::maxseg]={0,1,0.0,0};
+ uinteger TRDDBc::_Nseg=4;
+ uinteger TRDDBc::_NlayH[trdconst::maxseg]={4,6,6,4,0};
+
+/*
+ uinteger TRDDBc::_Nseg=3;
+ uinteger TRDDBc::_NlayH[trdconst::maxseg]={4,12,4,0,0};
+ integer  TRDDBc::_segconf[trdconst::maxseg][trdconst::maxhits]={
+  1, 2, 3, 4, 0,0,0,0,0,0,0,0,
+  5, 6, 7, 8, 9,10,11,12,13,14,15,16,
+ 17,18,19,20,0,0,0,0,0,0,0,0
+};
+ integer  TRDDBc::_oriseg[trdconst::maxseg]={0,1,1,0,0};
+*/
+
+
+ integer  TRDDBc::_segpoints[trdconst::maxseg];
+
+ integer * TRDDBc::_patconfS[trdconst::maxseg];
+ integer * TRDDBc::_patpointsS;
+ integer * TRDDBc::_patmissS[trdconst::maxseg];
+ integer   TRDDBc::_patdS[trdconst::maxseg]; 
+ integer * TRDDBc::_patallowS;
+ integer * TRDDBc::_patallow2S;
+ uinteger TRDDBc::_NpatS=0;
+
+ integer * TRDDBc::_patconfH[trdconst::maxseg][trdconst::maxhits];
+ integer * TRDDBc::_patpointsH[trdconst::maxseg];
+ integer * TRDDBc::_patmissH[trdconst::maxseg][trdconst::maxhits];
+ integer   TRDDBc::_patdH[trdconst::maxseg][trdconst::maxhits]; 
+ integer * TRDDBc::_patallowH[trdconst::maxseg];
+ integer * TRDDBc::_patallow2H[trdconst::maxseg];
+ uinteger TRDDBc::_NpatH[trdconst::maxseg]={0,0,0,0,0};
+
+
+
+void TRDDBc::InitPattern(){
+
+/*
+{
+
+    int k;
+    integer ordermiss[trdconst::maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    integer vmiss[trdconst::maxlay]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    integer vorder[trdconst::maxlay]={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
+    int minc;
+    int iq=0;
+    for(minc=0;minc<nlay()-2;minc+=2){
+       ordermiss[iq]=nlay()-1-minc;
+       ordermiss[iq+(nlay()+1)/2-1]=nlay()-2-minc;
+       iq++;
+    }
+    ordermiss[nlay()-2]=nlay();
+    ordermiss[nlay()-1]=1;
+#ifdef __AMSDEBUG__
+       for(minc=0;minc<nlay();minc++)cout <<"ordermiss["<<minc<<"] "<<ordermiss[minc]<<endl;
+#endif
+//initialize patterns
+   for(minc=nlay();minc>13;minc--){
+     _Npat+=TRDDBc::Cnk(nlay(),minc);
+     _patd[nlay()-minc+1]=_Npat;
+   }
+   cout <<" too many pattern ... "<<_Npat<<endl;
+   for(int nl=0;nl<nlay();nl++){
+     _patmiss[nl]=new integer[_Npat];
+     _patconf[nl]=new integer[_Npat];
+   }   
+   _patpoints =new integer[_Npat];
+   _patallow =new integer[_Npat];
+   _patallow2 =new integer[_Npat];
+   int cpat=0;
+   for (cpat=0;cpat<npat();cpat++){
+     for(int npt=1;npt<nlay();npt++){
+       if(cpat<_patd[npt]){
+         _patpoints[cpat]=nlay()-npt+1;
+         int vmini=cpat-_patd[npt-1];
+         int count=0;
+         int v,i1,i2,i3,i4;
+         for(v=0;v<nlay();v++)vmiss[v]=0;
+         switch(npt-1){
+          case 0:
+           break;
+          case 1:        
+            for(i1=0;i1<nlay();i1++){
+             if(vmini==count){
+              vmiss[nlay()-1]=ordermiss[i1];
+             }
+             count++;
+            }            
+           break;
+          case 2:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              if(vmini==count){
+               vmiss[nlay()-1]=ordermiss[i2];
+               vmiss[nlay()-2]=ordermiss[i1];
+              }
+              count++;
+             }
+            }            
+           break;
+          case 3:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              for(i3=i2+1;i3<nlay();i3++){
+               if(vmini==count){
+                vmiss[nlay()-1]=ordermiss[i3];
+                vmiss[nlay()-2]=ordermiss[i2];
+                vmiss[nlay()-3]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           break;
+          case 4:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              for(i3=i2+1;i3<nlay();i3++){
+              for(i4=i3+1;i4<nlay();i4++){
+               if(vmini==count){
+                vmiss[nlay()-1]=ordermiss[i4];
+                vmiss[nlay()-2]=ordermiss[i3];
+                vmiss[nlay()-3]=ordermiss[i2];
+                vmiss[nlay()-4]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           break;
+          case 5:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              for(i3=i2+1;i3<nlay();i3++){
+              for(i4=i3+1;i4<nlay();i4++){
+               for(int i5=i4+1;i5<nlay();i5++){
+               if(vmini==count){
+                vmiss[nlay()-1]=ordermiss[i5];
+                vmiss[nlay()-2]=ordermiss[i4];
+                vmiss[nlay()-3]=ordermiss[i3];
+                vmiss[nlay()-4]=ordermiss[i2];
+                vmiss[nlay()-5]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           }
+           break;
+          case 6:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              for(i3=i2+1;i3<nlay();i3++){
+              for(i4=i3+1;i4<nlay();i4++){
+               for(int i5=i4+1;i5<nlay();i5++){
+               for(int i6=i5+1;i6<nlay();i6++){
+               if(vmini==count){
+                vmiss[nlay()-1]=ordermiss[i6];
+                vmiss[nlay()-2]=ordermiss[i5];
+                vmiss[nlay()-3]=ordermiss[i4];
+                vmiss[nlay()-4]=ordermiss[i3];
+                vmiss[nlay()-5]=ordermiss[i2];
+                vmiss[nlay()-6]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           }
+           }
+           break;
+          default:
+           cerr<<"TRDDBc::init-F-PatternLogicError"<<endl;
+           exit(1);
+         }
+         for(v=0;v<nlay();v++)_patmiss[v][cpat]=vmiss[v];
+         for(v=0;v<nlay();v++)_patconf[v][cpat]=0;
+           int av=0; 
+         for(v=0;v<nlay();v++){
+           _patconf[av][cpat]=v+1;
+           for(int vv=1;vv<nlay()+1;vv++){
+              if(_patmiss[vv-1][cpat]==v+1){
+                _patconf[av][cpat]=0;
+               av--;
+               break;
+              } 
+           }
+           av++;
+         }
+         break;
+       }
+     }
+   }
+
+//Allow 
+      for(int cpat=0;cpat<npat();cpat++){
+         if(_patpoints[cpat]>7)_patallow[cpat]=1;
+         else _patallow[cpat]=0;
+      }
+
+// 
+// wanted at least two in 5-16 and outside
+      for(int cpat=0;cpat<npat();cpat++){
+          int a516=0;
+          int aa516=0;
+          for (int k=0;k<_patpoints[cpat];k++){
+             if(_patconf[k][cpat]>4 && _patconf[k][cpat]<17)a516++;
+             else aa516++;
+          }
+          if(aa516<2 || a516<2)_patallow[cpat]=0;
+       }   
+        int allow=0;
+       int allow2=0;
+      for(int cpat=0;cpat<npat();cpat++){
+        if(_patallow[cpat])allow++;
+      }
+      cout <<" TRDDBc::InitPattern-I-"<<allow<<" PatternsAllowedOutOf "<<npat()<<endl;
+    #ifdef __AMSDEBUG__
+      for(int cpat=0;cpat<nlay();cpat++)cout<<"_patd["<<cpat<<"] "<<_patd[cpat]<<endl; 
+       for(int cpat=0;cpat<npat();cpat++){
+         cout <<"patmiss["<<cpat<<"] ";
+         for(int ilay=0;ilay<nlay();ilay++)cout <<_patmiss[ilay][cpat]<<" ";
+         cout <<endl;
+         cout <<"patconf["<<cpat<<"] ";
+         for(int ilay=0;ilay<nlay();ilay++)cout <<_patconf[ilay][cpat]<<" ";
+         cout <<endl;
+         cout <<"patpounts["<<cpat<<"] "<<_patpoints[cpat]<<endl;
+         cout <<"patallow["<<cpat<<"] "<<_patallow[cpat]<<endl;
+       }
+    #endif   
+
+
+
+
+}
+*/
+
+
+for(int i=0;i<nlayS();i++){
+  _segpoints[i]=_NlayH[i];
+}
+
+
+{
+
+
+    int k;
+    integer ordermiss[trdconst::maxseg]={0,0,0,0,0};
+    integer vmiss[trdconst::maxseg]={0,0,0,0,0};
+    integer vorder[trdconst::maxseg]={1,2,3,4,5};
+    int minc;
+    int iq=0;
+    for(minc=0;minc<nlayS()-2;minc+=2){
+       ordermiss[iq]=nlayS()-1-minc;
+       ordermiss[iq+(nlayS()+1)/2-1]=nlayS()-2-minc;
+       iq++;
+    }
+    ordermiss[nlayS()-2]=nlayS();
+    ordermiss[nlayS()-1]=1;
+#ifdef __AMSDEBUG__
+       for(minc=0;minc<nlayS();minc++)cout <<"ordermiss["<<minc<<"] "<<ordermiss[minc]<<endl;
+#endif
+//initialize patterns
+   for(minc=nlayS();minc>1;minc--){
+     _NpatS+=TKDBc::factorial(nlayS())/TKDBc::factorial(minc)/TKDBc::factorial(nlayS()-minc);
+     _patdS[nlayS()-minc+1]=_NpatS;
+   }
+   for(int nl=0;nl<nlayS();nl++){
+     _patmissS[nl]=new integer[_NpatS];
+     _patconfS[nl]=new integer[_NpatS];
+   }   
+   _patpointsS =new integer[_NpatS];
+   _patallowS =new integer[_NpatS];
+   _patallow2S =new integer[_NpatS];
+   int cpat=0;
+   for (cpat=0;cpat<npatS();cpat++){
+     for(int npt=1;npt<nlayS();npt++){
+       if(cpat<_patdS[npt]){
+         _patpointsS[cpat]=nlayS()-npt+1;
+         int vmini=cpat-_patdS[npt-1];
+         int count=0;
+         int v,i1,i2,i3,i4;
+         for(v=0;v<nlayS();v++)vmiss[v]=0;
+         switch(npt-1){
+          case 0:
+           break;
+          case 1:        
+            for(i1=0;i1<nlayS();i1++){
+             if(vmini==count){
+              vmiss[nlayS()-1]=ordermiss[i1];
+             }
+             count++;
+            }            
+           break;
+          case 2:        
+            for(i1=0;i1<nlayS();i1++){
+             for(i2=i1+1;i2<nlayS();i2++){
+              if(vmini==count){
+               vmiss[nlayS()-1]=ordermiss[i2];
+               vmiss[nlayS()-2]=ordermiss[i1];
+              }
+              count++;
+             }
+            }            
+           break;
+          case 3:        
+            for(i1=0;i1<nlayS();i1++){
+             for(i2=i1+1;i2<nlayS();i2++){
+              for(i3=i2+1;i3<nlayS();i3++){
+               if(vmini==count){
+                vmiss[nlayS()-1]=ordermiss[i3];
+                vmiss[nlayS()-2]=ordermiss[i2];
+                vmiss[nlayS()-3]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           break;
+          case 4:        
+            for(i1=0;i1<nlayS();i1++){
+             for(i2=i1+1;i2<nlayS();i2++){
+              for(i3=i2+1;i3<nlayS();i3++){
+              for(i4=i3+1;i4<nlayS();i4++){
+               if(vmini==count){
+                vmiss[nlayS()-1]=ordermiss[i4];
+                vmiss[nlayS()-2]=ordermiss[i3];
+                vmiss[nlayS()-3]=ordermiss[i2];
+                vmiss[nlayS()-4]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           break;
+          case 5:        
+            for(i1=0;i1<nlayS();i1++){
+             for(i2=i1+1;i2<nlayS();i2++){
+              for(i3=i2+1;i3<nlayS();i3++){
+              for(i4=i3+1;i4<nlayS();i4++){
+               for(int i5=i4+1;i5<nlayS();i5++){
+               if(vmini==count){
+                vmiss[nlayS()-1]=ordermiss[i5];
+                vmiss[nlayS()-2]=ordermiss[i4];
+                vmiss[nlayS()-3]=ordermiss[i3];
+                vmiss[nlayS()-4]=ordermiss[i2];
+                vmiss[nlayS()-5]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           }
+           break;
+          default:
+           cerr<<"TRDDBc::init-F-PatternLogicError"<<endl;
+           exit(1);
+         }
+         for(v=0;v<nlayS();v++)_patmissS[v][cpat]=vmiss[v];
+         for(v=0;v<nlayS();v++)_patconfS[v][cpat]=0;
+           int av=0; 
+         for(v=0;v<nlayS();v++){
+           _patconfS[av][cpat]=v+1;
+           for(int vv=1;vv<nlayS()+1;vv++){
+              if(_patmissS[vv-1][cpat]==v+1){
+                _patconfS[av][cpat]=0;
+               av--;
+               break;
+              } 
+           }
+           av++;
+         }
+         break;
+       }
+     }
+   }
+
+//Allow 
+      for(int cpat=0;cpat<npatS();cpat++){
+         if(_patpointsS[cpat]>2)_patallowS[cpat]=1;
+         else _patallowS[cpat]=0;
+         if(_patpointsS[cpat]>1)_patallow2S[cpat]=1;
+         else _patallow2S[cpat]=0;
+      }
+
+// Add disabling
+      if(nlayS()==trdconst::maxseg){
+// wanted all 5, all 4 {1+5}
+// 3: no (15)    {9}
+// 2:  (12) (13) (14) (25) (35) (45)  {6}
+// total of 21 allowed
+      for(int cpat=0;cpat<npatS();cpat++){
+         if(_patpointsS[cpat]==3){
+          if((_patmissS[nlayS()-2][cpat]==1 &&  _patmissS[nlayS()-1][cpat]==5) ||
+             (_patmissS[nlayS()-2][cpat]==5 &&  _patmissS[nlayS()-1][cpat]==1))
+             _patallowS[cpat]=0;
+         }
+         else if(_patpointsS[cpat]==2){
+          for (int k=0;k<_patpointsS[cpat];k++){
+             if(_patconfS[k][cpat]==1 || _patconfS[k][cpat]==5){
+               for (int kk=0;kk<_patpointsS[cpat];kk++){
+               if(_patconfS[kk][cpat]>1 && _patconfS[kk][cpat]<5){
+                _patallowS[cpat]=1;
+                break;
+               } 
+             }
+           }
+          }
+        }
+}
+}
+else if (nlayS()==trdconst::maxseg-1){
+// wanted all 4, all 3 
+// 2:  (12) (13)  (23) (24)
+// total of 9 allowed
+      for(int cpat=0;cpat<npatS();cpat++){
+         if(_patpointsS[cpat]==2){
+          for (int k=0;k<_patpointsS[cpat];k++){
+             if(_patconfS[k][cpat]==1 || _patconfS[k][cpat]==4){
+               for (int kk=0;kk<_patpointsS[cpat];kk++){
+               if(_patconfS[kk][cpat]>1 && _patconfS[kk][cpat]<4){
+                _patallowS[cpat]=1;
+                break;
+               } 
+             }
+           }
+          }
+        }
+}
+}
+else{
+      for(int cpat=0;cpat<npatS();cpat++){
+         if(_patpointsS[cpat]==2){
+          for (int k=0;k<_patpointsS[cpat];k++){
+             if(_patconfS[k][cpat]==1 || _patconfS[k][cpat]==3){
+               for (int kk=0;kk<_patpointsS[cpat];kk++){
+               if(_patconfS[kk][cpat]>1 && _patconfS[kk][cpat]<3){
+                _patallowS[cpat]=1;
+                break;
+               } 
+             }
+           }
+          }
+        }
+}
+}
+       int allow=0;
+       int allow2=0;
+      for(int cpat=0;cpat<npatS();cpat++){
+        if(_patallowS[cpat])allow++;
+      }
+      cout <<" TRDDBc::InitPattern-I-"<<allow<<" SegmentPatternsAllowedOutOf "<<npatS()<<endl;
+    #ifdef __AMSDEBUG__
+      for(int cpat=0;cpat<nlayS();cpat++)cout<<"_patdS["<<cpat<<"] "<<_patdS[cpat]<<endl; 
+       for(int cpat=0;cpat<npatS();cpat++){
+         cout <<"patmiss["<<cpat<<"] ";
+         for(int ilay=0;ilay<nlayS();ilay++)cout <<_patmissS[ilay][cpat]<<" ";
+         cout <<endl;
+         cout <<"patconf["<<cpat<<"] ";
+         for(int ilay=0;ilay<nlayS();ilay++)cout <<_patconfS[ilay][cpat]<<" ";
+         cout <<endl;
+         cout <<"patpounts["<<cpat<<"] "<<_patpointsS[cpat]<<endl;
+         cout <<"patallow["<<cpat<<"] "<<_patallowS[cpat]<<endl;
+       }
+    #endif   
+
+
+
+}
+
+
+for(int iseg=0;iseg<nlayS();iseg++){
+
+
+    int k;
+    integer ordermiss[trdconst::maxhits]={0,0,0,0,0,0,0,0,0,0,0,0};
+    integer vmiss[trdconst::maxhits]={0,0,0,0,0,0,0,0,0,0,0,0};
+    integer vorder[trdconst::maxhits]={1,2,3,4,5,6,7,8,9,10,11,12};
+    int minc;
+    int iq=0;
+    for(minc=0;minc<nlayH(iseg)-2;minc+=2){
+       ordermiss[iq]=nlayH(iseg)-1-minc;
+       ordermiss[iq+nlayH(iseg)/2-1]=nlayH(iseg)-2-minc;
+       iq++;
+    }
+    ordermiss[nlayH(iseg)-2]=nlayH(iseg);
+    ordermiss[nlayH(iseg)-1]=1;
+//initialize patterns
+   int smin=nlayH(iseg)-7>1?nlayH(iseg)-7:1;
+   for(minc=nlayH(iseg);minc>smin;minc--){
+     _NpatH[iseg]+=TRDDBc::Cnk(nlayH(iseg),minc);
+     _patdH[iseg][nlayH(iseg)-minc+1]=_NpatH[iseg];
+   }
+   for(int nl=0;nl<nlayH(iseg);nl++){
+     _patmissH[iseg][nl]=new integer[_NpatH[iseg]];
+     _patconfH[iseg][nl]=new integer[_NpatH[iseg]];
+   }   
+   _patpointsH[iseg] =new integer[_NpatH[iseg]];
+   _patallowH[iseg] =new integer[_NpatH[iseg]];
+   _patallow2H[iseg] =new integer[_NpatH[iseg]];
+   int cpat=0;
+   for (cpat=0;cpat<npatH(iseg);cpat++){
+     for(int npt=1;npt<nlayH(iseg);npt++){
+       if(cpat<_patdH[iseg][npt]){
+         _patpointsH[iseg][cpat]=nlayH(iseg)-npt+1;
+         int vmini=cpat-_patdH[iseg][npt-1];
+         int count=0;
+         int v,i1,i2,i3,i4;
+         for(v=0;v<nlayH(iseg);v++)vmiss[v]=0;
+         switch(npt-1){
+          case 0:
+           break;
+          case 1:        
+            for(i1=0;i1<nlayH(iseg);i1++){
+             if(vmini==count){
+              vmiss[nlayH(iseg)-1]=ordermiss[i1];
+             }
+             count++;
+            }            
+           break;
+          case 2:        
+            for(i1=0;i1<nlayH(iseg);i1++){
+             for(i2=i1+1;i2<nlayH(iseg);i2++){
+              if(vmini==count){
+               vmiss[nlayH(iseg)-1]=ordermiss[i2];
+               vmiss[nlayH(iseg)-2]=ordermiss[i1];
+              }
+              count++;
+             }
+            }            
+           break;
+          case 3:        
+            for(i1=0;i1<nlayH(iseg);i1++){
+             for(i2=i1+1;i2<nlayH(iseg);i2++){
+              for(i3=i2+1;i3<nlayH(iseg);i3++){
+               if(vmini==count){
+                vmiss[nlayH(iseg)-1]=ordermiss[i3];
+                vmiss[nlayH(iseg)-2]=ordermiss[i2];
+                vmiss[nlayH(iseg)-3]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           break;
+          case 4:        
+            for(i1=0;i1<nlayH(iseg);i1++){
+             for(i2=i1+1;i2<nlayH(iseg);i2++){
+              for(i3=i2+1;i3<nlayH(iseg);i3++){
+              for(i4=i3+1;i4<nlayH(iseg);i4++){
+               if(vmini==count){
+                vmiss[nlayH(iseg)-1]=ordermiss[i4];
+                vmiss[nlayH(iseg)-2]=ordermiss[i3];
+                vmiss[nlayH(iseg)-3]=ordermiss[i2];
+                vmiss[nlayH(iseg)-4]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           break;
+          case 5:        
+            for(i1=0;i1<nlayH(iseg);i1++){
+             for(i2=i1+1;i2<nlayH(iseg);i2++){
+              for(i3=i2+1;i3<nlayH(iseg);i3++){
+              for(i4=i3+1;i4<nlayH(iseg);i4++){
+               for(int i5=i4+1;i5<nlayH(iseg);i5++){
+               if(vmini==count){
+                vmiss[nlayH(iseg)-1]=ordermiss[i5];
+                vmiss[nlayH(iseg)-2]=ordermiss[i4];
+                vmiss[nlayH(iseg)-3]=ordermiss[i3];
+                vmiss[nlayH(iseg)-4]=ordermiss[i2];
+                vmiss[nlayH(iseg)-5]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           }
+           break;
+          case 6:        
+            for(i1=0;i1<nlayH(iseg);i1++){
+             for(i2=i1+1;i2<nlayH(iseg);i2++){
+              for(i3=i2+1;i3<nlayH(iseg);i3++){
+              for(i4=i3+1;i4<nlayH(iseg);i4++){
+               for(int i5=i4+1;i5<nlayH(iseg);i5++){
+               for(int i6=i5+1;i6<nlayH(iseg);i6++){
+               if(vmini==count){
+                vmiss[nlayH(iseg)-1]=ordermiss[i6];
+                vmiss[nlayH(iseg)-2]=ordermiss[i5];
+                vmiss[nlayH(iseg)-3]=ordermiss[i4];
+                vmiss[nlayH(iseg)-4]=ordermiss[i3];
+                vmiss[nlayH(iseg)-5]=ordermiss[i2];
+                vmiss[nlayH(iseg)-6]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           }
+           }
+           break;
+          default:
+           cerr<<"TRDDBc::init-F-PatternLogicError"<<endl;
+           exit(1);
+         }
+         for(v=0;v<nlayH(iseg);v++)_patmissH[iseg][v][cpat]=vmiss[v];
+         for(v=0;v<nlayH(iseg);v++)_patconfH[iseg][v][cpat]=0;
+           int av=0; 
+         for(v=0;v<nlayH(iseg);v++){
+           _patconfH[iseg][av][cpat]=v+1;
+           for(int vv=1;vv<nlayH(iseg)+1;vv++){
+              if(_patmissH[iseg][vv-1][cpat]==v+1){
+                _patconfH[iseg][av][cpat]=0;
+               av--;
+               break;
+              } 
+           }
+           av++;
+         }
+         break;
+       }
+     }
+   }
+//Allow 
+      for(int cpat=0;cpat<npatH(iseg);cpat++){
+         if(_patpointsH[iseg][cpat]>2)_patallowH[iseg][cpat]=1;
+         else _patallowH[iseg][cpat]=0;
+         if(_patpointsH[iseg][cpat]>1)_patallow2H[iseg][cpat]=1;
+         else _patallow2H[iseg][cpat]=0;
+      }
+       int allow=0;
+       int allow2=0;
+      for(int cpat=0;cpat<npatH(iseg);cpat++){
+        if(_patallowH[iseg][cpat])allow++;
+        if(_patallow2H[iseg][cpat])allow2++;
+      }
+      cout <<" TRDDBc::InitPattern-I-"<<allow<<"/"<<allow2<<" HitPatternsAllowedOutOf "<<npatH(iseg)<<"ForSegment "<<iseg<<endl;
+    #ifdef __AMSDEBUG__
+      for(int cpat=0;cpat<nlayH(iseg);cpat++)cout<<"_patdH["<<cpat<<"] "<<_patdH[iseg][cpat]<<endl; 
+       for(int cpat=0;cpat<npatH(iseg);cpat++){
+         cout <<"patmissH["<<cpat<<"] ";
+         for(int ilay=0;ilay<nlayH(iseg);ilay++)cout <<_patmissH[iseg][ilay][cpat]<<" ";
+         cout <<endl;
+         cout <<"patconfH["<<cpat<<"] ";
+         for(int ilay=0;ilay<nlayH(iseg);ilay++)cout <<_patconfH[iseg][ilay][cpat]<<" ";
+         cout <<endl;
+         cout <<"patpountsH["<<cpat<<"] "<<_patpointsH[iseg][cpat]<<endl;
+         cout <<"patallowH["<<cpat<<"] "<<_patallowH[iseg][cpat]<<endl;
+       }
+    #endif   
+
+}
+
+
+}
 void TRDDBc::read(){
 
 init();
@@ -1367,7 +2050,7 @@ return _LaddersDimensions[toct][lay][lad][index];
 
 number & TRDDBc::CutoutsDimensions(uinteger toct, uinteger lay, uinteger cut,uinteger index){
 #ifdef __AMSDEBUG__
-assert(index<sizeof(_CutoutsDimensions)/sizeof(_CutoutsDimensions[0][0][0][0])/mtrdo/maxlay/maxcut);
+//assert(index<sizeof(_CutoutsDimensions)/sizeof(_CutoutsDimensions[0][0][0][0])/mtrdo/maxlay/maxcut);
 #endif
 return _CutoutsDimensions[toct][lay][cut][index];
 }
@@ -1397,6 +2080,31 @@ char* TRDDBc::CodeLad(uinteger gid){
  return output;
 }
 
+
+uinteger TRDDBc::Cnk(uinteger n,uinteger k){
+  if (n>0 && k<=n && k>=0){
+   uinteger result=1;
+    uinteger nk=n-k;
+   if(k<=n-k){
+    nk=k;
+    k=n-k;
+   } 
+    uinteger waitingrow=2;
+    for (int i=k+1;i<n+1;i++){
+     result*=i;
+     if(waitingrow<=nk && (result/waitingrow)*waitingrow==result){
+      result=result/waitingrow;
+      waitingrow++;
+     }
+    }
+    for( int i=waitingrow;i<=nk;i++)result/=i;
+    return result;
+  }
+  else return 1;
+}
+
+
+
 integer TRDDBcI::_Count=0;
 
 TRDDBcI::TRDDBcI(){
@@ -1408,3 +2116,5 @@ TRDDBcI::~TRDDBcI(){
     TRDDBc::write();   
   }
 }
+
+

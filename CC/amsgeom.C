@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.122 2001/04/25 17:16:08 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.123 2001/04/27 21:49:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -3097,8 +3097,12 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    AMSTRDIdGeom  tmp(j,k,l,i);
    gid=tmp.cmpt();
    //   cout << "Tube "<<i<<" "<<j<<" "<<k<<" "<<l<<" gid "<<gid<<endl;
-   dau->add(new AMSgvolume(TRDDBc::TubesMedia(),
+   AMSNode *ptrd=dau->add(new AMSgvolume(TRDDBc::TubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+#ifdef __G4AMS__
+           ((AMSgvolume*)ptrd )->Smartless()=-2;
+#endif            
+
    }
 
    for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
@@ -3106,7 +3110,9 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    ost << "TRDT"<<ends;
    TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::ITubesDimensions(i,j,k,ip);
-   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
+//   changed by VC to facilitate numb scheme
+//   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
+   gid=maxtube*maxlad*maxlay*i+maxtube*maxlad*j+maxtube*k+l+1;
    //   cout << "Inner Tube "<<i<<" "<<j<<" "<<k<<" "<<l<<" gid "<<gid<<endl;
    dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
       0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    

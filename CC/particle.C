@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.90 2001/01/22 17:32:21 choutko Exp $
+//  $Id: particle.C,v 1.91 2001/04/27 21:49:59 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -81,6 +81,7 @@ integer AMSParticle::build(integer refit){
            ppart->antifit();
            if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
             ppart->ecalfit();
+            ppart->trdfit();
            }
           }
           AMSgObj::BookTimer.stop("ReAxRefit");
@@ -275,6 +276,47 @@ for(ipl=0;ipl<maxpl;ipl++){ //loop over containers(planes)
 }
 }
 
+void AMSParticle::trdfit(){
+_ptrd=0;
+AMSDir dir(0,0,1.);
+number theta, phi, sleng;
+  AMSTRDTrack* ptr=(AMSTRDTrack*)AMSEvent::gethead()->getheadC("AMSTRDTrack",0,0);
+  number dist=FLT_MAX;
+  while(ptr){
+   AMSPoint coo=ptr->getCooStr();
+   AMSPoint tmp;
+   _ptrack->interpolate(coo,dir,tmp,theta,phi,sleng);
+   number d2=(coo-tmp).norm();
+   if(d2<5*ptr->getECooStr().norm()){
+    if(d2<dist){
+     dist=d2;
+     _TRDCoo=tmp;
+     _ptrd=ptr;
+    }
+    else if(!_ptrd){
+     _TRDCoo=tmp;
+    }
+   } 
+   ptr=ptr->next();
+  }
+  if(_ptrd)_ptrd->setstatus(AMSDBc::USED);
+  else{
+   AMSTRDIdGeom ida(0,0,0);
+   AMSTRDIdGeom idb(TRDDBc::nlay()-1,0,0);
+   AMSgvolume *pa=AMSJob::gethead()->getgeomvolume(ida.crgid());
+   AMSgvolume *pb=AMSJob::gethead()->getgeomvolume(idb.crgid());
+   if(pa && pb){
+    number z=0.5*(pa->loc2gl(AMSPoint(0,0,0))[2]+pb->loc2gl(AMSPoint(0,0,0))[2]);
+   AMSPoint coo(0,0,z);
+   _ptrack->interpolate(coo,dir,_TRDCoo,theta,phi,sleng);
+   }
+   else {
+   cerr << " trdfit-S- NoLayerFoundThenExpected " << pa<<" "<<pb<<endl ;
+   _TRDCoo=AMSPoint(0,0,0);
+   }
+
+  }
+  }
 
 
 
@@ -422,6 +464,8 @@ else{
   if((AMSEvent::gethead()->getC("AMSParticle",0)->getnelem()>0 || LVL3FFKEY.Accept) && _ptrack->checkstatus(AMSDBc::NOTRACK))return;
 // Fill the ntuple 
   PN->ChargeP[PN->Npart]=_pcharge->getpos();
+  if(_ptrd)PN->TRDP[PN->Npart]=_ptrd->getpos();
+  else PN->TRDP[PN->Npart]=-1;
   PN->BetaP[PN->Npart]=_pbeta->getpos();
   integer pat=_pbeta->getpattern();
   int i;
@@ -476,6 +520,7 @@ else{
   }
 
   PN->Cutoff[PN->Npart]=_CutoffMomentum;
+  for(i=0;i<3;i++)PN->TRDCoo[PN->Npart][i]=_TRDCoo[i];
 
 
 

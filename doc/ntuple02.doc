@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.7 2001/03/15 15:24:40 mdelgado Exp $
+#  $Id: ntuple02.doc,v 1.8 2001/04/27 21:50:33 choutko Exp $
 This is AMS02 Ntuple Description
 
  *****************************************
@@ -44,6 +44,10 @@ This is AMS02 Ntuple Description
 * I*4  *           * EVENTH   * EcalHits         // No of ECAL Hits
 * I*4  *           * EVENTH   * RICMCClusters    // No of RICH MC clusters
 * I*4  *           * EVENTH   * RICHits          // No of RICH Hits
+* U*4  *           * EVENTH   * TRDRawHits
+* U*4  *           * EVENTH   * TRDClusters
+* U*4  *           * EVENTH   * TRDSegments
+* U*4  *           * EVENTH   * TRDTracks
 * I*4  *           * EVENTH   * EventStatus(2)   // EventStatus 
 						 // (see status.doc)
 
@@ -89,6 +93,9 @@ This is AMS02 Ntuple Description
 * I*4  *           * PARTICLE * ptrackp(npart)    // pointer to track, or
                                                   // -1 if particle doesn't
                                                   // contain a track
+* I*4  *           * PARTICLE * ptrdp(npart)    // pointer to trd track, or
+                                                  // -1 if particle doesn't
+                                                  // contain a track
 * I*4  *           * PARTICLE * pid(npart)        // Geant Particle Id
 * I*4  *           * PARTICLE * pidvice(npart)    // Geant vice-Particle Id
 * R*4  *           * PARTICLE * probpid(2,npart)  // probabilities 
@@ -115,7 +122,7 @@ This is AMS02 Ntuple Description
 						   // plane ipl)
 * R*4  *           * PARTICLE * cootr(3,8,npart)  // tracker extrapol in
 						  // tracker *****)
-
+* R*4  *           * PARTICLE * cootrd(3,npart)  // trd extrapol in the middle
 
 * I*4  * [0,20]    * TOFCLUST * ntof             // TOF clusters number
 * I*4  *           * TOFCLUST * TOFStatus(ntof)  // Status: 
@@ -383,6 +390,43 @@ This is AMS02 Ntuple Description
  * R*4  *          * RING     * rbeta(nrings)         // Reconstructed beta
  * R*4  *          * RING     * quality(nrings)       // Chi2/ndof for the beta
 
+ * I*4  *          * TRDMCCL  * ntrdmccl              // no of trd clusters
+ * U*4  *          * TRDMCCL  * trdlayermc(ntrdmccl)  //layer (up==0)
+ * U*4  *          * TRDMCCL  * trdladdermc(ntrdmccl) //ladder (tbd)
+ * U*4  *          * TRDMCCL  * trdtubemc(ntrdmccl)   //tubeno
+ * U*4  *          * TRDMCCL  * trdtrackmc(ntrdmccl)  // track id
+ * R*4  *          * TRDMCCL  * trdedepmc(ntrdmccl)   // energy dep (gev)
+ * R*4  *          * TRDMCCL  * trdekinmc(ntrdmccl)   // part kin energy (gev)
+ * R*4  *          * TRDMCCL  * trdxglmc(3,ntrdmccl)  // hit global coo(cm)
+ * R*4  *          * TRDMCCL  * trdstepmc(ntrdmccl)   // step size (cm)
+ * I*4  *          * TRDRHT   * ntrdht                // nuber of trd raw hits
+ * I*4  *          * TRDRHT   * trdidht(ntrdht)       // trdid
+ * R*4  *          * TRDRHT   * trdampht(ntrdht)      // amp-ped (adc ch)
+ * I*4  *          * TRDCLU   * ntrdcl                // trd clusters no
+ * I*4  *          * TRDCLU   * trdclstatus(ntrdcl)   // status
+ * R*4  *          * TRDCLU   * trdclcoo(3,ntrdcl)    // global coo(cm)
+ * U*4  *          * TRDCLU   * trdlayer(ntrdcl)      // layer (0==top)
+ * R*4  *          * TRDCLU   * trddir(3,ntrdcl)      // tube orientation
+ * U*4  *          * TRDCLU   * trdmul(ntrdcl)        // cluster mult
+ * U*4  *          * TRDCLU   * trdhmul(ntrdcl)       // cluster high mult
+ * R*4  *          * TRDCLU   * trdedep(ntrdcl)       // energy dep (KeV)
+ * I*4  *          * TRDCLU   * ptrdrht(ntrdcl)       // pointer to max trdrht
+ * I*4  *          * TRDSEG   * ntrdseg
+ * I*4  *          * TRDSEG   * trdsegstatus(ntrdseg)
+ * U*4  *          * TRDSEG   * trdsegor(ntrdseg)
+ * R*4  *          * TRDSEG   * trdsegfpar(2,ntrdseg)
+ * R*4  *          * TRDSEG   * trdsegchi2(ntrdseg)
+ * U*4  *          * TRDSEG   * trdsegpat(ntrdseg)
+ * U*4  *          * TRDSEG   * trdsegnh(ntrdseg)
+ * I*4  *          * TRDSEG   * trdsegpcl(12,ntrdseg)
+ * I*4  *          * TRDTRK   * ntrdtrk
+ * I*4  *          * TRDTRK   * trdtrkstatus(ntrdtrk)
+ * R*4  *          * TRDTRK   * trdtrkcoo(3,ntrdtrk)
+ * R*4  *          * TRDTRK   * trdtrkercoo(3,ntrdtrk)
+ * R*4  *          * TRDTRK   * trdtrkphi(ntrdtrk)
+ * R*4  *          * TRDTRK   * trdtrktheta(ntrdtrk)
+ * R*4  *          * TRDTRK   * trdtrkchi2(ntrdtrk)
+ * I*4  *          * TRDTRK   * trdtrkps(ntrdtrk)
 
 ---------------------------------------------------------------------------
 

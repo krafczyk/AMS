@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.365 2001/04/18 08:32:07 choumilo Exp $
+// $Id: job.C,v 1.366 2001/04/27 21:49:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -56,6 +56,7 @@
 #include <mccluster.h>
 #include <sys/stat.h>
 #include <producer.h>
+#include <trdid.h>
 #ifdef __DB__
 //+
  integer        ntdvNames;               // number of TDV's types
@@ -880,7 +881,38 @@ TRDMCFFKEY.g3trd=123654;
 TRDMCFFKEY.cor=0.68;
 TRDMCFFKEY.alpha=0;
 TRDMCFFKEY.beta=0;
+TRDMCFFKEY.gain=1;
+TRDMCFFKEY.f2i=8;
+TRDMCFFKEY.adcoverflow=4095;
+TRDMCFFKEY.ped=500;
+TRDMCFFKEY.sigma=6;
+TRDMCFFKEY.NoiseOn=1;
+TRDMCFFKEY.GeV2ADC=1.e8;
+TRDMCFFKEY.Thr1R=3.5;
 FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
+
+
+TRDRECFFKEY.Chi2StrLine=3;
+TRDRECFFKEY.ResCutStrLine=1;
+TRDRECFFKEY.SearchRegStrLine=3;
+FFKEY("TRDRE",(float*)&TRDRECFFKEY,sizeof(TRDRECFFKEY_DEF)/sizeof(integer),"MIXED");
+
+TRDFITFFKEY.Chi2StrLine=3;
+TRDFITFFKEY.ResCutStrLine=1;
+TRDFITFFKEY.SearchRegStrLine=3;
+TRDFITFFKEY.MinFitPoints=6;
+TRDFITFFKEY.TwoSegMatch=0.1;
+TRDFITFFKEY.MaxSegAllowed=20;
+FFKEY("TRDFI",(float*)&TRDFITFFKEY,sizeof(TRDFITFFKEY_DEF)/sizeof(integer),"MIXED");
+
+TRDCLFFKEY.ADC2KeV=1.e6/TRDMCFFKEY.GeV2ADC/TRDMCFFKEY.gain;
+TRDCLFFKEY.Thr1S=0.11;
+TRDCLFFKEY.Thr1A=0.33;
+TRDCLFFKEY.Thr1R=6;
+TRDCLFFKEY.Thr1H=5.;
+TRDCLFFKEY.MaxHitsInCluster=3;
+FFKEY("TRDCL",(float*)&TRDCLFFKEY,sizeof(TRDCLFFKEY_DEF)/sizeof(integer),"MIXED");
+
 }
 
 void AMSJob::_sisrddata(){
@@ -1006,6 +1038,7 @@ FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
 {
   for( int k=0;k<sizeof(TRFITFFKEY.patternp)/sizeof(TRFITFFKEY.patternp[0]);k++)TRFITFFKEY.patternp[k]=0;
 }
+TRFITFFKEY.UseTRD=1;
 TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;
 TRFITFFKEY.Chi2StrLine=9;
@@ -1020,7 +1053,7 @@ TRFITFFKEY.RidgidityMin=0.02;
 TRFITFFKEY.FullReco=0;
 TRFITFFKEY.MinRefitCos[0]=0.7;
 TRFITFFKEY.MinRefitCos[1]=0.5;
-TRFITFFKEY.FastTracking=0;
+TRFITFFKEY.FastTracking=-1;
 TRFITFFKEY.WeakTracking=1;
 TRFITFFKEY.FalseXTracking=1;
 TRFITFFKEY.Chi2FalseX=3.;
@@ -1602,6 +1635,7 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::init();
 
 
+
       // TraligGlobalFit
      if(TRALIG.GlobalFit && TRALIG.MaxPatternsPerJob!=1){
        cout <<"AMSJob::udata-I-GlobalFitRequested ";
@@ -1627,6 +1661,12 @@ if(TRDMCFFKEY.mode==-1){
  if(!strstr(getsetup(),"AMSSHUTTLE")){
     TRDMCFFKEY.mode=0;
  }
+}
+if(TRFITFFKEY.FastTracking==-1){
+ if(strstr(getsetup(),"AMSSHUTTLE")){
+    TRFITFFKEY.FastTracking=0;
+ }
+ else TRFITFFKEY.FastTracking=1;
 }
 
 // check delta etc
@@ -1887,6 +1927,8 @@ void AMSJob::_sictcinitjob(){
 void AMSJob::_sitrdinitjob(){
 
  AMSTRDMCCluster::init();
+ AMSgObj::BookTimer.book("SITRDDigi");
+ 
 }
 void AMSJob::_sisrdinitjob(){
 }
@@ -2310,6 +2352,7 @@ if (AMSJob::gethead()->isMonitoring()) {
 
 void AMSJob::_retrdinitjob(){
 AMSgObj::BookTimer.book("RETRDEVENT"); 
+       AMSTRDIdSoft::init();
 }
 void AMSJob::_resrdinitjob(){
 AMSgObj::BookTimer.book("RESRDEVENT"); 

@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.61 2001/03/29 14:23:34 choutko Exp $
+*  $Id: amstkshc++.F,v 1.62 2001/04/27 21:50:07 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -5934,7 +5934,7 @@ CDECK  ID>, TKFITG.
               common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
               real *8 xxn,vpar2,vpar,vxy
-              parameter (maxpl=10)
+              parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg
          integer npt
@@ -5999,6 +5999,7 @@ c              pinit=abs(pinit)
              else
              pinit=1000
              endif
+             pinit=10000
              if(ialgo/10.eq.1)pinit=1/out(1)*chrg
              x(1)=xp(1,1)
              x(2)=nx/nz
@@ -6088,7 +6089,7 @@ C
 *
 *
           common /gcfit2/npln,nstp,nstp5
-       PARAMETER (NPLAN = 6, NSTOP = NPLAN-1, NSTOP5 = 5*NPLAN )
+       PARAMETER (NPLAN = 20, NSTOP = NPLAN-1, NSTOP5 = 5*NPLAN )
       COMMON /GCFIT/
      +          CSIX(6,0:NSTOP),CSIY(6,0:NSTOP),CSIZ(6,0:NSTOP)
      +         ,WW(5,5,0:NSTOP),DDT(5,5,0:NSTOP)
@@ -6366,7 +6367,7 @@ c        print *,' Fit failed ',ifail
               common /tkcorrC/
      +        xxn(2),vpar2(2,2),vpar(2,2),vxy(2)
               real *8 xxn,vpar2,vpar,vxy
-              parameter (maxpl=10)
+              parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg
           real *8 xc(6),fc,tol,dlt
@@ -6989,7 +6990,7 @@ C
 
 
           common /gcfit2/npln,nstp,nstp5
-       PARAMETER (NPLAN = 6, NSTOP = NPLAN-1, NSTOP5 = 5*NPLAN )
+       PARAMETER (NPLAN = 20, NSTOP = NPLAN-1, NSTOP5 = 5*NPLAN )
       COMMON /GCFIT/
      +          CSIX(6,0:NSTOP),CSIY(6,0:NSTOP),CSIZ(6,0:NSTOP)
      +         ,WW(5,5,0:NSTOP),DDT(5,5,0:NSTOP)
@@ -7408,7 +7409,7 @@ C
 
 
           common /gcfit2/npln,nstp,nstp5
-       PARAMETER (NPLAN = 6, NSTOP = NPLAN-1, NSTOP5 = 5*NPLAN )
+       PARAMETER (NPLAN = 20, NSTOP = NPLAN-1, NSTOP5 = 5*NPLAN )
       COMMON /GCFIT/
      +          CSIX(6,0:NSTOP),CSIY(6,0:NSTOP),CSIZ(6,0:NSTOP)
      +         ,WW(5,5,0:NSTOP),DDT(5,5,0:NSTOP)
@@ -7734,7 +7735,7 @@ c        ENDIF
       END
 CDECK  ID>, TKERMT. 
              function tkermt(pred,meas,sig,ims,xms,cc,aa,bb)
-              parameter (maxpl=10)
+              parameter (maxpl=20)
               common /tkfrunC/npoint,xp(3,maxpl),ys(3,maxpl),
      +        yn(3,maxpl),xmass,chrg
 
@@ -9096,9 +9097,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.61 2001/03/29 14:23:34 choutko Exp $
+* $Id: amstkshc++.F,v 1.62 2001/04/27 21:50:07 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.62  2001/04/27 21:50:07  choutko
+* trd alpha version released - see ~/doc/trd.doc on todo/status
+*
 * Revision 1.61  2001/03/29 14:23:34  choutko
 * gheisha/fluka switch fixed
 *

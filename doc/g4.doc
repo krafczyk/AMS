@@ -1,4 +1,4 @@
-#  $Id: g4.doc,v 1.20 2001/01/22 17:00:56 vitali Exp $
+#  $Id: g4.doc,v 1.21 2001/04/27 21:50:33 choutko Exp $
 -------
 Platform:
 linux-g++ and dec-cxx >= v6.2
@@ -7,7 +7,7 @@ linux-g++ and dec-cxx >= v6.2
 Installer:
 
 
-source AMS/install/g4i
+source AMS/install/g4i   (g4i.old, g4i.new)
 
 see $G4INSTALL/ReleaseNotes.VC for ams specifics
 
@@ -75,7 +75,10 @@ CC/gmat.C    << new geant4  constructors
 
 
 
+Status (geant4.3.1):
 
+same as geant4.3.0 except the init phase
+for linux requires about 4 times more time than in 4.3.0 case
 
 
 

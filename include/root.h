@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.39 2001/03/02 10:40:56 choutko Exp $
+//  $Id: root.h,v 1.40 2001/04/27 21:50:33 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -9,15 +9,16 @@
 #include <TROOT.h>
 #endif
 #include <tkdbc.h>
+#include <trddbc.h>
 #include <ecaldbc.h>
 class AMSNtuple;
 namespace root{
 const int MAXBETA    =   150;
-const int MAXBETA02    = 100;
+const int MAXBETA02    = 50;
 const int MAXCHARGE  =   150;
-const int MAXCHARGE02  = 100;
+const int MAXCHARGE02  = 30;
 const int MAXPART    =   100;
-const int MAXPART02    =  50;
+const int MAXPART02    =  20;
 const int MAXTOF     =    20;
 const int MAXTOFRAW  =    20;
 const int MAXTOFMC   =   200;
@@ -43,6 +44,10 @@ const int MAXLVL1    =     2;
 const int MAXRICMC   =   300;
 const int MAXRICHITS =   100;
 const int MAXTRDCLMC   =   200;
+const int MAXTRDRHT   =   200;
+const int MAXTRDCL   =   100;
+const int MAXTRDSEG   =   100;
+const int MAXTRDTRK   =   40;
 };
 using namespace root;
 #ifdef __WRITEROOT__
@@ -129,6 +134,10 @@ public:
   int EcalHits;
   int RICMCClusters;//CJM
   int RICHits;//CJM
+  int TRDRawHits;
+  int TRDClusters;
+  int TRDSegments;
+  int TRDTracks;
   int EventStatus[2];
   
 friend class AMSEvent;
@@ -298,6 +307,7 @@ public:
   int   BetaP[MAXPART02];
   int   ChargeP[MAXPART02];
   int   TrackP[MAXPART02];
+  int   TRDP[MAXPART02];
   int   Particle[MAXPART02];
   int   ParticleVice[MAXPART02];
   float Prob[MAXPART02][2];
@@ -317,6 +327,7 @@ public:
   float AntiCoo[MAXPART02][2][3];
   float EcalCoo[MAXPART02][2*ECSLMX][3];
   float TrCoo[MAXPART02][trconst::maxlay][3];
+  float TRDCoo[MAXPART02][3];
 friend class AMSParticle;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
@@ -477,6 +488,7 @@ public:
   float Edep[MAXTRDCLMC];
   float Ekin[MAXTRDCLMC];
   float Xgl[MAXTRDCLMC][3];
+  float Step[MAXTRDCLMC];
  
 friend class AMSTRDMCCluster;
 friend class AMSNtuple;
@@ -484,6 +496,98 @@ friend class AMSNtuple;
 ClassDef(TRDMCClusterNtuple,1)       //TRDMCClusterNtuple
 #endif
 };
+
+
+#ifdef __WRITEROOT__
+class TRDRawHitNtuple : public TObject {
+#else
+class TRDRawHitNtuple {
+#endif
+public:
+  int Ntrdht;
+  int Id[MAXTRDRHT];
+  float Amp[MAXTRDRHT];
+friend class AMSTRDRawHit;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(TRDRawHitNtuple,1)       //TRDRawHitNtuple
+#endif
+};
+
+
+#ifdef __WRITEROOT__
+class TRDClusterNtuple : public TObject {
+#else
+class TRDClusterNtuple {
+#endif
+public:
+  int Ntrdcl;
+  int   Status[MAXTRDCL];
+  float Coo[MAXTRDCL][3];
+  int    Layer[MAXTRDCL];
+  float CooDir[MAXTRDCL][3];
+  int Multip[MAXTRDCL];
+  int HMultip[MAXTRDCL];
+  float EDep[MAXTRDCL];
+  int   pRawHit[MAXTRDCL];
+ 
+friend class AMSTRDCluster;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(TRDClusterNtuple,1)       //TRDClusterNtuple
+#endif
+};
+
+
+#ifdef __WRITEROOT__
+class TRDSegmentNtuple : public TObject {
+#else
+class TRDSegmentNtuple {
+#endif
+public:
+  int Ntrdseg;
+  int   Status[MAXTRDSEG];
+  int   Orientation[MAXTRDSEG];
+  float FitPar[MAXTRDSEG][2];
+  float Chi2[MAXTRDSEG];
+  int Pattern[MAXTRDSEG];
+  int Nhits[MAXTRDSEG];
+  int PCl[MAXTRDSEG][trdconst::maxhits];
+ 
+friend class AMSTRDSegment;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(TRDSegmentNtuple,1)       //TRDSegmentNtuple
+#endif
+};
+
+
+
+#ifdef __WRITEROOT__
+class TRDTrackNtuple : public TObject {
+#else
+class TRDTrackNtuple {
+#endif
+public:
+  int Ntrdtrk;
+  int   Status[MAXTRDTRK];
+  float Coo[MAXTRDTRK][3];
+  float ErCoo[MAXTRDTRK][3];
+  float Phi[MAXTRDTRK];
+  float Theta[MAXTRDTRK];
+  float Chi2[MAXTRDTRK];
+  int   NSeg[MAXTRDTRK];
+  int   Pattern[MAXTRDTRK];
+  int   pSeg[MAXTRDTRK][trdconst::maxseg];
+ 
+friend class AMSTRDTrack;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(TRDTrackNtuple,1)       //TRDTrackNtuple
+#endif
+};
+
+
 
 
 #ifdef __WRITEROOT__

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.260 2001/04/18 08:32:06 choumilo Exp $
+//  $Id: event.C,v 1.261 2001/04/27 21:49:58 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -59,6 +59,8 @@
 #include <sys/time.h>
 #include <time.h>
 #include <status.h>
+#include <trdsim.h>
+#include <trdrec.h>
 #ifdef __G4AMS__
 #include <g4util.h>
 #endif
@@ -921,6 +923,20 @@ void AMSEvent::_reecalinitevent(){
 void AMSEvent::_resrdinitevent(){
 }
 void AMSEvent::_retrdinitevent(){
+
+  for(int i=0;i<AMSTRDIdSoft::ncrates();i++) AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTRDRawHit",i),0));
+
+  for(int i=0;i<trdconst::maxlay;i++) AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTRDCluster",i),&AMSTRDCluster::build,0));
+
+  for(int i=0;i<trdconst::maxseg;i++) AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTRDSegment",i),&AMSTRDSegment::build,0));
+
+  for(int i=0;i<1;i++) AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:AMSTRDTrack",i),&AMSTRDTrack::build,0));
+
+
 }
 void AMSEvent::_rerichinitevent(){
   AMSNode *ptr;
@@ -1012,6 +1028,16 @@ void  AMSEvent::write(int trig){
  
 for(int il=0;il<TKDBc::nlay();il++){
   AMSEvent::gethead()->getheadC("AMSTrRecHit",il,2); 
+}
+for(int il=0;il<AMSTRDIdSoft::ncrates();il++){
+  AMSEvent::gethead()->getheadC("AMSTRDRawHit",il,2); 
+}
+for(int il=0;il<trdconst::maxlay;il++){
+  AMSEvent::gethead()->getheadC("AMSTRDCluster",il,2); 
+}
+
+for(int il=0;il<trdconst::maxseg;il++){
+  AMSEvent::gethead()->getheadC("AMSTRDSegment",il,2); 
 }
    
   if(IOPA.hlun || IOPA.WriteRoot){
@@ -1263,15 +1289,12 @@ void AMSEvent::_reamsevent(){
   }
   if(AMSJob::gethead()->isReconstruction() )_retrigevent();
   if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
-//cout<<"Bef.retkevent"<<endl;
-    _retkevent(); 
-//cout<<"Aft.retkevent"<<endl;
-    _rerichevent();
-//cout<<"Bef.reecalevent"<<endl;
-    _reecalevent();
-//cout<<"Aft.reecalevent"<<endl;
+   if(AMSEvent::gethead()->getC("TriggerLVL1",0)->getnelem() ){
     _retrdevent();
-    _resrdevent();
+    _retkevent(); 
+    _rerichevent();
+    _reecalevent();
+   }
   }
   else {
     _retkevent(); 
@@ -1767,7 +1790,32 @@ void AMSEvent::_reecalevent(){
 //========================================================================
 void AMSEvent::_retrdevent(){
 //
+
   AMSgObj::BookTimer.start("RETRDEVENT");
+  buildC("AMSTRDCluster");
+#ifdef __AMSDEBUG__
+  for(int i=0;i<trdconst::maxlay;i++){
+   AMSContainer *p =getC("AMSTRDCluster",i);
+   if(p && AMSEvent::debug)p->printC(cout);
+//   if(p )p->printC(cout);
+  }
+#endif
+
+  int nseg=buildC("AMSTRDSegment");
+#ifdef __AMSDEBUG__
+  for(int i=0;i<trdconst::maxseg;i++){
+   AMSContainer *p =getC("AMSTRDSegment",i);
+   if(p && AMSEvent::debug)p->printC(cout);
+  }
+#endif
+  buildC("AMSTRDTrack");   
+#ifdef __AMSDEBUG__
+  for(int i=0;i<1;i++){
+   AMSContainer *p =getC("AMSTRDTrack",i);
+   if(p && AMSEvent::debug)p->printC(cout);
+  }
+#endif
+
 //
 //
   AMSgObj::BookTimer.stop("RETRDEVENT");
@@ -1921,11 +1969,13 @@ void AMSEvent::_reaxinitrun(){
 }
 
 void AMSEvent:: _sitkevent(){
-  if(TRMCFFKEY.NoiseOn &&AMSTOFRawEvent::gettrfl() )AMSTrMCCluster::sitknoise();
+bool hastrigger= strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")?AMSTOFRawEvent::gettrfl():TOF2RawEvent::gettrfl();
+  if(TRMCFFKEY.NoiseOn &&hastrigger )AMSTrMCCluster::sitknoise();
   AMSTrMCCluster::sitkcrosstalk();
 #ifdef __AMSDEBUG__
   AMSContainer *p =getC("AMSTrMCCluster",0);
-  if(p && AMSEvent::debug>1 )p->printC(cout);
+//  if(p && AMSEvent::debug>1 )p->printC(cout);
+   if(p && AMSEvent::debug )p->printC(cout);
 #endif
     AMSTrRawCluster::sitkdigi();
 #ifdef __AMSDEBUG__
@@ -1982,6 +2032,15 @@ void AMSEvent:: _sianti2event(){
 }
 //----------------------------------------------------------------
 void AMSEvent:: _sitrdevent(){
+
+  AMSgObj::BookTimer.start("SITRDDigi");
+    AMSTRDRawHit::sitrddigi();
+#ifdef __AMSDEBUG__
+  AMSContainer *p =getC("AMSTRDRawHit",0);
+  if(p && AMSEvent::debug )p->printC(cout);
+#endif
+  AMSgObj::BookTimer.stop("SITRDDigi");
+
 }
 void AMSEvent:: _sisrdevent(){
 }
@@ -2457,6 +2516,10 @@ else{ // <------------------ AMS02
   EN->TrRawClusters=0;
   EN->TrMCClusters=0;
   EN->TRDMCClusters=0;
+  EN->TRDClusters=0;
+  EN->TRDRawHits=0;
+  EN->TRDSegments=0;
+  EN->TRDTracks=0;
   EN->TOFClusters=0;
   EN->TOFMCClusters=0;
   EN->AntiClusters=0;
@@ -2516,6 +2579,30 @@ else{ // <------------------ AMS02
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSTRDMCCluster",i);
    if(p) EN->TRDMCClusters+=p->getnelem();
+   else break;
+  }
+ 
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTRDCluster",i);
+   if(p) EN->TRDClusters+=p->getnelem();
+   else break;
+  }
+ 
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTRDRawHit",i);
+   if(p) EN->TRDRawHits+=p->getnelem();
+   else break;
+  }
+ 
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTRDTrack",i);
+   if(p) EN->TRDTracks+=p->getnelem();
+   else break;
+  }
+
+  for(i=0;;i++){
+   p=AMSEvent::gethead()->getC("AMSTRDSegment",i);
+   if(p) EN->TRDSegments+=p->getnelem();
    else break;
   }
  

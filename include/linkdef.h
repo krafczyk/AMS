@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.7 2001/03/05 10:51:31 choutko Exp $
+//  $Id: linkdef.h,v 1.8 2001/04/27 21:50:33 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -16,6 +16,10 @@
 #pragma link C++ class TrClusterNtuple;
 #pragma link C++ class TrMCClusterNtuple;
 #pragma link C++ class TRDMCClusterNtuple;
+#pragma link C++ class TRDClusterNtuple;
+#pragma link C++ class TRDSegmentNtuple;
+#pragma link C++ class TRDTrackNtuple;
+#pragma link C++ class TRDRawHitNtuple;
 #pragma link C++ class TrRecHitNtuple;
 #pragma link C++ class TrRecHitNtuple02;
 #pragma link C++ class TrTrackNtuple;

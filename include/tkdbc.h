@@ -1,4 +1,4 @@
-//  $Id: tkdbc.h,v 1.11 2001/01/22 17:32:44 choutko Exp $
+//  $Id: tkdbc.h,v 1.12 2001/04/27 21:50:33 choutko Exp $
 #ifndef __TKDBC__
 #define __TKDBC__
 #include <typedefs.h>
@@ -64,7 +64,6 @@ private:
    static  integer  _boundladshuttle[trconst::maxlay][2];
    static  number   _PlMarkerPos[trconst::maxlay][2][4][3];  // 1st wjb
                                                     // 2nd hasan
-   static uinteger factorial(uinteger n);
    static void InitPattern();
    static uinteger * _Cumulus;
 
@@ -97,6 +96,7 @@ private:
  };
 
 public:
+   static uinteger factorial(uinteger n);
   TKDBc(): _status(0){}
  static integer getnum(integer layer, integer ladder, integer sensor);
  static integer getnumd(integer layer, integer ladder);
