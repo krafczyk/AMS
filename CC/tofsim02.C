@@ -133,7 +133,7 @@ geant TOF2Scan::gettm2(geant r, int i1, int i2){
 
 };    
 //------------------------------------------------------------------
-// function to create AMSTOFScan objects for all sc. bars :
+// function to create TOF2Scan objects for all sc. bars :
 void TOF2Scan::build(){
 //
   int i,ic,nverst,ivers,dig;
@@ -294,7 +294,7 @@ void TOF2Tovt::build()
   integer nhitl[TOF2GC::SCLRS];
   geant edepl[TOF2GC::SCLRS],edepb;
   geant dummy(-1);
-  geant time,x,y,z,am,am0,am2,sig,r,rnd,eff,rgn,de,tm,eps(0.002);
+  geant time,qtime,x,y,z,am,am0,am2,sig,r,rnd,eff,rgn,de,tm,eps(0.002);
   geant vl,vh;
   geant nel0,nel,nelb,nesig,nphot;
   AMSPoint cloc(999.,999.,999.);
@@ -375,12 +375,13 @@ void TOF2Tovt::build()
     x=cloc[0];
     y=cloc[1];
     z=cloc[2];
-//  cout<<"local coo="<<x<<" "<<y<<" "<<z<<" time="<<time<<endl;
+//  cout<<"local coo="<<x<<" "<<y<<" "<<z<<" G-time="<<time<<endl;
     if((time>=tmax) || (time<0.)){
 //            cout<<"TOF: Bad G-hit, id="<<id<<" t/de="<<time<<" "<<de<<'\n';
       ptr=ptr->next(); // next hit
       continue;
     }
+    qtime=time*ifadcb;
     cnum=ilay*TOF2GC::SCMXBR+ibar;// sequential counter number
     TOF2Scan::scmcscan[cnum].getxbin(y,i1,i2,r);//y-bin # (longit.(x !)-coord. in LTRANS )
     TOF2Brcal::scbrcal[ilay][ibar].getbstat(status);//get status of two ends (from DB)
@@ -398,10 +399,11 @@ void TOF2Tovt::build()
 //    <-------- create phel. arrival-time distribution(PM-1) ---<<<
     for(i=0;i<nelec;i++){
       tm=TOF2Scan::scmcscan[cnum].gettm1(r,i1,i2);//phel.arrival time from interpol.distr.
-      ii=integer(tm*ifadcb);
+      ii=integer(floor(tm*ifadcb));
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
-    i0=integer(time*ifadcb);// 1st bin pos. in abs. scale (for tslice1)
+    i0=integer(floor(qtime));// 1st bin pos. in abs. scale (for tslice1)
+    if((qtime-geant(i0))>0.5)i0+=1;// to compensate partially binning influence
 //    <-------- Loop over distr.bins ---<<<
     for(i=0;i<TOFGC::AMSDISL;i++){
       nelec=warr[i];
@@ -434,10 +436,11 @@ void TOF2Tovt::build()
 //    <-------- create phel. arrival-time distribution(PM-2) ---<<<
     for(i=0;i<nelec;i++){
       tm=TOF2Scan::scmcscan[cnum].gettm2(r,i1,i2);//phel.arrival time from interpol.distr.
-      ii=integer(tm*ifadcb);
+      ii=integer(floor(tm*ifadcb));
       if(ii<TOFGC::AMSDISL)warr[ii]+=1;
     }
-    i0=integer(time*ifadcb);// 1st bin pos. in abs. scale (for tslice2)
+    i0=integer(floor(qtime));// 1st bin pos. in abs. scale (for tslice2)
+    if((qtime-geant(i0))>0.5)i0+=1;// to compensate partially binning influence
 //    <-------- Loop over distr.bins ---<<<
     for(i=0;i<TOFGC::AMSDISL;i++){
       nelec=warr[i];
@@ -762,7 +765,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
   }
 // time-dependent parameters !!! :
   daqt0=TOF2Varp::tofvpar.daqthr(0); // fast discr. thresh. for slow/fast TDC branch
-  fdaqt0=0.2*daqt0;// tempor for base line shift simulation
+  fdaqt0=0.1*daqt0;// lowered threshold to select "working" part of pulse(m.b. loose some charge !!!)
   daqt1=TOF2Varp::tofvpar.daqthr(1); // fast discr. thresh. for z>=1 (FT) branch
   TOF2Brcal::scbrcal[ilay][ibar].getahlr(ahlr);//get high/low(a2d) ratio
   scbrped[ilay][ibar].getped(peds);//get peds
@@ -829,7 +832,7 @@ void TOF2Tovt::totovt(integer idd, geant edepb, geant tslice[])
 // discr-1(anode,fast comparator for TDC/z>=1 ) up/down setting with LOW thr.:
           if(am>=daqt0){
             if(upd1 ==0){
-              tmd1u=tmp+fladcb*(daqt0-amp)/(am-amp);// up time of discr.1
+              tmd1u=tmp+fladcb*(daqt0-amp)/(am-amp);// up time of discr.1(bin-width compencated)
               tmark=tmd1u+daqp10*rnormx();// add intrinsic t-dispersion
               upd1=1;
             }
@@ -1578,7 +1581,7 @@ void TOF2RawEvent::mc_build(int &status)
         t1=tftdc[jj];
         t2=tftdcd[jj];
         dt=tl1d-t2;// follow LIFO mode of readout : down-edge - first hit
-        it=integer(dt/TOF2DBc::tdcbin(0)); // conv. to fast-TDC (history) t-binning
+        it=integer(floor(dt/TOF2DBc::tdcbin(0))); // conv. to fast-TDC (history) t-binning
         if(it>maxv){
           cout<<"TOF2RawEvent_mc: warning : Hist-TDC down-time overflow !!!"<<'\n';
           it=maxv;
@@ -1588,7 +1591,7 @@ void TOF2RawEvent::mc_build(int &status)
         ftdc[_nftdc]=itt;
         _nftdc+=1;
         dt=tl1d-t1;// follow LIFO mode of readout : leading(up) edge - second
-        it=integer(dt/TOF2DBc::tdcbin(0)); // conv. to fast-TDC (history) t-binning
+        it=integer(floor(dt/TOF2DBc::tdcbin(0))); // conv. to fast-TDC (history) t-binning
         if(it>maxv){
           cout<<"TOF2RawEvent_mc: warning : Hist-TDC up-time overflow !!!"<<'\n';
           it=maxv;
@@ -1609,10 +1612,10 @@ void TOF2RawEvent::mc_build(int &status)
         t4=t2+offs+(t2-t1)*str+rnormx()*TOF2DBc::strflu();//"end-mark"_signal + offs + fluct
         dt=ftrig-t1;// total FT-delay wrt t1
         if(dt<=TOF2DBc::ftdelm()){ // check max. delay of "fast-trigger" signal
-          it0=integer(tlev1/TOF2DBc::tdcbin(1));//Lev-1 abs.time (integer)  
+          it0=integer(floor(tlev1/TOF2DBc::tdcbin(1)));//Lev-1 abs.time (integer)  
 //follow LIFO mode of readout: stretcher "end-mark" edge - first hit; "start" - last:
 //  prepare 4-th component("end-mark") of "4-edge" TOF-hit:
-          it4=integer(t4/TOF2DBc::tdcbin(1));
+          it4=integer(floor(t4/TOF2DBc::tdcbin(1)));
           it=it0-it4;// time wrt lev-1 signal
           if(it>maxv){
             cout<<"TOF2RawEvent_mc: warning : 4-th edge TDC overflow !!!"<<'\n';
@@ -1623,7 +1626,7 @@ void TOF2RawEvent::mc_build(int &status)
           stdc[_nstdc]=itt;
           _nstdc+=1;
 //  prepare 3-d component("dummy"):
-          it3=integer(t3/TOF2DBc::tdcbin(1));
+          it3=integer(floor(t3/TOF2DBc::tdcbin(1)));
           it=it0-it3;// time wrt lev-1 signal
           if(it>maxv){
             cout<<"TOF2RawEvent_mc: warning : 3-rd edge TDC overflow !!!"<<'\n';
@@ -1634,7 +1637,7 @@ void TOF2RawEvent::mc_build(int &status)
           stdc[_nstdc]=itt;
           _nstdc+=1;
 //  prepare 2-nd component("stop"):
-          it2=integer(t2/TOF2DBc::tdcbin(1));
+          it2=integer(floor(t2/TOF2DBc::tdcbin(1)));
           it=it0-it2;// time wrt lev-1 signal
           if(it>maxv){
             cout<<"TOF2RawEvent_mc: warning : 2-nd edge TDC overflow !!!"<<'\n';
@@ -1645,7 +1648,7 @@ void TOF2RawEvent::mc_build(int &status)
           stdc[_nstdc]=itt;
           _nstdc+=1;
 //  prepare 1-st component("start") of "4-edge" TOF-hit:
-          it1=integer(t1/TOF2DBc::tdcbin(1));
+          it1=integer(floor(t1/TOF2DBc::tdcbin(1)));
           it=it0-it1;// time wrt lev-1 signal
           if(it>maxv){
             cout<<"TOF2RawEvent_mc: warning : 1-st edge TDC overflow !!!"<<'\n';
@@ -1664,14 +1667,14 @@ void TOF2RawEvent::mc_build(int &status)
       for(j=0;j<nadch;j++){// <--- adch-hits loop ---
         jj=nadch-j-1;// LIFO readout mode (last stored - first read)
 	amp=tadch[jj];// here charge is quantized by "adccf" but not "integerized"
-        iamp=integer(amp);//go to real ADC-channels("integerization")
+        iamp=integer(floor(amp));//go to real ADC-channels("integerization")
         if(iamp>TOF2GC::SCADCMX){
           cout<<"TOF2RawEvent::mc_build warning: high ADC overflow,id="<<idd<<'\n';
           iamp=TOF2GC::SCADCMX;
         }
 	amp=number(iamp)-pedv;// subtract pedestal (loose "integerization" !)
 	if(amp>daqt1){// DAQ readout threshold
-	  iamp=integer(amp/TOF2DBc::tdcbin(2));// again "integerization" but to DAQ binning
+	  iamp=integer(floor(amp/TOF2DBc::tdcbin(2)));// again "integerization" but to DAQ binning
           itt=int16u(iamp);
           adch[_nadch]=itt;
           _nadch+=1;
@@ -1684,14 +1687,14 @@ void TOF2RawEvent::mc_build(int &status)
       for(j=0;j<nadcl;j++){// <--- adch-hits loop ---
         jj=nadcl-j-1;// LIFO readout mode (last stored - first read)
 	amp=tadcl[jj];
-        iamp=integer(amp);
+        iamp=integer(floor(amp));
         if(iamp>TOF2GC::SCADCMX){
           cout<<"TOF2RawEvent::mc_build warning: low ADC overflow, id="<<idd<<'\n';
           iamp=TOF2GC::SCADCMX;
         }
 	amp=number(iamp)-pedv;// subtr. pedestal (loose quantization !)
 	if(amp>daqt1){// DAQ readout threshold
-	  iamp=integer(amp/TOF2DBc::tdcbin(2));// in DAQ binning
+	  iamp=integer(floor(amp/TOF2DBc::tdcbin(2)));// in DAQ binning
           itt=int16u(iamp);
           adcl[_nadcl]=itt;
           _nadcl+=1;

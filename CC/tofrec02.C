@@ -1058,11 +1058,16 @@ void TOF2RawCluster::build(int &ostatus){
         HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
         HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
       }
-      HF1(1533,tdiff[0],1.);//layer=0
+      HF1(1533,tdiff[0],1.);//layer=1
+      HF1(1554,tdiff[1],1.);//layer=2
       HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
       HF1(1545,clong[1],1.);//Y-coord(loc.r.s.)
       HF1(1546,clong[2],1.);//Y-coord(loc.r.s.)
       HF1(1547,clong[3],1.);//Y-coord(loc.r.s.)
+      HF1(1560,tcorr[0],1.);// L=1,corr.time
+      HF1(1561,tcorr[1],1.);// L=2,corr.time
+      HF1(1562,tcorr[2],1.);// L=3,corr.time
+      HF1(1563,tcorr[3],1.);// L=4,corr.time
       if(AMSJob::gethead()->isSimulation()){
         geant tch;
         charg[0]=pch1[0];

@@ -61,7 +61,7 @@ geant TOF2DBc::_plnstr[15]={
   geant TOF2DBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
   geant TOF2DBc::_shaptb=1.;      // MC shaper internal time binning (ns)
   geant TOF2DBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
-  geant TOF2DBc::_shctim=600.;    // MC shaper pulse cut-time(gate width)(ns)
+  geant TOF2DBc::_shctim=400.;    // MC max integration time(max.gate width)(ns)
   geant TOF2DBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!don't need now
   geant TOF2DBc::_strflu=1.5;     // Stretcher "end-mark" time fluctuations (ns)
   geant TOF2DBc::_tdcbin[4]={
@@ -808,32 +808,29 @@ geant TOF2Brcal::poscor(geant point){
 }
 //------
 geant TOF2Brcal::tm2t(number tmf[2], number amf[2], int hlf){//(2-sides_times/ADC)->Time (ns)
-  geant shft;
   number time,qs,uv(0);
-  shft=TOF2DBc::shftim();
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,hlf,amf[isd],qs);// ADCch->Q
       uv+=slops[isd]/sqrt(qs);// summing slops/sqrt(Q), works sl.better
     }
   }
-  uv=0.;// tempor
+//  uv=0.;// tempor
   time=0.5*(tmf[0]+tmf[1])+tzero+slope*uv;
   return geant(time); 
 }
 //-----
 void TOF2Brcal::tmd2p(number tmf[2], number amf[2], int hlf,
                               geant &co, geant &eco){//(time-diff)->loc.coord/err(cm)
-  number time,coo,qs,uv(0);
+  number coo,qs,uv(0);
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
       q2t2q(1,isd,hlf,amf[isd],qs);// ADCch->Q
       uv+=(1-2*isd)*slops[isd]/sqrt(qs);// subtr slops/sqrt(Q)
     }
   }
-  uv=0.;//tempor
+//  uv=0.;//tempor
   coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);
-//  coo=-(0.5*(tmf[0]-tmf[1])-yctdif);// tempor no A-correction
 //common "-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2
   co=td2pos[0]*geant(coo);//coo(ns)->cm                    
   eco=td2pos[1];
@@ -841,7 +838,6 @@ void TOF2Brcal::tmd2p(number tmf[2], number amf[2], int hlf,
 //-----
 void TOF2Brcal::td2ctd(number tdo, number amf[2], int hlf,
                               number &tdc){//td0=0.5*(t[0]-t[1])->tdc (A-corrected)
-  geant shft;
   number qs,uv(0);
   if(status[0]>=0 && status[1]>=0){
     for(int isd=0;isd<2;isd++){
@@ -1475,11 +1471,16 @@ void TOF2JobStat::bookhist(){
     HBOOK1(1532,"(T1-T3)(ns),corr,trl-corr,1b/L evnt",80,1.,9.,0.);
 //
     HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
+    HBOOK1(1554,"L=2,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
     HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
     HBOOK1(1545,"L=2,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
     HBOOK1(1546,"L=3,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
     HBOOK1(1547,"L=4,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-//
+    HBOOK1(1560,"Bar-time(corected),L=1",80,60.,80.,0.);
+    HBOOK1(1561,"Bar-time(corected),L=2",80,60.,80.,0.);
+    HBOOK1(1562,"Bar-time(corected),L=3",80,55.,75.,0.);
+    HBOOK1(1563,"Bar-time(corected),L=4",80,55.,75.,0.);
+
     HBOOK1(1534,"(T2-T4)(ns),corr,trl-corr,1b/L evnt",80,1.,9.,0.);
     HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",80,-4.,4.,0.);
     HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
@@ -1541,10 +1542,6 @@ void TOF2JobStat::bookhist(){
       HBOOK1(1507,"T0-difference inside bar-types 5",80,-0.4,0.4,0.);
       HBOOK2(1514,"Layer-1,T vs SUM(1/sqrt(Q))",50,0.,0.5,50,1.,11.,0.);
       HBOOK1(1524,"TRlen13-TRlen24",80,-4.,4.,0.);
-//      HBOOK1(1550,"Bar-time(corected),L=1",80,24.,26.,0.);
-//      HBOOK1(1551,"Bar-time(corected),L=2",80,23.5,25.5,0.);
-//      HBOOK1(1552,"Bar-time(corected),L=3",80,19.5,21.5,0.);
-//      HBOOK1(1553,"Bar-time(corected),L=4",80,19.,21.,0.);
     }
     if(TFREFFKEY.relogic[0]==4){ // <==================== AMPL-calibration
       HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
@@ -1710,10 +1707,15 @@ void TOF2JobStat::outp(){
          }
            HPRINT(1532);
            HPRINT(1533);
+           HPRINT(1554);
            HPRINT(1543);
            HPRINT(1545);
            HPRINT(1546);
            HPRINT(1547);
+	   HPRINT(1560);
+	   HPRINT(1561);
+	   HPRINT(1562);
+	   HPRINT(1563);
            HPRINT(1544);
            HPRINT(1534);
          if(TFREFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms

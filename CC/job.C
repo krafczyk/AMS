@@ -1147,7 +1147,7 @@ void AMSJob::_reanti2data(){
   ATREFFKEY.dathr=6.; //(7) Amplitude(charge) discr.threshold(...) (p.e.)
   ATREFFKEY.ftwin=100.;//(8) t-window(ns) for true TDCA-hit search wrt TDCT-hit(FT) 
 //
-  ATREFFKEY.ReadConstFiles=0;//(9)read const. from DB/myFiles (0/1)
+  ATREFFKEY.ReadConstFiles=1;//(9)read const. from DB/myFiles (0/1)
 //  
   ATREFFKEY.sec[0]=0;//(10) 
   ATREFFKEY.sec[1]=0;//(11)

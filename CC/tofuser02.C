@@ -12,7 +12,7 @@
 #include <tofrec02.h>
 #include <antirec02.h>
 #include <particle.h>
-#include <daqblock.h>
+//#include <daqblock.h>
 #include <tofcalib02.h>
 #include <ntuple.h>
 #include <time.h>
@@ -32,7 +32,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
   geant ainp[2],dinp[2],cinp;
   number ltim[TOF2GC::SCLRS],tdif[TOF2GC::SCLRS],trle[TOF2GC::SCLRS],trlr[TOF2GC::SCLRS];
   number fpnt,bci,sut,sul,sul2,sutl,sud,sit2,tzer,chsq,betof,lflgt;
-  number sigt[4]={0.13,0.17,0.17,0.13};// time meas.accuracy 
+  number sigt[4]={0.13,0.15,0.15,0.13};// time meas.accuracy 
   number cvel(29.979);// light velocity
   number eacut=0.3;// cut on E-anti (mev)
   number dscut=6.;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
@@ -200,7 +200,7 @@ void TOF2User::Event(){  // some processing when all subd.info is redy (+accros)
     if(bad)return;//too big difference of TOF-Tracker coord.
     TOF2JobStat::addre(25);
 //
-//--------> find beta from TOF :
+//--------> find beta TOF-times and Tracker track lengthes :
 //
 //
     trle[0]=0.;

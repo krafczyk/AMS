@@ -835,8 +835,8 @@ void TOF2TDIFcalib::select(){ // ------> event selection for TDIF-calibration
         ptr->getsdtm(sdtm);// get raw side-times(ns)
         tmsd[ilay]=0.5*(sdtm[0]-sdtm[1]);// side time difference
         tmss[ilay]=0.5*(sdtm[0]+sdtm[1]);// side time sum
-//        TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//slew-corr times(from high-ch)
-        tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
+        TOF2Brcal::scbrcal[ilay][ibar].td2ctd(tmsd[ilay],ama,0,tmsdc[ilay]);//slew-corr times(from high-ch)
+//        tmsdc[ilay]=tmsd[ilay];// use raw side-times(running first time,when slop unknown)
         }
       }
     }
