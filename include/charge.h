@@ -12,7 +12,7 @@
 #include <trrec.h>
 #include <tofrec.h>
 #include <beta.h>
-const integer ncharge=9; // e,p,He...C+2
+const integer ncharge=10; // e,p,He...C+3
 class AMSCharge: public AMSlink{
 protected:
   AMSBeta * _pbeta;      // pointer to beta --> then to track & tof

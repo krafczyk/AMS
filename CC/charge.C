@@ -18,9 +18,9 @@ number AMSCharge::_lkhdTOF[ncharge][100];
 number AMSCharge::_lkhdTracker[ncharge][100];
 number AMSCharge::_lkhdStepTOF[ncharge];
 number AMSCharge::_lkhdStepTracker[ncharge];
-integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8};
-integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8};
-char AMSCharge::_fnam[128]="/afs/cern.ch/user/c/choutko/public/lkhd_v204+.data";
+integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
+integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
+char AMSCharge::_fnam[128]="/afs/cern.ch/user/c/choutko/public/lkhd_v205+.data";
 void AMSCharge::build(){
   // charge finding
   number EdepTOF[4];
@@ -242,19 +242,27 @@ int i,j;
      iftxt >> _lkhdTOF[i][j];
     }
   }
+    for( j=0;j<100;j++){
+     iftxt >> _lkhdTOF[6][j];
+    }
   for( i=0;i<3;i++){
     for(j=0;j<100;j++){
      iftxt >> _lkhdTracker[i][j];
     }
   }
+    for(j=0;j<100;j++){
+     iftxt >> _lkhdTracker[6][j];
+    }
     if(iftxt.eof() ){
       cerr<< "AMSCharge::init-F-Unexpected EOF"<<endl;
       exit(1);
     }
   iftxt.close();
-  for(i=3;i<ncharge;i++){
-   UCOPY(_lkhdTOF[2],_lkhdTOF[i],100*sizeof(number)/4);
-   UCOPY(_lkhdTracker[2],_lkhdTracker[i],100*sizeof(number)/4);
+  for(i=1;i<4;i++){
+   UCOPY(_lkhdTOF[2],_lkhdTOF[2+i],100*sizeof(number)/4);
+   UCOPY(_lkhdTracker[2],_lkhdTracker[2+i],100*sizeof(number)/4);
+   UCOPY(_lkhdTOF[6],_lkhdTOF[6+i],100*sizeof(number)/4);
+   UCOPY(_lkhdTracker[6],_lkhdTracker[6+i],100*sizeof(number)/4);
   }
 #ifdef __AMSDEBUG__
   cout << "AMSCharge::init()-I-Completed"<<endl;
