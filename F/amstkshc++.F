@@ -1537,8 +1537,14 @@ c           goto 888
                do j=1,5
                 gkin(j,ngkine)=p_sec(j,i)
                enddo
-               call gsking(ngkine)
-               ngkine=ngkine-1
+               TOFD(NGKINE)=0.0
+               GPOS(1,NGKINE) = VECT(1)
+               GPOS(2,NGKINE) = VECT(2)
+               GPOS(3,NGKINE) = VECT(3)
+               if(ngkine.eq.mxgkin)then
+                call gsking(ngkine)
+                ngkine=ngkine-1
+               endif
               else
                DESTEP = DESTEP + p_sec(4,i)-p_sec(6,i)
               endif
@@ -1573,10 +1579,10 @@ c         write(*,*)'ABUFIN- secondary!!!',pmom_t(4),pmom_t(6)
             GKIN(3,NGKINE)=pmom_t(3)*PGEANT
             GKIN(4,NGKINE)=pmom_t(6)+AGEMAS
             GKIN(5,NGKINE)=IGEPAR
-            TOFD(NGKINE)=0.0
-            GPOS(1,NGKINE) = VECT(1)
-            GPOS(2,NGKINE) = VECT(2)
-            GPOS(3,NGKINE) = VECT(3)
+               TOFD(NGKINE)=0.0
+               GPOS(1,NGKINE) = VECT(1)
+               GPOS(2,NGKINE) = VECT(2)
+               GPOS(3,NGKINE) = VECT(3)
 *
        endif
       END IF
