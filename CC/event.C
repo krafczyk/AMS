@@ -333,11 +333,15 @@ _sictcinitrun();
 
 
 void AMSEvent::_reamsinitrun(){
-if(AMSJob::gethead()->isProduction()){
+if(AMSJob::gethead()->isProduction() ){
  if(!SRun){
   HDELET(0);
   AMSJob::gethead()->uhinit(getrun(),getid());
   AMSJob::map(1);
+ }
+}
+if(AMSJob::gethead()->isProduction() && AMSJob::gethead()->isRealData()){
+ if(!SRun){
  }
  else{
   _endofrun();

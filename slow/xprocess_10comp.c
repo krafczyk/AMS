@@ -129,6 +129,7 @@ if (fp==NULL) {
           if (ch1!=NULL) {
             if (isdigit(ch1[2])>0) {
               token = strtok(ch,delimiter);
+                if(!token || !isdigit(token[0]))break;
               for (i=0; i<4; i++) {
                 token=strtok(NULL,delimiter);
                 er=atoi(token);
@@ -383,7 +384,7 @@ if (fp==NULL) {
               if (strcmp(ch2,".hbk\n")==0)
                 nn++;
             }
-            else nn--;
+            else if (nn>0)nn--;
           }
 	}
         fclose(fp);

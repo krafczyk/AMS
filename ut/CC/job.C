@@ -2214,7 +2214,7 @@ void AMSJob::_axendjob(){
           assert(pg!=NULL);
   }
 
-    if(isProduction()){
+    if(isProduction() && isRealData()){
       AMSEvent::_endofrun();
     }
     AMSUser::EndJob(); 
