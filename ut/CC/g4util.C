@@ -1,4 +1,4 @@
-//  $Id: g4util.C,v 1.2 2001/01/22 17:32:20 choutko Exp $
+//  $Id: g4util.C,v 1.3 2001/08/01 17:39:12 choutko Exp $
 #include <g4util.h>
 AMSRandGeneral* AMSRandGeneral::_pstatic=0;
 void AMSRandGeneral::book(geant parray[], uinteger larray, geant xmi, geant xma, integer hid){
@@ -52,4 +52,6 @@ if(_pstatic && hid){
     return 0;
  }
 }
+return 0;
+
 }

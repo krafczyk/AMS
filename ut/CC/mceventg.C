@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.111 2001/08/01 13:28:43 choutko Exp $
+//  $Id: mceventg.C,v 1.112 2001/08/01 17:39:13 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -486,7 +486,50 @@ bool AMSmceventg::SpecialCuts(integer cut){
      else return false; 
     }
     else return false;
-  }   
+  }
+  else if(cut==2){
+    // TRD Top HC Focusing
+   static bool InitDone=false;
+   static number ZI,RI,ZO,RO;
+   if(!InitDone){
+    AMSgvolume *trdhc=AMSJob::gethead()->getgeomvolume(AMSID("TRD5",6));
+    if(trdhc){
+     InitDone=true;
+     AMSPoint cooA;
+     number par[10];
+     for(int i=0;i<3;i++)cooA[i]=trdhc->getcooA(i);
+     for(int i=0;i<10;i++)par[i]=trdhc->getpar(i);
+      ZI=cooA[2]+par[4];
+      RI=par[5];
+      ZO=cooA[2]+par[7];
+      RO=par[8];
+      cout <<" TRDHCFocusing-I-CrossingParameters: "<<ZI<<" "<<RI<<" "<<ZO<<" "<<RO<<endl;
+    }
+    else{
+     cerr<<"AMSmceventg::SpecialCuts-S-NoTRD5Volumefound "<<endl;
+     return true;
+    }   
+   }
+     AMSPoint extrapI=_coo+_dir*((ZI-_coo[2])/_dir[2]);
+     AMSPoint extrapO=_coo+_dir*((ZO-_coo[2])/_dir[2]);
+     if(extrapI[0]>RI && extrapO[0]>RO)return false;
+     if(extrapI[0]<-RI && extrapO[0]<-RO)return false;
+     if(extrapI[1]>RI && extrapO[1]>RO)return false;
+     if(extrapI[1]<-RI && extrapO[1]<-RO)return false;
+     if(extrapI[0]>RI)extrapI[0]=RI;
+     if(extrapI[0]<-RI)extrapI[0]=-RI;
+     if(extrapI[1]>RI)extrapI[1]=RI;
+     if(extrapI[1]<-RI)extrapI[1]=-RI;
+     if(extrapO[0]>RO)extrapO[0]=RO;
+     if(extrapO[0]<-RO)extrapO[0]=-RO;
+     if(extrapO[1]>RO)extrapO[1]=RO;
+     if(extrapO[1]<-RO)extrapO[1]=-RO;
+     number path=(extrapO-extrapI).norm();
+     if(path<(RO+RI)/2){
+      return false;
+     }
+     else return true; 
+  }  
    return true;
 }
 

@@ -1,4 +1,4 @@
-#  $Id: g4i.new,v 1.1 2001/04/27 21:50:35 choutko Exp $
+#  $Id: g4i.new,v 1.2 2001/08/01 17:39:19 choutko Exp $
 if $OS == "Linux"  then
 setenv LinuxBUG 0
 if $LinuxBUG == "1" then
@@ -27,7 +27,7 @@ endif
 #for geant4 ex
 #setenv LD_LIBRARY_PATH= .:$CLHEP_BASE_DIR/lib:$OGLHOME/lib
 
-setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.3.1
+setenv G4INSTALL /afs/cern.ch/exp/ams/Offline/geant4.3.2
 setenv G4LIB $G4INSTALL/lib
 setenv G4_NO_VERBOSE 1
 setenv G4VIS_BUILD_DAWNFILE_DRIVER 1
@@ -41,6 +41,8 @@ setenv G4VIS_USE_RAYX         1
 #setenv G4VIS_BUILD_OPACS_DRIVER         1
 #setenv G4VIS_USE_OPACS         1
 #setenv G4DAWNFILE_VIEWER david
+setenv G4VIS_BUILD_ASCIITREE_DRIVER 1
+setenv G4VIS_USE_ASCIITREE 1
 #setenv G4LEVELGAMMADATA $G4INSTALL/data/G4PhotonEvap.1.0/data/PhotonEvaporation
 setenv G4LEVELGAMMADATA  $G4INSTALL/data/G4RadiativeDecay.2.0/data/PhotonEvaporation
 setenv G4RADIOACTIVEDATA  $G4INSTALL/data/G4RadiativeDecay.2.0/data/RadiativeDecay

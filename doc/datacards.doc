@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.196 2001/08/01 13:28:50 choutko Exp $
+#  $Id: datacards.doc,v 1.197 2001/08/01 17:39:19 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -317,6 +317,7 @@ R32 StrCharge(2)                  // stranglet charge  (pid=113)
 R33 StrMass(12)                   // stranglet mass  
 I34 SpecialCut(0)                 // special acceptance cut
                                   // 1: focus on ecal
+                                  // 2: focus on outer trd hc
 KINE 
 1 IPART        // Geant particle id
 
