@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.60 2003/05/13 13:11:44 choutko Exp $
+# $Id: Monitor.pm,v 1.61 2003/05/13 14:27:17 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -880,8 +880,8 @@ sub getruns{
 }
 
 sub getntuples{
-     sub prio{ $a->{Run} <=> $b->{Run};}
-     my @sorteddst=sort prio @{$Monitor::Singleton->{dsts}};
+     sub prion{ $a->{Run} <=> $b->{Run};}
+     my @sorteddst=sort prion @{$Monitor::Singleton->{dsts}};
     my @output=();
     my @text=();
     my @final_text=();
