@@ -8,6 +8,7 @@
 #include <new.h>
 #include <upool.h>
 #include <apool.h>
+#include <status.h>
 
 
 
@@ -63,6 +64,7 @@ void (handler)(int sig){
     cerr <<" SIGTERM intercepted"<<endl;
     GCFLAG.IEORUN=1;
     GCFLAG.IEOTRI=1;
+    AMSStatus::setmode(0);
     break;
   case SIGQUIT:
     cerr <<" Process suspended"<<endl;

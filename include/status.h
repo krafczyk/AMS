@@ -47,7 +47,7 @@ public:
   uinteger getstatus(uinteger evt, uinteger run);
   static void create();
   static void init();
-  void setmode(integer mode){_Mode=mode;}
+  static void setmode(integer mode){_Mode=mode;}
   static integer isDBWriteR(){return _Mode==2;}
   static integer isDBUpdateR(){return _Mode==3;}
   integer isFull(uinteger run, uinteger evt, time_t time);

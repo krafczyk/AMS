@@ -76,6 +76,8 @@ void TriggerLVL1::build(){
     tofpatt[i]=tofpatt[i] | (tofpatt[i]<<16);
   }
   geant sumsc=_scaler.getsum()/96;
+  // mark default as error here
+     if(_scaler.lifetime/1000.>1.)AMSEvent::gethead()->seterror();
   if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti && (sumsc<LVL1FFKEY.MaxScalersRate || _scaler.lifetime/1000.>LVL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new TriggerLVL1(_scaler.lifetime,tofflag,tofpatt,antipatt));
@@ -306,6 +308,8 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   antip = xpos | (xneg <<4);
   antip = antip | (a2<<16);
   geant sumsc=_scaler.getsum()/96;
+  // mark default as error here
+     if(_scaler.lifetime/1000.>1.)AMSEvent::gethead()->seterror();
   if(z>0 && (sumsc<LVL1FFKEY.MaxScalersRate || _scaler.lifetime/1000.>LVL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
   TriggerLVL1(_scaler.lifetime,z,tofp,tofp1,antip));
   else if(sumsc>=LVL1FFKEY.MaxScalersRate && _scaler.lifetime/1000.<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
