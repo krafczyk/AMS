@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.25 2001/06/25 16:45:38 choutko Exp $
+#  $Id: monitorUI.pm,v 1.26 2001/06/26 15:07:27 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -1252,6 +1252,7 @@ sub show_sample{
 "Memory",
 "Clock",
 "Clients Allowed",
+"Processes Failed",
 "Status",
                  );
     }elsif( $name eq "Ntuple"){

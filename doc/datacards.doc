@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.192 2001/05/02 15:53:45 choutko Exp $
+#  $Id: datacards.doc,v 1.193 2001/06/26 15:07:27 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -313,7 +313,8 @@ I28 endtime(120000)               // end time   (hhmmss)
 I29 dir(1)                        // direction +1 to higher theta (-1 to lower)
 I30 oldformat(0)                  // 1 if oldformat for io read is used
 I31 Fast(0)                       // Fast MC gen is used
-
+R32 StrCharge(2)                  // stranglet charge  (pid=113)
+R33 StrMass(12)                   // stranglet mass  
 KINE 
 1 IPART        // Geant particle id
 

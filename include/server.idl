@@ -1,4 +1,4 @@
-#pragma prefix "ams.cern.ch"
+ #pragma prefix "ams.cern.ch"
 module DPS{
    typedef unsigned long time;
   interface Client{
@@ -93,6 +93,7 @@ module DPS{
       long ClientsProcessed;
       long ClientsFailed;
       long ClientsKilled;
+      time LastFailed;
       time LastUpdate;
       long    Clock;      
    };

@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.39 2001/06/25 16:45:38 choutko Exp $
+# $Id: Monitor.pm,v 1.40 2001/06/26 15:07:27 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -908,6 +908,7 @@ int($hash->{CPUNeeded}*10)/10,
          my $ahl=$Monitor::Singleton->{ahlp}[$j];
          if( $ahl->{HostName} eq $hash->{HostName}){
             push @text,$ahl->{ClientsAllowed}; 
+            push @text,$ahl->{ClientsFailed}; 
             push @text,$ahl->{Status}; 
             goto FOUND;
          }
@@ -1199,6 +1200,7 @@ my %ac;
          if( $ahl->{HostName} eq $nc{HostName}){
           %ac=%{${$ref->{ahlp}}[$j]};
           $ac{ClientsAllowed}=shift @data;
+          $ac{ClientsFailed}=shift @data;
           $ac{Status}=shift @data;
           $ac{Clock}=$nc{Clock};
           $ac{Interface}=$nc{Interface};
@@ -1207,6 +1209,7 @@ my %ac;
         }
            %ac=%{${$ref->{ahlp}}[0]};
           $ac{ClientsAllowed}=shift @data;
+          $ac{ClientsFailed}=shift @data;
           $ac{Status}=shift @data;
           $ac{Hostname}=$nc{HostName};
           $ac{ClientsRunning}=0;

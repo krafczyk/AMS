@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.63 2001/05/23 14:37:22 choutko Exp $
+*  $Id: amstkshc++.F,v 1.64 2001/06/26 15:07:22 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -1644,7 +1644,17 @@ c         write(*,*)'ABUFIN- secondary!!!',pmom_t(4),pmom_t(6)
               iafpar=ipart(i)
 999           end
 CDECK  ID>, GPIONS. 
+      SUBROUTINE GSTRAN(itrt,xcharge,xmass)
+C.
+C.    *******************************************************************
+C       define the stranglet 
+C.
+      DIMENSION UBUF(1)
+      DATA UBUF/0./
+*
 
+      CALL GSPART(113,'STRA ',itrt, xmass, xcharge, 1000., UBUF,0)
+      end
       SUBROUTINE GPIONS(itrt)
 C.
 C.    *******************************************************************
@@ -9097,9 +9107,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.63 2001/05/23 14:37:22 choutko Exp $
+* $Id: amstkshc++.F,v 1.64 2001/06/26 15:07:22 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.64  2001/06/26 15:07:22  choutko
+* stranglet
+*
 * Revision 1.63  2001/05/23 14:37:22  choutko
 * *** empty log message ***
 *

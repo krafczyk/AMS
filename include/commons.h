@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.155 2001/05/02 15:53:45 choutko Exp $
+//  $Id: commons.h,v 1.156 2001/06/26 15:07:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -826,6 +826,8 @@ public:
   integer sdir;            // direction + 1 to higher -1 to lower theta
   integer oldformat;
   integer Fast;            // fast generation
+  geant   StrCharge;
+  geant   StrMass; 
 };
 //
 #define CCFFKEY COMMON_BLOCK(CCFFKEY,ccffkey)

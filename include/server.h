@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.38 2001/06/14 08:48:20 choutko Exp $
+//  $Id: server.h,v 1.39 2001/06/26 15:07:27 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -391,7 +391,7 @@ RunStatus _rs;
 public:
  explicit REInfo_find(const DPS::Client::CID & cid, RunStatus rs):_cid(cid),_rs(rs){}
  bool operator()(const RunEvInfo & a){
-  return a.Status==ToBeRerun && a.History==_rs && strcmp((const char *) _cid.HostName, (const char *) a.cinfo.HostName);
+  return a.Status==ToBeRerun && a.History==_rs && (_rs==ToBeRerun || strcmp((const char *) _cid.HostName, (const char *) a.cinfo.HostName));
 }
 };
 class REInfo_process: public unary_function<RunEvInfo,bool>{
