@@ -310,7 +310,6 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
         lun=40+idet
          nbeta=1
         do while(truth)
-          nbeta=min(nbeta+1,maxbeta)
           if(eof(idet).eq.0)read(lun,end=25)
      +    ne,betapattern(nbeta),
      +    beta(nbeta),betaerror(nbeta),betachi2(nbeta)
@@ -328,18 +327,19 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
           if(eof(idet).ne.0 .or. 
      +    events(idet).gt.events(1).or.newrun)then
            if(eof(idet).eq.0)backspace lun
+           nbeta=nbeta-1
            newrun=.false.
            goto 10
           else if (events(idet).lt.events(1))then
            nbeta=nbeta-1
           endif
+          nbeta=min(nbeta+1,maxbeta)
         enddo   
  10     continue
         idet=3
         lun=40+idet
         ncharge=1
         do while (truth)
-          ncharge=min(ncharge+1,maxch)
            if(eof(idet).eq.0)read(lun,end=35)
      +     ne,chargebetap(ncharge),chargetof(ncharge),
      +     chargetracker(ncharge),(probtof(k,ncharge),k=1,7),
@@ -355,18 +355,19 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           ncharge=ncharge-1
            newrun=.false.
           goto 20
          else if (events(idet).lt.events(1))then
           ncharge=ncharge-1
          endif
+          ncharge=min(ncharge+1,maxch)
         enddo   
  20     continue
         idet=4
         lun=40+idet
         npart=1
         do while(truth)
-           npart=min(npart+1,maxpa)
            if(eof(idet).eq.0)read(lun,end=45)
      +     ne,(pctcpointer(kk,npart),kk=1,2),
      +     pbetapointer(npart),pchargepointer(npart),
@@ -388,18 +389,19 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           npart=npart-1
            newrun=.false.
           goto 30
           else if (events(idet).lt.events(1))then
            npart=npart-1
          endif
+           npart=min(npart+1,maxpa)
         enddo   
  30     continue
         idet=5
         lun=40+idet
         ntof=1
         do while(truth)
-           ntof=min(ntof+1,maxtof)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=55)
      +     ne,TOFStatus(ntof),Plane(ntof),bar(ntof),TOFEdep(ntof),
@@ -416,18 +418,19 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           ntof=ntof-1
            newrun=.false.
           goto 40
           else if (events(idet).lt.events(1))then
            ntof=ntof-1
          endif
+           ntof=min(ntof+1,maxtof)
         enddo   
  40     continue
         idet=6
         lun=40+idet
         ntofmc=1
         do while(truth)
-           ntofmc=min(ntofmc+1,maxtofmc)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=65)
      +     ne,TOFMCIdsoft(ntofmc),
@@ -444,18 +447,19 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           ntofmc=ntofmc-1
            newrun=.false.
           goto 50
           else if (events(idet).lt.events(1))then
             ntofmc=ntofmc-1
          endif
+           ntofmc=min(ntofmc+1,maxtofmc)
         enddo   
  50     continue
         idet=7
         lun=40+idet
         ntrcl=1
         do while(truth)
-           ntrcl=min(ntrcl+1,maxtrcl)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=75)
      +    ne,Idsoft(ntrcl),Statust(ntrcl),NelemL(ntrcl),
@@ -473,18 +477,19 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           ntrcl=ntrcl-1
            newrun=.false.
           goto 60
           else if (events(idet).lt.events(1))then
            ntrcl=ntrcl-1
          endif
+           ntrcl=min(ntrcl+1,maxtrcl)
         enddo   
  60     continue
         idet=8
         lun=40+idet
         ntrclmc=1
         do while(truth)
-           ntrclmc=min(ntrclmc+1,maxtrclmc)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=85)
      +     ne,IdsoftMC(ntrclmc),Itra(ntrclmc),
@@ -506,18 +511,19 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           ntrclmc=ntrclmc-1
            newrun=.false.
           goto 70
           else if (events(idet).lt.events(1))then
             ntrclmc=ntrclmc-1
          endif
+           ntrclmc=min(ntrclmc+1,maxtrclmc)
         enddo   
  70     continue
         idet=9
         lun=40+idet
         ntrrh=1
         do while(truth) 
-           ntrrh=min(ntrrh+1,maxtrrh)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=95)
      +     ne,px(ntrrh),py(ntrrh),statusr(ntrrh),Layer(ntrrh),
@@ -534,11 +540,13 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           ntrrh=ntrrh-1
            newrun=.false.
           goto 80
           else if (events(idet).lt.events(1))then
             ntrrh=ntrrh-1
          endif
+           ntrrh=min(ntrrh+1,maxtrrh)
         enddo   
  80     continue
           if(ntrrh.eq.0)then
@@ -549,7 +557,6 @@ c            write(*,*)' ntrrh eq 0 ', events
         lun=40+idet
         ntrtr=1
         do while(truth)
-           ntrtr=min(ntrtr+1,maxtrtr)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=105)
      +     ne,trstatus(ntrtr),pattern(ntrtr),nhits(ntrtr),
@@ -577,18 +584,19 @@ c            write(*,*)' ntrrh eq 0 ', events
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           ntrtr=ntrtr-1
            newrun=.false.
           goto 90
           else if (events(idet).lt.events(1))then
            ntrtr=ntrtr-1
          endif
+           ntrtr=min(ntrtr+1,maxtrtr)
         enddo   
  90     continue
         idet=11
         lun=40+idet
         nmcg=1
         do while(truth)
-           nmcg=min(nmcg+1,maxmcg)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=115)
      +     ne,Particle(nmcg),(coo(k,nmcg),k=1,3),
@@ -605,18 +613,19 @@ c            write(*,*)' ntrrh eq 0 ', events
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           nmcg=nmcg-1
            newrun=.false.
           goto 100
           else if (events(idet).lt.events(1))then
           nmcg=nmcg-1
          endif
+           nmcg=min(nmcg+1,maxmcg)
         enddo   
  100     continue
         idet=12
         lun=40+idet
         nctccl=1
         do while(truth)
-           nctccl=min(nctccl+1,maxctccl)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=125)
      +     ne,CTCStatus(nctccl),ctclayer(nctccl),
@@ -634,18 +643,19 @@ c            write(*,*)' ntrrh eq 0 ', events
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           nctccl=nctccl-1
            newrun=.false.
           goto 110
           else if (events(idet).lt.events(1))then
               nctccl=nctccl-1
          endif
+           nctccl=min(nctccl+1,maxctccl)
         enddo   
  110     continue
         idet=13
         lun=40+idet
         nctcclmc=1
         do while(truth)
-           nctcclmc=min(nctcclmc+1,maxctcclmc)
            iostat=1
            if(eof(idet).eq.0)read(lun,end=135)
      +     ne, CTCMCIdsoft(nctcclmc),(CTCMCXcoo(k,nctcclmc),k=1,3),
@@ -663,14 +673,15 @@ c            write(*,*)' ntrrh eq 0 ', events
            endif              
          if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
           if(eof(idet).eq.0)backspace lun
+           nctcclmc=nctcclmc-1
            newrun=.false.
           goto 120
           else if (events(idet).lt.events(1))then
               nctcclmc=nctcclmc-1
          endif
+           nctcclmc=min(nctcclmc+1,maxctcclmc)
         enddo   
  120     continue
-          nctcclmc=nctcclmc-1
 c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
        call hfnt(1)
        enddo 
