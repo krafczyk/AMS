@@ -652,14 +652,14 @@ void AMSCanvas::TOFSet8CB(Widget wid, XtPointer cd, XtPointer pointer)
 void AMSCanvas::SaveParticleCB(Widget wid, XtPointer cd, XtPointer pointer)
 {
    char fnam[255];
-   sprintf(fnam, "%s.%d.ps",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getCurSubDet()->getCSet());
+   sprintf(fnam, "%s.%s.ps",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getGrSet());
    gAMSDisplay->GetCanvas()->SaveAs(fnam);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }
 void AMSCanvas::SaveParticleGIF(Widget wid, XtPointer cd, XtPointer pointer)
 {
    char fnam[255];
-   sprintf(fnam, "%s.%d.gif",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getCurSubDet()->getCSet());
+   sprintf(fnam, "%s.%s.gif",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getGrSet());
    gAMSDisplay->GetCanvas()->SaveAs(fnam);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }

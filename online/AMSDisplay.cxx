@@ -47,6 +47,8 @@ AMSOnDisplay::AMSOnDisplay() : TObject()
    _msubdet=0;
    _Head=this;   
    _cursubdet=0;
+   _cursubdetb=0;
+   _grset[0]='\0';
    _Begin=0;
    _Sample=10000;
    gAMSDisplay=this;
@@ -60,11 +62,13 @@ AMSOnDisplay::AMSOnDisplay(const char *title, TFile *file):TObject(){
    m_logx=kFALSE;
    m_logy=kFALSE;
    m_logz=kFALSE;
+   _grset[0]='\0';
    _Begin=0;
    _Sample=10000;
    _msubdet=0;
    _Head=this;
    _cursubdet=0;
+   _cursubdetb=0;
    gAMSDisplay=this;
    m_ntuple = new AMSNtuple(file);
    // Constructor of AMSOnDisplay
@@ -251,7 +255,7 @@ void AMSOnDisplay::DrawTitle(Option_t *option)
    static char atext[255];
 
    sprintf(atext, "Alpha Magnetic Spectrometer Offline Display  %s.Set_%d",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getCurSubDet()->getCSet());
-
+   sprintf(_grset,"%d",gAMSDisplay->getCurSubDet()->getCSet());
 
    TVirtualPad * gPadSave = gPad;
    m_TitlePad->cd();
@@ -358,6 +362,7 @@ Int_t AMSOnDisplay::Dispatch(Int_t subdet, Int_t set){
    TVirtualPad * gPadSave = gPad;
    m_Pad->cd();
    Int_t retcode;
+   _cursubdetb=subdet;
    if(subdet>=0 && subdet<_msubdet ){
       int temp=_cursubdet;
       int tempset=_subdet[subdet]->getCSet();
@@ -392,6 +397,7 @@ void AMSOnDisplay::DispatchProcesses(){
   if(!active){
     cerr <<"no active subproc"<<endl;
     _cursubdet=0;
+    _cursubdetb=0;
     _subdet[0]->IsActive()=1;
   }
    if(change==0)_cursubdet=(_cursubdet+1)%_msubdet;

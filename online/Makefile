@@ -10,7 +10,7 @@ SHLD          = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx \
 
 CXX           =  cxx
 CXXFLAGS      =  -I$(ROOTSYS)/include -I/usr/include
-OPT           = -g -DROOT10308
+OPT           = -O4 -DROOT10308
 NOOPT         = 
 LD            = cxx 
 LDFLAGS       = -g

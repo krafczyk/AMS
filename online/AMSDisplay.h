@@ -44,6 +44,8 @@ protected:
   AMSHist *         _subdet[10];      
   Int_t            _msubdet;
   Int_t            _cursubdet;
+  Int_t            _cursubdetb;
+  char             _grset[20];
   Int_t            _Begin;
   Int_t            _Sample;
 public:
@@ -57,7 +59,8 @@ public:
           void      DrawTitle(Option_t *option="");
           void      DrawRunInfo(Option_t *option="");
   AMSNtuple *       GetNtuple()const{return m_ntuple;}
-  AMSHist *         getCurSubDet(){return _subdet[_cursubdet];}
+  AMSHist *         getCurSubDet(){return _subdet[_cursubdetb];}
+  char *            getGrSet(){return _grset;}
   TFile             *GetRootFile()const {return m_file;}
   TPad              *GetPad() {return m_Pad;}
   AMSCanvas         *GetCanvas() { return m_Canvas; }
