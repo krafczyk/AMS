@@ -1051,8 +1051,8 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
       out[5]=out1[5];
       geant xx=out[5]*p->_pData[niter]._InvRigidity;
       HF1(p->_Address+p->_flag,xx,1.);
-      pav+=1/out[5]/p->_pData[niter]._InvRigidity;
-      pav2+=1/out[5]*1/out[5]/p->_pData[niter]._InvRigidity/p->_pData[niter]._InvRigidity;
+      pav+=1./out[5]/p->_pData[niter]._InvRigidity;
+      pav2+=1./out[5]/out[5]/p->_pData[niter]._InvRigidity/p->_pData[niter]._InvRigidity;
     }
     number error=out[8];
     fc+=out[6];
@@ -1084,6 +1084,7 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
        p->_tmp=fc;
        p->_flag=0;
        p->_tmppav=pav;
+       p->_tmppsi=pav2;
        fool_e04ccf=fc;
 //       if(fabs(1-pav)<TRALIG.GlobalGoodLimit)idontwanttofit=1;
 //       else idontwanttofit=0;

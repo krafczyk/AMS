@@ -38,7 +38,7 @@ number DipolePhi;
 AMSDir Axis;
 tm Begin;
 tm End;
-void UpdateOrbit(number curtime, geant & ThetaS, geant & PhiS,
+integer UpdateOrbit(number curtime, geant & ThetaS, geant & PhiS,
             geant & PolePhi, time_t & time); 
 void UpdateOrbit(number theta,number phi, integer dir);
 void UpdateAxis(number veltheta, number velphi, number theta, number phi);

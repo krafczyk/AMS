@@ -665,6 +665,7 @@ integer EventsPerRun;
 integer LayersOnly;
 geant GlobalGoodLimit;
 integer SingleLadderEntryLimit;
+geant One;
 };
 #define TRALIG COMMON_BLOCK(TRALIG,tralig)
 COMMON_BLOCK_DEF(TRALIG_DEF,TRALIG);

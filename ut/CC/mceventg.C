@@ -713,7 +713,7 @@ void orbit::UpdateOrbit(number theta, number phi, integer sdir){
   }
 }
 
-void orbit::UpdateOrbit(number xsec, geant & ThetaS, geant & PhiS,
+integer orbit::UpdateOrbit(number xsec, geant & ThetaS, geant & PhiS,
                         geant & PolePhi, time_t & time){
 
     number t2=
@@ -732,6 +732,7 @@ void orbit::UpdateOrbit(number xsec, geant & ThetaS, geant & PhiS,
     ThetaS=theta;
     PolePhi=pole;
     PhiS=fmod(phi+PhiZero,AMSDBc::twopi);
+    return cos(PhiS-PhiZero)>0?1:-1;
 }
 
 orbit::orbit(geant Th,geant Ph, geant Pole, integer Dir):

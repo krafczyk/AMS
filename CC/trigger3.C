@@ -456,8 +456,19 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
 
 }
   integer TriggerLVL3::tofok(){
+     _TOFTrigger=0;
     int i,j;
     int ntof=0;
+      for(i=0;i<_NTOF[0];i++){
+        for(j=0;j<_NTOF[SCLRS-1];j++){
+          if(_TOFPattern[_TOFAux[0][i]][_TOFAux[SCLRS-1][j]]){
+              goto out;
+          }
+        }
+      }
+     _TOFTrigger=-1;
+      return 0;
+out:
     for (i=0;i<SCLRS;i++){
       if((_NTOF[i]> 2) || (_NTOF[i] == 0 && (i == 0 || i==SCLRS-1)))return 0;
             
@@ -467,15 +478,8 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
       if(_NTOF[i])ntof++;    
     }
     if (ntof < LVL3FFKEY.MinTOFPlanesFired)     return 0;
-      for(i=0;i<_NTOF[0];i++){
-        for(j=0;j<_NTOF[SCLRS-1];j++){
-          if(_TOFPattern[_TOFAux[0][i]][_TOFAux[SCLRS-1][j]]){
-              _TOFTrigger=1;
-              return 1;
-          }
-        }
-      }
-    return 0;
+    _TOFTrigger=1;
+    return 1;
   }
 
 
