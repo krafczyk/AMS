@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.58 2003/10/11 11:46:37 choutko Exp $
+//  $Id: root.C,v 1.59 2003/10/13 11:05:47 choutko Exp $
 //
 
 #include <root.h>
@@ -2230,7 +2230,6 @@ void AMSEventR::ProcessFill(int entry){
    UProcessFill();
 }
  
-
 
 
 void AMSEventR::Terminate()

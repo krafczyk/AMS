@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.111 2003/10/11 11:47:45 choutko Exp $
+//  $Id: root.h,v 1.112 2003/10/13 11:05:49 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1328,7 +1328,7 @@ public:
   VertexR(){};
   VertexR(AMSVtx *ptr);
   friend class AMSVtx;
-  ClassDef(VertexR,2)         //VertexR
+  ClassDef(VertexR,3)         //VertexR
 };
 
 
@@ -1846,7 +1846,7 @@ protected:
    /// \sa stlv.C
    /// \param entry - event no
    void ProcessFill(int entry);
-
+   bool Process(int entry){if(ProcessCut(entry))ProcessFill(entry);return true;}
 public:
 
 
