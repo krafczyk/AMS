@@ -2238,6 +2238,11 @@ void AMSECIdCalib::getaverage(){
                  bad++;
                 }                
               }
+              else{
+                // update pedestals & sigmas here
+                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].ped()=id.getADC(g);
+                ECPMPeds::pmpeds[id.getslay()][id.getpmtno()].sig()=id.getADC2(g);
+              }
              }
              else if(id.getped(g)<0){
                  ECcalib::ecpmcal[id.getslay()][id.getpmtno()].getstat(id.getchannel())=-1;

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.51 2002/09/25 17:18:11 choutko Exp $
+//  $Id: ecalrec.C,v 1.52 2002/09/26 06:52:45 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -471,7 +471,7 @@ void AMSEcalHit::build(int &stat){
       subc=id%10-1;//SubCell(0-3)
       pmc=idd%100-1;//PMCell(0-...)
       ptr->getpadc(padc);
-      cout << "  found "<<padc[0]<<" "<<padc[1]<<endl;
+//      cout << "  found "<<padc[0]<<" "<<padc[1]<<endl;
       ECPMPeds::pmpeds[isl][pmc].getpedh(pedh);
       ECPMPeds::pmpeds[isl][pmc].getsigh(sigh);
       ECPMPeds::pmpeds[isl][pmc].getpedl(pedl);
@@ -2204,13 +2204,13 @@ void AMSEcalRawEvent::setTDV(){
 
 void AMSEcalRawEvent::buildraw(integer n, int16u *p){
 
-
   integer ic=checkdaqid(*p)-1;
-   
   int leng=0;
   int count=0; 
   int dynode=0;
   int dead=0;
+  static geant sum_dynode=0;
+  if(ic==0)sum_dynode=0;
   for(int16u* ptr=p+1;ptr<p+n;ptr++){  
    int16u pmt=count%36;
             int16u anode=(*ptr>>15)& 1;
@@ -2235,12 +2235,13 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
          }
          else{
 //  put here dynode related class
+          sum_dynode+=value-id.getpedd();   
           dynode++; 
          }
        }    
    count++;               
   }
-   //cout <<" Total of "<<count <<" "<<dynode<<" "<<dead<<" for crate "<<ic<<endl;
+   //cout <<" Total of "<<count <<" "<<dynode<<" "<<sum_dynode<<" "<<dead<<" for crate "<<ic<<endl;
 //  add two adc together
        AMSEcalRawEvent *ptro=0;
       AMSContainer * pct=AMSEvent::gethead()->getC("AMSEcalRawEvent",ic);
@@ -2289,11 +2290,12 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
      }
 
 // build lvl1 trigger
+      if(ic==getmaxblocks()-1){
        uinteger tofpatt[4]={0,0,0,0};
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
-          new Trigger2LVL1(999,0,tofpatt,0,12,100000));
+          new Trigger2LVL1(999,0,tofpatt,0,12,sum_dynode));
 
-
+      }
 }
 
 void AMSEcalRawEvent::TestThreshold(){

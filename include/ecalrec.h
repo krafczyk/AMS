@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.23 2002/09/25 17:18:18 choutko Exp $
+//  $Id: ecalrec.h,v 1.24 2002/09/26 06:52:58 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -77,7 +77,7 @@ protected:
     stream <<" Status="<<hex<<_status<<" Adc="<<_padc[0]<<" "<<_padc[1]<<endl;
     stream <<dec<<endl<<endl;
   }
-void _writeEl(){};
+void _writeEl();
 void _copyEl(){};
 //
 };

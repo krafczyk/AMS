@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.19 2002/09/25 17:18:18 choutko Exp $
+//  $Id: ecaldbc.h,v 1.20 2002/09/26 06:52:57 choutko Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -240,21 +240,27 @@ private:
   geant _pedl[4]; // ped for low-channel of 4 SubCells(pixels)
   geant _sigh[4]; // sigma for high-channel of 4 SubCells(pixels)
   geant _sigl[4]; // sigma for high-channel of 4 SubCells(pixels)
+  geant _pedd;
+  geant _sigd;
 //
 public:
   static ECPMPeds pmpeds[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   ECPMPeds(){};
   ECPMPeds(integer sid, geant pedh[4], geant sigh[4],
-                         geant pedl[4], geant sigl[4]):_softid(sid){
+                         geant pedl[4], geant sigl[4]):_softid(sid),_pedd(),_sigd(0){
     for(int i=0;i<4;i++){
       _pedh[i]=pedh[i];
       _sigh[i]=sigh[i];
       _pedl[i]=pedl[i];
       _sigl[i]=sigl[i];
+      
     }
   };
   geant &ped(uinteger chan, uinteger gain)  {return gain==0?_pedh[chan<4?chan:0]:  _pedl[chan<4?chan:0];}  
   geant & sig(uinteger chan, uinteger gain)  {return gain==0?_sigh[chan<4?chan:0]:  _sigl[chan<4?chan:0];}  
+  geant &ped()  {return _pedd;}
+  geant &sig()  {return _sigd;}
+
   void getpedh(geant pedh[4]){
     for(int i=0;i<4;i++)pedh[i]=_pedh[i];
   }
