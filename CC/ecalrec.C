@@ -397,7 +397,8 @@ void AMSEcalCluster::_writeEl(){
   if (TN->Necal>=MAXECCLUST) return;
 
 // Fill the ntuple
-  if(AMSEcalCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+//  if(AMSEcalCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+  if(AMSEcalCluster::Out( IOPA.WriteAll%10==1 )){
     TN->Status[TN->Necal]=_status;
     TN->Proj[TN->Necal]=_proj;
     TN->Plane[TN->Necal]=_plane;

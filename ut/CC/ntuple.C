@@ -50,12 +50,6 @@ void AMSNtuple::init(){
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
 //
-  HBNAME(_lun,"EcalClus",&_ecclust.Necal,
-  "necal[0,50],EcalStatus(necal):I,EcalProj(necal)[0,1]:I,EcalPlane(necal)[0,20]:I,EcalNmemb(necal)[0,25]:I,EcalEdep(necal),EcalCoo(3,necal),EcalErrCoo(3,necal)");
-//
-  HBNAME(_lun,"EcalCell",&_ecalcell.Ncelle,
-  "ncelle[0,300],EcalEdepCell(ncelle),EcalEdepAtt(ncelle),EcalSuperLayer(ncelle)[0,7]:I,,EcalPhotomultiplier(ncelle)[0,35]:I,EcalSubCell(ncelle)[0,3]:I");
-//
   HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
   "ntofmc[0,200],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");
 
@@ -108,7 +102,7 @@ else{
 // Station
   HBNAME(_lun,"EventH",&_event.Eventno,
  
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,1000]:I,EcalClusters[0,500]:I,EventStatus:I,EcalCell[0,10000]:I");
+"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,1000]:I,EcalClusters[0,5000]:I,EventStatus:I,EcalCell[0,10000]:I");
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,150],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
@@ -126,7 +120,7 @@ else{
   "necal[0,50],EcalStatus(necal):I,EcalProj(necal)[0,1]:I,EcalPlane(necal)[0,20]:I,EcalNmemb(necal)[0,25]:I,EcalEdep(necal),EcalCoo(3,necal),EcalErrCoo(3,necal)");
 //
   HBNAME(_lun,"EcalCell",&_ecalcell.Ncelle,
-  "ncelle[0,1000],EcalEdepCell(ncelle),EcalEdepAtt(ncelle),EcalSuperLayer(ncelle)[0,7]:I,EcalPhotomultiplier(ncelle)[0,35]:I,EcalSubCell(ncelle)[0,3]:I");
+  "ncelle[0,300],EcalEdepCell(ncelle),EcalEdepAtt(ncelle),EcalSuperLayer(ncelle)[0,7]:I,EcalPhotomultiplier(ncelle)[0,35]:I,EcalSubCell(ncelle)[0,3]:I");
 //
   HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
   "ntofmc[0,200],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");
