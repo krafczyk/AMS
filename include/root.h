@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.67 2002/11/14 13:19:18 glamanna Exp $
+//  $Id: root.h,v 1.68 2002/11/19 15:48:13 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -163,7 +163,7 @@ void         AddAMSObject(AMSTrCluster *ptr, float ampl[]);
 void         AddAMSObject(AMSTrMCCluster *ptr);
 void         AddAMSObject(AMSTrRawCluster *ptr, int addr);
 void         AddAMSObject(AMSTrTrack *ptr);
-void         AddAMSObject(AMSTrGamma *ptr);
+void         AddAMSObject(AMSTrTrackGamma *ptr);
 void         AddAMSObject(Ecal1DCluster *ptr);
 void         AddAMSObject(Ecal2DCluster  *ptr);
 void         AddAMSObject(EcalShower  *ptr);
