@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.39 2003/12/10 15:54:51 choutko Exp $
+//  $Id: ecalrec.h,v 1.40 2004/06/16 09:39:57 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -372,7 +372,7 @@ number  _Dz;
 number _Et;
 integer _ShowerMax;
 integer _N2dCl;
-AMSEcal2DCluster *_pCl[10];
+AMSEcal2DCluster *_pCl[20];
 number _TmpFit[20];
 number _SphericityEV[3];
 number _TransFitPar[3];

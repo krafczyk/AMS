@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.48 2004/03/10 10:17:47 choutko Exp $
+//  $Id: server.h,v 1.49 2004/06/16 09:39:57 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -151,7 +151,7 @@ CORBA::ORB_ptr  getdefaultorb()const {return _defaultorb;}
   AMSServerI * up(){return   dynamic_cast<AMSServerI*>(AMSNode::up());}
   AMSServerI * down(){return dynamic_cast<AMSServerI*>(AMSNode::down());}
 
-  AMSServerI(AMSID id, AMSClient * parent=0,DPS::Client::ClientType type=DPS::Client::Generic):_Type(type),AMSNode(id),_Submit(0),_StartTimeOut(60),_KillTimeOut(180),_parent(parent),_ActivateQueue(false),_RecID(0),_SubmitTime(0){};
+  AMSServerI(AMSID id, AMSClient * parent=0,DPS::Client::ClientType type=DPS::Client::Generic):_Type(type),AMSNode(id),_Submit(0),_StartTimeOut(60),_KillTimeOut(300),_parent(parent),_ActivateQueue(false),_RecID(0),_SubmitTime(0){};
 };
 
 

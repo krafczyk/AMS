@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.75 2004/05/13 08:51:24 choutko Exp $
+# $Id: Monitor.pm,v 1.76 2004/06/16 09:40:05 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -2197,6 +2197,24 @@ sub RestoreRuns{
  my $dir;
  my $maxrun=0;
 
+
+
+      for my $j (0 ... $#{$ref->{rtb}}){
+        my %rdst=%{${$ref->{rtb}}[$j]};
+        foreach my $arsref (@{$ref->{ardref}}){
+            try{
+                $arsref->sendRunEvInfo(\%rdst,"Create");
+                last;
+            }
+            catch CORBA::SystemException with{
+                warn "sendback corba exc";
+            };
+
+
+        }
+            warn " sent $rdst{Run} \n";
+}
+return;
 # get amsdatadir
      for my $i (0 ... $#{$Monitor::Singleton->{env}}){
          my $hash=$Monitor::Singleton->{env}[$i];

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.111 2004/05/13 08:50:54 choutko Exp $
+//  $Id: server.C,v 1.112 2004/06/16 09:39:54 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -198,7 +198,7 @@ AMSServer::AMSServer(int argc, char* argv[]){
  }
 setdbfile(dbfilename);
 _getpidhost(uid,iface);
-if(_debug)_openLogFile("Server");
+if(_debug)_openLogFile("Server",false);
 _pid.Type=DPS::Client::Server;
 if(iface)_pid.Interface = (const char *)iface;
 else _pid.Interface= (const char *)"default";
@@ -3084,6 +3084,7 @@ if(dv->DieHard ==0){
    _parent->IMessage(AMSClient::print(rv,"Run First Event Modified"));
    if(smartfirst>rv->LastEvent){
    _parent->EMessage(AMSClient::print(rv,"***SMART PROBLEM***"));
+   dv->DieHard=3;
    }
   }
  }
