@@ -59,7 +59,7 @@ C--        AND THEN IN Z-S PROJECTION
 C
       NPARSZ  = 2
 C
-       if(ifit.eq.0 .or.ifit.eq. 2)
+       if(ifit.eq.0 .or.ifit.eq. 2)       
      +      CALL TSZFIT(work,SPCOR,Z,SSZ,NPT,NPARSZ,RESSZ,IFLASZ)
 C
       IF ( IFLASZ .NE. 0 )                       GO TO 800
