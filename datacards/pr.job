@@ -25,7 +25,7 @@ C MSEL 1=0
 LOSS 2 
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 HADR 2 
-TRIG 200
+TRIG 100000
 DEBUG -1 10 100
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 

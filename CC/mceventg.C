@@ -190,7 +190,10 @@ if(ipart == 3 && low ){
 }
 else {
  integer nchan=1000;
- geant binw=100*mass/0.938;
+
+ geant binw;
+ if(mass < 0.938)binw=100;
+ else  binw=100*mass/0.938;
  geant al=binw/2;
  geant bl=binw/2+nchan*binw;
  HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
