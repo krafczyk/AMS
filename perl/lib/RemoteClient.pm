@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.292 2005/02/04 15:24:05 alexei Exp $
+# $Id: RemoteClient.pm,v 1.293 2005/02/07 14:48:46 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -91,11 +91,12 @@ use Time::Local;
 use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
+use Benchmark;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env updateCopyStatus updateHostsMips);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMCStatus listMin listShort queryDB04 DownloadSA  checkJobsTimeout deleteTimeOutJobs deleteDST  getEventsLeft getHostsList getHostsMips getOutputPath getRunInfo updateHostInfo parseJournalFiles prepareCastorCopyScript resetFilesProcessingFlag ValidateRuns updateAllRunCatalog printMC02GammaTest readDataSets set_root_env updateCopyStatus updateHostsMips);
 
 # debugging
-my $debugging = 0;
+my $benchmarking = 0;
 my $t0Init = 0;
 my $tsInit = 0;
 my $teInit = 0;
@@ -104,8 +105,6 @@ my $td0    = 0;
 my $td1    = 0;
 my $td2    = 0;
 my $td3    = 0;
-my $td4    = 0;
-my $tfInit = 0;
 #
 
 
@@ -562,62 +561,100 @@ my %mv=(
     $ENV{$key}=$self->{$key};
     $teInit = time();
 
+ 
 #datasets
 {
-    $td0 = time();
-        my $totalcpu=0;
-        my $restcpu=0;
-     $dir="$self->{AMSSoftwareDir}/DataSets";
-     opendir THISDIR ,$dir or die "unable to open $dir";
-     my @allfiles= readdir THISDIR;
-     closedir THISDIR;    
-    $td1 = time();
-    foreach my $file (@allfiles){
-       my $newfile="$dir/$file";
-       if($file =~/^\.Trial/){
+   my $ndatasets  =0; # total datasets scanned
+   my $nfiles     =0; # total jobs scanned
+   my $totalcpu   =0;
+   my $restcpu    =0;
 
-           open(FILE,"<".$newfile) or die "Unable to open dataset control file $newfile \n";
-           my $buf;
-           read(FILE,$buf,16384);
-           close FILE;
-           $self->{TrialRun}=$buf;          
-           last;
-       }
+   $dir="$self->{AMSSoftwareDir}/DataSets";
+ 
+#
+# get DB info :
+#               All datasets 
+  my  $ndatasetsDB = 0;   # datasets defined in DB
+  my  $njobsDB     = 0;   # jobs in DB started since $ProductionStartTime
+  my  $datasetsDB  = undef;
+  my  $jobsDB      = undef;
+
+# get list of datasets (names and dids)
+  my  $sql="select count(did) from DataSets";
+  my $ret=$self->{sqlserver}->Query($sql);
+  if (defined $ret->[0][0]) {$ndatasetsDB = $ret->[0][0];}
+  if ($ndatasetsDB > 0) {
+   $sql="select did, name from DataSets";
+   $datasetsDB =$self->{sqlserver}->Query($sql);
+
+   $sql="select count(jid) from Jobs where timestamp > $ProductionStartTime";
+   $ret=$self->{sqlserver}->Query($sql);
+   if (defined $ret->[0][0]) {
+    $njobsDB = $ret->[0][0];
+    $sql="select jid,time,triggers,timeout, did, jobname from Jobs 
+         where timestamp > $ProductionStartTime";
+    $jobsDB= $self->{sqlserver}->Query($sql);
    }
-    $td2 = time();
-    foreach my $file (@allfiles){
-        my $newfile="$dir/$file";
-        if(readlink $newfile or  $file =~/^\./){
-         next;
-        }
-      my @sta = stat $newfile;
-      if($sta[2]<32000){
-          my $dataset={};
-          $dataset->{name}=$file;
-          $dataset->{jobs}=[];
+  }
+  
 
-          $dataset->{eventstodo} = 0;
+# read list of datasets dirs from $dir
+   opendir THISDIR ,$dir or die "unable to open $dir";
+   my @allfiles= readdir THISDIR;
+   closedir THISDIR;    
 
-          my @tmpa;
-       opendir THISDIR, $newfile or die "unable to open $newfile";
-       my @jobs=readdir THISDIR;
-       closedir THISDIR;
-       push @{$self->{DataSetsT}}, $dataset;
-       foreach my $job (@jobs){
-        if($job =~ /\.job$/){
-        if($job =~ /^\./){
+   foreach my $file (@allfiles){
+    my $newfile="$dir/$file";
+     if($file =~/^\.Trial/){
+      open(FILE,"<".$newfile) or die "Unable to open dataset control file $newfile \n";
+      my $buf;
+      read(FILE,$buf,16384);
+      close FILE;
+      $self->{TrialRun}=$buf;          
+      last;
+     }
+    }
+
+
+
+# scan all dataset dirs
+
+   foreach my $file (@allfiles){
+    my $newfile="$dir/$file";
+    if(readlink $newfile or  $file =~/^\./){
+     next;
+    }
+    $ndatasets++;
+
+
+    my @sta = stat $newfile;
+    if($sta[2]<32000){
+     my $dataset={};
+     $dataset->{name}=$file;
+     $dataset->{jobs}=[];
+     $dataset->{eventstodo} = 0;
+
+     my @tmpa;
+     opendir THISDIR, $newfile or die "unable to open $newfile";
+     my @jobs=readdir THISDIR;
+     closedir THISDIR;
+     push @{$self->{DataSetsT}}, $dataset;
+     foreach my $job (@jobs){
+      if($job =~ /\.job$/){
+       if($job =~ /^\./){
             next;
-        }
-           my $template={};
-           my $full="$newfile/$job";
-           my $buf;
-           open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
-           read(FILE,$buf,1638400) or next;
-           close FILE;
-    $td3 = time();
-           $template->{filename}=$job;
-           my @sbuf=split "\n",$buf;
-           my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
+       }
+       $nfiles++;
+       my $template={};
+       my $full="$newfile/$job";
+       my $buf;
+       open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
+       read(FILE,$buf,1638400) or next;
+       close FILE;
+       $td3 = time();
+       $template->{filename}=$job;
+       my @sbuf=split "\n",$buf;
+       my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
            foreach my $ent (@farray){
             foreach my $line (@sbuf){
                if($line =~/$ent=/){
@@ -628,7 +665,6 @@ my %mv=(
                }
             }         
         }
-    $td4 = time();
         if(defined $self->{TrialRun}){
             $template->{TOTALEVENTS}*=$self->{TrialRun};
         }
@@ -640,83 +676,90 @@ my %mv=(
              }
            }
 
-    $tdInit = time();
 
 #
 # get no of events
 #
-              my $sql="select did from DataSets where name='$dataset->{name}'";
-              my $ret=$self->{sqlserver}->Query($sql);
-              if( defined $ret->[0][0]){
-                 $dataset->{did}=$ret->[0][0];    
-                 $sql="select jid,time,triggers,timeout from Jobs 
-                       where 
-                        timestamp > $ProductionStartTime and 
-                         did=$ret->[0][0] and 
-                          jobname like '%$template->{filename}'";
-                 my $r2= $self->{sqlserver}->Query($sql);
-                 if(defined $r2->[0][0]){
-                     foreach my $job (@{$r2}){
-                         if ($job->[1]-time()>$job->[3]){
-                             $sql="select FEvent,LEvent from Runs where jid=$job->[0] and status='Finished'";
-                             my $r3=$self->{sqlserver}->Query($sql);
-                             if(defined $r3->[0][0]){
-                              foreach my $run (@{$r3}){
-                               $template->{TOTALEVENTS}-=$run->[0];
-                              } 
-                             }
-                         }
-                         else {
+              my $datasetfound = 0;
+              for my $i (0..$ndatasetsDB-1) {
+               my $datasetsDidDB  = $datasetsDB->[$i][0];
+               my $datasetsNameDB = $datasetsDB->[$i][1];
+               if ($datasetsNameDB eq $dataset->{name}) {
+                 $dataset->{did}=$datasetsDidDB;
+                 for my $j (0...$njobsDB-1) {
+                   my $jobsJidDB     = $jobsDB->[$j][0];
+                   my $jobsTimeDB    = $jobsDB->[$j][1];
+                   my $jobsTrigDB    = $jobsDB->[$j][2];
+                   my $jobsTimeOutDB = $jobsDB->[$j][3];
+                   my $jobsDidDB     = $jobsDB->[$j][4];
+                   my $jobsNameDB    = $jobsDB->[$j][5];
+                   if ($jobsDidDB == $dataset->{did}) {
+                     my @junk     = split '\.',$jobsNameDB;
+                     my $jobname = $junk[2];
+                     for my $n (3..$#junk) {
+                         $jobname = $jobname.".".$junk[$n];
+                     }
+                         if ($jobname eq %$template->{filename}) {
+                            if ($jobsTimeDB - time() > $jobsTimeOutDB) {
+                              $sql="select FEvent,LEvent from Runs where jid=$jobsJidDB and status='Finished'";
+                              $ret=$self->{sqlserver}->Query($sql);
+                              if(defined $ret->[0][0]){
+                               foreach my $run (@{$ret}){
+                                $template->{TOTALEVENTS}-=$run->[0];
+                               } 
+                              }
+                             } else {
 #
 # subtract allocated events
-                             $template->{TOTALEVENTS}-=$job->[2];
-
+                             $template->{TOTALEVENTS}-=$jobsTrigDB;
                          }
-                     }
-                 }
-             }
-           else{
-               $sql="select did from DataSets";
-               $ret=$self->{sqlserver}->Query($sql);
-               my $did=0;
-               if(defined $ret->[0][0]){
-                   foreach my $ds (@{$ret}){
-                       if($ds->[0]>$did){
-                           $did=$ds->[0];
-                       }
-                   }
-               }
-               $did++;
+                        } # $jobname eq %$template->{filename}
+                  } # $jobsDidDB == $dataset->{did)
+                 } # loop for all jobs started after ProductionSetStartTime
+               $datasetfound = 1;
+               last;
+             } # $datasetsNameDB eq $dataset->{name}
+           }
+
+           if ($datasetfound == 0) {  # new dataset
+               my $did = 1;
+               $sql = "SELECT MAX(did) From DataSets";
+               my $ret=$self->{sqlserver}->Query($sql);
+               if (defined $ret->[0][0]) { 
+                   $did = $ret->[0][0]+1;
+               } 
                $dataset->{did}=$did;
                my $timestamp = time();
-             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
-             $self->{sqlserver}->Update($sql); 
+               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
+               $ret->{sqlserver}->Update($sql);
            }
-        $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
-          
+   
+           $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+   
            if($sbuf[0] =~/^#/ && defined $template->{initok}){
-
             $buf=~ s/#/C /;
             $template->{filebody}=$buf;
             my $desc=$sbuf[0];
             substr($desc,0,1)=" ";
             $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
             $dataset->{eventstodo} += $template->{TOTALEVENTS};
-           if($template->{TOTALEVENTS}>100){
+            if($template->{TOTALEVENTS}>100){
              push @tmpa, $template; 
-         }
-           }        
-       }        
-    }
+           }
+          
+          }
+      }
+     } # end jobs of jobs
+
     sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
     my @tmpb=sort prio @tmpa;
     foreach my $tmp (@tmpb){
      push @{$dataset->{jobs}},$tmp;     
     }
-      }
-    }
-#die "  total/rest  $totalcpu  $restcpu \n";
+   }
+  } # end files of allfiles
 }
+
 #templates
 
      $dir="$self->{AMSSoftwareDir}/Templates";
@@ -842,7 +885,7 @@ foreach my $file (@allfiles){
         $self->{IORP}=undef;
       }
   }
- $tfInit = time();
+
  if( not defined $self->{IOR}){
   return $self->{ok};
  } 
@@ -2889,12 +2932,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             my $cite = $ret->[0][0];
             htmlTop();
             if ($resp == 1) {
-             if ($debugging == 1) {
-              print "<TR><B><font color=green size= 5> Select Template or Production DataSet: $t0/$ti</font>";
-              print "<TR><B><font color=green size= 3> ($t0Init/$tsInit/$teInit - ($td0,$td1,$td2,$td3,$td4)-$tdInit/$tfInit)</font>";
-          } else {
-              print "<TR><B><font color=green size= 5> Select Template or Production DataSet: </font>";
-          }
+             print "<TR><B><font color=green size= 5> Select Template or Production DataSet: </font>";
             } else { 
              print "<TR><B><font color=green size= 5> Select Template : </font>";
             }
@@ -2949,6 +2987,23 @@ CheckCite:            if (defined $q->param("QCite")) {
             print "<TR><TD><font color=\"green\" size=\"3\"> Important : Basic and Advanced Templates are NOT PART OF MC PRODUCTION </font></TD></TR>\n";
             print "<br>\n";
             print "<TR><TD><font color=\"tomato\" size=\"3\"> Note : If dataset is not clickable, it means that all events already allocated for running jobs or processed </font></TD></TR>\n";
+             if ($benchmarking == 1) {
+              print "<TR></TR>\n";
+
+              my $elapsed = timediff($td3,$td0);
+              my $tstrelapsed = timestr($elapsed);
+              print "<TR><TD><font color=green size= 3> Total time : $tstrelapsed</font></TD></TR>\n";
+               $elapsed = timediff($td1,$td0);
+               $tstrelapsed = timestr($elapsed);
+               print "<TR><TD><font color=green size= 2> read datasets dir: $tstrelapsed</font></TD></TR>\n";
+                $elapsed = timediff($td2,$td1);
+                $tstrelapsed = timestr($elapsed);
+                print "<TR><TD><font color=green size= 2> read jobs dir: $tstrelapsed</font></TD></TR>\n";
+                 $elapsed = timediff($td3,$td2);
+                 $tstrelapsed = timestr($elapsed);
+                 print "<TR><TD><font color=green size= 2> parse ALL jobs for ALL datasets: $tstrelapsed</font></TD></TR>\n";
+                 print "<TR><TD><font color=green size= 2> parse ALL jobs for ALL datasets: $tstrelapsed</font></TD></TR>\n";
+             } 
           
           print "<p>\n";
           print "<br>\n";
@@ -11539,4 +11594,414 @@ sub updateDataSetsDescription {
    }
   }
  }
+}
+
+sub readDataSets() {
+#
+# Read and parse datasets from the predefined 
+# directory
+# default path : /afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets
+#
+    my $self = shift;
+
+    my $totalcpu=0;
+    my $restcpu =0;
+    my $verbose =0;
+    my $topdir     ='/afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets';
+
+ my $HelpTxt = "
+     scan dataset directory and estimate CPU/Elapsed time
+
+     -h    - print help
+     -d    - directory path. -d:dir
+     -v    - verbose mode
+
+     ./readDataSets.cgi -v -d:/offline/AMSDataDir/DataManagement/DataSets
+";
+
+  
+  foreach my $chop  (@ARGV){
+
+
+    if($chop =~/^-d:/){$topdir=unpack("x3 A*",$chop);}
+
+    if ($chop =~/^-v/) {$verbose = 1;}
+
+    if ($chop =~/^-h/) {print "$HelpTxt \n";return 1;}
+   }
+    if ($verbose == 1) {print "\n \n Datasets directory : $topdir \n";}
+
+   $td0 = time();
+
+   my $ndatasets  =0; # total datasets scanned
+   my $nfiles  =0; # total jobs scanned
+
+ 
+#
+# get DB info :
+#               All datasets 
+  my  $ndatasetsDB = 0;   # datasets defined in DB
+  my  $njobsDB     = 0;   # jobs in DB started since $ProductionStartTime
+  my  $datasetsDB  = undef;
+  my  $jobsDB      = undef;
+
+# get list of datasets (names and dids)
+  my  $sql="select count(did) from DataSets";
+  my $ret=$self->{sqlserver}->Query($sql);
+  if (defined $ret->[0][0]) {$ndatasetsDB = $ret->[0][0];}
+  if ($ndatasetsDB > 0) {
+   $sql="select did, name from DataSets";
+   $datasetsDB =$self->{sqlserver}->Query($sql);
+
+   $sql="select count(jid) from Jobs where timestamp > $ProductionStartTime";
+   $ret=$self->{sqlserver}->Query($sql);
+   if (defined $ret->[0][0]) {
+    $njobsDB = $ret->[0][0];
+    $sql="select jid,time,triggers,timeout, did, jobname from Jobs 
+         where timestamp > $ProductionStartTime";
+    $jobsDB= $self->{sqlserver}->Query($sql);
+   }
+  }
+  
+
+# read list of datasets dirs from $topdir
+   opendir THISDIR ,$topdir or die "unable to open $topdir";
+   my @allfiles= readdir THISDIR;
+   closedir THISDIR;    
+
+   foreach my $file (@allfiles){
+    my $newfile="$topdir/$file";
+     if($file =~/^\.Trial/){
+      open(FILE,"<".$newfile) or die "Unable to open dataset control file $newfile \n";
+      my $buf;
+      read(FILE,$buf,16384);
+      close FILE;
+      $self->{TrialRun}=$buf;          
+      last;
+     }
+    }
+
+
+
+# scan all dataset dirs
+
+   foreach my $file (@allfiles){
+    my $newfile="$topdir/$file";
+    if(readlink $newfile or  $file =~/^\./){
+     next;
+    }
+    $ndatasets++;
+
+    if ($verbose == 1) { print "DataSet : $newfile \n";}
+
+    my @sta = stat $newfile;
+    if($sta[2]<32000){
+     my $dataset={};
+     $dataset->{name}=$file;
+     $dataset->{jobs}=[];
+     $dataset->{eventstodo} = 0;
+
+     my @tmpa;
+     opendir THISDIR, $newfile or die "unable to open $newfile";
+     my @jobs=readdir THISDIR;
+     closedir THISDIR;
+     push @{$self->{DataSetsT}}, $dataset;
+     foreach my $job (@jobs){
+      if($job =~ /\.job$/){
+       if($job =~ /^\./){
+            next;
+       }
+       $nfiles++;
+       my $template={};
+       my $full="$newfile/$job";
+       my $buf;
+       open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
+       read(FILE,$buf,1638400) or next;
+       close FILE;
+       $td3 = time();
+       $template->{filename}=$job;
+       my @sbuf=split "\n",$buf;
+       my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
+           foreach my $ent (@farray){
+            foreach my $line (@sbuf){
+               if($line =~/$ent=/){
+                   my @junk=split "$ent=",$line;                 
+                   $template->{$ent}=$junk[$#junk];
+                   $buf=~ s/$ent=/C $ent=/;
+                   last;
+               }
+            }         
+        }
+        if(defined $self->{TrialRun}){
+            $template->{TOTALEVENTS}*=$self->{TrialRun};
+        }
+        $totalcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+           $template->{initok}=1;
+           foreach my $ent (@farray){
+             if(not defined $template->{$ent}){
+               $template->{initok}=undef;
+             }
+           }
+
+
+#
+# get no of events
+#
+              my $datasetfound = 0;
+              for my $i (0..$ndatasetsDB-1) {
+               my $datasetsDidDB  = $datasetsDB->[$i][0];
+               my $datasetsNameDB = $datasetsDB->[$i][1];
+               if ($datasetsNameDB eq $dataset->{name}) {
+                 $dataset->{did}=$datasetsDidDB;
+                 for my $j (0...$njobsDB-1) {
+                   my $jobsJidDB     = $jobsDB->[$j][0];
+                   my $jobsTimeDB    = $jobsDB->[$j][1];
+                   my $jobsTrigDB    = $jobsDB->[$j][2];
+                   my $jobsTimeOutDB = $jobsDB->[$j][3];
+                   my $jobsDidDB     = $jobsDB->[$j][4];
+                   my $jobsNameDB    = $jobsDB->[$j][5];
+                   if ($jobsDidDB == $dataset->{did}) {
+                     my @junk     = split '\.',$jobsNameDB;
+                     my $jobname = $junk[2];
+                     for my $n (3..$#junk) {
+                         $jobname = $jobname.".".$junk[$n];
+                     }
+                         if ($jobname eq %$template->{filename}) {
+                            if ($jobsTimeDB - time() > $jobsTimeOutDB) {
+                              $sql="select FEvent,LEvent from Runs where jid=$jobsJidDB and status='Finished'";
+                              $ret=$self->{sqlserver}->Query($sql);
+                              if(defined $ret->[0][0]){
+                               foreach my $run (@{$ret}){
+                                $template->{TOTALEVENTS}-=$run->[0];
+                               } 
+                              }
+                             } else {
+#
+# subtract allocated events
+                             $template->{TOTALEVENTS}-=$jobsTrigDB;
+                         }
+                        } # $jobname eq %$template->{filename}
+                  } # $jobsDidDB == $dataset->{did)
+                 } # loop for all jobs started after ProductionSetStartTime
+               $datasetfound = 1;
+               last;
+             } # $datasetsNameDB eq $dataset->{name}
+           }
+
+           if ($datasetfound == 0) {  # new dataset
+               my $did = 1;
+               $sql = "SELECT MAX(did) From DataSets";
+               my $ret=$self->{sqlserver}->Query($sql);
+               if (defined $ret->[0][0]) { 
+                   $did = $ret->[0][0]+1;
+               } 
+               $dataset->{did}=$did;
+               my $timestamp = time();
+               $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
+               print "SKIP : $sql \n";
+           }
+   
+           $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+   
+           if($sbuf[0] =~/^#/ && defined $template->{initok}){
+            $buf=~ s/#/C /;
+            $template->{filebody}=$buf;
+            my $desc=$sbuf[0];
+            substr($desc,0,1)=" ";
+            $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
+            $dataset->{eventstodo} += $template->{TOTALEVENTS};
+            if($template->{TOTALEVENTS}>100){
+             push @tmpa, $template; 
+             if ($verbose == 1) {print "$template->{filedesc} \n"; }
+           }
+          
+          }
+      }
+     } # end jobs of jobs
+
+    sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
+    my @tmpb=sort prio @tmpa;
+    foreach my $tmp (@tmpb){
+     push @{$dataset->{jobs}},$tmp;     
+    }
+   }
+  } # end files of allfiles
+
+
+ $tdInit = time();
+ my $elapsed = $tdInit - $td0;
+ print "Datasets scanned : $ndatasets , jobs : $nfiles \n";
+ print "Total time : $td0, $tdInit, $elapsed (sec) \n";
+}
+
+sub readDataSetsOld() {
+
+    my $self    = shift;
+    my $dir     ='/afs/ams.cern.ch/AMSDataDir/DataManagement/DataSets';
+
+    my $totJobs = 0;
+    my $totTime = 0;
+
+
+#datasets
+
+    $td0 = time();;
+        my $totalcpu=0;
+        my $restcpu=0;
+     $dir="$self->{AMSSoftwareDir}/DataSets";
+     opendir THISDIR ,$dir or die "unable to open $dir";
+     my @allfiles= readdir THISDIR;
+     closedir THISDIR;    
+    $td1 = new Benchmark;
+    foreach my $file (@allfiles){
+       my $newfile="$dir/$file";
+       if($file =~/^\.Trial/){
+
+           open(FILE,"<".$newfile) or die "Unable to open dataset control file $newfile \n";
+           my $buf;
+           read(FILE,$buf,16384);
+           close FILE;
+           $self->{TrialRun}=$buf;          
+           last;
+       }
+   }
+    $td2 = new Benchmark;
+
+
+    foreach my $file (@allfiles){
+        my $newfile="$dir/$file";
+        if(readlink $newfile or  $file =~/^\./){
+         next;
+        }
+      my @sta = stat $newfile;
+      if($sta[2]<32000){
+          my $dataset={};
+          $dataset->{name}=$file;
+          $dataset->{jobs}=[];
+
+          $dataset->{eventstodo} = 0;
+
+       my @tmpa;
+       opendir THISDIR, $newfile or die "unable to open $newfile";
+       my @jobs=readdir THISDIR;
+       closedir THISDIR;
+       push @{$self->{DataSetsT}}, $dataset;
+       foreach my $job (@jobs){
+        if($job =~ /\.job$/){
+        if($job =~ /^\./){
+            next;
+        }
+          $totJobs++;
+           my $template={};
+           my $full="$newfile/$job";
+           my $buf;
+           open(FILE,"<".$full) or die "Unable to open dataset file $full \n";
+           read(FILE,$buf,1638400) or next;
+           close FILE;
+           $template->{filename}=$job;
+           my @sbuf=split "\n",$buf;
+           my @farray=("TOTALEVENTS","PART","PMIN","PMAX","TIMBEG","TIMEND","CPUPEREVENTPERGHZ");
+           foreach my $ent (@farray){
+            foreach my $line (@sbuf){
+               if($line =~/$ent=/){
+                   my @junk=split "$ent=",$line;                 
+                   $template->{$ent}=$junk[$#junk];
+                   $buf=~ s/$ent=/C $ent=/;
+                   last;
+               }
+            }         
+        }
+        if(defined $self->{TrialRun}){
+            $template->{TOTALEVENTS}*=$self->{TrialRun};
+        }
+        $totalcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+           $template->{initok}=1;
+           foreach my $ent (@farray){
+             if(not defined $template->{$ent}){
+               $template->{initok}=undef;
+             }
+         }
+
+#
+# get no of events
+#
+              my $sql="select did from DataSets where name='$dataset->{name}'";
+              my $ret=$self->{sqlserver}->Query($sql);
+              if( defined $ret->[0][0]){
+                 $dataset->{did}=$ret->[0][0];    
+                 $sql="select jid,time,triggers,timeout from Jobs 
+                       where 
+                        timestamp > $ProductionStartTime and 
+                         did=$ret->[0][0] and 
+                          jobname like '%$template->{filename}'";
+                 my $r2= $self->{sqlserver}->Query($sql);
+                 if(defined $r2->[0][0]){
+                     foreach my $job (@{$r2}){
+                         if ($job->[1]-time()>$job->[3]){
+                             $sql="select FEvent,LEvent from Runs where jid=$job->[0] and status='Finished'";
+                             my $r3=$self->{sqlserver}->Query($sql);
+                             if(defined $r3->[0][0]){
+                              foreach my $run (@{$r3}){
+                               $template->{TOTALEVENTS}-=$run->[0];
+                              } 
+                             }
+                         }
+                         else {
+#
+# subtract allocated events
+                             $template->{TOTALEVENTS}-=$job->[2];
+
+                         }
+                     }
+                 }
+             }
+           else{
+               $sql="select did from DataSets";
+               $ret=$self->{sqlserver}->Query($sql);
+               my $did=0;
+               if(defined $ret->[0][0]){
+                   foreach my $ds (@{$ret}){
+                       if($ds->[0]>$did){
+                           $did=$ds->[0];
+                       }
+                   }
+               }
+               $did++;
+               $dataset->{did}=$did;
+               my $timestamp = time();
+             $sql="insert into DataSets values($did,'$dataset->{name}',$timestamp)";
+               print "Skip : $sql \n";
+#             $self->{sqlserver}->Update($sql); 
+           }
+        $restcpu+=$template->{TOTALEVENTS}*$template->{CPUPEREVENTPERGHZ};
+          
+           if($sbuf[0] =~/^#/ && defined $template->{initok}){
+
+            $buf=~ s/#/C /;
+            $template->{filebody}=$buf;
+            my $desc=$sbuf[0];
+            substr($desc,0,1)=" ";
+            $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
+            $dataset->{eventstodo} += $template->{TOTALEVENTS};
+           if($template->{TOTALEVENTS}>100){
+             push @tmpa, $template; 
+             print "$template->{filedesc} \n"; 
+        }
+           }        
+       }        
+     
+    } # end jobs of jobs
+    $td3 = new Benchmark;
+
+    sub prio { $b->{TOTALEVENTS}*$b->{CPUPEREVENTPERGHZ}  <=> $a->{TOTALEVENTS}*$a->{CPUPEREVENTPERGHZ};}
+    my @tmpb=sort prio @tmpa;
+    foreach my $tmp (@tmpb){
+     push @{$dataset->{jobs}},$tmp;     
+    }
+      }
+    } # end files of allfiles
+ $tdInit = time();
+ my $elapsed = $tdInit - $td0;
+ print "Total time : $td0, $tdInit, $elapsed (sec) \n";
+
 }
