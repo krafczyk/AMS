@@ -1,5 +1,8 @@
 #include <timeid.h>
 #include <job.h>
+#include <astring.h>
+#include <fstream.h>
+#include <commons.h>
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0, 
@@ -84,14 +87,19 @@ integer AMSTimeID::CopyOut(void *pdata){
 
 
 
-integer AMSTimeID::validate(time_t & Time){
+integer AMSTimeID::validate(time_t & Time, integer reenter){
 if (Time >= _Begin && Time <= _End){
   if(_CRC == _CalcCRC())return 1;
   else {
-      cerr<<"AMSTimeID::CopyIn-S-CRC Error "<<getname()<<" Old CRC "
+      cerr<<"AMSTimeID::validate-S-CRC Error "<<getname()<<" Old CRC "
       <<_CRC<<" New CRC "   <<_CalcCRC()<<endl;
   }
  return 0;
+}
+else if(reenter ==0){
+  // try to read it from file ....
+  if(read(AMSDATADIR.amsdatadir))
+  return validate(Time,1);
 }
 else return 0;
 }
@@ -124,4 +132,91 @@ void AMSTimeID::_InitTable(){
       //cout << i<<" "<<_Table[i]<<endl;
     }  
   }
+}
+
+integer AMSTimeID::write(char * dir){
+  enum open_mode{binary=0x80};
+    fstream fbin;
+    AString fnam(dir);
+    fnam+=getname();
+    fnam+= getid()==0?".0":".1";
+    fbin.open((const char *)fnam,ios::out|binary|ios::trunc);
+    if(fbin){
+     uinteger * pdata;
+     integer ns=_Nbytes/sizeof(pdata[0])+3;
+     pdata =new uinteger[ns];
+     if(pdata){
+      CopyOut(pdata);
+      pdata[_Nbytes/sizeof(pdata[0])]=uinteger(_Insert);
+      pdata[_Nbytes/sizeof(pdata[0])+1]=uinteger(_Begin);
+      pdata[_Nbytes/sizeof(pdata[0])+2]=uinteger(_End);
+      _convert(pdata,ns);
+      fbin.write((char*)pdata,ns*sizeof(pdata[0]));
+      fbin.close();
+      delete [] pdata;
+      return fbin.good();
+    }
+     else cerr<<"AMSTimeID::write-E-Failed to allocate memory "<<_Nbytes<<endl;
+    }
+    else {
+      cerr<<"AMSTimeID::write-E-CouldNot open file "<<fnam;
+    }
+    return 0;
+
+}
+
+
+integer AMSTimeID::read(char * dir){
+  enum open_mode{binary=0x80};
+    fstream fbin;
+    AString fnam(dir);
+    fnam+=getname();
+    fnam+= getid()==0?".0":".1";
+    fbin.open((const char *)fnam,ios::in|binary);
+
+    if(fbin){
+     uinteger * pdata;
+     integer ns=_Nbytes/sizeof(pdata[0])+3;
+     pdata =new uinteger[ns];
+     if(pdata){
+      fbin.read((char*)pdata,ns*sizeof(pdata[0]));
+      fbin.close();
+      if(fbin.good()){
+       _convert(pdata,ns);
+       CopyIn(pdata);
+      _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
+      _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
+      _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
+      }
+      delete [] pdata;
+      return fbin.good();
+     }
+     else cerr<<"AMSTimeID::read-E-Failed to allocate memory "<<_Nbytes<<endl;
+    }
+    else {
+      cerr<<"AMSTimeID::read-E-CouldNot open file "<<fnam<<endl;
+    }
+    return 0;
+
+}
+
+void AMSTimeID::_convert(uinteger *pdata, integer n){
+
+  if(AMSDBc::BigEndian){
+    // Let's convert   to little endian...
+   unsigned char tmp;
+   unsigned char *pc = (unsigned char*)pdata;
+   int i;
+   for(i=0;i<n;i++){
+     tmp=*pc;
+     *pc=*(pc+3);
+     *(pc+3)=tmp;
+     tmp=*(pc+1);
+     *(pc+1)=*(pc+2);
+     *(pc+2)=tmp;
+     pc=pc+sizeof(pdata[0]);
+   }
+  }
+
+
 }

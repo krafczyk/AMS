@@ -1034,22 +1034,12 @@ DAQEvent *  pdaq = new DAQEvent();
 AMSEvent::gethead()->addnext(AMSID("DAQEvent",0), pdaq);      
 pdaq->buildDAQ();
   AMSgObj::BookTimer.stop("SIDAQ");
-
 }
 
 
 
 
 
-void AMSEvent::buildraw(
-              integer length, int16u *p, uinteger & run, uinteger &id, 
-              uinteger &runtype, time_t & time){
-  run=(*(p+1)) |  (*(p+2))<<16;
-  runtype=(*(p+3)) |  (*(p+4))<<16;
-  id=(*(p+5)) |  (*(p+6))<<16;
-  time=(*(p+7)) |  (*(p+8))<<16;
-
-}
 
 
 void AMSEvent::builddaq(integer i, integer length, int16u *p){
@@ -1058,12 +1048,21 @@ void AMSEvent::builddaq(integer i, integer length, int16u *p){
 *(p+1)=int16u(_Head->_run&65535);
 *(p+2)=int16u((_Head->_run>>16)&65535);
 *(p+3)=int16u(_Head->_runtype&65535);
-*(p+4)=int16u((_Head->_runtype>>16)&65535);
 uinteger _event=uinteger(_Head->_id);
-*(p+5)=int16u(_event&65535);
-*(p+6)=int16u((_event>>16)&65535);
-*(p+7)=int16u(_Head->_time&65535);
-*(p+8)=int16u((_Head->_time>>16)&65535);
-*(p+9)=0;
-*(p+10)=0;
+*(p+4)=int16u(_event&65535);
+*(p+5)=int16u((_event>>16)&65535);
+*(p+6)=int16u(_Head->_time&65535);
+*(p+7)=int16u((_Head->_time>>16)&65535);
+*(p+8)=0;
+}
+
+
+void AMSEvent::buildraw(
+              integer length, int16u *p, uinteger & run, uinteger &id,
+              uinteger &runtype, time_t & time){
+  run=(*(p+1)) |  (*(p+2))<<16;
+  runtype=*(p+3);
+  id=(*(p+4)) |  (*(p+5))<<16;
+  time=(*(p+6)) |  (*(p+7))<<16;
+
 }

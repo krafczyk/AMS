@@ -103,6 +103,11 @@ UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
+TRMFFKEY.OKAY=0;
+FFKEY("TERM",(float*)&TRMFFKEY,sizeof(TRMFFKEY_DEF)/sizeof(integer),"MIXED");
+
+
+
 
 _sitkdata();
 _signdata();
@@ -150,15 +155,15 @@ TRMCFFKEY.beta=1;
 TRMCFFKEY.gamma=0.08;
 TRMCFFKEY.fastswitch=5.e-5;  // inverse linear density of primary electrons
 TRMCFFKEY.dedx2nprel=0.33e6;
-TRMCFFKEY.ped[0]=100;
-TRMCFFKEY.ped[1]=100;
+TRMCFFKEY.ped[0]=500;
+TRMCFFKEY.ped[1]=500;
 TRMCFFKEY.gain[0]=8;
 TRMCFFKEY.gain[1]=8;
 TRMCFFKEY.sigma[1]=110/20/sqrt(3.); // sig/noise ratio is about 20 for y
 TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
 TRMCFFKEY.cmn[0]=50;
 TRMCFFKEY.cmn[1]=50;
-TRMCFFKEY.adcoverflow=32767;
+TRMCFFKEY.adcoverflow=4095;
 TRMCFFKEY.NoiseOn=1;
 TRMCFFKEY.sec[0]=0;
 TRMCFFKEY.sec[1]=0;
@@ -172,7 +177,7 @@ TRMCFFKEY.mon[0]=0;
 TRMCFFKEY.mon[1]=0;
 TRMCFFKEY.year[0]=96;
 TRMCFFKEY.year[1]=99;
-
+TRMCFFKEY.GenerateConst=0;
 TRMCFFKEY.thr1R[0]=4.5;
 TRMCFFKEY.thr1R[1]=4.5;
 TRMCFFKEY.thr2R[0]=1;
@@ -611,6 +616,14 @@ void AMSJob::_retrddata(){
 
 
 void AMSJob::udata(){
+
+#ifdef __MASSP__
+  if(TRMFFKEY .OKAY!= 1234567890){
+    cerr << "Datacards not terminated properly "<<endl;
+    exit(1);  
+   }
+#endif
+
 const integer cl=161;
 char jobname[cl];
 char setupname[cl];
@@ -766,6 +779,7 @@ void AMSJob::_sitriginitjob(){
 
 
 void AMSJob::_sitkinitjob(){
+  if(TRMCFFKEY.GenerateConst){
      for(int l=0;l<2;l++){
        for (int i=0;i<AMSDBc::nlay();i++){
          for (int j=0;j<AMSDBc::nlad(i+1);j++){
@@ -774,19 +788,22 @@ void AMSJob::_sitkinitjob(){
             number oldone=0;
             for(int k=0;k<AMSDBc::NStripsDrp(i+1,l);k++){
              id.upd(k);
-             id.setped()=TRMCFFKEY.ped[l];
+             geant d;
+             id.setped()=TRMCFFKEY.ped[l]*(1+RNDM(d));
              id.setstatus(0);
-             id.setsig()=TRMCFFKEY.sigma[l];
+             id.setsig()=TRMCFFKEY.sigma[l]*(0.9+0.2*RNDM(d));
              id.setgain()=TRMCFFKEY.gain[l];
-             id.setcmnnoise()=TRMCFFKEY.cmn[l];
+             id.setcmnnoise()=TRMCFFKEY.cmn[l]*(1+RNDM(d));
              id.setindnoise()=oldone+
-             AMSTrMCCluster::sitknoiseprob(id ,TRMCFFKEY.sigma[l]*TRMCFFKEY.thr1R[l]);
+             AMSTrMCCluster::sitknoiseprob(id ,id.getsig()*TRMCFFKEY.thr1R[l]);
              oldone=id.getindnoise();
             }
            }
          }
        }
      }
+  }
+else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
 
      AMSgObj::BookTimer.book("GEANTTRACKING");
      AMSgObj::BookTimer.book("SITKHITS");
@@ -1222,9 +1239,14 @@ TID.add (new AMSTimeID(AMSID("ChargeLkhd6",isRealData()),
 if (AMSFFKEY.Update){
 
   // Here update dbase
+
+    AMSTimeID * offspring=(AMSTimeID*)TID.down();
+    while(offspring){
+    if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatadir))
+      cerr <<"AMSJob::_timeinitjob-S-ProblemtoUpdate "<<*offspring;
+    offspring=(AMSTimeID*)offspring->next();
+    }
 }
-
-
 }
 
 
@@ -1443,11 +1465,6 @@ void AMSJob::_setorbit(){
      _setorbit();
     // Add subdetectors to daq
     //
-{
-    // Header
-    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcdaqlength,
-    &AMSEvent::builddaq);
-}
   {
     // lvl1
 
@@ -1457,6 +1474,14 @@ void AMSJob::_setorbit(){
 
 
 }
+
+{
+    // Header
+    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcdaqlength,
+    &AMSEvent::builddaq);
+}
+
+
 {
     //lvl3
     DAQEvent::addsubdetector(&TriggerLVL3::checkdaqid,&TriggerLVL3::buildraw);

@@ -7,7 +7,6 @@
 #include <antirec.h>
 #include <trrawcluster.h>
 #include <ntuple.h>
-extern "C" float etime_(float ar[]);
 void TriggerAuxLVL3::fill(){
 
 
@@ -354,12 +353,12 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
      if(plvl1){
        int16 * ptr;
        integer mode = plvl1->getmode();
-       geant tt1,tt2,tar[2];
+       number tt1,tt2;
        TriggerAuxLVL3 aux;
        aux.fill();
        int idum;
        TriggerLVL3 *plvl3=0;
-       tt1=etime_(tar);
+       tt1=HighResTime();
        for(idum=0;idum<LVL3FFKEY.NRep;idum++){
         delete plvl3;
         plvl3 = new TriggerLVL3();  
@@ -429,7 +428,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
 
  formed:
           
-  tt2=etime_(tar);
+  tt2=HighResTime();
        }
        if(plvl3->TrackerTrigger() >= LVL3FFKEY.Accept){ 
          plvl3->settime(tt2-tt1);
@@ -606,7 +605,7 @@ void TriggerLVL3::fit(integer idum){
      
 }
 
-void TriggerLVL3::settime(geant time){
+void TriggerLVL3::settime(number time){
    _Time=time/LVL3FFKEY.NRep;
 }
   

@@ -222,7 +222,19 @@ else {
   number beta=sqrt(1.-mass*mass/xt/xt);
   number xrig=beta*xt/z;
   geant y;
-   if (ipart < 15 ){
+  if(ipart ==2){
+    // positron          
+    y=700./1.5/pow(xt,3.3)*(0.02+0.1/sqrt(xt));
+    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+   
+ 
+  }
+  else if(ipart==3){
+    //electron
+    y=700./1.5/pow(xt,3.3);
+    y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);
+  }
+   else if (ipart < 15 ){
    // a-la proton
     y=1.5e4/beta/pow(xrig,2.74);
     y=y*(xkin*xkin+2*amass*xkin)/(xkm*xkm+2*amass*xkm);

@@ -112,10 +112,11 @@ if(TRMCFFKEY.CalcCmnNoise[0]){
          idd.upd(j);
          integer vamin=j-idd.getstripa();
          integer vamax=j+maxva-idd.getstripa();
+         geant ecmn=idd.getcmnnoise()*rnormx();
          for (l=vamin;l<vamax;l++){
            idd.upd(l);
-           idlocal[l-vamin]=*(ida[i]+l)+idd.getsig()*rnormx()+
-           idd.getcmnnoise();   
+           *(ida[i]+l)+=idd.getsig()*rnormx()+ecmn;   
+           idlocal[l-vamin]=*(ida[i]+l);
          }
          AMSsortNAGa(idlocal,maxva);
          geant cmn=0;
@@ -123,7 +124,7 @@ if(TRMCFFKEY.CalcCmnNoise[0]){
          cmn+=idlocal[l];
          cmn=cmn/(maxva-2*TRMCFFKEY.CalcCmnNoise[1]);
          for(l=vamin;l<vamax;l++)
-          *(ida[i]+l)=*(ida[i]+l)+idd.getcmnnoise()-cmn;
+          *(ida[i]+l)=*(ida[i]+l)-cmn;
          j=vamax;
         }
       }
@@ -161,8 +162,6 @@ for ( i=0;i<ms;i++){
           for (int k=nleft;k<=nright;k++){
             *(ida[i]+k)=idd.getgain()*(
             *(ida[i]+k)+(TRMCFFKEY.CalcCmnNoise[0]==0?idd.getsig()*rnormx():0));
-            if(*(ida[i]+k)>TRMCFFKEY.adcoverflow)
-             *(ida[i]+k)=TRMCFFKEY.adcoverflow;
           }
            pcl= new
            AMSTrRawCluster(i,nleft,nright,ida[i]+nleft);
@@ -192,8 +191,8 @@ void AMSTrRawCluster::_printEl(ostream & stream){
 
 
 int16u AMSTrRawCluster::getdaqid(int i){
-if (i==0)return 0x580;
-else if(i==1)return 0x5f0;
+  if (i==0)return (1 | 2<<6 | 5 <<9);
+  else if(i==1)return (1 | 5<<6 | 5 <<9);
 else return 0x0;
 }
 

@@ -192,7 +192,7 @@ extern "C" void gustep_(){
   geant trcut2(0.09);// Max. transv.shift (0.3cm)**2
   int i,nd,numv,iprt,numl;
   static int numvo(-999),iprto(-999);
-  if(GCVOLU.names[1][0]== 'T' && GCVOLU.names[1][1]=='O' &&
+  if(GCVOLU.nlevel >1 && GCVOLU.names[1][0]== 'T' && GCVOLU.names[1][1]=='O' &&
   GCVOLU.names[1][2]=='F' && GCVOLU.names[1][3]=='S'){// in "TOFS"
     iprt=GCKINE.ipart;
     numv=GCVOLU.number[GCVOLU.nlevel-1];

@@ -112,17 +112,21 @@ if(_create() ){
  
 
 integer DAQEvent::_EventOK(){
-  if(_Length >1 && _pData &&  _pData[1]==0x0){
-    integer ntot=0;
-    _pcur=_pData+2;
-    for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
-    ntot+=*(_pcur)+_OffsetL;
-    if(ntot != _pData[0]+_OffsetL-2){
-      cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
-        _pData[0]+_OffsetL<<" Blocks say length is "<<ntot+2<<endl;
-      return 0;
+  if(_Length >1 && _pData ){
+    if( _pData[1]==0){
+      // AMS Event
+     integer ntot=0;
+     _pcur=_pData+2;
+     for(_pcur=_pData+2;_pcur<_pData+_Length;_pcur+=*(_pcur)+_OffsetL)
+     ntot+=*(_pcur)+_OffsetL;
+     if(ntot != _pData[0]+_OffsetL-2){
+       cerr <<"DAQEvent::_Eventok-E-length mismatch: Header says length is "<<
+         _pData[0]+_OffsetL<<" Blocks say length is "<<ntot+2<<endl;
+       return 0;
+     }
+     else return 1;    
     }
-    else return 1;    
+    else return -1;
   }
   else return 0;
 }
@@ -144,7 +148,7 @@ integer DAQEvent::_HeaderOK(){
 
 
 void DAQEvent::buildRawStructures(){
-  if(_Checked ||(_EventOK() && _HeaderOK())){
+  if(_Checked ||(_EventOK()==1 && _HeaderOK())){
    DAQSubDet * fpl=_pSD;
    while(fpl){
    for(_pcur=_pData+lover;_pcur < _pData+_Length;_pcur=_pcur+*_pcur+_OffsetL){
@@ -153,6 +157,17 @@ void DAQEvent::buildRawStructures(){
      fpl->_pputdata(*_pcur+_OffsetL-1,psafe);
     }
    }
+   fpl=fpl->_next; 
+   }
+  }
+  else if(_EventOK()==-1){
+    // without envelop only one block
+   DAQSubDet * fpl=_pSD;
+   while(fpl){
+    _pcur=_pData;
+    if(fpl->_pgetid(*(_pcur+1))){
+      fpl->_pputdata(*_pcur+_OffsetL-1,_pcur+1);
+    }
    fpl=fpl->_next; 
    }
   }

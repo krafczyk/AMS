@@ -24,5 +24,7 @@ Time+=.7;
 cout <<ctime(&Time)<<endl;
 Time+=1;
 cout <<ctime(&Time)<<endl;
+Time=1;
+cout <<ctime(&Time)<<endl;
 return 0;
 }

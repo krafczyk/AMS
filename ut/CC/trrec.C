@@ -793,8 +793,8 @@ if(TRFITFFKEY.FastTracking){
 number AMSTrTrack::Fit(integer fit, integer ipart){
 
   // fit =0  fit pattern
-  // fit =1  fit 1st part if pat=0,1,2,3, ... etc + interpolate to end of 2nd 
-  // fit =2  fit 2nd half if pat=0,1,2,3  ... etc 
+  // fit =1  fit 1st part if pat=0,1,2,3, ... etc  
+  // fit =2  fit 2nd half if pat=0,1,2,3  ... etc + interpolate to beg of 1st
   // fit =3  Geanefit pattern
   // fit =4  fast fit with ims=0
   // fit =5  geane fit with ims=0
@@ -929,21 +929,6 @@ _HTheta[0]=out[3];
 _HPhi[0]=out[4];
 _HP0[0]=AMSPoint(out[0],out[1],out[2]);
 
-// interpolate if fit == 1;
-AMSTrRecHit *phit;
-if(_Pattern == 0)phit= _Pthit[5];
-else if(_Pattern <7 )phit=_Pthit[4];
-else phit=_Pthit[3];
-#ifdef __AMSDEBUG__
-  assert(phit!= NULL);
-#endif
-
- AMSDir SenDir((phit->getpsen())->getinrm(2,0),
-        (phit->getpsen())->getinrm(2,1),(phit->getpsen())->getinrm(2,2) );
- AMSPoint SenPnt=phit->getHit();
- number sleng;
- interpolate(SenPnt, SenDir, _HP0[0], _HTheta[0], _HPhi[0], sleng);
- 
 
 
 
@@ -957,6 +942,21 @@ _HErrRidgidity[1]=out[8];
 _HTheta[1]=out[3];
 _HPhi[1]=out[4];
 _HP0[1]=AMSPoint(out[0],out[1],out[2]);
+
+
+// interpolate if fit == 2;
+
+AMSTrRecHit *phit=_Pthit[0];
+#ifdef __AMSDEBUG__
+  assert(phit!= NULL);
+#endif
+
+ AMSDir SenDir((phit->getpsen())->getinrm(2,0),
+        (phit->getpsen())->getinrm(2,1),(phit->getpsen())->getinrm(2,2) );
+ AMSPoint SenPnt=phit->getHit();
+ number sleng;
+ interpolate(SenPnt, SenDir, _HP0[1], _HTheta[1], _HPhi[1], sleng);
+ 
 
 
 

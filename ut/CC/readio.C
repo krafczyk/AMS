@@ -1,4 +1,5 @@
 #include <io.h>
+#include <trid.h>
 #include <commons.h>
 AMSDATADIR_DEF AMSDATADIR;
 int main(int argc, char* argv[]){ 

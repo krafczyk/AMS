@@ -56,10 +56,10 @@ void AMSIO::init(integer mode,integer format){
            if(format==1 && (io.getrun()!=runold || ok==0)){
              if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
                           " events with pid = "<<pidold<<endl;
-             if(io.getrun()<0){
-               cout <<"AMSIO::init-F-Negative run number "<< io.getrun()<<endl;
-               exit(1);
-             }
+ //            if(io.getrun()<0){
+ //             cout <<"AMSIO::init-F-Negative run number "<< io.getrun()<<endl;
+ //            exit(1);
+ //         }
              iposr=0;
              pidold=io.getpid();
              runold=io.getrun();
@@ -83,6 +83,7 @@ void AMSIO::init(integer mode,integer format){
               " Event >= "<<SELECTFFKEY.Event<<endl;
           if(format==1){
             fbin.seekg(fbin.tellg()-sizeof(io));
+            fbin.clear();
             ok=io.read();
             theta=theta*AMSDBc::raddeg;
             phi=phi*AMSDBc::raddeg;

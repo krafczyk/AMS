@@ -52,8 +52,8 @@ endif
 #
 #
 #
-FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/antirec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F ../F/e04ccf.f ../CC/trigger1.C  ../CC/trigger3.C ../CC/antidbc.C ../CC/daqevt.C ../CC/ins_dummy.C
-OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/antirec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o ..$(BIN)/trigger1.o ..$(BIN)/trigger3.o ..$(BIN)/antidbc.o ..$(BIN)/daqevt.o ..$(BIN)/ins_dummy.o
+FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/antirec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F ../F/e04ccf.f ../CC/trigger1.C  ../CC/trigger3.C ../CC/antidbc.C ../CC/daqevt.C ../CC/astring.C ../CC/ins_dummy.C
+OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/antirec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o ..$(BIN)/trigger1.o ..$(BIN)/trigger3.o ..$(BIN)/antidbc.o ..$(BIN)/daqevt.o ..$(BIN)/astring.o ..$(BIN)/ins_dummy.o 
 ..$(EXE)/gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS) ../F/timel.F -o ..$(BIN)/timel.o
 	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
@@ -87,6 +87,9 @@ OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o 
 
 ..$(BIN)/node.o:	         ../CC/node.C
 	$(CC) -c $(CFLAGS) ../CC/node.C -o ..$(BIN)/node.o
+
+..$(BIN)/astring.o:	         ../CC/astring.C
+	$(CC) -c $(CFLAGS) ../CC/astring.C -o ..$(BIN)/astring.o
 
 ..$(BIN)/snode.o:          ../CC/snode.C
 	$(CC) -c $(CFLAGS) ../CC/snode.C -o ..$(BIN)/snode.o
@@ -545,7 +548,8 @@ depend:
 ../bin/aix/uzstat.o: ../include/snode.h ../include/upool.h
 ../bin/aix/uzstat.o: /usr/lpp/xlC/include/new.h
 ../bin/aix/uzstat.o: /usr/lpp/xlC/include/iomanip.h
-../bin/aix/uzstat.o: /usr/lpp/xlC/include/generic.h
+../bin/aix/uzstat.o: /usr/lpp/xlC/include/generic.h /usr/include/time.h
+../bin/aix/uzstat.o: /usr/include/sys/time.h
 ../bin/aix/tptcir.o: ../F/trfitcl.h
 ../bin/aix/trafit.o: ../F/trfitcl.h
 ../bin/aix/tcircf.o: ../F/trfitcl.h
@@ -982,7 +986,8 @@ depend:
 ../bin/aix/timeid.o: /usr/lpp/xlC/include/iomanip.h
 ../bin/aix/timeid.o: /usr/lpp/xlC/include/generic.h ../include/amsgobj.h
 ../bin/aix/timeid.o: ../include/uzstat.h /usr/include/limits.h
-../bin/aix/timeid.o: /usr/include/sys/limits.h
+../bin/aix/timeid.o: /usr/include/sys/limits.h ../include/astring.h
+../bin/aix/timeid.o: /usr/lpp/xlC/include/fstream.h ../include/commons.h
 ../bin/aix/io.o: /usr/include/sys/types.h /usr/include/sys/stat.h
 ../bin/aix/io.o: /usr/include/standards.h /usr/include/sys/mode.h
 ../bin/aix/io.o: ../include/io.h ../include/point.h ../include/typedefs.h
@@ -1107,7 +1112,7 @@ depend:
 ../bin/aix/antidbc.o: /usr/include/sys/limits.h ../include/timeid.h
 ../bin/aix/antidbc.o: /usr/include/time.h /usr/lpp/xlC/include/fstream.h
 ../bin/aix/antidbc.o: ../include/antidbc.h
-../bin/aix/daqevt.o: ../include/daqevt.h ../include/id.h
+../bin/aix/daqevt.o: /usr/include/stdio.h ../include/daqevt.h ../include/id.h
 ../bin/aix/daqevt.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/aix/daqevt.o: /usr/lpp/xlC/include/iostream.h /usr/include/memory.h
 ../bin/aix/daqevt.o: /usr/include/string.h /usr/include/standards.h
@@ -1116,9 +1121,9 @@ depend:
 ../bin/aix/daqevt.o: /usr/include/stdlib.h ../include/link.h
 ../bin/aix/daqevt.o: ../include/upool.h /usr/lpp/xlC/include/new.h
 ../bin/aix/daqevt.o: ../include/apool.h ../include/node.h ../include/snode.h
-../bin/aix/daqevt.o: /usr/lpp/xlC/include/fstream.h ../include/event.h
-../bin/aix/daqevt.o: ../include/job.h ../include/gvolume.h ../include/cern.h
-../bin/aix/daqevt.o: ../include/cfortran.h /usr/include/stdio.h
+../bin/aix/daqevt.o: /usr/lpp/xlC/include/fstream.h /usr/include/time.h
+../bin/aix/daqevt.o: ../include/event.h ../include/job.h ../include/gvolume.h
+../bin/aix/daqevt.o: ../include/cern.h ../include/cfortran.h
 ../bin/aix/daqevt.o: /usr/include/malloc.h ../include/hbook.h
 ../bin/aix/daqevt.o: ../include/geant321.h ../include/geant321g.h
 ../bin/aix/daqevt.o: ../include/amsdbc.h ../include/point.h
@@ -1127,6 +1132,10 @@ depend:
 ../bin/aix/daqevt.o: /usr/lpp/xlC/include/generic.h ../include/amsgobj.h
 ../bin/aix/daqevt.o: ../include/uzstat.h /usr/include/limits.h
 ../bin/aix/daqevt.o: /usr/include/sys/limits.h ../include/timeid.h
-../bin/aix/daqevt.o: /usr/include/time.h ../include/cont.h
-../bin/aix/daqevt.o: /usr/include/sys/time.h ../include/mceventg.h
-../bin/aix/daqevt.o: ../include/io.h /usr/include/sys/times.h
+../bin/aix/daqevt.o: ../include/cont.h /usr/include/sys/time.h
+../bin/aix/daqevt.o: ../include/mceventg.h ../include/io.h
+../bin/aix/daqevt.o: /usr/include/sys/times.h ../include/commons.h
+../bin/aix/astring.o: ../include/astring.h /usr/lpp/xlC/include/iostream.h
+../bin/aix/astring.o: /usr/include/memory.h /usr/include/string.h
+../bin/aix/astring.o: /usr/include/standards.h /usr/include/sys/types.h
+../bin/aix/ins_dummy.o: /usr/include/stdlib.h

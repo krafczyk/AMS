@@ -1,4 +1,4 @@
-I. Proposed Daq Event format 
+I. Proposed Daq Event format  (based on lebedev&capell 7/7/97)
 
 All 16 bit unsigned integers. 32 & more bits are in little endian,i.e.
  unsigned short int ui16[2];
@@ -18,11 +18,11 @@ Legend:
 EL      - total length in 16 bit words   - 1    (mike idea)
 EID     - Event ID = 0x0
 HL      - header ==general run length - 1
-HID     - header id = 0x0101;
+HID     - header id = 0x200;
 Run     - run number 32bit
-AuxR    - run type   32bit
+AuxR    - run type   16bit
 Evt     - event number 32bit
-Time    - time 32bit unix format + 32bit tbd
+Time    - time 32bit unix format + 16bit tbd
 LSubDBl - length of subdet block (LVL1,LVL3,TOF,Anti,Tracker,CTC)-1
 IDSubDBl- id sub det block see below
 
@@ -33,7 +33,7 @@ II. Subdet event formats
 
 a.Trig1 Event format
 
-ID=0x0300; (?)
+ID= 7<<9 | 1<<6   ??
 Word1   tof1 pattern 
 Word2   tof2 pattern 
 Word3   tof3 pattern 
@@ -43,7 +43,7 @@ word6   z
 
 b.Trig3 Event Format 
 
-ID=0x0700;  (?)
+ID= 3<<9 | 1<<6   ??
 Word1 tracker  output 
 Word2  8 bit tof output  +8 bit anti output
 Word3 16 bit(signed) residual in mkm 
@@ -62,9 +62,10 @@ d.Anti Event Format
 To be defined
 
 
-e.Tracker Event Format
+e.Reduced Tracker Event Format
 
 ID=0x0580 (x<0) & 0x05F0 (x>0)
+ID = 1 | 2<<6 | 5 <<9 (x<0) or 1 | 5<<6 | 5<<9 (x>0)
 word1 8bit cluster length - 3 | 8bit max hit offset
 word2 leftmost hit address
 word 3 to length+3
@@ -165,3 +166,4 @@ runtype()
 time()
 
 (Active only after _HeaderOK())
+

@@ -1283,7 +1283,8 @@ void AMSTOFRawEvent::mc_build(int &status)
   ttrig1=AMSTOFTovt::tr1time(trcode,trpatt);//get abs.trig1("z>=1") signal time/patt
   if(trcode<0){
     AMSTOFRawEvent::settrfl(trflag);// set trig_flag to 0 ("no trigger")
-    return;
+    //    return;
+    goto safe;
   } 
   status=0;
   trflag=1;// ok: h/w trigger(z>=1) present -> do digitization:
@@ -1467,6 +1468,7 @@ void AMSTOFRawEvent::mc_build(int &status)
     }//         --- end of Tovt-hits loop in layer --->
 //
   } //                               --- end of layer loop --->
+safe:
   AMSTOFRawEvent::setpatt(trpatt);//add trigger pattern
 }
 //================================================================

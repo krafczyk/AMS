@@ -171,6 +171,7 @@ I28   CalcCmnNoise[2])(0,3) // Calc(1=1 or not 1=0 cmnnoise properly)
 R30   thr1R[2](4.5,4.5)     // threshold (S/N) to save cluster
 R32   thr2R[2](1.,1.)       // threshold (S/N) to save hits in cluster
 I34   neib[2](2,2)          // number of neibours from one side
+I36   GenerateConst(0)      // generate/not generate tracker const
 
 // MC particle generation
 

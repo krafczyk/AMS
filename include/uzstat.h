@@ -17,6 +17,12 @@
 #include <node.h>
 #include <snode.h>
 
+
+// High granularity time
+
+extern "C" number HighResTime();
+
+
 class AMSStatNode: public AMSNode{
 
 friend class AMSStat;
@@ -48,4 +54,8 @@ public:
   void print();
 };
 
+
+
 #endif
+
+

@@ -4,6 +4,10 @@
 #include <iostream.h>
 #include <iomanip.h>
 #include <string.h>
+#include <time.h>
+#include <sys/time.h>
+ extern "C" float etime_(float ar[]);
+
 AMSStat::AMSStat():AMSNodeMap(){
 map(Timer);
 }
@@ -18,9 +22,7 @@ cerr<<" AMSStat-Book-E-Name "<<name<<" already exists"<<endl;
 void AMSStat::start(char *name){
 AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
 if(p){
-geant tt;
-TIMEX(tt);
-p->_time=tt;
+p->_time=HighResTime();
 p->_startstop=1;
 }
 else cerr<<"AMSStat-Start-E-Name "<<name<<" does not exist"<<endl;
@@ -30,8 +32,7 @@ AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
 if(p){
   if(p->_startstop==1){
     p->_entry=p->_entry+1;
-    geant tt;
-    TIMEX(tt);
+    number tt=HighResTime();
     number time=tt-p->_time;
     p->_time=tt;
     p->_sum=p->_sum+time;
@@ -58,4 +59,48 @@ if(name && strlen(name)>15)name[14]='\0';
 return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry<<" "<<setw(12)<<_min
  <<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum<<endl:stream;
 delete name;
+}
+
+extern "C" number HighResTime(){
+
+ static float ar[2];
+ static number ETimeLast;
+ static timeval  TPSLast;
+ static struct timezone  TZ;
+ static timeval TPS;
+ static integer init=0;
+
+  const number TRes=0.002;
+
+#ifdef __ALPHA__
+
+if(init++ ==0){
+gettimeofday(&TPSLast,&TZ);
+ETimeLast=etime_(ar);
+}
+geant time=etime_(ar);
+if(time -ETimeLast  > TRes){
+gettimeofday(&TPSLast,&TZ);
+ETimeLast=time;
+
+return time;
+}
+else {
+  //
+  // Try to get more high res
+  //
+gettimeofday(&TPS,&TZ);
+number ltime=
+number(TPS.tv_sec-TPSLast.tv_sec)+1.e-6*(TPS.tv_usec-TPSLast.tv_usec);
+TPSLast.tv_sec=TPS.tv_sec;
+TPSLast.tv_usec=TPS.tv_usec;
+if(ltime<= TRes )ETimeLast+=ltime;
+else ETimeLast=time;
+return ETimeLast;
+}
+
+#else
+return etime_(ar);
+#endif
+
 }

@@ -230,8 +230,8 @@ number _RidgidityMS;
 number _GRidgidityMS;
 void SimpleFit(AMSPoint err=0);
 void   AdvancedFit();
-static void _Start(){TIMEX(_Time);}
-static geant _CheckTime(){geant time;TIMEX(time);return time-_Time;}
+static void _Start(){_Time=HighResTime();}
+static geant _CheckTime(){return HighResTime()-_Time;}
 static geant _Time;
   void _printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Rigidity (Circ)" << 
   _CircleRidgidity <<" Rigidity (Fast) "<<_Ridgidity <<" Chi2Fast " << 

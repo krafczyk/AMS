@@ -16,7 +16,7 @@ uinteger _CalcCRC();
 void _init(){};
 static void _InitTable();
 static uinteger * _Table;
-
+void _convert(uinteger *pdata, integer nw);
 public:
 AMSTimeID():AMSNode(),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_pData(0),
 _CRC(0),_UpdateMe(0){}
@@ -32,7 +32,9 @@ integer UpdateMe()const {return _UpdateMe;}
 static const uinteger CRC32;
 void gettime(time_t & insert, time_t & begin, time_t & end) const;
 void SetTime (time_t insert, time_t begin, time_t end) ;
-integer validate(time_t & Time);
+integer validate(time_t & Time,integer reenter=0);
+integer write(char * dir );
+integer read(char * dir );
 };
 
 #endif

@@ -24,6 +24,13 @@ COMMON_BLOCK_DEF(GCBANK_DEF,GCBANK);
 #define PAWC COMMON_BLOCK(PAWC,pawc)
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 
+class TRMFFKEY_DEF{
+public:
+integer OKAY;
+};
+#define TRMFFKEY COMMON_BLOCK(TRMFFKEY,trmffkey)
+COMMON_BLOCK_DEF(TRMFFKEY_DEF,TRMFFKEY);
+
 
 class SELECTFFKEY_DEF {
 public:
@@ -279,6 +286,7 @@ integer CalcCmnNoise[2];
 integer thr1R[2];
 integer thr2R[2];
 integer neib[2];
+integer GenerateConst;
 };
 #define TRMCFFKEY COMMON_BLOCK(TRMCFFKEY,trmcffkey)
 COMMON_BLOCK_DEF(TRMCFFKEY_DEF,TRMCFFKEY);
@@ -472,6 +480,8 @@ geant InitialRM[6][3][3];        // Rot Matrix --------
 };
 #define TRCALIB COMMON_BLOCK(TRCALIB,trcalib)
 COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);
+
+
 
 
 
