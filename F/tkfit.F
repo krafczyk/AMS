@@ -1,5 +1,5 @@
-      SUBROUTINE TKFITA(NPOINTS, XM, EXM, ZNOM, IPLANEZ,nplanes,
-     + IMSCAT, BETA, OUTPAR, IERR)
+      SUBROUTINE TKFITA(NPOINTS, XM, EXM, IPLANEZ,
+     + IMSCAT, xmass, OUTPAR, IERR)
 *
 *     Fitting NPOINTS (consecutive) (maximum 10 points)
 *
@@ -19,7 +19,7 @@
 *     OUTPAR(4) = u_y, component of direction at first plane
 *                 (u_z = -sqrt(1-u_x**2-u_y**2) )
 *     OUTPAR(5) = 1/rigidity (1/GV)
-*     OUTPAR(6) = ?   
+*     OUTPAR(6) = sigma(1/rigidity)   
 *
 *     IERR=0 if everything was OK
 *
@@ -44,7 +44,7 @@
 *
       PARAMETER (NHITS=10, NITER=5)
       DIMENSION AXX(3,NHITS), AV(3,NHITS), XM(3,NHITS), XP(2,NHITS), 
-     + AL(NHITS)
+     + AL(NHITS),exm(3,nhits),iplanez(nhits)
       DIMENSION D(2*NHITS,5), DX(5), DD(5,5), IDAUX(2*NHITS)
       DIMENSION OUTPAR(6)
       DIMENSION ABSUZ(NHITS), ER2(2*NHITS,2*NHITS)
@@ -55,24 +55,25 @@
 *
 ***---------------------------------------------------------------
 *
+c      write(*,*)imscat,xmass,iplanez,exm
       IERR = 1
 
 
-      IF (NPOINTS.LT.3 .OR. NPOINTS.GT.nplanes) THEN
+      IF (NPOINTS.LT.3 .OR. NPOINTS.GT.nhits) THEN
         GOTO 999
       ENDIF
 
 C Find out at which plane are they
-      CALL VZERO (Iplanez, NPOINTS)
-      do IP = 1, NPOINTS
-        distmin = 1.E30
-        do IZ = 1, nplanes
-          IF (ABS(XM(3,IP)-ZPOS(IZ)).LT.distmin) THEN
-            distmin = ABS(XM(3,IP)-ZPOS(IZ))
-            iplanez(IP) = IZ
-          ENDIF
-        end do
-      end do
+c      CALL VZERO (Iplanez, NPOINTS)
+c      do IP = 1, NPOINTS
+c        distmin = 1.E30
+c        do IZ = 1, nplanes
+c          IF (ABS(XM(3,IP)-ZNOM(IZ)).LT.distmin) THEN
+c            distmin = ABS(XM(3,IP)-ZNOM(IZ))
+c            iplanez(IP) = IZ
+c          ENDIF
+c        end do
+c      end do
 c      print*,' IPLANEZ= ', iplanez
         
       do 20 ipl = 1, NPOINTS
@@ -157,11 +158,13 @@ c          PRINT*,'JY, D= ', J, (D(JY,I),i=1,5)
             M = L + NPOINTS
             IF (L.EQ.JX) THEN
               ER2(L,JX) = ER2(L,JX) + Exm(1,jx)**2
-              ER2(M,JY) = ER2(M,JY) + Exm(1,jx)**2
+              ER2(M,JY) = ER2(M,JY) + Exm(2,jx)**2
             ENDIF
             IF (IMSCAT.NE.0) THEN
               IF (OUTPAR(5).NE.0.) THEN
-                PBETAI = (OUTPAR(5)/2.997E-4)*BETA
+c                PBETAI = (OUTPAR(5)/2.997E-4)/BETA
+                xinv=OUTPAR(5)/2.997E-4
+                PBETAI = xinv*sqrt(1+xmass**2*xinv**2)
               ELSE
                 PBETAI = 0.
               ENDIF
@@ -201,9 +204,9 @@ c        END DO
 
         CALL RINV (2*NPOINTS, ER2, 2*NHITS, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
-          PRINT*,'**************************************'
+c          PRINT*,'**************************************'
           PRINT*,' ER2 Covariance Matrix is Singular !!!'
-          PRINT*,'**************************************'
+c          PRINT*,'**************************************'
           GOTO 999
         ENDIF
 
@@ -231,14 +234,24 @@ c          PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
         
         CALL RINV (5, DD, 5, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
-          PRINT*,'**************************************'
+c          PRINT*,'**************************************'
           PRINT*,' DD Covariance Matrix is Singular !!!'
-          PRINT*,'**************************************'
-          PRINT*,' NPOINTS= ', NPOINTs
-          DO IV = 1, NPOINTS
-            PRINT*,(XM(IU,IV),IU=1,3)
-          END DO
-          PRINT*,' '
+c          PRINT*,'**************************************'
+c          PRINT*,' NPOINTS= ', NPOINTs
+c          DO IV = 1, NPOINTS
+c            PRINT*,(XM(IU,IV),IU=1,3)
+c          END DO
+c          PRINT*,' '
+c          DO J = 1, 5
+c            PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
+c          END DO
+c        DO JJ = 1, NPOINTS
+c          PRINT*,'JJ, ER2X= ', JJ, (ER2(JJ,KK),KK=1,NPOINTS)
+c        END DO
+c        DO JJ = 1, NPOINTS
+c          PRINT*,'JJ, ER2Y= ', JJ
+c     >       , (ER2(JJ+NPOINTS,KK+NPOINTS),KK=1,NPOINTS)
+c        END DO
           GOTO 999
         ELSE
 c          DO J = 1, 5
@@ -252,12 +265,12 @@ c          END DO
             OUTPAR(K) = OUTPAR(K) + DD(K,I)*DX(I)
           END DO
         END DO
-        OUTPAR(5)=OUTPAR(5)/2.997E-4
-        OUTPAR(6)=DD(1,1)/2.997E-4
 c        PRINT*,' OUTpar= ', OUTpar
 
 30    continue
 
+        OUTPAR(5)=OUTPAR(5)/2.997E-4
+        OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
       IERR = 0
 
 999   CONTINUE

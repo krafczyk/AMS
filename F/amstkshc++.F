@@ -5517,7 +5517,7 @@ CDECK  ID>, TKFINI.
 999          end
 CDECK  ID>, TKFITG. 
          subroutine tkfitg(npt,xhits,ysigma,ynormal,ipart,
-     +   ialgo,imsa,out)
+     +   ialgo,imsa,layer,out)
 *
 *
 **
@@ -5537,7 +5537,7 @@ CDECK  ID>, TKFITG.
 * Multiple scattering (default on) can be switched off in all 3 algorithmes
 * by datacard TKFIT 12=0
 *
-
+              integer layer(1)
               common /tkgdefC/tmaxf,smax,fieldmm,cconv,
      +        maxcal,nitm,xtol,iver,ialg,steps,npars,ims,
      +        bound,scale,cfld,sms,pii
@@ -5571,6 +5571,7 @@ CDECK  ID>, TKFITG.
 *            new 2 lines 
 *
              truecharge=chrg
+             xmz=xmass/abs(chrg)
              if(chrg.lt.0)chrg=-chrg
              if(imskeep.ne.0)then
               ims=imsa
@@ -5638,6 +5639,23 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
              call tkfitge(npt,xhits,ysigma,ynormal,truecharge,
      +       ipart,out,ialg-1)
              goto 999
+             else if(ialg.eq.4)then
+              call TKFITA(NPt, Xhits, ysigma, layer,
+     +        IMSa, xmz, OUT,IERR)
+              theta=aycos(-sqrt(1-out(3)**2-out(4)**2))
+              phi=atan2(out(4),out(3))
+              z0=xhits(3,1)
+              rig=1/out(5)
+              chi2=0
+              erig=out(6)
+              out(3)=z0
+              out(4)=theta
+              out(5)=phi
+              out(6)=rig
+              out(7)=chi2
+              out(8)=ierr
+              out(9)=erig
+              goto 999
            else
             ifail=1
            endif

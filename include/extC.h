@@ -23,7 +23,7 @@ extern "C" void trafit_(integer & ifit, geant x[],  geant y[], geant wxy[],
                         geant p0[], geant & dip, geant & phis);
 #define TRAFIT trafit_
 extern "C" void tkfitg_(integer &npt,geant hits[][3], geant sigma[][3],
-geant normal[][3], integer &ipart,  integer &ialgo, integer &ims, geant out[]);
+geant normal[][3], integer &ipart,  integer &ialgo, integer &ims, integer layer[], geant out[]);
 #define TKFITG tkfitg_
 
 extern "C" void tkfini_();

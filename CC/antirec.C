@@ -139,6 +139,7 @@ void AMSAntiRawEvent::mc_build(int &stat){
   VZERO(tsignal,2*MAXANTI*sizeof(tsignal[0][0])/sizeof(geant));
   AMSAntiMCCluster * ptr;
 //
+  trpatt=0;
   stat=1;//bad
   trflag=AMSTOFRawEvent::gettrfl();
   AMSAntiRawEvent::setpatt(trpatt);// reset trigger-pattern in AMSAntiRawEvent::

@@ -539,7 +539,9 @@ void AMSTrCalibFit::alfun(integer &n, number xc[], number &fc, AMSTrCalibFit *p)
   static geant sigma[maxhits][3];
   static geant sigma1[maxhits][3];
   static geant normal[maxhits][3];
+  static integer layer[maxhits];
   integer ialgo=1;
+
   if(p->_Algorithm==2)ialgo=11;
   integer ims=0;
   geant out[9];
@@ -586,7 +588,7 @@ void AMSTrCalibFit::alfun(integer &n, number xc[], number &fc, AMSTrCalibFit *p)
    }
   hits[1][1]+=TRCALIB.HitsRatioCut[0];
    out[0]=p->_pData[niter]._InvRigidity;
-   TKFITG(npt,hits,sigma,normal,p->_Pid,ialgo,ims,out); 
+   TKFITG(npt,hits,sigma,normal,p->_Pid,ialgo,ims,layer,out); 
    if(out[7]==0 && out[5]>p->_Algorithm!=0?
       TRCALIB.MomentumCut[p->_Algorithm][0]:
       TRCALIB.MomentumCut[p->_Algorithm][0]/p->_pData[niter]._InvRigidity
@@ -597,7 +599,7 @@ void AMSTrCalibFit::alfun(integer &n, number xc[], number &fc, AMSTrCalibFit *p)
     if(ialgo/10 && p->_flag){
       geant out1[9];
       int ia=1;
-      TKFITG(npt,hits,sigma,normal,p->_Pid,ia,ims,out1); 
+      TKFITG(npt,hits,sigma,normal,p->_Pid,ia,ims,layer,out1); 
       out[5]=out1[5];
       geant xx=out[5];
       HF1(101,xx,1.);
@@ -621,7 +623,7 @@ void AMSTrCalibFit::alfun(integer &n, number xc[], number &fc, AMSTrCalibFit *p)
               hits1[k][l]=hits[TKDBc::patconf(j,k)][l];
               sigma1[k][l]=sigma[TKDBc::patconf(j,k)][l];
               int n3=3;
-              TKFITG(n3,hits1,sigma1,normal,p->_Pid,ialgo,ims,out); 
+              TKFITG(n3,hits1,sigma1,normal,p->_Pid,ialgo,ims,layer,out); 
               cout <<niter<<" "<<out[5]<<endl;
               fc+=(1/out[5]-p->_pData[niter]._InvRigidity)*(1/out[5]-p->_pData[niter]._InvRigidity)/(error*error+p->_pData[niter]._ErrInvRigidity*p->_pData[niter]._ErrInvRigidity);
              }

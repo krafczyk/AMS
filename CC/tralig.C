@@ -993,6 +993,7 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
   static geant sigma[maxhits][3];
   static geant sigma1[maxhits][3];
   static geant normal[maxhits][3];
+  static integer layer[maxhits];
   integer ialgo=11;
   integer ims=0;
   geant out[9];
@@ -1044,12 +1045,12 @@ void AMSTrAligFit::alfun(integer &n, number xc[], number &fc, AMSTrAligFit *p){
      }
    }
    out[0]=p->_pData[niter]._InvRigidity;
-   TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ialgo,ims,out);
+   TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ialgo,ims,layer,out);
    if(out[7]==0 && out[5]!=0 ){
     if(ialgo/10 && p->_flag){
       geant out1[9];
       int ia=1;
-      TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ia,ims,out1);
+      TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ia,ims,layer,out1);
       out[5]=out1[5];
       geant xx=out[5]*p->_pData[niter]._InvRigidity;
       HF1(p->_Address+p->_flag,xx,1.);
@@ -1122,6 +1123,7 @@ void AMSTrAligFit::alfungl(integer &n, number xc[], number &fc, AMSTrAligFit *p)
   static geant sigma[maxhits][3];
   static geant sigma1[maxhits][3];
   static geant normal[maxhits][3];
+  static integer layer[maxhits];
   integer ialgo=11;
   integer ims=0;
   geant out[9];
@@ -1193,14 +1195,14 @@ void AMSTrAligFit::alfungl(integer &n, number xc[], number &fc, AMSTrAligFit *p)
      }
    }
    out[0]=p->_pData[niter]._InvRigidity;
-   TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ialgo,ims,out);
+   TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ialgo,ims,layer,out);
 mbreak: 
    if(out[7]==0 && out[5]!=0 ){
     if(ialgo/10 && p->_flag){
        
       geant out1[9];
       int ia=1;
-      TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ia,ims,out1);
+      TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ia,ims,layer,out1);
       out[5]=out1[5];
       geant xx=out[5]*p->_pData[niter]._InvRigidity;;
       HF1(p->_Address+p->_flag,xx,1.);

@@ -1782,7 +1782,9 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   // fit =2  fit 2nd half if pat=0,1,2,3  ... etc + interpolate to beg of 1st
   // fit =3  Geanefit pattern
   // fit =4  fast fit with ims=0
-  // fit =5  geane fit with ims=0
+
+// ! Changed
+  // fit =5  Juans fit with ims=1
 
 
    // Create Proper Hit/Ehit things
@@ -1797,11 +1799,13 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
   static geant hits[maxhits][3];
   static geant sigma[maxhits][3];
   static geant normal[maxhits][3];
+  static integer layer[maxhits];
   integer ialgo=1;
   geant out[9];
   integer i;
     integer fit =abs(fits);
-    if(fit==3 || fit==5)ialgo=3;      
+    if(fit==3 )ialgo=3;      
+    else if(fit==5)ialgo=4;
     for(i=0;i<_NHits;i++){
      normal[i][0]=0;
      normal[i][1]=0;
@@ -1809,6 +1813,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
     }
   if(fit == 0 || fit==3 || fit==4 || fit==5){
     for(i=0;i<_NHits;i++){
+     layer[i]=_Pthit[i]->getLayer();
      for(int j=0;j<3;j++){
       if (_Pthit[i]) {
        hits[i][j]=getHit(i,fits<0)[j];
@@ -1826,6 +1831,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
       // fit 1,,,n/2-1,n/2+1
        int j,k;
        for(k=0;k<npt;k++){
+        layer[k]=_Pthit[k]->getLayer();
         for(j=0;j<3;j++){
         hits[k][j]=getHit(k<npt-1?k:k+1,fits<0)[j];
         sigma[k][j]=getEHit(k<npt-1?k:k+1)[j];
@@ -1836,6 +1842,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
        // fit 1,,,,n/2
        int j,k;
        for(k=0;k<npt;k++){
+       layer[k]=_Pthit[k]->getLayer();
         for(j=0;j<3;j++){
         hits[k][j]=getHit(k,fits<0)[j];
         sigma[k][j]=getEHit(k)[j];
@@ -1854,6 +1861,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
       // fit 1,,,n/2-1,n/2+1
        int j,k;
        for(k=0;k<npt;k++){
+        layer[k]=_Pthit[k]->getLayer();
         for(j=0;j<3;j++){
         hits[k][j]=getHit((k==0?-1:k)+TKDBc::patpoints(_Pattern)-npt,fits<0)[j];
         sigma[k][j]=getEHit((k==0?-1:k)+TKDBc::patpoints(_Pattern)-npt)[j];
@@ -1864,6 +1872,7 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
        // fit 1,,,,n/2
        int j,k;
        for(k=0;k<npt;k++){
+        layer[k]=_Pthit[k]->getLayer();
         for(j=0;j<3;j++){
         hits[k][j]=getHit(TKDBc::patpoints(_Pattern)-npt+k,fits<0)[j];
         sigma[k][j]=getEHit(TKDBc::patpoints(_Pattern)-npt+k)[j];
@@ -1882,15 +1891,15 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
      return FLT_MAX;       
   }   
 integer ims; 
-if(fit<4)ims=1;
-else ims=0;
+if(fit==4)ims=0;
+else ims=1;
     AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
     if(pmcg){
      number charge=pmcg->getcharge();    
      number momentum=pmcg->getmom();
      out[0]=charge/momentum;
     }
-TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,out);
+TKFITG(npt,hits,sigma,normal,ipart,ialgo,ims,layer,out);
 if(fit==0){
 _FastFitDone=1;
 _Chi2FastFit=out[6];
@@ -1976,8 +1985,8 @@ if(out[7] != 0)_Chi2MS=FLT_MAX;
 _RidgidityMS=out[5];
 }
 else if(fit==5){
-_GChi2MS=out[6];
-if(out[7] != 0)_GChi2MS=FLT_MAX;
+_GChi2MS=out[8];
+if(out[7] != 0)_GChi2MS=-1;
 _GRidgidityMS=out[5];
 }
 
