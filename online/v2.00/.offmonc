@@ -11,5 +11,3 @@ while offmonc
 do
 echo offmonc terminated
 done
-cd /Offline/vdev/online
-nice -20 .offmonc 1>/dev/null 2>/dev/null &
