@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <TCanvas.h>
-#include "TRootCanvas.h"
+#include <TRootCanvas.h>
 #include <TGCanvas.h>
 
 
