@@ -651,7 +651,7 @@ void AMSCTCRawEvent::builddaq(int16u blid, integer &len, int16u *p){
             ichc=ic;// bias for next hit-counters word
           }
           nzch+=1;
-          if(mtyp=1)nctcs+=1;//counts only CTC-edges (not FT)
+          if(mtyp==1)nctcs+=1;//counts only CTC-edges (not FT)
         }
       } // end of TDC-channels loop
       if((shft<3) && (nzch>0))*(p+ichc)=hitc;// add uncompleted hit-counters word
@@ -966,8 +966,8 @@ int16u AMSCTCRawEvent::hw2swid(int16u a1, int16u a2){
   12, 11, 18, 17, 20, 19, 58,  0, 57, 60, 59, 68, 67, 76, 75,  0};
 //
 #ifdef __AMSDEBUG__
-  assert(a1>=0 && a1<SCCRAT);//crate(0-7)
-  assert(a2>=0 && a2<CTCCHSF);//sfech(0-15)
+  assert(a1<SCCRAT);//crate(0-7)
+  assert(a2<CTCCHSF);//sfech(0-15)
 #endif
   hwch=int16u(CTCCHSF*a1+a2);// hardware-channel
   swid=sidlst[hwch]; // software-id CC (conf.combination number)

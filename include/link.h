@@ -44,7 +44,8 @@ public:
   integer getContPos() {return _ContPos;}                           
   void    setContPos(integer pos) {_ContPos = pos;}
 //-
-  void * operator new(size_t t, void *p) {return p;}
+//  void * operator new(size_t t, void *p) {return p;}
+//  void  operator delete(size_t t, void *p) {p=0;}
   void * operator new(size_t t) {return UPool.insert(t);}
   void operator delete(void *p)
    {UPool.udelete(p);p=0;}

@@ -732,7 +732,7 @@ void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
             ichc=ic;// bias for next hit-counters word
           }
           nzch+=1;
-          if(mtyp=1)nanti+=1;//counts only ANTI-edges (not FT)
+          if(mtyp==1)nanti+=1;//counts only ANTI-edges (not FT)
         }
       } // end of TDC-channels loop
       if((shft<3) && (nzch>0))*(p+ichc)=hitc;// add uncompleted hit-counters word

@@ -31,8 +31,8 @@ public:
 
 static integer Out(integer);
 static void lvl3CompatibilityAddress(int16u address, 
-integer & strip, integer & va, integer & side, integer & half, integer &drp){
-  drp=(address>>10)&31;half=(address>>15) & 1;va=(address>>6)&15;
+integer & strip, integer & va, integer & side,  integer &drp){
+  drp=(address>>10)&31;va=(address>>6)&15;
   strip=((address)&63)+(va%10)*64; side=va>9 ? 0 : 1;
 }
 
@@ -49,7 +49,7 @@ _array(0),_s2n(0){}
 AMSTrRawCluster(integer id,  integer nleft, integer nright,geant *p, geant s2n);
 AMSTrRawCluster(integer id,  integer nleft, integer nright,int16 *p, geant s2n);
 void expand( number *p) const ;
-integer lvl3format(int16 * ptr, integer nmax, integer pedantic=0, integer matchedonly=0);
+integer lvl3format(int16 * ptr, integer nmax,  integer matchedonly=0);
 static void sitkdigi();
   AMSTrRawCluster *  next(){return (AMSTrRawCluster*)_next;}
 
@@ -71,11 +71,11 @@ static void sitkdigi();
  static integer checkdaqidParameters(int16u id);
  static integer checkdaqidCompressed(int16u id);
  static integer calcdaqlengthRaw(integer i);
- static integer getmaxblocks(){return 2;}
- static integer getmaxblocksRaw(){return 2;}
+ static integer getmaxblocks(){return AMSTrIdSoft::ncrates();}
+ static integer getmaxblocksRaw(){return AMSTrIdSoft::ncrates();}
  static void builddaq(integer i, integer n, int16u *p);
  static void buildraw(integer n, int16u *p);
- static void matchKS(integer crate);
+ static void matchKS();
  static void builddaqRaw(integer i, integer n, int16u *p);
  static void buildrawRaw(integer n, int16u *p);
  static void buildrawRawA(integer n, int16u *p);
@@ -108,7 +108,7 @@ static void sitkdigi();
   static int16u getsigSRawid(int i) ;
   static int16u getstatusSRawid(int i) ;
   static int16u getsigmaSid(int i);
-  static integer getmaxblockS(){return 2;}
+  static integer getmaxblockS(){return  AMSTrIdSoft::ncrates();}
   static void writestatusS(integer i, integer length,int16u *p); 
   static void writepedS(integer i, integer length,int16u *p); 
   static void writesigmaS(integer i, integer length,int16u *p); 

@@ -569,7 +569,7 @@ uint16  DAQEvent::sdetlength(uint16 sdetid) {
    offset = offset  + l + 1;
    if (offset > getlength()/sizeof(_pData[0])) break;
   }
-  return -1;
+  return 1;
 }  
 
 integer DAQEvent::sdet(uint16 sdetid) {
@@ -625,7 +625,8 @@ int DAQEvent::parser(char a[], char **& fname){
 
 
   int ntot=0;
-  for(int kl=strlen(a);kl>=0;kl--){
+  int kl;
+  for(kl=strlen(a);kl>=0;kl--){
     if(a[kl]=='/'){
      kl++;
      break;
@@ -701,7 +702,8 @@ int DAQEvent::parser(char a[], char **& fname){
            if(ib >=ia){
              //add leading zero(s)
              int lz=0;
-             for(int l=coma+1;l<j;l++){
+             int l;
+             for(l=coma+1;l<j;l++){
                if(a[l]=='0')lz++;
                else break;
              }
@@ -719,7 +721,8 @@ int DAQEvent::parser(char a[], char **& fname){
         }
         if(tire==0){
               fname[ntot++]=new char[255];
-              for(int l=0;l<255;l++)fname[ntot-1][l]='\0';
+              int l;
+              for(l=0;l<255;l++)fname[ntot-1][l]='\0';
               for(l=0;l<kl;l++)fname[ntot-1][l]=a[l];
               for(l=kl;l<i-coma-1+kl;l++)fname[ntot-1][l]=a[l-kl+coma+1];
         }

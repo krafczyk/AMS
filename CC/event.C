@@ -183,7 +183,7 @@ void AMSEvent::_startofrun() {
 void AMSEvent::_endofrun() {
 
 
- const int NSUBS  = 2;
+ const int NSUBS  = 3;
  const int RUN    = 0;
  const int EVENTS = 1;
  
@@ -239,7 +239,8 @@ void AMSEvent::_endofrun() {
 
   if (SRun > 0) {
    strcpy(time1,ctime(&T0));
-   for(int j=0; j<15; j++) time11[j] = time1[j+4];
+   int j;
+   for(j=0; j<15; j++) time11[j] = time1[j+4];
    time11[15] = '\0';
 
    Td = SRun;
@@ -676,9 +677,11 @@ void AMSEvent::_sitofinitevent(){
 }
 
 void AMSEvent::_sictcinitevent(){
+  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   for(int i=0;i<CTCDBc::getnlay();i++){
    AMSEvent::gethead()->add (
    new AMSContainer(AMSID("AMSContainer:AMSCTCMCCluster",i),0));
+  }
   }
 }
 
@@ -725,23 +728,25 @@ void AMSEvent::_retofinitevent(){
 }
 //=====================================================================
 void AMSEvent::_rectcinitevent(){
-  integer i;
-
-  AMSEvent::gethead()->add(
-  new AMSContainer(AMSID("AMSContainer:AMSCTCRawEvent",0),0));
-      
-  for(i=0;i<CTCDBc::getnlay();i++){
-
-   AMSEvent::gethead()->add (
-   new AMSContainer(AMSID("AMSContainer:AMSCTCRawCluster",i),0));
-
-   AMSEvent::gethead()->add (
-   new AMSContainer(AMSID("AMSContainer:AMSCTCRawHit",i),0));
-
-
-   AMSEvent::gethead()->add (
-   new AMSContainer(AMSID("AMSContainer:AMSCTCCluster",i),0));
-  }
+  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+   integer i;
+ 
+   AMSEvent::gethead()->add(
+   new AMSContainer(AMSID("AMSContainer:AMSCTCRawEvent",0),0));
+       
+   for(i=0;i<CTCDBc::getnlay();i++){
+ 
+    AMSEvent::gethead()->add (
+    new AMSContainer(AMSID("AMSContainer:AMSCTCRawCluster",i),0));
+ 
+    AMSEvent::gethead()->add (
+    new AMSContainer(AMSID("AMSContainer:AMSCTCRawHit",i),0));
+ 
+ 
+    AMSEvent::gethead()->add (
+     new AMSContainer(AMSID("AMSContainer:AMSCTCCluster",i),0));
+   }
+}
 
 }
 
@@ -783,7 +788,7 @@ void AMSEvent::_reaxinitevent(){
 void AMSEvent::_retkinitevent(){
   integer i;
   AMSNode *ptr;
-  for(i=0;i<2;i++) AMSEvent::gethead()->add (
+  for(i=0;i<AMSTrIdSoft::ncrates();i++) AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRawCluster",i),0));
 
   for( i=0;i<2;i++)  ptr = AMSEvent::gethead()->add (
@@ -791,14 +796,14 @@ void AMSEvent::_retkinitevent(){
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrClusterWeak",i),&AMSTrCluster::buildWeak,0));
 
-  for( i=0;i<6;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<TKDBc::nlay();i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRecHit",i),&AMSTrRecHit::build,0));
 
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrRecHitWeak",i),&AMSTrRecHit::buildWeak,0));
 
 
-  for( i=0;i<npat;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTrTrack",i),&AMSTrTrack::build,0));
 
   for( i=0;i<1;i++)  ptr = AMSEvent::gethead()->add (
@@ -820,9 +825,7 @@ void  AMSEvent::write(int trig){
 
   AMSEvent::gethead()->getheadC("AMSTrCluster",0,2); 
   AMSEvent::gethead()->getheadC("AMSTrCluster",1,2); 
-  for(int i=0;i<npat;i++){
-   AMSEvent::gethead()->getheadC("AMSTrTrack",i,2); 
-  }
+  AMSEvent::gethead()->getheadC("AMSTrTrack",0,2); 
  
   AMSEvent::gethead()->getheadC("AMSTrRecHit",0,2); 
   AMSEvent::gethead()->getheadC("AMSTrRecHit",1,2); 
@@ -1150,7 +1153,7 @@ AMSgObj::BookTimer.start("RETKEVENT");
   
   // Default reconstruction: 4S + 4K or more
   if(TRFITFFKEY.FalseXTracking && !TRFITFFKEY.FastTracking)
-    itrk = buildC("AMSTrTrackFalseX",0);
+    itrk = buildC("AMSTrTrackFalseX",TKDBc::nlay());
   if(itrk>0)itrk=buildC("AMSTrTrack",refit);
   // Reconstruction with looser cuts on the K side
   if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.WeakTracking ){
@@ -1162,7 +1165,7 @@ AMSgObj::BookTimer.start("RETKEVENT");
   if(TRFITFFKEY.FastTracking){
     // Reconstruction of 4S + 3K
     if ( (itrk<=0 || TRFITFFKEY.FullReco) && TRFITFFKEY.FalseXTracking ){
-      itrk=buildC("AMSTrTrackFalseX",22);
+      itrk=buildC("AMSTrTrackFalseX",TKDBc::nlay()-3);
       if(itrk>0) itrk=buildC("AMSTrTrack",refit);
 #ifdef __AMSDEBUG__
       if(itrk>0)cout << "FalseX - Track found "<<itrk<<endl; 
@@ -1305,6 +1308,7 @@ TriggerLVL1 *ptr;
 }
 //========================================================================
 void AMSEvent::_rectcevent(){
+  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   integer trflag(0);
   int stat;
   TriggerLVL1 *ptr;
@@ -1342,6 +1346,7 @@ void AMSEvent::_rectcevent(){
   #endif
   AMSgObj::BookTimer.stop("RECTCEVENT");
 }
+}
 
 //========================================================================
 void AMSEvent::_reaxevent(){
@@ -1365,15 +1370,15 @@ AMSgObj::BookTimer.stop("REAXEVENT");
 
 
 void AMSEvent::_sitkinitrun(){
-
-     for(int l=0;l<2;l++){
-       for (int i=0;i<AMSDBc::nlay();i++){
-         for (int j=0;j<AMSDBc::nlad(i+1);j++){
+     int l;
+     for(l=0;l<2;l++){
+       for (int i=0;i<TKDBc::nlay();i++){
+         for (int j=0;j<TKDBc::nlad(i+1);j++){
            for (int s=0;s<2;s++){
             AMSTrIdSoft id(i+1,j+1,s,l,0);
             if(id.dead())continue;
             number oldone=0;
-            for(int k=0;k<AMSDBc::NStripsDrp(i+1,l);k++){
+            for(int k=0;k<TKDBc::NStripsDrp(i+1,l);k++){
              id.upd(k);
              geant d;
              id.setindnoise()=oldone+
@@ -1543,6 +1548,7 @@ void AMSEvent:: _sitofevent(){
 
 //=============================================================
 void AMSEvent:: _sictcevent(){
+  if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   int stat(0);
 //
 //  if((AMSEvent::gethead()->getid())==56)CTCRECFFKEY.reprtf[1]=2;//tempor
@@ -1565,6 +1571,7 @@ void AMSEvent:: _sictcevent(){
   if(p && AMSEvent::debug>1)p->printC(cout);
 #endif
   AMSgObj::BookTimer.stop("SICTCEVENT");
+}
 }
 //=============================================================
 

@@ -4,8 +4,10 @@
       if(iniok.eq.0)then
 *       
           write(*,*)'Opening field file...'
-          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
+c          OPEN(21,FILE=amsdatadir(1:amsdlength)//'fld97int.txt',
+          OPEN(21,FILE=amsdatadir(1:amsdlength)//fname,
      +     STATUS='OLD',form='formatted')
+          fac=1.
           do k=1,nz
            do i=1,nx
             do j=1,ny
@@ -13,9 +15,9 @@
              x(i)=x(i)
              y(j)=y(j)
              z(k)=z(k)
-             bx(i,j,k)=bx(i,j,k)/1000.
-             by(i,j,k)=by(i,j,k)/1000.
-             bz(i,j,k)=bz(i,j,k)/1000.
+             bx(i,j,k)=bx(i,j,k)/1000. *fac
+             by(i,j,k)=by(i,j,k)/1000. *fac
+             bz(i,j,k)=bz(i,j,k)/1000. *fac
             enddo
            enddo
           enddo

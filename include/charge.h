@@ -15,7 +15,7 @@
 const int ncharge=10; // e,p,He...C+3
 const int nbins=100;
 const int TOFTypes=2, TrackerTypes=3;
-const int TOFMaxHits=4, TrackerMaxHits=6;
+const int TOFMaxHits=4, TrackerMaxHits=maxlay;
 const number powmx=50.;
 class AMSCharge: public AMSlink{
 protected:

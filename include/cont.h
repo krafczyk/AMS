@@ -22,7 +22,7 @@ public:
 integer buildOK(){ return _BuildSuccess ;}
 void setbuilder(pBuilder pb){_pb=pb;}
  void runbuilder(integer par);
-void * operator new(size_t t, void *p) {return p;}
+//void * operator new(size_t t, void *p) {return p;}
 void * operator new(size_t t) {return UPool.insert(t);}
 void operator delete(void *p)
   {UPool.udelete(p);p=0;}

@@ -8,7 +8,7 @@
 #include <trrawcluster.h>
 #include <ntuple.h>
 
-void TriggerAuxLVL3::fill(){
+void TriggerAuxLVL3::fill(integer crate){
 
 
   //
@@ -22,27 +22,17 @@ void TriggerAuxLVL3::fill(){
   int i,j;
   integer ierr=0;
   integer nn=0;
-  int16u crate,drp,strip,va,side;
+  int16u drp,strip,va,side;
   geant d;
   for(i=0;i<2;i++){
-   geant xn=2*LVL3SIMFFKEY.NoiseProb[i]*NTRHDRP*AMSDBc::NStripsDrp(1,i);
+   geant xn=LVL3SIMFFKEY.NoiseProb[i]*NTRHDRP/2*TKDBc::NStripsDrp(1,i);
    POISSN(xn,nn,ierr);
    for(j=0;j<nn;j++){
     side=i;
-#ifdef __AMSDEBUG__
-    if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){
-     cerr << 
-     "TriggerAuxLVL3::fill-E-cannot find crates table for setup "<<
-     AMSJob::gethead()->getsetup()<<endl;
-    }
-     crate=RNDM(d) > 0.5;
-#else
-    crate=RNDM(d) > 0.5;
-#endif
     drp=RNDM(d)*NTRHDRP;
     if(drp >= NTRHDRP)drp=NTRHDRP-1;
-    strip=RNDM(d)*AMSDBc::NStripsDrp(1,i);
-    if(strip >= AMSDBc::NStripsDrp(1,i))strip=AMSDBc::NStripsDrp(1,i)-1;
+    strip=RNDM(d)*TKDBc::NStripsDrp(1,i);
+    if(strip >= TKDBc::NStripsDrp(1,i))strip=TKDBc::NStripsDrp(1,i)-1;
     AMSTrIdSoft idd(crate,drp,i,strip);
     if(!idd.dead()){ 
      if(maxtr-_ltr > 4){
@@ -56,15 +46,13 @@ void TriggerAuxLVL3::fill(){
     }
     }  
   }
-  }
-  for(int icl=0;icl<2;icl++){ 
+ }  
    AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
-   getheadC("AMSTrRawCluster",icl);
+   getheadC("AMSTrRawCluster",crate);
    while (ptr){
     _ltr+=ptr->lvl3format(_ptr+_ltr,maxtr-_ltr);
     ptr=ptr->next();
    }
-  }
 
 }
 }
@@ -88,64 +76,16 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
   integer TriggerLVL3::_TOFStatus[SCLRS][SCMXBR];
   integer TriggerLVL3::_TOFOr[SCLRS][SCMXBR];
   integer TriggerLVL3::_TrackerStatus[NTRHDRP2];
-  integer TriggerLVL3::_TrackerAux[NTRHDRP][2];
+  integer TriggerLVL3::_TrackerAux[NTRHDRP][ncrt];
   integer TriggerLVL3::_TOFAux[SCLRS][SCMXBR];
   integer TriggerLVL3::_NTOF[SCLRS];
   geant TriggerLVL3::_TOFCoo[SCLRS][SCMXBR][3];
-  geant TriggerLVL3::_TrackerCoo[NTRHDRP][2][3];
- geant TriggerLVL3::_TrackerDir[NTRHDRP][2];
-  geant TriggerLVL3::_TrackerCooZ[nl];
-  integer TriggerLVL3::_TrackerDRP2Layer[NTRHDRP][2];
-  const integer TriggerLVL3::_patconf[LVL3NPAT][nl]={
-                      0,1,2,3,4,5,   // 123456  0
-                      0,1,2,3,5,0,   // 12346   1
-                      0,1,2,4,5,0,   // 12356   2
-                      0,1,3,4,5,0,   // 12456   3
-                      0,2,3,4,5,0,   // 13456   4
-                      0,1,2,3,4,0,   // 12345   5
-                      1,2,3,4,5,0,   // 23456   6
-                      0,1,2,3,0,0,   // 1234    7
-                      0,1,2,4,0,0,   // 1235    8
-                      0,1,2,5,0,0,   // 1236    9
-                      0,1,3,4,0,0,   // 1245   10
-                      0,1,3,5,0,0,   // 1246   11
-                      0,1,4,5,0,0,   // 1256   12
-                      0,2,3,4,0,0,   // 1345   13
-                      0,2,3,5,0,0,   // 1346   14
-                      0,2,4,5,0,0,   // 1356   15
-                      0,3,4,5,0,0,   // 1456   16
-                      1,2,3,4,0,0,   // 2345   17
-                      1,2,3,5,0,0,   // 2346   18
-                      1,2,4,5,0,0,   // 2356   19
-                      1,3,4,5,0,0,   // 2456   20
-                      2,3,4,5,0,0,   // 3456   21
-                      0,1,2,0,0,0,   // 123    22
-                      0,1,3,0,0,0,   // 124    23
-                      0,1,4,0,0,0,   // 125    24
-                      0,1,5,0,0,0,   // 126    25
-                      0,2,3,0,0,0,   // 134    26
-                      0,2,4,0,0,0,   // 135    27
-                      0,2,5,0,0,0,   // 136    28
-                      0,3,4,0,0,0,   // 145    29
-                      0,3,5,0,0,0,   // 146    30
-                      0,4,5,0,0,0,   // 156    31
-                      1,2,3,0,0,0,   // 234    32
-                      1,2,4,0,0,0,   // 235    33
-                      1,2,5,0,0,0,   // 236    34
-                      1,3,4,0,0,0,   // 245    35
-                      1,3,5,0,0,0,   // 246    36
-                      1,4,5,0,0,0,   // 256    37
-                      2,3,4,0,0,0,   // 345    38
-                      2,3,5,0,0,0,   // 346    39
-                      2,4,5,0,0,0,   // 356    40
-                      3,4,5,0,0,0};  // 456    41
-                       
-  const integer TriggerLVL3::_patpoints[LVL3NPAT]=
-    {6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-     3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3};
-  const integer TriggerLVL3::_patd[5]={0,1,7,22,42};
+  geant TriggerLVL3::_TrackerCoo[NTRHDRP][ncrt][3];
+ geant TriggerLVL3::_TrackerDir[NTRHDRP][ncrt];
+  geant TriggerLVL3::_TrackerCooZ[maxlay];
+  integer TriggerLVL3::_TrackerDRP2Layer[NTRHDRP][ncrt];
   number TriggerLVL3::_stripsize=0.0055;
-integer TriggerLVL3::_TrackerOtherTDR[NTRHDRP][2];
+integer TriggerLVL3::_TrackerOtherTDR[NTRHDRP][ncrt];
 
 
 
@@ -159,8 +99,8 @@ _Residual[1]=0;
 _Pattern[0]=-1;
 _Pattern[1]=-1;
 VZERO(_NTOF,SCLRS);
-VZERO(_TrackerAux,NTRHDRP*2);
-VZERO(_nhits,nl);
+VZERO(_TrackerAux,AMSTrIdSoft::ndrp());
+VZERO(_nhits,sizeof(_nhits)/sizeof(integer));
 
 }
 
@@ -176,8 +116,8 @@ _Residual[1]=res[1];
 _Pattern[0]=pat[0];
 _Pattern[1]=pat[1];
 VZERO(_NTOF,SCLRS);
-VZERO(_TrackerAux,NTRHDRP*2);
-VZERO(_nhits,nl);
+VZERO(_TrackerAux,AMSTrIdSoft::ndrp());
+VZERO(_nhits,sizeof(_nhits)/sizeof(integer));
 
 }
 
@@ -197,7 +137,8 @@ void TriggerLVL3::init(){
   if(LVL3FFKEY.UseTightTOF){
     char fnam[256]="";
     strcpy(fnam,AMSDATADIR.amsdatadir);
-    strcat(fnam,"TOFLVL3");
+    strcat(fnam,"TOFLVL3.");
+    strcat(fnam,AMSJob::gethead()->getsetup());
     ifstream iftxt(fnam,ios::in);
     if(!iftxt){
      cerr <<"TriggerLVL3::init-F-Error open file "<<fnam<<endl;
@@ -238,16 +179,16 @@ void TriggerLVL3::init(){
 
   // Tracker
 
-    for(i=0;i<NTRHDRP2;i++){
+    for(i=0;i<AMSTrIdSoft::ndrp();i++){
      _TrackerStatus[i]=0;
     }
 
 
-    for (i=0;i<nl;i++){
+    for (i=0;i<TKDBc::nlay();i++){
       _TrackerCooZ[i]=0;
       int nsf=0;
-      for(int j=0;j<AMSDBc::nlad(i+1);j++){
-        for(int k=0;k<AMSDBc::nsen(i+1,j+1);k++){
+      for(int j=0;j<TKDBc::nlad(i+1);j++){
+        for(int k=0;k<TKDBc::nsen(i+1,j+1);k++){
          AMSTrIdGeom id(i+1,j+1,k+1,0,0);
          AMSgvolume *ptr=AMSJob::gethead()->getgeomvolume(id.crgid());
          if( ptr){
@@ -269,24 +210,38 @@ void TriggerLVL3::init(){
 #endif
       }
     }
-    for(i=0;i<NTRHDRP;i++){
-       for( int k=0;k<2;k++){
+    for(i=0;i<ntdr;i++){
+       for( int k=0;k<AMSTrIdSoft::ncrates();k++){
         AMSTrIdSoft id(k,i,1,0);
         if(!id.dead()){         
-             _TrackerCoo[i][k][0]=2*k-1;         
+             _TrackerCoo[i][k][0]=0;         
              _TrackerCoo[i][k][1]=0;
              _TrackerCoo[i][k][2]=0;
              _TrackerDir[i][k]=0;
               int nfs=0;
-              int a= k==0?0:AMSDBc::nhalf(id.getlayer(),id.getdrp());
-              int b= k==0?AMSDBc::nhalf(id.getlayer(),id.getdrp()):
-                          AMSDBc::nsen(id.getlayer(),id.getdrp());
+              int half=id.gethalf(); 
+              int a= half==0?0:TKDBc::nhalf(id.getlayer(),id.getdrp());
+              int b= half==0?TKDBc::nhalf(id.getlayer(),id.getdrp()):
+                          TKDBc::nsen(id.getlayer(),id.getdrp());
+/*
+              if(a>=b){
+               // warning force dead
+               cout<<"TriggerLVL3::Init-W-DummyLadderFound "<<id.getdrp()<<" "<<id.getlayer()<<endl;
+               id.kill();
+               _TrackerCoo[i][k][0]=0;
+               _TrackerCoo[i][k][1]=0;
+               _TrackerCoo[i][k][2]=0;
+               _TrackerDir[i][k]=0;
+               break;
+              }
+*/
               for(int l=a;l<b;l++){
               AMSTrIdGeom idg(id.getlayer(),id.getdrp(),l+1,0,0); 
               AMSgvolume *ptr=AMSJob::gethead()->getgeomvolume(idg.crgid());
               if( ptr){
                 AMSPoint loc(0,-ptr->getpar(1),0);
                 AMSPoint global=ptr->loc2gl(loc);
+                _TrackerCoo[i][k][0]+=global[0];
                 _TrackerCoo[i][k][1]+=global[1];
                 _TrackerCoo[i][k][2]+=global[2];
                 _TrackerDir[i][k]+=ptr->getnrmA(1,1);
@@ -294,10 +249,14 @@ void TriggerLVL3::init(){
               }
           }
           if(nfs==0){
-             cerr <<"Trigger3::Init-F-no sensors found for DRP "<<i+1<<endl;
+             cerr <<"Trigger3::Init-F-no sensors found for DRP "<<i+1<<" crate "<<k<<" "<<id.getlayer()<<" "<<id.getdrp()<<endl;
              exit(1);
           }
           else{
+#ifdef __AMSDEBUG__
+          cout <<"Trigger3::Init-I-"<<nfs<<" sensors found for DRP "<<i+1<<" crate "<<k<<" "<<id.getlayer()<<" "<<id.getdrp()<<endl;
+#endif
+          _TrackerCoo[i][k][0]=_TrackerCoo[i][k][0]/nfs;
           _TrackerCoo[i][k][1]=_TrackerCoo[i][k][1]/nfs;
           _TrackerCoo[i][k][2]=_TrackerCoo[i][k][2]/nfs;
           _TrackerDir[i][k]=_TrackerDir[i][k]/nfs;
@@ -313,19 +272,22 @@ void TriggerLVL3::init(){
        }
     }
     int k;
-    for (i=0;i<NTRHDRP;i++){
-      for(k=0;k<2;k++){
+    for (i=0;i<ntdr;i++){
+      for(k=0;k<AMSTrIdSoft::ncrates();k++){
        AMSTrIdSoft id(k,i,1,0);
-      if(!id.dead())_TrackerDRP2Layer[i][k]=id.getlayer()-1;
-      else _TrackerDRP2Layer[i][k]=-1;
+       if(!id.dead())_TrackerDRP2Layer[i][k]=id.getlayer()-1;
+       else _TrackerDRP2Layer[i][k]=-1;
+#ifdef __AMSDEBUG__
+       cout <<"_TrackerDRP2Layer[i][k] "<<i<<" "<<k<<" "<<_TrackerDRP2Layer[i][k]<<endl;
+#endif      
       } 
    }
 
     for (i=0;i<NTRHDRP;i++){
-      for(k=0;k<2;k++){
+      for(k=0;k<AMSTrIdSoft::ncrates();k++){
        AMSTrIdSoft idx(k,i,0,0);
        if(!idx.dead()){
-         AMSTrIdSoft idy(idx.getlayer(),idx.getdrp(),k,1,0);
+         AMSTrIdSoft idy(idx.getlayer(),idx.getdrp(),idx.gethalf(),1,0);
          _TrackerOtherTDR[i][k]=idy.gettdr();
       }
        else _TrackerOtherTDR[i][k]=-1;
@@ -377,14 +339,14 @@ void TriggerLVL3::init(){
     
 
       oftxt << "_Trackerstatus[64]"<<endl;
-      for(i=0;i<NTRHDRP2;i++){
+      for(i=0;i<AMSTrIdSoft::ndrp();i++){
        oftxt<<_TrackerStatus[i]<<" ";
       }
       oftxt<<endl;
       oftxt<<endl;
 
-      oftxt << "_TrackerCooZ[6]"<<endl;
-      for(i=0;i<6;i++){
+      oftxt << "_TrackerCooZ[nl]"<<endl;
+      for(i=0;i<TKDBc::nlay();i++){
        oftxt<<_TrackerCooZ[i]<<" ";
       }
       oftxt<<endl;
@@ -393,7 +355,7 @@ void TriggerLVL3::init(){
       oftxt << "_TrackerCoo[i][j][3]"<<endl;
       for(i=0;i<NTRHDRP;i++){
         oftxt <<"i "<<i<<endl;
-        for(j=0;j<2;j++){
+        for(j=0;j<AMSTrIdSoft::ncrates();j++){
          oftxt <<"j "<<j<<" ";
          for(k=0;k<3;k++)oftxt <<_TrackerCoo[i][j][k]<<" ";
          oftxt <<endl;
@@ -405,7 +367,7 @@ void TriggerLVL3::init(){
       oftxt << "_TrackerDir[i][2]"<<endl;
       for(i=0;i<NTRHDRP;i++){
         oftxt <<"i "<<i<<endl;
-         for(k=0;k<2;k++)oftxt <<_TrackerDir[i][k]<<" ";
+         for(k=0;k<AMSTrIdSoft::ncrates();k++)oftxt <<_TrackerDir[i][k]<<" ";
          oftxt <<endl;
       }
 
@@ -415,7 +377,7 @@ void TriggerLVL3::init(){
       oftxt << "_TrackerDRP2Layer[i][2]"<<endl;
       for(i=0;i<NTRHDRP;i++){
         oftxt <<"i "<<i<<endl;
-         for(k=0;k<2;k++)oftxt <<_TrackerDRP2Layer[i][k]<<" ";
+         for(k=0;k<AMSTrIdSoft::ncrates();k++)oftxt <<_TrackerDRP2Layer[i][k]<<" ";
          oftxt <<endl;
         }
         
@@ -425,7 +387,7 @@ void TriggerLVL3::init(){
       oftxt << "_TrackerOtherTDR[i][2]"<<endl;
       for(i=0;i<NTRHDRP;i++){
          oftxt <<"i "<<i<<endl;
-         for(k=0;k<2;k++)oftxt <<_TrackerOtherTDR[i][k]<<" ";
+         for(k=0;k<AMSTrIdSoft::ncrates();k++)oftxt <<_TrackerOtherTDR[i][k]<<" ";
          oftxt <<endl;
       }
     
@@ -493,14 +455,14 @@ out:
    cooup=cooup/_NTOF[0];   
    for(i=0;i<_NTOF[SCLRS-1];i++)coodown+=_TOFCoo[SCLRS-1][_TOFAux[SCLRS-1][i]][1];
    coodown=coodown/_NTOF[SCLRS-1];   
-   for(i=0;i<nl;i++){
+   for(i=0;i<TKDBc::nlay();i++){
      geant coo=coodown+(cooup-coodown)/(_TOFCoo[0][0][2]-_TOFCoo[SCLRS-1][0][2])*
      (_TrackerCooZ[i]-_TOFCoo[SCLRS-1][0][2]);
      _lowlimitY[i]=-LVL3FFKEY.TrTOFSearchReg+coo;
      _upperlimitY[i]=LVL3FFKEY.TrTOFSearchReg+coo;
    }  
   if(_NTOF[1]== 0 || _NTOF[2]==0){
-    for(i=0;i<nl;i++){
+    for(i=0;i<TKDBc::nlay();i++){
      _lowlimitX[i]=-1;
      _upperlimitX[i]=+1;
     }
@@ -512,7 +474,7 @@ out:
    cooup=cooup/_NTOF[1];   
    for(i=0;i<_NTOF[2];i++)coodown+=_TOFCoo[2][_TOFAux[2][i]][0];
    coodown=coodown/_NTOF[2];   
-   for(i=0;i<nl;i++){
+   for(i=0;i<TKDBc::nlay();i++){
      geant coo=coodown+(cooup-coodown)/(_TOFCoo[1][0][2]-_TOFCoo[2][0][2])*
      (_TrackerCooZ[i]-_TOFCoo[2][0][2]);
      _lowlimitX[i]=-LVL3FFKEY.TrTOFSearchReg+coo;
@@ -530,7 +492,6 @@ out:
     if(LVL3FFKEY.RebuildLVL3==1){
       AMSEvent::gethead()->getC("TriggerLVL3",0)->eraseC();
     }
-    if(!strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){     
     // Shuttle    
      AMSgObj::BookTimer.start("LVL3");
      TriggerLVL1 * plvl1= 
@@ -539,8 +500,8 @@ out:
      if(plvl1){
        int16 * ptr;
        number tt1,tt2;
-       TriggerAuxLVL3 aux;
-       aux.fill();
+       TriggerAuxLVL3 aux[ncrt];
+       for(int icrt=0;icrt<AMSTrIdSoft::ncrates();icrt++)aux[icrt].fill(icrt);
        int idum;
        TriggerLVL3 *plvl3=0;
        tt1=HighResTime();
@@ -572,24 +533,33 @@ out:
   // now Tracker Part
   //   
   plvl3->preparetracker();
-  ptr=aux.readtracker(1);  
+  integer crate;
+  for(crate=0;crate<AMSTrIdSoft::ncrates();crate++){
+   ptr=aux[crate].readtracker(1);  
   while(ptr){
-     integer drp,half,va,strip,side;
+     integer drp,va,strip,side;
      AMSTrRawCluster::lvl3CompatibilityAddress
-     (ptr[1],strip,va,side,half,drp);
+     (ptr[1],strip,va,side,drp);
      if(side == 0  && 
-         _TrackerStatus[_TrackerOtherTDR[drp][half]+half*NTRHDRP] == 0)
-         _TrackerAux[_TrackerOtherTDR[drp][half]][half]=1;
-   ptr = aux.readtracker();    
+         _TrackerStatus[_TrackerOtherTDR[drp][crate]+crate*NTRHDRP] == 0)
+         _TrackerAux[_TrackerOtherTDR[drp][crate]][crate]=1;
+   ptr = aux[crate].readtracker();    
   }
-
-  ptr=aux.readtracker(1);  
+  }
+  for(crate=0;crate<AMSTrIdSoft::ncrates();crate++){
+  ptr=aux[crate].readtracker(1);  
   while(ptr){
-     integer drp,half,va,strip,side;
+     integer drp,va,strip,side;
      AMSTrRawCluster::lvl3CompatibilityAddress
-      (ptr[1],strip,va,side,half,drp);
-     if(side != 0 && (LVL3FFKEY.NoK || _TrackerAux[drp][half])){
-      integer layer=_TrackerDRP2Layer[drp][half];
+      (ptr[1],strip,va,side,drp);
+     if(side != 0 && (LVL3FFKEY.NoK || _TrackerAux[drp][crate])){
+      integer layer=_TrackerDRP2Layer[drp][crate];
+#ifdef __AMSDEBUG__
+      if(layer<0){
+       cerr<<"TriggerLVL3::build-S-wronglayer "<<layer<<" "<<drp<<" "<<crate<<" "<<ptr[1]<<" "<<strip<<" "<<side<<endl;
+       goto next;
+      }
+#endif      
       integer num = ((*ptr)&63);
       if(abs(LVL3FFKEY.SeedThr)>0 ){
         if(((*((int16u*)ptr)>>6) & 63) <abs(LVL3FFKEY.SeedThr) && ((*((int16u*)ptr)>>6) & 63)>0)goto next;
@@ -635,15 +605,15 @@ out:
             if(amp)ss=ss/amp;
 
      
-      coo=_TrackerCoo[drp][half][1]+
-      _TrackerDir[drp][half]*_stripsize*(0.5+ss);
+      coo=_TrackerCoo[drp][crate][1]+
+      _TrackerDir[drp][crate]*_stripsize*(0.5+ss);
       if(AMSFFKEY.Debug){
        cout << "Trigger3  s/n*8 "<<((*((int16u*)ptr)>>6)&63)<<" lay "<<layer<<" strip "<<strip<<" coo "<<coo<<endl;
       }
       if (coo > plvl3->getlowlimitY(layer) && coo < plvl3->getupperlimitY(layer)){
-        if(( half ==0 && plvl3->getlowlimitX(layer) < 0) ||
-           ( half ==1 && plvl3->getupperlimitX(layer) > 0) ){
-           if(!(plvl3->addnewhit(coo,amp,layer,drp+half*NTRHDRP))){
+        if((_TrackerCoo[drp][crate][0]<0 && plvl3->getlowlimitX(layer) < 0) ||
+           (_TrackerCoo[drp][crate][0]>0 && plvl3->getupperlimitX(layer) > 0) ){
+           if(!(plvl3->addnewhit(coo,amp,layer,drp+crate*NTRHDRP))){
            plvl3->TrackerTrigger()=2;
            goto formed;
            }             
@@ -651,8 +621,9 @@ out:
       }
      }
      next:
-     ptr = aux.readtracker();    
+     ptr = aux[crate].readtracker();    
   }
+ }
   plvl3->fit(idum);
 
  formed:
@@ -671,10 +642,9 @@ out:
      }
     }
 
-else {
-    // Station
-}
-  }
+
+  
+
 
 
 
@@ -722,12 +692,10 @@ void TriggerLVL3::fit(integer idum){
   // Here  LVL3 Tracker Algorithm ( extremely stupid but very effective)
   //
   int i,j,k,l,ic,n1,n2,n3,n4;
-  geant coou, dscr,cood,a,b,s,r;
-  geant resid[4],zmean,factor,amp[6];
   //
   // suppress splitted hits
   //
-  for(i=0;i<nl;i++){
+  for(i=0;i<TKDBc::nlay();i++){
    AMSsortNAGa(_coo[i],_nhits[i]);
    for(j=_nhits[i]-1;j>0;j--){
      if(_coo[i][j]-_coo[i][j-1] < LVL3FFKEY.Splitting){
@@ -745,83 +713,30 @@ void TriggerLVL3::fit(integer idum){
    return;
   }   
 
-  if(_NTrHits < 3)ic=4;
-  else if (_NTrHits > 6)ic=0;
-  else ic=6-_NTrHits;
-  for (i=ic;i<4;i++){      // Start from 4
-    for( j=_patd[i];j<_patd[i+1];j++){
-      for(k=0;k<_nhits[_patconf[j][0]];k++){
-         coou=_coo[_patconf[j][0]][k];
-         amp[0]=_eloss[_patconf[j][0]][k];
-         for(l=0;l<_nhits[_patconf[j][_patpoints[j]-1]];l++){
-            cood=_coo[_patconf[j][_patpoints[j]-1]][l];
-            amp[_patpoints[j]-1]=_eloss[_patconf[j][_patpoints[j]-1]][l];
-            b=_TrackerCooZ[_patconf[j][_patpoints[j]-1]]-
-            _TrackerCooZ[_patconf[j][0]];
-            zmean=_TrackerCooZ[_patconf[j][_patpoints[j]-1]]+
-            _TrackerCooZ[_patconf[j][0]];
+  if(_NTrHits < 3)ic=TKDBc::nlay()-2;
+  else if (_NTrHits > TKDBc::nlay())ic=0;
+  else ic=TKDBc::nlay()-_NTrHits;
+  for (i=ic;i<TKDBc::nlay()-2;i++){      // Start from 4
+    for( j=TKDBc::patd(i);j<TKDBc::patd(i+1);j++){
+      if(TKDBc::patallowFalseX(j)){ 
+      for(k=0;k<_nhits[TKDBc::patconf3(j,0)];k++){
+         coou=_coo[TKDBc::patconf3(j,0)][k];
+         amp[0]=_eloss[TKDBc::patconf3(j,0)][k];
+         for(l=0;l<_nhits[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)];l++){
+            cood=_coo[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)][l];
+            amp[TKDBc::patpoints(j)-1]=_eloss[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)][l];
+            b=_TrackerCooZ[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)]-
+            _TrackerCooZ[TKDBc::patconf3(j,0)];
+            zmean=_TrackerCooZ[TKDBc::patconf3(j,TKDBc::patpoints(j)-1)]+
+            _TrackerCooZ[TKDBc::patconf3(j,0)];
             factor=1/fabs(b);
             s=sqrt((cood-coou)*(cood-coou)+b*b);
             a=(cood-coou);
-            dscr=s*Discriminator(_NTrHits-_patpoints[j]);
-             for(n1=0;n1<_nhits[_patconf[j][1]];n1++){
-               r=a*(_TrackerCooZ[_patconf[j][1]]-_TrackerCooZ[_patconf[j][0]])+
-               b*(coou-_coo[_patconf[j][1]][n1]);
-                 if(fabs(r) < (1-fabs(2*_TrackerCooZ[_patconf[j][1]]-zmean)*factor)*dscr){
-                   resid[0]=r;
-                   amp[1]=_eloss[_patconf[j][1]][n1];
-                   if(_patpoints[j] > 3){
-                    for(n2=0;n2<_nhits[_patconf[j][2]];n2++){
-                      r=a*(_TrackerCooZ[_patconf[j][2]]-
-                      _TrackerCooZ[_patconf[j][0]])+
-                      b*(coou-_coo[_patconf[j][2]][n2]);
-                 if(fabs(r) < (1-fabs(2*_TrackerCooZ[_patconf[j][2]]-zmean)*factor)*dscr){
-                        resid[1]=r;
-                        amp[2]=_eloss[_patconf[j][2]][n2];
-                       if(_patpoints[j] > 4){
-                       for(n3=0;n3<_nhits[_patconf[j][3]];n3++){
-                         r=a*(_TrackerCooZ[_patconf[j][3]]-
-                         _TrackerCooZ[_patconf[j][0]])+
-                          b*(coou-_coo[_patconf[j][3]][n3]);
-                 if(fabs(r) < (1-fabs(2*_TrackerCooZ[_patconf[j][3]]-zmean)*factor)*dscr){
-                            resid[2]=r;
-                            amp[3]=_eloss[_patconf[j][3]][n3];
-                           if(_patpoints[j] > 5){
-                            for(n4=0;n4<_nhits[_patconf[j][4]];n4++){
-                             r=a*(_TrackerCooZ[_patconf[j][4]]-
-                             _TrackerCooZ[_patconf[j][0]])+
-                             b*(coou-_coo[_patconf[j][4]][n4]);
-                 if(fabs(r) < (1-fabs(2*_TrackerCooZ[_patconf[j][4]]-zmean)*factor)*dscr){
-                              resid[3]=r;
-                              amp[4]=_eloss[_patconf[j][4]][n4];
-                              // 6 point combi found
-                              if(!_UpdateOK(s,resid,amp,j))goto done;
-                             }
-                            }
-                           }
-                           else {
-                             // 5 point combi found
-                             if(!_UpdateOK(s,resid,amp,j))goto done;
-                           }
-                          }
-                       }
-                                         
-                       }
-                       else {
-                        // 4 point combi found
-                       if(!_UpdateOK(s,resid,amp,j))goto done;
-                       }
-                     }
-                    }
-                   }
-                   else {
-                     // 3 point combi found
-                     if(!_UpdateOK(s,resid,amp,j))goto done;
-                   }
-                 }
-             }
+            dscr=s*Discriminator(_NTrHits-TKDBc::patpoints(j));
+            if(!_Level3Searcher(1,j))goto done;
          }
       }
+     }
     }
     if(_NPatFound)break;
   }
@@ -857,17 +772,17 @@ integer TriggerLVL3::_UpdateOK(geant s,  geant res[], geant amp[],integer pat){
      return 0;
   }
   else {
-     int n=(_patpoints[pat]-2);
+     int n=(TKDBc::patpoints(pat)-2);
      for(i=0;i<n;i++)_Residual[_NPatFound]+=res[i];
      _Residual[_NPatFound]=_Residual[_NPatFound]/n/s;     
      _Pattern[_NPatFound]=pat;
      if(_NPatFound++==0){
       maxa=0;
-      for(i=0;i<_patpoints[pat];i++){
+      for(i=0;i<TKDBc::patpoints(pat);i++){
         if(amp[i]>maxa)maxa=amp[i];
         _TrEnergyLoss+=amp[i];       
       }
-      _TrEnergyLoss=(_TrEnergyLoss-maxa)/(_patpoints[pat]-1);
+      _TrEnergyLoss=(_TrEnergyLoss-maxa)/(TKDBc::patpoints(pat)-1);
      }
    return 1;
   }
@@ -943,7 +858,7 @@ if(tra >= LVL3FFKEY.Accept ){
 }
 }
 
-TriggerLVL3::TrackerTriggerS(){
+integer TriggerLVL3::TrackerTriggerS(){
  // swap 1 <-> 3
  if(_TrackerTrigger%8==1)return _TrackerTrigger+2; 
  else if(_TrackerTrigger%8==3)return _TrackerTrigger-2; 
@@ -965,15 +880,15 @@ TriggerExpertLVL3::TriggerExpertLVL3(integer countermax, integer tobad,
   _Relative[0]=1;
   _Relative[1]=0;
   _Relative[2]=1;
-  for(j=0;j<NTRHDRP2;j++)_DRPBad[j]=0;
-  for(j=0;j<NTRHDRP2;j++)_DRPOff[j]=0;
+  for(j=0;j<AMSTrIdSoft::ndrp()/2*2;j++)_DRPBad[j]=0;
+  for(j=0;j<AMSTrIdSoft::ndrp()/2*2;j++)_DRPOff[j]=0;
   for(i=0;i<NDSTR;i++){
    _Mean[i]=0;
    _Sigma[i]=0;
    _XCount[i]=0;
-   for(j=0;j<NTRHDRP2;j++)_Distributions[i][j]=0;
+   for(j=0;j<AMSTrIdSoft::ndrp()/2*2;j++)_Distributions[i][j]=0;
   }  
-  for(j=0;j<NTRHDRP2;j++)_Distributions[NDSTR][j]=0;
+  for(j=0;j<AMSTrIdSoft::ndrp()/2*2;j++)_Distributions[NDSTR][j]=0;
 }
 
 void TriggerExpertLVL3::update(const TriggerLVL3 *  plvl3){
@@ -985,12 +900,12 @@ else if(plvl3->_TrackerTrigger==2 || plvl3->_TrackerTrigger==4)where=1;
 else if(plvl3->_TrackerTrigger==7)where=2;
 else return;
   // Update Here
-  for(i=0;i<NTRHDRP2;i++)local[i]=0;
-  for(i=0;i<nl;i++){
+  for(i=0;i<AMSTrIdSoft::ndrp();i++)local[i]=0;
+  for(i=0;i<TKDBc::nlay();i++){
     for(j=0;j<plvl3->_nhits[i];j++)local[plvl3->_drp[i][j]]=1;
   }
 
-  for(i=0;i<NTRHDRP2;i++){
+  for(i=0;i<AMSTrIdSoft::ndrp()/2*2;i++){
    if(local[i])_Distributions[where][i]++;
   }
 _Counter=(_Counter+1)%_CounterMax;
@@ -1000,12 +915,12 @@ if(_Counter == 0)analyse(plvl3);
 void TriggerExpertLVL3::analyse(const TriggerLVL3 *  plvl3){
   // analyse here
   int i,j;
-  for(i=0;i<NTRHDRP2;i++){
+  for(i=0;i<AMSTrIdSoft::ndrp()/2*2;i++){
    for(j=0;j<NDSTR;j++)_Distributions[NDSTR][i]+=_Distributions[j][i];
   }
   for (i=0;i<NDSTR;i++){
     if(_Relative[i]){
-      for(j=0;j<NTRHDRP2;j++){
+      for(j=0;j<AMSTrIdSoft::ndrp()/2*2;j++){
         if(_Distributions[NDSTR][j] != 0){ 
          _Distributions[i][j]=_Distributions[i][j]/_Distributions[NDSTR][j];
         }
@@ -1013,7 +928,7 @@ void TriggerExpertLVL3::analyse(const TriggerLVL3 *  plvl3){
     }
   }
   for (i=0;i<NDSTR;i++){
-     for(j=0;j<NTRHDRP2;j++){
+     for(j=0;j<AMSTrIdSoft::ndrp()/2*2;j++){
       if(_Distributions[NDSTR][j] != 0){ 
        _Mean[i]+=_Distributions[i][j];
        _Sigma[i]+=_Distributions[i][j]*_Distributions[i][j];
@@ -1025,7 +940,7 @@ void TriggerExpertLVL3::analyse(const TriggerLVL3 *  plvl3){
       _Sigma[i]=sqrt(_Sigma[i]/_XCount[i]-_Mean[i]*_Mean[i]);
      }
   }
-  for(j=0;j<NTRHDRP2;j++){
+  for(j=0;j<AMSTrIdSoft::ndrp();j++){
     if(plvl3->_TrackerStatus[j] == 0){
       integer bad=0;
       for(i=0;i<NDSTR;i++){
@@ -1058,9 +973,9 @@ void TriggerExpertLVL3::analyse(const TriggerLVL3 *  plvl3){
    _Mean[i]=0;
    _Sigma[i]=0;
    _XCount[i]=0;
-   for(j=0;j<NTRHDRP2;j++)_Distributions[i][j]=0;
+   for(j=0;j<AMSTrIdSoft::ndrp()/2*2;j++)_Distributions[i][j]=0;
   }  
-  for(j=0;j<NTRHDRP2;j++)_Distributions[NDSTR][j]=0;
+  for(j=0;j<AMSTrIdSoft::ndrp()/2*2;j++)_Distributions[NDSTR][j]=0;
 
 
 }
@@ -1093,7 +1008,7 @@ void TriggerLVL3::_printEl(ostream & stream){
   stream << " Lvl3Output " << _TrackerTrigger<<" "<<_TOFTrigger<<" "<<
     _AntiTrigger<<" res "<<_Residual[0]<<" "<<_Residual[1]<<" "<<_NPatFound <<
     " pat "<<_Pattern[0]<<" "<<_Pattern[1]<<" eloss "<<_TrEnergyLoss<<" nhits "<<_NTrHits<<endl;
- for(int j=0;j<6;j++){
+ for(int j=0;j<TKDBc::nlay();j++){
   for(int i=0;i<_nhits[j];i++){
     stream<<"Lvl3-Layer "<<j+1<<" hit "<<i<<" "<<_coo[j][i]<<endl;    
   }
@@ -1117,3 +1032,25 @@ AMSLVL3Error::AMSLVL3Error(char * name){
   }
 }
 char * AMSLVL3Error::getmessage(){return msg;}
+
+
+integer TriggerLVL3::_Level3Searcher(int call, int j){
+//              cout <<"Searcher "<<call<<" "<<TKDBc::patconf3(j,call)<<" "<<_nhits[TKDBc::patconf3(j,call)]<<" "<<j<<endl;
+             for(int n1=0;n1<_nhits[TKDBc::patconf3(j,call)];n1++){
+               r=a*(_TrackerCooZ[TKDBc::patconf3(j,call)]-_TrackerCooZ[TKDBc::patconf3(j,0)])+
+               b*(coou-_coo[TKDBc::patconf3(j,call)][n1]);
+                 if(fabs(r) < (1-fabs(2*_TrackerCooZ[TKDBc::patconf3(j,call)]-zmean)*factor)*dscr){
+                   resid[call-1]=r;
+                   amp[call]=_eloss[TKDBc::patconf3(j,call)][n1];
+                   if(TKDBc::patpoints(j) > call+2){
+                     return _Level3Searcher(++call,j);
+                   }
+                   else{
+//                     cout << "qqs "<<j<<endl;
+                     return _UpdateOK(s,resid,amp,j);
+                   }
+                }
+              }
+              return -1;
+              
+}

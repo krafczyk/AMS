@@ -38,7 +38,7 @@ PROTOCCALLSFSUB0(UGLAST,uglast)
 #define UGLAST() CCALLSFSUB0(UGLAST,uglast)
 //
 void (handler)(int);
-#ifndef __IBMAIX__
+#ifdef __NAMESPACE__
 namespace glconst{
 integer cpul=1;
 }
@@ -64,7 +64,7 @@ main(){
 return 0;
 }
 void (handler)(int sig){
-#ifndef __IBMAIX__
+#ifdef __NAMESPACE__
 using namespace glconst;
 #endif
   switch(sig){

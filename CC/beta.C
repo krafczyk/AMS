@@ -43,10 +43,9 @@ integer AMSBeta::build(integer refit){
 
 
 // Loop on track patterns
-    for( int patt=0; patt<npat; patt++){
 
 // Loop on tracks
-     AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",patt);
+     AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
      for ( ; ptrack ; ptrack=ptrack->next()) {
 
        if (Sonly==0 && ptrack->checkstatus(AMSDBc::FalseTOFX)) continue;
@@ -126,7 +125,6 @@ integer AMSBeta::build(integer refit){
 nexttrack: 
        continue;
      }
-    }
    }
  }
 
@@ -527,7 +525,8 @@ void AMSBeta::_writeEl(){
   if(_Pattern ==0)BN->NTOF[BN->Nbeta]=4;
   else if(_Pattern < 5)BN->NTOF[BN->Nbeta]=3;
   else BN->NTOF[BN->Nbeta]=2;
-  for(int k=BN->NTOF[BN->Nbeta];k<4;k++)BN->pTOF[BN->Nbeta][k]=0;
+  int k;
+  for(k=BN->NTOF[BN->Nbeta];k<4;k++)BN->pTOF[BN->Nbeta][k]=0;
   for(k=0;k<BN->NTOF[BN->Nbeta];k++){
     BN->pTOF[BN->Nbeta][k]=_pcluster[k]->getpos();
     int i,pat;
@@ -558,27 +557,6 @@ void AMSBeta::_writeEl(){
     pat=_ptrack->getpattern();
     if(_ptrack->checkstatus(AMSDBc::NOTRACK))BN->pTr[BN->Nbeta]=-1;
     else BN->pTr[BN->Nbeta]=_ptrack->getpos();
-    if(AMSTrTrack::Out(IOPA.WriteAll%10==1)){
-      // Writeall
-    
-       for(i=0;i<pat;i++){
-        AMSContainer *pc=AMSEvent::gethead()->getC("AMSTrTrack",i);
-        #ifdef __AMSDEBUG__
-         assert(pc != NULL);
-        #endif
-        BN->pTr[BN->Nbeta]+=pc->getnelem();
-       }
-    }
-    else {
-      //WriteUsedOnly
-       for(i=0;i<pat;i++){
-        AMSTrTrack *ptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",i);
-         while(ptr && ptr->checkstatus(AMSDBc::USED)){ 
-           BN->pTr[BN->Nbeta]++;
-           ptr=ptr->next();
-         }
-       }
-    }
 
 
   }

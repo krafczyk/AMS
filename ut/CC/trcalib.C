@@ -618,8 +618,8 @@ void AMSTrCalibFit::alfun(integer &n, number xc[], number &fc, AMSTrCalibFit *p)
           for(int j=22;j<42;j++){
             for(int k=0;k<3;k++){  
              for(int l=0;l<3;l++){  
-              hits1[k][l]=hits[AMSTrTrack::patconf[j][k]][l];
-              sigma1[k][l]=sigma[AMSTrTrack::patconf[j][k]][l];
+              hits1[k][l]=hits[TKDBc::patconf(j,k)][l];
+              sigma1[k][l]=sigma[TKDBc::patconf(j,k)][l];
               int n3=3;
               TKFITG(n3,hits1,sigma1,normal,p->_Pid,ialgo,ims,out); 
               cout <<niter<<" "<<out[5]<<endl;
@@ -679,7 +679,8 @@ for(i=0;i<getnchan();i++){
 }
 
 for(i=0;i<10;i++){
- for(int j=0;j<ms;j++)_CmnNoiseC[i][j]=0;
+ int j;
+ for(j=0;j<ms;j++)_CmnNoiseC[i][j]=0;
  for(j=0;j<ms;j++)_CmnNoise[i][j]=0;
 }
 }
@@ -702,16 +703,16 @@ HBOOK1(700000+10+2,"CmnNoise S Crate 72",660,-0.5,659.5,0.);
    for(l=0;l<2;l++){
     for(k=0;k<2;k++){
      for(i=0;i<70;i++)badch[i]=0;
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft cid(i+1,j+1,k,l,0);
         if(cid.dead())continue;
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.checkstatus(AMSDBc::BAD))badch[i*10+j+1]++;
          HF1(500000+l+1+10*k,cid.getsig(),1.);
         }
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m+=64){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m+=64){
          cid.upd(m);
          //if(!l)cout <<i*11*(!l?6:10)+j*(!l?6:10)+(m/64)<<" "<<cid.getcmnnoise()<<endl;
          HF1(700000+l+1+10*k,i*11*(!l?6:10)+j*(!l?6:10)+(m/64),cid.getcmnnoise());
@@ -750,11 +751,11 @@ void AMSTrIdCalib::ntuple(integer s){
    int i,j,k,l,m;
     for(l=0;l<2;l++){
     for(k=0;k<2;k++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         if(id.dead())continue;
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
           id.upd(m);
           TRCALIB.Layer=i+1;
           TRCALIB.Ladder=j+1;
@@ -813,12 +814,12 @@ void AMSTrIdCalib::_hist(){
   int i,j,k,l,m;
    for(l=0;l<2;l++){
     for(k=0;k<2;k++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
         if(cid.dead())continue;
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()>1){
           int ch=cid.getchannel();
@@ -871,11 +872,11 @@ void AMSTrIdCalib::_hist(){
 
 integer AMSTrIdCalib::CalcBadCh(integer half, integer side){
    int badch=0;
-     for(int i=0;i<AMSDBc::nlay();i++){
-       for(int j=0;j<AMSDBc::nlad(i+1);j++){
+     for(int i=0;i<TKDBc::nlay();i++){
+       for(int j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,half,side,0);
         if(id.dead())continue;
-        for(int m=0;m<AMSDBc::NStripsDrp(i+1,side);m++){
+        for(int m=0;m<TKDBc::NStripsDrp(i+1,side);m++){
          id.upd(m);
          if(id.checkstatus(AMSDBc::BAD))badch++;  
         }
@@ -895,11 +896,11 @@ void AMSTrIdCalib::printbadchanlist(){
  int i,j,k,l,m;
    for(l=0;l<2;l++){
     for(k=0;k<2;k++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         if(id.dead())continue;
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
          id.upd(m);
          if(!id.getsignsigraw())fcommon << hex<< id.gethaddr()<<endl;
          if(id.checkstatus(AMSDBc::BAD))fcluster << hex<< id.gethaddr()<<endl;
@@ -950,12 +951,12 @@ if(TRCALIB.Pass ==2){
  }
    for(l=0;l<2;l++){
     for(k=0;k<2;k++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
         if(cid.dead())continue;
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()>1){
           int ch=cid.getchannel();
@@ -1011,7 +1012,7 @@ if(TRCALIB.Pass ==2){
         }
 
 
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()>1){
           int ch=cid.getchannel();
@@ -1041,7 +1042,7 @@ if(TRCALIB.Pass ==2){
          }
         }
 
-        //        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        //        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
         //         cid.upd(m);
         //         if(cid.getcount()>1){
         //          int ch=cid.getchannel();
@@ -1067,20 +1068,21 @@ if(TRCALIB.Pass ==2){
    if(TRMCFFKEY.GenerateConst){
    for(l=0;l<2;l++){
     for(k=0;k<2;k++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
         if(cid.dead())continue;
         geant rhorho[nrho][nrho];
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
          integer mstr=(m+1)%nrho;
          integer istr=m%nrho;
          cid.upd(m);
          if(cid.getcount()>1){
          integer vamin=m-cid.getstripa();
          int ch=cid.getchannel();
-         for(int kk=istr+1;kk<nrho;kk++)rhorho[kk][istr]=_ADCRho[kk][ch];
+         int kk;
+         for(kk=istr+1;kk<nrho;kk++)rhorho[kk][istr]=_ADCRho[kk][ch];
          if(mstr==0){
            for(kk=0;kk<nrho;kk++){
             for(int kj=kk+1;kj<nrho;kj++)rhorho[kk][kj]=rhorho[kj][kk];
@@ -1123,13 +1125,13 @@ void AMSTrIdCalib::_update(){
    for(k=0;k<2;k++){
     int total=0;
      for(l=0;l<2;l++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
         if(cid.dead())continue;
         number oldone=0;
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()){
           total++;
@@ -1143,7 +1145,7 @@ void AMSTrIdCalib::_update(){
 
          }
         }
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m+=64){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m+=64){
           number avs=0;
           number navs=0;
           for(int mm=0;mm<64;mm++){
@@ -1353,12 +1355,12 @@ if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
     number cnt[2]={0,0};
    for(l=0;l<2;l++){
     for(k=0;k<2;k++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
         if(cid.dead())continue;
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
          if(cid.getcount()){
           int ch=cid.getchannel();
@@ -1772,12 +1774,12 @@ void AMSTrIdCalib::addonemorecalib(){
    int i,j,k,l,m;
     for(l=0;l<2;l++){
     for(k=0;k<2;k++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft cid(i+1,j+1,k,l,0);
         AMSTrIdCalib id(cid);
         if(id.dead())continue;
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
           id.upd(m);
           id.updADC(id.getped());
           id.updADCRaw(id.getsig());
@@ -1815,15 +1817,15 @@ void AMSTrIdCalib::getaverage(){
 
     for(l=0;l<2;l++){
     for(k=0;k<2;k++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft cid(i+1,j+1,k,l,0);
         AMSTrIdCalib id(cid);
         if(id.dead())continue;
         geant xn=0;
         geant localbad[640];
         geant * localbada[640];
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
           id.upd(m);
           if(id.getcount())id.setped()=id.getADC()/id.getcount();
           if(id.getcount())id.setsig()=id.getADCRaw()/id.getcount();
@@ -1842,8 +1844,8 @@ void AMSTrIdCalib::getaverage(){
         int nbad=floor(xn+0.5);
         cout <<"nbad "<<nbad<<endl;;
         // now order the localbad
-        AMSsortNAG(localbada,AMSDBc::NStripsDrp(i+1,l));
-        for(m=AMSDBc::NStripsDrp(i+1,l)-1;m>AMSDBc::NStripsDrp(i+1,l)-1-nbad;m--){
+        AMSsortNAG(localbada,TKDBc::NStripsDrp(i+1,l));
+        for(m=TKDBc::NStripsDrp(i+1,l)-1;m>TKDBc::NStripsDrp(i+1,l)-1-nbad;m--){
           integer la=localbada[m]-localbad;
           cout <<la<<" "<<localbad[la]<<endl;
           id.upd(la);
@@ -1930,11 +1932,11 @@ void AMSTrIdCalib::getaverage(){
    int i,j,k,l,m;
     for(l=0;l<2;l++){
     for(k=0;k<2;k++){
-     for(i=0;i<AMSDBc::nlay();i++){
-       for(j=0;j<AMSDBc::nlad(i+1);j++){
+     for(i=0;i<TKDBc::nlay();i++){
+       for(j=0;j<TKDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
         if(id.dead())continue;
-        for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
+        for(m=0;m<TKDBc::NStripsDrp(i+1,l);m++){
           id.upd(m);
           TRCALIB.Layer=i+1;
           TRCALIB.Ladder=j+1;

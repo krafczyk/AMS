@@ -51,8 +51,8 @@ protected:
   CTC    _Value[2];
   AMSPoint _TOFCoo[4];  
   AMSPoint _AntiCoo[2];  
-  AMSPoint _TrCoo[6];  
-  number   _Local[6];
+  AMSPoint _TrCoo[maxlay];  
+  number   _Local[maxlay];
 
 // new
    
@@ -85,7 +85,8 @@ public:
   AMSParticle *  next(){return (AMSParticle*)_next;}
   AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0)
  {
-    for(int i=0;i<2;i++){
+    int i;
+    for(i=0;i<2;i++){
      _Value[i]=CTC(0.,0.,1.,AMSPoint());
      _pctc[i]=0;
     }
@@ -104,7 +105,8 @@ public:
   _ErrMass(errmass), _Momentum(momentum), _ErrMomentum(errmomentum),
   _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo)
  {
-    for(int i=0;i<2;i++){
+    int i;
+    for(i=0;i<2;i++){
      _Value[i]=CTC(0.,0.,1.,AMSPoint());
      _pctc[i]=0;
     }

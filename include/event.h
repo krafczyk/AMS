@@ -233,7 +233,7 @@ uinteger& setruntype() {return _runtype;}
 time_t gettime(){return _time;}
 time_t getusec()const {return _usec;}
 time_t& settime(){return _time;}
-void * operator new(size_t t, void *p) {return p;}
+//void * operator new(size_t t, void *p) {return p;}
 void * operator new(size_t t) {return UPool.insert(t);}
 void operator delete(void *p)
   {if(p){((AMSEvent*)p)->~AMSEvent();p=0;UPool.udelete(p);}}

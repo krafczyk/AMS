@@ -43,7 +43,8 @@ C
 C
         nparxy=3
        IFLAG    = 0
-       BTFIEL=-0.15*0.95
+       call getfield(BTFIEL)
+C       BTFIEL=-0.15*0.95
 C
 C--       FIRST FIT IN XY PROJECTION
 C
@@ -139,3 +140,29 @@ C
 C
  900  CONTINUE
       END
+
+      subroutine getfield(bt)
+       integer init/0/
+       real b/0/
+       real x(3),bb(3)
+       save b
+       save init
+       if(init.eq.0)then
+        init=1
+        b=0
+        do i=1,11
+         do j=1,11
+          do k=1,11
+           x(1)=6*(i-6)
+           x(2)=6*(j-6)
+           x(3)=8*(k-6)
+           call gufld(x,bb)
+           b=b+(bb(1)**2+bb(2)**2+bb(3)**2)**0.5
+          enddo
+         enddo
+        enddo
+        b=b/11/11/11
+        write(*,*)'getfield-AverageMagField ',-b/10
+       endif
+       bt=-b/10
+      end    

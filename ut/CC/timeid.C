@@ -178,6 +178,7 @@ if (Time >= _Begin && Time <= _End){
   AMSgObj::BookTimer.stop("TDV");
   return 0;
 }
+  return 0;
 }
 
 uinteger AMSTimeID::_CalcCRC(){
@@ -498,7 +499,8 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
         AMSsortNAG(padd,_DataBaseSize);
         AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
         for(i=0;i<4;i++){
-          for(int k=0;k<_DataBaseSize;k++){
+          int k;
+          for(k=0;k<_DataBaseSize;k++){
             tmp[k]=_pDataBaseEntries[i][k];
           }
           for(k=0;k<_DataBaseSize;k++){

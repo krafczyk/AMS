@@ -303,14 +303,14 @@ void AMSTrMCCluster::sitknoise(){
    number const probthr=0.05;
    float totn[2]={0,0};
    for(int l=0;l<2;l++){
-     for (int i=0;i<AMSDBc::nlay();i++){
-       for (int j=0;j<AMSDBc::nlad(i+1);j++){
+     for (int i=0;i<TKDBc::nlay();i++){
+       for (int j=0;j<TKDBc::nlad(i+1);j++){
          for (int s=0;s<2;s++){
-           if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
-            AMSDBc::activeladdshuttle(i+1,j+1,s)){
+           if(TKDBc::activeladdshuttle(i+1,j+1,s)){
             AMSTrIdSoft id(i+1,j+1,s,l,0);
-             int icmpt=id.gettdr();
-             if(TRMCFFKEY.RawModeOn[id.gethalf()][id.getside()][icmpt])continue;
+             if(!id.dead()){
+              int icmpt=id.gettdr();
+             if(TRMCFFKEY.RawModeOn[id.getcrate()][id.getside()][icmpt])continue;
             id.upd(id.getmaxstrips()-1);
             geant r=RNDM(dummy);
             if(r<id.getindnoise()){
@@ -345,6 +345,7 @@ void AMSTrMCCluster::sitknoise(){
              }
             }
            }
+          }
          }
        }
 

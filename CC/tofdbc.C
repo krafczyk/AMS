@@ -118,14 +118,14 @@ geant TOFDBc::_plnstr[15]={
     char name[80]="geomconf";
     char vers1[3]="01";
     char vers2[3]="02";
-    if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION")==0)
+    if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE"))
     {
           cout <<" TOFGeom-I-Shuttle setup selected."<<endl;
           strcat(name,vers1);
     }
     else
     {
-          cout <<" TOFGeom-I-Station setup selected."<<endl;
+          cout <<" TOFGeom-I-AMS02 setup selected."<<endl;
           strcat(name,vers2);
     }
     strcat(name,".dat");

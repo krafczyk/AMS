@@ -386,7 +386,7 @@ geant thr1R[2];
 geant thr2R[2];
 integer neib[2];
 integer GenerateConst;
-integer RawModeOn[2][2][32];
+integer RawModeOn[8][2][32];
 integer WriteHK; 
 geant delta[2];
 geant gammaA[2];
@@ -456,7 +456,7 @@ COMMON_BLOCK_DEF(CHARGEFITFFKEY_DEF,CHARGEFITFFKEY);
 const integer npat=42;
 class TRFITFFKEY_DEF {
 public:
-  integer pattern[npat];  //patterns  to fit; Priority decreases with number
+  integer patternp[npat];  //patterns  to fit; Priority decreases with number
   //    Number              Descr             Points      Default
   //    0                   123456            6           on
   //    1                   12346             5           on
@@ -578,6 +578,7 @@ const integer ny=41;
 const integer nz=130;
 class TKFIELD_DEF{
 public:
+integer mfile[40];
 integer iniok;
 integer isec[2];
 integer imin[2];
@@ -607,6 +608,7 @@ integer amsdlength;
 integer amsdblength;
 char amsdatadir[128];
 char amsdatabase[128];
+char fname[200];
 };
 #define AMSDATADIR COMMON_BLOCK(AMSDATADIR,amsdatadir)
 COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);

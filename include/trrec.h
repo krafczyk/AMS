@@ -143,7 +143,7 @@ number       _DifoSum;
 number       _cofgx;
 number       _cofgy;
 
-static AMSTrRecHit* _Head[6];
+static AMSTrRecHit* _Head[maxlay];
 static void _addnext(AMSgSen * p, integer ,integer ,number, number, AMSTrCluster *, 
             AMSTrCluster *,  const AMSPoint &, const AMSPoint &);
   void _copyEl();
@@ -180,12 +180,12 @@ static integer markAwayTOFHits();
 AMSTrRecHit *  next(){return (AMSTrRecHit*)_next;}
 
 void resethash(integer i, AMSlink *head){
-if(i>=0 && i <6)_Head[i]=(AMSTrRecHit*)head;
+if(i>=0 && i <TKDBc::nlay())_Head[i]=(AMSTrRecHit*)head;
 }
 
 
 static AMSTrRecHit * gethead(integer i=0){
-   if(i>=0 && i<6){
+   if(i>=0 && i<TKDBc::nlay()){
     if(!_Head[i])_Head[i]=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i,1);
     return _Head[i];
    }
@@ -205,7 +205,7 @@ AMSTrRecHit(AMSgSen *p, integer good,integer layer, number cofgx, number cofgy,A
             const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs): AMSlink(good,0),
             _pSen(p), _Layer(layer),_Xcl(xcl),_cofgx(cofgx),_cofgy(cofgy),
             _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs){};
-AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0){};
+AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0),_cofgx(0),_cofgy(0){};
 static integer build(integer refit=0);
 static integer buildWeak(integer refit=0);
 static void print();
@@ -235,7 +235,7 @@ void          setClusterP(AMSTrCluster* p,integer n) {
 void          setSensorP(AMSgSen* p) { _pSen = p;}
 
 //-
-~AMSTrRecHit(){int i;for( i=0;i<6;i++)_Head[i]=0;};
+~AMSTrRecHit(){int i;for( i=0;i<maxlay;i++)_Head[i]=0;};
    friend class AMSTrTrack;
 
 };
@@ -250,15 +250,15 @@ public:
 
 class AMSTrTrack: public AMSlink{
 protected:
-AMSTrRecHit * _Pthit[nl];
+AMSTrRecHit * _Pthit[maxlay];
 uinteger _Address;
 integer _Pattern;
 integer _NHits;
 integer _FastFitDone;
 integer _GeaneFitDone;
 integer _AdvancedFitDone;
-AMSPoint _Hit[6];
-AMSPoint _EHit[6];
+AMSPoint _Hit[maxlay];
+AMSPoint _EHit[maxlay];
 number _Dbase[2];
 number _Chi2StrLine;
 number _Chi2Circle;
@@ -295,30 +295,34 @@ static geant _Time;
   _Chi2FastFit << " ThetaFast "<<_Theta<<" PhiFast "<<_Phi<<endl;}
   void _copyEl();
   void _writeEl();
-
+static integer _TrSearcher(int icall);
+static integer _TrSearcherFalseX(int icall);
+static integer _TrSearcherFalseTOFX(int icall);
+static integer pat;
+static AMSTrRecHit * phit[maxlay];
+static number par[2][2];
 static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static void   _addnextR(AMSTrTrack* ptr, integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer Distance(number par[2][2], AMSTrRecHit *ptr);
 static integer DistanceTOF(number par[2][2], AMSTrRecHit *ptr);
-static integer patpoints[npat];
-static integer patconf[npat][6];
-static integer patmiss[npat][6];
 static integer _RefitIsNeeded;
 void _crHit();
 inline  AMSPoint  getHit(int i, int dir=0){return _Hit[dir==0?i:_NHits-1-i];}
 inline  AMSPoint  getEHit(int i){return _EHit[i];}
 void _buildaddress();
-static void decodeaddress(integer ladder[2][6], uinteger address);
-static uinteger  encodeaddress(integer lad[2][6]);
+static void decodeaddress(integer ladder[2][maxlay], uinteger address);
+static uinteger  encodeaddress(integer lad[2][maxlay]);
 static uinteger * getchild(uinteger address, uinteger &nchild);
 public:
   integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi, number &local);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
 integer operator < (AMSlink & o) const {
   AMSTrTrack * p= (AMSTrTrack*)(&o);
-  if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
-  else return 0;
+  if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
+  else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0
+;
+    else return _Pattern<p->_Pattern;
 }
   friend class AMSTrAligFit;
   friend class AMSTrAligData;
@@ -340,7 +344,7 @@ _ErrRidgidity(o._ErrRidgidity),_Theta(o._Theta), _Phi(o._Phi),_P0(o._P0),
 _GChi2(o._GChi2), _GRidgidity(o._GRidgidity),_GErrRidgidity(o._GErrRidgidity),
 _GTheta(o._GTheta),_GPhi(o._GPhi),_GP0(o._GP0){
 int i;
-for( i=0;i<6;i++)_Pthit[i]=o._Pthit[i];
+for( i=0;i<maxlay;i++)_Pthit[i]=o._Pthit[i];
 for(i=0;i<2;i++){
   _HChi2[i]=o._HChi2[i];
   _HRidgidity[i]=o._HRidgidity[i];
@@ -363,7 +367,7 @@ static integer buildFalseX(integer refit=0);
 static integer makeFalseTOFXHits();
 static integer buildFalseTOFX(integer refit=0);
 static void print();
-AMSTrRecHit * getphit(integer i){return i>=0 && i<6? _Pthit[i]:0;}
+AMSTrRecHit * getphit(integer i){return i>=0 && i<maxlay? _Pthit[i]:0;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
                  number & theta, number & phi, number & length);
 void interpolateCyl(AMSPoint  pnt,  AMSDir dir, number rad, number idir, 
@@ -386,8 +390,8 @@ number HPhi[2], AMSPoint  HP0[2] ) const;
 #endif
 AMSTrTrack() {_Pattern = -1; 
               _NHits   = -1; 
-              for (int i=0; i<6; i++) _Pthit[i] = NULL; }
-void   setHitP(AMSTrRecHit* p, integer n) {if (n< 6)  _Pthit[n] = p;}
+              for (int i=0; i<maxlay; i++) _Pthit[i] = NULL; }
+void   setHitP(AMSTrRecHit* p, integer n) {if (n< maxlay)  _Pthit[n] = p;}
 //-
 integer TOFOK();
 integer getnhits() const {return _NHits;}

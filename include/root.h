@@ -7,6 +7,7 @@
 #include <TFile.h>
 #include <TROOT.h>
 #endif
+#include <tkdbc.h>
 class AMSNtuple;
 const int MAXBETA    =   150;
 const int MAXCHARGE  =    150;
@@ -163,7 +164,7 @@ public:
   float CooCTC[MAXPART][2][3];
   float TOFCoo[MAXPART][4][3];
   float AntiCoo[MAXPART][2][3];
-  float TrCoo[MAXPART][6][3];
+  float TrCoo[MAXPART][maxlay][3];
 friend class AMSParticle;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
@@ -303,7 +304,7 @@ public:
   int Pattern[MAXTRTR];
   int Address[MAXTRTR];
   int NHits[MAXTRTR];
-  int pHits[MAXTRTR][6];
+  int pHits[MAXTRTR][maxlay];
   float LocDBAver[MAXTRTR];
   int GeaneFitDone[MAXTRTR];
   int AdvancedFitDone[MAXTRTR];

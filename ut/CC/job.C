@@ -110,7 +110,6 @@ extern CTCCCcal ctcfcal[CTCCCMX];//  CTC calibr. objects
 //
 void AMSJob::data(){
 #ifdef __HPUX__
-  AMSTrIdSoft::init();
   AMSgObj::GTrMedMap=*(new  AMSNodeMap() );
   AMSgObj::GVolMap= *(new  AMSNodeMap() );
   AMSgObj::BookTimer= *(new AMSStat() );
@@ -252,9 +251,9 @@ TRMCFFKEY.gain[0]=8;
 TRMCFFKEY.gain[1]=8;
 TRMCFFKEY.sigma[1]=55./14./sqrt(3.); // sig/noise ratio is about 14 for y
 TRMCFFKEY.sigma[0]=TRMCFFKEY.sigma[1]*1.41;   // x strip two times larger y
-TRMCFFKEY.delta[0]=0.67;
+TRMCFFKEY.delta[0]=-0.67;
 TRMCFFKEY.delta[1]=1.0;
-TRMCFFKEY.gammaA[0]=0.3;
+TRMCFFKEY.gammaA[0]=-0.3;
 TRMCFFKEY.gammaA[1]=0.1;
 TRMCFFKEY.NonGaussianPart[0]=0;
 TRMCFFKEY.NonGaussianPart[1]=0.1;
@@ -274,11 +273,11 @@ TRMCFFKEY.day[0]=1;
 TRMCFFKEY.day[1]=1;
 TRMCFFKEY.mon[0]=0;
 TRMCFFKEY.mon[1]=0;
-TRMCFFKEY.year[0]=95;
+TRMCFFKEY.year[0]=96;
 TRMCFFKEY.year[1]=99;
 TRMCFFKEY.GenerateConst=0;
 TRMCFFKEY.WriteHK=0;
-TRMCFFKEY.thr1R[0]=2.75;
+TRMCFFKEY.thr1R[0]=-2.75;
 TRMCFFKEY.thr1R[1]=3.5;
 TRMCFFKEY.thr2R[0]=1;
 TRMCFFKEY.thr2R[1]=1;
@@ -288,7 +287,7 @@ TRMCFFKEY.CalcCmnNoise[0]=1;
 TRMCFFKEY.CalcCmnNoise[1]=0;
 {
 int i,j,k;
-for(i=0;i<2;i++){
+for(i=0;i<8;i++){
   for(j=0;j<2;j++){
    for(k=0;k<32;k++)TRMCFFKEY.RawModeOn[i][j][k]=0;
   }
@@ -346,7 +345,8 @@ TRCALIB.Chi2Cut[3]=100;
 TRCALIB.PatStart=0;
 TRCALIB.MultiRun=0;
 TRCALIB.EventsPerRun=10000001;
-for(int i=0;i<6;i++){
+int i;
+for(i=0;i<6;i++){
   TRCALIB.Ladder[i]=0;
   TRCALIB.ActiveParameters[i][0]=1;   // x
   TRCALIB.ActiveParameters[i][1]=1;   // y
@@ -579,6 +579,7 @@ _redaqdata();
 
 void AMSJob::_remfdata(){
 TKFIELD.iniok=1;
+VBLANK(TKFIELD.mfile,40);
 TKFIELD.isec[0]=0;
 TKFIELD.isec[1]=0;
 TKFIELD.imin[0]=0;
@@ -589,7 +590,7 @@ TKFIELD.imon[0]=0;
 TKFIELD.imon[1]=0;
 TKFIELD.iyear[0]=0;
 TKFIELD.iyear[1]=0;
-FFKEY("BMAP",(float*)&TKFIELD,11,"MIXED");
+FFKEY("BMAP",(float*)&TKFIELD,60,"MIXED");
 
 }
 
@@ -617,7 +618,7 @@ TRCLFFKEY.Thr1S[1] =15;
 TRCLFFKEY.Thr2S[0] =15;
 TRCLFFKEY.Thr2S[1] =10;
 
-TRCLFFKEY.Thr1R[0] =2.75;
+TRCLFFKEY.Thr1R[0] =-2.75;
 TRCLFFKEY.Thr1R[1] =3.5;
 
 TRCLFFKEY.ThrClS[0]=20;
@@ -675,31 +676,8 @@ for(k=0;k<6;k++){
 FFKEY("TRCL",(float*)&TRCLFFKEY,sizeof(TRCLFFKEY_DEF)/sizeof(integer),"MIXED");
 
 // Fit Par
-TRFITFFKEY.pattern[0]=1;
-TRFITFFKEY.pattern[1]=1;
-TRFITFFKEY.pattern[2]=1;
-TRFITFFKEY.pattern[3]=1;
-TRFITFFKEY.pattern[4]=1;
-// Changed to 1 for shuttle setup
-TRFITFFKEY.pattern[5]=1;
-TRFITFFKEY.pattern[6]=1;
-TRFITFFKEY.pattern[7]=1;
-TRFITFFKEY.pattern[8]=1;
-TRFITFFKEY.pattern[9]=1;
-TRFITFFKEY.pattern[10]=1;
-TRFITFFKEY.pattern[11]=1;
-TRFITFFKEY.pattern[12]=1;
-TRFITFFKEY.pattern[13]=1;
-TRFITFFKEY.pattern[14]=1;
-TRFITFFKEY.pattern[15]=1;
-TRFITFFKEY.pattern[16]=1;
-TRFITFFKEY.pattern[17]=1;
-TRFITFFKEY.pattern[18]=1;
-TRFITFFKEY.pattern[19]=1;
-TRFITFFKEY.pattern[20]=1;
-TRFITFFKEY.pattern[21]=1;
 {
-  for( int k=22;k<42;k++)TRFITFFKEY.pattern[k]=0;
+  for( int k=0;k<sizeof(TRFITFFKEY.patternp)/sizeof(TRFITFFKEY.patternp[0]);k++)TRFITFFKEY.patternp[k]=0;
 }
 TRFITFFKEY.UseTOF=2;
 TRFITFFKEY.Chi2FastFit=2000;
@@ -947,6 +925,7 @@ void AMSJob::_retrddata(){
 
 
 void AMSJob::udata(){
+
 if(CCFFKEY.Fast){
  GCPHYS.IHADR=0;
  GCPHYS.IMULS=0;
@@ -1049,6 +1028,17 @@ else{
   cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
   exit(1);
 }
+
+  if(strstr(getsetup(),"AMS02")){
+   if(CCFFKEY.enddate%10000 < 2000){
+     CCFFKEY.enddate+=4;
+     CCFFKEY.begindate+=4;
+     TRMCFFKEY.year[0]+=4;
+     TRMCFFKEY.year[1]+=4;
+   }
+  }
+
+  TKDBc::init();
 {
 int len=cl-1;
 
@@ -1127,12 +1117,17 @@ if(AMSFFKEY.Update){
  }
  }
 }
-    if(!strstr(getsetup(),"AMSSTATION") ){    
-       AMSTrIdSoft::inittable();
+    AMSTrIdGeom::init();
+    if(strstr(getsetup(),"AMSSHUTTLE") ){    
+       AMSTrIdSoft::inittable(1);
+    }
+    else if(strstr(getsetup(),"AMS02") ){    
+       AMSTrIdSoft::inittable(2);
     }
     else {
       cerr<<"AMSJob::_retkinitjob-E-NoAMSTrIdSoftTable exists for setup "<<
         getsetup()<< "yet "<<endl;
+        exit(1);
     }
        AMSTrIdSoft::init();
 
@@ -1145,6 +1140,47 @@ if(AMSFFKEY.Update){
        TRALIG.MinEventsPerFit=999; 
       cout <<"Parameters Changed "<<TRALIG.MaxEventsPerFit<<" "<<TRALIG.MinEventsPerFit<<endl;
      }
+
+
+UHTOC(TKFIELD.mfile,160/sizeof(integer),AMSDATADIR.fname,160);
+
+for(i=159;i>=0;i--){
+  if(AMSDATADIR.fname[i]!=' '){
+   AMSDATADIR.fname[i+1]=0;
+   break;
+  }
+  if(strlen(AMSDATADIR.fname)<=1)strcpy(AMSDATADIR.fname,"fld97int.txt");
+}
+
+
+// check delta etc
+if(TRMCFFKEY.gammaA[0]<0){
+ if(strstr(getsetup(),"AMSSHUTTLE")){
+  TRMCFFKEY.gammaA[0]=-TRMCFFKEY.gammaA[0];
+ }
+ else TRMCFFKEY.gammaA[0]=0.2;
+}
+if(TRMCFFKEY.delta[0]<0){
+ if(strstr(getsetup(),"AMSSHUTTLE")){
+  TRMCFFKEY.delta[0]=-TRMCFFKEY.delta[0];
+ }
+ else TRMCFFKEY.delta[0]=0.9;
+}
+if(TRMCFFKEY.thr1R[0]<0){
+ if(strstr(getsetup(),"AMSSHUTTLE")){
+  TRMCFFKEY.thr1R[0]=-TRMCFFKEY.thr1R[0];
+ }
+ else TRMCFFKEY.thr1R[0]=3;
+}
+
+if(TRCLFFKEY.Thr1R[0]<0){
+ if(strstr(getsetup(),"AMSSHUTTLE")){
+  TRCLFFKEY.Thr1R[0]=-TRCLFFKEY.Thr1R[0];
+ }
+ else TRCLFFKEY.Thr1R[0]=3;
+}
+
+
 }
 
 
@@ -1192,13 +1228,13 @@ void AMSJob::_sitriginitjob(){
 void AMSJob::_sitkinitjob(){
   if(TRMCFFKEY.GenerateConst){
      for(int l=0;l<2;l++){
-       for (int i=0;i<AMSDBc::nlay();i++){
-         for (int j=0;j<AMSDBc::nlad(i+1);j++){
+       for (int i=0;i<TKDBc::nlay();i++){
+         for (int j=0;j<TKDBc::nlad(i+1);j++){
            for (int s=0;s<2;s++){
             AMSTrIdSoft id(i+1,j+1,s,l,0);
             if(id.dead())continue;
             number oldone=0;
-            for(int k=0;k<AMSDBc::NStripsDrp(i+1,l);k++){
+            for(int k=0;k<TKDBc::NStripsDrp(i+1,l);k++){
              id.upd(k);
              geant d;
              id.setped()=TRMCFFKEY.ped[l]*(1+RNDM(d));
@@ -1636,7 +1672,7 @@ end.tm_mday=TKFIELD.iday[1];
 end.tm_mon=TKFIELD.imon[1];
 end.tm_year=TKFIELD.iyear[1];
 TID.add (new AMSTimeID(AMSID("MagneticFieldMap",isRealData()),
-   begin,end,sizeof(TKFIELD_DEF),(void*)&TKFIELD));
+   begin,end,sizeof(TKFIELD_DEF)-sizeof(TKFIELD.mfile),(void*)&TKFIELD.iniok));
 }
 //----------------------------
 //
@@ -1663,51 +1699,53 @@ end.tm_mon=TRMCFFKEY.mon[1];
 end.tm_year=TRMCFFKEY.year[1];
 
 
-TID.add (new AMSTimeID(AMSID("TrackerPedestals.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numell,
-   (void*)AMSTrIdSoft::peds));
-TID.add (new AMSTimeID(AMSID("TrackerPedestals.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::peds[0])*
-   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-   (void*)(AMSTrIdSoft::peds+AMSTrIdSoft::_numell)));
-TID.add (new AMSTimeID(AMSID("TrackerRawSigmas.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*AMSTrIdSoft::_numell,
-   (void*)AMSTrIdSoft::sigmaraws));
-TID.add (new AMSTimeID(AMSID("TrackerRawSigmas.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*
-   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-   (void*)(AMSTrIdSoft::sigmaraws+AMSTrIdSoft::_numell)));
-TID.add (new AMSTimeID(AMSID("TrackerGains.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numell,
-   (void*)AMSTrIdSoft::gains));
-TID.add (new AMSTimeID(AMSID("TrackerGains.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::gains[0])*
-   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-   (void*)(AMSTrIdSoft::gains+AMSTrIdSoft::_numell)));
-TID.add (new AMSTimeID(AMSID("TrackerSigmas.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numell,
-   (void*)AMSTrIdSoft::sigmas));
-TID.add (new AMSTimeID(AMSID("TrackerSigmas.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::sigmas[0])*
-   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-   (void*)(AMSTrIdSoft::sigmas+AMSTrIdSoft::_numell)));
-TID.add (new AMSTimeID(AMSID("TrackerStatus.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numell,
-   (void*)AMSTrIdSoft::status));
-TID.add (new AMSTimeID(AMSID("TrackerStatus.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::status[0])*
-   (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-   (void*)(AMSTrIdSoft::status+AMSTrIdSoft::_numell)));
-TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.l",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*AMSTrIdSoft::_numell*2,
-   (void*)AMSTrIdSoft::rhomatrix));
-TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.r",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*
-   (2*AMSTrIdSoft::_numel-2*AMSTrIdSoft::_numell),
-   (void*)(AMSTrIdSoft::rhomatrix+2*AMSTrIdSoft::_numell)));
-TID.add (new AMSTimeID(AMSID("TrackerCmnNoise",isRealData()),
-   begin,end,sizeof(AMSTrIdSoft::cmnnoise),
-   (void*)AMSTrIdSoft::cmnnoise));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerPedestals(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numell,
+    (void*)AMSTrIdSoft::peds));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerPedestals(1),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::peds[0])*
+    (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+    (void*)(AMSTrIdSoft::peds+AMSTrIdSoft::_numell)));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerRawSigmas(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*AMSTrIdSoft::_numell,
+    (void*)AMSTrIdSoft::sigmaraws));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerRawSigmas(1),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*
+    (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+    (void*)(AMSTrIdSoft::sigmaraws+AMSTrIdSoft::_numell)));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerGains(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numell,
+    (void*)AMSTrIdSoft::gains));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerGains(1),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::gains[0])*
+    (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+    (void*)(AMSTrIdSoft::gains+AMSTrIdSoft::_numell)));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerSigmas(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numell,
+    (void*)AMSTrIdSoft::sigmas));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerSigmas(1),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::sigmas[0])*
+    (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+    (void*)(AMSTrIdSoft::sigmas+AMSTrIdSoft::_numell)));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerStatus(0),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numell,
+    (void*)AMSTrIdSoft::status));
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerStatus(1),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::status[0])*
+    (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
+    (void*)(AMSTrIdSoft::status+AMSTrIdSoft::_numell)));
+ /*
+ TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.l",isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*AMSTrIdSoft::_numell*2,
+    (void*)AMSTrIdSoft::rhomatrix));
+ TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.r",isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*
+    (2*AMSTrIdSoft::_numel-2*AMSTrIdSoft::_numell),
+    (void*)(AMSTrIdSoft::rhomatrix+2*AMSTrIdSoft::_numell)));
+ */
+ TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerCmnNoise(),isRealData()),
+    begin,end,sizeof(AMSTrIdSoft::cmnnoise),
+    (void*)AMSTrIdSoft::cmnnoise));
 //TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
 //   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
 //   (void*)AMSTrIdSoft::indnoise));
@@ -2016,6 +2054,7 @@ AMSTimeID * AMSJob::gettimestructure(){
      if(!p){
       cerr << "AMSJob::gettimestructure-F-no time structure found"<<endl;
       exit(1);
+      return 0;
      }
      else return  (AMSTimeID*)p;
 }
@@ -2025,6 +2064,7 @@ AMSNode * AMSJob::getaligstructure(){
      if(!p){
       cerr << "AMSJob::getaligtructure-F-no alig structure found"<<endl;
       exit(1);
+      return 0;
      }
      else return  p;
 }
@@ -2034,6 +2074,7 @@ AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
      if(!p){
        cerr << "AMSJob::gettimestructure-F-no time structure found "<<id<<endl;
       exit(1);
+      return 0;
      }
      else return  (AMSTimeID*)p;
 }
@@ -2298,7 +2339,155 @@ void AMSJob::_dbendjob(){
      AMSgObj::BookTimer.book("SIDAQ");
      AMSgObj::BookTimer.book("REDAQ");
      if(IOPA.Portion<1. && isMonitoring())cout <<"AMSJob::_redaqinitjob()-W-Only about "<<IOPA.Portion*100<<"% events will be processed."<<endl; 
-    if(!strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){    
+    if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE") ){    
+    // Add subdetectors to daq
+    //
+
+  {  // mc
+    if(!isRealData()){
+    DAQEvent::addsubdetector(&AMSmceventg::checkdaqid,&AMSmceventg::buildraw);
+    DAQEvent::addblocktype(&AMSmceventg::getmaxblocks,&AMSmceventg::calcdaqlength,
+    &AMSmceventg::builddaq);
+
+    DAQEvent::addsubdetector(&AMSEvent::checkdaqidSh,&AMSEvent::buildrawSh);
+    DAQEvent::addblocktype(&AMSEvent::getmaxblocksSh,
+    &AMSEvent::calcdaqlengthSh,&AMSEvent::builddaqSh);
+    }
+
+  }
+
+
+  {
+    // lvl1
+
+    DAQEvent::addsubdetector(&TriggerLVL1::checkdaqid,&TriggerLVL1::buildraw);
+    DAQEvent::addblocktype(&TriggerLVL1::getmaxblocks,&TriggerLVL1::calcdaqlength,
+    &TriggerLVL1::builddaq);
+
+
+}
+
+{
+//           Header
+    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcdaqlength,
+    &AMSEvent::builddaq);
+//           Header Tracker HK
+    DAQEvent::addblocktype(&AMSEvent::getmaxblocks,&AMSEvent::calcTrackerHKl,
+    &AMSEvent::buildTrackerHKdaq,4);
+}
+
+
+{
+//           lvl3
+    DAQEvent::addsubdetector(&TriggerLVL3::checkdaqid,&TriggerLVL3::buildraw);
+    DAQEvent::addblocktype(&TriggerLVL3::getmaxblocks,&TriggerLVL3::calcdaqlength,
+    &TriggerLVL3::builddaq);
+
+}    
+if(DAQCFFKEY.SCrateinDAQ){
+//         tof+anti+ctc
+    DAQEvent::addsubdetector(&DAQSBlock::checkblockid,&DAQSBlock::buildraw);
+    DAQEvent::addblocktype(&DAQSBlock::getmaxblocks,&DAQSBlock::calcblocklength,
+                           &DAQSBlock::buildblock);
+}    
+
+if((AMSJob::gethead()->isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
+{
+
+  if(DAQCFFKEY.OldFormat || !isRealData()){
+// special tracker ped/sigma calc
+    if(TRCALIB.Method == 1)
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPed);
+    else
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,
+&AMSTrIdCalib::buildSigmaPedA);
+  }
+  else{
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrIdCalib::buildSigmaPedB);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrIdCalib::buildSigmaPedB);
+ 
+    if(TRMCFFKEY.GenerateConst){
+    //Tracker ped/sigma etc ( "Event" mode)
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
+
+
+    }
+  }
+
+}
+}
+else {
+
+if(DAQCFFKEY.LCrateinDAQ){
+//           tracker reduced
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidMixed,&AMSTrRawCluster::buildrawMixed);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkcmnSRawid,&AMSTrRawCluster::updcmnSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidCompressed,&AMSTrRawCluster::buildrawCompressed);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqid,&AMSTrRawCluster::buildraw);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocks,
+    &AMSTrRawCluster::calcdaqlength,&AMSTrRawCluster::builddaq);
+
+
+
+    //Tracker ped/sigma etc ( "Event" mode)
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSRawid,&AMSTrRawCluster::updpedSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigSRawid,&AMSTrRawCluster::updsigSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSRawid,&AMSTrRawCluster::updstatusSRaw);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidParameters,&AMSTrRawCluster::buildrawParameters);
+
+
+}   
+
+
+if(DAQCFFKEY.LCrateinDAQ ){
+//           tracker raw
+
+  if(DAQCFFKEY.OldFormat || !isRealData()){
+    if(TRCALIB.Method == 1)
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRaw);
+    else
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRawA);
+  }
+  else{
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkdaqidRaw,&AMSTrRawCluster::buildrawRawB);
+  }
+
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblocksRaw,
+    &AMSTrRawCluster::calcdaqlengthRaw,&AMSTrRawCluster::builddaqRaw);
+
+
+
+}    
+
+
+{
+//           tracker H/K Static
+
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkstatusSid,&AMSTrRawCluster::updstatusS,4);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checkpedSid,&AMSTrRawCluster::updpedS,4);
+    DAQEvent::addsubdetector(&AMSTrRawCluster::checksigmaSid,&AMSTrRawCluster::updsigmaS,4);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
+    &AMSTrRawCluster::calcstatusSl,&AMSTrRawCluster::writestatusS,4);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
+    &AMSTrRawCluster::calcpedSl,&AMSTrRawCluster::writepedS,4);
+    DAQEvent::addblocktype(&AMSTrRawCluster::getmaxblockS,
+    &AMSTrRawCluster::calcsigmaSl,&AMSTrRawCluster::writesigmaS,4);
+
+
+}    
+
+}
+
+
+}
+    else if(strstr(AMSJob::gethead()->getsetup(),"AMS02") ){    
     // Add subdetectors to daq
     //
 

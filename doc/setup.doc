@@ -21,17 +21,32 @@ TRD  - transition radiation detector
 
 PSH  - plastic shield + AMS support structure
 
+CAL - emc
+
+RIC - RICH
+
+
+
 Valid entries (on  26/09/96)
 
 
 AMS:
-AMSSHUTTLE(Default)/AMSSTATION       - shuttle/station 
+AMSSHUTTLE(Default)/AMS02       - shuttle/station 
 
 STR:
 STRPLANES(Default)/STRTUBES          -  planes/tubes   
 
 CTC:
-CTCHor(Default)/CTCVer/CTCSimple/CTCAnnecy   
-  - horizontal/vertical/simplified/current  CTC readout
+CTCHor(Default)/CTCVer/CTCSimple/CTCAnnecy/CTCNo   
+  - horizontal/vertical/simplified/current  CTC readout/NoCTC
+
+
+CALORIMETER:
+CAL01
+
+TRD:
+TRD01
+
+
 
  

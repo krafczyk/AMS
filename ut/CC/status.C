@@ -68,10 +68,11 @@ void AMSStatus::updates(uinteger run, uinteger evt, uinteger status, time_t time
 }
 
 uinteger AMSStatus::getstatus(uinteger evt, uinteger run){
+  uinteger one=1;
   if(_Run && run != _Run){
    cerr<<"AMSStatus::getstatus-E-WrongRun "<<run<<" Expected "<<_Run<<endl;
    _Errors++;
-   return (1<<31);
+   return (one<<31);
   }
   // try hint +
   int out;
@@ -87,16 +88,16 @@ uinteger AMSStatus::getstatus(uinteger evt, uinteger run){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundRun "<<run<<" "<<out<<" "<<evt<<" "<<_Nelem<<" "<<_Status[0][-out]<<" "<<_Status[0][-out-1]<<endl;
    _Errors++;
    repeat++;
-   return (1<<31);
+   return (one<<31);
  }
  else if(repeat==10 ){
    cerr<<"AMSStatus::getstatus-E-NoMatchFoundLastMessage"<<out<<" "<<evt<<endl;
    _Errors++;
    repeat++;
-   return (1<<31);
+   return (one<<31);
  }
  else {
-   return (1<<31);
+   return (one<<31);
 }
 }
 
@@ -171,7 +172,8 @@ integer AMSStatus::statusok(uinteger event, uinteger run){
 }
 
 integer AMSStatus::_statusok(uinteger status){
-    if(!(status & (1<<31))){    // Status exists
+    uinteger one=1;
+    if(!(status & (one<<31))){    // Status exists
       const int nsta=15;
       uinteger Status[nsta];
       Status[0]=((status & ((1<<4)-1)));

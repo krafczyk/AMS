@@ -21,7 +21,7 @@ extern "C" void timel_(float & );
 extern "C" void timex_(float & t);
 #define TIMEX timex_  
 #define TIMEL timel_  
-extern "C" void ucopy_(void *, void*, const int &);
+extern "C" void ucopy_(const void *, void*, const int &);
 #define UCOPY ucopy_
 extern "C" void ucopy2_(void *, void*, const int &);
 #define UCOPY2 ucopy2_

@@ -250,18 +250,18 @@ void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
 #ifdef __AMSDEBUG__
 
     AMSContainer *ptr1=AMSEvent::gethead()->getC("AMSTOFRawEvent",0);
-    ptr1->eraseC();
+    if(ptr1)ptr1->eraseC();
 //
     AMSContainer *ptr2=AMSEvent::gethead()->getC("AMSAntiRawEvent",0);
-    ptr2->eraseC();
+    if(ptr2)ptr2->eraseC();
 //
     AMSContainer *ptr3=AMSEvent::gethead()->getC("AMSCTCRawEvent",0);
-    ptr3->eraseC();
+    if(ptr3)ptr3->eraseC();
 //
 #endif
     for(i=0;i<2;i++){
       AMSContainer *ptr4=AMSEvent::gethead()->getC("AMSCTCRawHit",i);
-      ptr4->eraseC();
+      if(ptr4)ptr4->eraseC();
     }
   }
 //--------------

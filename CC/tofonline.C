@@ -42,7 +42,8 @@ void AMSJob::_retofonlineinitjob(){
   // Trigger (data) histograms filled in tofonlinefill1(...)
   // For each side:
 #define HITSTART 5015
-  for(int i=0;i<8;i++){
+  int i;
+  for(i=0;i<8;i++){
     int k=1,hisID;
     char c;
     hisID=HITSTART+i;
@@ -73,7 +74,8 @@ void AMSJob::_retofonlineinitjob(){
   // Edges histograms filled in tofonlinefill1(...)
   // History: 5030 - 5147
 #define HISSTART 5030
-  for(int start=HISSTART, inc=0;inc<4;inc++,start+=30){
+  int start,inc;
+  for(start=HISSTART, inc=0;inc<4;inc++,start+=30){
     for(int i=0;i<28;i++){
       int k=1,hisID;
       char c;

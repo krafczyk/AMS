@@ -597,7 +597,8 @@ I85 NoRecAtAll(0)                   // skip or not reconstruction phase
 I86 TrformatInDAQ(3)                // 0 no 1 reduced 2 raw 3 both in daq
 
 BMAP   // Magnetic field control
-I 1 iniok(1)                       // 0 for update mag field
+I  1  mfile                          // mag file name 'fld97int.txt'
+I 41 iniok(1)                       // 0 for update mag field
 
 
 

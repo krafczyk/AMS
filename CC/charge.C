@@ -104,7 +104,7 @@ integer AMSCharge::build(integer refit){
     CHARGEFITFFKEY.BetaPowAnode=0;    // no corr. on anode beta dependence for z>1
     CHARGEFITFFKEY.TrackerForceSK=1;  // force tracker hit energies to be x+y
     CHARGEFITFFKEY.TrackerKSRatio=1.; // average x/y tracker energy ratio
-    static first=1;
+    static integer first=1;
     if(first){
       first=0;
       cout<<"AMSCharge::build - MC forced with following datacards:"<<endl;
@@ -172,10 +172,10 @@ integer AMSCharge::build(integer refit){
 
 // Tracker hits
       weak=0;
-      while(1){
+      while(1 ){
         nhitTracker=0;
         nallTracker=0;
-        for(i=0; i<TrackerMaxHits; i++){
+        for(i=0; i<ptrack->getnhits(); i++){
           AMSTrRecHit *phit=ptrack->getphit(i);
           if(phit){
             if (phit->getpsen()){

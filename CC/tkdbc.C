@@ -4,6 +4,9 @@
 #include <job.h>
 #include <commons.h>
 #include <trcalib.h>
+#ifdef __NAMESPACE__
+using namespace trconst;
+#endif
 TKDBc * TKDBc::_HeadSensor=0;
 TKDBc * TKDBc::_HeadLayer=0;
 TKDBc * TKDBc::_HeadLadder[2]={0,0};
@@ -13,30 +16,545 @@ integer TKDBc::_NumberMarkers=0;
 integer TKDBc::_NumberLayer=0;
 integer TKDBc::_NumberLadder=0;
 integer TKDBc::_ReadOK=0;
-void TKDBc::init(){
+
+     integer TKDBc::_nlaysi;    // number of si layers
+     number  TKDBc::_layd[maxlay][5]; // pointer to supp plane
+     number   TKDBc::_xposl[maxlay];   // pointers to si layers pos
+     number   TKDBc::_yposl[maxlay];
+     number   TKDBc::_zposl[maxlay];
+     number   TKDBc::_nrml[maxlay][3][3];
+     integer  TKDBc::_nlad[maxlay];
+     integer  TKDBc::_nsen[maxlay][maxlad];
+     integer  TKDBc::_nhalf[maxlay][maxlad];
+     number   TKDBc::_zpos[maxlay];
+     number   TKDBc::_ssize_active[maxlay][2];
+     number   TKDBc::_ssize_inactive[maxlay][2];
+     integer  TKDBc::_nstripssen[maxlay][2];
+     integer  TKDBc::_nstripssenR[maxlay][2];
+     integer  TKDBc::_nstripsdrp[maxlay][2];
+     number   TKDBc::_silicon_z[maxlay];
+     number   TKDBc::_zelec[maxlay][3];
+     number   TKDBc::_c2c[maxlay];
+     number   TKDBc::_halfldist[maxlay];
+     number   TKDBc::_support_foam_w[maxlay];
+     number   TKDBc::_support_foam_tol[maxlay];
+     number   TKDBc::_support_hc_w[maxlay];
+     number   TKDBc::_support_hc_r[maxlay];
+     number   TKDBc::_support_hc_z[maxlay];
+     integer  TKDBc::_nladshuttle[maxlay][2];
+     integer  TKDBc::_boundladshuttle[maxlay][2];
+     number   TKDBc::_PlMarkerPos[maxlay][2][4][3];  // 1st wjb
+                                                   // 2nd hasan
+    uinteger * TKDBc::_Cumulus;
+
+
+void TKDBc::init( ){
+// get setup
+
+   if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
+    int i;
+    _nlaysi=6;
+    
+
+   
+
+    const integer _nlay=6;
+
+   const integer  nstripssen[_nlay][2]={
+                                               224,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               224,640};
+   UCOPY(nstripssen,_nstripssen,sizeof(nstripssen)/sizeof(integer));
+   const integer  nstripssenR[_nlay][2]={
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284};
+   UCOPY(nstripssenR,_nstripssenR,sizeof(nstripssenR)/sizeof(integer));
+   const integer  nstripsdrp[_nlay][2]={384,640,384,640,384,640,
+                                               384,640,384,640,384,640};
+   UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
+   const number layd[_nlay][5]={
+                               5.3,0.,75., 0.,75.,
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.3,0.,75. ,0.,75.};
+   UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
+   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047};
+   UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
+   const number  xposl[_nlay]={0,0,0,0,0,0};
+   UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
+   const number  yposl[_nlay]={0,0,0,0,0,0};
+   UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
+   const number  zposl[_nlay]={51.015,29.185,7.785,-7.785,-29.185,-51.015};
+   UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
+   const number nrml[_nlay][3][3]={
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1};
+   UCOPY(nrml,_nrml,sizeof(nrml)/sizeof(integer));
+   const integer nlad[_nlay]={17,14,14,14,14,17};
+   UCOPY(nlad,_nlad,sizeof(nlad)/sizeof(integer));
+   const integer nsen[_nlay][maxlad]={15,20,23,26,28,29,30,30,30,30,30,
+                                 29,28,26,23,20,15,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 15,20,23,26,28,29,30,30,30,30,30,
+                                 29,28,26,23,20,15};
+   UCOPY(nsen,_nsen,sizeof(nsen)/sizeof(integer));
+   const integer nhalf[_nlay][maxlad]={
+                               7,10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,7,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,7};
+   UCOPY(nhalf,_nhalf,sizeof(nhalf)/sizeof(integer));
+   const number  zpos[_nlay]={0,0,0,0,0,0};
+   UCOPY(zpos,_zpos,sizeof(zpos)/sizeof(integer));
+   const number  ssize_active[_nlay][2]={3.9884,7.062,3.9884,7.062,
+                       3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
+   UCOPY(ssize_active,_ssize_active,sizeof(ssize_active)/sizeof(integer));
+   const number  ssize_inactive[_nlay][2]={4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045};
+   UCOPY(ssize_inactive,_ssize_inactive,sizeof(ssize_inactive)/sizeof(integer));
+   const number  silicon_z[_nlay]={0.03,0.03,0.03,0.03,0.03,0.03};
+   UCOPY(silicon_z,_silicon_z,sizeof(silicon_z)/sizeof(integer));
+   const number  zelec[_nlay][3]={
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015 };
+   UCOPY(zelec,_zelec,sizeof(zelec)/sizeof(integer));
+   const integer nladshuttle[_nlay][2]={4,4,
+                                        6,6,
+                                        4,5,
+                                        4,6,
+                                        6,6,
+                                        3,3};
+   UCOPY(nladshuttle,_nladshuttle,sizeof(nladshuttle)/sizeof(integer));
+   const integer boundladshuttle[_nlay][2]={8,8,
+                                         5,5,
+                                         6,6,
+                                         6,5,
+                                         5,5,
+                                         8,8};
+   UCOPY(boundladshuttle,_boundladshuttle,sizeof(boundladshuttle)/sizeof(integer));
+
+// center to center for ladders
+const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30};
+   UCOPY(c2c,_c2c,sizeof(c2c)/sizeof(integer));
+// support foam width;
+const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5};
+   UCOPY(support_foam_w,_support_foam_w,sizeof(support_foam_w)/sizeof(integer));
+const number  support_foam_tol[_nlay]={0.05,0.05,0.05,0.05,0.05,0.05};
+   UCOPY(support_foam_tol,_support_foam_tol,sizeof(support_foam_tol)/sizeof(integer));
+// support hc width;
+const number  support_hc_w[_nlay]={4.,1.236,1.236,1.236,1.236,4.};
+   UCOPY(support_hc_w,_support_hc_w,sizeof(support_hc_w)/sizeof(integer));
+// support hc radius;
+const number  support_hc_r[_nlay]={71.5,53.6,53.6,53.6,53.6,71.5};
+   UCOPY(support_hc_r,_support_hc_r,sizeof(support_hc_r)/sizeof(integer));
+// support hc z;
+const number  support_hc_z[_nlay]={-3.052,-1.67,-1.67,-1.67,-1.67,-3.052};
+   UCOPY(support_hc_z,_support_hc_z,sizeof(support_hc_z)/sizeof(integer));
+
+const number PlMarkerPos[2][_nlay][4][3]={     -54.1,-45.35,-1.017,
+                                                 54.1,-45.35,-1.017,
+                                                 54.1, 45.35,-1.017,
+                                                -54.1, 45.35,-1.017,
+                                                -40.,  -33.5,-1.017,
+                                                 40.,  -33.5,-1.017,
+                                                 40.,   33.5,-1.017,
+                                                -40.,   33.5,-1.017,
+                                                -40.,  -33.5,-1.017,
+                                                 40.,  -33.5,-1.017,
+                                                 40.,   33.5,-1.017,
+                                                -40.,   33.5,-1.017,
+                                                -40.,  -33.5,-1.017,
+                                                 40.,  -33.5,-1.017,
+                                                 40.,   33.5,-1.017,
+                                                -40.,   33.5,-1.017,
+                                                -40.,  -33.5,-1.017,
+                                                 40.,  -33.5,-1.017,
+                                                 40.,   33.5,-1.017,
+                                                -40.,   33.5,-1.017,
+                                                 -54.1,-45.35,-1.017,
+                                                  54.1,-45.35,-1.017,
+                                                  54.1, 45.35,-1.017,
+                                                 -54.1, 45.35,-1.017,
+                                                 -54.1,-45.35,-3.052,
+                                                 54.1,-45.35,-3.052,
+                                                 54.1, 45.35,-3.052,
+                                                 -54.1, 45.35,-3.052,
+                                                -40.,  -33.5,-1.67,
+                                                 40.,  -33.5,-1.67,
+                                                 40.,   33.5,-1.67,
+                                                -40.,   33.5,-1.67,
+                                                -40.,  -33.5,-1.67,
+                                                 40.,  -33.5,-1.67,
+                                                 40.,   33.5,-1.67,
+                                                -40.,   33.5,-1.67,
+                                                -40.,  -33.5,-1.67,
+                                                 40.,  -33.5,-1.67,
+                                                 40.,   33.5,-1.67,
+                                                -40.,   33.5,-1.67,
+                                                -40.,  -33.5,-1.67,
+                                                 40.,  -33.5,-1.67,
+                                                 40.,   33.5,-1.67,
+                                                -40.,   33.5,-1.67,
+                                                -54.1,-45.35,-3.052,
+                                                 54.1,-45.35,-3.052,
+                                                 54.1, 45.35,-3.052,
+                                                -54.1, 45.35,-3.052};
+
+
+   
+number PlMarkerPos1[_nlay][2][4][3];
+   for(i=0;i<2;i++){
+    for(int j=0;j<_nlay;j++){
+     int k,l;
+     for(k=0;k<4;k++){
+      for(l=0;l<3;l++)PlMarkerPos1[j][i][k][l]=PlMarkerPos[i][j][k][l];
+     }
+    }
+   }
+   UCOPY(PlMarkerPos1,_PlMarkerPos,sizeof(PlMarkerPos1)/sizeof(integer));
+
+
+   // initialize patterns
+      InitPattern();
+      for(int cpat=0;cpat<npat();cpat++){
+         //shuttle
+         if(_patpoints[cpat]>3)_patallow[cpat]=1;
+         else _patallow[cpat]=0;
+         if(_patpoints[cpat]>2)_patallow2[cpat]=1;
+         else _patallow2[cpat]=0;
+      }
+   }
+   else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    int i;
+    _nlaysi=8;
+    const integer _nlay=8;
+
+   const integer  nstripssen[_nlay][2]={
+                                               224,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               192,640,
+                                               224,640};
+   UCOPY(nstripssen,_nstripssen,sizeof(nstripssen)/sizeof(integer));
+   const integer  nstripssenR[_nlay][2]={
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284,
+                                               767,1284};
+   UCOPY(nstripssenR,_nstripssenR,sizeof(nstripssenR)/sizeof(integer));
+   const integer  nstripsdrp[_nlay][2]={384,640,384,640,384,640,384,640,384,640,
+                                               384,640,384,640,384,640};
+   UCOPY(nstripsdrp,_nstripsdrp,sizeof(nstripsdrp)/sizeof(integer));
+   const number layd[_nlay][5]={
+                               5.3,0.,75., 0.,75.,
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.,0.,54.0,0.,54.0, 
+                               5.3,0.,75. ,0.,75.};
+   UCOPY(layd,_layd,sizeof(layd)/sizeof(integer));
+   const number halfldist[_nlay]={0.047,0.047,0.047,0.047,0.047,0.047,0.047,0.047};
+   UCOPY(halfldist,_halfldist,sizeof(halfldist)/sizeof(integer));
+   const number  xposl[_nlay]={0,0,0,0,0,0,0};
+   UCOPY(xposl,_xposl,sizeof(xposl)/sizeof(integer));
+   const number  yposl[_nlay]={0,0,0,0,0,0,0};
+   UCOPY(yposl,_yposl,sizeof(yposl)/sizeof(integer));
+   const number  zposl[_nlay]={51.015,24.,20.,2.,-2.,-20.,-24.,-51.015};
+//   const number  zposl[_nlay]={51.015,32.,28.,2.,-2.,-28.,-32.,-51.015};
+   UCOPY(zposl,_zposl,sizeof(zposl)/sizeof(integer));
+   const number nrml[_nlay][3][3]={
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1,
+                                          1,0,0,
+                                          0,-1,0,
+                                          0,0,-1,
+                                          1,0,0,
+                                          0,1,0,
+                                          0,0,1};
+   UCOPY(nrml,_nrml,sizeof(nrml)/sizeof(integer));
+   const integer nlad[_nlay]={17,14,14,14,14,14,14,17};
+   UCOPY(nlad,_nlad,sizeof(nlad)/sizeof(integer));
+   const integer nsen[_nlay][maxlad]={15,20,23,26,28,29,30,30,30,30,30,
+                                 29,28,26,23,20,15,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 7,14,18,21,23,24,24,24,24,23,21,18,14,7,0,0,0,
+                                 15,20,23,26,28,29,30,30,30,30,30,
+                                 29,28,26,23,20,15};
+   UCOPY(nsen,_nsen,sizeof(nsen)/sizeof(integer));
+   const integer nhalf[_nlay][maxlad]={
+                               7,10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,7,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,7,9,11,11,12,12,12,12,11,11,9,7,7,0,0,0,
+                               7,10,11,13,14,14,15,15,15,15,15,14,14,13,11,10,7};
+   UCOPY(nhalf,_nhalf,sizeof(nhalf)/sizeof(integer));
+   const number  zpos[_nlay]={0,0,0,0,0,0,0,0};
+   UCOPY(zpos,_zpos,sizeof(zpos)/sizeof(integer));
+   const number  ssize_active[_nlay][2]={3.9884,7.062,3.9884,7.062,
+                       3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062,3.9884,7.062};
+   UCOPY(ssize_active,_ssize_active,sizeof(ssize_active)/sizeof(integer));
+   const number  ssize_inactive[_nlay][2]={4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045,
+                                                    4.14000,7.2045};
+   UCOPY(ssize_inactive,_ssize_inactive,sizeof(ssize_inactive)/sizeof(integer));
+   const number  silicon_z[_nlay]={0.03,0.03,0.03,0.03,0.03,0.03,0.03,0.03};
+   UCOPY(silicon_z,_silicon_z,sizeof(silicon_z)/sizeof(integer));
+   const number  zelec[_nlay][3]={
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015,
+                                           5.,.8,-0.015 };
+   UCOPY(zelec,_zelec,sizeof(zelec)/sizeof(integer));
+   const integer nladshuttle[_nlay][2]={17,17,
+                                        14,12,
+                                        14,12,
+                                        14,12,
+                                        14,12,
+                                        14,12,
+                                        14,12,
+                                        17,17};
+   UCOPY(nladshuttle,_nladshuttle,sizeof(nladshuttle)/sizeof(integer));
+   const integer boundladshuttle[_nlay][2]={1,1,
+                                         1,2,
+                                         1,2,
+                                         1,2,
+                                         1,2,
+                                         1,2,
+                                         1,2,
+                                         1,1};
+   UCOPY(boundladshuttle,_boundladshuttle,sizeof(boundladshuttle)/sizeof(integer));
+
+// center to center for ladders
+const number  c2c[_nlay]={7.30,7.30,7.30,7.30,7.30,7.30,7.30,7.30};
+   UCOPY(c2c,_c2c,sizeof(c2c)/sizeof(integer));
+// support foam width;
+const number  support_foam_w[_nlay]={0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5};
+   UCOPY(support_foam_w,_support_foam_w,sizeof(support_foam_w)/sizeof(integer));
+const number  support_foam_tol[_nlay]={0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05};
+   UCOPY(support_foam_tol,_support_foam_tol,sizeof(support_foam_tol)/sizeof(integer));
+// support hc width;
+const number  support_hc_w[_nlay]={4.,0.8,0.8,0.8,0.8,0.8,0.75,4.};
+   UCOPY(support_hc_w,_support_hc_w,sizeof(support_hc_w)/sizeof(integer));
+// support hc radius;
+const number  support_hc_r[_nlay]={71.5,53.6,53.6,53.6,53.6,53.6,53.6,71.5};
+   UCOPY(support_hc_r,_support_hc_r,sizeof(support_hc_r)/sizeof(integer));
+// support hc z;
+// hc_z = -(hc_w/2+(0.5+5.02+5)/10)
+const number  support_hc_z[_nlay]={-3.052,-1.452,-1.452,-1.452,-1.452,-1.452,-1.452,-3.052};
+   UCOPY(support_hc_z,_support_hc_z,sizeof(support_hc_z)/sizeof(integer));
+
+
+   // initialize patterns
+      InitPattern();
+      int cpat;
+      for(cpat=0;cpat<npat();cpat++){
+         //ams02
+         if(_patpoints[cpat]>4)_patallow[cpat]=1;
+         else _patallow[cpat]=0;
+         if(_patpoints[cpat]>3)_patallow2[cpat]=1;
+         else _patallow2[cpat]=0;
+      }
+
+// Add disabling
+// wanted all 8, all 7  1 + 8
+// 6: no (23) (45) (67) 8*7/2-3 = 25
+// 5: 1 (2,3) (4,5) (6,7) 8  (8) 
+// total of 42 patterns allowed
+      for(cpat=0;cpat<npat();cpat++){
+         //ams02
+         if(_patpoints[cpat]==6){
+            if((_patmiss[nlay()-2][cpat]==2 && _patmiss[nlay()-1][cpat]==3) || 
+               (_patmiss[nlay()-2][cpat]==3 && _patmiss[nlay()-1][cpat]==2))
+               _patallow[cpat]=0;
+            if((_patmiss[nlay()-2][cpat]==4 && _patmiss[nlay()-1][cpat]==5) || 
+               (_patmiss[nlay()-2][cpat]==5 && _patmiss[nlay()-1][cpat]==4))
+               _patallow[cpat]=0;
+            if((_patmiss[nlay()-2][cpat]==6 && _patmiss[nlay()-1][cpat]==7) || 
+               (_patmiss[nlay()-2][cpat]==7 && _patmiss[nlay()-1][cpat]==6))
+               _patallow[cpat]=0;
+         }
+         else if(_patpoints[cpat]==5){
+            if(_patmiss[nlay()-3][cpat]==1 || _patmiss[nlay()-2][cpat]==1 || 
+               _patmiss[nlay()-1][cpat]==1)_patallow[cpat]=0;
+            if(_patmiss[nlay()-3][cpat]==8 || _patmiss[nlay()-2][cpat]==8 || 
+               _patmiss[nlay()-1][cpat]==8)_patallow[cpat]=0;
+            if(_patallow[cpat]){
+             for(int k=_patpoints[cpat];k<nlay();k++){
+              if(_patmiss[k][cpat]==2){
+                for(int kk=_patpoints[cpat];kk<nlay();kk++){
+                  if(_patmiss[kk][cpat]==3){
+                   _patallow[cpat]=0;
+                   break;
+                  }
+                }   
+              }
+              if(_patmiss[k][cpat]==4){
+                for(int kk=_patpoints[cpat];kk<nlay();kk++){
+                  if(_patmiss[kk][cpat]==5){
+                   _patallow[cpat]=0;
+                   break;
+                  }
+                }   
+              }
+              if(_patmiss[k][cpat]==6){
+                for(int kk=_patpoints[cpat];kk<nlay();kk++){
+                  if(_patmiss[kk][cpat]==7){
+                   _patallow[cpat]=0;
+                   break;
+                  }
+                }   
+              }
+
+             }
+            }
+       }
+      }
+
+
+
+   }
+   else{ 
+     cerr <<" AMSGeom-F-Unknown setup selected. "<<AMSJob::gethead()->getsetup()<<endl;
+      exit(1);
+   }
+
+  
+    cout <<"AMSTKDBc::init-I-PatternsInitialized "<<_Npat<<endl;
+    #ifdef __AMSDEBUG__
+       int cpat,ilay;
+      for(cpat=0;cpat<nlay();cpat++)cout<<"_patd["<<cpat<<"] "<<_patd[cpat]<<endl; 
+       for(cpat=0;cpat<npat();cpat++){
+         cout <<"patmiss["<<cpat<<"] ";
+         for(ilay=0;ilay<nlay();ilay++)cout <<_patmiss[ilay][cpat]<<" ";
+         cout <<endl;
+         cout <<"patconf["<<cpat<<"] ";
+         for(ilay=0;ilay<nlay();ilay++)cout <<_patconf[ilay][cpat]<<" ";
+         cout <<endl;
+         cout <<"patpounts["<<cpat<<"] "<<_patpoints[cpat]<<endl;
+         cout <<"patallow["<<cpat<<"] "<<_patallow[cpat]<<endl;
+       }
+    #endif   
+
+
   // calculate sensor #
        int i,j,k;
-       for ( i=0;i<AMSDBc::nlay();i++){
-        for ( j=0;j<AMSDBc::nlad(i+1);j++){
-         for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++)_NumberSen++;
+       for ( i=0;i<nlay();i++){
+        for ( j=0;j<nlad(i+1);j++){
+         for ( k=0;k<nsen(i+1,j+1);k++)_NumberSen++;
         }
        }
 
        cout <<"TKDBcI-I-Total of " <<_NumberSen<< "  sensors initialized."<<endl;
   // calculate ladder #
-       for ( i=0;i<AMSDBc::nlay();i++){
-        for ( j=0;j<AMSDBc::nlad(i+1);j++)_NumberLadder++;
+       for ( i=0;i<nlay();i++){
+        for ( j=0;j<nlad(i+1);j++)_NumberLadder++;
        }
 
        cout <<"TKDBcI-I-Total of " <<_NumberLadder<< "  ladders initialized."<<endl;
-       _NumberMarkers=AMSDBc::nlay()*4;
+       _NumberMarkers=nlay()*4;
        _HeadSensor=new TKDBc[_NumberSen];
        _HeadLadder[0]=new TKDBc[_NumberLadder];
        _HeadLadder[1]=new TKDBc[_NumberLadder];
-       _NumberLayer=AMSDBc::nlay();
+       _NumberLayer=nlay();
        _HeadLayer=new TKDBc[_NumberLayer];
        _HeadMarker[0]= new TKDBc[_NumberMarkers]; 
        _HeadMarker[1]= new TKDBc[_NumberMarkers]; 
+
+
+// reinit patterns
+
+    for( k=0;k<sizeof(TRFITFFKEY.patternp)/sizeof(TRFITFFKEY.patternp[0]);k++){
+       if(TRFITFFKEY.patternp[k]>0){
+        _patallow[k]=1;
+       }
+       else if (TRFITFFKEY.patternp[k]<0)_patallow[k]=0;
+    }
+
+    int iac=0;
+    for(i=0;i<_Npat;i++){
+     if(_patallow[i])iac++;
+    }
+    
+    cout <<"AMSTKDBc::init-I-ActivePatternsFound "<<iac<<endl;
 }
 
 void TKDBc::read(){
@@ -110,8 +628,10 @@ if(iftxt.eof() ){
 else {
  _ReadOK=1;
  cout <<"TKDBc::read-I-"<<active<<" active sensors have been read from "<<fnam<<endl;
+if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   compileg();
   updatef();
+}
 }
 
 }
@@ -141,12 +661,14 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
 
 
   //read files and try to compile tracker geometry
- char files[nl][256]={"pl1_sf1.cer",
+ char files[maxlay][256]={"pl1_sf1.cer",
                    "pl2_sf4.gme",
                    "pl3_sf4.gme",
                    "pl4_sf3.gme",
                    "pl5_sf5.gme",
-                   "pl6_sf2.cer"};
+                   "pl6_sf2.cer",
+                   " ",
+                   "  "};
 
     int rsize=1024;
     TRLDGM_def TRLDGM;
@@ -159,7 +681,8 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
     HBNAME(IOPA.ntuple+1,"trlygm",(int*)&(TRLYGM),"Layer:I,Coo(3),nrm(3,3):R,CooO(3),nrmO(3,3):R,Ra(4),Rx(4),Ry(4),Rz(4)");
      AMSPoint  CooMarkers[6][4];
   //ladders info outer planes only
-   for(int il=0;il<6;il+=5){
+   int il;
+   for(il=0;il<6;il+=5){
     AString fnam(AMSDATADIR.amsdatadir);
     fnam+=files[il];
     ifstream fbin;
@@ -175,10 +698,12 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
      integer xPosLadder[nls][2][10];
      number  LadderNrm[nls][2][3][3];
      AMSPoint LadderCoo[nls][2];
-     for(int j=0;j<nls;j++){
-      if(j>6 && j<(il==0?11:10))for(int k=0;k<2;k++)StaLadders[j][k]=1;
-      else for(int k=0;k<2;k++)StaLadders[j][k]=0;
-      for(int l=0;l<10;l++)CooStatus[j][0][l]=1;
+     int j,k;
+     for(j=0;j<nls;j++){
+      if(j>6 && j<(il==0?11:10))for(k=0;k<2;k++)StaLadders[j][k]=1;
+      else for(k=0;k<2;k++)StaLadders[j][k]=0;
+      int l; 
+      for(l=0;l<10;l++)CooStatus[j][0][l]=1;
       for( l=0;l<10;l++)CooStatus[j][1][l]=1;
      }
         //read meas points
@@ -338,10 +863,12 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
      integer xPosLadder[nls][2][10];
      number  LadderNrm[nls][2][3][3];
      AMSPoint LadderCoo[nls][2];
-     for(int j=0;j<nls;j++){
+     int j;
+     for(j=0;j<nls;j++){
       if(j>3 && j<10)for(int k=0;k<2;k++)StaLadders[j][k]=1;
       else for(int k=0;k<2;k++)StaLadders[j][k]=0;
-      for(int l=0;l<8;l++)CooStatus[j][0][l]=1;
+      int l;
+      for(l=0;l<8;l++)CooStatus[j][0][l]=1;
       for( l=0;l<8;l++)CooStatus[j][1][l]=1;
      }
      if(il==1){
@@ -523,7 +1050,8 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
       CooLadder[0][0][5][0]=-6;
       CooLadder[0][0][6][0]=-4;
       CooLadder[0][0][7][0]=-1;
-      for(int k=0;k<4;k++)CooLadder[0][0][k][1]=0;
+      int k;
+      for(k=0;k<4;k++)CooLadder[0][0][k][1]=0;
       for(k=4;k<8;k++)CooLadder[0][0][k][1]=6;
       for(k=0;k<8;k++)CooLadder[0][0][k][2]=2;
       number xcl=-5.;
@@ -583,7 +1111,8 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
     number rzp[6][3];
     for(il=0;il<4;il++){
      fbin>>junk;
-     for(int i=0;i<6;i++)fbin>>rzp[i][0];        
+     int i;
+     for(i=0;i<6;i++)fbin>>rzp[i][0];        
      fbin.ignore(INT_MAX,'\n');
      fbin>>junk;
      for(i=0;i<6;i++)fbin>>rzp[i][1];        
@@ -654,7 +1183,8 @@ if(TKGEOMFFKEY.UpdateGeomFile!=1)return;
       for(il=ibeg;il<6;il++){
         number x(0),y(0),z(0),xy(0),xz(0),yz(0),x2(0),y2(0),z2(0);
         int nm=4;
-        for(int k=0;k<nm;k++){
+        int k;
+        for(k=0;k<nm;k++){
          //cout <<" CooMarkerG "<<il<<" "<<CooMarkersG[il][k]<<endl; 
          x+=CooMarkersG[il][k][0];
          y+=CooMarkersG[il][k][1];
@@ -846,7 +1376,8 @@ if(ifile){
          AMSPoint Coo(coo);
          number nrmN[3][3];
          x[i].updmtx();
-         for(int j=0;j<3;j++){
+         int j;
+         for(j=0;j<3;j++){
            for(int k=0;k<3;k++){
             AMSDir stipud_cxx=x[i].getmtx(j);
             nrmN[j][k]=stipud_cxx[k];
@@ -1073,14 +1604,14 @@ integer TKDBc::getnum(integer layer, integer ladder, integer sensor){
        int num=0;
        int i,j,k;
        for ( i=0;i<layer;i++){
-        for ( j=0;j<AMSDBc::nlad(i+1);j++){
-         for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++)num++;
+        for ( j=0;j<nlad(i+1);j++){
+         for ( k=0;k<nsen(i+1,j+1);k++)num++;
         }
        }
 
         i=layer;
         for ( j=0;j<ladder;j++){
-         for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++)num++;
+         for ( k=0;k<nsen(i+1,j+1);k++)num++;
         }
         j=ladder;       
         for ( k=0;k<sensor;k++)num++;
@@ -1093,7 +1624,7 @@ integer TKDBc::getnumd(integer layer, integer ladder){
        int num=0;
        int i,j,k;
        for ( i=0;i<layer;i++){
-        for ( j=0;j<AMSDBc::nlad(i+1);j++)num++;
+        for ( j=0;j<nlad(i+1);j++)num++;
        }
 
         i=layer;
@@ -1106,7 +1637,6 @@ integer TKDBcI::_Count=0;
 
 TKDBcI::TKDBcI(){
   if(_Count++ == 0){
-    TKDBc::init(); 
   }
 }
 
@@ -1129,7 +1659,8 @@ void TKDBc::fitting(int il,int nls, int meas, integer StaLadders[17][2],
         number x(0),y(0),z(0),xy(0),xz(0),yz(0),x2(0),y2(0),z2(0);
         int nm=meas;
         int ndm=0;
-        for(int k=0;k<nm;k++){
+        int k;
+        for(k=0;k<nm;k++){
          if(CooStatus[i][j][k]){
          x+=CooLadder[i][j][k][0];
          y+=CooLadder[i][j][k][1];
@@ -1308,7 +1839,7 @@ void TKDBc::fitting(int il,int nls, int meas, integer StaLadders[17][2],
            number xi;
            int is=xPosLadder[i][j][k]/10;
            int ilr=xPosLadder[i][j][k]%10;
-           xi=AMSDBc::ssize_inactive(il,0)*(is-1+ilr)+dist*(ilr==0?1:-1);
+           xi=ssize_inactive(il,0)*(is-1+ilr)+dist*(ilr==0?1:-1);
            //cout <<il<<" "<<i<<" "<<j<<" "<<k<<" "<<tmp[k][0]<<" "<<xi<<" "<<tmp[k][0]-xi<<endl;
            x+=tmp[k][0]-xi;
            nmd++;
@@ -1320,11 +1851,11 @@ void TKDBc::fitting(int il,int nls, int meas, integer StaLadders[17][2],
            number xi;
            int is=xPosLadder[i][j][k]/10;
            int ilr=xPosLadder[i][j][k]%10;
-           xi=AMSDBc::ssize_inactive(il,0)*(is-1+ilr)+dist*(ilr==0?1:-1);
+           xi=ssize_inactive(il,0)*(is-1+ilr)+dist*(ilr==0?1:-1);
            TRLDGM.Rx[k]=tmp[k][0]-xi-x;
           }
-          x+=0.5*AMSDBc::ssize_inactive(il,0)*(j==0?AMSDBc::nhalf(il+1,i+1):
-          AMSDBc::nsen(il+1,i+1)-AMSDBc::nhalf(il+1,i+1));
+          x+=0.5*ssize_inactive(il,0)*(j==0?nhalf(il+1,i+1):
+          nsen(il+1,i+1)-nhalf(il+1,i+1));
           AMSPoint xp(x,y,z);
          u=AMSDir(LadderNrm[i][j][0][0],LadderNrm[i][j][0][1],LadderNrm[i][j][0][2]);
          v=AMSDir(LadderNrm[i][j][1][0],LadderNrm[i][j][1][1],LadderNrm[i][j][1][2]);
@@ -1359,3 +1890,202 @@ void TKDBc::fitting(int il,int nls, int meas, integer StaLadders[17][2],
        }
      }
 }      
+
+
+   integer TKDBc::maxstripsdrp(){
+     static int init=0;
+     static int msstr=0;
+     if(init++==0){
+       for(int i=0;i<nlay();i++){
+         for(int j=0;j<2;j++){
+           if(msstr< _nstripsdrp[i][j])msstr=_nstripsdrp[i][j];
+         }
+       } 
+     }
+     return msstr;
+   }
+
+integer TKDBc::activeladdshuttle(int i,int j, int s){
+#ifdef __AMSDEBUG__
+ assert(i>0 && i<=nlay());
+ assert(j>0);
+ assert (s==0 || s==1);
+#endif
+
+
+ // Shuttle ladders 
+
+ if(j>=_boundladshuttle[i-1][s] && j<_boundladshuttle[i-1][s]+_nladshuttle[i-1][s])return 1;
+ else return 0;
+}
+
+
+uinteger TKDBc::Cumulus(integer layer){
+if(!_Cumulus){
+ _Cumulus = new uinteger[nlay()];
+ _Cumulus[0]=1;
+  for(int i=1;i<nlay();i++){
+   _Cumulus[i]=_Cumulus[i-1]*(1+2*nlad(i));
+  }
+}
+return _Cumulus[layer-1];
+}
+
+ integer * TKDBc::_patconf[maxlay];
+ integer * TKDBc::_patpoints;
+ integer * TKDBc::_patmiss[maxlay];
+ integer  TKDBc::_patd[maxlay]={0,0,0,0,0,0,0,0}; 
+ integer * TKDBc::_patallow;
+ integer * TKDBc::_patallow2;
+ uinteger TKDBc::_Npat=0;
+
+uinteger TKDBc::factorial(uinteger n){
+  if(n>0)return n*factorial(n-1);
+  else return 1;
+}
+
+
+void TKDBc::InitPattern(){
+
+
+    int k;
+    integer ordermiss[maxlay]={0,0,0,0,0,0,0,0};
+    integer vmiss[maxlay]={0,0,0,0,0,0,0,0};
+    integer vorder[maxlay]={1,2,3,4,5,6,7,8};
+    int minc;
+    int iq=0;
+    for(minc=0;minc<nlay()-2;minc+=2){
+       ordermiss[iq]=nlay()-1-minc;
+       ordermiss[iq+nlay()/2-1]=nlay()-2-minc;
+       iq++;
+    }
+    ordermiss[nlay()-2]=nlay();
+    ordermiss[nlay()-1]=1;
+#ifdef __AMSDEBUG__
+       for(minc=0;minc<nlay();minc++)cout <<"ordermiss["<<minc<<"] "<<ordermiss[minc]<<endl;
+#endif
+//initialize patterns
+   for(minc=nlay();minc>2;minc--){
+     _Npat+=factorial(nlay())/factorial(minc)/factorial(nlay()-minc);
+     _patd[nlay()-minc+1]=_Npat;
+   }
+   for(int nl=0;nl<_nlaysi;nl++){
+     _patmiss[nl]=new integer[_Npat];
+     _patconf[nl]=new integer[_Npat];
+   }   
+   _patpoints =new integer[_Npat];
+   _patallow =new integer[_Npat];
+   _patallow2 =new integer[_Npat];
+   int cpat=0;
+   for (cpat=0;cpat<npat();cpat++){
+     for(int npt=1;npt<nlay();npt++){
+       if(cpat<_patd[npt]){
+         _patpoints[cpat]=nlay()-npt+1;
+         int vmini=cpat-_patd[npt-1];
+         int count=0;
+         int v,i1,i2,i3,i4;
+         for(v=0;v<nlay();v++)vmiss[v]=0;
+         switch(npt-1){
+          case 0:
+           break;
+          case 1:        
+            for(i1=0;i1<nlay();i1++){
+             if(vmini==count){
+              vmiss[nlay()-1]=ordermiss[i1];
+             }
+             count++;
+            }            
+           break;
+          case 2:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              if(vmini==count){
+               vmiss[nlay()-1]=ordermiss[i2];
+               vmiss[nlay()-2]=ordermiss[i1];
+              }
+              count++;
+             }
+            }            
+           break;
+          case 3:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              for(i3=i2+1;i3<nlay();i3++){
+               if(vmini==count){
+                vmiss[nlay()-1]=ordermiss[i3];
+                vmiss[nlay()-2]=ordermiss[i2];
+                vmiss[nlay()-3]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           break;
+          case 4:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              for(i3=i2+1;i3<nlay();i3++){
+              for(i4=i3+1;i4<nlay();i4++){
+               if(vmini==count){
+                vmiss[nlay()-1]=ordermiss[i4];
+                vmiss[nlay()-2]=ordermiss[i3];
+                vmiss[nlay()-3]=ordermiss[i2];
+                vmiss[nlay()-4]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           break;
+          case 5:        
+            for(i1=0;i1<nlay();i1++){
+             for(i2=i1+1;i2<nlay();i2++){
+              for(i3=i2+1;i3<nlay();i3++){
+              for(i4=i3+1;i4<nlay();i4++){
+               for(int i5=i4+1;i5<nlay();i5++){
+               if(vmini==count){
+                vmiss[nlay()-1]=ordermiss[i5];
+                vmiss[nlay()-2]=ordermiss[i4];
+                vmiss[nlay()-3]=ordermiss[i3];
+                vmiss[nlay()-4]=ordermiss[i2];
+                vmiss[nlay()-5]=ordermiss[i1];
+               }
+               count++;
+              }            
+             } 
+            }
+           }
+           }
+           break;
+          default:
+           cerr<<"TKDBc::init-F-PatternLogicError"<<endl;
+           exit(1);
+         }
+         for(v=0;v<nlay();v++)_patmiss[v][cpat]=vmiss[v];
+         for(v=0;v<nlay();v++)_patconf[v][cpat]=0;
+           int av=0; 
+         for(v=0;v<nlay();v++){
+           _patconf[av][cpat]=v+1;
+           for(int vv=1;vv<nlay()+1;vv++){
+              if(_patmiss[vv-1][cpat]==v+1){
+                _patconf[av][cpat]=0;
+               av--;
+               break;
+              } 
+           }
+           av++;
+         }
+         break;
+       }
+     }
+   }
+}
+
+
+integer TKDBc::ambig(uinteger pat){
+ for(int i=0;i<patpoints(pat);i++){
+  if(_patconf[i][pat]==1 || _patconf[i][pat]==nlay())return 0;
+ }
+ return 1;
+}

@@ -29,95 +29,6 @@
 
 integer AMSTrTrack::_RefitIsNeeded=0;
 
-integer AMSTrTrack::patconf[npat][6]={1,2,3,4,5,6,   // 123456  0
-                                      1,2,3,4,6,0,   // 12346   1
-                                      1,2,3,5,6,0,   // 12356   2
-                                      1,2,4,5,6,0,   // 12456   3
-                                      1,3,4,5,6,0,   // 13456   4
-                                      1,2,3,4,5,0,   // 12345   5
-                                      2,3,4,5,6,0,   // 23456   6
-                                      1,2,3,4,0,0,   // 1234    7
-                                      1,2,3,5,0,0,   // 1235    8
-                                      1,2,3,6,0,0,   // 1236    9
-                                      1,2,4,5,0,0,   // 1245   10
-                                      1,2,4,6,0,0,   // 1246   11
-                                      1,2,5,6,0,0,   // 1256   12
-                                      1,3,4,5,0,0,   // 1345   13 
-                                      1,3,4,6,0,0,   // 1346   14
-                                      1,3,5,6,0,0,   // 1356   15
-                                      1,4,5,6,0,0,   // 1456   16
-                                      2,3,4,5,0,0,   // 2345   17
-                                      2,3,4,6,0,0,   // 2346   18
-                                      2,3,5,6,0,0,   // 2356   19
-                                      2,4,5,6,0,0,   // 2456   20
-                                      3,4,5,6,0,0,   // 3456   21
-                                      1,2,3,0,0,0,   // 123    22
-                                      1,2,4,0,0,0,   // 124    23
-                                      1,2,5,0,0,0,   // 125    24
-                                      1,2,6,0,0,0,   // 126    25
-                                      1,3,4,0,0,0,   // 134    26
-                                      1,3,5,0,0,0,   // 135    27
-                                      1,3,6,0,0,0,   // 136    28
-                                      1,4,5,0,0,0,   // 145    29
-                                      1,4,6,0,0,0,   // 146    30
-                                      1,5,6,0,0,0,   // 156    31
-                                      2,3,4,0,0,0,   // 234    32
-                                      2,3,5,0,0,0,   // 235    33
-                                      2,3,6,0,0,0,   // 236    34
-                                      2,4,5,0,0,0,   // 245    35
-                                      2,4,6,0,0,0,   // 246    36
-                                      2,5,6,0,0,0,   // 256    37
-                                      3,4,5,0,0,0,   // 345    38
-                                      3,4,6,0,0,0,   // 346    39
-                                      3,5,6,0,0,0,   // 356    40
-                                      4,5,6,0,0,0    // 456    41
-                                      };  
-integer AMSTrTrack::patmiss[npat][6]={0,0,0,0,0,0,   // 123456  0
-                                      0,0,0,0,0,5,   // 12346   1
-                                      0,0,0,0,0,4,   // 12356   2
-                                      0,0,0,0,0,3,   // 12456   3
-                                      0,0,0,0,0,2,   // 13456   4
-                                      0,0,0,0,0,6,   // 12345   5
-                                      0,0,0,0,0,1,   // 23456   6
-                                      0,0,0,0,5,6,   // 1234    7
-                                      0,0,0,0,4,6,   // 1235    8
-                                      0,0,0,0,4,5,   // 1236    9
-                                      0,0,0,0,3,6,   // 1245   10
-                                      0,0,0,0,3,5,   // 1246   11
-                                      0,0,0,0,3,4,   // 1256   12
-                                      0,0,0,0,2,6,   // 1345   13 
-                                      0,0,0,0,2,5,   // 1346   14
-                                      0,0,0,0,2,4,   // 1356   15
-                                      0,0,0,0,2,3,   // 1456   16
-                                      0,0,0,0,1,6,   // 2345   17
-                                      0,0,0,0,1,5,   // 2346   18
-                                      0,0,0,0,1,4,   // 2356   19
-                                      0,0,0,0,1,3,   // 2456   20
-                                      0,0,0,0,1,2,   // 3456   21
-                                      0,0,0,4,5,6,   // 123    22
-                                      0,0,0,3,5,6,   // 124    23
-                                      0,0,0,3,4,6,   // 125    24
-                                      0,0,0,3,4,5,   // 126    25
-                                      0,0,0,2,5,6,   // 134    26
-                                      0,0,0,2,4,6,   // 135    27
-                                      0,0,0,2,4,5,   // 136    28
-                                      0,0,0,2,3,6,   // 145    29
-                                      0,0,0,2,3,5,   // 146    30
-                                      0,0,0,2,3,4,   // 156    31
-                                      0,0,0,1,5,6,   // 234    32
-                                      0,0,0,1,4,6,   // 235    33
-                                      0,0,0,1,4,5,   // 236    34
-                                      0,0,0,1,3,6,   // 245    35
-                                      0,0,0,1,3,5,   // 246    36
-                                      0,0,0,1,3,4,   // 256    37
-                                      0,0,0,1,2,6,   // 345    38
-                                      0,0,0,1,2,5,   // 346    39
-                                      0,0,0,1,2,4,   // 356    40
-                                      0,0,0,1,2,3    // 456    41
-                                      };  
-integer AMSTrTrack::patpoints[npat]=
-              {6,5,5,5,5,5,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,3,3,3,
-               3,3,3,3,3,3,3,3,3,3,3,3,3,3};
 
 
 integer AMSTrCluster::build(integer refit){
@@ -144,11 +55,11 @@ integer AMSTrCluster::build(integer refit){
     }
   }
  
-  integer size=(AMSDBc::maxstripsdrp()+1+
+  integer size=(TKDBc::maxstripsdrp()+1+
   2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number);
   number *  adc  = (number*)UPool.insert(size); 
   AMSTrIdSoft id;
-  for(int icll=0;icll<2;icll++){
+  for(int icll=0;icll<AMSTrIdSoft::ncrates();icll++){
    AMSTrRawCluster *p=(AMSTrRawCluster*)AMSEvent::gethead()->
    getheadC("AMSTrRawCluster",icll,1);
    VZERO(adc,size/4);
@@ -165,7 +76,7 @@ integer AMSTrCluster::build(integer refit){
               
      // Circle buffer for x layers 1 && 6;
      // 
-     if(side==0 && (ilay==1 || ilay==6)){
+     if(side==0 && (ilay==1 || ilay==TKDBc::nlay())){
        for (int iloc=0;iloc<TRCLFFKEY.ThrClNEl[side]/2;iloc++){
         adc[iloc]=adc[id.getmaxstrips()+iloc];
         adc[iloc+id.getmaxstrips()+TRCLFFKEY.ThrClNEl[side]/2]=
@@ -218,7 +129,8 @@ integer AMSTrCluster::build(integer refit){
       // we don't know here the strip size (unfortunately...)
       // so put 1 instead ...
       // 
-      for (int j=left;j<right+1;j++){
+      int j;
+      for (j=left;j<right+1;j++){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
        if(!id.checkstatus(AMSDBc::BAD) && 
           adc[j]/id.getsig()>TRCLFFKEY.Thr3R[side]){
@@ -383,12 +295,12 @@ integer AMSTrCluster::buildWeak(integer refit){
    return -1;
   }
  
-  integer size=(AMSDBc::maxstripsdrp()+1+
+  integer size=(TKDBc::maxstripsdrp()+1+
   2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number);
   number *  adc  = (number*)UPool.insert(size); 
   AMSTrIdSoft id;
   // only x clusters can be weak
-  for(int icll=0;icll<2;icll++){
+  for(int icll=0;icll<AMSTrIdSoft::ncrates();icll++){
    AMSTrRawCluster *p=(AMSTrRawCluster*)AMSEvent::gethead()->
    getheadC("AMSTrRawCluster",icll,1);
    VZERO(adc,size/4);
@@ -407,7 +319,7 @@ integer AMSTrCluster::buildWeak(integer refit){
               
      // Circle buffer for x layers 1 && 6;
      // 
-     if(side==0 && (ilay==1 || ilay==6)){
+     if(side==0 && (ilay==1 || ilay==TKDBc::nlay())){
        for (int iloc=0;iloc<TRCLFFKEY.ThrClNEl[side]/2;iloc++){
         adc[iloc]=adc[id.getmaxstrips()+iloc];
         adc[iloc+id.getmaxstrips()+TRCLFFKEY.ThrClNEl[side]/2]=
@@ -465,7 +377,8 @@ integer AMSTrCluster::buildWeak(integer refit){
       // we don't know here the strip size (unfortunately...)
       // so put 1 instead ...
       // 
-      for (int j=left;j<right+1;j++){
+      int j;
+      for (j=left;j<right+1;j++){
        id.upd(j-TRCLFFKEY.ThrClNEl[side]/2);
        if(!id.checkstatus(AMSDBc::BAD) && 
           adc[j]/id.getsig()>TRCLFFKEY.Thr3R[side]){
@@ -811,7 +724,7 @@ number AMSTrCluster::_etacor(integer side, number eta) {
 
 // no eta correction for simulation
   if (!AMSJob::gethead()->isRealData()){
-    static first=1;
+    static integer first=1;
     if(first){
       first=0;
       cout<<"AMSTrCluster::_etacor - No eta corrections on MC"<<endl;
@@ -874,7 +787,8 @@ TrClusterNtuple* TrN = AMSJob::gethead()->getntuple()->Get_trcl();
     TrN->Mean[TrN->Ntrcl]=_Mean;
     TrN->RMS[TrN->Ntrcl]=_Rms;
     TrN->ErrorMean[TrN->Ntrcl]=_ErrorMean;
-    for(int i=0;i<min(5,getnelem());i++)TrN->Amplitude[TrN->Ntrcl][i]=_pValues[i]; 
+    int i;
+    for(i=0;i<min(5,getnelem());i++)TrN->Amplitude[TrN->Ntrcl][i]=_pValues[i]; 
     for(i=getnelem();i<5;i++)TrN->Amplitude[TrN->Ntrcl][i]=0;
     TrN->Ntrcl++;
   }
@@ -890,7 +804,7 @@ for(int i=0;i<2;i++){
 }
 }
 
-AMSTrRecHit * AMSTrRecHit::_Head[6]={0,0,0,0,0,0};
+AMSTrRecHit * AMSTrRecHit::_Head[maxlay]={0,0,0,0,0,0,0,0};
 
 
 integer AMSTrRecHit::build(integer refit){
@@ -1117,7 +1031,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
     geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
-    for (i=0;i<6;i++) {
+    for (i=0;i<TKDBc::nlay();i++) {
       for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
         hit = ptrhit->getHit();
         number xres = fabs(hit[0]-intercept_x - slope_x*hit[2]);
@@ -1192,6 +1106,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
     }
     AMSlink * ptr = AMSEvent::gethead()->addnext(AMSID("AMSTrRecHit",layer-1),
     new     AMSTrRecHit(pSen, status,layer,cofgx,cofgy,x,y,hit,ehit,s1+s2,(s1-s2)/(s1+s2)));
+//    cout <<"cfgx  "<<cofgx<<" "<<ptr<<" "<<layer<<" "<<cofgy<<endl;
     if(ptr && GOOD)ptr->setstatus(AMSDBc::GOOD);  
 }
 
@@ -1252,10 +1167,12 @@ void AMSTrRecHit::_writeEl(){
     }
     THN->Status[THN->Ntrrh]=_status;
     THN->Layer[THN->Ntrrh]=_Layer;
-    for(int i=0;i<3;i++)THN->Hit[THN->Ntrrh][i]=_Hit[i];
+    int i;
+    for(i=0;i<3;i++)THN->Hit[THN->Ntrrh][i]=_Hit[i];
     for(i=0;i<3;i++)THN->EHit[THN->Ntrrh][i]=_EHit[i];
     THN->Sum[THN->Ntrrh]=_Sum;
     THN->DifoSum[THN->Ntrrh]=_DifoSum;
+//    cout <<" cofgx "<<_cofgx<<" "<<this<<" "<<_Layer<<" "<<_cofgy<<endl;
     THN->CofgX[THN->Ntrrh]=_cofgx;
     THN->CofgY[THN->Ntrrh]=_cofgy;
 
@@ -1268,7 +1185,7 @@ void AMSTrRecHit::_copyEl(){
 
 
 void AMSTrRecHit::print(){
-for(int i=0;i<6;i++){
+for(int i=0;i<TKDBc::nlay();i++){
  AMSContainer *p =AMSEvent::gethead()->getC("AMSTrRecHit",i);
  if(p)p->printC(cout);
 }
@@ -1295,7 +1212,7 @@ integer AMSTrTrack::build(integer refit){
    
   { 
     int xs=0; 
-    for (int kk=0;kk<6;kk++){
+    for (int kk=0;kk<TKDBc::nlay();kk++){
     AMSTrRecHit * phit=AMSTrRecHit::gethead(kk);
     if(phit)xs++;
   }
@@ -1303,17 +1220,14 @@ integer AMSTrTrack::build(integer refit){
   }
           integer       ThreePointNotWanted=0;
 
-  for (int pat=0;pat<npat;pat++){
-    if(patpoints[pat]==3 && ThreePointNotWanted)continue;
-    //cout << patpoints[pat]<<"  " <<ThreePointNotWanted<<endl;
-    AMSTrRecHit * phit[6]={0,0,0,0,0,0};
-    if(TRFITFFKEY.pattern[pat]){
-      int fp=patpoints[pat]-1;    
+  for (pat=0;pat<npat;pat++){
+    if(TKDBc::patpoints(pat)==3 && ThreePointNotWanted)continue;
+    if(TKDBc::patallow(pat)){
+      int fp=TKDBc::patpoints(pat)-1;    
       // Try to make StrLine Fit
-      integer first=AMSTrTrack::patconf[pat][0]-1;
-      integer second=AMSTrTrack::patconf[pat][fp]-1;
+      integer first=TKDBc::patconf(pat,0)-1;
+      integer second=TKDBc::patconf(pat,fp)-1;
       phit[0]=AMSTrRecHit::gethead(first);
-      number par[2][2];
       while( phit[0]){
        if(phit[0]->Good()){
        phit[fp]=AMSTrRecHit::gethead(second);
@@ -1327,81 +1241,16 @@ integer AMSTrTrack::build(integer refit){
         par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
         if(NTrackFound<0)NTrackFound=0;
         // Search for others
-        phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
-        while(phit[1]){
-         if(phit[1]->Good()){
-          // Check if the point lies near the str line
-           if(AMSTrTrack::Distance(par,phit[1]))
-           {phit[1]=phit[1]->next();continue;}
-          if(AMSTrTrack::patpoints[pat] >3){         
-         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
-         while(phit[2]){
-          // Check if the point lies near the str line
-          if(phit[2]->Good()){
-          if(AMSTrTrack::Distance(par,phit[2]))
-          {phit[2]=phit[2]->next();continue;}
-          if(AMSTrTrack::patpoints[pat] >4){         
-          phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
-          while(phit[3]){
-           if(phit[3]->Good()){
-           if(AMSTrTrack::Distance(par,phit[3]))
-           {phit[3]=phit[3]->next();continue;}
-           if(AMSTrTrack::patpoints[pat]>5){
-           phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
-           while(phit[4]){
-             if(phit[4]->Good()){
-              if(AMSTrTrack::Distance(par,phit[4]))
-              {phit[4]=phit[4]->next();continue;}
-                // 6 point combination found
-              if(AMSTrTrack::_addnext(pat,6,phit)){
-                  NTrackFound++;
-                 // we don't want three points any more
-                 ThreePointNotWanted=1;
-                  goto out;
-
-              }                
-                
-             }
-            phit[4]=phit[4]->next();
-           }
-           }
-           else{  // 5 points only
-                // 5 point combination found
-             if(AMSTrTrack::_addnext(pat,5,phit)){
-                  NTrackFound++;
-                 ThreePointNotWanted=1;
-                  goto out;
-             }
-                
-           }
-           }
-           phit[3]=phit[3]->next();
-          }
-          }
-          else{       // 4 points only
-                // 4 point combination found
-                
-                if(AMSTrTrack::_addnext(pat,4,phit)){
-                  NTrackFound++;
-                  goto out;
-                }                
-          }
-          }
-          phit[2]=phit[2]->next();
-          }
-          }
-          else{       // 3 points only
-                // 3 point combination found
-                
-                if(AMSTrTrack::_addnext(pat,3,phit)){
-                  NTrackFound++;
-                  goto out;
-                }                
-
-          }
+        integer npfound=_TrSearcher(1);
+        if(npfound){
+           NTrackFound++;
+         if(npfound>4){
+            // we don't want three points any more
+            ThreePointNotWanted=1;
          }
-         phit[1]=phit[1]->next();
+         goto out;
         }
+
         }         
         phit[fp]=phit[fp]->next();
        }
@@ -1428,19 +1277,14 @@ integer AMSTrTrack::buildWeak(integer refit){
   _Start();
    
 
-  for (int pat=7;pat<22;pat++){
+  for (pat=0;pat<npat;pat++){
     // Only 4 points patterns used
-    AMSTrRecHit * phit[6]={0,0,0,0,0,0};
-    if(TRFITFFKEY.pattern[pat]){
-      int fp=patpoints[pat]-1;    
-#ifdef __AMSDEBUG__
-     assert (fp==3);
-#endif 
+      int fp=TKDBc::patpoints(pat)-1;    
+    if(TKDBc::patallow(pat) && fp<=TKDBc::nlay()-3){
       // Try to make StrLine Fit
-      integer first=AMSTrTrack::patconf[pat][0]-1;
-      integer second=AMSTrTrack::patconf[pat][fp]-1;
+      integer first=TKDBc::patconf(pat,0)-1;
+      integer second=TKDBc::patconf(pat,fp)-1;
       phit[0]=AMSTrRecHit::gethead(first);
-      number par[2][2];
       while( phit[0]){
        if(phit[0]->Good() && phit[0]->checkstatus(AMSDBc::WEAK)==0){
        phit[fp]=AMSTrRecHit::gethead(second);
@@ -1454,29 +1298,11 @@ integer AMSTrTrack::buildWeak(integer refit){
         par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
         // Search for others
         if(NTrackFound<0)NTrackFound=0;
-        phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
-        while(phit[1]){
-         if(phit[1]->Good()){
-          // Check if the point lies near the str line
-           if(AMSTrTrack::Distance(par,phit[1]))
-           {phit[1]=phit[1]->next();continue;}
-         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
-         while(phit[2]){
-          // Check if the point lies near the str line
-          if(phit[2]->Good()){
-          if(AMSTrTrack::Distance(par,phit[2]))
-          {phit[2]=phit[2]->next();continue;}
-                // 4 point combination found
-                
-                if(AMSTrTrack::_addnext(pat,4,phit)){
-                  NTrackFound++;
-                  goto out;
-                }                
-          }
-          phit[2]=phit[2]->next();
-         }
-         }
-         phit[1]=phit[1]->next();
+        // Search for others
+        integer npfound=_TrSearcher(1);
+        if(npfound){
+           NTrackFound++;
+         goto out;
         }
         }         
         phit[fp]=phit[fp]->next();
@@ -1497,21 +1323,19 @@ return NTrackFound;
 
 
 
-integer AMSTrTrack::buildFalseX(integer patstart){
+integer AMSTrTrack::buildFalseX(integer nptmin){
   integer NTrackFound=-1;
   // pattern recognition + fit
   _RefitIsNeeded=0;
   _Start();
 
-  for (int pat=patstart;pat<npat;pat++){
-    AMSTrRecHit * phit[6]={0,0,0,0,0,0};
-    if(1  || TRFITFFKEY.pattern[pat]){
-      int fp=patpoints[pat]-1;    
+  for (pat=0;pat<npat;pat++){
+    if(TKDBc::patpoints(pat)<=nptmin && TKDBc::patallowFalseX(pat)){
+      int fp=TKDBc::patpoints(pat)-1;    
       // Try to make StrLine Fit
-      integer first=AMSTrTrack::patconf[pat][0]-1;
-      integer second=AMSTrTrack::patconf[pat][fp]-1;
+      integer first=TKDBc::patconf(pat,0)-1;
+      integer second=TKDBc::patconf(pat,fp)-1;
       phit[0]=AMSTrRecHit::gethead(first);
-      number par[2][2];
       while( phit[0]){
        if(phit[0]->Good() && phit[0]->checkstatus(AMSDBc::WEAK)==0 && phit[0]->checkstatus(AMSDBc::FalseX)==0){
        phit[fp]=AMSTrRecHit::gethead(second);
@@ -1525,80 +1349,13 @@ integer AMSTrTrack::buildFalseX(integer patstart){
         par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
         // Search for others
         if(NTrackFound<0)NTrackFound=0;
-        phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
-        while(phit[1]){
-         if(phit[1]->Good()&& phit[1]->checkstatus(AMSDBc::FalseX)==0){
-          // Check if the point lies near the str line
-           if(AMSTrTrack::Distance(par,phit[1]))
-           {phit[1]=phit[1]->next();continue;}
-          // Check if the point lies near the str line
-           if(AMSTrTrack::Distance(par,phit[1]))
-           {phit[1]=phit[1]->next();continue;}
-          if(AMSTrTrack::patpoints[pat] >3){         
-         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
-         while(phit[2]){
-          // Check if the point lies near the str line
-          if(phit[2]->Good()&& phit[2]->checkstatus(AMSDBc::FalseX)==0){
-          if(AMSTrTrack::Distance(par,phit[2]))
-          {phit[2]=phit[2]->next();continue;}
-          if(AMSTrTrack::patpoints[pat] >4){         
-          phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
-          while(phit[3]){
-           if(phit[3]->Good()&& phit[3]->checkstatus(AMSDBc::FalseX)==0){
-           if(AMSTrTrack::Distance(par,phit[3]))
-           {phit[3]=phit[3]->next();continue;}
-           if(AMSTrTrack::patpoints[pat]>5){
-           phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
-           while(phit[4]){
-             if(phit[4]->Good()&& phit[4]->checkstatus(AMSDBc::FalseX)==0){
-              if(AMSTrTrack::Distance(par,phit[4]))
-              {phit[4]=phit[4]->next();continue;}
-                // 6 point combination found
-              if(AMSTrTrack::_addnext(pat,6,phit)){
-                  goto out;
-              }                
-                
-             }
-            phit[4]=phit[4]->next();
-           }
-           }
-           else{  // 5 points only
-                // 5 point combination found
-             int f=AMSTrTrack::_addnextFalseX(pat,5,phit);
-             if(f){
-                  if(f>0)NTrackFound++;
-                  goto out;
-             }
-                
-           }
-           }
-           phit[3]=phit[3]->next();
-          }
-          }
-          else{       // 4 points only
-                // 4 point combination found
-            int f=AMSTrTrack::_addnextFalseX(pat,4,phit);
-                if(f){
-                  if(f>0)NTrackFound++;
-                  goto out;
-                }                
-          }
-          }
-          phit[2]=phit[2]->next();
-          }
-          }
-          else{       // 3 points only
-                // 3 point combination found
-            int f= AMSTrTrack::_addnextFalseX(pat,3,phit);
-                if(f){
-                  if(f>0)NTrackFound++;
-                  goto out;
-                }                
 
-          }
-         }
-         phit[1]=phit[1]->next();
+        integer npfound=_TrSearcherFalseX(1);
+        if(npfound){
+           if(npfound>0)NTrackFound++;
+           goto out;
         }
+
         }         
         phit[fp]=phit[fp]->next();
        }
@@ -1636,7 +1393,7 @@ trig=(trig+1)%freq;
 
 
 
-integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
+integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[maxlay]){
 
 #ifdef __UPOOL__
     AMSTrTrack track(pat, nhit ,pthit);
@@ -1671,7 +1428,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
 
 
 
-void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrRecHit* pthit[6]){
+void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrRecHit* pthit[maxlay]){
 
          int i;
          // Mark hits as USED
@@ -1700,14 +1457,14 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
            }
           }
          // permanently add;
-          AMSEvent::gethead()->addnext(AMSID("AMSTrTrack",pat),ptrack);
+          AMSEvent::gethead()->addnext(AMSID("AMSTrTrack",0),ptrack);
 }
 
 
 
 
 
-integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
+integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit[]){
 AMSgObj::BookTimer.start("TrFalseX");
 #ifdef __UPOOL__
     AMSTrTrack track(pat, nhit ,pthit);
@@ -1730,12 +1487,11 @@ AMSgObj::BookTimer.start("TrFalseX");
         // finally change pattern according to new track and
         // add "FalseX" bit into track status word
 
-        {
           integer pointfound=0;
-          for(int i=nhit;i<6;i++){
+          for(int i=nhit;i<TKDBc::nlay();i++){
             integer ladder=8;
             integer sensor=5;
-             AMSTrIdGeom id(patmiss[pat][i],ladder,sensor,0,0);
+             AMSTrIdGeom id(TKDBc::patmiss(pat,i),ladder,sensor,0,0);
              AMSgvolume* p= AMSJob::gethead()->getgeomvolume(id.crgid());
             if(p){
               AMSPoint  P1;
@@ -1793,7 +1549,6 @@ AMSgObj::BookTimer.start("TrFalseX");
                     }
                     py=py->next();
                   }
-                  if(1){
                     if(pointfound>0){
 #ifndef __UPOOL__
                       delete ptrack;  
@@ -1801,7 +1556,17 @@ AMSgObj::BookTimer.start("TrFalseX");
                       AMSgObj::BookTimer.stop("TrFalseX");
                       return 1;
                     }
-                    else if(TRFITFFKEY.pattern[pat]){
+                }
+              }
+            }
+#ifdef __AMSDEBUG__
+            else  cerr <<" AMSTrTrack::_addnextFalseX-E-NoSensorsForPlaneFound "<<
+                    TKDBc::patmiss(pat,i)<<endl;
+#endif
+            
+          }
+
+                    if(TKDBc::patallow(pat)){
 #ifdef __UPOOL__
                       ptrack=new AMSTrTrack(track);
 #endif
@@ -1816,41 +1581,10 @@ AMSgObj::BookTimer.start("TrFalseX");
                       AMSgObj::BookTimer.stop("TrFalseX");
                       return 0;
                     }
-                  }
-                }
-              }
-            }
-#ifdef __AMSDEBUG__
-            else  cerr <<" AMSTrTrack::_addnextFalseX-E-NoSensorsForPlaneFound "<<
-                    patmiss[pat][i]<<endl;
-#endif
-            
-          }
-          if(0){
-            if(pointfound>0){
-#ifndef __UPOOL__
-              delete ptrack;  
-#endif   
-              AMSgObj::BookTimer.stop("TrFalseX");
-              return 1;
-            }
-            else if(TRFITFFKEY.pattern[pat]){
-#ifdef __UPOOL__
-              ptrack=new AMSTrTrack(track);
-#endif
-              _addnextR(ptrack, pat, nhit, pthit);
-              AMSgObj::BookTimer.stop("TrFalseX");
-              return -1;
-            }
-            else {
-#ifndef __UPOOL__
-              delete ptrack;  
-#endif   
-              AMSgObj::BookTimer.stop("TrFalseX");
-              return 0;
-            }
-          }
-        }
+
+
+
+
       }
      }
     }
@@ -1866,7 +1600,7 @@ AMSgObj::BookTimer.start("TrFalseX");
 
 
 void AMSTrTrack::AdvancedFit(){
-    if(_Pattern <22){
+    if(TKDBc::patpoints(_Pattern)>3){
       Fit(1);
       Fit(2);
     }
@@ -1875,11 +1609,9 @@ void AMSTrTrack::AdvancedFit(){
 }
 
 integer AMSTrTrack::TOFOK(){
-    if (TRFITFFKEY.UseTOF && (_Pattern > 6 || 
+    if (TRFITFFKEY.UseTOF && (TKDBc::ambig(_Pattern) || 
                               checkstatus(AMSDBc::FalseX) ||
                               checkstatus(AMSDBc::FalseTOFX))){
-  //  if (TRFITFFKEY.UseTOF && (_Pattern == 17 || _Pattern > 21)){
-  //   if (TRFITFFKEY.UseTOF ){
    // Cycle thru all TOF clusters;
    // at least UseTOF of them should be matched with the track
    integer i;
@@ -2004,7 +1736,8 @@ geant chiz;
 geant xmom,dip,phis,exmom;
 integer iflag=0;
 geant p0[3];
-for (int i=0;i<_NHits;i++){
+int i;
+for (i=0;i<_NHits;i++){
  z[i]=_Pthit[i]->getHit()[0];
  x[i]=_Pthit[i]->getHit()[1];
  y[i]=_Pthit[i]->getHit()[2];
@@ -2079,77 +1812,63 @@ number AMSTrTrack::Fit(integer fits, integer ipart){
     }
   }
   else if(fit ==1){
-    if(_Pattern==0){
-      //fit 124
-      npt=3;
-     for(int j=0;j<3;j++){
-      hits[0][j]=getHit(0,fits<0)[j];
-      sigma[0][j]=getEHit(0)[j];
-      hits[1][j]=getHit(1,fits<0)[j];
-      sigma[1][j]=getEHit(1)[j];
-      hits[2][j]=getHit(3,fits<0)[j];
-      sigma[2][j]=getEHit(3)[j];
+     npt=(TKDBc::patpoints(_Pattern)+1)/2;
+     if(npt<3)npt=3;
+     if(TKDBc::patpoints(_Pattern)%2==0 && TKDBc::patpoints(_Pattern)>4){
+      // fit 1,,,n/2-1,n/2+1
+       int j,k;
+       for(k=0;k<npt;k++){
+        for(j=0;j<3;j++){
+        hits[k][j]=getHit(k<npt-1?k:k+1,fits<0)[j];
+        sigma[k][j]=getEHit(k<npt-1?k:k+1)[j];
+        }
+       }      
      }
-      
-    }
-    else if(_Pattern<npat){
-      //fit 123
-      npt=3;
-     for(int j=0;j<3;j++){
-      hits[0][j]=getHit(0,fits<0)[j];
-      sigma[0][j]=getEHit(0)[j];
-      hits[1][j]=getHit(1,fits<0)[j];
-      sigma[1][j]=getEHit(1)[j];
-      hits[2][j]=getHit(2,fits<0)[j];
-      sigma[2][j]=getEHit(2)[j];
+     else if(TKDBc::patpoints(_Pattern)>3){
+       // fit 1,,,,n/2
+       int j,k;
+       for(k=0;k<npt;k++){
+        for(j=0;j<3;j++){
+        hits[k][j]=getHit(k,fits<0)[j];
+        sigma[k][j]=getEHit(k)[j];
+        }
+       }      
      }
-    }
-    else{
-     _HChi2[0]=FLT_MAX;
-     return _HChi2[0];       
-    }    
+     else{
+      _HChi2[0]=FLT_MAX;
+      return _HChi2[0];       
+     }    
   }  
   else if(fit ==2){
-    if(_Pattern == 0 ){
-      // fit 356
-      npt=3;
-     for(int j=0;j<3;j++){
-      hits[0][j]=getHit(2,fits<0)[j];
-      sigma[0][j]=getEHit(2)[j];
-      hits[1][j]=getHit(4,fits<0)[j];
-      sigma[1][j]=getEHit(4)[j];
-      hits[2][j]=getHit(5,fits<0)[j];
-      sigma[2][j]=getEHit(5)[j];
+     npt=(TKDBc::patpoints(_Pattern)+1)/2;
+     if(npt<3)npt=3;
+     if(TKDBc::patpoints(_Pattern)%2==0 && TKDBc::patpoints(_Pattern)>4){
+      // fit 1,,,n/2-1,n/2+1
+       int j,k;
+       for(k=0;k<npt;k++){
+        for(j=0;j<3;j++){
+        hits[k][j]=getHit((k==0?-1:k)+TKDBc::patpoints(_Pattern)-npt,fits<0)[j];
+        sigma[k][j]=getEHit((k==0?-1:k)+TKDBc::patpoints(_Pattern)-npt)[j];
+        }
+       }      
      }
-    }
-    else if(_Pattern <7){
-      // fit 345
-      npt=3;
-     for(int j=0;j<3;j++){
-      hits[0][j]=getHit(2,fits<0)[j];
-      sigma[0][j]=getEHit(2)[j];
-      hits[1][j]=getHit(3,fits<0)[j];
-      sigma[1][j]=getEHit(3)[j];
-      hits[2][j]=getHit(4,fits<0)[j];
-      sigma[2][j]=getEHit(4)[j];
+     else if(TKDBc::patpoints(_Pattern)>3){
+       // fit 1,,,,n/2
+       int j,k;
+       for(k=0;k<npt;k++){
+        for(j=0;j<3;j++){
+        hits[k][j]=getHit(TKDBc::patpoints(_Pattern)-npt+k,fits<0)[j];
+        sigma[k][j]=getEHit(TKDBc::patpoints(_Pattern)-npt+k)[j];
+        }
+       }      
      }
-    }
-    else if(_Pattern <npat){
-      // fit 234
-      npt=3;
-     for(int j=0;j<3;j++){
-      hits[0][j]=getHit(1,fits<0)[j];
-      sigma[0][j]=getEHit(1)[j];
-      hits[1][j]=getHit(2,fits<0)[j];
-      sigma[1][j]=getEHit(2)[j];
-      hits[2][j]=getHit(3,fits<0)[j];
-      sigma[2][j]=getEHit(3)[j];
-     }
-    }
-    else{
-     _HChi2[1]=FLT_MAX;
-     return _HChi2[1];       
-    }    
+     else{
+      _HChi2[0]=FLT_MAX;
+      return _HChi2[0];       
+     }    
+
+
+
   }
   else{
      return FLT_MAX;       
@@ -2296,7 +2015,8 @@ void AMSTrTrack::_writeEl(){
     TrTN->Address[TrTN->Ntrtr]=_Address;
 //    for(i=0;i<2;i++)TrTN->Dbase[TrTN->Ntrtr][i]=_Dbase[i];
     
-    for(int k=_NHits;k<AMSDBc::nlay();k++)TrTN->pHits[TrTN->Ntrtr][k]=0;
+    int k;
+    for(k=_NHits;k<TKDBc::nlay();k++)TrTN->pHits[TrTN->Ntrtr][k]=0;
     for(k=0;k<_NHits;k++){
      TrTN->pHits[TrTN->Ntrtr][k]=_Pthit[k]->getpos();
       int pat;
@@ -2397,7 +2117,7 @@ void AMSTrTrack::_copyEl(){
 void AMSTrTrack::print(){
 for(int i=0;i<npat;i++){
  AMSContainer *p =AMSEvent::gethead()->getC("AMSTrTrack",i);
- if(p && TRFITFFKEY.pattern[i])p->printC(cout);
+ if(p && TKDBc::patallow(i))p->printC(cout);
 }
 }
 
@@ -2500,8 +2220,8 @@ void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
 
 void AMSTrTrack::init(AMSTrRecHit * phit[] ){
 int i;
-for( i=0;i<6;i++)_Pthit[i]=phit[i];
-
+for( i=0;i<_NHits;i++)_Pthit[i]=phit[i];
+for(i=_NHits;i<maxlay;i++)_Pthit[i]=0;
  _GChi2=-1;
  _GRidgidity=0;
  _GErrRidgidity=0;
@@ -2690,7 +2410,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       if (half==0) 
                    sensor = 5; 
       else 
-                   sensor = AMSDBc::nsen(layer,ladder) - 5;
+                   sensor = TKDBc::nsen(layer,ladder) - 5;
       AMSTrIdGeom idgeom(layer,ladder,sensor,0,0);
       AMSgSen *psensor=(AMSgSen*)AMSJob::gethead()->getgeomvolume(idgeom.crgid());
       idgeom.R2G(idsoft);
@@ -2757,10 +2477,10 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
    
   { 
     int xs=0; 
-    for (int kk=0;kk<6;kk++){
-      AMSTrRecHit * phit;
-      for (phit=AMSTrRecHit::gethead(kk); phit!=NULL; phit=phit->next()){
-        if (phit->Good() && phit->checkstatus(AMSDBc::FalseTOFX)) {
+    for (int kk=0;kk<TKDBc::nlay();kk++){
+      AMSTrRecHit * pphit;
+      for (pphit=AMSTrRecHit::gethead(kk); pphit!=NULL; pphit=pphit->next()){
+        if (pphit->Good() && pphit->checkstatus(AMSDBc::FalseTOFX)) {
           xs++; 
           break;
         }
@@ -2771,17 +2491,14 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
   }
           integer       ThreePointNotWanted=0;
 
-  for (int pat=0;pat<npat;pat++){
-    AMSTrRecHit * phit[6]={0,0,0,0,0,0};
-    if(TRFITFFKEY.pattern[pat]){
-    if(patpoints[pat]==3 && ThreePointNotWanted)continue;
-    //cout << patpoints[pat]<<"  " <<ThreePointNotWanted<<endl;
-      int fp=patpoints[pat]-1;    
+  for (pat=0;pat<npat;pat++){
+    if(TKDBc::patallow(pat)){
+    if(TKDBc::patpoints(pat)==3 && ThreePointNotWanted)continue;
+      int fp=TKDBc::patpoints(pat)-1;    
       // Try to make StrLine Fit
-      integer first=AMSTrTrack::patconf[pat][0]-1;
-      integer second=AMSTrTrack::patconf[pat][fp]-1;
+      integer first=TKDBc::patconf(pat,0)-1;
+      integer second=TKDBc::patconf(pat,fp)-1;
       phit[0]=AMSTrRecHit::gethead(first);
-      number par[2][2];
       while( phit[0]){
        if(phit[0]->Good() && phit[0]->checkstatus(AMSDBc::FalseTOFX)!=0){
        phit[fp]=AMSTrRecHit::gethead(second);
@@ -2795,72 +2512,14 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
         par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
         if(NTrackFound<0)NTrackFound=0;
         // Search for others
-        phit[1]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][1]-1);
-        while(phit[1]){
-         if(phit[1]->Good() && phit[1]->checkstatus(AMSDBc::FalseTOFX)!=0){
-          // Check if the point lies near the str line
-           if(AMSTrTrack::DistanceTOF(par,phit[1]))
-           {phit[1]=phit[1]->next();continue;}
-          if(AMSTrTrack::patpoints[pat] >3){         
-         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
-         while(phit[2]){
-          // Check if the point lies near the str line
-          if(phit[2]->Good() && phit[2]->checkstatus(AMSDBc::FalseTOFX)!=0){
-          if(AMSTrTrack::DistanceTOF(par,phit[2]))
-          {phit[2]=phit[2]->next();continue;}
-          if(AMSTrTrack::patpoints[pat] >4){         
-          phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
-          while(phit[3]){
-           if(phit[3]->Good() && phit[3]->checkstatus(AMSDBc::FalseTOFX)!=0){
-           if(AMSTrTrack::DistanceTOF(par,phit[3]))
-           {phit[3]=phit[3]->next();continue;}
-           if(AMSTrTrack::patpoints[pat]>5){
-           phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
-           while(phit[4]){
-             if(phit[4]->Good() && phit[4]->checkstatus(AMSDBc::FalseTOFX)!=0){
-              if(AMSTrTrack::DistanceTOF(par,phit[4]))
-              {phit[4]=phit[4]->next();continue;}
-                // 6 point combination found
-              if(AMSTrTrack::_addnext(pat,6,phit)){
-                  //cout << "FalseTOFX track found with 6 hits" << endl;
-                  NTrackFound++;
-                   ThreePointNotWanted=1;
-                  goto out;
-              }                
-                
-             }
-            phit[4]=phit[4]->next();
-           }
-           }
-           else{  // 5 points only
-                // 5 point combination found
-             if(AMSTrTrack::_addnext(pat,5,phit)){
-                   //cout << "FalseTOFX track found with 5 hits" << endl;
-                  NTrackFound++;
-                   ThreePointNotWanted=1;
-                  goto out;
-             }
-                
-           }
-           }
-           phit[3]=phit[3]->next();
-          }
-          }
-          else{       // 4 points only
-                // 4 point combination found
-                
-                if(AMSTrTrack::_addnext(pat,4,phit)){
-                  //cout << "FalseTOFX track found with 4 hits" << endl;
-                  NTrackFound++;
-                  goto out;
-                }                
-          }
-          }
-          phit[2]=phit[2]->next();
-          }
-          }
-          }
-         phit[1]=phit[1]->next();
+        integer npfound=_TrSearcherFalseTOFX(1);
+        if(npfound){
+           NTrackFound++;
+         if(npfound>4){
+            // we don't want three points any more
+            ThreePointNotWanted=1;
+         }
+         goto out;
         }
         }         
         phit[fp]=phit[fp]->next();
@@ -2964,7 +2623,7 @@ void AMSTrTrack::_crHit(){
   if(found && fabs(_Dbase[1]-TRALIG.One)>TRALIG.GlobalGoodLimit && 
      fabs(_Dbase[0]-1.025)<TRALIG.GlobalGoodLimit){
    for(int i=0;i<_NHits;i++){
-    int plane=patconf[_Pattern][i]-1;
+    int plane=TKDBc::patconf(_Pattern,i)-1;
     for(int j=0;j<3;j++){
      _Hit[i][j]=(par[plane].getcoo())[j]+
       (par[plane].getmtx(j)).prod(_Pthit[i]->getlocHit());
@@ -2978,7 +2637,7 @@ void AMSTrTrack::_crHit(){
    _Dbase[0]=0;
    _Dbase[1]=0;
    for(int i=0;i<_NHits;i++){
-    int plane=patconf[_Pattern][i]-1;
+    int plane=TKDBc::patconf(_Pattern,i)-1;
     for(int j=0;j<3;j++){
      _Hit[i][j]=_Pthit[i]->getHit()[j];
      _EHit[i][j]=_Pthit[i]->getEHit()[j];
@@ -2994,16 +2653,16 @@ void AMSTrTrack::_buildaddress(){
     int layer=id.getlayer();
     int ladder=id.getdrp();
     int half=id.gethalf();
-    _Address+=AMSDBc::Cumulus(layer)*(ladder+half*(AMSDBc::nlad(layer)+1));
+    _Address+=TKDBc::Cumulus(layer)*(ladder+half*(TKDBc::nlad(layer)+1));
   } 
 
 }
 
-void AMSTrTrack::decodeaddress(integer ladder[2][6], uinteger _Address){
-   for(int i=0;i<6;i++){
-    uinteger lad=(_Address/AMSDBc::Cumulus(i+1))%(2*AMSDBc::nlad(i+1)+1);
-    ladder[0][i]=lad%(AMSDBc::nlad(i+1)+1);
-    ladder[1][i]=lad/(AMSDBc::nlad(i+1)+1);
+void AMSTrTrack::decodeaddress(integer ladder[2][maxlay], uinteger _Address){
+   for(int i=0;i<TKDBc::nlay();i++){
+    uinteger lad=(_Address/TKDBc::Cumulus(i+1))%(2*TKDBc::nlad(i+1)+1);
+    ladder[0][i]=lad%(TKDBc::nlad(i+1)+1);
+    ladder[1][i]=lad/(TKDBc::nlad(i+1)+1);
     //cout <<i+1<< " "<<ladder[0][i]<<" "<<ladder[1][i]<<endl; 
    }
 }
@@ -3015,17 +2674,18 @@ uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
 
     const int maxchld=21;
     static uinteger achld[maxchld];
-    integer lad[2][6];    
-    integer lad1[2][6];    
+    integer lad[2][maxlay];    
+    integer lad1[2][maxlay];    
     integer npt=0;
     decodeaddress(lad,address);
     int xnpt=0;
-    for(int i=0;i<6;i++){
+    int i;
+    for(i=0;i<TKDBc::nlay();i++){
      if(lad[0][i])xnpt++;
     }
     nchild=0;
     if(xnpt>=5){
-     for(i=0;i<6;i++){
+     for(i=0;i<TKDBc::nlay();i++){
       if(lad[0][i]){
        int tmp=lad[0][i];
        lad[0][i]=0;
@@ -3035,10 +2695,10 @@ uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
      }
      //if(xnpt==6){
      if(xnpt>6){
-      for(i=0;i<6;i++){
+      for(i=0;i<TKDBc::nlay();i++){
        int tmpi=lad[0][i];
        lad[0][i]=0;
-       for(int j=i+1;j<6;j++){
+       for(int j=i+1;j<TKDBc::nlay();j++){
         int tmpj=lad[0][j];
         lad[0][j]=0;
         achld[nchild++]=encodeaddress(lad);     
@@ -3059,10 +2719,10 @@ uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
 }
 
 
-uinteger AMSTrTrack::encodeaddress(integer ladder[2][6]){
+uinteger AMSTrTrack::encodeaddress(integer ladder[2][maxlay]){
    uinteger address=0;
-   for(int i=0;i<6;i++){
-     address+= AMSDBc::Cumulus(i+1)*(ladder[0][i]+ladder[1][i]*(AMSDBc::nlad(i+1)+1));
+   for(int i=0;i<TKDBc::nlay();i++){
+     address+= TKDBc::Cumulus(i+1)*(ladder[0][i]+ladder[1][i]*(TKDBc::nlad(i+1)+1));
    }
    return address;
 }
@@ -3070,10 +2730,93 @@ uinteger AMSTrTrack::encodeaddress(integer ladder[2][6]){
 AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point):AMSlink(0,0),
 _Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),
 _Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
- for(int i=0;i<nl;i++){
+ for(int i=0;i<maxlay;i++){
   _Pthit[i]=0;
  }
  _Theta=dir.gettheta();
  _Phi=dir.getphi();
  _P0=point;
+}
+
+
+
+integer AMSTrTrack::_TrSearcher(int icall){
+           phit[icall]=AMSTrRecHit::gethead(TKDBc::patconf(pat,icall)-1);
+           while(phit[icall]){
+//             cout <<icall<<" "<<phit[icall]<<" "<<pat<<endl;
+             if(phit[icall]->Good() && !Distance(par,phit[icall])){
+              if(TKDBc::patpoints(pat) >icall+2){         
+                integer iret=_TrSearcher(++icall); 
+                return iret;
+              }                
+              else{  
+                // icall+2 point combination found
+                if(_addnext(pat,icall+2,phit)){
+                  return icall+2;
+                }
+              }
+             }
+             phit[icall]=phit[icall]->next();
+           }
+           return 0;
+
+
+}
+integer AMSTrTrack::_TrSearcherFalseTOFX(int icall){
+           phit[icall]=AMSTrRecHit::gethead(TKDBc::patconf(pat,icall)-1);
+           while(phit[icall]){
+             if(phit[icall]->Good() && phit[icall]->checkstatus(AMSDBc::FalseTOFX) && !DistanceTOF(par,phit[icall])){
+              if(TKDBc::patpoints(pat) >icall+2){         
+                integer iret=_TrSearcherFalseTOFX(++icall); 
+                return iret;
+              }                
+              else{  
+                // icall+2 point combination found
+                if(_addnext(pat,icall+2,phit)){
+                  return icall+2;
+                }
+              }
+             }
+             phit[icall]=phit[icall]->next();
+           }
+           return 0;
+
+
+}
+
+integer AMSTrTrack::pat=0;
+
+AMSTrRecHit* AMSTrTrack::phit[maxlay]={0,0,0,0,0,0,0,0};
+
+number AMSTrTrack::par[2][2];
+
+
+
+
+
+
+
+
+integer AMSTrTrack::_TrSearcherFalseX(int icall){
+           phit[icall]=AMSTrRecHit::gethead(TKDBc::patconf(pat,icall)-1);
+           while(phit[icall]){
+//             cout <<icall<<" "<<phit[icall]<<" "<<pat<<endl;
+             if(phit[icall]->Good() && phit[icall]->checkstatus(AMSDBc::FalseX)==0 && !Distance(par,phit[icall])){
+              if(TKDBc::patpoints(pat) >icall+2){         
+                integer iret=_TrSearcherFalseX(++icall); 
+                return iret;
+              }                
+              else{  
+                // icall+2 point combination found
+                int f=_addnextFalseX(pat,icall+2,phit);
+                if(f){
+                  return f;
+                }
+              }
+             }
+             phit[icall]=phit[icall]->next();
+           }
+           return 0;
+
+
 }

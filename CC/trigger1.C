@@ -245,7 +245,8 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   //  int16u bit11_310= (*(p+3) | *(p+10) ) & (1<<11);
   //  tofp[3]= tofp[3] & (~(1<<2)) & (~(1<<11));
   //  tofp[3]=tofp[3] |   bit2_310 | bit11_310;
- for(int k=0;k<4;k++){
+ int k;
+ for(k=0;k<4;k++){
     for(int i=0;i<16;i++){
       tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
     }  
