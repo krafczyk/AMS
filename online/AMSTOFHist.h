@@ -10,16 +10,8 @@ public:
   void _Fill();
   void Fill(AMSNtuple *ntuple);
   void _Fetch();
-//   Float_t[] GetAnodeCharge(){return _anode[]};
-//   Float_t[] GetAnodeChaRMS(){return _anorms[]};
-//   Float_t[] GetDynodeCharge(){return _dynode[]};
-//   Float_t[] GetDynodeChaRMS(){return _dynrms[]};
-//   Float_t[] GetStretch(){return _stretch[]};
-//   Float_t[] GetStreRMS(){return _strrms[]};
 private:
-  Float_t _anode[112],_anorms[112];
-  Float_t _dynode[112],_dynrms[112];
-  Float_t _stretch[112],_strrms[112];
+  Int_t _norm;
 };
 
 

@@ -1322,7 +1322,7 @@ void TOFJobStat::bookhist(){
     HBOOK1(1103,"Time_history:inp.pulse width(ns)",80,0.,80.,0.);
     HBOOK1(1104,"Anode TovT:inp.pulse width(ns)",80,0.,320.,0.);
     HBOOK1(1110,"RawClusterLevel:Total fired layers per event",5,0.,5.,0.);
-    HBOOK1(1111,"RawClusterLevel:Layer appearence frequency",5,0.,5.,0.);
+    HBOOK1(1111,"RawClusterLevel:Layer appearence frequency",4,0.5,4.5,0.);
     HBOOK1(1112,"RawClusterLevel:Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
     HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
     HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);

@@ -21,6 +21,8 @@ void AMSJob::_retofonlineinitjob(){
   //  FILE *fd;                                     //DEBUG
   //  fd=fopen("online_booked_histograms.log","w"); //DEBUG
 
+  HBOOK1(5013,"Triggers",1,0,1,0.); // for the normalization
+
 #define JL1START 5000
   HBOOK1(5000,"Plane 1-P JL1 Triggers",14,.5,14.5,0.);
   HBOOK1(5001,"Plane 2-P JL1 Triggers",14,.5,14.5,0.);

@@ -1179,8 +1179,9 @@ void AMSJob::_retofinitjob(){
     AMSgObj::BookTimer.book("TOF:RwEv->RwCl");
     AMSgObj::BookTimer.book("TOF:RwCl->Cl");
 
-    if(isMonitoring() & (AMSJob::MTOF | AMSJob::MAll)) // TOF Online histograms
+    if(isMonitoring() & (AMSJob::MTOF | AMSJob::MAll)){ // TOF Online histograms
       _retofonlineinitjob();      // (see tofonline.C)
+    }
 //
 // ===> Clear JOB-statistics counters for SIM/REC :
 //

@@ -582,8 +582,8 @@ void AMSTOFRawCluster::build(int &status){
 	   (AMSJob::MTOF | AMSJob::MAll)){
 	  static int nIDhis[1200];
 	  static int first=0;
-	  if(first==0)
-	    for(int k=0;k<1200;k++)nIDhis[k]=0;
+	  if(first==0){
+	    for(int k=0;k<1200;k++)nIDhis[k]=0;}
 	  first++;
 	  if(smty[0]==1 && smty[1]==1){
 	    int hisID=5023+ilay;
