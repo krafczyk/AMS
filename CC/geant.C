@@ -27,7 +27,9 @@
 //           Mar  19, 1997 ak.  see db_comm.h about new eventR/eventW
 //                              call dbend from uglast
 //                              eventRtype 
-//  Last Edit: Jun 02, 1997. ak
+//           Oct    , 1997 ak.  TDV dbase version implementation
+//
+//  Last Edit: Oct 10, 1997. ak
 //
 
 #include <typedefs.h>
@@ -415,7 +417,7 @@ static integer event=0;
 
 
 
-#ifdef __DB__
+#ifdef __DB_All__
   if (AMSFFKEY.Read > 1) {
     readDB();
      return;

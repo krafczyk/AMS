@@ -63,6 +63,12 @@ void AMSEvent::_init(){
    _validate();
   }
 #ifdef __DB__
+  if (_checkUpdate() == 1) {
+   cout <<"AMSEvent:: -I- UpdateMe is set. Update database and tables. "<<endl;
+   int rstatus = lms -> AddAllTDV();
+   int n       = AMSJob::gethead()->FillTDVTable();
+   lms -> FillTDV(n);
+  }
   _validateDB();
 #endif
 }
@@ -1009,11 +1015,11 @@ AMSTimeID * offspring=(AMSTimeID*)ptid->down();
 while(offspring){
   integer nb=offspring->GetNbytes();
 #ifdef __AMSDEBUG__
-          char * tmp =new char[nb];
-          assert(tmp !=NULL);
-          integer ncp=offspring->CopyOut((uinteger*)tmp);
-          ncp=offspring->CopyIn((uinteger*)tmp);
-          delete[] tmp;
+  //          char * tmp =new char[nb];
+  //          assert(tmp !=NULL);
+  //          integer ncp=offspring->CopyOut((uinteger*)tmp);
+  //          ncp=offspring->CopyIn((uinteger*)tmp);
+  //          delete[] tmp;
 #endif
   if(offspring->validate(_time)){
     cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<
@@ -1231,4 +1237,18 @@ integer AMSEvent::calcTrackerHKl(integer i){
 static integer init =0;
 if(!TRMCFFKEY.WriteHK || abs(++init-TRMCFFKEY.WriteHK-1) >1)return 0;
 return 1+2+1+2+3;
+}
+
+integer AMSEvent::_checkUpdate(){
+
+integer True  = 1;
+integer False = 0;
+
+AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
+AMSTimeID * offspring=(AMSTimeID*)ptid->down();
+while(offspring){
+  if(offspring->UpdateMe()) return True;
+  offspring=(AMSTimeID*)offspring->next();
+}
+return False;
 }

@@ -14,8 +14,9 @@
 // Mar  18, 1997. ak. Getmceventg and GetNEvents are modified
 //                    setup moved to AMSsetupDB
 // May  05, 1997. ak. separate file for setup
+// Oct    , 1997. ak. 
 //
-// last edit Oct 03, 1997, ak.
+// last edit Oct 10, 1997, ak.
 //
 
 #include <stdio.h>
@@ -118,22 +119,20 @@ ooStatus   LMS::AddAllTDV()
           found = 1;
           uinteger crcd = timedvItr -> getCRC();
           uinteger crc  = pp -> getCRC();
-          if (insert != insertd ) {
+          if (crc != crcd) {
            timedvItr -> update(pp);
-           cout <<"AddTDV -I- Insert time is different, update done"<<endl;
+           cout <<"AddTDV -I- CRC is different, update done"<<endl;
           } else {
-           if (crc != crcd) {
-            timedvItr -> update(pp);
-            cout <<"AddTDV -I- CRC is different, update done"<<endl;
-           }
+           if (insert != insertd ) cout <<"AddTDV -I- "<<
+           "Insert time is different, but CRC is the same. Do nothing"<<endl;
           }
          }
          if (found == 1) break;
         }
-        if (found == 0) timedvH = new(conttdvH) AMSTimeIDD(name, id, pp);
-        found = 0;
+         if (found == 0) timedvH = new(conttdvH) AMSTimeIDD(name, id, pp);
+         found = 0;
        }
-       p = p -> next();
+        p = p -> next();
       }
       rstatus = oocSuccess;
       goto end;

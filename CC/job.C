@@ -2,9 +2,9 @@
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
 // Sep 17, 1997. ak. don't write timeid to files in dbase version
-// Oct  1, 1997. ak. add FindTheBestTDV function
-// 
-// Last Edit : Oct 6, 1997. ak. 
+// Oct  1, 1997. ak. add FindTheBestTDV, FillTDVTable functions
+//                       
+// Last Edit : Oct 10, 1997. ak. 
 //
 #include <amsgobj.h>
 #include <cern.h>
@@ -1910,6 +1910,8 @@ while(offspring){
   nobj++;
   offspring=(AMSTimeID*)offspring->next();
 }
+if (_ptr_start) delete [] _ptr_start;
+if (_ptr_end)   delete [] _ptr_end;
 _ptr_start = new integer[nobj];
 _ptr_end = new integer[nobj];
 ntdvNames = nobj;

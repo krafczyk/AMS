@@ -93,7 +93,9 @@ void _catrdevent();
 void _cactcevent();
 void _caaxevent();
 void _validate();
+//+
 void _validateDB();
+//-
 static const int16u _HDID;
 AMSlink * _getheadC( AMSID id, integer sorted=0);
 AMSlink * _getlastC( AMSID id);
@@ -136,6 +138,7 @@ void printA(integer debugl=0);
 void event();
 //+
 uinteger getEvent() {return uinteger(_id);}
+integer _checkUpdate();
 //-
 integer addnext(AMSID id, AMSlink * p);
 integer replace(AMSID id, AMSlink * p, AMSlink *prev);
