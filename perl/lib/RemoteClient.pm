@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.66 2002/09/19 15:53:35 alexei Exp $
+# $Id: RemoteClient.pm,v 1.67 2002/10/15 12:33:29 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -209,7 +209,7 @@ my %mv=(
      $self->{AMSDataDir}=$dir;
  }
  else{
-     $self->{AMSDataDir}="/f4dat1/AMSDataDir";
+     $self->{AMSDataDir}="/afs/ams.cern.ch/AMSDataDir";
      $ENV{AMSDataDir}=$self->{AMSDataDir};
  }
 #sqlserver
@@ -3846,7 +3846,7 @@ sub listCites {
     print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
      htmlTable("MC02 Cites");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     my $sql="SELECT cid, descr, name, status, maxrun FROM Cites";
+     my $sql="SELECT cid, descr, name, status, maxrun FROM Cites ORDER by cid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
               print "<td><b><font color=\"blue\" >ID </font></b></td>";
