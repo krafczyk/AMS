@@ -55,6 +55,8 @@ I43    WriteAll(2)               // Flag to write objects into the ntuple
                                  // 10+X=Dump header, X=0,1,2 as  above
                                  // but header block in the ntuple is filled
                                  // also if trigger condition is not matched.
+                                 // 100 +X    write  events with errors,
+                                 // otherwise write only header
                                  // n*1000+X - always write first n*1000 events
                                  // from every run
 R44    Portion(1.1)              // Process event if RNDM(d)<Portion) 
@@ -67,6 +69,7 @@ I86   ffile(' ')                 // 4th vectors file name
 I126  MaxNtupleEntries(100000)   // max entries for ntuples( 0==inf)
 I127  WriteRoot(0)               // write (!0) or nott write(0) root file
 I128  rfile(160*' ')             // root file name
+I168 MaxFileSize(150000000)      // max ntuplefilesize (bytes)
 //---------------------------------------------------------------------
 
 //Anti Simulation

@@ -23,7 +23,6 @@
 #ifdef __DB__
 #include <db_comm.h>
 #endif
-
 class AMSStatus;
 class AMSTimeID;
 class AMSNtuple;
@@ -85,6 +84,7 @@ char _TDVC[maxtdv][maxtdvsize];
 integer _TDVN;
 static AMSJob* _Head;
 static AMSNtuple* _pntuple;
+static char _ntuplefilename[256];
 AMSG4Physics* _pAMSG4Physics;
 AMSG4GeneratorInterface* _pAMSG4GeneratorInterface;
 void _init(){};
@@ -156,9 +156,10 @@ void _ecalendjob();
 void _antiendjob();
 void _axendjob();
 void _timeinitjob();
+
 public:
 static AMSNodeMap JobMap;
-
+static long GetNtupleFileSize();
 #ifdef __DB__
 //+ ak, Oct 1, 1997
 static tdv_time*              _tdv;

@@ -127,6 +127,7 @@ integer ffile[40];
 integer MaxNtupleEntries;
 integer WriteRoot;
 integer rfile[40];
+integer MaxFileSize;
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);

@@ -965,7 +965,8 @@ for(int il=0;il<TKDBc::nlay();il++){
     // check if one want to close ntuple 
     if(IOPA.MaxNtupleEntries){
       //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
-      if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0){
+      // cout <<"op "<<AMSJob::gethead()->GetNtupleFileSize()<<" "<<IOPA.MaxFileSize<<endl;
+       if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0 || AMSJob::gethead()->GetNtupleFileSize()>IOPA.MaxFileSize){
         if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
         AMSJob::gethead()->uhend();
         AMSJob::gethead()->uhinit(_run,getid()+1);

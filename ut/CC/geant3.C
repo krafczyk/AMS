@@ -114,17 +114,16 @@ extern "C" void gustep_(){
 #endif
   // TOF
 
+  if(lvl >1 && GCVOLU.names[lvl][0]== 'T' && GCVOLU.names[lvl][1]=='O' &&
+  GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='S'){// in "TOFS"
+  if(trig==0 && freq>1)AMSgObj::BookTimer.start("TOFGUSTEP");
   geant t,x,y,z;
-  char name[5]="dumm";
-  char media[21]="dummy_media         ";
   geant de,dee,dtr2,div,tof;
   static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
   geant trcut2(0.1);// Max. transv.shift (0.316cm)**2
   geant vect[3],dx,dy,dz,dt; 
   int i,nd,numv,iprt,numl,numvp;
   static int numvo(-999),iprto(-999);
-  if(lvl >1 && GCVOLU.names[lvl][0]== 'T' && GCVOLU.names[lvl][1]=='O' &&
-  GCVOLU.names[lvl][2]=='F' && GCVOLU.names[lvl][3]=='S'){// in "TOFS"
     iprt=GCKINE.ipart;
     numv=GCVOLU.number[lvl];
     x=GCTRAK.vect[0];
@@ -182,6 +181,7 @@ extern "C" void gustep_(){
         tpr=t;
       }// end of "same part/vol, de>0"
     }// end of new volume test
+  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("TOFGUSTEP");
   }// end of "in TOFS"
 //-------------------------------------
 
@@ -231,7 +231,8 @@ extern "C" void gustep_(){
   if(lvl==3 && GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='N'
                                        && GCVOLU.names[lvl][2]=='T')manti=1;
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
-     GBIRK(dee);
+     geant dee=GCTRAK.destep; 
+     if(TOFMCFFKEY.birks)GBIRK(dee);
      AMSAntiMCCluster::siantihits(GCVOLU.number[lvl],GCTRAK.vect,dee,GCTRAK.tofg);
 //     HF1(1510,geant(iprt),1.);
   }
@@ -252,7 +253,8 @@ extern "C" void gustep_(){
 //       cout<<"lev/vol="<<numl<<" "<<numv<<" name="<<name<<" x/y="<<x<<" "<<y<<" z="<<z<<" de="<<de<<endl;
 //       for(i=0;i<4;i++)name[i]=GCVOLU.names[numl-2][i];
 //       cout<<"vol(lev-1)="<<numvp<<" name="<<name<<endl;
-       GBIRK(dee);
+     geant dee=GCTRAK.destep; 
+     if(TOFMCFFKEY.birks)GBIRK(dee);
        AMSEcalMCHit::siecalhits(GCVOLU.number[lvl-1],GCTRAK.vect,dee,GCTRAK.tofg);
       }
     }

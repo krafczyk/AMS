@@ -45,6 +45,7 @@
 #include <status.h>
 #include <richdbc.h>
 #include <mccluster.h>
+#include <sys/stat.h>
 //+
  integer        ntdvNames;               // number of TDV's types
  char*          tdvNameTab[maxtdv];      // TDV's nomenclature
@@ -53,7 +54,6 @@
 #ifdef __DB__
 
 #include <dbS.h>
-
 integer*   AMSJob::_ptr_start;
 integer*   AMSJob::_ptr_end;
 tdv_time*  AMSJob::_tdv;
@@ -63,6 +63,13 @@ extern LMS* lms;
 #endif
 //-
 //
+char AMSJob::_ntuplefilename[256]="";
+
+long AMSJob::GetNtupleFileSize(){
+ struct stat buffer;
+ 
+ return stat(_ntuplefilename,&buffer)?0:buffer.st_size;
+}
 AMSNtuple* AMSJob::_pntuple=0;
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
@@ -168,6 +175,7 @@ UCTOH(amsp,IOPA.TriggerC,4,12);
 IOPA.mode=0;
 VBLANK(IOPA.ffile,40);
 IOPA.MaxNtupleEntries=100000;
+IOPA.MaxFileSize=150000000;
 IOPA.WriteRoot=0;
 VBLANK(IOPA.rfile,40);
 FFKEY("IOPA",(float*)&IOPA,sizeof(IOPA_DEF)/sizeof(integer),"MIXED");
@@ -1366,6 +1374,7 @@ else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
 
      AMSgObj::BookTimer.book("GEANTTRACKING");
      AMSgObj::BookTimer.book("GUSTEP",10);
+     AMSgObj::BookTimer.book("TOFGUSTEP",10);
      AMSgObj::BookTimer.book("SITKHITS");
      AMSgObj::BookTimer.book("SITKNOISE");
      AMSgObj::BookTimer.book("SITKDIGIa");
@@ -2352,26 +2361,25 @@ void AMSJob::uhinit(integer run, integer eventno){
   if(IOPA.hlun ){
     char hfile[161];
     UHTOC(IOPA.hfile,40,hfile,160);  
-    char filename[256];
-    strcpy(filename,hfile);
+    strcpy(_ntuplefilename,hfile);
     integer iostat;
     integer rsize=8000;
     if(eventno){
       char event[80];  
       sprintf(event,"%d",run);
-      strcat(filename,event);
+      strcat(_ntuplefilename,event);
       sprintf(event,".%d",eventno);
-      strcat(filename,event);
-      strcat(filename,".hbk");
+      strcat(_ntuplefilename,event);
+      strcat(_ntuplefilename,".hbk");
      }
     
-    cout <<"Trying to open histo file "<<filename<<endl;
+    cout <<"Trying to open histo file "<<_ntuplefilename<<endl;
     npq_(); 
-    HROPEN(IOPA.hlun,"output",filename,"NPQ",rsize,iostat);
+    HROPEN(IOPA.hlun,"output",_ntuplefilename,"NPQ",rsize,iostat);
     if(iostat){
-     cerr << "Error opening Histo file "<<filename<<endl;
+     cerr << "Error opening Histo file "<<_ntuplefilename<<endl;
     }
-    else cout <<"Histo file "<<filename<<" opened."<<endl;
+    else cout <<"Histo file "<<_ntuplefilename<<" opened."<<endl;
 
 // Open the n-tuple
     if(_pntuple)_pntuple->init();
