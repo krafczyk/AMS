@@ -347,6 +347,18 @@ trcl:
     if (trclffkeyD.Thr3R[i]     != TRCLFFKEY.Thr3R[i]) 
       cout<<"trclffkeyD.Thr3R["<<i<<"] "<<trclffkeyD.Thr3R[i]<<" "
                                         <<TRCLFFKEY.Thr3R[i]<<endl; 
+{  for(int k=0;k<6;k++){
+    if (trclffkeyD.CorFunParA[i][k]     != TRCLFFKEY.CorFunParA[i][k]) 
+      cout<<"trclffkeyD.CorFunParA["<<i<<" , "<<k<<
+      "] "<<trclffkeyD.CorFunParA[i][k]<<" " 
+       <<TRCLFFKEY.CorFunParA[i][k]<<endl; 
+}}
+{  for(int k=0;k<6;k++){
+    if (trclffkeyD.CorFunParB[i][k]     != TRCLFFKEY.CorFunParB[i][k]) 
+      cout<<"trclffkeyD.CorFunParB["<<i<<" , "<<k<<
+      "] "<<trclffkeyD.CorFunParB[i][k]<<" " 
+       <<TRCLFFKEY.CorFunParB[i][k]<<endl; 
+}}
   }
 
   if (rstatus == oocError) 

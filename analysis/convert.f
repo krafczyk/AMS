@@ -56,6 +56,7 @@
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
      + ,Status,NelemL,NelemR,TrMCCluster,IdsoftMC,Itra,Left ,Center 
      + ,Right ,TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits
+     + ,phits
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
      + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,bar,px,py
 *
@@ -129,6 +130,7 @@
 
       common/TrTrackC/ntrtr,
      + trstatus(maxtrtr),pattern(maxtrtr),nhits(maxtrtr),
+     + phits(6,maxtrtr),
      + GeaneFitDone(maxtrtr),
      + AdvancedFitDone(maxtrtr),Chi2StrLine(maxtrtr),
      + Chi2Circle(maxtrtr),CircleRidgidity(maxtrtr),
@@ -244,7 +246,7 @@ c       iquest(10)=128000
 
       call hbname(1,cblock(10),ntrtr,
      + 'ntrtr[0,20],trstatus(ntrtr):I,pattern(ntrtr):I,'//
-     + 'nhits(ntrtr),'//
+     + 'nhits(ntrtr),phits(6,ntrtr):I,'//
      + 'GeaneFitDone(ntrtr):I,'//
      + 'AdvancedFitDone(ntrtr):I,Chi2StrLine(ntrtr),'//
      + 'Chi2Circle(ntrtr),CircleRidgidity(ntrtr),'//
@@ -267,7 +269,8 @@ c       iquest(10)=128000
      + 'ctcsignal(nctccl),ctcesignal(nctccl)')
 
       call hbname(1,cblock(13),nctcclmc,
-     + 'nctcclmc[0,200],CTCMCIdsoft(nctcclmc),CTCMCXcoo(3,nctcclmc),'//
+     + 'nctcclmc[0,200],CTCMCIdsoft(nctcclmc):I,'//
+     + 'CTCMCXcoo(3,nctcclmc),'//
      + 'CTCMCXdir(3,nctcclmc),CTCstep(nctcclmc),ctcedep(nctcclmc),'//
      + 'ctcbeta(nctcclmc)')
 
@@ -521,7 +524,7 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
            iostat=1
            if(eof(idet).eq.0)read(lun,end=105)
      +     ne,trstatus(ntrtr),pattern(ntrtr),nhits(ntrtr),
-     +     GeaneFitDone(ntrtr),
+     +     (phits(kk,ntrtr),kk=1,6),GeaneFitDone(ntrtr),
      +     AdvancedFitDone(ntrtr),Chi2StrLine(ntrtr),Chi2Circle(ntrtr),
      +     CircleRidgidity(ntrtr),
      +     Chi2FastFit(ntrtr),Ridgidity(ntrtr),ErrRidgidity(ntrtr),
@@ -698,7 +701,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
      + ,TOFStatus,Ntof,Plane,TOFMCEvent,TOFMCIdsoft,TrCluster,Idsoft
      + ,Status,Nelem,TrMCCluster,IdsoftMC,Itra,Left(2),Center(2)
-     + ,Right(2),TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits
+     + ,Right(2),TrRecHit,StatusR,Layer,TrTrack,TrStatus,Pattern,NHits,
+     +  phits(6)
      + ,GeaneFitDone,AdvancedFitDone,EventNoMCEventG,Particle,CTCCluster
      + ,CTCStatus,CTCMCEvent,CTCMCIdsoft,px,py
 *
@@ -762,7 +766,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
 *
 *    idet=10
 *
-      common /trtrackC/trtrack,trstatus,pattern,nhits,GeaneFitDone,
+      common /trtrackC/trtrack,trstatus,pattern,nhits,phits,
+     + GeaneFitDone,
      + AdvancedFitDone,Chi2StrLine,Chi2Circle,CircleRidgidity,
      + Chi2FastFit,Ridgidity,ErrRidgidity,Theta,phi,p0,gchi2,
      + gridgidity,gerrridgidity,gtheta,gphi,gp0,hchi2,
@@ -886,7 +891,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
             write(21)TrRecHit,px,py,statusr,Layer,
      +      hitr,ehitr,sumr,difosum
            else if( cblock(idet).eq.'TRTRACK')then
-            write(21)trtrack,trstatus,pattern,nhits,GeaneFitDone,
+            write(21)trtrack,trstatus,pattern,nhits,phits,
+     + GeaneFitDone,
      + AdvancedFitDone,Chi2StrLine,Chi2Circle,CircleRidgidity,
      + Chi2FastFit,Ridgidity,ErrRidgidity,Theta,phi,p0,gchi2,
      + gridgidity,gerrridgidity,gtheta,gphi,gp0,hchi2,

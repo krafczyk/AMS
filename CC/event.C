@@ -201,6 +201,12 @@ void  AMSEvent::write(){
   AMSEvent::gethead()->getheadC("AMSTrCluster",0,1); 
   AMSEvent::gethead()->getheadC("AMSTrCluster",1,1); 
   AMSEvent::gethead()->getheadC("AMSTrTrack",0,1); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",0,1); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",1,1); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",2,1); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",3,1); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",4,1); 
+  AMSEvent::gethead()->getheadC("AMSTrRecHit",5,1); 
    
 if(IOPA.hlun){
 _writeEl();

@@ -187,6 +187,7 @@ private:
 int Status;
 int Pattern;
 int NHits;
+int pHits[6];
 int GeaneFitDone;
 int AdvancedFitDone;
 float Chi2StrLine;

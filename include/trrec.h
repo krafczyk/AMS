@@ -124,6 +124,12 @@ static void _addnext(AMSgSen * p, integer ,integer ,AMSTrCluster *,
   void _writeEl();
 
 public:
+integer operator < (AMSlink & o) const {
+  AMSTrRecHit * p= (AMSTrRecHit*)(&o);
+ if (getstatus(AMSDBc::USED) && !(p->getstatus(AMSDBc::USED)))return 1;
+ else return 0;             
+
+} 
 
 AMSTrRecHit *  next(){return (AMSTrRecHit*)_next;}
 

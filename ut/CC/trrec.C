@@ -56,8 +56,9 @@ void AMSTrCluster::build(){
      // 
      if(side==0 && (ilay==1 || ilay==6)){
        for (int iloc=0;iloc<TRCLFFKEY.ThrClNEl[side]/2;iloc++){
-        adc[iloc]=adc[id.getmaxstrips()-TRCLFFKEY.ThrClNEl[side]/2+iloc];
-        adc[iloc+id.getmaxstrips()]=adc[iloc+TRCLFFKEY.ThrClNEl[side]/2];
+        adc[iloc]=adc[id.getmaxstrips()+iloc];
+        adc[iloc+id.getmaxstrips()+TRCLFFKEY.ThrClNEl[side]/2]=
+        adc[iloc+TRCLFFKEY.ThrClNEl[side]/2];
        }  
      }
      number ref;
@@ -173,13 +174,16 @@ return cofg-cfgCorFun(smt,pid);
 number AMSTrCluster::cfgCorFun(number s, AMSTrIdGeom * pid){
 integer side=_Id.getside();
 integer strip=pid->getstrip(side);
+integer l=pid->getlayer()-1;
 if(strip == 0  ){
- if(s<TRCLFFKEY.CorFunParB[side]) return 0;
- else return TRCLFFKEY.CorFunParA[side]*atan(s-TRCLFFKEY.CorFunParB[side]);
+ if(s<TRCLFFKEY.CorFunParB[side][l]) return 0;
+ else return TRCLFFKEY.CorFunParA[side][l]*
+      atan(s-TRCLFFKEY.CorFunParB[side][l]);
 }
 else if(strip== pid->getmaxstrips(side)-1){
- if(s<TRCLFFKEY.CorFunParB[side]) return 0;
- else return -TRCLFFKEY.CorFunParA[side]*atan(s-TRCLFFKEY.CorFunParB[side]);
+ if(s<TRCLFFKEY.CorFunParB[side][l]) return 0;
+ else return -TRCLFFKEY.CorFunParA[side][l]*
+      atan(s-TRCLFFKEY.CorFunParB[side][l]);
 }
 else return 0;
 }
@@ -795,13 +799,16 @@ if(AMSTrTrack::Out(IOPA.WriteAll || getstatus(AMSDBc::USED))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrTrack",TrTN.getaddress(),
-  "TrTrack:I*4,TrStatus:I*4,Pattern:I*4,  NHits:I*4 , GeaneFitDone:I*4,AdvancedFitDone:I*4,Chi2StrLine:R*4,Chi2Circle:R*4,CircleRidgidity:R*4,Chi2FastFit:R*4,Ridgidity:R*4,ErrRidgidity:R*4,Theta:R*4,Phi:R*4,P0(3):R*4,GChi2:R*4,GRidgidity:R*4,GErrRidgidity:R*4,GTheta:R*4,GPhi:R*4,GP0(3):R*4,HChi2(2):R*4,HRidgidity(2):R*4,HErrRidgidity(2):R*4,  HTheta(2):R*4,HPhi(2):R*4,HP0(3,2):R*4,FChi2MS:R*4,GChi2MS:R*4,RidgidityMS:R*4,GRidgidityMS:R*4");
+  "TrTrack:I*4,TrStatus:I*4,Pattern:I*4,  NHits:I*4 , pHits(6):I*4 , GeaneFitDone:I*4,AdvancedFitDone:I*4,Chi2StrLine:R*4,Chi2Circle:R*4,CircleRidgidity:R*4,Chi2FastFit:R*4,Ridgidity:R*4,ErrRidgidity:R*4,Theta:R*4,Phi:R*4,P0(3):R*4,GChi2:R*4,GRidgidity:R*4,GErrRidgidity:R*4,GTheta:R*4,GPhi:R*4,GP0(3):R*4,HChi2(2):R*4,HRidgidity(2):R*4,HErrRidgidity(2):R*4,  HTheta(2):R*4,HPhi(2):R*4,HP0(3,2):R*4,FChi2MS:R*4,GChi2MS:R*4,RidgidityMS:R*4,GRidgidityMS:R*4");
 
 }
   TrTN.Event()=AMSEvent::gethead()->getid();
   TrTN.Status=_Status;
   TrTN.Pattern=_Pattern;
   TrTN.NHits=_NHits;
+  for(int k=0;k<_NHits;k++){
+   TrTN.pHits[k]=_Pthit[k]->getpos();
+  }
   TrTN.GeaneFitDone=_GeaneFitDone;
   TrTN.AdvancedFitDone=_AdvancedFitDone;
   TrTN.Chi2StrLine=(geant)_Chi2StrLine;

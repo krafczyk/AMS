@@ -581,8 +581,6 @@ ooStatus LMS::Getmceventg
          nevents = listH -> getNEvents();
          if (nevents != 0) {
           if (mceventgItr.next() != NULL) {
-           cout <<"Run, event "<<mceventgItr -> RunNumber()<<", "
-                              <<mceventgItr -> EventNumber()<<endl;
            rstatus = listH -> CopyEventHeader(eventID, mceventgItr, mode);
            rstatus = listH -> CopyMCeventg(eventID, mceventgItr, mode);
           }

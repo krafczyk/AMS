@@ -230,13 +230,20 @@ TRCLFFKEY.ThrClNEl[0]=5;
 
 TRCLFFKEY.ThrDSide=1.;
 
-TRCLFFKEY.CorFunParA[0]=400e-4;
-TRCLFFKEY.CorFunParA[1]=65e-4;
-TRCLFFKEY.CorFunParB[0]=0.85;
-TRCLFFKEY.CorFunParB[1]=0.5;
+TRCLFFKEY.CorFunParA[0][0]=400e-4;
+TRCLFFKEY.CorFunParB[0][0]=0.85;
+TRCLFFKEY.CorFunParA[0][5]=400e-4;
+TRCLFFKEY.CorFunParB[0][5]=0.85;
+for (int k=1;k<5;k++){
+ TRCLFFKEY.CorFunParA[0][k]=400e-4;
+ TRCLFFKEY.CorFunParB[0][k]=0.85;
+}
+for ( k=0;k<6;k++){
+ TRCLFFKEY.CorFunParA[1][k]=65e-4;
+ TRCLFFKEY.CorFunParB[1][k]=0.5;
+}
 
-
-FFKEY("TRCL",TRCLFFKEY.ThrClA,30,"MIXED");
+FFKEY("TRCL",TRCLFFKEY.ThrClA,50,"MIXED");
 
 // Fit Par
 TRFITFFKEY.pattern[0]=1;
