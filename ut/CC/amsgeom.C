@@ -1,7 +1,8 @@
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // Passive Shield Geometry V. Choutko 22-jul-1996
-// CTC (Cherenkov Thresh. Counter) geometry E.Choumilov 26-sep-1996 
+// CTC (Cherenkov Thresh. Counter) geometry E.Choumilov 26-sep-1996
+// ATC (Aerogel Threshold Cerenkov) geometry A.K.Gougas 14-Mar-1997 
 //
 #include <typedefs.h>
 #include <node.h>
@@ -48,8 +49,8 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION")==0){
 else{
  cout <<" AMSGeom-I-Station setup selected."<<endl;
 }
-ctcgeom(mother);
 tkgeom(mother);
+ctcgeom(mother);
 
 GGCLOS();
 AMSgObj::GVolMap.map(mother);
@@ -893,7 +894,318 @@ if(iflag==1){
 }
 void ctcgeomAG(AMSgvolume & mother){
   // A. Gougas version   
-  CTCDBc::setgeom(2);
+   CTCDBc::setgeom(2);
+
+  geant par[6]={0.,0.,0.,0.,0.,0.};
+  geant pay[6]={0.,0.,0.,0.,0.,0.};
+  geant parpmt[6]={0.,0.,0.,0.,0.,0.};
+  geant parwal[6]={0.,0.,0.,0.,0.,0.};
+  geant parptf[6]={0.,0.,0.,0.,0.,0.};
+  number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+  number zr,ptfe,dx,dy,dz,dc;
+  geant coo[3],cooz,coy[3],coopmt[3];
+  integer gid=1000;
+  integer icl=0;
+  integer nmed,nptfe,i,ind,loop,k;
+  AMSNode *cur;
+  AMSNode *dau;
+  AMSNode *celup;
+  AMSNode *celdwn;
+  AMSID amsid;
+  //
+  zr=CTCDBc::getsupzc(); //<---- Position of center of Honeycomb
+  ptfe=CTCDBc::getptfeth();//<-- PTFE single layer thickness
+  //
+  // <--- create supporting honeycomb plate in mother volume
+  gid=1;
+  dx=0.5*CTCDBc::getthcsize(0);
+  dy=0.5*CTCDBc::getthcsize(1);
+  dc=0.5*CTCDBc::getthcsize(2);
+  par[0]=dx;
+  par[1]=dy;
+  par[2]=dc;
+  coo[0]=0.;
+  coo[1]=0.;
+  coo[2]=zr; // support structure's centre z-position
+  dau=mother.add(new AMSgvolume(
+      "CTC_HONEYCOMB",0,"SUPP","BOX ",par,3,coo,nrm,"ONLY",0,gid++));
+  //
+  // <---- 
+  //
+  dx = 0.5*CTCDBc::getupsize(0);
+  dy = 0.5*CTCDBc::getupsize(1);
+  dz = 0.5*CTCDBc::getupsize(2);
+  par[0]=dx;
+  par[1]=dy;
+  par[2]=dz;
+  coo[0]=0.;
+  coo[1]=0.;
+  coo[2]=zr+dc+dz;
+  AMSNode * upper=mother.add(new AMSgvolume(
+       "CTC_DUMMYMED",0,"UPPE","BOX ",par,3,coo,nrm,"ONLY",0,gid++));
+  coo[0]=-5.5;
+  coo[1]=-5.5;
+  coo[2]=zr-dc-dz;
+  AMSNode * lower=mother.add(new AMSgvolume(
+       "CTC_DUMMYMED",0,"LOWE","BOX ",par,3,coo,nrm,"ONLY",0,gid++));
+
+  //<--- Introduce the walls between modules
+
+  dx = 0.5*CTCDBc::getwallsize(0);
+  dy = 0.5*CTCDBc::getwallsize(1);
+  dz = 0.5*CTCDBc::getwallsize(2);
+  loop=5;
+  parwal[0] = dx;
+  parwal[1] = dy;
+  parwal[2] = dz;
+  coo[0] = 5.*0.5*CTCDBc::getcellsize(0)+5.*parwal[0];
+  coo[1] = 0.;
+  coo[2] = -0.5*CTCDBc::getupsize(2)+parwal[2];
+  cur=upper->add(new AMSgvolume(
+      "CTC_WALL",0,"WALU","BOX ",parwal,3,coo,nrm,"ONLY",0,gid++,1));
+  coo[0] = coo[0] - CTCDBc::getcellsize(0)-2.*dx;
+  
+  for(i=0;i<loop;i++){ //<---- Separators (WALL) loop ----
+       cur=upper->add(new AMSgvolume(
+           "CTC_WALL",0,"WALU","BOX ",parwal,3,coo,nrm,"ONLY",1,gid++,1));
+  coo[0] = coo[0] - CTCDBc::getcellsize(0)-2.*dx;
+  } //<--- End of Separators (WALL) loop ----
+
+  //<--- Now, place the UPPER supercells
+  loop = 3;
+  par[0]=0.5*CTCDBc::getcellsize(0);
+  par[1]=0.5*CTCDBc::getcellsize(1);
+  par[2]=0.5*CTCDBc::getcellsize(2);
+
+  pay[0]=0.5*CTCDBc::getygapsize(0);
+  pay[1]=0.5*CTCDBc::getygapsize(1);
+  pay[2]=0.5*CTCDBc::getygapsize(2);
+
+  icl=101;//<--- ID for CELLS in UPPER starts at 101
+  
+  coo[0]=4.*par[0]+4.*parwal[0];
+  coo[1]=3.*par[1]+3.*pay[1];
+  coo[2]=0.;
+  celup=upper->add(new AMSgvolume(
+      "CTC_DUMMYMED",0,"CELA","BOX ",par,3,coo,nrm,"ONLY",0,icl++,1));
+  coy[0]=coo[0];
+  coy[1]=coo[1]-par[1]-pay[1];
+  coy[2]=coo[2];
+  cur=upper->add(new AMSgvolume(
+      "CTC_DUMMYMED",0,"YGUP","BOX ",pay,3,coy,nrm,"ONLY",0,gid++,1));
+  for(k=0;k<loop+1;k++){//<--- X position of cells/gaps ---
+     coo[0]=coo[0]-2.*par[0]-2.*parwal[0];
+     coy[0]=coo[0];
+     celup=upper->add(new AMSgvolume(
+         "CTC_DUMMYMED",0,"CELA","BOX ",par,3,coo,nrm,"ONLY",1,icl++,1));
+     cur=upper->add(new AMSgvolume(
+	 "CTC_DUMMYMED",0,"YGUP","BOX ",pay,3,coy,nrm,"ONLY",1,gid++,1));
+    }//<--- End X position of cells/gaps ----
+    
+  coo[1]=coo[1]-2.*par[1]-2.*pay[1];
+        
+  for(i=0;i<loop;i++){//<---- Super Cell loop ----
+    coo[0]=4.*par[0]+4.*parwal[0];
+    celup=upper->add(new AMSgvolume(
+       "CTC_DUMMYMED",0,"CELA","BOX ",par,3,coo,nrm,"ONLY",1,icl++,1));
+    coy[0]=coo[0];
+    coy[1]=coo[1]-par[1]-pay[1];
+    cur=upper->add(new AMSgvolume(
+        "CTC_DUMMYMED",0,"YGUP","BOX ",pay,3,coy,nrm,"ONLY",1,gid++,1));
+    for(k=0;k<loop+1;k++){//<--- X position of cells/gaps ---
+      coo[0]=coo[0]-2.*par[0]-2.*parwal[0];
+      coy[0]=coo[0];
+      celup=upper->add(new AMSgvolume(
+           "CTC_DUMMYMED",0,"CELA","BOX ",par,3,coo,nrm,"ONLY",1,icl++,1));
+      cur=upper->add(new AMSgvolume(
+	   "CTC_DUMMYMED",0,"YGUP","BOX ",pay,3,coy,nrm,"ONLY",1,gid++,1));
+    }//<--- End X position of cells/gaps ----
+    coo[1]=coo[1]-2.*par[1]-2.*pay[1];
+  }//<---- End Super Cell loop -----
+
+  //< --- Now, start with LOWEr layer
+
+  //<--- Introduce the walls between modules
+  loop=5;
+
+  coo[0] = 5.*0.5*CTCDBc::getcellsize(0)+5.*parwal[0];
+  coo[1] = 0.;
+  coo[2] = 0.5*CTCDBc::getupsize(2)-parwal[2];
+  
+  gid = 10000;//<--- Volume ID offset for LOWEr layer
+  
+  cur=lower->add(new AMSgvolume(
+     "CTC_WALL",0,"WALD","BOX ",parwal,3,coo,nrm,"ONLY",0,gid++,1));
+  coo[0] = coo[0] - CTCDBc::getcellsize(0)-2.*parwal[0];
+  
+  for(i=0;i<loop;i++){ //<---- Separators (WALL) loop ----
+       cur=lower->add(new AMSgvolume(
+           "CTC_WALL",0,"WALD","BOX ",parwal,3,coo,nrm,"ONLY",1,gid++,1));
+  coo[0] = coo[0] - CTCDBc::getcellsize(0)-2.*parwal[0];
+  } //<--- End of Separators (WALL) loop ----
+
+  //<--- Now, place the supercells
+  loop = 3;
+//
+  icl=10101;//<--- ID for CELLS in LOWEr starts at 10101
+  
+  coo[0]=4.*par[0]+4.*parwal[0];
+  coo[1]=3.*par[1]+3.*pay[1];
+  coo[2]=0.;
+  celdwn=lower->add(new AMSgvolume(
+      "CTC_DUMMYMED",0,"CELD","BOX ",par,3,coo,nrm,"ONLY",0,icl++,1));
+  coy[0]=coo[0];
+  coy[1]=coo[1]-par[1]-pay[1];
+  coy[2]=coo[2];
+  cur=lower->add(new AMSgvolume(
+      "CTC_DUMMYMED",0,"YGDN","BOX ",pay,3,coy,nrm,"ONLY",0,gid++,1));
+  for(k=0;k<loop+1;k++){//<--- X position of cells/gaps ---
+     coo[0]=coo[0]-2.*par[0]-2.*parwal[0];
+     coy[0]=coo[0];
+     celdwn=lower->add(new AMSgvolume(
+         "CTC_DUMMYMED",0,"CELD","BOX ",par,3,coo,nrm,"ONLY",1,icl++,1));
+     cur=lower->add(new AMSgvolume(
+	 "CTC_DUMMYMED",0,"YGDN","BOX ",pay,3,coy,nrm,"ONLY",1,gid++,1));
+    }//<--- End X position of cells/gaps ----
+    
+  coo[1]=coo[1]-2.*par[1]-2.*pay[1];
+        
+  for(i=0;i<loop;i++){//<---- Super Cell loop ----
+    coo[0]=4.*par[0]+4.*parwal[0];
+    celdwn=lower->add(new AMSgvolume(
+       "CTC_DUMMYMED",0,"CELD","BOX ",par,3,coo,nrm,"ONLY",1,icl++,1));
+    coy[0]=coo[0];
+    coy[1]=coo[1]-par[1]-pay[1];
+    cur=lower->add(new AMSgvolume(
+        "CTC_DUMMYMED",0,"YGDN","BOX ",pay,3,coy,nrm,"ONLY",1,gid++,1));
+    for(k=0;k<loop+1;k++){//<--- X position of cells/gaps ---
+      coo[0]=coo[0]-2.*par[0]-2.*parwal[0];
+      coy[0]=coo[0];
+      celdwn=lower->add(new AMSgvolume(
+           "CTC_DUMMYMED",0,"CELD","BOX ",par,3,coo,nrm,"ONLY",1,icl++,1));
+      cur=lower->add(new AMSgvolume(
+	   "CTC_DUMMYMED",0,"YGDN","BOX ",pay,3,coy,nrm,"ONLY",1,gid++,1));
+    }//<--- End X position of cells/gaps ----
+    coo[1]=coo[1]-2.*par[1]-2.*pay[1];
+  }//<---- End Super Cell loop -----
+
+  //<--- Place cells (PTFE boxes) & phototubes
+  //<----  .... start with UPPER layer (PTFE down, PMT up)
+
+  parptf[0]=0.5*CTCDBc::getptfesize(0);
+  parptf[1]=0.5*CTCDBc::getptfesize(1);
+  parptf[2]=0.5*CTCDBc::getptfesize(2);
+  coo[0]=-parptf[0];
+  coo[1]=-parptf[1];
+  coo[2]=-0.5*CTCDBc::getcellsize(2)+parptf[2];
+
+  parpmt[0]=0.5*CTCDBc::getpmtsize(0);
+  parpmt[1]=0.5*CTCDBc::getpmtsize(1);
+  parpmt[2]=0.5*CTCDBc::getpmtsize(2);
+  coopmt[0]=coo[0];
+  coopmt[1]=coo[1];
+  coopmt[2]=0.5*CTCDBc::getcellsize(2)-parpmt[2];  
+
+  AMSNode *ptfv=celup->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTFU","BOX ",parptf,3,coo,nrm,"ONLY",0,2021,1));
+
+  AMSNode *ipmu=celup->add(new AMSgvolume(
+          "TOF_PMT_BOX",0,"PMTU","BOX ",parpmt,3,coopmt,nrm,"ONLY",0,2011,1));
+
+  coo[0]=parptf[0];
+  coo[1]=parptf[1];
+  coopmt[0]=coo[0];
+  coopmt[1]=coo[1];
+  ptfv=celup->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTFU","BOX ",parptf,3,coo,nrm,"ONLY",1,2022,1));
+  ipmu=celup->add(new AMSgvolume(
+          "TOF_PMT_BOX",0,"PMTU","BOX ",parpmt,3,coopmt,nrm,"ONLY",1,2012,1));
+
+  coo[0]=-parptf[0];
+  coo[1]=parptf[1];
+  coopmt[0]=coo[0];
+  coopmt[1]=coo[1];
+  ptfv=celup->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTFU","BOX ",parptf,3,coo,nrm,"ONLY",1,2023,1));
+  ipmu=celup->add(new AMSgvolume(
+          "TOF_PMT_BOX",0,"PMTU","BOX ",parpmt,3,coopmt,nrm,"ONLY",1,2013,1));
+
+  coo[0]=parptf[0];
+  coo[1]=-parptf[1];
+  coopmt[0]=coo[0];
+  coopmt[1]=coo[1];
+  ptfv=celup->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTFU","BOX ",parptf,3,coo,nrm,"ONLY",1,2024,1));
+  ipmu=celup->add(new AMSgvolume(
+          "TOF_PMT_BOX",0,"PMTU","BOX ",parpmt,3,coopmt,nrm,"ONLY",1,2014,1));
+
+  // <--- Now lower layer
+  //<--- (PTFE boxes up, PMT's down)
+
+  coo[0]=-parptf[0];
+  coo[1]=-parptf[1];
+  coo[2]=0.5*CTCDBc::getcellsize(2)-parptf[2];
+  coopmt[0]=coo[0];
+  coopmt[1]=coo[1];
+  coopmt[2]=-0.5*CTCDBc::getcellsize(2)+parpmt[2];
+  AMSNode *ptfd=celdwn->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTFD","BOX ",parptf,3,coo,nrm,"ONLY",0,12021,1));
+  AMSNode *ipmd=celdwn->add(new AMSgvolume(
+          "TOF_PMT_BOX",0,"PMTD","BOX ",parpmt,3,coopmt,nrm,"ONLY",0,12011,1));
+
+  coo[0]=parptf[0];
+  coo[1]=parptf[1];
+  coopmt[0]=coo[0];
+  coopmt[1]=coo[1];
+  ptfd=celdwn->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTFD","BOX ",parptf,3,coo,nrm,"ONLY",1,12022,1));
+  ipmd=celdwn->add(new AMSgvolume(
+          "TOF_PMT_BOX",0,"PMTD","BOX ",parpmt,3,coopmt,nrm,"ONLY",1,12012,1));
+
+  coo[0]=-parptf[0];
+  coo[1]=parptf[1];
+  coopmt[0]=coo[0];
+  coopmt[1]=coo[1];
+  ptfd=celdwn->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTFD","BOX ",parptf,3,coo,nrm,"ONLY",1,12023,1));
+  ipmd=celdwn->add(new AMSgvolume(
+          "TOF_PMT_BOX",0,"PMTD","BOX ",parpmt,3,coopmt,nrm,"ONLY",1,12013,1));
+
+  coo[0]=parptf[0];
+  coo[1]=-parptf[1];
+  coopmt[0]=coo[0];
+  coopmt[1]=coo[1];
+  ptfd=celdwn->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTFD","BOX ",parptf,3,coo,nrm,"ONLY",1,12024,1));
+  ipmd=celdwn->add(new AMSgvolume(
+          "TOF_PMT_BOX",0,"PMTD","BOX ",parpmt,3,coopmt,nrm,"ONLY",1,12014,1));
+
+  //<---- Now place AeroGEL in PTFE box
+
+  par[0]=0.5*CTCDBc::getagelsize(0);
+  par[1]=0.5*CTCDBc::getagelsize(1);
+  par[2]=0.5*CTCDBc::getagelsize(2);
+  coo[0]=0.;
+  coo[1]=0.;
+  coo[2]=0.;
+  AMSNode * aglu=ptfv->add(new AMSgvolume(
+          "ATC_AEROGEL",0,"AGEL","BOX ",par,3,coo,nrm,"ONLY",0,501,1));
+  AMSNode * agld=ptfd->add(new AMSgvolume(
+          "ATC_AEROGEL",0,"AGLD","BOX ",par,3,coo,nrm,"ONLY",0,10501,1));
+
+  //<--- Place single layer of PTFE between Aerogel blocks
+
+  par[0]=0.5*CTCDBc::getagelsize(0);
+  par[1]=0.5*CTCDBc::getagelsize(1);
+  par[2]=0.5*ptfe;
+  coo[0]=0.;
+  coo[1]=0.;
+  coo[2]=0.;
+  cur=aglu->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTZU","BOX ",par,3,coo,nrm,"ONLY",0,601,1));
+  cur=agld->add(new AMSgvolume(
+          "ATC_PTFE",0,"PTZD","BOX ",par,3,coo,nrm,"ONLY",1,10601,1));
+ 
 }
 
 

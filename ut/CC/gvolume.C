@@ -28,9 +28,9 @@ void AMSgvolume::setnrm(number nrm[3][3]){
 AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
-           integer posp,integer gid) :
+           integer posp,integer gid, integer abs) :
     _matter(matter),_rotmno(rotmno), _npar(npar), _posp(posp),
-     _gid(gid),_cooA(coo[0],coo[1],coo[2]),AMSNode(0){
+     _gid(gid),_cooA(coo[0],coo[1],coo[2]),_Absolute(abs),AMSNode(0){
    setname(name);
    _coo=_cooA;
    if(shape)strcpy(_shape,shape);
@@ -53,9 +53,9 @@ AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[],
 AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
-           integer posp,integer gid) :
+           integer posp,integer gid , integer abs) :
     _rotmno(rotmno), _npar(npar), _posp(posp),
-     _gid(gid),_cooA(coo[0],coo[1],coo[2]),AMSNode(0){
+     _gid(gid),_cooA(coo[0],coo[1],coo[2]), _Absolute(abs), AMSNode(0){
       AMSgtmed *p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(0,matter));
       if(p)_matter=p->getmedia();
       else{
@@ -86,9 +86,9 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar, 
            geant coo[] ,  number nrm1[3] , number nrm2[3], number nrm3[3],
            const char gonly[] , 
-           integer posp,integer gid) :
+           integer posp,integer gid, integer abs) :
     _rotmno(rotmno), _npar(npar), _posp(posp),
-     _gid(gid),_cooA(coo[0],coo[1],coo[2]),AMSNode(0){
+     _gid(gid),_cooA(coo[0],coo[1],coo[2]), _Absolute(abs), AMSNode(0){
       AMSgtmed *p= (AMSgtmed *)AMSgObj::GTrMedMap.getp(AMSID(0,matter));
       if(p)_matter=p->getmedia();
       else{
@@ -126,7 +126,10 @@ void AMSgvolume::_init(){
   AMSgvolume * cur;
    cur=up();
    while (cur){
+    if(_Absolute==0)
     _coo=_coo-cur->_coo;
+    else
+    _cooA=_cooA+cur->_coo;
     mm3(cur->_nrm,_inrm);
     cur=cur->up();
    }

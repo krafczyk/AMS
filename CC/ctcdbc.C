@@ -13,12 +13,64 @@ return CTCGEOMFFKEY.agsize[index];
     if(_geomId <2)return CTCGEOMFFKEY.nwls;
     else return getnagel();
   }
-  void CTCDBc::setnwls(integer nwls)   {CTCGEOMFFKEY.nwls=nwls;}
-  number CTCDBc::getwallth()   {return CTCGEOMFFKEY.wallth;}
-  number CTCDBc::getsupzc()   {return CTCGEOMFFKEY.supzc;}
-  number CTCDBc::getagap()   {return CTCGEOMFFKEY.agap;}
-  number CTCDBc::getwgap()   {return CTCGEOMFFKEY.wgap;}
-  number CTCDBc::gethcsize(integer index)  {
+  void CTCDBc::setnwls(integer nwls) {CTCGEOMFFKEY.nwls=nwls;}
+  number CTCDBc::getwallth()         {return CTCGEOMFFKEY.wallth;}
+  number CTCDBc::getsupzc() {return CTCGEOMFFKEY.supzc;}
+  number CTCDBc::getagap() {return CTCGEOMFFKEY.agap;}
+  number CTCDBc::getwgap() {return CTCGEOMFFKEY.wgap;}
+  number CTCDBc::getptfeth() {return CTCGEOMFFKEY.ptfx;}
+  
+  number CTCDBc::getptfesize(integer index) {
+#ifdef __AMSDEBUG__
+assert (index >=0 && index <=2);
+#endif
+return CTCGEOMFFKEY.ptfe[index];
+}
+
+ number CTCDBc::getthcsize(integer index) {
+#ifdef __AMSDEBUG__
+assert (index >=0 && index <=2);
+#endif
+return CTCGEOMFFKEY.thcsize[index];
+}
+
+ number CTCDBc::getupsize(integer index) {
+#ifdef __AMSDEBUG__
+assert (index >=0 && index <=2);
+#endif
+return CTCGEOMFFKEY.upper[index];
+}
+number CTCDBc::getwallsize(integer index) {
+#ifdef __AMSDEBUG__
+assert (index >=0 && index <=2);
+#endif
+return CTCGEOMFFKEY.wall[index];
+} 
+number CTCDBc::getcellsize(integer index) {
+#ifdef __AMSDEBUG__
+assert (index >=0 && index <=2);
+#endif
+return CTCGEOMFFKEY.cell[index];
+} 
+number CTCDBc::getygapsize(integer index) {
+#ifdef __AMSDEBUG__
+assert (index >=0 && index <=2);
+#endif
+return CTCGEOMFFKEY.ygap[index];
+} 
+number CTCDBc::getagelsize(integer index) {
+#ifdef __AMSDEBUG__
+assert (index >=0 && index <=2);
+#endif
+return CTCGEOMFFKEY.agel[index];
+} 
+number CTCDBc::getpmtsize(integer index) {
+#ifdef __AMSDEBUG__
+assert (index >=0 && index <=2);
+#endif
+return CTCGEOMFFKEY.pmt[index];
+} 
+  number CTCDBc::gethcsize(integer index) {
 #ifdef __AMSDEBUG__
 assert (index >=0 && index <=2);
 #endif

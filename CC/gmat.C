@@ -104,11 +104,23 @@ z[0]=6.; z[1]=9.;
 w[0]=2.; w[1]=4.;
 mat.add (new AMSgmat( 30,"TEFLON2",a,z,w,2, 2.2));
 //
+// Teflon(C2F4) separators for ATC rho=0.3 gr/cm^3 :
+a[0]=12.;a[1]=19.;
+z[0]=6.; z[1]=9.;
+w[0]=2.; w[1]=4.;
+mat.add (new AMSgmat( 31,"TEFLON3",a,z,w,2, 0.3));
+//
 // Si-aerogel(SiO4H4) for CTC :
 a[0]=28.; a[1]=16.; a[2]=1.;
 z[0]=14.; z[1]=8.;  z[2]=1.;
 w[0]=1.;  w[1]=4.;  w[2]=4.;
-mat.add (new AMSgmat( 31,"SIAEROGEL",a,z,w,3, 0.24));
+mat.add (new AMSgmat( 32,"SIAEROGEL",a,z,w,3, 0.24));
+//
+// Si-aerogel(SiO(CH3)3) for CTC-MEW :
+a[0]=28.; a[1]=16.; a[2]=12.; a[3]=1.;
+z[0]=14.; z[1]=8.;  z[2]=6.; z[3]=1.;
+w[0]=1.;  w[1]=1.;  w[2]=3.; w[3]=9.;
+mat.add (new AMSgmat( 33,"MEWAEROGEL",a,z,w,4, 0.125));
 
 
 
@@ -148,10 +160,13 @@ tmed.add (new AMSgtmed(18,"CTC_WALL",29,0));
 //
 tmed.add (new AMSgtmed(19,"CTC_SEP",30,0));
 //
-tmed.add (new AMSgtmed(20,"CTC_AEROGEL",31,1));
+tmed.add (new AMSgtmed(20,"ATC_PTFE",31,0));
 //
-tmed.add (new AMSgtmed(21,"CTC_DUMMYMED",16,0));// fill all gaps inside CTC
+tmed.add (new AMSgtmed(21,"CTC_AEROGEL",32,1));
 //
+tmed.add (new AMSgtmed(22,"CTC_DUMMYMED",16,0));// fill all gaps inside CTC
+//
+tmed.add (new AMSgtmed(23,"ATC_AEROGEL",33,1));
 
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__

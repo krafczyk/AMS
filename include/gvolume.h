@@ -31,7 +31,7 @@ class AMSgvolume : public AMSNode
    number  _inrm[3][3]; //   ! norm absolute (1st index 1st)
    char    _gonly[5];   //   ! should be 'MANY' or 'ONLY'
    char    _shape[5];   //   ! geant voulme shape
-
+   integer _Absolute;   //   ! absolute(1) or relative (0) geant coordinates
    integer _ContPos;
 
    virtual ostream & print(ostream &)const;
@@ -44,18 +44,18 @@ class AMSgvolume : public AMSNode
   AMSgvolume (integer matter,integer rotmno,const char name[],
            const char shape[] ,   geant par[] , integer npar,
             geant coo[] ,  number nrm[][3] , const char gonly[] ,
-           integer posp,integer gid);
+           integer posp,integer gid,integer abs=0);
 
   AMSgvolume (char matter[], integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
-           integer posp,integer gid);
+           integer posp,integer gid, integer abs=0);
 
   AMSgvolume (char matter[], integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
            geant coo[] ,  number nrm1[3] , number nrm2[3], number nrm3[3],
            const char gonly[] , 
-           integer posp,integer gid);
+           integer posp,integer gid, integer abs=0);
 
   void setcoo(geant coo[]);
   void setnrm(number nrm[][3]);

@@ -118,14 +118,23 @@ public:
   geant wallth;    // reflecting walls(separators) thickness (cm)
   geant agap;      // typical "air" gaps for aerogel blocks
   geant wgap;      // typical gaps for WLS's
+  geant supzc;     // Support position 
   geant agsize[3]; // max aerogel size
   geant wlsth;     // wave_length_shifter thickness
-  geant hcsize[3]; // honeycomb plate size
-  geant supzc;     // z-position of supp.hon.plate (front surface)
+  geant hcsize[3]; // Old honeycomb thickness
+  geant thcsize[3];// honeycomb plate size
   geant aegden;    // aerogel density
   geant wlsden;    // wls dens.
   integer nblk;    // number of aerogel cells/layer (X-divisions)
   integer nwls;    // number of wls bars/layer (=nblk) 
+  geant ptfe[3];   // PTFE dimensions
+  geant ptfx;      // Single PTFE layer thickness
+  geant upper[3];  // UPPER/LOWER dimensions
+  geant wall[3];   // WALL dimensions (between modules)
+  geant cell[3];   // Super CELL dimensions
+  geant ygap[3];   // Gap dimensions (between supercells in same module)
+  geant agel[3];   // AeroGEL dimensions
+  geant pmt[3];    // PMT dimensions (including housing)
                         };
 #define CTCGEOMFFKEY COMMON_BLOCK(CTCGEOMFFKEY,ctcgeomffkey)
 COMMON_BLOCK_DEF(CTCGEOMFFKEY_DEF,CTCGEOMFFKEY);
