@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.55 2002/11/26 11:54:00 choutko Exp $
+#  $Id: ntuple02.doc,v 1.56 2002/12/05 18:43:34 delgadom Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -723,7 +723,7 @@ NOTE: The information of the mother is only available if RICCONT=1 in
    To confirm that the next ring is a rebuilding of the current one check
    if both rcritrkn are pointing to the same track number.   
 	    
-
+2- Rins reconstructed using the Naf radiator in the doble radiator configuration
 
 
 
