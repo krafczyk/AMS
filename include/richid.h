@@ -50,6 +50,8 @@ public:
   static void Init(); // Init tables according to geometry
 
   static integer get_channel_from_top(geant,geant);
+
+  static geant half_pixel(){return RICHDB::lg_length/8;}
   
 
 };
