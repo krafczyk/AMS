@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.158 2003/05/08 11:16:27 alexei Exp $
+# $Id: RemoteClient.pm,v 1.159 2003/05/08 11:40:58 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -658,17 +658,21 @@ $ref->{orb} = CORBA::ORB_init("orbit-local-orb");
      catch CORBA::SystemException with{
          $ref->sendmailerror("Unable To connect to Server"," ");
 #      try to restart server here
-       my $failed=1;
+       my $failed=-1;
+         my $file;
        $ref->{dbfile}=undef;
        if($ref->{CSR}){
-        $failed=$ref->RestartServer();
+         ($failed,$file)=$ref->RestartServer();
        }
 
-       if($failed ne 0){
+       if($failed eq -1){
            $ref->ErrorPlus("Unable To Connect to Server");
        }
+       elsif($failed ne 0){
+           $ref->ErrorPlus("Attempt to Restart Server failed. Run $file manually");
+       }
          else{
-             $ref->ErrorPlus("Attempt to Restart Server Has Been Made.\n Please check bjobs -q linux_server -u all in few minutes");
+             $ref->ErrorPlus("Attempt to Restart Server Has Been Made.\n Please check bjobs -q linux_server -u all in few minutes $file");
          }
       };
 
@@ -756,9 +760,9 @@ sub RestartServer{
              }
            close FILE;
               my $i=system("chmod +x $full");
-           return $i;
+           return $i,$full;
           }
-         } 
+       }
          return 1;
      }
 
