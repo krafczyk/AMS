@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.12 2003/06/18 16:37:20 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.13 2003/06/19 15:17:44 choutko Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -70,7 +70,7 @@ public:
   TPad              *GetRunInfoPad() { return m_RunInfoPad; }
   TPad              *GetTitlePad() { return m_TitlePad; }
   void               StartStop(char * buf=0);
-  Int_t             getMaxSubDet(){_subdet.size();}
+  Int_t             getMaxSubDet(){return _subdet.size();}
   Bool_t   & IsLogX() {return m_logx;}
   Bool_t   & IsLogY() {return m_logy;} 
   Bool_t   & IsLogZ() {return m_logz;} 
