@@ -196,7 +196,7 @@ void AMSIO::write(){
    // 
 #ifdef __ALPHA__
    static integer counter=0;
-   static integer nb=1000/sizeof(AMSIO);
+   static integer nb=800/sizeof(AMSIO);
    counter=(counter+1)%nb;
    if(!counter)fbin.flush();   
 #endif
