@@ -7,7 +7,7 @@ int open_log(int i);
 int open_elog(int i);
 
 int main (int argc, char *argv[]) {
-char chbuf[80],chbuf1[80],chbuf2[80], ch[256], *ch1;
+char chbuf[80],chbuf1[80],chbuf2[80], ch[256], *ch1, *ch2;
 ch256 chh[30];
 int i,j,nn,er,count[8],disk_space,timer, time_int,dt, time_sleep;
 int date1,date2,h1,h2,m1,m2,cpu,cpu_lim,cpu_cont,stat_loc[7][8],conn; 
@@ -253,9 +253,12 @@ pid_t pid;
 	  ch1=fgets(chh[nn],256,fp);
           if (nn>25)
             conn=0;
-          if (ch1!=NULL) { 
-            if (strcmp(strrchr(chh[nn],'.'),".hbk\n")==0)
+          if (ch1!=NULL) {
+            ch2=strrchr(chh[nn],'.');
+            if (ch2!=NULL) {
+              if (strcmp(ch2,".hbk\n")==0)
               nn++;
+            }
           }
 	}
         fclose(fp);
