@@ -517,8 +517,10 @@ void AMSParticle::refit(int fast){
           }
       }
     }
-    _loc2gl();
-    if(fast)return;
+    if(fast){
+      _loc2gl();
+      return;
+    }
       geant dummy;
       integer dorefit=TRFITFFKEY.ForceAdvancedFit==1 ||
       (TRFITFFKEY.ForceAdvancedFit==2 && RNDM(dummy)<IOPA.Portion) ||
@@ -547,6 +549,7 @@ void AMSParticle::refit(int fast){
       }
 #endif
      }
+     _loc2gl();
   }
    
 integer AMSParticle::_partP[38]={2,3,5,6,8,9,11,12,14,15,45,145,
@@ -558,12 +561,20 @@ integer AMSParticle::_partP[38]={2,3,5,6,8,9,11,12,14,15,45,145,
 void AMSParticle::_loc2gl(){
           AMSgObj::BookTimer.start("part::loc2gl");
  // Get current station position from event bank
-  number polephi,theta,phi;
+  number StationRad,polephi,theta,phi;
 
   AMSEvent::gethead()->GetGeographicCoo(polephi, theta, phi);
+  AMSEvent::gethead()->GetStationRad(StationRad);
   geant pitch=AMSEvent::gethead()->getpitch();
   geant roll=AMSEvent::gethead()->getroll();
   geant yaw=AMSEvent::gethead()->getyaw();
+
+  number EarthR       =AMSmceventg::Orbit.EarthR;
+  number DipoleR      =AMSmceventg::Orbit.DipoleR;
+  number DipoleTheta  =AMSmceventg::Orbit.DipoleTheta;
+  number DipolePhi    =AMSmceventg::Orbit.DipolePhi;
+  number PoleTheta    =AMSmceventg::Orbit.PoleTheta;
+  number PolePhiStatic=AMSmceventg::Orbit.PolePhiStatic;
 
   AMSDir amszg(AMSDBc::pi/2-theta,phi);
   AMSDir amsxg(AMSDBc::pi/2-AMSEvent::gethead()->getveltheta(),
@@ -608,16 +619,55 @@ void AMSParticle::_loc2gl(){
   number we=_dir[0]*amsx[2]+_dir[1]*amsy[2]+_dir[2]*amsz[2];
   AMSDir global(ue,ve,we);
   _ThetaGl=global.gettheta();
-  _PhiGl= global.getphi();
+  _PhiGl= fmod(global.getphi()-(polephi-PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
+
+  //
+  // Dipole direction
+  //
+  number um=sin(AMSDBc::pi/2-PoleTheta)*cos(polephi);
+  number vm=sin(AMSDBc::pi/2-PoleTheta)*sin(polephi);
+  number wm=cos(AMSDBc::pi/2-PoleTheta);
+
+  //
+  // Direction Dipole to Station
+  //
+  number dphi=DipolePhi+polephi-PolePhiStatic;
+  number xc=StationRad*sin(AMSDBc::pi/2-theta)*cos(phi)-
+   DipoleR*sin(AMSDBc::pi/2-DipoleTheta)*cos(dphi);
+  number yc=StationRad*sin(AMSDBc::pi/2-theta)*sin(phi)-
+   DipoleR*sin(AMSDBc::pi/2-DipoleTheta)*sin(dphi);
+  number zc=StationRad*cos(AMSDBc::pi/2-theta)-
+   DipoleR*cos(AMSDBc::pi/2-DipoleTheta);
+  number rl=sqrt(xc*xc+zc*zc+yc*yc);
+  number  up=xc/rl;
+  number  vp=yc/rl;
+  number  wp=zc/rl;
+
+  number cts=um*up+vm*vp+wm*wp;
+  number xl=acos(cts);
+  number cl=fabs(sin(xl));
+  number rgm=rl;
+
+  // Magnetic East
+  xc=vm*wp-wm*vp;
+  yc=wm*up-um*wp;
+  zc=um*vp-vm*up;
+  rl=sqrt(xc*xc+yc*yc+zc*zc);
+
+  number  uv=xc/rl;
+  number  vv=yc/rl;
+  number  wv=zc/rl;
+
+  number cth=ue*uv+ve*vv+we*wv;
+  number xfac=57.576*EarthR/rgm*EarthR/rgm;
+  number chsgn=_Momentum/fabs(_Momentum);
+  number mom=xfac*pow(cl,4)/pow(sqrt(1.-chsgn*cth*pow(cl,3))+1,2)*_Charge;
+  _CutoffMomentum=chsgn*mom;
+  integer rgcutoff=min((int)(mom/_Charge*10+.5),1<<10-1);
+  _pbeta->setstatus(rgcutoff<<20);
+    
           AMSgObj::BookTimer.stop("part::loc2gl");
 
-
-  // Get mag east-west 
-
-
-  AMSDir magpole(AMSDBc::pi/2-AMSmceventg::Orbit.PoleTheta,polephi);
-  AMSDir magmeridian=magpole.cross(amszg);
-  _SinMagMeridian=magmeridian.prod(global);
 }
 
 
