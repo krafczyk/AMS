@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.290 2005/02/04 14:47:38 alexei Exp $
+# $Id: RemoteClient.pm,v 1.291 2005/02/04 15:01:14 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1833,7 +1833,6 @@ sub Connect{
 
 #
  my    $insertjobsql = undef;
- my $dbversion       = undef;
 #
 #understand parameters
 
@@ -4344,7 +4343,6 @@ print qq`
             $self->ErrorPlus("Unable to Connect to Server.");
          }
 #        prepare the tables
-    
 # check tar ball exists
         my $key='gbatch';
         $sql="select myvalue from Environment where mykey='".$key."'";
@@ -4395,9 +4393,8 @@ print qq`
             $self->ErrorPlus("unable to retreive db version from db");
         }
 #
-        $dbversion=$ret->[0][0];
-#-           $dbversion="v3.00";
-#
+        my $dbversion=$ret->[0][0];
+        
         my $i=system "mkdir -p $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/*.dat $self->{UploadsDir}/$dbversion";
         $i=system "ln -s $self->{AMSDataDir}/$dbversion/t* $self->{UploadsDir}/$dbversion";
@@ -4450,13 +4447,19 @@ print qq`
         if($#stag3<0){
               $self->ErrorPlus("Unable to find $self->{AMSDataDir}/DataBase on the Server ");
         }
-
         if(($#sta<0 or $sta[9]-time() >86400*7  or $stag3[9] > $sta[9] ) and $self->{dwldaddon}==1){
            $self->{sendaddon}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$run";
         my $i=system "mkdir -p $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap $self->{UploadsDir}/DataBase";
-#-           my $dbversion="v3.00";
+        $key='dbversion';
+        $sql="select myvalue from Environment where mykey='".$key."'";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if( not defined $ret->[0][0]){
+            $self->ErrorPlus("unable to retreive db version from db");
+        }
+#
+        my $dbversion=$ret->[0][0];
            if($dbversion =~/v4/){
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
         $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
