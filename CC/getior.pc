@@ -1,4 +1,4 @@
-//  $Id: getior.pc,v 1.1 2002/03/25 16:43:52 alexei Exp $
+//  $Id: getior.pc,v 1.2 2002/03/25 16:54:37 alexei Exp $
 //
 // Subroutines to get IOR from AMS ORACLE database
 //
@@ -51,7 +51,7 @@ EXEC SQL BEGIN DECLARE SECTION;
   VARCHAR  dynstmt[2048];
 
   struct ior {
-   char name[256];
+   char name[2048];
    unsigned int time;
   } iors[100];
 
@@ -142,6 +142,17 @@ connect_error :
    return -1;
 }
 
+int suppressBlanks(char* string)
+{
+  int rstat = -1;
+  if (string > 0) {
+        for (int j=strlen(string)-1; string[j]==' '; j--) {
+           string[j] = '\0';
+         }
+    rstat = 1;
+   }
+   return rstat;
+}
 
 main(int argc, char* argv[]) 
 {
@@ -174,6 +185,7 @@ main(int argc, char* argv[])
    EXEC SQL WHENEVER SQLERROR DO sql_error("ORACLE error:");
    if(oracle_connect() != 0) exit(1);
    getiors();
+   suppressBlanks(iors[0].name);
    if (!output) {
      cout<<iors[0].name<<endl;
    } else {
@@ -184,3 +196,4 @@ main(int argc, char* argv[])
    }
    exit(0);
 }
+
