@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.67 2001/06/14 08:48:10 choutko Exp $
+//  $Id: server.C,v 1.68 2001/06/26 15:07:13 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -892,6 +892,7 @@ if(li!=_acl.end()){
     for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
       if(!strcmp((const char *)(*i)->HostName, (const char *)((*li)->id).HostName)){
        (*i)->Status=NoResponse;
+       _parent->EMessage(AMSClient::print(*i,"No Response From: "));
        _pser->MonInfo(AMSClient::print(*i,"No Response From: "),DPS::Client::Warning);
     }
 }  
@@ -925,10 +926,14 @@ void Server_impl::CheckClients(const DPS::Client::CID & cid){
     _parent->LastServiceTime()=tt;
 }
 if(!Master())return;
+static int iorder=0;
 Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 if(!_pser->Lock(cid,DPS::Server::CheckClient,getType(),_KillTimeOut))return;
 for(AHLI li=_ahl.begin();li!=_ahl.end();++li){
- if((*li)->Status==NoResponse && double(rand())/RAND_MAX>0.98)if(_pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
+ if((*li)->Status==NoResponse){
+ iorder=(iorder+1)%100;
+    if(iorder==1 && _pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
+ }
 }
 time_t tt;
 time(&tt);
@@ -973,6 +978,7 @@ if(_ahl.size())return;
    else ah.Status=DPS::Client::NoResponse; 
    ah.ClientsProcessed=0;
    ah.ClientsFailed=0;
+   ah.LastFailed=0;
    ah.ClientsKilled=0;
    ah.ClientsRunning=0;
    ah.Clock=(*i)->Clock;  
@@ -1955,6 +1961,7 @@ else{
    else ah.Status=DPS::Client::NoResponse;
    ah.ClientsProcessed=0;
    ah.ClientsFailed=0;
+   ah.LastFailed=0;
    ah.ClientsKilled=0;
    ah.ClientsRunning=0;
    ah.Clock=(*i)->Clock;  
@@ -2122,9 +2129,10 @@ Server_impl* _pser=dynamic_cast<Server_impl*>(getServer());
 if(!_pser->Lock(pid,DPS::Server::KillClient,getType(),_KillTimeOut))return;
 
 
-
+time_t tt;
+time(&tt);
 ACLI li=find_if(_acl.begin(),_acl.end(),find(DPS::Client::Killed));
-if(li!=_acl.end()){
+if(li!=_acl.end() && (*li)->LastUpdate+2*_KillTimeOut<tt){
    if(_pser->MonDialog(AMSClient::print(*li,"Asking To Kill Client: "),DPS::Client::Error)){
  //kill by -9 here
  
@@ -2163,7 +2171,14 @@ if(li!=_acl.end()){
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
    PropagateAC(acv,DPS::Client::Update);
-   _pser->Kill((*li),SIGHUP,true);
+   int iret=_pser->Kill((*li),SIGHUP,true);
+    if(iret){
+     _parent->EMessage(AMSClient::print(*li,"Producer::Unable To SigHup Client"));
+         DPS::Client::ActiveClient_var acv=*li;
+         PropagateAC(acv,DPS::Client::Delete);
+
+    }
+
   }
   else{
     _UpdateACT((*li)->id,DPS::Client::Active);
@@ -2180,10 +2195,14 @@ _pser->Lock(pid,DPS::Server::ClearKillClient,getType(),_KillTimeOut);
 
 void Producer_impl::CheckClients(const DPS::Client::CID & cid){
 if(!Master())return;
+static int iorder=0;
 Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 if(!_pser->Lock(cid,DPS::Server::CheckClient,getType(),_KillTimeOut))return;
 for(AHLI li=_ahl.begin();li!=_ahl.end();++li){
- if((*li)->Status==NoResponse && double(rand())/RAND_MAX>0.98)if(_pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
+ if((*li)->Status==NoResponse){
+ iorder=(iorder+1)%100;
+    if(iorder==1 && _pser->pingHost((const char*)((*li)->HostName)))(*li)->Status=DPS::Client::OK;
+ }
 }
 time_t tt;
 time(&tt);
@@ -2620,7 +2639,7 @@ void Producer_impl::getRunEvInfo(const DPS::Client::CID &cid, RunEvInfo_out ro,D
   bool succ=getRunEvInfoSDB(cid,rv,dv);
   if(! succ){
      _parent->EMessage(AMSClient::print(_parent->getcid(),"getRunEvInfoSDBFailed"));
-   dv->DieHard=1;
+   dv->DieHard=2;
    ro=rv._retn();
    dso=dv._retn();
    return;
@@ -2635,18 +2654,26 @@ else{
  if(li==_dstinfo.end())li=_dstinfo.begin();
  dv= *li;
  }
+ dv->DieHard=0;
 _rl.sort(Less());
 RLI li=find_if(_rl.begin(),_rl.end(),REInfo_find(cid,ToBeRerun));
 if(li==_rl.end()){
+ dv->DieHard=1;
+ _parent->IMessage("NoRunsToBeReRunAnyMore");
  li=find_if(_rl.begin(),_rl.end(),REInfo_find(cid,Failed));
- if(li==_rl.end())dv->DieHard=1;
- else if(_parent->Debug()){
+ if(li==_rl.end())dv->DieHard=2;
+ else{
+  dv->DieHard=0;
+ if(_parent->Debug()){
    cout <<  "****FAILED RUN RERUN "<<(*li)->Run<<" was "<<(*li)->cinfo.HostName <<" by "<<cid.HostName<<endl;
  }
+ }
 }
-if(li==_rl.end())dv->DieHard=1;
+if(li==_rl.end()){
+ 
+}
 else if( find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid))!=_rl.end()){
- dv->DieHard=1;
+ dv->DieHard=2;
  if(_parent->Debug()){
   _parent->EMessage(AMSClient::print(cid,"Die HARD  !!!!!!!"));
   RLI rvi=find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid));
@@ -4247,10 +4274,16 @@ return 0;
 
 
 void AMSServerI::HostClientFailed(DPS::Client::ActiveHost_var &ahlv){
-      (ahlv)->Status=DPS::Client::LastClientFailed;
+      if(ahlv->Status==DPS::Client::OK){
+        (ahlv)->Status=DPS::Client::LastClientFailed;
+      }
      ((ahlv)->ClientsFailed)++; 
      ((ahlv)->ClientsProcessed)++; 
-     if( (ahlv)->ClientsProcessed>3 && (ahlv)->ClientsFailed>((ahlv)->ClientsProcessed+1)/2)(ahlv)->Status=DPS::Client::InActive;
+     time_t tt;
+     time(&tt);
+     cout <<" HClF ::- Info: - "<<ahlv->ClientsProcessed<<" "<<ahlv->ClientsFailed<<" "<<tt-ahlv->LastFailed<<endl;
+     if(ahlv->Status!=DPS::Client::NoResponse && (ahlv)->ClientsProcessed>3 && (ahlv)->ClientsFailed>((ahlv)->ClientsProcessed+1)/2 && tt-ahlv->LastFailed<86400)(ahlv)->Status=DPS::Client::InActive;
+      ahlv->LastFailed=tt;
 
 }
 

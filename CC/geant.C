@@ -1,4 +1,4 @@
-//  $Id: geant.C,v 1.99 2001/03/02 10:40:52 choutko Exp $
+//  $Id: geant.C,v 1.100 2001/06/26 15:07:13 choutko Exp $
 // Original program by V.Choutko, the date of creation is unknown
 //
 // Last Edit 
@@ -118,6 +118,7 @@ LMS*                   lms;
 
 extern "C" void npq_();
 extern "C" void timest_(float & t);
+extern "C" void gstran_(int & itrt,float & ch, float &mas);
 #include <producer.h>
 void gams::UGINIT(int argc,  char * argv[]){
   float zero=0;
@@ -140,6 +141,8 @@ void gams::UGINIT(int argc,  char * argv[]){
   GZINIT();
   GPART();
   GPIONS(4);
+  int itrt=4;
+  gstran_(itrt,CCFFKEY.StrCharge,CCFFKEY.StrMass);
 
 #ifdef __DB__
    initDB();

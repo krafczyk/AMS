@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.39 2001/06/14 08:48:10 choutko Exp $
+//  $Id: producer.C,v 1.40 2001/06/26 15:07:13 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -97,7 +97,11 @@ UpdateARS();
   try{
     (*li)->getRunEvInfo(_pid,_reinfo,_dstinfo);
          
-    if(_dstinfo->DieHard)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
+    if(_dstinfo->DieHard){
+      
+      if(_dstinfo->DieHard==1)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
+      else FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInAbort);
+    }
     _cinfo.Run=_reinfo->Run;
     _cinfo.HostName=_pid.HostName; 
     SELECTFFKEY.Run=_reinfo->Run;

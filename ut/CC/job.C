@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.373 2001/06/14 08:48:10 choutko Exp $
+// $Id: job.C,v 1.374 2001/06/26 15:07:13 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -568,6 +568,8 @@ CCFFKEY.endtime=220000;
 CCFFKEY.oldformat=0;
 CCFFKEY.sdir=1;
 CCFFKEY.Fast=0;
+CCFFKEY.StrCharge=2;
+CCFFKEY.StrMass=12;
 FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //=================================================================================
