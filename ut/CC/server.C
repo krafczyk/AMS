@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.47 2001/02/19 14:18:28 choutko Exp $
+//  $Id: server.C,v 1.48 2001/02/19 15:20:01 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -1513,6 +1513,13 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
    DPS::Client::CID asid=as.id;
    sendAC(asid,as,rc);
    if(rc ==DPS::Client::Create){
+         for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
+            if(!strcmp((const char *)(*i)->HostName, (const char *)(as.id).HostName)){
+//          cout << " host found for creating "<<endl;
+            PropagateAH(asid,*i,DPS::Client::Update);
+            break;
+        }
+       }
 // Reread everything in case of db-aware program
      CORBA::Object_var obj=_defaultorb->string_to_object((const char *)((_refmap.begin())->second));
      DPS::Server_var _pvar=DPS::Server::_narrow(obj);
