@@ -23,6 +23,7 @@ const integer ECSLMX=9; // max. S(uper)-layers
 const integer ECPMSMX=36; // max. PMCell(PM's) per S-layer
 const integer ECPMSL=ECSLMX*ECPMSMX;// Max. total PM's in all S-layers
 const integer ECFBLMX=500;// max. fibers per layer
+const integer ECADCMX=4095;//max capacity of ADC(12bits)
 const integer ECROTN=10000; // geant numbering of ECAL rot. matr.(starting from...)
 const integer ECJSTA=10; // max size of counter-array for job statistics
 const integer ECHIST=2000;// MCEcal histogram number(starting from...) 
@@ -50,7 +51,6 @@ private:
 //                          7/8->X(Y)-pitch of PM's; fiber glue thickness(in radious)
 //                          9/10-> spare
 //
-  static geant _mev2mev; // MC: GeantEdep(MeV)->Emeasured(Mev) conv.factor 
   static integer _scalef;  // MC/Data: scale factor used for digitization in DAQ-system
 // 
   static integer _nfibpl[2];// num.of fibers per odd/even(1st/2nd) elementary layer in s-layer
@@ -72,7 +72,6 @@ public:
   static geant gendim(integer i);
   static geant fpitch(integer i);
   static geant rdcell(integer i);
-  static geant mev2mev(){return _mev2mev;}
   static integer scalef(){return _scalef;}
   static integer nfibpl(integer i);
   static integer slstruc(integer i);

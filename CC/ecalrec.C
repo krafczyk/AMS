@@ -122,7 +122,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //
     for(i=0;i<ECALDBc::slstruc(4);i++){ // <------- loop over PM's in this(il) S-layer
       a2dr=ECcalib::ecpmcal[il][i].an2dyr();//take some param.from DB
-      mev2adc=1./ECcalib::ecpmcal[il][i].adc2mev();
+      mev2adc=ECMCFFKEY.mev2adc;// MC GeantEmeas->ADCchannel to have MIP-m.p. in 5th channel
+//                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
       pmrgn=ECcalib::ecpmcal[il][i].pmrgain();
       ECPMPeds::pmpeds[il][i].getpedh(pedh);
       ECPMPeds::pmpeds[il][i].getsigh(sigh);
@@ -134,27 +135,47 @@ void AMSEcalRawEvent::mc_build(int &stat){
       anen=0.;
       dyen=0.;
       for(k=0;k<4;k++){//<--- loop over 4-subcells in PM
-        h2lr=ECcalib::ecpmcal[il][i].hi2lowr(k);//PM subcell high2/low ratio from DB
+        h2lr=ECcalib::ecpmcal[il][i].hi2lowr(k);//PM subcell high/low ratio from DB
 	scgn=ECcalib::ecpmcal[il][i].pmscgain(k);//PM SubCell relative(to average) gain from DB
-        edepr=sum[i][k]*ECALDBc::mev2mev();//Geant_dE/dX(Mev)->Emeas(Mev)
+        edepr=sum[i][k]*ECMCFFKEY.mev2mev;//Geant_dE/dX(Mev)->Emeas(Mev)
 	emeast+=edepr;
 	anen+=edepr;
 	dyen+=edepr;
 // ---------> digitization+DAQ-scaling:
 // High-gain channel:
-	radc=edepr*pmrgn*scgn*mev2adc+pedh[k]+sigh[k]*rnormx();//Em(mev)->Em(adc)+noise
+        if(ECMCFFKEY.silogic[0]==0){
+	  radc=edepr*pmrgn*scgn*mev2adc+pedh[k]+sigh[k]*rnormx();//Em(mev)->Em(adc)+ped+noise
+	}
+	else if(ECMCFFKEY.silogic[0]==1){
+	  radc=edepr*pmrgn*scgn*mev2adc+pedh[k];//Em(mev)->Em(adc)+ped
+	}
+	else if(ECMCFFKEY.silogic[0]==2){
+	  radc=edepr*pmrgn*scgn*mev2adc;//Em(mev)->Em(adc)
+	}
+	else{
+	}
 	adch=floor(radc);//"digitization"
-	if(adch>=4095)adch=4095;//"ADC-saturation (12 bit)"
-	radc=number(adch)-pedh[k];// ped-subtraction
+	if(adch>=ECADCMX)adch=ECADCMX;//"ADC-saturation (12 bit)"
+	if(ECMCFFKEY.silogic[0]<2)radc=number(adch)-pedh[k];// ped-subtraction
         if(radc>=ECALVarp::ecalvpar.daqthr(0)){// use only hits above DAQ-readout threshold
 	  adch=floor(radc*ECALDBc::scalef());//DAQ scaling
 	}
 	else{ adch=0;}
 // Low-gain channel:
-	radc=edepr*pmrgn*scgn*mev2adc/h2lr+pedl[k]+sigl[k]*rnormx();//Em(mev)->Em/h2lr(adc)+noise
+        if(ECMCFFKEY.silogic[0]==0){
+	  radc=edepr*pmrgn*scgn*mev2adc/h2lr+pedl[k]+sigl[k]*rnormx();//Em(mev)->Em/h2lr(adc)+ped+noise
+	}
+	else if(ECMCFFKEY.silogic[0]==1){
+	  radc=edepr*pmrgn*scgn*mev2adc/h2lr+pedl[k];//Em(mev)->Em/h2lr(adc)+ped
+	}
+	else if(ECMCFFKEY.silogic[0]==2){
+	  radc=edepr*pmrgn*scgn*mev2adc/h2lr;//Em(mev)->Em/h2lr(adc)
+	}
+	else{
+	}
 	adcl=floor(radc);//"digitization")
-	if(adcl>=4095)adcl=4095;//"ADC-saturation (12 bit)"
-	radc=number(adcl)-pedl[k];// ped-subtraction
+	if(adcl>=ECADCMX)adcl=ECADCMX;//"ADC-saturation (12 bit)"
+	if(ECMCFFKEY.silogic[0]<2)radc=number(adcl)-pedl[k];// ped-subtraction
         if(radc>=ECALVarp::ecalvpar.daqthr(4)){// use only hits above DAQ-readout threshold
 	  adcl=floor(radc*ECALDBc::scalef());//DAQ scaling
 	}
@@ -227,14 +248,13 @@ void AMSEcalRawEvent::mc_build(int &stat){
 void AMSEcalHit::build(int &stat){
   int i,j,k;
   integer sta,status,dbstat,padc[2],id,idd,isl,pmc,subc,nraw,nhits;
-  integer proj,plane,cell,icont,adcmx;
+  integer proj,plane,cell,icont;
   number radc[2],edep,adct,fadc,emeast,coot,cool,cooz; 
-  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr;
-  integer ovfl[2]={0,0};
+  geant pedh[4],pedl[4],sigh[4],sigl[4],h2lr,ph,pl,sh,sl;
+  integer ovfl[2];
   AMSEcalRawEvent * ptr;
 //
   stat=1;//bad
-  adcmx=4095.;
   nhits=0;
   nraw=0;
   adct=0.;
@@ -257,16 +277,37 @@ void AMSEcalHit::build(int &stat){
       h2lr=ECcalib::ecpmcal[isl][pmc].hi2lowr(subc);
       radc[0]=number(padc[0])/ECALDBc::scalef();//DAQ-format-->ADC-high-chain
       radc[1]=number(padc[1])/ECALDBc::scalef();//DAQ-format-->ADC-low-chain
-      if(radc[0]>0.)if((adcmx-(radc[0]+pedh[subc]))<4.*sigh[subc])ovfl[0]=1;// mark as ADC-Overflow
-      if(radc[1]>0.)if((adcmx-(radc[1]+pedl[subc]))<4.*sigl[subc])ovfl[1]=1;// mark as ADC-Overflow
+      ph=pedh[subc];
+      sh=sigh[subc];
+      pl=pedl[subc];
+      sl=sigl[subc];
+      if(ECMCFFKEY.silogic[0]==1){
+	sh=0.;
+        sl=0.;
+      }
+      if(ECMCFFKEY.silogic[0]==2){
+	ph=0.;
+	pl=0.;
+      }
+      ovfl[0]=0;
+      ovfl[1]=0;
+      if(radc[0]>0.)if((ECADCMX-(radc[0]+ph))<=4.*sh)ovfl[0]=1;// mark as ADC-Overflow
+      if(radc[1]>0.)if((ECADCMX-(radc[1]+pl))<=4.*sl)ovfl[1]=1;// mark as ADC-Overflow
 // take decision which chain to use for energy calc.(Hi or Low):
       sta=0;
-      if(radc[0]>0. && ovfl[0]==0)fadc=radc[0];
-      else if(radc[1]>0. && ovfl[1]==0){
-        fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
-	if(ovfl[1]==1)sta|=(65536*64);// mark overflow status bit
+      fadc=0.;
+      if(radc[0]>0. && ovfl[0]==0)
+                                 fadc=radc[0];//use highCh.
+      else if(radc[0]>0. && radc[1]>0. && ovfl[1]==0)
+                                 fadc=radc[1]*h2lr;//use lowCh.,rescale LowG-chain to HighG
+      else{ // accept double overflow case, the rest is junk
+        if(ovfl[0]==1){
+	  if(ovfl[1]==1){
+            fadc=radc[1]*h2lr;//use low ch.,rescale LowG-chain to HighG
+	    sta|=(65536*64);// mark overflow status bit
+	  }
+	}
       }
-      else fadc=0.;
       edep=fadc/ECcalib::ecpmcal[isl][pmc].pmrgain()
                                     /ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//gain corr.
       if(ECREFFKEY.reprtf[0]==1){

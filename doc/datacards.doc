@@ -802,8 +802,12 @@ I 30 mcainc    (0)  // 0/1-> off/on A-integrator calibration in MC
     
 ECMC
 I 1    fastsim(0)                // =1 for fast(non-accurate) simulation(missing now)
-I 1    mcprtf(0)                 // =1 to print MC-histograms
-R 1    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
+I 2    mcprtf(0)                 // =1 to print MC-histograms
+R 3    cutge(0.001)              // Geant(cutele=cutgam(Gev)) cut for EC-volumes
+I 4    silogic[0]                // =0/1/2->peds+noise(noncor)/no_noise/no_peds
+I 5    silogic[1]                // spare
+R 6    mev2mev                   // Geant_de/dx->Emeasured(input) convertion
+R 7    mev2adc                   // (acd/mev) Emeasured->ADCchannel convertion    
 
     ECAL reconstruction:
 

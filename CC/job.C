@@ -607,9 +607,13 @@ FFKEY("TFMC",(float*)&TFMCFFKEY,sizeof(TFMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
 void AMSJob::_siecaldata(){
-  ECMCFFKEY.fastsim=0.; // 1/0-> fast/slow simulation algorithm(missing fast TBD)
-  ECMCFFKEY.mcprtf=0;     // print_hist flag (0/1->no/yes)
-  ECMCFFKEY.cutge=0.001; // cutgam=cutele cut for EC_volumes
+  ECMCFFKEY.fastsim=0.;     //(1) 1/0-> fast/slow simulation algorithm(missing fast TBD)
+  ECMCFFKEY.mcprtf=0;       //(2) print_hist flag (0/1->no/yes)
+  ECMCFFKEY.cutge=0.001;    //(3) cutgam=cutele cut for EC_volumes
+  ECMCFFKEY.silogic[0]=0;   //(4) SIMU logic flag =0/1/2->peds+noise/no_noise/no_peds
+  ECMCFFKEY.silogic[1]=0;   //(5) spare
+  ECMCFFKEY.mev2mev=34.33;  //(6) Geant dE/dX(MeV)->Emeas(MeV) conv.factor
+  ECMCFFKEY.mev2adc=0.3788; //(7) Emeas(MeV)->ADCch conv.factor(to put MIP-m.p. in 5th channel)
 FFKEY("ECMC",(float*)&ECMCFFKEY,sizeof(ECMCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //---------------------------

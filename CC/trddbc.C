@@ -105,9 +105,11 @@ void TRDDBc::init(){
       OctagonDimensions(1,8)=0;
       OctagonDimensions(1,9)=OctagonDimensions(1,6)+2*fabs(OctagonDimensions(1,4))*tan(ang);
 
-      OctagonDimensions(2,4)=-175./20;
+//      OctagonDimensions(2,4)=-175./20;
+      OctagonDimensions(2,4)=-45./20;// tempor solution by E.Choumilov
       OctagonDimensions(2,5)=0;
-      OctagonDimensions(2,6)=1698./20;
+//      OctagonDimensions(2,6)=1698./20;
+      OctagonDimensions(2,6)=1600./20;
       OctagonDimensions(2,8)=0;
       OctagonDimensions(2,9)=OctagonDimensions(2,6)+2*fabs(OctagonDimensions(2,4))*tan(ang);
 
@@ -157,13 +159,16 @@ void TRDDBc::init(){
        }
        switch(i){
         case 2:
-        coo[2]=839./10+OctagonDimensions(i,4);
+//        coo[2]=839./10+OctagonDimensions(i,4);
+        coo[2]=794./10+OctagonDimensions(i,4);// tempor solution by E.Choumilov
         break;
         case 1:
-        coo[2]=839./10-OctagonDimensions(i,4);
+//        coo[2]=839./10-OctagonDimensions(i,4);
+        coo[2]=794./10-OctagonDimensions(i,4);// tempor solution by E.Choumilov
         break;
         case 0:
-        coo[2]=1450./10+OctagonDimensions(i,4);
+//        coo[2]=1450./10+OctagonDimensions(i,4);
+        coo[2]=1405./10+OctagonDimensions(i,4);// tempor solution by E.Choumilov
         break;
        }
        SetOctagon(i,status,coo,unitnrm,gid); 

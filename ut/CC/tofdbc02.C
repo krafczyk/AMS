@@ -197,7 +197,8 @@ geant TOF2DBc::_plnstr[15]={
     #endif
     return _plnstr[i-1];
   }
-//   function to get Z-position of scint. bar=ib in layer=il
+// ===> function to get Z-position of scint. bar=ib in layer=il
+//
   geant TOF2DBc::getzsc(integer il, integer ib){
     #ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
@@ -205,24 +206,24 @@ geant TOF2DBc::_plnstr[15]={
         assert(ib>=0 && ib < TOF2GC::SCBRS[il]);
       }
     #endif
-  static geant dz;
-  geant zc;
+  geant dz,zc;
   dz=_plnstr[5]+2.*_plnstr[6];// counter thickness
   if(il==0)
-    zc=_supstr[0]+_supstr[6]+_plnstr[0]+dz/2.;
+    zc=_supstr[0]-_plnstr[0]-dz/2.;
   else if(il==1)
     zc=_supstr[0]-_plnstr[1]-dz/2.;
   else if(il==2)
     zc=_supstr[1]+_plnstr[1]+dz/2.;
   else if(il==3)
-    zc=_supstr[1]-_supstr[6]-_plnstr[0]-dz/2.;
-  if(il==0)zc=zc+(ib%2)*_plnstr[2];
-  else if(il==3)zc=zc-(ib%2)*_plnstr[2];
+    zc=_supstr[1]+_plnstr[0]+dz/2.;
+  if(il==0)zc=zc-(ib%2)*_plnstr[2];
+  else if(il==3)zc=zc+(ib%2)*_plnstr[2];
   else if(il==1)zc=zc-((ib+1)%2)*_plnstr[2];
   else if(il==2)zc=zc+((ib+1)%2)*_plnstr[2];
   return(zc);
   }  
-// function to get transv. position of scint. bar=ib in layer=il
+// ===> function to get transv. position of scint. bar=ib in layer=il
+//
   geant TOF2DBc::gettsc(integer il, integer ib){
     #ifdef __AMSDEBUG__
       if(TOF2DBc::debug){
@@ -232,7 +233,7 @@ geant TOF2DBc::_plnstr[15]={
     #endif
   static geant dx;
   geant x,co[2],dxt;
-  dx=_plnstr[4]+2.*_plnstr[12];//width of sc.counter(bar+cover)
+  dx=_plnstr[4]+2.*_plnstr[7];//width of sc.counter(bar+cover)
   dxt=(TOF2GC::SCBRS[il]-1)*(dx-_plnstr[3]);//first-last sc.count. bars distance
   if(il<2){
     co[0]=_supstr[2];// <--top TOF-subsystem X-shift

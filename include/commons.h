@@ -199,6 +199,9 @@ public:
 integer fastsim;  //1/0-> fast/slow simulation
 integer mcprtf;   //1/0-> print/not mc-histogr.
 geant cutge;// cutgam=cutele cut in EC_radiator
+integer silogic[2];// SIMU logic flags
+geant mev2mev;
+geant mev2adc;
 };
 #define ECMCFFKEY COMMON_BLOCK(ECMCFFKEY,ecmcffkey)
 COMMON_BLOCK_DEF(ECMCFFKEY_DEF,ECMCFFKEY);

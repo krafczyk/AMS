@@ -75,8 +75,7 @@ integer ECALDBc::_nfibpcl[ECFLSMX]={ // real fibers per layer in PMcell
    12,12,12,12,12,12,12,12,12,12
 };
 //
-geant ECALDBc::_mev2mev=34.33; // MC: Geant dE/dX(MeV)->Emeas(MeV) conv.factor(at 8gev)
-int ECALDBc::_scalef=2;// MC/Data scale factor in used in ADC->DAQ-value
+int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion.
 //
 //  member functions :
 //
@@ -206,8 +205,8 @@ int ECALDBc::_scalef=2;// MC/Data scale factor in used in ADC->DAQ-value
     cs=ds/r;
     sn=sqrt(1.-cs*cs);
     sina=2.*cs*sn;
-    a=2.*asin(sn);//=0->pi when ds=r->0
-    return ((a-sina)/2./AMSDBc::pi);
+    a=2.*asin(sn);//sector opening angle:(0->pi) when ds:(r->0)
+    return ((a-sina)/2./AMSDBc::pi);//0.5->0 when ds  0->r
   }
 //---
 // fiberID(SSLLFFF) to cellID(SSPPC) conversion
@@ -234,9 +233,9 @@ int ECALDBc::_scalef=2;// MC/Data scale factor in used in ADC->DAQ-value
     else cleft=-(_nfibpl[1]-1)*pit/2.;//         fiber from 2nd layer of s-layer
     ct=cleft+fff*pit;//       transv.coord. of fiber in ECAL r(eference) s(ystem)
     ztop=(nfl-1)*piz/2.;//       z-pos of 1st(from top) f-layer of s-layer
-    cz=ztop-ll*piz;//      z-pos of fiber in ECAL r.s.
+    cz=ztop-ll*piz;//      z-pos of fiber in Slayer r.s.(z=0->middle of super-layer)
     tleft=-npm*pmsiz/2.;//     low-edge PM-bin transv.position in ECAL r.s.
-    dist=ct-tleft;//           fiber-center dist from the 1st PM (left edge)
+    dist=ct-tleft;//           fiber-center dist from the 1st PM (its left edge)
     pm=integer(floor(dist/pmsiz));//   number of fired PM  0-(npm-1)   (IMPLY pmpit=pmsiz !!!)
     if(pm<0 || pm>=npm)return;//    (out of sensitive area - no signal is readout)
 //
@@ -276,12 +275,12 @@ int ECALDBc::_scalef=2;// MC/Data scale factor in used in ADC->DAQ-value
 //        
       case 3:  //<-- completely inside PM
         bdis=pmdis-pxsiz;// f-center dist fron vertical pixel boundary
-        if(bdis<-fr){// <-- completely in the left half of PM
+        if(bdis<=-fr){// <-- completely in the left half of PM
           cell=0+tbc;
 	  cid[0]=1000*ss+(pm+1)*10+(cell+1);
 	  w[0]=1.;
         }
-        else if(bdis>fr){// <-- completely in the right half of PM
+        else if(bdis>=fr){// <-- completely in the right half of PM
           cell=1+tbc;
 	  cid[0]=1000*ss+(pm+1)*10+(cell+1);
 	  w[0]=1.;
