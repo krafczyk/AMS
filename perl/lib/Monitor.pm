@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.72 2004/03/10 10:17:50 choutko Exp $
+# $Id: Monitor.pm,v 1.73 2004/03/10 10:42:21 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -1169,6 +1169,7 @@ sub sendback{
    }elsif($name eq "ProducerActiveClient"){
         my $ref=$Monitor::Singleton;
         my %ac=%{${$ref->{acl}}[$row]};
+        shift @data;
         shift @data;
         shift @data;
         shift @data;
