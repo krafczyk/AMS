@@ -2269,7 +2269,7 @@ if(MISCFFKEY.G4On){
 #ifndef G4VIS_USE
 delete &(AMSgObj::BookTimer);
 #endif
-exit(0);
+exit(1);
 }
 #endif
 }

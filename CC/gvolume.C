@@ -343,7 +343,7 @@ integer AMSgvolume::_Norp=0;
            G4String name(getname());
            while (cur){
             G4VSolid *ps=cur->_MakeG4Volumes();
-            G4ThreeVector trans(cur->getcoo(0),cur->getcoo(1),cur->getcoo(2));
+            G4ThreeVector trans(cur->getcoo(0)*cm,cur->getcoo(1)*cm,cur->getcoo(2)*cm);
              name+=G4String(cur->_gonly[3]);
              name+=G4String(cur->getname());
             if(cur->_gonly[3]=='+'){

@@ -94,12 +94,12 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 
 #ifdef  __G4AMS__
  //testboolgeom(mother);
-if(!G4FFKEY.UniformMagField){
+//if(!G4FFKEY.UniformMagField){
  trdgeom02(mother);
  srdgeom02(mother);
  ecalgeom02(mother);
- richgeom02(mother);
-}
+ //richgeom02(mother);
+//}
 #else
  trdgeom02(mother);
  srdgeom02(mother);
@@ -2070,22 +2070,43 @@ geant coo[3]={0.,0.,0.};
 number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 integer gid=0;
 AMSNode * cur;
-AMSNode * dau;
+AMSgvolume * dau;
 AMSgtmed *p;
      geant magnetl=86.;
       gid=1;
       par[0]=113.2/2;
       par[1]=129.6/2;
       par[2]=magnetl/2.;
-      dau=mother.add(new AMSgvolume(
+      dau=(AMSgvolume*)mother.add(new AMSgvolume(
       "MAGNET",0,name,"TUBE",par,3,coo,
        nrm, "ONLY",0,gid,1));
+/*
+// add boolean for testing
+      coo[0]=par[1];
+      coo[1]=0;
+      coo[2]=0;
+      par[1]=(par[1]-par[0])/2;
+      par[0]=0;
+      dau->addboolean(new AMSgvolume("MAGNET",0,name,"TUBE",par,3,coo,
+           nrm,"BOO-",0,gid,1));
+            
+      coo[0]=-coo[0];
+      coo[1]=0;
+      coo[2]=0;
+      dau->addboolean(new AMSgvolume("MAGNET",0,name,"TUBE",par,3,coo,
+           nrm,"BOO+",0,gid,1));
+*/            
       gid=2;
+      coo[0]=0;
+      coo[1]=0;
+      coo[2]=0;
       par[0]=111.5/2.;
       par[1]=112.0/2.;
       par[2]=magnetl/2.;
-      dau=mother.add(new AMSgvolume(
+      mother.add(new AMSgvolume(
       "1/2ALUM",0,"ALT1","TUBE",par,3,coo,nrm, "ONLY",0,gid,1));
+
+
 /*
       gid=3;
       par[0]=129.6/2.;
