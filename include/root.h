@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.84 2003/05/12 21:40:40 choutko Exp $
+//  $Id: root.h,v 1.85 2003/05/13 11:35:30 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 //#define __WRITEROOT__
@@ -270,11 +270,11 @@ protected:
 public:
   /// access function to EcalClusterR collection  
   /// \sa AMSEventR  EcalClusterR
-  /// \param i index of fEcalCluster vector
+  /// \param i index of fEcalCluster vector  < Nmemb
   /// \return index of EcalClusterR collection or -1
   int EcalCluster(unsigned int i){return i<fEcalCluster.size()?fEcalCluster[i]:-1;}
   /// access function to EcalClusterR collection   
-  /// \param i index of fEcalCluster vector
+  /// \param i index of fEcalCluster vector < Nmemb
   /// \return pointer to EcalClusterR collection or 0
   EcalClusterR * pEcalCluster(unsigned int i);
 
@@ -973,11 +973,14 @@ public:
   /// \return pointer to TrTrackR object or 0
   TrTrackR * pTrTrack();
   /// access function to TofClusterR objects used
-  /// \param i index of fTofCluster vector
+  /// \return number of TofClusterR used
+  int NTofCluster()const {return fTofCluster.size();}
+  /// access function to TofClusterR objects used
+  /// \param i index of fTofCluster vector < NTofCluster()
   /// \return index of TofClusterR object in collection or -1
   int TofCluster(unsigned int i){return i<fTofCluster.size()?fTofCluster[i]:-1;}
   /// access function to TofClusterR objects   
-  /// \param i index of fTofCluster vector
+  /// \param i index of fTofCluster vector  < NTofCluster()
   /// \return pointer to TofClusterR object  or 0
   TofClusterR * pTofCluster(unsigned int i);
    BetaR(){};
@@ -1416,17 +1419,19 @@ ClassDef(MCEventgR,1)       //MCEventgR
      access to any vectors are via access function only. \n
      For any class XYZR  5 (five) functions are provided: \n
       - int nXYZ() - returns number of XYZ objects (via HeaderR counters, fast).  \n
-      - int NXYZ() -  same as hXYZ but do actual read of vectors from file.
+      - int NXYZ() -  same as nXYZ but do actual read of vectors from file.
                   Not really recommended. Use nXYZ instead.\n
-      - vector<XYZ> & XYZ() - returns reference to container. For advanced users only. \n
-      - XYZ & XYZ(unsigned int i) - returns reference on ith element of vector XYZ. Recommended way of access. \n
+      - vector<XYZR> & XYZ() - returns reference to container. For advanced users only. \n
+      - XYZ & XYZ(unsigned int i) - returns reference on ith element of vector of class XYZR. Recommended way of access. \n
       - XYZ * pXYZ(unsigned int i) - same as XYZ but returns pointer instead of reference. For advanced users only.  \n
 
     For some classes having references to other XYZR classes the following functions are (optionally) provided
       - int XYZ(int i=0) const  returns index of i-th used XYZR element in
-        XYZR collection. This element may be later accessed by functions described above.
+        corresponding  collection. This element may be later accessed by functions described above.
       - XYZ* pXYZ(int i=0) return pointer to i-th used XYZR element or 0.
         For advanced users only.
+
+    \author v.choutko@cern.ch
 */
 class AMSEventR: public  TObject {   
 protected:
@@ -1477,6 +1482,7 @@ public:
 
  
   HeaderR  fHeader;  ///<  Event Header \sa HeaderR
+
   ///  Reads Header 
   /// \param Entry - event no
   void ReadHeader(int Entry);
