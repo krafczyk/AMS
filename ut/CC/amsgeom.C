@@ -2815,7 +2815,7 @@ void richgeom02(AMSgvolume & mother)
 				
   // Inside RICH put all the elements
 
-  // Radiator: to be modifyed
+  // Radiator
 
   if(RICGEOM.radiator_box_length<=0){
     par[0]=0;
@@ -2824,7 +2824,7 @@ void richgeom02(AMSgvolume & mother)
     
     coo[2]=31-par[2];  
     
-    dummy=rich->add(new AMSgvolume("RICH RAD", // Material: Aerogel in the future
+    dummy=rich->add(new AMSgvolume("RICH RAD", 
 				   0,          // No rotation
 				   "RAD ",     // Name 
 				   "TUBE",     // Shape
@@ -2883,7 +2883,7 @@ void richgeom02(AMSgvolume & mother)
 	  coo[1]=RICGEOM.radiator_box_length/2-mithk/4;
 	  coo[2]=0;
 
-	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+	  dummy=p->add(new AMSgvolume("RICH CARBON", 
 				       0,
 				       "RWX ",
 				       "BOX",
@@ -2897,7 +2897,7 @@ void richgeom02(AMSgvolume & mother)
 				       rel));
 	  coo[1]*=-1;
 
-	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+	  dummy=p->add(new AMSgvolume("RICH CARBON", 
 				       0,
 				       "RWX ",
 				       "BOX",
@@ -2917,7 +2917,7 @@ void richgeom02(AMSgvolume & mother)
 	  coo[1]=0;
 	  coo[2]=0;
 
-	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+	  dummy=p->add(new AMSgvolume("RICH CARBON",
 				       0,
 				       "RWY ",
 				       "BOX",
@@ -2932,7 +2932,7 @@ void richgeom02(AMSgvolume & mother)
 
 	  coo[0]*=-1;
 
-	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+	  dummy=p->add(new AMSgvolume("RICH CARBON",
 				       0,
 				       "RWY ",
 				       "BOX",
@@ -2953,7 +2953,7 @@ void richgeom02(AMSgvolume & mother)
 	  coo[0]=0;
 	  coo[1]=0;
 	  coo[2]=0;
-	  dummy=p->add(new AMSgvolume("TOF_PMT_BOX", // This should be carbon fiber
+	  dummy=p->add(new AMSgvolume("RICH RAD",
 				      0,
 				      "RAD ",
 				      "BOX",
@@ -3150,11 +3150,6 @@ void richgeom02(AMSgvolume & mother)
 	if(copia==2) // Only once.
 #endif
 	  {
-	    
-	    // SHIELDING: We use the TOF_PMT_BOX material... to be changed in
-	    // the future
-
-	    
 	    par[0]=RICGEOM.light_guides_length/2;
 	    par[1]=otherthk/2; // Thickness: 1mm
 	    par[2]=3.5+RICGEOM.light_guides_height/2;
@@ -3162,7 +3157,7 @@ void richgeom02(AMSgvolume & mother)
 	    coo[1]=RICGEOM.light_guides_length/2-otherthk;
 	    coo[2]=0;
 	    
-	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+	    dummy=p->add(new AMSgvolume("RICH SHIELD",
 				       0,
 				       "SHI1",
 				       "BOX",
@@ -3177,7 +3172,7 @@ void richgeom02(AMSgvolume & mother)
 	    
 	    coo[1]*=-1;
 	    
-	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+	    dummy=p->add(new AMSgvolume("RICH SHIELD",
 				       0,
 				       "SHI1",
 				       "BOX",
@@ -3195,7 +3190,7 @@ void richgeom02(AMSgvolume & mother)
 	    coo[0]=RICGEOM.light_guides_length/2-otherthk/2;
 	    coo[1]=0;
 	    
-	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+	    dummy=p->add(new AMSgvolume("RICH SHIELD",
 				       0,
 				       "SHI2",
 				       "BOX",
@@ -3210,7 +3205,7 @@ void richgeom02(AMSgvolume & mother)
 	    
 	    coo[0]*=-1;
 
-	    dummy=p->add(new AMSgvolume("TOF_PMT_BOX",
+	    dummy=p->add(new AMSgvolume("RICH SHIELD",
 				       0,
 				       "SHI2",
 				       "BOX",
@@ -3258,7 +3253,7 @@ void richgeom02(AMSgvolume & mother)
 	    coo[1]=0;
 	    coo[2]=3.5-RICGEOM.light_guides_height/2-otherthk-par[2];
 
-	    dummy=p->add(new AMSgvolume("RICH WALLS",
+	    dummy=p->add(new AMSgvolume("RICH GLUE",
 					0,
 					"GLUE",
 					"BOX",
