@@ -1,4 +1,26 @@
-see  include/server.idl for idl defs
+Files:
+../include/server.h
+../include/server.idl
+../CC/server.C
+../CC/producer.C
+Make:
+gmake server -f ../install/Mopt
+gmake producer -f ../install/Mopt
+
+
+Start:
+../prod/start
+
+AuxFiles (eventually in DB):
+
+../prod
+NominalProducer
+NominalServer
+NominalHost
+NominalNtuple
+NominalKiller
+RunTable
+
 
 I DB aware routines
 
