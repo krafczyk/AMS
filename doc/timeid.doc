@@ -5,15 +5,15 @@ For each set of such variables (e.g. array or class instance)
 the following instance of timeid class should be set up in 
 AMSJob::_timeinitjob()
 
-TID.add ( new AMSTimeID ( char * id, tm begin, tm end, nbytes, void * pdata);
+TID.add( new AMSTimeID( char* id, tm begin, tm end, int nbytes, void* pdata));
 
 where 
 
 *id is unique string identifier ( arbitary size)
 tm begin - start validity time
-tme end  - end   validity time
-nbytes - sizeof data in bytes
-pdat - pointer to first byte of the data 
+tm end   - end   validity time
+nbytes   - sizeof data in bytes
+pdat     - pointer to first element of the data 
 
 
 tm structrure is defined in sys <time.h>
