@@ -335,77 +335,8 @@ for(i=0;;i++){
 
 void AMSCTCCluster::build(){
 if(CTCDBc::getgeom()<2){
- for(integer kk=0;kk<CTCDBc::getnlay();kk++){
-  AMSCTCRawCluster *ptr=(AMSCTCRawCluster*)AMSEvent::gethead()->
-  getheadC("AMSCTCRawCluster",0);
-  integer const maxpl=200;
-  static number xplane[maxpl];
-  static integer xstatus[maxpl];
-  VZERO(xplane,maxpl*sizeof(number)/4);
-  VZERO(xplane,maxpl*sizeof(integer)/4);
-  while (ptr){
-    if(ptr->getlayno()==kk+1){
-    integer plane=ptr->getbarno();
-#ifdef __AMSDEBUG__
-    assert(plane>0 && plane < maxpl-1);
-#endif
-    xplane[plane]+=ptr->getsignal();
-    xstatus[plane]+=ptr->getstatus();
-   }
-   ptr=ptr->next();
-  }
-
-for (int i=0;i<maxpl;i++){ 
- if(xplane[i] > CTCRECFFKEY.Thr1 && xplane[i]>= xplane[i-1] 
- && xplane[i]>= xplane[i+1] ){
-  number edep=0;
-  AMSPoint cofg(0,0,0);
-  number xsize=1000;
-  number ysize=1000;
-  number zsize=1000;
-  integer status=xstatus[i];
-  for(int j=i-1;j<i+2;j++){
-   if(xplane[j]>0){
-    AMSCTCRawCluster d(0,j,kk+1,0);
-    AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(1));
-    if(p){
-     cofg=cofg+p->loc2gl(AMSPoint(0,0,0))*xplane[j];
-     edep+=xplane[j];
-    }
-    else cerr << "AMSCTCCluster::build-S-GeomVolumeNotFound "<<j<<endl;
-   }  
-  }
-  if(edep>0){
-    cofg=cofg/edep;
-  }
-  // GetTypical Error Size - max (aerogel,wls)
-    AMSCTCRawCluster d(0,1,1,0);
-    AMSgvolume *p0= AMSJob::gethead()->getgeomvolume(d.crgid(0));
-    AMSgvolume *p1= AMSJob::gethead()->getgeomvolume(d.crgid(1));
-    if(p0 && p1 ){
-          xsize=max(p0->getpar(0),p1->getpar(0));
-          ysize=max(p0->getpar(1),p1->getpar(1));
-          zsize=max(p0->getpar(2),p1->getpar(2));
-    }
-    else if (p0){
-      // now WLS Probably  Annecy setup
-          xsize=p0->getpar(0);
-          ysize=p0->getpar(1);
-          zsize=p0->getpar(2);
-    }
-  AMSPoint ecoo(xsize,ysize,zsize);
-  if(edep>CTCRECFFKEY.ThrS){
-    //    cout << cofg <<endl;
-   AMSEvent::gethead()->addnext(AMSID("AMSCTCCluster",kk),
-   new     AMSCTCCluster(status,kk+1,cofg,ecoo,edep,sqrt(edep)));
-   xplane[i-1]=0;
-   xplane[i]=0;
-   xplane[i+1]=0; 
-   i=0;
-  }
- }    
-}
-}
+  cerr << " Non Annecy setups are not supported any more "<<endl;
+  exit(1);
 }
 else {
  for(integer kk=0;kk<CTCDBc::getnlay();kk++){
@@ -453,6 +384,8 @@ if(imax >=0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
   for(i=-1;i<2;i++){ 
    for(j=-1;j<2;j++){
     integer k=col-1+j+(row-1+i)*CTCDBc::getnx(layer)*2;
+    if(col-1+j >=0 && col-1+j <CTCDBc::getnx(layer)*2 && row-1+i >=0 
+    && row-1+i < CTCDBc::getny()*2){ 
     if(k>=0 && k<maxpl && xplane[k]>0){
      AMSCTCRawCluster d(0,row+i,layer,0,col+j);
      AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
@@ -460,8 +393,10 @@ if(imax >=0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
       cofg=cofg+p->loc2gl(AMSPoint(0,0,0))*xplane[k];
       edep+=xplane[k];
      }
-     else cerr << "AMSCTCCluster::build-S-GeomVolumeNotFound "<<row-1+i<<" "<<col-1+j<<endl;
-    }  
+     else cerr << "AMSCTCCluster::build-S-GeomVolumeNotFound "<<row-1+i<<" "
+     <<col-1+j<<endl;
+    }
+   }  
    }
   }
   if(edep>0)cofg=cofg/edep;
