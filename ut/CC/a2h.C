@@ -131,7 +131,6 @@ int16u pheader[12];
          int nblk=0;
        int evto=-1;
        do {
-out:
         int l16ptr=0;
         int tlength,ntdr,len,tdrn,ch1,ch2,elem;
         ie=fscanf(fbin,"%x",&tlength);
@@ -144,8 +143,8 @@ out:
         pnblk[nblk]=tlength;
         ntdr=ntdr & 31;
         pntdr[nblk++]=ntdr;
-        //        cout << " tlength "<<tlength <<endl;
-        //cout << " ntdr "<<ntdr <<" "<<pntdr[nblk-1]<<" "<<nblk-1<<endl;
+        //cout << " tlength "<<tlength <<endl;
+         //cout << " ntdr "<<ntdr <<" "<<pntdr[nblk-1]<<" "<<nblk-1<<endl;
         //cout <<" datatype "<<datatype<<endl;
         if(ie!=EOF && ntdr>0){
         }
@@ -153,7 +152,15 @@ out:
          
          break;
        }
+       int ctdrsofar=0;
        do{
+         if(ctdrsofar == ntdr){
+           cerr <<"a2h-E-FormatLogicError "<<tlength-2-l16ptr<<" words will be skipped"<<endl;
+          for(int ks=l16ptr;ks<tlength-2;ks++){
+           ie=fscanf(fbin,"%x",&elem);
+          }  
+          goto out;          
+         }
         ie=fscanf(fbin,"%x",&tdrn);
         ie=fscanf(fbin,"%x",&len);
         ie=fscanf(fbin,"%x",&evt);
@@ -161,12 +168,13 @@ out:
         //cout << " ntdr "<<ntdr <<" "<<tdrn<<" "<<len<<" "<<evt<<endl;
         if(tdrn > 23){
           cerr <<"a2h-E-BadTDRNumber "<<tdrn<<"  event will be skipped"<<endl;
-          for(int ks=l16ptr;ks<tlength;ks++){
+          for(int ks=l16ptr;ks<tlength-2;ks++){
            ie=fscanf(fbin,"%x",&elem);
           }  
-          cerr<<"a2h-E-skipped "<<tlength-l16ptr<<" words"<<endl;
+          cerr<<"a2h-E-skipped "<<tlength-2-l16ptr<<" words"<<endl;
            goto out; 
         }
+         ctdrsofar++;
          cdr[nrecords++]=tdrn;
          pData[tdrn][0]=len;
          for(int i=1;i<len-1;i++){
@@ -175,6 +183,7 @@ out:
          }                
           l16ptr+=len-2;         
        }while (l16ptr<tlength-2);
+out:
         ie=fscanf(fbin,"%x",&ch1);
         ie=fscanf(fbin,"%x",&ch2);
 
