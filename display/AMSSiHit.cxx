@@ -35,7 +35,7 @@ AMSSiHit::AMSSiHit(Int_t status, Int_t plane, Int_t px, Int_t py,
 
    SetDirection(0.0, 0.0);
 						// magnify for visual effect
-   TMarker3DBox::SetSize(errhit[0]*300.0, errhit[1]*300.0, errhit[2]*300.0);
+   TMarker3DBox::SetSize(errhit[0]<0.5?errhit[0]*300.0:errhit[0], errhit[1]*300.0, errhit[2]*300.0);
    SetLineWidth(1);
    SetLineColor(4);		// dark blue
    SetFillColor(4);
