@@ -52,6 +52,7 @@ void AMSEvent::_init(){
   // check old run & 
   if(_run != SRun){
    cout <<" AMS-I-New Run "<<_run<<endl;
+   DAQEvent::initO(_run);
    if(AMSJob::gethead()->isSimulation())_siamsinitrun();
    _reamsinitrun();
   }

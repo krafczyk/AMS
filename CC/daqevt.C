@@ -223,13 +223,16 @@ integer DAQEvent::read(){
   do{
     if(fbin.eof() && KIFiles<InputFiles-1){
      fbin.close();
-     fbin.open(ifnam[++KIFiles],ios::in|binary);
-     if(fbin){ 
-       cout <<"DAQEvent::read-I-opened file "<<ifnam[KIFiles]<<endl;
-     }    
-     else{
-       cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles]<<endl;
-       exit(1);
+     for(;;){
+       fbin.open(ifnam[++KIFiles],ios::in|binary);
+       if(fbin){ 
+        cout <<"DAQEvent::read-I-opened file "<<ifnam[KIFiles]<<endl;
+        break;
+       }    
+       else{
+        cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles++]<<endl;
+        if(KIFiles>=InputFiles-1)return 0;
+       }
      }
     }
     if(fbin.good() && !fbin.eof()){
@@ -248,6 +251,7 @@ integer DAQEvent::read(){
 
     if(fbin.eof() && KIFiles<InputFiles-1){
      fbin.close();
+     for(;;){
      fbin.open(ifnam[++KIFiles],ios::in|binary);
      if(fbin){ 
        cout <<"DAQEvent::read-I-opened file "<<ifnam[KIFiles]<<endl;
@@ -259,17 +263,17 @@ integer DAQEvent::read(){
       _convertl(l16);
       _Length= _Length | ((l16 & 63)<<16);
       //cout <<" Length "<<_Length<<endl;
-
-
+      break;
+      
 
      }    
      else{
-       cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles]<<endl;
-       exit(1);
+        cerr<<"DAQEvent::read-F-cannot open file "<<ifnam[KIFiles++]<<endl;
+        if(KIFiles>=InputFiles-1)return 0;
      }
+     }
+
     }
-
-
      if(fbin.good() && !fbin.eof()){
       if(_create()){
        fbin.seekg(fbin.tellg()-2*sizeof(_pData[0]));
@@ -350,18 +354,28 @@ void DAQEvent::init(integer mode, integer format){
       exit(1);
     }
   }
+}
+
+void DAQEvent::initO(integer run){
+  enum open_mode{binary=0x80};
+  integer mode=DAQCFFKEY.mode;
   if(mode/10 ){
    if(ofnam){
-    if(mode/10 ==1)fbout.open(ofnam,ios::out|binary|ios::noreplace);
-    if(mode/10 ==2)fbout.open(ofnam,ios::out|binary|ios::app);
+     char name[255];
+     ostrstream ost(name,sizeof(name));
+     ost << ofnam<<"."<<run<<ends;
+    if(fbout)fbout.close();
+    if(mode/10 ==1)fbout.open(name,ios::out|binary|ios::noreplace);
+    if(mode/10 ==2)fbout.open(name,ios::out|binary|ios::app);
      if(fbout){ 
        // Associate buffer
       static char buffer[1000+1];
       fbout.setbuf(buffer,1000);
+      cout<<"DAQEvent::initO-I- opened file "<<name<<" in mode "<<mode<<endl;
 
      }
      else{
-      cerr<<"DAQEvent::init-F-cannot open file "<<ofnam<<" in mode "<<mode<<endl;
+      cerr<<"DAQEvent::initO-F-cannot open file "<<name<<" in mode "<<mode<<endl;
       exit(1);
      }
    }
@@ -370,7 +384,12 @@ void DAQEvent::init(integer mode, integer format){
       exit(1);
    }
   }
+
+
+
+
 }
+
 
 
 void DAQEvent::_convert(){

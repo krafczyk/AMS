@@ -104,6 +104,7 @@ static char * ofnam;
 static fstream fbout;
 
 static void init(integer mode, integer format=0);
+static void initO(integer run);
 static void addsubdetector(pid pgetid, pputdata pput, uinteger btype=0);
 static void addblocktype(pgetmaxblocks pgmb, pgetl pgl,pgetdata pget, uinteger btype=0);
 
