@@ -307,6 +307,9 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
    sw[10] = new TSwitch("IdleTimer", &m_IdleOn,
                "gAMSR_Root->Display()->IdleSwitch()", 0.0, y-height, 1.0, y);
 
+   //Save address of TRadioButton of "IdleTimer" for late use
+   m_IdleSwitch = sw[10]->GetButton();
+
    debugger.Print("IdleTimer-button=%lx",sw[10]);
 
   /*
@@ -407,10 +410,15 @@ void AMSR_Display::IdleSwitch(Int_t flag)
       }
    }
 
+   TVirtualPad * gPadSave = gPad;
+   if (flag != 0) gPad = m_IdleSwitch;
+
    gPad->SetBorderMode(buttonStat);
    gPad->SetFillColor(fillColor);
    gPad->Modified();
    gPad->Update();
+
+   gPad = gPadSave;
 
    return;
 }
@@ -1203,6 +1211,13 @@ Bool_t AMSR_Display::GotoRunEvent()
    Int_t run=0, event=0;
 
    //
+   //Store the status of m_IdleOn before suspending
+   //Then suspend the Idle handling
+   //
+   Bool_t idle = m_IdleOn;
+   IdleSwitch(-1);
+
+   //
    //create a dialog to input run/event
    //
    const TGWindow *main = gClient->GetRoot();
@@ -1210,6 +1225,11 @@ Bool_t AMSR_Display::GotoRunEvent()
    new TGRunEventDialog(main, own, &run, &event);
 
    debugger.Print("You input run/event =%d/%d\n", run, event);
+
+   //
+   //Resuem the status of Idle Handling
+   //
+   if (idle) IdleSwitch(1);
 
    if (run==0 && event<=0) return kFALSE;
 

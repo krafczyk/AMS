@@ -14,6 +14,7 @@ SRCS          = AMSR_Root.cxx AMSR_Maker.cxx \
 		AMSR_CTCCluster.cxx AMSR_CTCClusterReader.cxx \
 		AMSR_Particle.cxx AMSR_ParticleReader.cxx \
 		AMSR_MCParticle.cxx AMSR_MCParticleReader.cxx \
+                AMSR_Ntuple.cxx \
 		AMSR_VirtualDisplay.cxx \
 		AMSR_HistBrowser.cxx \
 		AMSR_Canvas.cxx \
@@ -22,6 +23,8 @@ SRCS          = AMSR_Root.cxx AMSR_Maker.cxx \
 		# MySelectionDialog.cxx \
 		# MOTIF_DialogManager.cxx 
 		# AMSR_ColorManager.cxx 
+
+FORSRC        = FortranPart.f
 
 HDRS          = TRadioButton.h TSwitch.h \
 		AMSR_Axis.h \
@@ -35,6 +38,7 @@ HDRS          = TRadioButton.h TSwitch.h \
 		AMSR_CTCCluster.h AMSR_CTCClusterReader.h \
 		AMSR_Particle.h AMSR_ParticleReader.h \
 		AMSR_MCParticle.h AMSR_MCParticleReader.h \
+                AMSR_Ntuple.h  \
 		AMSR_VirtualDisplay.h \
 		Debugger.h \
 		AMSR_Canvas.h \
@@ -60,6 +64,8 @@ DICTG         = # AMSR_gCint.cxx
 DICTGH        = # $(DICTG:.cxx=.h)
 DICTGO        = # $(DICTG:%.cxx=$(OBJDIR)/%.o)
 
+FORO          = $(FORSRC:%.f=$(OBJDIR)/%.o)
+
 MAIN          = main.cxx
 MAINO         = $(MAIN:%.cxx=$(OBJDIR)/%.o)
 
@@ -69,7 +75,7 @@ MAINOC         = $(MAINC:%.cxx=$(OBJDIR)/%.o)
 MAINV          = mainv.cxx
 MAINOV         = $(MAINV:%.cxx=$(OBJDIR)/%.o)
 
-OBJS          = $(SRCS:%.cxx=$(OBJDIR)/%.o) $(DICTO)
+OBJS          = $(SRCS:%.cxx=$(OBJDIR)/%.o) $(DICTO) $(FORO)
 
 OBJSG         = # $(SRCSG:%.cxx=$(OBJDIR)/%.o) $(DICTGO)
 
@@ -93,6 +99,7 @@ AMSR_PRGV       = $(OBJDIR)/amsedv
 
 ##### TARGETS #####
 .PHONY :     interprete standalone realtime projector depend dist clean
+.PHONY :     touch_depend
 
 interprete:  $(AMSR_SHAREDLIB)
 
@@ -110,7 +117,7 @@ $(AMSR_NOLIB):  $(MAINO) $(OBJS)
 
 $(AMSR_SHAREDLIB):  $(OBJS)
 	rm -f $@
-	-$(SHLD) -o $@ $^
+	-$(SHLD) -o $@ $^ $(ADDLIBS)
 	chmod 555 $@
 	@echo "$@ done with $^ linked in"
 
@@ -140,6 +147,8 @@ $(DICTGO):      $(DICTG)
 
 AddPrefix   =    sed -e '/:/s@\(.*:\)@$(OBJDIR)/\1@'
 depend:         $(OBJDIR)/Make-depend
+touch_depend:
+		touch $(OBJDIR)/Make-depend
 
 $(OBJDIR)/Make-depend:    $(SRCS) $(SRCSG) $(MAIN)
 		$(GCC) -E -MM $(CXXFLAGS) $^ > $@.DELETE

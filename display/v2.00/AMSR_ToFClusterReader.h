@@ -10,9 +10,6 @@
 #ifndef ROOT_TObject
 #include <TObject.h>
 #endif
-#ifndef ROOT_TTree
-#include <TTree.h>
-#endif
 
 #include "AMSR_Maker.h"
 
@@ -31,7 +28,6 @@ private:
                   AMSR_ToFClusterReader() {;}
                   AMSR_ToFClusterReader(const char *name, const char *title);
    virtual       ~AMSR_ToFClusterReader() {;}
-   virtual void   Init(TTree * tree=0);
    virtual void   Finish();
 
    virtual void   Make();

@@ -14,23 +14,10 @@
 #include "AMSR_Root.h"
 #include "AMSR_AntiCluster.h"
 #include "AMSR_AntiClusterReader.h"
+#include "AMSR_Ntuple.h"
 
 
 ClassImp(AMSR_AntiClusterReader)
-
-
-
-//
-// struct to read data from tree converted from ntuple
-//
-static struct {
-   Int_t           nanti;
-   Int_t           AntiStatus[20];
-   Int_t           AntiSector[20];
-   Float_t         AntiCoo[20][3];
-   Float_t         AntiErCoo[20][3];
-   Float_t         AntiSignal[20];
-} _ntuple;
 
 
 //_____________________________________________________________________________
@@ -52,28 +39,6 @@ AMSR_AntiClusterReader::AMSR_AntiClusterReader(const char *name, const char *tit
 
 }
 
-//_____________________________________________________________________________
-void AMSR_AntiClusterReader::Init(TTree * h1)
-{
-//////////////////////////////////////////////////////////
-//   This file is modified from automatically generated 
-//   skeleton file for prmu.root (converted from prmu.new.hbk)
-//////////////////////////////////////////////////////////
-
-//
-// Set branch addresses
-//
-   if ( h1 != 0 ) {
-     h1->SetBranchAddress("nanti",&_ntuple.nanti);
-     h1->SetBranchAddress("Antistatus",_ntuple.AntiStatus);
-     h1->SetBranchAddress("Antisector",_ntuple.AntiSector);
-     h1->SetBranchAddress("Anticoo",_ntuple.AntiCoo);
-     h1->SetBranchAddress("Antiercoo",_ntuple.AntiErCoo);
-     h1->SetBranchAddress("Antiedep",_ntuple.AntiSignal);
-
-     debugger.Print("AMSR_AntiClusterReader::Init(): branch address set\n");
-   }
-}
 
 //_____________________________________________________________________________
 void AMSR_AntiClusterReader::Finish()
@@ -90,6 +55,7 @@ void AMSR_AntiClusterReader::Make()
 //
 
    Int_t k;
+   ANTICLUS_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkAnticlus;
 
 //........................................................
 //....Store clusters in Root ClonesArray
@@ -97,13 +63,13 @@ void AMSR_AntiClusterReader::Make()
 //   m_Ncells    = ncells;
    m_Nclusters = 0;		// it will be accumulated by AddCluster()
    debugger.Print("AMSR_AntiClusterReader::Make(): making %d clusters.\n",
-	  _ntuple.nanti);
-   for (k=0; k<_ntuple.nanti; k++) {
-      AddCluster(_ntuple.AntiStatus[k],
-                 _ntuple.AntiSector[k],
-                 _ntuple.AntiSignal[k],
-                &_ntuple.AntiCoo[k][0],
-                &_ntuple.AntiErCoo[k][0]);
+	  _ntuple->nanti);
+   for (k=0; k<_ntuple->nanti; k++) {
+      AddCluster(_ntuple->Antistatus[k],
+                 _ntuple->Antisector[k],
+                 _ntuple->Antiedep[k],
+                &_ntuple->Anticoo[k][0],
+                &_ntuple->Antiercoo[k][0]);
    }
 
    debugger.Print("AMSR_AntiClusterReader::Make(): %d clusters made.\n", m_Nclusters);

@@ -39,18 +39,18 @@
 #include "AMSR_Canvas.h"
 #endif
 //#include "AMSR_ColorManager.h"
+#ifndef ROOT_TGeometry_H
+#include <TGeometry.h>
+#endif
+
 class TCanvas;
 class TPad;
+class TRadioButton;
 // class TArc;
-//class ATLFTrigger;
 class TTUBE;
 class TNode;
 class TPolyLine3D;
 class TList;
-#ifndef ROOT_TGeometry_H
-#include <TGeometry.h>
-#endif
-//class ATLFParticle;
 
 
 
@@ -88,7 +88,8 @@ private:
    TPad               *m_TitlePad;             //Pointer to title pad 
    TPad               *m_EventInfoPad;         //Pointer to event info pad 
    TPad               *m_ObjInfoPad;           //Pointer to object info pad 
-   TPad               *m_PartInfoPad;           //Pointer to object info pad 
+   TPad               *m_PartInfoPad;           //Pointer to object info pad
+   TRadioButton       *m_IdleSwitch;           //Pointer to idle TRadioButton
 //   TPad             *m_AxisPad[4];           //Pointers to axis pad 
 
 // ATLFParticle       *m_Particle;             //Pointer to Particle graphics manager
@@ -145,6 +146,7 @@ public:
    virtual void        SetPTcutEGMUNU(Float_t ptcut=5); // *MENU*
    virtual void        SetGeometry(TGeometry * geo); // *--MENU*
            void        SetIdleTimer(Long_t seconds, Text_t *command);
+           Bool_t      IsIdleOn() {return m_IdleOn;}
    virtual void        IdleSwitch(Int_t flag=0);
            Long_t      IdleTime() {return m_IdleTime;}
            Text_t     *IdleCommand() {return m_IdleCommand;}

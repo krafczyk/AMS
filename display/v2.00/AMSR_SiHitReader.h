@@ -10,9 +10,6 @@
 #ifndef ROOT_TObject
 #include <TObject.h>
 #endif
-#ifndef ROOT_TTree
-#include <TTree.h>
-#endif
 
 #include "AMSR_Maker.h"
 
@@ -33,7 +30,6 @@ class AMSR_SiHitReader : public AMSR_Maker {
                   AMSR_SiHitReader() {;}
                   AMSR_SiHitReader(const char *name, const char *title);
    virtual       ~AMSR_SiHitReader() {;}
-   virtual void   Init(TTree * tree=0);
    virtual void   Finish();
 
    virtual void   Make();

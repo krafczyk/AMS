@@ -13,9 +13,6 @@
 #ifndef ROOT_TH1
 #include <TH1.h>
 #endif
-#ifndef ROOT_TTree
-#include <TTree.h>
-#endif
 
 class AMSR_Track;
 
@@ -39,7 +36,6 @@ public:
    virtual void   Clear(Option_t *option="");
    virtual void   Finish();
 //         void   HelixParameters(Float_t charge, Float_t *vert1, Float_t *pvert1, Float_t *b);
-   virtual void   Init(TTree * h1=0);
    virtual void   Make();
    virtual void   PrintInfo();
 // virtual Bool_t Enabled(TObject * obj);

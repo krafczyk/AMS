@@ -12,35 +12,13 @@
 #include "AMSR_Root.h"
 #include "AMSR_MCParticleReader.h"
 #include "AMSR_MCParticle.h"
+#include "AMSR_Ntuple.h"
 
 const Float_t kPI   = TMath::Pi();
 const Float_t k2PI  = 2*kPI;
 const Int_t kMAXTRA = 100;
 
 ClassImp(AMSR_MCParticleReader)
-
-
-
-
-//
-// The structure for reading data
-//
-const Int_t maxpart=20;
-static struct {
-   Int_t           npart;
-   Int_t           pid[maxpart];
-   Float_t         pmass[maxpart];
-   Float_t         pmom[maxpart];
-   Float_t         pcharge[maxpart];
-   Float_t         pcoo[maxpart][3];
-   Float_t         pdir[maxpart][3];
-} _ntuple;
-
-
-
-
-
-
 
 
 //_____________________________________________________________________________
@@ -98,28 +76,6 @@ void AMSR_MCParticleReader::Clear(Option_t *option)
 
 
 //_____________________________________________________________________________
-void AMSR_MCParticleReader::Init(TTree * h1)
-{
-//     Tracks histograms
-//   m_Mult        = new TH1F("TraMult","particle multiplicity",100,0,100);
-
-
-   if (h1)
-   {
-     h1->SetBranchAddress("nmcg",        &_ntuple.npart);
-     h1->SetBranchAddress("Particle",           _ntuple.pid);
-     h1->SetBranchAddress("mass",         _ntuple.pmass);
-     h1->SetBranchAddress("momentum",          _ntuple.pmom);
-     h1->SetBranchAddress("charge",       _ntuple.pcharge);
-     h1->SetBranchAddress("dir",         _ntuple.pdir);
-     h1->SetBranchAddress("coo",          _ntuple.pcoo);
- 
-     debugger.Print("AMSR_MCParticleReader::Init(): branch address set\n");
-   }
-
-}
-
-//_____________________________________________________________________________
 void AMSR_MCParticleReader::Finish()
 {
 // Function called when all makers for one event have been called
@@ -131,8 +87,9 @@ void AMSR_MCParticleReader::Make()
 {
 
    Int_t k, i;
+   MCEVENTG_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkMceventg;
 
-   m_NParticles = _ntuple.npart;
+   m_NParticles = _ntuple->nmcg;
    //   m_NParticles=0;
    debugger.Print("AMSR_MCParticleReader::Make(): making %d particles.\n", m_NParticles);
    TClonesArray &particles = *(TClonesArray*)m_Fruits;
@@ -141,13 +98,13 @@ void AMSR_MCParticleReader::Make()
 
       new(particles[k]) AMSR_MCParticle();
       AMSR_MCParticle * t = (AMSR_MCParticle *) particles[k];
-      t->m_GeantID          = _ntuple.pid[k];
-      t->m_Mass             = _ntuple.pmass[k];
-      t->m_Momentum         = _ntuple.pmom[k];
-      t->m_Charge           = _ntuple.pcharge[k];
+      t->m_GeantID          = _ntuple->Particle[k];
+      t->m_Mass             = _ntuple->mass[k];
+      t->m_Momentum         = _ntuple->momentum[k];
+      t->m_Charge           = _ntuple->charge[k];
       for (i=0; i<3; i++){
-          t->m_Position[i]  = _ntuple.pcoo[k][i];
-          t->m_Dir[i]  = _ntuple.pdir[k][i];
+          t->m_Position[i]  = _ntuple->coo[k][i];
+          t->m_Dir[i]  = _ntuple->dir[k][i];
       }
       t->SetHelix();
    }

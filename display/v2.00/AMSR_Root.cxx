@@ -187,6 +187,7 @@
 #include "AMSR_TrMCClusterReader.h"
 #include "AMSR_ParticleReader.h"
 #include "AMSR_MCParticleReader.h"
+#include "AMSR_Ntuple.h"
 
 //#include "AMSR_MCMaker.h"
 // #include "ATLFElectronMaker.h"
@@ -231,7 +232,6 @@ void AMSR_Root::CommonConstruct()
    m_Event       = -1;
    m_Tree        = 0;
    m_Display     = 0;
-//   SelectedEvent=0;
 }
 
 
@@ -241,6 +241,7 @@ AMSR_Root::AMSR_Root() : TNamed("AMSR_Root","The AMS Display with Root")
 
    CommonConstruct();
 
+   m_Ntuple          = 0;
    m_Makers          = 0;
    m_ToFClusterMaker = 0;
    m_SiHitMaker      = 0;
@@ -256,11 +257,6 @@ AMSR_Root::AMSR_Root() : TNamed("AMSR_Root","The AMS Display with Root")
 //   m_CTCClusterMaker = 0;
 //   m_ACCClusterMaker = 0;
 
-//   m_ElectronMaker = 0;
-//   m_MuonMaker     = 0;
-//   m_PhotonMaker   = 0;
-//   m_JetMaker      = 0;
-//   m_TrackMaker    = 0;
 //   m_TriggerMaker  = 0;
 //   m_MiscMaker     = 0;
 }
@@ -275,6 +271,9 @@ AMSR_Root::AMSR_Root(const char *name, const char *title)
    SetDefaultParameters();
 
    gROOT->GetListOfBrowsables()->Add(this,"AMSR_Root");
+
+// create a ntuple/tree handler
+   m_Ntuple = new AMSR_Ntuple();
 
 // create the support list for the various lists of AMSR_Root objects
    m_Makers  = new TList();
@@ -319,10 +318,6 @@ AMSR_Root::AMSR_Root(const char *name, const char *title)
 //   m_SiClusterMaker  = new AMSR_SiClusterMaker("SiClusterMaker","Make AMSR_Root Si Tracker clusters");
 //   m_CTCClusterMaker  = new AMSR_CTCClusterMaker("CTCClusterMaker","Make AMSR_Root Cerenkov Threshold Counter clusters");
 //   m_ACCClusterMaker  = new AMSR_ACCClusterMaker("ACCClusterMaker","Make AMSR_Root Anti Coincidence Counter clusters");
-//   m_MuonMaker     = new ATLFMuonMaker("MuonMaker","Make AMSR_Root muons");
-//   m_ElectronMaker = new ATLFElectronMaker("ElectronMaker","Make AMSR_Root electrons");
-//   m_PhotonMaker   = new ATLFPhotonMaker("PhotonMaker","Make AMSR_Root photons");
-//   m_JetMaker      = new ATLFJetMaker("JetMaker","Make AMSR_Root jets");
 //   m_MiscMaker     = new AMSR_MiscMaker("MiscMaker","Make AMSR_Root miscelaneous");
 //   m_TriggerMaker  = new AMSR_TriggerMaker("TriggerMaker","Make AMSR_Root trigger");
 
@@ -337,7 +332,7 @@ AMSR_Root::~AMSR_Root()
 }
 
 //______________________________________________________________________________
-Int_t AMSR_Root::OpenDataFile(char * filename)
+Int_t AMSR_Root::OpenDataFile(char * filename, EDataFileType type)
 {
   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   //  Open a file for reading, also initializes all readers so they
@@ -353,45 +348,75 @@ Int_t AMSR_Root::OpenDataFile(char * filename)
   static TTree * t = 0;		// pointer to the opened root tree
 
   //
-  // Open ROOT file
+  //Check if it is open already
   //
-  TFile *fNew = TFile::Open(filename);   // support opening remote file
-  if ( ! fNew ) {                        // cannot open this file
-    return 1;
+  if (m_DataFileName != 0) {
+     if ( strcmp(m_DataFileName, filename) == 0 ) {
+        Error("AMSR_Root::OpenDataFile"," %s already opened\n",filename);
+        return 0;
+     }
   }
-  //
-  //  Open the tree
-  //
-  TTree * tNew = (TTree *)fNew->Get("h1");
-  if (! tNew) {
-    return 2;
-  }
-  //
-  //  Now the new file are opened and read, close the old ones
-  //
-  delete t;
-  delete f;
-  f = fNew;
-  t = tNew;
 
   //
-  //  Make event tree
+  // Open file according to data type
   //
-  MakeTree("AMSR_Tree", "AMS Display Tree");
+  if (type == RootFile) {
+    TFile *fNew = TFile::Open(filename);   // support opening remote file
+    if ( ! fNew ) {                        // cannot open this file
+      return 1;
+    }
 
-  //
-  //  Initialize readers
-  //
-  Init(t);
+    //
+    //  Open the tree
+    //
+    char treeName[10];
+    int  ntpID       = m_Ntuple->GetNextID();
+    sprintf(treeName,"h%d",ntpID);
+    TTree * tNew = (TTree *)fNew->Get(treeName);
+//    TTree * tNew = (TTree *)fNew->Get("h1");
+    if (! tNew) {
+      return 2;
+    }
+    //
+    //  Now the new file are opened and read, close the old ones
+    //
+    delete t;
+    delete f;
+    f = fNew;
+    t = tNew;
+
+    //
+    //  Make event tree
+    //
+    MakeTree("AMSR_Tree", "AMS Display Tree");
+
+    //
+    //  Initialize readers
+    //
+    Init(t);
      
+  } else if ( type == ObjectivityFile ) {
+
+    Error("AMSR_Root::OpenDataFile",
+          "Sorry ! Data type of ObjectivityFile not yet implemented.\n");
+    return 1;
+
+  } else if ( type == NtupleFile ) {
+    int openStat = m_Ntuple->OpenNtuple(filename);
+    if (openStat == 0) Init(0);
+    else return openStat;
+  }
+
   //
   //  Here the file is opened successfully, record its name and type
   //
 
-  debugger.Print("Come to save filename=%s : %d\n",filename);
+  debugger.Print("Come to save filename : type=%s : %d\n",filename,type);
   if ( m_DataFileName )  delete m_DataFileName;
   m_DataFileName = new char[strlen(filename)+1];
   strcpy(m_DataFileName, filename);
+
+  m_DataFileType = type;
 
   //
   //  Done
@@ -434,18 +459,20 @@ Bool_t AMSR_Root::GetEvent(Int_t event)
 {
    // Get one event into the result tree
    //
-   if (m_Input==0) return kFALSE;
+   if (m_Ntuple==0 || m_Ntuple->GetTree() == 0) return kFALSE;
    if (event<0 || event>m_NEvent || event==m_Event) return kFALSE;
-
-   Int_t ret=0;
 
    //   cout << " Select Event No : ";
    //   cin >> event;
    //   cin.ignore(INT_MAX,'\n');
    //    Read event in input tree
-   debugger.Print("AMSR_Root::GetEvent(): doing m_Input->GetEvent(%d)\n", event);
-   ret = m_Input->GetEvent(event);
-   if(ret==0) return kFALSE;
+   debugger.Print("AMSR_Root::GetEvent(): doing m_Ntuple->GetEvent(%d)\n", event);
+
+   m_Ntuple->GetEvent(event);
+   m_RunNum   = m_Ntuple->GetRunNum();
+   m_EventNum = m_Ntuple->GetEvtNum();
+   m_Mode     = m_Ntuple->GetRunType();
+   m_Ntuple->GetRunTime(m_Time);
 
    //
    // clear the makers first before making it
@@ -471,13 +498,13 @@ Bool_t AMSR_Root::GetEvent(Int_t event)
 //_____________________________________________________________________________
 Bool_t AMSR_Root::GetEvent(Int_t run, Int_t event)
 {
-   if (m_Input==0 || m_NEvent==0) return kFALSE;
+   if (m_Ntuple==0 || m_Ntuple->GetTree() == 0) return kFALSE;
    if (run==m_RunNum && event==m_EventNum) return kFALSE;
 
    //
    //disable all branches except "eventno" and "run" to quick up
    //
-   TTree *t = m_Input;
+   AMSR_Ntuple *t = m_Ntuple;
    t->SetBranchStatus("*", 0);
    t->SetBranchStatus("eventno", 1);
    t->SetBranchStatus("run", 1);
@@ -487,6 +514,8 @@ Bool_t AMSR_Root::GetEvent(Int_t run, Int_t event)
    //
    for (Int_t i=0; i<=m_NEvent; i++) {
       t->GetEvent(i);
+      m_RunNum = m_Ntuple->GetRunNum();
+      m_EventNum = m_Ntuple->GetEvtNum();
       if (m_RunNum==run && m_EventNum>=event) {
          t->SetBranchStatus("*", 1);         //recover to enable all branches
          return GetEvent(i);
@@ -499,44 +528,8 @@ Bool_t AMSR_Root::GetEvent(Int_t run, Int_t event)
 }
 
 
-//void AMSR_Root::SelectEvent()
-//{
-//   // Get one event into the result tree
-//   //
-//   int mev;
-//   int event=SelectedEvent;
-//      if(event<=0)event=1;
-//   //    Read event in input tree
-//   if (m_Input) {
-//     debugger.Print("AMSR_Root::GetEvent(): doing m_Input->GetEvent(%d)\n", event);
-//     for (int i=0;i<event;i++){
-//          m_Input->GetEvent(i);
-//          if(m_EventNum  >= event)break;          
-//     }
-//      cout <<m_EventNum <<" event selected."<<endl;
-//     mev=i;
-//   }
-//   //
-//   // Make them into the result tree
-//   //
-//   TIter next(m_Makers);
-//   AMSR_Maker *maker;
-//   while (maker = (AMSR_Maker*)next()) {
-//      debugger.Print("starting Maker %s...\n", maker->GetName());
-//      maker->Make();
-//   }
-//
-//   //
-//   // Keep a record of current event number
-//   //
-//   // For data this is read in automatically
-//   m_Event = mev;
-//}
-
-
-
 //_____________________________________________________________________________
-void AMSR_Root::Init(TTree * h1)
+void AMSR_Root::Init(TTree *h1)
 {
    //
    // Initialize run/event number, the AMSR_Root object and its makers
@@ -546,14 +539,14 @@ void AMSR_Root::Init(TTree * h1)
    m_EventNum    = 0;
    m_Event       = -1;
 
-   m_Input = h1;
+   m_Ntuple->SetTree(h1);
 
-   m_NEvent = h1->GetEntries();
+   m_NEvent = m_Ntuple->GetEntries();
 
-   h1->SetBranchAddress("eventno",&m_EventNum);
-   h1->SetBranchAddress("run",&m_RunNum);
-   h1->SetBranchAddress("runtype",&m_Mode);
-   h1->SetBranchAddress("time",m_time);
+//   h1->SetBranchAddress("eventno",&m_EventNum);
+//   h1->SetBranchAddress("run",&m_RunNum);
+//   h1->SetBranchAddress("runtype",&m_Mode);
+//   h1->SetBranchAddress("time",m_time);
 
    //
    //    Initialise makers
@@ -566,10 +559,6 @@ void AMSR_Root::Init(TTree * h1)
      debugger.Print("initialize %s\n", name);
      // save last created histogram in current Root directory
       objlast = gDirectory->GetList()->Last();
-
-     // Initialise maker
-      maker->Init(h1);
-     debugger.Print("%s initialized\n", name);
 
      // Add Maker histograms in Maker list of histograms
       if (objlast) objfirst = gDirectory->GetList()->After(objlast);
@@ -813,11 +802,6 @@ void AMSR_Root::Streamer(TBuffer &R__b)
 //      R__b >> m_CTCClusterMaker;
 //      R__b >> m_ACCClusterMaker;
 
-//      R__b >> m_ElectronMaker;
-//      R__b >> m_MuonMaker;
-//      R__b >> m_PhotonMaker;
-//      R__b >> m_JetMaker;
-//      R__b >> m_TrackMaker;
 //      R__b >> m_TriggerMaker;
 //      R__b >> m_MiscMaker;
 //      R__b >> m_Bfield;
@@ -840,11 +824,6 @@ void AMSR_Root::Streamer(TBuffer &R__b)
 //      R__b << m_CTCClusterMaker;
 //      R__b << m_ACCClusterMaker;
 
-//      R__b << m_ElectronMaker;
-//      R__b << m_MuonMaker;
-//      R__b << m_PhotonMaker;
-//      R__b << m_JetMaker;
-//      R__b << m_TrackMaker;
 //      R__b << m_TriggerMaker;
 //      R__b << m_MiscMaker;
 //      R__b << m_Bfield;
@@ -853,12 +832,3 @@ void AMSR_Root::Streamer(TBuffer &R__b)
    }
 }
 
-//Int_t AMSR_Root::SetSelectedEvent(const char *event){
-//  //returns 0 if failure 1 otherwise
-//  for(int i=0;i<strlen(event);i++){
-//    char c=event[i];
-//    if(!isdigit(c))return 0;
-//  }
-//  sscanf(event,"%d",&SelectedEvent);
-//  return 1;
-//}

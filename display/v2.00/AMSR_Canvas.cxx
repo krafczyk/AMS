@@ -31,7 +31,8 @@
 TRootCanvas * AMSR_Canvas::fTheCanvas = 0;
 
 //----- TGFileDialog file types
-static const char *gOpenTypes[] = { "ROOT files",   "*.root",
+static const char *gOpenTypes[] = { "ROOT files",   "*.root*",
+                                    "Ntuple files", "*.ntp*",
                                     "All files",    "*",
                                      0,              0 };
 //
@@ -73,7 +74,7 @@ AMSR_Canvas::AMSR_Canvas(Text_t *name, Text_t *title, Int_t ww, Int_t wh)
   }
   else {
     fTheCanvas = (TRootCanvas *) fCanvasImp;
-    printf("fTheCanvas = %lx in AMSR_Canvas::AMSR_Canvas()\n", fTheCanvas);
+    debugger.Print("fTheCanvas = %lx in AMSR_Canvas::AMSR_Canvas()\n", fTheCanvas);
   }
 
 
@@ -432,6 +433,13 @@ void AMSR_Canvas::OpenFileCB()
   AMSR_Display * disp = (AMSR_Display *)gAMSR_Root->Display();
 
   //
+  //Store the status of m_IdleOn before suspending
+  //Then suspend the Idle handling
+  //
+  Bool_t idle = disp->IsIdleOn();
+  disp->IdleSwitch(-1);
+
+  //
   // Open a dialog window to select or input filename
   //
   m_FileInfo->fFileTypes = (char **) gOpenTypes;
@@ -440,12 +448,41 @@ void AMSR_Canvas::OpenFileCB()
 //  TRootCanvas *own = (TRootCanvas*) GetCanvasImp();
   new TGFileDialog(main, fTheCanvas, kFDOpen, m_FileInfo);
 
+  //
+  //Resuem the status of Idle Handling
+  //
+  if (idle) disp->IdleSwitch(1);
+
   char *filename = m_FileInfo->fFilename;
-  if ( filename==0 | *filename==0 ) {			// user cancelled
+  EDataFileType type;
+
+  if ( filename==0 || strlen(filename)==0 ) {			// user cancelled
     return;
   }
 
-  Int_t status = gAMSR_Root->OpenDataFile(filename);
+  char *slash = strrchr(filename, '/');
+  if ( slash==0 ) slash=filename;
+
+  if ( strlen(slash)==1 ) {  // nothing after '/'
+     cerr << "\nAMSR_Canvas::OpenFileCB\n" << filename
+        << " looks like a directory, not a filename ?" << endl;
+  }
+
+  char *dot = strchr(slash, '.');
+
+  if ( ! dot ) {                             //no ext. as Objectivity file
+    type = ObjectivityFile;
+  }
+
+  if ( strstr(dot+1, "root") == dot+1 ) {        //".root*" as Root file
+    type = RootFile;
+  } else if ( strstr(dot+1, "ntp") == dot+1 ) {  //".ntp*" as Ntuple file
+    type = NtupleFile;
+  } else {                                  //unknown ext. as Objectivity file
+    type = ObjectivityFile;                            
+  }                                                    
+
+  Int_t status = gAMSR_Root->OpenDataFile(filename, type);
   if ( status == 1 ) { 
     printf("Can not open file %s\n", filename);
     return;
@@ -456,12 +493,11 @@ void AMSR_Canvas::OpenFileCB()
   }
 
   //
-  //  Get the first event
+  //If no IdleTimer set, show the first event of the file
   //
-  gAMSR_Root->GetEvent(0);
-
-  // display.SetView (kTwoView);
-  disp->ShowNextEvent(0);
+  if ( disp->IdleTime() <= 0 || disp->IdleCommand() == 0 )
+     disp->ShowNextEvent(0);
+  disp->DrawEvent();
   disp->GetCanvas()->Update();        // force it to draw
 
   return;

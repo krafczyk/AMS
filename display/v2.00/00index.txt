@@ -8,9 +8,26 @@
 			       13 Nov 1997
 
 =========================================================================
+[major updated on 17 Aug 1998 by Shuwei YE]
 [minor updated on 1 Dec 1997 by Ping Yeh]
 [migrated into CVS repository on 16 Dec 1997 with help of Vitali Shoutko,
  and a major modification of this document is done to reflect this]
+
+
+-------------------------------------------------------------------------
+0. Introduction
+---------------
+   Main features: 3D, rotate with mouse, convenient mouse-control, with many
+                  options, running on X-window, have a try!
+
+   Data format: ntuple(standard one in AMS),
+                ntuple-converted ROOT file via h2root
+
+   Requirements: X-window, ROOT, CERNLIB.
+
+   System: only test on DEC-Alpha/OSF1 and IBM/AIX
+
+   Status: still on development.
 
 
 -------------------------------------------------------------------------
@@ -30,18 +47,23 @@ of AMS event display into it.
 ---------------------
 
 This program is based on Rene Brun's ROOT and ATLFast program.  To build it,
-cd to AMS/display directory, then type 
 
-	gmake depend
+   1) Define ROOTSYS (preparation)
 
-followed by
+    Define the global environment variable ROOTSYS to the location of ROOT
+    via "export ROOTSYS = /Offline/root/OSF1" (bash/ksh)
+    or  "setenv ROOTSYS /Offline/root/OSF1" (csh/tcsh)
+    see AA_README in ROOT.
+
+   2) Make it up
+
+     cd to AMS/display directory, then type 
 
 	gmake standalone
 
 and all .cxx files are compiled and linked into a shared library called
 libAMS.so.  Please note that this has only been tested on alpha workstations
-running DEC/UNIX (Also IBM/AIX, but different Makefile should be used, all
-specifications below are for DEC/UNIX.)
+running DEC/UNIX and IBM/AIX.
 
 
 -------------------------------------------------------------------------
@@ -51,15 +73,19 @@ specifications below are for DEC/UNIX.)
 To run it, please make sure you have the environment to run ROOT.
 Only 3 things needs to be set:
 
-1. Environment variable ROOTSYS  should point to the ROOT directory.
-   (On boronams $ROOTSYS should be set to /cern/root/v2.00)
-2. .:$ROOTSYS/lib is added into Environment variables LD_LIBRARY_PATH.
+1. Environment variable ROOTSYS  should point to the ROOT directory.(Defined
+   already in the building)
+2. Add .:$ROOTSYS/lib intp Environment variables LD_LIBRARY_PATH (Alpha/OSF1)
+   and LIBPATH (IBM/AIX)
 3. $ROOTSYS/bin is in your path.
 
+If you telnet to other machine to run, remember to set environment variable
+DISPLAY to your own X-window.
+
 Then you are ready to go.
-Type "h2root your_converted_ntuple_file_name your_preferred_name"
-Type "amsed your_preferred_name".
-For help on usage of "amsed", type "amsed -h".
+
+   type "AIX/bin/amsed -h" (at IBM/AIX), "OSF1/bin/amsed -h" (at Alpha/OSF1)
+to get a brief usage guide.
 
 There are 4 defined views:  top view, side view, front view, two combined
 "all views" and "two view".  In each view you have the freedom to change 

@@ -29,6 +29,7 @@
 #pragma link C++ class AMSR_MCParticle;
 #pragma link C++ class AMSR_ParticleReader;
 #pragma link C++ class AMSR_MCParticleReader;
+#pragma link C++ class AMSR_Ntuple;
 #pragma link C++ class AMSR_HistBrowser;
 #pragma link C++ class AMSR_VirtualDisplay;
 #pragma link C++ class AMSR_Display;

@@ -34,7 +34,6 @@ public:
                   AMSR_Maker();
                   AMSR_Maker(const char *name, const char *title);
    virtual       ~AMSR_Maker();
-   virtual void   Init(TTree * t=0) = 0;	// interface
    virtual void   Finish() = 0;			// interface
    virtual void   Browse(TBrowser *b);
    virtual void   Draw(Option_t *option="");

@@ -1,5 +1,5 @@
 #include "Msgbox.h"
-#include "AMSR_Root.h"
+#include "AMSRoot.h"
 
 ClassImp(MsgBox)
 
@@ -75,7 +75,7 @@ Bool_t MsgBox::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
                switch(parm1) {
                   case 1:
                     if(parm2==10){
-                     if(gAMSR_Root->SetSelectedEvent(fTbmsg->GetString()))
+                     if(gAMSRoot->SetSelectedEvent(fTbmsg->GetString()))
                      CloseWindow();
                      else{
                        //                       cout <<"bad evt"<<endl;

@@ -1,40 +1,73 @@
 void IdleHandle(Int_t option)
 {
   static TTree *t = 0;
+  static AMSR_Ntuple *ntp = 0;
+  static char *filename = 0;
 
   //
   // CUT comes here
   //
 //  static char *cut   
 //   = "ntrtr==1 && Ridgidity<0 && abs(pmom)/pcharge<2 && nctccl<2";
-  static char *cut = "Chi2strline<2 && Chi2circle<2 && Chi2fastfit<10 && beta>-1.";
+//  static char *cut = "Chi2strline[0]<1 && Chi2circle[0]<1 && Chi2fastfit[0]<10 && beta[0]<0.";
+  static char *cut = "pmass[0]>2.";
+
 
   static TTreeFormula *f_cut=0;
   static Int_t totEvt = 0;
 
   if (option <= 0) {
-    if (t != gAMSR_Root->GetInput()) {
-      t = gAMSR_Root->GetInput();
-      totEvt = t->GetEntries();
-      printf("new data: TTree %lx has %d events\n",t,totEvt);
+    if (option < 0) {
+       ntp=gAMSR_Root->GetNtuple();
+       gAMSR_Display->IdleSwitch(1);   //Turn on automatic IdleHanding
+    }
+
+    char *newfile = gAMSR_Root->GetDataFileName();
+    if ( newfile==0 || strlen(newfile)==0 ) {       //null data file
+       printf("No data file opened ?!\n");
+       gAMSR_Display->IdleSwitch(-1);   //Stop IdleHandle
+       return;
+    }
+
+    if ( option <0 || strcmp(filename, newfile) ) {
+
+      if (filename != 0) delete filename;
+      if (strlen(newfile) > 0) filename = new char[strlen(newfile)+1];
+      strcpy(filename,newfile);
+
+      t        = ntp->GetTree();
+      totEvt   = ntp->GetEntries();
+      printf("data file %s has %d events\n", filename, totEvt);
       totEvt = totEvt-1;
+
+      if ( t==0 || totEvt<0 ) {
+         printf("Empty file ?!\n");
+         gAMSR_Display->IdleSwitch(-1);   //Stop IdleHandle
+         return;
+      }
 
       if (f_cut != 0) {delete f_cut; f_cut=0;}
       f_cut=new TTreeFormula("cut",cut,t);
+
     }
   }
 
   if (option == 0) {
-    t->SetBranchStatus("*", 0);         //disable all branches
-    t->SetBranchStatus("Chi2strline", 1);
-    t->SetBranchStatus("Chi2circle", 1);
-    t->SetBranchStatus("Chi2fastfit",1);
-    t->SetBranchStatus("beta",1);      //end of enabling branches
+
+    ntp->SetBranchStatus("*", 0);         //disable all branches
+//    ntp->SetBranchStatus("Chi2strline", 1);
+//    ntp->SetBranchStatus("Chi2circle", 1);
+//    ntp->SetBranchStatus("Chi2fastfit",1);
+//    ntp->SetBranchStatus("beta",1);      //end of enabling branches
+//    ntp->SetBranchStatus("pmom", 1);
+    ntp->SetBranchStatus("pmass", 1);
+
     Int_t current = gAMSR_Root->Event();
+    if (current < 0) current=-1;
     for (Int_t next=current+1; next<=totEvt; next++) {
-      t->GetEvent(next);
+      ntp->GetEvent(next);
       if (f_cut->EvalInstance(0) != 0) {
-        t->SetBranchStatus("*", 1);    //recover to enable all branches
+        ntp->SetBranchStatus("*", 1);    //recover to enable all branches
         gAMSR_Root->Clear();
         gAMSR_Root->GetEvent(next);
         gAMSR_Display->Pad()->cd();
@@ -43,14 +76,16 @@ void IdleHandle(Int_t option)
       }
     }
     if ( next >= totEvt ) {
-//      t->SetBranchStatus("*", 1);       //recover to enable all branches
+      ntp->SetBranchStatus("*", 1);       //recover to enable all branches
       printf("reach to the end of events, next %d !!\n",next);
-      gSystem->ExitLoop();  
+      gAMSR_Display->IdleSwitch(-1);   //Stop IdleHandle
+//      gSystem->ExitLoop();  
       return;
     }
     printf("event changed to %d\n",next);
 
   } else if (option > 0) {
+
     if (f_cut) delete f_cut;
 
   }

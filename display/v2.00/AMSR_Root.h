@@ -24,6 +24,9 @@
 #ifndef AMSR_Maker_H
 #include "AMSR_Maker.h"
 #endif
+#ifndef AMSR_Types_H
+#include "AMSR_Types.h"
+#endif
 #include <time.h>
 
 class TBrowser;
@@ -36,18 +39,16 @@ class AMSR_AntiClusterReader;
 class AMSR_TrMCClusterReader;
 class AMSR_ParticleReader;
 class AMSR_MCParticleReader;
-//class ATLFElectronMaker;
-//class ATLFMuonMaker;
-//class ATLFPhotonMaker;
-//class ATLFJetMaker;
 //class AMSR_TriggerMaker;
 //class AMSR_MiscMaker;
+class AMSR_Ntuple;
 class AMSR_VirtualDisplay;
 
 class AMSR_Root : public TNamed {
 
 private:
    char                *m_DataFileName;      //Data filename
+   EDataFileType        m_DataFileType;      //Type of the data file
    Int_t                m_Version;           //AMSR_Root version number
    Int_t                m_VersionDate;       //AMSR_Root version date
    Int_t                m_RunNum;            //Run number
@@ -55,9 +56,10 @@ private:
    Int_t                m_Mode;              //Run mode
    Int_t                m_NEvent;            //Total events in the tree
    Int_t		m_Event;             //Event counter in the input tree
-   time_t               m_time[2];           //Time
+   time_t               m_Time[2];           //Time
    TTree               *m_Tree;              //Pointer to the Root tree
-   TTree               *m_Input;             //Pointer to the input data tree
+//   TTree               *m_Input;             //Pointer to the input data tree
+   AMSR_Ntuple         *m_Ntuple;        //Pointer to input ntuple/tree handler
    TList               *m_Makers;            //List of Makers
 
 //    pointers to standard Makers
@@ -88,19 +90,16 @@ private:
    AMSR_VirtualDisplay   *m_Display;         //!Pointer to Event display object
 
    void                 CommonConstruct();   //Common part of all constructors
-//   Int_t                SelectedEvent;
 
 public:
                       AMSR_Root();
                       AMSR_Root(const char *name, const char *title="The AMS Display with Root");
-//   Int_t              SetSelectedEvent(const char * event);
            Int_t      IsGolden();
    virtual           ~AMSR_Root();
-           Int_t      OpenDataFile(char * filename);
+           Int_t      OpenDataFile(char * filename, EDataFileType type);
    virtual void       Browse(TBrowser *b);
    virtual Bool_t     GetEvent(Int_t event=1);      // *MENU*
    virtual Bool_t     GetEvent(Int_t run, Int_t event);      // *MENU*
-//   virtual void       SelectEvent();      // *MENU*
    virtual void       Init(TTree * h1=0);           //Initialize to read from h1
    virtual void       Finish();                     //Finish a run
    AMSR_VirtualDisplay *Display() {return m_Display;}
@@ -116,13 +115,16 @@ public:
    Int_t          GetVersion()     {return m_Version;}
    Int_t          GetVersionDate() {return m_VersionDate;}
    Int_t          RunNum()         {return m_RunNum;}
-   char*          GetTime()         {return ctime(m_time);}
+   char*          GetTime()         {return ctime(m_Time);}
    Int_t          EventNum()       {return m_EventNum;}
    Int_t          Event()          {return m_Event;}
    Int_t          NEvent()         {return m_NEvent;}
    Int_t          Mode()           {return m_Mode;}
    TTree         *Tree()           {return m_Tree;}
-   TTree         *GetInput()       {return m_Input;}
+   const Text_t  *GetDataFileName() {return m_DataFileName;}
+   EDataFileType  GetDataFileType() {return m_DataFileType;}
+//   TTree         *GetInput()       {return m_Input;}
+   AMSR_Ntuple   *GetNtuple()      {return m_Ntuple;}
    TList         *Makers()         {return m_Makers;}
    AMSR_Maker          *Maker(const char *name) {return (AMSR_Maker*)m_Makers->FindObject(name);}
    AMSR_ToFClusterReader *ToFClusterMaker() {return m_ToFClusterMaker;}
@@ -137,10 +139,6 @@ public:
 // AMSR_SiClusterMaker  *SiClusterMaker()  {return m_SiClusterMaker;}
 // AMSR_CTCClusterMaker *CTCClusterMaker() {return m_CTCClusterMaker;}
 // AMSR_ACCClusterMaker *ACCClusterMaker() {return m_ACCClusterMaker;}
-// ATLFElectronMaker *ElectronMaker() {return m_ElectronMaker;}
-// ATLFMuonMaker     *MuonMaker()     {return m_MuonMaker;}
-// ATLFPhotonMaker   *PhotonMaker()   {return m_PhotonMaker;}
-// ATLFJetMaker      *JetMaker()      {return m_JetMaker;}
 //   AMSR_TrackMaker     *TrackMaker()    {return m_TrackMaker;}
 //   AMSR_TriggerMaker   *TriggerMaker()  {return m_TriggerMaker;}
 //   AMSR_MiscMaker      *MiscMaker()     {return m_MiscMaker;}

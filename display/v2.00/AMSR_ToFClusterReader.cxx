@@ -15,6 +15,7 @@
 #include "AMSR_Root.h"
 #include "AMSR_ToFCluster.h"
 #include "AMSR_ToFClusterReader.h"
+#include "AMSR_Ntuple.h"
 
 /*
 #include "ATLFMCMaker.h"
@@ -28,22 +29,6 @@ const Int_t kMAXCLU   = 1000;
 const Int_t maxtof=200;
 ClassImp(AMSR_ToFClusterReader)
 
-
-
-//
-// struct to read data from tree converted from ntuple
-//
-static struct {
-  Int_t           NToF;
-  Int_t           Status[maxtof];
-  Int_t           Plane[maxtof];
-  Int_t           Bar[maxtof];
-  Float_t         Edep[maxtof];
-  Float_t         Time[maxtof];
-  Float_t         ErTime[maxtof];
-  Float_t         Coo[maxtof][3];
-  Float_t         ErCoo[maxtof][3];
-} _ntuple;
 
 //_____________________________________________________________________________
 AMSR_ToFClusterReader::AMSR_ToFClusterReader(const char *name, const char *title)
@@ -64,34 +49,6 @@ AMSR_ToFClusterReader::AMSR_ToFClusterReader(const char *name, const char *title
 
 }
 
-//_____________________________________________________________________________
-void AMSR_ToFClusterReader::Init(TTree * h1)
-{
-//////////////////////////////////////////////////////////
-//   This file is modified from automatically generated 
-//   skeleton file for prmu.root (converted from prmu.new.hbk)
-//////////////////////////////////////////////////////////
-
-   debugger.Print("Init AMSR_ToFClusterReader from TTree at %x\n", h1);
-
-//
-// Set branch addresses
-//
-   if ( h1 != 0 ) {
-     debugger.Print("setting branch address\n");
-     h1->SetBranchAddress("ntof",     &_ntuple.NToF);
-     h1->SetBranchAddress("Tofstatus", _ntuple.Status);
-     h1->SetBranchAddress("plane",     _ntuple.Plane);
-     h1->SetBranchAddress("bar",       _ntuple.Bar);
-     h1->SetBranchAddress("Tofedep",   _ntuple.Edep);
-     h1->SetBranchAddress("Toftime",   _ntuple.Time);
-     h1->SetBranchAddress("Tofetime",  _ntuple.ErTime);
-     h1->SetBranchAddress("Tofcoo",    _ntuple.Coo);
-     h1->SetBranchAddress("Tofercoo",  _ntuple.ErCoo);
-     debugger.Print("finished\n");
-   }
-
-}
 
 //_____________________________________________________________________________
 void AMSR_ToFClusterReader::Finish()
@@ -108,6 +65,7 @@ void AMSR_ToFClusterReader::Make()
 //
 
    Int_t k;
+   TOFCLUST_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkTofclust;
 
 //........................................................
 //....Store clusters in Root ClonesArray
@@ -115,16 +73,16 @@ void AMSR_ToFClusterReader::Make()
 //   m_Ncells    = ncells;
    m_Nclusters = 0;		// it will be accumulated by AddCluster()
    debugger.Print("AMSR_ToFClusterReader::Make(): making %d clusters.\n",
-	  _ntuple.NToF);
-   for (k=0; k<_ntuple.NToF; k++) {
-      AddCluster(_ntuple.Status[k],
-                 _ntuple.Plane[k],
-                 _ntuple.Bar[k],
-                 _ntuple.Edep[k],
-                 _ntuple.Time[k],
-                 _ntuple.ErTime[k],
-                &_ntuple.Coo[k][0],
-                &_ntuple.ErCoo[k][0]);
+	  _ntuple->ntof);
+   for (k=0; k<_ntuple->ntof; k++) {
+      AddCluster(_ntuple->Tofstatus[k],
+                 _ntuple->plane[k],
+                 _ntuple->bar[k],
+                 _ntuple->Tofedep[k],
+                 _ntuple->Toftime[k],
+                 _ntuple->Tofetime[k],
+                &_ntuple->Tofcoo[k][0],
+                &_ntuple->Tofercoo[k][0]);
    }
 
    debugger.Print("AMSR_ToFClusterReader::Make(): %d clusters made.\n", m_Nclusters);

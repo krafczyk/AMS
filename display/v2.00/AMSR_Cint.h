@@ -51,6 +51,7 @@ extern void G__set_cpp_environmentAMSR_Cint();
 #include "AMSR_ParticleReader.h"
 #include "AMSR_MCParticle.h"
 #include "AMSR_MCParticleReader.h"
+#include "AMSR_Ntuple.h"
 #include "AMSR_VirtualDisplay.h"
 #include "Debugger.h"
 #include "AMSR_Canvas.h"
@@ -67,6 +68,7 @@ extern G__linked_taginfo G__AMSR_CintLN_TObjArray;
 extern G__linked_taginfo G__AMSR_CintLN_TObject;
 extern G__linked_taginfo G__AMSR_CintLN_TString;
 extern G__linked_taginfo G__AMSR_CintLN_TNamed;
+extern G__linked_taginfo G__AMSR_CintLN_TFile;
 extern G__linked_taginfo G__AMSR_CintLN_TVirtualPad;
 extern G__linked_taginfo G__AMSR_CintLN_TGeometry;
 extern G__linked_taginfo G__AMSR_CintLN_TAttLine;
@@ -92,6 +94,7 @@ extern G__linked_taginfo G__AMSR_CintLN_AMSR_Display;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_3DCluster;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_Maker;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_HistBrowser;
+extern G__linked_taginfo G__AMSR_CintLN_EDataFileType;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_ToFClusterReader;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_TrackReader;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_SiHitReader;
@@ -100,6 +103,7 @@ extern G__linked_taginfo G__AMSR_CintLN_AMSR_AntiClusterReader;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_TrMCClusterReader;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_ParticleReader;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_MCParticleReader;
+extern G__linked_taginfo G__AMSR_CintLN_AMSR_Ntuple;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_VirtualDisplay;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_Root;
 extern G__linked_taginfo G__AMSR_CintLN_AMSR_ToFCluster;

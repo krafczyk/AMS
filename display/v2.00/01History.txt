@@ -1,3 +1,17 @@
+
+1998.08.17      Shuwei YE
+  - Update to suit ROOT-v2.00 by Vitali Choutko
+  - IBM/AIX support
+  - Add some useful features such as "GotoRunEvent", "OpenDataFile" and
+    "IdleTimer" setting to enable user to display only events survived the
+     cuts in IdleHandle.C
+  - Implement direct reading of ntuple format.
+  - Change the style of arguement feeding for "amsed".
+  - Disable display the first event for each opened file. The first event will
+    be shown only if IdleTimer is not set, e.g. zero or negative Idle time.
+    So the first event would be exceptional in the selected event display.
+  - Write an uniform Makefile for both platforms of Alpha/OSF1 and IBM/AIX.
+
 1998.01.10	Ping Yeh
   - Accept one command line argument in standalone version as the data file 
     to read

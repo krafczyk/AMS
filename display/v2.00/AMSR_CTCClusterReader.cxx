@@ -14,25 +14,10 @@
 #include "AMSR_Root.h"
 #include "AMSR_CTCCluster.h"
 #include "AMSR_CTCClusterReader.h"
+#include "AMSR_Ntuple.h"
 
 
 ClassImp(AMSR_CTCClusterReader)
-
-
-
-//
-// struct to read data from tree converted from ntuple
-//
-static struct {
-   Int_t           nctccl;
-   Int_t           Ctcstatus[20];
-   Int_t           Ctclayer[20];
-   Float_t         ctccoo[20][3];
-   Float_t         ctcercoo[20][3];
-   Float_t         ctcrawsignal[20];
-   Float_t         ctcsignal[20];
-   Float_t         ctcesignal[20];
-} _ntuple;
 
 
 //_____________________________________________________________________________
@@ -54,30 +39,6 @@ AMSR_CTCClusterReader::AMSR_CTCClusterReader(const char *name, const char *title
 
 }
 
-//_____________________________________________________________________________
-void AMSR_CTCClusterReader::Init(TTree * h1)
-{
-//////////////////////////////////////////////////////////
-//   This file is modified from automatically generated 
-//   skeleton file for prmu.root (converted from prmu.new.hbk)
-//////////////////////////////////////////////////////////
-
-//
-// Set branch addresses
-//
-   if ( h1 != 0 ) {
-     h1->SetBranchAddress("nctccl",&_ntuple.nctccl);
-     h1->SetBranchAddress("Ctcstatus",_ntuple.Ctcstatus);
-     h1->SetBranchAddress("Ctclayer",_ntuple.Ctclayer);
-     h1->SetBranchAddress("ctccoo",_ntuple.ctccoo);
-     h1->SetBranchAddress("ctcercoo",_ntuple.ctcercoo);
-     h1->SetBranchAddress("ctcrawsignal",_ntuple.ctcrawsignal);
-     h1->SetBranchAddress("ctcsignal",_ntuple.ctcsignal);
-     h1->SetBranchAddress("ctcesignal",_ntuple.ctcesignal);
-
-     debugger.Print("AMSR_CTCClusterReader::Init(): branch address set\n");
-   }
-}
 
 //_____________________________________________________________________________
 void AMSR_CTCClusterReader::Finish()
@@ -94,6 +55,7 @@ void AMSR_CTCClusterReader::Make()
 //
 
    Int_t k;
+   CTCCLUST_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkCtcclust;
 
 //........................................................
 //....Store clusters in Root ClonesArray
@@ -101,15 +63,15 @@ void AMSR_CTCClusterReader::Make()
 //   m_Ncells    = ncells;
    m_Nclusters = 0;		// it will be accumulated by AddCluster()
    debugger.Print("AMSR_CTCClusterReader::Make(): making %d clusters.\n",
-	  _ntuple.nctccl);
-   for (k=0; k<_ntuple.nctccl; k++) {
-      AddCluster(_ntuple.Ctcstatus[k],
-                 _ntuple.Ctclayer[k],
-                 _ntuple.ctcrawsignal[k],
-                 _ntuple.ctcsignal[k],
-                 _ntuple.ctcesignal[k],
-                &_ntuple.ctccoo[k][0],
-                &_ntuple.ctcercoo[k][0]);
+	  _ntuple->nctccl);
+   for (k=0; k<_ntuple->nctccl; k++) {
+      AddCluster(_ntuple->Ctcstatus[k],
+                 _ntuple->Ctclayer[k],
+                 _ntuple->ctcrawsignal[k],
+                 _ntuple->ctcsignal[k],
+                 _ntuple->ctcesignal[k],
+                &_ntuple->ctccoo[k][0],
+                &_ntuple->ctcercoo[k][0]);
    }
 
    debugger.Print("AMSR_CTCClusterReader::Make(): %d clusters made.\n", m_Nclusters);

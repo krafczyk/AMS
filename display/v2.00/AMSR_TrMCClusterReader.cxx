@@ -14,6 +14,7 @@
 #include "AMSR_Root.h"
 #include "AMSR_TrMCCluster.h"
 #include "AMSR_TrMCClusterReader.h"
+#include "AMSR_Ntuple.h"
 
 
 ClassImp(AMSR_TrMCClusterReader)
@@ -25,15 +26,6 @@ ClassImp(AMSR_TrMCClusterReader)
 //
 
 static const Int_t maxtrmc=200;
-static struct {
-//   static const Int_t maxtrmc=200;
-   Int_t           ntrmc;
-   Int_t           TrMCParticle[maxtrmc];
-   Float_t         TrMCSignal[maxtrmc];
-   Float_t         TrMCCoo[maxtrmc][3];
-   Float_t         TrMCErCoo[maxtrmc][3];
-} _ntuple;
-
 
 //_____________________________________________________________________________
 AMSR_TrMCClusterReader::AMSR_TrMCClusterReader(const char *name, const char *title)
@@ -55,27 +47,6 @@ AMSR_TrMCClusterReader::AMSR_TrMCClusterReader(const char *name, const char *tit
 }
 
 //_____________________________________________________________________________
-void AMSR_TrMCClusterReader::Init(TTree * h1)
-{
-//////////////////////////////////////////////////////////
-//   This file is modified from automatically generated 
-//   skeleton file for prmu.root (converted from prmu.new.hbk)
-//////////////////////////////////////////////////////////
-
-//
-// Set branch addresses
-//
-   if ( h1 != 0 ) {
-     h1->SetBranchAddress("ntrclmc",&_ntuple.ntrmc);
-     h1->SetBranchAddress("Itra",_ntuple.TrMCParticle);
-     h1->SetBranchAddress("xgl",_ntuple.TrMCCoo);
-     h1->SetBranchAddress("summc",_ntuple.TrMCSignal);
-
-     debugger.Print("AMSR_TrMCClusterReader::Init(): branch address set\n");
-   }
-}
-
-//_____________________________________________________________________________
 void AMSR_TrMCClusterReader::Finish()
 {
 // Function called when maker for all events have been called
@@ -90,6 +61,7 @@ void AMSR_TrMCClusterReader::Make()
 //
 
    Int_t k;
+   TRMCCLUS_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkTrmcclus;
 
 //........................................................
 //....Store clusters in Root ClonesArray
@@ -97,12 +69,13 @@ void AMSR_TrMCClusterReader::Make()
 //   m_Ncells    = ncells;
    m_Nclusters = 0;		// it will be accumulated by AddCluster()
    debugger.Print("AMSR_TrMCClusterReader::Make(): making %d clusters.\n",
-	  _ntuple.ntrmc);
-   for (k=0; k<_ntuple.ntrmc; k++) {
-      if(_ntuple.TrMCParticle[k]!=555)AddCluster(_ntuple.TrMCParticle[k],
-                 _ntuple.TrMCSignal[k],
-                &_ntuple.TrMCCoo[k][0],
-                &_ntuple.TrMCErCoo[k][0]);
+	  _ntuple->ntrclmc);
+   for (k=0; k<_ntuple->ntrclmc; k++) {
+      if(_ntuple->Itra[k]!=555)AddCluster(_ntuple->Itra[k],
+                 _ntuple->summc[k],
+                &_ntuple->xgl[k][0],
+                &_ntuple->xcb[k][0]);   //guess the match tentatively
+//?? match which ??                &_ntuple.TrMCErCoo[k][0]);
    }
 
    debugger.Print("AMSR_TrMCClusterReader::Make(): %d clusters made.\n", m_Nclusters);

@@ -14,28 +14,11 @@
 #include "AMSR_Root.h"
 #include "AMSR_SiHit.h"
 #include "AMSR_SiHitReader.h"
+#include "AMSR_Ntuple.h"
 
-
-ClassImp(AMSR_SiHitReader)
-
-
-
-//
-// struct to read data from tree converted from ntuple
-//
 static const Int_t MaxSiHits = 500;
 
-static struct {
-   Int_t           ntrrh;
-   Int_t           px[MaxSiHits];
-   Int_t           py[MaxSiHits];
-   Int_t           statusr[MaxSiHits];
-   Int_t           Layer[MaxSiHits];
-   Float_t         hitr[MaxSiHits][3];
-   Float_t         ehitr[MaxSiHits][3];
-   Float_t         sumr[MaxSiHits];
-   Float_t         difosum[MaxSiHits];
-} _ntuple;
+ClassImp(AMSR_SiHitReader)
 
 
 //_____________________________________________________________________________
@@ -60,31 +43,6 @@ AMSR_SiHitReader::AMSR_SiHitReader(const char *name, const char *title)
 }
 
 //_____________________________________________________________________________
-void AMSR_SiHitReader::Init(TTree * h1)
-{
-//////////////////////////////////////////////////////////
-//   This file is modified from automatically generated 
-//   skeleton file for prmu.root (converted from prmu.new.hbk)
-//////////////////////////////////////////////////////////
-
-//
-// Set branch addresses
-//
-   if ( h1 != 0 ) {
-     h1->SetBranchAddress("ntrrh",&_ntuple.ntrrh);
-     h1->SetBranchAddress("px",_ntuple.px);
-     h1->SetBranchAddress("py",_ntuple.py);
-     h1->SetBranchAddress("statusr",_ntuple.statusr);
-     h1->SetBranchAddress("Layer",_ntuple.Layer);
-     h1->SetBranchAddress("hitr",_ntuple.hitr);
-     h1->SetBranchAddress("ehitr",_ntuple.ehitr);
-     h1->SetBranchAddress("sumr",_ntuple.sumr);
-     h1->SetBranchAddress("difosum",_ntuple.difosum);
-   }
-
-}
-
-//_____________________________________________________________________________
 void AMSR_SiHitReader::Finish()
 {
 // Function called when maker for all events have been called
@@ -99,6 +57,7 @@ void AMSR_SiHitReader::Make()
 //
 
    Int_t k;
+   TRRECHIT_DEF *_ntuple = (gAMSR_Root->GetNtuple())->m_BlkTrrechit;
 
 
 //........................................................
@@ -106,16 +65,16 @@ void AMSR_SiHitReader::Make()
 //........................................................
    m_Nclusters = 0;		// it will be accumulated by AddCluster()
    debugger.Print("AMSR_SiHitReader::Make(): making %d clusters.\n",
-	  _ntuple.ntrrh);
-   for (k=0; k<_ntuple.ntrrh; k++) {
-      AddCluster(_ntuple.statusr[k],
-                 _ntuple.Layer[k],
-                 _ntuple.px[k],
-                 _ntuple.py[k],
-                &_ntuple.hitr[k][0],
-                &_ntuple.ehitr[k][0],
-                 _ntuple.sumr[k],
-                 _ntuple.difosum[k]);
+	  _ntuple->ntrrh);
+   for (k=0; k<_ntuple->ntrrh; k++) {
+      AddCluster(_ntuple->statusr[k],
+                 _ntuple->Layer[k],
+                 _ntuple->px[k],
+                 _ntuple->py[k],
+                &_ntuple->hitr[k][0],
+                &_ntuple->ehitr[k][0],
+                 _ntuple->sumr[k],
+                 _ntuple->difosum[k]);
    }
 
    debugger.Print("AMSR_SiHitReader::Make(): %d clusters made.\n", m_Nclusters);
