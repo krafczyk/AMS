@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.79 2004/07/16 15:40:31 alcaraz Exp $
+//  $Id: trrec.h,v 1.80 2004/09/28 16:58:18 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -415,13 +415,17 @@ AMSTrTrack(number theta, number phi, AMSPoint point);
 void init( AMSTrRecHit * phit[]);
 static integer build(integer refit=0);
 static integer buildPathIntegral(integer refit=0);
+static integer buildPathIntegral_old(integer refit=0);
 static integer buildWeak(integer refit=0);
 static integer buildWeakPathIntegral(integer refit=0);
+static integer buildWeakPathIntegral_old(integer refit=0);
 static integer buildFalseX(integer refit=0);
 static integer buildFalseXPathIntegral(integer refit=0);
+static integer buildFalseXPathIntegral_old(integer refit=0);
 static integer makeFalseTOFXHits();
 static integer buildFalseTOFX(integer refit=0);
 static integer buildFalseTOFXPathIntegral(integer refit=0);
+static integer buildFalseTOFXPathIntegral_old(integer refit=0);
 static integer _MarginPatternsNeeded;
 static integer _min_layers_with_different_hits;
 static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
