@@ -77,9 +77,16 @@ histgrams there. Have a look into the file first.
 for various purposes, says, cutProton.f, cutAntiHe.f. Then, try to build their
 corresponding executables by doing
 
-    gmake cutProton.f -f Makefile.ntpSelectFor
+    gmake CUT=cutProton.f -f Makefile.ntpSelectFor
 
-    gmake cutAntiHe.f -f Makefile.ntpSelectFor
+    gmake CUT=cutAntiHe.f -f Makefile.ntpSelectFor
 
 (To simplify the command, you can make a symbolic link of Makefile.ntpSelectFor
-to Makefile, so your command becomes "gmake cutProton.f")
+to Makefile, so your command becomes "gmake CUT=cutProton.f")
+
+    Since the executable name has also been changed, to run it, you need type
+
+    $(OS)/bin/cutProton
+
+    $(OS)/bin/cutAntiHe
+

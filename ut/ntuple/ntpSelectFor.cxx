@@ -24,14 +24,14 @@ static char *selectExt = "hbk";
 void printUsage()
 {
       char *sp = "                ";
-      cout << "\nUsage: $(OS)/bin/cutName [-h] [-b] [-iNtupleID] [-nNEvt]\n"
+      cout << "\nUsage: $(OS)/bin/cutName [-h] [-b[Size]] [-iNtupleID] [-nNEvt]\n"
         << sp << "[-oOutFile] [-sDir [-eExt]] [-tInsert] [-uHistFile]\n"
         << sp << "[-FFrom] [-TTo] oldFile(s)\n"
         << " $(OS)=  your system name, can be got via shell \"uname\"\n"
         << " cutName = basename of your cut filename(default=\"usrcut.f\")\n"
         << "  -h  =  print this message\n"
-        << "  -b  =  save survived event# into a buffer first,\n"
-        << "         write out the whole survived event later\n"
+        << "  -b  =  save survived event# into a buffer first, write it out later.\n"
+        << "         buffer size(d=1000) can be optionally changed\n"
         << "  -i  =  set ntupleID, follows NtupleId(default=1)\n"
         << "  -n  =  set maximum events for each output ntuple, >100,000\n"
         << "         and no \"-o\" will output a file for each input file\n"
@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
   int   idNull    = -1;
   int   ntupleID  = idNull; //initial value
   Bool  useBuffer = kFALSE;
+  int   bufSize   = idNull;
   Bool  useScan   = kFALSE;
   char *outFile   = 0;
   char *insertStr = 0;
@@ -99,6 +100,11 @@ int main(int argc, char *argv[])
       return 1;
     } else if (*pchar=='b' ) { // use buffer before writing out
       useBuffer = kTRUE;
+      cout << "Buffer will be used" << endl;
+      if (strlen(++pchar) > 0) { // change the buffer size
+        bufSize = atoi(pchar);
+        cout << "change buffer size to " << bufSize << endl;
+      }
     } else if (*pchar=='i') {  // follows NtupleID
       ntupleID = atoi(++pchar);
       cout << "NtupleID set to " << ntupleID << endl;
@@ -165,6 +171,12 @@ int main(int argc, char *argv[])
   //
   if (ntupleID != idNull && ntupleID > 0)
      select->SetNtupleID(ntupleID);
+
+  //
+  // Change buffer size if specified
+  //
+  if (bufSize != idNull && bufSize > 0)
+     select->SetBufferSize(bufSize);
 
   //
   // Set insert string

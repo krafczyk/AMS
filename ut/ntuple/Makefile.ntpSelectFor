@@ -24,18 +24,21 @@ OBJDIR = ./$(OS)/bin
 # source, obj and libs   #
 #                        #
 ##########################
-CUTFILE = $(suffix $(firstword $(MAKECMDGOALS)) )
-ifneq "$(CUTFILE)" ".f"
- USRCUT  = usrcut.f
-else
- USRCUT = $(firstword $(MAKECMDGOALS))
- .PHONY :  $(USRCUT)
- $(USRCUT) : all
- #	@echo "not default GOAL, USRCUT= $(USRCUT)"
-endif
+#CUTFILE = $(suffix $(firstword $(MAKECMDGOALS)) )
+#ifneq "$(CUTFILE)" ".f"
+# USRCUT  = usrcut.f
+#else
+# USRCUT = $(firstword $(MAKECMDGOALS))
+# .PHONY :  $(USRCUT)
+# $(USRCUT) :
+#	@echo "not default GOAL, USRCUT= $(USRCUT)"
+#	@echo "MAKECMDGOALS = $(MAKECMDGOALS)"
+#endif
+
+CUT = usrcut.f
 
 CXXSRCS = NtupleSelectorFor.cxx ntpSelectFor.cxx
-FORSRCS = FortranPart.f $(USRCUT)
+FORSRCS = FortranPart.f $(CUT)
 
 CXXOBJS = $(CXXSRCS:%.cxx=$(OBJDIR)/%.o)
 FOROBJS = $(FORSRCS:%.f=$(OBJDIR)/%.o)
@@ -50,7 +53,8 @@ CERNLIBS      = -L/cern/new/lib -lmathlib -lpacklib -lkernlib
 else
 CERNLIBS      = -L/cern/pro/lib -lmathlib -lpacklib -lkernlib
 endif
-OPT     =  -g
+#OPT     =  -g
+OPT      =
 
 ########################
 #                      #
@@ -138,7 +142,7 @@ $(OBJDIR)/%.o:   %.f
 #            #
 ##############
 #MAINNAME  = ntpSelectFor
-MAINNAME   = $(basename $(USRCUT))
+MAINNAME   = $(basename $(CUT))
 MAIN  =  $(OBJDIR)/$(MAINNAME)
 
 .PHONY :  all  clean  depend  touch_depend  dist

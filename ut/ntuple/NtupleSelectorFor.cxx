@@ -69,8 +69,10 @@ NtupleSelectorFor::NtupleSelectorFor()
    int cols = sizeof(m_VarNames[0]);
    int rows = sizeof(m_VarNames)/cols;
    if (m_NVar > rows) {
-      fprintf(stderr, "Too much variables %d > maximum %d allowed !\n",
-              m_NVar, rows);
+//      fprintf(stderr, "Too much variables %d > maximum %d allowed !\n",
+//              m_NVar, rows);
+      cerr << "Read " << m_NVar << "variabless, >" << rows
+           << " allowed maximum" << endl;
       m_NVar = rows;
    }
 
@@ -83,8 +85,10 @@ NtupleSelectorFor::NtupleSelectorFor()
       if (space == 0) leng = cols;
       else leng = strlen(varname) - strlen(space);
       if (leng > cols_1) {
-         fprintf(stderr, "Too long variable name %d > maximum %d allowed !\n",
-                 leng, cols_1);
+//         fprintf(stderr, "Too long variable name %d > maximum %d allowed !\n",
+//                 leng, cols_1);
+         cerr << "Variable name length " << leng << " >" << cols_1
+              << " allowed maximum" << endl;
          continue;
       }
       strncpy(m_VarNames[i], varname, leng);
@@ -193,7 +197,8 @@ void NtupleSelectorFor::CloseUserFile()
 int NtupleSelectorFor::FindNext()
 {
    if (m_Cut == 0) {
-      fprintf(stderr,"NtupleSelectorFor::FindNext, cut not set !!\n");
+//      fprintf(stderr,"NtupleSelectorFor::FindNext, cut not set !!\n");
+      cerr << "NtupleSelectorFor::FindNext, cut not set !!" << endl;
       return -1;
    }
 
@@ -272,6 +277,7 @@ void NtupleSelectorFor::GetEventVars(int event)
    if (m_NVar == 0) {
       GetEventAll(event);
 //      fprintf(stderr,"ERROR 0 variable in GetEventVars, nothing read !\n");
+//      cerr << "ERROR 0 variable in GetEventVars, nothing read !" << endl;
       return;
    }
 
@@ -303,7 +309,8 @@ int NtupleSelectorFor::OpenNewNtuple(char *ntpfile)
    int istat;
 
    if (m_OldFile == 0) {
-      printf("Open old ntuple first\n");
+//      printf("Open old ntuple first\n");
+      cerr << "OpenNewNtuple must be after OpenOldNtuple" << endl;
       return 3;
    }
 
@@ -314,16 +321,19 @@ int NtupleSelectorFor::OpenNewNtuple(char *ntpfile)
    if (ntpfile == 0) ntpfile = m_NewFile;
 
    if (ntpfile == 0 || strlen(ntpfile) == 0) {
-      printf("NULL filename in NtupleSelectorFor::OpenNewNtuple\n");
+//      printf("NULL filename in NtupleSelectorFor::OpenNewNtuple\n");
+      cerr << "NULL filename in NtupleSelectorFor::OpenNewNtuple" << endl;
       return 1;
    }
 
-   printf("Opening new ntuple file =%s\n",ntpfile);
+//   printf("Opening new ntuple file =%s\n",ntpfile);
+   cout << "Opening new ntuple file =" << ntpfile << endl;
 
    HROPEN(m_NewLun, top_new, ntpfile, "NP", m_RecLen, istat);
    if (istat != 0) {
-      fprintf(stderr,"OpenNewNtuple, Failure in opening ntuple file %s\n",
-              ntpfile);
+//      fprintf(stderr,"OpenNewNtuple, Failure in opening ntuple file %s\n",
+//              ntpfile);
+      cerr << "Failure in opening new ntuple file =" << ntpfile << endl;
       CLOSE(m_NewLun);
       return 1;
    }
@@ -367,15 +377,17 @@ int NtupleSelectorFor::OpenOldNtuple(char *ntpfile)
    }
 
    if (ntpfile == 0 || strlen(ntpfile) == 0) {
-      printf("NULL filename in NtupleSelectorFor::OpenOldNtuple\n");
+//      printf("NULL filename in NtupleSelectorFor::OpenOldNtuple\n");
+      cerr << "NULL filename in NtupleSelectorFor::OpenOldNtuple" << endl;
       return 1;
    }
 
    reclen = 0;
    HROPEN(m_OldLun, top_old, ntpfile, "XP", reclen, istat);
    if (istat != 0) {
-      fprintf(stderr,"OpenOldNtuple, Failure in opening ntuple file %s\n",
-              ntpfile);
+//      fprintf(stderr,"OpenOldNtuple, Failure in opening ntuple file %s\n",
+//              ntpfile);
+      cerr << "Failure in opening old ntuple file =" << ntpfile << endl;
       CLOSE(m_OldLun);
       return 1;
    }
@@ -384,7 +396,8 @@ int NtupleSelectorFor::OpenOldNtuple(char *ntpfile)
    HRIN(m_NtupleID, 9999, offset);
    istat = EXIST(m_MemID);
    if (istat != 0) {
-      fprintf(stderr,"OpenOldNtuple, No such ntuple ID =%d\n",m_NtupleID);
+//      fprintf(stderr,"OpenOldNtuple, No such ntuple ID =%d\n",m_NtupleID);
+      cerr << "OpenOldNtuple, No such ntuple ID =" << m_NtupleID << endl;
       HREND(top_old);
       CLOSE(m_OldLun);
       return 2;
@@ -426,14 +439,16 @@ int NtupleSelectorFor::OpenUserFile(char *usrfile)
    }
 
    if (usrfile == 0 || strlen(usrfile) == 0) {
-      printf("NULL filename in NtupleSelectorFor::OpenUserFile\n");
+//      printf("NULL filename in NtupleSelectorFor::OpenUserFile\n");
+      cerr << "NULL filename in NtupleSelectorFor::OpenUserFile" << endl;
       return 1;
    }
 
-   HROPEN(m_UsrLun, top_usr, usrfile, "N", m_RecLen, istat);
+   HROPEN(m_UsrLun, top_usr, usrfile, "NP", m_RecLen, istat);
    if (istat != 0) {
-      fprintf(stderr,"OpenUserFile, Failure in opening user hbook file %s\n",
-              usrfile);
+//      fprintf(stderr,"OpenUserFile, Failure in opening user hbook file %s\n",
+//              usrfile);
+      cerr << "Failure in opening user hbook file =" << usrfile << endl;
       CLOSE(m_UsrLun);
       return 1;
    }
@@ -505,7 +520,8 @@ void NtupleSelectorFor::SetBufferSize(int size)
 //_____________________________________________________________________________
 void NtupleSelectorFor::WriteBuffer()
 {
-   printf("NtupleSelectorFor::WriteBuffer, m_NBuffer=%d\n",m_NBuffer);
+//   printf("NtupleSelectorFor::WriteBuffer, m_NBuffer=%d\n",m_NBuffer);
+   cout << "NtupleSelectorFor::WriteBuffer, m_NBuffer=" << m_NBuffer << endl;
 
    int current = m_Event;
 

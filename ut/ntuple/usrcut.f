@@ -10,10 +10,10 @@
       ENDDO
 *
 *-- Book histgrams
-      CALL HBOOK1(11,  'NPART', 12, -1, 5, 0.)
-      CALL HBOOK1(12,  'NTRTR', 12, -1, 5, 0.)
-      CALL HBOOK1(13,  'NBETA', 12, -1, 5, 0.)
-      CALL HBOOK1(103, '[b](v/c)', 120, -1.2, 1.2, 0.)
+C      CALL HBOOK1(11,  'NPART', 12, -1, 5, 0.)
+C      CALL HBOOK1(12,  'NTRTR', 12, -1, 5, 0.)
+C      CALL HBOOK1(13,  'NBETA', 12, -1, 5, 0.)
+C      CALL HBOOK1(103, '[b](v/c)', 120, -1.2, 1.2, 0.)
 * 
       RETURN
       END
@@ -27,8 +27,9 @@ C**------------- BLOCK DATA VARDATA ---------------------------------C
 *-----------------------------------------------------------
       INCLUDE 'usrcom.inc'
 *-user may change following
-      DATA NVAR/5/,VARLIS/
-     &  'NBETA','BETA', 'NPART', 'NTRTR', 'NHITS', 217*' '/
+      DATA NVAR/1/, VARLIS(1)/'EVENTSTATUS'/
+C      DATA NVAR/5/,VARLIS/
+C     &  'NBETA','BETA', 'NPART', 'NTRTR', 'NHITS', 217*' '/
 *-end of user change
        END
 
@@ -75,28 +76,38 @@ C**------------- BLOCK DATA VARDATA ---------------------------------C
 *
       NPASS(0) = NPASS(0) + 1
 
-      CALL HF1(11, FLOAT(NPART), 1.)
-      CALL HF1(12, FLOAT(NTRTR), 1.)
-      CALL HF1(13, FLOAT(NBETA), 1.)
+C      CALL HF1(11, FLOAT(NPART), 1.)
+C      CALL HF1(12, FLOAT(NTRTR), 1.)
+C      CALL HF1(13, FLOAT(NBETA), 1.)
+C
+C      IF (NPART .NE. 1) GOTO 990
+C      NPASS(1) = NPASS(1) + 1
+C
+C      If (NTRTR.NE.1 .or. NHITS(1).NE.6) GOTO 990
+C      NPASS(2) = NPASS(2) + 1
+C
+C      IF (NBETA.NE.1) GOTO 990
+C      NPASS(3) = NPASS(3) + 1
+C
+C      CALL HF1(103, BETA(1), 1.)
+C
+C      IF (BETA(1).GE.0) GOTO 990
+C      NPASS(4) = NPASS(4) + 1
 
-      IF (NPART .NE. 1) GOTO 990
-      NPASS(1) = NPASS(1) + 1
-
-      If (NTRTR.NE.1 .or. NHITS(1).NE.6) GOTO 990
-      NPASS(2) = NPASS(2) + 1
-
-      IF (NBETA.NE.1) GOTO 990
-      NPASS(3) = NPASS(3) + 1
-
-      CALL HF1(103, BETA(1), 1.)
-
-      IF (BETA(1).GE.0) GOTO 990
-      NPASS(4) = NPASS(4) + 1
+      if (mod(eventstatus/2097152,4).gt.0) then
+        NPASS(1) = NPASS(1) + 1
+        ic = mod(eventstatus/32,8)
+        im = mod(eventstatus/256,2)
+        if (ic.gt.0.or.im.eq.0) THEN
+          USRCUT = 1
+          NPASS(2) = NPASS(2) + 1
+        endif
+      endif
 
 *
 *-- Comment the following in case you do not want to write selectd events
 *--  into new ntuples
-      USRCUT =1
+C      USRCUT =1
 
  990  CONTINUE
 
