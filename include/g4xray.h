@@ -1,4 +1,4 @@
-//  $Id: g4xray.h,v 1.3 2002/01/09 18:38:36 choutko Exp $
+//  $Id: g4xray.h,v 1.4 2002/09/20 09:30:41 choutko Exp $
 #ifndef __G4XRAY__
 #define __G4XRAY__
 #include "globals.hh"
@@ -106,7 +106,7 @@ G4XRayTRDP(G4String name):G4VDiscreteProcess(name){};
 G4double GetMeanFreePath(const  G4Track & track, G4double step, G4ForceCondition *){return DBL_MAX;}
 G4double PostStepGetPhysicalInteractionLength(const  G4Track & track, G4double step, G4ForceCondition *);
 virtual G4bool IsApplicable(const G4ParticleDefinition& p){
-return (p.GetPDGCharge() !=0) ;
+return (p.GetPDGCharge() !=0 && !p.IsShortLived()) ;
 }
 G4VParticleChange* PostStepDoIt( const G4Track& track, const G4Step& stepData );
 };
@@ -114,7 +114,7 @@ class G4XRayTRCP : public G4VContinuousProcess{
 public:
 G4XRayTRCP(G4String name):G4VContinuousProcess(name){};
 virtual G4bool IsApplicable(const G4ParticleDefinition& p){
-return (p.GetPDGCharge() !=0) ;
+return (p.GetPDGCharge() !=0 && !p.IsShortLived()) ;
 }
 G4VParticleChange* AlongStepDoIt( const G4Track& track, const G4Step& stepData );
         G4double GetContinuousStepLimit(const G4Track& aTrack,

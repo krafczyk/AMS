@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.15 2002/09/17 12:12:20 choutko Exp $
+//  $Id: richrec.h,v 1.16 2002/09/20 09:30:41 choutko Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -160,7 +160,6 @@ public:
   static void rebuild(AMSTrTrack *ptrack);
   AMSTrTrack* gettrack(){return _ptrack;}
   integer getused(){return _used;}
-  uinteger getstatus(){return _status;}
   bool IsGood(){return !checkstatus(dirty_ring);}
   number getbeta(){return _beta;}
   number geterrorbeta(){return _errorbeta;}

@@ -1,4 +1,4 @@
-#  $Id: g4.doc,v 1.28 2002/07/18 13:45:50 choutko Exp $
+#  $Id: g4.doc,v 1.29 2002/09/20 09:30:36 choutko Exp $
 -------
 Platform:
 linux-gcc2.95.3 ($G4SYSTEM=Linux-g++), linux-iccv6  ($G4SYSTEM=Linux-icc) 
@@ -7,7 +7,8 @@ linux-gcc2.95.3 ($G4SYSTEM=Linux-g++), linux-iccv6  ($G4SYSTEM=Linux-icc)
 Installer:
 
 
-source AMS/install/g4i (v4.4.0, Linux-g++) 
+source AMS/install/g4i.old (v4.4.0, Linux-g++) 
+source AMS/install/g4i (v4.4.1, Linux-g++) 
 source AMS/install/g4i.new  (v4.4.1, Linux-g++)
 source AMS/install/g4i.icc.new  (v4.4.1, Linux-icc)
 
@@ -25,6 +26,16 @@ gmake -if install/Moptg4i  (interactive{ batch first} (only Linux-g++))
 n.b
 setenv AMSDEBUG 1 switch on debug mode (compiler's one)
 unsetenv AMSDEBUG switch it off
+
+--------
+Physics Lists (New!) (geant4.4.1++ only)
+
+Default Physics List Used = QGSP
+
+Switch Off/On Physics Lists
+
+G4FF 5=0/1,2,3...
+
 
 --------
 Datacards Switch:

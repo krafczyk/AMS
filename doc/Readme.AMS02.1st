@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.33 2002/03/28 15:22:14 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.34 2002/09/20 09:30:35 choutko Exp $          
 
 
 0. In the current version only AMS02-setup is supported.
@@ -41,7 +41,7 @@ VI. Access to AMS software
    /shift/shift51/data18/xv/choutko/Offline if on shift51
    /Offline                                  ams alphas,pentiums
    /afs/cern.ch/exp/ams/Offline              all others 
-                                            (e.g.rsplus,dxplus,hpplus)
+                                            (e.g.rsplus,dxplus,lxplus)
 
    source $Offline/vdev/install/amsvar
 

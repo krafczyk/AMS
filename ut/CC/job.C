@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.413 2002/09/17 12:12:05 choutko Exp $
+// $Id: job.C,v 1.414 2002/09/20 09:30:27 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -493,6 +493,7 @@ G4FFKEY.BFOrder=4;
 G4FFKEY.Delta=0.001;
 G4FFKEY.UniformMagField=0;
 G4FFKEY.Geant3CutsOn=1;
+G4FFKEY.PhysicsListUsed=1;
 FFKEY("G4FF",(float*)&G4FFKEY,sizeof(G4FFKEY_DEF)/sizeof(integer),"MIXED");
 
 PRODFFKEY.Debug=0;

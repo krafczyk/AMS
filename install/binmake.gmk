@@ -1,5 +1,5 @@
-#  $Id: binmake.gmk,v 1.8 2001/01/22 17:32:51 choutko Exp $
-# $Id: binmake.gmk,v 1.8 2001/01/22 17:32:51 choutko Exp $
+#  $Id: binmake.gmk,v 1.9 2002/09/20 09:30:46 choutko Exp $
+# $Id: binmake.gmk,v 1.9 2002/09/20 09:30:46 choutko Exp $
 # ----------------------------------------------------------
 # Script defining rules and paths for making binaries.
 #                          Gabriele Cosmo, 25/06/1998.
@@ -44,6 +44,11 @@ ifndef INCFLAGS
               -I$(G4BASE)/processes/hadronic/management/include \
               -I$(G4BASE)/processes/hadronic/processes/include \
               -I$(G4BASE)/processes/hadronic/util/include \
+              -I$(G4BASE)/../PhysicsLists/html/lists/Packaging/include \
+              -I$(G4BASE)/../PhysicsLists/html/lists/QGSC/include \
+              -I$(G4BASE)/../PhysicsLists/html/lists/QGSP/include \
+              -I$(G4BASE)/processes/hadronic/models/chiral_inv_phase_space/body/include \
+              -I$(G4BASE)/processes/hadronic/models/chiral_inv_phase_space/interface/include \
               -I$(G4BASE)/processes/hadronic/cross_sections/include \
               -I$(G4BASE)/processes/hadronic/models/generator/de_excitation/include \
               -I$(G4BASE)/processes/hadronic/models/generator/diffractive_string/include \
@@ -132,6 +137,9 @@ endif
 
 ifdef GLOBALLIBS
   LDLIBS2 := -lG4readout \
+             -lQGSC\
+             -lQGSP\
+             -lPackaging\
              -lG4run \
              -lG4event \
              -lG3toG4 \
@@ -145,7 +153,6 @@ ifdef GLOBALLIBS
              -lG4graphics_reps \
              -lG4intercoms \
              -lG4global
-
 else
   LDLIBS2 := -lG4run \
              -lG4event \

@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.21 2002/02/08 13:48:01 choutko Exp $
+//  $Id: g4physics.C,v 1.22 2002/09/20 09:30:27 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.21 2002/02/08 13:48:01 choutko Exp $
+// $Id: g4physics.C,v 1.22 2002/09/20 09:30:27 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -37,7 +37,12 @@
 #include <iomanip.h>   
 #include "G4UserSpecialCuts.hh"
 #include "G4FastSimulationManagerProcess.hh"
-
+#include "GeneralPhysics.hh"
+#include "EMPhysics.hh"
+#include "MuonPhysics.hh"
+#include "HadronPhysicsQGSP.hh"
+#include "HadronPhysicsQGSC.hh"
+#include "IonPhysics.hh"
 
 AMSG4Physics::AMSG4Physics():  AMSNode(AMSID("AMSG4Physics",0)),G4VUserPhysicsList(),_pg3tog4(0),_pg4tog3(0),_Ng3tog4(0)
 {
@@ -64,13 +69,15 @@ void AMSG4Physics::ConstructParticle()
   // created in the program. 
 
   // create all particles
-  ConstructAllBosons();
-  ConstructAllLeptons();
-  ConstructAllMesons();
-  ConstructAllBarions();
-  ConstructAllIons();
-//  ConstructAllShortLiveds();
-  _init();
+   ConstructAllBosons();
+   ConstructAllLeptons();
+   ConstructAllMesons();
+   ConstructAllBarions();
+   ConstructAllIons();
+   ConstructAllShortLiveds();
+   G4XRay::XRayDefinition;
+   _init();
+  
 }
 
 void AMSG4Physics::ConstructProcess()
@@ -83,12 +90,50 @@ void AMSG4Physics::ConstructProcess()
     if(G4FFKEY.Geant3CutsOn)pmanager->AddDiscreteProcess(new AMSUserSpecialCuts());
   }
 
-
-  if(GCPHYS.ILOSS)ConstructEM();
-  if(GCPHYS.IHADR)ConstructHad();
+   if(G4FFKEY.PhysicsListUsed==0){
+    cout<<"Old Physics List will be used. "<<endl;
+   if(GCPHYS.ILOSS)ConstructEM();
+   if(GCPHYS.IHADR)ConstructHad();
+   }
+   else if(G4FFKEY.PhysicsListUsed==1){
+    cout<<"QGSP Physics List will be used. "<<endl;
+    
+    if(GCPHYS.ILOSS){
+     EMPhysics*    pem=new EMPhysics("standard EM");
+     pem->ConstructProcess();
+     MuonPhysics*    pmu=new MuonPhysics("muon");
+     pmu->ConstructProcess();
+    }
+    if(GCPHYS.IHADR){
+     HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
+     pqgsp->ConstructProcess();    
+     IonPhysics *pion=new IonPhysics("ion");
+     pion->ConstructProcess();
+    }
+   }
+   else if(G4FFKEY.PhysicsListUsed==2){
+    cout<<"QGSC Physics List will be used. "<<endl;
+    
+    if(GCPHYS.ILOSS){
+     EMPhysics*    pem=new EMPhysics("standard EM");
+     pem->ConstructProcess();
+     MuonPhysics*    pmu=new MuonPhysics("muon");
+     pmu->ConstructProcess();
+    }
+    if(GCPHYS.IHADR){
+     HadronPhysicsQGSP* pqgsp=new HadronPhysicsQGSP();
+     pqgsp->ConstructProcess();    
+     IonPhysics *pion=new IonPhysics("ion");
+     pion->ConstructProcess();
+    }
+   }
+   else{
+    cerr<<"Physics List no "<<G4FFKEY.PhysicsListUsed<<" Not Yet Supported"<<endl;
+    abort();
+   }
+    ConstructGeneral();
   if(TRDMCFFKEY.mode>=0)ConstructXRay();
   if(GCTLIT.ITCKOV)ConstructOp();
-  ConstructGeneral();
 }
 
 
@@ -701,7 +746,7 @@ void AMSG4Physics::ConstructOp()
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
     G4String particleName = particle->GetParticleName();
-    if (theCerenkovProcess->IsApplicable(*particle)) {
+    if (theCerenkovProcess->IsApplicable(*particle) && !particle->IsShortLived()) {
       pmanager->AddContinuousProcess(theCerenkovProcess);
     }
     if (particleName == "opticalphoton") {
@@ -798,7 +843,6 @@ void AMSG4Physics::ConstructAllBosons()
   // Construct all bosons
   G4BosonConstructor pConstructor;
   pConstructor.ConstructParticle();
-  G4XRay::XRayDefinition;
 }
 
 void AMSG4Physics::ConstructAllLeptons()
