@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: monitor.perl,v 1.3 2001/01/22 10:12:39 choutko Exp $
+# $Id: monitor.perl,v 1.4 2001/01/22 10:31:56 vitali Exp $
 
 use Error qw(:try);
 use Gtk;
