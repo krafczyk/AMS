@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.297 2002/11/14 14:07:16 choutko Exp $
+//  $Id: event.C,v 1.298 2002/11/14 14:12:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1646,7 +1646,7 @@ void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
 //
   AMSTRDTrack *ptrd=(AMSTRDTrack*)getheadC("AMSTRDTrack",0); 
-  bool veto;
+  bool veto=true;
   while(ptrd){
     if(!(veto=ptrd->Veto(17))){
      break;
