@@ -1,3 +1,4 @@
+*$Id: richlikebeta_lip.F,v 1.4 2004/03/15 11:44:20 mdelgado Exp $
 *+LIP  velocity reconstruction 
 
        subroutine richlikebeta_lip(iproc,ireflec)
