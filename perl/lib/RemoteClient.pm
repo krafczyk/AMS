@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.159 2003/05/08 11:40:58 choutko Exp $
+# $Id: RemoteClient.pm,v 1.160 2003/05/09 15:09:43 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4729,9 +4729,9 @@ sub checkJobsTimeout {
      print_bar($bluebar,3);
 
 
-    $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
+    $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid, 
                  cites.name FROM jobs, cites 
-          WHERE jobs.timestamp+jobs.timeout < $timenow AND 
+          WHERE jobs.time+jobs.timeout <  $timenow AND 
                 jobs.cid=cites.cid"; 
     my $r3=$self->{sqlserver}->Query($sql);
     if( defined $r3->[0][0]){
@@ -4773,7 +4773,7 @@ sub checkJobsTimeout {
                $self->{sqlserver}->Update($sql); 
                $tmoutflag = 1;
              }
-          }
+         }
            else {
               $tmoutflag = 1;
           }
@@ -6377,7 +6377,7 @@ foreach my $block (@blocks) {
      my $elapsed = sprintf("%.0f",$runincomplete[7]);
      $sql = "UPDATE Jobs SET EVENTS=$runincomplete[3], ERRORS=$runincomplete[5], 
                                    CPUTIME=$cputime, ELAPSED=$elapsed,
-                                   HOST='$runfinished[1]', TIMESTAMP = $timestamp 
+                                   HOST='$runincomplete[1]', TIMESTAMP = $timestamp 
                    WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
@@ -6815,6 +6815,10 @@ foreach my $block (@blocks) {
   print FILE "Update Runs : $sql \n";
   system("mv $inputfile $inputfileLink"); 
   print FILE "mv $inputfile $inputfileLink\n";
+  if ($status eq "Completed") {
+    $self->updateRunCatalog($run);
+    print "Update RunCatalog table : $run\n";
+  }
 }
  close FILE;
  
@@ -6930,7 +6934,7 @@ sub updateRunCatalog {
             htmlWarning("updateRunCatalog","Cannot find content for Job=$jid");
            }
           } else {
-           htmlWarning("updateRunCatalog","Run = $jid exists in RunCatalog. No Update");
+#           htmlWarning("updateRunCatalog","Run = $jid exists in RunCatalog. No Update");
           }
       } else {
         htmlWarning("updateRunCatalog","Run = $jid, Status = $runstatus. No Update");
@@ -7234,7 +7238,7 @@ sub insertNtuple {
                                           $sizemb,
                                           '$status',
                                           '$path',
-                                          $crc)"; 
+                                           $crc)"; 
   $self->{sqlserver}->Update($sql);
 
 }
