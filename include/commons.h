@@ -4,20 +4,6 @@
 #define __AMSCOMMONS__
 #include <cern.h>
 
-const int NWPAW=2000000;
-struct PAWC_DEF{
-float q[NWPAW];
-};
-const int NWGEAN=6000000;
-struct GCBANK_DEF{
-integer  IQ[NWGEAN];
-};
-//
-#define GCBANK COMMON_BLOCK(GCBANK,gcbank)
-COMMON_BLOCK_DEF(GCBANK_DEF,GCBANK);
-
-#define PAWC COMMON_BLOCK(PAWC,pawc)
-COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 
 class TRMFFKEY_DEF{
 public:

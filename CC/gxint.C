@@ -6,7 +6,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-const int NWPAW=3000000;
+const int NWPAW=1000000;
 struct PAWC_DEF{
 float q[NWPAW];
 };

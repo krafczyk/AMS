@@ -1186,7 +1186,7 @@ c         write(*,*)iqi,(sela+sqel)/fsig
             call absiqe(pmom_p,pmom_t,i)
          END IF
       ELSE
-           goto 888
+c           goto 888
             ISTOP = 1
              iil=iil+1
 

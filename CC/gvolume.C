@@ -471,6 +471,19 @@ void AMSgvolume::MakeG4Volumes(){
      cur=cur->up() && cur->prev()?cur->prev():cur->up();
     }
     if(newv){
+     cur = up()&& up()->prev()?(up()->prev())->down():0;
+     while (cur){
+      if(cur->pg4l() && VolumeHasSameG4AttributesAs(cur) ){
+       pg4l()=cur->pg4l(); 
+       _Nlog--;
+       newv=0;
+       break;  
+      }
+      cur=cur->down();
+     }
+    }
+
+    if(newv){
      cur = up() && prev()?prev():0;
      while (cur){
       if(VolumeHasSameG4AttributesAs(cur)){

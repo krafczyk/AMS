@@ -85,7 +85,7 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 #ifdef  __G4AMS__
  trdgeom02(mother);
  srdgeom02(mother);
-// ecalgeom02(mother);
+ ecalgeom02(mother);
 // richgeom02(mother);
 #else
  trdgeom02(mother);
@@ -3189,7 +3189,7 @@ void richgeom02(AMSgvolume & mother)
 				  rel));
 	// Fill the box:
 
-	if(copia==2) // Only once.
+	if(copia==-2) // Only once.
 	  {
 	    
 	    // SHIELDING: We use the TOF_PMT_BOX material... to be changed in
