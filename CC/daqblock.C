@@ -7,8 +7,8 @@
 #include <cern.h>
 #include <commons.h>
 #include <event.h>
-#include <daqblock.h>
 #include <tofdbc.h>
+#include <daqblock.h>
 #include <tofrec.h>
 #include <tofsim.h>
 #include <antidbc.h>
@@ -19,7 +19,7 @@
 //
 integer DAQSBlock::format=1; // default format (reduced), redefined by data card
 //
-int16u DAQSBlock::subdmsk[DAQSBLK]={7,7,1,5,7,7,1,5};
+int16u DAQSBlock::subdmsk[DAQSBLK]={3,5,3,5,7,5,7,5};
 // ( mask of detectors in given block(each number: lsbit->msbit => tof/anti/ctc))
 //
 int16u DAQSBlock::slotadr[DAQSSLT]={0,1,2,3,4,5};// h/w addr(card-ID) vs sequent. slot#
@@ -39,12 +39,12 @@ int16u DAQSBlock::tofmtyp[SCTOFC][4]={
 //
 int16u DAQSBlock::tempch[SCCRAT][SCSFET]={   // TOFch#, occupied by temper. in crate/sfet
                                           {0,0,4,0},  // cr=1(01) inverted !
-                                          {0,4,0,0},  // cr=2(03)
-                                          {0,0,4,0},  // cr=3(31) inverted !
-                                          {0,4,0,0},  // cr=4(33)
-                                          {0,0,4,0},  // cr=5(41) inverted !
-                                          {0,4,0,0},  // cr=6(43)
-                                          {0,0,4,0},  // cr=7(71) inverted !
+                                          {0,0,4,0},  // cr=2(31) inverted !
+                                          {0,0,4,0},  // cr=3(41) inverted !
+                                          {0,0,4,0},  // cr=4(71) inverted !
+                                          {0,4,0,0},  // cr=5(03)
+                                          {0,4,0,0},  // cr=6(33)
+                                          {0,4,0,0},  // cr=7(43)
                                           {0,4,0,0},  // cr=8(73)
                                          };
 //
@@ -115,6 +115,9 @@ void DAQSBlock::buildraw(integer len, int16u *p){
   naddr=(blid>>6)&7;// node_address (0-7 -> DAQ crate #)
   dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
   msk=subdmsk[naddr];
+  TOFJobStat::addaq1(naddr,dtyp);
+  if(dtyp==0 && len>1)TOFJobStat::addaq2(naddr,dtyp);// raw-data
+  if(dtyp==1 && len>5)TOFJobStat::addaq2(naddr,dtyp);// reduced
 #ifdef __AMSDEBUG__
   if(TOFRECFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
     cout<<"-----------------------------------------------------------"<<endl;
@@ -183,8 +186,11 @@ void DAQSBlock::buildraw(integer len, int16u *p){
 //---
 #ifdef __AMSDEBUG__
   if(lent != len){
-    cout<<"DAQSBlock::buildraw: length mismatch !!! for crate "<<naddr<<endl;
-    cout<<"Length from bloc_header "<<len<<" but was read "<<lent<<endl;
+    TOFJobStat::addaq3(naddr,dtyp);
+    if(TOFRECFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
+      cout<<"DAQSBlock::buildraw: length mismatch !!! for crate "<<naddr<<endl;
+      cout<<"Length from bloc_header "<<len<<" but was read "<<lent<<endl;
+    }
   }
 #endif
 }

@@ -693,7 +693,7 @@ void AMSCTCRawEvent::builddaq(int16u blid, integer &len, int16u *p){
             adr=adrw;
             if((tdc[i]&phbit)>0)adr|=phbtp;// add phase bit to address-word
             tdcw=tdc[i]&maxv;// put hit-value to tdc-word
-            tdcw|=(chip<<15);// add chip number 
+            tdcw|=((1-chip)<<15);// add chip number(1-chip to be uniform with TOF) 
             *(p+ic++)=tdcw; // write hit-value
             *(p+ic++)=adr; // write hit-address
           }
@@ -829,7 +829,7 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
         break;   
       }
       adrw=*(p+ic++);// phbit + chipc + slotaddr.
-      slad=adrw&15;// get SFEx h/w address(card-id) ((0,1,2,5)-TOF, (7)-C, (6)-A)
+      slad=adrw&15;// get SFEx h/w address(card-id) ((0,1,2,3)-TOF, (5)-C, (4)-A)
       sfet=DAQSBlock::slnumb(slad);// sequential slot number (0-5, or =DAQSSLT if slad invalid)) 
       if(sfet==DAQSSLT)continue; //---> invalid slad: try to take next pair
       if(DAQSBlock::isSFEC(slad)){ // SFEC data : write to buffer
@@ -842,7 +842,7 @@ void AMSCTCRawEvent::buildraw(int16u blid, integer &len, int16u *p){
                             phbt=1; // check/set phase-bit flag
         else
                             phbt=0;
-        tdcc=8*chip+chc; // channel inside SFEC(0-15)
+        tdcc=8*(1-chip)+chc; // channel inside SFEC(0-15)(1-chip to be uniform with TOF)
         hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
         if(nhits[tdcc]<16){
           hits[tdcc][nhits[tdcc]]=hitv;
@@ -935,27 +935,30 @@ int16u AMSCTCRawEvent::hw2swid(int16u a1, int16u a2){
   int16u swid,hwch;
 //
   static int16u sidlst[SCCRAT*CTCCHSF]={// 14 CC's + 2 FT's  per CRATE (per SFEC):
-// crate-1 = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  29, 30, 31, 32, 37, 38, 39,  0, 40, 71, 72, 77, 78, 79, 80,  0,
 //
-// crate-2 = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  13, 14, 15, 16, 21, 22, 23,  0, 24, 61, 62, 63, 64, 69, 70,  0,
-//
-// crate-3 = (no SFEC card) :
+// mycrate-1 = (no SFEC card) :
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 //
-// crate-4 = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-   5,  6,  7,  8, 45, 46, 47,  0, 48, 53, 54, 55, 56, 81, 82,  0,
+// mycrate-2(cr31) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
+  14, 13,  8,  7,  6,  5, 16,  0, 15, 56, 55, 48, 47, 46, 45,  0,
 //
-// crate-5 = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-   1,  2,  9, 10,  3,  4, 41,  0, 42, 49, 50, 43, 44, 83, 84,  0,
-//
-// crate-6 = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  11, 12, 17, 18, 19, 20, 25,  0, 26, 51, 52, 57, 58, 59, 60,  0,
-// crate-7 = (no SFEC card) :
+// mycrate-3 = (no SFEC card) :
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-// crate-8 = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
-  27, 28, 33, 34, 35, 36, 65,  0, 66, 67, 68, 73, 74, 75, 76,  0};
+//
+// mycrate-4(cr71) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
+  34, 33, 28, 27, 26, 25, 36,  0, 35, 82, 81, 74, 73, 66, 65,  0,
+//
+// mycrate-5(cr03) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
+  40, 39, 38, 37, 32, 31, 72,  0, 71, 84, 83, 80, 79, 78, 77,  0,
+//
+// mycrate-6(cr33) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
+  64, 63, 62, 61, 54, 53, 70,  0, 69, 30, 29, 24, 23, 22, 21,  0,
+//
+// mycrate-7(cr43) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
+  52, 51, 44, 43, 42, 41, 50,  0, 49, 10,  9,  4,  3,  2,  1,  0,
+//
+// mycrate-8(cr73) = (1 SFEC)x(2x(7xTDCA +1xTDCT(FT))) :
+  20, 19, 18, 17, 12, 11, 58,  0, 57, 76, 75, 68, 67, 60, 59,  0};
 //
 #ifdef __AMSDEBUG__
   assert(a1>=0 && a1<SCCRAT);//crate(0-7)

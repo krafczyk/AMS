@@ -97,18 +97,15 @@ void AMSAntiRawEvent::validate(int &status){ //Check/correct RawEvent-structure
       nhit=0;
       im=ntdct[isid];
       for(i=0;i<im;i++)tdct2[i]=0;
-      for(i=0;i<im-1;i++){// find all correct pairs of up/down bits settings
-        pbdn=(tdct1[i]&pbitn);//check p-bit of down-edge (come first)
-        pbup=(tdct1[i+1]&pbitn);//check p-bit of up-edge (come second)
+      for(i=0;i<im;i++){// find correct(up) edges(FT-channel has only up-edges)
+        pbup=(tdct1[i]&pbitn);//check p-bit of current edge
         if(TOFDBc::pbonup()==1){
-          if(pbup==0 || pbdn!=0)continue;//wrong sequence, take next pair
+          if(pbup==0)continue;//wrong(down) edge, take next one
         }
         else{
-          if(pbup!=0 || pbdn==0)continue;//wrong  sequence, take next pair
+          if(pbup!=0)continue;//wrong(up) edge, take next one
         }
         tdct2[nhit]=tdct1[i];
-        nhit+=1;
-        tdct2[nhit]=tdct1[i+1];
         nhit+=1;
       }
       if(nhit<im){//something was wrong (bad sequence)
@@ -242,19 +239,19 @@ void AMSAntiRawEvent::mc_build(int &stat){
 //--------
         tovt=ANTIDBc::ftpulw();// FTrigger pulse width in ns
         t1=ftrig;// FT-pulse up-edge (ns) abs.time
-        t2=t1+tovt;// FT-pulse down-edge (ns) abs.time
+//        t2=t1+tovt;// FT-pulse down-edge (ns) abs.time
 //
-        dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
-        it=integer(dt/ANTIDBc::tdcabw());
-        if(it>maxv){
-          cout<<"ANTIRawEvent_mc: warning : FT-down-time out of range"<<endl;
-          it=maxv;
-        }
-        itt=int16u(it);
-        if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-        tdct[0]=itt;
+//        dt=tlev1-t2;// first take second(down)-edge of pulse(LIFO mode of readout !!!)
+//        it=integer(dt/ANTIDBc::tdcabw());
+//        if(it>maxv){
+//          cout<<"ANTIRawEvent_mc: warning : FT-down-time out of range"<<endl;
+//          it=maxv;
+//        }
+//        itt=int16u(it);
+//        if(!TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
+//        tdct[0]=itt;
 //
-        dt=tlev1-t1;// now take first(up)-edge 
+        dt=tlev1-t1;// now take first(up)-edge (only 1 edge for FT in SFEA !!!)
         it=integer(dt/ANTIDBc::tdcabw());
         if(it>maxv){
           cout<<"ANTIRawEvent_mc: warning : FT-up-time out of range"<<endl;
@@ -262,10 +259,12 @@ void AMSAntiRawEvent::mc_build(int &stat){
         }
         itt=int16u(it);
         if(TOFDBc::pbonup())itt=itt|phbit;//add phase bit if necessary
-        tdct[1]=itt;
+//        tdct[1]=itt;
+        tdct[0]=itt;
 //--------
         ntdca=2;
-        ntdct=2;
+//        ntdct=2;
+        ntdct=1;
         id=int16u(10*(j+1)+i+1);//BBS (Bar/Side)
         chsta=0;// good
         AMSEvent::gethead()->addnext(AMSID("AMSAntiRawEvent",0),
@@ -314,11 +313,11 @@ void AMSAntiRawCluster::build(int &status){
 //
       ntdct=ptr->gettdct(tdct);
       if(ntdct>0)ANTIJobStat::addch(chnum,3);
-      if(ntdct==2)ANTIJobStat::addch(chnum,4);
+      if(ntdct==1)ANTIJobStat::addch(chnum,4);
 //--------
       signal=0.;
-//<--- Use first (last on TDC input) FT-double_hit(2edges) as true hit 
-      fttm=(pbanti&tdct[1])*ANTIDBc::tdcabw();//FT-up_egde(ns)(from 1st dbl-hit))
+//<--- Use first (last on TDC input) FT-single_hit(1-edge signal !!!) as true hit 
+      fttm=(pbanti&tdct[0])*ANTIDBc::tdcabw();//FT-up_egde(ns)(from 1st single-hit))
       jmax=ntdca/2;// dbl_hits
       for(j=0;j<jmax;j++){ // <--- TDCA-dbl_hit loop
         atm=(pbanti&tdca[2*j+1])*ANTIDBc::tdcabw();//TDCA-up_egde(ns)(2nd in readout)
@@ -596,7 +595,7 @@ integer AMSAntiRawEvent::calcdaqlength(int16u blid){
     len+=1; // hit_bitmask
     if(nhits>0){// nonempty SFEA
       nzchn+=2;// add 2 TDCT(=FT) channels
-      nhits+=(2*2);// add 2x2 TDCT-hits(for MC each FT-channel contains 2 hits(edges))
+      nhits+=(2*1);// add 2x1 TDCT-hits(for MC each FT-channel contains 1 hit(edge))
       cntw=nzchn/4;
       if(nzchn%4 > 0)cntw+=1;// hit-counter words
       len+=(cntw+nhits);
@@ -605,7 +604,7 @@ integer AMSAntiRawEvent::calcdaqlength(int16u blid){
 //
   else{ // =====> Raw format :
     if(nhits>0){
-      nhits+=(2*2);// add 2x2 TDCT-hits(for MC each FT-channel contains 2 hits(edges))
+      nhits+=(2*1);// add 2x1 TDCT-hits(for MC each FT-channel contains 1 hit(edge))
       len=2*nhits;// each hit(edge) require 2 words (header+TDCvalue)
     }
   }// end of format check
@@ -687,7 +686,7 @@ void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
         mtyp=1; // measurement type (1-> TDCA)
         if(tdcc==7 || tdcc==15){  //these TDC-channels contain FT-hits
           mtyp=2;// means FT measurements
-          ntdc=ntdct;// =2 in MC
+          ntdc=ntdct;// =1 in MC
           for(i=0;i<ntdct;i++)tdc[i]=tdct[i];// FT measurement
         }
         ptr=ptlist[tdcc];// =0 for FT (sw2hwid-function should provide that)
@@ -738,7 +737,7 @@ void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
         mtyp=1;// measur.type (1->TDCA)
         if(chipc==7){  //this TDC-channel contain FT-hits
           mtyp=2;// means FT measurements
-          ntdc=ntdct;// =2 in MC
+          ntdc=ntdct;// =1 in MC
           for(i=0;i<ntdct;i++)tdc[i]=tdct[i];// FT measurement to write-buffer
         }
         ptr=ptlist[tdcc];
@@ -748,7 +747,7 @@ void AMSAntiRawEvent::builddaq(int16u blid, integer &len, int16u *p){
             adr=adrw;
             if((tdc[i]&phbit)>0)adr|=phbtp;// add phase bit to address-word
             tdcw=tdc[i]&maxv;// put hit-value to tdc-word
-            tdcw|=(chip<<15);// add chip number 
+            tdcw|=((1-chip)<<15);// add chip number (1-chip to be compartible with TOF) 
             *(p+ic++)=tdcw; // write hit-value
             *(p+ic++)=adr; // write hit-address
           }
@@ -810,6 +809,8 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
       if(hmsk>0){
         for(chip=0;chip<2;chip++){ // <--- TDC-chip loop (0-1)
           nzcch=0;// nonzero anti-channels in chip
+          ntdct=0;// nonzero FT-channels in chip (0,1)
+          tdct[0]=0;
           for(tdcc=0;tdcc<8;tdcc++){ // <-- TDC-chan. in chip loop (0-7)
             hwch=8*chip+tdcc;// TDC-ch numbering inside SFEA (0-15)
             mtyp=0;
@@ -878,13 +879,13 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //    ic=bias;// tempor
     while(ic<lentot){ // <---  words loop
       tdcw=*(p+ic++);// chip# + tdc_value
-      chip=(tdcw>>15);// TDC-chip number(0-1)
+      chip=(tdcw>>15);// TDC-chip number(TRUE,0-1)
       if(ic>=lentot){
         cout<<"ANTI:RawFmt:read_error: attempt to read Extra-word ic="<<ic<<" blocklength="<<lentot<<endl;
         break;   
       }
       adrw=*(p+ic++);// phbit + chipc + slotaddr.
-      slad=adrw&15;// get SFEx h/w address(card-id) ((0,1,2,5)-TOF, (7)-C, (6)-A)
+      slad=adrw&15;// get SFEx h/w address(card-id) ((0,1,2,3)-TOF, (5)-C, (4)-A)
       sfet=DAQSBlock::slnumb(slad);// sequential slot number (0-5, or =DAQSSLT if slad invalid)) 
       if(sfet==DAQSSLT)continue; //---> invalid slad: try to take next pair
       if(DAQSBlock::isSFEA(slad)){ // SFEA data : write to buffer
@@ -897,7 +898,7 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
                             phbt=1; // check/set phase-bit flag
         else
                             phbt=0;
-        tdcc=8*chip+chc; // channel inside SFEA(0-15)
+        tdcc=8*(1-chip)+chc; // channel inside SFEA(0-15) (1-chip to be unified with TOF)
         hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
         if(nhits[tdcc]<16){
           hits[tdcc][nhits[tdcc]]=hitv;
@@ -918,6 +919,8 @@ void AMSAntiRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //
     for(chip=0;chip<2;chip++){ // <--- TDC-chip loop (0-1)
       nzcch=0;// nonzero anti-channels in chip
+      ntdct=0;// nonzero FT-channels in chip (0,1)
+      tdct[0]=0;
       for(tdcc=0;tdcc<8;tdcc++){ // <-- TDC-chan. in chip loop (0-7)
         hwch=8*chip+tdcc; // channel inside SFEA(0-15)
         mtyp=0;
@@ -990,29 +993,29 @@ int16u AMSAntiRawEvent::hw2swid(int16u a1, int16u a2){
   int16u swid,hwch;
 //
   static int16u sidlst[SCCRAT*ANCHSF]={// 14 BBS's + 2 FT's  per CRATE (per SFEA):
-// crate-1 = (1 SFEA)x(2x(4 ANTICs +FT)) :
-   11, 21, 31, 41,  0,  0,  0,  0, 51, 61, 71, 81,  0,  0,  0,  0,
-// crate-2 = (1 SFEA)x(2x(4 ANTICs +FT)) :
-   91,101,111,121,  0,  0,  0,  0,131,141,151,161,  0,  0,  0,  0,
-// crate-3 = (no SFEA card) :
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-// crate-4 = (no SFEA card) :
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-// crate-5 = (1 SFEA)x(2x(4 ANTICs +FT)) :
-   12, 22, 32, 42,  0,  0,  0,  0, 52, 62, 72, 82,  0,  0,  0,  0,
-// crate-6 = (1 SFEA)x(2x(4 ANTICs +FT)) :
-   92,102,112,122,  0,  0,  0,  0,132,142,152,162,  0,  0,  0,  0,
-// crate-7 = (no SFEA card) :
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-// crate-8 = (no SFEA card) :
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
+// mycrate-1(cr-01) = (1 SFEA)x(2x(4 ANTICs +FT)) :
+    21, 41,161,151,  0,  0,  0,  0,141, 31,131, 11,  0,  0,  0,  0,
+// mycrate-2 = (no SFEA card) :
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+// mycrate-3(cr-41) = (1 SFEA)x(2x(4 ANTICs +FT)) :
+    91, 81,101, 51,  0,  0,  0,  0, 61,121, 71,111,  0,  0,  0,  0,
+// mycrate-4 = (no SFEA card) :
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+// mycrate-5(cr-03) = (1 SFEA)x(2x(4 ANTICs +FT)) :
+    42,162, 32,142,  0,  0,  0,  0,132, 12,152, 22,  0,  0,  0,  0, 
+// mycrate-6 = (no SFEA card) :
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+// mycrate-7(cr-43) = (1 SFEA)x(2x(4 ANTICs +FT)) :
+   112,102,122, 92,  0,  0,  0,  0, 72, 52, 62, 82,  0,  0,  0,  0,
+// mycrate-8 = (no SFEA card) :
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
 //
 #ifdef __AMSDEBUG__
   assert(a1>=0 && a1<SCCRAT);//crate(0-7)
   assert(a2>=0 && a2<ANCHSF);//antich(0-15)
 #endif
   hwch=int16u(ANCHSF*a1+a2);// hardware-channel
-  swid=sidlst[hwch]; // software-id BBS
+  swid=sidlst[hwch]; // software-id BBS (S=1->up(+z), =2->down(-z))
 //  cout<<"hwch->swid: "<<hwch<<" "<<swid<<endl;//tempor
   return swid;
 }
@@ -1050,6 +1053,6 @@ int16u AMSAntiRawEvent::sw2hwid(int16u a1, int16u a2){
 // 
   swch=2*a1+a2;
   hwid=hidlst[swch];// hardware-id CST
-//  cout<<"swch->hwid: "<<swch<<" "<<hwid<<endl;//tempor
+//  cout<<"swch->hwid: "<<swch<<" "<<hwid<<endl;
   return hwid;
 }

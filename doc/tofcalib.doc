@@ -78,7 +78,7 @@
        reconstruction of real events use temporarily MC position_corrections.
        
        The version numbers NN/MM for each kind of final calibration files to be read
-       are defined inside of tofverlist(mc/rl)KK.dat file which is read first at the 
+       are defined inside of tofverlistKK.dat file which is read first at the 
        beginning of program initialization phase. The version number KK of this file
        is defined by datacard TOFCA 28 and is in the range 01-99 (def.value=1) 
        

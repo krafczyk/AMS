@@ -350,8 +350,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 //
   integer cfvn;
   cfvn=TOFCAFFKEY.cfvers%100;
-  if(AMSJob::gethead()->isMCData())strcpy(name,"tofverlistmc");
-  else strcpy(name,"tofverlistrl");
+  strcpy(name,"tofverlist");// basic name for tofverlistNN.dat file
   dig=cfvn/10;
   in[0]=inum[dig]; 
   strcat(name,in);
@@ -454,10 +453,10 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  if(AMSJob::gethead()->isMCData())           // for MC-event
  {
    cout <<" TOFBrcal_build: str_ratio/status data for MC-events are selected."<<endl;
-   dig=rlvn/10;
+   dig=mcvn/10;
    in[0]=inum[dig];
    strcat(name,in);
-   dig=rlvn%10;
+   dig=mcvn%10;
    in[0]=inum[dig];
    strcat(name,in);
    strcat(name,vers1);
@@ -834,14 +833,48 @@ integer TOFJobStat::mccount[SCJSTA];
 integer TOFJobStat::recount[SCJSTA];
 integer TOFJobStat::chcount[SCCHMX][SCCSTA];
 integer TOFJobStat::brcount[SCBLMX][SCCSTA];
+integer TOFJobStat::scdaqbc1[SCCRAT][2];
+integer TOFJobStat::scdaqbc2[SCCRAT][2];
+integer TOFJobStat::scdaqbc3[SCCRAT][2];
+integer TOFJobStat::scdaqbc4[SCCRAT][2];
 //
 // function to print Job-statistics at the end of JOB(RUN):
 //
 void TOFJobStat::print(){
   int il,ib,ic;
   geant rc;
+//
   printf("\n");
-  printf("    ============ JOB TOF-statistics =============\n");
+  printf("    ======================= JOB DAQ-statistics ====================\n");
+  printf("\n");
+  printf(" ------- node(block) number -------->"); 
+  for(ic=0;ic<SCCRAT;ic++){
+      printf("          %1d          ",ic);
+  }
+  printf("\n");
+  printf(" S-block events                         : ");
+  for(ic=0;ic<SCCRAT;ic++){ 
+      printf("  r/c:%7d %7d",scdaqbc1[ic][0],scdaqbc1[ic][1]);
+  }
+  printf("\n");
+  printf(" S-block events (nonempty)              : ");
+  for(ic=0;ic<SCCRAT;ic++){
+      printf("  r/c:%7d %7d",scdaqbc2[ic][0],scdaqbc2[ic][1]);
+  }
+  printf("\n");
+  printf(" S-block errors (block length mismatch) : ");
+  for(ic=0;ic<SCCRAT;ic++){
+      printf("  r/c:%7d %7d",scdaqbc3[ic][0],scdaqbc3[ic][1]);
+  }
+  printf("\n");
+  printf(" S-block errors(conflict with swid-map) : ");
+  for(ic=0;ic<SCCRAT;ic++){
+      printf("  r/c:%7d %7d",scdaqbc4[ic][0],scdaqbc4[ic][1]);
+  }
+  printf("\n");
+//
+  printf("\n");
+  printf("    ====================== JOB TOF-statistics ======================\n");
   printf("\n");
   printf(" MC: entries             : % 6d\n",mccount[0]);
   printf(" MC: TovT->RawEvent OK   : % 6d\n",mccount[1]);

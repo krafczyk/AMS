@@ -186,6 +186,13 @@ public:
 };
 #define ANTIRECFFKEY COMMON_BLOCK(ANTIRECFFKEY,antirecffkey)
 COMMON_BLOCK_DEF(ANTIRECFFKEY_DEF,ANTIRECFFKEY);
+//
+class ANTICAFFKEY_DEF {
+  public:
+  integer cfvers; // vers.number NN for antiverlistNN.dat file
+};
+#define ANTICAFFKEY COMMON_BLOCK(ANTICAFFKEY,anticaffkey)
+COMMON_BLOCK_DEF(ANTICAFFKEY_DEF,ANTICAFFKEY);
 
 //================================================================
 class TOFRECFFKEY_DEF {
@@ -293,7 +300,7 @@ COMMON_BLOCK_DEF(CTCRECFFKEY_DEF,CTCRECFFKEY);
 //
 class CTCCAFFKEY_DEF {
   public:
-  integer cfvers; // vers.number NN for ctcverlist(mc/rl)NN.dat file
+  integer cfvers; // vers.number NN for ctcverlistNN.dat file
 };
 #define CTCCAFFKEY COMMON_BLOCK(CTCCAFFKEY,ctccaffkey)
 COMMON_BLOCK_DEF(CTCCAFFKEY_DEF,CTCCAFFKEY);

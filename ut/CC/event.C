@@ -596,8 +596,8 @@ void AMSEvent::_reantievent(){
     ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
-      AMSgObj::BookTimer.stop("REANTIEVENT");
-      return;// "no h/w TOF-trigger"
+//      AMSgObj::BookTimer.stop("REANTIEVENT");
+//      return;// "no h/w TOF-trigger"  tempor commented
     }
     ANTIJobStat::addre(1);
 //
@@ -637,8 +637,8 @@ TriggerLVL1 *ptr;
     ptr=(TriggerLVL1*)AMSEvent::gethead()->getheadC("TriggerLVL1",0);
     if(ptr)trflag=ptr->gettoflg();
     if(trflag<=0){
-      AMSgObj::BookTimer.stop("RETOFEVENT");
-      return;// "no h/w TOF-trigger"   tempor
+//      AMSgObj::BookTimer.stop("RETOFEVENT");
+//      return;// "no h/w TOF-trigger"   tempor
     }
     TOFJobStat::addre(1);
 //

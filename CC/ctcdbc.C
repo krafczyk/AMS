@@ -137,7 +137,6 @@ void CTCCCcal::build(){
 //------------------------------------
   char in[2]="0";
   char inum[11];
-  char verlst[20]="ctcverslist.dat";
   int ctyp,ntypes,mcvern[10],rlvern[10];
   int mcvn,rlvn,dig;
 //
@@ -147,8 +146,7 @@ void CTCCCcal::build(){
 //
   integer cfvn;
   cfvn=CTCCAFFKEY.cfvers%100;
-  if(AMSJob::gethead()->isMCData())strcpy(name,"ctcverlistmc");
-  else strcpy(name,"ctcverlistrl");
+  strcpy(name,"ctcverlist");
   dig=cfvn/10;
   in[0]=inum[dig]; 
   strcat(name,in);

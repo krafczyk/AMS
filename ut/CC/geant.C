@@ -500,7 +500,7 @@ time(&tm);// tempor
       AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
       new AMSEvent(AMSID("Event",pdaq->eventno()),pdaq->runno(),
       pdaq->runtype(),pdaq->time(),pdaq->usec())));
-//      pdaq->runtype(),tm,pdaq->usec()))); // tempor
+//      pdaq->runtype(),tm,pdaq->usec()))); // tempor introduced to read PC-made files
 //<------      
       AMSEvent::gethead()->addnext(AMSID("DAQEvent",pdaq->GetBlType()), pdaq);
       guout_();

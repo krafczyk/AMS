@@ -68,6 +68,11 @@ R 7 dathr(6)              // ..................... TovT measurement (ADCA)
 R 8 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
 I 9-20                    // sec,min,hour,day,mon,year fro DB update
 
+// Anti Calibration
+
+ANCA
+I 1 cfvers(1)             // version number(01-99) for antiverlistNN.dat file
+
 //------------------------------------------------------------------------------
 
 // TOF  Simulation
@@ -153,6 +158,7 @@ R 23 plhec[0] (10)   // mom. high-cut for earth calibr.
 R 24 bgcut[0] (2)   // beta*gamma low-cut for mip in abs.calibr.
 R 25 bgcut[1] (10)  // beta*gamma high-cut for mip in abs.calibr.
 I 27 dynflg    (1)  // 0/1-> use stand/special(Contin's) dynode-calibration
+  General :
 I 28 cfvers    (1)  // 01-99 vers.number NN for tofverlist(mc/rl)NN.dat file 
 //---------------------------------------------------------------------------------
 
@@ -256,6 +262,11 @@ I 4       [1] (0)         // 0/1/2->not/printDAQdecoding/printDAQdecoding+encodi
 I 5       [2] (0)         // spare
 R 6 ftwin(100)            // time-window for "true" ADCA-hit search (ns)
 I 7-18                    // sec,min,hour,day,mon,year for DB update
+
+// CTC Calibration
+
+CTCCA
+I 1 cfvers(1)             // version number(01-99) of ctcverlistNN.dat file
 
 // Tracker Clusters Reconstruction
 

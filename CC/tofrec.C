@@ -1355,7 +1355,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
   dtyp=1-(blid&63);// data_type ("0"->RawTDC; "1"->ReducedTDC)
 #ifdef __AMSDEBUG__
   if(TOFRECFFKEY.reprtf[1]>=1){
-    cout<<"TOF::decoding: crate/format="<<crate<<" "<<dtyp<<"  bias="<<bias<<endl;
+    cout<<"TOF::decoding: crate/format="<<crate<<" "<<dtyp<<"  Ltot/bias="<<lentot<<" "<<bias<<endl;
   }
 #endif
 //
@@ -1411,31 +1411,38 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
                 ids=swid;// LBBS
                 stat=0; // tempor ?
 //--->
-              if(AMSJob::gethead()->isRealData()){// if Real_data --> invert ph-bits for sTDC/dTDC
-                for(i=0;i<nstdc;i++){// for sTDC
-                  if(stdc[i]&phbit)stdc[i]&=maxv;
-                  else stdc[i]|=phbit;
+                if(AMSJob::gethead()->isRealData()){// if Real_data --> invert ph-bits for sTDC/dTDC
+                  for(i=0;i<nstdc;i++){// for sTDC
+                    if(stdc[i]&phbit)stdc[i]&=maxv;
+                    else stdc[i]|=phbit;
+                  }
+                  for(i=0;i<nadcd;i++){// for dTDC
+                    if(adcd[i]&phbit)adcd[i]&=maxv;
+                    else adcd[i]|=phbit;
+                  }
                 }
-                for(i=0;i<nadcd;i++){// for dTDC
-                  if(adcd[i]&phbit)adcd[i]&=maxv;
-                  else adcd[i]|=phbit;
-                }
-              }
 //--->
                 AMSEvent::gethead()->addnext(AMSID("AMSTOFRawEvent",0),
                 new AMSTOFRawEvent(ids,stat,charge,edep,nftdc,ftdc,nstdc,stdc,
                                                     nadca,adca,nadcd,adcd));
               }
               else{
-         cerr<<"TOF:DAQ:read_error: smth wrong in softw_id<->crate/chan map !"<<endl;
+                TOFJobStat::addaq4(crate,dtyp);
+#ifdef __AMSDEBUG__
+                if(TOFRECFFKEY.reprtf[1]>=1){
+                  cout<<"TOF:Reduced_Decoding_warning: crate/sfet/tofc are in  contradiction with swid-map"<<endl;
+                  cout<<"                          crate="<<crate<<" sfet="<<sfet<<" tofch="<<tofc<<endl;
+                }
+#endif
               }
             }
           }// ---> end of complete TOF-channel processing
 //
-          if(mtyp==5){ // processing of one Temperature channel
+          if(mtyp==5 && ntemp>0){ // processing of one Temperature channel
             val=integer(ttdc[1]&maxv);// take first pair (last input pair) temp-hits
             val=val-integer(ttdc[0]&maxv);
-            slnu=DAQSBlock::isSFETT2(crate,sfet);//seq.# of "temperature"-slot (0,1,2)
+            slnu=DAQSBlock::isSFETT2(crate,sfet);//seq.numbering of "temperature"-slots in 
+//                                               crate (1,2,...; for now =1-> one temp-slot)
             if(slnu>0){
               chan=DAQSTSC*DAQSTCS*crate+DAQSTCS*(slnu-1)+(tdcc%4);
               DAQSBlock::puttemp(chan,val);// store temperature
@@ -1474,8 +1481,8 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
         break;   
       }
       adrw=*(p+ic++);// phbit + chipc + slotaddr.
-      slad=adrw&15;// get sfet h/w address ((1,2,3,6)-TOF, (8)-C, (7)-A)
-      sfet=DAQSBlock::slnumb(slad);// sequential slot number (0-5, or =DAQSSLT if slad invalid)) 
+      slad=adrw&15;// get sfet h/w address ((0,1,2,3)-TOF, (5)-C, (4)-A)
+      sfet=DAQSBlock::slnumb(slad);// sequential slot number (0-5, or =DAQSSLT=6 if slad invalid)) 
       if(sfet==DAQSSLT)continue; //---> invalid slad: try to take next pair
       if(DAQSBlock::isSFET(slad)){// <--- SFET data: store in buffer
         lent+=2;
@@ -1490,6 +1497,9 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
         tdcc=8*(1-chip)+chc; // channel inside SFET(0-15) ((1-chip) is due to Contin's error) 
         hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
         hwch=SCTDCC*sfet+tdcc;//sequential tdc-ch numbering through all SFETs
+//   cout<<"in_buff: chip/ch="<<chip<<" "<<chc<<" sfet="<<sfet<<" tdcc="<<tdcc<<endl;
+//   cout<<"     ic/lent="<<ic<<" "<<lent<<endl;
+//   cout<<"     hitn="<<nhits[hwch]<<" hwch="<<hwch<<" hitv="<<hitv<<endl;
         if(nhits[hwch]<16){
           hits[hwch][nhits[hwch]]=hitv;
           nhits[hwch]+=1;
@@ -1527,7 +1537,10 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
 //
         nhit=nhits[hwch];// numb.of hits (<=16) for current mtyp
         if(nhit>0){// write h/w-channel hits to related measurement-type buffer
+//   cout<<"fr_buf:hwch="<<hwch<<" sfet/tofc="<<sfet<<" "<<tofc<<" tdcc="<<tdcc<<endl;
+//   cout<<"     mtyp="<<mtyp<<endl;
           for(i=0;i<nhit;i++){//    <-- Hit loop
+//   cout<<"     hitn/hitv="<<i<<" "<<hits[hwch][i]<<endl;
             if(mtyp==1)ftdc[i]=hits[hwch][i];
             if(mtyp==2)stdc[i]=hits[hwch][i];
             if(mtyp==3)adca[i]=hits[hwch][i];
@@ -1565,15 +1578,22 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
                                                     nadca,adca,nadcd,adcd));// create object
             }
             else{
-         cout<<"TOF:DAQ:read_error: found data for non-TOF TDC-channels !"<<endl;
+              TOFJobStat::addaq4(crate,dtyp);
+#ifdef __AMSDEBUG__
+              if(TOFRECFFKEY.reprtf[1]>=1){
+                cout<<"TOF:Raw_Decoding_warning: crate/sfet/tofc are in  contradiction with swid-map"<<endl;
+                cout<<"                          crate="<<crate<<" sfet="<<sfet<<" tofch="<<tofc<<endl;
+              }
+#endif
             }
           }
         }// ---> end of complete TOF-channel processing
 //------------
-        if(mtyp==5){ // processing of one Temperature-channel
+        if(mtyp==5 && ntemp>0){ // processing of one Temperature-channel
           val=integer(ttdc[1]&maxv);// take first pair (last input pair) temp-hits
           val=val-integer(ttdc[0]&maxv);
-          slnu=DAQSBlock::isSFETT2(crate,sfet);//seq.# of "temperature"-slot (0,1,2)
+          slnu=DAQSBlock::isSFETT2(crate,sfet);//seq.numbering of "temperature"-slots in
+//                                               crate (1,2,...; for now =1-> one temp-slot)
           if(slnu>0){
             chan=DAQSTSC*DAQSTCS*crate+DAQSTCS*(slnu-1)+(tdcc%4);
             DAQSBlock::puttemp(chan,val);// store temperature
@@ -1616,39 +1636,39 @@ int16u AMSTOFRawEvent::hw2swid(int16u a1, int16u a2, int16u a3){
   int16u swid,hwch;
 //
   static int16u sidlst[SCCRAT*SCSFET*SCTOFC]={// 14 LBBS's + 2 empty  per CRATE :
-// crate-1(node-0), (4 SFETs)x(4 TOFCs) :
+// mycrate-1(node-0,cr.01), (4 SFETs)x(4 TOFCs) :
   2112,2122,2132,2142, 1081,1091,1101,1111, 2082,2092,2102,   0, 1121,1141,4121,4141,
 //
-// crate-2(node-1), (4 SFETs)x(4 TOFCs) :
+// mycrate-2(node-1,cr.31), (4 SFETs)x(4 TOFCs) :
+  2042,2052,2062,2072, 1082,1092,1102,1112, 2012,2022,2032,   0, 4122,4132,1122,1132,
+//
+// mycrate-3(node-2,cr.41), (4 SFETs)x(4 TOFCs) :
+  2041,2051,2061,2071, 1042,1052,1062,1072, 2011,2021,2031,   0, 1032,1012,4032,4012,
+//
+// mycrate-4(node-3,cr.71), (4 SFETs)x(4 TOFCs) :
+  2111,2121,2131,2141, 1041,1051,1061,1071, 2081,2091,2101,   0, 4031,4021,1031,1021,
+//
+// mycrate-5(node-4,cr.03), (3 SFETs)x(4 TOFCs) :
   3112,3122,3132,3142, 3082,3092,3102,   0, 4081,4091,4101,4111,    0,   0,   0,   0,
 //
-// crate-3(node-2), (4 SFETs)x(4 TOFCs) :
-  2042,2052,2062,2072, 1082,1092,1102,1112, 2012,2022,2032,   0, 1122,1132,4122,4132,
-//
-// crate-4(node-3), (4 SFETs)x(4 TOFCs) :
+// mycrate-6(node-5,cr.33), (3 SFETs)x(4 TOFCs) :
   3042,3052,3062,3072, 3012,3022,3032,   0, 4082,4092,4102,4112,    0,   0,   0,   0,
 //
-// crate-5(node-4), (4 SFETs)x(4 TOFCs) :
-  2051,2041,2061,2071, 1042,1052,1062,1072, 2011,2021,2031,   0, 1012,1032,4012,4032,
-//
-// crate-6(node-5), (4 SFETs)x(4 TOFCs) :
+// mycrate-7(node-6,cr.43), (3 SFETs)x(4 TOFCs) :
   3041,3051,3061,3071, 3011,3021,3031,   0, 4042,4052,4062,4072,    0,   0,   0,   0,
 //
-// crate-7(node-6), (4 SFETs)x(4 TOFCs) :
-  2111,2121,2131,2141, 1041,1051,1061,1071, 2081,2091,2101,   0, 1021,1031,4021,4031,
-//
-// crate-8(node-7), (4 SFETs)x(4 TOFCs) :
+// mycrate-8(node-7,cr.73), (3 SFETs)x(4 TOFCs) :
   3111,3121,3131,3141, 3081,3091,3101,   0, 4041,4051,4061,4071,    0,   0,   0,   0
   };
 //
 #ifdef __AMSDEBUG__
-  assert(a1>=0 && a1<SCCRAT);//crate(0-7)
+  assert(a1>=0 && a1<SCCRAT);//crate(node)(0-7)
   assert(a2>=0 && a2<SCSFET);//sfet(0-3)
   assert(a3>=0 && a3<SCTOFC);//tofch(0-3)
 #endif
   hwch=int16u(SCTOFC*SCSFET*a1+SCTOFC*a2+a3);// hardware-channel
   swid=sidlst[hwch]; // software-id LBBS
-//  cout<<"hwch->swid: "<<hwch<<" "<<swid<<endl;//tempor
+//  cout<<"hwch->swid: "<<hwch<<" "<<swid<<endl;
   return swid;
 }
 //------
@@ -1689,6 +1709,6 @@ int16u AMSTOFRawEvent::sw2hwid(int16u a1, int16u a2, int16u a3){
 // 
   swch=2*SCMXBR*a1+2*a2+a3;
   hwid=hidlst[swch];// hardware-id CST
-//  cout<<"swch->hwid: "<<swch<<" "<<hwid<<endl;//tempor
+//  cout<<"swch->hwid: "<<swch<<" "<<hwid<<endl;
   return hwid;
 }

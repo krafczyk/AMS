@@ -93,8 +93,7 @@ void AMSTOFScan::build(){
 //
   integer cfvn;
   cfvn=TOFCAFFKEY.cfvers%100;
-  if(AMSJob::gethead()->isMCData())strcpy(name,"tofverlistmc");
-  else strcpy(name,"tofverlistrl");
+  strcpy(name,"tofverlist");// basic name for tofverlistNN.dat file
   dig=cfvn/10;
   in[0]=inum[dig]; 
   strcat(name,in);

@@ -626,7 +626,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.cuts[8]=0.;
   TOFRECFFKEY.cuts[9]=0.;
 //
-  TOFRECFFKEY.ReadConstFiles=0;//read const. from DB/Files (0/1)
+  TOFRECFFKEY.ReadConstFiles=1;//read const. from DB/myFiles (0/1)
 //  
   TOFRECFFKEY.sec[0]=0; 
   TOFRECFFKEY.sec[1]=0;
@@ -674,7 +674,7 @@ void AMSJob::_retofdata(){
 //
   TOFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   TOFCAFFKEY.dynflg=1; // (27) 0/1-> use stand/special(Contin's) dynode-calibration
-  TOFCAFFKEY.cfvers=1; // (28) 1-99 -> vers.number for tofverslistNN.dat file 
+  TOFCAFFKEY.cfvers=1; // (28) 1-99 -> vers.number for tofverlistNN.dat file 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
@@ -700,6 +700,9 @@ void AMSJob::_reantidata(){
   ANTIRECFFKEY.year[0]=96;
   ANTIRECFFKEY.year[1]=99;
   FFKEY("ANRE",(float*)&ANTIRECFFKEY,sizeof(ANTIRECFFKEY_DEF)/sizeof(integer),"MIXED");
+// defaults for calibration:
+  ANTICAFFKEY.cfvers=1; // (01-99) vers.number NN for antiverlistNN.dat file
+  FFKEY("ANCA",(float*)&ANTICAFFKEY,sizeof(ANTICAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //========================================================================
 void AMSJob::_rectcdata(){
@@ -723,7 +726,7 @@ void AMSJob::_rectcdata(){
   CTCRECFFKEY.year[1]=99;
   FFKEY("CTCREC",(float*)&CTCRECFFKEY,sizeof(CTCRECFFKEY_DEF)/sizeof(integer),"MIXED");
 // defaults for calibration:
-  CTCCAFFKEY.cfvers=1; // (01-99) vers.number NN for ctcverlist(mc/rl)NN.dat file
+  CTCCAFFKEY.cfvers=1; // (01-99) vers.number NN for ctcverlistNN.dat file
   FFKEY("CTCCA",(float*)&CTCCAFFKEY,sizeof(CTCCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //========================================================================
@@ -1148,7 +1151,12 @@ AMSgObj::BookTimer.book("TrTrack");
 }
 //--------------------------------------------------------------------------
 void AMSJob::_retofinitjob(){
-  int i,j,k,ich;
+  int i,j,k,ich,il,ib,ii,jj;
+  char htit1[60];
+  char inum[11];
+  char in[2]="0";
+//
+  strcpy(inum,"0123456789");
 //
     AMSgObj::BookTimer.book("RETOFEVENT");
     AMSgObj::BookTimer.book("TOF:DAQ->RwEv");
@@ -1270,11 +1278,22 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1260,"Anode_to_Dinode ratio error(all channels)",80,0.,0.4,0.);
       }
       if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
-        for(i=0;i<SCLRS;i++){
-          for(j=0;j<SCMXBR;j++){
-            for(k=0;k<2;k++){
-              ich=2*SCMXBR*i+2*j+k;
-              HBOOK1(1300+ich,"FDTC/STDC/ATDC/DTDC-hit multiplicity",80,0.,80.,0.);
+        for(il=0;il<SCLRS;il++){
+          for(ib=0;ib<SCMXBR;ib++){
+            for(i=0;i<2;i++){
+              strcpy(htit1,"FTDC/STDC/ATDC/DTDC multipl. for chan(LBBS) ");
+              in[0]=inum[il+1];
+              strcat(htit1,in);
+              ii=(ib+1)/10;
+              jj=(ib+1)%10;
+              in[0]=inum[ii];
+              strcat(htit1,in);
+              in[0]=inum[jj];
+              strcat(htit1,in);
+              in[0]=inum[i+1];
+              strcat(htit1,in);
+              ich=2*SCMXBR*il+2*ib+i;
+              HBOOK1(1300+ich,htit1,80,0.,80.,0.);
             }
           }
         }

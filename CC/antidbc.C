@@ -83,18 +83,27 @@ void ANTIPcal::build(){ // fill array of objects with data
 //------------------------------
   char in[2]="0";
   char inum[11];
-  char verlst[20]="antiverslist.dat";
   int ctyp,ntypes,mcvern[10],rlvern[10];
   int mcvn,rlvn,dig;
 //
   strcpy(inum,"0123456789");
   nrch=2*ANCHCH;// real number of anti-ch per SFEA (2chip*4chan)
 //
-// ---> read versions file :
+// ---> read cal.file-versions file :
 //
+  integer cfvn;
+  cfvn=ANTICAFFKEY.cfvers%100;
+  strcpy(name,"antiverlist");
+  dig=cfvn/10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  dig=cfvn%10;
+  in[0]=inum[dig]; 
+  strcat(name,in);
+  strcat(name,".dat");
   strcpy(fname,AMSDATADIR.amsdatadir);
 //  strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/antica/");//tempor
-  strcat(fname,verlst);
+  strcat(fname,name);
   cout<<"ANTIPcal::build: Open file  "<<fname<<'\n';
   ifstream vlfile(fname,ios::in); // open needed verslist-file for reading
   if(!vlfile){
@@ -154,7 +163,7 @@ void ANTIPcal::build(){ // fill array of objects with data
    for(j=0;j<ANSFEA;j++){ //<--- SFEA card loop (0)
      icfile >> sfea;// sfea-number
      for(k=0;k<nrch;k++){ //<--- real anti-chan. loop (0-max15)
-       icfile >> antic; // antic-number
+       icfile >> antic; // antic-number(tdc-ch numbering accross sfea)
        swid=AMSAntiRawEvent::hw2swid(crat-1,antic-1);//BBS
        if(swid==0)continue;// non-existing antic 
        ibr=swid/10-1;
