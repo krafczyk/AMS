@@ -585,35 +585,76 @@ void AMSRICHIdSoft::Init(){
 
 
 void AMSRICHIdSoft::fill_probability(){
-  for(int channel=0;channel<_nchannels;channel++)
-    for(int mode=0;mode<2;mode++){
-      geant gain,sigma;
-      geant lambda,scale;
-      
-      lambda=_lambda[2*channel+mode];
-      scale=_scale[2*channel+mode];	
-      GETRMURSG(lambda,scale,gain,sigma);
+  if(RICFFKEY.ReadFile){
+    for(int channel=0;channel<_nchannels;channel++)
+      for(int mode=0;mode<2;mode++){
+	geant gain,sigma;
+	geant lambda,scale;
+	
+	lambda=_lambda[2*channel+mode];
+	scale=_scale[2*channel+mode];	
+	GETRMURSG(lambda,scale,gain,sigma);
+	
+	geant upper_limit=gain*10;
+	_step[2*channel+mode]=upper_limit/_nbins;
+	
+	// Use the trapezoid rule to compute the integral
+	_cumulative_prob[2*channel*_nbins+mode*_nbins]=0;
+	for(int i=1;i<_nbins;i++){
+	  float value,x1,x2;
+	  
+	  x1=i*_step[2*channel+mode];
+	  x2=(i-1)*_step[2*channel+mode];
+	  value=PDENS(x1,lambda,scale)+PDENS(x2,lambda,scale);
+	  value*=_step[2*channel+mode]/2;
+	  _cumulative_prob[2*channel*_nbins+mode*_nbins+i]=_cumulative_prob[2*channel*_nbins+mode*_nbins+i-1]+value;
+	}
 
-      geant upper_limit=gain*10;
-      _step[2*channel+mode]=upper_limit/_nbins;
-      
-      // Use the trapezoid rule to compute the integral
-      _cumulative_prob[2*channel*_nbins+mode*_nbins]=0;
-      for(int i=1;i<_nbins;i++){
-	float value,x1,x2;
+	for(int i=0;i<_nbins;i++)
+	  _cumulative_prob[2*channel*_nbins+mode*_nbins+i]/=
+	    _cumulative_prob[2*channel*_nbins+mode*_nbins+_nbins-1];
 
-	x1=i*_step[2*channel+mode];
-	x2=(i-1)*_step[2*channel+mode];
-	value=PDENS(x1,lambda,scale)+PDENS(x2,lambda,scale);
-	value*=_step[2*channel+mode]/2;
-	_cumulative_prob[2*channel*_nbins+mode*_nbins+i]=_cumulative_prob[2*channel*_nbins+mode*_nbins+i-1]+value;
       }
+  }
+  else{
+    // Nominal calibration
 
-      for(int i=0;i<_nbins;i++)
-	_cumulative_prob[2*channel*_nbins+mode*_nbins+i]/=
-	  _cumulative_prob[2*channel*_nbins+mode*_nbins+_nbins-1];
 
-    }
+      for(int mode=0;mode<2;mode++){
+	int channel=0;
+	geant gain,sigma;
+	geant lambda,scale;
+	
+	lambda=_lambda[2*channel+mode];
+	scale=_scale[2*channel+mode];	
+	GETRMURSG(lambda,scale,gain,sigma);
+	
+	geant upper_limit=gain*10;
+	_step[2*channel+mode]=upper_limit/_nbins;
+	for(int chan=1;chan<_nchannels;chan++) _step[2*chan+mode]=_step[2*channel+mode];
+
+	// Use the trapezoid rule to compute the integral
+	_cumulative_prob[2*channel*_nbins+mode*_nbins]=0;
+	for(int i=1;i<_nbins;i++){
+	  float value,x1,x2;
+	  
+	  x1=i*_step[2*channel+mode];
+	  x2=(i-1)*_step[2*channel+mode];
+	  value=PDENS(x1,lambda,scale)+PDENS(x2,lambda,scale);
+	  value*=_step[2*channel+mode]/2;
+	  _cumulative_prob[2*channel*_nbins+mode*_nbins+i]=_cumulative_prob[2*channel*_nbins+mode*_nbins+i-1]+value;
+	}
+	
+	for(int i=0;i<_nbins;i++){
+	  _cumulative_prob[2*channel*_nbins+mode*_nbins+i]/=
+	    _cumulative_prob[2*channel*_nbins+mode*_nbins+_nbins-1];
+	  for(int chan=1;chan<_nchannels;chan++)
+	    _cumulative_prob[2*chan*_nbins+mode*_nbins+i]=_cumulative_prob[2*channel*_nbins+mode*_nbins+i];
+	}
+	
+      }
+  }
+  
 }
 
 
