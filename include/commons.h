@@ -705,14 +705,14 @@ COMMON_BLOCK_DEF(G4FFKEY_DEF,G4FFKEY);
 
 // RICH Geometry card
 
-class RICGEOM_DEF{
+class 
+RICGEOM_DEF{
 public:
 // Mirrors
 geant top_radius; 
 geant bottom_radius;
 geant hole_radius;
 geant height;
-integer inner_mirror_flag;
 geant inner_mirror_height;
 // Radiator
 geant radiator_radius;
