@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.17 2001/08/20 18:36:58 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.18 2001/08/20 18:55:02 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -716,6 +716,7 @@ void AMSR_Ntuple::SetTreeAddress()
    m_Tree->SetBranchAddress("event02.TRDTracks", &m_BlkEventh->TRDTracks);
    m_Tree->SetBranchAddress("event02.EventStatus[2]", m_BlkEventh->Eventstatus);  
 
+/* 
    m_Tree->SetBranchAddress("beta02.Nbeta", &m_BlkBeta->nbeta);
    m_Tree->SetBranchAddress("beta02.Status[50]", m_BlkBeta->betastatus);
    m_Tree->SetBranchAddress("beta02.Pattern[50]", m_BlkBeta->betapattern);
