@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.70 2002/07/14 12:33:03 kscholbe Exp $
+//  $Id: geant3.C,v 1.71 2002/08/05 11:19:52 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -370,9 +370,11 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
           vect[2]=GCTRAK.vect[2]+xl*GCTRAK.vect[5];
 
 #ifdef __AMSDEBUG__
+/*
     cout <<"************** vect vs orig vect "<<vect[2]<<" "<<GCTRAK.vect[2]<<endl;
     cout <<"Decompose as "<<AMSRICHIdGeom::pmt_pos(1,2)<<" "<<-RICHDB::cato_pos()<<
            " "<<RICradpos<<" "<<-RICotherthk<<" compared with "<<GCTRAK.vect[2]<<endl;
+*/
 #endif
 
 
@@ -399,9 +401,11 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
         vect[1]=GCTRAK.vect[1]+xl*GCTRAK.vect[4];
         vect[2]=GCTRAK.vect[2]+xl*GCTRAK.vect[5];
 #ifdef __AMSDEBUG__
+/*
     cout <<"************** vect vs orig vect"<<vect[2]<<" "<<GCTRAK.vect[2]<<endl;
     cout <<"Decompose as "<<AMSRICHIdGeom::pmt_pos(1,2)<<" "<<-RICHDB::cato_pos()<<
            " "<<RICradpos<<" "<<-RICotherthk<<" compared with "<<GCTRAK.vect[2]<<endl;
+*/
 #endif
         if(GCKINE.vert[2]<RICradpos-RICHDB::rad_height-RICHDB::rich_height-
            RICHDB::foil_height-RICradmirgap-RIClgdmirgap // in LG
