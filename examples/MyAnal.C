@@ -20,8 +20,6 @@ public :
       TH1F* h_ang;
       TH1F* h_ang2;
 
-      TTree* amsnew;
-
       bool Trigger_Flag();
 };
 
@@ -43,8 +41,6 @@ void MyAnal::UBegin(){
       badrun_list = new AMSEventList("my_badruns.list");
 
       my_track = new AMSMyTrack();
-
-      amsnew = NULL;
 
 }
 
@@ -90,7 +86,7 @@ void MyAnal::UProcessFill() {
       delta_ang = acos(dotprod);
       h_ang2->Fill(delta_ang);
 
-      // Write out selected entries "as we run"
+      // Write out selected entries "as we go"
       if (select_list->Contains(this)) Fill();
 
 };

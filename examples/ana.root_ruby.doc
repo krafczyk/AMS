@@ -1,9 +1,24 @@
 /*! \example ana.root_ruby.doc
  *
- *    - Example of AMS analysis with Ruby. To run it:
+ *    - You can find a very simple tutorial introduction to Ruby in:
+ *       - http://www.math.umd.edu/~dcarrera/ruby/0.3/
+ *    - And a more complete one in:
+ *       - http://www.rubyist.net/~slagell/ruby/
+ *
+ *    - Here below you can find an example of AMS analysis with Ruby (only
+ *      on Linux for the moment). To run it:
  *                 - setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/Linux/pro
- *                 - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
- *                 - ana.root.rb
+ *                 - if ( $?LD_LIBRARY_PATH ) then
+ *                      - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
+ *                 - else
+ *                      - setenv LD_LIBRARY_PATH .:$ROOTSYS/lib
+ *                 - endif
+ *                 - setenv AMSDir [your AMSDir CVS directory]
+ *                 - cd $AMSDir/ruby; gmake
+ *                 - cd $AMSDir/examples; ana.root.rb
+ *
+ *    - Installation of the AMS Ruby library for all users in the computer:
+ *       - "cd $AMSDir/ruby; gmake; gmake install"
  *
  *    - You can find few other examples in $AMSDir/ruby
  *

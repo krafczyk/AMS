@@ -1,15 +1,24 @@
 /*! \example ana.root_python.doc
  *
- *    - Example of AMS analysis with Python. To run it:
+ *    - You can find a simple tutorial introduction to Python in:
+ *       - http://hetland.org/python/instant-python/
+ *
+ *    - Here below you can find an example of AMS analysis with Python (only
+ *      on Linux for the moment). To run it:
  *                 - setenv ROOTSYS /afs/cern.ch/exp/ams/Offline/root/Linux/pro
- *                 - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
- *                 - ana.root.py
+ *                 - if ( $?LD_LIBRARY_PATH ) then
+ *                      - setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
+ *                 - else
+ *                      - setenv LD_LIBRARY_PATH .:$ROOTSYS/lib
+ *                 - endif
+ *                 - setenv AMSDir [your AMSDir CVS directory]
+ *                 - cd $AMSDir/python; gmake
+ *                 - cd $AMSDir/examples; ana.root.py
+ *
+ *    - Installation of the AMS Python library for all users in the computer:
+ *       - "cd $AMSDir/python; gmake; gmake install"
  *
  *    - You can find few other examples in $AMSDir/python
- *
- *    - Installation of the AMS Python library (only on LINUX for the moment):
- *       - Locally: "cd $AMSDir/python; gmake"
- *       - For all users in the machine: "cd $AMSDir/python; gmake; gmake install"
  *
  *    - If you want to see graphics, you have to start an application, 
  *      using "TApplication(...)" or even "TRint(...)", and then run it at the end
