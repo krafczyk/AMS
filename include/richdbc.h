@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.29 2002/08/28 10:09:17 delgadom Exp $
+//  $Id: richdbc.h,v 1.30 2002/10/18 09:59:20 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -37,7 +37,8 @@ const geant   RICepsln=0.002;  // Useful to simulate absence of optical contact
 */
 
 
-const geant      RICradpos=-71.87;     // Top of the radiator position
+//const geant      RICradpos=-71.87;     // Top of the radiator position
+const geant      RICradpos=-73.5;
 const geant      RICaethk=0.1;         // Radiator support thickness
 #define RIClgthk (2.5*RIClgthk_top)    // A simple fix in the meanwhile
 const geant      RIClgthk_top=0.02;    // LG    top gap

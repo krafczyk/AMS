@@ -1,7 +1,8 @@
-*  $Id: cerenkov.F,v 1.2 2001/01/22 17:32:24 choutko Exp $
-      subroutine solve(ma3,ma2,ma1,ma0,sols,mt)
+*  $Id: cerenkov.F,v 1.3 2002/10/18 09:59:13 mdelgado Exp $
+*      subroutine solve(ma3,ma2,ma1,ma0,sols,mt)
+      subroutine solve(a3,a2,a1,a0,sols,mt)
       complex*16 csols(4)
-      real sols(4),ma3,ma2,ma1,ma0
+      real*8 sols(4)   !,ma3,ma2,ma1,ma0
       integer mt
       real*8 a3,a2,a1,a0,dc
 
@@ -10,10 +11,10 @@
       sols(3)=0.
       sols(4)=0.
 
-      a3=ma3
-      a2=ma2
-      a1=ma1
-      a0=ma0
+*      a3=ma3
+*      a2=ma2
+*      a1=ma1
+*      a0=ma0
 
       call drteq4(a3,a2,a1,a0,csols,dc,mt)
 
