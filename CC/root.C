@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.21 2002/06/03 14:53:34 alexei Exp $
+//  $Id: root.C,v 1.22 2002/06/06 15:11:01 alexei Exp $
 #include <root.h>
 #include <ntuple.h>
 #include <antirec02.h>
@@ -642,8 +642,10 @@ void AMSEventHeaderRoot::Set(AMSEvent *ptr, int rawwords)
 void EventRoot02::AddAMSObject(AMSAntiCluster *ptr)
 {
   if (ptr) {
+  if (fAntiCluster) {
    TClonesArray &clones =  *fAntiCluster;
    ptr->SetClonePointer(new (clones[fAntiCluster->GetLast()+1]) AntiClusterRoot(ptr));
+   }
   }  else {
     cout<<"AddAMSObject -E- AMSAntiCluster ptr is NULL"<<endl;
   }
@@ -652,8 +654,10 @@ void EventRoot02::AddAMSObject(AMSAntiCluster *ptr)
 void EventRoot02::AddAMSObject(AMSAntiMCCluster *ptr)
 {
   if (ptr) {
+    if (fAntiMCCluster) {
    TClonesArray &clones =  *fAntiMCCluster;
    ptr->SetClonePointer(new (clones[fAntiMCCluster->GetLast()+1]) ANTIMCClusterRoot(ptr));
+    }
   }  else {
     cout<<"AddAMSObject -E- AMSAntiMCCluster ptr is NULL"<<endl;
   }
@@ -662,8 +666,10 @@ void EventRoot02::AddAMSObject(AMSAntiMCCluster *ptr)
 void EventRoot02::AddAMSObject(AMSAntiRawCluster *ptr)
 {
   if (ptr) {
+    if (fAntiRawCluster) {
    TClonesArray &clones =  *fAntiRawCluster;
    ptr->SetClonePointer(new (clones[fAntiRawCluster->GetLast()+1]) AntiRawClusterRoot(ptr));
+    }
   }  else {
     cout<<"AddAMSObject -E- AMSAntiRawCluster ptr is NULL"<<endl;
   }
@@ -672,10 +678,14 @@ void EventRoot02::AddAMSObject(AMSAntiRawCluster *ptr)
 void EventRoot02::AddAMSObject(AMSBeta *ptr)
 {
   if (ptr) {
-   TClonesArray &clones =  *fBeta;
-   ptr->SetClonePointer(new (clones[fBeta->GetLast()+1]) BetaRoot02(ptr));
-  }  else {
-    cout<<"AddAMSObject -E- AMSBeta ptr is NULL"<<endl;
+    if (fBeta) {
+    TClonesArray &clones =  *fBeta;
+     ptr->SetClonePointer(new (clones[fBeta->GetLast()+1]) BetaRoot02(ptr));
+    } else {
+      //     cout<<"AddAMSObject -W- *fBeta is NULL"<<endl;
+    }
+   }  else {
+     cout<<"AddAMSObject -E- AMSBeta ptr is NULL"<<endl;
   }
 }
 
@@ -683,9 +693,11 @@ void EventRoot02::AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
                                float probtr[], int chintr[], float proballtr)
 {
   if (ptr) {
+    if (fCharge) {
    TClonesArray &clones =  *fCharge;
    ptr->SetClonePointer(new (clones[fCharge->GetLast()+1]) 
        ChargeRoot02(ptr, probtof, chintof, probtr, chintr, proballtr)); 
+    }
   }  else {
     cout<<"AddAMSObject -E- AMSCharge ptr is NULL"<<endl;
   }
@@ -693,17 +705,21 @@ void EventRoot02::AddAMSObject(AMSCharge *ptr, float probtof[],int chintof[],
 
 void EventRoot02::AddAMSObject(AMSEcalHit *ptr)
 {
+  if (fECALhit) {
   TClonesArray &clones =  *fECALhit;
   ptr->SetClonePointer(new (clones[fECALhit->GetLast()+1]) EcalHitRoot(ptr));
   //new (fECALhit[fECALhit.GetLast()+1]) EcalHitRoot(ptr);
   //cout<<"  fECALhit->GetLast()+1 "<<fECALhit->GetLast()+1<<endl;
+  }
 }
 
 void EventRoot02::AddAMSObject(AMSmceventg *ptr)
 {
   if (ptr) {
+    if (fMCeventg) {
    TClonesArray &clones =  *fMCeventg;
    ptr->SetClonePointer(new (clones[fMCeventg->GetLast()+1]) MCEventGRoot02(ptr));
+    }
   }  else {
     cout<<"AddAMSObject -E- AMSmceventg ptr is NULL"<<endl;
   }
@@ -713,8 +729,10 @@ void EventRoot02::AddAMSObject(AMSmceventg *ptr)
 void EventRoot02::AddAMSObject(AMSmctrack *ptr)
 {
   if (ptr) {
+    if (fMCtrtrack) {
    TClonesArray &clones =  *fMCtrtrack;
    ptr->SetClonePointer(new (clones[fMCtrtrack->GetLast()+1]) MCTrackRoot(ptr));
+    }
   }  else {
     cout<<"AddAMSObject -E- AMSmctrack ptr is NULL"<<endl;
   }
@@ -723,9 +741,11 @@ void EventRoot02::AddAMSObject(AMSmctrack *ptr)
 void EventRoot02::AddAMSObject(AMSParticle *ptr, float phi, float phigl)
 {
   if (ptr) {
+    if (fParticle) {
    TClonesArray &clones =  *fParticle;
    ptr->SetClonePointer(new (clones[fParticle->GetLast()+1]) 
        ParticleRoot02(ptr, phi, phigl));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSParticle ptr is NULL"<<endl;
   }
@@ -734,8 +754,10 @@ void EventRoot02::AddAMSObject(AMSParticle *ptr, float phi, float phigl)
 void EventRoot02::AddAMSObject(AMSRichRawEvent *ptr, float x, float y)
 {
   if (ptr) {
+    if (fRICEvent) {
    TClonesArray &clones =  *fRICEvent;
    ptr->SetClonePointer(new (clones[fRICEvent->GetLast()+1]) RICEventRoot(ptr, x, y));
+    }
   }  else {
     cout<<"AddAMSObject -E- AMSRichRawEvent ptr is NULL"<<endl;
   }
@@ -743,20 +765,26 @@ void EventRoot02::AddAMSObject(AMSRichRawEvent *ptr, float x, float y)
 
 void EventRoot02::AddAMSObject(AMSRichMCHit *ptr, int _numgen)
 {
+  if (fRICMC) {
   TClonesArray &clones =  *fRICMC;
   ptr->SetClonePointer(new (clones[fRICMC->GetLast()+1]) RICMCRoot(ptr, _numgen));
+  }
 }
 void EventRoot02::AddAMSObject(AMSRichRing *ptr)
 {
+  if (fRICRing) {
   TClonesArray &clones =  *fRICRing;
   ptr->SetClonePointer(new (clones[fRICRing->GetLast()+1]) RICRingRoot(ptr));
+  }
 }
 
 void EventRoot02::AddAMSObject(Ecal1DCluster *ptr) 
 {
   if (ptr) {
+    if (fECALcluster) {
    TClonesArray &clones =  *fECALcluster;
    ptr->SetClonePointer(new (clones[fECALcluster->GetLast()+1]) EcalClusterRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- Ecal1DCluster ptr is NULL"<<endl;
   }
@@ -765,8 +793,10 @@ void EventRoot02::AddAMSObject(Ecal1DCluster *ptr)
 void EventRoot02::AddAMSObject(Ecal2DCluster *ptr) 
 {
   if (ptr) {
+    if (fECAL2Dcluster) {
    TClonesArray &clones =  *fECAL2Dcluster;
    ptr->SetClonePointer(new (clones[fECAL2Dcluster->GetLast()+1]) Ecal2DClusterRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- (Ecal2DCluster ptr is NULL"<<endl;
   }
@@ -775,8 +805,10 @@ void EventRoot02::AddAMSObject(Ecal2DCluster *ptr)
 void EventRoot02::AddAMSObject(EcalShower *ptr) 
 {
   if (ptr) {
+    if (fECALshower) {
    TClonesArray &clones =  *fECALshower;
    ptr->SetClonePointer(new (clones[fECALshower->GetLast()+1]) EcalShowerRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- EcalShower ptr is NULL"<<endl;
   }
@@ -786,8 +818,10 @@ void EventRoot02::AddAMSObject(EcalShower *ptr)
 void EventRoot02::AddAMSObject(Trigger2LVL1 *ptr)
 {
   if (ptr) {
+    if (fLVL1) {
    TClonesArray &clones =  *fLVL1;
    ptr->SetClonePointer(new (clones[fLVL1->GetLast()+1]) LVL1Root02(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- Trigger2LVL1 ptr is NULL"<<endl;
   }
@@ -796,8 +830,10 @@ void EventRoot02::AddAMSObject(Trigger2LVL1 *ptr)
 void EventRoot02::AddAMSObject(TriggerLVL302 *ptr)
 {
   if (ptr) {
-   TClonesArray &clones =  *fLVL3;
-   ptr->SetClonePointer(new (clones[fLVL3->GetLast()+1]) LVL3Root02(ptr));
+    if (fLVL3) {
+     TClonesArray &clones =  *fLVL3;
+     ptr->SetClonePointer(new (clones[fLVL3->GetLast()+1]) LVL3Root02(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- TriggerLVL302 ptr is NULL"<<endl;
   }
@@ -806,8 +842,10 @@ void EventRoot02::AddAMSObject(TriggerLVL302 *ptr)
 void EventRoot02::AddAMSObject(AMSTOFCluster *ptr)
 {
   if (ptr) {
+    if (fTOFcluster) {
    TClonesArray &clones =  *fTOFcluster;
    ptr->SetClonePointer(new (clones[fTOFcluster->GetLast()+1]) TOFClusterRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTOFCluster ptr is NULL"<<endl;
   }
@@ -816,8 +854,10 @@ void EventRoot02::AddAMSObject(AMSTOFCluster *ptr)
 void EventRoot02::AddAMSObject(AMSTOFMCCluster *ptr)
 {
   if (ptr) {
+    if (fTOFMCcluster) {
    TClonesArray &clones =  *fTOFMCcluster;
    ptr->SetClonePointer(new (clones[fTOFMCcluster->GetLast()+1]) TOFMCClusterRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTOFMCCluster ptr is NULL"<<endl;
   }
@@ -826,8 +866,10 @@ void EventRoot02::AddAMSObject(AMSTOFMCCluster *ptr)
 void EventRoot02::AddAMSObject(TOF2RawCluster *ptr)
 {
   if (ptr) {
+    if (fTOFRawCluster) {
    TClonesArray &clones =  *fTOFRawCluster;
    ptr->SetClonePointer(new (clones[fTOFRawCluster->GetLast()+1]) TOFRawClusterRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTOF2RawCluster ptr is NULL"<<endl;
   }
@@ -837,8 +879,10 @@ void EventRoot02::AddAMSObject(TOF2RawCluster *ptr)
 void EventRoot02::AddAMSObject(AMSTrCluster *ptr, float ampl[])
 {
   if (ptr) {
+    if (fTrCluster) {
    TClonesArray &clones =  *fTrCluster;
    ptr->SetClonePointer(new (clones[fTrCluster->GetLast()+1]) TrClusterRoot(ptr, ampl));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTrCluster ptr is NULL"<<endl;
   }
@@ -847,8 +891,10 @@ void EventRoot02::AddAMSObject(AMSTrCluster *ptr, float ampl[])
 void EventRoot02::AddAMSObject(AMSTrMCCluster *ptr)
 {
   if (ptr) {
+    if (fTrMCCluster) {
    TClonesArray &clones =  *fTrMCCluster;
    ptr->SetClonePointer(new (clones[fTrMCCluster->GetLast()+1]) TrMCClusterRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTrMCCluster ptr is NULL"<<endl;
   }
@@ -857,8 +903,10 @@ void EventRoot02::AddAMSObject(AMSTrMCCluster *ptr)
 void EventRoot02::AddAMSObject(AMSTrRawCluster *ptr, int addr)
 {
   if (ptr) {
+    if (fTrRawCluster) {
    TClonesArray &clones =  *fTrRawCluster;
    ptr->SetClonePointer(new (clones[fTrRawCluster->GetLast()+1]) TrRawClusterRoot(ptr,addr));
+    }
   }  else {
    cout<<"AddAMSObject -E- TrRawCluster ptr is NULL"<<endl;
   }
@@ -868,8 +916,10 @@ void EventRoot02::AddAMSObject(AMSTrRawCluster *ptr, int addr)
 void EventRoot02::AddAMSObject(AMSTRDMCCluster *ptr)
 {
   if (ptr) {
+    if (fTRDMCCluster) {
    TClonesArray &clones =  *fTRDMCCluster;
    ptr->SetClonePointer(new (clones[fTRDMCCluster->GetLast()+1]) TRDMCClusterRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTRDMCCluster ptr is NULL"<<endl;
   }
@@ -878,8 +928,10 @@ void EventRoot02::AddAMSObject(AMSTRDMCCluster *ptr)
 void EventRoot02::AddAMSObject(AMSTRDRawHit *ptr)
 {
   if (ptr) {
+    if (fTRDrawhit) {
    TClonesArray &clones =  *fTRDrawhit;
    ptr->SetClonePointer(new (clones[fTRDrawhit->GetLast()+1]) TRDRawHitRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTRDRawHit ptr is NULL"<<endl;
   }
@@ -888,8 +940,10 @@ void EventRoot02::AddAMSObject(AMSTRDRawHit *ptr)
 void EventRoot02::AddAMSObject(AMSTRDCluster *ptr)
 {
   if (ptr) {
+    if (fTRDcluster) {
    TClonesArray &clones =  *fTRDcluster;
    ptr->SetClonePointer(new (clones[fTRDcluster->GetLast()+1]) TRDClusterRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTRDCluster ptr is NULL"<<endl;
   }
@@ -898,8 +952,10 @@ void EventRoot02::AddAMSObject(AMSTRDCluster *ptr)
 void EventRoot02::AddAMSObject(AMSTRDSegment *ptr)
 {
   if (ptr) {
+    if (fTRDsegment) {
    TClonesArray &clones =  *fTRDsegment;
    ptr->SetClonePointer(new (clones[fTRDsegment->GetLast()+1]) TRDSegmentRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTRDSegment ptr is NULL"<<endl;
   }
@@ -909,8 +965,10 @@ void EventRoot02::AddAMSObject(AMSTRDSegment *ptr)
 void EventRoot02::AddAMSObject(AMSTRDTrack *ptr)
 {
   if (ptr) {
+    if (fTRDtrack) {
    TClonesArray &clones =  *fTRDtrack;
    ptr->SetClonePointer(new (clones[fTRDtrack->GetLast()+1]) TRDTrackRoot(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTRDTrack ptr is NULL"<<endl;
   }
@@ -919,8 +977,10 @@ void EventRoot02::AddAMSObject(AMSTRDTrack *ptr)
 void EventRoot02::AddAMSObject(AMSTrRecHit *ptr)
 {
   if (ptr) {
+    if (fTRrechit) {
    TClonesArray &clones =  *fTRrechit;
    ptr->SetClonePointer(new (clones[fTRrechit->GetLast()+1]) TrRecHitRoot02(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTrRecHit ptr is NULL"<<endl;
   }
@@ -929,8 +989,10 @@ void EventRoot02::AddAMSObject(AMSTrRecHit *ptr)
 void EventRoot02::AddAMSObject(AMSTrTrack *ptr)
 {
   if (ptr) {
+    if (fTRtrack) {
    TClonesArray &clones =  *fTRtrack;
    ptr->SetClonePointer(new (clones[fTRtrack->GetLast()+1]) TrTrackRoot02(ptr));
+    }
   }  else {
    cout<<"AddAMSObject -E- AMSTrTrack ptr is NULL"<<endl;
   }

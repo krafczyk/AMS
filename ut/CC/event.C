@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.285 2002/06/03 14:53:34 alexei Exp $
+//  $Id: event.C,v 1.286 2002/06/06 15:11:01 alexei Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -985,7 +985,7 @@ for(int il=0;il<2;il++){
       else break;
     }
 // second pass Root Only
-   copy();
+   if (IOPA.WriteRoot) copy();
 //
     if(trig || PosInRun< (IOPA.WriteAll/1000)*1000){
 // if event has been selected write it straight away
