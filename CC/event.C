@@ -965,7 +965,8 @@ void AMSEvent::event(){
    }
    catch (AMSLVL3Error e){
      // No LVL3
-   getstatus()=AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())
+   if(AMSStatus::isDBWriteR() || AMSStatus::isDBUpdateR())
+    getstatus()=AMSJob::gethead()->getstatustable()->getstatus(getid(),getrun())
 ;
    }
     if(AMSStatus::isDBWriteR()){
