@@ -107,7 +107,7 @@ VII.  Standalone version
            tar -xvf ~/ams.tar
            setenv AMSDataDir mydir
              
-      c.  Third party libraries you may want to install
+          Third party libraries you may want to install
           i)   cernlib 
           ii) nag fortran library  
           iii) libamsut   (in /afs/cern.ch/exp/ams/Offline/lib)  
