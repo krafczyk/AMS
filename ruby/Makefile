@@ -26,7 +26,7 @@ GCINCS=-I$(INC_DIR) -I$(AMSWD)/include -I$(ROOTSYS)/include
 LIBS= $(AMSOBJDIR)/root_rs.o $(AMSOBJDIR)/rootdict_s.o \
 -L$(ROOTSYS)/lib -lCore -lCint -lHist -lTree -lMatrix -lMinuit \
 -lGraf -lGraf3d -lGpad -lGX11 -lGX11TTF -lGui -lHistPainter -lPostscript \
--lRint -lHtml
+-lRint -lHtml -lRFIO
 MYLIB=$(MY_OS)/$(file).so
 RUBYLIB=$(LIB_DIR)/$(file).so
 

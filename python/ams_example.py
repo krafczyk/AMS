@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.2
 
 import sys, os
-sys.path.append(os.environ['AMSWD'] + '/python/linux')
+sys.path.insert(0,os.environ['AMSDir'] + '/python/linux')
 
 from AMS import *
 

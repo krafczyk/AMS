@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # Try to run this interactively with "irb -r ams_example2.rb"
 
-$LOAD_PATH << ENV['AMSWD'] + "/ruby/linux"
+$LOAD_PATH.unshift(ENV['AMSDir'] + "/ruby/linux")
 
 require 'AMS'
 include AMS
@@ -32,8 +32,6 @@ hist.Draw
 
 hfile.Write
 
-fork {app.Run}
+pid = Process.fork{app.Run}
 
-END {
-   app.Terminate
-}
+END { Process.kill("KILL",pid) ; app.Terminate }
