@@ -1061,8 +1061,8 @@ if(init++==0){
   TrTN.FastFitDone=_FastFitDone;
   TrTN.GeaneFitDone=_GeaneFitDone;
   TrTN.AdvancedFitDone=_AdvancedFitDone;
-  TrTN.Chi2StrLine=(geant)_Chi2StrLine;
-  TrTN.Chi2Circle=(geant)_Chi2Circle;
+  TrTN.Chi2StrLine=geant(_Chi2StrLine);
+  TrTN.Chi2Circle=geant(_Chi2Circle);
   TrTN.CircleRidgidity=(geant)_CircleRidgidity;
   TrTN.Chi2FastFit=(geant)_Chi2FastFit;
   TrTN.Ridgidity=(geant)_Ridgidity;
