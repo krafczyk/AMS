@@ -1,4 +1,4 @@
-//  $Id: gamma.h,v 1.5 2002/11/14 17:39:01 choutko Exp $
+//  $Id: gamma.h,v 1.6 2002/11/15 16:08:51 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 
 #ifndef __AMSTRGAMMA__
@@ -34,7 +34,7 @@ AMSTrTrack * _pntTrR;
 AMSTrRecHit * _PRight[trconst::maxlay];
 AMSTrRecHit * _PLeft[trconst::maxlay];
 //
-integer _GammaStatus;
+//integer _GammaStatus;
 integer _NhRight; // 
 integer _NhLeft;
 //
@@ -104,6 +104,12 @@ number _PhTheta;
 number _PhPhi;
 number _Gacosd;
 
+//added by VC
+
+AMSPoint _Vertex;
+number _TrackDistance;
+integer _Charge;
+
 /*
 // to fulfill the AMSTrTrack members
 uinteger _AddressLR;
@@ -161,7 +167,7 @@ AMSTrTrackGamma (number Chi2, number Rigi, number Erigi, number Thetaff, number 
 number Fit(integer i=0, integer ipart=3);
 void PAIR2GAMMA(int&, int&);
 void addtracks(int&);
-void _MyVertex(double n_L[],double n_R[], double VE_1[], double VE_2[]);
+void _MyVertex(double n_L[],double n_R[]);
 void LR_RES_STUDY3(integer [], double [], int & );
 void LR_RES_MINI(int &, double zed[],  double [], double );
 static void dlsqp2me(integer M, double v[], double w[], double & a0, double & a1, double & a2, double & chi);
@@ -179,22 +185,15 @@ static void RecoLeftRight(int refitting, integer FLPAT[],double SLOPEf, double I
 //
 void HITRESEARCH(int pla, double RES_REF, AMSPoint P_0L2, AMSPoint P_0R2);
 static integer Out(integer);
-AMSTrTrackGamma (const AMSTrTrackGamma & o):AMSlink(o._status,o._next),_GammaStatus(o._GammaStatus),_NhRight(o._NhRight),_NhLeft(o._NhLeft),
-_FastFitDoneR(o._FastFitDoneR),_GeaneFitDoneR(o._GeaneFitDoneR),_FastFitDoneL(o._FastFitDoneL),_GeaneFitDoneL(o._GeaneFitDoneL),
-_Chi2MSR(o._Chi2MSR),_GChi2MSR(o._GChi2MSR),_RidgidityMSR(o._RidgidityMSR),_GRidgidityMSR(o._GRidgidityMSR),
-_GThetaMSR(o._GThetaMSR),_GPhiMSR(o._GPhiMSR),_GP0MSR(o._GP0MSR),
-_Chi2MSL(o._Chi2MSL),_GChi2MSL(o._GChi2MSL),_RidgidityMSL(o._RidgidityMSL),_GRidgidityMSL(o._GRidgidityMSL),
-_GThetaMSL(o._GThetaMSL),_GPhiMSL(o._GPhiMSL),_GP0MSL(o._GP0MSL),
-_PGAMM(o._PGAMM),_MGAM(o._MGAM),_VE1(o._VE1),_PhTheta(o._PhTheta),_PhPhi(o._PhPhi){
-int i;
-for( i=0;i<trconst::maxlay;i++)_PLeft[i]=o._PLeft[i];
-for( i=0;i<trconst::maxlay;i++)_PRight[i]=o._PRight[i];
-}
 ~AMSTrTrackGamma(){};
 AMSTrTrackGamma *  next(){return (AMSTrTrackGamma*)_next;}
 //
 void getFFParam(number&  Chi2, number& Rigi, number&  Erigi, 
 number&  Thetaff, number & Phiff, AMSPoint&  X0)const ; 
+
+void _ConstructGamma();
+
+
 #ifdef __WRITEROOT__
  friend class TrGammaRoot02;
 #endif

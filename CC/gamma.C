@@ -1,4 +1,4 @@
-//  $Id: gamma.C,v 1.5 2002/11/14 17:38:58 choutko Exp $
+//  $Id: gamma.C,v 1.6 2002/11/15 16:08:45 choutko Exp $
 // Author G.LAMANNA 13-Sept-2002
 //
 // See gamma.h for the Class AMSTrTrackGamma initialization.
@@ -1205,6 +1205,10 @@ cout<< "*$$$$$$$ LEFT p_hi[1 .. 3] = "<<p_hi[0]<<" "<<p_hi[1]<<" "<<p_hi[2]<<end
   //
   if (nleft < 3 || nright < 3) return 0;
   if (nleft ==3 && nright ==3) return 0;
+  else if (nleft>TKDBc::nlay() || nright>TKDBc::nlay() ){
+   cerr<<"AMSTrTrackGamma::build-S-LogicError, NannyWillCheck???"<<endl;
+   return 0;
+  }
   //
    
   //    pntLR=   new AMSTrTrackGamma(nleft,nright,parrayL,parrayR);
@@ -1398,11 +1402,22 @@ pntLR->Fit(4,2);
 int counting=0;
 int plusminus=0;
 pntLR->PAIR2GAMMA(counting,plusminus);
+
+
 }
+else return 0;
+
 
     AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),pntLR);
     int done=0;
     pntLR->addtracks(done);
+//    pntLR->_ConstructGamma();
+// VC gamma
+
+    AMSTrTrackGamma  *p= new AMSTrTrackGamma(*pntLR);
+     p->_ConstructGamma();
+    AMSEvent::gethead()->addnext(AMSID("AMSTrTrackGamma",0),p);
+
 //    cout<<" done ------- = "<< done<< endl;
 
 
@@ -1454,13 +1469,12 @@ TrTN->ErrPgam[TrTN->Ngam]=_ErrPGAMM;
 TrTN->Massgam[TrTN->Ngam]=_MGAM;
 TrTN->Thetagam[TrTN->Ngam]=_PhTheta;
 TrTN->Phigam[TrTN->Ngam]=_PhPhi;
- if (_VE1[2] >= _VE2[2]){
-for(int i=0;i<3;i++)TrTN->Vert[TrTN->Ngam][i]=(geant)_VE1[i];
- }
- if (_VE1[2] < _VE2[2]){
-for(int i=0;i<3;i++)TrTN->Vert[TrTN->Ngam][i]=(geant)_VE2[i];
- }
-TrTN->GammaStatus[TrTN->Ngam]=_GammaStatus;
+
+for(int i=0;i<3;i++)TrTN->Vert[TrTN->Ngam][i]=_Vertex[i];
+TrTN->Distance[TrTN->Ngam]=_TrackDistance;
+TrTN->Charge[TrTN->Ngam]=_Charge;
+
+TrTN->GammaStatus[TrTN->Ngam]=_status;
 //
 
 TrTN->PtrLeft[TrTN->Ngam]=-1;
@@ -1470,22 +1484,22 @@ TrTN->PtrRight[TrTN->Ngam]=-1;
 if(_pntTrR->checkstatus(AMSDBc::NOTRACK))TrTN->PtrRight[TrTN->Ngam]=-1;
 if(_pntTrR->checkstatus(AMSDBc::GAMMARIGHT))TrTN->PtrRight[TrTN->Ngam]=_pntTrR->getpos();
 
-/*
+
 TrTN->Jthetal[TrTN->Ngam]=(geant)_GThetaMSL;
 TrTN->Jphil[TrTN->Ngam]=(geant)_GPhiMSL;
 TrTN->Jthetar[TrTN->Ngam]=(geant)_GThetaMSR;
 TrTN->Jphir[TrTN->Ngam]=(geant)_GPhiMSR;
 for(i=0;i<3;i++)TrTN->Jp0l[TrTN->Ngam][i]=(geant)_GP0MSL[i];
 for(i=0;i<3;i++)TrTN->Jp0r[TrTN->Ngam][i]=(geant)_GP0MSR[i];
-*/
+
 TrTN->Ngam++;
 
 }
 }
                
-AMSTrTrackGamma::AMSTrTrackGamma(integer nhitL, integer nhitR, AMSTrRecHit * phLeft[], AMSTrRecHit * phRight[], int state){
+AMSTrTrackGamma::AMSTrTrackGamma(integer nhitL, integer nhitR, AMSTrRecHit * phLeft[], AMSTrRecHit * phRight[], int state):AMSlink(state),_PGAMM(0),_ErrPGAMM(0),_MGAM(0),_VE1(0,0,0),_VE2(0,0,0),_PhTheta(0),_PhPhi(0),_Gacosd(0),_Vertex(0,0,0),_TrackDistance(0),_Charge(0){
   int i;
-  _GammaStatus=state;
+//  _GammaStatus=state;
   //RIGHT
   _NhRight=nhitR;
   for( i=0;i<_NhRight;i++)_PRight[i]=phRight[i];
@@ -2797,7 +2811,7 @@ double tex_L,tex_R;
 
 void AMSTrTrackGamma::addtracks(int & done){
 
-_pntTrL =  new AMSTrTrack(_NhLeft, _PLeft, _FastFitDoneL, _GeaneFitDoneL, _Chi2FastFitL, _RidgidityL,  _ErrRidgidityL,  _ThetaL,  _PhiL,  _P0L, _GChi2L,  _GRidgidityL,  _GErrRidgidityL, _Chi2MSL,  _GChi2MSL,  _RidgidityMSL,  _GRidgidityMSL);
+_pntTrL =  new AMSTrTrack(_NhLeft, _PLeft, _FastFitDoneL, _GeaneFitDoneL, _Chi2FastFitL, _RidgidityL,  _ErrRidgidityL,  _ThetaL,  _PhiL,  _P0L, _GChi2L,  _GRidgidityL,  _GErrRidgidityL, _GThetaMSL, _GPhiMSL, _GP0MSL,_Chi2MSL,  _GChi2MSL,  _RidgidityMSL,  _GRidgidityMSL);
 
       _pntTrL->clearstatus(AMSDBc::GAMMARIGHT);
       _pntTrL->clearstatus(AMSDBc::GAMMALEFT);
@@ -2806,7 +2820,7 @@ _pntTrL =  new AMSTrTrack(_NhLeft, _PLeft, _FastFitDoneL, _GeaneFitDoneL, _Chi2F
   AMSEvent::gethead()->addnext(AMSID("AMSTrTrack",0),_pntTrL);
   done++;
 
-_pntTrR =  new AMSTrTrack(_NhRight, _PRight, _FastFitDoneR, _GeaneFitDoneR, _Chi2FastFitR, _RidgidityR,  _ErrRidgidityR,  _ThetaR,  _PhiR,  _P0R, _GChi2R,  _GRidgidityR,  _GErrRidgidityR, _Chi2MSR,  _GChi2MSR,  _RidgidityMSR,  _GRidgidityMSR);
+_pntTrR =  new AMSTrTrack(_NhRight, _PRight, _FastFitDoneR, _GeaneFitDoneR, _Chi2FastFitR, _RidgidityR,  _ErrRidgidityR,  _ThetaR,  _PhiR,  _P0R, _GChi2R,  _GRidgidityR,  _GErrRidgidityR, _GThetaMSR, _GPhiMSR, _GP0MSR,_Chi2MSR,  _GChi2MSR,  _RidgidityMSR,  _GRidgidityMSR);
 
     _pntTrR->clearstatus(AMSDBc::GAMMARIGHT);
     _pntTrR->setstatus(AMSDBc::GAMMARIGHT);
@@ -2854,18 +2868,8 @@ void AMSTrTrackGamma::PAIR2GAMMA(int & counting, int & plusminus){
   AMSDir LDir(_GThetaMSL,_GPhiMSL);
   AMSPoint p3=RDir*fabs(_GRidgidityMSR)+LDir*fabs(_GRidgidityMSL);
  
-   if(_FastFitDoneL && _FastFitDoneR){
-    number err_1=pow(_ErrRidgidityL*_RidgidityL*_RidgidityL,2)+pow(_ErrRidgidityR*_RidgidityR*_RidgidityR,2);
-
-   AMSPoint p1=RDir*fabs(_RidgidityR)+LDir*fabs(_RidgidityL);
-   number err_2=p1.norm()-p3.norm();
-    _PGAMM=(p3.norm()+p1.norm())/2;
-    _ErrPGAMM=sqrt(err_2*err_2+err_1);
-   }
-   else{
     _PGAMM=p3.norm();
     _ErrPGAMM=sqrt(pow(_GErrRidgidityL*_GRidgidityMSL*_GRidgidityMSL,2)+pow(_GErrRidgidityR*_GRidgidityMSR*_GRidgidityMSR,2));
-   }   
 _PhTheta=AMSDir(p3).gettheta();
 if(_PhTheta<AMSDBc::pi/2)_PhTheta=AMSDBc::pi-_PhTheta;
 _PhPhi=AMSDir(p3).getphi();
@@ -2875,34 +2879,32 @@ number ca=RDir.prod(LDir);
 
 
 // Get opening angle of converting photons through the scalar product
- number cosd=0;
+// number cosd=0;
  // cosd=n_R[0]*n_L[0]+n_R[1]*n_L[1]+n_R[2]*n_L[2]; 
  // if(fabs(cosd) <= 1){
  //_Gacosd=acos(cosd);
  // }
-_Gacosd=0;
+// _Gacosd=0;
 
 // finally the vertex:
-double VE_1[3];
-double VE_2[3];
-_MyVertex(n_L,n_R,VE_1,VE_2);
- for(int i=0;i<3;i++)_VE1[i]=VE_1[i]; //left
- for(int i=0;i<3;i++)_VE2[i]=VE_2[i]; //right
+_MyVertex(n_L,n_R);
+
+
+ if (_VE1[2] >= _VE2[2]) _Vertex=_VE1;
+ else _Vertex=_VE2;
+
+
  //----
 #ifdef __AMSDEBUG__
  cout << "_PGAMM = "<<_PGAMM<<endl;
  cout << "_PhTheta _PhPhi= "<<_PhTheta<<"  "<<_PhPhi<<endl;
  cout << "_Gacosd= "<<_Gacosd<<endl;
  cout << "_MGAM= "<<_MGAM<<endl;
- cout << "VE_1 [0 1 2] = "<<VE_1[0]<<"  "<< VE_1[1]<<"  "<< VE_1[2]<<endl;
- cout << "_VE1 [0 1 2] = "<<_VE1[0]<<"  "<< _VE1[1]<<"  "<< _VE1[2]<<endl;
- cout << "VE_2 [0 1 2] = "<<VE_2[0]<<"  "<< VE_2[1]<<"  "<< VE_2[2]<<endl;
- cout << "_VE2 [0 1 2] = "<<_VE2[0]<<"  "<< _VE2[1]<<"  "<< _VE2[2]<<endl;
 #endif
 }
 
 
-void AMSTrTrackGamma::_MyVertex(double n_L[],double n_R[], double VE_1[], double VE_2[]){
+void AMSTrTrackGamma::_MyVertex(double n_L[],double n_R[]){
   double P1[3];
   double P2[3];
   double t_1;
@@ -2923,13 +2925,13 @@ void AMSTrTrackGamma::_MyVertex(double n_L[],double n_R[], double VE_1[], double
   t_2=(BD2-(AD1*C12))/(1-pow(C12,2));
   t_1=t_2*C12-AD1;
 
-  VE_1[0]=P1[0]+(t_1*n_L[0]);
-  VE_1[1]=P1[1]+(t_1*n_L[1]);
-  VE_1[2]=P1[2]+(t_1*n_L[2]);
+  _VE1[0]=P1[0]+(t_1*n_L[0]);
+  _VE1[1]=P1[1]+(t_1*n_L[1]);
+  _VE1[2]=P1[2]+(t_1*n_L[2]);
 
-  VE_2[0]=P2[0]+(t_2*n_R[0]);
-  VE_2[1]=P2[1]+(t_2*n_R[1]);
-  VE_2[2]=P2[2]+(t_2*n_R[2]);
+  _VE2[0]=P2[0]+(t_2*n_R[0]);
+  _VE2[1]=P2[1]+(t_2*n_R[1]);
+  _VE2[2]=P2[2]+(t_2*n_R[2]);
  
 }
 
@@ -3077,21 +3079,11 @@ _HPhiLR[j]=0;
      }
     }
     //
-  }//fit0345
+  }//0345
   
 integer ims; 
 if(fit==4)ims=0;
 else ims=1;
-    AMSmceventg *pmcg=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
-    if(pmcg){
-     number charge=pmcg->getcharge();    
-     if (charge==0 && pmcg->pid() == 1){
-       number momentum=pmcg->getmom();
-       momentum=momentum/2;
-       outL[0]=1/momentum;
-       outR[0]=1/momentum;
-     }
-    }
 // ipartR=3; //e-
 TKFITG(npt[0],hitsR,sigmaR,normalR,ipartR,ialgo,ims,layerR,outR);
 // ipartL=2; //e+
@@ -3167,8 +3159,8 @@ _RidgidityMSL=outL[5];
 // cout << "Fit 4 ROUTINE theta and phi LEFT= "<<outR[3]<< " " <<outR[4]<<endl;
 }
  else if(fit==5){ //JUAN !!!!!!!!
-_GChi2MSR=outR[8];
-if(outR[7] != 0)_GChi2MSR=-outR[7];
+_GChi2MSR=outR[6];  
+if(outR[7]!=0)_GChi2MSR=FLT_MAX;
 _GRidgidityMSR=outR[5];
 // cout<< "JUAN ROUTINE outR[5] = "<<outR[5]<<endl;
 // me
@@ -3176,8 +3168,8 @@ _GThetaMSR=outR[3];
 _GPhiMSR=outR[4];
 _GP0MSR=AMSPoint(outR[0],outR[1],outR[2]);
 //...
-_GChi2MSL=outL[8];
-if(outL[7] != 0)_GChi2MSL=-outL[7];
+_GChi2MSR=outR[6];  
+if(outR[7]!=0)_GChi2MSR=FLT_MAX;
 _GRidgidityMSL=outL[5];
 // cout<< "JUAN ROUTINE outL[5] = "<<outL[5]<<endl;
 // me
@@ -4135,3 +4127,78 @@ void XZLine_TOF::Check_TRD_TK1(int Num, vector<double> HH, int jj[]){
 }
    
 
+
+
+void AMSTrTrackGamma::_ConstructGamma(){
+
+
+
+   if((_FastFitDoneL && _FastFitDoneR) ){
+
+//  First  interpolate to zero order vertex guess  
+
+   integer lay_l=min(_pntTrL->getphit(0)->getLayer(),_pntTrL->getphit(_pntTrL->getnhits()-1)->getLayer())-1;
+   integer lay_r=min(_pntTrR->getphit(0)->getLayer(),_pntTrR->getphit(_pntTrR->getnhits()-1)->getLayer())-1;
+   integer lay=min(lay_l,lay_r);
+ AMSPoint p1L,p1R;
+ number thetaL,phiL,local;
+ number thetaR,phiR;
+ if(_pntTrL->intercept(p1L,lay,thetaL,phiL,local,1) && _pntTrR->intercept(p1R,lay,thetaR,phiR,local,1)){
+  
+  AMSDir dirL(thetaL,phiL);
+  AMSDir dirR(thetaR,phiR);
+  if (dirL[2]>0)dirL=dirL*(-1);
+  if (dirR[2]>0)dirR=dirR*(-1);
+
+//  Now find the two str lines interception   
+
+
+   
+    AMSPoint alpha=dirL.crossp(dirR);
+    AMSPoint beta=dirL.crossp(p1L-p1R);
+    number t=alpha.prod(beta)/alpha.prod(alpha);
+    if(t>0)t=0;   // min vertex 
+    _P0R=p1R+dirR*t;
+    _P0L=p1L+dirL*t;
+    AMSPoint dc=p1L-_P0R;
+    number dist=dirL.prod(dc);
+    _TrackDistance=sqrt(dc.prod(dc)-dist*dist);
+    _Vertex=(_P0L+_P0R)*0.5;
+//    _TrackDistance=(_P0L-_P0R).norm();
+    
+
+    AMSDir dir(0,0,-1);
+    number length;
+    _pntTrL->interpolate(_Vertex,dir,_P0L,thetaL,phiL,length,1);    
+    _pntTrR->interpolate(_Vertex,dir,_P0R,thetaR,phiR,length,1);    
+    _pntTrL->SetPar(_pntTrL->getgrid(),thetaL,phiL,_P0L,1);
+    _pntTrR->SetPar(_pntTrR->getgrid(),thetaR,phiR,_P0R,1);
+    dirL=AMSDir(thetaL,phiL);
+    dirR=AMSDir(thetaR,phiR);
+    if (dirL[2]>0)dirL=dirL*(-1);
+    if (dirR[2]>0)dirR=dirR*(-1);
+
+//  set gamma parameters  (assuming direction for top to bottom)
+    _Charge=(_pntTrL->getgrid()>0?1:-1)+(_pntTrR->getgrid()>0?1:-1);
+    AMSPoint pge=dirR*fabs(_GRidgidityMSR)+dirL*fabs(_GRidgidityMSL);
+    number err_1=pow(_ErrRidgidityL*_RidgidityL*_RidgidityL,2)+pow(_ErrRidgidityR*_RidgidityR*_RidgidityR,2);
+   AMSPoint p1=dirR*fabs(_RidgidityR)+dirL*fabs(_RidgidityL);
+   number err_2=p1.norm()-pge.norm();
+    _PGAMM=(pge.norm()+p1.norm())/2;
+    _ErrPGAMM=sqrt(err_2*err_2+err_1);
+   _PhTheta=AMSDir(pge).gettheta();
+    _PhPhi=AMSDir(pge).getphi();
+    number ca=dirL.prod(dirR);
+    _MGAM=sqrt(fabs(2*fabs(_GRidgidityMSR)*fabs(_GRidgidityMSL)*(1-ca)));
+           
+  return;
+ } 
+}
+_PGAMM=0;
+_ErrPGAMM=0;
+_PhTheta=0;
+_PhPhi=0;
+setstatus(AMSDBc::BAD);
+
+
+}

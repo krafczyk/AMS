@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.119 2002/11/14 17:38:59 choutko Exp $
+//  $Id: ntuple.C,v 1.120 2002/11/15 16:08:45 choutko Exp $
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
@@ -98,12 +98,11 @@ void AMSNtuple::init(){
   HBNAME(_lun,"TrMCClus",&_trclmc.Ntrclmc,
   "ntrclmc[0,200],IdsoftMC(ntrclmc),Itra(ntrclmc),Left(2,ntrclmc):I,Center(2,ntrclmc):I,Right(2,ntrclmc):I,ss(5,2,ntrclmc),xca(3,ntrclmc),xcb(3,ntrclmc),xgl(3,ntrclmc),summc(ntrclmc)");
   HBNAME(_lun,"TrRecHit",&_trrh02.Ntrrh,
-  "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[0,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
+  "ntrrh[0,666],px(ntrrh)[-1,30000]:I,py(ntrrh)[-1,30000]:I,statusr(ntrrh):I,Layer(ntrrh)[1,10]:I,hitr(3,ntrrh),ehitr(3,ntrrh),sumr(ntrrh),difosum(ntrrh),cofgx(ntrrh),cofgy(ntrrh)");
 
 
    HBNAME(_lun,"TrGamma",&_tpai02.Ngam,
-   "ngam[0,2],trgPgam(ngam):R,trgePgam(ngam),trgThegam(ngam):R,trgPhigam(ngam):R,trgmasgam(ngam),trgVert(3,ngam):R,trgStatus(ngam):I,trgpLeft(ngam)[-1,254]:I,trgpRight(ngam)[-1,254]:I");
-//,Jthetal(ngam):R,Jphil(ngam):R,Jthetar(ngam):R,Jphir(ngam):R,Jp0l(3,ngam):R,Jp0r(3,ngam):R");
+   "ngam[0,2],trgmom(ngam):R,trgerrmom(ngam),trgTheta(ngam):R,trgPhi(ngam):R,trgmass(ngam),trgVert(3,ngam):R,trgdist(ngam),trgcharge(ngam)[-2,2]:I,trgStatus(ngam):I,trgpLeft(ngam)[-1,254]:I,trgpRight(ngam)[-1,254]:I,Jthetal(ngam):R,Jphil(ngam):R,Jthetar(ngam):R,Jphir(ngam):R,Jp0l(3,ngam):R,Jp0r(3,ngam):R");
 
   HBNAME(_lun,"TrTrack",&_trtr02.Ntrtr,
   "ntrtr[0,100],trstatus(ntrtr):I,pattern(ntrtr)[-1,100]:I,address(ntrtr):I,nhits(ntrtr)[0,8],phits(8,ntrtr)[-1,30000]:I,LocDBAver(ntrtr):R,GeaneFitDone(ntrtr)[0,1000]:I,AdvFitDone(ntrtr)[0,1000]:I,Chi2StrLine(ntrtr),Chi2Circle(ntrtr),CircleRig(ntrtr),Chi2FastFit(ntrtr),Rigidity(ntrtr),ErrRig(ntrtr),Theta(ntrtr),phi(ntrtr),p0(3,ntrtr),gchi2(ntrtr),grig(ntrtr),gerrrig(ntrtr),hchi2(2,ntrtr),HRigidity(2,ntrtr),HErrRigidity(2,ntrtr),htheta(2,ntrtr),hphi(2,ntrtr),hp0(3,2,ntrtr),fchi2ms(ntrtr),pirigerr(ntrtr),rigms(ntrtr),pirig(ntrtr)");

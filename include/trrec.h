@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.60 2002/11/14 13:19:18 glamanna Exp $
+//  $Id: trrec.h,v 1.61 2002/11/15 16:08:51 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -335,7 +335,7 @@ static uinteger  encodeaddress(integer lad[2][trconst::maxlay]);
 static uinteger * getchild(uinteger address, uinteger &nchild);
 public:
   static geant & TimeLimit(){return _TimeLimit;}
-  integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi, number &local);
+  integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi, number &local, integer icase=0);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
 integer operator < (AMSlink & o) const {
   AMSTrTrack * p= (AMSTrTrack*)(&o);
@@ -351,7 +351,7 @@ integer operator < (AMSlink & o) const {
 uinteger getaddress(){return _Address;}
 void   AdvancedFit();
 integer getpattern()const{return _Pattern;}
-AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD, number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, number chi2G, number rigG, number erigG, number chi2MS, number jchi2MS, number rigFMS, number grigms);
+AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD, number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, number chi2MS, number jchi2MS, number rigFMS, number grigms);
 
 
 static integer Out(integer);
@@ -377,8 +377,10 @@ for(i=0;i<2;i++){
   _HP0[i]=o._HP0[i];
 } 
 }
-void SetPar(number rig, number theta, number phi, AMSPoint P0){
- _Ridgidity=rig;_Theta=theta;_Phi=phi;_P0=P0;}
+void SetPar(number rig, number theta, number phi, AMSPoint P0,integer icase=0){
+ if(icase==0){_Ridgidity=rig;_Theta=theta;_Phi=phi;_P0=P0;}
+ else{_GRidgidity=rig;_GTheta=theta;_GPhi=phi;_GP0=P0;}
+}
 ~AMSTrTrack(){};
 AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
 AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
@@ -397,7 +399,7 @@ static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
 void interpolate(AMSPoint  pnt, AMSDir  dir,  AMSPoint & P1, 
-                 number & theta, number & phi, number & length);
+                 number & theta, number & phi, number & length, int icase=0);
 void interpolateCyl(AMSPoint  pnt,  AMSDir dir, number rad, number idir, 
                     AMSPoint & P1, number & theta, number & phi, 
                     number & length);
@@ -427,6 +429,7 @@ number getgrid() const {return _GRidgidity;}
 number getegrid() const {return _GErrRidgidity;}
 number geterid() const {return _ErrRidgidity;}
 number getrid() const {return _Ridgidity;}
+number getchi2()const {return _Chi2FastFit;}
 number gettheta() const {return _Theta;}
 number getphi() const {return _Phi;}
 friend class AMSTrCalibFit;

@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.141 2002/11/14 13:18:28 glamanna Exp $
+//  $Id: trrec.C,v 1.142 2002/11/15 16:08:46 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -2285,7 +2285,7 @@ for(int i=0;i<TKDBc::npat();i++){
 }
 
 void AMSTrTrack::interpolate(AMSPoint  pntplane, AMSDir dirplane,AMSPoint & P1,
-                             number & theta, number & phi, number & length){
+                             number & theta, number & phi, number & length, int icase){
 
   // interpolates track to plane (pntplane, dirplane)
   // and calculates the track parameters(P1,theta,phi) and total track length
@@ -2295,9 +2295,9 @@ void AMSTrTrack::interpolate(AMSPoint  pntplane, AMSDir dirplane,AMSPoint & P1,
   geant init[7];
   geant point[6];
   geant charge=1;
-   AMSDir dir(sin(_Theta)*cos(_Phi),
-             sin(_Theta)*sin(_Phi),
-             cos(_Theta));
+  AMSDir dir;
+  if(icase==0){
+   AMSDir  dir(_Theta,_Phi);
    init[0]=_P0[0];
    init[1]=_P0[1];
    init[2]=_P0[2];
@@ -2305,6 +2305,17 @@ void AMSTrTrack::interpolate(AMSPoint  pntplane, AMSDir dirplane,AMSPoint & P1,
    init[4]=dir[1];
    init[5]=dir[2];
    init[6]=_Ridgidity;
+  }
+  else if (icase==1){
+   AMSDir  dir(_GTheta,_GPhi);
+   init[0]=_GP0[0];
+   init[1]=_GP0[1];
+   init[2]=_GP0[2];
+   init[3]=dir[0];
+   init[4]=dir[1];
+   init[5]=dir[2];
+   init[6]=_GRidgidity;
+  }
   point[0]=pntplane[0];
   point[1]=pntplane[1];
   point[2]=pntplane[2];
@@ -2749,7 +2760,7 @@ trig=(trig+1)%freq;
 }
 
 
-integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number &phi, number & local){
+integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number &phi, number & local, integer icase){
   AMSTrRecHit * phit=0;  
   for(int i=0;i<_NHits;i++){
    if(_Pthit[i]->getLayer()-1 == layer){
@@ -2764,7 +2775,7 @@ integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number 
     AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
     AMSPoint pntplane(phit->getHit());
     number length;
-    interpolate(pntplane,pntdir,P1,theta,phi,length);
+    interpolate(pntplane,pntdir,P1,theta,phi,length,icase);
     xloc=pls->gl2loc(P1);
   }    
   else{
@@ -2775,7 +2786,7 @@ integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number 
       AMSDir pntdir(p->getnrmA(0,2),p->getnrmA(1,2),p->getnrmA(2,2));
       AMSPoint pntplane(p->getcooA(0),p->getcooA(1),p->getcooA(2));
       number length;
-      interpolate(pntplane,pntdir,P1,theta,phi,length);
+      interpolate(pntplane,pntdir,P1,theta,phi,length,icase);
     }
     else {
       cerr <<"AMSTrTrack::intercept-E-NoGeomVolumeFound"<<g.crgid()<<endl;
@@ -2792,7 +2803,7 @@ integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number 
          AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
          AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
          number theta,phi,length;
-         interpolate(pntplane,pntdir,P1,theta,phi,length);
+         interpolate(pntplane,pntdir,P1,theta,phi,length,icase);
          xloc=pls->gl2loc(P1);
       }
       else{
@@ -3059,9 +3070,9 @@ return _TimeLimit>0? _CheckTime()>_TimeLimit: _CheckTime()>AMSFFKEY.CpuLimit;
 
 AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD, 
                        number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
-                       number chi2G, number rigG, number erigG, 
+                       number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, 
                        number chi2MS, number jchi2MS, number rigFMS, number grigms):
-_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(GFD),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(rigG),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_GChi2MS(jchi2MS),_RidgidityMS(rigFMS),_GRidgidityMS(grigms),_Address(0),_Pattern(-1),_AdvancedFitDone(0){
+_NHits(nht),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_GChi2MS(jchi2MS),_RidgidityMS(rigFMS),_GRidgidityMS(grigms),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g){
  
 
 
