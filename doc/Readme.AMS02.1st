@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.41 2002/12/12 08:52:55 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.42 2002/12/19 11:07:57 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -121,16 +121,17 @@ VII.  Standalone version
           setenv Offline /afs/ams.cern.ch/Offline
           source $Offline/vdev/install/amsvar
           cd $AMSDataDir
-          tar -cvf ~/ams.tar v4.00/*.dat 
-          tar -uvf ~/ams.tar v4.00/T*
-          tar -uvf ~/ams.tar v4.00/t*
-          tar -uvf ~/ams.tar DataBase/MagneticFieldMap/9*
-          tar -uvf ~/ams.tar DataBase/Tracker*.2*
-          tar -uvf ~/ams.tar DataBase/Tracker*2
-          tar -uvf ~/ams.tar DataBase/*of*/*.0.*
-          tar -uvf ~/ams.tar DataBase/.*0
-          tar -uvf ~/ams.tar DataBase/.TrA*1
-          tar -uvf ~/ams.tar DataBase/Ecal*
+          tar -cvf /tmp/ams.tar v4.00/*.dat 
+          tar -uvf /tmp/ams.tar v4.00/T*
+          tar -uvf /tmp/ams.tar v4.00/t*
+          tar -uvf /tmp/ams.tar DataBase/MagneticFieldMap/9*
+          tar -uvf /tmp/ams.tar DataBase/Tracker*.2*
+          tar -uvf /tmp/ams.tar DataBase/Tracker*2
+          tar -uvf /tmp/ams.tar DataBase/*of*/*/*.0.*
+          tar -uvf /tmp/ams.tar DataBase/.*0
+          tar -uvf /tmp/ams.tar DataBase/.TrA*1
+          tar -uvf /tmp/ams.tar DataBase/Ecal*
+          cp /tmp/ams.tar ~/
           login in  your computer:
            mkdir mydir
            cd mydir
