@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.172 2003/05/16 10:24:44 alexei Exp $
+# $Id: RemoteClient.pm,v 1.173 2003/05/16 17:10:06 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3998,6 +3998,7 @@ print qq`
                               $ctime,
                               '$nickname',
                                ' ',' ',0,0,0,0,'$stalone')";
+         $self->{sqlserver}->Update($insertjobsql);
 #         $self->{sqlserver}->Update($sql);
 #
 #creat corresponding runevinfo
@@ -4058,9 +4059,11 @@ print qq`
               $self->ErrorPlus("Unable to gzip  $file2tar");
           }
         }     
-        if (defined $insertjobsql) {
-         $self->{sqlserver}->Update($insertjobsql);
-        }
+# insert into Jobs
+#        if (defined $insertjobsql) {
+#         $self->{sqlserver}->Update($insertjobsql);
+#        }
+
         my $address=$self->{CEM};
         my $frun=$run-$runno;
         my $lrun=$run-1;
@@ -6293,6 +6296,9 @@ sub parseJournalFile {
  my $inputfile    = shift;
  my $dirpath      = shift;
 
+ my $host         = "unknown";
+ my $tevents      = 0;
+ my $terrors      = 0;
 
  my $jobnotfound  = 0;       # check that job exists in database
                              # quit if not
@@ -6312,7 +6318,7 @@ my @closedst      =();;
 my @runfinished   =();
 my @runincomplete =();
 
-my $timestamp = 0;    # unix time 
+my $timestamp = time();    # unix time 
 my $lastjobid = 0;
 
 my $startingjobR = 0; # StartingJob record found and parsed
@@ -6409,9 +6415,10 @@ foreach my $block (@blocks) {
     if (not defined $ret->[0][0]) {
      my $cputime = sprintf("%.0f",$runincomplete[6]);
      my $elapsed = sprintf("%.0f",$runincomplete[7]);
+     $host = $runincomplete[1];
      $sql = "UPDATE Jobs SET EVENTS=$runincomplete[3], ERRORS=$runincomplete[5], 
                                    CPUTIME=$cputime, ELAPSED=$elapsed,
-                                   HOST='$runincomplete[1]', TIMESTAMP = $timestamp 
+                                   HOST='$host', TIMESTAMP = $timestamp 
                    WHERE JID = (SELECT Runs.jid FROM Runs WHERE Runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
@@ -6560,7 +6567,6 @@ foreach my $block (@blocks) {
     $run = $startingrun[2];
     $startingrun[0] = "StartingRun";
     $startingrunR   = 1;
-    $timestamp = time();
     $self->insertRun(
              $startingrun[2],
              $lastjobid,
@@ -6571,6 +6577,7 @@ foreach my $block (@blocks) {
              $startingrun[11],
              $startingrun[7]);
 
+     $host=$startingrun[12];
      $sql = "UPDATE Jobs SET 
                  host='$startingrun[12]',
                  events=$startingrun[13], errors=$startingrun[15],
@@ -6660,7 +6667,6 @@ foreach my $block (@blocks) {
     } else {
      $dstsize = sprintf("%.1f",$dstsize/1000/1000);
      $closedst[0] = "CloseDST";
-     $timestamp = time();
 #- mv to insertNtuple 
 #     my $sql = "SELECT run, path FROM ntuples 
 #                   WHERE run=$closedst[10] AND path like '%$filename%'";
@@ -6720,6 +6726,8 @@ foreach my $block (@blocks) {
           $ntstatus="OK";
           $ntevents=$closedst[13];
           $badevents=int($i*$closedst[13]/100);
+          $tevents += $ntevents;
+          $terrors += $badevents;
           $validated++;
           my ($outputpath,$rstatus) = $self->doCopy($jobid,$dstfile,$ntcrc);
           if(defined $outputpath){
@@ -6788,9 +6796,10 @@ foreach my $block (@blocks) {
 
     my $cputime = sprintf("%.0f",$runfinished[6]);
     my $elapsed = sprintf("%.0f",$runfinished[7]);
+    $host= $runfinished[1];
     $sql = "update jobs set events=$runfinished[3], errors=$runfinished[5], 
                                    cputime=$cputime, elapsed=$elapsed,
-                                   host='$runfinished[1]',timestamp = $timestamp 
+                                   host='$host',timestamp = $timestamp 
                                where jid = (select runs.jid from runs where runs.jid = $run)";
      print FILE "$sql \n";
      $self->{sqlserver}->Update($sql);
@@ -6822,6 +6831,16 @@ foreach my $block (@blocks) {
   if ($#cpntuples >= 0) { 
     $status = 'Completed';
     $inputfileLink = $inputfile.".1";
+    if ($runfinishedR != 1) {
+      print FILE "End of Run not found update Jobs \n";
+      $sql = "UPDATE Jobs SET 
+                 host='$host',
+                 events=$tevents, errors=$terrors,
+                 cputime=-1, elapsed=-1,
+                 timestamp=$timestamp 
+                where jid=$lastjobid";
+      $self->Query($sql);
+     }
    }
  }
   else{
