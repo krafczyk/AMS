@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.177 2003/05/21 15:12:25 alexei Exp $
+# $Id: RemoteClient.pm,v 1.178 2003/05/22 08:40:56 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -6904,7 +6904,7 @@ foreach my $block (@blocks) {
                  timestamp=$timestamp 
                 where jid=$lastjobid";
       print FILE "$sql \n";
-      $self->Query($sql);
+      $self->{sqlserver}->Update($sql);
      }
    }
  }
