@@ -34,7 +34,7 @@ geant ECALDBc::_fpitch[3]={
 };
 //
 geant ECALDBc::_rdcell[10]={
-   540.,58.,0.37, // i=1,3  fiber att. length 1st(slow)/2nd(fast), % of 2nd;
+   368.,32.5,0.15, // i=1,3  fiber att. length 1st(slow)/2nd(fast), % of 2nd;
    0.094,        // i=4    fiber diameter(0.1-2x0.003cm)
    0.9,          // i=5    size(dx=dz) of "1/4" of PMT-cathod (pixel)
    0.45,         // i=6    abs(x(z)-position) of "1/4" in PMT coord.syst.
@@ -73,8 +73,8 @@ integer ECALDBc::_nfibpcl[ECFLSMX]={ // real fibers per layer in PMcell
    12,12,12,12,12,12,12,12,12,12
 };
 //
-geant ECALDBc::_mev2adc=0.32; // MC: Emeas(MeV)->ADCchan conv.factor (adc/mev)
-geant ECALDBc::_mev2mev=36.16; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50gev) 
+geant ECALDBc::_mev2adc=0.39; // MC: Emeas(MeV)->ADCchan conv.factor (adc/mev)
+geant ECALDBc::_mev2mev=33.3; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50gev) 
 //
 //  member functions :
 //
@@ -650,7 +650,7 @@ geant adc2mevf;
     for(ipm=0;ipm<ECALDBc::slstruc(4);ipm++){
       sid=(ipm+1)+100*(isl+1);
       sta=0;
-      adc2mevf=1./ECALDBc::mev2adc()/0.991;
+      adc2mevf=1./ECALDBc::mev2adc();
       ecpmcal[isl][ipm]=ECcalib(sid,sta,chgain,scgain,adc2mevf);
     }
   }

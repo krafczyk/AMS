@@ -97,7 +97,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	emeast+=edepr;
 	adc=integer(edepr*ECALDBc::mev2adc());//Emeas(Mev)->Emeas(adc) ("digitization")
         if(adc>0){
-	  if(adc>=16384)adc=16384;//"ADC-saturation"
+	  if(adc>=65536)adc=65536;//"ADC-saturation (16 bit)"
 	  nraw+=1;
 	  id=(k+1)+10*(i+1)+1000*(il+1);
 	  sta=0;
