@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.23 2001/10/02 13:23:03 choutko Exp $
+#  $Id: ntuple02.doc,v 1.24 2001/10/08 14:38:16 choutko Exp $
 This is AMS02 Ntuple Description
 
 
@@ -224,7 +224,7 @@ This is AMS02 Ntuple Description
 * I*4  *           * TRTRACK  * pattern(ntrtr) // Pattern (datacards.doc)
 * I*4  *           * TRTRACK  * address(ntrtr) // address (trrec.C buildaddress)
 * I*4  *           * TRTRACK  * nhits(ntrtr)         // number of hits 
-* I*4  *           * TRTRACK  * phits(6,ntrtr)	     // pointers to trrechit
+* I*4  *           * TRTRACK  * phits(8,ntrtr)	     // pointers to trrechit
 * R*4  *           * TRTRACK  * LocDbAver(ntrtr)     // rel mom from testbeam
 * I*4  *           * TRTRACK  * GeaneFitDone(ntrtr)  // != 0 if done
 * I*4  *           * TRTRACK  * AdvancedFitDone(ntrtr) --------------

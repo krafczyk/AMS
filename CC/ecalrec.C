@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.33 2001/09/11 12:57:03 choumilo Exp $
+//  $Id: ecalrec.C,v 1.34 2001/10/08 14:38:13 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -1540,7 +1540,7 @@ void EcalShower::EnergyFit(){
     if(alpha<=0){
      setstatus(AMSDBc::CATLEAK);
      cerr<<"EcalShower::EnergyFit-W-CATLEAKDetected "<<_Edep[Maxrow-1]<<endl;
-     alpha=ECREFFKEY.SimpleRearLeak[1]*ec/FLT_MAX;
+     alpha=ECREFFKEY.SimpleRearLeak[1]*ec/FLT_MAX*100;
     }
     _EnergyC= ECREFFKEY.SimpleRearLeak[1]*ec/alpha;
     _RearLeak= _EnergyC-ECREFFKEY.SimpleRearLeak[1]*ec;

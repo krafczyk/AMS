@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.56 2001/08/10 12:59:38 choutko Exp $
+//  $Id: geant3.C,v 1.57 2001/10/08 14:38:14 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -47,6 +47,8 @@ extern "C" void trphoton_(int&);
 extern "C" void simtrd_(int& );
 extern "C" void getscanfl_(int &scan);
 extern "C" void gustep_(){
+if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
+
 
 //AMSmceventg::SaveSeeds();
 //cout <<" in gustep "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
@@ -471,6 +473,7 @@ GDCXYZ();
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
+if(    AMSEvent::gethead()->HasNoCriticalErrors()){
   RICHDB::Nph()=0;
    try{
    if(AMSJob::gethead()->isSimulation()){
@@ -587,29 +590,7 @@ extern "C" void guout_(){
      AMSEvent::gethead()->copy();
    }
      AMSEvent::gethead()->write(trig);
-#ifdef __DB_All__
-   if(trig) {
-    if ( eventW > DBWriteGeom) {
-     integer run   = AMSEvent::gethead() -> getrun();
-     char* jobname = AMSJob::gethead()->getname();
-     integer event = AMSEvent::gethead() -> getEvent();
-     time_t  time  = AMSEvent::gethead() -> gettime();
-     integer rtype = AMSEvent::gethead() -> getruntype();
-     number pole, stationT, stationP;
-     AMSEvent::gethead() -> GetGeographicCoo(pole, stationT, stationP);
-     integer WriteStartEnd = 0;
-     if (trigEvents == 0 && AMSFFKEY.Read < 10)     WriteStartEnd = 1;
-      if(dbout.recoevents() || dbout.mcevents() || dbout.mceventg())
-        dbout.AddEvent(run, event, time, rtype, pole, stationT, stationP, 
-                       WriteStartEnd);
-      trigEvents++;
-    } 
-    if (dbg_prtout != 0 && eventW < DBWriteGeom) cout <<
-         "GUOUT - I - AMSFFKEY.Write = 0, no database action "<<endl;
-   } else {
-     notrigEvents++;
-   }
-#endif
+}
      UPool.Release(0);
    AMSEvent::gethead()->remove();
      UPool.Release(1);

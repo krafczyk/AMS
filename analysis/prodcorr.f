@@ -392,6 +392,7 @@ c     +   betantof(ipb),betapattern(ipb),betachi2(ipb),betachi2s(ipb)
 * Update beta also
 *                 
 
+              pbetaold=pbeta(1)
          if(prichp(1).gt.0)then
             xbeta=1/abs(beta(pbetap(1)))
             xebeta=betaerror(pbetap(1))
@@ -415,6 +416,7 @@ c     +   betantof(ipb),betapattern(ipb),betachi2(ipb),betachi2s(ipb)
           pbeta(1)=beta(pbetap(1))
           perrbeta(1)=pbeta(1)**2*betaerror(pbetap(1))
          endif
+              if(pbetaold*pbeta(1).lt.0)pmom(1)=-pmom(1)
          else
          write(*,*)' bad beta ',xchi2,ifound
          xchi2max=0
