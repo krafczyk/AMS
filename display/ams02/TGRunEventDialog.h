@@ -1,4 +1,4 @@
-//  $Id: TGRunEventDialog.h,v 1.2 2001/01/22 17:32:36 choutko Exp $
+//  $Id: TGRunEventDialog.h,v 1.3 2001/06/25 20:21:18 kscholbe Exp $
  
 // Copyright (C) 1998 CodeCERN. All rights reserved.
  
@@ -20,7 +20,7 @@
 #endif
  
  
-class TGTextFrame;
+class TGTextView;
 class TGLabel;
 class TGTextBuffer;
 class TGTextEntry;
@@ -33,7 +33,7 @@ protected:
    Int_t             *fRun;      // pointer to run number
    Int_t             *fEvent;    // pointer to event number
    const static char *fLines;    // lines in TGTextFrame fText
-   TGTextFrame       *fText;     // TGTextFrame to post a note
+   TGTextView        *fText;     // TGTextView to post a note
    TGLabel           *fLrun;     // "Run" label
    TGLabel           *fLevt;     // "Event" label
    TGTextBuffer      *fTbrun;    // text buffer for fTrun

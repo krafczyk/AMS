@@ -1,11 +1,13 @@
-//  $Id: TGRunEventDialog.cxx,v 1.2 2001/01/22 17:32:36 choutko Exp $
+//  $Id: TGRunEventDialog.cxx,v 1.3 2001/06/25 20:21:17 kscholbe Exp $
 #include "TGRunEventDialog.h"
+#include <TGView.h>
 #include <TGTextView.h>
 #include <TGLabel.h>
 #include <TGTextEntry.h>
 #include <TGButton.h>
 #include <stdlib.h>
 #include <iostream.h>
+#include <TGScrollBar.h>
 
 enum {
    kIDF_OK,
@@ -30,7 +32,11 @@ TGRunEventDialog::TGRunEventDialog(const TGWindow *p, const TGWindow *main,
    //
    fLmain  = new TGLayoutHints( kLHintsTop | kLHintsExpandX, 4, 4, 5, 5);
 
-   fText   = new TGTextFrame(this, 10, 10, 0);
+ // Something wrong with kNoHSB and kNoVSB??
+//   fText   = new TGTextView(this, 10, 10, -1,kNoHSB | kNoVSB, fgDefaultFrameBackground);
+// Temp:
+   fText   = new TGTextView(this, 10, 10, -1,BIT(0) | BIT(1), fgDefaultFrameBackground);
+   fText->ChangeOptions(0);
    fText->LoadBuffer(fLines);
    fText->Resize(350, 50);
 
@@ -114,7 +120,7 @@ TGRunEventDialog::TGRunEventDialog(const TGWindow *p, const TGWindow *main,
    if (main) {
       int      ax, ay;
       Window_t wdummy;
-      gGXW->TranslateCoordinates(main->GetId(), GetParent()->GetId(),
+      gVirtualX->TranslateCoordinates(main->GetId(), GetParent()->GetId(),
                             (((TGFrame *) main)->GetWidth() - fWidth) >> 1,
                             (((TGFrame *) main)->GetHeight() - fHeight) >> 1,
                               ax, ay, wdummy);
