@@ -21,11 +21,11 @@ ifneq "$(wildcard /etc/redhat-release)" ""
 endif
 
 ifdef SLC3system
- RH9add=-pthread
+ CERN_LEVEL = 2004
  ifndef AMSICC
-   CERN_LEVEL = 2004
+   RH9add=-pthread  /usr/lib/ctype-info.o
  else 
-   CERN_LEVEL = 2001
+   RH9add=-pthread
  endif
  PACKLIB = packlib -lshift
 else
