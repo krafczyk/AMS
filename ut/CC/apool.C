@@ -8,18 +8,19 @@
     AMSaPool UPool(512000);
 #endif
 integer AMSaPool::_Mask=0xf0f0f0f0;
+ integer AMSaPool::_Release=1;
 char * AMSNodeMapPool::get( integer o){
     integer i=0;
    if(_hash && _numo)i=AMSbia((integer**)_hash,o,_numo);
     if(i>0 && i<_numo){
       char *tmp=(char*)_hash[i];
-      //UCOPY2(_hash+i+1,_hash+i,sizeof(_hash[0])*(--_numo-i)/4);
       for(int j=i;j<--_numo;j++)_hash[j]=_hash[j+1];
       return tmp;
     }
     else return 0;
 }
 void AMSNodeMapPool::put( integer * p ){
+  // Release memory if global flag o.k.
   //    AMSgObj::BookTimer.start("put");
     integer i=0;
     //    AMSgObj::BookTimer.start("putAMSBia");
@@ -178,7 +179,7 @@ void AMSaPool::udelete(void *p){
  }
  else {
    //   AMSgObj::BookTimer.start("udelete");
-   poolMap.put((integer*)((char*)p-sizeof(ALIGN)));
+   if(_Release)poolMap.put((integer*)((char*)p-sizeof(ALIGN)));
    //   AMSgObj::BookTimer.stop("udelete");
  }
  }

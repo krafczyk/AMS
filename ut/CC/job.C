@@ -186,6 +186,7 @@ CCFFKEY.low=0;
 CCFFKEY.earth=1;
 CCFFKEY.theta=51.65;
 CCFFKEY.phi=290.;
+CCFFKEY.polephi=290.;
 CCFFKEY.begindate=2041998;
 CCFFKEY.enddate=  6041998;
 CCFFKEY.begintime=80000;

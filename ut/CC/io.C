@@ -1,5 +1,6 @@
 #include <io.h>
 #include <commons.h>
+#include <amsdbc.h>
 char * AMSIO::fnam=0;
 fstream AMSIO::fbin;
 AMSIO::AMSIO(integer run, integer event, time_t time, integer ipart, 
@@ -42,9 +43,9 @@ void AMSIO::init(integer mode,integer format){
            if(ok){
              seed0=io.getseed(0);
              seed1=io.getseed(1);
-             theta=io.getstheta()*180./3.1415926;
-             phi=(io.getsphi()-io.getpolephi())*180./3.1415926+290.;
-             phi=fmod(phi,360.);
+             theta=io.getstheta()*AMSDBc::raddeg;
+             phi=io.getsphi()*AMSDBc::raddeg;
+             pole=io.getpolephi()*AMSDBc::raddeg;
            }
            if(format==1 && (io.getrun()!=runold || ok==0)){
              if(iposr>0)cout <<"AMSIO::init-I-Run "<<runold<<" has "<<iposr<<
@@ -76,7 +77,7 @@ void AMSIO::init(integer mode,integer format){
              cout<<"AMSIO::init-I-Total of "<<ipos-1
              <<" events have been read."<<endl;
              cout << " Last Random Number "<<seed0<<" "<<seed1    <<endl;
-             cout << " Theta "<< theta<< " Phi "<<phi<<endl;
+             cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
              fbin.close();
           }
           else  exit(1);

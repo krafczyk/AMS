@@ -52,7 +52,6 @@ AMSNodePool():_address(0),AMSNode(){}
 AMSNodePool(integer id, void *p):_address(p),AMSNode(id){}
 void setaddress(void *p){_address=p;}
 void*  getaddress(){return _address;}
-
 };
 
 class AMSNodeMapPool: public AMSNodeMap{
@@ -101,6 +100,7 @@ private:
  integer _lc;  // current length
  integer _size;  // size in bytes
  static integer _Mask;  // for some protection 
+ static integer _Release;
  AMSNodePool poolNode;
  AMSNodeMapPool poolMap;
 public:
@@ -109,6 +109,7 @@ public:
   void erase(integer);
   void ReleaseLastResort();
   void SetLastResort(integer i);
+  void Release(integer r){ _Release=r;}
  void * insert(size_t); 
  void udelete(void *p);
  };

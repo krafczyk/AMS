@@ -2,11 +2,21 @@
  
 #include <link.h>
 void AMSlink::_erase(){
-if(_next){
-_next->_erase();
-_next=0;
-}
-if(!_next) delete this;
+  //if(_next){
+  //_next->_erase();
+  //_next=0;
+  //}
+  //if(!_next) delete this;
+  AMSlink * next=_next;
+  AMSlink * prev;
+  do {
+   if(next){
+      prev=next;
+      next=next->_next;
+      delete prev;
+   }
+  }while(next);
+  _next=0;
 }
 void AMSlink::_print(ostream & stream){
    _printEl(stream);

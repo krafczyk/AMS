@@ -312,7 +312,9 @@ extern "C" void guout_(){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->printA(0);
+     UPool.Release(0);
      AMSEvent::gethead()->remove();
+     UPool.Release(1);
      AMSEvent::sethead(0);
       UPool.erase(0);
       return;
@@ -374,7 +376,9 @@ extern "C" void guout_(){
 //-
 #endif
 
+     UPool.Release(0);
    AMSEvent::gethead()->remove();
+     UPool.Release(1);
    AMSEvent::sethead(0);
    UPool.erase(2000000);
 }

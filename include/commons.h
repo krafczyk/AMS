@@ -293,6 +293,7 @@ public:
   integer earth;      // earth mafnetic field modulation
   geant theta;         // station theta at begin
   geant phi;           // station phi at begin
+  geant polephi;       // north pole phi
   integer begindate;      // time begin format ddmmyyyy
   integer begintime;      // time begin format hhmmss
   integer enddate;        // time end   format ddmmyyyy

@@ -135,7 +135,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
  integer nwb=0;
  GFPART(ipart,chp,itrtyp,mass,charge,tlife,ub,nwb);
  charge=fabs(charge);
-
+  const number MIR=51.65;
   Orbit.Begin.tm_year  =  begindate%10000-1900;
   Orbit.Begin.tm_mon = (begindate/10000)%100-1;
   Orbit.Begin.tm_mday   = (begindate/1000000)%100;
@@ -155,12 +155,20 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   
   Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
   Orbit.PhiI=CCFFKEY.phi/AMSDBc::raddeg;
-  Orbit.AlphaSinThetaMax=sin(51.65/AMSDBc::raddeg);
-  Orbit.PhiZero=Orbit.PhiI-acos(Orbit.AlphaSinThetaMax/sin(Orbit.ThetaI));
+  Orbit.AlphaSinThetaMax=sin(MIR/AMSDBc::raddeg);
+  number r= sin(Orbit.ThetaI)/Orbit.AlphaSinThetaMax;
+  if(r > 1 || r < -1){
+    cerr <<"AMSMCEVENTG::setspectra-ThetaI too high "<<Orbit.ThetaI<<endl;
+    if(Orbit.ThetaI < 0 )Orbit.ThetaI = -MIR/AMSDBc::raddeg;
+    else Orbit.ThetaI= MIR/AMSDBc::raddeg;
+    cerr <<"AMSMCEVENTG::setspectra-ThetaI brought to "<<Orbit.ThetaI<<endl;
+    r=sin(Orbit.ThetaI)/Orbit.AlphaSinThetaMax;
+  }
+  Orbit.PhiZero=Orbit.PhiI-acos(r);
   
   Orbit.AlphaSpeed=AMSDBc::twopi/92.36/60.;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
-  Orbit.PolePhi=290./AMSDBc::raddeg;
+  Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
   Orbit.PoleTheta=78.6/AMSDBc::raddeg;
   Orbit.Nskip=0;
 if(ipart == 3 && low ){

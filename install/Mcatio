@@ -40,8 +40,8 @@ endif
 #
 #
 #
-FILES= ../CC/catio.C  ../CC/io.C ../CC/commons.C
-OBJECTS= ..$(BIN)/catio.o ..$(BIN)/io.o ..$(BIN)/commons.o ..$(BIN)/id.o ..$(BIN)/apool.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/link.o ..$(BIN)/uzstat.o
+FILES= ../CC/catio.C  ../CC/io.C ../CC/commons.C ../CC/amsdbc.C
+OBJECTS= ..$(BIN)/catio.o ..$(BIN)/io.o ..$(BIN)/commons.o ..$(BIN)/id.o ..$(BIN)/apool.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/link.o ..$(BIN)/uzstat.o ..$(BIN)/amsdbc.o
 catio:	$(OBJECTS)
 	$(LD) -v -o ..$(EXE)/catio $(OBJECTS)  $(LDFLAGS)
 
@@ -53,6 +53,9 @@ catio:	$(OBJECTS)
 
 ..$(BIN)/io.o: 	 ../CC/io.C
 	$(CC) -c $(CFLAGS) ../CC/io.C -o ..$(BIN)/io.o
+
+..$(BIN)/amsdbc.o: 	 ../CC/amsdbc.C
+	$(CC) -c $(CFLAGS) ../CC/amsdbc.C -o ..$(BIN)/amsdbc.o
 
 ..$(BIN)/commons.o: 	 ../CC/commons.C
 	$(CC) -c $(CFLAGS) ../CC/commons.C -o ..$(BIN)/commons.o

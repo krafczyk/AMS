@@ -75,6 +75,7 @@ public:
   _size(blsize),_Count(0),_Nblocks(0),_Minbl(10000000),_Maxbl(0),_Totalbl(0),
   _Nreq(0){SetLastResort(10000);}
  ~AMSuPool(){erase(0);};
+ void Release(integer i){};
   void erase(integer);
   void ReleaseLastResort();
   void SetLastResort(integer i);

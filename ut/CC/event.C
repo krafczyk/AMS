@@ -97,8 +97,11 @@ void AMSEvent::SetTimeCoo(){
   static number theta=AMSmceventg::Orbit.ThetaI;
   static number phi=AMSmceventg::Orbit.PhiI;
   static number pole=AMSmceventg::Orbit.PolePhi;
-  geant dd; 
-  number xsec=-sec*log(RNDM(dd));
+  geant dd,r; 
+  do {
+   r=RNDM(dd);
+  }while (r <= 0);
+  number xsec=-sec*log(r);
   curtime+=xsec;
   pole=fmod(pole+AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
   phi=fmod(phi+AMSmceventg::Orbit.AlphaSpeed*xsec,AMSDBc::twopi);
@@ -667,8 +670,8 @@ void AMSEvent::_copyEl(){
 
 void AMSEvent::_printEl(ostream & stream){
  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
-   ctime(&_time)<<" Theta "<<_StationTheta<<" Phi "<<_StationPhi<<
-   " Pole "<<_NorthPolePhi<<endl;
+   ctime(&_time)<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<
+   " Pole "<<_NorthPolePhi*AMSDBc::raddeg<<endl;
 }
 
 void AMSEvent::_writeEl(){
@@ -860,16 +863,17 @@ void AMSEvent::Recovery(){
       cerr <<"AMSEvent::Recovery-I-Cleanup started"<<endl;
       UPool.ReleaseLastResort();
       cerr << "AMSEvent::Recovery-I-Last resort released"<<endl;
-#ifndef __BIGSTACK__
-      // line below is very unsafe/risky one.
-      // use __BIGSTACK__ together with "limit stack 20000" command to make safe recovery
-      // 
-      integer n=removeC();
-      cerr <<"AMSEvent::Recovery-I- "<<n<<
-      " containers succesfully nullified"<<endl;
-#endif
-
+      //#ifndef __BIGSTACK__
+      //      // line below is very unsafe/risky one.
+      //      // use __BIGSTACK__ together with "limit stack 20000" 
+      //      command to make safe recovery
+      //       integer n=removeC();
+      //      cerr <<"AMSEvent::Recovery-I- "<<n<<
+      //      " containers succesfully nullified"<<endl;
+      //#endif
+      UPool.Release(0);
       remove();
+      UPool.Release(1);
       cerr <<"AMSEvent::Recovery-I-Event structure removed"<<endl;
       sethead(0);
       UPool.erase(0);

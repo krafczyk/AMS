@@ -22,7 +22,7 @@ void operator delete(void *p)
 
 AMSContainer(AMSID id,integer nelem=0):
 AMSNode(id),_nelem(nelem),_Last(0),_Head(0),_sorted(0){}
-void eraseC(){if(_Head)_Head->_erase();_Head=_Last=0;_nelem=0;}
+void eraseC(){if(_Head)_Head->_erase();delete _Head;_Head=_Last=0;_nelem=0;}
 void printC(ostream & stream){_printEl(stream);if(_Head)_Head->_print(stream);}
 void writeC(){if(_Head)_Head->_write();}
 void copyC(){if(_Head)_Head->_copy();}
