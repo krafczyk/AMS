@@ -10,11 +10,12 @@ int main (int argc, char *argv[]) {
 char chbuf[80],chbuf1[80],chbuf2[80], ch[256], *ch1, *ch2;
 ch256 chh[30];
 int i,j,nn,er,count[8],disk_space,timer, time_int,dt, time_sleep;
-int date1,date2,h1,h2,m1,m2,cpu,cpu_lim,cpu_cont,stat_loc[7][8],conn; 
+int date1,date2,h1,h2,m1,m2,cpu,cpu_lim,cpu_cont,stat_loc[7][8],conn,cpu_t; 
 struct stat stat_buf; 
 FILE *fp;
 const char delimiter[]=" %";
 const char delim[]=" :";
+const char delim_[]=" -";
 char *token, *user_name, *cti;
 pid_t pid;
 
@@ -110,6 +111,15 @@ pid_t pid;
               }
 	      strcpy(chbuf,ch1);
               sprintf(chbuf2,"%s cpu %s",chbuf1,chbuf);
+              cpu_t=atoi(chbuf);
+              token=strtok(ch1,delim_);
+              token=strtok(NULL,delim_);
+              if (token!=NULL) {
+                cpu_t *=24;
+              }
+              if (j>4) {
+                cpu_t=cpu_t/60;
+              }
 	      ch1=fgets(ch,256,fp);
 	      /*token=strtok(ch1,delimiter);*/
 	      if ((strncmp(ch1,"grep",4)!=0) && (strncmp(ch1,"sh -c",5)!=0)) {
@@ -257,7 +267,7 @@ pid_t pid;
             ch2=strrchr(chh[nn],'.');
             if (ch2!=NULL) {
               if (strcmp(ch2,".hbk\n")==0)
-              nn++;
+                nn++;
             }
           }
 	}
@@ -301,14 +311,21 @@ pid_t pid;
 	  if (date2 != date1)
 	    h2 += 24;
 	  dt=(h2-h1)*60+(m2-m1);
-	  if (dt>time_int)
-	    count[2]=1;
+	  if (dt>time_int) {
+            if (cpu_t>time_int)
+              count[2]=1;
+            else {
+              dt=cpu_t*60.;
+              count[2]=0;
+            }
+          }
 	}
       END_nt:
 	switch (count[2]) {
         case -2:
+          sprintf(chbuf,"%d h",cpu_t);
           fl_set_object_color(check_[2][j],FL_YELLOW,FL_YELLOW);
-          fl_set_object_label(numb_[2][j],"0");
+          fl_set_object_label(numb_[2][j],chbuf);
           fl_set_object_label(spare[j],token);
           break;
         case -1: 
