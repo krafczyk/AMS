@@ -1,8 +1,8 @@
-*  $Id: tkfit.F,v 1.7 2001/01/22 17:32:25 choutko Exp $
       SUBROUTINE TKFITA(NPOINTS, XM, EXM, IPLANEZ,
-     + IMSCAT, xmass, OUTPAR, IERR)
+     + IMSCAT, XMASS, OUTPAR, CHI2, NDOF, IERR)
+*********************************************************************
 *
-*     Fitting NPOINTS (consecutive) (maximum 10 points)
+*     Fitting NPOINTS (consecutive) (maximum 8 points)
 *
 *     Input Coordinates XM(i,j), i=1,3, j=1, NPOINTS
 *     Error to Input Coordinates EXM(i,j), i=1,3, j=1, NPOINTS
@@ -10,8 +10,7 @@
 *     If IMSCAT=0 no multiple scattering error is assumed
 *     If IMSCAT<>0 the multiple scattering uncertainty is accounted for
 *
-*     BETA is the beta value if multiple scattering is required
-*
+*     XMASS is the assumed mass for the particle (GeV)
 *
 *     Fitted parameters OUTPAR(k), k=1,5
 *     OUTPAR(1) = x coordinate at first plane (cm)
@@ -22,62 +21,49 @@
 *     OUTPAR(5) = 1/rigidity (1/GV)
 *     OUTPAR(6) = sigma(1/rigidity)   
 *
+*     CHI2 is the chi-square of the fit
+*     NDOF is the number of degrees of freedom (=2*npoints-5)
+*
 *     IERR=0 if everything was OK
 *
 ********************************************
 *
 *     Things to play with (lengths are in cm):
-*        ERRX = tracker resolution along X (K-side)
-*        ERRY = tracker resolution along Y (S-side)
-*        WLAD = Expected width of material in a tracker plane
-*        RLEN = Radiation length (9.36 cm for silicon)
-*        WLAD/RLEN = number of radiation lengths traversesed for one plane
+*        WLEN = number of radiation lengths traversed for each plane
 *
 *     The multiple scattering uses the formula:
 *        (Deviation_rms_x)**2 = (Deviation_rms_y)**2 =
-*          (0.0137/(rigidity(GV)*beta))**2 * (WLAD/RLEN) /3/cos(theta)
+*          (0.0118/(rigidity(GV)*beta))**2 * (WLAD/RLEN)/cos(theta)
 *
 ********************************************
 *
-*     Written by J. Alcaraz (1999)
+*     Written for AMS-01, J. Alcaraz (1999)
+*     Updated and improved for AMS-02, J. Alcaraz (February 2003)
 *
 *********************************************************************
 *
-      PARAMETER (NHITS=10, NITER=25)
+      PARAMETER (NHITS=8, NITER=25)
       DIMENSION AXX(3,NHITS), AV(3,NHITS), XM(3,NHITS), XP(2,NHITS), 
      + AL(NHITS),exm(3,nhits),iplanez(nhits)
-      DIMENSION D(2*NHITS,5), DX(5),  IDAUX(4*NHITS)
+      DIMENSION D(2*NHITS,5), IDAUX(4*NHITS)
       DIMENSION OUTPAR(6)
       DIMENSION ABSUZ(NHITS) 
-      real *8 ER2(2*NHITS,2*NHITS),DD(5,5)
+      DOUBLE PRECISION ER2(2*NHITS,2*NHITS),DD(5,5), DX(5)
  
-      DATA WLAD /0.03/, RLEN /9.36/
-      data tol/1.e-5/     
-
+      DIMENSION WLEN(NHITS)
+      DATA WLEN /0.,3.2E-3,6.4E-3,3.2E-3,6.4E-3,3.2E-3,6.4E-3, 0./
+      data tol/1.e-5/
+      data prec /5.e-3/ ! precision of the algorithm in MV
 *
 ***---------------------------------------------------------------
 *
 c      write(*,*)imscat,xmass,iplanez,exm
       IERR = 1
 
-
       IF (NPOINTS.LT.3 .OR. NPOINTS.GT.nhits) THEN
         GOTO 999
       ENDIF
 
-C Find out at which plane are they
-c      CALL VZERO (Iplanez, NPOINTS)
-c      do IP = 1, NPOINTS
-c        distmin = 1.E30
-c        do IZ = 1, nplanes
-c          IF (ABS(XM(3,IP)-ZNOM(IZ)).LT.distmin) THEN
-c            distmin = ABS(XM(3,IP)-ZNOM(IZ))
-c            iplanez(IP) = IZ
-c          ENDIF
-c        end do
-c      end do
-c      print*,' IPLANEZ= ', iplanez
-        
       do 20 ipl = 1, NPOINTS
         if (ipl.EQ.1) then
           DO i=1,3
@@ -92,6 +78,7 @@ c        print*,'ipl, axx= ', ipl, (axx(i,ipl),i=1,3)
 c        print*,'ipl, av= ', ipl, (av(i,ipl),i=1,3)
 20    CONTINUE
 
+C Initial parameters
       OUTPAR(1) = XM(1,1)
       OUTPAR(2) = XM(2,1)
       unorm = sqrt(  (XM(1,2)-XM(1,1))**2
@@ -101,59 +88,36 @@ c        print*,'ipl, av= ', ipl, (av(i,ipl),i=1,3)
       OUTPAR(4) = (XM(2,2)-XM(2,1))/UNORM
       OUTPAR(5) = 0.
 c      print*,'First: OUTpar= ', OUTpar
+      DO J = 1, NPOINTS
+        IF (J.EQ.1) then
+          AL(1) = 0.
+        ELSE
+          AL(J) = sqrt(  (XM(1,J)-XM(1,J-1))**2
+     >                    +(XM(2,J)-XM(2,J-1))**2
+     >                    +(XM(3,J)-XM(3,J-1))**2)
+        ENDIF
+      END DO
+c        print*,' AL= ', AL
+
+C Iterative procedure
       do 30 iter = 1, NITER
+
+C Fetch information from previous iteration
         outpar5=outpar(5)
         DO J = 1, NPOINTS
           IF (J.EQ.1) then
-            ux = OUTPAR(3)
-            uy = OUTPAR(4)
-* Iterate with initial angles if nonsense
-            if (ux**2+uy**2.ge.1.) THEN
-              unorm = sqrt(  (XM(1,2)-XM(1,1))**2
-     >             + (XM(2,2)-XM(2,1))**2
-     >             + (XM(3,2)-XM(3,1))**2)
-              OUTPAR(3) = (XM(1,2)-XM(1,1))/UNORM
-              OUTPAR(4) = (XM(2,2)-XM(2,1))/UNORM
-              GOTO 30
-            endif
-            uz = -sqrt(1.-ux**2-uy**2)
-            AL(1) = 0.
-            XP(1,1) = OUTPAR(1)
-            XP(2,1) = OUTPAR(2)
+            ux = outpar(3)
+            uy = outpar(4)
           ELSE
-            ux = ux + OUTPAR(5)*AL(J-1)*av(1,J-1)
-            uy = uy + OUTPAR(5)*AL(J-1)*av(2,J-1)
-* Iterate with initial angles if nonsense
-            if (ux**2+uy**2.ge.1.) THEN
-              unorm = sqrt(  (XM(1,2)-XM(1,1))**2
-     >             + (XM(2,2)-XM(2,1))**2
-     >             + (XM(3,2)-XM(3,1))**2)
-              OUTPAR(3) = (XM(1,2)-XM(1,1))/UNORM
-              OUTPAR(4) = (XM(2,2)-XM(2,1))/UNORM
-              GOTO 30
-            endif
-c            print*,' ux, uy= ', ux, uy
-            uz = -sqrt(1.-ux**2-uy**2)
-            IF (OUTPAR(5).eq.0.) then
-              AL(J) = (XM(3,J)-XM(3,J-1))/uz
-            ELSE
-              AL(J) = (-uz
-     >          +sqrt(uz**2+4.*OUTPAR(5)*(xm(3,j)-xm(3,j-1))*axx(3,j)))
-     >                /2./OUTPAR(5)/axx(3,j)
-            ENDIF
-            AL(J) = (XM(3,J)-XM(3,J-1))/uz
-     >            + (XM(3,J)-XM(3,J-1))**2/uz**3/4.*OUTPAR(5)*axx(3,j)
-            XP(1,J) = XP(1,J-1) + ux*AL(J) + OUTPAR(5)*AL(J)**2*axx(1,j)
-            XP(2,J) = XP(2,J-1) + uy*AL(J) + OUTPAR(5)*AL(J)**2*axx(2,j)
+            ux = ux + outpar5*av(1,J-1)
+            uy = uy + outpar5*av(2,J-1)
           ENDIF
-c          PRINT*,' JX,DX, DY (um)= ', J,(XM(1,J)-XP(1,J))*1.E4
-c     >                    ,(XM(2,J)-XP(2,J))*1.E4
+          uz = -sqrt(1.-ux**2-uy**2)
           ABSUZ(J) = abs(uz)
         END DO
-c        print*,' AL= ', AL
 
+C F and G matrices
         CALL VZERO (D, 2*NHITS*5)
-        CALL VZERO (ER2, 2*NHITS*2*NHITS*2)
         DO J = 1, NPOINTS
           jx = j
           jy = j+NPOINTS
@@ -164,76 +128,80 @@ c        print*,' AL= ', AL
             D(JY,4) = D(JY,4) + AL(K)
             DO L = 1, K
               IF (L.EQ.K) THEN
-                D(JX,5) = D(JX,5) + AL(K)*AL(L)*axx(1,k)
-                D(JY,5) = D(JY,5) + AL(K)*AL(L)*axx(2,k)
+                D(JX,5) = D(JX,5) + AL(K)*AL(K)*axx(1,k)
+                D(JY,5) = D(JY,5) + AL(K)*AL(K)*axx(2,k)
               ELSE
                 D(JX,5) = D(JX,5) + AL(K)*AL(L)*av(1,l)
                 D(JY,5) = D(JY,5) + AL(K)*AL(L)*av(2,l)
               ENDIF
             END DO
           END DO
-c          PRINT*,'JX, D= ', J, (D(JX,I),i=1,5)
-c          PRINT*,'JY, D= ', J, (D(JY,I),i=1,5)
+        END DO
 
-          DO L = 1, JX
-            M = L + NPOINTS
-            IF (L.EQ.JX) THEN
-              ER2(L,JX) = ER2(L,JX) + Exm(1,jx)**2
-              ER2(M,JY) = ER2(M,JY) + Exm(2,jx)**2
+C Multiple scattering
+        IF (IMSCAT.NE.0) THEN
+          IF (OUTPAR(5).NE.0.) THEN
+c  PBETAI2 is 1/(p*beta)**2
+            xinv2=(OUTPAR(5)/2.997E-4)**2
+            PBETAI2 = xinv2*(1+xmass**2*xinv2)
+          ELSE
+            PBETAI2 = 0.
+          ENDIF
+        ELSE
+          PBETAI2 = 0.
+        ENDIF
+
+C Covariance matrix
+        CALL VZERO (ER2, 2*NHITS*2*NHITS*2)
+        DO J = 1, NPOINTS
+          jx = j
+          jy = j+NPOINTS
+          DO L = 1, J
+            lx = l
+            ly = l + NPOINTS
+            IF (j.EQ.l) THEN
+              ER2(jx,lx) = ER2(jx,lx) + Exm(1,jx)**2
+              ER2(jy,ly) = ER2(jy,ly) + Exm(2,jx)**2
             ENDIF
+
+C Multiple scattering
             IF (IMSCAT.NE.0) THEN
-              IF (OUTPAR(5).NE.0.) THEN
-c                PBETAI = (OUTPAR(5)/2.997E-4)/BETA
-                xinv=OUTPAR(5)/2.997E-4
-                PBETAI = xinv*sqrt(1+xmass**2*xinv**2)
-              ELSE
-                PBETAI = 0.
-              ENDIF
-              SCAREF = (0.0137*PBETAI)**2*(WLAD/RLEN)/3.
-              ZINVLI2 = 0.
-              DO K = 1, L-1
-                AL_K = 0.
-                DO KK = K+1, JX
-                  IZMAX = (IPLANEZ(KK)-IPLANEZ(K))/(KK-K)
-                  DO IZ = 1, IZMAX
-                    AL_K = AL_K + (AL(KK)*IZ)/IZMAX
-                  END DO
+              DO M = 2, MIN(J,L)-1
+                AL_JM = 0.
+                DO K = M+1, J
+                  AL_JM = AL_JM + AL(K)
                 END DO
-                AL_L = 0.
-                DO LL = K+1, L
-                  IZMAX = (IPLANEZ(LL)-IPLANEZ(K))/(LL-K)
-                  DO IZ = 1, IZMAX
-                    AL_L = AL_L + (AL(LL)*IZ)/IZMAX
-                  END DO
+                AL_LM = 0.
+                DO K = M+1, L
+                  AL_LM = AL_LM + AL(K)
                 END DO
-                ER2(L,JX) = ER2(L,JX) + AL_K*AL_L*SCAREF/ABSUZ(K)
-                ER2(M,JY) = ER2(M,JY) + AL_K*AL_L*SCAREF/ABSUZ(K)
+C    add radiation lengths in case of missing measurements
+                WL = 0.
+                DO IZ = IPLANEZ(M-1)+1, IPLANEZ(M)
+                  WL = WL + WLEN(IZ)
+                END DO
+                ER2(jx,lx) = ER2(jx,lx) 
+     +            + AL_JM*AL_LM*0.0118**2*PBETAI2*WL/ABSUZ(M)
+                ER2(jy,ly) = ER2(jy,ly) 
+     +            + AL_JM*AL_LM*0.0118**2*PBETAI2*WL/ABSUZ(M)
               END DO
             ENDIF
-            ER2(JX,L) = ER2(L,JX)
-            ER2(JY,M) = ER2(M,JY)
+            ER2(lx,jx) = ER2(jx,lx) 
+            ER2(ly,jy) = ER2(jy,ly) 
           END DO
         END DO
 
-c        DO JJ = 1, NPOINTS
-c          PRINT*,'JJ, ER2X= ', JJ, (ER2(JJ,KK),KK=1,NPOINTS)
-c        END DO
-c        DO JJ = 1, NPOINTS
-c          PRINT*,'JJ, ER2Y= ', JJ
-c     >       , (ER2(JJ+NPOINTS,KK+NPOINTS),KK=1,NPOINTS)
-c        END DO
-
+C Inverse of the covariance matrix S=V**{-1}
         CALL DINV (2*NPOINTS, ER2, 2*NHITS, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
-c          PRINT*,'**************************************'
           PRINT*,' ER2 Covariance Matrix is Singular !!!'
-c          PRINT*,'**************************************'
           outpar(5)=0
           GOTO 999
         ENDIF
 
+C F*S_x*x + G*S_y*y
         DO J = 1, 5
-          DX(J) = 0.
+          DX(J) = 0.D0
           DO L = 1, NPOINTS
            DO M = 1, NPOINTS
             DX(J) = DX(J) + D(L,J)*ER2(L,M)*XM(1,M)
@@ -241,8 +209,12 @@ c          PRINT*,'**************************************'
      >               *XM(2,M)
            END DO
           END DO
+        END DO
+
+C (F*S_x*F + G*S_y*G)
+        DO J = 1, 5
           DO K = 1, 5
-            DD(J,K) = 0.
+            DD(J,K) = 0.D0
             DO L = 1, NPOINTS
              DO M = 1, NPOINTS
               DD(J,K) = DD(J,K) + D(L,J)*ER2(L,M)*D(M,K)
@@ -254,34 +226,15 @@ c          PRINT*,'**************************************'
 c          PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
         END DO
         
+C (F*S_x*F + G*S_y*G)**{-1}
         CALL DINV (5, DD, 5, IDAUX, IFAIL)
         IF (IFAIL.LT.0) THEN
-c          PRINT*,'**************************************'
           PRINT*,' DD Covariance Matrix is Singular !!!'
-c          PRINT*,'**************************************'
-c          PRINT*,' NPOINTS= ', NPOINTs
-c          DO IV = 1, NPOINTS
-c            PRINT*,(XM(IU,IV),IU=1,3)
-c          END DO
-c          PRINT*,' '
-c          DO J = 1, 5
-c            PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
-c          END DO
-c        DO JJ = 1, NPOINTS
-c          PRINT*,'JJ, ER2X= ', JJ, (ER2(JJ,KK),KK=1,NPOINTS)
-c        END DO
-c        DO JJ = 1, NPOINTS
-c          PRINT*,'JJ, ER2Y= ', JJ
-c     >       , (ER2(JJ+NPOINTS,KK+NPOINTS),KK=1,NPOINTS)
-c        END DO
           outpar(5)=0
           GOTO 999
-        ELSE
-c          DO J = 1, 5
-c            PRINT*,' J, DD= ', J, (DD(J,i),i=1,5)
-c          END DO
         ENDIF
 
+C Solution
         DO K = 1, 5
           OUTPAR(K) = 0.
           DO I = 1, 5
@@ -289,17 +242,72 @@ c          END DO
           END DO
         END DO
 c        PRINT*,' OUTpar= ', OUTpar
-         if(abs(outpar5-outpar(5))/2.997e-4.lt.tol)then
-          goto 998
-         endif
+
+C Convergence criteria
+        deltatol = abs(outpar5-outpar(5))/2.997e-4
+        deltaprec = deltatol*(outpar(5)/2.997e-4)**2
+        IF (     IMSCAT.EQ.0 
+     >      .OR. DELTATOL.LT.tol
+     >      .OR. DELTAPREC.LT.prec
+     >                             ) THEN
+          GOTO 998
+        ENDIF
+
 30    continue
-      ierr=2
+C Too many iterations and no convergence
+      write(*,*)'tkfita-Error-TooManyIterations'
+C Final Chi2
+      NDOF = 2*NPOINTS-5
+      CHI2 = 0.
+      DO L = 1, NPOINTS
+        XL = XM(1,L)
+        YL = XM(2,L)
+        DO K = 1, 5
+          XL = XL - D(L,K)*OUTPAR(K)
+          YL = YL - D(L+NPOINTS,K)*OUTPAR(K)
+        END DO
+        DO J = 1, NPOINTS
+          XJ = XM(1,J)
+          YJ = XM(2,J)
+          DO K = 1, 5
+            XJ = XJ - D(J,K)*OUTPAR(K)
+            YJ = YJ - D(J+NPOINTS,K)*OUTPAR(K)
+          END DO
+          CHI2 = CHI2 + XL*SNGL(ER2(L,J))*XJ
+     >                + YL*SNGL(ER2(L+NPOINTS,J+NPOINTS))*YJ
+        END DO
+      END DO
+C Convert rigidity to GV
       OUTPAR(5)=OUTPAR(5)/2.997E-4
       OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
-      write(*,*)'tkfita-Error-TooManyIterations'
+      ierr=2
       goto 999
- 998  continue
+
+998   continue
+C Everything OK
 c      write(*,*)'qq ',iter
+C Final Chi2
+      NDOF = 2*NPOINTS-5
+      CHI2 = 0.
+      DO L = 1, NPOINTS
+        XL = XM(1,L)
+        YL = XM(2,L)
+        DO K = 1, 5
+          XL = XL - D(L,K)*OUTPAR(K)
+          YL = YL - D(L+NPOINTS,K)*OUTPAR(K)
+        END DO
+        DO J = 1, NPOINTS
+          XJ = XM(1,J)
+          YJ = XM(2,J)
+          DO K = 1, 5
+            XJ = XJ - D(J,K)*OUTPAR(K)
+            YJ = YJ - D(J+NPOINTS,K)*OUTPAR(K)
+          END DO
+          CHI2 = CHI2 + XL*SNGL(ER2(L,J))*XJ
+     >                + YL*SNGL(ER2(L+NPOINTS,J+NPOINTS))*YJ
+        END DO
+      END DO
+C Convert rigidity to GV
       OUTPAR(5)=OUTPAR(5)/2.997E-4
       OUTPAR(6)=SQRT(DD(5,5))/2.997E-4
       IERR = 0
@@ -307,8 +315,9 @@ c      write(*,*)'qq ',iter
 999   CONTINUE
 *
       END
+*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       SUBROUTINE PATH_INTEGRAL (P1, P2, axx, av)
-*
+************************************************************
       REAL P1(3), P2(3), alpha, axx(3), av(3)
       REAL X(3), U(3), B(3)
 *

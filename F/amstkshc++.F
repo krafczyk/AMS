@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.70 2003/02/04 15:02:10 choutko Exp $
+*  $Id: amstkshc++.F,v 1.71 2003/02/25 11:08:48 alcaraz Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -6066,12 +6066,11 @@ c               call tkhmd(2,n,x,f,tol,2,ifail1,er1)
              goto 999
              else if(ialg.eq.4)then
               call TKFITA(NPt, Xhits, ysigma, layer,
-     +        IMSa, xmz, OUT,IERR)
+     +        IMSa, xmz, OUT, chi2, ndof, IERR)
               theta=aycos(-sqrt(1-out(3)**2-out(4)**2))
               phi=atan2(out(4),out(3))
               z0=xhits(3,1)
               rig=1/out(5)
-              chi2=0
               erig=out(6)
               out(3)=z0
               out(4)=theta
@@ -9135,9 +9134,16 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.70 2003/02/04 15:02:10 choutko Exp $
+* $Id: amstkshc++.F,v 1.71 2003/02/25 11:08:48 alcaraz Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.71  2003/02/25 11:08:48  alcaraz
+* Updated and improved path integral tracking method (J.Alcaraz, Feb 2003)
+* Hoping this time is OK
+*
+* Revision 1.71  2003/02/25 10:03:00  amscvs
+*  Updated and improved path integral tracking method (J.Alcaraz, Feb 2003)
+*
 * Revision 1.70  2003/02/04 15:02:10  choutko
 * geant 3.2.1 compat added + gamma back
 *
