@@ -1,4 +1,4 @@
-//  $Id: charge.C,v 1.61 2003/01/07 18:37:26 jorgec Exp $
+//  $Id: charge.C,v 1.62 2003/01/08 17:34:54 jorgec Exp $
 // Author V. Choutko 5-june-1996
 //
 //
@@ -229,8 +229,8 @@ integer AMSCharge::build(integer refit){
       }
 
 // RICH Ring
-      AMSRichRing *pring=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
-      AMSRichRing *prcri=pring;
+      AMSRichRing *pring=NULL;
+      AMSRichRing *prcri=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
       while(prcri){
        AMSTrTrack *prctk=prcri->gettrack();
        if(prctk==ptrack){
