@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.197 2003/07/24 09:58:21 alexei Exp $
+# $Id: RemoteClient.pm,v 1.198 2003/07/24 10:56:30 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3208,7 +3208,11 @@ DDTAB:         $self->htmlTemplateTable(" ");
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-              htmlTextField("CPU clock","number",8,100,"QCPU"," [MHz]");  
+              if ($self->{CCT} eq "remote") {
+               htmlTextField("CPU clock","number",8,100,"QCPU"," [MHz]");  
+              } else {
+               htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
+              } 
             htmlTableEnd();
 # Job Parameters
               print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
