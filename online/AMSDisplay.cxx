@@ -258,7 +258,7 @@ void AMSOnDisplay::DrawTitle(Option_t *option)
    static TText * text=0;
    static char atext[255];
 
-   sprintf(atext, "Alpha Magnetic Spectrometer Offline Display  %s.Set_%d",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getCurSubDet()->getCSet());
+   sprintf(atext, "Alpha Magnetic Spectrometer Online Display   %s.Set_%d",gAMSDisplay->getCurSubDet()->GetName(),gAMSDisplay->getCurSubDet()->getCSet());
    sprintf(_grset,"%d",gAMSDisplay->getCurSubDet()->getCSet());
 
    TVirtualPad * gPadSave = gPad;

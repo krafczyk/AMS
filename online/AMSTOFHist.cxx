@@ -23,7 +23,6 @@ void AMSTOFHist::_Fill(){ // V. Choutko 25 Feb 1998
   _filled2= new TH1*[_m2filled];
 for(int mf=0;mf<_m2filled;mf++)_filled2[mf]=0;
   int i=0;
-  // Choutko
   _filled2[i]=new TH1F("ToF-1OR1"," TOF OR/AND Pattern Plane=1",14,0.5,14.5);
   _filled2[i]->SetXTitle(" Paddle No");
   _filled2[i++]->SetFillColor(2);
@@ -138,6 +137,9 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
   _fetched2[4]=(TH1*)gAMSDisplay->GetRootFile()->Get("h1111"); // layers multipl.
   _fetched2[5]=(TH1*)gAMSDisplay->GetRootFile()->Get("h1114"); // "configuration"
                                                         // (ask Choumilov...)
+  for(int kk=0;kk<6;kk++)
+    if(!_fetched2[kk])cerr<<"AMSTOFHist::_Fetch-E-NoHisFound -- kk="<<kk<<endl;
+
   int ind=6;
 
   for(int i=5000;i<5012;i++){ // JL1 hits : index=6..17
@@ -169,7 +171,7 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
     _norm=1;
   }
   for(i=0;i<30;i++)
-    //    if(_fetched2[i])
+    if(_fetched2[i])
       _fetched2[i]->Scale(1./_norm);
   delete dummy;
 
@@ -239,7 +241,8 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
     for(i=start;i<start+28;i++){
       sprintf(text,"h%d",i);
       temp=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
-      ntries=temp->GetEntries();
+      if(temp)
+	ntries=temp->GetEntries();
       if(ntries==0)ntries=1;
       if(temp){
 	_anode[index]=temp->GetMean();
@@ -260,7 +263,8 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
     for(i=start;i<start+28;i++){
       sprintf(text,"h%d",i);
       temp=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
-      ntries=temp->GetEntries();
+      if(temp)
+	ntries=temp->GetEntries();
       if(ntries==0)ntries=1;
       if(temp){
 	_dynode[index]=temp->GetMean();
@@ -281,7 +285,8 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
     for(i=start;i<start+28;i++){
       sprintf(text,"h%d",i);
       temp=(TH1*)gAMSDisplay->GetRootFile()->Get(text);
-      ntries=temp->GetEntries();
+      if(temp)
+	ntries=temp->GetEntries();
       if(ntries==0)ntries=1;
       if(temp){
 	_stretch[index]=temp->GetMean();
@@ -300,29 +305,37 @@ void AMSTOFHist::_Fetch(){ // D. Casadei 25 Feb 1998
   Stat_t bin=0;
   for(i=0;i<8;i++){
     for(int j=0; j<14; j++){
-      bin=_anode[j+14*i];
-      _fetched2[30+i]->SetBinContent(j+1,bin);
-      bin=_anorms[j+14*i];
-      _fetched2[30+i]->SetBinError(j+1,bin);
-      bin=_dynode[j+14*i];
-      _fetched2[38+i]->SetBinContent(j+1,bin);
-      bin=_dynrms[j+14*i];
-      _fetched2[38+i]->SetBinError(j+1,bin);
-      bin=_stretch[j+14*i];
-      _fetched2[46+i]->SetBinContent(j+1,bin);
-      bin=_strrms[j+14*i];
-      _fetched2[46+i]->SetBinError(j+1,bin);
+      if(_fetched2[30+i]){
+	bin=_anode[j+14*i];
+	_fetched2[30+i]->SetBinContent(j+1,bin);
+	bin=_anorms[j+14*i];
+	_fetched2[30+i]->SetBinError(j+1,bin);
+      }
+      if(_fetched2[38+i]){
+	bin=_dynode[j+14*i];
+	_fetched2[38+i]->SetBinContent(j+1,bin);
+	bin=_dynrms[j+14*i];
+	_fetched2[38+i]->SetBinError(j+1,bin);
+      }
+      if(_fetched2[46+i]){
+	bin=_stretch[j+14*i];
+	_fetched2[46+i]->SetBinContent(j+1,bin);
+	bin=_strrms[j+14*i];
+	_fetched2[46+i]->SetBinError(j+1,bin);
+      }
     }
   }
   for(i=30;i<54;i++){
+    if(_fetched2[i]){
 //     _fetched2[i]->SetFillColor(19);
-    _fetched2[i]->SetLabelFont(40,"X");
-    _fetched2[i]->SetLabelFont(40,"Y");
-    _fetched2[i]->SetLabelSize(0.08,"X");
-    _fetched2[i]->SetLabelSize(0.08,"Y");
-    _fetched2[i]->SetLineColor(4);
-    _fetched2[i]->SetMarkerStyle(8);
-    _fetched2[i]->SetMarkerColor(4);
+      _fetched2[i]->SetLabelFont(40,"X");
+      _fetched2[i]->SetLabelFont(40,"Y");
+      _fetched2[i]->SetLabelSize(0.08,"X");
+      _fetched2[i]->SetLabelSize(0.08,"Y");
+      _fetched2[i]->SetLineColor(4);
+      _fetched2[i]->SetMarkerStyle(8);
+      _fetched2[i]->SetMarkerColor(4);
+    }
   }
 }
 //------------------------------
@@ -348,7 +361,7 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<8;i++){
       gPad->cd(i+1);
-      if((i%2)==0){
+      if(((i%2)==0)&&_fetched2[6+i/2]&&_fetched2[18+i/2]){
 	sprintf(text,"Plane %1d Side P hits",(i/2+1));
 	_fetched2[6+i/2]->SetLabelSize(0.08,"X"); // JL1 
 	_fetched2[6+i/2]->SetLabelSize(0.08,"Y"); // JL1 
@@ -360,7 +373,7 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
 	_fetched2[18+i/2]->SetLineColor(4); // blue
 	_fetched2[18+i/2]->Draw("same"); // data
       }
-      else{
+      else if(_fetched2[10+i/2]&&_fetched2[22+i/2]){
 	sprintf(text,"Plane %1d Side N hits",(i/2+1));
 	_fetched2[10+i/2]->SetLabelSize(0.08,"X"); // JL1 
 	_fetched2[10+i/2]->SetLabelSize(0.08,"Y"); // JL1 
@@ -402,19 +415,19 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
 	_fetched2[14+i]->Draw(); // JL1 
 	_fetched2[26+i]->SetLineColor(4); // data
 	_fetched2[26+i]->Draw("same");
+	TPaveText* box1 = new TPaveText(.42,.14,.58,.3,"NDC");
+	TText *tJL1, *tTOF;
+	tJL1=box1->AddText("JL1");
+	tTOF=box1->AddText("TOF");
+	tJL1->SetTextColor(8);
+	tTOF->SetTextColor(4);
+	//       box1->SetFillColor(43);
+	box1->Draw();
+	TPaveText* box = new TPaveText(.25,.93,.75,1.,"NDC");
+	box->AddText(text);
+	box->Draw();
+	gPad->Update();
       }
-      TPaveText* box1 = new TPaveText(.42,.14,.58,.3,"NDC");
-      TText *tJL1, *tTOF;
-      tJL1=box1->AddText("JL1");
-      tTOF=box1->AddText("TOF");
-      tJL1->SetTextColor(8);
-      tTOF->SetTextColor(4);
-//       box1->SetFillColor(43);
-      box1->Draw();
-      TPaveText* box = new TPaveText(.25,.93,.75,1.,"NDC");
-      box->AddText(text);
-      box->Draw();
-      gPad->Update();
       gPadSave->cd();
     }
   }
@@ -423,30 +436,32 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<4;i++){
       gPad->cd(i+1);
-      gPad->SetLogx(gAMSDisplay->IsLogX());
-      gPad->SetLogy(gAMSDisplay->IsLogY());
-      gPad->SetLogz(gAMSDisplay->IsLogZ());
-      ((TH1*)_filled2[i])->SetTitle();
-      ((TH1*)_filled2[i])->SetXTitle("Counter Number");
-      _filled2[i]->SetLabelFont(40,"X");
-      _filled2[i]->SetLabelFont(40,"Y");
-      _filled2[i]->SetFillColor(3);
-      _filled2[i]->Draw();
-      _filled2[i+4]->SetFillColor(4);
-      _filled2[i+4]->Draw("SAME");
-      TPaveText* box = new TPaveText(.43,.14,.57,.3,"NDC");
-      TText *tOR, *tAND;
-      tOR=box->AddText("OR");
-      tAND=box->AddText("AND");
-      tOR->SetTextColor(3);
-      tAND->SetTextColor(4);
+      if(_filled2[i]){
+	gPad->SetLogx(gAMSDisplay->IsLogX());
+	gPad->SetLogy(gAMSDisplay->IsLogY());
+	gPad->SetLogz(gAMSDisplay->IsLogZ());
+	((TH1*)_filled2[i])->SetTitle();
+	((TH1*)_filled2[i])->SetXTitle("Counter Number");
+	_filled2[i]->SetLabelFont(40,"X");
+	_filled2[i]->SetLabelFont(40,"Y");
+	_filled2[i]->SetFillColor(3);
+	_filled2[i]->Draw();
+	_filled2[i+4]->SetFillColor(4);
+	_filled2[i+4]->Draw("SAME");
+	TPaveText* box = new TPaveText(.43,.14,.57,.3,"NDC");
+	TText *tOR, *tAND;
+	tOR=box->AddText("OR");
+	tAND=box->AddText("AND");
+	tOR->SetTextColor(3);
+	tAND->SetTextColor(4);
 //       box->SetFillColor(43);
-      box->Draw();
-      TPaveText* title = new TPaveText(.3,.93,.7,1.,"NDC");
-      sprintf(text,"Plane %1d hits",(i+1));
-      title->AddText(text);
-      title->Draw();
-      gPad->Update();
+	box->Draw();
+	TPaveText* title = new TPaveText(.3,.93,.7,1.,"NDC");
+	sprintf(text,"Plane %1d hits",(i+1));
+	title->AddText(text);
+	title->Draw();
+	gPad->Update();
+      }
       gPadSave->cd();
     }
   }
@@ -510,23 +525,25 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<2;i++){
       gPad->cd(i+1);
-      gPad->SetLogx(gAMSDisplay->IsLogX());
-      gPad->SetLogy(1);
-      gPad->SetLogz(gAMSDisplay->IsLogZ());
-      ((TH1*)_filled2[12+i])->SetTitle();
-      ((TH1*)_filled2[12+i])->SetFillColor(42);
-      ((TH1*)_filled2[12+i])->SetLineColor(4);
-      _filled2[12+i]->SetLabelFont(40,"X");
-      _filled2[12+i]->SetLabelFont(40,"Y");
-      _filled2[12+i]->Draw();
-      TPaveText* title = new TPaveText(.375,.93,.625,1.,"NDC");
-      if(i==0)
-	sprintf(text,"TOF Clusters");
-      else
-	sprintf(text,"TOF Energy Loss");
-      title->AddText(text);
-      title->Draw();
-      gPad->Update();
+      if(_filled2[12+i]){
+	gPad->SetLogx(gAMSDisplay->IsLogX());
+	gPad->SetLogy(1);
+	gPad->SetLogz(gAMSDisplay->IsLogZ());
+	((TH1*)_filled2[12+i])->SetTitle();
+	((TH1*)_filled2[12+i])->SetFillColor(42);
+	((TH1*)_filled2[12+i])->SetLineColor(4);
+	_filled2[12+i]->SetLabelFont(40,"X");
+	_filled2[12+i]->SetLabelFont(40,"Y");
+	_filled2[12+i]->Draw();
+	TPaveText* title = new TPaveText(.375,.93,.625,1.,"NDC");
+	if(i==0)
+	  sprintf(text,"TOF Clusters");
+	else
+	  sprintf(text,"TOF Energy Loss");
+	title->AddText(text);
+	title->Draw();
+	gPad->Update();
+      }
       gPadSave->cd();
     }
   }
@@ -535,20 +552,22 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<4;i++){
       gPad->cd(i+1);
-      gPad->SetLogx(gAMSDisplay->IsLogX());
-      gPad->SetLogy(gAMSDisplay->IsLogY());
-      gPad->SetLogz(gAMSDisplay->IsLogZ());
-      ((TH1*)_filled2[8+i])->SetTitle();
-      ((TH1*)_filled2[8+i])->SetXTitle("Counter Number");
-      ((TH1*)_filled2[8+i])->SetLineColor(4);
-      _filled2[8+i]->SetLabelFont(40,"X");
-      _filled2[8+i]->SetLabelFont(40,"Y");
-      _filled2[8+i]->Draw();
-      TPaveText* title = new TPaveText(.25,.93,.75,1.,"NDC");
-      sprintf(text,"Plane %1d Energy Loss",(i+1));
-      title->AddText(text);
-      title->Draw();
-      gPad->Update();
+      if(_filled2[8+i]){
+	gPad->SetLogx(gAMSDisplay->IsLogX());
+	gPad->SetLogy(gAMSDisplay->IsLogY());
+	gPad->SetLogz(gAMSDisplay->IsLogZ());
+	((TH1*)_filled2[8+i])->SetTitle();
+	((TH1*)_filled2[8+i])->SetXTitle("Counter Number");
+	((TH1*)_filled2[8+i])->SetLineColor(4);
+	_filled2[8+i]->SetLabelFont(40,"X");
+	_filled2[8+i]->SetLabelFont(40,"Y");
+	_filled2[8+i]->Draw();
+	TPaveText* title = new TPaveText(.25,.93,.75,1.,"NDC");
+	sprintf(text,"Plane %1d Energy Loss",(i+1));
+	title->AddText(text);
+	title->Draw();
+	gPad->Update();
+      }
       gPadSave->cd();
     }
   }
@@ -558,17 +577,18 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<8;i++){
       gPad->cd(i+1);
-      if((i%2)==0)
-	sprintf(text,"Anode charge %1d-P (pC)",(i/2+1));
-      else
-	sprintf(text,"Anode charge %1d-N (pC)",(i/2+1));
-      _fetched2[30+i]->SetTitle();
-      _fetched2[30+i]->Draw("PE");
-      TPaveText* box = new TPaveText(.25,.9,.75,1.,"NDC");
-      box->AddText(text);
-      box->Draw();
+      if(_fetched2[30+i]){
+	if((i%2)==0)
+	  sprintf(text,"Anode charge %1d-P (pC)",(i/2+1));
+	else
+	  sprintf(text,"Anode charge %1d-N (pC)",(i/2+1));
+	_fetched2[30+i]->SetTitle();
+	_fetched2[30+i]->Draw("PE");
+	TPaveText* box = new TPaveText(.25,.9,.75,1.,"NDC");
+	box->AddText(text);
+	box->Draw();
+      }
       gPadSave->cd();
-      
     }
   }
   else if(Set==7){//Dynode charge
@@ -577,16 +597,18 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<8;i++){
       gPad->cd(i+1);
-      if((i%2)==0)
-	sprintf(text,"Dynode charge %1d-P (pC)",(i/2+1));
-      else
-	sprintf(text,"Dynode charge %1d-N (pC)",(i/2+1));
-      _fetched2[38+i]->SetTitle();
-      _fetched2[38+i]->Draw("PE");
-      TPaveText* box = new TPaveText(.25,.9,.75,1.,"NDC");
-      box->AddText(text);
-      box->Draw();
-      gPad->Update();
+      if(_fetched2[38+i]){
+	if((i%2)==0)
+	  sprintf(text,"Dynode charge %1d-P (pC)",(i/2+1));
+	else
+	  sprintf(text,"Dynode charge %1d-N (pC)",(i/2+1));
+	_fetched2[38+i]->SetTitle();
+	_fetched2[38+i]->Draw("PE");
+	TPaveText* box = new TPaveText(.25,.9,.75,1.,"NDC");
+	box->AddText(text);
+	box->Draw();
+	gPad->Update();
+      }
       gPadSave->cd();
     }
   }
@@ -596,16 +618,18 @@ void AMSTOFHist::ShowSet(Int_t Set){// D. Casadei 26 Feb 1998
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<8;i++){
       gPad->cd(i+1);
-      if((i%2)==0)
-	sprintf(text,"Time Expansion Factor: %1d-P",(i/2+1));
-      else
-	sprintf(text,"Time Expansion Factor: %1d-N",(i/2+1));
-      _fetched2[46+i]->SetTitle();
-      _fetched2[46+i]->Draw("PE");
-      TPaveText* box = new TPaveText(.2,.9,.8,1.,"NDC");
-      box->AddText(text);
-      box->Draw();
-      gPad->Update();
+      if(_fetched2[46+i]){
+	if((i%2)==0)
+	  sprintf(text,"Time Expansion Factor: %1d-P",(i/2+1));
+	else
+	  sprintf(text,"Time Expansion Factor: %1d-N",(i/2+1));
+	_fetched2[46+i]->SetTitle();
+	_fetched2[46+i]->Draw("PE");
+	TPaveText* box = new TPaveText(.2,.9,.8,1.,"NDC");
+	box->AddText(text);
+	box->Draw();
+	gPad->Update();
+      }
       gPadSave->cd();
     }
   }
@@ -620,11 +644,11 @@ void AMSTOFHist::Fill(AMSNtuple *ntuple){ // V. Choutko 25 Feb 1998
 
   for(i=0;i<ntuple->_TOF.NToF;i++){
     _filled2[ntuple->_TOF.Plane[i]-1]->Fill((15-ntuple->_TOF.Bar[i]),1.);
-    if((ntuple->_TOF.Status[i] & 256)==0)_filled2[ntuple->_TOF.Plane[i]+3]->Fill((15-ntuple->_TOF.Bar[i]),1.);
+    if((ntuple->_TOF.Status[i] & 256)==0)
+      _filled2[ntuple->_TOF.Plane[i]+3]->Fill((15-ntuple->_TOF.Bar[i]),1.);
     _filled2[ntuple->_TOF.Plane[i]-1+8]->Fill((15-ntuple->_TOF.Bar[i]),ntuple->_TOF.Edep[i],1.);
     _filled2[13]->Fill(ntuple->_TOF.Edep[i],1.);
   }
   _filled2[12]->Fill(ntuple->_TOF.NToF,1.);
-
 }
 
