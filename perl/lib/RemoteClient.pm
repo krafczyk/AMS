@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.156 2003/05/08 08:38:01 alexei Exp $
+# $Id: RemoteClient.pm,v 1.157 2003/05/08 09:23:24 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -864,10 +864,10 @@ sub ValidateRuns {
          if (not defined $r1->[0][0]) { 
           $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}"; 
           $self->{sqlserver}->Update($sql);
-          $warn = "cannot find status, content in Jobs for JID=$run->{Run}. Delete Run=$run->{Run} from server \n";
+          $warn = "cannot find status, content in Jobs for JID=$run->{Run}. *TRY* Delete Run=$run->{Run} from server \n";
           htmlWarning("ValidateRuns",$warn);
           print FILE $warn;
-          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
+# ---          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
          } else {
           my $jobstatus  = $r1->[0][0];
           my $jobcontent = $r1->[0][1];
@@ -984,10 +984,10 @@ sub ValidateRuns {
          } #loop for ntuples
          my $status='Failed';
          if ($copyfailed == 0) {
-          $warn = "Validation done : send Delete to DBServer, Run =$run->{Run} \n";
+          $warn = "Validation done : *TRY* send Delete to DBServer, Run =$run->{Run} \n";
           print FILE $warn;
           htmlText($warn," ");
-          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
+#--          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
           foreach my $ntuple (@cpntuples) {
            my $cmd="rm -i $ntuple";
            system($cmd);
@@ -6975,8 +6975,8 @@ sub deleteTimeOutJobs {
             print FILE "$sql \n";
             foreach my $runinfo (@{$self->{dbserver}->{rtb}}){
              if($runinfo->{Run}=$jid) {
-              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
-              print FILE "send Delete to DBServer, run=$runinfo->{Run}\n";
+#--              DBServer::sendRunEvInfo($self->{dbserver},$runinfo,"Delete"); 
+              print FILE "*TRY* send Delete to DBServer, run=$runinfo->{Run}\n";
               last;
              }
             }
