@@ -1122,30 +1122,57 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   /// Define the RICH volume: fixed
 
 
-  par[0]=0;
-  par[1]=90;
-  par[2]=RICHDB::total_height()/2;
+  //  par[0]=0;
+  //  par[1]=90;
+  //  par[2]=RICHDB::total_height()/2;
+  //  coo[0]=0;
+  //  coo[1]=0;
+  //  coo[2]=RICradpos-RICHDB::total_height()/2;
+
+  //  rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("VACUUM",
+  //							   0,
+  //							   "RICH",
+  //							   "TUBE",
+  //							   par,
+  //							   3,
+  //							   coo,
+  //							   nrm,
+  //							   "ONLY",
+  //							   0,
+  //							   1,
+  //							   rel)));
+  
+
+  // This is provisional
+
+
+  par[0]=RICHDB::total_height()/2.;
+  par[1]=0.;
+  par[2]=RICHDB::total_height()*(RICHDB::bottom_radius-RICHDB::top_radius)/
+    RICHDB::height+RICHDB::top_radius+1.;
+  par[3]=0.;
+  par[4]=RICHDB::top_radius+1.;
+
   coo[0]=0;
   coo[1]=0;
   coo[2]=RICradpos-RICHDB::total_height()/2;
-
   rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("VACUUM",
 							   0,
 							   "RICH",
-							   "TUBE",
-							   par,
-							   3,
-							   coo,
-							   nrm,
-							   "ONLY",
-							   0,
-							   1,
-							   rel)));
-  
+							   "CONE",
+  							   par,
+  							   5,
+  							   coo,
+  							   nrm,
+  							   "ONLY",
+  							   0,
+  							   1,
+  							   rel)));
   
 #ifdef __G4AMS__
-    rich->Smartless()=-2;
+  rich->Smartless()=-2;
 #endif
+
 
   ////////// Mirror
 
