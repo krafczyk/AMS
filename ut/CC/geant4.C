@@ -72,25 +72,11 @@ delete  G4RunManager::GetRunManager();
 
 void AMSG4MagneticField::GetFieldValue(const double x[3], double *B) const{
  int i;
-  static integer init=0;
-  static geant bb=0;
-if(G4FFKEY.UniformMagField){
-  if(!init){
-    init++;
-    getfield_(bb);
-  }
-  for(i=0;i<2;i++)*(B+i)=0;
-  if(fabs(x[2])<40*cm){
-   *B=bb*tesla;
-  } 
-}
-else{
    geant _v[3],_b[3];
- for(i=0;i<2;i++)_v[i]=x[i]/cm;
+ for(i=0;i<3;i++)_v[i]=x[i]/cm;
  GUFLD(_v,_b);
- for(i=0;i<2;i++)*(B+i)=_b[i]*kilogauss;
+ for(i=0;i<3;i++)*(B+i)=_b[i]*kilogauss;
 
-}
 //if(B[0])cout <<x[0]<<" "<<x[1]<<" "<<x[2]<<" "<<B[0]<<endl;
 }
 
@@ -527,7 +513,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
                  PrePV->GetLogicalVolume()->GetSensitiveDetector()!=0;
      GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;
     if(GCTMED.isvol){
-      cout << "Stepping  sensitive"<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
+//      cout << "Stepping  sensitive"<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
      // gothering some info and put it into geant3 commons
 
      GCTRAK.inwvol= PostPV != PrePV;
@@ -616,7 +602,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
    G4ParticleDefinition* particle =Track->GetDefinition();
    GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
    GCKINE.charge=particle->GetPDGCharge();
-      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<GCKINE.ipart<<" "<<GCTRAK.destep<<" "<<GCTRAK.step<<endl;
+//      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<GCKINE.ipart<<" "<<GCTRAK.destep<<" "<<GCTRAK.step<<endl;
 
   try{
   // Now one has decide based on the names of volumes (or their parents)
@@ -625,7 +611,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
   // Tracker
      if(GCTRAK.destep && GrandMother && GrandMother->GetName()[0]=='S' 
      &&  GrandMother->GetName()[1]=='T' && GrandMother->GetName()[2]=='K'){
-       cout <<" tracker "<<endl;
+//       cout <<" tracker "<<endl;
       AMSTrMCCluster::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
       GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
      }

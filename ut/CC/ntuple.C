@@ -132,7 +132,7 @@ void AMSNtuple::reset(int full){
    _ecclust.Necal = 0;
    _tofmc.Ntofmc = 0;
    _trcl.Ntrcl = 0;
-   _trclmc.Ntrclmc = 0;
+    if(_trclmc.Ntrclmc)VZERO(&_trclmc,sizeof(_trclmc)/sizeof(integer));
    _trrh.Ntrrh = 0;
    _trtr.Ntrtr = 0;
    //_mcg.Nmcg = 0;
