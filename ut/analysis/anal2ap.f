@@ -189,6 +189,7 @@
          call hbook1(969,'anti',100,0.,10.,0.)
          call hbook1(970,'signal CTC',100,-0.25,49.75,0.)
          call hbook1(972,'signal CTC',200,-0.25,99.75,0.)
+         call hbook1(973,'beta',200,0.1,1.1,0.)
          call hbook2(971,'cx vx y',100,-100.,100.,100,-100.,100.,0.) 
 
          call hbook1(1901, 'p1/p2',200,-1.,3.,0.)
@@ -387,9 +388,14 @@ c                   cuts(8)=.true.
      +              cooctc(2,1,1).gt.yll.and.
      +              cooctc(2,1,1).lt.ylr
                     call hf1(970,xx,1.)
-                    if(cuts(9))call hf1(972,xx,1.)
+                    if(cuts(9))then
+                      call hf1(972,xx,1.)
+                      call hf1(973,abs(beta(pbeta(1))),1.)
+                    endif
                     call hf2(971,cooctc(1,1,1),cooctc(2,1,1),1.)
-                    cuts(9)=cuts(9).and.xx.lt.0.5   
+                    
+                    cuts(9)=cuts(9).and.xx.lt.0.5.or.
+     +              abs(beta(pbetap(1))).lt.0.92   
                     if(cuts(9))then
                     do i=1,ntrclmc
                      call hf1(702,float(itra(i)),1.)
