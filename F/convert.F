@@ -223,7 +223,7 @@
 *
 *--   Enter user code here
 *
-c       iquest(10)=128000
+       iquest(10)=128000
 c       write(*,*)' Starting converting'
        call HROPEN(4,'output',fnam,'N',8000,iostat)
        if(iostat.ne.0)then
@@ -1097,6 +1097,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
       COMMON /PAWIDN/ IDNEVT,OBS
       COMMON /PAWCHN/ CHAIN, NCHEVT, ICHEVT
       COMMON /PAWCHC/ CFILE
+      common/pawc/hm(20000000)
+      
 *
 *--   Ntuple Variable Declarations
 *
