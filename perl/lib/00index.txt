@@ -1,4 +1,7 @@
 Monitor.pm   // corba monitor engine
 MonitorUI.pm  // gtk user interface
 MonitorHTML.pm // alt html interface
-
+CID.pm        // see ../include/server.idl
+ActiveClient.pm //  ibid
+POAMonitor.pm   // perl-corba Monitor implementation
+Warning.pm      // cgi error redirection
