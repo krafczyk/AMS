@@ -52,12 +52,14 @@ void AMSGenHist::_Fetch(){
 
 void AMSGenHist::ShowSet(Int_t Set){
 
-  TF1 f1("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)",0,20);
-  f1.SetParameter(0,10.);
+  TF1 f1("vcg","[0]*exp(-x*[1])+[2]*exp(-(x-[3])/[4]*(x-[3])/[4]/2)+[5]*exp(-x*[6])",0,20);
+  f1.SetParameter(0,100.);
   f1.SetParameter(1,0.7);
-  f1.SetParameter(2,100.);
+  f1.SetParameter(2,10.);
   f1.SetParameter(3,6.);
-  f1.SetParameter(4,1.5);
+  f1.SetParameter(4,1.);
+  f1.SetParameter(5,1.);
+  f1.SetParameter(6,0.2);
 
   const int sets = 5;
   gPad->Clear();
@@ -76,7 +78,7 @@ void AMSGenHist::ShowSet(Int_t Set){
 	gPad->SetLogz(gAMSDisplay->IsLogZ());
         if (_fetched2[i]) {
           if(Set==4){
-            _fetched2[i]->Fit("vcg","Q");
+            _fetched2[i]->Fit("vcg","QR");
           }
           _fetched2[i]->Draw();
           if(Set==4){
