@@ -17,10 +17,10 @@ mkdir $AMSWD/bin
 mkdir $AMSWD/exe
 
 gmake -if install/Moptg4   (batch)
-gmake -if install/Moptg4   (interactive)
+gmake -if install/Moptg4i  (interactive)
 
 n.b
-setenv AMSDEBUG 1 switch on debug mode
+setenv AMSDEBUG 1 switch on debug mode (compiler's one)
 unsetenv AMSDEBUG switch it off
 
 --------
@@ -131,10 +131,10 @@ G4FF 4=1/0   datacard
 Random Numbers:
 
 seeds thru same RNDM card as for geant3 (ranecu engine);  
-hrndm1 like ones must be redone
+hrndm1 like one must be redone
 via <g4util> ::book & ::hrndm1  ones
 
-random sequence doesn' work yet on geant4 (geant4 bugs)
+random sequence doesn' work yet on geant4 (geant4 fault)
 
 Transition Radiation
 ----------------------
@@ -149,7 +149,7 @@ Cerenkov Photons
 AMSgtmed::AGSCKOV routine handles cerenkov media parameters,
 last one is rayleigh "opacity", others as in g3 GSCKOV routine
 
-NB: g4 optical process were modified, standard ones will not work.   
+NB: g4 optical processes were modified, standard ones will not work.   
 
 
 ---------------------
