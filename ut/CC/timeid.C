@@ -286,17 +286,18 @@ void AMSTimeID::_convert(uinteger *pdata, integer n){
 
 }
 integer AMSTimeID::_getDBRecord(uinteger time){
-
+ 
  integer index=AMSbiel(_pDataBaseEntries[3],time,_DataBaseSize);
- int rec=-1;
+ //cout <<getname()<<" "<<index<<" "<<time<<" "<<_pDataBaseEntries[3][index]<<" "<<_DataBaseSize<<endl;
+  int rec=-1;
  int insert= (time>=_Begin && time<=_End)?_Insert:0;
  for (int i=index<0?_DataBaseSize:index;i<_DataBaseSize;i++){
-   if(time>=_pDataBaseEntries[2][i] && insert<=_pDataBaseEntries[1][i]){
+   if(time>=_pDataBaseEntries[2][i] && insert<_pDataBaseEntries[1][i]){
       insert=     _pDataBaseEntries[1][i];
       rec=i;
    }
  }
-   if(time<_Begin || time>_End)return rec<0?0:_pDataBaseEntries[0][rec];
+    if(time<_Begin || time>_End)return rec<0?0:_pDataBaseEntries[0][rec];
    else return -1;
   
 
@@ -329,7 +330,7 @@ for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
     struct stat statbuf_map;
     struct stat statbuf_dir;
     if(!stat((const char *)fmap,&statbuf_map) && !stat(dir,&statbuf_dir) &&
-      statbuf_dir.st_mtime <= statbuf_map.st_mtime ){
+      statbuf_dir.st_mtime < statbuf_map.st_mtime ){
        fbin.open(fmap,ios::in);
        if(fbin){
          fbin>>_DataBaseSize;
@@ -414,7 +415,7 @@ for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
 #ifdef __AMSDEBUG__
         cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmap<<endl; 
 #endif
-        fbin<<_DataBaseSize<<endl;;
+        fbin<<_DataBaseSize<<endl;
         for(i=0;i<4;i++){
           for(int k=0;k<_DataBaseSize;k++){
             fbin<<_pDataBaseEntries[i][k]<<endl;

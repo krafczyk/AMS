@@ -1722,7 +1722,7 @@ void AMSJob::_dbendjob()
    Message("AMSJob::_dbendjob -I- UpdateMe != 1. NO UPDATE");
   }
 #else
-    if (AMSFFKEY.Update){
+    if (AMSFFKEY.Update && !isCalibration()){
      AMSTimeID * offspring = 
      (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
      while(offspring){

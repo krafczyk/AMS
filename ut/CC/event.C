@@ -1284,6 +1284,7 @@ while(offspring){
       cerr<<"AMSEvent::_validate-F-"<<offspring->getname()<<" not validated."<<endl;
       time_t b,e,i;
       offspring->gettime(i,b,e);
+      cerr<<" Time: "<<ctime(&_time)<<endl;
       cerr<<" Begin : " <<ctime(&b)<<endl; 
       cerr<<" End : " <<ctime(&e)<<endl; 
       cerr<<" Insert : " <<ctime(&i)<<endl; 
