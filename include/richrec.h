@@ -1,9 +1,6 @@
 #include <richdbc.h>
 
 
-
-
-
 class AMSRichRawEvent: public AMSlink{
 private:
   integer _idsoft; //
@@ -28,9 +25,8 @@ public:
 protected:
   void _printEl(ostream &stream){
     int i;
-    stream <<"AMSEcalRawEvent: id="<<dec<<_idsoft<<endl;
-    stream <<" Status="<<hex<<_status<<" Adc="<<_padc<<endl;
-    stream <<dec<<endl<<endl;
+    stream <<"AMSRichRawEvent: id="<<_idsoft<<endl;
+    stream <<" Adc="<<_padc<<endl;
   }
 void _writeEl(){};
 void _copyEl(){};

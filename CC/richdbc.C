@@ -188,3 +188,20 @@ geant RICHDB::pmt_response(integer n_photons){ // Quite unefficient
 				       n_photons*sigma_peak*sigma_peak)+
     n_photons*peak+ped;  
 }
+
+
+
+
+void RICHDB::bookhist(){
+#ifdef __AMSDEBUG__
+  // Number of hits detected
+  HBOOK1(RIChistos+0,"Number of hits",100.,0.,1000.,0);
+  // Charge detected for good ones
+  HBOOK1(RIChistos+1.,"ADC counts",100.,-10.,300.,0);
+  //
+  HBOOK1(RIChistos+2.,"ADC counts",50.,-10.,10.,0);
+#endif
+}
+
+
+

@@ -43,6 +43,7 @@
 #include <user.h>
 #include <tralig.h>
 #include <status.h>
+#include <richdbc.h>
 //+
  integer        ntdvNames;               // number of TDV's types
  char*          tdvNameTab[maxtdv];      // TDV's nomenclature
@@ -1279,7 +1280,10 @@ void AMSJob::_siamsinitjob(){
   _sitkinitjob();
   _signinitjob();
   _sitofinitjob();
-  if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))_siecalinitjob();
+  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+    _siecalinitjob();
+    _siricinitjob();
+  }
   _siantiinitjob();
   _sitrdinitjob();
   _sisrdinitjob();
@@ -1396,6 +1400,11 @@ void AMSJob::_siecalinitjob(){
 //
     EcalJobStat::bookhistmc();
 }
+
+void AMSJob::_siricinitjob(){
+  RICHDB::bookhist();
+}
+
 //---------------------------------------------------------------------------------------
 void AMSJob::_siantiinitjob(){
   AMSgObj::BookTimer.book("SIANTIEVENT");

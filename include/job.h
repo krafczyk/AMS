@@ -120,6 +120,7 @@ void _sisrdinitjob();
 void _sictcinitjob();
 void _sitofinitjob();
 void _siecalinitjob();
+void _siricinitjob();
 void _siantiinitjob();
 void _redaqinitjob();
 void _reamsinitjob();

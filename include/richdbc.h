@@ -20,7 +20,7 @@ const integer RICmaxrows=100;
 const integer RICentries=44;   // no. of entries in wave_length,eff...   
 const integer RICmaxpmts=2000; // max no. of pmts
 const integer RICnwindows=16;  // Number of windows for pmt
-
+const integer RIChistos=30000; // Starting point for RICH histos 
 
 
 class RICHDB { 
@@ -84,6 +84,7 @@ public:
   static geant x(integer pmt,integer window);
   static geant y(integer pmt,integer window);
   static geant pmt_response(integer n_photons);
+  static void bookhist();
 };
 
 #endif
