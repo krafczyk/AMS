@@ -4,6 +4,7 @@
  *                - ams_inspect.rb [files]
  *
  *    - EXAMPLES: 
+ *          - ams_inspect.rb 
  *          - ams_inspect.rb /f2users/choutko/g3v1g3.root 
  *          - ams_inspect.rb /f2users/choutko/g3v1g3*
  *
@@ -20,67 +21,87 @@
 
 require "tk"
 
-if ARGV.size<1
-      puts "SCRIPT ams_inspect: "
-      puts "\t\tams_inspect [files]"
-      puts "\t to plot interactively AMS variables from a set of root files"
-      exit
+if ARGV.size==0
+      $myfiles = TkVariable.new("/f2users/choutko/g3v1g3.root")
 else
-      myfiles = ARGV.join(" ")
+      $myfiles = TkVariable.new(ARGV.join(" "))
 end
 
 TkRoot.new {
   title "AMS INSPECTOR"
-  background "darkblue"
+  background "black"
 }
 
-TkLabel.new {
-  files_line_by_line = ARGV.join("\n")
-  text "AMS INSPECTOR\n\n FILES:\n#{files_line_by_line}\n"
-  background "darkblue"
+showfiles = TkLabel.new {
+  files_line_by_line = $myfiles.to_s.gsub(/ /,"\n")
+  text "AMS INSPECTOR\n\n CURRENT FILE(s):\n#{files_line_by_line}\n"
+  background "black"
   foreground "white"
   pack
 }
 
-TkButton.new { 
-      background "red"
-      foreground "black"
-      text "EXIT"
-      command 'exit'
-      pack
+framefile = TkFrame.new {
+      background "black"
+      pack(:pady=>10)
 }
 
 frame0 = TkFrame.new {
-      background "darkblue"
+      background "black"
       pack(:pady=>10)
+}
+
+mainframe = TkFrame.new {
+      background "darkblue"
+      borderwidth 20
 }
 
 $cutmin = TkVariable.new("-1.e10<")
 $cutmax = TkVariable.new("!=0")
 
 def AMSPLOT(v,fil)
-   varfinal = "$AMSDir/ut/amsplot '" + $cutmin.to_s + v + $cutmax.to_s + "' " + fil + " 2> /dev/null"
+   varfinal = "$AMSDir/ut/amsplot '" + $cutmin.to_s + v + $cutmax.to_s + "' " + fil.to_s + " 2> /dev/null"
    fork{`#{varfinal}`}
 end
 
+labelfile = TkLabel.new(framefile) {
+  text "Use file(s): "
+  background "black"
+  foreground "white"
+}
+labelfile.pack(:side=>:left,:padx=>5)
+
+selfile = TkEntry.new(framefile,:textvariable=>$myfiles) {
+      background "white"
+      foreground "black"
+      relief "sunken"
+      width 70
+      bind('Return') {
+        files_line_by_line = $myfiles.to_s.gsub(/ /,"\n")
+        showfiles.configure("text"=>"AMS INSPECTOR\n\n CURRENT FILE(s):\n#{files_line_by_line}\n")
+      }
+}
+selfile.pack(:side=>:left, :fill=>:both, :expand=>true)
+
 label0 = TkLabel.new(frame0) {
-  text "Apply the following cut:"
-  background "darkblue"
+  text "Apply the following cuts:"
+  background "black"
   foreground "white"
 }
 label0.pack(:side=>:left,:padx=>5)
 
 cut0 = TkEntry.new(frame0,:textvariable=>$cutmin) {
+      justify "right"
       background "white"
       foreground "black"
       relief "sunken"
+      width 10
       bind('Return'){}
 }
-cut0.pack(:side=>:left,:fill=>:both, :padx=>'2m', :pady=>'2m', :expand=>true)
+cut0.pack(:side=>:left,:fill=>:both, :expand=>true)
 
 label1 = TkLabel.new(frame0) {
   text "VARIABLE"
-  background "darkblue"
+  background "black"
   foreground "white"
 }
 label1.pack(:side=>:left,:padx=>5)
@@ -89,9 +110,18 @@ cut1 = TkEntry.new(frame0,:textvariable=>$cutmax) {
       background "white"
       foreground "black"
       relief "sunken"
+      width 10
       bind('Return'){}
 }
-cut1.pack(:side=>:left,:fill=>:both, :padx=>'2m', :pady=>'2m', :expand=>true)
+cut1.pack(:side=>:left,:fill=>:both, :expand=>true)
+
+TkButton.new { 
+      background "red"
+      foreground "black"
+      text "EXIT"
+      command 'exit'
+      pack(:pady=>15)
+}
 
 root_h = ENV["AMSDir"] + "/include/root.h"
 if FileTest.exists?(root_h)
@@ -101,31 +131,31 @@ else
       exit
 end
 
-other = TkFrame.new {
+other = TkFrame.new(mainframe) {
       background "darkblue"
       pack(:pady=>10)
 }
-trd = TkFrame.new {
+trd = TkFrame.new(mainframe) {
       background "darkblue"
       pack(:pady=>10)
 }
-tof = TkFrame.new {
+tof = TkFrame.new(mainframe) {
       background "darkblue"
       pack(:pady=>10)
 }
-tr = TkFrame.new {
+tr = TkFrame.new(mainframe) {
       background "darkblue"
       pack(:pady=>10)
 }
-anti = TkFrame.new {
+anti = TkFrame.new(mainframe) {
       background "darkblue"
       pack(:pady=>10)
 }
-rich = TkFrame.new {
+rich = TkFrame.new(mainframe) {
       background "darkblue"
       pack(:pady=>10)
 }
-ecal = TkFrame.new {
+ecal = TkFrame.new(mainframe) {
       background "darkblue"
       pack(:pady=>10)
 }
@@ -196,7 +226,7 @@ for line in root_h_file
                       if current_class != "Header"
                         var = "# of " + current_class + "'s"
                         var0 = "n" + current_class 
-                        add(:command,:background=>mycol2,:label=>var,:command=>proc{AMSPLOT(var0,myfiles)})
+                        add(:command,:background=>mycol2,:label=>var,:command=>proc{AMSPLOT(var0,$myfiles)})
                       end
                       variables.each { |var|
                         var2 = current_class + "." + var 
@@ -205,7 +235,7 @@ for line in root_h_file
                         else
                               lab = var
                         end
-                        add(:command,:background=>mycol2,:label=>lab,:command=>proc{AMSPLOT(var2,myfiles)})
+                        add(:command,:background=>mycol2,:label=>lab,:command=>proc{AMSPLOT(var2,$myfiles)})
                       }
                   }
                   pack(:side=>:left,:padx=>10)
@@ -289,5 +319,9 @@ for line in root_h_file
       end
 
 end
+
+mainframe.pack
+
+selfile.focus
 
 Tk.mainloop
