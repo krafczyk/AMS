@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.17 2002/03/28 10:18:34 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.18 2002/03/28 15:34:40 choutko Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -104,18 +104,29 @@ sub Create{
 
 
     my @tables=("filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples","DataSets", "Environment");
+#    (fid         CHAR(4) NOT NULL,   # file system ID
+#     host    VARCHAR(40),            # Host name
+#     disk    VARCHAR(20),            # disk mount point
+#     path    VARCHAR(255),           # DST directory path
+#     totalsize    INT,               # disk size GB
+#     occupied     INT,               #           GB
+#     available    INT,               #           GB
+#     allowed      INT,               #           GB
+#     status   CHAR(40),              # Active, Dead, Full, -NFS, WaterMark
+#     priority     INT,               # use first disks with highest priority
+#     timestamp    INT)",             # last updated
     my @createtables=("    CREATE TABLE filesystems
-    (fid         CHAR(4) NOT NULL,   # file system ID
-     host    VARCHAR(40),            # Host name
-     disk    VARCHAR(20),            # disk mount point
-     path    VARCHAR(255),           # DST directory path
-     totalsize    INT,               # disk size GB
-     occupied     INT,               #           GB
-     available    INT,               #           GB
-     allowed      INT,               #           GB
-     status   CHAR(40),              # Active, Dead, Full, -NFS, WaterMark
-     priority     INT,               # use first disks with highest priority
-     timestamp    INT)",             # last updated
+    (fid         CHAR(4) NOT NULL,   
+     host    VARCHAR(40),            
+     disk    VARCHAR(20),            
+     path    VARCHAR(255),           
+     totalsize    INT,               
+     occupied     INT,               
+     available    INT,               
+     allowed      INT,               
+     status   CHAR(40),              
+     priority     INT,               
+     timestamp    INT)",             
      "CREATE TABLE Cites
      (cid      INT NOT NULL ,
       name     VARCHAR(64),
@@ -208,6 +219,7 @@ sub Create{
      }        
     $dbh->do("drop table ".$tables[$i]);
     my $sth=$dbh->prepare($createtables[$i]) or die "cannot prepare: ".$dbh->errstr();
+     print " $createtables[$i] \n";
     $sth->execute() or die "cannot execute: ".$dbh->errstr();
     $sth->finish();    
      if ($tables[$i] eq "Servers" and $self->{dbdriver} =~ m/Oracle/) {
