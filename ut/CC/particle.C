@@ -18,6 +18,12 @@
 #include <ctcdbc.h>
 #include <ntuple.h>
 #include <antirec.h>
+
+PROTOCCALLSFFUN2(FLOAT,PROB,prob,FLOAT,INT)
+#define PROB(A2,A3)  CCALLSFFUN2(PROB,prob,FLOAT,INT,A2,A3)
+
+extern "C" void e04ccf_(int &n, number x[], number &f, number &tol, int &iw, number w1[],number w2[], number w3[], number w4[], number w5[], number w6[],void *alfun, void * monit, int & maxcal, int &ifail, void * p);
+
 integer sign(number a){
 if(a>=0)return 1;
 else return -1;
@@ -60,7 +66,8 @@ integer AMSParticle::build(integer refit){
               else {rid=grid; err=gerr; }
             }
           // Add new element
-          charge=pcharge->getvotedcharge();
+          int index;
+          charge=pcharge->getvotedcharge(index);
           momentum=rid*charge;
           emomentum=err*rid*rid*charge;
           number beta=pbeta->getbeta();
@@ -96,7 +103,9 @@ integer AMSParticle::build(integer refit){
           ppart=new AMSParticle(pbeta, pcharge, ptrack,
           mass,emass,momentum,emomentum,charge,theta,phi,coo);
           ptrack->setstatus(AMSDBc::USED);
+          AMSgObj::BookTimer.start("ReAxPid");
           ppart->pid();
+          AMSgObj::BookTimer.stop("ReAxPid");
            
           AMSgObj::BookTimer.start("ReAxRefit");
            ppart->refit(AMSJob::gethead()->isCalibration() & AMSJob::CTracker);
@@ -287,7 +296,12 @@ void AMSParticle::_writeEl(){
       }
     }
   }
-  PN->Particle[PN->Npart]=_GPart;
+  PN->Particle[PN->Npart]=_gpart[0];
+  PN->ParticleVice[PN->Npart]=_gpart[1];
+  PN->FitMom[PN->Npart]=_fittedmom[0];
+ for(i=0;i<2;i++){
+  PN->Prob[PN->Npart][i]=_prob[i];
+ }
   PN->Mass[PN->Npart]=_Mass;
   PN->ErrMass[PN->Npart]=_ErrMass;
   PN->Momentum[PN->Npart]=_Momentum;
@@ -299,7 +313,6 @@ void AMSParticle::_writeEl(){
   PN->PhiGl[PN->Npart]=fmod(_PhiGl+AMSDBc::twopi,AMSDBc::twopi);
   for(i=0;i<3;i++)PN->Coo[PN->Npart][i]=_Coo[i];
   for(i=0;i<CTCDBc::getnlay();i++){
-    PN->CTCP[PN->Npart][i]=_pctc[i]?_pctc[i]->getpos():0;
     PN->Value[0][PN->Npart][i]=_Value[i].getsignal();
     PN->Value[1][PN->Npart][i]=_Value[i].getbeta();
     PN->Value[2][PN->Npart][i]=_Value[i].geterbeta();
@@ -338,50 +351,63 @@ void AMSParticle::print(){
 
 
 void AMSParticle::pid(){
-  integer num;
-  if(_Charge < 1.5){
-    num=AMSbiel(_massP,(geant)_Mass,_chargeP[0]);
-   if(num<1)num=1;
-   if(num>_chargeP[0]-1)num=_chargeP[0]-1;
-   if(fabs(_Mass-_massP[num])>fabs(_Mass-_massP[num-1]))num--;
+ void (*palfun)(int &n, double x[], double &f, AMSParticle *p)=
+ &AMSParticle::alfun;
+ void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=
+ &AMSParticle::monit;
+
+
+  const int maxp=38;
+  geant prob[maxp];
+  number pfit[maxp];
+    _beta=1/fabs(_pbeta->getbeta());
+    _ebeta=_pbeta->getebeta();
+    _ebeta=_ebeta*_ebeta;
+  for (int i=0;i<maxp;i++){
+    integer itr;
+    geant xmass,chrg,tlt7,uwb[1];
+    integer nwb=0;
+    char chdum[21]="";
+    GFPART(_partP[i],chdum,itr,xmass,chrg,tlt7,uwb,nwb);
+    _mass=xmass*xmass;
+    const int mp=2;
+    number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+    integer n=1;
+    integer iw=n+1;
+    integer ifail=1;
+    integer maxcal=2000;
+    number tol=2.99e-2;
+    int j;
+    x[0]=0;
+    _mom=1/(_Momentum/_Charge*chrg);
+    _emom=_ErrMomentum/_Momentum/_Momentum*_Charge/chrg;
+    _emom=_emom*_emom;
+    e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
+    geant chi2=f;
+    prob[i]=PROB(chi2,1)*_pcharge->getprobcharge(chrg);
+    if(ifail)prob[i]=0;
+    if(x[0]!=0)pfit[i]=1./fabs(x[0]);
+    else pfit[i]=FLT_MAX;
   }
-  else if(_Charge < 2.5){
-   num=_chargeP[1]-1;
-   if(fabs(_Mass-_massP[num])>fabs(_Mass-_massP[num-1]))num--;
+  _prob[1]=-2;
+  _prob[0]=-1;
+  for(i=0;i<maxp;i++){
+   if(prob[i]>_prob[0]){
+     _gpart[1]=_gpart[0];
+     _fittedmom[1]=_fittedmom[0];
+     _prob[1]=_prob[0];
+     _prob[0]=prob[i];
+     _gpart[0]=_partP[i];
+     _fittedmom[0]=pfit[i]; 
+   }
+   else if(prob[i]>_prob[1]){
+     _prob[1]=prob[i];
+     _gpart[1]=_partP[i];
+     _fittedmom[1]=pfit[i]; 
+   }
   }
-  else if(_Charge < 3.5){
-   num=_chargeP[2]-1;
-   if(fabs(_Mass-_massP[num])>fabs(_Mass-_massP[num-1]))num--;
-  }
-  else if(_Charge < 4.5){
-   num=_chargeP[3]-1;
-   if(fabs(_Mass-_massP[num])>fabs(_Mass-_massP[num-1]))num--;
-  }
-  else if(_Charge < 5.5){
-   num=_chargeP[4]-1;
-   if(fabs(_Mass-_massP[num])>fabs(_Mass-_massP[num-1]))num--;
-  }
-  else if(_Charge < 6.5){
-   num=_chargeP[5]-1;
-  }
-  else if(_Charge < 7.5){
-   num=_chargeP[6]-1;
-  }
-  else if(_Charge < 8.5){
-   num=_chargeP[7]-1;
-  }
-  else if(_Charge < 9.5){
-   num=_chargeP[8]-1;
-  }
-  else if(_Charge < 10.5){
-   num=_chargeP[9]-1;
-  }
-  else{
-    cerr <<"AMSParticle::_pid-E-TooBigParticleCharge "<<_Charge<<endl;
-    num=_chargeP[9];
-}
-  _GPart=_partP[num]; 
-  //Check AntiMatter
+  _GPart=_gpart[0];
+   //Check AntiMatter
   integer antimatter=0;
   for( int patt=0;patt<npat;patt++){
     AMSTrTrack *ptrack=(AMSTrTrack*)AMSEvent::gethead()->
@@ -393,10 +419,6 @@ void AMSParticle::pid(){
       }
       ptrack=ptrack->next();
     }
-  }
-  if( _Momentum <0){
-   if(_GPart < 40 )_GPart++;
-   else _GPart=_GPart+100;
   }
   if(antimatter || _Momentum <0){
    
@@ -474,11 +496,10 @@ void AMSParticle::refit(int fast){
    }
   }   
 }  
-geant AMSParticle::_massP[19]={0.,0.106,0.5,0.938,1.8756,2.81,2.81,3.727,5.6,
-                             6.5,6.5,8.4,9.3,10.3,11.2,13.04,14.9,17.7,18.6};
-integer AMSParticle::_chargeP[10]={6,8,10,12,14,15,16,17,18,19};
-integer AMSParticle::_partP[20]={2,5,11,14,45,46,49,47,61,62,63,64,
-                                              65,66,67,68,69,70,71,72};
+integer AMSParticle::_partP[38]={2,3,5,6,8,9,11,12,14,15,45,145,
+                                 46,146,49,149,47,147,61,161,62,162,
+                                 63,163,64,164,65,165,66,166,67,167,68,
+                                 168,69,169,70,170};
 
 
 void AMSParticle::_loc2gl(){
@@ -544,4 +565,11 @@ void AMSParticle::_loc2gl(){
   AMSDir magpole(AMSDBc::pi/2-AMSmceventg::Orbit.PoleTheta,polephi);
   AMSDir magmeridian=magpole.cross(amszg);
   _SinMagMeridian=magmeridian.prod(global);
+}
+
+
+void AMSParticle::alfun(integer & n , number xc[], number &fc, AMSParticle *p){
+ fc=(fabs(xc[0])-p->_mom)/p->_emom*(fabs(xc[0])-p->_mom)+
+   (sqrt(1+xc[0]*xc[0]*p->_mass)-p->_beta)/p->_ebeta*
+   (sqrt(1+xc[0]*xc[0]*p->_mass)-p->_beta);
 }

@@ -264,7 +264,6 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
  if(nhit>2)_Chi2=_Chi2/(nhit-2);
  else _Chi2=0;
  _InvErrBeta=sqrt(1./e2)/sqrt(x2-xa*xa);   
- //if(_Chi2>0)_InvErrBeta*=sqrt(_Chi2);
 
 //  Corrected Beta
 
@@ -281,6 +280,10 @@ void AMSBeta::SimpleFit(integer nhit, number x[]){
   number xibcora=zprima*sqrt(2.)*_InvErrBeta+1;
   number xibcorb=zprimb*sqrt(2.)*_InvErrBeta+1;
   _InvErrBetaC=fabs(xibcorb-xibcora)/2;
+  if(_InvErrBetaC==0){
+    _BetaC=_Beta;
+    _InvErrBetaC=_InvErrBeta;
+  }
 }
 
 

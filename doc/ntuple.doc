@@ -44,7 +44,6 @@ Below there is a description of a  ntuple.
 * I*4  *              * EVENTH   * AntiMCClusters   // No of Anti MC Hits
 * I*4  *              * EVENTH   * AntiClusters     // No of Amti clusters
 * I*4  *              * EVENTH   * EventStatus      // EventStatus (see status.doc)
-* R*4  *              * EVENTH   * Dummy[3]         // Dummies to be filled
 
 * I*4  * [0,10]       * BETA     * nbeta             // betas number
 * I*4  *              * BETA     * betastatus        // 4 - ambig
@@ -76,12 +75,15 @@ Below there is a description of a  ntuple.
 * R*4  *              * CHARGE   * truntracker            // Trun (-1) mean
 
 * I*4  * [0,10]       * PARTICLE * npart                   // particles number
-* I*4  *              * PARTICLE * pctcp(2,npart)    // pointer(s) to cerenkov
-                                                     // cluster (matched)
 * I*4  *              * PARTICLE * pbetap(npart)     // pointer to beta
 * I*4  *              * PARTICLE * pchargep(npart)   // pointer to charge
 * I*4  *              * PARTICLE * ptrackp(npart)    // pointer to track
 * I*4  *              * PARTICLE * pid(npart)        // Geant Particle Id
+* I*4  *              * PARTICLE * pidvice(npart)    // ---//--- vice Id
+* R*4  *              * PARTICLE * probpid(2,npart)  // probabilties to be pid
+       *              *          *                   // a-la Lebedev/Gauss
+* R*4  *              * PARTICLE * fitmom(npart)     // momentum
+*      *              *          *                   //  if pmass=mass(pid)
 * R*4  *              * PARTICLE * pmass(npart)      // particle mass 
 * R*4  *              * PARTICLE * perrmass(npart)   // error in particle mass
 * R*4  *              * PARTICLE * pmom(npart)       // particle momentum

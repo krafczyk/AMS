@@ -52,16 +52,33 @@ protected:
   AMSPoint _TOFCoo[4];  
   AMSPoint _AntiCoo[2];  
   AMSPoint _TrCoo[6];  
+
+
+// new
+   
+   integer _gpart[2];
+   number _prob[2];
+   number _fittedmom[2];
+
+// tmp
+   
+   number _mom;
+   number _emom;
+   number _mass;
+   number _beta;
+   number _ebeta;
+
   void _loc2gl();
   void _copyEl();
   void _printEl(ostream & stream){ stream << " Mass "<<_Mass<<
   " Error Mass "<<_ErrMass<<" Momentum "<<_Momentum<<" ErrMomentum "<<
    _ErrMomentum<<" Charge "<<_Charge<<" Theta "<<_Theta<<" Phi"<<_Phi<<
    " Coo "<<_Coo<<" ThetaGl "<<_ThetaGl<<" PhiGl "<<_PhiGl<<endl;}
+
+static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall){};
+static void alfun(integer & n, number xc[], number & fc, AMSParticle * ptr);
  void _writeEl();
- static geant _massP[19];
- static integer _chargeP[10];
- static integer _partP[20];
+ static integer _partP[38];
 public:
   AMSParticle *  next(){return (AMSParticle*)_next;}
   AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0)

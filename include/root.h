@@ -18,7 +18,7 @@ const int MAXANTICL  =    16;
 const int MAXANTIRAW =    32;
 const int MAXANTIMC  =   200;
 const int MAXTRCL    =   200;
-const int MAXTRRAW   =   500;
+const int MAXTRRAW   =   400;
 const int MAXTRCLMC  =   200;
 const int MAXTRRH    =   500;
 const int MAXTRTR    =    200;
@@ -66,7 +66,6 @@ public:
   int AntiMCClusters;
   int AntiClusters;
   int EventStatus; 
-  float Dummy[3];
   
 friend class AMSEvent;
 friend class AMSNtuple;
@@ -132,11 +131,13 @@ class ParticleNtuple {
 #endif
 public:
   int Npart;
-  int CTCP[MAXPART][2];
-  int BetaP[MAXPART];
-  int ChargeP[MAXPART];
-  int TrackP[MAXPART];
-  int Particle[MAXPART];
+  int   BetaP[MAXPART];
+  int   ChargeP[MAXPART];
+  int   TrackP[MAXPART];
+  int   Particle[MAXPART];
+  int   ParticleVice[MAXPART];
+  float Prob[MAXPART][2];
+  float FitMom[MAXPART];
   float Mass[MAXPART];
   float ErrMass[MAXPART];
   float Momentum[MAXPART];

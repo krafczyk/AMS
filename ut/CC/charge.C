@@ -32,23 +32,39 @@ geant AMSCharge::_lkhdStepTracker[ncharge];
 integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
 integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
 char AMSCharge::_fnam[128]="lkhd_v215+.data";
-integer AMSCharge::getvotedcharge(){
+
+number AMSCharge::getprobcharge(integer charge){
+charge=fabs(charge);
+if(charge>_chargeTracker[ncharge-1]){
+  cerr <<" AMSCharge::getprobcharge-E-charge too big "<<charge<<endl;
+  return 0;
+}
+ int index;
+ int voted=getvotedcharge(index);
+ int i=charge;
+ if(voted<=3)return _ProbTOF[i]*_ProbTracker[i]/_ProbTOF[index]/_ProbTracker[index];
+ else return _ProbTracker[i]/_ProbTracker[index];
+
+
+}
+
+integer AMSCharge::getvotedcharge(int & index){
 int i;
 number mp=0;
 integer charge=0;
+// TOF cannot get charge for charge > 3 imply the tracker only
 for(i=0;i<ncharge;i++){
-  if(mp<_ProbTOF[i]*_ProbTracker[i]){
-    mp=_ProbTOF[i]*_ProbTracker[i];
+  if(mp<(charge>3?1:_ProbTOF[i])*_ProbTracker[i]){
+    mp=(charge>3?1:_ProbTOF[i])*_ProbTracker[i];
     charge=_chargeTracker[i];
+    index=i;
   }
 }
-// TOF cannot get charge for charge > 3 imply the tracker only
-if(charge>3){
-  charge=_ChargeTracker;
-}
-else if(charge==2 && _ProbTracker[2]*_ProbTOF[2]<0.025){
+if(charge==2 && _ProbTracker[2]*_ProbTOF[2]<0.025){
   // Probably charge ==1
-  if(_TrMeanTracker+_TrMeanTOF*20<CHARGEFITFFKEY.OneChargeThr)charge=1;
+  if(_TrMeanTracker+_TrMeanTOF*20<CHARGEFITFFKEY.OneChargeThr){
+     charge=1;
+  }
 }
 return charge;
 }

@@ -1442,6 +1442,7 @@ AMSgObj::BookTimer.book("RECTCEVENT");
 void AMSJob::_reaxinitjob(){
   AMSgObj::BookTimer.book("REAXEVENT");
   AMSgObj::BookTimer.book("ReAxRefit");
+  AMSgObj::BookTimer.book("ReAxPid");
   AMSgObj::BookTimer.book("part::loc2gl");
   if(AMSFFKEY.Update){
     for(int i=0;i<gethead()->gettdvn();i++){

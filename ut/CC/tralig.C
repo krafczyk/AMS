@@ -951,6 +951,20 @@ void AMSTrAligFit::alfungl(integer &n, number xc[], number &fc, AMSTrAligFit *p)
     return;
     }
   }
+  static number fool_e04ccf=0;
+  if(!p->_flag){
+    int allzero=1;
+    for(int k=0;k<n;k++){
+     if(xc[k]!=0){
+       allzero=0;
+       break;
+     }
+    }
+    if(allzero){
+     fc=fool_e04ccf;
+     return;
+    }
+  }
   const integer maxhits=10;
   static geant hits[maxhits][3];
   static geant hits1[maxhits][3];
@@ -1024,6 +1038,7 @@ void AMSTrAligFit::alfungl(integer &n, number xc[], number &fc, AMSTrAligFit *p)
 mbreak: 
    if(out[7]==0 && out[5]!=0 ){
     if(ialgo/10 && p->_flag){
+       
       geant out1[9];
       int ia=1;
       TKFITG(npt,hits,sigma,normal,p->_pData[niter]._Pid,ia,ims,out1);
@@ -1051,12 +1066,14 @@ mbreak:
        for(i=0;i<6;i++)cout <<" "<<xc[i]<<" ";
        cout << endl<<" alfun out " <<fc<<" "<<npfit<<" "<<pav<<" "<<pav2<<" "<<n<<endl;
        p->_flag=0;
+
   }
        for(i=0;i<6;i++)cout <<" "<<xc[i]<<" ";
        cout << endl<<" alfun out " <<fc<<" "<<npfit<<" "<<pav<<" "<<pav2<<" "<<n<<endl;
       if(p->_flag==3){
        p->_tmp=fc;
        p->_flag=0;
+       fool_e04ccf=fc;
       }
 }
 
