@@ -1,7 +1,6 @@
 Cgbatch   // compile +link user file for AMS batch
 Cgxint    // compile +link user file for geant interactive
 Makelib   // makefile to gmake amslib
-Mconvert  // makefile for convert ntuples program
 Mgbatch   // makefile to gmake geant batch     
 Mgxint    // makefile to gmake geant interactive  
 Mopt      // makefile to gmake geant batch optimized
