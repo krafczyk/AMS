@@ -103,7 +103,7 @@ geant & setgain() {return gains[idsoft2linear[_addr]+_strip];}
 geant & setindnoise() {return indnoise[idsoft2linear[_addr]+_strip];}
 geant & setcmnnoise()  {return cmnnoise[_addr];}
 void  setstatus(integer changer)  
-{status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] & changer;}
+{status[idsoft2linear[_addr]+_strip]=status[idsoft2linear[_addr]+_strip] | changer;}
 friend class AMSTrIdGeom;
 friend class AMSJob;
 AMSTrIdSoft(const AMSTrIdGeom &,integer side);

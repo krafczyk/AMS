@@ -93,6 +93,7 @@ public:
 AMSBeta*     getpbeta()   { return _pbeta;}
 AMSCharge*   getpcharge() { return _pcharge;}
 AMSTrTrack*  getptrack()   { return _ptrack;}
+number getcharge() const {return _Charge;}
 void       setpbeta(AMSBeta* p)     {_pbeta   = p;}
 void       setpcharge(AMSCharge* p) {_pcharge = p;}
 void       setptrack(AMSTrTrack* p) {_ptrack  = p;}

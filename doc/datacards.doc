@@ -3,7 +3,18 @@ Datacards
 //General 
           
 AMSJOB  
-I 1  Jobtype(0)      //0 - simulation ; 1 - Reconstruction
+I 1  Jobtype(0)      // 1 - Reconstruction ( 0 Simulation)
+                     // 10 - Real Data
+                     // 100 - Tracker Calibration 
+                     // 200 - TOF Calibration 
+                     // 300 - Anti Calibration 
+                     // 400 - Cerenkov Calibration 
+                     // 500 - Magnet Calibration 
+                     // 600 - RICH Calibration 
+                     // 700 - TRD Calibration 
+                     // 800 - TAMS Calibration 
+                     // 900 - Reserved
+                     // 
 I 2  Debug(1)        // 0 - Off   ; 1 - On
 R 3  CpuLimit(10.)   // CpuLimit in native sec per event
 I 4  Read(0)         // 0 - Off   ; 1 - setup 10 -Mceventg 100 -mc banks
@@ -198,14 +209,14 @@ R71 ResFunX[3][6];      //
 
 // Tracker pattern recognition
 TRFIT
-I 1 Pattern[19](5*1,14*0)
+I 1 Pattern[22](5*1,17*0)
   //    Number              Descr             Points      Default
   //    0                   123456            6           on
   //    1                   12346             5           on
   //    2                   12356             5           on
   //    3                   12456             5           on
   //    4                   13456             5           on
-  //    5                   12345             5           on
+  //    5                   12345             5           off
   //    6                   23456             5           off
   //    7                   1234              4           off
   //    8                   1235              4           off
@@ -216,29 +227,32 @@ I 1 Pattern[19](5*1,14*0)
   //   13                   1345              4           off
   //   14                   1346              4           off
   //   15                   1356              4           off
-  //   16                   2345              4           off
-  //   17                   2346              4           off
-  //   18                   3456              4           off
-I20  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
+  //   16                   1456              4           off
+  //   17                   2345              4           off
+  //   18                   2346              4           off
+  //   19                   2356              4           off
+  //   20                   2456              4           off
+  //   21                   3456              4           off
+I23  UseTOF(1)                    // Use(>=1 == Min No TOF clusters matched)/
                                   // Not use(0) TOF  for pattern No 16
-R21  Chi2FastFit(20)              // Max  chi2 for tkhmd;
-R22  Chi2StrLine(20)              // The same for Straight line fit
-R23  Chi2Circle(20)         // The same for Circle fit
-R24  ResCutFastFit(0.5)     // Max residual distance in cm between 
+R24  Chi2FastFit(20)              // Max  chi2 for tkhmd;
+R25  Chi2StrLine(20)              // The same for Straight line fit
+R26  Chi2Circle(20)         // The same for Circle fit
+R27  ResCutFastFit(0.5)     // Max residual distance in cm between 
                                   // point and fitted curve (not yet impl)
-R25  ResCutStrLine(0.5)     // --- strline    (not yet impl)
-R26  ResCutCircle(0.5)      // --- circlefit  (not yet impl)
-R27  SearchRegFastFit(1)    // Max distance in cm between point 
+R28  ResCutStrLine(0.5)     // --- strline    (not yet impl)
+R29  ResCutCircle(0.5)      // --- circlefit  (not yet impl)
+R30  SearchRegFastFit(1)    // Max distance in cm between point 
                                   // and extrarpolated curve to include
                                   // point in the pattern
-R28  SearchRegStrLine(0.5)  // ------- strline fit
-R29  SearchRegCircle(1)     // ---------- circle fit
-R30  RidgidityMin(0.2)      // Minimal ridgidity in GV     
-I31  FullReco(0)            // Use(1) or not use(0) "used "clusters to build 
+R31  SearchRegStrLine(0.5)  // ------- strline fit
+R32  SearchRegCircle(1)     // ---------- circle fit
+R33  RidgidityMin(0.2)      // Minimal ridgidity in GV     
+I34  FullReco(0)            // Use(1) or not use(0) "used "clusters to build 
                             // tracks
-R32  MinRefitCos(0.7,0.5)      // min cos(tr angle) to refit track with wider
+R35  MinRefitCos(0.7,0.5)      // min cos(tr angle) to refit track with wider
                             // clusters
-I34  FastTracking(0)        // Make(1) do not make(0) nonlinear fitting
+I36  FastTracking(0)        // Make(1) do not make(0) nonlinear fitting
 
 
 
@@ -280,3 +294,16 @@ R11 SearchReg[3](3.,3.,3.) // Max distance between track & tof hit in sigma's
 
 CHARGEFIT
 R 1 Thr(1.)   // Refit charge if Fisher's criterium is satisfied(1.=67%,2.=95%)
+
+
+TRCALIB    // trcaker calibration
+
+I 1 EventsPerIteration[2](100,100)    // Events in one bunch
+I 3 NumberOfIterations[2](200,200)    // number of bunches
+R 5 BetaCut[2][2](0.7,0.95,1.,10.)    // Beta limits
+R 9 HitsRatioCut[2](2.5,2.5)          // Hit Ratio Limits
+R11 MomentumCut[2][2](-inf,inf,3,inf) // momentum ----------
+R15 Chi2Cut[2](3.,3.)                 // chi2 ---------------
+R17 InitialCoo[6][3](0)               // Coordinates displacement
+R35 InitialRM[6][3][3](0)             // Rot Matrix --------
+};

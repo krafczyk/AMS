@@ -8,6 +8,7 @@ Mgxint    // makefile to gmake geant interactive
 Mopt      // makefile to gmake geant batch optimized
 clmake    // Clever Make ; use e.g. clmake Mgbatch
 MakeDB    // makefile, to make AMS+DB. Moved to ../db
+Mreadio   // readio makefile  
 InitDB    // makefile, to make database init exe, to create all containers 
 config.*  // configuration files for Objectivity. Moved to ../db
 

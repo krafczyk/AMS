@@ -196,7 +196,7 @@ public:
 COMMON_BLOCK_DEF(CHARGEFITFFKEY_DEF,CHARGEFITFFKEY);
 
 //
-const integer npat=19;
+const integer npat=22;
 class TRFITFFKEY_DEF {
 public:
   integer pattern[npat];  //patterns  to fit; Priority decreases with number
@@ -217,9 +217,12 @@ public:
   //   13                   1345              4           off
   //   14                   1346              4           off
   //   15                   1356              4           off
-  //   16                   2345              4           off
-  //   17                   2346              4           off
-  //   18                   3456              4           off
+  //   16                   1456              4           off
+  //   17                   2345              4           off
+  //   18                   2346              4           off
+  //   19                   2356              4           off
+  //   20                   2456              4           off
+  //   21                   3456              4           off
   integer UseTOF;     // Use(>=1)/Not use(0) 
                       // TOF info for pattern rec for pattern 16
   geant Chi2FastFit;  //  Max acceptable chi2 for tkhmd; 
@@ -319,6 +322,22 @@ char amsdatadir[128];
 };
 #define AMSDATADIR COMMON_BLOCK(AMSDATADIR,amsdatadir)
 COMMON_BLOCK_DEF(AMSDATADIR_DEF,AMSDATADIR);
+
+class TRCALIB_DEF{
+public:
+integer EventsPerIteration[2];
+integer NumberOfIterations[2];
+                                 // Select Cut
+geant BetaCut[2][2];             // Beta limits
+geant HitsRatioCut[2];           // Hit Ratio
+                                 // Global fit cuts
+geant MomentumCut[2][2];         // momentum ----------
+geant Chi2Cut[2];                // chi2 --------------- 
+geant InitialCoo[6][3];          // Coordinates displacement
+geant InitialRM[6][3][3];        // Rot Matrix --------
+};
+#define TRCALIB COMMON_BLOCK(TRCALIB,trcalib)
+COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);
 
 
 

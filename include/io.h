@@ -33,6 +33,7 @@ integer getevent() const { return _event;}
 integer getpid() const {return _ipart;}
 time_t gettime() const {return _time;}
 integer read();
+void close(){ fbin.close();}
 integer getseed(integer i){return i>=0 && i<2 ? _seed[i] : 0;} 
 static void setfile(char *f);
 void write();

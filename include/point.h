@@ -11,7 +11,7 @@ number _x;
 number _y;
 number _z;
 public:
-AMSPoint(){};
+AMSPoint():_x(0),_y(0),_z(0){};
 AMSPoint(number x, number y,number z):_x(x),_y(y),_z(z){};
 AMSPoint(number coo[3]): _x(coo[0]),_y(coo[1]),_z(coo[2]){};
 void setp(number x,number y,number z){_x=x;_y=y;_z=z;}
@@ -47,7 +47,7 @@ class AMSDir :public AMSPoint{
 private:
 void _copy(number x,number y,number z);
 public:
-AMSDir(){};
+AMSDir():AMSPoint(){};
 AMSDir(const AMSPoint& o){number x,y,z;o.getp( x,y,z);_copy(x,y,z);}
 AMSDir(const AMSDir& o){_copy(o._x,o._y,o._z);}
 AMSDir(number x, number y,number z){_copy(x,y,z);}

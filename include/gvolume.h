@@ -57,6 +57,8 @@ class AMSgvolume : public AMSNode
            const char gonly[] , 
            integer posp,integer gid);
 
+  void setcoo(geant coo[]);
+  void setnrm(number nrm[][3]);
   number getinrm(integer i ,integer j)const{return _inrm[i][j];}
   number getcoo(integer i) {return _coo[i];}
   number getcooA(integer i){return _cooA[i];}

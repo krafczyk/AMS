@@ -25,6 +25,7 @@ port_osf1.doc       // notes about alpha/osf1
 setup.doc           // AMS layouts
 snode.doc           // map class
 timeid.doc          // class for time dependent variables
+trcalib.doc         // Tracker calibration
 tofrawcluster.doc   // TOF digitization
 tofrec.doc          // TOF reconstruction
 trid.doc            // Tracker geom & software id

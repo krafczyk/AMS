@@ -33,6 +33,7 @@ tkgeom.h    // Tracker geometry prototypes
 tofdbc.h    // Various constants & parameters (geometry most) for TOF
 tofrec.h    // TOF classes
 tofsim.h    // TOF simulation classes
+trcalib.h   // Trcaker calibration
 trid.h      //  Tracker ID's
 trrawcluster.h // Tracker Raw Cluster
 trrec.h      // Tracker classes

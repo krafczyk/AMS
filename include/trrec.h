@@ -305,15 +305,13 @@ number HPhi[2], AMSPoint  HP0[2] ) const;
    friend class AMSTrTrackD;
 #endif
 AMSTrTrack() {_Pattern = -1; _NHits = -1;}
-AMSTrRecHit* getHitP(integer n) {if (n< 6) 
-                                  return _Pthit[n];
-                                 else
-                                   return NULL; }
+AMSTrRecHit* getHitP(integer n) {return n>=0 && n<6 ?  _Pthit[n] : 0;}
 void   setHitP(AMSTrRecHit* p, integer n) {if (n< 6) _Pthit[n] = p;}
 
 //-
 
 integer TOFOK();
+integer getnhits() const {return _NHits;}
 number getgrid() const {return _GRidgidity;}
 number getrid() const {return _Ridgidity;}
 number gettheta() const {return _Theta;}

@@ -11,7 +11,7 @@ J O B
  | 
  | 
  | 
- |->Geometry, Meterials, etc.
+ |->Geometry, Materials, etc.
 
 
 
@@ -30,6 +30,49 @@ AMSgmat * getmat();        // Returns pointer to top of material tree
 AMSgtmed * getmed();       // Returns pointer to top of media tree
 
 AMSTimeID * gettimestructrure();  // Returns pointer to top of timeid tree
+
+
+
+
+JOBTYPE description
+---------------------
+
+Defined  thru AMSJOBFFKEY.Jobtype(0) (see datacards.doc)
+
+Internally a-la
+
+class JobType {
+uinteger Reconstruction:1;
+uinteger RealData:1;
+uinteger CTracker :1;
+uinteger CTOF :1;
+uinteger CAnti :1;
+uinteger CCerenkov :1;
+uinteger CMagnet :1;
+uinteger CRICH :1;
+uinteger CTRD :1;
+uinteger CAMS :1;
+};
+
+corresponding general get/set
+getjobtype(integer checker){ retunr _jobtype & checker;
+setjobtype(integer checker){ retunr _jobtype | checker;
+
+specific:
+
+isReconstruction()
+isSimulation() == !isReconstruction
+
+isRealData()
+isMCData == !isRealData
+
+isCalibration() return corresponding Tracker,TOF...Calibration or 0, i.e.
+to check if the tracker calib is on :
+
+if(isCalibration () & AMSJob::CTracker)
+                    ^ one &
+
+
 
 
 

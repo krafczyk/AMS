@@ -50,13 +50,21 @@ M A I N  ->      gbatch.C
  |    |   |    |->_sitrdinitjob
  |    |   |    |->_sictcinitjob
  |    |   |    
- |    |   |->_reamsinitjob    
+ |    |   |->_reamsinitjob    Reconstruction initialization   
  |    |   |    | 
  |    |   |    |->_retkinitjob
  |    |   |    |->_retofinitjob
  |    |   |    |->_retrdinitjob
  |    |   |    |->_rectcinitjob
  |    |   |    |->_reaxinitjob
+ |    |   |    
+ |    |   |->_caamsinitjob    Calibration initialization
+ |    |   |    | 
+ |    |   |    |->_catkinitjob
+ |    |   |    |->_catofinitjob
+ |    |   |    |->_catrdinitjob
+ |    |   |    |->_cactcinitjob
+ |    |   |    |->_caaxinitjob
  |    |   |
  |    |   |->_timeinitjob   Initialization time dependent vars
  |    |
@@ -138,39 +146,60 @@ M A I N  ->      gbatch.C
  |        |    |         
  |        |    |
  |        |    |->_reamsevent         Reconstruct event
- |        |        |     
- |        |        |->_retofevent     Reconstruct TOF
- |        |        |     |
- |        |        |     |->AMSTOFRawCluster::build;   RawEvent-->RawCluster
- |        |        |     |->AMSTOFCluster::build;      RawCluster-->Cluster
- |        |        |
- |        |        |->_retkevent      reconstruct Tracker
- |        |        |     |
- |        |        |     |->AMSTrCluster::build        Make clusters
- |        |        |     |->AMSTrRecHit::build         Make Rec Hits
- |        |        |     |->AMSTrTrack::build          Pattern rec + fitting 
- |        |        |     |        |->Fit                Trajectory Fit
- |        |        |     |                     
- |        |        |     |->_retkevent                 Refit if necessary        
- |        |        |                          
- |        |        |->_retrdevent     reconstruct TRD
- |        |        |->_rectcevent     reconstruct CTC
- |        |        |     |
- |        |        |     |->AMSCTCCluster::build        Make clusters
- |        |        |
- |        |        |->_reaxevent      global reconstruction
- |        |              |
- |        |              |->AMSBeta::build         Beta reconstruction 
- |        |              |   |->SimpleFit          Straight Line fit   
- |        |              | 
- |        |              |->AMSCharge::build       Charge reconstruction 
- |        |              |   |->Fit                Likelihood Fit
- |        |              | 
- |        |              |->AMSParticle::build     Final reconstruction
- |        |              |   |->pid                Particle Identification
- |        |              |   |->refit              Refitting Trajectory
- |        |              |
- |        |              |->TOFTZSLcalib::select();event selection for TOF TZSL-calibration
+ |        |    |    |     
+ |        |    |    |->_retofevent     Reconstruct TOF
+ |        |    |    |     |
+ |        |    |    |     |->AMSTOFRawCluster::build;   RawEvent-->RawCluster
+ |        |    |    |     |->AMSTOFCluster::build;      RawCluster-->Cluster
+ |        |    |    |
+ |        |    |    |->_retkevent      reconstruct Tracker
+ |        |    |    |     |
+ |        |    |    |     |->AMSTrCluster::build        Make clusters
+ |        |    |    |     |->AMSTrRecHit::build         Make Rec Hits
+ |        |    |    |     |->AMSTrTrack::build          Pattern rec + fitting 
+ |        |    |    |     |        |->Fit               Trajectory Fit
+ |        |    |    |     |                     
+ |        |    |    |     |->_retkevent                 Refit if necessary     
+ |        |    |    |                          
+ |        |    |    |->_retrdevent     reconstruct TRD
+ |        |    |    |->_rectcevent     reconstruct CTC
+ |        |    |    |     |
+ |        |    |    |     |->AMSCTCCluster::build        Make clusters
+ |        |    |    |
+ |        |    |    |->_reaxevent      global reconstruction
+ |        |    |          |
+ |        |    |          |->AMSBeta::build         Beta reconstruction 
+ |        |    |          |   |->SimpleFit          Straight Line fit   
+ |        |    |          | 
+ |        |    |          |->AMSCharge::build       Charge reconstruction 
+ |        |    |          |   |->Fit                Likelihood Fit
+ |        |    |          | 
+ |        |    |          |->AMSParticle::build     Final reconstruction
+ |        |    |          |   |->pid                Particle Identification
+ |        |    |          |   |->refit              Refitting Trajectory
+ |        |    |          |
+ |        |    |          |->TOFTZSLcalib::select() Event selection for 
+ |        |    |                                    TOF TZSL-calibration
+ |        |    |
+ |        |    |
+ |        |    |->_caamsevent           Calibration
+ |        |    |     |
+ |        |          |->_catofevent      TOF
+ |        |          |
+ |        |          |
+ |        |          |->_cactcevent       Cerenkov
+ |        |          |
+ |        |          | 
+ |        |          |->catofevent        Tracker 
+ |        |          |     |
+ |        |          |     |->AMSTrCalibFit::Test
+ |        |          |     |->AMSTrCalibFit::Fit
+ |        |          |
+ |        |          |->_catrdevent
+ |        |          |
+ |        |
+ |        |
+ |        |
  |        |       
  |        |->AMSEvent::write         Write event output to ntuple
  |        |       
