@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.304 2005/03/11 10:35:16 alexei Exp $
+# $Id: RemoteClient.pm,v 1.305 2005/03/15 08:38:42 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3153,7 +3153,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             my $time=time();
             $cem = trimblanks($cem);
             $name= trimblanks($name);
-            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0)";
+            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0,'v00')";
             $self->{sqlserver}->Update($sql);
             if($newcite){
                 $sql="update Cites set mid=$mid where cid=$cid";
@@ -3235,7 +3235,7 @@ CheckCite:            if (defined $q->param("QCite")) {
              $ret=$self->{sqlserver}->Query($sql);
              my $mid=$ret->[0][0]+1;
              my $resp=1;
-             $sql="INSERT INTO Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0)";
+             $sql="INSERT INTO Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0,'v0.00')";
             $self->{sqlserver}->Update($sql);
 # add responsible info to Cites
              $sql="UPDATE Cites SET mid=$mid WHERE cid=$cid";
@@ -3336,7 +3336,7 @@ CheckCite:            if (defined $q->param("QCite")) {
             my $mid=$ret->[0][0]+1;
             my $resp=0;
             my $time=time();
-            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0)";
+            $sql="insert into Mails values($mid,'$cem',NULL,'$name',$resp,0,$cid,'Blocked',0,$time,0,0,'v0.00')";
             $self->{sqlserver}->Update($sql);
          $self->{FinalMessage}=" Your request to register was succesfully sent to $sendsuc. Your account will be enabled soon.";     
         }
