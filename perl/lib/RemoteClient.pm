@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.77 2003/04/04 06:42:20 alexei Exp $
+# $Id: RemoteClient.pm,v 1.78 2003/04/04 11:04:10 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -87,6 +87,7 @@ my %fields=(
        scriptsOnly=>1,
        senddb=>0,
        sendaddon=>0,
+       dwldaddon=>0
             );
     my $self={
       %fields,
@@ -1847,13 +1848,15 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              print "<tr><td>\n";
              print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
              print "<font color=\"green\" size=2>
-                  <i>(<b>NO </b> communication via  <b> CORBA server </b> if box  <BR>\n";
-             print "  <b> Checked </b>, and  <b> USE CORBA SERVER </b> if box <b> NOT checked</b>)
+                  <i>(<b> STANDALONE</b>  mode if <b> Yes </b>, <BR>\n";
+             print "  communicate via <b> SERVER </b> if <b> NO</b>)
                       </i></font></b>\n";
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"Yes\" ><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"No\" CHECKED><b> No </b><BR>\n";
+#             print "<input type=\"checkbox\" name=\"STALONE\" value=\"No\"><b> Yes </b>";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
           }
@@ -1970,13 +1973,16 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "<tr><td>\n";
              print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
              print "<font color=\"green\" size=2>
-                  <i>(<b>NO </b> communication via  <b> CORBA server </b> if box  <BR>\n";
-             print "  <b> Checked </b>, and  <b> USE CORBA SERVER </b> if box <b> NOT checked</b>)
+                  <i>(<b> STANDALONE</b>  mode if <b> Yes </b>, <BR>\n";
+             print "  communicate via <b> SERVER </b> if <b> NO</b>)
                       </i></font></b>\n";
+
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"R\" ><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+#             print "<input type=\"checkbox\" name=\"STALONE\" value=\"No\"><b> Yes </b>";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
           }
@@ -2144,14 +2150,18 @@ DDTAB:         $self->htmlTemplateTable(" ");
             if ($self->{CCT} eq "remote") {
              print "<tr><td>\n";
              print "<b><font color=\"green\">Standalone MC production</font></b><BR>\n";
+
              print "<font color=\"green\" size=2>
-                  <i>(<b>NO </b> communication via  <b> CORBA server </b> if box  <BR>\n";
-             print "  <b> Checked </b>, and  <b> USE CORBA SERVER </b> if box <b> NOT checked</b>)
+                  <i>(<b> STANDALONE</b>  mode if <b> Yes </b>, <BR>\n";
+             print "  communicate via <b> SERVER </b> if <b> NO</b>)
                       </i></font></b>\n";
+
              print "</td><td>\n";
              print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
              print "<tr><td><font size=\"-1\"<b>\n";
-             print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\"><b> Yes </b>";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"R\" ><b> Yes </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"STALONE\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
+#             print "<input type=\"checkbox\" name=\"STALONE\" value=\"No\"><b> Yes </b>";
              print "</b></font></td></tr>\n";
            htmlTableEnd();
           }
@@ -2501,13 +2511,20 @@ print qq`
         }
          my $sonly="No";
          $sonly=$q->param("SONLY");
-# Apr 2. 2003. a.k. uncommented
-         if ($sonly eq "Yes") {
-             $self->{scriptsOnly}=0;
-             $self->{senddb}=1;
-             $self->{sendaddon}=1;
-         }
+# Apr 2. 2003. a.k. uncommented/commented back
+#         if ($sonly eq "Yes") {
+#             $self->{scriptsOnly}=0;
+#             $self->{senddb}=1;
+#             $self->{sendaddon}=1;
+#         }
 #
+# Second file for download only in StanAlone mode
+        my $stalone = $q->param("STALONE");
+        if ($stalone eq "Yes") {
+          $self->{dwldaddon}=1;
+        } else {
+          $self->{dwldaddon}=0;
+        }
         my $aft=$q->param("AFT");
         my $templatebuffer=undef;
         my $template=undef;
@@ -4390,9 +4407,13 @@ sub Download {
     print "<TITLE>AMS Offline Software</TITLE></HEAD>\n";
     print "<FORM METHOD=\"GET\" action=\"$self->{Name}\">\n";
     print "<TABLE border=0 cellspacing=0 cellpadding=0>\n";
-    print "<br><b><font color=\"blue\" size=\"4\"> $self->{CEM} </b></font>\n";
+    my $mode = "Server";
+    if ($self->{dwldaddon} == 1) {
+     $mode = "Standalone";
+    }
+    print "<br><b><font color=\"blue\" size=\"4\"> $self->{CEM}, mode :  $mode </b></font>\n";
     my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBLastLoad});
-    print "<br><font color=\"green\" size=\"4\"><b><i> Last downloaded  : </i></font><b> $dtime (</b>\n";
+    print "<br><font color=\"green\" size=\"4\"><b><i> Last downloaded  : </i></font><b> $dtime </b>\n";
     $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
     print "<br><font color=\"green\" size=\"4\"><b><i>Files updated    : </i></font><b> $dtime </b>\n";
     print "<br><font color=\"red\" size=\"5\"><b><i> It is absolutely mandatory to download files</b></i></font>\n";
@@ -4416,6 +4437,7 @@ sub DownloadSA {
     $self->{UploadsDir}="/var/www/cgi-bin/AMS02MCUploads";
     $self->{FileDB}="ams02mcdb.tar.gz";
     $self->{FileAttDB}="ams02mcdb.addon.tar.gz";
+    $self->{dwldaddon} = 1;
     print "Content-type: text/html\n\n";
     print "<HTML>\n";
     print "<body bgcolor=cornsilk text=black link=#007746 vlink=navy alink=tomato>\n";
@@ -4453,12 +4475,14 @@ sub PrintDownloadTable {
     $file= $self->{FileAttDB};
 #    $file=~ s/gz/Z /;
 #           <a href=$self->{UploadsHREF}/$self->{FileAttDB}>   filedb att.files (tar.gz)</a>
-    print "<br><font size=\"4\">
+    if ($self->{dwldaddon} == 1) {
+     print "<br><font size=\"4\">
            <a href=load.cgi?$self->{UploadsHREF}/$file>   filedb att.files (tar.gz)</a>
            </font>\n";
-    $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
-    print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
-    print "<br><br>\n";
+     $dtime=EpochToDDMMYYHHMMSS($self->{FileAttDBTimestamp});
+     print "<font size=\"3\" color=\"red\"><i><b>       ( Updated : $dtime)</b></i></font>\n";
+     print "<br><br>\n";
+    }
     print "</TD></TR>\n";
     print "</TABLE>\n";
     print "</td></tr>\n";
