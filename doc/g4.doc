@@ -29,6 +29,7 @@ CC/geant4.C include/geant4.h,geantnamespace.h
 --> should contain analogs of gukine,guout,gustep,
     wrapper for gufld, etc
 
+CC/g4physics.C   <<- physics
 maybe (or in geant.C)
 CC/g4utils.C include/g4utils.h
 
