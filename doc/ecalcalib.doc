@@ -8,7 +8,7 @@
  Algorithm:
  
 1.    Track preselection (good chi2, track hits ECAL(with some safety gap),
-   Z>=2(to be done))
+   Z>=2(or Z=1 if MIP mode was activated)
 
 2. Punch-through event selection:
 
@@ -20,8 +20,7 @@
      
      For accepted event: N(1) ScPlanes with Highest Edep are marked as bad.
    In further analysis any SuperLayer containing such bad plane is ignored.
-   Truncated(by above procedure) Edep shoud correspond Z>=2 (to be done if 
-   not checked for track)
+   Truncated(by above procedure) Edep shoud correspond Z=2(1).
    
    Note: All above cuts on ECAL-signals are applied to EcalHits(converted 
    back to ADC counts). It means we use parameters from previous calibration 
@@ -29,7 +28,7 @@
    This is done to improve preselection efficiency(gains variations are 
    already corrected in first approximation).
    
-    The below analysis is applied to EcalRawEvent hits !!! (any kind of 
+    The next procedures are applied already to EcalRawEvent hits !!! (any kind of 
     calibration is not applied !!!)
    
    
@@ -100,13 +99,13 @@
    
    5.   "Electromagneticity" check by analysing Efront/Epeak/Etail ratious;
    
-   6.   Check Ebackground/Esignal ratio in first 3 planes (Esignal is total
+   6.   Check Ebackground/Esignal ratio in first 6 planes (Esignal is total
       energy of SubCells around track crossing point(closer than some distance),
       Ebackgr - the energy of the rest in plane);
         This check is not activated by default now but may be used as addition
       or replacement to item 3 cut using flag ECRE 6=0/1/2(see datacards.doc); 
       
-   7.   For plane 1,2 check that COG is close to track crossing point;
+   7.   For first 6 planes check that COG is close to track crossing point;
    
    8.   For selected events accumulate Mom/Ecal ratious and fit this distribution
        by goussian. Calculate new abs.norm.factor using previous(old) one and 

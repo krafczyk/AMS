@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.18 2001/03/06 16:37:01 choumilo Exp $
+//  $Id: ecalrec.C,v 1.19 2001/03/29 15:23:37 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -103,7 +103,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   geant lfs,lsl,ffr;
   geant pedh[4],pedl[4],sigh[4],sigl[4];
   AMSEcalMCHit * ptr;
-  integer id,sta,adc[2];
+  integer id,sta,adc[2],scsta;
   number dyresp,dyrespt;// dynode resp. in mev(~mV) (for trigger)
   number an4resp,an4respt;// (for trigger)
 //
@@ -134,7 +134,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
       nslhits+=1;
       fid=ptr->getid();//SSLLFFF
       edep=ptr->getedep()*1000;// MeV(dE/dX)
-//      if(il==0 && (fid%100000)/1000>=1 && (fid%100000)/1000<=5 && (fid%1000)==30)edep=0.;//tempor
+//      if(il==0 && (fid%100000)/1000>=1 &&
+//                    (fid%100000)/1000<=5 && (fid%1000)==254)edep=0.;//tempor test(in pl/sc=1/38 )
       edept+=edep;
       EcalJobStat::zprmc1[il]+=edep;//geant SL-profile
       time=(1.e+9)*(ptr->gettime());// geant-hit time in ns
@@ -189,7 +190,8 @@ void AMSEcalRawEvent::mc_build(int &stat){
       a2dr=ECcalib::ecpmcal[il][i].an2dyr();//take some param.from DB
       mev2adc=ECMCFFKEY.mev2adc;// MC GeantEmeas->ADCchannel to have MIP-m.p. in 5th channel
 //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
-      pmrgn=ECcalib::ecpmcal[il][i].pmrgain();
+      pmrgn=1.;//MC: variations of PM/SC gains(electronics,HV's) are not included;
+//          variations due to different number of fibers per pixel are automatically included
       ECPMPeds::pmpeds[il][i].getpedh(pedh);
       ECPMPeds::pmpeds[il][i].getsigh(sigh);
       ECPMPeds::pmpeds[il][i].getpedl(pedl);
@@ -202,7 +204,9 @@ void AMSEcalRawEvent::mc_build(int &stat){
       for(k=0;k<4;k++){//<--- loop over 4-subcells in PM
         EcalJobStat::zprmc2[il]+=sum[i][k];//geant SL(PM-assigned)-profile
         h2lr=ECcalib::ecpmcal[il][i].hi2lowr(k);//PM subcell high/low ratio from DB
-	scgn=ECcalib::ecpmcal[il][i].pmscgain(k);//PM SubCell relative(partial) gain from DB
+	scgn=1.;//PM SubCell gain
+	scsta=ECcalib::ecpmcal[il][i].getstat(k);//PM SubCell status from DB
+	if(scsta<0)scgn=0.;//dead SubCells
         edepr=sum[i][k]*ECMCFFKEY.mev2mev;//Geant_dE/dX(Mev)->Emeas(Mev)
 	emeast+=edepr;
 	anen+=edepr;
@@ -384,7 +388,7 @@ void AMSEcalHit::build(int &stat){
 	}
       }
       edep=fadc/ECcalib::ecpmcal[isl][pmc].pmrgain()
-                                    /ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//gain corr.
+                                    /ECcalib::ecpmcal[isl][pmc].pmscgain(subc);//gain*eff corr.
       if(ECREFFKEY.reprtf[0]>0){
         HF1(ECHISTR+16,geant(edep),1.);
         HF1(ECHISTR+17,geant(edep),1.);

@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.19 2001/03/08 13:54:37 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.20 2001/03/29 15:23:37 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -408,10 +408,13 @@ void EcalJobStat::printstat(){
     printf("    ============== RLGA/FIAT part of REUN_Clibration-statistics ===============\n");
     printf("\n");
     printf(" REUN: entries(tof/ec_trigflag OK) : % 6d\n",cacount[0]);
-    printf(" REUN: Track OK and hits EC        : % 6d\n",cacount[1]);
-    printf(" REUN: Recognized as PunchTrough   : % 6d\n",cacount[2]);
-    printf(" REUN: Etruncated in limits        : % 6d\n",cacount[3]);
-    printf(" REUN: At least one PM matched     : % 6d\n",cacount[4]);
+    printf(" REUN: Track found                 : % 6d\n",cacount[1]);
+    printf(" REUN: Track charge OK             : % 6d\n",cacount[2]);
+    printf(" REUN: Track quality OK            : % 6d\n",cacount[3]);
+    printf(" REUN: Track hits EC               : % 6d\n",cacount[4]);
+    printf(" REUN: Recognized as PunchTrough   : % 6d\n",cacount[5]);
+    printf(" REUN: Etruncated in limits        : % 6d\n",cacount[6]);
+    printf(" REUN: At least one PM matched     : % 6d\n",cacount[7]);
     printf("\n\n");
   }
   if(ECREFFKEY.relogic[1]==3){
@@ -420,12 +423,12 @@ void EcalJobStat::printstat(){
     printf(" REUN: entries(tof/ec_trigflag OK) : % 6d\n",cacount[0]);
     printf(" REUN: ANTI OK                     : % 6d\n",cacount[1]);
     printf(" REUN: Track found                 : % 6d\n",cacount[2]);
-    printf(" REUN: Track OK                    : % 6d\n",cacount[3]);
+    printf(" REUN: Track quality OK            : % 6d\n",cacount[3]);
     printf(" REUN: Track hits ECAL             : % 6d\n",cacount[4]);
     printf(" REUN: FiredSubCells pattern OK    : % 6d\n",cacount[5]);
     printf(" REUN: Efront/Epeak/Etail/Etot OK  : % 6d\n",cacount[6]);
-    printf(" REUN: Plane1/2 COG matching OK    : % 6d\n",cacount[7]);
-    printf(" REUN: Plane1/3 Ebcg/Esig OK       : % 6d\n",cacount[8]);
+    printf(" REUN: Plane1/6 COG matching OK    : % 6d\n",cacount[7]);
+    printf(" REUN: Plane1/6 Ebcg/Esig OK       : % 6d\n",cacount[8]);
     printf("\n\n");
   }
 //
@@ -504,8 +507,10 @@ void EcalJobStat::bookhist(){
         HBOOK1(ECHISTC+32,"ECCA: PM eff( odd SL) ",80,0.5,1.3,0.);
 // test	HBOOK1(ECHISTC+33,"ECCA: TRK imppoint X-accur",60,-0.3,0.3,0.); 
 // test	HBOOK1(ECHISTC+34,"ECCA: TRK imppoint Y-accur",60,-0.3,0.3,0.); 
+        HBOOK1(ECHISTC+35,"ECCA: Track beta",96,-1.2,1.2,0.);
+	HBOOK1(ECHISTC+36,"ECCA: Track Z (from tracker)",16,0.,16.,0.);
       }
-      if(ECREFFKEY.relogic[1]==3){// ANOR part of REUN-calibration
+      if(ECREFFKEY.relogic[1]==3){// =====> ANOR part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
         HBOOK1(ECHISTC+1,"ECCA: Track Chi2(FastFit) ",80,0.,40.,0.);
         HBOOK1(ECHISTC+2,"ECCA: Track rigidity (Gv,FastFit)",100,2.,12.,0.);
@@ -513,7 +518,7 @@ void EcalJobStat::bookhist(){
         HBOOK1(ECHISTC+4,"ECCA: Track half-rig. assimetry(AdvFit)",80,-0.4,0.4,0.);
         HBOOK1(ECHISTC+5,"ECCA: EcalHit Energy(in adc-units)",100,0.,100.,0.);
         HBOOK1(ECHISTC+6,"ECCA: Fired(above thr) SubCells/Layer",80,0.,80.,0.);
-        HBOOK1(ECHISTC+7,"ECCA: Fired(above thr) SubCells/Layer1/2/3",80,0.,80.,0.);
+        HBOOK1(ECHISTC+7,"ECCA: Fired(above thr) SubCells/Layer1/2/3/4/5/6",120,0.,120.,0.);
         HBOOK1(ECHISTC+8,"ECCA: Bad SC-Layers(spikes,high multipl.",maxpl+1,0.,geant(maxpl+1),0.);
         HBOOK1(ECHISTC+9,"ECCA: Edep total(mev)",200,0.,20000.,0.);
         HBOOK1(ECHISTC+10,"ECCA: Side Eleak/Etot",100,0.,0.5,0.);
@@ -521,17 +526,17 @@ void EcalJobStat::bookhist(){
         HBOOK1(ECHISTC+12,"ECCA: Etail/Epeak",100,0.,1.,0.);
         HBOOK1(ECHISTC+13,"ECCA: Edep/Mom-1(Efr,Epeak/Etail cuts)",100,-1.,1.,0.);
         HBOOK1(ECHISTC+14,"ECCA: Max. dist of Track and SC",100,0.,50.,0.);
-        HBOOK1(ECHISTC+15,"ECCA: Track-COG(any plane) dist",100,-10.,10.,0.);
+        HBOOK1(ECHISTC+15,"ECCA: Track-COG(planes 5,6) dist",100,-10.,10.,0.);
         HBOOK1(ECHISTC+16,"ECCA: Edep/Mom(all cuts)",100,0.,2.,0.);
         HBOOK1(ECHISTC+17,"ECCA: Back Eleak/Etot",100,0.,0.5,0.);
         HBOOK1(ECHISTC+18,"ECCA: Mom/Edep(all cuts)",100,0.,2.,0.);
         HBOOK1(ECHISTC+19,"ECCA: Max.value of SubCell ADC",100,0.,5000.,0.);
-        HBOOK1(ECHISTC+20,"ECCA: SCplane1/2/3 holes",80,0.,80.,0.);
+        HBOOK1(ECHISTC+20,"ECCA: SCplane1/2/3/4/5/6 holes",120,0.,120.,0.);
         HBOOK1(ECHISTC+21,"ECCA: Max. dist of Track and SC(pl 1)",100,0.,50.,0.);
         HBOOK1(ECHISTC+22,"ECCA: Track-COG(plane 1,2) dist",100,-10.,10.,0.);
-        HBOOK2(ECHISTC+23,"ECCA: PL1 holes vs maxdist",50,0.,25.,20,0.,20.,0.);
+        HBOOK1(ECHISTC+23,"ECCA: Track-COG(plane 3,4) dist",100,-10.,10.,0.);
         HBOOK1(ECHISTC+24,"ECCA: Spikes/plane",80,0.,80.,0.);
-        HBOOK1(ECHISTC+25,"ECCA: Dist. of Track and SC",80,-8.,8.,0.);
+        HBOOK1(ECHISTC+25,"ECCA: Layers with early showering(holes)",10,0.,10.,0.);
         HBOOK1(ECHISTC+26,"ECCA: Edep(all cuts,attf corr,mev)",100,0.,20000.,0.);
         HBOOK1(ECHISTC+27,"ECCA: Edep(all cuts,no attf.corr,mev)",100,0.,20000.,0.);
         HBOOK1(ECHISTC+28,"ECCA: Rigidity(all cuts,mev)",100,2000.,12000.,0.);
@@ -550,12 +555,19 @@ void EcalJobStat::bookhist(){
         HBOOK1(ECHISTC+41,"ECCA: Track rigidity (Gv,FastFit,TrackOK)",100,2.,12.,0.);
         HBOOK1(ECHISTC+42,"ECCA: Track Layer ampl.",80,0.,400.,0.);
         HBOOK1(ECHISTC+43,"ECCA: Track rigidity (Gv,FastFit,BadEbkg)",100,2.,12.,0.);
+        HBOOK1(ECHISTC+44,"ECCA: Track beta",96,-1.2,1.2,0.);
         HBOOK1(ECHISTC+50,"ECCA: Dist. of Track and SC(pl1)",80,-8.,8.,0.);
         HBOOK1(ECHISTC+51,"ECCA: Dist. of Track and SC(pl2)",80,-8.,8.,0.);
         HBOOK1(ECHISTC+52,"ECCA: Dist. of Track and SC(pl3)",80,-8.,8.,0.);
-	HBOOK1(ECHISTC+55,"ECCA: Emism/Ematch(pl1)",80,0.,4.,0.);
-	HBOOK1(ECHISTC+56,"ECCA: Emism/Ematch(pl2)",80,0.,4.,0.);
-	HBOOK1(ECHISTC+57,"ECCA: Emism/Ematch(pl3)",80,0.,4.,0.);
+        HBOOK1(ECHISTC+53,"ECCA: Dist. of Track and SC(pl4)",80,-8.,8.,0.);
+        HBOOK1(ECHISTC+54,"ECCA: Dist. of Track and SC(pl5)",80,-8.,8.,0.);
+        HBOOK1(ECHISTC+55,"ECCA: Dist. of Track and SC(pl6)",80,-8.,8.,0.);
+	HBOOK1(ECHISTC+56,"ECCA: Emism/Ematch(pl1)",80,0.,4.,0.);
+	HBOOK1(ECHISTC+57,"ECCA: Emism/Ematch(pl2)",80,0.,4.,0.);
+	HBOOK1(ECHISTC+58,"ECCA: Emism/Ematch(pl3)",80,0.,4.,0.);
+	HBOOK1(ECHISTC+59,"ECCA: Emism/Ematch(pl4)",80,0.,4.,0.);
+	HBOOK1(ECHISTC+60,"ECCA: Emism/Ematch(pl5)",80,0.,4.,0.);
+	HBOOK1(ECHISTC+61,"ECCA: Emism/Ematch(pl6)",80,0.,4.,0.);
       }
     }
 //
@@ -603,6 +615,8 @@ void EcalJobStat::outp(){
     if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){ // print RLGA/FIAT-hists
       HPRINT(ECHISTC);
       HPRINT(ECHISTC+6);
+      HPRINT(ECHISTC+35);
+      HPRINT(ECHISTC+36);
       HPRINT(ECHISTC+1);
       HPRINT(ECHISTC+2);
       HPRINT(ECHISTC+3);
@@ -647,6 +661,7 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTC+2);
       HPRINT(ECHISTC+3);
       HPRINT(ECHISTC+4);
+      HPRINT(ECHISTC+44);
       HPRINT(ECHISTC+30);
       HPRINT(ECHISTC+31);
       HPRINT(ECHISTC+32);
@@ -670,22 +685,28 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTC+12);
       HPRINT(ECHISTC+13);
       HPRINT(ECHISTC+14);
-      HPRINT(ECHISTC+15);
       HPRINT(ECHISTC+16);
       HPRINT(ECHISTC+18);
       HPRINT(ECHISTC+19);
       HPRINT(ECHISTC+20);
+      HPRINT(ECHISTC+25);
       HPRINT(ECHISTC+21);
       HPRINT(ECHISTC+22);
       HPRINT(ECHISTC+23);
+      HPRINT(ECHISTC+15);
       HPRINT(ECHISTC+24);
-      HPRINT(ECHISTC+25);
       HPRINT(ECHISTC+50);
       HPRINT(ECHISTC+51);
       HPRINT(ECHISTC+52);
+      HPRINT(ECHISTC+53);
+      HPRINT(ECHISTC+54);
       HPRINT(ECHISTC+55);
       HPRINT(ECHISTC+56);
       HPRINT(ECHISTC+57);
+      HPRINT(ECHISTC+58);
+      HPRINT(ECHISTC+59);
+      HPRINT(ECHISTC+60);
+      HPRINT(ECHISTC+61);
       HPRINT(ECHISTC+26);
       HPRINT(ECHISTC+27);
       HPRINT(ECHISTC+28);

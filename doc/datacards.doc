@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.187 2001/03/08 13:54:38 choumilo Exp $
+#  $Id: datacards.doc,v 1.188 2001/03/29 15:24:11 choumilo Exp $
 Datacards
 
 // Protection from some myst bug
@@ -831,7 +831,7 @@ I 3    reprtf[2](0)        // =1 spare
 
 I 4    relogic[0](0)       // 1/0->write/not EcalHits into Ntuple
 I 5    relogic[1](0)       // 0/1/2...-> normal/RLGA_calib/RLGA+FIAT_calib/ANOR_calib  run
-I 6    relogic[2](0)       // 0/1/2->multipl/Ebackgr/Both_type cuts in ANOR_calib logic
+I 6    relogic[2](0)       // 0/1/2->Nholes/Ebackgr/Both_type cuts in ANOR_calib logic
 I 7,8................        //    spares
 
 R 9    thresh[0](2)        // HighGain-chan. readout threshold(ADCch)    
@@ -869,7 +869,7 @@ ECCA
 (RLGA/FIAT part:)
 I  1  cfvers(1)          // 1-999 -> vers.number for ecalcvlistNNN.dat file
 I  2  cafdir(0)          // 0/1-> use official/private directory for calibr.files
-I  3  truse(1)           // 1/0-> use/not tracker info for calibration
+I  3  truse(1)           // 1/0-> use He4/prot tracks for calibration
 I  4  refpid(118)        // ref.PM ID (SPP-> S=SupLayer, PP=PM number) 
 R  5  trmin(4.)          // presel-cut on min. Rigidity of the track 
 R  6  adcmin(3.)         // min ADC cut for indiv. SubCell (to remove noise)
@@ -977,8 +977,8 @@ I 1 cfvers(2)             // version number(01-99) for antiverlistNN.dat file
   AMS02 Magnet Simulation/status
 
 MAGS
-I 1 magstat (1)     // -1/0/1->warm/cold_OFF/cold_ON
-R 2 fscale  (1.)    // rescale factor (wrt nominal field) (if any)
+I 1 magstat (1)     // -1/0/1->warm/cold_OFF/cold_ON (not really implemented yet)
+R 2 fscale  (1.)    // rescale factor (wrt nominal field) (if any) - not implemented yet
 R 3 ecutge (0.001)  // e/g ener.cut for tracking in magnet materials(Gev) 
 //------------------------------------------------------------------------------
 

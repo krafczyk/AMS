@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.258 2001/03/06 16:37:01 choumilo Exp $
+//  $Id: event.C,v 1.259 2001/03/29 15:23:37 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1401,7 +1401,7 @@ void AMSEvent::_caecevent(){
       toflag=ptr->gettoflg();
       ecflag=ptr->getecflg();
     }
-    if(toflag <= 0 || ecflag<=0)return;// use only TOF+ECAL-triggered event tempor
+    if(toflag <= 0 || ecflag<=0)return;// use only TOF+ECAL-triggered event
     if(ECREFFKEY.relogic[1]>0){
       if(ECREFFKEY.relogic[1]<=2)ECREUNcalib::select();// RLGA/FIAT part of REUN-calibration
       if(ECREFFKEY.relogic[1]==3)ECREUNcalib::selecte();// ANOR part of REUN-calibration

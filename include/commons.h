@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.151 2001/03/08 13:54:38 choumilo Exp $
+//  $Id: commons.h,v 1.152 2001/03/29 15:24:12 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -261,9 +261,9 @@ public:
   geant scmin;      // min ADC for indiv. SubCell (to remove ped,noise)
   geant scmax;      // max ADC .................. (to remove sparks,ovfl,...)
   integer spikmx;   // max SC's(spikes) with ADC>above max
-  integer nhtlmx[3];   // max hits in sc-plane 1,2,3(to remove early showering)
+  integer nhtlmx[6];   // max hits in sc-plane 1-6(to remove early showering)
   integer lmulmx;      // max hits/sc-plane (to remove events with abn.multiplicity)
-  integer nholmx[3];   // max holes(betw.fired cells) in sc-plane 1,2,3(early show.prot)
+  integer nholmx[6];   // max holes(betw.fired cells) in sc-plane 1-6(early show.prot)
   integer nbplmx;      // max bad sc-planes (with spikes or high(abn) multiplicity)
   geant edtmin;        // min Etot(mev) to remove MIP
   geant esleakmx;      // max Eleak(side)/Etot to remove energy side leak
@@ -271,10 +271,10 @@ public:
   geant edfrmn;        // min Efront(mev)
   geant edt2pmx;       // max Etail/Epeak
   geant ed2momc;       // Edep(EC)/Mom(TRK)-1 cut
-  geant cog1cut;       // Track-ScPlaneCOG mismatch cut(cm) for the 1st two SC-planes.
-  geant scdismx[3];    // max sc-track dist. to consider hit as backgroubd(pl-1,2,3) 
+  geant cog1cut;       // Track-ScPlaneCOG mismatch cut(cm) for the 1st t6 SC-planes.
+  geant scdismx[6];    // max sc-track dist. to consider hit as backgroubd(pl 1-6) 
   geant scdisrs;       // as above for all other planes(not used really)
-  geant b2scut[3];     // max backgr/signal energy(bound.from above) for pl-1,2,3 
+  geant b2scut[6];     // max backgr/signal energy(bound.from above) for pl 1-6 
 };
 #define ECCAFFKEY COMMON_BLOCK(ECCAFFKEY,eccaffkey)
 COMMON_BLOCK_DEF(ECCAFFKEY_DEF,ECCAFFKEY);

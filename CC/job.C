@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.363 2001/03/09 16:42:24 choutko Exp $
+// $Id: job.C,v 1.364 2001/03/29 15:23:37 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -309,7 +309,9 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.nanti=20;// max. fired ANTI-paddles 
 //
   TGL1FFKEY.RebuildLVL1=0;
-  TGL1FFKEY.ecintrig=0;// ECAL in trigger if =1 
+// ECAL
+  TGL1FFKEY.ecintrig=0;// ECAL in trigger if =1
+// 
   TGL1FFKEY.MaxScalersRate=20000;
   TGL1FFKEY.MinLifeTime=0.015;
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
@@ -685,7 +687,7 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 // RLGA/FIAT part:
   ECCAFFKEY.cfvers=1;     // (1) 1-999 -> vers.number for ecalcvlistNNN.dat file
   ECCAFFKEY.cafdir=0;     // (2) 0/1-> use official/private directory for calibr.files
-  ECCAFFKEY.truse=1;      // (3) 1/0-> use/not tracker info for calibration
+  ECCAFFKEY.truse=1;      // (3) (1)/0-> use He4/prot tracks for calibration
   ECCAFFKEY.refpid=118;   // (4) ref.pm ID (SPP-> S=SupLayer, PP=PM number) 
   ECCAFFKEY.trmin=4.;     // (5) presel-cut on min. rigidity of the track(gv) 
   ECCAFFKEY.adcmin=3.;    // (6) min ADC cut for indiv. SubCell (to remove noise)
@@ -696,8 +698,8 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.mscatp=1.;    //(11) EC mult.scatt. fine tuning parameter
   ECCAFFKEY.nortyp=0;     //(12) normaliz.type 0/1-> by crossed/fired counters
   ECCAFFKEY.badplmx=0;   // (13) Accept max. bad sc-planes(>2 fired sc, high sc Ed, separated sc)
-  ECCAFFKEY.etrunmn=70.;  //(14) Min ECenergy (Etrunc in mev) to select particle(p or He ...)
-  ECCAFFKEY.etrunmx=180.; //(15) Max ECenergy (Etrunc in mev) ...............................
+  ECCAFFKEY.etrunmn=60.;  //(14) Min ECenergy (Etrunc in mev) to select particle(He)
+  ECCAFFKEY.etrunmx=160.; //(15) Max ECenergy (Etrunc in mev) ......................
   ECCAFFKEY.nsigtrk=1.5;  //(16) Safety gap param. for crossing check(-> ~2 sigma of TRK accur.)
 // ANOR part:
   ECCAFFKEY.pmin=3.;        // (17) presel-cut on min. mom. of the track(gev/c) 
@@ -707,26 +709,38 @@ FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
   ECCAFFKEY.spikmx=0;       // (21) max SC's(spikes) with ADC>max  (to remove sparks,ovfl,...)
   ECCAFFKEY.nhtlmx[0]=3;    // (22) max hits in 1st sc-plane (to remove early showering)
   ECCAFFKEY.nhtlmx[1]=4;    // (23) max hits in 2nd sc-plane (to remove early showering)
-  ECCAFFKEY.nhtlmx[2]=5;    // (24) max hits in 3rd sc-plane (to remove early showering)
-  ECCAFFKEY.lmulmx=20;      // (25) max hits/sc-plane (to remove events with abn.multiplicity)
-  ECCAFFKEY.nholmx[0]=1;    // (26) max holes(betw.fired cells) in 1st sc-plane(early show.prot)
-  ECCAFFKEY.nholmx[1]=2;    // (27) max holes(betw.fired cells) in 2nd sc-plane(early show.prot)
-  ECCAFFKEY.nholmx[2]=3;    // (28) max holes(betw.fired cells) in 3rd sc-plane(early show.prot)
-  ECCAFFKEY.nbplmx=0;       // (29) max bad sc-planes (with spikes or high multiplicity)
-  ECCAFFKEY.edtmin=800.;    // (30) min Etot(mev) to remove MIP
-  ECCAFFKEY.esleakmx=0.01;  // (31) max Eleak(side)/Etot to remove energy side leak
-  ECCAFFKEY.ebleakmx=0.02;  // (32) max Eleak(back)/Etot
-  ECCAFFKEY.edfrmn=300.;    // (33) min Efront(mev)
-  ECCAFFKEY.edt2pmx=0.2;    // (34) max Etail/Epeak
-  ECCAFFKEY.ed2momc=0.4;    // (35) Edep(EC)/Mom(TRK)-1 cut
-  ECCAFFKEY.cog1cut=0.6;    // (36) Track-SCPlaneCOG mismatch cut(cm) for the 1st two SC-planes.
-  ECCAFFKEY.scdismx[0]=0.8; // (37) max sc-track dist. to consider hit as backgroubd(pl-1) 
-  ECCAFFKEY.scdismx[1]=1.;  // (38) max sc-track dist. to consider hit as backgroubd(pl-2) 
-  ECCAFFKEY.scdismx[2]=1.6; // (49) max sc-track dist. to consider hit as backgroubd(pl-3)
-  ECCAFFKEY.scdisrs=8.;     // (40) as above for all other planes(not used really)
-  ECCAFFKEY.b2scut[0]=0.1;  // (41) max backgr/signal energy(bound.from above) for pl-1 
-  ECCAFFKEY.b2scut[1]=0.15; // (42) max backgr/signal energy(bound.from above) for pl-2 
-  ECCAFFKEY.b2scut[2]=0.2;  // (43) max backgr/signal energy(bound.from above) for pl-3 
+  ECCAFFKEY.nhtlmx[2]=4;    // (24) max hits in 3rd sc-plane (to remove early showering)
+  ECCAFFKEY.nhtlmx[3]=5;    // (25) max hits in 4th sc-plane (to remove early showering)
+  ECCAFFKEY.nhtlmx[4]=7;    // (26) max hits in 5th sc-plane (to remove early showering)
+  ECCAFFKEY.nhtlmx[5]=7;    // (27) max hits in 6th sc-plane (to remove early showering)
+  ECCAFFKEY.lmulmx=20;      // (28) max hits/sc-plane (to remove events with abn.multiplicity)
+  ECCAFFKEY.nholmx[0]=2;    // (29) max holes(betw.fired cells) in 1st sc-plane(early show.prot)
+  ECCAFFKEY.nholmx[1]=2;    // (30) max holes(betw.fired cells) in 2nd sc-plane(early show.prot)
+  ECCAFFKEY.nholmx[2]=3;    // (31) max holes(betw.fired cells) in 3rd sc-plane(early show.prot)
+  ECCAFFKEY.nholmx[3]=3;    // (32) max holes(betw.fired cells) in 4th sc-plane(early show.prot)
+  ECCAFFKEY.nholmx[4]=3;    // (33) max holes(betw.fired cells) in 5th sc-plane(early show.prot)
+  ECCAFFKEY.nholmx[5]=4;    // (34) max holes(betw.fired cells) in 6th sc-plane(early show.prot)
+  ECCAFFKEY.nbplmx=0;       // (35) max bad sc-planes (with spikes or high multiplicity)
+  ECCAFFKEY.edtmin=800.;    // (36) min Etot(mev) to remove MIP
+  ECCAFFKEY.esleakmx=0.01;  // (37) max Eleak(side)/Etot to remove energy side leak
+  ECCAFFKEY.ebleakmx=0.02;  // (38) max Eleak(back)/Etot
+  ECCAFFKEY.edfrmn=300.;    // (39) min Efront(mev)
+  ECCAFFKEY.edt2pmx=0.2;    // (40) max Etail/Epeak
+  ECCAFFKEY.ed2momc=0.4;    // (41) Edep(EC)/Mom(TRK)-1 cut
+  ECCAFFKEY.cog1cut=0.6;    // (42) Track-SCPlaneCOG mismatch cut(cm) for the 1st 6 SC-planes.
+  ECCAFFKEY.scdismx[0]=0.8; // (43) max sc-track dist. to consider hit as backgroubd(pl-1) 
+  ECCAFFKEY.scdismx[1]=1.;  // (44) max sc-track dist. to consider hit as backgroubd(pl-2) 
+  ECCAFFKEY.scdismx[2]=1.6; // (45) max sc-track dist. to consider hit as backgroubd(pl-3)
+  ECCAFFKEY.scdismx[3]=1.8; // (46) max sc-track dist. to consider hit as backgroubd(pl-4)
+  ECCAFFKEY.scdismx[4]=3.;  // (47) max sc-track dist. to consider hit as backgroubd(pl-5)
+  ECCAFFKEY.scdismx[5]=3.2; // (48) max sc-track dist. to consider hit as backgroubd(pl-6)
+  ECCAFFKEY.scdisrs=8.;     // (49) as above for all other planes(not used really)
+  ECCAFFKEY.b2scut[0]=0.1;  // (50) max backgr/signal energy(bound.from above) for pl-1 
+  ECCAFFKEY.b2scut[1]=0.1; // (51) max backgr/signal energy(bound.from above) for pl-2 
+  ECCAFFKEY.b2scut[2]=0.2;  // (52) max backgr/signal energy(bound.from above) for pl-3 
+  ECCAFFKEY.b2scut[3]=0.2;  // (53) max backgr/signal energy(bound.from above) for pl-4 
+  ECCAFFKEY.b2scut[4]=0.15;  // (54) max backgr/signal energy(bound.from above) for pl-5 
+  ECCAFFKEY.b2scut[5]=0.15;  // (55) max backgr/signal energy(bound.from above) for pl-6 
 FFKEY("ECCA",(float*)&ECCAFFKEY,sizeof(ECCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================

@@ -108,10 +108,13 @@ void ECREUNcalib::select(){
   AMSContainer *cptr;
   AMSParticle *ppart;
   AMSTrTrack *ptrack;
+  AMSCharge  *pcharge;
+  AMSBeta  *pbeta;
   AMSPoint C0,Cout1,Cout2,Cpmt;
   AMSDir dir(0,0,1.);
   int ntrk,ipatt;
-  number chi2,the,phi,rid,err,trl;
+  number chi2,the,phi,rid,err,trl,beta,ebeta,momentum;
+  integer chargeTOF,chargeTracker;
 //
   npmx=ECALDBc::slstruc(4);//numb.of PM's/Sl
   nslmx=ECALDBc::slstruc(3);//numb.of Sl
@@ -129,24 +132,51 @@ void ECREUNcalib::select(){
   cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
   if(cptr)
           ntrk+=cptr->getnelem();
-  if(ntrk!=1 && ECCAFFKEY.truse>=0)return;// require events with 1 track.
+  if(ntrk!=1)return;// require events with 1 track.
   ppart=(AMSParticle*)AMSEvent::gethead()->
                                            getheadC("AMSParticle",0);
   if(ppart){
     ptrack=ppart->getptrack();
     ptrack->getParFastFit(chi2,rid,err,the,phi,C0);
+    pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
+    chargeTracker=pcharge->getchargeTracker();
+    chargeTOF=pcharge->getchargeTOF();
+    pbeta=pcharge->getpbeta();
+    beta=0.;
+    if(pbeta)beta=pbeta->getbeta();
+    ebeta=pbeta->getebeta()*beta*beta;
+    momentum=rid*chargeTracker;
   } 
   else{
     rid=0.;
     the=0.;
+    chi2=-1.;
   }
-// ---------------> check that track is high-mom and may hit ECAL:
+//
+  if(chi2<0)return;
+  EcalJobStat::addca(1);
+// ---------------> check that track is high-mom,top->bot and may hit ECAL:
 //
   if(ECREFFKEY.reprtf[0]!=0){
     HF1(ECHISTC+12,geant(fabs(rid)),1.);
     HF1(ECHISTC+6,geant(chi2),1.);
+    HF1(ECHISTC+35,geant(beta),1.);
+    HF1(ECHISTC+36,geant(chargeTracker),1.);
   }
-  if((fabs(rid)<ECCAFFKEY.trmin) || (chi2>15.))return;// ----> check track chi2/rigidity
+//
+  if(ECCAFFKEY.truse==1){//select He4
+    if(chargeTracker!=2)return;
+  }
+  else{//select Protons
+    if(chargeTracker!=1)return;
+  }
+  EcalJobStat::addca(2);
+//
+  if(!(beta>0. && rid>0.))return;//---> it is not He4(prot)(charge>0) from AMS_top->bot
+  if(chi2>15.)return;//---> bad chi2
+  if(fabs(rid)<ECCAFFKEY.trmin)return;//---> too low rigidity(too high mult.scatt)
+  if(beta<0.88)return;// ----> low beta
+  EcalJobStat::addca(3);
 //
   number dx,dy,sfg(0.5);
   int icr(0);
@@ -167,7 +197,7 @@ void ECREUNcalib::select(){
   if(fabs(dx)<(ECALDBc::gendim(1)/2.+sfg) && fabs(dy)<(ECALDBc::gendim(2)/2.+sfg))icr+=1;
   if(icr<=1)return;// ----> check crossing 
 //
-  EcalJobStat::addca(1);
+  EcalJobStat::addca(4);
 //
 //-------------------------> select Punch-Through(non-interecting) events :
 //   (use EcalHits with Edep already gain-corrected(though using Previous(!) calibration)
@@ -240,8 +270,13 @@ void ECREUNcalib::select(){
   }
   if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+17,geant(badscl),1.);
 //
-  if(badscl>ECCAFFKEY.badplmx)return;// <----limit on number of bad sc planes
-  EcalJobStat::addca(2);
+  if(ECCAFFKEY.truse==1){// He4
+    if(badscl>ECCAFFKEY.badplmx)return;// <----limit on number of bad sc planes
+  }
+  else{// Prot
+    if(badscl>ECCAFFKEY.badplmx+1)return;// <----limit on number of bad sc planes
+  }
+  EcalJobStat::addca(5);
 // ----> check Etrunc (to be sure that have needed particle(p or He or ...):
   edept=0.;
   for(isl=0;isl<nslmx;isl++){
@@ -255,8 +290,13 @@ void ECREUNcalib::select(){
   }
   edept/=ngd;
   if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+16,geant(edept),1.);
-  if(edept>ECCAFFKEY.etrunmx || edept<ECCAFFKEY.etrunmn)return;//--->check Etrunc(ie particle)
-  EcalJobStat::addca(3);
+  if(ECCAFFKEY.truse==1){//select He4
+    if(edept>ECCAFFKEY.etrunmx || edept<ECCAFFKEY.etrunmn)return;//--->Etrunc->He4 ?
+  }
+  else{//select Protons
+    if(edept>ECCAFFKEY.etrunmx/4 || edept<ECCAFFKEY.etrunmn/4)return;//--->Etrunc->prot ?
+  }
+  EcalJobStat::addca(6);
 // 
 //
 // ==========================> find all crossed or fired/matched ECAL RawHits  in SL:
@@ -472,7 +512,7 @@ void ECREUNcalib::select(){
   } // ---> end of super-layer loop
 //
   if(sta)return;
-  EcalJobStat::addca(4);
+  EcalJobStat::addca(7);
 }
 //----------------------------
 void ECREUNcalib::mfit(){
@@ -482,7 +522,7 @@ void ECREUNcalib::mfit(){
   integer pmslr,refsl,refpm;
   geant arr[ECPMSMX*2];
   geant glscscan[2*ECSLMX];
-  int nlscan;
+  int nlscan,nof4;
   number rrr,sum4,eff,hflen,binw;
   char htit1[60];
   char htit2[60];
@@ -637,13 +677,14 @@ void ECREUNcalib::mfit(){
   }
   cout<<endl<<endl;
 //
-// --------------> calc. subcell relative gains:
+// --------------> Calc. SubCell(pixel) relative gains:
 //
-  for(i=0;i<ECPMSL;i++){// PM*SL loop
+  for(i=0;i<ECPMSL;i++){// <--- PM*SL loop
     pm=i%ECPMSMX+1;
     sl=floor(i/ECPMSMX)+1;
     sum4=0.;
-    for(j=0;j<4;j++){
+    nof4=0;
+    for(j=0;j<4;j++){// <--- 4 subcell loop
       eff=0;
       if(tevsbc[i][j]>25){
         eff=tevsbf[i][j]/tevsbc[i][j];
@@ -656,15 +697,18 @@ void ECREUNcalib::mfit(){
       }
       if(pxstat[i][j]==-1)
           cout<<"ECREUNcalib:unusable SubCell!!,sl="<<sl<<" pm="<<pm<<" sc="<<j<<endl;
-      if(pxstat[i][j]>=0)sum4+=sbcres[i][j];
+      if(pxstat[i][j]>=0){
+        sum4+=sbcres[i][j];
+	nof4+=1;
+      }
       if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+8,geant(eff),1.);
-    }
+    }// ---> end of 4sc loop 
 //
     for(j=0;j<4;j++){
-      if(sum4>0 && pxstat[i][j]>=0)pxrgain[i][j]=4*sbcres[i][j]/sum4;//"4" for convenience
+      if(sum4>0 && pxstat[i][j]>=0)pxrgain[i][j]=nof4*sbcres[i][j]/sum4;//"nof4" to have pxrg~1
       if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+9,geant(pxrgain[i][j]),1.);
     }
-  }
+  }// ---> end of PM*SL loop
   cout<<endl<<endl;
 //
 //--------------> calc./FIT average resp. in each long.bin:
@@ -697,9 +741,9 @@ void ECREUNcalib::mfit(){
   phigh[1]=1000.;
   phigh[2]=1.;
   phigh[3]=100.;
-  for(i=0;i<4;i++)ifit[i]=1;//release all by default
+  for(i=0;i<4;i++)ifit[i]=1;//release all par's by default
   ifit[2]=0;//fix admix
-  ifit[3]=0;//fix lenlow
+//  ifit[3]=0;//fix lenlow
   slslow=0.;
   slfast=0.;
   fastfr=0.;
@@ -1276,6 +1320,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
   AMSParticle *ppart;
   AMSTrTrack *ptrack;
   AMSCharge  *pcharge;
+  AMSBeta  *pbeta;
   AMSTrRecHit *phit;
   AMSTrCluster *pxcl;
   AMSTrCluster *pycl;
@@ -1292,7 +1337,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
   AMSPoint C0,gC0,Cout1,Cout2,Cpmt,Cout[2];
   AMSDir dir(0,0,1.);
   int ntrk,ipatt;
-  number chi2,the,phi,rid,err,trl,hchi2[2],hrid[2],herr[2],hthe[2],hphi[2],ass;
+  number chi2,the,phi,rid,err,trl,hchi2[2],hrid[2],herr[2],hthe[2],hphi[2],ass,beta;
   number gchi2,gthe,gphi,grid,gerr;
   int badtrlx,badtrly,badtrl,badebkg,badclam;
 //
@@ -1353,7 +1398,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
   cptr=AMSEvent::gethead()->getC("AMSParticle",0);// get TOF-matched track
   if(cptr)
           ntrk+=cptr->getnelem();
-  if(ntrk!=1 && ECCAFFKEY.truse>=0)return;// require events with 1 matched track.
+  if(ntrk!=1)return;// require events with 1 matched track.
   ppart=(AMSParticle*)AMSEvent::gethead()->
                                            getheadC("AMSParticle",0);
   if(ppart){
@@ -1364,6 +1409,9 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
         getParAdvancedFit(gchi2,grid,gerr,gthe,gphi,gC0,hchi2,hrid,herr,hthe,hphi,Cout);
     pcharge=ppart->getpcharge();// get pointer to charge, used in given particle
     chargeTracker=pcharge->getchargeTracker();
+    pbeta=pcharge->getpbeta();
+    beta=0.;
+    if(pbeta)beta=pbeta->getbeta();
 //
     ntrh=ptrack->getnhits();
     for(i=0;i<ntrh;i++){//<---track hits(2Dclust) loop
@@ -1442,7 +1490,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
     if((axtcl[i]+aytcl[i])>150.)badtrl+=1;
   }
 //
-// ---------------> check that track is OK :
+// ---------------> check particle(electron) quality :
 //
   ass=0.;
   if(AdvFit){
@@ -1453,16 +1501,23 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
     HF1(ECHISTC+2,geant(fabs(rid)),1.);// R
     HF1(ECHISTC+3,geant(fabs(rid*err)),1.);//dR/R
     HF1(ECHISTC+4,geant(ass),1.);//half-rig. ass.
+    HF1(ECHISTC+44,geant(beta),1.);//beta
     if(badclam)HF1(ECHISTC+36,geant(fabs(rid)),1.);
     if(badebkg)HF1(ECHISTC+43,geant(fabs(rid)),1.);
   }
+  if(fabs(rid)<ECCAFFKEY.pmin || fabs(rid)>ECCAFFKEY.pmax)return;//--->out of needed range
+//
+  if(!(beta>0. && rid<0.))return;//---> it is not electron(charge<0) from AMS_top->bot
+//
+  if(chi2>20.)return;//---> bad chi2
+//
+  if(fabs(beta-1.)>0.1)return;//---> bad beta (too low to be electron)
+// 
+  if(fabs(ass)>0.06)return;//---> bad half-rigidities assimetry
+//
+//  if(fabs(rid*err)>0.014)return;// do not affect
 //  if(badclam>0)return;//do not affect on low-Rig tail(at least for MC)
 //  if(badebkg>0)return;
-  if(fabs(rid)<ECCAFFKEY.pmin || fabs(rid)>ECCAFFKEY.pmax)return;//--->out of needed range
-  if(chi2>20.)return;//---> bad chi2
-  if(rid>0.)return;//---> bad sign to be electron from AMS top->bot
-  if(fabs(ass)>0.05)return;//---> bad half-rigidities assimetry
-//  if(fabs(rid*err)>0.014)return;
 //
   if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+41,geant(fabs(rid)),1.);
 //
@@ -1506,7 +1561,7 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
   integer nsclpr[2*ECSLMX];
   integer refsl,refpm,ipl,imax,imin,plholes[2*ECSLMX];
   int nnn,bad1,bad2,bad3,spikes,badscl(0);
-  int badhl[3]={0,0,0};
+  int badhl[6]={0,0,0,0,0,0};
   geant ad2mv;
   number scadcmx;
 //
@@ -1564,18 +1619,25 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
       HF1(ECHISTC+6,geant(nsclpr[ipl]),1.);
       nnn=nsclpr[ipl];
       if(nnn>19)nnn=19;
-      if(ipl<=2)HF1(ECHISTC+7,geant(nnn+ipl*20),1.);
+      if(ipl<=5)HF1(ECHISTC+7,geant(nnn+ipl*20),1.);
       nnn=plholes[ipl];
       if(nnn>19)nnn=19;
       if(ipl==0 && nsclpr[ipl]>0)HF1(ECHISTC+20,geant(nnn+ipl*20),1.);
       if(ipl==1 && badhl[0]==0 && nsclpr[ipl]>0)HF1(ECHISTC+20,geant(nnn+ipl*20),1.);
       if(ipl==2 && badhl[0]==0 && badhl[1]==0 && nsclpr[ipl]>0)HF1(ECHISTC+20,geant(nnn+ipl*20),1.);
+      if(ipl==3 && badhl[0]==0 && badhl[1]==0 && badhl[2]==0
+                                              && nsclpr[ipl]>0)HF1(ECHISTC+20,geant(nnn+ipl*20),1.);
+      if(ipl==4 && badhl[0]==0 && badhl[1]==0 && badhl[2]==0
+                               && badhl[3]==0 && nsclpr[ipl]>0)HF1(ECHISTC+20,geant(nnn+ipl*20),1.);
+      if(ipl==5 && badhl[0]==0 && badhl[1]==0 && badhl[2]==0
+                               && badhl[3]==0 && badhl[4]==0
+			                      && nsclpr[ipl]>0)HF1(ECHISTC+20,geant(nnn+ipl*20),1.);
       HF1(ECHISTC+24,geant(spikes),1.);
     }
     if(nsclpr[ipl]>0){//non empty plane
       if(spikes>ECCAFFKEY.spikmx)bad1=1;//mark plane with "spike(s)" 
       if(nsclpr[ipl]>ECCAFFKEY.lmulmx)bad2=1;//abnorm.multiplicity(any layer)
-      if(ipl<=2 && (nsclpr[ipl]>ECCAFFKEY.nhtlmx[ipl] 
+      if(ipl<=5 && (nsclpr[ipl]>ECCAFFKEY.nhtlmx[ipl] 
                            || plholes[ipl]>ECCAFFKEY.nholmx[ipl]))badhl[ipl]=1;//mark early showering
     }
     if(bad1>0 || bad2>0)badscl+=1;//mark bad Plane(spikes or too high multiplicity)
@@ -1587,9 +1649,13 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
     HF1(ECHISTC+19,geant(scadcmx),1.);
   }
 //
-  if(ECREFFKEY.relogic[2]==0 || ECREFFKEY.relogic[2]==2){
-    if((badhl[0]+badhl[1]+badhl[2])>0
-         || badscl>ECCAFFKEY.nbplmx)return;//early showering or too many planes with spikes,...
+  if(badscl>ECCAFFKEY.nbplmx)return;//too many planes with spikes,...
+//
+  nnn=badhl[0]+badhl[1]+badhl[4]+badhl[5];//only pl 1-2,5-6 are really working...
+  if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+25,geant(nnn),1.);
+//
+  if(ECREFFKEY.relogic[2]==0 || ECREFFKEY.relogic[2]==2){//use "holes" cut if requested
+    if(nnn>0)return;//early shower("nnn>1" works slightly worse but with 1.5 times higher eff)
   }
   EcalJobStat::addca(5);
 //
@@ -1636,12 +1702,15 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
   number edeptnc,attf,cog,edpl;
   number emism[2*ECSLMX],ematch[2*ECSLMX];
   int cmism,nlmism,cogmism;
-  int mism1(0),mism2(0),mism3(0);
+  int mism[6]={0,0,0,0,0,0};
 //
   mismcut[0]=ECCAFFKEY.scdismx[0];
   mismcut[1]=ECCAFFKEY.scdismx[1];
   mismcut[2]=ECCAFFKEY.scdismx[2];
-  for(i=3;i<2*ECSLMX;i++)mismcut[i]=ECCAFFKEY.scdisrs;
+  mismcut[3]=ECCAFFKEY.scdismx[3];
+  mismcut[4]=ECCAFFKEY.scdismx[4];
+  mismcut[5]=ECCAFFKEY.scdismx[5];
+  for(i=6;i<2*ECSLMX;i++)mismcut[i]=ECCAFFKEY.scdisrs;
 //
   edept=0.;
   edeptnc=0.;
@@ -1715,11 +1784,16 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
 	dct=ct-ctcr;
 	if(ECREFFKEY.reprtf[0]!=0){
 	  if(ipl==0)HF1(ECHISTC+50+ipl,dct,1.);
-	  if(ipl==1 && mism1==0)HF1(ECHISTC+50+ipl,dct,1.);
-	  if(ipl==2 && mism1==0 && mism2==0)HF1(ECHISTC+50+ipl,dct,1.);
+	  if(ipl==1 && mism[0]==0)HF1(ECHISTC+50+ipl,dct,1.);
+	  if(ipl==2 && mism[0]==0 && mism[1]==0)HF1(ECHISTC+50+ipl,dct,1.);
+	  if(ipl==3 && mism[0]==0 && mism[1]==0 && mism[2]==0)HF1(ECHISTC+50+ipl,dct,1.);
+	  if(ipl==4 && mism[0]==0 && mism[1]==0 && mism[2]==0
+	                                        && mism[3]==0)HF1(ECHISTC+50+ipl,dct,1.);
+	  if(ipl==5 && mism[0]==0 && mism[1]==0 && mism[2]==0
+	                          && mism[3]==0 && mism[4]==0)HF1(ECHISTC+50+ipl,dct,1.);
 	}
 //
-	if(fabs(dct)>mismcut[ipl]){//count mismatched(backgr) cells/energy
+	if(fabs(dct)>mismcut[ipl]){//count mismatched(backgr) cells\energy
 	  cmism+=1;
 	  emism[ipl]+=edep;
 	}
@@ -1736,54 +1810,44 @@ void ECREUNcalib::selecte(){// <--- for ANOR calibration
       }//---> endif of Edep>0
     }//----------> end of SC-loop
 //
-    if(ipl==0 && cmism>0)mism1=1;
-    if(ipl==1 && cmism>0)mism2=1;
-    if(ipl==2 && cmism>0)mism3=1;
-    if(ipl<=2 && cmism>0)nlmism+=1;//count planes(among 1st three) with early showering(mism.cells)
+    if(ipl<=5 && cmism>0)mism[ipl]=1;//count planes(among 1st 6) with early showering(mism.cells)
 //
     if(ECREFFKEY.reprtf[0]!=0 && dctmx>0.){
       HF1(ECHISTC+14,dctmx,1.);
       if(ipl==0){
         HF1(ECHISTC+21,dctmx,1.);
-	HF2(ECHISTC+23,dctmx,geant(plholes[ipl]),1.);
       }
     }
     if(edpl>0.){
       cog/=edpl;// plane CenterOfGravity(in transv.dir)
       dct=cog-ctcr;
       if(ECREFFKEY.reprtf[0]!=0){
-        HF1(ECHISTC+15,geant(dct),1.);
+        if(ipl>3 && ipl<=5)HF1(ECHISTC+15,geant(dct),1.);
         if(ipl<=1)HF1(ECHISTC+22,geant(dct),1.);
+        if(ipl>1 && ipl<=3)HF1(ECHISTC+23,geant(dct),1.);
 	HF1(ECHISTC+29,geant(ipl),geant(edpl/1000.));
       }
-      if(ipl<=1 && fabs(dct)>ECCAFFKEY.cog1cut)cogmism+=1;
+      if(ipl<=5 && fabs(dct)>ECCAFFKEY.cog1cut)cogmism+=1;
     }
 //
   }//--------> end of SC-planes loop
 //------------------------------
 //
   bad3=0;
-  rrr=0.;
-  if(ematch[0]>0.)rrr=emism[0]/ematch[0];
-  if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+55,geant(rrr),1.);
-  if(rrr>ECCAFFKEY.b2scut[0])bad3+=1;
+  for(i=0;i<6;i++){
+    rrr=0.;
+    if(ematch[i]>0.)rrr=emism[i]/ematch[i];
+    if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTC+56+i,geant(rrr),1.);
+    if(rrr>ECCAFFKEY.b2scut[i])bad3+=1;
+  }
 //
-  rrr=0.;
-  if(ematch[1]>0.)rrr=emism[1]/ematch[1];
-  if(ECREFFKEY.reprtf[0]!=0)if(bad3==0)HF1(ECHISTC+56,geant(rrr),1.);
-  if(rrr>ECCAFFKEY.b2scut[1])bad3+=1;
 //
-  rrr=0.;
-  if(ematch[2]>0.)rrr=emism[2]/ematch[2];
-  if(ECREFFKEY.reprtf[0]!=0)if(bad3==0)HF1(ECHISTC+57,geant(rrr),1.);
-  if(rrr>ECCAFFKEY.b2scut[2])bad3+=1;
-//
-  if(cogmism>0)sta=1;//---> too high COG-mismatching in plane 1 or 2
+  if(cogmism>0)sta=1;//---> too high COG-mismatching in plane 1,2 or 3
   if(sta>0)return;
   EcalJobStat::addca(7);
 //
   if(ECREFFKEY.relogic[2]==1 || ECREFFKEY.relogic[2]==2){
-    if(bad3>0)sta=1;//---> Ebkg/Esignal too high in one of the 1st three planes
+    if(bad3>0)sta=1;//---> Ebkg/Esignal too high in one of the 1st 6 planes
   }
   if(sta>0)return;
   EcalJobStat::addca(8);
