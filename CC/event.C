@@ -2,7 +2,7 @@
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 // add TDV/dbase version October 1, 1997. a.k.
 //
-// Last Edit : Sep 2, 1998. ak.
+// Last Edit : Sep 3, 1998. ak.
 //
 #include <trrawcluster.h>
 #include <typedefs.h> 
@@ -142,8 +142,31 @@ void AMSEvent::_init(){
 
 
 void AMSEvent::_startofrun() {
- TIMEX(Tcpu0);
- T0 = time((time_t)0);
+
+    char   prodlogdir[256];
+    char   time1[26];
+    char   time11[17];
+    char*  logdir;
+
+    strcpy(time1,ctime(&T0));
+    for(int j=0; j<15; j++) time11[j] = time1[j+4];
+    time11[15] = '\0';
+
+
+    logdir = getenv("ProductionLogDirLocal");
+    if (logdir) {
+      strcpy(prodlogdir,logdir);
+      strcat(prodlogdir,"/run_in_progress.log");
+     } else {
+      strcpy(prodlogdir,"/offline/logs.local/run_in_progress.log");
+     }
+    ofstream cfile(prodlogdir,ios::out|ios::out);
+    cfile.setf(ios::dec);
+    cfile<<"Production started : "<<time11<<" ***Run "<<setw(6)<<SRun<<endl;
+    cfile.close();
+
+    TIMEX(Tcpu0);
+    T0 = time((time_t)0);
 }
 
 void AMSEvent::_endofrun() {
