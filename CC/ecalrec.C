@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.85 2003/05/22 08:36:29 choumilo Exp $
+//  $Id: ecalrec.C,v 1.86 2003/06/26 14:05:18 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -483,6 +483,8 @@ else if(TGL1FFKEY.ectrlog==2){//<===== logic-type-2:new my_simple+ansi
   ethrhard=ECALVarp::ecalvpar.daqthr(5);//Etot hard-thr
   esep1=10000.;//Etot 1st up-limit for width-cut action(mev, tempor) 
   esep2=30000;//Etot 2nd up-limit for width-cut action(mev, tempor)
+  wdcut1=ECALVarp::ecalvpar.daqthr(9);//L=1,7,2(bend.proj)
+  wdcut2=ECALVarp::ecalvpar.daqthr(9)-2;//L=2,8,2(nonbend)
   trigfl=0;
   if(dyrespt>ethrmip)trflen=1;//at least MIP
   if(dyrespt>ethrsoft)trflen=2;//at least EtotSoft
@@ -498,11 +500,11 @@ else if(TGL1FFKEY.ectrlog==2){//<===== logic-type-2:new my_simple+ansi
       else trflwd=1;//nonEM
     }
     else if(dyrespt>esep1 && dyresp<=esep2){//width-cut 2nd energy range
-      if(trwid1<1.3*wdcut1 && trwid2<1.3*wdcut2)trflwd=2;//width EM
+      if(trwid1<1.2*wdcut1 && trwid2<1.2*wdcut2)trflwd=2;//width EM
       else trflwd=1;//nonEM
     }
     else{
-      if(trwid1<1.5*wdcut1 && trwid2<1.5*wdcut2)trflwd=2;//width EM
+      if(trwid1<1.4*wdcut1 && trwid2<1.4*wdcut2)trflwd=2;//width EM
       else trflwd=1;//nonEM
     }
   }
