@@ -79,10 +79,6 @@ C**------------- BLOCK DATA VARDATA ---------------------------------C
 *-----------------------------------------------------------
       INCLUDE 'usrcom.inc'
 *-user may change following
-      DATA NVAR/3/, VARLIS(1)/'NPART'/, VARLIS(2)/'NTRTR'/,
-     &  VARLIS(3)/'NHITS'/
-C     &  VARLIS(3)/'NHITS'/,
-C     &  VARLIS(4)/'PHITS'/, VARLIS(5)/'LAYER'/, VARLIS(6)/'PX'/,
-C     &  VARLIS(7)/'PY'/
+      DATA NVAR/1/, VARLIS(1)/'EVENTSTATUS'/ 
 *-end of user change
        END
