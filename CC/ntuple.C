@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.68 2001/03/02 10:40:53 choutko Exp $
+//  $Id: ntuple.C,v 1.69 2001/03/02 11:09:11 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -288,7 +288,7 @@ void AMSNtuple::initR(char* fname){
      delete _rfile;
    }
    if(_tree)delete _tree;
-   _rfile= new TFile(fname,"CREATE");
+   _rfile= new TFile(fname,"RECREATE");
    if(!_rfile)throw amsglobalerror("UnableToOpenRootFile",3);
    _rfile->SetCompressionLevel(IOPA.WriteRoot);
    _tree= new TTree("AMSRoot","AMS Ntuple Root");
@@ -298,7 +298,7 @@ void AMSNtuple::initR(char* fname){
    void *pev1=(void*)&_event;
    TBranch *b1=_tree->Branch("event", "EventNtuple",  &pev1, 64000,0); 
    _tree->Fill();
-/**/ 
+/* 
 
    void *pev3=(void*)&_beta; 
    TBranch *b3=_tree->Branch("beta", "BetaNtuple",  &pev3, 64000,1); 
@@ -370,6 +370,7 @@ void AMSNtuple::initR(char* fname){
    TBranch *bw=_tree->Branch("ring","RICRing",&pevw,64000,1);  
    void *pevn=(void*)&_lvl102;
    TBranch *bn=_tree->Branch("lvl102", "LVL1Ntuple02",  &pevn, 64000,1);
+*/
   }
    cout <<"AMSNtuple::initR-I-OpenRootFile "<<fname<<" "<<_rfile<<" "<<_tree<<endl;
 #else

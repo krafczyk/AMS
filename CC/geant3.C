@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.49 2001/03/02 10:40:52 choutko Exp $
+//  $Id: geant3.C,v 1.50 2001/03/02 11:09:11 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -46,9 +46,6 @@ extern "C" void simde_(int&);
 extern "C" void trphoton_(int&);
 extern "C" void simtrd_(int& );
 extern "C" void gustep_(){
-        cout << "qq c "<<endl;
-            AMSJob::gethead()->getntuple()->writeR();
-     cout <<" qq d "<<endl;
 
 //AMSmceventg::SaveSeeds();
 //cout <<" in gustep "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
@@ -443,16 +440,10 @@ GDCXYZ();
    }
   if(trig==0 && freq>1)AMSgObj::BookTimer.stop("GUSTEP");
    //  cout <<" gustep out"<<endl;
-        cout << "qq e "<<endl;
-            AMSJob::gethead()->getntuple()->writeR();
-     cout <<" qq f "<<endl;
 
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
-        cout << "qq 1 "<<endl;
-            AMSJob::gethead()->getntuple()->writeR();
-     cout <<" qq 2 "<<endl;
    
    try{
    if(AMSJob::gethead()->isSimulation()){
@@ -813,9 +804,6 @@ catch (amsglobalerror & a){
     exit(1);
 }
     AMSgObj::BookTimer.stop("GUKINE");
-        cout << "qq a "<<endl;
-            AMSJob::gethead()->getntuple()->writeR();
-     cout <<" qq b "<<endl;
 
 }
 
