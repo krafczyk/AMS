@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.101 2003/04/17 10:32:46 choutko Exp $
+# $Id: RemoteClient.pm,v 1.102 2003/04/17 10:45:50 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -932,6 +932,79 @@ sub Connect{
     my $q=$self->{q};
     my $sql=>undef;
 # db query
+    if ($self->{q}->param("getJobID")) {
+     $self->{read}=1;
+     if ($self->{q}->param("getJobID") eq "Submit") {
+        htmlTop();
+        my $title = "Job : ";
+        my $jobid = 0;
+        if (defined $q->param("JobID")) {
+          $jobid =  trimblanks($q->param("JobID"));
+        }
+        $title = $title.$jobid;
+        my $content = " ";
+        $self->htmlTemplateTable($title);
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td align=center><b><font color=\"blue\">Name </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Triggers</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Cite </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Host</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Errors </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >CPU  </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Elapsed </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Status </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Timestamp </font></b></td>";
+              print "</tr>\n";
+        my $sql = "SELECT jobname, triggers, host, events, errors, cputime, elapsed,  
+                          cites.name, content, jobs.timestamp  
+                          FROM jobs, cites 
+                          WHERE jobs.jid=$jobid AND jobs.cid=cites.cid";
+        my $ret=$self->{sqlserver}->Query($sql);
+        if (defined $ret->[0][0]) {
+         foreach my $r (@{$ret}){
+             my $jobname =trimblanks($r->[0]);
+             my $triggers=$r->[1];
+             my $host    =trimblanks($r->[2]);
+             
+             my $events  =$r->[3];
+             my $errors  =$r->[4];
+             my $cputime =$r->[5];
+             my $elapsed =$r->[6];
+             my $cite    =trimblanks($r->[7]);
+             $content    =$r->[8];
+             my $timestamp=$r->[9];
+             my $status = "Submitted";
+             $sql = "SELECT status, submit FROM runs WHERE jid=$jobid";
+             $ret=$self->{sqlserver}->Query($sql);
+             if (defined $ret->[0][0]) {
+              foreach my $r (@{$ret}){
+                  $status    = trimblanks($r->[0]);
+                  $timestamp = $r->[1];
+              }
+             }
+           my $color="black";
+           print "
+                  <td align=left><b><font color=$color> $jobname </font></td></b>
+                  <td align=center><b><font color=$color> $triggers </font></b></td>
+                  <td align=center><b><font color=$color> $cite </font></td></b>
+                  <td align=center><b><font color=$color> $host </font></td></b>
+                  <td align=center><b><font color=$color> $events </font></b></td>
+                  <td align=center><b><font color=$color> $errors </font></b></td>
+                  <td align=center><b><font color=$color> $cputime </font></b></td>
+                  <td align=center><b><font color=$color> $elapsed </font></b></td>
+                  <td align=center><b><font color=$color> $status </font></b></td>
+                  <td align=center><b><font color=$color> $timestamp </font></b></td>\n";
+         }
+        print "</tr>\n"
+       } 
+       htmlTableEnd();
+          print "<p></p>\n";
+          print $q->textarea(-name=>"CCA",-default=>"$content",-rows=>30,-columns=>80);
+   
+        htmlBottom();
+     }
+    }
     if ($self->{q}->param("queryDB")) {
      $self->{read}=1;
      if ($self->{q}->param("queryDB") eq "Submit") {
@@ -1445,6 +1518,14 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
      print "<input type=\"submit\" name=\"queryDB\" value=\"Submit\">        ";
      print "<input type=\"reset\" name=\"queryDB\" value=\"Reset\"></br><br>        ";
      print "</form>\n";
+      print "<tr></tr>\n";
+      print "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" width=\"100%\">\n";
+      print "<tr><td valign=\"middle\" bgcolor=\"whitesmoke\"><font size=\"+2\"><B>\n";
+      print "Find Job : (eg 805306383) </B></font></td></tr></table> \n";
+      print "<FORM METHOD=\"GET\" action=\"/cgi-bin/mon/rc.o.cgi\">\n";
+      print "<b>JobID : </b> <input type =\"text\" name=\"JobID\">\n";
+      print "<input type=\"submit\" name=\"getJobID\" value=\"Submit\"> \n";
+      print "</form>\n";
   htmlBottom();
   }
  }
@@ -3926,6 +4007,7 @@ sub listAll {
      $self -> colorLegend();
     }
     
+    $self -> listStat();
     $self -> listCites();
     $self -> listMails();
       $self -> listServers();
@@ -4144,6 +4226,87 @@ sub queryDB {
      print "</form>\n";
   htmlBottom();
  }
+}
+
+
+sub listStat {
+    my $self = shift;
+    my $jobsreq    = 0;
+    my $jobsdone   = 0;
+    my $jobsfailed = 0;
+    my $trigreq    = 0;
+    my $trigdone   = 0;  
+     print "<b><h2><A Name = \"stat\"> </a></h2></b> \n";
+     htmlTable("MC02 Jobs");
+     my $sql="SELECT Jobs.jid, Jobs.triggers FROM Jobs";
+     my $r3=$self->{sqlserver}->Query($sql);
+     print_bar($bluebar,3);
+     my $newline = " ";
+     if(defined $r3->[0][0]){
+      foreach my $job (@{$r3}){
+          my $jid       = $job->[0];
+          my $trig         = $job->[1];
+          $jobsreq++;
+          $trigreq = $trigreq + $trig;
+          $sql="SELECT status from Runs WHERE jid=$jid";
+          $r3=$self->{sqlserver}->Query($sql);
+          if (defined $r3->[0][0]) {
+              my $status = $r3->[0][0];
+              if ($status eq 'Finished') { 
+                  $jobsdone++;
+                  $trigdone = $trigdone + $trig;}
+              if ($status eq 'Failed')   { $jobsfailed++;}
+          }
+      }
+ 
+               $sql="SELECT MAX(timestamp) FROM Jobs";
+               $r3=$self->{sqlserver}->Query($sql);
+               my $lastupd=localtime($r3->[0][0]);
+               $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples";
+               $r3=$self->{sqlserver}->Query($sql);
+               my $nntuples=0;
+               my $nsizegb =0;
+               if(defined $r3->[0][0]){
+                $nntuples= $r3->[0][0];
+                $nsizegb = sprintf("%.1f",$r3->[0][1]/1000);
+               }
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td align=center><b><font color=\"blue\">Jobs </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Jobs</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Jobs </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Events</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Total </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Size </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Last Update </font></b></td>";
+              print "</tr>\n";
+               print "<td align=center><b><font color=\"blue\">Started </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Finished </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Failed </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Requested </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Processed </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >NTuples</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" > [GB]     </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >          </font></b></td>";
+              print "</tr>\n";
+           my $color="black";
+           print "
+                  <td align=center><b><font color=$color> $jobsreq </font></td></b>
+                  <td align=center><b><font color=$color> $jobsdone </font></b></td>
+                  <td align=center><b><font color=$color> $jobsfailed </font></td></b>
+                  <td align=center><b><font color=$color> $trigreq </font></b></td>
+                  <td align=center><b><font color=$color> $trigdone </font></b></td>
+                  <td align=center><b><font color=$color> $nntuples </font></b></td>
+                  <td align=center><b><font color=$color> $nsizegb </font></b></td>
+                  <td align=center><b><font color=$color> $lastupd </font></b></td>\n";
+
+          print "</font></tr>\n";
+ 
+  }
+       htmlTableEnd();
+      htmlTableEnd();
+     print_bar($bluebar,3);
+     print "<p></p>\n";
 }
     
 sub listCites {
