@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.40 2002/11/06 18:20:46 delgadom Exp $
+//  $Id: richrec.C,v 1.41 2002/11/08 14:25:06 delgadom Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -1321,12 +1321,8 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
   if(first){
     first=0;
     exp_len=RICHDB::rich_height+RICradmirgap+RIClgdmirgap; /* expansion length */
-    //    kc=(RICHDB::bottom_radius-RICHDB::top_radius)/exp_len;
     kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
-    //    ac=_height+RICHDB::foil_height-RICHDB::top_radius/kc;
     ac=RICHDB::rad_height+RICHDB::foil_height+RICradmirgap-RICHDB::top_radius/kc;
-    //    bx=32.8;
-    //    by=32.55;
     bx=RICHDB::hole_radius[0];
     by=RICHDB::hole_radius[1];
     mir_eff=RICmireff;
@@ -1360,15 +1356,9 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
 
   for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
 
-  if (sqrt(SQR(r1[0])+SQR(r1[1]))>RICHDB::top_radius){
-    *tflag=2;
-    return 0;
-  }
-
-
   // Check if the ray crossed the tiles-wall.
 
-  if (!tile(r0)||tile(r1)!=tile(r0)){
+  if (!tile(r0) || tile(r1)!=tile(r0)){
     *tflag=6;
     return 0;
   }
@@ -1417,46 +1407,38 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     for(i=0;i<3;i++) u1[i]=_index*u0[i]+f*n[i];}
 
   *reff=1;
-
-  /* propagate to base of mirror*/
-  //  l=exp_len/u1[2]
-  l=(exp_len-RIClgdmirgap)/u1[2];
-  for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
-  //  *xb=r2[0];
-  //  *yb=r2[1];
-
-
-
-/* hole, direct or reflected */
-  maxxy=fabs(r2[0])>fabs(r2[1])?fabs(r2[0]):fabs(r2[1]);
-  rbase=sqrt(SQR(r2[0])+SQR(r2[1]));
-
-
-
-  /*
-  if (fabs(r2[0])<bx && fabs(r2[1])<by){  // in hole
+  
+  
+  /* propagate to top of mirror */
+  l=RICradmirgap;
+  for(i=0;i<3;i++) r1[i]+=l*u1[i];
+  rbase=sqrt(SQR(r1[0])+SQR(r1[1]));
+  if (rbase>RICHDB::top_radius){   
     *tflag=1;
     return 0;
   }
-  else */
-
-
-  if (rbase<RICHDB::bottom_radius){
-
+  
+  
+  
+  /* propagate to base of mirror*/
+  l=RICHDB::rich_height/u1[2];
+  
+  for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+  
+  
+  /* hole, direct or reflected */
+  rbase=sqrt(SQR(r2[0])+SQR(r2[1]));
+  
+  
+  if (rbase<RICHDB::bottom_radius){   // All right
     // Propagate to end
     l=RIClgdmirgap/u1[2];
-    for(i=0;i<3;i++) r2[i]+=l*u1[i];//r2[i]=r1[i]+l*u1[i];
+    for(i=0;i<3;i++) r2[i]+=l*u1[i];
     *xb=r2[0];
     *yb=r2[1];
-    if (fabs(r2[0])<bx && fabs(r2[1])<by){  // in hole
-      *tflag=1;
-      return 0;
-    }
-    ed=1;
-    *beff=ed;
-    *tflag=ed?3:5;
-    return ed*lgeff(r2,u1,lguide); 
-    //return ed*1;
+    *beff=AMSRICHIdGeom::get_channel_from_top(r2[0],r2[1])<0?0:1;
+    *tflag=*beff?3:5;
+    return (*beff)*lgeff(r2,u1,lguide); 
   }
   else{   // It intersects the mirror
     a=1-(SQR(kc)+1)*SQR(u1[2]);
@@ -1477,7 +1459,7 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
       printf(" l %f\n",l);
 #endif
       return 0;}
-
+    
     for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
     
     f=1./sqrt(1+SQR(kc));
@@ -1489,28 +1471,36 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
     for(i=0;i<3;i++) u2[i]=u1[i]-f*n[i];
     
     l=(exp_len+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
+
+
     for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
+    rbase=sqrt(SQR(r3[0])+SQR(r3[1]));
+
+    if(rbase>RICHDB::bottom_radius){
+      *tflag=8;
+      return 0;
+    }
+
+    l=RIClgdmirgap/u2[2];
+
+    for(i=0;i<3;i++) r3[i]+=l*u2[i];
     *xb=r3[0];
     *yb=r3[1];
     
-    maxxy=fabs(r3[0])>fabs(r3[1])?fabs(r3[0]):fabs(r3[1]);
-    rbase=sqrt(SQR(r3[0])+SQR(r3[1]));
+
     
-    if (fabs(r3[0])<bx && fabs(r3[1])<by){
-      *tflag=1;
-      return 0;
-    }
-    //  else/* 
-    if (rbase<RICHDB::bottom_radius){
-      ed=1;
-      *tflag=ed?4:5;
-      *beff=mir_eff*ed;
-      return ed*mir_eff*lgeff(r3,u2,lguide);}
-    else return 0;
+    //    //    if (fabs(r3[0])<bx && fabs(r3[1])<by){
+    //    //      *tflag=1;
+    //    //      return 0;
+    //    //    }
+    
+    *beff=mir_eff*(AMSRICHIdGeom::get_channel_from_top(r3[0],r3[1])==0?0:1);
+    *tflag=*beff?4:5;
+    return *beff*lgeff(r3,u2,lguide);
     
   }
   
-
+  
 }
 
 
@@ -1520,9 +1510,10 @@ geant AMSRichRing::trace(AMSPoint r, AMSDir u,
 int AMSRichRing::tile(AMSPoint r){ // Check if a track hits the radator support struycture
 
   integer tile=RichRadiatorTile::get_tile_number(r[0],r[1]);
+  if(RichRadiatorTile::get_tile_kind(tile)==empty_kind) return 0;
   if(fabs(RichRadiatorTile::get_tile_x(tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.
      ||fabs(RichRadiatorTile::get_tile_y(tile)-r[1])>RICHDB::rad_length/2.-RICaethk/2.) return 0;
-  return 1;
+  return tile;
 
 
 }
