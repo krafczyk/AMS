@@ -1,4 +1,10 @@
-//  $Id: root.h,v 1.91 2003/06/03 10:13:26 choumilo Exp $
+//  $Id: root.h,v 1.92 2003/06/04 09:55:37 choutko Exp $
+
+//
+//  NB Please increase the version number in corr classdef 
+//  for any class modification
+//
+
 #ifndef __AMSROOT__
 #define __AMSROOT__
 #include <TObject.h>
@@ -1605,6 +1611,9 @@ public:
   HeaderR  fHeader;  ///<  Event Header \sa HeaderR
 
 
+unsigned int Run() const {return fHeader.Run;} ///< \return run number
+unsigned Event() const {return fHeader.Event;} ///< \return event number
+unsigned Time() const {return fHeader.Time[0];} ///< \return event time
 int Version() const {return fHeader.Version/4;} ///< \return producer version number
 int OS() const {return fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun )
 
