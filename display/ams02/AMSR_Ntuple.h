@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.h,v 1.3 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_Ntuple.h,v 1.4 2001/06/27 11:53:46 kscholbe Exp $
 #ifndef AMSR_Ntuple_H
 #define AMSR_Ntuple_H
 
@@ -55,7 +55,7 @@ class TFile;
 class AMSR_Ntuple : public TNamed {
 
  private:
-   Text_t        m_VarNames[20][20];    //Name list of m_NVar variables
+   Text_t        m_VarNames[500][20];    //Name list of m_NVar variables
    Int_t         m_NVar;        //Number of vairables in HGNTV
 //   TFile        *m_SampleTree;  //File storing the TTree sample
    TTree        *m_SampleTree;  //a sample of TTree to communicate with ntuple
@@ -80,6 +80,7 @@ class AMSR_Ntuple : public TNamed {
    TRCLUSTE_DEF *m_BlkTrcluste;
    TRMCCLUS_DEF *m_BlkTrmcclus;
    TRRECHIT_DEF *m_BlkTrrechit;
+   TRDCLMC_DEF  *m_BlkTrdclmc;
    TRTRACK_DEF  *m_BlkTrtrack;
    MCEVENTG_DEF *m_BlkMceventg;
    ANTICLUS_DEF *m_BlkAnticlus;
