@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.87 2003/06/19 15:25:00 isevilla Exp $
+//  $Id: ntuple.h,v 1.88 2003/06/23 14:19:15 isevilla Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -87,14 +87,14 @@ public:
   float VelPhi;
   float ThetaM;
   float PhiM;
-  float Ra; // ISN 
-  float Dec; // ISN 
-  float GLong; // ISN 
-  float GLat; // ISN 
-  float AMSRa; // ISN 
-  float AMSDec; // ISN 
-  float AMSGLong; // ISN   
-  float AMSGLat; // ISN 
+  float ISSEqAsc; // ISN 
+  float ISSEqDec; // ISN 
+  float ISSGalLong; // ISN 
+  float ISSGalLat; // ISN 
+  float AMSEqAsc; // ISN 
+  float AMSEqDec; // ISN 
+  float AMSGalLong; // ISN   
+  float AMSGalLat; // ISN 
   int Tracks;
   int TrRecHits;
   int TrClusters;

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.315 2003/06/19 15:21:18 isevilla Exp $
+//  $Id: event.C,v 1.316 2003/06/23 14:20:02 isevilla Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -471,7 +471,7 @@ void AMSEvent::_signinitevent(){
 //      return;
 //    }
     _NorthPolePhi=AMSmceventg::Orbit.PolePhi;
-    AMSmceventg::Orbit.UpdateOrbit(curtime,_StationTheta,_StationPhi,_NorthPolePhi,_StationRa,_StationDec,_StationGLat,_StationGLong,_time);
+    AMSmceventg::Orbit.UpdateOrbit(curtime,_StationTheta,_StationPhi,_NorthPolePhi,_StationEqAsc,_StationEqDec,_StationGalLat,_StationGalLong,_time);
 
     _usec=(curtime-integer(curtime))*1000000000;  // nsec for mc
     AMSmceventg::Orbit.Nskip=0;        
@@ -499,9 +499,9 @@ void AMSEvent::_signinitevent(){
     
     geant ziss[3],xiss[3],yiss[3],zams[3];
     
-    ziss[0] = cos(_StationRa)*cos(_StationDec); // ISS pointing direction
-    ziss[1] = sin(_StationRa)*cos(_StationDec);
-    ziss[2] = sin(_StationDec);  
+    ziss[0] = cos(_StationEqAsc)*cos(_StationEqDec); // ISS pointing direction
+    ziss[1] = sin(_StationEqAsc)*cos(_StationEqDec);
+    ziss[2] = sin(_StationEqDec);  
     yiss[0] = -cos(raf)*cos(decf); // vector yiss points "backwards"
     yiss[1] = -sin(raf)*cos(decf);
     yiss[2] = -sin(decf);  
@@ -512,11 +512,11 @@ void AMSEvent::_signinitevent(){
     zams[1] = sin(tilt)*xiss[1]+cos(tilt)*ziss[1];
     zams[2] = sin(tilt)*xiss[2]+cos(tilt)*ziss[2];
 
-    _AMSRa=fmod(atan2(zams[1],zams[0])+AMSDBc::twopi,AMSDBc::twopi);
-    _AMSDec=asin(zams[2]);
-    skyposition amspos(_AMSRa,_AMSDec);
-    amspos.GetLong(_AMSGLong);
-    amspos.GetLat(_AMSGLat);
+    _AMSEqAsc=fmod(atan2(zams[1],zams[0])+AMSDBc::twopi,AMSDBc::twopi);
+    _AMSEqDec=asin(zams[2]);
+    skyposition amspos(_AMSEqAsc,_AMSEqDec);
+    amspos.GetLong(_AMSGalLong);
+    amspos.GetLat(_AMSGalLat);
   }
   else if(AMSJob::gethead()->isSimulation() && rec){
   if(CCFFKEY.oldformat){
@@ -2170,14 +2170,14 @@ void AMSEvent::_writeEl(){
   EN->VelocityS=_StationSpeed;
   EN->VelTheta=_VelTheta;
   EN->VelPhi=fmod(_VelPhi-(_NorthPolePhi-AMSmceventg::Orbit.PolePhiStatic)+AMSDBc::twopi,AMSDBc::twopi);
-  EN->Ra=_StationRa*(360/AMSDBc::twopi);// ISN 
-  EN->Dec=_StationDec*(360/AMSDBc::twopi); // ISN 
-  EN->GLat=_StationGLat*(360/AMSDBc::twopi); //ISN 
-  EN->GLong=_StationGLong*(360/AMSDBc::twopi);//ISN 
-  EN->AMSRa=_AMSRa*(360/AMSDBc::twopi);// ISN 
-  EN->AMSDec=_AMSDec*(360/AMSDBc::twopi); // ISN 
-  EN->AMSGLat=_AMSGLat*(360/AMSDBc::twopi); //ISN 
-  EN->AMSGLong=_AMSGLong*(360/AMSDBc::twopi);//ISN     
+  EN->ISSEqAsc=_StationEqAsc*(360/AMSDBc::twopi);// ISN 
+  EN->ISSEqDec=_StationEqDec*(360/AMSDBc::twopi); // ISN 
+  EN->ISSGalLat=_StationGalLat*(360/AMSDBc::twopi); //ISN 
+  EN->ISSGalLong=_StationGalLong*(360/AMSDBc::twopi);//ISN 
+  EN->AMSEqAsc=_AMSEqAsc*(360/AMSDBc::twopi);// ISN 
+  EN->AMSEqDec=_AMSEqDec*(360/AMSDBc::twopi); // ISN 
+  EN->AMSGalLat=_AMSGalLat*(360/AMSDBc::twopi); //ISN 
+  EN->AMSGalLong=_AMSGalLong*(360/AMSDBc::twopi);//ISN     
   integer  i,nc;
   AMSContainer *p;
 //  EN->Particles=0;

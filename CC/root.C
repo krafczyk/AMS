@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.47 2003/06/20 14:47:59 choutko Exp $
+//  $Id: root.C,v 1.48 2003/06/23 14:20:02 isevilla Exp $
 //
 
 #include <root.h>
@@ -1467,14 +1467,14 @@ void HeaderR::Set(EventNtuple02* ptr){
     RadS=      ptr->RadS;
     ThetaS=    ptr->ThetaS;
     PhiS=      ptr->PhiS;
-    ISSEqAsc=        ptr->Ra;
-    ISSEqDec=       ptr->Dec;
-    ISSGalLat=      ptr->GLat;
-    ISSGalLong=     ptr->GLong;
-    AMSEqAsc=     ptr->AMSRa;
-    AMSEqDec=    ptr->AMSDec;
-    AMSGalLat=   ptr->AMSGLat;
-    AMSGalLong=  ptr->AMSGLong;
+    ISSEqAsc=        ptr->ISSEqAsc;
+    ISSEqDec=       ptr->ISSEqDec;
+    ISSGalLat=      ptr->ISSGalLat;
+    ISSGalLong=     ptr->ISSGalLong;
+    AMSEqAsc=     ptr->AMSEqAsc;
+    AMSEqDec=    ptr->AMSEqDec;
+    AMSGalLat=   ptr->AMSGalLat;
+    AMSGalLong=  ptr->AMSGalLong;
     Yaw=       ptr->Yaw;
     Pitch=     ptr->Pitch;
     Roll=      ptr->Roll;
