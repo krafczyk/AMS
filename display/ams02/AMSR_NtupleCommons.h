@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.8 2001/08/04 21:25:12 kscholbe Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.9 2001/08/05 22:43:55 kscholbe Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -230,6 +230,21 @@ struct TRDCLMC_DEF {
 };
 #define blkTrdclmc COMMON_BLOCK(TRDCLMC,trdclmc)
 COMMON_BLOCK_DEF(TRDCLMC_DEF,blkTrdclmc);
+
+static const int NTRDCL = 100;
+struct TRDCL_DEF {
+   int   ntrdcl;
+   int   status[NTRDCL];
+   float   coo[NTRDCL][3];
+   int   layer[NTRDCL];
+   float   coodir[NTRDCL][3];
+   int multip[NTRDCL];
+   int hmultip[NTRDCL];
+   float edep[NTRDCL];
+   int prawhit[NTRDCL];
+};
+#define blkTrdcl COMMON_BLOCK(TRDCL,trdcl)
+COMMON_BLOCK_DEF(TRDCL_DEF,blkTrdcl);
 
 static const int NTRTR = 100;
 struct TRTRACK_DEF {

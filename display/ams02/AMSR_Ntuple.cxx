@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.10 2001/08/04 21:25:12 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.11 2001/08/05 22:43:54 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -59,6 +59,7 @@ TRCLUSTE_DEF blkTrcluste;
 TRMCCLUS_DEF blkTrmcclus;
 TRRECHIT_DEF blkTrrechit;
 TRDCLMC_DEF blkTrdclmc;
+TRDCL_DEF blkTrdcl;
 TRTRACK_DEF blkTrtrack;
 MCEVENTG_DEF blkMceventg;
 ANTICLUS_DEF blkAnticlus;
@@ -107,7 +108,8 @@ AMSR_Ntuple::AMSR_Ntuple(const char *name, const char *title)
    m_BlkTrcluste = &blkTrcluste;
    m_BlkTrmcclus = &blkTrmcclus;
    m_BlkTrrechit = &blkTrrechit;
-   m_BlkTrdclmc   = &blkTrdclmc;
+   m_BlkTrdclmc  = &blkTrdclmc;
+   m_BlkTrdcl    = &blkTrdcl;
    m_BlkTrtrack  = &blkTrtrack;
    m_BlkMceventg = &blkMceventg;
    m_BlkAnticlus = &blkAnticlus;
@@ -284,6 +286,16 @@ void AMSR_Ntuple::CreateSampleTree()
    m_Tree->Branch("Tofetime", m_BlkTofclust->Tofetime, "Tofetime[ntof]/F");
    m_Tree->Branch("Tofcoo", m_BlkTofclust->Tofcoo, "Tofcoo[ntof][3]/F");
    m_Tree->Branch("Tofercoo", m_BlkTofclust->Tofercoo, "Tofercoo[ntof][3]/F");
+
+   m_Tree->Branch("ntrdcl", &m_BlkTrdcl->ntrdcl, "ntrdcl/I");
+   m_Tree->Branch("Trdclstatus", m_BlkTrdcl->status, "trdclstatus/I");
+   m_Tree->Branch("Trdclcoo", m_BlkTrdcl->coo, "trdclcoo/I");
+   m_Tree->Branch("Trdcllayer", m_BlkTrdcl->layer, "trdcllayer/I");
+   m_Tree->Branch("Trdcldir", m_BlkTrdcl->coodir, "trddir/I");
+   m_Tree->Branch("Trdmultip", m_BlkTrdcl->multip, "trdmul/I");
+   m_Tree->Branch("Trdhmultip", m_BlkTrdcl->hmultip, "trdhmul/I");
+   m_Tree->Branch("Trdedep", m_BlkTrdcl->edep, "trdedep/I");
+   m_Tree->Branch("Trdprawhit", m_BlkTrdcl->prawhit, "ptrdrht/I");
 
    m_Tree->Branch("ntofmc", &m_BlkTofmcclu->ntofmc, "ntofmc/I");
    m_Tree->Branch("Tofmcidsoft", m_BlkTofmcclu->Tofmcidsoft, "Tofmcidsoft[ntofmc]/I");
@@ -562,6 +574,7 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
    HBNAME(m_MemID, "BETA", &(m_BlkBeta->nbeta), "$SET");
    HBNAME(m_MemID, "CHARGE", &(m_BlkCharge->ncharge), "$SET");
    HBNAME(m_MemID, "TRDMCCL", &(m_BlkTrdclmc->ntrdclmc), "$SET");
+   HBNAME(m_MemID, "TRDClu", &(m_BlkTrdcl->ntrdcl), "$SET");
    HBNAME(m_MemID, "PARTICLE", &(m_BlkParticle->npart), "$SET");
    HBNAME(m_MemID, "TOFCLUST", &(m_BlkTofclust->ntof), "$SET");
    HBNAME(m_MemID, "TOFMCCLU", &(m_BlkTofmcclu->ntofmc), "$SET");

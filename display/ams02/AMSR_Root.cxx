@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.cxx,v 1.3 2001/01/22 17:32:35 choutko Exp $
+//  $Id: AMSR_Root.cxx,v 1.4 2001/08/05 22:43:55 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -181,6 +181,7 @@
 
 #include "AMSR_Root.h"
 #include "AMSR_ToFClusterReader.h"
+#include "AMSR_TrdClusterReader.h"
 #include "AMSR_TrackReader.h"
 #include "AMSR_SiHitReader.h"
 #include "AMSR_AntiClusterReader.h"
@@ -244,6 +245,7 @@ AMSR_Root::AMSR_Root() : TNamed("AMSR_Root","The AMS Display with Root")
    m_Ntuple          = 0;
    m_Makers          = 0;
    m_ToFClusterMaker = 0;
+   m_TrdClusterMaker = 0;
    m_SiHitMaker      = 0;
    m_AntiClusterMaker = 0;
    m_TrMCClusterMaker = 0;
@@ -295,6 +297,12 @@ AMSR_Root::AMSR_Root(const char *name, const char *title)
    m_ToFClusterMaker  = new AMSR_ToFClusterReader("ToFClusterReader",
 			    "Read AMSR_Root ToF clusters from ntuple root file");
    m_Makers->Add(m_ToFClusterMaker);
+
+
+   m_TrdClusterMaker  = new AMSR_TrdClusterReader("TrdClusterReader",
+			    "Read AMSR_Root Trd clusters from ntuple root file");
+   m_Makers->Add(m_TrdClusterMaker);
+
 
    m_SiHitMaker       = new AMSR_SiHitReader("SiHitReader","Read AMSR_Root SiHits");
    m_Makers->Add(m_SiHitMaker);
@@ -841,6 +849,7 @@ void AMSR_Root::Streamer(TBuffer &R__b)
       R__b << m_Makers;
 //      R__b << m_MCMaker;
       R__b << m_ToFClusterMaker;
+      R__b << m_TrdClusterMaker;
 //      R__b << m_SiClusterMaker;
 //      R__b << m_CTCClusterMaker;
 //      R__b << m_ACCClusterMaker;

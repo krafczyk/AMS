@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.h,v 1.4 2001/06/26 13:18:49 kscholbe Exp $
+//  $Id: AMSR_Root.h,v 1.5 2001/08/05 22:43:55 kscholbe Exp $
 #ifndef AMSR_Root_H
 #define AMSR_Root_H
 
@@ -34,6 +34,7 @@
 class TBrowser;
 //class AMSR_MCMaker;
 class AMSR_ToFClusterReader;
+class AMSR_TrdClusterReader;
 class AMSR_TrackReader;
 class AMSR_SiHitReader;
 class AMSR_AntiClusterReader;
@@ -65,6 +66,7 @@ private:
 
 //    pointers to standard Makers
    AMSR_ToFClusterReader *m_ToFClusterMaker;   //Pointer to ToFClusterMaker
+   AMSR_TrdClusterReader *m_TrdClusterMaker;   //Pointer to TrdClusterMaker
    AMSR_TrackReader      *m_TrackMaker;        //Pointer to TrackMaker
    AMSR_SiHitReader      *m_SiHitMaker;        //Pointer to SiHitMaker
    AMSR_AntiClusterReader *m_AntiClusterMaker;   //Pointer to AntiClusterMaker
@@ -127,6 +129,7 @@ public:
    TList         *Makers()         {return m_Makers;}
    AMSR_Maker          *Maker(const char *name) {return (AMSR_Maker*)m_Makers->FindObject(name);}
    AMSR_ToFClusterReader *ToFClusterMaker() {return m_ToFClusterMaker;}
+   AMSR_TrdClusterReader *TrdClusterMaker() {return m_TrdClusterMaker;}
    AMSR_TrackReader      *TrackMaker()      {return m_TrackMaker;}
    AMSR_SiHitReader      *SiHitMaker()      {return m_SiHitMaker;}
    AMSR_AntiClusterReader *AntiClusterMaker() {return m_AntiClusterMaker;}
