@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.25 2003/05/02 09:28:07 choutko Exp $
+//  $Id: client.C,v 1.26 2003/07/29 17:17:17 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -206,7 +206,7 @@ return _streambuffer;
 
 
 ostream & AMSClient::print(const DPS::Client::CID & a, ostream & o){
-return o<<a.HostName<<" "<<a.Interface<<" , UID "<<a.uid<<" , PID "<<a.pid<<" "<<a.ppid<<" , Type "<<CT2string(a.Type)<<" , ExitStatus "<<CSE2string(a.Status)<<" , StatusType "<<CST2string(a.StatusType);
+return o<<a.HostName<<" "<<a.Interface<<" , UID "<<a.uid<<" , PID "<<a.pid<<" "<<a.ppid<<" , Type "<<CT2string(a.Type)<<" , ExitStatus "<<CSE2string(a.Status)<<" , StatusType "<<CST2string(a.StatusType)<<" , Mips "<<a.Mips;
 }
 
 

@@ -23,6 +23,7 @@ module DPS{
     ClientStatusType StatusType;
     ClientExiting Status;
     string Interface;
+    float Mips;
     };
 
 //    exception DBProblem{

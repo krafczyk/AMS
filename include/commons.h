@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.186 2003/06/19 15:25:00 isevilla Exp $
+//  $Id: commons.h,v 1.187 2003/07/29 17:17:25 choutko Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -943,11 +943,13 @@ private:
  static uinteger _build;
  static uinteger _os;
  static char _osname[255];
+ static float _mips;
 public:
  AMSCommonsI();
  void init();
  static const char * getversion(){return _version;}
  static integer getbuildno()  {return _build;}
+ static integer getmips()  {return _mips;}
  static integer getosno()  {return _os;}
  static char* getosname()  {return _osname;}
 };

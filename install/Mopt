@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.253 2003/07/25 16:48:28 alcaraz Exp $
+#  $Id: Mopt,v 1.254 2003/07/29 17:17:27 choutko Exp $
 #
 
 SHELL=/bin/sh
@@ -141,7 +141,7 @@ ifdef AMSICC
   else
     FF=/opt/intel/compiler70/ia32/bin/ifc
   endif
-  BINMT=$(AMSWD)/bin/linux/icc/mt/
+  BINMT=$(AMSWD)/bin/linuxr/icc/mt/
   BIN=$(AMSWD)/bin/linuxr/icc/
   EXE=$(AMSWD)/exe/linux/icc/
   LIB=$(AMSWD)/lib/linux/icc/
@@ -796,13 +796,27 @@ producer:	$(CLIENT)
 $(CLIENT):          $(OBJECTCO) $(OBJECTCL) $(OBJECTSC)
 	$(LD) $(FLAGSSTATIC) -v -o $(CLIENT) $(OBJECTSC)  $(OBJECTCL) $(OBJECTCO) $(LDFLAGSSTATICIDL) $(TIMEL) $(LDFLAGSSTATIC)
 
+producermt:	$(CLIENTMT)
+
+$(CLIENTMT):          $(OBJECTCOMT) $(OBJECTCLMT) $(OBJECTSC)
+	$(LD) -v -o $(CLIENTMT) $(OBJECTSC)  $(OBJECTCLMT) $(OBJECTCOMT) $(LDFLAGSSTATICIDLMT) $(TIMEL) $(LDFLAGS)
+
 $(OBJECTSE):         $(SRCSCPP)
 	$(CPP)  -c $(CFLAGS) $(SRCSCPP) 
 	mv *.o $(BIN)
 
+$(OBJECTSEMT):         $(SRCSCPPMT)
+	$(CPP)  -fpermissive   -c $(CFLAGS) $(SRCSCPPMT) 
+	mv *.o $(BINMT)
+
 $(OBJECTCO):         $(SRCS)
 	$(CCC)  -c $(CFLAGS) $(SRCS) 
 	mv *.o $(BIN)
+
+
+$(OBJECTCOMT):         $(SRCSMT)
+	$(CCCMT) -c $(CFLAGS) $(SRCSMT) 
+	mv *.o $(BINMT)
 
 
 $(SRCS):    	 $(INCLUDE)server.idl
@@ -812,10 +826,21 @@ $(SRCS):    	 $(INCLUDE)server.idl
 
 
 
+$(SRCSMT):    	 $(INCLUDE)server.idl
+	$(IDLMT) $(INCLUDE)server.idl
+	mv *.h $(SRCMT)
+	mv *.c $(SRCMT)
+
 $(SRCSCPP):   $(SRCS) 	 $(INCLUDE)server.idl
 	$(IDLCPP) $(INCLUDE)server.idl
 	mv *.hh $(SRC)
 	mv *.cc $(SRC)
+
+
+$(SRCSCPPMT):   $(SRCSMT) 	 $(INCLUDE)server.idl
+	$(IDLCPP) $(INCLUDE)server.idl
+	mv *.hh $(SRCMT)
+	mv *.cc $(SRCMT)
 
 
 $(BIN)gbatch_c.o:         $(SCC)gbatch.C

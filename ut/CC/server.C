@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.93 2003/07/25 14:53:59 choutko Exp $
+//  $Id: server.C,v 1.94 2003/07/29 17:17:17 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -1783,7 +1783,8 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
    if(rc ==DPS::Client::Create){
          for(AHLI i=_ahl.begin();i!=_ahl.end();++i){
             if(!strcmp((const char *)(*i)->HostName, (const char *)(as.id).HostName)){
-          cout << " host found for creating "<<endl;
+            as.id.Mips=(*i)->Clock;
+            cout << " host found for creating "<<endl;
             PropagateAH(asid,*i,DPS::Client::Update);
             break;
         }
@@ -2071,6 +2072,7 @@ else{
    ah.ClientsKilled=0;
    ah.ClientsRunning=0;
    ah.Clock=(*i)->Clock;  
+   
    ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded+0.5f,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
 
    time_t tt;

@@ -1,4 +1,4 @@
-#  $Id: monitorUI.pm,v 1.31 2002/08/07 08:50:25 choutko Exp $
+#  $Id: monitorUI.pm,v 1.32 2003/07/29 17:17:37 choutko Exp $
 package monitorUI;
 use Error qw(:try);
 use Gtk;
@@ -561,6 +561,7 @@ sub notebook_create_pages {
                 	@titles = (
 	    "ID",
 	    "HostName",
+	    "Mips",
 	    "Process ID",
 	    "Start Time",
 	    "LastUpdate Time",
@@ -614,6 +615,7 @@ sub notebook_create_pages {
                 	@titles = (
 	    "ID",
 	    "HostName",
+	    "Mips",
 	    "Process ID",
 	    "Start Time",
 	    "LastUpdate Time",
@@ -629,6 +631,7 @@ sub notebook_create_pages {
                 	@titles = (
 	    "ID",
 	    "HostName",
+	    "Mips",
 	    "Process ID",
 	    "Start Time",
 	    "LastUpdate Time",
@@ -644,6 +647,7 @@ sub notebook_create_pages {
                 	@titles = (
 	    "ID",
 	    "HostName",
+	    "Mips",
 	    "Process ID",
 	    "Start Time",
 	    "LastUpdate Time",
@@ -1255,10 +1259,11 @@ sub show_sample{
         @titles=(
           "Uid",
           "HostName",
+	  "Mips",
           "pid",
           "Status",
           "Type",
-          "TineOut",
+          "TimeOut",
              );                        
 
     }elsif( $name eq "ServerHost"){

@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.244 2003/07/28 17:00:19 choutko Exp $
+//  $Id: commons.C,v 1.245 2003/07/29 17:17:17 choutko Exp $
 
 
 
@@ -8,6 +8,7 @@
 #include <iostream.h>
 #include <cern.h>
 #include <amsdbc.h>
+#include <fstream.h>
 //
 STATUSFFKEY_DEF STATUSFFKEY;
 SELECTFFKEY_DEF SELECTFFKEY;
@@ -72,7 +73,8 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=92;
+uinteger AMSCommonsI::_build=93;
+float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
 AMSCommonsI::AMSCommonsI(){
@@ -170,6 +172,50 @@ void AMSCommonsI::init(){
        AMSDBc dummy;
        AMSDBc::amsdatabase=new char[strlen(AMSDATADIR.amsdatabase)+1];
        strcpy(AMSDBc::amsdatabase,AMSDATADIR.amsdatabase);
+
+       //  get mips
+       char *fname = tempnam("/tmp",NULL);
+       char syscom[255];
+{
+       strcpy(syscom,"cat /proc/cpuinfo | grep -i -e mhz  > ");
+       strcat(syscom,fname);
+       int i=system(syscom);
+       if(i==0){
+        ifstream fbin;
+        fbin.open(fname);
+        if(fbin){
+          fbin.ignore(255,':');
+          fbin>>_mips;
+          fbin.close();
+        }
+       }  
+}
+
+{
+       strcpy(syscom,"cat /proc/cpuinfo | grep -i -e name  > ");
+       strcat(syscom,fname);
+       int i=system(syscom);
+       if(i==0){
+        ifstream fbin;
+        fbin.open(fname);
+        if(fbin){
+          fbin.ignore(255,':');
+          fbin.getline(syscom,254,'\n');
+          fbin.close();
+          float _cor=1;
+          if(strstr(syscom,"Pentium II"))_cor=1.07;
+          else if(strstr(syscom,"Pentium III"))_cor=1.0;
+          else if(strstr(syscom,"Pentium(R) 4"))_cor=0.7;
+          else if(strstr(syscom,"Xeon"))_cor=0.8;
+          else if(strstr(syscom,"Athlon"))_cor=1.15;
+          else cerr<<"AMSCommonsI-E-UnableToMatchName "<<syscom<<endl;
+          _mips*=_cor;
+        }
+       }
+       cout <<"AMSCommonsI-I-ComputerEvaluatedAsMips "<<_mips<<endl;  
+}
+
+
   }
 }
 integer AMSCommonsI::_Count=0;

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.74 2003/07/25 17:17:46 choutko Exp $
+//  $Id: producer.C,v 1.75 2003/07/29 17:17:17 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -109,6 +109,7 @@ FMessage("AMSProducer::AMSProducer-F-UnableToInitCorba",DPS::Client::CInAbort);
 }
 
 void AMSProducer::sendid(){
+    _pid.Mips=AMSCommonsI::getmips();
 if (_Solo){
       _pid.Type=DPS::Producer::Standalone;
       _pid.StatusType=DPS::Producer::OneRunOnly;

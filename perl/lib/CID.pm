@@ -1,4 +1,4 @@
-#  $Id: CID.pm,v 1.5 2002/02/08 13:48:54 choutko Exp $
+#  $Id: CID.pm,v 1.6 2003/07/29 17:17:37 choutko Exp $
 package CID;
 @CID::EXPORT = qw(new);
 sub new{
@@ -9,6 +9,7 @@ sub new{
       uid=>0,
       pid=>$$,
       ppid=>0,
+      Mips=>1000,
       Type=>"Monitor",
       Status=>"NOP",
       StatusType=>"Permanent",

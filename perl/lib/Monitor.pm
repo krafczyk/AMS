@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.61 2003/05/13 14:27:17 choutko Exp $
+# $Id: Monitor.pm,v 1.62 2003/07/29 17:17:37 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -768,6 +768,7 @@ sub getactiveclients{
  }
         push @text, $hash->{id}->{uid};
         push @text, $hash->{id}->{HostName};
+        push @text, int($hash->{id}->{Mips});
         push @text, $hash->{id}->{pid};
         my $time=localtime($hash->{Start});
         push @text, $time;
@@ -958,6 +959,7 @@ int($hash->{CPUNeeded}*10)/10,
          my $hash=$Monitor::Singleton->{acl}[$i];
          push @text, $hash->{id}->{uid};
          push @text, $hash->{id}->{HostName};
+         push @text, int($hash->{id}->{Mips});
          push @text, $hash->{id}->{pid};
          push @text, $hash->{Status};
          push @text, $hash->{StatusType};
