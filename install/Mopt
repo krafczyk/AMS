@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.183 2001/02/06 15:35:20 choutko Exp $
+#  $Id: Mopt,v 1.184 2001/02/23 17:57:31 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -510,7 +510,7 @@ SERVER=$(EXE)amsprodserver.exe
 server:	$(SERVER)
 
 $(SERVER):          $(OBJECTCO) $(OBJECTSE) $(OBJECTSEAUX) $(BIN)server.o
-	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTSE) $(OBJECTSEAUX) $(OBJECTCO) $(LDFLAGSSTATICIDL) 
+	$(LD) -v -o $(SERVER) $(BIN)server.o  $(OBJECTSE) $(OBJECTSEAUX) $(OBJECTCO)  $(LDFLAGSSTATICIDL) 
 
 CLIENT=$(EXE)gbatch-orbit.exe
 

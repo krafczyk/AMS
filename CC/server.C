@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.49 2001/02/21 12:45:34 choutko Exp $
+//  $Id: server.C,v 1.50 2001/02/23 17:58:08 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -44,6 +44,8 @@ int main(int argc, char * argv[]){
      *signal(SIGUSR2, handler);
      *signal(SIGHUP, handler);
 
+  alloca(10000000);
+  cout <<"qq "<<endl;
  try{
     AMSServer::Singleton()=new AMSServer(argc,argv);
  }
@@ -250,6 +252,31 @@ else{
   _pser->_init();
   Server_impl * pser=dynamic_cast<Server_impl*>(_pser);
   pser->setInterface(niface);
+
+   if(IsOracle()){
+// Reread(rewrite) everything in case of db-aware program
+     DPS::Server_var _svar;
+     DPS::DBServer_var _dbsvar;
+
+     CORBA::Object_var obj;
+     for (AMSServerI* pcur=_pser;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+     if(pcur->getType()==DPS::Client::Server){
+       CORBA::Object_var obj=pcur->getdefaultorb()->string_to_object((const char *)((pcur->getrefmap().begin())->second));
+      _svar= DPS::Server::_narrow(obj);
+     }
+     if(pcur->getType()==DPS::Client::DBServer){
+       CORBA::Object_var obj=pcur->getdefaultorb()->string_to_object((const char *)((pcur->getrefmap().begin())->second));
+      _dbsvar= DPS::DBServer::_narrow(obj);
+     }
+   }
+     for (AMSServerI* pcur=_pser;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+     if(pcur->getType()!=DPS::Client::DBServer){
+      if(InitOracle())pcur->ReWriteTables(_dbsvar);
+      else pcur->ReReadTables(_svar);
+   }
+   }
+   }
+
   pser->StartSelf(_pid,DPS::Client::Create);
   
  }
@@ -1478,6 +1505,9 @@ return false;
 
 
 void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordChange rc){
+
+
+
  // Registered itself in _acl
      DPS::Client::ActiveClient as;
      as.id= cid;
@@ -1521,29 +1551,6 @@ void Server_impl::StartSelf(const DPS::Client::CID & cid, DPS::Client::RecordCha
             break;
         }
        }
-   if(_parent->IsOracle()){
-// Reread(rewrite) everything in case of db-aware program
-     DPS::Server_var _svar;
-     DPS::DBServer_var _dbsvar;
-
-     CORBA::Object_var obj;
-     for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
-     if(pcur->getType()==DPS::Client::Server){
-       CORBA::Object_var obj=pcur->getdefaultorb()->string_to_object((const char *)((pcur->getrefmap().begin())->second));
-      _svar= DPS::Server::_narrow(obj);
-     }
-     if(pcur->getType()==DPS::Client::DBServer){
-       CORBA::Object_var obj=pcur->getdefaultorb()->string_to_object((const char *)((pcur->getrefmap().begin())->second));
-      _dbsvar= DPS::DBServer::_narrow(obj);
-     }
-   }
-     for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
-     if(pcur->getType()!=DPS::Client::DBServer){
-      if(_parent->InitOracle())pcur->ReWriteTables(_dbsvar);
-      else pcur->ReReadTables(_svar);
-   }
-   }
-   }
 }
 }
 
