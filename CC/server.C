@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.73 2001/07/18 09:33:09 alexei Exp $
+//  $Id: server.C,v 1.74 2001/08/01 13:28:43 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -880,7 +880,7 @@ if(li!=_acl.end()){
      _parent->EMessage(AMSClient::print(*li,"Server::Unable To Kill Client"));
     }
     DPS::Client::ActiveClient_var acv=*li;
-    PropagateAC(acv,DPS::Client::Delete);
+    PropagateAC(acv,DPS::Client::Delete,DPS::Client::AnyButSelf,acv->id.uid);
   }
   else{
     _UpdateACT((*li)->id,DPS::Client::Active);
@@ -907,7 +907,7 @@ if(li!=_acl.end()){
    (*li)->id.Status=DPS::Client::SInKill;
    (*li)->Status=DPS::Client::Killed;
    DPS::Client::ActiveClient_var acv=*li;
-   PropagateAC(acv,DPS::Client::Update);
+    PropagateAC(acv,DPS::Client::Update,DPS::Client::AnyButSelf,acv->id.uid);
 //    _pser->Kill((*li),SIGTERM,true);
   }
   else{

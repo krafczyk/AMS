@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.195 2001/07/18 15:45:18 choumilo Exp $
+#  $Id: datacards.doc,v 1.196 2001/08/01 13:28:50 choutko Exp $
 Datacards
 
 // Protection from some myst bug
@@ -916,19 +916,32 @@ R 19   cuts[0](5)          // mev/cell threshold for cluster search(~2adc)
 R 23.................      // spares
 
 I 24   ReadConstFiles(1)   // read const. from DB/RawFiles (0/1)
+R 25   Thr1DSeed(10.)     //  minimal energy seed to start cluster search (mev)
+R 26   Thr1DRSeed(0.18)   //  minimal 2nd/1st cluster energy ratio (same row)
+R 27   Cl1DLeakSize(9)    //  search region for energy leraks (+-cells)
+R 28   Cl1DcoreSize(2)    //  max core cluster size(+-cells)
+R 29   Thr2Dmax(1.2)      //  max tangent for shower direction
+R 30   Lenghth2DMin(4)    //  min-1 2d cluster length (planes)
+R 31   Chi22DMax(1000)    //  max chi2 for direction fit
+R 32   PosError1D(0.1)    //  Est error between cluster cofg and shower core (cm)
+R 33   Chi2Change2D(0.33) //  minimal chi2 rel change to remove higest resid hit in dir fit
+R 34   TranShowerSize2d(10) // transwersal shower size (cm) (to add orphaned clusters)
+R 35   SimpleRearLeak[4](0.01,0.94e-3,3.7,0.975e-3)  // parameters to correct rear leak (see EcalShower::EnergyFit)
+R 39   CalorTransSize(32)  // trans calorimeter size (cm)     
+R 40   EMDirCorrection(1.035)  // em shower shape direction correction 
 
-R 25 sec[0](0)               // cards below are used as validity time when need to write
-R 26 sec[1](0)                // to DB new calibration/status parameters
-R 27 min[0](0)                //
-R 28 min[1](0)                //
-R 29 hour[0](0)               //
-R 30 hour[1](0)               //
-R 31 day[0](1)                //
-R 32 day[1](1)                //
-R 33 mon[0](0)                //
-R 34 mon[1](0)                //
-R 35 year[0](101)             //
-R 36 year[1](108)             //
+R 41 sec[0](0)               // cards below are used as validity time when need to write
+R 42 sec[1](0)                // to DB new calibration/status parameters
+R 43 min[0](0)                //
+R 44 min[1](0)                //
+R 45 hour[0](0)               //
+R 46 hour[1](0)               //
+R 47 day[0](1)                //
+R 48 day[1](1)                //
+R 49 mon[0](0)                //
+R 50 mon[1](0)                //
+R 51 year[0](101)             //
+R 52 year[1](108)             //
 
    ECAL calibration:
 

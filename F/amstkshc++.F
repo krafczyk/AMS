@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.64 2001/06/26 15:07:22 choutko Exp $
+*  $Id: amstkshc++.F,v 1.65 2001/08/01 13:28:49 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -1667,8 +1667,10 @@ C.    *       Author    B.Grosdidier (Strasbourg) *****                 *
 C.    *                                                                 *
 C.    *******************************************************************
 C.
+      COMMON/GCTLIT/THRIND,PMIN,DP,DNDL,JMIN,ITCKOV,IMCKOV,NPCKOV
       DIMENSION UBUF(1)
       DATA UBUF/0./
+c      ITCKOV=1
 *
 *     The Geant particle identification begin to IPART = 61
       CALL GSPART( 61,'LI6  ',itrt,   5.60305,  3., 1000., UBUF,0)
@@ -9107,9 +9109,13 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.64 2001/06/26 15:07:22 choutko Exp $
+* $Id: amstkshc++.F,v 1.65 2001/08/01 13:28:49 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.65  2001/08/01 13:28:49  choutko
+* ecal rec released
+* trd rec bugs fixed
+*
 * Revision 1.64  2001/06/26 15:07:22  choutko
 * stranglet
 *

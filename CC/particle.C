@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.100 2001/07/13 16:25:27 choutko Exp $
+//  $Id: particle.C,v 1.101 2001/08/01 13:28:43 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -24,7 +24,7 @@
 #include <ecaldbc.h>
 #include <ecalrec.h>
 #include <mceventg.h>
-
+#include <ecalrec.h>
 
 extern "C" void atcrec_(const integer & run, integer & nctcht, geant cooctc[1][2][3], int la[], int co[], int ro[], geant sig[],
                    int atcnbcel[], geant atcnbphe[], int atcidcel[], int atcdispm[], int atcdaero[], int atcstatu[], float & atcbeta);
@@ -278,32 +278,44 @@ void AMSParticle::ecalfit(){
 {
 // Fit to first & last ecal planes as well as to shower max ( or 1/2 if no sho)
 
-AMSPoint cofg(0,0,0);
-number _ECalTot=0;
-for(int ipl=0;ipl<2*ECALDBc::slstruc(3);ipl++){ //loop over containers(planes)
- AMSEcalCluster* ptr=(AMSEcalCluster*)AMSEvent::gethead()->getheadC("AMSEcalCluster",ipl,0);
-  while(ptr){
-   _ECalTot+=ptr->getedep();
-   cofg=cofg+ptr->getcoo()*ptr->getedep();
-   ptr=ptr->next();
+  
+ EcalShower *pbest=0;
+ number dmin=FLT_MAX;
+ AMSDir dir(0,0,1.);
+ number theta, phi, sleng;
+{
+ EcalShower *p=(EcalShower*)AMSEvent::gethead()->getheadC("EcalShower",0,1);
+  while(p){
+    _ptrack->interpolate(p->getEntryPoint(),dir,_EcalSCoo[0],theta,phi,sleng);
+    number d=(p->getEntryPoint()-_EcalSCoo[0]).norm();
+    if(d<dmin){
+     dmin=d;
+     pbest=p;
+    }
+   p=p->next();
   }
 }
+  if(pbest){
+    _ptrack->interpolate(pbest->getEntryPoint(),dir,_EcalSCoo[0],theta,phi,sleng);
+    _ptrack->interpolate(pbest->getCofG(),dir,_EcalSCoo[1],theta,phi,sleng);
+    _ptrack->interpolate(pbest->getExitPoint(),dir,_EcalSCoo[2],theta,phi,sleng);
+    _pShower=pbest;
+    _pShower->setstatus(AMSDBc::USED);
+  }
+  else _pShower=0;
   integer pr,pl,ce;
   number cl,ct;
   number EcalFirstPlaneZ,EcalLastPlaneZ;
   ECALDBc::getscinfoa(0,0,0,pr,pl,ce,ct,cl,EcalFirstPlaneZ);
   ECALDBc::getscinfoa(ECALDBc::slstruc(3)-1,2,0,pr,pl,ce,ct,cl,EcalLastPlaneZ);
-  if(_ECalTot){
-    cofg=cofg/_ECalTot;
-  }
-  else{
-   cofg=AMSPoint(0,0,(EcalFirstPlaneZ+EcalLastPlaneZ)/2);
-  }
-AMSDir dir(0,0,1.);
-number theta, phi, sleng;
     _ptrack->interpolate(AMSPoint(0,0,EcalFirstPlaneZ),dir,_EcalSCoo[0],theta,phi,sleng);
-    _ptrack->interpolate(cofg,dir,_EcalSCoo[1],theta,phi,sleng);
+    _ptrack->interpolate(AMSPoint(0,0,(EcalFirstPlaneZ+EcalLastPlaneZ)/2),dir,_EcalSCoo[1],theta,phi,sleng);
     _ptrack->interpolate(AMSPoint(0,0,EcalLastPlaneZ),dir,_EcalSCoo[2],theta,phi,sleng);
+
+
+
+
+
 
 }
 
@@ -313,11 +325,11 @@ if(AMSJob::gethead()->isCalibration() & AMSJob::CEcal){
  AMSDir dir(0,0,1.);
  AMSPoint coo;
  number theta, phi, sleng;
- AMSEcalCluster * ptr;   
+ Ecal1DCluster * ptr;   
  integer maxpl,ipl;
  maxpl=2*ECALDBc::slstruc(3);
- for(ipl=0;ipl<maxpl;ipl++){ //loop over containers(planes)
-   ptr=(AMSEcalCluster*)AMSEvent::gethead()->getheadC("AMSEcalCluster",ipl,0);
+ for(ipl=0;ipl<2;ipl++){ //loop over containers(proj)
+   ptr=(Ecal1DCluster*)AMSEvent::gethead()->getheadC("Ecal1DCluster",ipl,0);
    if(ptr){
      coo=ptr->getcoo();//use only first cluster in container(really need only Z-coo)
      _ptrack->interpolate(coo,dir,_EcalCoo[ipl],theta,phi,sleng);
@@ -343,6 +355,8 @@ number theta, phi, sleng;
    AMSPoint tmp;
    _ptrack->interpolate(coo,dir,tmp,theta,phi,sleng);
    number d2=(coo-tmp).norm();
+   number cd=AMSDir(theta,phi).crossp(AMSDir(ptr->gettheta(),ptr->getphi())).norm();
+   d2*=fabs(cd);
    AMSPoint error=ptr->getECooStr();
    number d3;
    if(_ptrack->checkstatus(AMSDBc::NOTRACK)){
@@ -562,6 +576,8 @@ else{
 
   if(_prich)PN->RICHP[PN->Npart]=_prich->getpos();
   else PN->RICHP[PN->Npart]=-1;
+  if(_pShower)PN->EcalP[PN->Npart]=_pShower->getpos();
+  else PN->EcalP[PN->Npart]=-1;
   PN->Beta[PN->Npart]=_Beta;
   PN->ErrBeta[PN->Npart]=_ErrBeta;
 

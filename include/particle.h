@@ -1,4 +1,4 @@
-//  $Id: particle.h,v 1.32 2001/07/13 16:25:35 choutko Exp $
+//  $Id: particle.h,v 1.33 2001/08/01 13:28:51 choutko Exp $
 // V. Choutko 6-june-96
 //
 // July 13, 1996.  ak.  add _ContPos and functions get/setNumbers;
@@ -31,6 +31,7 @@ public:
  AntiMatter(integer pid=0):_pid(pid){}
 };
 
+class EcalShower;
 class AMSParticle: public AMSlink{
 protected:
 
@@ -40,7 +41,7 @@ protected:
   AMSTrTrack * _ptrack;      // pointer to track;
   AMSTRDTrack * _ptrd;       // pointer to trd track 
   AMSRichRing * _prich;      // pointer to rich ring
-
+  EcalShower  *_pShower;     // pointer to shower;
   integer _GPart;        // Geant particle ID
 
   number  _Mass;
@@ -59,7 +60,7 @@ protected:
   CTC    _Value[2];
   AMSPoint _TOFCoo[4];  
   AMSPoint _AntiCoo[2];  
-  AMSPoint _EcalCoo[2*ECSLMX];  
+  AMSPoint _EcalCoo[2*ecalconst::ECSLMX];  
   AMSPoint _EcalSCoo[3];
   AMSPoint _TrCoo[trconst::maxlay];  
   AMSPoint _TRDCoo;  
@@ -95,7 +96,7 @@ static void alfun(integer & n, number xc[], number & fc, AMSParticle * ptr);
   number &mass, number &emass, number &mom, number &emom);
 public:
   AMSParticle *  next(){return (AMSParticle*)_next;}
-  AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0),_ptrd(0),_prich(0)
+  AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0),_ptrd(0),_prich(0),_pShower(0)
  {
     int i;
     for(i=0;i<2;i++){
@@ -104,7 +105,7 @@ public:
     }
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<2*ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);
@@ -116,7 +117,7 @@ public:
   number beta, number ebeta,number mass, number errmass, number momentum, number errmomentum,
   number charge, number theta, number phi, AMSPoint coo): 
   _pbeta(pbeta), _pcharge(pcharge), _ptrack(ptrack), 
-  _Mass(mass),_Beta(beta),_ErrBeta(ebeta),_ptrd(0),_prich(0),
+  _Mass(mass),_Beta(beta),_ErrBeta(ebeta),_ptrd(0),_prich(0),_pShower(0),
   _ErrMass(errmass), _Momentum(momentum), _ErrMomentum(errmomentum),
   _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo)
  {
@@ -127,7 +128,7 @@ public:
     }
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<2*ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<2*ecalconst::ECSLMX;i++)_EcalCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<3;i++)_EcalSCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<6;i++){
      _TrCoo[i]=AMSPoint(0,0,0);

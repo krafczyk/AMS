@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.47 2001/07/13 16:25:34 choutko Exp $
+//  $Id: ntuple.h,v 1.48 2001/08/01 13:28:50 choutko Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -48,6 +48,7 @@ protected:
   AntiRawClusterNtuple _antiraw;
   TOFRawClusterNtuple _tofraw;
   EcalClusterNtuple _ecclust;
+  Ecal2DClusterNtuple _ec2dclust;
   EcalShowerNtuple _ecshow;
   EcalHitNtuple _ecalhit;
   RICMCNtuple _richmc;
@@ -109,6 +110,7 @@ public:
   AntiRawClusterNtuple* Get_antiraw() {return &_antiraw;}
   TOFRawClusterNtuple* Get_tofraw() {return &_tofraw;}
   EcalClusterNtuple* Get_ecclust() {return &_ecclust;}
+  Ecal2DClusterNtuple* Get_ec2dclust() {return &_ec2dclust;}
   EcalShowerNtuple* Get_ecshow() {return &_ecshow;}
   EcalHitNtuple* Get_ecalhit() {return &_ecalhit;}
   RICMCNtuple* Get_richmc() {return &_richmc;}

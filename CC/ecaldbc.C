@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.25 2001/07/23 09:57:43 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.26 2001/08/01 13:28:43 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -10,6 +10,7 @@
 #include <fstream.h>
 #include <ecalcalib.h>
 //
+using namespace ecalconst;
 ECcalib ECcalib::ecpmcal[ECSLMX][ECPMSMX];// mem.reserv.for ECAL indiv.PMcell calib. param.
 ECPMPeds ECPMPeds::pmpeds[ECSLMX][ECPMSMX];// ..........for ECAL peds,sigmas
 ECALVarp ECALVarp::ecalvpar;// .........................for ECAL general run-time param.  
@@ -378,6 +379,16 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     if(ico==2)coo=cz;
     return coo;
   }
+
+
+  number ECALDBc::CellSize(integer plane, integer cell, integer ico){
+// temporary -> work for eugeni
+
+    return _rdcell[4];
+  }
+
+
+
 //==========================================================================
 //
 //   EcalJobStat static variables definition (memory reservation):

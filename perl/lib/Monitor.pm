@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.41 2001/07/16 16:11:45 choutko Exp $
+# $Id: Monitor.pm,v 1.42 2001/08/01 13:28:52 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -414,7 +414,7 @@ sub UpdateARS{
 #                  warn "push"; 
                   push @{$ref->{ardref}}, $newref;
               }
-             }
+          }
              catch CORBA::SystemException with{
                carp "getars 3 oops SystemException Error "."\n";
              };

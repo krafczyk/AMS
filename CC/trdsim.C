@@ -82,7 +82,9 @@ void AMSTRDRawHit::_writeEl(){
   integer flag =    (IOPA.WriteAll%10==1)
                  || ( checkstatus(AMSDBc::USED));
   if(AMSTRDRawHit::Out( flag  )){
-    TrN->Id[TrN->Ntrdht]=getid();
+    TrN->Layer[TrN->Ntrdht]=_id.getlayer();
+    TrN->Ladder[TrN->Ntrdht]=_id.getladder();
+    TrN->Tube[TrN->Ntrdht]=_id.gettube();
     TrN->Amp[TrN->Ntrdht]=Amp();
     TrN->Ntrdht++;
   }

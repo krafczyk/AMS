@@ -26,6 +26,7 @@
 #include <iomanip.h>
 #include <time.h>
 #include <tofsim02.h>
+using namespace ecalconst;
 //
 //
 number ECREUNcalib::slslow;

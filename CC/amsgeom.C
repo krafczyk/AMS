@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.128 2001/07/23 09:57:42 choumilo Exp $
+//  $Id: amsgeom.C,v 1.129 2001/08/01 13:28:42 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -4032,7 +4032,7 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
       }
 //------> create/put SL-Radiator:
 //
-      nrot=ECROTN+isupl;
+      nrot=ecalconst::ECROTN+isupl;
       strcpy(vname,"ECR");
       k=isupl+1;//numbering 1-9 of superlayers(1-digit)
       in[0]=inum[k];

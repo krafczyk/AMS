@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.24 2001/04/04 08:28:02 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.25 2001/08/01 13:28:50 choutko Exp $          
 
 
 
@@ -30,9 +30,19 @@ d) 00index.txt file in each subdirectory
 
 VI. Access to AMS software
 
+ i) Get an account on  some ams computer (see VIII)
+   setenv Offline   as:
+   /shift/shift51/data18/xv/choutko/Offline if on shift51
+   /Offline                                  ams alphas,pentiums
+   /afs/cern.ch/exp/ams/Offline              all others 
+                                            (e.g.rsplus,dxplus,hpplus)
+
+   source $Offline/vdev/install/amsvar
+
+
+
 a) As a user:
 
-  i) Get an account on  some ams computer (see VIII)
                         
   ii)            ams software is in $Offline/vdev
   iii)           source $Offline/vdev/install/amsvar 
@@ -40,7 +50,6 @@ a) As a user:
 
 b) As a developper :
 
-  i)Get an account on  some ams computer (see VIII)
   ii)           source $Offline/vdev/install/amsvar 
                  to setup AMS related variables
         

@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.110 2001/07/16 16:11:34 choutko Exp $
+//  $Id: mceventg.C,v 1.111 2001/08/01 13:28:43 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -660,6 +660,7 @@ else
 #endif
    GRNDMQ(_seed[0],_seed[1],0,"G");
 //   cout <<"seed[ "<<_seed[0]<<" "<<_seed[1]<<endl;
+//   cout << "  direction "<<_dir/_dir[2]<<" coo "<<_coo<<endl;
    vertex[0]=_coo[0];
    vertex[1]=_coo[1];
    vertex[2]=_coo[2];

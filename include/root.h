@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.44 2001/07/13 16:25:35 choutko Exp $
+//  $Id: root.h,v 1.45 2001/08/01 13:28:51 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -38,7 +38,8 @@ const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;
 const int MAXCTCCLMC =   200;
 const int MAXECSHOW =    5;
-const int MAXECCLUST =    50;
+const int MAXECCLUST =    60;
+const int MAXEC2DCLUST =    10;
 const int MAXECHITS  =   500;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
@@ -311,6 +312,7 @@ public:
   int   TrackP[MAXPART02];
   int   TRDP[MAXPART02];
   int   RICHP[MAXPART02];
+  int   EcalP[MAXPART02];
   int   Particle[MAXPART02];
   int   ParticleVice[MAXPART02];
   float Prob[MAXPART02][2];
@@ -375,18 +377,28 @@ class EcalShowerNtuple {
 #endif
 public:
   int Necsh;
-  int Status[MAXECSHOW];
+  int   Status[MAXECSHOW];
+  float Dir[MAXECSHOW][3];
+  float EMDir[MAXECSHOW][3];
+  float Entry[MAXECSHOW][3];
+  float Exit[MAXECSHOW][3];
   float CofG[MAXECSHOW][3];
-  float Theta[MAXECSHOW];
-  float Phi[MAXECSHOW];
   float ErTheta[MAXECSHOW];
-  float ErPhi[MAXECSHOW];
-  float Energy[MAXECSHOW];
+  float Chi2Dir[MAXECSHOW];
+  float FirstLayerEdep[MAXECSHOW];
   float EnergyC[MAXECSHOW];
+  float Energy3C[MAXECSHOW][3];
   float ErEnergyC[MAXECSHOW];
-  float RearLeak[MAXECSHOW];
+  float DifoSum[MAXECSHOW];
   float SideLeak[MAXECSHOW];
-  float ShowerMax[MAXECSHOW];
+  float RearLeak[MAXECSHOW];
+  float DeadLeak[MAXECSHOW];
+  float OrpLeak[MAXECSHOW];
+  float Chi2Profile[MAXECSHOW];
+  float ParProfile[MAXECSHOW][4];
+  float Chi2Trans[MAXECSHOW];
+  float TransProfile[MAXECSHOW][3];
+  int   p2DCl[MAXECSHOW][2];
 friend class EcalShower;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
@@ -406,17 +418,48 @@ public:
   int Status[MAXECCLUST];
   int Proj[MAXECCLUST];
   int Plane[MAXECCLUST];
-  int Nmemb[MAXECCLUST];
+  int Left[MAXECCLUST];
+  int Center[MAXECCLUST];
+  int Right[MAXECCLUST];
   float Edep[MAXECCLUST];
+//  float RMS[MAXECCLUST];
+  float SideLeak[MAXECCLUST];
+  float DeadLeak[MAXECCLUST];
   float Coo[MAXECCLUST][3];
-  float ErrCoo[MAXECCLUST][3];
-
-friend class AMSEcalCluster;
+  int pLeft[MAXECCLUST];
+  int NHits[MAXECCLUST];
+friend class Ecal1DCluster;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
 ClassDef(EcalClusterNtuple,1)       //EcalClusterNtuple
 #endif
 };
+
+
+#ifdef __WRITEROOT__
+class Ecal2DClusterNtuple : public TObject {
+#else
+class Ecal2DClusterNtuple {
+#endif
+public:
+  int Nec2dcl;
+  int Proj[MAXEC2DCLUST];
+  int Nmemb[MAXEC2DCLUST];
+  float Edep[MAXEC2DCLUST];
+//  float SideLeak[MAXEC2DCLUST];
+//  float DeadLeak[MAXEC2DCLUST];
+  float Coo[MAXEC2DCLUST];
+  float Tan[MAXEC2DCLUST];
+  float Chi2[MAXEC2DCLUST];
+  int   pCl[MAXEC2DCLUST][18];
+friend class Ecal2DCluster;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(Ecal2DClusterNtuple,1)       //Ecal2DClusterNtuple
+#endif
+};
+
+
 //--------------------------
 #ifdef __WRITEROOT__
 class EcalHitNtuple : public TObject {
@@ -540,7 +583,9 @@ class TRDRawHitNtuple {
 #endif
 public:
   int Ntrdht;
-  int Id[MAXTRDRHT];
+  int Layer[MAXTRDRHT];
+  int Ladder[MAXTRDRHT];
+  int Tube[MAXTRDRHT];
   float Amp[MAXTRDRHT];
 friend class AMSTRDRawHit;
 friend class AMSNtuple;
@@ -1127,5 +1172,3 @@ ClassDef(RICRing,1)
 
 
 #endif
-
-

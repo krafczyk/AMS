@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.14 2001/07/23 09:57:44 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.15 2001/08/01 13:28:50 choutko Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -7,6 +7,7 @@
 //
 // ECAL global constants definition
 //
+namespace ecalconst{
 const integer ECFLSMX=10; // max. fiber-layers per S-layer
 const integer ECFBCMX=12; // max. fibers per layer in PMcell
 const integer ECSLMX=9; // max. S(uper)-layers
@@ -19,6 +20,7 @@ const integer ECJSTA=10; // max size of counter-array for job statistics
 const integer ECHIST=2000;// MCEcal histogram number(starting from...) 
 const integer ECHISTR=2100;// REEcal histogram number(starting from...)
 const integer ECHISTC=2200;// CAEcal histogram number(starting from...)
+};
 //
 //geometry :
 //
@@ -70,6 +72,7 @@ public:
          integer &pr, integer &pl, integer &ce, number &ct, number &cl, number &cz);
   static number segarea(number r, number ds);
   static number CellCoo(integer plane, integer cell, integer icoo);
+  static number CellSize(integer plane, integer cell, integer icoo);
 	 
 	 
 //  
@@ -83,39 +86,39 @@ public:
 class EcalJobStat{
 //
 private:
-  static integer mccount[ECJSTA];// event passed MC-cut "i"
+  static integer mccount[ecalconst::ECJSTA];// event passed MC-cut "i"
 //          i=0 -> entries
 //          i=1 => MCHits->RawEvent OK
-  static integer recount[ECJSTA];// event passed RECO-cut "i"
+  static integer recount[ecalconst::ECJSTA];// event passed RECO-cut "i"
 //          i=0 -> entries
 //          i=1 -> 
-  static integer cacount[ECJSTA];// event passed CALIB-cut "i"
+  static integer cacount[ecalconst::ECJSTA];// event passed CALIB-cut "i"
 //          i=0 -> entries
 //          i=1 ->
   static integer srcount[10];// service counters 
 public:
-  static geant zprmc1[ECSLMX];// mc-hit average Z-profile(SL-layers) 
-  static geant zprmc2[ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
-  static geant zprofa[2*ECSLMX];//  SubCellPlanes  profile
-  static geant zprofapm[ECSLMX];// SL profile
-  static geant zprofac[ECSLMX];// SuperLayers Edep profile for calib.events(punch-through)
-  static geant nprofac[ECSLMX];// SuperLayers profile for calib.events(punch-through)
+  static geant zprmc1[ecalconst::ECSLMX];// mc-hit average Z-profile(SL-layers) 
+  static geant zprmc2[ecalconst::ECSLMX];// mc-hit(+att) average Z-profile(SL(PM-assigned)-layers) 
+  static geant zprofa[2*ecalconst::ECSLMX];//  SubCellPlanes  profile
+  static geant zprofapm[ecalconst::ECSLMX];// SL profile
+  static geant zprofac[ecalconst::ECSLMX];// SuperLayers Edep profile for calib.events(punch-through)
+  static geant nprofac[ecalconst::ECSLMX];// SuperLayers profile for calib.events(punch-through)
   static void clear();
   static void addmc(int i){
     #ifdef __AMSDEBUG__
-      assert(i>=0 && i< ECJSTA);
+      assert(i>=0 && i< ecalconst::ECJSTA);
     #endif
     mccount[i]+=1;
   }
   static void addre(int i){
     #ifdef __AMSDEBUG__
-      assert(i>=0 && i< ECJSTA);
+      assert(i>=0 && i< ecalconst::ECJSTA);
     #endif
     recount[i]+=1;
   }
   static void addca(int i){
     #ifdef __AMSDEBUG__
-      assert(i>=0 && i< ECJSTA);
+      assert(i>=0 && i<  ecalconst::ECJSTA);
     #endif
     cacount[i]+=1;
   }
@@ -127,7 +130,7 @@ public:
   }
   static integer getca(int i){
     #ifdef __AMSDEBUG__
-      assert(i>=0 && i< ECJSTA);
+      assert(i>=0 && i<  ecalconst::ECJSTA);
     #endif
     return cacount[i];
   }
@@ -155,7 +158,7 @@ private:
   geant _lslow;// att.length(long comp.)
   geant _fastf;// percentage of short comp.
 public:
-  static ECcalib ecpmcal[ECSLMX][ECPMSMX];
+  static ECcalib ecpmcal[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   ECcalib(){};
   ECcalib(integer sid, integer sta[4], geant pmg, geant scg[4], geant h2lr[4], geant a2dr,
        geant lfs, geant lsl, geant fsf, geant conv):
@@ -236,7 +239,7 @@ private:
   geant _sigl[4]; // sigma for high-channel of 4 SubCells(pixels)
 //
 public:
-  static ECPMPeds pmpeds[ECSLMX][ECPMSMX];
+  static ECPMPeds pmpeds[ecalconst::ECSLMX][ecalconst::ECPMSMX];
   ECPMPeds(){};
   ECPMPeds(integer sid, geant pedh[4], geant sigh[4],
                          geant pedl[4], geant sigl[4]):_softid(sid){

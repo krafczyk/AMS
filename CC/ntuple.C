@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.80 2001/07/20 20:24:50 kscholbe Exp $
+//  $Id: ntuple.C,v 1.81 2001/08/01 13:28:43 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -39,7 +39,7 @@ void AMSNtuple::init(){
   if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   HBNAME(_lun,"EventH",&_event.Eventno,
  
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,100]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EventStatus:I");
+"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,100]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EventStatus:I");
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,150],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
 
@@ -108,7 +108,7 @@ else{
 // -----> Station :
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,EcalClusters[0,50]:I,EcalHits[0,500]:I,"
+"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,32766]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,10000]:I,TRDMCClusters[0,2000]:I,AntiClusters[0,100]:I,EcalClusters[0,500]:I,EcalHits[0,5000]:I,"
 "RICMCClusters[0,10000]:I,RICHits[0,10000]:I,TRDRawHits[0,2000]:I,TRDClusters[0,1000]:I,TRDSegments[0,500]:I,TRDTracks[0,255]:I,EventStatus(2):I"); 
 
   HBNAME(_lun,"Beta",&_beta02.Nbeta,
@@ -121,7 +121,7 @@ else{
   "ntrdmccl[0,200],trdlayermc(ntrdmccl)[0,20]:I,trdladdermc(ntrdmccl)[0,40]:I,trdtubemc(ntrdmccl)[0,100]:I,trdtrackmc(ntrdmccl)[0,1000]:I,trdedepmc(ntrdmccl),trdekinmc(ntrdmccl),trdxglmc(3,ntrdmccl),trdstepmc(ntrdmccl)");
 
   HBNAME(_lun,"TRDRHT",&_trdht.Ntrdht,
-  "ntrdht[0,200],trdidht(ntrdht):I,trdampht(ntrdht)");
+  "ntrdht[0,200],trdhtlayer(ntrdht)[0,19]:I,trdhtladder(ntrdht)[0,17]:I,trdhttube(ntrdht)[0,15]:I,trdampht(ntrdht)");
 
   HBNAME(_lun,"TRDSEG",&_trdseg.Ntrdseg,
   "ntrdseg[0,100],trdsegstatus(ntrdseg):I,trdsegor(ntrdseg)[0,10]:I,trdsegfpar(2,ntrdseg),trdsegchi2(ntrdseg),trdsegpat(ntrdseg)[0,100]:I,trdsegnh(ntrdseg)[0,12]:I,trdsegpcl(12,ntrdseg):I");
@@ -134,15 +134,20 @@ else{
 
   HBNAME(_lun,"Particle",&_part02.Npart,
  
-"npart[0,20],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart)");
+"npart[0,20],pbetap(npart)[0,30000]:I,pchargep(npart)[-1,30000]:I,ptrackp(npart)[-1,30000]:I,ptrdp(npart)[-1,254]:I,prichp(npart)[-1,254]:I,pecalp(npart)[-1,254]:I,pid(npart)[0,1000]:I,pidvice(npart)[0,1000]:I,probpid(2,npart),fitmom(npart),pmass(npart),perrmass(npart),pmom(npart),perrmom(npart),pbeta(npart),perrbeta(npart),pcharge(npart),ptheta(npart),pphi(npart),thetagl(npart),phigl(npart),pcoo(3,npart),cutoff(npart),cootof(3,4,npart),cooanti(3,2,npart),cooecal(3,3,npart),cootr(3,8,npart),cootrd(3,npart)");
 //
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
 //
+
   HBNAME(_lun,"EcalClus",&_ecclust.Neccl,
- "neccl[0,50],EcclStatus(neccl):I,EcclProj(neccl)[0,1]:I,EcclPlane(neccl)[0,20]:I,EcclNmemb(neccl)[0,72]:I,EcclEdep(neccl),EcclCoo(3,neccl),EcclErrCoo(3,neccl)");
+ "neccl[0,60],EcclStatus(neccl):I,EcclProj(neccl)[0,1]:I,EcclPlane(neccl)[0,20]:I,EcclLeft(neccl)[0,72]:I,EcclCenter(neccl)[0,72]:I,EcclRight(neccl)[0,72]:I,EcclEdep(neccl),ecclsleak(neccl),eccldleak(neccl),EcclCoo(3,neccl),ecclpleft(neccl):I,ecclnhits(neccl)[0,72]:I");
+
+  HBNAME(_lun,"Ecal2dCl",&_ec2dclust.Nec2dcl,
+ "nec2d[0,10],Ec2dProj(nec2d)[0,1]:I,Ec2dNmemb(nec2d):I,Ec2dEdep(nec2d),Ec2dCoo(nec2d),ec2dtan(nec2d),ec2dchi2(nec2d),ec2dpcl(18,nec2d)[0,1000]:I");
+
   HBNAME(_lun,"EcalShow",&_ecshow.Necsh,
- "necsh[0,5],EcshStatus(necsh):I,EcshCofG(3,necsh),EcshTheta(necsh),EcshPhi(necsh),EcshErTheta(necsh),EcshErPhi(necsh),EcshEnergy(necsh),EcshEnergyC(necsh),EcshErEnergyC(necsh),EcshRearLeak(necsh),EcshSideLeak(necsh),ecshmax(necsh)");
+ "necsh[0,5],ecshstatus(necsh):I,Ecshdir(3,necsh),ecshemdir(3,necsh),Ecshentry(3,necsh),Ecshexit(3,necsh),Ecshcofg(3,necsh),EcshErdir(necsh),ecshchi2dir(necsh),ecshfrontedep(necsh),EcshEn(necsh),ecsherat(3,necsh),Ecshener(necsh),ecshdifosum(necsh),EcshsLeak(necsh),EcshrLeak(necsh),EcshdLeak(necsh),EcshoLeak(necsh),ecshchi2P(necsh),ecshparP(4,necsh),ecshchi2T(necsh),ecshparT(3,necsh),ecshpcl(2,necsh):I");
 //
   HBNAME(_lun,"EcalHits",&_ecalhit.Necht,
   "necht[0,500],EchtStatus(necht):I,EchtIdsoft(necht):I,EchtProj(necht)[0,1]:I,EchtPlane(necht)[0,20]:I,EchtCell(necht)[0,80]:I,EchtEdep(necht),EchtCoo(3,necht)");
@@ -212,6 +217,7 @@ int sto=0;
     VZERO(&_part02.Npart,(sizeof(_part)-sto)/sizeof(integer));
     VZERO(&_tof.Ntof,(sizeof(_tof)-sto)/sizeof(integer));
     VZERO(&_ecclust.Neccl,(sizeof(_ecclust)-sto)/sizeof(integer));
+    VZERO(&_ec2dclust.Nec2dcl,(sizeof(_ec2dclust)-sto)/sizeof(integer));
     VZERO(&_ecshow.Necsh,(sizeof(_ecshow)-sto)/sizeof(integer));
     VZERO(&_ecalhit.Necht,(sizeof(_ecalhit)-sto)/sizeof(integer));
     VZERO(&_tofmc.Ntofmc,(sizeof(_tofmc)-sto)/sizeof(integer));
@@ -253,6 +259,7 @@ int sto=0;
    _part02.Npart = 0;
    _tof.Ntof = 0;
    _ecclust.Neccl = 0;
+   _ec2dclust.Nec2dcl = 0;
    _ecshow.Necsh = 0;
    _ecalhit.Necht = 0;
    _tofmc.Ntofmc = 0;
@@ -400,6 +407,10 @@ void AMSNtuple::initR(char* fname){
    TBranch *bgg=_tree->Branch("mcg02", "MCEventGNtuple02",  &pevgg, 64000,1);
    static void *pevs=(void*)&_ecclust;
    TBranch *bs=_tree->Branch("ecalcl", "EcalClusterNtuple",  &pevs, 64000,1);
+
+   static void *pevs2=(void*)&_ec2dclust;
+   TBranch *bs2=_tree->Branch("ecal2dcl", "Ecal2DClusterNtuple",  &pevs2, 64000,1);
+
    static void *pevsh=(void*)&_ecshow;
    TBranch *bsh=_tree->Branch("ecalsh", "EcalShowerNtuple",  &pevsh, 64000,1);
    static void *pevt=(void*)&_ecalhit;

@@ -9,7 +9,7 @@ integer AMSTRDCluster::build(int rerun){
     number Thr1S=TRDCLFFKEY.Thr1S/TRDCLFFKEY.ADC2KeV;
     number Thr1R=TRDCLFFKEY.Thr1R;
     number Thr1H=TRDCLFFKEY.Thr1H/TRDCLFFKEY.ADC2KeV;
-    number adc[trdconst::maxtube+2];
+    number adc[trdconst::maxtube+3];
     VZERO(adc,sizeof(adc)/sizeof(integer));
     for (int n=0;n<AMSTRDIdSoft::ncrates();n++){
      AMSTRDRawHit * ptr=
@@ -27,7 +27,7 @@ integer AMSTRDCluster::build(int rerun){
 #endif
         number ref=-FLT_MAX;
         int status=0;
-        for(int i=0;i<trdconst::maxtube;i++){
+        for(int i=0;i<trdconst::maxtube+1;i++){
          if(adc[i]<ref){
           if( adc[i]< adc[i+1] && adc[i+1]> Thr1A){
              status=AMSDBc::WIDE;
@@ -347,7 +347,7 @@ for (int i=0;i<_NHits;i++){
  _Chi2=0;
  for(int i=0;i<_NHits;i++){
   number d=(_pCl[i]->getHit(0)-_FitPar[0]*_pCl[i]->getHit(1)-_FitPar[1]);
-  _Chi2+=d*d/_pCl[i]->getEHit()*_pCl[i]->getEHit();
+  _Chi2+=d*d/_pCl[i]->getEHit()/_pCl[i]->getEHit();
  }
  _Chi2/=_NHits-1;
 }
@@ -561,7 +561,7 @@ integer AMSTRDTrack::_TrSearcher(int icall){
             throw amsglobalerror(" AMSTRDTrack::_TrSearcher-E-Cpulimit Exceeded ",2);
            }
            
-           phit[icall]=AMSTRDSegment::gethead(TRDDBc::patconfS(pat,icall)-1);
+           if(TRDDBc::patpointsS(pat)> icall+1)phit[icall]=AMSTRDSegment::gethead(TRDDBc::patconfS(pat,icall)-1);
            while(phit[icall]){
              if(phit[icall]->Good() ){
               if(TRDDBc::patpointsS(pat) >icall+2){         
@@ -594,7 +594,7 @@ abort();
 #endif
 
     ptrack->StrLineFit();
-    if(ptrack->_StrLine._FitDone && ptrack->_StrLine._Chi2< TRDFITFFKEY.Chi2StrLine){
+    if(ptrack->_StrLine._FitDone && ptrack->_StrLine._Chi2< 2*TRDFITFFKEY.Chi2StrLine){
           ptrack->_addnextR();
           return 1;
        }
@@ -650,20 +650,28 @@ void AMSTRDTrack::StrLineFit(){
     void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=&AMSTRDTrack::monit;
     _Base._NHits=0;    
      _StrLine._FitDone=false;
+  // Fit Here
+    const integer mp=40;
+    number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+    number yy=0;
+    number xx=0;
     number yz=0;
     number xz=0;
     number yz2=0;
     number xz2=0;
     number nyz=0;
     number nxz=0;
+   if(_BaseS._NSeg>2){
     for (int i=0;i<_BaseS._NSeg;i++){
      for(int k=0;k<_BaseS._PSeg[i]->getNHits();k++){
       if(fabs(_BaseS._PSeg[i]->getpHit(k)->getCooDir()[0])>0.9){
-        yz+=_BaseS._PSeg[i]->getFitPar(0);      
+        yz+=-_BaseS._PSeg[i]->getFitPar(0);      
+        yy+=-_BaseS._PSeg[i]->getFitPar(1);      
         yz2+=(_BaseS._PSeg[i]->getFitPar(0))*(_BaseS._PSeg[i]->getFitPar(0));          nyz++;
       }
       else if(fabs(_BaseS._PSeg[i]->getpHit(k)->getCooDir()[1])>0.9){
         xz+=_BaseS._PSeg[i]->getFitPar(0);      
+        xx+=_BaseS._PSeg[i]->getFitPar(1);      
         xz2+=(_BaseS._PSeg[i]->getFitPar(0))*(_BaseS._PSeg[i]->getFitPar(0));          nxz++;
       }
       _Base._PCluster[_Base._NHits++]=_BaseS._PSeg[i]->getpHit(k);
@@ -672,17 +680,55 @@ void AMSTRDTrack::StrLineFit(){
     if(_Base._NHits<TRDFITFFKEY.MinFitPoints)return;
     if(nxz){
      xz/=nxz;
+     xx/=nxz;
      xz2/=nxz;
      if(sqrt(xz2-xz*xz)>TRDFITFFKEY.TwoSegMatch)return ;
     }     
     if(nyz){
      yz/=nyz;
+     yy/=nyz;
      yz2/=nyz;
      if(sqrt(yz2-yz*yz)>TRDFITFFKEY.TwoSegMatch)return ;
     }     
-  // Fit Here
-    const integer mp=40;
-    number f,x[mp],w1[mp],w2[mp],w3[mp],w4[mp],w5[mp+1],w6[mp*(mp+1)];
+
+    if(!nyz || !nxz){
+     cerr<<"AMSTRDTrack::StrLineFit-F-TRDIsRotated-FindSmarterAlgorithmPlease"<<endl;
+     abort();     
+    }
+   }
+
+else{
+     number yz,yy,xz,xx;
+    for (int i=0;i<_BaseS._NSeg;i++){
+      if(fabs(_BaseS._PSeg[i]->getpHit(0)->getCooDir()[0])>0.9){
+        yz=-_BaseS._PSeg[i]->getFitPar(0);      
+        yy=-_BaseS._PSeg[i]->getFitPar(1);      
+      }
+      else if(fabs(_BaseS._PSeg[i]->getpHit(0)->getCooDir()[1])>0.9){
+        xz=_BaseS._PSeg[i]->getFitPar(0);      
+        xx=_BaseS._PSeg[i]->getFitPar(1);      
+      }
+     for(int k=0;k<_BaseS._PSeg[i]->getNHits();k++){
+      _Base._PCluster[_Base._NHits++]=_BaseS._PSeg[i]->getpHit(k);
+     }
+    } 
+    if(_Base._NHits<TRDFITFFKEY.MinFitPoints)return;
+}
+    AMSPoint _Exit(0,0,_Base._PCluster[0]->getCoo()[2]);
+    AMSPoint _Entry(0,0,_Base._PCluster[_Base._NHits-1]->getCoo()[2]);
+    _Entry[0]=xx+xz*_Entry[2];
+    _Exit[0]=xx+xz*_Exit[2];
+    _Entry[1]=yy+yz*_Entry[2];
+    _Exit[1]=yy+yz*_Exit[2];
+    AMSDir Dir=_Exit-_Entry;
+    AMSPoint Center=_Exit+_Entry;
+    Center=Center*0.5;   
+    x[0]=Center[0];
+    x[1]=Center[1];
+    x[2]=Center[2];
+    x[3]=Dir.getphi();
+    x[4]=Dir.gettheta();
+      
   // number of parameters to fit
     integer n=5;
     integer iw=n+1;
@@ -690,63 +736,22 @@ void AMSTRDTrack::StrLineFit(){
     integer maxcal=1000;
     number tol=2.99e-2;
     int i,j;
-    for(i=0;i<mp;i++)x[i]=0;
-// Using the fact that some seg are on x and some on y
-    int nx=0;
-    int ny=0;
-    number zx=0;
-    number zy=0;
-    for (i=0;i<_Base._NHits;i++){
-      if(fabs(_Base._PCluster[i]->getCooDir()[0])>0.9){
-        x[1]+=_Base._PCluster[i]->getCoo()[1];
-        x[2]+=_Base._PCluster[i]->getCoo()[2];
-        zy+=_Base._PCluster[i]->getCoo()[2];
-        ny++;
-      }
-      else if(fabs(_Base._PCluster[i]->getCooDir()[1])>0.9){
-        x[0]+=_Base._PCluster[i]->getCoo()[0];
-        x[2]+=_Base._PCluster[i]->getCoo()[2];
-        zx+=_Base._PCluster[i]->getCoo()[2];
-        nx++;
-      }
-   
-    }
-   
-    if(!nx || !ny){
-     cerr<<"AMSTRDTrack::StrLineFit-F-TRDIsRotated-FindSmarterAlgorithmPlease"<<endl;
-     abort();     
-    }
-    else{
-     x[0]/=nx;
-     x[1]/=ny;
-     x[2]/=nx+ny;
-     zx/=nx;
-     zy/=ny;
-    }
-    x[4]=acos(1/sqrt(1+xz*xz)/sqrt(1+yz*yz));
-    x[3]=atan2(yz,xz);
-    x[0]+=fabs(xz)*(x[2]-zx);
-    x[1]+=fabs(yz)*(x[2]-zy);
     _update=false;
     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
     if(ifail==0){
-     _StrLine._Chi2=f;
      _update=true;
-     maxcal=1;
-     ifail=1; 
-     e04ccf_(n,x,f,tol,iw,w1,w2,w3,w4,w5,w6,palfun,pmonit,maxcal,ifail,this);
      _StrLine._Coo[0]=x[0];
      _StrLine._Coo[1]=x[1];
      _StrLine._Coo[2]=x[2];
+     alfun(n,x,f,this);
+     _StrLine._Chi2=f;
      for(int i=0;i<3;i++)_StrLine._ErCoo[i]=_Base._PCluster[0]->getEHit()*sqrt
 (_StrLine._Chi2/(_Base._NHits-2)+1.);
-//     number sx=sqrt(x[3]*x[3]+x[4]*x[4]+x[5]*x[5]);
-//     _StrLine._Phi=atan2(x[4],x[3]);
-//     _StrLine._Theta=acos(x[5]/sx);
       AMSDir s(x[4],x[3]);
+//    Default go in
+     if(s[2]>0)s=s*(-1);
       number z2=(_Base._PCluster[0]->getCoo()[2]+_Base._PCluster[_Base._NHits-1]->getCoo()[2])/2;
       _StrLine._Coo=_StrLine._Coo+s*(z2-_StrLine._Coo[2])/s[2];
-      s=s*(-1);
      _StrLine._Phi=s.getphi();
      _StrLine._Theta=s.gettheta();
      _StrLine._InvRigidity=0;
@@ -768,31 +773,43 @@ void AMSTRDTrack::alfun(integer &n, number xc[], number &fc, AMSTRDTrack *p){
    }
   }
 */
+  integer nh=0;
   AMSDir sdir(xc[4],xc[3]);
   AMSPoint sp(xc[0],xc[1],xc[2]);
   for (int i=0;i<p->_Base._NHits;i++){
-   AMSPoint dc=sp-p->_Base._PCluster[i]->getCoo();
-   AMSDir gamma=sdir.cross(p->_Base._PCluster[i]->getCooDir());
-    number d;
-    if(gamma.norm()!=0){
-     d=dc.prod(gamma);
+   if(!p->_Base._PCluster[i]->checkstatus(AMSDBc::DELETED)){
+    nh++;
+     if(!p->_update){
+      AMSPoint dc=sp-p->_Base._PCluster[i]->getCoo();
+      AMSDir gamma=sdir.cross(p->_Base._PCluster[i]->getCooDir());
+     number d;
+     if(gamma.norm()!=0){
+      d=dc.prod(gamma);
+     }
+     else{
+       AMSPoint beta= sdir.crossp(dc);
+       d=beta.norm();
+     }
+      fc+=d*d/p->_Base._PCluster[i]->getEHit()/p->_Base._PCluster[i]->getEHit();
     }
     else{
-      AMSPoint beta= sdir.crossp(dc);
-      d=beta.norm();
+     AMSPoint dc=sp-p->_Base._PCluster[i]->getCoo();
+     AMSPoint alpha=sdir.crossp(p->_Base._PCluster[i]->getCooDir());
+     AMSPoint beta= sdir.crossp(dc);
+     number t=alpha.prod(beta)/alpha.prod(alpha);
+     if(t>p->_Base._PCluster[i]->getHitL())t=p->_Base._PCluster[i]->getHitL();
+     else if (t<-p->_Base._PCluster[i]->getHitL())t=-p->_Base._PCluster[i]->getHitL();
+      p->_Base._Hit[i]=(p->_Base._PCluster[i]->getCoo()+p->_Base._PCluster[i]->getCooDir()*t);
+      p->_Base._EHit[i]=AMSPoint(p->_Base._PCluster[i]->getEHit(),p->_Base._PCluster[i]->getEHit(),p->_Base._PCluster[i]->getEHit());
+      AMSPoint dc2=sp-p->_Base._Hit[i];
+      number d1=sdir.prod(dc2);
+      d1=dc2.prod(dc2)-d1*d1;
+      fc+=d1/p->_Base._PCluster[i]->getEHit()/p->_Base._PCluster[i]->getEHit();
+      
     }
-   fc+=d*d/p->_Base._PCluster[i]->getEHit()/p->_Base._PCluster[i]->getEHit();
-   if(p->_update){
-    AMSPoint di=sdir.crossp(dc);
-    AMSPoint alpha=sdir.crossp(p->_Base._PCluster[i]->getCooDir());
-    AMSPoint beta= sdir.crossp(dc);
-    number t=alpha.prod(beta)/alpha.prod(alpha);
-     p->_Base._Hit[i]=(p->_Base._PCluster[i]->getCoo()+p->_Base._PCluster[i]->getCooDir()*t);
-     p->_Base._EHit[i]=AMSPoint(p->_Base._PCluster[i]->getEHit(),p->_Base._PCluster[i]->getEHit(),p->_Base._PCluster[i]->getEHit());
-   }
-   
+    }   
   }
-  fc/=p->_Base._NHits-1;
+  if(nh>1)fc/=nh-1;
 }
 
 void AMSTRDTrack::RealFit(){

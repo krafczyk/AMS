@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.377 2001/07/18 15:44:53 choumilo Exp $
+// $Id: job.C,v 1.378 2001/08/01 13:28:43 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -669,6 +669,22 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.cuts[2]=0.;   // (21)
   ECREFFKEY.cuts[3]=0.;// (22)
   ECREFFKEY.cuts[4]=0.;// (23)
+  ECREFFKEY.Thr1DSeed=10;
+  ECREFFKEY.Thr1DRSeed=0.18;
+  ECREFFKEY.Cl1DLeakSize=9;
+  ECREFFKEY.Cl1DCoreSize=2;
+  ECREFFKEY.Thr2DMax=1.2;  //max tan(theta)
+  ECREFFKEY.Length2DMin=4;
+  ECREFFKEY.Chi22DMax=1000;
+  ECREFFKEY.PosError1D=0.1;
+  ECREFFKEY.Chi2Change2D=0.33;
+  ECREFFKEY.TransShowerSize2D=10;
+  ECREFFKEY.SimpleRearLeak[0]=0.01;
+  ECREFFKEY.SimpleRearLeak[1]=0.94e-3;
+  ECREFFKEY.SimpleRearLeak[2]=3.7;
+  ECREFFKEY.SimpleRearLeak[3]=0.975e-3;
+  ECREFFKEY.CalorTransSize=32;
+  ECREFFKEY.EMDirCorrection=1.035;
 //
   ECREFFKEY.ReadConstFiles=1;//(24)read const. from DB/RawFiles (0/1)
 //  
@@ -912,7 +928,7 @@ TRDMCFFKEY.DeadLevel=0.015;
 FFKEY("TRDMC",(float*)&TRDMCFFKEY,sizeof(TRDMCFFKEY_DEF)/sizeof(integer),"MIXED");
 
 
-TRDRECFFKEY.Chi2StrLine=3;
+TRDRECFFKEY.Chi2StrLine=5;
 TRDRECFFKEY.ResCutStrLine=1;
 TRDRECFFKEY.SearchRegStrLine=3;
 FFKEY("TRDRE",(float*)&TRDRECFFKEY,sizeof(TRDRECFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -922,7 +938,7 @@ TRDFITFFKEY.ResCutStrLine=1;
 TRDFITFFKEY.SearchRegStrLine=3;
 TRDFITFFKEY.MinFitPoints=6;
 TRDFITFFKEY.TwoSegMatch=0.1;
-TRDFITFFKEY.MaxSegAllowed=20;
+TRDFITFFKEY.MaxSegAllowed=50;
 FFKEY("TRDFI",(float*)&TRDFITFFKEY,sizeof(TRDFITFFKEY_DEF)/sizeof(integer),"MIXED");
 
 TRDCLFFKEY.ADC2KeV=1.e6/TRDMCFFKEY.GeV2ADC/TRDMCFFKEY.gain;
@@ -2793,7 +2809,7 @@ end.tm_year=TRDMCFFKEY.year[1];
   end.tm_year=ECREFFKEY.year[1];
 
   TID.add (new AMSTimeID(AMSID("Ecalpmcalib",isRealData()),
-     begin,end,ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
+     begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
                                   (void*)&ECcalib::ecpmcal[0][0],server));
 //
   TID.add (new AMSTimeID(AMSID("Ecalvpar",isRealData()),
@@ -2801,7 +2817,7 @@ end.tm_year=TRDMCFFKEY.year[1];
                                       (void*)&ECALVarp::ecalvpar,server));
    
 //  TID.add (new AMSTimeID(AMSID("Ecalpeds",isRealData()),
-//    begin,end,ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
+//    begin,end,ecalconst::ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
 //    (void*)&ECPMPeds::pmpeds[0][0],server));
  }
 }

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.157 2001/07/16 16:11:45 choutko Exp $
+//  $Id: commons.h,v 1.158 2001/08/01 13:28:50 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -278,6 +278,19 @@ public:
   geant cuts[5];       // ........ RECO cuts (clust.thr.,...)
   integer ReadConstFiles;
 //
+  float Thr1DSeed;        // Threshold for 1d cluster search
+  float Thr1DRSeed;        // Threshold for 1d cluster search
+  int   Cl1DCoreSize;
+  int   Cl1DLeakSize; 
+  float PosError1D;
+  float Thr2DMax;
+  float Length2DMin;
+  float Chi22DMax;
+  float Chi2Change2D;
+  float TransShowerSize2D;
+  float SimpleRearLeak[4];
+  float CalorTransSize;
+  float EMDirCorrection;
   integer sec[2];
   integer min[2];
   integer hour[2];

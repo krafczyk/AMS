@@ -1,4 +1,4 @@
-//  $Id: linkdef.h,v 1.10 2001/07/13 16:25:34 choutko Exp $
+//  $Id: linkdef.h,v 1.11 2001/08/01 13:28:50 choutko Exp $
 #ifdef __CINT__
 #pragma link off all globals;
 #pragma link off all classes;
@@ -42,6 +42,7 @@
 #pragma link C++ class RICEventNtuple;
 #pragma link C++ class RICRing;
 #pragma link C++ class EcalClusterNtuple;
+#pragma link C++ class Ecal2DClusterNtuple;
 #pragma link C++ class EcalShowerNtuple;
 #pragma link C++ class EcalHitNtuple;
 #pragma link C++ class EventNtuple;

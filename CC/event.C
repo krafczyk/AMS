@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.268 2001/07/13 16:25:26 choutko Exp $
+//  $Id: event.C,v 1.269 2001/08/01 13:28:43 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -911,11 +911,16 @@ void AMSEvent::_reecalinitevent(){
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalHit",i),0));
   }
-  for(i=0;i<maxp;i++){// <-- book  SubCell-plane containers for EcalCluster
-    ptr=AMSEvent::gethead()->add (
-      new AMSContainer(AMSID("AMSContainer:AMSEcalCluster",i),0));
-  }
 
+
+
+
+  for(i=0;i<2;i++){// <-- book  proj
+      AMSEvent::gethead()->add (
+      new AMSContainer(AMSID("AMSContainer:Ecal1DCluster",i),&Ecal1DCluster::build,0));
+ }
+    AMSEvent::gethead()->add (
+      new AMSContainer(AMSID("AMSContainer:Ecal2DCluster",0),&Ecal2DCluster::build,0));
 
   AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:EcalShower",0),&EcalShower::build,0));
@@ -1037,6 +1042,19 @@ for(int il=0;il<trdconst::maxlay;il++){
 for(int il=0;il<trdconst::maxseg;il++){
   AMSEvent::gethead()->getheadC("AMSTRDSegment",il,2); 
 }
+
+
+for(int il=0;il<2*ECALDBc::slstruc(3);il++){
+  AMSEvent::gethead()->getheadC("AMSEcalHit",il,2); 
+}
+
+for(int il=0;il<2;il++){
+  AMSEvent::gethead()->getheadC("Ecal1DCluster",il,2); 
+}
+
+  AMSEvent::gethead()->getheadC("Ecal2DCluster",0,2); 
+
+
    
   if(IOPA.hlun || IOPA.WriteRoot){
     AMSJob::gethead()->getntuple()->reset(1);
@@ -1779,18 +1797,15 @@ void AMSEvent::_reecalevent(){
     }
     EcalJobStat::addre(3);
 //
-    AMSEcalCluster::build(stat);// EcalHit->EcalCluster
-    if(stat!=0){
-      AMSgObj::BookTimer.stop("REECALEVENT");
-      return;
-    }
     EcalJobStat::addre(4);
 
-
       AMSgObj::BookTimer.start("ReEcalShowerFit");
+      buildC("Ecal1DCluster",0);
+      buildC("Ecal2DCluster",0);
       buildC("EcalShower",0);
       AMSgObj::BookTimer.stop("ReEcalShowerFit");
 
+      AMSgObj::BookTimer.stop("REECALEVENT");
 
 //
 //
@@ -2638,7 +2653,7 @@ else{ // <------------------ AMS02
   }
  
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSEcalCluster",i);
+   p=AMSEvent::gethead()->getC("Ecal1DCluster",i);
    if(p) EN->EcalClusters+=p->getnelem();
    else break;
   }

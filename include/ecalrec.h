@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.9 2001/07/13 16:25:34 choutko Exp $
+//  $Id: ecalrec.h,v 1.10 2001/08/01 13:28:50 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -68,9 +68,18 @@ public:
          number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(id),
 	 _proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz)
 	 {for(int i=0;i<2;i++)_adc[i]=adc[i];};
+  AMSEcalHit(integer status, integer proj, integer plane, integer cell,
+         number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(0),_proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz)
+	 {for(int i=0;i<2;i++)_adc[i]=0;};
   ~AMSEcalHit(){};
   AMSEcalHit * next(){return (AMSEcalHit*)_next;}
 //
+  integer operator < (AMSlink & o)const{
+   AMSEcalHit *p =dynamic_cast<AMSEcalHit*>(&o);
+   if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
+   else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
+   else return !p || _cell < p->_cell;
+  }
   integer getproj(){return _proj;}
   integer getid(){return _idsoft;}
   void getadc(integer adc[]){for(int i=0;i<2;i++)adc[i]=_adc[i];}
@@ -96,55 +105,154 @@ void _writeEl();
 void _copyEl();
 //
 };
-//-----------------------------------
-class AMSEcalCluster: public AMSlink{ // 1-D cluster
+
+
+class Ecal1DCluster: public AMSlink{ 
 private:
-//integer _status; // status (0/1/... -> alive/dead/...) (It is really in AMSlink !!!)
   integer _proj;   //projection (0->X, 1->Y)
   integer _plane;  //continious numbering of planes through 2 projections(0,...)
-  number  _edep;
-  AMSPoint _Coo;  // cluster center of gravity coordinates (cm)
-  AMSPoint _ErrorCoo; // Error to coordinates
-  integer _nmemb; // number of EcalHit members
-  AMSEcalHit * _mptr[2*ECPMSMX]; // list of pointers to member
+  number  _Energy3C;  //Corrected Energy MeV (+-1)
+  number  _Energy5C;  //Corrected Energy MeV (+-2)
+  number  _Energy9C;  //Corrected Energy MeV (+-4)
+  number  _EnergyC;   //Corrected Energy MeV  
+  number  _SideLeak;  //Side Leak Estimation (MeV)
+  number  _DeadLeak;  //Dead PMT Leak Estimation (MeV)
+  AMSPoint  _Coo;     // cluster center of gravity coordinates 
+  integer _MaxCell;   // Cell with max edep 
+  integer _Left;      // most left
+  integer _Right;     // most right
+  number  _Weight;    // Weight to calculate Coo;
+  number _RMS;        //  rms;
+  integer _NHits;
+  AMSEcalHit *_pHit[2*ecalconst::ECPMSMX]; // pointers to hits
 public:
-  AMSEcalCluster(integer status, integer proj, integer pl, number edep, AMSPoint coo,
-     AMSPoint ecoo, integer nm, AMSEcalHit *ptr[]): AMSlink(status,0),_proj(proj),
-		        _plane(pl),_edep(edep),_Coo(coo),_ErrorCoo(ecoo),_nmemb(nm){
-    for(int i=0;i<nm;i++)_mptr[i]=ptr[i];
-  };
-  ~AMSEcalCluster(){};
-  AMSEcalCluster * next(){return (AMSEcalCluster*)_next;}
+  Ecal1DCluster(integer status, integer proj, integer pl, integer left, integer right, integer max, number en,number en3, number en5, number en9, number leak, number dead,AMSPoint coo, number w, number rms, AMSEcalHit * ptr[]): AMSlink(status,0),_proj(proj), _plane(pl),_Energy3C(en3),_Energy5C(en5),_Energy9C(en9),_EnergyC(en),_SideLeak(leak),_DeadLeak(dead),_Coo(coo),_MaxCell(max),_Left(left),_Right(right),_Weight(w),_RMS(rms){
+_NHits=0;
+for(int i=_Left;i<=_Right;i++){
+ if(ptr && ptr[i])_pHit[_NHits++]=ptr[i];
+}
+};
+  ~Ecal1DCluster(){};
+  Ecal1DCluster * next(){return (Ecal1DCluster*)_next;}
 //
-  integer getproj(){return _proj;}
-  integer getplane(){return _plane;}
-  number getedep(){return _edep;}
+ uinteger getNHits()const{return _NHits;}
+ AMSEcalHit * getphit(uinteger i)const{return i<_NHits?_pHit[i]:0;}
+ integer operator < (AMSlink & o)const{
+   Ecal1DCluster *p =dynamic_cast<Ecal1DCluster*>(&o);
+   if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
+   else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
+   else return !p || (_plane<p->_plane);
+}
+  number getweight()const{return _Weight;}
+  integer getproj()const{return _proj;}
+  integer getplane()const{return _plane;}
+  number getEnergy()const{return _EnergyC;}
+  number getec3()const{return _Energy3C;}
+  number getec5()const{return _Energy5C;}
+  number getec9()const{return _Energy9C;}
+  number getsleak()const{return _SideLeak;}
+  number getdleak()const{return _DeadLeak;}
+  number getrms()const{return _RMS;}
   AMSPoint getcoo()const {return _Coo;}
-  AMSPoint getecoo()const {return _ErrorCoo;}
-  integer getmemb(AMSEcalHit *ptr[]){
-    for(int i=0;i<_nmemb;i++)ptr[i]=_mptr[i];
-    return _nmemb;
+//
+  static integer build(int stat=0);
+  static integer Out(integer);
+  number PosError(){return ECREFFKEY.PosError1D;}
+  bool Good(){return !(checkstatus(AMSDBc::BAD) || checkstatus(AMSDBc::DELETED) || checkstatus(AMSDBc::JUNK) ||  checkstatus(AMSDBc::USED));}
+  number Distance(Ecal1DCluster *p);
+  Ecal1DCluster* EnergyMatch(Ecal1DCluster *pmatch, Ecal1DCluster *pbest){
+   return (pbest && fabs(_EnergyC-pmatch->_EnergyC)>fabs(_EnergyC-pbest->_EnergyC))?pbest:this;
   }
 //
-  static void build(int &stat);
-  static integer Out(integer);
-  static void init();
-
-//
 protected:
+
   void _printEl(ostream &stream){
     int i;
     stream <<"AMSEcalCluster: Proj= "<<_proj<<" plane="<<_plane<<endl;
-    stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_edep<<endl; 
-    stream <<"Coord="<<_Coo[0]<<" "<<_Coo[1]<<" "<<_Coo[2]<<"  ErrCoo="<<_ErrorCoo<<endl;
-    stream <<"Nmembers="<<_nmemb<<endl;
+    stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_EnergyC<<endl; 
+    stream <<"Coord="<<_Coo[0]<<" "<<_Coo[1]<<" "<<_Coo[2]<<endl;
     stream <<dec<<endl<<endl;
   }
+
 void _writeEl();
-void _copyEl();
+void _copyEl(){};
 //
 };
+
+
+
+
+
+class Ecal2DCluster: public AMSlink{ 
+private:
+  integer _proj;   //projection (0->X, 1->Y)
+  number  _Energy3C;  //Corrected Energy MeV (+-1)
+  number  _Energy5C;  //Corrected Energy MeV (+-2)
+  number  _Energy9C;  //Corrected Energy MeV (+-4)
+  number  _Energy;   // UnCorrected Energy MeV  
+  number  _EnergyC;   //Corrected Energy MeV  
+  number  _OrpLeak;   // Orphaned Clusters Leak;
+  number  _SideLeak;  //Side Leak Estimation (MeV)
+  number  _DeadLeak;  //Dead pmt Leak Estimation (MeV)
+  number _Coo;  // x(y) coo
+  number _Tan;  //x(y)z tangent
+  number _Chi2;
+  integer _NClust; // number of EcalCluster members
+  integer _NClustKernel; // number of EcalCluster members (kernel)
+  Ecal1DCluster * _pCluster[4*ecalconst::ECSLMX]; // pointers to 1d clusters 
+public:
+  Ecal2DCluster(integer proj, integer nhit, Ecal1DCluster * ptr[], number coo, number tan, number chi2): AMSlink(),_proj(proj),_Coo(coo),_Tan(tan),_Chi2(chi2){
+_NClust=0;
+for(int i=0;i<2*ecalconst::ECSLMX;i++){
+  if(ptr[i]){
+   _pCluster[_NClust++]=ptr[i];
+  }   
+}
+_NClustKernel=_NClust;
+}
+  bool Good(){return !(checkstatus(AMSDBc::BAD)  ||  checkstatus(AMSDBc::USED));}
+  ~Ecal2DCluster(){};
+  Ecal2DCluster * next(){return (Ecal2DCluster*)_next;}
+   static bool StrLineFit(Ecal1DCluster *p1[],int maxr,int proj, bool reset,number *pcorrect,int & tot, number &chi2, number &t0, number &tantz);
+  integer operator < (AMSlink & o)const{
+   Ecal2DCluster *p =dynamic_cast<Ecal2DCluster*>(&o);
+   if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
+   else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
+   else return !p || _EnergyC < p->_EnergyC;
+}
+//
+  integer getproj(){return _proj;}
+  number getcoo()const {return _Coo;}
+  number gettan()const {return _Tan;}
+  number getEnergy()const {return _EnergyC;}
+  number getNClustKernel()const {return _NClustKernel;}
+  number getNClust()const {return _NClust;}
+  Ecal1DCluster *getpClust(uinteger i)const {return i<_NClust?_pCluster[i]:0;} 
+//
+  static integer build(int stat=0);
+  static integer Out(integer);
+//
+protected:
+  static number _ZCorr(Ecal1DCluster *p[],int ipl,int iplmax);
+  void _AddOrphane(Ecal1DCluster *ptr);
+  void _AddOneCluster(Ecal1DCluster *ptr, bool addpointer=false);
+  void _Fit();
+  void _printEl(ostream &stream){
+    int i;
+    stream <<"Ecal2DCluster: Proj= "<<_proj<<endl;
+    stream <<"Status="<<hex<<_status<<"  Edep="<<dec<<_EnergyC<<endl; 
+    stream <<"Coord="<<_Coo<<" "<<_Tan<<endl;
+    stream <<dec<<endl<<endl;
+  }
+
+void _writeEl();
+void _copyEl(){};
+//
+friend class EcalShower;
+};
 //-----------------------------------
+
+
 
 
 
@@ -152,37 +260,75 @@ void _copyEl();
 class EcalShower: public AMSlink{
 protected:
 
-AMSPoint _CofG;
-number   _Theta;
-number   _Phi;
-number   _ErTheta;
-number   _ErPhi;
-number  _TotalEnergy;
-number  _TotalCorrectedEnergy;
-number  _TotalCorrectedEnergyError;
+AMSPoint _EntryPoint;
+AMSPoint _ExitPoint;
+AMSDir   _Dir;
+AMSDir   _EMDir;
+number   _Angle3DChi2;
+number   _Angle3DError;
+
+
+number  _FrontEnergyDep;
+number  _EnergyC;
+number  _Energy3C;
+number  _Energy5C;
+number  _Energy9C;
+number  _DifoSum;
+number  _OrpLeak;
 number  _RearLeak;
 number  _SideLeak;
-number  _ShowerMaximum;
+number  _DeadLeak;
+number  _ErrEnergyC;
+
+AMSPoint _CofG;
+number  _ProfilePar[10];
+number  _Edep[2*ecalconst::ECSLMX];
+number  _Ez[2*ecalconst::ECSLMX];
+number  _Zcorr[2*ecalconst::ECSLMX];
+integer _Direction;
+integer _iflag;
+number  _Dz;
+number _Et;
+integer _ShowerMax;
+Ecal2DCluster *_pCl[2];
+number _TmpFit[20];
+
+number _TransFitPar[3];
+number _TransFitChi2;
 
 void _writeEl();
 void _printEl(ostream &stream){
-stream << "  EcalShower Energy "<<_TotalCorrectedEnergy<<" Status "<<_status<<endl;
+stream << "  EcalShower Energy "<<_EnergyC<<" Status "<<_status<<endl;
 }
 void _copyEl(){};
-
-public:
-
-EcalShower(AMSPoint cofg, number totalenergy, number showermaximum):AMSlink(),_CofG(cofg),_TotalEnergy(totalenergy),_Theta(0),_Phi(0),_ErTheta(0),_ErPhi(0),_TotalCorrectedEnergy(totalenergy),_TotalCorrectedEnergyError(0),_RearLeak(0),_SideLeak(0),_ShowerMaximum(showermaximum){};
-
 void DirectionFit();
 void EnergyFit();
-void ProfileFit();
 void EMagFit();
+static void monit(number & a, number & b,number sim[], int & n, int & s, int & ncall)
+{};
+static void gamfun(integer & n, number xc[], number & fc, EcalShower * ptr);
+static void expfun(integer & n, number xc[], number & fc, EcalShower * ptr);
+static void gamfunr(number& xc, number & fc, EcalShower * ptr);
+void _AngleRes();
+void _EnergyRes();
+public:
+
+EcalShower(Ecal2DCluster *px, Ecal2DCluster *py);
 
   static integer build(int rerun=0);
   static integer Out(integer);
 
-
+  EcalShower * next(){return (EcalShower*)_next;}
+  integer operator < (AMSlink & o)const{
+   EcalShower *p =dynamic_cast<EcalShower*>(&o);
+   if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
+   else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0;
+   else return !p || _EnergyC > p->_EnergyC;
+ }
+AMSPoint getEntryPoint()const {return _EntryPoint;}
+AMSPoint getExitPoint()const {return _ExitPoint;}
+AMSPoint getCofG()const {return _CofG;}
+AMSDir getDir()const {return _Dir;}
 };
 
 #endif

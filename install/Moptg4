@@ -1,4 +1,4 @@
-#  $Id: Moptg4,v 1.52 2001/07/05 17:15:53 choutko Exp $
+#  $Id: Moptg4,v 1.53 2001/08/01 13:28:51 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -74,9 +74,9 @@ endif
 ifeq  "$(shell uname)"  "Linux"
 ifdef AMSDEBUG
 CFLAGS=      -D__BATCH__ -g -D__AMSDEBUG__    -I../include   -I../db
-CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__    -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
-CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
-CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
+CFLAGS4=      -D__BATCH__ -g -D__AMSDEBUG__    -pipe  -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
+CFLAGS4P=      -D__BATCH__    -g -D__AMSDEBUG__  -pipe  -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
+CFLAGS4O1=      -D__BATCH__    -g -D__AMSDEBUG__  -pipe  -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
 CFLAGSTOFSIM=      -D__BATCH__ -g -D__AMSDEBUG__      -I../include   -I../db
 CFLAGSn=      -D__BATCH__  -g -D__AMSDEBUG__    -I../include   -I../db
 FFLAGS=   -fno-automatic -g -I../include
@@ -84,9 +84,9 @@ FFLAGSn=   -fno-automatic -g -I../include
 CFLAGSDAQ=      -D__BATCH__  -g     -I../include   -I../db
 else
 CFLAGS=      -D__BATCH__  -O2    -I../include   -I../db
-CFLAGS4=      -D__BATCH__ -O2     -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
-CFLAGS4P=      -D__BATCH__      -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
-CFLAGS4O1=      -D__BATCH__   -O1  -pipe -fno-for-scope -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
+CFLAGS4=      -D__BATCH__ -O2     -pipe  -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
+CFLAGS4P=      -D__BATCH__      -pipe  -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
+CFLAGS4O1=      -D__BATCH__   -O1  -pipe  -DGNU_GCC -I../include   -I../db  $(CPPFLAGS)
 CFLAGSTOFSIM=      -D__BATCH__ -O1      -I../include   -I../db
 CFLAGSDAQ=      -D__BATCH__       -I../include   -I../db
 CFLAGSn=      -D__BATCH__  -O2    -I../include   -I../db

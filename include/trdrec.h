@@ -1,4 +1,4 @@
-//  $Id: trdrec.h,v 1.3 2001/07/13 16:25:35 choutko Exp $
+//  $Id: trdrec.h,v 1.4 2001/08/01 13:28:51 choutko Exp $
 #ifndef __AMSTRDREC__
 #define __AMSTRDREC__
 #include <trdid.h>
@@ -37,6 +37,7 @@ integer operator < (AMSlink & o) const {
 static AMSTRDCluster * gethead(uinteger i=0);
 number getHit(uinteger i);
 number getEHit(){return _ClSizeR;}
+number getHitL(){return _ClSizeZ;}
 uinteger getlayer()const {return _layer;}
 const AMSDir & getCooDir()const {return _CooDir;}
 const AMSPoint & getCoo()const {return _Coo;}
