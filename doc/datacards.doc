@@ -45,9 +45,9 @@ I88  TDVC(1600*' ')  // TDV Names, separated by |, which will be updated
 
 IOPA 
 I 1    hlun(0)                   // lun number for ntuple file (=0 no output)
-I 2    hfile(160*' ')            // ntuple uutput file name
+I 2    hfile(160*' ')            // ntuple output file name
 I42    ntupleId(1)               // Ntuple Id
-I43    WriteAll(0)               // Flag to write objects into the ntuple
+I43    WriteAll(2)               // Flag to write objects into the ntuple
                                  // 1=All; 0=Only "used" objects
                                  // 2="Used" + tracker hits consistent with TOF
                                  // 10+X=Dump header, X=0,1,2 as  above

@@ -14,7 +14,8 @@ SRCS          = AMSDisplay.cxx \
                 AMSAxAMSHist.cxx\
                 AMSGenHist.cxx\
                 AMSNtuple.cxx  ControlFrame.cxx\
-		TRadioButton.cxx TSwitch.cxx Debugger.cxx 
+		TRadioButton.cxx TSwitch.cxx Debugger.cxx \
+		TRootCanvas.cxx 
 
 HDRS          = TRadioButton.h TSwitch.h \
 		Debugger.h \

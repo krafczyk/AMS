@@ -221,17 +221,17 @@ void TRootCanvas::CreateCanvas(const char *name)
    fFileMenu = new TGPopupMenu(fClient->GetRoot());
    fFileMenu->AddEntry("&New Canvas",         kFileNewCanvas);
    fFileMenu->AddEntry("&Open...",            kFileOpen);
-   fFileMenu->AddSeparator();
-   fFileMenu->AddEntry("Save As...",          kFileSaveAs);
-   fFileMenu->AddEntry("Save As canvas.root", kFileSaveAsRoot);
-   fFileMenu->AddEntry("Save As canvas.C",    kFileSaveAsC);
-   fFileMenu->AddEntry("Save As canvas.ps",   kFileSaveAsPS);
-   fFileMenu->AddEntry("Save As canvas.eps",  kFileSaveAsEPS);
-   fFileMenu->AddEntry("Save As canvas.gif",  kFileSaveAsGIF);
-   fFileMenu->AddSeparator();
-   fFileMenu->AddEntry("&Print...",           kFilePrint);
-   fFileMenu->AddSeparator();
-   fFileMenu->AddEntry("&Close Canvas",       kFileCloseCanvas);
+   //   fFileMenu->AddSeparator();
+   //   fFileMenu->AddEntry("Save As...",          kFileSaveAs);
+   //   fFileMenu->AddEntry("Save As canvas.root", kFileSaveAsRoot);
+   //   fFileMenu->AddEntry("Save As canvas.C",    kFileSaveAsC);
+   //   fFileMenu->AddEntry("Save As canvas.ps",   kFileSaveAsPS);
+   //   fFileMenu->AddEntry("Save As canvas.eps",  kFileSaveAsEPS);
+   //   fFileMenu->AddEntry("Save As canvas.gif",  kFileSaveAsGIF);
+   //   fFileMenu->AddSeparator();
+   //   fFileMenu->AddEntry("&Print...",           kFilePrint);
+   //   fFileMenu->AddSeparator();
+   //   fFileMenu->AddEntry("&Close Canvas",       kFileCloseCanvas);
    fFileMenu->AddSeparator();
    fFileMenu->AddEntry("&Quit ROOT",          kFileQuit);
 
@@ -262,72 +262,72 @@ void TRootCanvas::CreateCanvas(const char *name)
    fOptionMenu->AddEntry("&Statistics",         kOptionStatistics);
    fOptionMenu->AddEntry("&Histogram Title",    kOptionHistTitle);
    fOptionMenu->AddEntry("Show &Fit Params",    kOptionFitParams);
-   fOptionMenu->AddEntry("Can Edit Histograms", kOptionCanEdit);
+   //   fOptionMenu->AddEntry("Can Edit Histograms", kOptionCanEdit);
 
    fOptionMenu->CheckEntry(kOptionAutoResize);
    fOptionMenu->CheckEntry(kOptionStatistics);
    fOptionMenu->CheckEntry(kOptionHistTitle);
 
    fInspectMenu = new TGPopupMenu(fClient->GetRoot());
-   fInspectMenu->AddEntry("&ROOT",              kInspectRoot);
-   fInspectMenu->AddEntry("&Start Browser",     kInspectBrowser);
+   //   fInspectMenu->AddEntry("&ROOT",              kInspectRoot);
+   //   fInspectMenu->AddEntry("&Start Browser",     kInspectBrowser);
 
    fClassesMenu = new TGPopupMenu(fClient->GetRoot());
-   fClassesMenu->AddEntry("&Full Tree",         kClassesFullTree);
-   fClassesMenu->AddEntry("&Start at...",       kClassesStartAt);
+   //   fClassesMenu->AddEntry("&Full Tree",         kClassesFullTree);
+   //   fClassesMenu->AddEntry("&Start at...",       kClassesStartAt);
    fSaveAsMenu = new TGPopupMenu(fClient->GetRoot());
-   fSaveAsMenu->AddEntry("Save As SubDetector.Set.&ps",kSaveAsps);
-   fSaveAsMenu->AddEntry("Save As SubDetector.Set.&gif",kSaveAsgif);
-   fSaveAsMenu->AddSeparator();
-   fSaveAsMenu->AddEntry("P&rint",kSaveAsprint);
-
+   //   fSaveAsMenu->AddEntry("Save As SubDetector.Set.&ps",kSaveAsps);
+   //   fSaveAsMenu->AddEntry("Save As SubDetector.Set.&gif",kSaveAsgif);
+   //   fSaveAsMenu->AddSeparator();
+   //   fSaveAsMenu->AddEntry("P&rint",kSaveAsprint);
+   //
    for(i=0;i<7;i++)fSubDetCascadeMenu[i] = new TGPopupMenu(fClient->GetRoot());
    for(i=0;i<7;i++)fSubDetMenu[i] = new TGPopupMenu(fClient->GetRoot());
-   fSubDetCascadeMenu[0]->AddEntry("1-4",101);
-   fSubDetCascadeMenu[0]->AddEntry("5-8",102);
-   fSubDetCascadeMenu[0]->AddEntry("9-12",103);
-   fSubDetCascadeMenu[0]->AddEntry("13-16",104);
-  
-   fSubDetMenu[0]->AddEntry("Occupancies/Amplitudes Distibution",100);
-   fSubDetMenu[0]->AddPopup( "UpVsDown",fSubDetCascadeMenu[0]);
-
-   fSubDetMenu[1]->AddEntry("PreClusters Distributions Set 1",110);
-   fSubDetMenu[1]->AddEntry("PreClusters Distributions Set 2",111);
-   fSubDetMenu[1]->AddEntry("Clusters Distribution",112);
-   fSubDetMenu[1]->AddSeparator();
-   fSubDetMenu[1]->AddEntry("Calibration Set 1",113);
-   fSubDetMenu[1]->AddEntry("Calibration Set 2",114);
-
-   fSubDetMenu[2]->AddEntry("Occupancies Distibutions",120);
-   fSubDetMenu[2]->AddEntry("LVL1 vs TOF",121);
-   fSubDetMenu[2]->AddEntry("TOF Trigger Pattern",122);
-   fSubDetMenu[2]->AddEntry("LVL1 vs Anti",123);
-   fSubDetMenu[3]->AddEntry("LVL3 Distributions",130);
-   fSubDetMenu[3]->AddEntry("LVL3/AxAMS Comparision",131);
-
-   fSubDetMenu[4]->AddEntry("JL1/TOF Side Occupancies",140);
-   fSubDetMenu[4]->AddEntry("JL1/TOF Counter Occupancies",141);
-   fSubDetMenu[4]->AddEntry("Occupancies Distributions",142);
-   fSubDetMenu[4]->AddEntry("Tdiffs/(data size)/config",143);
-   fSubDetMenu[4]->AddEntry("NTof/Eloss Distributions ",144);
-   fSubDetMenu[4]->AddEntry("Mean Eloss per counter (MeV)",145);
-   fSubDetMenu[4]->AddEntry("Anode Charge Spectra",146);
-   fSubDetMenu[4]->AddEntry("Dynode Charge Spectra",147);
-   fSubDetMenu[4]->AddEntry("Time Stretcher Ratios",148);
-
-
-
-   fSubDetMenu[5]->AddEntry("Layer 1 Distributions",150);
-   fSubDetMenu[5]->AddEntry("Layer 2 Distributions",151);
- 
-   fSubDetMenu[6]->AddEntry("Set 0",160);
-   fSubDetMenu[6]->AddEntry("Set 1",161);
-
-   fSubDetMenu[7]->AddEntry("Length",170);
-   fSubDetMenu[7]->AddEntry("TOF Length",171);
-   fSubDetMenu[7]->AddEntry("TRK (red) Length",172);
-   fSubDetMenu[7]->AddEntry("TRK (raw,mix) Length",173);
-
+   //   fSubDetCascadeMenu[0]->AddEntry("1-4",101);
+   //   fSubDetCascadeMenu[0]->AddEntry("5-8",102);
+   //   fSubDetCascadeMenu[0]->AddEntry("9-12",103);
+   //   fSubDetCascadeMenu[0]->AddEntry("13-16",104);
+   //  
+   //   fSubDetMenu[0]->AddEntry("Occupancies/Amplitudes Distibution",100);
+   //   fSubDetMenu[0]->AddPopup( "UpVsDown",fSubDetCascadeMenu[0]);
+   //
+   //   fSubDetMenu[1]->AddEntry("PreClusters Distributions Set 1",110);
+   //   fSubDetMenu[1]->AddEntry("PreClusters Distributions Set 2",111);
+   //   fSubDetMenu[1]->AddEntry("Clusters Distribution",112);
+   //   fSubDetMenu[1]->AddSeparator();
+   //   fSubDetMenu[1]->AddEntry("Calibration Set 1",113);
+   //   fSubDetMenu[1]->AddEntry("Calibration Set 2",114);
+   //
+   //   fSubDetMenu[2]->AddEntry("Occupancies Distibutions",120);
+   //   fSubDetMenu[2]->AddEntry("LVL1 vs TOF",121);
+   //   fSubDetMenu[2]->AddEntry("TOF Trigger Pattern",122);
+   //   fSubDetMenu[2]->AddEntry("LVL1 vs Anti",123);
+   //   fSubDetMenu[3]->AddEntry("LVL3 Distributions",130);
+   //   fSubDetMenu[3]->AddEntry("LVL3/AxAMS Comparision",131);
+   //
+   //   fSubDetMenu[4]->AddEntry("JL1/TOF Side Occupancies",140);
+   //   fSubDetMenu[4]->AddEntry("JL1/TOF Counter Occupancies",141);
+   //   fSubDetMenu[4]->AddEntry("Occupancies Distributions",142);
+   //   fSubDetMenu[4]->AddEntry("Tdiffs/(data size)/config",143);
+   //   fSubDetMenu[4]->AddEntry("NTof/Eloss Distributions ",144);
+   //   fSubDetMenu[4]->AddEntry("Mean Eloss per counter (MeV)",145);
+   //   fSubDetMenu[4]->AddEntry("Anode Charge Spectra",146);
+   //   fSubDetMenu[4]->AddEntry("Dynode Charge Spectra",147);
+   //   fSubDetMenu[4]->AddEntry("Time Stretcher Ratios",148);
+   //
+   //
+   //
+   //   fSubDetMenu[5]->AddEntry("Layer 1 Distributions",150);
+   //   fSubDetMenu[5]->AddEntry("Layer 2 Distributions",151);
+   // 
+   //   fSubDetMenu[6]->AddEntry("Set 0",160);
+   //   fSubDetMenu[6]->AddEntry("Set 1",161);
+   //
+   //   fSubDetMenu[7]->AddEntry("Length",170);
+   //   fSubDetMenu[7]->AddEntry("TOF Length",171);
+   //   fSubDetMenu[7]->AddEntry("TRK (red) Length",172);
+   //   fSubDetMenu[7]->AddEntry("TRK (raw,mix) Length",173);
+   //
 
    fHelpMenu = new TGPopupMenu(fClient->GetRoot());
    fHelpMenu->AddEntry("&About ROOT...",        kHelpAbout);
@@ -361,10 +361,10 @@ void TRootCanvas::CreateCanvas(const char *name)
    //fMenuBar->AddPopup("&Edit",    fEditMenu,    fMenuBarItemLayout);
    //fMenuBar->AddPopup("&View",    fViewMenu,    fMenuBarItemLayout);
    fMenuBar->AddPopup("&Options", fOptionMenu,  fMenuBarItemLayout);
-   fMenuBar->AddPopup("&Inspect", fInspectMenu, fMenuBarItemLayout);
+   //fMenuBar->AddPopup("&Inspect", fInspectMenu, fMenuBarItemLayout);
    //fMenuBar->AddPopup("&Classes", fClassesMenu, fMenuBarItemLayout);
-   fMenuBar->AddPopup("&SaveAs", fSaveAsMenu, fMenuBarItemLayout);
-   for(i=0;i<7;i++)fMenuBar->AddPopup(sSubDetMenu[i], fSubDetMenu[i], fMenuBarItemLayout);
+   //fMenuBar->AddPopup("&SaveAs", fSaveAsMenu, fMenuBarItemLayout);
+   //for(i=0;i<7;i++)fMenuBar->AddPopup(sSubDetMenu[i], fSubDetMenu[i], fMenuBarItemLayout);
    fMenuBar->AddPopup("&Help",    fHelpMenu,    fMenuBarHelpLayout);
 
    AddFrame(fMenuBar, fMenuBarLayout);

@@ -6,7 +6,7 @@ I. The following hardware platfoorms are fully(F) or partly(P) supported:
 a) IBM/AIX/xlC    (F)
 b) DEC/OSF1/cxx   (F)
 c) HP-UX/g++2.7.2 (P)     ! Dbase version is not supported
-d) SGI/IRIX/g++2.7.2 (P)  ! Dbase version is not supported
+d) SGI/IRIX32/g++2.7.2 (P)  ! Dbase version is not supported
 
 II. Software management:
     cvs  ( Concurrent Version System)
@@ -74,6 +74,7 @@ b) As a developper :
          cvs remove file
 
          To make the changes available to others (update CVS master rep) :
+         in ~/AMS/CC/commons.C increase build var by one
          cvs commit   // Please ensure the files you changed at least compilable :)
                       // Please not change the makefiles in install dir,
                       // create your own instead
