@@ -86,7 +86,6 @@ void AMSEvent::_init(){
    if(_run!= SRun || !AMSJob::gethead()->isMonitoring())_validate();
   if(_run != SRun){
    cout <<" AMS-I-New Run "<<_run<<endl;
-   if (AMSJob::gethead()->isProduction()) _startofrun();
    // get rid of crazy runs
    if(_run<TRMFFKEY.OKAY/10 && AMSJob::gethead()->isRealData()){
      cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
@@ -261,13 +260,16 @@ _sictcinitrun();
 
 
 void AMSEvent::_reamsinitrun(){
-if(!SRun && AMSJob::gethead()->isProduction()){
+if(AMSJob::gethead()->isProduction()){
+ if(!SRun){
   HDELET(0);
   AMSJob::gethead()->uhinit(getrun(),getid());
   AMSJob::map(1);
-}
-else if(AMSJob::gethead()->isProduction()){
+ }
+ else{
   _endofrun();
+ }
+ _startofrun();
 }
 
 _retkinitrun();
