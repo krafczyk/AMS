@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.30 2003/03/21 13:22:15 choutko Exp $
+//  $Id: trddbc.C,v 1.31 2003/03/21 14:29:28 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -1258,7 +1258,7 @@ void TRDDBc::init(){
 
 
           // length
-          RadiatorDimensions(i,j,k,2)=_LaddersLengthShort[j][k];
+          RadiatorDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2);
 
 
 

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.160 2003/03/21 12:48:55 choutko Exp $
+//  $Id: amsgeom.C,v 1.161 2003/03/21 14:29:28 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2185,8 +2185,38 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
        TRDDBc::GetRadiator(k,j,i,status,coo,nrm,rgid);
        for(ip=0;ip<3;ip++)par[ip]=TRDDBc::RadiatorDimensions(i,j,k,ip);
        gid=i+mtrdo*j+mtrdo*maxlay*k+1;
+     // one has to put them into the octagon directly to proper accounted
+     // bulkheads
+
+#ifdef __G4AMS__
+ if(MISCFFKEY.G4On){
        dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
 	0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+ }
+ else{
+#endif
+
+//       dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
+//	0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+//  don;t want to use proper nrm here
+//  too bad too lazy
+// 
+    coo[2]=coo[1]+dau->getcooA(2);
+    coo[1]=dau->getcooA(1);
+    coo[0]=dau->getcooA(0);
+    for(ip=0;ip<3;ip++)coo[ip]-=oct[itrd]->getcooA(ip);
+    geant cool[3];
+    number nrml[3][3];
+    TRDDBc::GetLadder(k,j,i,status,cool,nrml,rgid);
+    cout <<nrml[0][0]<<" "<<nrml[1][0]<<" "<<nrml[2][0]<<" "<<endl;
+    cout <<nrml[0][1]<<" "<<nrml[1][1]<<" "<<nrml[2][1]<<" "<<endl;
+    cout <<nrml[0][2]<<" "<<nrml[1][2]<<" "<<nrml[2][2]<<" "<<endl;
+       oct[itrd]->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
+	nrot++,name,"BOX",par,3,coo,nrml, "MANY",i==0 && j==0 && k==0?1:-1,gid,1));    
+
+#ifdef __G4AMS__
+ }
+#endif
      }
 
      //strips
