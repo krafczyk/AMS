@@ -1,4 +1,4 @@
-//  $Id: server.h,v 1.45 2003/10/26 14:21:26 choutko Exp $
+//  $Id: server.h,v 1.46 2003/10/29 15:25:18 choutko Exp $
 #ifndef __AMSPRODSERVER__
 #define __AMSPRODSERVER__
 #include <typedefs.h>
@@ -25,7 +25,6 @@ typedef list<DPS::Client::ActiveClient_var> ACL;
 typedef list<DPS::Client::ActiveClient_var>::iterator ACLI;
 
 protected:
-
 uinteger _SubmitTime;
 uinteger _Submit;    // in fact active client ID
 uinteger  _KillTimeOut;  // Kill Client Timeout
@@ -163,12 +162,14 @@ public:
 CORBA::ORB_ptr  _orb;    
 PortableServer::POA_ptr _poa;
 PortableServer::POAManager_ptr _mgr;
+
 };
 protected:
 static AMSServer * _Head;
 typedef map<AString, AMSServer::OrbitVars> MO;  
 MO _orbmap; 
 AMSServerI *   _pser;
+uinteger _SleepTime;   //  server sleeptime in us
 public:
 AMSServer(int argc, char *argv[]);
 void StopEverything();
@@ -179,6 +180,17 @@ void UpdateDB(bool force=false);
 void SystemCheck(bool force=false);
 void Exiting(const char * message=0);
 ~AMSServer(){Exiting();if(_pser)delete _pser;}
+  uinteger  getSleepTime() const {return _SleepTime;}
+  uinteger  setSleepTime(){
+   const char *ch=getenv("AMSServerSleepTime");
+   if(ch){
+   _SleepTime=atol(ch);
+   cout <<"  AMSServerI::setSleepTime-I-SleepTimeSetTo "<<_SleepTime<<endl;
+   }
+   else{
+   cout <<"  AMSServerI::setSleepTime-I-SleepTimeSetToDefault "<<_SleepTime<<endl;
+   }
+  }
 };
 
 
