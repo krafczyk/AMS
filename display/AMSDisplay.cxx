@@ -90,7 +90,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
 //   m_DrawClusters  = kTRUE;
    m_View = kFrontView;
    m_DrawParticles = kTRUE;
-   m_DrawGeometry  = kFALSE;
+   m_DrawGeometry  = kTRUE;
 
    // Create display canvas
 //   m_Canvas = new TCanvas("Canvas", (char*)title,14,47,740,650);
@@ -263,7 +263,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    sw[6] = new TSwitch("Particles", &(maker->DrawFruits), 
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
    y -= dy;
-
+    
    sw[7] = new TSwitch("Geometry", &m_DrawGeometry, 
 			"gAMSRoot->Display()->Draw()", 0.0, y-height, 1.0, y);
 

@@ -6,7 +6,7 @@
 #include "AMSRoot.h"
 #include "AMSDisplay.h"
 #include "Debugger.h"
-
+#include <iostream.h>
 extern void InitGui(); // loads the device dependent graphics system
 VoidFuncPtr_t initfuncs[] = { InitGui, 0 };
 int Error; // needed by Motif
@@ -33,36 +33,41 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
 
   debugger.Off();
   
-  char * filename = "prmu-old.root";		// default file name
+  char * filename = "evtd.root";		// default file name
+
   if ( argc > 1 ) {		// now take the file name
     filename = *++argv;
   }
 
   printf("opening file %s...\n", filename);
+  FILE * fn=fopen(filename,"r");
+  if(fn){
+   fclose(fn);  
+   TFile f(filename);
+   TTree * t = (TTree *)f.Get("h1");
+   AMSRoot amsroot("AMS", "AMS Display");
+   amsroot.Init(t);
+   amsroot.MakeTree("AMSTree", "AMS Display Tree");
+   TFile fgeo("ams_group.root");
+   TGeometry * geo = (TGeometry *)fgeo.Get("ams");
+   AMSDisplay display("AMSRoot Event Display", geo);
+   amsroot.GetEvent(0);
+   display.SetView (kTwoView);
+   display.ShowNextEvent(-1);
+   display.GetCanvas()->Update();	// force it to draw
 
-  TFile f(filename);
-//TFile f("prmu-old.root");
-//TFile f("trk.root");
-//TFile f("vitali_old.root");
-//TFile f("run26.3.5.40.cls.root");
-  TTree * t = (TTree *)f.Get("h1");
-  AMSRoot amsroot("AMS", "AMS Display");
-  amsroot.Init(t);
-  amsroot.MakeTree("AMSTree", "AMS Display Tree");
 
-  TFile fgeo("ams_group.root");
-  TGeometry * geo = (TGeometry *)fgeo.Get("ams");
-  AMSDisplay display("AMSRoot Event Display", geo);
-
-  amsroot.GetEvent(0);
-  display.ShowNextEvent(-1);
-
-  display.GetCanvas()->Update();	// force it to draw
+  }
+  else {
+   cerr <<"amsed-E-could not open file "<<filename<<endl;
+   if(argc <=1)cout <<"Please type file name as first parameter"<<endl;
+   return;
+  }
 
 
 // Enter event loop
   theApp->Run();
 
   delete theApp;
-}
+  }
 //---------------------------------------

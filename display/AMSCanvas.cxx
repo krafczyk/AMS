@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include <unistd.h>		// for getpid()
-
+#include <stdlib.h>
 #include <TROOT.h>
 
 #ifndef ROOT_TMotifCanvas
@@ -520,6 +520,7 @@ void AMSCanvas::SaveParticleCB(Widget wid, XtPointer cd, XtPointer pointer)
    AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
    disp->GetCanvas()->SaveAs();
    disp->GetCanvas()->Update();		// refresh the screen
+   system("lpr Canvas.ps");
 }
 
 
