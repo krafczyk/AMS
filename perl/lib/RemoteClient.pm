@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.165 2003/05/13 13:11:45 choutko Exp $
+# $Id: RemoteClient.pm,v 1.166 2003/05/13 13:26:50 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2773,15 +2773,9 @@ DDTAB:         $self->htmlTemplateTable(" ");
               htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
               htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
-            print "<tr><td><b><font color=\"green\">DST file format</font></b>\n";
-            print "</td><td>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            print "<tr><td><font size=\"-1\"<b>\n";
-              print "<tr><td><font size=\"-1\"<b>\n";
-              print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\" CHECKED><b> NTUPLE </b>\n";
-              print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=1 128=\" ><b> ROOT </b><BR>\n";
-            print "</b></font></td></tr>\n";
-           htmlTableEnd();
+
+            $self->printJobParamFormatDST();
+
             print "<tr><td><b><font color=\"green\">DST file wrtie mode</font></b>\n";
             print "</td><td>\n";
             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -2801,19 +2795,9 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
-            print "<tr><td><b><font color=\"green\">Automatic DST files transfer to Server</font></b>\n";
-            print "</td><td>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            print "<tr><td><font size=\"-1\"<b>\n";
-# Apr 1.2003 set default transfer to 'No' for both mode - remote/local
-            if ($self->{CCT} eq "remote") {
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
-            } else {
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Yes </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> No </b><BR>\n";
-            }
-            print "</b></font></td></tr>\n";
-           htmlTableEnd();
+
+            $self->printJobParamTransferDST();
+
 # Script Custom/Generic
              print "<tr><td><b><font color=\"green\">Script  </font></b>\n";
              print "</td><td>\n";
@@ -2998,27 +2982,10 @@ DDTAB:         $self->htmlTemplateTable(" ");
              print "</b></font></td></tr>\n";
            htmlTableEnd();
          }
-# DST format
-            print "<tr><td><b><font color=\"green\">DST file format</font></b>\n";
-            print "</td><td>\n";
-            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-            print "<tr><td><font size=\"-1\"<b>\n";
-              print "<tr><td><font size=\"-1\"<b>\n";
-              print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\" CHECKED><b> NTUPLE </b>\n";
-              print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=1 128=\" ><b> ROOT </b><BR>\n";
-            print "</b></font></td></tr>\n";
-           htmlTableEnd();
-# DST transfer
-             print "<tr><td><b><font color=\"green\">DST Transfer Mode </font></b>\n";
-             print "</td><td>\n";
-             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-             print "<tr><td><font size=\"-1\"<b>\n";
-# Apr 1.2003 set default transfer to 'No' for both mode - remote/local
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Automatic </b><BR>\n";
-             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> Manual </b><BR>\n";
-#            }
-             print "</b></font></td></tr>\n";
-            htmlTableEnd();
+
+         $self->printJobParamFormatDST();
+         $self->printJobParamTransferDST();
+
 # Script Custom/Generic
              print "<tr><td><b><font color=\"green\">Script  </font></b>\n";
              print "</td><td>\n";
@@ -7291,4 +7258,37 @@ sub printMC02GammaTest {
     }
 
     htmlBottom();
+}
+
+sub printJobParamFormatDST {
+
+    my $self=shift;
+
+# DST output format
+            print "<tr><td><b><font color=\"green\">DST output format</font></b>\n";
+            print "</td><td>\n";
+            print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+            print "<tr><td><font size=\"-1\"<b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=3 2=\"><b> NTUPLE </b>\n";
+            print "<INPUT TYPE=\"radio\" NAME=\"RootNtuple\" VALUE=\"1=0 127=1 128=\" CHECKED><b> ROOT </b><BR>\n";
+            print "</b></font></td></tr>\n";
+           htmlTableEnd();
+}
+
+sub printJobParamTransferDST {
+
+    my $self=shift;
+
+# DST transfer
+             print "<tr><td><b><font color=\"green\">DST Transfer Mode </font></b>\n";
+             print "</td><td>\n";
+             print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+             print "<tr><td><font size=\"-1\"<b>\n";
+# Apr 1.2003 set default transfer to 'No' for both mode - remote/local
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"R\" ><b> Automatic </b><BR>\n";
+             print "<INPUT TYPE=\"radio\" NAME=\"AFT\" VALUE=\"L\" CHECKED><b> Manual </b><BR>\n";
+#            }
+             print "</b></font></td></tr>\n";
+            htmlTableEnd();
 }
