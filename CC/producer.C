@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.65 2003/05/07 15:21:45 choutko Exp $
+//  $Id: producer.C,v 1.66 2003/05/08 08:34:52 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -215,8 +215,10 @@ again:
     if(GCFLAG.IEVENT>1 ){
      // should call the rndm odnako
      cerr<<"AMSProducer::getRunEventInfo-W-ChangingRNDMBecauseFirstEventNumberNotOne"<<endl;
-     geant dum;
-     RNDM(dum);
+     for(int i=1;i<GCFLAG.IEVENT;i++){
+      geant dum;
+      RNDM(dum);
+     }
     }
     GCFLAG.NEVENT=_reinfo->LastEvent;
     CCFFKEY.run=_reinfo->Run;
