@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.28 2002/03/26 21:21:59 choutko Exp $
+# $Id: RemoteClient.pm,v 1.29 2002/03/27 11:08:39 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -51,6 +51,7 @@ my %fields=(
        arpref=>[],
        ardref=>[],
        dbfile=>undef,
+       scriptsOnly=>0,
             );
     my $self={
       %fields,
@@ -1715,7 +1716,12 @@ print qq`
                    return;
 
                 }
-           }
+        }
+         my $sonly="No";
+         $sonly=$q->param("SONLY");
+         if ($sonly eq "Yes") {
+             $self->{scriptsOnly}=1;
+         }
          my $filename=$q->param("FEM");
          $q=get_state($filename);          
          if(not defined $q){
@@ -2162,12 +2168,16 @@ print qq`
             $q->param("FEM",$save);
              save_state($q,$save);
              htmlTop();
-             $self->htmlTemplateTable("Job Submit Script (click [Save] to continue)");
+            $self->htmlTemplateTable("Job Submit Script (click [Save] to continue)");
           if($self->{CCT} eq "local"){
-              print "<TR><B><font color=magenta size= 4><i> the password is required </i></font></TR></B>";
+              print "<B><font color=red size= 3>
+                     <i> the password is required </i></font></B>";
+              print "<p></p>\n";
          }
           print "<input type=\"hidden\" name=\"CEM\" value=$cem>        ";
           print "<input type=\"hidden\" name=\"FEM\" value=$save>        ";
+          print "<input type=\"checkbox\" name=\"SONLY\" value=\"Yes\">Send scripts ONLY (<i>server sends to client ALL files including EXE's [~7MB] if box NOT Checked)</i>";
+          print "<p></p>\n";
           print $q->textarea(-name=>"CCA",-default=>"$buf$tmpb",-rows=>30,-columns=>80);
           print "<BR><TR>";
          if($self->{CCT} eq "local"){
@@ -2177,7 +2187,7 @@ print qq`
          print $q->submit(-name=>$param, -value=>"Save");
          print htmlBottom();
          return 1;   
-         }
+        }
          open(FILE,">".$root) or die "Unable to open file $root\n";  
          print FILE $buf;
          print FILE $tmpb;
