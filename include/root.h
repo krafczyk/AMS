@@ -10,8 +10,8 @@
 #include <tkdbc.h>
 class AMSNtuple;
 const int MAXBETA    =   150;
-const int MAXCHARGE  =    150;
-const int MAXPART    =    100;
+const int MAXCHARGE  =   150;
+const int MAXPART    =   100;
 const int MAXTOF     =    20;
 const int MAXTOFRAW  =    20;
 const int MAXTOFMC   =   200;
@@ -22,12 +22,13 @@ const int MAXTRCL    =   200;
 const int MAXTRRAW   =   300;
 const int MAXTRCLMC  =   200;
 const int MAXTRRH    =   500;
-const int MAXTRTR    =    200;
+const int MAXTRTR    =   200;
 const int MAXMCG     =    20;
 const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;
 const int MAXCTCCLMC =   200;
 const int MAXECCLUST =    50;
+const int MAXECELL   =  1000; 
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 const int MAXRICMC   =   200;
@@ -70,7 +71,8 @@ public:
   int AntiMCClusters;
   int AntiClusters;
   int EcalClusters;
-  int EventStatus; 
+  int EventStatus;
+  int EcalCell; 
   
 friend class AMSEvent;
 friend class AMSNtuple;
@@ -259,6 +261,26 @@ ClassDef(EcalClusterNtuple,1)       //EcalClusterNtuple
 #endif
 };
 //--------------------------
+#ifdef __WRITEROOT__
+class EcalCellNtuple : public TObject {
+#else 
+class EcalCellNtuple {
+#endif
+public:
+  int Ncelle;
+  float EdepCell[MAXECELL];
+  float EdepAtt[MAXECELL];
+  int SuperLayer[MAXECELL];
+  int Photomultiplier[MAXECELL];
+  int SubCell[MAXECELL];
+
+friend class AMSEcalCell;
+friend class AMSNtuple;
+#ifdef __WRITEROOT__
+ClassDef(EcalCellNtuple,1)         //EcalCellNtuple
+#endif
+};
+//-------------------------- 
 #ifdef __WRITEROOT__
 class TOFMCClusterNtuple : public TObject {
 #else
@@ -555,8 +577,6 @@ friend class AMSNtuple;
 ClassDef(ANTIMCClusterNtuple,1)       //ANTIMCClusterNtuple
 #endif
 };
-
-
 
 #ifdef __WRITEROOT__
 class LVL3Ntuple : public TObject {

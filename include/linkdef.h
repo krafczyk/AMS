@@ -24,5 +24,6 @@
 #pragma link C++ class AntiRawClusterNtuple;
 #pragma link C++ class TOFRawClusterNtuple;
 #pragma link C++ class EcalClusterNtuple;
+#pragma link C++ class EcalCellNtuple;
 #pragma link C++ class EventNtuple;
 #endif
