@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.333 2004/10/06 13:16:04 alcaraz Exp $
+//  $Id: event.C,v 1.334 2005/04/06 14:55:46 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1740,6 +1740,10 @@ void AMSEvent::_reaxevent(){
   if(AMSEvent::debug)AMSCharge::print();
 #endif
 
+  // Flag golden tracks here
+  AMSTrTrack::flag_golden_tracks();
+
+  // Vertexing
   AMSgObj::BookTimer.start("Vtx");
   buildC("AMSVtx");
   AMSgObj::BookTimer.stop("Vtx");

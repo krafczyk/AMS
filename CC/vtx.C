@@ -38,100 +38,11 @@ integer AMSVtx::build(integer refit){
 // First pass (only tracks with beta)
    AMSTrTrack *ptr = (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);
    for (;ptr!=NULL && nfound<maxtracks;ptr = ptr->next()) {
-      if (strstr(AMSJob::gethead()->getsetup(),"AMS02")) {
-            if (ptr->checkstatus(AMSDBc::WEAK)) continue;
-            if (ptr->checkstatus(AMSDBc::FalseTOFX)) continue;
-      } else {
-            //if (ptr->checkstatus(AMSDBc::WEAK)) continue;
-            if (ptr->checkstatus(AMSDBc::FalseTOFX)) continue;
+      if (ptr->checkstatus(AMSDBc::GOLDEN)) {
+            ptrack[nfound] = ptr;
+            nfound++;
       }
-
-//Beta check
-      bool track_has_beta = false;
-      for(int patb=0; patb<npatb; patb++){
-        AMSBeta *pbeta = (AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
-        for (;pbeta!=NULL;pbeta = pbeta->next()) {
-          if (pbeta->getptrack()==ptr) {
-            track_has_beta = true;
-            goto exit_beta;
-          }
-        }
-      }
-exit_beta:
-      if (!track_has_beta) continue;
-
-//Set S-ambiguities with respect to this track
-      for (int i=0; i<ptr->getnhits(); i++){
-         AMSTrRecHit* phit = ptr->getphit(i);
-         if (!phit) continue;
-         AMSTrCluster* py = phit->getClusterP(1);
-         if (py){
-           AMSTrRecHit* paux = AMSTrRecHit::gethead(phit->getLayer()-1);
-           while (paux) {
-                if (py==paux->getClusterP(1)) paux->setstatus(AMSDBc::S_AMBIG);
-                paux = paux->next();
-           }
-         }
-      }
-
-      ptrack[nfound] = ptr;
-      nfound++;
    }
-
-// Second pass (recover non-ambiguous tracks without beta)
-   ptr = (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);
-   for (;ptr!=NULL && nfound<maxtracks;ptr = ptr->next()) {
-      if (strstr(AMSJob::gethead()->getsetup(),"AMS02")) {
-            if (ptr->checkstatus(AMSDBc::WEAK)) continue;
-            if (ptr->checkstatus(AMSDBc::FalseTOFX)) continue;
-      } else {
-            //if (ptr->checkstatus(AMSDBc::WEAK)) continue;
-            if (ptr->checkstatus(AMSDBc::FalseTOFX)) continue;
-      }
-
-//Beta check
-      bool track_has_beta = false;
-      for(int patb=0; patb<npatb; patb++){
-        AMSBeta *pbeta = (AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
-        for (;pbeta!=NULL;pbeta = pbeta->next()) {
-          if (pbeta->getptrack()==ptr) {
-            track_has_beta = true;
-            goto exit_nobeta;
-          }
-        }
-      }
-exit_nobeta:
-      if (track_has_beta) continue;
-
-//Count S-ambiguities if no beta is found; reject track if "too ambiguous"
-      int ns_amb = 0;
-      for (int i=0; i<ptr->getnhits(); i++){
-           AMSTrRecHit* phit = ptr->getphit(i);
-           if (!phit) continue;
-           if (phit->checkstatus(AMSDBc::S_AMBIG)) ns_amb++;
-      } 
-      if (ns_amb>AMSTrTrack::_max_ambigous_hits) continue;
-
-//Set S-ambiguities with respect to this track
-      for (int i=0; i<ptr->getnhits(); i++){
-         AMSTrRecHit* phit = ptr->getphit(i);
-         if (!phit) continue;
-         AMSTrCluster* py = phit->getClusterP(1);
-         if (py){
-           AMSTrRecHit* paux = AMSTrRecHit::gethead(phit->getLayer()-1);
-           while (paux) {
-                if (py==paux->getClusterP(1)) paux->setstatus(AMSDBc::S_AMBIG);
-                paux = paux->next();
-           }
-         }
-      }
-
-      ptrack[nfound] = ptr;
-      nfound++;
-   }
-
-// Mark Golden tracks
-   for (int i=0; i<nfound; i++) ptrack[i]->setstatus(AMSDBc::GOLDEN);
 
 // Create a vertex
    if (nfound>1) {

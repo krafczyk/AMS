@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.83 2005/03/01 16:29:08 alcaraz Exp $
+//  $Id: trrec.h,v 1.84 2005/04/06 14:55:48 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -460,6 +460,7 @@ AMSTrTrack* CloneIt();
 static void remove_track(AMSTrTrack* &ptrack);
 integer next_combination(int index_min, int index_max, number par[2][3]);
 integer next_combination_WEAK(int index_min, int index_max, number par[2][3]);
+static void flag_golden_tracks();
 friend class AMSVtx;
 friend class AMSTrCalibFit;
 #ifdef __WRITEROOT__

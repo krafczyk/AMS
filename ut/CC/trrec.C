@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.179 2005/03/01 16:29:07 alcaraz Exp $
+//  $Id: trrec.C,v 1.180 2005/04/06 14:55:46 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -3866,6 +3866,128 @@ AMSTrRecHit* AMSTrRecHit::nextgood_WEAK_path(number par[2][3]){
        }
 
        return phit;
+
+}
+
+///////////////////////////////////////////////////////////
+void AMSTrTrack::flag_golden_tracks(){
+
+// Go ahead...
+   int nfound = 0;
+   AMSTrTrack* ptrack[Vtxconst::maxtr];
+
+// Add up tracks
+   int maxtracks=Vtxconst::maxtr;
+
+//Clear S-ambiguities first
+      AMSTrTrack *ptr = (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);
+      for (;ptr!=NULL && nfound<maxtracks;ptr = ptr->next()) {
+        for (int i=0; i<ptr->getnhits(); i++){
+           AMSTrRecHit* phit = ptr->getphit(i);
+           if (!phit) continue;
+           phit->clearstatus(AMSDBc::S_AMBIG);
+        } 
+      } 
+
+// First pass (only tracks with beta)
+   ptr = (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);
+   for (;ptr!=NULL && nfound<maxtracks;ptr = ptr->next()) {
+      if (strstr(AMSJob::gethead()->getsetup(),"AMS02")) {
+            if (ptr->checkstatus(AMSDBc::WEAK)) continue;
+            if (ptr->checkstatus(AMSDBc::FalseTOFX)) continue;
+      } else {
+            //if (ptr->checkstatus(AMSDBc::WEAK)) continue;
+            if (ptr->checkstatus(AMSDBc::FalseTOFX)) continue;
+      }
+
+//Beta check
+      bool track_has_beta = false;
+      for(int patb=0; patb<npatb; patb++){
+        AMSBeta *pbeta = (AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
+        for (;pbeta!=NULL;pbeta = pbeta->next()) {
+          if (pbeta->getptrack()==ptr) {
+            track_has_beta = true;
+            goto exit_beta;
+          }
+        }
+      }
+exit_beta:
+      if (!track_has_beta) continue;
+
+//Set S-ambiguities with respect to this track
+      for (int i=0; i<ptr->getnhits(); i++){
+         AMSTrRecHit* phit = ptr->getphit(i);
+         if (!phit) continue;
+         AMSTrCluster* py = phit->getClusterP(1);
+         if (py){
+           AMSTrRecHit* paux = AMSTrRecHit::gethead(phit->getLayer()-1);
+           while (paux) {
+                if (py==paux->getClusterP(1)) paux->setstatus(AMSDBc::S_AMBIG);
+                paux = paux->next();
+           }
+         }
+      }
+
+      ptrack[nfound] = ptr;
+      nfound++;
+   }
+
+// Second pass (recover non-ambiguous tracks without beta)
+   ptr = (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0);
+   for (;ptr!=NULL && nfound<maxtracks;ptr = ptr->next()) {
+      if (strstr(AMSJob::gethead()->getsetup(),"AMS02")) {
+            if (ptr->checkstatus(AMSDBc::WEAK)) continue;
+            if (ptr->checkstatus(AMSDBc::FalseTOFX)) continue;
+      } else {
+            //if (ptr->checkstatus(AMSDBc::WEAK)) continue;
+            if (ptr->checkstatus(AMSDBc::FalseTOFX)) continue;
+      }
+
+//Beta check
+      bool track_has_beta = false;
+      for(int patb=0; patb<npatb; patb++){
+        AMSBeta *pbeta = (AMSBeta*)AMSEvent::gethead()->getheadC("AMSBeta",patb);
+        for (;pbeta!=NULL;pbeta = pbeta->next()) {
+          if (pbeta->getptrack()==ptr) {
+            track_has_beta = true;
+            goto exit_nobeta;
+          }
+        }
+      }
+exit_nobeta:
+      if (track_has_beta) continue;
+
+//Count S-ambiguities if no beta is found; reject track if "too ambiguous"
+      int ns_amb = 0;
+      for (int i=0; i<ptr->getnhits(); i++){
+           AMSTrRecHit* phit = ptr->getphit(i);
+           if (!phit) continue;
+           if (phit->checkstatus(AMSDBc::S_AMBIG)) ns_amb++;
+      } 
+      if (ns_amb>AMSTrTrack::_max_ambigous_hits) continue;
+
+//Set S-ambiguities with respect to this track
+      for (int i=0; i<ptr->getnhits(); i++){
+         AMSTrRecHit* phit = ptr->getphit(i);
+         if (!phit) continue;
+         AMSTrCluster* py = phit->getClusterP(1);
+         if (py){
+           AMSTrRecHit* paux = AMSTrRecHit::gethead(phit->getLayer()-1);
+           while (paux) {
+                if (py==paux->getClusterP(1)) paux->setstatus(AMSDBc::S_AMBIG);
+                paux = paux->next();
+           }
+         }
+      }
+
+      ptrack[nfound] = ptr;
+      nfound++;
+   }
+
+// Mark Golden tracks
+   for (int i=0; i<nfound; i++) ptrack[i]->setstatus(AMSDBc::GOLDEN);
+
+   return;
 
 }
 
