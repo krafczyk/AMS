@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.12 2003/09/22 08:44:44 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.13 2003/09/24 12:20:59 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -569,7 +569,7 @@ for(int i=0;i<ev->nParticle();i++){
     if(st>=1){
 //      cerr<< "full refl "<<st<<endl;
       k=k-1;
-      npoint--;
+      if(!(npoint--))break;
       continue;
     }
      
@@ -584,9 +584,9 @@ for(int i=0;i<ev->nParticle();i++){
     array[k*3+2]=ev->pParticle(i)->RichCoo[1][2]+3.2;
     double rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
     double rc=sqrt(xc*xc+yc*yc)+r2+(array[k*3+2]-z2)*tc;
-    while(rp>rc && ray.Z()<0){
+    while(rp>rc   && ray.Z()<0){
+ 
       zl=ev->pParticle(i)->RichCoo[1][2]-rcoo[2]+3.2;
-//      cout <<"  mirror found "<<k<<" "<<rp<<" "<<rc<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<zl<<endl;
       // take iterations
        double rp2=rp;
        double rc2=rc;
@@ -620,7 +620,7 @@ for(int i=0;i<ev->nParticle();i++){
     }
      if(ray.Z()>0){
       k--;
-      npoint--;
+      if(!(npoint--))break;
 //      cout <<"removing point point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
       continue;
      }
@@ -628,7 +628,7 @@ for(int i=0;i<ev->nParticle();i++){
      if(fabs(array[k*3+0])<hole && fabs(array[k*3+1])<hole){
        // in the hole
       k--;
-      npoint--;
+      if(!(npoint--))break;
       continue;
      }
 //    cout <<" ray "<<ray.X()<<" "<<ray.Y()<<" "<<ray.Z()<<endl;
@@ -675,6 +675,7 @@ for(int i=0;i<ev->nParticle();i++){
    double dphi=2*3.1415926/(npoint-1);
    double phi=-dphi;
    for( int k=0;k<npoint;k++){
+    //cout << "  k npoint "<<k<<" "<<npoint<<endl;
    double posz=rad_thick*(float(rand())/RAND_MAX-0.5);
    double thick=rad_thick*0.5-posz;  
     rcoo[0]=pcl->TrRadPos[0]+z.X()/z.Z()*posz;
@@ -706,9 +707,9 @@ for(int i=0;i<ev->nParticle();i++){
     double st=n_plex*sin(ray.Theta());
     if(st>=1){
 //      cerr<< "full refl "<<st<<endl;
-      k=k-1;
-      npoint--;
-      continue;
+            k--;
+      if(!(npoint--))break;
+      else continue;
     }
      
     double u1=st*cos(ray.Phi());
@@ -716,14 +717,23 @@ for(int i=0;i<ev->nParticle();i++){
     double w1=-sqrt(1-st*st);
      ray=TVector3(u1,v1,w1);
      double addon=4;
-     double zl=pcl->TrPMTPos[2]-rcoo[2]+addon;
+
+    double rp=sqrt(rcoo[0]*rcoo[0]+rcoo[1]*rcoo[1]);
+    double rc=sqrt(xc*xc+yc*yc)+r2+(rcoo[2]-z2)*tc;
+    if(rp>rc){
+      k--;
+      if(!(npoint--))break;
+      else continue;
+    }
+    double zl=pcl->TrPMTPos[2]-rcoo[2]+addon;
     array[k*3+0]=rcoo[0]+ray.X()/ray.Z()*zl;
     array[k*3+1]=rcoo[1]+ray.Y()/ray.Z()*zl;
     array[k*3+2]=pcl->TrPMTPos[2]+addon;
-    double rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
-    double rc=sqrt(xc*xc+yc*yc)+r2+(array[k*3+2]-z2)*tc;
-    while(rp>rc && ray.Z()<0){
+    rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
+    rc=sqrt(xc*xc+yc*yc)+r2+(array[k*3+2]-z2)*tc;
+    while(rp>rc  && ray.Z()<0){
       zl=pcl->TrPMTPos[2]-rcoo[2]+addon;
+      //cout <<"  mirror found "<<k<<" "<<rp<<" "<<rc<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<zl<<endl;
       // take iterations
        double rp2=rp;
        double rc2=rc;
@@ -737,6 +747,7 @@ for(int i=0;i<ev->nParticle();i++){
         rc2=sqrt(xc*xc+yc*yc)+r2+(rcoo[2]-z2)*tc;
         if(rp2>rc2 && zl<0)zl=-zl;
         else if(rp2<rc2 && zl>0)zl=-zl;
+        
       }           
      // get norm vector to cone
      double cw=sin(atan(-tc));
@@ -754,16 +765,16 @@ for(int i=0;i<ev->nParticle();i++){
      rp=sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1]);
     }
      if(ray.Z()>0){
-      k--;
-      npoint--;
-      continue;
+            k--;
+      if(!(npoint--))break;
+      else continue;
      }
      const double hole=32;
      if(fabs(array[k*3+0])<hole && fabs(array[k*3+1])<hole){
        // in the hole
-      k--;
-      npoint--;
-      continue;
+            k--;
+      if(!(npoint--))break;
+      else continue;
      }
     //cout <<"point "<<k<<" "<<theta<<" "<<phi<<" "<<array[k*3+0]<<" "<<array[k*3+1]<<" "<<array[k*3+2]<<" "<<sqrt(array[k*3+0]*array[k*3+0]+array[k*3+1]*array[k*3+1])<<endl;
    }   

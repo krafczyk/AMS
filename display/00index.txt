@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.13 2003/09/05 12:59:31 choutko Exp $
+#  $Id: 00index.txt,v 1.14 2003/09/24 12:20:58 choutko Exp $
 =========================================================================
 
      Introduction  to  AMS    Event  Display  Based  on  ROOT
@@ -59,13 +59,13 @@ $AMSWD/display/amsed{c} "path/*.root"
 
 
 to run amsed (static) no root need to be installed.
-however ROOTSYS var MUST be set to any dummy var e.g.
-setenv ROOTSYS dummy.
-for some (old) XwindowsSystems  text characters might be improperly drawn or even not seen.  setenv OffmonNoTTF might help.
-
-to run amsedc (dynamic) program, path to the root dir should be set up
+however ROOTSYS var MUST be set to any valid root distribution e.g.
+setenv ROOTSYS /afs/cern.ch/sw/root/v3.05.07/rh73_gcc32/root
+For some (old) XwindowsSystems  text characters might be improperly drawn or even not seen.  
+setenv OffmonNoTTF might help.
+to run amsedc (dynamic) program, paths to the root dirs should be set up
 via ROOTSYS as usual (source /offline/vdev/install/amsvar). 
-Dynamic  program allows user to load/run his/her own selection program via AMSNtupleSelect.C.   
+Dynamic  program allows user to load/run his/her own selection program via AMSNtupleSelect.C.[Also may be done for static version made with icc compiler via ManualLink]   
 Just modify AMSNtupleSelect.C IsGolden() function according
 the desired selection then click on "Load UF" button.
 Please note the amsedc should be relinked in case opsys is not rh7.3  

@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.12 2003/09/22 08:44:44 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.13 2003/09/24 12:20:59 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -56,7 +56,7 @@ Int_t DistancetoPrimitive(Int_t px, Int_t py){
 class  HeaderV: public   TPaveLabel, public AMSDrawI{
 public:
 HeaderV():AMSDrawI(NULL,-1),TPaveLabel(0.85+0.1*0.15,0.34*0.15,0.85+0.9*0.15,0.65*0.15,"Header","TR"){};
-HeaderV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.-0.81,0.99,-0.73,"Header","TR"){};
+HeaderV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.-0.79,0.98,-0.71,"Header","TR"){};
 char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->fHeader.Info():0;}
 
 
@@ -65,7 +65,7 @@ char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->fHeader.Info(
 class Trigger1V: public   TPaveLabel, public AMSDrawI{
 public:
 Trigger1V():AMSDrawI(NULL,-1),TPaveLabel(0.85+0.1*0.15,0.34*0.15,0.85+0.9*0.15,0.65*0.15,"Level1","TR"){};
-Trigger1V(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.99,0.99,-0.91,"Level1","TR"){};
+Trigger1V(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.89,0.98,-0.81,"Level1","TR"){};
 char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pLevel1(fRef)->Info(fRef):0;}
 
 
@@ -74,7 +74,7 @@ char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pLevel1(fRef)
 class Trigger3V: public   TPaveLabel, public AMSDrawI{
 public:
 Trigger3V():AMSDrawI(NULL,-1),TPaveLabel(0.85+0.1*0.15,0.34*0.15,0.85+0.9*0.15,0.65*0.15,"Level1","TR"){};
-Trigger3V(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.9,0.99,-0.82,"Level3","TR"){};
+Trigger3V(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPaveLabel(0.8,-0.99,0.98,-0.91,"Level3","TR"){};
 char * GetObjectInfo(Int_t px, Int_t py) const{return fRef>=0?fEv->pLevel3(fRef)->Info(fRef):0;}
 
 
