@@ -229,13 +229,17 @@ void DAQEvent::init(integer mode, integer format){
     if(fbin){ 
     if(SELECTFFKEY.Run){
      DAQEvent daq;
-     integer run=0;
+     integer run=-1;
      integer ok=1;
      integer iposr=0;
      while(ok){
       ok=daq.read();
       if(ok){
        iposr++;
+         if (daq.runno() != run){
+          cout <<" DAQEvent::init-I-New Run "<<daq.runno()<<endl;
+          run=daq.runno();
+        } 
          if(SELECTFFKEY.Event >=0 && daq.runno() == SELECTFFKEY.Run &&
          daq.eventno() >= SELECTFFKEY.Event)break;
          if(daq.runno() == SELECTFFKEY.Run && iposr ==
