@@ -1,4 +1,4 @@
-//  $Id: g4visman.C,v 1.3 2001/01/22 17:32:20 choutko Exp $
+//  $Id: g4visman.C,v 1.4 2003/02/04 15:44:47 choutko Exp $
 #include <g4visman.h>
 
 // Supported drivers...
@@ -102,8 +102,7 @@ void AMSG4VisManager::RegisterGraphicsSystems () {
 
   if (fVerbose > 0) {
     G4cout <<
-      "\nYou have successfully chosen to use the following graphics systems."
-	 << endl;
+      "\nYou have successfully chosen to use the following graphics systems.\n";
     PrintAvailableGraphicsSystems ();
   }
 }
