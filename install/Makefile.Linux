@@ -116,13 +116,13 @@ ifdef AMSPROFILE
 endif
 
 ifdef AMSDEBUG
-  CFLAGSB=    -D__AMSDEBUG__  -D__BATCH__ -D__LINUXGNU__ -g    -I../include  -I../db  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include $(PFLAGS)
+  CFLAGSB=    -D__AMSDEBUG__  -D__BATCH__ -g    -I../include  -I../db  -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include $(PFLAGS)
 else
-  CFLAGSB=      -D__BATCH__ -D__LINUXGNU__ -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include  $(PFLAGS)
+  CFLAGSB=      -D__BATCH__ -I../include    -D__WRITEROOT__ -D__ROOTPOINTERS__ -I$(ROOTSYS)/include  $(PFLAGS)
 endif
 
 ifdef SLC3system
-  CFLAGSB+= -D__SLC3__
+  CFLAGSB+= -D__SLC3__ -D__LINUXGNU__
 endif
 
 ifdef AMSICC
