@@ -106,6 +106,13 @@ integer AMSVtx::set_all(){
      // Most of the information
      number u[3];
      for (int i=0; i<_Ntracks; i++) { 
+       _Ptrack[i]->setstatus(AMSDBc::USED);
+       int nhits = _Ptrack[i]->getnhits();
+       for (int j=0; j<nhits; j++){
+         AMSTrRecHit* phit = _Ptrack[i]->getphit(j);
+         if (phit==NULL) break;
+         phit->setstatus(AMSDBc::USED);
+       }
 	 number rig =  _Ptrack[i]->getpirid();
 	 number en =  fabs(rig);
 	 number erig =  _Ptrack[i]->getepirid();
