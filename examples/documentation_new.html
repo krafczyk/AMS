@@ -61,38 +61,55 @@ Some comments are in order:
 </ul>
 
 <ul>
-      <li> Typically we add several Root files with the TChain::add("file") method, 
-           and use a "TChain" object, on which one can apply any "TTree" method
-           (TChain has TTree as "mother" class).
+      <li> We can add several Root files with the AMSChain::Add("file") method. 
+           The class AMSChain inherit all the methods of the TChain class, but 
+           simplifies the life by hiding some AMS internal operations.
 </ul>
 
 <ul>
-      <li> In the interactive approach, we create an ad-hoc instance 
-           of the AMSEventR class: "AMSEventR Event", and we set all branch addresses
-           via the AMS method "AMSEventR::SetBranchA(TTree* tree)".
+      <li> In the interactive approach, we need to use AMSEventR objects: <br> 
+              <CENTER><b>
+                 "AMSEventR* pev = ams.GetEvent()"
+              </b></CENTER><br>
+              <CENTER><b>
+                 "AMSEventR* pev = ams.GetEvent(event_number)"
+              </b></CENTER><br>
+              <CENTER><b>
+                 "AMSEventR* pev = ams.GetEvent(run_number, event_number)"
+              </b></CENTER><br>
+           If you prefer not to use a pointer "pev", you can add:
+              <CENTER><b>
+                 "AMSEventR &ev = *pev;"
+              </b></CENTER><br>
+           and use "ev" from that point on.
 </ul>
 
 <ul>
    <li> In order to access in a simple way all relevant pieces of information 
         many useful definitions, via pointers and vectors, are implemented. For example, 
-        the number of hits in ECAL is simply Event.nEcalHit():<br>
-             <center> <b> cout << "#Ehits: " << Event.nEcalHit() << endl; 
-                 </b> </center><br>
-        The "i" Hit in ECAL belongs to the class EcalHitR, and it is 
+        the number of hits in ECAL is given by::<br>
+             <center> <b> 
+             cout << "#Ehits: " << ev.nEcalHit() << endl; 
+             </b> </center><br>
+             or, alternatively:
+             <center> <b> 
+             cout << "#Ehits: " << pev->nEcalHit() << endl; 
+             </b> </center><br>
+        The "i" Hit in ECAL belongs to the class EcalHitR, and it may be
         accessed either as:<br>
-             <center> <b> EcalHitR hit = Event.EcalHit(i); </b> </center><br>
+             <center> <b> EcalHitR hit = ev.EcalHit(i); </b> </center><br>
         or via the pointer pEcalHit(i):<br>
-             <center> <b> EcalHitR* phit = Event.pEcalHit(i); </b> </center><br>
+             <center> <b> EcalHitR* phit = ev.pEcalHit(i); </b> </center><br>
         A reference to the ith element is obtained as:
-             <center> <b> EcalHitR* phit = &Event.EcalHit(i); </b> </center><br>
+             <center> <b> EcalHitR* phit = &ev.EcalHit(i); </b> </center><br>
         The full list of AMS classes and attributes can be found 
         <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/classes.html"> 
         HERE </a>. For instance, in 
         <a href="http://ams.cern.ch/AMS/Analysis/hpl3itp1/root02/html/classEcalHitR.html"> 
         EcalHitR </a> the first member is "Status", which can be accessed either as:<br>
-             <center> <b> int stat = Event.EcalHit(i).Status; </b> </center><br><br>
+             <center> <b> int stat = ev.EcalHit(i).Status; </b> </center><br><br>
         or:
-             <center> <b> int stat = Event.pEcalHit(i)->Status; </b> </center><br><br>
+             <center> <b> int stat = ev.pEcalHit(i)->Status; </b> </center><br><br>
 </ul>
 
 <CENTER>
