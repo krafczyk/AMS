@@ -2,9 +2,8 @@
 ///   Macro to process MyAnal.C (To run it: root -b -q run.MyAnal.C)   
 {
       gROOT->Reset();
-      TString path = gSystem->GetIncludePath();
-      path.Append(" -I$AMSDir/include");
-      gSystem->SetIncludePath(path.Data());
+
+      gInterpreter->AddIncludePath(gSystem->ExpandPathName("$AMSDir/include"));
       gSystem->Load("$AMSDir/lib/linux/ntuple.so");
 
       TChain chain("AMSRoot");
@@ -14,4 +13,10 @@
       chain.Process("MyAnal.C+","select.root");
       // Or play with output files inside the code:
       //chain.Process("MyAnal.C+");
+
+      // Other options: 
+      //chain.Process("MyAnal.C"); // not compiled
+      //chain.Process("MyAnal.C++"); // force compilation
+      //chain.Process("MyAnal.C","select.root");
+      //chain.Process("MyAnal.C++","select.root");
 }

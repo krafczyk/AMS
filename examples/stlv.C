@@ -51,6 +51,12 @@ class stlv : public AMSEventR {
    ~stlv()  {
    }
 
+/// This is necessary if you want to run without compilation as:
+///     chain.Process("stlv.C");
+#ifdef __CINT__
+#include <process_cint.h>
+#endif
+
    /// User Function called before starting the event loop.
    /// Book Histos
    virtual void    UBegin();

@@ -6,6 +6,15 @@
 
 class MyAnal : public AMSEventR {
 public :
+/// This is necessary if you want to run without compilation as:
+///     chain.Process("MyAnal.C");
+#ifdef __CINT__
+#include <process_cint.h>
+#endif
+
+      MyAnal(){};
+      ~MyAnal(){};
+
       void    UBegin();
       bool    UProcessCut();
       void    UProcessFill();

@@ -1,18 +1,20 @@
 ///   \example run.stlv.C
 ///   This is an example of how to load stlv.C (to run: root;  .x run.stlv.C)   
 {
+// Global ROOT Reset
       gROOT->Reset();
 
+// Set AMSWD directory
+      gSystem->Setenv("AMSWD","/afs/ams.cern.ch/Offline/vdev");
+
 // Set include path
-      TString path = gSystem->GetIncludePath();
-      path.Append(" -I/afs/ams.cern.ch/Offline/vdev/include ");
-      gSystem->SetIncludePath(path.Data());
+      gInterpreter->AddIncludePath(gSystem->ExpandPathName("$AMSWD/include"));
 
 // Load AMS shared library
 // For Linux load
-      gSystem->Load("/afs/ams.cern.ch/Offline/vdev/lib/linux/ntuple.so");
+      gSystem->Load("$AMSWD/lib/linux/ntuple.so");
 // For Digital Unix, i.e. ams.cern.ch load 
-      //gSystem->Load("/afs/ams.cern.ch/Offline/vdev/lib/osf1/ntuple.so");
+      //gSystem->Load("$AMSWD/lib/osf1/ntuple.so");
 
 // Add all AMS Root files to be analyzed 
       TChain chain("AMSRoot");
@@ -30,6 +32,8 @@
       chain.Process("stlv.C+");
 // Write created histograms in file "outputfilename");
       //chain.Process("stlv.C+","outputfilename");
+// Do not compile, interpret it interactively
+      //chain.Process("stlv.C");
 // Force recompilation of library at any time
       //chain.Process("stlv.C++");
 
