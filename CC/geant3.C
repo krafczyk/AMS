@@ -439,7 +439,6 @@ GDCXYZ();
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
-if(!
 #ifdef __DB__
    if (dbg_prtout != 0 && eventR > DBWriteGeom) {
      cout <<"guout_: read event of type "<<AMSJob::gethead() -> eventRtype()
