@@ -1,0 +1,791 @@
+//  $Id: AMSDisplay.cxx,v 1.18 2003/07/08 16:17:33 choutko Exp $
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+// AMSDisplay                                                           //
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+#include <iostream.h>
+#include <TROOT.h>
+#include <TRootCanvas.h>
+#include <TButton.h>
+#include <TCanvas.h>
+#include <TView.h>
+#include <TText.h>
+#include <TPaveLabel.h>
+#include <TPaveText.h>
+#include <TList.h>
+#include <TDiamond.h>
+#include <TNode.h>
+#include <TTUBE.h>
+#include <TMath.h>
+#include <TPolyLine3D.h>
+#include <X3DBuffer.h>
+
+#include "AMSDisplay.h"
+#include "TSwitch.h"
+#include "AMSR_Axis.h"
+#include "AMSR_GeometrySetter.h"
+#include "TGRunEventDialog.h"
+#include "TLatex.h"
+#include <dlfcn.h>
+#include "AMSNtupleV.h"
+
+
+AMSDisplay *gAMSDisplay;
+
+AMSDisplay::AMSDisplay(const char *title, TGeometry * geo, AMSNtupleV *ntuple):m_ntuple(ntuple), TObject(){
+
+     fCooDef[0][0]=-65.;
+     fCooDef[0][1]=-65.;
+     fCooDef[0][2]=-90.;
+     fCooDef[1][0]=65.;
+     fCooDef[1][1]=65.;
+     fCooDef[1][2]=110.;
+     ResetCoo();
+     m_Geometry     = 0;
+     m_selected=0;
+     m_scale=1;   
+ 
+ 
+   // Initialize display default parameters
+    SetGeometry(geo);
+
+ // Set front view by default
+   m_Theta = 90;
+   m_Phi   = -90;
+   m_View = kTwoView;
+   m_PrevView=kNoView;
+   m_DrawParticles = kTRUE;
+   m_DrawGeometry  = kTRUE;
+   m_DrawMoreGeometry  = kFALSE;
+
+   // Create display canvas
+   m_Canvas = new TCanvas("Canvas", (char*)title,1024,768);
+   m_Canvas->SetEditable(kFALSE);
+
+   //
+   // Create pads on the canvas
+   //
+   m_Canvas->cd();
+
+   //
+   // Logo
+   //
+   //int const logoSizeX = 127, logoSizeY = 123;
+   int const logoSizeX = 130, logoSizeY = 130;
+   Int_t logoX0 = m_Canvas->XtoAbsPixel(m_Canvas->GetX1());
+   Int_t logoY0 = m_Canvas->YtoAbsPixel(m_Canvas->GetY2()) + logoSizeY;
+		// notice the "+" sign.  In AbsPixel large y goes downward
+   // Double_t xsep = m_Canvas->AbsPixeltoX(logoSizeX + 4);
+   Double_t ysep = m_Canvas->AbsPixeltoY(logoY0 + 4);
+
+   Double_t xsep = 0.;
+   m_Canvas->cd();
+
+
+   //
+   // Create title pad
+   // ----------------------------
+   m_TitlePad = new TPad("TitlePad", "AMS Title", xsep,0.95, 1.0, 1.0);
+   m_TitlePad->Draw();
+   m_TitlePad->Modified();
+   //m_TitlePad->SetFillColor(33);
+   m_TitlePad->SetFillColor(33);
+   m_TitlePad->SetBorderSize(2);
+   m_TitlePad->SetBorderMode(1);
+   m_TitlePad->SetEditable(false);
+   //
+   // Create main display pad
+   // ----------------------------
+   m_Pad = new TPad("ViewPad", "AMS Event Display",xsep,0.05,1,0.95);
+   m_Pad->Modified();
+   m_Pad->SetFillColor(0);	//white 
+   m_Pad->SetBorderSize(2);
+   m_Pad->Draw();
+   //
+   // Create object info pad
+   // ----------------------------
+   m_Canvas->cd();
+   m_ObjInfoPad = new TPad("ObjInfoPad", "object info pad", xsep, 0, 1, 0.05);
+   m_ObjInfoPad->SetFillColor(0);
+   m_ObjInfoPad->SetBorderSize(1);
+   m_ObjInfoPad->SetBorderMode(2);
+   m_ObjInfoPad->Draw();
+   m_ObjInfoPad->SetEditable(false);
+
+
+
+
+
+   m_Canvas->cd();
+
+   m_Canvas->Update();
+
+   gAMSDisplay    = this;
+
+
+}
+
+
+
+
+
+Int_t AMSDisplay::DistancetoPrimitive(Int_t px, Int_t py){
+// Compute distance from point px,py to objects in event
+   char *info=m_ntuple->GetObjInfo(px,py);
+    AddParticleInfo(info);
+       m_ObjInfoPad->Update();
+       if(info)return 9999;
+       else return -1;
+}
+
+
+void AMSDisplay::Draw(Option_t *option){
+
+//    Insert current event in graphics pad list
+
+
+   m_ntuple->Prepare();
+   m_Pad->cd();
+   m_Canvas->Modified();
+   if ( m_View == kAllView ) {
+      DrawAllViews();
+      m_PrevView=m_View;
+   }
+   else if ( m_View == kTwoView) {
+      DrawFrontAndSideViews();
+       m_PrevView=m_View;
+   }
+   else {
+      DrawView(m_Theta,m_Phi);
+   }
+
+   m_Canvas->cd();
+   ((TRootCanvas*)m_Canvas->GetCanvasImp())->Layout();
+/*
+   static TLine * deco[2]={0,0};
+
+   if ( deco[0] == 0 ) {
+     deco[0] = new TLine(0.0,0.0,1.0,0.0);
+     deco[0]->SetLineWidth(2);
+   }
+   if ( deco[1] == 0 ) {
+     deco[1] = new TLine(1.0,0.0,1.0,1.0);
+     deco[1]->SetLineWidth(2);
+   }
+   deco[0]->Draw();
+   deco[1]->Draw();
+*/
+
+    AddParticleInfo();
+    DrawTitle();
+    m_PrevView=m_View;
+}
+
+
+void AMSDisplay::DrawAllViews(){
+//    Draw front,top,side and 30 deg views
+
+  if(m_PrevView!=m_View){
+   m_Pad->cd();
+   m_Pad->SetFillColor(15);
+   m_Pad->Clear();
+   m_Pad->Divide(2,2);
+  }
+
+   // draw 30 deg view
+   m_Pad->cd(1);
+   DrawView(30, 30, 0);
+   DrawCaption();
+
+   // draw top view
+   m_Pad->cd(2);
+   DrawView(0, -90, 1);
+   DrawCaption("Top");
+
+   // draw front view
+   m_Pad->cd(3);
+
+   DrawView(90, 0, 2);
+   DrawCaption("Front");
+
+   // draw side view
+   m_Pad->cd(4);
+   DrawView(90, -90, 3);
+   DrawCaption("Side");
+
+   m_Pad->cd(2);
+}
+
+void AMSDisplay::DrawFrontAndSideViews(){
+
+   m_Pad->cd();
+   if(m_PrevView!=m_View){
+    m_Pad->SetFillColor(15);
+    m_Pad->Clear();
+    m_Pad->Divide(2,1);
+   }
+   // draw front view
+   m_Pad->cd(1);
+   DrawView(90, 0, 0);
+   DrawCaption("Front");
+
+   // draw side view
+   m_Pad->cd(2);
+   DrawView(90, -90, 1);
+   DrawCaption("Side");
+
+   m_Pad->cd(1);
+}
+
+
+//_____________________________________________________________________________
+void AMSDisplay::DrawTitle(Option_t *option){
+   m_TitlePad->SetEditable(true);
+
+   static TText * text=0;
+   static char  atext[255];
+
+   
+
+   sprintf(atext,"AMS Event Display         Run %d/ %d %s",m_ntuple->Run(), m_ntuple->Event(),m_ntuple->Time());
+
+   TVirtualPad * gPadSave = gPad;
+   m_TitlePad->cd();
+
+   if (! text) {
+	text = new TText(0.5, 0.5, atext);
+   }
+   else
+	text->SetText(0.5, 0.5, atext);
+
+   text->SetTextAlign(22);
+   text->SetTextSize(0.65);
+   text->Draw();
+   m_TitlePad->Update();
+   m_TitlePad->SetEditable(false);
+   gPadSave->cd();
+}
+
+void AMSDisplay::AddParticleInfo(char * obj){
+
+   static char  atext[255] = "";
+   TVirtualPad * gPadSave = gPad;
+   m_ObjInfoPad->cd();
+   m_ObjInfoPad->SetEditable(true);
+   m_ObjInfoPad->Clear();
+
+   if(obj){
+    static TLatex texto;
+    texto.SetTextAlign(22);
+    texto.SetTextSize(0.35);
+    texto.DrawLatex(0.5,0.25,obj);
+   }
+
+
+   static TLatex text;
+   text.SetTextAlign(22);
+   text.SetTextSize(0.4);
+   text.DrawLatex(0.5,0.75,m_ntuple->pParticle(0)?m_ntuple->pParticle(0)->Info(0):atext);
+
+   
+   m_ObjInfoPad->SetEditable(false);
+      
+   gPadSave->cd();
+}
+
+
+
+
+//_____________________________________________________________________________
+void AMSDisplay::DrawCaption(Option_t *option)
+{
+//    Draw the event title
+
+   Double_t xmin = gPad->GetX1();
+   Double_t xmax = gPad->GetX2();
+   Double_t ymin = gPad->GetY1();
+   Double_t ymax = gPad->GetY2();
+   Double_t dx   = xmax-xmin;
+   Double_t dy   = ymax-ymin;
+
+   if (strlen(option) == 0) {
+
+   } else {
+      TPaveLabel *label = new TPaveLabel(xmin +0.01*dx, ymax-0.15*dy, xmin +0.25*dx, ymax-0.01*dy,option);
+      label->SetBit(kCanDelete);
+      label->SetFillColor(42);
+      label->Draw();
+   }
+}
+
+
+//_____________________________________________________________________________
+void AMSDisplay::DrawAxis(Int_t index, Option_t * option)
+{
+   //
+   // Draw x-y-z axes in lowerleft corner of current pad
+   //
+   // This appends the axisPad to the current pad and then updates the axis
+
+   TView *eventView = gPad->GetView();
+   Double_t longitude = eventView->GetLongitude();
+   Double_t latitude  = eventView->GetLatitude();
+
+
+   TPad * axisPad = new TPad("axis","axis", 0.0, 0.0, 0.15, 0.15);
+					// this will be deleted when
+					// the parent pad calls Clear()
+
+   
+
+   axisPad->SetBorderSize(1);
+   axisPad->SetBorderMode(1);
+   axisPad->Draw();	// append to current pad
+
+   TVirtualPad * gPadSave = gPad;
+   axisPad->cd();
+
+   //
+   // axes
+   //
+     AMSR_Axis * axis[3];
+     axis[0] = new AMSR_Axis(1,0,0, "x");
+     axis[0]->SetLineColor(2);
+     axis[1] = new AMSR_Axis(0,1,0, "y");
+     axis[1]->SetLineColor(3);
+     axis[2] = new AMSR_Axis(0,0,1, "z");
+     axis[2]->SetLineColor(4);
+
+   axis[0]->Draw(option);
+   axis[1]->Draw(option);
+   axis[2]->Draw(option);
+
+
+   TView * axisView = new TView(1);
+   m_AxisPadP[index] = (TPad*)gPadSave;
+   m_AxisPad[index] = axisPad;
+   axisView->SetRange(-1.5,-1.5,-1.5, 1.5,1.5,1.5);
+   Int_t iret;
+
+   axisView->SetView(longitude, latitude, 0, iret);
+
+   //
+   // Force update the drawing
+   //
+   axisPad->Modified();
+   axisPad->Update();
+
+   gPadSave->cd();
+
+}
+
+void AMSDisplay::DrawView(Double_t theta, Double_t phi, Int_t index){
+//    Draw a view of AMS
+
+   static TPaveText * angle=0;
+   
+   gPad->SetFillColor(10);	//white for easy printing
+   TView *view=gPad->GetView();
+   if(  m_PrevView!=m_View){
+    gPad->Clear();
+
+    // add itself to the list
+   m_ntuple->Draw();
+   AppendPad();
+   view = new TView(1);
+   // add the geomtry to the pad
+    if(DrawGeometry())m_Geometry->Draw("same");
+    view->SetRange(fCooCur[0][0], fCooCur[0][1],fCooCur[0][2],fCooCur[1][0],fCooCur[1][1],fCooCur[1][2]);
+
+
+   }
+   else m_ntuple->Draw();
+     Int_t iret;
+     if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
+   if( m_PrevView!=m_View){
+     DrawAxis(index);
+   }
+   else if ( theta != 9999 && phi != 9999 ){
+    m_AxisPad[index]->GetView()->SetView(phi,theta,0,iret);
+    m_AxisPad[index]->Modified();
+   }
+   gPad->Paint();
+}
+
+void AMSDisplay::DrawViewGL(){
+//    Draw current view using OPENGL
+
+   TPad *pad = (TPad*)gPad->GetPadSave();
+   pad->cd();
+   TView *view = pad->GetView();
+   if (!view) return;
+   pad->x3d("OPENGL");
+}
+
+//_____________________________________________________________________________
+void AMSDisplay::DrawViewX3D()
+{
+//    Draw current view using X3D
+
+   TPad *pad = (TPad*)gPad->GetPadSave();
+   pad->cd();
+   TView *view = pad->GetView();
+   if (!view) return;
+   pad->x3d();
+}
+
+//______________________________________________________________________________
+void AMSDisplay::ExecuteEvent(Int_t event, Int_t px, Int_t py){
+//*-*-*-*-*-*-*-*-*-*-*Execute action corresponding to one event*-*-*-*
+//*-*                  =========================================
+
+   if (gPad->GetView()) {
+       gPad->GetView()->ExecuteRotateView(event, px, py);
+      if (event == kButton1Up) {
+        for(int i=0;i<4;i++){
+         if(m_AxisPadP[i]==gPad){
+          int iret;
+          m_AxisPad[i]->GetView()->SetView(gPad->GetView()->GetLatitude(), gPad->GetView()->GetLatitude(),0,iret);
+          m_AxisPad[i]->Modified();
+//          m_AxisPad[i]->Update();
+          break;
+         }
+        }
+      }
+   }
+     ((TPad*)gPad)->SetMaxPickDistance(0);
+}
+
+char *AMSDisplay::GetObjectInfo(Int_t px, Int_t py) const{
+   static char info[80];
+   sprintf(info, "%d, %d", px, py);
+   return info;
+}
+
+
+
+//_____________________________________________________________________________
+void AMSDisplay::SetGeometry(TGeometry * geo){
+//  Set AMS in/out outline parameters
+
+   if (m_Geometry!=0 && m_Geometry!=geo) delete m_Geometry;
+   m_Geometry = geo;
+   new AMSR_GeometrySetter(geo);
+}
+
+
+
+
+void AMSDisplay::SetView(EAMSR_View newView){
+   m_PrevView=m_View;
+   m_View = newView;
+   m_Pad->cd();
+   switch (m_View) {
+     case kFrontView:  DrawView(90,0,0);   break;
+     case kSideView:   DrawView(90,-90,0); break;
+     case kTopView:    DrawView(0,0,0);    break;
+     case kAllView:    DrawAllViews();  break;
+     case kTwoView:    DrawFrontAndSideViews();  break;
+     default:          DrawView(90,0,0);   break;
+   }
+}
+
+Bool_t AMSDisplay::GotoRunEvent(){
+   //
+   //Prompt a dialog for user to input run/event number and goto
+   //
+   Int_t run=0, event=0;
+
+   //
+   //create a dialog to input run/event
+   //
+   
+   if(m_idle)m_theapp->StopIdleing();
+   const TGWindow *main = gClient->GetRoot();
+   TRootCanvas *own = (TRootCanvas*)m_Canvas->GetCanvasImp();
+   new TGRunEventDialog(main, own, &run, &event);
+   if (run==0 && event<=0) {
+   if(m_idle)m_theapp->StartIdleing();
+     return kFALSE;
+   }
+   if (run==0) run = m_ntuple->Run();
+   bool retn=false;
+   if (m_ntuple->GetEvent(run, event)) {
+      m_Pad->cd();
+      Draw();
+      retn=true;
+   } 
+      if(m_idle)m_theapp->StartIdleing();
+   return retn;
+}
+
+Bool_t AMSDisplay::Zoom(){
+}
+
+void AMSDisplay::ShowNextEvent(Int_t delta){
+//  Display (current event_number+delta)
+//    delta =  1  shown next event
+//    delta = -1 show previous event
+
+
+
+      int entry=m_ntuple->CurrentEntry()+delta;      
+      while(m_ntuple->ReadOneEvent(entry)==0){
+         entry+=delta;
+      }
+      if(entry>=0)DrawEvent();
+   }
+
+
+
+void AMSDisplay::DrawEvent()
+{
+  m_Pad->cd(); 
+  Draw();
+}
+
+
+
+
+
+void AMSDisplay::SaveParticleCB(){
+   char fnam[255];
+   sprintf(fnam, "%d.%d.ps",m_ntuple->Run(),m_ntuple->Event());
+   GetCanvas()->SaveAs(fnam);
+   GetCanvas()->Update();          // refresh the screen
+}
+
+
+void AMSDisplay::SaveParticleGIF(){
+   char fnam[255];
+   sprintf(fnam, "%d.%d.gif",m_ntuple->Run(),m_ntuple->Event());
+   GetCanvas()->SaveAs(fnam);
+   GetCanvas()->Update();          // refresh the screen
+}
+
+
+void AMSDisplay::PrintCB(){
+
+   pid_t pid = getpid();
+   char filename[80];
+   sprintf(filename, "/tmp/AMSDisplay.%u.ps",pid);
+   GetCanvas()->SaveAs(filename);
+   GetCanvas()->Update();          // refresh the screen
+   char cmd[255];
+   sprintf(cmd, "lpr /tmp/AMSDisplay.%u.ps",pid);
+   system(cmd);
+   sprintf(cmd, "rm /tmp/AMSDisplay.%u.ps",pid);
+   system(cmd);
+}
+
+
+
+int  AMSDisplay::ReLoad(){
+        static void *handle=0;
+        char cmd[]="g++ -I$ROOTSYS/include -c AMSNtupleSelect.C";
+        int $i=system(cmd);
+        if(!$i){
+         char cmd1[]="g++ -shared AMSNtupleSelect.o -o libuser.so";
+         $i=system(cmd1);
+         if(!$i){  
+           if(handle)dlclose(handle);
+           if(handle=dlopen("libuser.so",RTLD_NOW)){
+              return 0;
+           }
+           cout <<dlerror()<<endl;
+           return 1;
+            
+        }
+        }
+        return -1;
+
+}
+
+
+
+void AMSDisplay::StartStop(bool setidle){
+  m_idle=setidle;
+  if(m_idle)m_theapp->SetIdleTimer(11,"");
+  else  m_theapp->RemoveIdleTimer();
+}
+
+
+void AMSDisplay::SetVisible(EAMSType type, bool visible){
+ switch(type){
+   case kusedonly:
+     d_usedonly=visible;
+     break;
+   case ktrdtracks:
+     d_trdtracks=visible;
+     break;
+   case ktrdclusters:
+     d_trdclusters=visible;
+     break;
+   case kanticlusters:
+     d_anticlusters=visible;
+     break;
+   case ktofclusters:
+     d_tofclusters=visible;
+     break;
+   case ktrtracks:
+     d_trtracks=visible;
+     break;
+   case ktrclusters:
+     d_trclusters=visible;
+     break;
+   case krichrings:
+     d_richrings=visible;
+     break;
+   case krichhits:
+     d_richhits=visible;
+     break;
+   case kecalshowers:
+     d_ecalshowers=visible;
+     break;
+   case kecalclusters:
+     d_ecalclusters=visible;
+     break;
+   case kparticles:
+     d_particles=visible;
+     break;
+   case kmcinfo:
+     d_mcinfo=visible;
+     break;
+   case kgeometry:
+     d_geometry=visible;
+     break;
+ }
+}
+
+
+bool AMSDisplay::DrawObject(EAMSType type) const{
+switch (type){
+   case kusedonly:
+     return d_usedonly;
+   case ktrdtracks:
+     return d_trdtracks;
+   case ktrdclusters:
+     return d_trdclusters;
+   case kanticlusters:
+     return d_anticlusters;
+   case ktofclusters:
+     return d_tofclusters;
+   case ktrtracks:
+     return d_trtracks;
+   case ktrclusters:
+     return d_trclusters;
+   case krichrings:
+     return d_richrings;
+   case krichhits:
+     return d_richhits;
+   case kecalshowers:
+     return d_ecalshowers;
+   case kecalclusters:
+     return d_ecalclusters;
+   case kparticles:
+     return d_particles;
+   case kmcinfo:
+     return d_mcinfo;
+   case kgeometry:
+     return d_geometry;
+}
+    return false;
+}
+
+
+
+void AMSDisplay::Init(){
+   m_ControlFrame= new AMSControlFrame(gClient->GetRoot(), (TRootCanvas*)m_Canvas->GetCanvasImp(), 400, 200);
+   m_Canvas->Update();
+}
+
+
+
+void AMSDisplay::SetFocus(int selected){
+  cout << " got selected "<<selected<<" "<<m_selected<<endl;
+  if(m_selected!=selected){
+   m_selected=selected;
+   if(m_View==kTwoView && selected!=0){
+    m_PrevView=kFrontView;
+   }
+   else m_PrevView=m_View;
+   m_View=kNoView;
+ switch (selected){
+  case 0:   //AMS
+   ResetCoo();
+   break;
+  case 1:   //TRD
+   fCooCur[0][0]=-60; 
+   fCooCur[0][1]=-60; 
+   fCooCur[0][2]=90; 
+   fCooCur[1][0]=60; 
+   fCooCur[1][1]=60; 
+   fCooCur[1][2]=130; 
+   break;
+  case 2:   //TOF Top
+   fCooCur[0][0]=-60; 
+   fCooCur[0][1]=-60; 
+   fCooCur[0][2]=50; 
+   fCooCur[1][0]=60; 
+   fCooCur[1][1]=60; 
+   fCooCur[1][2]=80; 
+   break;
+  case 3:   //Tracker
+   fCooCur[0][0]=-50; 
+   fCooCur[0][1]=-50; 
+   fCooCur[0][2]=-50; 
+   fCooCur[1][0]=50; 
+   fCooCur[1][1]=50; 
+   fCooCur[1][2]=50; 
+   break;
+  case 4:   //TOF Bottom
+   fCooCur[0][0]=-60; 
+   fCooCur[0][1]=-60; 
+   fCooCur[0][2]=-78; 
+   fCooCur[1][0]=60; 
+   fCooCur[1][1]=60; 
+   fCooCur[1][2]=-60; 
+   break;
+  case 5:   //RICH
+   fCooCur[0][0]=-50; 
+   fCooCur[0][1]=-50; 
+   fCooCur[0][2]=-130; 
+   fCooCur[1][0]=50; 
+   fCooCur[1][1]=50; 
+   fCooCur[1][2]=-110; 
+   break;
+  case 6:   //ECAL
+   fCooCur[0][0]=-40; 
+   fCooCur[0][1]=-40; 
+   fCooCur[0][2]=-160; 
+   fCooCur[1][0]=40; 
+   fCooCur[1][1]=40; 
+   fCooCur[1][2]=-125; 
+   break;
+ }
+}
+}
+
+
+
+void AMSDisplay::ReSizeCanvas(Long_t zoom, bool draw){
+   static double scaleprev=m_scale;
+   if(!draw){
+    m_scale=exp(double(zoom)/100);
+   }
+   else if(m_scale){
+    UInt_t w=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCwidth();
+    UInt_t h=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCheight();
+    UInt_t wz=w*m_scale/scaleprev;
+    UInt_t hz=h*m_scale/scaleprev;
+    m_Canvas->SetCanvasSize(wz,hz);
+    scaleprev=m_scale;      
+//  move canvas say at the center
+//
+    TGCanvas* frf=((TRootCanvas*)m_Canvas->GetCanvasImp())->GetCanvasWindow();
+    frf->SetHsbPosition(wz*(1.-1./m_scale)/2);
+    frf->SetVsbPosition(hz*(1.-1./m_scale)/2);
+}
+}
