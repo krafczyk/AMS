@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.104 2003/04/17 14:30:17 choutko Exp $
+# $Id: RemoteClient.pm,v 1.105 2003/04/17 14:37:52 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -1973,12 +1973,12 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
                      </td><td colspan=1>\n";
               print "<select name=\"QCPUType\" >\n";
                my %hash=%{$self->{cputypes}};
-               my @keysa=sort {$hash{$b} <=>$hash{$a}} keys %{$self->{cputypes}};
+               my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$self->{cputypes}};
               foreach my $cputype (@keysa) {
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-          htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
+          htmlTextField("CPU clock","number",8,100,"QCPU"," [MHz]");  
           htmlTableEnd();
 # Job Parameters
           print "<tr><td><b><font color=\"blue\">Job Parameters</font><font color=\"black\">
@@ -2104,7 +2104,7 @@ DDTAB:         $self->htmlTemplateTable(" ");
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");  
+              htmlTextField("CPU clock","number",10,100,"QCPU"," [MHz]");  
               htmlTableEnd();
 # Job Parameters
               print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
@@ -2332,12 +2332,12 @@ DDTAB:         $self->htmlTemplateTable(" ");
                      </td><td colspan=1>\n";
               print "<select name=\"QCPUType\" >\n";
                my %hash=%{$self->{cputypes}};
-               my @keysa=sort {$hash{$b} <=>$hash{$a}} keys %{$self->{cputypes}};
+               my @keysa=sort {$hash{$a} <=>$hash{$b}} keys %{$self->{cputypes}};
               foreach my $cputype (@keysa) {
                   print "<option value=\"$cputype\">$cputype </option>\n";
               }
               print "</select>\n";
-              htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
+              htmlTextField("CPU clock","number",8,100,"QCPU"," [MHz]");  
             htmlTableEnd();
 # Job Parameters
               print "<tr><td><b><font color=\"blue\">Job Parameters</font></b>\n";
