@@ -1,4 +1,4 @@
-#  $Id: Mopt_Root,v 1.9 2001/07/05 17:15:53 choutko Exp $
+#  $Id: Mopt_Root,v 1.10 2001/08/31 23:25:24 kscholbe Exp $
 #
 SHELL=/bin/sh
 #
@@ -28,8 +28,8 @@ EXE=../exe/aix/
 LIB=../lib/aix/
 TIMEL=
 endif
-#ROOTLIBS      = -L$(ROOTSYS)/lib  -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics 
-ROOTLIBS      = -L$(ROOTSYS)/lib  -lBase -lCint -lClib -lCont -lFunc -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet -lPhysics -lPostscript -lProof -lTree -lRint -lTree -lUnix -lZip  
+ROOTLIBS      = -L$(ROOTSYS)/lib  -lCore -lCint -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics 
+#ROOTLIBS      = -L$(ROOTSYS)/lib  -lBase -lCint -lClib -lCont -lFunc -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet -lPhysics -lPostscript -lProof -lTree -lRint -lTree -lUnix -lZip  
 #ROOTLIBS      = $(shell root-config --libs)
 
 ifeq  "$(shell uname)"  "OSF1" 
@@ -181,11 +181,18 @@ OBJECTSC= $(BIN)gbatch_c.o $(BIN)commons.o $(BIN)gvolume.o  $(BIN)id.o $(BIN)nod
 
 standalone: $(EXE)/gbatch_r.exe
 
-shared:	$(OBJECTS)
-	$(LD) -O -Wl,-expect_unresolved -shared $(OBJECTS) $(LDFLAGS) -o $(LIB)amsmc.sl
 
 $(EXE)/gbatch_r.exe:	$(OBJECTS)
 	$(LD) -v -o $(EXE)/gbatch_r.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
+
+
+#$(EXE)/gbatch_r.exe:	$(OBJECTS)
+#	$(LD) -v -o $(EXE)/gbatch_r.exe $(BIN)trd.o $(OBJECTS) $(TIMEL) $(LDFLAGS)
+
+
+shared :	$(BIN)root_r.o ../include/root_R.h ../include/root.h $(BIN)rootdict.o
+	$(LD) -O -Wl,-expect_unresolved,* -shared $(BIN)/root_r.o $(BIN)/rootdict.o $(LDFLAGS) -o  amsmc.sl 
+
 
 $(BIN)rootdict.C:         ../include/root_R.h ../include/root.h
 	@echo "Generating dictionary"
@@ -588,8 +595,6 @@ $(BIN)server.o: 	 $(SCC)server.C
 
 $(BIN)dbserver.o: 	 $(SCC)dbserver.C
 	$(CC)  -c -w $(CFLAGS) $(IDLFLAGS) $(SCC)dbserver.C -o $(BIN)dbserver.o
-
-
 
 
 depend:         $(BIN)Make-depend
