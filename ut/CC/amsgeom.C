@@ -2478,7 +2478,7 @@ void richgeom02(AMSgvolume & mother)
   geant rrad=50; //Radiator radius
   
   geant h=55;    // Cone height
-  geant R=90;    // Larger radius
+  geant R=80;    // Larger radius
   geant r=40;    // smaller radius
 
 
