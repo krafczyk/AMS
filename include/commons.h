@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.196 2003/12/17 12:59:56 mdelgado Exp $
+//  $Id: commons.h,v 1.197 2003/12/18 16:12:50 mdelgado Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -893,15 +893,30 @@ geant light_guides_length;
 #define RICGEOM COMMON_BLOCK(RICGEOM,ricgeom)
 COMMON_BLOCK_DEF(RICGEOM_DEF,RICGEOM);
 
-class RICCONTROL_DEF{
+class RICCONTROLFFKEY_DEF{
 public:
 integer iflgk_flag;
-integer recon;
-integer setup;  // Allows to choose among several differen geometries
 integer tsplit; // Allows task time spliting at the end of the job for OPTIMIZATION
 };
-#define RICCONTROL COMMON_BLOCK(RICCONTROL,riccontrol)
-COMMON_BLOCK_DEF(RICCONTROL_DEF,RICCONTROL);
+#define RICCONTROLFFKEY COMMON_BLOCK(RICCONTROLFFKEY,riccontrolffkey)
+COMMON_BLOCK_DEF(RICCONTROLFFKEY_DEF,RICCONTROLFFKEY);
+
+
+class RICRADSETUPFFKEY_DEF{
+public:
+integer setup;  // Allows to choose among several differen geometries
+};
+#define RICRADSETUPFFKEY COMMON_BLOCK(RICRADSETUPFFKEY,ricradsetupffkey)
+COMMON_BLOCK_DEF(RICRADSETUPFFKEY_DEF,RICRADSETUPFFKEY);
+
+
+class RICRECFFKEY_DEF{
+public:
+integer recon[2];
+};
+#define RICRECFFKEY COMMON_BLOCK(RICRECFFKEY,ricrecffkey)
+COMMON_BLOCK_DEF(RICRECFFKEY_DEF,RICRECFFKEY);
+
 
 
 class RICFFKEY_DEF{

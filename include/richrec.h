@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.27 2003/12/17 12:59:56 mdelgado Exp $
+//  $Id: richrec.h,v 1.28 2003/12/18 16:12:50 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -265,9 +265,9 @@ public:
 
 
     if(build_charge){
-      if(RICCONTROL.tsplit)AMSgObj::BookTimer.start("RERICHZ");
+      if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.start("RERICHZ");
       ReconRingNpexp();
-      if(RICCONTROL.tsplit)AMSgObj::BookTimer.stop("RERICHZ");
+      if(RICCONTROLFFKEY.tsplit)AMSgObj::BookTimer.stop("RERICHZ");
     }
 
     AMSPoint pnt;
