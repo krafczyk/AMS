@@ -12,11 +12,11 @@ bit 0
  7   charge
  8   momentum sign
  9   velocity sign
-10   tracker pattern
-11   tracker pattern
-12   tracker pattern
-13   tracker pattern
-14   tracker pattern
+10   track pattern
+11   track pattern
+12   track pattern
+13   track pattern
+14   track pattern
 15   beta pattern
 16   beta pattern
 17   ctc layers fired
@@ -27,12 +27,12 @@ bit 0
 22   npart found
 23   rigidity range
 24   -----
-25   reserved
-26   reserved
-27   reserved
-28   reserved
-29   reserved
-30   reserved
+25   track quality
+26   ------
+27   free
+28   free
+29   free
+30   free
 31   status not found
 
 
@@ -94,6 +94,12 @@ rigidity (abs)
 1  <8 GV
 2  <20 GV
 3  >20 GV
+
+track quality
+0  - at least 4S+4K with high threshold
+1  - at least 4S+4K
+2  - at least 4S+3K
+3  - at least 4S
 
 correspondance between bits & status datacards words:
 
