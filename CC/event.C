@@ -812,7 +812,8 @@ void  AMSEvent::write(int trig){
        if(PosInRun>= (IOPA.WriteAll/1000)*1000){
           // write only %IOPA.Portion if not antimatter or heavyion
           geant d;
-          if(AMSJob::gethead()->isProduction() && RNDM(d)>IOPA.Portion){
+          //if(AMSJob::gethead()->isProduction() && RNDM(d)>IOPA.Portion){
+          if(0){
              // check if ap or heavy ion
              AMSContainer *p=getC("AntiMatter");
              if(!p->getnelem()){
@@ -2255,10 +2256,9 @@ void AMSEvent::_collectstatus(){
       else if((ptr->getptrack())->checkstatus(AMSDBc::WEAK) )trquality=1;
       else trquality=0;   
       _status=_status | (trquality<<25);
-      uinteger singeo;
-      if(ptr->getsinmagmer()<0)singeo=0;
-      else singeo=1;
-      _status=_status | (singeo<<29);
+       uinteger localdb=0;
+       if((ptr->getptrack())->checkstatus(AMSDBc::LocalDB))localdb=1;
+      _status=_status | (localdb<<29);
     }
   }
   {
