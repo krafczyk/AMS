@@ -1,5 +1,5 @@
 # 
-#                                                                         Last Edit : Jun 15, 2003
+#                                                                         Last Edit : July 3, 2003
 # MAILS
 #
 # address                          : name                    : R : CID: RS  : alias
@@ -26,6 +26,7 @@ diego.caraffini@pg.infn.it         : Diego Caraffini         : 0 : 12 : 0 : :
 mariusz.sapinski@gamum2.in2p3.fr   : Mariusz Sapinski        : 1 :  8 : 0 : :
 paolo.maestro@pi.infn.it           : Paolo Maestro           : 1 : 13 : 0 : :
 alexandre.eline@cern.ch            : Alexandre Eline         : 0 :  1 : 0 : :
+alexandre.malinine@cern.ch         : Alexandre Malinine      : 0 : 16 : 0 : :
 #----------------------------------------------------------------------------
 #                                                                         Last Edit : Apr 23, 2003
 # CITES
@@ -47,6 +48,7 @@ INFN and Univ. Perugia                  : perugia : 12  :  0   : remote : /f2use
 INFN and Univ. Siena                    : siena   : 13  :  0   : remote : /f2users/scratch/MC : 20 :
 Academia Sinica Taiwan                  : taiwan  : 14  :  0   : remote : /f2users/scratch/MC : 47 :
 IN2P3 Annecy                            : lyon    : 15  :  0   : remote : /f2users/scratch/MC : 17 :
+University of Mariland                  : umd     : 16  :  0   : remote : /f2users/scratch/MC : 10 :
 #----------------------------------------------------------------------------------------------------
 #
 # FILESYSTEMS
