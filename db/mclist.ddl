@@ -3,7 +3,7 @@
 // class List of MC events
 // May,    1997. ak. First try with Objectivity  
 //
-// last edit May 08, 1997, ak.
+// last edit May 21, 1997, ak.
 //
 
 #include <typedefs.h>
@@ -11,8 +11,8 @@
 #include <list_ref.h>
 #include <list.h>
 
-#include <mcevent_ref.h>
-#include <mcevent.h>
+class AMSmcevent;
+#pragma ooclassref AMSmcevent <mcevent_ref.h>
 
 class AMSMCEventList : public EventList {
 

@@ -31,6 +31,7 @@
 #include <dbA.h>
 
 #include <eventTag.h>
+#include <mcevent.h>
 #include <raweventD.h>
 #include <recevent.h>
 

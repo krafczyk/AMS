@@ -6,8 +6,9 @@
 # AIX/OSF1 Sep 18, 1996. ak/vs
 # Make dependencies from ../include/*.h  Oct 21, 1996. ak.
 # V2.01    Apr 10, 1997. new version of CXX, no cxxfix for Alpha anymore
+# V2.02    May   , 1997. lms are replaced by dbA
 #
-# Last Edit : Apr 10, 1997. ak
+# Last Edit : May 21, 1997. ak
 #
 #
 
@@ -320,31 +321,12 @@ clean:
  $(BIN_DB)geantDB.o:         ../CC/geant.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../CC/geant.C \
                                                 -o $(BIN_DB)geantDB.o
-
- $(BIN_DB)eventD.o:   eventD.C
-	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/eventD.C \
-                                                -o $(BIN_DB)eventD.o
- $(BIN_DB)eventD.o:   eventD.ddl  eventD.h  eventD_ref.h \
-                      tcluster.ddl   tcluster.h  tcluster_ref.h \
-                      ttrack_ref.h  
-
- $(BIN_DB)eventD_ddl.o:   eventD_ddl.C
-	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/eventD_ddl.C \
-                                              -o $(BIN_DB)eventD_ddl.o
- $(BIN_DB)eventD_ddl.o:   eventD.ddl  eventD.h  eventD_ref.h  \
-                          tcluster.ddl   tcluster.h  tcluster_ref.h 
-                          
- eventD_ref.h:   eventD.ddl 
- eventD_ddl.C:   eventD.h  tcluster.h  ttrack.h  tofrecD.h  \
-                 chargeD.h particleD.h  tbeta.h  gmatD.h  \
-                 gtmedD.h  gvolumeD.h  list.ddl  list.h  list_ref.h \
-                 ctcrecD.h amsdbcD.h tofdbcD.h commonsD.h ctcdbcD.h 
-                 
  $(BIN_DB)list.o:   list.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/list.C \
                                                 -o $(BIN_DB)list.o
  $(BIN_DB)list.o :       list.ddl  list.h  list_ref.h \
-                         eventD.ddl  eventD_ref.h  eventD.h  dbA.h db_comm.h
+                         dbevent.ddl  dbevent_ref.h  dbevent.h \
+                         dbA.h db_comm.h
  $(BIN_DB)list_ddl.o:    list_ddl.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/list_ddl.C \
                                                 -o $(BIN_DB)list_ddl.o
@@ -439,7 +421,7 @@ clean:
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gvolumeD.C \
                                                 -o $(BIN_DB)gvolumeD.o
  $(BIN_DB)gvolumeD.o:        gvolumeD.ddl    gvolumeD.h   gvolumeD_ref.h
- $(BIN_DB)gvolumeD_ddl.o:    gvolumeD_ddl.C
+ $(BIN_DB)gvolumeD_ddl.o:    gvolumeD.ddl    gvolumeD.h   gvolumeD_ref.h
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gvolumeD_ddl.C \
                                                 -o $(BIN_DB)gvolumeD_ddl.o
  $(BIN_DB)gvolumeD_ddl.o:    gvolumeD.ddl    gvolumeD.h   gvolumeD_ref.h
@@ -449,7 +431,7 @@ clean:
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gmatD.C \
                                                 -o $(BIN_DB)gmatD.o
  $(BIN_DB)gmatD.o:           gmatD.ddl    gmatD.h   gmatD_ref.h
- $(BIN_DB)gmatD_ddl.o:       gmatD_ddl.C
+ $(BIN_DB)gmatD_ddl.o:       gmatD.h gmatD_ddl.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gmatD_ddl.C \
                                                 -o $(BIN_DB)gmatD_ddl.o
  $(BIN_DB)gmatD_ddl.o:       gmatD.ddl    gmatD.h   gmatD_ref.h
@@ -459,7 +441,7 @@ clean:
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gtmedD.C \
                                                 -o $(BIN_DB)gtmedD.o
  $(BIN_DB)gtmedD.o:          gtmedD.ddl    gtmedD.h   gtmedD_ref.h
- $(BIN_DB)gtmedD_ddl.o:      gtmedD_ddl.C
+ $(BIN_DB)gtmedD_ddl.o:      gtmedD.h gtmedD_ddl.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/gtmedD_ddl.C \
                                                 -o $(BIN_DB)gtmedD_ddl.o
  $(BIN_DB)gtmedD_ddl.o:      gtmedD.ddl    gtmedD.h   gtmedD_ref.h
@@ -468,8 +450,8 @@ clean:
  $(BIN_DB)amsdbcD.o:          amsdbcD.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/amsdbcD.C \
                                                 -o $(BIN_DB)amsdbcD.o
- $(BIN_DB)amsdbcD.o:          amsdbcD.ddl    amsdbcD.h   amsdbcD_ref.h
- $(BIN_DB)amsdbcD_ddl.o:      amsdbcD_ddl.C
+ $(BIN_DB)amsdbcD.o:          amsdbcD.h   amsdbcD_ref.h amsdbcD.ddl    
+ $(BIN_DB)amsdbcD_ddl.o:      amsdbcD.h amsdbcD_ddl.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/amsdbcD_ddl.C \
                                                 -o $(BIN_DB)amsdbcD_ddl.o
  $(BIN_DB)amsdbcD_ddl.o:     amsdbcD.ddl    amsdbcD.h   amsdbcD_ref.h
@@ -479,7 +461,7 @@ clean:
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tofdbcD.C \
                                                 -o $(BIN_DB)tofdbcD.o
  $(BIN_DB)tofdbcD.o:          tofdbcD.ddl    tofdbcD.h   tofdbcD_ref.h
- $(BIN_DB)tofdbcD_ddl.o:      tofdbcD_ddl.C
+ $(BIN_DB)tofdbcD_ddl.o:      tofdbcD.h tofdbcD_ddl.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/tofdbcD_ddl.C \
                                                 -o $(BIN_DB)tofdbcD_ddl.o
  $(BIN_DB)tofdbcD_ddl.o:     tofdbcD.ddl    tofdbcD.h   tofdbcD_ref.h
@@ -489,7 +471,7 @@ clean:
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ctcdbcD.C \
                                                 -o $(BIN_DB)ctcdbcD.o
  $(BIN_DB)ctcdbcD.o:          ctcdbcD.ddl    ctcdbcD.h   ctcdbcD_ref.h
- $(BIN_DB)ctcdbcD_ddl.o:      ctcdbcD_ddl.C
+ $(BIN_DB)ctcdbcD_ddl.o:      ctcdbcD.h ctcdbcD_ddl.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/ctcdbcD_ddl.C \
                                                 -o $(BIN_DB)ctcdbcD_ddl.o
  $(BIN_DB)ctcdbcD_ddl.o:     ctcdbcD.ddl    ctcdbcD.h   ctcdbcD_ref.h
@@ -500,10 +482,9 @@ clean:
                                                 -o $(BIN_DB)commonsD.o
  $(BIN_DB)commonsD.o:          commonsD.ddl    commonsD.h   commonsD_ref.h \
                                ../include/commons.h
- $(BIN_DB)commonsD_ddl.o:      commonsD_ddl.C
+ $(BIN_DB)commonsD_ddl.o:     commonsD.ddl    commonsD.h   commonsD_ref.h
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/commonsD_ddl.C \
                                                 -o $(BIN_DB)commonsD_ddl.o
- $(BIN_DB)commonsD_ddl.o:     commonsD.ddl    commonsD.h   commonsD_ref.h
  commonsD_ref.o:              commonsD.ddl    commonsD.h  ../include/commons.h
 
 
@@ -533,7 +514,9 @@ clean:
  $(BIN_DB)dbA.o:           dbA.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/dbA.C \
                                                 -o $(BIN_DB)dbA.o
- $(BIN_DB)dbA.o:           eventD.ddl  eventD.h eventD_ref.h \
+ $(BIN_DB)dbA.o:             eventTag.ddl  eventTag.h eventTag_ref.h \
+                             recevent.ddl  recevent.h recevent_ref.h \
+                             mcevent.ddl  mcevent.h mcevent_ref.h \
                              gtmedD.ddl  gtmedD.h  gtmedD_ref.h  \
                              gmatD.ddl  gmatD.h  gmatD_ref.h \
                              gvolumeD.ddl  gvolumeD.h  gvolumeD_ref.h \
@@ -545,7 +528,9 @@ clean:
  $(BIN_DB)dbA_Add.o:   dbA_Add.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/dbA_Add.C \
                                                 -o $(BIN_DB)dbA_Add.o
- $(BIN_DB)dbA_Add.o:        eventD.ddl  eventD.h  eventD_ref.h  \
+ $(BIN_DB)dbA_Add.o:         eventTag.ddl  eventTag.h eventTag_ref.h \
+                             recevent.ddl  recevent.h  recevent_ref.h  \
+                             mcevent.ddl  mcevent.h mcevent_ref.h \
                              dbA.h  ooSession.h  ooStats.h \
                              list.ddl  list.h  list_ref.h db_comm.h \
                              rclist.ddl rclist.h \
@@ -561,7 +546,10 @@ clean:
  $(BIN_DB)dbA_Delete.o:   dbA_Delete.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/dbA_Delete.C \
                                                 -o $(BIN_DB)dbA_Delete.o
- $(BIN_DB)dbA_Delete.o:  eventD.ddl  eventD.h  eventD_ref.h  dbA.h  \
+ $(BIN_DB)dbA_Delete.o:   eventTag.ddl  eventTag.h eventTag_ref.h \
+                          recevent.ddl  recevent.h  recevent_ref.h  \
+                          mcevent.ddl  mcevent.h mcevent_ref.h \
+                          dbA.h  \
                           ooSession.h  ooStats.h  \
                           list.ddl  list.h  list_ref.h \
                           rclist.ddl rclist.h 
@@ -638,13 +626,19 @@ clean:
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/recevent.C \
                                                 -o $(BIN_DB)recevent.o
  $(BIN_DB)recevent.o:   recevent.ddl  recevent.h  recevent_ref.h \
-                      chargeD.ddl ctcrecD.ddl particleD.ddl tbeta.ddl \
-                      tcluster.ddl trrechit.ddl ttrack.ddl
+                        chargeD.ddl ctcrecD.ddl particleD.ddl tbeta.ddl \
+                        tcluster.ddl trrechit.ddl ttrack.ddl \
+                        gtmedD.h  gvolumeD.h  \
+                        ctcrecD.h amsdbcD.h tofdbcD.h commonsD.h ctcdbcD.h 
+
 
  $(BIN_DB)recevent_ddl.o:   recevent_ddl.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c ../db/recevent_ddl.C \
                                               -o $(BIN_DB)recevent_ddl.o
- $(BIN_DB)recevent_ddl.o:   recevent.ddl  recevent.h  recevent_ref.h  
+ $(BIN_DB)recevent_ddl.o:   recevent.ddl  recevent.h  recevent_ref.h  \
+                            tofrecD.ddl tofrecD.h tofrecD_ref.h \
+                            chargeD.h ctcrecD.h particleD.h tbeta.h \
+                            tcluster.h trrechit.h ttrack.h 
  recevent_ref.h:   recevent.ddl 
  recevent_ddl.C:   recevent.h  
 
@@ -750,7 +744,8 @@ clean:
  $(BIN_DB)mclist_ddl.o:   mclist_ddl.C
 	$(C++) $(C_FLAGS) $(CFLAGS) $(INCLUDES) $(CCFLAGS) -c \
                            ../db/mclist_ddl.C -o $(BIN_DB)mclist_ddl.o
- $(BIN_DB)mclist_ddl.o:   mclist.ddl  mclist.h  mclist_ref.h  list.ddl list.h
+ $(BIN_DB)mclist_ddl.o:   mclist.ddl  mclist.h  mclist_ref.h  list.ddl list.h \
+                          mcevent.ddl mcevent.h mcevent_ref.h
 
  mclist_ref.h:   mclist.ddl 
  mclist_ddl.C:   mclist.h  
