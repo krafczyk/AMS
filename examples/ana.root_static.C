@@ -33,7 +33,6 @@ int main(){
             }
       }
 
-      hrig->Draw();
       hfile->Write();
       list.Write("select.list");
 

@@ -6,7 +6,8 @@
  *                   - ams_run.sh ana.root_static.C
  *
  *    - Note that the program is prepared to be run in batch mode. Linking
- *      with additional object files is required in order to see interactive 
+ *      with additional object files would be required in order to visualize
+ *      plots interactively.
  *
  *    - Also, it does not work with RFIO files for the time being.
  *

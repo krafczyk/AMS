@@ -20,6 +20,10 @@
  *
  *    - You can find few other examples in $AMSDir/python
  *
+ *    - Keep in mind that not all the ROOT methods are available in the Python
+ *      implementation. In particular, dealing with some pointers requires 
+ *      further thinking.
+ *
  *    - If you want to see graphics, you have to start an application, 
  *      using "TApplication(...)" or even "TRint(...)", and then run it at the end
  *      with "app.Run()". Example:
@@ -30,10 +34,6 @@
  *    - Global variables like gROOT are accessed as "cvar.gROOT". Examples:
  *            - cvar.gROOT.Reset()
  *            - cvar.gStyle.SetOptLogy(1)
- *
- *    - ROOT methods destroying objects, like "my_file.Close()" will give errors.
- *      Python applies its automatic procedures to destroy them and, in this 
- *      case, will find out that there is no object to destroy.
  *
  *    - When a method returns a TObject object, you must convert its type into 
  *      a useful one with the "to_<class>" method. A typical case involves 
