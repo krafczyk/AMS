@@ -1,4 +1,5 @@
 #include <iostream.h>
+#include <stdlib.h>
 class A{
 int _i;
 public:

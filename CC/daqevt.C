@@ -735,7 +735,11 @@ for(int i=0;i<strlen(entry->d_name);i++){
 
 }
 
-int DAQEvent::_sort(dirent ** e1, dirent ** e2){
+#ifdef __HPUX__
+int DAQEvent::_sort(const dirent ** e1, const dirent ** e2){
+#else
+int DAQEvent::_sort(dirent ** e1,  dirent ** e2){
+#endif
  return strcmp((*e1)->d_name,(*e2)->d_name);
 
 }

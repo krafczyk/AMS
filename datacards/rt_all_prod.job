@@ -33,7 +33,7 @@ TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03
 C npars ims 
   5     1   
 C          Nparticles 
-IOPA 1=3 2='/offdata/ntuples/aug/all.hbk.part' 43=9012 
+IOPA 1=3 2='all.hbk.part' 43=9012 
 45='AMSParticle' 126=100000
 C RNDM 197683093 1356123257
 RNDM  1310381404  1978925784
