@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.140 2004/02/17 11:10:14 alcaraz Exp $
+//  $Id: root.h,v 1.141 2004/02/17 14:33:54 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1811,6 +1811,7 @@ static void*  vMCEventg;
 static void*  vAux;
 
 static TTree     * _Tree;
+static TTree     * _ClonedTree;
 
 static AMSEventR * _Head;
 static int         _Count;
@@ -1826,6 +1827,9 @@ public:
  void GetBranchA(TTree *tree);
  void SetCont(); 
  int & Entry(){return _Entry;}
+ static TTree* & Tree()  {return _Tree;}
+ static TTree* & ClonedTree()  {return _ClonedTree;}
+ Int_t Fill();
 protected:
 //
 //  TSelector functions
@@ -3000,7 +3004,7 @@ void         AddAMSObject(Trigger2LVL1 *ptr);
 void         AddAMSObject(TriggerLVL302 *ptr);
 #endif
 
-ClassDef(AMSEventR,1)       //AMSEventR
+ClassDef(AMSEventR,2)       //AMSEventR
 };
 
 //!  AMSChain class
