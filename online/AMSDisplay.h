@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.h,v 1.14 2003/07/01 06:42:20 choutko Exp $
+//  $Id: AMSDisplay.h,v 1.15 2004/02/23 22:47:42 choutko Exp $
 #ifndef AMSOnDisplay_H
 #define AMSOnDisplay_H
 
@@ -30,6 +30,7 @@ protected:
   Bool_t           m_logx;
   Bool_t           m_logy;
   Bool_t           m_logz;
+  bool             m_idle;
   double           m_scale;
   AMSControlFrame        *m_ControlFrame;               //Pointer to the display canvas
   TCanvas        *m_Canvas;               //Pointer to the display canvas
@@ -49,7 +50,7 @@ protected:
   Int_t            _Begin;
   Int_t            _Sample;
 public:
-      
+      bool &              IsIdleing(){return m_idle;} 
                     AMSOnDisplay();
                     AMSOnDisplay(const char *title,AMSNtupleR *file);
   virtual void              SetApplication(TApplication* papp){m_theapp=papp;}

@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.22 2004/02/22 15:39:41 choutko Exp $
+//  $Id: main.cxx,v 1.23 2004/02/23 22:47:43 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -40,9 +40,10 @@ void OpenChain(TChain & chain, char * filename);
 static int Selectsdir( const dirent * entry=0);
 #endif
 void Myapp::HandleIdleTimer(){
+  StopIdleing();
   if(fDisplay)fDisplay->DispatchProcesses();
   SetReturnFromRun(1);
-  
+  StartIdleing(); 
   Terminate();
   cout <<"exiting handler"<<endl;
 }
@@ -119,9 +120,7 @@ Myapp *theApp = new Myapp("App", &argcc, argv);
   theApp->SetIdleTimer(15,"");
    TVirtualHistPainter::SetPainter("THistPainter");
       for(;;){
-        amd->Fill();
-          
-        amd->DispatchProcesses();  
+        if(amd->Fill())amd->DispatchProcesses();
         theApp->Run();
       }        
       return 0;

@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.18 2004/02/22 15:39:39 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.19 2004/02/23 22:47:39 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -46,6 +46,7 @@ AMSOnDisplay::AMSOnDisplay() : TObject(){
    m_logx=kFALSE;
    m_logy=kFALSE;
    m_logz=kFALSE;
+   m_idle=true;
    m_theapp=0;
    m_ControlFrame=0;
    _Head=this;   
@@ -68,6 +69,7 @@ AMSOnDisplay::AMSOnDisplay(const char *title, AMSNtupleR *file):TObject(){
    m_logx=kFALSE;
    m_logy=kFALSE;
    m_logz=kFALSE;
+   m_idle=true;
    _grset[0]='\0';
    _Begin=0;
    _Sample=10000;
@@ -227,21 +229,19 @@ void AMSOnDisplay::DrawRunInfo(Option_t *option)
 void AMSOnDisplay::StartStop(char *buf){
   if(buf)buf[0]='\0';
   if(!m_theapp)return;
-  static int state=0;
-  state=(state+1)%2;
    static TText * text=0;
    static char atext2[20]="Stop Timer";
    static char atext1[20]="Start Timer";
 
    if (! text) {
-	if(state%2)text = new TText(0.5, 0.5, atext1);
+	if(m_idle)text = new TText(0.5, 0.5, atext1);
 	else text = new TText(0.5, 0.5, atext2);
    }
    else{
-	if(state%2)text->SetText(0.5, 0.5, atext1);
+	if(m_idle)text->SetText(0.5, 0.5, atext1);
 	else text = new TText(0.5, 0.5, atext2);
    }
-    if(state%2)m_theapp->RemoveIdleTimer();
+    if(m_idle)m_theapp->RemoveIdleTimer();
     else m_theapp->SetIdleTimer(15,"");
    text->SetTextAlign(22);
    text->SetTextSize(0.55);
@@ -250,9 +250,10 @@ void AMSOnDisplay::StartStop(char *buf){
     text->Draw();
    }
    else {
-	if(state%2)strcpy(buf, atext1);
+	if(m_idle)strcpy(buf, atext1);
 	else strcpy(buf,atext2);
    }
+   m_idle=!m_idle;
 }
 
 void AMSOnDisplay::AddSubDet(  AMSHist & subdet){
@@ -372,6 +373,7 @@ bool AMSOnDisplay::Fill(bool checkonly){
   time_t timett1,timett2;
   time(&timett1);
    int cur=0;
+   bool filled=false;
   for(int i=_Begin;i<_End;i++){
    int ret= m_ntuple->ReadOneEvent(i);
    if(ret<0){
@@ -399,6 +401,7 @@ bool AMSOnDisplay::Fill(bool checkonly){
 //         cout <<"  reset we jopu"<<endl;
 //     }
      if(ret){
+      filled=true;
       for(int j=0;j<_subdet.size();j++){
        _subdet[j]->Fill(m_ntuple);
       }
@@ -406,7 +409,7 @@ bool AMSOnDisplay::Fill(bool checkonly){
   }
   DrawRunInfo();
   m_Canvas->Update();
-  return true;
+  return filled;
 }
 
 
