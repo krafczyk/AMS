@@ -166,6 +166,61 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
      }
     }
 //---->
+//
+    int il,ilma(0),ilmd(0),neda(0),nedd(0);
+    number edepa[SCLRS]={0.,0.,0.,0.};
+    number edepd[SCLRS]={0.,0.,0.,0.};
+    number edamx(0.),eddmx(0.),avera(0.),averd(0.),za,zd,sig,sigo;
+//
+    if(!ptrack->checkstatus(AMSDBc::FalseTOFX)){
+// 
+    for(nh=0;nh<nhit;nh++){ // <-- calc. trunc.eloss 
+      status=pthit[nh]->getstatus();
+      if((status&SCBADB2)==0 || ((status&SCBADB2)!=0 && (status&SCBADB5)!=0)){
+        il=pthit[nh]->getntof()-1;
+        edepa[il]=pthit[nh]->getedep();
+        if(edepa[il]>0.)neda+=1;
+        if(edepa[il]>edamx){
+          edamx=edepa[il];
+          ilma=il;
+        }
+        edepd[il]=pthit[nh]->getedepd();
+        if(edepd[il]>0.)nedd+=1;
+        if(edepd[il]>eddmx){
+          eddmx=edepd[il];
+          ilmd=il;
+        }
+      } 
+    }
+    if(edamx>0. && neda>1){
+      for(il=0;il<SCLRS;il++)if(il!=ilma)avera+=edepa[il];
+      avera/=(neda-1);
+    }
+    if(eddmx>0. && nedd>1){
+      for(il=0;il<SCLRS;il++)if(il!=ilmd)averd+=edepd[il];
+      averd/=(nedd-1);
+    }
+    za=sqrt(fabs(cos(theta))*avera/1.8);
+    zd=sqrt(fabs(cos(theta))*averd/1.7);
+    sig=0.;
+    if(za>0. && za<5.)sig=sqrt(7400.+11977./avera);
+    if(za>=4.5){
+      if(zd>3.5)sig=sqrt(7400.+11977./averd);
+      else sig=sqrt(7400.+11977.*0.022);// level of Z=5 resol.(ps)
+    }
+    if(sig>0. && sig<80.)sig=80.;// min.limit on sigma
+//
+    for(nh=0;nh<nhit;nh++){ // <-- replace time errors
+      status=pthit[nh]->getstatus();
+      if((status&SCBADB2)==0){// update resol. only for true 2-sided counters
+        il=pthit[nh]->getntof()-1;
+        sigo=(1.e+12)*(pthit[nh]->getetime());
+        if(sig>0.)pthit[nh]->setetime(sig*1.e-12);
+      }
+    }
+//
+    }
+//---->
     pbeta->SimpleFit(nhit, sleng);
     if(pbeta->getchi2()< BETAFITFFKEY.Chi2 && fabs(pbeta->getbeta())<1.41){
       // Mark Track as used

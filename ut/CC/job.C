@@ -740,7 +740,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
   TOFRECFFKEY.relogic[2]=0;//(10) 0/1-> force L4S2 suppression(useful for MC processing)
-  TOFRECFFKEY.relogic[3]=1;//(11) 0/1-> use new/old parametrization for TOF integrators 
+  TOFRECFFKEY.relogic[3]=0;//(11) 0/1-> use new/old parametrization for TOF integrators 
   TOFRECFFKEY.relogic[4]=0;//(12) spare RECO logic flag
 //
   TOFRECFFKEY.daqthr[0]=35.;//(13)Fast discr. thresh(mV) for fast/slow_TDC 

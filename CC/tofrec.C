@@ -1481,15 +1481,14 @@ void AMSTOFCluster::build(int &stat){
         }
 //
         for(j=0;j<nmemb;j++)membp[j]->setstatus(AMSDBc::USED);// set "used" bit for members
-        edep=ptr->getedep();// finaly: Edep is taken from "peak" bar
-        edepd=ptr->getedepd();
+//        edep=ptr->getedep();// finaly: Edep is taken from "peak" bar
+//        edepd=ptr->getedepd();
         if((status & SCBADB3)!=0)status|=AMSDBc::BAD; 
 //          bad=(peak bar has severe problem with t-measurement)
         if((status & SCBADB2)!=0 && (status & SCBADB5)==0)status|=AMSDBc::BAD;
 //          bad=(peak bar is 1-sided and not recovered -> bad for t-measur)
 //
         AMSEvent::gethead()->addnext(AMSID("AMSTOFCluster",ilay), new
-//          AMSTOFCluster(status,ntof,barn,edep,coo,ecoo,time,etime,nmemb,membp));
           AMSTOFCluster(status,ntof,barn,edep,edepd,coo,ecoo,time,etime,nmemb,membp));
 //
         nclust+=1;
