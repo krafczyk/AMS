@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.20 2004/04/14 15:57:22 choutko Exp $
+#  $Id: POADBServer.pm,v 1.21 2004/04/20 07:43:50 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -574,6 +574,19 @@ OUT:
       
              }
              elsif($rc eq "Create"){
+#                     
+#                     Add Additional check if such client alrdy exists
+#
+                 for my $i (0 ... $#{$ref->{$tag}}){
+                     my $arel=$ref->{$tag}[$i];
+                     if($cid->{uid} ==$arel->{id}->{uid}){
+                         untie %hash;
+                         return;
+                     } 
+                 }
+
+
+
                       if( not defined $hash{$tag."_maxc"} or $hash{$tag."_maxc"}<$cid->{uid}){
                          $hash{$tag."_maxc"}=$cid->{uid};
                      }
