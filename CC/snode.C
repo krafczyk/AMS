@@ -54,7 +54,7 @@ void AMSNodeMap::unmap(){
     _rehash(_mother);
         AMSsortNAG(_hash,_numo); 
     //    AMSsort(_hash,_numo); 
-        if(AMSNodeMap::debug){
+#ifdef __AMSDEBUG__
           //        Check for duplicalte elements
          int nel;
          for(nel=1;nel<_numo;nel++){
@@ -63,7 +63,7 @@ void AMSNodeMap::unmap(){
                   <<endl;
            } 
          }
-        }
+#endif
    }
    
   } 

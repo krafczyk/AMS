@@ -29,12 +29,13 @@ class AMSgvolume : public AMSNode
    AMSPoint _coo;       //   ! geant volume relative coord
    AMSPoint _cooA;     //    ! geant volume abs coordinate
    number  _nrm[3][3];  //   ! normales  with resp to mother (1st index 1st)
-   number  _inrm[3][3]; //   ! norm absolute (1st index 1st)
+   number  _nrmA[3][3]; //   ! norm absolute (1st index 1st)
+   number  _inrmA[3][3]; //  ! inv norm absolute (1st index 1st)
    char    _gonly[5];   //   ! should be 'MANY' or 'ONLY'
    char    _shape[5];   //   ! geant voulme shape
     
    integer _ContPos;
-
+  void  _gl2loc(AMSgvolume * cur, AMSPoint & coo); 
    virtual ostream & print(ostream &)const;
 
  public:
@@ -58,9 +59,7 @@ class AMSgvolume : public AMSNode
            const char gonly[] , 
            integer posp,integer gid, integer rel=0);
 
-  void setcoo(geant coo[], integer rel=0);
-  void setnrm(number nrm[][3], integer rel=0);
-  number getinrm(integer i ,integer j)const{return _inrm[i][j];}
+  number getnrmA(integer i ,integer j)const{return _nrmA[i][j];}
   number getcoo(integer i) {return _coo[i];}
   number getcooA(integer i){return _cooA[i];}
   number getpar(integer i)const {return i>=0 && i<_npar ? _par[i]:0;}
@@ -86,7 +85,7 @@ integer getContPos()                {return _ContPos;}
   UCOPY( &_par, gbuff, sizeof(geant)*6/4);
   UCOPY( &_coo, coo, sizeof(AMSPoint)*1/4);
   UCOPY( &_nrm, nbuff0, sizeof(number)*3*3/4);
-  UCOPY( &_inrm,nbuffi, sizeof(number)*3*3/4);
+  UCOPY( &_nrmA,nbuffi, sizeof(number)*3*3/4);
   if(_shape)strcpy(shape,_shape);
   if(_gonly)strcpy(gonly,_gonly);
 }
@@ -98,7 +97,7 @@ void setNumbers
   UCOPY(gbuff, &_par, sizeof(geant)*6/4);
   UCOPY(coo, &_coo, sizeof(AMSPoint)*1/4);
   UCOPY(nbuff0, &_nrm, sizeof(number)*3*3/4);
-  UCOPY(nbuffi, &_inrm, sizeof(number)*3*3/4);
+  UCOPY(nbuffi, &_nrmA, sizeof(number)*3*3/4);
   if(shape)strcpy(_shape,shape);
   if(gonly)strcpy(_gonly,gonly);
   setname(name);

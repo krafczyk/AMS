@@ -73,7 +73,7 @@ void AMSTrCluster::build(integer refit=0){
     }
   }
  
-  integer size=(AMSDBc::maxstrips()+1+
+  integer size=(AMSDBc::maxstripsdrp()+1+
   2*max(TRCLFFKEY.ThrClNEl[0],TRCLFFKEY.ThrClNEl[1]))*sizeof(number);
   number *  adc  = (number*)UPool.insert(size); 
   AMSTrIdSoft id;
@@ -420,13 +420,13 @@ void AMSTrRecHit::build(integer refit=0){
         // make MANY points.... Unfortunately...
          AMSTrIdGeom *pid = idx.ambig(idy, nambig);
          for(int i=0;i<nambig;i++){
-          static char name[5];
          AMSgSen *p;
          p=(AMSgSen*)AMSJob::gethead()->getgeomvolume((pid+i)->crgid());
          if(!p){
            if(TKDBc::GetStatus((pid+i)->getlayer()-1,(pid+i)->getladder()-1,
-           (pid+i)->getsensor()-1))cerr << "AMSTrRecHitBuild-S-Sensor-Error "<<
-                                  AMSID(name,(pid+i)->cmpt());          
+           (pid+i)->getsensor()-1))
+           cerr << "AMSTrRecHitBuild-S-Sensor-Error "<<
+             (pid+i)->crgid()<<endl;          
          }
          else{
           _addnext(p,0,ilay,x,y,
@@ -951,8 +951,8 @@ AMSTrRecHit *phit=_Pthit[0];
   assert(phit!= NULL);
 #endif
 
- AMSDir SenDir((phit->getpsen())->getinrm(2,0),
-        (phit->getpsen())->getinrm(2,1),(phit->getpsen())->getinrm(2,2) );
+ AMSDir SenDir((phit->getpsen())->getnrmA(2,0),
+        (phit->getpsen())->getnrmA(2,1),(phit->getpsen())->getnrmA(2,2) );
  AMSPoint SenPnt=phit->getHit();
  number sleng;
  interpolate(SenPnt, SenDir, _HP0[1], _HTheta[1], _HPhi[1], sleng);

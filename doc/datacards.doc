@@ -450,3 +450,7 @@ BMAP   // Magnetic field control
 I 1 iniok(1)                       // 0 for update mag field
 
 
+
+TKGEOM   // Read/Write tracker geom control
+I 1 ReadGeomFromFile(1)             
+I 2 WriteGeomToFile(0)

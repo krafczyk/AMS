@@ -29,8 +29,8 @@ b) Constructors:
 //  char shape[]          ! geant volume shape
 //  geant par[]           ! geant volume paramerters
 //  integer npar          ! parameters number
-//  geant   coo[3]        ! geant volume ABSOLUTE coordinates if abs!=0
-//  geant   coo[3]        ! geant volume RELATIVE  coordinates if abs==0
+//  geant   coo[3]        ! geant volume ABSOLUTE coordinates if rel==0
+//  geant   coo[3]        ! geant volume RELATIVE  coordinates if rel!=0
 //  number nrm[3][3]      ! ABSOLUTE rotation matrix (1st index 1st) if rel==0
 //  number nrm[3][3]      ! RELATIVE rotation matrix (1st index 1st) if rel!=0
 //  char gonly[]          ! 'Many' or 'ONLY'

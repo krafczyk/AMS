@@ -41,13 +41,15 @@ if(side==0){
    for(i=_left[side];i<=_right[side];i++){
     AMSTrIdSoft id(AMSTrIdGeom(_idsoft,i,0),side);
     if(idl.getaddr() != id.getaddr())return;
+    if(id.dead())continue; 
     adc[id.getstrip()]=  adc[id.getstrip()]+_ss[side][i-_left[side]];
    }
 }  
 else {
    for(i=_left[side];i<=_right[side];i++){
     AMSTrIdSoft id(AMSTrIdGeom(_idsoft,0,i),side);
-    if(idl.getaddr() != id.getaddr())return;
+    if(idl.getaddr() != id.getaddr()  )return;
+    if(id.dead())continue; 
     adc[id.getstrip()]=  adc[id.getstrip()]+_ss[side][i-_left[side]];
    }
 }
@@ -58,6 +60,9 @@ void AMSTrMCCluster::addcontent(char xy, geant ** p){
  if(xy=='x'){
    for(i=_left[0];i<=_right[0];i++){
     AMSTrIdSoft id(AMSTrIdGeom(_idsoft,i,0),0);
+    if(id.dead()){
+     continue;
+    }
     if(p[id.getaddr()]==0){
      integer isize=sizeof(geant)*id.getmaxstrips();
      p[id.getaddr()]=(geant*)UPool.insert(isize);
@@ -75,6 +80,9 @@ void AMSTrMCCluster::addcontent(char xy, geant ** p){
  else{
    for(i=_left[1];i<=_right[1];i++){
     AMSTrIdSoft id(AMSTrIdGeom(_idsoft,0,i),1);
+    if(id.dead()){
+     continue;
+    }
     if(p[id.getaddr()]==0){
      integer isize=sizeof(geant)*id.getmaxstrips();
      p[id.getaddr()]=(geant*)UPool.insert(isize);
@@ -257,7 +265,8 @@ integer idsoft , geant vect[],geant edep, geant step, integer itra ){
  }
  }
  else{
-     cerr << "sitkhits Error" << idsoft <<endl;
+   cerr << "sitkhits Error" << idsoft <<" "
+        <<AMSTrIdGeom(idsoft).crgid()<<endl;
  }
  AMSgObj::BookTimer.stop("SITKHITS");
 }
@@ -279,7 +288,7 @@ void AMSTrMCCluster::sitknoise(){
          for (int s=0;s<2;s++){
            if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
             AMSDBc::activeladdshuttle(i+1,j+1,s)){
-            AMSTrIdSoft id(i+1,j+1,s,l);
+            AMSTrIdSoft id(i+1,j+1,s,l,0);
             id.upd(id.getmaxstrips()-1);
             geant r=RNDM(dummy);
             if(r<id.getindnoise()){
@@ -292,11 +301,11 @@ void AMSTrMCCluster::sitknoise(){
               AMSTrIdSoft idx,idy;
               if(l==0){
                   idx=id;
-                  idy=AMSTrIdSoft(i+1,j+1,s,1);
+                  idy=AMSTrIdSoft(i+1,j+1,s,1,0);
               }
               else {
                   idy=id;
-                  idx=AMSTrIdSoft(i+1,j+1,s,0);
+                  idx=AMSTrIdSoft(i+1,j+1,s,0,0);
               }
               integer nambig;
               AMSTrIdGeom *pid=idx.ambig(idy,nambig);

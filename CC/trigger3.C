@@ -21,29 +21,39 @@ void TriggerAuxLVL3::fill(){
   int i,j;
   integer ierr=0;
   integer nn=0;
-  int16 half,drp,strip,va,side;
+  int16u crate,drp,strip,va,side;
   geant d;
   for(i=0;i<2;i++){
    geant xn=2*LVL3SIMFFKEY.NoiseProb[i]*NTRHDRP*AMSDBc::NStripsDrp(1,i);
    POISSN(xn,nn,ierr);
    for(j=0;j<nn;j++){
     side=i;
-    half=RNDM(d) > 0.5;
+#ifdef __AMSDEBUG__
+    if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ){
+     cerr << 
+     "TriggerAuxLVL3::fill-E-cannot find crates table for setup "<<
+     AMSJob::gethead()->getsetup()<<endl;
+    }
+     crate=RNDM(d) > 0.5;
+#else
+    crate=RNDM(d) > 0.5;
+#endif
     drp=RNDM(d)*NTRHDRP;
     if(drp >= NTRHDRP)drp=NTRHDRP-1;
     strip=RNDM(d)*AMSDBc::NStripsDrp(1,i);
     if(strip >= AMSDBc::NStripsDrp(1,i))strip=AMSDBc::NStripsDrp(1,i)-1;
-    va=side >0 ? strip/64 : strip/64+10;
-    strip=strip%64;
-    if(maxtr-_ltr > 4){
-     _ptr[_ltr]=1;   // length + max strp
-     _ptr[_ltr+1]=AMSTrRawCluster::mkaddress(strip,va,half,drp);
-     _ptr[_ltr+2]=1000;
-     _ptr[_ltr+3]=1000;
-     _ltr+=4;
-    }    
-    else return;
-   }  
+    AMSTrIdSoft idd(crate,drp,i,strip);
+    if(!idd.dead()){ 
+     if(maxtr-_ltr > 4){
+      _ptr[_ltr]=1;   // length + max strp
+      _ptr[_ltr+1]=idd.gethaddr();
+      _ptr[_ltr+2]=1000;
+      _ptr[_ltr+3]=1000;
+      _ltr+=4;
+     }    
+     else return;
+    }
+    }  
   }
 
   for(int icl=0;icl<2;icl++){ 
@@ -81,8 +91,9 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
   integer TriggerLVL3::_NTOF[SCLRS];
   geant TriggerLVL3::_TOFCoo[SCLRS][SCMXBR][3];
   geant TriggerLVL3::_TrackerCoo[NTRHDRP][2][3];
+ geant TriggerLVL3::_TrackerDir[NTRHDRP][2];
   geant TriggerLVL3::_TrackerCooZ[nl];
-  integer TriggerLVL3::_TrackerDRP2Layer[NTRHDRP];
+  integer TriggerLVL3::_TrackerDRP2Layer[NTRHDRP][2];
   const integer TriggerLVL3::_patconf[LVL3NPAT][nl]={
                       0,1,2,3,4,5,   // 123456  0
                       0,1,2,3,5,0,   // 12346   1
@@ -132,7 +143,7 @@ return _ctr < _ltr ? _ptr+_ctr : 0;
      3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3};
   const integer TriggerLVL3::_patd[5]={0,1,7,22,42};
   number TriggerLVL3::_stripsize;
-
+integer TriggerLVL3::_TrackerOtherTDR[NTRHDRP][2];
 
 
 
@@ -222,51 +233,105 @@ void TriggerLVL3::init(){
     for(i=0;i<NTRHDRP2;i++){
      _TrackerStatus[i]=0;
     }
-    char one[]="123456";
-    char plane[]="PLAN";
-    for (i=0;i<nl;i++){
-        plane[3]=one[i];
-        AMSgvolume *ptr=AMSJob::gethead()->getgeomvolume(
-        AMSID(plane,10+i+1));
-        if( ptr){
-         AMSPoint loc(0,0,0);
-         AMSPoint global=ptr->loc2gl(loc);
-         _TrackerCooZ[i]=global[2];         
-        }
-        else cerr <<"TriggerLVL3-Init-S-TrackerVolumeNotFound"<<AMSID(plane,10+i+1);
-    }
 
+
+    for (i=0;i<nl;i++){
+      _TrackerCooZ[i]=0;
+      int nsf=0;
+      for(int j=0;j<AMSDBc::nlad(i+1);j++){
+        for(int k=0;k<AMSDBc::nsen(i+1,j+1);k++){
+         AMSTrIdGeom id(i+1,j+1,k+1,0,0);
+         AMSgvolume *ptr=AMSJob::gethead()->getgeomvolume(id.crgid());
+         if( ptr){
+          AMSPoint loc(0,0,0);
+          AMSPoint global=ptr->loc2gl(loc);
+          _TrackerCooZ[i]+=global[2];
+          nsf++;         
+         }
+        }
+      }
+      if(nsf==0){
+        cerr <<"Trigger3::Init-F-no sensors found for layer "<<i+1<<endl;
+        exit(1);
+      }
+      else{
+          _TrackerCooZ[i]=_TrackerCooZ[i]/nsf;
+#ifdef __AMSDEBUG__
+          cout <<"Trigger3::Init-I-"<<nsf<<" sensors found for layer "<<i+1<<endl;
+#endif
+      }
+    }
+{
     AMSTrIdGeom id;
     _stripsize=id.getsize(1);
-
-    for(i=0;i<NTRHDRP;i++){
-       integer lay,lad;
-       AMSDBc::expandshuttle(i,lay,lad);
-       plane[3]=one[lay-1];
-       AMSgvolume *ptr=AMSJob::gethead()->getgeomvolume(
-       AMSID(plane,10*lad+lay));
-       if( ptr){
-         AMSPoint loc(0,0,0);
-         AMSPoint global=ptr->loc2gl(loc);
-         _TrackerCoo[i][0][0]=-1;         
-         _TrackerCoo[i][1][0]=+1;         
-         _TrackerCoo[i][0][1]=global[1]-_stripsize*AMSDBc::NStripsDrp(lay,1)/2;
-         _TrackerCoo[i][1][1]=global[1]-_stripsize*AMSDBc::NStripsDrp(lay,1)/2;
-         _TrackerCoo[i][0][2]=global[2];
-         _TrackerCoo[i][1][2]=global[2];  
-       }
-        else cerr <<"TriggerLVL3-Init-S-TrackerVolumeNotFound"<<AMSID(plane,
-        10*lad+lay);
+    if(_stripsize>0.01){
+      cout <<"Trigger3::init-I-entered IdGeom 2.12 compatibility mode"<<endl;
+       _stripsize=_stripsize/2;
     }
-    // Debug only!!!!!
-    //    _TrackerCoo[1][0][1]=_TrackerCoo[1][0][1]-0.1; 
-    //    _TrackerCoo[1][1][1]=_TrackerCoo[1][1][1]+0.1; 
+}
+    for(i=0;i<NTRHDRP;i++){
+       for( int k=0;k<2;k++){
+        AMSTrIdSoft id(k,i,1,0);
+        if(!id.dead()){         
+             _TrackerCoo[i][k][0]=2*k-1;         
+             _TrackerCoo[i][k][1]=0;
+             _TrackerCoo[i][k][2]=0;
+             _TrackerDir[i][k]=0;
+              int nfs=0;
+              int a= k==0?0:AMSDBc::nhalf(id.getlayer(),id.getdrp());
+              int b= k==0?AMSDBc::nhalf(id.getlayer(),id.getdrp()):
+                          AMSDBc::nsen(id.getlayer(),id.getdrp());
+              for(int l=a;l<b;l++){
+              AMSTrIdGeom idg(id.getlayer(),id.getdrp(),l+1,0,0); 
+              AMSgvolume *ptr=AMSJob::gethead()->getgeomvolume(idg.crgid());
+              if( ptr){
+                AMSPoint loc(0,-ptr->getpar(1),0);
+                AMSPoint global=ptr->loc2gl(loc);
+                _TrackerCoo[i][k][1]+=global[1];
+                _TrackerCoo[i][k][2]+=global[2];
+                _TrackerDir[i][k]+=ptr->getnrmA(1,1);
+                nfs++;
+              }
+          }
+          if(nfs==0){
+             cerr <<"Trigger3::Init-F-no sensors found for layer "<<i+1<<endl;
+             exit(1);
+          }
+          else{
+          _TrackerCoo[i][k][1]=_TrackerCoo[i][k][1]/nfs;
+          _TrackerCoo[i][k][2]=_TrackerCoo[i][k][2]/nfs;
+          _TrackerDir[i][k]=_TrackerDir[i][k]/nfs;
+          }
+        }
+        else {
+          _TrackerCoo[i][k][0]=0;
+          _TrackerCoo[i][k][1]=0;
+          _TrackerCoo[i][k][2]=0;
+          _TrackerDir[i][k]=0;
+
+        }
+       }
+    }
+    int k;
+    for (i=0;i<NTRHDRP;i++){
+      for(k=0;k<2;k++){
+       AMSTrIdSoft id(k,i,1,0);
+      if(!id.dead())_TrackerDRP2Layer[i][k]=id.getlayer()-1;
+      else _TrackerDRP2Layer[i][k]=-1;
+      } 
+   }
 
     for (i=0;i<NTRHDRP;i++){
-      integer lay,lad;
-      AMSDBc::expandshuttle(i,lay,lad);
-     _TrackerDRP2Layer[i]=lay-1;
-    }
+      for(k=0;k<2;k++){
+       AMSTrIdSoft idx(k,i,0,0);
+       if(!idx.dead()){
+         AMSTrIdSoft idy(idx.getlayer(),idx.getdrp(),k,1,0);
+         _TrackerOtherTDR[i][k]=idy.gettdr();
+      }
+       else _TrackerOtherTDR[i][k]=-1;
+      } 
+   }
+
 
     // Expert
     TriggerExpertLVL3::pExpert= new 
@@ -400,18 +465,21 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
   ptr=aux.readtracker(1);  
   while(ptr){
      integer drp,half,va,strip,side;
-     AMSTrRawCluster::getaddress(ptr[1],strip,va,side,half,drp);
-     if(side == 0  && _TrackerStatus[drp+half*NTRHDRP] == 0)
-     _TrackerAux[drp][half]=1;
+     AMSTrRawCluster::lvl3CompatibilityAddress
+     (ptr[1],strip,va,side,half,drp);
+     if(side == 0  && 
+         _TrackerStatus[_TrackerOtherTDR[drp][half]+half*NTRHDRP] == 0)
+         _TrackerAux[_TrackerOtherTDR[drp][half]][half]=1;
    ptr = aux.readtracker();    
   }
 
   ptr=aux.readtracker(1);  
   while(ptr){
      integer drp,half,va,strip,side;
-     AMSTrRawCluster::getaddress(ptr[1],strip,va,side,half,drp);
+     AMSTrRawCluster::lvl3CompatibilityAddress
+      (ptr[1],strip,va,side,half,drp);
      if(side != 0 && _TrackerAux[drp][half]){
-      integer layer=_TrackerDRP2Layer[drp];
+      integer layer=_TrackerDRP2Layer[drp][half];
       // set filsafe cluster def > 1 strip || ( > 2 && two adj to max >=0)
       integer nmax= (*ptr)>>8;
       integer num = ((*ptr)&255);
@@ -434,8 +502,19 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
       //
       // Just take strip as cofg
       //
-      coo=(strip+0.5+nmax)*_stripsize;
-      coo+=_TrackerCoo[drp][half][1];
+      integer ss;
+      switch (strip+nmax) {
+       case 0:
+        ss=0;
+        break;
+       case 639:
+        ss=1282;
+        break;
+       default:
+        ss=strip*2+2;
+      }
+      coo=_TrackerCoo[drp][half][1]+
+      _TrackerDir[drp][half]*_stripsize*(0.5+ss);
       if (coo > plvl3->getlowlimitY(layer) && coo < plvl3->getupperlimitY(layer)){
         if(( half ==0 && plvl3->getlowlimitX(layer) < 0) ||
            ( half ==1 && plvl3->getupperlimitX(layer) > 0) ){
@@ -452,7 +531,7 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
   plvl3->fit(idum);
 
  formed:
-  TriggerExpertLVL3::pExpert->update(plvl3);        
+  //TriggerExpertLVL3::pExpert->update(plvl3);        
   tt2=HighResTime();
        }
        if(plvl3->TrackerTrigger() >= LVL3FFKEY.Accept){ 

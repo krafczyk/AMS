@@ -9,13 +9,14 @@ class AMSDBc {
 private:
 #define nl 6
 #define nld 17
-#define mxstr 640
 // Tracker parameters
-   static const integer _maxstrips;
    static const integer _nlay;
    static const integer _maxnlad;
    static const number  _layd[nl][5];
+   static const number  _xposl[nl];
+   static const number  _yposl[nl];
    static const number  _zposl[nl];
+   static const number  _nrml[nl][3][3];
    static const integer _nlad[nl];
    static const integer _nsen[nl][nld];
    static const integer _nhalf[nl][nld];
@@ -23,12 +24,16 @@ private:
    static const number  _ssize_active[nl][2];
    static const number  _ssize_inactive[nl][2];
    static const integer _nstripssen[nl][2];
+   static const integer _nstripssenR[nl][2];
    static const integer _nstripsdrp[nl][2];
    static const number  _silicon_z[nl];
-   static const number  _zelec[nl][2];
+   static const number  _zelec[nl][3];
    static const number  _c2c[nl];
    static const number  _halfldist[nl];
-   static const number  _support_w[nl];
+   static const number  _support_foam_w[nl];
+   static const number  _support_hc_w[nl];
+   static const number  _support_hc_r[nl];
+   static const number  _support_hc_z[nl];
    static const integer _nladshuttle[nl];
    static const integer _boundladshuttle[nl];
 public:
@@ -57,9 +62,11 @@ public:
 // member functions
    inline static  number layd(integer i, integer j)
      {return _layd[i][j];}
+   inline static  number  xposl(integer i){return _xposl[i];}
+   inline static  number  yposl(integer i){return _yposl[i];}
    inline static  number  zposl(integer i){return _zposl[i];}
+   inline static  number nrml(int i, int j, int k){return _nrml[k][i][j];}
    inline static integer maxnlad(){return _maxnlad;}
-   inline static integer maxstrips(){return _maxstrips;}
    inline static  number  zpos(integer i){return _zpos[i];}
    inline static  number  halfldist(integer i){return _halfldist[i];}
    inline static number  ssize_active(integer ilay, integer side){
@@ -81,7 +88,10 @@ public:
      return _ssize_inactive[ilay][side];
    }
    inline static number  c2c(integer i){return _c2c[i];}
-   inline static number support_w(integer i){return _support_w[i];}
+   inline static number support_foam_w(integer i){return _support_foam_w[i];}
+   inline static number support_hc_w(integer i){return _support_hc_w[i];}
+   inline static number support_hc_r(integer i){return _support_hc_r[i];}
+   inline static number support_hc_z(integer i){return _support_hc_z[i];}
 
    inline static number  silicon_z(integer i){return _silicon_z[i];}
    inline static number zelec(integer i, integer j){return _zelec[i][j];}
@@ -113,6 +123,7 @@ public:
      #endif
      return _nhalf[ilay-1][ilayd-1];
    }
+   static integer maxstripsdrp();
    inline static integer NStripsSen(integer ilay, integer side){
      #ifdef __AMSDEBUG__
      if(AMSDBc::debug){
@@ -121,6 +132,15 @@ public:
      }
      #endif
      return _nstripssen[ilay-1][side];
+   }
+   inline static integer NStripsSenR(integer ilay, integer side){
+     #ifdef __AMSDEBUG__
+     if(AMSDBc::debug){
+       assert(ilay>0 && ilay <= AMSDBc::nlay()) ;
+       assert(side >=0 && side < 2);
+     }
+     #endif
+     return _nstripssenR[ilay-1][side];
    }
    inline static integer NStripsDrp(integer ilay, integer side){
      #ifdef __AMSDEBUG__
@@ -133,8 +153,6 @@ public:
    }
   static integer debug;
   static integer activeladdshuttle(integer i,integer j, integer s);
-  static integer compactshuttle(integer layer, integer ladder);
-  static void expandshuttle(integer cmpt, integer & layer, integer &ladder);
 };
 
 

@@ -437,7 +437,7 @@ void AMSTrIdCalib::_calc(){
     for(k=0;k<2;k++){
      for(i=0;i<AMSDBc::nlay();i++){
        for(j=0;j<AMSDBc::nlad(i+1);j++){
-        AMSTrIdSoft id(i+1,j+1,k,l);
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
         for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
@@ -467,7 +467,7 @@ void AMSTrIdCalib::_update(){
     for(l=0;l<2;l++){
      for(i=0;i<AMSDBc::nlay();i++){
        for(j=0;j<AMSDBc::nlad(i+1);j++){
-        AMSTrIdSoft id(i+1,j+1,k,l);
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
         for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
@@ -560,9 +560,9 @@ _clear();
 }
 
 
-void AMSTrIdCalib::check(){
+void AMSTrIdCalib::check(integer forcedw){
 static integer counter=0;
-if(++counter%TRCALIB.EventsPerCheck == 0){
+if(++counter%TRCALIB.EventsPerCheck == 0 || forcedw){
  int i,j,k,l,m;
     number acc[2]={0,0};
     number cnt[2]={0,0};
@@ -570,7 +570,7 @@ if(++counter%TRCALIB.EventsPerCheck == 0){
     for(k=0;k<2;k++){
      for(i=0;i<AMSDBc::nlay();i++){
        for(j=0;j<AMSDBc::nlad(i+1);j++){
-        AMSTrIdSoft id(i+1,j+1,k,l);
+        AMSTrIdSoft id(i+1,j+1,k,l,0);
         AMSTrIdCalib cid(id);
         for(m=0;m<AMSDBc::NStripsDrp(i+1,l);m++){
          cid.upd(m);
@@ -587,7 +587,7 @@ if(++counter%TRCALIB.EventsPerCheck == 0){
    }
 
    if(cnt[0]>0 && cnt[1]>0){
-     if(acc[0]/cnt[0] < TRCALIB.PedAccRequired[0] &&  acc[1]/cnt[1] < TRCALIB.PedAccRequired[1]){
+     if(!forcedw && (acc[0]/cnt[0] < TRCALIB.PedAccRequired[0] &&  acc[1]/cnt[1] < TRCALIB.PedAccRequired[1])){
        cout << "AMSTrIdCalib::check-I-peds & sigmas succesfully calculated with accuracies "<<
          acc[0]/cnt[0]<<" "<<acc[1]/cnt[1]<<" ( "<<counter<<" ) events."<<endl;
        cout << "AMSTrIdCalib::check-I-peds & sigmas succesfully calculated for  "<< cnt[0]+cnt[1]<< " Channels"<<endl;
@@ -597,7 +597,15 @@ if(++counter%TRCALIB.EventsPerCheck == 0){
        _clear();
        counter=0;
      }
-
+     else if(forcedw){
+       cout << "AMSTrIdCalib::check-I-peds & sigmas succesfully calculated with accuracies "<<
+         acc[0]/cnt[0]<<" "<<acc[1]/cnt[1]<<" ( "<<counter<<" ) events."<<endl;
+       cout << "AMSTrIdCalib::check-I-peds & sigmas succesfully calculated for  "<< cnt[0]+cnt[1]<< " Channels"<<endl;
+       _calc();
+       _hist();
+       _clear();
+       counter=0;
+     }
    }
 }
 }
@@ -615,11 +623,7 @@ void AMSTrIdCalib::buildSigmaPed(integer n, int16u *p){
   int16u * ptr=p+1;
   // Main loop
   while (ptr<p+n){
-     integer va,strip,half,drp,lay,lad,side;
-     AMSTrRawCluster::getaddress(int16u(*(ptr)),strip,va,side,half,drp);
-     AMSDBc::expandshuttle(drp,lay,lad);
-     half=ic;
-     AMSTrIdSoft idd(lay,lad,half,side);
+     AMSTrIdSoft idd(ic,int16u(*(ptr)));
      AMSTrIdCalib cid(idd);
      //aux loop thanks to data format to calculate corr length
      int16u * paux;

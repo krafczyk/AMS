@@ -118,7 +118,6 @@ integer ffile[40];
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
-//=============================================================
 class TOFMCFFKEY_DEF {
 public:
 geant TimeSigma;
@@ -135,7 +134,14 @@ integer birks;     // 0/1  not apply/apply birks corrections
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
-//===================================================================
+
+class TKGEOMFFKEY_DEF{
+public:
+  integer ReadGeomFromFile;
+  integer WriteGeomToFile;
+};
+#define TKGEOMFFKEY COMMON_BLOCK(TKGEOMFFKEY,tkgeomffkey)
+COMMON_BLOCK_DEF(TKGEOMFFKEY_DEF,TKGEOMFFKEY);
 class ANTIGEOMFFKEY_DEF {
 public:
   integer nscpad;  // number of scintillator paddles 
@@ -151,7 +157,6 @@ public:
 };
 #define ANTIGEOMFFKEY COMMON_BLOCK(ANTIGEOMFFKEY,antigeomffkey)
 COMMON_BLOCK_DEF(ANTIGEOMFFKEY_DEF,ANTIGEOMFFKEY);
-//==============================================================
 class ANTIMCFFKEY_DEF {
 public:
 integer mcprtf;// hist. print flag
@@ -533,11 +538,13 @@ COMMON_BLOCK_DEF(TRCALIB_DEF,TRCALIB);
 
 
 class AMSCommonsI{
-public:
-AMSCommonsI();
-void init();
 private:
-static integer _Count;
+ static integer _Count;
+ static char _version[6];
+public:
+ AMSCommonsI();
+ void init();
+ static char * getversion(){return _version;}
 };
 static AMSCommonsI cmnI;
 

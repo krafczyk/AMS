@@ -14,7 +14,6 @@ class AMSID
   char * _name;
   void _copyname( char  const [] );
   virtual ostream & print(ostream &) const;
-  static float _version;  
 // Error handling
   static char *_error;
   static char _pull[];
@@ -24,7 +23,6 @@ class AMSID
    AMSID(const char name[],integer id=0);
    AMSID (const AMSID&);
    virtual ~AMSID();
-   static float getversion(){return _version;}
 
    AMSID &operator=(const AMSID&);
    AMSID operator+(const AMSID&);

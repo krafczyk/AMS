@@ -131,6 +131,13 @@ mat.add (new AMSgmat( 33,"MEWAEROGEL",a,z,w,4, 0.125));
 }
 
 
+// AL honeycomb structure for Tracker (as for TOF now !) :
+mat.add (new AMSgmat( 35,"AL-HONEYC-Tr",26.98, 13., 0.04, 600., 2660.));
+
+// Foam structure for Tracker  :
+mat.add (new AMSgmat( 36,"FOAM",12.01, 6., 0.1 , 425.82, 900.));
+
+
 
 #ifdef __AMSDEBUG__
 if(AMSgmat::debug)GPMATE(0);
@@ -185,6 +192,11 @@ tmed.add (new AMSgtmed(26,"TUNGSTEN",12,0));
 geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed(27,"BGO",34,1,'Y',birks));
 }
+int ip=27;
+tmed.add (new AMSgtmed(++ip,"Tr_Honeycomb",35,0));
+tmed.add (new AMSgtmed(++ip,"Tr_Foam",36,0));
+
+
 AMSgObj::GTrMedMap.map(tmed);
 #ifdef __AMSDEBUG__
 if(AMSgtmed::debug)AMSgObj::GTrMedMap.print();

@@ -4,32 +4,7 @@
 #include <gmat.h>
 integer AMSgvolume::debug=1;
 geant AMSgvolume::dgeant=1.e-4;
-void AMSgvolume::setcoo(geant coo[],integer rel){
-_cooA=AMSPoint(coo[0],coo[1],coo[2]);
-_coo=_cooA;
-  AMSgvolume * cur;
-   cur=up();
-   while (cur){
-    if(rel)_cooA=_cooA+cur->_coo;
-    else _coo=_coo-cur->_coo;
-    cur=cur->up();
-   }
-}
-void AMSgvolume::setnrm(number nrm[3][3], integer rel){
-   UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
-   UCOPY(nrm,_inrm,3*3*sizeof(nrm[0][0])/4);
-  AMSgvolume * cur;
-   cur=up();
-   while (cur){
-     if(rel){
-      number nrm[3][3];
-      transpose(cur->_nrm,nrm);
-      mm3(nrm,_nrm);
-     }
-    else mm3(cur->_nrm,_inrm);
-    cur=cur->up();
-   }
-}
+
 
 AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
@@ -43,7 +18,8 @@ AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[],
    if(gonly)strcpy(_gonly,gonly);
    UCOPY(par,_par,6*sizeof(par[0])/4);
    UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
-   UCOPY(nrm,_inrm,3*3*sizeof(nrm[0][0])/4);
+   UCOPY(nrm,_nrmA,3*3*sizeof(nrm[0][0])/4);
+   transpose(_nrmA,_inrmA);
 //
 //  Part of geant initialization here
 //
@@ -75,7 +51,8 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
    if(gonly)strcpy(_gonly,gonly);
    UCOPY(par,_par,6*sizeof(par[0])/4);
    UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
-   UCOPY(nrm,_inrm,3*3*sizeof(nrm[0][0])/4);
+   UCOPY(nrm,_nrmA,3*3*sizeof(nrm[0][0])/4);
+   transpose(_nrmA,_inrmA);
 //
 //  Part of geant initialization here
 //
@@ -112,10 +89,11 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
       _nrm[j][0]=nrm1[j];
       _nrm[j][1]=nrm2[j];
       _nrm[j][2]=nrm3[j];
-     _inrm[j][0]=nrm1[j];
-     _inrm[j][1]=nrm2[j];
-     _inrm[j][2]=nrm3[j];
+     _nrmA[j][0]=nrm1[j];
+     _nrmA[j][1]=nrm2[j];
+     _nrmA[j][2]=nrm3[j];
    }
+     transpose(_nrmA,_inrmA);
 //
 //  Part of geant initialization here
 //
@@ -128,23 +106,46 @@ AMSgvolume::AMSgvolume (char  matter[],integer rotmno,const char name[],
       
 }
 
-void AMSgvolume::_init(){
-  AMSgvolume * cur;
-  number nrm[3][3];
-   cur=up();
-   while (cur){
-     if(_rel){
-      _cooA=_cooA+cur->_coo;
-      mm3(cur->_nrm,_inrm);
-     }
-     else{
-      _coo=_coo-cur->_coo;
-      transpose(cur->_nrm,nrm);
-      mm3(nrm,_nrm);
-     }
-    cur=cur->up();
-   }
+void AMSgvolume::_gl2loc(AMSgvolume * cur, AMSPoint & coo){
+cur=cur->up();
+number nrm[3][3];
+if(cur)_gl2loc(cur,coo);
+else return;
+ transpose(cur->_nrm,nrm);
+ mm3(nrm,_nrmA,1);
+ coo=(coo-cur->_coo).mm3(nrm);
+}
 
+void AMSgvolume::_init(){
+  //
+  // Translate global to local if rel==0
+  // Translate local  to global if rel!=0 
+  AMSgvolume * cur=this;
+  number nrm[3][3]={1,0,0,
+                    0,1,0,
+                    0,0,1};
+   AMSPoint coo;
+  if(_rel){
+    // loc2gl
+   coo=0;
+   while (cur){
+      coo=coo.mm3(cur->_nrm)+cur->_coo;
+      mm3(cur->_nrm,nrm,1);
+      cur=cur->up();
+   }
+   _cooA=coo;
+   int i,j;
+   for(i=0;i<3;i++){
+     for(j=0;j<3;j++){
+      _nrmA[i][j]=nrm[i][j];
+     }
+   }
+  }
+  else{
+    // gl2loc   // recursion needed
+      _gl2loc(cur,_cooA);     
+  }
+   transpose(_nrmA,_inrmA);
 
   if (_gid > 0) {
    int newv=0;
@@ -212,28 +213,34 @@ return(AMSID::print(stream) << _shape <<  " GV" << endl);}
 
 
 AMSPoint AMSgvolume::gl2loc(AMSPoint vect){
-AMSPoint loc=vect-_coo;
-AMSgvolume *cur=up();
-number nrm[3][3];
-UCOPY(_nrm,nrm,sizeof(nrm[0][0])/4*9);
-loc=loc.mm3(nrm);
-while (cur){
- mm3(cur->_nrm,nrm);
- loc=loc.mm3(cur->_nrm)-cur->_coo.mm3(nrm);
- cur=cur->up();
+#ifndef __AMSDEBUG__
+vect=(vect-_cooA).mm3(_inrmA);
+return vect;
+#else
+
+AMSPoint small(1.e-4,1.e-4,1.e-4);
+AMSPoint loc=(vect-_cooA).mm3(_inrmA);
+AMSPoint gl=loc2gl(loc);
+AMSPoint diff=gl-vect;
+if(diff.abs() >= small){
+    cerr <<"AMSgvolume::loc2gl-E-Invert operation error "
+    <<vect<<" "<<loc<<" "<<gl<<endl;
 }
 return loc;
+#endif
+
 } 
 
 AMSPoint AMSgvolume::loc2gl(AMSPoint xv){
-number inrm[3][3];
-transpose(_nrm,inrm);
-xv=xv.mm3(inrm)+_coo;
-AMSgvolume *cur=up();
-while (cur){
-transpose(cur->_nrm,inrm);
-xv=xv.mm3(inrm)+cur->_coo;
-cur=cur->up();
-}
-return xv;
+    xv=xv.mm3(_nrmA)+_cooA;
+    return xv;
+    //AMSPoint small(1.e-4,1.e-4,1.e-4);
+    //AMSPoint gl=xv.mm3(_nrmA)+_cooA;
+    //AMSPoint loc=gl2loc(gl);
+    //AMSPoint diff=loc-xv;
+    //if(diff.abs() >= small){
+    //    cerr <<"AMSgvolume::loc2gl-E-Invert operation error "
+    //    <<xv<<" "<<gl<<" "<<loc<<endl;
+    //}
+    //return loc;
 }

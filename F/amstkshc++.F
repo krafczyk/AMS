@@ -1285,7 +1285,7 @@ C.
       CALL GSPART( 62,'LI7  ',itrt,   6.53536,  3., 1000., UBUF,0)
       CALL GSPART( 63,'BE7  ',itrt,   6.53622,  4., 1000., UBUF,0)
       CALL GSPART( 64,'BE9  ',itrt,   8.39479,  4., 1000., UBUF,0)
-      CALL GSPART( 65,'B10  ',itrt,   9.32799,  4., 1000., UBUF,0)
+      CALL GSPART( 65,'B10  ',itrt,   9.32699,  5., 1000., UBUF,0)
       CALL GSPART( 66,'B11  ',itrt,  10.25510,  5., 1000., UBUF,0)
       CALL GSPART( 67,'C12  ',itrt,  11.17793,  6., 1000., UBUF,0)
       CALL GSPART( 68,'N14  ',itrt,  13.04378,  7., 1000., UBUF,0)
@@ -4246,7 +4246,8 @@ C
       IF (ABS (TN(1)) .LT. 1.E-30) TN(1) = 1.E-30
       PC(3) = ATAN2 (TN(2),TN(1))
 C
-      COSL=SQRT(ABS(1.-TN(3)**2))
+      cosl=sqrt(tn(1)**2+tn(2)**2)/sqrt(tn(1)**2+tn(2)**2+tn(3)**2)
+c      COSL=SQRT(ABS(1.-TN(3)**2))
       IF (COSL .LT. 1.E-30) COSL = 1.E-30
       COSL1=1./COSL
       UN(1)=-TN(2)*COSL1
@@ -4365,7 +4366,8 @@ C
       IF (ABS (TN(1)) .LT. 1.E-30) TN(1) = 1.E-30
       PC(3) = ATAN2 (TN(2),TN(1))
 C
-      COSL=SQRT(ABS(1.-TN(3)**2))
+c      COSL=SQRT(ABS(1.-TN(3)**2))
+      cosl=sqrt(tn(1)**2+tn(2)**2)/sqrt(tn(1)**2+tn(2)**2+tn(3)**2)
       IF (COSL .LT. 1.E-30) COSL = 1.E-30
       COSL1=1./COSL
       UN(1)=-TN(2)*COSL1
@@ -4500,7 +4502,8 @@ C
       PD2(2)=TVW2(2)*TR
       PD2(3)=TVW2(3)*TR
 C
-      COSL=SQRT(ABS(1.-TN(3)**2))
+c      COSL=SQRT(ABS(1.-TN(3)**2))
+      cosl=sqrt(tn(1)**2+tn(2)**2)/sqrt(tn(1)**2+tn(2)**2+tn(3)**2)
       IF(COSL.EQ.0.) GO TO 902
       COSL1=1./COSL
       UN(1)=-TN(2)*COSL1
@@ -4686,7 +4689,8 @@ C
          TN(I)=TVW(1)*DI(I)+TVW(2)*DJ(I)+TVW(3)*DK(I)
     5 CONTINUE
 C
-      COSL=SQRT(ABS(1.-TN(3)**2))
+c      COSL=SQRT(ABS(1.-TN(3)**2))
+      cosl=sqrt(tn(1)**2+tn(2)**2)/sqrt(tn(1)**2+tn(2)**2+tn(3)**2)
       IF (COSL .LT. 1.E-30) COSL = 1.E-30
       COSL1=1./COSL
       SINL  = TN(3)
@@ -4855,7 +4859,8 @@ C
          TN(I)=TVW(1)*DI(I)+TVW(2)*DJ(I)+TVW(3)*DK(I)
     5 CONTINUE
 C
-      COSL=SQRT(ABS(1.-TN(3)**2))
+c      COSL=SQRT(ABS(1.-TN(3)**2))
+      cosl=sqrt(tn(1)**2+tn(2)**2)/sqrt(tn(1)**2+tn(2)**2+tn(3)**2)
       IF (COSL .LT. 1.E-30) COSL = 1.E-30
       COSL1=1./COSL
       TANL  = TN(3)*COSL1

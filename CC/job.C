@@ -177,6 +177,10 @@ void AMSJob::_sitrigdata(){
 }
 
 void AMSJob::_sitkdata(){
+TKGEOMFFKEY.ReadGeomFromFile=1;
+TKGEOMFFKEY.WriteGeomToFile=0;
+FFKEY("TKGE",(float*)&TKGEOMFFKEY,sizeof(TKGEOMFFKEY_DEF)/sizeof(integer),
+"MIXED");
 TRMCFFKEY.alpha=220;
 TRMCFFKEY.beta=1;
 TRMCFFKEY.gamma=0.08;
@@ -202,7 +206,6 @@ TRMCFFKEY.day[0]=1;
 TRMCFFKEY.day[1]=1;
 TRMCFFKEY.mon[0]=0;
 TRMCFFKEY.mon[1]=0;
-//TRMCFFKEY.year[0]=96;
 TRMCFFKEY.year[0]=95;
 TRMCFFKEY.year[1]=99;
 TRMCFFKEY.GenerateConst=0;
@@ -488,7 +491,8 @@ for (k=1;k<5;k++){
 }
 for ( k=0;k<6;k++){
  TRCLFFKEY.CorFunParA[1][k]=65e-4;
- TRCLFFKEY.CorFunParB[1][k]=0.5;
+ // TRCLFFKEY.CorFunParB[1][k]=0.5;
+ TRCLFFKEY.CorFunParB[1][k]=1.;
 }
 
 for(k=0;k<6;k++){
@@ -720,7 +724,7 @@ void AMSJob::udata(){
   for(i=0;i<2;i++){
     for(j=0;j<2;j++){
       if(TRMCFFKEY.RawModeOn[i][j][31]==1){
-        for(k=0;k<31;k++)TRMCFFKEY.RawModeOn[i][j][k]=1;
+        for(k=0;k<32;k++)TRMCFFKEY.RawModeOn[i][j][k]=1;
       }
     }
   }
@@ -849,6 +853,13 @@ if(AMSFFKEY.Update){
  }
  }
 }
+    if(!strstr(getsetup(),"AMSSTATION") ){    
+       AMSTrIdSoft::inittable();
+    }
+    else {
+      cerr<<"AMSJob::_retkinitjob-E-NoAMSTrIdSoftTable exists for setup "<<
+        getsetup()<< "yet "<<endl;
+    }
 }
 
 
@@ -887,7 +898,7 @@ void AMSJob::_sitkinitjob(){
        for (int i=0;i<AMSDBc::nlay();i++){
          for (int j=0;j<AMSDBc::nlad(i+1);j++){
            for (int s=0;s<2;s++){
-            AMSTrIdSoft id(i+1,j+1,s,l);
+            AMSTrIdSoft id(i+1,j+1,s,l,0);
             number oldone=0;
             for(int k=0;k<AMSDBc::NStripsDrp(i+1,l);k++){
              id.upd(k);
@@ -1068,8 +1079,6 @@ AMSgObj::BookTimer.book("TrCluster");
 AMSgObj::BookTimer.book("TrClusterRefit");
 AMSgObj::BookTimer.book("TrRecHit");
 AMSgObj::BookTimer.book("TrTrack");
-
-
 }
 //--------------------------------------------------------------------------
 void AMSJob::_retofinitjob(){
@@ -1579,6 +1588,10 @@ if(IOPA.hlun){
 
 void AMSJob::_tkendjob(){
 
+  if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
+    AMSTrIdCalib::check(1);
+  }
+
 }
 
 //------------------------------------------------------------------
@@ -1591,7 +1604,8 @@ void AMSJob::_ctcendjob(){
     HPRINT(3001);
   }
 //
-  CTCJobStat::print(); // Print CTC JOB-statistics
+
+  if(CTCRECFFKEY.reprtf[0]>0)CTCJobStat::print(); // Print CTC JOB-statistics
 }
 //
 //-------------------------------------------------------------------

@@ -202,15 +202,17 @@ void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
     cout<<"Initially declared length="<<len<<" but was written "<<lent<<endl;
   }
 //---------------
-#ifdef __AMSDEBUG__
   if(ibl==(DAQSBLK-1))  //clear RawEvent/Hit container after last block processed
   {
+#ifdef __AMSDEBUG__
+
     AMSContainer *ptr1=AMSEvent::gethead()->getC("AMSTOFRawEvent",0);
     ptr1->eraseC();
 //
     AMSContainer *ptr2=AMSEvent::gethead()->getC("AMSAntiRawEvent",0);
     ptr2->eraseC();
 //
+#endif
     AMSContainer *ptr3=AMSEvent::gethead()->getC("AMSCTCRawEvent",0);
     ptr3->eraseC();
 //
@@ -219,6 +221,5 @@ void DAQSBlock::buildblock(integer ibl, integer len, int16u *p){
       ptr4->eraseC();
     }
   }
-#endif
 //--------------
 }

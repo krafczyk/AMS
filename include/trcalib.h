@@ -128,7 +128,7 @@ public:
 AMSTrIdCalib():AMSTrIdSoft(){};
 AMSTrIdCalib(const AMSTrIdSoft & o):AMSTrIdSoft(o){};
 static void initcalib();
-static void check();
+static void check(integer forcedw=0);
 static void buildSigmaPed(integer n, int16u* p);
 inline getcount() const {return _Count[getchannel()];}
 geant getcmnnoise() const {return _CmnNoise[_VANumber][_addr];}

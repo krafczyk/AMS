@@ -72,8 +72,8 @@ void AMSCharge::build(){
         AMSTrRecHit *phit=ptrack->getphit(i);
         if(phit){
          if (phit->getpsen()) {
-          AMSDir SenDir((phit->getpsen())->getinrm(2,0),
-          (phit->getpsen())->getinrm(2,1),(phit->getpsen())->getinrm(2,2) );
+          AMSDir SenDir((phit->getpsen())->getnrmA(2,0),
+          (phit->getpsen())->getnrmA(2,1),(phit->getpsen())->getnrmA(2,2) );
           AMSPoint SenPnt=phit->getHit();
            ptrack->interpolate(SenPnt, SenDir, P1, theta, phi, sleng);
            AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));

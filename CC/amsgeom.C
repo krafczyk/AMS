@@ -1215,7 +1215,7 @@ void ctcgeomAGPlus(AMSgvolume & mother){
 
 
 void tkgeom(AMSgvolume &mother){
-  TKDBc::read();
+   TKDBc::read();
 
 
 
@@ -1230,8 +1230,9 @@ number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
 number inrm[3][3];
 char name[5];
 geant coo[3]={0.,0.,0.};
+
 integer gid=0;
-integer nrot=500; // Temporary arbitary assignment
+integer nrot=501; // Temporary arbitary assignment
 //static AMSgvolume mother(0,0,AMSDBc::ams_name,"BOX",par,3,coo,nrm,"ONLY",
 //                         0,gid);  // temporary a dummy volume
 AMSNode * cur;
@@ -1240,171 +1241,235 @@ int i;
 for ( i=0;i<AMSDBc::nlay();i++){
 ostrstream ost(name,sizeof(name));
  ost << "STK"<<i+1<<ends;
- coo[0]=0;
- coo[1]=0;
+ coo[0]=AMSDBc::xposl(i);
+ coo[1]=AMSDBc::yposl(i);
  coo[2]=AMSDBc::zposl(i);
+ nrm[0][0]=AMSDBc::nrml(0,0,i);
+ nrm[0][1]=AMSDBc::nrml(0,1,i); 
+ nrm[0][2]=AMSDBc::nrml(0,2,i); 
+ nrm[1][0]=AMSDBc::nrml(1,0,i); 
+ nrm[1][1]=AMSDBc::nrml(1,1,i); 
+ nrm[1][2]=AMSDBc::nrml(1,2,i); 
+ nrm[2][0]=AMSDBc::nrml(2,0,i); 
+ nrm[2][1]=AMSDBc::nrml(2,1,i); 
+ nrm[2][2]=AMSDBc::nrml(2,2,i); 
     int ii;
     for ( ii=0;ii<5;ii++)par[ii]=AMSDBc::layd(i,ii);
       gid=i+1;
+      integer status=1;
+      if(TKDBc::update())TKDBc::SetLayer(i+1,status,coo,nrm,gid);
+      else               TKDBc::GetLayer(i+1,status,coo,nrm);
+#ifdef __AMSDEBUG__
+         if(i==2 && AMSgvolume::debug){
+          MTX(xnrm,xx);
+          int a1,a2;
+          for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+         }
+#endif
       dau=mother.add(new AMSgvolume(
-      "VACUUM",++nrot,name,"CONE",par,5,coo,nrm, "MANY",0,gid));
-    int j;
-    for (j=0;j<AMSDBc::nlad(i+1);j++){
-    nrot++;  
-    int k;
-     for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
+      "VACUUM",nrot++,name,"CONE",par,5,coo,nrm, "ONLY",0,gid));
+      int j;
+      for (j=0;j<AMSDBc::nlad(i+1);j++){
+       int k;
+       AMSgvolume * lad[2];
+       for(k=0;k<2;k++){
+         ost.seekp(0);
+         ost << "L" << i+1<<(j+1)*2+k<<ends;
+         if(k==0)par[0]=AMSDBc::ssize_inactive(i,0)*AMSDBc::nhalf(i+1,j+1)/2.;
+         else par[0]=AMSDBc::ssize_inactive(i,0)*
+         (AMSDBc::nsen(i+1,j+1)-AMSDBc::nhalf(i+1,j+1))/2.;
+         par[1]=AMSDBc::ssize_inactive(i,1)/2;
+         par[2]=AMSDBc::silicon_z(i)/2;
+         coo[0]=(2*k-1)*(AMSDBc::ssize_inactive(i,0)*AMSDBc::nsen(i+1,j+1)/2+
+         AMSDBc::halfldist(i+1)-par[0]);
+         coo[1]=(AMSDBc::nlad(i+1)-j)*AMSDBc::c2c(i)-
+         (AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+         coo[2]=AMSDBc::zpos(i);
+         VZERO(nrm,9*sizeof(nrm[0][0])/4);
+         if(k==0){
+          nrm[0][0]=1;
+          nrm[1][1]=1;
+          nrm[2][2]=1;
+         }
+         else{
+          nrm[0][0]=-1;
+          nrm[1][1]=-1;
+          nrm[2][2]= 1;
+         }
+      //
+      //  Ladder 
+      //
+        gid=i+1+10*(j+1)+100000;
+        integer status=0;
+        if(TKDBc::update())TKDBc::SetLadder(i,j,k,status,coo,nrm,gid);
+        else               TKDBc::GetLadder(i,j,k,status,coo,nrm);
+        lad[k]=(AMSgvolume*)dau->add(new AMSgvolume(
+        "NONACTIVE_SILICON",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+       }
+
+    
+       // Now Sensors
+
+       for ( k=0;k<AMSDBc::nhalf(i+1,j+1);k++){
+         ost.seekp(0);
+         ost << "S" << i+1<<(j+1)*2<<ends;
+         par[0]=AMSDBc::ssize_active(i,0)/2;
+         par[1]=AMSDBc::ssize_active(i,1)/2;
+         par[2]=AMSDBc::silicon_z(i)/2;
+         coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+
+         (2*k+2-AMSDBc::nhalf(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
+         coo[1]=0;
+         coo[2]=0;
+         VZERO(nrm,9*sizeof(nrm[0][0])/4);
+         nrm[0][0]=1;
+         nrm[1][1]=1;
+         nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+         if(i==2 && AMSgvolume::debug){
+          MTX(xnrm,xx);
+          int a1,a2;
+          for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+         }
+#endif
+         gid=i+1+10*(j+1)+1000*(k+1);
+         if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
+         AMSDBc::activeladdshuttle(i+1,j+1,0)){  
+          integer status=1;
+          if(TKDBc::update())TKDBc::SetSensor(i,j,k,status,coo,nrm,gid);
+          else               TKDBc::GetSensor(i,j,k,status,coo,nrm);
+          if(status){
+           cur=lad[0]->add(new AMSgvolume(
+          "ACTIVE_SILICON",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+           //          cout <<"add volume "<<name<<" "<<gid<<endl;
+           //          cout <<" to "<<*(lad[0]);
+          }
+         }
+       }
+
+       for ( k=AMSDBc::nhalf(i+1,j+1);k<AMSDBc::nsen(i+1,j+1);k++){
+        ost.seekp(0);
+        ost << "S" << i+1<<(j+1)*2+1<<ends;
+        par[0]=AMSDBc::ssize_active(i,0)/2;
+        par[1]=AMSDBc::ssize_active(i,1)/2;
+        par[2]=AMSDBc::silicon_z(i)/2;
+        coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+
+        (2*(k-AMSDBc::nhalf(i+1,j+1))+2+
+         AMSDBc::nhalf(i+1,j+1)-AMSDBc::nsen(i+1,j+1))*
+        AMSDBc::ssize_inactive(i,0)/2.;
+        coo[1]=0;
+        coo[2]=0;
+        VZERO(nrm,9*sizeof(nrm[0][0])/4);
+        nrm[0][0]=1;
+        nrm[1][1]=1;
+        nrm[2][2]=1;
+#ifdef __AMSDEBUG__
+         if(i==2 && AMSgvolume::debug){
+          MTX(xnrm,xx);
+          int a1,a2;
+          for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
+         }
+#endif
+        gid=i+1+10*(j+1)+1000*(k+1);
+        if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
+        AMSDBc::activeladdshuttle(i+1,j+1,1)){  
+         integer status=1;
+         if(TKDBc::update())TKDBc::SetSensor(i,j,k,status,coo,nrm,gid);
+         else               TKDBc::GetSensor(i,j,k,status,coo,nrm);
+         if(status){
+          cur=lad[1]->add(new AMSgvolume(
+          "ACTIVE_SILICON",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+          //          cout <<"add volume "<<name<<" "<<gid<<endl;
+          //          cout <<" to "<<*(lad[1]);
+         }
+        }
+       }
+
+
+      }
+      // Now Support foam
+ 
+      for ( j=0;j<AMSDBc::nlad(i+1);j++){
        ost.seekp(0);
-       ost << "SEN" << i+1<<ends;
-       par[0]=AMSDBc::ssize_inactive(i,0)/2;
-       par[1]=AMSDBc::ssize_inactive(i,1)/2;
-       par[2]=AMSDBc::silicon_z(i)/2;
-       coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
-       //    Temporary
-       //       if(k < AMSDBc::nhalf(i+1,j+1))coo[0]=coo[0]-AMSDBc::halfldist(i)/2;
-       //       else coo[0]=coo[0]+AMSDBc::halfldist(i)/2;
-       coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-       coo[2]=AMSDBc::zpos(i);
+       ost << "FOA" << i+1<<ends;
+       par[0]=AMSDBc::ssize_inactive(i,0)*AMSDBc::nsen(i+1,j+1)/2.;
+       par[1]=AMSDBc::c2c(i)/2;
+       par[2]=AMSDBc::support_foam_w(i)/2;    
+       coo[0]=0;
+       coo[1]=(AMSDBc::nlad(i+1)-j)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+       coo[2]=AMSDBc::zpos(i)-AMSDBc::silicon_z(i)/2.-par[2];
        VZERO(nrm,9*sizeof(nrm[0][0])/4);
        nrm[0][0]=1;
        nrm[1][1]=1;
        nrm[2][2]=1;
-#ifdef __AMSDEBUG__
-       if(i==5 && AMSgvolume::debug){
-        MTX(xnrm,xx);
-        int a1,a2;
-        for(a1=0;a1<3;a1++)for(a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-       }
-#endif
-      //
-      //  Sensors notactive
-      //
-       gid=i+1+10*(j+1)+1000*(k+1)+100000;
+       gid=i+1+10*(j+1);
        cur=dau->add(new AMSgvolume(
-       "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
-
-
-     }
-    
-
-
-    for ( k=0;k<AMSDBc::nsen(i+1,j+1);k++){
-      ost.seekp(0);
-      ost << "SEA" << i+1<<ends;
-      par[0]=AMSDBc::ssize_active(i,0)/2;
-      par[1]=AMSDBc::ssize_active(i,1)/2;
-      par[2]=AMSDBc::silicon_z(i)/2;
-      coo[0]=-AMSDBc::ssize_inactive(i,0)/2.+(2*k+2-AMSDBc::nsen(i+1,j+1))*AMSDBc::ssize_inactive(i,0)/2.;
-       if(k < AMSDBc::nhalf(i+1,j+1))coo[0]=coo[0]-AMSDBc::halfldist(i)/2;
-       else coo[0]=coo[0]+AMSDBc::halfldist(i)/2;
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[0][0]=1;
-      nrm[1][1]=1;
-      nrm[2][2]=1;
-#ifdef __AMSDEBUG__
-      if(i==5 && AMSgvolume::debug){
-       MTX(xnrm,xx);
-       int a1,a2;
-       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-      }
-#endif
-      //
-      //  Sensors active
-      //
-      gid=i+1+10*(j+1)+1000*(k+1);
-      int s = k>=AMSDBc::nhalf(i+1,j+1);
-      if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
-       AMSDBc::activeladdshuttle(i+1,j+1,s)){  
-       integer status=1;
-       if(TKDBc::update())TKDBc::SetSensor(i,j,k,status,coo,nrm);
-       else               TKDBc::GetSensor(i,j,k,status,coo,nrm);
-
-       if(status)cur=dau->add(new AMSgvolume(
-      "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
-      }
-    }
-    }
-  for ( j=0;j<AMSDBc::nlad(i+1);j++){
-    nrot++;  
-      ost.seekp(0);
-      ost << "PLA" << i+1<<ends;
-      par[0]=AMSDBc::ssize_inactive(i,0)*AMSDBc::nsen(i+1,j+1)/2.;
-      par[1]=AMSDBc::c2c(i)/2;
-      par[2]=AMSDBc::support_w(i);     // not /2 ! (600 mkm)
-      coo[0]=0;
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i)-AMSDBc::silicon_z(i)/2.-AMSDBc::support_w(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[0][0]=1;
-      nrm[1][1]=1;
-      nrm[2][2]=1;
-      //
-      //  Planes
-      //
-      gid=i+1+10*(j+1);
-      cur=dau->add(new AMSgvolume(
-      "CARBON",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+       "Tr_Foam",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
 
   }
-  for ( j=0;j<AMSDBc::nlad(i+1);j++){
-    nrot++;  
-      ost.seekp(0);
-      ost << "ELL" << i+1<<ends;
-      par[0]=AMSDBc::zelec(i,1)/2.;
-      par[1]=AMSDBc::c2c(i)/2.;
-      par[2]=AMSDBc::zelec(i,0)/2;
-      coo[0]=-AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.-par[0];
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[0][0]=1;
-      nrm[1][1]=1;
-      nrm[2][2]=1;
-#ifdef __AMSDEBUG__
-      if(i==5 && AMSgvolume::debug){
-       MTX(xnrm,xx);
-       int a1,a2;
-       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-      }
-#endif
-      //
-      //  Elec L
-      //
-      gid=i+1+10*(j+1);
-      cur=dau->add(new AMSgvolume(
-      "ELECTRONICS",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
 
-  }
-  for ( j=0;j<AMSDBc::nlad(i+1);j++){
-    nrot++;  
-      ost.seekp(0);
-      ost << "ELR" << i+1<<ends;
-      par[0]=AMSDBc::zelec(i,1)/2;
-      par[1]=AMSDBc::c2c(i)/2;
-      par[2]=AMSDBc::zelec(i,0)/2;
-      coo[0]=+AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.+par[0];
-      coo[1]=(j+1)*AMSDBc::c2c(i)-(AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
-      coo[2]=AMSDBc::zpos(i);
-      VZERO(nrm,9*sizeof(nrm[0][0])/4);
-      nrm[0][0]=1;
-      nrm[1][1]=1;
-      nrm[2][2]=1;
-#ifdef __AMSDEBUG__
-      if(i==5 && AMSgvolume::debug){
-       MTX(xnrm,xx);
-       int a1,a2;
-       for( a1=0;a1<3;a1++)for( a2=0;a2<3;a2++)nrm[a2][a1]=xnrm[a1][a2];
-      }
-#endif
-      //
-      //  Elec R
-      //
-      gid=i+1+10*(j+1);
-      cur=dau->add(new AMSgvolume(
-       "ELECTRONICS",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+      // Now Honecomb Planes
 
-  }
+       ost.seekp(0);
+       ost << "PLA" << i+1<<ends;
+       par[0]=0;
+       par[1]=AMSDBc::support_hc_r(i);
+       par[2]=AMSDBc::support_hc_w(i)/2;
+       coo[0]=0;
+       coo[1]=0;
+       coo[2]=AMSDBc::support_hc_z(i);
+       VZERO(nrm,9*sizeof(nrm[0][0])/4);
+       nrm[0][0]=1;
+       nrm[1][1]=1;
+       nrm[2][2]=1;
+       gid=i+1;
+       cur=dau->add(new AMSgvolume(
+      "Tr_Honeycomb",nrot++,name,"TUBE",par,3,coo,nrm,"ONLY",1,gid,1));
+
+       // Now Elec Left
+
+       for ( j=0;j<AMSDBc::nlad(i+1);j++){
+        ost.seekp(0);
+        ost << "ELL" << i+1<<ends;
+        par[0]=AMSDBc::zelec(i,1)/2.;
+        par[1]=AMSDBc::c2c(i)/2.;
+        par[2]=AMSDBc::zelec(i,0)/2;
+        coo[0]=-AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.-par[0];
+        coo[1]=(AMSDBc::nlad(i+1)-j)*AMSDBc::c2c(i)-
+        (AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+        coo[2]=AMSDBc::zelec(i,2)+par[2];
+        VZERO(nrm,9*sizeof(nrm[0][0])/4);
+        nrm[0][0]=1;
+        nrm[1][1]=1;
+        nrm[2][2]=1;
+        gid=i+1+10*(j+1);
+        cur=dau->add(new AMSgvolume(
+       "ELECTRONICS",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+
+       }
+
+       // Now Elec R
+
+       for ( j=0;j<AMSDBc::nlad(i+1);j++){
+        ost.seekp(0);
+        ost << "ELR" << i+1<<ends;
+        par[0]=AMSDBc::zelec(i,1)/2.;
+        par[1]=AMSDBc::c2c(i)/2.;
+        par[2]=AMSDBc::zelec(i,0)/2;
+        coo[0]=+AMSDBc::nsen(i+1,j+1)*AMSDBc::ssize_inactive(i,0)/2.+par[0];
+        coo[1]=(AMSDBc::nlad(i+1)-j)*AMSDBc::c2c(i)-
+        (AMSDBc::nlad(i+1)+1)*AMSDBc::c2c(i)/2.;
+        coo[2]=AMSDBc::zelec(i,2)+par[2];
+        VZERO(nrm,9*sizeof(nrm[0][0])/4);
+        nrm[0][0]=1;
+        nrm[1][1]=1;
+        nrm[2][2]=1;
+        gid=i+1+10*(j+1);
+        cur=dau->add(new AMSgvolume(
+       "ELECTRONICS",nrot++,name,"BOX",par,3,coo,nrm,"ONLY",1,gid,1));
+
+       }
+
+
 
 }
 }

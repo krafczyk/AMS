@@ -11,7 +11,7 @@
 
 integer AMSTrRawCluster::TestRawMode(){
   AMSTrIdSoft id(_address);
-  int icmpt=AMSDBc::compactshuttle(id.getlayer(),id.getdrp());
+  int icmpt=id.gettdr();
   return TRMCFFKEY.RawModeOn[id.gethalf()][id.getside()][icmpt];   
 
 }
@@ -22,16 +22,9 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic)
   //
    AMSTrIdSoft id(_address);
   int16 pos =0;
-  int16 icmpt=(int16)AMSDBc::compactshuttle(id.getlayer(),id.getdrp());
-#ifdef __AMSDEBUG__
-  assert (icmpt < 32 && icmpt >=0);
-#endif
-  int16 half=(int16)id.gethalf();
   id.upd(_strip);
-  int16 va=(int16)id.getva();
-  int16 strip=(int16)id.getstripa();
   if (nmax-pos < 2+_nelem || _nelem > 255 || _nelem==0) return pos;
-  adc[pos+1]=mkaddress(strip,va,half,icmpt,pedantic);
+  adc[pos+1]=id.gethaddr(pedantic);
   integer imax=0;
   geant rmax=-1000000;
   for (int i=0;i<_nelem;i++){
@@ -174,6 +167,8 @@ for ( i=0;i<ms;i++){
            pcl= new
            AMSTrRawCluster(i,nleft,nright,ida[i]+nleft);
             AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",half),pcl);
+            //            cout <<"si- "<<half<<" "<<i<<" "<<nleft<<" "<<
+            //              nright-nleft<<" "<<integer(*(ida[i]+nleft))<<endl;
             j=nright+1;           
         }
       }
@@ -238,31 +233,30 @@ void AMSTrRawCluster::builddaq(integer i, integer n, int16u *p){
 }
 void AMSTrRawCluster::builddaqRaw(integer i, integer n, int16u *p){
 int j,k,l;
-integer lay,lad,half,side;
 integer cleng=0;
 if(n){
-  geant *  adc  = (geant*)UPool.insert(sizeof(adc[0])*AMSDBc::maxstrips());
+  geant *  adc  = (geant*)UPool.insert(sizeof(adc[0])*AMSDBc::maxstripsdrp());
  int16u *paux=p;
  *paux=getdaqidRaw(i);
   paux++;
  for(j=0;j<2;j++){
-  for(k=0;k<31;k++){
+  for(k=0;k<ntdr;k++){
     if(TRMCFFKEY.RawModeOn[i][j][k]){
       //make address
-     AMSDBc::expandshuttle(k,lay,lad);
-     AMSTrIdSoft id(lay,lad,i,j);
-     integer va=id.getva();
+     AMSTrIdSoft id(i,k,j,0);
+     if(id.dead())continue;
+     int va=id.getva();
      geant ecmn=id.getcmnnoise()*rnormx();
-     *(paux)=mkaddress(0,va,i,k,1);
+     *(paux)=id.gethaddr(1);     
      // check on the event hits
-     VZERO(adc,sizeof(adc[0])/sizeof(integer)*AMSDBc::NStripsDrp(lay,j));
+     VZERO(adc,sizeof(adc[0])/sizeof(integer)*AMSDBc::NStripsDrp(id.getlayer(),j));
      AMSTrMCCluster* ptr=(AMSTrMCCluster*)
      AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);
      while(ptr){
        ptr->addcontent(id,adc);
       ptr=ptr->next();
      }
-     for(l=0;l<AMSDBc::NStripsDrp(lay,j);l++){
+     for(l=0;l<AMSDBc::NStripsDrp(id.getlayer(),j);l++){
       id.upd(l);
       if(id.getva()!=va){
        va=id.getva();
@@ -273,9 +267,9 @@ if(n){
       if(adc[l]>4095)adc[l]=4095;
       *(paux+1+l)=int16u(adc[l]) | (1<<15);
      }
-     paux+=1+AMSDBc::NStripsDrp(lay,j);
+     paux+=1+AMSDBc::NStripsDrp(id.getlayer(),j);
 #ifdef __AMSDEBUG__
-     cleng+=1+AMSDBc::NStripsDrp(lay,j);
+     cleng+=1+AMSDBc::NStripsDrp(id.getlayer(),j);
 #endif     
     }
   }
@@ -306,8 +300,12 @@ integer AMSTrRawCluster::calcdaqlengthRaw(integer i){
 int j,k;
 integer l=0;
 for(j=0;j<2;j++){
-  for(k=0;k<31;k++){
-    if(TRMCFFKEY.RawModeOn[i][j][k])l+=AMSDBc::NStripsDrp(1,j)+1;
+  for(k=0;k<ntdr;k++){
+    if(TRMCFFKEY.RawModeOn[i][j][k]){
+      AMSTrIdSoft id(i,k,j,0);
+      if(id.dead())continue;
+      l+=AMSDBc::NStripsDrp(1,j)+1;
+    }
   }
 }
 if(l)l++;
@@ -321,14 +319,12 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
   int16u * ptr;
   for(ptr=p+1;ptr<p+n;ptr+=leng+3){
      leng=(*ptr)&255;
-     integer va,strip,half,drp,lay,lad,side;
-     getaddress(int16u(*(ptr+1)),strip,va,side,half,drp);
-     AMSDBc::expandshuttle(drp,lay,lad);
-     half=ic;
-     AMSTrIdSoft id(lay,lad,half,side);
-     
+     AMSTrIdSoft id(ic,int16u(*(ptr+1)));
      AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic), new
-     AMSTrRawCluster(id.cmpt(),strip,strip+leng,(int16*)ptr+2));
+     AMSTrRawCluster(id.getaddr(),id.getstrip(),id.getstrip()+leng,
+     (int16*)ptr+2));
+     //     cout <<"br- "<<ic<<" "<<id.getaddr()<<" "
+     //          <<id.getstrip()<<" "<<leng<<" "<<*((int16*)ptr+2)<<endl;
   }
   
 
@@ -354,11 +350,7 @@ void AMSTrRawCluster::buildrawRaw(integer n, int16u *p){
   int16u * ptr=p+1;
   // Main loop
   while (ptr<p+n){
-     integer va,strip,half,drp,lay,lad,side;
-     getaddress(int16u(*(ptr)),strip,va,side,half,drp);
-     AMSDBc::expandshuttle(drp,lay,lad);
-     half=ic;
-     AMSTrIdSoft idd(lay,lad,half,side);
+     AMSTrIdSoft idd(ic,int16u(*(ptr)));
      //aux loop thanks to data format to calculate corr length
      int16u * paux;
      int len=0;
@@ -418,7 +410,7 @@ void AMSTrRawCluster::buildrawRaw(integer n, int16u *p){
           }
            pcl= new
            AMSTrRawCluster(idd.getaddr(),nleft,nright,id+nleft);
-            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",half),pcl);
+            AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",ic),pcl);
             j=nright+1;           
          }
          }
@@ -483,14 +475,14 @@ else return 0x0;
 
 integer AMSTrRawCluster::calcstatusSl(integer i){
 static integer init =0;
-integer j,k,lay,lad,l;
+integer j,k,l;
 integer lg=0;
 if(!TRMCFFKEY.WriteHK || ++init != 2*TRMCFFKEY.WriteHK-1+i)return 0;
 for(j=0;j<2;j++){
-  for(k=0;k<31;k++){
-    AMSDBc::expandshuttle(k,lay,lad);
-     AMSTrIdSoft id(lay,lad,i,j);
-     for(l=0;l<AMSDBc::NStripsDrp(lay,j);l++){
+  for(k=0;k<ntdr;k++){
+     AMSTrIdSoft id(i,k,j,0);
+     if(id.dead())continue;
+     for(l=0;l<AMSDBc::NStripsDrp(id.getlayer(),j);l++){
       id.upd(l);
       geant d;
       if(RNDM(d) < 0.001)id.setstatus(AMSDBc::BAD);
@@ -513,7 +505,9 @@ if(!TRMCFFKEY.WriteHK || ++init != 2*TRMCFFKEY.WriteHK+1+i)return 0;
 int j,k;
 integer l=0;
 for(j=0;j<2;j++){
-  for(k=0;k<31;k++){
+  for(k=0;k<ntdr;k++){
+     AMSTrIdSoft id(i,k,j,0);
+     if(id.dead())continue;
     l+=AMSDBc::NStripsDrp(1,j)+1;
   }
 }
@@ -527,7 +521,9 @@ if(!TRMCFFKEY.WriteHK || ++init != 2*TRMCFFKEY.WriteHK+3+i)return 0;
 int j,k;
 integer l=0;
 for(j=0;j<2;j++){
-  for(k=0;k<31;k++){
+  for(k=0;k<ntdr;k++){
+     AMSTrIdSoft id(i,k,j,0);
+     if(id.dead())continue;
     l+=AMSDBc::NStripsDrp(1,j)+1;
   }
 }
@@ -544,11 +540,7 @@ void AMSTrRawCluster::updpedS(integer n, int16u* p){
   int16u * ptr=p+1;
   // Main loop
   while (ptr<p+n){
-     integer va,strip,half,drp,lay,lad,side;
-     getaddress(int16u(*(ptr)),strip,va,side,half,drp);
-     AMSDBc::expandshuttle(drp,lay,lad);
-     half=ic;
-     AMSTrIdSoft idd(lay,lad,half,side);
+     AMSTrIdSoft idd(ic,int16u(*(ptr)));
      //aux loop thanks to data format to calculate corr length
      int16u * paux;
      int len=0;
@@ -594,11 +586,7 @@ void AMSTrRawCluster::updsigmaS(integer n, int16u* p){
   int16u * ptr=p+1;
   // Main loop
   while (ptr<p+n){
-     integer va,strip,half,drp,lay,lad,side;
-     getaddress(int16u(*(ptr)),strip,va,side,half,drp);
-     AMSDBc::expandshuttle(drp,lay,lad);
-     half=ic;
-     AMSTrIdSoft idd(lay,lad,half,side);
+     AMSTrIdSoft idd(ic,int16u(*(ptr)));
      //aux loop thanks to data format to calculate corr length
      int16u * paux;
      int len=0;
@@ -649,7 +637,7 @@ void AMSTrRawCluster::updstatusS(integer n, int16u* p){
     for ( i=0;i<AMSDBc::nlay();i++){
       for ( j=0;j<AMSDBc::nlad(i+1);j++){
         for ( l=0;l<2;l++){
-            AMSTrIdSoft id(i+1,j+1,ic,l);
+            AMSTrIdSoft id(i+1,j+1,ic,l,0);
             for( k=0;k<AMSDBc::NStripsDrp(i+1,l);k++){
              id.upd(k);
              id.setstatus(0);
@@ -665,11 +653,7 @@ void AMSTrRawCluster::updstatusS(integer n, int16u* p){
   // Main loop
   integer nbad=0;
   while (ptr<p+n){
-     integer va,strip,half,drp,lay,lad,side;
-     getaddress(int16u(*(ptr)),strip,va,side,half,drp);
-     AMSDBc::expandshuttle(drp,lay,lad);
-     half=ic;
-     AMSTrIdSoft idd(lay,lad,half,side,strip);
+     AMSTrIdSoft idd(ic,int16u(*(ptr)));
      // Here put status into memory
       idd.setstatus(1);     
       nbad++;
@@ -725,19 +709,17 @@ AMSID AMSTrRawCluster::getTDVped(int i){
 
 void AMSTrRawCluster::writestatusS(integer i, integer length, int16u* ptr){
  int j,k,l;
- integer lay,lad;
   if(length){
    int16u *paux=ptr;
    *paux=getstatusSid(i);
    for(j=0;j<2;j++){
-    for(k=0;k<31;k++){
-     AMSDBc::expandshuttle(k,lay,lad);
-     AMSTrIdSoft id(lay,lad,i,j);
-     for(l=0;l<AMSDBc::NStripsDrp(lay,j);l++){
+    for(k=0;k<ntdr;k++){
+     AMSTrIdSoft id(i,k,j,0);
+     if(id.dead())continue;
+     for(l=0;l<AMSDBc::NStripsDrp(id.getlayer(),j);l++){
       id.upd(l);
-      integer va=id.getva();
       if(id.checkstatus(AMSDBc::BAD)){
-       *(++paux)=mkaddress(0,va,i,k,1);
+       *(++paux)=id.gethaddr(1);
       }       
      }
     }
@@ -747,22 +729,20 @@ void AMSTrRawCluster::writestatusS(integer i, integer length, int16u* ptr){
 
 void AMSTrRawCluster::writepedS(integer i, integer length, int16u* ptr){
 int j,k,l;
-integer lay,lad;
 integer cleng=0;
 if(length){
  int16u *paux=ptr;
  *paux=getpedSid(i);
  for(j=0;j<2;j++){
-  for(k=0;k<31;k++){
-     AMSDBc::expandshuttle(k,lay,lad);
-     AMSTrIdSoft id(lay,lad,i,j);
-      integer va=id.getva();
-      *(++paux)=mkaddress(0,va,i,k,1);
-     for(l=0;l<AMSDBc::NStripsDrp(lay,j);l++){
+  for(k=0;k<ntdr;k++){
+     AMSTrIdSoft id(i,k,j,0);
+     if(id.dead())continue;
+      *(++paux)=id.gethaddr(1);
+     for(l=0;l<AMSDBc::NStripsDrp(id.getlayer(),j);l++){
       id.upd(l);
        *(paux+1+l)=int16u(id.getped()*id.getgain()) | (1<<15);
      }
-     paux+=AMSDBc::NStripsDrp(lay,j);
+     paux+=AMSDBc::NStripsDrp(id.getlayer(),j);
   }
  }
 }
@@ -774,22 +754,20 @@ if(length){
 void AMSTrRawCluster::writesigmaS(integer i, integer length, int16u* ptr){
 
 int j,k,l;
-integer lay,lad;
 integer cleng=0;
 if(length){
  int16u *paux=ptr;
  *paux=getsigmaSid(i);
  for(j=0;j<2;j++){
-  for(k=0;k<31;k++){
-     AMSDBc::expandshuttle(k,lay,lad);
-     AMSTrIdSoft id(lay,lad,i,j);
-     integer va=id.getva();
-     *(++paux)=mkaddress(0,va,i,k,1);
-     for(l=0;l<AMSDBc::NStripsDrp(lay,j);l++){
+  for(k=0;k<ntdr;k++){
+     AMSTrIdSoft id(i,k,j,0);
+     if(id.dead())continue;
+     *(++paux)=id.gethaddr(1);
+     for(l=0;l<AMSDBc::NStripsDrp(id.getlayer(),j);l++){
       id.upd(l);
       *(paux+1+l)=int16u(id.getsig()*id.getgain()) | (1<<15);
      }
-     paux+=AMSDBc::NStripsDrp(lay,j);
+     paux+=AMSDBc::NStripsDrp(id.getlayer(),j);
   }
  }
 }

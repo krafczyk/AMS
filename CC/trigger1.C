@@ -106,7 +106,7 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   antip=*(p+5);
   z=(*(p+6))&255;
   mode=((*(p+6))>>8)&255;
-  AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
+  if(z>0)AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
   TriggerLVL1(mode,z,tofp,antip));
 
 }

@@ -9,6 +9,7 @@ IOPA_DEF IOPA;
 TOFMCFFKEY_DEF TOFMCFFKEY;
 TOFRECFFKEY_DEF TOFRECFFKEY;
 ANTIGEOMFFKEY_DEF ANTIGEOMFFKEY;
+TKGEOMFFKEY_DEF TKGEOMFFKEY;
 ANTIMCFFKEY_DEF ANTIMCFFKEY;
 ANTIRECFFKEY_DEF ANTIRECFFKEY;
 TOFCAFFKEY_DEF TOFCAFFKEY;
@@ -44,26 +45,38 @@ GCKINE_DEF GCKINE;
 // TKFIELD_DEF TKFIELD;
 // AMSDATADIR_DEF AMSDATADIR
 
+char AMSCommonsI::_version[]="v2.12";
 
 AMSCommonsI::AMSCommonsI(){
   init();
 }
 void AMSCommonsI::init(){ 
   if(_Count++==0){
-   char dt[128]="/afs/cern.ch/user/c/choutko/public/data/";
+   char dt[128]="/afs/cern.ch/user/c/choutko/public/data";
    char* gtv=getenv("AMSDataDir");
    if(gtv && strlen(gtv)>0){
-    AMSDATADIR.amsdlength=strlen(gtv);
-    if(AMSDATADIR.amsdlength>127)AMSDATADIR.amsdlength=127;
-    strncpy(AMSDATADIR.amsdatadir,gtv,
-    AMSDATADIR.amsdlength);
+    AMSDATADIR.amsdlength=strlen(gtv)+strlen(getversion())+2;
+    if(AMSDATADIR.amsdlength>127){
+      cerr <<"AMSCommonsI::init-F-AMSDataDirLength>127 "<<
+        AMSDATADIR.amsdlength<<endl;
+       exit(1);  
+    }
+    strcpy(AMSDATADIR.amsdatadir,gtv);
+      strcat(AMSDATADIR.amsdatadir,"/");
+      strcat(AMSDATADIR.amsdatadir,getversion());
+      strcat(AMSDATADIR.amsdatadir,"/");
+      AMSDATADIR.amsdlength=strlen(AMSDATADIR.amsdatadir);
+     
    }
    else {
      cout<<"AMSCommonsI-W-AMSDataDir variable is not defined."<<endl;
      cout <<"AMSCommonsI-W-Default value "<<
         dt<< " will be used."<<endl;
       strcpy(AMSDATADIR.amsdatadir,dt);
-      AMSDATADIR.amsdlength=strlen(dt);
+      strcat(AMSDATADIR.amsdatadir,"/");
+      strcat(AMSDATADIR.amsdatadir,getversion());
+      strcat(AMSDATADIR.amsdatadir,"/");
+      AMSDATADIR.amsdlength=strlen(AMSDATADIR.amsdatadir);
    }
   }
 }
