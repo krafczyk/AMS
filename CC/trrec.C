@@ -2926,7 +2926,8 @@ uinteger * AMSTrTrack::getchild(uinteger address, uinteger & nchild){
        lad[0][i]=tmp;
       }
      }
-     if(xnpt==6){
+     //if(xnpt==6){
+     if(xnpt>6){
       for(i=0;i<6;i++){
        int tmpi=lad[0][i];
        lad[0][i]=0;
