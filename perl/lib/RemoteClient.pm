@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.208 2003/08/08 13:11:50 alexei Exp $
+# $Id: RemoteClient.pm,v 1.209 2003/09/09 09:49:57 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -5162,7 +5162,7 @@ sub checkJobsTimeout {
        my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. 
                          \n Job will be removed from database (Not earlier than  : $deletetime).
                          \n MC Production Team.";
-        $self->sendmailmessage($address,$sujet,$message);
+       $self->sendmailmessage($address,$sujet,$message);
 
         print "<td><b><font color=\"black\">$cite </font></b></td>";
         print "<td><b><font color=\"black\">$jid </font></b></td>";
@@ -5190,12 +5190,13 @@ sub listAll {
      $self -> colorLegend();
     }
     
+    $self -> listProductionSetPeriods();
     $self -> listStat();
-    $self -> listCites();
-    $self -> listMails();
-      $self -> listServers();
-       $self -> listJobs();
-        $self -> listRuns();
+     $self -> listCites();
+      $self -> listMails();
+       $self -> listServers();
+        $self -> listJobs();
+         $self -> listRuns();
           $self -> listNtuples();
             $self -> listDisks();
     htmlBottom();
@@ -5412,6 +5413,69 @@ sub queryDB {
  }
 }
 
+sub listProductionSetPeriods {
+    my $self  = shift;
+
+    my $pid   = 0;                 # period id
+    my $name  = 0;                 # nick name
+    my $begin = 0;                 # start time
+    my $end   = 0;                 # end time
+    my $status      = 'unknown';   # status
+    my $version     = 'unknown';   # program version
+    my $description = 'xyz';       # description
+
+    my $sql = undef;
+    my $ret = undef;
+  
+    $sql = "SELECT did, name, begin, end, status, version description 
+             FROM productionset WHERE did > 0 ORDER by begin desc";
+    $ret=$self->{sqlserver}->Query($sql);
+
+     print "<b><h2><A Name = \"mc02sets\"> </a></h2></b> \n";
+     htmlTable("MC02 Production Sets");
+               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+               print "<td align=center><b><font color=\"blue\">ID </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Name</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Begin </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >End </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Status</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >Version </font></b></td>";
+               print "</tr>\n";
+     if (defined $ret->[0][0]) {
+      foreach my $mc (@{$ret}){
+          $pid      = $mc->[0];
+          $name     = $mc->[1];
+          $begin    = $mc->[2];
+          $end      = $mc->[3];
+          $status   = $mc->[4];
+          $version  = $mc->[5];
+          $description = $mc->[6];
+
+          my $tbegin = EpochToDDMMYYHHMMSS($begin);
+          my $tend   = EpochToDDMMYYHHMMSS($end);
+          if ($end == 0) { 
+              $tend = '->';
+          }
+          my $color="black";
+          if ($status eq "Active") {
+              $color = "green";
+          }
+               print "<td align=center><b><font color=$color>$pid </font></b></td>";
+               print "<td align=center><b><font color=$color >$name</font></b></td>";
+               print "<td align=center><b><font color=$color >$tbegin </font></b></td>";
+               print "<td align=center><b><font color=$color >$tend </font></b></td>";
+               print "<td align=center><b><font color=$color >$status</font></b></td>";
+               print "<td align=center><b><font color=$color >$version </font></b></td>";
+               print "</tr>\n";
+
+
+      }
+  }
+       htmlTableEnd();
+     htmlTableEnd();
+     print_bar($bluebar,3);
+     print "<p></p>\n";
+}
 
 sub listStat {
     my $self = shift;
@@ -5581,7 +5645,7 @@ sub listStat {
      print "</tr>\n";
 
 
-     $sql = "SELECT did, name FROM datasets where did>132";
+     $sql = "SELECT did, name FROM datasets where did > 111";
      my $r5=$self->{sqlserver}->Query($sql);
      print_bar($bluebar,3);
      if(defined $r5->[0][0]){
@@ -7569,7 +7633,7 @@ sub deleteTimeOutJobs {
 # delete jobs without runs
 #
 
-    my $timedelete = time() - 2*60*60;
+    my $timedelete = time() - 60*60;
     $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
                  cites.name FROM jobs, cites 
           WHERE jobs.timestamp+jobs.timeout < $timedelete  AND 

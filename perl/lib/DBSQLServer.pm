@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.56 2003/08/04 10:48:08 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.57 2003/09/09 09:49:57 alexei Exp $
 
 #
 #
@@ -140,7 +140,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment", "Journals","ProductionSet");
+    my @tables=("Filesystems", "Cites","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -162,6 +162,7 @@ sub Create{
       maxrun   INT,
       state    INT,
       descr    VARCHAR(255),
+      ghz      INT,
       timestamp INT)",
 
      "CREATE TABLE Journals
@@ -196,7 +197,7 @@ sub Create{
        content    TEXT,
        timestamp  INT,
        nickname   VARCHAR(80),
-       host       varchar(80),
+       host       VARCHAR(80),
         events    INT,
         errors    int,
         cputime   int,
@@ -312,8 +313,8 @@ my $cntr = 0;
 my $cnt  = 0;
 my $sql;
 
-
    if($self->{dbdriver} =~ m/Oracle/){
+    print "Check and fill RNDM table from $RNDMTable \n";
     $sql="SELECT COUNT(rid) FROM RNDM";
     $cntr=$self->Query($sql);
      foreach my $ret (@{$cntr}) {
@@ -335,7 +336,7 @@ my $sql;
     }    
     close(FILEI);
 # create indecies, it takes a while.
-    $dbh->do("create index rid_ind on rndm (rid)") or die "cannot do: ".$dbh->errstr(); 
+    $dbh->do("create index rid_ind on rndm (rid)") or print "cannot do: ".$dbh->errstr(); 
    }
 
 # initialize 
@@ -440,16 +441,26 @@ my $sql;
          $journal     = trimblanks($journal);        #      journal file directory
          $ghz         = strtod($ghz);                #      computing facility equiv in GHz
 
-         $dbh->do("insert into Cites values($cid,$name,0,$status,$run,$stat,$description,$time,$ghz)")
+         print "$cid,$name,0,$status,$run,$stat,$description,$ghz,$time \n";
+         $dbh->do("INSERT INTO Cites VALUES
+                        ($cid,
+                         '$name',
+                         0,
+                         '$status',
+                         $run,
+                         $stat,
+                         '$description',
+                         $ghz,
+                         $time)")
          or die "cannot do: ".$dbh->errstr();
          my $dirpath=$journal."/".$name;    
-         $dbh->do("insert into journals values($cid,$dirpath,' ',0,$time)")    
+         $dbh->do("INSERT INTO journals VALUES($cid,'$dirpath',' ',0,$time)")    
          or die "cannot do: ".$dbh->errstr();    
          $n++;
          $run=($n<<27)+1;
      }
       my $junkdir = $journal."/junk";
-      $dbh->do("INSERT INTO journals VALUES(-1,$junkdir,' ',0,$time)")  
+      $dbh->do("INSERT INTO journals VALUES(-1,'$junkdir',' ',0,$time)")  
       or die "cannot do: ".$dbh->errstr();    
     }
    } 
@@ -493,9 +504,9 @@ my $sql;
           $allow   = strtod($allow);
           $status  = trimblanks($status);
           $prio    = strtod($prio);
-#          print "$host,$disk,$path,$total,$occup,$avail,$allow,$status\n";
+          print "$host,$disk,$path,$total,$occup,$avail,$allow,$status\n";
           $dbh->do("INSERT INTO Filesystems VALUES
-           ($fid,$host,$disk,$path,$total,$occup,$avail,$allow,$status,$prio,$time)")
+           ($fid,'$host','$disk','$path',$total,$occup,$avail,$allow,'$status',$prio,$time)")
            or die "cannot do: ".$dbh->errstr();    
       }
      }
@@ -693,7 +704,18 @@ my $sql;
           $rs      = strtod($rs);
           $cid     = strtod($cid);
           $dbh->do
-           ("insert into Mails values($mid,'$address','$alias',$name,$r,$rs,$cid,'Active',0,$time,0,0)")
+           ("insert into Mails values($mid,
+                                      '$address',
+                                      '$alias',
+                                      '$name',
+                                      $r,
+                                      $rs,
+                                      $cid,
+                                      'Active',
+                                      0,
+                                      $time,
+                                      0,
+                                      0)")
            or die "cannot do: ".$dbh->errstr();    
           $mid++;
       }
