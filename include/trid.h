@@ -34,7 +34,7 @@ AMSTrIdGeom(integer layer,integer ladder,integer sensor, integer stripx,
 integer stripy);
 AMSTrIdGeom(integer idsoft, integer stripx=0, integer stripy=0);
 AMSTrIdGeom & operator = (const AMSTrIdGeom &o);
-AMSID crgid();
+AMSID crgid() const;
 integer FindAtt(const AMSPoint & pnt,  AMSPoint  size);
 integer operator == (const AMSTrIdGeom &o);
 void R2Gx(integer stripx);
@@ -62,7 +62,7 @@ inline integer getmaxstrips(integer i) const
 integer size2strip(integer side, number size);
 
 
-inline number strip2size(integer side){
+inline number strip2size(integer side) const{
      #ifdef __AMSDEBUG__
        assert(side>=0 && side<2 && !AMSJob::gethead()->isRealData());
      #endif

@@ -94,6 +94,18 @@ AMSTrRawCluster::AMSTrRawCluster(integer ad, integer left, integer right,
 
 
 void AMSTrRawCluster::sitkdigi(){
+
+// set defaults
+{
+    AMSTrMCCluster * ptrhit=
+    (AMSTrMCCluster*)AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);    
+      while(ptrhit){
+           if(ptrhit->IsNoise())ptrhit->setstatus(AMSDBc::AwayTOF);
+        ptrhit=ptrhit->next();
+      }
+}
+
+
   AMSgObj::BookTimer.start("SITKDIGIa");
 integer const ms=4000;
 integer const maxva=64;

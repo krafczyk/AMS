@@ -176,6 +176,8 @@ public:
  AMSTrMCCluster(){_next=0;};
  ~AMSTrMCCluster(){};
   AMSTrIdGeom getid();
+  integer IsNoise(){return _itra==_NoiseMarker;}
+  AMSPoint getHit(){return _xgl;}
   static integer noisemarker(){return _NoiseMarker;}
   static geant step(){return _step;}
   static integer ncha(){return _ncha;}

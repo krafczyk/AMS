@@ -22,7 +22,7 @@ _next=0;
 _idsoft=id.cmpt();
 _xca=0;
 _xcb=0;
-_xgl=0;
+_xgl=-1000;
 _itra=itra;
 _sum=0;
 if(nel>5)nel=5;
@@ -36,6 +36,15 @@ _center[side]=id.getstrip(side);
 _center[cside]=0;
 for(int i=_left[side];i<_right[side]+1;i++)
  _ss[side][i-_left[side]]=ss[i+nel-_right[side]-1];
+if(side==1){
+ number cofgy=id.strip2size(1);
+ number cofgx=0;
+          AMSgSen *p=
+          (AMSgSen*)AMSJob::gethead()->getgeomvolume(id.crgid());
+ if(p){
+  _xgl=p->str2pnt(cofgx,cofgy);
+ }
+}
 }
 
 void AMSTrMCCluster::addcontent(const AMSTrIdSoft &  idl, geant *adc){
@@ -205,9 +214,14 @@ void AMSTrMCCluster::_writeEl(){
   TrMCClusterNtuple* TrMCClusterN = AMSJob::gethead()->getntuple()->Get_trclmc();
   
   if (TrMCClusterN->Ntrclmc>=MAXTRCLMC) return;
+
+  integer flag =    (IOPA.WriteAll%10==1)
+                 || (IOPA.WriteAll%10==0 && checkstatus(AMSDBc::USED))
+                 || (IOPA.WriteAll%10==2 && !checkstatus(AMSDBc::AwayTOF));
+
   
 // Fill the ntuple
-  if(AMSTrMCCluster::Out( IOPA.WriteAll%10==1)){
+  if(AMSTrMCCluster::Out(flag)){
     TrMCClusterN->Idsoft[TrMCClusterN->Ntrclmc]=_idsoft;
     TrMCClusterN->TrackNo[TrMCClusterN->Ntrclmc]=_itra;
     int i;

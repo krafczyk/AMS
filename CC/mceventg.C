@@ -250,10 +250,10 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
     else if(low==1){
       cout <<"AMSMceventg::setspectra-W-UnderCutoffParticleGeneratorChosen"<<endl;
    
-      integer nchan=200;
+      integer nchan=500;
       geant binw;
-      if(mass < 0.938)binw=100;
-      else  binw=100*mass/0.938/charge;
+      if(mass < 0.938)binw=40;
+      else  binw=40*mass/0.938/charge;
       geant al=binw/2;
       
       geant bl=binw/2+nchan*binw;

@@ -20,7 +20,7 @@
 #include <tkdbc.h>
 #include <trigger3.h>
 #include <tralig.h>
-
+#include <mccluster.h>
 
 
 
@@ -1112,6 +1112,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
       }
     }
 
+{
 // Mark AMSTrRecHits which are outside the TOF path
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
@@ -1133,6 +1134,31 @@ integer AMSTrRecHit::markAwayTOFHits(){
         }
       }
     }
+
+}
+// Now we want add same for MC Tr Hits (V. Choutko 3/8/1999)
+
+    AMSTrMCCluster * ptrhit=
+    (AMSTrMCCluster*)AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);    
+    AMSPoint hit;
+      geant searchregtof = TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
+      while(ptrhit){
+        hit = ptrhit->getHit();
+        number xres = fabs(hit[0]-intercept_x - slope_x*hit[2]);
+        number yres = fabs(hit[1]-intercept_y - slope_y*hit[2]);
+        if (    xres < searchregtof
+             && yres < searchregtof    ) {
+           ptrhit->clearstatus(AMSDBc::AwayTOF);
+        }
+        else if(yres< searchregtof && ptrhit->IsNoise()){
+           ptrhit->clearstatus(AMSDBc::AwayTOF);
+        }
+        else{
+           ptrhit->setstatus(AMSDBc::AwayTOF);
+        }
+        ptrhit=ptrhit->next();
+      }
+
       return 0;
 
 }
