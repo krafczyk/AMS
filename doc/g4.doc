@@ -1,9 +1,9 @@
-#  $Id: g4.doc,v 1.33 2003/02/04 15:53:53 choutko Exp $
+#  $Id: g4.doc,v 1.34 2003/02/11 18:45:47 choutko Exp $
 -------
 Platform:
 linux-gcc2.95.3 ($G4SYSTEM=Linux-g++)
 
-linux-gcc.3.2.1  - gives runtime errors, not supported yet.
+linux-gcc.3.2.x  - gives runtime errors, not supported yet.
 
 -------
 Installer:
