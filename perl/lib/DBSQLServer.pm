@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.25 2002/07/15 14:30:05 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.26 2002/07/17 17:56:21 alexei Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -250,7 +250,8 @@ sub Create{
      $dbh->do("insert into Environment values('gbatch','exe/linux/gbatch-orbit.exe')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('ntuplevalidator','exe/linux/fastntrd.exe')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('getior','exe/linux/getior.exe')") or die "cannot do: ".$dbh->errstr();     
-     $dbh->do("insert into Environment values('filedb','ams02mcdb.tar')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('filedb','ams02mcdb.tar.gz')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('filedb.att','ams02mcdb.att.tar.gz')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('dbversion','v4.00')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('AMSProdDir','prod')") or die "cannot do: ".$dbh->errstr();     
      my $apd='$AMSProdDir/prod/starttagmtb_db_mc';

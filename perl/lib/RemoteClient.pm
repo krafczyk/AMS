@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.51 2002/07/17 14:30:41 choutko Exp $
+# $Id: RemoteClient.pm,v 1.52 2002/07/17 17:56:21 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -39,6 +39,13 @@ my %fields=(
         AMSDSTOutputDir=>undef,
         CERN_ROOT=>undef,
         UploadsDir=>undef,
+        UploadsHREF=>undef,
+        FileDB=>undef,
+        FileAttDB=>undef,
+        FileDBTimestamp=>undef,
+        FileAttDBTimestamp=>undef,
+        FileDBLastLoad=>undef,
+        FileAttDBLastLoad=>undef,
         LocalClientsDir=>"prod.log/scripts/",
         Name=>'/cgi-bin/mon/rc.cgi',
         DataMC=>0,
@@ -209,10 +216,41 @@ my %mv=(
     my $ret=$self->{sqlserver}->Query($sql);
     if( defined $ret->[0][0]){
      $self->{$key}=$ret->[0][0];
- }
+    }
     else{    
      $self->{$key}="/var/www/cgi-bin/AMS02MCUploads";
     }
+
+    my $key='UploadsHREF';
+    my $sql="select myvalue from Environment where mykey='".$key."'";
+    my $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}=$ret->[0][0];
+    }
+    else{    
+     $self->{$key}="AMS02MCUploads";
+    }
+
+    my $key='FileDB';
+    my $sql="select myvalue from Environment where mykey='".$key."'";
+    my $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}=$ret->[0][0];
+    }
+    else{    
+     $self->{$key}="ams02mcdb.tar.gz";
+    }
+    my $key='FileAttDB';
+    my $sql="select myvalue from Environment where mykey='".$key."'";
+    my $ret=$self->{sqlserver}->Query($sql);
+    if( defined $ret->[0][0]){
+     $self->{$key}=$ret->[0][0];
+    }
+    else{    
+     $self->{$key}="ams02mcdb.att.tar.gz";
+    }
+
+
      $key='AMSSoftwareDir';
      $sql="select myvalue from Environment where mykey='".$key."'";
      $ret=$self->{sqlserver}->Query($sql);
@@ -1678,6 +1716,18 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
     }
 #MyRegister ends here
 
+# Files Upload
+    if ($self->{q}->param("Download")){
+        $self->{read}=1;
+        $self->{CEM}=$self->{q}->param("CEM");
+        my $upl0=$self->{q}->param("UPL0");
+        my $time = time();
+        $sql="update Mails set timeu1=$upl0, timeu2=$upl0, timestamp=$time WHERE address='$self->{CEM}'";
+        $self->{sqlserver}->Update($sql);
+        $self->AllDone();
+   }
+#Download ends here 
+
     if ($self->{q}->param("FormType")){
         $self->{read}=1;
 # check e-mail
@@ -2703,7 +2753,7 @@ print qq`
         my $filedb;
         my $filedb_att;
         if($self->{CCT} eq "remote"){
-        $filedb="$self->{UploadsDir}/ams02mcdb.tar.gz";
+        $filedb="$self->{UploadsDir}/$self->{FileDB}";
         my @sta = stat $filedb;
         if($#sta<0 or $sta[9]-time() >86400*7 or $stag[9] > $sta[9] ){
            $self->{senddb}=2;
@@ -2743,7 +2793,7 @@ print qq`
         elsif($sta[9]>$self->{TU1}){
             $self->{senddb}=2;
         }
-        $filedb_att="$self->{UploadsDir}/ams02mcdb.att.tar.gz";
+        $filedb_att="$self->{UploadsDir}/$self->{FileAttDB}";
         @sta = stat $filedb_att;
 
         if($#sta<0 or $sta[9]-time() >86400*7  or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
@@ -3067,9 +3117,30 @@ print qq`
                        unlink $file;
                      }
                   }                      
+# check last download time
+          my $uplt0 = 0;  #last upload
+          my $uplt1 = 0;  # for filedb and filedb.att
+          $sql="SELECT timeu1, timeu2 FROM Mails WHERE ADDRESS='$self->{CEM}'";
+          my $ret=$self->{sqlserver}->Query($sql);
+          if(defined $ret->[0][0]){
+          foreach my $uplt (@{$ret}){
+           $uplt0    = $uplt->[0];
+           $uplt1    = $uplt->[1];
+          }
+        }
+        $filedb="$self->{UploadsDir}/$self->{FileDB}";
+        my @sta0 = stat $filedb;
+        $filedb="$self->{UploadsDir}/$self->{FileAttDB}";
+        my @sta1 = stat $filedb;
+        if($uplt0 == 0 or $uplt0 < $sta0[9] or $uplt1 == 0 or $uplt1 < $sta1[9]) {
+            $self->{FileDBTimestamp}=$sta0[9];
+            $self->{FileAttDBTimestamp}=$sta1[9];
+            $self->{FileDBLastLoad}=$uplt0;
+            $self->{FileAttDBLastLoad}=$uplt1;
+            $self->Download();
+        } else {
                   $self->{FinalMessage}=" Your request was successfully sent to $self->{CEM}";     
-#                print "<TR><B><font color=green size= 5><a href=\"http://pcamsf0.cern.ch/cgi-bin/mon/download.o.cgi\"><b><font color=green> download </font></a><font size=3><i> (Click <b><i>download </i></b> to obtain exe and data files)</font></i></font></B></TR>";
-             
+      }             
     }
 
 
@@ -4028,36 +4099,59 @@ sub listNtuples {
      print "<p></p>\n";
 }
 
-sub Download{
+sub AllDone{
+    htmlTop();
+     my $self = shift;
+     print "<font size=\"5\" color=\"green\">Download finished. Your request was successfully sent to $self->{CEM}";       htmlReturnToMain();
+    htmlBottom();
+}
+
+sub Download {
+    my $self = shift;
     print "Content-type: text/html\n\n";
     print "<HTML>\n";
     print "<body bgcolor=cornsilk text=black link=#007746 vlink=navy alink=tomato>\n";
-    print "<head>";
-    print "<TITLE>AMS Offline Software</TITLE></HEAD>";
-    print "<TABLE border=0 cellspacing=0 cellpadding=0>";
+    print "<head>\n";
+    print "<TITLE>AMS Offline Software</TITLE></HEAD>\n";
+    print "<FORM METHOD=\"GET\" action=\"$self->{Name}\">\n";
+    print "<TABLE border=0 cellspacing=0 cellpadding=0>\n";
+    print "<br><b><font color=\"blue\" size=\"4\"> $self->{CEM} </b></font>\n";
+    my $dtime=EpochToDDMMYYHHMMSS($self->{FileDBLastLoad});
+    print "<br><font color=\"green\" size=\"4\"><b><i> Last downloaded  : </i></font><b> $dtime </b>\n";
+    $dtime=EpochToDDMMYYHHMMSS($self->{FileDBTimestamp});
+    print "<br><font color=\"green\" size=\"4\"><b><i>Files updated    : </i></font><b> $dtime </b>\n";
+    print "<br><font color=\"red\" size=\"5\"><b><i> It is absolutely mandatory to download files</b></i></font>\n";
     print "<tr>";
-    print "<td width=600>";
-    print "<table border=\"0\" cellspacing=\"5\" cellpadding=\"5\">";
-    print "<P>";
-    print "<p><tr><td bgcolor=\"#ffefd5\" width=600 valign=top colspan=2>";
-    print "<font face=\"myriad,arial,geneva,helvetica\">";
-    print "<TABLE BORDER=2 cellpadding=3 cellspacing=3 BGCOLOR=#eed8ae align=center width=100%>";
-    print "<TR><br>";
-    print "<TD><font color=#8b1a1a><b>The following files are avaialable for download</b></font>:";
+    print "<td width=600>\n";
+    print "<table border=\"0\" cellspacing=\"5\" cellpadding=\"5\">\n";
+    print "<P>\n";
+    print "<p><tr><td bgcolor=\"#ffefd5\" width=600 valign=top colspan=2>\n";
+    print "<font face=\"myriad,arial,geneva,helvetica\">\n";
+    print "<TABLE BORDER=2 cellpadding=3 cellspacing=3 BGCOLOR=#eed8ae align=center width=100%>\n";
+    print "<TR><br>\n";
+    print "<TD><font color=#8b1a1a><b>The following files are avaialable for download</b></font>:\n";
+    print "<br><br>\n";
+    print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileDB}>  filedb files (tar.gz)</a></font>\n";
     print "<br><br>";
-    print "<br><a href=AMSUploads/ams02mcdb.tar.gz>  data files (tar.gz)</a>";
-    print "<br><br>";
-    print "<br><a href=AMSUploads/ams02mcdb.addon.tar.gz>   exe files (tar.gz)</a>";
-    print "<br><br>";
-    print "</TD></TR>";
-    print "</TABLE>";
-    print "</td></tr>";
-    print "</table>";
-    print "</td></tr>";
-    print "</TABLE>";
-    print "</BODY>";
-    print "</HTML>";
+    print "<br><font size=\"4\"><a href=$self->{UploadsHREF}/$self->{FileAttDB}>   filedb att.files (tar.gz)</a></font>\n";
+    print "<br><br>\n";
+    print "</TD></TR>\n";
+    print "</TABLE>\n";
+    print "</td></tr>\n";
+    print "</table>\n";
+    print "</td></tr>\n";
+    print "</TABLE>\n";
+    print "<p>\n";
+          my $time; 
+          $time = time();
+          print "<input type=\"hidden\" name=\"CEM\" value=$self->{CEM}>\n";
+          print "<input type=\"hidden\" name=\"UPL0\" value=$time>\n";
+          print "<input type=\"submit\" name=\"Download\" value=\"Finish\">\n";
+    print "</FORM>\n";
+    print "</BODY>\n";
+    print "</HTML>\n";
 }
+
 sub ht_init{
   my $self = shift;
 
@@ -4248,3 +4342,4 @@ sub Color {
     }
     return $colors[$color];
 }
+
