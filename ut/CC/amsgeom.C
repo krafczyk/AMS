@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.119 2001/04/01 19:31:43 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.120 2001/04/04 08:28:01 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -3536,7 +3536,6 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
             par[1]=ECALDBc::rdcell(4)/2.;// fiber-core radious
 	    coo[0]=0.;
 	    coo[1]=0.;
-	    gid=1;
             pECfsen=pECfib->add(new AMSgvolume(
             "EC_FCORE",0,"ECFC","TUBE",par,3,coo,nrm0,"ONLY",0,gid,1));
 #ifdef __G4AMS__

@@ -7,7 +7,7 @@ if [ "$UNAME" = "AIX" ] ; then
 elif [ "$UNAME" = "OSF1" ] ; then
     MACHINE="DEC-cxx"
 elif [ "$UNAME" = "Linux" ] ; then
-    MACHINE="Linux-g++"
+    MACHINE="Linux-gcc2.95"
 else
 echo $UNAME is not supported yet
 

@@ -1,55 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.23 2001/03/30 10:41:12 choutko Exp $          
-
-$$$  Important - AMS cvs access changed $$$
-
- Dear Colleagues,
-  To facilitate the access to AMS SW,
-  the new AMS cvs repository has been setup.
-  It can be accessed both via web and
-  dedicated cvs server.
-  The access is username/password protected.
-  Username:   amscvs
-  Password:   [ams.cern.ch] > cat ~ams/cvsams/.cvsams
- 
-  The access is granted to everybody having 
-  the account on ams.cern.ch and/or being a member of 
-  cernva (AMS) group.
-
-  To access AMS software via cvs server please proceed as following:
-
-    source /offline/vdev/install/amsvar
-    cvs login
-    cvs checkout AMS 
-    {Eventually} cvs update -d 
-    
-    Exceptions:
-    
-     a. Developpers (people want to use cvs commit): Please proceed as before. 
-     b. "Old Users" (already set their own copy of AMS SW): please do once:
-
-         source /offline/vdev/install/amsvar
-         /offline/vdev/perl/cvs.perl {YourOwnCopyofAMSSW}
-         
-         {Eventually} cvs update -d 
-         
-  To access AMS software from web please use link:
-  
-  http://pcamsp0/cgi-bin/viewcvs.cgi/ 
-
-
-  Please also be aware that
-
- a. AMS01 and eventually AMS02 Data and MC  may be retrieved via
-   http://ams.cern.ch/AMS/Computing/dbquery.html
-
- b. The whole set of AMS01 public data ntuples may be found in 
-    /Offline/ntuples
-
-
- 
-   
-
-$$$                                     $$$
+#  $Id: Readme.AMS02.1st,v 1.24 2001/04/04 08:28:02 choutko Exp $          
 
 
 
@@ -92,15 +41,15 @@ a) As a user:
 b) As a developper :
 
   i)Get an account on  some ams computer (see VIII)
-  iii)           source $Offline/vdev/install/amsvar 
+  ii)           source $Offline/vdev/install/amsvar 
                  to setup AMS related variables
         
-  iv) Get a password for cvs server by
+  iii) Get a password for cvs server by
       log in ams.cern.ch
       cat ~ams/cvsams/.cvsams
 
-   v) Either see http://pcamsp0/cgi-bin/viewcvs.cgi/ 
-      with username amscvs and password in iv)  or
+   iv) Either see http://pcamsp0/cgi-bin/viewcvs.cgi/ 
+      with username amscvs and password in iii)  or do
       cvs login 
       cvs checkout AMS  
                          
@@ -112,7 +61,7 @@ b) As a developper :
          To make the changes available to others (update CVS master rep) :
          You should be a member of amsdev group on ams computers
          ask Vitaly.Choutko@cern.ch about the procedure                                       
-         cvs commit// Please ensure the files you changed at least compilable :)
+         cvs commit
             
          To add new files/directories:
          cvs add file
