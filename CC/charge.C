@@ -46,10 +46,12 @@ if(charge>_chargeTracker[ncharge-1]){
  int index;
  int voted=getvotedcharge(index);
  int i=charge;
- if(voted<=CHARGEFITFFKEY.TrackerOnly && voted<=CHARGEFITFFKEY.TrackerProbOnly) {
-   return _ProbTOF[i]*_ProbTracker[i]/_ProbTOF[index]/_ProbTracker[index];
- }
- else return _ProbTracker[i]/_ProbTracker[_iTracker];
+ if(_ChargeTracker){
+   if(voted<=CHARGEFITFFKEY.TrackerOnly && voted<=CHARGEFITFFKEY.TrackerProbOnly) {
+     return _ProbTOF[i]*_ProbTracker[i]/_ProbTOF[index]/_ProbTracker[index];
+   }
+   else return _ProbTracker[i]/_ProbTracker[_iTracker];
+ } else return _ProbTOF[i]/_ProbTOF[_iTOF];
 }
 
 integer AMSCharge::getvotedcharge(int & index){
@@ -57,7 +59,7 @@ integer AMSCharge::getvotedcharge(int & index){
   int charge=0;
 
 // Only tracker above this value
-  if (_ChargeTOF>CHARGEFITFFKEY.TrackerOnly){
+  if (_ChargeTOF>CHARGEFITFFKEY.TrackerOnly && _ChargeTracker){
     index=_iTracker;
     return _ChargeTracker;
   }
@@ -65,7 +67,8 @@ integer AMSCharge::getvotedcharge(int & index){
   number probmin=CHARGEFITFFKEY.ProbMin;
   int usetof=_ProbTOF[_iTOF]>probmin?1:0;
   int usetrk=_ProbTracker[_iTracker]>probmin?1:0;
-  if(!usetof && !usetrk){
+  if(!_ChargeTracker) usetof=1;
+  else if(!usetof && !usetrk){
     usetof=1;
     usetrk=1;
   }
@@ -266,8 +269,10 @@ integer AMSCharge::FitTOF(int toffit, number beta, int bstatus, int nhitTOF, AMS
 
 // init
   if (!toffit){
+    _iTOF=0;
     _ChargeTOF=0;
     for(i=0; i<ncharge; i++) _ProbTOF[i]=0;
+    for(i=0; i<ncharge; i++) _IndxTOF[i]=i;
     UCOPY(etof[0],ETOF[0],TOFTypes*TOFMaxHits*sizeof(etof[0][0])/4);
   }
 
@@ -343,8 +348,11 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
 
 // init
   if(!trkfit){
+    _iTracker=0;
     _ChargeTracker=0;
+    _ProbAllTracker=0;
     for(i=0; i<ncharge; i++) _ProbTracker[i]=0;
+    for(i=0; i<ncharge; i++) _IndxTracker[i]=i;
     UCOPY(etrk[0],ETRK[0],(TrackerTypes-1)*TrackerMaxHits*sizeof(etrk[0][0])/4);
   }
 
@@ -473,9 +481,9 @@ void AMSCharge::lkhcalc(int mode, number beta, int nhit, number ehit[], int type
 number AMSCharge::resmax(number x[],int ntot,int refit,number rescut,int &imax,number &mean,number &trres,number &trmax){
   int i,j,n;
   imax=-1;
-  mean=x[0];
-  trres=x[0];
-  trmax=x[0];
+  mean=ntot?x[0]:0;
+  trres=ntot?x[0]:0;
+  trmax=ntot?x[0]:0;
 
   if(ntot<2) return 0;
 
