@@ -113,7 +113,7 @@ then 12 subblocks of 3084 length each
 
   SubBlock Format
 Word1              Subblock Length 3084
-Word2 & 31         Number of TDR      2
+Word2 & 7         Number of TDR      2
 Word3              TDR Number         0,2,4,6,8,10,12,14,16,18,20,22     
 Word4                              1540
 Word5         

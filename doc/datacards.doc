@@ -392,14 +392,17 @@ R 8 RhoThrV(0.8)                       // channel corcoef
 I 9 Method(1)                        
 R10 BadChThr[2];                       // up,p
 I12 Pass;                              // pass
-I13  EventsPerIteration[2](100,100)    // Events in one bunch
-I15 NumberOfIterations[2](200,200)    // number of bunches
-R17 BetaCut[2][2](0.7,10.,1.,10.)    // Beta limits
-R21 HitsRatioCut[2](2.5,2.5)          // Hit Ratio Limits
-R23 MomentumCut[2][2](-inf,inf,3,inf) // momentum ----------
-R27 Chi2Cut[2](3.,3.)                 // chi2 ---------------
-R29 InitialCoo[6][3](0)               // Coordinates displacement
-R47 InitialRM[6][3][3](0)             // Rot Matrix --------
+I13 DPS;                               // Dynamic pedestal subtraction off(0)
+                                       // on ( >0)
+I14 UPDF;                               // Dynamic pedestal update freq
+I15  EventsPerIteration[2](100,100)    // Events in one bunch
+I17 NumberOfIterations[2](200,200)    // number of bunches
+R19 BetaCut[2][2](0.7,10.,1.,10.)    // Beta limits
+R23 HitsRatioCut[2](2.5,2.5)          // Hit Ratio Limits
+R25 MomentumCut[2][2](-inf,inf,3,inf) // momentum ----------
+R29 Chi2Cut[2](3.,3.)                 // chi2 ---------------
+R31 InitialCoo[6][3](0)               // Coordinates displacement
+R49 InitialRM[6][3][3](0)             // Rot Matrix --------
 };
 
 
