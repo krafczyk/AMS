@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.5 2001/01/22 17:32:45 choutko Exp $
+//  $Id: trddbc.h,v 1.6 2001/03/26 18:08:05 kscholbe Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -8,7 +8,7 @@
 
 namespace trdconst{
 // counting always from 0 and from top to bottom
-const uinteger maxo=7;   
+const uinteger maxo=9;   
 const uinteger mtrdo=1;   
 const uinteger maxlay=20;
 const uinteger maxlad=21;
@@ -48,6 +48,12 @@ private:
     static const number  _TubeWallThickness;
     static const number  _TubeBoxThickness;
     static const number  _LadderThickness;
+    static const number  _FirstLayerHeight;
+    static const number  _WirePosition;
+    static const number  _ManifoldThickness;
+    static const number  _ManifoldLength;
+    static const number  _ManifoldWidth;
+    static const number  _BulkheadGap;
     static const integer _LadderOrientation[mtrdo][trdconst::maxlay];    
 
  //Sizes    
@@ -135,6 +141,12 @@ public:
     static  number  TubeWallThickness(){return _TubeWallThickness;}
     static  number  TubeBoxThickness(){return _TubeBoxThickness;}
     static  number  LadderThickness(){return _LadderThickness;}
+    static  number  FirstLayerHeight(){return _FirstLayerHeight;}
+    static  number  WirePosition(){return _WirePosition;}
+    static  number  ManifoldThickness(){return _ManifoldThickness;}
+    static  number  ManifoldLength(){return _ManifoldLength;}
+    static  number  ManifoldWidth(){return _ManifoldWidth;}
+    static  number  BulkheadGap(){return _BulkheadGap;}
     static  integer LadderOrientation(uinteger oct, uinteger lay){return lay<LayersNo(oct)?_LadderOrientation[oct][lay]:0;}     
     static  integer LadderShift(uinteger oct, uinteger lay,uinteger lad){return lad%2?-1:1;}
 
