@@ -33,15 +33,15 @@ TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03
 C npars ims 
   5     1   
 C          Nparticles 
-IOPA 1=3 2='run$RUN.34.40.trk.hbk' 43=1 45='AMSTrTrack   ' 
+IOPA 1=3 2='run$RUN.35.40.trk.hbk' 43=1 45='AMSTrTrack   ' 
 C RNDM 197683093 1356123257
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=11   2=0      3=20.   4=1  5=0 6='v203a'  87=0
 C Special HP-UX
 TIME 3=10000000
-TRCL 6=5. 17=1.0 22=1
-TRMC 30=3.4 31=4.0
+TRCL 6=4.5 17=1.0 22=1
+TRMC 30=3.5 31=4.0
 DAQC 1=21 2='/offdata/raw/run000$RUN.dat' 
 42='/offdata/raw/golden_trk.dat'
 TRFIT 23=0
@@ -69,15 +69,15 @@ TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03
 C npars ims 
   5     1   
 C          Nparticles 
-IOPA 1=3 2='run$RUN.34.40.hit.hbk' 43=1 45='AMSTrRecHit   ' 
+IOPA 1=3 2='run$RUN.35.40.hit.hbk' 43=1 45='AMSTrRecHit   ' 
 C RNDM 197683093 1356123257
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=11   2=0      3=20.   4=1  5=0 6='v203a'  87=0
 C Special HP-UX
 TIME 3=10000000
-TRCL 6=5. 17=1.0 22=1
-TRMC 30=3.4 31=4.0
+TRCL 6=4.5 17=1.0 22=1
+TRMC 30=3.5 31=4.0
 DAQC 1=21 2='/offdata/raw/run000$RUN.dat' 
 42='/offdata/raw/golden_hit.dat'
 TRFIT 23=0
@@ -107,15 +107,15 @@ TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03
 C npars ims 
   5     1   
 C          Nparticles 
-IOPA 1=3 2='run$RUN.33.40.cls.hbk' 43=1 45='AMSTrCluster   ' 
+IOPA 1=3 2='run$RUN.35.40.cls.hbk' 43=1 45='AMSTrCluster   ' 
 C RNDM 197683093 1356123257
 RNDM  1310381404  1978925784
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=11   2=0      3=20.   4=1  5=0 6='v203a'  87=0
 C Special HP-UX
 TIME 3=10000000
-TRCL 6=5. 17=1.0 22=1
-TRMC 30=3.3 31=4.0
+TRCL 6=4.5 17=1.0 22=1
+TRMC 30=3.5 31=4.0
 DAQC 1=1 2='/offdata/raw/run000$RUN.dat' 
 TRCALIB 9=2
 TRFIT 23=0
@@ -148,7 +148,7 @@ AMSJOB 1=11   2=0      3=20.   4=1  5=0 6='v203a'  87=0
 C Special HP-UX
 TIME 3=10000000
 TRCALIB 9=2
-TRCL 6=5. 17=1.0 22=1
+TRCL 6=4.5 17=1.0 22=1
 TRMC 30=2.7 31=4.0
 DAQC 1=1 2='/offdata/raw/run000$RUN.dat' 
 TRFIT 23=0
@@ -161,7 +161,5 @@ END
 
 
 
-../exe/osf1/nconvert run$RUN.34.40.trk.hbk run$RUN.34.40.trk.hbk
-../exe/osf1/nconvert run$RUN.34.40.hit.hbk run$RUN.34.40.hit.hbk
 ../exe/osf1/nconvert run$RUN.27.40.cls.hbk run$RUN.27.40.cls.hbk
-../exe/osf1/nconvert run$RUN.33.40.cls.hbk run$RUN.33.40.cls.hbk
+../exe/osf1/nconvert run$RUN.34.40.cls.hbk run$RUN.34.40.cls.hbk
