@@ -11,5 +11,22 @@
  *       - Locally: "cd $AMSDir/python; gmake"
  *       - For all users in the machine: "cd $AMSDir/python; gmake; gmake install"
  *
+ *    - If you want to see graphics, you have to start an application, 
+ *      using "TApplication(...)" or even "TRint(...)", and then run it at the end
+ *      with "app.Run()". Example:
+ *            - app = TApplication("My Application",0,[])
+ *            - ...
+ *            - app.Run()
+ *
+ *    - Global variables like gROOT are accessed as "cvar.gROOT". Examples:
+ *            - cvar.gROOT.Reset()
+ *            - cvar.gStyle.SetOptLogy(1)
+ *
+ *    - You can use Python lists whenever ROOT expects a C-Float array as input. 
+ *      Example:
+ *            - a = [0.0, 1.0, 2.0]
+ *            - b = [-1.0, 0.0, 1.0]
+ *            - my_graph = TGraph(3, a, b)
+ *
  *  \include ana.root.py
  */ 

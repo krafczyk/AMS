@@ -1,18 +1,23 @@
 SHELL=/bin/sh
+OS := $(shell uname)
 MY_OS := $(shell uname | tr '[A-Z]' '[a-z]')
 file= AMS
-GC=g++ -Wno-deprecated
+GC=g++
 PREF := $(shell python2.2 -c "import sys; print sys.prefix")
 
-ifndef AMSWD
 AMSWD := ..
+AMSOBJDIR := $(AMSWD)/bin/$(MY_OS)
+
+ifdef  AMSICC
+ifeq  "$(OS)"  "Linux"
+      AMSOBJDIR := $(AMSWD)/bin/$(MY_OS)/icc
+endif
 endif
 
 GCINCS=-I$(PREF)/include/python2.2 -I$(AMSWD)/include -I$(ROOTSYS)/include
 LIBS=-L$(ROOTSYS)/lib -lCore -lCint -lHist -lTree -lMatrix -lMinuit \
 -lGraf -lGraf3d -lGpad -lGX11 -lGX11TTF -lGui -lHistPainter -lPostscript \
--lRint -lHtml $(AMSWD)/bin/linux/icc/root_rs.o \
-$(AMSWD)/bin/linux/icc/rootdict_s.o
+-lRint -lHtml $(AMSOBJDIR)/root_rs.o $(AMSOBJDIR)/rootdict_s.o
 MYLIB=$(MY_OS)/_$(file).so
 MYPY=$(MY_OS)/$(file).py
 MYPYC=$(MY_OS)/$(file).pyc

@@ -11,5 +11,25 @@
  *       - Locally: "cd $AMSDir/ruby; gmake"
  *       - For all users in the machine: "cd $AMSDir/ruby; gmake; gmake install"
  *
+ *    - If you want to see graphics, you have to start an application, 
+ *      using "TApplication.new" or even "TRint.new", and then run it at the end
+ *      with "app.Run". Example:
+ *            - app = TApplication.new("My Application",0,[])
+ *            - ...
+ *            - app.Run
+ *
+ *    - Global variables like gROOT are accessed as "ROOT::gROOT". Examples:
+ *            - ROOT::gROOT.Reset
+ *            - ROOT::gStyle.SetOptLogy(1)
+ *
+ *    - Constants in Ruby begin with a capital letter. This means that you must 
+ *      use "KFalse, KTrue, KBlue, ...", and not "kFalse, kTrue, kBlue, ...". 
+ *
+ *    - You can use Ruby arrays whenever ROOT expects a C-Float array as input. 
+ *      Example:
+ *            - a = [0.0, 1.0, 2.0]
+ *            - b = [-1.0, 0.0, 1.0]
+ *            - my_graph = TGraph.new(3, a, b)
+ *
  *  \include ana.root.rb
  */ 
