@@ -76,16 +76,8 @@ else
       exit
 fi
 
-root_includes=`cat USE_THESE_ROOT_CLASSES`
-
-rm -f ${file}.h
-for arg in $root_includes; do
-      if [ "$arg" = "TROOT.h" ]; then
-            cat $ROOTSYS/include/TROOT.h | grep -v "operator new" >> ${file}.h
-      else
-            cat $ROOTSYS/include/$arg >> ${file}.h
-      fi
-done
+command="./make_${file}.h.rb"
+echo -e "\n>>>>>>> $command" ; $command
 
 cat $ROOTSYS/include/TSelector.h >> ${file}.h
       

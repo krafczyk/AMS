@@ -26,7 +26,6 @@ TAttPad.h
 TAttAxis.h
 TQObject.h
 TH1.h
-TH1.h
 TH2.h
 TH3.h
 TProfile.h

@@ -1,6 +1,6 @@
 /*! \example select_entries.doc
  *  The program below (select_entries.C) illustrates how to write 
- *  a sumsample of selected events into a new AMS Root file. 
+ *  a subsample of selected events into a new AMS Root file. 
  *    - To run it: root -b -q select_entries.C
  *
  *  The example also illustrates how to read/write just few

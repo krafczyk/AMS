@@ -53,7 +53,7 @@ echo -e "\n>>> COMPILING and LINKING: ${file}"
 /usr/bin/make -f - <<!
 SHELL=/bin/sh
 
-${file}.exe:	${file}
+${FILE_EXE}:	${file}
 	${GC} ${INCS} -o ${FILE_EXE} ${file} ${AMSOBJS} ${ROOTLIBS} ${EXTRALIBS}
 	chmod 755 ${FILE_EXE}
 
