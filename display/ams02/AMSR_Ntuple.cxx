@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.7 2001/06/27 11:53:46 kscholbe Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.8 2001/08/02 16:18:36 kscholbe Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -424,20 +424,18 @@ void AMSR_Ntuple::GetEvent(Int_t event)
       if (m_SameRead) 
 	{ 	
 	HGNT(m_MemID, event, ierr);
-		cout << "Calling HGNTF "<<event<<endl;
 	}
 
       else {
          if (m_Tree->GetListOfBranches() == 0)
 	{
-	cout << "Calling HGNT "<<event<<endl;
             HGNT(m_MemID, event, ierr);
 	}	
          else {
             SetVarNames();
             HGNTV(m_MemID, m_VarNames, m_NVar, event, ierr);
-	    for (int i=0; i<m_NVar; i++) 
-	      printf("m_VarNames[%d]=%s\n",i,m_VarNames[i]);
+//	    for (int i=0; i<m_NVar; i++) 
+//	      printf("m_VarNames[%d]=%s\n",i,m_VarNames[i]);
          }
       }
       m_SameRead = kTRUE;
@@ -863,7 +861,6 @@ void AMSR_Ntuple::SetVarNames()
       if (strlen(name) > cols) 
          Error("AMSR_Ntuple::SetVarNames","too long(>%d) name %s",cols,name);
       else strncpy(m_VarNames[m_NVar++], name, cols-1);
-	cout << "Name "<<name<<endl;
 	obj = objarray->After(obj);
    }
 
