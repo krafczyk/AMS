@@ -1,7 +1,7 @@
 DISPLAY=$1
 DISPLAY=$DISPLAY
 export DISPLAY
-PRINTER=sci1
+PRINTER=ljams
 export PRINTER
 LD_LIBRARY_PATH=.:$ROOTSYS/lib
 AMSEDDataDir=/offruns/scripts/log/root/

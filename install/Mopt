@@ -2195,7 +2195,13 @@ depend:
 ../bin/osf1/tralig.o: ../include/charge.h ../include/ctc.h
 ../bin/osf1/tralig.o: ../include/trrawcluster.h /usr/include/float.h
 ../bin/osf1/tralig.o: /usr/include/fp_class.h ../include/mccluster.h
-../bin/osf1/tralig.o: ../include/tkdbc.h
+../bin/osf1/tralig.o: ../include/tkdbc.h /usr/include/unistd.h
+../bin/osf1/tralig.o: /usr/include/sys/access.h /usr/include/sys/stat.h
+../bin/osf1/tralig.o: /usr/include/sys/mode.h /usr/include/sys/file.h
+../bin/osf1/tralig.o: /usr/include/sys/param.h
+../bin/osf1/tralig.o: /usr/include/sys/machine/machparam.h
+../bin/osf1/tralig.o: /usr/include/machine/endian.h
+../bin/osf1/tralig.o: /usr/include/sys/fcntl.h
 ../bin/osf1/trigger1.o: ../include/commons.h ../include/cern.h
 ../bin/osf1/trigger1.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/trigger1.o: /usr/include/standards.h

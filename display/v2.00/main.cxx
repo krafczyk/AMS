@@ -226,7 +226,8 @@ main(int argc, char *argv[])
 
   // End "IdleHandle()"
   if (idleSec>0) theApp->ProcessLine("IdleHandle(1)");
-
+  
+  return 1;
   theApp->Terminate(1);
 //  delete theApp;
 

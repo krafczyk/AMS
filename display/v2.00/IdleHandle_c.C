@@ -23,6 +23,7 @@ void IdleHandle(Int_t option)
   if (option < 0) {
      gAMSR_Display->IdleSwitch(1);   //Turn on automatic IdleHanding
   } else if (option == 0) {
+jopa33:
     if (first == -1) {
        first = 0;
        data_dir = getenv("AMSEDDataDir");
@@ -99,6 +100,8 @@ void IdleHandle(Int_t option)
        strcat(fullname,file_new);
     if (strcmp(file_old,fullname)) {
        cout << "filename changed from " << file_old << " to " << fullname << endl;
+       first=-1;
+       goto jopa33;
        gSystem->ExitLoop();
        return;
     }

@@ -113,9 +113,9 @@ if(AMSFFKEY.Update){
 
     AMSTrAligPar::AMSTrAligDBEntry e(address,1,o,fcni,fcn,pav,pav2);
     int out=AMSbins(getdbtopp(),e, getdbentries());
-    int explicit=0;
-    if(out>0)explicit=(getdbtopp()+out-1)->status;
-    if(out>0 && TRALIG.ReWriteDB==0 && explicit==1  ){
+    int lexplicit=0;
+    if(out>0)lexplicit=(getdbtopp()+out-1)->status;
+    if(out>0 && TRALIG.ReWriteDB==0 && lexplicit==1  ){
      cerr<<"AMSTrAligPar::UpdateDB-E-ObjectAlreadyExists "<<address<<" "<<getdbentries()<<endl;
     }
     else if(out<=0){
@@ -138,9 +138,9 @@ if(AMSFFKEY.Update){
      uinteger addr=pimplicit[i];
      AMSTrAligPar::AMSTrAligDBEntry e(addr,0,o,fcni,fcn,pav,pav2);
     int out=AMSbins(getdbtopp(),e, getdbentries());
-    int explicit=0;
-    if(out>0)explicit=(getdbtopp()+out-1)->status;
-    if(out>0 && (TRALIG.ReWriteDB==0 || explicit==1)){
+    int lexplicit=0;
+    if(out>0)lexplicit=(getdbtopp()+out-1)->status;
+    if(out>0 && (TRALIG.ReWriteDB==0 || lexplicit==1)){
      cerr<<"AMSTrAligPar::UpdateDB-E-ImpObjectAlreadyExists "<<pimplicit[i]<<" "<<getdbentries()<<endl;
     }
     else if(out<=0){
@@ -978,7 +978,7 @@ else{
 
 integer AMSTrAligPar::DbIsNotLocked(integer delay){
 int ntry=0;
-const maxtry=255;
+const int maxtry=255;
 char fnam[256]="";
 strcpy(fnam,AMSDATADIR.amsdatabase);
 strcat(fnam,"/.AMSTrAligDB.lock");
