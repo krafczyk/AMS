@@ -1,6 +1,9 @@
 package CastorCopy;
 #
-# Last Edit : November 28, 2002. A.Klimentov
+# Last Edit : November 29, 2002. A.Klimentov
+#
+# doCopy - subr. to copy from local to castor
+# doCmp  - subr. to compare directories content
 #
 my $helpCastorCopy = "
 # CastorCopy
@@ -9,13 +12,17 @@ my $helpCastorCopy = "
 # - checks directory content
 # - does copy
 # - check directories 
+# - the output is /tmp/castor.cp.'copy start time'.log
 # 
 # arguments :
 # -from    - source files path
 # -to      - target directory path
 # -h       - help
 # -v       - verbose                             
+# -u       - copy file if it doesn't exist or file size is changed (default)
+# -force   - copy ALL files (even if it exist in output directory)
 #
+# ./castor.cp -v -from /f2dat1/MC/AMS02/ZH -to /castor/cern.ch/ams/MC/AMS02/ZH 
 ";
 my $helpCmp = "
 #
@@ -38,9 +45,13 @@ my @inputFiles;     # list of file names in input dir
 my @outputFiles;    # list of file names in output dir
 my @inputSizes;     # size in bytes of files from inputFiles
 my @outputSizes;    # size in bytes of files from outputFiles
+my $verbose=>undef; # verbose copy mode
+my $update = 1;     # update mode
+my $force  = 0;     # force mode
+
+my $dirnum = -77;   # castor directory
 
 my %fields=(
-    verbose=>undef,
     start=>undef,
     hostname=>undef,
     source=>undef,
@@ -58,7 +69,7 @@ my $output;          # output directory path
               %fields,
           };
     $self->{start}=time();
-    $self->{verbose} = 0;
+    $verbose = 0;
 
 
 # check sintaksis
@@ -82,19 +93,32 @@ foreach my $chop  (@ARGV){
     }
 
     if($chop =~/^-v/){
-        $self->{verbose} = 1;
+      $verbose = 1;
+    }
+
+    if($chop =~/^-u/) {
+        $update = 1;
+    }
+
+    if ($chop=~/^-force/) {
+        $force = 1;
     }
 
     if($chop =~/^-h/){
         print $helpCastorCopy;
         die "...";
     }
+
 }
 
 
 if (not defined $input or not defined $output) {
     die "CastorCopy -E- Invalid sintaksis.   castor.cp -from /inputDir/files -to /outputDir/";
  }
+
+if ($force && $update) {
+    die "CastorCopy -E- check options, (-f AND -u)";
+}
 
 # get hostname
   my $hostname = hostname();
@@ -104,7 +128,7 @@ if (not defined $input or not defined $output) {
   } else {
    $self->{hostname}=$hostname;
   } 
- if ($self->{verbose}) {
+ if ($verbose) {
      print "Hostname : $self->{hostname} \n";
      print "Input  Directory : $input \n";
      print "Output Directory : $output \n";
@@ -135,7 +159,7 @@ my $output;          # output directory path
               %fields,
           };
     $self->{start}=time();
-    $self->{verbose} = 0;
+    $verbose = 0;
 
 foreach my $chop  (@ARGV){
     if($chop =~/^-h/){
@@ -163,7 +187,7 @@ if (not defined $input or not defined $output) {
   } else {
    $self->{hostname}=$hostname;
   } 
- if ($self->{verbose}) {
+ if ($verbose) {
      print "Hostname : $self->{hostname} \n";
      print "Input  Directory : $input \n";
      print "Output Directory : $output \n";
@@ -197,7 +221,7 @@ sub castorDir {
        parseLog($mode,$logfile);
      } 
      $cmd = "rm $logfile";
-     systemCmd($cmd);
+#---     systemCmd($cmd);
     }      
 }
 
@@ -231,11 +255,17 @@ sub parseLog {
           $file = $dir.$file;
           if ($mode eq "input") {
               $inputFiles[$n] = $file;
-              $inputSize[$n] = $size;
+              my @array = split(//,$prot);
+              if ($array[0] eq "d") {
+                  $inputSizes[$n] = $dirnum;
+                  
+              } else {
+                $inputSizes[$n] = $size;
+              }
           }
           if ($mode eq "output") {
               $outputFiles[$n] = $file;
-              $outputSize[$n] = $size;
+              $outputSizes[$n] = $size;
           }
          $n++;
       } 
@@ -251,6 +281,7 @@ sub inputList {
 #    } else {
 #        print ".........................$inputFiles[$nfiles] \n";
 #    }
+    $inputSizes[$nfiles] = (stat($inputFiles[$nfiles])) [7];
     $nfiles++;
 }
 
@@ -261,68 +292,158 @@ sub outputList {
 #    } else {
 #        print ".........................$outputFiles[$nfiles] \n";
 #    }
+    $outputSizes[$nfiles] = (stat($outputFiles[$nfiles])) [7];
     $nfiles++;
 }
 
+
 sub doCopy {
-    my $status=>undef;
+#
+# 4 possibilities 
+#
+#  input   output
+#  ---------------
+#   local    local  : cp -pi -r -u /localdirX /localdirY
+#   local    castor
+#   castor   local
+#   castor   castor
+#  ----------------
+#
+    my $status =>undef;
+    my $cmd    =>undef;
     my $self = shift;
     my $input  = $self->{source};
     my $output = $self->{target};
 
-    find (\&inputList, $input);
-    my $i = 0;
-    my $dir  = $output;
-    my $file =>undef;     
-    my $sdir => undef;
-    my @subdir;
+    print "***** Input directory $input \n";
+    print "***** Output directory $output \n";
 
-    my $nbytes  = 0;  # bytes copied
-    my $nnfiles = 0;  # files copied
-     my $starttime = time();
-     my $logfile = "/tmp/castor.cp.$starttime.log";
-     my $cmd = "touch $logfile";
-     $status = systemCmd($cmd);
+    my $inputdir  = "local";
+    my $outputdir = "local";
+
+    if($input  =~/castor\/cern.ch/){ $inputdir = "castor";}
+    if($output =~/castor\/cern.ch/){ $outputdir = "castor";}
+ 
+    my $starttime = time();
+    my $logfile = "/tmp/castor.cp.$starttime.log";
+    $cmd = "touch $logfile";
+    $status = systemCmd($cmd);
+
+    if ($inputdir eq "local" && $outputdir eq "local") {
+       if ($update) {
+        $cmd="/bin/cp -pi -r -u $inputdir $outputdir";
+       } else {
+        $cmd="/bin/cp -pi -r $inputdir $outputdir";
+       } 
+        $status = systemCmd($cmd);
+        return 1;
+    }
+
+    if ($inputdir eq "local") {
+     $nfiles = 0;
+     find (\&inputList, $input);
+    } else {
+     castorDir($input,"input");
+    }
+
+    if ($outputdir eq "local") {
+     $nfiles = 0;
+     find (\&outputList, $output);
+    } else {
+     castorDir($output,"output");
+    }
+
+    if ($#inputFiles < 1) {
+        die "Nothing to copy, $input has $#inputFiles files \n";
+    }
+
+
+    my $i = 0;
+    my $j = 0;
+    my $dir  = $output;
+    my $sdir => undef;
+
+    my $nbytes   = 0;  # bytes copied
+    my $nnfiles  = 0;  # files copied
+
+    my $founddir = 0;
+    my $newdir   = 0;
+
+    my $ifile    => undef; # input file path
 
     while ($i <= $#inputFiles) {
-     if (-d $inputFiles[$i]) {
-      $dir = $inputFiles[$i];
-      @subdir = split $input,$dir;
-      $dir=$output;
-      $sdir=$input;
-      if ($#subdir > -1) {
-          $dir=$dir.$subdir[$#subdir];
-          $sdir=$sdir.$subdir[$#subdir];
-          $cmd = "rfmkdir $dir >> $logfile";
-          if ($self->{verbose}) {
-           print "/usr/local/bin/rfmkdir $dir \n";
-       }
-       systemCmd($cmd);
-       $status = 0;
-      }
+        print "inputFiles[$i]... $inputFiles[$i] \n";
+     $newdir = 0;
+     if ($inputdir eq "local") {
+      if (-d $inputFiles[$i]) { $newdir = 1;}
      } else {
-      $file = $inputFiles[$i];
-      my @cfile = split $sdir,$file;
-      $file=$dir.$cfile[1];
-      $cmd = "/usr/local/bin/rfcp $inputFiles[$i] $file >> $logfile";
-      if ($self->{verbose}) {
-       print "rfcp $inputFiles[$i] $file \n";
+      if($inputSizes[$i] == $dirnum) { $newdir = 1;
+                           print "Directory.... $inputFiles[$i] \n";}
+     }
+     if ($newdir) {
+      $founddir = 0;
+      $subdir   = $inputFiles[$i];
+      $subdir   =~ s/$input//;
+      if (defined $subdir) {
+       $dir=$output.$subdir;
+       if ($dir ne $output) { # assume that top directory always exists
+        $j  = 0;
+        while ($j<= $#outputFiles && $founddir == 0) {
+           print "$j, $outputFiles[$j] \n";
+        if ($outputFiles[$j] eq $dir) {
+             $founddir = 1;
+            }
+            $j++;
+        }
+        if (!$founddir) {
+         if ($outputdir eq "castor") {
+           $cmd = "/usr/local/bin/rfmkdir $dir >> $logfile";
+          } else {
+            $cmd = "/bin/mkdir $dir >> $logfile";
+          }
+          systemCmd($cmd);
+          $status = 0;
+         }  # new directory : mkdir
+       }
       }
-      $filesize = (stat($inputFiles[$i])) [7];
-      $nbytes   = $nbytes + $filesize;
-      $nnfiles++;
-      $status = systemCmd($cmd);
-    }
-    if ($status != 0) {
-     die "castor.cp -E- Copy failed :  $cmd \n";
-     
-#     $self->doRemove();
-    }
+     } # inputFiles[$i] is a directory
+      else {
+       # inputFiles[$i] is a file
+        $ifile=$inputFiles[$i];
+        $ifile =~ s/$input//;
+        if (defined $ifile) {
+         my $isize = $inputSizes[$i];
+         my $docopy = 1;
+         if ($update) {
+          $j = 0;
+          while ($j<= $#outputFiles && $docopy==1) {
+           if ($outputFiles[$j] eq $ifile) {
+            if ($outputSizes[$j] == $isize) {
+             $docopy = 0;
+            }
+           }
+           $j++;
+          }
+         } 
+         if ($docopy) {         
+          my $ofile=$output.$ifile;
+          $cmd = "/usr/local/bin/rfcp $inputFiles[$i] $ofile >> $logfile";
+          $status = systemCmd($cmd);
+          if ($inputdir eq "local") {
+           $filesize = (stat($inputFiles[$i])) [7];
+           $nbytes   = $nbytes + $filesize;
+          } else {
+           $nbytes   = $nbytes + $inputSizes[$i];
+          }
+           $nnfiles++;
+          }
+        }
+     }
      $i++;
- }
-  if ($self->{verbose}) {
-   print "castor.cp -I- $#inputFiles files are copied to $output\n";
-  }
+    } 
+   if ($verbose) {
+    print "castor.cp -I- $#inputFiles files are copied to $output\n";
+   }
     $status = 1;
 LAST : 
     my $endtime = time();
@@ -497,10 +618,15 @@ sub systemCmd {
     my $cmd = shift;
     my $status = 0;
     if (defined $cmd) {
+     if ($verbose) {
+        print "$cmd \n";
+     }
      $status     = system($cmd);
      if ($status != 0) {
        die "cannot execute $cmd , ret code $status\n";
      }
-    }
+   } else {
+     die "systemCmd is called with undefined argument \n";
+   }
   return $status;
 }
