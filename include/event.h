@@ -57,7 +57,6 @@ static integer PosGlobal;
 static AMSEvent * _Head;
 static AMSNodeMap EventMap;
 static ShuttlePar Array[60];
-void _printEl(ostream & stream);
 void _copyEl();
 void _writeEl();
 void _init();
@@ -139,6 +138,7 @@ AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMS
    _Head=this;
 }
 ~AMSEvent(){_Head=0;}
+void _printEl(ostream & stream);
 void loc2gl();
 static void SetShuttlePar();
 static AMSEvent * gethead()  {return _Head;}

@@ -345,7 +345,7 @@ extern "C" void guout_(){
    catch (AMSTrTrackError e){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
-     AMSEvent::gethead()->printA(0);
+     AMSEvent::gethead()->_printEl(cerr);
      UPool.Release(0);
      AMSEvent::gethead()->remove();
      UPool.Release(1);
