@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.65 2004/03/12 10:24:01 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.66 2004/03/12 16:37:18 choutko Exp $
 
 #
 #
@@ -776,7 +776,7 @@ my $sql;
  }
 
     print "************ Check cern_hosts and cpu_coeff tables \n";
-    print "             to update run ~AMS/sql/c_m_all_hosts_cern.sql \n';
+    print "             to update run ~AMS/sql/c_m_all_hosts_cern.sql \n";
     print "             and ~AMS/perl/updatemips.cgi -h from pcamsf0 \n";
     print "************ Check localhosts table \n";
     print "             to update run ~AMS/perl/updateHostClock.o.cgi \n";
