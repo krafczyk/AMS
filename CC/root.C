@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.63 2003/12/17 12:59:44 mdelgado Exp $
+//  $Id: root.C,v 1.64 2004/01/26 14:35:24 alcaraz Exp $
 //
 
 #include <root.h>
@@ -2258,5 +2258,44 @@ void AMSEventR::UProcessFill(){
 }
 void AMSEventR::UTerminate(){
 }
+
+unsigned int AMSChain::Add(const char* filename) {
+      TChain::Add(filename);
+      if (_EVENT==NULL) {
+            _EVENT = new AMSEventR;
+            SetMakeClass(1);
+            _EVENT->SetBranchA((TChain*)this);
+      }
+};
+
+int AMSChain::GetEntries(){return int(0.5+TChain::GetEntries());};
+
+AMSEventR* AMSChain::GetEntry(Int_t entry){
+      if (!TChain::GetEntry(entry)) return (AMSEventR*)NULL;
+      return _EVENT;
+};
+
+AMSEventR* AMSChain::GetEvent(){ return GetEntry(_ENTRY++);};
+
+AMSEventR* AMSChain::GetEvent(Int_t ev){
+      for (int entry=0; entry<GetEntries(); entry++) {
+            if (GetEntry(entry)==NULL) return (AMSEventR*) NULL;
+            if (_EVENT->Event()!=ev) continue;
+            _ENTRY = entry;
+            break;
+      }
+      return _EVENT;
+};
+
+AMSEventR* AMSChain::GetEvent(Int_t run, Int_t ev){
+      for (int entry=0; entry<GetEntries(); entry++) {
+            if (GetEntry(entry)==NULL) return (AMSEventR*) NULL;
+            if (_EVENT->Run()!=run) continue;
+            if (_EVENT->Event()!=ev) continue;
+            _ENTRY = entry;
+            break;
+      }
+      return _EVENT;
+};
 
 #endif

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.127 2004/01/12 15:51:01 alcaraz Exp $
+//  $Id: root.h,v 1.128 2004/01/26 14:35:28 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -11,6 +11,7 @@
 #define __AMSROOT__
 #include <TObject.h>
 #include <TTree.h>
+#include <TChain.h>
 #include <TFile.h>
 #include <TSelector.h>
 #include <TROOT.h>
@@ -3001,10 +3002,63 @@ void         AddAMSObject(TriggerLVL302 *ptr);
 ClassDef(AMSEventR,1)       //AMSEventR
 };
 
+//!  AMSChain class
+/*!
+  Contains:
 
+  Utility class, to simplify the interactive analysis on AMS data with 
+  Cint/Python/Ruby interpreters
 
+  Example of use with Cint:
 
+  {
+      gROOT->Reset();
+      gSystem->Load("$AMSDir/lib/linux/icc/ntuple.so");
 
+      AMSChain ams;
+      ams.Add("/f2users/choutko/g3v1g3.root");
+
+      TH1F* hrig = new TH1F ("hrig", "Momentum (GeV)", 50, -10., 10.);
+      
+      int ndata = ams.GetEntries();
+      for (int entry=0; entry<ndata; entry++) {
+            AMSEventR* ev = ams.GetEvent();
+            if (ev==NULL) break;
+            for (int i=0; i<ev->nParticle(); i++) {
+                  ParticleR part = ev->Particle(i);
+                  hrig->Fill(part.Momentum);
+            }
+      }
+
+      hrig->Draw();
+      cout << "We have processed: " << ndata << " events" << endl;
+  }
+
+  \author juan.alcaraz@cern.ch
+
+*/
+
+class AMSChain : public TChain {
+private:
+      AMSEventR* _EVENT;
+      unsigned int _ENTRY;
+
+public:
+      AMSChain(const char* name="AMSRoot"):TChain(name),_ENTRY(0),_EVENT(NULL){};
+      ~AMSChain(){
+            if (_EVENT) delete _EVENT;
+      };
+
+      unsigned int Add(const char* filename); ///<Add an AMS ROOT file to the chain
+      int GetEntries(); ///<Number of data entries being analyzed
+
+      AMSEventR* GetEntry(Int_t entry=0); ///<Get AMSEventR at position "entry"
+      AMSEventR* GetEvent(); ///<Get next AMSEventR object in the chain
+      AMSEventR* GetEvent(Int_t ev); ///<Get AMSEventR with event number "ev"
+      AMSEventR* GetEvent(Int_t run, Int_t ev); ///<Get AMSEventR with run number "run" and event number "ev"
+
+      ClassDef(AMSChain,1)       //AMSChain
+};
 
 #endif
 
