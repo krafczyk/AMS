@@ -27,12 +27,12 @@ protected:
  static integer patconf[npatb][4];
 
 public:
- AMSBeta(): AMSlink(0),_ptrack(0){for(int i=0;i<4;i++)_pcluster[i]=0;}
+ AMSBeta(): AMSlink(),_ptrack(0){for(int i=0;i<4;i++)_pcluster[i]=0;}
  AMSBeta(integer pattern, AMSTOFCluster * pcluster[4], AMSTrTrack * ptrack): 
-         AMSlink(0),_Pattern(pattern),_ptrack(ptrack)
+         AMSlink(),_Pattern(pattern),_ptrack(ptrack)
          {for(int i=0;i<4;i++)_pcluster[i]=pcluster[i];}
  AMSBeta(const AMSBeta & o): 
-         AMSlink(o._next),_Pattern(o._Pattern),_Beta(o._Beta),
+         AMSlink(o._status,o._next),_Pattern(o._Pattern),_Beta(o._Beta),
          _InvErrBeta(o._InvErrBeta),_Chi2(o._Chi2),_ptrack(o._ptrack)
          {for(int i=0;i<4;i++)_pcluster[i]=o._pcluster[i];}
 AMSBeta *  next(){return (AMSBeta*)_next;}

@@ -203,7 +203,7 @@ if(init++==0){
        //WriteUsedOnly
         for(i=0;i<pat;i++){
          AMSTrTrack *ptr=(AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",i);
-          while(ptr && ptr->getstatus(AMSDBc::USED)){ 
+          while(ptr && ptr->checkstatus(AMSDBc::USED)){ 
             PN.TrackP++;
             ptr=ptr->next();
           }

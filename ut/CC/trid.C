@@ -367,7 +367,10 @@ AMSTrIdSoftI::AMSTrIdSoftI(){
        test2+=pt[3]<<24;
        integer lend = test1==test2;
        if(lend)cout <<"AMSTrIdSoftI-I-Identified as LittleEndian";
-       else cout <<"AMSTrIdSoftI-I-Identified as BigEndian";
+       else {
+         cout <<"AMSTrIdSoftI-I-Identified as BigEndian";
+         AMSDBc::BigEndian=1;
+       }
        if(b64)cout <<" 64 bit machine."<<endl;
        else cout <<" 32 bit machine."<<endl;
   }

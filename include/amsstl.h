@@ -472,6 +472,220 @@ L120:
 
     }
 } /* m01caf_ */
+template <class T> void AMSsortNAGa(T rv[], integer m2){
+    /* Initialized data */
+    const int minq=15;
+    const double c_b5 = 1.;
+    static integer ir1 = 15223;
+    static integer ir2 = 17795;
+    static integer ir3 = 28707;
+
+    /* System generated locals */
+    integer i__1;
+    double d__1;
+
+    /* Builtin functions */
+    double d_mod();
+
+    /* Local variables */
+    static double rand;
+    static integer leng, ierr, istk, ilow[100];
+    T a;
+    static integer i, j, k;
+    T x;
+    static integer ihigh[100];
+    static char order[1];
+    static integer i1, i2, j1, j2, m1;
+
+
+    ierr = 0;
+    m1 = 0;
+    m2=m2-1;
+    *order = 'a';
+    if (m1 < m2) {
+      
+    
+    leng = m2 - m1 + 1;
+    if (leng <= minq) {
+	goto L100;
+    }
+
+/*           INITIALISE AND START QUICKSORT ON THE WHOLE VECTOR. */
+
+    istk = 0;
+    i = m1;
+    j = m2;
+
+/*           IF THE PREVIOUS PASS WAS BAD, CHANGE THE END VALUES AT */
+/*           RANDOM. */
+
+L20:
+    if (i < 0) {
+	i = -i;
+	ir1 = ir1 % 177 * 171 - (ir1 / 177 << 1);
+	ir2 = ir2 % 176 * 172 - ir2 / 176 * 35;
+	ir3 = ir3 % 178 * 170 - ir3 / 178 * 63;
+	if (ir1 < 0) {
+	    ir1 += 30269;
+	}
+	if (ir2 < 0) {
+	    ir2 += 30307;
+	}
+	if (ir3 < 0) {
+	    ir3 += 30323;
+	}
+	d__1 = (double) ir1 / 30269. + (double) ir2 / 30307. + (
+		double) ir3 / 30323.;
+	rand = d__1-floor(d__1);
+	k = (integer) (i + rand * (j - i));
+	x = rv[i];
+	rv[i] = rv[k];
+	rv[k] = x;
+	k = i + j - k;
+	x = rv[k];
+	rv[k] = rv[j];
+	rv[j] = x;
+    }
+
+/*           CALCULATE A MEDIAN BY SINGLETONS METHOD. */
+
+    k = (i + j) / 2;
+    if (rv[j] < rv[i]) {
+	x = rv[i];
+	rv[i] = rv[j];
+	rv[j] = x;
+    }
+    a = rv[k];
+    if (a < rv[i]) {
+	rv[k] = rv[i];
+	rv[i] = a;
+	a = rv[k];
+    } else if ( rv[j]< a) {
+	rv[k] = rv[j];
+	rv[j] = a;
+	a = rv[k];
+    }
+
+/*           SPLIT THE VECTOR INTO TWO ASCENDING PARTS.  THIS IS WHERE */
+/*           THE TIME IS SPENT. */
+
+    i1 = i;
+    j1 = j;
+L40:
+    ++i1;
+    if (rv[i1] < a) {
+	goto L40;
+    }
+L60:
+    --j1;
+    if (a <rv[j1] ) {
+	goto L60;
+    }
+    if (i1 >= j1) {
+	goto L80;
+    }
+    x = rv[i1];
+    rv[i1] = rv[j1];
+    rv[j1] = x;
+    goto L40;
+
+/*           STACK ONE SUBFILE, IF APPROPRIATE, AND CARRY ON. */
+
+L80:
+    i2 = i1 - i;
+    j2 = j - j1;
+    if (j2 <= i2) {
+	if (i2 <= minq) {
+	    if (istk <= 0) {
+		goto L100;
+	    }
+	    i = ilow[istk - 1];
+	    j = ihigh[istk - 1];
+	    --istk;
+	} else {
+
+/*                 TEST FOR VERY UNBALANCED SUBFILES */
+/*                 ( THE DETAILS OF THE TEST ARE FAIRLY ARBITRARY.
+) */
+
+	    if ((j2 + 5) * 5 < i2) {
+		i = -i;
+	    }
+	    if (j2 <= minq) {
+		j = i1 - 1;
+	    } else {
+		++istk;
+		ilow[istk - 1] = i;
+		ihigh[istk - 1] = i1 - 1;
+		i = j1 + 1;
+	    }
+	}
+    } else {
+
+/*              DEAL WITH THE CASE WHEN THE SECOND PART IS LARGER. */
+
+	if (j2 <= minq) {
+	    if (istk <= 0) {
+		goto L100;
+	    }
+	    i = ilow[istk - 1];
+	    j = ihigh[istk - 1];
+	    --istk;
+	} else {
+
+/*                 TEST FOR VERY UNBALANCED SUBFILES */
+/*                 ( THE DETAILS OF THE TEST ARE FAIRLY ARBITRARY.
+) */
+
+	    if ((i2 + 5) * 5 < j2) {
+		j1 = -(j1 + 2);
+	    }
+	    if (i2 <= minq) {
+		i = j1 + 1;
+	    } else {
+		++istk;
+		ilow[istk - 1] = j1 + 1;
+		ihigh[istk - 1] = j;
+		j = i1 - 1;
+	    }
+	}
+    }
+    goto L20;
+
+/*           TIDY UP AND DO AN ASCENDING INSERTION SORT. */
+
+L100:
+    i__1 = m2;
+    for (i = m1 + 1; i <= i__1; ++i) {
+	a = rv[i];
+	j = i - 1;
+	if (a < rv[j]) {
+L120:
+	    rv[j + 1] = rv[j];
+	    --j;
+	    if (j >= m1) {
+		if (a < rv[j]) {
+		    goto L120;
+		}
+	    }
+	    rv[j + 1] = a;
+	}
+/* L140: */
+    }
+
+/*           REVERSE THE ORDER IF NECESSARY AND RETURN. */
+
+/*         IF ((ORDER.EQ.'D') .OR. (ORDER.EQ.'d')) THEN */
+/*            DO 160 I = M1, (M1+M2-1)/2 */
+/*               I1 = M1 + M2 - I */
+/*               X = RV(I) */
+/*               RV(I) = RV(I1) */
+/*               RV(I1) = X */
+/*  160       CONTINUE */
+/*         END IF */
+
+    }
+} 
 
 template <class T>
 inline const T& min(const T& a, const T& b) {

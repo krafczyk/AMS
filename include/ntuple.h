@@ -253,4 +253,28 @@ friend class AMSTrTrack;
 
 };
 
+class LVL3Ntuple: public AMSNtuple{
+private:
+int TOFTr;
+int AntiTr;
+int TrackerTr;
+int NTrHits;
+int NPatFound;
+int Pattern[2];
+float Residual[2];
+float Time;
+friend class TriggerLVL3;
+};
+
+
+
+class LVL1Ntuple: public AMSNtuple{
+private:
+int Mode;
+int TOFPatt[4];
+int AntiPatt;
+friend class TriggerLVL1;
+};
+
+
 #endif

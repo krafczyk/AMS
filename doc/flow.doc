@@ -15,6 +15,7 @@ M A I N  ->      gbatch.C
  |    |   |
  |    |   |->_siamsdata   Simulation specific datacards
  |    |   |    |
+ |    |   |    |->_sitrigdata   Trigger datacards
  |    |   |    |->_sitkdata   Tracker datacards
  |    |   |    |->_signdata   MCGen datacards
  |    |   |    |->_sitofdata  TOF datacards
@@ -59,6 +60,7 @@ M A I N  ->      gbatch.C
  |    |   |
  |    |   |->_siamsinitjob   Simulation initialization
  |    |   |    | 
+ |    |   |    |->_sitriginitjob
  |    |   |    |->_sitkinitjob
  |    |   |    |->_signinitjob
  |    |   |    |->_sitofinitjob
@@ -125,6 +127,7 @@ M A I N  ->      gbatch.C
  |    |   |    |    |
  |    |   |    |    |->_signinitevent
  |    |   |    |    |->_sitkinitevent
+ |    |   |    |    |->_sitriginitevent
  |    |   |    |    |->_sitofinitevent
  |    |   |    |    |->_siantiinitevent
  |    |   |    |    |->_sitrdinitevent
@@ -174,6 +177,10 @@ M A I N  ->      gbatch.C
  |        |    |   |       |->AMSTOFRawEvent::mc_build    Tovt_hits-->RawEvent_hits
  |        |    |   |
  |        |    |   |->_sictcevent     Simulate CTC
+ |        |    |   |     
+ |        |    |   |->_sitrigevent    Simulate Trigger     
+ |        |    |   |      |->TriggerLVL1::build();
+ |        |    |   |      |->TriggerLVL3::build();     
  |        |    |   |     
  |        |    |         
  |        |    |

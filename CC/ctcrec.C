@@ -291,7 +291,7 @@ void AMSCTCCluster::_writeEl(){
 static integer init=0;
 static CTCClusterNtuple CTCCLN;
 int i;
-if(AMSCTCCluster::Out( IOPA.WriteAll ||  getstatus(AMSDBc::USED ))){
+if(AMSCTCCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
 
 if(init++==0){
 //book the ntuple block
@@ -300,7 +300,7 @@ if(init++==0){
 
 }
   CTCCLN.Event()=AMSEvent::gethead()->getid();
-  CTCCLN.Status=_Status; 
+  CTCCLN.Status=_status; 
   CTCCLN.Layer=_Layer;
   for(i=0;i<3;i++)CTCCLN.Coo[i]=_Coo[i];
   for(i=0;i<3;i++)CTCCLN.ErrCoo[i]=_ErrorCoo[i];
@@ -316,7 +316,7 @@ void AMSCTCCluster::_copyEl(){
 
 
 void AMSCTCCluster::_printEl(ostream & stream){
-  stream <<"AMSCTCCluster "<<_Status<<" "<<_Layer<<" "<<_Coo<<  " "<<_ErrorCoo<<" "<<
+  stream <<"AMSCTCCluster "<<_status<<" "<<_Layer<<" "<<_Coo<<  " "<<_ErrorCoo<<" "<<
  _Signal<<" " <<_ErrorSignal<<endl;
 }
 

@@ -38,7 +38,9 @@
      + ,Mass,Charge,CTCCoo,CTCErCoo,CTCRawSignal,CTCSignal
      + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCcharge,CTCbeta
      + ,Amplitude,CTCedep,PolePhi,ThetaS,PhiS,
-     + AntiEdep,Anticoo,AntiErCoo,AntiMCXcoo,AntiMCtof,AntiMCedep
+     + AntiEdep,Anticoo,AntiErCoo,AntiMCXcoo,AntiMCtof,AntiMCedep,
+     +  LVL3Residual,LVL3Time
+     
       INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
@@ -73,6 +75,8 @@
       parameter(maxmcg=20)
       parameter(maxctccl=20)
       parameter(maxctcclmc=200)
+      parameter(mlvl3=2)
+      parameter(mlvl1=2)
 
       common /eventhC/eventno,run,runtype,time,PolePhi,ThetaS,PhiS,
      +    Particles, Tracks, Betas, Charges ,TrRecHits,
@@ -164,10 +168,18 @@
      + AntiMCIdsoft(maxantimc) ,AntiMCXcoo(3,maxantimc),
      + AntiMCtof(maxantimc),  AntiMCedep(maxantimc)
 
+       common /LVL3C/nlvl3,LVL3TOFTr(mlvl3),
+     + LVL3AntiTr(mlvl3),LVL3TrackerTr(mlvl3),
+     + LVL3NTrHits(mlvl3),LVL3NPat(mlvl3),
+     + LVL3Pattern(2,mlvl3),LVL3Residual(2,mlvl3),LVL3Time(mlvl3)
+
+       common /LVL31/nlvl1,LVL1Mode(mlvl1),
+     + LVL1TOFPatt(4,mlvl1),LVL1AntiPatt(mlvl1)
+
 
 
       character *64 cdet
-      parameter (ndet=15)
+      parameter (ndet=17)
       character *64 cblock(ndet)
       integer events(ndet),eof(ndet)
       common /quest/iquest(100)
@@ -177,6 +189,7 @@
 *--   Enter user code here
 *
 c       iquest(10)=128000
+c       write(*,*)' Starting converting'
        call HROPEN(4,'output',fnam,'N',1024,iostat)
        if(iostat.ne.0)then
         write(*,*)'Unable to open output file ',fnam
@@ -197,6 +210,8 @@ c       iquest(10)=128000
        cblock(13)='CTCMCCLU'
        cblock(14)='ANTICLUS'
        cblock(15)='ANTIMCCL'
+       cblock(16)='LVL3'
+       cblock(17)='LVL1'
 
        do idet=1,ndet
         open(40+idet,file=cblock(idet),status='old',
@@ -304,6 +319,18 @@ c       iquest(10)=128000
      + 'nantimc[0,200],AntiMCIdsoft(nantimc):I,'//
      + 'AntiMCXcoo(3,nantimc),AntiMCtof(nantimc),'//
      + 'AntiMCedep(nantimc)')
+
+      call hbname(1,cblock(16),nlvl3,
+     + 'nlvl3[0,2],LVL3TOFTr(nlvl3),'//
+     + 'LVL3AntiTr(nlvl3),'//
+     + 'LVL3TrackerTr(nlvl3),LVL3NTrHits(nlvl3),LVL3NPat(nlvl3),'//
+     + 'LVL3Pattern(2,nlvl3),'//
+     + 'LVL3Residual(2,nlvl3):R,LVL3Time(nlvl3):R')
+
+      call hbname(1,cblock(17),nlvl1,
+     + 'nlvl1[0,2],LVL1Mode(nlvl1),'//
+     + 'LVL1TOFPatt(4,nlvl1),LVL1AntiPatt')
+
         runold=-1
         do i=1,ndet
           events(idet)=0
@@ -762,7 +789,71 @@ c            write(*,*)' ntrrh eq 0 ', events
            nantimc=min(nantimc+1,maxantimc)
         enddo   
  140     continue
-c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
+
+        idet=16
+        lun=40+idet
+        nlvl3=1
+        do while(truth)
+           iostat=1
+           if(eof(idet).eq.0)read(lun,end=165)
+     +     ne,lvl3toftr(nlvl3),lvl3antitr(nlvl3),
+     +     lvl3trackertr(nlvl3),lvl3ntrhits(nlvl3),lvl3npat(nlvl3),
+     +     (lvl3pattern(k,nlvl3),k=1,2),
+     +     (lvl3residual(k,nlvl3),k=1,2),lvl3time(nlvl3)
+
+           goto 166
+ 165       eof(idet)=1
+ 166       continue
+          if(eof(idet).ne.0)then
+             events(idet)=0
+           else
+            if(events(idet).gt.ne)newrun=.true.
+            events(idet)=ne
+           endif              
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
+          if(eof(idet).eq.0)backspace lun
+           nlvl3=nlvl3-1
+           newrun=.false.
+          goto 150
+          else if (events(idet).lt.events(1))then
+              nlvl3=nlvl3-1
+         endif
+           nlvl3=min(nlvl3+1,mlvl3)
+        enddo   
+ 150     continue
+        
+        idet=17
+        lun=40+idet
+        nlvl1=1
+        do while(truth)
+           iostat=1
+           if(eof(idet).eq.0)read(lun,end=175)
+     +     ne,lvl1mode(nlvl1),(lvl1tofpatt(k,nlvl1),k=1,4),
+     +     lvl1antipatt(nlvl1)
+
+           goto 176
+ 175       eof(idet)=1
+ 176       continue
+          if(eof(idet).ne.0)then
+             events(idet)=0
+           else
+            if(events(idet).gt.ne)newrun=.true.
+            events(idet)=ne
+           endif              
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
+          if(eof(idet).eq.0)backspace lun
+           nlvl1=nlvl1-1
+           newrun=.false.
+          goto 160
+          else if (events(idet).lt.events(1))then
+              nlvl1=nlvl1-1
+         endif
+           nlvl1=min(nlvl1+1,mlvl1)
+        enddo   
+ 160     continue
+        
+
+c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        call hfnt(1)
        enddo 
  999   continue
@@ -821,7 +912,9 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
      + ,HRidgidity(2),HErrRidgidity(2),HTheta(2),HPhi(2),HP0(3,2)
      + ,FChi2MS,GChi2MS,RidgidityMS,GRidgidityMS,Coo(3),Dir(3),Momentum
      + ,Mass,Charge,CTCCoo(3),CTCErCoo(3),CTCRawSignal,CTCSignal
-     + ,CTCESignal,CTCMCXcoo(3),CTCMCXdir(3),CTCstep,CTCedep,CTCbeta
+     + ,CTCESignal,CTCMCXcoo(3),CTCMCXdir(3),CTCstep,CTCedep,CTCbeta,
+     +  lvl3residual,lvl3time
+
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
      + ,PBetaPointer,PChargePointer,PtrackPointer,ParticleId,TOFCluster
@@ -943,10 +1036,25 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
        common /antimcccluC/AntiMCEvent,AntiMCIdsoft,AntiMCXcoo,
      +AntiMCtof, AntiMCedep
 
+*
+*    idet=16
+*
+
+       common /LVL3C/lvl3event,LVL3TOFTr,
+     + LVL3AntiTr,LVL3TrackerTr,
+     + LVL3NTrHits,LVL3NPat,lvl3pattern(2),
+     + LVL3Residual(2),LVL3Time
+
+*
+*    idet=17
+*
+
+       common /LVL1C/lvl1event,LVL1mode,
+     + LVL1TOFpatt(4),lvl1antipatt
 
 
       character *64 cdet
-      parameter (ndet=15)
+      parameter (ndet=17)
       character *64 cblock(ndet)
       integer events(10000),nevent
 *
@@ -976,6 +1084,8 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
        cblock(13)='CTCMCCLU'
        cblock(14)='ANTICLUS'
        cblock(15)='ANTIMCCL'
+       cblock(16)='LVL3'
+       cblock(17)='LVL1'
        do idet=1,ndet
         open(21,file=cblock(idet),status='unknown',
      +  form='unformatted',position='append')
@@ -1012,14 +1122,18 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
      +  call hbname(1,cblock(idet),anticluster,'$SET') 
         if(cblock(idet).eq.'ANTIMCCL')
      +  call hbname(1,cblock(idet),antimcevent,'$SET') 
+        if(cblock(idet).eq.'LVL3')
+     +  call hbname(1,cblock(idet),lvl3event,'$SET') 
+        if(cblock(idet).eq.'LVL1')
+     +  call hbname(1,cblock(idet),lvl1event,'$SET') 
         do i=1,nmax
          if(i.eq.1)write(*,*)cblock(idet)(1:8),' Started'
          call hgntb(1,cblock(idet),i,ierr)
-         if(ierr.ne.0)then
+         if(ierr.eq.1)then
           if( cblock(idet).eq.'EVENTH')then
             write(*,*)' Last Run&Event # ',run,eventno
           endif
-          write(*,*)cblock(idet)(1:8),' finished with ',i
+          write(*,*)cblock(idet)(1:8),' finished with ',i-1
           goto 999
          endif
                 if( cblock(idet).eq.'EVENTH')then
@@ -1078,6 +1192,17 @@ c       if(mod(ll,1000).eq.1)write(*,*)' hfnt ',npart,nmcg
            else if( cblock(idet).eq.'ANTIMCCL')then
             write(21)AntiMCEvent,AntiMCIdsoft,antiMCXcoo,
      +      AntiMCtof,AntiMCedep
+           else if( cblock(idet).eq.'LVL3')then          
+            write(21)lvl3event,LVL3TOFTr,
+     +      LVL3AntiTr,LVL3TrackerTr,
+     +      LVL3NTrHits,LVL3NPat,lvl3pattern,
+     +      LVL3Residual,LVL3Time
+
+           else if( cblock(idet).eq.'LVL1')then          
+            write(21)lvl1event,lvl1mode,
+     +      LVL1tofpatt,lvl1antipatt
+
+
            else
             write(*,*)' Invalid cblock ',idet,' ',cblock(idet)
            endif

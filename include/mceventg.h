@@ -27,6 +27,7 @@ number PolePhi;
 number PoleTheta;
 number EarthSpeed;
 number FlightTime;
+number Axis[3];
 tm Begin;
 tm End;
 };

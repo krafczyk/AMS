@@ -33,6 +33,14 @@ void _copyEl();
 void _printEl(ostream & stream);
 void _writeEl();
 public:
+
+static int16 mkaddress(int16 strip, int16 va, int16 half, int16 icmpt)
+{return icmpt | half<<5 | va<<6 | strip<<10;}
+
+static void getaddress(int16u address, 
+integer & strip, integer & va, integer & half, integer &drp){
+  drp=address&31;half=(address>>5) & 1;va=(address>>6)&15;strip=(address>>10)&63;}
+
 integer getid()const {return _amsid.getid();}
 void * operator new(size_t t) {return UPool.insert(t);}
 void operator delete(void *p)
@@ -44,6 +52,7 @@ AMSTrRawCluster(AMSID id, integer mode, integer nleft, integer nright,geant *p):
   {_cmn=AMSTrIdSoft(id.getid()).getcmnnoise();extend(nleft,nright,p);_next=0;}
 void extend( integer nleft,integer nright, geant *p);
 void expand( number *p) const ;
+integer lvl3format(int16 * ptr, integer nmax);
 static void sitkdigi();
   AMSTrRawCluster *  next(){return (AMSTrRawCluster*)_next;}
 

@@ -51,6 +51,7 @@ R 3   LZero(120.)         // saturation length in cm
 
 //Anti Reconstruction
 
+
 ANTIREC
 R 1 ThrS(5)               // Threshold in p.e. on up+down hits
 R 2 PhEl2MeV(0.05)        // Conversion p.e. -> mev
@@ -349,12 +350,30 @@ R35 InitialRM[6][3][3](0)             // Rot Matrix --------
 
 
 
-LVL1    // Trigger conditions
+LVL1    // LVL1 Trigger 
 
-I 1 ntof                            // min number of tof planes in trig
-R 2 anti                            // max energy deposition in anti in mrv 
+I 1 ntof(3)                           // min number of tof planes in trig
+R 2 anti(1000000.)                    // max energy deposition in anti in MeV
 
 
+
+LVL3SIM
+
+R 1 NoiseProbX(3.3e-4)                  // Noise Probability for x side
+R 2 NoiseProbY(2.0e-4)                  // Noise Probability for y side
+
+
+LVL3REC    // LVL3 Trigger Rec
+
+R 1 TrThr1R(5.)                        // Thr to cluster finder for lvl3
+I 2 MinTOFPlanesFired(3)               // min number of tof planes in trig
+I 3 UseTightTOF(1)                     // Use(1) notUse(0) "Pattern" trigger
+R 4 TrTOFSearchReg(6)                  // Road width to match TOF/Tracker (cm)
+R 5 TrMinResidual(0.02)                // Min Residual to keep event (cm)
+R 6 TrMaxResidual[3](0.9,0.1,0.2)     // Max Residuals to keep event (cm)
+I 9 TrMaxHits(20)                      // Max Number of hits in Tracker
+R10 Splitting(0.04)                    // Min distance between hits
+I11 Nrep(1)                            // Aux no of rep to calc lvl3 time
 SELECT   // Choose run & event
 
 I 1 run number                      // Run number

@@ -19,7 +19,7 @@ integer _stripy;   // from 0 to AMSDBc::NStripsSen(_layer,1)-1
 void _check();
 public:
 friend class AMSTrIdSoft;
-AMSTrIdGeom(){};
+AMSTrIdGeom():_layer(1),_ladder(1),_sensor(1),_stripx(0),_stripy(0){};
 ~AMSTrIdGeom(){};
 AMSTrIdGeom( const AMSTrIdGeom& o):_layer(o._layer),_ladder(o._ladder),
 _sensor(o._sensor),_stripx(o._stripx),_stripy(o._stripy){}
@@ -93,7 +93,7 @@ integer operator < (const AMSTrIdSoft & o)const;
 
 inline integer getnchan()const {return _numel;}
 inline integer getaddr() const {return _addr;}
-inline integer getstatus(integer checker) const 
+inline integer checkstatus(integer checker) const 
 {return status[idsoft2linear[_addr]+_strip] & checker;}
 inline geant getped() const {return peds[idsoft2linear[_addr]+_strip];}
 inline geant getsig() const {return sigmas[idsoft2linear[_addr]+_strip];}
@@ -138,6 +138,8 @@ inline integer getdrp() const {return _drp;}
 inline integer getside()const {return _side;}        
 inline integer gethalf()const {return _half;}        
 inline integer getstrip()const {return _strip;}
+inline integer getstripa()const {return _strip%_VAChannels;}
+inline integer getva()const {return _side==0? _VANumber+10:_VANumber;}
 AMSTrIdGeom *  getidgeom()     {return _pid;}
 AMSTrIdGeom * ambig(const AMSTrIdSoft &, integer & nambig) ;
                      

@@ -25,6 +25,7 @@
 #include <tofsim.h>
 #include <tofrec.h>
 #include <tofcalib.h>
+#include <trigger3.h>
 
 AMSJob* AMSJob::_Head=0;
 AMSNodeMap AMSJob::JobMap;
@@ -113,9 +114,30 @@ void AMSJob::_sitrigdata(){
 // these are additional requir. to "hardware"-defined TOFMCFFKEY.trlogic[]
   LVL1FFKEY.ntof=3;// min. fired TOF-planes
 // ANTI :
-  LVL1FFKEY.nanti=0;// max. fired ANTI-paddles 
+  LVL1FFKEY.nanti=2;// max. fired ANTI-paddles 
 //
   FFKEY("LVL1",(float*)&LVL1FFKEY,sizeof(LVL1FFKEY_DEF)/sizeof(integer),"MIXED");
+
+
+  LVL3SIMFFKEY.NoiseProb[1]=2.e-4;
+  LVL3SIMFFKEY.NoiseProb[0]=LVL3SIMFFKEY.NoiseProb[1]*1.65;
+  FFKEY("L3SIM",(float*)&LVL3SIMFFKEY,sizeof(LVL3SIMFFKEY_DEF)/sizeof(integer),"MIXED");
+
+
+  LVL3FFKEY.TrThr1R=5;
+  LVL3FFKEY.MinTOFPlanesFired=3;
+  LVL3FFKEY.UseTightTOF=1;
+  LVL3FFKEY.TrTOFSearchReg=6;
+  LVL3FFKEY.TrMinResidual=0.02;
+  LVL3FFKEY.TrMaxResidual[0]=0.9;
+  LVL3FFKEY.TrMaxResidual[1]=0.1;
+  LVL3FFKEY.TrMaxResidual[2]=0.2;
+  LVL3FFKEY.TrMaxHits=20;
+  LVL3FFKEY.Splitting=0.04;
+  LVL3FFKEY.NRep=1;
+  FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
+
+
 }
 
 void AMSJob::_sitkdata(){
@@ -136,7 +158,7 @@ TRMCFFKEY.neib[0]=2;
 TRMCFFKEY.neib[1]=2;
 TRMCFFKEY.cmn[0]=50;
 TRMCFFKEY.cmn[1]=50;
-TRMCFFKEY.adcoverflow=32767;
+TRMCFFKEY.adcoverflow=4095;
 TRMCFFKEY.NoiseOn=1;
 TRMCFFKEY.sec[0]=0;
 TRMCFFKEY.sec[1]=0;
@@ -317,8 +339,8 @@ void AMSJob::_siantidata(){
   ANTIMCFFKEY.SigmaPed=1;     // ped.distribution width (p.e)
   ANTIMCFFKEY.GeV2PhEl=20e3;  // Gev->Ph.el. conversion factor
   ANTIMCFFKEY.LZero=120;      // attenuation length for one-side signal (cm)
-  ANTIMCFFKEY.PMulZPos=0.5*ANTIGEOMFFKEY.scleng; // PM longit.(Z)-position
-  ANTIMCFFKEY.trithr=3.; // threshold (p.e) for trigger per one side (?)
+  ANTIMCFFKEY.PMulZPos=0.;      // Updated later in siantiinitjob/ PM longit.(Z)-position
+  ANTIMCFFKEY.trithr=6;
 //
   FFKEY("ANGE",(float*)&ANTIGEOMFFKEY,sizeof(ANTIGEOMFFKEY_DEF)/sizeof(integer),
   "MIXED");
@@ -689,7 +711,15 @@ void AMSJob::_siamsinitjob(){
   _siantiinitjob();
   _sitrdinitjob();
   _sictcinitjob();
+  _sitriginitjob();
 }
+
+void AMSJob::_sitriginitjob(){
+
+     AMSgObj::BookTimer.book("LVL3");
+     TriggerLVL3::init();  
+}
+
 
 void AMSJob::_sitkinitjob(){
      for(int l=0;l<2;l++){

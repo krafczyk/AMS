@@ -36,7 +36,6 @@ protected:
   void _copyEl();
   void _writeEl();
 AMSTrIdSoft _Id; // center
-integer _Status;
 integer _NelemL; // to left
 integer _NelemR; // to right
 number _Sum;
@@ -56,9 +55,6 @@ public:
      static const integer NEAR;
      static const integer REFITTED;
 static integer Out(integer);
-inline void setstatus(integer status){_Status=_Status | status;}
-inline void clearstatus(integer status){_Status=_Status & ~status;}
-integer getstatus(integer checker) const{return _Status & checker;}
 number getVal(){return _Sum;}
 number getcofg(integer side, AMSTrIdGeom * id);
 number cfgCorFun(number s, AMSTrIdGeom * id);
@@ -95,14 +91,14 @@ AMSTrCluster *  next(){return (AMSTrCluster*)_next;}
 
 static void build(integer refit);
 static void print();
-AMSTrCluster():AMSlink(0){_NelemL=0; _NelemR=0;_pValues=0;};
+AMSTrCluster():AMSlink(){_NelemL=0; _NelemR=0;_pValues=0;};
 ~AMSTrCluster(){if(_pValues)UPool.udelete(_pValues);}
 integer operator < (AMSlink & o) const {
 // No RTTI - take a "risk" here
   AMSTrCluster * p= (AMSTrCluster*)(&o);
 //  return getid() < p->getid();
 // New operator < 15/11/96 for ntuple purpose
- if (getstatus(AMSDBc::USED) && !(p->getstatus(AMSDBc::USED)))return 1;
+ if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
  else return 0;             
 
 } 
@@ -113,7 +109,6 @@ protected:
 AMSgSen * _pSen;
 AMSTrCluster *_Xcl;
 AMSTrCluster *_Ycl;
-integer      _Status;
 integer      _Layer;
 AMSPoint     _Hit;
 AMSPoint     _EHit;
@@ -128,11 +123,11 @@ static void _addnext(AMSgSen * p, integer ,integer ,AMSTrCluster *,
   void _writeEl();
 
 public:
-  void _printEl(ostream & stream){ stream << " Status " << _Status << " Layer " << 
+  void _printEl(ostream & stream){ stream << " Status " << _status << " Layer " << 
   _Layer <<" Coo " << _Hit<< endl;}
 integer operator < (AMSlink & o) const {
   AMSTrRecHit * p= (AMSTrRecHit*)(&o);
- if (getstatus(AMSDBc::USED) && !(p->getstatus(AMSDBc::USED)))return 1;
+ if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
  else return 0;             
 
 } 
@@ -156,10 +151,10 @@ static AMSTrRecHit * gethead(integer i=0){
    }   
 }
 AMSTrRecHit(AMSgSen *p, integer good,integer layer, AMSTrCluster * xcl, AMSTrCluster * ycl,
-            const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs): AMSlink(0),
-            _pSen(p),_Status(good), _Layer(layer),_Xcl(xcl),
+            const AMSPoint & hit, const AMSPoint & ehit, number sum, number dfs): AMSlink(good,0),
+            _pSen(p), _Layer(layer),_Xcl(xcl),
             _Ycl(ycl), _Hit(hit), _EHit(ehit),_Sum(sum),_DifoSum(dfs){};
-AMSTrRecHit(): AMSlink(0),_pSen(0),_Xcl(0),_Ycl(0){};
+AMSTrRecHit(): AMSlink(),_pSen(0),_Xcl(0),_Ycl(0){};
 static void build(integer refit);
 static void print();
 static integer Out(integer);
@@ -167,7 +162,6 @@ number getsum()const{return _Sum;}
 AMSgSen * getpsen()const{return _pSen;}
 inline  AMSPoint  getHit(){return _Hit;}
 inline  AMSPoint  getEHit(){return _EHit;}
-inline  integer getstatus(integer checker) const{return _Status & checker;}
 //+
 #ifdef __DB__
    friend class AMSTrRecHitD;
@@ -187,7 +181,6 @@ void          setClusterP(AMSTrCluster* p,integer n) {
 void          setSensorP(AMSgSen* p) { _pSen = p;}
 
 //-
-inline void setstatus(integer status){_Status=_Status | status;}
 ~AMSTrRecHit(){int i;for( i=0;i<6;i++)_Head[i]=0;};
 
 };
@@ -204,7 +197,6 @@ class AMSTrTrack: public AMSlink{
 protected:
 AMSTrRecHit * _Pthit[6];
 
-integer _Status;
 integer _Pattern;
 integer _NHits;
 integer _FastFitDone;
@@ -256,23 +248,21 @@ public:
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
 integer operator < (AMSlink & o) const {
   AMSTrTrack * p= (AMSTrTrack*)(&o);
-  if (getstatus(AMSDBc::USED) && !(p->getstatus(AMSDBc::USED)))return 1;
+  if (checkstatus(AMSDBc::USED) && !(p->checkstatus(AMSDBc::USED)))return 1;
   else return 0;
 }
 
 integer getpattern()const{return _Pattern;}
 static const integer AMBIG;
 static integer Out(integer);
-inline void setstatus(integer status){_Status=_Status | status;}
-inline integer getstatus(integer checker) const{return _Status & checker;}
 number Fit(integer i=0, integer ipart=14);
-AMSTrTrack(const AMSTrTrack & o):AMSlink(o._next),_Pattern(o._Pattern),
+AMSTrTrack(const AMSTrTrack & o):AMSlink(o._status,o._next),_Pattern(o._Pattern),
 _NHits(o._NHits),_GeaneFitDone(o._GeaneFitDone),_FastFitDone(o._FastFitDone),
 _AdvancedFitDone(o._AdvancedFitDone),_Chi2StrLine(o._Chi2StrLine),
 _Chi2Circle(o._Chi2Circle),_CircleRidgidity(o._CircleRidgidity),
 _Chi2FastFit(o._Chi2FastFit),_Ridgidity(o._Ridgidity),
 _RidgidityMS(o._RidgidityMS),_GRidgidityMS(o._GRidgidityMS),
-_Chi2MS(o._Chi2MS),_GChi2MS(o._GChi2MS),_Status(o._Status),
+_Chi2MS(o._Chi2MS),_GChi2MS(o._GChi2MS),
 _ErrRidgidity(o._ErrRidgidity),_Theta(o._Theta), _Phi(o._Phi),_P0(o._P0),
 _GChi2(o._GChi2), _GRidgidity(o._GRidgidity),_GErrRidgidity(o._GErrRidgidity),
 _GTheta(o._GTheta),_GPhi(o._GPhi),_GP0(o._GP0){
@@ -290,7 +280,7 @@ for(i=0;i<2;i++){
 ~AMSTrTrack(){};
 AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
 AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
-AMSlink(0), _Status(0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
+AMSlink(0,0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
   {init(  phit);}
 void init( AMSTrRecHit * phit[]);
 static void build(integer refit);

@@ -33,13 +33,33 @@ integer Event;
 #define SELECTFFKEY COMMON_BLOCK(SELECTFFKEY,selectffkey)
 COMMON_BLOCK_DEF(SELECTFFKEY_DEF,SELECTFFKEY);
 
-class TRIGFFKEY_DEF {
+
+
+class LVL3SIMFFKEY_DEF{
 public:
-integer ntof;
-geant anti;
+geant NoiseProb[2];
 };
-#define TRIGFFKEY COMMON_BLOCK(TRIGFFKEY,trigffkey)
-COMMON_BLOCK_DEF(TRIGFFKEY_DEF,TRIGFFKEY);
+#define LVL3SIMFFKEY COMMON_BLOCK(LVL3SIMFFKEY,lvl3simffkey)
+COMMON_BLOCK_DEF(LVL3SIMFFKEY_DEF,LVL3SIMFFKEY);
+
+
+
+class LVL3FFKEY_DEF {
+public:
+geant   TrThr1R;
+integer MinTOFPlanesFired;
+integer UseTightTOF;
+geant TrTOFSearchReg; 
+geant TrMinResidual;
+geant TrMaxResidual[3];
+integer TrMaxHits;
+geant Splitting;
+integer NRep;
+};
+#define LVL3FFKEY COMMON_BLOCK(LVL3FFKEY,lvl3ffkey)
+COMMON_BLOCK_DEF(LVL3FFKEY_DEF,LVL3FFKEY);
+
+
 
 class AMSFFKEY_DEF {
 public:

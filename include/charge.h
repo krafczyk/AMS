@@ -43,8 +43,8 @@ _ProbTOF[1]<<" "<<_ProbTOF[2]<<" "<<_ProbTOF[3]<<" "<<_ProbTOF[4]<<" "<<_ProbTOF
    static integer _chargeTOF[ncharge];
 public:
   AMSCharge *  next(){return (AMSCharge*)_next;}
-  AMSCharge(): AMSlink(0),  _pbeta(0){}
-  AMSCharge(AMSBeta * pbeta): AMSlink(0), _pbeta(pbeta){}
+  AMSCharge(): AMSlink(),  _pbeta(0){}
+  AMSCharge(AMSBeta * pbeta): AMSlink(), _pbeta(pbeta){}
   integer getchargeTOF()const{return _ChargeTOF;}
   integer getchargeTracker()const{return _ChargeTracker;}
   AMSBeta * getpbeta()const{return _pbeta;}

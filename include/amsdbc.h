@@ -28,7 +28,8 @@ private:
    static const number  _zelec[nl][2];
    static const number  _c2c[nl];
    static const number  _support_w[nl];
-
+   static const integer _nladshuttle[nl];
+   static const integer _boundladshuttle[nl];
 public:
 
 #ifdef __DB__
@@ -48,6 +49,9 @@ public:
      static const integer USED;
      static const integer DELETED;
 
+// machine dependent values
+
+    static integer BigEndian;
 // member functions
    inline static  number layd(integer i, integer j)
      {return _layd[i][j];}
@@ -126,6 +130,8 @@ public:
    }
   static integer debug;
   static integer activeladdshuttle(integer i,integer j);
+  static integer compactshuttle(integer layer, integer ladder);
+  static void expandshuttle(integer cmpt, integer & layer, integer &ladder);
 };
 
 

@@ -178,7 +178,7 @@ void AMSAntiCluster::build(){
       // Should be changed if not "TUBS"
       //
       number par[5];
-      for(int i=0;i<5;i++)par[i]=pg->getpar(i);
+      for(i=0;i<5;i++)par[i]=pg->getpar(i);
       number r=(par[0]+par[1])/2;
       number er=(par[1]-par[0])/2;
       number phi=(par[3]+par[4])/2;

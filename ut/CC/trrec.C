@@ -205,7 +205,7 @@ void AMSTrCluster::build(integer refit=0){
        id.upd(i-TRCLFFKEY.ThrClNEl[side]/2);
        if(id.getsig() < TRCLFFKEY.Thr1S[side] && 
        adc[i]/id.getsig() > TRCLFFKEY.Thr1R[side] && 
-       id.getstatus(AMSDBc::BAD)==0)ref=adc[i];
+       id.checkstatus(AMSDBc::BAD)==0)ref=adc[i];
       }
      }
      }   
@@ -238,7 +238,7 @@ void AMSTrCluster::build(integer refit=0){
 
        AMSTrCluster *pcl=(AMSTrCluster*)pct[i]->gethead();
        while(pcl){
-         if(pcl->getstatus(REFITTED)){
+         if(pcl->checkstatus(REFITTED)){
           pclnew=((AMSTrCluster*)OriginalLast[i])->next();
           AMSTrIdSoft pclid=pcl->getid();
           while(pclnew){
@@ -255,12 +255,12 @@ void AMSTrCluster::build(integer refit=0){
        } 
        // Delete marked clusters
       pcl=(AMSTrCluster*)pct[i]->gethead();
-      while(pcl && pcl->getstatus(AMSDBc::DELETED)){
+      while(pcl && pcl->checkstatus(AMSDBc::DELETED)){
         pct[i]->removeEl(0,0);
         pcl=(AMSTrCluster*)pct[i]->gethead(); 
       }     
       while(pcl){
-        while(pcl->next() && (pcl->next())->getstatus(AMSDBc::DELETED))
+        while(pcl->next() && (pcl->next())->checkstatus(AMSDBc::DELETED))
         pct[i]->removeEl(pcl,0);
         pcl=pcl->next();
       }
@@ -338,7 +338,7 @@ else  _ErrorMean =TRCLFFKEY.ErrX;
 AMSTrCluster::AMSTrCluster(const AMSTrIdSoft& id, integer status, 
                            integer nelemL, integer nelemR, number sum,
                            number ssum, number pos,number rms,  number val[]):
-    AMSlink(0),_Id(id),_Status(status),_NelemL(nelemL), _NelemR(nelemR),_Sum(sum), 
+    AMSlink(status,0),_Id(id),_NelemL(nelemL), _NelemR(nelemR),_Sum(sum), 
     _Sigma(ssum), _Mean(pos), _Rms(rms){
  _ErrorCalc();
  if(getnelem()>0){
@@ -352,7 +352,7 @@ void AMSTrCluster::_writeEl(){
   // fill the ntuple 
 static integer init=0;
 static TrClusterNtuple TrN;
-if(AMSTrCluster::Out( IOPA.WriteAll ||  getstatus(AMSDBc::USED ))){
+if(AMSTrCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrCluste",TrN.getaddress(),
@@ -361,7 +361,7 @@ if(init++==0){
 }
   TrN.Event()=AMSEvent::gethead()->getid();
   TrN.Idsoft=_Id.cmpt();
-  TrN.Status=_Status;
+  TrN.Status=_status;
   TrN.NelemL=_NelemL;
   TrN.NelemR=_NelemR;
   TrN.Sum=_Sum;
@@ -404,11 +404,11 @@ void AMSTrRecHit::build(integer refit=0){
  while (y){
    idy=y->getid();
    ilay=idy.getlayer();
-   if(y->getstatus(AMSDBc::BAD)==0){
+   if(y->checkstatus(AMSDBc::BAD)==0){
    x=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",0);
    while(x){
       idx=x->getid();  
-      if(x->getstatus(AMSDBc::BAD) ==0 ){
+      if(x->checkstatus(AMSDBc::BAD) ==0 ){
       if(idx.getlayer() == idy.getlayer() && 
          idx.getdrp() == idy.getdrp() && idx.gethalf() == idy.gethalf()
          && fabs(y->getVal()-x->getVal())/(y->getVal()+x->getVal()) < 
@@ -455,7 +455,7 @@ void AMSTrRecHit::_writeEl(){
 static integer init=0;
 static TrRecHitNtuple THN;
 int i;
-if(AMSTrRecHit::Out( IOPA.WriteAll || getstatus(AMSDBc::USED ))){
+if(AMSTrRecHit::Out( IOPA.WriteAll || checkstatus(AMSDBc::USED ))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrRecHit",THN.getaddress(),
@@ -482,7 +482,7 @@ if(init++==0){
     //WriteUsedOnly
       for(i=0;i<pat;i++){
         AMSTrCluster *ptr=(AMSTrCluster*)AMSEvent::gethead()->getheadC("AMSTrCluster",i);
-          while(ptr && ptr->getstatus(AMSDBc::USED)){
+          while(ptr && ptr->checkstatus(AMSDBc::USED)){
             THN.pY++;
             ptr=ptr->next();
           }
@@ -495,7 +495,7 @@ if(init++==0){
     cerr << "AMSTrRecHit-S-Logic Error "<<(_Xcl->getid()).getlayer()<<" "<<
       (_Ycl->getid()).getlayer()<<" "<<_Layer<<endl;
   }
-  THN.Status=_Status;
+  THN.Status=_status;
   THN.Layer=_Layer;
   for(i=0;i<3;i++)THN.Hit[i]=_Hit[i];
   for(i=0;i<3;i++)THN.EHit[i]=_EHit[i];
@@ -542,10 +542,10 @@ void AMSTrTrack::build(integer refit=0){
       number par[2];
       number epar[2];
       while( phit[0]){
-       if(TRFITFFKEY.FullReco || phit[0]->getstatus(AMSDBc::USED)==0){
+       if(TRFITFFKEY.FullReco || phit[0]->checkstatus(AMSDBc::USED)==0){
        phit[1]=AMSTrRecHit::gethead(second);
        while( phit[1]){
-        if(TRFITFFKEY.FullReco || phit[1]->getstatus(AMSDBc::USED)==0){
+        if(TRFITFFKEY.FullReco || phit[1]->checkstatus(AMSDBc::USED)==0){
         x[0]=phit[0]-> getHit()[2];
         x[1]=phit[1]-> getHit()[2];
         y[0]=phit[0]-> getHit()[0];
@@ -559,26 +559,26 @@ void AMSTrTrack::build(integer refit=0){
         // Search for others
         phit[2]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][2]-1);
         while(phit[2]){
-         if(TRFITFFKEY.FullReco || phit[2]->getstatus(AMSDBc::USED)==0){
+         if(TRFITFFKEY.FullReco || phit[2]->checkstatus(AMSDBc::USED)==0){
           // Check if the point lies near the str line
            if(AMSTrTrack::Distance(par,phit[2])>= TRFITFFKEY.SearchRegStrLine)
            {phit[2]=phit[2]->next();continue;}
          phit[3]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][3]-1);
          while(phit[3]){
           // Check if the point lies near the str line
-          if(TRFITFFKEY.FullReco || phit[3]->getstatus(AMSDBc::USED)==0){
+          if(TRFITFFKEY.FullReco || phit[3]->checkstatus(AMSDBc::USED)==0){
           if(AMSTrTrack::Distance(par,phit[3])>= TRFITFFKEY.SearchRegStrLine)
           {phit[3]=phit[3]->next();continue;}
           if(AMSTrTrack::patpoints[pat] >4){         
           phit[4]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][4]-1);
           while(phit[4]){
-           if(TRFITFFKEY.FullReco || phit[4]->getstatus(AMSDBc::USED)==0){
+           if(TRFITFFKEY.FullReco || phit[4]->checkstatus(AMSDBc::USED)==0){
            if(AMSTrTrack::Distance(par,phit[4])>= TRFITFFKEY.SearchRegStrLine)
            {phit[4]=phit[4]->next();continue;}
            if(AMSTrTrack::patpoints[pat]>5){
            phit[5]=AMSTrRecHit::gethead(AMSTrTrack::patconf[pat][5]-1);
            while(phit[5]){
-             if(TRFITFFKEY.FullReco || phit[5]->getstatus(AMSDBc::USED)==0){
+             if(TRFITFFKEY.FullReco || phit[5]->checkstatus(AMSDBc::USED)==0){
               if(AMSTrTrack::Distance(par,phit[5])>= 
               TRFITFFKEY.SearchRegStrLine){phit[5]=phit[5]->next();continue;}
                 // 6 point combination found
@@ -656,7 +656,7 @@ integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[6]){
          int i;   
          // Mark hits as USED
          for( i=0;i<nhit;i++){
-           if(pthit[i]->getstatus(AMSDBc::USED))
+           if(pthit[i]->checkstatus(AMSDBc::USED))
             pthit[i]->setstatus(AMSTrTrack::AMBIG);
            else pthit[i]->setstatus(AMSDBc::USED);
          }
@@ -820,8 +820,8 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
     for(i=0;i<_NHits;i++){
      for(int j=0;j<3;j++){
       if (_Pthit[i]) {
-       hits[_NHits-i-1][j]=_Pthit[i]->getHit()[j];
-       sigma[_NHits-i-1][j]=_Pthit[i]->getEHit()[j];
+       hits[i][j]=_Pthit[i]->getHit()[j];
+       sigma[i][j]=_Pthit[i]->getEHit()[j];
       } else {
         cout <<"AMSTrTrack::Fit -W- _Pthit["<<i<<"] = NULL, j"<<j<<endl;
       }
@@ -833,12 +833,12 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       //fit 124
       npt=3;
      for(int j=0;j<3;j++){
-      hits[2][j]=_Pthit[0]->getHit()[j];
-      sigma[2][j]=_Pthit[0]->getEHit()[j];
+      hits[0][j]=_Pthit[0]->getHit()[j];
+      sigma[0][j]=_Pthit[0]->getEHit()[j];
       hits[1][j]=_Pthit[1]->getHit()[j];
       sigma[1][j]=_Pthit[1]->getEHit()[j];
-      hits[0][j]=_Pthit[3]->getHit()[j];
-      sigma[0][j]=_Pthit[3]->getEHit()[j];
+      hits[2][j]=_Pthit[3]->getHit()[j];
+      sigma[2][j]=_Pthit[3]->getEHit()[j];
      }
       
     }
@@ -846,12 +846,12 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       //fit 123
       npt=3;
      for(int j=0;j<3;j++){
-      hits[2][j]=_Pthit[0]->getHit()[j];
-      sigma[2][j]=_Pthit[0]->getEHit()[j];
+      hits[0][j]=_Pthit[0]->getHit()[j];
+      sigma[0][j]=_Pthit[0]->getEHit()[j];
       hits[1][j]=_Pthit[1]->getHit()[j];
       sigma[1][j]=_Pthit[1]->getEHit()[j];
-      hits[0][j]=_Pthit[2]->getHit()[j];
-      sigma[0][j]=_Pthit[2]->getEHit()[j];
+      hits[2][j]=_Pthit[2]->getHit()[j];
+      sigma[2][j]=_Pthit[2]->getEHit()[j];
      }
     }
     else{
@@ -864,36 +864,36 @@ number AMSTrTrack::Fit(integer fit, integer ipart){
       // fit 346
       npt=3;
      for(int j=0;j<3;j++){
-      hits[2][j]=_Pthit[2]->getHit()[j];
-      sigma[2][j]=_Pthit[2]->getEHit()[j];
+      hits[0][j]=_Pthit[2]->getHit()[j];
+      sigma[0][j]=_Pthit[2]->getEHit()[j];
       hits[1][j]=_Pthit[3]->getHit()[j];
       sigma[1][j]=_Pthit[3]->getEHit()[j];
-      hits[0][j]=_Pthit[5]->getHit()[j];
-      sigma[0][j]=_Pthit[5]->getEHit()[j];
+      hits[2][j]=_Pthit[5]->getHit()[j];
+      sigma[2][j]=_Pthit[5]->getEHit()[j];
      }
     }
     else if(_Pattern <7){
       // fit 345
       npt=3;
      for(int j=0;j<3;j++){
-      hits[2][j]=_Pthit[2]->getHit()[j];
-      sigma[2][j]=_Pthit[2]->getEHit()[j];
+      hits[0][j]=_Pthit[2]->getHit()[j];
+      sigma[0][j]=_Pthit[2]->getEHit()[j];
       hits[1][j]=_Pthit[3]->getHit()[j];
       sigma[1][j]=_Pthit[3]->getEHit()[j];
-      hits[0][j]=_Pthit[4]->getHit()[j];
-      sigma[0][j]=_Pthit[4]->getEHit()[j];
+      hits[2][j]=_Pthit[4]->getHit()[j];
+      sigma[2][j]=_Pthit[4]->getEHit()[j];
      }
     }
     else if(_Pattern <npat){
       // fit 234
       npt=3;
      for(int j=0;j<3;j++){
-      hits[2][j]=_Pthit[1]->getHit()[j];
-      sigma[2][j]=_Pthit[1]->getEHit()[j];
+      hits[0][j]=_Pthit[1]->getHit()[j];
+      sigma[0][j]=_Pthit[1]->getEHit()[j];
       hits[1][j]=_Pthit[2]->getHit()[j];
       sigma[1][j]=_Pthit[2]->getEHit()[j];
-      hits[0][j]=_Pthit[3]->getHit()[j];
-      sigma[0][j]=_Pthit[3]->getEHit()[j];
+      hits[2][j]=_Pthit[3]->getHit()[j];
+      sigma[2][j]=_Pthit[3]->getEHit()[j];
      }
     }
     else{
@@ -1032,7 +1032,7 @@ void AMSTrTrack::_writeEl(){
 static integer init=0;
 static TrTrackNtuple TrTN;
 int i;
-if(AMSTrTrack::Out(IOPA.WriteAll || getstatus(AMSDBc::USED))){
+if(AMSTrTrack::Out(IOPA.WriteAll || checkstatus(AMSDBc::USED))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrTrack",TrTN.getaddress(),
@@ -1040,7 +1040,7 @@ if(init++==0){
 
 }
   TrTN.Event()=AMSEvent::gethead()->getid();
-  TrTN.Status=_Status;
+  TrTN.Status=_status;
   TrTN.Pattern=_Pattern;
   TrTN.NHits=_NHits;
   for(int k=0;k<_NHits;k++){
@@ -1061,7 +1061,7 @@ if(init++==0){
     //WriteUsedOnly
       for(i=0;i<pat;i++){
         AMSTrRecHit *ptr=(AMSTrRecHit*)AMSEvent::gethead()->getheadC("AMSTrRecHit",i);
-          while(ptr && ptr->getstatus(AMSDBc::USED)){
+          while(ptr && ptr->checkstatus(AMSDBc::USED)){
             TrTN.pHits[k]++;
             ptr=ptr->next();
           }

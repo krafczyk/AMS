@@ -198,6 +198,21 @@ Below there is a description of a converted ntuple.
 * R*4  *              * ANTIMCCL * AntiMCedep(nantimc)   // energy dep (GeV)
 
 
+ * I*4  * [0,1]       * LVL3     * nlvl3                 // lvl3trigger number 
+ * I*4  *             * LVL3     * LVL3TOFTr(nlvl3)      // TOF Trigger
+ * I*4  *             * LVL3     * LVL3AntiTr(nlvl3)     // Anti Trigger
+ * I*4  *             * LVL3     * LVL3TrackerTr(nlvl3)  // TrackerTrigger
+ * I*4  *             * LVL3     * LVL3NTrHits(nlvl3)    // Number Tr Hits
+ * I*4  *             * LVL3     * LVL3NPat(nlvl3)       // Number "Tracks" found
+ * I*4  *             * LVL3     * LVL3Pattern(2,nlvl3)  // Pattern no
+ * R*4  *             * LVL3     * LVL3Residual(2,nlvl3) // Aver Residual (cm)
+ * R*4  *             * LVL3     * LVL3Time(nlvl3)       // Alg Time (sec)
+
+ * I*4  * [0,1]       * LVL1     * nlvl1                 // lvl1trigger number
+ * I*4  *             * LVL1     * LVL1Mode(nlvl1)       // mode
+ * I*4  *             * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
+ * I*4  *             * LVL1     * LVL1AntiPatt          // antipattern
+
 ---------------------------------------------------------------------------
 
 *) Status bits
@@ -213,7 +228,7 @@ Tracker clusters:
 4 - cluster was refitted
 
  TrRecHits:
-4 - Ambiguous track (i.e. several tracks are used it)
+4 - Ambiguous hit (i.e. several tracks are used it)
 
 
 

@@ -52,7 +52,7 @@ protected:
  void _printEl(ostream & stream){ stream << " Pattern " << _Pattern<<endl;}
  void _writeEl(){}
 public:
- AMSTrCalibration(integer pattern=0):AMSlink(0),_Pattern(pattern){}
+ AMSTrCalibration(integer pattern=0):_Pattern(pattern){}
 };
 
 

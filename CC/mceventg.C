@@ -168,7 +168,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
     r=tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
   }
   Orbit.PhiZero=Orbit.PhiI-atan2(r,CCFFKEY.sdir*sqrt(1-r*r));
-
+  Orbit.Axis[0]=-sin(MIR/AMSDBc::raddeg)*cos(Orbit.PhiZero);
+  Orbit.Axis[1]=-sin(MIR/AMSDBc::raddeg)*sin(Orbit.PhiZero);
+  Orbit.Axis[2]=cos(MIR/AMSDBc::raddeg);
   Orbit.AlphaSpeed=AMSDBc::twopi/92.36/60.;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
   Orbit.PolePhi=CCFFKEY.polephi/AMSDBc::raddeg;
@@ -282,7 +284,7 @@ integer AMSmceventg::accept(){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
         geant d;
-        if (_dir[2]<_albedocz || RNDM(d)< _albedorate){
+        if (_fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate){
           if(CCFFKEY.low == 0  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
            return EarthModulation();
           else return 1;
@@ -296,11 +298,17 @@ integer AMSmceventg::accept(){
 integer AMSmceventg::EarthModulation(){
   // Get current station position from event bank
   number polephi,theta,phi;
+  
   AMSEvent::gethead()->GetGeographicCoo(polephi, theta, phi);
+  //
+  // direction to magnetic field
+  //
   number um=sin(AMSDBc::pi/2-Orbit.PoleTheta)*cos(polephi);
   number vm=sin(AMSDBc::pi/2-Orbit.PoleTheta)*sin(polephi);
   number wm=cos(AMSDBc::pi/2-Orbit.PoleTheta);
-
+  //
+  // direction to station position
+  //
   number up=sin(AMSDBc::pi/2-theta)*cos(phi);
   number vp=sin(AMSDBc::pi/2-theta)*sin(phi);
   number wp=cos(AMSDBc::pi/2-theta);
@@ -310,10 +318,26 @@ integer AMSmceventg::EarthModulation(){
   number uv=vm*wp-wm*vp;
   number vv=wm*up-wp*um;
   number wv=um*vp-vm*up;
+  //
+  // particle dir in global system
+  // AMS x along the shuttle/station flight
+  //
+  number amsx[3],amsy[3],amsz[3];
+  amsz[0]=up;
+  amsz[1]=vp;
+  amsz[2]=wp;
+  amsy[0]=Orbit.Axis[0];
+  amsy[1]=Orbit.Axis[1];
+  amsy[2]=Orbit.Axis[2];
+  amsx[0]=amsy[1]*amsz[2]-amsy[2]*amsz[1];
+  amsx[1]=amsy[2]*amsz[0]-amsy[0]*amsz[2];
+  amsx[2]=amsy[0]*amsz[1]-amsy[1]*amsz[0];
 
-  number ue=_dir[0];
-  number ve=_dir[1];
-  number we=_dir[2];
+
+  number ue=_dir[0]*amsx[0]+_dir[1]*amsy[0]+_dir[2]*amsz[0];
+  number ve=_dir[0]*amsx[1]+_dir[1]*amsy[1]+_dir[2]*amsz[1];
+  number we=_dir[0]*amsx[2]+_dir[1]*amsy[2]+_dir[2]*amsz[2];
+  
   number cth=ue*uv+ve*vv+we*wv;
   number mom=52.5*pow(cl,4)/pow(sqrt(1.-cth*pow(cl,3))+1,2)*fabs(_charge);
   if (_mom > mom)return 1;

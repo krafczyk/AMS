@@ -17,9 +17,9 @@
 //CERNLIB part
 //PROTOCCALLSFSUB3(UCOPY,ucopy,FLOATV,FLOATV,INT)
 //#define UCOPY(A,B,I) CCALLSFSUB3(UCOPY,ucopy,FLOATV,FLOATV,INT,A,B,I)
-extern "C" void timex_(float & );
-#define TIMEX timex_  
 extern "C" void timel_(float & );
+extern "C" void timex_(float & t);
+#define TIMEX timex_  
 #define TIMEL timel_  
 extern "C" void ucopy_(void *, void*, const int &);
 #define UCOPY ucopy_

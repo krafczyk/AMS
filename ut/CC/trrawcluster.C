@@ -7,18 +7,63 @@
 #include <math.h>
 #include <amsgobj.h>
 #include <mccluster.h>
+
+integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax){
+  //
+  // convert my stupid format to lvl3 one for shuttle flight (mb also stupid)
+  // the address is now 16 bit and is the format :
+  //  5             1                4                       6              = 16
+  // 0-22 layer  0-1  half  0-9 (ben) 10-15 (nonb) VA   0-63 strip no (ambig R/L here)
+ AMSTrIdSoft id(_amsid.getid());
+ rc *lst=_first;
+ int16 pos =0;
+ while(lst){
+  int16 icmpt=(int16)AMSDBc::compactshuttle(id.getlayer(),id.getdrp());
+#ifdef __AMSDEBUG__
+  assert (icmpt < 32 && icmpt >=0);
+#endif
+  int16 half=(int16)id.gethalf();
+  id.upd(lst->array[0]);
+  int16 va=(int16)id.getva();
+  int16 strip=(int16)id.getstripa();
+  if (nmax-pos < 2+lst->nelem) return pos;
+  adc[pos+1]=mkaddress(strip,va,half,icmpt);
+  integer update=0;
+  integer imax=0;
+  geant rmax=-1000000;
+  for (int i=1;i<lst->nelem;i++){
+   id.upd(lst->array[0]+i-1);
+   geant r=(lst->array[i]-id.getped()-id.getcmnnoise());
+   if(r/id.getsig() > LVL3FFKEY.TrThr1R)update=1;
+   if(r > rmax){
+     rmax=r;
+     imax=i-1;
+   }
+   adc[pos+i+1]=int16(r*8);
+  }
+  if(update){
+    adc[pos]=(lst->nelem+2) | (imax<<8); 
+    pos+=2+lst->nelem;
+  }
+  lst=lst->next;
+ }
+ return pos; 
+}
+
+
 void AMSTrRawCluster::expand(number *adc)const {
 AMSTrIdSoft id(_amsid.getid());
-integer ilay=id.getlayer();
-integer side=id.getside();
+//integer ilay=id.getlayer();
+//integer side=id.getside();
 integer left;
 rc *lst=_first;
 while(lst){
- id.upd(lst->array[0]);
- for (int i=1;i<lst->nelem;i++)
-  adc[id.getstrip()+i-1]=
- (lst->array[i]-id.getped()-id.getcmnnoise())/id.getgain()*ADC2KeV();
- lst=lst->next;
+  for (int i=1;i<lst->nelem;i++){
+   id.upd(lst->array[0]+i-1);
+   adc[id.getstrip()]=
+  (lst->array[i]-id.getped()-id.getcmnnoise())/id.getgain()*ADC2KeV();
+  }
+  lst=lst->next;
 
 }
 

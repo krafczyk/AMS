@@ -15,11 +15,6 @@ fi
 
 
 
-if [ "$UNAME" = "HP-UX" ] ; then
-cd /user/choutko/AMS/datacards
-else
-cd /afs/cern.ch/user/c/choutko/AMS/datacards
-fi
 ../exe/$MACHINE/gbatch.exe <<!
 LIST
 KINE 3
@@ -39,11 +34,13 @@ MCGEN 15=0 18=1           20=1
 TOFREC 1=0.05 2=0.05
 TRMC 19=0
 IOPA 1=3 2='el.low.hbk'  
-45='AMSCTCCluster|AMSTrCluster|AMSTOFCluster'
+45='AMSCTCCluster|AMSTrCluster|AMSTOFCluster|AMSAntiCluster'
 RNDM 378691291 979912346
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0  3=50.   4=0  5=0   6='Electrons' 46='CTCAnnecy'
 C Special HP-UX
 TIME 3=10000000
+ANTIMC 1=0.01
+ANTIREC 1=1.
 END
 !

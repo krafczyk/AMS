@@ -24,7 +24,7 @@ protected:
  void _printEl(ostream & stream){ stream << " Pid " << _pid<<endl;}
  void _writeEl(){}
 public:
- AntiMatter(integer pid=0):AMSlink(0),_pid(pid){}
+ AntiMatter(integer pid=0):_pid(pid){}
 };
 
 class AMSParticle: public AMSlink{
@@ -58,7 +58,7 @@ protected:
  static integer _partP[20];
 public:
   AMSParticle *  next(){return (AMSParticle*)_next;}
-  AMSParticle(): AMSlink(0),  _pbeta(0), _pcharge(0), _ptrack(0)
+  AMSParticle():   _pbeta(0), _pcharge(0), _ptrack(0)
  {
     for(int i=0;i<2;i++){
      _Value[i]=CTC(0.,0.,1.,AMSPoint());
@@ -68,7 +68,7 @@ public:
   AMSParticle(AMSBeta * pbeta, AMSCharge * pcharge, AMSTrTrack * ptrack,
   number mass, number errmass, number momentum, number errmomentum,
   number charge, number theta, number phi, AMSPoint coo): 
-  AMSlink(0),_pbeta(pbeta), _pcharge(pcharge), _ptrack(ptrack), 
+  _pbeta(pbeta), _pcharge(pcharge), _ptrack(ptrack), 
   _Mass(mass),
   _ErrMass(errmass), _Momentum(momentum), _ErrMomentum(errmomentum),
   _Charge(charge), _Theta(theta), _Phi(phi), _Coo(coo)
