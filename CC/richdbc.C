@@ -188,11 +188,11 @@ do{
     u2=2*RNDM(dummy)-1;
     
     r=(u1*u1+u2*u2);
-  }while(r>1);
+  }while(r>=1); // Obtain a point in 2d uniform in rE[0,1)
 
   u2=u1*sqrt(-2*log(r)/r)*sqrt(sigma_ped*sigma_ped+
 				       n_photons*sigma_peak*sigma_peak)+
-    n_photons*peak+ped;  
+    n_photons*peak+ped;  // u2 is gaussian distributed
 }while(u2<-2);
 return u2;
 }
