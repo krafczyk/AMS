@@ -204,6 +204,7 @@ void AMSJob::_sitrigdata(){
   LVL3FFKEY.RebuildLVL3=0;
   LVL3FFKEY.NoK=1;
   LVL3FFKEY.TrHeavyIonThr=200;
+  LVL3FFKEY.SeedThr=32;
   FFKEY("L3REC",(float*)&LVL3FFKEY,sizeof(LVL3FFKEY_DEF)/sizeof(integer),"MIXED");
 
 

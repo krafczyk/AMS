@@ -587,39 +587,30 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
       (ptr[1],strip,va,side,half,drp);
      if(side != 0 && (LVL3FFKEY.NoK || _TrackerAux[drp][half])){
       integer layer=_TrackerDRP2Layer[drp][half];
-      // set filsafe cluster def > 1 strip || ( > 2 && two adj to max >=0)
-      integer nmax= (*ptr)>>8;
       integer num = ((*ptr)&255);
-      if(nmax == 0 || nmax==num){
-        // probably reduced mode
-        if(num == 0)goto next;
-      }  
-      else {
-        // Probably normal mode
-        if(*(ptr+1+nmax)< 16 && *(ptr+3+nmax) < 16)goto next;
-      } 
-      
+      if(LVL3FFKEY.SeedThr>0){
+        if(((*((int16u*)ptr)>>8) & 63) <LVL3FFKEY.SeedThr)goto next;
+        int count=0;
+        for(int k=2;k<num+3;k++){
+          if(*(ptr+k)>=16)count++;
+          else if(count)count--;
+          if(count>=2)break;
+        }
+        if(count<2  )goto next;
+      }
+      else{
+        // set failsafe cluster def > 1 strip || ( > 2 && two adj to max >=0)
+        integer nmax= (*(int16u*)ptr)>>8;
+        if(nmax == 0 || nmax==num){
+          // probably reduced mode
+          if(num == 0)goto next;
+        }  
+        else {
+          // Probably normal mode
+          if(*(ptr+1+nmax)< 16 && *(ptr+3+nmax) < 16)goto next;
+        } 
+      }
               float coo=0;
-      //      float amp=0;
-      //      for (int i=2;i<((*(ptr))&255);i++){
-      //        coo+= ((int)*(ptr+i)) * (i-2);
-      //        amp+=((int)*(ptr+i));
-      //      }
-      //      if(amp)coo=(strip+coo/amp+0.5)*_stripsize;
-      //
-      // Just take strip as cofg
-      //
-      //      integer ss;
-      //      switch (strip+nmax) {
-      //       case 0:
-      //        ss=0;
-      //        break;
-      //       case 639:
-      //        ss=1282;
-      //        break;
-      //       default:
-      //        ss=strip*2+2;
-      //      }
             float ss=0;
             float amp=0;
             for(i=0;i<num;i++){

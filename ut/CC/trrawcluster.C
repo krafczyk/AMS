@@ -20,6 +20,9 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic)
   //
   // convert my stupid format to lvl3 one for shuttle flight (mb also stupid)
   //
+
+  // New put S/N for seed insted of imax
+
    AMSTrIdSoft id(_address);
   int16 pos =0;
   id.upd(_strip);
@@ -27,15 +30,21 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic)
   adc[pos+1]=id.gethaddr(pedantic);
   integer imax=0;
   geant rmax=-1000000;
+  int16 sn;
   for (int i=0;i<_nelem;i++){
    id.upd(_strip+i);
-   if(_array[i] > rmax){
-     rmax=_array[i];
+   if(id.getsig() && _array[i]/id.getsig() > rmax){
+     rmax=_array[i]/id.getsig();
+     sn=(rmax+0.5);
+     if(sn>63)sn=63;
+     if(sn<0)sn=0;
      imax=i;
    }
    adc[pos+i+2]=int16(_array[i]);
   }
-    adc[pos]=(_nelem-1) | (imax<<8); 
+  //  if(id.getside()==1)cout <<"sn "<<sn<<endl;
+  if(LVL3FFKEY.SeedThr>0)adc[pos]=(_nelem-1) | (sn<<8); 
+  else  adc[pos]=(_nelem-1) | (imax<<8); 
     pos+=2+_nelem;
  return pos; 
 }
