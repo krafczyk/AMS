@@ -2435,7 +2435,9 @@ integer AMSTrTrack::makeFalseTOFXHits(){
       AMSPoint sensor_size(   psensor->getpar(0)
                               , psensor->getpar(1)
                               , psensor->getpar(2));
-      if(!idgeom.FindAtt(glopos,sensor_size) || idgeom.gethalf()!=idsoft.gethalf()) continue;
+      if(!idgeom.FindAtt(glopos,sensor_size) 
+      || idgeom.gethalf()!=idsoft.gethalf()
+      || idgeom.getladder()!=idsoft.getdrp()) continue;
 // Go to local coordinates to get a better global position
       psensor=(AMSgSen*)AMSJob::gethead()->getgeomvolume(idgeom.crgid());
       AMSPoint locpos = psensor->gl2loc(glopos);
