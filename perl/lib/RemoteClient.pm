@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.252 2004/03/10 10:17:50 choutko Exp $
+# $Id: RemoteClient.pm,v 1.253 2004/03/10 15:00:25 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -29,14 +29,19 @@
 #                              -crc do CRC check
 #                              -u   update DB
 #                              -o   print output to file
-# Feb 18, 2004   : $webmode, subs : printParserStat and amsprint 
+# Feb    2004    : $webmode, subs : printParserStat and amsprint 
 #                  print statistics for each cite
 #                  parser : verbose, cmd, web modes
 #                           username and nFailedCopiesInRow check
 #                  validateRuns : verbose, cmd, web modes
-# Feb 23, 2004   : stopParseJournalFiles
+#                : stopParseJournalFiles
 #                  decrease one sql query in updateRunCatalog
-# Feb 27, 2004   : checkDB add -i option
+#                : checkDB add -i option
+#
+# Mar  6, 2004   : if DST status is not 'Validated' in CloseDTS block, skip it
+#                  if CRC=0 didn't check it either
+# Mar  9, 2004   : getHostsList sub, getDisks add MC[GB] - GB for MC's DSTs 
+# Mar 10, 2004   : listJobs, listNtuples, listRuns - modified to speed up output
 #
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
@@ -59,7 +64,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listAllDisks listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsPerSite updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB ConnectOnlyDB checkDB listAll listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsList getOutputPath updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -87,6 +92,9 @@ my     $verbose         = 0; # verbose mode
  my @BadCRCo      = [];  #                 dsts with crc error (after copying)
  my @gbDST        = [];
 #-
+ my $ActiveProductionSet   = undef;
+ my $UNKNOWN               = 'unknown';
+
  my $nBadCopiesInRow = 0;   # counter of doCopy errors
  my $MAX_FAILED_COPIES = 5; # max number of allowed errors (in row)
 #
@@ -125,7 +133,10 @@ my     $PrintMaxJobsPerCite = 25;
 my     $MAX_CITES       = 32; # maximum number of allowed cites
 my     $MAX_RUN_POWER   = 26; # 
 
-
+#
+my     $MIN_DISK_SPACE  = 10; # if available disk space <  MIN_DISK_SPACE 
+                              # do not use disk to store DSTs
+#
 sub new{
     my $type=shift;
 my %fields=(
@@ -1275,6 +1286,8 @@ sub doCopy {
      my $inputfile = shift;
      my $crc       = shift;
 # 
+     my $sql   => undef;
+#
      my @junk = split '/',$inputfile;
      my $file = $junk[$#junk];
 
@@ -1286,35 +1299,16 @@ sub doCopy {
      my $outputdisk => undef;
      my $outputpath => undef;
 
-     my $filesize = 0;
-     $filesize    = (stat($inputfile))[7];
+     my $filesize    = (stat($inputfile))[7];
      if ($filesize > 0) {
-      $filesize = 10+$filesize/1000000/1000;
-      my $mtime = 0;
-      my $pset  => undef;
-      my $sql   => undef;
-# get production set path
-       $sql = "SELECT NAME FROM ProductionSet WHERE STATUS='Active'";
-       my $r0 = $self->{sqlserver}->Query($sql);
-       if (defined $r0->[0][0]) {
-         $pset=trimblanks($r0->[0][0]);
-# find disk
-         $sql = "SELECT disk, path FROM filesystems WHERE AVAILABLE > $filesize 
-                   ORDER BY priority DESC, available DESC";
-#         print "$sql \n";
-         my $ret = $self->{sqlserver}->Query($sql);
-         foreach my $disk (@{$ret}) {
-           $outputdisk = trimblanks($disk->[0]);
-           $outputpath = trimblanks($disk->[1]);
-           if ($outputdisk =~ /vice/) {
-            $outputpath = $outputpath."/".$pset;
-           } else {
-            $outputpath = $outputdisk.$outputpath."/".$pset;
-           }
-           $mtime = (stat $outputpath)[9];
-           if ($mtime) { last;}
-          }   
-         if ($mtime) {
+# get output disk
+      my ($outputpath, $gb) = $self->getOutputPath();
+         if ($outputpath =~ 'xyz' || $gb == 0) {
+             if ($webmode == 0) {
+              print "doCopy -E- Cannot find any disk to store DSTs. Exit";
+              die;
+             }
+         } else {
 # find job
           $sql = "SELECT cites.name,jobname,jobs.jid FROM jobs,cites 
                            WHERE jid =$jid AND cites.cid=jobs.cid";
@@ -1374,19 +1368,13 @@ sub doCopy {
            } else {
               if ($webmode == 1) {htmlWarning("doCopy","cannot get info for JID=$jid");}
            }
-        } else {
-          if ($webmode == 1) {htmlWarning("doCopy","cannot stat disk ($outputpath) from Filesystems");}
-          $BadDSTs[$nCheckedCite]++;
-        } 
-      } else {
-          if ($webmode == 1) {htmlWarning("doCopy","cannot get ProductionSet status=Active");}
-     }
+        }
   } else {
       if ($webmode == 1) {htmlWarning("doCopy","cannot stat $inputfile");}
       $BadDSTs[$nCheckedCite]++;
   } 
   return undef,0;
- }
+}
 
 
 sub Validate{
@@ -5179,9 +5167,9 @@ sub trimblanks {
 }
 
 sub checkJobsTimeout {
-    my $self = shift;
-    my $lastupd=>undef; 
-    my $pset=>undef;
+    my $self   = shift;
+    my $lastupd= undef; 
+    my $pset   = undef;
 
     my $sql;
     my $timenow = time();
@@ -5230,26 +5218,24 @@ sub checkJobsTimeout {
 # at least one DST is copied to final destination 
 #
 # get production set path
-    $sql = "SELECT NAME FROM ProductionSet WHERE STATUS='Active'";
-    my $r0 = $self->{sqlserver}->Query($sql);
-    if (defined $r0->[0][0]) {
-     $pset=trimblanks($r0->[0][0]);
+    if (my $pset=$self->getActiveProductionSet() =~ $UNKNOWN) {
+    } else {
      $sql = "SELECT runs.run 
               FROM runs 
                WHERE runs.status != 'Completed' AND runs.status != 'TimeOut'";
-     my $r1=$self->{sqlserver}->Query($sql);
-     if( defined $r1->[0][0]){
-      foreach my $r (@{$r1}){
-       my $run= $r -> [0];
-       $sql="SELECT run FROM ntuples WHERE path LIKE '%$pset%' AND run=$run";
-       my $r2=$self->{sqlserver}->Query($sql);
-       if( defined $r2->[0][0]){
+      my $r1=$self->{sqlserver}->Query($sql);
+      if( defined $r1->[0][0]){
+       foreach my $r (@{$r1}){
+        my $run= $r -> [0];
+        $sql="SELECT run FROM ntuples WHERE path LIKE '%$pset%' AND run=$run";
+        my $r2=$self->{sqlserver}->Query($sql);
+        if( defined $r2->[0][0]){
            $sql="UPDATE runs SET runs.status='Completed' WHERE run=$run";
            $self->{sqlserver}->Update($sql); 
        }
-      }
-     }
     }
+   }
+  } # Active Production Set
 #
     $sql="SELECT jobs.jid, jobs.time, jobs.timeout, jobs.mid, jobs.cid, 
                  cites.name FROM jobs, cites 
@@ -5626,17 +5612,6 @@ sub listMin {
     htmlBottom();
 }
 
-sub listAllDisks {
-    my $self = shift;
-    my $show = shift;
-    htmlTop();
-    $self->ht_init();
-    
-    $self -> listDisksAMS();
-
-    htmlBottom();
-}
-
 sub queryDB {
     my $self = shift;
     my $q=$self->{q};
@@ -5841,19 +5816,23 @@ sub listStat {
      htmlTable("MC02 Jobs");
 
 # first job timestamp
-      $sql="SELECT MIN(Jobs.time) FROM Jobs, Cites 
+      $sql="SELECT MIN(Jobs.time), MAX(Jobs.timestamp) FROM Jobs, Cites 
                 WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
       $ret=$self->{sqlserver}->Query($sql);
       if (defined $ret->[0][0]) {
        $timestart = $ret->[0][0];
       }
-# last job timestamp
-      $sql="SELECT MAX(Jobs.timestamp) FROM Jobs, Cites 
-                 WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
-      $ret=$self->{sqlserver}->Query($sql);
-      if (defined $ret->[0][0]) {
-       $lastupd=localtime($ret->[0][0]);
+      if (defined $ret->[0][1]) {
+       $lastupd=localtime($ret->[0][1]);
       }
+# last job timestamp
+#      $sql="SELECT MAX(Jobs.timestamp) FROM Jobs, Cites 
+#                 WHERE Jobs.cid=Cites.cid and Cites.name!='test'";
+#      $ret=$self->{sqlserver}->Query($sql);
+#      if (defined $ret->[0][0]) {
+#       $lastupd=localtime($ret->[0][0]);
+#      }
+#
 
 # running (active jobs)
       $sql = "SELECT COUNT(jobs.jid), SUM(triggers) FROM Jobs, Cites WHERE 
@@ -6165,137 +6144,20 @@ sub listCites {
      print "<p></p>\n";
 }
 
-sub listDisksAMS {
-    my $self = shift;
-    my $lastupd=>undef; 
-    my $sql;
-    $sql="SELECT MAX(timestamp) FROM m_nominal_disks";
-    my $r0=$self->{sqlserver}->Query($sql);
-    if( defined $r0->[0][0]){
-      $lastupd=localtime($r0->[0][0]);
-     }
-     print "<b><h2><A Name = \"disks\"> </a></h2></b> \n";
-     print "<TR><B><font color=green size= 5><b><font color=green> Disks and Filesystems </font></b>";
-     if (defined $lastupd) {
-      print "<font color=green size=3><b><i> (Checked : $lastupd) </i></b></font>";
-     }
-     print "<p>\n";
-     print "<TABLE BORDER=\"1\" WIDTH=\"100%\">";
-              print "<table border=1 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-              print "<td><b><font color=\"blue\" >Filesystem </font></b></td>";
-              print "<td><b><font color=\"blue\" >GBytes </font></b></td>";
-              print "<td><b><font color=\"blue\" >Used [GB] </font></b></td>";
-              print "<td><b><font color=\"blue\" >Free [GB] </font></b></td>";
-              print "<td><b><font color=\"blue\" >Status </font></b></td>";
-     print_bar($bluebar,3);
-     $sql="SELECT host, mntpoint, capacity, occupied, available, status, timestamp 
-              FROM m_nominal_disks WHERE checkflag=1 ORDER BY host ";
-     my $r3=$self->{sqlserver}->Query($sql);
-     if(defined $r3->[0][0]){
-      foreach my $dd (@{$r3}){
-          my $fs     = $dd->[0].":".$dd->[1];
-          my $size   = $dd->[2];
-          my $used   = $dd->[3];
-          my $avail  = $dd->[4];
-          my $status   = $dd->[5];
-          print "<tr><font size=\"2\">\n";
-          my $color=statusColor($status);
-          print "<td><b> $fs </b></td><td align=middle><b> $size </td><td align=middle><b> $used </td><td align=middle><b> $avail </b></td>
-                 <td><font color=$color><b> $status </font></b></td>\n";
-          print "</font></tr>\n";
-      }
-  }
-    $sql="SELECT SUM(capacity), SUM(occupied), SUM(available) 
-          FROM m_nominal_disks WHERE checkflag=1";
-    my $r4=$self->{sqlserver}->Query($sql);
-    if(defined $r4->[0][0]){
-      foreach my $tt (@{$r4}){
-          my $total = $tt->[0];
-          my $occup = $tt->[1];
-          my $free  = $tt->[2];
-          my $color="green";
-          my $status="ok";
-          if ($free < $total*0.1) {
-            $color="magenta";
-            $status=" no space";}
-          print "<tr><font size=\"2\">\n";
-          print "<td><font color=$color><b> Total </b></td><td align=middle><b> $total </td><td align=middle><b> $occup </td><td align=middle><b> $free </b></td>
-                 <td><font color=$color><b> $status </font></b></td>\n";
-          print "</font></tr>\n";
-      }
-     }
-       htmlTableEnd();
-      htmlTableEnd();
-     print_bar($bluebar,3);
-     
-    print "<TR><TD><font size=\"6\" color=\"red\"><b> Daily Graphs (2 hours average) </b></font></TD></TR>\n";
-    print "<P>\n";
-     if(defined $r3->[0][0]){
-      my $j;
-      my $host=>undef;
-      my $disk=>undef;
-      foreach my $dd (@{$r3}){
-          my $fs     = $dd->[0].":".$dd->[1];
-          my $size   = $dd->[2];
-          my $used   = $dd->[3];
-          my $avail  = $dd->[4];
-          my $status   = $dd->[5];
-
-          if ($host ne $dd->[0]) {
-           if (defined $host) {
-            if ($j == 1) {
-             print "</TR>\n";
-             print "</TABLE>\n";
-             print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
-#             print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
-             print "</TR>\n";
-             print "</TABLE>\n";
-            }
-           }
-           print "<p><B>$dd->[0].cern.ch </B><BR>\n";
-           $host=$dd->[0];
-           $j=0;
-          }
-
-          my $src="http://ams.cern.ch/AMS/daily-graphs".$dd->[1]."-day.gif";
-          if ($j==0) {
-           print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
-           print "<TR>\n";
-           print "<IMG VSPACE=10 WIDTH=500 HEIGHT=135 ALIGN=TOP SRC=$src>\n";
-           $j=1;
-          } else {
-           print "<IMG VSPACE=10 WIDTH=500 HEIGHT=135 ALIGN=TOP ";
-           print " SRC=$src\n";
-           print "<TD WIDTH=5></TD>\n";
-           print "</TR>\n";
-           print "</TABLE>\n";
-           print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
-           print "<TR>\n";
-#           print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
-#           print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$dd->[1]</FONT></SMALL></TD>\n";
-           print "<TD WIDTH=5></TD>\n";
-           print "</TR>\n";
-           print "</TABLE>\n";
-           $j=0;
-          }
-        $disk = $dd->[1];
-      }
-            if ($j == 1) {
-             print "</TR>\n";
-             print "</TABLE>\n";
-             print "<TABLE CELLPADDING=0 CELLSPACING=0>\n";
-#             print "<TD width=\"500\" ALIGN=left><B><SMALL><FONT COLOR=\"black\">$disk</FONT></SMALL></TD>\n";
-             print "</TR>\n";
-             print "</TABLE>\n";
-            }
-     }          
-     print "<p></p>\n";
-}
 
 sub listDisks {
-    my $self = shift;
-    my $lastupd=>undef; 
-    my $sql;
+    my $self    = shift;
+    my $lastupd = undef; 
+    my $sql     = undef;
+
+    my $dpath = undef;
+    my $fs    = undef;
+    my $usedGBMC = 0;
+    my $totalGBMC= 0;
+
+    my $pset=$self->getActiveProductionSet();
+    
+
     $sql="SELECT MAX(timestamp) FROM Filesystems";
     my $r0=$self->{sqlserver}->Query($sql);
     if( defined $r0->[0][0]){
@@ -6312,6 +6174,7 @@ sub listDisks {
               print "<td><b><font color=\"blue\" >Filesystem </font></b></td>";
               print "<td><b><font color=\"blue\" >GBytes </font></b></td>";
               print "<td><b><font color=\"blue\" >Used [GB] </font></b></td>";
+              print "<td><b><font color=\"blue\" >MC [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Free [GB] </font></b></td>";
               print "<td><b><font color=\"blue\" >Status </font></b></td>";
      print_bar($bluebar,3);
@@ -6320,17 +6183,35 @@ sub listDisks {
      my $r3=$self->{sqlserver}->Query($sql);
      if(defined $r3->[0][0]){
       foreach my $dd (@{$r3}){
-         my $fs     = $dd->[0].":".$dd->[1].$dd->[2];
-         if ($dd->[1] =~ /vice/) {
-          $fs     = $dd->[0].":".$dd->[2];
-         }
+          $usedGBMC= 0;
+          $dpath = $dd->[1].$dd->[2];
+          if ($dd->[1] =~ /vice/) {
+           $dpath  = $dd->[2];
+          }
+          $fs    = $dd->[0].":".$dpath;
+          if ($pset =~ $UNKNOWN) {
+          } else {
+           $dpath = $dpath."/".$pset;
+          } 
+          $sql = "SELECT SUM(sizemb) FROM ntuples WHERE PATH like '$dpath%'";
+          my $r4=$self->{sqlserver}->Query($sql);
+          if (defined $r4->[0][0]) {
+              $usedGBMC = sprintf("%6.1f",$r4->[0][0]/1000);
+              $totalGBMC = $totalGBMC + $r4->[0][0];
+          }
+
+
           my $size   = $dd->[3];
           my $used   = $dd->[4];
           my $avail  = $dd->[5];
           my $status   = trimblanks($dd->[6]);
           print "<tr><font size=\"2\">\n";
           my $color=statusColor($status);
-          print "<td><b> $fs </b></td><td align=middle><b> $size </td><td align=middle><b> $used </td><td align=middle><b> $avail </b></td>
+          print "<td><b> $fs </b></td>
+                 <td align=middle><b> $size </td>
+                 <td align=middle><b> $used </td>
+                 <td align=middle><b> $usedGBMC </td>
+                 <td align=middle><b> $avail </b></td>
                  <td><font color=$color><b> $status </font></b></td>\n";
           print "</font></tr>\n";
       }
@@ -6344,11 +6225,16 @@ sub listDisks {
           my $free  = $tt->[2];
           my $color="green";
           my $status="ok";
+          my $totalGB = sprintf("%6.1f",$totalGBMC/1000);
           if ($free < $total*0.1) {
             $color="magenta";
             $status=" no space";}
           print "<tr><font size=\"2\">\n";
-          print "<td><font color=$color><b> Total </b></td><td align=middle><b> $total </td><td align=middle><b> $occup </td><td align=middle><b> $free </b></td>
+          print "<td><font color=$color><b> Total </b></td>
+                 <td align=middle><b> $total </td>
+                 <td align=middle><b> $occup </td>
+                 <td align=middle><b> $totalGB </td>
+                 <td align=middle><b> $free </b></td>
                  <td><font color=$color><b> $status </font></b></td>\n";
           print "</font></tr>\n";
       }
@@ -6451,9 +6337,14 @@ sub listJobs {
     my $sql  = undef;
     my $href = undef;    
 
+
+    my @runId     = ();
+    my @runStatus = ();
+
     print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
     htmlTable("MC02 Jobs (only 25 latest jobs/cite are printed)");
     print_bar($bluebar,3);
+
 
     $sql = "SELECT name FROM cites ORDER BY name";
     $ret=$self->{sqlserver}->Query($sql);
@@ -6469,51 +6360,70 @@ sub listJobs {
      print "</TR></TABLE> \n";
     }
 
-    $sql="SELECT Jobs.jid, Jobs.jobname, Jobs.cid, Jobs.mid, 
-                     Jobs.time, Jobs.timeout, Jobs.triggers,
-                     Cites.cid, Cites.name,
-                     Mails.mid, Mails.name
-              FROM   Jobs, Cites, Mails
-              WHERE  Jobs.cid=Cites.cid AND Jobs.mid=Mails.mid
-              ORDER  BY Cites.name, Jobs.jid DESC";
+    $sql="SELECT 
+                 Jobs.jid, Jobs.jobname,
+                 Jobs.time, Jobs.timeout, 
+                 Jobs.triggers,
+                 Cites.cid, Cites.name, Cites.descr,
+                 Mails.name  
+           FROM   Jobs, Cites, Mails  
+            WHERE  Jobs.cid=Cites.cid AND 
+                     Jobs.mid=Mails.mid 
+             ORDER  BY Cites.name, Jobs.jid DESC";
+
      my $r3=$self->{sqlserver}->Query($sql);
+
      print_bar($bluebar,3);
      my $newline = " ";
      my $savcite = "unknown";
      my $njobs   = 0;    
+
      if(defined $r3->[0][0]){
       foreach my $job (@{$r3}){
           my $jid       = $job->[0];
           my $name      = $job->[1];
-          my $starttime = EpochToDDMMYYHHMMSS($job->[4]);
+          my $starttime = EpochToDDMMYYHHMMSS($job->[2]);
 
           my $texpire = 0;
-          if (defined $job->[4]) { $texpire = $job->[4]}; 
-          if (defined $job->[5]) {$texpire  += $job->[5]};
+          if (defined $job->[2]) { $texpire = $job->[2]}; 
+          if (defined $job->[3]) {$texpire  += $job->[3]};
 
           my $expiretime= EpochToDDMMYYHHMMSS($texpire); 
-          my $trig      = $job->[6];
-          my $cite      = $job->[8];
+          my $trig      = $job->[4];
+          my $cid       = $job->[5];
+          my $cite      = $job->[6];
+          my $citedescr = $job->[7];
           if ($cite ne $savcite) {
               $savcite = $cite;
               $njobs   = 0;
           }
-          my $user      = $job->[10];
-          $sql="SELECT status from Runs WHERE jid=$jid";
-          $r3=$self->{sqlserver}->Query($sql);
+          my $user      = $job->[8];
+
           my $status    = "Submitted";
+
           my $color     = "black";
-          if (defined $r3->[0][0]) {
-              $status = $r3->[0][0];
+          if (defined $job->[9]) {
+              $status = $job->[9];
               $color  = statusColor($status);
           }
+
           if ($newline ne $cite) { 
-              $sql="SELECT descr from Cites WHERE name='$cite'";
-              $r3=$self->{sqlserver}->Query($sql);
-              my $citedescr = "Test Test";
-              if (defined $r3->[0][0]) {
-               $citedescr = $r3->[0][0];
                $newline = $cite;
+
+               @runId =();
+               @runStatus = ();
+               $sql="SELECT Runs.jid, Runs.status from Runs, Jobs 
+                     WHERE Jobs.cid=$cid AND Runs.jid=Jobs.jid";
+               $r3=$self->{sqlserver}->Query($sql);
+               if (defined $r3->[0][0]) {
+                foreach my $r (@{$r3}){
+                 push @runId, $r->[0];
+                 push @runStatus, $r->[1];
+                }
+               }
+
+
+
                print "</table></p> \n";
                print "<p>";
                print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
@@ -6530,9 +6440,17 @@ sub listJobs {
                  print "<td><b><font color=\"blue\" >Triggers </font></b></td>";
                  print "<td><b><font color=\"blue\" >Status </font></b></td>";
                  print "</tr>\n";
-             }
-            }
+          }
           if ($njobs < $PrintMaxJobsPerCite) {
+           $status = "Submitted";
+           $color  = "black";
+           for (my $i=0; $i<$#runId+1; $i++) {
+               if ($runId[$i] == $jid) {
+                 $status = $runStatus[$i];
+                 $color  = statusColor($status);
+                 last;
+               }
+            }
                  print "
                   <td><b><font color=$color> $jid </font></td></b>
                   <td><b><font color=$color> $user </font></b></td>
@@ -6546,7 +6464,6 @@ sub listJobs {
              }
           $njobs++;
       }
-#      htmlTableEnd();
     }  
      htmlTableEnd();
      print_bar($bluebar,3);
@@ -6556,10 +6473,11 @@ sub listJobs {
 sub listRuns {
     my $self = shift;
     my $rr   = 0;
+
      print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
      my $href=$self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
-     print "<tr><font color=blue><b><i> Only recent 100 runs are listed, to get complete list 
+     print "<tr><font color=blue><b><i> Only recent 50 runs are listed,  to get complete list 
             <a href=$href> click here</a>
             </b><i></font></tr>\n";
 
@@ -6586,7 +6504,7 @@ sub listRuns {
                   <td><b><font color=$color> $status    </font></b></td> \n";
           print "</font></tr>\n";
           $rr++;
-          if ($rr > 100) { last;}
+          if ($rr > 50) { last;}
       }
   }
        htmlTableEnd();
@@ -6598,10 +6516,13 @@ sub listRuns {
 sub listNtuples {
     my $self = shift;
     my $nn   = 0;
+
+    my $time24h = time() - 24*60*60;
+
      print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
      print "<TR><B><font color=green size= 5><b>MC NTuples </font></b>";
      my $href = $self->{HTTPcgi}."/rc.o.cgi?queryDB04=Form";
-     print "<tr><font color=blue><b><i> Only recent 100 files are listed, to get complete list 
+     print "<tr><font color=blue><b><i> DSTs produced in last 24h, to get complete list 
             <a href=$href> click here</a>
             </b><i></font></tr>\n";
      print "<p>\n";
@@ -6612,6 +6533,7 @@ sub listNtuples {
      my $sql="SELECT Ntuples.run, Ntuples.jid, Ntuples.nevents, Ntuples.neventserr, 
                      Ntuples.timestamp, Ntuples.status, Ntuples.path
               FROM   Ntuples
+              WHERE  Ntuples.timestamp > $time24h  
               ORDER  BY Ntuples.timestamp DESC, Ntuples.jid";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<tr><td width=10% align=left><b><font color=\"blue\" > JobId </font></b></td>";
@@ -7707,9 +7629,8 @@ foreach my $block (@blocks) {
      last;
     } else {
      if ($closedst[1] ne "Validated" and $closedst[1] ne "Success" and $closedst[1] ne "OK") {
-      $copyfailed = 1;
-      print FILE "parseJournalFile -W- CloseDST block : DST status  $closedst[1]. Quit.\n";
-      last;
+      print FILE "parseJournalFile -W- CloseDST block : $dstfile,  DST status  $closedst[1]. Skip it.\n";
+#-- to be checked      push @mvntuples, $dstfile; 
      } else {
       $dstsize = sprintf("%.1f",$dstsize/1000/1000);
       $closedst[0] = "CloseDST";
@@ -8539,7 +8460,7 @@ sub getProductionVersion {
     $sql = "SELECT version FROM ProductionSet WHERE STATUS='Active'";
     my $r0 = $self->{sqlserver}->Query($sql);
     if (defined $r0->[0][0]) {
-     my @junk = split '/',$r0->[0][0];
+      my @junk = split '/',$r0->[0][0];
       $junk[0] =~ s/v//;
       $junk[1] =~ s/build//;      
       $junk[2] =~ s/os//;
@@ -8596,48 +8517,6 @@ sub writetofile {
            close FILE;
 }
 
-sub getHostsPerSite {
-    my $self = shift;
-    my $lcid = -1;
-    my $nhosts = 0;
-    my $lhost  = 'xyz';
-    my $sql  = "SELECT cid,host FROM Jobs WHERE host != 'host' ORDER BY cid,host";
-    my $r=$self->{sqlserver}->Query($sql);
-    print "CID   Site    #Jobs    #Hosts \n";
-     if(defined $r->[0][0]){
-       foreach my $s (@{$r}){
-           my $cid  = $s->[0];
-           if ($cid == $lcid) {
-            my $host = trimblanks($s->[1]);
-            if ($host eq $lhost) {
-            } else {
-             $nhosts++;
-             $lhost=$host;
-            }
-           } else {
-             my $jobs = 0;
-             my $cite = 'xyz';
-             if ($lcid != -1) {
-              $sql = "SELECT COUNT(JID) FROM Jobs WHERE cid=$lcid";
-              my $r1=$self->{sqlserver}->Query($sql);
-              if(defined $r1->[0][0]){ 
-               $jobs = $r1->[0][0];
-              }
-              $sql = "SELECT NAME FROM Cites WHERE cid=$lcid"; 
-              my $r2=$self->{sqlserver}->Query($sql);
-              if(defined $r2->[0][0]){ 
-               $cite = $r2->[0][0];
-              }
-              print "$lcid $cite $jobs $nhosts \n";
-          } 
-            $lcid   = $cid;
-            $nhosts = 0;
-            $lhost  = 'xyz';
-        }
-       }
-   }
-}
-
 sub inputList {
     $inputFiles[$nTopDirFiles] = $File::Find::name;
     $nTopDirFiles++;
@@ -8665,7 +8544,9 @@ sub checkDB {
      -h    - print help
      -u    - update DB (valid only with -crc)
      -v    - verbose mode
+
      ./checkdb.cgi -d:/f2dah1/MC/AMS02/2004A/protons -crc
+     ./checkdb.cgi -p:/f2dat1//MC/AMS02/2004A -i 
 ";
 #
 
@@ -8941,7 +8822,7 @@ sub printParserStat {
       my $l0 = "   Runs (Checked, Good, Bad, Failed) :  $CheckedRuns[$i], $GoodRuns[$i],  $BadRuns[$i], $FailedRuns[$i] \n";
       my $l1 = "   DSTs (Checked, Good, Bad, CRCi, CopyFail, CRCo) :  ";
       my $l2 = "$CheckedDSTs[$i],  $GoodDSTs[$i], $BadDSTs[$i], $BadCRCi[$i], $BadDSTCopy[$i], $BadCRCo[$i] \n";
-      print $l0,$l1,$l2;
+      print "\n ",$l0,$l1,$l2;
       print FILEV "\n",$l0,$l1,$l2;
 
       $totalRuns    = $totalRuns    + $CheckedRuns[$i];
@@ -9018,4 +8899,175 @@ sub stopParseJournalFiles {
    my $sql = "update FilesProcessing set flag = 0, timestamp=$timenow";
    $self->{sqlserver}->Update($sql); 
 
+}
+
+sub getOutputPath {
+#
+# select disk to be used to store ntuples
+#
+    my $self       = shift;
+    my $sql        = undef;
+    my $ret        = undef;
+    my $pset       = undef;
+    my $outputdisk = undef;
+    my $outputpath = 'xyz';
+    my $mtime      = 0;
+    my $gb         = 0;
+
+ # get production set path
+    if ($pset=$self->getActiveProductionSet() =~ $UNKNOWN) {
+      print "getOutputPath -E- cannot find Active production set. Exit \n";
+    } else {
+     $sql = "SELECT disk, path, available  FROM filesystems WHERE AVAILABLE > $MIN_DISK_SPACE
+                   ORDER BY priority DESC, available DESC";
+     $ret = $self->{sqlserver}->Query($sql);
+     foreach my $disk (@{$ret}) {
+      $outputdisk = trimblanks($disk->[0]);
+      $outputpath = trimblanks($disk->[1]);
+      if ($outputdisk =~ /vice/) {
+       $outputpath = $outputpath."/".$pset;
+      } else {
+       $outputpath = $outputdisk.$outputpath."/".$pset;
+      }
+      $mtime = (stat $outputpath)[9];
+      if ($mtime != 0) { $gb = $disk->[2]; last;}
+     }   
+     return $outputpath, $gb;
+  } 
+}
+
+sub getHostsList {
+    my $self = shift;
+
+    my $sql  = undef;
+    my $c    = undef;
+    my $h    = undef;
+
+    my @hostlist   =();
+    my @njobs      =();
+    my $totaljobs  = 0;
+
+
+    my $nCites = 0;
+    my $nJobs  = 0;
+    my $nHosts = 0;
+
+    my $CiteName = undef;
+
+  my $HelpTxt = "
+     gethostslist get list of hosts where MC jobs run
+
+     -c    - get list for particular cite (c:mycite)
+     -h    - print help
+     -v    - verbose mode
+     
+     from pcamsf0 only :
+
+     ./gethostslist.cgi -c:ciemat -v
+";
+
+
+  foreach my $chop  (@ARGV){
+    if($chop =~/^-c:/){
+       $CiteName=unpack("x3 A*",$chop);
+       $CiteName=trimblanks($CiteName);
+    } 
+    if ($chop =~/^-v/) {
+     $verbose = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
+
+    if (defined $CiteName) {
+     $sql = "SELECT cid, name FROM CITES WHERE name='$CiteName'";
+    } else {
+     $sql = "SELECT cid, name FROM CITES ORDER BY cid";
+    }
+    $c   =$self->{sqlserver}->Query($sql);
+    
+    if (defined $c->[0][0]) {    
+        foreach my $cite (@{$c}) {
+         my $cid = $cite->[0];
+         my $name= $cite->[1];
+
+         @hostlist   =();
+         $totaljobs  = 0;
+
+         for (my $i=0; $i<1000; $i++) {
+          $njobs[$i] = 0;
+         }
+         $sql  = "SELECT host FROM Jobs WHERE host != 'host' and cid=$cid ORDER BY host";
+         $h=$self->{sqlserver}->Query($sql);
+         if (defined $h->[0][0]) {
+          foreach my $host (@{$h}){
+            $totaljobs++;
+            my $hostname = trimblanks($host->[0]);
+            my @junk     = split '\.',$hostname;
+            if ($#junk > 0) { $hostname = $junk[0];}
+            my $newcomp = 1;
+            foreach my $comp (@hostlist) {
+                if ($comp =~ $hostname) {
+                  $newcomp = 0;
+                  $njobs[$#hostlist]++;   
+                }
+            }
+            if ($newcomp == 1) {
+             push @hostlist, $hostname;
+             $njobs[$#hostlist] = 1;
+            }
+          }
+      }
+       my $j = $#hostlist+1;
+       if ($totaljobs > 0) {
+        $nCites++;
+        $nJobs = $nJobs + $totaljobs;
+        $nHosts= $nHosts+ $j;
+        print "\n";
+        print "Cite : $cid, $name , Hosts : $j, Jobs : $totaljobs ";
+         my $i = 0;
+         $j = 0;
+         foreach my $comp (@hostlist) {
+             if ($j == 0) { print "\n";}
+             printf (" %10s %5d ",$hostlist[$i],$njobs[$i]);
+             $i++;
+             $j++;
+             if ($j == 3) { $j=0;}
+         }
+    }
+     }
+        print "\n";
+        print "---------------- Summary --------------------- \n";
+        print "Active Cites : $nCites, Total Jobs : $nJobs, Hosts : $nHosts \n";
+        print "----------------         --------------------- \n";
+
+    } else {
+        if (defined $CiteName) {
+            print "Warning - Cannot find cite with name $CiteName \n";
+        } else {
+            print "Warning - Table cites is empty \n";
+        }
+   }         
+    return 1;
+}
+
+sub getActiveProductionSet {
+     my $self = shift;
+
+     my $sql  = undef;
+     my $ret  = undef;
+
+     if (defined $ActiveProductionSet) {
+     } else {
+      $sql = "SELECT NAME FROM ProductionSet WHERE STATUS='Active'";
+      $ret = $self->{sqlserver}->Query($sql);
+      if (defined $ret->[0][0]) {
+       $ActiveProductionSet=trimblanks($ret->[0][0]);
+      } else {
+       $ActiveProductionSet = $UNKNOWN
+      }
+  }
+  return $ActiveProductionSet;
 }

@@ -1,4 +1,4 @@
-#  $Id: 00index.txt,v 1.5 2004/02/27 10:09:58 alexei Exp $
+#  $Id: 00index.txt,v 1.6 2004/03/10 15:00:08 alexei Exp $
 #
 castor.cmp                  //  compare content of two directories
 castor.cp                   //  copy local directory tree to CASTOR
@@ -7,6 +7,7 @@ checkdb.cgi                 //  compare DB content and files content
 dbsqlserver.perl            //  start perl SQL server
 download.mysql.cgi          //  get files using MySQL interface 
 download.o.cgi              //  get files using Oracle interface
+gethostslist.cgi            //  get list of hosts for each cite
 monitor.perl                //  standalone gtk based monitor
 monitor.cgi                 //  cgi monitor script
 parseJournalFiles.o.cgi     //  parse Journal files for jobs running in StandAlone
