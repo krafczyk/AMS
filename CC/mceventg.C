@@ -259,8 +259,8 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
       for(int i=0;i<nchan;i++){
         geant xm=i*binw+al+binw/2;
-        number xmom=xm/1000;
-        geant y=exp(-3.5*xmom);
+        number xr=xm/1000/abs(charge);
+        geant y=exp(-3.5*xr);
         HF1(_hid,xm,y);
      }
     }
