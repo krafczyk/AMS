@@ -13,8 +13,8 @@ int statu[N_comp];
 int main (int argc, char *argv[]) {
 char chbuf[80],chbuf1[80],chbuf2[80],chb_t[80], ch[256], *ch1, *ch2;
 ch256 chh[30], ch256;
-int i,j,nn,er,count[8],disk_space,timer, time_int,dt, time_sleep, cpu_t;
-int date1,date2,h1,h2,m1,m2,cpu,cpu_lim,cpu_cont,conn,cpu_b,cpu_tb,numb; 
+int i,j,nn,er,count[8],disk_space,timer, time_int,dt, time_sleep, cpu_t,N_exclude;
+int date1,date2,h1,h2,m1,m2,cpu,cpu_lim,cpu_cont,conn,cpu_b,cpu_tb,numb,N_pc; 
 time_t stat_loc[N_comp][N_comp+1];
 struct stat stat_buf; 
 FILE *fp;
@@ -35,10 +35,13 @@ pid_t pid;
   sprintf(host_name[3],"acarbon");
   sprintf(host_name[4],"proton");
   sprintf(host_name[5],"afl3u1");
-  sprintf(host_name[6],"pcamsa0");
-  sprintf(host_name[7],"ams");
+  sprintf(host_name[6],"ams");
+  sprintf(host_name[7],"pcamsa0");
   sprintf(host_name[8],"pcamsp1");
   sprintf(host_name[9],"pcamsp0");
+  N_pc=3;     /* number of PCs (they must me in the end of the above list*/
+  N_exclude=4; /* excluding computer */
+
   sprintf(names[0][0],"gbatch.exe");
   sprintf(names[0][1],"gbatch.exe");
   sprintf(names[0][2],"gbatch.exe");
@@ -84,7 +87,7 @@ pid_t pid;
     for (j=0; j<N_comp+1; j++) {
 
 
-      if (j<N_comp) { /*  !!!! <(N_comp)
+      if ((j<N_comp)&&(j!=N_exclude)) { /*  !!!! <(N_comp)
                           
       /* ------------ read statistics */
         er = read_status();
@@ -99,7 +102,7 @@ pid_t pid;
         system(chbuf);
         er = stat(a_name,&stat_buf);
         if ((er<0)||(stat_buf.st_size<10)) {
-          puts("cannot open /dat0/local/logs/run_prod.log file");
+          printf("%s : cannot open /dat0/local/logs/run_prod.log file",host_name[j]);
           statu[j]=1;
           fl_set_object_label(stati_[j],"------");
           for (i=0; i<6; i++) {
@@ -134,7 +137,7 @@ pid_t pid;
       }
 
 
-      if (j==5) { /*(j<N_comp) {*/
+      if ((j<N_comp)&&(j!=N_exclude)) {
         /*--------------- check logfile length -------- */
         er=open_log(j, 0);
         if (er<0) 
@@ -144,7 +147,7 @@ pid_t pid;
       }
 
 
-      if (j<N_comp) {  /* !!!! <N_comp */
+      if ((j<N_comp)&&(j!=N_exclude)) {  /* !!!! <N_comp */
       /*----------- check for gbatch ----------- */
       cpu_cont=2;
       cpu=0;
@@ -152,7 +155,7 @@ pid_t pid;
     CPU:
       count[0]=0;   
       if (strlen(names[0][j])>0) {
-        if (j<N_comp-2) 
+        if (j<N_comp-N_pc) 
           sprintf(chbuf,"/usr/sue/bin/rsh %s ps -fe | grep %s > %s",host_name[j],names[0][j],a_name);
         else
           sprintf(chbuf,"/usr/sue/bin/rsh %s ps xuw | grep %s > %s",host_name[j],names[0][j],a_name);
@@ -170,7 +173,7 @@ pid_t pid;
 	  if (ch1 != NULL) {
 	    token = strtok(ch1,delimiter);
 	    if (strcmp(token,user_name)==0) {
-              if (j<N_comp-2) {
+              if (j<N_comp-N_pc) {
                 ch1=fgets(ch,15,fp);
                 ch1=fgets(chbuf1,5,fp);
                 cpu_b=atoi(chbuf1);
@@ -192,7 +195,7 @@ pid_t pid;
               if (token!=NULL) {
                 cpu_t *=24;
               }
-              if (j>(N_comp-3)) {
+              if (j>(N_comp-N_pc)) {
                 cpu_t=cpu_t/60;
               }
 	      ch1=fgets(ch,256,fp);
@@ -253,8 +256,12 @@ pid_t pid;
       
       }
       }
+      else if(j==N_exclude) {
+        fl_set_object_color(check_[0][j],FL_BLACK,FL_BLACK);
+        fl_set_object_label(numb_[0][j],"------");
+      }
 
-      if (j<N_comp+1) {
+      if ((j<N_comp+1)&&(j!=N_exclude)) {
       /* ---- check for disk space -------- */
       count[1]=-1;
       if (j<N_comp) 
@@ -312,8 +319,12 @@ pid_t pid;
       }
 
       }
+      else if(j==N_exclude) {
+        fl_set_object_color(check_[1][j],FL_BLACK,FL_BLACK);
+        fl_set_object_label(numb_[1][j],"------");
+      }
 
-      if (j<N_comp) {
+      if ((j<N_comp)&&(j!=N_exclude)) {
       /*------ check last ntuple ----- */
       count[2]=-1;
       er = stat(a_name,&stat_buf);
@@ -454,6 +465,10 @@ pid_t pid;
           break;
         }
       }
+      }
+      else if(j==N_exclude) {
+        fl_set_object_color(check_[2][j],FL_BLACK,FL_BLACK);
+        fl_set_object_label(numb_[2][j],"------");
       }
 
            
