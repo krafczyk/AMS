@@ -139,7 +139,7 @@ Then blocks
 
 One block:
 
-word1 8bit cluster length - 3 | (8bit max hit offset << 8)
+word1 6bit cluster length - 3 | ({S/N*8}_max << 6)
 word2 leftmost hit address
 word 3 to length+3
 amplitudes*8
