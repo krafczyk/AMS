@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.132 2001/08/10 12:59:39 choutko Exp $
+//  $Id: trrec.C,v 1.133 2001/12/05 16:48:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -21,6 +21,7 @@
 #include <cont.h>
 #include <tkdbc.h>
 #include <trigger3.h>
+#include <trigger302.h>
 #include <tralig.h>
 #include <mccluster.h>
 #include <trdrec.h>
@@ -1205,7 +1206,7 @@ else{
 
   if (THN->Ntrrh>=root::MAXTRRH02) return;
 // added specifically to reduce ntuple size
-  if (THN->Ntrrh>=root::MAXTRRH) return;
+//  if (THN->Ntrrh>=root::MAXTRRH) return;
 
 // Fill the ntuple 
   integer flag =    (IOPA.WriteAll%10==1)
@@ -1295,9 +1296,11 @@ integer AMSTrTrack::build(integer refit){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
     if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
-     TriggerLVL3 *plvl3;
-     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
-      if(!plvl3 || plvl3->skip()){
+    AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
+    TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
+//      cout <<" nrh "<<nrh<<" "<<ptr302->skip()<<" "<<ptr302->MainTrigger()<<endl;
+      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
        AMSEvent::gethead()->seterror();
        return 0;
      }
@@ -1382,9 +1385,10 @@ integer AMSTrTrack::buildWeak(integer refit){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
     if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
-     TriggerLVL3 *plvl3;
-     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
-      if(!plvl3 || plvl3->skip()){
+    AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
+    TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
+      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
        AMSEvent::gethead()->seterror();
        return 0;
      }
@@ -1453,9 +1457,10 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
     if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
-     TriggerLVL3 *plvl3;
-     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
-      if(!plvl3 || (plvl3->skip())){
+    AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
+    TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
+      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
        AMSEvent::gethead()->seterror();
        return 0;
      }
@@ -2757,9 +2762,10 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
     if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH02)){
-     TriggerLVL3 *plvl3;
-     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
-      if(!plvl3 || (plvl3->skip())){
+    AMSlink *ptr=AMSEvent::gethead()->getheadC("TriggerLVL3",0);
+    TriggerLVL3 *ptr3=dynamic_cast<TriggerLVL3*>(ptr);
+    TriggerLVL302 *ptr302=dynamic_cast<TriggerLVL302*>(ptr);
+      if((!ptr3 || ptr3->skip()) && (!ptr302 || ptr302->skip())){
        AMSEvent::gethead()->seterror();
        return 0;
      }

@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.7 2001/12/04 15:13:33 choutko Exp $
+//  $Id: trigger302.h,v 1.8 2001/12/05 16:48:15 choutko Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -186,6 +186,9 @@ static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst:
      _DistrMatrix[1][i][j]=0;
     }
    }
+   for(int i=0;i<2;i++){
+    for(int j=0;j<6;j++)_Par[i][j]=0;
+   }
 }
   integer addnewhit(uinteger crate, uinteger udr, uinteger ufe,uinteger ute, uinteger tube, int16u amp);
   void build();
@@ -264,7 +267,7 @@ public:
     friend class TriggerExpertLVL3;
 
  integer skip(){
-   if ( _TrackerTrigger==0 )return 1;
+   if ( _MainTrigger%16 )return 1;
    else return 0;
  }
 

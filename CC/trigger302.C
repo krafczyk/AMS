@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.9 2001/12/04 15:13:09 choutko Exp $
+//  $Id: trigger302.C,v 1.10 2001/12/05 16:48:08 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -964,7 +964,7 @@ geant TriggerLVL302::Discriminator(integer nht){
     if(plvl3->TRDAux._nufe>=0){
      plvl3->TRDAux.build();
      for(int i=0;i<2;i++)if(plvl3->TRDAux._SegmentFound[i])plvl3->_TRDTrigger+= (1<<i);
-     if(float(plvl3->TRDAux._HMult)/float(plvl3->TRDAux._NHits[0]+plvl3->TRDAux._NHits[1])>LVL3FFKEY.TRDHMulPart)plvl3->_TRDTrigger+=8;
+     if(plvl3->TRDAux._HMult && float(plvl3->TRDAux._HMult)/float(plvl3->TRDAux._NHits[0]+plvl3->TRDAux._NHits[1])>LVL3FFKEY.TRDHMulPart)plvl3->_TRDTrigger+=8;
     }
     if(plvl3->toftrdok() == 0) goto formed;
 
@@ -1390,10 +1390,10 @@ integer TriggerLVL302::_Level3Searcher(int call, int j){
 
 void TriggerLVL302::Finalize(){
 // Finalize main trigger output
-  if(_TrackerTrigger%8==1)_MainTrigger|=1;
+  if(_TrackerTrigger%8==1 || _TrackerTrigger==0)_MainTrigger|=1;
   if(((_TRDTrigger>>1)&1) ==0 && UseTRD())_MainTrigger|= 16;
   if(_TrackerTrigger%8==2 )_MainTrigger|=2;
-  if(_TRDTrigger==4)_MainTrigger|=4;
+  if(_TRDTrigger%8==4)_MainTrigger|=4;
   if(_TOFTrigger==0)_MainTrigger|=8;
   if((_TOFDirection==0)  && UseTOFTime())_MainTrigger|= 64;
   if((_TOFDirection==-1) )_MainTrigger|= 32;
@@ -1498,7 +1498,7 @@ void TriggerLVL302::TRDAux::build(){
      }
      }
     }
-   if(_NHits[i]){
+   if(_NHits[i] &&  z2>z*z){
     z/=_NHits[i];
     t/=_NHits[i];
     z2/=_NHits[i];
