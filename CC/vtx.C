@@ -73,6 +73,9 @@ integer AMSVtx::build(integer refit){
      nfound++;
    }
 
+// Re-build the ambiguity lists if new tracks have been created
+   if (nfound>0) AMSTrTrack::build_ambiguity_lists();
+
 // Create a vertex
    if (nfound>1) {
      AMSVtx *p= new AMSVtx(nfound, ptrack);
@@ -108,12 +111,6 @@ integer AMSVtx::set_all(){
      number u[3];
      for (int i=0; i<_Ntracks; i++) { 
        _Ptrack[i]->setstatus(AMSDBc::USED);
-       int nhits = _Ptrack[i]->getnhits();
-       for (int j=0; j<nhits; j++){
-         AMSTrRecHit* phit = _Ptrack[i]->getphit(j);
-         if (phit==NULL) break;
-         phit->setstatus(AMSDBc::USED);
-       }
 	 number rig =  _Ptrack[i]->getpirid();
 	 number en =  fabs(rig);
 	 number erig =  _Ptrack[i]->getepirid();
@@ -432,20 +429,13 @@ AMSTrTrack* AMSVtx::next_track(){
 
   // End of analysis; return ptrack if succesful
   if (ptrack){ 
-    // Check if this is a redundant/ambiguous track
-    AMSTrTrack* ptrack_old = get_similar_track(ptrack);
-    if (ptrack_old) {
-            ptrack->setstatus(AMSDBc::AMBIG);
-            ptrack->setAmbiguous(ptrack_old);
-            ptrack_old->setstatus(AMSDBc::AMBIG);
-            ptrack_old->setAmbiguous(ptrack);
-    }
-    // Fit and create track
+    // Get pattern and hits
     int pat = ptrack->getpattern();
     int nhits = ptrack->getnhits();
     for (int i=0;i<nhits;i++){
       phit[i] = ptrack->getphit(i);
     }
+    // Fit track; add it to the container list
     ptrack->Fit(5,2);
     AMSTrTrack::_addnextR(ptrack, pat, nhits, phit);
     // Mark hits
@@ -507,80 +497,6 @@ AMSTrTrack* AMSVtx::remove_track(AMSTrTrack* ptrack){
   delete ptrack;
   ptrack = NULL;
   return ptrack;
-
-}
-
-///////////////////////////////////////////////////////////
-AMSTrTrack* AMSVtx::get_similar_track(AMSTrTrack* ptr_new){
-
-  AMSTrRecHit * phit_new[trconst::maxlay];
-  AMSTrRecHit * phit_old[trconst::maxlay];
-  int nhits_new, nhits_old;
-  nhits_new = ptr_new->getnhits();
-
-  for (int j=0;j<nhits_new;j++){ 
-          phit_new[j] = ptr_new->getphit(j); 
-  }
-
-   AMSTrTrack *ptr_old = (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,1);
-   while (ptr_old) {
-     // Do not test FalseTOFX tracks
-     if (ptr_old->checkstatus(AMSDBc::FalseTOFX)) goto next_track;
-     // Do not test tracks used already for an AMSVtx
-     if (ptr_old->checkstatus(AMSDBc::TOFFORGAMMA)) goto next_track;
-
-     nhits_old = ptr_old->getnhits();
-     for (int k=0;k<nhits_old;k++){ phit_old[k] = ptr_old->getphit(k); }
-
-// All hits of the old track must be contained in the new one
-     for (int k=0; k<nhits_old; k++){
-       for (int j=0; j<nhits_new; j++){
-          if (phit_new[j]==phit_old[k]) goto next_oldhit;
-       }
-       goto next_track;   // At least one hit is missing; skip track
-next_oldhit:
-       continue;
-     }
-     
-// Also all new hits in the first layers must be included in the old track
-     for (int j=0; j<min_layers_with_different_hits; j++){
-       for (int k=0; k<nhits_old; k++){
-          if (phit_new[j]==phit_old[k]) goto next_newhit;
-       }
-       goto next_track;   // At least one hit is missing; skip track
-next_newhit:
-       continue;
-     }
-
-// If we arrived here it is because {ptr_new} is redundant with {ptr_old}
-#ifdef __AMSDEBUG__
-     cout << " >>>>>>>>>>>>>>>>>>>>>>" << endl;
-     cout << " >>> Redundant tracks: " << ptr_old << " " << ptr_new << endl;
-     cout << " >>>>>>>>>>>>>>>>>>>>>>" << endl;
-     cout << " ptr_old= " << ptr_old << " ====> " << endl;
-     ptr_old->_printEl(cout);
-     cout << nhits_old << " hits ====> " << endl;
-     for (int k=0; k<nhits_old; k++){
-             cout << phit_old[k]->getLayer() << " " << phit_old[k] << endl;
-     }
-     cout << " ptr_new= " << ptr_new << " ====> " << endl;
-     ptr_new->SimpleFit(AMSPoint(0.03,0.03,0.03));
-     ptr_new->Fit(0,2);
-     ptr_new->_printEl(cout);
-     cout << nhits_new << " hits ====> " << endl;
-     for (int j=0; j<nhits_new; j++){
-             cout << phit_new[j]->getLayer() << " " << phit_new[j] << endl;
-     }
-     cout << " >>>>>>>>>>>>>>>>>>>>>>" << endl;
-#endif
-     return ptr_old;
-
-next_track:
-     ptr_old = ptr_old->next();
-  }
-
-// If we arrived here it is because we found no redundancies
-  return NULL;
 
 }
 

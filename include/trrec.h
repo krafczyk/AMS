@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.69 2003/10/11 11:47:45 choutko Exp $
+//  $Id: trrec.h,v 1.70 2003/10/17 17:14:45 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -258,6 +258,10 @@ public:
 };
 
 
+// Global namespace Vtxconst
+namespace trtrackconst{
+        const integer maxambig=5;
+}
 
 class AMSTrTrack: public AMSlink{
 protected:
@@ -300,7 +304,8 @@ number _PITheta;
 number _PIPhi;
 AMSPoint _PIP0;
 number _PIChi2;
-AMSTrTrack * _PtAmbiguous;
+integer _NAmbiguous;
+AMSTrTrack * _PtAmbiguous[trtrackconst::maxambig];
 
 void SimpleFit(AMSPoint err);
 void TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit);
@@ -345,10 +350,24 @@ public:
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
 integer operator < (AMSlink & o) const {
   AMSTrTrack * p= (AMSTrTrack*)(&o);
-  if (checkstatus(AMSDBc::USED) && !(o.checkstatus(AMSDBc::USED)))return 1;
-  else if(!checkstatus(AMSDBc::USED) && (o.checkstatus(AMSDBc::USED)))return 0
-;
-    else return _Pattern<p->_Pattern;
+
+// Check if one of them is USED
+  bool used= (bool)checkstatus(AMSDBc::USED);
+  bool used_other= (bool)(p->checkstatus(AMSDBc::USED));
+  if (used && (!used_other)) return 1;
+  if ((!used) && used_other) return 0;
+
+// Check if one of them is a FalseTOFX track
+  bool falsetofx= (bool)checkstatus(AMSDBc::FalseTOFX);
+  bool falsetofx_other= (bool)(p->checkstatus(AMSDBc::FalseTOFX));
+  if (falsetofx && (!falsetofx_other)) return 0;
+  if ((!falsetofx) && falsetofx_other) return 1;
+
+// Check if one of them has more hits than the other
+   if (_Pattern != p->_Pattern) return (_Pattern<p->_Pattern);
+
+// If same number of hits then check the Chi2
+   return (_Chi2FastFit < p->getchi2());
 }
   friend class AMSTrAligFit;
   friend class AMSTrAligData;
@@ -370,7 +389,7 @@ void SetPar(number rig, number theta, number phi, AMSPoint P0,integer icase=0){
 ~AMSTrTrack(){};
 AMSTrTrack *  next(){return (AMSTrTrack*)_next;}
 AMSTrTrack (integer pattern, integer nhits, AMSTrRecHit * phit[]): 
-AMSlink(0,0),_PtAmbiguous(0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
+AMSlink(0,0),_NAmbiguous(0),_Pattern(pattern), _NHits(nhits),_GeaneFitDone(0), _AdvancedFitDone(0),_FastFitDone(0)
   {init(  phit);}
 AMSTrTrack(AMSDir dir, AMSPoint point,number rig=10000000,number errig=10000000);
 AMSTrTrack(number theta, number phi, AMSPoint point);
@@ -382,7 +401,6 @@ static integer makeFalseTOFXHits();
 static integer buildFalseTOFX(integer refit=0);
 static integer _MarginPatternsNeeded;
 static void setMargin(int margin){_MarginPatternsNeeded= margin>0?1:0;}
-void setAmbiguous(AMSTrTrack* ptrack){_PtAmbiguous=ptrack;}
 static void print();
 AMSTrRecHit * getphit(integer i){return i>=0 && i<trconst::maxlay? _Pthit[i]:0;}
 void SimpleFit();
@@ -403,9 +421,9 @@ number&  GTheta, number&  GPhi, AMSPoint&  GP0,
 number HChi2[2], number HRid[2], number HErr[2], number HTheta[2], 
 number HPhi[2], AMSPoint  HP0[2] ) const;
 
-AMSTrTrack():_PtAmbiguous(0) {_Pattern = -1; 
-              _NHits   = -1; 
-              for (int i=0; i<trconst::maxlay; i++) _Pthit[i] = NULL; }
+AMSTrTrack() {_Pattern = -1; _NHits   = -1; _NAmbiguous = 0;
+   for (int i=0; i<trtrackconst::maxambig; i++) _PtAmbiguous[i] = NULL;
+   for (int i=0; i<trconst::maxlay; i++) _Pthit[i] = NULL; }
 void   setHitP(AMSTrRecHit* p, integer n) {if (n< trconst::maxlay)  _Pthit[n] = p;}
 //-
 integer TOFOK();
@@ -421,7 +439,11 @@ number gettheta(int icase=0) const {return (icase==0?_Theta:(icase==1?_GTheta:_P
 number getphi(int icase=0) const {return (icase==0?_Phi:(icase==1?_GPhi:_PIPhi));}
 number getpichi2() const {return _PIChi2;}
 AMSPoint getpiP0() const {return _PIP0;}
-AMSTrTrack * getAmbiguous(){return _PtAmbiguous;}
+void addAmbiguous(AMSTrTrack* ptrack){if (_NAmbiguous<trtrackconst::maxambig) _PtAmbiguous[_NAmbiguous++]=ptrack;}
+integer getNAmbiguous(){return _NAmbiguous;}
+AMSTrTrack * getAmbiguous(integer i){return (i>=0 && i<_NAmbiguous)? _PtAmbiguous[i]:0;}
+bool is_similar_to(AMSTrTrack* ptr);
+static void build_ambiguity_lists();
 friend class AMSVtx;
 friend class AMSTrCalibFit;
 #ifdef __WRITEROOT__

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.112 2003/10/13 11:05:49 choutko Exp $
+//  $Id: root.h,v 1.113 2003/10/17 17:14:45 alcaraz Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -798,21 +798,24 @@ public:
   TrTrackR(AMSTrTrack *ptr);
   protected:
   vector<int> fTrRecHit;
-  int fTrClone;
+  vector<int> fTrClone;
   public:
-  TrTrackR():fTrClone(-1){};
+  TrTrackR(){};
   /// Check if Track is a Clone of Another track
    /// \ return true if so
   bool IsTrClone(){return Status & 4;}
    /// Check if Track Has Clone(s)
-   /// \return true if so
-  bool HasTrClones(){return fTrClone!=-1;}
-  /// access function to TrTrack Clone object
-/// \return Clone position in TrTrackR container
-  int iTrClone() const{return fTrClone;}
- /// access function to TrTrack Clone object
-  /// \ return pointer to clone track or 0
-  TrTrackR *pTrClone();
+  /// access function to TrTrack Clone objects used
+   /// \return number of TrTrack Clones used
+  int NTrClones(){return fTrClone.size();}
+  /// access function to TrTrack Clone objects used
+  /// \param i index of fTrClone vector
+  /// \return index of TrClone object in collection or -1
+  int iTrClone(unsigned int i) const{return i<fTrClone.size()?fTrClone[i]:-1;}
+  /// access function to TrTrack Clone  objects   
+  /// \param i index of fTrClone vector
+  /// \return pointer to TrClone object  or 0
+  TrTrackR *pTrClone(unsigned int i);
  /// select good tracks (i.e. tracks having x & y hits from tracker)
   /// \return true if good false otherwise
    bool IsGood()const {return !(Status & 16384) && AdvancedFitDone!=0;}

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.319 2003/09/19 10:58:16 alcaraz Exp $
+//  $Id: event.C,v 1.320 2003/10/17 17:13:37 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1443,6 +1443,9 @@ AMSgObj::BookTimer.start("RETKEVENT");
 #endif
   }
   
+// Build the ambiguity list for each track
+  AMSTrTrack::build_ambiguity_lists();
+
   AMSgObj::BookTimer.stop("TrTrack");
 #ifdef __AMSDEBUG__
   if(AMSEvent::debug)AMSTrTrack::print();
@@ -1683,6 +1686,7 @@ void AMSEvent::_reaxevent(){
   if (veto) {
     AMSgObj::BookTimer.start("Vtx");
     buildC("AMSVtx");
+    // Rebuild ambiguity lists
     AMSgObj::BookTimer.stop("Vtx");
   }
 

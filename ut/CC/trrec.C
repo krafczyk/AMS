@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.151 2003/10/11 11:46:37 choutko Exp $
+//  $Id: trrec.C,v 1.152 2003/10/17 17:13:38 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1546,6 +1546,7 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
            if(pthit[i]->checkstatus(AMSDBc::FalseTOFX))
             ptrack->setstatus(AMSDBc::FalseTOFX);
          }
+
           number dc[2];
           dc[0]=fabs(sin(ptrack->gettheta())*cos(ptrack->getphi()));
           dc[1]=fabs(sin(ptrack->gettheta())*sin(ptrack->getphi()));
@@ -2271,8 +2272,9 @@ TrTrackR & trr=AMSJob::gethead()->getntuple()->Get_evroot02()->TrTrack(_vpos);
     for (int i=0; i<_NHits; i++) {
       if(_Pthit[i])trr.fTrRecHit.push_back(_Pthit[i]->GetClonePointer());
     }
-    if(_PtAmbiguous)trr.fTrClone=_PtAmbiguous->GetClonePointer();
-    else trr.fTrClone=-1;
+    for (int i=0; i<_NAmbiguous; i++) {
+      if(_PtAmbiguous[i])trr.fTrClone.push_back(_PtAmbiguous[i]->GetClonePointer());
+    }
 #endif
 }
 
@@ -2405,6 +2407,7 @@ void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
 void AMSTrTrack::init(AMSTrRecHit * phit[] ){
 int i;
 for( i=0;i<_NHits;i++)_Pthit[i]=phit[i];
+for( i=0;i<trtrackconst::maxambig;i++)_PtAmbiguous[i]=0;
 for(i=_NHits;i<trconst::maxlay;i++)_Pthit[i]=0;
  _GChi2=-1;
  _GRidgidity=0;
@@ -2950,10 +2953,13 @@ uinteger AMSTrTrack::encodeaddress(integer ladder[2][trconst::maxlay]){
 }
 
 AMSTrTrack::AMSTrTrack(AMSDir dir, AMSPoint point, number rig, number errig):AMSlink(0,0),
-_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_PtAmbiguous(0),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_NAmbiguous(0),
 _Ridgidity(rig),_ErrRidgidity(errig),_Chi2FastFit(1000000){
  for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
+ }
+ for(int i=0;i<trtrackconst::maxambig;i++){
+  _PtAmbiguous[i]=0;
  }
  _Theta=dir.gettheta();
  _Phi=dir.getphi();
@@ -2961,10 +2967,13 @@ _Ridgidity(rig),_ErrRidgidity(errig),_Chi2FastFit(1000000){
 }
 
 AMSTrTrack::AMSTrTrack(number theta, number phi, AMSPoint point):AMSlink(0,0),
-_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_PtAmbiguous(0),
+_Pattern(-1),_NHits(0),_GeaneFitDone(0),_AdvancedFitDone(1),_NAmbiguous(0),
 _Ridgidity(10000000),_ErrRidgidity(10000000),_Chi2FastFit(1000000){
  for(int i=0;i<trconst::maxlay;i++){
   _Pthit[i]=0;
+ }
+ for(int i=0;i<trtrackconst::maxambig;i++){
+  _PtAmbiguous[i]=0;
  }
  _Theta=theta;
  _Phi=phi;
@@ -3085,9 +3094,11 @@ AMSTrTrack::AMSTrTrack(integer nht, AMSTrRecHit * pht[], int FFD, int GFD,
                        number chi2FF, number rigFF, number erigFF, number thetaFF, number phiFF, AMSPoint P0FF, 
                        number chi2G, number rigG, number erigG, number thetag, number phig, AMSPoint p0g, 
                        number chi2MS, number jchi2MS, number rigFMS, number grigms):
-_NHits(nht),_PtAmbiguous(0),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g){
+_NHits(nht),_NAmbiguous(0),_FastFitDone(FFD),_GeaneFitDone(1),_Chi2FastFit(chi2FF),_Ridgidity(rigFF), _ErrRidgidity(erigFF),_Theta(thetaFF),_Phi(phiFF),_P0(P0FF),_GChi2(chi2G),_GRidgidity(grigms),_GErrRidgidity(erigG),_Chi2MS(chi2MS),_PIErrRigidity(jchi2MS),_RidgidityMS(rigFMS),_PIRigidity(grigms),_PITheta(thetag),_PIPhi(phig),_Address(0),_Pattern(-1),_AdvancedFitDone(0),_GPhi(phig),_GTheta(thetag),_GP0(p0g),_PIP0(p0g){
  
-
+ for(int i=0;i<trtrackconst::maxambig;i++){
+  _PtAmbiguous[i]=0;
+ }
 
   for(int i=0;i<2;i++)_Dbase[i]=0;
   _Chi2StrLine=0;
@@ -3109,3 +3120,67 @@ for(int i=0;i<_NHits;i++)_Pthit[i]=pht[i];
 
 }
          
+///////////////////////////////////////////////////////////////////////////////
+bool AMSTrTrack::is_similar_to(AMSTrTrack* ptr_old){  
+
+  if (ptr_old==NULL) return false;
+   
+// Current track
+  int nhits_new = _NHits;
+  AMSTrCluster * pshit_new[trconst::maxlay];
+  for (int j=0;j<nhits_new;j++) 
+          pshit_new[j] = _Pthit[j]->getClusterP(1);
+
+// Compare with "old" track
+  int nhits_old = ptr_old->getnhits();
+  AMSTrCluster *pshit_old[trconst::maxlay];
+  for (int k=0; k<nhits_old; k++) 
+          pshit_old[k] = ptr_old->getphit(k)->getClusterP(1);
+
+// All S hits of one track must be contained in the other track
+  if (nhits_old<nhits_new) {
+     for (int k=0; k<nhits_old; k++){
+       for (int j=0; j<nhits_new; j++){
+          if (pshit_old[k]==pshit_new[j]) goto next_oldhit;
+       }
+       return false;   // At least one hit is missing: they are NOT similar
+next_oldhit:
+       continue;
+     }
+        
+  } else {
+     for (int j=0; j<nhits_new; j++){
+       for (int k=0; k<nhits_old; k++){
+          if (pshit_old[k]==pshit_new[j]) goto next_newhit;
+       }
+       return false;   // At least one hit is missing: they are NOT similar
+next_newhit:
+       continue;
+     }
+  }
+     
+// If we arrived here it is because both tracks are similar
+  return true;
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AMSTrTrack::build_ambiguity_lists(){  
+
+    // NOTE: SORTING IS ABSOLUTELY MANDATORY IN THIS METHOD !!
+    AMSTrTrack *ptr = (AMSTrTrack*)AMSEvent::gethead()->getheadC("AMSTrTrack",0,2);
+    while (ptr) {
+      ptr->_NAmbiguous = 0;
+      for(int i=0;i<trtrackconst::maxambig;i++) ptr->_PtAmbiguous[i]=NULL;
+      AMSTrTrack* pnext = ptr->next();
+      while (pnext) {
+         if (ptr->is_similar_to(pnext)) {
+             pnext->setstatus(AMSDBc::AMBIG);
+             ptr->addAmbiguous(pnext);
+         }
+         pnext = pnext->next();
+      }
+      ptr = ptr->next();
+    }               
+
+}
