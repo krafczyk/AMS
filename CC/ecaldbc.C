@@ -238,7 +238,7 @@ geant ECALDBc::_mev2mev=33.3; // MC: dE/dX(MeV)->Emeas(MeV) conv.factor(at 50gev
     cz=ztop-ll*piz;//      z-pos of fiber in ECAL r.s.
     tleft=-npm*pmsiz/2.;//     low-edge PM-bin transv.position in ECAL r.s.
     dist=ct-tleft;//           fiber-center dist from the 1st PM (left edge)
-    pm=integer(dist/pmsiz);//   number of fired PM  0-(npm-1)   (IMPLY pmpit=pmsiz !!!)
+    pm=integer(floor(dist/pmsiz));//   number of fired PM  0-(npm-1)   (IMPLY pmpit=pmsiz !!!)
     if(pm<0 || pm>=npm)return;//    (out of sensitive area - no signal is readout)
 //
     if(cz>fr)tbc=0;// below i imply no sharing in Z (even number of f-layers/s-layer)

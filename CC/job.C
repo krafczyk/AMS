@@ -2354,21 +2354,22 @@ end.tm_year=TRMCFFKEY.year[1];
  tm end;
  begin.tm_isdst=0;
  end.tm_isdst=0;
- begin.tm_sec=TOFRECFFKEY.sec[0];
- begin.tm_min=TOFRECFFKEY.min[0];
- begin.tm_hour=TOFRECFFKEY.hour[0];
- begin.tm_mday=TOFRECFFKEY.day[0];
- begin.tm_mon=TOFRECFFKEY.mon[0];
- begin.tm_year=TOFRECFFKEY.year[0];
-
- end.tm_sec=TOFRECFFKEY.sec[1];
- end.tm_min=TOFRECFFKEY.min[1];
- end.tm_hour=TOFRECFFKEY.hour[1];
- end.tm_mday=TOFRECFFKEY.day[1];
- end.tm_mon=TOFRECFFKEY.mon[1];
- end.tm_year=TOFRECFFKEY.year[1];
 
  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+
+  begin.tm_sec=TFREFFKEY.sec[0];
+  begin.tm_min=TFREFFKEY.min[0];
+  begin.tm_hour=TFREFFKEY.hour[0];
+  begin.tm_mday=TFREFFKEY.day[0];
+  begin.tm_mon=TFREFFKEY.mon[0];
+  begin.tm_year=TFREFFKEY.year[0];
+
+  end.tm_sec=TFREFFKEY.sec[1];
+  end.tm_min=TFREFFKEY.min[1];
+  end.tm_hour=TFREFFKEY.hour[1];
+  end.tm_mday=TFREFFKEY.day[1];
+  end.tm_mon=TFREFFKEY.mon[1];
+  end.tm_year=TFREFFKEY.year[1];
 
   TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
@@ -2388,6 +2389,21 @@ end.tm_year=TRMCFFKEY.year[1];
  }
 //
  else{   
+
+  begin.tm_sec=TOFRECFFKEY.sec[0];
+  begin.tm_min=TOFRECFFKEY.min[0];
+  begin.tm_hour=TOFRECFFKEY.hour[0];
+  begin.tm_mday=TOFRECFFKEY.day[0];
+  begin.tm_mon=TOFRECFFKEY.mon[0];
+  begin.tm_year=TOFRECFFKEY.year[0];
+
+  end.tm_sec=TOFRECFFKEY.sec[1];
+  end.tm_min=TOFRECFFKEY.min[1];
+  end.tm_hour=TOFRECFFKEY.hour[1];
+  end.tm_mday=TOFRECFFKEY.day[1];
+  end.tm_mon=TOFRECFFKEY.mon[1];
+  end.tm_year=TOFRECFFKEY.year[1];
+
   TID.add (new AMSTimeID(AMSID("Tofbarcal1",isRealData()),
     begin,end,TOF1GC::SCBLMX*sizeof(TOFBrcal::scbrcal[0][0]),
     (void*)&TOFBrcal::scbrcal[0][0]));
@@ -2411,21 +2427,22 @@ end.tm_year=TRMCFFKEY.year[1];
  tm end;
  begin.tm_isdst=0;
  end.tm_isdst=0;
- begin.tm_sec=ANTIRECFFKEY.sec[0];
- begin.tm_min=ANTIRECFFKEY.min[0];
- begin.tm_hour=ANTIRECFFKEY.hour[0];
- begin.tm_mday=ANTIRECFFKEY.day[0];
- begin.tm_mon=ANTIRECFFKEY.mon[0];
- begin.tm_year=ANTIRECFFKEY.year[0];
-
- end.tm_sec=ANTIRECFFKEY.sec[1];
- end.tm_min=ANTIRECFFKEY.min[1];
- end.tm_hour=ANTIRECFFKEY.hour[1];
- end.tm_mday=ANTIRECFFKEY.day[1];
- end.tm_mon=ANTIRECFFKEY.mon[1];
- end.tm_year=ANTIRECFFKEY.year[1];
-
  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
+ 
+  begin.tm_sec=ATREFFKEY.sec[0];
+  begin.tm_min=ATREFFKEY.min[0];
+  begin.tm_hour=ATREFFKEY.hour[0];
+  begin.tm_mday=ATREFFKEY.day[0];
+  begin.tm_mon=ATREFFKEY.mon[0];
+  begin.tm_year=ATREFFKEY.year[0];
+
+  end.tm_sec=ATREFFKEY.sec[1];
+  end.tm_min=ATREFFKEY.min[1];
+  end.tm_hour=ATREFFKEY.hour[1];
+  end.tm_mday=ATREFFKEY.day[1];
+  end.tm_mon=ATREFFKEY.mon[1];
+  end.tm_year=ATREFFKEY.year[1];
+
   TID.add (new AMSTimeID(AMSID("Antisccal2",isRealData()),
      begin,end,ANTI2C::MAXANTI*sizeof(ANTI2Pcal::antisccal[0]),
                                   (void*)&ANTI2Pcal::antisccal[0]));
@@ -2436,6 +2453,21 @@ end.tm_year=TRMCFFKEY.year[1];
  }
 //
  else{   
+ 
+  begin.tm_sec=ANTIRECFFKEY.sec[0];
+  begin.tm_min=ANTIRECFFKEY.min[0];
+  begin.tm_hour=ANTIRECFFKEY.hour[0];
+  begin.tm_mday=ANTIRECFFKEY.day[0];
+  begin.tm_mon=ANTIRECFFKEY.mon[0];
+  begin.tm_year=ANTIRECFFKEY.year[0];
+
+  end.tm_sec=ANTIRECFFKEY.sec[1];
+  end.tm_min=ANTIRECFFKEY.min[1];
+  end.tm_hour=ANTIRECFFKEY.hour[1];
+  end.tm_mday=ANTIRECFFKEY.day[1];
+  end.tm_mon=ANTIRECFFKEY.mon[1];
+  end.tm_year=ANTIRECFFKEY.year[1];
+
   TID.add (new AMSTimeID(AMSID("Antisccal",isRealData()),
      begin,end,MAXANTI*sizeof(ANTIPcal::antisccal[0]),
                                   (void*)&ANTIPcal::antisccal[0]));
