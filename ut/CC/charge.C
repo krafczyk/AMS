@@ -376,9 +376,9 @@ integer AMSCharge::FitTracker(int trkfit, number beta, int bstatus, int nhitTrac
     _ChargeTracker=_chargeTracker[_iTracker];
     if(!trkfit && probtrk<CHARGEFITFFKEY.ProbTrkRefit){
       for(i=0; i<nhitTracker; i++){
-        if(typetrk[i]==0 || typetrk[i]==2 && bstatus)
+        if((typetrk[i]==0 || typetrk[i]==2) && bstatus)
          pTrackerc[1][i]->clearstatus(AMSDBc::CHARGEUSED);
-        if(typetrk[i]==1 || typetrk[i]==2 && bstatus)
+        if((typetrk[i]==1 || typetrk[i]==2) && bstatus)
          pTrackerc[0][i]->clearstatus(AMSDBc::CHARGEUSED);
       }
       trkfit++;
