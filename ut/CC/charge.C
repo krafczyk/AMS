@@ -232,6 +232,7 @@ void AMSCharge::print(){
 
 
 void AMSCharge::init(){
+AMSCommonsI cmni();
 geant v[3],x[3];
 GUFLD(x,v);
 int i,j;
