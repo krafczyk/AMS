@@ -214,6 +214,7 @@ void AMSEvent::_endofrun() {
   char p0[4]  = "P0";
   char p1[4]  = "P1";
   char u1[4]  = "U1";
+  char p[4]  = "p";
   char comp[4];
 
   char aster[4] = "  *";
@@ -274,6 +275,7 @@ void AMSEvent::_endofrun() {
       if (hh[0] == 'P' || hh[0] == 'p') {
        if (hh[6] == '0') strcpy(comp,p0);
        if (hh[6] == '1') strcpy(comp,p1);
+       if (hh[1] == 'r') strcpy(comp,p);
       }
       int  icputime = cputime;
       rfile<<setw(10)<<SRun<<" "<<setw(7)<<events<<" "<<setw(7)
