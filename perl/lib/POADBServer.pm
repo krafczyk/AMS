@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.22 2004/06/16 09:23:26 choutko Exp $
+#  $Id: POADBServer.pm,v 1.23 2004/10/06 08:20:11 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -49,6 +49,7 @@ sub getRunEvInfoSPerl{
       my $fd=$db->fd;
       $ok=open DBM, "<&=$fd";
       if( not $ok){
+        undef $db;
         untie %hash;
         goto OUT;
       }
@@ -58,22 +59,36 @@ sub getRunEvInfoSPerl{
          sleep 2;
          $ntry=$ntry+1;
          if($ntry>10){
+             #untie %hash;
+             goto OUT1;
+         }
+     }
+     goto OUT2;
+OUT1:
+      warn"  exclusiver lock failed!!!!! ";
+     $ntry=0;
+     until (flock DBM, LOCK_NB){
+         sleep 2;
+         $ntry=$ntry+1;
+         if($ntry>10){
+             undef $db;
              untie %hash;
              goto OUT;
          }
      }
+OUT2:
     $ok=1;
 OUT:
       undef $db;
           if($ok){
             $ref->{rtb}=$hash{rtb};           
-            $ref->{rtb_maxr}=$hash{rtb_maxr};           
+            $ref->{rtb_maxr}=$hash{rtb_maxr};
             my $length=$#{$ref->{rtb}}+1;    
             untie %hash;
             return ($length,$ref->{rtb},$ref->{rtb_maxr});
           }
          else{
-              throw DPS::DBProblem message=>"Unable to Open DB File";
+              throw DPS::DBProblem message=>"getrunevinfosperl Unable to Open DB File ";
          }
 }
 
@@ -214,7 +229,7 @@ else {
                     return (${$ref->{rtb}}[0],$dv);
          }
        else{
-             throw DPS::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"getrunevinfo Unable to Open DB File";
        } 
    }
 
@@ -308,7 +323,7 @@ OUT:
               throw DPS::DBProblem message=>"Unable to $rc the rtb $ri->{uid} $ri->{Run}";
           }
           else{
-             throw DPS::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"sendrunevinfo Unable to Open DB File";
           } 
 }
 
@@ -401,7 +416,7 @@ OUT:
               throw DPS::DBProblem message=>"Unable to $rc the dsts $ri->{Name}";
           }
           else{
-             throw DPS::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"senddstend Unable to Open DB File";
           } 
 }
 sub sendDSTInfo{
@@ -488,7 +503,7 @@ OUT:
               throw DPS::DBProblem message=>"Unable to $rc the dsti $ri->{uid}";
           }
           else{
-             throw DPS::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"senddstinfo Unable to Open DB File";
           } 
 }
 sub sendAC{
@@ -614,7 +629,7 @@ OUT:
               throw DPS::DBProblem  message=>"Unable to $rc the $tag $cid->{uid}";
           }
           else{
-             throw DPS::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"sendacperl Unable to Open DB File";
           } 
 }
 
@@ -719,7 +734,7 @@ OUT:
               throw DPS::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
           }
           else{
-             throw DPS::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"SendAH Unable to Open DB File";
           } 
 }
 
@@ -807,7 +822,7 @@ OUT:
               throw DPS::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
           }
           else{
-             throw DPS::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"sendgeneric Unable to Open DB File";
           } 
 }
 sub getGeneric{
@@ -854,7 +869,7 @@ OUT:
                untie %hash;
            }
           else{
-             throw DPS::DBProblem message=>"Unable to Open DB File";
+             throw DPS::DBProblem message=>"getgeneric Unable to Open DB File";
          }
 }
 

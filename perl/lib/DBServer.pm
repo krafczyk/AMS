@@ -1,4 +1,4 @@
-# $Id: DBServer.pm,v 1.12 2004/10/03 08:38:03 choutko Exp $
+# $Id: DBServer.pm,v 1.13 2004/10/06 08:20:11 choutko Exp $
 
 package DBServer;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -529,7 +529,7 @@ if( defined $ior){
  }
 }
    $ref->{dbfile}=$amsprodlogfile;
-  if(not $ref->InitDBFile($amsprodlogdir)){
+  if(not $ref->InitDBFile($amsprodlogdir/db)){
       my $dbfile=$ref->{dbfile};
      $ref->Exiting(" Unable to open  DB File $dbfile","CInAbort");
      return 0;
@@ -560,7 +560,7 @@ sub InitDBFile{
         if($ref->{dbfile} =~/\//){
         }
         else{
-         $ref->{dbfile}=$amsprodlogdir."/".$ref->{dbfile};
+         $ref->{dbfile}=$amsprodlogdir."/db/".$ref->{dbfile};
      }
 #        die "trying to open dbfile $ref->{dbfile}\n";
          if(defined $amsprodlogdir){
@@ -573,7 +573,7 @@ sub InitDBFile{
     else{
 #        die " tried to init db file sobaka";
         my $tmpname=tmpnam();
-        $ref->{dbfile}=$amsprodlogdir."/".unpack("x5 A*",$tmpname);
+        $ref->{dbfile}=$amsprodlogdir."/db/".unpack("x5 A*",$tmpname);
         $db=tie %hash, "MLDBM",$ref->{dbfile},O_CREAT | O_RDWR, 0644 ;
         system "chmod o+w $ref->{dbfile}";
         $init=1;
