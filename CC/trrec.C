@@ -926,9 +926,9 @@ integer AMSTrRecHit::markAwayTOFHits(){
     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
 // LVL3 required if existing
     if (plvl3==NULL) {
-#ifdef __AMSDEBUG__
-      cout << "markAwayTOFHits: No Level3 Trigger existing" << endl;
-#endif
+// #ifdef __AMSDEBUG__
+//       cout << "markAwayTOFHits: No Level3 Trigger existing" << endl;
+// #endif
       return 1;
     }
     if ( plvl3->skip() ) return 1;
@@ -2382,9 +2382,9 @@ integer AMSTrTrack::makeFalseTOFXHits(){
     plvl3 = (TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0);
 // LVL3 required if existing
     if ( plvl3==NULL) {
-#ifdef __AMSDEBUG__
-      cout << "makeFalseTOFXHits: No Level3 Trigger existing" << endl;
-#endif
+// #ifdef __AMSDEBUG__
+//    cout << "makeFalseTOFXHits: No Level3 Trigger existing" << endl;
+// #endif
       return 1;
     }
     if ( plvl3->skip() ) return 1;
