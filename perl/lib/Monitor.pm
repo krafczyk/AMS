@@ -507,8 +507,10 @@ sub getactivehosts{
     return @output;
 }
 sub getactiveclients{
-    shift;
     my $producer=shift;
+    if(ref($producer)){
+       $producer=shift;
+    }
     my @output=();
     my @text=();
     my $hash;
@@ -590,7 +592,14 @@ sub getruns{
     for my $i (0 ... $#{$Monitor::Singleton->{rtb}}){
      $#text=-1;
      my $hash=$Monitor::Singleton->{rtb}[$i];
-     if ($hash->{Status} eq $sort[$j] or $hash->{History} eq $sort[$j]){
+     my $order;
+     if($hash->{History} eq "Failed"){
+         $order=$hash->{History};
+     }
+     else{
+      $order=$hash->{Status} ;
+     }
+     if ($order eq $sort[$j]){
      my $ctime=localtime($hash->{TFEvent});
      push @text, $hash->{Run},$ctime,$hash->{FirstEvent},$hash->{LastEvent},$hash->{Priority},$hash->{History},$hash->{Status};
      if ($hash->{Status} eq "Failed" and $hash->{History} eq "Failed"){
