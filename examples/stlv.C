@@ -34,7 +34,6 @@ void stlv::Begin(TTree *tree){
    // Initialize the tree branches.
    // Book Histos
    Init(tree);
-
    TString option = GetOption();
 
    // open file if...
@@ -62,7 +61,6 @@ void stlv::Begin(TTree *tree){
       h1A.push_back(new TH1F(AccName,"acceptance",nch,al1,al2));         
    } 
    
-     
    
         _pw =new TStopwatch();
         _pw->Start(); 
@@ -80,10 +78,8 @@ Bool_t stlv::ProcessCut(Int_t entry)
    // Read only the header to select entries.
    // May return kFALSE as soon as a bad entry is detected.
    // Should Not be modified by (Non)Advanced User
-
-  ev.ReadHeader(entry);
-
-   return kTRUE;
+     ev.ReadHeader(entry);
+     return kTRUE;
  }
 
 void stlv::ProcessFill(Int_t entry)
@@ -114,7 +110,6 @@ void stlv::ProcessFill(Int_t entry)
 	    if(ev.nTrdTrack()<2){
 	    Int_t Layer1 =0;
             Int_t Layer2 =0;  
-	    
              TrTrackR tr_tr=ev.TrTrack(ptrack);
 		 int  ptrh=tr_tr.TrRecHit(0);			//pht1
    	          Layer1=ev.TrRecHit(ptrh).Layer;
@@ -139,11 +134,12 @@ void stlv::ProcessFill(Int_t entry)
 void stlv::Terminate()
 {
    // Function called at the end of the event loop.
-
-  _pw->Stop();
+   fChain->SetMakeClass(0);
+   _pw->Stop();
    cout <<_pw->CpuTime()<<endl;
    if(pOutFile){
      pOutFile->Write();
      pOutFile->Close();
    }
+  
 }

@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.42 2003/05/14 17:00:25 choutko Exp $
+//  $Id: root.C,v 1.43 2003/05/15 18:04:54 choutko Exp $
 //
 #include <root.h>
 #include <ntuple.h>
@@ -92,145 +92,200 @@ TBranch* AMSEventR::bRichMCCluster;
 TBranch* AMSEventR::bMCTrack;
 TBranch* AMSEventR::bMCEventg;
 
+void* AMSEventR::vHeader=0;
+void* AMSEventR::vEcalHit=0;
+void* AMSEventR::vEcalCluster=0;
+void* AMSEventR::vEcal2DCluster=0;
+void* AMSEventR::vEcalShower=0;
+void* AMSEventR::vRichHit=0;
+void* AMSEventR::vRichRing=0;
+void* AMSEventR::vTofRawCluster=0;
+void* AMSEventR::vTofCluster=0;
+void* AMSEventR::vAntiCluster=0;
+void* AMSEventR::vTrRawCluster=0;
+void* AMSEventR::vTrCluster=0;
+void* AMSEventR::vTrRecHit=0;
+void* AMSEventR::vTrTrack=0;
+void* AMSEventR::vTrdRawHit=0;
+void* AMSEventR::vTrdCluster=0;
+void* AMSEventR::vTrdSegment=0;
+void* AMSEventR::vTrdTrack=0;
+void* AMSEventR::vLevel1=0;
+void* AMSEventR::vLevel3=0;
+void* AMSEventR::vBeta=0;
+void* AMSEventR::vVertex=0;
+void* AMSEventR::vCharge=0;
+void* AMSEventR::vParticle=0;
+void* AMSEventR::vAntiMCCluster=0;
+void* AMSEventR::vTrMCCluster=0;
+void* AMSEventR::vTofMCCluster=0;
+void* AMSEventR::vTrdMCCluster=0;
+void* AMSEventR::vRichMCCluster=0;
+void* AMSEventR::vMCTrack=0;
+void* AMSEventR::vMCEventg=0;
+
 
 
 AMSEventR* AMSEventR::_Head=0;
 int AMSEventR::_Count=0;
 int AMSEventR::_Entry=-1;
-char* AMSEventR::_Name="ev.";   //  root compatibility
+char* AMSEventR::_Name="ev.";   
 
 void AMSEventR::SetBranchA(TTree *fChain){
+     _Head=this;
      char tmp[255];
+     
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fHeader");
+     vHeader=&fHeader;
      fChain->SetBranchAddress(tmp,&fHeader);
     }
-
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fEcalHit");
+     vEcalHit=&fEcalHit;
      fChain->SetBranchAddress(tmp,&fEcalHit);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fEcalCluster");
+     vEcalCluster=&fEcalCluster;
      fChain->SetBranchAddress(tmp,&fEcalCluster);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fEcal2DCluster");
+     vEcal2DCluster=&fEcal2DCluster;
      fChain->SetBranchAddress(tmp,&fEcal2DCluster);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fEcalShower");
+     vEcalShower=&fEcalShower;
      fChain->SetBranchAddress(tmp,&fEcalShower);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fRichHit");
+     vRichHit=&fRichHit;
      fChain->SetBranchAddress(tmp,&fRichHit);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fRichRing");
+     vRichRing=&fRichRing;
      fChain->SetBranchAddress(tmp,&fRichRing);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTofRawCluster");
+     vTofRawCluster=&fTofRawCluster;
      fChain->SetBranchAddress(tmp,&fTofRawCluster);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTofCluster");
+     vTofCluster=&fTofCluster;
      fChain->SetBranchAddress(tmp,&fTofCluster);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fAntiCluster");
+     vAntiCluster=&fAntiCluster;
      fChain->SetBranchAddress(tmp,&fAntiCluster);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrRawCluster");
+     vTrRawCluster=&fTrRawCluster;
      fChain->SetBranchAddress(tmp,&fTrRawCluster);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrCluster");
+     vTrCluster=&fTrCluster;
      fChain->SetBranchAddress(tmp,&fTrCluster);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrRecHit");
+     vTrRecHit=&fTrRecHit;
      fChain->SetBranchAddress(tmp,&fTrRecHit);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrTrack");
+     vTrTrack=&fTrTrack;
      fChain->SetBranchAddress(tmp,&fTrTrack);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrdRawHit");
+     vTrdRawHit=&fTrdRawHit;
      fChain->SetBranchAddress(tmp,&fTrdRawHit);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrdCluster");
+     vTrdCluster=&fTrdCluster;
      fChain->SetBranchAddress(tmp,&fTrdCluster);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrdSegment");
+     vTrdSegment=&fTrdSegment;
      fChain->SetBranchAddress(tmp,&fTrdSegment);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrdTrack");
+     vTrdTrack=&fTrdTrack;
      fChain->SetBranchAddress(tmp,&fTrdTrack);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fLevel1");
+     vLevel1=&fLevel1;
      fChain->SetBranchAddress(tmp,&fLevel1);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fLevel3");
+     vLevel3=&fLevel3;
      fChain->SetBranchAddress(tmp,&fLevel3);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fBeta");
+     vBeta=&fBeta;
      fChain->SetBranchAddress(tmp,&fBeta);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fCharge");
+     vCharge=&fCharge;
      fChain->SetBranchAddress(tmp,&fCharge);
     }
 
@@ -238,6 +293,7 @@ void AMSEventR::SetBranchA(TTree *fChain){
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fVertex");
+     vVertex=&fVertex;
      fChain->SetBranchAddress(tmp,&fVertex);
     }
 
@@ -246,18 +302,21 @@ void AMSEventR::SetBranchA(TTree *fChain){
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fParticle");
+     vParticle=&fParticle;
      fChain->SetBranchAddress(tmp,&fParticle);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fAntiMCCluster");
+     vAntiMCCluster=&fAntiMCCluster;
      fChain->SetBranchAddress(tmp,&fAntiMCCluster);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrMCCluster");
+     vTrMCCluster=&fTrMCCluster;
      fChain->SetBranchAddress(tmp,&fTrMCCluster);
     }
 
@@ -265,6 +324,7 @@ void AMSEventR::SetBranchA(TTree *fChain){
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTofMCCluster");
+     vTofMCCluster=&fTofMCCluster;
      fChain->SetBranchAddress(tmp,&fTofMCCluster);
     }
 
@@ -272,6 +332,7 @@ void AMSEventR::SetBranchA(TTree *fChain){
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fTrdMCCluster");
+     vTrdMCCluster=&fTrdMCCluster;
      fChain->SetBranchAddress(tmp,&fTrdMCCluster);
     }
 
@@ -279,6 +340,7 @@ void AMSEventR::SetBranchA(TTree *fChain){
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fRichMCCluster");
+     vRichMCCluster=&fRichMCCluster;
      fChain->SetBranchAddress(tmp,&fRichMCCluster);
     }
 
@@ -286,18 +348,220 @@ void AMSEventR::SetBranchA(TTree *fChain){
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fMCTrack");
+     vMCTrack=&fMCTrack;
      fChain->SetBranchAddress(tmp,&fMCTrack);
     }
 
    {
      strcpy(tmp,_Name);
      strcat(tmp,"fMCEventg");
+     vMCEventg=&fMCEventg;
      fChain->SetBranchAddress(tmp,&fMCEventg);
     }
 
 }
 
-void AMSEventR::GetBranchA(TTree *fChain){
+
+
+void AMSEventR::ReSetBranchA(TTree *fChain){
+     char tmp[255];
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fHeader");
+     fChain->SetBranchAddress(tmp,vHeader);
+    }
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalHit");
+     fChain->SetBranchAddress(tmp,vEcalHit);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalCluster");
+     fChain->SetBranchAddress(tmp,vEcalCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcal2DCluster");
+     fChain->SetBranchAddress(tmp,vEcal2DCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalShower");
+     fChain->SetBranchAddress(tmp,vEcalShower);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichHit");
+     fChain->SetBranchAddress(tmp,vRichHit);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichRing");
+     fChain->SetBranchAddress(tmp,vRichRing);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofRawCluster");
+     fChain->SetBranchAddress(tmp,vTofRawCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofCluster");
+     fChain->SetBranchAddress(tmp,vTofCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiCluster");
+     fChain->SetBranchAddress(tmp,vAntiCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrRawCluster");
+     fChain->SetBranchAddress(tmp,vTrRawCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrCluster");
+     fChain->SetBranchAddress(tmp,vTrCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrRecHit");
+     fChain->SetBranchAddress(tmp,vTrRecHit);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrTrack");
+     fChain->SetBranchAddress(tmp,vTrTrack);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdRawHit");
+     fChain->SetBranchAddress(tmp,vTrdRawHit);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdCluster");
+     fChain->SetBranchAddress(tmp,vTrdCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdSegment");
+     fChain->SetBranchAddress(tmp,vTrdSegment);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdTrack");
+     fChain->SetBranchAddress(tmp,vTrdTrack);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fLevel1");
+     fChain->SetBranchAddress(tmp,vLevel1);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fLevel3");
+     fChain->SetBranchAddress(tmp,vLevel3);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fBeta");
+     fChain->SetBranchAddress(tmp,vBeta);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fCharge");
+     fChain->SetBranchAddress(tmp,vCharge);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fVertex");
+     fChain->SetBranchAddress(tmp,vVertex);
+    }
+
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fParticle");
+     fChain->SetBranchAddress(tmp,vParticle);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiMCCluster");
+     fChain->SetBranchAddress(tmp,vAntiMCCluster);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrMCCluster");
+     fChain->SetBranchAddress(tmp,vTrMCCluster);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofMCCluster");
+     fChain->SetBranchAddress(tmp,vTofMCCluster);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdMCCluster");
+     fChain->SetBranchAddress(tmp,vTrdMCCluster);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichMCCluster");
+     fChain->SetBranchAddress(tmp,vRichMCCluster);
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fMCTrack");
+     fChain->SetBranchAddress(tmp,vMCTrack);
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fMCEventg");
+     fChain->SetBranchAddress(tmp,vMCEventg);
+    }
+
+}
+
+
+void AMSEventR::GetBranch(TTree *fChain){
      char tmp[255];
 
    {
@@ -491,6 +755,203 @@ void AMSEventR::GetBranchA(TTree *fChain){
     }
 }
 
+
+
+void AMSEventR::GetBranchA(TTree *fChain){
+     char tmp[255];
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fHeader");
+     vHeader = fChain->GetBranch(tmp)->GetAddress();
+    }
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalHit");
+     vEcalHit=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalCluster");
+     vEcalCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcal2DCluster");
+     vEcal2DCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fEcalShower");
+     vEcalShower=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichHit");
+     vRichHit=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichRing");
+     vRichRing=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofRawCluster");
+     vTofRawCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofCluster");
+     vTofCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiCluster");
+     vAntiCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrRawCluster");
+     vTrRawCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrCluster");
+     vTrCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrRecHit");
+     vTrRecHit=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrTrack");
+     vTrTrack=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdRawHit");
+     vTrdRawHit=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdCluster");
+     vTrdCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdSegment");
+     vTrdSegment=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdTrack");
+     vTrdTrack=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fLevel1");
+     vLevel1=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fLevel3");
+     vLevel3=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fBeta");
+     vBeta=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fCharge");
+     vCharge=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fVertex");
+     vVertex=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fParticle");
+     vParticle=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fAntiMCCluster");
+     vAntiMCCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrMCCluster");
+     vTrMCCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTofMCCluster");
+     vTofMCCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fTrdMCCluster");
+     vTrdMCCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fRichMCCluster");
+     vRichMCCluster=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fMCTrack");
+     vMCTrack=fChain->GetBranch(tmp)->GetAddress();
+    }
+
+   {
+     strcpy(tmp,_Name);
+     strcat(tmp,"fMCEventg");
+     vMCEventg=fChain->GetBranch(tmp)->GetAddress();
+    }
+}
+
+
+
 void AMSEventR::SetCont(){
 // Set container sizes;
  fHeader.EcalHits=fEcalHit.size();
@@ -528,6 +989,9 @@ void AMSEventR::SetCont(){
 void AMSEventR::ReadHeader(int entry){
     if(this!=_Head){
        cerr<<" AMSEventR::ReadHeader-S-WrongHeadPointer"<<endl;
+      _Entry=entry;
+       clear();
+       return;
      }
    _Entry=entry;
    bHeader->GetEntry(entry);
@@ -537,10 +1001,8 @@ void AMSEventR::ReadHeader(int entry){
 
 
 AMSEventR::AMSEventR():TObject(){
-if(!_Count++){
- if(_Head)cerr<<"AMSEventR::ctor-F-OnlyOneSingletonAllowed "<<this<<endl;
+ if(_Count++)cerr<<"AMSEventR::ctor-W-OnlyOneSingletonAllowed "<<this<<" "<<_Count<<endl;
  else cout<<"AMSEventR::ctor-I-SingletonInitialized "<<this<<endl;
- _Head=this;
 
 
 
@@ -582,7 +1044,6 @@ fRichMCCluster.reserve(MAXRICMC);
 
 fMCTrack.reserve(MAXMCVOL);
 fMCEventg.reserve(MAXMCG02);
-}
 }
 
 void AMSEventR::clear(){

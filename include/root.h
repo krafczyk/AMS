@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.86 2003/05/14 17:00:41 choutko Exp $
+//  $Id: root.h,v 1.87 2003/05/15 18:05:00 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 #include <TObject.h>
@@ -108,7 +108,7 @@ class HeaderR: public TObject {
   unsigned int Event;      ///<event number
   unsigned int Status[2];  ///<event status
   int Raw;            ///<raw event length in bytes
-  int Version;        ///<program build number
+  int Version;        ///< os number (low 2 bits) program build number (high 10 bits)
   int Time[2];        ///<unix time + usec time(data)/RNDM(2) MC
 
 
@@ -1471,13 +1471,51 @@ static TBranch*  bTrdMCCluster;
 static TBranch*  bRichMCCluster;
 static TBranch*  bMCTrack;
 static TBranch*  bMCEventg;
+
+
+static void*  vHeader;
+static void*  vEcalHit;
+static void*  vEcalCluster;
+static void*  vEcal2DCluster;
+static void*  vEcalShower;
+static void*  vRichHit;
+static void*  vRichRing;
+static void*  vTofRawCluster;
+static void*  vTofCluster;
+static void*  vAntiCluster;
+static void*  vTrRawCluster;
+static void*  vTrCluster;
+static void*  vTrRecHit;
+static void*  vTrTrack;
+static void*  vTrdRawHit;
+static void*  vTrdCluster;
+static void*  vTrdSegment;
+static void*  vTrdTrack;
+static void*  vLevel1;
+static void*  vLevel3;
+static void*  vBeta;
+static void*  vVertex;
+static void*  vCharge;
+static void*  vParticle;
+static void*  vAntiMCCluster;
+static void*  vTrMCCluster;
+static void*  vTofMCCluster;
+static void*  vTrdMCCluster;
+static void*  vRichMCCluster;
+static void*  vMCTrack;
+static void*  vMCEventg;
+
+
 static AMSEventR * _Head;
 static int         _Count;
 static int         _Entry;
-public:
- static AMSEventR* Head()  {return _Head;}
  static char      * _Name;
+public:
+ static AMSEventR* & Head()  {return _Head;}
+ static char *  BranchName() {return _Name;}
  void SetBranchA(TTree *tree);
+ void ReSetBranchA(TTree *tree);
+ void GetBranch(TTree *tree);
  void GetBranchA(TTree *tree);
  void SetCont(); 
  int & Entry(){return _Entry;}
@@ -1491,7 +1529,8 @@ public:
   /// \param Entry - event no
   void ReadHeader(int Entry);
 
-
+int Version() const {return fHeader.Version/4;} ///< \retun producer version number
+int OS() const {return fHeader.Version%4;}   ///< \return producer Op Sys number  (0 -undef, 1 -dunix, 2 -linux 3 - sun )
 
 int   nEcalHit()const { return fHeader.EcalHits;} ///< \return number of EcalHitR elements (fast)              
 int   nEcalCluster()const { return fHeader.EcalClusters;} ///< \return number of EcalClusterR elements (fast)
@@ -2437,6 +2476,7 @@ int   nMCEventg()const { return fHeader.MCEventgs;} ///< \return number of MCEve
 AMSEventR();
 
 virtual ~AMSEventR(){
+cout <<"AMSEventR::dtor-I-Destroying "<<_Count<<endl;;
 if(!--_Count){
  cout<<"AMSEventR::dtor-I-ResettingHead "<<_Head<<endl;
  _Head=0;

@@ -9,7 +9,7 @@ int rootread(char * fname, int nev, int iver){
   cout.setstate(ios_base::failbit);
   cerr.setstate(ios_base::failbit);
  }
- TFile * rfile= new TFile(fname);
+ TFile * rfile= new TFile(fname,"READ");
  if(!rfile){
         if(iver>0)cout <<"problem to open file "<<fname<<" "<<endl;
 	return -1;
@@ -35,7 +35,7 @@ int rootread(char * fname, int nev, int iver){
    if((pev->fHeader.Status[0]/1073741824)%2)nbadev++;
    nevread++;
   }
-  rfile->Close();
+//  rfile->Close();
   if(nevread!=nev)return -2;
   float rrr=100*float(nbadev)/float(nevread);
   return int(rrr); 

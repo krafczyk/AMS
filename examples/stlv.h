@@ -38,8 +38,6 @@ class stlv : public TSelector {
    public :
    TTree          *fChain;   ///<pointer to the analyzed TTree or TChain
    AMSEventR      ev;        ///< AMSEventR instance      
-   
-
 //  some Services for (future) Use
 //
    
@@ -90,10 +88,7 @@ void stlv::Init(TTree *tree)
    if (tree == 0) return;
    fChain    = tree;
    fChain->SetMakeClass(1);
-
    ev.SetBranchA(fChain);
-   
-
 }
 
 Bool_t stlv::Notify()
@@ -102,7 +97,7 @@ Bool_t stlv::Notify()
    // Called when loading a new file.
    // Get branch pointers.
    
-     ev.GetBranchA(fChain);
+     ev.GetBranch(fChain);
     
    return kTRUE;
 }
