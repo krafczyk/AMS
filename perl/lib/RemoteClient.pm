@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.85 2003/04/07 10:50:23 choutko Exp $
+# $Id: RemoteClient.pm,v 1.86 2003/04/07 11:16:22 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -331,6 +331,7 @@ my %mv=(
           my $dataset={};
           $dataset->{name}=$file;
           $dataset->{jobs}=[];
+          my @tmpa;
        opendir THISDIR, $newfile or die "unable to open $newfile";
        my @jobs=readdir THISDIR;
        closedir THISDIR;
@@ -421,9 +422,14 @@ my %mv=(
             my $desc=$sbuf[0];
             substr($desc,0,1)=" ";
             $template->{filedesc}=$desc." Total Events Left $template->{TOTALEVENTS}";
-           push @{$dataset->{jobs}}, $template; 
+           push @tmpa, $template; 
            }        
        }        
+    }
+    sub prio { $b->{TOTALEVENTS}  <=> $a->{TOTALEVENTS};}
+    my @tmpb=sort prio @tmpa;
+    foreach my $tmp (@tmpb){
+     push @{$dataset->{jobs}},$tmp;     
     }
       }
     }
