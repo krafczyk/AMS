@@ -77,7 +77,7 @@ ClassImp(AMSNtuple)
             _h1->SetBranchAddress("sumr",_Tracker.sumr);
             _h1->SetBranchAddress("difosum",_Tracker.difosum);
 
-            _h1->SetBranchAddress("ntrcl",&_Tracker.ntrcl);
+            _h1->SetBranchAddress("Ntrcl",&_Tracker.ntrcl);
             _h1->SetBranchAddress("Idsoft",&_Tracker.idsoft);
             _h1->SetBranchAddress("Statust",&_Tracker.statust);
             _h1->SetBranchAddress("Neleml",&_Tracker.neleml);
