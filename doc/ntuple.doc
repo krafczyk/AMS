@@ -86,7 +86,11 @@ Below there is a description of a converted ntuple.
 
                                                        // extrapolated into ctc
 * I*4  * [0,20]       * TOFCLUST * ntof                // TOF clusters number
-* I*4  *              * TOFCLUST * TOFStatus(ntof)     // Status *)
+* I*4  *              * TOFCLUST * TOFStatus(ntof)  // Status: 0->ok 
+                                                    // bit 256 -> "1-sided" counter
+                                                    // bit 512 -> bad t-measurement
+                                                    //            on one of the sides
+                                                    // bit 128 -> problems with history
 * I*4  *              * TOFCLUST * plane(ntof)         // Tof counter no
                                                        //1..4 up..down
 * I*4  *              * TOFCLUST * bar(ntof)           //  TOF bar no
