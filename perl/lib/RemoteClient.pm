@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.127 2003/04/25 11:15:27 alexei Exp $
+# $Id: RemoteClient.pm,v 1.128 2003/04/25 11:20:12 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3548,9 +3548,9 @@ print qq`
                $buf=~ s/$cn/$cn$ccc/;         
            }
        }
-         my $rid;
          if($i > 1){
-            ($rid,$rndm1,$rndm2) = $self->getrndm();
+            my $rid; 
+            $rndm1,$rndm2) = $self->getrndm();
          }
           $buf=~ s/RNDM1=/RNDM1=$rndm1/;         
           $buf=~ s/RNDM2=/RNDM2=$rndm2/;         
@@ -3573,8 +3573,9 @@ print qq`
          $buf=~ s/PMIN=/PMIN=$pminf/;         
          $buf=~ s/PMAX=/PMAX=$pmaxf/;         
          my $cpus=$q->param("QCPUTime");         
+         my $cputsf=sprintf("%.3f",$cpus);
          $buf=~ s/PART=/CPUTIME=$cpus \nPART=/; 
-         $buf=~ s/TIME 3=/TIME 2=$cputf 3=/; 
+         $buf=~ s/TIME 3=/TIME 1=$cpusf 3=/; 
          my $cputype=$q->param("QCPUType");
          $buf=~ s/PART=/CPUTYPE=$cputype \nPART=/; 
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
