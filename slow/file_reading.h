@@ -1,16 +1,17 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fnmatch.h>
+#include <stdio.h>
 
-#define buf_n 200  /* number of file names buffered */
+#define buf_n 200 /* number of file names buffered */
 
 typedef char ch80[80];
 
-int last_file_read, new_files=0;
+int last_file_read;
 char * CAS_dir, * Coo_db_dir, last_file_n[80], chb80[80];
 char last_name[80]="last.file";
-time_t file_t, last_file_time;
 int new_files;
+time_t file_t, last_file_time;
 
 ch80    new_file_n[buf_n];
 time_t  new_file_t[buf_n];
@@ -18,14 +19,14 @@ int new_file_c; /* how many new files */
 
 /* opens a CAS file */
 int new_files_coming() {
-  int new_files=0; 
   FILE *last_f;
   char chbuf80[80], last_file_n[80];
   time_t last_file_time;
   DIR *dirp;
   struct dirent *dp;
   struct stat statf;
-  time_t tmin=0x7ffffffa;
+  time_t tmin=999999999;
+  new_files=0;
 
   /* reads the last read file name */
   last_f=fopen(last_name,"r");
@@ -54,8 +55,10 @@ int new_files_coming() {
     if (fnmatch( "[0-9][0-9][0-9][0-9][0-9][0-9]", dp->d_name, 0) == 0) {
       sprintf(chbuf80,"%s/%s",CAS_dir,dp->d_name);
       stat(chbuf80,&statf);
+
       file_t = statf.st_mtime;
       if ((file_t>last_file_time) && (file_t<tmin)) {
+
 	new_file_c++;
 	new_file_t[new_file_c]=file_t;
 	sprintf(new_file_n[new_file_c],"%s",dp->d_name);

@@ -79,7 +79,7 @@ double CAStime(int offset) { /* based on H.Suter's function */
     hours = t.CASdate.uhour + 10*t.CASdate.thour;
     days  = t.CASdate.uday  + 10*t.CASdate.tday +  100*t.CASdate.hday;
 
-    times = (day*86400 + hours*3600 + min*60 + sec) + musec/1000.;
+    times = (days*86400 + hours*3600 + min*60 + sec) + musec/1000.;
 
     return times;
   }
@@ -107,21 +107,27 @@ uint crc;
 time_t cur_time;
 float fbuf;
 int block_size;
-char current_f_name[80], chb80[80];
+char current_f_name[120], chb80[120];
 
 
-utime = 894358568;
 file_n=0;
 record_n=Umax=0;
-Umin = 0xffffffff;
+Umin = 999999999;
 
   CAS_dir=getenv("CASDataDir");
   Coo_db_dir=getenv("CooDbDir");
+  setbuf(stdout,NULL);
+
+  puts("********************");
 
   while(1) {  /*GLOBAL LOOP */
 
 NEW_FILES: /* look for new files in the directory */
+    file_n=0;
+    record_n=Umax=0;
+    Umin = 999999999;
     new_files=0;
+    new_file_c=0;
     new_files=new_files_coming();
     if (!new_files) {
       ii++;
@@ -173,13 +179,9 @@ NEW_FILES: /* look for new files in the directory */
 	printf("======================%d\n",file_n);
 	file_n++;
 	record_n=Umax=0;
-	Umin = 0xffffffff;
-	/*	if (file_n > 90) 
-	  exit (1);
-      	  flog = fopen("temp.log","a");*/
-	  fclose(fout);
+	Umin = 999999999;
+	fclose(fout);
       }
-
 	/* Reading M1950 coordinates and velocities from CAs */
       Coo_M1950[0]=CASvalue((4490),8) * foot_cm;
       Coo_M1950[1]=CASvalue((4508),8) * foot_cm;
@@ -203,13 +205,6 @@ NEW_FILES: /* look for new files in the directory */
 	goto BEG;
 
       Coordinates(Coo_M1950,Vel_M1950,q,utime,&Geo,&Vel_angle,&Euler_LVLH,&Solar,&Greenw_Phi);
-
-      if ((Geo.R<1) || (Geo.R>1.e+9) || (Geo.Teta>(Pi/2)))
-	printf("\a\aGeo %e  %e  %e\n",Geo.R,Geo.Teta,Geo.Phi);
-      if (Vel_angle<0.0005)
-	printf("\a\aVel_angle %e\n",Vel_angle);
-
-//	Vel_angle = Radius(Vel_M1950)/Radius(Coo_M1950);
 
       if (record_n == 0)
 	ftemp=fopen(temp_file,"w");
@@ -249,7 +244,7 @@ NEW_FILES: /* look for new files in the directory */
       fprintf(fl,"%s\n",new_file_n[new_file_c]);
       fprintf(fl,"%d\n",new_file_t[new_file_c]);
       fclose(fl);
-    }
+      }
     if (record_n>0) { 
       for (i=record_n; i<Record_in_file; i++) {
 	fbuf=(float)(Geo.R);
