@@ -14,11 +14,16 @@ after_object_class = "public:\n"
 for line in file:
      match = re.search(r'^(T\w+).h\s*$',line)
      if match:
-            cl = match.group(1)
-            if cl != "TObject":
-                  before_object_class += "class " + cl + ";\n"
-                  after_object_class += "      " + cl + "* to_" + cl \
-                           + "(){ return (" + cl + "*)this;};\n"
+            if match.group(1) != "TObject":
+                  chfile = line.rstrip()
+                  inc_file = open(root_inc_dir + "/" + chfile)
+                  for inc_line in inc_file:
+                     match2 = re.search(r'^\s*class\s+(T\w+)\s*[:\{]',inc_line)
+                     if match2:
+                        cl = match2.group(1)
+                        before_object_class += "class " + cl + ";\n"
+                        after_object_class += "      " + cl + "* to_" + cl \
+                              + "(){ return (" + cl + "*)this;};\n"
 
 file.seek(0)
 for line in file:

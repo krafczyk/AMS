@@ -22,6 +22,16 @@
  *            - cvar.gROOT.Reset()
  *            - cvar.gStyle.SetOptLogy(1)
  *
+ *    - ROOT methods destroying objects, like "my_file.Close()" will give errors.
+ *      Python applies its automatic procedures to destroy them and, in this 
+ *      case, will find out that there is no object to destroy.
+ *
+ *    - When a method returns a TObject object, you must convert its type into 
+ *      a useful one with the "to_<class>" method. A typical case involves 
+ *      the "TFile::Get" method. Example:
+ *            - input_file = TFile("test.root")
+ *            - hist = input_file.Get("Test").to_TH1F()
+ *
  *    - You can use Python lists whenever ROOT expects a C-Float array as input. 
  *      Example:
  *            - a = [0.0, 1.0, 2.0]

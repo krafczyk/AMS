@@ -5,25 +5,32 @@ file = File.new("USE_THESE_ROOT_CLASSES")
 filenew = File.new("AMS.h","w")
 troot_h = File.new("TROOT.h","w")
 
-root_inc_dir = `$ROOTSYS/bin/root-config --incdir`.chomp
+root_config = `which root-config 2> /dev/null`.chomp
+root_inc_dir = `#{root_config} --incdir`.chomp
 
 file.seek(0)
 before_object_class = ""
 after_object_class = "public:\n"
 for line in file
-     if line =~ /^(T\w+).h\s*$/
-            if $1 != "TObject"
-                  before_object_class << "class #{$1};\n"
-                  after_object_class << "      #{$1}* to_#{$1}(){ return (#{$1}*)this;};\n"
-            end
-     end 
+  if line =~ /^(T\w+).h\s*$/
+    class_type = $1
+    if class_type != "TObject"
+      chfile = line.chomp
+      inc_file = File.new("#{root_inc_dir}/#{chfile}")
+      for inc_line in inc_file
+        if inc_line =~ /^\s*class\s+(T\w+)\s*[:\{]/
+          before_object_class << "class #{$1};\n"
+          after_object_class << "      #{$1}* to_#{$1}(){ return (#{$1}*)this;};\n"
+        end
+      end
+    end
+  end 
 end
 
 file.seek(0)
 for line in file
       chfile = line.chomp
       inc_file = File.new("#{root_inc_dir}/#{chfile}")
-      is_namespace_root = false
       for inc_line in inc_file
             if chfile == "TROOT.h"
                   next if inc_line =~ /operator new/
@@ -37,24 +44,6 @@ for line in file
                   else
                         filenew.puts inc_line
                   end 
-#            elsif chfile == "Rtypes.h"
-#                  if inc_line =~ /^namespace\s+ROOT\s*\{\s*$/
-#                        is_namespace_root = true
-#                        puts inc_line
-#                        next
-#                  elsif is_namespace_root == true
-#                        if inc_line =~ /^\}[;\s]*$/
-#                              is_namespace_root = false
-#                              puts inc_line
-#                              next
-#                        elsif inc_line =~ /^\}[;\s]*\/\//
-#                              is_namespace_root = false
-#                              puts inc_line
-#                              next
-#                        end
-#                  else
-#                        filenew.puts inc_line
-#                  end
             else
                   filenew.puts inc_line
             end
