@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.cxx,v 1.10 2003/07/21 11:11:16 choutko Exp $
+//  $Id: AMSNtupleV.cxx,v 1.11 2003/07/28 17:00:45 choutko Exp $
 #include "AMSNtupleV.h"
 #include "TCONE.h"
 #include "TNode.h"
@@ -293,7 +293,10 @@ if(type==kall || type==kusedonly || type==krichrings){
  fRichRingV.clear();
  if(gAMSDisplay->DrawObject(krichrings)){
   for(int i=0;i<NRichRing();i++){
-   if( (!gAMSDisplay->DrawUsedOnly() || (pRichRing(i)->Status)/32)%2)fRichRingV.push_back( RichRingV(this,i));
+   if( (!gAMSDisplay->DrawUsedOnly() || (pRichRing(i)->Status)/32)%2){
+    fRichRingV.push_back( RichRingV(this,i,false));
+    if(gAMSDisplay->DrawRichRingsFromPlex())fRichRingV.push_back( RichRingV(this,i,true));
+   }
   }
  }
 }
@@ -406,7 +409,7 @@ return false;
 #include "TRotation.h"
 
 
-RichRingV::RichRingV(AMSEventR *ev,int ref):AMSDrawI(ev,ref),TPolyLine3D(){
+RichRingV::RichRingV(AMSEventR *ev,int ref, bool drawplex):AMSDrawI(ev,ref),TPolyLine3D(){
  RichRingR *pcl=ev->pRichRing(ref);
 //
 // at the moment only rich rings ass with particles will be drawn
@@ -476,10 +479,24 @@ for(int i=0;i<ev->nParticle();i++){
     rcoo[0]+=ray.X()/ray.Z()*thick;
     rcoo[1]+=ray.Y()/ray.Z()*thick;
     rcoo[2]+=ray.Z()/ray.Z()*thick;
+//  Now refraction to the plex
+    double plex_thick =0.1;
+    const double n_plex=1.49;
+    {
+     double st=refi*sin(ray.Theta())/n_plex;
+     double u1=st*cos(ray.Phi());
+     double v1=st*sin(ray.Phi());
+     double w1=-sqrt(1-st*st);
+     ray=TVector3(u1,v1,w1);
+     // propagate
+     rcoo[0]+=ray.X()/ray.Z()*plex_thick;
+     rcoo[1]+=ray.Y()/ray.Z()*plex_thick;
+     rcoo[2]+=ray.Z()/ray.Z()*plex_thick;
+    }
 //  Now refraction
-    double st=refi*sin(ray.Theta());
+    double st=n_plex*sin(ray.Theta());
     if(st>=1){
-      cerr<< "full refl "<<st<<endl;
+//      cerr<< "full refl "<<st<<endl;
       k=k-1;
       npoint--;
       continue;
@@ -559,14 +576,24 @@ for(int i=0;i<ev->nParticle();i++){
    return;
    }
    else{
+    const double plex_thick =0.1;
+    const double n_plex=1.49;
+    double shift=0;
    double refi=pcl->Beta*cos(pcl->Theta);
     refi=1/refi;
-    if(refi>1.1){
+  if(refi>1.1){
     rad_thick=-0.5;
   }
   else {
    rad_thick=-3;
   }
+  if(drawplex){
+      refi=n_plex;
+      shift=-rad_thick/2; 
+      rad_thick=-0.1;
+      shift+=-rad_thick/2; 
+  }    
+
    double theta=pcl->Theta;
     //cout <<" theta "<<pcl->Theta<<"  " <<refi<<endl;
     TVector3 z(pcl->TrPMTPos[0]-pcl->TrRadPos[0],pcl->TrPMTPos[1]-pcl->TrRadPos[1],pcl->TrPMTPos[2]-pcl->TrRadPos[2]);
@@ -592,10 +619,22 @@ for(int i=0;i<ev->nParticle();i++){
     rcoo[0]+=ray.X()/ray.Z()*thick;
     rcoo[1]+=ray.Y()/ray.Z()*thick;
     rcoo[2]+=ray.Z()/ray.Z()*thick;
+//  Now refraction to the plex
+    if( !drawplex){
+     double st=refi*sin(ray.Theta())/n_plex;
+     double u1=st*cos(ray.Phi());
+     double v1=st*sin(ray.Phi());
+     double w1=-sqrt(1-st*st);
+     ray=TVector3(u1,v1,w1);
+     // propagate
+     rcoo[0]+=ray.X()/ray.Z()*plex_thick;
+     rcoo[1]+=ray.Y()/ray.Z()*plex_thick;
+     rcoo[2]+=ray.Z()/ray.Z()*plex_thick;
+    }
 //  Now refraction
-    double st=refi*sin(ray.Theta());
+    double st=n_plex*sin(ray.Theta());
     if(st>=1){
-      cerr<< "full refl "<<st<<endl;
+//      cerr<< "full refl "<<st<<endl;
       k=k-1;
       npoint--;
       continue;
@@ -663,5 +702,6 @@ for(int i=0;i<ev->nParticle();i++){
    int size=gAMSDisplay->Focus()==0?2:1;
    SetLineWidth(size*2);
    SetLineStyle(1);
+   if(drawplex)SetLineStyle(2);
    return;
 }

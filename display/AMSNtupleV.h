@@ -1,4 +1,4 @@
-//  $Id: AMSNtupleV.h,v 1.9 2003/07/18 13:48:51 choutko Exp $
+//  $Id: AMSNtupleV.h,v 1.10 2003/07/28 17:00:45 choutko Exp $
 #ifndef __AMSNtupleV__
 #define __AMSNtupleV__
 #include <TChain.h>
@@ -425,7 +425,7 @@ class RichRingV: public TPolyLine3D, public AMSDrawI{
 protected:
 public:
 RichRingV():AMSDrawI(NULL,-1),TPolyLine3D(){};
-RichRingV(AMSEventR *ev,int ref);
+RichRingV(AMSEventR *ev,int ref, bool drawplex=false);
 char * GetObjectInfo(Int_t px, Int_t py) const{fRef>=0?fEv->pRichRing(fRef)->Info(fRef):0;}
 
 

@@ -1,4 +1,4 @@
-//  $Id: ControlFrame.cxx,v 1.8 2003/07/18 14:49:27 choutko Exp $
+//  $Id: ControlFrame.cxx,v 1.9 2003/07/28 17:00:46 choutko Exp $
 #include "ControlFrame.h"
 #include "AMSDisplay.h"
 #include "AMSNtupleV.h"
@@ -182,10 +182,21 @@ Bool_t AMSControlFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         gAMSDisplay->UseSolidStyle()=!gAMSDisplay->UseSolidStyle();
         fOptionMenu->DeleteEntry(102);
         if(gAMSDisplay->UseSolidStyle()){
-         fOptionMenu->AddEntry("&Use Hollow Style",102);
+         fOptionMenu->AddEntry("&Use Hollow Style",102,0,0,fOptionMenu->GetEntry(103));
         }
-        else   fOptionMenu->AddEntry("&Use Solid Style",102);
+        else   fOptionMenu->AddEntry("&Use Solid Style",102,0,0,fOptionMenu->GetEntry(103));
         gAMSDisplay->GetNtuple()->Prepare(kall);
+        gAMSDisplay->SetView(gAMSDisplay->GetView());
+        gAMSDisplay->DrawTitle();
+        break;
+      case 103:
+        gAMSDisplay->DrawRichRingsFromPlex()=!gAMSDisplay->DrawRichRingsFromPlex();
+        fOptionMenu->DeleteEntry(103);
+        if(gAMSDisplay->DrawRichRingsFromPlex()){
+         fOptionMenu->AddEntry("Do Not Draw &Richrings From Plex",103);
+        }
+        else   fOptionMenu->AddEntry("Draw &RichRings From Plex",103);
+        gAMSDisplay->GetNtuple()->Prepare(krichrings);
         gAMSDisplay->SetView(gAMSDisplay->GetView());
         gAMSDisplay->DrawTitle();
         break;
@@ -259,6 +270,7 @@ AMSControlFrame::AMSControlFrame(const TGWindow *p, const TGWindow *main,
     fOptionMenu=new TGPopupMenu(fClient->GetRoot());
     fOptionMenu->AddEntry("&Draw TrClusters As Simple Boxes",101);
     fOptionMenu->AddEntry("&Use Hollow Style",102);
+    fOptionMenu->AddEntry("Draw &RichRings From Plex",103);
     fOptionMenu->Associate(this);
 
     fHelpMenu=new TGPopupMenu(fClient->GetRoot());
