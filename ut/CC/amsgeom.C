@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.123 2001/04/27 21:49:58 choutko Exp $
+//  $Id: amsgeom.C,v 1.124 2001/05/05 19:48:54 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2999,7 +2999,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 #ifndef __G4AMS__
       dau=oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
-      nrot++,name,"TRD1",par,4,coo,nrm,"ONLY",0,gid,1));
+      nrot++,name,"TRD1",par,4,coo,nrm,"MANY",0,gid,1));
 #else
       daug4 = 
      (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
@@ -3029,7 +3029,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 		  
 #ifndef __G4AMS__
 		  dau->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
-			 0,name,"BOX",par,3,coo,nrm,"MANY", 
+			 0,name,"BOX",par,3,coo,nrm,"ONLY", 
 			 j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
 #else
 		  daug4->addboolean("BOX",par,3,coo,nrm,'-');

@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.17 2001/05/02 15:53:41 choutko Exp $
+//  $Id: trddbc.C,v 1.18 2001/05/05 19:48:54 kscholbe Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -51,6 +51,10 @@ const number TRDDBc::_ManifoldWidth = 10.1; // Width of manifold
 const number TRDDBc::_BulkheadGap = 0.78; // Gap between ladders at bulkhead
 
 const integer TRDDBc::_LadderOrientation[mtrdo][maxlay]={0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0};   // 0 -x 1 -y    
+
+const number TRDDBc::_SpacerWidth = 0.03;
+// Spacers preceding
+const integer TRDDBc::_NumberSpacers[maxtube]={0,1,1,1,2,2,2,3,3,4,4,4,5,5,5,6};
 number TRDDBc::_OctagonDimensions[maxo][10]; 
 number TRDDBc::_BulkheadsDimensions[mtrdo][maxbulk][4];
 number TRDDBc::_CutoutsDimensions[mtrdo][maxlay][maxlad][3];
@@ -859,7 +863,7 @@ void TRDDBc::init(){
 
 	   // x, y positions of tubes wrt ladder
 
-           coo[0]=-LaddersDimensions(i,j,k,0)+(TubesDimensions(i,j,k,1)+TubeBoxThickness())*(1+2*l);
+           coo[0]=-LaddersDimensions(i,j,k,0)+(TubesDimensions(i,j,k,1)+TubeBoxThickness())*(1+2*l)+NumberSpacers(l)*SpacerWidth();
 
            coo[2]=0;
 
