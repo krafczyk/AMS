@@ -323,7 +323,7 @@ integer AMSgvolume::_Norp=0;
         z[i]=_par[4+3*i]*cm;
         rmin[i]=_par[5+3*i]*cm;
         rmax[i]=_par[6+3*i]*cm;
-        if(maxstep>rmax[i]-rmin[i])maxstep=(rmax[i]-rmin[i])/cm;
+        if(maxstep>(rmax[i]-rmin[i])/cm && rmax[i]-rmin[i]>0)maxstep=(rmax[i]-rmin[i])/cm;
        }       
        psolid=new G4Polyhedra(G4String(_name),_par[0]*degree,_par[1]*degree,int(_par[2]),nsurf,z,rmin,rmax);
 //       psolid=new G4BREPSolidPolyhedra(G4String(_name),_par[0]*degree,_par[1]*degree,int(_par[2]),nsurf,z[0],z,rmin,rmax);
@@ -340,6 +340,7 @@ integer AMSgvolume::_Norp=0;
         z[i]=_par[3+3*i]*cm;
         rmin[i]=_par[4+3*i]*cm;
         rmax[i]=_par[5+3*i]*cm;
+        if(maxstep>(rmax[i]-rmin[i])/cm && rmax[i]-rmin[i]>0)maxstep=(rmax[i]-rmin[i])/cm;
        }       
        psolid=new G4Polycone(G4String(_name),_par[0]*degree,_par[1]*degree,nsurf,z,rmin,rmax);
        delete[] z;
@@ -348,6 +349,7 @@ integer AMSgvolume::_Norp=0;
      }
      else if(shape=="TRAP"){
        psolid=new G4Trap(G4String(_name),_par[0]*cm,_par[1]*degree,_par[2]*degree,_par[3]*cm,_par[4]*cm,_par[5]*cm,_par[6]*degree,_par[7]*cm,_par[8]*cm,_par[9]*cm,_par[10]*degree);
+      maxstep=_par[0];
      }
      else {
        cerr<<" AMSgvolume::G3ToG4Interface-F-NoSuchShapeYet "<<_shape<<endl;
