@@ -256,6 +256,7 @@ integer AMSTimeID::write(char * dir){
 integer AMSTimeID::read(char * dir, integer reenter){
 
   // first get a run no from dbase
+  integer dflt=0;
   integer run=_getDBRecord(AMSEvent::gethead()->gettime());
   enum open_mode{binary=0x80};
     fstream fbin;
@@ -273,6 +274,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
       fnam+=getname();
       fnam+= getid()==0?".0":".1";
       cout <<"AMSTimeID::read-W-Default value for TDV "<<getname()<<" will be used."<<endl;
+      dflt=1;
     }
     else return -1;
     fbin.open((const char *)fnam,ios::in|binary);
@@ -286,14 +288,15 @@ integer AMSTimeID::read(char * dir, integer reenter){
       if(fbin.good()){
        _convert(pdata,ns);
        CopyIn(pdata);
-      _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
-      _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
-      _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
-      cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
+       _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
+       _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
+       _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
+       if(dflt)_getDefaultEnd(AMSEvent::gethead()->gettime(),_End);
+       cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
 #ifdef __AMSDEBUG__
-      cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
-      cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
-      cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
+       cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
+       cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
+       cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
 #endif
       }
       else {
@@ -371,6 +374,17 @@ integer AMSTimeID::_getDBRecord(uinteger time){
 
 }
 
+
+void AMSTimeID::_getDefaultEnd(uinteger time, time_t & end){
+ 
+ integer index=AMSbiel(_pDataBaseEntries[4],time,_DataBaseSize);
+ // cout <<getname()<<" "<<index<<" "<<_pDataBaseEntries[4][0]<<" "<<_pDataBaseEntries[2][0]<<" "<<time<<" "<<_DataBaseSize<<endl;
+ if(index>=0 && index<_DataBaseSize)end=_pDataBaseEntries[4][index];
+
+}
+
+
+
 AString * AMSTimeID::_selectEntry=0;
 
 integer AMSTimeID::_select(dirent *entry){
@@ -378,7 +392,7 @@ return strstr(entry->d_name,(char*)*_selectEntry)!=NULL;
 }
 
 void AMSTimeID::_fillDB(const char *dir){
-for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
+for( int i=0;i<5;i++)_pDataBaseEntries[i]=0;
     _DataBaseSize=0;
     AString fmap(dir);
     fmap+=getname();
@@ -391,8 +405,8 @@ for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
        fbin.open(fmap,ios::in);
        if(fbin){
          fbin>>_DataBaseSize;
-         for(i=0;i<4;i++){
-           _pDataBaseEntries[i]=new uinteger[_DataBaseSize];
+         for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[_DataBaseSize];
+         for(i=0;i<5;i++){
            for(int k=0;k<_DataBaseSize;k++){
              fbin>>_pDataBaseEntries[i][k];
            }
@@ -409,7 +423,7 @@ for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
       dirent ** namelist;
       int nptr=scandir(dir,&namelist,&_select,NULL);     
       if(nptr){
-        for(i=0;i<4;i++)_pDataBaseEntries[i]=new uinteger[nptr];
+        for(i=0;i<5;i++)_pDataBaseEntries[i]=new uinteger[nptr];
         for(i=0;i<nptr;i++) {
           int valid=0;
           int kvalid=0;
@@ -450,9 +464,11 @@ for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
 #endif
         for(i=0;i<_DataBaseSize;i++){
           tmp[i]=_pDataBaseEntries[3][i];
+          _pDataBaseEntries[4][i]=_pDataBaseEntries[2][i];
           padd[i]=tmp+i;
         }
         AMSsortNAG(padd,_DataBaseSize);
+        AMSsortNAGa(_pDataBaseEntries[4],_DataBaseSize);
         for(i=0;i<4;i++){
           for(int k=0;k<_DataBaseSize;k++){
             tmp[k]=_pDataBaseEntries[i][k];
@@ -473,7 +489,7 @@ for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
         cout <<"AMSTimeID::_fillDB-I-updating map file "<<fmap<<endl; 
 #endif
         fbin<<_DataBaseSize<<endl;
-        for(i=0;i<4;i++){
+        for(i=0;i<5;i++){
           for(int k=0;k<_DataBaseSize;k++){
             fbin<<_pDataBaseEntries[i][k]<<endl;
           }

@@ -189,18 +189,18 @@ void AMSEvent::SetTimeCoo(){
 #ifdef __AMSDEBUG__
     if(hint<sizeof(Array)/sizeof(Array[0])-1);
 #endif
-    if(Array[hint].Time<=_time && 
+    if( Array[hint].Time<=_time && 
        _time<Array[hint+3>sizeof(Array)/sizeof(Array[0])?
                   sizeof(Array)/sizeof(Array[0])-1:hint+2].Time){
       // got it
-      if(_time>Array[hint+1].Time)hint++;
+      if(_time>=Array[hint+1].Time)hint++;
     }
     else{
       //find from scratch
       for(hint=1;hint<sizeof(Array)/sizeof(Array[0]);hint++){
         if(Array[hint].Time>_time){
-          break;
           hint--;
+          break;
         }
       }
       if(hint>=sizeof(Array)/sizeof(Array[0])-1)hint=sizeof(Array)/sizeof(Array[0])-2;
@@ -1210,7 +1210,7 @@ void AMSEvent::_copyEl(){
 
 void AMSEvent::_printEl(ostream & stream){
  stream << "Run "<<_run<<" "<<getname()<<" "<< getid()<<" Time "<< 
-   ctime(&_time)<<"."<<_usec<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<
+   ctime(&_time)<<"."<<_usec<<" R "<<_StationRad<<" Theta "<<_StationTheta*AMSDBc::raddeg<<" Phi "<<_StationPhi*AMSDBc::raddeg<<" Speed "<<_StationSpeed<<
    " Pole "<<_NorthPolePhi*AMSDBc::raddeg<<endl;
 }
 

@@ -15,7 +15,7 @@ uinteger _CRC;       // Control Sum
 integer _Nbytes;   // Number of bytes in _pData
 uinteger * _pData;      // pointer to data
 integer _DataBaseSize;
-uinteger * _pDataBaseEntries[4];  // Run Insert Begin End
+uinteger * _pDataBaseEntries[5];  // Run Insert Begin End SortedBeg
 uinteger _CalcCRC();
 void _init(){};
 static void _InitTable();
@@ -24,16 +24,17 @@ void _convert(uinteger *pdata, integer nw);
 void _fillDB(const char * dir);
 void _fillfromDB();
 integer _getDBRecord(uinteger time);
+void _getDefaultEnd(uinteger time, time_t & endt);
 static integer _select(dirent * entry=0);
 static AString *_selectEntry;
 public:
 AMSTimeID():AMSNode(),_Insert(0),_Begin(0),_End(0),_Nbytes(0),_pData(0),
-_CRC(0),_UpdateMe(0),_DataBaseSize(0){for(int i=0;i<4;i++)_pDataBaseEntries[i]=0;}
+_CRC(0),_UpdateMe(0),_DataBaseSize(0){for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;}
 AMSTimeID(AMSID  id, integer nbytes=0, void* pdata=0):
 AMSNode(id),_Insert(0),_Begin(0),_End(0),_Nbytes(nbytes),_pData((uinteger*)pdata),
-_UpdateMe(0),_DataBaseSize(0){for(int i=0;i<4;i++)_pDataBaseEntries[i]=0;_CalcCRC();}
+_UpdateMe(0),_DataBaseSize(0){for(int i=0;i<5;i++)_pDataBaseEntries[i]=0;_CalcCRC();}
 AMSTimeID( AMSID  id, tm  begin, tm end, integer nbytes,  void *pdata);
-~AMSTimeID(){for(int i=0;i<4;i++)delete[] _pDataBaseEntries[i];}
+~AMSTimeID(){for(int i=0;i<5;i++)delete[] _pDataBaseEntries[i];}
 integer GetNbytes() const { return _Nbytes;}
 integer CopyOut(void *pdataNew);
 integer CopyIn(void *pdataNew);
