@@ -92,6 +92,7 @@ protected:
  number   _charge;  // charge
  number   _beta;    // particle velocity
  number   _edep;    // energy deposition
+ number   _time;      // time
  void _writeEl();
  void _copyEl(){};
  void _printEl(ostream &stream){stream <<"AMSCTCMCCluster "<<_idsoft<<" "
@@ -99,15 +100,16 @@ protected:
  static integer Out(integer);
 public:
  AMSCTCMCCluster(integer idsoft, AMSPoint xcoo, AMSDir xdir, 
-                 number charge, number step, number beta, number edep) :
+ number charge, number step, number beta, number edep, number time) :
  _idsoft(idsoft), _xcoo(xcoo), _xdir(xdir), _charge(charge),_step(step), 
- _beta(beta),_edep(edep){_next=0;};
+ _beta(beta),_edep(edep), _time(time){_next=0;};
  AMSCTCMCCluster(integer idsoft, AMSPoint xcoo, 
-                 number charge, number step, number beta, number edep) :
+ number charge, number step, number beta, number edep, number time) :
  _idsoft(idsoft), _xcoo(xcoo), _charge(charge),_step(step), 
- _beta(beta), _edep(edep){_next=0;};
+ _beta(beta), _edep(edep), _time(time){_next=0;};
   AMSCTCMCCluster(){_next=0;};
  ~AMSCTCMCCluster(){};
+ inline integer gettime() const {return _time;}
  inline integer getid() const{return _idsoft;}
  inline integer getbarno() const{ return _idsoft%1000;}
  inline integer getdetno() const{ return CTCDBc::getgeom()<2?_idsoft/10000:
@@ -125,7 +127,7 @@ public:
  integer operator < (AMSlink & o)const{
    return _idsoft < ((AMSCTCMCCluster*)(&o)) ->_idsoft;}
  static void sictchits(integer idsoft , geant vect[],geant charge, geant step,
- geant getot, geant edep);
+ geant getot, geant edep, geant time);
   AMSCTCMCCluster *  next(){return (AMSCTCMCCluster*)_next;}
 //+
 #ifdef __DB__

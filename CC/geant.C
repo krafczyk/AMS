@@ -239,7 +239,7 @@ extern "C" void gustep_(){
    GCVOLU.names[1][2]=='S' && GCVOLU.names[1][3]==' ') ))
 
      AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
-     GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep);
+     GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep, GCTRAK.tofg);
 
   // CTC Annecy fast
 
@@ -251,7 +251,7 @@ extern "C" void gustep_(){
    GCVOLU.names[2][2]=='T' ) ))
 
      AMSCTCMCCluster::sictchits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
-     GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep);
+     GCKINE.charge,GCTRAK.step, GCTRAK.getot,GCTRAK.destep,GCTRAK.tofg);
 
 
   // ANTI,  mod. by E.C.

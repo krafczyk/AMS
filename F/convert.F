@@ -39,7 +39,7 @@
      + ,CTCESignal,CTCMCXcoo,CTCMCXdir,CTCstep,CTCcharge,CTCbeta
      + ,Amplitude,CTCedep,PolePhi,ThetaS,PhiS,
      + AntiEdep,Anticoo,AntiErCoo,AntiMCXcoo,AntiMCtof,AntiMCedep,
-     +  LVL3Residual,LVL3Time
+     +  LVL3Residual,LVL3Time,CTCHitSignal
      
       INTEGER EventNo,Run,RunType,Time(2) ,BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
@@ -53,7 +53,8 @@
      +  Particles, Tracks, Betas, Charges ,TrRecHits, TrClusters,
      +  TrMCClusters, TOFClusters, TOFMCClusters, CTCClusters,
      +  CTCMCClusters,Nskip,AntiMCClusters,AntiClusters,
-     +  AntiMCEvent,AntiMCIdsoft,AntiCluster, AntiSector, AntiStatus
+     +  AntiMCEvent,AntiMCIdsoft,AntiCluster, AntiSector, AntiStatus,
+     +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow
 *
 *
 *
@@ -74,6 +75,7 @@
       parameter(maxtrtr=20)
       parameter(maxmcg=20)
       parameter(maxctccl=20)
+      parameter(maxctcht=50)
       parameter(maxctcclmc=200)
       parameter(mlvl3=2)
       parameter(mlvl1=2)
@@ -153,6 +155,11 @@
      + ctcercoo(3,maxctccl),
      + ctcrawsignal(maxctccl),ctcsignal(maxctccl),ctcesignal(maxctccl)
 
+      common/CTCCHitC/nctcht,
+     + CTCHitStatus(maxctcht),CTChitLayer(maxctcht),
+     + ctchitcolumn(maxctcht),
+     + ctchitrow(maxctcht),ctchitsignal(maxctcht)
+
       common/CTCMCClusterC/nctcclmc,
      + CTCMCIdsoft(maxctcclmc),CTCMCXcoo(3,maxctcclmc),
      + CTCMCXdir(3,maxctcclmc),CTCstep(maxctcclmc),
@@ -179,7 +186,7 @@
 
 
       character *64 cdet
-      parameter (ndet=17)
+      parameter (ndet=18)
       character *64 cblock(ndet)
       integer events(ndet),eof(ndet)
       common /quest/iquest(100)
@@ -212,6 +219,7 @@ c       write(*,*)' Starting converting'
        cblock(15)='ANTIMCCL'
        cblock(16)='LVL3'
        cblock(17)='LVL1'
+       cblock(18)='CTCHIT'
 
        do idet=1,ndet
         open(40+idet,file=cblock(idet),status='old',
@@ -331,6 +339,10 @@ c       write(*,*)' Starting converting'
      + 'nlvl1[0,1],LVL1Mode(nlvl1),LVL1Flag(nlvl1),'//
      + 'LVL1TOFPatt(4,nlvl1),LVL1AntiPatt(nlvl1)')
 
+      call hbname(1,cblock(18),nctcht,
+     + 'nctcht[0,50],CTChitStatus(nctcht):I,CTChitLayer(nctcht):I,'//
+     + 'ctchitcolumn(nctcht):I,ctchitrow(nctcht):I,'//
+     + 'ctchitsignal(nctcht)')
         runold=-1
         do i=1,ndet
           events(idet)=0
@@ -853,6 +865,37 @@ c            write(*,*)' ntrrh eq 0 ', events
         enddo   
  160     continue
         
+        idet=18
+        lun=40+idet
+        nctcht=1
+        do while(truth)
+           iostat=1
+           if(eof(idet).eq.0)read(lun,end=185)
+     +     ne,CTChitStatus(nctcht),ctchitlayer(nctcht),
+     +     ctchitcolumn(nctcht),ctchitrow(nctcht),
+     +     ctchitsignal(nctcht)
+
+           goto 186
+ 185       eof(idet)=1
+ 186       continue
+          if(eof(idet).ne.0)then
+             events(idet)=0
+           else
+            if(events(idet).gt.ne)newrun=.true.
+            events(idet)=ne
+           endif              
+         if(eof(idet).ne.0 .or. events(idet).gt.events(1).or.newrun)then
+          if(eof(idet).eq.0)backspace lun
+           nctcht=nctcht-1
+           newrun=.false.
+          goto 170
+          else if (events(idet).lt.events(1))then
+              nctcht=nctcht-1
+         endif
+           nctcht=min(nctcht+1,maxctcht)
+        enddo   
+ 170     continue
+        
 
 c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        call hfnt(1)
@@ -914,7 +957,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      + ,FChi2MS,GChi2MS,RidgidityMS,GRidgidityMS,Coo(3),Dir(3),Momentum
      + ,Mass,Charge,CTCCoo(3),CTCErCoo(3),CTCRawSignal,CTCSignal
      + ,CTCESignal,CTCMCXcoo(3),CTCMCXdir(3),CTCstep,CTCedep,CTCbeta,
-     +  lvl3residual,lvl3time
+     +  lvl3residual,lvl3time,ctchitsignal
 
       INTEGER EventNo,Run,RunType,Time(2),BetaEvent,BetaPattern
      + ,ChargeEvent,ChargeBetaP,ChargeTOF,ChargeTracker,ParticleEvent
@@ -928,7 +971,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      + ,CTCStatus,CTCLayer,CTCMCEvent,CTCMCIdsoft,px,py,Particles ,
      +  Tracks , Betas , Charges  ,TrRecHits , TrClusters , 
      +  TrMCClusters , TOFClusters , TOFMCClusters , 
-     +  CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters
+     +  CTCClusters , CTCMCClusters, AntiMCClusters, AntiClusters,
+     +  CTCHitStatus,CTCHitLayer,CTCHitColumn,CTCHitRow,ctchit
 *
 *
 *
@@ -1053,9 +1097,15 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        common /LVL1C/lvl1event,LVL1mode,lvl1flag,
      + LVL1TOFpatt(4),lvl1antipatt
 
+*
+*    idet=18
+*
+      common/CTCCHitC/ctchit,
+     + CTCHitStatus,CTChitLayer,ctchitcolumn,
+     + ctchitrow,ctchitsignal
 
       character *64 cdet
-      parameter (ndet=17)
+      parameter (ndet=18)
       character *64 cblock(ndet)
       integer events(10000),nevent
 *
@@ -1087,6 +1137,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
        cblock(15)='ANTIMCCL'
        cblock(16)='LVL3'
        cblock(17)='LVL1'
+       cblock(18)='CTCHIT'
        do idet=1,ndet
         open(21,file=cblock(idet),status='unknown',
      +  form='unformatted',position='append')
@@ -1127,6 +1178,8 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
      +  call hbname(1,cblock(idet),lvl3event,'$SET') 
         if(cblock(idet).eq.'LVL1')
      +  call hbname(1,cblock(idet),lvl1event,'$SET') 
+        if(cblock(idet).eq.'CTCHIT')
+     +  call hbname(1,cblock(idet),ctchit,'$SET') 
         do i=1,nmax
          if(i.eq.1)write(*,*)cblock(idet)(1:8),' Started'
          call hgntb(1,cblock(idet),i,ierr)
@@ -1184,6 +1237,9 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
             write(21)CTCCluster,CTCStatus,ctclayer,
      + ctccoo,ctcercoo,
      + ctcrawsignal,ctcsignal,ctcesignal
+           else if( cblock(idet).eq.'CTCHIT')then
+            write(21)CTChit,CTCHitStatus,ctcHitlayer,
+     + ctchitcolumn,ctchitrow,ctchitsignal
            else if( cblock(idet).eq.'CTCMCCLU')then
             write(21)CTCMCEvent, CTCMCIdsoft,CTCMCXcoo,
      + CTCMCXdir,CTCstep,ctccharge,ctcbeta,ctcedep

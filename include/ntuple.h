@@ -48,6 +48,18 @@ friend class AMSCTCCluster;
 
 };
 
+class CTCHitNtuple: public AMSNtuple{
+private:
+int Status;
+int Layer;
+int Column;
+int Row;
+float Signal;
+
+friend class AMSCTCRawHit;
+
+};
+
 class EventNtuple: public AMSNtuple{
 private:
 int Run;

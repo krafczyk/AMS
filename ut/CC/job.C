@@ -972,7 +972,6 @@ void AMSJob::_siantiinitjob(){
 
 void AMSJob::_sictcinitjob(){
      AMSgObj::BookTimer.book("SICTCDIGI");
-     AMSCTCRawCluster::init();
 }
 
 void AMSJob::_sitrdinitjob(){

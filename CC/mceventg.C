@@ -144,7 +144,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
                               integer ipart,  integer low){
 
  if(low ==2)ipart=5;
- char chp[21];
+ char chp[22]="";
  integer itrtyp;
  geant mass;
  geant charge;
@@ -395,7 +395,7 @@ integer AMSmceventg::EarthModulation(){
   
   void AMSmceventg::init(integer ipart){
 _ipart=ipart;
-char chn[20];
+char chn[22]="";
 integer itr=0;
 geant amass=0;
 geant charge=0;

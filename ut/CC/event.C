@@ -267,9 +267,15 @@ void AMSEvent::_retofinitevent(){
 //=====================================================================
 void AMSEvent::_rectcinitevent(){
   integer i;
-  AMSEvent::gethead()->add (
-  new AMSContainer(AMSID("AMSContainer:AMSCTCRawCluster",0),0));
   for(i=0;i<CTCDBc::getnlay();i++){
+
+   AMSEvent::gethead()->add (
+   new AMSContainer(AMSID("AMSContainer:AMSCTCRawCluster",i),0));
+
+   AMSEvent::gethead()->add (
+   new AMSContainer(AMSID("AMSContainer:AMSCTCRawHit",i),0));
+
+
    AMSEvent::gethead()->add (
    new AMSContainer(AMSID("AMSContainer:AMSCTCCluster",i),0));
   }
@@ -769,7 +775,7 @@ void AMSEvent:: _sitofevent(){
 
 
 void AMSEvent:: _sictcevent(){
-   AMSCTCRawCluster::sictcdigi();
+   AMSCTCRawHit::sictcdigi();
 #ifdef __AMSDEBUG__
   AMSContainer *p =getC("AMSCTCRawCluster",0);
   if(p && AMSEvent::debug>1)p->printC(cout);

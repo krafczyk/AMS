@@ -213,6 +213,16 @@ Below there is a description of a converted ntuple.
  * I*4  *             * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
  * I*4  *             * LVL1     * LVL1AntiPatt          // antipattern
 
+
+
+ * I*4  * [0,50]      * CTCHIT   * nctcht                // CTC Hits number
+ * I*4  *             * CTCHIT   * CTChitStatus(nctcht)  //  ----  status
+ * I*4  *             * CTCHIT   * CTChitLayer(nctcht)   //        layer  
+ * I*4  *             * CTCHIT   * ctchitcolumn(nctcht)  //        column(x)
+ * I*4  *             * CTCHIT   * ctchitrow(nctcht)     //        row(y)   
+ * R*4  *             * CTCHIT   * ctchitsignal(nctcht)  //        signal (pe)
+
+
 ---------------------------------------------------------------------------
 
 *) Status bits

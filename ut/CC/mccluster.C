@@ -407,13 +407,13 @@ if(init++==0){
 
 
 void AMSCTCMCCluster::sictchits(integer idsoft , geant vect[],geant charge, 
-geant stepc, geant getot, geant edep){
+geant stepc, geant getot, geant edep, geant time){
    AMSPoint pnt(vect[0],vect[1],vect[2]);
    AMSDir dir(vect[3],vect[4],vect[5]);
    number beta=getot != 0 ? vect[6]/getot : 0;
    if(beta>0){
     AMSCTCMCCluster *p=
-    new AMSCTCMCCluster(idsoft,pnt,dir,charge,stepc,beta,edep);
+    new AMSCTCMCCluster(idsoft,pnt,dir,charge,stepc,beta,edep, time);
     AMSEvent::gethead()->addnext(AMSID("AMSCTCMCCluster",p->getlayno()-1),p);
    }
 
