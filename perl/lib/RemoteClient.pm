@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.231 2004/01/09 12:45:30 alexei Exp $
+# $Id: RemoteClient.pm,v 1.232 2004/01/09 12:47:05 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2585,7 +2585,8 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
       htmlTableEnd();
       print "<BR><BR>\n";
        if (defined $#runs) {
-           print "<LI><font size=5 color=tomato><i> Runs Found... </font></i> $#runs+1 </li>\n";
+           my $nruns = $#runs+1;
+           print "<LI><font size=5 color=tomato><i> Runs Found... </font></i> $nruns </li>\n";
            print "<BR><BR>\n";
        }
 # ....print 'ALL' information
