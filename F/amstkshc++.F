@@ -1,4 +1,4 @@
-*  $Id: amstkshc++.F,v 1.65 2001/08/01 13:28:49 choutko Exp $
+*  $Id: amstkshc++.F,v 1.66 2002/02/26 13:28:17 choutko Exp $
 CDECK  ID>, BLANKDEK.   
 *CMZ :  3.21/02 29/03/94  15.41.18  by  S.Giani
 *-- Author :
@@ -6524,7 +6524,7 @@ c                xms(i)=fact(i)*(xp(3,i)-xp(3,i-1))**2*(i-2)*2  ! last 2 - tubes
            endif
            call dsinv(5,gg(1,1),5,ifail)
            if(ifail.ne.0)then
-             write(*,*) 'sinv gg ',ifail
+c             write(*,*) 'sinv gg ',ifail
              goto 999
            endif
            er=sqrt(2*gg(5,5))
@@ -9109,9 +9109,12 @@ C
 
 
 *
-* $Id: amstkshc++.F,v 1.65 2001/08/01 13:28:49 choutko Exp $
+* $Id: amstkshc++.F,v 1.66 2002/02/26 13:28:17 choutko Exp $
 *
 * $Log: amstkshc++.F,v $
+* Revision 1.66  2002/02/26 13:28:17  choutko
+* remote client rlated polishing
+*
 * Revision 1.65  2001/08/01 13:28:49  choutko
 * ecal rec released
 * trd rec bugs fixed

@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.177 2002/01/17 14:33:43 choutko Exp $
+//  $Id: commons.C,v 1.178 2002/02/26 13:28:09 choutko Exp $
 
 
 #include <commons.h>
@@ -92,13 +92,16 @@ AMSCommonsI::AMSCommonsI(){
 void AMSCommonsI::init(){ 
   if(_Count++==0){
    char* gtvb=getenv("BINTYPE");
+   if(!gtvb){
+    gtvb=getenv("OSTYPE");
+   }
    char* gtvh=getenv("HOSTTYPE");
    if( gtvh){
      if((strstr(gtvh,"alpha") || strstr(gtvh,"Digital")) && gtvb && strstr(gtvb,"OSF")){
       cout <<"AMSCommonsI-I-HardwareIdentifiedAs alpha-OSF"<<endl;
       _os=1;
      }
-     else if((strstr(gtvh,"i386") || strstr(gtvh,"LINUX")) && ((gtvb && strstr(gtvb,"Linux"))|| strstr(gtvh,"linux")) ){
+     else if((strstr(gtvh,"i386") || strstr(gtvh,"LINUX")) && ((gtvb && strstr(gtvb,"inux"))|| strstr(gtvh,"linux")) ){
       cout <<"AMSCommonsI-I-HardwareIdentifiedAs i386-linux"<<endl;
       _os=2;
      }

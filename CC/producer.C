@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.48 2002/02/21 12:02:42 choutko Exp $
+//  $Id: producer.C,v 1.49 2002/02/26 13:28:09 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -650,7 +650,10 @@ FMessage("AMSProducer::sendRunEnd-F-UnableToSendRunEndInfo ",DPS::Client::CInAbo
 
 }
 void AMSProducer::sendRunEndMC(){
-if(GCFLAG.NEVENT > GCFLAG.IEVENT+1 || GCFLAG.NEVENT==0){
+double error=2/sqrt(double(GCFLAG.NEVENT+1));
+if (error<0.01)error=0.01;
+if(error>0.5)error=0.5;
+if(GCFLAG.NEVENT*(1-error) > GCFLAG.IEVENT+1 || GCFLAG.NEVENT==0){
         FMessage("RunIncomplete ", DPS::Client::CInAbort); 
 }
 _cinfo.Status= DPS::Producer::Finished;

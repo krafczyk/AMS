@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.277 2002/01/17 14:33:44 choutko Exp $
+//  $Id: event.C,v 1.278 2002/02/26 13:28:09 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -477,18 +477,28 @@ void AMSEvent::_signinitevent(){
   // Allocate time & define the geographic coordinates
   if(AMSJob::gethead()->isSimulation() && !rec){
     static number dtime=AMSmceventg::Orbit.FlightTime/
-      (GCFLAG.NEVENT+1-GCFLAG.IEVENT);
+      (GCFLAG.NEVENT);
     static number curtime=0;
     geant dd; 
     int i;
     number xsec=0;
       xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
     curtime+=xsec;
+    if(curtime>AMSmceventg::Orbit.FlightTime){
+      curtime=AMSmceventg::Orbit.FlightTime;
+      GCFLAG.IEORUN=1;
+    }
+//    cout <<" AMSmceventg::Orbit.FlightTime "<<AMSmceventg::Orbit.FlightTime<<" "<<xsec<<" "<<curtime<<" "<<dtime<< " "<<AMSmceventg::Orbit.Nskip<<endl;
+    GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
+//    if(GCFLAG.IEVENT>GCFLAG.NEVENT){
+//      GCFLAG.IEORUN=1;
+//      GCFLAG.IEOTRI=1;
+//      return;
+//    }
     _NorthPolePhi=AMSmceventg::Orbit.PolePhi;
     AMSmceventg::Orbit.UpdateOrbit(curtime, _StationTheta,_StationPhi,
     _NorthPolePhi,_time);
     _usec=(curtime-integer(curtime))*1000000000;  // nsec for mc
-    GCFLAG.IEVENT=GCFLAG.IEVENT+AMSmceventg::Orbit.Nskip;
     AMSmceventg::Orbit.Nskip=0;        
     AMSmceventg::Orbit.Ntot++;
     _Yaw=0;

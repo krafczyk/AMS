@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.116 2001/09/11 08:06:43 choutko Exp $
+//  $Id: mceventg.C,v 1.117 2002/02/26 13:28:09 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <mceventg.h>
@@ -338,9 +338,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       //
       // find a modulation
       //
-      geant modul[11]={400.,350.,550.,650.,950.,1300.,1200.,1000.,1000.,1000.,1000.};
+      geant modul[14]={400.,350.,550.,650.,950.,1000.,1300.,1200.,1000.,900.,800.,600.,500.,500.};
       integer year=(begindate%10000+enddate%10000)/2-1997; 
-      if(year <=0 || year > 10){
+      if(year <=0 || year > 13){
         cerr<<"AMSmceventg::setspectra-F-year not supported yet: "<<year<<endl;
         exit(1);
       }
@@ -710,7 +710,7 @@ integer AMSmceventg::EarthModulation(){
   if (_mom > mom)return 1;
   else {
   //cout <<xfac<<" "<<_mom<<" "<<mom<<endl;
-  ++Orbit.Nskip;   
+  ++Orbit.Nskip;
    return 0;
   }
 }
