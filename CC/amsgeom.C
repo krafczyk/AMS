@@ -90,12 +90,12 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  antigeom02(mother);
  pshgeom02(mother);
 #endif
+ srdgeom02(mother);
+ trdgeom02(mother);
  tkgeom02(mother);
 #ifndef __G4AMS__ 
  richgeom02(mother);
  ecalgeom02(mother);
- trdgeom02(mother);
- srdgeom02(mother);
 #endif
 }
 else{ 
@@ -2473,6 +2473,7 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    ost << "TR"<<TRDDBc::CodeLad(gid-1)<<ends;
    TRDDBc::GetLadder(k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::LaddersDimensions(i,j,k,ip);
+
    int itrd=TRDDBc::NoTRDOctagons(i);
 //   cout <<name<<" "<<j<<" "<<k<<" "<<
 //   coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<

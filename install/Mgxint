@@ -15,9 +15,9 @@ ifeq  "$(shell uname)"  "OSF1"
 CFLAGS= -D__AMSDEBUG__   -D__ALPHA__ -g   -I../include -I../include/stl -tlocal 
 LDFLAGS= ..$(BIN)/rndm.o -lUfor -lfor -lFutil -lots -lm -L/cern/pro/lib  -lgeant321  -lpawlib -lgraflib -lgrafX11  -lmathlib -lpacklib -lkernlib -L/usr/lib -lXm -lXt -lX11 -lPW -lm -L/afs/cern.ch/asis/packages/licensed/nag-mark16/alpha_osf32c/nagfl16df -lnag 
 CC=cxx -D__NAMESPACE__
-ifeq "$(shell cxx -V | grep -c 6.1)" "1"
-CC=cxx -D__NAMESPACE__  -oldcxx
-#CC=cxx -D__NAMESPACE__  -nostdnew
+ifeq "$(shell cxx -V | grep -c 6.)" "1"
+#CC=cxx -D__NAMESPACE__  -oldcxx
+CC=cxx -D__NAMESPACE__  -nostdnew
 endif
 FF=f77
 LD=cxx

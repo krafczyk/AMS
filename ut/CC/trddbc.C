@@ -14,7 +14,7 @@ uinteger TRDDBc::_PrimaryOctagonNo=3;
 uinteger TRDDBc::_TRDOctagonNo=1;
 uinteger TRDDBc::_OctagonNo=maxo;
 uinteger TRDDBc::_LayersNo[mtrdo]={maxlay};
-uinteger TRDDBc::_LaddersNo[mtrdo][maxlay]={20,20,20,19,19,19,19,18,18,18,17,17,17,16,16,16,16,15,15,15};
+uinteger TRDDBc::_LaddersNo[mtrdo][maxlay]={20,20,19,19,19,19,19,18,18,18,17,17,17,16,16,16,16,15,15,15};
 
 uinteger TRDDBc::_TubesNo[mtrdo][maxlay][maxlad];
 
@@ -558,13 +558,10 @@ assert(index<sizeof(_TubesDimensions)/sizeof(_TubesDimensions[0][0][0][0])/mtrdo
 switch(index){
 case 2:
 return _TubesDimensions[toct][lay][lad][index];
-break;
 case 1:
 return _TubesDimensions[toct][lay][lad][0];
-break;
 case 0:
 return 0;
-break;
 }
 }
 
@@ -596,7 +593,7 @@ return _OctagonDimensions[toct][index];
 char* TRDDBc::CodeLad(uinteger gid){
  static char output[3]={'\0','\0','\0'};
  static char code[]="QWERTYUIOPASFGHJKLZXCVBNM1234567890";
- integer size=sizeof(code)-1;
+ integer size=strlen(code);
  if(gid<size*size){
   output[0]=code[gid%size]; 
   output[1]=code[gid/size]; 

@@ -518,16 +518,17 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      // Checking if Volume is sensitive one 
     G4StepPoint * PostPoint = Step->GetPostStepPoint();
     G4VPhysicalVolume * PostPV = PostPoint->GetPhysicalVolume();
-    if(PostPV){
-//      cout << "Stepping  "<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
-    GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0;
-    GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;
-    if(GCTMED.isvol){
-//      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
-     // gothering some info and put it into geant3 commons
-
      G4StepPoint * PrePoint = Step->GetPreStepPoint();
      G4VPhysicalVolume * PrePV = PrePoint->GetPhysicalVolume();
+    if(PostPV && PrePV){
+//      cout << "Stepping  "<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<endl;
+    GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0 ||
+                 PrePV->GetLogicalVolume()->GetSensitiveDetector()!=0;
+     GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;
+    if(GCTMED.isvol){
+      cout << "Stepping  sensitive"<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
+     // gothering some info and put it into geant3 commons
+
      GCTRAK.inwvol= PostPV != PrePV;
      GCTRAK.step=Step->GetStepLength()/cm;
      GCTRAK.vect[0]=PostPoint->GetPosition().x()/cm; 
@@ -614,24 +615,23 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
    G4ParticleDefinition* particle =Track->GetDefinition();
    GCKINE.ipart=AMSJob::gethead()->getg4physics()->G4toG3(particle->GetParticleName());
    GCKINE.charge=particle->GetPDGCharge();
+      cout << "Stepping  sensitive"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<GCKINE.ipart<<" "<<GCTRAK.destep<<" "<<GCTRAK.step<<endl;
 
   try{
   // Now one has decide based on the names of volumes (or their parents)
-     G4VPhysicalVolume * Mother=PostPV->GetMother();
+     G4VPhysicalVolume * Mother=PrePV->GetMother();
      G4VPhysicalVolume * GrandMother= Mother?Mother->GetMother():0;      
   // Tracker
      if(GCTRAK.destep && GrandMother && GrandMother->GetName()[0]=='S' 
      &&  GrandMother->GetName()[1]=='T' && GrandMother->GetName()[2]=='K'){
-//       cout <<" tracker "<<endl;
-      AMSTrMCCluster::sitkhits(PostPV->GetCopyNo(),GCTRAK.vect,
+       cout <<" tracker "<<endl;
+      AMSTrMCCluster::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
       GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
      }
 
   //TOF
 
 
-  if(PostPV->GetName()[0]== 'T' &&PostPV->GetName()[1]=='O' &&
-     PostPV->GetName()[2]=='F' &&PostPV->GetName()[3]=='S'){
       geant t,x,y,z;
       char name[5]="dumm";
       char media[21]="dummy_media         ";
@@ -641,25 +641,34 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       geant vect[3],dx,dy,dz,dt;
       int i,nd,numv,iprt,numl,numvp;
       static int numvo(-999),iprto(-999);
-
-
-    iprt=GCKINE.ipart;
-    numv=PostPV->GetCopyNo();
-    x=GCTRAK.vect[0];
-    y=GCTRAK.vect[1];
-    z=GCTRAK.vect[2];
-    t=GCTRAK.tofg;
-    de=GCTRAK.destep;
-    if(GCTRAK.inwvol==1){// new volume or track : store param.
-      iprto=iprt;
-      numvo=numv;
-      xpr=x;
-      ypr=y;
-      zpr=z;
-      tpr=t;
-    }
-    else{
-      if(iprt==iprto && numv==numvo && de!=0.){// same part. in the same volume
+      if(PostPV->GetName()[0]== 'T' &&PostPV->GetName()[1]=='O' &&
+      PostPV->GetName()[2]=='F' &&PostPV->GetName()[3]=='S'){
+       numv=PostPV->GetCopyNo();
+       iprt=GCKINE.ipart;
+       x=GCTRAK.vect[0];
+       y=GCTRAK.vect[1];
+       z=GCTRAK.vect[2];
+       t=GCTRAK.tofg;
+       de=GCTRAK.destep;
+       if(GCTRAK.inwvol==1){// new volume or track : store param.
+        iprto=iprt;
+        numvo=numv;
+        xpr=x;
+        ypr=y;
+        zpr=z;
+        tpr=t;
+       }
+     }
+     if(PrePV->GetName()[0]== 'T' &&PrePV->GetName()[1]=='O' &&
+      PrePV->GetName()[2]=='F' &&PrePV->GetName()[3]=='S'){
+       numv=PrePV->GetCopyNo();
+       iprt=GCKINE.ipart;
+       x=GCTRAK.vect[0];
+       y=GCTRAK.vect[1];
+       z=GCTRAK.vect[2];
+       t=GCTRAK.tofg;
+       de=GCTRAK.destep;
+       if(iprt==iprto && numv==numvo && de!=0.){// same part. in the same volume
         dx=(x-xpr);
         dy=(y-ypr);
         dz=(z-zpr);
@@ -690,7 +699,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
           vect[2]=zpr+0.5*dz;
           tof=tpr+0.5*dt;
           dee=GCTRAK.destep;
-          if(TOFMCFFKEY.birks)GBIRK(dee);
+          //if(TOFMCFFKEY.birks)GBIRK(dee);
           AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
         }// end of "big step" test
 //
@@ -699,7 +708,6 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
         zpr=z;
         tpr=t;
       }// end of "same part/vol, de>0"
-    }// end of new volume test
   }// end of "in TOFS"
 
 
