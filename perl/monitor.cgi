@@ -1,17 +1,10 @@
 #!/usr/bin/perl -w
-
-use Error qw(:try);
 use Gtk;
-use Carp;
 use strict;
-$SIG{INT}=sub{exit()};
 
 
-package main;
-use Error qw(:try);
 use lib::Monitor;
-use lib::monitorUI;
-
+use lib::monitorHTML;
 
 
 
@@ -19,24 +12,23 @@ use lib::monitorUI;
 
 my $monitor=new Monitor();
 
+
+
+
+
 #get ior from server and connect to
 
 my $ok=$monitor->Connect();
 
-#Activate GTK
+#activate CGI
 
-my $window=new monitorUI;
+my $html=new monitorHTML;
 
-
-
-#show window and run orbit
 
  if($ok){
-  $window->Update();
+   $html->Update();
+   exit;
  }
- $window->{window}->show_all;
 if(not $ok){
-  monitorUI::Warning();
+  $html->Warning();
 }
- $monitor->{orb}->run();
-# Gtk->main();
