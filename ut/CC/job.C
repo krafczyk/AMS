@@ -583,8 +583,8 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.daqthr[0]=35.;//Fast discr. thresh(mV) for fast/slow_TDC 
   TOFRECFFKEY.daqthr[1]=150.;//Fast discr. thresh(mV) for FT-trigger (z>=1)  
   TOFRECFFKEY.daqthr[2]=150.;//thresh(mV) for discr. of "z>2"-trig (dinode) 
-  TOFRECFFKEY.daqthr[3]=3.5;//thresh(pC) for anode Time_over_Thresh. discr.  
-  TOFRECFFKEY.daqthr[4]=3.5;//thresh(pC) for dinode Time_over_Thresh. discr.
+  TOFRECFFKEY.daqthr[3]=0.;//spare  
+  TOFRECFFKEY.daqthr[4]=0.;//spare
 //
   TOFRECFFKEY.cuts[0]=5.;//t-window(ns) for "the same hit" search in f/s_tdc
   TOFRECFFKEY.cuts[1]=50.;//"befor"-cut in time history (ns)(max.PMT-pulse length?)
@@ -596,6 +596,8 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.cuts[7]=0.;
   TOFRECFFKEY.cuts[8]=0.;
   TOFRECFFKEY.cuts[9]=0.;
+//
+  TOFRECFFKEY.ReadConstFiles=1;//read const. from DB/Files (0/1)
 //  
   TOFRECFFKEY.sec[0]=0; 
   TOFRECFFKEY.sec[1]=0;
@@ -627,7 +629,7 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.caltyp=0;// (11) 0/1->space/earth calibration
 // AMPL-calibration:
   TOFCAFFKEY.truse=0; // (12) 1/0-> to use/not tracker
-  TOFCAFFKEY.plhc[0]=2.;// (13) track mom. low limit(gev/c) for space calibr
+  TOFCAFFKEY.plhc[0]=1.;// (13) track mom. low limit(gev/c) for space calibr
   TOFCAFFKEY.plhc[1]=30.;// (14) track mom. high limit(gev/c) ..............
   TOFCAFFKEY.minev=100;// (15)min.events needed for measurement in channel or bin
   TOFCAFFKEY.trcut=0.85;// (16) cut to use for "truncated average" calculation
@@ -636,11 +638,12 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.refbid[2]=203; 
   TOFCAFFKEY.refbid[3]=204; 
   TOFCAFFKEY.refbid[4]=108;//(21)
-  TOFCAFFKEY.plhec[0]=0.05;//(22)plow-cut for earth calibration
+  TOFCAFFKEY.plhec[0]=0.1;//(22)plow-cut for earth calibration
   TOFCAFFKEY.plhec[1]=10;  //(23)phigh-cut ...................
   TOFCAFFKEY.bgcut[0]=2; //(24) beta*gamma low-cut to be in mip-region(abs.calib)
   TOFCAFFKEY.bgcut[1]=10;//(25) beta*gamma high-cut ...
-  TOFCAFFKEY.tofcoo=0; // 0/1-> use transv/longit coord. from TOF 
+//
+  TOFCAFFKEY.tofcoo=0; // (26) 0/1-> use transv/longit coord. from TOF 
   FFKEY("TOFCA",(float*)&TOFCAFFKEY,sizeof(TOFCAFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //======================================================================
@@ -1037,6 +1040,7 @@ AMSUser::InitJob();
 void AMSJob::_caamsinitjob(){
 if(isCalibration() & CTracker)_catkinitjob();
 if(isCalibration() & CTOF)_catofinitjob();
+if(isCalibration() & CAnti)_cantinitjob();
 if(isCalibration() & CTRD)_catrdinitjob();
 if(isCalibration() & CCerenkov)_cactcinitjob();
 if(isCalibration() & CAMS)_caaxinitjob();
@@ -1083,6 +1087,10 @@ void AMSJob::_catrdinitjob(){
 
 void AMSJob::_cactcinitjob(){
 }
+
+void AMSJob::_cantinitjob(){
+}
+
 
 void AMSJob::_caaxinitjob(){
 }
@@ -1159,13 +1167,13 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
         HBOOK1(1505,"Qmax ratio",80,0.,16.,0.);
         HBOOK1(1507,"T0-difference inside bar-types 5",80,-0.4,0.4,0.);
-        HBOOK2(1502,"Layer-1,T vs exp(-TovT)",50,0.,0.2,50,5.,10.,0.);
-        HBOOK2(1514,"Layer-1,T vs Qthr/Q",50,0.,0.2,50,5.,10.,0.);
-        HBOOK2(1504,"Layer-3,T vs exp(-TovT)",50,0.,0.2,50,0.,5.,0.);
+        HBOOK2(1502,"Layer-1,T vs exp(-TovT)",50,0.,0.2,50,4.,9.,0.);
+        HBOOK2(1514,"Layer-1,T vs Qthr/Q",50,0.,0.2,50,4.,9.,0.);
+        HBOOK2(1504,"Layer-3,T vs exp(-TovT)",50,0.,0.2,50,-1.,4.,0.);
         HBOOK1(1508,"T1-T3, not A-corrected",80,2.5,7.3,0.);
         HBOOK1(1509,"T2-T4, not A-corrected",80,3.5,8.3,0.);
-        HBOOK1(1510,"L-1 PM-1 slow-time,A-noncor,calib.events",80,50.,60.,0.);
-        HBOOK1(1511,"L-1 PM-2 slow-time,A-noncor,calib.events",80,50.,60.,0.);
+        HBOOK1(1510,"L-1 PM-1 slow-time,A-noncor,calib.events",80,45.,55.,0.);
+        HBOOK1(1511,"L-1 PM-2 slow-time,A-noncor,calib.events",80,45.,55.,0.);
         HBOOK1(1512,"L-1 PM-1 TovTa(ns),calib.events",80,50.,290.,0.);
         HBOOK1(1513,"L-1 PM-2 TovTa(ns),calib.events",80,50.,290.,0.);
         HBOOK1(1518,"L-3 PM-1 slow-time,A-noncor,calib.events",80,45.,55.,0.);
@@ -1174,7 +1182,7 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1521,"L-3 PM-2 TovTa(ns),calib.events",80,50.,290.,0.);
         HBOOK1(1522,"L-4 PM-1 slow-time,A-noncor,calib.events",80,45.,55.,0.);
         HBOOK1(1523,"L-4 PM-2 slow-time,A-noncor,calib.events",80,45.,55.,0.);
-        HBOOK1(1524,"TRlen13-TRlen24",80,-3.2,3.2,0.);
+        HBOOK1(1524,"TRlen13-TRlen24",80,-4.,4.,0.);
 //        HBOOK1(1550,"Bar-time(corected),L=1",80,24.,26.,0.);
 //        HBOOK1(1551,"Bar-time(corected),L=2",80,23.5,25.5,0.);
 //        HBOOK1(1552,"Bar-time(corected),L=3",80,19.5,21.5,0.);
@@ -1229,24 +1237,30 @@ void AMSJob::_retofinitjob(){
       }
     }
 //-----------
-//     ===> Clear JOB-statistics counters for SIM/REC :
+// ===> Clear JOB-statistics counters for SIM/REC :
 //
     TOFJobStat::clear();
 //
-//-----------
-//     ===> create common parameters (tofvpar structure) :
-//
- tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
+  if(TOFRECFFKEY.ReadConstFiles){// Constants will be taken from ext.files
 //
 //-----------
-//     ===> create scmcscan-objects for each sc.bar using MC t/eff-distributions
-//                                                              from ext. files :
+// ===> create common parameters (tofvpar structure) fr.data-cards :
+//
+    tofvpar.init(TOFRECFFKEY.daqthr, TOFRECFFKEY.cuts);//daqthr/cuts reading
+//
+//-----------
+//     ===> create indiv. sc.bar scmcscan-objects (MC t/eff-distributions) 
+//                                                          from ext. files :
     AMSTOFScan::build();
 //
 //-------------------------
-//     ===> fill indiv. parameters (scbrcal-objects for each sc. bar) :
+// ===> create indiv. sc.bar parameters (sc.bar scbrcal-objects) fr.ext.files:
 //
     TOFBrcal::build();
+  }
+  else{ // Constants will be taken from DB (TDV)
+    TOFRECFFKEY.year[1]=TOFRECFFKEY.year[0]-1;    
+  }
 // 
 //-----------
 }

@@ -200,7 +200,7 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
 // =============> Stretcher-ratio calibration, if requested :
 //
   if(TOFRECFFKEY.relogic[0]==1 && status == 0){
-    TOFJobStat::addre(15);
+    TOFJobStat::addre(16);
 //
     ptr=(AMSTOFRawEvent*)AMSEvent::gethead()
                         ->getheadC("AMSTOFRawEvent",0);
@@ -369,7 +369,7 @@ void AMSTOFRawCluster::build(int &status){
   int16u nadcd[2]={0,0};
   int16u  ftdc1[SCTHMX2*2],stdc1[SCTHMX3*4],adca1[SCTHMX4*2],adcd1[SCTHMX4*2];
   int16u  ftdc2[SCTHMX2*2],stdc2[SCTHMX3*4],adca2[SCTHMX4*2],adcd2[SCTHMX4*2];
-  integer ilay,last,ibar,isid,isds,isd;
+  integer ilay,last,ibar,isid,isds,isd,isdsl[SCLRS];
   integer i,j,chnum,brnum,am[2],tmi[2],itmf[2],sta,st,smty[2],reject;
   integer trpatt[SCLRS];
   int statdb[2];
@@ -379,7 +379,7 @@ void AMSTOFRawCluster::build(int &status){
   number zc,ama[2],amd[2],qtota,qtotd,tmf[2],time,coo,ecoo;//input to RawCluster Constr
   number tm[2],tf,dt,fstd;
   number amf[2],timeD,tamp;
-  number charg[2];
+  number charg[2]={0.,0.};
   number t1,t2,t3,t4;
   geant blen,co,eco,point,brlm,pcorr,td2p,etd2p,clong[SCLRS],strr[2];
   AMSTOFRawEvent *ptr;
@@ -447,10 +447,8 @@ void AMSTOFRawCluster::build(int &status){
     if(idN != id){ // both sides ready, next hit is OTHER_counter/last hit,
 //       so process CURRENT counter data : 
 //
-      sta=0;
-      if(isds==1)sta|=SCBADB2;// set bit for counter with one_side measurements
-      if(isds==2 || (isds==1 && (statdb[0]>0 || statdb[1]>0))){ // two sides presence check
-        TOFJobStat::addbr(brnum,0);//h/w status ok(both sides are present if are alive in DB)
+      if(isds==2 || isds==1){ // sides presence check
+        TOFJobStat::addbr(brnum,0);//h/w status ok(at least one alive(in DB) side is present )
 //
 // =============> start pattern recognition for given sc.bar :
 //
@@ -459,10 +457,13 @@ void AMSTOFRawCluster::build(int &status){
 //
         smty[0]=0;
         smty[1]=0;
-        if(statdb[0]>0 || (nstdc[0]>=4 && nadca[0]>=2 && nftdc[0] >=2))smty[0]=1;
-        if(statdb[1]>0 || (nstdc[1]>=4 && nadca[1]>=2 && nftdc[1] >=2))smty[1]=1;
-        if(smty[0]==1 && smty[1]==1){ // (single(but good)-side bar will be accepted) 
+        if(nstdc[0]>=4 && nadca[0]>=2 && nftdc[0] >=2)smty[0]=1;
+        if(nstdc[1]>=4 && nadca[1]>=2 && nftdc[1] >=2)smty[1]=1;
+        if(smty[0]==1 || smty[1]==1){ //(even 1-side bar is accepted,if have complete measur.) 
           TOFJobStat::addbr(brnum,1);
+          isds=smty[0]+smty[1];// redefine side-counter as good side counter
+          sta=0;
+          if(isds==1)sta|=SCBADB2;// set bit for counter with one good side-measurements
           scbrcal[ilay][ibar].gtstrat(strr);
 //
 //--------------> identify "corresponding"(to sTDC) hit in fast TDC :
@@ -510,8 +511,8 @@ void AMSTOFRawCluster::build(int &status){
 //-----------> check the presence of f-TDC (history) hits and                          
 //                         do "befor"/"after" cuts for both sides :
           reject=0;
-          if((tmf[0]<0. && statdb[0]==0) ||
-             (tmf[1]<0. && statdb[1]==0))reject=1;//no f-/s-TDC matching on any alive side
+          if((tmf[0]<0. && smty[0]==1) ||
+             (tmf[1]<0. && smty[1]==1))reject=1;//no f-/s-TDC matching on any alive side
 //
           if(reject==0){
             j=itmf[0]-2; // Side-1 "after"(real time)-check (LIFO-readout !)
@@ -550,7 +551,7 @@ void AMSTOFRawCluster::build(int &status){
             tm[0]=0;
             ama[0]=0;
             amf[0]=0;
-            if(statdb[0]==0){// alive
+            if(smty[0]==1){// good side
               t4=(stdc1[0]&pbanti)*TOFDBc::tdcbin(1);// 4-th edge of str-info
               t2=(stdc1[2]&pbanti)*TOFDBc::tdcbin(1);// 2-nd edge of str-info
               t1=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);// 1-st edge of str-info
@@ -564,7 +565,7 @@ void AMSTOFRawCluster::build(int &status){
             tm[1]=0;
             ama[1]=0;
             amf[1]=0;
-            if(statdb[1]==0){// alive
+            if(smty[1]==1){// good side
               t4=(stdc2[0]&pbanti)*TOFDBc::tdcbin(1);// 4-th edge of str-info
               t2=(stdc2[2]&pbanti)*TOFDBc::tdcbin(1);// 2-nd edge of str-info
               t1=(stdc2[3]&pbanti)*TOFDBc::tdcbin(1);// 1-st edge of str-info
@@ -575,11 +576,11 @@ void AMSTOFRawCluster::build(int &status){
               amf[1]=ama[1]; 
               if(TOFRECFFKEY.reprtf[2]>0)HF1(1104,geant(ama[1]),1.);
             }
-            if(statdb[0]>0){ // make == each side times and ampl. for isds=1 case:
+            if(smty[0]==0){ // make "=" each side times and ampl. for 1-side case:
               tmf[0]=tmf[1];
               amf[0]=amf[1];
             }
-            if(statdb[1]>0){
+            if(smty[1]==0){
               tmf[1]=tmf[0];
               amf[1]=amf[0];
             }
@@ -620,13 +621,14 @@ void AMSTOFRawCluster::build(int &status){
                                             /pcorr;//dinode-tot Edep(mev) with corrections
 //-->
               nbrl[ilay]+=1;
+              isdsl[ilay]=isds;
               edepa[ilay]=qtota;
               edepd[ilay]=qtotd;
               tcorr[ilay]=time;
               tuncorr[ilay]=0.5*(tmf[0]+tmf[1]);// layer A-non.cor. time
               tdiff[ilay]=0.5*(tmf[0]-tmf[1]);// layer A-non.cor. time-diff.(ns) 
-              pch1[ilay]=charg[0];
-              pch2[ilay]=charg[1];
+              pch1[ilay]=geant(charg[0]);
+              pch2[ilay]=geant(charg[1]);
               brnl[ilay]=ibar;
               clong[ilay]=co;
               st=0;
@@ -638,9 +640,9 @@ void AMSTOFRawCluster::build(int &status){
                                   qtota,qtotd,tm,time,coo,ecoo));//store values
             } // ---> end of run-type check
 //-----------
-        } // ---> end of "measurement-multiplicity" check
+        } // ---> end of "side measurement-multiplicity" check
 //
-      } // ---> end of 2-side check
+      } // ---> end of sides presence check
       isds=0;// clear side-counters befor next bar processing
       nftdc[0]=0;
       nftdc[1]=0;
@@ -677,6 +679,9 @@ void AMSTOFRawCluster::build(int &status){
   bad=0;
   for(i=0;i<SCLRS;i++)if(nbrl[i] != 1)bad=1;
   if(bad)return;// not 4x1hit event
+  bad=0;
+  for(i=0;i<SCLRS;i++)if(isdsl[i] != 2)bad=1;
+  if(bad)return;// not all bars are two-sided 
 //  
 // -> find track length using scint-made transv.coord :
   ix=0;
@@ -845,7 +850,7 @@ void AMSTOFCluster::build(int &stat){
       barl=TOFDBc::brlen(ilay,ibar);// peak bar length
       barw=TOFDBc::plnstr(5);//bar width
       bars=TOFDBc::plnstr(5)-TOFDBc::plnstr(4)
-                            +2.*TOFDBc::plnstr(7);//sc.bar transv. step
+                            +2.*TOFDBc::plnstr(13);//sc.bar transv. step
       TOFMCFFKEY.padl=bars;//redef. datacard's sc.bar transv.step
       scbrcal[ilay][ibar].getd2p(speedl,err);//get light speed
       yloc=ptr->gettimeD();// get yloc/err for "peak" bar
@@ -874,7 +879,7 @@ void AMSTOFCluster::build(int &stat){
       }
       time=ptr->gettime();// (ns)
       etime=TOFMCFFKEY.TimeSigma/sqrt(2.);//(sec !!) tempor(later put in TOFBrcal needed data!)
-      if(status & SCBADB2)etime=(1.e-9)*barl/speedl/sqrt(12);//for single-sided counters
+      if(status & SCBADB2)etime=(1.e-9)*barl/speedl/sqrt(12);//(sec !!!)for single-sided counters
 //------
       if(edep>TOFRECFFKEY.ThrS){// <--- calc.clus.parameters if Ecl>Ethresh
         if(TOFRECFFKEY.reprtf[2]>0){
@@ -905,15 +910,15 @@ void AMSTOFCluster::build(int &stat){
 //    Calculate abs. 2-D coordinates of cluster COG according to plane rotation mask:
         if(plrot==0){ // non-rotated plane
           coo[0]=ct;//clust. X-coord.
-          ecoo[0]=bars/2.7;// 2.7 for security
+          ecoo[0]=bars/3.46;
           coo[1]=cl;//clust. abs.Y-coord.(neglect counter's long.shift)
-          ecoo[1]=1.5*eyloc;// 1.5 for security
+          ecoo[1]=eyloc;
         }
         else{ // rotated plane
           coo[0]=-cl;//abs.X-coord(yloc=-xabs and neglect counter's long.shift)
-          ecoo[0]=1.5*eyloc;
+          ecoo[0]=eyloc;
           coo[1]=ct;
-          ecoo[1]=bars/2.7;
+          ecoo[1]=bars/3.46;
         }
         time=-time*1.e-9;// ( ns -> sec ,"-" for V.Shoutko fit)
 //
@@ -1198,7 +1203,7 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
       }
       ptr=ptlist[sfet][tofc];// =0 for temper. (sw2hwid-function should provide that)
       if(ptr>0){
-        if(mtyp==1)ntdc=ptr->getftdc(tdc);//tempor (not final correspondance)
+        if(mtyp==1)ntdc=ptr->getftdc(tdc);
         if(mtyp==2)ntdc=ptr->getstdc(tdc);
         if(mtyp==3)ntdc=ptr->getadca(tdc);
         if(mtyp==4)ntdc=ptr->getadcd(tdc);
@@ -1265,7 +1270,7 @@ void AMSTOFRawEvent::builddaq(int16u blid, integer &len, int16u *p){
           adr=adrw;
           if((tdc[i]&phbit)>0)adr|=phbtp;// add phase bit to address-word
           tdcw=tdc[i]&maxv;// put hit-value to tdc-word
-          tdcw|=(chip<<15);// add chip number 
+          tdcw|=((1-chip)<<15);// add chip number [(1-chip) is due to Contin's error]
           *(p+ic++)=tdcw; // write hit-value
           *(p+ic++)=adr; // write hit-address
         }
@@ -1435,7 +1440,7 @@ void AMSTOFRawEvent::buildraw(int16u blid, integer &len, int16u *p){
                             phbt=1; // check/set phase-bit flag
         else
                             phbt=0;
-        tdcc=8*chip+chc; // channel inside SFET(0-15)
+        tdcc=8*(1-chip)+chc; // channel inside SFET(0-15) {(1-chip) is due to Contin's error] 
         hitv=(tdcw & maxv)|(phbt*phbit);// tdc-value with phase bit set as for RawEvent
         hwch=SCTDCC*sfet+tdcc;//sequential tdc-ch numbering through all SFETs
         if(nhits[hwch]<16){
@@ -1554,29 +1559,29 @@ int16u AMSTOFRawEvent::hw2swid(int16u a1, int16u a2, int16u a3){
   int16u swid,hwch;
 //
   static int16u sidlst[SCCRAT*SCSFET*SCTOFC]={// 14 LBBS's + 2 empty  per CRATE :
-// crate-1, (4 SFETs)x(4 TOFCs), (layer-1, side-1) :
-  1011,1021,1031,1041, 1051,1061,1071,   0, 1081,1091,1101,1111, 1121,1131,1141,0,
+// crate-1(node-0), (4 SFETs)x(4 TOFCs) :
+  2112,2122,2132,2142, 2082,2092,2102,   0, 1081,1091,1101,1111, 1121,1141,4121,4141,
 //
-// crate-2, (4 SFETs)x(4 TOFCs), (layer-1, side-2):
-  1012,1022,1032,1042, 1052,1062,1072,   0, 1082,1092,1102,1112, 1122,1132,1142,0,
+// crate-2(node-1), (4 SFETs)x(4 TOFCs) :
+  3112,3122,3132,3142, 3082,3092,3102,   0, 4081,4091,4101,4111,    0,   0,   0,   0,
 //
-// crate-3, (4 SFETs)x(4 TOFCs), (layer-2, side-1) :
-  2011,2021,2031,2041, 2051,2061,2071,   0, 2081,2091,2101,2111, 2121,2131,2141,0,
+// crate-3(node-2), (4 SFETs)x(4 TOFCs) :
+  2042,2052,2062,2072, 2012,2022,2032,   0, 1082,1092,1102,1112, 1122,1132,4122,4132,
 //
-// crate-4, (4 SFETs)x(4 TOFCs), (layer-2, side-2):
-  2012,2022,2032,2042, 2052,2062,2072,   0, 2082,2092,2102,2112, 2122,2132,2142,0,
+// crate-4(node-3), (4 SFETs)x(4 TOFCs) :
+  3042,3052,3062,3072, 3012,3022,3032,   0, 4082,4092,4102,4112,    0,   0,   0,   0,
 //
-// crate-5, (4 SFETs)x(4 TOFCs), (layer-3, side-1) :
-  3011,3021,3031,3041, 3051,3061,3071,   0, 3081,3091,3101,3111, 3121,3131,3141,0,
+// crate-5(node-4), (4 SFETs)x(4 TOFCs) :
+  2041,2051,2061,2071, 2011,2021,2031,   0, 1042,1052,1062,1072, 1012,1032,4012,4032,
 //
-// crate-6, (4 SFETs)x(4 TOFCs), (layer-3, side-2):
-  3012,3022,3032,3042, 3052,3062,3072,   0, 3082,3092,3102,3112, 3122,3132,3142,0,
+// crate-6(node-5), (4 SFETs)x(4 TOFCs) :
+  3041,3051,3061,3071, 3011,3021,3031,   0, 4042,4052,4062,4072,    0,   0,   0,   0,
 //
-// crate-7, (4 SFETs)x(4 TOFCs), (layer-4, side-1) :
-  4011,4021,4031,4041, 4051,4061,4071,   0, 4081,4091,4101,4111, 4121,4131,4141,0,
+// crate-7(node-6), (4 SFETs)x(4 TOFCs) :
+  2111,2121,2131,2141, 2081,2091,2101,   0, 1041,1051,1061,1071, 1021,1031,4021,4031,
 //
-// crate-8, (4 SFETs)x(4 TOFCs), (layer-4, side-2):
-  4012,4022,4032,4042, 4052,4062,4072,   0, 4082,4092,4102,4112, 4122,4132,4142,0,
+// crate-8(node-7), (4 SFETs)x(4 TOFCs) :
+  3111,3121,3131,3141, 3081,3091,3101,   0, 4041,4051,4061,4071,    0,   0,   0,   0
   };
 //
 #ifdef __AMSDEBUG__

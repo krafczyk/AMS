@@ -446,6 +446,7 @@ void AMSEvent::_caamsinitevent(){
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofinitevent();
+ if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CCerenkov)_cactcinitevent();
  if(AMSJob::gethead()->isCalibration() & AMSJob::CAMS)_caaxinitevent();
 }
@@ -460,6 +461,10 @@ void AMSEvent::_catkinitevent(){
 void AMSEvent::_catofinitevent(){
 }
 
+
+void AMSEvent::_cantinitevent(){
+}
+
 void AMSEvent::_catrdinitevent(){
 }
 
@@ -471,6 +476,7 @@ void AMSEvent::_cactcinitevent(){
 
 void AMSEvent::_caamsevent(){
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTOF)_catofevent();
+  if(AMSJob::gethead()->isCalibration() & AMSJob::CAnti)_cantievent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CCerenkov)_cactcevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTracker)_catkevent();
   if(AMSJob::gethead()->isCalibration() & AMSJob::CTRD)_catrdevent();
@@ -517,6 +523,9 @@ void AMSEvent::_catofevent(){
 }
 //---------------------------------------------------------------------------
 void AMSEvent::_catrdevent(){
+}
+
+void AMSEvent::_cantievent(){
 }
 
 void AMSEvent::_caaxevent(){

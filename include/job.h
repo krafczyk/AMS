@@ -119,6 +119,7 @@ void _catkinitjob();
 void _catrdinitjob();
 void _cactcinitjob();
 void _catofinitjob();
+void _cantinitjob();
 void _caaxinitjob();
 void _dbendjob();
 void _tkendjob();

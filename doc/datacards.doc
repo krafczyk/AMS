@@ -114,12 +114,13 @@ I 18  cut-1 ()            // cut on time diff. of the same hit in fast/slow TDC
 I 19  cut-2 ()            // cut on min. distance of "befor"-hit in time history TDC
 I 20  cut-3 ()            // ........................"after"-hit in time history TDC
 I 21-27 spare cuts        //
-I 28   sec[2](0,0)        // Validity time:
-I 30   min[2](0,0)        //
-I 32   hour[2](0,0)       // 
-I 34   day[2](1,1)        //
-I 36   mon[2](0,0)        //
-I 38   year[2](96,98)     //
+I 28  ReadConstFiles(0)   // read constants(calibr) from DB/Ext_Files(0/1)
+I 29   sec[2](0,0)        // Validity time:
+I 31   min[2](0,0)        //
+I 33   hour[2](0,0)       // 
+I 35   day[2](1,1)        //
+I 37   mon[2](0,0)        //
+I 39   year[2](96,98)     //
 
 // TOF calibration
 
@@ -137,13 +138,14 @@ I  9 id-ref2(0);    // LBB for second ref. counter (if nonzero)
 I 10 fix-slope(1); // =0/1 to fix/release slope param.
 I 11 calibr.type(0);// =0/1 space/earth calibration
 I 12 truse(0);     // =0/1 to soft/hard usage of tracker info
+I 26 tofcoo(0)     // =0/1 -> use trancv/longit.coordinates from TOF 
   AMPL-calibration:
 I 12 truse(0);     // =1/0 to use/not tracker info
 R 13 plhc[0](2)  // low cut on tracker momentum (Gev/c) for space calibr.
 R 14 plhc[1](30)  // high cut on tracker momentum (Gev/c) ....
 I 15 minev(100)     // min.events needed for measurement in channel or bin
 R 16 trcut(0.85)   // cut to use for "truncated average" calculation
-I 17 refbid[0]     // ref.bar id's list (LBB) for btype=1->5 
+I 17 refbid[0]     // ref.bar id's list (LBB) for btype=1->5
    ...             // ......................................
 I 21 refbid[4]     // ......................................
 R 22 plhec[0] (0.05) // mom. low-cut for earth calibr.

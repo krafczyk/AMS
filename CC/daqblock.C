@@ -40,22 +40,18 @@ int16u DAQSBlock::tofmtyp[SCTOFC][4]={
 number DAQSBlock::rwtemp[DAQSTMX]={0,0,0,0,0,0,0,0, // just mem. reservation
                                    0,0,0,0,0,0,0,0,
                                    0,0,0,0,0,0,0,0,
-                                   0,0,0,0,0,0,0,0,
-                                   0,0,0,0,0,0,0,0,
-                                   0,0,0,0,0,0,0,0,
-                                   0,0,0,0,0,0,0,0,
                                    0,0,0,0,0,0,0,0};
 //
 // functions for S-blocks class:
 //
-integer DAQSBlock::isSFET(int16u slota){
+integer DAQSBlock::isSFET(int16u slota){ // "slota" means card-id (h/w address)
   if(slota==0 || slota==1 || slota==2 || slota==3)return(1);
   else return(0);
 }
 //
 integer DAQSBlock::isSFETT(int16u slota){
   if(slota==1)return(1);
-  else if(slota==3)return(2);
+//  else if(slota==3)return(2); // missing in Levi/Federico sceme !!!
   else return(0);
 }
 //
@@ -117,7 +113,7 @@ void DAQSBlock::buildraw(integer len, int16u *p){
 //
 // clear crate-temperatures starting new crate decoding:
 //
-  im=DAQSTSC*DAQSTCS;//2*4
+  im=DAQSTSC*DAQSTCS;//1*4
   for(i=0;i<im;i++){
     chan=im*naddr+i;
     rwtemp[chan]=0;
@@ -133,7 +129,7 @@ void DAQSBlock::buildraw(integer len, int16u *p){
 //---> Print TOF Crate temperatures:
   if(TOFRECFFKEY.reprtf[1]>=1){
     cout<<"TOF_Crate Temperatures :"<<endl; 
-    for(i=0;i<DAQSTSC;i++){//loop over temp. SFETs in crate (2)
+    for(i=0;i<DAQSTSC;i++){//loop over temp. SFETs in crate (1)
       for(j=0;j<DAQSTCS;j++){//loop over temp. channels in SFET (4)
         chan=im*naddr+i*DAQSTCS+j;
         cout<<" "<<rwtemp[chan];

@@ -336,6 +336,12 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
   int mcvn,rlvn,dig;
 //
   strcpy(inum,"0123456789");
+  for(i=0;i<SCCHMX;i++){
+    for(j=0;j<SCIPAR;j++){
+      ipara[i][j]=0.;
+      ipard[i][j]=0.;
+    }
+  }
 //
 // ---> read file-versions file :
 //
@@ -589,7 +595,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
      for(k=0;k<SCTOFC;k++){//<--- tof-ch loop (1tofc->side, 4 per SFET)(0-3)
        icfile >> tofc;// tofc-number
        swid=AMSTOFRawEvent::hw2swid(crat-1,sfet-1,tofc-1);//LBBS
-       if(swid==0)continue;// non-existing tofc (occupied by temperatures)
+       if(swid==0)continue;// non-existing tofc (occupied by temperatures or epty)
        ila=swid/1000-1;
        ibr=(swid%1000)/10-1;
        isd=(swid%1000)%10-1;
@@ -615,9 +621,6 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     gnd[0]=gna[0];// tempor
     gnd[1]=gna[1];
     tth=tofvpar.daqthr(0); // (mV), time-discr. threshold
-    qath=tofvpar.daqthr(3); // (pC) thresh. at shaper inp.(anode) (may be diff.
-//              from tofvpar.daqthr(3) in reality !!!, but proportional to him)
-    qdth=tofvpar.daqthr(4); // ...................        (dinode) ................
     mip2q=m2q[brt-1];//(pC/mev),dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
     a2dr[0]=an2di[cnum][0];// from ext.file
     a2dr[1]=an2di[cnum][1];
@@ -642,8 +645,9 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     for(ip=0;ip<SCIPAR;ip++)aip[1][ip]=ipara[2*cnum+1][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[0][ip]=ipard[2*cnum][ip];
     for(ip=0;ip<SCIPAR;ip++)dip[1][ip]=ipard[2*cnum+1][ip];
-    
-    scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,qath,qdth,a2dr,asatl,tth,
+    if(aip[0][0]==0.)sta[0]=1;// set status 1(bad) for missing channels (tauf==0)
+    if(aip[1][0]==0.)sta[1]=1;
+    scbrcal[ila][ibr]=TOFBrcal(sid,sta,gna,gnd,a2dr,asatl,tth,
                               strat,fstrd,tzer,slope,tdif,td2p,mip2q,scp,rlo,
                               aip,dip);
 //
@@ -656,8 +660,10 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
 geant TOFBrcal::ama2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
   number q(0),qt(0);
   for(int isd=0;isd<2;isd++){
-    q2t2q(1,isd,0,amf[isd],q);
-    qt+=(q/gaina[isd]);// Qa->Qa_gain_corrected
+    if(status[isd]==0){
+      q2t2q(1,isd,0,amf[isd],q);
+      qt+=(q/gaina[isd]);// Qa->Qa_gain_corrected
+    }
   }
   qt=qt/mip2q; // Q(pC)->Mev
   return geant(qt);
@@ -665,8 +671,10 @@ geant TOFBrcal::ama2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
 //------
 void TOFBrcal::ama2q(number amf[2], number qs[2]){// side A-Tovt's(ns) -> Q(pC)
 //                                                 to use in calibr. program 
-  for(int isd=0;isd<2;isd++)
-                            q2t2q(1,isd,0,amf[isd],qs[isd]);
+  for(int isd=0;isd<2;isd++){
+    qs[isd]=0.;
+    if(status[isd]==0)q2t2q(1,isd,0,amf[isd],qs[isd]);
+  }
 }
 //------
 void TOFBrcal::q2t2q(int cof, int sdf, int adf, number &tovt, number &q){  
@@ -697,8 +705,10 @@ void TOFBrcal::q2t2q(int cof, int sdf, int adf, number &tovt, number &q){
 geant TOFBrcal::amd2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
   number q(0),qt(0);
   for(int isd=0;isd<2;isd++){
-    q2t2q(1,isd,1,amf[isd],q);
-    qt+=(q*an2dir[isd]/gaind[isd]);// Qd->Qd_gain_corrected
+    if(status[isd]==0){
+      q2t2q(1,isd,1,amf[isd],q);
+      qt+=(q*an2dir[isd]/gaind[isd]);// Qd->Qd_gain_corrected
+    }
   }
   qt=qt/mip2q; // Q(pC)->Mev
   return geant(qt);
@@ -707,8 +717,10 @@ geant TOFBrcal::amd2mip(number amf[2]){ // side A-Tovt's(ns) -> Etot(Mev)
 void TOFBrcal::amd2q(number amf[2], number qs[2]){// side A-Tovt's(ns) -> Q(pC)
 //                                                 to use in calibr. program 
   number q,qt(0);
-  for(int isd=0;isd<2;isd++)
-                            q2t2q(1,isd,1,amf[isd],qs[isd]);
+  for(int isd=0;isd<2;isd++){
+    qs[isd]=0.;
+    if(status[isd]==0)q2t2q(1,isd,1,amf[isd],qs[isd]);
+  }
 }
 //-----
 geant TOFBrcal::poscor(geant point){
@@ -732,11 +744,13 @@ geant TOFBrcal::tm2t(number tmf[2], number amf[2]){//(2-sides_times/Tovt)->Time 
   geant shft;
   number time,qs,uv(0);
   shft=TOFDBc::shftim();
-  for(int isd=0;isd<2;isd++){
-    q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-    uv+=(exp(aipar[isd][1]/aipar[isd][0]))/qs;// summing Qthr/Q
+  if(status[0]==0 && status[1]==0){
+    for(int isd=0;isd<2;isd++){
+      q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
+      uv+=(exp(aipar[isd][1]/aipar[isd][0]))/qs;// summing Qthr/Q
+    }
   }
-  uv=exp(-amf[0]/shft)+exp(-amf[1]/shft);// old parametrization
+//  uv=exp(-amf[0]/shft)+exp(-amf[1]/shft);// old parametrization
   time=0.5*(tmf[0]+tmf[1])+tzero+slope*uv;
   return geant(time); 
 }
@@ -746,11 +760,13 @@ void TOFBrcal::tmd2p(number tmf[2], number amf[2],
   geant shft;
   number time,coo,qs,uv(0);
   shft=TOFDBc::shftim();
-  for(int isd=0;isd<2;isd++){
-    q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-    uv+=(1-2*isd)*(exp(aipar[isd][1]/aipar[isd][0]))/qs;// subtr Qthr/Q
+  if(status[0]==0 && status[1]==0){
+    for(int isd=0;isd<2;isd++){
+      q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
+      uv+=(1-2*isd)*(exp(aipar[isd][1]/aipar[isd][0]))/qs;// subtr Qthr/Q
+    }
   }
-  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
+//  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
   coo=-(0.5*(tmf[0]-tmf[1])+slope*uv-yctdif);  
 //common "-" is due to the fact that Tmeas=Ttrig-Tabs and coo-loc is prop. to Tabs1-Tabs2
   co=td2pos[0]*geant(coo);//coo(ns)->cm                    
@@ -762,11 +778,13 @@ void TOFBrcal::td2ctd(number tdo, number amf[2],
   geant shft;
   number qs,uv(0);
   shft=TOFDBc::shftim();
-  for(int isd=0;isd<2;isd++){
-    q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
-    uv+=(1-2*isd)*(exp(aipar[isd][1]/aipar[isd][0]))/qs;// subtr Qthr/Q
+  if(status[0]==0 && status[1]==0){
+    for(int isd=0;isd<2;isd++){
+      q2t2q(1,isd,0,amf[isd],qs);// TovT->Q
+      uv+=(1-2*isd)*(exp(aipar[isd][1]/aipar[isd][0]))/qs;// subtr Qthr/Q
+    }
   }
-  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
+//  uv=exp(-amf[0]/shft)-exp(-amf[1]/shft);// old parametrization
   tdc=tdo+slope*uv;
 }
 //==========================================================================
@@ -797,12 +815,14 @@ void TOFJobStat::print(){
   printf(" Entries to TZSl-calibr. : % 6d\n",recount[6]);
   printf(" TZSl: multiplicity OK   : % 6d\n",recount[7]);
   printf(" TZSl: no interactions   : % 6d\n",recount[8]);
-  printf(" TZSl: beta OK           : % 6d\n",recount[9]);
-  printf(" Entries to AMPL-calibr. : % 6d\n",recount[10]);
-  printf(" AMPL: multiplicity OK   : % 6d\n",recount[11]);
-  printf(" AMPL: no interaction    : % 6d\n",recount[12]);
-  printf(" AMPL: matching OK       : % 6d\n",recount[13]);
-  printf(" Entries to STRR-calibr. : % 6d\n",recount[15]);
+  printf(" TZSl: Tracker mom. OK   : % 6d\n",recount[9]);
+  printf(" TZSl: TOF-Tr.match. OK  : % 6d\n",recount[10]);
+  printf(" Entries to AMPL-calibr. : % 6d\n",recount[11]);
+  printf(" AMPL: multiplicity OK   : % 6d\n",recount[12]);
+  printf(" AMPL: no interaction    : % 6d\n",recount[13]);
+  printf(" AMPL: Track momentum OK : % 6d\n",recount[14]);
+  printf(" AMPL: TOF-TRK match OK  : % 6d\n",recount[15]);
+  printf(" Entries to STRR-calibr. : % 6d\n",recount[16]);
   printf(" Entries to TDIF-calibr. : % 6d\n",recount[17]);
   printf(" TDIF: multiplicity OK   : % 6d\n",recount[18]);
 //  printf(" TDIF: matching OK       : % 6d\n",recount[19]);

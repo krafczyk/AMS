@@ -200,6 +200,7 @@ geant ThrS;  // limit on sum
   geant daqthr[5];// daq thresholds
   geant cuts[10];// cuts 
 //
+  integer ReadConstFiles;
 //
   integer sec[2];
   integer min[2];

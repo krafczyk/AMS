@@ -212,6 +212,7 @@ void AMSTOFTovt::build()
   static geant tslice2[SCTBMX+1]; //  flash ADC array for side-2
   static geant tslice[SCTBMX+1]; //  flash ADC array 
   int i,ii,j,jj,jm,k,stat(0),nelec,ierr(0);
+  int status[2];
   integer nhitl[SCLRS];
   geant edepl[SCLRS],edepb;
   geant dummy(-1);
@@ -291,8 +292,10 @@ void AMSTOFTovt::build()
     }
     cnum=ilay*SCMXBR+ibar;// sequential counter number
     scmcscan[cnum].getxbin(y,i1,i2,r);//y-bin # (longit.(x !)-coord. in LTRANS )
+    scbrcal[ilay][ibar].getbstat(status);//get status of two ends
     nel0=de*convr;// -> photons
 // PM-1 actions --->
+  if(status[0]==0){// alive side
     eff=scmcscan[cnum].getef1(r,i1,i2);//eff for PM-1
     nel=nel0*eff;// mean number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
@@ -311,8 +314,10 @@ void AMSTOFTovt::build()
         tslice1[ii]+=am;
       }
     } // >>>----- end of PM-1 loop ------>
+  }
 //
 // PM-2 actions --->
+  if(status[1]==0){// alive side
     eff=scmcscan[cnum].getef2(r,i1,i2);//eff for PM-2
     nel=nel0*eff;// mean number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
@@ -331,6 +336,7 @@ void AMSTOFTovt::build()
         tslice2[ii]+=am;
       }
     } // >>>----- end of PM-2 loop ------>
+  }
 //-----------------------------------
       ptrN=ptr->next();
       idN=0; 
@@ -339,6 +345,7 @@ void AMSTOFTovt::build()
         edepb*=1000.;// --->MeV
         if(edepb>TOFMCFFKEY.Thr){// process only bar with Edep>Ethr
 // PM-1 loop to apply pulse shape :
+        if(status[0]==0){// alive side
           idd=id*10+1;//LBBS
           for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
           for(i=0;i<SCTBMX;i++){
@@ -353,8 +360,10 @@ void AMSTOFTovt::build()
           AMSTOFTovt::totovt(idd,edepb,tslice);// Tovt-obj for side(PM)-1
           if(TOFMCFFKEY.mcprtf[1] != 0)
                         AMSTOFTovt::displ_a(idd,20,tslice);//print PMT pulse
+        }
 //        
 // PM-2 loop to apply pulse shape :
+        if(status[1]==0){// alive side
           idd=id*10+2;
           for(i=0;i<SCTBMX+1;i++)tslice[i]=0.;
           for(i=0;i<SCTBMX;i++){
@@ -369,6 +378,7 @@ void AMSTOFTovt::build()
           AMSTOFTovt::totovt(idd,edepb,tslice);// Tovt-obj for side(PM)-2
           if(TOFMCFFKEY.mcprtf[1] != 0)
                         AMSTOFTovt::displ_a(idd,20,tslice);//print PMT pulse
+        }
         }// ---> end of edep check
 //
         for(i=0;i<SCTBMX+1;i++)tslice1[i]=0.;//clear flash ADC arrays for next bar
@@ -575,6 +585,7 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
 {
   integer i,j,ij,ilay,ibar,isid,id,_sta,stat(0);
   geant tm,a,am,amd,tmp,amp,amx,amxq;
+  geant iq0,it0,itau;
   integer _ntr1,_ntr2,_ntr3,_nftdc,_nstdc,_nadca,_nadcd;
   number _ttr1[SCTHMX1],_ttr2[SCTHMX1],_ttr3[SCTHMX1];
   number _tftdc[SCTHMX2],_tftdcd[SCTHMX2];
@@ -627,8 +638,15 @@ void AMSTOFTovt::totovt(integer idd, geant edepb, geant tslice[])
   scbrcal[ilay][ibar].geta2dr(a2dr);//get anode_to_dinode ratio
   daqt2=tofvpar.daqthr(2)*a2dr[isid];//dinode discr.("Z>2") thresh., multipl. by a2d ratio
   d2a=1./a2dr[isid];//dinode-to-anode ratio
-  daqt3=tofvpar.daqthr(3);//threshold for anode TovT measurement (pC)
-  daqt4=tofvpar.daqthr(4);//threshold for dinode TovT measurement (pC)
+//
+  itau=scbrcal[ilay][ibar].getaipar(isid,0);// get A-integrator parameters
+  it0=scbrcal[ilay][ibar].getaipar(isid,1);
+  iq0=scbrcal[ilay][ibar].getaipar(isid,2);
+  daqt3=exp(it0/itau);// threshold for Anode TovT measurement (pC)
+  itau=scbrcal[ilay][ibar].getdipar(isid,0);// get D-integrator parameters
+  it0=scbrcal[ilay][ibar].getdipar(isid,1);
+  iq0=scbrcal[ilay][ibar].getdipar(isid,2);
+  daqt4=exp(it0/itau);// threshold for Dinode TovT measurement (pC)
 //
 // -----> create/fill summary Tovt-object for idsoft=idd :
 //
