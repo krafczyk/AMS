@@ -47,11 +47,11 @@ void AMSGenHist::_Fetch(){
 }
 
 void AMSGenHist::ShowSet(Int_t Set){
-  const int sets = 5;
+  const int sets = 4;
   gPad->Clear();
-  int init[sets+1]    = {0, 4, 12, 20, 22, 26};
-  int divideU[sets] = {2 , 4, 4, 1, 2};
-  int divideL[sets] = {2 , 2, 2, 2, 2};
+  int init[sets+1]    = {0, 4, 12, 14, 18};
+  int divideU[sets] = {2 , 4, 1, 2};
+  int divideL[sets] = {2 , 2, 2, 2};
   TVirtualPad * gPadSave;
 
     int ii   = init[Set];

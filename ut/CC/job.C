@@ -2089,8 +2089,8 @@ char   *ids_names[]  = {"Length GenBlock    ",
                     100.,100.,100.,100.,100.,100.,100.,100.,
                     100.,100.,100.,100.,100.,100.,100.,100.,
                     1000.,1000.,
-                    40000.,40000.,
-                    40000.,40000.,
+                    800.,800.,
+                    800.,800.,
                     100.};
                     
   for (int i=0; i<nids; i++) {
@@ -2100,9 +2100,9 @@ char   *ids_names[]  = {"Length GenBlock    ",
      if (i>17) nbin = 100;
      HBOOK1(hid,ids_names[i],nbin,0.,f,0.);
   }
-    HBOOK1(300000,"Length (bytes) event",400,0.,80000.,0.);
-    HBOOK1(300001,"Length (bytes) TOF",200,0.,800.,0.);
-    HBOOK1(300002,"Length (bytes) Tracker",400,0.,80000.,0.);
+    HBOOK1(300000,"Length (bytes) event",400,0.,1200.,0.);
+    HBOOK1(300001,"Length (bytes) TOF",200,0.,600.,0.);
+    HBOOK1(300002,"Length (bytes) Tracker",400,0.,1200.,0.);
 }
 
 #ifdef __DB__
