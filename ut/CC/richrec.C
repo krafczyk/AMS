@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.37 2002/07/17 10:47:10 delgadom Exp $
+//  $Id: richrec.C,v 1.38 2002/10/18 09:59:31 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -306,25 +306,25 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
 //                     (RICHDB::rich_height+RICHDB::foil_height+RIClgdmirgap
 //                      +RICradmirgap)/(RICHDB::bottom_radius-RICHDB::top_radius);
 
-  geant false_height=RICHDB::bottom_radius*                                          
-                     RICHDB::rich_height/(RICHDB::bottom_radius-RICHDB::top_radius); 
+  geant false_height=RICHDB::bottom_radius*
+    RICHDB::rich_height/(RICHDB::bottom_radius-RICHDB::top_radius); 
 
 
-  geant zk=(RICHDB::bottom_radius/false_height)*
+  double zk=(RICHDB::bottom_radius/false_height)*
     (RICHDB::bottom_radius/false_height);
-  geant c2=zk/(1+zk);
-  geant c=sqrt(c2);
-  geant alp=1/sqrt(1+zk);
+  double c2=zk/(1+zk);
+  double c=sqrt(c2);
+  double alp=1/sqrt(1+zk);
   
   AMSRICHIdGeom channel(_channel);
-  geant xf=channel.x();
-  geant yf=channel.y();
+  double xf=channel.x();
+  double yf=channel.y();
 
   //  geant xf=RICHDB::x(_channel);  //TODO: Get them from AMSRICHIdGeom
   //  geant yf=RICHDB::y(_channel);  //TODO: Get them from AMSRICHIdGeom
-  geant zf=-false_height-RIClgdmirgap;
+  double zf=-false_height-RIClgdmirgap;
   //  geant zf=RICradpos-RICHDB::rad_height-false_height;
-  geant x=origin[0],y=origin[1],
+  double x=origin[0],y=origin[1],
     //    z=origin[3]-false_height+RICHDB::height;
     z=origin[3]-RICradpos+RICHDB::rad_height-false_height+
                 (RICHDB::rich_height+RICHDB::foil_height
@@ -334,12 +334,12 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
 
   AMSPoint initial(x,y,z),final(xf,yf,zf);
 
-  geant f1=x*xf-y*yf,
+  double f1=x*xf-y*yf,
     f2=x*zf+z*xf,
     f3=x*yf+y*xf,
     f4=y*zf+z*yf;
 
-  geant a4=4*(f3*f3+f1*f1),
+  double a4=4*(f3*f3+f1*f1),
     a3=4*c*(f1*f2+f3*f4),
     a2=c2*(f2*f2+f4*f4)+4*(c2-1)*(f1*f1+f3*f3),
     a1=2*c*(c2-1)*(f3*f4+2*f1*f2),
@@ -353,7 +353,7 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   a0/=a4;
 
   integer mt=0;
-  geant sols[4];
+  double sols[4];
   
   SOLVE(a3,a2,a1,a0,sols,mt);
 
@@ -366,7 +366,7 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   integer nsols=0;
 
   for(integer i=0;i<mt;i++){
-    geant b=1/(1+zk)-sols[i]*sols[i];
+    double b=1/(1+zk)-sols[i]*sols[i];
     if(b<0) continue;
     b=sqrt(b);
     for(integer j=0;j<2;j++){
@@ -382,9 +382,9 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
   for(integer i=0;i<nsols;i++){
     ref_point[good]=rpoint(initial,final,planes[i]);
     if((ref_point[good])[2]<initial[2] && (ref_point[good])[2]>-false_height
-       && ref_point[good][0]*ref_point[good][0]+
-          ref_point[good][1]*ref_point[good][1]-zk*
-          ref_point[good][3]*ref_point[good][3]<1e-4){
+       && fabs(ref_point[good][0]*ref_point[good][0]+
+	       ref_point[good][1]*ref_point[good][1]-zk*
+	       ref_point[good][2]*ref_point[good][2])<1e-4){
 
       (ref_point[good]).setp((ref_point[good])[0],
 			     (ref_point[good])[1],
