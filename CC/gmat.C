@@ -95,6 +95,11 @@ void AMSgtmed::_init(){
     GSTPAR(_itmed,"STRA",1);
    }
   }
+  if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd ){
+   if(IsSensitive()){
+    GSTPAR(_itmed,"CUTELE",35.01e-6);
+   }
+  }
 }      
 void AMSgtmed::setubuf(int nwbuf,geant ubuf[]){
  _nwbuf=nwbuf;
