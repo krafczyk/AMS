@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.210 2003/09/09 14:03:52 alexei Exp $
+# $Id: RemoteClient.pm,v 1.211 2003/09/18 09:39:23 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -13,6 +13,8 @@
 #                 ValidateRuns : "local" runs
 # Aug 2003      : remove explicit server name, e.g. pcamsf0.cern.ch
 #                 from scripts names
+# Sep 2003      : outputpath = /disk/dir   for local disks
+#                              /dir        for afs 
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
 package RemoteClient;
@@ -1169,7 +1171,11 @@ sub doCopy {
          foreach my $disk (@{$ret}) {
            $outputdisk = trimblanks($disk->[0]);
            $outputpath = trimblanks($disk->[1]);
-           $outputpath = $outputdisk.$outputpath."/".$pset;
+           if ($outputdisk =~ /vice/) {
+            $outputpath = $outputpath."/".$pset;
+           } else {
+            $outputpath = $outputdisk.$outputpath."/".$pset;
+           }
            $mtime = (stat $outputpath)[9];
            if ($mtime) { last;}
           }   
@@ -1222,7 +1228,7 @@ sub doCopy {
             htmlWarning("doCopy","cannot get info for JID=$jid");
            }
         } else {
-         htmlWarning("doCopy","cannot stat disk ($outputdisk$outputpath) from Filesystems");
+         htmlWarning("doCopy","cannot stat disk ($outputpath) from Filesystems");
         } 
       } else {
        htmlWarning("doCopy","cannot get ProductionSet status=Active");
