@@ -49,10 +49,15 @@ class stlv : public AMSEventR {
    /// User Function called before starting the event loop.
    /// Book Histos
    virtual void    UBegin();
-   /// User Function called for all entries.
-   /// Entry is the entry number in the current tree.
+
+   /// User Function called to preselect events (NOT MANDATORY).
+   /// Called for all entries.
+   virtual bool    UProcessCut();
+
+   /// User Function called to analyze each event.
+   /// Called for all entries.
    /// Fills histograms.
-   void    ProcessFill(Int_t entry);
+   virtual void    UProcessFill();
 
    /// Called at the end of a loop on the tree,
    /// a convenient place to draw/fit your histograms. \n
@@ -102,8 +107,14 @@ void stlv::UBegin(){
 
 }
 
+// UProcessCut() is not mandatory
+bool stlv::UProcessCut()
+}
+     if (nParticle()!=1) return false;
+     return true;
+}
 
-void stlv::ProcessFill(Int_t entry)
+void stlv::UProcessFill()
 {
    // User Function called for all entries .
    // Entry is the entry number in the current tree.
