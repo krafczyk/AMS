@@ -1,4 +1,4 @@
-#  $Id: g4.doc,v 1.23 2002/01/11 16:09:44 choutko Exp $
+#  $Id: g4.doc,v 1.24 2002/01/17 14:33:51 choutko Exp $
 -------
 Platform:
 linux-gcc2.95 
@@ -7,7 +7,7 @@ dec/cxx 6.2
 Installer:
 
 
-source AMS/install/g4i   (g4i.old, g4i.new)
+source AMS/install/g4i (v4.3.2)   g4i.new  (v4.4.0)
 
 see $G4INSTALL/ReleaseNotes.VC for ams specifics
 
@@ -76,7 +76,13 @@ Status (geant4.4.0):
 still same extremely slow initialization  (~ 10 minutes)
 more memory required: 320 gb on linux 
 
-complains about mat property:  then about geometry; so doesn;t work at all.
+linux:
+
+problems with soilds (patch eill be rele soon?)
+
+dec:
+
+memory fault i.e. doesnot work at all 
 
 
 

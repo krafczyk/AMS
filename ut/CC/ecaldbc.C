@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.30 2001/11/19 13:28:27 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.31 2002/01/17 14:33:43 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -68,6 +68,17 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
 // ---> function to read geomconfig-files 
 //                  Called from ECALgeom :
   void ECALDBc::readgconf(){
+
+//   add some checks VC
+     if(_slstruc[2] >ecalconst::ECSLMX){
+      _slstruc[2]=ecalconst::ECSLMX;
+      cerr <<" ECALDBc::readgconf-W-Resetting ECSLMX to "<<_slstruc[2]<<endl;
+     }
+    if(_slstruc[2]==8){
+     ECCAFFKEY.cfvers=10;
+
+    }
+//
     int i;
     char fname[80];
     char name[80]="ecalgeom";
@@ -129,6 +140,8 @@ int ECALDBc::_scalef=2;// MC/Data scale factor used in ADC->DAQ-value conversion
     return _rdcell[i-1];
   }
 //
+
+ 
   integer ECALDBc::slstruc(integer i){
     #ifdef __AMSDEBUG__
       if(ECALDBc::debug){
@@ -1182,6 +1195,22 @@ void ECPMPeds::build(){// create TOFBPeds-objects for each sc.bar
 //   --->  Read high/low pedestals file :
 //
   strcpy(name,"ecalpeds");
+  integer cfvn;
+  cfvn=ECCAFFKEY.cfvers%1000;
+  char in[2]="0";
+  char inum[11];
+  int mcvn,rlvn,dig;
+  strcpy(inum,"0123456789");
+  dig=cfvn/100;
+  in[0]=inum[dig];
+  strcat(name,in);
+  dig=(cfvn%100)/10;
+  in[0]=inum[dig];
+  strcat(name,in);
+  dig=cfvn%10;
+  in[0]=inum[dig];
+  strcat(name,in);
+
   if(AMSJob::gethead()->isMCData())           // for MC-event
   {
     cout <<" ECPMPeds_build: default MC peds-file is used..."<<endl;

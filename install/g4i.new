@@ -1,4 +1,4 @@
-#  $Id: g4i.new,v 1.4 2002/01/11 16:09:51 choutko Exp $
+#  $Id: g4i.new,v 1.5 2002/01/17 14:33:52 choutko Exp $
 setenv GEANT4NEW 1
 if $OS == "Linux"  then
 endif
@@ -17,8 +17,8 @@ setenv G4SYSTEM "DEC-cxx"
 unsetenv G4USE_OSPACE
 setenv G4USE_STL 1
 #setenv OSPACE_BASE_DIR /afs/cern.ch/sw/lhcxx/specific/dec/ObjectSpace/2.1/ToolKit
-setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/1.7.0.0
-#setenv CLHEP_BASE_DIR  /afs/cern.ch/exp/ams/Offline/CLHEP.old/DEC-cxx 
+#setenv CLHEP_BASE_DIR  /afs/cern.ch/sw/lhcxx/specific/$OS/CLHEP/1.7.0.0
+setenv CLHEP_BASE_DIR  /afs/cern.ch/exp/ams/Offline/CLHEP 
 setenv OGLHOME /usr/local
 endif
 #for geant4 ex

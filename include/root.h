@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.51 2001/11/30 16:47:13 choutko Exp $
+//  $Id: root.h,v 1.52 2002/01/17 14:33:52 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -556,12 +556,11 @@ public:
   float ErrorMean[MAXTRCL];
   float Amplitude[MAXTRCL][5];
 
+friend class AMSTrCluster;
+friend class AMSNtuple;
 #ifdef __WRITEROOT__
   TrClusterNtuple();
 ClassDef(TrClusterNtuple,1)       //TrClusterNtuple
-#else
-friend class AMSTrCluster;
-friend class AMSNtuple;
 #endif
 };
 

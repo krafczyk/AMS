@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.136 2001/12/18 17:34:21 choutko Exp $
+//  $Id: amsgeom.C,v 1.137 2002/01/17 14:33:41 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -3656,14 +3656,16 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    //coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
    //	   par[0]<<" "<<par[1]<<" "<<par[2]<<" "<<par[4]<<endl;
 
-#ifndef __G4AMS__
+#ifdef __G4AMS__
+     if(MISCFFKEY.G4On){
+       daug4 = 
+      (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
+       nrot++,name,"TRD1",par,4,coo,nrm,"BOOL",0,gid,1));
+     }
+     else
+#endif
       dau=oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
       nrot++,name,"TRD1",par,4,coo,nrm,"MANY",0,gid,1));
-#else
-      daug4 = 
-     (AMSgvolume *)oct[itrd]->add(new AMSgvolume(TRDDBc::BulkheadsMedia(),
-      nrot++,name,"TRD1",par,4,coo,nrm,"BOOL",0,gid,1));
-#endif
 
       // Add the cutout daughters here
 
@@ -3686,13 +3688,14 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
 
 		  // First one made is j=4, in bulkhead 0
 		  
-#ifndef __G4AMS__
+#ifdef __G4AMS__
+                 if(MISCFFKEY.G4On)
+		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
+                 else
+#endif
 		  dau->add(new AMSgvolume(TRDDBc::CutoutsMedia(),
 			 0,name,"BOX",par,3,coo,nrm,"ONLY", 
 			 j==4 && b==0 && k==0 && l==0 ?1:-1,gid,1));
-#else
-		  daug4->addboolean("BOX",par,3,coo,nrm,'-');
-#endif
 
 		}
 	    }
@@ -4023,6 +4026,7 @@ AMSgvolume *dummy;
 //---------------------------------------------------------------------
 void amsgeom::ecalgeom02(AMSgvolume & mother){
 //
+ECALDBc::readgconf();// 
   geant par[6]={0.,0.,0.,0.,0.,0.};
   number nrm[3][3];
   number nrm0[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};

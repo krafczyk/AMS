@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.59 2002/01/08 13:43:12 choutko Exp $
+//  $Id: geant3.C,v 1.60 2002/01/17 14:33:44 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -103,7 +103,13 @@ if(    !AMSEvent::gethead()->HasNoCriticalErrors())return;
   }
 #endif
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("TrdRadiationGen");
-
+/*
+{
+cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<endl;
+ int lvl=GCVOLU.nlevel-1;
+ cout <<lvl <<" "<<GCVOLU.names[lvl][0]<<GCVOLU.names[lvl][1]<<GCVOLU.names[lvl][2]<<GCVOLU.names[lvl][3]<<endl;
+}
+*/
 
   try{
 {

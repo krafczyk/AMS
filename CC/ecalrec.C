@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.38 2001/12/07 11:32:18 choutko Exp $
+//  $Id: ecalrec.C,v 1.39 2002/01/17 14:33:43 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -991,7 +991,7 @@ void Ecal2DCluster::_writeEl(){
 integer Ecal2DCluster::build(int rerun){
   const integer Maxrow=ecalconst::ECSLMX*2;
      
-   for (int proj=0;proj<Maxrow;proj++){
+   for (int proj=0;proj<ECALDBc::GetLayersNo();proj++){
     Ecal1DCluster *pshmax=0;
     do{
     pshmax=0;
@@ -1016,7 +1016,7 @@ integer Ecal2DCluster::build(int rerun){
      VZERO(p1c,sizeof(p1c)/sizeof(integer));
      p1c[pshmax->getplane()]=pshmax;
      Ecal1DCluster *plast=pshmax;
-     for(int ipl=pshmax->getplane()+1;ipl<Maxrow;ipl++){
+     for(int ipl=pshmax->getplane()+1;ipl<ECALDBc::GetLayersNo();ipl++){
        Ecal1DCluster *pcan=0;
        for(Ecal1DCluster *p=p1d[ipl];p;p=p->next()){
          if(p->Good() && p->Distance(plast)<ECREFFKEY.Thr2DMax){
@@ -1044,10 +1044,10 @@ integer Ecal2DCluster::build(int rerun){
      number chi2,t0,tantz;
      integer tot;
      bool reset=false;
-     bool suc=StrLineFit(p1c,Maxrow,proj,reset,NULL,tot,chi2,t0,tantz);
+     bool suc=StrLineFit(p1c,ECALDBc::GetLayersNo(),proj,reset,NULL,tot,chi2,t0,tantz);
       if(suc && chi2<ECREFFKEY.Chi22DMax){
 //       cout <<" 2dcluster found proj"<<proj<<" tot "<<tot<<" tantz "<<tantz<<" chi2 "<<chi2<<endl;
-      for(int ipl=0;ipl<Maxrow;ipl++){
+      for(int ipl=0;ipl<ECALDBc::GetLayersNo();ipl++){
        if(p1c[ipl])p1c[ipl]->setstatus(AMSDBc::USED);
       }
       Ecal2DCluster *pcl=new Ecal2DCluster(proj,tot,p1c,t0,tantz,chi2);
@@ -1379,7 +1379,7 @@ void EcalShower::DirectionFit(){
      integer tot[2];
      number chi2[2],t0[2],tantz[2];
      for(int proj=0;proj<2;proj++){
-      Ecal2DCluster::StrLineFit(p1c,Maxrow,proj,true,_Zcorr,tot[proj],chi2[proj],t0[proj],tantz[proj]);
+      Ecal2DCluster::StrLineFit(p1c,ECALDBc::GetLayersNo(),proj,true,_Zcorr,tot[proj],chi2[proj],t0[proj],tantz[proj]);
      }
 
   integer pr,pl,ce;
@@ -1423,7 +1423,7 @@ void EcalShower::DirectionFit(){
         Exit[i]=_pCl[i]->getcoo()+_pCl[i]->gettan()*ECREFFKEY.EMDirCorrection*Exit[2];
       }
       _EMDir=Exit-Entry;
-    integer front=_Direction==0?0:Maxrow-1;
+    integer front=_Direction==0?0:ECALDBc::GetLayersNo()-1;
     _FrontEnergyDep=0;
     AMSEcalHit *ptr=(AMSEcalHit*)AMSEvent::gethead()->
                                getheadC("AMSEcalHit",front,1);
@@ -1516,7 +1516,7 @@ void EcalShower::EnergyFit(){
 
 
  _CofG=AMSPoint(0,0,0);
-  const integer Maxrow=sizeof(_Edep)/sizeof(_Edep[0]);
+  const integer Maxrow=ECALDBc::GetLayersNo();
   number ec=0;
   _ShowerMax=-1;
   number xmax=-1;
@@ -1732,7 +1732,6 @@ void EcalShower::EnergyFit(){
 }
 
 void EcalShower::gamfunr(number& x, number &fc, EcalShower *p){
- const integer Maxrow=sizeof(p->_Edep)/sizeof(p->_Edep[0]);
  fc=0;
  if(x>0){
  number et=p->_Et;
@@ -1754,7 +1753,7 @@ void EcalShower::gamfun(integer &n, number xc[], number &fc, EcalShower *p){
 PROTOCALLSFFUN4(DOUBLE,DGAUSS,dgauss,ROUTINE,DOUBLE,DOUBLE,DOUBLE)
 #define DGAUSS(A2,A3,A4,A5) CCALLSFFUN4(DGAUSS,dgauss,,ROUTINE,DOUBLE,DOUBLE,DOUBLE,A2,A3,A4,A5)
 */
- const integer Maxrow=sizeof(p->_Edep)/sizeof(p->_Edep[0]);
+ const integer Maxrow=ECALDBc::GetLayersNo();
  fc=0;
  for(int i=0;i<n;i++){
   if(xc[i]<0){

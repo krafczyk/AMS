@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.90 2001/11/30 16:47:04 choutko Exp $
+//  $Id: ntuple.C,v 1.91 2002/01/17 14:33:45 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -443,13 +443,10 @@ exit(1);
 }
 void AMSNtuple::writeR(){
 #ifdef __WRITEROOT__
+    if(_tree){
     if(!_lun )_Nentries++;
      _tree->Fill();
-/*
-char key[64];
-     sprintf(key,"%d",_Nentries);
-     Write(key);
-*/
+    }
 #endif
 }
 

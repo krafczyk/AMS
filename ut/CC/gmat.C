@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.69 2001/11/19 13:28:28 choumilo Exp $
+//  $Id: gmat.C,v 1.70 2002/01/17 14:33:44 choutko Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -882,20 +882,26 @@ if(MISCFFKEY.G4On){
     number *  _eff=new number[nument];
     number *  _rindex=new number[nument];
     number *  _rayl=new number[nument];
+    bool ord=true;
+    if(pmom[0]>pmom[nument-1]){
+     cerr<<" AMSgtmed::AGSCKOV-W-MomentumArrayNotOrderedFor "<<getname()<<endl;
+     ord=false;
+    }
     int i;
     for (i=0;i<nument;i++){
-     _pmom[i]=pmom[i]*GeV;
-     _rindex[i]=rindex[i];
-     if(rindex[0]>0)_absl[i]=absl[i]*cm;
+     int j=ord?i:nument-1-i;
+     _pmom[j]=pmom[i]*GeV;
+     _rindex[j]=rindex[i];
+     if(rindex[0]>0)_absl[j]=absl[i]*cm;
      else {
-       _refl[i]=1-absl[i];   //reflectivity
-       _absl[i]=DBL_MAX;
+       _refl[j]=1-absl[i];   //reflectivity
+       _absl[j]=DBL_MAX;
      }
-     _eff[i]=eff[i];
+     _eff[j]=eff[i];
      if(rayleigh>0){
-      _rayl[i]=1/rayleigh* pow(1.2398E-9/pmom[i],4.)*cm;
+      _rayl[j]=1/rayleigh* pow(1.2398E-9/pmom[i],4.)*cm;
      }
-     else _rayl[i]=DBL_MAX;
+     else _rayl[j]=DBL_MAX;
     }
   G4MaterialPropertiesTable *pr = new G4MaterialPropertiesTable();
    pr->AddProperty("ABSLENGTH",_pmom,_absl,nument);

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.276 2001/12/04 10:36:18 choumilo Exp $
+//  $Id: event.C,v 1.277 2002/01/17 14:33:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1829,7 +1829,6 @@ void AMSEvent::_reecalevent(){
       buildC("EcalShower",0);
       AMSgObj::BookTimer.stop("ReEcalShowerFit");
 
-      AMSgObj::BookTimer.stop("REECALEVENT");
 
 //
 //
