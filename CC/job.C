@@ -2068,7 +2068,6 @@ char   *ids_names[]  = {"Length (words) GenBlock    ",
                         "Length (words) TOF(raw) 5 ",
                         "Length (words) TOF(raw) 6 ",
                         "Length (words) TOF(raw) 7 ",
-                        "Length (words) TOF(red) 0 ",
                         "Length (words) TRK(red) 32",
                         "Length (words) TRK(red) 72",
                         "Length (words) TRK(raw) 32",
@@ -2091,9 +2090,9 @@ char   *ids_names[]  = {"Length (words) GenBlock    ",
      if (i>17) nbin = 100;
      HBOOK1(hid,ids_names[i],nbin,0.,f,0.);
   }
-    HBOOK1(300000,"Length (words) event",400,0.,1200.,0.);
+    HBOOK1(300000,"Length (words) event",300,0.,1500.,0.);
     HBOOK1(300001,"Length (words) TOF",200,0.,600.,0.);
-    HBOOK1(300002,"Length (words) Tracker",400,0.,1200.,0.);
+    HBOOK1(300002,"Length (words) Tracker",300,0.,1500.,0.);
 }
 
 #ifdef __DB__

@@ -223,6 +223,9 @@ AMSControlFrame::~AMSControlFrame(){
    fSubDetMenu[6]->AddEntry("Set 1",161);
 
    fSubDetMenu[7]->AddEntry("Length",170);
+   fSubDetMenu[7]->AddEntry("TOF Length",171);
+   fSubDetMenu[7]->AddEntry("TRK (red) Length",172);
+   fSubDetMenu[7]->AddEntry("TRK (raw,mix) Length",173);
 
    fMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 0, 0, 1, 1);
    fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
