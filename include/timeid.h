@@ -21,11 +21,12 @@ void _init(){};
 static void _InitTable();
 static uinteger * _Table;
 void _convert(uinteger *pdata, integer nw);
-void _fillDB(const char * dir);
+void _fillDB(const char * dir,int reenter);
 void _fillfromDB();
 integer _getDBRecord(time_t & time);
 void _getDefaultEnd(uinteger time, time_t & endt);
 void _checkcompatibility (const char* dir);
+void _rewrite(const char * dir, AString & ffile);
 char* _getsubdirname(time_t time);
 static integer _select(
 #ifndef __ALPHA__

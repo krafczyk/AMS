@@ -56,7 +56,7 @@ AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes=0,
       _Nbytes=nbytes;
 
 #ifndef __DB__
-      _fillDB(AMSDATADIR.amsdatabase);
+      _fillDB(AMSDATADIR.amsdatabase,0);
 #endif
 #ifdef __DB__
       _fillfromDB();
@@ -222,6 +222,7 @@ integer AMSTimeID::write(const char * dir, int slp){
     fnam+=getname();
     fnam+="/";
     fnam+=_getsubdirname(_Begin);
+    fnam+="/";
     AString mkdir("mkdir -p ");
     mkdir+=fnam;
     system((char*)mkdir);
@@ -286,6 +287,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
      fnam+=getname();
      fnam+="/";
      fnam+=_getsubdirname(asktime);
+     fnam+="/";
      fnam+=getname();
      fnam+= getid()==0?".0":".1";
      char name[255];
@@ -440,7 +442,8 @@ return (entry->d_name)[0] != '.';
 }
 
 
-void AMSTimeID::_fillDB(const char *dir){
+void AMSTimeID::_fillDB(const char *dir, int reenter){
+int everythingok=1;
 int i;
 for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
     _DataBaseSize=0;
@@ -528,8 +531,14 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
                 _pDataBaseEntries[2][_DataBaseSize]=temp[1];
                 _pDataBaseEntries[3][_DataBaseSize]=temp[2];
                 _DataBaseSize++;
+                if(strcmp(namelistsubdir[is]->d_name,_getsubdirname(temp[1]))){
+                  everythingok=0;
+                  cerr<<"AMSTimeID::_fillDB-W-Dir/FileNameAreInconsistent "<<ffile<<" "<<"Recovering"<<endl;
+                  fbin.close();
+                  _rewrite(dir,ffile);
+                }
               }
-              fbin.close();
+              if(fbin)fbin.close();
             }
             
           }
@@ -589,6 +598,14 @@ for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
       else cerr <<"AMSTimeID::_fillDB-S-CouldNot update map file "<<fmap<<endl; 
       cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "
            <<getname()<<endl; 
+    }
+    if( !everythingok){
+      for( i=0;i<5;i++)delete _pDataBaseEntries[i];
+      if(!reenter)_fillDB(dir,1);
+      else {
+       cerr<<"AMSTimeID::_fillDB-F-CouldnotUpdataDatabase,Exiting"<<endl;
+       exit(1);
+      }      
     }
 }
 
@@ -669,7 +686,7 @@ tmp->tm_hour=0;
 tmp->tm_min=0;
 tmp->tm_sec=0;
 begin=mktime(tmp);
-sprintf(_buf,"%d/",mktime(tmp));
+sprintf(_buf,"%d",mktime(tmp));
 return _buf;
 }
 
@@ -707,6 +724,20 @@ void AMSTimeID::_checkcompatibility(const char *dir){
                    _pDataBaseEntries[0]+_DataBaseSize);
             AString ffile(fdir);
             ffile+=namelist[i]->d_name;
+            _rewrite(dir,ffile);
+          }
+          free(namelist[i]);
+        }
+        
+        free(namelist);
+        for(i=0;i<5;i++)delete[] _pDataBaseEntries[i];
+      }
+
+
+}
+
+void AMSTimeID::_rewrite(const char *dir, AString & ffile){
+            ifstream fbin;
             fbin.open((const char *)ffile,ios::in);
             if(fbin){
               uinteger * pdata;
@@ -736,7 +767,7 @@ void AMSTimeID::_checkcompatibility(const char *dir){
                 }
                 else {
                   cout<<"AMSTimeID::read-W-Problems to Read File "<<
-                  fnam<<endl;//tempor
+                  ffile<<endl;//tempor
                   fbin.close();
                   delete [] pdata;
                 }
@@ -744,13 +775,7 @@ void AMSTimeID::_checkcompatibility(const char *dir){
               _Nbytes-=sizeof(integer);
             }
             
-          }
-          free(namelist[i]);
-        }
-        
-        free(namelist);
-        for(i=0;i<5;i++)delete[] _pDataBaseEntries[i];
-      }
 
 
 }
+

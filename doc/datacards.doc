@@ -296,7 +296,7 @@ R170  NonGaussianPart(0.,0.1) // non gaussian part in noise distr
 MCGEN
 R 1 coo[2][3](3*-1.e10,3*1.e10)   //make the cube surface the particle 
                                   //originate from
-R 7 dir[2][3](3*-1.,3*1.)         //Particle Directions range
+R 7 dir[2][3](3*-1.,3*1.)         //Particle Direction Cos range
 R13 momr[2](-1.e10,1.e10)         //Particle momentum range
 I15 fixp(0)                       //fix the cube surface for particle 
                                   //generation 1 - top, 2-bottom,
@@ -696,3 +696,8 @@ I2 g3trd        // g3identifier for trd aware media
 R3 cor
 R4 alpha
 R5 beta
+
+TIME (See geant3 manual)
+R1 time        // max time allowd for prog execution 
+               // NB NOT included : initialization & termination
+
