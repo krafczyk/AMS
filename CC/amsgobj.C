@@ -6,5 +6,5 @@
 #include <amsgobj.h>
 AMSNodeMap AMSgObj::GTrMatMap;
 AMSNodeMap AMSgObj::GTrMedMap;
-AMSNodeMap AMSgObj::GVolMap;
+//AMSNodeMap AMSgObj::GVolMap;
 AMSStat  AMSgObj::BookTimer;

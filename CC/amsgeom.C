@@ -94,19 +94,17 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 
 #ifdef  __G4AMS__
  //testboolgeom(mother);
-//if(!G4FFKEY.UniformMagField){
  trdgeom02(mother);
  srdgeom02(mother);
  ecalgeom02(mother);
- //richgeom02(mother);
-//}
+ richgeom02(mother);
 #else
  trdgeom02(mother);
  srdgeom02(mother);
  ecalgeom02(mother);
  antigeom02(mother);
  pshgeom02(mother);
- //richgeom02(mother);
+ richgeom02(mother);
 #endif
 }
 else{ 
@@ -123,6 +121,27 @@ if(MISCFFKEY.G3On){
 false_mother.MakeG3Volumes();
 
   cout << "AMSGeom::-I-"<<getNpv()<<" Physical volumes, "<<getNlv()<<" logical volumes and "<<getNrm()<<" rotation matrixes have been created "<<endl;
+// Check recursion
+AMSNodeMap geommap;
+geommap.map(false_mother);
+int abort=0;
+for(int i=0;;i++){
+ AMSgvolume* p1=(AMSgvolume*)geommap.getid(i);
+ AMSgvolume* p2=(AMSgvolume*)geommap.getid(i+1);
+ if(!p1 || !p2)break;
+ if(!strcmp(p1->getname(), p2->getname()) && p1->VolumeHasG3Attributes() &&
+ p2->VolumeHasG3Attributes()){
+  if(p1->down() || p2->down()){
+   cerr<<" AMSGeom-S-Geant3RecursionProblemDetectedForVolumes "<<
+   p1->getname()<<" "<<p1->getid()<<" , "<<p2->getname()<<" "<<p2->getid()<<endl;
+   abort=1;
+  }
+ }
+}
+if(abort){
+ cerr<<"AMSGeom-F-Geant3VolumesWithDaugthersMustHaveDifferentNames"<<endl;
+ exit(1);
+}
 GGCLOS();
 cout <<" AMSGeom-I-TotalOf "<<GlobalRotMatrixNo()<<" rotation matrixes  created"<<endl;
 
@@ -133,10 +152,10 @@ getNlv()=0;
 getNrm()=0;
 #endif
 
-AMSgObj::GVolMap.map(mother);
-#ifdef __AMSDEBUG__
-// if(AMSgvolume::debug)AMSgObj::GVolMap.print();
-#endif
+//AMSgObj::GVolMap.map(mother);
+//#ifdef __AMSDEBUG__
+//// if(AMSgvolume::debug)AMSgObj::GVolMap.print();
+//#endif
 }
 
 void magnetgeom(AMSgvolume & mother){

@@ -9,7 +9,7 @@ class AMSgObj{
 public:
 static AMSNodeMap GTrMedMap; // Tracking med map
 static AMSNodeMap GTrMatMap; // Tracking med map
-static AMSNodeMap GVolMap; // gvolume map
+//static AMSNodeMap GVolMap; // gvolume map
 static AMSStat BookTimer;
 };
 #endif

@@ -532,6 +532,12 @@ if(_posp==0){
 return 1;
 }
 
+int AMSgvolume::VolumeHasG3Attributes(){
+if(!strcmp(_gonly,"ONLY"))return 1;
+if(!strcmp(_gonly,"MANY"))return 1;
+return 0;
+}
+
 integer AMSgvolume::_Nph=0;
 integer AMSgvolume::_Nlog=0;
 integer AMSgvolume::_Nrm=0;

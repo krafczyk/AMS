@@ -100,6 +100,7 @@ static  integer & getNrm()  {return _Nrm;}
   static uinteger & GlobalRotMatrixNo(){return _GlobalRotMatrixNo;}
   int VolumeHasSameRotationMatrixAs(AMSgvolume *pvo );
   int VolumeHasSameG3AttributesAs(AMSgvolume *pvo );
+  int VolumeHasG3Attributes();
   AMSgvolume (char matter[], integer rotmno,const char name[], 
            const char shape[] ,   geant par[] , integer npar, 
             geant coo[] ,  number nrm[][3] , const char gonly[] , 
