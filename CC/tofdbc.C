@@ -67,7 +67,7 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_edep2ph={8000.};// edep(Mev)-to-Photons convertion
   geant TOFDBc::_seresp=1.45;    // PMT Single elec.responce (MP=Mean,mV)
   geant TOFDBc::_seresv=0.87;     // PMT Single elec.responce variance(relative to Mean)
-  geant TOFDBc::_fladctb=0.05;    // MC "flash-ADC" internal time binning (ns)
+  geant TOFDBc::_fladctb=0.1;    // MC "flash-ADC" internal time binning (ns)
   geant TOFDBc::_shaptb=1.;      // MC shaper internal time binning (ns)
   geant TOFDBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
   geant TOFDBc::_shctim=600.;    // MC shaper pulse cut-time(gate width)(ns)
@@ -1507,10 +1507,10 @@ void TOFJobStat::bookhist(){
     }
 //
     HBOOK1(1532,"(T1-T3)(ns),corr,trl-corr,1b/L evnt",80,1.,9.,0.);
-/*
+//
     HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
     HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-*/
+//
     HBOOK1(1534,"(T2-T4)(ns),corr,trl-corr,1b/L evnt",80,1.,9.,0.);
     HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",80,-4.,4.,0.);
     HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
@@ -1733,8 +1733,8 @@ void TOFJobStat::outp(){
            HPRINT(1139);
          }
            HPRINT(1532);
-//           HPRINT(1533);
-//           HPRINT(1543);
+           HPRINT(1533);
+           HPRINT(1543);
            HPRINT(1544);
            HPRINT(1534);
          if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms

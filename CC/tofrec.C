@@ -1147,8 +1147,8 @@ void AMSTOFRawCluster::build(int &ostatus){
         HF1(1531,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
         HF1(1528,edepd[0],1.); //layer=0 Dinode-reconstructed Edep
       }
-//      HF1(1533,tdiff[0],1.);//layer=0
-//      HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
+      HF1(1533,tdiff[0],1.);//layer=0
+      HF1(1543,clong[0],1.);//Y-coord(loc.r.s.)
       if(AMSJob::gethead()->isSimulation()){
         geant tch;
         charg[0]=pch1[0];

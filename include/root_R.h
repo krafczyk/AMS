@@ -28,6 +28,7 @@ const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;
 const int MAXCTCCLMC =   200;
 const int MAXECCLUST =   100;
+const int MAXECHITS  =   500;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 
@@ -65,6 +66,7 @@ public:
   int AntiMCClusters;
   int AntiClusters;
   int EcalClusters;
+  int EcalHits;
   int EventStatus; 
 friend class AMSEvent;
 friend class AMSNtuple;
@@ -202,6 +204,27 @@ friend class AMSEcalCluster;
 friend class AMSNtuple;
 #ifdef __WRITEROOTH__
 ClassDef(EcalClusterNtuple,1)       //EcalClusterNtuple
+#endif
+};
+//----------------------------
+#ifdef __WRITEROOTH__
+class EcalHitNtuple : public TObject {
+#else
+class EcalHitNtuple {
+#endif
+public:
+  int Necal;
+  int Status[MAXECHITS];
+  int Proj[MAXECHITS];
+  int Plane[MAXECHITS];
+  int Cell[MAXECHITS];
+  float Edep[MAXECHITS];
+  float Coo[MAXECHITS][3];
+
+friend class AMSEcalHit;
+friend class AMSNtuple;
+#ifdef __WRITEROOTH__
+ClassDef(EcalHitNtuple,1)       //EcalHitNtuple
 #endif
 };
 //--------------------------

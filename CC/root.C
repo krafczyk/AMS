@@ -23,7 +23,7 @@ ClassImp(TrRawClusterNtuple)
 ClassImp(AntiRawClusterNtuple)
 ClassImp(TOFRawClusterNtuple)
 ClassImp(EcalClusterNtuple)
-ClassImp(EcalCellNtuple)
+ClassImp(EcalHitNtuple)
 ClassImp(RICMCNtuple)
 ClassImp(RICEventNtuple)
 #endif

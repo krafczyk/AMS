@@ -177,97 +177,6 @@ void AMSEcalHit::build(int &stat){
   if(nhits>0)stat=0;
 }
 //---------------------------------------------------
-void AMSEcalCell::build(int &stat){
-  int i,j,k,superlayer,photomultiplier,subcell;
-  integer fid,cid,cidar[4],ncelle,pm,sc,nmemb,status,proj,rdir;
-  integer sta;
-  integer ipl;
-  number edep,edep_in_cell[8][36][4],edep_att[8][36][4],edepatt,edepcell,ww[4];
-  number x,y,z,coo,hflen,pmdis,attf;
-  AMSEcalMCHit * ptr;
-  AMSEcalHit * ptr2;
-  AMSEcalHit * membp[2*ECSLMX];
-  static integer nprz(0);
-//
-  ncelle=0;
-  for(i=0;i<ECALDBc::slstruc(3);i++){
-    for(j=0;j<ECALDBc::slstruc(4);j++){
-      for(k=0;k<4;k++){
-        edep_in_cell[i][j][k]=0.;
-        edep_att[i][j][k]=0.;
-      }
-    }
-  }
-  stat=1;//bad
-  for(ipl=0;ipl<ECALDBc::slstruc(3);ipl++){ // <-------- super-layer loop
-    ptr=(AMSEcalMCHit*)AMSEvent::gethead()->
-                                 getheadC("AMSEcalMCHit",ipl,0);
-    while(ptr){  //            <----------- PM loop
-      fid=ptr->getid();//SSLLFFF
-      x=ptr->getcoo(0);// global coord.
-      y=ptr->getcoo(1);
-      x=x-ECALDBc::gendim(5);// go to local (ECAL-radiator) sistem
-      y=y-ECALDBc::gendim(6);
-      proj=(1-2*(ipl%2))*(1-2*ECALDBc::slstruc(1));//proj=+1/-1=>Y/X
-      if(proj>0){ // <-- fiber from Y-proj
-        coo=x;// get X-coord(along fiber)
-        hflen=ECALDBc::gendim(1)/2.;// 0.5*fiber length in X-dir
-      }
-      else{       // <-- fiber from X-proj
-        coo=y;// get Y-coord(along fiber)
-        hflen=ECALDBc::gendim(2)/2.;// 0.5*fiber length in Y-dir
-      }
-      for(k=0;k<4;k++){
-        cidar[k]=0;
-        ww[k]=0.;
-      }
-      ECALDBc::fid2cida(fid,cidar,ww);//cidar=SSPPC
-//
-      for(j=0;j<4;j++){ //      <----------- subcell in PM loop
-        cid=cidar[j];
-        if(cid>0){
-          sc=cid%10-1; // SubCell(pixel)
-          pm=(cid/10)%100-1; // PM
-          // 
-          if(proj>0)rdir=(1-2*(pm%2))*ECALDBc::slstruc(6);//+-1 readout dir(along pos/neg Y)
-          else rdir=(1-2*(pm%2))*ECALDBc::slstruc(5);//+-1 readout dir(along pos/neg X)
-          //
-          pmdis=coo+hflen;//to count from "-" edge of fiber (0-2*hflen)
-          if(rdir<0)pmdis=2.*hflen-pmdis;
-          //fiber attenuation factor :
-          attf=(1.-ECALDBc::rdcell(3))*exp(-pmdis/ECALDBc::rdcell(1))
-            +ECALDBc::rdcell(3)*exp(-pmdis/ECALDBc::rdcell(2));
-	  //
-          edep=ptr->getedep(); //   GeV(dE/dX)
-          edep_in_cell[ipl][pm][sc]+=edep;
-          edep_att[ipl][pm][sc]+=edep*attf*ww[j];
-        }
-      }  //                      <----------- end of the subcell in PM loop
-//
-      ptr=ptr->next();
-    }    //                       <----------- end of the PM loop
-  }      //                       <----------- end of the super-layer loop
-//
-  for(i=0;i<ECALDBc::slstruc(3);i++){
-    for(j=0;j<ECALDBc::slstruc(4);j++){
-      for(k=0;k<4;k++){
-        if(edep_in_cell[i][j][k]>0.0005){
-          ncelle++;
-          edepcell=edep_in_cell[i][j][k];
-	  edepatt=edep_att[i][j][k];
-          sta=0;
-          superlayer=i;
-          photomultiplier=j;
-          subcell=k;
-          AMSEvent::gethead()->addnext(AMSID("AMSEcalCell",ncelle),new
-                    AMSEcalCell(sta,edepcell,edepatt,superlayer,photomultiplier,subcell));
-        }
-      }
-    }
-  }
-  if(ncelle>0)stat=0;
-}
-//---------------------------------------------------
 void AMSEcalCluster::build(int &stat){
   int i,j,k;
   integer maxpl,maxcl,sta,dbstat,nhits,nclus,nmemb;
@@ -394,45 +303,26 @@ void AMSEcalCluster::build(int &stat){
 void AMSEcalCluster::_writeEl(){
   EcalClusterNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecclust();
 
-  if (TN->Necal>=MAXECCLUST) return;
+  if (TN->Neccl>=MAXECCLUST) return;
 
 // Fill the ntuple
 //  if(AMSEcalCluster::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
   if(AMSEcalCluster::Out( IOPA.WriteAll%10==1 )){
-    TN->Status[TN->Necal]=_status;
-    TN->Proj[TN->Necal]=_proj;
-    TN->Plane[TN->Necal]=_plane;
-    TN->Nmemb[TN->Necal]=_nmemb;
-    TN->Edep[TN->Necal]=_edep;
+    TN->Status[TN->Neccl]=_status;
+    TN->Proj[TN->Neccl]=_proj;
+    TN->Plane[TN->Neccl]=_plane;
+    TN->Nmemb[TN->Neccl]=_nmemb;
+    TN->Edep[TN->Neccl]=_edep;
     int i;
-    for(i=0;i<3;i++)TN->Coo[TN->Necal][i]=_Coo[i];
-    for(i=0;i<3;i++)TN->ErrCoo[TN->Necal][i]=_ErrorCoo[i];
-//    for(i=0;i<3;i++)cout <<TN->ErrCoo[TN->Necal][i]<<" "<<_ErrorCoo[i]<<endl;
-    TN->Necal++;
+    for(i=0;i<3;i++)TN->Coo[TN->Neccl][i]=_Coo[i];
+    for(i=0;i<3;i++)TN->ErrCoo[TN->Neccl][i]=_ErrorCoo[i];
+//    for(i=0;i<3;i++)cout <<TN->ErrCoo[TN->Neccl][i]<<" "<<_ErrorCoo[i]<<endl;
+    TN->Neccl++;
   }
 }
-//---------------------------------------------------
-void AMSEcalCell::_writeEl(){
-  EcalCellNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecalcell();
-
-  if (TN->Ncelle>=MAXECELL) return;
-
-  if(AMSEcalCell::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
-//  Fill the ntuple
-    TN->EdepCell[TN->Ncelle]=_edepcell;
-    TN->EdepAtt[TN->Ncelle]=_edepatt;
-    TN->SuperLayer[TN->Ncelle]=_superlayer;
-    TN->Photomultiplier[TN->Ncelle]=_photomultiplier;
-    TN->SubCell[TN->Ncelle]=_subcell;
-    TN->Ncelle++;
-  }
-
-}    
 //---------------------------------------------------
 void AMSEcalCluster::_copyEl(){
-}
-//---------------------------------------------------
-void AMSEcalCell::_copyEl(){
+//
 }
 //---------------------------------------------------
 integer AMSEcalCluster::Out(integer status){
@@ -450,15 +340,42 @@ if(init == 0){
 }
 return (WriteAll || status);
 }
+//---------------------------------------------------
+void AMSEcalHit::_writeEl(){
+  EcalHitNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecalhit();
+  if (TN->Necht>=MAXECHITS || ECREFFKEY.relogic[0]==0) return;
 
-integer AMSEcalCell::Out(integer status){
+// Fill the ntuple
+  if(AMSEcalHit::Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+    TN->Status[TN->Necht]=_status;
+    TN->Proj[TN->Necht]=_proj;
+    TN->Plane[TN->Necht]=_plane;
+    TN->Cell[TN->Necht]=_cell;
+    TN->Edep[TN->Necht]=_edep;
+    if(_proj){ //<-- y-proj
+      TN->Coo[TN->Necht][0]=_cool;
+      TN->Coo[TN->Necht][1]=_coot;
+    }
+    else{     //<-- x-proj
+      TN->Coo[TN->Necht][0]=_coot;
+      TN->Coo[TN->Necht][1]=_cool;
+    }
+    TN->Coo[TN->Necht][2]=_cooz;
+    TN->Necht++;
+  }
+}
+//---------------------------------------------------
+void AMSEcalHit::_copyEl(){
+}
+//---------------------------------------------------
+integer AMSEcalHit::Out(integer status){
 static integer init=0;
 static integer WriteAll=1;
 if(init == 0){
  init=1;
  integer ntrig=AMSJob::gethead()->gettriggerN();
  for(int n=0;n<ntrig;n++){
-   if(strcmp("AMSEcalCell",AMSJob::gethead()->gettriggerC(n))==0){
+   if(strcmp("AMSEcalHit",AMSJob::gethead()->gettriggerC(n))==0){
      WriteAll=1;
      break;
    }
@@ -466,3 +383,4 @@ if(init == 0){
 }
 return (WriteAll || status);
 }
+//---------------------------------------------------

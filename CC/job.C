@@ -523,8 +523,15 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.reprtf[0]=0;     // (1) print_hist flag (0/1->no/yes)
   ECREFFKEY.reprtf[1]=0;     // (2) print_prof flag (0/1->no/yes)
   ECREFFKEY.reprtf[2]=0;     // (3) spare
-  ECREFFKEY.hitthr1=6.2;     // (4) (mev) hit-threshold in the cluster search
-  ECREFFKEY.hitthr2=10.;     // (5) (mev) spare threshold 
+//
+  ECREFFKEY.relogic[0]=0;    // (4) 1/0->write/not EcalHits into Ntuple(if requested)
+  ECREFFKEY.relogic[1]=0;    // (5) spare
+  ECREFFKEY.relogic[2]=0;    // (6) spare
+  ECREFFKEY.relogic[3]=0;    // (7) spare
+  ECREFFKEY.relogic[4]=0;    // (8) spare
+//
+  ECREFFKEY.hitthr1=6.2;     // (9) (mev) hit-threshold in the cluster search
+  ECREFFKEY.hitthr2=10.;     // (10) (mev) spare threshold 
 FFKEY("ECRE",(float*)&ECREFFKEY,sizeof(ECREFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //===============================================================================
@@ -1300,6 +1307,7 @@ _reamsinitjob();
 
 if(isCalibration())_caamsinitjob();
 _timeinitjob();
+
 _dbinitjob();
 cout << *this;
 }

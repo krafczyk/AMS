@@ -72,6 +72,7 @@ public:
   number getcooz(){return _cooz;}
 //
   static void build(int &stat);
+  static integer Out(integer);
 //
 protected:
   void _printEl(ostream &stream){
@@ -81,8 +82,8 @@ protected:
     stream <<"Coot/l/z= "<<_coot<<" "<<_cool<<" "<<_cooz<<endl;
     stream <<dec<<endl<<endl;
   }
-void _writeEl(){};
-void _copyEl(){};
+void _writeEl();
+void _copyEl();
 //
 };
 //-----------------------------------
@@ -133,45 +134,5 @@ void _copyEl();
 //
 };
 //-----------------------------------
-class AMSEcalCell: public AMSlink{ 
-private:
-  number _edepcell;
-  number _edepatt;
-  integer _superlayer;
-  integer _photomultiplier;
-  integer _subcell;
-public:
-  AMSEcalCell(integer status, number edepcell, number edepatt,
-    integer superlayer, integer photomultiplier, integer subcell):
-    AMSlink(status,0),_edepcell(edepcell),_edepatt(edepatt),
-    _superlayer(superlayer),_photomultiplier(photomultiplier),
-    _subcell(subcell){};
-  ~AMSEcalCell(){};
-  AMSEcalCell * next(){return (AMSEcalCell*)_next;}
-//
-  number getedepcell(){return _edepcell;}
-  number getedepatt(){return _edepatt;}
-  integer getsuperlayer(){return _superlayer;}
-  integer getphotomultiplier(){return _photomultiplier;}
-  integer getsubcell(){return _subcell;}
-  static void build(int &stat);
-  static integer Out(integer);
-  static void init();
-//
-protected:
-  void _printEl(ostream &stream){
-    int i;
-    stream <<"AMSEcalCell: Edepcell="<<dec<<_edepcell<<endl;
-    stream <<"EdepAtt="<<dec<<_edepatt<<endl;
-    stream <<"SuperLayer="<<dec<<_superlayer<<endl;
-    stream <<"Photomultiplier="<<dec<<_photomultiplier<<endl;
-    stream <<"SubCell="<<dec<<_subcell<<endl;
-    stream <<"Status="<<hex<<_status<<endl; 
-    stream <<dec<<endl<<endl;
-  }
-void _writeEl();
-void _copyEl();
-//
-};
 
 #endif

@@ -35,7 +35,7 @@ protected:
   AntiRawClusterNtuple _antiraw;
   TOFRawClusterNtuple _tofraw;
   EcalClusterNtuple _ecclust;
-  EcalCellNtuple _ecalcell;
+  EcalHitNtuple _ecalhit;
   RICMCNtuple _richmc;
   RICEventNtuple _richevent;
 #ifdef __WRITEROOT__
@@ -81,7 +81,7 @@ public:
   AntiRawClusterNtuple* Get_antiraw() {return &_antiraw;}
   TOFRawClusterNtuple* Get_tofraw() {return &_tofraw;}
   EcalClusterNtuple* Get_ecclust() {return &_ecclust;}
-  EcalCellNtuple* Get_ecalcell() {return &_ecalcell;}
+  EcalHitNtuple* Get_ecalhit() {return &_ecalhit;}
   RICMCNtuple* Get_richmc() {return &_richmc;}
   RICEventNtuple* Get_richevent() {return &_richevent;}
 

@@ -829,10 +829,6 @@ void AMSEvent::_reecalinitevent(){
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalCluster",i),0));
   }
-  for(i=0;i<maxc;i++){// <-- book  SubCell-plane containers for EcalCell
-    ptr=AMSEvent::gethead()->add (
-      new AMSContainer(AMSID("AMSContainer:AMSEcalCell",i),0));
-  }
 }
 void AMSEvent::_resrdinitevent(){
 }
@@ -1529,12 +1525,6 @@ void AMSEvent::_reecalevent(){
     }
     EcalJobStat::addre(3);
 //
-    AMSEcalCell::build(stat);// EcalHit->EcalCell
-    if(stat!=0){
-      AMSgObj::BookTimer.stop("REECALEVENT");
-      return;
-    }
-    EcalJobStat::addre(4);
 //
   }
   else{    //                         ===> fast algorithm:
@@ -2168,7 +2158,7 @@ else{
   EN->AntiClusters=0;
   EN->AntiMCClusters=0;
   EN->EcalClusters=0;
-  EN->EcalCell=0;
+  EN->EcalHits=0;
   getmag(EN->ThetaM,EN->PhiM);
   for(i=0;;i++){
    p=AMSEvent::gethead()->getC("AMSParticle",i);
@@ -2253,12 +2243,13 @@ else{
    if(p) EN->EcalClusters+=p->getnelem();
    else break;
   }
-
+ 
   for(i=0;;i++){
-   p=AMSEvent::gethead()->getC("AMSEcalCell",i);
-   if(p) EN->EcalCell+=p->getnelem();
+   p=AMSEvent::gethead()->getC("AMSEcalHit",i);
+   if(p) EN->EcalHits+=p->getnelem();
    else break;
   }
+  
 
 }
 }

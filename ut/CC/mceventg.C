@@ -136,11 +136,13 @@ else {   // <--- random dir
   number lx=xb-xa;
   number ly=yb-ya;
   number lz=zb-za;
-  number zanti=43.;// uncoment for fast tests (not for accept.calculations !!!)
+//                 tempor. stuff for 'ECAL-hit' event preselection
+  number zanti=43.;
   number ranti=54.;
-  number zcal=-150.8;
-  number calhs=32.;//cal.half-size(-3cm from edge)
+  number zcal=-142.;
+  number calhs=30.;//cal.half-size(-3cm from edge)
   number xin,yin,dxy,xcr,ycr;
+//
  switch(curp){
  case 1:
 //   while(1){ //<-- loop to check crossings with top/bot anti(magnet) holes and calor.

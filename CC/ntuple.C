@@ -35,8 +35,8 @@ void AMSNtuple::init(){
   HBNT(_lun, getname()," ");
   if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
   HBNAME(_lun,"EventH",&_event.Eventno,
+ 
 "eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,CTCClusters[0,100]:I,CTCMCClusters[0,100000]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EventStatus:I");
-
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,150],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
@@ -102,7 +102,7 @@ else{
 // Station
   HBNAME(_lun,"EventH",&_event02.Eventno,
  
-"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,20000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,AntiMCClusters[0,30000]:I,TRDMCClusters[0,4000]:I,AntiClusters[0,1000]:I,EcalClusters[0,500]:I,EventStatus:I,EcalCell[0,1000]:I");
+"eventno:I,run:I,runtype:I,time(2):I,RawWords:I,RadS:R,ThetaS:R,PhiS:R,YawS:R,PitchS:R,RollS:R,VelocityS:R,VelTheta:R,VelPhi:R,ThetaM:R,PhiM:R,Particles[0,1000]:I,Tracks[0,1000]:I,Betas[0,1000]:I,Charges[0,1000]:I,TrRecHits[0,10000]:I,TrClusters[0,10000]:I,TrRawClusters[0,10000]:I,TrMCClusters[0,10000]:I,TOFClusters[0,1000]:I,TOFMCClusters[0,10000]:I,TRDMCClusters[0,200]:I,AntiMCClusters[0,10000]:I,AntiClusters[0,100]:I,EcalClusters[0,50]:I,EcalHits[0,500]:I,EventStatus:I");
 
   HBNAME(_lun,"Beta",&_beta.Nbeta,
       "nbeta[0,150],betastatus(nbeta):I,betapattern(nbeta)[0,100]:I,beta(nbeta),betac(nbeta),betaerror(nbeta),betaerrorc(nbeta),betachi2(nbeta),betachi2s(nbeta),betantof(nbeta)[0,4]:I,betaptof(4,nbeta)[-1,1000]:I,betaptr(nbeta)[-1,1000]:I");
@@ -119,11 +119,11 @@ else{
   HBNAME(_lun,"TOFClust",&_tof.Ntof,
   "ntof[0,20],TOFStatus(ntof):I,plane(ntof)[0,10]:I,bar(ntof)[0,15]:I,nmemb(ntof)[0,15]:I,TOFEdep(ntof),TOFEdepd(ntof),TOFTime(ntof),TOFETime(ntof),TOFCoo(3,ntof),TOFErCoo(3,ntof)");
 //
-  HBNAME(_lun,"EcalClus",&_ecclust.Necal,
-  "necal[0,50],EcalStatus(necal):I,EcalProj(necal)[0,1]:I,EcalPlane(necal)[0,20]:I,EcalNmemb(necal)[0,72]:I,EcalEdep(necal),EcalCoo(3,necal),EcalErrCoo(3,necal)");
+  HBNAME(_lun,"EcalClus",&_ecclust.Neccl,
+  "neccl[0,50],EcalStatus(neccl):I,EcalProj(neccl)[0,1]:I,EcalPlane(neccl)[0,20]:I,EcalNmemb(neccl)[0,72]:I,EcalEdep(neccl),EcalCoo(3,neccl),EcalErrCoo(3,neccl)");
 //
-  HBNAME(_lun,"EcalCell",&_ecalcell.Ncelle,
-  "ncelle[0,300],EcalEdepCell(ncelle),EcalEdepAtt(ncelle),EcalSuperLayer(ncelle)[0,7]:I,EcalPhotomultiplier(ncelle)[0,35]:I,EcalSubCell(ncelle)[0,3]:I");
+  HBNAME(_lun,"EcalHits",&_ecalhit.Necht,
+  "necht[0,500],EchtStatus(necht):I,EchtProj(necht)[0,1]:I,EchtPlane(necht)[0,20]:I,EchtCell(necht)[0,80]:I,EchtEdep(necht),EchtCoo(3,necht)");
 //
   HBNAME(_lun,"TOFMCClu",&_tofmc.Ntofmc,
   "ntofmc[0,200],TOFMCIdsoft(ntofmc):I,TOFMCXcoo(3,ntofmc),TOFMCtof(ntofmc),TOFMCedep(ntofmc)");
@@ -184,8 +184,8 @@ void AMSNtuple::reset(int full){
     if(_part.Npart)VZERO(&_part,sizeof(_part)/sizeof(integer));
     if(_part02.Npart)VZERO(&_part02,sizeof(_part02)/sizeof(integer));
     if(_tof.Ntof)VZERO(&_tof,sizeof(_tof)/sizeof(integer));
-    if(_ecclust.Necal)VZERO(&_ecclust,sizeof(_ecclust)/sizeof(integer));
-    if(_ecalcell.Ncelle)VZERO(&_ecalcell,sizeof(_ecalcell)/sizeof(integer));
+    if(_ecclust.Neccl)VZERO(&_ecclust,sizeof(_ecclust)/sizeof(integer));
+    if(_ecalhit.Necht)VZERO(&_ecalhit,sizeof(_ecalhit)/sizeof(integer));
     if(_tofmc.Ntofmc)VZERO(&_tofmc,sizeof(_tofmc)/sizeof(integer));
     if(_trcl.Ntrcl)VZERO(&_trcl,sizeof(_trcl)/sizeof(integer));
     if(_trclmc.Ntrclmc)VZERO(&_trclmc,sizeof(_trclmc)/sizeof(integer));
@@ -213,8 +213,8 @@ void AMSNtuple::reset(int full){
    _part.Npart = 0;
    _part02.Npart = 0;
    _tof.Ntof = 0;
-   _ecclust.Necal = 0;
-   _ecalcell.Ncelle = 0;
+   _ecclust.Neccl = 0;
+   _ecalhit.Necht = 0;
    _tofmc.Ntofmc = 0;
    _trcl.Ntrcl = 0;
    _trdclmc.Ntrdclmc=0;
@@ -302,8 +302,8 @@ void AMSNtuple::initR(char* fname){
    TBranch *bl=_tree->Branch("tofraw", "TOFRawClusterNtuple",  &pevl, 32000,1);
    void *pevm=(void*)&_ecclust;
    TBranch *bm=_tree->Branch("ecalcl", "EcalClusterNtuple",  &pevm, 32000,1);
-   void *pevn=(void*)&_ecalcell;
-   TBranch *bn=_tree->Branch("ecalce", "EcalCellNtuple",  &pevn, 32000,1);
+   void *pevn=(void*)&_ecalhit;
+   TBranch *bn=_tree->Branch("ecalht", "EcalHitNtuple",  &pevn, 32000,1);
    void *pevo=(void*)&_richmc;
    TBranch *bo=_tree->Branch("ricmccl","RICMCNtuple",&pevo,32000,1);
    void *pevp=(void*)&_richevent;

@@ -29,7 +29,7 @@ const int MAXCTCCL   =    20;
 const int MAXCTCHT   =    50;
 const int MAXCTCCLMC =   200;
 const int MAXECCLUST =    50;
-const int MAXECELL   =  300; 
+const int MAXECHITS  =   500;
 const int MAXLVL3    =     2;
 const int MAXLVL1    =     2;
 const int MAXRICMC   =   100;
@@ -73,7 +73,7 @@ public:
   int CTCMCClusters;
   int AntiMCClusters;
   int AntiClusters;
-  int EventStatus;
+  int EventStatus; 
   
 friend class AMSEvent;
 friend class AMSNtuple;
@@ -118,8 +118,8 @@ public:
   int TRDMCClusters;
   int AntiClusters;
   int EcalClusters;
+  int EcalHits;
   int EventStatus;
-  int EcalCell; 
   
 friend class AMSEvent;
 friend class AMSNtuple;
@@ -292,7 +292,7 @@ class EcalClusterNtuple : public TObject {
 class EcalClusterNtuple {
 #endif
 public:
-  int Necal;
+  int Neccl;
   int Status[MAXECCLUST];
   int Proj[MAXECCLUST];
   int Plane[MAXECCLUST];
@@ -309,22 +309,23 @@ ClassDef(EcalClusterNtuple,1)       //EcalClusterNtuple
 };
 //--------------------------
 #ifdef __WRITEROOT__
-class EcalCellNtuple : public TObject {
-#else 
-class EcalCellNtuple {
+class EcalHitNtuple : public TObject {
+#else
+class EcalHitNtuple {
 #endif
 public:
-  int Ncelle;
-  float EdepCell[MAXECELL];
-  float EdepAtt[MAXECELL];
-  int SuperLayer[MAXECELL];
-  int Photomultiplier[MAXECELL];
-  int SubCell[MAXECELL];
+  int Necht;
+  int Status[MAXECHITS];
+  int Proj[MAXECHITS];
+  int Plane[MAXECHITS];
+  int Cell[MAXECHITS];
+  float Edep[MAXECHITS];
+  float Coo[MAXECHITS][3];
 
-friend class AMSEcalCell;
+friend class AMSEcalHit;
 friend class AMSNtuple;
 #ifdef __WRITEROOT__
-ClassDef(EcalCellNtuple,1)         //EcalCellNtuple
+ClassDef(EcalHitNtuple,1)       //EcalHitNtuple
 #endif
 };
 //-------------------------- 
@@ -346,7 +347,7 @@ friend class AMSNtuple;
 ClassDef(TOFMCClusterNtuple,1)       //TOFMCClusterNtuple
 #endif
 };
-
+//--------------------------
 #ifdef __WRITEROOT__
 class TrClusterNtuple : public TObject {
 #else

@@ -225,14 +225,16 @@ void AMSTOFTovt::build()
   static geant tslice1[SCTBMX+1]; //  flash ADC array for side-1
   static geant tslice2[SCTBMX+1]; //  flash ADC array for side-2
   static geant tslice[SCTBMX+1]; //  flash ADC array 
-  int i,ii,j,jj,jm,k,stat(0),nelec,ierr(0);
+  geant bnw,fedg;
+  integer warr[AMSDISL]; 
+  int i,i0,ii,j,jj,jm,k,stat(0),nelec,ierr(0),lbn,nbm;
   int status[2];
   integer nhitl[SCLRS];
   geant edepl[SCLRS],edepb;
   geant dummy(-1);
-  geant time,x,y,z,am,am0,am2,r,rnd,eff,de,tm,eps(0.002);
+  geant time,x,y,z,am,am0,am2,sig,r,rnd,eff,de,tm,eps(0.002);
   geant vl,vh;
-  geant nel0,nel,nphot;
+  geant nel0,nel,nelb,nesig,nphot;
   AMSPoint cloc(999.,999.,999.);
   AMSgvolume *p;
   AMSTOFMCCluster *ptr;
@@ -241,21 +243,29 @@ void AMSTOFTovt::build()
   static integer first=0;
   static integer npshbn;
   static geant pmplsh[1000];  // PM s.e. pulse shape
-  static geant fadcb,ifadcb,trts,tmax,zlmx,convr,seres,sesig;
+  static geant fadcb,ifadcb,trts,tmax,zlmx,convr,seres,sesig,sesave,sessig,sesrat;
 //
   if(first++==0){
     seres=TOFDBc::seresp();
     sesig=seres*TOFDBc::seresv();
     AMSTOFTovt::inipsh(npshbn,pmplsh); // prepare PM s.e. pulse shape arr.
     HBOOK1(1099,"Single electron spectrum,mV",65,0.,13.,0.);
-    for(i=0;i<3000;i++){
+    for(i=0;i<5000;i++){
 //      rnd=RNDM(dummy);
-//      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
-      am=seres+sesig*rnormx();// tempor use simple goussian
-      if(am<0)am=0;
-      HF1(1099,am,1.);
+//      am0=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
+      am0=seres+sesig*rnormx();// tempor use simple goussian
+      if(am0<0.)am0=0.;
+      am+=am0;
+      am2+=am0*am0;
+      HF1(1099,am0,1.);
     }
     HPRINT(1099);
+    am/=5000.;
+    am2/=5000.;
+    sesave=am;
+    sessig=sqrt(am2-am*am);
+    sesrat=sessig/sesave;
+    cout<<"S.E. Specrtum Aver/Sigm="<<sesave<<" "<<sessig<<" ratio="<<sesrat<<endl;
     HDELET(1099);
     for(i=0;i<SCTBMX+1;i++)tslice1[i]=0.;// clear flash ADC arrays
     for(i=0;i<SCTBMX+1;i++)tslice2[i]=0.;
@@ -313,23 +323,31 @@ void AMSTOFTovt::build()
     eff=scmcscan[cnum].getef1(r,i1,i2);//eff for PM-1
     nel=nel0*eff;// mean number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
+    for(i=0;i<AMSDISL;i++)warr[i]=0;
 //    <-------- Loop over photoelectrons(PM-1) ---<<<
-    for(i=1;i<=nelec;i++){
+    for(i=0;i<nelec;i++){
       rnd=RNDM(dummy);
       tm=scmcscan[cnum].gettm1(rnd,r,i1,i2);//phel.arrival time from interpol.distr.
-      tm=tm+time;// TOF+delay(incl.trans.time spread from LTRANS progr.)
-//      rnd=RNDM(dummy);
-//      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
-      am=seres+sesig*rnormx();//amplitude from single elect. spectrum
-//------>  summing of all amplitudes from photoelectrons :
-      if(am>0){
-        ii=integer(tm*ifadcb);
-        if(ii>SCTBMX)ii=SCTBMX;
-        else if(ii<0){
-         cerr<<"AMSTOFTovt::build()-S-ii<0 "<<ii<<endl;
-         break;
+      ii=integer(tm*ifadcb);
+      if(ii<AMSDISL)warr[ii]+=1;
+    }
+    i0=integer(time*ifadcb);// 1st bin pos. in abs. scale (for tslice1)
+    for(i=0;i<AMSDISL;i++){
+      nelec=warr[i];
+      if(nelec!=0){
+      ii=i0+i;
+      if(ii>SCTBMX)ii=SCTBMX;
+      if(nelec<40){
+        for(k=0;k<nelec;k++){//<-- summing of all amplitudes from photoelectrons 
+          am=seres+sesig*rnormx();//amplitude from single elect. spectrum
+          if(am>0.)tslice1[ii]+=am;
         }
-        tslice1[ii]+=am;
+      }
+      else{
+        am=sesave*nelec;
+        sig=sessig*sqrt(geant(nelec));
+        tslice1[ii]+=(am+sig*rnormx());
+      }
       }
     } // >>>----- end of PM-1 loop ------>
   }
@@ -339,23 +357,31 @@ void AMSTOFTovt::build()
     eff=scmcscan[cnum].getef2(r,i1,i2);//eff for PM-2
     nel=nel0*eff;// mean number of photoelectrons
     POISSN(nel,nelec,ierr);// fluctuations
+    for(i=0;i<AMSDISL;i++)warr[i]=0;
 //    <-------- Loop over photoelectrons(PM-2) ---<<<
-    for(i=1;i<=nelec;i++){
+    for(i=0;i<nelec;i++){
       rnd=RNDM(dummy);
-      tm=scmcscan[cnum].gettm2(rnd,r,i1,i2);//phel.arrival time from interpol. distr.
-      tm=tm+time;// TOF+delay(incl.trans.time spread from LTRANS progr.)
-//      rnd=RNDM(dummy);
-//      am=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
-      am=seres+sesig*rnormx();//amplitude from single elect. spectrum
-//----->  summing of all amplitudes from photoelectrons :
-      if(am>0){
-        ii=integer(tm*ifadcb);
-        if(ii>SCTBMX)ii=SCTBMX;
-        else if(ii<0){
-         cerr<<"AMSTOFTovt::build()-S-ii<0 "<<ii<<endl;
-         break;
+      tm=scmcscan[cnum].gettm2(rnd,r,i1,i2);//phel.arrival time from interpol.distr.
+      ii=integer(tm*ifadcb);
+      if(ii<AMSDISL)warr[ii]+=1;
+    }
+    i0=integer(time*ifadcb);// 1st bin pos. in abs. scale (for tslice2)
+    for(i=0;i<AMSDISL;i++){
+      nelec=warr[i];
+      if(nelec!=0){
+      ii=i0+i;
+      if(ii>SCTBMX)ii=SCTBMX;
+      if(nelec<40){
+        for(k=0;k<nelec;k++){//<-- summing of all amplitudes from photoelectrons 
+          am=seres+sesig*rnormx();//amplitude from single elect. spectrum
+          if(am>0.)tslice2[ii]+=am;
         }
-        tslice2[ii]+=am;
+      }
+      else{
+        am=sesave*nelec;
+        sig=sessig*sqrt(geant(nelec));
+        tslice2[ii]+=(am+sig*rnormx());
+      }
       }
     } // >>>----- end of PM-2 loop ------>
   }

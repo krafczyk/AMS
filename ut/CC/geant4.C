@@ -743,12 +743,17 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
        AMSAntiMCCluster::siantihits(PrePV->GetCopyNo(),GCTRAK.vect,
                                                    dee,GCTRAK.tofg);
      }// <--- end of "in ANTS"
-
-// -----> ECAL 1.0-version by E.C.
-     if(PrePV->GetName()[0]== 'E' && PrePV->GetName()[1]=='C' & PrePV->GetName()[2]=='F' && PrePV->GetName()[3]=='C' && GCTRAK.destep>0.){
-       AMSEcalMCHit::siecalhits(PrePV->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tof\
-g);
-      }
+//------------------------------------------------------------------
+//  ECAL :
+//
+     if(PrePV->GetName()[0]== 'E' && PrePV->GetName()[1]=='C' &&
+       PrePV->GetName()[2]=='F' && PrePV->GetName()[3]=='C' && GCTRAK.destep>0.){
+//cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<endl;
+       dee=GCTRAK.destep;
+//       GBIRK(dee);
+       AMSEcalMCHit::siecalhits(PrePV->GetCopyNo(),GCTRAK.vect,dee,GCTRAK.tofg);
+     }
+//------------------------------------------------------------------
   } // <--- end of "try" ---
 //
    catch (AMSuPoolError e){
