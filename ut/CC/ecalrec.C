@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.76 2002/12/18 15:09:40 choutko Exp $
+//  $Id: ecalrec.C,v 1.77 2003/01/27 14:31:49 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -794,6 +794,7 @@ return (WriteAll || status);
 
 //---------------------------------------------------
 void AMSEcalHit::_writeEl(){
+
   EcalHitNtuple* TN = AMSJob::gethead()->getntuple()->Get_ecalhit();
 
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
@@ -2381,7 +2382,7 @@ if(_EnergyC){
  number minen=_EnergyC>1?_EnergyC:1;
  number lowencorr=1.0009-2.7e-2/pow(minen,0.5);
  _EnergyC/=lowencorr;
- if(_EnergyC>ECREFFKEY.HiEnThr){
+ if(_EnergyC>ECREFFKEY.HiEnThr && !checkstatus(AMSDBc::CATLEAK)){
   number maxen=_EnergyC/ECREFFKEY.HiEnThr*ECREFFKEY.HiEnCorFac;
   if(maxen>=1){
    setstatus(AMSDBc::CATLEAK);

@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.75 2003/01/22 11:31:59 choutko Exp $
+//  $Id: geant3.C,v 1.76 2003/01/27 14:31:50 choutko Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -114,6 +114,7 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
 
   try{
 {
+#ifdef __AMSDEV__
  // special rads
  int lvl=GCVOLU.nlevel-1;
  if(GCVOLU.names[lvl][0]=='R' &&
@@ -135,7 +136,7 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 
 }
 
-
+#endif
 }
 
 

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.220 2003/01/24 11:18:02 delgadom Exp $
+#  $Id: datacards.doc,v 1.221 2003/01/27 14:32:04 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -146,11 +146,11 @@ I15 fixp(0)                       //fix the cube surface for particle
                                   //3,4,5,6 - others
 I18 npat(1)                       //number of particle to generate in one go
 I19 run(100)                      //run number
-I20 low(0)                        //cosmic(0);  undercutoff(1)  
+I20 low(5)                        //cosmic(0);  undercutoff(1)  
                                   //sea level muons(2) mev range electrons(3)
                                   //uniform momentum(4) 
                                   //uniform log(momentum) (5)
-I21 earth(1)                      // Earth magnetic field modulation on (1) off(0) 
+I21 earth(0)                      // Earth magnetic field modulation on (1) off(0) 
 R22 theta(51.65)                  //Station Theta(deg) at begin
 R23 phi(290.)                     //Station Phi(deg) at begin
 R24 pole(108.392)                 // Pole phi at begin 

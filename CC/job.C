@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.437 2003/01/24 11:17:25 delgadom Exp $
+// $Id: job.C,v 1.438 2003/01/27 14:31:50 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -525,8 +525,8 @@ CCFFKEY.albedor=0.;
 CCFFKEY.albedocz=0.05;
 CCFFKEY.npat=1;
 CCFFKEY.run=100;
-CCFFKEY.low=0;
-CCFFKEY.earth=1;
+CCFFKEY.low=5;
+CCFFKEY.earth=0;
 CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=108.392;

@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.124 2003/01/22 11:32:00 choutko Exp $
+//  $Id: particle.C,v 1.125 2003/01/27 14:31:51 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -482,6 +482,7 @@ void AMSParticle::richfit(){
 
 
 void AMSParticle::_writeEl(){
+#ifdef __AMSDEV__
 // get used status bit if some funny thingy present
 for (Test * ploop = (Test*)AMSEvent::gethead()->getheadC("Test",0); ploop ; ploop=ploop->next() ){
 if(ploop->getpid()==GCKINE.ikine){
@@ -490,7 +491,7 @@ if(ploop->getpid()==GCKINE.ikine){
 break;
 }
 }
-
+#endif
   // Root related part ../CC/root.C 
   // ParticleRoot02::ParticleRoot02(AMSParticle *ptr, float phi, float phigl)
 
