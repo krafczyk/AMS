@@ -12,6 +12,6 @@ setenv ProductionLogDirLocal $Offline/logs.local
 setenv RunsSummaryFile   $Offline/runs_Aug.log
 setenv SlowRateDataDir   $Offline/SlowRateDataDir
 setenv AMSGeoDir         $Offline/vdev/display/v2.00
-setenv amsed             $Offline/vdev/display/v2.00/$OS/bin/amseda
+setenv amsed             $Offline/vdev/display/v2.00/$OS/bin/amsed
 limit core 0
 
