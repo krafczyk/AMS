@@ -24,8 +24,8 @@ MULS 1
 C MSEL 1=0
 LOSS 1 
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
-HADR 0 
-TRIG 1000
+HADR 1 
+TRIG 2
 DEBUG -1 10 10
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 

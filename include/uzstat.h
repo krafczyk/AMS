@@ -38,7 +38,7 @@ number _min;
 integer _freq;
 public:
 AMSStatNode():AMSNode(0),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
-AMSStatNode(char * name):AMSNode(name),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(1){};
+AMSStatNode(char * name, int freq):AMSNode(name),_startstop(0),_entry(0),_sum(0),_max(-FLT_MAX),_min(FLT_MAX),_freq(freq){};
 void _init(){};
 ostream & print(ostream & stream ) const;
 };
@@ -53,7 +53,7 @@ public:
   void book(char * name, int freq=1);
   void start(char * name);
   number check(char *name);
-  number stop(char * name);
+  number stop(char * name, integer force=0);
   void print();
 };
 

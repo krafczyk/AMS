@@ -1194,6 +1194,7 @@ for(int i=0;i<TKDBc::nlay();i++){
 }
 
 geant AMSTrTrack::_Time=0;
+geant AMSTrTrack::_TimeLimit=0;
 
 
 integer AMSTrTrack::build(integer refit){
@@ -1203,7 +1204,7 @@ integer AMSTrTrack::build(integer refit){
     for(int i=0;i<TKDBc::nlay();i++){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
-    if(nrh>root::MAXTRRH){
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH)){
       AMSEvent::gethead()->seterror();
       return 0;
     }
@@ -1287,7 +1288,7 @@ integer AMSTrTrack::buildWeak(integer refit){
     for(int i=0;i<TKDBc::nlay();i++){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
-    if(nrh>root::MAXTRRH){
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH)){
       AMSEvent::gethead()->seterror();
       return 0;
     }
@@ -1354,7 +1355,7 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
     for(int i=0;i<TKDBc::nlay();i++){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
-    if(nrh>root::MAXTRRH){
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH)){
       AMSEvent::gethead()->seterror();
       return 0;
     }
@@ -1386,7 +1387,9 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
         // Search for others
         if(NTrackFound<0)NTrackFound=0;
 
+        AMSgObj::BookTimer.start("TrFalseX");
         integer npfound=_TrSearcherFalseX(1);
+        AMSgObj::BookTimer.stop("TrFalseX");
         if(npfound){
            if(npfound>0)NTrackFound++;
            goto out;
@@ -1417,7 +1420,7 @@ integer AMSTrTrack::Distance(number par[2][2], AMSTrRecHit *ptr){
 const integer freq=10;
 static integer trig=0;
 trig=(trig+1)%freq;
-           if(trig==0 && _CheckTime()>AMSFFKEY.CpuLimit){
+           if(trig==0 && _NoMoreTime()){
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
 
@@ -1501,7 +1504,7 @@ void AMSTrTrack::_addnextR(AMSTrTrack *ptrack, integer pat, integer nhit, AMSTrR
 
 
 integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit[]){
-AMSgObj::BookTimer.start("TrFalseX");
+//AMSgObj::BookTimer.start("TrFalseX");
 #ifdef __UPOOL__
     AMSTrTrack track(pat, nhit ,pthit);
     AMSTrTrack *ptrack=   &track;
@@ -1594,7 +1597,7 @@ AMSgObj::BookTimer.start("TrFalseX");
 #ifndef __UPOOL__
                       delete ptrack;  
 #endif   
-                      AMSgObj::BookTimer.stop("TrFalseX");
+//                      AMSgObj::BookTimer.stop("TrFalseX");
                       return 1;
                     }
                 }
@@ -1612,14 +1615,14 @@ AMSgObj::BookTimer.start("TrFalseX");
                       ptrack=new AMSTrTrack(track);
 #endif
                       _addnextR(ptrack, pat, nhit, pthit);
-                      AMSgObj::BookTimer.stop("TrFalseX");
+//                      AMSgObj::BookTimer.stop("TrFalseX");
                       return -1;
                     }
                     else {
 #ifndef __UPOOL__
                       delete ptrack;  
 #endif   
-                      AMSgObj::BookTimer.stop("TrFalseX");
+//                      AMSgObj::BookTimer.stop("TrFalseX");
                       return 0;
                     }
 
@@ -1632,7 +1635,7 @@ AMSgObj::BookTimer.start("TrFalseX");
 #ifndef __UPOOL__
     delete ptrack;  
 #endif   
-    AMSgObj::BookTimer.stop("TrFalseX");
+//    AMSgObj::BookTimer.stop("TrFalseX");
     return 0;
 }
 
@@ -2406,6 +2409,10 @@ AMSTrTrackError::AMSTrTrackError(char * name){
     if(n>255)n=255;
     strncpy(msg,name,n);
   }
+  AMSgObj::BookTimer.stop("TrTrack",1);
+  AMSgObj::BookTimer.stop("RETKEVENT",1);
+  AMSgObj::BookTimer.stop("REAMSEVENT",1);
+  AMSEvent::gethead()->seterror();
 }
 char * AMSTrTrackError::getmessage(){return msg;}
 
@@ -2622,7 +2629,7 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
     for(int i=0;i<TKDBc::nlay();i++){
      nrh+= (AMSEvent::gethead()->getC("AMSTrRecHit",i))->getnelem();
     }
-    if(nrh>root::MAXTRRH){
+    if(nrh>=min(TRFITFFKEY.MaxTrRecHitsPerLayer*TKDBc::nlay(),root::MAXTRRH)){
       AMSEvent::gethead()->seterror();
       return 0;
     }
@@ -2710,7 +2717,7 @@ integer AMSTrTrack::DistanceTOF(number par[2][2], AMSTrRecHit *ptr){
 const integer freq=10;
 static integer trig=0;
 trig=(trig+1)%freq;
-           if(trig==0 && _CheckTime()>AMSFFKEY.CpuLimit){
+           if(trig==0 && _NoMoreTime()){
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
 
@@ -2991,3 +2998,8 @@ integer AMSTrTrack::_TrSearcherFalseX(int icall){
 
 
 }
+
+bool AMSTrTrack::_NoMoreTime(){
+return _TimeLimit>0? _CheckTime()>_TimeLimit: _CheckTime()>AMSFFKEY.CpuLimit;
+}
+

@@ -289,7 +289,9 @@ void SimpleFit(AMSPoint err);
 void TOFFit(integer ntof, AMSPoint tofhit, AMSPoint etofhit);
 static void _Start(){_Time=HighResTime();}
 static geant _CheckTime(){return HighResTime()-_Time;}
+static bool _NoMoreTime();
 static geant _Time;
+static geant _TimeLimit;
   void _printEl(ostream & stream){ stream << " Pattern " << _Pattern << " Rigidity (Circ)" << 
   _CircleRidgidity <<" Rigidity (Fast) "<<_Ridgidity <<" Chi2Fast " << 
   _Chi2FastFit << " ThetaFast "<<_Theta<<" PhiFast "<<_Phi<<endl;}
@@ -315,6 +317,7 @@ static void decodeaddress(integer ladder[2][trconst::maxlay], uinteger address);
 static uinteger  encodeaddress(integer lad[2][trconst::maxlay]);
 static uinteger * getchild(uinteger address, uinteger &nchild);
 public:
+  static geant & TimeLimit(){return _TimeLimit;}
   integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi, number &local);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
 integer operator < (AMSlink & o) const {

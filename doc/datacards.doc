@@ -445,7 +445,7 @@ I64  ForceAdvencedFit(1)    // Force(1) or not advanced fit for all particles
 
 R65  ThrClA[2](0,0)         // mark trreccl good if ampl > ThrClA
 R67  ThrClR[2](0,0)         // mark trreccl good if ampl/s > ThrClR
-
+I69  MaxTrRecHitsPerLayer(50) // to try pattern rec
 
 // Tracker fitting
 

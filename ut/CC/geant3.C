@@ -371,6 +371,7 @@ extern "C" void guout_(){
    try{
    if(AMSJob::gethead()->isSimulation()){
       number tt=AMSgObj::BookTimer.stop("GEANTTRACKING");
+      AMSTrTrack::TimeLimit()=AMSFFKEY.CpuLimit-tt;
 //        cout <<  "  tt   " <<tt<<endl;
 #ifdef __AMSDEBUG__
       globalbadthinghappened=0;
@@ -404,24 +405,30 @@ extern "C" void guout_(){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
+/*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
      UPool.Release(1);
      AMSEvent::sethead(0);
       UPool.erase(512000);
       return;
+*/
    }
    catch (amsglobalerror e){
      cerr << e.getmessage()<<endl;
      cerr <<"Event dump follows"<<endl;
      AMSEvent::gethead()->_printEl(cerr);
+     AMSEvent::gethead()->seterror();
+/*
      UPool.Release(0);
      AMSEvent::gethead()->remove();
      UPool.Release(1);
      AMSEvent::sethead(0);
       UPool.erase(512000);
       return;
+*/
    }
+      AMSgObj::BookTimer.start("GUOUT");
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
          GCFLAG.IEVENT==GCFLAG.NEVENT)
       AMSEvent::gethead()->printA(AMSEvent::debug);
@@ -488,10 +495,12 @@ extern "C" void guout_(){
      UPool.Release(1);
    AMSEvent::sethead(0);
    UPool.erase(2000000);
+   AMSgObj::BookTimer.stop("GUOUT");
 }
 
 extern "C" void abinelclear_();
 extern "C" void gukine_(){
+AMSgObj::BookTimer.start("GUKINE");
 abinelclear_();
 
 static integer event=0;
@@ -499,6 +508,7 @@ static integer event=0;
 #ifdef __DB_All__
   if (AMSFFKEY.Read > 1) {
     readDB();
+     AMSgObj::BookTimer.stop("GUKINE");
      return;
   }
 #endif
@@ -534,6 +544,7 @@ static integer event=0;
     else{
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
+     AMSgObj::BookTimer.stop("GUKINE");
      return;
     }   
    }
@@ -592,8 +603,10 @@ static integer event=0;
     }
      GCFLAG.IEORUN=1;
      GCFLAG.IEOTRI=1;
+      AMSgObj::BookTimer.stop("GUKINE");
      return; 
   }   
+    AMSgObj::BookTimer.stop("GUKINE");
 }
 
 

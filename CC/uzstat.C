@@ -16,9 +16,8 @@ print();
 Timer.remove();
 }
 void AMSStat::book(char *name, int freq){
-if( add(*(Timer.add(new AMSStatNode(name))))==-1)
+if( add(*(Timer.add(new AMSStatNode(name,freq))))==-1)
 cerr<<" AMSStat-Book-E-Name "<<name<<" already exists"<<endl;
-Timer._freq=freq;
 }
 void AMSStat::start(char *name){
 AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
@@ -35,7 +34,7 @@ AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
  }
  else return 0;
 }
-number AMSStat::stop(char *name){
+number AMSStat::stop(char *name, integer force){
 AMSStatNode *p=(AMSStatNode*)getp(AMSID(name,0));
 number time=0;
 if(p){
@@ -49,7 +48,7 @@ if(p){
     if(time < p->_min)p->_min=time;
     p->_startstop==0;
   }
-  else cerr<<"AMSStat-Stop-W-NTSTRTD "<<name<<" was not started"<<endl;
+  else if(!force)cerr<<"AMSStat-Stop-W-NTSTRTD "<<name<<" was not started"<<endl;
 }
 else cerr<<"AMSStat-Stop-E-Name "<<name<<" does not exist"<<endl;
 return time;
@@ -62,13 +61,16 @@ AMSNodeMap::print(1);
 }
 
 ostream & AMSStatNode::print(ostream &stream) const{
-char *name=new char[strlen(getname())+1];
+static char *name=0;
+if(!name || strlen(name)<strlen(getname())){
+ delete name;
+ name=new char[strlen(getname())+1];
+}
 strcpy(name,getname());
 if(name && strlen(name)>15)name[14]='\0';
 
 return _entry >0 ? stream <<setw(15)<<name<<" "<<setw(12)<<_entry*_freq<<" "<<setw(12)<<_min
  <<" "<<setw(12)<<_sum/(_entry+1.e-20)<<" "<<setw(12)<<_max<<" "<<setw(12)<<_sum*_freq<<endl:stream;
-delete name;
 }
 
 extern "C" number HighResTime(){
@@ -82,7 +84,7 @@ extern "C" number HighResTime(){
 
   const number TRes=0.002;
 
-#ifdef __ALPHA__
+#ifdef __ALPHAOLD__
 
 if(init++ ==0){
 gettimeofday(&TPSLast,&TZ);

@@ -526,6 +526,7 @@ public:
   integer ForceAdvancedFit;
   geant ThrClA[2];
   geant ThrClR[2];
+  integer MaxTrRecHitsPerLayer;
 };
 //
 

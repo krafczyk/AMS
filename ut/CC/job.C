@@ -776,7 +776,7 @@ TRFITFFKEY.ThrClA[0]=0.;
 TRFITFFKEY.ThrClA[1]=0.;
 TRFITFFKEY.ThrClR[0]=0.;
 TRFITFFKEY.ThrClR[1]=0.;
-
+TRFITFFKEY.MaxTrRecHitsPerLayer=50;
 FFKEY("TRFIT",(float*)&TRFITFFKEY,sizeof(TRFITFFKEY_DEF)/sizeof(integer),"MIXED");
 TKFINI();
 }
@@ -1281,6 +1281,9 @@ void AMSJob::init(){
 
 AMSEvent::debug=AMSFFKEY.Debug;
 
+//AMSgObj::BookTimer.book("AMSEvent::event");
+AMSgObj::BookTimer.book("GUOUT");
+AMSgObj::BookTimer.book("GUKINE");
 _siamsinitjob();
 
 _reamsinitjob();
@@ -1293,6 +1296,7 @@ _dbinitjob();
 cout << *this;
 }
 void AMSJob::_siamsinitjob(){
+AMSgObj::BookTimer.book("SIAMSEVENT");
   _sitkinitjob();
   _signinitjob();
   _sitofinitjob();
@@ -1465,7 +1469,7 @@ void AMSJob::_sisrdinitjob(){
 
 void AMSJob::_reamsinitjob(){
 AMSgObj::BookTimer.book("WriteEvent");
- 
+AMSgObj::BookTimer.book("REAMSEVENT"); 
 
 _remfinitjob();
 _redaqinitjob();

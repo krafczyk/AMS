@@ -1035,7 +1035,9 @@ void AMSEvent::event(){
          cerr<<"AMSEvent::event-E-SelectedRunEventNotFound"<<_SelectedEvents->Run<<" "<<_SelectedEvents->Event<<endl;
          _SelectedEvents++;
        }
-         if(_SelectedEvents->Run!=o.Run)return;
+         if(_SelectedEvents->Run!=o.Run){
+          return;
+         }
        }
        if(o!=*_SelectedEvents){
          AMSJob::gethead()->getstatustable()->geteventpos(_SelectedEvents->Run,_SelectedEvents->Event,o.Event);
@@ -1085,6 +1087,7 @@ void AMSEvent::event(){
 }
   //------------------------------------------------------------------
   void AMSEvent::_siamsevent(){
+  AMSgObj::BookTimer.start("SIAMSEVENT");  
     AMSmceventg *ptr=(AMSmceventg*)AMSEvent::gethead()->getheadC("AMSmceventg",0);
     if(ptr){
      int iset;
@@ -1111,9 +1114,11 @@ void AMSEvent::event(){
      }
     _sitrigevent(); 
     if(TOFMCFFKEY.fast==0)_sidaqevent(); //DAQ-simulation only for slow algorithm
+  AMSgObj::BookTimer.stop("SIAMSEVENT");  
   }
   
 void AMSEvent::_reamsevent(){
+  AMSgObj::BookTimer.start("REAMSEVENT");  
 
    // get beam par if any;
    _regnevent();
@@ -1123,12 +1128,14 @@ void AMSEvent::_reamsevent(){
       if(!p || p->getnelem()==0){
         cerr <<"_reamsevent-E-NomceventgRecord" <<getrun()<<endl;
         if(!GCFLAG.IEORUN && MISCFFKEY.BeamTest>1)GCFLAG.IEORUN=2;  //skip entire run
+        AMSgObj::BookTimer.stop("REAMSEVENT");  
         return;
       }
    }
   geant d;
   if(AMSJob::gethead()->isMonitoring() && RNDM(d)>IOPA.Portion && GCFLAG.NEVENT>100){
     // skip event
+     AMSgObj::BookTimer.stop("REAMSEVENT");  
      return;    
   }
 
@@ -1140,7 +1147,10 @@ void AMSEvent::_reamsevent(){
   if(TOFMCFFKEY.fast==0)_redaqevent();
 #endif
   // Skip EveryThing 
-  if(DAQCFFKEY.NoRecAtAll)return;
+  if(DAQCFFKEY.NoRecAtAll){
+    AMSgObj::BookTimer.stop("REAMSEVENT");  
+    return;
+  }
   _retofevent();
   _reantievent();
 if(AMSJob::gethead()->isReconstruction() )_retrigevent();
@@ -1156,6 +1166,7 @@ if(AMSJob::gethead()->isReconstruction() )_retrigevent();
   } 
   _reaxevent();
    AMSUser::Event();
+   AMSgObj::BookTimer.stop("REAMSEVENT");  
 }
 
 void AMSEvent::_caamsinitevent(){
