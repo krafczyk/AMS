@@ -390,6 +390,50 @@ GTOD
                            Cells 166 and 168 are allways dead (dead channell) 
                            Cell 175 means module L5
 
+Addendum (V.Choutko + F.Barao) : The code below should do the job
+
+         subroutine decatc(iflag,path,pimpact)
+*
+* Input   from paw common
+*
+* Output
+*        iflag : 0 ok; 1,2,3 bad
+*        path : famous path
+*        pimpact : distance to pm
+*        Note: path & pimpact  are calculated only if iflag==0
+
+         iflag=0
+         path=0
+         pimpact=10000
+         do i=1,2
+          do k=1,atcnbcel(i,1)
+           idc=mod(atcidcel(i,1)/10**(2*k-2),100)+80*(i-1)
+           if(idc.eq.166.or.idc.eq.168)then
+            iflag=3
+            return
+           endif
+           path=path+   mod(atcdaero(i,1)/10**(2*k-2),100)/10.
+           pil=mod(atcdispm(i,1)/10**(2*k-2),100)/10.
+           if(pimpact.gt.pil)pimpact=pil
+           ibad=mod(atcstatu(i,1),10)
+           do l=1,ibad
+             if(mod(atcstatu(i,1)/10**(2*l-1),100)+80*(i-1).eq.175)then
+               if (idc/16+1.eq.10) then
+                  iflag=2
+                  return
+               endif
+             endif
+             if(idc.eq.mod(atcstatu(i,1)/10**(2*l-1),100)+80*(i-1))then
+              iflag=1
+              return
+             endif
+           enddo
+          enddo
+         enddo
+         end
+
+
+
 =======
 Known bugs:
 
