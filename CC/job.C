@@ -215,7 +215,7 @@ void AMSJob::_sitrigdata(){
 
   LVL3FFKEY.MinTOFPlanesFired=3;
   LVL3FFKEY.UseTightTOF=1;
-  LVL3FFKEY.TrTOFSearchReg=6.;
+  LVL3FFKEY.TrTOFSearchReg=9.;
   LVL3FFKEY.TrMinResidual=0.03;
   LVL3FFKEY.TrMaxResidual[0]=1.2;
   LVL3FFKEY.TrMaxResidual[1]=0.2;
@@ -688,8 +688,8 @@ TRFITFFKEY.ResCutFastFit=0.5;
 TRFITFFKEY.ResCutStrLine=0.5;
 TRFITFFKEY.ResCutCircle=0.5;
 TRFITFFKEY.SearchRegFastFit=1;
-TRFITFFKEY.SearchRegStrLine=0.25;
-TRFITFFKEY.SearchRegCircle=1.5;
+TRFITFFKEY.SearchRegStrLine=0.5;
+TRFITFFKEY.SearchRegCircle=10.;
 TRFITFFKEY.RidgidityMin=0.02;
 TRFITFFKEY.FullReco=0;
 TRFITFFKEY.MinRefitCos[0]=0.7;
