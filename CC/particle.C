@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.131 2003/05/12 21:40:31 choutko Exp $
+//  $Id: particle.C,v 1.132 2003/05/13 15:49:30 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -610,7 +610,7 @@ void AMSParticle::_copyEl(){
     else ptr.fRichRing=-1;
     if (_pShower) ptr.fEcalShower=_pShower->GetClonePointer();
     else ptr.fEcalShower=-1;
-    if (_pvert) ptr.fVertex=_pShower->GetClonePointer();
+    if (_pvert) ptr.fVertex=_pvert->GetClonePointer();
     else ptr.fVertex=-1;
 #endif
 }
