@@ -30,7 +30,8 @@ achieve this, just to set the return value of USRCUT to 0 always.
   1) Initialization can be done in USRCUT(-1), which is invoked before processing
 any data(ntuples). User can book histgrams, for example.
   2) For each event, only the specified variables in BLOCK DATA VARDATA would be
-read, and USRCUT(0) will be called afterwards.
+read, and USRCUT(0) will be called afterwards. Anyway, to enable all variables
+in the ntuple, just set NVAR to 0.
   3) Ending-up can be done in USRCUT(1), which is invoked after processing all
 data and before writing out the histgrams.
 
@@ -77,12 +78,12 @@ histgrams there. Have a look into the file first.
 for various purposes, says, cutProton.f, cutAntiHe.f. Then, try to build their
 corresponding executables by doing
 
-    gmake CUT=cutProton.f -f Makefile.ntpSelectFor
+    gmake cutProton -f Makefile.ntpSelectFor
 
-    gmake CUT=cutAntiHe.f -f Makefile.ntpSelectFor
+    gmake cutAntiHe -f Makefile.ntpSelectFor
 
 (To simplify the command, you can make a symbolic link of Makefile.ntpSelectFor
-to Makefile, so your command becomes "gmake CUT=cutProton.f")
+to Makefile, so your command becomes "gmake cutProton")
 
     Since the executable name has also been changed, to run it, you need type
 

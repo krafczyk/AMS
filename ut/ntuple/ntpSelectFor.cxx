@@ -33,13 +33,15 @@ void printUsage()
         << "  -b  =  save survived event# into a buffer first, write it out later.\n"
         << "         buffer size(d=1000) can be optionally changed\n"
         << "  -i  =  set ntupleID, follows NtupleId(default=1)\n"
-        << "  -n  =  set maximum events for each output ntuple, >100,000\n"
+        << "  -n  =  set maximum events for each output ntuple, <=0 value\n"
         << "         and no \"-o\" will output a file for each input file\n"
         << "  -o  =  set output filename for all input ntuples, otherwise,\n"
         << "         one output file for each input ntuple, with filename\n"
         << "         string-inserted before extension if old filename\n"
         << "         or one output ntuple per NEvt events selected, with\n"
-        << "         convention on filename=run.1st_evt.insert.ext\n"
+        << "         convention on filename=run.1st_evt.insert.ext .\n"
+        << "         The file will be written into $AMSNewNtpDir if defined\n"
+        << "         otherwise into the current directory\n"
         << "  -s  =  use scandir, follows the directory to scan files\n"
         << "  -e  =  file extension for scandir. Use together with \"-s\"\n"
         << "         default=\"hbk\"\n"
@@ -91,6 +93,7 @@ int main(int argc, char *argv[])
   const int  one2one   = 100000;
   int   ifirst    = 1;
   int   ilast     = 100000;
+  Bool  isOpen    = kFALSE;
 
   for (char *pchar=0; argc>1 &&(pchar=argv[1],*pchar=='-'); (argv++,argc--))
   {
@@ -117,8 +120,9 @@ int main(int argc, char *argv[])
       else {
         cout << "All selected events will be written into "
                 << outFile << endl;
-        mEvent = 1000000;
-        cout << "Set maximum events to " << mEvent << endl;
+        mEvent = 0;
+//        mEvent = 1000000;
+//        cout << "Set maximum events to " << mEvent << endl;
       }
     } else if (*pchar=='s') {  // use "scandir"
       scanDir = ++pchar;
@@ -187,17 +191,23 @@ int main(int argc, char *argv[])
   //
   // Set maximum events for each new ntuple
   //
-  select->SetMaxEvents(mEvent);
+  if (mEvent <= 0) select->SetMaxEvents(one2one);
+  else select->SetMaxEvents(mEvent);
 
   //
   //Get directory of new ntuple (invalid for option=-o)
   //
-  char *new_dir = getenv("AMSNewNtpDir");
-  if ( !new_dir || strlen(new_dir) == 0 ) {
+  char new_dir[100];
+  char *newDir = getenv("AMSNewNtpDir");
+  if ( !newDir || strlen(newDir) == 0 ) {
      cout << "AMSNewNtpDir Not Set, use CWN to save new ntuples !!" << endl;
-     new_dir = "./";
-     select->SetNewDir(new_dir);
+     strcpy(new_dir,"./");
+  } else {
+     strcpy(new_dir,newDir);
+     int leng = strlen(newDir);
+     if ( newDir[leng-1] != '/') strcat(new_dir,"/");
   }
+  select->SetNewDir(new_dir);
 
   int ifile=0;
   FileContainer *contain = 0;
@@ -211,6 +221,7 @@ int main(int argc, char *argv[])
   }
   
   char *oldFile = 0;
+  int iret;
   while ( oldFile=contain->GetNextFile() ) { //begin of LOOP over ntupel files
     if (++ifile < ifirst) continue;
     if (ifile > ilast) break;
@@ -226,10 +237,14 @@ int main(int argc, char *argv[])
          << " looks like a directory, not a filename ?" << endl;
        return 1;
     }
-    select->OpenOldNtuple(oldFile);
+    iret = select->OpenOldNtuple(oldFile);
+    if (iret != 0) continue;
+    cout << "\nNumber =" << ifile << " old ntuple file =" << oldFile << endl;
 
 //    ifile++;
-    if (outFile == 0 && mEvent > one2one) {
+    
+//    if (outFile == 0 && mEvent > one2one) {
+    if (outFile == 0 && mEvent <= 0) {
       dot = strrchr(slash,'.');
       if (dot == 0) headLen = strlen(slash);
       else headLen = strlen(slash) - strlen(dot);
@@ -241,9 +256,9 @@ int main(int argc, char *argv[])
       if (dot != 0) strcat(newFile,dot);
       select->OpenNewNtuple(newFile);
     } else if (outFile != 0) {
-      if (ifile == 1) select->OpenNewNtuple(outFile);
+      if ( !isOpen ) select->OpenNewNtuple(outFile);
+      isOpen = kTRUE;
     }
-    cout << "\nNumber =" << ifile << " old ntuple file =" << oldFile << endl;
 
     if (useBuffer) while (select->FindNextAndSave() >= 0) ;
     else while (select->FindNextAndWrite() >= 0) ;
@@ -340,9 +355,21 @@ int mySelect(struct dirent * entry)
 #endif
 {
    const char *name = entry->d_name;
-   const char *dot = strrchr(name, '.');
-   if (dot==0) return 0;
-   if (strcmp(++dot, selectExt) == 0) return 1;
-   return 0;
+   int leng = strlen(name) - strlen(selectExt);
+   const char *last;
+   if (leng > 0) {
+      last = name+leng;
+      if (strcmp(last,selectExt) == 0) return 1;
+      else return 0;
+   } else return 0;
+      
+//   const char *ext = strstr(name, selectExt);
+//   if (ext != 0 && strlen(ext) == strlen(selectExt)) return 1;
+//   else return 0;
+
+//   const char *dot = strrchr(name, '.');
+//   if (dot==0) return 0;
+//   if (strcmp(++dot, selectExt) == 0) return 1;
+//   return 0;
 }
 

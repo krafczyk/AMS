@@ -16,211 +16,362 @@ struct PAWC_DEF { float hmem[NWPAW]; };
 #define PAWC COMMON_BLOCK(PAWC,pawc)
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 
-//
-//dummy[5] is prepared for spare expansion on block size
-//
+//************************************************
+// start definition of common blocks in AMS Ntuple
+// =====               ------------     =========
+//-----------------------------------------------
 
 struct EVENTH_DEF {
-   int   eventno,run,runtype,time[2],Rawwords;
-   float Rads,Thetas;
-   float Phis,Yaws,Pitchs,Rolls,Velocitys,Veltheta,Velphi;
+   int   eventno;
+   int   run;
+   int   runtype;
+   int   time[2];
+   int   Rawwords;
+   float Rads;
+   float Thetas;
+   float Phis;
+   float Yaws;
+   float Pitchs;
+   float Rolls;
+   float Velocitys;
+   float Veltheta;
+   float Velphi;
    int   Particles;
-   int   Tracks,Betas,Charges,Trrechits,Trclusters,Trrawclusters;
-   int   Trmcclusters,Tofclusters,Tofmcclusters,Ctcclusters,Ctcmcclusters;
-   int   Antimcclusters,Anticlusters,Eventstatus;
-//   float dummy[5];
+   int   Tracks;
+   int   Betas;
+   int   Charges;
+   int   Trrechits;
+   int   Trclusters;
+   int   Trrawclusters;
+   int   Trmcclusters;
+   int   Tofclusters;
+   int   Tofmcclusters;
+   int   Ctcclusters;
+   int   Ctcmcclusters;
+   int   Antimcclusters;
+   int   Anticlusters;
+   int   Eventstatus;
 };
 #define blkEventh COMMON_BLOCK(EVENTH,eventh)
 COMMON_BLOCK_DEF(EVENTH_DEF,blkEventh);
 
+static const int NBETA = 100;
 struct BETA_DEF {
-   int   nbeta,betastatus[100],betapattern[100];
-   float beta[100];
-   float betaerror[100],betachi2[100],betachi2s[100];
-   int   betantof[100],betaptof[100][4],betaptr[100];
-//   float dummy[5];
+   int   nbeta;
+   int   betastatus[NBETA];
+   int   betapattern[NBETA];
+   float beta[NBETA];
+   float betaerror[NBETA];
+   float betachi2[NBETA];
+   float betachi2s[NBETA];
+   int   betantof[NBETA];
+   int   betaptof[NBETA][4];
+   int   betaptr[NBETA];
 };
 #define blkBeta COMMON_BLOCK(BETA,beta)
 COMMON_BLOCK_DEF(BETA_DEF,blkBeta);
 
+static const int NCHARGE = 10;
 struct CHARGE_DEF {
-   int   ncharge,chargestatus[10],chargebetap[10];
-   int   chargetof[10],chargetracker[10];
-   float probtof[10][7],probtracker[10][7],truntof[10],truntracker[10];
-//   float dummy[5];
+   int   ncharge;
+   int   chargestatus[NCHARGE];
+   int   chargebetap[NCHARGE];
+   int   chargetof[NCHARGE];
+   int   chargetracker[NCHARGE];
+   float probtof[NCHARGE][10];
+   float probtracker[NCHARGE][10];
+   float truntof[NCHARGE];
+   float truntracker[NCHARGE];
 };
 #define blkCharge COMMON_BLOCK(CHARGE,charge)
 COMMON_BLOCK_DEF(CHARGE_DEF,blkCharge);
 
+static const int NPART = 10;
 struct PARTICLE_DEF {
-   int   npart,pctcp[10][2],pbetap[10],pchargep[10];
-   int   ptrackp[10],pid[10];
-   float pmass[10],perrmass[10],pmom[10],perrmom[10];
-   float pcharge[10],ptheta[10],pphi[10],thetagl[10],phigl[10],pcoo[10][3];
-   float signalctc[10][2],betactc[10][2],errorbetactc[10][2],cooctc[10][2][3];
-   float cootof[10][4][3],cooanti[10][2][3],cootr[10][6][3];
-//   float dummy[5];
+   int   npart;
+   int   pctcp[NPART][2];
+   int   pbetap[NPART];
+   int   pchargep[NPART];
+   int   ptrackp[NPART];
+   int   pid[NPART];
+   float pmass[NPART];
+   float perrmass[NPART];
+   float pmom[NPART];
+   float perrmom[NPART];
+   float pcharge[NPART];
+   float ptheta[NPART];
+   float pphi[NPART];
+   float thetagl[NPART];
+   float phigl[NPART];
+   float pcoo[NPART][3];
+   float signalctc[NPART][2];
+   float betactc[NPART][2];
+   float errorbetactc[NPART][2];
+   float cooctc[NPART][2][3];
+   float cootof[NPART][4][3];
+   float cooanti[NPART][2][3];
+   float cootr[NPART][6][3];
 };
 #define blkParticle COMMON_BLOCK(PARTICLE,particle)
 COMMON_BLOCK_DEF(PARTICLE_DEF,blkParticle);
 
+static const int NTOF = 20;
 struct TOFCLUST_DEF {
-   int   ntof,Tofstatus[20],plane[20],bar[20];
-   float Tofedep[20];
-   float Toftime[20],Tofetime[20],Tofcoo[20][3],Tofercoo[20][3];
-//   float dummy[5];
+   int   ntof;
+   int   Tofstatus[NTOF];
+   int   plane[NTOF];
+   int   bar[NTOF];
+   float Tofedep[NTOF];
+   float Toftime[NTOF];
+   float Tofetime[NTOF];
+   float Tofcoo[NTOF][3];
+   float Tofercoo[NTOF][3];
 };
 #define blkTofclust COMMON_BLOCK(TOFCLUST,tofclust)
 COMMON_BLOCK_DEF(TOFCLUST_DEF,blkTofclust);
 
+static const int NTOFMC = 200;
 struct TOFMCCLU_DEF {
-   int   ntofmc,Tofmcidsoft[200];
-   float Tofmcxcoo[200][3];
-   float Tofmctof[200],Tofmcedep[200];
-//   float dummy[5];
+   int   ntofmc;
+   int   Tofmcidsoft[NTOFMC];
+   float Tofmcxcoo[NTOFMC][3];
+   float Tofmctof[NTOFMC];
+   float Tofmcedep[NTOFMC];
 };
 #define blkTofmcclu COMMON_BLOCK(TOFMCCLU,tofmcclu)
 COMMON_BLOCK_DEF(TOFMCCLU_DEF,blkTofmcclu);
 
+static const int NTRCL = 200;
 struct TRCLUSTE_DEF {
-   int   Ntrcl,Idsoft[200],Statust[200],Neleml[200];
-   int   Nelemr[200];
-   float Sumt[200],Sigmat[200],Meant[200],Rmst[200];
-   float Errormeant[200],Amplitude[200][5];
-//   float dummy[5];
+   int   Ntrcl;
+   int   Idsoft[NTRCL];
+   int   Statust[NTRCL];
+   int   Neleml[NTRCL];
+   int   Nelemr[NTRCL];
+   float Sumt[NTRCL];
+   float Sigmat[NTRCL];
+   float Meant[NTRCL];
+   float Rmst[NTRCL];
+   float Errormeant[NTRCL];
+   float Amplitude[NTRCL][5];
 };
 #define blkTrcluste COMMON_BLOCK(TRCLUSTE,trcluste)
 COMMON_BLOCK_DEF(TRCLUSTE_DEF,blkTrcluste);
 
+static const int NTRCLMC = 200;
 struct TRMCCLUS_DEF {
-   int   ntrclmc,Idsoftmc[200],Itra[200],Left[200][2];
-   int   Center[200][2],Right[200][2];
-   float ss[200][2][5],xca[200][3],xcb[200][3];
-   float xgl[200][3],summc[200];
-//   float dummy[5];
+   int   ntrclmc;
+   int   Idsoftmc[NTRCLMC];
+   int   Itra[NTRCLMC];
+   int   Left[NTRCLMC][2];
+   int   Center[NTRCLMC][2];
+   int   Right[NTRCLMC][2];
+   float ss[NTRCLMC][2][5];
+   float xca[NTRCLMC][3];
+   float xcb[NTRCLMC][3];
+   float xgl[NTRCLMC][3];
+   float summc[NTRCLMC];
 };
 #define blkTrmcclus COMMON_BLOCK(TRMCCLUS,trmcclus)
 COMMON_BLOCK_DEF(TRMCCLUS_DEF,blkTrmcclus);
 
+static const int NTRRH = 500;
 struct TRRECHIT_DEF {
-   int   ntrrh,px[500],py[500],statusr[500],Layer[500];
-   float hitr[500][3],ehitr[500][3],sumr[500],difosum[500];
-//   float dummy[5];
+   int   ntrrh;
+   int   px[NTRRH];
+   int   py[NTRRH];
+   int   statusr[NTRRH];
+   int   Layer[NTRRH];
+   float hitr[NTRRH][3];
+   float ehitr[NTRRH][3];
+   float sumr[NTRRH];
+   float difosum[NTRRH];
 };
 #define blkTrrechit COMMON_BLOCK(TRRECHIT,trrechit)
 COMMON_BLOCK_DEF(TRRECHIT_DEF,blkTrrechit);
 
+static const int NTRTR = 20;
 struct TRTRACK_DEF {
-   int   ntrtr,trstatus[20],pattern[20],nhits[20];
-   int   phits[20][6],Fastfitdone[20],Geanefitdone[20],Advancedfitdone[20];
-   float Chi2strline[20],Chi2circle[20],Circleridgidity[20];
-   float Chi2fastfit[20],Ridgidity[20],Errridgidity[20],Theta[20],phi[20];
-   float p0[20][3],gchi2[20],gridgidity[20],gerrridgidity[20],gtheta[20];
-   float gphi[20],gp0[20][3],hchi2[20][2],Hridgidity[20][2];
-   float Herrridgidity[20][2],htheta[20][2],hphi[20][2],hp0[20][2][3];
-   float fchi2ms[20],gchi2ms[20],ridgidityms[20],gridgidityms[20];
-//   float dummy[5];
+   int   ntrtr;
+   int   trstatus[NTRTR];
+   int   pattern[NTRTR];
+   int   nhits[NTRTR];
+   int   phits[NTRTR][6];
+   int   Fastfitdone[NTRTR];
+   int   Geanefitdone[NTRTR];
+   int   Advancedfitdone[NTRTR];
+   float Chi2strline[NTRTR];
+   float Chi2circle[NTRTR];
+   float Circleridgidity[NTRTR];
+   float Chi2fastfit[NTRTR];
+   float Ridgidity[NTRTR];
+   float Errridgidity[NTRTR];
+   float Theta[NTRTR];
+   float phi[NTRTR];
+   float p0[NTRTR][3];
+   float gchi2[NTRTR];
+   float gridgidity[NTRTR];
+   float gerrridgidity[NTRTR];
+   float gtheta[NTRTR];
+   float gphi[NTRTR];
+   float gp0[NTRTR][3];
+   float hchi2[NTRTR][2];
+   float Hridgidity[NTRTR][2];
+   float Herrridgidity[NTRTR][2];
+   float htheta[NTRTR][2];
+   float hphi[NTRTR][2];
+   float hp0[NTRTR][2][3];
+   float fchi2ms[NTRTR];
+   float gchi2ms[NTRTR];
+   float ridgidityms[NTRTR];
+   float gridgidityms[NTRTR];
 };
 #define blkTrtrack COMMON_BLOCK(TRTRACK,trtrack)
 COMMON_BLOCK_DEF(TRTRACK_DEF,blkTrtrack);
 
+static const int NMCG = 20;
 struct MCEVENTG_DEF {
-   int   nmcg,nskip[20],Particle[20];
-   float coo[20][3],dir[20][3];
-   float momentum[20],mass[20],charge[20];
-//   float dummy[5];
+   int   nmcg;
+   int   nskip[NMCG];
+   int   Particle[NMCG];
+   float coo[NMCG][3];
+   float dir[NMCG][3];
+   float momentum[NMCG];
+   float mass[NMCG];
+   float charge[NMCG];
 };
 #define blkMceventg COMMON_BLOCK(MCEVENTG,mceventg)
 COMMON_BLOCK_DEF(MCEVENTG_DEF,blkMceventg);
 
+static const int NCTCCL = 20;
 struct CTCCLUST_DEF {
-   int   nctccl,Ctcstatus[20],Ctclayer[20];
-   float ctccoo[20][3];
-   float ctcercoo[20][3],ctcrawsignal[20],ctcsignal[20],ctcesignal[20];
-//   float dummy[5];
+   int   nctccl;
+   int   Ctcstatus[NCTCCL];
+   int   Ctclayer[NCTCCL];
+   float ctccoo[NCTCCL][3];
+   float ctcercoo[NCTCCL][3];
+   float ctcrawsignal[NCTCCL];
+   float ctcsignal[NCTCCL];
+   float ctcesignal[NCTCCL];
 };
 #define blkCtcclust COMMON_BLOCK(CTCCLUST,ctcclust)
 COMMON_BLOCK_DEF(CTCCLUST_DEF,blkCtcclust);
 
+static const int NCTCCLMC = 200;
 struct CTCMCCLU_DEF {
-   int   nctcclmc,Ctcmcidsoft[200];
-   float Ctcmcxcoo[200][3];
-   float Ctcmcxdir[200][3],Ctcstep[200],ctccharge[200],ctcbeta[200];
-   float ctcedep[200];
-//   float dummy[5];
+   int   nctcclmc;
+   int   Ctcmcidsoft[NCTCCLMC];
+   float Ctcmcxcoo[NCTCCLMC][3];
+   float Ctcmcxdir[NCTCCLMC][3];
+   float Ctcstep[NCTCCLMC];
+   float ctccharge[NCTCCLMC];
+   float ctcbeta[NCTCCLMC];
+   float ctcedep[NCTCCLMC];
 };
 #define blkCtcmcclu COMMON_BLOCK(CTCMCCLU,ctcmcclu)
 COMMON_BLOCK_DEF(CTCMCCLU_DEF,blkCtcmcclu);
 
+static const int NANTI = 16;
 struct ANTICLUS_DEF {
-   int   nanti,Antistatus[16],Antisector[16];
-   float Antiedep[16];
-   float Anticoo[16][3],Antiercoo[16][3];
-//   float dummy[5];
+   int   nanti;
+   int   Antistatus[NANTI];
+   int   Antisector[NANTI];
+   float Antiedep[NANTI];
+   float Anticoo[NANTI][3];
+   float Antiercoo[NANTI][3];
 };
 #define blkAnticlus COMMON_BLOCK(ANTICLUS,anticlus)
 COMMON_BLOCK_DEF(ANTICLUS_DEF,blkAnticlus);
 
+static const int NANTIMC = 200;
 struct ANTIMCCL_DEF {
-   int   nantimc,Antimcidsoft[200];
-   float Antimcxcoo[200][3];
-   float Antimctof[200],Antimcedep[200];
-//   float dummy[5];
+   int   nantimc;
+   int   Antimcidsoft[NANTIMC];
+   float Antimcxcoo[NANTIMC][3];
+   float Antimctof[NANTIMC];
+   float Antimcedep[NANTIMC];
 };
 #define blkAntimccl COMMON_BLOCK(ANTIMCCL,antimccl)
 COMMON_BLOCK_DEF(ANTIMCCL_DEF,blkAntimccl);
 
+static const int NLVL3 = 2;
 struct LVL3_DEF {
-   int   nlvl3,Lvl3toftr[2],Lvl3antitr[2],Lvl3trackertr[2];
-   int   Lvl3ntrhits[2],Lvl3npat[2],Lvl3pattern[2][2];
-   float Lvl3residual[2][2];
-   float Lvl3time[2],Lvl3eloss[2];
-//   float dummy[5];
+   int   nlvl3;
+   int   Lvl3toftr[NLVL3];
+   int   Lvl3antitr[NLVL3];
+   int   Lvl3trackertr[NLVL3];
+   int   Lvl3ntrhits[NLVL3];
+   int   Lvl3npat[NLVL3];
+   int   Lvl3pattern[NLVL3][2];
+   float Lvl3residual[NLVL3][2];
+   float Lvl3time[NLVL3];
+   float Lvl3eloss[NLVL3];
 };
 #define blkLvl3 COMMON_BLOCK(LVL3,lvl3)
 COMMON_BLOCK_DEF(LVL3_DEF,blkLvl3);
 
+static const int NLVL1 = 2;
 struct LVL1_DEF {
-   int   nlvl1,Lvl1lifetime[2],Lvl1flag[2],Lvl1tofpatt[2][4];
-   int   Lvl1tofpatt1[2][4],Lvl1antipatt[2];
-//   float dummy[5];
+   int   nlvl1;
+   int   Lvl1lifetime[NLVL1];
+   int   Lvl1flag[NLVL1];
+   int   Lvl1tofpatt[NLVL1][4];
+   int   Lvl1tofpatt1[NLVL1][4];
+   int   Lvl1antipatt[NLVL1];
 };
 #define blkLvl1 COMMON_BLOCK(LVL1,lvl1)
 COMMON_BLOCK_DEF(LVL1_DEF,blkLvl1);
 
+static const int NCTCHT = 50;
 struct CTCHIT_DEF {
-   int   nctcht,Ctchitstatus[50],Ctchitlayer[50];
-   int   ctchitcolumn[50],ctchitrow[50];
-   float ctchitsignal[50];
-//   float dummy[5];
+   int   nctcht;
+   int   Ctchitstatus[NCTCHT];
+   int   Ctchitlayer[NCTCHT];
+   int   ctchitcolumn[NCTCHT];
+   int   ctchitrow[NCTCHT];
+   float ctchitsignal[NCTCHT];
 };
 #define blkCtchit COMMON_BLOCK(CTCHIT,ctchit)
 COMMON_BLOCK_DEF(CTCHIT_DEF,blkCtchit);
 
+static const int NTRRAW = 500;
 struct TRRAWCL_DEF {
-   int   ntrraw,rawaddress[500],rawlength[500];
-   float s2n[500];
-//   float dummy[5];
+   int   ntrraw;
+   int   rawaddress[NTRRAW];
+   int   rawlength[NTRRAW];
+   float s2n[NTRRAW];
 };
 #define blkTrrawcl COMMON_BLOCK(TRRAWCL,trrawcl)
 COMMON_BLOCK_DEF(TRRAWCL_DEF,blkTrrawcl);
 
+static const int NANTIRAW = 32;
 struct ANTIRAWC_DEF {
-   int   nantiraw,antirawstatus[32],antirawsector[32];
-   int   antirawupdown[32];
-   float antirawsignal[32];
-//   float dummy[5];
+   int   nantiraw;
+   int   antirawstatus[NANTIRAW];
+   int   antirawsector[NANTIRAW];
+   int   antirawupdown[NANTIRAW];
+   float antirawsignal[NANTIRAW];
 };
 #define blkAntirawc COMMON_BLOCK(ANTIRAWC,antirawc)
 COMMON_BLOCK_DEF(ANTIRAWC_DEF,blkAntirawc);
 
+static const int NTOFRAW = 20;
 struct TOFRAWCL_DEF {
-   int   ntofraw,tofrstatus[20],tofrplane[20],tofrbar[20];
-   float tofrtovta[20][2],tofrtovtd[20][2],tofrsdtm[20][2];
-//   float dummy[5];
+   int   ntofraw;
+   int   tofrstatus[NTOFRAW];
+   int   tofrplane[NTOFRAW];
+   int   tofrbar[NTOFRAW];
+   float tofrtovta[NTOFRAW][2];
+   float tofrtovtd[NTOFRAW][2];
+   float tofrsdtm[NTOFRAW][2];
 };
 #define blkTofrawcl COMMON_BLOCK(TOFRAWCL,tofrawcl)
 COMMON_BLOCK_DEF(TOFRAWCL_DEF,blkTofrawcl);
+
+//-----------------------------------------------
+// end definition of common blocks in AMS Ntuple
+// =====               ------------     =========      
+//************************************************
 
 
 PROTOCCALLSFSUB3(OPENIT,openit,INT,STRING,STRING)

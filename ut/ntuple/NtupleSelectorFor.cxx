@@ -175,14 +175,14 @@ void NtupleSelectorFor::CloseOldNtuple()
 //_____________________________________________________________________________
 void NtupleSelectorFor::CloseUserFile()
 {
-   if (m_UsrFile == 0) return;
-
-   HCDIR(dir_usr, " ");
-
    //
    // Now call user's termination routine, such as printing
    //
    if (m_Cut != 0) m_Cut(1);
+
+   if (m_UsrFile == 0) return;
+
+   HCDIR(dir_usr, " ");
 
    int icycle;
    HROUT(0, icycle, "T");
@@ -196,6 +196,13 @@ void NtupleSelectorFor::CloseUserFile()
 //_____________________________________________________________________________
 int NtupleSelectorFor::FindNext()
 {
+   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+   //
+   // Return values:
+   //   >=0  successful
+   //   -1   cut not yet set
+   //   -2   fail to find event survived in m_Cut after current event
+   //-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
    if (m_Cut == 0) {
 //      fprintf(stderr,"NtupleSelectorFor::FindNext, cut not set !!\n");
       cerr << "NtupleSelectorFor::FindNext, cut not set !!" << endl;
@@ -434,6 +441,11 @@ int NtupleSelectorFor::OpenUserFile(char *usrfile)
 
    int istat;
 
+   //
+   // Now call user's init routine
+   //
+   if (m_Cut != 0)  m_Cut(-1);
+
    if (m_UsrFile != 0) {
       CloseUserFile();
    }
@@ -454,11 +466,6 @@ int NtupleSelectorFor::OpenUserFile(char *usrfile)
    }
 
    m_UsrFile    = usrfile;
-
-   //
-   // Now call user's init routine
-   //
-   if (m_Cut != 0)  m_Cut(-1);
 
    return 0;
 }
@@ -540,10 +547,19 @@ int NtupleSelectorFor::WriteEvent()
 {
    if (m_NewFile[0] == 0) {
      char text[100];
+
+     // check if ending character is '/', otherwise, add it
+     //
+     char *slash = strrchr(m_NewDir, '/');
+     if (slash == 0) slash=m_NewDir;
+     int last = strlen(slash);
+     if (last <= 1) last=0;
+     else last = 1;
+
      sprintf(text,"%d.%d",m_BlkEventh->run,m_BlkEventh->eventno);
 
      char *ext = strrchr(m_OldFile,'.');
-     int leng = strlen(m_NewDir) + strlen(text) + 1;
+     int leng = strlen(m_NewDir) + last + strlen(text) + 1;
      if (m_Insert != 0) leng = leng + strlen(m_Insert);
      if (ext != 0) leng = leng + strlen(ext);
 
@@ -554,6 +570,7 @@ int NtupleSelectorFor::WriteEvent()
      }
 
      strcpy(m_NewFile, m_NewDir);
+     if (last == 1) strcat(m_NewFile, "/");
      strcat(m_NewFile, text);
      if (m_Insert != 0) strcat(m_NewFile, m_Insert);
      if (ext != 0) strcat(m_NewFile, ext);

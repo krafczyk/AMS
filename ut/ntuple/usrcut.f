@@ -75,34 +75,45 @@ C     &  'NBETA','BETA', 'NPART', 'NTRTR', 'NHITS', 217*' '/
 *-impose cuts here
 *
       NPASS(0) = NPASS(0) + 1
+      IPASS    = 0
 
 C      CALL HF1(11, FLOAT(NPART), 1.)
 C      CALL HF1(12, FLOAT(NTRTR), 1.)
 C      CALL HF1(13, FLOAT(NBETA), 1.)
 C
 C      IF (NPART .NE. 1) GOTO 990
-C      NPASS(1) = NPASS(1) + 1
+C      IPASS = IPASS + 1
+C      NPASS(IPASS) = NPASS(IPASS) + 1
 C
 C      If (NTRTR.NE.1 .or. NHITS(1).NE.6) GOTO 990
-C      NPASS(2) = NPASS(2) + 1
+C      IPASS = IPASS + 1
+C      NPASS(IPASS) = NPASS(IPASS) + 1
 C
 C      IF (NBETA.NE.1) GOTO 990
-C      NPASS(3) = NPASS(3) + 1
+C      IPASS = IPASS + 1
+C      NPASS(IPASS) = NPASS(IPASS) + 1
 C
 C      CALL HF1(103, BETA(1), 1.)
 C
 C      IF (BETA(1).GE.0) GOTO 990
-C      NPASS(4) = NPASS(4) + 1
+C      IPASS = IPASS + 1
+C      NPASS(IPASS) = NPASS(IPASS) + 1
 
-      if (mod(eventstatus/2097152,4).gt.0) then
-        NPASS(1) = NPASS(1) + 1
-        ic = mod(eventstatus/32,8)
-        im = mod(eventstatus/256,2)
-        if (ic.gt.0.or.im.eq.0) THEN
-          USRCUT = 1
-          NPASS(2) = NPASS(2) + 1
-        endif
-      endif
+      NUERR  = IBITS(EVENTSTATUS,30,1)
+      IF (NUERR.NE.0) GOTO 990
+      IPASS    = IPASS + 1
+      NPASS(IPASS) = NPASS(IPASS) + 1
+
+      NUPART = IBITS(EVENTSTATUS,21,2)
+      IF (NUPART.LE.0) GOTO 990
+      IPASS    = IPASS + 1
+      NPASS(IPASS) = NPASS(IPASS) + 1
+
+      NUCHRG = IBITS(EVENTSTATUS, 5,3) + 1
+      NUMOMS = 2*IBITS(EVENTSTATUS, 8,1) - 1
+      IF (NUCHRG.LE.1 .AND. NUMOMS.GT.0) GOTO 990
+      IPASS    = IPASS + 1
+      NPASS(IPASS) = NPASS(IPASS) + 1
 
 *
 *-- Comment the following in case you do not want to write selectd events
@@ -122,14 +133,15 @@ C      USRCUT =1
       INCLUDE 'cutstat.inc'
 *
       PRINT *,'Total events processed =',NPASS(0)
-      DO I=1,NCUT
+C      DO I=1,NCUT
+      DO I=1,IPASS
         WRITE(6,101) I, NPASS(I)
       ENDDO
       
 C      CALL HPRINT(0)
 
       RETURN
- 101  FORMAT(/2X,'Events survived after cut-',I2,' =',I8)
+ 101  FORMAT(2X,'Events survived after cut-',I2,' =',I8)
       END
 
 
