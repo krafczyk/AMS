@@ -15,8 +15,12 @@
 #    your preferred height for the log window (Y_WIDTH_LOG),
 #...
 
-set XEDITOR "emacs"
+set XEDITOR "xvi"
 set AMSDir ""
+
+if {[catch {exec which $XEDITOR}]} {
+  set XEDITOR "emacs"
+}
 
 if {[catch {exec which $XEDITOR}]} {
   puts "Your \"XEDITOR\" editor is NOT WELL DEFINED." 
@@ -47,6 +51,7 @@ if {[catch {exec which ggrep}]} {
 } else {
     set GGREP "ggrep"
 }
+set env(AMSWD) $AMSDir
 ##############################################################################
 #################################################################3333
 
