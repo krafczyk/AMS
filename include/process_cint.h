@@ -1,17 +1,29 @@
 #ifdef __CINT__
       void Begin(TTree* tree){
-              AMSEventR::Begin(tree);
-              UBegin();
+            AMSEventR::Begin(tree);
+            UBegin();
       };
 
-      void ProcessFill(Int_t entry){
-              AMSEventR::ProcessFill(entry);
-              if (!UProcessCut()) return;
-              UProcessFill();
+      Bool_t ProcessCut(Long64_t entry){
+            return ProcessCut((int)entry);
+      };
+
+      void ProcessFill(Long64_t entry){
+            ProcessFill((int)entry);
+      };
+
+      Bool_t ProcessCut(int entry){
+            return ReadHeader(entry);
+      };
+
+      void ProcessFill(int entry){
+            AMSEventR::ProcessFill(entry);
+            if (!UProcessCut()) return;
+            UProcessFill();
       };
 
       void Terminate(){
-              UTerminate();
-              AMSEventR::Terminate();
+            UTerminate();
+            AMSEventR::Terminate();
       };
 #endif
