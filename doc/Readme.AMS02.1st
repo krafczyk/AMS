@@ -1,4 +1,4 @@
-#  $Id: Readme.AMS02.1st,v 1.42 2002/12/19 11:07:57 choutko Exp $          
+#  $Id: Readme.AMS02.1st,v 1.43 2003/02/04 15:53:53 choutko Exp $          
 
 
 -I. In the current version only AMS02-setup is supported.
@@ -11,7 +11,7 @@
     
 
 I. The following platforms are currently supported:
- Linux             gcc2.95.3, gcc3.0.2 , icc/ifc v6.0
+ Linux             gcc3.2.1 + icc/ifc v7.0   _OR_  gcc2.95.3 + icc/ifc v6.0
  DEC/OSF1          cxx6.2++                                  (geant3 only)  
  Sun/SunOS5.7      Sun WorkShop 6 update 1 C++ 5.2     
 

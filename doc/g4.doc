@@ -1,7 +1,9 @@
-#  $Id: g4.doc,v 1.32 2003/01/21 16:37:20 alexei Exp $
+#  $Id: g4.doc,v 1.33 2003/02/04 15:53:53 choutko Exp $
 -------
 Platform:
 linux-gcc2.95.3 ($G4SYSTEM=Linux-g++)
+
+linux-gcc.3.2.1  - gives runtime errors, not supported yet.
 
 -------
 Installer:
@@ -9,7 +11,7 @@ Installer:
 
 source AMS/install/g4i.old (v4.4.1, Linux-g++) 
 source AMS/install/g4i      (v4.5.0, Linux-g++)
-source AMS/install/g4i.new  (v4.5.0, Linux-g++)
+source AMS/install/g4i.new  (v4.5.0, Linux-g++, gcc.3.2.1)
 
 see $G4INSTALL/ReleaseNotes.VC for ams specifics
 
