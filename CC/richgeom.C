@@ -488,7 +488,7 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   coo[1]=0;
   coo[2]=RICradpos-RICHDB::total_height()/2;
 
-  rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("VACUUM",
+  rich=dynamic_cast<AMSgvolume*>(mother.add(new AMSgvolume("RICH VACUUM",
 							   0,
 							   "RICH",
 							   "TUBE",

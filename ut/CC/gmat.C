@@ -490,7 +490,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));//31
 
 // Radiator
   
-  AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH RAD","RICH_AEROGEL",0));   //32
+  AMSgtmed * pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH RAD","RICH_AEROGEL",1));   //32
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index,RICHDB::rad_clarity);
   
 // PMT window
@@ -509,6 +509,17 @@ pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH PMTS","PMT_WINDOW",1));   //35
     xustep=xustep+(800.-200.)/geant(RICHDB::entries);
     p[iw]=2*3.1415926*197.327e-9/xustep;
   }
+
+
+// RICH MOTHER VOLUME
+
+  pgtmed= (AMSgtmed*)tmed.add (new AMSgtmed("RICH VACUUM","VACUUM",1));
+  for(iw=0;iw<RICHDB::entries;iw++)
+    {
+      abs_l[iw]=1e5;
+      index[iw]=1;
+    }
+  pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 
 
 // LG mirrors
