@@ -14,9 +14,9 @@
 // Mar  18, 1997. ak. Getmceventg and GetNEvents are modified
 //                    setup moved to AMSsetupDB
 // May  05, 1997. ak. separate file for setup
-// Oct    , 1997. ak. 
+// Oct    , 1997. ak. tdv database.
 //
-// last edit Oct 11, 1997, ak.
+// last edit Oct 13, 1997, ak.
 //
 
 #include <stdio.h>
@@ -50,9 +50,9 @@ ooStatus   LMS::AddAllTDV()
         ooHandle(ooDBObj)    dbH;
 
         StartUpdate(); // Start the transaction
-        dbH = setupdb();
-        if (dbH == NULL) Fatal("AddTDV : Cannot open setup dbase");
-        if (_setupdbH != dbH) _setupdbH = dbH;
+        dbH = tdvdb();
+        if (dbH == NULL) Fatal("AddTDV : Cannot open tdv dbase");
+        if (_tdvdbH != dbH) _tdvdbH = dbH;
 
   // Containers
   ooHandle(ooContObj)  conttdvH;                // Time dependent var
@@ -66,7 +66,7 @@ ooStatus   LMS::AddAllTDV()
   AMSNode*   p;
   AMSTimeID* pp;
 
-  // get setup and container names
+  // get tdv and container names
   char* setup = AMSJob::gethead()->getsetup();
   if(dbg_prtout) cout <<"AddTDV -I- setup "<<setup<<endl;
 
@@ -168,9 +168,9 @@ ooStatus   LMS::ReadAllTDV()
         ooHandle(ooDBObj)      dbH;
 
         StartRead(oocMROW);
-        dbH = setupdb();
-        if (dbH == NULL) Fatal("Cannot open setup dbase ");
-        if (_setupdbH != dbH) _setupdbH = dbH;
+        dbH = tdvdb();
+        if (dbH == NULL) Fatal("Cannot open tdv dbase ");
+        if (_tdvdbH != dbH) _tdvdbH = dbH;
 
 // Containers
   ooHandle(ooContObj)  conttdvH;                // Time dependent var
@@ -255,7 +255,7 @@ ooStatus   LMS::FillTDV(integer ntdv)
 //
 {
 	ooStatus 	       rstatus = oocError;	// Return status
-        ooHandle(ooDBObj)      dbH;                     // setup dbase
+        ooHandle(ooDBObj)      dbH;                     // tdv dbase
         ooHandle(ooContObj)    contH;                   // TDV container
         ooItr(AMSTimeIDD)      tdvItr;                  // TDVObj iterator
 
@@ -272,9 +272,9 @@ ooStatus   LMS::FillTDV(integer ntdv)
   cout <<"FillTDV -I-  container "<<contName<<endl;
   
   StartRead(oocMROW);
-  dbH = setupdb();
-  if (dbH == NULL) Fatal("FillTDV : Cannot open setup dbase ");
-  if (_setupdbH != dbH) _setupdbH = dbH;
+  dbH = tdvdb();
+  if (dbH == NULL) Fatal("FillTDV : Cannot open tdv dbase ");
+  if (_tdvdbH != dbH) _tdvdbH = dbH;
 
   if (contH.exist(dbH, contName, oocRead)) {
    rstatus = tdvItr.scan(contH, oocRead);
@@ -331,7 +331,7 @@ ooStatus   LMS::ReadTDV
 //
 {
 	ooStatus 	       rstatus = oocError;	// Return status
-        ooHandle(ooDBObj)      dbH;                     // setup dbase
+        ooHandle(ooDBObj)      dbH;                     // tdv dbase
         ooHandle(ooContObj)    contH;                   // TDV container
         ooItr(AMSTimeIDD)      tdvItr;                  // TDVObj iterator
 
@@ -347,9 +347,9 @@ ooStatus   LMS::ReadTDV
   cout <<"ReadTDV -I-  container "<<contName<<endl;
   
   StartRead(oocMROW);
-  dbH = setupdb();
-  if (dbH == NULL) Fatal("ReadTDV : Cannot open setup dbase ");
-  if (_setupdbH != dbH) _setupdbH = dbH;
+  dbH = tdvdb();
+  if (dbH == NULL) Fatal("ReadTDV : Cannot open tdv dbase ");
+  if (_tdvdbH != dbH) _tdvdbH = dbH;
 
   if (contH.exist(dbH, contName, oocRead)) {
     char name[80];

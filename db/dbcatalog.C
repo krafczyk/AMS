@@ -1,6 +1,7 @@
 // method source file for the object db_catalog
+// June 08, 1997, ak.
 //
-// last edit June 08, 1997, ak.
+// last edit Oct 13, 1997, ak.
 //
 //
 #include <iostream.h>
@@ -24,7 +25,8 @@ char    *AMSdbs::pathNameTab[] = {
    "../../AMS/db/dbs/raw/",
    "../../AMS/db/dbs/sim/",
    "../../AMS/db/dbs/rec/",
-   "../../AMS/db/dbs/setup/"
+   "../../AMS/db/dbs/setup/",
+   "../../AMS/db/dbs/tdv/"
 };
 int             AMSdbs::filesPerDir = 100;
 
@@ -145,6 +147,16 @@ ooStatus AMSdbs::newDB(const integer whichdb, const ooHandle(ooDBObj) &dbH)
    }
   }
 
+  if (whichdb == dbtdv) {
+   tdv = new dbcatalog(dbH);
+   if(tdv != NULL) {
+    tdv.nameObj(oovTopFD,tdvdb_name);
+    return oocSuccess;
+   } else {
+    return oocError;
+   }
+  }
+
 } 
 
 long  AMSdbs::dbsize(integer whichdb) 
@@ -163,6 +175,9 @@ long  AMSdbs::dbsize(integer whichdb)
 
  if (whichdb == dbsetup) 
   if (setup) setup -> getLastDB(dbH);
+
+ if (whichdb == dbtdv) 
+  if (tdv) tdv -> getLastDB(dbH);
 
  if (whichdb == dbrec) 
   if (reco) reco -> getLastDB(dbH);
@@ -191,6 +206,9 @@ ooHandle(ooDBObj)  AMSdbs::currentDB(integer whichdb)
  if (whichdb == dbsetup) 
   if (setup) setup -> getLastDB(dbH);
 
+ if (whichdb == dbtdv) 
+  if (tdv) tdv -> getLastDB(dbH);
+
  if (whichdb == dbrec) 
   if (reco) reco -> getLastDB(dbH);
 
@@ -218,6 +236,10 @@ ooStatus AMSdbs::extend(integer whichdb)
    if(setup) 
      if(setup -> extend()) rstatus = oocSuccess;
 
+ if (whichdb == dbtdv) 
+   if(tdv) 
+     if(tdv -> extend()) rstatus = oocSuccess;
+
  if (whichdb == dbrec) 
    if(reco) 
      if(reco -> extend()) rstatus = oocSuccess;
@@ -242,6 +264,9 @@ ooHandle(ooDBObj)  AMSdbs::getDB(integer whichdb, integer n)
  if (whichdb == dbsetup) 
    if (setup) setup -> getDB(n, dbH);
 
+ if (whichdb == dbtdv) 
+   if (tdv) tdv -> getDB(n, dbH);
+
  if (whichdb == dbrec) 
    if (reco) reco -> getDB(n, dbH);
 
@@ -264,6 +289,9 @@ integer  AMSdbs::size(integer whichdb)
 
  if (whichdb == dbsetup) 
    if (setup) n = setup -> size();
+
+ if (whichdb == dbtdv) 
+   if (tdv) n = tdv -> size();
 
  if (whichdb == dbrec) 
    if (reco) n = reco -> size();

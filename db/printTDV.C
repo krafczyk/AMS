@@ -178,7 +178,7 @@ int main(int argc, char** argv)
  ooStatus rstatus = oocSuccess;
  ooMode   mode    = oocRead;
 
- char*                  dbase = "Setup";
+ char*                  dbase = "TDV";
  char*                  printMode = "S";
  char*                  cptr;
  char*                  contName = "Time_Var";
@@ -220,19 +220,19 @@ int main(int argc, char** argv)
  if (dbTabH == NULL) Fatal("ClusteringInit: catalog of databases not found");
 
 
- // get SetupDB pathname
- cptr = getenv("AMS_SetupDB_Path");
+ // get TDVDB pathname
+ cptr = getenv("AMS_TDVDB_Path");
  if ( cptr ) 
-   cout<<"ClusteringInit: SetupDB path name "<<cptr<<endl;
+   cout<<"ClusteringInit: TDVDB path name "<<cptr<<endl;
  else
-  cout<<"ClusteringInit: SetupDB path name "<<AMSdbs::pathNameTab[dbsetup]
+  cout<<"ClusteringInit: TDVDB path name "<<AMSdbs::pathNameTab[dbtdv]
                                             <<endl;
 
- integer nsetupdbs = dbTabH -> size(dbsetup);
+ integer ntdvdbs = dbTabH -> size(dbtdv);
 
  integer nobj = 0;
- for (int j = 0; j < nsetupdbs; j++) {
-  dbH = dbTabH -> getDB(dbsetup,j);
+ for (int j = 0; j < ntdvdbs; j++) {
+  dbH = dbTabH -> getDB(dbtdv,j);
   if (!dbH) Fatal ("Pointer to selected dbase is NULL");
   if (contH.exist(dbH, contName, oocRead)) {
     cout <<"found container "<<contName<<endl;
@@ -256,7 +256,7 @@ int main(int argc, char** argv)
  cout <<"found "<<nobj<<" TDV objects"<<endl;
  tdv = new tdv_time[nobj];
  int jj = 0;
- for (j = 0; j < nsetupdbs; j++) {
+ for (j = 0; j < ntdvdbs; j++) {
   if (contH.exist(dbH, contName, oocRead)) {
     rstatus = tdvItr.scan(contH, oocRead);
   } else {

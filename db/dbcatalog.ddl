@@ -1,13 +1,16 @@
 // catalog of databases
 // June,    1997. ak. First try with Objectivity  
+// Oct,     1997. ak. add TDV database
 //
-// last edit June 16, 1997, ak.
+// last edit Oct 13, 1997, ak.
 //
 
 #include <typedefs.h>
 enum { dbany = 0, dbtag = 1, dbraw = 2, dbsim = 3, dbrec = 4, dbsetup = 5, 
+       dbtdv = 6,
        maxTagDBSize = 1000, maxRawDBSize = 1000, maxMCDBSize = 1000,
-       maxRecDBSize = 1000, maxSetupDBSize = 1000}; // db size in MBytes
+       maxRecDBSize = 1000, maxSetupDBSize = 1000, 
+       maxTDVDBSize = 1000}; // db size in MBytes
 
 static char anydb_name[4]    = {"Any"};
 static char tagdb_name[9]    = {"EventTag"};
@@ -15,6 +18,7 @@ static char rawdb_name[10]   = {"RawEvents"};
 static char simdb_name[9]    = {"MCEvents"};
 static char recdb_name[11]   = {"RecoEvents"};
 static char setupdb_name[6]  = {"Setup"};
+static char tdvdb_name[4]    = {"TDV"};
 
 declare(ooVArray, ooRef(ooDBObj) )
 
@@ -53,6 +57,7 @@ private:
  ooRef(dbcatalog)         reco;
  ooRef(dbcatalog)         setup;
  ooRef(dbcatalog)         hk;
+ ooRef(dbcatalog)         tdv;
  ooRef(dbcatalog)         any;
 
 public:

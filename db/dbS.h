@@ -15,8 +15,9 @@
 // June   , 1997 ak db catalogs
 // Oct   1, 1997 ak FillTDV, ReadTDV functions
 //                  'short' version (setups only)
+//                  add tdv dbase
 //
-// Last Edit Oct 3, 1997. ak.
+// Last Edit Oct 13, 1997. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -67,6 +68,7 @@ private:
        ooHandle(ooDBObj)    _setupdbH;    // geometry dbase
        ooHandle(ooDBObj)    _slowdbH;     // slow control and H/K dbase
        ooHandle(ooDBObj)    _tagdbH;      // handle to geometry dbase
+       ooHandle(ooDBObj)    _tdvdbH;      // handle to tdv dbase
 
 
 public:
@@ -129,6 +131,7 @@ public:
   inline ooHandle(ooDBObj)&    setupdb()    {return _setupdbH;}
   inline ooHandle(ooDBObj)&    slowdb()     {return _slowdbH;}
   inline ooHandle(ooDBObj)&    tagdb()      {return _tagdbH;}
+  inline ooHandle(ooDBObj)&    tdvdb()      {return _tdvdbH;}
 
         integer         nTransStart()  { return _transStart;}
         integer         nTransCommit() { return _transCommit;}
