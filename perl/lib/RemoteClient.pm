@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.79 2003/04/04 13:15:15 alexei Exp $
+# $Id: RemoteClient.pm,v 1.80 2003/04/04 13:20:42 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -2857,6 +2857,20 @@ print qq`
           if($i){
               $self->ErrorPlus("Unable to tar flukaaf.dat to $filen ");
           }
+
+         my $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $nv to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gr") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar $gr to $filen ");
+          }
+         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen prod/tnsnames.ora") ;
+          if($i){
+              $self->ErrorPlus("Unable to tar prod/tnsnames.ora to $filen ");
+          }
+
           $i=system("gzip -f $filen");
           if($i){
            $self->ErrorPlus("Unable to gzip  $filen");
@@ -2870,22 +2884,23 @@ print qq`
         }
         $filedb_att="$self->{UploadsDir}/$self->{FileAttDB}";
         @sta = stat $filedb_att;
+          
 
-        if($#sta<0 or $sta[9]-time() >86400*7  or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
+        if(($#sta<0 or $sta[9]-time() >86400*7  or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]) and $self->{dwldaddon}==1){
            $self->{sendaddon}=2;
         my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$run";
-         my $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
-          if($i){
-              $self->ErrorPlus("Unable to tar $nv to $filen ");
-          }
-         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $gr") ;
-          if($i){
-              $self->ErrorPlus("Unable to tar $gr to $filen ");
-          }
-         $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen prod/tnsnames.ora") ;
-          if($i){
-              $self->ErrorPlus("Unable to tar prod/tnsnames.ora to $filen ");
-          }
+        my $i=system "mkdir -p $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/MagneticFieldMap/9* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*.2* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Tracker*2 $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/*of*/*/*.0.* $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/.*0 $self->{UploadsDir}/DataBase";
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/.TrA*1 $self->{UploadsDir}/DataBase"; 
+        $i=system "ln -s $self->{AMSDataDir}/DataBase/Ecal* $self->{UploadsDir}/DataBase";
+        $i=system "tar -C$self->{UploadsDir} -h -cf $filen DataBase";
+        if($i){
+              $self->ErrorPlus("Unable to tar $self->{UploadsDir} DataBase to $filen");
+         }
           $i=system("gzip -f $filen");
                       if($i){
               $self->ErrorPlus("Unable to gzip  $filen");
