@@ -238,8 +238,8 @@ COMMON_BLOCK_DEF(CTCRECFFKEY_DEF,CTCRECFFKEY);
 
 class LVL1FFKEY_DEF {
 public:
-geant ntof;
-geant nanti;
+integer ntof;
+integer nanti;
 };
 #define LVL1FFKEY COMMON_BLOCK(LVL1FFKEY,lvl1ffkey)
 COMMON_BLOCK_DEF(LVL1FFKEY_DEF,LVL1FFKEY);

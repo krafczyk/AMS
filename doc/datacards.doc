@@ -353,7 +353,7 @@ R35 InitialRM[6][3][3](0)             // Rot Matrix --------
 LVL1    // LVL1 Trigger 
 
 I 1 ntof(3)                           // min number of tof planes in trig
-R 2 anti(1000000.)                    // max energy deposition in anti in MeV
+I 2 nanti(2)                         // max number of anti counters in trig
 
 
 
