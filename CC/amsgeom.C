@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.155 2003/03/18 11:43:06 choutko Exp $
+//  $Id: amsgeom.C,v 1.156 2003/03/18 15:40:12 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -647,7 +647,7 @@ AMSNode * p;
   raddeg=AMSDBc::raddeg;
   degrad=AMSDBc::pi/180.;
   ANTI2DBc::setgeom();
-  nscpad=ANTI2C::MAXANTI;
+  nscpad=ANTI2C::ANTISRS;
   scradi=ANTI2DBc::scradi();
   scinth=ANTI2DBc::scinth();
   scleng=ANTI2DBc::scleng();
@@ -2365,7 +2365,7 @@ AMSgvolume *dummy;
   raddeg=AMSDBc::raddeg;
   degrad=AMSDBc::pi/180.;
   ANTI2DBc::setgeom();
-  nscpad=ANTI2C::MAXANTI;
+  nscpad=ANTI2C::ANTISRS;
   scradi=ANTI2DBc::scradi();
   scinth=ANTI2DBc::scinth();
   scleng=ANTI2DBc::scleng();

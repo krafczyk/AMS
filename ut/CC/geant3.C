@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.76 2003/01/27 14:31:50 choutko Exp $
+//  $Id: geant3.C,v 1.77 2003/03/18 15:40:13 choumilo Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -391,14 +391,16 @@ AMSEvent::gethead()->addnext(AMSID("Test",0),new Test(GCKINE.ipart,loc));
 //  UHTOC(GCTMED.natmed,4,media,20);
 //  cout<<" Media "<<media<<endl;
 //--->
-  int manti(0);
+  integer manti(0),isphys,islog;
   if(lvl==3 && GCVOLU.names[lvl][0]== 'A' && GCVOLU.names[lvl][1]=='N'
                                        && GCVOLU.names[lvl][2]=='T')manti=1;
   if(GCTRAK.destep != 0  && GCTMED.isvol != 0 && manti==1){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
      dee=GCTRAK.destep; 
      if(TFMCFFKEY.birks)GBIRK(dee);
-     AMSAntiMCCluster::siantihits(GCVOLU.number[lvl],GCTRAK.vect,dee,GCTRAK.tofg);
+     isphys=GCVOLU.number[lvl];
+     islog=floor(0.5*(isphys-1))+1;
+     AMSAntiMCCluster::siantihits(islog,GCTRAK.vect,dee,GCTRAK.tofg);
 //     HF1(1510,geant(iprt),1.);
       if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
   }

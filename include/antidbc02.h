@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.5 2003/03/18 09:04:17 choumilo Exp $
+//  $Id: antidbc02.h,v 1.6 2003/03/18 15:40:22 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -8,8 +8,9 @@
 //
 // Constants for Anti-Counters :
 namespace ANTI2C{
- const integer MAXANTI=8; // number of sectors
- const integer ANCHMX=2*MAXANTI;// max. number of phys. channels 
+ const integer ANTISRS=16;// number of physical sectors 
+ const integer MAXANTI=ANTISRS/2; // number of logical(readout) sectors(8)
+ const integer ANCHMX=2*MAXANTI;// max. number of readout channels 
  const integer ANAHMX=1; // max. number of anode-charge hits  per chan.
  const integer ANTHMX=8; // max. number of time-history hits (pairs of edges) per channel
  const integer ANFADC=100;//Flash-ADC channels
