@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.28 2002/12/06 14:43:39 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.29 2003/04/09 14:05:16 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -249,16 +249,17 @@ class ECALVarp {
 private:
 // ---> ECAL DAQ-system thresholds :
   geant _daqthr[10];   // DAQ-system thresholds
-          // (0) -> indiv. high-channel readout threshold(ADCch)
-	  // (1) -> Anode(high)-sum(~mV) low cut for "MIP"-trigger(mev tempor)  
+          // (0) -> anode readout DAQ-threshold(ped sigmas)
+	  // (1) -> Dynode Etot cut for "MIP"-trigger(mev tempor)  
 	  // (2) ->                      high cut for "MIP"-trigger(mev tempor)  
-	  // (3) ->                      low cut for "High"-trigger(mev tempor)
-	  // (4) -> indiv. low-channel readout threshold(ADCch)  
-	  // (5) -> indiv. dynode thresh. for trigger  
-	  // (6) -> spare  
+	  // (3) -> Dynode Etot soft thresh(mev tempor)
+	  // (4) -> Dynode readout DAQ-threshold(ped.sigmas)  
+	  // (5) -> Dynode Etot hard thresh(mev tempor)  
+	  // (6) -> s  
 	  // (7) ->   
 	  // (8) ->   
-	  // (9) ->   
+	  // (9) -> Thresh for columns number(bending plane)
+//   
 // ---> RECO Run-Time Cuts :
   geant _cuts[5];                    
           //  (0)  -> cut for cluster search(mev)
@@ -285,6 +286,7 @@ public:
       }
     #endif
     return _cuts[i];}
+//
 //
 };
 //===================================================================

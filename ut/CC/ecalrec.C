@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.77 2003/01/27 14:31:49 choutko Exp $
+//  $Id: ecalrec.C,v 1.78 2003/04/09 14:05:06 choumilo Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -116,6 +116,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
   number an4resp,an4respt,an4qin;// (for trigger)
   number qin,saturf,a4maxq(0);
   integer adchmx,adclmx,adcdmx;
+  uinteger trflen(0),trflwd(0);
 //
   nslmx=ECALDBc::slstruc(3);
   npmmx=ECALDBc::slstruc(4);
@@ -210,7 +211,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       a2dr=ECcalibMS::ecpmcal[il][i].an2dyr();// anode/dynode gains ratio from DB(MC-Seeds)
       mev2adc=ECMCFFKEY.mev2adc;// MC Emeas->ADCchannel to have MIP-m.p. in 10th channel
 //                (only mev2mev*mev2adc has real meaning providing Geant_dE/dX->ADCchannel)
-      pmrgn=ECcalibMS::ecpmcal[il][i].pmrgain();// PM gain(wrt ref. one) from DB
+      pmrgn=ECcalibMS::ecpmcal[il][i].pmrgain();// PM gain(wrt ref. one) from DB(MC-Seeds)
       ECPMPeds::pmpeds[il][i].getpedh(pedh);
       ECPMPeds::pmpeds[il][i].getsigh(sigh);
       ECPMPeds::pmpeds[il][i].getpedl(pedl);
@@ -223,7 +224,7 @@ void AMSEcalRawEvent::mc_build(int &stat){
       
       for(ic=0;ic<4;ic++){//<--- PM 4-subc loop to calc. common PMsatur(due to divider !)
         if(sum[i][ic]>0){
-	  scgn=ECcalibMS::ecpmcal[il][i].pmscgain(ic);//SubCell gain(really 1/pmrg/scgn)
+	  scgn=ECcalibMS::ecpmcal[il][i].pmscgain(ic);//SubC gain(really 1/pmrg/scgn)(Seed-DB)
 	  ares=0.;
 	  phel=sum[i][ic]*ECMCFFKEY.mev2pes;//numb.of photoelectrons(dE/dX->Npes)
 	  if(phel>=1){
@@ -374,16 +375,22 @@ void AMSEcalRawEvent::mc_build(int &stat){
 //
 //                          <--- some variables for "electromagneticity" calc.
   geant rrr,efrnt,efrnta,ebase,epeak,epeaka,p2brat,p2frat,trwid1,trwid2;
-  geant esep1,esep2,p2bcut,p2fcut,wdcut1,wdcut2,wdthr;
+  geant esep1,esep2,esep3,p2bcut,p2fcut;
+  geant wdcut1,wdcut2,wdthr,ethrsoft,ethrhard,ethrmip,ethrfront;
   geant etrsum1[ECPMSMX],etrsum2[ECPMSMX];
 //
-  esep1=ECALVarp::ecalvpar.daqthr(5);// separation.energy for p2b,p2f cuts
+  esep1=8000.;// separation.energy for p2b,p2f cuts
+  esep2=15000;//Etot 1st up-limit for width-cut action(mev, tempor)
+  esep3=30000;//Etot 2nd up-limit for width-cut action(mev, tempor)
   p2bcut=ECALVarp::ecalvpar.daqthr(6);
-  esep2=2.*esep1;//energy high-limit for width-cut action;
   p2fcut=ECALVarp::ecalvpar.daqthr(7);
-  wdthr=ECALVarp::ecalvpar.daqthr(8);
+  wdthr=ECALVarp::ecalvpar.daqthr(8);//Ecolumn threshold
   wdcut1=ECALVarp::ecalvpar.daqthr(9);//L=1,7,2(bend.proj)
-  wdcut2=ECALVarp::ecalvpar.daqthr(9)-2.;//L=2,8,2
+  wdcut2=ECALVarp::ecalvpar.daqthr(9)-2;//L=2,8,2(nonbend)
+  ethrmip=ECALVarp::ecalvpar.daqthr(1);//Etot mip-thr
+  ethrfront=ECALVarp::ecalvpar.daqthr(2);//Efront-thr
+  ethrsoft=ECALVarp::ecalvpar.daqthr(3);//Etot soft-thr
+  ethrhard=ECALVarp::ecalvpar.daqthr(5);//Etot hard-thr
 //
   efrnt=pmlprof[0]+pmlprof[1]+pmlprof[2];//energy in 1st 3SL's(~5X0)
   efrnta=(pmlprof[0]+pmlprof[1]+pmlprof[2])/3.;//aver.energy/sl in 1st 3SL's(~5X0)
@@ -398,15 +405,15 @@ void AMSEcalRawEvent::mc_build(int &stat){
   if(efrnta>0.)p2frat=epeaka/efrnta;
   else p2frat=9.8;
   if(p2frat>9.8)p2frat=9.8;
-//
+// width calculation not fixed yet:
   trwid1=0.;
-  for(pm=0;pm<npmmx;pm++){ // get summed over depth transv.profile(pr=1)
+  for(pm=0;pm<npmmx;pm++){ // get summed over depth transv.profile(proj=1)
     etrsum1[pm]=0.;
     for(il=0;il<7;il+=2)etrsum1[pm]+=pmtmap[il][pm];
     if(etrsum1[pm]>wdthr)trwid1+=1.;
   }
   trwid2=0.;
-  for(pm=0;pm<npmmx;pm++){ // get summed over depth transv.profile(pr=2)
+  for(pm=0;pm<npmmx;pm++){ // get summed over depth transv.profile(proj=2)
     etrsum2[pm]=0.;
     for(il=1;il<8;il+=2)etrsum2[pm]+=pmtmap[il][pm];
     if(etrsum2[pm]>wdthr)trwid2+=1.;
@@ -422,12 +429,14 @@ void AMSEcalRawEvent::mc_build(int &stat){
   }
 //  ---> create ECAL H/W-trigger(0->non;1->MIP+nonEM;2->softEM;3->hardEM(req.for Phot);
 //                               prev+10->HighEn):
+// trflen(ener.trig.flag)=0/1/2/3->Etot<mip/>mip/>Ethrsoft/>Ethrhard
+// trflwd(width trig.flag)=0/1/2->unknown/nonEM/EM
 //
-  if(dyrespt>ECALVarp::ecalvpar.daqthr(1)){// mip thr.cut
+  if(dyrespt>ethrmip){// mip thr.cut(means "ec-activity")
     EcalJobStat::addsr(0);
     trigfl=1;// at least MIP (some non-zero activity in EC)
 //
-    if(efrnt>ECALVarp::ecalvpar.daqthr(2)){ //<--- Efront cut
+    if(efrnt>ethrfront){ //<--- Efront cut
       trigfl=2;// softEM 
       EcalJobStat::addsr(1);
       if(ECMCFFKEY.mcprtf>0 && an4respt<esep1){
@@ -456,13 +465,34 @@ TrExit1:
     }
     if(an4respt>ECALVarp::ecalvpar.daqthr(3))trigfl+=10;//high energy
   }
+//----> new sceme:
+  trigfl=0;
+  if(dyrespt>ethrmip)trflen=1;//at least MIP
+  if(dyrespt>ethrsoft)trflen=2;//at least EtotSoft
+  if(dyrespt>ethrhard)trflen=3;//at least EtotHard
+//
+  if(dyrespt>ethrmip){
+    if(dyrespt<esep2){//width-cut 1st energy range
+      if(trwid1<wdcut1 && trwid2<wdcut2)trflwd=2;//width EM
+      else trflwd=1;//nonEM
+    }
+    else if(dyrespt>esep2 && dyresp<esep3){//width-cut 2nd energy range
+      if(trwid1<1.3*wdcut1 && trwid2<1.3*wdcut2)trflwd=2;//width EM
+      else trflwd=1;//nonEM
+    }
+    else{
+      if(trwid1<1.5*wdcut1 && trwid2<1.5*wdcut2)trflwd=2;//width EM
+      else trflwd=1;//nonEM
+    }
+  }
+  trigfl=10*trflen+trflwd;//MN, M->EnergyFl,N->WidthFl
 //
 //-------> create ECAL fast trigger(FT):
 //
   if(trigfl>0){
     trigtm=timet/edept;// FT abs.time(ns) (stored in AMSEcalRawEvent object)
     trigtm+=TOF2Varp::tofvpar.ftdelf();// add the same fixed delay as for TOF-FT
-    trsum=geant(an4respt/1000.);//tempor 4xAnodes (later dynode signal)
+    trsum=geant(dyrespt/1000.);//dynode signal (gev tempor)
   }
 //---
   if(ECMCFFKEY.mcprtf>0){

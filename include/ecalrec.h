@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.33 2002/12/10 11:56:20 choutko Exp $
+//  $Id: ecalrec.h,v 1.34 2003/04/09 14:05:16 choumilo Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -16,7 +16,7 @@
 //---------------------------------------
 class AMSEcalRawEvent: public AMSlink{
 private:
-  static uinteger trigfl; // =1/2/3... -> "mip/low/high, =0->no trig.
+  static uinteger trigfl; // =MN, where M=0/1/2/3->EnerFlag, N=0/1/2->WidthFlag
   static number trigtm; // ECAL FT abs. time
   static geant trsum;// Trigger sum(dynodes,tempor in gev)
   static integer dynadc[ecalconst::ECSLMX][ecalconst::ECPMSMX];//dynode adc's (ped-subtracted, daq-scale)

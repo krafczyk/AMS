@@ -1,4 +1,4 @@
-//  $Id: trigger102.C,v 1.17 2003/03/18 09:04:07 choumilo Exp $
+//  $Id: trigger102.C,v 1.18 2003/04/09 14:05:07 choumilo Exp $
 // Simple version 9.06.1997 by E.Choumilov
 // D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
@@ -8,12 +8,14 @@
 #include <mccluster.h>
 #include <tofdbc02.h>
 #include <antidbc02.h>
+#include <ecaldbc.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
 #include <antirec02.h>
 #include <ecalrec.h>
 #include <ntuple.h>
 using namespace std;
+using namespace ecalconst;
 //
 Trigger2LVL1::Scalers Trigger2LVL1::_scaler;
 void Trigger2LVL1::build(){
@@ -28,6 +30,8 @@ void Trigger2LVL1::build(){
   integer antipatt=0;
   uinteger ectrigfl=0;
   geant ectrsum=0;
+  geant gmaglat,gmagphi;
+//
   if(!AMSJob::gethead()->isReconstruction()){// <---- MC
     tofflag=TOF2RawEvent::gettrfl();
     TOF2RawEvent::getpatt(tofpatt);
@@ -46,6 +50,8 @@ void Trigger2LVL1::build(){
 // ECAL :
     ectrigfl=AMSEcalRawEvent::gettrfl();
     ectrsum=AMSEcalRawEvent::gettrsum();
+// Event: latitude
+    AMSEvent::gethead()->getmag(gmaglat,gmagphi);
   }
 /*
 //----
@@ -99,17 +105,25 @@ void Trigger2LVL1::build(){
   bool unbtr1(0),unbtr2(0),unbtr3(0),zge1ptr(0),zge2ptr(0),elpotr(0),photr(0),unitr(0);
 //
   if(tofflag>0 && ntof >=TGL1FFKEY.ntof)tofok=1;
-  if(nanti <= TGL1FFKEY.nanti)antiok=1;
+  if(fabs(gmaglat)>TGL1FFKEY.TheMagCut && nanti==0)antiok=1;
+  if(fabs(gmaglat)<TGL1FFKEY.TheMagCut && nanti <= TGL1FFKEY.nanti)antiok=1;
   if(ectrigfl>0)ecok=1;//"at least MIP" activity in ECAL
 //
   unbtr1=tofok;                              //unbiased#1 trigger (TOF only)
   unbtr2=ecok;                               //unbiased#2 trigger (EC(ectrigfl>0) only)
   unbtr3=tofok && ecok;                      //unbiased#3 trigger (TOF+EC(ectrigfl>0))
   zge1ptr=tofok && antiok;                   // Z>=1 particle trigger
-  zge2ptr=tofok && (tofflag>2);              // Z>=2 particle trigger
-  elpotr=tofok && (ectrigfl%10>=2);          //e+- trigger(softEM_in_EC +TOF)
-  photr=(ectrigfl==13);                      //photon trigger (High_(EM+En)_in_EC)
+  zge2ptr=tofok && (tofflag%10>2);              // Z>=2 particle trigger
+  elpotr=tofok && (ectrigfl/10>=2);          //e+- trigger(SoftEn +TOF)
+  photr=(ectrigfl/10>=3 && ectrigfl%10==2);   //photon trigger (HardEn + GoodWidth(em))
   unitr=zge1ptr || zge2ptr || elpotr || photr;//univers.trigger
+//
+  HF1(ECHIST+25,0.,1.);
+  if(zge1ptr)HF1(ECHIST+25,1.,1.);
+  if(zge2ptr)HF1(ECHIST+25,2.,1.);
+  if(elpotr)HF1(ECHIST+25,3.,1.);
+  if(photr)HF1(ECHIST+25,4.,1.);
+  if(unitr)HF1(ECHIST+25,5.,1.);
 //
   if(TGL1FFKEY.trtype==0)comtrok=unitr;
   else if(TGL1FFKEY.trtype==1)comtrok=unbtr1; 

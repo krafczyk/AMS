@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.45 2003/01/15 19:37:24 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.46 2003/04/09 14:05:06 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -529,7 +529,7 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+23,"ECRE: EcalClust value(tot,Mev)",100,0.,50000,0.);
       HBOOK1(ECHISTR+24,"ECRE: SubCelLayer En-profile(ECHits)",maxpl,1.,geant(maxpl+1),0.);
       HBOOK1(ECHISTR+25,"ECRE: SuperLayer En-profile(ECHits)",maxsl,1.,geant(maxsl+1),0.);
-      HBOOK1(ECHISTR+30,"ECRE: Trigger flag(validate)",30,0.,30.,0.);
+      HBOOK1(ECHISTR+30,"ECRE: Trigger flag(validate)",40,0.,40.,0.);
       HBOOK1(ECHISTR+31,"ECLVL3: Etot(mev)",100,0.,100000.,0.);
       HBOOK1(ECHISTR+32,"ECLVL3: Efront",80,0.,1600.,0.);
       HBOOK1(ECHISTR+33,"ECLVL3: Epeak/Ebase",80,0.,40.,0.);
@@ -748,13 +748,14 @@ void EcalJobStat::bookhistmc(){
       HBOOK1(ECHIST+16,"ECMC: Pm-signals(sl2,8,2;L-cuts)",100,0.,300.,0.);
       HBOOK1(ECHIST+17,"ECMC: Transv.Width(proj2,L-cuts,LE)",80,0.,80.,0.);
       HBOOK1(ECHIST+18,"ECMC: Etot(trig.sum,L-cuts,mev)",100,0.,20000.,0.);
-      HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag",30,0.,30.,0.);
+      HBOOK1(ECHIST+19,"ECMC: ECTriggerFlag",40,0.,40.,0.);
       HBOOK1(ECHIST+20,"ECMC: Tot.Anode charge(4subc.sum, pC)",100,0.,20.,0.);
       HBOOK1(ECHIST+21,"ECMC: Max TotAnodeCharge(4subc.sum, pC)",100,0.,1000.,0.);
       HBOOK1(ECHIST+22,"ECMC: Max ADC-H(No ovfl.limit)",100,0.,4100.,0.);
       HBOOK1(ECHIST+23,"ECMC: Max ADC-L(No ovfl.limit)",100,0.,4100.,0.);
       HBOOK1(ECHIST+24,"ECMC: Max ADC-D(No ovfl.limit)",100,0.,4100.,0.);
     }
+    HBOOK1(ECHIST+25,"LVL1: TrigType(entr,z1,z2,elec,phot,uni",10,0.,10.,0.);
 }
 //----------------------------
 void EcalJobStat::outp(){
@@ -1017,6 +1018,7 @@ void EcalJobStat::outpmc(){
       HPRINT(ECHIST+18);
       HPRINT(ECHIST+19);
     }
+    HPRINT(ECHIST+25);
 }
 //==========================================================================
 //  ECcalib class functions :

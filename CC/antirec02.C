@@ -1,4 +1,4 @@
-//  $Id: antirec02.C,v 1.8 2003/03/18 13:20:35 choumilo Exp $
+//  $Id: antirec02.C,v 1.9 2003/04/09 14:05:06 choumilo Exp $
 //
 // May 27, 1997 "zero" version by V.Choutko
 // June 9, 1997 E.Choumilov: 'siantidigi' replaced by
@@ -24,6 +24,7 @@
 #include <antirec02.h>
 #include <ecalrec.h>
 #include <ntuple.h>
+#include <mceventg.h>
 using namespace std;
 //
 //
@@ -129,7 +130,7 @@ void Anti2RawEvent::mc_build(int &stat){
   int16u phbit,maxv,id,chsta,nadca,adca[ANTI2C::ANAHMX];
   int16u nhtdch,htdc[2*ANTI2C::ANTHMX],itt;
   number edep,ede,edept(0),time,z,tlev1,ftrig,t1,t2,dt;
-  number fadcb[2][ANTI2C::ANFADC+1];
+  geant fadcb[2][ANTI2C::ANFADC+1];
   geant hdthr,tdthr,gain[2],fladcb,htdcb,htdpr,hdmn;
   geant ped,sig,am,amp,tm,tmp,tmd1u,tmd1d,td1b1u,td1b1d,tmark;
   int upd1,upd11,stackof;
@@ -138,9 +139,17 @@ void Anti2RawEvent::mc_build(int &stat){
   number htup[ANTI2C::ANTHMX],htdw[ANTI2C::ANTHMX];
   AMSAntiMCCluster * ptr;
   AMSAntiMCCluster * ptrN;
-  static integer nshap=10;//length of (light+PMT)-pulse(in bins=ANTI2DBc::fadcbw())
-  static number pshape[10]={0.02,0.1,0.6,1.,0.7,0.47,0.27,0.13,0.07,0.01};//real pulse shape
-//(result of time-dispersion of original light flash due to pmt and light collection) 
+  geant * parr;
+//
+  static integer first=0;
+  static integer nshap;//real length of (light+PMT)-pulse(in bins=ANTI2DBc::fadcbw())
+  static geant pshape[ANTI2C::ANFADC];//store PM single ph.el. pulse shape
+//(+ result of time-dispersion of original light flash due to light collection) 
+  if(first++==0){
+    AMSmceventg::SaveSeeds();
+    AMSmceventg::SetSeed(0);
+    ANTI2DBc::inipulsh(nshap,pshape); // prep.PM-pulse shape arr.(in ANTI2DBc::fadcbw() bins)
+  }
 //
   VZERO(esignal,2*ANTI2C::MAXANTI*sizeof(esignal[0][0])/sizeof(geant));
   stat=1;//bad
@@ -155,13 +164,13 @@ void Anti2RawEvent::mc_build(int &stat){
 //
     if(trflag>0){// use FT from TOF
       ftrig=TOF2RawEvent::gettrtime();// FTrigger abs.time (ns)(incl. fixed delay)
-      tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+      tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
     }
     else{// have to use FT from ECAL
       ectrfl=AMSEcalRawEvent::gettrfl(); 
       if(ectrfl<=0)return;//no EC trigger also -> no chance to digitize ANTI
       ftrig=AMSEcalRawEvent::gettrtm();
-      tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+      tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
     }
 //
   }//===>ednof "NotExtTrig" check
@@ -169,7 +178,7 @@ void Anti2RawEvent::mc_build(int &stat){
   else{//<=== ExtTrigger
     geant ttrig1=0.;//tempor (true ExtTrigSignal-time)
     ftrig=ttrig1+TOF2Varp::tofvpar.ftdelf();// FTrigger abs time (fixed delay added)
-    tlev1=ftrig+TOF2DBc::accdel();// Lev-1 accept-signal abs.time
+    tlev1=ftrig+TOF2DBc::accdel();// "common_stop"-signal abs.time
   }
 //-----------
   geant padl=0.5*ANTI2DBc::scleng();
@@ -186,7 +195,7 @@ void Anti2RawEvent::mc_build(int &stat){
   }
   nupt=0;
   ndownt=0;
-  ibmn[0]=ANTI2C::ANFADC;//up limit
+  ibmn[0]=ANTI2C::ANFADC;
   ibmn[1]=ANTI2C::ANFADC;
   ibmx[0]=0;
   ibmx[1]=0;
@@ -209,32 +218,34 @@ void Anti2RawEvent::mc_build(int &stat){
        *ANTI2Pcal::antisccal[sector-1].getmev2pe(1);// aver. up-side(+z) signal(pe)
 //                                                  (relat.gains are applied later)
     POISSN(eup,nup,ierr);//real number of up-side p.e's
-    nupt+=nup; 
-    tup=(time+(padl-z)/ATMCFFKEY.LSpeed)
-       +ANTI2Pcal::antisccal[sector-1].gettzer();//delay due to clf-extender
-    j=integer(floor(tup/ANTI2DBc::fadcbw()));//time-bin number
-    if(j<ibmn[1])ibmn[1]=j;//min.bin
-    for(i=0;i<nshap;i++){//"dispersion"
-      ii=i+j;
-      if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//ovfl-bin
-      fadcb[1][ii]+=nup*pshape[i];
+    nupt+=nup;
+    if(nup>0){ 
+      tup=(time+(padl-z)/ATMCFFKEY.LSpeed);
+      j=integer(floor(tup/ANTI2DBc::fadcbw()));//time-bin number
+      if(j<ibmn[1])ibmn[1]=j;//min.bin
+      for(i=0;i<nshap;i++){//"dispersion"
+        ii=i+j;
+        if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;//ovfl-bin
+        fadcb[1][ii]+=nup*pshape[i];
+      }
+      if(ii>ibmx[1])ibmx[1]=ii;//max.bin
     }
-    if(ii>ibmx[1])ibmx[1]=ii;//max.bin
 //
     edown=0.5*edep*exp(-z/ATMCFFKEY.LZero)
          *ANTI2Pcal::antisccal[sector-1].getmev2pe(0);//aver. down-side(-z) signal(pe)
     POISSN(edown,ndown,ierr);//real number of down-side p.e's
-    ndownt+=ndown; 
-    tdown=(time+(padl+z)/ATMCFFKEY.LSpeed)
-         +ANTI2Pcal::antisccal[sector-1].gettzer();//delay due to clf-extender
-    j=integer(floor(tdown/ANTI2DBc::fadcbw()));
-    if(j<ibmn[0])ibmn[0]=j;//min.bin
-    for(i=0;i<nshap;i++){//"dispersion"
-      ii=i+j;
-      if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;
-      fadcb[0][ii]+=ndown*pshape[i];
+    ndownt+=ndown;
+    if(ndown>0){ 
+      tdown=(time+(padl+z)/ATMCFFKEY.LSpeed);
+      j=integer(floor(tdown/ANTI2DBc::fadcbw()));
+      if(j<ibmn[0])ibmn[0]=j;//min.bin
+      for(i=0;i<nshap;i++){//"dispersion"
+        ii=i+j;
+        if(ii>ANTI2C::ANFADC)ii=ANTI2C::ANFADC;
+        fadcb[0][ii]+=ndown*pshape[i];
+      }
+      if(ii>ibmx[0])ibmx[0]=ii;//max.bin
     }
-    if(ii>ibmx[0])ibmx[0]=ii;//max.bin
 //--------------
     ptrN=ptr->next();     
     sectorN=0;
@@ -254,6 +265,8 @@ void Anti2RawEvent::mc_build(int &stat){
     for(j=0;j<2;j++){//<---------------- side loop(down->up)
       ncoinc=0;
       id=sector*10+j+1;//BBS (BB=paddle, S=side(1->down,2->up))
+      parr=&fadcb[j][0];
+      if(ATMCFFKEY.mcprtf==3)ANTI2DBc::displ_a(id,1,parr);//print pulse
 //
 //--->loop over flash-adc buffer,upply threshold to signal to get times
 //
@@ -379,8 +392,8 @@ void Anti2RawEvent::mc_build(int &stat){
       nhtdch=0;
       for(i=0;i<nhtdc;i++){//        <--- htdc-hits loop ---
         ii=i;// htup/dw have LIFO readout order(1st elem = last stored(first read))
-        t1=htup[ii];
-        t2=htdw[ii];
+        t1=htup[ii]+ANTI2Pcal::antisccal[sector-1].gettzer();//add cl-fiber delay for given sector 
+        t2=htdw[ii]+ANTI2Pcal::antisccal[sector-1].gettzer();
         dt=tlev1-t2;// follow LIFO mode of readout : down-edge - first hit
         it=integer(floor(dt/ANTI2DBc::htdcbw())); // conv. to hist-TDC binning
         if(it>maxv){//out of range
@@ -571,7 +584,7 @@ void AMSAntiCluster::build2(){
 //
       ntdct=ptr->gettdct(tdct);
       if(ntdct>0)ANTI2JobStat::addch(chnum,3);
-      if(ntdct==2)ANTI2JobStat::addch(chnum,4);
+      if(ntdct==2)ANTI2JobStat::addch(chnum,4);//1hit=2edges
       isdn[nsds]=isid+1;
 //DAQ-ch-->edep(mev):
       ped=ANTIPeds::anscped[sector-1].apeda(isid);//adc-chan

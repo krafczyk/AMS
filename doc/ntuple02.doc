@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.59 2003/04/03 10:16:14 kscholbe Exp $
+#  $Id: ntuple02.doc,v 1.60 2003/04/09 14:05:16 choumilo Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -490,12 +490,12 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * I*4  *          * LVL1     * LVL1TOFPatt1(4,nlvl1) // Tof pattern z>1
                                                       // -------------
  * I*4  *          * LVL1     * LVL1AntiPatt(nlvl1)   // antipattern
-                                                      // 16-23 bits  
-                                                      // as in daqevt.doc 
- * I*4  *          * LVL1     * LVL1ECALflag(nlvl1)   // ecalflag (1->MIP,
- *                                                    //   2-> soft EM,
- *                                                    //   3-> EM
-						      // +10->HiEnergy object
+                                                      // 16-23 bits -> OR of paddle ends  
+                                                      //  
+ * I*4  *          * LVL1     * LVL1ECALflag(nlvl1)   // =MN, where M=0/1/2/3->Etot<Mip/
+ *                                                    // >Mip/>LowThr/>HighThr;
+ *                                                    //  N=2/1/0->ShowerWidthTest=OK/
+						      // Bad/Unknown
 						      
  * R*4  *          * LVL1     * LVL1ECtrsum(nlvl1)    // EC-energy trig.sum(Gev)                                // 2->EM-obj, 
 

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.182 2003/03/18 09:04:18 choumilo Exp $
+//  $Id: commons.h,v 1.183 2003/04/09 14:05:16 choumilo Exp $
 //  Author V. Choutko 24-may-1996
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
@@ -490,6 +490,7 @@ integer nanti;
 integer RebuildLVL1;
 geant MaxScalersRate;
 geant MinLifeTime;
+geant TheMagCut;
 };
 #define TGL1FFKEY COMMON_BLOCK(TGL1FFKEY,tgl1ffkey)
 COMMON_BLOCK_DEF(TGL1FFKEY_DEF,TGL1FFKEY);

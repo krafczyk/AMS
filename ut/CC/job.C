@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.444 2003/04/07 08:48:34 choutko Exp $
+// $Id: job.C,v 1.445 2003/04/09 14:05:07 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -280,9 +280,11 @@ void AMSJob::_sitrig2data(){
 // 
   TGL1FFKEY.MaxScalersRate=20000;
   TGL1FFKEY.MinLifeTime=0.015;
+// orbit:
+  TGL1FFKEY.TheMagCut=0.7;//geom.latitude cut when anti-cut is used
+//
   FFKEY("TGL1",(float*)&TGL1FFKEY,sizeof(TGL1FFKEY_DEF)/sizeof(integer),"MIXED");
-
-
+//----
   LVL3SIMFFKEY.NoiseProb[1]=2.e-10;
   LVL3SIMFFKEY.NoiseProb[0]=LVL3SIMFFKEY.NoiseProb[1]*1.65;
   FFKEY("L3SIM",(float*)&LVL3SIMFFKEY,sizeof(LVL3SIMFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -551,7 +553,7 @@ void AMSJob::_sitof2data(){
   TFMCFFKEY.TimeSigma2=0.45; //(2)
   TFMCFFKEY.TimeProbability2=0.035;//(3)
   TFMCFFKEY.padl=11.5;        //(4) not used now (spare)
-  TFMCFFKEY.Thr=0.1;          //(5) Sc.bar Elos-thresh.(Mev) to participate in Simul.   
+  TFMCFFKEY.Thr=0.1;          //(5) Sc.bar Edep-thresh.(Mev) to participate in Simul.   
 //
   TFMCFFKEY.mcprtf[0]=0;     //(6) TOF MC print flag for init arrays
   TFMCFFKEY.mcprtf[1]=0;     //(7) TOF MC print flag for MC pulses
@@ -624,17 +626,17 @@ void AMSJob::_reecaldata(){
   ECREFFKEY.relogic[3]=0;    // (7) spare
   ECREFFKEY.relogic[4]=0;    // (8) spare
 //
-// Run-time DAQ-thresholds(time dependent):
+// Run-time DAQ/trig-thresholds(time dependent):
   ECREFFKEY.thresh[0]=3.;     // (9)  Anode(High-chan) readout threshold(in sigmas)
-  ECREFFKEY.thresh[1]=120.;   // (10) Anode(high,tot) "mip"-trig.thresh(mev tempor)
+  ECREFFKEY.thresh[1]=120.;   // (10) Etot "mip"-trig.thresh(mev tempor)
   ECREFFKEY.thresh[2]=500.;   // (11) ... 1st 3SL "em"-trig.thresh(mev tempor)
-  ECREFFKEY.thresh[3]=3000.;  // (12) Anode(high,tot) min.Et-cut to be "HighEnergy"(mev tempor)
+  ECREFFKEY.thresh[3]=3000.;  // (12) Etot thresh-1(soft, mev tempor)
   ECREFFKEY.thresh[4]=3.;     // (13) Low-chan. readout thershold(in sigmas)
-  ECREFFKEY.thresh[5]=10000.; // (14) energy upp.limit for action of cut below (mev tempor)  
+  ECREFFKEY.thresh[5]=8000.;  // (14) Etot thresh-2(hard, mev tempor)  
   ECREFFKEY.thresh[6]=3.5;    // (15) min Epeak/Ebase (add. to #11 for "electromagneticity")
   ECREFFKEY.thresh[7]=1.;     // (16) min Epeak/Efron .....................................
-  ECREFFKEY.thresh[8]=25.;    // (17) Anode(high) chan.threshold for width calc.(mev tempor) 
-  ECREFFKEY.thresh[9]=12.;    // (18) min. transv.width (add. to #11 for "electromagneticity")
+  ECREFFKEY.thresh[8]=25.;    // (17) PM-dynode threshold for width calc.(mev tempor) 
+  ECREFFKEY.thresh[9]=12.;    // (18) trig. width cut(columns, bending plane)
 // Run-time RECO-thresholds(time dependent):
   ECREFFKEY.cuts[0]=5.;   // (19) mev/cell thresh. to create cluster(~2adc) 
   ECREFFKEY.cuts[1]=0.;   // (20)
@@ -765,9 +767,9 @@ void AMSJob::_sianti2data(){
   ATGEFFKEY.stthic=0.12;   // thickness of supp. tube
   
 //---
-  ATMCFFKEY.mcprtf=0;     // (1)print_hist flag (0/1->no/yes)
-  ATMCFFKEY.LZero=120;    // (2)attenuation length for one-side signal (cm)
-  ATMCFFKEY.LSpeed=17.;   // (3)Eff. light speed in anti-paddle (cm/ns)
+  ATMCFFKEY.mcprtf=0;//(1)print-flag(0/1/2/3->print:no/histogr/PulseSh_arr/print_pulse)
+  ATMCFFKEY.LZero=120; // (2)attenuation length for one-side signal (cm)
+  ATMCFFKEY.LSpeed=17.;// (3)Eff. light speed in anti-paddle (cm/ns)
   ATMCFFKEY.ReadConstFiles=1;//(4)P(Peds), P=0/1-> read from DB/RawFiles
 //---
   FFKEY("ATGE",(float*)&ATGEFFKEY,sizeof(ATGEFFKEY_DEF)/sizeof(integer),
@@ -1009,7 +1011,7 @@ void AMSJob::_retof2data(){
 //
   TFREFFKEY.daqthr[0]=30.;//(13)Anode low discr.thresh(30mV) for fast/slow_TDC 
   TFREFFKEY.daqthr[1]=100.;//(14)Anode high discr.thresh(100mV) for FT-trigger (z>=1)  
-  TFREFFKEY.daqthr[2]=150.;//(15)Anode superhigh discr.thresh(mV) for  "z>2"-trig  
+  TFREFFKEY.daqthr[2]=250.;//(15)Anode superhigh discr.thresh(mV) for  "z>=2"-trig  
   TFREFFKEY.daqthr[3]=1.;//(16)H(L)-ADC-readout threshold in DAQ (in ADC-channels)    
   TFREFFKEY.daqthr[4]=1.;//(17)Thresh(pC) for anode-integrator
 //
@@ -1738,7 +1740,8 @@ void AMSJob::_sianti2initjob(){
     HBOOK1(2604,"ANTI-MC: DownSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 
     HBOOK1(2605,"ANTI-MC: UpSideEdep (ADCch-ped,FillRawEvent)",80,0.,80.,0.); 
     HBOOK1(2606,"ANTI-MC: NtdcUp/Down-pairs per side ",16,0.,16.,0.); 
-    HBOOK1(2607,"ANTI-MC: NumbOfMC-hits per event ",80,0.,320.,0.); 
+    HBOOK1(2607,"ANTI-MC: NumbOfMC-hits per event ",80,0.,320.,0.);
+//  HBOOK1(2608,... reserved for PM-pulse  
   }
 }
 //-----------------------------------------------------------------------
@@ -2017,7 +2020,6 @@ if(ECREFFKEY.SimpleRearLeak[0]<0){
   if(ECREFFKEY.ReadConstFiles>0){//C(MC+RD) Calibr.constants/Cuts/Thresh will be taken from ext.files 
 //-----------
 // ===> create Cuts/Thresh parameters (ecalvpar structure) fr.data-cards :
-//
     ECALVarp::ecalvpar.init(ECREFFKEY.thresh, ECREFFKEY.cuts);
 //
 // ===> create ecpmcal-calib-objects:
@@ -2452,10 +2454,6 @@ if(ATMCFFKEY.ReadConstFiles==0 &&
   end.tm_year=ATREFFKEY.year[1];
 //---------
 //
-// TID.add (new AMSTimeID(AMSID("Antivpar2",isRealData()),
-//    begin,end,sizeof(ANTI2Varp::antivpar),
-//    (void*)&ANTI2Varp::antivpar,server));
-//
 }
 //---------------------------------------
 
@@ -2566,6 +2564,7 @@ if(ATMCFFKEY.ReadConstFiles==0 &&
   end.tm_year=ECREFFKEY.year[1];
 //--------
 //ecre->C; ecmc->CP
+//
 if(ECREFFKEY.ReadConstFiles==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib.fromDB
 
   TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
@@ -2577,7 +2576,7 @@ if(ECREFFKEY.ReadConstFiles==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib.fromDB
                                       (void*)&ECALVarp::ecalvpar,server));
   end.tm_year=ECREFFKEY.year[1];
 //--------
-if(!isRealData()){//Create "MC.Seeds" TDV only for MC-run.    
+if(!isRealData()){//"MC.Seeds" TDV only for MC-run.    
   cout<<"AMSJob::_timeinitjob:create ECcalibMS-TDV"<<endl;
   if((ECMCFFKEY.ReadConstFiles%100)/10==0)end.tm_year=ECREFFKEY.year[0]-1;//Calib"MC.Seeds" fromDB
 	     

@@ -1,4 +1,4 @@
-//  $Id: antidbc02.h,v 1.6 2003/03/18 15:40:22 choumilo Exp $
+//  $Id: antidbc02.h,v 1.7 2003/04/09 14:05:16 choumilo Exp $
 // Author E.Choumilov 2.07.97
 //
 #ifndef __ANTI2DBC__
@@ -64,6 +64,8 @@ public:
   static integer daqscf();
   static geant ftcoinw();
   static geant hdpdmn();
+  static void inipulsh(int & nbn, geant arr[]);
+  static void displ_a(const int id, const int f, const geant arr[]);
 #ifdef __DB__
 friend class AntiDBcD;
 #endif

@@ -1,4 +1,4 @@
-//  $Id: tofdbc02.C,v 1.19 2003/02/25 09:41:53 choumilo Exp $
+//  $Id: tofdbc02.C,v 1.20 2003/04/09 14:05:07 choumilo Exp $
 // Author E.Choumilov 14.06.96.
 #include <typedefs.h>
 #include <math.h>
@@ -2418,7 +2418,7 @@ void TOF2JobStat::bookhistmc(){
       HBOOK1(1074,"SIMU: pm1 Aadc(no peds)(id=104,s1)",100,0.,500.,0.);
       HBOOK1(1075,"SIMU: pm1 Dadc(h)(no peds)(id=104,s1)",100,0.,100.,0.);
       HBOOK1(1064,"SIMU: pm1 Dadc(l)(no peds)(id=104,s1)",100,0.,100.,0.);
-      HBOOK1(1076,"ECTrigFlag when TOFTrflag OK",20,0.,20.,0.);
+      HBOOK1(1076,"ECTrigFlag when TOFTrflag OK",40,0.,40.,0.);
       HBOOK1(1077,"TOFFTTime-ECFTTime",100,-50.,50.,0.);
       HBOOK1(1078,"Out-of-width hit",50,0.,5.,0.);
       HBOOK1(1079,"Out-of-thickness hit",50,0.,5.,0.);

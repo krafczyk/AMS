@@ -1,4 +1,4 @@
-//  $Id: antidbc02.C,v 1.7 2003/03/18 13:20:35 choumilo Exp $
+//  $Id: antidbc02.C,v 1.8 2003/04/09 14:05:05 choumilo Exp $
 // Author E.Choumilov 2.06.97
 //    18.03.03 changed to be compatible with AMS02 design.
 //
@@ -29,9 +29,9 @@ ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. ANTI-paddles pedestals
   geant ANTI2DBc::_stleng=0.;
   geant ANTI2DBc::_stthic=0.;
 //
-  geant ANTI2DBc::_fadcbw=1.;//Flash-ADC bin width(ns)
+  geant ANTI2DBc::_fadcbw=2.5;//Flash-ADC bin width(ns)
   geant ANTI2DBc::_htdcdr=10.;//Hist-discrim. double pulse resolution(ns)
-  geant ANTI2DBc::_htdcbw=1.;  // bin width in Hist-TDC (ns)
+  geant ANTI2DBc::_htdcbw=1.2;  // bin width in Hist-TDC (ns)
   integer ANTI2DBc::_daqscf=2; //daq scaling factor for charge
   geant ANTI2DBc::_ftcoinw=50.;//not used
   geant ANTI2DBc::_hdpdmn=2.;// hist-discrim. min pulse duration
@@ -53,7 +53,7 @@ ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. ANTI-paddles pedestals
   integer ANTI2DBc::daqscf(){return _daqscf;}
   geant ANTI2DBc::ftcoinw(){return _ftcoinw;}
   geant ANTI2DBc::hdpdmn(){return _hdpdmn;}
-//
+//----
   void ANTI2DBc::setgeom(){ //get parameters from data cards (for now)
     _scradi=ATGEFFKEY.scradi;
     _scinth=ATGEFFKEY.scinth;
@@ -72,6 +72,119 @@ ANTIPeds ANTIPeds::anscped[ANTI2C::MAXANTI];//mem.reserv. ANTI-paddles pedestals
           cout <<" ANTIGeom-I-UNKNOWN setup !!!!"<<endl;
     }
   }
+//----
+// function below creates PMT pulse shape array arr[] with binning flash-adc :
+//  peak value = 1.(e.g. 1mV@50ohm, or 1pe if everything is in pe's)
+void ANTI2DBc::inipulsh(integer & nbn, geant arr[])
+{
+  integer tbins=20;
+  geant pmpsh[20]={0.,.08,.37,.74,.99, 1., .94,.84, .54, .34, .25,
+       .16,.14,.12,.08, .1, .12,.08, .04,  0.};// pulse heights at time points
+//
+  geant pmpsb[20]={0.,2.5, 5., 7.5,10.,12.5,15.,17.5,22.5,27.5,32.5,
+        40.,45.,50.,55.,60.,67.5,77.5,85.,100.};//time points
+//  (min. step should be >= fadcbw)
+  integer i,io,ib,lastiob(0);
+  geant bl,bh,bol,boh,ao1,ao2,tgo,al,ah,tota;
+  tota=0.;
+  io=0;
+  for(ib=0;ib<ANTI2C::ANFADC;ib++){
+    bl=ib*ANTI2DBc::fadcbw();
+    bh=bl+ANTI2DBc::fadcbw();
+    bol=pmpsb[io];
+    boh=pmpsb[io+1];
+    arr[ib]=0.;
+    if(bl>=bol && bh<=boh){
+      ao1=pmpsh[io];
+      ao2=pmpsh[io+1];
+      tgo=(ao2-ao1)/(boh-bol);
+      al=ao1+tgo*(bl-bol);
+      ah=ao1+tgo*(bh-bol);
+      arr[ib]=(al+ah)/2.;
+      tota+=arr[ib];
+    }
+    else if(bl<boh && bh>boh){
+      ao1=pmpsh[io];
+      ao2=pmpsh[io+1];
+      tgo=(ao2-ao1)/(boh-bol);
+      al=ao1+tgo*(bl-bol);
+      io+=1;//next io-bin
+      if((io+1)<tbins){
+        bol=pmpsb[io];
+        boh=pmpsb[io+1];
+        ao1=pmpsh[io];
+        ao2=pmpsh[io+1];
+        tgo=(ao2-ao1)/(boh-bol);
+        ah=ao1+tgo*(bh-bol);
+        arr[ib]=(al+ah)/2.;
+        tota+=arr[ib];
+      }
+      else{                 // last io-bin
+        lastiob=1;
+        ah=0.;
+        arr[ib]=(al+ah)/2.;
+        tota+=arr[ib];
+	nbn=ib+1;
+      }
+    }
+    else{//bl>=boh
+      io+=1;//next io-bin
+      if((io+1)<tbins)ib-=1;//to continue loop with the same ib
+      else{                // last io-bin
+        lastiob=1;
+	nbn=ib;
+      }
+    }
+    if(lastiob){//<-- last iobin test
+      if(ATMCFFKEY.mcprtf >= 2){
+        tota=tota*ANTI2DBc::fadcbw()/50.;
+	tota*=51;//set peak value as on Aahen-picture(51mV)just to compare integral
+        printf("ANTI-PM pulse shape:nbins=% 3d, Integral(pC) = %4.2e\n",nbn,tota);
+        for(i=1;i<=nbn;i++){
+          if(i%10 != 0)
+                       printf("% 4.2e",arr[i-1]);
+          else
+                       printf("% 4.2e\n",arr[i-1]);
+        }
+        if(nbn%10 !=0)printf("\n");
+      }
+      return;
+    }//--->endof last iobin test
+  }//--->endof ib loop
+//
+  cerr<<"ANTI2DBc-inipulsh-Fatal: PM-pulse length exeeds Flash-ADC range !?"<<'\n';
+  cerr<<"                 nbn="<<nbn<<endl;
+  exit(1);
+}
+//----
+// function to display PMT pulse (flash-ADC array arr[]) :
+//
+void ANTI2DBc::displ_a(const int id, const int mf, const geant arr[]){
+  integer i;
+  static integer ifrs(0);
+  geant tm,a(0.);
+  static geant tb,tbi;
+  if(ifrs++==0){
+    tb=geant(mf)*ANTI2DBc::fadcbw();
+    tbi=ANTI2DBc::fadcbw();
+    HBOOK1(2608,"PMT flash-ADC pulse (MC)",100,0.,100*tb,0.);
+  }
+  HRESET(2608," ");
+  cout<<"PMT:counter-id = "<<id<<" (PPS, PP-paddle, S-side)"<<'\n';
+  for(i=1;i<=ANTI2C::ANFADC;i++){
+    if(i%mf==0){
+      a+=arr[i-1];
+      tm=i*tbi-0.5*tb;
+      HF1(2608,tm,a/geant(mf));
+      a=0.;
+    }
+    else{
+      a+=arr[i-1];
+    }
+  }
+  HPRINT(2608);
+  return ;
+}
 //======================================================================
 // ANTI2Pcal class member functions:
 //
@@ -388,7 +501,7 @@ void ANTI2JobStat::print(){
     }
     printf("\n\n");
 //
-  printf("Have signal > threshold :\n\n");
+  printf("Have tot.signal > threshold :\n\n");
     for(ib=0;ib<ANTI2C::MAXANTI;ib++){
       rc=geant(brcount[ib][0]);
       if(rc>0.)rc=geant(brcount[ib][1])/rc;

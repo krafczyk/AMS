@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.66 2002/09/25 17:18:18 choutko Exp $
+//  $Id: event.h,v 1.67 2003/04/09 14:05:17 choumilo Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -178,7 +178,6 @@ AMSlink * _getheadC( AMSID id, integer sorted=0);
 AMSlink * _getlastC( AMSID id);
 integer _setheadC( AMSID id, AMSlink * p);
 void _findC(AMSID & id);
-void getmag(float & thetam, float & phim);
 AMSContainer * _getC(AMSID id);
 public:
 AMSEvent(AMSID id, integer run, integer runtype,time_t time,
@@ -193,6 +192,7 @@ AMSEvent(AMSID id, integer run, integer runtype, time_t time, uinteger usec):AMS
 ~AMSEvent(){_Head=0;}
 void _printEl(ostream & stream);
 void loc2gl();
+void getmag(float & thetam, float & phim);
 static void setfile(char file[]);
 static integer IsTest();
 static void SetShuttlePar();
