@@ -19,11 +19,10 @@ time_t Time;
          sscanf(argv[1],"%d",&Time);
          break;
         }
-ifstream fbin;
+ofstream fbin;
 fbin.open("clock");
 if(fbin){
-  fbin >> Time;
-   cout <<"q "<<Time<<endl;
+  fbin << Time;
   
 }
 else{
