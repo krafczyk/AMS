@@ -1,4 +1,4 @@
-//  $Id: mccluster.C,v 1.58 2003/02/04 15:18:16 delgadom Exp $
+//  $Id: mccluster.C,v 1.59 2003/02/10 16:36:29 delgadom Exp $
 // Author V. Choutko 24-may-1996
  
 #include <trid.h>
@@ -614,14 +614,19 @@ geant AMSRichMCHit::noise(int channel,integer mode){ // ADC counts above the ped
 
   AMSRICHIdSoft current(channel);
   
-  r=sqrt(current.getthreshold(mode)*current.getthreshold(mode)-2.*log(1.-RNDM(dummy)));
-
+  int loops=0;
   do{
+    r=sqrt(current.getthreshold(mode)*current.getthreshold(mode)-2.*log(1.-RNDM(dummy)));
     geant par=RNDM(dummy)*6.28318595886;
     u1=r*sin(par);
-    if(integer(u1)<current.getthreshold(1))
+    if(integer(u1)<current.getthreshold(mode))
       u1=r*cos(par);
-  }while(integer(u1)<current.getthreshold(1));
+    loops++;
+    if(loops>100){
+      cout<<"AMSRichMCHit::noise--too many loops"<<endl; 
+      return current.getthreshold(mode)*current.getsped(mode)+current.getped(mode)+1.;
+    }
+  }while(integer(u1)<integer(current.getthreshold(mode)));
 
   
   //  do u1=current.getped(mode)+current.getsped(mode)*rnormx(); 
