@@ -204,7 +204,8 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
        }
        CooLadder[ladder][half][meas][0]/=10.;
        CooLadder[ladder][half][meas][1]/=10.;
-       CooLadder[ladder][half][meas][2]/=10.; 
+       CooLadder[ladder][half][meas][2]/=10.;
+       CooLadder[ladder][half][meas][2]-=0.015; 
      }
     for(j=0;j<4;j++){
      fbin>>junk>>junk;
@@ -239,7 +240,7 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
        cc[0]/=4; 
        cc[1]=CooMarkers[il][0][1]+ CooMarkers[il][1][1]+ CooMarkers[il][2][1]+CooMarkers[il][3][1];
        cc[1]/=4; 
-       cc[2]=1.032;
+       cc[2]=1.017;
      for(j=0;j<4;j++){
          for(int l=0;l<3;l++)CooMarkers[il][j][l]-=cc[l];
      }
@@ -472,6 +473,7 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
       fbin>>CooLadder[ladder][half][mea][0]>>CooLadder[ladder][half][mea][1]>>
       CooLadder[ladder][half][mea][2];
       for(int l=0;l<3;l++)CooLadder[ladder][half][mea][l]/=10;
+      CooLadder[ladder][half][mea][2]-=0.017;
       fbin.ignore(INT_MAX,'\n');
      }
      for(j=0;j<4;j++){
@@ -487,7 +489,7 @@ if(!TKGEOMFFKEY.UpdateGeomFile)return;
        cc[0]/=4; 
        cc[1]=CooMarkers[il][0][1]+ CooMarkers[il][1][1]+ CooMarkers[il][2][1]+CooMarkers[il][3][1];
        cc[1]/=4; 
-       cc[2]=1.032;
+       cc[2]=1.017;
      for(j=0;j<4;j++){
          for(int l=0;l<3;l++)CooMarkers[il][j][l]-=cc[l];
      }

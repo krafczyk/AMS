@@ -18,6 +18,7 @@
 
    static integer total=0;
    char *TDV_dir;
+   char * TDV_name;
    int _select(dirent *entry);
    int _sort(dirent ** e1, dirent ** e2);
    void convert(int,int, char*);
@@ -34,6 +35,12 @@ int main (int argc, char *argv[]) {
           cerr<<"Please setenv  TDVDataDir "<<endl;
           exit(1);
          }
+         TDV_name=getenv("TDVName");
+         if(!TDV_name){
+          cerr<<"Please setenv  TDVName "<<endl;
+          exit(1);
+         }
+
          cout <<"checktdv-I-Scanning directory "<<TDV_dir<<endl;
          dirent ** namelist;                            
          int nptr=scandir(TDV_dir,&namelist,&_select,&_sort);    
@@ -121,7 +128,7 @@ int main (int argc, char *argv[]) {
          if(entry->d_name[i]=='.'){
           if(i<strlen(entry->d_name)-3){
            if(entry->d_name[i+1]=='1' && entry->d_name[i+2]=='.'){
-            if(strstr(entry->d_name,TDV_dir)){
+            if(strstr(entry->d_name,TDV_name)){
              for(int k=i+3;k<strlen(entry->d_name);k++){
                if(!isdigit((entry->d_name)[k]))return 0;
              }

@@ -454,10 +454,20 @@ void AMSEvent::_signinitevent(){
       //interpolation needed
       number xsec=_time-Array[hint].Time;
       number dt=Array[hint+1].Time-Array[hint].Time;
+      number sYaw,cYaw,sRoll,cRoll,sPitch,cPitch;
       if(dt<xsec){
-        _Yaw=Array[hint].StationYaw+xsec/dt*(Array[hint+1].StationYaw-Array[hint].StationYaw);
-        _Roll=Array[hint].StationRoll+xsec/dt*(Array[hint+1].StationRoll-Array[hint].StationRoll);
-        _Pitch=Array[hint].StationPitch+xsec/dt*(Array[hint+1].StationPitch-Array[hint].StationPitch);
+        sYaw=sin(Array[hint].StationYaw)+xsec/dt*(sin(Array[hint+1].StationYaw)-sin(Array[hint].StationYaw));
+        cYaw=cos(Array[hint].StationYaw)+xsec/dt*(cos(Array[hint+1].StationYaw)-cos(Array[hint].StationYaw));
+         _Yaw=atan2(sYaw,cYaw);
+
+        sPitch=sin(Array[hint].StationPitch)+xsec/dt*(sin(Array[hint+1].StationPitch)-sin(Array[hint].StationPitch));
+        cPitch=cos(Array[hint].StationPitch)+xsec/dt*(cos(Array[hint+1].StationPitch)-cos(Array[hint].StationPitch));
+         _Pitch=atan2(sPitch,cPitch);
+
+        sRoll=sin(Array[hint].StationRoll)+xsec/dt*(sin(Array[hint+1].StationRoll)-sin(Array[hint].StationRoll));
+        cRoll=cos(Array[hint].StationRoll)+xsec/dt*(cos(Array[hint+1].StationRoll)-cos(Array[hint].StationRoll));
+         _Roll=atan2(sRoll,cRoll);
+
         _StationSpeed=Array[hint].StationSpeed+xsec/dt*(Array[hint+1].StationSpeed-Array[hint].StationSpeed);
         _StationRad=Array[hint].StationR+((Array[hint].StationR>=0)?xsec/dt*(Array[hint+1].StationR-Array[hint].StationR):0);
         _SunRad=Array[hint].SunR+xsec/dt*(Array[hint+1].SunR-Array[hint].SunR);
