@@ -180,8 +180,8 @@ int main (int argc, char *argv[]) {
        }
        
        int ClockTune(time_t Time){
-         static time_t begin=Year1998+153*86400;
-         return 4+(Time-begin)/50000;
+         static time_t begin=896830844;
+         return 6.48+(Time-begin)*(1-0.999978234);
        }
 float d2f(double d){
   if(fabs(d)<1.e30)return float(d);
