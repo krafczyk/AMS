@@ -130,7 +130,7 @@ NEW_FILES: /* look for new files in the directory */
 	printf("no new files. waiting......%s\n",ctime(&cur_time));
 	ii=0;
       }
-      sleep(60);
+      sleep(300);
       goto NEW_FILES;
     }
     
