@@ -587,7 +587,7 @@ void AMSEvent::event(){
     uinteger status=AMSJob::gethead()->getstatustable()->getstatus(getid());
     // compare status 
     if(!(status & (1<<32))){    // Status exists
-      const int nsta=11;
+      const int nsta=12;
       uinteger Status[nsta];
       Status[0]=((status & ((1<<4)-1)))+1;
       Status[1]=((status>>4) & ((1<<1)-1))+1;
@@ -600,6 +600,8 @@ void AMSEvent::event(){
       Status[8]=((status>>19) & ((1<<2)-1))+1;
       Status[9]=((status>>21) & ((1<<2)-1))+1;
       Status[10]=((status>>23) & ((1<<2)-1))+1;
+      Status[11]=((status>>25) & ((1<<2)-1))+1;
+
         uinteger local=0;
       for(int i=0;i<nsta;i++){
         local=0;
@@ -1807,6 +1809,12 @@ void AMSEvent::_collectstatus(){
       else if(rig<20)srig=2;
       else srig=3;
       _status=_status | (srig<<23);
+      uinteger trquality;
+      if(ptr->checkstatus(AMSTrRecHit::FalseTOFX))trquality=3;
+      else if( ptr->checkstatus(AMSTrRecHit::FalseX))trquality=2;
+      else if(ptr->checkstatus(AMSTrCluster::WEAK) )trquality=1;
+      else trquality=0;   
+      _status=_status | (trquality<<25);
     }
   }
   {
