@@ -1,4 +1,4 @@
-//  $Id: ecid.h,v 1.9 2002/10/03 14:35:58 choutko Exp $
+//  $Id: ecid.h,v 1.10 2002/10/14 10:49:06 choutko Exp $
 #ifndef __AMSECID__
 #define __AMSECID__
 #include <typedefs.h>
@@ -63,6 +63,7 @@ geant getgain(){return ECcalib::ecpmcal[getslay()][getpmtno()].pmscgain(getchann
 AMSECIdSoft():_dead(1){};
 AMSECIdSoft(int16 crate, int16 haddr, int16 channelh);
 AMSECIdSoft(int sl, int pmt, int chan, int dummy);
+AMSECIdSoft(int lay, int cell);
 AMSECIdSoft(integer idsoft);
 static integer ncrates(){return 2;}
 static void inittable();

@@ -22,6 +22,24 @@ _channels2h();
 if(_crate<0)_dead=1;
 }
 
+
+AMSECIdSoft::AMSECIdSoft(integer layer, integer cell):_dead(0){
+ _sl=layer/2;
+ _pmtno=cell/2;
+ if(_sl<ECSLMX && _pmtno<ECPMSMX){
+ _channel=2*(layer%2)+cell%2;
+ _crate=_GetHard[_sl][_pmtno][0];
+ _haddr=_GetHard[_sl][_pmtno][1];
+ _channels2h();
+if(_crate<0)_dead=1;
+}
+else{
+  cerr<<"AMSECIdSoft::AMSECIdSoft-S-ParametersOutOfBound "<<layer<<" "<<cell<<endl;
+  _dead=1;
+}
+}
+
+
 AMSECIdSoft::AMSECIdSoft(int sl, int pmt, int cha, int dummy):_dead(0),_sl(sl),_pmtno(pmt),_channel(cha){
 _crate=_GetHard[_sl][_pmtno][0];
 _haddr=_GetHard[_sl][_pmtno][1];

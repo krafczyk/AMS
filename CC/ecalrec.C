@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.63 2002/10/11 16:47:01 choutko Exp $
+//  $Id: ecalrec.C,v 1.64 2002/10/14 10:49:00 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -575,10 +575,12 @@ void AMSEcalHit::build(int &stat){
                        AMSEcalHit(sta,id,padc,proj,plane,cell,edep,coot,cool,cooz));
 //               (conv. of padc(in daq_scale) to ADC is done inside of constructor)
       }
+      else{
+      }
       ptr=ptr->next();  
     } // ---> end of RawEvent-hits loop in superlayer
 //
-  } // ---> end of crate loop
+  }// ---> end of crate loop
 //
   if(ECREFFKEY.reprtf[0]>0){
     HF1(ECHISTR+10,geant(nraw),1.);
@@ -2279,7 +2281,6 @@ void AMSEcalRawEvent::setTDV(){
 }
 
 void AMSEcalRawEvent::buildraw(integer n, int16u *p){
-
   integer ic=checkdaqid(*p)-1;
   int leng=0;
   int count=0; 
@@ -2376,6 +2377,89 @@ void AMSEcalRawEvent::buildraw(integer n, int16u *p){
 
       }
 }
+
+
+void AMSEcalRawEvent::buildrawRaw(integer n, int16u *p){
+  integer ic=checkdaqid(*p)-1;
+  geant tmp[2][ECSLMX*2][ECPMSMX*2];
+  VZERO(tmp,sizeof(tmp)/sizeof(integer));
+  int leng=0;
+  int count=0; 
+  int dynode=0;
+  int dead=0;
+  static geant sum_dynode=0;
+  if(ic==0)sum_dynode=0;
+  for(int16u* ptr=p+1;ptr<p+n;ptr++){  
+   int16u pmt=count%36;
+            int16u anode=(*ptr>>15)& 1;
+            int16u channel=((*ptr)>>12)&3;
+            int16u gain=((*ptr)>>14)&1;
+            int16u value=( (*ptr))&4095; 
+            if(!anode){
+               channel=0;
+               gain=3;
+            }
+  
+           AMSECIdSoft id(ic,pmt,channel);//create id's
+       if(id.dead()){
+         dead++;
+       }
+
+       if(!id.dead()){
+        if(anode){
+            tmp[1-gain][id.getlayer()][id.getcell()]=value-id.getped(1-gain);
+         }
+         else{
+//  put here dynode related class
+
+           AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEventD",ic), new
+          AMSEcalRawEvent(id,1-anode,gain,value));
+          sum_dynode+=(value-id.getpedd())*id.getan2dyr()*id.getadc2mev();   
+          dynode++; 
+         }
+       }    
+   count++;               
+  }
+ //Harwired here, should be via datacards
+ geant HighThr=3.75;
+ geant LowThr=1;
+ geant LowAmp=10;
+   for(int i=0;i<ECSLMX*2;i++){
+      int last=-1;
+      for(int j=0;j<ECPMSMX*2;j++){
+         AMSECIdSoft id(i,j);
+          bool accept=tmp[0][i][j]>id.getsig(0)*HighThr;
+          accept=accept || (tmp[0][i][j]> LowAmp && tmp[0][i][j]> id.getsig(0)*LowThr);
+          accept=accept || (tmp[1][i][j]> LowAmp && tmp[1][i][j]> id.getsig(1)*HighThr*2);
+          if(accept){
+            for(int k=max(last+1,j-1);k<j+2;k++) {           
+              AMSECIdSoft idk(i,k);
+              if(idk.getcrate()==ic){             
+            int padc[2];
+            for(int l=0;l<2;l++){
+              padc[l]=floor((tmp[l][i][k]+1/ECALDBc::scalef())*ECALDBc::scalef());
+              if(padc[l]<0)padc[l]=0;
+            }
+              AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",ic), new
+             AMSEcalRawEvent(idk.makeshortid(),0,padc));
+           }
+          }
+            last=j+1;
+        }
+     }
+ }
+
+
+
+// build lvl1 trigger
+      if(ic==getmaxblocks()-1){
+       uinteger tofpatt[4]={0,0,0,0};
+       AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
+          new Trigger2LVL1(999,0,tofpatt,0,12,sum_dynode/1000));
+
+      }
+}
+
 
 void AMSEcalRawEvent::TestThreshold(){
  // hardwired here, should be via dcards

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.28 2002/10/11 16:47:17 choutko Exp $
+//  $Id: ecalrec.h,v 1.29 2002/10/14 10:49:06 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -28,7 +28,17 @@ public:
   AMSEcalRawEvent(integer idsoft, integer status,  
         int padc[2]):AMSlink(status,0),_gain(2),_idsoft(idsoft),_id(idsoft){
         for(int i=0;i<2;i++)_padc[i]=padc[i];
-}
+        _padc[2]=0;
+             //add dynode if any
+            for(AMSEcalRawEvent*   ptrd=(AMSEcalRawEvent*)AMSEvent::gethead()->
+                       getheadC("AMSEcalRawEventD",_id.getcrate(),1);ptrd;ptrd=ptrd->next()){
+             if(*ptrd == *this){
+              //dynode found
+             _padc[2]=floor((ptrd->getpadc(2)-_id.getpedd()+1/ECALDBc::scalef())*ECALDBc::scalef());
+             break;
+            }
+         }
+        }
 
 
   AMSEcalRawEvent(const AMSECIdSoft & id,int16u dynode,int16u gain,int16u adc);
@@ -71,6 +81,7 @@ public:
 //
  static integer checkdaqid(int16u id);
  static void buildraw(integer n, int16u *p);
+ static void buildrawRaw(integer n, int16u *p);
  static integer getmaxblocks(){return AMSECIdSoft::ncrates();}
  static int16u getdaqid(int i);
  static void setTDV();

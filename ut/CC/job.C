@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.421 2002/10/11 16:47:02 choutko Exp $
+// $Id: job.C,v 1.422 2002/10/14 10:49:00 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3109,7 +3109,7 @@ void AMSJob::_dbendjob(){
     DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSECIdCalib::buildPedDiff);
    }
    else{
-    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSEcalRawEvent::buildraw);
+    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSEcalRawEvent::buildrawRaw);
    }
 
   {  // mc
