@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.27 2002/07/17 10:48:50 delgadom Exp $
+//  $Id: richdbc.h,v 1.28 2002/08/19 11:19:07 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -95,8 +95,8 @@ const integer Status_primary_tof=-8;
 const integer Status_primary_radb=-9;
 
 // Dword for the hits status 
-const uinteger gain_mode_bit=30;
-const uinteger crossed_pmt_bit=31;
+const uinteger gain_mode_bit=29;
+const uinteger crossed_pmt_bit=30;
 
 const uinteger gain_mode=uinteger(1)<<gain_mode_bit;
 const uinteger crossed_pmt=uinteger(1)<<crossed_pmt_bit;

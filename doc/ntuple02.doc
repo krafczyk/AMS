@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.43 2002/07/17 10:49:43 delgadom Exp $
+#  $Id: ntuple02.doc,v 1.44 2002/08/19 11:19:16 mdelgado Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -678,9 +678,9 @@ NOTE: The information of the mother is only available if RICCONT=1 in
 .
 .
 .
-30- Unused
-31- Gain mode chosen for the hit: 0=x1(low)  1=x5(high)
-32- Hit belongs to a PMT apparently crossed by a charged particle
+29- Unused
+30- Gain mode chosen for the hit: 0=x1(low)  1=x5(high)
+31- Hit belongs to a PMT apparently crossed by a charged particle
           
 
 
