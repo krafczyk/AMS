@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.4 1999/11/10 13:35:56 choutko Exp $
+// $Id: g4physics.C,v 1.5 1999/11/10 19:41:32 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -33,7 +33,7 @@
 #include "G4MaterialTable.hh"
 #include "G4ios.hh"
 #include <iomanip.h>   
-
+#include "G4UserSpecialCuts.hh"
 #include "G4FastSimulationManagerProcess.hh"
 
 
@@ -74,6 +74,16 @@ void AMSG4Physics::ConstructParticle()
 void AMSG4Physics::ConstructProcess()
 {
   AddTransportation();
+  theParticleIterator->reset();
+  while( (*theParticleIterator)() ){
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager* pmanager = particle->GetProcessManager();
+    pmanager->AddDiscreteProcess(new G4UserSpecialCuts());
+//    pmanager->AddDiscreteProcess(new ExN05MaxTimeCuts());
+//    pmanager->AddDiscreteProcess(new ExN05MinEkineCuts());
+//    pmanager->AddDiscreteProcess(new ExN05MinRangeCuts());
+  }
+
 
   ConstructEM();
   if(GCPHYS.IHADR)ConstructHad();

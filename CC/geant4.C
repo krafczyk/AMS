@@ -332,7 +332,7 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
 //Mag Field
     static AMSG4MagneticField * pf=0;
      G4FieldManager*  fieldMgr =G4TransportationManager::GetTransportationManager()->GetFieldManager();
-    if(!pf){
+    if(!pf && G4FFKEY.UniformMagField!=-1){
      AMSG4MagneticField * pf = new AMSG4MagneticField();
      fieldMgr->SetDetectorField(pf);
      G4double delta =G4FFKEY.Delta*cm;
@@ -511,7 +511,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
     G4StepPoint * PostPoint = Step->GetPostStepPoint();
     G4VPhysicalVolume * PostPV = PostPoint->GetPhysicalVolume();
     if(PostPV){
-      cout << "Stepping  "<<" "<<PostPV->GetName()<<endl;
+      cout << "Stepping  "<<" "<<PostPV->GetName()<<" "<<PostPoint->GetPosition()<<endl;
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0;
     GCTRAK.destep=Step->GetTotalEnergyDeposit()*GeV;
     if(GCTMED.isvol){

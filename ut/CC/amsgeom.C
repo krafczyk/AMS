@@ -2774,7 +2774,7 @@ void richgeom02(AMSgvolume & mother)
   
 
   // Write the selected geometry
-
+#ifdef __AMSDEBUG__
   cout << "************** RICH GEOMETRY ***************" << endl;
   cout << "Top radius:" << RICGEOM.top_radius << endl;
   cout << "Bottom radius:" << RICGEOM.bottom_radius << endl;
@@ -2787,7 +2787,7 @@ void richgeom02(AMSgvolume & mother)
   cout << "Light guides height:" << RICGEOM.light_guides_height << endl;
   cout << "Light guides tile size:" << RICGEOM.light_guides_length <<endl;
   cout << "******************************************" << endl;
-
+#endif
 
 
   // Define the RICH volume: fixed

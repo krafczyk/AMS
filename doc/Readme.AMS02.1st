@@ -1,0 +1,111 @@
+Dear AMS User, 
+below are some (useful) info to make you more familiar  with AMS02 software.
+
+
+I. The following hardware platfoorms are currently supported:
+ DEC/OSF1/cxx 
+ Linux/egcs1.1.2   
+
+II. Software management:
+    cvs  ( Concurrent Version System)
+    described in detail in http://wwwcn1.cern.ch/asd/cvs/index.html
+
+III. Programming languagues:
+a) C++  (general framework, data structures, methods, algorithmes, i/o etc)
+b) F77/F90 ( algorithmes only)
+
+IV. I/O
+a) Objectivity database   (Support diconnected at the moment)
+b) CW ntuples
+c) root 
+
+
+V. Documentation
+a) AMS Home Page at http://ams.cern.ch/AMS/analysis.html  -> SoftwareManagement
+   and ref therein
+b) AMS02 VeryShort Home Page at  http://ams.cern.ch/AMS/Analysis/hpl3itp1/ams02.html
+c) files in doc subdirectory of AMS directory tree ( see VI. how to access) 
+d) 00index.txt file in each subdirectory
+
+
+VI. Access to AMS software
+
+a) As a user:
+
+  i) Get an account on  some ams computer (see VIII)
+                        
+  ii)            ams software is in /Offline/vdev
+  iii)           source /offline/vdev/amsvar to setup AMS related variables
+
+b) As a developper :
+
+  i)Get an account on  some ams computer (see VIII)
+  ii)You should be a member of amsdev group on ams computers
+  (ask Vitaly.Choutko@cern.ch about it)                                       
+  iii)           source /offline/vdev/amsvar to setup AMS related variables
+  iv ) cvs checkout AMS  
+                         
+
+         To add new files/directories:
+         cvs add file
+
+         To remove it:
+         rm file
+         cvs remove file
+
+         To make the changes available to others (update CVS master rep) :
+         cvs commit   // Please ensure the files you changed at least compilable :)
+                      // Please not change the makefiles in install dir,
+                      // create your own instead
+            
+          To synchronize your local copy with cvs rep:
+          cvs update -d 
+
+
+
+
+VII.  Standalone version   - Support is disabled, ignore it. 
+
+If you have neither account on cernsp nor afs server,
+   below are some hints how to build the standalone version of AMS 
+   (without dbase):
+
+a) Set up CERN libraries 
+   eq. -L/cern/pro/lib  -lgeant321  -lpacklib -lmathlib -lkernlib
+
+b) copy files from /afs/cern.ch/user/c/choutko/public/data
+   or  AMS.html("Data files for standalone version")
+   to <your preferred dir>  
+
+c) setenv AMSDataDir  <your preferred dir>
+
+
+
+VIII. Current (2nd Half  1999) computer situation
+
+a. Accounts
+
+   To get local/afs accounts on amd computers ask
+   Alexei.Klimentov@cern.ch                 ;
+   
+b. Disk space
+   AFS account can be as large as 300 mbytes
+
+c. SoftWare/DataAccess
+
+   setenv Offline   as:
+   /shift/shift51/data18/xv/choutko/Offline if on shift51
+   /Offline                                  ams alphas,pentiums
+   /afs/cern.ch/exp/ams/Offline              all others 
+                                            (e.g.rsplus,dxplus,hpplus)
+
+  source $Offline/vdev/install/amsvar
+
+  vdev version is in $Offline/vdev  (v 3.00 build 601)
+
+  vdec/doc contains doc
+
+  AMSDataBase is in $AMSDataDir/DataBase 
+
+   http://ams.cern.ch/AMS/Analysis/hpl3itp1/prv3.job contains relevant datacards
+Comments, questions to shoutko@vxcern.cern.ch

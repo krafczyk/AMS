@@ -425,7 +425,7 @@ void AMSmceventg::setcuts(geant coo[6], geant dir[6],
     area[5]=lx*lz;
     int i;
     for ( i=1;i<6;i++)area[i]=area[i]+area[i-1];
-    for ( i=0;i<6;i++)_planesw[i]=area[i]/area[5];
+    for ( i=0;i<6;i++)_planesw[i]=area[5]>0?area[i]/area[5]:(i+1.)/6.;
 }
 
 integer AMSmceventg::accept(){

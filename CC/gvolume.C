@@ -16,6 +16,7 @@
 #include "G4Polyhedra.hh"
 #include "G4Polycone.hh"
 #include "G4PVPlacement.hh"
+#include "G4UserLimits.hh"
 #include <geant4.h>
 #endif
 integer AMSgvolume::debug=0;
@@ -293,24 +294,40 @@ AMSPoint AMSgvolume::loc2gl(AMSPoint xv){
     // This is main routine for geant4 like volumes
     // Quite boring
     // ok first create solid - and here is a nightmare.
+    number maxstep=DBL_MAX;
     if(!_pg4l){
      G4String shape(_shape);
      G4VSolid * psolid;
      if( shape == "BOX "){
 //     cout <<_par[0]<<" "<<_par[1]<<" "<<_par[2]<<" "<<_name<<" "<<_id<<endl;
        psolid=new G4Box(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm);
+       for(int par=0;par<_npar;par++){
+         if(maxstep>_par[par] && _par[par]>0)maxstep=_par[par];
+       }
      }
      else if (shape =="TUBE"){
        psolid=new G4Tubs(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm,0*degree,360*degree);
+       for(int par=0;par<_npar;par++){
+         if(maxstep>_par[par] && _par[par]>0)maxstep=_par[par];
+       }
      }
      else if (shape =="TUBS"){
+       for(int par=0;par<3;par++){
+         if(maxstep>_par[par] && _par[par]>0)maxstep=_par[par];
+       }
        psolid=new G4Tubs(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm,_par[3]*degree,_par[4]*degree-_par[3]*degree);
      }
      else if (shape =="CONE"){
        psolid=new G4Cons(G4String(_name),_par[1]*cm,_par[2]*cm,_par[3]*cm,_par[4]*cm,_par[0]*cm,0*degree,360*degree);
+       for(int par=0;par<_npar;par++){
+         if(maxstep>_par[par] && _par[par]>0)maxstep=_par[par];
+       }
      }
      else if (shape =="CONS"){
        psolid=new G4Cons(G4String(_name),_par[1]*cm,_par[2]*cm,_par[3]*cm,_par[4]*cm,_par[0]*cm,_par[5]*degree,_par[6]*degree-_par[5]*degree);
+       for(int par=0;par<5;par++){
+         if(maxstep>_par[par] && _par[par]>0)maxstep=_par[par];
+       }
      }
      else if (shape =="TRD1"){
        psolid=new G4Trd(G4String(_name),_par[0]*cm,_par[1]*cm,_par[2]*cm,_par[2]*cm,_par[3]*cm);
@@ -361,6 +378,8 @@ AMSPoint AMSgvolume::loc2gl(AMSPoint xv){
      // Now logical volume
      _pg4l= new G4LogicalVolume(psolid,_pgtmed->getpgmat()->getpamsg4m(),G4String(_name));    
      if(_pgtmed->IsSensitive())_pg4l->SetSensitiveDetector(AMSG4DummySD::pSD()); 
+// Add user limits 
+     _pg4l->SetUserLimits(new G4UserLimits(maxstep));
     }
     // now rotmatrix if necessary
     if (!_pg4rm){
