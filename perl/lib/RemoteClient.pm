@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.221 2003/11/18 10:34:26 alexei Exp $
+# $Id: RemoteClient.pm,v 1.222 2003/12/04 10:05:22 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -69,6 +69,9 @@ my     $validatecgi       ='/cgi-bin/mon/validate.o.cgi';
 my     $validatecgiMySQL  ='/cgi-bin/mon/validate.mysql.cgi';
 
 my     $PrintMaxJobsPerCite = 25;
+
+my     $MAX_CITES       = 32; # maximum number of allowed cites
+
 sub new{
     my $type=shift;
 my %fields=(
@@ -2732,12 +2735,14 @@ in <font color=\"green\"> green </font>, advanced query keys are in <font color=
              $sql="SELECT MAX(cid) FROM Cites";
              $ret=$self->{sqlserver}->Query($sql);
              $cid=$ret->[0][0]+1;
-             if($cid>16){
+             if($cid>$MAX_CITES){
                  my $error=" Too many Cites. Your request will not be procedeed.";
                  $self->sendmailerror($error,"$cem");
                  $self->ErrorPlus("$error");
              }
-             my $run=(($cid-1)<<27)+1;
+# 4.12.03 $MAX_CITES changed from 16 to 32
+#            my $run=(($cid-1)<<27)+1;
+             my $run=(($cid-1)<<26)+1;
              $sql="INSERT INTO Cites VALUES($cid,'$addcite',0,'remote',$run,0,'$newcitedesc',$time,0)";
              $self->{sqlserver}->Update($sql);
 # add responsible

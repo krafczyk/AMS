@@ -1,5 +1,5 @@
 # 
-#                                                                         Last Edit : Sep 9, 2003
+#                                                                         Last Edit : Dec 4, 2003
 # MAILS
 #
 # address                          : name                    : R : CID: RS  : alias
@@ -30,6 +30,7 @@ alexandre.malinine@cern.ch         : Alexandre Malinine      : 1 : 16 : 0 : :
 chikanian@hepmail.physics.yale.edu : Alexei Chikanian        : 1 : 17 : 0 : : 
 rochelle.lauer@yale.edu            : Rochelle Lauer          : 0 : 17 : 0 : :
 amssoft@ekp.physik.uni-karlsruhe.de: ams ekp                 : 1 :  9 : 0 : :
+alexander.selivanov@cern.ch        : Alexander Selivanov     : 1 : 18 : 0 : :
 #----------------------------------------------------------------------------
 #                                                                         Last Edit : Apr 23, 2003
 # CITES
@@ -53,6 +54,7 @@ Academia Sinica Taiwan                  : taiwan  : 14  :  0   : remote : /f2use
 IN2P3 Annecy                            : lyon    : 15  :  0   : remote : /f2users/scratch/MC : 17 :
 University of Mariland                  : umd     : 16  :  0   : remote : /f2users/scratch/MC : 10 :
 Yale University                         : yale    : 17  :  0   : remote : /f2users/scratch/MC :  2 :
+ITEP Moscow                             : itep    : 18  :  0   : remote : /f2users/scratch/MC :  2 :
 #----------------------------------------------------------------------------------------------------
 #
 # FILESYSTEMS
