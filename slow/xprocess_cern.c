@@ -178,10 +178,9 @@ pid_t pid;
 	  token=strtok(NULL, delimiter);
 	disk_space=atoi(token);
 	if (disk_space>=90) {
+          count[1]=1;
 	  if (disk_space>=95)
 	    count[1]=2;
-	  else 
-	    count[1]=1;
 	}
 	
       }
@@ -307,7 +306,7 @@ pid_t pid;
           fl_set_object_label(numb_[2][j],"error");
           break;
         case 0:
-          fl_set_object_color(check_[1][j],FL_GREEN,FL_GREEN);
+          fl_set_object_color(check_[2][j],FL_GREEN,FL_GREEN);
           sprintf(chbuf,"%5.1f h",(dt/60.));
           fl_set_object_label(numb_[2][j],chbuf);
           fl_set_object_label(spare[j],token);
