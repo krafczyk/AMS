@@ -41,6 +41,12 @@ if {"$AMSDir" == ""} {
 set XFONTS_BUTTONS "lucidasans-bold-14"
 set XFONTS_TEXT "lucidasans-bold-14"
 set Y_WIDTH_LOG "30"
+
+if {[catch {exec which ggrep}]} {
+    set GGREP "grep"
+} else {
+    set GGREP "ggrep"
+}
 ##############################################################################
 #################################################################3333
 
@@ -191,7 +197,7 @@ bind .top.t3.grep <Return> {
   set grepterm [string trim $grepterm]
 
   if { "$grepterm" != ""} {
-    set command "bash -c \"cd $AMSDir ; grep */*.C */*.h */*.F -r -e $grepterm \""
+    set command "bash -c \"cd $AMSDir ; $GGREP */*.C */*.h */*.F -r -e $grepterm \""
     if {[catch {open "|$command |& cat"} GrepInput]} {
           $log insert end $GrepInput\n
     } else {
