@@ -1,44 +1,60 @@
+//---------
+class AMSTOFRawCluster: public AMSlink{
+protected:
+ integer _status;  // status
+ integer _ntof;    // number of TOF-plane (1-top,...,4-bot)
+ integer _plane;   //  number sc. bar in given plane
+ number _z;        // z coord of sc.bar
+ number _tovta[2]; // anode time_over_thresh for 2 sides (ns)
+ number _tovtd[2]; // dinode time_over_thresh for 2 sides (ns)
+ number _edep;     // reconstructed via anode (no angle correction)
+ number _edepd;    // reconstructed via dinode (..................)
+ number _sdtm[2];  // noncorrected side times (ns) 
+ number _time;     // A-corrected time=0.5*(t1+t2) (ns);
+ number _timeD;    // Y-coord.(cm,loc.r.s.) got from time diff.=0.5(t1-t2)
+//---------
+
 class AMSTOFCluster: public AMSlink{
 protected:
- static AMSTOFCluster *_Head[4];  // Cash for containers pointers
- integer _status;                 // status
- integer _ntof;                   // TOF counter plane No
- integer _plane;   // bar number 
- number _edep;  // energy deposition in MeV
- AMSPoint _Coo;    // coordinates
+ static AMSTOFCluster *_Head[4];
+ integer _status;
+ integer _ntof;  // TOF plane number where cluster was found 
+ integer _plane; // bar number of the "peak" bar in cluster  
+ number _edep;   // cluster total energy deposition (MeV)
+ number _time;   // average cluster time (sec)
+ number _etime;  // error on cluster time (sec)
+ AMSPoint _Coo;  // cluster center of gravity coordinates (cm)
  AMSPoint _ErrorCoo; // Error to coordinates
- number _time;   // Time of flight
- number _etime;  // Error in Time of flight
-void _copyEl();
 public:
-static const integer BAD;    // bad vluster
-static const integer USED;   // used cluster
-// Get
- integer checkstatus(integer checker) const{return _status & checker;}
 
-
- integer getplane()const {return _plane;}
-
- number gettime()const {return _time;}
-
- number getetime()const {return _etime;}
-
- number getedep()const {return _edep;}
-
- AMSPoint getcoo()const {return _Coo;}
-
- AMSPoint getecoo()const {return _ErrorCoo;}
-
- // Set 
-
- inline void setstatus(integer status){_status=_status | status;}
-
- AMSTOFCluster(integer status, integer ntof, integer plane, number edep,
- AMSPoint coo, AMSPoint ecoo, number time, number etime) // int ctor
-
- static void build();  // makes clusters
-
- static void print();  // prints clusters
-
- static AMSTOFCluster * gethead(integer i=0)  // Returns first element of 
-                                              // the corr container
+//-----------
+//
+class TOFJobStat{
+//
+private:
+  static integer mccount[SCJSTA];// event passed MC-cut "i"
+//          i=0 -> entries
+  static integer recount[SCJSTA];// event passed RECO-cut "i"
+//          i=0 -> entries
+//          i=1 -> DAQ->RawEvent OK
+//          i=2 -> entries to TZSl-calibration 
+//           =3 -> TZSl:: multiplicity OK
+//           =4 -> TZSl:  beta OK
+//           =5 -> RawEvent->RawCluster OK
+//           =6 -> RawCluster->Cluster OK
+//------
+  static integer chcount[SCCHMX][SCCSTA];//channel statistics
+//                              [0] -> h/w-status="ON" frequency 
+//                              [1] -> "FTDC-ON"  (Nftdc>0)
+//                              [2] -> "STDC-ON"  (Nstdc>0)
+//                              [3] -> "ADCA-ON"  (Nadca>0)
+//                              [4] -> "ADCD-ON"  (Nadcd>0)
+//                              [5] -> "FTDC-1hit"  (Nftdc=1)
+//                              [6] -> "STDC-1hit"  (Nstdc=1)
+//                              [7] -> "ADCA-1hit"  (Nadca=1)
+//                              [8] -> "ADCD-1hit"  (Nadcd=1)
+//------
+  static integer brcount[SCBLMX][SCCSTA];// bar statistics
+//                               [0] -> h/w-status="ON" frequency
+//                               [1] -> "multipl-OK"
+//                               [2] -> "history-OK"

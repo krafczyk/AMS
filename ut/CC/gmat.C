@@ -4,33 +4,24 @@
 #include <snode.h>
 #include <amsgobj.h>
 #include <job.h>
-integer AMSgmat::debug=1;
+integer AMSgmat::debug=0;
 void AMSgmat::_init(){
   if(_npar == 1)   GSMATE(_imate,_name,_a[0],_z[0],_rho,_radl,_absl,_ubuf,1);
 
-  else  {
-     geant * w1=new geant[_npar];
-     int i;
-     for(i=0;i<_npar;i++)w1[i]=_w[i];
-     GSMIXT(_imate,_name,_a,_z,_rho,-_npar,w1);
-     delete[] w1;
-  }
+  else    GSMIXT(_imate,_name,_a,_z,_rho,-_npar,_w);
 
 }      
 ostream & AMSgmat::print(ostream & stream)const{
 return(AMSID::print(stream)  <<  " GSMATE" << endl);
 }
-integer AMSgtmed::debug=1;
+integer AMSgtmed::debug=0;
 void AMSgtmed::_init(){
   GSTMED(_itmed,_name,_itmat,_isvol,_ifield,_fieldm,_tmaxfd,
   _stemax,_deemax,_epsil,_stmin,_ubuf,1);
   if(_yb=='Y'){
-   geant r=_birks[0];
-   GSTPAR(_itmed,"BIRK1",r);
-   r=_birks[1];
-   GSTPAR(_itmed,"BIRK2",r);
-   r=_birks[2];
-   GSTPAR(_itmed,"BIRK3",r);
+   GSTPAR(_itmed,"BIRK1",_birks[0]);
+   GSTPAR(_itmed,"BIRK2",_birks[1]);
+   GSTPAR(_itmed,"BIRK3",_birks[2]);
   }
 }      
 ostream & AMSgtmed::print(ostream & stream)const{
@@ -86,7 +77,7 @@ z[0]=60.;   z[1]=26.;  z[2]=5.;
 w[0]=30.;   w[1]=69.;  w[2]=1.;
 mat.add (new AMSgmat(23,"MAGNET",a,z,w,3,7.45));
          // AL honeycomb structure for TOF :
-mat.add (new AMSgmat( 24,"AL-HONEYC",26.98, 13., 0.108, 222., 985.));
+mat.add (new AMSgmat( 24,"AL-HONEYC",26.98, 13., 0.04, 600., 2660.));
      // effective material for PMT-boxes (low dens.(1:10) iron):
 mat.add (new AMSgmat(25,"LOW_DENS_Fe",55.85,26.,0.787,17.6,168.));
      // low density(1.2:2.265) carbon (carb.fiber) for TOF sc_cover :
@@ -99,7 +90,7 @@ w[0]=8.; w[1]=8.;
 mat.add (new AMSgmat(27,"WLS",a,z,w,2,1.03));
 //
 // AL honeycomb structure for CTC (as for TOF now !) :
-mat.add (new AMSgmat( 28,"AL-HONEYC2",26.98, 13., 0.108, 222., 985.));
+mat.add (new AMSgmat( 28,"AL-HONEYC2",26.98, 13., 0.04, 600., 2660.));
 //
 // Teflon(C2F4) cover for CTC :
 a[0]=12.;a[1]=19.;
@@ -139,8 +130,8 @@ tmed.add (new AMSgtmed(9,"ELECTRONICS",6,0));
 //
 geant birks[]={1.,0.013,9.6e-6};
 tmed.add (new AMSgtmed(10,"TOF_SCINT",21,1,'Y',birks,1,5,10,
-                       0.35, -1, 0.001, 0.1));
-//  ( for tof_scint.: max_step=0.35cm, min_step=0.1cm )
+                       -0.25, -1, 0.001, -0.05));
+//(for tof_scint.: max_step=0.25cm/autom, min_step=0.05cm/autom )
 //
 tmed.add (new AMSgtmed(11,"ANTI_SCINT",21,1,'Y',birks));
 tmed.add (new AMSgtmed(12,"TOF_HONEYCOMB",24,0));

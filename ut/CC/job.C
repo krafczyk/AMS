@@ -2,14 +2,14 @@
 // Author V. Choutko 24-may-1996
 // CTC codes added 29-sep-1996 by E.Choumilov 
 //
-// cut jobname and setupname Oct 10, 1996. ak.
-// 
+ 
 #include <job.h>
 #include <amsgobj.h>
 #include <cern.h>
 #include <math.h>
 #include <commons.h>
 #include <amsdbc.h>
+#include <tofdbc.h>
 #include <trid.h>
 #include <mccluster.h>
 #include <extC.h>
@@ -114,44 +114,10 @@ FFKEY("MCGEN",(float*)&CCFFKEY,sizeof(CCFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 //==========================================================================
 void AMSJob::_sitofdata(){
-  TOFMCFFKEY.TimeSigma=90e-12;  // time resolution
-  TOFMCFFKEY.padl=10.5;              // pad width
-  TOFMCFFKEY.Thr=0.1;             // threshold in Mev for raw clusters
+  TOFMCFFKEY.TimeSigma=1.e-10; // time resolution(sec) for simplified algorithm
+  TOFMCFFKEY.padl=10.5;        // sc. bar transv. step ........................
+  TOFMCFFKEY.Thr=0.1;          // Sc.bar Elos-thresh.(Mev) to participate in Reco   
 //
-  TOFMCFFKEY.edep2ph=8000.;    // edep(Mev)-to-Photons convertion
-  TOFMCFFKEY.pmqeff=0.19;      // PM mean quantum efficiency
-  TOFMCFFKEY.trtspr=0.14;      // PM transition time spread (ns)
-  TOFMCFFKEY.fladctb=0.05;     // MC flash-ADC time binning (ns)
-  TOFMCFFKEY.shaptb=2.;        // MC shaper pulse time binning
-  TOFMCFFKEY.di2anr=0.1;       // MC dinode-to-anode signal ratio
-  TOFMCFFKEY.shrtim=5.;        // MC shaper pulse rise time (ns)
-  TOFMCFFKEY.shftim=50.;       // MC shaper pulse fall time (ns)
-  TOFMCFFKEY.accdel[0]=50.;    // "accept" fix-delay(ns) for fast(history) TDC
-  TOFMCFFKEY.accdel[1]=20.;    // "accept" fix-delay(ns) for slow TDC(stratcher)
-  TOFMCFFKEY.accdelmx[0]=1000.;//max. "accept" delay(ns) for fast(history) TDC
-  TOFMCFFKEY.accdelmx[0]=100.; //max. "accept" delay(ns) for slow TDC(stratcher)
-  TOFMCFFKEY.strrat=10.;       // stratcher ratio 
-  TOFMCFFKEY.tdcbin[0]=1.;     // pipe/line TDC binning for fast-tdc meas.
-  TOFMCFFKEY.tdcbin[0]=1.;     // pipe/line TDC binning for slow-tdc meas.
-  TOFMCFFKEY.tdcbin[0]=1.;     // pipe/line TDC binning for adc-anode meas.
-  TOFMCFFKEY.tdcbin[0]=1.;     // pipe/line TDC binning for adc-dinode meas.
-  TOFMCFFKEY.daqthr[0]=5.;   // MC threshold for discr. of "z>=1"-trig,fast/slow_TDC
-  TOFMCFFKEY.daqthr[1]=10.;  // MC threshold for discr. of "z>1"-trig
-  TOFMCFFKEY.daqthr[2]=20.;  // MC threshold for discr. of "z>2"-trig
-  TOFMCFFKEY.daqthr[3]=40.;  // MC threshold for anode Time_over_Thresh(TovT) measurement
-  TOFMCFFKEY.daqthr[4]=40.;  // MC threshold for dinode Time_over_thresh measurement
-  TOFMCFFKEY.daqpwd[0]=50.;  // pulse width of "z>=1" trig. signal (ns)
-  TOFMCFFKEY.daqpwd[1]=50.;  // pulse width of "z>1" trig. signal
-  TOFMCFFKEY.daqpwd[2]=50.;  // pulse width of "z>2" trig. signal
-  TOFMCFFKEY.daqpwd[3]=10.;  // double pulse resolution of fast(history) TDC (ns)
-  TOFMCFFKEY.daqpwd[4]=500.; // min. double pulse resolution of slow TDC (ns)
-  TOFMCFFKEY.daqpwd[5]=500.; // dead time of anode TovT measurements (ns)
-  TOFMCFFKEY.daqpwd[6]=500.; // dead time of dinode TovT measurements (ns)
-  TOFMCFFKEY.daqpwd[7]=2.; // discr. dead time of "z>=1" trig. (ns)
-  TOFMCFFKEY.daqpwd[8]=2.; // discr. dead time of "z>1" trig. (ns)
-  TOFMCFFKEY.daqpwd[9]=2.; // discr. dead time of "z>2" trig. (ns)
-  TOFMCFFKEY.trigtb=0.5;   // MC time binning in logic(trigger) pulse manipulation (ns)
-
   TOFMCFFKEY.mcprtf[0]=0;     // TOF MC print flag for init arrays
   TOFMCFFKEY.mcprtf[1]=0;     // TOF MC print flag for MC pulses
   TOFMCFFKEY.mcprtf[2]=0;     // ...................... histograms
@@ -164,9 +130,11 @@ FFKEY("TOFMC",(float*)&TOFMCFFKEY,sizeof(TOFMCFFKEY_DEF)/sizeof(integer),"MIXED"
 //=======================================================================================
 
 void AMSJob::_sictcdata(){
-  CTCGEOMFFKEY.wallth=0.03;    // reflecting wall(separators) thickness(cm)
-  CTCGEOMFFKEY.agap=0.02;      // typical "air" gaps
-  CTCGEOMFFKEY.wgap=0.01;      // typical wls gaps
+
+
+  CTCGEOMFFKEY.wallth=0.03;    // reflecting wall and separators thickness(cm)
+  CTCGEOMFFKEY.agap=0.02;      // typical "air" gaps for aerogel
+  CTCGEOMFFKEY.wgap=0.01;      // typical "air" gaps for WLS's
   CTCGEOMFFKEY.agsize[0]=120.;  // max aerogel x-size
   CTCGEOMFFKEY.agsize[1]=90.; // max aerogel y-size
   CTCGEOMFFKEY.agsize[2]=10.;  // max aerogel z-size
@@ -179,8 +147,8 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.wlsden=1.03;    // WLS density
   CTCGEOMFFKEY.nblk=12;        // number of aer. blocks (X-div.)(=1 for solid)
   CTCGEOMFFKEY.nwls=12;        // number of wls blocks
-  CTCMCFFKEY.Refraction[0]=1.055;   // Refraction indexes
-  CTCMCFFKEY.Refraction[1]=1.59;
+  CTCMCFFKEY.Refraction[0]=1.05;   // Refraction indexes
+  CTCMCFFKEY.Refraction[1]=1.58;
   CTCMCFFKEY.Path2PhEl[0]=23;   // Path to photoelectrons conv fact (was 34)
   CTCMCFFKEY.Path2PhEl[1]=28;
   CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  for hor readout (was 4.9)
@@ -302,8 +270,19 @@ TKFINI();
 }
 
 void AMSJob::_retofdata(){
-  TOFRECFFKEY.Thr1=0.5;
-  TOFRECFFKEY.ThrS=1;
+  TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy 
+  TOFRECFFKEY.ThrS=0.9; // Threshold (mev) on total cluster energy
+//
+  TOFRECFFKEY.reprtf[0]=0; // RECO print flag 
+  TOFRECFFKEY.reprtf[1]=0; // RECO print flag 
+  TOFRECFFKEY.reprtf[2]=0; // RECO print flag for histograms
+  TOFRECFFKEY.reprtf[3]=0; // RECO print flag 
+  TOFRECFFKEY.reprtf[4]=0; // RECO print flag
+  TOFRECFFKEY.relogic[0]=0;// 0/1 -> normal/calibr. run. 
+  TOFRECFFKEY.relogic[1]=0;// RECO logic flag 
+  TOFRECFFKEY.relogic[2]=0;// RECO logic flag 
+  TOFRECFFKEY.relogic[3]=0;// RECO logic flag 
+  TOFRECFFKEY.relogic[4]=0;// RECO logic flag 
   FFKEY("TOFREC",(float*)&TOFRECFFKEY,sizeof(TOFRECFFKEY_DEF)/sizeof(integer),"MIXED");
 }
 
@@ -348,31 +327,15 @@ jobname[159]='\0';
 setupname[159]='\0';
 triggername[159]='\0';
 int i;
-//+
-for (i=158; i>0; i--) {        // should be at least 1 char
- if(jobname[i] == ' ') jobname[i]='\0';
- else break;
-}
-for (i=158; i>=0; i--) {
- if(setupname[i] == ' ') setupname[i]='\0';
- else break;
-}
-
-//-
 int len;
-for(i=158;i>=0;i--){
+for(i=158;i>0;i--){
    if(triggername[i]==' '){
     triggername[i]='\0';
     len=i+1;
    }
-   else break;
 }
+setname(jobname);
 setsetup(setupname);
-if(getsetup())setname(strcat(jobname,getsetup()));
-else{
-  cerr<<"AMSJOB::udata-F-NULLSETUP- Setup not defined"<<endl;
-  exit(1);
-}
 integer ntrig=0;
 integer nold=0;
 integer or=0;
@@ -386,10 +349,6 @@ for (i=0;i<len;i++){
   }
 }
 _jobtype=AMSFFKEY.Jobtype;
-//
-// Read/Write Synchronization
-if(AMSFFKEY.Read > 10 && AMSFFKEY.Read%2==0)AMSFFKEY.Read++;
-if(AMSFFKEY.Write > 0 && AMSFFKEY.Write%2==0)AMSFFKEY.Write++;
 }
 
 void AMSJob::init(){
@@ -445,11 +404,28 @@ void AMSJob::_signinitjob(){
 
 
 }
-
+//========================================================================
 void AMSJob::_sitofinitjob(){
      AMSgObj::BookTimer.book("SITOFDIGI");
+     AMSgObj::BookTimer.book("TOF:Ghit->Tovt");
+     AMSgObj::BookTimer.book("TOF:Tovt->RwEv");
+    if(TOFMCFFKEY.mcprtf[2]!=0){ // Book mc-hist
+      HBOOK1(1050,"Geant-hits in layer-1",80,0.,80.,0.);
+      HBOOK1(1051,"Geant-hits in layer-2",80,0.,80.,0.);
+      HBOOK1(1052,"Geant-hits in layer-3",80,0.,80.,0.);
+      HBOOK1(1053,"Geant-hits in layer-4",80,0.,80.,0.);
+      HBOOK1(1060,"Geant-Edep(mev) in layer-1",80,0.,24.,0.);
+      HBOOK1(1061,"Geant-Edep(mev) in layer-1",80,0.,240.,0.);
+      HBOOK1(1062,"Geant-Edep(mev) in layer-3",80,0.,24.,0.);
+      HBOOK1(1063,"Geant-Edep(mev) in layer-3",80,0.,240.,0.);
+      HBOOK1(1070,"Log(PulseTotCharge(pC)),Sd-1,L-1",50,0.,10.,0.);
+      HBOOK1(1071,"Total bar pulse-charge(pC),L-1",80,100.,1700.,0.);
+      HBOOK1(1072,"Total bar pulse-charge(pC),L-1",80,1000.,17000.,0.);
+#ifdef __AMSDEBUG__
+#endif
+    }
 }
-
+//========================================================================
 void AMSJob::_sictcinitjob(){
      AMSgObj::BookTimer.book("SICTCDIGI");
      AMSCTCRawCluster::init();
@@ -473,11 +449,67 @@ AMSgObj::BookTimer.book("TrCluster");
 AMSgObj::BookTimer.book("TrRecHit");
 AMSgObj::BookTimer.book("TrTrack");
 }
-
+//====================================================================
 void AMSJob::_retofinitjob(){
-AMSgObj::BookTimer.book("RETOFEVENT");
+    AMSgObj::BookTimer.book("RETOFEVENT");
+    AMSgObj::BookTimer.book("TOF:DAQ->RwEv");
+    AMSgObj::BookTimer.book("TOF:RwEv->RwCl");
+    AMSgObj::BookTimer.book("TOF:RwCl->Cl");
+    if(TOFRECFFKEY.reprtf[2]!=0){ // Book reco-hist
+      HBOOK1(1100,"The same hit (Tf-Ts),(ns)",80,-40.,40.,0.);
+      HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
+      HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,160.,0.);
+      HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
+      HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
+      HBOOK1(1530,"L=3,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
+      HBOOK1(1527,"L=3,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
+      HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
+      HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
+      HBOOK1(1532,"(T1-T3)(ns),corr,ideal evnt",50,3.,6.,0.);
+      HBOOK1(1533,"L=1,side1/2 Tdiff(ns),ideal evnt",100,-2.5,2.5,0.);
+      HBOOK1(1534,"(T2-T4)(ns),corr,ideal evnt",50,3.,6.,0.);
+      HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
+      HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
+      HBOOK1(1537,"L=1,TOF Eclust(mev)",80,0.,240.,0.);
+      HBOOK1(1538,"L=3,TOF Eclust(mev)",80,0.,240.,0.);
+      HBOOK1(1539,"L=2,TOF Eclust(mev)",80,0.,24.,0.);
+      HBOOK1(1540,"L=4,TOF Eclust(mev)",80,0.,24.,0.);
+      HBOOK1(1541,"L=2,TOF Eclust(mev)",80,0.,240.,0.);
+      HBOOK1(1542,"L=4,TOF Eclust(mev)",80,0.,240.,0.);
+      if(TOFRECFFKEY.relogic[0]==1){
+        HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+        HBOOK1(1501,"Proton beta",80,0.9,1.1,0.);
+        HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
+        HBOOK2(1502,"Layer-1,T vs exp(-A)",50,0.,0.3,50,23.,26.,0.);
+        HBOOK2(1503,"Layer-2,T vs exp(-A)",50,0.,0.3,50,23.,26.,0.);
+        HBOOK2(1504,"Layer-3,T vs exp(-A)",50,0.,0.3,50,19.,22.,0.);
+        HBOOK2(1505,"Layer-4,T vs exp(-A)",50,0.,0.3,50,19.,22.,0.);
+        HBOOK1(1508,"T1-T3, not corrected",50,3.,6.,0.);
+        HBOOK1(1509,"T2-T4, not corrected",50,3.,6.,0.);
+        HBOOK1(1510,"Layer-1 PM-1 s-time,noncor",80,18.,28.,0.);
+        HBOOK1(1511,"Layer-1 PM-2 s-time,noncor",80,18.,28.,0.);
+        HBOOK1(1512,"Layer-1 PM-1 a-ampl,noncor",80,50.,290.,0.);
+        HBOOK1(1513,"Layer-1 PM-2 a-ampl,noncor",80,50.,290.,0.);
+         HBOOK1(1514,"Layer-2 PM-1 s-time,noncor",80,18.,28.,0.);
+         HBOOK1(1515,"Layer-2 PM-2 s-time,noncor",80,18.,28.,0.);
+         HBOOK1(1516,"Layer-2 PM-1 a-ampl,noncor",80,50.,290.,0.);
+         HBOOK1(1517,"Layer-2 PM-2 a-ampl,noncor",80,50.,290.,0.);
+        HBOOK1(1518,"Layer-3 PM-1 s-time,noncor",80,18.,28.,0.);
+        HBOOK1(1519,"Layer-3 PM-2 s-time,noncor",80,18.,28.,0.);
+        HBOOK1(1520,"Layer-3 PM-1 a-ampl,noncor",80,50.,290.,0.);
+        HBOOK1(1521,"Layer-3 PM-2 a-ampl,noncor",80,50.,290.,0.);
+         HBOOK1(1522,"Layer-4 PM-1 s-time,noncor",80,18.,28.,0.);
+         HBOOK1(1523,"Layer-4 PM-2 s-time,noncor",80,18.,28.,0.);
+         HBOOK1(1524,"Layer-4 PM-1 a-ampl,noncor",80,50.,290.,0.);
+         HBOOK1(1525,"Layer-4 PM-2 a-ampl,noncor",80,50.,290.,0.);
+      }
+    }
+//
+//  Clear JOB-statistics counters for SIM/REC :
+//
+    TOFJobStat::clear();
 }
-
+//====================================================================
 void AMSJob::_rectcinitjob(){
 AMSgObj::BookTimer.book("RECTCEVENT");
 }

@@ -34,10 +34,10 @@ public:
  AMSPoint xcoo;
  number   tof;
  number   edep;
-
+ integer getid() const {return idsoft;}
  static integer Out(integer);
 
-
+ 
  AMSTOFMCCluster(integer _idsoft,AMSPoint _xcoo,number _edep, number _tof) :
  idsoft(_idsoft), xcoo(_xcoo),edep(_edep),tof(_tof){_next=0;};
  AMSTOFMCCluster(){_next=0;};

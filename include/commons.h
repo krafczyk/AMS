@@ -20,6 +20,7 @@ COMMON_BLOCK_DEF(GCBANK_DEF,GCBANK);
 #define PAWC COMMON_BLOCK(PAWC,pawc)
 COMMON_BLOCK_DEF(PAWC_DEF,PAWC);
 
+
 class SELECTFFKEY_DEF {
 public:
 integer Run;
@@ -55,56 +56,46 @@ integer TriggerC[40];
 };
 #define IOPA COMMON_BLOCK(IOPA,iopa)
 COMMON_BLOCK_DEF(IOPA_DEF,IOPA);
-
+//===============================================================
 class TOFMCFFKEY_DEF {
 public:
 geant TimeSigma;
 geant padl;
 geant Thr;
-geant edep2ph;     // edep(Mev)-to-Photons convertion
-geant pmqeff;      // PM mean quantum efficiency
-geant trtspr;      // PM transition time spread (ns)
-geant fladctb;     // MC flash-ADC time binning (ns)
-geant shaptb;      // MC shaper pulse time binning
-geant di2anr;      // MC dinode-to-anode signal ratio
-geant shrtim;      // MC shaper pulse rise time (ns)
-geant shftim;      // MC shaper pulse fall time (ns)
-geant accdel[2];   // fixed(in h/w) lev-1 "accept" signal delays(ns)
-geant accdelmx[2]; // max. lev-1 "accept" delays (incl. above fixed)
-geant strrat;      // stratcher ratio (~10)
-geant tdcbin[4];   // p/l TDC binning for ftdc/stdc/adca/adcd
-geant daqthr[5];   // MC DAQ-system thresholds
-geant daqpwd[10];  // MC DAQ-system pulse_widths/dead_times/...
-geant trigtb;      // MC time binning in logic(trigger) pulse manipulation
+//
 integer mcprtf[5];     // TOF MC-print flag (=0 -> no_printing)
 integer trlogic[2]; // to control trigger logic
 
 };
 #define TOFMCFFKEY COMMON_BLOCK(TOFMCFFKEY,tofmcffkey)
 COMMON_BLOCK_DEF(TOFMCFFKEY_DEF,TOFMCFFKEY);
-
+//===============================================================
 class TOFRECFFKEY_DEF {
 public:
 geant Thr1;  // limit on max
 geant ThrS;  // limit on sum
+//
+  integer reprtf[5]; //RECO print flag 
+  integer relogic[5];//RECO logic flag
 };
 #define TOFRECFFKEY COMMON_BLOCK(TOFRECFFKEY,tofrecffkey)
 COMMON_BLOCK_DEF(TOFRECFFKEY_DEF,TOFRECFFKEY);
+//===============================================================
 
 class CTCGEOMFFKEY_DEF {
 public:
   geant wallth;    // reflecting walls(separators) thickness (cm)
-  geant agap;      // typical "air" gaps
-  geant wgap;      // typical wls gaps
+  geant agap;      // typical "air" gaps for aerogel blocks
+  geant wgap;      // typical gaps for WLS's
   geant agsize[3]; // max aerogel size
   geant wlsth;     // wave_length_shifter thickness
   geant hcsize[3]; // honeycomb plate size
   geant supzc;     // z-position of supp.hon.plate (front surface)
   geant aegden;    // aerogel density
   geant wlsden;    // wls dens.
-  integer nblk;    // number of aerogel blocks (X-divisions) (=1 for solid)
-  integer nwls;    // number of wls blocks
-};
+  integer nblk;    // number of aerogel cells/layer (X-divisions)
+  integer nwls;    // number of wls bars/layer (=nblk) 
+                        };
 #define CTCGEOMFFKEY COMMON_BLOCK(CTCGEOMFFKEY,ctcgeomffkey)
 COMMON_BLOCK_DEF(CTCGEOMFFKEY_DEF,CTCGEOMFFKEY);
 

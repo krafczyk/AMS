@@ -56,9 +56,11 @@
 #include <event.h>
 #include <cont.h>
 #include <trrec.h>
-
-
+#include <tofdbc.h>
 #include <iostream.h>
+#include <tofcalib.h>
+
+
 
 #ifdef __DB__
 integer trigEvents;               // number of events written to the DBase
@@ -173,7 +175,6 @@ GDINIT();
 
 
 extern "C" void gustep_(){
-  //  cout <<" gustep in"<<endl;
   try{
 
   //  Tracker
@@ -184,16 +185,59 @@ extern "C" void gustep_(){
      AMSTrMCCluster::sitkhits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
      GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
 
-  // TOF
 
-  if(GCVOLU.nlevel >1 && GCTRAK.destep != 0 && GCTMED.isvol != 0 && 
-  GCVOLU.names[1][0]== 'T' && GCVOLU.names[1][1]=='O' && 
-  GCVOLU.names[1][2]=='F' && GCVOLU.names[1][3]=='S'){
-     geant dee;
-     GBIRK(dee);
-     AMSTOFMCCluster::sitofhits(GCVOLU.number[GCVOLU.nlevel-1],GCTRAK.vect,
-     dee, GCTRAK.tofg);
-  }
+//-------------------------------------------
+  // ---- TOF ----
+  
+  geant t,x,y,z;
+  geant de,dee,dtr2,div,tof;
+  static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
+  geant trcut2(0.09);// Max. transv.shift (0.3cm)**2
+  int i,nd,numv,iprt;
+  static int numvo(-999),iprto(-999);
+  if(GCVOLU.names[1][0]== 'T' && GCVOLU.names[1][1]=='O' &&
+  GCVOLU.names[1][2]=='F' && GCVOLU.names[1][3]=='S'){// in "TOFS"
+    iprt=GCKINE.ipart;
+    numv=GCVOLU.number[GCVOLU.nlevel-1];
+    x=GCTRAK.vect[0];
+    y=GCTRAK.vect[1];
+    z=GCTRAK.vect[2];
+    t=GCTRAK.tofg;
+    de=GCTRAK.destep;
+    if(GCTRAK.inwvol==1){// new volume or track : stor param.
+      iprto=iprt;
+      numvo=numv;
+      xpr=x;
+      ypr=y;
+      zpr=z;
+      tpr=t;
+    }
+    else{
+      if(iprt==iprto && numv==numvo && de!=0.){// same part. in the same volume
+        dtr2=(x-xpr)*(x-xpr)+(y-ypr)*(y-ypr);
+        if(dtr2>trcut2){// too big transv. shift: subdivide step
+          nd=sqrt(dtr2/trcut2);
+          nd+=1;
+          for(i=1;i<=nd;i++){//loop over subdivisions
+            div=geant(i)/geant(nd);
+            GCTRAK.vect[0]=xpr+(x-xpr)*div;
+            GCTRAK.vect[1]=ypr+(y-ypr)*div;
+            GCTRAK.vect[2]=zpr+(z-zpr)*div;
+            GCTRAK.destep=de/geant(nd);
+            tof=tpr+(t-tpr)*div;
+            GBIRK(dee);
+            AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,tof);
+          }
+        }
+        else{
+          GBIRK(dee);
+          AMSTOFMCCluster::sitofhits(numv,GCTRAK.vect,dee,t);
+        }
+      }// end of "same part/vol, de>0"
+    }
+  }// end of "in TOFS"
+//-------------------------------------
+
 
   // CTC
 
@@ -236,11 +280,9 @@ extern "C" void gustep_(){
     cerr << "GUSTEP  "<< e.getmessage();
     GCTRAK.istop =1;
    }
-   //  cout <<" gustep out"<<endl;
 }
 
 extern "C" void guout_(){
-  //  cout <<" guout in"<<endl;
 
    AMSgObj::BookTimer.stop("GEANTTRACKING");
 
@@ -332,11 +374,9 @@ extern "C" void guout_(){
    AMSEvent::gethead()->remove();
    AMSEvent::sethead(0);
    UPool.erase(2000000);
-   //   cout <<" guout out "<<endl; 
 }
 
 extern "C" void gukine_(){
-  //  cout <<" gukine in"<<endl;
 static integer event=0;
 time_t         Time;
 
@@ -398,6 +438,74 @@ extern "C" void uglast_(){
 //-
 #endif
        GLAST();
+//--------> some TOF stuff :
+       TOFJobStat::print(); // Print JOB-TOF statistics
+       if(TOFMCFFKEY.mcprtf[2]!=0){ // tempor! print MC-hists
+         HPRINT(1050);
+         HPRINT(1051);
+         HPRINT(1052);
+         HPRINT(1053);
+         HPRINT(1060);
+         HPRINT(1061);
+         HPRINT(1062);
+         HPRINT(1063);
+         HPRINT(1070);
+         HPRINT(1071);
+         HPRINT(1072);
+#ifdef __AMSDEBUG__
+#endif
+       }
+       if(TOFRECFFKEY.reprtf[2]!=0){ // tempor! print RECO-hists
+         HPRINT(1100);
+         HPRINT(1101);
+         HPRINT(1102);
+         HPRINT(1526);
+         HPRINT(1527);
+         HPRINT(1528);
+         HPRINT(1529);
+         HPRINT(1530);
+         HPRINT(1531);
+         HPRINT(1532);
+         HPRINT(1533);
+         HPRINT(1534);
+         HPRINT(1535);
+         HPRINT(1536);
+         HPRINT(1537);
+         HPRINT(1538);
+         HPRINT(1539);
+         HPRINT(1540);
+         HPRINT(1541);
+         HPRINT(1542);
+         if(TOFRECFFKEY.relogic[0]==1){// for calibr. runs
+           HPRINT(1500);
+           HPRINT(1501);
+           HPRINT(1502);
+           HPRINT(1503);
+           HPRINT(1504);
+           HPRINT(1505);
+           HPRINT(1506);
+           HPRINT(1508);
+           HPRINT(1509);
+           HPRINT(1510);
+           HPRINT(1511);
+           HPRINT(1512);
+           HPRINT(1513);
+           HPRINT(1514);
+           HPRINT(1515);
+           HPRINT(1516);
+           HPRINT(1517);
+           HPRINT(1518);
+           HPRINT(1519);
+           HPRINT(1520);
+           HPRINT(1521);
+           HPRINT(1522);
+           HPRINT(1523);
+           HPRINT(1524);
+           HPRINT(1525);
+           TOFTZSLcalib::mfit();
+         }
+       }
+//--------
        //       HPRINT(0);
        if(IOPA.hlun){
         char hpawc[256]="//PAWC";

@@ -18,10 +18,12 @@
 #include <fstream.h>
 #include <tofsim.h>
 #include <stdlib.h>
+#include <tofcalib.h>
 #include <ntuple.h>
 #include <ctcdbc.h>
 //
 AMSTOFScan scmcscan[SCBTPN];// some "temporary" TOF solution
+TOFBrcal scbrcal[SCLRS][SCMXBR];// ...................
 //
 integer AMSEvent::debug=1;
 AMSEvent* AMSEvent::_Head=0;
@@ -31,7 +33,6 @@ void AMSEvent::_init(){
   // check old run & 
   if(_run != SRun){
    SRun=_run;
-   cout <<" AMS-I-New Run "<<_run<<endl;
    if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation)_siamsinitrun();
    _reamsinitrun();
   }
@@ -40,7 +41,7 @@ void AMSEvent::_init(){
 
 void AMSEvent::_siamsinitrun(){
 _sitkinitrun();
-// _sitofinitrun();
+_sitofinitrun();
 _sictcinitrun();
 _sitrdinitrun();
 }
@@ -98,23 +99,12 @@ void AMSEvent::_sitofinitevent(){
   ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTOFMCCluster",0),0));
 //
-//    container for photoelectron hits (digi step):
-//
-  for(il=0;il<SCLRS;il++){
-    ptr=AMSEvent::gethead()->add(
-        new AMSContainer(AMSID("AMSContainer:AMSTOFPhel",il),0));
-  }
 //    container for time_over_threshold hits (digi step):
 //
   for(il=0;il<SCLRS;il++){
     ptr=AMSEvent::gethead()->add(
         new AMSContainer(AMSID("AMSContainer:AMSTOFTovt",il),0));
   }
-//
-// container for RawEvent hits(same structure for MC/REAL events) :
-//
-  ptr=AMSEvent::gethead()->add(
-      new AMSContainer(AMSID("AMSContainer:AMSTOFRawEvent",0),0));
 //
 //--- temporarily !!! here for Anti :
   ptr = AMSEvent::gethead()->add (
@@ -154,7 +144,7 @@ void AMSEvent::_retofinitevent(){
 //---
 // container for Cluster hits :
 //
-  for( i=0;i<4;i++)  ptr = AMSEvent::gethead()->add (
+  for( i=0;i<SCLRS;i++)  ptr = AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTOFCluster",i),0));
 }
 //=====================================================================
@@ -295,7 +285,7 @@ _sictcevent();
 }
 
 void AMSEvent::_reamsevent(){
-  _retofevent(); 
+  _retofevent();
   _rectcevent(); 
   _retkevent(); 
   _retrdevent(); 
@@ -332,15 +322,35 @@ void AMSEvent::_retrdevent(){
 }
 //========================================================================
 void AMSEvent::_retofevent(){
+int stat;
 //
-AMSgObj::BookTimer.start("RETOFEVENT");
-// AMSTOFRawEvent::re_build();// DAQ-->RawEvent
-// AMSTOFRawCluster::build(); // RawEvent-->RawClaster
-AMSTOFCluster::build();    // RawCluster-->Cluster
-#ifdef __AMSDEBUG__
-if(AMSEvent::debug)AMSTOFCluster::print();
-#endif
-AMSgObj::BookTimer.stop("RETOFEVENT");
+  AMSgObj::BookTimer.start("RETOFEVENT");
+//
+  TOFJobStat::addre(0);
+  if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Reconstruction){
+    AMSgObj::BookTimer.start("TOF:DAQ->RwEv");
+    AMSTOFRawEvent::re_build(stat);// DAQ-->RawEvent
+    AMSgObj::BookTimer.stop("TOF:DAQ->RwEv");
+    if(stat!=0)return;
+    TOFJobStat::addre(1);
+  }
+//
+  AMSgObj::BookTimer.start("TOF:RwEv->RwCl");
+  AMSTOFRawCluster::build(stat); // RawEvent-->RawCluster
+  AMSgObj::BookTimer.stop("TOF:RwEv->RwCl");
+  if(stat!=0)return;
+  TOFJobStat::addre(5);
+//
+  AMSgObj::BookTimer.start("TOF:RwCl->Cl");
+  AMSTOFCluster::build(stat);    // RawCluster-->Cluster
+  AMSgObj::BookTimer.stop("TOF:RwCl->Cl");
+  if(stat!=0)return;
+  TOFJobStat::addre(6);
+//
+  #ifdef __AMSDEBUG__
+  if(AMSEvent::debug)AMSTOFCluster::print();
+  #endif
+  AMSgObj::BookTimer.stop("RETOFEVENT");
 }
 //========================================================================
 void AMSEvent::_rectcevent(){
@@ -352,9 +362,10 @@ if(AMSEvent::debug)AMSCTCCluster::print();
 AMSgObj::BookTimer.stop("RECTCEVENT");
 }
 
-
+//========================================================================
 void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
+//
 AMSBeta::build();
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSBeta::print();
@@ -367,6 +378,10 @@ AMSParticle::build();
 #ifdef __AMSDEBUG__
 if(AMSEvent::debug)AMSParticle::print();
 #endif
+//
+if(TOFRECFFKEY.relogic[0]==1)
+           TOFTZSLcalib::select();// event selection for TOF TZSL-calibration
+//
 AMSgObj::BookTimer.stop("REAXEVENT");
 }
 
@@ -378,132 +393,148 @@ void AMSEvent::_sitrdinitrun(){
 }
 //======================================================================
 void AMSEvent::_sitofinitrun(){
- char fname[30];
+ char fname[80];
  char name[10];
- int i,j,isp,ibt;
-//  for test :
- number x(-2.5);// impact point
- number scpt[SCANPNT]={-10.,0.,10.};// test scan points
- integer nbt(10);
- number blt(0.);
- number bwt(1.);
- number art[10]={0.,0.,1.,2.,5.,5.,5.,3.,1.,0.};
- number eft[SCANPNT]={0.5,0.7,1.};
- geant dummy(-1), val, rnd;
+ int i,j,ila,ibr,ibrm,isp,nsp,ibt;
 //
- number scp[SCANPNT];// scan points
+ float scp[SCANPNT];// scan points
+ float rlo[SCANPNT];// relat.(to Y=0) light output
  integer lps=1000;
  integer nb;
- number bl;
- number bw;
- number arr[AMSDISL];
- number ef1[SCANPNT],ef2[SCANPNT];
+ float nft,bl,bw;
+ float arr[AMSDISL];
+ float ef1[SCANPNT],ef2[SCANPNT];
  AMSDistr td1[SCANPNT];
  AMSDistr td2[SCANPNT];
  integer i1,i2;
- number r,eff1,eff2;  
+ float r,eff1,eff2;  
 //
+//-----------------------------------------------------
+// 
+ if(AMSJob::gethead()->getjobtype() == AMSFFKEY.Simulation){ // For MC :
 //
-cout <<"enter in test  " <<'\n';
+//   <--- read MC t-scan calibration files :
 //
-//   <--- loop over bar types and read MC t-scan calibration files
-//
-  for(ibt=1;ibt<=SCBTPN;ibt++){
+  for(ibt=1;ibt<=SCBTPN;ibt++){ // <-------- loop over bar types
     TOFDBc::brfnam(ibt,name);
     strcat(name,".dat");
-    strcpy(fname,"/AMS/CALIBR/");
+    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");
     strcat(fname,name);
     cout<<"Open file : "<<fname<<'\n';
-//    ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
-//    if(!tcfile){
-//      cerr <<"Sitofinitrun(Event.c): Error open file "<<fname<<endl;
-//      exit(1);
-//    }
+    ifstream tcfile(fname,ios::in); // open needed t-calib. file for reading
+    if(!tcfile){
+      cerr <<"Sitofinitrun(Event.c): Error open file "<<fname<<endl;
+      exit(1);
+    }
 // <-- fill errays scp, bl1,bl2,ef1,ef2 from file
-// 
-    for(isp=0;isp<SCANPNT;isp++){ // loop over sp. points to prepare arr. of t-distr
-//      tcfile >> scp[isp];
-//      tcfile >> nb;   // for PM-1
-//      tcfile >> bl;
-//      tcfile >> bw;
-//      tcfile >> ef1[i];
-      scp[isp]=scpt[isp];
-      nb=nbt;
-      bl=blt;
-      bw=bwt;
-      ef1[isp]=eft[isp];
-      ef2[isp]=eft[isp];
-      for(i=0;i<nb;i++){arr[i]=art[i];}
-//      for(i=0;i<nb;i++){arr[i]=0.;}
-//      for(i=0;i<nb;i++){tcfile >> arr[i];}
+//
+    tcfile >> nsp;// read # of calibr. points
+    if(nsp!=SCANPNT){
+      cerr<<"sitofinitrun: bad # of MC scan point ! "<<nsp<<'\n';
+      exit(1);
+    } 
+    for(isp=0;isp<SCANPNT;isp++){ // sp. points loop to prepare arr. of t-distr
+      tcfile >> scp[isp];
+      tcfile >> nft;   // for PM-1
+      tcfile >> nb;
+      tcfile >> bl;
+      tcfile >> bw;
+      tcfile >> ef1[isp];
+      for(i=0;i<nb;i++){arr[i]=0.;}
+      for(i=0;i<nb;i++){tcfile >> arr[i];}
       td1[isp]=AMSDistr(nb,bl,bw,arr);
-//      tcfile >> nb;   // for PM-2
-//      tcfile >> bl;
-//      tcfile >> bw;
-//      tcfile >> ef2[i];
-//      for(i=0;i<nb;i++){arr[i]=0.;}
-//      for(i=0;i<nb;i++){tcfile >> arr[i];}
+      tcfile >> nft;   // for PM-2
+      tcfile >> nb;
+      tcfile >> bl;
+      tcfile >> bw;
+      tcfile >> ef2[isp];
+      for(i=0;i<nb;i++){arr[i]=0.;}
+      for(i=0;i<nb;i++){tcfile >> arr[i];}
       td2[isp]=AMSDistr(nb,bl,bw,arr);
+//
     } // <--- end of scan points loop -----
-    scmcscan[ibt-1]=AMSTOFScan(scp,ef1,ef2,td1,td2);// create paddle MC-t-scan obj
-//    tcfile.close(); // close file
+//
+    scmcscan[ibt-1]=AMSTOFScan(scp,ef1,ef2,td1,td2);// create bar MC-t-scan obj
+    tcfile.close(); // close file
+//
   } //<---------- end of bar types loop ------
 //
-//        <--- test created objects
+//----------------------
 //
- ibt=1.;
- scmcscan[ibt].getxbin(x,i1,i2,r);
- cout<<"i1="<<i1<<"  i2="<<i2<<"  r=="<<r<<'\n';
- eff1=scmcscan[ibt].getef1(r,i1,i2);
- eff2=scmcscan[ibt].getef2(r,i1,i2);
- cout<<"eff1="<<eff1<<"  eff2="<<eff2<<'\n';
+//   Fill bar MC-calibration parameters (TOFBrcal bank) :
+//---> static variables :
 //
- HBOOK1(1002,"Distribution PM1",20,0.,20.,0.);
- HBOOK1(1003,"Distribution PM2",20,0.,20.,0.);
- for(j=0;j<lps;j++)
-  {
-    rnd=RNDM(dummy);
-    val=scmcscan[ibt].gettm1(rnd,r,i1,i2);
-    HF1(1002,val,1.);
-    rnd=RNDM(dummy);
-    val=scmcscan[ibt].gettm2(rnd,r,i1,i2);
-    HF1(1003,val,1.);
+  number slope=3.39;// tempor
+//---
+  number td2p[2]={16.9,1.8};// tempor timeD->coord conv.factor(cm/ns) and error(cm)
+//---
+  number logqin[SCACRFP]={ //  Log(inp_charge(mV*ns)) ref.points
+     0.,0.98,1.94,2.9,3.86};               // (Log(Q_thresh) is subtracted)
+//---
+  number tovta[SCACRFP]={ // measured(Tovt) amplitude points
+     0.,50.,100.,150.,200.};      //  ("anode" chain, ns)
+//---
+  number tovtd[SCACRFP]={ // measured(Tovt) amplitude points
+     0.,50.,100.,150.,200.};      //  ("dinode" chain, ns)
+//---
+  number asatl=20.;//(mev,~10MIPs),if E-dinode(1-end) higher - use it instead
+//                                 of anode measurements
+//
+  TOFBrcal::init(slope,td2p,logqin,tovta,tovtd,asatl);// fill static variables
+//
+//---> bar dependent variables :
+//
+  int sid,brt;
+  number gna[2],gnd[2],qath,qdth,a2dr,tth,strat;
+  number fstrd,tzer,mip2q;
+  number tzero[SCBTPN]={4.26,5.02,5.55,5.88,6.};// tempor T0 for bar types
+//
+  // read from file or DB:
+    gna[0]=1.; // tempor
+    gna[1]=1.;
+    gnd[0]=1.;
+    gnd[1]=1.;
+    qath=TOFDBc::daqthr(3); // (pC) thresh. at shaper inp.(anode) (may be diff.
+//              from TOFDBc::daqthr(3) in reality !!!, but proportional to him)
+    qdth=TOFDBc::daqthr(4); // ...................        (dinode) ................
+    mip2q=117.;//(pC/mev), dE(mev)_at_counter_center->Q(pC)_at_PM_anode(2x3-sum)
+    //                     (depends on bar-type)
+    a2dr=1./TOFDBc::di2anr();// anode_to_dinode signal ratio from MC
+    tth=TOFDBc::daqthr(0); // (mV), time-discr. thresh.(not needed now)
+    strat=TOFDBc::strrat(); // tempor stratcher ratio
+    fstrd=TOFDBc::accdel(0)-TOFDBc::accdel(1);//(ns),fast-slow TDC trigger delay
+    int mrfp;
+    mrfp=SCANPNT/2+1;
+    for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
+      rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
+    }
+  //
+  for(ila=0;ila<SCLRS;ila++){
+    ibrm=SCBRS[ila];
+    for(ibr=0;ibr<ibrm;ibr++){
+      sid=100*(ila+1)+(ibr+1);
+      brt=TOFDBc::brtype(ila,ibr);
+      tzer=tzero[brt-1];// tempor (later should be red from DB)
+      scbrcal[ila][ibr]=TOFBrcal(sid,brt,gna,gnd,qath,qdth,a2dr,tth
+                                ,strat,fstrd,tzer,mip2q,scp,rlo);
+    }
   }
- HPRINT(1002);
- HPRINT(1003);
+  int16u vtes1(0);
+  cerr<<"*int16u* test :"<<sizeof(vtes1)<<'\n';
+  int vtes2(0);
+  cerr<<"*int* test :"<<sizeof(vtes2)<<'\n';
+  integer vtes3(0);
+  cerr<<"*integer* test :"<<sizeof(vtes3)<<'\n';
+  float vtes4(0);
+  cerr<<"*float* test :"<<sizeof(vtes4)<<'\n';
+  number vtes5(0);
+  cerr<<"*number* test :"<<sizeof(vtes5)<<'\n';
 //
-//      test bitstream stuff :
- unsigned short int ain[3]={0,0,0};
- unsigned short int bin[3]={0x000F,0xFFFF,0xF000};
- unsigned short int cin[3]={0xF00F,0x0F0F,0xF00F};
- AMSBitstr aa(3);
- aa.setbit(8,23);
- aa.display("aa set");
- aa.clrbit(16,23);
- aa.display("clr-bit aa");
- aa.clrbit(2,1);
- aa.display("clr aa");
- aa.setbit(2,1);
- aa.display("all bits aa");
- AMSBitstr b(3,bin);
- b.display("b");
- AMSBitstr c(3,cin);
- c.display("c");
- AMSBitstr a(c);
- a.display("a(c)");
- aa.clrbit(2,1);
- aa = c;
- aa.display("aa=c");
-// AMSBitstr a;
-// a.display("cr. a");
- AMSBitstr aaa;
- aaa.clrbit(1,0);
- aaa=b|c;
- aaa.display("aaa=b|c");
- aaa.setbit(1,0);
- aaa.display("aaa all bits");
- aaa=b&c;
- aaa.display("aaa=b&c");
+ } // <--- end of MC branch --
+//---------------------------------------------------------------------
+ else{ //                                                For Real Data :
+ }
+//----
 }
 //=====================================================================
 void AMSEvent::_sictcinitrun(){
@@ -543,10 +574,19 @@ void AMSEvent:: _sitrdevent(){
 //===================================================================
 void AMSEvent:: _sitofevent(){
   AMSContainer *p;
-//  AMSTOFPhel::build(); // Geant_hits-->Phel_hits
-//  AMSTOFTovt::build(); // Phel_hits-->Tovt_hits
-//  AMSTOFRawEvent::mc_build(); // Tovt_hits-->RawEvent_hits
-  AMSTOFRawCluster::sitofdigi();
+//
+  AMSgObj::BookTimer.start("SITOFDIGI");
+  AMSgObj::BookTimer.start("TOF:Ghit->Tovt");
+  TOFJobStat::addmc(0);
+  AMSTOFTovt::build(); // Geant_hits-->Tovt_hits
+  AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
+//
+  AMSgObj::BookTimer.start("TOF:Tovt->RwEv");
+  AMSTOFRawEvent::mc_build(); // Tovt_hits-->RawEvent_hits
+//  AMSTOFRawCluster::sitofdigi();
+  AMSgObj::BookTimer.stop("TOF:Tovt->RwEv");
+//
+  AMSgObj::BookTimer.stop("SITOFDIGI");
 #ifdef __AMSDEBUG__
   //  p =getC("AMSTOFRawEvent",0);
   //  if(p && AMSEvent::debug)p->printC(cout);
