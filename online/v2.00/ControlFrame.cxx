@@ -236,28 +236,72 @@ AMSControlFrame::~AMSControlFrame(){
    fMenuBar->AddPopup("&File", fSaveAsMenu, fMenuBarItemLayout);
    fMenuBar->AddPopup("&Control", fDetMenu, fMenuBarItemLayout);
    AddFrame(fMenuBar, fMenuBarLayout);
+   const int tggcolor=3;
+   const int tgbcolor=7;
+   const int tgccolor=150;
 
    // Create Group frames
    //  TGCompositeFrame * f2 = new TGCompositeFrame(this, 80, 40, kHorizontalFrame| kSunkenFrame);
-   _pbutfr= new TGGroupFrame(this, new TGString("Subdetectors"));
-   _pcontrolfr= new TGGroupFrame(this, new TGString("Controls"));
-   _pcyclefr= new TGGroupFrame(this, new TGString("Cycle"));
-   _plogfr= new TGGroupFrame(this, new TGString("Scale"));
+   SetWindowAttributes_t wattr;
+   _pbutfr= new TGGroupFrame(this, new TGString("Subdetectors"),kVerticalFrame );
+   wattr.fMask = kWABackPixel | kWAEventMask;
+   wattr.fBackgroundPixel = tggcolor;
+   wattr.fEventMask = kExposureMask;
+   gGXW->ChangeWindowAttributes(_pbutfr->GetId(), &wattr);
 
-   fL1 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
+
+   _pcontrolfr= new TGGroupFrame(this, new TGString("Controls"));
+   wattr.fMask = kWABackPixel | kWAEventMask;
+   wattr.fBackgroundPixel = tggcolor;
+   wattr.fEventMask = kExposureMask;
+   gGXW->ChangeWindowAttributes(_pcontrolfr->GetId(), &wattr);
+
+   _pcyclefr= new TGGroupFrame(this, new TGString("Cycle"));
+   wattr.fMask = kWABackPixel | kWAEventMask;
+   wattr.fBackgroundPixel = tggcolor;
+   wattr.fEventMask = kExposureMask;
+   gGXW->ChangeWindowAttributes(_pcyclefr->GetId(), &wattr);
+   _plogfr= new TGGroupFrame(this, new TGString("Scale"));
+   wattr.fMask = kWABackPixel | kWAEventMask;
+   wattr.fBackgroundPixel = tggcolor;
+   wattr.fEventMask = kExposureMask;
+   gGXW->ChangeWindowAttributes(_plogfr->GetId(), &wattr);
+
+   fL1 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 0, 0, 2, 2);
    fL2 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
    fL3 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
    fL4 = new TGLayoutHints(kLHintsLeft | kLHintsExpandX |kLHintsExpandY, 1, 1, 1, 1);
 
 
-   for(i=0;i<7;i++)_pbutton[i]=new TGTextButton(_pbutfr, sSubDetMenu[i], 200+i);
-   for(i=0;i<7;i++)_pcycle[i]=new TGCheckButton(_pcyclefr, sSubDetMenu[i], 300+i);
+   for(i=0;i<7;i++){
+     _pbutton[i]=new TGTextButton(_pbutfr, sSubDetMenu[i], 200+i);
+     wattr.fMask = kWABackPixel | kWAEventMask;
+     wattr.fBackgroundPixel = tgbcolor;
+     wattr.fEventMask = kExposureMask;
+     gGXW->ChangeWindowAttributes(_pbutton[i]->GetId(), &wattr);
+
+   }
+   for(i=0;i<7;i++){
+     _pcycle[i]=new TGCheckButton(_pcyclefr, sSubDetMenu[i], 300+i);
+     wattr.fMask = kWABackPixel | kWAEventMask;
+     wattr.fBackgroundPixel = tggcolor;
+     wattr.fEventMask = kExposureMask;
+     gGXW->ChangeWindowAttributes(_pcycle[i]->GetId(), &wattr);
+   }
    _plogx[0]=new TGRadioButton(_plogfr,"LinX",501);
    _plogx[1]=new TGRadioButton(_plogfr,"LogX",502);
    _plogy[0]=new TGRadioButton(_plogfr,"LinY",503);
    _plogy[1]=new TGRadioButton(_plogfr,"LogY",504);
    _plogz[0]=new TGRadioButton(_plogfr,"LinZ",505);
    _plogz[1]=new TGRadioButton(_plogfr,"LogZ",506);
+   for(i=0;i<2;i++){
+     wattr.fMask = kWABackPixel | kWAEventMask;
+     wattr.fBackgroundPixel = tggcolor;
+     wattr.fEventMask = kExposureMask;
+     gGXW->ChangeWindowAttributes(_plogx[i]->GetId(), &wattr);
+     gGXW->ChangeWindowAttributes(_plogy[i]->GetId(), &wattr);
+     gGXW->ChangeWindowAttributes(_plogz[i]->GetId(), &wattr);
+   }
    for(i=0;i<7;i++)_pbutton[i]->Associate(this);
    for(i=0;i<7;i++)_pcycle[i]->Associate(this);
    for(i=0;i<2;i++)_plogx[i]->Associate(this);   
@@ -269,6 +313,12 @@ AMSControlFrame::~AMSControlFrame(){
    _pcontrol[0]=new TGTextButton(_pcontrolfr,"Stop Timer",401);
    _pcontrol[1]=new TGTextButton(_pcontrolfr,"Fill",402);
    _pcontrol[2]=new TGTextButton(_pcontrolfr,"Reset",403);
+   for(i=0;i<3;i++){
+     wattr.fMask = kWABackPixel | kWAEventMask;
+     wattr.fBackgroundPixel = tgccolor;
+     wattr.fEventMask = kExposureMask;
+     gGXW->ChangeWindowAttributes(_pcontrol[i]->GetId(), &wattr);
+   }
    for(i=0;i<3;i++)_pcontrol[i]->Associate(this);
    for(i=0;i<3;i++)_pcontrolfr->AddFrame(_pcontrol[i],fL1);
    for(i=0;i<7;i++)_pbutfr->AddFrame(_pbutton[i],fL1);
@@ -279,15 +329,16 @@ AMSControlFrame::~AMSControlFrame(){
    _plogx[0]->SetState(kButtonDown);   
    _plogy[0]->SetState(kButtonDown);   
    _plogz[0]->SetState(kButtonDown);   
-   AddFrame(_pcontrolfr,fL1);
+
+   
+   AddFrame(_pcontrolfr,fL2);
    AddFrame(_plogfr,fL2);
    AddFrame(_pbutfr,fL3);
    AddFrame(_pcyclefr,fL4);
-
-
    MapSubwindows();
    Resize(110,768);
-   //Resize(GetDefaultSize());
+   //    _pcontrolfr->Resize(_pcontrolfr->GetWidth(),_pcontrolfr->GetHeight()/2);
+   //_plogfr->Resize(GetDefaultSize());
 
    // position relative to the parent's window
    Window_t wdum;
