@@ -148,6 +148,10 @@ void AMSVtx::set_vertex(){
           _Vertex[j] += poi[1][j] * fabs(_Ptrack[i1]->getpirid())/mom;
         }
        }
+       else{
+         cerr<<"AMSVTx::set_vertex-W-VertexZTooBig "<<poi[0]<<" "<<poi[1]<<endl; 
+         setstatus(AMSDBc::BAD);
+       }
     }
    
   }

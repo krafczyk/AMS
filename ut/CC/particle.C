@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.148 2003/12/18 16:12:34 mdelgado Exp $
+//  $Id: particle.C,v 1.149 2004/01/06 16:13:17 choutko Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -1126,7 +1126,8 @@ _ptrd(0),_prich(0),_pShower(0),_pcharge(0),_pbeta(0){
     _ErrBeta=oldebeta; 
    } 
 // make false track
-  _ptrack=new AMSTrTrack(_Theta,_Phi,_Coo);
+  if(!_Charge)_ptrack=new AMSTrTrack(_Theta,_Phi,_Coo);
+  else _ptrack= new AMSTrTrack(AMSDir(_Theta,_Phi),_Coo,_Momentum/_Charge,_ErrMomentum/_Momentum/_Momentum); 
   _ptrack->setstatus(AMSDBc::TOFFORGAMMA); 
 
 }

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.124 2003/12/17 17:06:04 choutko Exp $
+//  $Id: root.h,v 1.125 2004/01/06 16:13:23 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -1353,7 +1353,7 @@ public:
       -# Optionally has fRichRing sett up in case Rich was used in velocity determination
      - Particle without TrTrackR:
       -# Derived from ChargeR, BetaR and optionally TrdTrack  objects
-      -# Has rigidity set up to 100000000 gev
+      -# Has rigidity set up to 100000000 gev 
       -# Has fBeta,fCharge set up
       -# fTrTrack set to -1
       -# Optionally has fTrdTrack set up in case TrdTrackR was found
@@ -1364,8 +1364,10 @@ public:
       -# fBeta, fCharge, fTrTrack, fTrdTrack and fRichRing set to -1
       -# Velocity set to +-1 depend on shower ditection
       -# Two particles are in fact created with charg set to +-1
-     - Particle based on VertexR (i.e. converted photon candidate):
-      -# Charge set to 0
+     - Particle based on VertexR (i.e. converted photon candidate or electron/positron ):
+      _# fTrTrack set to -1
+      _# fVertex set up
+      -# Charge set to 0 or +-1 
       -# Velocity may or may not be set depending on fBeta index
 
 \author v.choutko@cern.ch
