@@ -1,4 +1,4 @@
-//  $Id: richgeom.C,v 1.16 2002/08/28 10:09:06 delgadom Exp $
+//  $Id: richgeom.C,v 1.17 2002/10/30 14:58:16 mdelgado Exp $
 #include <typedefs.h>
 #include <node.h>
 #include <snode.h>
@@ -11,6 +11,7 @@
 #include <commons.h>
 #include <richdbc.h>
 #include <richid.h>
+#include <richrec.h>
 
 #define SQR(x) ((x)*(x))
 
@@ -40,7 +41,7 @@ extern void richgeom02(AMSgvolume &);
 extern void ecalgeom02(AMSgvolume &);
 extern void trdgeom02(AMSgvolume &);
 extern void srdgeom02(AMSgvolume &);
-extern void Put_rad(AMSgvolume *,integer);
+extern void Put_rad(AMSgvolume *,integer,int);
 extern void Put_pmt(AMSgvolume *,integer);
 };
 
@@ -48,33 +49,76 @@ extern void Put_pmt(AMSgvolume *,integer);
 using namespace amsgeom;
 
 
-void amsgeom::Put_rad(AMSgvolume * mother,integer copia)
-{
+void amsgeom::Put_rad(AMSgvolume * mother,integer copia,int kind=1)  //kind=1 aerogel
+{                                                                    //kind=2 NaF: not implemented
   AMSNode *dummy;
   geant par[3],coo[3];
   number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.}; // {vx, vy, vz} 
   const integer rel=1;
 
-  par[0]=RICHDB::rad_length/2.-RICaethk/2.;
-  par[1]=RICHDB::rad_length/2.-RICaethk/2.;
-  par[2]=RICHDB::rad_height/2;
-  coo[0]=0;
-  coo[1]=0;
-  coo[2]=0;
-  
-  
-  mother->add(new AMSgvolume("RICH RAD",
-			     0,
-			     "RAD ",
-			     "BOX",
-			     par,
-			     3,
-			     coo,
-			     nrm,
-			     "ONLY",
-			     0,
-			     copia,
-			     rel));
+  if(kind==agl_kind){
+    
+    par[0]=RICHDB::rad_length/2.-RICaethk/2.;
+    par[1]=RICHDB::rad_length/2.-RICaethk/2.;
+    par[2]=RICHDB::rad_height/2;
+    coo[0]=0;
+    coo[1]=0;
+    coo[2]=0;
+    
+    
+    mother->add(new AMSgvolume("RICH RAD",
+			       0,
+			       "RAD ",
+			       "BOX",
+			       par,
+			       3,
+			       coo,
+			       nrm,
+			       "ONLY",
+			       0,
+			       copia,
+			       rel));
+  }else if(kind==naf_kind){
+    par[0]=RICHDB::rad_length/2.-RICaethk/2.;
+    par[1]=RICHDB::rad_length/2.-RICaethk/2.;
+    par[2]=RICHDB::naf_height/2.;
+    coo[0]=0;
+    coo[1]=0;
+    coo[2]=RICHDB::naf_height/2.-RICHDB::rad_height/2.;
+
+
+    mother->add(new AMSgvolume("RICH NAF",
+			       0,
+			       "NAF ",
+			       "BOX",
+			       par,
+			       3,
+			       coo,
+			       nrm,
+			       "ONLY",
+			       0,
+			       copia,
+			       rel));
+
+    par[2]=RICHDB::rad_height/2.-RICHDB::naf_height/2.;
+    coo[2]=RICHDB::naf_height/2;
+
+    mother->add(new AMSgvolume("VACUUM",
+			       0,
+			       "NAFV ",
+			       "BOX",
+			       par,
+			       3,
+			       coo,
+			       nrm,
+			       "ONLY",
+			       0,
+			       copia,
+			       rel));
+
+  }
+
+
 }
 
 
@@ -642,6 +686,115 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   //       <<endl;
 #endif
 
+
+
+
+#ifdef __AMSDEBUG__
+  // Test of the new tables with the radiator distribution
+  //  {
+  //    RichRadiatorTile rad_tiles;
+  //    integer copia=1;
+    
+  //    for(int n=0;n<rad_tiles.get_number_of_tiles()*rad_tiles.get_number_of_tiles();
+  //	n++){
+  //      if(rad_tiles.get_tile_kind(n)==1) {
+  //	cout <<"Rad tile number "<<n<<" x,y"<<rad_tiles.get_tile_x(n)<<" "<<rad_tiles.get_tile_y(n)<<endl;
+  //	cout <<"    **** Reconstructed as "<<rad_tiles.get_tile_number(rad_tiles.get_tile_x(n),rad_tiles.get_tile_y(n))<<endl;
+  //	cout <<"    **** Reconstructed as "<<rad_tiles.get_tile_number(rad_tiles.get_tile_x(n)+RICHDB::rad_length/3,rad_tiles.get_tile_y(n))<<endl;
+  //	cout <<"    **** Reconstructed as "<<rad_tiles.get_tile_number(rad_tiles.get_tile_x(n)-RICHDB::rad_length/3,rad_tiles.get_tile_y(n))<<endl;
+  //	cout <<"    **** Reconstructed as "<<rad_tiles.get_tile_number(rad_tiles.get_tile_x(n),rad_tiles.get_tile_y(n)+RICHDB::rad_length/3)<<endl;
+  //	cout <<"    **** Reconstructed as "<<rad_tiles.get_tile_number(rad_tiles.get_tile_x(n),rad_tiles.get_tile_y(n)-RICHDB::rad_length/3)<<endl;
+  //      }
+  //    } 
+  //  }
+#endif
+
+  integer copia1=1,copia2=1;
+  AMSNode *rad1,*rad2;
+  rad1=0;
+  rad2=0;
+
+  for(int n=0;n<RichRadiatorTile::get_number_of_tiles()*RichRadiatorTile::get_number_of_tiles();
+      n++){
+    if(RichRadiatorTile::get_tile_kind(n)==agl_kind){
+      // Here we put a tile with aerogel
+      
+      par[0]=RICHDB::rad_length/2;
+      par[1]=RICHDB::rad_length/2;
+      par[2]=RICHDB::rad_height/2;
+     
+      coo[0]=RichRadiatorTile::get_tile_x(n);
+      coo[1]=RichRadiatorTile::get_tile_y(n);
+      coo[2]=RICHDB::total_height()/2-RICHDB::rad_pos();
+ 
+      
+      rad1=rich->add(new AMSgvolume("RICH CARBON",
+				   0,
+				   "RADB",
+				   "BOX",
+				   par,
+				   3,
+				   coo,
+				   nrm,
+				   "ONLY",
+				   0,
+				   copia1++,
+				   rel));
+
+#ifdef __G4AMS__
+      if(MISCFFKEY.G4On)
+	Put_rad((AMSgvolume *)rad1,copia1-1);
+#endif
+
+
+    }else if(RichRadiatorTile::get_tile_kind(n)==naf_kind){
+      // Here we put a tile with NaF
+      
+      par[0]=RICHDB::rad_length/2;
+      par[1]=RICHDB::rad_length/2;
+      par[2]=RICHDB::rad_height/2;
+     
+      coo[0]=RichRadiatorTile::get_tile_x(n);
+      coo[1]=RichRadiatorTile::get_tile_y(n);
+      coo[2]=RICHDB::total_height()/2-RICHDB::rad_pos();
+ 
+      
+      rad2=rich->add(new AMSgvolume("RICH CARBON",
+				    0,
+				    "NAFB",
+				    "BOX",
+				    par,
+				    3,
+				    coo,
+				    nrm,
+				    "ONLY",
+				    0,
+				    copia2++,
+				    rel));
+      
+#ifdef __G4AMS__
+      if(MISCFFKEY.G4On)
+	Put_rad((AMSgvolume *)rad2,copia2-1);
+#endif
+
+
+    }
+
+    
+  }
+#ifdef __G4AMS__
+  if(MISCFFKEY.G3On){
+#endif
+    if(rad1)Put_rad((AMSgvolume *)rad1,1);
+    if(rad2)Put_rad((AMSgvolume *)rad2,1);
+#ifdef __G4AMS__
+  }
+#endif
+
+
+  /**************    OLD RADIATOR: DISABLED *********************
+
+
   geant xedge=RICHDB::rad_length/2.,yedge=RICHDB::rad_length/2., 
     lg,
     cl;
@@ -704,6 +857,9 @@ void amsgeom::richgeom02(AMSgvolume & mother)
 #ifdef __G4AMS__
   }
 #endif
+
+
+  *****************************/
 
 
   // Support structure: simple version
