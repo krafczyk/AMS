@@ -13,14 +13,13 @@ endif
 LIB_DIR := $(shell $(RUBY) -r rbconfig -e 'puts Config::CONFIG["sitedir"]')
 INC_DIR := $(shell $(RUBY) -r rbconfig -e 'puts Config::CONFIG["rubylibdir"] + "/" + Config::CONFIG["arch"]')
 
-ifndef AMSWD
-	AMSWD := ..
-endif
+AMSWD := ..
+AMSOBJDIR := $(AMSWD)/bin/$(MY_OS)
 
-ifeq  "$(OS)"  "Linux" 
-	AMSOBJDIR := $(AMSWD)/bin/$(MY_OS)/icc
-else
-	AMSOBJDIR := $(AMSWD)/bin/$(MY_OS)
+ifdef  AMSICC
+ifeq  "$(OS)"  "Linux"
+      AMSOBJDIR := $(AMSWD)/bin/$(MY_OS)/icc
+endif
 endif
 
 GCINCS=-I$(INC_DIR) -I$(AMSWD)/include -I$(ROOTSYS)/include
