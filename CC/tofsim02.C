@@ -1,4 +1,4 @@
-//  $Id: tofsim02.C,v 1.16 2002/03/20 09:41:24 choumilo Exp $
+//  $Id: tofsim02.C,v 1.17 2002/04/29 07:28:52 choumilo Exp $
 // Author Choumilov.E. 10.07.96.
 #include <tofdbc02.h>
 #include <iostream.h>
@@ -1989,7 +1989,7 @@ integer TOF2RawEvent::lvl3format(int16 *ptr, integer rest){
   int i,j,nrwt;
   int statdb[2];
   int16u pbitn,pbanti,pbup,pbdn,pbup1,pbdn1,hwid,crat;
-  int16u id,rwt[10];
+  int16u id,rwt[10],rwtn[10];
   int16 rawt;
 //
   pbitn=TOF2GC::SCPHBP;//phase bit position
@@ -2014,7 +2014,10 @@ integer TOF2RawEvent::lvl3format(int16 *ptr, integer rest){
       else{
         if(pbup!=0||pbup1!=0||pbdn==0||pbdn1==0)continue;//wrong  sequence, take next "4" 
       }
-      if(nrwt<10)rwt[nrwt]=(stdc[i+3]&pbanti);//1-st up-edge (in real time)
+      if(nrwt<10){
+        rwt[nrwt]=(stdc[i+3]&pbanti);//1-st (up)-edge (in real time)
+        rwtn[nrwt]=(stdc[i+2]&pbanti);//2nd (down=FT)-edge (in real time)
+      }
       nrwt+=1;
 //
       i+=3;// to go to next 4 good edges
@@ -2024,7 +2027,7 @@ integer TOF2RawEvent::lvl3format(int16 *ptr, integer rest){
 //---
   if(nrwt>0){
     if (rest < 3) return 0;
-    rawt=rwt[0];//use last 1st edge t-measurement from last(real time) "4's"
+    rawt=rwt[0]-rwtn[0];//t1-t2(FT) from last(real time) "4's"
     *(ptr)=hwid;
     *(ptr+1)=idsoft;
     *(ptr+2)=rawt;

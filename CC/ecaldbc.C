@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.35 2002/04/17 12:42:13 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.36 2002/04/29 07:28:52 choumilo Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <math.h>
@@ -525,9 +525,22 @@ void EcalJobStat::bookhist(){
       HBOOK1(ECHISTR+34,"ECLVL3: Epeak/Efront",80,0.,40.,0.);
       HBOOK1(ECHISTR+35,"ECLVL3: X-width",80,0.,80.,0.);
       HBOOK1(ECHISTR+36,"ECLVL3: Y-width",80,0.,80.,0.);
-      HBOOK1(ECHISTR+37,"ECLVL3: PM-colx signals(mev)",80,0.,160.,0.);
-      HBOOK1(ECHISTR+38,"ECLVL3: PM-coly signals(mev)",80,0.,160.,0.);
+      HBOOK1(ECHISTR+37,"ECLVL3: PM-colx signals(mev)",80,0.,240.,0.);
+      HBOOK1(ECHISTR+38,"ECLVL3: PM-coly signals(mev)",80,0.,240.,0.);
       HBOOK1(ECHISTR+39,"ECLVL3: EM-flag",3,-1.,2.,0.);
+      HBOOK1(ECHISTR+40,"ECLVL3: Z-cog",50,-180.,-130.,0.);
+      HBOOK1(ECHISTR+41,"ECLVL3: T-cog,sl1",80,-40.,40.,0.);
+      HBOOK1(ECHISTR+42,"ECLVL3: T-cog,sl2",80,-40.,40.,0.);
+      HBOOK1(ECHISTR+43,"ECLVL3: chi2y",50,0.,5.,0.);
+      HBOOK1(ECHISTR+44,"ECLVL3: tany",50,-1.,1.,0.);
+      HBOOK1(ECHISTR+45,"ECLVL3: TOF-4 Y-crs",80,-40.,40.,0.);
+      HBOOK1(ECHISTR+46,"ECLVL3: chi2x",50,0.,5.,0.);
+      HBOOK1(ECHISTR+47,"ECLVL3: tanx",50,-1.,1.,0.);
+      HBOOK1(ECHISTR+48,"ECLVL3: TOF-4 X-crs",80,-40.,40.,0.);
+      HBOOK1(ECHISTR+49,"ECLVL3: SL1-rms",50,0.,20.,0.);
+      HBOOK1(ECHISTR+50,"ECLVL3: SL2-rms",50,0.,20.,0.);
+      HBOOK1(ECHISTR+51,"ECLVL3: SL8-rms",50,0.,20.,0.);
+      HBOOK1(ECHISTR+52,"ECLVL3: SL9-rms",50,0.,20.,0.);
 //
       if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){// RLGA/FIAT part of REUN-calibration
         HBOOK1(ECHISTC,"ECCA: Track COS(theta) at EC front",100,-1.,1.,0.);
@@ -753,6 +766,19 @@ void EcalJobStat::outp(){
       HPRINT(ECHISTR+37);
       HPRINT(ECHISTR+38);
       HPRINT(ECHISTR+39);
+      HPRINT(ECHISTR+40);
+      HPRINT(ECHISTR+41);
+      HPRINT(ECHISTR+42);
+      HPRINT(ECHISTR+43);
+      HPRINT(ECHISTR+44);
+      HPRINT(ECHISTR+45);
+      HPRINT(ECHISTR+46);
+      HPRINT(ECHISTR+47);
+      HPRINT(ECHISTR+48);
+      HPRINT(ECHISTR+49);
+      HPRINT(ECHISTR+50);
+      HPRINT(ECHISTR+51);
+      HPRINT(ECHISTR+52);
     }
     if(ECREFFKEY.relogic[1]==1 || ECREFFKEY.relogic[1]==2){ // print RLGA/FIAT-hists
       HPRINT(ECHISTC);

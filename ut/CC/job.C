@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.403 2002/04/23 14:10:42 choutko Exp $
+// $Id: job.C,v 1.404 2002/04/29 07:28:52 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -248,7 +248,7 @@ void AMSJob::_sitrig2data(){
   TGL1FFKEY.trtype=0; //trigger type (0/1/2/3/4/5/6/7/8)
 // TOF :
 // these are additional requir. to "hardware"-defined TFMCFFKEY.trlogic[]
-  TGL1FFKEY.ntof=2;// min. fired TOF-planes
+  TGL1FFKEY.ntof=3;// min. fired TOF-planes
 // ANTI :
   TGL1FFKEY.nanti=20;// max. fired ANTI-paddles 
 //

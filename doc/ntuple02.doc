@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.35 2002/04/23 16:47:45 delgadom Exp $
+#  $Id: ntuple02.doc,v 1.36 2002/04/29 07:29:03 choumilo Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -429,6 +429,9 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
  * U*4  * [0,31]       * LVL3     * LVL3TRDHits(nlvl3) // trd hits no
  * U*4  * [0,31]       * LVL3     * LVL3HMult(nlvl3)  // trd hemnergy hits no
  * R*4  *              * LVL3     * LVL3TRDPar(2,nlvl3) // trd tan x,y
+ * I*4  * [-1,1]       * LVL3     * LVL3emag(nlvl3)   // ECemagn(-1/0/1=nonEM/unkn/EM)
+ * I*4  * [-1,1]       * LVL3     * LVL3ECmat(nlvl3)  // ECmatch(-1/0/1=noMatch/unkn/Match)
+ * R*4  *              * LVL3     * LVL3ECTOFcr(4,nlvl3)//Xcr/Ycr/TangX/TangY
 
 
 
@@ -447,7 +450,10 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
                                                       // 16-23 bits  
                                                       // as in daqevt.doc 
  * I*4  *          * LVL1     * LVL1ECALflag(nlvl1)   // ecalflag (1->MIP,
+ *                                                    //   2-> soft EM,
+ *                                                    //   3-> EM
 						      // +10->HiEnergy object
+						      
  * R*4  *          * LVL1     * LVL1ECtrsum(nlvl1)    // EC-energy trig.sum(Gev)                                // 2->EM-obj, 
 
 

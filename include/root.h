@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.57 2002/04/23 16:47:42 delgadom Exp $
+//  $Id: root.h,v 1.58 2002/04/29 07:29:03 choumilo Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -770,6 +770,9 @@ public:
   int   TRDHits[MAXLVL3];
   int   HMult[MAXLVL3];
   float TRDPar[MAXLVL3][2];
+  int ECemag[MAXLVL3];
+  int ECmatc[MAXLVL3];
+  float ECTOFcr[MAXLVL3][4];
 #ifdef __WRITEROOT__
   LVL3Ntuple02();
 ClassDef(LVL3Ntuple02,1)       //LVL3Ntuple02

@@ -1,4 +1,4 @@
-//  $Id: daqs2block.C,v 1.3 2002/03/20 09:41:16 choumilo Exp $
+//  $Id: daqs2block.C,v 1.4 2002/04/29 07:28:51 choumilo Exp $
 // 1.0 version 2.07.97 E.Choumilov
 
 #include <typedefs.h>
@@ -181,7 +181,7 @@ void DAQS2Block::buildraw(integer len, int16u *p){
 #ifdef __AMSDEBUG__
   if(lent != len){
     TOF2JobStat::addaq3(naddr,dtyp);
-    if(TFREFFKEY.reprtf[1]>=1 || ANTIRECFFKEY.reprtf[1]>=1 || CTCRECFFKEY.reprtf[1]>=1){
+    if(TFREFFKEY.reprtf[1]>=1 || ATREFFKEY.reprtf[1]>=1){
       cout<<"DAQS2Block::buildraw: length mismatch !!! for crate "<<naddr<<endl;
       cout<<"Length from bloc_header "<<len<<" but was read "<<lent<<endl;
     }

@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.99 2002/04/23 16:47:14 delgadom Exp $
+//  $Id: ntuple.C,v 1.100 2002/04/29 07:28:52 choumilo Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -108,7 +108,7 @@ void AMSNtuple::init(){
   "nantimc[0,200],AMCIdsoft(nantimc):I,AMCXcoo(3,nantimc),AMCtof(nantimc),AMCedep(nantimc)");
 
   HBNAME(_lun,"LVL3",&_lvl302.Nlvl3,
-  "nlvl3[0,2],LVL3TOF(nlvl3)[-1,255],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,63],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R");
+"nlvl3[0,2],LVL3TOF(nlvl3)[-1,255],LVL3TRD(nlvl3)[0,15],LVL3Tr(nlvl3)[0,15],LVL3Main(nlvl3),LVL3Dir(nlvl3)[-1,1],LVL3NTrHits(nlvl3)[0,1000],LVL3NPat(nlvl3)[0,10],LVL3Pat(2,nlvl3)[-1,250],LVL3Res(2,nlvl3):R,LVL3Time(nlvl3):R,LVL3ELoss(nlvl3):R,LVL3TRDHits(nlvl3)[0,63],LVL3HMult(nlvl3)[0,31],LVL3TRDPar(2,nlvl3):R,LVL3emag(nlvl3)[-1,1],LVL3ECmat(nlvl3)[-1,1],LVL3ECTOFcr(4,nlvl3):R");
 
   HBNAME(_lun,"LVL1",&_lvl102.Nlvl1,
   "nlvl1[0,2],mode(nlvl1),LVL1Flag(nlvl1)[-10,20],LVL1TOFPatt(4,nlvl1),LVL1TOFPatt1(4,nlvl1),LVL1AntiPatt(nlvl1),LVL1ECALflag(nlvl1),LVL1ECtrsum(nlvl1):R");

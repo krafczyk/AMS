@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.12 2002/04/17 12:42:28 choumilo Exp $
+//  $Id: trigger302.h,v 1.13 2002/04/29 07:29:03 choumilo Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -20,7 +20,8 @@ const integer maxtof=1000;
 const integer maxtrpl=10;
 const integer TRDIN=1;
 const integer TOFIN=2;
-const integer ECIN=4;
+const integer ECEMIN=4;
+const integer ECMATIN=8;
 const integer maxufe=20;
 const integer maxhitstrd=12;
 const integer maxtrd=maxufe*maxhitstrd;
@@ -59,7 +60,8 @@ protected:
  uinteger _TriggerInputs;   //   0 Default
                             //   1  Doesnot Require TRD      
                             //   2  Doesnot Require TOF Timing      
-                            //   4  Doesnot Require ECAL info      
+                            //   4  Doesnot Require EC EM-info      
+                            //   8  Doesnot Require EC Match-info      
 
  integer _TOFTrigger;       //  -1 No Matrix
                             //   0 Too Many Hits
@@ -101,7 +103,11 @@ protected:
                             // bit  10  Negative Rigidity(Momentum) found
                             // bit  11  High Gamma (TRD)  
                             // bit  12   Heavy Ion (Tracker)
-                            // bit  13 Prescaled event  
+                            // bit  13 Prescaled event  (8192)
+                            // bit  14 No EC activity (Etot<MIP)  
+                            // bit  15 EC EM-object OR Etot>20gev  
+                            // bit  16 No EC-object for matching  
+                            // bit  17 EC/(TOF+TRD) matching OK 
 
 // TOF Time Part
  integer _TOFDirection;//(-1->up;+1->down;0->unknown)
@@ -111,7 +117,8 @@ protected:
 // ECAL electromagneticity/track_matching Part
 //
  integer _ECemag;//(-1->NonEmag; 0->unknown; 1->Emag;)
- integer _ECtrmat;//(0->unknown;-1->NoMatch;1->Match)
+ integer _ECmatc;//(0->unknown(noObject);-1->NoMatching;1->Matching)
+ geant _ECtofcr[4];//x/y/tgx/tgy-cross. with tof-3/4
 
 
  
@@ -214,12 +221,14 @@ static geant _CooMatrix[trdid::nute][trdconst::maxtube][trdid::nute-1][trdconst:
  static geant _ECadc2mev;
  static geant _ECh2lrat;
  static geant _ECpedsig;
- static geant _EC1pmdx;
- static geant _EC1pmx0;
- static geant _EC1pmy0;
+ static geant _ECpmdx;
+ static geant _ECpmx0;
+ static geant _ECpmy0;
  static int   _ECpmpsl;
  static geant _ECpmdz; 
- static geant _EC1pmz;
+ static geant _ECpmz;
+ static geant _ECcrz3;
+ static geant _ECcrz4;
 
 
 
@@ -269,10 +278,13 @@ public:
  bool UseTOFTime(){return (_TriggerInputs&trigger302const::TOFIN) ==0;}
 
 // ECAL
- bool UseECinfo(){return (_TriggerInputs&trigger302const::ECIN) ==0;}
+ bool UseECEMinfo(){return (_TriggerInputs&trigger302const::ECEMIN) ==0;}
+ bool UseECMATinfo(){return (_TriggerInputs&trigger302const::ECMATIN) ==0;}
  void setecemag(integer d);
- void setectrmat(integer d);
  integer getecemag(){return _ECemag;}
+ void setecmatc(integer d);
+ integer getecmatc(){return _ECmatc;}
+ void setectofcr(geant c[2], geant tg[2]);
 
 
  // Interface with DAQ

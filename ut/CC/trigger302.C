@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.16 2002/04/17 12:42:14 choumilo Exp $
+//  $Id: trigger302.C,v 1.17 2002/04/29 07:28:53 choumilo Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofsim02.h>
@@ -183,12 +183,14 @@ integer TriggerLVL302::_TrackerOtherTDR[NTRHDRP][trid::ncrt];
   geant TriggerLVL302::_ECadc2mev;
   geant TriggerLVL302::_ECh2lrat;
   geant TriggerLVL302::_ECpedsig;
-  geant TriggerLVL302::_EC1pmdx;
-  geant TriggerLVL302::_EC1pmx0;
-  geant TriggerLVL302::_EC1pmy0;
+  geant TriggerLVL302::_ECpmdx;
+  geant TriggerLVL302::_ECpmx0;
+  geant TriggerLVL302::_ECpmy0;
   int   TriggerLVL302::_ECpmpsl;
   geant TriggerLVL302::_ECpmdz; 
-  geant TriggerLVL302::_EC1pmz;
+  geant TriggerLVL302::_ECpmz;
+  geant TriggerLVL302::_ECcrz3;
+  geant TriggerLVL302::_ECcrz4;
 
 
 
@@ -373,12 +375,14 @@ void TriggerLVL302::init(){
  _ECadc2mev=2.35;
  _ECh2lrat=16;
  _ECpedsig=2;//max. Ped's sigma
- _EC1pmdx=ECALDBc::rdcell(7);//transv.pitch(1.8cm)
- _EC1pmx0=0;//EC-center X-shift
- _EC1pmy0=0;//EC-center Y-shift
+ _ECpmdx=ECALDBc::rdcell(7);//transv.pitch(1.8cm)
+ _ECpmx0=ECALDBc::gendim(5);//EC-center X-shift
+ _ECpmy0=ECALDBc::gendim(6);//EC-center Y-shift
  _ECpmpsl=ECALDBc::slstruc(4);//pms/sl(36)
  _ECpmdz=ECALDBc::gendim(9)+2*ECALDBc::gendim(10);//PM-dz(1.85cm) 
- _EC1pmz=ECALDBc::gendim(7)-_ECpmdz/2;//1st PM z-pos
+ _ECpmz=ECALDBc::gendim(7);//1st sl front z-pos
+ _ECcrz3=0.5*(TOF2DBc::getzsc(2,3)+TOF2DBc::getzsc(2,4));//z-pos TOF-3(X)(~ cm)
+ _ECcrz4=0.5*(TOF2DBc::getzsc(3,3)+TOF2DBc::getzsc(3,4));//z-pos TOF-4(Y)(~ cm)
 //-----------------   
   
    
@@ -739,8 +743,14 @@ void TriggerLVL302::setecemag(integer val){
   _ECemag=val;
 }
 //----
-void TriggerLVL302::setectrmat(integer val){
-  _ECtrmat=val;
+void TriggerLVL302::setecmatc(integer val){
+  _ECmatc=val;
+}
+void TriggerLVL302::setectofcr(geant co[2], geant tg[2]){
+  _ECtofcr[0]=co[0];
+  _ECtofcr[1]=co[1];
+  _ECtofcr[2]=tg[0];
+  _ECtofcr[3]=tg[1];
 }
 //----------------------------------------------------------------
   integer TriggerLVL302::toftrdok(){ 
@@ -773,7 +783,7 @@ out:
     }
     else return 1; 
  }
-
+//---------------------------------------------
   void TriggerLVL302::preparetracker(){
    int toftop[2]={1,0};
     int tofbot[2]={2,3};
@@ -1030,23 +1040,25 @@ geant TriggerLVL302::Discriminator(integer nht){
 //===> ECAL: create Edep-pattern, check EM, Tracker-matching:
 //
     int pmc,pm,sl,proj,ip;
-    number ah,al,amp,etot,efrnt,ebase,epeak;
+    number ah,al,amp,ectot,efrnt,ebase,epeak;
     number EClprof[ECSLMX];
-    number ECtprofx[5][ECPMSMX];
-    number ECtprofy[5][ECPMSMX];
+    number ECemap[ECSLMX][ECPMSMX];
     geant ecolx,ecoly;
+    geant ech2x(-1),ech2y(-1);
+    geant ectfcr[2]={999,999};
+    geant ecrtg[2]={0,0};
     int ncolx,ncoly;
     plvl3->setecemag(0);//reset EC-emag flag
-    plvl3->setectrmat(0);//reset EC-trmat flag
-    etot=0;
+    plvl3->setecmatc(0);//reset EC-match flag
+    plvl3->setectofcr(ectfcr,ecrtg);//reset EC-tof cross.
+    ectot=0;
 //
-    if(plvl3->UseECinfo()){// <--- use ECAL info
-      for(int i=0;i<ECSLMX;i++)EClprof[i]=0;
-      for(int i=0;i<5;i++){
-      for(int j=0;j<ECPMSMX;j++){
-        ECtprofx[i][j]=0;
-        ECtprofy[i][j]=0;
-      }
+  if(plvl3->UseECEMinfo() || plvl3->UseECMATinfo()){// <--- use ECAL info
+      for(int i=0;i<ECSLMX;i++){
+        EClprof[i]=0;
+	for(int j=0;j<ECPMSMX;j++){
+	  ECemap[i][j]=0;
+	}
       }
       ptr=auxecal.readecal(1);
       while(ptr){
@@ -1065,19 +1077,14 @@ geant TriggerLVL302::Discriminator(integer nht){
 	  }
 	  amp*=_ECadc2mev;//ADCch->mev
 	  EClprof[sl]+=amp;
-	  etot+=amp;
-          ip=sl%2;
-          if(ip==0)proj=ECALDBc::slstruc(1);// proj (0/1->X/Y)
-          else proj=1-ECALDBc::slstruc(1);
-	  if(proj>0){// Y-proj
-	    ECtprofy[sl/2][pm]+=amp;
-	  }
-	  else{//X-proj
-	    ECtprofx[(sl+1)/2][pm]+=amp;
-	  }
+	  ectot+=amp;
+	  ECemap[sl][pm]+=amp;
 	}
         ptr=auxecal.readecal();//to take next
       }//---> endof raw hit loop
+//
+//
+//---> calc. electromagneticity:
 //
       efrnt=EClprof[0]+EClprof[1]+EClprof[2];
       ebase=EClprof[0]+EClprof[ECSLMX-1];
@@ -1091,56 +1098,227 @@ geant TriggerLVL302::Discriminator(integer nht){
       int wxcut(10);
       int wycut(14);
       geant p2brat,p2frat;
-      if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+31,geant(etot),1.);
-      if(etot>=etcut){// >= Mip
+      if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+31,geant(ectot),1.);
+      if(ectot>=etcut){// >= Mip
         if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+32,geant(efrnt),1.);
 	if(efrnt<efrcut){
-	  plvl3->setecemag(-1);//nonEC
+	  plvl3->setecemag(-1);//nonEM
 	  goto ecfin1;
 	}
         if(ebase>0)p2brat=epeak/ebase;
         else p2brat=39.5;
         if(p2brat>39.5)p2brat=39.5;
-	if(etot<esep1){
+	if(ectot<esep1){
             if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+33,p2brat,1.);
 //            if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+34,p2frat,1.);
 	    if(p2brat<p2bcut){
-	      plvl3->setecemag(-1);//nonEC
+	      plvl3->setecemag(-1);//nonEM
 	      goto ecfin1;
 	    }
 	}
-	if(etot<esep2){//shower width check
-	  ncolx=0;
-	  ncoly=0;
-          for(int j=0;j<ECPMSMX;j++){
-	    ecolx=0;
-	    ecoly=0;
-            for(int i=0;i<5;i++){
-              ecolx+=ECtprofx[i][j];
-              ecoly+=ECtprofy[i][j];
+	if(ectot<esep2){//shower width check
+          ncolx=0;
+          ncoly=0;
+          for(pm=0;pm<ECPMSMX;pm++){ // "shower width" calculation
+            ecolx=0;
+            ecoly=0;
+            for(sl=0;sl<ECSLMX-1;sl+=2)ecoly+=ECemap[sl][pm];
+            if(ecoly>ewthr)ncoly+=1.;
+            for(sl=1;sl<ECSLMX-1;sl+=2)ecolx+=ECemap[sl][pm];
+            if(ecolx>ewthr)ncolx+=1.;
+            if(ECREFFKEY.reprtf[0]!=0){
+              if(ecolx>0)HF1(ECHISTR+37,ecolx,1.);
+              if(ecoly>0)HF1(ECHISTR+38,ecoly,1.);
             }
-	    if(ECREFFKEY.reprtf[0]!=0){
-	      if(ecolx>0)HF1(ECHISTR+37,ecolx,1.);
-	      if(ecoly>0)HF1(ECHISTR+38,0.86*ecoly,1.);//0.86 due to 5 SL's (in X-proj 4)
-	    }
-	    if(ecolx>ewthr)ncolx+=1;
-	    if((0.86*ecoly)>ewthr)ncoly+=1;//0.86 due to 5 SL's (in X-proj 4)
-          }
+          }//--->endof width calc.
           if(ECREFFKEY.reprtf[0]!=0){
 	    HF1(ECHISTR+35,geant(ncolx),1.);
             HF1(ECHISTR+36,geant(ncoly),1.);
 	  }
-	  if(ncolx>=wxcut || ncoly>=wycut){
-	    plvl3->setecemag(-1);//nonEC
+	  if(ncolx>wxcut || ncoly>wycut){
+	    plvl3->setecemag(-1);//nonEM
 	    goto ecfin1;
 	  }
 	}
-        plvl3->setecemag(1);//EC
+	plvl3->setecemag(1);//EM + Etot>Esep2
       }//---> endof >=Mip check
  ecfin1:
       if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+39,geant(plvl3->getecemag()),1.);
-    }//---> endof UseECinfo check 
-//---------
+//
+// ---> calc. sl-COG's :
+//
+   number ecogt[ECSLMX],ecogl,crms[ECSLMX];
+   geant ectx(0),ecty(0),ecx0(0),ecy0(0);
+   geant eccrxe(0),eccrye(0),ectxe(0),ectye(0);
+   number etl[ECSLMX];
+   number cel2,epm,els,epmin;
+   int npmcl[ECSLMX];
+//
+   if(plvl3->UseECMATinfo()){//use EC-Match info
+   if(ectot>=etcut){//>=MIP check
+      ecogl=0;
+      els=0;
+      for(sl=0;sl<ECSLMX;sl++){//SL-loop to calc. coo/rms
+        etl[sl]=0;
+	ecogt[sl]=0;
+	npmcl[sl]=0;
+	cel2=0;
+	crms[sl]=0;
+        if(EClprof[sl]<15)continue;//below MIP/sl energy-deposition.
+        epmin=0.08*EClprof[sl];
+	if(sl==0)epmin=0.2*EClprof[sl];//higher thr(to suppress low-en bremstr-hits) 
+        for(pm=0;pm<ECPMSMX;pm++){
+	  epm=ECemap[sl][pm];
+	  if(epm>epmin){
+	    etl[sl]+=epm;
+	    ecogt[sl]+=(pm+1)*epm;
+	    cel2+=(pm+1)*(pm+1)*epm;
+	    npmcl[sl]+=1;
+	  }
+	}
+	if(etl[sl]>0){//calc. cog/rms
+	  ecogt[sl]/=etl[sl];//sl CoG in pm-units
+	  cel2/=etl[sl];
+	  crms[sl]=cel2-ecogt[sl]*ecogt[sl];//rms**2
+	  if(crms[sl]<0)crms[sl]=0;
+	  else crms[sl]=sqrt(crms[sl])*_ECpmdx;// in cm
+	  if(crms[sl]==0)crms[sl]=_ECpmdx/sqrt(12);//for 1-pm cluster
+	  ecogt[sl]=-0.5*_ECpmdx*_ECpmpsl+_ECpmdx*(ecogt[sl]-0.5);//cog in cm
+	  if(sl%2==0)ecogt[sl]+=_ECpmy0;//tempor 1st sl->Y
+	  else ecogt[sl]+=_ECpmx0;
+	  ecogl+=(sl+1)*etl[sl];
+	  els+=etl[sl];
+	  if(ECREFFKEY.reprtf[0]!=0){
+	    if(sl==0)HF1(ECHISTR+41,geant(ecogt[sl]),1.);
+	    if(sl==1)HF1(ECHISTR+42,geant(ecogt[sl]),1.);
+	    if(sl==0)HF1(ECHISTR+49,geant(crms[sl]),1.);
+	    if(sl==1)HF1(ECHISTR+50,geant(crms[sl]),1.);
+	    if(sl==7)HF1(ECHISTR+51,geant(crms[sl]),1.);
+	    if(sl==8)HF1(ECHISTR+52,geant(crms[sl]),1.);
+	  }
+	}
+      }//--->endof sl-loop
+//
+      if(els>0){//calc. z-cog(longit)
+        ecogl/=els;
+	ecogl=_ECpmz-_ECpmdz*(ecogl-0.5);//z-cog in cm
+	if(ECREFFKEY.reprtf[0]!=0)HF1(ECHISTR+40,geant(ecogl),1.);
+      }
+//
+//---> linear fit in proj:
+//
+      geant fpnt,suz,sux,suxz,suz2,sud,sg2,ct,cz,ctsg,slim(15);
+      fpnt=0;
+      suz=0;
+      sux=0;
+      suxz=0;
+      suz2=0;
+      sud=0.;
+      for(sl=0;sl<ECSLMX;sl+=2){//for Y-proj
+        ct=ecogt[sl];
+	ctsg=crms[sl];
+	sg2=ctsg*ctsg;
+	cz=_ECpmz-_ECpmdz*(sl+0.5);
+	slim=7;
+	if(sl<3)slim=4;
+	if(ctsg>0 && ctsg<slim){
+	  fpnt+=1;
+          sud+=1./sg2;
+          sux+=ct/sg2;
+          suz+=cz/sg2;
+          suz2+=cz*cz/sg2;
+          suxz+=ct*cz/sg2;
+	}
+      }
+      if(fpnt>=3){//calc. tan, cross, chi2
+        ecty=(sud*suxz-sux*suz)/(sud*suz2-suz*suz);
+        ecy0=(sux*suz2-suxz*suz)/(sud*suz2-suz*suz);
+        ech2y=0;
+        for(sl=0;sl<ECSLMX;sl+=2){//calc. chi2
+	  ctsg=crms[sl];
+	  slim=7;
+	  if(sl<3)slim=4;
+	  if(ctsg>0 && ctsg<slim){
+            ct=ecogt[sl];
+	    cz=_ECpmz-_ECpmdz*(sl+0.5);
+            ech2y+=pow((ecy0+ecty*cz-ct)/ctsg,2);
+	  }
+        }
+        ech2y/=geant(fpnt-2);
+	ectfcr[1]=ecty*_ECcrz4+ecy0;//Y-crossing with TOF-plane 4
+        eccrye=2.4+11.2/sqrt(ectot);//err.estim
+        if(eccrye>9)eccrye=9;
+        if(eccrye<3.8)eccrye=3.8;
+	ecrtg[1]=ecty;
+        if(ECREFFKEY.reprtf[0]!=0){
+	  HF1(ECHISTR+43,ech2y,1.);
+	  HF1(ECHISTR+44,ecty,1.);
+	}
+      }
+//------
+      fpnt=0;
+      suz=0;
+      sux=0;
+      suxz=0;
+      suz2=0;
+      sud=0.;
+      for(sl=1;sl<ECSLMX-1;sl+=2){//for X-proj
+        ct=ecogt[sl];
+	ctsg=crms[sl];
+	sg2=ctsg*ctsg;
+	cz=_ECpmz-_ECpmdz*(sl+0.5);
+	slim=7;
+	if(sl<3)slim=4;
+	if(ctsg>0 && ctsg<slim){
+	  fpnt+=1;
+          sud+=1./sg2;
+          sux+=ct/sg2;
+          suz+=cz/sg2;
+          suz2+=cz*cz/sg2;
+          suxz+=ct*cz/sg2;
+	}
+      }
+      if(fpnt>=3){//calc. tan, cross, chi2
+        ectx=(sud*suxz-sux*suz)/(sud*suz2-suz*suz);
+        ecx0=(sux*suz2-suxz*suz)/(sud*suz2-suz*suz);
+        ech2x=0;
+        for(sl=1;sl<ECSLMX-1;sl+=2){//calc. chi2
+	  ctsg=crms[sl];
+	  slim=7;
+	  if(sl<3)slim=4;
+	  if(ctsg>0 && ctsg<slim){
+            ct=ecogt[sl];
+	    cz=_ECpmz-_ECpmdz*(sl+0.5);
+            ech2x+=pow((ecx0+ectx*cz-ct)/ctsg,2);
+	  }
+        }
+        ech2x/=geant(fpnt-2);
+	ectfcr[0]=ectx*_ECcrz3+ecx0;//X-crossing with TOF-plane 3
+        eccrxe=2.97+6.69/sqrt(ectot);//err.estim
+        if(eccrxe>8.7)eccrxe=8.7;
+        if(eccrxe<3.8)eccrxe=3.8;
+	ecrtg[0]=ectx;
+        if(ECREFFKEY.reprtf[0]!=0){
+	  HF1(ECHISTR+46,ech2x,1.);
+	  HF1(ECHISTR+47,ectx,1.);
+	}
+      }
+//----
+   }//endof >=MIP check
+//----
+   if(ech2x>0 && ech2x<3 && ech2y>0 && ech2y<3){
+     ectot/=1000;
+     plvl3->setectofcr(ectfcr,ecrtg);//set x/y-cr.points and slopes
+     plvl3->setecmatc(1);//tempor set EC-match flag here
+     if(ECREFFKEY.reprtf[0]!=0){
+       HF1(ECHISTR+45,ectfcr[1],1.);
+       HF1(ECHISTR+48,ectfcr[0],1.);
+     }
+   }
+//
+  }//---> endof UseECMATinfo check
+  }//---> endof UseECinfo check
+//-------------------------------
 //
 //===> TRD
   
@@ -1319,6 +1497,9 @@ void TriggerLVL302::_writeEl(){
   lvl3N->TRDHits[lvl3N->Nlvl3]=TRDAux._NHits[0]+TRDAux._NHits[1];
   lvl3N->HMult[lvl3N->Nlvl3]=TRDAux._HMult;
   for(int i=0;i<2;i++)lvl3N->TRDPar[lvl3N->Nlvl3][i]=TRDAux._Par[i][0];
+  lvl3N->ECemag[lvl3N->Nlvl3]=_ECemag;
+  lvl3N->ECmatc[lvl3N->Nlvl3]=_ECmatc;
+  for(int i=0;i<4;i++)lvl3N->ECTOFcr[lvl3N->Nlvl3][i]=_ECtofcr[i];
   lvl3N->Nlvl3++;
 
 }
@@ -1615,6 +1796,10 @@ void TriggerLVL302::Finalize(){
   if((_TrackerTrigger>>3)&1 )_MainTrigger|=4096;
   if((_TRDTrigger>>3)&1 )_MainTrigger|=2048;
 //  bit 13 not set up
+  if(UseECEMinfo() && (_ECemag==0))_MainTrigger|=8192*2;
+  if(_ECemag==1)_MainTrigger|=8192*4;
+  if(UseECMATinfo() && _ECmatc==0)_MainTrigger|=8192*8;
+  if(_ECmatc==1)_MainTrigger|=8192*16;
 }
 
 
