@@ -55,6 +55,7 @@ inline integer getid() { return _id; }
 inline char *getname() { return _name; }
 inline char getyb() { return _yb; }
 void getNumbers(integer *, geant *); 
+ooStatus CmpTrMedia(integer, AMSgtmed *); 
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -72,7 +73,7 @@ void getNumbers(integer *, geant *);
     static void ooAssocRegister();
     ooRef(AMSgtmedD)& ooThis(ooRef(AMSgtmedD)& objId, ooMode aMode = oocNoOpen) const;
     AMSgtmedD(ooInternalObj iobj);
-#line 49 "gtmedD.ddl"
+#line 50 "gtmedD.ddl"
 }; 
 
 #endif /* !defined(GTMED_D_H) */

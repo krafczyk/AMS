@@ -403,7 +403,8 @@ ooStatus   LMS::AddTMedia(char* listName)
           cout<<"LMS::AddTMedia -I- do nothing, list already opened "<<endl;
         }
     
-        if(!listH -> AddTMedia()) {
+        rstatus = listH -> AddTMedia();
+        if(rstatus != oocSuccess) {
  	 strcpy(err_mess, "Cannot add tmedia"); goto error; }
         }
        }
@@ -413,7 +414,7 @@ error:
         } else {
          cout <<"AddTMedia:: Error "<<err_mess<<endl;
          rstatus = Abort();  // or Abort it
-         return oocError;
+         exit(1);
         }
 
 	// Return the status (oocSuccess or oocError)

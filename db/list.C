@@ -35,8 +35,9 @@
 //                   keep number of hits, clusters, tracks, etc per event
 // Nov    1996. ak.  modifications of Addamsdbc
 //                   AMScommonsD is modified
+//                   CmpTrMedia and CmpMaterials
 //
-// last edit Nov 27, 1996, ak.
+// last edit Nov 28, 1996, ak.
 //
 //
 #include <iostream.h>
@@ -2556,7 +2557,6 @@ ooStatus AMSEventList::AddMaterial()
         if (p == NULL) {
          cout<<"AMSEventList::AddMaterials -E- comparison failed"<<endl;
          cout<<"AMSEventList::AddMaterials -E- AMSgmat == NULL"<<endl;
-         cout<<"AMSEventList::AddMaterials -E- please write new setup"<<endl;
          return oocError;
         }
         pp = (AMSgmat*)p;
@@ -2604,6 +2604,10 @@ ooStatus AMSEventList::AddTMedia()
   ooStatus  rstatus = oocError;
   ooMode    mode    = oocUpdate;
   ooHandle(ooDBObj)    databaseH;
+  integer   id;
+  char*     name;
+  AMSNode*  p;
+  AMSgtmed* pp;
 
   ooThis().containedIn(databaseH);
 
@@ -2622,24 +2626,40 @@ ooStatus AMSEventList::AddTMedia()
       cout << "AMSEventList:: -I- Create container "<<contName<< endl;
     } else {
       cout << "AMSEventList:: -I- Found container "<<contName<< endl;
+      p = AMSJob::gethead()->getnodep(AMSID("TrackingMedia:",0));
+      if (p != NULL) {
+      p = p -> down();
       gtmedItr.scan(contgtmedH, mode);
-      if (gtmedItr.next()) {
-        cout <<"AMSEventList:: -W- container "<<contName<<" is not empty. "
-             <<" Quit"<<endl;
-        return oocSuccess;
+      while (gtmedItr.next()) {
+       if (p == NULL) {
+        cout<<"AMSEventList::AddTMedia -E- comparison failed"<<endl;
+        cout<<"AMSEventList::AddTMedia -E- AMSgtmed == NULL"<<endl;
+        return oocError;
+       }
+       pp = (AMSgtmed*)p;
+       id = p -> getid();
+       rstatus = gtmedItr -> CmpTrMedia(id, pp);
+       if (rstatus != oocSuccess) {
+        cout<<"AMSEventList::AddTrMedia -E- comparison failed"<<endl;
+        cout<<"AMSEventList::AddTrMedia -E- please write new setup"<<endl;
+        return oocError;
+       }
+       p = p -> next();
       }
+     } else {
+      cout <<"AddTMedia - E - cannot find the virtual top of gtmed"<<endl; 
+      return oocError;
+     }
+     return oocSuccess;
     }
 
   // get pointer to the top
-  integer  id;
-  char*    name;
-
-  AMSNode* p = AMSJob::gethead()->getnodep(AMSID("TrackingMedia:",0));
+  p = AMSJob::gethead()->getnodep(AMSID("TrackingMedia:",0));
   if (p != NULL) {
    p = p -> down();
    while (p != NULL) {
     cout<<p -> getid() <<" "<<p -> getname();
-    AMSgtmed* pp = (AMSgtmed*)p;
+     pp = (AMSgtmed*)p;
      id = p -> getid();
      name = p -> getname();
      gtmedH = new(contgtmedH) AMSgtmedD(id, pp, name);

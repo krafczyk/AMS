@@ -46,4 +46,5 @@ class AMSgtmedD : public ooObj
         char*   getname() {return _name;}
         char    getyb()   {return _yb;}
  void   getNumbers(integer* ibuff, geant* gbuff);
+ ooStatus CmpTrMedia(integer id, AMSgtmed* p);
 };
