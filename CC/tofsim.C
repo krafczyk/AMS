@@ -1,4 +1,4 @@
-//  $Id: tofsim.C,v 1.47 2001/01/22 17:32:23 choutko Exp $
+//  $Id: tofsim.C,v 1.48 2001/03/27 15:52:07 choutko Exp $
 // Author Choumilov.E. 10.07.96.
 #include <iostream.h>
 #include <stdio.h>
@@ -30,7 +30,7 @@ integer AMSTOFTovt::ievent;
 //------------------------------------------------------------------------------
 //  <--- for inp. X define position in scan array (i1/i2) and correction ratio R.
 //
-void AMSTOFScan::getxbin(const geant x, integer &i1, integer &i2, geant &r)
+void AMSTOFScan::getxbin( geant x, integer &i1, integer &i2, geant &r)
 {
   integer i=AMSbins(scanp,x,TOF1GC::SCANPNT);
   if(i==0){
@@ -68,6 +68,28 @@ geant AMSTOFScan::getef2(const geant r, const int i1, const int i2)
   if(i1==i2){return eff2[i1];}
   else{return (eff2[i1]+(eff2[i2]-eff2[i1])*r);}
 }
+
+
+geant AMSTOFScan::gettm1( geant rnd, geant r, int i1,  int i2)
+  {
+    if(i1==i2){return tdist1[i1].getrand(rnd);}
+    else{
+      geant t1=tdist1[i1].getrand(rnd);
+      geant t2=tdist1[i2].getrand(rnd);
+      return (t1+(t2-t1)*r);
+    }
+  }
+
+geant AMSTOFScan::gettm2( geant rnd,  geant r,  int i1,  int i2)
+  {
+    if(i1==i2){return tdist2[i1].getrand(rnd);}
+    else{
+      geant t1=tdist2[i1].getrand(rnd);
+      geant t2=tdist2[i2].getrand(rnd);
+      return (t1+(t2-t1)*r);
+    }
+  }
+
 //-------------------------------------------------------------------
 // function to create AMSTOFScan objects for all sc. bars :
 void AMSTOFScan::build(){
@@ -210,7 +232,7 @@ void AMSTOFTovt::build()
   static AMSDistr scpmsesp(19,0.,0.279,arr);// p/h spectrum ready
 //                   ( scale in mV@50ohm to have 1.5mV as m.p. value!!!)
 //
-  integer i1,i2,id,idN,idd,ibar,ilay,ibtyp,cnum;
+  integer i1,i2,id,idd,ibar,ilay,ibtyp,cnum;
   static geant tslice1[TOF1GC::SCTBMX+1]; //  flash ADC array for side-1
   static geant tslice2[TOF1GC::SCTBMX+1]; //  flash ADC array for side-2
   static geant tslice[TOF1GC::SCTBMX+1]; //  flash ADC array 
@@ -226,8 +248,6 @@ void AMSTOFTovt::build()
   geant nel0,nel,nelb,nesig,nphot;
   AMSPoint cloc(999.,999.,999.);
   AMSgvolume *p;
-  AMSTOFMCCluster *ptr;
-  AMSTOFMCCluster *ptrN;
 //
   static integer first=0;
   static integer npshbn;
@@ -276,9 +296,6 @@ void AMSTOFTovt::build()
     AMSmceventg::RestoreSeeds();
   }
 //
-  ptr=(AMSTOFMCCluster*)AMSEvent::gethead()->
-                                      getheadC("AMSTOFMCCluster",0,1);
-//                                        ( sort by idsoft done)
 //
   for(i=0;i<TOF1GC::SCLRS;i++){
     nhitl[i]=0;
@@ -286,8 +303,9 @@ void AMSTOFTovt::build()
   }
 //
   edepb=0.;// Edep in given bar
-  while(ptr){//       <------------- loop over geant hits
-    id=ptr->idsoft; 
+  for(AMSTOFMCCluster *ptr=(AMSTOFMCCluster*)AMSEvent::gethead()->
+                                      getheadC("AMSTOFMCCluster",0,1);ptr;ptr=ptr->next()){
+    id=ptr->getid(); 
     ilay=id/100-1;
     nhitl[ilay]+=1;
     ibar=id%100-1;
@@ -385,10 +403,8 @@ void AMSTOFTovt::build()
     } // >>>----- end of PM-2 loop ------>
   }
 //-----------------------------------
-      ptrN=ptr->next();
-      idN=0; 
-      if(ptrN)idN=ptrN->getid();// id of the next G-hit
-      if(idN != id){ // <---- last or new bar -> create Tovt-objects :
+//      cout <<ptr<<" "<<ptr->next()<<" "<<ptr->idsoft<<" "<<endl;
+      if(ptr->testlast()){ // <---- last or new bar -> create Tovt-objects :
         edepb*=1000.;// --->MeV
         if(edepb>TOFMCFFKEY.Thr){// process only bar with Edep>Ethr
 // PM-1 loop to apply pulse shape :
@@ -435,7 +451,6 @@ void AMSTOFTovt::build()
         edepb=0.;// clear Edep
       }// ---> end of next/last bar check
 //
-    ptr=ptr->next();
     if(AMSgObj::BookTimer.check("TOF:Ghit->Tovt")>AMSFFKEY.CpuLimit){
      AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
      throw amsglobalerror("TOF:Ghit->Tovt-cpulimitExceeded");

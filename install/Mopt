@@ -1,4 +1,4 @@
-#  $Id: Mopt,v 1.190 2001/03/26 09:41:56 choutko Exp $
+#  $Id: Mopt,v 1.191 2001/03/27 15:52:13 choutko Exp $
 #
 SHELL=/bin/sh
 #
@@ -35,7 +35,9 @@ ROOTLIBS =
 ifdef AMSDEBUG
 O4=-g -D__AMSDEBUG__
 O4F=-g -D__AMSDEBUG__
+CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 else
+CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   -O0     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 ifdef O4
 O4=-O4
 O4F=-O
@@ -45,7 +47,6 @@ O4F=-O
 endif
 endif
 CFLAGS=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I./db -tlocal 
-CFLAGSTOFSIM=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 CFLAGSn=   -D__BATCH__ -D__ALPHA__   $(O4)     -I../include -I$(ROOTSYS)/include  -I../db -tlocal 
 CFLAGSDAQ= $(CFLAGS)
 FFLAGS=   $(O4F) -I../include  -d -static -nofor_main -convert big_endian 
@@ -456,7 +457,7 @@ $(BIN)tofsim.o: 	         $(SCC)tofsim.C
 	$(CC) -c $(CFLAGSTOFSIM) $(SCC)tofsim.C -o $(BIN)tofsim.o
 
 $(BIN)tofsim02.o: 	         $(SCC)tofsim02.C
-	$(CC) -c $(CFLAGSTOFSIM) $(SCC)tofsim02.C -o $(BIN)tofsim02.o
+	$(CC) -c $(CFLAGS)        $(SCC)tofsim02.C -o $(BIN)tofsim02.o
 
 $(BIN)ctcrec.o: 	         $(SCC)ctcrec.C
 	$(CC) -c $(CFLAGS) $(SCC)ctcrec.C -o $(BIN)ctcrec.o
