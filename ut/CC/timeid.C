@@ -1,4 +1,4 @@
-//  $Id: timeid.C,v 1.76 2002/03/22 13:07:35 choutko Exp $
+//  $Id: timeid.C,v 1.77 2002/09/24 07:15:30 choutko Exp $
 // 
 // Feb 7, 1998. ak. do not write if DB is on
 //
@@ -60,8 +60,8 @@ extern LMS* lms;
 uinteger * AMSTimeID::_Table=0;
 const uinteger AMSTimeID::CRC32=0x04c11db7;
 AMSTimeID::AMSTimeID(AMSID  id, tm   begin, tm  end, integer nbytes, 
-                     void *pdata, AMSTimeID::CType server):
-           AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0),_Type(server){
+                     void *pdata, AMSTimeID::CType server,bool verify=true):
+           AMSNode(id),_pData((uinteger*)pdata),_UpdateMe(0),_verify(verify),_Type(server){
       _Nbytes=nbytes;
 
 if(_Type!=Client){

@@ -1,4 +1,4 @@
-#  $Id: daqevt.doc,v 1.33 2001/01/22 17:00:55 vitali Exp $
+#  $Id: daqevt.doc,v 1.34 2002/09/24 07:15:40 choutko Exp $
 
 I. Daq Event format  (based on lebedev&capell 15/7/97)
                                 & updated 12/02/1998
@@ -395,7 +395,7 @@ Word7-8   Coo_x (+1 0000 0000 mkm)
 Word9-10  Coo_y  
 Word11-12 Coo_z
 
-n. Shuttle Paramaters
+q. Shuttle Paramaters
 
 ID =  14 <<9   |     1 
 
@@ -410,6 +410,17 @@ Word13-14  Speed(rad/sec)
 Word15-16  Speed_Theta
 Word17-18  Speed_Phi
 Word19-20  NorthPole_Phi
+
+
+AMS02
+----------
+
+ecal data format (purely fictitious)
+
+raw mode 
+
+id = 14<<9 | 2  
+
 
 
 

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.287 2002/09/04 09:11:10 choumilo Exp $
+//  $Id: event.C,v 1.288 2002/09/24 07:15:29 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -820,7 +820,7 @@ void AMSEvent::_reecalinitevent(){
   AMSNode *ptr;
   maxp=2*ECALDBc::slstruc(3);// max SubCell-planes
   maxc=4*ECALDBc::slstruc(3)*ECALDBc::slstruc(4);// max number of SubCell
-  for(i=0;i<maxp;i++){// <-- book S-layer containers for EcalRawEvent
+  for(i=0;i<AMSECIdSoft::ncrates();i++){// <-- book crate type containers for EcalRawEvent
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalRawEvent",i),0));
   }
@@ -2229,6 +2229,10 @@ AMSgObj::BookTimer.start("TDV");
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
 AMSTimeID * offspring=dynamic_cast<AMSTimeID*>(ptid->down());
 while(offspring){
+  if(!offspring->Verify()){
+    offspring=(AMSTimeID*)offspring->next();
+    continue;
+  }
   integer nb=offspring->GetNbytes();
 #ifdef __AMSDEBUG__
   //          char * tmp =new char[nb];

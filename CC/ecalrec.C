@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.48 2002/09/04 09:11:10 choumilo Exp $
+//  $Id: ecalrec.C,v 1.49 2002/09/24 07:15:29 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -20,6 +20,7 @@
 #include <mccluster.h>
 #include <trigger102.h>
 #include <trigger302.h>
+#include <timeid.h>
 using namespace std;
 using namespace ecalconst;
 //
@@ -49,10 +50,11 @@ void AMSEcalRawEvent::validate(int &stat){ //Check/correct RawEvent-structure
 //----> fill arrays for Hi2Low-ratio calc.(in REUN-calibration):
 //
   if(ECREFFKEY.relogic[1]<=2){// if REUN-calibration
-    for(isl=0;isl<ECALDBc::slstruc(3);isl++){ // <-------------- super-layer loop
+    for(int nc=0;nc<AMSECIdSoft::ncrates();nc++){ // <-------------- super-layer loop
       ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
-                       getheadC("AMSEcalRawEvent",isl,0);
+                       getheadC("AMSEcalRawEvent",nc,0);
       while(ptr){ // <--- RawEvent-hits loop in superlayer:
+        isl=ptr->getslay();
         id=ptr->getid();//SSPPC
         idd=id/10;
         subc=id%10-1;//SubCell(0-3)
@@ -279,8 +281,11 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  sta=0;
 	  adc[0]=adch;
 	  adc[1]=adcl;
-          AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",il), new
-                                             AMSEcalRawEvent(id,sta,adc));
+          AMSECIdSoft ids(id);
+          if(!ids.dead()){
+          AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",ids.getcrate()),
+                new AMSEcalRawEvent(id,sta,adc));
+          }
 	}
       }//<---- end of PMSubcell-loop
 //
@@ -309,8 +314,6 @@ void AMSEcalRawEvent::mc_build(int &stat){
 	  nrawd+=1;
 	  id=(i+1)+100*(il+1);// SSPP
 	  sta=0;
-//          AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEventD",il), new
-//                                             AMSEcalRawEventD(id,sta,adcd));//tempor
 	}
 //
       an4resp=anen;//PM 4anode-sum resp(true mev ~ mV !!!)(later to add some factor to conv. to mV)
@@ -457,10 +460,11 @@ void AMSEcalHit::build(int &stat){
   adct=0.;
   emeast=0.;
 //
-  for(isl=0;isl<ECALDBc::slstruc(3);isl++){ // <-------------- super-layer loop
+  for(int nc=0;nc<AMSECIdSoft::ncrates();nc++){ // <-------------- super-layer loop
     ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
-               getheadC("AMSEcalRawEvent",isl,0);
+               getheadC("AMSEcalRawEvent",nc,0);
     while(ptr){ // <--- RawEvent-hits loop in superlayer:
+      isl=ptr->getslay();
       nraw+=1;
       id=ptr->getid();//SSPPC
       idd=id/10;
@@ -2167,4 +2171,99 @@ number EcalShower::getEnergyXY(int proj) const{
   if(_pCl[i]->getproj()==proj)enr+=_pCl[i]->getEnergy();
  }
  return enr;
+}
+
+
+
+
+
+// int with dq
+
+
+int16u AMSEcalRawEvent::getdaqid(int i){
+  if (i<getmaxblocks())return ( (2+i) | 14 <<9);
+  else return 0x0;
+}
+
+integer AMSEcalRawEvent::checkdaqid(int16u id){
+ for(int i=0;i<getmaxblocks();i++){
+  if(id==getdaqid(i))return i+1;
+ }
+ return 0;
+}
+
+void AMSEcalRawEvent::setTDV(){
+  AMSTimeID * ptdv = AMSJob::gethead()->gettimestructure(getTDVped());
+  if(ptdv)ptdv->Verify()=true;
+              ptdv = AMSJob::gethead()->gettimestructure(getTDVcalib());
+  if(ptdv)ptdv->Verify()=true;
+              ptdv = AMSJob::gethead()->gettimestructure(getTDVvpar());
+  if(ptdv)ptdv->Verify()=true;
+}
+
+void AMSEcalRawEvent::buildraw(integer n, int16u *p){
+
+
+  integer ic=checkdaqid(*p)-1;
+   
+  int leng=0;
+  int16u * ptr;
+  int count=0; 
+  for(ptr=p+1;ptr<p+n-1;ptr++){  
+   int16u pmt=count%36;
+            int16u anode=(*ptr)& 1;
+            int16u channel=((*ptr)>>1)&3;
+            int16u gain=((*ptr)>>3)&1;
+            int16u value=( (*ptr)>>4); 
+            if(!anode){
+               channel=4;
+               gain=0;
+            }
+            AMSECIdSoft id(ic,pmt,channel);
+       if(!id.dead()){
+         if(anode){
+           AMSEvent::gethead()->addnext(AMSID("AMSEcalRawEvent",ic), new
+          AMSEcalRawEvent(id,1-anode,1-gain,value));
+         }
+         else{
+//  put here dynode related class
+         }
+       }    
+   count++;               
+  }
+
+//  add two adc together
+       AMSContainer * pct=AMSEvent::gethead()->getC("AMSEcalRawEvent",ic);
+      for(AMSEcalRawEvent* ptr=(AMSEcalRawEvent*)AMSEvent::gethead()->
+                       getheadC("AMSEcalRawEvent",ic,1);ptr;ptr=ptr->next()){
+
+        
+       AMSEcalRawEvent *ptro=0;
+       if(ptr->testlast()){
+         if(ptro){
+           if(ptr->getgain() <2 && ptro->getgain()<2 && ptr->getgain() !=ptro->getgain()){
+           ptr->setgain(2);
+           ptr->setadc(ptro->getadc(ptro->getgain()),ptro->getgain());
+           pct->removeEl(ptro,1);
+          }
+         
+          else{
+            cerr<<"AMSEcalRawEvent::buildraw-S-FormatError "<<ptro->getgain()<<" "<<ptr->getgain()<<endl;
+         }        
+       }
+       else{
+            cerr<<"AMSEcalRawEvent::buildraw-E-No2ndGainFound "<<ptr->getid()<<endl;
+       }
+       }
+       else{
+         ptro=ptr;
+       }
+      }
+
+}
+
+AMSEcalRawEvent::AMSEcalRawEvent(AMSECIdSoft id, int16u dynode,int16u gain,int16u adc):AMSlink(),_gain(gain){
+  for(int i=0;i<2;i++)_padc[i]=0;
+  if(_gain<2)_padc[_gain]=adc;
+  _idsoft=id.makeshortid();
 }

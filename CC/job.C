@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.414 2002/09/20 09:30:27 choutko Exp $
+// $Id: job.C,v 1.415 2002/09/24 07:15:29 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -39,6 +39,7 @@
 #include <bcorr.h>
 #include <trid.h>
 #include <trrawcluster.h>
+#include <ecalrec.h>
 #include <daqevt.h>
 #include <daqs2block.h>
 #include <ntuple.h>
@@ -51,6 +52,7 @@
 #include <sys/stat.h>
 #include <producer.h>
 #include <trdid.h>
+#include <ecid.h>
 #ifdef __DB__
 //+
  integer        ntdvNames;               // number of TDV's types
@@ -1363,6 +1365,8 @@ if(AMSFFKEY.Update){
        AMSRICHIdGeom::Init();
        AMSRICHIdSoft::Init();
        AMSTRDIdSoft::inittable();
+       AMSECIdSoft::inittable();
+
     }
     else {
       cerr<<"AMSJob::udate-E-NoAMSTrIdSoftTable exists for setup "<<
@@ -2117,6 +2121,7 @@ TID.add (new AMSTimeID(AMSID("MagneticFieldMap",isRealData()),
 //TID.add (new AMSTimeID(AMSID("MagneticFieldMapAddOn",isRealData()),
 //   begin,end,sizeof(TKFIELDADDON_DEF),(void*)&TKFIELDADDON.iqx,server));
 }
+bool NeededByDefault=isSimulation();
 //----------------------------
 //
 // Pedestals, Gains,  Sigmas & commons noise for tracker
@@ -2142,54 +2147,54 @@ end.tm_mon=TRMCFFKEY.mon[1];
 end.tm_year=TRMCFFKEY.year[1];
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerPedestals(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::peds[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::peds,server));
+    (void*)AMSTrIdSoft::peds,server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerPedestals(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::peds[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::peds+AMSTrIdSoft::_numell),server));
+    (void*)(AMSTrIdSoft::peds+AMSTrIdSoft::_numell),server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerRawSigmas(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::sigmaraws,server));
+    (void*)AMSTrIdSoft::sigmaraws,server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerRawSigmas(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::sigmaraws[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::sigmaraws+AMSTrIdSoft::_numell),server));
+    (void*)(AMSTrIdSoft::sigmaraws+AMSTrIdSoft::_numell),server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerGains(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::gains[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::gains,server));
+    (void*)AMSTrIdSoft::gains,server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerGains(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::gains[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::gains+AMSTrIdSoft::_numell),server));
+    (void*)(AMSTrIdSoft::gains+AMSTrIdSoft::_numell),server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerSigmas(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::sigmas[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::sigmas,server));
+    (void*)AMSTrIdSoft::sigmas,server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerSigmas(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::sigmas[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::sigmas+AMSTrIdSoft::_numell),server));
+    (void*)(AMSTrIdSoft::sigmas+AMSTrIdSoft::_numell),server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerStatus(0),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::status[0])*AMSTrIdSoft::_numell,
-    (void*)AMSTrIdSoft::status,server));
+    (void*)AMSTrIdSoft::status,server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerStatus(1),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::status[0])*
     (AMSTrIdSoft::_numel-AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::status+AMSTrIdSoft::_numell),server));
+    (void*)(AMSTrIdSoft::status+AMSTrIdSoft::_numell),server,NeededByDefault));
  /*
  TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.l",isRealData()),
     begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*AMSTrIdSoft::_numell*2,
-    (void*)AMSTrIdSoft::rhomatrix,server));
+    (void*)AMSTrIdSoft::rhomatrix,server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID("TrackerRhoMatrix.r",isRealData()),
     begin,end,sizeof(AMSTrIdSoft::rhomatrix[0])*
     (2*AMSTrIdSoft::_numel-2*AMSTrIdSoft::_numell),
-    (void*)(AMSTrIdSoft::rhomatrix+2*AMSTrIdSoft::_numell),server));
+    (void*)(AMSTrIdSoft::rhomatrix+2*AMSTrIdSoft::_numell),server,NeededByDefault));
  */
  TID.add (new AMSTimeID(AMSID(AMSTrIdSoft::TrackerCmnNoise(),isRealData()),
     begin,end,sizeof(AMSTrIdSoft::cmnnoise),
-    (void*)AMSTrIdSoft::cmnnoise,server));
+    (void*)AMSTrIdSoft::cmnnoise,server,NeededByDefault));
 //TID.add (new AMSTimeID(AMSID("TrackerIndNoise",isRealData()),
 //   begin,end,sizeof(AMSTrIdSoft::indnoise[0])*AMSTrIdSoft::_numel,
-//   (void*)AMSTrIdSoft::indnoise,server));
+//   (void*)AMSTrIdSoft::indnoise,server,NeededByDefault));
 }
 
 
@@ -2221,16 +2226,16 @@ end.tm_mon=TRDMCFFKEY.mon[1];
 end.tm_year=TRDMCFFKEY.year[1];
  TID.add (new AMSTimeID(AMSID("TRDPedestals",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_ped[0])*AMSTRDIdSoft::getpedsize(),
-    (void*)AMSTRDIdSoft::_ped,server));
+    (void*)AMSTRDIdSoft::_ped,server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID("TRDGains",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_gain[0])*AMSTRDIdSoft::getgaisize(),
-    (void*)AMSTRDIdSoft::_gain,server));
+    (void*)AMSTRDIdSoft::_gain,server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID("TRDSigmas",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_sig[0])*AMSTRDIdSoft::getsigsize(),
-    (void*)AMSTRDIdSoft::_sig,server));
+    (void*)AMSTRDIdSoft::_sig,server,NeededByDefault));
  TID.add (new AMSTimeID(AMSID("TRDStatus",isRealData()),
     begin,end,sizeof(AMSTRDIdSoft::_status[0])*AMSTRDIdSoft::getstasize(),
-    (void*)AMSTRDIdSoft::_status,server));
+    (void*)AMSTRDIdSoft::_status,server,NeededByDefault));
 }
 
 
@@ -2264,19 +2269,19 @@ end.tm_year=TRDMCFFKEY.year[1];
 
   TID.add (new AMSTimeID(AMSID("Tofbarcal2",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOF2Brcal::scbrcal[0][0]),
-    (void*)&TOF2Brcal::scbrcal[0][0],server));
+    (void*)&TOF2Brcal::scbrcal[0][0],server,NeededByDefault));
    
   TID.add (new AMSTimeID(AMSID("Tofvpar2",isRealData()),
     begin,end,sizeof(TOF2Varp::tofvpar),
-    (void*)&TOF2Varp::tofvpar,server));
+    (void*)&TOF2Varp::tofvpar,server,NeededByDefault));
    
   TID.add (new AMSTimeID(AMSID("Tofmcscans2",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFWScan::scmcscan[0]),
-    (void*)&TOFWScan::scmcscan[0],server));
+    (void*)&TOFWScan::scmcscan[0],server,NeededByDefault));
    
   TID.add (new AMSTimeID(AMSID("Tofpeds",isRealData()),
     begin,end,TOF2GC::SCBLMX*sizeof(TOFBPeds::scbrped[0][0]),
-    (void*)&TOFBPeds::scbrped[0][0],server));
+    (void*)&TOFBPeds::scbrped[0][0],server,NeededByDefault));
 //
    
 }
@@ -2306,7 +2311,7 @@ end.tm_year=TRDMCFFKEY.year[1];
 
   TID.add (new AMSTimeID(AMSID("Antisccal2",isRealData()),
      begin,end,ANTI2C::MAXANTI*sizeof(ANTI2Pcal::antisccal[0]),
-                                  (void*)&ANTI2Pcal::antisccal[0],server));
+                                  (void*)&ANTI2Pcal::antisccal[0],server,NeededByDefault));
 //
 // TID.add (new AMSTimeID(AMSID("Antivpar2",isRealData()),
 //    begin,end,sizeof(ANTI2Varp::antivpar),
@@ -2340,56 +2345,56 @@ end.tm_year=TRDMCFFKEY.year[1];
   TID.add (new AMSTimeID(AMSID("RichPedCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels*2
 			 *sizeof(AMSRICHIdSoft::_ped[0]),
-                         (void*)&AMSRICHIdSoft::_ped[0],server));
+                         (void*)&AMSRICHIdSoft::_ped[0],server,NeededByDefault));
 
   TID.add (new AMSTimeID(AMSID("RichSpedCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels*2
                          *sizeof(AMSRICHIdSoft::_sig_ped[0]),
-                         (void*)&AMSRICHIdSoft::_sig_ped[0],server));
+                         (void*)&AMSRICHIdSoft::_sig_ped[0],server,NeededByDefault));
 
 
   TID.add (new AMSTimeID(AMSID("Richlambdacalib",isRealData()),
 			 begin,end,AMSRICHIdSoft::_nchannels*2
 			           *sizeof(AMSRICHIdSoft::_lambda[0]),
-			 (void*)&AMSRICHIdSoft::_lambda[0],server));
+			 (void*)&AMSRICHIdSoft::_lambda[0],server,NeededByDefault));
 
 
   TID.add (new AMSTimeID(AMSID("RichScaleCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels*2
 			 *sizeof(AMSRICHIdSoft::_scale[0]),
-                         (void*)&AMSRICHIdSoft::_scale[0],server));
+                         (void*)&AMSRICHIdSoft::_scale[0],server,NeededByDefault));
 
   TID.add (new AMSTimeID(AMSID("RichTransmCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels*2
 			 *sizeof(AMSRICHIdSoft::_transparency[0]),
-                         (void*)&AMSRICHIdSoft::_transparency[0],server));
+                         (void*)&AMSRICHIdSoft::_transparency[0],server,NeededByDefault));
 
   
   TID.add (new AMSTimeID(AMSID("RichLDynCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels*2
                          *sizeof(AMSRICHIdSoft::_lambda_dyn[0]),
-                         (void*)&AMSRICHIdSoft::_lambda_dyn[0],server));
+                         (void*)&AMSRICHIdSoft::_lambda_dyn[0],server,NeededByDefault));
   
   TID.add (new AMSTimeID(AMSID("RichSDynCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels*2
                          *sizeof(AMSRICHIdSoft::_scale_dyn[0]),
-                         (void*)&AMSRICHIdSoft::_scale_dyn[0],server));
+                         (void*)&AMSRICHIdSoft::_scale_dyn[0],server,NeededByDefault));
 
   TID.add (new AMSTimeID(AMSID("RichThresholdCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels*2
                          *sizeof(AMSRICHIdSoft::_threshold[0]),
-                         (void*)&AMSRICHIdSoft::_threshold[0],server));
+                         (void*)&AMSRICHIdSoft::_threshold[0],server,NeededByDefault));
 
   TID.add (new AMSTimeID(AMSID("RichModeBoundaryCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels
                          *sizeof(AMSRICHIdSoft::_gain_mode_boundary[0]),
-                         (void*)&AMSRICHIdSoft::_gain_mode_boundary[0],server));
+                         (void*)&AMSRICHIdSoft::_gain_mode_boundary[0],server,NeededByDefault));
 
 
   TID.add (new AMSTimeID(AMSID("RichStatusCalib",isRealData()),
                          begin,end,AMSRICHIdSoft::_nchannels
                          *sizeof(AMSRICHIdSoft::_status[0]),
-                         (void*)&AMSRICHIdSoft::_status[0],server));
+                         (void*)&AMSRICHIdSoft::_status[0],server,NeededByDefault));
 
 
 }
@@ -2421,15 +2426,15 @@ end.tm_year=TRDMCFFKEY.year[1];
   end.tm_mon=ECREFFKEY.mon[1];
   end.tm_year=ECREFFKEY.year[1];
 
-  TID.add (new AMSTimeID(AMSID("Ecalpmcalib",isRealData()),
+  TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVcalib(),
      begin,end,ecalconst::ECPMSL*sizeof(ECcalib::ecpmcal[0][0]),
                                   (void*)&ECcalib::ecpmcal[0][0],server));
 //
-  TID.add (new AMSTimeID(AMSID("Ecalvpar",isRealData()),
+  TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVvpar(),
      begin,end,sizeof(ECALVarp::ecalvpar),
                                       (void*)&ECALVarp::ecalvpar,server));
    
-  TID.add (new AMSTimeID(AMSID("Ecalpeds",isRealData()),
+  TID.add (new AMSTimeID(AMSEcalRawEvent::getTDVped(),
     begin,end,ecalconst::ECPMSL*sizeof(ECPMPeds::pmpeds[0][0]),
     (void*)&ECPMPeds::pmpeds[0][0],server));
 }
@@ -2997,6 +3002,10 @@ void AMSJob::_dbendjob(){
      if(IOPA.Portion<1. && isMonitoring())cout <<"AMSJob::_redaq2initjob()-W-Only about "<<IOPA.Portion*100<<"% events will be processed."<<endl; 
     // Add subdetectors to daq
     //
+     
+// ecal
+    DAQEvent::addsubdetector(&AMSEcalRawEvent::checkdaqid,&AMSEcalRawEvent::buildraw);
+
 
   {  // mc
     if(!isRealData()){

@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.71 2002/07/17 17:56:20 alexei Exp $
+//  $Id: daqevt.C,v 1.72 2002/09/24 07:15:29 choutko Exp $
 #include <stdio.h>
 #include <daqevt.h>
 #include <event.h>
@@ -456,7 +456,7 @@ DAQEvent::InitResult DAQEvent::init(){
      if(ok){
             fbin.seekg(integer(fbin.tellg())-daq.getlength());
             cout<<"DAQEvent::init-I-Selected Run = "<<Run<<
-              " Event = "<<daq.eventno()<< " Position = "<<iposr<<endl;
+              " Event = "<<daq.eventno()<< " Position = "<<iposr<<" Time "<<ctime(&daq.time())<<endl;
 
      }
      else {
