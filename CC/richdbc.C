@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.23 2002/02/27 16:19:55 mdelgado Exp $
+//  $Id: richdbc.C,v 1.24 2002/03/15 15:36:26 mdelgado Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -186,7 +186,7 @@ geant RICHDB::total_height()
 #endif
 
   return rad_height+foil_height+RICradmirgap+rich_height+
-                  RIClgdmirgap+lg_height+RICpmtlength+RICeleclength;
+                  RIClgdmirgap+lg_height+RICpmtlength+RICeleclength
                   +RICpmtfoil;
 }
 
