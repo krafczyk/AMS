@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.46 2001/08/03 13:26:48 choutko Exp $
+//  $Id: root.h,v 1.47 2001/08/24 15:53:09 kscholbe Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -90,11 +90,13 @@ public:
   int AntiMCClusters;
   int AntiClusters;
   int EventStatus; 
-  
-friend class AMSEvent;
-friend class AMSNtuple;
+
 #ifdef __WRITEROOT__
+  EventNtuple();
 ClassDef(EventNtuple,1)       //EventNtuple
+#else
+friend class AMSEvent;
+friend class AMSNtuple;  
 #endif
 };
 
@@ -140,12 +142,16 @@ public:
   int TRDTracks;
   int EventStatus[2];
   
+#ifdef __WRITEROOT__
+  EventNtuple02();
+ClassDef(EventNtuple02,1)       //EventNtuple02
+#else
 friend class AMSEvent;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(EventNtuple02,1)       //EventNtuple02
 #endif
+
 };
+
 
 #ifdef __WRITEROOT__
 class BetaNtuple : public TObject {
@@ -166,10 +172,12 @@ public:
   int pTOF[MAXBETA][4];
   int pTr[MAXBETA];
 
+#ifdef __WRITEROOT__
+ BetaNtuple();
+ClassDef(BetaNtuple,1)       //BetaNtuple
+#else
 friend class AMSBeta;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(BetaNtuple,1)       //BetaNtuple
 #endif
 };
 
@@ -192,12 +200,15 @@ public:
   int pTOF[MAXBETA02][4];
   int pTr[MAXBETA02];
 
+#ifdef __WRITEROOT__
+   BetaNtuple02();
+   ClassDef(BetaNtuple02,1)       //BetaNtuple
+#else
 friend class AMSBeta;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(BetaNtuple02,1)       //BetaNtuple
 #endif
 };
+
 
 #ifdef __WRITEROOT__
 class ChargeNtuple02 : public TObject {
@@ -219,10 +230,12 @@ public:
   float TrunTOFD[MAXCHARGE02];
   float TrunTracker[MAXCHARGE02];
 
+#ifdef __WRITEROOT__
+  ChargeNtuple02();
+ClassDef(ChargeNtuple02,1)       //ChargeNtuple
+#else
 friend class AMSCharge;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(ChargeNtuple02,1)       //ChargeNtuple
 #endif
 };
 
@@ -246,10 +259,12 @@ public:
   float TrunTOFD[MAXCHARGE];
   float TrunTracker[MAXCHARGE];
 
+#ifdef __WRITEROOT__
+  ChargeNtuple();
+ClassDef(ChargeNtuple,1)       //ChargeNtuple
+#else
 friend class AMSCharge;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(ChargeNtuple,1)       //ChargeNtuple
 #endif
 };
 
@@ -290,10 +305,12 @@ public:
   float TOFCoo[MAXPART][4][3];
   float AntiCoo[MAXPART][2][3];
   float TrCoo[MAXPART][6][3];
+#ifdef __WRITEROOT__
+  ParticleNtuple();
+ClassDef(ParticleNtuple,1)       //ParticleNtuple
+#else
 friend class AMSParticle;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(ParticleNtuple,1)       //ParticleNtuple
 #endif
 };
 
@@ -332,10 +349,12 @@ public:
   float EcalCoo[MAXPART02][3][3];
   float TrCoo[MAXPART02][trconst::maxlay][3];
   float TRDCoo[MAXPART02][3];
+#ifdef __WRITEROOT__
+  ParticleNtuple02();
+ClassDef(ParticleNtuple02,1)       //ParticleNtuple
+#else
 friend class AMSParticle;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(ParticleNtuple02,1)       //ParticleNtuple
 #endif
 };
 
@@ -358,10 +377,12 @@ public:
   float Coo[MAXTOF][3];
   float ErrorCoo[MAXTOF][3];
 
+#ifdef __WRITEROOT__
+  TOFClusterNtuple();
+ClassDef(TOFClusterNtuple,1)       //TOFClusterNtuple
+#else
 friend class AMSTOFCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TOFClusterNtuple,1)       //TOFClusterNtuple
 #endif
 };
 //--------------------------
@@ -396,11 +417,14 @@ public:
   float Chi2Trans[MAXECSHOW];
   float TransProfile[MAXECSHOW][3];
   int   p2DCl[MAXECSHOW][2];
+#ifdef __WRITEROOT__
+  EcalShowerNtuple();
+ClassDef(EcalShowerNtuple,1)       //EcalShowerNtuple
+#else
 friend class EcalShower;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(EcalShowerNtuple,1)       //EcalShowerNtuple
 #endif
+
 };
 
 
@@ -425,10 +449,12 @@ public:
   float Coo[MAXECCLUST][3];
   int pLeft[MAXECCLUST];
   int NHits[MAXECCLUST];
+#ifdef __WRITEROOT__
+  EcalClusterNtuple();
+ClassDef(EcalClusterNtuple,1)       //EcalClusterNtuple
+#else
 friend class Ecal1DCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(EcalClusterNtuple,1)       //EcalClusterNtuple
 #endif
 };
 
@@ -449,10 +475,12 @@ public:
   float Tan[MAXEC2DCLUST];
   float Chi2[MAXEC2DCLUST];
   int   pCl[MAXEC2DCLUST][18];
+#ifdef __WRITEROOT__
+  Ecal2DClusterNtuple();
+ClassDef(Ecal2DClusterNtuple,1)       //Ecal2DClusterNtuple
+#else
 friend class Ecal2DCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(Ecal2DClusterNtuple,1)       //Ecal2DClusterNtuple
 #endif
 };
 
@@ -473,10 +501,12 @@ public:
   float Edep[MAXECHITS];
   float Coo[MAXECHITS][3];
 
+#ifdef __WRITEROOT__
+  EcalHitNtuple();
+ClassDef(EcalHitNtuple,1)       //EcalHitNtuple
+#else
 friend class AMSEcalHit;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(EcalHitNtuple,1)       //EcalHitNtuple
 #endif
 };
 //-------------------------- 
@@ -492,10 +522,12 @@ public:
   float TOF[MAXTOFMC];
   float Edep[MAXTOFMC];
 
+#ifdef __WRITEROOT__
+  TOFMCClusterNtuple();
+ClassDef(TOFMCClusterNtuple,1)       //TOFMCClusterNtuple
+#else
 friend class AMSTOFMCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TOFMCClusterNtuple,1)       //TOFMCClusterNtuple
 #endif
 };
 //--------------------------
@@ -517,10 +549,12 @@ public:
   float ErrorMean[MAXTRCL];
   float Amplitude[MAXTRCL][5];
 
+#ifdef __WRITEROOT__
+  TrClusterNtuple();
+ClassDef(TrClusterNtuple,1)       //TrClusterNtuple
+#else
 friend class AMSTrCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TrClusterNtuple,1)       //TrClusterNtuple
 #endif
 };
 
@@ -542,10 +576,12 @@ public:
   float Xgl[MAXTRCLMC][3];
   float Sum[MAXTRCLMC];
 
+#ifdef __WRITEROOT__
+  TrMCClusterNtuple();
+ClassDef(TrMCClusterNtuple,1)       //TrMCClusterNtuple
+#else
 friend class AMSTrMCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TrMCClusterNtuple,1)       //TrMCClusterNtuple
 #endif
 };
 
@@ -565,10 +601,12 @@ public:
   float Xgl[MAXTRDCLMC][3];
   float Step[MAXTRDCLMC];
  
+#ifdef __WRITEROOT__
+  TRDMCClusterNtuple();
+ClassDef(TRDMCClusterNtuple,1)       //TRDMCClusterNtuple
+#else
 friend class AMSTRDMCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TRDMCClusterNtuple,1)       //TRDMCClusterNtuple
 #endif
 };
 
@@ -584,10 +622,12 @@ public:
   int Ladder[MAXTRDRHT];
   int Tube[MAXTRDRHT];
   float Amp[MAXTRDRHT];
+#ifdef __WRITEROOT__
+  TRDRawHitNtuple();
+ClassDef(TRDRawHitNtuple,1)       //TRDRawHitNtuple
+#else
 friend class AMSTRDRawHit;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TRDRawHitNtuple,1)       //TRDRawHitNtuple
 #endif
 };
 
@@ -608,10 +648,12 @@ public:
   float EDep[MAXTRDCL];
   int   pRawHit[MAXTRDCL];
  
+#ifdef __WRITEROOT__
+  TRDClusterNtuple();
+ClassDef(TRDClusterNtuple,1)       //TRDClusterNtuple
+#else
 friend class AMSTRDCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TRDClusterNtuple,1)       //TRDClusterNtuple
 #endif
 };
 
@@ -631,10 +673,12 @@ public:
   int Nhits[MAXTRDSEG];
   int PCl[MAXTRDSEG][trdconst::maxhits];
  
+#ifdef __WRITEROOT__
+  TRDSegmentNtuple();
+ClassDef(TRDSegmentNtuple,1)       //TRDSegmentNtuple
+#else
 friend class AMSTRDSegment;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TRDSegmentNtuple,1)       //TRDSegmentNtuple
 #endif
 };
 
@@ -657,10 +701,12 @@ public:
   int   Pattern[MAXTRDTRK];
   int   pSeg[MAXTRDTRK][trdconst::maxseg];
  
+#ifdef __WRITEROOT__
+  TRDTrackNtuple();
+ClassDef(TRDTrackNtuple,1)       //TRDTrackNtuple
+#else
 friend class AMSTRDTrack;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TRDTrackNtuple,1)       //TRDTrackNtuple
 #endif
 };
 
@@ -685,10 +731,12 @@ public:
   float CofgX[MAXTRRH];
   float CofgY[MAXTRRH];
 
+#ifdef __WRITEROOT__
+  TrRecHitNtuple();
+ClassDef(TrRecHitNtuple,1)       //TrRecHitNtuple
+#else
 friend class AMSTrRecHit;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TrRecHitNtuple,1)       //TrRecHitNtuple
 #endif
 };
 #ifdef __WRITEROOT__
@@ -709,10 +757,12 @@ public:
   float CofgX[MAXTRRH02];
   float CofgY[MAXTRRH02];
 
+#ifdef __WRITEROOT__
+  TrRecHitNtuple02();
+ClassDef(TrRecHitNtuple02,1)       //TrRecHitNtuple
+#else
 friend class AMSTrRecHit;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TrRecHitNtuple02,1)       //TrRecHitNtuple
 #endif
 };
 
@@ -757,10 +807,12 @@ public:
   float RidgidityMS[MAXTRTR];
   float GRidgidityMS[MAXTRTR];
 
+#ifdef __WRITEROOT__
+  TrTrackNtuple();
+ClassDef(TrTrackNtuple,1)       //TrTrackNtuple
+#else
 friend class AMSTrTrack;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TrTrackNtuple,1)       //TrTrackNtuple
 #endif
 };
 
@@ -805,10 +857,12 @@ public:
   float RidgidityMS[MAXTRTR02];
   float PiRigidity[MAXTRTR02];
 
+#ifdef __WRITEROOT__
+  TrTrackNtuple02();
+ClassDef(TrTrackNtuple02,1)       //TrTrackNtuple
+#else
 friend class AMSTrTrack;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TrTrackNtuple02,1)       //TrTrackNtuple
 #endif
 };
 #ifdef __WRITEROOT__
@@ -823,6 +877,7 @@ float absl[MAXMCVOL];
 float pos[MAXMCVOL][3];
 char  vname[MAXMCVOL][4];
 #ifdef __WRITEROOT__
+ MCTrackNtuple();
 ClassDef(MCTrackNtuple,1)       //MCTrackNtuple
 #endif
 };
@@ -842,10 +897,12 @@ public:
   float Mass[MAXMCG];
   float Charge[MAXMCG];
 
+#ifdef __WRITEROOT__
+  MCEventGNtuple();
+ClassDef(MCEventGNtuple,1)       //MCEventGNtuple
+#else
 friend class AMSmceventg;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(MCEventGNtuple,1)       //MCEventGNtuple
 #endif
 };
 
@@ -864,10 +921,12 @@ public:
   float Mass[MAXMCG02];
   float Charge[MAXMCG02];
 
+#ifdef __WRITEROOT__
+  MCEventGNtuple02();
+ClassDef(MCEventGNtuple02,1)       //MCEventGNtuple
+#else
 friend class AMSmceventg;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(MCEventGNtuple02,1)       //MCEventGNtuple
 #endif
 };
 
@@ -887,10 +946,12 @@ public:
   float Signal[MAXCTCCL];
   float ErrorSignal[MAXCTCCL];
 
+#ifdef __WRITEROOT__
+  CTCClusterNtuple();
+ClassDef(CTCClusterNtuple,1)       //CTCClusterNtuple
+#else
 friend class AMSCTCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(CTCClusterNtuple,1)       //CTCClusterNtuple
 #endif
 };
 
@@ -909,10 +970,12 @@ public:
   float Beta[MAXCTCCLMC];
   float Edep[MAXCTCCLMC];
 
+#ifdef __WRITEROOT__
+  CTCMCClusterNtuple();
+ClassDef(CTCMCClusterNtuple,1)       //CTCMCClusterNtuple
+#else
 friend class AMSCTCMCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(CTCMCClusterNtuple,1)       //CTCMCClusterNtuple
 #endif
 };
 
@@ -929,10 +992,12 @@ public:
   float Coo[MAXANTICL][3];   // R, phi, Z
   float ErrorCoo[MAXANTICL][3];
 
+#ifdef __WRITEROOT__
+  AntiClusterNtuple();
+ClassDef(AntiClusterNtuple,1)       //AntiClusterNtuple
+#else
 friend class AMSAntiCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(AntiClusterNtuple,1)       //AntiClusterNtuple
 #endif
 };
 
@@ -948,10 +1013,12 @@ public:
   float TOF[MAXANTIMC];
   float Edep[MAXANTIMC];
 
+#ifdef __WRITEROOT__
+  ANTIMCClusterNtuple();
+ClassDef(ANTIMCClusterNtuple,1)       //ANTIMCClusterNtuple
+#else
 friend class AMSAntiMCCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(ANTIMCClusterNtuple,1)       //ANTIMCClusterNtuple
 #endif
 };
 
@@ -972,10 +1039,12 @@ public:
   float Time[MAXLVL3];
   float ELoss[MAXLVL3];
 
+#ifdef __WRITEROOT__
+  LVL3Ntuple();
+ClassDef(LVL3Ntuple,1)       //LVL3Ntuple
+#else
 friend class TriggerLVL3;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(LVL3Ntuple,1)       //LVL3Ntuple
 #endif
 };
 
@@ -992,10 +1061,12 @@ public:
   int TOFPatt1[MAXLVL1][4];
   int AntiPatt[MAXLVL1];
 
+#ifdef __WRITEROOT__
+  LVL1Ntuple();
+ClassDef(LVL1Ntuple,1)       //LVL1Ntuple
+#else
 friend class TriggerLVL1;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(LVL1Ntuple,1)       //LVL1Ntuple
 #endif
 };
 
@@ -1014,10 +1085,12 @@ public:
   int AntiPatt[MAXLVL1];
   int ECALflag[MAXLVL1];
 
+#ifdef __WRITEROOT__
+  LVL1Ntuple02();
+ClassDef(LVL1Ntuple02,1)       //LVL1Ntuple02
+#else
 friend class Trigger2LVL1;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(LVL1Ntuple02,1)       //LVL1Ntuple02
 #endif
 };
 
@@ -1035,10 +1108,12 @@ public:
   float Signal[MAXCTCHT];
 
 
+#ifdef __WRITEROOT__
+  CTCHitNtuple();
+ClassDef(CTCHitNtuple,1)       //CTCHitNtuple
+#else
 friend class AMSCTCRawHit;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(CTCHitNtuple,1)       //CTCHitNtuple
 #endif
 };
 
@@ -1052,10 +1127,12 @@ public:
   int address[MAXTRRAW];
   int nelem[MAXTRRAW];
   float s2n[MAXTRRAW];
+#ifdef __WRITEROOT__
+  TrRawClusterNtuple();
+ClassDef(TrRawClusterNtuple,1)       //TrRawClusterNtuple
+#else
 friend class AMSTrRawCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TrRawClusterNtuple,1)       //TrRawClusterNtuple
 #endif
 };
 
@@ -1071,10 +1148,12 @@ public:
   int UpDown[MAXANTIRAW];
   float Signal[MAXANTIRAW];
 
+#ifdef __WRITEROOT__
+  AntiRawClusterNtuple();
+ClassDef(AntiRawClusterNtuple ,1)       //AntiRawClusterNtuple 
+#else
 friend class AMSAntiRawCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(AntiRawClusterNtuple ,1)       //AntiRawClusterNtuple 
 #endif
 };
 
@@ -1096,10 +1175,12 @@ public:
   float time[MAXTOFRAW];
   float cool[MAXTOFRAW];
 
+#ifdef __WRITEROOT__
+  TOFRawClusterNtuple();
+ClassDef(TOFRawClusterNtuple ,1)       //TOFRawClusterNtuple 
+#else
 friend class AMSTOFRawCluster;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(TOFRawClusterNtuple ,1)       //TOFRawClusterNtuple 
 #endif
 };
 
@@ -1117,10 +1198,12 @@ public:
   int status[MAXRICMC];        // Status=10*number of reflections+(have it rayleigh?1:0)
   int numgen;                  // Number of generated photons
   int eventpointer[MAXRICMC];  // Pointer to detected hit
+#ifdef __WRITEROOT__
+  RICMCNtuple();
+ClassDef(RICMCNtuple,1)
+#else
 friend class AMSRichMCHit;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(RICMCNtuple,1)
 #endif
 };
 
@@ -1137,10 +1220,12 @@ public:
   float x[MAXRICHITS];
   float y[MAXRICHITS];
 
+#ifdef __WRITEROOT__
+  RICEventNtuple();
+ClassDef(RICEventNtuple,1)
+#else
 friend class AMSRichRawEvent;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(RICEventNtuple,1)
 #endif
 };
 
@@ -1157,13 +1242,15 @@ public:
   float beta[MAXTRTR02];
   float errorbeta[MAXTRTR02];
   float quality[MAXTRTR02];
-  integer Z[MAXTRTR02];
+  int Z[MAXTRTR02];
 
 
+#ifdef __WRITEROOT__
+  RICRing();
+ClassDef(RICRing,1)
+#else
 friend class AMSRichRing;
 friend class AMSNtuple;
-#ifdef __WRITEROOT__
-ClassDef(RICRing,1)
 #endif
 }; 
 
