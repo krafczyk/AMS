@@ -1,4 +1,4 @@
-//  $Id: oracle.pc,v 1.3 2001/03/26 14:19:26 alexei Exp $
+//  $Id: oracle.pc,v 1.4 2001/03/30 18:48:56 alexei Exp $
 //
 // Subroutines to work with AMS ORACLE database
 //
@@ -11,8 +11,9 @@
 //              Jan  23, 2001. eventtags, prodruns, etc
 //              Feb  15, 2001. nominal/active clients and hosts tables
 //              Mar  15, 2001. NHosts_Cursor, NClients_Cursor, ACLients_Cursor
+//              Mar  29, 2001. add ASCII time to ORACLE tables
 //
-// Last Edit : Mar. 26, 2001
+// Last Edit : Mar. 30, 2001
 //
 
 #include <iostream.h>
@@ -295,7 +296,13 @@ EXEC SQL BEGIN DECLARE SECTION;
              SELECT * FROM m_nominal_clients;
 
     EXEC SQL DECLARE AClients_Cursor  CURSOR  FOR 
-             SELECT m_active_clients.* FROM m_active_clients 
+             SELECT m_active_clients.id,
+                    m_active_clients.type,
+                    m_active_clients.lastupdate,
+                    m_active_clients.starttime,
+                    m_active_clients.status,
+                    m_active_clients.timestamp
+             FROM m_active_clients 
              WHERE m_active_clients.type = :ttype 
              ORDER BY m_active_clients.id;
 
@@ -338,7 +345,10 @@ EXEC SQL BEGIN DECLARE SECTION;
                 m_dstinfo.hostid = m_nominal_hosts.id;
 
   EXEC SQL DECLARE DST_Cursor CURSOR FOR
-           SELECT * FROM m_dst;
+           SELECT tinsert, tbegin, tend,
+                  run, firstevent, lastevent, events
+                  status, type, filesize, name,
+                  timestamp FROM m_dst;
 
     EXEC SQL DECLARE AHT_Cursor CURSOR FOR
         SELECT m_active_hosts.status,
@@ -1603,7 +1613,10 @@ int AMSoracle::findInRunTable(unsigned int run, unsigned int fevent,
   if (run && rtable) {
 
 
-     EXEC SQL SELECT * INTO 
+     EXEC SQL SELECT run, id, fevent, levent, utimef, utimel, 
+                     priority, rawfilepath, status, history,
+                     submittime, cuid, timestamp
+              INTO 
          :trun, :tidx, :tfirst, :tlast,
          :ubegin, :uend, :tpriority, :filepath,
          :tstatus, :thistory, :tsubmit, :tcuid, :tinsert
@@ -1630,7 +1643,7 @@ int AMSoracle::setRunStatus(unsigned int id, unsigned int status)
     tid      = id;
     tstatus = status;
     tinsert = time((time_t)0);
-
+    
     EXEC SQL UPDATE m_runtable 
              SET
                 status          = :tstatus,
@@ -1648,11 +1661,12 @@ int AMSoracle::setRunSubmitTime(unsigned int id, unsigned int submittime)
     tid      = id;
     tstatus = submittime;
     tinsert = time((time_t)0);
-
+    time_to_oracle(tinsert, ctimei);
     EXEC SQL UPDATE m_runtable 
              SET
                 submittime      = :tsubmit,
-                timestamp       = :tinsert
+                timestamp       = :tinsert,
+                stimea          = :ctimei
                     WHERE id = :tid;
   return 1;
 }
@@ -1673,6 +1687,8 @@ int AMSoracle::updateRunTable(RunTable *rtable)
 
            
     tinsert = time((time_t)0);
+    time_to_oracle(tsubmit,ctimei);
+    time_to_oracle(ubegin,ctimeb);
     EXEC SQL UPDATE m_runtable 
              SET
                 fevent = :tfirst,
@@ -1684,6 +1700,8 @@ int AMSoracle::updateRunTable(RunTable *rtable)
                 history  = :thistory,
                 submittime = :tsubmit,
                 cuid       = :tcuid,
+                timef      = :ctimeb,
+                stimea     = :ctimei,
                 timestamp  = :tinsert
                     WHERE id = :tid;
     rstatus = 1;
@@ -1709,7 +1727,9 @@ int AMSoracle::insertRunTable(RunTable *rtable, int nruns)
      rtable[i].get(tid, trun, ubegin, uend, tfirst, tlast, 
                   tpriority, filepath,
                    tstatus, thistory, tsubmit, tcuid);
-
+     time_to_oracle(tsubmit, ctimei);
+     time_to_oracle(tfirst, ctimeb);
+     
      EXEC SQL INSERT INTO m_runtable
         VALUES (
            :trun, 
@@ -1724,6 +1744,8 @@ int AMSoracle::insertRunTable(RunTable *rtable, int nruns)
            :thistory,
            :tsubmit,
            :tcuid,
+           :ctimeb,
+           :ctimei,
            :tinsert);
     }
     rstatus = 1;
@@ -1785,7 +1807,11 @@ int AMSoracle::getRunTable(int &nruns, unsigned int &maxid, RunTable *rtable)
       return rstatus;
     }
 
-    EXEC SQL SELECT * INTO :runsT 
+    EXEC SQL SELECT
+                     run, id, fevent, levent, utimef, utimel,
+                     priority, rawfilepath, status, history,
+                     submittime, cuid, timestamp
+             INTO :runsT 
              FROM m_runtable 
              ORDER BY priority DESC, run;
 
@@ -1950,7 +1976,11 @@ int AMSoracle::getRun(const char *host, RunTable *rtable)
  if (host) {
   thostid = findHost(host);
   if (thostid) {
-      EXEC SQL SELECT m_runtable.* INTO runsT FROM m_runtable, m_runstatus  
+      EXEC SQL SELECT 
+                     run, id, fevent, levent, utimef, utimel, 
+                     priority, rawfilepath, m_runtable.status, history,
+                     submittime, cuid, timestamp
+                INTO runsT FROM m_runtable, m_runstatus  
                WHERE
                 m_runtable.status = m_runstatus.n AND
                 m_runstatus.status = 'ToBeRerun' 
@@ -1958,7 +1988,11 @@ int AMSoracle::getRun(const char *host, RunTable *rtable)
        nruns = sqlca.sqlerrd[2];
        if (!nruns) {
          cout<<"AMSoracle::getRun -I- no runs with ToBeRerun status  "<<endl;
-         EXEC SQL SELECT m_runtable.* INTO runsT FROM m_runtable, m_runstatus  
+         EXEC SQL SELECT 
+                     run, id, fevent, levent, utimef, utimel, 
+                     priority, rawfilepath, m_runtable.status, history,
+                     submittime, cuid, timestamp
+                  INTO runsT FROM m_runtable, m_runstatus  
                   WHERE
                    m_runtable.history = m_runstatus.n AND
                    m_runstatus.status = 'ToBeRerun'      
@@ -1966,7 +2000,14 @@ int AMSoracle::getRun(const char *host, RunTable *rtable)
          nruns = sqlca.sqlerrd[2];
          if (!nruns) {
           cout<<"AMSoracle::getRun -I- no runs with ToBeRerun history  "<<endl;
-          EXEC SQL SELECT m_runtable.* INTO runsT 
+          EXEC SQL SELECT 
+                     m_runtable.run, m_runtable.id, m_runtable.fevent, 
+                     m_runtable.levent, m_runtable.utimef, m_runtable.utimel,
+                     m_runtable.priority, m_runtable.rawfilepath, 
+                     m_runtable.status, history,
+                     m_runtable.submittime, m_runtable.cuid, 
+                     m_runtable.timestamp
+                   INTO runsT 
                    FROM m_runtable, m_runstatus, m_prodruns 
                    WHERE
                    m_runtable.status = m_runstatus.n AND
@@ -2474,6 +2515,7 @@ int AMSoracle::insertDSTInfo(
      tsize   = size;
      strcpy(tdirpath,name);
      tinsert   = time((time_t)0);
+     time_to_oracle(tinsert, ctimei);
      EXEC SQL WHENEVER SQLERROR DO 
                     sql_nothing("ORACLE Info :AMSoracle::insertDST : nothing to delete");
      EXEC SQL DELETE m_dst 
@@ -2498,6 +2540,7 @@ int AMSoracle::insertDSTInfo(
                     :ttype,
                     :tsize,
                     :tdirpath,
+                    :ctimei,
                     :tinsert);
      rstatus = 1;
    }
@@ -2534,6 +2577,7 @@ int AMSoracle::insertDSTInfo(
      tsize   = size;
      strcpy(tdirpath,name);
      tinsert   = time((time_t)0);
+     time_to_oracle(tinsert,ctimei);
      EXEC SQL UPDATE m_dst 
              SET
                 tinsert =    :uinsert,
@@ -2544,6 +2588,7 @@ int AMSoracle::insertDSTInfo(
                 events     =     :tevents,
                 status     =     :tstatus,
                 filesize   =     :tsize,
+                lastuptime =     :ctimei,
                 timestamp  =     :tinsert
               WHERE 
                 NAME = :tdirpath;
@@ -2726,6 +2771,7 @@ int AMSoracle::initActiveHostTable(const unsigned int hoststatus)
 // ANYWAY ONLY FIRST 50 HOSTS AND FIRST 50 CLIENTS ARE PROCESSED
 //
     tinsert = time((time_t)0);
+    time_to_oracle(tinsert, ctimei);
     tstatus = hoststatus;
     for (int i=0; i<nhosts; i++) {
      if(nominalhost[i].ncpu > 0 && nominalhost[i].memory) {
@@ -2737,7 +2783,6 @@ int AMSoracle::initActiveHostTable(const unsigned int hoststatus)
             <<" mem "<<nominalhost[i].memory<<", "<<nominaldesc[j].memory
             <<" cpu "<<nominalhost[i].ncpu<<", "<<nominaldesc[j].cpu<<endl;
         ttype = nominaldesc[j].type;
-    
         EXEC SQL INSERT INTO m_active_hosts 
                       VALUES(:ttype, 
                              :nominalhost[i].id,
@@ -2750,6 +2795,7 @@ int AMSoracle::initActiveHostTable(const unsigned int hoststatus)
                              0,
                              :tinsert,
                              :nominalhost[i].clock,
+                             :ctimei,
                              :tinsert);
      }
     }
@@ -2838,7 +2884,7 @@ int AMSoracle::updateActiveHost(unsigned int type,
     tclfailed    = clfailed;
     tclkilled    = clkilled;
     tlastupdate  = lastupd;
-
+    time_to_oracle(lastupd,ctimei);
     if (tclallowed < tclactive) {
      cout<<"---update------------ "<<tclallowed<<" "<<tclactive<<endl; 
      cout<<"-------for host/type- "<<thostid<<" "<<ttype<<endl; 
@@ -2851,6 +2897,7 @@ int AMSoracle::updateActiveHost(unsigned int type,
                 processed =   :tclprocessed,
                 failed    =   :tclfailed,
                 killed    =   :tclkilled,
+                lastuptime  =   :ctimei,
                 lastupdate =  :tlastupdate
                 WHERE id   = :thostid AND type = :ttype; 
     rstatus = 1;
@@ -2895,6 +2942,7 @@ int AMSoracle::insertActiveHost(unsigned int type,
     tclkilled    = clkilled;
     tlastupdate  = lastupd;
     tinsert = time((time_t)0);
+    time_to_oracle(tinsert, ctimei);
     if (tclallowed < tclactive) {
      cout<<"----insert----------- "<<tclallowed<<" "<<tclactive<<endl; 
      cout<<"-------for host/type- "<<thostid<<" "<<ttype<<endl; 
@@ -2911,6 +2959,7 @@ int AMSoracle::insertActiveHost(unsigned int type,
                              :tclkilled,
                              :tlastupdate,
                              :tclock,
+                             :ctimei,
                              :tinsert);
 
     rstatus = 1;
@@ -3474,12 +3523,15 @@ int AMSoracle::updateActiveClient(const unsigned int id,
     tstarttime  = starttime;
     tstatus     = status;  
     tinsert     = time((time_t)0);
-
+    time_to_oracle(tinsert, ctimei);
+    time_to_oracle(tstarttime, ctimeb);
       EXEC SQL UPDATE m_active_clients 
                     SET
                      lastupdate = :tlastupdate,
                      starttime  = :tstarttime,
                      status     = :tstatus,
+                     starttimea = :ctimeb,
+                     lasttime   = :ctimei,
                      timestamp  = :tinsert
            WHERE id = :tid AND type = :ttype;
 
@@ -3510,12 +3562,16 @@ int AMSoracle::insertActiveClient(const unsigned int id,
     tstarttime  = starttime;
     tstatus     = status;  
     tinsert     = time((time_t)0);
-    EXEC SQL INSERT INTO m_active_clients 
+    time_to_oracle(tinsert, ctimei); 
+    time_to_oracle(tstarttime, ctimeb); 
+   EXEC SQL INSERT INTO m_active_clients 
               VALUES(:tid,
                      :ttype,
                      :tlastupdate,
                      :tstarttime,
                      :tstatus,
+                     :ctimeb,
+                     :ctimei,
                      :tinsert);
      rstatus = 1;
 
@@ -3682,8 +3738,11 @@ int AMSoracle::updateActiveClientId(const unsigned int id,
       ttype = cltype;
       tstatus     = status;  
       tinsert     = time((time_t)0);
+      time_to_oracle(tinsert, ctimei);
       EXEC SQL UPDATE m_active_clients_id 
-               SET exitingstatus    = :tstatus,  
+               SET exitingstatus    = :tstatus,
+                   lasttime         = :ctimei,
+                   lastupdate       = :tinsert,  
                    timestamp        = :tinsert 
               WHERE id = :tid AND type = :ttype;
      rstatus = 1;
@@ -4301,6 +4360,34 @@ void AMSoracle::commit()
     EXEC SQL COMMIT WORK;
 
 }    
+
+void AMSoracle::time_to_oracle(const time_t mtime, char* date)
+{
+ const int WEEKDAY  = 0;
+ const int MONTH    = 1;
+ const int DAY      = 2;
+ const int TIME     = 3;
+ const int YEAR     = 4;
+ const int N        = 5;
+
+ char *ptr[N];
+
+ char ftime[40];
+
+ strcpy(ftime,ctime(&mtime));
+
+ ptr[0] = strtok(ftime," ");
+ for (int j=1; j<N; j++) ptr[j] = strtok(NULL," ");
+ strcpy(date,ptr[DAY]);
+ strcat(date,"-");
+ strcat(date,ptr[MONTH]);
+ strcat(date,"-");
+ strcat(date,ptr[YEAR]);
+ strcat(date," ");
+ strcat(date,ptr[TIME]);
+}
+
+
 int AMSoracle::getTableSize(const char *tablename)
 {
 //

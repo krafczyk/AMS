@@ -1,4 +1,4 @@
-//  $Id: oracle.h,v 1.3 2001/03/26 14:19:33 alexei Exp $
+//  $Id: oracle.h,v 1.4 2001/03/30 18:49:01 alexei Exp $
 //
 // ORACLE related subroutines 
 //
@@ -11,7 +11,7 @@
 //              Jan    , 2001. Hosts, Clients, Runs
 //              Feb    , 2001. Active CLients, hosts.
 //
-// Last Edit : Mar. 16, 2001
+// Last Edit : Mar. 29, 2001
 //
 
 
@@ -1113,6 +1113,7 @@ namespace AMSoracle {
   int  setRunSubmitTime(unsigned int uid,const unsigned int submittime);
 
   int  suppressCR(char *string);
+  void time_to_oracle(const time_t mtime, char* date);
   int  trimtdv(int &tablesize, TDVutime *utime);
   int  UnixFilestat(const char *path, long *id, long *size, long *flags, 
                     time_t *modtime);
