@@ -35,6 +35,7 @@ matr3x3    E2000_mean,    /* Matrix for accounting for Precession */
            Emean_true,    /* Matrix for accounting for nutation */
            E2000_ITOD,    /* J2000 ---> inertial true-of-date */
            EITOD_GTOD,    /* internal true-of-date ---> Grenwich TOD */
+           Ebod_1950,     /* M1950 -------> body */  
            Ebody_1950,    /* body axis  ------> M1950 */
            Ebody_GTOD,    /* body axis  ------> Greenwich TOD */
            EGTOD_LVLH,    /* GTOD  ---> Local vert. local horiz. LVLH */

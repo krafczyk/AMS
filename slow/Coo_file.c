@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-
+#include <iostream.h>
 #include <ams/types.h>
 #include <ams/castcp.h>
 
@@ -39,10 +39,12 @@ double CASvalue (int offset, int length) {
   for (i=0; i<length; i++) {
     val[i]=buffer.CASmsg[offset+length-i-4];
     if (debug)
-      printf("value = %02x ",val[i]);
+      //printf("value = %02x ",val[i]);
+      cout <<" value = "<<val[i]<<endl;
   }
   if (debug)
-    printf("\n");
+   // printf("\n");
+   
   dval=(double)*((double*)val);
   return dval;
 }
@@ -118,8 +120,8 @@ Umin = 999999999;
   Coo_db_dir=getenv("CooDbDir");
   setbuf(stdout,NULL);
 
-  puts("********************");
-
+  //puts("********************");
+  cout <<"********************"<<endl;
   while(1) {  /*GLOBAL LOOP */
 
 NEW_FILES: /* look for new files in the directory */
@@ -133,7 +135,8 @@ NEW_FILES: /* look for new files in the directory */
       ii++;
       if (ii>30) {
 	time(&cur_time);
-	printf("no new files. waiting......%s\n",ctime(&cur_time));
+	//printf("no new files. waiting......%s\n",ctime(&cur_time));
+        cout <<"no new files. waiting.... "<<ctime(&cur_time)<<endl;
 	ii=0;
       }
       sleep(60);
@@ -176,7 +179,8 @@ NEW_FILES: /* look for new files in the directory */
 	fclose(fout);
 	sprintf(chb80,"rm %s",temp_file);
 	system(chb80);
-	printf("======================%d\n",file_n);
+	//printf("======================%d\n",file_n);
+	cout <<"======================"<<file_n<<endl;
 	file_n++;
 	record_n=Umax=0;
 	Umin = 999999999;
