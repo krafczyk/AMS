@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.109 2003/04/20 21:15:00 choutko Exp $
+# $Id: RemoteClient.pm,v 1.110 2003/04/22 09:12:58 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3217,6 +3217,8 @@ print qq`
          my $cputype=$q->param("QCPUType");
          $buf=~ s/PART=/CLOCK=$clock \nPART=/;         
          $buf=~ s/PART=/CPUTYPE=$cputype\nPART=/;         
+         my $ctime=time();
+         $buf=~ s/PART=/SUBMITTIME=$ctime\nPART=/;         
          if($self->{CCT} eq "local"){
            $buf=~ s/\$AMSProducerExec/$self->{AMSSoftwareDir}\/$gbatch/;         
          }       
@@ -3307,7 +3309,6 @@ print qq`
     if($self->{sqlserver}->{dbdriver} =~ m/Oracle/){
          $tmpb =~ s/'/''/g;
     }
-         my $ctime=time();
          my $nickname = $q->param("QNick");
          my $stalone  = "STANDALONE";
          if ($q->param("STALONE") eq "No") {
