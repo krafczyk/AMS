@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.223 2003/12/04 10:42:59 alexei Exp $
+# $Id: RemoteClient.pm,v 1.224 2003/12/04 11:49:13 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -3943,7 +3943,8 @@ print qq`
             $self->{sqlserver}->Update($sql);
             $run=$res->[0][0];
         }
-             my $switch=1<<27;
+# 4.12.03             my $switch=1<<27;
+             my $switch=1<<26;
              my $max=$switch-1;    
              if (($run%$switch)+$runno >$max){
               foreach my $chop (@{$self->{MailT}}) {
@@ -5956,7 +5957,8 @@ sub listCites {
           my $name   = $cite->[2];
           my $status = $cite->[3];
           my $maxrun = $cite->[4];
-          my $run=(($cid-1)<<27)+1;
+# 4.12.03          my $run=(($cid-1)<<27)+1;
+          my $run=(($cid-1)<<26)+1;
       
           my $r4 = undef;
 
