@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.227 2003/12/12 09:34:45 alexei Exp $
+# $Id: RemoteClient.pm,v 1.228 2003/12/12 10:35:42 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4385,11 +4385,13 @@ print qq`
             if ($self->{CCT} eq "remote"){
              $ri->{Status}="Foreign";
              $ri->{History}="Foreign";
+             $ri->{CounterFail}=0;
              $ri->{cuid}=$ri->{Run};
             } 
             else{
              $ri->{Status}="ToBeRerun";
              $ri->{History}="ToBeRerun";
+             $ri->{CounterFail}=0;
              $ri->{cuid}=0;
             }
          $ri->{SubmitTime}=time();
@@ -7316,7 +7318,7 @@ foreach my $block (@blocks) {
    
       $patternsmatched = 0;
       my @StartingRunPatterns = ("StartingRun","ID","Run","FirstEvent","LastEvent",
-                                 "Prio","Path","Status","History","ClientID",
+                                 "Prio","Path","Status","History","CounterFail", "ClientID",
                                  "SubmitTime","SubmitTimeU","Host","EventsProcessed","LastEvent",
                                  "Errors","CPU","Elapsed","CPU/Event","Status");
   
