@@ -2453,8 +2453,6 @@ for ( i=TRDDBc::PrimaryOctagonNo();i<TRDDBc::OctagonNo();i++){
        nrot++,name,"PGON",par,10,coo,nrm, "ONLY",1,gid,1));
 }
 
-cout <<"amsgeom::trdgeom02-I-TRDGeometryDone"<<endl;
-return;
 
 // trd 
 for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
@@ -2462,14 +2460,17 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
  for(j=0;j<TRDDBc::LayersNo(i);j++){
   for(k=0;k<TRDDBc::LaddersNo(i,j);k++){
    int ip;
-   gid=i+mtrdo*j+mtrdo*maxlay*k;
+   gid=i+mtrdo*j+mtrdo*maxlay*k+1;
    ost.seekp(0);  
-   ost << "TR"<<TRDDBc::CodeLad(gid)<<ends;
+   ost << "TR"<<TRDDBc::CodeLad(gid-1)<<ends;
    TRDDBc::GetLadder(k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::LaddersDimensions(i,j,k,ip);
    int itrd=TRDDBc::NoTRDOctagons(i);
+//   cout <<name<<" "<<j<<" "<<k<<" "<<
+//   coo[0]<<" "<<coo[1]<<" "<<coo[2]<<" "<<
+//   par[0]<<" "<<par[1]<<" "<<par[2]<<endl;
    dau=oct[itrd]->add(new AMSgvolume(TRDDBc::LaddersMedia(),
-       nrot++,name,"BOX",par,3,coo,nrm, "ONLY",1,gid,1));
+       nrot++,name,"BOX",par,3,coo,nrm, "ONLY",0,gid,1));
 //
 // Tubes & Radiators has no rotation matrix at the moment
 // This can be changed in any time
@@ -2478,25 +2479,27 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    ost << "TRDR"<<ends;
    TRDDBc::GetRadiator(k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::RadiatorDimensions(i,j,k,ip);
-   gid=i+mtrdo*j+mtrdo*maxlay*k;
+   gid=i+mtrdo*j+mtrdo*maxlay*k+1;
    dau->add(new AMSgvolume(TRDDBc::RadiatorMedia(),
       0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+/*
    ost.seekp(0);  
    ost << "TRDB"<<ends;
    TRDDBc::GetTubeBox(k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<10;ip++)par[ip]=TRDDBc::TubesBoxDimensions(i,j,k,ip);
-   gid=i+mtrdo*j+mtrdo*maxlay*k;
+   gid=i+mtrdo*j+mtrdo*maxlay*k+1;
    dau->add(new AMSgvolume(TRDDBc::TubesBoxMedia(),
-        0,name,"PGON",par,10,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+        0,name,"BOX",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0?1:-1,gid,1));    
+*/
    int l;
    for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
    ost.seekp(0);  
    ost << "TRDW"<<ends;
    TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::TubesDimensions(i,j,k,ip);
-   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l;
+   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
    dau->add(new AMSgvolume(TRDDBc::TubesMedia(),
-      0,name,"TUBE",par,10,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+      0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
    }
 
    for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
@@ -2504,13 +2507,16 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
    ost << "TRDT"<<ends;
    TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::ITubesDimensions(i,j,k,ip);
-   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l;
+   gid=i+mtrdo*j+mtrdo*maxlay*k+mtrdo*maxlay*maxlad*l+1;
    dau->add(new AMSgvolume(TRDDBc::ITubesMedia(),
-      0,name,"TUBE",par,10,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
+      0,name,"TUBE",par,3,coo,nrm, "ONLY",i==0 && j==0 && k==0 && l==0?1:-1,gid,1));    
    }
+
   }
  }
 }
+cout <<"amsgeom::trdgeom02-I-TRDGeometryDone"<<endl;
+
 }
 
 void antigeom02(AMSgvolume & mother){

@@ -4,7 +4,7 @@
 char * TRDDBc::_OctagonMedia[maxo]={"TRDCarbonFiber", "TRDCarbonFiber",
 "TRDCarbonFiber","TRDHC","TRDFoam","VACUUM","TRDHC"};
 char * TRDDBc::_TubesMedia="TRDCapton";
-char * TRDDBc::_ITubesMedia="TRDGAS";
+char * TRDDBc::_ITubesMedia="TRDGas";
 char * TRDDBc::_RadiatorMedia="TRDRadiator";
 char * TRDDBc::_TubesBoxMedia="TRDFoam";
 
@@ -13,14 +13,20 @@ uinteger TRDDBc::_PrimaryOctagon[maxo]={0,1,2,0,1,1,2};
 uinteger TRDDBc::_PrimaryOctagonNo=3;
 uinteger TRDDBc::_TRDOctagonNo=1;
 uinteger TRDDBc::_OctagonNo=maxo;
-uinteger TRDDBc::_LayersNo[mtrdo]={20};
+uinteger TRDDBc::_LayersNo[mtrdo]={maxlay};
 uinteger TRDDBc::_LaddersNo[mtrdo][maxlay]={20,20,20,19,19,19,19,18,18,18,17,17,17,16,16,16,16,15,15,15};
+
 uinteger TRDDBc::_TubesNo[mtrdo][maxlay][maxlad];
 
 uinteger   TRDDBc::_NumberTubes=0;
 uinteger   TRDDBc::_NumberLadders=0;
 
 
+const number  TRDDBc::_TubeWallThickness=75e-4;
+const number  TRDDBc::_TubeInnerDiameter=0.6;
+const number  TRDDBc::_TubeBoxThickness=(0.62-TRDDBc::_TubeInnerDiameter-TRDDBc::_TubeWallThickness)/2.;
+const number  TRDDBc::_LadderThickness=2.9;
+const integer TRDDBc::_LadderOrientation[mtrdo][maxlay]={0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0};   // 0 -x 1 -y    
 number TRDDBc::_OctagonDimensions[maxo][10]; 
 number TRDDBc::_LaddersDimensions[mtrdo][maxlay][maxlad][3];
 number TRDDBc::_TubesDimensions[mtrdo][maxlay][maxlad][3];    
@@ -85,7 +91,7 @@ void TRDDBc::init(){
 
 //    OctagonDimensions
    // Primary  
-      OctagonDimensions(0,4)=-44.3/20;
+      OctagonDimensions(0,4)=-31./20;
       OctagonDimensions(0,5)=0;
       OctagonDimensions(0,6)=2450/20.;
       OctagonDimensions(0,8)=0;
@@ -96,13 +102,13 @@ void TRDDBc::init(){
       OctagonDimensions(1,5)=0;
       OctagonDimensions(1,6)=1550/20.+30/10./cos(ang);
       OctagonDimensions(1,8)=0;
-      OctagonDimensions(1,9)=OctagonDimensions(1,6)+fabs(OctagonDimensions(1,4))*tan(ang);
+      OctagonDimensions(1,9)=OctagonDimensions(1,6)+2*fabs(OctagonDimensions(1,4))*tan(ang);
 
       OctagonDimensions(2,4)=-175./20;
       OctagonDimensions(2,5)=0;
       OctagonDimensions(2,6)=1698./20;
       OctagonDimensions(2,8)=0;
-      OctagonDimensions(2,9)=OctagonDimensions(2,6)+fabs(OctagonDimensions(2,4))*tan(ang);
+      OctagonDimensions(2,9)=OctagonDimensions(2,6)+2*fabs(OctagonDimensions(2,4))*tan(ang);
 
   //   Inner
       OctagonDimensions(3,4)=OctagonDimensions(0,4)+2/20.;
@@ -168,6 +174,78 @@ void TRDDBc::init(){
        }
        SetOctagon(i,status,coo,unitnrm,gid); 
       }
+
+     // LadderSizes
+      for(i=0;i<TRDOctagonNo();i++){
+       for(j=0;j<LayersNo(i);j++){
+        for(k=0;k<LaddersNo(i,j);k++){
+         coo[0]=TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness();
+         coo[0]*=TubesNo(i,j,k);
+         coo[1]=LadderThickness();
+//       get octagon parameters at lowest point
+         number rmin=OctagonDimensions(NoTRDOctagons(i),6);
+         number rmax=OctagonDimensions(NoTRDOctagons(i),9);
+         number zoct=OctagonDimensions(NoTRDOctagons(i),7)-OctagonDimensions(NoTRDOctagons(i),4);
+         number tang=(rmax-rmin)/zoct;
+         number r=rmax-(j+1)*coo[1]*tang;
+         number a=2*r/(1.+sqrt(2.));
+         integer leftright;
+         if(k<(LaddersNo(i,j)+1)/2)leftright=-1;
+         else leftright=1;
+         number point=coo[0]/2.*(-1.*LaddersNo(i,j)+1.+2*k+leftright);
+         number z=fabs(point)-a/2;
+         coo[2]=z<0?r:r-z;
+         coo[2]*=2;
+         for(int l=0;l<3;l++)LaddersDimensions(i,j,k,l)=coo[l]/2;          
+        }  
+       }
+      }
+     number nrmxy[2][3][3]={0,0,1,1,0,0,0,1,0,
+                            1,0,0,0,0,-1,0,1,0};
+     number nrm[3][3];
+    //Ladder Position & Orientation
+      for(i=0;i<TRDOctagonNo();i++){
+       for(j=0;j<LayersNo(i);j++){
+        for(k=0;k<LaddersNo(i,j);k++){
+         coo[LadderOrientation(i,j)]=0;
+         coo[1-LadderOrientation(i,j)]=-LaddersDimensions(i,j,k,0)*(LaddersNo(i,j)-1.-2*k);
+
+         coo[2]=LaddersDimensions(i,j,k,1)*(LayersNo(i)-1.-2*j+LadderShift(i,j,k)/2.);
+         coo[2]=LaddersDimensions(i,j,k,1)*(LayersNo(i)-1.-2*j);
+         SetLadder(k,j,i,status,coo,nrmxy[LadderOrientation(i,j)],gid);
+        }
+       }
+      }
+      
+      // now radiators etc   
+      for(i=0;i<TRDOctagonNo();i++){
+       for(j=0;j<LayersNo(i);j++){
+        for(k=0;k<LaddersNo(i,j);k++){
+          RadiatorDimensions(i,j,k,0)=LaddersDimensions(i,j,k,0);
+          RadiatorDimensions(i,j,k,1)=LaddersDimensions(i,j,k,1)-(TubeInnerDiameter()+2*TubeWallThickness()+2*TubeBoxThickness())/2;
+          RadiatorDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2);
+          TubesDimensions(i,j,k,0)=TubeInnerDiameter()/2;          
+          TubesDimensions(i,j,k,1)=(TubeInnerDiameter()+2*TubeWallThickness())/2;
+          TubesDimensions(i,j,k,2)=LaddersDimensions(i,j,k,2);
+        }
+       }
+      }
+      for(i=0;i<TRDOctagonNo();i++){
+       for(j=0;j<LayersNo(i);j++){
+        for(k=0;k<LaddersNo(i,j);k++){
+         coo[0]=coo[2]=0;
+         coo[1]=LaddersDimensions(i,j,k,1)-RadiatorDimensions(i,j,k,1);
+         SetRadiator(k,j,i,status,coo,unitnrm,gid);
+         for(int l=0;l<TubesNo(i,j,k);l++){
+           coo[0]=-LaddersDimensions(i,j,k,0)+(TubesDimensions(i,j,k,1)+TubeBoxThickness())*(1+2*l);
+           coo[1]=-LaddersDimensions(i,j,k,1)+TubesDimensions(i,j,k,1)+TubeBoxThickness();
+           coo[2]=0;
+           SetTube(l,k,j,i,status,coo,unitnrm,gid);
+         }
+        }
+       }
+      }
+
 }
 
 void TRDDBc::read(){
@@ -517,10 +595,11 @@ return _OctagonDimensions[toct][index];
 
 char* TRDDBc::CodeLad(uinteger gid){
  static char output[3]={'\0','\0','\0'};
- static char code[]="WERTYUIOPASFGHJKLZXCVBNM1234567890";
- if(gid<sizeof(code)*sizeof(code)){
-  output[0]=code[gid%sizeof(code)]; 
-  output[1]=code[gid/sizeof(code)]; 
+ static char code[]="QWERTYUIOPASFGHJKLZXCVBNM1234567890";
+ integer size=sizeof(code)-1;
+ if(gid<size*size){
+  output[0]=code[gid%size]; 
+  output[1]=code[gid/size]; 
  }
  else{
    cerr<<"TRDDBc::CodeLad-F-CouldNotCodeId "<<gid<<endl;

@@ -10,7 +10,7 @@ namespace trdconst{
 const uinteger maxo=7;   
 const uinteger mtrdo=1;   
 const uinteger maxlay=20;
-const uinteger maxlad=20;
+const uinteger maxlad=21;
 const uinteger maxtube=16;
 const uinteger TRDROTMATRIXNO=9001;
 }
@@ -41,8 +41,11 @@ private:
     static uinteger   _TubesNo[mtrdo][trdconst::maxlay][trdconst::maxlad];
     static uinteger   _NumberTubes;
     static uinteger   _NumberLadders;
-
-    
+    static const number  _TubeInnerDiameter;
+    static const number  _TubeWallThickness;
+    static const number  _TubeBoxThickness;
+    static const number  _LadderThickness;
+    static const integer _LadderOrientation[mtrdo][trdconst::maxlay];    
 
  //Sizes    
    static number    _OctagonDimensions[maxo][10]; 
@@ -124,6 +127,15 @@ public:
    static  uinteger  LaddersNo(uinteger toct, uinteger lay){return lay<LayersNo(toct)?_LaddersNo[toct][lay]:0;}
    static uinteger   TubesNo(uinteger toct, uinteger lay, uinteger lad){return lad<LaddersNo(toct,lay)?_TubesNo[toct][lay][lad]:0;}
    
+
+    static  number  TubeInnerDiameter(){return _TubeInnerDiameter;}
+    static  number  TubeWallThickness(){return _TubeWallThickness;}
+    static  number  TubeBoxThickness(){return _TubeBoxThickness;}
+    static  number  LadderThickness(){return _LadderThickness;}
+    static  integer LadderOrientation(uinteger oct, uinteger lay){return lay<LayersNo(oct)?_LadderOrientation[oct][lay]:0;}     
+    static  integer LadderShift(uinteger oct, uinteger lay,uinteger lad){return lad%2?-1:1;}
+
+
 
  //Sizes    
    static number&    OctagonDimensions(uinteger oct, uinteger index); 
