@@ -9,7 +9,7 @@ void IdleHandle(Int_t option)
   //
 //  static char *cut   
 //  static char *cut = "Chi2strline[0]<1 && Chi2circle[0]<1 && Chi2fastfit[0]<10 && beta[0]<0.";
-  static char *cut = "npart==1 && pcharge[0]==1 && pmom[0]>0 && ptrackp[0]==1 && gchi2[0]>0";
+  static char *cut = "npart==1 && pcharge[0]==2 && pmom[0]>0 && ptrackp[0]==1 && gchi2[0]>0";
 //  static char *cut = "npart==1";
 
 
@@ -48,7 +48,7 @@ void IdleHandle(Int_t option)
 
       if (f_cut != 0) f_cut->SetTree(t);
       else f_cut=new TTreeFormula("cut",cut,t);
-      printf("tree =%lx, formula =%lx\n", t, f_cut);
+//      printf("tree =%lx, formula =%lx\n", t, f_cut);
 
     }
   }

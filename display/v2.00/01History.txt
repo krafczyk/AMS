@@ -1,3 +1,7 @@
+1998.11.09      Shuwei YE
+  - Change mainRint.cxx and main.cxx, and add IdleHandle_c.C to replace the
+    function of mainc.cxx (RealTime monitor).
+
 1998.11.08      Shuwei YE
   - Change AMSR_NtupleCommons.h to fit new format of ntuple used for GSI data.
 

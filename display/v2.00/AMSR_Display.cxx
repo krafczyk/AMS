@@ -359,21 +359,21 @@ void AMSR_Display::SetIdleTimer(Long_t seconds, Text_t *command)
 {
    m_IdleTime    = seconds;
    m_IdleCommand = command;
-//   IdleSwitch(1);
+   if (m_IdleOn) IdleSwitch(1);
 }
 
 //_____________________________________________________________________________
 void AMSR_Display::IdleTime(Long_t seconds)
 {
    m_IdleTime    = seconds;
-//   IdleSwitch(1);
+   if (m_IdleOn) IdleSwitch(1);
 }
 
 //_____________________________________________________________________________
 void AMSR_Display::IdleCommand(Text_t *command)
 {
    m_IdleCommand = command;
-//   IdleSwitch(1);
+   if (m_IdleOn) IdleSwitch(1);
 }
 
 
