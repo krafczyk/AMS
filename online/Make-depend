@@ -148,6 +148,7 @@ AMSTOFHist.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSTOFHist.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSTOFHist.o: /usr/include/sys/sysmisc.h
 AMSTOFHist.o: /pgm0/EventDisplay/root/include/TProfile.h
+AMSTOFHist.o: /pgm0/EventDisplay/root/include/TPaveText.h
 AMSLVL1Hist.o: AMSLVL1Hist.h AMSHist.h
 AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TTree.h
 AMSLVL1Hist.o: /pgm0/EventDisplay/root/include/TNamed.h

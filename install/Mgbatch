@@ -52,8 +52,8 @@ endif
 #
 #
 #
-FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/antirec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcsim.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F ../F/e04ccf.f ../CC/trigger1.C  ../CC/trigger3.C ../CC/antidbc.C ../CC/daqevt.C ../CC/daqblock.C ../CC/astring.C ../CC/ins_dummy.C ../F/mfield.F ../F/egzav.F ../CC/tkdbc.C ../CC/user.C
-OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/antirec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcsim.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o ..$(BIN)/trigger1.o ..$(BIN)/trigger3.o ..$(BIN)/antidbc.o ..$(BIN)/daqevt.o ..$(BIN)/daqblock.o ..$(BIN)/astring.o ..$(BIN)/ins_dummy.o  ..$(BIN)/mfield.o ..$(BIN)/egzav.o ..$(BIN)/tkdbc.o ..$(BIN)/user.o
+FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/tofonline.C ../CC/antirec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcsim.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F ../F/e04ccf.f ../CC/trigger1.C  ../CC/trigger3.C ../CC/antidbc.C ../CC/daqevt.C ../CC/daqblock.C ../CC/astring.C ../CC/ins_dummy.C ../F/mfield.F ../F/egzav.F ../CC/tkdbc.C ../CC/user.C
+OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/tofonline.o ..$(BIN)/antirec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcsim.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o ..$(BIN)/trigger1.o ..$(BIN)/trigger3.o ..$(BIN)/antidbc.o ..$(BIN)/daqevt.o ..$(BIN)/daqblock.o ..$(BIN)/astring.o ..$(BIN)/ins_dummy.o  ..$(BIN)/mfield.o ..$(BIN)/egzav.o ..$(BIN)/tkdbc.o ..$(BIN)/user.o
 ..$(EXE)/gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS) ../F/timel.F -o ..$(BIN)/timel.o
 	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
@@ -236,6 +236,9 @@ endif
 
 ..$(BIN)/tofrec.o: 	         ../CC/tofrec.C
 	$(CC) -c $(CFLAGS) ../CC/tofrec.C -o ..$(BIN)/tofrec.o
+
+..$(BIN)/tofonline.o: 	         ../CC/tofonline.C
+	$(CC) -c $(CFLAGS) ../CC/tofonline.C -o ..$(BIN)/tofonline.o
 
 ..$(BIN)/antirec.o: 	         ../CC/antirec.C
 	$(CC) -c $(CFLAGS) ../CC/antirec.C -o ..$(BIN)/antirec.o
@@ -1244,6 +1247,49 @@ depend:
 ../bin/osf1/tofrec.o: ../include/trrec.h ../include/tofrec.h
 ../bin/osf1/tofrec.o: ../include/daqblock.h ../include/tofcalib.h
 ../bin/osf1/tofrec.o: ../include/ntuple.h
+../bin/osf1/tofonline.o: ../include/job.h ../include/typedefs.h
+../bin/osf1/tofonline.o: /usr/include/assert.h /usr/include/standards.h
+../bin/osf1/tofonline.o: /usr/include/cxx/iostream.h
+../bin/osf1/tofonline.o: /usr/include/cxx/iostream.hxx
+../bin/osf1/tofonline.o: /usr/include/cxx/cxxl.hxx
+../bin/osf1/tofonline.o: /usr/include/cxx/cxxl_share.hxx
+../bin/osf1/tofonline.o: /usr/include/cxx/messages.hxx
+../bin/osf1/tofonline.o: /usr/include/stddef.h /usr/include/stdio.h
+../bin/osf1/tofonline.o: /usr/include/sys/seek.h /usr/include/va_list.h
+../bin/osf1/tofonline.o: /usr/include/sys/types.h
+../bin/osf1/tofonline.o: /usr/include/mach/machine/vm_types.h
+../bin/osf1/tofonline.o: /usr/include/sys/select.h
+../bin/osf1/tofonline.o: /usr/include/getopt.h
+../bin/osf1/tofonline.o: /usr/include/sys/limits.h
+../bin/osf1/tofonline.o: /usr/include/sys/machine/machlimits.h
+../bin/osf1/tofonline.o: /usr/include/sys/syslimits.h
+../bin/osf1/tofonline.o: /usr/include/sys/machine/machtime.h
+../bin/osf1/tofonline.o: /usr/include/sys/rt_limits.h
+../bin/osf1/tofonline.o: /usr/include/limits.h /usr/include/memory.h
+../bin/osf1/tofonline.o: /usr/include/string.h /usr/include/strings.h
+../bin/osf1/tofonline.o: ../include/node.h ../include/id.h
+../bin/osf1/tofonline.o: /usr/include/cxx/strstream.h
+../bin/osf1/tofonline.o: /usr/include/cxx/strstream.hxx
+../bin/osf1/tofonline.o: /usr/include/stdlib.h ../include/snode.h
+../bin/osf1/tofonline.o: ../include/upool.h /usr/include/cxx/new.h
+../bin/osf1/tofonline.o: /usr/include/cxx/new.hxx ../include/gvolume.h
+../bin/osf1/tofonline.o: ../include/cern.h ../include/cfortran.h
+../bin/osf1/tofonline.o: ../include/hbook.h ../include/geant321.h
+../bin/osf1/tofonline.o: ../include/geant321g.h ../include/amsdbc.h
+../bin/osf1/tofonline.o: ../include/point.h /usr/include/math.h
+../bin/osf1/tofonline.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/tofonline.o: /usr/include/cxx/iomanip.hxx
+../bin/osf1/tofonline.o: /usr/include/cxx/generic.hxx
+../bin/osf1/tofonline.o: /usr/include/cxx/mutex.hxx
+../bin/osf1/tofonline.o: ../include/amsgobj.h ../include/uzstat.h
+../bin/osf1/tofonline.o: ../include/timeid.h /usr/include/time.h
+../bin/osf1/tofonline.o: /usr/include/sys/timers.h
+../bin/osf1/tofonline.o: /usr/include/sys/sysmisc.h
+../bin/osf1/tofonline.o: ../include/commons.h ../include/tofdbc.h
+../bin/osf1/tofonline.o: ../include/extC.h /usr/include/cxx/fstream.h
+../bin/osf1/tofonline.o: /usr/include/cxx/fstream.hxx
+../bin/osf1/tofonline.o: ../include/tofsim.h ../include/apool.h
+../bin/osf1/tofonline.o: ../include/link.h
 ../bin/osf1/antirec.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/antirec.o: /usr/include/standards.h
 ../bin/osf1/antirec.o: /usr/include/cxx/iostream.h

@@ -1,4 +1,5 @@
 // Simple version 9.06.1997 by E.Choumilov
+// D. Casadei added trigger hbook histograms, Feb 19, 1998
 //
 #include <commons.h> 
 #include <trigger1.h>
@@ -240,20 +241,53 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   //  int16u bit11_310= (*(p+3) | *(p+10) ) & (1<<11);
   //  tofp[3]= tofp[3] & (~(1<<2)) & (~(1<<11));
   //  tofp[3]=tofp[3] |   bit2_310 | bit11_310;
-  for(int k=0;k<4;k++){
-   for(int i=0;i<16;i++){
-     tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
-   }  
-   tempor[k]=tofp[k]>>16;     
 
+  // ---> TOF Online histograms
+  if(AMSJob::gethead()->isMonitoring() & 
+     (AMSJob::MTOF | AMSJob::MAll))
+    for(int kilo=0;kilo<14;kilo++){
+      // Sides
+      if(*(p+6) & (1<<kilo) )
+	HF1(5000,geant(kilo+1),1.);
+      if(*(p+10) & (1<<kilo) )
+	HF1(5004,geant(kilo+1),1.);
+      if(*(p+5) & (1<<kilo) )
+	HF1(5001,geant(kilo+1),1.);
+      if(*(p+9) & (1<<kilo) )
+	HF1(5005,geant(kilo+1),1.);
+      if(*(p+4) & (1<<kilo) )
+	HF1(5002,geant(kilo+1),1.);
+      if(*(p+8) & (1<<kilo) )
+	HF1(5006,geant(kilo+1),1.);
+      if(*(p+3) & (1<<kilo) )
+	HF1(5003,geant(kilo+1),1.);
+      if(*(p+7) & (1<<kilo) )
+	HF1(5007,geant(kilo+1),1.);
+      // AND of sides
+      if((*(p+6) & (1<<kilo)) &&  (*(p+10) & (1<<kilo)))
+	HF1(5008,geant(kilo+1),1.);
+      if((*(p+5) & (1<<kilo)) &&  (*(p+9) & (1<<kilo)))
+	HF1(5009,geant(kilo+1),1.);
+      if((*(p+4) & (1<<kilo)) &&  (*(p+8) & (1<<kilo)))
+	HF1(5010,geant(kilo+1),1.);
+      if((*(p+3) & (1<<kilo)) &&  (*(p+7) & (1<<kilo)))
+	HF1(5011,geant(kilo+1),1.);
+    };
+  // <--- 
+  for(int k=0;k<4;k++){
+    for(int i=0;i<16;i++){
+      tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
+    }  
+    tempor[k]=tofp[k]>>16;     
+    
   }
   tofp[0]=*(p+6) & *(p+10);
-
+  
   //  bit2_67= (*(p+6) & *(p+7) ) & (1<<2);
   //  bit11_67= (*(p+6) & *(p+7) ) & (1<<11);
   //  tofp[0]= tofp[0] & (~(1<<2)) & (~(1<<11));
   //  tofp[0]=tofp[0] |   bit2_67 | bit11_67;
-
+  
   tofp[1]=*(p+5) & *(p+9);
   tofp[2]=*(p+4) & *(p+8);
   tofp[3]=*(p+3) & *(p+7);
@@ -262,10 +296,10 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   //  tofp[3]= tofp[3] & (~(1<<2)) & (~(1<<11));
   //  tofp[3]=tofp[3] |   bit2_310 | bit11_310;
   for( k=0;k<4;k++){
-   for(int i=0;i<16;i++){
-     tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
-   }  
-   tempand[k]=tofp[k]>>16;     
+    for(int i=0;i<16;i++){
+      tofp[k]=tofp[k] | (((tofp[k]>>i) & 1) <<(29-i));
+    }  
+    tempand[k]=tofp[k]>>16;     
   }
   for(k=0;k<4;k++){
     tofp[k]=tempor[k] | (tempand[k] <<16);

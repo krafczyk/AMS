@@ -4,6 +4,8 @@
 #include <TGraphErrors.h>
 #include "AMSNtuple.h"
 #include <TProfile.h>
+#include <TPaveText.h>
+#include <TAttAxis.h>
 
 ClassImp(AMSTOFHist)
 
@@ -237,20 +239,28 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPad->cd(i+1);
       if((i%2)==0){
 	sprintf(text,"Plane %1d-P hits",(i/2+1));
-	if(_fetched2[6+i/2]){
-          _fetched2[6+i/2]->Draw(); // JL1 
-          ((TH1*)_fetched2[6+i/2])->SetXTitle(text);
+	_fetched2[6+i/2]->SetLabelSize(0.1,"X"); // JL1 
+	_fetched2[6+i/2]->SetLabelSize(0.1,"Y"); // JL1 
+	_fetched2[6+i/2]->SetLineColor(3); // JL1 
+	_fetched2[6+i/2]->Draw(); // JL1 
+	((TH1*)_fetched2[6+i/2])->SetTitle("");
+	_fetched2[18+i/2]->SetLineColor(4); // data
 	_fetched2[18+i/2]->Draw("same"); // data
-        }
-      }  
+      }
       else{
 	sprintf(text,"Plane %1d-N hits",(i/2+1));
-        if(_fetched2[10+i/2]){
- 	_fetched2[10+i/2]->Draw(); // JL1 
-	((TH1*)_fetched2[10+i/2])->SetXTitle(text);
+	_fetched2[10+i/2]->SetLabelSize(0.1,"X"); // JL1 
+	_fetched2[10+i/2]->SetLabelSize(0.1,"Y"); // JL1 
+	_fetched2[10+i/2]->Draw(); // JL1 
+	_fetched2[10+i/2]->SetLineColor(3); // JL1 
+	((TH1*)_fetched2[10+i/2])->SetTitle("");
+	_fetched2[22+i/2]->SetLineColor(4); // data
 	_fetched2[22+i/2]->Draw("same"); // data
-        }
-      }      
+      }
+      TPaveText* box = new TPaveText(.25,.86,.75,1.,"NDC");
+      box->AddText(text);
+      box->SetMargin(0.005);
+      box->Draw();
       gPad->Update();
       gPadSave->cd();
     }
@@ -263,7 +273,10 @@ void AMSTOFHist::ShowSet(Int_t Set){
       if(_fetched2[14+i]){
 	sprintf(text,"Plane %1d hits",(i+1));
 	((TH1*)_fetched2[14+i])->SetXTitle(text);
+	_fetched2[14+i]->SetLabelSize(0.05,"XY"); // JL1 
+	_fetched2[14+i]->SetLineColor(3); // JL1 
 	_fetched2[14+i]->Draw(); // JL1 
+	_fetched2[26+i]->SetLineColor(4); // data
 	_fetched2[26+i]->Draw("same"); // data
       }
       gPadSave->cd();
@@ -308,9 +321,13 @@ void AMSTOFHist::ShowSet(Int_t Set){
 	ey[k]= _dynrms[k+14*i];
       }
       TGraphErrors *gr=new TGraphErrors(14,cpos,y,epos,ey);
-      gr->SetTitle(text);
+      gr->SetTitle("");
+      gr->SetMarkerColor(4);
       gr->SetMarkerStyle(21);
       gr->Draw("ALP");
+      TPaveText* box = new TPaveText(.25,.86,.75,1.,"NDC");
+      box->AddText(text);
+      box->Draw();
       gPad->Update();
       gPadSave->cd();
     }
@@ -330,9 +347,13 @@ void AMSTOFHist::ShowSet(Int_t Set){
 	ey[k]= _dynrms[k+14*i];
       }
       TGraphErrors *gr=new TGraphErrors(14,cpos,y,epos,ey);
-      gr->SetTitle(text);
+      gr->SetTitle("");
+      gr->SetMarkerColor(4);
       gr->SetMarkerStyle(21);
       gr->Draw("ALP");
+      TPaveText* box = new TPaveText(.25,.86,.75,1.,"NDC");
+      box->AddText(text);
+      box->Draw();
       gPad->Update();
       gPadSave->cd();
     }
@@ -352,14 +373,19 @@ void AMSTOFHist::ShowSet(Int_t Set){
 	ey[k]= _strrms[k+14*i];
       }
       TGraphErrors *gr=new TGraphErrors(14,cpos,y,epos,ey);
-      gr->SetTitle(text);
+      gr->SetTitle("");
+      gr->SetMarkerColor(4);
       gr->SetMarkerStyle(21);
+      //    (TH1*((TGraph*)gr->GetHistogram()))->GetXaxis->SetLabelSize(0.1,"X");
       gr->Draw("ALP");
+      TPaveText* box = new TPaveText(.2,.86,.8,1.,"NDC");
+      box->AddText(text);
+      box->Draw();
       gPad->Update();
       gPadSave->cd();
     }
   }
-  else if(Set==0){
+  else if(Set==0){// three windows by Choutko
     gPad->Divide(2,2);
     TVirtualPad * gPadSave = gPad;
     for(i=0;i<4;i++){
@@ -367,7 +393,9 @@ void AMSTOFHist::ShowSet(Int_t Set){
       gPad->SetLogx(gAMSDisplay->IsLogX());
       gPad->SetLogy(gAMSDisplay->IsLogY());
       gPad->SetLogz(gAMSDisplay->IsLogZ());
+      _filled2[i]->SetFillColor(3);
       _filled2[i]->Draw();
+      _filled2[i+4]->SetFillColor(4);
       _filled2[i+4]->Draw("SAME");
       gPadSave->cd();
     }

@@ -8,7 +8,8 @@
 // Nov   , 1997. ak. 
 //
 // Last Edit: Nov 24, 1997.
-// 
+//
+// 21 Feb 1998: D. Casadei added AMSJob::_retofonlineinitjob();
 #ifndef __AMSJOB__
 #define __AMSJOB__
 #include <typedefs.h>
@@ -130,6 +131,7 @@ void _regninitjob();
 void _retrdinitjob();
 void _rectcinitjob();
 void _retofinitjob();
+void _retofonlineinitjob();
 void _reantiinitjob();
 void _reaxinitjob();
 void _caamsinitjob();

@@ -70,7 +70,8 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
     StartTime=AMSEvent::gethead()->gettime();
   }
 //---- Scint.data length monitoring:
-  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+  if(TOFRECFFKEY.reprtf[2]>0 || 
+     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
     im=DAQSBlock::gettbll();//total blocks length for current format
     HF1(1107,geant(im),1.);
   }
@@ -235,7 +236,54 @@ void AMSTOFRawEvent::validate(int &status){ //Check/correct RawEvent-structure
   }//  ---- end of RawEvent hits loop ------->
   if(bad==0)status=0;// good TOF-event
 //
-//------------------------------------------------------
+//---------------------ONLINE----------------------
+//
+  if(AMSJob::gethead()->isMonitoring() & 
+     (AMSJob::MTOF | AMSJob::MAll)){ // TOF Online histograms
+    ptr=(AMSTOFRawEvent*)AMSEvent::gethead()
+                        ->getheadC("AMSTOFRawEvent",0);
+
+    while(ptr){ //  <---- loop over TOF RawEvent hits -----
+      int num,den,nedges[4];
+      number Atovt,Dtovt;
+      int his[SCTHMX2*2],tdc[SCTHMX3*4],ano[SCTHMX4*2],dyn[SCTHMX4*2];     
+
+      idd=ptr->getid();
+      id=idd/10;// short id=LBB, where L=1,4 BB=1,14
+      ilay=id/100;
+      ibar=id%100;
+      isid=idd%10;
+ 
+      nedges[0]=int (ptr->getftdc(ftdc1)); // History
+      nedges[1]=int (ptr->getstdc(stdc1)); // Time Exp.
+      nedges[2]=int (ptr->getadca(adca1)); // Anode
+      nedges[3]=int (ptr->getadcd(adcd1)); // Dynode
+
+//       for(int pippo=0;pippo<nedges[1];pippo++)
+// 	tdc[pippo]=int (ftdc1[pippo]&pbitn);
+//       for(pippo=0;pippo<nedges[2];pippo++)
+// 	ano[pippo]=int (adca1[pippo]&pbitn);
+//       for(pippo=0;pippo<nedges[3];pippo++)
+// 	dyn[pippo]=int (adcd1[pippo]&pbitn);
+//
+//      Eventually choose the right 2 edges for Anode and Dynode,
+//      before calculating Atovt and Dtovt
+      Atovt=number((adca1[1]-adca1[0])&pbanti);
+      Dtovt=number((adcd1[1]-adcd1[0])&pbanti);
+
+      tsr[0]=(stdc1[3]&pbanti)*TOFDBc::tdcbin(1);
+      tsr[1]=(stdc1[2]&pbanti)*TOFDBc::tdcbin(1);
+      tsr[2]=(stdc1[0]&pbanti)*TOFDBc::tdcbin(1);
+      num=tsr[1]-tsr[2]; // Time Exp. =
+      den=tsr[0]-tsr[1]; //    (num - offset)/den
+
+      AMSTOFRawEvent::tofonlinefill1(ilay,ibar,isid, // coord. 1-4,1-14,1-2
+		     nedges,         // array of numbers of edges 
+		     num,den,        // ~ time stretcher ratio
+		     Atovt,Dtovt);   // Anode & Dynode time over thr.
+      ptr=ptr->next();// take next RawEvent hit
+    }
+  }
 //
 // =============> STRR/AvsD(Contin's) calibration, if requested :
 //
@@ -529,7 +577,21 @@ void AMSTOFRawCluster::build(int &status){
         ftdcfl=TOFRECFFKEY.relogic[1];// how to use f-TDC 
         if(nstdc[0]>=4 && nadca[0]>=2 && (nftdc[0] >=2 || ftdcfl==2))smty[0]=1;
         if(nstdc[1]>=4 && nadca[1]>=2 && (nftdc[1] >=2 || ftdcfl==2))smty[1]=1;
-        if(smty[0]==1 || smty[1]==1){ //(even 1-side bar is accepted,if have complete measur.) 
+	//-------ONLINE--------
+	if(AMSJob::gethead()->isMonitoring() & 
+	   (AMSJob::MTOF | AMSJob::MAll)){
+	  static int nIDhis[1200];
+	  static int first=0;
+	  if(first==0)
+	    for(int k=0;k<1200;k++)nIDhis[k]=0;
+	  first++;
+	  if(smty[0]==1 && smty[1]==1){
+	    int hisID=5023+ilay;
+	    HFF1(hisID,nIDhis[hisID-5000],(geant)(14-ibar),1.);
+	  }
+	}
+	//----------------------
+	if(smty[0]==1 || smty[1]==1){ //(even 1-side bar is accepted,if have complete measur.) 
           TOFJobStat::addbr(brnum,1);
           isds=smty[0]+smty[1];// redefine side-counter as good side-counter
           sta=0;
@@ -803,7 +865,8 @@ void AMSTOFRawCluster::build(int &status){
   }
   for(i=0;i<SCLRS;i++)isum+=nbrch[i];
   HF1(1110,geant(isum),1.);// tot.number of layers
-  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+  if(TOFRECFFKEY.reprtf[2]>0 || 
+     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
     for(i=0;i<SCLRS;i++)if(nbrch[i]>0)HF1(1111,geant(i+1),1.);// layer appear. freq.
   }
   if(isum>=2)conf=0;
@@ -811,7 +874,8 @@ void AMSTOFRawCluster::build(int &status){
     for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+  if(TOFRECFFKEY.reprtf[2]>0 || 
+     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
     HF1(1112,geant(conf),1.);
   }
 //
@@ -831,7 +895,8 @@ void AMSTOFRawCluster::build(int &status){
     for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+  if(TOFRECFFKEY.reprtf[2]>0 || 
+     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
     HF1(1113,geant(conf),1.);
   }
 // 
@@ -849,7 +914,8 @@ void AMSTOFRawCluster::build(int &status){
     for(i=0;i<SCLRS;i++)if(nbrch[i]==0)conf=i+1;
   }
   if(isum==4)conf=5;
-  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+  if(TOFRECFFKEY.reprtf[2]>0 || 
+     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
     HF1(1114,geant(conf),1.);
   }
 //
@@ -885,7 +951,8 @@ void AMSTOFRawCluster::build(int &status){
   td24=(tcorr[1]-tcorr[3])*130./trlen24;// tormalized to 130cm distance
   td14=tuncorr[0]-tuncorr[3];
 //
-  if(TOFRECFFKEY.reprtf[2]>0 || TOFRECFFKEY.reprtf[4]>0){
+  if(TOFRECFFKEY.reprtf[2]>0 || 
+     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){
       HF1(1532,td13,1.);//ToF for L0->L2
       HF1(1534,td24,1.);//ToF for L1->L3
       HF1(1544,(td13-td24),1.);

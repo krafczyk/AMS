@@ -1310,146 +1310,148 @@ void TOFJobStat::bookhist(){
 //
   strcpy(inum,"0123456789");
 //
-    if(TOFRECFFKEY.reprtf[2]!=0 || TOFRECFFKEY.reprtf[4]!=0){ // Book reco-hist
-      HBOOK1(1100,"Fast-Slow hit time-difference(single hist/slow-hit measurements)",80,0.,80.,0.);
-      HBOOK1(1105,"Anode-Slow hit time-difference(single an/slow-hit measurements)",80,-40.,40.,0.);
-      HBOOK1(1106,"Dynode-Slow hit time-difference(single dyn/slow-hit measurements)",80,-120.,40.,0.);
-      HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,0.,1000.,0.);
-      HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
-      HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
-      HBOOK1(1103,"Time_history:inp.pulse width(ns)",80,0.,80.,0.);
-      HBOOK1(1104,"Anode TovT:inp.pulse width(ns)",80,0.,320.,0.);
-      HBOOK1(1110,"RawClusterLevel:Total fired layers per event",5,0.,5.,0.);
-      HBOOK1(1111,"RawClusterLevel:Layer appearence frequency",5,0.,5.,0.);
-      HBOOK1(1112,"RawClusterLevel:Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
-      HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
-      HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
-      HBOOK1(1115,"Fast-Slow hit time-difference(all hist/slow-hit meas.",80,-40.,120.,0.);
+  if(TOFRECFFKEY.reprtf[2]!=0 || // Reconstruction histograms
+     (AMSJob::gethead()->isMonitoring() & (AMSJob::MTOF | AMSJob::MAll))){ // Monitoring Job
+// Book reco-hist
+    HBOOK1(1100,"Fast-Slow hit time-difference(single hist/slow-hit measurements)",80,0.,80.,0.);
+    HBOOK1(1105,"Anode-Slow hit time-difference(single an/slow-hit measurements)",80,-40.,40.,0.);
+    HBOOK1(1106,"Dynode-Slow hit time-difference(single dyn/slow-hit measurements)",80,-120.,40.,0.);
+    HBOOK1(1107,"TOF+CTC+ANTI data length (16-bit words)",80,0.,1000.,0.);
+    HBOOK1(1101,"Time_history:befor_hit dist(ns)",80,0.,160.,0.);
+    HBOOK1(1102,"Time_history:after_hit dist(ns)",80,0.,1600.,0.);
+    HBOOK1(1103,"Time_history:inp.pulse width(ns)",80,0.,80.,0.);
+    HBOOK1(1104,"Anode TovT:inp.pulse width(ns)",80,0.,320.,0.);
+    HBOOK1(1110,"RawClusterLevel:Total fired layers per event",5,0.,5.,0.);
+    HBOOK1(1111,"RawClusterLevel:Layer appearence frequency",5,0.,5.,0.);
+    HBOOK1(1112,"RawClusterLevel:Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
+    HBOOK1(1113,"RawClusterLevel:SingleBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
+    HBOOK1(1114,"RawClusterLevel:Single2SidedBarLayer Configuration(<2;2;>2->missingL)",10,-1.,9.,0.);
+    HBOOK1(1115,"Fast-Slow hit time-difference(all hist/slow-hit meas.",80,-40.,120.,0.);
 //    HBOOK1(1130,"W1,L4-B3-S1",50,0.,200.,0.);
 //    HBOOK1(1131,"W2,L4-B3-S1",50,0.,100.,0.);
 //    HBOOK1(1132,"W3,L4-B3-S1",60,0.,6000.,0.);
 //    HBOOK1(1133,"W1,L4-B3-S2",50,0.,200.,0.);
 //    HBOOK1(1134,"W2,L4-B3-S2",50,0.,100.,0.);
 //    HBOOK1(1135,"W3,L4-B3-S2",60,0.,6000.,0.);
-      HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
-      HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
-      HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
-      HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
-      HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
-//      HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
-//      HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
-      HBOOK1(1534,"(T2-T4)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
-      HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",80,-4.,4.,0.);
-      HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
-      HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
-      HBOOK1(1537,"L=1,TOF Eclust(mev)",80,0.,240.,0.);
-      HBOOK1(1538,"L=3,TOF Eclust(mev)",80,0.,240.,0.);
-      HBOOK1(1539,"L=2,TOF Eclust(mev)",80,0.,24.,0.);
-      HBOOK1(1540,"L=4,TOF Eclust(mev)",80,0.,24.,0.);
-      HBOOK1(1541,"L=2,TOF Eclust(mev)",80,0.,240.,0.);
-      HBOOK1(1542,"L=4,TOF Eclust(mev)",80,0.,240.,0.);
-      if(TOFRECFFKEY.relogic[0]==1){ // STRR-calibration
-        HBOOK1(1200,"Stretcher-ratio for indiv. channel",80,35.,55.,0.);
-        HBOOK1(1201,"Offsets for indiv. channels",80,-100.,2300.,0.);
-        HBOOK1(1202,"Chi2 for indiv. channel",50,0.,5.,0.);
-        HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit",50,0.,10.,0.);
+    HBOOK1(1529,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,24.,0.);
+    HBOOK1(1526,"L=1,Edep_anode(mev),corr,ideal evnt",80,0.,240.,0.);
+    HBOOK1(1531,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,24.,0.);
+    HBOOK1(1528,"L=1,Edep_dinode(mev),corr,ideal evnt",80,0.,240.,0.);
+    HBOOK1(1532,"(T1-T3)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
+//    HBOOK1(1533,"L=1,side1/2 raw T-diff(ns),ideal evnt",100,-2.,2.,0.);
+//    HBOOK1(1543,"L=1,Y-local(longit.coord),ideal evnt",100,-50.,50.,0.);
+    HBOOK1(1534,"(T2-T4)(ns),corr,trl-normalized,ideal evnt",80,1.,9.,0.);
+    HBOOK1(1544,"(T1-T3)-(T2-T4),(ns),corr,ideal evnt",80,-4.,4.,0.);
+    HBOOK1(1535,"L=1,TOF Eclust(mev)",80,0.,24.,0.);
+    HBOOK1(1536,"L=3,TOF Eclust(mev)",80,0.,24.,0.);
+    HBOOK1(1537,"L=1,TOF Eclust(mev)",80,0.,240.,0.);
+    HBOOK1(1538,"L=3,TOF Eclust(mev)",80,0.,240.,0.);
+    HBOOK1(1539,"L=2,TOF Eclust(mev)",80,0.,24.,0.);
+    HBOOK1(1540,"L=4,TOF Eclust(mev)",80,0.,24.,0.);
+    HBOOK1(1541,"L=2,TOF Eclust(mev)",80,0.,240.,0.);
+    HBOOK1(1542,"L=4,TOF Eclust(mev)",80,0.,240.,0.);
+    if(TOFRECFFKEY.relogic[0]==1){ // STRR-calibration
+      HBOOK1(1200,"Stretcher-ratio for indiv. channel",80,35.,55.,0.);
+      HBOOK1(1201,"Offsets for indiv. channels",80,-100.,2300.,0.);
+      HBOOK1(1202,"Chi2 for indiv. channel",50,0.,5.,0.);
+      HBOOK1(1204,"Bin Tin-RMS in Tin-Tout fit",50,0.,10.,0.);
 // hist.1600-1711 are booked in init-function for Tin vs Tout correl.!!!(TDLV)
 // hist.1720-1790 are booked in init-function for BarRawTime histogr.!!!(TDLV)
-        if(TOFCAFFKEY.dynflg==1){ // for special(Contin's) Dynode calibr.
-          HBOOK1(1240,"Slope in Td vs Ta correlation",50,0.,2.,0.);
-          HBOOK1(1241,"Offset in Td vs Ta correlation",50,-200.,50.,0.);
-          HBOOK1(1242,"Chi2 in Td vs Ta correlation",50,0.,5.,0.);
+      if(TOFCAFFKEY.dynflg==1){ // for special(Contin's) Dynode calibr.
+	HBOOK1(1240,"Slope in Td vs Ta correlation",50,0.,2.,0.);
+	HBOOK1(1241,"Offset in Td vs Ta correlation",50,-200.,50.,0.);
+	HBOOK1(1242,"Chi2 in Td vs Ta correlation",50,0.,5.,0.);
 // hist.1800-1911 are booked in init-function for Tin vs Tout correl.!!!
-        }
-      }
-      if(TOFRECFFKEY.relogic[0]==3){ // TZSL-calibration
-        HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
-        HBOOK1(1501,"Particle beta(tracker)",80,0.9,1.1,0.);
-        HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
-        HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
-        HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
-        HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
-        HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
-        HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
-        HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
-        HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
-        HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
-        HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
-        HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
-        HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
-        HBOOK1(1218,"TOF track-fit chi2-x",50,0.,5.,0.);
-        HBOOK1(1219,"TOF track-fit chi2-y",50,0.,5.,0.);
-        HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,20.,0.);
-        HBOOK1(1505,"Qmax ratio",80,0.,16.,0.);
-        HBOOK1(1507,"T0-difference inside bar-types 5",80,-0.4,0.4,0.);
-        HBOOK2(1502,"Layer-1,T vs exp(-TovT)",50,0.,0.4,50,3.,8.,0.);
-        HBOOK2(1514,"Layer-1,T vs SUM(1/Q)",50,0.,0.1,50,3.,8.,0.);
-        HBOOK2(1504,"Layer-3,T vs exp(-TovT)",50,0.,0.4,50,-2.,3.,0.);
-        HBOOK1(1524,"TRlen13-TRlen24",80,-4.,4.,0.);
-//        HBOOK1(1550,"Bar-time(corected),L=1",80,24.,26.,0.);
-//        HBOOK1(1551,"Bar-time(corected),L=2",80,23.5,25.5,0.);
-//        HBOOK1(1552,"Bar-time(corected),L=3",80,19.5,21.5,0.);
-//        HBOOK1(1553,"Bar-time(corected),L=4",80,19.,21.,0.);
-      }
-      if(TOFRECFFKEY.relogic[0]==4){ // AMPL-calibration
-        HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
-        HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
-        HBOOK1(1501,"Particle beta(tracker)",80,0.5,1.,0.);
-        HBOOK1(1502,"Particle beta(tof)",80,0.7,1.2,0.);
-        HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
-        HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
-        HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
-        HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
-        HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
-        HBOOK1(1204,"Mass",80,0.,1.6,0.);
-        HBOOK1(1207,"Mass in working betga-range",80,0.,1.6,0.);
-        HBOOK1(1205,"Chisq (tof-beta-fit)",50,0.,10.,0.);
-        HBOOK1(1206,"Tzer (tof-beta-fit)",50,-2.5,2.5,0.);
-        HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
-        HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
-        HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
-        HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
-        HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
-        HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
-        HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
-        HBOOK2(1218,"TOF-beta vs TRACKER-momentum",80,0.,4.,60,0.5,1.1,0.);
-        HBOOK2(1219,"Q(ref.btyp=5) vs Log(beta*gamma)",50,-0.1,1.9,80,0.,240.,0.);
-// hist.# 1220-1239 are reserved for imp.point distr.(later in TOFAMPLcalib.init()
-        HBOOK2(1248,"Cnannel-2  D-signal vs A-signal",80,0.,320.,80,0.,160.,0.);
-        HBOOK2(1249,"Ref.bar(type=5) A2D-ratio vs A-signal",80,0.,320.,50,0.,10.,0.);
-        HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,160.,0.);        
-        HBOOK1(1251,"Ref.bar(type=5) Q-distr.(s=2,centre)",80,0.,240.,0.);
-        HBOOK1(1252,"Relative anode-gains(all channels)",80,0.5,2.,0.);
-        HBOOK1(1254,"Ref.bar A-profile (type-1)",70,-70.,70.,0.);        
-        HBOOK1(1255,"Ref.bar A-profile (type-2)",70,-70.,70.,0.);        
-        HBOOK1(1256,"Ref.bar A-profile (type-3)",70,-70.,70.,0.);        
-        HBOOK1(1257,"Ref.bar A-profile (type-4)",70,-70.,70.,0.);        
-        HBOOK1(1258,"Ref.bar A-profile (type-5)",70,-70.,70.,0.);        
-        HBOOK1(1259,"Anode_to_Dinode signal ratio(all channels)",80,9.,11.,0.);
-        HBOOK1(1260,"Anode_to_Dinode ratio error(all channels)",80,0.,0.4,0.);
-      }
-      if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
-        for(il=0;il<SCLRS;il++){
-          for(ib=0;ib<SCMXBR;ib++){
-            for(i=0;i<2;i++){
-              strcpy(htit1,"FTDC/STDC/ATDC/DTDC multipl. for chan(LBBS) ");
-              in[0]=inum[il+1];
-              strcat(htit1,in);
-              ii=(ib+1)/10;
-              jj=(ib+1)%10;
-              in[0]=inum[ii];
-              strcat(htit1,in);
-              in[0]=inum[jj];
-              strcat(htit1,in);
-              in[0]=inum[i+1];
-              strcat(htit1,in);
-              ich=2*SCMXBR*il+2*ib+i;
-              HBOOK1(1300+ich,htit1,80,0.,80.,0.);
-            }
-          }
-        }
       }
     }
+    if(TOFRECFFKEY.relogic[0]==3){ // TZSL-calibration
+      HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+      HBOOK1(1501,"Particle beta(tracker)",80,0.9,1.1,0.);
+      HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
+      HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
+      HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
+      HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
+      HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
+      HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
+      HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
+      HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
+      HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
+      HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
+      HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
+      HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
+      HBOOK1(1218,"TOF track-fit chi2-x",50,0.,5.,0.);
+      HBOOK1(1219,"TOF track-fit chi2-y",50,0.,5.,0.);
+      HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,20.,0.);
+      HBOOK1(1505,"Qmax ratio",80,0.,16.,0.);
+      HBOOK1(1507,"T0-difference inside bar-types 5",80,-0.4,0.4,0.);
+      HBOOK2(1502,"Layer-1,T vs exp(-TovT)",50,0.,0.4,50,3.,8.,0.);
+      HBOOK2(1514,"Layer-1,T vs SUM(1/Q)",50,0.,0.1,50,3.,8.,0.);
+      HBOOK2(1504,"Layer-3,T vs exp(-TovT)",50,0.,0.4,50,-2.,3.,0.);
+      HBOOK1(1524,"TRlen13-TRlen24",80,-4.,4.,0.);
+//      HBOOK1(1550,"Bar-time(corected),L=1",80,24.,26.,0.);
+//      HBOOK1(1551,"Bar-time(corected),L=2",80,23.5,25.5,0.);
+//      HBOOK1(1552,"Bar-time(corected),L=3",80,19.5,21.5,0.);
+//      HBOOK1(1553,"Bar-time(corected),L=4",80,19.,21.,0.);
+    }
+    if(TOFRECFFKEY.relogic[0]==4){ // AMPL-calibration
+      HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
+      HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
+      HBOOK1(1501,"Particle beta(tracker)",80,0.5,1.,0.);
+      HBOOK1(1502,"Particle beta(tof)",80,0.7,1.2,0.);
+      HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
+      HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
+      HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
+      HBOOK1(1202,"Res_long.coo(track-sc),L=3",50,-10.,10.,0.);
+      HBOOK1(1203,"Res_long.coo(track-sc),L=4",50,-10.,10.,0.);
+      HBOOK1(1204,"Mass",80,0.,1.6,0.);
+      HBOOK1(1207,"Mass in working betga-range",80,0.,1.6,0.);
+      HBOOK1(1205,"Chisq (tof-beta-fit)",50,0.,10.,0.);
+      HBOOK1(1206,"Tzer (tof-beta-fit)",50,-2.5,2.5,0.);
+      HBOOK1(1210,"Res_transv.coo(track-sc),L=1",50,-20.,20.,0.);
+      HBOOK1(1211,"Res_transv.coo(track-sc),L=2",50,-20.,20.,0.);
+      HBOOK1(1212,"Res_transv.coo(track-sc),L=3",50,-20.,20.,0.);
+      HBOOK1(1213,"Res_transv.coo(track-sc),L=4",50,-20.,20.,0.);
+      HBOOK1(1215,"(Cos_tr-Cos_sc)/Cos_tr",50,-1.,1.,0.);
+      HBOOK1(1216,"Cos_tr",50,0.5,1.,0.);
+      HBOOK1(1217,"Cos_sc",50,0.5,1.,0.);
+      HBOOK2(1218,"TOF-beta vs TRACKER-momentum",80,0.,4.,60,0.5,1.1,0.);
+      HBOOK2(1219,"Q(ref.btyp=5) vs Log(beta*gamma)",50,-0.1,1.9,80,0.,240.,0.);
+// hist.# 1220-1239 are reserved for imp.point distr.(later in TOFAMPLcalib.init()
+      HBOOK2(1248,"Cnannel-2  D-signal vs A-signal",80,0.,320.,80,0.,160.,0.);
+      HBOOK2(1249,"Ref.bar(type=5) A2D-ratio vs A-signal",80,0.,320.,50,0.,10.,0.);
+      HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,160.,0.);        
+      HBOOK1(1251,"Ref.bar(type=5) Q-distr.(s=2,centre)",80,0.,240.,0.);
+      HBOOK1(1252,"Relative anode-gains(all channels)",80,0.5,2.,0.);
+      HBOOK1(1254,"Ref.bar A-profile (type-1)",70,-70.,70.,0.);        
+      HBOOK1(1255,"Ref.bar A-profile (type-2)",70,-70.,70.,0.);        
+      HBOOK1(1256,"Ref.bar A-profile (type-3)",70,-70.,70.,0.);        
+      HBOOK1(1257,"Ref.bar A-profile (type-4)",70,-70.,70.,0.);        
+      HBOOK1(1258,"Ref.bar A-profile (type-5)",70,-70.,70.,0.);        
+      HBOOK1(1259,"Anode_to_Dinode signal ratio(all channels)",80,9.,11.,0.);
+      HBOOK1(1260,"Anode_to_Dinode ratio error(all channels)",80,0.,0.4,0.);
+    }
+    if(TOFRECFFKEY.reprtf[3]!=0){//TDC-hit multiplicity histograms
+      for(il=0;il<SCLRS;il++){
+	for(ib=0;ib<SCMXBR;ib++){
+	  for(i=0;i<2;i++){
+	    strcpy(htit1,"FTDC/STDC/ATDC/DTDC multipl. for chan(LBBS) ");
+	    in[0]=inum[il+1];
+	    strcat(htit1,in);
+	    ii=(ib+1)/10;
+	    jj=(ib+1)%10;
+	    in[0]=inum[ii];
+	    strcat(htit1,in);
+	    in[0]=inum[jj];
+	    strcat(htit1,in);
+	    in[0]=inum[i+1];
+	    strcat(htit1,in);
+	    ich=2*SCMXBR*il+2*ib+i;
+	    HBOOK1(1300+ich,htit1,80,0.,80.,0.);
+	  }
+	}
+      }
+    }
+  }
 }
 //-----------------------------
 void TOFJobStat::bookhistmc(){

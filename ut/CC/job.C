@@ -626,7 +626,7 @@ void AMSJob::_retofdata(){
   TOFRECFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
   TOFRECFFKEY.reprtf[2]=0; //(5) print flag for histograms
   TOFRECFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
-  TOFRECFFKEY.reprtf[4]=0; //(7) print flag (spare)
+  TOFRECFFKEY.reprtf[4]=0; //(7) (spare)
 //
   TOFRECFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
   TOFRECFFKEY.relogic[1]=0;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
@@ -1177,6 +1177,9 @@ void AMSJob::_retofinitjob(){
     AMSgObj::BookTimer.book("TOF:validation");
     AMSgObj::BookTimer.book("TOF:RwEv->RwCl");
     AMSgObj::BookTimer.book("TOF:RwCl->Cl");
+
+    if(isMonitoring() & (AMSJob::MTOF | AMSJob::MAll)) // TOF Online histograms
+      _retofonlineinitjob();      // (see tofonline.C)
 //
 // ===> Clear JOB-statistics counters for SIM/REC :
 //
