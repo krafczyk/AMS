@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.21 2004/04/20 07:43:50 choutko Exp $
+#  $Id: POADBServer.pm,v 1.22 2004/06/16 09:23:26 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -164,7 +164,7 @@ else {
                  $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly"){
                  if($rtb->{History} eq "Failed" and ($host ne $rtb->{cinfo}->{HostName} or $rtb->{Status} ne "ToBeRerun") and ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
-    if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
+    if(($rtb->{Status} eq "Allocated" ) and $rtb->{Status} ne "Foreign"){
    $sortedrtb[$i]->{Status}="Processing";
 }
 else {
@@ -188,7 +188,7 @@ else {
                  $i=$i+1;
              if ($rtb->{Status} eq "ToBeRerun" or $cid->{StatusType} eq "OneRunOnly"){
                  if($rtb->{History} eq "Failed" and  ($cid->{StatusType} ne "OneRunOnly" or ($cid->{uid} eq $rtb->{Run} and ($rtb->{Status} eq "Allocated" or $rtb->{Status} eq "Foreign")))){
-    if(($rtb->{Status} eq "Allocated" || $cid->{uid} ne 0) and $rtb->{Status} ne "Foreign"){
+    if(($rtb->{Status} eq "Allocated" ) and $rtb->{Status} ne "Foreign"){
    $sortedrtb[$i]->{Status}="Processing";
 }
 else {
@@ -205,8 +205,10 @@ else {
                     return ($rtb,$dv);
                 }
              }
+             }
+            foreach my $rtb (@sortedrtb){ 
+            warn "  problem with run allocation   $rtb->{Run} $rtb->{History} $rtb->{Status} $rtb->{cinfo}->{HostName} $cid->{uid} $cid->{StatusType}\n"; 
             }
-
                    $dv->{DieHard}=1;
                     untie %hash;
                     return (${$ref->{rtb}}[0],$dv);
