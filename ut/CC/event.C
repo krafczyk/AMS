@@ -1035,7 +1035,7 @@ while(offspring){
   //          delete[] tmp;
 #endif
   if(offspring->validate(_time)){
-    cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<
+    cout <<"AMSEvent::_validate-I-"<<offspring->getname()<<" "<<offspring->getid()<<
       " validated. ("<<nb-sizeof(uinteger)<<" bytes ) CRC = "<<
       offspring->getCRC()<<endl;                                              
    }

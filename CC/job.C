@@ -793,7 +793,7 @@ for (i=0;i<len;i++){
 }
 }
 _jobtype=setjobtype(AMSFFKEY.Jobtype%10 != 0);
-_jobtype=setjobtype((AMSFFKEY.Jobtype/10)%10 != 0);
+_jobtype=setjobtype(((AMSFFKEY.Jobtype/10)%10 != 0)<<(RealData-1));
 uinteger ical=(AMSFFKEY.Jobtype/100)%10;
 uinteger ucal=1;
 if(ical)_jobtype=setjobtype(ucal<<(ical+1));
