@@ -1,4 +1,4 @@
-#  $Id: POADBServer.pm,v 1.23 2004/10/06 08:20:11 choutko Exp $
+#  $Id: POADBServer.pm,v 1.24 2004/10/22 14:24:11 choutko Exp $
 package POADBServer;
 use Error qw(:try);
 use strict;
@@ -37,46 +37,29 @@ sub getRunEvInfoSPerl{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
+#lock
+       if( not defined $ref->{dbfile}){
+           goto OUT;
+        }
+      my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
-        goto OUT;
-    }
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        undef $db;
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             #untie %hash;
-             goto OUT1;
-         }
-     }
-     goto OUT2;
-OUT1:
-      warn"  exclusiver lock failed!!!!! ";
-     $ntry=0;
-     until (flock DBM, LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             undef $db;
-             untie %hash;
-             goto OUT;
-         }
-     }
-OUT2:
     $ok=1;
 OUT:
       undef $db;
@@ -85,6 +68,7 @@ OUT:
             $ref->{rtb_maxr}=$hash{rtb_maxr};
             my $length=$#{$ref->{rtb}}+1;    
             untie %hash;
+            close(LOCK);
             return ($length,$ref->{rtb},$ref->{rtb_maxr});
           }
          else{
@@ -101,31 +85,28 @@ sub getRunEvInfo(){
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
-      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
+    if (not defined $ref->{dbfile}){
         goto OUT;
     }
-     if(not $db){
-        goto OUT;
-      }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
+    my $lock="$ref->{dbfile}.lock";
+    $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT);
+    if(not $ok ){
+      goto OUT;
      }
+     my $ntry=0;
+      until(flock LOCK,LOCK_EX|LOCK_NB){
+          sleep 2;
+          $ntry++;
+          if($ntry>10){
+           $ref->Exiting("Unable to get lock for $lock","CInAbort");
+           close(LOCK);
+           goto OUT;
+           }
+        }
+    $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
+    if(not $db){
+        goto OUT;
+      }
     $ok=1;
 OUT:
       undef $db;
@@ -170,6 +151,7 @@ else {
   }
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
+                    close(LOCK);
                     return ($rtb,$dv);
                 }
             }
@@ -193,6 +175,7 @@ else {
   }
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
+                    close(LOCK);
                     return ($rtb,$dv);
                 }
              }
@@ -217,6 +200,7 @@ else {
   }
                     $hash{rtb}=\@sortedrtb;
                     untie %hash;
+                     close(LOCK);
                     return ($rtb,$dv);
                 }
              }
@@ -226,6 +210,7 @@ else {
             }
                    $dv->{DieHard}=1;
                     untie %hash;
+                    close(LOCK);
                     return (${$ref->{rtb}}[0],$dv);
          }
        else{
@@ -242,31 +227,29 @@ sub sendRunEvInfo{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
+    if (not defined $ref->{dbfile}){
+          goto OUT;
+    }
+      my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
+   
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
-        goto OUT;
-    }
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
     $ok=1;
 OUT:
       undef $db;
@@ -280,6 +263,7 @@ OUT:
                          $ref->{rtb}[$i]=$ri;
                          $hash{rtb}=$ref->{rtb};
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -294,6 +278,7 @@ OUT:
                          $#{$ref->{rtb}}=$#{$ref->{rtb}}-1;
                          $hash{rtb}=$ref->{rtb};
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -307,6 +292,7 @@ OUT:
                          $ref->{rtb}[$#{$ref->{rtb}}]=$ri;
                          $hash{rtb}=$ref->{rtb};
                          untie %hash;
+                         close(LOCK);
                          return;
       
              }
@@ -316,10 +302,12 @@ OUT:
                          $ref->{rtb}[$#{$ref->{rtb}}]=$ri;
                          $hash{rtb}=$ref->{rtb};
                          untie %hash;
+                         close(LOCK);
                          return;
       
                 }
                          untie %hash;
+                         close(LOCK);
               throw DPS::DBProblem message=>"Unable to $rc the rtb $ri->{uid} $ri->{Run}";
           }
           else{
@@ -336,31 +324,31 @@ sub sendDSTEnd{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
+    if (not defined $ref->{dbfile}){
+          goto OUT;
+    }
+      my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
+
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
-        goto OUT;
-    }
+    
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
+      
     $ok=1;
 OUT:
       undef $db;
@@ -378,6 +366,7 @@ OUT:
                          $ref->{dsts}[$i]=$ri;
                          $hash{dsts}=$ref->{dsts};
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -391,6 +380,7 @@ OUT:
                          $#{$ref->{dsts}}=$#{$ref->{dsts}}-1;
                          $hash{dsts}=$ref->{dsts};
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -401,6 +391,7 @@ OUT:
                          $ref->{dsts}[$#{$ref->{dsts}}]=$ri;
                          $hash{dsts}=$ref->{dsts};
                          untie %hash;
+                          close(LOCK);
                          return;
       
                      }
@@ -409,10 +400,12 @@ OUT:
                          $ref->{dsts}[$#{$ref->{dsts}}]=$ri;
                          $hash{dsts}=$ref->{dsts};
                          untie %hash;
+                         close(LOCK);
                          return;
       
                      }
                          untie %hash;
+                         close(LOCK);
               throw DPS::DBProblem message=>"Unable to $rc the dsts $ri->{Name}";
           }
           else{
@@ -428,31 +421,30 @@ sub sendDSTInfo{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
+    if (not defined $ref->{dbfile}){
+              goto OUT;
+    }
+      my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
-        goto OUT;
-    }
+    
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
+      
     $ok=1;
 OUT:
       undef $db;
@@ -465,6 +457,7 @@ OUT:
                          $ref->{dsti}[$i]=$ri;
                          $hash{dsti}=$ref->{dsti};
                          untie %hash;
+                          close(LOCK);
                          return;
                      } 
                  }
@@ -478,6 +471,7 @@ OUT:
                          $#{$ref->{dsti}}=$#{$ref->{dsti}}-1;
                          $hash{dsti}=$ref->{dsti};
                          untie %hash;
+                            close(LOCK);
                          return;
                      } 
                  }
@@ -488,6 +482,7 @@ OUT:
                          $ref->{dsti}[$#{$ref->{dsti}}]=$ri;
                          $hash{dsti}=$ref->{dsti};
                          untie %hash;
+                          close(LOCK);
                          return;
       
                      }
@@ -496,10 +491,12 @@ OUT:
                          $ref->{dsti}[$#{$ref->{dsti}}]=$ri;
                          $hash{dsti}=$ref->{dsti};
                          untie %hash;
+                         close(LOCK);
                          return;
       
                      }
                          untie %hash;
+                         close(LOCK);
               throw DPS::DBProblem message=>"Unable to $rc the dsti $ri->{uid}";
           }
           else{
@@ -518,31 +515,31 @@ sub sendACPerl{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
-      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
-        goto OUT;
-    }
+    if (not defined $ref->{dbfile}){
+         goto OUT;
+     }
+           my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
+
+     $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
+    
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
+      
     $ok=1;
 OUT:
       undef $db;
@@ -572,6 +569,7 @@ OUT:
                          $ref->{$tag}[$i]=$ri;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                          close(LOCK);
                          return;
                      } 
                  }
@@ -585,6 +583,7 @@ OUT:
                          $#{$ref->{$tag}}=$#{$ref->{$tag}}-1;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                       close(LOCK);
                          return;
                      } 
                  }
@@ -598,6 +597,7 @@ OUT:
                      my $arel=$ref->{$tag}[$i];
                      if($cid->{uid} ==$arel->{id}->{uid}){
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -612,6 +612,7 @@ OUT:
                          $hash{$tag}=$ref->{$tag};
                          my $ar=$hash{$tag};
                          untie %hash;
+                         close(LOCK);
                          return;
       
                      }
@@ -622,10 +623,12 @@ OUT:
                          $hash{$tag}=$ref->{$tag};
                          my $ar=$hash{$tag};
                          untie %hash;
+                         close(LOCK);
                          return;
       
                      }
                          untie %hash;
+                          close(LOCK);
               throw DPS::DBProblem  message=>"Unable to $rc the $tag $cid->{uid}";
           }
           else{
@@ -642,31 +645,30 @@ sub sendAH{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
+    if (not defined $ref->{dbfile}){
+      goto OUT;
+    }
+      my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
-        goto OUT;
-    }
+    
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
+      
     $ok=1;
 OUT:
       undef $db;
@@ -680,6 +682,7 @@ OUT:
               }
               else{
                   untie %hash;
+                  close(LOCK);
                   return; 
               }
                $ref->{$tag}=$hash{$tag};           
@@ -693,6 +696,7 @@ OUT:
                          $ref->{$tag}[$i]=$ri;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -709,6 +713,7 @@ OUT:
                          $#{$ref->{$tag}}=$#{$ref->{$tag}}-1;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -719,6 +724,7 @@ OUT:
                          $ref->{$tag}[$#{$ref->{$tag}}]=$ri;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                         close(LOCK);
                          return;
       
                      }
@@ -727,10 +733,12 @@ OUT:
                          $ref->{$tag}[$#{$ref->{$tag}}]=$ri;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                          close(LOCK);
                          return;
       
                      }
                          untie %hash;
+                         close(LOCK);
               throw DPS::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
           }
           else{
@@ -747,31 +755,30 @@ sub sendGeneric{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
+    if (not defined $ref->{dbfile}){
+         goto OUT;
+    }
+      my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
-        goto OUT;
-    }
+    
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
+      
     $ok=1;
 OUT:
       undef $db;
@@ -784,6 +791,7 @@ OUT:
                          $ref->{$tag}[$i]=$ri;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -797,6 +805,7 @@ OUT:
                          $#{$ref->{$tag}}=$#{$ref->{$tag}}-1;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                         close(LOCK);
                          return;
                      } 
                  }
@@ -807,6 +816,7 @@ OUT:
                          $ref->{$tag}[$#{$ref->{$tag}}]=$ri;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                          close(LOCK);
                          return;
       
                      }
@@ -815,10 +825,12 @@ OUT:
                          $ref->{$tag}[$#{$ref->{$tag}}]=$ri;
                          $hash{$tag}=$ref->{$tag};
                          untie %hash;
+                        close(LOCK);
                          return;
       
                      }
                          untie %hash;
+                         close(LOCK);
               throw DPS::DBProblem message=>"Unable to $rc the $tag $ri->{id}->{uid}";
           }
           else{
@@ -834,31 +846,30 @@ sub getGeneric{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
+    if (not defined $ref->{dbfile}){
+            goto OUT;
+    }
+      my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
-        goto OUT;
-    }
+    
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
+      
     $ok=1;
 OUT:
       undef $db;
@@ -867,6 +878,7 @@ OUT:
                $ref->{$tag}=$hash{$tag};           
               }
                untie %hash;
+               close(LOCK);
            }
           else{
              throw DPS::DBProblem message=>"getgeneric Unable to Open DB File";
@@ -1025,31 +1037,30 @@ sub getFreeHost{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
-      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
+    if (not defined $ref->{dbfile}){
         goto OUT;
     }
+      my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
+      $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
+   
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
+      
     $ok=1;
 OUT:
       undef $db;
@@ -1062,6 +1073,7 @@ OUT:
               $ref->{ncl}=$hash{ncl};           
               $ref->{rtb}=$hash{rtb};           
               $ref->{rtb_maxr}=$hash{rtb_maxr}; 
+              close(LOCK);
           }
     else{
         warn "getfreehost unable to read db $ref->{dbfile}";
@@ -1135,31 +1147,30 @@ sub getFreeHostN{
     my %hash;
     local *DBM;
     my $db;
-    if (defined $ref->{dbfile}){
+    if (not defined $ref->{dbfile}){
+         goto OUT;
+         }
+      my $lock="$ref->{dbfile}.lock";
+        $ok=sysopen(LOCK,$lock,O_RDONLY|O_CREAT) ;
+         if(not $ok){
+              goto OUT;
+          }
+     my $ntry=0;
+     until (flock LOCK,LOCK_EX|LOCK_NB){
+        sleep 2;
+         $ntry++;
+         if($ntry>20){
+          $ref->Exiting("Unable to get lock for $lock","CInAbort");
+          close(LOCK);
+          goto OUT;
+          }
+     }
       $db=tie %hash, "MLDBM",$ref->{dbfile},O_RDWR;
-    }
-    else{
-        goto OUT;
-    }
+   
      if(not $db){
         goto OUT;
       }
-      my $fd=$db->fd;
-      $ok=open DBM, "<&=$fd";
-      if( not $ok){
-        untie %hash;
-        goto OUT;
-      }
-     my $ntry=0;
-     $ok=0;
-     until (flock DBM, LOCK_EX|LOCK_NB){
-         sleep 2;
-         $ntry=$ntry+1;
-         if($ntry>10){
-             untie %hash;
-             goto OUT;
-         }
-     }
+      
     $ok=1;
 OUT:
       undef $db;
@@ -1172,6 +1183,7 @@ OUT:
               $ref->{ncl}=$hash{ncl};           
               $ref->{rtb}=$hash{rtb};           
               $ref->{rtb_maxr}=$hash{rtb_maxr}; 
+              close(LOCK);
           }
     else{
         warn "getfreehost unable to read db $ref->{dbfile}";
@@ -1234,3 +1246,4 @@ OUT:
                throw DPS::DBProblem message=>"Unable to getahs for $cid->{Type}";
               }
 }
+
