@@ -253,7 +253,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       integer nchan=200;
       geant binw;
       if(mass < 0.938)binw=100;
-      else  binw=100*mass/0.938/abs(charge);
+      else  binw=100*mass/0.938/charge;
       geant al=binw/2;
       
       geant bl=binw/2+nchan*binw;
@@ -261,13 +261,13 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       for(int i=0;i<nchan;i++){
         geant xm=i*binw+al+binw/2;
         number xmom=xm/1000;
-       number xr=xm/abs(charge);
+       number xr=xmom/charge;
         number xkin=(sqrt(xmom*xmom+mass*mass)-mass)*1000;
         geant y=10*exp(-2.6*xr);
         if(xkin>5*charge*charge)HF1(_hid,xm,y);
      }
           
-//          HPRINT(_hid);
+          HPRINT(_hid);
     }
     else {
       integer nchan=1000;
