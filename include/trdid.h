@@ -1,4 +1,4 @@
-//  $Id: trdid.h,v 1.5 2001/05/03 14:06:35 choutko Exp $
+//  $Id: trdid.h,v 1.6 2001/11/19 14:39:22 choutko Exp $
 #ifndef __AMSTRDID__
 #define __AMSTRDID__
 #include <typedefs.h>
@@ -14,7 +14,7 @@ using trdconst::mtrdo;
 using trdconst::maxtube;
 
 namespace trdid{
-
+  const uinteger ncrt=4;
 }
 class AMSTRDIdGeom{
 uinteger _octagon;  // from 0 to 0l
@@ -108,6 +108,7 @@ static integer overflow(){return TRDMCFFKEY.adcoverflow;}
 static integer NROCh(){return _NROCh;}
 uinteger cmpt() const;
 uinteger cmpta() const;
+uinteger gethaddr() const;   //  hardware address to be defined
 static void init();
 static void inittable();
 friend class AMSTRDIdGeom;

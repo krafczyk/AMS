@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.87 2001/10/22 14:31:39 mdelgado Exp $
+//  $Id: ntuple.C,v 1.88 2001/11/19 14:39:22 choutko Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -144,7 +144,7 @@ else{
  "neccl[0,60],EcclStatus(neccl):I,EcclProj(neccl)[0,1]:I,EcclPlane(neccl)[0,20]:I,EcclLeft(neccl)[0,72]:I,EcclCenter(neccl)[0,72]:I,EcclRight(neccl)[0,72]:I,EcclEdep(neccl),ecclsleak(neccl),eccldleak(neccl),EcclCoo(3,neccl),ecclpleft(neccl):I,ecclnhits(neccl)[0,72]:I");
 
   HBNAME(_lun,"Ecal2dCl",&_ec2dclust.Nec2dcl,
- "nec2d[0,10],Ec2dProj(nec2d)[0,1]:I,Ec2dNmemb(nec2d):I,Ec2dEdep(nec2d),Ec2dCoo(nec2d),ec2dtan(nec2d),ec2dchi2(nec2d),ec2dpcl(18,nec2d)[0,1000]:I");
+ "nec2d[0,10],ec2dstatus(nec2d):I,Ec2dProj(nec2d)[0,1]:I,Ec2dNmemb(nec2d):I,Ec2dEdep(nec2d),Ec2dCoo(nec2d),ec2dtan(nec2d),ec2dchi2(nec2d),ec2dpcl(18,nec2d)[0,1000]:I");
 
   HBNAME(_lun,"EcalShow",&_ecshow.Necsh,
  "necsh[0,5],ecshstatus(necsh):I,Ecshdir(3,necsh),ecshemdir(3,necsh),Ecshentry(3,necsh),Ecshexit(3,necsh),Ecshcofg(3,necsh),EcshErdir(necsh),ecshchi2dir(necsh),ecshfrontedep(necsh),EcshEn(necsh),ecsherat(3,necsh),Ecshener(necsh),ecshdifosum(necsh),EcshsLeak(necsh),EcshrLeak(necsh),EcshdLeak(necsh),EcshoLeak(necsh),ecshchi2P(necsh),ecshparP(4,necsh),ecshchi2T(necsh),ecshparT(3,necsh),ecshpcl(2,necsh):I");

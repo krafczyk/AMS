@@ -115,3 +115,25 @@ if(init == 0){
 }
 return (WriteAll || status);
 }
+
+
+
+
+
+
+integer AMSTRDRawHit::lvl3format(int16 * adc, integer nmax){
+  //
+  // convert my stupid format to lvl3 one for ams02 flight 
+  // (pure fantasy, not yet defined
+  //  word 1:   tube no in address format
+  //  word 2:   tube amp  (-ped)
+
+
+  if (nmax < 2)return 0;
+  adc[0]=_id.gethaddr();
+  adc[1]=_Amp;
+  return 2;
+}
+
+
+

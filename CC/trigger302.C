@@ -1,4 +1,4 @@
-//  $Id: trigger302.C,v 1.4 2001/11/13 11:29:52 choutko Exp $
+//  $Id: trigger302.C,v 1.5 2001/11/19 14:39:22 choutko Exp $
 #include <tofdbc02.h>
 #include <tofrec02.h>
 #include <tofdbc.h>
@@ -11,17 +11,14 @@
 //#include <antirec02.h>
 //#include <antirec.h>
 #include <trrawcluster.h>
+#include <trdsim.h>
 #include <ntuple.h>
 using namespace trconst;
 using namespace trigger302const;
-void TriggerAuxLVL302::sifilltk(integer crate){
+void TriggerAuxLVL302::addnoisetk(integer crate){
 
 
-  //
-  // fillTracker
-  //
 
-{
 
   if(!AMSJob::gethead()->isReconstruction()){
   // AddNoise first ( a bit conservative)
@@ -52,7 +49,15 @@ void TriggerAuxLVL302::sifilltk(integer crate){
     }
     }  
   }
- }  
+}
+}
+void TriggerAuxLVL302::filltk(integer crate){
+
+
+  //
+  // fillTracker
+  //
+
    AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
    getheadC("AMSTrRawCluster",crate);
    while (ptr){
@@ -61,7 +66,26 @@ void TriggerAuxLVL302::sifilltk(integer crate){
    }
 
 }
+
+
+void TriggerAuxLVL302::filltrd(integer crate){
+
+   
+  //
+  // fillTrd
+  //
+
+   AMSTRDRawHit *ptr=(AMSTRDRawHit*)AMSEvent::gethead()->
+   getheadC("AMSTRDRawHit",crate);
+   while (ptr){
+    _ltr+=ptr->lvl3format(_ptr+_ltr,maxtr-_ltr);
+    ptr=ptr->next();
+   }
+//   cout <<"  ltr "<<_ltr<<endl;
+
 }
+
+
 
 TriggerAuxLVL302::TriggerAuxLVL302(){
 _ltr=0;
@@ -527,7 +551,22 @@ geant TriggerLVL302::Discriminator(integer nht){
        int16 * ptr;
        number tt1,tt2;
        TriggerAuxLVL302 aux[trid::ncrt];
-       for(int icrt=0;icrt<AMSTrIdSoft::ncrates();icrt++)aux[icrt].sifilltk(icrt);
+       for(int icrt=0;icrt<AMSTrIdSoft::ncrates();icrt++){
+          aux[icrt].addnoisetk(icrt);
+          aux[icrt].filltk(icrt);
+       }
+
+//     fill trd  
+
+
+       TriggerAuxLVL302 auxtrd[trdid::ncrt];
+       for(int icrt=0;icrt<AMSTRDIdSoft::ncrates();icrt++){
+        auxtrd[icrt].filltrd(icrt);
+       }
+
+
+
+
        int idum;
        TriggerLVL302 *plvl3=0;
        tt1=HighResTime();

@@ -1,4 +1,4 @@
-//  $Id: trdid.C,v 1.6 2001/05/03 14:06:32 choutko Exp $
+//  $Id: trdid.C,v 1.7 2001/11/19 14:39:22 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -71,6 +71,9 @@ _check();
 #endif
 }
 
+uinteger AMSTRDIdSoft::gethaddr() const{
+ return cmpt();   // to be defined !!!
+}
 
 uinteger AMSTRDIdSoft::cmpt() const{
 return maxtube*maxlad*_layer+maxtube*_ladder+_tube+1;

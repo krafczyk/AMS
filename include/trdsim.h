@@ -1,4 +1,4 @@
-//  $Id: trdsim.h,v 1.1 2001/04/27 21:50:33 choutko Exp $
+//  $Id: trdsim.h,v 1.2 2001/11/19 14:39:22 choutko Exp $
 #ifndef __AMSTRDSIM__
 #define __AMSTRDSIM__
 
@@ -35,6 +35,8 @@ integer operator < (AMSlink & o) const {
 }
 
  AMSTRDRawHit *  next(){return (AMSTRDRawHit*)_next;}   
+//interfce with lvl3
+integer lvl3format(int16 * ptr, integer nmax);
 //interface with mc
 static void sitrddigi();
 static void sitrdnoise();

@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.49 2001/10/22 14:31:39 mdelgado Exp $
+//  $Id: root.h,v 1.50 2001/11/19 14:39:22 choutko Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -472,6 +472,7 @@ class Ecal2DClusterNtuple {
 #endif
 public:
   int Nec2dcl;
+  int Status[MAXEC2DCLUST];
   int Proj[MAXEC2DCLUST];
   int Nmemb[MAXEC2DCLUST];
   float Edep[MAXEC2DCLUST];

@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.35 2001/11/19 13:28:28 choumilo Exp $
+//  $Id: ecalrec.C,v 1.36 2001/11/19 14:39:22 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -946,6 +946,7 @@ void Ecal2DCluster::_writeEl(){
 
 // Fill the ntuple
   if(Out( IOPA.WriteAll%10==1 ||  checkstatus(AMSDBc::USED ))){
+    TN->Status[TN->Nec2dcl]=getstatus();
     TN->Proj[TN->Nec2dcl]=_proj;
     TN->Nmemb[TN->Nec2dcl]=_NClust;
     TN->Edep[TN->Nec2dcl]=_EnergyC;

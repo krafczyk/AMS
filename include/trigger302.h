@@ -1,4 +1,4 @@
-//  $Id: trigger302.h,v 1.2 2001/11/13 11:30:02 choutko Exp $
+//  $Id: trigger302.h,v 1.3 2001/11/19 14:39:23 choutko Exp $
 #ifndef __AMSTRIGGER302__
 #define __AMSTRIGGER302__
 #include <link.h>
@@ -9,6 +9,7 @@
 #include <amsdbc.h>
 #include <amsstl.h>
 #include <trid.h>
+#include <trdid.h>
 #include <commons.h>
 //
 namespace trigger302const{
@@ -22,20 +23,17 @@ const integer maxtrpl=10;
 //
 class TriggerAuxLVL302{
  protected:
-  integer _ltr;
-  integer _ctr;
+  integer _ltr;   // recorded length  
+  integer _ctr;   // current pointer position while read
   int16 _ptr[trigger302const::maxtr];
-  integer _ltrd;
-  integer _ctrd;
-  int16 _ptrd[trigger302const::maxtrd];
-  integer _ltof;
-  integer _ctof;
-  int16 _ptof[trigger302const::maxtof];
  public:
 
   TriggerAuxLVL302();
   void sitknoise();
-  void sifilltk(integer crate);
+  void addnoisetk(integer crate);
+  void filltk(integer crate);
+  void filltrd(integer crate);
+  void filltof(integer crate);
   int16 * readtracker(integer begin=0);
   int16 * readtrd(integer begin=0);
   int16 * readtof(integer begin=0);

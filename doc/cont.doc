@@ -1,4 +1,4 @@
-#  $Id: cont.doc,v 1.4 2001/01/22 17:00:55 vitali Exp $
+#  $Id: cont.doc,v 1.5 2001/11/19 14:39:22 choutko Exp $
 // How to manipulate with containers
 
 A) User class format ;
@@ -92,3 +92,13 @@ if(ptrN)last=ptrN->testlast(); // last==1 if *ptrN->next() != *ptrN; else ==0
 // its the user responsibility to provide proper operator < for class XXX
 // default operator < does not sort at all (always returns 1)
 
+
+
+
+F)  Number of elements in container
+    char cont_name="blabla";
+    int cont_id=xxxx;
+    AMSContainer * pcon=AMSEvent::gethead()->getC(cont_name, cont_id);
+    int nelem=0;    
+    if(pcon)nelem=pcon->getnelem();
+    else cerr<<" no such container "<<AMSID(cont_name,cont_id)<<endl;

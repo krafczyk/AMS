@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.25 2001/10/22 14:31:40 mdelgado Exp $
+#  $Id: ntuple02.doc,v 1.26 2001/11/19 14:39:22 choutko Exp $
 This is AMS02 Ntuple Description
 
 
@@ -322,6 +322,7 @@ This is AMS02 Ntuple Description
 * U*4  *[0,72]     * ECALCLUS * ecclnhits(neccl)  // number of hits in cluster
 
 * I*4  *[0,10]     * ECAL2DCL * nec2d              // number of 2d clus
+* U*4  *           * ECAL2DCL * Ec2dstatus(nec2d)  // status
 * U*4  *[0,1]      * ECAL2DCL * Ec2dProj(nec2d)  // projection
 * I*4  *           * ECAL2DCL * Ec2dNmemb(nec2d) // number of 1d clusters
 * R*4  *           * ECAL2DCL * Ec2dEdep(nec2d)  // 1: energy (mev)
