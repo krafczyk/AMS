@@ -84,9 +84,11 @@ private:
    AMSVirtualDisplay   *m_Display;         //!Pointer to Event display object
 
    void                 CommonConstruct();   //Common part of all constructors
+   Int_t                SelectedEvent;
 public:
                       AMSRoot();
                       AMSRoot(const char *name, const char *title="The AMS Display with Root");
+   Int_t              SetSelectedEvent(const char * event);
    Int_t             IsGolden();
    virtual           ~AMSRoot();
    virtual void       Browse(TBrowser *b);

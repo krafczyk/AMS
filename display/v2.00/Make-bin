@@ -16,8 +16,8 @@ SRCS          = AMSRoot.cxx AMSMaker.cxx \
 		AMSVirtualDisplay.cxx \
 		AMSHistBrowser.cxx \
 		AMSCanvas.cxx \
-		AMSDisplay.cxx \
-		TRadioButton.cxx TSwitch.cxx Debugger.cxx 
+		AMSDisplay.cxx Msgbox.cxx \
+		TRadioButton.cxx TSwitch.cxx Debugger.cxx TGTextEntry.cxx
 		# MySelectionDialog.cxx \
 		# MOTIF_DialogManager.cxx 
 		# AMSColorManager.cxx 

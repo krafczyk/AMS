@@ -45,6 +45,7 @@ public:
    virtual void      SetView(Float_t theta, Float_t phi) = 0;
    virtual void      SetView(EAMSView newView=kFrontView) = 0;
    virtual void StartStop()=0;
+   virtual void Select()=0;
    virtual void Print()=0;
    virtual void      ShowNextEvent(Int_t delta=1) = 0;
 //   virtual void      SizeFruit() const;

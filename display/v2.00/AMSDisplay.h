@@ -115,6 +115,7 @@ public:
 	   void      DrawFrontAndSideViews();
 // Bool_t            DrawClusters() {return m_DrawClusters;}
    Bool_t            DrawParticles() {return m_DrawParticles;}
+           void      Select();
            void      DrawTitle(Option_t *option="");
            void      DrawEventInfo(Option_t *option="");
            void      DrawCaption(Option_t *option="");

@@ -8,6 +8,22 @@
 //////////////////////////////////////////////////////////////////////////
 #include <iostream.h>
 #include <TROOT.h>
+#include <TApplication.h>
+#include <TGXW.h>
+
+#include <TGClient.h>
+#include <TGFrame.h>
+#include <TGIcon.h>
+#include <TGLabel.h>
+#include <TGButton.h>
+#include <TGTextEntry.h>
+#include <TGMsgBox.h>
+#include <TGMenu.h>
+#include <TGCanvas.h>
+#include <TGComboBox.h>
+#include <TGTab.h>
+#include <TGSlider.h>
+#include <TGFileDialog.h>
 #include <TButton.h>
 #include <TCanvas.h>
 #include <TView.h>
@@ -22,7 +38,7 @@
 #include <TMath.h>
 #include <TPolyLine3D.h>
 #include <X3DBuffer.h>
-
+#include <TApplication.h>
 #include "AMSDisplay.h"
 #include "AMSRoot.h"
 #include "TSwitch.h"
@@ -33,6 +49,7 @@
 //#include "AMSClusterMaker.h"
 //#include "AMSTriggerMaker.h"
 //#include "AMSTrigger.h"
+#include "Msgbox.h"
 #include "Debugger.h"
 
 
@@ -344,7 +361,7 @@ void AMSDisplay::DisplayButtons()
    Float_t x0 = 0.05;
    Float_t x1 = 0.95;
    TButton *button;
-   char *but0 = "gAMSRoot->Display()->ShowNextEvent(0)";
+   char *but0 = "gAMSRoot->Display()->Select()";
    button = new TButton("Select",but0,x0,y-dbutton,x1,y);
    button->SetFillColor(38);
    button->Draw();
@@ -409,9 +426,6 @@ void AMSDisplay::DisplayButtons()
    button = new TButton("Print",but9,x0,y-dbutton,x1,y);
    button->SetFillColor(butcolor);
    button->Draw();
-   TGTextBuffer* fbtext;
-   TGTextEntry *ftext   = new TGTextEntry(m_Canvas->fTheCanvas, fbtext=new TGTextBuffer(100));
-   (m_Canvas->fTheCanvas)->AddFrame(ftext, new TGLayoutHints(kLHintsBottom));
 /*
    y -= dbutton +dy;
    char *but8 = "gAMSRoot->Display()->DrawViewX3D()";
@@ -1074,20 +1088,24 @@ void AMSDisplay::ShowNextEvent(Int_t delta)
 //    delta =  1  shown next event
 //    delta = -1 show previous event
 
-  if (delta) {
      Int_t current_event = gAMSRoot->Event();
      Int_t new_event     = current_event + delta;
      if ( new_event >= 0 ) {
        gAMSRoot->Clear();
        gAMSRoot->GetEvent(new_event); 
      }
-  }
-  else {
-       gAMSRoot->Clear();
-       gAMSRoot->SelectEvent(); 
-  }
   m_Pad->cd(); 
   Draw();
+}
+
+void AMSDisplay::Select(){
+   new MsgBox(gClient->GetRoot(), m_Canvas->fTheCanvas, 400, 200);
+
+       gAMSRoot->Clear();
+       gAMSRoot->SelectEvent(); 
+       m_Pad->cd(); 
+       Draw();
+
 }
 
 void AMSDisplay::DrawEvent()

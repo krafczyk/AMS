@@ -171,6 +171,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "Debugger.h"
+#include <ctype.h>
 #include <TROOT.h>
 #include <TTree.h>
 #include <TBrowser.h>
@@ -226,7 +227,7 @@ void AMSRoot::CommonConstruct()
    m_Event       = 0;
    m_Tree        = 0;
    m_Display     = 0;
-
+   SelectedEvent=0;
 }
 
 
@@ -399,11 +400,8 @@ void AMSRoot::SelectEvent()
 {
    // Get one event into the result tree
    //
-   int event;
    int mev;
-     cout << " Select Event No : ";
-      cin >> event;
-      cin.ignore(INT_MAX,'\n');
+   int event=SelectedEvent;
       if(event<=0)event=1;
    //    Read event in input tree
    if (m_Input) {
@@ -743,4 +741,14 @@ void AMSRoot::Streamer(TBuffer &R__b)
 //      R__b << m_TrackFinding;
       m_HistBrowser.Streamer(R__b);
    }
+}
+
+Int_t AMSRoot::SetSelectedEvent(const char *event){
+  //returns 0 if failure 1 otherwise
+  for(int i=0;i<strlen(event);i++){
+    char c=event[i];
+    if(!isdigit(c))return 0;
+  }
+  sscanf(event,"%d",&SelectedEvent);
+  return 1;
 }

@@ -2,15 +2,22 @@
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-AMSRoot.o: Debugger.h /cern/root/v2.00/include/TObject.h
+AMSRoot.o: Debugger.h /cern/root/v2.00/include/TObject.h /usr/include/ctype.h
+AMSRoot.o: /usr/include/standards.h /usr/include/sys/types.h
+AMSRoot.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
+AMSRoot.o: /usr/include/sys/localedef.h /usr/include/sys/lc_core.h
+AMSRoot.o: /usr/include/locale.h /usr/include/nl_types.h /usr/include/mesg.h
+AMSRoot.o: /usr/include/stdio.h /usr/include/sys/seek.h
+AMSRoot.o: /usr/include/va_list.h /usr/include/getopt.h
+AMSRoot.o: /usr/include/sys/limits.h /usr/include/sys/machine/machlimits.h
+AMSRoot.o: /usr/include/sys/syslimits.h /usr/include/sys/machine/machtime.h
+AMSRoot.o: /usr/include/sys/rt_limits.h /usr/include/limits.h
 AMSRoot.o: /cern/root/v2.00/include/TROOT.h /cern/root/v2.00/include/TTree.h
 AMSRoot.o: /cern/root/v2.00/include/TBrowser.h
 AMSRoot.o: /cern/root/v2.00/include/TClonesArray.h AMSRoot.h AMSHistBrowser.h
 AMSRoot.o: /cern/root/v2.00/include/TNamed.h AMSMaker.h /usr/include/time.h
-AMSRoot.o: /usr/include/standards.h /usr/include/machine/machtime.h
-AMSRoot.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
-AMSRoot.o: /usr/include/sys/select.h /usr/include/sys/timers.h
-AMSRoot.o: /usr/include/sys/sysmisc.h AMSToFClusterReader.h AMSTrackReader.h
+AMSRoot.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
+AMSRoot.o: AMSToFClusterReader.h AMSTrackReader.h
 AMSRoot.o: /cern/root/v2.00/include/TH1.h AMSSiHitReader.h
 AMSRoot.o: AMSCTCClusterReader.h AMSAntiClusterReader.h
 AMSRoot.o: AMSTrMCClusterReader.h AMSParticleReader.h AMSVirtualDisplay.h
@@ -20,7 +27,7 @@ AMSMaker.o: /cern/root/v2.00/include/TClonesArray.h
 AMSMaker.o: /cern/root/v2.00/include/TBrowser.h AMSMaker.h AMSRoot.h
 AMSMaker.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSMaker.o: /usr/include/time.h /usr/include/standards.h
-AMSMaker.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSMaker.o: /usr/include/sys/machine/machtime.h /usr/include/sys/types.h
 AMSMaker.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
 AMSMaker.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
 AMSAxis.o: AMSAxis.h /cern/root/v2.00/include/TPolyLine3D.h
@@ -41,22 +48,38 @@ AMS3DCluster.o: /usr/include/sys/select.h /cern/root/v2.00/include/TROOT.h
 AMS3DCluster.o: /cern/root/v2.00/include/TMath.h
 AMS3DCluster.o: /cern/root/v2.00/include/TView.h
 AMS3DCluster.o: /cern/root/v2.00/include/TPad.h AMSDisplay.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGXW.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGClient.h
+AMS3DCluster.o: /cern/root/v2.00/include/TObject.h
+AMS3DCluster.o: /cern/root/v2.00/include/GuiTypes.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGFrame.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGIcon.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGLabel.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGButton.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGTextEntry.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGMsgBox.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGMenu.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGCanvas.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGComboBox.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGTab.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGSlider.h
+AMS3DCluster.o: /cern/root/v2.00/include/TGFileDialog.h
 AMS3DCluster.o: /cern/root/v2.00/include/TApplication.h AMSVirtualDisplay.h
 AMS3DCluster.o: AMSGeometrySetter.h /cern/root/v2.00/include/TGeometry.h
 AMS3DCluster.o: TSwitch.h TRadioButton.h /cern/root/v2.00/include/TButton.h
 AMS3DCluster.o: /cern/root/v2.00/include/TText.h AMSCanvas.h
-AMS3DCluster.o: /cern/root/v2.00/include/TCanvas.h AMS3DCluster.h
-AMS3DCluster.o: /cern/root/v2.00/include/TMarker3DBox.h AMSRoot.h
-AMS3DCluster.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h AMSMaker.h
-AMS3DCluster.o: /usr/include/time.h /usr/include/machine/machtime.h
-AMS3DCluster.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
-AMS3DCluster.o: Debugger.h /cern/root/v2.00/include/TObject.h
+AMS3DCluster.o: /cern/root/v2.00/include/TCanvas.h TRootCanvas.h
+AMS3DCluster.o: AMS3DCluster.h /cern/root/v2.00/include/TMarker3DBox.h
+AMS3DCluster.o: AMSRoot.h AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
+AMS3DCluster.o: AMSMaker.h /usr/include/time.h
+AMS3DCluster.o: /usr/include/sys/machine/machtime.h /usr/include/sys/timers.h
+AMS3DCluster.o: /usr/include/sys/sysmisc.h Debugger.h
 AMSToFCluster.o: Debugger.h /cern/root/v2.00/include/TObject.h
 AMSToFCluster.o: AMSToFCluster.h AMS3DCluster.h
 AMSToFCluster.o: /cern/root/v2.00/include/TMarker3DBox.h AMSRoot.h
 AMSToFCluster.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSToFCluster.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
-AMSToFCluster.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSToFCluster.o: /usr/include/sys/machine/machtime.h /usr/include/sys/types.h
 AMSToFCluster.o: /usr/include/mach/machine/vm_types.h
 AMSToFCluster.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSToFCluster.o: /usr/include/sys/sysmisc.h AMSVirtualDisplay.h
@@ -66,7 +89,7 @@ AMSToFClusterReader.o: /cern/root/v2.00/include/TClonesArray.h AMSRoot.h
 AMSToFClusterReader.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSToFClusterReader.o: AMSMaker.h /usr/include/time.h
 AMSToFClusterReader.o: /usr/include/standards.h
-AMSToFClusterReader.o: /usr/include/machine/machtime.h
+AMSToFClusterReader.o: /usr/include/sys/machine/machtime.h
 AMSToFClusterReader.o: /usr/include/sys/types.h
 AMSToFClusterReader.o: /usr/include/mach/machine/vm_types.h
 AMSToFClusterReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
@@ -78,7 +101,8 @@ AMSAntiCluster.o: AMSAntiCluster.h AMS3DCluster.h
 AMSAntiCluster.o: /cern/root/v2.00/include/TMarker3DBox.h AMSRoot.h
 AMSAntiCluster.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSAntiCluster.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
-AMSAntiCluster.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSAntiCluster.o: /usr/include/sys/machine/machtime.h
+AMSAntiCluster.o: /usr/include/sys/types.h
 AMSAntiCluster.o: /usr/include/mach/machine/vm_types.h
 AMSAntiCluster.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSAntiCluster.o: /usr/include/sys/sysmisc.h AMSVirtualDisplay.h
@@ -88,7 +112,7 @@ AMSAntiClusterReader.o: /cern/root/v2.00/include/TClonesArray.h AMSRoot.h
 AMSAntiClusterReader.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSAntiClusterReader.o: AMSMaker.h /usr/include/time.h
 AMSAntiClusterReader.o: /usr/include/standards.h
-AMSAntiClusterReader.o: /usr/include/machine/machtime.h
+AMSAntiClusterReader.o: /usr/include/sys/machine/machtime.h
 AMSAntiClusterReader.o: /usr/include/sys/types.h
 AMSAntiClusterReader.o: /usr/include/mach/machine/vm_types.h
 AMSAntiClusterReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
@@ -101,7 +125,8 @@ AMSTrMCCluster.o: AMSTrMCCluster.h AMS3DCluster.h
 AMSTrMCCluster.o: /cern/root/v2.00/include/TMarker3DBox.h AMSRoot.h
 AMSTrMCCluster.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSTrMCCluster.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
-AMSTrMCCluster.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSTrMCCluster.o: /usr/include/sys/machine/machtime.h
+AMSTrMCCluster.o: /usr/include/sys/types.h
 AMSTrMCCluster.o: /usr/include/mach/machine/vm_types.h
 AMSTrMCCluster.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSTrMCCluster.o: /usr/include/sys/sysmisc.h AMSVirtualDisplay.h
@@ -111,7 +136,7 @@ AMSTrMCClusterReader.o: /cern/root/v2.00/include/TClonesArray.h AMSRoot.h
 AMSTrMCClusterReader.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSTrMCClusterReader.o: AMSMaker.h /usr/include/time.h
 AMSTrMCClusterReader.o: /usr/include/standards.h
-AMSTrMCClusterReader.o: /usr/include/machine/machtime.h
+AMSTrMCClusterReader.o: /usr/include/sys/machine/machtime.h
 AMSTrMCClusterReader.o: /usr/include/sys/types.h
 AMSTrMCClusterReader.o: /usr/include/mach/machine/vm_types.h
 AMSTrMCClusterReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
@@ -125,7 +150,8 @@ AMSTrackReader.o: Debugger.h /cern/root/v2.00/include/TObject.h
 AMSTrackReader.o: /cern/root/v2.00/include/TClonesArray.h AMSRoot.h
 AMSTrackReader.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSTrackReader.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
-AMSTrackReader.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSTrackReader.o: /usr/include/sys/machine/machtime.h
+AMSTrackReader.o: /usr/include/sys/types.h
 AMSTrackReader.o: /usr/include/mach/machine/vm_types.h
 AMSTrackReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSTrackReader.o: /usr/include/sys/sysmisc.h AMSTrackReader.h
@@ -135,7 +161,7 @@ AMSSiHit.o: AMSSiHit.h /cern/root/v2.00/include/TObject.h AMS3DCluster.h
 AMSSiHit.o: /cern/root/v2.00/include/TMarker3DBox.h AMSRoot.h
 AMSSiHit.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h AMSMaker.h
 AMSSiHit.o: /usr/include/time.h /usr/include/standards.h
-AMSSiHit.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSSiHit.o: /usr/include/sys/machine/machtime.h /usr/include/sys/types.h
 AMSSiHit.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
 AMSSiHit.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
 AMSSiHit.o: AMSVirtualDisplay.h Debugger.h
@@ -144,7 +170,8 @@ AMSSiHitReader.o: /cern/root/v2.00/include/TRandom.h
 AMSSiHitReader.o: /cern/root/v2.00/include/TClonesArray.h AMSRoot.h
 AMSSiHitReader.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSSiHitReader.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
-AMSSiHitReader.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSSiHitReader.o: /usr/include/sys/machine/machtime.h
+AMSSiHitReader.o: /usr/include/sys/types.h
 AMSSiHitReader.o: /usr/include/mach/machine/vm_types.h
 AMSSiHitReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSSiHitReader.o: /usr/include/sys/sysmisc.h AMSSiHit.h AMS3DCluster.h
@@ -154,7 +181,7 @@ AMSCTCCluster.o: AMSCTCCluster.h AMS3DCluster.h
 AMSCTCCluster.o: /cern/root/v2.00/include/TMarker3DBox.h AMSRoot.h
 AMSCTCCluster.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSCTCCluster.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
-AMSCTCCluster.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSCTCCluster.o: /usr/include/sys/machine/machtime.h /usr/include/sys/types.h
 AMSCTCCluster.o: /usr/include/mach/machine/vm_types.h
 AMSCTCCluster.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSCTCCluster.o: /usr/include/sys/sysmisc.h AMSVirtualDisplay.h
@@ -164,7 +191,7 @@ AMSCTCClusterReader.o: /cern/root/v2.00/include/TClonesArray.h AMSRoot.h
 AMSCTCClusterReader.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSCTCClusterReader.o: AMSMaker.h /usr/include/time.h
 AMSCTCClusterReader.o: /usr/include/standards.h
-AMSCTCClusterReader.o: /usr/include/machine/machtime.h
+AMSCTCClusterReader.o: /usr/include/sys/machine/machtime.h
 AMSCTCClusterReader.o: /usr/include/sys/types.h
 AMSCTCClusterReader.o: /usr/include/mach/machine/vm_types.h
 AMSCTCClusterReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
@@ -174,7 +201,7 @@ AMSCTCClusterReader.o: AMSCTCClusterReader.h
 AMSParticle.o: Debugger.h /cern/root/v2.00/include/TObject.h AMSRoot.h
 AMSParticle.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h AMSMaker.h
 AMSParticle.o: /usr/include/time.h /usr/include/standards.h
-AMSParticle.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSParticle.o: /usr/include/sys/machine/machtime.h /usr/include/sys/types.h
 AMSParticle.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
 AMSParticle.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
 AMSParticle.o: AMSTrack.h /cern/root/v2.00/include/THelix.h AMSParticle.h
@@ -183,7 +210,8 @@ AMSParticleReader.o: Debugger.h /cern/root/v2.00/include/TObject.h
 AMSParticleReader.o: /cern/root/v2.00/include/TClonesArray.h AMSRoot.h
 AMSParticleReader.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSParticleReader.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
-AMSParticleReader.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSParticleReader.o: /usr/include/sys/machine/machtime.h
+AMSParticleReader.o: /usr/include/sys/types.h
 AMSParticleReader.o: /usr/include/mach/machine/vm_types.h
 AMSParticleReader.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSParticleReader.o: /usr/include/sys/sysmisc.h AMSParticleReader.h
@@ -192,7 +220,8 @@ AMSVirtualDisplay.o: AMSVirtualDisplay.h
 AMSHistBrowser.o: /cern/root/v2.00/include/TBrowser.h AMSRoot.h
 AMSHistBrowser.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h
 AMSHistBrowser.o: AMSMaker.h /usr/include/time.h /usr/include/standards.h
-AMSHistBrowser.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSHistBrowser.o: /usr/include/sys/machine/machtime.h
+AMSHistBrowser.o: /usr/include/sys/types.h
 AMSHistBrowser.o: /usr/include/mach/machine/vm_types.h
 AMSHistBrowser.o: /usr/include/sys/select.h /usr/include/sys/timers.h
 AMSHistBrowser.o: /usr/include/sys/sysmisc.h
@@ -204,17 +233,48 @@ AMSCanvas.o: /usr/include/stdlib.h /cern/root/v2.00/include/TROOT.h
 AMSCanvas.o: /cern/root/v2.00/include/TControlBar.h
 AMSCanvas.o: /cern/root/v2.00/include/TContextMenu.h AMSRoot.h
 AMSCanvas.o: AMSHistBrowser.h /cern/root/v2.00/include/TNamed.h AMSMaker.h
-AMSCanvas.o: /usr/include/time.h /usr/include/machine/machtime.h
+AMSCanvas.o: /usr/include/time.h /usr/include/sys/machine/machtime.h
 AMSCanvas.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
-AMSCanvas.o: AMSDisplay.h /cern/root/v2.00/include/TApplication.h
-AMSCanvas.o: AMSVirtualDisplay.h AMSGeometrySetter.h
-AMSCanvas.o: /cern/root/v2.00/include/TGeometry.h TSwitch.h
-AMSCanvas.o: /cern/root/v2.00/include/TPad.h TRadioButton.h
+AMSCanvas.o: AMSDisplay.h /cern/root/v2.00/include/TGXW.h
+AMSCanvas.o: /cern/root/v2.00/include/TGClient.h
+AMSCanvas.o: /cern/root/v2.00/include/TObject.h
+AMSCanvas.o: /cern/root/v2.00/include/GuiTypes.h
+AMSCanvas.o: /cern/root/v2.00/include/TGFrame.h
+AMSCanvas.o: /cern/root/v2.00/include/TGIcon.h
+AMSCanvas.o: /cern/root/v2.00/include/TGLabel.h
+AMSCanvas.o: /cern/root/v2.00/include/TGButton.h
+AMSCanvas.o: /cern/root/v2.00/include/TGTextEntry.h
+AMSCanvas.o: /cern/root/v2.00/include/TGMsgBox.h
+AMSCanvas.o: /cern/root/v2.00/include/TGMenu.h
+AMSCanvas.o: /cern/root/v2.00/include/TGCanvas.h
+AMSCanvas.o: /cern/root/v2.00/include/TGComboBox.h
+AMSCanvas.o: /cern/root/v2.00/include/TGTab.h
+AMSCanvas.o: /cern/root/v2.00/include/TGSlider.h
+AMSCanvas.o: /cern/root/v2.00/include/TGFileDialog.h
+AMSCanvas.o: /cern/root/v2.00/include/TApplication.h AMSVirtualDisplay.h
+AMSCanvas.o: AMSGeometrySetter.h /cern/root/v2.00/include/TGeometry.h
+AMSCanvas.o: TSwitch.h /cern/root/v2.00/include/TPad.h TRadioButton.h
 AMSCanvas.o: /cern/root/v2.00/include/TButton.h
 AMSCanvas.o: /cern/root/v2.00/include/TText.h AMSCanvas.h
-AMSCanvas.o: /cern/root/v2.00/include/TCanvas.h Debugger.h
-AMSCanvas.o: /cern/root/v2.00/include/TObject.h
+AMSCanvas.o: /cern/root/v2.00/include/TCanvas.h TRootCanvas.h Debugger.h
 AMSDisplay.o: /cern/root/v2.00/include/TROOT.h
+AMSDisplay.o: /cern/root/v2.00/include/TApplication.h
+AMSDisplay.o: /cern/root/v2.00/include/TGXW.h
+AMSDisplay.o: /cern/root/v2.00/include/TGClient.h
+AMSDisplay.o: /cern/root/v2.00/include/TObject.h
+AMSDisplay.o: /cern/root/v2.00/include/GuiTypes.h
+AMSDisplay.o: /cern/root/v2.00/include/TGFrame.h
+AMSDisplay.o: /cern/root/v2.00/include/TGIcon.h
+AMSDisplay.o: /cern/root/v2.00/include/TGLabel.h
+AMSDisplay.o: /cern/root/v2.00/include/TGButton.h
+AMSDisplay.o: /cern/root/v2.00/include/TGTextEntry.h
+AMSDisplay.o: /cern/root/v2.00/include/TGMsgBox.h
+AMSDisplay.o: /cern/root/v2.00/include/TGMenu.h
+AMSDisplay.o: /cern/root/v2.00/include/TGCanvas.h
+AMSDisplay.o: /cern/root/v2.00/include/TGComboBox.h
+AMSDisplay.o: /cern/root/v2.00/include/TGTab.h
+AMSDisplay.o: /cern/root/v2.00/include/TGSlider.h
+AMSDisplay.o: /cern/root/v2.00/include/TGFileDialog.h
 AMSDisplay.o: /cern/root/v2.00/include/TButton.h
 AMSDisplay.o: /cern/root/v2.00/include/TCanvas.h
 AMSDisplay.o: /cern/root/v2.00/include/TView.h
@@ -230,17 +290,40 @@ AMSDisplay.o: /cern/root/v2.00/include/TMath.h
 AMSDisplay.o: /cern/root/v2.00/include/TPolyLine3D.h
 AMSDisplay.o: /cern/root/v2.00/include/X3DBuffer.h
 AMSDisplay.o: /cern/root/v2.00/include/DllImport.h AMSDisplay.h
-AMSDisplay.o: /cern/root/v2.00/include/TApplication.h AMSVirtualDisplay.h
-AMSDisplay.o: AMSGeometrySetter.h /cern/root/v2.00/include/TGeometry.h
-AMSDisplay.o: TSwitch.h /cern/root/v2.00/include/TPad.h TRadioButton.h
-AMSDisplay.o: AMSCanvas.h AMSRoot.h AMSHistBrowser.h
+AMSDisplay.o: AMSVirtualDisplay.h AMSGeometrySetter.h
+AMSDisplay.o: /cern/root/v2.00/include/TGeometry.h TSwitch.h
+AMSDisplay.o: /cern/root/v2.00/include/TPad.h TRadioButton.h AMSCanvas.h
+AMSDisplay.o: TRootCanvas.h AMSRoot.h AMSHistBrowser.h
 AMSDisplay.o: /cern/root/v2.00/include/TNamed.h AMSMaker.h
 AMSDisplay.o: /usr/include/time.h /usr/include/standards.h
-AMSDisplay.o: /usr/include/machine/machtime.h /usr/include/sys/types.h
+AMSDisplay.o: /usr/include/sys/machine/machtime.h /usr/include/sys/types.h
 AMSDisplay.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
 AMSDisplay.o: /usr/include/sys/timers.h /usr/include/sys/sysmisc.h
-AMSDisplay.o: AMSSiHitReader.h AMSAxis.h Debugger.h
-AMSDisplay.o: /cern/root/v2.00/include/TObject.h
+AMSDisplay.o: AMSSiHitReader.h AMSAxis.h Msgbox.h /usr/include/stdlib.h
+AMSDisplay.o: /usr/include/getopt.h Debugger.h
+Msgbox.o: Msgbox.h /usr/include/stdlib.h /usr/include/standards.h
+Msgbox.o: /usr/include/getopt.h /usr/include/sys/types.h
+Msgbox.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
+Msgbox.o: /cern/root/v2.00/include/TROOT.h
+Msgbox.o: /cern/root/v2.00/include/TApplication.h
+Msgbox.o: /cern/root/v2.00/include/TGXW.h /cern/root/v2.00/include/TGClient.h
+Msgbox.o: /cern/root/v2.00/include/TObject.h
+Msgbox.o: /cern/root/v2.00/include/GuiTypes.h
+Msgbox.o: /cern/root/v2.00/include/TGFrame.h
+Msgbox.o: /cern/root/v2.00/include/TGIcon.h
+Msgbox.o: /cern/root/v2.00/include/TGLabel.h
+Msgbox.o: /cern/root/v2.00/include/TGButton.h
+Msgbox.o: /cern/root/v2.00/include/TGTextEntry.h
+Msgbox.o: /cern/root/v2.00/include/TGMsgBox.h
+Msgbox.o: /cern/root/v2.00/include/TGMenu.h
+Msgbox.o: /cern/root/v2.00/include/TGCanvas.h
+Msgbox.o: /cern/root/v2.00/include/TGComboBox.h
+Msgbox.o: /cern/root/v2.00/include/TGTab.h
+Msgbox.o: /cern/root/v2.00/include/TGSlider.h
+Msgbox.o: /cern/root/v2.00/include/TGFileDialog.h AMSRoot.h AMSHistBrowser.h
+Msgbox.o: /cern/root/v2.00/include/TNamed.h AMSMaker.h /usr/include/time.h
+Msgbox.o: /usr/include/sys/machine/machtime.h /usr/include/sys/timers.h
+Msgbox.o: /usr/include/sys/sysmisc.h
 TRadioButton.o: /cern/root/v2.00/include/TCanvas.h
 TRadioButton.o: /cern/root/v2.00/include/TInterpreter.h TRadioButton.h
 TRadioButton.o: /cern/root/v2.00/include/TButton.h
@@ -257,7 +340,7 @@ Debugger.o: /usr/include/sys/seek.h /usr/include/va_list.h
 Debugger.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 Debugger.o: /usr/include/sys/select.h /usr/include/getopt.h
 Debugger.o: /usr/include/sys/limits.h /usr/include/sys/machine/machlimits.h
-Debugger.o: /usr/include/sys/syslimits.h /usr/include/machine/machtime.h
+Debugger.o: /usr/include/sys/syslimits.h /usr/include/sys/machine/machtime.h
 Debugger.o: /usr/include/sys/rt_limits.h /usr/include/stdarg.h Debugger.h
 Debugger.o: /cern/root/v2.00/include/TObject.h
 main.o: /cern/root/v2.00/include/TROOT.h
@@ -265,22 +348,33 @@ main.o: /cern/root/v2.00/include/TApplication.h
 main.o: /cern/root/v2.00/include/TFile.h /cern/root/v2.00/include/TTree.h
 main.o: /cern/root/v2.00/include/TGeometry.h AMSRoot.h AMSHistBrowser.h
 main.o: /cern/root/v2.00/include/TNamed.h AMSMaker.h /usr/include/time.h
-main.o: /usr/include/standards.h /usr/include/machine/machtime.h
+main.o: /usr/include/standards.h /usr/include/sys/machine/machtime.h
 main.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 main.o: /usr/include/sys/select.h /usr/include/sys/timers.h
-main.o: /usr/include/sys/sysmisc.h AMSDisplay.h AMSVirtualDisplay.h
+main.o: /usr/include/sys/sysmisc.h AMSDisplay.h
+main.o: /cern/root/v2.00/include/TGXW.h /cern/root/v2.00/include/TGClient.h
+main.o: /cern/root/v2.00/include/TObject.h
+main.o: /cern/root/v2.00/include/GuiTypes.h
+main.o: /cern/root/v2.00/include/TGFrame.h /cern/root/v2.00/include/TGIcon.h
+main.o: /cern/root/v2.00/include/TGLabel.h
+main.o: /cern/root/v2.00/include/TGButton.h
+main.o: /cern/root/v2.00/include/TGTextEntry.h
+main.o: /cern/root/v2.00/include/TGMsgBox.h /cern/root/v2.00/include/TGMenu.h
+main.o: /cern/root/v2.00/include/TGCanvas.h
+main.o: /cern/root/v2.00/include/TGComboBox.h
+main.o: /cern/root/v2.00/include/TGTab.h /cern/root/v2.00/include/TGSlider.h
+main.o: /cern/root/v2.00/include/TGFileDialog.h AMSVirtualDisplay.h
 main.o: AMSGeometrySetter.h TSwitch.h /cern/root/v2.00/include/TPad.h
 main.o: TRadioButton.h /cern/root/v2.00/include/TButton.h
 main.o: /cern/root/v2.00/include/TText.h AMSCanvas.h
-main.o: /cern/root/v2.00/include/TCanvas.h Debugger.h
-main.o: /cern/root/v2.00/include/TObject.h /usr/include/sys/stat.h
-main.o: /usr/include/sys/mode.h /usr/include/sys/file.h
-main.o: /usr/include/sys/param.h /usr/include/sys/limits.h
-main.o: /usr/include/sys/machine/machlimits.h /usr/include/sys/syslimits.h
-main.o: /usr/include/sys/rt_limits.h /usr/include/sys/machine/machparam.h
-main.o: /usr/include/machine/endian.h /usr/include/sys/signal.h
-main.o: /usr/include/sys/siginfo.h /usr/include/sys/machine/signal.h
-main.o: /usr/include/machine/context.h /usr/include/sys/procset.h
-main.o: /usr/include/sys/access.h /usr/include/sys/fcntl.h
-main.o: /usr/include/sys/seek.h /usr/include/stdlib.h /usr/include/getopt.h
-main.o: main.h
+main.o: /cern/root/v2.00/include/TCanvas.h TRootCanvas.h Debugger.h
+main.o: /usr/include/sys/stat.h /usr/include/sys/mode.h
+main.o: /usr/include/sys/file.h /usr/include/sys/param.h
+main.o: /usr/include/sys/limits.h /usr/include/sys/machine/machlimits.h
+main.o: /usr/include/sys/syslimits.h /usr/include/sys/rt_limits.h
+main.o: /usr/include/sys/machine/machparam.h /usr/include/machine/endian.h
+main.o: /usr/include/sys/signal.h /usr/include/sys/siginfo.h
+main.o: /usr/include/sys/machine/signal.h /usr/include/machine/context.h
+main.o: /usr/include/sys/procset.h /usr/include/sys/access.h
+main.o: /usr/include/sys/fcntl.h /usr/include/sys/seek.h
+main.o: /usr/include/stdlib.h /usr/include/getopt.h main.h
