@@ -104,13 +104,14 @@ void AMSTimeIDD::PrintTime() {
 
 integer AMSTimeIDD::CopyIn(integer nbytes, uinteger *pdata, uinteger CRC) {
  
-   integer n = nbytes/sizeof(uinteger) - 1;
+   integer n = nbytes/sizeof(uinteger);
    _pData.resize(n);
     for (integer i=0; i<n; i++) { 
      uinteger tmp = pdata[i];
      _pData.set(i,tmp);
     }
-    _pData.set(n,CRC);
+    _pData.set(n-1,CRC);
+    //_pData.set(n,CRC);
 
  return 0;
 }
