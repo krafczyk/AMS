@@ -17,6 +17,7 @@
   _edep     = p -> _edep;
   _sector   = p -> _sector;
   _status   = p -> getstatus();
+//  _signal   = pR-> getsignal();
 }
  
 void AMSAntiClusterD::copy(AMSAntiCluster* p)
@@ -35,5 +36,5 @@ void AMSAntiClusterD::add(AMSAntiCluster* p)
   _edep     = p -> _edep;
   _sector   = p -> _sector;
   _status   = p -> getstatus();
-
+//  _signal   = pR -> getsignal();
 }

@@ -17,6 +17,7 @@ public:
 
  AMSAntiClusterV() {};
  AMSAntiClusterV(integer size);
+  ~AMSAntiClusterV(){};
 
 // methods
  ooStatus           add(integer n, AMSAntiClusterD anticluster);

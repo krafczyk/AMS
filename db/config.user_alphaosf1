@@ -1,5 +1,5 @@
 INSTALL_DIR	= /usr/local/objectivity
 ARCH		= alphaosf1
-LS_HOST		= boron.ksc.nasa.gov
-FDID		= 1715
+LS_HOST		= iron.ksc.nasa.gov
+FDID		= 9270
 PAGESIZE	= 8192

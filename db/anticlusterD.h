@@ -20,13 +20,16 @@ public:
  integer   _sector;
 
  integer   _status;
+ number    _signal;
 
 // Constructor
 
- AMSAntiClusterD() {};
+ AMSAntiClusterD() { _edep=0.0; _sector=0; _status=0; _signal=0.0;};
  AMSAntiClusterD(AMSAntiCluster* p);
+ ~AMSAntiClusterD(){};
 
 // methods
+// void add(AMSAntiCluster* p,AMSAntiRawCluster* pR);
  void add(AMSAntiCluster* p);
  void copy(AMSAntiCluster* p);
  inline AMSPoint getcoo()  {return _coo;}
@@ -34,5 +37,6 @@ public:
  inline number   getedep() {return _edep;}
  inline integer  getsector() {return _sector;}
  inline integer  getstatus() {return _status;}
+ inline number   getsignal() {return _signal;}
 };
 #endif

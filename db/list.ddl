@@ -31,7 +31,7 @@ class EventList : public ooContObj {
    const   char*     SetupName()         {return _setupName;}
    integer Events()                      {return _nEvents;}
    integer getNEvents()                  {return _nEvents;}
-   void    incNEvents()                  {_nEvents++;}
+   void    incNEvents()                  {_nEvents++;     }
    void    decNEvents()                  {if (_nEvents > 0) _nEvents--;}
 
    void    resetCounters()               {_nEvents = 0;}

@@ -268,7 +268,7 @@ ooStatus      AMSEventList::AddTrCluster(
         if (dbg_prtout) cout <<"AddTrCluster -I- nelements "
                    <<AMSEvent::gethead()->getC("AMSTrCluster",N)->getnelem()
                    <<" for AMSTrCluster Cont "<<N<<endl;
-        while ( p != NULL) {
+        while ( p ) {
          if(p->checkstatus(AMSDBc::USED))
         {
          clusterH = new(contClusterH[N]) AMSTrClusterD(p);
@@ -334,7 +334,7 @@ ooStatus      AMSEventList::
                <<" AMSTrRecHit* p == NULL"<<endl;
            return oocSuccess;
         }
-        while ( p != NULL) {
+        while ( p ) {
         if(p->checkstatus(AMSDBc::USED))
          {
          layerH = new(contTrLayerH[N]) AMSTrRecHitD(p);
@@ -390,11 +390,11 @@ ooStatus      AMSEventList::
         if (NO_AMS == 1) return oocSuccess;
         AMSTOFCluster* p = (AMSTOFCluster*)AMSEvent::gethead() ->
                                                    getheadC("AMSTOFCluster",N);
-        if (p == NULL) {cout <<
+        if (p == NULL && dbg_prtout == 1) {cout <<
               "AMSEventList::AddTOFCluster-I- AMSTOFCluster* p == NULL"<<endl;
                 return oocSuccess;
         }
-        while ( p != NULL) {
+        while ( p ) {
          layerH = new(contLayerSH[N]) AMSTOFClusterD(p);
          rstatus = eventH -> add_pTOFCluster(layerH);
          if (rstatus != oocSuccess) {
@@ -439,7 +439,7 @@ ooStatus      AMSEventList::AddTrTrack(ooHandle(AMSeventD) & eventH)
         // get first track of first container
         for (integer i=0; i<npat; i++) {
          AMSContainer* pCont = AMSEvent::gethead() -> getC("AMSTrTrack",i);
-         if (pCont != NULL) {
+         if (pCont ) {
           integer nelem = pCont -> getnelem();
           if (nelem == 0) {
            if(dbg_prtout != 0) cout <<"AMSEventList::AddTrTrack-I- pattern "
@@ -448,7 +448,7 @@ ooStatus      AMSEventList::AddTrTrack(ooHandle(AMSeventD) & eventH)
           if ( nelem > 0) {
            AMSTrTrack* p = (AMSTrTrack*)AMSEvent::gethead() -> 
                                                  getheadC("AMSTrTrack",i);
-           while (p != NULL) {
+           while (p ) {
            if(p->checkstatus(AMSDBc::USED))
             {
             trackH = new(contTrackH) AMSTrTrackD(p);
@@ -495,7 +495,7 @@ ooStatus AMSEventList::LinkTrackHitD(ooHandle(AMSeventD)& eventH)
         if ( nelem > 0) {
           AMSTrTrack* p = (AMSTrTrack*)AMSEvent::gethead() -> 
                                                  getheadC("AMSTrTrack",i);
-        while ( p != NULL) {
+        while ( p ) {
           if(p->checkstatus(AMSDBc::USED))
           {
           integer  posT    = p -> getContPos();     // position of track
@@ -507,7 +507,7 @@ ooStatus AMSEventList::LinkTrackHitD(ooHandle(AMSeventD)& eventH)
           integer layer = 0;
           for (integer j=0; j<6; j++) {             
            AMSTrRecHit* pH = p -> getphit(j);      // pointer to assoc hit
-           if (pH != NULL) {
+           if (pH ) {
             integer  posH   = pH -> getContPos();  // position of Hit
             if (dbg_prtout) cout<<"LinkTrackHit -I- assoc hit pos "
                                 <<p ->getpos()<<", ContPos "<<posH<<endl;
@@ -577,12 +577,12 @@ ooStatus      AMSEventList::AddBeta(ooHandle(AMSeventD) & eventH)
           if (dbg_prtout == 1) cout <<" do AddBeta for container "<<i<<endl;
          // get the first beta in the container
          AMSContainer* pCont = AMSEvent::gethead() -> getC("AMSBeta",i);
-         if (pCont != NULL) { 
+         if (pCont ) { 
           integer nelem = pCont -> getnelem();
           if (nelem > 0) {
            AMSBeta* p = (AMSBeta*)AMSEvent::gethead() -> 
                                                getheadC("AMSBeta",i);
-          while ( p != NULL) {
+          while ( p ) {
            betaH = new(contBetaH) AMSBetaD(p);
            rstatus = eventH -> add_pBeta(betaH);
            if (rstatus != oocSuccess) {
@@ -591,7 +591,7 @@ ooStatus      AMSEventList::AddBeta(ooHandle(AMSeventD) & eventH)
            }
            // set Beta <-> Track link
            AMSTrTrack* pTr = p -> getptrack();      // pointer to assoc. track
-           if (pTr != NULL) {
+           if (pTr ) {
             integer  posT   = pTr -> getContPos();  // position of Track
             if (dbg_prtout == 1) 
                             cout <<" set track/beta for track pos "<<posT<<endl;
@@ -613,7 +613,7 @@ ooStatus      AMSEventList::AddBeta(ooHandle(AMSeventD) & eventH)
           // set Beta <-> TOF Cluster[] link
            for (j=0; j<4; j++) {
             AMSTOFCluster* pTOF = p -> getpcluster(j);   // TOFCl.
-            if (pTOF != NULL) {
+            if (pTOF ) {
              if(dbg_prtout) cout<<"AddBeta -I- pTOF != NULL, layer "<<j<<endl;
              integer  posT   = pTOF -> getContPos();     // position of TOFCl.
              integer  ntof   = pTOF -> getntof();
@@ -674,12 +674,12 @@ ooStatus      AMSEventList::AddCharge(ooHandle(AMSeventD) & eventH)
         // get first charge
         AMSCharge* p = (AMSCharge*)AMSEvent::gethead() -> 
                                                getheadC("AMSCharge",0);
-        if (p == NULL) {
+        if (p == NULL && dbg_prtout == 1) {
          Message("AddCharge : AMSCharge* p == NULL");
          return oocSuccess;
         }
 
-        while ( p != NULL) {
+        while ( p ) {
           chargeH = new(contChargeH) AMSChargeD(p);
           rstatus = eventH -> add_pChargeE(chargeH);
           if (rstatus != oocSuccess) {
@@ -689,7 +689,7 @@ ooStatus      AMSEventList::AddCharge(ooHandle(AMSeventD) & eventH)
          
          // set Beta <-> Charge link
            AMSBeta* pB = p -> getpbeta();          // pointer to assoc. beta
-           if (pB != NULL) {
+           if (pB ) {
             integer  posB   = pB -> getContPos();  // position of Beta
             if (posB != 0) {
              // find Beta
@@ -737,7 +737,7 @@ ooStatus      AMSEventList::AddCTCCluster(ooHandle(AMSeventD)& eventH)
         for (int icnt=0; icnt<CTCDBc::getnlay(); icnt++) {
          AMSCTCCluster * p = (AMSCTCCluster*)AMSEvent::gethead() ->
                                                getheadC("AMSCTCCluster",icnt);
-         while ( p != NULL) {
+         while ( p ) {
           if(p->checkstatus(AMSDBc::USED))
           {
           ctcclusterH = new(contCTCClusterH) AMSCTCClusterD(p);
@@ -778,12 +778,12 @@ ooStatus      AMSEventList::AddParticle(ooHandle(AMSeventD) & eventH)
         // get first particle
         AMSParticle* p = (AMSParticle*)AMSEvent::gethead() -> 
                                                getheadC("AMSParticle",0);
-        if (p == NULL) {
+        if (p == NULL && dbg_prtout == 1) {
          Message("AddParticle : AMSParticle* p == NULL");
          return oocSuccess;
         }
 
-        while (p != NULL) {
+        while (p ) {
          particleH = new(contParticleH) AMSParticleD(p);
          rstatus = eventH -> add_pParticleE(particleH);
          if (rstatus != oocSuccess) {
@@ -792,7 +792,7 @@ ooStatus      AMSEventList::AddParticle(ooHandle(AMSeventD) & eventH)
          }
          // set Beta <-> Particle link
            AMSBeta* pB = p -> getpbeta();          // pointer to assoc. beta
-           if (pB != NULL) {
+           if (pB ) {
             integer  posB   = pB -> getContPos();  // position of Beta
             if (posB != 0) {
              // find Beta
@@ -818,7 +818,7 @@ ooStatus      AMSEventList::AddParticle(ooHandle(AMSeventD) & eventH)
            }
 
            AMSCharge* pC = p -> getpcharge();      // pointer to assoc. charge
-           if (pC != NULL) {
+           if (pC ) {
             integer  posC   = pC -> getContPos();  // position of Charge
             if (posC != 0) {
              // find Charge
@@ -837,7 +837,7 @@ ooStatus      AMSEventList::AddParticle(ooHandle(AMSeventD) & eventH)
             // set particle -> ctc link
             for (int icnt=0; icnt<CTCDBc::getnlay(); icnt++) {
              AMSCTCCluster* pCTC = p -> getpctc(icnt);
-               if (pCTC != NULL) {
+               if (pCTC ) {
                 integer posCTC = pCTC -> getContPos();
                 if (posCTC != 0) {
                 // find CTC
@@ -875,13 +875,13 @@ ooStatus      AMSEventList::
 // Get head of hit's container
         AMSTrRecHit* p = (AMSTrRecHit*)AMSEvent::gethead() -> 
                                                    getheadC("AMSTrRecHit",N);
-        while ( p != NULL) {
+        while ( p ) {
          if(p->checkstatus(AMSDBc::USED))
          {
          integer  posH    = p -> getContPos();     // position of hit 
          for (integer j=0; j<2; j++) {
           AMSTrCluster* pC = p -> getClusterP(j);  // pointer to assoc cluster
-          if (pC != NULL) {
+          if (pC ) {
            integer  posXY   = pC -> getContPos();  // position of clusterX/Y
            integer  side    = pC -> getSide();
            if( posH != 0 && posXY != 0) {
@@ -931,13 +931,13 @@ ooStatus      AMSEventList::AddParticleS(ooHandle(AMSeventD) & eventH)
         // get first particle
         AMSParticle* p = (AMSParticle*)AMSEvent::gethead() -> 
                                                getheadC("AMSParticle",0);
-        if (p == NULL) {
+        if (p == NULL && dbg_prtout == 1) {
          Message("AddParticle : AMSParticle* p == NULL");
          return oocSuccess;
         }
 
         int npart = 0;
-        while (p != NULL) {
+        while (p ) {
           npart++;
           p = p -> next();
         }
@@ -947,7 +947,7 @@ ooStatus      AMSEventList::AddParticleS(ooHandle(AMSeventD) & eventH)
 
         int i = 0;
         ParticleS particle;
-        while (p != NULL) {
+        while (p ) {
          particle.setAll(
                             p -> getgpart(), p -> getmass(), p -> geterrmass(),
                             p -> getmomentum(), p -> geterrmomentum(), 
@@ -984,10 +984,12 @@ ooStatus      AMSEventList::AddAntiCluster(ooHandle(AMSeventD) & eventH)
         if (NO_AMS == 1) return oocSuccess;
 
         AMSContainer* pCont = AMSEvent::gethead() -> getC("AMSAntiCluster",0);
-        if (pCont != NULL) {
+        if (pCont ) {
          integer nelem = pCont -> getnelem();
          if (nelem >0) {
-          // create VArray to store AntiClusters
+// create VArray to store nelem AntiClusters
+// AMSAntiClusterV(nelem) will invoke default constructor of AMSAntiClusterD 
+
           anticlusterH = new(contAntiClusterH) AMSAntiClusterV(nelem);
           rstatus = eventH -> set_pAntiCluster(anticlusterH);
           if (rstatus != oocSuccess) {
@@ -997,13 +999,18 @@ ooStatus      AMSEventList::AddAntiCluster(ooHandle(AMSeventD) & eventH)
          // get first cluster
          AMSAntiCluster* p = (AMSAntiCluster*)AMSEvent::gethead() -> 
                                                  getheadC("AMSAntiCluster",0);
+//         AMSAntiRawCluster* pR = (AMSAntiRawCluster*)AMSEvent::gethead() ->
+//                                              getheadC("AMSAntiRawCluster",0);
+
           integer i = 0;
-          while ( p != NULL) {
+          while ( p ) {
           if(p->checkstatus(AMSDBc::USED))
            {
            AMSAntiClusterD   anticluster;
            AMSAntiClusterD  *pD;
            pD = &anticluster;
+        if(pD ) cout << "!!!Warning AMSAntiClusterD is not NULL " << i << endl;
+//        if(pR == NULL) cout << "!!!Warning AMSAntiRawCluster is NULL" << endl;
            pD -> add(p);
            anticlusterH -> add(i,anticluster);
            i++;
@@ -1012,7 +1019,14 @@ ooStatus      AMSEventList::AddAntiCluster(ooHandle(AMSeventD) & eventH)
            } //end of USED
            p = p -> next();
           }
+//check how many of them have actually been written if none delete the  AMSAntiClusterV
+       AMSAntiClusterV *pAntiV =  anticlusterH;
+       if (i == 0 ) {
+                       rstatus = eventH -> del_pAntiCluster();
+                       delete pAntiV;
+                      }
          } else { 
+         if(dbg_prtout == 1)
           Message("AddAntiCluster: No AntiClusters for this event");
          }
         } else {
@@ -1208,14 +1222,14 @@ ooStatus  AMSEventList::CopyTrTrack(ooHandle(AMSeventD)& eventH)
             // find the same hit in Upool
             AMSTrRecHit* pH = (AMSTrRecHit*)AMSEvent::gethead() -> 
                                               getheadC("AMSTrRecHit",layer-1);
-            while (pH != NULL ) {
+            while (pH ) {
              if (posH != pH -> getContPos()) {
                pH = pH -> next();
              } else{
                break;
              }
             }
-            if (pH != NULL) {
+            if (pH ) {
              phit[Npos] = pH;
              Npos++;
             } else{ 
@@ -1337,7 +1351,7 @@ ooStatus      AMSEventList::CopyBeta(ooHandle(AMSeventD) & eventH)
               // get head of Beta Container
               AMSBeta* p = (AMSBeta*)AMSEvent::gethead() 
                                                    -> getheadC("AMSBeta",ib);
-              while (p != NULL) {
+              while (p ) {
                integer posB = p -> getContPos();
                if (posB != 0) {
                 char pred[32];
@@ -1349,14 +1363,14 @@ ooStatus      AMSEventList::CopyBeta(ooHandle(AMSeventD) & eventH)
                  integer patternT = trackH -> getPattern();
                  AMSTrTrack* pT = (AMSTrTrack*)AMSEvent::gethead() ->
                                            getheadC("AMSTrTrack",patternT);
-                 while (pT != NULL) {
+                 while (pT ) {
                   if (posT != pT -> getContPos()) {
                    pT = pT -> next();
                   } else {
                    break;
                   }
                  }
-                 if (pT != NULL) {
+                 if (pT ) {
                   p -> setTrackP(pT);
                   if (dbg_prtout == 1) cout << 
                      "AMSEventList:: CopyBeta -I- find an "
@@ -1370,7 +1384,7 @@ ooStatus      AMSEventList::CopyBeta(ooHandle(AMSeventD) & eventH)
               }   
          // set Beta <-> TOFCluster[] association
          p = (AMSBeta*)AMSEvent::gethead() -> getheadC("AMSBeta",ib);
-         while (p != NULL) {
+         while (p ) {
           integer posB = p -> getContPos();
           if (posB != 0) {
            char pred[32];
@@ -1383,14 +1397,14 @@ ooStatus      AMSEventList::CopyBeta(ooHandle(AMSeventD) & eventH)
               integer ntof = tofClusterItr -> getntof();
               AMSTOFCluster* pC = (AMSTOFCluster*)AMSEvent::gethead() ->
                                     getheadC("AMSTOFCluster",ntof-1);
-              while (pC != NULL) {
+              while (pC ) {
                if (posC != pC -> getContPos()){
                   pC = pC -> next();
                 } else {
                   break;
                }
               }
-              if (pC != NULL) {
+              if (pC ) {
                p -> setTOFClP(pC, ntof);
                if (dbg_prtout == 1) cout 
                   <<"AMSEventList:: CopyBeta -I- find an "
@@ -1444,7 +1458,7 @@ ooStatus      AMSEventList::CopyCharge(ooHandle(AMSeventD) & eventH)
           if (nelem > 0) {
             AMSCharge* p = (AMSCharge*)AMSEvent::gethead() -> 
                                                   getheadC("AMSCharge",0);
-           while (p != NULL) {
+           while (p ) {
             integer posCh = p -> getContPos();
             if (posCh != 0) {
              betaH = chargeItr -> pBetaCh();                  // in dbase
@@ -1452,14 +1466,14 @@ ooStatus      AMSEventList::CopyCharge(ooHandle(AMSeventD) & eventH)
              integer patternB = betaH -> getpattern();
              AMSBeta* pB = (AMSBeta*)AMSEvent::gethead() ->
                                                   getheadC("AMSBeta",patternB);
-             while (pB != NULL) {
+             while (pB ) {
               if (posB != pB -> getContPos()) {
                pB = pB -> next();
                } else {
                 break;
                }
              }
-              if (pB != NULL) {
+              if (pB ) {
                p -> setBetaP(pB);
                if (dbg_prtout == 1) 
                 Message("CopyCharge : find an associated Beta");
@@ -1524,7 +1538,7 @@ ooStatus      AMSEventList::CopyParticle(ooHandle(AMSeventD) & eventH)
           if (nelem > 0) {
            AMSParticle* p = (AMSParticle*)AMSEvent::gethead() -> 
                                                   getheadC("AMSParticle",0);
-           while (p != NULL) {
+           while (p ) {
             integer posP = p -> getContPos();
             if (posP != 0) {
              // set particle <-> beta link
@@ -1533,14 +1547,14 @@ ooStatus      AMSEventList::CopyParticle(ooHandle(AMSeventD) & eventH)
              integer patternB  = betaH -> getpattern();
              AMSBeta* pB = (AMSBeta*)AMSEvent::gethead() ->
                                                 getheadC("AMSBeta",patternB);
-             while (pB != NULL) {
+             while (pB ) {
               if (posP != pB -> getContPos()) {
                pB = pB -> next();
                } else {
                 break;
                }
               }
-              if (pB != NULL) {
+              if (pB ) {
                p -> setpbeta(pB);
                if (dbg_prtout) 
                            Message("CopyParticle : found an associated Beta");
@@ -1552,14 +1566,14 @@ ooStatus      AMSEventList::CopyParticle(ooHandle(AMSeventD) & eventH)
               integer posC = chargeH -> getPosition();
               AMSCharge* pC = (AMSCharge*)AMSEvent::gethead() ->
                                                       getheadC("AMSCharge",0);
-              while (pC != NULL) {
+              while (pC ) {
                 if (posC != pC -> getContPos()) {
                   pC = pC -> next();
                 } else {
                   break;
                 }
               }
-              if (pC != NULL) {
+              if (pC ) {
                p -> setpcharge(pC);
                if (dbg_prtout) 
                 Message("CopyParticle : found an associated Charge");
@@ -1572,14 +1586,14 @@ ooStatus      AMSEventList::CopyParticle(ooHandle(AMSeventD) & eventH)
               integer patternT = trackH -> getPattern();
               AMSTrTrack* pT = (AMSTrTrack*)AMSEvent::gethead() ->
                                               getheadC("AMSTrTrack",patternT);
-              while (pT != NULL) {
+              while (pT ) {
                if (posT != pT -> getContPos()) {
                  pT = pT -> next();
                } else {
                  break;
                }
               }
-              if (pT != NULL) {
+              if (pT ) {
                p -> setptrack(pT);
                if (dbg_prtout) 
                 Message("CopyParticle found an associated track");
@@ -1597,7 +1611,7 @@ ooStatus      AMSEventList::CopyParticle(ooHandle(AMSeventD) & eventH)
                if (pCont-> getnelem() > 0) {
                 AMSCTCCluster* pCTC = (AMSCTCCluster*) AMSEvent::gethead() ->
                                                getheadC("AMSCTCCluster",ictc);
-                while (pCTC != NULL) {
+                while (pCTC ) {
                   if (posCTC == pCTC -> getContPos()) {
                     p -> setpctc(pCTC,ictc);
                     break;

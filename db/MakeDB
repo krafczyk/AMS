@@ -306,7 +306,7 @@ DB_OBJS	= $(SCHEMA_OBJS) $(SCHEMA_METHOD_OBJS) $(LMS_OBJS)
 OBJECT_LIBS	= $(LIB_DIR)/liboo.a
 SRC             = ../CC
 
-GEANT_OBJS= $(BIN)/gbatch.o $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/upool.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o $(BIN)/trrec.o $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/antirec.o $(BIN)/tofsim.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/apool.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o $(BIN)/tofcalib.o $(BIN)/timeid.o $(BIN)/io.o $(BIN)/trcalib.o $(BIN)/mtx2.o $(BIN)/e04ccf.o $(BIN)/trigger1.o $(BIN)/trigger3.o $(BIN)/daqevt.o $(BIN)/antidbc.o $(BIN)/daqblock.o $(BIN)/astring.o $(BIN)/ins_dummy.o  $(BIN)/mfield.o $(BIN)/egzav.o $(BIN)/tkdbc.o $(BIN)/ctcsim.o $(BIN)/user.o
+GEANT_OBJS= $(BIN)/gbatch.o $(BIN)/commons.o $(BIN)/gvolume.o  $(BIN)/id.o $(BIN)/node.o $(BIN)/snode.o $(BIN)/cern.o $(BIN)/amsdbc.o $(BIN)/gsen.o  $(BIN)/mtx.o $(BIN)/point.o $(BIN)/amstkshc++.o $(BIN)/sgif.o $(BIN)/upool.o $(BIN)/gmat.o $(BIN)/amsgobj.o $(BIN)/amsgeom.o $(BIN)/mceventg.o $(BIN)/tkmccl.o $(BIN)/rnormx.o  $(BIN)/trid.o $(BIN)/link.o $(BIN)/trrec.o $(BIN)/uzstat.o $(BIN)/tptcir.o $(BIN)/trafit.o $(BIN)/tcircf.o $(BIN)/tszfit.o $(BIN)/txyfit.o  $(BIN)/cont.o $(BIN)/trrawcluster.o $(BIN)/mccluster.o $(BIN)/rndm.o $(BIN)/tofrec.o $(BIN)/tofonline.o $(BIN)/antirec.o $(BIN)/tofsim.o $(BIN)/beta.o $(BIN)/charge.o $(BIN)/particle.o $(BIN)/apool.o $(BIN)/tofdbc.o $(BIN)/ctcrec.o $(BIN)/ctcdbc.o $(BIN)/tofcalib.o $(BIN)/timeid.o $(BIN)/io.o $(BIN)/trcalib.o $(BIN)/mtx2.o $(BIN)/e04ccf.o $(BIN)/trigger1.o $(BIN)/trigger3.o $(BIN)/daqevt.o $(BIN)/antidbc.o $(BIN)/daqblock.o $(BIN)/astring.o $(BIN)/ins_dummy.o  $(BIN)/mfield.o $(BIN)/egzav.o $(BIN)/tkdbc.o $(BIN)/ctcsim.o $(BIN)/user.o
 
 CERN_LIBS       = -L/cern/pro/lib  -lgeant321 -lmathlib -lpacklib -lkernlib
 
@@ -322,7 +322,7 @@ $(LMS): $(DB_OBJS) $(GEANT_OBJS)
 #                       #
 #########################
 
-$(BOOT): config.user1_alphaosf1
+$(BOOT): config.user_alphaosf1
 	$(OONEWFD) -fdlocalpath $(BOOTF).FDDB -pagesize $(PAGESIZE) -lockserverhost $(LS_HOST)  -fdnumber $(FDID) $(BOOT)
 
 .ddl.h: 

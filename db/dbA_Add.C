@@ -117,6 +117,7 @@ ooStatus LMS::AddEvent(integer run, integer eventNumber, time_t time,
         eventH = eventItr;
         cout <<"overwrite Reco event ";eventH -> print();
         ooDelete(eventH);
+//        cout << "Checkevent=1 !!!!1decNEvents" << endl;
         listH -> decNEvents();
        }
       }

@@ -17,7 +17,8 @@ class AMSTrClusterD;
 
 class AMSTrRecHitD : public ooObj {
 
- private:
+// private:
+  protected:
 
    AMSPoint     _Hit;
    AMSPoint     _EHit;
@@ -28,6 +29,9 @@ class AMSTrRecHitD : public ooObj {
    integer      _Status;
    integer      _Layer;
    integer      _Position;  
+// AMSTrCluster *_Xcl;  //for x-position 
+// AMSTrCluster *_Ycl;  //for y-position
+
 
    integer      _gid;       // gvolume ID, from *sen
    char         _name[80];  // gvolume name, from *sen
@@ -52,6 +56,13 @@ class AMSTrRecHitD : public ooObj {
    integer  getPosition() {return _Position;}
    integer  getgid()      {return _gid;}
    char*    getname()     {return _name;}
+/*
+   inline  AMSTrCluster* getClusterP(integer n) {
+                                              AMSTrCluster* p = _Xcl;
+                                              if(n == 1)    p = _Ycl;
+                                              return p;
+*/
+
 
    void     copy(AMSTrRecHit* p);
 

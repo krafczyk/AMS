@@ -57,7 +57,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
     cptr = getenv("OO_FD_BOOT");
     if (!cptr) Fatal("ClusteringInit: environment OO_FD_BOOT in undefined");
 
-    // if oosession has not been initialised do it now
+// if oosession has not been initialised do it now
     if (!ooSession::initialized()) ooSession::Init();
 
     if (mode == oocUpdate) {
@@ -67,9 +67,6 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
       StartRead(mrowmode);
     }
 
-// Tag DB
-    ooHandle(AMSEventTagList) taglistH;
-
     _catdbH = db("DbList");
     ContainersC(_catdbH, dbTabH);
     if (dbTabH == NULL) 
@@ -77,7 +74,9 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
     _dbTabH = dbTabH;
  
     if( mcevents(mode) || mceventg(mode) || rawevents(mode) || recoevents(mode)) {
-    // get TagDB pathname
+// get TagDB pathname
+// Tag DB
+    ooHandle(AMSEventTagList) taglistH;
     integer ntagdbs = dbTabH -> size(dbtag);
     if(ntagdbs < 1) {
 
@@ -101,7 +100,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
 
       if (mode == oocUpdate) {
        int size = (dbTabH -> dbsize(dbtag));
-       if (size/1000 > maxTagDBSize) {
+       if (size/1000 > maxTagDBSize*1000) {
         Message("ClusteringInit: create new tag database ");
         cout<<"ClusteringInit : current tag database size "
             <<size/1000<<" KBytes"<<endl;
@@ -168,7 +167,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
        if (!dbH) Fatal("ClusteringInit: cannot get simDB from the catalog");
        if (mode == oocUpdate) {
        int size = (dbTabH -> dbsize(dbsim));
-       if (size/1000 > maxMCDBSize) {
+       if (size/1000 > maxMCDBSize*1000) {
         cout<<"ClusteringInit : current MC database size "
             <<size/1000<<" KBytes"<<endl;
         Message("ClusteringInit: create new MC database ");
@@ -212,7 +211,6 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      ContainersM(_mcdbH, _prefix);
      mclistH -> SetContainersNames(_prefix);
     }
-
 //Raw DB
     ooHandle(AMSRawEventList)  rawlistH;
     if (rawevents(mode)) {
@@ -239,7 +237,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
        if (!dbH) Fatal("ClusteringInit: cannot get rawDB from the catalog");
        if (mode == oocUpdate) {
        int size = (dbTabH -> dbsize(dbraw));
-       if (size/1000000 > maxRawDBSize) {
+       if (size/1000 > maxRawDBSize*1000) {
         cout<<"ClusteringInit : current raw database size "
             <<size/1000<<" KBytes"<<endl;
         Message("ClusteringInit: create new raw database ");
@@ -278,11 +276,9 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
          rawcontCat.set(i,rawlistH);
         _rawcontH = rawlistH;
         _rawdbH   = dbH;
-/*
-        rawcontCat.set(i,contH);
-        _rawdbH   = dbH;
-        _rawcontH = contH;
-*/
+//        rawcontCat.set(i,contH);
+//        _rawdbH   = dbH;
+//        _rawcontH = contH;
         j++;
        }
       }
@@ -293,7 +289,6 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
       if(contName)   delete [] contName;
      }
     }
-
 //Reco DB
     ooHandle(AMSEventList)    listH;
     if (recoevents(mode)) {
@@ -318,7 +313,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
       if (!dbH) Fatal("ClusteringInit: cannot get recoDB from the catalog");
       if (mode == oocUpdate) {
        int size = (dbTabH -> dbsize(dbrec));
-       if (size/1000 > maxRecDBSize) {
+       if (size/1000 > maxRecDBSize*1000) {
         cout<<"ClusteringInit : current Rec database size "
             <<size/1000<<" KBytes"<<endl;
         Message("ClusteringInit: create new rec database ");
@@ -330,7 +325,6 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
         }
       }
      }
-        
      _recodbH = dbH;
      contName  = StrCat("Events_",_prefix); 
      if (mode == oocUpdate) {
@@ -361,8 +355,8 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      }
      ContainersR(_recodbH, _prefix);
      listH -> SetContainersNames(_prefix);
-    } 
-    
+    }
+//Setup
     if (setup(mode)) {
      // get db path name
      integer nsetupdbs = dbTabH -> size(dbsetup);
@@ -420,8 +414,8 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      _setupdbH = dbH;
 
 // TDV database
-     //
-     // get db path name
+//
+// get db path name
      integer ntdvdbs = dbTabH -> size(dbtdv);
      integer createContainer = 1;
      cout<<"ClusteringInit :: tdv database(s) found "<<ntdvdbs<<endl;
@@ -473,13 +467,11 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      if(contName)   delete [] contName;
      _tdvdbH = dbH;
 
-
     }
 
     if (slow(mode)) {
      _slowdbH  = db("Slow");        // house keeping and slow control
     }
-
 
     Commit();
     Message("ClusteringInit : all done");
@@ -636,6 +628,7 @@ integer LMS::List(ooHandle(ooDBObj) &dbH, char* listName,
   ooMode mode = Mode();
   if (listH.exist(dbH, listName, mode)) return rstatus;
   if (mode == oocUpdate) {
+//hash value is 1 for the container listName
     listH = new(listName,1,0,0,dbH) AMSEventList(listName, _setup, _prefix);
     rstatus = 1;
    } else {

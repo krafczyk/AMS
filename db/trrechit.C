@@ -23,6 +23,8 @@ AMSTrRecHitD::AMSTrRecHitD(AMSTrRecHit* p)
   _EHit   = p -> _EHit;
   _Sum    = p -> _Sum;
   _DifoSum= p -> _DifoSum;
+//  _Xcl    = p -> getClusterP(0);
+//  _Ycl    = p -> getClusterP(1);
 }
 void AMSTrRecHitD::copy(AMSTrRecHit* p)
 {

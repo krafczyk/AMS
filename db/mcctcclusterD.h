@@ -30,6 +30,7 @@ number _charge;
 number _edep; 
 number _beta; 
 integer _idsoft; 
+number _time; 
 
 
 
@@ -46,6 +47,9 @@ inline number getcharge() { return _charge; }
 inline number getedep() { return _edep; }
 inline number getbeta() { return _beta; }
 inline integer getid() { return _idsoft; }
+inline number gettime() { return _time; }
+inline integer getlayno() const { return CTCDBc :: getgeom () < 2 ? (_idsoft / 1000) % 10 :
+ _idsoft / 1000000; }
     virtual ooTypeNumber ooGetTypeN() const;
     virtual char* ooGetTypeName() const;
     ooBoolean ooIsKindOf(ooTypeNumber typeN) const;
@@ -79,7 +83,7 @@ inline integer getid() { return _idsoft; }
     static void ooAssocRegister();
     ooRef(AMSCTCMCClusterD)& ooThis(ooRef(AMSCTCMCClusterD)& objId, ooMode aMode = oocNoOpen) const;
     AMSCTCMCClusterD(ooInternalObj iobj);
-#line 39 "mcctcclusterD.ddl"
+#line 44 "mcctcclusterD.ddl"
 }; 
 
 #endif /* !defined(MCCTCCLUSTER_D_H) */

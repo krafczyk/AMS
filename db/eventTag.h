@@ -72,13 +72,8 @@ class opiDummyDeclaration;
 
 
 class AMSEventTag : public dbEvent { 
-
-
-
-uinteger _runAux; 
-
-uinteger _runOff; 
-uinteger _statusR; 
+#line 29
+uinteger _RunType; 
 
 number _NorthPolePhi; 
 number _StationTheta; 
@@ -159,13 +154,13 @@ inline AMSEventTag() { }
 AMSEventTag(uinteger, uinteger); 
 AMSEventTag(uinteger, uinteger, uinteger, time_t); 
 #line 52
-inline uinteger runAux() const { return _runAux; }
-inline uinteger runUni() { return Run (); }
-inline uinteger runOff() const { return _runOff; }
+inline uinteger runType() const { return _RunType; }
+inline uinteger run() { return Run (); }
+
 inline void GetGeographicCoo(number &pole, number &theta, number &phi) {
                       pole = _NorthPolePhi; theta = _StationTheta; phi = _StationPhi; }
 
-inline void setrunOff(uinteger run) { _runOff = run; }
+
 inline void SetGeographicCoo(number pole, number theta, number phi) {
                       _NorthPolePhi = pole;
                       _StationTheta = theta;
