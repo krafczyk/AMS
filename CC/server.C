@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.110 2004/03/11 11:34:43 choutko Exp $
+//  $Id: server.C,v 1.111 2004/05/13 08:50:54 choutko Exp $
 //
 #include <stdlib.h>
 #include <server.h>
@@ -400,13 +400,20 @@ void AMSServer::Listening(int sleeptime){
 typedef map<AString, AMSServer::OrbitVars>::iterator MOI; 
       int ntry=sleeptime*1000000/int(AMSServer::Singleton()->getSleepTime());
       if(ntry<=0)ntry=1;
+     if(AMSServer::Singleton()->getSleepTime()<20000){
+       cout <<"  entering listening " << "  "<<AMSServer::Singleton()->getSleepTime() <<" "<<sleeptime<<"  "<<ntry<<endl;
+   }
       for(int itry=0;itry<ntry;itry++){
        usleep(AMSServer::Singleton()->getSleepTime());
       for(MOI i=_orbmap.begin();i!=_orbmap.end();++i){
-        if(sleeptime<0)((*i).second)._orb->run();
-        else ((*i).second)._orb->perform_work();
+//        if(sleeptime<0)((*i).second)._orb->run();
+//        else ((*i).second)._orb->perform_work();
+          ((*i).second)._orb->perform_work();
       }
      }
+     if(AMSServer::Singleton()->getSleepTime()<20000){
+       cout <<"  exiting listening " << "  "<<AMSServer::Singleton()->getSleepTime() <<" "<<sleeptime<<endl;
+   }
 }
 
 void AMSServer::UpdateDB(bool force){
@@ -417,10 +424,13 @@ pcur->UpdateDB(force);
 }
 
 void AMSServer::SystemCheck(bool force){
+static int check=0;
+check++;
 // Here run Start,Stop,Kill,Check Clients
 
     int count=AMSServer::Singleton()->MT()?-1:1;
 for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()){
+/*
   Listening(count);
   if(!_GlobalError)pcur->StartClients(_pid);
   Listening(count);
@@ -430,6 +440,16 @@ for(AMSServerI * pcur=_pser; pcur; pcur=(pcur->down())?pcur->down():pcur->next()
   Listening(count);
  if(!_GlobalError)pcur->KillClients(_pid);
  else Listening(count);
+*/
+  if(!force)Listening(count);
+  pcur->StartClients(_pid);
+  if(check<1000)cout << "  start ok "<<endl;
+  if(!force)Listening(count);
+  pcur->CheckClients(_pid);
+  if(check<1000)cout << "  check ok "<<endl;
+  if(!force)Listening(count);
+  pcur->KillClients(_pid);
+  if(check<1000)cout << "  kill ok "<<endl;
 
 }
 if(force)IMessage("ForceSystemCheckSuccessful");      
@@ -3116,7 +3136,7 @@ void Producer_impl::sendDSTInfo(const  DPS::Producer::DSTInfo & ne, DPS::Client:
   else {
         DPS::Producer::DSTInfo_var vac= new DPS::Producer::DSTInfo(ne);
         replace_if(li,_dstinfo.end(),DSTInfo_Eqs(ne),vac);
-        _parent->IMessage(AMSClient::print(*li," Updated DSTInfo " ));
+//        _parent->IMessage(AMSClient::print(*li," Updated DSTInfo " ));
   }
   break;
  case DPS::Client::Create:
@@ -3210,7 +3230,7 @@ else{
 void Producer_impl::sendDSTEnd(const DPS::Client::CID & ci, const  DPS::Producer::DST & ne, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
 //         cout <<" exiting Producer_impl::sendDSTEnd"<<endl;
 _UpdateACT(ci,DPS::Client::Active);
-if(_parent->Debug()){
+if(_parent->Debug() && ne.Status!=DPS::Producer::InProgress){
   _parent->IMessage(AMSClient::print(ci,"senddstinfo get from "));
   _parent->IMessage(AMSClient::print(ne));
 }

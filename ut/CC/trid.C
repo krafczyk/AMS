@@ -1,4 +1,4 @@
-//  $Id: trid.C,v 1.33 2001/12/18 17:34:21 choutko Exp $
+//  $Id: trid.C,v 1.34 2004/05/13 08:50:54 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #include <assert.h>
@@ -10,6 +10,7 @@
 using trid::ms;
 using trid::ncrt;
 using trid::ntdr;
+using std::ostrstream;
 using namespace trconst;
 AMSID AMSTrIdGeom::crgid() const{
          static char name[5];

@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.86 2004/03/10 10:17:42 choutko Exp $
+//  $Id: producer.C,v 1.87 2004/05/13 08:50:53 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -67,8 +67,8 @@ else{
   if(!ior ){
     
    if(_debug){
-     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer");
-     else _openLogFile("Producer");
+     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer",_Solo);
+     else _openLogFile("Producer",_Solo);
    }
 //   _Head=this;
 // return;
@@ -84,14 +84,14 @@ else{
      _plist.push_front(_pvar);
   if(!_getpidhost(uid)){
    if(_debug){
-     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer");
-     else _openLogFile("Producer");
+     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer",_Solo);
+     else _openLogFile("Producer",_Solo);
    }
       FMessage("AMSProducer::AMSProducer-F-UnableToGetHostName", DPS::Client::CInAbort);
  }
    if(_debug){
-     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer");
-     else _openLogFile("Producer");
+     if(AMSJob::gethead()->isSimulation())_openLogFile("MCProducer",_Solo);
+     else _openLogFile("Producer",_Solo);
    }
      _Head=this;
      return;
@@ -210,13 +210,20 @@ if (_Solo){
 
 
 UpdateARS();
+bool mtry=false; 
 again:
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
     (*li)->getRunEvInfo(_pid,_reinfo,_dstinfo);
          
     if(_dstinfo->DieHard){
-      
+     if(!mtry){
+      cerr <<" problem with runevinfo sleep 20 sec "<<endl;
+       sleep(20);
+       mtry=true;
+       goto again;
+    } 
+      cerr <<" DieHard "<<_dstinfo->DieHard<<endl; 
       if(!_FreshMan && _dstinfo->DieHard==1)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
       else FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedAbort",DPS::Client::SInAbort);
     }
@@ -575,7 +582,10 @@ if(exedir && nve && AMSCommonsI::getosname()){
   char tmp[80];
   sprintf(tmp,"%d",ntend->EventNumber);
   systemc+=tmp;
-  if(IOPA.WriteRoot)systemc+=" 1";
+  if(IOPA.WriteRoot)systemc+=" 1 ";
+  else systemc+=" 0 ";
+  sprintf(tmp,"%d",ntend->LastEvent);
+   systemc+=tmp; 
   int i=system(systemc);
   if( (i == 0xff00) || (i & 0xff)){
 // Unable To Check

@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.29 2004/01/30 22:42:09 choutko Exp $
+//  $Id: client.C,v 1.30 2004/05/13 08:50:53 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -9,7 +9,7 @@
 #include <netdb.h>
 char AMSClient::_streambuffer[1024];
 ostrstream AMSClient::_ost(AMSClient::_streambuffer,sizeof(AMSClient::_streambuffer));
-void AMSClient::_openLogFile(char * prefix){
+void AMSClient::_openLogFile(char * prefix,bool solo){
 AString fnam;
 char * logdir=getenv("ProductionLogDir");
 if(!logdir){
@@ -52,7 +52,12 @@ else fnam=logdir;
 
  sprintf(time,"%010d.journal",_pid.uid);
  fnam2+=time;
- _fbin2.open(fnam2,ios::out);
+  if(!solo){
+   _fbin2.open(fnam2,ios::out|ios::app);
+  }
+  else{
+   _fbin2.open(fnam2,ios::out);
+  }
  if(!_fbin2){
     AString a("AMSClient::_openLogFile-F-UnableOpenJournalFile ");
      a+=fnam2; 
@@ -252,7 +257,7 @@ return _streambuffer;
 
 char * AMSClient::print(const DPS::Producer::DST & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<a.Name<<" , Version "<<a.Version<<" , Size "<<a.size<<" , CRC "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<ends;
+_ost<<mes<<" "<<" , Status "<<DSTS2string(a.Status)<<" , Type "<<DSTT2string(a.Type)<<" , Name "<<a.Name<<" , Version "<<a.Version<<" , Size "<<a.size<<" , crc "<<a.crc<<" , Insert "<<a.Insert<<" , Begin "<<a.Begin<<" , End "<<a.End<<" , Run "<<a.Run<<" , FirstEvent "<<a.FirstEvent<<" , LastEvent "<<a.LastEvent<<" , EventNumber "<<a.EventNumber<<" , ErrorNumber "<<a.ErrorNumber<<ends;
 return _streambuffer;
 }
 

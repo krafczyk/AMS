@@ -5,12 +5,13 @@ class AMSNtupleSelect: public AMSNtupleHelper{
 public:
 AMSNtupleSelect(){};
 bool IsGolden(AMSEventR *ev){
+static int tot=0;
 // 
 // This is a user function to be modified
 //  return true if event has to be drawn false otherwise
 //
- if(ev && ev->nParticle()>0 && ev->nTrTrack()>0){
-   cout <<"working"<<endl;
+ if(ev && ev->nLevel1() && ev->pLevel1(0)->EcalFlag>0 ){
+   cout <<ev->Run()<<" "<<ev->Event()<<" "<<ev->pLevel1(0)->EcalFlag<<" " <<tot++<<endl;
    return true;
  }
   else return false;

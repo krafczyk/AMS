@@ -1,10 +1,10 @@
-//  $Id: id.h,v 1.7 2001/12/07 11:32:25 choutko Exp $
+//  $Id: id.h,v 1.8 2004/05/13 08:51:14 choutko Exp $
 // Author V. Choutko 24-may-1996
  
 #ifndef __AMSID__
 #define __AMSID__
 #include <typedefs.h>
-#include <strstream.h>
+#include <strstream>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>

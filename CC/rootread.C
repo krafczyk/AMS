@@ -5,6 +5,8 @@
 
 int rootread(char * fname, int nev, int iver,  int & lastevent){
  int LastEvent=lastevent;
+ int diff=0;
+ lastevent=0;
 int firstevent=-1;
  if(!iver){
   fclose(stderr);
@@ -36,15 +38,18 @@ int firstevent=-1;
    if(!pev->ReadHeader(i))break;
    if((pev->fHeader.Status[0]/1073741824)%2)nbadev++;
    if(firstevent<0)firstevent=pev->fHeader.Event;
+   if(lastevent && abs(lastevent-int(pev->fHeader.Event))>diff){
+     diff=std::abs(lastevent-int(pev->fHeader.Event));
+   }
    lastevent=pev->fHeader.Event;
    nevread++;
   }
   rfile->Close();
   if(nevread!=nev)return -2;
-  if(nev>2){
+  if(nev>2 && LastEvent>0){
    int rate=(lastevent+1-firstevent)/nevread;
    if(iver)cout <<"last event "<<LastEvent <<" " <<lastevent<<endl; 
-   if(abs(LastEvent-lastevent)>5*rate){
+   if(abs(LastEvent-lastevent)>5*rate && abs(LastEvent-lastevent)>2*diff){
      return -5;
    } 
   }

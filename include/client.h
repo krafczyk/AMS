@@ -1,4 +1,4 @@
-//  $Id: client.h,v 1.23 2003/10/26 14:21:26 choutko Exp $
+//  $Id: client.h,v 1.24 2004/05/13 08:51:14 choutko Exp $
 #ifndef __AMSCLIENT__
 #define __AMSCLIENT__
 #include <typedefs.h>
@@ -38,7 +38,7 @@ uinteger _LastServiceTime;
  fstream _fbin2;
  DPS::Client::CID _pid;
  DPS::Client::ClientExiting _exit;
- void _openLogFile(char * prefix);
+ void _openLogFile(char * prefix,bool solo);
  bool _getpidhost(uinteger pid, const char* iface=0);
  static char _streambuffer[1024]; 
  static ostrstream _ost;

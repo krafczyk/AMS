@@ -1,4 +1,4 @@
-//  $Id: daqevt.C,v 1.72 2002/09/24 07:15:29 choutko Exp $
+//  $Id: daqevt.C,v 1.73 2004/05/13 08:50:53 choutko Exp $
 #include <stdio.h>
 #include <daqevt.h>
 #include <event.h>
@@ -8,7 +8,8 @@
 #include <ctype.h>
 #include <astring.h>
 #include <fstream.h>
-
+using std::ostrstream;
+using std::istrstream;
 #if !defined( __IBMAIX__) && !defined(sun) 
 #else
 

@@ -1,4 +1,4 @@
-#  $Id: datacards.doc,v 1.237 2004/02/26 07:18:01 choutko Exp $
+#  $Id: datacards.doc,v 1.238 2004/05/13 08:51:04 choutko Exp $
 Datacards for AMS02
 
 // Protection from some myst bug
@@ -798,7 +798,7 @@ R 36   Thr1DRSeed(0.18)   //  minimal 2nd/1st cluster energy ratio (same row)
 R 37   Cl1DLeakSize(9)    //  search region for energy leraks (+-cells)
 R 38   Cl1DcoreSize(2)    //  max core cluster size(+-cells)
 R 39   Thr2Dmax(1.2)      //  max tangent for shower direction
-R 40   Lenghth2DMin(4)    //  min-1 2d cluster length (planes)
+R 40   Lenghth2DMin(3)    //  min-1 2d cluster length (planes)
 R 41   Chi22DMax(1000)    //  max chi2 for direction fit
 R 42   PosError1D(0.1)    //  Est error between cluster cofg and shower core (cm)
 R 43   Chi2Change2D(0.33) //  minimal chi2 rel change to remove higest resid hit in dir fit

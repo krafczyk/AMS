@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.178 2003/07/16 12:58:25 choutko Exp $
+//  $Id: amsgeom.C,v 1.179 2004/05/13 08:50:53 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -1731,9 +1731,9 @@ geant frameztop=-135.95;//(final)Z-pos of the frame(top face)
 //
   cout<<"AMSGEOM: Low_USS_frame geometry(G3/G4-compatible) done!"<<endl;
 }
+using namespace std;
 //--------------------------------------------------------------
 void amsgeom::tkgeom02(AMSgvolume & mother){
-
    TKDBc::read();
 
 

@@ -113,7 +113,7 @@ module DPS{
  
   interface Producer: Client{
     enum TransferStatus{Begin,Continue,End};
-    enum RunStatus{ToBeRerun, Failed,Processing, Finished, Unknown, Allocated,Foreign};
+    enum RunStatus{ToBeRerun, Failed,Processing, Finished, Unknown, Allocated,Foreign,Canceled};
     enum DSTStatus{Success,InProgress,Failure,Validated};
     enum RunMode{RILO,LILO,RIRO,LIRO};
     enum DSTType{Ntuple,EventTag,RootFile};

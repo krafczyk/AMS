@@ -1,4 +1,4 @@
-//  $Id: commons.C,v 1.271 2004/04/07 17:27:46 choutko Exp $
+//  $Id: commons.C,v 1.272 2004/05/13 08:50:53 choutko Exp $
 
 
 
@@ -75,7 +75,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v4.00";
-uinteger AMSCommonsI::_build=124;
+uinteger AMSCommonsI::_build=126;
 float AMSCommonsI::_mips=1000;
 uinteger AMSCommonsI::_os=0;
 char AMSCommonsI::_osname[255];
@@ -206,6 +206,7 @@ void AMSCommonsI::init(){
           fbin.getline(syscom,254,'\n');
           fbin.close();
           float _cor=1;
+          cout <<"AMSCommonsI-I-SystemIdentified as "<<syscom<<endl;
           if(strstr(syscom,"Pentium II"))_cor=1.07;
           else if(strstr(syscom,"Pentium III"))_cor=1.0;
            else if(strstr(syscom,"Pentium(R) III"))_cor=1.0;

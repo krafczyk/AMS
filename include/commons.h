@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.198 2004/02/26 07:18:16 choutko Exp $
+//  $Id: commons.h,v 1.199 2004/05/13 08:51:14 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -293,10 +293,10 @@ public:
   float Thr1DRSeed;        // Threshold for 1d cluster search
   int   Cl1DCoreSize;
   int   Cl1DLeakSize; 
-  float PosError1D;
   float Thr2DMax;
   float Length2DMin;
   float Chi22DMax;
+  float PosError1D;
   float Chi2Change2D;
   float TransShowerSize2D;
   float SimpleRearLeak[4];
