@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.101 2003/07/18 19:56:30 delgadom Exp $
+//  $Id: root.h,v 1.102 2003/07/20 11:14:27 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -498,7 +498,7 @@ public:
     sprintf(_Info,"RichRing No %d N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,Used,UsedM,Beta,ErrorBeta,Chi2,NpExp,NpCol);
   return _Info;
   } 
-  ClassDef(RichRingR,1)           // RichRingR
+  ClassDef(RichRingR,2)           // RichRingR
 }; 
 
 
