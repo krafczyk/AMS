@@ -5,7 +5,7 @@ Datacards
 AMSJOB  
 I 1  Jobtype(0)      //0 - simulation ; 1 - Reconstruction
 I 2  Debug(1)        // 0 - Off   ; 1 - On
-R 3  CpuLimit(60.)   // CpuLimit in native sec per event
+R 3  CpuLimit(10.)   // CpuLimit in native sec per event
 I 4  Read(0)         // 0 - Off   ; 1 - setup 10 -Mceventg 100 -mc banks
                      // 1000 - Rec banks
 I 5  Write(0)        // Same as for read  

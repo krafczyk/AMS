@@ -35,7 +35,7 @@ void AMSJob::data(){
   AMSFFKEY.Reconstruction=1; // Reconstruction
   AMSFFKEY.Jobtype=0; // Default
   AMSFFKEY.Debug=1;
-  AMSFFKEY.CpuLimit=60;
+  AMSFFKEY.CpuLimit=10;
   AMSFFKEY.Read=0;
   AMSFFKEY.Write=1;
   VBLANK(AMSFFKEY.Jobname,40);
