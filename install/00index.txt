@@ -2,7 +2,6 @@ Cgbatch   // compile +link user file for geant batch
 Cgxint    // compile +link user file for geant interactive
 Lgbatch   // makefile t gmake geant batch from binary library
 Makelib   // makefile to gmake amslib
-Mcxxfix   // makefile for current workaround for osf1/cxx compiler bug  
 Mgbatch   // makefile to gmake geant batch     
 Mgxint    // makefile to gmake geant interactive  
 Mopt      // makefile to gmake geant batch optimized
@@ -14,9 +13,8 @@ config.*  // configuration files for Objectivity. Moved to ../db
 
 To create standalone simulation program (without db) use:
 
-hpux  || ibm      batch         clmake Mgbatch or Mopt
-dec               batch         clmake Mcxxfix or Mopt
-hpux,ibm,dec      interactive   clmake Mgxint  (batch program should be created first)
+ batch         clmake Mgbatch or Mopt
+ interactive   clmake Mgxint  (batch program should be created first)
 
 
 Instructions how to create & run db connected batch simulation program

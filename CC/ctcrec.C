@@ -30,15 +30,18 @@ AMSID AMSCTCRawCluster::crgid(integer imat){
      integer id=1000000*_layer+1000*y+100*x+2*iy+ix+1;
       if(imat==2){
        if(_layer==1)return AMSID("PTFU",id+10);     
-       else         return AMSID("PTFL",id+10);     
+       else if(x<6) return AMSID("PTFL",id+10);     
+       else return AMSID("PTFE",id+10);     
       }
       else if(imat==0){
        if(_layer==1)return AMSID("AGLU",id+20);     
-       else         return AMSID("AGLL",id+20);     
+       else if(x<6) return AMSID("AGLL",id+20);     
+       else return AMSID("AGLE",id+20);     
       }
       else if(imat==1){
        if(_layer==1)return AMSID("PMTU",id+30);     
-       else         return AMSID("PMTL",id+30);     
+       else if(x<6) return AMSID("PMTL",id+30);     
+       else return AMSID("PMTE",id+30);     
       }
       else{
         cerr <<"AMSCTCRawCluster::crgid-F-Invalid media par "<<imat<<endl;
@@ -225,11 +228,11 @@ void AMSCTCRawCluster::sictcdigi(){
 }
 else {
   AMSCTCMCCluster * ptr;
-  integer nrow=CTCDBc::getny()*2;
-  integer ncol=CTCDBc::getnx()*2;
-  geant * Tmp= (geant*)UPool.insert(sizeof(geant)*nrow*ncol);
   int icnt;
   for(icnt=0;icnt<CTCDBc::getnlay();icnt++){
+  integer nrow=CTCDBc::getny()*2;
+  integer ncol=CTCDBc::getnx(icnt+1)*2;
+  geant * Tmp= (geant*)UPool.insert(sizeof(geant)*nrow*ncol);
    ptr=(AMSCTCMCCluster*)AMSEvent::gethead()->
    getheadC("AMSCTCMCCluster",icnt,1); // last 1  to test sorted container
    VZERO(Tmp,sizeof(geant)*nrow*ncol/4);
@@ -263,8 +266,8 @@ else {
       new AMSCTCRawCluster(0,i/ncol+1,icnt+1,ival,i%ncol+1));
      }      
     }
-  }
    UPool.udelete(Tmp); 
+  }
 }
   
 
@@ -414,7 +417,7 @@ else {
   VZERO(xplane,maxpl*sizeof(number)/4);
   while (ptr){
    if(ptr->getlayno()==kk+1){
-    integer plane=2*CTCDBc::getnx()*(ptr->getrowno()-1)+ptr->getcolno()-1;
+    integer plane=2*CTCDBc::getnx(kk+1)*(ptr->getrowno()-1)+ptr->getcolno()-1;
 #ifdef __AMSDEBUG__
     assert(plane>=0 && plane < maxpl);
 #endif
@@ -444,12 +447,12 @@ if(imax >=0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
   number ysize=1000;
   number zsize=1000;
   integer status=xstatus[imax];
-  integer row=imax/CTCDBc::getnx()/2+1;
-  integer col=imax%(CTCDBc::getnx()*2)+1;
+  integer row=imax/CTCDBc::getnx(layer)/2+1;
+  integer col=imax%(CTCDBc::getnx(layer)*2)+1;
   int i,j;
   for(i=-1;i<2;i++){ 
    for(j=-1;j<2;j++){
-    integer k=col-1+j+(row-1+i)*CTCDBc::getnx()*2;
+    integer k=col-1+j+(row-1+i)*CTCDBc::getnx(layer)*2;
     if(k>=0 && k<maxpl && xplane[k]>0){
      AMSCTCRawCluster d(0,row+i,layer,0,col+j);
      AMSgvolume *p= AMSJob::gethead()->getgeomvolume(d.crgid(0));
@@ -476,7 +479,7 @@ if(imax >=0 && smax >0 && smax>=CTCRECFFKEY.Thr1){
    new     AMSCTCCluster(status,layer,cofg,ecoo,edep,sqrt(edep)));
    for(i=-1;i<2;i++){ 
     for(j=-1;j<2;j++){
-      integer k=col-1+j+(row-1+i)*CTCDBc::getnx()*2;
+      integer k=col-1+j+(row-1+i)*CTCDBc::getnx(layer)*2;
       if(k>=0 && k<maxpl && xplane[k]>0)xplane[k]=0;
     }
    }

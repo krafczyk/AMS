@@ -1,7 +1,7 @@
 a) Add geant volume to mother volume:
 
 AMSgvolume mother; 
-mother.add( new AMSgvolume_constructor);
+AMSNode * gvolume = mother.add( new AMSgvolume_constructor);
 
 
 b) Constructors:
@@ -39,7 +39,7 @@ b) Constructors:
 //  integer rel           ! See above for coo & nrm
 
 // Important restriction:
-// The combination of name[] and gid should be unique.
+// The combination of name[] and gid should be unique thru all AMS.
 
 
 c) member functions:

@@ -263,7 +263,7 @@ void AMSJob::_sictcdata(){
   CTCGEOMFFKEY.ydiv=4;
   CTCMCFFKEY.Refraction[0]=1.03;   // Refraction indexes
   CTCMCFFKEY.Refraction[1]=1.58;
-  CTCMCFFKEY.Path2PhEl[0]=23;   // Path to photoelectrons conv fact
+  CTCMCFFKEY.Path2PhEl[0]=20;   // Path to photoelectrons conv fact
   CTCMCFFKEY.Path2PhEl[1]=28;
   CTCMCFFKEY.AbsLength[0]=15;   // Abs Length in cm  
   CTCMCFFKEY.AbsLength[1]=100;

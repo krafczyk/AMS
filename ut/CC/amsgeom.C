@@ -895,7 +895,7 @@ if(iflag==1){
 void ctcgeomAG(AMSgvolume & mother){
   // A. Gougas version   
   // modified by V.Choutko 24/04/97
-  // The AGLx, PMTx and PTFx (x=L,U) volumes are now at the level 2 ( from 0)
+  // The AGLx, PMTx and PTFx (x=L,U,E) volumes are now at the level 2 ( from 0)
   //  and their geant id (== copy number) are :
   //
   // 1000000*layer+1000*i+100*j+kn*10+iz*4+iy*2+ix+1
@@ -904,7 +904,7 @@ void ctcgeomAG(AMSgvolume & mother){
   //
   // layer = 1,2    layer number up(1) down(2)
   // i     = 1...4  supercell y index
-  // j     = 1...5  supercell x index
+  // j     = 1...5(6)  supercell x index
   // kn    = 1...3  ptf(1) agl(2) pmt(3)
   // iz    = 0..1   agl only
   // ix    = 0..1   x index inside supercell
@@ -1085,7 +1085,7 @@ void ctcgeomAG(AMSgvolume & mother){
        coo[0]+=  -CTCDBc::getcellsize(0)-2.*parwal[0];
      } //<--- End of Separators (WALL) loop ----
      for(i=0;i<CTCDBc::getny();i++){
-       for(j=CTCDBc::getnx()+1;j<CTCDBc::getnx()+2;j++){
+       for(j=CTCDBc::getnx();j<CTCDBc::getnx()+1;j++){
         for(k=0;k<3;k++)par[k]=0.5*CTCDBc::getcellsize(k);
         par[0]=par[0]/2.;
         for(k=0;k<3;k++)pay[k]=0.5*CTCDBc::getygapsize(k);
