@@ -759,7 +759,7 @@ void AMSTrCluster::_writeEl(){
   // fill the ntuple 
 static integer init=0;
 static TrClusterNtuple TrN;
-if(AMSTrCluster::Out( IOPA.WriteAll ||  checkstatus(AMSDBc::USED ))){
+if(AMSTrCluster::Out( IOPA.WriteAll ||  checkstatus(AMSTrRecHit::AwayTOF ))){
 if(init++==0){
   //book the ntuple block
   HBNAME(IOPA.ntuple,"TrCluste",TrN.getaddress(),
@@ -1007,6 +1007,7 @@ integer AMSTrRecHit::markAwayTOFHits(){
 // Mark AMSTrRecHits which are outside the TOF path
     AMSTrRecHit * ptrhit;
     AMSPoint hit;
+    AMSTrCluster* pclus;
     for (i=0;i<6;i++) {
       for (ptrhit=AMSTrRecHit::gethead(i); ptrhit!=NULL; ptrhit=ptrhit->next()){
         hit = ptrhit->getHit();
@@ -1015,6 +1016,10 @@ integer AMSTrRecHit::markAwayTOFHits(){
         if (    xres > TRFITFFKEY.SearchRegTOF
              || yres > TRFITFFKEY.SearchRegTOF    ) {
           ptrhit->setstatus(AMSTrRecHit::AwayTOF);
+          pclus = ptrhit->getClusterP(0);
+          if (pclus) pclus->setstatus(AMSTrRecHit::AwayTOF);
+          pclus = ptrhit->getClusterP(1);
+          if (pclus) pclus->setstatus(AMSTrRecHit::AwayTOF);
         }
       }
     }
