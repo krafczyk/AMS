@@ -7,7 +7,10 @@ linux only (at the moment?)
 -------
 Installer:
 
-install/Moptg4
+
+source install/g4i
+
+gmake -if install/Moptg4
 
 
 --------
@@ -21,24 +24,24 @@ MISCFFKEY.G4On=1
 New Files:
 
 
-CC/geant4.C include/geant4.h
+CC/geant4.C include/geant4.h,geantnamespace.h
 
 --> should contain analogs of gukine,guout,gustep,
     wrapper for gufld, etc
 
 maybe (or in geant.C)
-CC/g4utils.C include/f4utils.h
+CC/g4utils.C include/g4utils.h
 
 --> g3 particle <-> g4 particle
     g3 flags <-> g4 flags 
     "amssolids"  (need because of geant3 "idsofts") ??? 
    
 -----------
-Modified files:
+Files to be modified (* means done):
 
-CC/gbatch.C <-- Main program <-- choose geant3/geant4 chain
+CC/gbatch.C <-- Main program <-- choose geant3/geant4 chain  (*)
                                  
-CC/geant.C  <-- geant(3,4) initialization in uginit/uglast 
+CC/geant.C  <-- geant(3,4) initialization in uginit/uglast   (*)
 
 CC/gvolume.C <-- New constructor for geant4 boolean volumes
              <-- Modify constructors for geant3/4 
