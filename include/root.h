@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.104 2003/08/05 13:53:50 mdelgado Exp $
+//  $Id: root.h,v 1.105 2003/08/18 11:55:53 mdelgado Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -459,9 +459,13 @@ public:
 1- Ring has been rebuild after cleaning PMTs apparently crossed by a charged particle.
    If the rebuilding has been succesful it is stored in the next ring.  
    To confirm that the next ring is a rebuilding of the current one check
-   if both rcritrkn are pointing to the same track number.   
+   if both fTrTrack are pointing to the same track number.   
 	    
 2- Rins reconstructed using the NaF radiator in the double radiator configuration
+
+14 - used in a particle
+
+31 - associated to a track used in a gamma
 
 */
 
@@ -496,8 +500,8 @@ public:
   /// \param number index in container
   /// \return human readable info about RichRingR
   char * Info(int number=-1){
-    sprintf(_Info,"RichRing No %d %s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,Status&2?"NAF":"AGL",Status&1?"(refitted)":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
-  return _Info;
+    sprintf(_Info,"RichRing No %d Track=%d %s%s%s N_{Hits}=%d N_{MirrHits}=%d  #beta=%7.3g#pm%6.2g #chi^{2}=%7.3g #beta_{refit}=%7.3g#pm%6.2g Prob_{Kl.}=%7.3g Expected_{PhotoEl}=%5.2f Collected_{PhotoEl}=%5.2f",number,fTrTrack,Status&2?"NaF":"",Status&1?"Refit":"",Status&(16384*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2*2U)?"Gamma":"",Used,UsedM,Beta,ErrorBeta,Chi2,BetaRefit,ErrorBeta,Prob,NpExp,NpCol);
+    return _Info;
   } 
   ClassDef(RichRingR,3)           // RichRingR
 }; 

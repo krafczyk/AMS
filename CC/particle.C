@@ -1,4 +1,4 @@
-//  $Id: particle.C,v 1.138 2003/07/29 13:25:05 mdelgado Exp $
+//  $Id: particle.C,v 1.139 2003/08/18 11:55:42 mdelgado Exp $
 
 // Author V. Choutko 6-june-1996
  
@@ -442,37 +442,70 @@ number theta, phi, sleng;
 void AMSParticle::richfit(){
  AMSDir dir(0,0,1.);
  number theta, phi, sleng;
-  _ptrack->interpolate(AMSPoint(0,0,RICradpos),dir,_RichCoo[0],theta,phi,sleng);
-  _ptrack->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
+ AMSTrTrack *real_track=_ptrack;
 
+ if(real_track==0) return;   // No track (included for safety reason)
 
+ if(real_track->checkstatus(AMSDBc::TOFFORGAMMA)){ // MAKE RICH VTX PARTICLE AWARE
+   _prich=0;
+
+   if(_pvert){         // Probably there are new tracks there ... so add them to the rings stuff
+     for(int i=0;i<_pvert->getntracks();i++){
+       AMSTrTrack *track=_pvert->gettrack(i);
+       //       AMSRichRing *ring=AMSRichRing::rebuild(track);
+       AMSRichRing *ring=AMSRichRing::build(track);
+
+       if(ring){
+	 //	 cout << "  AMSParticle::richfit -- added new ring associated to AMSDBc::TOFFORGAMMA particle"<<endl;
+	 // Put a flag in this ring
+	 ring->setstatus(AMSDBc::TOFFORGAMMA);
+	 if(ring->next())
+	   if(ring->next()->gettrack()==track) ring->next()->setstatus(AMSDBc::TOFFORGAMMA);
+       }
+     }
+   }
+   return;
+ }
+
+ // real_track->interpolate(AMSPoint(0,0,RICradpos),dir,_RichCoo[0],theta,phi,sleng);
+ // real_track->interpolate(AMSPoint(0,0,RICradpos-RICHDB::pmt_pos()-RICHDB::cato_pos()),dir,_RichCoo[1],theta,phi,sleng);
+ 
+ 
   //  cout <<"TEST DE RICHRING"<<endl;
-
+ 
   //  geant direct,ref,length;
-  //  cout <<"La suma sale "<<RICHDB::ring_fraction(_ptrack,direct,ref,length)<<endl;
+  //  cout <<"La suma sale "<<RICHDB::ring_fraction(real_track,direct,ref,length)<<endl;
   //  cout <<"   Direct:"<<direct<<endl
   //       <<"   Reflected:"<<ref<<endl
   //       <<"   path length:"<<length<<endl;
 
 
   geant direct,reflected,length;
-  RICHDB::ring_fraction(_ptrack,direct,reflected,length,1.0);
+  RICHDB::ring_fraction(real_track,direct,reflected,length,1.0);
 
   _RichPath[0]=direct;
   _RichPath[1]=reflected;
   _RichLength=length;
 
 //  Add more
-  AMSRichRing::rebuild(_ptrack);
+  //AMSRichRing::rebuild(real_track);
+  AMSRichRing* ptr=AMSRichRing::rebuild(real_track);
 
   _prich=0;
-  AMSRichRing* ptr=(AMSRichRing*)AMSEvent::gethead()->getheadC("AMSRichRing",0);
+  if(!ptr && real_track==_ptrack)
+    ptr=(AMSRichRing*)AMSEvent::gethead()->getheadC("AMSRichRing",0);
+  
+
+  //  AMSRichRing* ptr=(AMSRichRing*)AMSEvent::gethead()->getheadC("AMSRichRing",0);
+
   while(ptr){
-    if(ptr->gettrack()==_ptrack){
+    if(ptr->gettrack()==real_track){
       if(ptr->getused()>2) _prich=ptr;
       if(! ptr->IsGood() && ptr->next())
-	if(ptr->next()->gettrack()==_ptrack && ptr->next()->getused()>2)
-	  _prich=ptr->next();
+	if(ptr->next()->gettrack()==real_track && ptr->next()->getused()>2)
+	  if(RICCONTROL.recon/10){
+	    if(ptr->next()->getprob()>ptr->getprob())_prich=ptr->next();
+	  }else _prich=ptr->next();
       //	  if(ptr->getused()>2 & ptr->IsGood())_prich=ptr;
     break;
    }
@@ -481,7 +514,7 @@ void AMSParticle::richfit(){
 
 
   if(_prich){
-    RICHDB::ring_fraction(_ptrack,direct,reflected,length,_prich->getbeta());
+    RICHDB::ring_fraction(real_track,direct,reflected,length,_prich->getbeta());
     _RichPathBeta[0]=direct;
     _RichPathBeta[1]=reflected;
     _RichLength=length;

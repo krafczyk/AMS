@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.57 2003/08/05 13:53:40 mdelgado Exp $
+//  $Id: richrec.C,v 1.58 2003/08/18 11:55:43 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -437,25 +437,24 @@ void AMSRichRing::build(){
   
   AMSTrTrack *track;
 
-
+  int j=0,k=0;
   for(int id=0;;){
     track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",id++,1);
     if(!track) break;
-    for(;track;track=track->next()) build(track);
+    for(;track;track=track->next()) {if(build(track))k++;j++;}
   }
-
 
 }
 
 
-void AMSRichRing::build(AMSTrTrack *track,int cleanup){
+AMSRichRing* AMSRichRing::build(AMSTrTrack *track,int cleanup){
   
   // All these arrays are for speed up the reconstruction
   // They should be move to a dynamic list (like the containers)
   // using, for example, a structure (~completely public class)
 
   int ARRAYSIZE=(AMSEvent::gethead()->getC("AMSRichRawEvent",0))->getnelem();
-  if(ARRAYSIZE==0) return;
+  if(ARRAYSIZE==0) return 0;
 
   // Fast but not safe
 
@@ -478,7 +477,7 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
 
   if(bit==crossed_pmt_bit){
     cout<<" AMSRichRing::build-too-many-tracks "<<endl;
-    return;
+    return 0;
   }
 
 
@@ -498,7 +497,7 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
   RichRadiatorTile crossed_tile(track);
 
 
-  if(crossed_tile.getkind()==empty_kind) return;
+  if(crossed_tile.getkind()==empty_kind) return 0;
 
 
   _index=crossed_tile.getindex();
@@ -706,6 +705,8 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
   uinteger current_ring_status=_kind_of_tile==naf_kind?naf_ring:0;
 
 
+  AMSRichRing *first_done=0;
+
   do{
     integer best_cluster[2]={0,0};
     geant best_prob=-1;
@@ -818,16 +819,17 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
       // Fill the container
       
 
-      AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
-				   new AMSRichRing(track,
-						   beta_used,
-						   mirrored_used,
-						   beta_track,
-						   chi2/geant(beta_used),
-						   wbeta,
-						   current_ring_status,  //Status word
-						   RICCONTROL.recon/10
-						   ));
+      AMSRichRing* done=(AMSRichRing *)AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
+								    new AMSRichRing(track,
+										    beta_used,
+										    mirrored_used,
+										    beta_track,
+										    chi2/geant(beta_used),
+										    wbeta,
+										    current_ring_status,  //Status word
+										    RICCONTROL.recon/10
+										    ));
+      if(!first_done) first_done=done;
       bit++;  
     } else {
       //	// Add empty ring to keep track of no recostructed tracks
@@ -840,13 +842,14 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
       //						     ));
     }
   }while(current_ring_status&dirty_ring);   // Do it again if we want to clean it up once
+  return first_done;
 }
 
-void AMSRichRing::rebuild(AMSTrTrack *ptrack){
+AMSRichRing* AMSRichRing::rebuild(AMSTrTrack *ptrack){
 
   AMSRichRing *ring=(AMSRichRing *)AMSEvent::gethead()->getheadC("AMSRichRing",0);
-  if(ring && ring->_ptrack->getpattern()>=0)return;
-  build(ptrack);
+  if(ring && ring->_ptrack->getpattern()>=0)return 0;
+  return build(ptrack);
 
 
 }

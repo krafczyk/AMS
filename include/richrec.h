@@ -1,4 +1,4 @@
-//  $Id: richrec.h,v 1.24 2003/08/05 13:53:50 mdelgado Exp $
+//  $Id: richrec.h,v 1.25 2003/08/18 11:55:53 mdelgado Exp $
 
 #ifndef __RICHREC__
 #define __RICHREC__
@@ -273,8 +273,11 @@ public:
   AMSRichRing * next(){return (AMSRichRing*)_next;}
 
   static void build();
-  static void build(AMSTrTrack *track,int cleanup=1);
-  static void rebuild(AMSTrTrack *ptrack);
+  //  static void build(AMSTrTrack *track,int cleanup=1);
+  //  static void rebuild(AMSTrTrack *ptrack);
+  static AMSRichRing* build(AMSTrTrack *track,int cleanup=1);
+  static AMSRichRing* rebuild(AMSTrTrack *ptrack);
+
   AMSTrTrack* gettrack(){return _ptrack;}
   integer getused(){return _used;}
   bool IsGood(){return !checkstatus(dirty_ring);}
@@ -282,6 +285,7 @@ public:
   number geterrorbeta(){return _errorbeta;}
   number getquality(){return _quality;}
   number getnpexp(){return _npexp;}
+  number getprob(){return _probkl;}
   number getcollnpe(){return _collected_npe;}
 #ifdef __WRITEROOT__
 friend class RichRingR;
