@@ -2998,6 +2998,7 @@ AMSgtmed *p;
 }
 #endif
 
+/*
 
 #define SQR(x) ((x)*(x))
 
@@ -3824,4 +3825,4 @@ void amsgeom::richgeom02(AMSgvolume & mother)
   
 }
 
-
+*/

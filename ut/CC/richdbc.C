@@ -79,7 +79,7 @@ geant RICHDB::sigma_peak=12.10;
 integer RICHDB::c_ped=integer(-.2888+3*0.5335); 
 
 
-// These function still are under test
+// These function still are under test and they are preliminary
 
 
 geant RICHDB::x(integer pmt,integer window){
@@ -224,3 +224,69 @@ char *RICHDB::name(char beg,int copy){
   return out;
 }
   
+
+/// Now Some functions for the rich geometry
+
+geant RICHDB::total_height()
+{
+  return RICGEOM.height+ // Expanxion length
+    RICGEOM.radiator_height+
+    RICGEOM.light_guides_height+
+    7.; // This is the manufacturer height
+}
+
+geant RICHDB::mirror_pos()
+{
+  return total_height()/2-RICGEOM.height/2-RICGEOM.radiator_height;
+}
+
+geant RICHDB::rad_pos()
+{
+  return total_height()/2-RICGEOM.radiator_height/2;
+}
+
+geant RICHDB::pmt_pos()
+{
+  return total_height()/2-RICGEOM.radiator_height-RICGEOM.height-3.5-RICGEOM.light_guides_height/2;
+}
+
+geant RICHDB::elec_pos()
+{
+  return (RICpmtlength+RICeleclength)/2 // 7(=electronics+phototube length)/2
+    -RICGEOM.light_guides_height/2-RICotherthk/2-
+    RICpmtlength/2; 
+}
+
+geant RICHDB::cato_pos()
+{
+  return (RICpmtlength+RICeleclength)/2-RICGEOM.light_guides_height/2-RICotherthk/2;
+}
+
+geant RICHDB::lg_pos()
+{
+  return (RICpmtlength+RICeleclength)/2;
+}
+
+geant RICHDB::lg_mirror_angle(integer i)
+{
+  if(i==1)
+    return atan2(RICGEOM.light_guides_length/2-RICotherthk-RICcatolength/2,
+			 RICGEOM.light_guides_height)*180/3.1415926;
+
+  if(i==2) 
+    return atan2((RICGEOM.light_guides_length/2-RICotherthk-RICcatolength/2)/2,
+			   RICGEOM.light_guides_height)*180/3.1415926;
+
+  return 0;
+}
+
+geant RICHDB::lg_mirror_pos(integer i)
+{
+  if(i==1)
+    return RICcatolength/2-RIClgthk/2+RICGEOM.light_guides_height/2*tan(lg_mirror_angle(1)*3.1415926/180);
+  
+  if(i==2)
+   return (RICcatolength/2-RIClgthk/2)/2+RICGEOM.light_guides_height/2*tan(lg_mirror_angle(2)*3.1415926/180);
+
+  return 0;
+}
