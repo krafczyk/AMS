@@ -760,6 +760,8 @@ void AMSEvent::_reaxinitevent(){
 
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AntiMatter",0),0));
+  AMSEvent::gethead()->add (
+  new AMSContainer(AMSID("AMSContainer:NotAProton",0),0));
 
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:HeavyIon",0),0));

@@ -452,6 +452,16 @@ void AMSParticle::pid(){
    }
   }
   _GPart=_gpart[0];
+    // CheckNotAproton
+    for(i=0;i<maxp;i++){
+      if(_partP[i]==14){
+        if(prob[i]<0.1){
+          AMSEvent::gethead()->addnext(AMSID("NotAProton",0),new AntiMatter(_GPart));
+          break;
+        }
+      }
+    }
+
    //Check AntiMatter
   integer antimatter=0;
   for( int patt=0;patt<npat;patt++){
