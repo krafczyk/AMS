@@ -5,7 +5,7 @@ setenv CVSROOT $Offline/CVS
 setenv AMSDataDir $Offline/AMSDataDir
 setenv EDITOR  emacs
 setenv CVSEDITOR  emacs
-setenv RunsDir $Offline/offruns/runs/runs
+setenv RunsDir $Offline/RunsDir
 setenv AMSDataNtuplesDir $Offline/AMSDataNtuplesDir
 setenv AMSMCNtuplesDir   $Offline/AMSMCNtuplesDir
 limit core 0
