@@ -316,7 +316,7 @@ void AMSECIdSoft::inittable(){
           
         }
      
-     cout <<" total "<<tot<<endl; 
+//     cout <<" total "<<tot<<endl; 
 
 
    for(int i=0;i<ECRT;i++){

@@ -1,4 +1,4 @@
-//  $Id: trddbc.h,v 1.14 2003/03/19 20:58:56 choutko Exp $
+//  $Id: trddbc.h,v 1.15 2003/03/21 12:49:02 choutko Exp $
 #ifndef __TRDDBC__
 #define __TRDDBC__
 #include <typedefs.h>
@@ -82,6 +82,7 @@ private:
     static const number  _ManifoldWidth;
     static const number  _BulkheadGap;
     static const integer _LadderOrientation[mtrdo][trdconst::maxlay];    
+    static const integer       _BHOrientation[trdconst::maxbulk];
     static const number  _SpacerDim[4]; 
     static const integer _NumberSpacers[trdconst::maxtube];
 
