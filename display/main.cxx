@@ -51,13 +51,16 @@ c->Update(); // force primitive drawn after c->Show() to be drawn in canvas
     return;
    }
    AMSRoot amsroot("AMS", "AMS Display");
+   cout <<""<<endl;
    amsroot.Init(t);
+   cout <<""<<endl;
    amsroot.MakeTree("AMSTree", "AMS Display Tree");
    TFile fgeo("ams_group.root");
+   cout <<""<<endl;
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSDisplay display("AMSRoot Event Display", geo);
    amsroot.GetEvent(0);
-   //   display.SetView (kTwoView);
+      display.SetView (kTwoView);
       display.ShowNextEvent(-1);
       display.GetCanvas()->Update();	// force it to draw
    
