@@ -1,11 +1,11 @@
-const integer ncharge=7; // e,p,He...C 
+const integer ncharge=10; // e,p,He... F
 class AMSCharge: public AMSlink{   // Charge calculation
 protected:
   AMSBeta * _pbeta;      // pointer to beta --> then to track & tof 
  integer _ChargeTOF;     // Charge from TOF
  integer _ChargeTracker;  // Charge from tracker
- number _ProbTOF[ncharge];       //(prob) to be e, p, He,... C
- number _ProbTracker[ncharge];   // (prob) to be e, p, He,... C
+ number _ProbTOF[ncharge];       //(prob) to be e, p, He,... F
+ number _ProbTracker[ncharge];   // (prob) to be e, p, He,... F
 
  static number _lkhdTracker[ncharge][100];
 

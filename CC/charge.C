@@ -79,6 +79,7 @@ integer AMSCharge::build(integer refit){
      getheadC("AMSBeta",patb);
      while(pbeta){
        integer nhitTOF=0;
+       integer nhitTOFD=0;
        integer nhitTracker=0;
        AMSTrTrack *ptrack=pbeta->getptrack();
        number rid=ptrack->getrid();
@@ -88,8 +89,8 @@ integer AMSCharge::build(integer refit){
        AMSPoint P1;
        int i;
        number one=1;
-       number _TrMeanTOF=0;
-       number smax=0;
+       number _TrMeanTOF=0, _TrMeanTOFD=0;
+       number smax=0, smaxd=0;
        for ( i=0;i<4;i++){
          AMSTOFCluster * pcluster= pbeta->getpcluster(i);
          if(pcluster){
@@ -108,9 +109,15 @@ integer AMSCharge::build(integer refit){
            min(one,fabs(pbeta->getbeta()))*
            min(one,fabs(pbeta->getbeta()))*fabs(ScDir.prod(DTr));
            nhitTOF++;
+           if(pcluster->getedepd()>0){
+             _TrMeanTOFD+=pcluster->getedepd();
+             if(smaxd<pcluster->getedepd())smaxd=pcluster->getedepd();
+             nhitTOFD++;
+           }
          }
        }
        if(nhitTOF-1)_TrMeanTOF=(_TrMeanTOF-smax)/(nhitTOF-1);
+       if(nhitTOFD-1)_TrMeanTOFD=(_TrMeanTOFD-smaxd)/(nhitTOFD-1);
        smax=0;
        number  _TrMeanTracker=0;
        for (i=0;i<6;i++){
@@ -131,7 +138,6 @@ integer AMSCharge::build(integer refit){
              if (eta>CHARGEFITFFKEY.EtaMin[0] && eta<CHARGEFITFFKEY.EtaMax[0]) 
               etaok=1;
            }
-//           geant sum=phit->getsum();
            geant sums=phit->getsonly()/2.;
            geant sumk=phit->getkonly()/2.;
            _TrMeanTracker+=phit->getsonly();
@@ -148,19 +154,16 @@ integer AMSCharge::build(integer refit){
         } 
        }
        if(nhitTracker-1)_TrMeanTracker=(_TrMeanTracker-smax)/(nhitTracker-1);
-      addnext(rid,pbeta,nhitTOF,nhitTracker, EdepTOF, EdepTracker,_TrMeanTracker, _TrMeanTOF);
+      addnext(rid,pbeta,nhitTOF,nhitTracker, EdepTOF, EdepTracker,_TrMeanTracker, _TrMeanTOF, _TrMeanTOFD);
       pbeta=pbeta->next();
      }
     }
     return 1;
 }
 
-void AMSCharge::addnext(number rid, AMSBeta *pbeta , integer nhitTOF, 
-      
-          
-        integer nhitTracker, number EdepTOF[4], number EdepTracker[6], number trtr, number trtof){
-          AMSCharge * pcharge=new AMSCharge(pbeta,trtr,trtof);
-          pcharge->Fit(fabs(rid), nhitTOF, nhitTracker, EdepTOF, EdepTracker );
+void AMSCharge::addnext(number rid, AMSBeta *pbeta , integer nhitTOF, integer nhitTracker, number EdepTOF[4], number EdepTracker[6], number trtr, number trtof, number trtofd){
+          AMSCharge * pcharge=new AMSCharge(pbeta,trtr,trtof, trtofd);
+          pcharge->Fit(fabs(rid), nhitTOF, nhitTracker, EdepTOF, EdepTracker);
           AMSEvent::gethead()->addnext(AMSID("AMSCharge",0),pcharge);
              
 }
@@ -186,19 +189,9 @@ void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
    }
     
   }
-  number minTOF=FLT_MAX;
-  number minTracker=FLT_MAX;
-  integer iTOF=0;
-  integer iTracker=0;
+  int iTOF=_sortprob(0);
+  int iTracker=_sortprob(1);
   for(i=0;i<ncharge;i++){
-    if(_ProbTracker[i]<minTracker){
-     iTracker=i;
-     minTracker=_ProbTracker[i];
-    }
-    if(_ProbTOF[i]<minTOF){
-     iTOF=i;
-     minTOF=_ProbTOF[i];
-    }
    _ProbTOF[i]=exp(-_ProbTOF[i]);
    _ProbTOF[i]=pow(_ProbTOF[i],1./nhitTOF);
    _ProbTracker[i]=exp(-_ProbTracker[i]);
@@ -206,6 +199,7 @@ void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
   }
   _ChargeTOF=_chargeTOF[iTOF];
   _ChargeTracker=_chargeTracker[iTracker];
+  
   if(_refit(rid,EdepTOF,nhitTOF)){
    setstatus(AMSDBc::REFITTED);
    number beta=fabs(_pbeta->getbeta());    
@@ -241,6 +235,41 @@ void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
     }        
 #endif
 
+}
+
+int AMSCharge::_sortprob(int sort){
+  number prob[ncharge];
+  number *pntr[ncharge];
+  int index[ncharge];
+  int i,j,imax;
+
+  if(sort==0){ for(i=0; i<ncharge; i++) prob[i]=_ProbTOF[i];}
+  else{ for(i=0; i<ncharge; i++) prob[i]=_ProbTracker[i];}
+
+  for (i=0; i<ncharge; i++) pntr[i]=&prob[i];
+
+  AMSsortNAG(pntr,ncharge);
+
+  for(i=0; i<ncharge; i++) index[i]=-1;
+  for(i=0; i<ncharge; i++){
+    for(j=0; j<ncharge; j++){
+      if (prob[j]==(*pntr[i])) {
+        index[j]=i;
+        prob[j]=-999;
+        if(i==0) imax=j;
+        break;
+      }
+    }
+    if(index[j]==-1) {
+      cerr << " AMSCharge::SortProb-E-badly sorted "<<endl;
+      return 0;
+    }
+  }
+
+  if (sort==0) { for(i=0; i<ncharge; i++) _IndxTOF[i]=index[i]; }
+  else{ for(i=0; i<ncharge; i++) _IndxTracker[i]=index[i]; }
+
+  return imax;
 }
 
 integer AMSCharge::_refit(number rid,number yy[],integer nx){
@@ -283,10 +312,22 @@ void AMSCharge::_writeEl(){
   CN->BetaP[CN->Ncharge]=_pbeta->getpos();
   CN->ChargeTOF[CN->Ncharge]=_ChargeTOF;
   CN->ChargeTracker[CN->Ncharge]=_ChargeTracker;
-  int i;
-  for(i=0;i<10;i++)CN->ProbTOF[CN->Ncharge][i]=_ProbTOF[i];
-  for(i=0;i<10;i++)CN->ProbTracker[CN->Ncharge][i]=_ProbTracker[i];
+  int i,j;
+  for(i=0; i<4; i++){
+    for(j=0; j<ncharge; j++){
+      if(_IndxTOF[j]==i){
+        CN->ProbTOF[CN->Ncharge][i]=_ProbTOF[j];
+        CN->CharTOF[CN->Ncharge][i]=j+1;
+      }
+      if(_IndxTracker[j]==i){
+        CN->ProbTracker[CN->Ncharge][i]=_ProbTracker[j];
+        CN->CharTracker[CN->Ncharge][i]=j+1;
+        if(i==0) CN->ProbAllTracker[CN->Ncharge]=_ProbTracker[j];
+      }
+    }
+  }
   CN->TrunTOF[CN->Ncharge]=_TrMeanTOF;
+  CN->TrunTOFD[CN->Ncharge]=_TrMeanTOFD;
   CN->TrunTracker[CN->Ncharge]=_TrMeanTracker;
   CN->Ncharge++;
 }

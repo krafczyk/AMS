@@ -21,9 +21,13 @@ protected:
  integer _ChargeTracker;
  number _TrMeanTracker;
  number _TrMeanTOF;
- number _ProbTOF[ncharge];       //(prob) to be e, p, He, C
- number _ProbTracker[ncharge];    // (prob) to be e, p, He, C
+ number _TrMeanTOFD;
+ number  _ProbTOF[ncharge];       //(prob)  to be e,p,He,...,F
+ integer _IndxTOF[ncharge];       //(index) 0,...,9 from most to least prob charge
+ number  _ProbTracker[ncharge];   //(prob)  to be e,p,He,...,F
+ integer _IndxTracker[ncharge];   //(index) 0,...,9 from most to least prob charge
 
+ integer _sortprob(integer sort);
  integer _refit(number rid,number hit[], integer nhit);
  void _copyEl();
   void _printEl(ostream & stream){ stream << " ChargeTOF "<<_ChargeTOF<<" ChargeTracker "<<_ChargeTracker<<" ProbTOF "<<_ProbTOF[0]<<" "<<
@@ -45,14 +49,13 @@ _ProbTOF[1]<<" "<<_ProbTOF[2]<<" "<<_ProbTOF[3]<<" "<<_ProbTOF[4]<<" "<<_ProbTOF
 public:
   AMSCharge *  next(){return (AMSCharge*)_next;}
   AMSCharge(): AMSlink(),  _pbeta(0){}
-  AMSCharge(AMSBeta * pbeta, number trtr, number trtof): AMSlink(), _pbeta(pbeta), _TrMeanTracker(trtr),_TrMeanTOF(trtof){}
+  AMSCharge(AMSBeta * pbeta, number trtr, number trtof, number trtofd): AMSlink(), _pbeta(pbeta), _TrMeanTracker(trtr),_TrMeanTOF(trtof),_TrMeanTOFD(trtofd){}
   integer getvotedcharge(int & index);
   number getprobcharge(integer charge);
   integer getchargeTOF()const{return _ChargeTOF;}
   integer getchargeTracker()const{return _ChargeTracker;}
   AMSBeta * getpbeta()const{return _pbeta;}
-  static void addnext(number rid, AMSBeta* pbeta, integer nhitTOF, integer nhitTracker, number
-   EdepTOF[4], number EdepTracker[6], number trtr, number trtof);
+  static void addnext(number rid, AMSBeta* pbeta, integer nhitTOF, integer nhitTracker, number EdepTOF[4], number EdepTracker[6], number trtr, number trtof, number trtofd);
    void Fit(number rid,integer nhitTOF, integer nhitTracker, number
    EdepTOF[4], number EdepTracker[6]);
   static void init();

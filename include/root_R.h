@@ -106,9 +106,13 @@ public:
   int BetaP[MAXCHARGE];
   int ChargeTOF[MAXCHARGE];
   int ChargeTracker[MAXCHARGE];
-  float ProbTOF[MAXCHARGE][10];
-  float ProbTracker[MAXCHARGE][10];
+  float ProbTOF[MAXCHARGE][4];
+  int CharTOF[MAXCHARGE][4];
+  float ProbTracker[MAXCHARGE][4];
+  int CharTracker[MAXCHARGE][4];
+  float ProbAllTracker[MAXCHARGE];
   float TrunTOF[MAXCHARGE];
+  float TrunTOFD[MAXCHARGE];
   float TrunTracker[MAXCHARGE];
 
 friend class AMSCharge;

@@ -32,6 +32,7 @@
 #include <tralig.h>
 #include <trigger1.h>
 #include <trigger3.h>
+#include <bcorr.h>
 #include <antirec.h>
 #include <ctcsim.h>
 #include <user.h>
@@ -1670,6 +1671,7 @@ void AMSEvent::_printEl(ostream & stream){
  stream <<TOFVarp::getmeantoftemp(43)<<" ";
  stream <<TOFVarp::getmeantoftemp(73)<<endl;
  stream <<" Average Scaler Rate & LifeTime "<<TriggerLVL1::getscalersp()->getsum()/96<<" "<<TriggerLVL1::getscalersp()->lifetime/1000.<<endl;
+ stream <<" Average Magnet Temperature "<<MagnetVarp::getmeanmagnetmtemp()<<endl;
  
 }
 
