@@ -513,9 +513,9 @@ void AMSTrIdCalib::_calc(){
 
 void AMSTrIdCalib::_update(){
  int i,j,k,l,m;
-  int total=0;
-  for(k=0;k<2;k++){
-    for(l=0;l<2;l++){
+   for(k=0;k<2;k++){
+    int total=0;
+     for(l=0;l<2;l++){
      for(i=0;i<AMSDBc::nlay();i++){
        for(j=0;j<AMSDBc::nlad(i+1);j++){
         AMSTrIdSoft id(i+1,j+1,k,l,0);
@@ -531,48 +531,50 @@ void AMSTrIdCalib::_update(){
         }
        }
      }
-    }
-    AMSTimeID * ptdv = 
-    AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVped(k));
-    ptdv->UpdateMe()=1;
-    ptdv->UpdCRC();
-    time_t begin,end,insert;
-    time(&insert);
-    ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
-    cout <<" Tracker H/K  info has been updated for "<<*ptdv;
-    ptdv->gettime(insert,begin,end);
-    cout <<" Time Insert "<<ctime(&insert);
-    cout <<" Time Begin "<<ctime(&begin);
-    cout <<" Time End "<<ctime(&end);
+     }
+    if(total){
+     AMSTimeID * ptdv = 
+     AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVped(k));
+     ptdv->UpdateMe()=1;
+     ptdv->UpdCRC();
+     time_t begin,end,insert;
+     time(&insert);
+     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
+     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+     ptdv->gettime(insert,begin,end);
+     cout <<" Time Insert "<<ctime(&insert);
+     cout <<" Time Begin "<<ctime(&begin);
+     cout <<" Time End "<<ctime(&end);
+ 
+     ptdv = AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVsigma(k));
+     ptdv->UpdateMe()=1;
+     ptdv->UpdCRC();
+     time(&insert);
+     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
+     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+     ptdv->gettime(insert,begin,end);
+     cout <<" Time Insert "<<ctime(&insert);
+     cout <<" Time Begin "<<ctime(&begin);
+     cout <<" Time End "<<ctime(&end);
 
-    ptdv = AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVsigma(k));
-    ptdv->UpdateMe()=1;
-    ptdv->UpdCRC();
-    time(&insert);
-    ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
-    cout <<" Tracker H/K  info has been updated for "<<*ptdv;
-    ptdv->gettime(insert,begin,end);
-    cout <<" Time Insert "<<ctime(&insert);
-    cout <<" Time Begin "<<ctime(&begin);
-    cout <<" Time End "<<ctime(&end);
-
-    ptdv = AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVstatus(k));
-    ptdv->UpdateMe()=1;
-    ptdv->UpdCRC();
-    time(&insert);
-    ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
-    cout <<" Tracker H/K  info has been updated for "<<*ptdv;
-    ptdv->gettime(insert,begin,end);
-    cout <<" Time Insert "<<ctime(&insert);
-    cout <<" Time Begin "<<ctime(&begin);
-    cout <<" Time End "<<ctime(&end);
-
-
-
+     ptdv = AMSJob::gethead()->gettimestructure(AMSTrRawCluster::getTDVstatus(k));
+     ptdv->UpdateMe()=1;
+     ptdv->UpdCRC();
+     time(&insert);
+     ptdv->SetTime(insert,_BeginTime-TRCALIB.Validity[0],AMSEvent::gethead()->gettime()+TRCALIB.Validity[1]);
+     cout <<" Tracker H/K  info has been updated for "<<*ptdv;
+     ptdv->gettime(insert,begin,end);
+     cout <<" Time Insert "<<ctime(&insert);
+     cout <<" Time Begin "<<ctime(&begin);
+     cout <<" Time End "<<ctime(&end);
 
 
-  }
+
+
+
     cout << "AMSTrIdCalib::_update-I-total of "<<total<<" channels updated"<<endl;
+    }
+   }
 
 
 
@@ -593,7 +595,7 @@ void AMSTrIdCalib::_update(){
 
     _BeginTime=AMSEvent::gethead()->gettime();
 
-}
+   }
 
 
 integer * AMSTrIdCalib::_Count=0;
