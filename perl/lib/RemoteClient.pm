@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.75 2003/04/03 14:00:54 choutko Exp $
+# $Id: RemoteClient.pm,v 1.76 2003/04/03 14:15:09 choutko Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -278,7 +278,7 @@ my %mv=(
      $self->{$key}=$ret->[0][0];
     }
     else{    
-     $self->{$key}="ams02mcdb.att.tar.gz";
+     $self->{$key}="ams02mcdb.addon.tar.gz";
     }
 
 
@@ -2859,7 +2859,7 @@ print qq`
 
         if($#sta<0 or $sta[9]-time() >86400*7  or $stag1[9] > $sta[9] or $stag2[9] > $sta[9]){
            $self->{sendaddon}=2;
-        my $filen="$self->{UploadsDir}/ams02mcdb.att.tar.$run";
+        my $filen="$self->{UploadsDir}/ams02mcdb.addon.tar.$run";
          my $i=system("tar -C$self->{AMSSoftwareDir} -uf $filen $nv") ;
           if($i){
               $self->ErrorPlus("Unable to tar $nv to $filen ");
@@ -3189,7 +3189,7 @@ print qq`
 # check last download time
      if ($cite_status eq "remote") {
           my $uplt0 = 0;  #last upload
-          my $uplt1 = 0;  # for filedb and filedb.att
+          my $uplt1 = 0;  # for filedb and filedb.addon
           $sql="SELECT timeu1, timeu2 FROM Mails WHERE ADDRESS='$self->{CEM}'";
           my $retime=$self->{sqlserver}->Query($sql);
           if(defined $retime->[0][0]){
@@ -4418,7 +4418,7 @@ sub DownloadSA {
     $self->{UploadsHREF}="AMS02MCUploads";
     $self->{UploadsDir}="/var/www/cgi-bin/AMS02MCUploads";
     $self->{FileDB}="ams02mcdb.tar.gz";
-    $self->{FileAttDB}="ams02mcdb.att.tar.gz";
+    $self->{FileAttDB}="ams02mcdb.addon.tar.gz";
     print "Content-type: text/html\n\n";
     print "<HTML>\n";
     print "<body bgcolor=cornsilk text=black link=#007746 vlink=navy alink=tomato>\n";
