@@ -1,4 +1,4 @@
-//  $Id: trddbc.C,v 1.31 2003/03/21 14:29:28 choutko Exp $
+//  $Id: trddbc.C,v 1.32 2003/03/25 11:46:12 choutko Exp $
 #include <trddbc.h>
 #include <amsdbc.h>
 #include <math.h>
@@ -304,7 +304,7 @@ const number  TRDDBc::_FirstLayerHeight = 1.7-0.05; // Distance of first layer-l
 const number TRDDBc::_WirePosition = 0.725-0.05; // Distance of wire below layer-line (VC added 0.05 to compensate firstlayer -0.05, needs check)
 const number TRDDBc::_ManifoldThickness = 0.70; // Z-height of manifold
 const number TRDDBc::_ManifoldLength = 1.51/2; // Half Length of manifold along wire
-const number TRDDBc::_ManifoldWidth = 10.2; // Width of manifold 
+const number TRDDBc::_ManifoldWidth = 10.1; // Width of manifold 
 const number TRDDBc::_BulkheadGap = 0.78; // Gap between ladders at bulkhead
 
 const integer TRDDBc::_LadderOrientation[mtrdo][maxlay]={0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0};   // 0 -x 1 -y    
@@ -807,7 +807,7 @@ void TRDDBc::init(){
 	// Bulkhead 4
 
 	// dz half-height.. also not sure what this is exactly
-	BulkheadsDimensions(i,4,3)= 3.5*LadderThickness()/2+FirstLayerHeight()/2.;
+	BulkheadsDimensions(i,4,3)= 119.75/20;
 
         // Bottom half-width
 	BulkheadsDimensions(i,4,0)= OctagonDimensions(itrd,6);
