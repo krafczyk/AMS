@@ -78,11 +78,11 @@ out:
   amd->AddSubDet(antih);
   AMSTrackerHist  trackerh("Tracker","Tracker  Hists",2,0);
   amd->AddSubDet(trackerh);
-  AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",2,1);
+  AMSLVL1Hist  LVL1h("LVL1","LVL1  Hists",3,1);
   amd->AddSubDet(LVL1h);
   AMSLVL3Hist  LVL3h("LVL3","LVL3  Hists",2,1);
   amd->AddSubDet(LVL3h);
-  AMSTOFHist  TOFh("TOF","TOF  Hists",2,0);
+  AMSTOFHist  TOFh("TOF","TOF  Hists",3,1);
   amd->AddSubDet(TOFh);
   AMSCTCHist  CTCh("CTC","CTC  Hists",2,1);
   amd->AddSubDet(CTCh);

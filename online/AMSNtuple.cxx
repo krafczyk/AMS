@@ -66,6 +66,28 @@ ClassImp(AMSNtuple)
            _h1->SetBranchAddress("rawaddress",&_Tracker.rawaddress);
            _h1->SetBranchAddress("rawlength",&_Tracker.rawlength);
 
+
+            _h1->SetBranchAddress("ntrrh",&_Tracker.ntrrh);
+            _h1->SetBranchAddress("px",_Tracker.px);
+            _h1->SetBranchAddress("py",_Tracker.py);
+            _h1->SetBranchAddress("statusr",_Tracker.statusr);
+            _h1->SetBranchAddress("Layer",_Tracker.Layer);
+            _h1->SetBranchAddress("hitr",_Tracker.hitr);
+            _h1->SetBranchAddress("ehitr",_Tracker.ehitr);
+            _h1->SetBranchAddress("sumr",_Tracker.sumr);
+            _h1->SetBranchAddress("difosum",_Tracker.difosum);
+
+            _h1->SetBranchAddress("ntrcl",&_Tracker.ntrcl);
+            _h1->SetBranchAddress("Idsoft",&_Tracker.idsoft);
+            _h1->SetBranchAddress("Statust",&_Tracker.statust);
+            _h1->SetBranchAddress("Neleml",&_Tracker.neleml);
+            _h1->SetBranchAddress("Nelemr",&_Tracker.nelemr);
+            _h1->SetBranchAddress("Sumt",&_Tracker.sumt);
+            _h1->SetBranchAddress("Sigmat",&_Tracker.sigmat);
+            _h1->SetBranchAddress("Sigmat",&_Tracker.sigmat);
+            _h1->SetBranchAddress("Rmst",&_Tracker.rmst);
+
+
         //LVL3
               _h1->SetBranchAddress("nlvl3",&_LVL3.nlvl3);
               _h1->SetBranchAddress("Lvl3toftr",&_LVL3.TOFTr);

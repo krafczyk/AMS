@@ -20,6 +20,8 @@ const Int_t maxanti=16;
 const Int_t maxtof=200;
 const Int_t maxtrraw=500;
 const Int_t maxctc=50;
+const Int_t MaxSiHits = 500;
+const Int_t maxtrcl = 200;
 class AMSNtuple : public TNamed {
 protected:
   class Event{
@@ -95,7 +97,27 @@ protected:
         Int_t ntrraw;
         Int_t rawaddress[maxtrraw];
         Int_t rawlength[maxtrraw];
-        
+        //RecHits
+
+   Int_t           ntrrh;
+   Int_t           px[MaxSiHits];
+   Int_t           py[MaxSiHits];
+   Int_t           statusr[MaxSiHits];
+   Int_t           Layer[MaxSiHits];
+   Float_t         hitr[MaxSiHits][3];
+   Float_t         ehitr[MaxSiHits][3];
+   Float_t         sumr[MaxSiHits];
+   Float_t         difosum[MaxSiHits];
+       //Clusters
+   Int_t          ntrcl;
+   Int_t          idsoft[maxtrcl];
+   Int_t          statust[maxtrcl];  
+   Int_t          neleml[maxtrcl];        
+   Int_t          nelemr[maxtrcl];        
+   Float_t          sumt[maxtrcl];        
+   Float_t          sigmat[maxtrcl];        
+   Float_t          meant[maxtrcl];        
+   Float_t          rmst[maxtrcl];        
   };   
   class LVL1{
    public:
