@@ -52,7 +52,7 @@ protected:
   AMSPoint _TOFCoo[4];  
   AMSPoint _AntiCoo[2];  
   AMSPoint _TrCoo[6];  
-
+  number   _Local[6];
 
 // new
    
@@ -89,7 +89,10 @@ public:
     }
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<6;i++)_TrCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<6;i++){
+     _TrCoo[i]=AMSPoint(0,0,0);
+     _Local[i]=0;
+    }    
  }
   AMSParticle(AMSBeta * pbeta, AMSCharge * pcharge, AMSTrTrack * ptrack,
   number mass, number errmass, number momentum, number errmomentum,
@@ -105,7 +108,10 @@ public:
     }
     for(i=0;i<4;i++)_TOFCoo[i]=AMSPoint(0,0,0);
     for(i=0;i<2;i++)_AntiCoo[i]=AMSPoint(0,0,0);
-    for(i=0;i<6;i++)_TrCoo[i]=AMSPoint(0,0,0);
+    for(i=0;i<6;i++){
+     _TrCoo[i]=AMSPoint(0,0,0);
+     _Local[i]=0;
+    }
  }
 
   void ctcfit(); // CTC fit

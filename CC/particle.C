@@ -1,5 +1,4 @@
 
-
 // Author V. Choutko 6-june-1996
  
 #include <commons.h>
@@ -302,9 +301,10 @@ void AMSParticle::_writeEl(){
     }
   }
   for(i=0;i<6;i++){
-    for(int j=0;j<3;j++){
+    for(int j=0;j<2;j++){
       PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
     }
+      PN->TrCoo[PN->Npart][i][2]=_Local[i];
   }
 
 // New ATC association
@@ -486,7 +486,8 @@ void AMSParticle::pid(){
 void AMSParticle::refit(int fast){
     for(int layer=0;layer<nl;layer++){
        number theta,phi;
-      _ptrack->intercept(_TrCoo[layer],layer,theta,phi);
+      if(_ptrack->intercept(_TrCoo[layer],layer,theta,phi,_Local[layer])!=1)
+      setstatus(AMSDBc::BADINTERPOL);
 // Change theta,phi,coo 
       if(_pbeta->getbeta()>0 && layer==0){
           _Theta=theta;
@@ -519,6 +520,7 @@ void AMSParticle::refit(int fast){
         if(!_ptrack->AdvancedFitDone()){
           _ptrack->AdvancedFit();
         }
+     _ptrack->Fit(0,_GPart);
      _ptrack->Fit(_pbeta->getbeta()>0?3:-3,_GPart);
      if(_ptrack->GeaneFitDone() && fabs(_ptrack->getgrid())>TRFITFFKEY.RidgidityMin/2){
       number fac=_ptrack->getgrid()*_Charge/_Momentum;

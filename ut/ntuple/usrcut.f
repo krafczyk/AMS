@@ -336,7 +336,7 @@ c             if(r1.gt.0.4.and.r1.lt.1.6.and.r2.gt.0.4.and.r2.lt.1.6)then
                         aprf=1
                         write(86,*)run,eventno,pmass(1),pmom(1),
      +                  address(ptrackp(1))
-                       else if(rndm(d).lt.0.05)then
+                       else if(rndm(d).lt.1.1)then
                         aprf=1
                         write(87,*)run,eventno,pmass(1),pmom(1),
      +                  address(ptrackp(1))

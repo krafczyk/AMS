@@ -370,6 +370,7 @@ Below there is a description of a  ntuple.
 18 - GlobalDB was used to align the track                (status&(65536*2)!=0)
 19 - Cluster was used to get the charge                  (status&(65536*4)!=0)
 20 - TrRecHit was good enough to be used in track find   (status&(65536*8)!=0)
+21 - Track->Trladder interpol was done on plane level    (status&(65536*16)!=0)
 **) AMS global system definition :
 GTOD
 

@@ -116,13 +116,11 @@ static void print();
 AMSTrCluster():AMSlink(){_NelemL=0; _NelemR=0;_pValues=0;};
 ~AMSTrCluster(){if(_pValues)UPool.udelete(_pValues);}
 integer operator < (AMSlink & o) const {
-// No RTTI - take a "risk" here
-  AMSTrCluster * p= (AMSTrCluster*)(&o);
 
  integer ithis =   (!checkstatus(AMSDBc::USED))
                  + 2*(checkstatus(AMSDBc::AwayTOF));
- integer iother =   (!p->checkstatus(AMSDBc::USED))
-                  + 2*(p->checkstatus(AMSDBc::AwayTOF));
+ integer iother =   (!o.checkstatus(AMSDBc::USED))
+                  + 2*(o.checkstatus(AMSDBc::AwayTOF));
 
  if (ithis<iother)return 1;
  else return 0;
@@ -315,7 +313,7 @@ static void decodeaddress(integer ladder[2][6], uinteger address);
 static uinteger  encodeaddress(integer lad[2][6]);
 static uinteger * getchild(uinteger address, uinteger &nchild);
 public:
-  integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi);
+  integer intercept(AMSPoint &P1, integer layer, number &theta, number &phi, number &local);
 static integer & RefitIsNeeded(){return _RefitIsNeeded;}
 integer operator < (AMSlink & o) const {
   AMSTrTrack * p= (AMSTrTrack*)(&o);

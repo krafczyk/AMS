@@ -2434,9 +2434,10 @@ void AMSTrTrack::interpolateCyl(AMSPoint CylCenter, AMSDir CylAxis,
   number s2=(CylCenter-_P0).prod(CylCenter-_P0);
   number s1=(CylCenter-_P0).prod(CylAxis);
   number sdist=CylRadius-sqrt(s2-s1*s1);
+  number local;
   if(sdist<0){
     // interpolate to 2nd ladder first;
-   integer ok=intercept(P1,2,theta,phi);
+   integer ok=intercept(P1,2,theta,phi,local);
    AMSDir dir(idir*sin(theta)*cos(phi),
              idir*sin(theta)*sin(phi),
              idir*cos(theta));
@@ -2680,6 +2681,7 @@ integer AMSTrTrack::makeFalseTOFXHits(){
                               , psensor->getpar(2));
       if(idgeom.FindAtt(glopos,sensor_size)==0) continue;
 // Go to local coordinates to get a better global position
+      psensor=(AMSgSen*)AMSJob::gethead()->getgeomvolume(idgeom.crgid());
       AMSPoint locpos = psensor->gl2loc(glopos);
       glopos = psensor->str2pnt(locpos[0]+sensor_size[0],py->getcofg(&idgeom));
 // Error
@@ -2862,22 +2864,31 @@ trig=(trig+1)%freq;
 }
 
 
-integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number &phi){
-  AMSTrRecHit * phit=AMSTrRecHit::gethead(layer);
+integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number &phi, number & local){
+  AMSTrRecHit * phit=0;  
+  for(int i=0;i<_NHits;i++){
+   if(_Pthit[i]->getLayer()-1 == layer){
+    phit=_Pthit[i];
+    break;
+   } 
+  }
+  AMSPoint xloc;
+  AMSgSen *pls=0;
   if(phit){
-    AMSgSen *pls=phit->getpsen();
+    pls=phit->getpsen();
     AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
-    AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
+    AMSPoint pntplane(phit->getHit());
     number length;
     interpolate(pntplane,pntdir,P1,theta,phi,length);
+    xloc=pls->gl2loc(P1);
   }    
   else{
     // no hits but still track extrap needed
     AMSTrIdGeom g(layer+1,8,4,0,0);    // reference
-    AMSgvolume *pls =AMSJob::gethead()->getgeomvolume(g.crgid());
-    if(pls){
-      AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
-      AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
+    AMSgvolume *p =AMSJob::gethead()->getgeomvolume(g.crgid());
+    if(p){
+      AMSDir pntdir(p->getnrmA(0,2),p->getnrmA(1,2),p->getnrmA(2,2));
+      AMSPoint pntplane(p->getcooA(0),p->getcooA(1),p->getcooA(2));
       number length;
       interpolate(pntplane,pntdir,P1,theta,phi,length);
     }
@@ -2886,9 +2897,29 @@ integer AMSTrTrack::intercept(AMSPoint &P1,integer layer, number &theta, number 
       P1=0;
       theta=0;
       phi=0;
+      local=0;
       return 0;
     }
+      // Interpolate to certain sensor if any;
+     AMSPoint PS(p->getpar(0),p->getpar(1),p->getpar(2));
+      if(g.FindAtt(P1,PS)){
+         pls=(AMSgSen*) AMSJob::gethead()->getgeomvolume(g.crgid());
+         AMSDir pntdir(pls->getnrmA(0,2),pls->getnrmA(1,2),pls->getnrmA(2,2));
+         AMSPoint pntplane(pls->getcooA(0),pls->getcooA(1),pls->getcooA(2));
+         number theta,phi,length;
+         interpolate(pntplane,pntdir,P1,theta,phi,length);
+         xloc=pls->gl2loc(P1);
+      }
+      else{
+       local=0;
+       return -1;
+      }
+
   }
+  AMSPoint PS(pls->getpar(0),pls->getpar(1),pls->getpar(2));
+  xloc=(xloc/PS).abs();
+   if(xloc[0]>xloc[1])local=1-xloc[0];
+   else local=1-xloc[1];
   return 1;
 }
 

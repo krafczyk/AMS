@@ -77,6 +77,7 @@ public:
      static const integer GlobalDB;
      static const integer CHARGEUSED;
      static const integer GOOD;
+     static const integer BADINTERPOL;
 
 // machine dependent values
 
