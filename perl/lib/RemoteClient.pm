@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.136 2003/04/28 15:07:11 alexei Exp $
+# $Id: RemoteClient.pm,v 1.137 2003/04/29 08:22:01 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4818,8 +4818,9 @@ sub listStat {
        $timestart = $r0->[0][0];
      }
      $sql="SELECT Jobs.jid, Jobs.triggers FROM Jobs, Cites 
-            WHERE Jobs.cid=Cites.cid AND 
-                  Cites.cid!=(SELECT cites.cid FROM Cites WHERE name='test')";
+            WHERE 
+                    (Jobs.cid != Cites.cid AND
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
      my $r3=$self->{sqlserver}->Query($sql);
      print_bar($bluebar,3);
      my $newline = " ";
@@ -4932,11 +4933,13 @@ sub listStat {
       foreach my $ds (@{$r5}){
           my $did       = $ds->[0];
           my $dataset   = trimblanks($ds->[1]);
-          $sql = "SELECT SUM(triggers) FROM Jobs, Runs 
+          $sql = "SELECT SUM(triggers) FROM Jobs, Runs, Cites  
                   WHERE 
                     Jobs.did = $did AND
                     Jobs.jid = Runs.jid AND  
-                    (Runs.status='Completed' OR Runs.status='Finished')";
+                    (Runs.status='Completed' OR Runs.status='Finished') AND 
+                    (Jobs.cid != Cites.cid AND
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
            my $r6=$self->{sqlserver}->Query($sql);
            my $events = 0;
            if(defined $r6->[0][0]){
@@ -4947,8 +4950,10 @@ sub listStat {
                  $events=sprintf("%.2fM",$events/1000000);
              }
            }            
-          $sql = "SELECT SUM(triggers) FROM Jobs  
-                  WHERE Jobs.did = $did";
+          $sql = "SELECT SUM(triggers) FROM Jobs, Cites   
+                  WHERE Jobs.did = $did AND
+                    (Jobs.cid != Cites.cid AND
+                      Cites.cid = (SELECT Cites.cid FROM Cites WHERE Cites.name = 'test'))";
           my $r7=$self->{sqlserver}->Query($sql);
           my $triggers = 0;
            if(defined $r7->[0][0]){
@@ -4980,10 +4985,17 @@ sub listCites {
      my $sql="SELECT cid,descr, name, status, maxrun FROM Cites ORDER by name";
      my $r3=$self->{sqlserver}->Query($sql);
               print "<td><b><font color=\"blue\">Cite </font></b></td>";
-#              print "<td><b><font color=\"blue\" >ID </font></b></td>";
               print "<td><b><font color=\"blue\" >Type </font></b></td>";
-              print "<td><b><font color=\"blue\" >Jobs Ends</font></b></td>";
-              print "<td><b><font color=\"blue\" >Jobs Reqs</font></b></td>";
+              print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
+              print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
+              print "<td><b><font color=\"blue\" >Jobs</font></b></td>";
+              print "<tr>\n";
+              print "<td><b><font color=\"blue\">   </font></b></td>";
+              print "<td><b><font color=\"blue\" >  </font></b></td>";
+              print "<td><b><font color=\"blue\" >Reqs</font></b></td>";
+              print "<td><b><font color=\"blue\" >Ends</font></b></td>";
+              print "<td><b><font color=\"blue\" >Failed</font></b></td>";
+              print "<tr>\n";
      print_bar($bluebar,3);
      if(defined $r3->[0][0]){
       foreach my $cite (@{$r3}){
@@ -5001,22 +5013,34 @@ sub listCites {
                  Runs.status='Unchecked' OR 
                  Runs.status='TimeOut' OR 
                  Runs.status='Completed')";
-          my $r4=$self->{sqlserver}->Query($sql);
           my $jobs = 0;
-          foreach my $cnt (@{$r4}){
-              $jobs++;
-          }
-          $sql="SELECT SUM(requests) FROM Mails WHERE cid=$cid";
-          $r4=$self->{sqlserver}->Query($sql);
-          my $reqs = 0;
-          foreach my $cnt (@{$r4}){
-              $reqs = $cnt->[0];
-          }
+          $sql = "SELECT COUNT(jid) FROM Jobs WHERE cid=$cid";
+          my $r4=$self->{sqlserver}->Query($sql);
+          if (defined $r4->[0][0]) {$jobs = $r4->[0][0]};
+
+          my $jobsc = 0;
+          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
+                     Jobs.jid=Runs.jid AND cid=$cid AND 
+                     (Runs.Status = 'Finished' OR 
+                      Runs.Status = 'Completed')";
+          my $r4=$self->{sqlserver}->Query($sql);
+          if (defined $r4->[0][0]) {$jobsc = $r4->[0][0]};
+
+
+          my $jobsf = 0;
+          $sql = "SELECT COUNT(Jobs.jid) FROM Jobs, Runs WHERE 
+                     Jobs.jid=Runs.jid AND cid=$cid AND 
+                     (Runs.Status = 'Failed' OR 
+                      Runs.Status = 'TimeOut' OR 
+                      Runs.Status = 'Unchecked')";
+          my $r4=$self->{sqlserver}->Query($sql);
+          if (defined $r4->[0][0]) {$jobsf = $r4->[0][0]};
+
           print "<tr><font size=\"2\">\n";
-#          print "<td><b> $descr ($name) </td><td><b> $cid </td><td><b> $status </td>
-#                 <td><b> $jobs </td></b><td><b> $reqs </b></td>\n";
           print "<td><b> $descr ($name) </td><td><b> $status </td>
-                 <td><b> $jobs </td></b><td><b> $reqs </b></td>\n";
+                 <td><b> $jobs </td></b>
+                 <td><b> $jobsc </b></td>
+                 <td><b> $jobsf </b></td>\n";
           print "</font></tr><p></p>\n";
       }
   }
@@ -5779,7 +5803,6 @@ sub parseJournalFiles {
 
  my $self = shift;
 
- my $timenow = time();
 
     if( not $self->Init()){
         die "parseJournalFiles -F- Unable To Init";
@@ -5800,6 +5823,7 @@ sub parseJournalFiles {
 
  if(defined $ret->[0][0]){
   foreach my $jou (@{$ret}){
+   my $timenow    = time();
    my $dir        = trimblanks($jou->[0]);
    my $timestamp  = trimblanks($jou->[1]);
    my $cite       = trimblanks($jou->[2]);
@@ -5843,17 +5867,15 @@ sub parseJournalFiles {
        }
    }
    htmlTableEnd();
+   htmlTableEnd();
    $sql = "UPDATE journals SET timestamp=$timenow, lastfile = '$lastfile'";
    $self->{sqlserver}->Update($sql); 
-   htmlTableEnd();
   }
  } else {
      print "Warning - table Journals is empty \n";
  }
 
    htmlTableEnd();
-
-
  htmlBottom();
 }
 
@@ -6137,7 +6159,7 @@ foreach my $block (@blocks) {
                    WHERE run=$closedst[10] AND path like '%$filename%'";
      my $ret = $self->{sqlserver}->Query($sql);
      if(not defined $ret->[0][0]){
-      print "$dstfile.... \n";
+      print FILE "$dstfile.... \n";
       my $badevents=$closedst[14];
       my $ntevents =$closedst[13];
       my $ntstatus ="OK";                     
