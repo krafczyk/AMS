@@ -1,47 +1,15 @@
-#  $Id: known_bugs.doc,v 1.7 2001/01/22 17:00:56 vitali Exp $
+#  $Id: known_bugs.doc,v 1.8 2001/07/05 17:15:46 choutko Exp $
 
 Compile Time
 -------------
 
-1. mceventg.C should be compiled with -g option on aix&hpux
-2. makedepend does not work on sgi
-3. also not on alpha from v2.07 .....
 
 Run Time
 ----------
 1. AMSgSen::getsenstrip-S-Error.  
    Probably geant tracking bug. Happens rarely.
 
-2. The event sequences for OSF1 & AIX are different.
+2. The event sequences for OSF1 & AIX & linux are different.
    Probably due to different geant tracking.
 
 
-3.  g++2.7.2.2 can't handle exceptions any more....
-    so hp-ux/irix can't work
-    please go back to 2.7.2.1 
-    To understand if your version is a buggy one:
-    cd  AMS/test
-    g++bug
-
-
-DB related
------------
-
-1. ooddlx (DDL processor) complains about definition of 
-               extern     int      class(double);
-  in /usr/include/math.h 
-
-   workaround :
-
--  the real problem is the two versions of most .h files under
-   AIX. They have /usr/include/math.h (which is not directly parseble by
-   xlC and ooddlx and /usr/lpp/xlC/include/math.h (which #includes the
-   former one after some redefining some macros). For this reason you
-   always have to  make sure that /usr/lpp/xlC/include/ is searched
-   first by ooddlx. 
-                                                                    
--  use files created by ooddlx on OSF1, they are machine independent
-
-5. oonewfd (Objectivity task to create federated database) crashed if it is
-   started without removing *.JNL files from the AMS/db/boot directory.      
-   

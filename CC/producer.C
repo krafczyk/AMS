@@ -1,4 +1,4 @@
-//  $Id: producer.C,v 1.41 2001/07/03 10:44:40 choutko Exp $
+//  $Id: producer.C,v 1.42 2001/07/05 17:15:44 choutko Exp $
 #include <unistd.h>
 #include <stdlib.h>
 #include <producer.h>
@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 AMSProducer * AMSProducer::_Head=0;
-AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)){
+AMSProducer::AMSProducer(int argc, char* argv[], int debug) throw(AMSClientError):AMSClient(),AMSNode(AMSID("AMSProducer",0)),_OnAir(false),_FreshMan(true){
 DPS::Producer_var pnill=DPS::Producer::_nil();
 _plist.push_back(pnill);
 if(_Head){
@@ -99,9 +99,10 @@ UpdateARS();
          
     if(_dstinfo->DieHard){
       
-      if(_dstinfo->DieHard==1)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
-      else FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInAbort);
+      if(!_FreshMan && _dstinfo->DieHard==1)FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedExit",DPS::Client::SInExit);
+      else FMessage("AMSProducer::getRunEventinfo-I-ServerRequestedAbort",DPS::Client::SInAbort);
     }
+    _FreshMan=false;
     _cinfo.Run=_reinfo->Run;
     _cinfo.HostName=_pid.HostName; 
     SELECTFFKEY.Run=_reinfo->Run;

@@ -1,4 +1,4 @@
-//  $Id: event.h,v 1.61 2001/03/06 16:37:05 choumilo Exp $
+//  $Id: event.h,v 1.62 2001/07/05 17:15:46 choutko Exp $
 
 // Author V. Choutko 24-may-1996
 // June 12, 1996. ak. add getEvent function
@@ -100,7 +100,6 @@ void _signinitrun();
 void _sitkinitrun();
 void _sictcinitrun();
 void _sitrdinitrun();
-void _sisrdinitrun();
 void _sitofinitrun();
 void _siantiinitrun();
 void _siecalinitrun();
@@ -110,7 +109,6 @@ void _reamsinitrun();
 void _retkinitrun();
 void _rectcinitrun();
 void _retrdinitrun();
-void _resrdinitrun();
 void _retofinitrun();
 void _reantiinitrun();
 void _reecalinitrun();
@@ -121,7 +119,6 @@ void _signinitevent();
 void _sitkinitevent();
 void _sictcinitevent();
 void _sitrdinitevent();
-void _sisrdinitevent();
 void _sitofinitevent();
 void _siantiinitevent();
 void _siecalinitevent();
@@ -130,7 +127,6 @@ void _reamsinitevent();
 void _retkinitevent();
 void _rectcinitevent();
 void _retrdinitevent();
-void _resrdinitevent();
 void _retofinitevent();
 void _retof2initevent();
 void _reantiinitevent();
@@ -150,7 +146,6 @@ void _siantievent();
 void _sianti2event();
 void _sictcevent();
 void _sitrdevent();
-void _sisrdevent();
 void _siecalevent();
 void _sirichevent();
 void _sidaqevent();
@@ -165,13 +160,11 @@ void _retrigevent();
 void _rerichevent();
 void _rectcevent();
 void _retrdevent();
-void _resrdevent();
 void _reaxevent();
 void _caamsinitevent();
 void _catkinitevent();
 void _cactcinitevent();
 void _catrdinitevent();
-void _casrdinitevent();
 void _catofinitevent();
 void _cantinitevent();
 void _caaxinitevent();
@@ -182,7 +175,6 @@ void _cantievent();
 void _caecevent();
 void _cactcevent();
 void _catrdevent();
-void _casrdevent();
 void _caaxevent();
 void _validate(int i=0);
 void _collectstatus();

@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.13 2001/07/03 10:44:47 choutko Exp $
+//  $Id: producer.h,v 1.14 2001/07/05 17:15:46 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -14,6 +14,7 @@ typedef list<DPS::Producer_var> PList;
 PList _plist;
 static AMSProducer * _Head;
 bool _OnAir;
+bool _FreshMan;
 DPS::Producer::CurrentInfo _cinfo;
 DPS::Producer::DST   _ntend[2];  // 0 - ntuple 1 -root
 DPS::Producer::DST   _evtag;

@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.124 2001/05/05 19:48:54 kscholbe Exp $
+//  $Id: amsgeom.C,v 1.125 2001/07/05 17:15:43 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -47,13 +47,13 @@ extern void antigeom(AMSgvolume &);
 extern void antigeom01(AMSgvolume &);
 extern void antigeom02(AMSgvolume &);
 extern void antigeom002(AMSgvolume &);
+extern void ussgeom(AMSgvolume &);
 #ifdef __G4AMS__
 extern void antigeom02g4(AMSgvolume &);
 extern void antigeom01g4(AMSgvolume &);
 extern void testg4geom(AMSgvolume &);
 #endif
 extern void pshgeom(AMSgvolume &);
-extern void pshgeom02(AMSgvolume &);
 extern void ctcgeom(AMSgvolume &);
 extern void ctcgeomE(AMSgvolume &, integer iflag);
 extern void ctcgeomAG(AMSgvolume& );
@@ -61,7 +61,7 @@ extern void ctcgeomAGPlus(AMSgvolume& );
 extern void richgeom02(AMSgvolume &);
 extern void ecalgeom02(AMSgvolume &);
 extern void trdgeom02(AMSgvolume &);
-extern void srdgeom02(AMSgvolume &);
+//extern void srdgeom02(AMSgvolume &);
 extern void Put_rad(AMSgvolume *,integer);
 extern void Put_pmt(AMSgvolume *,integer);
 };
@@ -103,18 +103,16 @@ else if (strstr(AMSJob::gethead()->getsetup(),"AMS02")){
  magnetgeom02(mother);
  tofgeom02(mother);
  tkgeom02(mother);
- pshgeom02(mother);
+ ussgeom(mother);
  antigeom02(mother);
 
 #ifdef  __G4AMS__
    //testg4geom(mother);
  trdgeom02(mother);
-//     srdgeom02(mother);
  ecalgeom02(mother);
  richgeom02(mother);
 #else
  trdgeom02(mother);
-//     srdgeom02(mother);
  ecalgeom02(mother);
  richgeom02(mother);
 #endif
@@ -2661,7 +2659,10 @@ AMSgtmed *p;
       "1/2ALUM",0,"ALT4","TUBE",par,3,coo,nrm, "ONLY",0,gid++,1));
     
 }
-void amsgeom::pshgeom02(AMSgvolume & mother){
+void amsgeom::ussgeom(AMSgvolume & mother){
+//
+
+
 }
 
 void amsgeom::tkgeom02(AMSgvolume & mother){
@@ -3571,6 +3572,7 @@ void amsgeom::ecalgeom02(AMSgvolume & mother){
   cout<<"AMSGEOM: ECAL-NewGeometry done!"<<endl;
 }
 //------------------------------------------------------------
+/*
 #include <srddbc.h>
 void amsgeom::srdgeom02(AMSgvolume & mother){
 using srdconst::maxo;
@@ -3631,7 +3633,7 @@ for(i=0;i<SRDDBc::PMTColNo();i++){
 cout <<"amsgeom::srdgeom02-I-SRDGeometryDone"<<endl;
 
 }
-
+*/
 #ifdef __G4AMS__
 void amsgeom::testg4geom(AMSgvolume &mother){
 AMSID amsid;

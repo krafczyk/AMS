@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.69 2001/07/03 10:44:41 choutko Exp $
+//  $Id: server.C,v 1.70 2001/07/05 17:15:44 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -2685,7 +2685,7 @@ else {
  rv=*li;
 }
 }
-if(dv->DieHard !=1){
+if(dv->DieHard ==0){
  rv->Status=Processing;
  rv->cuid=cid.uid;
  time_t tt;

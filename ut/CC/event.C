@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.266 2001/06/11 14:01:24 choutko Exp $
+//  $Id: event.C,v 1.267 2001/07/05 17:15:44 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -379,7 +379,6 @@ _siantiinitrun();
 if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 _siecalinitrun();
 _sitrdinitrun();
-_sisrdinitrun();
 _sirichinitrun();
 }
 else {
@@ -415,7 +414,6 @@ _retofinitrun();
 _reantiinitrun();
 if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
 _reecalinitrun();
-_resrdinitrun();
 _retrdinitrun();
 _rerichinitrun();
 }
@@ -433,7 +431,6 @@ void AMSEvent::_siamsinitevent(){
  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
   _siecalinitevent();
   _sitrdinitevent();
-  _sisrdinitevent();
   _sirichinitevent();
  }
  else{
@@ -459,7 +456,6 @@ void AMSEvent::_reamsinitevent(){
  if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
   _reecalinitevent();
   _retrdinitevent();
-  _resrdinitevent();
   _rerichinitevent();
  }
 else{
@@ -771,8 +767,6 @@ void AMSEvent::_sirichinitevent(){
   RICHDB::numrayl=0;
 }
 
-void AMSEvent::_sisrdinitevent(){
-}
 void AMSEvent::_sitrdinitevent(){
   AMSEvent::gethead()->add (
   new AMSContainer(AMSID("AMSContainer:AMSTRDMCCluster",0),0));
@@ -921,8 +915,6 @@ void AMSEvent::_reecalinitevent(){
     ptr=AMSEvent::gethead()->add (
       new AMSContainer(AMSID("AMSContainer:AMSEcalCluster",i),0));
   }
-}
-void AMSEvent::_resrdinitevent(){
 }
 void AMSEvent::_retrdinitevent(){
 
@@ -1235,7 +1227,6 @@ void AMSEvent::event(){
     if(strstr(AMSJob::gethead()->getsetup(),"AMS02")){
       _siecalevent(); 
       _sitrdevent(); 
-      _sisrdevent();
       _sirichevent();
       }
      else{
@@ -1842,13 +1833,6 @@ void AMSEvent::_rerichevent(){
 //
   AMSgObj::BookTimer.stop("RERICH");
 }
-void AMSEvent::_resrdevent(){
-//
-  AMSgObj::BookTimer.start("RESRDEVENT");
-//
-//
-  AMSgObj::BookTimer.stop("RESRDEVENT");
-}
 //========================================================================
 void AMSEvent::_reaxevent(){
 AMSgObj::BookTimer.start("REAXEVENT");
@@ -1928,8 +1912,6 @@ void AMSEvent::_siecalinitrun(){
 }
 void AMSEvent::_sitrdinitrun(){
 }
-void AMSEvent::_sisrdinitrun(){
-}
 void AMSEvent::_sirichinitrun(){
 }
 
@@ -1965,8 +1947,6 @@ void AMSEvent::_retrdinitrun(){
       cout <<"AMSEvent::_retrdevent-I-"<<AMSTRDIdSoft::CalcBadCh(i)<<
       " bad channels found for crate "<<i<<endl;
 }
-}
-void AMSEvent::_resrdinitrun(){
 }
 void AMSEvent::_rerichinitrun(){
 }
@@ -2047,8 +2027,6 @@ void AMSEvent:: _sitrdevent(){
 #endif
   AMSgObj::BookTimer.stop("SITRDDigi");
 
-}
-void AMSEvent:: _sisrdevent(){
 }
 //----------------------------------------------------------------
 void AMSEvent:: _siecalevent(){
@@ -2698,7 +2676,7 @@ void AMSEvent::_validate(int print){
 AMSgObj::BookTimer.start("TDV");
 
 AMSTimeID *ptid=  AMSJob::gethead()->gettimestructure();
-AMSTimeID * offspring=(AMSTimeID*)ptid->down();
+AMSTimeID * offspring=dynamic_cast<AMSTimeID*>(ptid->down());
 while(offspring){
   integer nb=offspring->GetNbytes();
 #ifdef __AMSDEBUG__
