@@ -1,4 +1,4 @@
-//  $Id: gbatch.C,v 1.71 2002/09/26 12:29:35 choutko Exp $
+//  $Id: gbatch.C,v 1.73 2003/03/31 10:46:03 choutko Exp $
 #include <iostream.h>
 #include <signal.h>
 #include <unistd.h> 
@@ -9,7 +9,7 @@
 #include <commons.h>
 #include <geantnamespace.h>
 #include <producer.h>
-const int NWGEAN=10000000;
+const int NWGEAN=12000000;
 const int NWPAW=1000000;
 
 #ifdef __ROOTA__
@@ -46,7 +46,7 @@ void (handler)(int);
  }
  main(int argc, char * argv[] ){
       using namespace gams;
-//     *signal(SIGFPE, handler);
+     *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGXCPU,handler);
