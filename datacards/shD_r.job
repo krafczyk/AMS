@@ -16,6 +16,7 @@ fi
 
 
 ../exe/$MACHINE/lmsA <<!
+
 LIST
 KINE 14 
 MULS 1
