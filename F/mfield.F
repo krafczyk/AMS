@@ -1,4 +1,4 @@
-*  $Id: mfield.F,v 1.14 2003/03/18 09:12:56 choutko Exp $
+*  $Id: mfield.F,v 1.15 2004/01/19 16:39:56 choutko Exp $
       subroutine readmfield
 #      include "mfield.h"
        real hxy(3,3),x1(3)
@@ -282,10 +282,16 @@ cc          call hf2(-902,b(3),dr,1.)
 c          b(3) = q(1)
 c         endif
 c        endif
-        CALL BTEMPCOR (factor)
-        b(1) = b(1) * factor
-        b(2) = b(2)*sx*sy * factor
-        b(3) = b(3)*sx*sz * factor
+        if(magstat.gt.0)then
+         CALL BTEMPCOR (factor)
+         b(1) = b(1) * factor
+         b(2) = b(2)*sx*sy * factor
+         b(3) = b(3)*sx*sz * factor
+        else
+         b(1)=0
+         b(2)=0
+         b(3)=0
+        endif
 
  999    END
 
@@ -386,16 +392,22 @@ c           hxy(3,2)=qy(1)
 c          endif
 c         endif
 
-
-          CALL BTEMPCOR (factor)
-
-          hxy(1,1) = hxy(1,1) * sx * factor
-          hxy(2,1) = hxy(2,1) * sy * factor
-          hxy(3,1) = hxy(3,1) * sz * factor
-          hxy(1,2) = hxy(1,2) * sy * factor
-          hxy(2,2) = hxy(2,2) * sx * factor
-          hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
-
+          if(magstat.gt.0)then
+           CALL BTEMPCOR (factor)
+           hxy(1,1) = hxy(1,1) * sx * factor
+           hxy(2,1) = hxy(2,1) * sy * factor
+           hxy(3,1) = hxy(3,1) * sz * factor
+           hxy(1,2) = hxy(1,2) * sy * factor
+           hxy(2,2) = hxy(2,2) * sx * factor
+           hxy(3,2) = hxy(3,2) * sx*sy*sz * factor
+          else
+           hxy(1,1) = 0
+           hxy(2,1) = 0
+           hxy(3,1) = 0
+           hxy(1,2) = 0
+           hxy(2,2) = 0
+           hxy(3,2) = 0
+          endif
 999       end
 
 
