@@ -106,7 +106,7 @@ using namespace glconst;
       break;
   case SIGUSR2:
       cerr<< "New Ntuple Forced"<<endl;
-      if(GCFLAG.IEORUN==0)GCFLAG.IEORUN=3;
+      if(GCFLAG.ITEST>0)GCFLAG.ITEST=-GCFLAG.ITEST;
       break;
   }
 }

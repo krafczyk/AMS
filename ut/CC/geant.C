@@ -354,7 +354,7 @@ extern "C" void guout_(){
       UPool.erase(0);
       return;
    }
-      if(GCFLAG.IEVENT%GCFLAG.ITEST==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
+      if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
          GCFLAG.IEVENT==GCFLAG.NEVENT)
       AMSEvent::gethead()->printA(AMSEvent::debug);
      integer trig;

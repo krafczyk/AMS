@@ -863,8 +863,8 @@ void  AMSEvent::write(int trig){
     // check if one want to close ntuple 
     if(IOPA.MaxNtupleEntries){
       //cout <<"qq "<<AMSJob::gethead()->getntuple()->getentries()<<" "<<IOPA.MaxNtupleEntries<<endl;
-      if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.IEORUN==3){
-        if(GCFLAG.IEORUN==3)GCFLAG.IEORUN=0;
+      if(AMSJob::gethead()->getntuple()->getentries()>=IOPA.MaxNtupleEntries || GCFLAG.ITEST<0){
+        if(GCFLAG.ITEST<0)GCFLAG.ITEST=-GCFLAG.ITEST;
         AMSJob::gethead()->uhend();
         AMSJob::gethead()->uhinit(_run,getid()+1);
       }
