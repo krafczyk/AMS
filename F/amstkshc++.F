@@ -1510,10 +1510,6 @@ c           goto 888
 *
 * here inelastic kinematics will play
 *
-             ISTOP = 1
-             GEKIN  = 0.
-             GETOT  = AMASS
-             VECT(7) = 0.
              IF(NCOMP.LE.1) THEN
                a_t = a
                Z_t = z
@@ -1543,7 +1539,8 @@ c             write(*,*)' bamc ',a_t,z_t,nsec
               
               if(ierr.ne.0)then
                 DESTEP=DESTEP+GEKIN
-                write(*,*)'rqmd error ',gekin,'gev energy released' 
+                write(*,*)'rqmd error ',ierr,gekin,
+     +     ' gev energy released' 
                 nsec=0
               endif 
                if(ngkine.ge.mxgkin)then
@@ -1570,6 +1567,10 @@ c             write(*,*)' bamc ',a_t,z_t,nsec
                DESTEP = DESTEP + p_sec(4,i)-p_sec(6,i)
               endif
              enddo
+             ISTOP = 1
+             GEKIN  = 0.
+             GETOT  = AMASS
+             VECT(7) = 0.
             endif
       endif
    80 IF(INT.Eq.1.or.int.eq.2)then
