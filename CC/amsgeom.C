@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.167 2003/03/31 10:46:02 choutko Exp $
+//  $Id: amsgeom.C,v 1.168 2003/04/01 11:07:07 kscholbe Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -2235,13 +2235,13 @@ for ( i=0;i<TRDDBc::TRDOctagonNo();i++){
      }
 
    // Wires (disabled for now)
-
-   /*   for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
+   /*
+      for(l=0;l< TRDDBc::TubesNo(i,j,k);l++){
    ost.seekp(0);
 // Need better name...  +geant3 doesn't see case (VC)
 
 
-   ost << "TRDw"<<ends;
+   ost << "TRDI"<<ends;
    TRDDBc::GetTube(l,k,j,i,status,coo,nrm,rgid);
    for(ip=0;ip<3;ip++)par[ip]=TRDDBc::WiresDimensions(i,j,k,ip);
 
