@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.245 2004/02/18 10:38:56 alexei Exp $
+# $Id: RemoteClient.pm,v 1.246 2004/02/27 10:10:04 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -33,6 +33,9 @@
 #                  print statistics for each cite
 #                  parser : verbose, cmd, web modes
 #                           username and nFailedCopiesInRow check
+#                  validateRuns : verbose, cmd, web modes
+# Feb 23, 2004   : stopParseJournalFiles
+#                  decrease one sql query in updateRunCatalog
 #
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
@@ -55,7 +58,7 @@ use lib::DBSQLServer;
 use POSIX  qw(strtod);             
 use File::Find;
 
-@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB checkDB listAll listAllDisks listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsPerSite updateHostInfo parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
+@RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB checkDB listAll listAllDisks listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsPerSite updateHostInfo parseJournalFiles stopParseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
 
 my     $webmode         = 1; # 1- cgi is executed from Web interface and 
@@ -137,7 +140,7 @@ my %fields=(
         AMSProdDir=>undef,
         AMSDSTOutputDir=>undef,
         CERN_ROOT=>undef,
-        ROOTSYS  =>undef,
+        ROOTSYS  =>'/afs/ams.cern.ch/Offline/root/Linux/pro/',
         HTTPserver=>'pcamsf0.cern.ch',
         HTTPhtml  =>'http://pcamsf0.cern.ch/',
         HTTPcgi   =>'http://pcamsf0.cern.ch/cgi-bin/mon',
@@ -717,10 +720,10 @@ foreach my $file (@allfiles){
         }        
     } 
 
- if ($webmode == 0) {print "-I- get IOR from Server or DB \n";}
+ if ($webmode == 0 && $verbose == 1) {print "-I- get IOR from Server or DB \n";}
  my $ior=$self->getior();
 if(not defined $ior){ 
-    if ($webmode == 0) {print "-I- IOR not defined \n";}
+    if ($webmode == 0 && $verbose == 1) {print "-I- IOR not defined \n";}
 
   foreach my $chop  (@ARGV){
     if($chop =~/^-I/){
@@ -913,6 +916,36 @@ sub ValidateRuns {
    my $vlog= undef;
    my $timenow = time();
 #
+
+ my $HelpTxt = "
+     validateRuns gets list of runs from production server 
+                  validates DSTs and copies them to final destination
+                  update Runs and NTuples DB tables
+     -c    - output will be produced as ASCII page (default)
+     -h    - print help
+     -v    - verbose mode
+     -w    - output will be produced as HTML page
+     ./validateRuns.o.cgi -c -v
+";
+
+  foreach my $chop  (@ARGV){
+    if ($chop =~/^-c/) {
+        $webmode = 0;
+    }
+    if ($chop =~/^-v/) {
+        $verbose = 1;
+    }
+    if ($chop =~/^-w/) {
+     $webmode = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
+
+
+
     if( not $self->Init()){
         die "ValidateRuns -F- Unable To Init";
         
@@ -927,10 +960,9 @@ sub ValidateRuns {
      }
     $vlog = $vdir."/validateRuns.log.".$timenow;   
 
-    open(FILE,">".$vlog) or die "Unable to open file $vlog\n";
-
-    
-    $self->htmlTop();
+    open(FILEV,">".$vlog) or die "Unable to open file $vlog\n";
+    if ($webmode ==0  and $verbose ==1) { print "ValidateRuns -I- open $vlog \n";}
+    if ($webmode == 1) { $self->htmlTop();}
 
 # get list of runs from DataBase
     $sql="SELECT run,submit FROM Runs";
@@ -948,15 +980,17 @@ sub ValidateRuns {
      $sql   = "SELECT run, status FROM runs WHERE run=$run->{Run}";
      my $r0 = $self->{sqlserver}->Query($sql);
      if (not defined $r0->[0][0]) {
-      htmlTable("Insert Runs");
-      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-      print "<td><b><font color=\"blue\">Run </font></b></td>";
-      print "<td><b><font color=\"blue\" >FirstEvent</font></b></td>";
-      print "<td><b><font color=\"blue\" >LastEvent</font></b></td>";
-      print "<td><b><font color=\"blue\" >SubmitTime </font></b></td>";
-      print "<td><b><font color=\"blue\" >Status</font></b></td>";
-      print "</tr>\n";
-      print FILE "INSERT $run->{Run}, 
+      if ($webmode == 1) {
+       htmlTable("Insert Runs");
+       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+       print "<td><b><font color=\"blue\">Run </font></b></td>";
+       print "<td><b><font color=\"blue\" >FirstEvent</font></b></td>";
+       print "<td><b><font color=\"blue\" >LastEvent</font></b></td>";
+       print "<td><b><font color=\"blue\" >SubmitTime </font></b></td>";
+       print "<td><b><font color=\"blue\" >Status</font></b></td>";
+       print "</tr>\n";
+      }
+      print FILEV "INSERT $run->{Run}, 
                          $run->{Run},
                          $run->{Run},
                          $run->{FirstEvent},
@@ -975,15 +1009,20 @@ sub ValidateRuns {
                        $run->{SubmitTime},
                        $run->{Status});
 
-       $sql   = "SELECT run, status FROM runs WHERE run=$run->{Run}";
-       $r0 = $self->{sqlserver}->Query($sql);
-       print "<td><b><font color=\"black\">$run->{Run} </font></b></td>";
-       print "<td><b><font color=\"black\" >$run->{FirstEvent}</font></b></td>";
-       print "<td><b><font color=\"black\" >$run->{LastEvent}</font></b></td>";
-       print "<td><b><font color=\"black\" >$run->{SubmitTime} </font></b></td>";
-       print "<td><b><font color=\"black\" >$run->{Status}</font></b></td>";
-       print "</tr>\n";
-      htmlTableEnd();
+#       $sql   = "SELECT run, status FROM runs WHERE run=$run->{Run}";
+#       $r0 = $self->{sqlserver}->Query($sql);
+       if ($webmode == 1) {
+        print "<td><b><font color=\"black\">$run->{Run} </font></b></td>";
+        print "<td><b><font color=\"black\" >$run->{FirstEvent}</font></b></td>";
+        print "<td><b><font color=\"black\" >$run->{LastEvent}</font></b></td>";
+        print "<td><b><font color=\"black\" >$run->{SubmitTime} </font></b></td>";
+        print "<td><b><font color=\"black\" >$run->{Status}</font></b></td>";
+        print "</tr>\n";
+        htmlTableEnd();
+       } else {
+        print "Run,FirsttEvent,LastEvent,Submitted,Status...";
+        print "$run->{Run},$run->{FirstEvent},$run->{LastEvent},$run->{SubmitTime},$run->{Status}/n";
+       }
   }
      if(($run->{Status} eq "Finished" || $run->{Status} eq "Failed") && 
          (defined $r0->[0][1] && ($r0->[0][1] ne "Completed" && $r0->[0][1] ne "Unchecked" && $r0->[0][1] ne "TimeOut"))
@@ -999,8 +1038,9 @@ sub ValidateRuns {
           $sql = "UPDATE runs SET status='Failed' WHERE run=$run->{Run}"; 
           $self->{sqlserver}->Update($sql);
           $warn = "cannot find status, content in Jobs for JID=$run->{Run}. *TRY* Delete Run=$run->{Run} from server \n";
-          htmlWarning("ValidateRuns",$warn);
-          print FILE "$warn \n";
+          if ($verbose == 1) {$self->printWarn($warn);}
+          print FILEV "$warn \n";
+
 # ---          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
          } else {
           my $jobstatus  = $r1->[0][0];
@@ -1029,7 +1069,7 @@ sub ValidateRuns {
                                      TIMESTAMP=$timenow  
                             WHERE JID = $run->{Run}";
           $self->{sqlserver}->Update($sql);
-          print FILE $sql;
+          print FILEV $sql;
 # validate ntuples
 # Find corresponding ntuples from server
               foreach my $ntuple (@{$self->{dbserver}->{dsts}}){
@@ -1042,7 +1082,7 @@ sub ValidateRuns {
                   $ntuple->{Name}=~s/\/\//\//;                  
                   my @fpatha=split ':', $ntuple->{Name};
                   my $fpath=$fpatha[$#fpatha];
-                  print "$fpath \n";
+                  if ($webmode == 0 and $verbose==1) {print "$fpath \n";}
                   my $suc=open(FILE,"<".$fpath);
                   my $badevents=$ntuple->{ErrorNumber};
                   my $events=$ntuple->{EventNumber};
@@ -1068,10 +1108,10 @@ sub ValidateRuns {
                    } elsif ($ntuple->{Type} eq "RootFile") {
                     $validatecmd = "$self->{AMSSoftwareDir}/exe/linux/fastntrd.exe  $fpath $ntuple->{EventNumber} 1";
                    } else {
-                       print FILE "***** Unknown ntuple->{Type : $ntuple->{Type} \n";
+                       print FILEV "***** Unknown ntuple->{Type : $ntuple->{Type} \n";
                    }
                    if (defined $validatecmd) {
-                     print FILE $validatecmd;
+                     print FILEV $validatecmd;
                    }
                    my $i = 0;
                    if (defined $validatecmd) {
@@ -1129,19 +1169,20 @@ sub ValidateRuns {
                                                 $ntuple->{crc},
                                                 $ntuple->{Insert},
                                                 1,0);
-                            print FILE "insert : $run->{Run}, $outputpath, $status \n";
+                            print FILEV "insert : $run->{Run}, $outputpath, $status \n";
                             $copied++;
                             push @cpntuples, $fpath;
                             $runupdate = "UPDATE runs SET FEVENT = $fevent, LEVENT=$levent, ";
                          } else {
-                             print FILE "failed to copy $fpath\n";
+                             print FILEV "failed to copy $fpath\n";
                              $copyfailed = 1;
                              $nBadCopiesInRow++;
                              if ($nBadCopiesInRow > $MAX_FAILED_COPIES) {
                               $self->amsprint("Too many doCopy failures : $nBadCopiesInRow. Quit",0);
                               $self->amsprint("Check $outputpath  free blocks and availability. Quit",0);
-                              print FILE "Too many doCopy failures : $nBadCopiesInRow. \n";
-                              print FILE "Check $outputpath. Quit\n";
+                              print FILEV "Too many doCopy failures : $nBadCopiesInRow. \n";
+                              print FILEV "Check $outputpath. Quit\n";
+                              close FILEV;
                               die "Bye";
                              }
                              last;
@@ -1155,28 +1196,32 @@ sub ValidateRuns {
          my $status='Failed';
          if ($copyfailed == 0) {
           $warn = "Validation done : *TRY* send Delete to DBServer, Run =$run->{Run} \n";
-          print FILE "$warn \n";
-          htmlText($warn," ");
+          print FILEV "$warn \n";
+          $self->printWarn($warn);
 #--          DBServer::sendRunEvInfo($self->{dbserver},$run,"Delete"); 
           foreach my $ntuple (@cpntuples) {
            my $cmd="rm -i $ntuple";
            system($cmd);
            $warn = "Validation done : $cmd \n";
-           print FILE $warn;
-           htmlText($warn," ");
+           print FILEV $warn;
+           $self->printWarn($warn);
          }
           if ($#cpntuples >= 0) { $status = 'Completed';}
       }
            else{
+
                $warn="Validation/copy failed : Run =$run->{Run} \n";
-               print FILE $warn;
-               htmlText($warn," ");
+               print FILEV $warn;
+               $self->printWarn($warn);
+
                $status='Unchecked';
                foreach my $ntuple (@mvntuples) {
                 my $cmd = "rm -i $ntuple";
+
                 $warn="Validation failed : $cmd \n";
-                print FILE $warn;
-                htmlText($warn," ");
+                print FILEV $warn;
+                $self->printWarn($warn);
+
                 system($cmd);
                 $failedcp++;
                 $copied--;
@@ -1188,19 +1233,26 @@ sub ValidateRuns {
           $sql = $runupdate." STATUS='$status' WHERE run=$run->{Run}";
           $self->{sqlserver}->Update($sql);
           $warn = "Update Runs : $sql\n";
-          print FILE $warn;
-          htmlText($warn," ");
+          print FILEV $warn;
+          $self->printWarn($warn);
+           if ($webmode == 1) {
+              htmlWarning("validateRuns",$warn);
+            } else {
+              print "$warn \n";
+            }
           if ($status eq "Completed") {
            $self->updateRunCatalog($run->{Run});
            $warn = "Update RunCatalog table : $run->{Run}\n";
-           print FILE $warn;
+           print FILEV $warn;
           }
      } # remote job
     }  # job found
    }   # run->{Status} == 'Finished' || 'Failed'
   }    # loop for runs from 'server'
 
-  $self->htmlBottom();
+  if ($webmode == 1) {
+   $self->htmlBottom();
+  }
   $warn = "$validated Ntuple(s) Successfully Validated.
                    \n $copied Ntuple(s) Copied.
                    \n $failedcp Ntuple(s) Not Copied.
@@ -1208,9 +1260,10 @@ sub ValidateRuns {
                    \n $unchecked Ntuples(s) Could Not Be Validated.
                    \n $thrusted Ntuples Could Not be Validated But Assumed  OK.
                    \n";
- print FILE $warn;
- close FILE;
- $self->InfoPlus($warn);
+ print FILEV $warn;
+ close FILEV;
+ print "$warn \n";
+ if ($webmode == 1) {$self->InfoPlus($warn);}
  $self->{ok}=1;
 
 }
@@ -5119,6 +5172,33 @@ sub checkJobsTimeout {
 
     my $sql;
     my $timenow = time();
+
+ my $HelpTxt = "
+     -c    - output will be produced as ASCII page (default)
+     -h    - print help
+     -v    - verbose mode
+     -w    - output will be produced as HTML page
+     ./checkjobtmout.cgi -c -v
+";
+
+  foreach my $chop  (@ARGV){
+    if ($chop =~/^-c/) {
+        $webmode = 0;
+    }
+    if ($chop =~/^-v/) {
+        $verbose = 1;
+    }
+    if ($chop =~/^-w/) {
+     $webmode = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
+
+
+   if ($webmode == 1) {
     $self->htmlTop();
 #
     htmlTable("Jobs below will be deleted from the database");
@@ -5131,6 +5211,7 @@ sub checkJobsTimeout {
      print "<td><b><font color=\"blue\" >Owner</font></b></td>";
      print "</tr>\n";
      print_bar($bluebar,3);
+   }
 #
 # 1st update runs.status from 'Finished'/'Failed' to 'Completed' if 
 # at least one DST is copied to final destination 
@@ -5193,7 +5274,7 @@ sub checkJobsTimeout {
          if (defined $r4->[0][0]) {
              $jobstatus = $r4->[0][1];
              if ($jobstatus eq 'Failed'     ||
-                 $jobstatus eq "Finished"    ||
+                 $jobstatus eq "Finished"   ||
                  $jobstatus eq "Foreign"    ||
                  $jobstatus eq "Processing" ||
                  $jobstatus eq "Unchecked")  {
@@ -5214,19 +5295,21 @@ sub checkJobsTimeout {
                          \n MC Production Team.";
        $self->sendmailmessage($address,$sujet,$message);
 
-        print "<td><b><font color=\"black\">$cite </font></b></td>";
-        print "<td><b><font color=\"black\">$jid </font></b></td>";
-        print "<td><b><font color=\"black\">$tsubmit </font></b></td>";
-        print "<td><b><font color=\"black\">$texpire </font></b></td>";
-        print "<td><b><font color=\"black\">$jobstatus </font></b></td>";
-        print "<td><b><font color=\"black\">$owner </font></b></td>";
-        print "</tr>\n";
+        $self->amsprint($cite,666);
+        $self->amsprint($jid,666);
+        $self->amsprint($tsubmit,666);
+        $self->amsprint($texpire,666);
+        $self->amsprint($jobstatus,666);
+        $self->amsprint($owner,0);
+        if ($webmode == 1) {print "</tr>\n";}
       }
      }
  }
 
+ if ($webmode == 1) {
   $self->htmlTableEnd();
- $self->htmlBottom();
+  $self->htmlBottom();
+ }
 }
 
 sub updateHostInfo {
@@ -6755,7 +6838,12 @@ sub EpochToDDMMYYHHMMSS {
     $month++;
     $year = $year + 1900;
            
-   my $ddmmyyhhmmss = $mday."/".$month."/".$year." ".$hour.":".$min.":".$sec;
+    if ($sec < 10) {$sec = "0".$sec;}
+    if ($min < 10) {$min = "0".$min};
+    if ($hour< 10) {$hour= "0".$hour};
+    if ($mday< 10) {$mday= "0".$mday};
+    if ($month<10) {$month="0".$month};
+    my $ddmmyyhhmmss = $mday."/".$month."/".$year." ".$hour.":".$min.":".$sec;
 
     return $ddmmyyhhmmss;
 }
@@ -6914,7 +7002,7 @@ sub parseJournalFiles {
      -h    - print help
      -v    - verbose mode
      -w    - output will be produced as HTML page
-     ./parseJournalFile -c
+     ./parseJournalFiles.o.cgi -c
 ";
 
   foreach my $chop  (@ARGV){
@@ -6946,10 +7034,20 @@ sub parseJournalFiles {
     }
 
     my $whoami = getlogin();
-    if ($whoami != 'ams') {
+    if ($whoami =~ 'ams') {
+    } else {
       $self->amsprint("parseJournalFiles -ERROR- script cannot be run from account : $whoami",0);
       die "bye";
     }
+# set flag
+   my $timenow = time();
+   $sql = "delete FilesProcessing";
+   $self->{sqlserver}->Update($sql); 
+   $sql = "insert into FilesProcessing values(0,0,0,0,0,0,0,1,$timenow)";
+   $self->{sqlserver}->Update($sql); 
+#
+
+
     $self->set_root_env();
 
     $self->getProductionVersion();
@@ -6968,6 +7066,11 @@ sub parseJournalFiles {
   htmlTop();
   htmlTable("Parse Journal Files");
  }
+
+ my $rmtmpfiles = "rm -f /tmp/cp.*.log";
+ if ($webmode == 0 && $verbose == 1) { print "$rmtmpfiles \n";}
+ system($rmtmpfiles);
+
  $sql = "SELECT MAX(CID) FROM Cites";
  $ret = $self->{sqlserver}->Query($sql);
  if (not defined $ret->[0][0] || $ret->[0][0]<1) {
@@ -7039,6 +7142,10 @@ sub parseJournalFiles {
        if ($file =~/^\./){
          next;
        }
+       if ($file =~ m/journal/) {
+       } else {
+           next;
+       }
 #
 # files *.journal.1 and *.journal.0 are already validated
 #
@@ -7055,6 +7162,18 @@ sub parseJournalFiles {
            $writelast = $writetime;
            $lastfile = $newfile;
        }
+
+# check flag
+     $timenow = time();
+     $sql   = "select flag from FilesProcessing";
+     my $rflag = $self->{sqlserver}->Query($sql);
+     if ($rflag->[0][0] == 0) {
+         if ($webmode == 0) {$self -> printParserStat();}
+         $self->updateFilesProcessing();
+         $self->amsprint("Processing flag = 0. Stop parseJournalFiles.",0);
+         return 1;
+     }
+#
        my $color   ="black";
        my $fstatus ="CheckInProgress";
        if ($writetime < $timestamp) { $color   = "magenta";
@@ -7108,6 +7227,7 @@ sub parseJournalFiles {
  } else {
      $self -> printParserStat();
  }
+ $self->updateFilesProcessing();
  return 1;
 }
 
@@ -7260,8 +7380,13 @@ foreach my $block (@blocks) {
    # end RunIncomplete - normal
    # if no NTuples produced
    #
-          } else {
+   } else {
 # assume journal file : jobnumber.journal
+       if ($webmode == 0 && $verbose == 1) {
+        print "parseJournalFile -W- RunIncomplete CHECK File $joufile \n";
+       }
+       print FILE "parseJournalFile -W- RunIncomplete CHECK File $joufile \n";
+       $runfinishedR   = 1;
           my @jj = split ".journal",$joufile;
           $jobid = $jj[0];
           my $mailto = "vitali.choutko\@cern.ch,alexei.klimentov\@cern.ch";
@@ -7277,7 +7402,7 @@ foreach my $block (@blocks) {
               $mailto = $mailto.", $ret->[0][0]";
           }
 #          $self->sendmailmessage($mailto,$subject,$text);
-          last;
+       last;
       }
      }
       elsif ($block =~/StartingJob/) {
@@ -7508,6 +7633,7 @@ foreach my $block (@blocks) {
     $dstsize = (stat($dstfile)) [7] or $dstsize = -1;
     if ($dstsize == -1) {
      print FILE "parseJournalFile -W- CloseDST block : cannot stat $dstfile \n";
+     $runfinishedR=1;
      $dstsize = -1;
      $copyfailed = 1;
      last;
@@ -7742,9 +7868,10 @@ foreach my $block (@blocks) {
       print FILE "Validation/copy failed : mv ntuples to $junkdir \n";
      }
    }
- }
+} 
   system("mv $inputfile $inputfileLink"); 
   print FILE "mv $inputfile $inputfileLink\n";
+  if ($webmode == 0 && $verbose == 1) {print "mv $inputfile $inputfileLink \n";}
   if ($status eq "Completed") {
     $self->updateRunCatalog($run);
     if ($verbose == 1) {print "Update RunCatalog table : $run\n";}
@@ -7789,18 +7916,15 @@ sub updateRunCatalog {
 
     my $timestamp = time();
 
-    $sql = "SELECT runs.status FROM Runs WHERE runs.jid=$jid";
+    $sql = "SELECT runs.status, jobs.content FROM Runs, Jobs WHERE runs.jid=jobs.jid and jobs.jid=$jid";
     my $r0 = $self->{sqlserver}->Query($sql);
-    if(defined $r0->[0][0]){
+    if(defined $r0->[0][0] && defined $r0->[0][1]){
       $runstatus = $r0->[0][0];
+      $jobcontent = $r0->[0][1];       
       if ($runstatus eq 'Completed') {
-          $sql = "SELECT run FROM runcatalog WHERE run=$jid";
-          my $r1 = $self->{sqlserver}->Query($sql);
-          if(not defined $r1->[0][0]){
-           $sql = "SELECT content FROM Jobs WHERE jid=$jid";
-           my $r2 = $self->{sqlserver}->Query($sql);
-           if(defined $r2->[0][0]){
-            $jobcontent = $r2->[0][0];       
+          $sql = "DELETE runcatalog WHERE run=$jid";
+          if ($verbose == 1 && $webmode == 1) {print "$sql \n";}
+          $self->{sqlserver}->Update($sql);
             my @sbuf=split "\n",$jobcontent;
             my @runparam;
             $sql0 = "INSERT INTO runcatalog (run";
@@ -7835,7 +7959,6 @@ sub updateRunCatalog {
                 }              
                 if ($ent=~/TRIGGER/) {
                  $sql0=$sql0.", TRTYPE";
-#                 $sql1=$sql1.", 'AMSParticle'";
                  $sql1=$sql1.", 'TriggerLVL1'";
                 }
               }              
@@ -7860,17 +7983,9 @@ sub updateRunCatalog {
             $sql1=$sql1.",".$timestamp.")";
             $sql=$sql0.$sql1;
             $self->{sqlserver}->Update($sql);
-           } else {
-            htmlWarning("updateRunCatalog","Cannot find content for Job=$jid");
-           }
-          } else {
-#           htmlWarning("updateRunCatalog","Run = $jid exists in RunCatalog. No Update");
-          }
-      } else {
-        htmlWarning("updateRunCatalog","Run = $jid, Status = $runstatus. No Update");
-      }     
+      }
     } else {
-       htmlWarning("updateRunCatalog","Cannot Find Run with JID = $jid");
+       $self->printWarn("updateRunCatalog -W- Cannot Find Run or/and Job content with JID = $jid");
     }
 }
 
@@ -7883,6 +7998,32 @@ sub deleteTimeOutJobs {
     my $timenow = time();
 
 #
+ my $HelpTxt = "
+     -c    - output will be produced as ASCII page (default)
+     -h    - print help
+     -v    - verbose mode
+     -w    - output will be produced as HTML page
+     ./deleteTimeOutJobs.o.cgi -c -v
+";
+
+  foreach my $chop  (@ARGV){
+    if ($chop =~/^-c/) {
+        $webmode = 0;
+    }
+    if ($chop =~/^-v/) {
+        $verbose = 1;
+    }
+    if ($chop =~/^-w/) {
+     $webmode = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
+#
+
+
     if( not $self->Init()){
         die "deleteTimeoutJobs -F- Unable To Init";
     }
@@ -7898,14 +8039,14 @@ sub deleteTimeOutJobs {
 
     open(FILE,">".$vlog) or die "Unable to open file $vlog\n";
 #
-    $self->htmlTop();
+    if ($webmode == 1) {$self->htmlTop();}
 
 # get list of runs from Server
     if( not defined $self->{dbserver}->{rtb}){
       DBServer::InitDBFile($self->{dbserver});
     }
 #
-    htmlTable("Jobs below will be deleted from the database");
+    if ($webmode == 1) {htmlTable("Jobs below will be deleted from the database");}
 
     my $sql  = undef;
     $sql="SELECT jobs.jid, jobs.timestamp, jobs.timeout, jobs.mid, jobs.cid, 
@@ -7916,15 +8057,17 @@ sub deleteTimeOutJobs {
                      Runs.status = 'TimeOut'";
     my $ret = $self->{sqlserver}->Query($sql);
     if (defined $ret->[0][0]) {
-     print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-     print "<td><b><font color=\"blue\">Cite </font></b></td>";
-     print "<td><b><font color=\"blue\" >JobID </font></b></td>";
-     print "<td><b><font color=\"blue\" >Submitted</font></b></td>";
-     print "<td><b><font color=\"blue\" >Expired</font></b></td>";
-     print "<td><b><font color=\"blue\" >Status</font></b></td>";
-     print "<td><b><font color=\"blue\" >Owner</font></b></td>";
-     print "</tr>\n";
-     print_bar($bluebar,3);
+     if ($webmode == 1) {
+      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+      print "<td><b><font color=\"blue\">Cite </font></b></td>";
+      print "<td><b><font color=\"blue\" >JobID </font></b></td>";
+      print "<td><b><font color=\"blue\" >Submitted</font></b></td>";
+      print "<td><b><font color=\"blue\" >Expired</font></b></td>";
+      print "<td><b><font color=\"blue\" >Status</font></b></td>";
+      print "<td><b><font color=\"blue\" >Owner</font></b></td>";
+      print "</tr>\n";
+      print_bar($bluebar,3);
+     }
         foreach my $job (@{$ret}) {
             my $jid          = $job->[0];
             my $timestamp    = $job->[1];
@@ -7948,16 +8091,15 @@ sub deleteTimeOutJobs {
               last;
              }
             }
-        print "<td><b><font color=\"black\">$cite </font></b></td>";
-        print "<td><b><font color=\"black\">$jid </font></b></td>";
-        print "<td><b><font color=\"black\">$tsubmit </font></b></td>";
-        print "<td><b><font color=\"black\">$texpire </font></b></td>";
-        print "<td><b><font color=\"red\">TimeOut </font></b></td>";
-        print "<td><b><font color=\"black\">$owner </font></b></td>";
-        print "</tr>\n";
- 
+        $self->amsprint($cite,666);
+        $self->amsprint($jid,666);
+        $self->amsprint($tsubmit,666);
+        $self->amsprint($texpire,666);
+        $self->amsprint("TimeOut",666);
+        $self->amsprint($owner,0);
+        if ($webmode == 1) {print "</tr>\n";}
         }
-      htmlTableEnd();
+      if ($webmode == 1) {htmlTableEnd();}
     }
 
 
@@ -7972,6 +8114,7 @@ sub deleteTimeOutJobs {
                 jobs.cid=cites.cid"; 
     my $r3=$self->{sqlserver}->Query($sql);
     if( defined $r3->[0][0]){
+     if ($webmode == 1) {
       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
       print "<td><b><font color=\"blue\">Cite </font></b></td>";
       print "<td><b><font color=\"blue\" >JobID </font></b></td>";
@@ -7979,6 +8122,7 @@ sub deleteTimeOutJobs {
       print "<td><b><font color=\"blue\" >Expired</font></b></td>";
       print "<td><b><font color=\"blue\" >Owner</font></b></td>";
       print "</tr>\n";
+     }
       foreach my $job (@{$r3}){
             my $jid          = $job->[0];
             my $timestamp    = $job->[1];
@@ -8015,22 +8159,25 @@ sub deleteTimeOutJobs {
              }
          }
 
-
-        print "<td><b><font color=\"black\">$cite </font></b></td>";
-        print "<td><b><font color=\"black\">$jid </font></b></td>";
-        print "<td><b><font color=\"black\">$tsubmit </font></b></td>";
-        print "<td><b><font color=\"black\">$texpire </font></b></td>";
-        print "<td><b><font color=\"red\">TimeOut </font></b></td>";
-        print "</tr>\n";
+        $self->amsprint($cite,666);
+        $self->amsprint($jid,666);
+        $self->amsprint($tsubmit,666);
+        $self->amsprint($texpire,666);
+        $self->amsprint("TimeOut",666);
+        if ($webmode == 1) {print "</tr>\n";}
        }
      }
+     if ($webmode == 1) {
+       htmlTableEnd();
       htmlTableEnd();
-    htmlTableEnd();
+     }
    }
 
 
+   if ($webmode == 1) {
     htmlTableEnd();
     $self->htmlBottom();
+   }
     close FILE;
 }
 
@@ -8085,7 +8232,7 @@ sub insertRun {
         if ($verbose == 1) {print "$sql \n";}
         if ($status eq "Completed") {
           $self->updateRunCatalog($run);
-          print "Update RunCatalog table : $run->{Run}\n";
+          if ($verbose == 1) {print "Update RunCatalog table : $run->{Run}\n";}
        }
    }
 }
@@ -8276,7 +8423,7 @@ sub set_root_env {
 #
     my $self = shift;
     my $ROOTSYS = $self->{ROOTSYS};
-    print "------------ ROOTSYS : $ROOTSYS \n";
+    if ($webmode ==0 and $verbose ==1) {print "------------ ROOTSYS : $ROOTSYS \n\n";}
     $ENV{"ROOTSYS"}=$ROOTSYS;
     $ENV{"PATH"}=$ENV{"PATH"}.":".$ENV{"ROOTSYS"}."/bin";
     $ENV{"LD_LIBRARY_PATH"}=$ENV{"LD_LIBRARY_PATH"}.":".$ENV{"ROOTSYS"}."/lib";
@@ -8455,7 +8602,7 @@ sub checkDB {
   my $crcerror   = 0; # CRC doesn't match 
   my $notindb    = 0; # not found in db
   my $nfiles     = 0;
-
+  my $nupdate    = 50; # print statistics when $nupdate files are checked
   $nTopDirFiles = 0;
   
   foreach my $chop  (@ARGV){
@@ -8466,6 +8613,7 @@ sub checkDB {
    }
     if ($chop =~/^-crc/) {
         $checkCRC = 1;
+        $nupdate  = 25;
     }
     if ($chop =~/^-o:/) {
         $outputfile = unpack("x3 A*",$chop);
@@ -8590,7 +8738,7 @@ sub checkDB {
              }
           }
        $nprint++;
-          if ($nprint == 10) {
+          if ($nprint == $nupdate) {
               my $t = time();
               my $l = localtime($t);
            print "$l - Files Checked : $nfiles not found in DB $notindb CRC error : $crcerror \n";
@@ -8637,20 +8785,82 @@ sub printParserStat {
    my $self      = shift;
    my $timenow = time();
    my $ltime   = localtime($timenow);
-   print "Parser Stat : $ltime \n";
+   print "\n\n\n";
+   print "------------- parseJournalFiles ------------- \n";
    my $stime   = localtime($parserStartTime);
    print "Start Time : $stime \n";
    print "End   Time : $ltime \n";
    print "Cites      : $nCheckedCite , active : $nActiveCites \n";
-   for (my $i=0; $i<$nCheckedCite; $i++) {
+   for (my $i=0; $i<$nCheckedCite+1; $i++) {
+     print "\n";
+     printf "%-20.15s %-20.40s %-50.30s","Cite : $JouDirPath[$i]", "Latest Journal : $JouLastCheck[$i]", "New Files : $JournalFiles[$i]";
      if ($JournalFiles[$i] > 0) {
-      print "Cite : $JouDirPath[$i] Last Check : $ltime\n";
-      print "Journal Files : $JournalFiles[$i] \n";
-      print "Runs (Checked, Good, Bad, Failed) :  $CheckedRuns[$i], $GoodRuns[$i],  $BadRuns[$i], $FailedRuns[$i] \n";
-      print "DSTs (Checked, Good, Bad, CRCi, CopyFail, CRCo) :  ";
+      print "   Runs (Checked, Good, Bad, Failed) :  $CheckedRuns[$i], $GoodRuns[$i],  $BadRuns[$i], $FailedRuns[$i] \n";
+      print "   DSTs (Checked, Good, Bad, CRCi, CopyFail, CRCo) :  ";
       print "$CheckedDSTs[$i],  $GoodDSTs[$i], $BadDSTs[$i], $BadCRCi[$i], $BadDSTCopy[$i], $BadCRCo[$i]\n";
-   } else {
-     print "Cite : $JouDirPath[$i] Last Check : $JouLastCheck[$i]\n";
-  }
+     }
  }
+ print "-------------     Thats It          ------------- \n";
+}
+
+sub updateFilesProcessing {
+    my $self = shift;
+    my $timenow = time();
+    
+    my $nCites = $nCheckedCite+1;
+
+    my $nJournalFiles = 0;
+    my $nGoodRuns     = 0;
+    my $nBadRuns      = 0;
+    my $nFailedRuns   = 0;
+    my $nGoodDSTs     = 0;
+    my $nBadDSTs      = 0;
+
+    for (my $i=0; $i<$nCites; $i++) {
+        $nJournalFiles =  $nJournalFiles + $JournalFiles[$i];
+        $nGoodRuns     =  $nGoodRuns     + $GoodRuns[$i];
+        $nFailedRuns   =  $nFailedRuns   + $FailedRuns[$i] + $BadRuns[$i];
+        $nGoodDSTs     =  $nGoodDSTs     +  $GoodDSTs[$i];
+        $nBadDSTs      =  $nBadDSTs      +  $BadDSTs[$i] + $BadCRCi[$i] + $BadDSTCopy[$i] + $BadCRCo[$i];
+    }
+    my $sql = "UPDATE FilesProcessing SET Cites=$nCites, Active=$nActiveCites, JOU=$nJournalFiles,
+                                          GOOD=$nGoodRuns, Failed=$nFailedRuns, GoodDSTS=$nGoodDSTs,
+                                          BadDSTS = $nBadDSTs, Timestamp=$timenow";
+    $self->{sqlserver}->Update($sql); 
+}
+
+sub printWarn {
+    my $self = shift;
+    my $warn = shift;
+    if ($webmode == 1) {
+     htmlText($warn," ");
+    } else {
+     $self->amsprint($warn,0);
+    }
+}
+
+sub stopParseJournalFiles {
+#
+# set flag in DB to stop journal 
+# file processing
+#
+    my $self = shift;
+
+    if( not $self->Init()){
+      die "stopParser -F- Unable To Init";
+    } else {
+        if ($verbose == 1) {$self->amsprint("stopParser -I- Init done ",0);}
+    }
+
+    my $whoami = getlogin();
+    if ($whoami =~ 'ams' || $whoami =~ 'alexei') {
+    } else {
+      $self->amsprint("stopParser -ERROR- script cannot be run from account : $whoami",0);
+      die "bye";
+    }
+
+   my $timenow = time();
+   my $sql = "update FilesProcessing set flag = 0, timestamp=$timenow";
+   $self->{sqlserver}->Update($sql); 
+
 }

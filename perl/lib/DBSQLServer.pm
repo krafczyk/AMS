@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.63 2004/01/31 15:17:21 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.64 2004/02/27 10:10:04 alexei Exp $
 
 #
 #
@@ -29,6 +29,7 @@
 #  Apr 24, 2003. ak. Tables : Jobs, Runs, RNDM - add primary key
 #  Oct  2, 2003. ak. Table  : LocalHosts
 #  Jan 31, 2004. ak. Table  : Ntuples add CRCtime, CRCflag, CASTORtime
+#  Feb 23, 2004. ak. Table  : FilesProcessing
 #
 package DBSQLServer;
 use Error qw(:try);
@@ -144,7 +145,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","LocalHosts","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet");
+    my @tables=("Filesystems", "Cites","LocalHosts","Journals","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "DataSetFiles", "Environment","ProductionSet","FilesProcessing");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -270,6 +271,17 @@ sub Create{
           status     char(10),
           version    char(64),
           description VARCHAR(255))",
+        "CREATE TABLE FilesProcessing  
+         (
+          cites      int,
+          active     int,
+          jou        int,
+          good       int,
+          failed     int,
+          gooddsts   int,
+          baddsts    int,
+          flag       int,
+          timestamp  int)",
         "CREATE TABLE DataSetFiles 
          (did        INT NOT NULL,
           name       VARCHAR(255),
@@ -386,7 +398,7 @@ my $sql;
      my $apd='$AMSProdDir/prod/starttagmtb_db_mc';
      $dbh->do("insert into Environment values('amsserver','$apd')") or die "cannot do: ".$dbh->errstr();     
      $dbh->do("insert into Environment values('ValidationDirPath','/f2users/scratch/MC/validate/')") or die "cannot do : ".$dbh->errstr();
-     $dbh->do("insert into Environment values('ROOTSYS','/afs/ams.cern.ch/Offline/root/Linux/v3.05.05gcc322/')") or die "cannot do : ".$dbh->errstr();
+     $dbh->do("insert into Environment values('ROOTSYS','/afs/ams.cern.ch/Offline/root/Linux/pro/')") or die "cannot do : ".$dbh->errstr();
      $dbh->do("insert into Environment values('HTTPserver','pcamsf0.cern.ch')") or die "cannot do : ".$dbh->errstr();
       
  } else {

@@ -1,17 +1,20 @@
-#  $Id: 00index.txt,v 1.4 2003/04/28 12:39:18 alexei Exp $
+#  $Id: 00index.txt,v 1.5 2004/02/27 10:09:58 alexei Exp $
 #
-castor.cmp          //  compare content of two directories
-castor.cp           //  copy local directory tree to CASTOR
-dbsqlserver.perl    //  start perl SQL server
-download.mysql.cgi  //  get files using MySQL interface 
-download.o.cgi      //  get files using Oracle interface
-monitor.perl        //  standalone gtk based monitor
-monitor.cgi         //  cgi monitor script
-parseJournalFiles.o.cgi // parse Journal files for jobs running in StandAlone
-rc.dsp.cgi          //  remote client start
-rc.dsp.mysql.cgi    //                     using MySQL
-showcites.cgi       //  show MC production cites
-showcites.mysql.cgi //                    using MySQL
-validate.cgi        //  validate NTuples
-validate.mysql.cgi  //                  using MySQL
-validate.o.cgi      //                  using Oracle
+castor.cmp                  //  compare content of two directories
+castor.cp                   //  copy local directory tree to CASTOR
+checkdb.cgi                 //  compare DB content and files content
+                            //  recalculate and compare CRC (optional) 
+dbsqlserver.perl            //  start perl SQL server
+download.mysql.cgi          //  get files using MySQL interface 
+download.o.cgi              //  get files using Oracle interface
+monitor.perl                //  standalone gtk based monitor
+monitor.cgi                 //  cgi monitor script
+parseJournalFiles.o.cgi     //  parse Journal files for jobs running in StandAlone
+rc.dsp.cgi                  //  remote client start
+rc.dsp.mysql.cgi            //                     using MySQL
+showcites.cgi               //  show MC production cites
+showcites.mysql.cgi         //                    using MySQL
+stopParseJournalFiles.o.cgi //  set flag in DB to stop parseJournalFiles 
+validate.cgi                //  validate NTuples
+validate.mysql.cgi          //                  using MySQL
+validate.o.cgi              //                  using Oracle
