@@ -274,7 +274,7 @@ int main(int argc, char* argv[])
     if (nextslash < 0) nextslash = 0;
     jj = 0;
      for (j=nextslash+1; j<lastslash; j++) {
-      version[jj] = filepath[j];
+       //version[jj] = filepath[j];
       jj++;
      }
    }
@@ -369,8 +369,7 @@ int main(int argc, char* argv[])
 
   integer iid = atoi(id);
   iid++;
-  cout<<"Info - write to the database "<<objname<<" with id... "<<iid
-      <<", version "<<version<<endl;
+  cout<<"Info - write to the database "<<objname<<" with id... "<<iid<<endl;
   cout<<"i,b,e "<<ctime(&Insert)<<"      "<<ctime(&Begin)
                                 <<"      "<<ctime(&End)<<endl;
  char*                  dbase = "TDV";

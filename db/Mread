@@ -42,8 +42,10 @@ BIN_DB          = ../db/bin/osf1/
 BIN             = ../bin/osf1
 EXE             = ../exe/osf1/
 
-CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__ -D__APOOL__ -D__DB__ 
-CCFLAGS = -define_templates -g
+# CFLAGS= -D__AMSDEBUG__  -D__BATCH__ -D__ALPHA__ -D__APOOL__ -D__DB__ 
+# CCFLAGS = -define_templates -g
+CFLAGS= -D__BATCH__ -D__ALPHA__ -D__APOOL__ -D__DB__ -O4
+CCFLAGS = -define_templates 
 
 FFLAGS=   -g -I../include  -d -static -nofor_main -convert big_endian
 DFLAGS=  -D__AMSDEBUG__  -g   -I/usr/include  -I../include -I../include/stl \
