@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.14 2002/03/13 08:42:27 alexei Exp $
+# $Id: RemoteClient.pm,v 1.15 2002/03/13 14:22:25 alexei Exp $
 package RemoteClient;
 use CORBA::ORBit idl => [ '../include/server.idl'];
 use Error qw(:try);
@@ -13,7 +13,12 @@ use Time::Local;
 use lib::DBSQLServer;
 @RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB listAll);
 
-my     $bluebar    = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
+my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
+my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
+my     $bluebullet   = 'http://ams.cern.ch/AMS/icons/bullet_blue.gif';
+my     $silverbullet = 'http://ams.cern.ch/AMS/icons/bullet_silver.gif';
+my     $purplebullet = 'http://ams.cern.ch/AMS/icons/bullet_purple.gif';
+
 my     $srvtimeout = 30; # server timeout 30 seconds
 
 sub new{
@@ -1121,16 +1126,16 @@ sub Connect{
               print "</b></td></tr>\n";
               htmlTextField("Momentum min","number",7,1.,"QMomI","[GeV/c]");  
               htmlTextField("Momentum max","number",7,200.,"QMomA","[GeV/c]");  
-              htmlTextField("Total Events","number",7,1000000.,"QEv"," ");  
-              htmlTextField("Total Runs","number",7,3.,"QRun"," ");  
+              htmlTextField("Total Events","number",12,1000000.,"QEv"," ");  
+              htmlTextField("Total Runs","number",12,3.,"QRun"," ");  
               my ($rndm1,$rndm2) = $self->getrndm();
-              htmlTextField("rndm1","text",7,$rndm1,"QRNDM1"," ");  
-              htmlTextField("rndm2","text",7,$rndm2,"QRNDM2"," ");  
-              htmlTextField("Begin Time","text",8,"01062005","QTimeB"," (ddmmyyyy)");  
-              htmlTextField("End Time","text",8,"01062008","QTimeE"," (ddmmyyyy)");  
-              htmlTextField("CPU clock","number",8,1000,"QCPU"," [MHz]");  
-              htmlTextField("Setup","text",8,"AMS02","QSetup"," ");
-              htmlTextField("Trigger Type ","text",8,"AMSParticle","QTrType"," ");
+              htmlTextField("rndm1","text",12,$rndm1,"QRNDM1"," ");  
+              htmlTextField("rndm2","text",12,$rndm2,"QRNDM2"," ");  
+              htmlTextField("Begin Time","text",11,"01062005","QTimeB"," (ddmmyyyy)");  
+              htmlTextField("End Time","text",11,"01062008","QTimeE"," (ddmmyyyy)");  
+              htmlTextField("CPU clock","number",10,1000,"QCPU"," [MHz]");  
+              htmlTextField("Setup","text",20,"AMS02","QSetup"," ");
+              htmlTextField("Trigger Type ","text",20,"AMSParticle","QTrType"," ");
            htmlTableEnd();
             print "<tr><td><b><font color=\"green\">DST file type</font></b>\n";
             print "</td><td>\n";
@@ -2555,25 +2560,20 @@ sub listAll {
     my $self = shift;
     htmlTop();
     ht_init();
-    print "<p>\n";
+    ht_Menus();
     $self -> colorLegend();
-    print "<p>\n";
     $self -> listCites();
-    print "<p>\n";
-    $self -> listMails();
-    print "<p>\n";
-    $self -> listServers();
-    print "<p>\n";
-    $self -> listJobs();
-    print "<p>\n";
-    $self -> listRuns();
-    print "<p>\n";
-    $self -> listNtuples();
+     $self -> listMails();
+      $self -> listServers();
+       $self -> listJobs();
+        $self -> listRuns();
+          $self -> listNtuples();
     htmlBottom();
 }
     
 sub listCites {
     my $self = shift;
+    print "<b><h2><A Name = \"cites\"> </a></h2></b> \n";
      htmlTable("MC02 Cites");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT cid, name, status, maxrun FROM Cites";
@@ -2581,7 +2581,8 @@ sub listCites {
               print "<tr><td><b><font color=\"blue\">Cite </font></b></td>";
               print "<td><b><font color=\"blue\" >ID </font></b></td>";
               print "<td><b><font color=\"blue\" >Type </font></b></td>";
-              print "<td><b><font color=\"blue\" >MaxRuns </font></b></td>";
+              print "<td><b><font color=\"blue\" >Jobs Done</font></b></td>";
+              print "<td><b><font color=\"blue\" >Jobs Reqs</font></b></td>";
      print_bar($bluebar,3);
      if(defined $r3->[0][0]){
       foreach my $cite (@{$r3}){
@@ -2589,19 +2590,35 @@ sub listCites {
           my $name   = $cite->[1];
           my $status = $cite->[2];
           my $maxrun = $cite->[3];
+          my $run=(($cid-1)<<27)+1;
+          $sql="SELECT COUNT(jid) FROM Jobs WHERE cid=$cid";
+          my $r4=$self->{sqlserver}->Query($sql);
+          my $jobs = 0;
+          foreach my $cnt (@{$r4}){
+              $jobs = $cnt->[0];
+          }
+          $sql="SELECT SUM(requests) FROM Mails WHERE cid=$cid";
+          my $r4=$self->{sqlserver}->Query($sql);
+          my $reqs = 0;
+          foreach my $cnt (@{$r4}){
+              $reqs = $cnt->[0];
+          }
           print "<tr><font size=\"2\">\n";
-          print "<td><b> $name </td><td><b> $cid </td><td><b> $status </td><td><b> $maxrun </td> </b>\n";
-          print "</font></tr>\n";
+          print "<td><b> $name </td><td><b> $cid </td><td><b> $status </td>
+                 <td><b> $jobs </td></b><td><b> $reqs </b></td>\n";
+          print "</font></tr><p></p>\n";
       }
   }
 
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
+     print "<p></p>\n";
 }
 
 sub listMails {
     my $self = shift;
+     print "<b><h2><A Name = \"mails\"> </a></h2></b> \n";
      htmlTable("MC02 Contacts");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
 #     my $sql="SELECT address, name, rsite, requests FROM Mails ORDER BY name";
@@ -2633,10 +2650,12 @@ sub listMails {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
+     print "<p></p>\n";
 }
 
 sub listServers {
     my $self = shift;
+     print "<b><h2><A Name = \"servers\"> </a></h2></b> \n";
      htmlTable("MC02 Servers");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT dbfilename, status, createtime, lastupdate FROM servers";
@@ -2665,10 +2684,12 @@ sub listServers {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
+     print "<p></p>\n";
 }
 
 sub listJobs {
     my $self = shift;
+     print "<b><h2><A Name = \"jobs\"> </a></h2></b> \n";
      htmlTable("MC02 Jobs");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT jobs.jid, jobs.jobname, jobs.cid, jobs.mid, jobs.time, jobs.triggers,
@@ -2703,10 +2724,12 @@ sub listJobs {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
+     print "<p></p>\n";
 }
 
 sub listRuns {
     my $self = shift;
+     print "<b><h2><A Name = \"runs\"> </a></h2></b> \n";
      htmlTable("MC02 Runs");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT runs.run, runs.jid, jobs.jobname, runs.submit, runs.status, jobs.jid 
@@ -2735,10 +2758,12 @@ sub listRuns {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
+     print "<p></p>\n";
 }
 
 sub listNtuples {
     my $self = shift;
+     print "<b><h2><A Name = \"ntuples\"> </a></h2></b> \n";
      htmlTable("MC02 Ntuples");
               print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
      my $sql="SELECT ntuples.run, ntuples.jid, ntuples.nevents, ntuples.neventserr, 
@@ -2776,6 +2801,7 @@ sub listNtuples {
        htmlTableEnd();
       htmlTableEnd();
      print_bar($bluebar,3);
+     print "<p></p>\n";
 }
 
 sub ht_init{
@@ -2839,3 +2865,19 @@ sub colorLegend {
     print "</tr>\n";
     print "</table><p></p><br>\n";
 }
+
+sub ht_Menus {
+ print "<dt><img src=\"$maroonbullet\">&#160;&#160;
+        <a href=\"#cites\"><b><font color=green> MC02 Productiction Cites</font></a>\n";
+ print "<dt><img src=\"$bluebullet\">&#160;&#160;
+        <a href=\"#mails\"><b><font color=green> Authorized Users </b></font></a>\n";
+ print "<dt><img src=\"$purplebullet\">&#160;&#160;
+        <a href=\"#servers\"><b><font color=green> Servers </b></font></a>\n";
+ print "<dt><img src=\"$silverbullet\">&#160;&#160;
+        <a href=\"#jobs\"><b><font color=green> Jobs </b></font></a>\n";
+ print "<dt><img src=\"$bluebullet\">&#160;&#160;
+        <a href=\"#runs\"><b><font color=green> Runs </b></font></a>\n";
+ print "<dt><img src=\"$purplebullet\">&#160;&#160;
+        <a href=\"#ntuples\"><b><font color=green> Ntuples </b></font></a>\n";
+}
+

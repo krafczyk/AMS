@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.7 2002/03/12 14:05:52 choutko Exp $
+# $Id: DBSQLServer.pm,v 1.8 2002/03/13 14:22:25 alexei Exp $
 
 package DBSQLServer;
 use Error qw(:try);
@@ -229,40 +229,71 @@ sub Create{
      $i=$i+1;
  }
 
+#
+    my $cntr = 0;
+    my $cnt  = 0;
+    my $sql;
 # initialize 
-    $dbh->do("insert into Environment values('AMSDataDir','/f2dat1/AMS01/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
-    $dbh->do("insert into Environment values('CERN_ROOT','/cern/2001')") or die "cannot do: ".$dbh->errstr();     
-    $dbh->do("insert into Environment values('UploadsDir','/home/httpd/cgi-bin/AMS02MCUploads')") or die "cannot do: ".$dbh->errstr();     
-    $dbh->do("insert into Environment values('AMSSoftwareDir','DataManagement')") or die "cannot do: ".$dbh->errstr();     
-    $dbh->do("insert into Environment values('DataSets','DataSets')") or die "cannot do: ".$dbh->errstr();     
-    $dbh->do("insert into Environment values('gbatch','exe/linux/gbatch-orbit.exe')") or die "cannot do: ".$dbh->errstr();     
-    $dbh->do("insert into Environment values('filedb','ams02mcdb.tar')") or die "cannot do: ".$dbh->errstr();     
-    $dbh->do("insert into Environment values('dbversion','v3.00')") or die "cannot do: ".$dbh->errstr();     
-    $dbh->do("insert into Environment values('AMSProdDir','prod')") or die "cannot do: ".$dbh->errstr();     
-    my $apd='$AMSProdDir/prod/starttagmtb_db_mc';
-    $dbh->do("insert into Environment values('amsserver','$apd')") or die "cannot do: ".$dbh->errstr();     
-    my $run=110;
-  $dbh->do("insert into Cites values(1,'cern',0,
+    $sql="SELECT COUNT(mykey) FROM Environment";
+    $cntr=$self->Query($sql);
+    foreach my $ret (@{$cntr}) {
+        $cnt = $ret->[0];
+    }
+    if ($cnt == 0) {
+     $dbh->do("insert into Environment values('AMSDataDir','/f2dat1/AMS01/AMSDataDir')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('CERN_ROOT','/cern/2001')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('UploadsDir','/home/httpd/cgi-bin/AMS02MCUploads')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('AMSSoftwareDir','DataManagement')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('DataSets','DataSets')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('gbatch','exe/linux/gbatch-orbit.exe')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('filedb','ams02mcdb.tar')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('dbversion','v3.00')") or die "cannot do: ".$dbh->errstr();     
+     $dbh->do("insert into Environment values('AMSProdDir','prod')") or die "cannot do: ".$dbh->errstr();     
+     my $apd='$AMSProdDir/prod/starttagmtb_db_mc';
+     $dbh->do("insert into Environment values('amsserver','$apd')") or die "cannot do: ".$dbh->errstr();     
+ } else {
+    warn "Table Environment has $cnt entries. Not initialized";
+ }
+    $cnt = 0;
+    $sql="SELECT COUNT(cid) FROM Cites";
+    $cntr=$self->Query($sql);
+    foreach my $ret (@{$cntr}) {
+        $cnt = $ret->[0];
+    }
+  if ($cnt == 0) {
+   my $run=110;
+   $dbh->do("insert into Cites values(1,'cern',0,
             'local',$run,0)")or die "cannot do: ".$dbh->errstr();    
      $run=(1<<27)+1;
-  $dbh->do("insert into Cites values(2,'test',0,
+   $dbh->do("insert into Cites values(2,'test',0,
             'remote',$run,0)")or die "cannot do: ".$dbh->errstr();    
      $run=(2<<27)+1;
-  $dbh->do("insert into Cites values(3,'bolo',0,
+   $dbh->do("insert into Cites values(3,'bolo',0,
             'remote',$run,0)")or die "cannot do: ".$dbh->errstr();    
      $run=(3<<27)+1;
-  $dbh->do("insert into Cites values(4,'ethz',0,
+   $dbh->do("insert into Cites values(4,'ethz',0,
             'remote',$run,0)")or die "cannot do: ".$dbh->errstr();    
+  } else {
+    warn "Table Cites has $cnt entries. Not initialized";
+ }
+ 
+    $cnt = 0;
+    $sql="SELECT COUNT(mid) FROM Mails";
+    $cntr=$self->Query($sql);
+    foreach my $ret (@{$cntr}) {
+        $cnt = $ret->[0];
+    }
+   if ($cnt == 0) {
     my $address='v.choutko@cern.ch';           
     my $alias='vitali.choutko@cern.ch';        
-  $dbh->do("insert into Mails values(1,'$address','$alias','Vitali Choutko',1,1,1,'Active',0)")or die "cannot do: ".$dbh->errstr();    
-    $address='vitali@afl3u1.cern.ch';        
-  $dbh->do("insert into Mails values(2,'$address',NULL,'Vitali Choutko',1,0,2,'Active',0)")or die "cannot do: ".$dbh->errstr();    
-    $address='a.klimentov@cern.ch';        
-    $alias='alexei.klimentov@cern.ch';
-  $dbh->do("insert into Mails values(3,'$address','$alias','Alexei Klimentov',1,1,1,'Active',0)")or die "cannot do: ".$dbh->errstr();    
-    $address='biland@particle.phys.ethz.ch';
-    $alias='adrian.biland@cern.ch';      
+   $dbh->do("insert into Mails values(1,'$address','$alias','Vitali Choutko',1,1,1,'Active',0)")or die "cannot do: ".$dbh->errstr();    
+     $address='vitali@afl3u1.cern.ch';        
+   $dbh->do("insert into Mails values(2,'$address',NULL,'Vitali Choutko',1,0,2,'Active',0)")or die "cannot do: ".$dbh->errstr();    
+     $address='a.klimentov@cern.ch';        
+     $alias='alexei.klimentov@cern.ch';
+   $dbh->do("insert into Mails values(3,'$address','$alias','Alexei Klimentov',1,1,1,'Active',0)")or die "cannot do: ".$dbh->errstr();    
+     $address='biland@particle.phys.ethz.ch';
+     $alias='adrian.biland@cern.ch';      
   $dbh->do("insert into Mails values(4,'$address','$alias','Adrian Biland',1,0,4,'Active',0)")or die "cannot do: ".$dbh->errstr();    
     $address='diego.casadei@bo.infn.it';
     $alias='diego.casadei@cern.ch'; 
@@ -273,7 +304,7 @@ sub Create{
   my $time=time();
     warn $time;
 #find responsible
-    my $sql="select cid from Cites";
+    $sql="select cid from Cites";
     my $ret=$self->Query($sql);
     $sql="select cid,mid from Mails where rsite=1";
     my $rem=$self->Query($sql);
@@ -287,17 +318,9 @@ sub Create{
             }
         }
     }
-#    open FILE,"<./home/httpd/cgi-bin/AMS02MCUploads/test.134217729.ideal.job";
-#    my $buf;
-#    read(FILE,$buf,1638400);
-#         $buf=~s/\$/\\\$/g;
-#         $buf=~s/\"/\\\"/g;
-#         $buf=~s/\(/\\\(/g;
-#         $buf=~s/\)/\\\)/g;
-#         $buf=~s/\'/\\\\\'/g;
-#   $sql="insert into Jobs values(43342535,'4retg.wefwe.job',1,3,'$buf')";
-#
-#   $self->Update($sql);
+  } else {
+    warn "Table Mails has $cnt entries. Not initialized";
+ }
 
 
 }
@@ -307,7 +330,7 @@ sub Query{
     my $self=shift;
     my $query=shift;
     my $dbh=$self->{dbhandler};
-    my $sth=$dbh->prepare($query) or die "Cannot prepare ".$dbh->errstr();
+    my $sth=$dbh->prepare($query) or die "Cannot prepare query : $query ".$dbh->errstr();
     $sth->execute or die "Cannot execute ".$dbh->errstr();
     my $ret=$sth->fetchall_arrayref();     
     $sth->finish();
