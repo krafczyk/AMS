@@ -3,8 +3,9 @@
 // ANTI codes added 5.08.97 E.Choumilov
 // Sep 17, 1997. ak. don't write timeid to files in dbase version
 // Oct  1, 1997. ak. add FindTheBestTDV, FillTDVTable functions
-//                       
-// Last Edit : Nov 19, 1997. ak. 
+// Nov   , 1997. ak. FindTheBestTDV, check id's
+//
+// Last Edit : Nov 24, 1997. ak. 
 //
 #include <amsgobj.h>
 #include <cern.h>
@@ -39,9 +40,11 @@
  char           *tdvNameTab[maxtdv];             // TDV's nomenclature
  int             tdvIdTab[maxtdv];
 //
+#ifdef __DB__
 integer*   AMSJob::_ptr_start;
 integer*   AMSJob::_ptr_end;
-tdv_time* AMSJob::_tdv;
+tdv_time*  AMSJob::_tdv;
+#endif
 //-
 
 realorbit AMSJob::Orbit;
@@ -2012,8 +2015,9 @@ else {
 }
 }
 
+#ifdef __DB__
 
-integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S, 
+integer AMSJob::FindTheBestTDV(char* name, integer id, time_t timeV, integer &S, 
                                time_t &I, time_t &B, time_t &E)
 //
 //  (1) find TDV by name in tdvNameTab
@@ -2021,9 +2025,10 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
 //  for all TDV's which satisfies (2) choose one with the latest 
 //  insert time
 //
-// name   - TDV's name
-// time   - TDV's time
-// S      - TDV size
+// name   - object name
+// id     - object id
+// time   - object time
+// S      - object size
 // I,B,E  - insert, begin, end time the most satisfies to 'time'
 //
 {
@@ -2037,6 +2042,7 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
        integer  ptr = -1;
        time_t   insert = 0;
        for (int j=_ptr_start[i]; j<_ptr_end[i]; j++) {
+        if(_tdv[j]._id == id) {
          if (timeV >= _tdv[j]._begin && timeV <= _tdv[j]._end) {
            if (_ptr_end[i] - _ptr_start[i] - 1 != 0) {
              if (insert == 0) {
@@ -2052,6 +2058,7 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
             ptr = j;
            }
          }
+        } // compare id's
        }
        if (ptr > -1) {
         I = _tdv[ptr]._insert;
@@ -2082,8 +2089,9 @@ integer AMSJob::FindTheBestTDV(char* name, time_t timeV, integer &S,
  return rstatus;
 }
 
+#endif
 
-
+#ifdef __DB__
 
 integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
 //
@@ -2104,6 +2112,9 @@ integer AMSJob::FillJobTDV(integer nobj, tdv_time *tdv)
 #endif
   return 1;
 }
+#endif
+
+#ifdef __DB__
 
 integer AMSJob::SetTDVPtrs(integer start[], integer end[])
 //
@@ -2132,8 +2143,9 @@ while(offspring){
 if (_ptr_start) delete [] _ptr_start;
 if (_ptr_end)   delete [] _ptr_end;
 _ptr_start = new integer[nobj];
-_ptr_end = new integer[nobj];
-ntdvNames = nobj;
+_ptr_end   = new integer[nobj];
+ntdvNames  = nobj;
 return nobj;
 }
 
+#endif

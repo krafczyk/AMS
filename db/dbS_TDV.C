@@ -17,9 +17,11 @@
 // May  05, 1997. ak. separate file for setup
 // Oct    , 1997. ak. tdv database. Time_Var container name is modified
 //                    reset UpdateMe in AddAllTDV
-// Nov    , 1997. ak. 
+// Nov    , 1997. ak. FillTDV is modified, use one iteration cycle to get 
+//                    all tdv's.
+//                    ReadTDV search by name,id,i,b,e
 //
-// last edit Nov 19, 1997, ak.
+// last edit Dec 9, 1997, ak.
 //
 
 #include <stdio.h>
@@ -49,13 +51,17 @@ extern int  tdvIdTab[maxtdv];
 extern int  ntdvNames;
 
 ooStatus   LMS::AddAllTDV()
+//
+// Check update flag for all TDV objects in memory and write them to the database 
+// if flag == 1 and the there is no object with the same crc
+//
 {
-	ooStatus 	     rstatus = oocError;	// Return status
-        ooHandle(AMSdbs)           dbTabH;
-        ooHandle(ooDBObj)          dbH;
+	ooStatus 	           rstatus = oocError;	// Return status
+        ooHandle(AMSdbs)           dbTabH;              // ptr to dbcatalog
+        ooHandle(ooDBObj)          dbH;                 // tdv dbase
         ooHandle(ooContObj)        contH;                
-        ooHandle(AMSTimeIDD)       tdvH;
-        ooItr(AMSTimeIDD)          tdvItr;         
+        ooHandle(AMSTimeIDD)       tdvH;                // tdv object
+        ooItr(AMSTimeIDD)          tdvItr;              // object iterator
 
         integer    id;
         char*      name;
@@ -65,9 +71,9 @@ ooStatus   LMS::AddAllTDV()
         char*      contName;
 
   if (simulation()) 
-   contName = StrDup("Time_Dep_Var_S");
+   contName = StrCat("Time_Dep_Var_S",_version);
   else
-   contName = StrDup("Time_Dep_Var");
+   contName = StrCat("Time_Dep_Var",_version);
 
   StartRead(oocMROW); // Start the transaction
 
@@ -82,12 +88,11 @@ ooStatus   LMS::AddAllTDV()
      cout << "AddTDV -I- Found container "<<contName<< endl;
      p = AMSJob::gethead()->getnodep(AMSID("TDV:",0));
      if (p == NULL) Fatal("AddTDV : cannot find the virtual top of timeid");
-     if (p -> down() == NULL) Fatal("AddTDV -E- AMSTDV == NULL");
+     if (p -> down() == NULL) Fatal("AddTDV : AMSTDV == NULL");
      tdvItr.scan(contH, Mode());
      integer nobj = 0;                    // number of TDV Objs
      if (tdvItr.next()) { nobj++; }
      if (nobj != 0) {                     // container isn't empty compare TDV 
-      //Message("AddTDV : compare TDV "); // compare TDV in memory and dbase 
       time_t     insertd, begind, endd;
       time_t     insert, begin, end;
       p = p -> down();
@@ -96,18 +101,14 @@ ooStatus   LMS::AddAllTDV()
        if (pp -> UpdateMe()) {             // write TDV ONLY with UpdateMe == 1
        id = p -> getid();
        name = p -> getname();
-       //pp -> gettime(insert, begin, end);
        uinteger crc  = pp -> getCRC();
        char pred[100];
        (void) sprintf(pred,"_id=%d && _name=~%c%s%c",id,'"',name,'"');
        cout<<"AddTDV : search for "<<pred<<endl;
        tdvItr.scan(contH, Mode(), oocAll, pred);
        while (tdvItr.next() ) {
-        //tdvItr -> GetTime(insertd, begind, endd);
-        //if (begin == begind && end == endd) {
          uinteger crcd = tdvItr -> getCRC();
          if (crc != crcd) {
-          //tdvItr -> update(pp);
           Message("AddTDV : CRC is different, do update later");
          } else {
           if (insert != insertd ) Message
@@ -115,7 +116,6 @@ ooStatus   LMS::AddAllTDV()
           pp -> UpdateMe() = 0;     // reset UpdateMe
           break;
          }
-         //}
        } // iterate over all obj with pred for the container and reset 
          // UpdateMe if CRC and CRC of database object are the same
       }  // if UpdateMe for the Obj is 1
@@ -126,9 +126,10 @@ ooStatus   LMS::AddAllTDV()
    rstatus = oocSuccess;
   }      // for all TDV databases.
   Commit();
+
   // assume there are some object that haven't been found. They will be stored
   // in the last TDV database
-  StartUpdate(); // Start the transaction
+  StartUpdate();                                      // Start the transaction
   dbH = dbTabH -> currentDB(dbtdv);
   int status = Container(dbH, contName, contH);
   if (status != -1) {
@@ -168,72 +169,87 @@ ooStatus   LMS::FillTDV(integer ntdv)
 //
 {
 	ooStatus 	       rstatus = oocError;	// Return status
-        ooHandle(AMSdbs)       dbTabH;
+        ooHandle(AMSdbs)       dbTabH;                  // handle to dbcatalog
         ooHandle(ooDBObj)      dbH;                     // tdv dbase
         ooHandle(ooContObj)    contH;                   // TDV container
         ooItr(AMSTimeIDD)      tdvItr;                  // TDVObj iterator
-        int                    i, j;
+        int                    i, j, k;
 
   char* contName;
   if (simulation()) 
-   contName = StrDup("Time_Dep_Var_S");
+   contName = StrCat("Time_Dep_Var_S",_version);
   else
-   contName = StrDup("Time_Dep_Var");
+   contName = StrCat("Time_Dep_Var",_version);
   cout <<"FillTDV -I-  container "<<contName<<endl;
   
   StartRead(oocMROW);
   dbTabH = Tabdb();
   if (dbTabH == NULL) Fatal("FillTDV : dbTabH is NULL");
   integer ntdvdbs = dbTabH -> size(dbtdv);          // number of TDV dbases
-  short   nobj = 0;                                 // number of TDV Objs
+  integer nobj   = 0;                               // number of tdv objects
+  integer nnobj  = 1;                               // number of hundreds
+  integer nobj_0 = 100;                             // initital size of array
+  time_t  insert, begin, end;
+  tdv_time*   tdvt;
+  tdv_time*   tdv;
+  tdvt = new tdv_time[nobj_0];
+
   for (i=0; i<ntdvdbs; i++) {
     dbH = dbTabH -> getDB(dbtdv,i);                 // current container
     if (dbH == NULL) Fatal("FillTDV : Cannot open tdv dbase ");
     if (contH.exist(dbH, contName, oocRead)) {
      rstatus = tdvItr.scan(contH, oocRead);
-     while (tdvItr.next()) {nobj++;}
-    }
-  }
-  cout <<"FillTDV -I- found "<<nobj<<" TDV objects"<<endl;
-  if (nobj < 1) Fatal("FillTDV : TDV containers is empty");
-  tdv_time *tdv       = new tdv_time[nobj];
-  integer  *ptr_start = new integer[ntdv];
-  integer  *ptr_end   = new integer[ntdv];
-
-  int jj       = 0;
-  int jj_start = 0;
-  for (i=0; i<ntdv; i++) {
-   ptr_start[i] = -1;       
-   ptr_end[i]   = -1;       
-   jj_start     = jj;
-   char pred[256];
-   (void) 
-   sprintf(pred,"_id=%d && _name=~%c%s%c",tdvIdTab[i],'"',tdvNameTab[i],'"');
-   //(void) sprintf(pred,"_name=~%c%s%c",'"',tdvNameTab[i],'"');
-   cout<<"FillTDV : search for "<<pred<<endl;
-   for ( j=0; j<ntdvdbs; j++) {
-     dbH = dbTabH -> getDB(dbtdv,j);
-     if (dbH == NULL) Fatal("FillTDV : Cannot open tdv dbase ");
-     if (contH.exist(dbH, contName, oocRead)) {
-      rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
-      if (rstatus != oocSuccess) Fatal("FillTDV : container scan failed");
-      time_t  insert, begin, end;
-      while (tdvItr.next()) {
-       tdvItr -> GetTime(insert, begin, end);
-       tdv[jj]._insert = insert;
-       tdv[jj]._begin  = begin;
-       tdv[jj]._end    = end;
-       tdv[jj]._size   = tdvItr -> getsize();
-       jj++;
-       ptr_end[i] = jj;       
+     while (tdvItr.next()) {
+      char* name = tdvItr -> getname();
+      tdvt[nobj].setname(name);
+      tdvItr -> GetTime(insert, begin, end);
+      tdvt[nobj].settime(insert, begin, end);
+      tdvt[nobj]._size   = tdvItr -> getsize();
+      tdvt[nobj]._id     = tdvItr -> getid();
+      nobj++;
+      if (nobj == nobj_0*nnobj) {
+       tdv = new tdv_time[nobj_0*nnobj];
+       for (k=0; k<nobj_0*nnobj; k++) {tdv[k] = tdvt[k];}
+       delete [] tdvt;
+       nnobj++;
+       tdvt = new tdv_time[nobj_0*nnobj];
+       for (k=0; k<nobj_0*(nnobj-1); k++) {tdvt[k] = tdv[k];}
+       delete [] tdv;
       }
      }
+    }
    }
-   if (ptr_end[i] > 0) ptr_start[i] = jj_start;
-  }
+    cout <<"FillTDV -I- found "<<nobj<<" TDV objects"<<endl;
+    if (nobj < 1) Fatal("FillTDV : TDV containers are empty");
+
+    tdv                 = new tdv_time[nobj];
+    integer  *ptr_start = new integer[ntdv];
+    integer  *ptr_end   = new integer[ntdv];
+    integer   jj        = 0;
+    for (i=0; i<ntdv; i++) {
+     ptr_start[i] = -1;
+     ptr_end[i]   = -1;
+     int jj_start = jj;
+     for (k=0; k<nobj; k++) {
+      char* name = tdvt[k].getname();
+      if (strcmp(tdvNameTab[i],name) == 0) {
+       if (tdvIdTab[i] == tdvt[k].getid()) {
+        tdv[jj] = tdvt[k];
+        jj++;
+        ptr_end[i] =jj;
+       }
+      }
+     }
+     if (ptr_end[i] > 0) ptr_start[i] = jj_start;
+    }
+   delete [] tdvt; 
 
    AMSJob::FillJobTDV(nobj, tdv);
    AMSJob::SetTDVPtrs(ptr_start, ptr_end);
+
+   delete [] tdv;
+   if (ptr_start) delete [] ptr_start;
+   if (ptr_end)   delete [] ptr_end;
 
    rstatus = oocSuccess;
 
@@ -245,10 +261,10 @@ ooStatus   LMS::FillTDV(integer ntdv)
 
 }
 
-ooStatus   LMS::ReadTDV
-             (char* tdvname, time_t I, time_t B, time_t E, uinteger* buff)
+ooStatus   LMS::ReadTDV(char* tdvname, integer id, 
+                        time_t I, time_t B, time_t E, uinteger* buff)
 //
-// find TDV (with name && I,B,E) in database and copy to buff
+// find TDV (with name && id && I,B,E) in database and copy to buff
 // 
 //
 {
@@ -257,14 +273,13 @@ ooStatus   LMS::ReadTDV
         ooHandle(ooDBObj)      dbH;                     // tdv dbase
         ooHandle(ooContObj)    contH;                   // TDV container
         ooItr(AMSTimeIDD)      tdvItr;                  // TDVObj iterator
+        char*                  contName;
+        integer                found = 0;
 
-        integer                nobj = 0;                // number of TDVObj
-
-  char* contName;
   if (simulation()) 
-   contName = StrDup("Time_Dep_Var_S");
+   contName = StrCat("Time_Dep_Var_S",_version);
   else
-   contName = StrDup("Time_Dep_Var");
+   contName = StrCat("Time_Dep_Var",_version);
   cout <<"ReadTDV -I-  container "<<contName<<endl;
   
   StartRead(oocMROW);
@@ -272,8 +287,8 @@ ooStatus   LMS::ReadTDV
   if (dbTabH == NULL) Fatal("ReadTDV : dbTabH is NULL");
   integer ntdvdbs = dbTabH -> size(dbtdv);          // number of TDV dbases
   char pred[120];
-  (void) sprintf(pred,"_Insert=%d && _Begin=%d && _End=%d &&_name=~%c%s%c",
-                 I,B,E,'"',tdvname,'"');
+  (void) sprintf(pred,"_Insert=%d && _Begin=%d && _End=%d && _id=%d &&_name=~%c%s%c",
+                 I,B,E,id,'"',tdvname,'"');
   cout<<"ReadTDV -I- search for "<<pred<<endl;
   for (int i=0; i<ntdvdbs; i++) {
    dbH = dbTabH -> getDB(dbtdv,i);
@@ -281,19 +296,17 @@ ooStatus   LMS::ReadTDV
    if (contH.exist(dbH, contName, oocRead)) {
     rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
     if (rstatus != oocSuccess) Fatal("ReadTDV : container scan failed");
-    time_t  insert, begin, end;
     while (tdvItr.next()) {
       cout<<"ReadTDV -I- found TDV in database for "<<tdvname<<endl;
       tdvItr -> PrintTime();
       tdvItr -> copy(buff);
-      rstatus = oocSuccess;
+      found = 1;
       break;
     }
    }
-   if (rstatus == oocSuccess) break;
+   if (found == 1) break;
   }
-  if (rstatus != oocSuccess) 
-     cout<<"ReadTDV -W- cannot find TDV in database for "<<tdvname<<endl;
+  if(found != 1) Message("ReadTDV : cannot find TDV in database");
 
   Commit();
 

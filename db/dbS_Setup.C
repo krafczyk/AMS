@@ -16,7 +16,7 @@
 // May  05, 1997. ak. separate file for setup
 // July 01, 1997. ah. CmpGeometry method implemented
 //
-// last edit Nov 06, 1997, ak.
+// last edit Nov 28, 1997, ak.
 //
 
 #include <stdio.h>
@@ -36,9 +36,8 @@
 #include <db_comm.h>
 #include <dbS.h>
 
-#include <event.h>
-#include <job.h>
-
+//#include <event.h>
+//#include <job.h>
 
 #include <db_comm.h>
 
@@ -102,7 +101,7 @@ ooItr(AMSgmatD)        gmatItr;                 // material
 ooItr(AMSgtmedD)       gtmedItr;                // tmedia
 
 ooItr(AMSDBcD)         amsdbcItr;               // amsdbc
-ooItr(AntiDBcD)        antidbcItr;               // amsdbc
+ooItr(AntiDBcD)        antidbcItr;              // antidbc
 ooItr(TOFDBcD)         tofdbcItr;               // tofdbc
 ooItr(AMScommonsD)     commonsItr;              // commons
 ooItr(CTCDBcD)         ctcdbcItr;               // ctcdbc
@@ -139,6 +138,7 @@ ooStatus LMS::WriteGeometry()
   AMSgvolume *             cur;
   integer                  i=0;
   integer                  pos;
+  char       *             contName;
 
   AMSgvolume * pg = AMSJob::gethead() -> getgeom();
   if (pg == NULL) return rstatus;
@@ -148,7 +148,7 @@ ooStatus LMS::WriteGeometry()
   char *setup = StrDup(_setup);
   if(!_setup) Fatal("WriteGeometry : invalid setup name");
   if(dbg_prtout) cout <<"WriteGeometry -I- setup "<<setup<<endl;
-  char* contName = StrCat("Geometry_",setup);
+  contName = StrCat3("Geometry_",setup,_version);
 
   // check container
   ooHandle(ooDBObj)    dbH = setupdb();
@@ -271,7 +271,7 @@ ooStatus LMS::CopyGeometry()
   char *setup = StrDup(_setup);
   cout <<"LMS::CopyGeometry -I- setup name "<<setup<<endl;
 
-  char* contName = StrCat("Geometry_",setup);
+  char* contName = StrCat3("Geometry_",setup,_version);
   cout <<"LMS::CopyGeometry -I- container "<<contName<<endl;
 
   ooHandle(ooDBObj) dbH = setupdb();
@@ -458,7 +458,7 @@ ooStatus   LMS::AddMaterial()
          // get setup and container names
          //char* setup = AMSJob::gethead() -> getsetup();
          char *setup = StrDup(_setup);
-         char* contName = StrCat("Materials_",setup);
+         char* contName = StrCat3("Materials_",setup,_version);
          if(setup) delete [] setup;  
 
          // check container
@@ -545,7 +545,7 @@ ooStatus   LMS::AddTMedia()
           char *setup = StrDup(_setup);
           if(!setup) Fatal("AddTMedia: invalid setup name");
           if(dbg_prtout) cout <<"AddTmedia -I- setup "<<setup<<endl;
-          char* contName = StrCat("TMedia_",setup);
+          char* contName = StrCat3("TMedia_",setup,_version);
           if(setup) delete [] setup;  
 
           // check container
@@ -623,7 +623,7 @@ ooStatus   LMS::Addamsdbc()
         //char* setup = AMSJob::gethead() -> getsetup();
         char *setup = StrDup(_setup);
         cout <<"LMS::Addamsdb -I- setup name "<<setup<<endl;
-        char* contName = StrCat("amsdbc_",setup);
+        char* contName = StrCat3("amsdbc_",setup,_version);
         if(setup) delete [] setup;  
 
         // check container
@@ -740,7 +740,7 @@ ooStatus   LMS::ReadMaterial()
         // get setup name
         char *setup = StrDup(_setup);
         if(dbg_prtout) cout <<"ReadMaterial -I- setup "<<setup<<endl;
-        char* contName = StrCat("Materials_",setup);
+        char* contName = StrCat3("Materials_",setup,_version);
         if(setup) delete [] setup;  
         if(dbg_prtout) cout <<"ReadMaterial -I-  container "<<contName<<endl;
         integer status = Container(dbH, contName, contgmatH);
@@ -808,7 +808,7 @@ ooStatus   LMS::ReadTMedia()
         Message("ReadTMedia : read started");
         char *setup = StrDup(_setup);
         if(dbg_prtout) cout <<"ReadTMedia -I- setup "<<setup<<endl;
-        char* contName = StrCat("TMedia_",setup);
+        char* contName = StrCat3("TMedia_",setup,_version);
         if(dbg_prtout) cout <<"ReadTMedia -I- container "<<contName<<endl;
         integer status = Container(dbH, contName, contgtmedH);
         if (status == -1) {
@@ -871,8 +871,8 @@ void LMS::CheckConstants()
         dbH = setupdb();
         if (dbH == NULL) Fatal("CheckConstants : Cannot open setup dbase ");
 
-        char *setup = StrDup(_setup);
-        contName = StrCat("amsdbc_",setup);
+        char *setup    = StrDup(_setup);
+        contName = StrCat3("amsdbc_",setup,_version);
         if(setup) delete [] setup;  
         if (!contH.exist(dbH, contName, oocRead)) {
          rstatus = oocError;
@@ -943,8 +943,8 @@ void LMS::CheckCommons()
         dbH = setupdb();
         if (dbH == NULL) Fatal("CheckConstants : Cannot open setup dbase ");
 
-        char *setup = StrDup(_setup);
-        contName = StrCat("amsdbc_",setup);
+        char *setup    = StrDup(_setup);
+        contName = StrCat3("amsdbc_",setup,_version);
         if(setup) delete [] setup;  
         if (!contH.exist(dbH, contName, oocRead)) {
          rstatus = oocError;
@@ -989,7 +989,7 @@ ooStatus LMS::ReadTKDBc()
         if (dbH == NULL) Fatal("ReadTKDBC : Cannot open setup dbase ");
 
         char *setup = StrDup(_setup);
-        contName = StrCat("amsdbc_",setup);
+        contName = StrCat3("amsdbc_",setup,_version);
         if(setup) delete [] setup;  
         if (!contH.exist(dbH, contName, oocRead)) {
          rstatus = oocError;

@@ -5,7 +5,7 @@
 // some basic types used in rd45 programms
 // D.Duellmann
 //
-// $Id: rd45.h,v 1.2 1997/06/27 08:13:35 alexei Exp $
+// $Id: rd45.h,v 1.3 1997/12/09 18:32:34 alexei Exp $
 //
 // add AMS related functions .  A.Klimentov May, 1997.
 //
@@ -35,6 +35,16 @@ inline char *StrCat(const char *str, const char* prefix)
   nstr = new char[strlen(str) + strlen(prefix)+1];
   strcpy(nstr,str);
   strcat(nstr,prefix);
+  return nstr;
+}
+
+inline char *StrCat3(const char *str1, const char* str2, const char* str3)
+{
+  char *nstr;
+  nstr = new char[strlen(str1) + strlen(str2)+ strlen(str3) + 1];
+  strcpy(nstr,str1);
+  strcat(nstr,str2);
+  strcat(nstr,str3);
   return nstr;
 }
 

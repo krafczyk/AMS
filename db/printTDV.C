@@ -109,18 +109,34 @@ static char    *tdvnames[] = {
 class tdv_time {
 
   public :
+   char*   _name;
    integer _id;
    time_t  _insert;
    time_t  _begin;
    time_t  _end;
    integer _size;
-  //
+   ooRef(AMSTimeIDD) _ref;
+
+// methods
   tdv_time() {_insert = _begin = _end = 0;}
-  tdv_time(time_t insert, time_t begin, time_t end) {
+  gettime(time_t &insert, time_t &begin, time_t &end) {
+    insert = _insert;
+    begin  = _begin;
+    end    = _end;
+  }
+  settime(time_t insert, time_t begin, time_t end) {
     _insert = insert;
     _begin  = begin;
     _end    = end;
   }
+  setH(ooHandle(AMSTimeIDD)  &H) {_ref = H;}
+  setname(char* name) {if (name) {
+                        _name = new char[strlen(name)+1];
+                        strcpy (_name,name);
+   }
+  }
+  char* getname() {return _name;}
+//
 };
 
 const int ntdv = 21;
@@ -129,48 +145,6 @@ static tdv_time*              tdv;
 static integer                ptr_start[ntdv];
 static integer                ptr_end[ntdv];
 
-void FindTheBestTDV(char* name, time_t timeV, integer S,
-                    time_t &I, time_t &B, time_t &E) 
-{
-  for (int i=0; i<ntdv; i++) {
-    if(strcmp(name,tdvnames[i]) == 0) {
-       integer  ptr = -1;
-       time_t   insert = 0;
-       for (int j=ptr_start[i]; j<ptr_end[i]; j++) {
-       if (timeV >= tdv[j]._begin && timeV <= tdv[j]._end) {
-        if (ptr_end[i] - ptr_start[i] - 1 != 0) {
-         if (insert == 0) {
-          insert = tdv[j]._insert;
-          ptr    = j;         
-         } else {
-          if (insert < tdv[i]._insert) {
-           insert = tdv[i]._insert;
-           ptr    = j;
-          }
-         }
-        } else {
-         ptr = j;
-        }
-       }
-      }
-      if (ptr > -1) {
-       I = tdv[ptr]._insert;
-       B = tdv[ptr]._begin;
-       E = tdv[ptr]._end;
-       S = tdv[ptr]._size;
-       cout <<"found TDV for "<<tdvnames[i]<<" with size "<<S<<endl;
-       cout<<"i/b/e "<<asctime(localtime(&tdv[ptr]._insert))
-           <<"      "<<asctime(localtime(&tdv[ptr]._begin))
-           <<"      "<<asctime(localtime(&tdv[ptr]._end))<<endl;
-      } else {
-        cout <<"cannot find TDV for "<<name<<endl;
-        cout <<"time "<<asctime(localtime(&timeV))<<endl;
-      }
-    break;
-    }
-  }
-}
-
 implement (ooVArray, ooRef(ooDBObj))
 
 int main(int argc, char** argv)
@@ -178,6 +152,7 @@ int main(int argc, char** argv)
 
  ooStatus rstatus = oocSuccess;
  ooMode   mode    = oocRead;
+ tdv_time* tdvt;
 
  char*                  dbase = "TDV";
  char*                  printMode = "S";
@@ -195,7 +170,7 @@ int main(int argc, char** argv)
  ooItr(ooContObj)       contItr;
  ooItr(AMSTimeIDD)      tdvItr;
  
- int                    i, j;
+ int                    i, j, k;
 
  cptr = getenv("OO_FD_BOOT");
  if (!cptr) Fatal("environment OO_FD_BOOT in undefined");
@@ -232,78 +207,77 @@ int main(int argc, char** argv)
                                             <<endl;
 
  integer ntdvdbs = dbTabH -> size(dbtdv);
-
  integer nobj = 0;
+ integer nnobj  = 1; 
+ integer nobj_0 = 100;
+ tdvt = new tdv_time[nobj_0];
+
  for (j = 0; j < ntdvdbs; j++) {
   dbH = dbTabH -> getDB(dbtdv,j);
   if (!dbH) Fatal ("Pointer to selected dbase is NULL");
   if (contH.exist(dbH, contName, oocRead)) {
-    cout <<"found container "<<contName<<endl;
-    rstatus = tdvItr.scan(contH, oocRead);
-    while (tdvItr.next()) nobj++;
+   cout <<"found container "<<contName<<endl;
   } else {
-    cout <<"cannot find container "<<contName<<", try to find by substring"
+   cout <<"cannot find container "<<contName<<", try to find by substring"
          <<endl;
-  rstatus = contItr.scan(dbH,oocNoOpen);
-  if (rstatus != oocSuccess) Fatal("database scan failed");
+   rstatus = contItr.scan(dbH,oocNoOpen);
+   if (rstatus != oocSuccess) Fatal("database scan failed");
    while (contItr.next()) {
     contH = contItr;
     if (strstr(contH.name(),contName) != NULL) {
      cout <<"found container (by sstring) "<<contName<<endl;
-      rstatus = tdvItr.scan(contH, oocRead);
-      while (tdvItr.next()) nobj++;
     }
    }
   }
+      rstatus = tdvItr.scan(contH, oocRead);
+      while (tdvItr.next()) {
+       char* name = tdvItr -> getname();
+       tdvt[nobj].setname(name);
+       tdvItr -> GetTime(insert, begin, end);
+       tdvt[nobj].settime(insert, begin, end);
+       tdvt[nobj]._size   = tdvItr -> getsize();
+       tdvt[nobj]._id     = tdvItr -> getid();
+       ooHandle(AMSTimeIDD) H = tdvItr;
+       tdvt[nobj].setH(H);
+       nobj++;
+       if (nobj == nobj_0*nnobj) {
+        tdv = new tdv_time[nobj_0*nnobj];
+        for (k=0; k<nobj_0*nnobj; k++) {tdv[k] = tdvt[k];}
+        delete [] tdvt;
+        nnobj++;
+        tdvt = new tdv_time[nobj_0*nnobj];
+        for (k=0; k<nobj_0*(nnobj-1); k++) {tdvt[k] = tdv[k];}
+        delete [] tdv;
+       }
+      }
  }
  cout <<"found "<<nobj<<" TDV objects in "<<ntdvdbs<<" files"<<endl;
+
  tdv = new tdv_time[nobj];
  int jj = 0;
- int jj_start;
  for (i=0; i<ntdv; i++) {
-  jj_start = jj;
-  char name[80];
-  char pred[100];
-  strcpy(name,tdvnames[i]);
-  (void) sprintf(pred,"_name=~%c%s%c",'"',name,'"');
-  cout<<"TDV : search for "<<pred<<endl;
   ptr_start[i] = -1;
   ptr_end[i]   = -1;
-  for (j = 0; j < ntdvdbs; j++) {
-   dbH = dbTabH -> getDB(dbtdv,j);
-   if (!contH.exist(dbH, contName, oocRead)) {
-    rstatus = contItr.scan(dbH,oocNoOpen);
-    if (rstatus != oocSuccess) Fatal("database scan failed");
-    while (contItr.next()) {
-     contH = contItr;
-     if (strstr(contH.name(),contName) != NULL) break;
-    }
-   }
-   rstatus = tdvItr.scan(contH, oocRead, oocAll, pred);
-   if (rstatus != oocSuccess) Fatal("container scan failed");
-    while (tdvItr.next()) {
-     tdvItr -> GetTime(insert, begin, end);
-     tdv[jj]._insert = insert;
-     tdv[jj]._begin  = begin;
-     tdv[jj]._end    = end;
-     tdv[jj]._size   = tdvItr -> getsize();
-     tdv[jj]._id     = tdvItr -> getid();
+  int jj_start = jj;
+  for (k=0; k<nobj; k++) {
+    char* name = tdvt[k].getname();
+    if (strcmp(tdvnames[i],name) == 0) {
+     tdv[jj] = tdvt[k];
      jj++;
-     ptr_end[i] = jj;
+     ptr_end[i] =jj;
     }
-   if (ptr_end[i] > 0) ptr_start[i] = jj_start;
   }
+  if (ptr_end[i] > 0) ptr_start[i] = jj_start;
  }
+ delete [] tdvt; 
 
- lms.Commit();
  for (i=0; i< ntdv; i++) {
-   cout<<tdvnames[i]<<", found "<<ptr_end[i]-ptr_start[i]<<" objects"<<endl;
-   for (int j=ptr_start[i];j<ptr_end[i];j++) {
+   cout<<tdvnames[i]<<endl;
+   for (int j=ptr_start[i]; j<ptr_end[i]; j++) {
      cout<<"id... "<<tdv[j]._id<<endl;
-     cout<<"i/b/e "<<asctime(localtime(&tdv[j]._insert))
-         <<"      "<<asctime(localtime(&tdv[j]._begin))
-         <<"      "<<asctime(localtime(&tdv[j]._end))<<endl;
+     ooRef(AMSTimeIDD) ref = tdv[j]._ref;
+     if (ref) ref -> PrintTime();
    }
- }
+ }  
+ lms.Commit();
 }
-

@@ -3,7 +3,7 @@
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 // add TDV/dbase version October 1, 1997. a.k.
 //
-// Last Edit : Oct 6, 1997. ak.
+// Last Edit : Nov 26, 1997. ak.
 //
 #include <trrawcluster.h>
 #include <typedefs.h> 
@@ -1233,10 +1233,11 @@ AMSTimeID * offspring=(AMSTimeID*)ptid->down();
 while(offspring){
     if (AMSJob::gethead()->isReadSetup()) {
      char *name=offspring -> getname();
+     int  id   =offspring -> getid();
      time_t I, B, E;
      time_t i, b, e;
      integer S;
-     int rstat = AMSJob::FindTheBestTDV(name, _time, S, I, B, E); 
+     int rstat = AMSJob::FindTheBestTDV(name, id, _time, S, I, B, E); 
      if (rstat) {
        offspring -> gettime(i,b,e);
        if (i==I && b==B && e==E) {
@@ -1253,7 +1254,7 @@ while(offspring){
          cerr<<"       "<<ctime(&E)<<endl;
          uinteger* buff = new uinteger[S];
          cout<<"EventTime "<<ctime(&_time)<<endl;
-         int rstatus = lms -> ReadTDV(name, I, B, E, buff);
+         int rstatus = lms -> ReadTDV(name, id, I, B, E, buff);
          if (rstatus == oocSuccess) {
            offspring -> CopyIn((uinteger*)buff);
            offspring -> SetTime(I,B,E);

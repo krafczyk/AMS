@@ -16,7 +16,7 @@
 // June  , 1997 ak.  dbase size limitation, dbcatalog, db paths
 // Oct   , 1997 ak.  tdv database
 //
-// last edit Oct 14, 1997, ak.
+// last edit Dec 9, 1997, ak.
 //
 
 #include <stdio.h>
@@ -42,7 +42,6 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
     ooHandle(ooContObj)       contH;
     ooHandle(AMSdbs)          dbTabH;
     char                      *contName;
-    char                      *message;
     char                      *cptr;
     char                      *dbpathname;
 
@@ -90,7 +89,7 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
 
       // check the material container and database size (I write material
       // first if it exists I suppose others (geometry, tmed) exist also
-      contName = StrCat("Materials_",_setup);
+      contName = StrCat3("Materials_",_setup,_version);
       cout<<"ClusteringInit -I- check container "<<contName<<endl;
       int jj = 0;
       for (int j = 0; j < nsetupdbs; j++) {
@@ -129,9 +128,9 @@ ooStatus LMS::ClusteringInit(ooMode mode, ooMode mrowmode)
      cout<<"ClusteringInit :: tdv database(s) found "<<ntdvdbs<<endl;
 
      if (simulation() ) 
-        contName = StrDup("Time_Dep_Var_S");
+        contName = StrCat("Time_Dep_Var_S",_version);
      else 
-        contName = StrDup("Time_Dep_Var");
+        contName = StrCat("Time_Dep_Var",_version);
      if (ntdvdbs < 1) {  // no TDV databases found
        cptr = getenv("AMS_TDVDB_Path");
        if ( cptr ) 

@@ -627,15 +627,19 @@ extern "C" void initDB()
      mode = oocRead;
      mrowmode = oocMROW;
    }
-   char* jobname = AMSJob::gethead()-> getname();
+   char* jobname   = AMSJob::gethead()-> getname();
    char* setup     = AMSJob::gethead() -> getsetup();
    int   jobtype   = AMSJob::gethead() -> AMSJob::jobtype();
+   char* version   = AMSCommonsI::getversion();
+
    cout <<"_uginit -I- LMS init for job     "<<jobname<<endl;
    cout <<"                         setup   "<<setup<<endl;
    cout <<"                         jobtype "<<jobtype<<endl;
+   cout <<"                         version "<<version<<endl;
    dbout.setapplicationName(jobname);
    dbout.setprefix(jobname);
    dbout.setsetup(setup);
+   dbout.setversion(version);
    dbout.setjobtype(jobtype);
    dbout.settypeR(eventR);
    dbout.settypeW(eventW);

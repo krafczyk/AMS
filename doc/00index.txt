@@ -17,6 +17,7 @@ id.doc              // id class
 job.doc             // job class
 known_bugs.doc      // known bugs
 mccluster.doc       // mccluster classes
+moveFD.doc          // how to move FD to end-user
 node.doc            // mode class
 ntuple.doc          // ntuple description
 particle.doc        // particle reconstruction

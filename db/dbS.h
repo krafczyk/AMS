@@ -17,7 +17,7 @@
 //                  'short' version (setups only)
 //                  add tdv dbase
 //
-// Last Edit Nov 19, 1997. ak.
+// Last Edit Nov 26, 1997. ak.
 //
 #ifndef LMSSESSION_H
 #define LMSSESSION_H
@@ -38,6 +38,7 @@ private:
        char              *_applicationName;
        char              *_prefix;
        char              *_setup;
+       char              *_version;
        integer           _jobtype;
        integer           _applicationTypeR; // see db_comm.h for details
        integer           _applicationTypeW; // see db_comm.h for details
@@ -78,8 +79,8 @@ public:
         ooStatus        CopyGeometry();
 	ooStatus	ReadMaterial();
 	ooStatus	ReadTMedia();
-	ooStatus	ReadTDV(char* name, time_t I, time_t B, time_t E, 
-                                uinteger* buff);
+	ooStatus	ReadTDV(char* name, integer id, 
+                                time_t I, time_t B, time_t E, uinteger* buff);
         ooStatus        ReadTKDBc();
 
 	ooStatus	DeleteSetup(char* setup);
@@ -102,10 +103,14 @@ public:
   void     setsetup(const char *setup)   {
                                           if (_setup) delete [] _setup;
                                           _setup  = StrDup(setup);}
+  void     setversion(const char *version)   {
+                                          if (_version) delete [] _version;
+                                          _version  = StrCat("_",version);}
   void     settypeR(const integer atype)  {_applicationTypeR = atype;}
   void     settypeW(const integer atype)  {_applicationTypeW = atype;}
   integer  applicationtypeR()             {return _applicationTypeR;}
   integer  applicationtypeW()             {return _applicationTypeW;}
+  char*    getversion()                   { return _version;}
 
   integer setup(ooMode mode);
   integer slow(ooMode mode);

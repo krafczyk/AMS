@@ -1,9 +1,13 @@
 // Author A. Klimentov  10-Apr-1997
 //
 //
-// Last Edit: Nov 14, 1997 ak.
+// Last Edit: Dec 3, 1997 ak.
 //
+#include <iostream.h>
+#include <string.h>
 #include <typedefs.h>
+#include <sys/time.h>
+#include <sys/times.h>
 #include <cern.h>
 
 
@@ -36,7 +40,7 @@ void    setevent(uinteger event)  {_eventNumber = event;}
 void    settime(time_t time)      {_time = time;}
 
 void print() { cout<<"run, event,time... "<<_run<<", "<<_eventNumber
-                   <<", "<<time<<endl;}
+                   <<", "<<asctime(localtime(&_time))<<endl;}
 
 };
 
