@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.38 2002/10/18 09:59:31 mdelgado Exp $
+//  $Id: richrec.C,v 1.39 2002/10/30 14:57:10 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -87,7 +87,7 @@ void AMSRichRawEvent::mc_build(){
 	geant pedestal=nnoisy>0?AMSRichMCHit::noise(channel,1):AMSRichMCHit::adc_empty(channel,1);
 	geant signal=AMSRichMCHit::adc_hit(nhits,channel,1);
 	AMSRICHIdSoft calibration(channel);
-	integer threshold;
+	geant threshold;
 	integer mode=1;
 
 	if(integer(signal+pedestal)>calibration.getboundary()){
@@ -97,7 +97,7 @@ void AMSRichRawEvent::mc_build(){
 	  signal*=calibration.getgain(0)/calibration.getgain(1);
 	}
 
-	threshold=integer(calibration.getthreshold(mode)*calibration.getsped(mode)+calibration.getped(mode));
+	threshold=calibration.getthreshold(mode)*calibration.getsped(mode)+calibration.getped(mode);
 
 	nnoisy=0;
 	nhits=0;
@@ -153,6 +153,7 @@ void AMSRichRawEvent::mc_build(){
 }
 
 
+
 void AMSRichRawEvent::_writeEl(){
   
   AMSRICHIdGeom channel(_channel);
@@ -184,7 +185,7 @@ void AMSRichRawEvent::_writeEl(){
 void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
                                   AMSDir direction,AMSDir direction_ref,
 				  geant betamin,geant betamax,
-				  geant *betas){
+				  geant *betas,geant index){
 
   // Reconstruct the beta values for this hit. Assumes direction as unitary
   static const geant z=RICradpos-RICHDB::rad_height-RICHDB::foil_height-
@@ -196,15 +197,13 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   geant x=channel.x();
   geant y=channel.y();
 
-#ifdef __AMSDEBUG__
-  cout <<" Z by hand:"<<z<<"    according to richid:"<<channel.z()<<endl;
-#endif
-
-
   betas[0]=0;
   betas[1]=0;
   betas[2]=0;
-  
+  _beta_hit[0]=betas[0];
+  _beta_hit[1]=betas[1];
+  _beta_hit[2]=betas[2];
+
   //---------------------------------------------------------
   
   // * Direct case: it uses the Newton algorithm to find the zero of the
@@ -231,13 +230,13 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
   static const geant H=RICHDB::rich_height+RICHDB::foil_height+
                        RICradmirgap+RIClgdmirgap
                        -RICHDB::foil_height;   // Correction due to high index
-  static const geant n=RICHDB::rad_index;
+  static const geant n=index;
   
   geant u=fabs(sin(theta)/n);
   integer time_out=0;
   geant delta=1,f,g;
 
-  while(delta>1e-5 && time_out<10){
+  while(delta>1e-5 && time_out<10){   /// WARNING HERE: IT SHOULT BE fabs???
     f=R-h*u/sqrt(1-u*u)-
       H*u*n/sqrt(1-n*n*u*u);
     
@@ -254,7 +253,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
     geant phi=atan2(y-origin[1],x-origin[0]);
     betas[0]=direction[0]*cos(phi)*u+
       direction[1]*sin(phi)*u-direction[2]*sqrt(1-u*u);
-    betas[0]=1/RICHDB::rad_index/betas[0];
+    betas[0]=1/index/betas[0];
     if(betas[0]<betamin){ // If the beta as direct is below threshold
       betas[0]=-2.;       // it is the primary passing through the LG so
       return;}            // stop the recontruction.
@@ -267,6 +266,7 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 
   integer j=1;
   AMSPoint puntos[8];
+
   integer max=reflexo(origin_ref,puntos);
 
   for(integer i=0;i<max;i++){
@@ -276,9 +276,9 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
 
     geant phi=atan2(dir[1],dir[0]);
     theta=atan2(sqrt(dir[0]*dir[0]+dir[1]*dir[1]),dir[2]);
-    u=sin(theta)/RICHDB::rad_index;
+    u=sin(theta)/index;
     dir.setp(u*cos(phi),u*sin(phi),-sqrt(1-u*u));
-    betas[j]=1/RICHDB::rad_index/(dir[0]*direction_ref[0]+
+    betas[j]=1/index/(dir[0]*direction_ref[0]+
 				  dir[1]*direction_ref[1]+
 				  dir[2]*direction_ref[2]);
 
@@ -295,9 +295,13 @@ void AMSRichRawEvent::reconstruct(AMSPoint origin,AMSPoint origin_ref,
     if(j==3) return;
 #endif    
   }
-#ifdef __AMSDEBUG__
-  if(j>3) cout <<"****** TOO MANY BETAS"<<endl;
-#endif
+
+  // Fill the current beta hit 
+  _beta_hit[0]=betas[0];
+  _beta_hit[1]=betas[1];
+  _beta_hit[2]=betas[2];
+
+
 }
 
 
@@ -403,11 +407,24 @@ integer AMSRichRawEvent::reflexo(AMSPoint origin,AMSPoint *ref_point){
 }
 
 
+
+
+// Default values... currently unused: filled during reconstruction
+number AMSRichRing::_index=1.05;
+number AMSRichRing::_height=3.;
+AMSPoint AMSRichRing::_entrance_p=AMSPoint(0,0,0);
+AMSDir   AMSRichRing::_entrance_d=AMSDir(0,0);
+geant   AMSRichRing::_clarity=0.0113;
+geant   *AMSRichRing::_abs_len=0;
+geant   *AMSRichRing::_index_tbl=0;
+int     _kind_of_tile=0;
+
 void AMSRichRing::build(){
 
-  // Build all the tracks
+  // Build all the tracks 
   
   AMSTrTrack *track;
+
 
   for(int id=0;;){
     track=(AMSTrTrack *)AMSEvent::gethead()->getheadC("AMSTrTrack",id++,1);
@@ -420,7 +437,6 @@ void AMSRichRing::build(){
 
 
 void AMSRichRing::build(AMSTrTrack *track,int cleanup){
-
   
   // All these arrays are for speed up the reconstruction
   // They should be move to a dynamic list (like the containers)
@@ -446,7 +462,8 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
   AMSPoint pnt(0.,0.,RICradpos);
   AMSDir dir(0.,0.,-1.);
 
-  int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->getnelem();
+  int bit=(AMSEvent::gethead()->getC("AMSRichRing",0))->
+getnelem();
   track->interpolate(pnt,dir,point,theta,phi,length);
       
   //============================================================
@@ -456,8 +473,35 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
   // This should be done better
   //  if(point[0]*point[0]+point[1]*point[1]>RICGEOM.top_radius*RICGEOM.top_radius)
   //    return;   
-  if(point[0]*point[0]+point[1]*point[1]>RICHDB::top_radius*RICHDB::top_radius) 
-    return;
+
+
+
+
+  RichRadiatorTile crossed_tile(track);
+
+
+  if(crossed_tile.getkind()==empty_kind) return;
+
+
+  _index=crossed_tile.getindex();
+  _height=crossed_tile.getheight();
+  _entrance_p=crossed_tile.getentrancepoint();
+  _entrance_d=crossed_tile.getentrancedir();
+  _clarity=crossed_tile.getclarity();
+  _abs_len=crossed_tile.getabstable();
+  _index_tbl=crossed_tile.getindextable();
+  _kind_of_tile=crossed_tile.getkind();
+
+
+  /******************* The previous lines substitutes all this code   */
+  //  if(point[0]*point[0]+point[1]*point[1]>RICHDB::top_radius*RICHDB::top_radius) 
+  //    return;
+
+
+
+
+  //  _index=RICHDB::rad_index;
+  //  _height=RICHDB::rad_height;
 
   
   //================================================
@@ -466,10 +510,9 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
   //   -If it fails use old parametrization
   //================================================
   
-  geant height_direct=RICHDB::mean_height();
-  geant height_reflected=height_direct-0.1; // 0.2 if NaF
-  
-  if(height_direct==-1.){   // Error in the computation
+
+
+  //    if(height_direct==-1.){   // Error in the computation
     
     //============================================================
     // PARAMETRISATION OF THE RECONSTRUCCION HEIGHT
@@ -478,27 +521,41 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
     // rayleigh scattering).
     // This parametrisation should not be use
     //============================================================
-    
-    const geant fd=exp(.78-1.23*RICHDB::rad_height+
-		       .131*RICHDB::rad_height*RICHDB::rad_height);
-    const geant fr=exp(.90-1.19*RICHDB::rad_height+
-		       .130*RICHDB::rad_height*RICHDB::rad_height);
+#ifdef __AMSDEBUG__    
+  /*      const geant fd=exp(.78-1.23*_height+
+  		       .131*_height*_height);
+      const geant fr=exp(.90-1.19*_height+
+  		       .130*_height*_height);
     
     // Distance from the bottom plane of radiator of the optimum 
     // reconstruction point. THIS SHOULD BE REOPTIMISED
     
-    height_direct=1/fd-RICHDB::rad_height/fabs(cos(theta))/
-      (exp(RICHDB::rad_height*fd/fabs(cos(theta)))-1);
-    height_reflected=1/fr-RICHDB::rad_height/fabs(cos(theta))/
-      (exp(RICHDB::rad_height*fr/fabs(cos(theta)))-1);
+      geant  height_direct=1/fd-_height/fabs(cos(theta))/
+        (exp(_height*fd/fabs(cos(theta)))-1);
+      geant  height_reflected=1/fr-_height/fabs(cos(theta))/
+        (exp(_height*fr/fabs(cos(theta)))-1);
     
     // Fine tunning
     
-    height_direct+=-.047+.14*RICHDB::rad_height-.073*
-      RICHDB::rad_height*RICHDB::rad_height;
-    height_reflected+=-.048+.06*RICHDB::rad_height-.071*
-      RICHDB::rad_height*RICHDB::rad_height;
-  }
+      height_direct+=-.047+.14*_height-.073*
+        _height*_height;
+      height_reflected+=-.048+.06*_height-.071*
+        _height*_height;
+  */
+  //  geant height_direct=RICHDB::mean_height();
+  //  cout <<"Original index "<<RICHDB::rad_index<<endl;
+  //  cout <<"Current "<<_index<<endl;
+
+  //  geant height_reflected=height_direct-.1;
+
+#endif
+
+  //  }
+  /*******************************************/
+
+
+
+
   
   
   //============================================================
@@ -511,27 +568,27 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
   
   // Parameters
   
-  geant A=(-2.81+13.5*(RICHDB::rad_index-1.)-18.*
-	   (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-    RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+  geant A=(-2.81+13.5*(_index-1.)-18.*
+	   (_index-1.)*(_index-1.))*
+    _height/(RICHDB::rich_height+RICHDB::foil_height+
 			RICradmirgap+RIClgdmirgap)*40./2.;
   
-  geant B=(2.90-11.3*(RICHDB::rad_index-1.)+18.*
-	   (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-    RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+  geant B=(2.90-11.3*(_index-1.)+18.*
+	   (_index-1.)*(_index-1.))*
+    _height/(RICHDB::rich_height+RICHDB::foil_height+
 			RICradmirgap+RIClgdmirgap)*40./2.;
   
   
   // Reconstruction threshold: maximum beta admited
-  //  geant betamax=1.+3.e-2*(A+B);
-  geant betamax=1.+5.e-2*(A+B);
+  geant betamax=1.+3.e-2*(A+B);
+    //geant betamax=1.+5.e-2*(A+B);
 
 
   // Next obtained by Casaus: minimum beta admited to avoid noise caused
   // by the particle going through the PMTs
-  //    geant betamin=(1.+0.05*(RICHDB::rad_index-1.))/RICHDB::rad_index;
+  //    geant betamin=(1.+0.05*(_index-1.))/_index;
   // Value corrected by Carlos D.
-  geant betamin=(1.+RICthreshold*(RICHDB::rad_index-1.))/RICHDB::rad_index;
+  geant betamin=(1.+RICthreshold*(_index-1.))/_index;
   
   
   
@@ -539,21 +596,50 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
   // The reconstruction starts here
   //==================================================
   
+
   // Reconstructing it as direct
-  
-  pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+height_direct);
-  
-  
+
+
   AMSPoint dirp,refp;
-  track->interpolate(pnt,dir,dirp,theta,phi,length);
+  AMSDir   dird,refd;
+
+  dirp=crossed_tile.getemissionpoint();
+  dird=crossed_tile.getemissiondir();
+  refp=crossed_tile.getemissionpoint(1);
+  refd=crossed_tile.getemissiondir(1);
+
+
+  /******************** The prvious line substitutes this code*/
+#ifdef __AMSDEBUG__
+  /*  cout<<">>>>>>>>>>>>>>>>>>>>>>>>>>>"<<endl;
+  cout <<"New emission points "<<endl
+       <<"    direct "<<dirp[0]<<" "<<dirp[1]<<" "<<dirp[2]<<endl
+       <<"    reflected "<<refp[0]<<" "<<refp[1]<<" "<<refp[2]<<endl;
+
+
+  cout <<"Old emission poins "<<endl;
+
+
+  AMSPoint mypnt;
+  number myphi,mytheta,mylength;
+  mypnt.setp(0.,0.,RICradpos-_height+height_direct);
+  AMSDir mydir(0.,0.,-1.);
   
-  AMSDir dird(theta,phi);
-  
-  pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+height_reflected);
-  track->interpolate(pnt,dir,refp,theta,phi,length);
-  
-  AMSDir refd(theta,phi); // Reflected case ;)
-  
+  AMSPoint mydirp,myrefp;
+  track->interpolate(mypnt,mydir,mydirp,mytheta,myphi,mylength);
+  cout<<"    direct "<<mydirp[0]<<" "<<mydirp[1]<<" "<<mydirp[2]<<endl;
+  AMSDir mydird(mytheta,myphi);
+
+  mypnt.setp(0.,0.,RICradpos-_height+height_reflected);
+  track->interpolate(mypnt,mydir,myrefp,mytheta,myphi,mylength);
+  cout <<"    reflected "<<myrefp[0]<<" "<<myrefp[1]<<" "<<myrefp[2]<<endl;
+  //  AMSDir refd(theta,phi); // Reflected case ;)
+  */
+#endif
+
+    /**************************/
+
+
   integer actual=0,counter=0;
   AMSRichRawEvent *hitp[RICmaxpmts*RICnwindows/2];
   
@@ -570,7 +656,7 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
     // Reconstruct one hit
     hit->reconstruct(dirp,refp,
 		     dird,refd,
-		     betamin,betamax,recs[actual]);
+		     betamin,betamax,recs[actual],_index);
 
     hit->unsetbit(bit);
     
@@ -695,13 +781,15 @@ void AMSRichRing::build(AMSTrTrack *track,int cleanup){
       
       // Fill the container
       
+
       AMSEvent::gethead()->addnext(AMSID("AMSRichRing",0),
 				   new AMSRichRing(track,
 						   beta_used,
 						   mirrored_used,
 						   beta_track,
 						   chi2/geant(beta_used),
-						   current_ring_status  //Status word
+						   current_ring_status,  //Status word
+						   RICCONTROL.recon/10
 						   ));
       
     } else {
@@ -747,6 +835,21 @@ void AMSRichRing::_writeEl(){
   cluster->errorbeta[cluster->NRings]=_errorbeta;
   cluster->quality[cluster->NRings]=_quality;
   cluster->status[cluster->NRings]=_status;
+  //  cluster->betablind[cluster->NRings]=_betablind;
+  // All the stuff related to the new routines
+  cluster->npexp[cluster->NRings]=_npexp;
+  cluster->collected_npe[cluster->NRings]=_collected_npe;
+  cluster->probkl[cluster->NRings]=_probkl;
+
+
+  cluster->npexpg[cluster->NRings]=_npexpg;
+  cluster->npexpr[cluster->NRings]=_npexpr;
+  cluster->npexpb[cluster->NRings]=_npexpb;
+
+
+  cluster->rad=RICHDB::nphrad;
+  cluster->bas=RICHDB::nphbas;
+
   cluster->NRings++;
 }
 void AMSRichRing::_copyEl(){
@@ -754,21 +857,21 @@ void AMSRichRing::_copyEl(){
  RICRingRoot *ptr = (RICRingRoot*)_ptr;
  if (ptr) {
    if (_ptrack) ptr->fTrack= _ptrack->GetClonePointer();
- } else {
+ } else { 
   cout<<"AMSRichRing::_copyEl -I-  AMSRichRing::RICRingRoot *ptr is NULL "<<endl;
  }
 
 #endif
 }
 void AMSRichRing::CalcBetaError(){
-  geant A=(-2.81+13.5*(RICHDB::rad_index-1.)-18.*
-	   (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-    RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+  geant A=(-2.81+13.5*(_index-1.)-18.*
+	   (_index-1.)*(_index-1.))*
+    _height/(RICHDB::rich_height+RICHDB::foil_height+
                                    RICradmirgap+RIClgdmirgap)*40./2.;
       
-  geant B=(2.90-11.3*(RICHDB::rad_index-1.)+18.*
-	   (RICHDB::rad_index-1.)*(RICHDB::rad_index-1.))*
-    RICHDB::rad_height/(RICHDB::rich_height+RICHDB::foil_height+
+  geant B=(2.90-11.3*(_index-1.)+18.*
+	   (_index-1.)*(_index-1.))*
+    _height/(RICHDB::rich_height+RICHDB::foil_height+
                                    RICradmirgap+RIClgdmirgap)*40./2.;
 
 
@@ -779,8 +882,942 @@ void AMSRichRing::CalcBetaError(){
 
 
 
+/////////////////////////////////////////////////
+
+integer RichRadiatorTile::_number_of_rad_tiles=0;
+integer *RichRadiatorTile::_kind_of_tile=0;
+geant RichRadiatorTile::_eff_indexes[radiator_kinds]={0,0};
+geant RichRadiatorTile::_rad_heights[radiator_kinds]={0,0};
+geant RichRadiatorTile::_clarities[radiator_kinds]={0,0};
+geant *RichRadiatorTile::_abs_length[radiator_kinds]={0,0};
+geant *RichRadiatorTile::_index_tables[radiator_kinds]={0,0};
+geant RichRadiatorTile::_mean_height[radiator_kinds][2]={{0,0},{0,0}};
 
 
+void RichRadiatorTile::Init(){
+
+  // A really crude approximation to the circunference
+  _number_of_rad_tiles=2*int((RICHDB::rad_radius/RICHDB::rad_length)+.5)+1;
+
+
+  // Define te array
+  _kind_of_tile=new integer[_number_of_rad_tiles*_number_of_rad_tiles];
+
+
+  // Fill the array
+  geant max_radius=_number_of_rad_tiles*RICHDB::rad_length/2.;
+
+  // The algorithm is quite stupid: check if any of the tile borders is inside the radius.
+  // If so fill it, otherwise let it empty. 
+
+  for(int i=0;i<_number_of_rad_tiles;i++)
+    for(int j=0;j<_number_of_rad_tiles;j++){
+
+      geant x,y;
+
+      x=i*RICHDB::rad_length-max_radius;
+      y=j*RICHDB::rad_length-max_radius;
+
+#define _rad_(x,y) (sqrt((x)*(x)+(y)*(y)))
+
+      if(_rad_(x,y)<RICHDB::rad_radius || 
+	 _rad_(x+RICHDB::rad_length,y)<RICHDB::rad_radius ||
+	 _rad_(x,y+RICHDB::rad_length)<RICHDB::rad_radius ||
+	 _rad_(x+RICHDB::rad_length,y+RICHDB::rad_length)<RICHDB::rad_radius ){
+
+	_kind_of_tile[i*_number_of_rad_tiles+j]=agl_kind;
+
+
+      }else _kind_of_tile[i*_number_of_rad_tiles+j]=empty_kind;
+      
+#undef _rad_
+    }
+ 
+  // In we have chosen Naf put a 3x3 array of Naf right in the center
+  if(RICCONTROL.setup==1){
+  }
+
+
+
+#ifdef __AMSDEBUG__
+  cout<<"Dumping radiador geometry"<<endl
+      <<"-------------------------"<<endl;
+  for(int j=0;j<_number_of_rad_tiles;j++){
+    for(int i=0;i<_number_of_rad_tiles;i++)
+      cout<<_kind_of_tile[i*_number_of_rad_tiles+j];
+    cout<<endl;
+  }
+  
+#endif
+  
+
+  // Here we should fill the effective index and the heights using the routine in RICHDB for both radiators 
+  // Everything is filled by hand
+
+
+  // Ensure that the index tables for agl are OK
+  RICHDB::mat_init();
+
+  _rad_heights[0]=RICHDB::rad_height;
+  _rad_heights[1]=RICHDB::naf_height;
+  _abs_length[0]=RICHDB::abs_length;
+  _abs_length[1]=RICHDB::naf_abs_length;
+  _clarities[0]=RICHDB::rad_clarity;
+  _clarities[1]=0.;
+  _index_tables[0]=RICHDB::index;
+  _index_tables[1]=RICHDB::naf_index_table;
+
+  // Now we compute the effective height calling the 
+  // magic routine
+
+  for(int i=0;i<radiator_kinds;i++)
+    _compute_mean_height(_index_tables[i],_clarities[i],_abs_length[i],_rad_heights[i],_eff_indexes[i],
+  			 _mean_height[i][0]);
+
+  _mean_height[0][1]=_mean_height[0][0]-.1;
+  _mean_height[1][1]=_mean_height[1][0]-.2;
+
+
+
+}
+
+
+
+
+RichRadiatorTile::RichRadiatorTile(AMSTrTrack *track){
+
+  // First decide wich kind of radiator is current
+
+  AMSPoint pnt(0.,0.,RICradpos-RICHDB::rad_height),
+    point[radiator_kinds];
+  AMSDir dir(0.,0.,-1.);
+  
+  number theta[radiator_kinds],
+    phi[radiator_kinds],
+    length[radiator_kinds];
+
+  AMSPoint points[radiator_kinds];
+  
+
+
+  for(int i=0;i<radiator_kinds;i++){
+    
+    track->interpolate(pnt,dir,point[i],
+		       theta[i],phi[i],length[i]);
+  }
+
+
+  _kind=0;
+
+  for(int i=radiator_kinds;i>0;i--)
+    if(get_tile_kind(get_tile_number(point[i-1][0],point[i-1][1]))==i) {_kind=i;break;}
+  
+
+  if(_kind==empty_kind){
+    _index=0;
+    _height=0;
+    _p_direct=AMSPoint(0.,0.,0.);
+    _p_reflected=AMSPoint(0.,0.,0.);
+    _d_direct=AMSDir(0.,0.);
+    _d_reflected=AMSDir(0.,0.);
+    return;
+  }
+
+
+  _index=_eff_indexes[_kind-1];
+  _height=_rad_heights[_kind-1];
+
+  pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+_height);
+  track->interpolate(pnt,dir,point[_kind-1],
+		     theta[_kind-1],phi[_kind-1],
+		     length[_kind-1]);
+
+  _p_entrance=point[_kind-1];
+  _d_entrance=AMSDir(theta[_kind-1],phi[_kind-1]);
+
+
+  // Direct photons
+  pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+_mean_height[_kind-1][0]);
+  track->interpolate(pnt,dir,point[0],theta[0],phi[0],length[0]);
+  
+  _p_direct=point[0];
+  _d_direct=AMSDir(theta[0],phi[0]);
+  
+
+  // Direct photons
+  pnt.setp(0.,0.,RICradpos-RICHDB::rad_height+_mean_height[_kind-1][1]);
+  track->interpolate(pnt,dir,point[0],theta[0],phi[0],length[0]);
+  
+  _p_reflected=point[0];
+  _d_reflected=AMSDir(theta[0],phi[0]);
+
+
+} 
+
+
+
+
+void RichRadiatorTile::_compute_mean_height(geant *index,
+				    geant clarity,
+				    geant *abs_len,
+				    geant rheight,
+				    geant &eff_index,
+				    geant &height){
+  // Computes the mean emission point inside the radiator
+  // of the detected photons.
+  // The credits go to .... Elisa Lanciotti
+
+  const integer steps=100;    // Number of steps for the approximation
+  geant lambda,qeff,n,dl,l_scat=0,l_abs_rad,l_abs_lg;
+  geant sum=0,densum=0;
+  geant sum_index=0;
+
+  for(integer i=0;i<RICmaxentries-1;i++){ // Integration in wave length
+    lambda=(RICHDB::wave_length[i]+RICHDB::wave_length[i+1])/2.;
+    qeff=(RICHDB::eff[i]+RICHDB::eff[i+1])/2.;
+    n=(index[i]+index[i+1])/2.;
+    dl=RICHDB::wave_length[i]-RICHDB::wave_length[i+1];
+    l_scat=clarity==0?1e6:(lambda/1000.)*(lambda/1000.)*(lambda/1000.)*(lambda/1000.)/
+	clarity;
+    l_abs_rad=(abs_len[i]+abs_len[i+1])/2.;
+    l_abs_lg=(RICHDB::lg_abs[i]+RICHDB::lg_abs[i+1])/2.;
+
+
+    for(integer j=0;j<steps;j++){ // Integration in radiador thicknes
+      geant x=rheight*(geant(j)+0.5)/geant(steps);
+      geant g=qeff/lambda/lambda/exp((rheight-x)*
+				     (1/l_scat+1/l_abs_rad))/
+	exp(RICHDB::lg_height/l_abs_lg);
+      sum+=dl*g*x;
+      densum+=dl*g;
+      sum_index+=dl*g*n;
+    }
+  }
+  if(!densum){
+    cout<<"RichRadiatorTile::_mean_height : Error"<<endl;
+  }else{
+    height=rheight-sum/densum;
+
+    eff_index=sum_index/densum;
+
+
+  }
+} 
+
+
+
+
+
+
+
+
+
+
+
+////////////////////////////////////
+/// charge reconstruction
+/// CREDITS TO JORGE CASAUS AND ELISA LANCIOTTI and moi
+
+#define PI 3.14159265359
+#define SQR(x) ((x)*(x))
+#define ESC(x,y) ((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2])
+#define MOD(x) sqrt(ESC(x,x))
+
+void AMSRichRing::ReconRingNpexp(geant window_size){ // Number of sigmas used 
+
+  AMSPoint local_pos=_entrance_p;
+  AMSDir   local_dir=_entrance_d;
+
+  local_pos[2]=RICHDB::rad_height-_height;
+  local_dir[2]*=-1;
+
+  const integer NSTL=15,NSTP=70; // Z=1 optimized
+  const geant dphi=2*PI/NSTP;
+
+
+  static geant dfphi[NSTP],dfphih[NSTP];
+  static geant hitd[MAXRICHITS],hitp[MAXRICHITS];
+  static AMSRichRawEvent *used_hits[MAXRICHITS];
+  
+
+
+  for(int i=0;i<NSTP;i++)
+    dfphi[i]=dfphih[i]=0;
+
+  // For the probkl stuff
+  integer nh=0,nu=0;
+  geant dmax=0.;
+
+  for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
+	getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){
+    if(hit->getbit((AMSEvent::gethead()->getC("AMSRichRing",0))->
+		   getnelem())){
+      used_hits[nh]=hit;
+      hitd[nh++]=1.e5;
+    }
+  }
+  
+
+  geant l,dL,phi;
+  geant efftr,xb,yb,lentr,lfoil,lguide,geftr,
+    reftr,beftr,ggen,rgen,bgen;
+  geant nexp,nexpg,nexpr,nexpb,prob,vice,pvice;
+  geant dfnrm=0,dfnrmh=0;
+  integer tflag;
+
+  AMSPoint r;
+
+  l=_height/local_dir[2];
+  dL=l/NSTL;
+  integer i,j,k;
+
+  for(nexp=0,nexpg=0,nexpr=0,nexpb=0,j=0;j<NSTL;j++){
+    l=(j+.5)*dL;
+
+    r=local_pos+local_dir*l;
+    
+
+    for(phi=0,i=0;phi<2*PI;phi+=dphi,i++){
+
+      efftr=trace(r,local_dir,phi,&xb,&yb,&lentr,
+		  &lfoil,&lguide,&geftr,&reftr,&beftr,&tflag);
+	
+      if(geftr){
+
+	float cnt=generated(lentr,lfoil,lguide,
+			    &ggen,&rgen,&bgen)*dL/NSTP;
+
+
+	dfphi[i]+=efftr*cnt;
+
+	nexp+=efftr*cnt;
+	nexpg+=geftr*dL/NSTP*ggen;
+	nexpr+=reftr*dL/NSTP*rgen;
+	nexpb+=beftr*dL/NSTP*bgen;
+      }
+
+      for(k=0;k<nh;k++){
+	geant d=sqrt(SQR(xb-used_hits[k]->getpos(0))+
+		     SQR(yb-used_hits[k]->getpos(1)));
+	if(d<hitd[k]){
+	  hitd[k]=d;
+	  hitp[k]=phi;
+	}
+      }
+    }
+  }
+
+
+#ifdef __AMSDEBUG__
+  cout <<"NEXPG "<<nexpg<<endl<<"NEXPR "<<nexpr<<endl<<"nexpb "<<nexpb<<endl
+       <<"nexp "<<nexp<<endl;
+
+  HF1(123000,nexpg,1.);
+  HF1(123001,nexpr,1.);
+  HF1(123002,nexpb,1.);
+  HF1(123003,nexp,1.);
+#endif
+
+
+
+  for(i=0;i<nh;i++){
+    if(hitd[1]<1.){
+      nu++;
+      j=int(hitp[i]/dphi);
+      dfphih[j]+=used_hits[i]->getnpe();
+    }
+  }
+
+  for(i=0;i<NSTP;i++){
+    dfnrm+=dfphi[i];
+    dfnrmh+=dfphih[i];
+  }
+  
+
+  if(dfnrm>0 && dfnrmh>0){
+    dfphi[0]/=dfnrm;
+    dfphih[0]/=dfnrmh;
+    for(i=1;i<NSTP;i++){
+      dfphi[i]=dfphi[i-1]+dfphi[i]/dfnrm;
+      dfphih[i]=dfphih[i-1]+dfphih[i]/dfnrmh;
+      if(fabs(dfphih[i]-dfphi[i])>dmax) 
+      	dmax=fabs(dfphih[i]-dfphi[i]);
+    }
+  } else dmax=1;
+  
+  
+  // Probability for the ring
+  if(nu){
+    float z=sqrt(geant(nu))*dmax;
+    _probkl=PROBKL(z);
+  }
+  else _probkl=0;
+  
+  // Charge related variables
+  _npexp=nexp;
+
+  _npexpg=nexpg;
+  _npexpr=nexpr;
+  _npexpb=nexpb;
+
+  _collected_npe=0.;
+  
+  //  geant sigma=_errorbeta*sqrt(_used);
+
+  geant A=(-2.81+13.5*(_index-1.)-18.*
+	   (_index-1.)*(_index-1.))*
+    _height/(RICHDB::rich_height+RICHDB::foil_height+
+                                   RICradmirgap+RIClgdmirgap)*40./2.;
+      
+  geant B=(2.90-11.3*(_index-1.)+18.*
+	   (_index-1.)*(_index-1.))*
+    _height/(RICHDB::rich_height+RICHDB::foil_height+
+                                   RICradmirgap+RIClgdmirgap)*40./2.;
+
+  geant sigma=Sigma(_beta,A,B);
+
+  for(AMSRichRawEvent* hit=(AMSRichRawEvent *)AMSEvent::gethead()->
+	getheadC("AMSRichRawEvent",0);hit;hit=hit->next()){  
+    
+    geant betas[3];
+    for(int n=0;n<3;n++) betas[n]=hit->getbeta(n);
+    geant value=fabs(_beta-betas[closest(_beta,betas)])/sigma;
+    if(value<window_size)
+      _collected_npe+=hit->getnpe();
+  }
+
+
+
+
+}
+
+
+geant AMSRichRing::trace(AMSPoint r, AMSDir u, 
+			 geant phi, geant *xb, geant *yb, 
+			 geant *lentr, geant *lfoil, 
+			 geant *lguide, geant *geff, 
+			 geant *reff, geant *beff, 
+			 integer *tflag,float beta_gen)
+{
+  static geant bx,by;
+  static geant kc,ac;
+  geant r0[3],u0[3],r1[3],u1[3],r2[3],u2[3],r3[3],n[3];
+  geant cc,sc,cp,sp,cn,sn,f,l,a,b,c,d,maxxy,rbase;
+  static int first=1;
+  static geant mir_eff,exp_len; 
+  int i,ed;
+
+  *xb=0;
+  *yb=0;
+  *lentr=0;
+  *lfoil=0;
+  *lguide=0;
+  *geff=0;
+  *reff=0;
+  *beff=0;
+  *tflag=-1;
+
+
+  if(first){
+    first=0;
+    exp_len=RICHDB::rich_height+RICradmirgap+RIClgdmirgap; /* expansion length */
+    //    kc=(RICHDB::bottom_radius-RICHDB::top_radius)/exp_len;
+    kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
+    //    ac=_height+RICHDB::foil_height-RICHDB::top_radius/kc;
+    ac=RICHDB::rad_height+RICHDB::foil_height+RICradmirgap-RICHDB::top_radius/kc;
+    //    bx=32.8;
+    //    by=32.55;
+    bx=RICHDB::hole_radius[0];
+    by=RICHDB::hole_radius[1];
+    mir_eff=RICmireff;
+  }
+
+
+  cc=1./_beta/_index;
+  sc=sqrt(1-SQR(cc));
+  cp=cos(phi);
+  sp=sin(phi);
+  f=sqrt(SQR(u[0])+SQR(u[1]));
+
+  /* initial values*/
+  for(i=0;i<3;i++) r0[i]=r[i];
+
+  if(f>0){
+    u0[0]=sc/f*(sp*u[0]*u[2]+cp*u[1])+cc*u[0];
+    u0[1]=sc/f*(sp*u[1]*u[2]-cp*u[0])+cc*u[1];
+    u0[2]=-f*sc*sp+u[2]*cc;}
+  else{
+    u0[0]=sc*cp;
+    u0[1]=sc*sp;
+    u0[2]=cc;}
+
+
+  if(tile(r0))*geff=1;
+
+  /* propagate to radiator end */
+  l=(RICHDB::rad_height-r0[2])/u0[2];
+
+
+  for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
+
+  if (sqrt(SQR(r1[0])+SQR(r1[1]))>RICHDB::top_radius){
+    *tflag=2;
+    return 0;
+  }
+
+
+  // Check if the ray crossed the tiles-wall.
+
+  if (!tile(r0)||tile(r1)!=tile(r0)){
+    *tflag=6;
+    return 0;
+  }
+  *lentr=l;
+
+  /* exit radiator volume */
+  n[0]=0;
+  n[1]=0;
+  n[2]=1;
+  cn=ESC(u0,n);
+  sn=sqrt(1-SQR(cn));
+  if (RICHDB::foil_height>0){
+  /* radiator -> foil */
+
+    if (_index*sn>RICHDB::foil_index){  // Check total reflection
+      *tflag=0;
+      return 0;
+    }
+    f=sqrt(1-SQR(_index/RICHDB::foil_index*sn))-_index/RICHDB::foil_index*cn;
+    for(i=0;i<3;i++) u1[i]=_index/RICHDB::foil_index*u0[i]+f*n[i];
+
+  /* propagate to foil end */
+    l=RICHDB::foil_height/u1[2];
+    for(i=0;i<3;i++) r1[i]=r1[i]+l*u1[i];
+    if (sqrt(SQR(r1[0])+SQR(r1[1]))>RICHDB::top_radius){
+      *tflag=2;
+      return 0;
+    }
+    *lfoil=l;
+  /* foil -> vacuum */
+    cn=ESC(u1,n);
+    sn=sqrt(1-SQR(cn));
+    if (RICHDB::foil_index*sn>1){  // Check total reflexion
+      *tflag=0;
+      return 0;
+    }
+    f=sqrt(1-SQR(RICHDB::foil_index*sn))-RICHDB::foil_index*cn;
+    for(i=0;i<3;i++) u1[i]=RICHDB::foil_index*u1[i]+f*n[i];}
+  else{
+  /* radiator -> vacuum */
+    if (_index*sn>1){
+      *tflag=0;
+     return 0;
+    }
+    f=sqrt(1-SQR(_index*sn))-_index*cn;
+    for(i=0;i<3;i++) u1[i]=_index*u0[i]+f*n[i];}
+
+  *reff=1;
+
+  /* propagate to base of mirror*/
+  //  l=exp_len/u1[2]
+  l=(exp_len-RIClgdmirgap)/u1[2];
+  for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+  //  *xb=r2[0];
+  //  *yb=r2[1];
+
+
+
+/* hole, direct or reflected */
+  maxxy=fabs(r2[0])>fabs(r2[1])?fabs(r2[0]):fabs(r2[1]);
+  rbase=sqrt(SQR(r2[0])+SQR(r2[1]));
+
+
+
+  /*
+  if (fabs(r2[0])<bx && fabs(r2[1])<by){  // in hole
+    *tflag=1;
+    return 0;
+  }
+  else */
+
+
+  if (rbase<RICHDB::bottom_radius){
+
+    // Propagate to end
+    l=RIClgdmirgap/u1[2];
+    for(i=0;i<3;i++) r2[i]+=l*u1[i];//r2[i]=r1[i]+l*u1[i];
+    *xb=r2[0];
+    *yb=r2[1];
+    if (fabs(r2[0])<bx && fabs(r2[1])<by){  // in hole
+      *tflag=1;
+      return 0;
+    }
+    ed=1;
+    *beff=ed;
+    *tflag=ed?3:5;
+    return ed*lgeff(r2,u1,lguide); 
+    //return ed*1;
+  }
+  else{   // It intersects the mirror
+    a=1-(SQR(kc)+1)*SQR(u1[2]);
+    b=2*(r1[0]*u1[0]+r1[1]*u1[1]-SQR(kc)*(r1[2]-ac)*u1[2]);
+    c=SQR(r1[0])+SQR(r1[1])-SQR(kc*(r1[2]-ac));
+    d=SQR(b)-4*a*c;
+    if(d<0){
+      printf("AMSRichRing::trace Crossing Point not found\n");
+      printf(" kc %f, ac %f\n",kc,ac);
+      printf(" a %f, b %f, c %f\n",a,b,c);
+      return 0;}
+    l=(-b+sqrt(d))/2./a;
+    if(l<0){
+#ifdef __AMSDEBUG__
+      printf("AMSRichRing::trace Crossing Point negative \n");
+      printf(" kc %f, ac %f\n",kc,ac);
+      printf(" a %f, b %f, c %f\n",a,b,c);
+      printf(" l %f\n",l);
+#endif
+      return 0;}
+
+    for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
+    
+    f=1./sqrt(1+SQR(kc));
+    n[0]=-f*r2[0]/sqrt(SQR(r2[0])+SQR(r2[1]));
+    n[1]=-f*r2[1]/sqrt(SQR(r2[0])+SQR(r2[1]));
+    n[2]=f*kc;
+    
+    f=2*ESC(u1,n);
+    for(i=0;i<3;i++) u2[i]=u1[i]-f*n[i];
+    
+    l=(exp_len+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
+    for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
+    *xb=r3[0];
+    *yb=r3[1];
+    
+    maxxy=fabs(r3[0])>fabs(r3[1])?fabs(r3[0]):fabs(r3[1]);
+    rbase=sqrt(SQR(r3[0])+SQR(r3[1]));
+    
+    if (fabs(r3[0])<bx && fabs(r3[1])<by){
+      *tflag=1;
+      return 0;
+    }
+    //  else/* 
+    if (rbase<RICHDB::bottom_radius){
+      ed=1;
+      *tflag=ed?4:5;
+      *beff=mir_eff*ed;
+      return ed*mir_eff*lgeff(r3,u2,lguide);}
+    else return 0;
+    
+  }
+  
+
+}
+
+
+
+  /////////
+
+int AMSRichRing::tile(AMSPoint r){ // Check if a track hits the radator support struycture
+
+  integer tile=RichRadiatorTile::get_tile_number(r[0],r[1]);
+  if(fabs(RichRadiatorTile::get_tile_x(tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.
+     ||fabs(RichRadiatorTile::get_tile_y(tile)-r[1])>RICHDB::rad_length/2.-RICaethk/2.) return 0;
+  return 1;
+
+
+}
+
+
+
+float AMSRichRing::generated(geant length,
+			   geant lfoil,
+			   geant lguide,
+			   geant *fg,
+			   geant *fr,
+			   geant *fb){
+
+  const int NRAD=400;
+  const int NFOIL=10;
+  const int NGUIDE=14;
+  const float ALPHA=0.0072973530764; 
+
+  static float factor=1.;
+  static int first=1;
+  static float k,abslref,tl;
+  const int ENTRIES=RICmaxentries;
+  static float l[ENTRIES],r[ENTRIES],a[ENTRIES],b[ENTRIES],g[ENTRIES],t[ENTRIES];
+  static float effg[NRAD],ring[NRAD];
+  static float effr[NRAD][NFOIL],rinr[NRAD][NFOIL];
+  static float effb[NRAD][NFOIL],rinb[NRAD][NFOIL];
+  static float effd[NRAD][NFOIL][NGUIDE],rind[NRAD][NFOIL][NGUIDE];
+  float rmn=0,rmx=2.0*_height;
+  float fmn=RICHDB::foil_height,fmx=1.5*RICHDB::foil_height;
+  float gmn=RICHDB::lg_height,gmx=1.7*RICHDB::lg_height;
+  int i,lr,lf,lg,nf;
+  float beta;
+  float f=0.;
+  if(_kind_of_tile==naf_kind){
+    rmx=6.0*_height;
+    fmx=3.0*RICHDB::foil_height;}
+  
+  if(first){
+    first=0;
+    k=2*PI*ALPHA;
+    tl=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index);
+    abslref=(RICHDB::lg_abs[0]+RICHDB::lg_abs[1])/2;
+#ifdef __AMSDEBUG__
+    printf("\nLight Guide Absorption Parameter\n"
+             "--------------------------------\n"
+             "       Ref. AbsLength :  %f\n",
+             abslref);
+#endif
+    for(i=0;i<ENTRIES-1;i++){
+      float dl=1.e-3*(RICHDB::wave_length[i]-RICHDB::wave_length[i+1]);
+      float q=1.e-2*(RICHDB::eff[i]+RICHDB::eff[i+1])/2;
+      l[i]=1.e-3*(RICHDB::wave_length[i]+RICHDB::wave_length[i+1])/2;
+      r[i]=(_index_tbl[i]+_index_tbl[i+1])/2;
+      a[i]=(_abs_len[i]+_abs_len[i+1])/2;
+      b[i]=(RICHDB::lg_abs[i]+RICHDB::lg_abs[i+1])/2;
+      g[i]=q*dl/SQR(l[i]);
+      t[i]=4*r[i]/SQR(1+r[i]);
+      if(RICHDB::foil_height>0) t[i]*=RICHDB::foil_index*(1+r[i])/(r[i]+SQR(RICHDB::foil_index));
+    }
+    nf=RICHDB::foil_height>0?NFOIL:1;
+#ifdef __AMSDEBUG__
+    printf("\nTabulating Effective no. Photons & Refractive Index\n"
+             "---------------------------------------------------\n"
+             "      %4d bins in Radiator Thickness\n"
+             "      %4d bins in Foil     Thickness\n"
+             "      %4d bins in LGuide   Thickness\n",
+            NRAD,nf,NGUIDE);
+#endif
+
+    for(lr=0;lr<NRAD;lr++){
+     float rl=rmn+lr*(rmx-rmn)/NRAD;
+     effg[lr]=0;
+     ring[lr]=0;
+     for(lf=0;lf<nf;lf++){
+      float fl=fmn+lf*(fmx-fmn)/nf;
+      effr[lr][lf]=0;
+      rinr[lr][lf]=0;
+      effb[lr][lf]=0;
+      rinb[lr][lf]=0;
+      for(lg=0;lg<NGUIDE;lg++){
+       float gl=gmn+lg*(gmx-gmn)/NGUIDE;
+       effd[lr][lf][lg]=0;
+       rind[lr][lf][lg]=0;
+       for(i=0;i<ENTRIES-1;i++){
+         float cr=1./exp(rl*_clarity/SQR(SQR(l[i])));
+         float ar=1./exp(rl/a[i]);
+         float af=1./exp(fl/b[i]);
+         float al=1./exp(gl*(1./b[i]-1./abslref));
+         effd[lr][lf][lg]+=g[i]*t[i]*cr*ar*af*al;
+         rind[lr][lf][lg]+=r[i]*g[i]*t[i]*cr*ar*af*al;
+         if(!lg){
+          if(!lf){
+           effg[lr]+=g[i];
+           ring[lr]+=r[i]*g[i];}
+          effr[lr][lf]+=g[i]*t[i]*cr*ar*af;
+          rinr[lr][lf]+=r[i]*g[i]*t[i]*cr*ar*af;
+          effb[lr][lf]+=g[i]*t[i]*cr*ar*af*tl;
+          rinb[lr][lf]+=r[i]*g[i]*t[i]*cr*ar*af*tl;}
+       }
+       rind[lr][lf][lg]/=effd[lr][lf][lg];
+      }
+      rinr[lr][lf]/=effr[lr][lf];
+      rinb[lr][lf]/=effb[lr][lf];
+     }
+     ring[lr]/=effg[lr];
+    }
+#ifdef __AMSDEBUG__
+    printf("....End of Tables!\n\n");
+#endif
+  }
+
+  lr=int((floor)(NRAD*(length-rmn)/(rmx-rmn)+.5));
+
+  if(lr>NRAD-1){
+    printf("AMSRichRing::generated WARNING: length too big %f\n",length);
+    lr=NRAD-1;}
+  else if(lr<0)lr=0;
+
+  lf=RICHDB::foil_height>0?int((floor)(NFOIL*(lfoil-fmn)/(fmx-fmn)+.5)):0;
+
+  if(lf>NFOIL-1){
+    printf("AMSRichRing::generated WARNING: lfoil  too big %f\n",lfoil);
+    lf=NFOIL-1;}
+  else if(lf<0)lf=0;
+  lg=int((floor)(NGUIDE*(lguide-gmn)/(gmx-gmn)+.5));
+
+
+  if(lg>NGUIDE-1){
+    printf("AMSRichRing::generated WARNING: lguide too big %f\n",lguide);
+    lg=NGUIDE-1;}
+  else if(lg<0)lg=0;
+
+  f=1.e4*k*(1.-1./SQR(_beta*rind[lr][lf][lg]))*factor*effd[lr][lf][lg];
+  *fg=1.e4*k*(1.-1./SQR(_beta*ring[lr]))*effg[lr];
+  *fr=1.e4*k*(1.-1./SQR(_beta*rinr[lr][lf]))*effr[lr][lf];
+  *fb=1.e4*k*(1.-1./SQR(_beta*rinb[lr][lf]))*effb[lr][lf];
+  return f;
+
+}
+
+
+geant AMSRichRing::lgeff(AMSPoint r, 
+			 float u[3],
+			 geant *lguide)
+{
+  float v[3],w[3];
+  float f=0;
+  int wnd,iw;
+  int i,j,k;
+
+  static float LG_Tran,Eff_Area;
+  static float bwd=0.04;
+  static int first=1;
+
+#ifdef __AMSDEBUG__
+  if(first){
+    // Check the get_from_top stuff
+
+    cout <<"DUMPING OF MAP"<<endl<<"***************"<<endl;
+
+    AMSRICHIdGeom basura(4805);
+    for(geant y=basura.y()-3.4/2-2.;y<=basura.y()+3.4/2+2;y+=0.1){
+      for(geant x=basura.x()-3.4/2-2;x<=basura.x()+3.4/2+2;x+=0.1){
+	integer wnd=AMSRICHIdGeom::get_channel_from_top(x,y);
+	char c=32;
+
+	if(wnd>=0) c='A'+wnd; else c=' ';
+	cout <<c;
+
+      }
+      cout <<endl;
+    }
+  }
+
+#endif
+
+
+
+
+  if(first){
+    first=0;
+    LG_Tran=4*RICHDB::foil_index/SQR(1+RICHDB::foil_index); /*=0.96*/          
+    Eff_Area=SQR(RICHDB::lg_length/pitch);
+#ifdef __AMSDEBUG__
+    printf("\nLight Guide Parameters\n"
+             "---------------------------\n"
+             "LG_Tran   (Transmittance): %f\n"
+             "Eff_Area  (LG-size/Pitch): %f\n",
+             LG_Tran,Eff_Area);
+
+
+
+    for(int i=0;i<RIC_NWND;i++)
+      for(int j=0;j<RIC_NPHI;j++)
+	for(int k=0;k<RIC_NTH;k++){
+
+	  cout<<i<<" "<<j<<" "<<k<<" "<<RICHDB::lg_dist_tbl[i][j][k]<<" "<<
+	      RICHDB::lg_eff_tbl[i][j][k]<<endl;
+
+	}
+#endif	  
+
+
+  }
+
+  wnd=AMSRICHIdGeom::get_channel_from_top(r[0],r[1]);
+
+
+  if(wnd==-1){
+    *lguide=0;
+    return 0;
+  }
+
+
+  refract(1.,RICHDB::foil_index,u,v);
+
+  if(locsmpl(wnd,&iw,v,w)){
+   float x=acos(-w[2]);
+   if(x<RIC_NTH*bwd){
+    int phi,tl,th;
+    float y=atan2(-w[1],-w[0]);
+    phi=int((floor)(RIC_NPHI*(y+PI)/(2*PI)));
+    if(phi==12) phi=0; /*EL*/
+    tl=int((floor)((x-bwd/2.)/bwd));
+    if(tl<0)tl=0;
+    th=tl<RIC_NTH-1?tl+1:tl;
+    f=RICHDB::lg_eff_tbl[iw][phi][tl]+(x-(tl+.5)*bwd)*
+      (RICHDB::lg_eff_tbl[iw][phi][th]-
+       RICHDB::lg_eff_tbl[iw][phi][tl])/bwd;
+    *lguide=RICHDB::lg_height*(
+     RICHDB::lg_dist_tbl[iw][phi][tl]+(x-(tl+.5)*bwd)*
+     (RICHDB::lg_dist_tbl[iw][phi][th]-RICHDB::lg_dist_tbl[iw][phi][tl])/bwd);
+   }
+  }else *lguide=0;
+#ifdef __AMSDEBUG__
+
+  if(locsmpl(wnd,&iw,v,w)){
+   HF1(1231001,f,1.);
+HF1(1231002,*lguide,1.);
+  }
+  *lguide=RICHDB::lg_height;
+  return 1;
+
+#endif
+
+
+  return LG_Tran*f;
+}
+
+
+void AMSRichRing::refract(geant r1,
+			  geant r2, 
+			  geant *u,
+			  geant *v)
+{
+  int i;
+  float f,cn,s2n;
+  static float n[3] = { 0., 0., 1. };
+  float rr=r1/r2;
+  cn=ESC(u,n);
+
+  s2n=1-SQR(cn);
+  f=sqrt(1.-SQR(rr)*s2n)-rr*cn;
+  for(i=0;i<3;i++)v[i]=rr*u[i]+f*n[i];
+  // v=rr*u+f*n;
+}
+
+int AMSRichRing::locsmpl(int id,
+			 int *iw, 
+			 geant *u, 
+			 geant *v)
+{
+  static int a[16][2][2] = {
+   -1, 0, 0,-1,   0,-1,-1, 0,   0,-1, 1, 0,   0,-1, 1, 0,
+   -1, 0, 0,-1,  -1, 0, 0,-1,   0,-1, 1, 0,   1, 0, 0,-1,
+   -1, 0, 0, 1,   0, 1,-1, 0,   1, 0, 0, 1,   1, 0, 0, 1,
+    0, 1,-1, 0,   0, 1,-1, 0,   0, 1, 1, 0,   1, 0, 0, 1};
+  static int wnd[16] = { 
+    2, 1, 1, 2,   1, 0, 0, 1,   1, 0, 0, 1,   2, 1, 1, 2};
+  int i,j;
+  int ok=0;
+  if(id>=0 && id<16){
+    *iw=wnd[id];
+    for(i=0;i<2;i++)
+     for(j=0,v[i]=0;j<2;j++) v[i]+=a[id][i][j]*u[j];
+    v[2]=-u[2];
+    ok=1;}
+  return ok;
+}
+
+
+
+# undef ESC
+# undef SQR
+# undef PI
 
 
 

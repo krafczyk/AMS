@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.65 2002/07/17 10:49:04 delgadom Exp $
+//  $Id: root.h,v 1.66 2002/10/30 14:57:21 mdelgado Exp $
 #ifndef __AMSROOT__
 #define __AMSROOT__
 
@@ -758,6 +758,10 @@ public:
   float errorbeta;
   float quality;
   unsigned int status;
+  // float betablind;
+  float probkl;
+  float npexp;
+  float collected_npe;
   TRef  fTrack;
 
   RICRingRoot();

@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.425 2002/10/23 13:49:05 choutko Exp $
+// $Id: job.C,v 1.426 2002/10/30 14:57:09 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -241,8 +241,8 @@ void AMSJob::_sirichdata(){
   RICGTKOV.usrcla=RICHDB::rad_clarity;
 
   RICCONTROL.iflgk_flag=0;  // This should be always zero
-  RICCONTROL.recon=1;       // Reconstruct
-  RICCONTROL.setup=1;       // Choose the right setup from all of them
+  RICCONTROL.recon=11;       // Reconstruct charge and beta
+  RICCONTROL.setup=0;       // Choose the right setup from all of them
 //  FFKEY("RICGEOM",(float *)&RICGEOM,sizeof(RICGEOM_DEF)/sizeof(integer),"REAL");
   FFKEY("RICCONT",(float *)&RICCONTROL,sizeof(RICCONTROL_DEF)/sizeof(integer),"MIXED");
 
@@ -1417,6 +1417,7 @@ if(AMSFFKEY.Update){
        AMSTrIdSoft::init();
        AMSTRDIdSoft::init();
        AMSRICHIdGeom::Init();
+       RichRadiatorTile::Init();	
        AMSRICHIdSoft::Init();
        AMSTRDIdSoft::inittable();
        AMSECIdSoft::inittable();

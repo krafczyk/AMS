@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.294 2002/10/17 12:52:28 choutko Exp $
+//  $Id: event.C,v 1.295 2002/10/30 14:57:09 mdelgado Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -742,6 +742,7 @@ void AMSEvent::_sirichinitevent(){
   ptr=AMSEvent::gethead()->add(new AMSContainer(AMSID("AMSContainer:AMSRichMCHit",0),0));
   if(!ptr) cout << "AMSEvent::_sirichinitevent() No container Error" <<endl;
   RICHDB::nphgen=0;
+  RICHDB::nphrad=0;
   RICHDB::nphbas=0;
   RICHDB::numrefm=0;
   RICHDB::numrayl=0;

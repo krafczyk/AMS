@@ -1,4 +1,4 @@
-//  $Id: ntuple.h,v 1.62 2002/10/17 12:52:40 choutko Exp $
+//  $Id: ntuple.h,v 1.63 2002/10/30 14:57:21 mdelgado Exp $
 #ifndef __AMSNTUPLE__
 #define __AMSNTUPLE__
 
@@ -628,7 +628,17 @@ public:
   float beta[MAXRICHRIN];
   float errorbeta[MAXRICHRIN];
   float quality[MAXRICHRIN];
-  int status[MAXRICHRIN];
+  unsigned int status[MAXRICHRIN];
+  //  float betablind[MAXRICHRIN];
+  float probkl[MAXRICHRIN];
+  float npexp[MAXRICHRIN];
+  float collected_npe[MAXRICHRIN];
+
+  float npexpg[MAXRICHRIN];
+  float npexpr[MAXRICHRIN];
+  float npexpb[MAXRICHRIN];
+
+  int rad,bas;  /// CORTAR AQUI
 
 
 friend class AMSRichRing;

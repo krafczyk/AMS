@@ -1,4 +1,4 @@
-//  $Id: root.C,v 1.24 2002/07/17 10:47:13 delgadom Exp $
+//  $Id: root.C,v 1.25 2002/10/30 14:57:10 mdelgado Exp $
 #include <root.h>
 #include <ntuple.h>
 #include <antirec02.h>
@@ -577,6 +577,11 @@ RICRingRoot::RICRingRoot(AMSRichRing *ptr)
     errorbeta = ptr->_errorbeta;
     quality   = ptr->_quality;
     status    = ptr->_status;
+    // betablind=ptr->_betablind;
+    collected_npe= ptr->_collected_npe;
+    npexp     = ptr->_npexp;
+    probkl    = ptr->_probkl;
+
   } else {
     cout<<"RICRingRoot -E- AMSRichRing ptr is NULL"<<endl;
   }

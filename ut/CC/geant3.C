@@ -1,4 +1,4 @@
-//  $Id: geant3.C,v 1.73 2002/09/30 14:57:32 choutko Exp $
+//  $Id: geant3.C,v 1.74 2002/10/30 14:57:09 mdelgado Exp $
 
 #include <typedefs.h>
 #include <cern.h>
@@ -439,6 +439,15 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
 	RICHDB::numrayl=0;
 	RICHDB::numrefm=0;
 
+#ifdef __AMSDEBUG__
+	//	static float max=-74.81;
+	//	if(GCTRAK.vect[2]>max){
+	//	  max=GCTRAK.vect[2];
+	//	  cout<<"Current upper limit at "<<max<<endl;
+	//	  cout<<"Interference "<<max-RICradpos<<endl;
+	//	}
+#endif
+
 //        if(!RICHDB::detcer(GCTRAK.vect[6])) GCTRAK.istop=1; 
 //          else RICHDB::nphgen++; 
          RICHDB::nphgen++;
@@ -449,20 +458,39 @@ cout << "gustep "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "<<GCTRAK.vect[2]<<end
 
     }
 
-//    if(GCTRAK.inwvol==1 && GCVOLU.names[lvl][0]=='P' &&
-//       GCVOLU.names[lvl][1]=='M' && GCVOLU.names[lvl][2]=='T' &&
-//       GCVOLU.names[lvl][3]=='B'){
-//      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-//      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
-//    }
+    // THIS IS A TEST
+        if(GCTRAK.inwvol==2 && GCVOLU.names[lvl][0]=='F' &&
+           GCVOLU.names[lvl][1]=='O' && GCVOLU.names[lvl][2]=='I' &&
+           GCVOLU.names[lvl][3]=='L' && GCTRAK.nstep>1 && GCTRAK.vect[5]<0 && RICHDB::numrayl==0){
+	  RICHDB::nphrad++;
+	}
+        if(GCTRAK.inwvol==1 && GCVOLU.names[lvl][0]=='S' &&
+           GCVOLU.names[lvl][1]=='L' && GCVOLU.names[lvl][2]=='G' &&
+           GCVOLU.names[lvl][3]=='C' && GCTRAK.nstep>1 && GCTRAK.vect[5]<0 && RICHDB::numrayl==0){
+	  RICHDB::nphbas++;
+	}
 
+#ifdef __AMSDEBUG__
+    //    if(GCTRAK.inwvol==1 && GCVOLU.names[lvl][0]=='S' &&
+    //       GCVOLU.names[lvl][1]=='L' && GCVOLU.names[lvl][2]=='G' &&
+    //       GCVOLU.names[lvl][3]=='C' && GCTRAK.nstep>1){
+    //      cout <<"Entering in LG at "<<GCTRAK.vect[0]<<" "<<GCTRAK.vect[1]<<" "
+    //	   <<GCTRAK.vect[2]<<endl;
+    //      if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
+    //      if(trig==0 && freq>1)AMSgObj::BookTimer.stop("AMSGUSTEP");
+    //    }
+#endif
 
 
     if(GCVOLU.names[lvl][0]=='C' && GCVOLU.names[lvl][1]=='A' &&
        GCVOLU.names[lvl][2]=='T' && GCVOLU.names[lvl][3]=='O' && 
        GCTRAK.inwvol==1){
       if(trig==0 && freq>1)AMSgObj::BookTimer.start("AMSGUSTEP");
-
+#ifdef __AMSDEBUG__
+      if(GCKINE.vert[2]>-85. && GCKINE.ipart==Cerenkov_photon ){
+	cout << "Emited at "<<GCKINE.vert[2]<<endl;
+      }
+#endif
 
       if(GCKINE.ipart==Cerenkov_photon && GCTRAK.nstep==0){
 

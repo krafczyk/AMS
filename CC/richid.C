@@ -241,7 +241,7 @@ AMSRICHIdGeom::AMSRICHIdGeom(integer pmtnb,geant x,geant y){
 
 
 #ifdef __AMSDEBUG__
-  cout<<"nx and ny according to new routine "<<nx<<" "<<ny<<endl;
+  //  cout<<"nx and ny according to new routine "<<nx<<" "<<ny<<endl;
 #endif
 
   integer channel=RICnwindows*pmtnb+integer(sqrt(RICnwindows))*
@@ -257,6 +257,129 @@ AMSRICHIdGeom::AMSRICHIdGeom(integer pmtnb,geant x,geant y){
 
 
 
+integer AMSRICHIdGeom::get_channel_from_top(geant x,geant y){
+  // First, decide in which crate to look for the guy. To do such thing it uses the hole radious
+  // Second look for it and decide the PMTnb
+
+
+  integer crate=-1;
+
+  if(x>RICHDB::hole_radius[0]-RICpmtsupport/2.){
+    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) crate=1;
+    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) crate=7;
+    else crate=0;
+  } else if(-x>RICHDB::hole_radius[0]-RICpmtsupport/2.){
+    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) crate=3;
+    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) crate=5;
+    else crate=4;
+  }else{
+    if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) crate=2;
+    else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) crate=6;
+    else return -1;
+  }
+
+
+#ifdef __AMSDEBUG__
+  /*
+  static int first=1;
+
+  if(first){
+    first=0;
+    integer crate;
+
+    for(float y=67;y>=-67;y-=2.){
+      for(float x=-67;x<=67;x+=2.){
+	
+		
+	if(x>RICHDB::hole_radius[0]-RICpmtsupport/2.){
+	  if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) crate=1;
+	  else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) crate=7;
+	  else crate=0;
+	} else if(-x>RICHDB::hole_radius[0]-RICpmtsupport/2.){
+	  if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) crate=3;
+	  else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) crate=5;
+	  else crate=4;
+	}else{
+	  if(y>RICHDB::hole_radius[1]-RICpmtsupport/2.) crate=2;
+	  else if(-y>RICHDB::hole_radius[1]-RICpmtsupport/2) crate=6;
+	  else crate=-1;
+	}
+	
+	cout <<crate+1;
+	
+      }
+      cout<<endl;
+    }
+    }*/
+#endif
+
+  
+  // Now we now in which crate to look for... doit
+
+  integer pmt_chosen=-1;
+
+  /*
+  for(int n=0;n<_npmts;n++){
+
+    if(fabs(x-_pmt_p[0][n])<RICHDB::lg_length/2. &&
+       fabs(y-_pmt_p[1][n])<RICHDB::lg_length/2.){
+      pmt_chosen=n;
+      break;
+    }
+    }
+  */
+
+  for(int n=_crate_pmt[crate];n<_crate_pmt[crate]+_npmts_crate[crate];n++){
+    // Check if this guy is within a given pmt light guide group 
+
+    if(fabs(x-_pmt_p[0][n])<RICHDB::lg_length/2. &&
+       fabs(y-_pmt_p[1][n])<RICHDB::lg_length/2.){
+      pmt_chosen=n;
+      break;
+    }
+  }
+
+
+#ifdef __AMSDEBUG__
+  //  cout<<"    @ get channel: chosen "<<pmt_chosen<<endl;
+#endif
+
+
+  if(pmt_chosen==-1) return -1;
+
+#ifdef __AMSDEBUG__
+  //  cout<<"    @ get channel: x,y"<<
+  //    _pmt_p[0][pmt_chosen]<<" "<<_pmt_p[1][pmt_chosen]<<endl;
+  //  cout <<"   @ get channel: input x,y:"<<
+  //    x<<" "<<y<<endl;
+#endif
+
+
+  x=(x-_pmt_p[0][pmt_chosen]+RICHDB::lg_length/2.)*
+    4/RICHDB::lg_length;
+  y=(y-_pmt_p[1][pmt_chosen]+RICHDB::lg_length/2.)*
+    4/RICHDB::lg_length;
+  
+#ifdef __AMSDEBUG__
+  //  cout<<"    @ get channel: nx,ny"<<
+  //    int(x)<<" "<<int(y)<<endl;
+#endif
+  
+  //  if(int(y)*integer(sqrt(RICnwindows))+int(x)>15 || 
+  //       int(y)*integer(sqrt(RICnwindows))+int(x)<0) {cout <<"ERRORRRRRR"<<endl;exit(1);}
+
+  return int(y)*integer(sqrt(RICnwindows))+int(x);
+  
+
+  
+
+
+}
+
+
+
+
+
 // The rotation is not implemented yet
 
 geant AMSRICHIdGeom::x(){
@@ -267,12 +390,12 @@ geant AMSRICHIdGeom::x(){
     RICHDB::lg_length/8.+*(_pmt_p[0]+_pmt);
 
 #ifdef __AMSDEBUG__
-  if(x>1e6){
+  /*  if(x>1e6){
     cout<<endl<<"--------"<<endl
 	<<"PMT position in x "<<*(_pmt_p[0]+_pmt)<<endl
 	<<"Factor "<<2*(_pixel%integer(sqrt(RICnwindows)))-3<<endl
 	<<"--------"<<endl;
-  }
+	}*/
 #endif
 
   return x;
@@ -395,7 +518,7 @@ void AMSRICHIdSoft::Init(){
 
 
 #ifdef __AMSDEBUG__
-    for(int i=0;i<_nchannels;i++){
+    /*    for(int i=0;i<_nchannels;i++){
       for(int hl=0;hl<2;hl++){
 	
 	cout <<"Channel "<<i<<" mode "<<(hl==0?"low":"high")<<
@@ -405,7 +528,7 @@ void AMSRICHIdSoft::Init(){
       }
       cout <<"   --> "<< _gain_mode_boundary[i]<<" "<<_status[i]<<endl;
 
-    }
+      }*/
 #endif    
 
 

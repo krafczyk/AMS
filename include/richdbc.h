@@ -1,4 +1,4 @@
-//  $Id: richdbc.h,v 1.30 2002/10/18 09:59:20 mdelgado Exp $
+//  $Id: richdbc.h,v 1.31 2002/10/30 14:57:21 mdelgado Exp $
 // Author C.J. Delgado (1999) 
 // Updated October 2000
 
@@ -68,6 +68,8 @@ const geant      cato_inner_pixel=0.42;  // Inner pixel side size in the photoca
 const geant      cathode_length=RICcatolength+RICcatogap;
 const geant      pitch=3.7;
 
+ const geant      RICmireff=0.85;     // Mirror reflectivity
+ // const geant      RICmireff=0.00;     // Mirror reflectivity
 // Entries in the tables of materials
 
 const integer RICmaxentries=44;
@@ -115,6 +117,19 @@ const geant npe_crossed_signature=6.;  // Minimum number of p.e. to consider
 const uinteger dirty_ring_bit=0;
 const uinteger dirty_ring=uinteger(1)<<dirty_ring_bit;
 
+// Radiator kinds
+const integer radiator_kinds=2; 
+const integer empty_kind=0; // Used by default
+const integer agl_kind=1;
+const integer naf_kind=2;
+
+
+
+// Lg eff tables size
+const integer RIC_NTH=20;  // binning in theta
+const integer RIC_NPHI=12; // binning in phi
+const integer RIC_NWND=3;  // Number of light guides
+
 
 }
 
@@ -140,8 +155,15 @@ public: // To be migrated in the future
   static geant rad_radius;
   static geant rad_height;
   static geant rad_length;
-  static geant rad_index;   // Mean index
+  static geant rad_index;   // Mean index for the main radiator
 
+  // Central NaF radiator features
+  static geant naf_index;
+  static geant naf_height;
+
+
+
+  // Foil features
   static geant foil_height; // Radiator foil support height
   static geant foil_index;	
 
@@ -155,12 +177,18 @@ public: // To be migrated in the future
   static geant lg_abs[RICmaxentries];   // abs. length for solid LG
   static geant lg_index[RICmaxentries]; // refractive index for solid_LG
 
+  static float lg_dist_tbl[RIC_NWND][RIC_NPHI][RIC_NTH];  // distance in LG table
+  static float lg_eff_tbl[RIC_NWND][RIC_NPHI][RIC_NTH]; // efficiency
   //---------- RADIATOR PARAMETERS
   static integer entries;
   
   static geant wave_length[RICmaxentries];
   static geant index[RICmaxentries];
   static geant abs_length[RICmaxentries];
+
+  //---------- NaF Radiator Parameters
+  static geant naf_index_table[RICmaxentries];  
+  static geant naf_abs_length[RICmaxentries];
 
 
   //---------- PMT PARAMETERS
@@ -190,6 +218,7 @@ public: // To be migrated in the future
   //--------- Some simple counters
   static integer nphgen;  // Nb. of generated photons
   static integer nphbas;  // Nb. of photons at base
+  static integer nphrad;
   static integer numrefm; // Nb. of reflections in the mirror
   static integer numrayl; // Nb. of rayleigh scatterings
 

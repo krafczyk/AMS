@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.74 2002/09/04 09:11:11 choumilo Exp $
+//  $Id: gmat.C,v 1.75 2002/10/30 14:57:09 mdelgado Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -245,6 +245,15 @@ mat.add (new AMSgmat( "FOAM",12.01, 6., 0.1 , 425.82, 900.));
 } 
 // Aerogel density extracted from J Phys D 27(1994)414
 // Case: Pure aerogel
+
+{
+  geant a[]={22.98977,18.99984};
+  geant z[]={11.,9.};
+  geant w[]={1.,1.};
+
+  mat.add(new AMSgmat("RICH_NaF",a,z,w,2,2.558));
+}
+
 
 
 { // Mirrors: plexiglass: Used for the light guides
@@ -625,6 +634,13 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
          "RICH_AEROGEL",1,'N',0,1,20,10,my_step));   //32
   pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::abs_length,dummy,RICHDB::index,RICHDB::rad_clarity);
   
+  // NaF (Secondary radiator)
+  pgtmed=(AMSgtmed*)  tmed.add (new AMSgtmed("RICH NAF",
+					     "RICH_NaF",0));
+  pgtmed->AGSCKOV(RICHDB::entries,p,RICHDB::naf_abs_length,dummy,
+		  RICHDB::naf_index_table,0);
+  
+
 // PMT window
   
 //  my_step*=(1-1/1.458/1.458)/(1-1/RICHDB::rad_index/RICHDB::rad_index); // To be moved to RICH common
@@ -682,7 +698,7 @@ tmed.add (new AMSgtmed("TOF_PMT_WINDOW","PMT_WINDOW",1));
 
 pgtmed= (AMSgtmed*)  tmed.add (new AMSgtmed("RICH MIRROR","RICH_MIRROR",0));
   for(iw=0;iw<RICHDB::entries;iw++)
-    abs_l[iw]=1.-0.85; // Reflectivity=85%   
+    abs_l[iw]=1.-RICmireff; // Reflectivity=85%   
   index[0]=0;          // The mirror is a metal
   pgtmed->AGSCKOV(RICHDB::entries,p,abs_l,dummy,index,0);
 

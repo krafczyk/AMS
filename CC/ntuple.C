@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.115 2002/10/17 12:52:29 choutko Exp $
+//  $Id: ntuple.C,v 1.116 2002/10/30 14:57:09 mdelgado Exp $
 //
 //  May 2002, A.Klimentov add Root related part
 //                        NB : Delete() should be used before Expand()
@@ -141,7 +141,14 @@ void AMSNtuple::init(){
   	 "nrings[0,10]:I,rctrkn(nrings):I,"
   	 "rcrihu(nrings):I,rcrimhu(nrings):I,"
 	 "rcribeta(nrings),rcriebeta(nrings),"
-	 "rcrichi2(nrings),rcristatus(nrings):I");
+	 "rcrichi2(nrings),rcristatus(nrings):I,"
+	 //"rcribcheck(nrings):R,"
+	 "rcriprob(nrings):R,rcrinpexp(nrings):R,"
+
+	 //	 "rcricnpe(nrings):R,rcrinpexpg(nrings):R,rcrinpexpr(nrings):R,rcrinpexpb(nrings):R,rad:I,bas:I");
+
+           "rcricnpe(nrings):R");
+
 
 }
 void AMSNtuple::reset(int full){
