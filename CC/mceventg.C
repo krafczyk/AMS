@@ -145,7 +145,7 @@ void AMSmceventg::setcuts(geant coo[6], geant dir[6],
 
 integer AMSmceventg::accept(){
   if(_coo >= _coorange[0] && _coo <= _coorange[1]){
-    if(_dir >= _dirrange[0] && _dir<= _dirrange[1]){
+    if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
         geant d;
         if (_dir[2]<_albedocz || RNDM(d)< _albedorate){
@@ -259,6 +259,7 @@ static MCEventGNtuple GN;
 int i;
 
 if(init++==0){
+  // get memory
   //book the ntuple block
   HBNAME(IOPA.ntuple,"MCEventG",GN.getaddress(),
   "EventNoMCEventG:I*4, Particle:I*4,  Coo(3):R*4, Dir(3):R*4, Momentum:R*4, Mass:R*4, Charge:R*4");
