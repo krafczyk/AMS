@@ -1,4 +1,4 @@
-//  $Id: mceventg.C,v 1.128 2003/06/19 15:21:17 isevilla Exp $
+//  $Id: mceventg.C,v 1.129 2003/09/26 13:53:33 isevilla Exp $
 // Author V. Choutko 24-may-1996
 //#undef __ASTRO__ 
 
@@ -54,12 +54,12 @@ init(ipart);
 }
 
 void AMSmceventg::gener(){
-     char cdir[256];
-    char *R="R";
-    HCDIR(cdir,R);
-    char hpawc[256]="//PAWC/GEN";
-     char *BLANK=" ";
-    HCDIR (hpawc,BLANK);
+  char cdir[256];
+  char *R="R";
+  HCDIR(cdir,R);
+  char hpawc[256]="//PAWC/GEN";
+  char *BLANK=" ";
+  HCDIR (hpawc,BLANK);
   if(CCFFKEY.low ==2){
     geant mom,themu,phimu,chmu,xmu,ymu,zmu;
     while(1){
@@ -79,234 +79,248 @@ void AMSmceventg::gener(){
     init(_ipart);
   }
   else {
-   static integer ini=0;
-   integer curp=0;
-   number phi;
-   number theta;
-   geant d(-1);
-   if(_fixedmom)_mom=_momrange[0];
-   else if(CCFFKEY.low==4){
-    _mom=_momrange[0]+(_momrange[1]-_momrange[0])*RNDM(d);
-    if(_momrange[1]>1000000){
-      cerr<<"AMSmceventg::gener-F-MomentumRangeIsLimitiedTo 1000 TeV "<<_momrange[1]<<endl;
-      exit(1);
-    }
-   }
-   else if(CCFFKEY.low==5 ){
-    if(_momrange[0]<=0 ){
-     cerr<<"AMSmceventg::gener-F-LogInfinity "<<endl;
-     exit(1);
-    }              
-    number lrange=log(fabs(_momrange[1]))-log(fabs(_momrange[0]));
-    _mom=_momrange[0]*exp(lrange*RNDM(d));
-   }
-   else {
-#ifdef __G4AMS__
-if(MISCFFKEY.G4On){
- _mom=AMSRandGeneral::hrndm1(_hid)/1000.;
- // cout <<" mom    .... "<<_mom<<endl; 
-}
-else
-#endif
-   _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
-   }
-   geant th,ph; // photon incidence angle (normal to gamma source generation plane)
-   number ra,dec;  // AMS zenithal pointing direction
-   number rai,deci; //ISS zenithal pointing direction (AMS not tilted)
- if(_fixeddir){ // when GammaSource>0 -> fixeddir=1 (this is done elsewhere)
-    if(!(GMFFKEY.GammaSource==0)){  
-      AMSEvent::gethead()->GetISSCoo(rai,deci); //non-tilted case      
-      AMSEvent::gethead()->GetAMSCoo(ra,dec);
-       skyposition isspos(rai,deci); //non-tilted case
-      skyposition amspos(ra,dec); // amspos is filled up      
-
-      if(GMFFKEY.GammaSource==1){ // user-defined source 
-      skyposition sourcepos(GMFFKEY.SourceCoo[0],GMFFKEY.SourceCoo[1]);
-      //isspos.CalcDir(sourcepos,th,ph); //non-tilted case
-      amspos.CalcDir(sourcepos,th,ph);
-      }
-      else { // tabulated source
-      geant rs,ds; // to store output from lookupsourcecoo
-      lookupsourcecoo(GMFFKEY.GammaSource,rs,ds);
-      skyposition sourcepos(rs,ds);
-      //isspos.CalcDir(sourcepos,th,ph); //non-tilted case
-      amspos.CalcDir(sourcepos,th,ph);
-      }
-
-      if(fabs(th)<GMFFKEY.SourceVisib){
-      _dir=AMSDir(-cos(ph)*sin(th),-sin(ph)*sin(th),-cos(th)); // invert direction TO source to direction FROM source.
-      } 
-      else _dir=AMSDir(cos(ph)*sin(th),sin(ph)*sin(th),cos(th));
-    }// ISN
-  else _dir=AMSDir(_dirrange[0]);
-    number coox,cooy,cooz,x,y,z;
-  if(_fixedpoint){
-  _coo=_coorange[0];
-  }
-  else {
-    number lx=_coorange[1][0]-_coorange[0][0];
-    number ly=_coorange[1][1]-_coorange[0][1];
-    number lz=_coorange[1][2]-_coorange[0][2];
-    x=_coorange[0][0];
-    y=_coorange[0][1];
-    z=_coorange[0][2];
+    static integer ini=0;
+    integer curp=0;
+    number phi;
+    number theta;
     geant d(-1);
-      if(!(GMFFKEY.GammaSource==0)){
-        //x = 0; // the following values are used to create the particle 
-        //y = 0; // in the middle of the generating plane
-        //z = 195; // to check orbit generation
-        //lx = 0;
-        //ly = 0;
-        //lz = 0; 
+    if(_fixedmom)_mom=_momrange[0];
+    else if(CCFFKEY.low==4){
+      _mom=_momrange[0]+(_momrange[1]-_momrange[0])*RNDM(d);
+      if(_momrange[1]>1000000){
+        cerr<<"AMSmceventg::gener-F-MomentumRangeIsLimitiedTo 1000 TeV "<<_momrange[1]<<endl;
+        exit(1);
+      }
+    }
+    else if(CCFFKEY.low==5 ){
+      if(_momrange[0]<=0 ){
+        cerr<<"AMSmceventg::gener-F-LogInfinity "<<endl;
+        exit(1);
+      }              
+      number lrange=log(fabs(_momrange[1]))-log(fabs(_momrange[0]));
+      _mom=_momrange[0]*exp(lrange*RNDM(d));
+    }
+    else {
+#ifdef __G4AMS__
+      if(MISCFFKEY.G4On){
+        _mom=AMSRandGeneral::hrndm1(_hid)/1000.;
+        // cout <<" mom    .... "<<_mom<<endl; 
+      }
+      else
+#endif
+        _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
+    }
+    geant th,ph; // photon incidence angle (normal to gamma source generation plane)
+    number ra,dec;  // AMS zenithal pointing direction
+    number rai,deci; //ISS zenithal pointing direction (AMS not tilted)
+    if(_fixeddir){ // when GammaSource>0 -> fixeddir=1 (this is done elsewhere)
+      if(!(GMFFKEY.GammaSource==0)){  
+        AMSEvent::gethead()->GetISSCoo(rai,deci); //non-tilted case      
+        AMSEvent::gethead()->GetAMSCoo(ra,dec);
+        skyposition isspos(rai,deci); //non-tilted case
+        skyposition amspos(ra,dec); // amspos is filled up      
+        
+        if(GMFFKEY.GammaSource==1){ // user-defined source 
+          skyposition sourcepos(GMFFKEY.SourceCoo[0],GMFFKEY.SourceCoo[1]);
+          //isspos.CalcDir(sourcepos,th,ph); //non-tilted case
+          amspos.CalcDir(sourcepos,th,ph);
+        }
+        else { // tabulated source
+          geant rs,ds; // to store output from lookupsourcecoo
+          lookupsourcecoo(GMFFKEY.GammaSource,rs,ds);
+          skyposition sourcepos(rs,ds);
+          //isspos.CalcDir(sourcepos,th,ph); //non-tilted case
+          amspos.CalcDir(sourcepos,th,ph);
+        }
+        
+        if(fabs(th)<GMFFKEY.SourceVisib){
+          _dir=AMSDir(-cos(ph)*sin(th),-sin(ph)*sin(th),-cos(th)); // invert direction TO source to direction FROM source.
+        } 
+        else _dir=AMSDir(cos(ph)*sin(th),sin(ph)*sin(th),cos(th));
+      }// ISN
+      else _dir=AMSDir(_dirrange[0]);
 
-        // generating plane has the orientation given by dir
-      // transforming to AMS coordinates (coox,cooy,cooz) from generation plane coordinates (x,y,z). z+lz is the distance to the plane.
-      // _coorange[1][2]=_coorange[0][2]=200 for std generation
-      coox=(z+lz)*cos(ph)*sin(th)+(x+lx*RNDM(d))*cos(th)*cos(ph)-(y+ly*RNDM(d))*sin(ph);
-      cooy=(z+lz)*sin(ph)*sin(th)+(x+lx*RNDM(d))*cos(th)*sin(ph)+(y+ly*RNDM(d))*cos(ph);
-      cooz=(z+lz)*cos(th)-(x+lx*RNDM(d))*sin(th);
-
-      _coo=AMSPoint(coox,cooy,cooz);
-
+      if(_fixedpoint){
+        _coo=_coorange[0];
+      }
+      else {
+        number x0=_coorange[0][0]>-AMSDBc::ams_size[0]/2?_coorange[0][0]:-AMSDBc::ams_size[0]/2;
+        number y0=_coorange[0][1]>-AMSDBc::ams_size[1]/2?_coorange[0][1]:-AMSDBc::ams_size[1]/2;
+        number z0=_coorange[0][2]>-AMSDBc::ams_size[2]/2?_coorange[0][2]:-AMSDBc::ams_size[2]/2;
+        number x1=_coorange[1][0]<AMSDBc::ams_size[0]/2?_coorange[1][0]:AMSDBc::ams_size[0]/2;
+        number y1=_coorange[1][1]<AMSDBc::ams_size[1]/2?_coorange[1][1]:AMSDBc::ams_size[1]/2;
+        number z1=_coorange[1][2]<AMSDBc::ams_size[2]/2?_coorange[1][2]:AMSDBc::ams_size[2]/2;
+        number lx=x1-x0;
+        number ly=y1-y0;
+        number lz=z1-z0;      
+        //number lx=_coorange[1][0]-_coorange[0][0];
+        //number ly=_coorange[1][1]-_coorange[0][1];
+        //number lz=_coorange[1][2]-_coorange[0][2];
+        //number x=_coorange[0][0];
+        //number y=_coorange[0][1];
+        //number z=_coorange[0][2];
+        geant d(-1);
+        if(!(GMFFKEY.GammaSource==0)){
+          number coox,cooy,cooz;
+          //x0 = 0; // the following values are used to create the particle 
+          //y0 = 0; // in the middle of the generating plane
+          //z1 = 195; // to check orbit generation
+          //lx = 0;
+          //ly = 0;
+          //lz = 0; 
+         
+          // generating plane has the orientation given by dir
+          // transforming to AMS coordinates (coox,cooy,cooz) from generation plane local coordinates (x0+lx*RNDM(d),y0+ly*RNDM(d),0). z1=MCGEN[1][2] is the distance to the plane from AMS coordinate origin.
+          //CAREFUL: MCGEN[0][2] is not used for gamma sources         
+         // MCGEN[1][2]=195 for std generation
+//            coox=(z+lz)*cos(ph)*sin(th)+(x+lx*RNDM(d))*cos(th)*cos(ph)-(y+ly*RNDM(d))*sin(ph);
+//            cooy=(z+lz)*sin(ph)*sin(th)+(x+lx*RNDM(d))*cos(th)*sin(ph)+(y+ly*RNDM(d))*cos(ph);
+//            cooz=(z+lz)*cos(th)-(x+lx*RNDM(d))*sin(th);
+          coox=z1*cos(ph)*sin(th)+(x0+lx*RNDM(d))*cos(th)*cos(ph)-(y0+ly*RNDM(d))*sin(ph);
+          cooy=z1*sin(ph)*sin(th)+(x0+lx*RNDM(d))*cos(th)*sin(ph)+(y0+ly*RNDM(d))*cos(ph);
+          cooz=z1*cos(th)-(x0+lx*RNDM(d))*sin(th);
+          
+          _coo=AMSPoint(coox,cooy,cooz);
+      
       // these transformations are obtained by adding:
-      // a translation in R=z+lz cm 
+      // a translation in R=z1 cm 
       // a rotation: theta around y; -phi around z
       // the orientation was chosen so that cooy is coplanar with y
 
-
-      if(GMFFKEY.GammaBg==1){ //to generate a background photon around the source
-        number thprime,phprime; //in radians
-        geant d(-1);
-        phprime=2*AMSDBc::pi*RNDM(d);
-
-        //this is to generate randomly between BgAngle and 0.
-        thprime=1-pow(sin(GMFFKEY.BgAngle),2)*(double)RNDM(d);
-        thprime=sqrt(thprime);
-        thprime=acos(thprime);
-
-
-        // direction vector respect to inclined plane
-        number xprime=cos(phprime)*sin(thprime);
-        number yprime=sin(phprime)*sin(thprime);
-        number zprime=cos(thprime);
-
-        // direction vector respect to AMS ref. system
-        number xbg=(xprime*cos(th)+zprime*sin(th))*cos(ph)-yprime*sin(ph);
-        number ybg=(xprime*cos(th)+zprime*sin(th))*sin(ph)+yprime*cos(ph);
-        number zbg=-xprime*sin(th)+zprime*cos(th);
-
-        xbg=xbg/sqrt(pow(xbg,2)+pow(ybg,2)+pow(zbg,2)); // to make unitary vector
-        ybg=ybg/sqrt(pow(xbg,2)+pow(ybg,2)+pow(zbg,2));
-        zbg=zbg/sqrt(pow(xbg,2)+pow(ybg,2)+pow(zbg,2));
-
-        // now we rewrite the direction vector _dir 
-        // from: "perpendicular to generating plane"(source direction) to "random direction around source"
-        if(acos(zbg)<GMFFKEY.SourceVisib){
-        _dir=AMSDir(-xbg,-ybg,-zbg);
+      
+          if(GMFFKEY.GammaBg==1){ //to generate a background photon around the source
+            number thprime,phprime; //in radians
+            geant d(-1);
+            phprime=2*AMSDBc::pi*RNDM(d);
+            
+            //this is to generate randomly between BgAngle and 0.
+            thprime=1-pow(sin(GMFFKEY.BgAngle),2)*(double)RNDM(d);
+            thprime=sqrt(thprime);
+            thprime=acos(thprime);
+            
+        
+            // direction vector respect to inclined plane
+            number xprime=cos(phprime)*sin(thprime);
+            number yprime=sin(phprime)*sin(thprime);
+            number zprime=cos(thprime);
+            
+            // direction vector respect to AMS ref. system
+            number xbg=(xprime*cos(th)+zprime*sin(th))*cos(ph)-yprime*sin(ph);
+            number ybg=(xprime*cos(th)+zprime*sin(th))*sin(ph)+yprime*cos(ph);
+            number zbg=-xprime*sin(th)+zprime*cos(th);
+            
+            xbg=xbg/sqrt(pow(xbg,2)+pow(ybg,2)+pow(zbg,2)); // to make unitary vector
+            ybg=ybg/sqrt(pow(xbg,2)+pow(ybg,2)+pow(zbg,2));
+            zbg=zbg/sqrt(pow(xbg,2)+pow(ybg,2)+pow(zbg,2));
+            
+            // now we rewrite the direction vector _dir 
+            // from: "perpendicular to generating plane"(source direction) to "random direction around source"
+            if(acos(zbg)<GMFFKEY.SourceVisib){
+              _dir=AMSDir(-xbg,-ybg,-zbg);
+            }
+            else _dir=AMSDir(xbg,ybg,zbg);
+          }
+        } // ISN
+        else if(_fixedplane==1){
+          cout << "fixed plane" << endl;
+          _coo=AMSPoint(x0+lx*RNDM(d),y0+ly*RNDM(d),z0+lz);
         }
-        else _dir=AMSDir(xbg,ybg,zbg);
+        else{
+          _coo=AMSPoint(x0+lx*RNDM(d),y0+ly*RNDM(d),z0+lz*RNDM(d));
+        }
       }
-    } // ISN
-    else if(_fixedplane==1){
-      cout << "fixed plane" << endl;
-      _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz);
     }
-    else{
-      _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz*RNDM(d));
-    }
-  }
- }
- else {   // <--- random dir
- geant d(-1);
- phi=2*AMSDBc::pi*RNDM(d);
- theta=sqrt((double)RNDM(d));
- theta=acos(theta);
- if(_fixedpoint){
-  _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
-  _coo=_coorange[0];
-  char hp[9]="//PAWC";
-  HCDIR(hp," ");
-  HCDIR (cdir, " ");
-  return;
- }
-
- if(_fixedplane)curp=_fixedplane;
- else {
-  geant r=RNDM(d)-1.e-5;
-  int i;
-  for ( i=0;i<6;i++){
-  if(r<_planesw[i]){
-   curp=i+1;
-   break;
-  }
-  }
- }
-
-  number xa=_coorange[0][0]>-AMSDBc::ams_size[0]/2?_coorange[0][0]:-AMSDBc::ams_size[0]/2;
-  number ya=_coorange[0][1]>-AMSDBc::ams_size[1]/2?_coorange[0][1]:-AMSDBc::ams_size[1]/2;
-  number za=_coorange[0][2]>-AMSDBc::ams_size[2]/2?_coorange[0][2]:-AMSDBc::ams_size[2]/2;
-  number xb=_coorange[1][0]<AMSDBc::ams_size[0]/2?_coorange[1][0]:AMSDBc::ams_size[0]/2;
-  number yb=_coorange[1][1]<AMSDBc::ams_size[1]/2?_coorange[1][1]:AMSDBc::ams_size[1]/2;
-  number zb=_coorange[1][2]<AMSDBc::ams_size[2]/2?_coorange[1][2]:AMSDBc::ams_size[2]/2;
-  number lx=xb-xa;
-  number ly=yb-ya;
-  number lz=zb-za;
-  geant xin,yin;
-//
-
- switch(curp){
- case 1:
-//
-// <-- try(if asked) to increas "from top" gener. effic.(Not for accept. calc.!!!)
-    if(TFMCFFKEY.fast>0){
-      while(1){
-        xin=xa+lx*RNDM(d);
-        yin=ya+ly*RNDM(d);
-        phi=2*AMSDBc::pi*RNDM(d);
-        theta=sqrt((double)RNDM(d));
-        theta=acos(theta);
-        if(fastcheck(xin,yin,zb,theta,phi))break;
+    else {   // <--- random dir
+      geant d(-1);
+      phi=2*AMSDBc::pi*RNDM(d);
+      theta=sqrt((double)RNDM(d));
+      theta=acos(theta);
+      if(_fixedpoint){
+        _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
+        _coo=_coorange[0];
+        char hp[9]="//PAWC";
+        HCDIR(hp," ");
+        HCDIR (cdir, " ");
+        return;
       }
-      _coo=AMSPoint(xin,yin,zb);
+     
+      if(_fixedplane)curp=_fixedplane;
+      else {
+        geant r=RNDM(d)-1.e-5;
+       int i;
+       for ( i=0;i<6;i++){
+         if(r<_planesw[i]){
+           curp=i+1;
+           break;
+         }
+       }
+      }
+      
+      number xa=_coorange[0][0]>-AMSDBc::ams_size[0]/2?_coorange[0][0]:-AMSDBc::ams_size[0]/2;
+      number ya=_coorange[0][1]>-AMSDBc::ams_size[1]/2?_coorange[0][1]:-AMSDBc::ams_size[1]/2;
+      number za=_coorange[0][2]>-AMSDBc::ams_size[2]/2?_coorange[0][2]:-AMSDBc::ams_size[2]/2;
+      number xb=_coorange[1][0]<AMSDBc::ams_size[0]/2?_coorange[1][0]:AMSDBc::ams_size[0]/2;
+      number yb=_coorange[1][1]<AMSDBc::ams_size[1]/2?_coorange[1][1]:AMSDBc::ams_size[1]/2;
+      number zb=_coorange[1][2]<AMSDBc::ams_size[2]/2?_coorange[1][2]:AMSDBc::ams_size[2]/2;
+      number lx=xb-xa;
+      number ly=yb-ya;
+      number lz=zb-za;
+      geant xin,yin;
+     //
+     
+      switch(curp){
+      case 1:
+        //
+        // <-- try(if asked) to increas "from top" gener. effic.(Not for accept. calc.!!!)
+       if(TFMCFFKEY.fast>0){
+         while(1){
+           xin=xa+lx*RNDM(d);
+           yin=ya+ly*RNDM(d);
+           phi=2*AMSDBc::pi*RNDM(d);
+           theta=sqrt((double)RNDM(d));
+           theta=acos(theta);
+           if(fastcheck(xin,yin,zb,theta,phi))break;
+         }
+         _coo=AMSPoint(xin,yin,zb);
+       }
+       else{
+         _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
+         //      cout <<" coo "<<xa<<" "<<ya<<" "<<lx<<" "<<ly<<" "<<_coo<<endl;
+       }
+       //
+       _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
+       break;
+      case 2:  
+        _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),cos(theta));
+        _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),za);
+        break;
+      case 3:  
+        _dir=AMSDir(-cos(theta),cos(phi)*sin(theta),sin(phi)*sin(theta));
+        _coo=AMSPoint(xb,ya+ly*RNDM(d),za+lz*RNDM(d));
+        break;
+      case 4:  
+        _dir=AMSDir(cos(theta),cos(phi)*sin(theta),sin(phi)*sin(theta));
+        _coo=AMSPoint(xa,ya+ly*RNDM(d),za+lz*RNDM(d));
+       break;
+      case 5:  
+        _dir=AMSDir(cos(phi)*sin(theta),-cos(theta),sin(phi)*sin(theta));
+        _coo=AMSPoint(xa+lx*RNDM(d),yb,za+lz*RNDM(d));
+        break;
+      case 6:  
+        _dir=AMSDir(cos(phi)*sin(theta),cos(theta),sin(phi)*sin(theta));
+        _coo=AMSPoint(xa+lx*RNDM(d),ya,za+lz*RNDM(d));
+        break;
+      default:  
+        cerr <<" AMSmceventg-F-plane problem "<<curp<<endl;
+        abort();
+      }//<--- end of switch
+      //if(_fixedplane == 0)_coo=_coo/2;
     }
-    else{
-      _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
-//      cout <<" coo "<<xa<<" "<<ya<<" "<<lx<<" "<<ly<<" "<<_coo<<endl;
-    }
-//
-  _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
-  break;
- case 2:  
-  _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),cos(theta));
-  _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),za);
-  break;
- case 3:  
-  _dir=AMSDir(-cos(theta),cos(phi)*sin(theta),sin(phi)*sin(theta));
-  _coo=AMSPoint(xb,ya+ly*RNDM(d),za+lz*RNDM(d));
-  break;
- case 4:  
-  _dir=AMSDir(cos(theta),cos(phi)*sin(theta),sin(phi)*sin(theta));
-  _coo=AMSPoint(xa,ya+ly*RNDM(d),za+lz*RNDM(d));
-  break;
- case 5:  
-  _dir=AMSDir(cos(phi)*sin(theta),-cos(theta),sin(phi)*sin(theta));
-  _coo=AMSPoint(xa+lx*RNDM(d),yb,za+lz*RNDM(d));
-  break;
- case 6:  
-  _dir=AMSDir(cos(phi)*sin(theta),cos(theta),sin(phi)*sin(theta));
-  _coo=AMSPoint(xa+lx*RNDM(d),ya,za+lz*RNDM(d));
-  break;
- default:  
-  cerr <<" AMSmceventg-F-plane problem "<<curp<<endl;
-  abort();
- }//<--- end of switch
- //if(_fixedplane == 0)_coo=_coo/2;
- }
   }
   char hp[9]="//PAWC";
   HCDIR(hp," ");
   HCDIR (cdir, " ");
-
+  
 }
 
 
