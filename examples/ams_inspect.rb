@@ -21,8 +21,8 @@
 require "tk"
 
 if ARGV.size<1
-      puts "SCRIPT ams_inspect.rb: "
-      puts "\t\tams_inspect.rb [files]"
+      puts "SCRIPT ams_inspect: "
+      puts "\t\tams_inspect [files]"
       puts "\t to plot interactively AMS variables from a set of root files"
       exit
 else
@@ -42,13 +42,57 @@ TkLabel.new {
   pack
 }
 
-TkButton.new { |menumother|
+TkButton.new { 
       background "red"
       foreground "black"
       text "EXIT"
       command 'exit'
       pack
 }
+
+frame0 = TkFrame.new {
+      background "darkblue"
+      pack(:pady=>10)
+}
+
+$cutmin = TkVariable.new("-1.e10<")
+$cutmax = TkVariable.new("!=0")
+
+def AMSPLOT(v,fil)
+   varfinal = "$AMSDir/ut/amsplot '" + $cutmin.to_s + v + $cutmax.to_s + "' " + fil + " 2> /dev/null"
+   puts varfinal
+   fork{`#{varfinal}`}
+end
+
+label0 = TkLabel.new(frame0) {
+  text "Apply the following cut:"
+  background "darkblue"
+  foreground "white"
+}
+label0.pack(:side=>:left,:padx=>5)
+
+cut0 = TkEntry.new(frame0,:textvariable=>$cutmin) {
+      background "white"
+      foreground "black"
+      relief "sunken"
+      bind('Return'){}
+}
+cut0.pack(:side=>:left,:fill=>:both, :padx=>'2m', :pady=>'2m', :expand=>true)
+
+label1 = TkLabel.new(frame0) {
+  text "VARIABLE"
+  background "darkblue"
+  foreground "white"
+}
+label1.pack(:side=>:left,:padx=>5)
+
+cut1 = TkEntry.new(frame0,:textvariable=>$cutmax) {
+      background "white"
+      foreground "black"
+      relief "sunken"
+      bind('Return'){}
+}
+cut1.pack(:side=>:left,:fill=>:both, :padx=>'2m', :pady=>'2m', :expand=>true)
 
 root_h = ENV["AMSDir"] + "/include/root.h"
 if FileTest.exists?(root_h)
@@ -152,18 +196,17 @@ for line in root_h_file
                   menu TkMenu.new(menumother) {
                       if current_class != "Header"
                         var = "# of " + current_class + "'s"
-                        var0 = "$AMSDir/ut/amsplot n" + current_class + " " + myfiles + " 2> /dev/null"
-                        add(:command,:background=>mycol2,:label=>var,:command=>proc{fork{`#{var0}`}})
+                        var0 = "n" + current_class 
+                        add(:command,:background=>mycol2,:label=>var,:command=>proc{AMSPLOT(var0,myfiles)})
                       end
                       variables.each { |var|
+                        var2 = current_class + "." + var 
                         if var[-2..-1]=="()"
                               lab = var[0..-3]
-                              var2 = "$AMSDir/ut/amsplot '" + current_class + "." + var + "' " + myfiles + " 2> /dev/null"
                         else
                               lab = var
-                              var2 = "$AMSDir/ut/amsplot " + current_class + "." + var + " " + myfiles + " 2> /dev/null"
                         end
-                        add(:command,:background=>mycol2,:label=>lab,:command=>proc{fork{`#{var2}`}})
+                        add(:command,:background=>mycol2,:label=>lab,:command=>proc{AMSPLOT(var2,myfiles)})
                       }
                   }
                   pack(:side=>:left,:padx=>10)
