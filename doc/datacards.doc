@@ -278,7 +278,7 @@ I20 low(0)                        //normal(0);  low(1) spectrum if ipart=3,
 I21 earth(1)                      // Earth magnetic field modulation on (1) off(0) 
 R22 theta(51.65)                  //Station Theta(deg) at begin
 R23 phi(290.)                     //Station Phi(deg) at begin
-R24 pole(290.)                    // Pole phi at begin 
+R24 pole(108.392)                 // Pole phi at begin 
 I25 begindate(22051998)           // start date (ddmmyyyy)
 I26 begintime(080000)             // start time (hhmmss)
 I27 enddate(26051998)             // end date   (ddmmyyyy)
