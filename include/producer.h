@@ -1,4 +1,4 @@
-//  $Id: producer.h,v 1.12 2001/03/02 10:40:56 choutko Exp $
+//  $Id: producer.h,v 1.13 2001/07/03 10:44:47 choutko Exp $
 #ifdef __CORBA__
 #ifndef __AMSPRODUCER__
 #define __AMSPRODUCER__
@@ -13,6 +13,7 @@ protected:
 typedef list<DPS::Producer_var> PList;
 PList _plist;
 static AMSProducer * _Head;
+bool _OnAir;
 DPS::Producer::CurrentInfo _cinfo;
 DPS::Producer::DST   _ntend[2];  // 0 - ntuple 1 -root
 DPS::Producer::DST   _evtag;
@@ -27,6 +28,7 @@ AMSProducer(int argc,  char * argv[], int debug) throw (AMSClientError);
 ~AMSProducer();
 static AMSProducer* gethead(){return _Head;}
 DPS::Producer::DST * getdst(DPS::Producer::DSTType type);
+bool & OnAir(){return _OnAir;}
 void AddEvent();
 void UpdateARS();
 void getRunEventInfo();

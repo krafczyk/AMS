@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.68 2001/06/26 15:07:13 choutko Exp $
+//  $Id: server.C,v 1.69 2001/07/03 10:44:41 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -1300,7 +1300,8 @@ return 0;
 //          cout << " host found for deleteing "<<endl;
         ((*i)->ClientsRunning)--;
         if((*i)->ClientsRunning<0){
-          _parent->FMessage("Server_impl::sendAC-F-NegativeNumberClientRunning ",DPS::Client::CInAbort);
+          _parent->EMessage("Server_impl::sendAC-F-NegativeNumberClientRunning ");
+         (*i)->ClientsRunning=0;
         }
      time_t tt;
      time(&tt);
