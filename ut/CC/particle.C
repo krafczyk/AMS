@@ -59,7 +59,7 @@ integer AMSParticle::build(integer refit){
               else {rid=grid; err=gerr; }
             }
           // Add new element
-          charge=(pcharge->getchargeTOF()+pcharge->getchargeTracker())/2.;
+          charge=pcharge->getvotedcharge();
           momentum=rid*charge;
           emomentum=err*rid*rid*charge;
           number beta=pbeta->getbeta();

@@ -45,6 +45,7 @@ public:
   AMSCharge *  next(){return (AMSCharge*)_next;}
   AMSCharge(): AMSlink(),  _pbeta(0){}
   AMSCharge(AMSBeta * pbeta): AMSlink(), _pbeta(pbeta){}
+  integer getvotedcharge();
   integer getchargeTOF()const{return _ChargeTOF;}
   integer getchargeTracker()const{return _ChargeTracker;}
   AMSBeta * getpbeta()const{return _pbeta;}

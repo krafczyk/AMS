@@ -342,8 +342,8 @@ CCFFKEY.phi=290.;
 CCFFKEY.polephi=290.;
 CCFFKEY.begindate=2061998;
 CCFFKEY.enddate=12061998;
-CCFFKEY.begintime=80000;
-CCFFKEY.endtime=120000;
+CCFFKEY.begintime=170000;
+CCFFKEY.endtime=220000;
 CCFFKEY.oldformat=0;
 
 CCFFKEY.sdir=1;

@@ -32,6 +32,18 @@ geant AMSCharge::_lkhdStepTracker[ncharge];
 integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8,9};
 integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8,9};
 char AMSCharge::_fnam[128]="lkhd_v214+.data";
+integer AMSCharge::getvotedcharge(){
+int i;
+geant mp=0;
+integer charge=0;
+for(i=0;i<ncharge;i++){
+  if(mp<_ProbTOF[i]*_ProbTracker[i]){
+    mp=_ProbTOF[i]*_ProbTracker[i];
+    charge=i;
+  }
+}
+return charge;
+}
 integer AMSCharge::build(integer refit){
   // charge finding
   number EdepTOF[4];
@@ -260,7 +272,10 @@ else strcat(fnam,".0");
      cerr <<"AMSCharge::init-F-Error open file "<<fnam<<endl;
      
       exit(1);
+
   }
+  else cout <<"AMSCharge::init-I-Open file "<<fnam<<endl;
+
   for( i=0;i<ncharge;i++){
     iftxt >> _lkhdStepTOF[i];
        
@@ -346,9 +361,7 @@ else strcat(fnam,".0");
    UCOPY(_lkhdTOF[6],_lkhdTOF[6+i],100*sizeof(_lkhdTOF[0][0])/4);
    UCOPY(_lkhdTracker[6],_lkhdTracker[6+i],100*sizeof(_lkhdTracker[0][0])/4);
   }
-#ifdef __AMSDEBUG__
   cout << "AMSCharge::init()-I-Completed"<<endl;
-#endif
 }
 
 
