@@ -1242,7 +1242,7 @@ for(i=159;i>=0;i--){
 
 if(TRDMCFFKEY.mode==-1){
  if(!strstr(getsetup(),"AMSSHUTTLE")){
-    TRDMCFFKEY.mode=-TRDMCFFKEY.mode;
+    TRDMCFFKEY.mode=0;
  }
 }
 
