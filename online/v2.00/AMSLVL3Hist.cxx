@@ -86,7 +86,7 @@ void AMSLVL3Hist::Fill(AMSNtuple * ntuple){
         } 
     }
     if(ntuple->_AxAMS.npart){
-     if(ntuple->_AxAMS.pmom[0] > 0)_filled2[4]->Fill(ntuple->_LVL3.TrackerTr,1.);
+     if(ntuple->_AxAMS.pmom[0]*ntuple->_AxAMS.beta[0] > 0)_filled2[4]->Fill(ntuple->_LVL3.TrackerTr,1.);
      else _filled2[5]->Fill(ntuple->_LVL3.TrackerTr,1.);
     }
   }

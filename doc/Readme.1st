@@ -101,6 +101,16 @@ c) setenv AMSDataDir  <your preferred dir>
 
 
 
+VIII.  Bug reports.
+
+Please send together with the description of the bug the following:
+
+a. Hardware platform on which crash happened
+b. version of AMS software  
+c. Log file 
+d. DataCards
+
+
 
 
 Comments, questions to shoutko@vxcern.cern.ch
