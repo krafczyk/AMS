@@ -2,6 +2,9 @@ Rules for devloppers:
 
 Before commit please insure that:
 
+i. You have updated corr classdef in root.h if you have changed class content
+ii.You have changed buildno in commons.C
+ 
 a. builded gbatch.exe image works with $AMSDir/examples/g3.root.test.job
 BOTH on alpha (ams.cern.ch)  AND linux (pcamsf2.cern.ch)
 
