@@ -110,7 +110,7 @@ integer AMSTimeID::CopyOut(void *pdata){
 
 integer AMSTimeID::validate(time_t & Time, integer reenter){
 AMSgObj::BookTimer.start("TDV");
-read(AMSDATADIR.amsdatabase);
+read(AMSDATADIR.amsdatabase,reenter);
 if (Time >= _Begin && Time <= _End){
   if(_CRC == _CalcCRC()){
      AMSgObj::BookTimer.stop("TDV");
@@ -121,6 +121,7 @@ if (Time >= _Begin && Time <= _End){
       <<_CRC<<" New CRC "   <<_CalcCRC()<<endl;
   }
   AMSgObj::BookTimer.stop("TDV");
+  if(!reenter)validate(Time,1);
   return 0;
 }
 }
@@ -212,14 +213,14 @@ integer AMSTimeID::read(char * dir, integer reenter){
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    if(run>0 ){
+    if(run>0 && !reenter){
      char name[255];
      ostrstream ost(name,sizeof(name));
      ost << "."<<run<<ends;
      fnam+=name;     
     }
 
-    else if(run==0){
+    else if(run==0 || reenter){
       cout <<"AMSTimeID::read-W-Default value for TDV "<<getname()<<" will be used."<<endl;
     }
     else return 0;
