@@ -32,15 +32,17 @@ a) As a user:
 
   i) Get an account on  some ams computer (see VIII)
                         
-  ii)            ams software is in /Offline/vdev
-  iii)           source /offline/vdev/amsvar to setup AMS related variables
+  ii)            ams software is in $Offline/vdev
+  iii)           source $Offline/vdev/install/amsvar 
+                        to setup AMS related variables
 
 b) As a developper :
 
   i)Get an account on  some ams computer (see VIII)
   ii)You should be a member of amsdev group on ams computers
   (ask Vitaly.Choutko@cern.ch about it)                                       
-  iii)           source /offline/vdev/amsvar to setup AMS related variables
+  iii)           source $Offline/vdev/install/amsvar 
+                 to setup AMS related variables
   iv ) cvs checkout AMS  
                          
 
@@ -120,13 +122,13 @@ c. SoftWare/DataAccess
    /afs/cern.ch/exp/ams/Offline              all others 
                                             (e.g.rsplus,dxplus,hpplus)
 
-  source $Offline/vdev/install/amsvar
+   source $Offline/vdev/install/amsvar
 
-  vdev version is in $Offline/vdev  (v 3.00 build 912)
+   vdev version is in $Offline/vdev  (v 3.00 build 912)
 
-  vdec/doc contains doc
+   vdec/doc contains doc
 
-  AMSDataBase is in $AMSDataDir/DataBase 
+   AMSDataBase is in $AMSDataDir/DataBase 
 
    http://ams.cern.ch/AMS/Analysis/hpl3itp1/prv3.job contains relevant datacards
 
