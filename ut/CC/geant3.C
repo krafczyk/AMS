@@ -378,7 +378,8 @@ extern "C" void gustep_(){
 
   if(RICCONTROL.iflgk_flag){
    for(int i=0;i<GCKING.ngkine;i++){
-     if(GCKING.iflgk[i]==0) GCKING.iflgk[i]=1;
+//     if(GCKING.iflgk[i]==0) GCKING.iflgk[i]=1;
+     GCKING.iflgk[i]=1;
    }
   }
   GCTRAK.upwght=0;
