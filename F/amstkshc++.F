@@ -9088,3 +9088,69 @@ C
 12900 FORMAT(
      +' *  hadronic interactions for the above tracking medium     *')
   999 END
+
+
+*
+* $Id: amstkshc++.F,v 1.57 2000/09/01 14:24:03 choutko Exp $
+*
+* $Log: amstkshc++.F,v $
+* Revision 1.57  2000/09/01 14:24:03  choutko
+* rndm
+*
+* Revision 1.2  1998/03/02 15:33:35  japost
+*    A significant error on Linux is corrected:
+*
+*     Two lines of grndm were not defined for any system that was not listed.
+*   In such a system (and Linux was one) the behavior of grndm was incorrect.
+*
+*     A default behavior is now defined for all systems. Any system that has
+*   a problem with this behavior (using integer division) must be added to
+*   the #ifdef together with IBMALL etc.
+*
+* Revision 1.1.1.1  1995/10/24 10:21:42  cernlib
+* Geant
+*
+*
+#include "geant321/pilot.h"
+*CMZ :  3.21/02 29/03/94  15.41.23  by  S.Giani
+*-- Author :
+c      SUBROUTINE GRNDM(RVEC,LEN)
+cC.
+cC.    ******************************************************************
+cC.    *                                                                *
+cC.    *       To generate a vector RVECV of LEN random numbers         *
+cC.    *         Copy of the CERN Library routine RANECU                *
+cC.    *                                                                *
+cC.    *    ==>Called by : <USER>, many GEANT routines                  *
+cC.    *       Author    F.Carminati *********                          *
+cC.    *                                                                *
+cC.    ******************************************************************
+cC.
+c      DIMENSION RVEC(*)
+c      PARAMETER  (MAXSEQ=215)
+c      COMMON / GCRNDM / JSEQ(2), ISEED(2,MAXSEQ)
+cC
+c      ISEQ   = JSEQ(1)
+c      ISEED1 = ISEED(1,ISEQ)
+c      ISEED2 = ISEED(2,ISEQ)
+c      DO 100 I= 1, LEN
+c        K = ISEED1/53668
+c        ISEED1 = 40014*(ISEED1 - K*53668) - K*12211
+c        IF (ISEED1 .LT. 0) ISEED1=ISEED1+2147483563
+cC
+c        K = ISEED2/52774
+c        ISEED2 = 40692*(ISEED2 - K*52774) - K* 3791
+c        IF (ISEED2 .LT. 0) ISEED2=ISEED2+2147483399
+cC
+c        IZ = ISEED1 - ISEED2
+c        IF (IZ .LE. 0)  IZ = IZ + 2147483562
+cC
+c        RVEC(I) = IZ * 4.6566128E-10
+c       write(*,*)' grndm ',iseed1,iseed2
+c  100 CONTINUE
+c      ISEED(1,ISEQ) = ISEED1
+c      ISEED(2,ISEQ) = ISEED2
+c      END
+
+       subroutine xdummy(io)
+       end

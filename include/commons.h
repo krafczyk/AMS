@@ -2,7 +2,14 @@
 // 5.6.2000 modifications for TOF,ANTI,LVL1 (+AMS02) by E.Choumilov 
 #ifndef __AMSCOMMONS__
 #define __AMSCOMMONS__
-#include <cern.h>
+#include <typedefs.h>
+// GEANT part
+#ifdef __ALPHA__
+#define DECFortran
+#else
+#define mipsFortran
+#endif
+#include <cfortran.h>
 
 
 class TRMFFKEY_DEF{

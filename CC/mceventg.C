@@ -9,6 +9,10 @@
 #include <io.h>
 #include <extC.h>
 #include <ecaldbc.h>
+#ifdef __G4AMS__
+#include "CLHEP/Random/Random.h"
+#include <g4util.h>
+#endif
 orbit AMSmceventg::Orbit;
 integer AMSmceventg::_hid=20001;
 AMSPoint AMSmceventg::_coorange[2];
@@ -97,6 +101,13 @@ void AMSmceventg::gener(){
     _mom=_momrange[0]*exp(lrange*RNDM(d));
    }
    else {
+#ifdef __G4AMS__
+if(MISCFFKEY.G4On){
+ _mom=AMSRandGeneral::hrndm1(_hid)/1000.;
+ //cout <<" mom    .... "<<_mom<<endl; 
+}
+else
+#endif
    _mom=HRNDM1(_hid)/1000.;  // momentum in GeV
    }
 if(_fixeddir){
@@ -112,7 +123,9 @@ if(_fixeddir){
   number y=_coorange[0][1];
   number z=_coorange[0][2];
   geant d(-1);
+  cout <<" qq in "<<endl;
   _coo=AMSPoint(x+lx*RNDM(d),y+ly*RNDM(d),z+lz*RNDM(d));
+  cout <<"coo "<<_coo<<endl;
  }
 }
 else {   // <--- random dir
@@ -169,6 +182,7 @@ else {   // <--- random dir
     }
     else{
       _coo=AMSPoint(xa+lx*RNDM(d),ya+ly*RNDM(d),zb);
+//      cout <<" coo "<<xa<<" "<<ya<<" "<<lx<<" "<<ly<<" "<<_coo<<endl;
     }
 //
   _dir=AMSDir(cos(phi)*sin(theta),sin(phi)*sin(theta),-cos(theta));
@@ -393,6 +407,9 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
 #ifdef __AMSDEBUG__
     //HPRINT(_hid);
 #endif
+#ifdef __G4AMS__
+if(MISCFFKEY.G4On)AMSRandGeneral::book(_hid);
+#endif
      char hp[9]="//PAWC";
      HCDIR(hp," ");
      HCDIR (cdir, " ");
@@ -597,7 +614,15 @@ _charge=charge;
       gener();
     }while(!accept());
     // Set seed
+#ifdef __G4AMS__
+if(!MISCFFKEY.G3On){
+_seed[0]=HepRandom::getTheSeeds()[0];
+_seed[1]=HepRandom::getTheSeeds()[1];
+}
+else
+#endif
    GRNDMQ(_seed[0],_seed[1],0,"G");
+//   cout <<"seed[ "<<_seed[0]<<" "<<_seed[1]<<endl;
    vertex[0]=_coo[0];
    vertex[1]=_coo[1];
    vertex[2]=_coo[2];
@@ -640,12 +665,24 @@ void AMSmceventg::InitSeed(){
   //
   GCFLAG.NRNDM[0]=_seed[0];
   GCFLAG.NRNDM[1]=_seed[1];
+#ifdef __G4AMS__
+if(!MISCFFKEY.G3On){
+ long seedl[3]={0,0,0};
+ seedl[0]=_seed[0];
+ seedl[1]=_seed[1];
+ HepRandom::setTheSeeds(seedl);
+}
+else{
+#endif
   if(_seed[1] !=0)GRNDMQ(_seed[0],_seed[1],1,"S");
   else if(_seed[0] > 0){
    integer ISEQ=_seed[0];
    GRNDMQ(_seed[0],_seed[1],ISEQ,"Q");
    GRNDMQ(_seed[0],_seed[1],ISEQ,"S");
   }
+#ifdef __G4AMS__
+}
+#endif
 }  
 
 void AMSmceventg::_printEl(ostream &stream){
@@ -862,7 +899,16 @@ void orbit::UpdateAxis(number vt, number vp, number t, number p){
       gener();
     }while(!accept());
     // Set seed
+#ifdef __G4AMS__
+if(!MISCFFKEY.G3On){
+_seed[0]=HepRandom::getTheSeeds()[0];
+_seed[1]=HepRandom::getTheSeeds()[1];
+}
+else
+#endif
    GRNDMQ(_seed[0],_seed[1],0,"G");
+// cout <<"seed[ "<<_seed[0]<<" "<<_seed[1]<<endl;
+// cout <<_coo<<" "<<_dir<<endl;
    AMSJob::gethead()->getg4generator()->SetParticleGun(ipart,_mom,_coo,_dir);
   }
   else{
@@ -959,4 +1005,57 @@ integer AMSmceventg::fastcheck(geant xin, geant yin, geant zb, geant theta, gean
      }
 //
      return 1;
+}
+
+void AMSmceventg::SaveSeeds(){
+#ifdef __G4AMS__
+if(!MISCFFKEY.G3On){
+GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
+GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
+}
+else
+#endif
+   GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+}
+
+void AMSmceventg::PrintSeeds(ostream & o){
+long tmp[2];
+tmp[0]=GCFLAG.NRNDM[0];
+tmp[1]=GCFLAG.NRNDM[1];
+SaveSeeds();
+o<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
+GCFLAG.NRNDM[0]=tmp[0];
+GCFLAG.NRNDM[1]=tmp[1];
+}
+void AMSmceventg::RestoreSeeds(){
+#ifdef __G4AMS__
+if(!MISCFFKEY.G3On){
+ long seedl[3]={0,0,0};
+ seedl[0]=GCFLAG.NRNDM[0];
+ seedl[1]=GCFLAG.NRNDM[1];
+ HepRandom::setTheSeeds(seedl);
+}
+else
+#endif
+  GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],1,"S");
+}
+
+
+void AMSmceventg::SetSeed( int seed){
+
+#ifdef __G4AMS__
+if(!MISCFFKEY.G3On){
+ HepRandom::setTheSeed(seed);
+}
+else{
+#endif
+   integer __seed[2];
+   GRNDMQ(__seed[0],__seed[1],seed+1,"Q");
+   GRNDMQ(__seed[0],__seed[1],seed+1,"S");
+#ifdef __G4AMS__
+}
+
+#endif
+
+
 }

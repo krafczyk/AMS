@@ -56,6 +56,9 @@
 #include <sys/time.h>
 #include <time.h>
 #include <status.h>
+#ifdef __G4AMS__
+#include <g4util.h>
+#endif
 static geant   Tcpu0 = 0; 
 static time_t  T0    = 0;
 
@@ -444,8 +447,7 @@ void AMSEvent::_signinitevent(){
     geant dd; 
     int i;
     number xsec=0;
-    for(i=0;i<AMSmceventg::Orbit.Nskip+1;i++)
-      xsec+=-dtime*log(RNDM(dd)+1.e-30);
+      xsec+=-dtime*(AMSmceventg::Orbit.Nskip+1)*log(RNDM(dd)+1.e-30);
     curtime+=xsec;
     _NorthPolePhi=AMSmceventg::Orbit.PolePhi;
     AMSmceventg::Orbit.UpdateOrbit(curtime, _StationTheta,_StationPhi,
@@ -1771,6 +1773,9 @@ void AMSEvent::_sitkinitrun(){
 #ifdef __AMSDEBUG__
       HPRINT(AMSTrMCCluster::hid(l));
 #endif
+#ifdef __G4AMS__
+        if(MISCFFKEY.G4On)AMSRandGeneral::book(AMSTrMCCluster::hid(l));
+#endif
      }
 }
 
@@ -2000,7 +2005,10 @@ void AMSEvent:: _sitof2event(){
    AMSgObj::BookTimer.start("TOF:Ghit->Tovt");
    TOF2JobStat::addmc(0);
 //
+//   cout << "before build "<<endl;
+//   AMSmceventg::PrintSeeds(cout);
    TOF2Tovt::build();// Ghits->TovT-hits
+//    cout <<"after build "<<endl;
    AMSgObj::BookTimer.stop("TOF:Ghit->Tovt");
 //
    AMSgObj::BookTimer.start("TOF:Tovt->RwEv");

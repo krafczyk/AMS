@@ -5,12 +5,7 @@
 #include <typedefs.h>
 //
 // GEANT part
-#ifdef __ALPHA__
-#define DECFortran
-#else
-#define mipsFortran
-#endif
-#include <cfortran.h>
+#include <commons.h>
 #include <hbook.h>
 #include <geant321.h>
 #include <geant321g.h>
@@ -28,10 +23,20 @@ extern "C" void ucopy2_(void *, void*, const int &);
 #define UCOPY2 ucopy2_
 extern "C" void vzero_(void *,  const int &);
 #define VZERO  vzero_
+#ifdef __G4AMS__
+#include "CLHEP/Random/RandFlat.h"
+#include "CLHEP/Random/RandPoissonQ.h"
+extern "C" void poissn_(float &, int &, int&);
+PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
+#define RNDMG3(A) CCALLSFFUN1(RNDM,rndm,FLOAT,A)
+#define RNDM(A) (MISCFFKEY.G4On?(RandFlat::shoot()):RNDMG3(A))
+#define POISSN(A,B,C) if(MISCFFKEY.G4On){C=0;B=RandPoissonQ::shoot(A);} else poissn_(A,B,C)
+#else
 extern "C" void poissn_(float &, int &, int&);
 #define POISSN poissn_
 PROTOCCALLSFFUN1(FLOAT,RNDM,rndm,FLOAT)
 #define RNDM(A) CCALLSFFUN1(RNDM,rndm,FLOAT,A)
+#endif
 PROTOCCALLSFSUB4(FFKEY,ffkey,STRING,FLOATV,INT,STRING)
 #define FFKEY(A1,A2,A3,A4) CCALLSFSUB4(FFKEY,ffkey,STRING,FLOATV,INT,STRING,A1,A2,A3,A4)
 

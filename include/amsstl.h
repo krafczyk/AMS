@@ -267,9 +267,9 @@ template <class T> void AMSsortNAG(T *rv[], integer m2){
     /* Initialized data */
     const int minq=15;
     const double c_b5 = 1.;
-    static integer ir1 = 15223;
-    static integer ir2 = 17795;
-    static integer ir3 = 28707;
+     integer ir1 = 15223;
+     integer ir2 = 17795;
+     integer ir3 = 28707;
 
     /* System generated locals */
     integer i__1;
@@ -481,9 +481,9 @@ template <class T> void AMSsortNAGa(T rv[], integer m2){
     /* Initialized data */
     const int minq=15;
     const double c_b5 = 1.;
-    static integer ir1 = 15223;
-    static integer ir2 = 17795;
-    static integer ir3 = 28707;
+     integer ir1 = 15223;
+     integer ir2 = 17795;
+     integer ir3 = 28707;
 
     /* System generated locals */
     integer i__1;

@@ -3,6 +3,7 @@
 #include <commons.h>
 #include <stdlib.h>
 #include <iostream.h>
+#include <cern.h>
 //
 STATUSFFKEY_DEF STATUSFFKEY;
 SELECTFFKEY_DEF SELECTFFKEY;
@@ -76,7 +77,7 @@ GCKINE_DEF GCKINE;
 // AMSDATADIR_DEF AMSDATADIR
 
 char AMSCommonsI::_version[]="v3.00";
-integer AMSCommonsI::_build=940;
+integer AMSCommonsI::_build=941;
 AMSCommonsI::AMSCommonsI(){
   init();
 }

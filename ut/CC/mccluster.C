@@ -11,6 +11,9 @@
 #include <cont.h>
 #include <ntuple.h>
 #include <richdbc.h>
+#ifdef __G4AMS__
+#include <g4util.h>
+#endif
 extern "C" void indetra_();
 
 integer AMSTRDMCCluster::_NoiseMarker(555);
@@ -337,7 +340,13 @@ number AMSTrMCCluster::sitknoiseprobU(number threshold, number step){
 void  AMSTrMCCluster::sitknoisespectrum(const AMSTrIdSoft & id, number ss[],
                                         number prob){
    geant d=0;
-   if(RNDM(d)>=prob)ss[0]=id.getsig()*HRNDM1(hid(id.getside()));
+   if(RNDM(d)>=prob){
+#ifdef __G4AMS__
+if(MISCFFKEY.G4On)ss[0]=id.getsig()*AMSRandGeneral::hrndm1(hid(id.getside()));
+#else
+     ss[0]=id.getsig()*HRNDM1(hid(id.getside()));
+#endif
+   }
    else  ss[0]=id.getsig()*rnormx();
 }
 

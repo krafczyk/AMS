@@ -40,7 +40,8 @@ extern "C" void simde_(int&);
 extern "C" void trphoton_(int&);
 extern "C" void simtrd_(int& );
 extern "C" void gustep_(){
-
+//AMSmceventg::SaveSeeds();
+//cout <<" in gustep "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
 //if (GCTRAK.istop ){
 // cout <<GCKINE.ipart<<" "<<GCTRAK.vect[2]<<" "<<GCTRAK.getot<<" "<<GCTMED.numed<<endl;
 //}
@@ -84,7 +85,6 @@ extern "C" void gustep_(){
   }
 #endif
 //  if(trig==0 && freq>1)AMSgObj::BookTimer.stop("TrdRadiationGen");
-
 
   try{
 {
@@ -368,10 +368,11 @@ GDCXYZ();
     GCTRAK.istop =1;
    }
   if(trig==0 && freq>1)AMSgObj::BookTimer.stop("GUSTEP");
-   //  cout <<" gustep out"<<endl;
+//     cout <<" gustep out"<<endl;
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
+//cout << "guout in "<<endl;
 #ifdef __DB__
    if (dbg_prtout != 0 && eventR > DBWriteGeom) {
      cout <<"guout_: read event of type "<<AMSJob::gethead() -> eventRtype()
@@ -541,7 +542,8 @@ static integer event=0;
     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
     new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
     for(integer i=0;i<CCFFKEY.npat;i++){
-    AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
+     GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+     AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
      genp->run(GCKINE.ikine);

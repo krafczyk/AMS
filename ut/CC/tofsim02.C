@@ -14,6 +14,7 @@
 #include <tofsim02.h>
 #include <mccluster.h>
 #include <trigger3.h>
+#include <mceventg.h>
 //
 TOF2Scan TOF2Scan::scmcscan[TOF2GC::SCBLMX];
 //
@@ -307,6 +308,10 @@ void TOF2Tovt::build()
   static geant fadcb,ifadcb,trts,tmax,zlmx,convr,seres,sesig,sesave,sessig,sesrat;
 //
   if(first++==0){
+    AMSmceventg::SaveSeeds();
+ //   AMSmceventg::PrintSeeds(cout);
+    AMSmceventg::SetSeed(0);
+//    cout <<" first in"<<endl;
     seres=TOF2DBc::seresp();
     sesig=seres*TOF2DBc::seresv();
     TOF2Tovt::inipsh(npshbn,pmplsh); // prepare PM s.e. pulse shape arr.
@@ -339,6 +344,9 @@ void TOF2Tovt::build()
     tmax=TOF2GC::SCTBMX*fadcb-1.;// ns
     zlmx=TOF2DBc::plnstr(6)/2.+eps;
     convr=1000.*TOF2DBc::edep2ph();
+    AMSmceventg::RestoreSeeds();
+    
+//    cout <<"first out "<<endl;
   }
 //
   ptr=(AMSTOFMCCluster*)AMSEvent::gethead()->

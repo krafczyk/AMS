@@ -54,7 +54,7 @@ include/geant4.h,geantnamespace.h     <<  gukine,guout,gustep etc
 
 CC/g4physics.C   <<- physics
 
-   
+include,CC/g4util.h,C << utilities (rndm etc)  
 -----------
 Modified files
 
@@ -127,12 +127,19 @@ For debug purposes all geant3-like cuts may be switch on/off via
 G4FF 4=1/0   datacard
 
 
+Random Numbers:
 
+seeds thru same RNDM card as for geant3 (ranecu engine);  
+hrndm1 like ones must be redone
+via <g4util> ::book & ::hrndm1  ones
+
+random sequence doesn' work yet on geant4 (geant4 bugs)
 
 To be done
+-----------------
+
+Transition Radiation
 
 
-
-F/rndm.F  <-- change to heprandom
 
 

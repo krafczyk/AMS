@@ -76,6 +76,10 @@ void _copyEl();
 void _writeEl();
 void _printEl(ostream & stream);
 public:
+static void SaveSeeds();
+static void RestoreSeeds();
+static void PrintSeeds(ostream & o);
+static void SetSeed(int seed);
 static orbit Orbit;
 integer getseed(integer i)const{return (i>=0 && i<2) ? _seed[i]: 0;}
 void setseed(integer seed[2]){_seed[0]=seed[0];_seed[1]=seed[1];}

@@ -86,18 +86,21 @@ void AMSgtmed::_init(){
    GSTPAR(_itmed,"BIRK3",_birks[2]);
   }
   if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>1){
-   GSTPAR(_itmed,"CUTGAM",1.01e-6);
+    CUTGAM(1.01e-6);
+//   GSTPAR(_itmed,"CUTGAM",1.01e-6);
   }
   if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd && _uwbuf[1]>0){
    if(IsSensitive()){
-    GSTPAR(_itmed,"CUTELE",20.01e-6);
+     CUTELE(20.01e-6);
+//    GSTPAR(_itmed,"CUTELE",20.01e-6);
     GSTPAR(_itmed,"DCUTE",1.8e-6);
     GSTPAR(_itmed,"STRA",1);
    }
   }
   else if(_nwbuf && _uwbuf[0]==TRDMCFFKEY.g3trd ){
    if(IsSensitive()){
-    GSTPAR(_itmed,"CUTELE",35.01e-6);
+    CUTELE(35.01e-6);
+//    GSTPAR(_itmed,"CUTELE",35.01e-6);
    }
   }
 }      

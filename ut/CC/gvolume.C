@@ -501,9 +501,11 @@ void AMSgvolume::MakeG4Volumes(){
  if(!_pg4rmU){
    _pg4rmU=new AMSG4RotationMatrix();   
 #ifdef __AMSDEBUG__
+   AMSG4RotationMatrix::Test();
    cout <<_pg4rmU->xx()<<_pg4rmU->xy()<<_pg4rmU->xz()<<_pg4rmU->yx()<<_pg4rmU->yy()<<_pg4rmU->yz()<<_pg4rmU->zx()<<_pg4rmU->zy()<<_pg4rmU->zz()<<endl;
 #endif
    AMSG4RotationMatrix::Test();
+
  }
 
 

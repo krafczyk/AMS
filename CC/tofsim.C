@@ -16,6 +16,7 @@
 #include <tofsim.h>
 #include <mccluster.h>
 #include <trigger3.h>
+#include <mceventg.h>
 //
 AMSTOFScan AMSTOFScan::scmcscan[TOF1GC::SCBLMX];
 //
@@ -233,12 +234,18 @@ void AMSTOFTovt::build()
   static geant fadcb,ifadcb,trts,tmax,zlmx,convr,seres,sesig,sesave,sessig,sesrat;
 //
   if(first++==0){
+    AMSmceventg::SaveSeeds();
+    AMSmceventg::SetSeed(0);
     seres=TOFDBc::seresp();
     sesig=seres*TOFDBc::seresv();
     AMSTOFTovt::inipsh(npshbn,pmplsh); // prepare PM s.e. pulse shape arr.
     HBOOK1(1099,"Single electron spectrum,mV",65,0.,13.,0.);
     am=0.;
     am2=0.;
+// get seeds
+
+
+
     for(i=0;i<5000;i++){
 //      rnd=RNDM(dummy);
 //      am0=scpmsesp.getrand(rnd);//amplitude from single elect. spectrum
@@ -248,6 +255,7 @@ void AMSTOFTovt::build()
       am2+=am0*am0;
       HF1(1099,am0,1.);
     }
+    
     HPRINT(1099);
     am/=5000.;
     am2/=5000.;
@@ -264,6 +272,7 @@ void AMSTOFTovt::build()
     tmax=TOF1GC::SCTBMX*fadcb-1.;// ns
     zlmx=TOFDBc::plnstr(6)/2.+eps;
     convr=1000.*TOFDBc::edep2ph();
+    AMSmceventg::RestoreSeeds();
   }
 //
   ptr=(AMSTOFMCCluster*)AMSEvent::gethead()->
@@ -446,6 +455,7 @@ void AMSTOFTovt::build()
 //
 // function below creates PMT pulse shape array arr[] with binning fladctb :
 //  peak value = 1.(e.g. 1mV@50ohm)
+extern "C" void xdummy_(int & io);
 void AMSTOFTovt::inipsh(integer &nbn, geant arr[])
 {
   static integer tbins=12;
@@ -483,7 +493,7 @@ void AMSTOFTovt::inipsh(integer &nbn, geant arr[])
       al=ao1+tgo*(bl-bol);
       io+=1;
       //next line to prevent stupid egcs optimize io away.
-      float jdum=RNDM(io); 
+      xdummy_(io);
       if((io+1)<tbins){
         bol=pmpsb[io];
         boh=pmpsb[io+1];

@@ -5,7 +5,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.13 2000/08/22 16:01:12 choutko Exp $
+// $Id: g4physics.C,v 1.14 2000/09/01 14:24:00 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -119,6 +119,12 @@ void AMSG4Physics::ConstructEM()
       pmanager->AddDiscreteProcess(new G4PhotoElectricEffect());
       pmanager->AddDiscreteProcess(new G4ComptonScattering());      
       pmanager->AddDiscreteProcess(new G4GammaConversion());
+/*
+      pmanager->AddDiscreteProcess(new G4LowEnergyPhotoElectric() );
+      pmanager->AddDiscreteProcess(new G4LowEnergyCompton());
+      pmanager->AddDiscreteProcess(new G4LowEnergyRayleigh());
+      pmanager->AddDiscreteProcess(new G4LowEnergyGammaConversion());
+*/
 
     } else if (particleName == "e-") {
     //electron
@@ -137,6 +143,13 @@ void AMSG4Physics::ConstructEM()
       pmanager->SetProcessOrdering(theeminusMultipleScattering, idxPostStep, 1);
       pmanager->SetProcessOrdering(theeminusIonisation, idxPostStep, 2);
       pmanager->SetProcessOrdering(theeminusBremsstrahlung, idxPostStep, 3);
+
+/*
+
+                pmanager->AddProcess(new G4LowEnergyIonisation(),-1,-1,2);
+                pmanager->AddProcess(new G4LowEnergyBremsstrahlung(),-1,-1,3);      
+*/
+
 
     } else if (particleName == "e+") {
     //positron
@@ -160,6 +173,10 @@ void AMSG4Physics::ConstructEM()
       pmanager->SetProcessOrdering(theeplusIonisation, idxPostStep, 2);
       pmanager->SetProcessOrdering(theeplusBremsstrahlung, idxPostStep, 3);
       pmanager->SetProcessOrdering(theeplusAnnihilation, idxPostStep, 4);
+
+
+
+
   
     } else if( particleName == "mu+" || 
                particleName == "mu-"    ) {

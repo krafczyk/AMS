@@ -30,6 +30,16 @@
  extern "C" void getfield_(geant& a);
 
 void g4ams::G4INIT(){
+
+// Initialize Random Number Generator
+
+
+HepRandom::setTheEngine(new RanecuEngine());
+long seed[3]={0,0,0};
+seed[0]=GCFLAG.NRNDM[0];
+seed[1]=GCFLAG.NRNDM[1];
+HepRandom::setTheSeeds(seed);
+
  
 G4RunManager * pmgr = new G4RunManager();
 
@@ -76,6 +86,12 @@ void g4ams::G4RUN(){
 
 
 void g4ams::G4LAST(){
+        if(MISCFFKEY.G3On)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+        else {
+          GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
+          GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
+        }
+cout <<"           **** RANDOM NUMBER GENERATOR AFTER LAST COMPLETE EVENT "<<GCFLAG.NRNDM[0]<<" "<<GCFLAG.NRNDM[1]<<endl;
 float TIMLFT;
  TIMEL(TIMLFT);
  geant xmean  = (GCTIME.TIMINT - TIMLFT)/GCFLAG.IEVENT;
@@ -138,7 +154,12 @@ AMSJob::gethead()->getg4generator()->Reset();
     AMSEvent::sethead((AMSEvent*)AMSJob::gethead()->add(
     new AMSEvent(AMSID("Event",GCFLAG.IEVENT),CCFFKEY.run,0,0,0)));
     for(integer i=0;i<CCFFKEY.npat;i++){
-    AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
+        if(MISCFFKEY.G3On)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+        else {
+          GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
+          GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
+        }
+        AMSmceventg* genp=new AMSmceventg(GCFLAG.NRNDM);
     if(genp){
      AMSEvent::gethead()->addnext(AMSID("AMSmceventg",0), genp);
      genp->runG4(GCKINE.ikine);
@@ -251,7 +272,7 @@ void  AMSG4EventAction::BeginOfEventAction(const G4Event* anEvent){
 
 
 void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
-
+//   cout <<" guout in"<<endl;
    if(AMSJob::gethead()->isSimulation())
    AMSgObj::BookTimer.stop("GEANTTRACKING");
 
@@ -293,9 +314,12 @@ void  AMSG4EventAction::EndOfEventAction(const G4Event* anEvent){
       if(GCFLAG.IEVENT%abs(GCFLAG.ITEST)==0 ||     GCFLAG.IEORUN || GCFLAG.IEOTRI || 
          GCFLAG.IEVENT>=GCFLAG.NEVENT){
       AMSEvent::gethead()->printA(AMSEvent::debug);
-       
-      GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
-       cout <<"RNDM "<<GCFLAG.NRNDM[0]<<" " <<GCFLAG.NRNDM[1]<<endl;
+        if(MISCFFKEY.G3On)GRNDMQ(GCFLAG.NRNDM[0],GCFLAG.NRNDM[1],0,"G");
+        else {
+          GCFLAG.NRNDM[0]=HepRandom::getTheSeeds()[0];
+          GCFLAG.NRNDM[1]=HepRandom::getTheSeeds()[1];
+        }
+       cout <<" RNDM "<<GCFLAG.NRNDM[0]<<" " <<GCFLAG.NRNDM[1]<<endl;
 }
      integer trig;
      if(AMSJob::gethead()->gettriggerOr()){
@@ -436,7 +460,7 @@ AMSG4RotationMatrix::AMSG4RotationMatrix(number nrm[3][3]):G4RotationMatrix(nrm[
 }
 
 void AMSG4RotationMatrix::Test(){
- 
+   AMSmceventg::SaveSeeds();   
    AMSPoint xp,yp,zp;
    float d;
    number nrm[3][3];
@@ -486,6 +510,7 @@ void AMSG4RotationMatrix::Test(){
      cout <<"AMSG4RotationMatrix::Test-I-TestPassed "<<endl;
 #endif
    
+   AMSmceventg::RestoreSeeds();   
 
 }
 
@@ -515,7 +540,6 @@ AMSG4DummySDI::~AMSG4DummySDI(){
 
 void AMSG4SteppingAction::UserSteppingAction(const G4Step * Step){
 
-
 // just do as in example N04
 // don't really understand the stuff
 
@@ -541,8 +565,17 @@ G4SteppingControl GetControlFlag() const
 void SetControlFlag(G4SteppingControl StepControlFlag)
 
 */
- 
- 
+//       cout <<" stepping in"<<endl;
+//       AMSmceventg::PrintSeeds(cout);
+//       AMSmceventg::SaveSeeds();
+//       if(GCFLAG.NRNDM[0]==2130120 && GCFLAG.NRNDM[1]==1154959891){
+//        cout <<" jopa "<<endl;
+//       }
+//{
+//       G4Track * Track = Step->GetTrack();
+//       G4ParticleDefinition* particle =Track->GetDefinition();
+//       cout << "particle "<<particle->GetParticleName()<<endl;
+//}         
 //     geant d;
 //     if(RNDM(d)<1.e-3)G4Exception("qq");
      // Checking if Volume is sensitive one 

@@ -6,6 +6,10 @@
 #include <commons.h>
 #include <amsdbc.h>
 #include <mceventg.h>
+#ifdef __G4AMS__
+#include "CLHEP/Random/Random.h"
+#endif
+
 integer AMSIO::_Ntot=0;
 char * AMSIO::fnam=0;
 fstream AMSIO::fbin;
@@ -96,7 +100,7 @@ void AMSIO::init(integer mode,integer format){
              <<" events have been read."<<endl;
              cout <<" Last Run & Event "<<io.getrun()<<" "<<io.getevent()<<endl;
             cout<<"Last MC Event "<<skip<<endl;
-            cout << " Last Random Number "<<seed0<<" "<<seed1    <<endl;
+            cout << " Last Random Number "<<seed0<<" "<<seed1<<" "   <<endl;
              cout << " Theta "<< theta<< " Phi "<<phi<<" Pole "<<pole<<endl;
              cout << " Time "<<ctime(&time)<<endl;
              fbin.close();
@@ -149,6 +153,12 @@ void AMSIO::init(integer mode,integer format){
               GCFLAG.NRNDM[0]=seed[0];
               GCFLAG.NRNDM[1]=seed[1];
               GRNDMQ(seed[0],seed[1],1,"S");
+#ifdef __G4AMS__
+              long seedl[3]={0,0,0};
+              seedl[0]=seed[0];
+              seedl[1]=seed[1];
+              HepRandom::setTheSeeds(seedl);
+#endif              
               CCFFKEY.theta=theta;
               CCFFKEY.phi=phi;
               CCFFKEY.polephi=pole;
