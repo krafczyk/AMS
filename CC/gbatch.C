@@ -28,8 +28,8 @@ void (handler)(int);
      *signal(SIGUSR2, handler); 
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
-    UGINIT();
 try{
+    UGINIT();
 #ifdef __G4AMS__
     if(MISCFFKEY.G4On)g4ams::G4RUN();
     else if(MISCFFKEY.G3On)GRUN();

@@ -1,5 +1,6 @@
 // Author V. Choutko 24-may-1996
- 
+
+#include <typeinfo> 
 #include <node.h>
 #include <snode.h>
 #include <amsstl.h>
@@ -56,8 +57,8 @@ void AMSNodeMap::unmap(){
           //        Check for duplicalte elements
          int nel;
          for(nel=1;nel<_numo;nel++){
-           if(_hash[nel]==_hash[nel-1]){
-             cerr <<"AMSNodeMap::remap-E-duplicate element found "<<_hash[nel]
+           if((typeid(*(_hash[nel]))==typeid(*(_hash[nel-1]))) && *(_hash[nel])==*(_hash[nel-1])){
+             cerr <<"AMSNodeMap::remap-E-duplicate element found "<<*(_hash[nel])
                   <<endl;
            } 
          }

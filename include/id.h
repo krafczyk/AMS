@@ -31,7 +31,7 @@ class AMSID
    friend ostream &operator << (ostream &o, const AMSID &b );
 // compare
    virtual int operator < (const AMSID&) const;
-   int operator == (const AMSID&) const;
+   virtual int operator == (const AMSID&) const;
 // get
    inline integer getid() const{return _id;}
    inline char *  getname() const{return _name;}

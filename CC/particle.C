@@ -305,7 +305,7 @@ if(strstr(AMSJob::gethead()->getsetup(),"AMSSHUTTLE")){
 //      cout <<i<<" "<<j<<" "<<_AntiCoo[i][j]<<endl;
     }
   }
-  for(i=0;i<6;i++){
+  for(i=0;i<TKDBc::nlay();i++){
     for(int j=0;j<2;j++){
       PN->TrCoo[PN->Npart][i][j]=_TrCoo[i][j];
     }

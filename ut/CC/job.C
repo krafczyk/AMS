@@ -995,6 +995,7 @@ exit(1);
 }
 else if(MISCFFKEY.G4On && MISCFFKEY.G3On){
 cerr<<"AMSJob::udata-W-BothGeant3AndGeant4Selected"<<endl;
+exit(1);
 }
 else if(MISCFFKEY.G4On)cout<<"AMSJob::udata-I-Geant4Selected"<<endl;
 else cout<<"AMSJob::udata-I-Geant3Selected"<<endl;
