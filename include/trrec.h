@@ -70,7 +70,7 @@ static void _addnext(const AMSTrIdSoft& id, integer status, integer nelemL,
 
 public:
 static integer Out(integer);
-number getVal(){return _Sum;}
+number getVal(){return TRCLFFKEY.CommonGain[_Id.getside()]*(_Sum-TRCLFFKEY.CommonShift[_Id.getside()]);}
 number getcofg(integer side, AMSTrIdGeom * id);
 number cfgCorFun(number s, AMSTrIdGeom * id);
 number getecofg(){return _ErrorMean;}

@@ -545,6 +545,8 @@ geant CorFunParA[2][6];
 geant CorFunParB[2][6];
 geant ResFunX[3][6];
 geant ResFunY[3][6];
+geant CommonGain[2];
+geant CommonShift[2];
 };
 #define TRCLFFKEY COMMON_BLOCK(TRCLFFKEY,trclffkey)
 COMMON_BLOCK_DEF(TRCLFFKEY_DEF,TRCLFFKEY);
