@@ -444,7 +444,7 @@ void AMSEvent::_reamsevent(){
   if(AMSJob::gethead()->isReconstruction() )_redaqevent();
 #else
   if(TOFMCFFKEY.fast==0)_redaqevent();
-#endif  
+#endif
   // Skip EveryThing 
   if(DAQCFFKEY.NoRecAtAll)return;
   _retofevent();

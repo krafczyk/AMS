@@ -9,6 +9,7 @@
 #include <fstream.h>
 #include <tofsim.h>
 #include <tofrec.h>
+#include <tofcalib.h>
 //
 extern AMSTOFScan scmcscan[SCBLMX];// TOF MC time/eff-distributions
 extern TOFVarp tofvpar; // TOF general parameters (not const !)
@@ -71,7 +72,7 @@ geant TOFDBc::_plnstr[15]={
   geant TOFDBc::_shrtim=1.0;     // MC shaper pulse rise time (ns)(exp)
   geant TOFDBc::_shctim=300.;    // MC shaper pulse cut-time(gate width)(ns)
   geant TOFDBc::_shftim=63.;     // MC shaper pulse fall time (ns)(exp). MC only !!!
-  geant TOFDBc::_strflu=0.05;    // Stretcher "end-mark" time fluctuations (ns)
+  geant TOFDBc::_strflu=0.1;    // Stretcher "end-mark" time fluctuations (ns)
   geant TOFDBc::_tdcbin[4]={
     1.,                            // pipe/line TDC binning for fast-tdc meas.
     1.,                            // pipe/line TDC binning for slow-tdc meas.
@@ -91,15 +92,15 @@ geant TOFDBc::_plnstr[15]={
     2.,     // (9)dead time for making of "z>2" trig. signal (ns)
     0.05,   // (10)fast discr.(comparator) internal accuracy(ns) + (?) to have exp.resol
     2.,     // (11)min. pulse duration (ns) of fast discr.(comparator) (for dinode also)
-    20.,    // (12)pulse width of FT_coincidence-signal(ns) (as dummy gap in s-TDC pulse)
+    18.,    // (12)(as dummy gap in s-TDC pulse)
     0.,     // spare 
     0.      // spare 
   };
   geant TOFDBc::_trigtb=0.25;  // MC time-bin in logic(trig) pulse handling (ns)
   geant TOFDBc::_di2anr=0.1;  // dinode->anode signal ratio (def,mc-data) not used now !
   geant TOFDBc::_strrat=40.;  // stretcher ratio (default,mc-data) not used now !
-  geant TOFDBc::_strjit1=0.025;  // "start"-pulse jitter at stretcher input
-  geant TOFDBc::_strjit2=0.025;  // "stop"(FT)-pulse jitter at stretcher input
+  geant TOFDBc::_strjit1=0.035;  // "start"-pulse jitter at stretcher input
+  geant TOFDBc::_strjit2=0.035;  // "stop"(FT)-pulse jitter at stretcher input
   geant TOFDBc::_accdel=5000.;//Lev-1 signal delay with respect to FT (ns)
   geant TOFDBc::_ftdelf=65.;  // FastTrigger (FT) fixed (by h/w) delay (ns)
   geant TOFDBc::_ftdelm=100.; // FT max delay (allowed by stretcher logic) (ns)
@@ -312,7 +313,8 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
  geant strf[SCBLMX][2],strof[SCBLMX][2];
  geant an2di[SCBLMX][2],gaina[SCBLMX][2],gaind[SCBLMX][2],m2q[SCBTPN];
  geant ipara[SCCHMX][SCIPAR]; 
- geant ipard[SCCHMX][SCIPAR]; 
+ geant ipard[SCCHMX][SCIPAR];
+ geant aprofp[SCBTPN][SCPROFP],hblen,p1,p2,p3,p4,p5,nom,denom; 
  char fname[80];
  char name[80];
  geant td2p[2];
@@ -498,7 +500,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    scfile.close();
 //---------------------------------------------
 //
-//   --->  Read a2d-ratios, gains and mip2q's calib.file :
+//   --->  Read a2d-ratios, gains, mip2q and A-profile param. calib.file :
 //
  ctyp=4;
  strcpy(name,"ancalib");
@@ -567,6 +569,14 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
    for(ibt=0;ibt<SCBTPN;ibt++){  // <-------- loop over bar-types
      gcfile >> m2q[ibt];
    }
+//
+// ---> read A-prof. parameters:
+//
+ if(AMSJob::gethead()->isRealData()){// tempor only for Real events
+   for(ibt=0;ibt<SCBTPN;ibt++){  // <-------- loop over bar-types
+     for(i=0;i<SCPROFP;i++)gcfile >> aprofp[ibt][i];
+   }
+ }
 //
    gcfile.close();
 //   
@@ -637,6 +647,7 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
   for(ibr=0;ibr<SCMXBR;ibr++){  // <-------- loop over bar in layer
     brt=TOFDBc::brtype(ila,ibr);
     if(brt==0)continue; // skip missing counters
+    hblen=0.5*TOFDBc::brlen(ila,ibr);
     cnum=ila*SCMXBR+ibr; // sequential counter numbering(0-55)
     scmcscan[cnum].getscp(scp);//read scan-points from scmcscan-object
 // read from file or DB:
@@ -649,12 +660,31 @@ void TOFBrcal::build(){// create scbrcal-objects for each sc.bar
     a2dr[0]=an2di[cnum][0];// from ext.file
     a2dr[1]=an2di[cnum][1];
     fstrd=TOFDBc::fstdcd();//(ns),same hit(up-edge) relat.delay in fast-slow TDC
-    mrfp=SCANPNT/2+1;
-    scmcscan[cnum].getefarr(ef1,ef2);//read eff1/2 from scmcscan-object
-    for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
-      rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
+//
+//-->prepare position correction array (valid for local !!! r.c.):
+//
+    mrfp=SCANPNT/2;//central point (coo=0.)
+    if(AMSJob::gethead()->isMCData()){// pos.corrections for MC
+      scmcscan[cnum].getefarr(ef1,ef2);//read eff1/2 from scmcscan-object
+      for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
+        rlo[isp]=(ef1[isp]+ef2[isp])/(ef1[mrfp]+ef2[mrfp]);
+      }
     }
-  //
+    else{// the same for Real
+      p1=aprofp[brt-1][0];
+      p2=aprofp[brt-1][1];
+      p3=aprofp[brt-1][2];
+      p4=aprofp[brt-1][3];
+      p5=aprofp[brt-1][4];
+      denom=p1*(exp(-(hblen+scp[mrfp])/p4)+p3*exp(-(hblen+scp[mrfp])/p5))
+           +p2*(exp(-(hblen-scp[mrfp])/p4)+p3*exp(-(hblen-scp[mrfp])/p5));
+      for(isp=0;isp<SCANPNT;isp++){ // fill 2-ends rel. l.output at scan-points
+        nom=p1*(exp(-(hblen+scp[isp])/p4)+p3*exp(-(hblen+scp[isp])/p5))
+           +p2*(exp(-(hblen-scp[isp])/p4)+p3*exp(-(hblen-scp[isp])/p5));
+        rlo[isp]=nom/denom;
+      }
+    }
+//
     sid=100*(ila+1)+(ibr+1);
     strat[0][0]=strf[cnum][0];//stretcher param. from ext.file
     strat[1][0]=strf[cnum][1];

@@ -1447,7 +1447,7 @@ void AMSTOFRawEvent::mc_build(int &status)
   integer trpatt[SCLRS]={0,0,0,0};
   integer it,it1,it2,it3,it4,it0;
   int16u phbit,maxv;
-  static geant ftpw=TOFDBc::daqpwd(12);// FT_coincidence-pulse width
+  static geant ftpw=TOFDBc::daqpwd(12);// dummy gap in stretcher sequence (ns)
   AMSTOFTovt *ptr;
   AMSTOFTovt *ptrN;
   status=1;// bad

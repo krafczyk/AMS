@@ -336,7 +336,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
   number coo[SCLRS],trp1[SCLRS],trp2[SCLRS],arp1[SCLRS],arp2[SCLRS];
   geant slops[2];
   number shft,ftdel,qtotl[SCLRS],qsd1[SCLRS],qsd2[SCLRS],eanti(0),meanq,rr,qmax;
-  number eacut=4;// cut on E-anti (mev). tempor (no calibration)
+  number eacut=0.6;// cut on E-anti (mev). tempor (no calibration)
   number qrcut=10.;// cut on max/mean-charge ratio
   number dscut=5.6;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   number *pntr[SCLRS];
@@ -483,7 +483,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     if(cptr)
            ntrk+=cptr->getnelem();
     HF1(1506,geant(ntrk),1.);
-    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
+//    if(ntrk!=1)return;// require events with 1 track.  tempor commented to bypass tracker
     ppart=(AMSParticle*)AMSEvent::gethead()->
                                       getheadC("AMSParticle",0);
     if(ppart){
@@ -492,7 +492,7 @@ void TOFTZSLcalib::select(){  // calibr. event selection
     } 
     else rid=0;
     pmom=fabs(rid);
-//  pmom=1.36;// tempor to bypass tracker and have Mu-beta=0.997
+  pmom=1.36;// tempor to bypass tracker and have Mu-beta=0.997
     if(TOFRECFFKEY.reprtf[2]>0)HF1(1500,geant(pmom),1.);
     if(pmom<TOFCAFFKEY.pcut[0] || pmom>TOFCAFFKEY.pcut[1])return;//remove low/too_high mom.
     if(pmom<TOFCAFFKEY.pcut[0])return;//remove low mom.
@@ -1047,6 +1047,12 @@ integer TOFAMPLcalib::nevenr[SCCHMX];// number of accumulated events for above s
 number TOFAMPLcalib::ammrfc[SCBTPN];//sum for mean charge calculation (ref.c.,"0"-bin)
 integer TOFAMPLcalib::nevrfc[SCBTPN];//events in above sum
 geant TOFAMPLcalib::fpar[10]={0,0,0,0,0,0,0,0,0,0};// parameters to fit
+integer TOFAMPLcalib::nbinr;//working arrays for A-profile fit
+number TOFAMPLcalib::mcharge[SCPRBM];
+number TOFAMPLcalib::mcoord[SCPRBM];
+number TOFAMPLcalib::aprofp[SCBTPN][SCPROFP];// A-profile parameters(ref.bars)
+number TOFAMPLcalib::clent;
+integer TOFAMPLcalib::cbtyp;//bar-type
 //--------------------------
 void TOFAMPLcalib::init(){ // ----> initialization for AMPL-calibration 
   integer i,j,il,ib,ii,jj,id,nadd,nbnr;
@@ -1191,6 +1197,11 @@ void TOFAMPLcalib::init(){ // ----> initialization for AMPL-calibration
     bl=-0.5*blen;
     bh=bl+blen;
     HBOOK1(1220+i,htit1,70,bl,bh,0.);
+    aprofp[i][0]=120.;//defaults param. for A-profile fit
+    aprofp[i][1]=120.;
+    aprofp[i][2]=0.28;
+    aprofp[i][3]=195.;
+    aprofp[i][4]=10.4;
   }
 //
 }
@@ -1204,8 +1215,8 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
   number am1[SCLRS],am2[SCLRS],am1d[SCLRS],am2d[SCLRS],am[2],eanti(0);
   geant ainp[2],dinp[2],cinp,trlen[SCLRS];
   number ltim[4],tdif[4],trle[4],fpnt,bci,sut,sul,sul2,sutl,tzer,chsq,betof;
-  number sigt(0.1),cvel(29.979);// time meas.accuracy and light velocity 
-  number eacut=1;// cut on E-anti (mev)
+  number sigt(0.116),cvel(29.979);// time meas.accuracy and light velocity 
+  number eacut=0.6;// cut on E-anti (mev)
   number dscut=5.6;// TOF/Tracker-coord. dist.cut (hard usage of tracker)
   AMSTOFRawCluster *ptr;
   AMSAntiCluster *ptra;
@@ -1217,29 +1228,26 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
   TOFJobStat::addre(11);
   for(i=0;i<SCLRS;i++)nbrl[i]=0;
 //
-  while (ptr){ // <--- loop over AMSTOFRawCluster hits
+  while(ptr){ // <--- loop over AMSTOFRawCluster hits
     status=ptr->getstatus();
     ilay=(ptr->getntof())-1;
     ibar=(ptr->getplane())-1;
     ptr->gettovta(ama);// get raw anode-ampl(TovT in ns)
     ptr->gettovtd(amd);// get raw dinode-ampl(TovT in ns)
-    if(TOFCAFFKEY.dynflg==0){// for old(standard) dynode calibr.
-      scbrcal[ilay][ibar].ama2q(ama,am);// convert to charge
-      am1[ilay]=am[0];
-      am2[ilay]=am[1];
+    scbrcal[ilay][ibar].ama2q(ama,am);// convert to charge
+    am1[ilay]=am[0];
+    am2[ilay]=am[1];
+    if(status>=0 && TOFCAFFKEY.dynflg==0){//for dyn-calibr.(old,not Contin's)
       scbrcal[ilay][ibar].amd2q(amd,am);// convert to charge
       am1d[ilay]=am[0];
       am2d[ilay]=am[1];
-    }
-    if((status&SCBADB1)==0){//for dynode-calibr. accept also 1-sided "good..." bars
-//                             
       ainp[0]=geant(am1[ilay]);
       ainp[1]=geant(am2[ilay]);
       dinp[0]=geant(am1d[ilay]);
       dinp[1]=geant(am2d[ilay]);
-      if(TOFCAFFKEY.dynflg==0)TOFAMPLcalib::filla2d(ilay,ibar,ainp,dinp);
+      TOFAMPLcalib::filla2d(ilay,ibar,ainp,dinp);
     }
-    if(status==0){ //select only 2-sided "good_matching/history" bars
+    if(status==0){ //select only 2-sided "good_matching/history/..." bars
       nbrl[ilay]+=1;
       brnl[ilay]=ibar;
       coo[ilay]=ptr->gettimeD();// get local Y-coord., got from time-diff
@@ -1412,10 +1420,10 @@ void TOFAMPLcalib::select(){ // ------> event selection for AMPL-calibration
 // ---> look at mass :
 //
     number betg(0.000001);
-    geant mass(-1);
-    if(betof<1)betg=betof/sqrt(1-betof*betof);
+    geant mass(-1.);
+    if(betof<1. && betof>=0.)betg=betof/sqrt(1.-betof*betof);
     if(TOFCAFFKEY.truse == 1){
-      if(betof<1)mass=geant(pmom/betg);
+      if(betof<1. && betof>=0.)mass=geant(pmom/betg);
       if(TOFRECFFKEY.reprtf[2]>0){
         HF1(1204,mass,1.);
         if(betg>TOFCAFFKEY.bgcut[0] && betg<TOFCAFFKEY.bgcut[1])HF1(1207,mass,1.);
@@ -1482,8 +1490,8 @@ void TOFAMPLcalib::fill(integer il, integer ib, geant am[2], geant coo){
   if(nbc<0){
     bl=profp[btyp][0]-0.5*profb[btyp][0];
     bh=profp[btyp][nbn-1]+0.5*profb[btyp][nbn-1];
-    if((bl-coo)>2 || (coo-bh)>2)
-    cerr<<"TOFAMPLcalib::fill:out_of_range !, coo="<<coo<<" l/h="<<bl<<" "<<bh<<endl;
+    if((bl-coo)>4. || (coo-bh)>4.)
+//    cerr<<"TOFAMPLcalib::fill:out_of_range !, coo="<<coo<<" l/h="<<bl<<" "<<bh<<endl;
     return;
   }
   bchan=SCPRBM*btyp+nbc;
@@ -1650,6 +1658,7 @@ void TOFAMPLcalib::fit(){
       if(nm>0)gains[i]=geant(aver/nm);
     }
   }
+//
 // ---> extract trunc.mean ampl for ref.bar:
 //
   for(i=0;i<SCBTPN;i++){
@@ -1677,8 +1686,8 @@ void TOFAMPLcalib::fit(){
       chan=2*SCMXBR*il+2*ib;
       for(i=0;i<2;i++){
         ar=aref[btyp][i];
-        if(ar>0)gains[chan+i]/=ar;
-        else gains[chan+i]=0;
+        if(ar>0. && gains[chan+i]>0.)gains[chan+i]/=ar;
+        else gains[chan+i]=1.;//default value
         if(id != idr)HF1(1252,gains[chan+i],1.);
       }
     }
@@ -1686,7 +1695,7 @@ void TOFAMPLcalib::fit(){
 // ---> prepare truncated mean ampl. for each bin of ref.bars:
 //
   integer j1,j2;
-  for(i=0;i<SCBTPN;i++){
+  for(i=0;i<SCBTPN;i++){//loop over bar-types
     nbnr=nprbn[i];//real numb. of bins
     for(j=0;j<nbnr;j++){ // loop over longit.bins
       bchan=i*SCPRBM+j;
@@ -1701,8 +1710,106 @@ void TOFAMPLcalib::fit(){
       }
       HF1(1254+i,profp[i][j],btamp[bchan]);
     }
-    
   }
+//---> fit A-profiles for ref. bars:
+  int ier;  
+  int ifit[SCPROFP];
+  char pnam[SCPROFP][6],pnm[6];
+  number argl[10];
+  int iargl[10];
+  number start[SCPROFP],pstep[SCPROFP],plow[SCPROFP],phigh[SCPROFP];
+  strcpy(pnam[0],"aleft");
+  strcpy(pnam[1],"arigh");
+  strcpy(pnam[2],"amixt");
+  strcpy(pnam[3],"lenhi");
+  strcpy(pnam[4],"lenlo");
+  start[0]=120.;
+  start[1]=120.;
+  start[2]=0.28;
+  start[3]=195.;
+  start[4]=10.4;
+  pstep[0]=10.;
+  pstep[1]=10.;
+  pstep[2]=0.1;
+  pstep[3]=10.;
+  pstep[4]=1.;
+  plow[0]=1.;
+  plow[1]=1.;
+  plow[2]=0.01;
+  plow[3]=10.;
+  plow[4]=1.;
+  phigh[0]=500.;
+  phigh[1]=500.;
+  phigh[2]=10.;
+  phigh[3]=500.;
+  phigh[4]=150.;
+  for(i=0;i<SCPROFP;i++)ifit[1]=1;
+  ifit[3]=0;
+  ifit[4]=0;
+// ------------> initialize parameters for Minuit:
+  MNINIT(5,6,6);
+  MNSETI("Pos.correction-calibration for TOF-system");
+  for(i=0;i<SCPROFP;i++){
+    strcpy(pnm,pnam[i]);
+    ier=0;
+    MNPARM((i+1),pnm,start[i],pstep[i],plow[i],phigh[i],ier);
+    if(ier!=0){
+      cout<<"TOF-calib: Param-init problem for par-id="<<pnam[i]<<'\n';
+      exit(10);
+    }
+    argl[0]=number(i+1);
+    if(ifit[i]==0){
+      ier=0;
+      MNEXCM(mfun,"FIX",argl,1,ier,0);
+      if(ier!=0){
+        cout<<"TOF-calib: Param-fix problem for par-id="<<pnam[i]<<'\n';
+        exit(10);
+      }
+    }
+  }
+//----
+  for(i=0;i<SCBTPN;i++){//loop over bar-types
+    nbnr=nprbn[i];//numb. of bins for given bar type
+    id=rbls[i];
+    il=id/100-1;
+    ib=id%100-1;
+    clent=TOFDBc::brlen(il,ib);
+    cbtyp=i;
+    cout<<"Start minim. for btyp/length="<<i<<" "<<clent<<" nbins="<<nbnr<<endl;
+    nbinr=0;
+    for(j=0;j<nbnr;j++){ // loop over longit.bins to load coo,charge..
+      bchan=i*SCPRBM+j;
+      nev=nevenb[bchan];
+     cout<<"events/bin="<<nev<<endl;
+      if(nev>=TOFCAFFKEY.minev){
+        mcharge[nbinr]=btamp[bchan];
+        mcoord[nbinr]=profp[i][j];
+        cout<<"q/c="<<mcharge[nbinr]<<" "<<mcoord[nbinr]<<endl;
+        nbinr+=1;
+      }
+    }
+    cout<<"Good statistics bins:"<<nbinr<<endl;
+    if(nbinr<5)continue;//too few bins, skip this bar-type
+    argl[0]=0.;
+    ier=0;
+    MNEXCM(mfun,"MINIMIZE",argl,0,ier,0);
+    if(ier!=0){
+      cout<<"TOF-calib: MINIMIZE problem !"<<'\n';
+      continue;
+    }  
+    MNEXCM(mfun,"MINOS",argl,0,ier,0);
+    if(ier!=0){
+      cout<<"TOF-calib: MINOS problem !"<<'\n';
+      continue;
+    }
+    argl[0]=number(3);
+    ier=0;
+    MNEXCM(TOFAMPLcalib::mfun,"CALL FCN",argl,1,ier,0);
+    if(ier!=0){
+      cout<<"TOF-calib: final CALL_FCN problem !"<<'\n';
+      continue;
+    }
+  }//---> end of btype loop
 //-----------------------------------------------
 //
 //----> calc. mean charge for ref.counters (for abs.calibr):
@@ -1879,9 +1986,38 @@ void TOFAMPLcalib::fit(){
   }  
   tcfile << endl;
 //
+  for(btyp=0;btyp<SCBTPN;btyp++){ // <--- A-profile fit-parameters
+    for(i=0;i<SCPROFP;i++)tcfile << aprofp[btyp][i]<<" ";
+    tcfile << endl;
+  }  
+  tcfile << endl;
+//
   tcfile.close();
   cout<<"TOFAMPLcalib:output file closed !"<<endl;
 //
+}
+//-----
+// This is standard Minuit FCN :
+void TOFAMPLcalib::mfun(int &np, number grad[], number &f, number x[]
+                                                        , int &flg, int &dum){
+  int i,j;
+  number ff;
+  f=0.;
+  for(i=0;i<nbinr;i++){
+    ff=mcharge[i]-(x[0]*(exp(-(clent/2.+mcoord[i])/x[3])
+      +x[2]*exp(-(clent/2.+mcoord[i])/x[4]))
+      +x[1]*(exp(-(clent/2.-mcoord[i])/x[3])
+      +x[2]*exp(-(clent/2.-mcoord[i])/x[4])));
+    f+=(ff*ff);
+  }
+  if(flg==3){
+    f=sqrt(f/number(nbinr));
+    cout<<"Bar-type:"<<cbtyp<<"  funct:nbins="<<f<<endl;
+    for(i=0;i<SCPROFP;i++){
+      aprofp[cbtyp][i]=x[i];
+      cout<<" np/par="<<i<<" "<<x[i]<<endl;
+    }
+  }
 }
 //
 //=========================================================================

@@ -741,6 +741,8 @@ void AMSTOFRawCluster::build(int &status){
               tmf[1]=tmf[0];
               amf[1]=amf[0];
             }
+            if(amf[0]>600.)amf[0]=600.;//tempor
+            if(amf[1]>600.)amf[1]=600.;
 //
             zc=TOFDBc::getzsc(ilay,ibar);
             blen=TOFDBc::brlen(ilay,ibar);
@@ -793,7 +795,7 @@ void AMSTOFRawCluster::build(int &status){
               st=0;
               coo=co;// Local coord.!!!
               ecoo=eco;
-              if(isds==1)ecoo=blen/sqrt(12);//for single-sided counters
+              if(isds==1)ecoo=blen/sqrt(12.);//for single-sided counters
               st=AMSEvent::gethead()->addnext(AMSID("AMSTOFRawCluster",0)
               ,new AMSTOFRawCluster(sta,ilay+1,ibar+1,zc,ama,amd,
                                   qtota,qtotd,tm,time,coo,ecoo));//store values

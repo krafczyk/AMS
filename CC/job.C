@@ -599,41 +599,41 @@ TKFINI();
 
 void AMSJob::_retofdata(){
 // 
-  TOFRECFFKEY.Thr1=0.45;// Threshold (mev) on peak bar energy
-  TOFRECFFKEY.ThrS=0.45; // Threshold (mev) on total cluster energy
+  TOFRECFFKEY.Thr1=0.45;//(1) Threshold (mev) on peak bar energy
+  TOFRECFFKEY.ThrS=0.45; //(2) Threshold (mev) on total cluster energy
 //
-  TOFRECFFKEY.reprtf[0]=0; // RECO print flag for statistics 
-  TOFRECFFKEY.reprtf[1]=0; // print flag for DAQ (1/2-> print for decoding/dec+encoding)
-  TOFRECFFKEY.reprtf[2]=0; // print flag for histograms
-  TOFRECFFKEY.reprtf[3]=0; // print flag for TDC-hit multiplicity histograms 
-  TOFRECFFKEY.reprtf[4]=0; // print flag (spare)
+  TOFRECFFKEY.reprtf[0]=0; //(3) RECO print flag for statistics 
+  TOFRECFFKEY.reprtf[1]=0; //(4) print flag for DAQ (1/2-> print for decoding/dec+encoding)
+  TOFRECFFKEY.reprtf[2]=0; //(5) print flag for histograms
+  TOFRECFFKEY.reprtf[3]=0; //(6) print flag for TDC-hit multiplicity histograms 
+  TOFRECFFKEY.reprtf[4]=0; //(7) print flag (spare)
 //
-  TOFRECFFKEY.relogic[0]=0;// 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
-  TOFRECFFKEY.relogic[1]=0;// 0/1/2-> full_fTDC_use/no_time_matching/not_use 
-  TOFRECFFKEY.relogic[2]=0;// spare RECO logic flag 
-  TOFRECFFKEY.relogic[3]=0;// spare RECO logic flag 
-  TOFRECFFKEY.relogic[4]=0;// spare RECO logic flag
+  TOFRECFFKEY.relogic[0]=0;//(8) 0/1/2/3/4 ->normal/STRR+AVSD-/TDIF-/TZSL-/AMPL-calibr. run. 
+  TOFRECFFKEY.relogic[1]=0;//(9) 0/1/2-> full_fTDC_use/no_time_matching/not_use 
+  TOFRECFFKEY.relogic[2]=0;//(10) spare RECO logic flag 
+  TOFRECFFKEY.relogic[3]=0;//(11) spare RECO logic flag 
+  TOFRECFFKEY.relogic[4]=0;//(12) spare RECO logic flag
 //
-  TOFRECFFKEY.daqthr[0]=35.;//Fast discr. thresh(mV) for fast/slow_TDC 
-  TOFRECFFKEY.daqthr[1]=150.;//Fast discr. thresh(mV) for FT-trigger (z>=1)  
-  TOFRECFFKEY.daqthr[2]=150.;//thresh(mV) for discr. of "z>2"-trig (dinode) 
-  TOFRECFFKEY.daqthr[3]=0.;//spare  
-  TOFRECFFKEY.daqthr[4]=0.;//spare
+  TOFRECFFKEY.daqthr[0]=35.;//(13)Fast discr. thresh(mV) for fast/slow_TDC 
+  TOFRECFFKEY.daqthr[1]=150.;//(14)Fast discr. thresh(mV) for FT-trigger (z>=1)  
+  TOFRECFFKEY.daqthr[2]=150.;//(15)thresh(mV) for discr. of "z>2"-trig (dinode) 
+  TOFRECFFKEY.daqthr[3]=0.;//(16)spare  
+  TOFRECFFKEY.daqthr[4]=0.;//(17)spare
 //
   TOFRECFFKEY.cuts[0]=50.;//(18)t-window(ns) for "the same hit" search in f/s_tdc
-  TOFRECFFKEY.cuts[1]=15.;//"befor"-cut in time history (ns)(max.PMT-pulse length?)
-  TOFRECFFKEY.cuts[2]=400.;//"after"-cut in time history (ns)(max. shaper integr.time?)
-  TOFRECFFKEY.cuts[3]=2.2;//(21) error in longitudinal coordinate (single TOF bar)
-  TOFRECFFKEY.cuts[4]=0.;
-  TOFRECFFKEY.cuts[5]=0.;
-  TOFRECFFKEY.cuts[6]=0.;
-  TOFRECFFKEY.cuts[7]=0.;
-  TOFRECFFKEY.cuts[8]=0.;
-  TOFRECFFKEY.cuts[9]=0.;
+  TOFRECFFKEY.cuts[1]=15.;//(19)"befor"-cut in time history (ns)(max.PMT-pulse length?)
+  TOFRECFFKEY.cuts[2]=400.;//(20)"after"-cut in time history (ns)(max. shaper integr.time?)
+  TOFRECFFKEY.cuts[3]=2.;//(21) error in longitudinal coordinate (single TOF bar)
+  TOFRECFFKEY.cuts[4]=0.;//(22)
+  TOFRECFFKEY.cuts[5]=0.;//(23)
+  TOFRECFFKEY.cuts[6]=0.;//(24)
+  TOFRECFFKEY.cuts[7]=0.;//(25)
+  TOFRECFFKEY.cuts[8]=0.;//(26)
+  TOFRECFFKEY.cuts[9]=0.;//(27)
 //
-  TOFRECFFKEY.ReadConstFiles=1;//read const. from DB/myFiles (0/1)
+  TOFRECFFKEY.ReadConstFiles=0;//(28)read const. from DB/myFiles (0/1)
 //  
-  TOFRECFFKEY.sec[0]=0; 
+  TOFRECFFKEY.sec[0]=0;//(29) 
   TOFRECFFKEY.sec[1]=0;
   TOFRECFFKEY.min[0]=0;
   TOFRECFFKEY.min[1]=0;
@@ -669,9 +669,9 @@ void AMSJob::_retofdata(){
   TOFCAFFKEY.trcut=0.85;// (16) cut to use for "truncated average" calculation
   TOFCAFFKEY.refbid[0]=201;//(17) ref.bar id's list (LBB) for btype=1->5
   TOFCAFFKEY.refbid[1]=202; 
-  TOFCAFFKEY.refbid[2]=203; 
-  TOFCAFFKEY.refbid[3]=204; 
-  TOFCAFFKEY.refbid[4]=108;//(21)
+  TOFCAFFKEY.refbid[2]=103; 
+  TOFCAFFKEY.refbid[3]=104; 
+  TOFCAFFKEY.refbid[4]=107;//(21)
   TOFCAFFKEY.plhec[0]=0.1;//(22)plow-cut for earth calibration
   TOFCAFFKEY.plhec[1]=10;  //(23)phigh-cut ...................
   TOFCAFFKEY.bgcut[0]=2; //(24) beta*gamma low-cut to be in mip-region(abs.calib)
@@ -1261,7 +1261,7 @@ void AMSJob::_retofinitjob(){
         HBOOK1(1506,"Tracks multipl. in calib.events",10,0.,10.,0.);
         HBOOK1(1500,"Part.rigidity from tracker(gv)",80,0.,32.,0.);
         HBOOK1(1501,"Particle beta(tracker)",80,0.5,1.,0.);
-        HBOOK1(1502,"Particle beta(tof)",80,0.5,1.,0.);
+        HBOOK1(1502,"Particle beta(tof)",80,0.7,1.2,0.);
         HBOOK1(1503,"Anticounter energy(4Lx1bar events)(mev)",80,0.,40.,0.);
         HBOOK1(1200,"Res_long.coo(track-sc),L=1",50,-10.,10.,0.);
         HBOOK1(1201,"Res_long.coo(track-sc),L=2",50,-10.,10.,0.);
@@ -1285,7 +1285,7 @@ void AMSJob::_retofinitjob(){
         HBOOK2(1249,"Ref.bar(type=5) A2D-ratio vs A-signal",80,0.,320.,50,0.,10.,0.);
         HBOOK1(1250,"Ref.bar(type=5) Q-distr.(s=1,centre)",80,0.,160.,0.);        
         HBOOK1(1251,"Ref.bar(type=5) Q-distr.(s=2,centre)",80,0.,240.,0.);
-        HBOOK1(1252,"Relative anode-gains(all channels)",80,0.7,1.3,0.);
+        HBOOK1(1252,"Relative anode-gains(all channels)",80,0.5,2.,0.);
         HBOOK1(1254,"Ref.bar A-profile (type-1)",70,-70.,70.,0.);        
         HBOOK1(1255,"Ref.bar A-profile (type-2)",70,-70.,70.,0.);        
         HBOOK1(1256,"Ref.bar A-profile (type-3)",70,-70.,70.,0.);        

@@ -1953,6 +1953,7 @@ depend:
 ../bin/osf1/trcalib.o: ../include/ctcsim.h ../include/charge.h
 ../bin/osf1/trcalib.o: ../include/ctc.h ../include/trrawcluster.h
 ../bin/osf1/trcalib.o: /usr/include/float.h /usr/include/fp_class.h
+../bin/osf1/trcalib.o: ../include/mccluster.h
 ../bin/osf1/trigger1.o: ../include/commons.h ../include/cern.h
 ../bin/osf1/trigger1.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/trigger1.o: /usr/include/standards.h
