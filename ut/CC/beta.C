@@ -9,6 +9,7 @@
 #include <extC.h>
 #include <upool.h>
 #include <ntuple.h>
+#include <trigger3.h>
 extern "C" void rzerowrapper_(number & z0, number & zb, number & x0, number & zmin,int & ierr);
 
 integer AMSBeta::patconf[npatb][4]={  1,2,3,4,        // 1234  0
@@ -156,7 +157,8 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
 //----> recover 1-sided TOFRawCluster/TOFClusters using track info 
     int nh;
     integer status;
-    if(!ptrack->checkstatus(AMSDBc::FalseTOFX)){ 
+    TriggerLVL3 *plvl3=(TriggerLVL3*)AMSEvent::gethead()->getheadC("TriggerLVL3",0); 
+    if(!ptrack->checkstatus(AMSDBc::FalseTOFX) &&( (!ptrack->checkstatus(AMSDBc::FalseX) && !ptrack->checkstatus(AMSDBc::WEAK)) || (!plvl3 || plvl3->LVL3HeavyIon() ))){ 
      for(nh=0;nh<nhit;nh++){
       status=pthit[nh]->getstatus();
       if((status&SCBADB2)!=0 && (status&SCBADB5)!=0){//tempor  use now only TOF-recovered
