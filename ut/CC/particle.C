@@ -17,7 +17,7 @@
 #include <ntuple.h>
 
 integer sign(number a){
-if(a>0)return 1;
+if(a>=0)return 1;
 else return -1;
 }
 
@@ -29,16 +29,8 @@ void AMSParticle::build(){
      AMSAntiMCCluster * pcl(0);
      AMSCharge *pcharge=(AMSCharge*)AMSEvent::gethead()->
      getheadC("AMSCharge",0);
-     while(pcharge){
-       if(pcharge->getchargeTOF() != pcharge->getchargeTracker()){
-#ifdef __AMSDEBUG__
-        cout <<" TOF & Tracker disagree . TOF says particle charge is "<<
-        pcharge->getchargeTOF()<<" Tracker - "<<pcharge->getchargeTracker()
-        <<endl;  
-#endif
-       }
-       {
-          charge=(pcharge->getchargeTOF()+pcharge->getchargeTracker())/2.;
+      while(pcharge) {
+        {
           AMSBeta * pbeta=pcharge->getpbeta();
           AMSTrTrack * ptrack=pbeta->getptrack();
 #ifdef __AMSDEBUG__
@@ -47,7 +39,7 @@ void AMSParticle::build(){
          
           number chi2(0),rid(0),err(0);
           ptrack->getParFastFit( chi2, rid, err, theta,  phi,  coo);
-            if(ptrack->AdvancedFitDone()){
+            if(ptrack->AdvancedFitDone() && ptrack->GeaneFitDone()){
               number gchi2(0),grid(0),gerr(0),gtheta(0),gphi(0);
               AMSPoint gcoo;
               number hchi2[2],hrid[2],herr[2],htheta[2],hphi[2];
@@ -65,6 +57,7 @@ void AMSParticle::build(){
               else {rid=grid; err=gerr; }
             }
           // Add new element
+          charge=(pcharge->getchargeTOF()+pcharge->getchargeTracker())/2.;
           momentum=rid*charge;
           emomentum=err*rid*rid*charge;
           number beta=pbeta->getbeta();
@@ -103,10 +96,10 @@ void AMSParticle::build(){
           ppart->refit();
           ppart->ctcfit();
           AMSEvent::gethead()->addnext(AMSID("AMSParticle",0),ppart);
-       }
+      }
 out:
        pcharge=pcharge->next();
-     }
+      }
 }
 
 void AMSParticle::ctcfit(){
@@ -281,32 +274,33 @@ void AMSParticle::pid(){
 
 }
 void AMSParticle::refit(){
-  if(_GPart !=14 && _Momentum < 0){
+  if(_GPart !=14 && _Momentum*sign(_pbeta->getbeta()) < 0){
    if(_Charge >= 1.5 || fabs(_Mass-0.938)>1.5*_ErrMass){
     if(_Mass > 0){
      _ptrack->Fit(3,_GPart);
-     number fac=_ptrack->getgrid()/_Momentum;
-     //     if(_Momentum<0)fac=-fac;
-     integer itr;
-     geant xmass,chrg,tlt7,uwb[1];
-     integer nwb=0;
-     char chdum[21];
-     GFPART(_GPart,chdum,itr,xmass,chrg,tlt7,uwb,nwb);
-     fac=fac*abs(chrg);
-     _Mass=_Mass*fac;
-     _ErrMass=_ErrMass*fac;
-     _Momentum=_Momentum*fac;
-     _ErrMomentum=_ErrMomentum*fac;
-     if(_Mass>FLT_MAX)_Mass=FLT_MAX;
-     if(_ErrMass>FLT_MAX)_ErrMass=FLT_MAX;
-     if(_Momentum>FLT_MAX)_Momentum=FLT_MAX;
-     if(_Momentum<-FLT_MAX)_Momentum=-FLT_MAX;
-     if(_ErrMomentum<FLT_MAX)_ErrMomentum=FLT_MAX;
-     integer oldpart=_GPart;
-     pid();
-     if(_GPart != oldpart){ 
-       cout <<"AMSParticle::refit-W-ParticleIdChanged: was "<<oldpart <<" "<<
-       " now "<<_GPart<<endl; 
+     if(_ptrack->GeaneFitDone()){
+      number fac=_ptrack->getgrid()/_Momentum/sign(_pbeta->getbeta());
+      integer itr;
+      geant xmass,chrg,tlt7,uwb[1];
+      integer nwb=0;
+      char chdum[21];
+      GFPART(_GPart,chdum,itr,xmass,chrg,tlt7,uwb,nwb);
+      fac=fac*abs(chrg);
+      _Mass=_Mass*fac;
+      _ErrMass=_ErrMass*fac;
+      _Momentum=_Momentum*fac;
+      _ErrMomentum=_ErrMomentum*fac;
+      if(_Mass>FLT_MAX)_Mass=FLT_MAX;
+      if(_ErrMass>FLT_MAX)_ErrMass=FLT_MAX;
+      if(_Momentum>FLT_MAX)_Momentum=FLT_MAX;
+      if(_Momentum<-FLT_MAX)_Momentum=-FLT_MAX;
+      if(_ErrMomentum<FLT_MAX)_ErrMomentum=FLT_MAX;
+      integer oldpart=_GPart;
+      pid();
+      if(_GPart != oldpart){ 
+        cout <<"AMSParticle::refit-W-ParticleIdChanged: was "<<oldpart <<" "<<
+        " now "<<_GPart<<endl; 
+      }
      }
     }
    }

@@ -339,7 +339,7 @@ c        if(mod(ll,1000).eq.1)write(*,*)'eventh ',eventno,ll
         do ncharge=1,maxch
            if(eof(idet).eq.0)read(lun,end=35)
      +     ne,chargebetap(ncharge),chargetof(ncharge),
-     +     chargetracker(ncharge),probtof(1,ncharge),
+     +     chargetracker(ncharge),(probtof(k,ncharge),k=1,7),
      +     (probtracker(k,ncharge),k=1,7)
           goto 36
  35       eof(idet)=1

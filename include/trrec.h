@@ -289,6 +289,7 @@ number&  Theta, number & Phi, AMSPoint&  X0)const ;
 
 void getParSimpleFit(number & Chi2xy, number &Chi2sz, number & Rid)const;
 integer AdvancedFitDone()const{return _AdvancedFitDone;}
+integer GeaneFitDone()const{return _GeaneFitDone;}
 void getParAdvancedFit(number&   GChi2, number&  GRid, number&  GErr,
 number&  GTheta, number&  GPhi, AMSPoint&  GP0,
 number HChi2[2], number HRid[2], number HErr[2], number HTheta[2], 
@@ -309,6 +310,7 @@ void   setHitP(AMSTrRecHit* p, integer n) {if (n< 6) _Pthit[n] = p;}
 
 integer TOFOK();
 number getgrid() const {return _GRidgidity;}
+number getrid() const {return _Ridgidity;}
 
 };
 

@@ -781,14 +781,18 @@ for(i=0;i<npt;i++){
 }
 #endif     
 _GeaneFitDone=ipart;
-if(out[7] !=0)_GeaneFitDone=0;
 _GChi2=out[6];
-if(out[7] != 0)_GChi2=FLT_MAX;
 _GRidgidity=out[5];
 _GErrRidgidity=out[8];
 _GTheta=out[3];
 _GPhi=out[4];
 _GP0=AMSPoint(out[0],out[1],out[2]);
+if(out[7] !=0){
+  _GeaneFitDone=0;
+  _GChi2=FLT_MAX;
+  _GErrRidgidity=FLT_MAX;
+  _GRidgidity=FLT_MAX;
+}  
 }
 
 else if(fit==4){

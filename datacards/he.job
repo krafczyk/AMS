@@ -28,7 +28,7 @@ C MSEL 1=0
 LOSS 1
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 HADR 1
-TRIG 10000000
+TRIG 1000
 DEBUG -1 10 1000
 C    tmaxf  smax   fieldm  cconv   maxcal  nitm    xtol iver ialg   steps 
 TKFIT 0.2    50.   2.     5.e-4     8  1000     1.e-2   0     1    0.03 
@@ -40,11 +40,11 @@ TOFMC 1=90.0e-12
 TRCL 21=1       
 TRFIT 6=1 7=1 8=1 9=1 10=1 11=1 12=1 13=1 14=1 15=1 16=1 17=1 18=1 19=1
 C TRFIT 6=1 7=1 8=1 
-IOPA 1=0 2='he.hbk'
+IOPA 1=3 2='he.hbk'
 RNDM 37456991 979913496
 C      Simul Debug    CpuLim  Read Write Jobname
 AMSJOB 1=0   2=0      3=50.   4=0  5=0   6='v201 Helium  '
-46='AMSSTATION'
+46='CTCVer'
 C Special HP-UX
 TIME 3=10000000
 END

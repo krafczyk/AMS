@@ -410,7 +410,7 @@ extern "C" void uglast_(){
        }
 #ifndef __DB__
        if(AMSJob::debug){
-          AMSJob::gethead()->printN(cout);
+         // AMSJob::gethead()->printN(cout);
           AMSNode* p=AMSJob::gethead()->getnodep(AMSID("Materials:",0));
           assert(p!=NULL);
           p=AMSJob::gethead()->getnodep(AMSID("TrackingMedia:",0));

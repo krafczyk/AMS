@@ -18,8 +18,8 @@ number AMSCharge::_lkhdTOF[ncharge][100];
 number AMSCharge::_lkhdTracker[ncharge][100];
 number AMSCharge::_lkhdStepTOF[ncharge];
 number AMSCharge::_lkhdStepTracker[ncharge];
-integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6};
-integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6};
+integer AMSCharge::_chargeTracker[ncharge]={1,1,2,3,4,5,6,7,8};
+integer AMSCharge::_chargeTOF[ncharge]={1,1,2,3,4,5,6,7,8};
 char AMSCharge::_fnam[128]="/afs/cern.ch/user/c/choutko/public/lkhd_v204+.data";
 void AMSCharge::build(){
   // charge finding
@@ -33,6 +33,7 @@ void AMSCharge::build(){
        integer nhitTOF=0;
        integer nhitTracker=0;
        AMSTrTrack *ptrack=pbeta->getptrack();
+       number rid=ptrack->getrid();
        number theta;
        number phi;
        number sleng;
@@ -50,8 +51,8 @@ void AMSCharge::build(){
            ptrack->interpolate(SCPnt, ScDir, P1, theta, phi, sleng);
            AMSDir DTr(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta));
            EdepTOF[nhitTOF]=pcluster->getedep()*
-           min(one,pbeta->getbeta())*
-           min(one,pbeta->getbeta())*fabs(ScDir.prod(DTr));
+           min(one,fabs(pbeta->getbeta()))*
+           min(one,fabs(pbeta->getbeta()))*fabs(ScDir.prod(DTr));
            nhitTOF++;
          }
        }
@@ -68,23 +69,23 @@ void AMSCharge::build(){
          nhitTracker++;
         }
        }   
-      addnext(pbeta,nhitTOF,nhitTracker, EdepTOF, EdepTracker);
+      addnext(rid,pbeta,nhitTOF,nhitTracker, EdepTOF, EdepTracker);
       pbeta=pbeta->next();
      }
     }
 }
 
-void AMSCharge::addnext(AMSBeta *pbeta , integer nhitTOF, 
+void AMSCharge::addnext(number rid, AMSBeta *pbeta , integer nhitTOF, 
       
           
         integer nhitTracker, number EdepTOF[4], number EdepTracker[6]){
           AMSCharge * pcharge=new AMSCharge(pbeta);
-          pcharge->Fit(nhitTOF, nhitTracker, EdepTOF, EdepTracker );
+          pcharge->Fit(fabs(rid), nhitTOF, nhitTracker, EdepTOF, EdepTracker );
           AMSEvent::gethead()->addnext(AMSID("AMSCharge",0),pcharge);
              
 }
 
-void AMSCharge::Fit(integer nhitTOF, integer nhitTracker,
+void AMSCharge::Fit(number rid, integer nhitTOF, integer nhitTracker,
                      number EdepTOF[4], number EdepTracker[6]){
   int i;
   for( i=0;i<ncharge;i++){
@@ -126,8 +127,32 @@ void AMSCharge::Fit(integer nhitTOF, integer nhitTracker,
   _ChargeTOF=_chargeTOF[iTOF];
   _ChargeTracker=_chargeTracker[iTracker];
   
-}        
+  if((_ChargeTOF != _ChargeTracker) &&  rid >0){
+   number beta=fabs(_pbeta->getbeta());    
+   if(beta < 1 && beta !=0){
+    number momentum=fabs(rid*(_ChargeTOF+_ChargeTracker)/2);
+    number energy=momentum/beta;
+    number mass=energy*energy-momentum*momentum;
+    for ( i=nhitTOF-1;i>0;i--){
+         AMSTOFCluster * pcluster= _pbeta->getpcluster(i);
+         if(pcluster){
+           energy=energy+pcluster->getedep()/1000;
+           momentum=sqrt(energy*energy-mass);
+           number b=momentum/energy;
+           EdepTOF[i-1]=EdepTOF[i-1]/beta/beta*b*b;                  
+         }
+    }
+    Fit(-rid,  nhitTOF,  nhitTracker, EdepTOF,  EdepTracker);
+   }
+  }
+#ifdef __AMSDEBUG__
+    if(getchargeTOF() != getchargeTracker()){
+      cout <<" TOF & Tracker disagree . TOF says particle charge is "<<
+      getchargeTOF()<<" Tracker - "<<getchargeTracker()<<endl;
+#endif
 
+    }        
+}
 
 void AMSCharge::_writeEl(){
   // fill the ntuple 
