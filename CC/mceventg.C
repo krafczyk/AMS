@@ -261,6 +261,10 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
           
           HPRINT(_hid);
     }
+    else if( low==4 ){
+      HBOOK1(_hid,"Uniform",1,0.,120.,0.);
+      HF1(_hid,60.,1.);
+    }
     else {
       integer nchan=1000;
       geant binw;
@@ -377,7 +381,7 @@ integer AMSmceventg::accept(){
     if(_fixeddir || (_dir >= _dirrange[0] && _dir<= _dirrange[1])){
       if(_mom>=_momrange[0] && _mom <= _momrange[1]){
         geant d;
-        if (_fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate){
+        if(CCFFKEY.low || _fixeddir || _dir[2]<_albedocz || RNDM(d)< _albedorate){
           if(CCFFKEY.low == 0  && CCFFKEY.earth == 1 && !_fixeddir && !_fixedmom) 
            return EarthModulation();
           else return 1;

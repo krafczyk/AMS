@@ -293,7 +293,7 @@ Below there is a description of a  ntuple.
  * I*4  * [0,1]       * LVL1     * nlvl1                 // lvl1trigger number
  * I*4  *             * LVL1     * LVL1LifeTime(nlvl1)   // DAQLifeTime *1000
                                                          // + 10000* (sum tof temperatutes (8 crates)
- * I*4  *             * LVL1     * LVL1TOFFlag(nlvl1)    // z from trigger
+ * I*4  *             * LVL1     * LVL1TOFFlag(nlvl1)    // z from trigger +4/4?10:0
  * I*4  *             * LVL1     * LVL1TOFPatt(4,nlvl1)  // tof pattern
                                                          // low  16 bit  or
                                                          // high 16 bit and
