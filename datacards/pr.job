@@ -22,11 +22,7 @@ LIST
 KINE 14 
 MULS 1 
 C MSEL 1=0
-<<<<<<< pr.job
 LOSS 1 
-=======
-LOSS  1
->>>>>>> 1.65
 CUTS 1=0.0005 2=0.0005 3=0.001 4=0.001 5=0.001
 HADR 0 
 TRIG 100
