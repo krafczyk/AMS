@@ -215,7 +215,7 @@ fbin.close();
 	  fwrite(&crc,sizeof(time_t),1,fout);
 	  fwrite(&cur_time,sizeof(time_t),1,fout);
 	  fwrite(&Umin,sizeof(time_t),1,fout);
-          umaxx=Umax+60; 
+          umaxx=Umax+61; 
 	  fwrite(&umaxx,sizeof(time_t),1,fout);
 	  fclose(fout);
         }
@@ -348,7 +348,7 @@ fbin.close();
         fwrite(&crc,sizeof(time_t),1,fout);
         fwrite(&cur_time,sizeof(time_t),1,fout);
         fwrite(&Umin,sizeof(time_t),1,fout);
-        umaxx=Umax+60; 
+        umaxx=Umax+61; 
         fwrite(&umaxx,sizeof(time_t),1,fout);
         fclose(fout);    
       }

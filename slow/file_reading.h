@@ -3,7 +3,7 @@
 #include <fnmatch.h>
 #include <stdio.h>
 
-#define buf_n 200 /* number of file names buffered */
+#define buf_n 20000 /* number of file names buffered */
 
 typedef char ch80[80];
 
