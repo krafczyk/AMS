@@ -5,26 +5,58 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+#include <unistd.h>		// for getpid()
 
 #include <TROOT.h>
-#ifndef ROOT_TMotifCanvas_H
+
+#ifndef ROOT_TMotifCanvas
 #include <TMotifCanvas.h>
 #endif
-#ifndef ROOT_TControlBar_H
+#ifndef ROOT_TControlBar
 #include <TControlBar.h>
 #endif
-#ifndef ROOT_TMenuBar_H
+#ifndef ROOT_TMenuBar
 #include <TMenuBar.h>
 #endif
-#ifndef ROOT_TMenuToggle_H
+#ifndef ROOT_TMenuToggle
 #include <TMenuToggle.h>
 #endif
-#ifndef ROOT_TContextMenu_H
+#ifndef ROOT_TContextMenu
 #include <TContextMenu.h>
 #endif
-#ifndef ROOT_TMenu_H
+#ifndef ROOT_TMenu
 #include <TMenu.h>
 #endif
+#ifndef ROOT_TMotifDialog
+#include <TMotifDialog.h>
+#endif
+#ifndef ROOT_TFileSelectionDialog
+#include <TFileSelectionDialog.h>
+#endif
+#ifndef ROOT_TErrorDialog
+#include <TErrorDialog.h>
+#endif
+#ifndef ROOT_TInfoDialog
+#include <TInfoDialog.h>
+#endif
+#ifndef ROOT_TBusyDialog
+#include <TBusyDialog.h>
+#endif
+#ifndef ROOT_TPromptDialog
+#include <TPromptDialog.h>
+#endif
+#ifndef ROOT_TQuestionDialog
+#include <TQuestionDialog.h>
+#endif
+#ifndef ROOT_TWarningDialog
+#include <TWarningDialog.h>
+#endif
+#ifndef ROOT_TSelectionDialog
+#include <TSelectionDialog.h>
+#endif
+
+#include "MySelectionDialog.h"
+
 
 #ifndef AMSRoot_H
 #include "AMSRoot.h"
@@ -38,10 +70,12 @@
 
 
 MenuDesc_t AMSCanvas::fgAMSFilePane[] = {
-   { kAction, "Save As canvas.ps", SaveCB, NULL },
-   { kSeparator },
+   { kAction, "Save As canvas.ps", SaveParticleCB, NULL },
+   { kAction, "Open data file", OpenFileCB, NULL },
    { kEnd },
 };
+
+TMotifCanvas * AMSCanvas::fTheCanvas = 0;
 
 
 ClassImp(AMSCanvas)
@@ -69,13 +103,92 @@ AMSCanvas::AMSCanvas(Text_t *name, Text_t *title, Int_t ww, Int_t wh)
   //
   // Reflect the setting on menu --- Motif-specific!
   //
+  if (fTheCanvas) {
+    //
+    // This means AMSCanvas is intialized more than once!
+    //
+    fprintf(stderr, "You can only have one AMSCanvas!\n");
+    return;
+  }
+  else {
+    fTheCanvas = (TMotifCanvas *) fCanvasImp;
+    printf("fTheCanvas = %lx in AMSCanvas::AMSCanvas()\n", fTheCanvas);
+  }
+
   TMotifCanvas * canvas = (TMotifCanvas *) fCanvasImp;
   TMenuBar * menu = canvas->Menu();
   menu->AddSubmenu("AMS", fgAMSFilePane, NULL);
+  TMenuItem * classesMenu = menu->RemoveItem("Classes");
+  TMenuItem * inspectorMenu = menu->RemoveItem("Inspector");
+  TMenuItem * editMenu = menu->RemoveItem("Edit");
+  TMenuItem * viewMenu = menu->RemoveItem("View");
   //menu->AddAction("my print", this->SaveCB, this);
   //menu->AddAction("my print", this->*myfunc, this);
   TMenuItem * m = menu->FindNamedItem("Event Status");
   if (m->MenuType() == kToggle) ((TMenuToggle*)m)->SetVisualState(GetShowEventStatus());
+
+
+  //
+  // testing codes
+  //
+/*
+  TErrorDialog * erdi = new TErrorDialog("erdi");
+  printf(" erdi is instantiated? %lx %d\n", erdi->BaseWidget(), erdi->Instantiated());
+  Widget erdiWidget = erdi->CreateDialog(canvas->BaseWidget());
+  printf(" erdi is instantiated? %lx %d\n", erdi->BaseWidget(), erdi->Instantiated());
+  // try a non-modal dialog
+  erdi->Post("A test message", "help string", canvas);
+  // try a modal dialog
+  //erdi->PostModal("A test message", "help string", canvas);
+  //printf(" erdi is instantiated? %lx %d\n", erdi->BaseWidget(), erdi->Instantiated());
+  printf(" erdi is instantiated? %lx %d\n", erdi->BaseWidget(), erdi->Instantiated());
+  //erdi->Activate();
+  //printf(" erdi is instantiated? %d\n", erdi->Instantiated());
+  erdi->Show();
+  printf(" erdi is instantiated? %lx %d\n", erdi->BaseWidget(), erdi->Instantiated());
+*/
+
+/*
+  gErrorDialogManager->Post("My error message", canvas);
+  gInfoDialogManager->Post("My info", canvas);
+  gBusyDialogManager->Post("My busy dialog", canvas);
+
+  gPromptDialogManager->Post("My prompt dialog", canvas);
+  gQuestionDialogManager->Post("My question dialog", canvas);
+
+  gWarningDialogManager->Post("My warning dialog", canvas);
+*/
+
+
+/*
+  TSelectionDialog * mySelectionDialog = new TSelectionDialog("Select one");
+  mySelectionDialog->AddItem("item 1");
+  mySelectionDialog->AddItem("item 2");
+  mySelectionDialog->AddItem("item 3");
+  mySelectionDialog->PostBlocked("My selection dialog", canvas);
+*/
+
+/*  this is working now
+  MySelectionDialog * selectionDialog = new MySelectionDialog("Select one");
+  selectionDialog->AddItem("item 1");
+  selectionDialog->AddItem("item 2");
+  selectionDialog->AddItem("item 3");
+  selectionDialog->PostBlocked("My selection dialog", canvas);
+*/
+
+/*
+  TFileSelectionDialog * myFileSelectionDialog = new TFileSelectionDialog("Select a file");
+  myFileSelectionDialog->SetDirectory(".");
+  //myFileSelectionDialog->SetFilterPattern("*.h");
+  myFileSelectionDialog->PostBlocked("select one file", canvas);
+
+  char mesg[100];
+  sprintf(mesg, "You selected %s", myFileSelectionDialog->FileName());
+  printf("%s\n", mesg);
+  // gInfoDialogManager->Post(mesg);
+
+  delete myFileSelectionDialog;
+*/
 
 }
 
@@ -123,7 +236,7 @@ void AMSCanvas::DrawEventStatus(Int_t event, Int_t px, Int_t py, TObject *select
    // debugger.Print("+++ AMSCanvas::DrawEventStatus() selected = %lx\n", selected);
    if (!selected) return;
 
-#ifndef WIN32
+#if ! defined(WIN32)
    gPad->SetDoubleBuffer(0);           // Turn off double buffer mode
 
    TVirtualPad * gPadSave = gPad;
@@ -391,10 +504,76 @@ void AMSCanvas::HandleInput(Int_t event, Int_t px, Int_t py)
 }
 
 
+
+
+
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+//                      Menu     Functions                            //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
+
 //______________________________________________________________________
-void AMSCanvas::SaveCB(Widget wid, XtPointer cd, XtPointer pointer)
+void AMSCanvas::SaveParticleCB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   AddParticleInfo();
+   AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
+   disp->GetCanvas()->SaveAs();
+   disp->GetCanvas()->Update();		// refresh the screen
+}
+
+
+//______________________________________________________________________
+void AMSCanvas::OpenFileCB(Widget wid, XtPointer cd, XtPointer pointer)
 {
 
+  //printf("in AMSCanvas::OpenFile()... fTheCanvas = %lx\n", fTheCanvas);
+  //char ch = fgetc(stdin);
+
+  AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
+  TMotifCanvas * canvas = (TMotifCanvas *) disp->GetCanvas()->GetCanvasImp();
+
+  // TMotifCanvas * canvas = fTheCanvas; 
+
+  TFileSelectionDialog * myFileSelectionDialog = new TFileSelectionDialog("Select a file");
+
+  //printf("myFileSelectionDialog instantiated? %lx %d\n", myFileSelectionDialog->BaseWidget(), myFileSelectionDialog->Instantiated());
+  //myFileSelectionDialog->SetFilterPattern("*.h");
+  //myFileSelectionDialog->CreateDialog(canvas->BaseWidget());
+  //printf("myFileSelectionDialog instantiated? %lx %d\n", myFileSelectionDialog->BaseWidget(), myFileSelectionDialog->Instantiated());
+
+  myFileSelectionDialog->SetDirectory(".");
+  myFileSelectionDialog->PostBlocked("select one file", canvas);
+
+  //myFileSelectionDialog->PostModal("select one file", canvas);
+
+  char mesg[100];
+  sprintf(mesg, "You selected %s", myFileSelectionDialog->FileName());
+  printf("%s\n", mesg);
+
+  delete myFileSelectionDialog;
+
+  return;
+
+}
+
+
+//______________________________________________________________________
+void AMSCanvas::PrintCB(Widget wid, XtPointer cd, XtPointer pointer)
+{
+   AddParticleInfo();
+   AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
+   pid_t pid = getpid();
+   char filename[80];
+   sprintf(filename, "/tmp/AMSDisplay.%d", pid);
+   disp->GetCanvas()->SaveAs(filename);
+//   execlp("lp
+}
+
+
+//______________________________________________________________________
+void AMSCanvas::AddParticleInfo()
+{
    // first append the particle info in event status pad
    AMSDisplay * disp = (AMSDisplay *)gAMSRoot->Display();
    TPad * objInfo     = disp->GetObjInfoPad();
@@ -430,6 +609,7 @@ void AMSCanvas::SaveCB(Widget wid, XtPointer cd, XtPointer pointer)
   sprintf(info1, "Particle: %s", info);
   TText * text = new TText(0.01, 0.45, info1);	// should be 0.5 , but somehow 0.45 is better
   text->SetTextSize(0.60);	// 0.65 should be fine, but somehow 0.60 is better
+//  text->SetTextColor(0);
   text->SetTextAlign(12);
   text->Draw();
 
@@ -440,8 +620,5 @@ void AMSCanvas::SaveCB(Widget wid, XtPointer cd, XtPointer pointer)
    //if (canv) canv->Canvas()->SaveAs();
   gPadSave->cd();
 
-   disp->GetCanvas()->SaveAs();
-
-//  delete text;
 }
 

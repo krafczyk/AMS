@@ -9,47 +9,75 @@
 
 =========================================================================
 [minor updated on 1 Dec 1997 by Ping Yeh]
+[migrated into CVS repository on 16 Dec 1997 with help of Vitali Shoutko,
+ and a major modification of this document is done to reflect this]
 
 
 -------------------------------------------------------------------------
-1. Using the program
---------------------
+1. Obtaining the program
+------------------------
 
-   The program sources and libraries can be found in boronams:~pyeh/display
-directory.  It is based on Rene Brun's ATLFast program.  To use it, type
-"root" at your unix prompt, and " .x display.C " at the root prompt.  Before
-doing so, make sure environment variables ROOTSYS and LD_LIBRARY_PATH are 
-defined properly and $ROOTSYS/bin is in your path.
+The program sources can be obtained by doing
 
-   The program display.C does the following tasks:
-	1.  loads in shared libraries libAMS.so and libAMSg.so, which
-	    are compiled from the sources in the same directory.
-	2.  opens the root file "prmu-old.root" and shows the first event
-	    on the screen.
+	cvs checkout AMS/display
 
-There are 3 defined views:  top view, side view, front view, and a combined
-"all views".  In each view you have the freedom to change the viewing
-angle by mouse, although it can be difficult sometimes.  Zooming in/out
-is not implemented yet.
-
-   You can go to next/previous event by pressing buttons in the window.
-
-   You can get some basic info about a displayed object (cluster, hit,
-track, particle,...etc) by pointing the mouse pointer at it with
-[Options / Event Status] turned on.
+This will create AMS/display directory and put all source files
+of AMS event display into it.
 
 
 -------------------------------------------------------------------------
 2. Making the program
 ---------------------
 
-   In the source directory, simply type "gmake depend" followed by "gmake".  
-It makes the libraries libAMS.so and libAMSg.so (there are no executables 
-to make).  "gmake depend" is necessary only at the first time.
+This program is based on Rene Brun's ROOT and ATLFast program.  To build it,
+cd to AMS/display directory, then type 
+
+	gmake depend
+
+followed by
+
+	gmake
+
+and all .cxx files are compiled and linked into a shared library called
+libAMS.so.  Please note that this has only been tested on alpha workstations
+running DEC/UNIX.
 
 
 -------------------------------------------------------------------------
-3. Structure of the program
+3. Running the program
+----------------------
+
+To run it, please make sure you have the environment to run ROOT.
+Only 3 things needs to be set:
+
+1. Environment variable ROOTSYS  should point to the ROOT directory.
+   (On boronams $ROOTSYS should be set to /cern/root/v1.03/root.)
+2. $ROOTSYS/lib is added into Environment variables LD_LIBRARY_PATH.
+3. $ROOTSYS/bin is in your path.
+
+Then you are ready to go.  Type "root" at your unix prompt, and 
+" .x display.C " at the root prompt.  
+
+   The program display.C does the following tasks:
+	1.  loads in shared libraries libAMS.so which are compiled from 
+	    the sources,
+	2.  opens the root file "prmu-old.root" and shows the first event
+	    on the screen.
+
+There are 4 defined views:  top view, side view, front view, two combined
+"all views" and "two view".  In each view you have the freedom to change 
+the viewing angle by mouse, although it can be difficult sometimes.  
+Zooming in/out is not implemented yet.
+
+   You can go to next/previous event by pressing buttons in the window.
+
+   You can get some basic info about a displayed object (cluster, hit,
+track, particle,...etc) by pointing the mouse pointer at it unless you
+turn off [Options / Event Status].
+
+
+-------------------------------------------------------------------------
+4. Structure of the program
 ---------------------------
 
    All classes are derived directly or indirectly from ROOT base class

@@ -32,7 +32,7 @@ public:
 //   virtual Bool_t    DrawClusters()  = 0;
    virtual Bool_t    DrawParticles() = 0;
    virtual void      DrawCaption(Option_t *option="") = 0;
-   virtual void      DrawView(Float_t theta, Float_t phi) = 0;
+   virtual void      DrawView(Float_t theta, Float_t phi, Int_t index) = 0;
    virtual void      DrawViewGL() = 0;
    virtual void      DrawViewX3D() = 0;
    virtual void      ExecuteEvent(Int_t event, Int_t px, Int_t py) = 0;

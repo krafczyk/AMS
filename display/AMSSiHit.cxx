@@ -18,7 +18,7 @@ AMSSiHit::AMSSiHit(Int_t status, Int_t plane, Int_t px, Int_t py,
                                 Float_t * hit, Float_t * errhit, 
                                 Float_t ampl, Float_t asym,
                                 TObjArray * tracks)
-	: AMS3DCluster(hit, errhit, 0, 50)
+	: AMS3DCluster(hit, errhit, 0, 2)
 {
    m_Status      = status;
    m_Plane       = plane;

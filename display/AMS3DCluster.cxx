@@ -7,6 +7,8 @@
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 
+#include <math.h>
+
 #include <TROOT.h>
 #include <TMath.h>
 #include <TView.h>
@@ -57,8 +59,8 @@ AMS3DCluster::AMS3DCluster(Float_t x, Float_t y, Float_t z,
 // const Int_t width[7] = {3,3,3,3,3,3,3};
 // Int_t lwidth = width[type];
    Int_t lwidth = 3;
-   AMSDisplay *display = (AMSDisplay*)gAMSRoot->Display();
-   if (display->AllViews()) lwidth /= 2;
+// AMSDisplay *display = (AMSDisplay*)gAMSRoot->Display();
+// if (display->AllViews()) lwidth /= 2;
 
 
    SetLineColor(6);
@@ -86,8 +88,8 @@ AMS3DCluster::AMS3DCluster(Float_t * xyz, Float_t * dxyz, Float_t * cos,
 // const Int_t width[7] = {3,3,3,3,3,3,3};
 // Int_t lwidth = width[type];
    Int_t lwidth = 3;
-   AMSDisplay *display = (AMSDisplay*)gAMSRoot->Display();
-   if (display->AllViews()) lwidth /= 2;
+// AMSDisplay *display = (AMSDisplay*)gAMSRoot->Display();
+// if (display->AllViews()) lwidth /= 2;
 
 
    SetLineColor(6);
@@ -256,22 +258,54 @@ Int_t AMS3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
 //*-*-*-*-*-*-*-*Compute distance from point px,py to a AMS3DCluster*-*-*-*-*
 //*-*            ===================================================
 //*-*
-//*-*  Compute the closest distance of approach from point px,py to each corner
-//*-*  point of the AMS3DCluster.
+//*-*  Compute if (px,py) is inside the drawn 3D box.  If not, compute the 
+//*-*  closest distance of approach from point px,py to each corner point of 
+//*-*  the AMS3DCluster.
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-   static AMS3DCluster * toPrint = 0; 
-   static Bool_t first = kTRUE;
-
-   if (toPrint == 0) toPrint = this;
+   Int_t dist=9999;			// return value
 
    const Int_t numPoints = 8;
-   Int_t dist = 9999;
    Float_t points[3*numPoints];
 
    TView *view = gPad->GetView();
    if (!view) return dist;
-   const Int_t seg1[12] = {0,1,2,3,4,5,6,7,0,1,2,3};
-   const Int_t seg2[12] = {1,2,3,0,5,6,7,4,4,5,6,7};
+   //
+   //            4 ____________________ 7
+   //             /|                  /|
+   //            / |_________________/_|
+   //           / / 0               / / 3
+   //       5  /_/________________ / /
+   //         | /               6 | /
+   //         |/__________________|/
+   //         1                    2
+   //
+   // points[] is the world coordinates of 8 vertices.
+   // xn[]     is the normalized coordinates of 8 vertices.
+   // vertex #0 : (xn[0], xn[1], xn[2])
+   // vertex #1 : (xn[3], xn[4], xn[5])
+   // .....
+   //
+   // Each line can be expressed as    \cos\theta x + \sin\theta y = d
+   // where theta is the direction perpendicular to the line.
+   // Each set of parallel lines can be specified by (theta, d1, d2, d3, d4)
+   // Define  dmin = min(d1,d2,d3,d4)  and dmax = max(d1,d2,d3,d4)
+   // The region bounded by these 3 sets of parallel lines can be specified by
+   //  (theta1, dmin1, dmax1), (theta2, dmin2, dmax2), (theta3, dmin3, dmax3)
+   //
+   // A point (x,y) is bounded by these lines if and only if
+   //     dmin1 <=  cos(theta1) x + sin(theta1) y <= dmax1    &&
+   //     dmin2 <=  cos(theta2) x + sin(theta2) y <= dmax2    &&
+   //     dmin3 <=  cos(theta3) x + sin(theta3) y <= dmax3
+   //
+   //
+   // end1[i] , end2[i]    are two ends of segment # i
+   // such that the coordinates of two ends of segment # i is
+   // ( xn[3*end1[i]+0], xn[3*end1[i]+1], xn[3*end1[i]+2] )    and
+   // ( xn[3*end2[i]+0], xn[3*end2[i]+1], xn[3*end2[i]+2] )
+   //
+   //
+   const Int_t end1[12] = {0,1,2,3,4,5,6,7,0,1,2,3};
+   const Int_t end2[12] = {1,2,3,0,5,6,7,4,4,5,6,7};
 
    SetPoints(points);
 
@@ -279,12 +313,13 @@ Int_t AMS3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
    Float_t x1,y1,x2,y2;
 
    Float_t xn[3*numPoints];	// normalized device coordinate of 8 vertices
+   Int_t   xd[numPoints],	// device coordinate
+           yd[numPoints];
 
-//   debugger.Print(" cursor = (%d,%d)\n", px, py);
    for (i = 0; i < numPoints; i++) {
       view->WCtoNDC(&points[3*i], &xn[3*i]);
-//      debugger.Print("(%d,%d) ", gPad->XtoAbsPixel(xn[3*i+0]), 
-//				 gPad->YtoAbsPixel(xn[3*i+1]) );
+      xd[i] = gPad->XtoAbsPixel(xn[3*i]);
+      yd[i] = gPad->YtoAbsPixel(xn[3*i+1]);
    }
 
    //
@@ -294,84 +329,94 @@ Int_t AMS3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
    //         1, 3, 5, 7
    //         8, 9, 10, 11
    //
-   Int_t   segs[3*4] = { 0,2,4,6,   1,3,5,7,  8,9,10,11 };
+   Int_t   segs[4*3] = { 0,2,4,6,   1,3,5,7,  8,9,10,11 };
    Float_t slope, intercept[4];
    Float_t ymax, ymin, xmax, xmin;
    Bool_t  inside = kTRUE;
    //
    // loop over 3 sets of parallel segments
    //
+   Double_t theta, dmin, dmax, d;
+   Int_t dn;
+   dist = -1;
    for ( i = 0; i < 3;  i++ ) {
      Int_t segno = segs[4*i];
-     if ( xn[3*seg1[segno]+0] == xn[3*seg2[segno]+0] ) {   // same x (vertical)
-       xmax = -9999.0;	xmin = 9999.0;
-       for ( j = 0; j < 4; j++ ) {
-	  segno = segs[4*i+j];
-	  if ( xn[3*seg2[segno]+0] > xmax ) xmax = xn[3*seg2[segno]+0];
-	  if ( xn[3*seg2[segno]+0] < xmin ) xmin = xn[3*seg2[segno]+0];
-       }
-       Float_t x1 = gPad->XtoAbsPixel(xmax);
-       Float_t x2 = gPad->XtoAbsPixel(xmin);
-       xmin = (x1<x2)? x1 : x2;		xmax = (x1<x2)? x2 : x1;
-//       if (toPrint == this && first)
-//          debugger.Print(" xmin=%f, xmax=%4.2f\n", xmin, xmax);
-       if ( px > xmax || px < xmin ) {
-         inside = kFALSE;
-         break;
-       }
+     //
+     // Calculate theta
+     // 
+     theta = atan2( Double_t(xd[end2[segno]] - xd[end1[segno]]),
+                  - Double_t(yd[end2[segno]] - yd[end1[segno]]) );
+     //
+     // Calculate dmin and dmax
+     //
+     dmin = 9999;	dmax = -9999;
+     for ( j = 0; j < 4; j++ ) {
+       segno = segs[4*i+j];
+       d = TMath::Cos(theta) * xd[end1[segno]] +
+	   TMath::Sin(theta) * yd[end1[segno]];
+       if ( d > dmax )  dmax = d;
+       if ( d < dmin )  dmin = d;
      }
-     else {
-       slope = ( xn[3*seg1[segno]+1] - xn[3*seg2[segno]+1] ) /
-	       ( xn[3*seg1[segno]+0] - xn[3*seg2[segno]+0] ) ;
-       ymax = -9999.0;	ymin = 9999.0;
+     //
+     // Include the range
+     //
+     dmax += fRange;
+     dmin -= fRange;
+     //
+     // Calculate d value of (px,py)
+     //
+     d = TMath::Cos(theta) * px + TMath::Sin(theta) * py;
+     //
+     // Compare with dmin and dmax: being outside of one set means outside 
+     // of the whole box.
+     //
+     if ( d > dmax  ||  d < dmin ) {
+       inside = kFALSE;
+       dn = TMath::Min(Int_t(TMath::Abs(d-dmin)), Int_t(TMath::Abs(d-dmax)));
+       dist = TMath::Max(dist, dn);
        //
-       // loop over 4 segments in each slope to find ymax and ymin
+       // right now the way of calculating dist is not right because when
+       // (px,py) is on the extended line of one line segment the distance
+       // is set to zero, which it shouldn't.  But it is always non-negative.
+       // Before I come up with better algorithms to do it I'll settle with
+       // this one.  The returned distance should not be used.
        //
-       for ( j = 0; j < 4; j++ ) {
-	  segno = segs[4*i+j];
-	  intercept[j] =  xn[3*seg2[segno]+1] + 
-			  slope * ( px - xn[3*seg2[segno]+0] );
-	  if (intercept[j] > ymax) ymax = intercept[j];
-	  if (intercept[j] < ymin) ymin = intercept[j];
-       }
-       Float_t y1 = gPad->YtoAbsPixel(ymax);
-       Float_t y2 = gPad->YtoAbsPixel(ymin);
-       ymin = (y1<y2)? y1 : y2;		ymax = (y1<y2)? y2 : y1;
-//       if (toPrint == this && first)
-//          debugger.Print(" ymin=%f, ymax=%4.2f\n", ymin, ymax);
-       if ( py > ymax || py < ymin ) {		// not inside
-         inside = kFALSE;
-         break;
-       }
+       // break;		// don't break because I want to calculate dist
      }
    }
+   if (inside) dist = 0;
+   // printf("%s dist = %d\n", (inside)? "inside": "outside", dist);
 
-   if ( inside ) dist = 0;
-   else {
+   if ( inside ) {
+      gPad->SetCursor(kCross);
+      if (fRefObject) { gPad->SetSelected(fRefObject); }
+      //else { debugger.Print("object selected by no fRefObject!\n"); }
+      return 0;
+   }
+   else  return (dist+1);	// dist+1 to make it always positive.
+
+   /*
      Float_t xndc[3];		// normalized coordinate of 8 vertices
      for (i = 0; i < 12; i++) {
-        i1 = 3*seg1[i];
+        i1 = 3*end1[i];
         view->WCtoNDC(&points[i1], xndc);
         x1 = xndc[0];
         y1 = xndc[1];
   
-        i2 = 3*seg2[i];
+        i2 = 3*end2[i];
         view->WCtoNDC(&points[i2], xndc);
         x2 = xndc[0];
         y2 = xndc[1];
         dsegment = DistancetoLine(px,py,x1,y1,x2,y2);
         if (dsegment < dist) dist = dsegment;
      }
-   }
-
-
-   first = kFALSE;
-
    if (dist < fRange) {
       gPad->SetCursor(kCross);
       if (fRefObject) {gPad->SetSelected(fRefObject); return 0;}
    }
    return dist;
+   */
+
 }
 
 
@@ -420,6 +465,7 @@ Int_t AMS3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
 }
 */
 
+/*
 
 //______________________________________________________________________________
  void AMS3DCluster::Paint(Option_t *option)
@@ -549,7 +595,7 @@ Int_t AMS3DCluster::DistancetoPrimitive(Int_t px, Int_t py)
         gPad->PaintLine3D(&points[0], &points[3]);
     }
 }
-
+*/
 
 //______________________________________________________________________________
 void AMS3DCluster::Sizeof3D() const

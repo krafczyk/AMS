@@ -20,7 +20,7 @@ AMSToFCluster::AMSToFCluster(Int_t status, Int_t plane, Int_t bar,
                              Float_t * coo, Float_t * ercoo,
                              Int_t ncells, Int_t nparticles,
                              Int_t ntracks, TObjArray * tracks)
-	: AMS3DCluster(coo, ercoo, 0, 5)
+	: AMS3DCluster(coo, ercoo, 0, 1)
 {
    m_Status     = status;
    m_Plane      = plane;

@@ -59,7 +59,7 @@ private:
    AMSTrackReader      *m_TrackMaker;        //Pointer to TrackMaker
    AMSSiHitReader      *m_SiHitMaker;        //Pointer to SiHitMaker
    AMSCTCClusterReader *m_CTCClusterMaker;   //Pointer to ToFClusterMaker
-   AMSAntiClusterReader *m_AntiClusterMaker;   //Pointer to ToFClusterMaker
+   AMSAntiClusterReader *m_AntiClusterMaker;   //Pointer to AntiClusterMaker
    AMSParticleReader   *m_ParticleMaker;     //Pointer to ParticleMaker
 
 // AMSMCMaker          *m_MCMaker;           //Pointer to MCMaker

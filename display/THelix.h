@@ -17,28 +17,11 @@
 //////////////////////////////////////////////////////////////////////////
 
 #ifndef ROOT_TPolyLine3D
-#include "TPolyLine3D.h"
+#include <TPolyLine3D.h>
 #endif
 #ifndef ROOT_TRotMatrix
-#include "TRotMatrix.h"
+#include <TRotMatrix.h>
 #endif
-/*
-#ifndef ROOT_TTString
-//*KEEP,TString.
-#include "TString.h"
-//*KEND.
-#endif
-#ifndef ROOT_TAttLine
-//*KEEP,TAttLine.
-#include "TAttLine.h"
-//*KEND.
-#endif
-#ifndef ROOT_X3DBuffer
-//*KEEP,X3DBuffer,T=C.
-#include "X3DBuffer.h"
-//*KEND.
-#endif
-*/
 
 enum EHelixRangeType {
   kHelixT, kHelixX, kHelixY, kHelixZ, kLabX, kLabY, kLabZ, kUnchanged
@@ -105,7 +88,7 @@ public:
 			         Double_t hx=0, Double_t hy=0, Double_t hz=1);
         virtual void    Sizeof3D() const;
 
-        ClassDef(THelix,1)  //A Helix drawn as a PolyLine3D
+        ClassDef(THelix,0)  //A Helix drawn as a PolyLine3D
 };
 
 #endif

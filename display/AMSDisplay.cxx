@@ -20,12 +20,14 @@
 #include <TNode.h>
 #include <TTUBE.h>
 #include <TMath.h>
+#include <TPolyLine3D.h>
 #include <X3DBuffer.h>
 
 #include "AMSDisplay.h"
 #include "AMSRoot.h"
 #include "TSwitch.h"
 #include "AMSSiHitReader.h"
+#include "AMSAxis.h"
 //#include "AMSParticle.h"
 //#include "AMSMCMaker.h"
 //#include "AMSClusterMaker.h"
@@ -66,13 +68,13 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    //
    // Get a color manager
    //
-   m_ColorManager = new AMSColorManager();
+   //m_ColorManager = new AMSColorManager();
 
    //
    // Migrate some colors to higher end to avoid them being overwritten
    //
    //m_ColorManager->ColorTest(0,255);
-   m_ColorManager->Migrate(33, 233);
+   //m_ColorManager->Migrate(33, 233);
    //m_ColorManager->ColorTest(0,255);
 
    // Initialize display default parameters
@@ -88,6 +90,7 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
 //   m_DrawClusters  = kTRUE;
    m_View = kFrontView;
    m_DrawParticles = kTRUE;
+   m_DrawGeometry  = kFALSE;
 
    // Create display canvas
 //   m_Canvas = new TCanvas("Canvas", (char*)title,14,47,740,650);
@@ -132,14 +135,27 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
    m_Pad->SetBorderSize(2);
    m_Pad->Draw();
    //
+   // Create axis pad
+   // ----------------------------
+   /*
+   for (Int_t i=0; i<4; i++) {
+      debugger.Print("::: axis pad # %d\n", i);
+      m_AxisPad[i] = new TPad("axis","axis", 0, 0, 0.15, 0.15);
+      m_AxisPad[i]->SetFillColor(5);
+      m_AxisPad[i]->SetBorderMode(1);
+      m_AxisPad[i]->SetBorderSize(1);
+   }
+   */
+   //
    // Create button pad
    // ----------------------------
-   m_Buttons = new TPad("buttons", "newpad",0,0.45,xsep,1.0);
-   //m_Buttons->SetFillColor(38);
-   m_Buttons->SetFillColor(13);
-   m_Buttons->SetBorderSize(2);
-   m_Buttons->SetBorderMode(-1);
-   m_Buttons->Draw();
+   m_Canvas->cd();
+   m_ButtonPad = new TPad("buttons", "newpad",0,0.45,xsep,1.0);
+   //m_ButtonPad->SetFillColor(38);
+   m_ButtonPad->SetFillColor(13);
+   m_ButtonPad->SetBorderSize(2);
+   m_ButtonPad->SetBorderMode(-1);
+   m_ButtonPad->Draw();
    //
    // Create switch pad
    // ----------------------------
@@ -175,17 +191,19 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
 
 
 
+/*
    // Create User Communicator Pad
 
+   //  This overlaps with object info pad!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-   //   m_Canvas->cd();
-   //   m_UCPad = new TPad("UserComPad", "User Communication Pad", 0.2, 0, 1, 0.05);
-   //   m_UCPad->SetFillColor(0);
-   //   m_UCPad->SetBorderSize(1);
-   //   m_UCPad->SetBorderMode(2);
-   //   m_UCPad->Draw();
-
-
+<<<<<<< AMSDisplay.cxx
+   m_Canvas->cd();
+   m_UCPad = new TPad("UserComPad", "User Communication Pad", 0.2, 0, 1, 0.05);
+   m_UCPad->SetFillColor(0);
+   m_UCPad->SetBorderSize(1);
+   m_UCPad->SetBorderMode(2);
+   m_UCPad->Draw();
+*/
 
 /*
    m_LogoPad = new TPad("LogoPad", "AMS Logo", 0.0, ysep, xsep, 1.0);
@@ -197,25 +215,6 @@ AMSDisplay::AMSDisplay(const char *title, TGeometry * geo)
  */  
 
    m_Canvas->cd();
-
-   /*
-   //
-   // Create decoration pad
-   //
-   TPad * tmpPad[2];
-   Float_t y2 = m_Canvas->AbsPixeltoY(m_Canvas->YtoAbsPixel(0.0)+2);
-   Float_t x1 = m_Canvas->AbsPixeltoX(m_Canvas->XtoAbsPixel(1.0)-2);
-   tmpPad[0] = new TPad("tmp1","tmp1", 0,0,1,0.01);
-   tmpPad[0]->SetFillColor(0);
-   tmpPad[0]->SetBorderSize(2);
-   tmpPad[0]->SetBorderMode(-1);
-   tmpPad[0]->Draw();
-   tmpPad[1] = new TPad("tmp2","tmp2", x1,0,1,0.05);
-   tmpPad[1]->SetFillColor(0);
-   tmpPad[1]->SetBorderSize(2);
-   tmpPad[1]->SetBorderMode(-1);
-   tmpPad[1]->Draw();
-   */
 
    // Create user interface control pad
    DisplayButtons();
@@ -321,7 +320,7 @@ void AMSDisplay::DisplayButtons()
 {
 //    Create the user interface buttons
 
-   m_Buttons->cd();
+   m_ButtonPad->cd();
 
    Int_t butcolor = 33;
    Float_t dbutton = 0.09;
@@ -461,22 +460,10 @@ void AMSDisplay::Draw(Option_t *option)
       return;
    }
    else {
+      debugger.Print("AMSDisplay::Draw() m_Theta = %f, m_Phi = %f", m_Theta, m_Phi);
       DrawView(m_Theta,m_Phi);
    }
 
-/*
-   // Display the title
-//   char c = fgetc(stdin);
-   DrawCaption();
-
-   m_Pad->cd();
-   DrawView(m_Theta, m_Phi);
-   debugger.Print("just finished DrawView();\n");
-//   c = fgetc(stdin);
-
-   DrawEventInfo();
-   debugger.Print("just finished DrawEventInfo();\n");
-*/
    m_Canvas->cd();
    
    static TLine * deco[2]={0,0};
@@ -559,22 +546,22 @@ void AMSDisplay::DrawAllViews()
 
    // draw 30 deg view
    m_Pad->cd(1);
-   DrawView(30, 30);
+   DrawView(30, 30, 0);
    DrawCaption();
 
    // draw top view
    m_Pad->cd(2);
-   DrawView(0, -90);
+   DrawView(0, -90, 1);
    DrawCaption("Top");
 
    // draw front view
    m_Pad->cd(3);
-   DrawView(90, 0);
+   DrawView(90, 0, 2);
    DrawCaption("Front");
 
    // draw side view
    m_Pad->cd(4);
-   DrawView(90, -90);
+   DrawView(90, -90, 3);
    DrawCaption("Side");
 
    m_Pad->cd(2);
@@ -593,12 +580,12 @@ void AMSDisplay::DrawFrontAndSideViews()
 
    // draw front view
    m_Pad->cd(1);
-   DrawView(90, 0);
+   DrawView(90, 0, 0);
    DrawCaption("Front");
 
    // draw side view
    m_Pad->cd(2);
-   DrawView(90, -90);
+   DrawView(90, -90, 1);
    DrawCaption("Side");
 
    m_Pad->cd(1);
@@ -684,8 +671,67 @@ void AMSDisplay::DrawCaption(Option_t *option)
    }
 }
 
+
 //_____________________________________________________________________________
-void AMSDisplay::DrawView(Float_t theta, Float_t phi)
+void AMSDisplay::DrawAxis(Int_t index, Option_t * option)
+{
+   //
+   // Draw x-y-z axes in lowerleft corner of current pad
+   //
+   // This appends the axisPad to the current pad and then updates the axis
+
+
+   TPad * axisPad = new TPad("axis","axis", 0.0, 0.0, 0.15, 0.15);
+					// this will be deleted when
+					// the parent pad calls Clear()
+
+   m_AxisPad[index] = axisPad;		// record it with the display
+					// for future reference
+
+   axisPad->SetBorderSize(1);
+   axisPad->SetBorderMode(1);
+   axisPad->Draw();	// append to current pad
+
+   TVirtualPad * gPadSave = gPad;
+   axisPad->cd();
+
+   //
+   // axes
+   //
+     AMSAxis * axis[3];
+     axis[0] = new AMSAxis(1,0,0, "x");
+     axis[0]->SetLineColor(2);
+     axis[1] = new AMSAxis(0,1,0, "y");
+     axis[1]->SetLineColor(3);
+     axis[2] = new AMSAxis(0,0,1, "z");
+     axis[2]->SetLineColor(4);
+
+   axis[0]->Draw(option);
+   axis[1]->Draw(option);
+   axis[2]->Draw(option);
+
+   debugger.Print("AMSDisplay::DrawAxis()  m_Theta = %f, m_Phi = %f\n", m_Theta, m_Phi);
+
+   TView * axisView = new TView(1);
+   axisView->SetRange(-1.5,-1.5,-1.5, 1.5,1.5,1.5);
+   debugger.Print("SetView()\n");
+   Int_t iret;
+   //axisView->SetView(m_Theta, m_Phi, 0, iret);
+   //axisView->SetView(m_Theta, -m_Phi, 0, iret);		// kludge
+   //axisPad->Modified();
+
+   //
+   // Force update the drawing
+   //
+   m_AxisPad[index]->Modified();
+   m_AxisPad[index]->Update();
+
+   gPadSave->cd();
+
+}
+
+//_____________________________________________________________________________
+void AMSDisplay::DrawView(Float_t theta, Float_t phi, Int_t index)
 {
 //    Draw a view of AMS
 
@@ -694,24 +740,18 @@ void AMSDisplay::DrawView(Float_t theta, Float_t phi)
    gPad->SetFillColor(10);	//white for easy printing
    gPad->Clear();
 
-   Int_t iret;
-   TView *view = new TView(1);
-// view->SetRange(-m_Rin, -m_Rin, -m_Zin, m_Rin, m_Rin, m_Zin);
-// temporary kludge
-   view->SetRange(-100.0, -100.0, -120.0, 100.0, 100.0, 120.0);
 
     // add itself to the list
    AppendPad();
-   
-   TView * tmpView = gPad->GetView();
-   debugger.Print("gPad->GetView() = %lx\n", tmpView);
-   if (tmpView) debugger.Print("gPad->GetView()->GetAutoRange() = %d\n",
-		   tmpView->GetAutoRange());
 
+   TView *view = new TView(1);
    // add the geomtry to the pad
    if (m_DrawGeometry) {
+     view->SetRange(-800.0, -800.0, -520.0, 800.0, 800.0, 520.0);
      m_Geometry->Draw();
    }
+   else
+     view->SetRange(-100.0, -100.0, -120.0, 100.0, 100.0, 120.0);
 
    //Loop on all makers to add their products to the pad
    TIter next(gAMSRoot->Makers());
@@ -720,27 +760,10 @@ void AMSDisplay::DrawView(Float_t theta, Float_t phi)
       maker->Draw();
    }
 
+   Int_t iret;
    if ( theta != 9999 && phi != 9999 ) view->SetView(phi, theta, 0, iret);
 
-/*
-      if ( ! angle) {
-        Float_t xmin = gPad->GetX1();
-        Float_t xmax = gPad->GetX2();
-        Float_t ymin = gPad->GetY1();
-        Float_t ymax = gPad->GetY2();
-	angle = new TPaveText(0.25*xmin+0.75*xmax, 0.9*ymin+0.1*ymax,
-			      0.01*xmin+0.99*xmax, 0.85*ymin+0.15*ymax);
-      }
-      else {
-        angle->Clear();
-      }
-      char ptitle[100];
-      angle->SetBit(kCanDelete);
-      angle->SetFillColor(42);
-      sprintf(ptitle,"theta,phi= %5.1f,%5.1f", m_Theta, m_Phi);
-      angle->AddText(ptitle);
-      angle->Draw();
-*/
+   DrawAxis(index);
 
 }
 
@@ -782,6 +805,7 @@ void AMSDisplay::ExecuteEvent(Int_t event, Int_t px, Int_t py)
 	  gPad->GetView()->GetLatitude(), gPad->GetView()->GetLongitude());
 	m_Theta = gPad->GetView()->GetLatitude();
 	m_Phi   = gPad->GetView()->GetLongitude();
+	SetView(m_Theta, m_Phi);
       }
       // - Ping Yeh
    }
@@ -889,6 +913,8 @@ void AMSDisplay::SetView(Float_t theta, Float_t phi)
 {
 //  change viewing angles for current event
 
+   TVirtualPad * gPadSave = gPad;
+
    m_Pad->cd();
    m_Phi   = phi;
    m_Theta = theta;
@@ -897,8 +923,15 @@ void AMSDisplay::SetView(Float_t theta, Float_t phi)
    TView *view = gPad->GetView();
    if (view) view->SetView(m_Phi, m_Theta, 0, iret);
    else      Draw();
-
    gPad->Modified();
+
+   m_AxisPad[0]->cd();
+   view = gPad->GetView();
+   if (view) view->SetView(m_Phi, m_Theta, 0, iret);
+   else      Draw();
+   gPad->Modified();
+
+   gPadSave->cd();
 }
 
 //_____________________________________________________________________________

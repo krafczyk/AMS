@@ -1,3 +1,22 @@
+1998.01.10	Ping Yeh
+  - Accept one command line argument in standalone version as the data file 
+    to read
+  - Merge with mods done by Vitali (AMSAntiCluster* and SelectEvent())
+
+1997.12.22	Ping Yeh
+  - A test of TFileSelectionDialog shows it is necessary to copy
+    MOTIF_FileSelectionDialog.cxx and TFileSelectionDialog.h locally
+    to make it work.  Otherwise it shows segmentation violation ---
+    an indication of mis-compiled library?
+
+1997.12.18	Ping Yeh
+  - Make the standalone version, but no way to select data file yet.
+
+1997.12.17	Ping Yeh
+  - Improve the algorithm of AMS3DCluster::DistancetoPrimitive().  Now use
+    d = cos(theta)*x + sin(theta)*y and   dmin < d < dmax for all 3 sets
+    of parallel line segments to determine whether mouse is inside the box.
+
 v1997.12.11	Ping Yeh
   - Add "Two Views" mode per request of Vitali.  Currently those 2 views are
     displayed side by side and they are both stretched.  But users can stretch

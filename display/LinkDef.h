@@ -12,6 +12,8 @@
 #pragma link C++ class AMS3DCluster;
 #pragma link C++ class AMSToFCluster;
 #pragma link C++ class AMSToFClusterReader;
+#pragma link C++ class AMSAntiCluster;
+#pragma link C++ class AMSAntiClusterReader;
 #pragma link C++ class AMSTrack;
 #pragma link C++ class AMSTrackReader;
 #pragma link C++ class AMSSiHit;
@@ -45,8 +47,12 @@
 //#pragma link C++ class AMSKeyNode;
 #pragma link C++ class AMSColorManager;
 #pragma link C++ class AMSCanvas;
+#pragma link C++ class AMSAxis;
+//#pragma link C++ class AMSGifPad;
 #pragma link C++ class TRadioButton;
 #pragma link C++ class TSwitch;
+
+#pragma link C++ class MySelectionDialog;
 
 #pragma link C++ class THelix;
 #pragma link C++ class Debugger;

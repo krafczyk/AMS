@@ -1,76 +1,45 @@
-//*CMZ :  1.01/07 26/06/97  10.09.08  by  Valery Fine(fine@vxcern.cern.ch)
-//*-- Author :    Nenad Buncic   17/08/95
-
-//*KEEP,CopyRight,T=C.
-/************************************************************************
- * Copyright(c) 1995-1997, The ROOT System, All rights reserved.
- * Authors: Rene Brun, Nenad Buncic, Valery Fine, Fons Rademakers.
- *
- * Permission to use, copy, modify and distribute this software and its
- * documentation for non-commercial purposes is hereby granted without fee,
- * provided that the above copyright notice appears in all copies and
- * that both the copyright notice and this permission notice appear in
- * the supporting documentation. The authors make no claims about the
- * suitability of this software for any purpose.
- * It is provided "as is" without express or implied warranty.
- ************************************************************************/
-//*KEND.
 
 #include <fstream.h>
 #include <iostream.h>
 
-//*KEEP,TROOT.
-#include "TROOT.h"
-//*KEEP,THelix.
+#include <TROOT.h>
+#include <TVirtualPad.h>
+
 #include "THelix.h"
-//*KEEP,TVirtualPad.
-#include "TVirtualPad.h"
-//*KEEP,TPostScript.
-#include "TPostScript.h"
-//*KEEP,TGXW.
-#include "TGXW.h"
-//*KEEP,TPoint.
-#include "TPoint.h"
-//*KEEP,TGLKernelABC,T=C++.
-#include "TGLKernelABC.h"
-//*KEEP,TView.
-#include "TView.h"
-//*KEEP,TPadView3D,T=C++.
-#include "TPadView3D.h"
-//*KEND.
 
 ClassImp(THelix)
 
 //______________________________________________________________________________
-// Helix is, hmmm, well, a helix.  It has XXX different constructors.
+// Helix is, hmmm, well, a helix.  It has 3 different constructors.
 //
-//   First one, without any parameters THelix(), we call 'default
-// constructor' and it's used in a case that just an initialisation is
-// needed (i.e. pointer declaration).
+//   First one is the default constructor and it's used in cases that 
+// just an initialisation is needed (e.g. pointer declaration).
 //
 //       Example:
 //                 THelix *pl1 = new THelix;
 //
 //
-//   Second one is 'normal constructor' with 10 parameters,
+//   Second one is 'normal constructor' with 13 parameters,
 //
 //       Example:
-//                 THelix pl1(x0,y0,z0,vx0,vy0,vz0,w,hx,hy,hz);
+//                 THelix pl1(x0,y0,z0,vx0,vy0,vz0,w,r1,r2,rtype,hx,hy,hz);
 //
 // Neglecting hx,hy,hz will initializes a helix with its axis in Z direction.
+// Neglecting r1,r2,rtype will set them to r1=0,r2=1 and rtype=kHelixZ, i.e.,
+// r1 and r2 specifies range of the helix in z direction.
 //
 //
-//   Third one is similar to the second one, except the initial position,
-// initial velocity and helix axis are all given in array of 3 double
-// precision numbers.
+//   Third constructor is similar to the second one, except the initial 
+// position, initial velocity, helix range and helix axis are all given in 
+// arrays of double precision numbers.
 //
 //       Example:
-//                 THelix pl1(xyz0, v0, w, axis);
+//                 THelix pl1(xyz0, v0, w, range, rtype, axis);
 //
 //
 
 
-Int_t THelix::minNSeg=5;
+Int_t THelix::minNSeg=5;	// at least 5 line segments in TPolyLine3D 
 
 
 //______________________________________________________________________________
@@ -269,55 +238,6 @@ Int_t THelix::minNSeg=5;
 }
 
 
-/*
-
-//______________________________________________________________________________
- Int_t THelix::DistancetoPrimitive(Int_t px, Int_t py)
-{
-//*-*-*-*-*-*-*-*Compute distance from point px,py to a helix*-*-*-*-*-*-*
-//*-*            ============================================
-//*-*
-//*-*  Compute the closest distance of approach from point px,py to each segment
-//*-*  of the polyline.
-//*-*  Returns when the distance found is below DistanceMaximum.
-//*-*  The distance is computed in pixels units.
-//*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-   const Int_t inaxis = 7;
-   Int_t dist = 9999;
-
-   Float_t x = gPad->AbsPixeltoX(px);
-   Float_t y = gPad->AbsPixeltoY(py);
-
-   Int_t puxmin = gPad->XtoAbsPixel(gPad->GetUxmin());
-   Int_t puymin = gPad->YtoAbsPixel(gPad->GetUymin());
-   Int_t puxmax = gPad->XtoAbsPixel(gPad->GetUxmax());
-   Int_t puymax = gPad->YtoAbsPixel(gPad->GetUymax());
-
-//*-*- return if point is not in the user area
-   if (px < puxmin - inaxis) return dist;
-   if (py > puymin + inaxis) return dist;
-   if (px > puxmax + inaxis) return dist;
-   if (py < puymax - inaxis) return dist;
-
-   TView *view = gPad->GetTView();
-   if (!view) return dist;
-
-   Int_t i, dsegment;
-   Float_t x1,y1,x2,y2, xndc[3];
-   for (i=0;i<fN-1;i++) {
-      view->WCtoNDC(&fP[3*i], xndc);
-      x1 = xndc[0];
-      y1 = xndc[1];
-      view->WCtoNDC(&fP[3*i+3], xndc);
-      x2 = xndc[0];
-      y2 = xndc[1];
-      dsegment = DistancetoLine(px,py,x1,y1,x2,y2);
-      if (dsegment < dist) dist = dsegment;
-   }
-   return dist;
-}
-*/
 
 
 //______________________________________________________________________________
@@ -330,168 +250,7 @@ Int_t THelix::minNSeg=5;
 
 }
 
-/*
-//______________________________________________________________________________
- void THelix::DrawPolyLine(Int_t n, Float_t *p, Option_t *option)
-{
-//*-*-*-*-*-*-*-*-*Draw this 3-D polyline with new coordinates*-*-*-*-*-*-*-*-*-*
-//*-*              ============================================
 
-   THelix *newpolyline = new THelix();
-   newpolyline->fN =n;
-   newpolyline->fP = new Float_t[3*fN];
-   for (Int_t i=0; i<3*fN;i++) { newpolyline->fP[i] = p[i];}
-   TAttLine::Copy(*newpolyline);
-   newpolyline->fOption = fOption;
-   newpolyline->SetBit(kCanDelete);
-   newpolyline->AppendPad(option);
-}
-
-//______________________________________________________________________________
- void THelix::ExecuteEvent(Int_t event, Int_t px, Int_t py)
-{
-//*-*-*-*-*-*-*-*-*-*Execute action corresponding to one event*-*-*-*-*-*-*-*-*-*
-//*-*                =========================================
-
-
-        if (gPad->GetTView())
-                gPad->GetTView()->ExecuteRotateView(event, px, py);
-
-}
-
-
-//______________________________________________________________________________
- void THelix::ls(Option_t *option)
-{
-//*-*-*-*-*-*-*-*-*-*List this 3-D polyline with its attributes*-*-*-*-*-*-*
-//*-*                ==========================================
-
-   IndentLevel();
-   cout <<"PolyLine3D  N=" <<fN<<" Option="<<option<<endl;
-
-}
-
-/* don't need
-//______________________________________________________________________________
- void THelix::Paint(Option_t *option)
-{
-//*-*-*-*-*-*-*-*-*Paint this 3-D polyline with its current attributes*-*-*-*-*
-//*-*              ===================================================
-//*-*
-//*-* Option could be 'x3d', and it means that output
-//*-* will be performed by X3D package.
-//*-*
-//*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-
-    //*-* Check whether there is some 3D view class for this TPad
-    TPadView3D *view3D = gPad->GetView3D();
-    if (view3D) view3D->PaintPolyLine(this,option);
-
-    //*-* Check if option is 'x3d'.      NOTE: This is a simple checking
-    //                                         but since there is no other
-    //                                         options yet, this works fine.
-    if ((*option != 'x') && (*option != 'X')) {
-        PaintPolyLine(fN, fP, option);
-    }
-    else {
-        X3DBuffer *buff = new X3DBuffer;
-        if (buff) {
-            buff->numPoints = fN;
-            buff->numSegs   = fN-1;
-            buff->numPolys  = 0;        //NOTE: Because of different structure, our
-            buff->polys     = NULL;     //      THelix can't use polygons
-            buff->points    = fP;
-        }
-
-        Int_t c = ((GetLineColor() % 8) - 1) * 4;     // Basic colors: 0, 1, ... 8
-        if (c < 0) c = 0;
-
-    //*-* Allocate memory for segments *-*
-        buff->segs = new Int_t[buff->numSegs*3];
-        if (buff->segs) {
-            for (Int_t i = 0; i < buff->numSegs; i++) {
-                buff->segs[3*i  ] = c;
-                buff->segs[3*i+1] = i;
-                buff->segs[3*i+2] = i+1;
-            }
-        }
-
-
-        if (buff && buff->points && buff->segs) //If everything seems to be OK ...
-            FillX3DBuffer(buff);
-        else {                            // ... something very bad was happened
-            gSize3D.numPoints -= buff->numPoints;
-            gSize3D.numSegs   -= buff->numSegs;
-            gSize3D.numPolys  -= buff->numPolys;
-        }
-
-        if (buff->segs)     delete [] buff->segs;
-        if (buff->polys)    delete [] buff->polys;
-        if (buff)           delete    buff;
-    }
-}
-*/
-
-/*
-//______________________________________________________________________________
- void THelix::PaintPolyLine(Int_t n, Float_t *p, Option_t *option)
-{
-//*-*-*-*-*-*-*-*-*Draw this 3-D polyline with new coordinates*-*-*-*-*-*-*-*-*-*
-//*-*              ===========================================
-
-   if (n < 1) return;
-
-   TView *view = gPad->GetTView();
-   if(!view) return;
-
-   TAttLine::Modify();  //Change line attributes only if necessary
-
-//*-*- special case if n=2
-   Float_t xndc[3];
-   Float_t xx[2],yy[2];
-   if (n == 2) {
-      view->WCtoNDC(p, xndc);
-      xx[0] = xndc[0];
-      yy[0] = xndc[1];
-      view->WCtoNDC(p+3, xndc);
-      xx[1] = xndc[0];
-      yy[1] = xndc[1];
-      gPad->PaintLine(xx[0],yy[0],xx[1],yy[1]);
-      if (gCurrentPS) gCurrentPS->DrawPS(2, xx, yy);
-      return;
-   }
-
-//*-*- Create temporary array to store array in pixel coordinates
-   TPoint *pxy = new TPoint[n];
-   Float_t *x  = new Float_t[n];
-   Float_t *y  = new Float_t[n];
-   Float_t *ptr = p;
-
-//*-*- convert points from world to pixel coordinate
-
-
-   for (Int_t i = 0; i < n; i++) {
-      view->WCtoNDC(ptr, xndc);
-      x[i] = xndc[0];
-      y[i] = xndc[1];
-      pxy[i].fX = gPad->XtoPixel(x[i]);
-      pxy[i].fY = gPad->YtoPixel(y[i]);
-      ptr += 3;
-   }
-
-//*-*- invoke the graphics subsystem
-   if (!gPad->IsBatch()) gGXW->DrawPolyLine(n, pxy);
-
-   delete [] pxy;
-
-   if (gCurrentPS) {
-      gCurrentPS->DrawPS(n, x, y);
-   }
-   delete [] x;
-   delete [] y;
-
-}
-*/
 
 //______________________________________________________________________________
  void THelix::Print(Option_t *option)

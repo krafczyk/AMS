@@ -14,7 +14,7 @@
 #endif
 #include "AMSGeometrySetter.h"
 #include "AMSCanvas.h"
-#include "AMSColorManager.h"
+//#include "AMSColorManager.h"
 
 class TCanvas;
 class TPad;
@@ -24,7 +24,9 @@ class TTUBE;
 class TNode;
 class TPolyLine3D;
 class TList;
+#ifndef ROOT_TGeometry_H
 #include <TGeometry.h>
+#endif
 //class ATLFParticle;
 
 
@@ -42,7 +44,7 @@ private:
    AMSGeometrySetter *m_GeoSetter;	     //Pointer to the geometry setter
 // AMSKeyNode       *m_KeyNode;		     //Pointer to selected geom nodes
 
-   AMSColorManager  *m_ColorManager;         //Pointer to the color manager
+//   AMSColorManager  *m_ColorManager;         //Pointer to the color manager
 
    Float_t           m_PTcut;                //PT cut to display objects
    Float_t           m_PTcutEGMUNU;          //PT cut for Electrons, Gammas, MUons, Neutrinos
@@ -53,11 +55,14 @@ private:
    TPad             *m_UCPad;                //Pointer to the UC pad 
    TPad             *m_LogoPad;              //Pointer to the logo pad 
    TPad             *m_TrigPad;              //Pointer to the trigger pad 
-   TPad             *m_Buttons;              //Pointer to the buttons pad
+   TPad             *m_ButtonPad;            //Pointer to the buttons pad
    TPad             *m_Pad;                  //Pointer to the event display main pad
+   TPad             *m_AxisPad[4];           //Pointer to the axis pad
    TPad             *m_TitlePad;             //Pointer to title pad 
    TPad             *m_EventInfoPad;         //Pointer to event info pad 
    TPad             *m_ObjInfoPad;           //Pointer to object info pad 
+//   TPad             *m_AxisPad[4];           //Pointers to axis pad 
+
    TArc             *m_EM1;                  //Pointer to arc showing ON/OFF trigger EM1
    TArc             *m_PH1;                  //Pointer to arc showing ON/OFF trigger PH1
    TArc             *m_EM2;                  //Pointer to arc showing ON/OFF trigger EM2
@@ -88,8 +93,10 @@ public:
    Bool_t            DrawParticles() {return m_DrawParticles;}
            void      DrawTitle(Option_t *option="");
            void      DrawEventInfo(Option_t *option="");
-   virtual void      DrawCaption(Option_t *option="");
-   virtual void      DrawView(Float_t theta=9999, Float_t phi=9999);
+           void      DrawCaption(Option_t *option="");
+           void      DrawAxis(Int_t index=0, Option_t *option="");
+//         void      UpdateAxis(Int_t index=0, Option_t *option="");
+   virtual void      DrawView(Float_t theta=9999, Float_t phi=9999, Int_t index=0);
    virtual void      DrawViewGL();
    virtual void      DrawViewX3D();
 //	   void      DoubleSize();
@@ -102,7 +109,7 @@ public:
    TPad             *GetObjInfoPad() { return m_ObjInfoPad; }
    TPad             *GetEventInfoPad() { return m_EventInfoPad; }
    TPad             *GetTitlePad() { return m_TitlePad; }
-   AMSColorManager  *GetColorManager() { return m_ColorManager; }
+//   AMSColorManager  *GetColorManager() { return m_ColorManager; }
    virtual void      Paint(Option_t *option="");
    virtual void      PaintParticles(Option_t *option="");
    Float_t           PTcut() {return m_PTcut;}
