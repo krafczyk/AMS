@@ -43,6 +43,9 @@ public:
  static void GetLadder(integer layer, integer ladder, integer half,
                           integer & status, geant coo[],number nrm[3][3]);
  
+#ifdef __DB__
+   friend class TKDBcV;
+#endif
 
 };
 
