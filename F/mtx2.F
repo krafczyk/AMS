@@ -8,22 +8,22 @@
                enddo
                sdot=x(1)*x(1)+x(2)**2+x(3)**2
                sdot=sqrt(sdot)
-               do i=1,3
-                x(i)=x(i)/sdot
-                nrmout(i,1)=x(i)
-               enddo
                imax=0
                xmax=0
                do i=1,3
-                x(i)=nrmin(i,2)
-                if(x(i).gt.xmax)then
-                  xmax=x(i)
+                x(i)=x(i)/sdot
+                nrmout(i,1)=x(i)
+                if(abs(x(i)).gt.xmax)then
+                  xmax=abs(x(i))
                   imax=i
                 endif
                enddo
+               do i=1,3
+                x(i)=nrmin(i,2)
+               enddo
                if(imax.eq.0)stop 'mtx2-F-imax ==0'
-               ksi=-(nrmout(1,1)*x(1)+nrmout(2,1)*x(2)+nrmout(3,1)*x(3))
-     +         /nrmout(imax,1)
+               ksi=-(nrmin(1,1)*x(1)+nrmin(2,1)*x(2)+nrmin(3,1)*x(3))
+     +         /nrmin(imax,1)
                x(imax)=x(imax)+ksi
                sdot=x(1)*x(1)+x(2)**2+x(3)**2
                sdot=sqrt(sdot)

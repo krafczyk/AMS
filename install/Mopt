@@ -43,8 +43,8 @@ endif
 #
 #
 #
-FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F 
-OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ../F/mtx2.o
+FILES= ../CC/id.C ../CC/node.C ../CC/snode.C  ../CC/gbatch.C ../CC/gvolume.C  ../CC/amsdbc.C ../CC/cern.C  ../CC/gsen.C ../CC/point.C ../CC/upool.C ../CC/gmat.C ../CC/amsgobj.C ../CC/amsgeom.C ../CC/geant.C ../CC/mceventg.C ../F/tkmccl.F ../CC/rnormx.C  ../CC/trid.C ../CC/link.C ../CC/trrec.C ../CC/uzstat.C ../F/amstkshc++.F ../F/mtx.F ../F/tptcir.F ../F/trafit.F ../F/tcircf.F ../F/tszfit.F ../F/txyfit.F ../CC/job.C ../CC/event.C ../CC/cont.C ../CC/mccluster.C ../CC/trrawcluster.C ../F/rndm.F ../F/timel.F ../F/sgif.F ../CC/tofrec.C ../CC/tofsim.C ../CC/beta.C ../CC/charge.C ../CC/particle.C ../CC/commons.C ../CC/apool.C ../CC/tofdbc.C ../CC/ctcrec.C ../CC/ctcdbc.C ../CC/tofcalib.C ../CC/timeid.C ../CC/io.C ../CC/trcalib.C ../F/mtx2.F ../F/e04ccf.f
+OBJECTS= ..$(BIN)/gbatch.o ..$(BIN)/commons.o ..$(BIN)/gvolume.o  ..$(BIN)/id.o ..$(BIN)/node.o ..$(BIN)/snode.o ..$(BIN)/cern.o ..$(BIN)/amsdbc.o ..$(BIN)/gsen.o  ..$(BIN)/mtx.o ..$(BIN)/point.o ..$(BIN)/amstkshc++.o ..$(BIN)/sgif.o ..$(BIN)/upool.o ..$(BIN)/gmat.o ..$(BIN)/amsgobj.o ..$(BIN)/amsgeom.o  ..$(BIN)/geant.o ..$(BIN)/mceventg.o ..$(BIN)/tkmccl.o ..$(BIN)/rnormx.o  ..$(BIN)/trid.o ..$(BIN)/link.o ..$(BIN)/trrec.o ..$(BIN)/uzstat.o ..$(BIN)/tptcir.o ..$(BIN)/trafit.o ..$(BIN)/tcircf.o ..$(BIN)/tszfit.o ..$(BIN)/txyfit.o  ..$(BIN)/job.o ..$(BIN)/event.o ..$(BIN)/cont.o ..$(BIN)/trrawcluster.o ..$(BIN)/mccluster.o ..$(BIN)/rndm.o ..$(BIN)/tofrec.o ..$(BIN)/tofsim.o ..$(BIN)/beta.o ..$(BIN)/charge.o ..$(BIN)/particle.o ..$(BIN)/apool.o ..$(BIN)/tofdbc.o ..$(BIN)/ctcrec.o ..$(BIN)/ctcdbc.o ..$(BIN)/tofcalib.o ..$(BIN)/timeid.o ..$(BIN)/io.o ..$(BIN)/trcalib.o ..$(BIN)/mtx2.o ..$(BIN)/e04ccf.o
 gbatch.exe:	$(OBJECTS)
 	$(FF) -c $(FFLAGS) ../F/timel.F -o ..$(BIN)/timel.o
 	$(LD) -v -o ..$(EXE)/gbatch.exe $(OBJECTS) $(TIMEL) $(LDFLAGS)
@@ -105,6 +105,9 @@ gbatch.exe:	$(OBJECTS)
 
 ..$(BIN)/tcircf.o:         ../F/tcircf.F
 	$(FF) -c $(FFLAGS) ../F/tcircf.F -o ..$(BIN)/tcircf.o
+
+..$(BIN)/e04ccf.o:         ../F/e04ccf.f
+	$(FF) -c $(FFLAGS) ../F/e04ccf.f -o ..$(BIN)/e04ccf.o
 
 ..$(BIN)/mtx2.o:         ../F/mtx2.F
 	$(FF) -c $(FFLAGS) ../F/mtx2.F -o ..$(BIN)/mtx2.o
@@ -277,7 +280,7 @@ depend:
 ../bin/osf1/gbatch.o: /usr/include/malloc.h ../include/hbook.h
 ../bin/osf1/gbatch.o: ../include/geant321.h ../include/geant321g.h
 ../bin/osf1/gbatch.o: ../include/amsdbc.h ../include/point.h
-../bin/osf1/gbatch.o: /usr/include/math.h ../include/commons.h
+../bin/osf1/gbatch.o: /usr/include/math.h ../CC/commons.h
 ../bin/osf1/gbatch.o: /usr/include/signal.h /usr/include/machine/signal.h
 ../bin/osf1/gbatch.o: /usr/include/unistd.h /usr/include/sys/access.h
 ../bin/osf1/gvolume.o: ../include/gvolume.h ../include/node.h
@@ -339,7 +342,7 @@ depend:
 ../bin/osf1/gsen.o: ../include/amsdbc.h ../include/point.h
 ../bin/osf1/gsen.o: /usr/include/math.h ../include/trid.h ../include/amsstl.h
 ../bin/osf1/gsen.o: ../include/upool.h /usr/include/cxx/new.h
-../bin/osf1/gsen.o: /usr/include/cxx/new.hxx ../include/commons.h
+../bin/osf1/gsen.o: /usr/include/cxx/new.hxx ../CC/commons.h
 ../bin/osf1/gsen.o: ../include/link.h ../include/apool.h ../include/snode.h
 ../bin/osf1/point.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/point.o: /usr/include/standards.h /usr/include/cxx/iostream.h
@@ -414,7 +417,7 @@ depend:
 ../bin/osf1/amsgeom.o: ../include/cern.h ../include/cfortran.h
 ../bin/osf1/amsgeom.o: /usr/include/malloc.h ../include/hbook.h
 ../bin/osf1/amsgeom.o: ../include/geant321.h ../include/geant321g.h
-../bin/osf1/amsgeom.o: ../include/commons.h ../include/extC.h
+../bin/osf1/amsgeom.o: ../CC/commons.h ../include/extC.h
 ../bin/osf1/amsgeom.o: /usr/include/cxx/fstream.h
 ../bin/osf1/amsgeom.o: /usr/include/cxx/fstream.hxx ../include/job.h
 ../bin/osf1/amsgeom.o: ../include/gvolume.h ../include/point.h
@@ -445,11 +448,11 @@ depend:
 ../bin/osf1/geant.o: /usr/include/sys/time.h /usr/include/sys/limits.h
 ../bin/osf1/geant.o: /usr/include/sys/signal.h /usr/include/machine/signal.h
 ../bin/osf1/geant.o: /usr/include/time.h ../include/amsgobj.h
-../bin/osf1/geant.o: ../include/uzstat.h ../include/commons.h
-../bin/osf1/geant.o: ../include/trid.h ../include/amsdbc.h
-../bin/osf1/geant.o: ../include/amsstl.h ../include/extC.h ../include/job.h
-../bin/osf1/geant.o: ../include/gvolume.h ../include/gmat.h
-../bin/osf1/geant.o: /usr/include/cxx/iomanip.h /usr/include/cxx/iomanip.hxx
+../bin/osf1/geant.o: ../include/uzstat.h ../CC/commons.h ../include/trid.h
+../bin/osf1/geant.o: ../include/amsdbc.h ../include/amsstl.h
+../bin/osf1/geant.o: ../include/extC.h ../include/job.h ../include/gvolume.h
+../bin/osf1/geant.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/geant.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/geant.o: /usr/include/cxx/generic.hxx ../include/timeid.h
 ../bin/osf1/geant.o: /usr/include/sys/times.h /usr/include/unistd.h
 ../bin/osf1/geant.o: /usr/include/sys/access.h ../include/mccluster.h
@@ -485,8 +488,7 @@ depend:
 ../bin/osf1/mceventg.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/mceventg.o: /usr/include/cxx/generic.hxx ../include/amsgobj.h
 ../bin/osf1/mceventg.o: ../include/uzstat.h ../include/timeid.h
-../bin/osf1/mceventg.o: ../include/cont.h ../include/commons.h
-../bin/osf1/mceventg.o: ../include/ntuple.h
+../bin/osf1/mceventg.o: ../include/cont.h ../CC/commons.h ../include/ntuple.h
 ../bin/osf1/rnormx.o: ../include/cern.h ../include/typedefs.h
 ../bin/osf1/rnormx.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/rnormx.o: /usr/include/cxx/iostream.h
@@ -511,7 +513,7 @@ depend:
 ../bin/osf1/trid.o: /usr/include/malloc.h ../include/hbook.h
 ../bin/osf1/trid.o: ../include/geant321.h ../include/geant321g.h
 ../bin/osf1/trid.o: ../include/upool.h /usr/include/cxx/new.h
-../bin/osf1/trid.o: /usr/include/cxx/new.hxx ../include/commons.h
+../bin/osf1/trid.o: /usr/include/cxx/new.hxx ../CC/commons.h
 ../bin/osf1/trid.o: ../include/link.h ../include/apool.h ../include/node.h
 ../bin/osf1/trid.o: ../include/id.h /usr/include/cxx/strstream.h
 ../bin/osf1/trid.o: /usr/include/cxx/strstream.hxx ../include/snode.h
@@ -546,10 +548,10 @@ depend:
 ../bin/osf1/trrec.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/trrec.o: ../include/geant321g.h ../include/amsdbc.h
 ../bin/osf1/trrec.o: ../include/point.h /usr/include/math.h ../include/trid.h
-../bin/osf1/trrec.o: ../include/amsstl.h ../include/commons.h
-../bin/osf1/trrec.o: ../include/link.h ../include/cont.h ../include/event.h
-../bin/osf1/trrec.o: ../include/job.h ../include/gmat.h
-../bin/osf1/trrec.o: /usr/include/cxx/iomanip.h /usr/include/cxx/iomanip.hxx
+../bin/osf1/trrec.o: ../include/amsstl.h ../CC/commons.h ../include/link.h
+../bin/osf1/trrec.o: ../include/cont.h ../include/event.h ../include/job.h
+../bin/osf1/trrec.o: ../include/gmat.h /usr/include/cxx/iomanip.h
+../bin/osf1/trrec.o: /usr/include/cxx/iomanip.hxx
 ../bin/osf1/trrec.o: /usr/include/cxx/generic.hxx ../include/amsgobj.h
 ../bin/osf1/trrec.o: ../include/uzstat.h ../include/timeid.h
 ../bin/osf1/trrec.o: /usr/include/time.h /usr/include/sys/time.h
@@ -600,7 +602,7 @@ depend:
 ../bin/osf1/job.o: /usr/include/cxx/iomanip.h /usr/include/cxx/iomanip.hxx
 ../bin/osf1/job.o: /usr/include/cxx/generic.hxx ../include/amsgobj.h
 ../bin/osf1/job.o: ../include/uzstat.h ../include/timeid.h
-../bin/osf1/job.o: /usr/include/time.h ../include/commons.h
+../bin/osf1/job.o: /usr/include/time.h ../CC/commons.h
 ../bin/osf1/job.o: /usr/include/cxx/fstream.h /usr/include/cxx/fstream.hxx
 ../bin/osf1/job.o: ../include/trid.h ../include/amsstl.h ../include/link.h
 ../bin/osf1/job.o: ../include/apool.h ../include/mccluster.h
@@ -623,7 +625,7 @@ depend:
 ../bin/osf1/event.o: ../include/cfortran.h /usr/include/string.h
 ../bin/osf1/event.o: /usr/include/sys/types.h /usr/include/malloc.h
 ../bin/osf1/event.o: ../include/hbook.h ../include/geant321.h
-../bin/osf1/event.o: ../include/geant321g.h ../include/commons.h
+../bin/osf1/event.o: ../include/geant321g.h ../CC/commons.h
 ../bin/osf1/event.o: ../include/amsdbc.h ../include/extC.h
 ../bin/osf1/event.o: /usr/include/stdlib.h /usr/include/cxx/fstream.h
 ../bin/osf1/event.o: /usr/include/cxx/fstream.hxx ../include/job.h
@@ -680,7 +682,7 @@ depend:
 ../bin/osf1/mccluster.o: /usr/include/malloc.h ../include/hbook.h
 ../bin/osf1/mccluster.o: ../include/geant321.h ../include/geant321g.h
 ../bin/osf1/mccluster.o: ../include/upool.h /usr/include/cxx/new.h
-../bin/osf1/mccluster.o: /usr/include/cxx/new.hxx ../include/commons.h
+../bin/osf1/mccluster.o: /usr/include/cxx/new.hxx ../CC/commons.h
 ../bin/osf1/mccluster.o: ../include/link.h ../include/apool.h
 ../bin/osf1/mccluster.o: ../include/node.h ../include/id.h
 ../bin/osf1/mccluster.o: /usr/include/cxx/strstream.h
@@ -712,7 +714,7 @@ depend:
 ../bin/osf1/trrawcluster.o: ../include/hbook.h ../include/geant321.h
 ../bin/osf1/trrawcluster.o: ../include/geant321g.h ../include/upool.h
 ../bin/osf1/trrawcluster.o: /usr/include/cxx/new.h /usr/include/cxx/new.hxx
-../bin/osf1/trrawcluster.o: ../include/commons.h ../include/link.h
+../bin/osf1/trrawcluster.o: ../CC/commons.h ../include/link.h
 ../bin/osf1/trrawcluster.o: ../include/apool.h ../include/node.h
 ../bin/osf1/trrawcluster.o: ../include/id.h /usr/include/cxx/strstream.h
 ../bin/osf1/trrawcluster.o: /usr/include/cxx/strstream.hxx ../include/snode.h
@@ -754,7 +756,7 @@ depend:
 ../bin/osf1/tofrec.o: ../include/apool.h ../include/cont.h
 ../bin/osf1/tofrec.o: /usr/include/sys/time.h /usr/include/sys/limits.h
 ../bin/osf1/tofrec.o: /usr/include/sys/signal.h /usr/include/machine/signal.h
-../bin/osf1/tofrec.o: ../include/commons.h ../include/mccluster.h
+../bin/osf1/tofrec.o: ../CC/commons.h ../include/mccluster.h
 ../bin/osf1/tofrec.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
 ../bin/osf1/tofrec.o: ../include/extC.h ../include/tofdbc.h
 ../bin/osf1/tofrec.o: /usr/include/cxx/fstream.h /usr/include/cxx/fstream.hxx
@@ -787,11 +789,10 @@ depend:
 ../bin/osf1/tofsim.o: ../include/apool.h ../include/cont.h
 ../bin/osf1/tofsim.o: /usr/include/sys/time.h /usr/include/sys/limits.h
 ../bin/osf1/tofsim.o: /usr/include/sys/signal.h /usr/include/machine/signal.h
-../bin/osf1/tofsim.o: ../include/amsstl.h ../include/commons.h
-../bin/osf1/tofsim.o: ../include/tofdbc.h /usr/include/cxx/fstream.h
-../bin/osf1/tofsim.o: /usr/include/cxx/fstream.hxx ../include/tofsim.h
-../bin/osf1/tofsim.o: ../include/mccluster.h ../include/gsen.h
-../bin/osf1/tofsim.o: ../include/trid.h
+../bin/osf1/tofsim.o: ../include/amsstl.h ../CC/commons.h ../include/tofdbc.h
+../bin/osf1/tofsim.o: /usr/include/cxx/fstream.h /usr/include/cxx/fstream.hxx
+../bin/osf1/tofsim.o: ../include/tofsim.h ../include/mccluster.h
+../bin/osf1/tofsim.o: ../include/gsen.h ../include/trid.h
 ../bin/osf1/beta.o: ../include/beta.h ../include/link.h ../include/typedefs.h
 ../bin/osf1/beta.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/beta.o: /usr/include/cxx/iostream.h /usr/include/cxx/iostream.hxx
@@ -816,11 +817,11 @@ depend:
 ../bin/osf1/beta.o: ../include/timeid.h /usr/include/time.h ../include/cont.h
 ../bin/osf1/beta.o: /usr/include/sys/time.h /usr/include/sys/limits.h
 ../bin/osf1/beta.o: /usr/include/sys/signal.h /usr/include/machine/signal.h
-../bin/osf1/beta.o: ../include/tofdbc.h ../include/commons.h
-../bin/osf1/beta.o: ../include/extC.h /usr/include/cxx/fstream.h
-../bin/osf1/beta.o: /usr/include/cxx/fstream.hxx ../include/trrec.h
-../bin/osf1/beta.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
-../bin/osf1/beta.o: ../include/ctcrec.h ../include/ntuple.h
+../bin/osf1/beta.o: ../include/tofdbc.h ../CC/commons.h ../include/extC.h
+../bin/osf1/beta.o: /usr/include/cxx/fstream.h /usr/include/cxx/fstream.hxx
+../bin/osf1/beta.o: ../include/trrec.h ../include/gsen.h ../include/trid.h
+../bin/osf1/beta.o: ../include/amsstl.h ../include/ctcrec.h
+../bin/osf1/beta.o: ../include/ntuple.h
 ../bin/osf1/charge.o: ../include/beta.h ../include/link.h
 ../bin/osf1/charge.o: ../include/typedefs.h /usr/include/assert.h
 ../bin/osf1/charge.o: /usr/include/standards.h /usr/include/cxx/iostream.h
@@ -848,30 +849,30 @@ depend:
 ../bin/osf1/charge.o: /usr/include/time.h ../include/cont.h
 ../bin/osf1/charge.o: /usr/include/sys/time.h /usr/include/sys/limits.h
 ../bin/osf1/charge.o: /usr/include/sys/signal.h /usr/include/machine/signal.h
-../bin/osf1/charge.o: ../include/tofdbc.h ../include/commons.h
-../bin/osf1/charge.o: ../include/extC.h /usr/include/cxx/fstream.h
-../bin/osf1/charge.o: /usr/include/cxx/fstream.hxx ../include/trrec.h
-../bin/osf1/charge.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
-../bin/osf1/charge.o: ../include/ctcrec.h ../include/charge.h
-../bin/osf1/charge.o: ../include/ntuple.h
-../bin/osf1/particle.o: ../include/commons.h ../include/cern.h
+../bin/osf1/charge.o: ../include/tofdbc.h ../CC/commons.h ../include/extC.h
+../bin/osf1/charge.o: /usr/include/cxx/fstream.h /usr/include/cxx/fstream.hxx
+../bin/osf1/charge.o: ../include/trrec.h ../include/gsen.h ../include/trid.h
+../bin/osf1/charge.o: ../include/amsstl.h ../include/ctcrec.h
+../bin/osf1/charge.o: ../include/charge.h ../include/ntuple.h
+../bin/osf1/particle.o: ../CC/commons.h /usr/include/math.h
+../bin/osf1/particle.o: /usr/include/standards.h /usr/include/limits.h
+../bin/osf1/particle.o: ../include/amsgobj.h ../include/node.h
 ../bin/osf1/particle.o: ../include/typedefs.h /usr/include/assert.h
-../bin/osf1/particle.o: /usr/include/standards.h /usr/include/cxx/iostream.h
+../bin/osf1/particle.o: /usr/include/cxx/iostream.h
 ../bin/osf1/particle.o: /usr/include/cxx/iostream.hxx
 ../bin/osf1/particle.o: /usr/include/cxx/cxxl.hxx
 ../bin/osf1/particle.o: /usr/include/cxx/cxxl_share.hxx
 ../bin/osf1/particle.o: /usr/include/cxx/messages.hxx /usr/include/stddef.h
-../bin/osf1/particle.o: /usr/include/stdio.h /usr/include/limits.h
-../bin/osf1/particle.o: ../include/cfortran.h /usr/include/string.h
-../bin/osf1/particle.o: /usr/include/sys/types.h /usr/include/malloc.h
-../bin/osf1/particle.o: ../include/hbook.h ../include/geant321.h
-../bin/osf1/particle.o: ../include/geant321g.h /usr/include/math.h
-../bin/osf1/particle.o: ../include/amsgobj.h ../include/node.h
-../bin/osf1/particle.o: ../include/id.h /usr/include/cxx/strstream.h
+../bin/osf1/particle.o: /usr/include/stdio.h ../include/id.h
+../bin/osf1/particle.o: /usr/include/cxx/strstream.h
 ../bin/osf1/particle.o: /usr/include/cxx/strstream.hxx /usr/include/stdlib.h
 ../bin/osf1/particle.o: ../include/snode.h ../include/upool.h
 ../bin/osf1/particle.o: /usr/include/cxx/new.h /usr/include/cxx/new.hxx
-../bin/osf1/particle.o: ../include/uzstat.h ../include/extC.h
+../bin/osf1/particle.o: /usr/include/string.h /usr/include/sys/types.h
+../bin/osf1/particle.o: ../include/uzstat.h ../include/cern.h
+../bin/osf1/particle.o: ../include/cfortran.h /usr/include/malloc.h
+../bin/osf1/particle.o: ../include/hbook.h ../include/geant321.h
+../bin/osf1/particle.o: ../include/geant321g.h ../include/extC.h
 ../bin/osf1/particle.o: ../include/charge.h ../include/link.h
 ../bin/osf1/particle.o: ../include/apool.h ../include/trrec.h
 ../bin/osf1/particle.o: ../include/gsen.h ../include/gvolume.h
@@ -889,18 +890,13 @@ depend:
 ../bin/osf1/particle.o: ../include/ctcrec.h ../include/particle.h
 ../bin/osf1/particle.o: ../include/ctc.h ../include/mccluster.h
 ../bin/osf1/particle.o: ../include/ctcdbc.h ../include/ntuple.h
-../bin/osf1/commons.o: ../include/commons.h ../include/cern.h
-../bin/osf1/commons.o: ../include/typedefs.h /usr/include/assert.h
+../bin/osf1/commons.o: ../CC/commons.h /usr/include/stdlib.h
 ../bin/osf1/commons.o: /usr/include/standards.h /usr/include/cxx/iostream.h
 ../bin/osf1/commons.o: /usr/include/cxx/iostream.hxx
 ../bin/osf1/commons.o: /usr/include/cxx/cxxl.hxx
 ../bin/osf1/commons.o: /usr/include/cxx/cxxl_share.hxx
 ../bin/osf1/commons.o: /usr/include/cxx/messages.hxx /usr/include/stddef.h
 ../bin/osf1/commons.o: /usr/include/stdio.h /usr/include/limits.h
-../bin/osf1/commons.o: ../include/cfortran.h /usr/include/string.h
-../bin/osf1/commons.o: /usr/include/sys/types.h /usr/include/malloc.h
-../bin/osf1/commons.o: ../include/hbook.h ../include/geant321.h
-../bin/osf1/commons.o: ../include/geant321g.h /usr/include/stdlib.h
 ../bin/osf1/apool.o: ../include/apool.h ../include/typedefs.h
 ../bin/osf1/apool.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/apool.o: /usr/include/cxx/iostream.h
@@ -930,7 +926,7 @@ depend:
 ../bin/osf1/tofdbc.o: ../include/cfortran.h /usr/include/string.h
 ../bin/osf1/tofdbc.o: /usr/include/sys/types.h /usr/include/malloc.h
 ../bin/osf1/tofdbc.o: ../include/hbook.h ../include/geant321.h
-../bin/osf1/tofdbc.o: ../include/geant321g.h ../include/commons.h
+../bin/osf1/tofdbc.o: ../include/geant321g.h ../CC/commons.h
 ../bin/osf1/tofdbc.o: ../include/amsdbc.h ../include/extC.h
 ../bin/osf1/tofdbc.o: /usr/include/stdlib.h /usr/include/cxx/fstream.h
 ../bin/osf1/tofdbc.o: /usr/include/cxx/fstream.hxx ../include/job.h
@@ -970,23 +966,12 @@ depend:
 ../bin/osf1/ctcrec.o: /usr/include/time.h ../include/cont.h
 ../bin/osf1/ctcrec.o: /usr/include/sys/time.h /usr/include/sys/limits.h
 ../bin/osf1/ctcrec.o: /usr/include/sys/signal.h /usr/include/machine/signal.h
-../bin/osf1/ctcrec.o: ../include/commons.h ../include/mccluster.h
+../bin/osf1/ctcrec.o: ../CC/commons.h ../include/mccluster.h
 ../bin/osf1/ctcrec.o: ../include/gsen.h ../include/trid.h ../include/amsstl.h
 ../bin/osf1/ctcrec.o: ../include/extC.h ../include/tofdbc.h
 ../bin/osf1/ctcrec.o: /usr/include/cxx/fstream.h /usr/include/cxx/fstream.hxx
 ../bin/osf1/ctcrec.o: ../include/ctcdbc.h ../include/ntuple.h
-../bin/osf1/ctcdbc.o: ../include/ctcdbc.h ../include/commons.h
-../bin/osf1/ctcdbc.o: ../include/cern.h ../include/typedefs.h
-../bin/osf1/ctcdbc.o: /usr/include/assert.h /usr/include/standards.h
-../bin/osf1/ctcdbc.o: /usr/include/cxx/iostream.h
-../bin/osf1/ctcdbc.o: /usr/include/cxx/iostream.hxx /usr/include/cxx/cxxl.hxx
-../bin/osf1/ctcdbc.o: /usr/include/cxx/cxxl_share.hxx
-../bin/osf1/ctcdbc.o: /usr/include/cxx/messages.hxx /usr/include/stddef.h
-../bin/osf1/ctcdbc.o: /usr/include/stdio.h /usr/include/limits.h
-../bin/osf1/ctcdbc.o: ../include/cfortran.h /usr/include/string.h
-../bin/osf1/ctcdbc.o: /usr/include/sys/types.h /usr/include/malloc.h
-../bin/osf1/ctcdbc.o: ../include/hbook.h ../include/geant321.h
-../bin/osf1/ctcdbc.o: ../include/geant321g.h
+../bin/osf1/ctcdbc.o: ../include/ctcdbc.h ../CC/commons.h
 ../bin/osf1/tofcalib.o: ../include/point.h ../include/typedefs.h
 ../bin/osf1/tofcalib.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/tofcalib.o: /usr/include/cxx/iostream.h
@@ -1014,7 +999,7 @@ depend:
 ../bin/osf1/tofcalib.o: ../include/apool.h ../include/cont.h
 ../bin/osf1/tofcalib.o: /usr/include/sys/time.h /usr/include/sys/limits.h
 ../bin/osf1/tofcalib.o: /usr/include/sys/signal.h
-../bin/osf1/tofcalib.o: /usr/include/machine/signal.h ../include/commons.h
+../bin/osf1/tofcalib.o: /usr/include/machine/signal.h ../CC/commons.h
 ../bin/osf1/tofcalib.o: ../include/mccluster.h ../include/gsen.h
 ../bin/osf1/tofcalib.o: ../include/trid.h ../include/amsstl.h
 ../bin/osf1/tofcalib.o: ../include/extC.h ../include/tofdbc.h
@@ -1064,7 +1049,7 @@ depend:
 ../bin/osf1/io.o: /usr/include/cxx/fstream.h /usr/include/cxx/fstream.hxx
 ../bin/osf1/io.o: /usr/include/sys/time.h /usr/include/sys/limits.h
 ../bin/osf1/io.o: /usr/include/sys/signal.h /usr/include/machine/signal.h
-../bin/osf1/io.o: /usr/include/time.h ../include/commons.h
+../bin/osf1/io.o: /usr/include/time.h ../CC/commons.h
 ../bin/osf1/trcalib.o: ../include/trcalib.h ../include/typedefs.h
 ../bin/osf1/trcalib.o: /usr/include/assert.h /usr/include/standards.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/iostream.h
@@ -1073,20 +1058,19 @@ depend:
 ../bin/osf1/trcalib.o: /usr/include/cxx/cxxl_share.hxx
 ../bin/osf1/trcalib.o: /usr/include/cxx/messages.hxx /usr/include/stddef.h
 ../bin/osf1/trcalib.o: /usr/include/stdio.h /usr/include/limits.h
-../bin/osf1/trcalib.o: ../include/commons.h ../include/cern.h
-../bin/osf1/trcalib.o: ../include/cfortran.h /usr/include/string.h
-../bin/osf1/trcalib.o: /usr/include/sys/types.h /usr/include/malloc.h
-../bin/osf1/trcalib.o: ../include/hbook.h ../include/geant321.h
-../bin/osf1/trcalib.o: ../include/geant321g.h ../include/link.h
-../bin/osf1/trcalib.o: ../include/upool.h /usr/include/cxx/new.h
-../bin/osf1/trcalib.o: /usr/include/cxx/new.hxx ../include/apool.h
-../bin/osf1/trcalib.o: ../include/node.h ../include/id.h
+../bin/osf1/trcalib.o: ../CC/commons.h ../include/link.h ../include/upool.h
+../bin/osf1/trcalib.o: /usr/include/cxx/new.h /usr/include/cxx/new.hxx
+../bin/osf1/trcalib.o: /usr/include/string.h /usr/include/sys/types.h
+../bin/osf1/trcalib.o: ../include/apool.h ../include/node.h ../include/id.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/strstream.h
 ../bin/osf1/trcalib.o: /usr/include/cxx/strstream.hxx /usr/include/stdlib.h
 ../bin/osf1/trcalib.o: ../include/snode.h ../include/point.h
 ../bin/osf1/trcalib.o: /usr/include/math.h ../include/particle.h
 ../bin/osf1/trcalib.o: ../include/trrec.h ../include/gsen.h
-../bin/osf1/trcalib.o: ../include/gvolume.h ../include/amsdbc.h
+../bin/osf1/trcalib.o: ../include/gvolume.h ../include/cern.h
+../bin/osf1/trcalib.o: ../include/cfortran.h /usr/include/malloc.h
+../bin/osf1/trcalib.o: ../include/hbook.h ../include/geant321.h
+../bin/osf1/trcalib.o: ../include/geant321g.h ../include/amsdbc.h
 ../bin/osf1/trcalib.o: ../include/trid.h ../include/amsstl.h
 ../bin/osf1/trcalib.o: ../include/cont.h ../include/event.h ../include/job.h
 ../bin/osf1/trcalib.o: ../include/gmat.h /usr/include/cxx/iomanip.h

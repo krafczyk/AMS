@@ -16,6 +16,7 @@ int main(int argc, char* argv[]){
    const int mp=1000000;
    static AMSIO io[mp];
    integer ipos=0;
+   integer glnum=0;
    SELECTFFKEY.Run=0;
   int i,k,ok;
   for(i=1;i<argc-1;i++){
@@ -41,9 +42,11 @@ int main(int argc, char* argv[]){
    AMSIO::init(2,1);
    for(k=0;k<ipos-1;k++){
      io[k].write();
+     glnum++;
    }
    io[0].close();
    ipos=0;
   }   
+  cout << " Total of "<<glnum<<" events copied."<<endl;
 return 0;
 }

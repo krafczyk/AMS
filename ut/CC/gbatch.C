@@ -1,3 +1,4 @@
+
 // Author V. Choutko 24-may-1996
  
 #include <iostream.h>

@@ -138,7 +138,7 @@ TRCALIB.EventsPerIteration[1]=100;
 TRCALIB.NumberOfIterations[0]=200;
 TRCALIB.NumberOfIterations[1]=200;
 TRCALIB.BetaCut[0][0]=0.7;
-TRCALIB.BetaCut[0][1]=0.95;
+TRCALIB.BetaCut[0][1]=10.;
 TRCALIB.BetaCut[1][0]=1;
 TRCALIB.BetaCut[1][1]=10;
 TRCALIB.HitsRatioCut[0]=2.2;
@@ -1173,4 +1173,166 @@ AMSTimeID * AMSJob::gettimestructure(){
      else return  (AMSTimeID*)p;
 }
 
+
+AMSJob::~AMSJob(){
+  cout << "~AMSJob called "<<endl;
+_tkendjob();
+_ctcendjob();
+_tofendjob();
+_trdendjob();
+_dbendjob();
+_axendjob();
+
+if(IOPA.hlun){
+        char hpawc[256]="//PAWC";
+        HCDIR (hpawc, " ");
+        char houtput[9]="//output";
+        HCDIR (houtput, " ");
+        integer ICYCL=0;
+        HROUT (0, ICYCL, " ");
+        HREND ("output");
+        CLOSEF(IOPA.hlun);
+}
+
+
+}
+
+void AMSJob::_tkendjob(){
+
+}
+
+
+void AMSJob::_ctcendjob(){
+
+}
+
+
+void AMSJob::_tofendjob(){
+//--------> some TOF stuff :
+       TOFJobStat::print(); // Print JOB-TOF statistics
+       if(TOFMCFFKEY.mcprtf[2]!=0){ // tempor! print MC-hists
+         HPRINT(1050);
+         HPRINT(1051);
+         HPRINT(1052);
+         HPRINT(1053);
+         HPRINT(1060);
+         HPRINT(1061);
+         HPRINT(1062);
+         HPRINT(1063);
+         HPRINT(1070);
+         HPRINT(1071);
+         HPRINT(1072);
+       }
+       if(TOFRECFFKEY.reprtf[2]!=0){ // tempor! print RECO-hists
+         HPRINT(1100);
+         HPRINT(1101);
+         HPRINT(1102);
+         HPRINT(1526);
+         HPRINT(1527);
+         HPRINT(1528);
+         HPRINT(1529);
+         HPRINT(1530);
+         HPRINT(1531);
+         HPRINT(1532);
+         HPRINT(1533);
+         HPRINT(1543);
+         HPRINT(1534);
+         HPRINT(1535);
+         HPRINT(1536);
+         HPRINT(1537);
+         HPRINT(1538);
+         HPRINT(1539);
+         HPRINT(1540);
+         HPRINT(1541);
+         HPRINT(1542);
+         if(TOFRECFFKEY.relogic[0]==1){// for calibr. runs
+           HPRINT(1500);
+           HPRINT(1501);
+           HPRINT(1502);
+           HPRINT(1503);
+           HPRINT(1504);
+           HPRINT(1505);
+           HPRINT(1506);
+           HPRINT(1508);
+           HPRINT(1509);
+           HPRINT(1510);
+           HPRINT(1511);
+           HPRINT(1512);
+           HPRINT(1513);
+           HPRINT(1514);
+           HPRINT(1515);
+           HPRINT(1516);
+           HPRINT(1517);
+           HPRINT(1518);
+           HPRINT(1519);
+           HPRINT(1520);
+           HPRINT(1521);
+           HPRINT(1522);
+           HPRINT(1523);
+           HPRINT(1524);
+           HPRINT(1525);
+           TOFTZSLcalib::mfit();
+         }
+       }
+
+
+
+}
+
+
+void AMSJob::_trdendjob(){
+
+}
+
+
+void AMSJob::_axendjob(){
+
+  if(AMSJob::debug){
+    // AMSJob::gethead()->printN(cout);
+    AMSNode* p=AMSJob::gethead()->getmat();
+          assert(p!=NULL);
+          p=AMSJob::gethead()->getmed();
+          assert(p!=NULL);
+          AMSgvolume * pg=AMSJob::gethead()->getgeom();
+          assert(pg!=NULL);
+  }
+
+
+}
+
+void AMSJob::_dbendjob(){
+
+#ifdef __DB__
+  //+
+  if (eventR + eventW > 0) {
+    integer nST = dbout.getNTransStart();
+    integer nCT = dbout.getNTransCommit();
+    integer nAT = dbout.getNTransAbort();
+    if (nST > nCT + nAT) {
+      cout <<"uglast_ -W- Number of started transactions  "<<nST<<endl;
+      cout <<"uglast_ -W- Number of commited transactions "<<nCT<<endl;
+      cout <<"uglast_ -W- Number of aborted transactions  "<<nAT<<endl;
+      //if (dbout.getTransLevel() != 0) {
+      cout <<"uglast_ -I- commit an active transaction "<<endl;
+      cout <<"uglast_ -I- transaction nesting level "
+           <<dbout.getTransLevel()<<endl;
+      dbout.Commit();   // Commit transaction
+      //}
+    }
+  }
+    ooHandle(AMSEventList) listH;
+    char* jobname   = AMSJob::gethead()->getname();
+    ooStatus          rstatus;
+    rstatus = dbout.Start(oocRead);
+    rstatus = dbout.FindEventList(jobname,oocRead,listH);
+    if (rstatus == oocSuccess && dbg_prtout !=0 )
+                              listH -> PrintMapStatistics(oocRead);
+    rstatus = dbout.Commit();
+    if (dbg_prtout) ooRunStatus();
+
+    //-
+#endif
+
+
+}
 

@@ -16,7 +16,7 @@ To create standalone simulation program (without db) use:
 
 hpux  || ibm      batch         clmake Mgbatch
 dec               batch         clmake Mcxxfix
-hpux,ibm,dec      interactive   clmake Mgxint
+hpux,ibm,dec      interactive   clmake Mgxint  (batch program should be created first)
 
 
 Instructions how to create & run db connected batch simulation program

@@ -956,6 +956,7 @@ ostrstream ost(name,sizeof(name));
       //  Sensors notactive
       //
       gid=i+1+10*(j+1)+1000*(k+1)+100000;
+
       if(AMSJob::gethead()->isSimulation() && 
          (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
         // Change parameters
@@ -967,8 +968,8 @@ ostrstream ost(name,sizeof(name));
         }
         MTX2(nrm,xnrm);
       }
-      AMSgvolume *pgv=new AMSgvolume(
-      "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid);
+      cur=dau->add(new AMSgvolume(
+      "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
       if(AMSJob::gethead()->isSimulation() && 
          (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
         // restore parameters
@@ -978,10 +979,9 @@ ostrstream ost(name,sizeof(name));
           for(lloc=0;lloc<3;lloc++) 
           nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
         }
-        pgv->setcoo(coo);
-        pgv->setnrm(nrm); 
+        ((AMSgvolume *)cur)->setcoo(coo);
+        ((AMSgvolume *)cur)->setnrm(nrm); 
       }
-      cur=dau->add(pgv);
 
     }
 
@@ -1012,6 +1012,7 @@ ostrstream ost(name,sizeof(name));
       //  Sensors active
       //
       gid=i+1+10*(j+1)+1000*(k+1);
+
       if(AMSJob::gethead()->isSimulation() && 
          (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
         // Change parameters
@@ -1023,8 +1024,8 @@ ostrstream ost(name,sizeof(name));
         }
         MTX2(nrm,xnrm);
       }
-      AMSgvolume * pgv=new AMSgvolume(
-      "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid);
+      cur=dau->add(new AMSgvolume(
+      "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
       if(AMSJob::gethead()->isSimulation() && 
          (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
         // restore parameters
@@ -1034,10 +1035,11 @@ ostrstream ost(name,sizeof(name));
           for(lloc=0;lloc<3;lloc++) 
           nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
         }
-        pgv->setcoo(coo);
-        pgv->setnrm(nrm); 
+        ((AMSgvolume *)cur)->setcoo(coo);
+        ((AMSgvolume *)cur)->setnrm(nrm); 
       }
-      cur=dau->add(pgv);
+
+
 
     }
     }
@@ -1205,11 +1207,37 @@ ostrstream ost(name,sizeof(name));
       //  Sensors notactive
       //
       gid=i+1+10*(j+1)+1000*(k+1)+100000;
+          if(AMSJob::gethead()->isSimulation() && 
+         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
+        // Change parameters
+        int kloc,lloc;
+        for(kloc=0;kloc<3;kloc++){
+          coo[kloc]+=TRCALIB.InitialCoo[i][kloc];
+          for(lloc=0;lloc<3;lloc++) 
+          xnrm[kloc][lloc]=nrm[kloc][lloc]+TRCALIB.InitialRM[i][kloc][lloc];
+        }
+        MTX2(nrm,xnrm);
+          }
+
+
+
       cur=dau->add(new AMSgvolume(
       "NONACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"MANY",1,gid));
+      if(AMSJob::gethead()->isSimulation() && 
+         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
+        // restore parameters
+        int kloc,lloc;
+        for(kloc=0;kloc<3;kloc++){
+          coo[kloc]-=TRCALIB.InitialCoo[i][kloc];
+          for(lloc=0;lloc<3;lloc++) 
+          nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
+        }
+        ((AMSgvolume *)cur)->setcoo(coo);
+        ((AMSgvolume *)cur)->setnrm(nrm); 
+      }
+
 
     }
-
     if(strstr(AMSJob::gethead()->getsetup(),"AMSSTATION") ||
        AMSDBc::activeladdshuttle(i+1,j+1)){  
 
@@ -1238,8 +1266,35 @@ ostrstream ost(name,sizeof(name));
       //  Sensors active
       //
       gid=i+1+10*(j+1)+1000*(k+1);
+      if(AMSJob::gethead()->isSimulation() && 
+         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
+        // Change parameters
+        int kloc,lloc;
+        for(kloc=0;kloc<3;kloc++){
+          coo[kloc]+=TRCALIB.InitialCoo[i][kloc];
+          for(lloc=0;lloc<3;lloc++) 
+          xnrm[kloc][lloc]=nrm[kloc][lloc]+TRCALIB.InitialRM[i][kloc][lloc];
+        }
+        MTX2(nrm,xnrm);
+      }
+
       cur=dau->add(new AMSgvolume(
       "ACTIVE_SILICON",nrot,name,"BOX",par,3,coo,nrm,"ONLY",1,gid));
+
+      if(AMSJob::gethead()->isSimulation() && 
+         (AMSJob::gethead()->isCalibration() & AMSJob::CTracker)){
+        // restore parameters
+        int kloc,lloc;
+        for(kloc=0;kloc<3;kloc++){
+          coo[kloc]-=TRCALIB.InitialCoo[i][kloc];
+          for(lloc=0;lloc<3;lloc++) 
+          nrm[kloc][lloc]=xnrm[kloc][lloc]-TRCALIB.InitialRM[i][kloc][lloc];
+        }
+        ((AMSgvolume *)cur)->setcoo(coo);
+        ((AMSgvolume *)cur)->setnrm(nrm); 
+      }
+
+
 
     }
   }

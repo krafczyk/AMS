@@ -110,8 +110,7 @@ geant TOFDBc::_plnstr[15]={
           strcat(name,vers2);
     }
     strcat(name,".dat");
-//    strcpy(fname,AMSDATADIR.amsdatadir);    
-    strcpy(fname,"/afs/cern.ch/user/c/choumilo/public/ams/AMS/tofca/");
+    strcpy(fname,AMSDATADIR.amsdatadir);    
     strcat(fname,name);
     cout<<"Open file : "<<fname<<'\n';
     ifstream tcfile(fname,ios::in); // open needed config-file for reading

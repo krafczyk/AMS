@@ -57,6 +57,12 @@ void _catrdinitjob();
 void _cactcinitjob();
 void _catofinitjob();
 void _caaxinitjob();
+void _dbendjob();
+void _tkendjob();
+void _trdendjob();
+void _ctcendjob();
+void _tofendjob();
+void _axendjob();
 void _timeinitjob();
 static AMSNodeMap JobMap;
 public:
@@ -64,6 +70,7 @@ AMSJob(AMSID id=0,uinteger jobtype=0):AMSNode(id),_jobtype(jobtype)
 {_Setup[0]='\0';_TriggerC[0][0]='\0';_TriggerI=1;_TriggerN=0;
 _TDVC[0][0]='\0',_TDVN=0;cout <<
 "AMS Software version "<<setw(4)<<AMSID::getversion()<<endl;}
+~AMSJob();
 static AMSJob* gethead(){return _Head;}
 static AMSJob * & sethead(){return _Head;}
 void setsetup(char * setup);

@@ -7,10 +7,22 @@ geant AMSgvolume::dgeant=1.e-4;
 void AMSgvolume::setcoo(geant coo[]){
 _cooA=AMSPoint(coo[0],coo[1],coo[2]);
 _coo=_cooA;
+  AMSgvolume * cur;
+   cur=up();
+   while (cur){
+    _coo=_coo-cur->_coo;
+    cur=cur->up();
+   }
 }
 void AMSgvolume::setnrm(number nrm[3][3]){
    UCOPY(nrm,_nrm,3*3*sizeof(nrm[0][0])/4);
    UCOPY(nrm,_inrm,3*3*sizeof(nrm[0][0])/4);
+  AMSgvolume * cur;
+   cur=up();
+   while (cur){
+    mm3(cur->_nrm,_inrm);
+    cur=cur->up();
+   }
 }
 
 AMSgvolume::AMSgvolume (integer matter,integer rotmno,const char name[], 
