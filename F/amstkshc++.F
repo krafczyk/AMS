@@ -6233,7 +6233,7 @@ CDECK  ID>, TKFITPARCYL.
 *         stept
         parameter (maxmat=100)
         real *8  m55(5,5),dum(5,5),xmat(5,5,maxmat)
-         real *4 init(7),point(6),out(7)
+         real *4 init(7),point(7),out(7)
          real *4 vin(7),der(10)
 
               common /tkgdef$/tmaxf,smax,fieldmm,cconv,

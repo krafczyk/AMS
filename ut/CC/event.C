@@ -56,7 +56,7 @@ void AMSEvent::_init(){
   if(_run != SRun){
    cout <<" AMS-I-New Run "<<_run<<endl;
    // get rid of crazy runs
-   if(_run<TRMFFKEY.OKAY/10){
+   if(_run<TRMFFKEY.OKAY/10 && AMSJob::gethead()->isRealData()){
      cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
      raise(SIGTERM);
    }

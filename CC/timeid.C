@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #ifndef __IBMAIX__
-#include <sys/dir.h>
+#include <dirent.h>
 #else
 
 #define _D_NAME_MAX 255
