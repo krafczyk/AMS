@@ -1,4 +1,4 @@
-//  $Id: ntuple.C,v 1.72 2001/04/27 21:49:59 choutko Exp $
+//  $Id: ntuple.C,v 1.73 2001/04/28 13:34:11 kscholbe Exp $
 #include <commons.h>
 #include <node.h>
 #include <ntuple.h>
@@ -372,13 +372,13 @@ void AMSNtuple::initR(char* fname){
    static void *pevb=(void*)&_trdclmc;
    TBranch *bb=_tree->Branch("trdclmc", "TRDMCClusterNtuple",  &pevb, 64000,1);
    static void *pevb1=(void*)&_trdcl;
-   TBranch *bb=_tree->Branch("trdcl", "TRDClusterNtuple",  &pevb1, 64000,1);
+   TBranch *bb1=_tree->Branch("trdcl", "TRDClusterNtuple",  &pevb1, 64000,1);
    static void *pevb2=(void*)&_trdht;
-   TBranch *bb=_tree->Branch("trdht", "TRDRawHitNtuple",  &pevb2, 64000,1);
+   TBranch *bb2=_tree->Branch("trdht", "TRDRawHitNtuple",  &pevb2, 64000,1);
    static void *pevb3=(void*)&_trdtrk;
-   TBranch *bb=_tree->Branch("trdtrk", "TRDTrackNtuple",  &pevb3, 64000,1);
+   TBranch *bb3=_tree->Branch("trdtrk", "TRDTrackNtuple",  &pevb3, 64000,1);
    static void *pevb4=(void*)&_trdseg;
-   TBranch *bb=_tree->Branch("trdseg", "TRDSegmentNtuple",  &pevb4, 64000,1);
+   TBranch *bb4=_tree->Branch("trdseg", "TRDSegmentNtuple",  &pevb4, 64000,1);
    static void *pevf=(void*)&_trtr02;
    TBranch *bf=_tree->Branch("trtr02", "TrTrackNtuple02",  &pevf, 64000,1);
    static void *pevgg=(void*)&_mcg02;
