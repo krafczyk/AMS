@@ -221,8 +221,7 @@ private:
   float HErrRidgidity[MAXTRTR][2];
   float HTheta[MAXTRTR][2];
   float HPhi[MAXTRTR][2];
-  float HP0_1[MAXTRTR][3];
-  float HP0_2[MAXTRTR][3];
+  float HP0[MAXTRTR][2][3];
   float FChi2MS[MAXTRTR];
   float GChi2MS[MAXTRTR];
   float RidgidityMS[MAXTRTR];
