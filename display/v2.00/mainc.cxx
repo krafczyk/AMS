@@ -92,7 +92,7 @@ out:
    TFile fgeo("ams_group.root");
    TGeometry * geo = (TGeometry *)fgeo.Get("ams");
    AMSR_Display display("AMSR_Root Event Display", geo, 1024, 768);
-       display.SetApplication(theApp);
+       //display.SetApplication(theApp);
        display.SetView (kTwoView);
       for(int i=0;;i++){
        amsroot.Clear();
