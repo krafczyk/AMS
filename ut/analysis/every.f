@@ -158,7 +158,7 @@
           if(pmom(1).gt.0)iad=0
           ibeta=pbetap(1)
           itr=ptrackp(1)
-          if(chi2circle(itr).lt.2.5.and.betapattern(ibeta).eq.0.and.
+          if(chi2circle(itr).lt.2.5.and.
      +    betachi2(ibeta).lt.2)then
             if(abs(pmom(1)).lt.0.4.and.abs(beta(ibeta)).gt.0.99.and.
      +        xx.gt.2)then
