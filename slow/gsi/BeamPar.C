@@ -172,7 +172,7 @@ class BeamPar {
                 if(BeamRef[i].Time-BeamInfo[j].Time<1000 && i!=0 &&
                  BeamInfo[j].Time>BeamRef[i-1].Time ){
                 //apply correction
-                BeamRef[i].Time-BeamInfo[j].Time;
+                BeamRef[i].Time=BeamInfo[j].Time;
                 cout <<"Time Error corrected "<<endl;
                }
                else {
