@@ -43,15 +43,7 @@ for(i=0;i<ncharge;i++){
   }
 }
 // TOF cannot get charge for charge > 3 imply the tracker only
-if(charge>3){
-  mp=0;
-  for(i=4;i<ncharge;i++){
-    if(mp<_ProbTracker[i]){
-      mp=_ProbTracker[i];
-      charge=_chargeTracker[i];
-    }
-  }
-}
+if(charge>3)charge=_ChargeTracker;
 return charge;
 }
 integer AMSCharge::build(integer refit){
