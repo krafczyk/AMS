@@ -490,10 +490,10 @@ void AMSParticle::_loc2gl(){
    AMSEvent::gethead()->_printEl(cerr);
    AMSEvent::gethead()->seterror();
   }
-  number cp=cos(pitch);
-  number sp=sin(pitch);
-  number cy=cos(yaw);
-  number sy=sin(yaw);
+  number cp=cos(-pitch);
+  number sp=sin(-pitch);
+  number cy=cos(-yaw);
+  number sy=sin(-yaw);
   number cr=cos(roll);
   number sr=sin(roll);
   number l1=cy*cp;
