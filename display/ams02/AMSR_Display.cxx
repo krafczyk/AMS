@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.13 2002/10/19 14:34:18 schol Exp $
+//  $Id: AMSR_Display.cxx,v 1.14 2002/11/22 13:12:25 choutko Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -1257,7 +1257,7 @@ Bool_t AMSR_Display::GotoRunEvent()
    const TGWindow *main = gClient->GetRoot();
    TRootCanvas *own = (TRootCanvas*)m_Canvas->GetCanvasImp();
    new TGRunEventDialog(main, own, &run, &event);
-
+   cout << "bliabudu "<<run<< " "<<event<<endl;
    debugger.Print("You input run/event =%d/%d\n", run, event);
 
    //
@@ -1266,7 +1266,6 @@ Bool_t AMSR_Display::GotoRunEvent()
    if (idle) IdleSwitch(1);
 
    if (run==0 && event<=0) return kFALSE;
-
    //
    //run=-9, then event is the number for the tree, not for the run
    //
@@ -1314,7 +1313,7 @@ Bool_t AMSR_Display::Zoom()
    const TGWindow *main = gClient->GetRoot();
    TRootCanvas *own = (TRootCanvas*)m_Canvas->GetCanvasImp();
    new TGRunEventDialog(main, own, &run, &event);
-
+   cout <<run<<" "<<event<<endl;
    debugger.Print("You input run/event =%d/%d\n", run, event);
 
    //

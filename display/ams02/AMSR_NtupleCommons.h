@@ -1,4 +1,4 @@
-//  $Id: AMSR_NtupleCommons.h,v 1.18 2002/10/19 14:34:27 schol Exp $
+//  $Id: AMSR_NtupleCommons.h,v 1.19 2002/11/22 13:12:26 choutko Exp $
 #ifndef AMSR_NtupleCommons_H
 #define AMSR_NtupleCommons_H
 
@@ -50,6 +50,7 @@ struct EVENTH_DEF {
    int   Antimcclusters;
    int   Trdmcclusters;
    int   Anticlusters;
+   int TRDMCClusters;
    int   Ecalclusters;
    int   Ecalhits;
    int   Richmcclusters;
@@ -140,13 +141,14 @@ struct PARTICLE_DEF {
 #define blkParticle COMMON_BLOCK(PARTICLE,particle)
 COMMON_BLOCK_DEF(PARTICLE_DEF,blkParticle);
 
-static const int NTOF = 20;
+static const int NTOF = 48;
 struct TOFCLUST_DEF {
    int   ntof;
    int   Tofstatus[NTOF];
    int   plane[NTOF];
    int   bar[NTOF];
    int   nmemb[NTOF];
+   int P2memb[NTOF][3];
    float Tofedep[NTOF];
    float Tofedepd[NTOF];
    float Toftime[NTOF];

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Root.cxx,v 1.10 2002/10/19 14:34:29 schol Exp $
+//  $Id: AMSR_Root.cxx,v 1.11 2002/11/22 13:12:26 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -496,6 +496,7 @@ Bool_t AMSR_Root::GetEvent(Int_t event)
    //
 //   if (m_Ntuple==0 || m_Ntuple->GetTree() == 0) return kFALSE;
    if (m_Ntuple==0) return kFALSE;
+
    if (event<0 || event>m_NEvent || event==m_Event) return kFALSE;
 
    //   cout << " Select Event No : ";
@@ -538,7 +539,8 @@ Bool_t AMSR_Root::GetEvent(Int_t event)
 //_____________________________________________________________________________
 Bool_t AMSR_Root::GetEvent(Int_t run, Int_t event)
 {
-   if (m_Ntuple==0 || m_Ntuple->GetTree() == 0) return kFALSE;
+//   if (m_Ntuple==0 || m_Ntuple->GetTree() == 0) return kFALSE;
+   if (m_Ntuple==0) return kFALSE;
    if (run==m_RunNum && event==m_EventNum) return kFALSE;
 
    //

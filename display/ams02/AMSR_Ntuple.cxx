@@ -1,4 +1,4 @@
-//  $Id: AMSR_Ntuple.cxx,v 1.23 2002/10/19 14:34:24 schol Exp $
+//  $Id: AMSR_Ntuple.cxx,v 1.24 2002/11/22 13:12:26 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -335,7 +335,7 @@ Int_t AMSR_Ntuple::OpenNtuple(char *ntpfile)
 //_____________________________________________________________________________
 void AMSR_Ntuple::SetBranchStatus(char *varname, Bool_t status)
 {
-   m_Tree->SetBranchStatus(varname,status);
+   if(m_Tree)m_Tree->SetBranchStatus(varname,status);
    if (m_DataFileType == kNtupleFile) m_SameRead = kFALSE;
 }
 

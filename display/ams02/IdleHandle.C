@@ -1,4 +1,4 @@
-//  $Id: IdleHandle.C,v 1.4 2002/07/03 20:33:02 schol Exp $
+//  $Id: IdleHandle.C,v 1.5 2002/11/22 13:12:26 choutko Exp $
 void IdleHandle(Int_t option)
 {
   static TTree *t = 0;
@@ -43,7 +43,7 @@ void IdleHandle(Int_t option)
       printf("data file %s has %d events\n", filename, totEvt);
       totEvt = totEvt-1;
 
-      if ( t==0 || totEvt<0 ) {
+      if ( totEvt<0 ) {
          printf("Empty file ?!\n");
          gAMSR_Display->IdleSwitch(-1);   //Stop IdleHandle
          return;

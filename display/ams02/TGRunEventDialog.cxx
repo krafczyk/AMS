@@ -1,4 +1,4 @@
-//  $Id: TGRunEventDialog.cxx,v 1.4 2001/06/26 16:25:34 kscholbe Exp $
+//  $Id: TGRunEventDialog.cxx,v 1.5 2002/11/22 13:12:26 choutko Exp $
 #include "TGRunEventDialog.h"
 #include <TGTextView.h>
 #include <TGLabel.h>
@@ -183,7 +183,7 @@ Bool_t TGRunEventDialog::ProcessMessage(Long_t msg, Long_t parm1, Long_t)
                      else *fRun = atoi(fTbrun->GetString());
                      if (fTbevt->GetTextLength() == 0) *fEvent = 0;
                      else *fEvent = atoi(fTbevt->GetString());
-//                     cout << "Run =" << *fRun << "\tEvent =" << *fEvent << endl;
+                     cout << "Run =" << *fRun << "\tEvent =" << *fEvent << endl;
                      delete this;
                      break;
 
