@@ -1,4 +1,4 @@
-//  $Id: ecalrec.h,v 1.30 2002/10/15 12:44:26 choumilo Exp $
+//  $Id: ecalrec.h,v 1.31 2002/10/17 12:52:40 choutko Exp $
 //
 // 28.09.1999 E.Choumilov
 //
@@ -116,16 +116,17 @@ private:
   number  _coot;   //transv.coord.
   number  _cool;   //long.coord.
   number  _cooz;
+  number _attcor; //att length correction
 public:
 #ifdef __WRITEROOTCLONES__
   friend class EcalHitRoot;
 #endif
   AMSEcalHit(integer status, integer id, integer adc[3], integer proj, integer plane, integer cell,
          number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(id),
-	 _proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz)
+	 _proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz),_attcor(0)
 	 {for(int i=0;i<3;i++)_adc[i]=adc[i]/ECALDBc::scalef();}
   AMSEcalHit(integer status, integer proj, integer plane, integer cell,
-         number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(0),_proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz)
+         number edep, number coot, number cool, number cooz):AMSlink(status,0),_idsoft(0),_proj(proj), _plane(plane),_cell(cell),_edep(edep),_coot(coot),_cool(cool),_cooz(cooz),_attcor(0)
 	 {for(int i=0;i<3;i++)_adc[i]=0;};
   ~AMSEcalHit(){};
   AMSEcalHit * next(){return (AMSEcalHit*)_next;}
@@ -143,10 +144,12 @@ public:
   integer getplane(){return _plane;}
   integer getcell(){return _cell;}
   number getedep(){return _edep;}
+  number &edep(){return _edep;}
   number getcoot(){return _coot;}
   number getcool(){return _cool;}
   number getcooz(){return _cooz;}
-  number attcor(number coo);
+  void attcor(number coo);
+  number getattcor()const {return _attcor;}
 //
   static void build(int &stat);
   static integer Out(integer);
@@ -184,12 +187,14 @@ private:
   integer _NHits;
   AMSEcalHit *_pHit[2*ecalconst::ECPMSMX]; // pointers to hits
 public:
+
   Ecal1DCluster(integer status, integer proj, integer pl, integer left, integer right, integer max, number en,number en3, number en5, number en9, number leak, number dead,AMSPoint coo, number w, number rms, AMSEcalHit * ptr[]): AMSlink(status,0),_proj(proj), _plane(pl),_Energy3C(en3),_Energy5C(en5),_Energy9C(en9),_EnergyC(en),_SideLeak(leak),_DeadLeak(dead),_Coo(coo),_MaxCell(max),_Left(left),_Right(right),_Weight(w),_RMS(rms){
 _NHits=0;
 for(int i=_Left;i<=_Right;i++){
  if(ptr && ptr[i])_pHit[_NHits++]=ptr[i];
 }
-};
+}
+
   ~Ecal1DCluster(){};
   Ecal1DCluster * next(){return (Ecal1DCluster*)_next;}
 //
@@ -344,6 +349,7 @@ number  _OrpLeak;
 number  _RearLeak;
 number  _SideLeak;
 number  _DeadLeak;
+number  _AttLeak;
 number  _ErrEnergyC;
 number  _Orp2DEnergy;
 AMSPoint _CofG;
@@ -363,12 +369,14 @@ number _SphericityEV[3];
 number _TransFitPar[3];
 number _TransFitChi2;
 
+void _AttCorr();
 void _writeEl();
 void _printEl(ostream &stream){
 stream << "  EcalShower Energy "<<_EnergyC<<" Status "<<_status<<endl;
 }
 void _copyEl(){};
 void DirectionFit();
+void ProfileFit();
 void EnergyFit();
 void EMagFit();
 void SphFit();

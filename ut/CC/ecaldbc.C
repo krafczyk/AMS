@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.C,v 1.40 2002/10/15 12:44:17 choumilo Exp $
+//  $Id: ecaldbc.C,v 1.41 2002/10/17 12:52:27 choutko Exp $
 // Author E.Choumilov 14.07.99.
 #include <typedefs.h>
 #include <cern.h>
@@ -1341,18 +1341,6 @@ void ECcalib::build(){// <--- create ecpmcal-objects (called from reecalinitjob)
     }
   }
 }  
-//
-//==========================================================================
-integer ECcalib::BadCell(integer plane, integer cell){
-  integer sl,pm,sc;
-  sl=plane/2;
-  pm=cell/2;
-  if(plane%2==0)sc=cell%2;
-  else sc=cell%2+2;
-  if(ecpmcal[sl][pm].HCHisBad(sc) || ecpmcal[sl][pm].LCHisBad(sc))return(1);
-  else return(0);
-}
-//
 //==========================================================================
 //  ECALVarp class functions :
 //

@@ -1,4 +1,4 @@
-//  $Id: event.C,v 1.293 2002/10/11 16:47:01 choutko Exp $
+//  $Id: event.C,v 1.294 2002/10/17 12:52:28 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 //  ECAL added 28-sep-1999 by E.Choumilov
@@ -1560,13 +1560,17 @@ void AMSEvent::_reecalevent(){
     EcalJobStat::addre(3);
 //
     EcalJobStat::addre(4);
-
-      AMSgObj::BookTimer.start("ReEcalShowerFit");
-      buildC("Ecal1DCluster",0);
-      buildC("Ecal2DCluster",0);
-      buildC("EcalShower",0);
-      AMSgObj::BookTimer.stop("ReEcalShowerFit");
-
+      
+       AMSgObj::BookTimer.start("ReEcalShowerFit");
+       //two phase run due to att corr 
+      for(int i=0;i<2;i++){
+       buildC("Ecal1DCluster",i);
+       buildC("Ecal2DCluster",i);
+       int suc=buildC("EcalShower",i);
+//        cout <<" succ*** "<<i<<" "<<suc<<endl;
+       if(!suc)break;
+     }
+       AMSgObj::BookTimer.stop("ReEcalShowerFit");
 
 //
 //
@@ -1748,6 +1752,43 @@ void AMSEvent::_reecalinitrun(){
    AMSECIdCalib::Run()=getrun();
    AMSECIdCalib::Time()=gettime();   
   }
+
+
+
+
+
+/*
+  if(AMSJob::gethead()->isRealData()){
+geant gains[18][14];
+ifstream fbin;
+fbin.open("gains.gains");
+for (int i=0;i<18;i++){
+   for(int j=0;j<14;j++)fbin >> gains[i][j];
+   for(int j=0;j<14;j++)gains[i][j]=1;
+}
+for (int i=0;i<18;i++){
+   for(int j=0;j<14;j++)cout<< gains[i][j]<<" ";
+cout <<endl;
+}
+
+   
+   for(int i=0;i<ecalconst::ECSLMX;i++){
+       for(int j=0;j<7;j++){
+              ECcalib::ecpmcal[i][j].pmrgain()=1;
+         for (int k=0;k<4;k++){
+             AMSECIdSoft ids(i,j,k,0);
+           cout <<"  old gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<endl;             
+              ECcalib::ecpmcal[i][j].pmscgain(k)=gains[ids.getlayer()][ids.getcell()];
+           cout <<"  new gain "<<i<<" "<<j<<" "<<k<<" "<< ECcalib::ecpmcal[i][j].pmscgain(k)<<" "<<ids.getlayer()<<" "<<ids.getcell()<<endl;             
+              
+         }
+       }
+      } 
+
+}
+*/
+
+
 }
 void AMSEvent::_retrdinitrun(){
    for (int i=0;i<AMSTRDIdSoft::ncrates();i++){

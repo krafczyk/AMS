@@ -1,4 +1,4 @@
-//  $Id: ecalrec.C,v 1.65 2002/10/15 12:44:17 choumilo Exp $
+//  $Id: ecalrec.C,v 1.66 2002/10/17 12:52:28 choutko Exp $
 // v0.0 28.09.1999 by E.Choumilov
 //
 #include <iostream.h>
@@ -520,11 +520,11 @@ void AMSEcalHit::build(int &stat){
         }
        }
       }
-      else if(radc[1]>(sl>1?5*sl:5) && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl -> use Lch
+      else if(radc[1]>min(5.*sl,20.)  && ovfl[1]==0 && !ids.LCHisBad()){//Hch=Miss/Ovfl -> use Lch
         fadc=radc[1]*h2lr;//rescale LowG-chain to HighG
 	sta|=AMSDBc::LOWGCHUSED;// set "LowGainChannel used" status bit
 //
-        if(AMSJob::gethead()->isRealData() ){// tempor RealData Lch-corr.
+        if(AMSJob::gethead()->isRealData() && 0){// tempor RealData Lch-corr.
 //      assume tri-angular  h/l correction;
 
         number ped=ph;
@@ -594,7 +594,8 @@ void AMSEcalHit::build(int &stat){
 }
 
 //---------------------------------------------------
-number AMSEcalHit::attcor(number coo){//you should add it to measured Edep
+void AMSEcalHit::attcor(number coo){//you should add it to measured Edep
+ if(!checkstatus(AMSDBc::REFITTED) && !checkstatus(AMSDBc::RECOVERED)){
 // coo is longit.coord(i.e. from other projection) in mother ref.syst. !!!
   geant pmdist,hflen,attf,attf0;
   int sl=_plane/2;
@@ -612,9 +613,15 @@ number AMSEcalHit::attcor(number coo){//you should add it to measured Edep
   }
   pmdist=coo+hflen;
   if(rdir<0)pmdist=2*hflen-pmdist;
+//  ECcalib::ecpmcal[sl][pm].fastfr()=0.2;
+//  ECcalib::ecpmcal[sl][pm].alfast()=20;
+//  ECcalib::ecpmcal[sl][pm].alslow()=250;
   attf0=ECcalib::ecpmcal[sl][pm].attf(hflen);
   attf=ECcalib::ecpmcal[sl][pm].attf(pmdist);//pmdist=[0,2*hflen]
-  return(_edep*(attf0/attf-1));
+  _attcor=_edep*(attf0/attf-1.);
+  _edep+=_attcor;
+  setstatus(AMSDBc::REFITTED);
+ }
 }
 //---------------------------------------------------
 integer Ecal1DCluster::Out(integer status){
@@ -787,7 +794,28 @@ void Ecal1DCluster::_copyEl()
 #endif
 }
 
+
 integer Ecal1DCluster::build(int rerun){
+  if(rerun){
+//  remove everything
+    for(int i=0;i<2;i++){
+          AMSEvent::gethead()->getC("Ecal1DCluster",i)->eraseC();
+    }
+    const integer  maxpl=2*ECALDBc::slstruc(3);//real planes
+    int removed=0;
+    for(int i=0;i<maxpl;i++){
+     AMSContainer *pc=AMSEvent::gethead()->getC("AMSEcalHit",i);
+     for(AMSEcalHit *ptr=(AMSEcalHit*)AMSEvent::gethead()->
+                               getheadC("AMSEcalHit",i);ptr;ptr=ptr->next()){
+
+      while(ptr->next() && ptr->next()->checkstatus(AMSDBc::RECOVERED)){
+         pc->removeEl(ptr,1);       
+         removed++;
+      }
+     }
+   }
+//   cout <<"  removed **** "<<removed<<endl;
+  }
   const integer Maxcell=2*ecalconst::ECPMSMX;
   integer maxcell=Maxcell;
   integer mincell=0;
@@ -834,27 +862,37 @@ integer Ecal1DCluster::build(int rerun){
       
 
     for (int i=mincell;i<maxcell;i++){
-     integer badchannel=ECcalib::BadCell(ipl,i);
-     if(adc[i]<0 || (adc[i]==0  && badchannel))mincell++;
+     AMSECIdSoft ids(ipl,i);
+     if(adc[i]<0 || (adc[i]==0 && ids.LCHisBad()))mincell++;
      else break;
     }
     for (int i=maxcell-1;i>=0;i--){
-     integer badchannel=ECcalib::BadCell(ipl,i);
-     if(adc[i]<0 || (adc[i]==0 && badchannel))maxcell--;
+     AMSECIdSoft ids(ipl,i);
+     if(adc[i]<0 || (adc[i]==0 && ids.LCHisBad()))maxcell--;
      else break;
     }
 
     for (int i=mincell;i<maxcell;i++){
-     integer badchannel=ECcalib::BadCell(ipl,i);
-     if((adc[i]<0 || (adc[i]==0 && badchannel))){
-        bool bl= i-1>=0 && ECcalib::BadCell(ipl,i-1) ;
-        bool br= i+1<Maxcell && ECcalib::BadCell(ipl,i+1) ;
+     AMSECIdSoft ids(ipl,i);
+
+     if((adc[i]<0 || (adc[i]==0 && ids.LCHisBad()))){
+       bool bl=i-1>=0;
+       if(bl){
+        AMSECIdSoft ids1(ipl,i-1);
+         bl =bl && ids1.LCHisBad() && adc[i-1]<=0;
+       }
+        bool br= i+1<Maxcell;
+       if(br){
+        AMSECIdSoft ids1(ipl,i+1);
+         br =br && ids1.LCHisBad() && adc[i+1]<=0;
+       }
        if(!bl && !br){
         adc[i]=(adc[i-1]+adc[i+1])/2;
         if(adc[i]){
          statusa[i]|=AMSDBc::LEAK;
          int st=statusa[i] | AMSDBc::RECOVERED;
          AMSEcalHit * pnew=new AMSEcalHit(st,proj,ipl,i,adc[i],ECALDBc::CellCoo(ipl,i,0),ECALDBc::CellCoo(ipl,i,1),ECALDBc::CellCoo(ipl,i,2));
+//          cout <<" added****a "<<endl;
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",ipl), pnew);
           ptrh[i]=pnew;
          
@@ -866,6 +904,7 @@ integer Ecal1DCluster::build(int rerun){
          statusa[i]|=AMSDBc::LEAK;
          int st=statusa[i] | AMSDBc::RECOVERED;
          AMSEcalHit * pnew=new AMSEcalHit(st,proj,ipl,i,adc[i],ECALDBc::CellCoo(ipl,i,0),ECALDBc::CellCoo(ipl,i,1),ECALDBc::CellCoo(ipl,i,2));
+//          cout <<" added****b "<<endl;
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",ipl), pnew);
           ptrh[i]=pnew;
          
@@ -877,6 +916,7 @@ integer Ecal1DCluster::build(int rerun){
          statusa[i]|=AMSDBc::LEAK;
          int st=statusa[i] | AMSDBc::RECOVERED;
          AMSEcalHit * pnew=new AMSEcalHit(st,proj,ipl,i,adc[i],ECALDBc::CellCoo(ipl,i,0),ECALDBc::CellCoo(ipl,i,1),ECALDBc::CellCoo(ipl,i,2));
+//          cout <<" added****c "<<endl;
           AMSEvent::gethead()->addnext(AMSID("AMSEcalHit",ipl), pnew);
           ptrh[i]=pnew;
         }
@@ -1129,6 +1169,13 @@ void Ecal2DCluster::_copyEl(){
 }
 
 integer Ecal2DCluster::build(int rerun){
+  if(rerun){
+//  remove everything
+          AMSEvent::gethead()->getC("Ecal2DCluster",0)->eraseC();
+  }
+
+
+
   const integer Maxrow=ecalconst::ECSLMX*2;
      
    for (int proj=0;proj<ECALDBc::GetLayersNo();proj++){
@@ -1341,7 +1388,11 @@ void Ecal2DCluster::_AddOneCluster(Ecal1DCluster *ptr, bool addpointer){
    }
     _Energy+=ptr->getphit(i)->getedep();
   }
+
 }
+
+
+
 
 void Ecal2DCluster::_Fit(){
  _Energy=0;
@@ -1360,6 +1411,13 @@ void Ecal2DCluster::_Fit(){
 
 
 integer EcalShower::build(int rerun){
+  if(rerun){
+//  remove everything
+          AMSEvent::gethead()->getC("EcalShower",0)->eraseC();
+  }
+  int found=0;
+
+
 
 // Loop over 2dcluster
    for(;;){
@@ -1390,7 +1448,7 @@ integer EcalShower::build(int rerun){
        p2dc[0]->setstatus(AMSDBc::USED);
        p2dc[1]->setstatus(AMSDBc::USED);
          AMSEvent::gethead()->addnext(AMSID("EcalShower",0),new EcalShower(p2dc[0],p2dc[1]));         
-       
+         found=1;       
       }
       else break;
      }
@@ -1430,16 +1488,24 @@ integer EcalShower::build(int rerun){
           EcalShower *pesi=(EcalShower*)AMSEvent::gethead()->
                        getheadC("EcalShower",0);
           for(EcalShower *pes=pesi;pes;pes=pes->next()){
-            pes->EnergyFit();
+           if(rerun)pes->_AttCorr();
+           pes->EnergyFit();
+           if(rerun){         
+            pes->ProfileFit();
+           }
             pes->DirectionFit();
+           if(rerun){         
             pes->EMagFit();
             pes->SphFit();
-          } 
-return 1;
+           }
+           else pes->_AttCorr();
+           
+          }
+return found;
 }
 
 
-EcalShower::EcalShower(Ecal2DCluster *px, Ecal2DCluster *py):AMSlink(),_Et(0){
+EcalShower::EcalShower(Ecal2DCluster *px, Ecal2DCluster *py):AMSlink(),_Et(0),_AttLeak(0){
 _Orp2DEnergy=0;
 _pCl[0]=px;
 _pCl[1]=py;
@@ -1521,6 +1587,7 @@ void EcalShower::_writeEl(){
     TN->RearLeak[TN->Necsh]=_RearLeak;
     TN->DeadLeak[TN->Necsh]=_DeadLeak;
     TN->OrpLeak[TN->Necsh]=_OrpLeak;
+    TN->AttLeak[TN->Necsh]=_AttLeak;
     TN->Orp2DEnergy[TN->Necsh]=_Orp2DEnergy;
      TN->Chi2Profile[TN->Necsh]=_ProfilePar[4+_Direction*5];
      for(int i=0;i<4;i++)TN->ParProfile[TN->Necsh][i]=_ProfilePar[i+_Direction*5];
@@ -1568,7 +1635,7 @@ void EcalShower::DirectionFit(){
       bool zcorr[2]={true,true};      
       for (int proj=0;proj<2;proj++){
         // Renonce if chi2 is bad;
-        if(chi2[proj]*ECREFFKEY.Chi2Change2D>_pCl[proj]->_Chi2 ){
+        if(chi2[proj]>1 && chi2[proj]*ECREFFKEY.Chi2Change2D>_pCl[proj]->_Chi2 ){
           t0[proj]=_pCl[proj]->_Coo;
           tantz[proj]=_pCl[proj]->_Tan;
 #ifdef __AMSDEBUG__
@@ -1604,12 +1671,15 @@ void EcalShower::DirectionFit(){
      if(!ptr->checkstatus(AMSDBc::BAD)){
       int proj=ptr->getproj();
       number inter=_EntryPoint[proj]+_Dir[proj]/_Dir[2]*(ptr->getcooz()-_EntryPoint[2]);
-      if(fabs(inter-ptr->getcoot())<ECALDBc::CellSize(front,ptr->getcell(),0))_FrontEnergyDep+=ptr->getedep();
+      if(fabs(inter-ptr->getcoot())<ECALDBc::CellSize(front,ptr->getcell(),0)){
+        _FrontEnergyDep+=ptr->getedep();
+      }
      }
      ptr=ptr->next();
 
     }
-      
+     
+ 
 }
 
 number Ecal2DCluster::_ZCorr(Ecal1DCluster * p1c[],integer ipl, integer iplmax){
@@ -1650,14 +1720,7 @@ number Ecal2DCluster::_ZCorr(Ecal1DCluster * p1c[],integer ipl, integer iplmax){
 
 }
 
-extern "C" void e04ccf_(int &n, number x[], number &f, number &tol, int &iw, number w1[],number w2[], number w3[], number w4[], number w5[], number w6[],void * alfun, void * monit, int & maxcal, int &ifail, void * p);
-
-extern "C" void d01amf_(void *alfun, number &bound, integer &inf, number &epsa, number &epsr, number &result, number &abserr, number w[], int &lw, int iw[], int &liw , int &ifail, void *p );
 void EcalShower::EnergyFit(){
-    void (*palfun)(int &n, double x[], double &f, EcalShower *p)=&EcalShower::gamfun;
-    void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=
-                                &EcalShower::monit;
-    void (*psalfun)(double &x, double &f, EcalShower *p)=&EcalShower::gamfunr;
 
   number energy=0;
  _EnergyC=0;
@@ -1668,6 +1731,8 @@ void EcalShower::EnergyFit(){
  _DeadLeak=0;
  _RearLeak=0;
  _OrpLeak=0;
+ 
+
   for (int proj=0;proj<_N2dCl;proj++){
     energy+=_pCl[proj]->_Energy;   
    _EnergyC+=_pCl[proj]->_EnergyC;   
@@ -1689,12 +1754,12 @@ void EcalShower::EnergyFit(){
 
 
  _CofG=AMSPoint(0,0,0);
+  for(int i=0;i<sizeof(_Zcorr)/sizeof(_Zcorr[0]);i++)_Zcorr[i]=0; 
   const integer Maxrow=ECALDBc::GetLayersNo();
   number ec=0;
   _ShowerMax=-1;
   number xmax=-1;
   AMSPoint ep(0,0,0);
-  for(int i=0;i<sizeof(_Zcorr)/sizeof(_Zcorr[0]);i++)_Zcorr[i]=0; 
   VZERO(_Edep,sizeof(_Edep)/sizeof(integer));
   VZERO(_Ez,sizeof(_Ez)/sizeof(integer));
   for (int proj=0;proj<_N2dCl;proj++){
@@ -1790,15 +1855,20 @@ void EcalShower::EnergyFit(){
     _SideLeak=ECREFFKEY.SimpleRearLeak[3]*_SideLeak;
     _OrpLeak=ECREFFKEY.SimpleRearLeak[3]*_OrpLeak;
     _DeadLeak=ECREFFKEY.SimpleRearLeak[3]*_DeadLeak;
+    _AttLeak=ECREFFKEY.SimpleRearLeak[3]*_AttLeak;
   }
   if(_EnergyC){
    _RearLeak/=_EnergyC;
    _OrpLeak/=_EnergyC;
    _DeadLeak/=_EnergyC;
    _SideLeak/=_EnergyC;
+   _AttLeak/=_EnergyC;
   }
 
+
+       
 // Final EnergyCorrection
+
    _EnergyCorr();
 
   if(_ShowerMax==Maxrow-1 || _ShowerMax==0){
@@ -1806,8 +1876,26 @@ void EcalShower::EnergyFit(){
   }
   _AngleRes();
   _EnergyRes(); 
+
+}
+
+extern "C" void e04ccf_(int &n, number x[], number &f, number &tol, int &iw, number w1[],number w2[], number w3[], number w4[], number w5[], number w6[],void * alfun, void * monit, int & maxcal, int &ifail, void * p);
+
+extern "C" void d01amf_(void *alfun, number &bound, integer &inf, number &epsa, number &epsr, number &result, number &abserr, number w[], int &lw, int iw[], int &liw , int &ifail, void *p );
+
+void EcalShower::ProfileFit(){
+
+
+    void (*palfun)(int &n, double x[], double &f, EcalShower *p)=&EcalShower::gamfun;
+    void (*pmonit)(number &a, number &b, number sim[], int &n, int &s, int &nca)=
+                                &EcalShower::monit;
+    void (*psalfun)(double &x, double &f, EcalShower *p)=&EcalShower::gamfunr;
+
+
+
   // NowFit
     
+    const integer Maxrow=ECALDBc::GetLayersNo();
 
 
 
@@ -2542,4 +2630,26 @@ AMSEcalRawEvent::AMSEcalRawEvent(const AMSECIdSoft & id, int16u dynode,int16u ga
    if(_gain<2)_padc[_gain]=adc;
   }
   _idsoft=id.makeshortid();
+}
+
+
+
+void EcalShower::_AttCorr(){
+//  Attenuation Energy Corr
+   for(int i=0;i<_N2dCl;i++){
+    for(int j=0;j<_pCl[i]->getNClust();j++){
+      for (int k=0;k<_pCl[i]->getpClust(j)->getNHits();k++){
+        int over=_pCl[i]->getpClust(j)->getproj()==0?1:0;
+        number coo=0;
+        if(_Dir[2]){
+          coo=_EntryPoint[over]+_Dir[over]/_Dir[2]*(_pCl[i]->getpClust(j)->getphit(k)->getcooz()-_EntryPoint[2]);
+         }
+         if(coo !=coo){
+           cerr<<"  coo "<<coo<<endl;
+         }
+         _pCl[i]->getpClust(j)->getphit(k)->attcor(coo);
+         _AttLeak+=_pCl[i]->getpClust(j)->getphit(k)->getattcor();
+      }
+    }
+   }
 }

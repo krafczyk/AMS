@@ -1,4 +1,4 @@
-//  $Id: ecaldbc.h,v 1.26 2002/10/15 12:44:26 choumilo Exp $
+//  $Id: ecaldbc.h,v 1.27 2002/10/17 12:52:40 choutko Exp $
 // Author E.Choumilov 14.07.99.
 //
 //
@@ -184,12 +184,11 @@ public:
   geant &hi2lowr(integer subc){return _hi2lowr[subc];}
   geant & adc2mev(){return _adc2mev;}
   geant &an2dyr(){return _an2dyr;}
-  geant alfast(){return _lfast;}
-  geant alslow(){return _lslow;}
-  geant fastfr(){return _fastf;}
+  geant& alfast(){return _lfast;}
+  geant& alslow(){return _lslow;}
+  geant& fastfr(){return _fastf;}
   geant attf(geant pmd){ return((1-_fastf)*exp(-pmd/_lslow)+_fastf*exp(-pmd/_lfast));}
   static void build();
-  static integer BadCell(integer plane, integer cell);
 };
 //
 //===========================================================================
@@ -271,8 +270,8 @@ public:
   uinteger &sta(uinteger chan, uinteger gain){return gain==0?_staH[chan<4?chan:0]:_staL[chan<4?chan:0];}
   geant &ped()  {return _pedd;}
   geant &sig()  {return _sigd;}
-  bool HCHisBad(uinteger chan){return _staH[chan]&AMSDBc::BAD>0;}
-  bool LCHisBad(uinteger chan){return _staL[chan]&AMSDBc::BAD>0;}
+  bool HCHisBad(uinteger chan){return (_staH[chan]&AMSDBc::BAD)!=0;}
+  bool LCHisBad(uinteger chan){return (_staL[chan]&AMSDBc::BAD)!=0;}
   void getpedh(geant pedh[4]){
     for(int i=0;i<4;i++)pedh[i]=_pedh[i];
   }

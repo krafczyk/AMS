@@ -2189,7 +2189,8 @@ for(int i=0;i<ECPMSMX;i++){
        ECPMPeds::pmpeds[j][i].sta(k,l)=0;
        AMSECIdSoft ids(i,j,k,l);
        if((ids.getlayer()==4 && ids.getcell()==4) ||
-          (ids.getlayer()==5 && ids.getcell()==4)){
+          (ids.getlayer()==5 && ids.getcell()==4) ||
+          (ids.getlayer()==17 && ids.getcell()==13)){
           ECPMPeds::pmpeds[j][i].sta(k,l)=AMSDBc::BAD;
        }
    }
@@ -2206,7 +2207,11 @@ for(int i=0;i<ECPMSMX;i++){
 {
 geant gains[18][14];
 ifstream fbin;
-fbin.open("gains.gains");
+fbin.open("gains.china");
+if(!fbin){
+cerr<<"UnableToOpenfile gains.china"<<endl;
+abort();
+}
 for (int i=0;i<18;i++){
    for(int j=0;j<14;j++)fbin >> gains[i][j];
 }

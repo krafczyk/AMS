@@ -1,4 +1,4 @@
-#  $Id: ntuple02.doc,v 1.47 2002/10/11 16:47:16 choutko Exp $
+#  $Id: ntuple02.doc,v 1.48 2002/10/17 12:52:39 choutko Exp $
 This is AMS02 Ntuple Description 
 (to open:  /offline/paw/(linux,osf1)/pawX11; nt/chain ChainName FileName(s))
 
@@ -373,6 +373,7 @@ NB You must use custom built paw /offline/paw/(linux,osf1)/pawX11
 * R*4  *           * ECALSHOW * EcshsLeak(necsh)   // rel side leak
 * R*4  *           * ECALSHOW * EcshrLeak(necsh)   // rel rear leak
 * R*4  *           * ECALSHOW * EcshdLeak(necsh)   // rel dead cells leak
+* R*4  *           * ECALSHOW * EcshaLeak(necsh)   // rel att length correction
 * R*4  *           * ECALSHOW * EcshoLeak(necsh)   // out of core leak
 * R*4  *           * ECALSHOW * Ecsho2de(necsh)   //  orphaned 2d cluster energy (if any) (geV)
 * R*4  *           * ECALSHOW * ecshchi2P(necsh)   // chi2 profile fit (gamma f)
