@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.37 2003/07/28 17:00:20 choutko Exp $
+//  $Id: richdbc.C,v 1.38 2003/07/29 13:25:06 mdelgado Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -518,31 +518,34 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
   const integer NPHI=400;
   const geant twopi=3.14159265359*2;
 
+  direct=0;
+  reflected=0;
+  length=0;
 
   // Obtain the track parameters
 
-
   RichRadiatorTile crossed_tile(ptrack);
-  AMSDir dir(0,0);
+  AMSDir u;
   AMSPoint r;  
+
+  if(crossed_tile.getkind()==empty_kind) return 0.;
 
   geant rad_index=crossed_tile.getindex();
   geant rad_height=crossed_tile.getheight();
   r=crossed_tile.getemissionpoint();
-  dir=crossed_tile.getemissiondir();
-  //  added by VC 28-july-2003 
-  //   subject to verification by RICH expert
-  //
-      length=rad_height/fabs(cos(dir.gettheta()));
-  theta=twopi/2.-dir.gettheta();
-  phi=twopi/2.-dir.getphi();
-  AMSDir u(theta,phi);
+  u=crossed_tile.getemissiondir();
+  if(fabs(u[2])==0) return 0.;
+
+  length=rad_height/fabs(u[2]);
+
+
   
-  r[2]-=RICradpos-RICHDB::rad_height+rad_height;
+  r[2]=-(r[2]-RICradpos);
   u[2]*=-1;
 
 
 #ifdef __AMSDEBUG__
+    cout <<"         VECTOR  "<<u[0]<<" "<<u[1]<<" "<<u[2]<<endl;
   //  cout <<"Theta and phi "<<theta<<" "<<phi<<endl;
   //  cout <<"u: "<<u[0]<<" "<<u[1]<<" "<<u[2]<<endl;
 #endif
@@ -552,10 +555,12 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
 
 
   //Init
+  geant exp_len=RICHDB::rich_height+RICradmirgap+RIClgdmirgap;
   geant kc=(RICHDB::bottom_radius-RICHDB::top_radius)/RICHDB::rich_height;
-  geant ac=rad_height+RICHDB::foil_height-RICHDB::top_radius/kc;
-  direct=0;
-  reflected=0;
+  geant ac=RICHDB::rad_height+RICHDB::foil_height+RICradmirgap-RICHDB::top_radius/kc;
+  geant bx=RICHDB::hole_radius[0];
+  geant by=RICHDB::hole_radius[1];
+  geant mir_eff=RICmireff;
   
 
   for(phi=0;phi<twopi;phi+=twopi/NPHI){
@@ -580,41 +585,71 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
       u0[1]=sc*sp;
       u0[2]=cc;}
 
-    
-    geant l=(rad_height-r0[2])/u0[2];
-    
-    for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
-    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
 
+    // Check if it is whithin a radiator tile
+
+    integer origin_tile=RichRadiatorTile::get_tile_number(r0[0],r0[1]);
+    if(RichRadiatorTile::get_tile_kind(origin_tile)==empty_kind) continue;
+    if(fabs(RichRadiatorTile::get_tile_x(origin_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
+
+    
+    geant l=(RICHDB::rad_height-r0[2])/u0[2];  
+
+
+    for(i=0;i<3;i++) r1[i]=r0[i]+l*u0[i];
+
+    if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
+    
+    // Check if there is tile crossing 
+    integer final_tile=RichRadiatorTile::get_tile_number(r1[0],r1[1]);
+    if(RichRadiatorTile::get_tile_kind(final_tile)==empty_kind) continue;
+    if(fabs(RichRadiatorTile::get_tile_x(final_tile)-r[0])>RICHDB::rad_length/2.-RICaethk/2.) continue;
+
+    if(origin_tile!=final_tile) continue;
     
     n[0]=0.;n[1]=0.;n[2]=1.;
 
     cn=n[2]*u0[2];
     sn=sqrt(1-cn*cn);
-
-
+#ifdef __AMSDEBUG__
+    cout <<" STEP 1"<<endl;
+#endif
     // Radiator->foil refraction
 
-    if(rad_index*sn>RICHDB::foil_index) continue;
+    if(rad_index*sn>RICHDB::foil_index) continue; // Total reflection
+
     f=sqrt(1-(rad_index/RICHDB::foil_index*sn)*
 	   (rad_index/RICHDB::foil_index*sn))-
       rad_index/RICHDB::foil_index*cn;
+#ifdef __AMSDEBUG__
+    cout <<"STEP 2"<<endl;
+#endif
 
     for(i=0;i<3;i++) u1[i]=rad_index/RICHDB::foil_index*u0[i]+f*n[i];
 
     // Propagate to foil end
     l=RICHDB::foil_height/u1[2];
     for(i=0;i<3;i++) r1[i]=r1[i]+l*u1[i];
+
     if (sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
-
-
+#ifdef __AMSDEBUG__
+    cout <<"STEP 3"<<endl;
+#endif
     // Exiting foil
     cn=u1[2]*n[2];
     sn=sqrt(1-cn*cn);
-    if(RICHDB::foil_index*sn>1) return 0.;
+
+    if(RICHDB::foil_index*sn>1) continue;
+
     f=sqrt(1-(RICHDB::foil_index*sn)*(RICHDB::foil_index*sn))
       -RICHDB::foil_index*cn;
     for(i=0;i<3;i++) u1[i]=RICHDB::foil_index*u1[i]+f*n[i];
+
+
+    // Propagation to top of mirror
+    l=RICradmirgap/u1[2];
+    for(i=0;i<3;i++) r1[i]+=l*u1[i];
+    if(sqrt(r1[0]*r1[0]+r1[1]*r1[1])>RICHDB::top_radius) continue;
 
 
     // Propagation to base
@@ -622,21 +657,18 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
     l=RICHDB::rich_height/u1[2];
     for(i=0;i<3;i++) r2[i]=r1[i]+l*u1[i];
 
-    //    geant maxxy=fabs(r2[0])>fabs(r2[1])?fabs(r2[0]):fabs(r2[1]);
     geant rbase=sqrt(r2[0]*r2[0]+r2[1]*r2[1]);
     
-    
-    if(fabs(r2[0])<RICHDB::hole_radius[0]+RICpmtsupport ||
-       fabs(r2[1])<RICHDB::hole_radius[1]+RICpmtsupport) continue;
-
-    //    if (maxxy<RICHDB::hole_radius+RICpmtsupport) continue;
-
     if(rbase<RICHDB::bottom_radius){
-      direct+=1./NPHI;
+      l=RIClgdmirgap/u1[2];
+      for(i=0;i<3;i++) r2[i]+=l*u1[i];
+      geant beff=AMSRICHIdGeom::get_channel_from_top(r2[0],r2[1])<0?0:1;
+      //      direct+=1./NPHI;
+      direct+=beff/NPHI;
       continue;
     }
 
-    
+        
     geant a=1-(kc*kc+1)*u1[2]*u1[2];
     geant b=2*(r1[0]*u1[0]+r1[1]*u1[1]-kc*kc*(r1[2]-ac)*u1[2]);
     geant c=r1[0]*r1[0]+r1[1]*r1[1]-(kc*(r1[2]-ac))*(kc*(r1[2]-ac));
@@ -655,22 +687,16 @@ geant RICHDB::ring_fraction(AMSTrTrack *ptrack ,geant &direct,geant &reflected,
     f=2*(u1[0]*n[0]+u1[1]*n[1]+u1[2]*n[2]);
     for(i=0;i<3;i++) u2[i]=u1[i]-f*n[i];
 
-    l=(RICHDB::rich_height+rad_height+RICHDB::foil_height-r2[2])/u2[2];
+    l=(exp_len+RICHDB::rad_height+RICHDB::foil_height-r2[2])/u2[2];
     for(i=0;i<3;i++) r3[i]=r2[i]+l*u2[i];
-
-    //    maxxy=fabs(r3[0])>fabs(r3[1])?fabs(r3[0]):fabs(r3[1]);
     rbase=sqrt(r3[0]*r3[0]+r3[1]*r3[1]);
 
-
-    if(fabs(r3[0])<RICHDB::hole_radius[0]+RICpmtsupport ||
-       fabs(r3[1])<RICHDB::hole_radius[1]+RICpmtsupport) continue;
     
-    //    if (maxxy<RICHDB::hole_radius+RICpmtsupport) continue;
+    if(rbase>RICHDB::bottom_radius) continue; 
 
-    if(rbase<RICHDB::bottom_radius){
-      reflected+=1./NPHI;
-      continue;
-    }
+    geant beff=mir_eff*(AMSRICHIdGeom::get_channel_from_top(r3[0],r3[1])==0?0:1);
+    reflected+=beff/NPHI;
+
 
   }
 
