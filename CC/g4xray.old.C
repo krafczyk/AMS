@@ -1,42 +1,8 @@
-
+//  $Id: g4xray.old.C,v 1.1 2002/01/09 18:38:11 choutko Exp $
 //
-// ********************************************************************
-// * DISCLAIMER                                                       *
-// *                                                                  *
-// * The following disclaimer summarizes all the specific disclaimers *
-// * of contributors to this software. The specific disclaimers,which *
-// * govern, are listed with their locations in:                      *
-// *   http://cern.ch/geant4/license                                  *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.                                                             *
-// *                                                                  *
-// * This  code  implementation is the  intellectual property  of the *
-// * GEANT4 collaboration.                                            *
-// * By copying,  distributing  or modifying the Program (or any work *
-// * based  on  the Program)  you indicate  your  acceptance of  this *
-// * statement, and all its terms.                                    *
-// ********************************************************************
-//
-//
-// $Id: g4xray.C,v 1.4 2002/01/09 18:38:11 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
-// ----------------------------------------------------------------------
-//      GEANT 4 class implementation file
-//
-//      History: first implementation, based on object model of
-//      4th April 1996, G.Cosmo
-// **********************************************************************
-//  Added particle definitions, H.Kurashige, 19 April 1996
-//  Added SetCuts implementation , L.Urban , 12 June 1996
-//  Code uses operators (+=, *=, ++, -> etc.) correctly, P. Urban, 26/6/96
-//  Add GammaDefinition(), H.Kurashige, 4 July 1996
-
 // ----------------------------------------------------------------------
 
 #include "G4ios.hh"
@@ -46,7 +12,6 @@
 #include <g4xray.h>
 #include <geant4.h>
 #include <mceventg.h>
-
 // ######################################################################
 // ###                            GAMMA                               ###
 // ######################################################################
@@ -99,6 +64,9 @@ G4XRay G4XRay::theXRay(
 		 true,             0.0,          NULL
 );
 G4XRay*  G4XRay::XRayDefinition() {return &theXRay;}
+// initialization for static cut values
+G4double   G4XRay::theXRayLengthCut = -1.0;
+G4double*  G4XRay::theXRayKineticEnergyCuts = NULL;
 
 // ***********************************************************************
 // ******************* BuildAbsorptionLengthVector ***********************
@@ -134,7 +102,7 @@ void G4XRay::BuildAbsorptionLengthVector(
     for (G4int iel=0; iel<NumEl; iel++)
     {
       G4bool isOut;
-      G4int IndEl = (*elementVector)[iel]->GetIndex();
+      G4int IndEl = (*elementVector)(iel)->GetIndex();
       SIGMA +=  atomicNumDensityVector[iel]*
                 (*aCrossSectionTable)[IndEl]->GetValue(lowEdgeEnergy,isOut);
     }
@@ -142,16 +110,7 @@ void G4XRay::BuildAbsorptionLengthVector(
     absorptionLengthVector->PutValue(ibin, 5./SIGMA);
     if (absorptionLengthMax < 5./SIGMA ) absorptionLengthMax = 5./SIGMA;
   }
-
-   //----- Get maximum cut in length
-  G4int ii,siz = G4Material::GetNumberOfMaterials();
-  G4double maxCut = 0;
-  for( ii = 0; ii < siz; ii++ ){
-    if( theCutInMaxInteractionLength[ii] > maxCut ) maxCut = theCutInMaxInteractionLength[ii]
-; 
-  }
-
-  if ( maxCut >= absorptionLengthMax ) {
+  if ( theCutInMaxInteractionLength >= absorptionLengthMax ) {
       G4cout << "******** SetCuts for " << GetParticleName(); 
       G4cout << " ********************" << G4endl;
       G4cout << "The maximal meaningful cut is ";
@@ -160,7 +119,6 @@ void G4XRay::BuildAbsorptionLengthVector(
       G4cout << "in the material " << aMaterial->GetName() << "." << G4endl;
   }
 }
-
 
 // ***********************************************************************
 // ********************** ComputeCrossSection ****************************
@@ -224,11 +182,8 @@ G4double G4XRay::ComputeCrossSection(G4double AtomicNumber,
 // ******************** ConvertCutToKineticEnergy ***********************
 // **********************************************************************
 
-G4double 
-  G4XRay::ConvertCutToKineticEnergy(
-				     G4RangeVector* absorptionLengthVector,
-				     size_t         materialIndex
-				     ) const
+G4double G4XRay::ConvertCutToKineticEnergy(
+                   G4RangeVector* absorptionLengthVector) const
 {
   const G4double epsilon=0.01;
   const G4int NBIN=200;
@@ -252,9 +207,9 @@ G4double
   }
   G4double T1 = LowestEnergy;
   G4double r1 = absorptionLengthVector->GetValue(T1,isOut);
-  if ( theCutInMaxInteractionLength[materialIndex] <= r1 ) {
+  if ( theCutInMaxInteractionLength <= r1 ) {
      return T1;
-  } else if ( theCutInMaxInteractionLength[materialIndex] >= rmax ) {
+  } else if ( theCutInMaxInteractionLength >= rmax ) {
       G4cout << "******** ConvertCutToKineticEnergy for " << GetParticleName(); 
       G4cout << " ********************" << G4endl;
       G4cout << "The cut energy is set " << DBL_MAX/GeV << "GeV " <<G4endl; 
@@ -263,8 +218,8 @@ G4double
     G4double T2 = Tmax;
     G4double T3 = sqrt(T1*T2);
     G4double r3 = absorptionLengthVector->GetValue(T3,isOut);
-    while ( abs(1.-r3/theCutInMaxInteractionLength[materialIndex])>epsilon ) {
-      if ( theCutInMaxInteractionLength[materialIndex] <= r3 ) 
+    while ( abs(1.-r3/theCutInMaxInteractionLength)>epsilon ) {
+      if ( theCutInMaxInteractionLength <= r3 ) 
         T2 = T3;
       else 
         T1 = T3;
@@ -274,12 +229,6 @@ G4double
     return T3;
   }
 }
-
-
-
-
-
-
 
 #include "G4StepPoint.hh"
 #include "G4TrackStatus.hh"

@@ -1,4 +1,4 @@
-//  $Id: g4xray.h,v 1.2 2001/01/22 17:32:43 choutko Exp $
+//  $Id: g4xray.h,v 1.3 2002/01/09 18:38:36 choutko Exp $
 #ifndef __G4XRAY__
 #define __G4XRAY__
 #include "globals.hh"
@@ -51,6 +51,11 @@ class G4XRay : public G4VBoson
     }
 
     G4double ConvertCutToKineticEnergy(
+                                 G4RangeVector* absorptionLengthVector,
+ size_t materialIndex
+                                ) const;
+
+    G4double ConvertCutToKineticEnergy(
                                  G4RangeVector* absorptionLengthVector
                                 ) const;
 
@@ -72,12 +77,15 @@ class G4XRay : public G4VBoson
    virtual ~G4XRay(){}
    static G4XRay* XRayDefinition();
    static G4XRay* XRay();
+/*
    static G4double  GetCuts() {return theXRayLengthCut;}
    static G4double* GetCutsInEnergy() {return theXRayKineticEnergyCuts;};
 
    virtual void SetCuts(G4double aCut);
+*/
 };
 
+/*
 inline void G4XRay::SetCuts(G4double aCut)
 {
   CalcEnergyCuts(aCut);
@@ -85,6 +93,7 @@ inline void G4XRay::SetCuts(G4double aCut)
   theXRayKineticEnergyCuts = theKineticEnergyCuts;
 
 }
+*/
 
 inline G4XRay* G4XRay::XRay()
 { return &theXRay; }

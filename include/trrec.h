@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.56 2002/01/08 13:43:42 choutko Exp $
+//  $Id: trrec.h,v 1.57 2002/01/09 18:38:36 choutko Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -304,12 +304,17 @@ static integer _TrSearcherFalseX(int icall);
 static integer _TrSearcherFalseTOFX(int icall);
 static integer pat;
 static AMSTrRecHit * phit[trconst::maxlay];
-static number par[2][2];
+static number par[2][3];
 static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static void   _addnextR(AMSTrTrack* ptr, integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
-static integer Distance(number par[2][2], AMSTrRecHit *ptr);
-static integer DistanceTOF(number par[2][2], AMSTrRecHit *ptr);
+static integer Distance(number par[2][3], AMSTrRecHit *ptr){
+   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > TRFITFFKEY.SearchRegStrLine*par[0][2] ||
+          fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])
+           > TRFITFFKEY.SearchRegCircle*par[1][2];
+
+}
+static integer DistanceTOF(number par[2][3], AMSTrRecHit *ptr);
 static integer _RefitIsNeeded;
 void _crHit();
 inline  AMSPoint  getHit(int i, int dir=0){return _Hit[dir==0?i:_NHits-1-i];}

@@ -1,4 +1,4 @@
-//  $Id: g4physics.C,v 1.19 2001/01/22 17:32:19 choutko Exp $
+//  $Id: g4physics.C,v 1.20 2002/01/09 18:38:11 choutko Exp $
 // This code implementation is the intellectual property of
 // the RD44 GEANT4 collaboration.
 //
@@ -6,7 +6,7 @@
 // based on the Program) you indicate your acceptance of this statement,
 // and all its terms.
 //
-// $Id: g4physics.C,v 1.19 2001/01/22 17:32:19 choutko Exp $
+// $Id: g4physics.C,v 1.20 2002/01/09 18:38:11 choutko Exp $
 // GEANT4 tag $Name:  $
 //
 // 
@@ -788,7 +788,7 @@ void AMSG4Physics::SetCuts()
     G4ParticleDefinition* particle = theParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
     G4String particleName = particle->GetParticleName();
-    cout <<particleName<<" Length Cuts "<<particle->GetLengthCuts()*mm<<endl;
+    cout <<particleName<<" Length Cuts "<<*(particle->GetLengthCuts())*mm<<endl;
   }
 #endif  
 }
@@ -946,6 +946,9 @@ for(ipart=0;ipart<1000;ipart++){
        G4int A=g3mass[ipart]/.93;
        G4int J=0;
        G4int Q=g3charge[ipart];
+       if(Q<0){
+//         cout <<"  starting anti "<<endl;
+       }
        G4ParticleDefinition* dummy=((G4IonTable *)pIonT)->GetIon(Z,A,J,Q);
        double fdelta=1000000;
        G4ParticleDefinition* cand=0;

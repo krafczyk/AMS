@@ -1,7 +1,7 @@
-#  $Id: g4.doc,v 1.21 2001/04/27 21:50:33 choutko Exp $
+#  $Id: g4.doc,v 1.22 2002/01/09 18:38:28 choutko Exp $
 -------
 Platform:
-linux-g++ and dec-cxx >= v6.2
+linux-gcc2.95 
 
 -------
 Installer:
@@ -71,26 +71,27 @@ CC/gmat.C    << new geant4  constructors
 
 
 
+Status (geant4.4.0):
+
+still same extremely slow initialization  (~ 10 minutes)
+more memory required: 320 gb on linux 
+
+complains about mat property:  then about geometry; so doesn;t work at all.
 
 
 
 
-Status (geant4.3.1):
-
-same as geant4.3.0 except the init phase
-for linux requires about 4 times more time than in 4.3.0 case
 
 
 
 
+Status (geant4.3.2):
 
-Status (geant4.3.0):
 
+(Initialization extremely slow (10 minutes/piii-1ghz))
+memory:  240 mb on linux
 
-Tracking is ok for dec/cxx, ok  for linux/gcc2.95.2,
-                            ok for          linux/egcs.1.1.2
-
-interactive version ok
+very slow but works
 
 geometry tested: tof,tracker,trd,srd,magnet,ecal,anti,rich
 

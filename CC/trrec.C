@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.134 2001/12/07 11:32:20 choutko Exp $
+//  $Id: trrec.C,v 1.135 2002/01/09 18:38:11 choutko Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1347,9 +1347,11 @@ integer AMSTrTrack::build(integer refit){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
+        par[0][2]=sqrt(1+par[0][0]*par[0][0]);
         par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
+        par[1][2]=sqrt(1+par[1][0]*par[1][0]);
         if(NTrackFound<0)NTrackFound=0;
         // Search for others
         integer npfound=_TrSearcher(1);
@@ -1488,9 +1490,11 @@ integer AMSTrTrack::buildFalseX(integer nptmin){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
+        par[0][2]=sqrt(1+par[0][0]*par[0][0]);
         par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
+        par[1][2]=sqrt(1+par[1][0]*par[1][0]);
         // Search for others
         if(NTrackFound<0)NTrackFound=0;
 
@@ -1521,23 +1525,21 @@ return NTrackFound;
 
 
 
-
-integer AMSTrTrack::Distance(number par[2][2], AMSTrRecHit *ptr){
+/*
+integer AMSTrTrack::Distance(number par[2][3], AMSTrRecHit *ptr){
 const integer freq=10;
 static integer trig=0;
 trig=(trig+1)%freq;
            if(trig==0 && _NoMoreTime()){
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
-
-   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0])/
-            sqrt(1+par[0][0]*par[0][0]) > TRFITFFKEY.SearchRegStrLine ||
-          fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])/
-            sqrt(1+par[1][0]*par[1][0]) > TRFITFFKEY.SearchRegCircle;
+   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > TRFITFFKEY.SearchRegStrLine*par[0][2] ||
+          fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])
+           > TRFITFFKEY.SearchRegCircle*par[1][2];
 }
 
 
-
+*/
 integer AMSTrTrack::_addnext(integer pat, integer nhit, AMSTrRecHit* pthit[trconst::maxlay]){
 
 #ifdef __UPOOL__
@@ -2822,10 +2824,12 @@ integer AMSTrTrack::buildFalseTOFX(integer refit){
         if(phit[fp]->Good() && phit[fp]->checkstatus(AMSDBc::FalseTOFX)!=0){
         par[0][0]=(phit[fp]-> getHit()[0]-phit[0]-> getHit()[0])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
+        par[0][2]=sqrt(1+par[0][0]*par[0][0]);
         par[0][1]=phit[0]-> getHit()[0]-par[0][0]*phit[0]-> getHit()[2];
         par[1][0]=(phit[fp]-> getHit()[1]-phit[0]-> getHit()[1])/
                (phit[fp]-> getHit()[2]-phit[0]-> getHit()[2]);
         par[1][1]=phit[0]-> getHit()[1]-par[1][0]*phit[0]-> getHit()[2];
+        par[1][2]=sqrt(1+par[1][0]*par[1][0]);
         if(NTrackFound<0)NTrackFound=0;
         // Search for others
         integer npfound=_TrSearcherFalseTOFX(1);
@@ -2850,22 +2854,23 @@ out:
 return NTrackFound;
 }
 
-integer AMSTrTrack::DistanceTOF(number par[2][2], AMSTrRecHit *ptr){
+integer AMSTrTrack::DistanceTOF(number par[2][3], AMSTrRecHit *ptr){
+/*
 const integer freq=10;
 static integer trig=0;
 trig=(trig+1)%freq;
            if(trig==0 && _NoMoreTime()){
             throw AMSTrTrackError(" Cpulimit Exceeded ");
            }
-
+*/
    geant searchregtof;
    if(strstr(AMSJob::gethead()->getsetup(),"AMS02"))searchregtof=TOF2DBc::plnstr(5)+2.*TOF2DBc::plnstr(8);
    else searchregtof=TOFDBc::plnstr(5)+2.*TOFDBc::plnstr(13);
    
-   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0])/
-            sqrt(1+par[0][0]*par[0][0]) > searchregtof ||
-          fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])/
-            sqrt(1+par[1][0]*par[1][0]) > TRFITFFKEY.SearchRegCircle;
+   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0])
+            > searchregtof*par[0][2] ||
+          fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])>
+            TRFITFFKEY.SearchRegCircle*par[1][2];
 }
 
 
@@ -3123,7 +3128,7 @@ integer AMSTrTrack::pat=0;
 
 AMSTrRecHit* AMSTrTrack::phit[trconst::maxlay]={0,0,0,0,0,0,0,0};
 
-number AMSTrTrack::par[2][2];
+number AMSTrTrack::par[2][3];
 
 
 

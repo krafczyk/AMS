@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.40 2001/08/10 12:59:39 choutko Exp $
+//  $Id: geant4.C,v 1.41 2002/01/09 18:38:11 choutko Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -645,13 +645,13 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
    GCKINE.itra=Track->GetParentID();
 //   cout << " track id "<<GCKINE.itra<<" "<<GCTRAK.nstep<<endl;
     if(GCKINE.ipart==Cerenkov_photon){
-      if(PrePV->GetName()[0]=='R' && PrePV->GetName()[1]=='I' &&
-        PrePV->GetName()[2]=='C' && PrePV->GetName()[3]=='H'){
+      if((PrePV->GetName())(0)=='R' && (PrePV->GetName())(1)=='I' &&
+        (PrePV->GetName())(2)=='C' && (PrePV->GetName())(3)=='H'){
         if(PostPoint->GetProcessDefinedStep() && PostPoint->GetProcessDefinedStep()->GetProcessName() == "Boundary")RICHDB::numrefm++;
       }
 
-      if(PrePV->GetName()[0]=='R' && PrePV->GetName()[1]=='A' &&
-        PrePV->GetName()[2]=='D' && PrePV->GetName()[3]==' '){
+      if(PrePV->GetName()(0)=='R' && PrePV->GetName()(1)=='A' &&
+        PrePV->GetName()(2)=='D' && PrePV->GetName()(3)==' '){
         if(GCTRAK.nstep){
         if(PostPoint->GetProcessDefinedStep() && PostPoint->GetProcessDefinedStep()->GetProcessName() == "Rayleigh Scattering")RICHDB::numrayl++;
         else{
@@ -767,8 +767,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
      G4VPhysicalVolume * GrandMother= Mother?Mother->GetMother():0;
 //---------
 // TRD
-     if(GCTRAK.destep && PrePV->GetName()[0]=='T' && PrePV->GetName()[1]=='R' 
-     &&  PrePV->GetName()[2]=='D' && PrePV->GetName()[3]=='T'){
+     if(GCTRAK.destep && PrePV->GetName()(0)=='T' && PrePV->GetName()(1)=='R' 
+     &&  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='T'){
 //       cout <<" trd "<<endl;
         AMSTRDMCCluster::sitrdhits(PrePV->GetCopyNo(),GCTRAK.vect,
         GCTRAK.destep,GCTRAK.gekin,GCTRAK.step,GCKINE.ipart);   
@@ -778,8 +778,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 
 //-----------------------      
 //  Tracker
-     if(GCTRAK.destep && GrandMother && GrandMother->GetName()[0]=='S' 
-     &&  GrandMother->GetName()[1]=='T' && GrandMother->GetName()[2]=='K'){
+     if(GCTRAK.destep && GrandMother && GrandMother->GetName()(0)=='S' 
+     &&  GrandMother->GetName()(1)=='T' && GrandMother->GetName()(2)=='K'){
 //       cout <<" tracker "<<endl;
       AMSTrMCCluster::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
       GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
@@ -797,8 +797,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       int i,nd,numv,iprt,numl,numvp;
       static int numvo(-999),iprto(-999);
 
-     if(PrePV->GetName()[0]== 'T' &&PrePV->GetName()[1]=='O' &&
-      PrePV->GetName()[2]=='F' &&PrePV->GetName()[3]=='S'){ // step starts in TOFS
+     if(PrePV->GetName()(0)== 'T' &&PrePV->GetName()(1)=='O' &&
+      PrePV->GetName()(2)=='F' &&PrePV->GetName()(3)=='S'){ // step starts in TOFS
        numv=PrePV->GetCopyNo();
        iprt=GCKINE.ipart;
        x=GCTRAK.vect[0];
@@ -849,8 +849,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
   }// <--- end of "in TOFS-pre"
 
 
-      if(PostPV->GetName()[0]== 'T' &&PostPV->GetName()[1]=='O' &&
-      PostPV->GetName()[2]=='F' &&PostPV->GetName()[3]=='S'){ // step ends in TOFS
+      if(PostPV->GetName()(0)== 'T' &&PostPV->GetName()(1)=='O' &&
+      PostPV->GetName()(2)=='F' &&PostPV->GetName()(3)=='S'){ // step ends in TOFS
        numv=PostPV->GetCopyNo();
        iprt=GCKINE.ipart;
        x=GCTRAK.vect[0];
@@ -870,8 +870,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //-------------------------------
 //  ANTI :
 //
-     if(PrePV->GetName()[0]== 'A' && PrePV->GetName()[1]=='N' &&
-       PrePV->GetName()[2]=='T' && PrePV->GetName()[3]=='S' && GCTRAK.destep>0.){
+     if(PrePV->GetName()(0)== 'A' && PrePV->GetName()(1)=='N' &&
+       PrePV->GetName()(2)=='T' && PrePV->GetName()(3)=='S' && GCTRAK.destep>0.){
        dee=GCTRAK.destep;
        AMSAntiMCCluster::siantihits(PrePV->GetCopyNo(),GCTRAK.vect,
                                                    dee,GCTRAK.tofg);
@@ -879,8 +879,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //------------------------------------------------------------------
 //  ECAL :
 //
-     if(PrePV->GetName()[0]== 'E' && PrePV->GetName()[1]=='C' &&
-       PrePV->GetName()[2]=='F' && PrePV->GetName()[3]=='C' && GCTRAK.destep>0.){
+     if(PrePV->GetName()(0)== 'E' && PrePV->GetName()(1)=='C' &&
+       PrePV->GetName()(2)=='F' && PrePV->GetName()(3)=='C' && GCTRAK.destep>0.){
 //cout<<"... in ECAL: numv="<<PrePV->GetCopyNo()<<endl;
        dee=GCTRAK.destep;
 //       GBIRK(dee);
@@ -891,8 +891,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 //
 
 
-    if(PrePV->GetName()[0]=='C' && PrePV->GetName()[1]=='A' &&
-       PrePV->GetName()[2]=='T' && PrePV->GetName()[3]=='O' && 
+    if(PrePV->GetName()(0)=='C' && PrePV->GetName()(1)=='A' &&
+       PrePV->GetName()(2)=='T' && PrePV->GetName()(3)=='O' && 
        GCTRAK.inwvol==1){
 
 
