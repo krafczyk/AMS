@@ -850,7 +850,7 @@ void AMSDisplay::SetGeometry(TGeometry * geo)
 //  Set AMS in/out outline parameters
 
    debugger.Print("in AMSDisplay::SetGeometry(): m_Geometry = %lx, geo = %lx", m_Geometry, geo);
-   if (m_Geometry) delete m_Geometry;
+   //if (m_Geometry) delete m_Geometry;
    m_Geometry = geo;
    m_GeoSetter = new AMSGeometrySetter(geo);
 }

@@ -14,6 +14,8 @@
 #pragma link C++ class AMSToFClusterReader;
 #pragma link C++ class AMSAntiCluster;
 #pragma link C++ class AMSAntiClusterReader;
+#pragma link C++ class AMSTrMCCluster;
+#pragma link C++ class AMSTrMCClusterReader;
 #pragma link C++ class AMSTrack;
 #pragma link C++ class AMSTrackReader;
 #pragma link C++ class AMSSiHit;

@@ -182,6 +182,7 @@
 #include "AMSSiHitReader.h"
 #include "AMSCTCClusterReader.h"
 #include "AMSAntiClusterReader.h"
+#include "AMSTrMCClusterReader.h"
 #include "AMSParticleReader.h"
 
 //#include "AMSMCMaker.h"
@@ -240,6 +241,7 @@ AMSRoot::AMSRoot() : TNamed("AMSRoot","The AMS Display with Root")
    m_SiHitMaker      = 0;
    m_CTCClusterMaker = 0;
    m_AntiClusterMaker = 0;
+   m_TrMCClusterMaker = 0;
    m_TrackMaker      = 0;
    m_ParticleMaker   = 0;
 
@@ -279,6 +281,10 @@ AMSRoot::AMSRoot(const char *name, const char *title)
    m_AntiClusterMaker  = new AMSAntiClusterReader("AntiClusterReader",
 			    "Read AMSRoot Anti Counter Clusters");
    m_Makers->Add(m_AntiClusterMaker);
+
+   m_TrMCClusterMaker  = new AMSTrMCClusterReader("TrMCClusterReader",
+			    "Read AMSRoot TrMC Counter Clusters");
+   m_Makers->Add(m_TrMCClusterMaker);
 
 
 

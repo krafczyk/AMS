@@ -32,6 +32,7 @@ class AMSTrackReader;
 class AMSSiHitReader;
 class AMSCTCClusterReader;
 class AMSAntiClusterReader;
+class AMSTrMCClusterReader;
 class AMSParticleReader;
 //class ATLFElectronMaker;
 //class ATLFMuonMaker;
@@ -60,6 +61,7 @@ private:
    AMSSiHitReader      *m_SiHitMaker;        //Pointer to SiHitMaker
    AMSCTCClusterReader *m_CTCClusterMaker;   //Pointer to ToFClusterMaker
    AMSAntiClusterReader *m_AntiClusterMaker;   //Pointer to AntiClusterMaker
+   AMSTrMCClusterReader *m_TrMCClusterMaker;   //Pointer to AntiClusterMaker
    AMSParticleReader   *m_ParticleMaker;     //Pointer to ParticleMaker
 
 // AMSMCMaker          *m_MCMaker;           //Pointer to MCMaker
@@ -113,6 +115,7 @@ public:
    AMSTrackReader      *TrackMaker()      {return m_TrackMaker;}
    AMSSiHitReader      *SiHitMaker()      {return m_SiHitMaker;}
    AMSAntiClusterReader *AntiClusterMaker() {return m_AntiClusterMaker;}
+   AMSTrMCClusterReader *TrMCClusterMaker() {return m_TrMCClusterMaker;}
    AMSCTCClusterReader *CTCClusterMaker() {return m_CTCClusterMaker;}
    AMSParticleReader   *ParticleMaker()   {return m_ParticleMaker;}
 // AMSMCMaker         *MCMaker()         {return m_MCMaker;}

@@ -10,8 +10,8 @@ AMSRoot.o: /pgm0/EventDisplay/root/include/TClonesArray.h AMSRoot.h
 AMSRoot.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
 AMSRoot.o: AMSMaker.h AMSToFClusterReader.h AMSTrackReader.h
 AMSRoot.o: /pgm0/EventDisplay/root/include/TH1.h AMSSiHitReader.h
-AMSRoot.o: AMSCTCClusterReader.h AMSAntiClusterReader.h AMSParticleReader.h
-AMSRoot.o: AMSVirtualDisplay.h
+AMSRoot.o: AMSCTCClusterReader.h AMSAntiClusterReader.h
+AMSRoot.o: AMSTrMCClusterReader.h AMSParticleReader.h AMSVirtualDisplay.h
 AMSMaker.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
 AMSMaker.o: /pgm0/EventDisplay/root/include/TTree.h
 AMSMaker.o: /pgm0/EventDisplay/root/include/TList.h
@@ -74,6 +74,19 @@ AMSAntiClusterReader.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
 AMSAntiClusterReader.o: AMSAntiCluster.h AMS3DCluster.h
 AMSAntiClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
 AMSAntiClusterReader.o: AMSAntiClusterReader.h
+AMSTrMCCluster.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSTrMCCluster.o: AMSTrMCCluster.h AMS3DCluster.h
+AMSTrMCCluster.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h AMSRoot.h
+AMSTrMCCluster.o: AMSHistBrowser.h /pgm0/EventDisplay/root/include/TNamed.h
+AMSTrMCCluster.o: AMSMaker.h AMSVirtualDisplay.h
+AMSTrMCClusterReader.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h
+AMSTrMCClusterReader.o: /pgm0/EventDisplay/root/include/TRandom.h
+AMSTrMCClusterReader.o: /pgm0/EventDisplay/root/include/TClonesArray.h
+AMSTrMCClusterReader.o: AMSRoot.h AMSHistBrowser.h
+AMSTrMCClusterReader.o: /pgm0/EventDisplay/root/include/TNamed.h AMSMaker.h
+AMSTrMCClusterReader.o: AMSTrMCCluster.h AMS3DCluster.h
+AMSTrMCClusterReader.o: /pgm0/EventDisplay/root/include/TMarker3DBox.h
+AMSTrMCClusterReader.o: AMSTrMCClusterReader.h
 AMSTrack.o: Debugger.h /pgm0/EventDisplay/root/include/TObject.h AMSTrack.h
 AMSTrack.o: THelix.h /pgm0/EventDisplay/root/include/TPolyLine3D.h
 AMSTrack.o: /pgm0/EventDisplay/root/include/TRotMatrix.h
@@ -128,8 +141,8 @@ AMSCanvas.o: /usr/include/unistd.h /usr/include/standards.h
 AMSCanvas.o: /usr/include/sys/types.h /usr/include/mach/machine/vm_types.h
 AMSCanvas.o: /usr/include/sys/select.h /usr/include/sys/access.h
 AMSCanvas.o: /usr/include/sys/seek.h /usr/include/getopt.h
-AMSCanvas.o: /pgm0/EventDisplay/root/include/TROOT.h TMotifCanvas.h
-AMSCanvas.o: /pgm0/EventDisplay/root/include/TControlBar.h
+AMSCanvas.o: /usr/include/stdlib.h /pgm0/EventDisplay/root/include/TROOT.h
+AMSCanvas.o: TMotifCanvas.h /pgm0/EventDisplay/root/include/TControlBar.h
 AMSCanvas.o: /pgm0/EventDisplay/root/include/TMenuBar.h
 AMSCanvas.o: /usr/include/Xm/RowColumn.h /usr/include/Xm/Xm.h
 AMSCanvas.o: /usr/include/X11/Intrinsic.h /usr/include/X11/Xlib.h
@@ -224,4 +237,16 @@ main.o: /pgm0/EventDisplay/root/include/TPad.h TRadioButton.h
 main.o: /pgm0/EventDisplay/root/include/TButton.h
 main.o: /pgm0/EventDisplay/root/include/TText.h AMSCanvas.h
 main.o: /pgm0/EventDisplay/root/include/TCanvas.h Debugger.h
-main.o: /pgm0/EventDisplay/root/include/TObject.h
+main.o: /pgm0/EventDisplay/root/include/TObject.h /usr/include/sys/stat.h
+main.o: /usr/include/standards.h /usr/include/sys/types.h
+main.o: /usr/include/mach/machine/vm_types.h /usr/include/sys/select.h
+main.o: /usr/include/sys/mode.h /usr/include/sys/file.h
+main.o: /usr/include/sys/param.h /usr/include/sys/limits.h
+main.o: /usr/include/sys/machine/machlimits.h /usr/include/sys/syslimits.h
+main.o: /usr/include/sys/machine/machtime.h /usr/include/sys/rt_limits.h
+main.o: /usr/include/sys/machine/machparam.h /usr/include/machine/endian.h
+main.o: /usr/include/sys/signal.h /usr/include/sys/siginfo.h
+main.o: /usr/include/sys/sysmisc.h /usr/include/sys/machine/signal.h
+main.o: /usr/include/machine/context.h /usr/include/sys/procset.h
+main.o: /usr/include/sys/access.h /usr/include/sys/fcntl.h
+main.o: /usr/include/sys/seek.h

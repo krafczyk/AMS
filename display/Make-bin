@@ -8,6 +8,7 @@ SRCS          = AMSRoot.cxx AMSMaker.cxx \
 		AMS3DCluster.cxx \
 		AMSToFCluster.cxx AMSToFClusterReader.cxx \
 		AMSAntiCluster.cxx AMSAntiClusterReader.cxx \
+		AMSTrMCCluster.cxx AMSTrMCClusterReader.cxx \
 		AMSTrack.cxx AMSTrackReader.cxx \
 		AMSSiHit.cxx AMSSiHitReader.cxx \
 		AMSCTCCluster.cxx AMSCTCClusterReader.cxx \
@@ -27,6 +28,7 @@ HDRS          = THelix.h TRadioButton.h TSwitch.h \
 		AMSMaker.h AMSHistBrowser.h AMSRoot.h \
 		AMSToFCluster.h AMSToFClusterReader.h \
 		AMSAntiCluster.h AMSAntiClusterReader.h \
+		AMSTrMCCluster.h AMSTrMCClusterReader.h \
 		AMSTrack.h AMSTrackReader.h \
 		AMSSiHit.h AMSSiHitReader.h \
 		AMSCTCCluster.h AMSCTCClusterReader.h \
