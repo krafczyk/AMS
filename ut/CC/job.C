@@ -1303,6 +1303,7 @@ void AMSJob::settdv(char *setup, integer N){
 }
 
 void AMSJob::_timeinitjob(){
+AMSgObj::BookTimer.book("TDV");
 static AMSTimeID TID(AMSID("TDV:",0));
 gethead()->addup( &TID);
 //
@@ -1706,6 +1707,17 @@ void AMSJob::_dbendjob()
   } else {
    Message("AMSJob::_dbendjob -I- UpdateMe != 1. NO UPDATE");
   }
+#else
+    if (AMSFFKEY.Update){
+     AMSTimeID * offspring = 
+     (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
+     while(offspring){
+       if(offspring->UpdateMe())cout << " Starting to update "<<*offspring; 
+      if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+      cerr <<"AMSJob::_dbendjob-S-ProblemtoUpdate "<<*offspring;
+      offspring=(AMSTimeID*)offspring->next();
+     }
+    }
 #endif
 } 
 

@@ -115,7 +115,7 @@ AMSlink * getheadC(char name[], integer id, integer sorted=0)
 {return _getheadC(AMSID(name,id),sorted);}
 integer buildC(char name[], integer par=0);
 integer rebuildC(char name[], integer par=0);
-
+static integer getSRun() {return SRun;}
  integer setbuilderC(char name[], pBuilder pb);
 AMSlink * getlastC(char name[], integer id)
 {return _getlastC(AMSID(name,id));}

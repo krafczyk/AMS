@@ -76,7 +76,19 @@ void AMSEvent::_init(){
   _validateDB();
 #endif
 
+
+
   if(_run != SRun){
+    if (AMSFFKEY.Update){
+     AMSTimeID * offspring = 
+     (AMSTimeID*)((AMSJob::gethead()->gettimestructure())->down());
+     while(offspring){
+       if(offspring->UpdateMe())cout << " Starting to update "<<*offspring; 
+       if(offspring->UpdateMe() && !offspring->write(AMSDATADIR.amsdatabase))
+       cerr <<"AMSEvent::_init-S-ProblemtoUpdate "<<*offspring;
+      offspring=(AMSTimeID*)offspring->next();
+     }
+    }
     SRun=_run;
    _validate();
   }

@@ -11,6 +11,7 @@
 *
 ***********************
 ************************
+      integer hid
       character *(*)  fnam
       LOGICAL         CHAIN
       CHARACTER*128   CFILE
@@ -1311,6 +1312,7 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
       parameter (ndet=21)
       character *64 cblock(ndet)
       integer events(10000),nevent
+      common /quest/iquest(100)
 *
 *--   Enter user code here
 *
@@ -1319,9 +1321,21 @@ c       if(mod(ll,100).eq.1)write(*,*)' hfnt ',npart,nmcg,nlvl3
         write(*,*)'Unable to open input file ',fnam
         stop
        endif
+       call hrin(0,9999,0)
+       if(iquest(1).ne.0)then
+        write(*,*)'Prepare-E-Error-IQUEST(1)-',iquest(1)
+        write(*,*)'Try to read ntuple only'
+       close(4)
+       call HROPEN(4,'input',fnam,' ',8000,iostat)
+       if(iostat.ne.0)then
+        write(*,*)'Unable to open input file ',fnam
+        stop
+       endif
        ic=0
        call hcdir('//input',' ')
-       call hrin(0,9999,0)
+        
+        call hrin(1,9999,0)
+       endif
        ic=0
        cblock(1)='EVENTH'
        cblock(2)='BETA'

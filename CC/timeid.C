@@ -106,20 +106,20 @@ integer AMSTimeID::CopyOut(void *pdata){
 
 
 integer AMSTimeID::validate(time_t & Time, integer reenter){
+AMSgObj::BookTimer.start("TDV");
+read(AMSDATADIR.amsdatabase);
 if (Time >= _Begin && Time <= _End){
-  if(_CRC == _CalcCRC())return 1;
+  if(_CRC == _CalcCRC()){
+     AMSgObj::BookTimer.stop("TDV");
+     return 1;
+  }
   else {
       cerr<<"AMSTimeID::validate-S-CRC Error "<<getname()<<" Old CRC "
       <<_CRC<<" New CRC "   <<_CalcCRC()<<endl;
   }
+  AMSgObj::BookTimer.stop("TDV");
   return 0;
 }
-else if(reenter<2){
-  // try to read it from file ....
-  read(AMSDATADIR.amsdatabase,reenter);
-  return validate(Time,reenter+1);
-}
-else return 0;
 }
 
 uinteger AMSTimeID::_CalcCRC(){
@@ -166,6 +166,12 @@ integer AMSTimeID::write(char * dir){
      ost << "."<<AMSTrIdCalib::getrun()<<ends;
      fnam+=name;     
     }
+    else {
+     char name[255];
+     ostrstream ost(name,sizeof(name));
+     ost << "."<<AMSEvent::getSRun()<<ends;
+     fnam+=name;     
+    }
     fbin.open((const char *)fnam,ios::out|binary|ios::trunc);
     if(fbin){
      uinteger * pdata;
@@ -185,7 +191,7 @@ integer AMSTimeID::write(char * dir){
      else cerr<<"AMSTimeID::write-E-Failed to allocate memory "<<_Nbytes<<endl;
     }
     else {
-      cerr<<"AMSTimeID::write-E-CouldNot open file "<<fnam;
+      cerr<<"AMSTimeID::write-E-CouldNot open file "<<fnam<<endl;
     }
 #endif
 
@@ -197,28 +203,25 @@ integer AMSTimeID::write(char * dir){
 integer AMSTimeID::read(char * dir, integer reenter){
 
   // first get a run no from dbase
-  uinteger run=_getRun(AMSEvent::gethead()->getrun());
-
+  integer run=_getDBRecord(AMSEvent::gethead()->gettime());
   enum open_mode{binary=0x80};
     fstream fbin;
     AString fnam(dir);
     fnam+=getname();
     fnam+= getid()==0?".0":".1";
-    if(run && !reenter){
+    if(run>0 ){
      char name[255];
      ostrstream ost(name,sizeof(name));
      ost << "."<<run<<ends;
      fnam+=name;     
     }
 
-    else {
+    else if(run==0){
       cout <<"AMSTimeID::read-W-Default value for TDV "<<getname()<<" will be used."<<endl;
     }
+    else return 0;
     fbin.open((const char *)fnam,ios::in|binary);
     if(fbin){
-#ifdef __AMSDEBUG__
-      cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
-#endif
 
      uinteger * pdata;
      integer ns=_Nbytes/sizeof(pdata[0])+3;
@@ -231,6 +234,12 @@ integer AMSTimeID::read(char * dir, integer reenter){
       _Insert=time_t(pdata[_Nbytes/sizeof(pdata[0])]);
       _Begin=time_t(pdata[_Nbytes/sizeof(pdata[0])+1]);
       _End=time_t(pdata[_Nbytes/sizeof(pdata[0])+2]);
+#ifdef __AMSDEBUG__
+      cout <<"AMSTimeID::read-I-Open file "<<fnam<<endl;
+      cout <<"AMSTimeID::read-I-Insert "<<ctime(&_Insert)<<endl;
+      cout <<"AMSTimeID::read-I-Begin "<<ctime(&_Begin)<<endl;
+      cout <<"AMSTimeID::read-I-End "<<ctime(&_End)<<endl;
+#endif
       }
       else {
         cout<<"AMSTimeID::read-W-Problems to Read File "<<fnam<<endl;
@@ -248,7 +257,7 @@ integer AMSTimeID::read(char * dir, integer reenter){
     else {
       cerr<<"AMSTimeID::read-W-CouldNot open file "<<fnam<<endl;
     }
-    return 0;
+    return 1;
 
 }
 
@@ -272,19 +281,31 @@ void AMSTimeID::_convert(uinteger *pdata, integer n){
 
 
 }
-uinteger AMSTimeID::_getRun(uinteger run){
+integer AMSTimeID::_getDBRecord(uinteger time){
 
-integer index=AMSbiel(_pDataBaseEntries,run,_DataBaseSize);
+ integer index=AMSbiel(_pDataBaseEntries[3],time,_DataBaseSize);
+ int rec=-1;
+ int insert= (time>=_Begin && time<=_End)?_Insert:0;
+ for (int i=index<0?_DataBaseSize:index;i<_DataBaseSize;i++){
+   if(time>=_pDataBaseEntries[2][i] && insert<=_pDataBaseEntries[1][i]){
+      insert=     _pDataBaseEntries[1][i];
+      rec=i;
+   }
+ }
+   if(time<_Begin || time>_End)return rec<0?0:_pDataBaseEntries[0][rec];
+   else return -1;
+  
 
-if(index <0)return 0;
-else if (index>=_DataBaseSize)return _pDataBaseEntries[_DataBaseSize-1];
-else{
-if(_pDataBaseEntries[index] ==run)return run;
-else return index>0?_pDataBaseEntries[index-1]:0;
-}
 
-
-
+//Old
+/*
+ integer index=AMSbiel(_pDataBaseEntries[0],time,_DataBaseSize);
+ if(index <0)return 0;
+ else if (index>=_DataBaseSize)return _pDataBaseEntries[0][_DataBaseSize-1];
+ else{
+ if(_pDataBaseEntries[0][index] ==run)return run;
+ else return index>0?_pDataBaseEntries[0][index-1]:0;
+*/
 
 }
 
@@ -295,33 +316,72 @@ return strstr(entry->d_name,(char*)*_selectEntry)!=NULL;
 }
 
 void AMSTimeID::_fillDB(const char *dir){
-  //typedef integer (*pselect)(dirent * entry);
-_pDataBaseEntries=0;
-_DataBaseSize=0;
+for( int i=0;i<4;i++)_pDataBaseEntries[i]=0;
+    _DataBaseSize=0;
     AString fnam(getname());
     fnam+= getid()==0?".0":".1";
     _selectEntry=&fnam;
     dirent ** namelist;
     int nptr=scandir(dir,&namelist,&_select,NULL);     
     if(nptr){
-     _pDataBaseEntries=new uinteger[nptr];
-     for(int i=0;i<nptr;i++) {
+     for(i=0;i<4;i++)_pDataBaseEntries[i]=new uinteger[nptr];
+     for(i=0;i<nptr;i++) {
       int valid=0;
       int kvalid=0;
       for(int k=strlen((char*)fnam);k<namelist[i]->d_namlen-1;k++){
        if((namelist[i]->d_name)[k]=='.' )valid++;
        if((namelist[i]->d_name)[k]=='.')kvalid=k;
       }
-      if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1]))sscanf((namelist[i]->d_name)+kvalid+1,"%d",
-                         _pDataBaseEntries+_DataBaseSize++);
+      if(valid==1 && isdigit(namelist[i]->d_name[kvalid+1])){
+        sscanf((namelist[i]->d_name)+kvalid+1,"%d",
+                         _pDataBaseEntries[0]+_DataBaseSize);
+        fstream fbin;
+        AString ffile(dir);
+        ffile+=namelist[i]->d_name;
+        fbin.open((const char *)ffile,ios::in);
+        uinteger temp[3];
+        if(fbin){
+         fbin.seekg(fbin.tellg()+_Nbytes+sizeof(_CRC));
+         fbin.read((char*)temp,3*sizeof(temp[0]));
+         if(fbin.good()){
+           _convert(temp,3);
+           _pDataBaseEntries[1][_DataBaseSize]=temp[0];
+           _pDataBaseEntries[2][_DataBaseSize]=temp[1];
+           _pDataBaseEntries[3][_DataBaseSize]=temp[2];
+           _DataBaseSize++;
+         }
+         fbin.close();
+        }
+                 
+      }
       free(namelist[i]);
      }
-    AMSsortNAGa(_pDataBaseEntries,_DataBaseSize);
-    free(namelist);
-
-    }
+     // sort
+     //AMSsortNAGa(_pDataBaseEntries[0],_DataBaseSize);
+     
+     uinteger **padd= new uinteger*[_DataBaseSize];
+     uinteger *tmp=  new uinteger[_DataBaseSize];
 #ifdef __AMSDEBUG__
-    cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "<<fnam<<endl; 
+      assert(padd!=NULL && tmp!=NULL);
 #endif
+     for(i=0;i<_DataBaseSize;i++){
+        tmp[i]=_pDataBaseEntries[3][i];
+        padd[i]=tmp+i;
+     }
+     AMSsortNAG(padd,_DataBaseSize);
+     for(i=0;i<4;i++){
+      for(int k=0;k<_DataBaseSize;k++){
+        tmp[k]=_pDataBaseEntries[i][k];
+      }
+      for(k=0;k<_DataBaseSize;k++){
+       _pDataBaseEntries[i][k]=*(padd[k]);
+      }
+     }
+    delete[] padd;
+    delete[] tmp;
+    
+    free(namelist);
+    }
+    cout <<"AMSTimeID::_fillDB-I-"<<_DataBaseSize<<" entries found for TDV "<<fnam<<endl; 
 
 }
