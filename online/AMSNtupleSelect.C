@@ -1,28 +1,59 @@
 #include "AMSNtupleHelper.h"
-extern void* gAMSUserFunction;
-extern AMSNtupleHelper* AMSNtupleHelper::fgHelper;
+static AMSNtupleHelper * fgHelper=0;
+extern "C" AMSNtupleHelper * gethelper();
 class AMSNtupleSelect: public AMSNtupleHelper{
 public:
-AMSNtupleSelect(){cout <<"hhhhhhh"<<endl;};
+AMSNtupleSelect(){};
 bool IsGolden(AMSEventR *ev){
- if(ev && ev->nParticle()>0 ){
-    return true;
+// 
+// This is a user function to be modified
+//  return true if event has to be drawn false otherwise
+//
+ if(ev && ev->nParticle()>0 && ev->nTrTrack()>0){
+   cout <<"working"<<endl;
+   return true;
  }
- else return false;
+  else return false;
 }
 };
 
-class AMSNtupleSelectI{
-public:
-AMSNtupleSelectI(){
- void ** cp=(void**)0x812e44c;
+//
+//  The code below should not be modified
+//
+#ifndef WIN32
+extern "C" void fgSelect(){
   AMSNtupleHelper::fgHelper=new AMSNtupleSelect(); 
-  cout <<(void*)&AMSNtupleHelper::fgHelper<<" "<<gAMSUserFunction<<endl; 
+  cout <<"  Handle Loadedd "<<endl;
 }
-};
-AMSNtupleSelectI fgSelect;
-bool AMSNtupleHelper::IsGolden(AMSEventR *o){
-return true;
+#else
+#include <windows.h>
+BOOL DllMain(HINSTANCE hinstDLL,  // DLL module handle
+    DWORD fdwReason,              // reason called 
+    LPVOID lpvReserved)           // reserved 
+{ 
+ 
+    switch (fdwReason) 
+    { 
+        // The DLL is loading due to process 
+        // initialization or a call to LoadLibrary. 
+ 
+          case DLL_PROCESS_ATTACH: 
+fgHelper=new AMSNtupleSelect();
+cout <<"  Handle Loadedd "<<fgHelper<<endl;
+break;
+
+        case DLL_PROCESS_DETACH: 
+        if(fgHelper){
+         delete fgHelper;
+         fgHelper=0;
+        } 
+ 
+            break; 
+ 
+        default: 
+          break; 
+     } 
+     return TRUE;
 }
-
-
+extern "C" AMSNtupleHelper * gethelper(){return fgHelper;}
+#endif

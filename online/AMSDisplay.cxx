@@ -1,4 +1,4 @@
-//  $Id: AMSDisplay.cxx,v 1.19 2004/02/23 22:47:39 choutko Exp $
+//  $Id: AMSDisplay.cxx,v 1.20 2004/02/24 07:51:15 choutko Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -438,7 +438,7 @@ int  AMSOnDisplay::ReLoad(){
 #ifdef WIN32
 	char cmd1[]="cl.exe AMSNtupleSelect.obj -o libuser.so /LD /link -nologo -export:gethelper";
 #else
-         char cmd1[]="ld -init fgselect -shared AMSNtupleSelect.o -o libuser.so";
+         char cmd1[]="ld -init fgSelect -shared AMSNtupleSelect.o -o libuser.so";
 #endif
          $i=system(cmd1);
          if(!$i){  

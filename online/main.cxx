@@ -1,4 +1,4 @@
-//  $Id: main.cxx,v 1.23 2004/02/23 22:47:43 choutko Exp $
+//  $Id: main.cxx,v 1.24 2004/02/24 07:51:15 choutko Exp $
 #include <TRegexp.h>
 #include <TChain.h>
 #include <TRootApplication.h>
@@ -117,7 +117,7 @@ Myapp *theApp = new Myapp("App", &argcc, argv);
   amd->SetApplication(theApp);
   amd->Begin()=0;
   amd->Sample()=999;
-  theApp->SetIdleTimer(15,"");
+  theApp->SetIdleTimer(6,"");
    TVirtualHistPainter::SetPainter("THistPainter");
       for(;;){
         if(amd->Fill())amd->DispatchProcesses();
