@@ -78,12 +78,12 @@ void TriggerLVL1::build(){
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   // mark default as error here
   integer tm=floor(TOFVarp::getmeantoftemp(0));   
-     if(lifetime>1. && !MISCFFKEY.BeamTest)AMSEvent::gethead()->seterror();
+     if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData() )AMSEvent::gethead()->seterror();
   if(tofflag>0 && ntof >=LVL1FFKEY.ntof && nanti <= LVL1FFKEY.nanti && (sumsc<LVL1FFKEY.MaxScalersRate || lifetime>LVL1FFKEY.MinLifeTime)){
        AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0),
                        new TriggerLVL1(lifetime*1000+tm*10000,tofflag,tofpatt,antipatt));
   }
-  else if(sumsc>=LVL1FFKEY.MaxScalersRate && lifetime<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
+  else if(AMSJob::gethead()->isRealData() && sumsc>=LVL1FFKEY.MaxScalersRate && lifetime<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   
 
 
@@ -319,10 +319,10 @@ void TriggerLVL1::buildraw(integer n, int16u *p){
   geant lifetime=_scaler.getlifetime(AMSEvent::gethead()->gettime());
   integer tm=floor(TOFVarp::getmeantoftemp(0));   
   // mark default as error here
-     if(lifetime>1. && !MISCFFKEY.BeamTest)AMSEvent::gethead()->seterror();
+     if(lifetime>1. && !MISCFFKEY.BeamTest && AMSJob::gethead()->isRealData())AMSEvent::gethead()->seterror();
   if(z>0 && (sumsc<LVL1FFKEY.MaxScalersRate || lifetime>LVL1FFKEY.MinLifeTime))AMSEvent::gethead()->addnext(AMSID("TriggerLVL1",0), new
   TriggerLVL1(lifetime*1000+tm*10000,z,tofp,tofp1,antip));
-  else if(sumsc>=LVL1FFKEY.MaxScalersRate && lifetime<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
+  else if(AMSJob::gethead()->isRealData() && sumsc>=LVL1FFKEY.MaxScalersRate && lifetime<=LVL1FFKEY.MinLifeTime)AMSEvent::gethead()->seterror();
   // ---> TOF Online histograms
   if(AMSJob::gethead()->isMonitoring() & 
      (AMSJob::MTOF | AMSJob::MAll)){
