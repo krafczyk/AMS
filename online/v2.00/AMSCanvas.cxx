@@ -382,69 +382,11 @@ void AMSCanvas::HandleInput(Int_t event, Int_t px, Int_t py)
 //______________________________________________________________________
 
 void AMSCanvas::SubDet(int det, int set){
-  switch(det){
-  case 0:
-  AntiSetCB(set);
-  break;
-  case 1:
-  TrackerSetCB(set);
-  break;
-  case 2:
-  LVL1SetCB(set);
-  break;
-  case 3:
-  LVL3SetCB(set);
-  break;
-  case 4:
-  TOFSetCB(set);
-  break;
-  case 5:
-  CTCSetCB( set);
-  break;
-  case 6:
-  AxAMSSetCB(set);
-  break;
-  } 
-}
-
-
-void AMSCanvas::CTCSetCB(int set)
-{
-   gAMSDisplay->Dispatch(5,set);
+   gAMSDisplay->Dispatch(det,set);
    gAMSDisplay->GetCanvas()->Update();		// refresh the screen
 }
 
-void AMSCanvas::AxAMSSetCB(int set)
-{
-   gAMSDisplay->Dispatch(6,set);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
 
-void AMSCanvas::LVL3SetCB(int set)
-{
-   gAMSDisplay->Dispatch(3,set);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::LVL1SetCB(int set)
-{
-   gAMSDisplay->Dispatch(2,set);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TrackerSetCB(int set)
-{
-   gAMSDisplay->Dispatch(1,set);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::AntiSetCB(int set)
-{
-   gAMSDisplay->Dispatch(0,set);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
-void AMSCanvas::TOFSetCB(int set)
-{
-   gAMSDisplay->Dispatch(4,set);
-   gAMSDisplay->GetCanvas()->Update();		// refresh the screen
-}
 
 
 //______________________________________________________________________

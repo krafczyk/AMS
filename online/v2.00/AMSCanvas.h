@@ -39,21 +39,6 @@ public:
    static   void      PrintCB();
 
    static void        SubDet(int det, int set);
-   // Anti
-   static void        AntiSetCB(int set);
-   // Tracker
-   static void        TrackerSetCB(int set);
-   
-   // Level1
-   static void        LVL1SetCB(int set);
-   // Level3
-   static void        LVL3SetCB(int set);
-   // TOF
-   static void        TOFSetCB(int set);
-   // CTC
-   static void        CTCSetCB(int set);
-   // AxAMS
-   static void        AxAMSSetCB(int set);
 
    ClassDef(AMSCanvas, 0)   //AMS canvas control class
 };
