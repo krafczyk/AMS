@@ -23,9 +23,16 @@ static uinteger * _Table;
 void _convert(uinteger *pdata, integer nw);
 void _fillDB(const char * dir);
 void _fillfromDB();
-integer _getDBRecord(uinteger time);
+integer _getDBRecord(time_t & time);
 void _getDefaultEnd(uinteger time, time_t & endt);
+void _checkcompatibility (const char* dir);
+char* _getsubdirname(time_t time);
 static integer _select(
+#ifndef __ALPHA__
+const
+#endif
+dirent * entry=0);
+static integer _selectsdir(
 #ifndef __ALPHA__
 const
 #endif
@@ -49,7 +56,7 @@ static const uinteger CRC32;
 void gettime(time_t & insert, time_t & begin, time_t & end) const;
 void SetTime (time_t insert, time_t begin, time_t end) ;
 integer validate(time_t & Time,integer reenter=0);
-integer write(char * dir);
+integer write(const char * dir, int sleep=1);
 integer read(char * dir, integer reenter=0);
 integer readDB(integer reenter=0);
 };
