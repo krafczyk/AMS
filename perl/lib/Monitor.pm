@@ -1,4 +1,4 @@
-# $Id: Monitor.pm,v 1.31 2001/02/09 13:08:50 choutko Exp $
+# $Id: Monitor.pm,v 1.32 2001/02/12 17:40:43 choutko Exp $
 
 package Monitor;
 use CORBA::ORBit idl => [ '../include/server.idl'];
@@ -580,7 +580,7 @@ sub getactivehosts{
     my $effic=$time==0?0:int ($cpu*100/$time); 
   push @text, $cpuper/1000., $effic/100.;
      push @text, $hash->{Status};
-    if( $hash->{Status} eq "LastClientFailed"){
+    if( $hash->{Status} eq "LastClientFailed" or $hash->{Status} eq "InActive"){
       push @text ,1;
   }elsif( $hash->{Status} eq "NoResponse"){
       push @text ,2;

@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.41 2001/02/09 13:08:49 choutko Exp $
+//  $Id: server.C,v 1.42 2001/02/12 17:40:32 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -776,8 +776,8 @@ if(_acl.size()<(*_ncl.begin())->MaxClients ){
 //      _pser->MonInfo("Started client ",DPS::Client::Info);
     }
     else{
-     (ahlv)->Status=DPS::Client::LastClientFailed; 
-     ((ahlv)->ClientsFailed)++; 
+     HostClientFailed(ahlv); 
+      
      DPS::Client::CID cid=_parent->getcid();      
      cid.Type=getType();
      cid.Interface= (const char *) " "; 
@@ -1209,24 +1209,24 @@ return 0;
             if(!strcmp((const char *)(*i)->HostName, (const char *)(ac.id).HostName)){
 //          cout << " host found for deleteing "<<endl;
         ((*i)->ClientsRunning)--;
-       ((*i)->ClientsProcessed)++; 
      time_t tt;
      time(&tt);
      (*i)->LastUpdate=tt;     
 
        switch ((ac.id).Status){
        case DPS::Client::CInExit: 
+          ((*i)->ClientsProcessed)++; 
             (*i)->Status=DPS::Client::OK; 
         break;
         case DPS::Client::SInExit:
+           ((*i)->ClientsProcessed)++; 
            (*i)->Status=DPS::Client::OK; 
             break;
        case DPS::Client::CInAbort:
-        (*i)->Status=DPS::Client::LastClientFailed; 
-        ((*i)->ClientsFailed)++; 
+        HostClientFailed(*i); 
         break;
        case DPS::Client::SInKill:
-        (*i)->Status=DPS::Client::LastClientFailed; 
+        HostClientFailed(*i); 
         ((*i)->ClientsKilled)++; 
         break;
        }  
@@ -1975,9 +1975,9 @@ if(pcur->InactiveClientExists(getType()))return;
 //     ((ahlv)->ClientsRunning)++;
     }
     else{
-     (ahlv)->Status=DPS::Client::LastClientFailed; 
-     ((ahlv)->ClientsFailed)++; 
-     DPS::Client::CID cid=_parent->getcid();      
+        HostClientFailed(ahlv); 
+     
+      DPS::Client::CID cid=_parent->getcid();      
       cid.Type=getType();
       cid.Interface= (const char *) " "; 
     PropagateAH(cid,(ahlv),DPS::Client::Update);
@@ -4025,24 +4025,23 @@ for(AMSServerI * pcur=getServer(); pcur; pcur=(pcur->down())?pcur->down():pcur->
                if(!strcmp((const char *)(*i)->HostName, (const char *)((ac.id).HostName))){
                DPS::Client::ActiveHost_var ahlv= *i;
                (ahlv->ClientsRunning)--;
-               (ahlv->ClientsProcessed)++; 
                time_t tt;
                time(&tt);
                (ahlv)->LastUpdate=tt;     
                switch ((ac.id).Status){
                case DPS::Client::CInExit: 
                 (ahlv)->Status=DPS::Client::OK; 
+                (ahlv->ClientsProcessed)++; 
                 break;
                case DPS::Client::SInExit:
                 (ahlv)->Status=DPS::Client::OK; 
+                (ahlv->ClientsProcessed)++; 
                 break;
                case DPS::Client::CInAbort:
-                (ahlv)->Status=DPS::Client::LastClientFailed; 
-                ((ahlv)->ClientsFailed)++; 
+                HostClientFailed(ahlv);
                 break;
                case DPS::Client::SInKill:
-                (ahlv)->Status=DPS::Client::LastClientFailed; 
-                ((ahlv)->ClientsKilled)++; 
+                HostClientFailed(ahlv);
                 break;
                }
                dvar->sendAH(acid,ahlv,DPS::Client::Update);
@@ -4130,3 +4129,10 @@ return 0;
 
 
 
+void AMSServerI::HostClientFailed(DPS::Client::ActiveHost_var &ahlv){
+      (ahlv)->Status=DPS::Client::LastClientFailed;
+     ((ahlv)->ClientsFailed)++; 
+     ((ahlv)->ClientsProcessed)++; 
+     if( (ahlv)->ClientsProcessed>3 && (ahlv)->ClientsFailed>((ahlv)->ClientsProcessed+1)/2)(ahlv)->Status=DPS::Client::InActive;
+
+}
