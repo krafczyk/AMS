@@ -72,6 +72,7 @@ public:
      static const integer AwayTOF;
      static const integer FalseX;
      static const integer FalseTOFX;
+     static const integer RECOVERED;
 
 
 // machine dependent values

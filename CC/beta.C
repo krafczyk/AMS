@@ -158,6 +158,7 @@ integer AMSBeta::_addnext(integer pat, integer nhit, number sleng[],
      for(nh=0;nh<nhit;nh++){
       status=pthit[nh]->getstatus();
       if((status&SCBADB2)!=0 && (status&SCBADB5)!=0){//tempor  use now only TOF-recovered
+        pbeta->setstatus(AMSDBc::RECOVERED);
         pthit[nh]->recovers(ptrack);
       }
      }

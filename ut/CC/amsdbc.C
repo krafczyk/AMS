@@ -20,6 +20,7 @@ const integer AMSDBc::WEAK=2048;
 const integer AMSDBc::AwayTOF=4096;
 const integer AMSDBc::FalseX=8192;
 const integer AMSDBc::FalseTOFX=16384;
+const integer AMSDBc::RECOVERED=16384*2;
 
 integer AMSDBc::debug=1;
 integer AMSDBc::BigEndian=0;
