@@ -419,7 +419,7 @@ void AMSEvent::SetTimeCoo(integer rec){
       _NorthPolePhi=fmod(AMSmceventg::Orbit.PolePhiStatic+Array[hint].GrMedPhi+
                          AMSmceventg::Orbit.EarthSpeed*xsec,AMSDBc::twopi);
        // getorbit parameters from velocity
-        AMSDir ax1(AMSDBc::pi/2-_StationTheta,_StationPhi);
+        AMSDir ax1(AMSDBc::pi/2-Array[hint].StationTheta,Array[hint].StationPhi);
         AMSDir ax2(AMSDBc::pi/2-_VelTheta,_VelPhi);
         AMSmceventg::Orbit.Axis=ax1.cross(ax2);
         AMSmceventg::Orbit.AlphaTanThetaMax=tan(acos(AMSmceventg::Orbit.Axis[2]));
