@@ -1790,15 +1790,24 @@ AMSTimeID * AMSJob::gettimestructure(const AMSID & id){
 
 AMSJob::~AMSJob(){
   cout << "~AMSJob called "<<endl;
+  uhend();
+  cout <<"uhend finished"<<endl;
 _tkendjob();
+  cout <<"tkendjob finished"<<endl;
 _ctcendjob();
+  cout <<"ctcendjob finished"<<endl;
 _tofendjob();
+  cout <<"tofendjob finished"<<endl;
 _antiendjob();
+  cout <<"antiendjob finished"<<endl;
 _trdendjob();
+  cout <<"trdendjob finished"<<endl;
 _dbendjob();
+  cout <<"dbendjob finished"<<endl;
 _axendjob();
-uhend();
+  cout <<"axendjob finished"<<endl;
 delete _pntuple;
+  cout <<"pntuple deleted"<<endl;
 
 
 
@@ -1886,14 +1895,14 @@ void AMSJob::_tkendjob(){
 
   if((isCalibration() & AMSJob::CTracker) && TRCALIB.CalibProcedureNo == 1){
     AMSTrIdCalib::check(1);
+    AMSTrIdCalib::printbadchanlist();
   }
   if(TRCALIB.CalibProcedureNo == 3){
     AMSTrIdCalib::ntuple(AMSEvent::getSRun());
   }
-  AMSTrIdCalib::printbadchanlist();
-  if(isMonitoring() & (AMSJob::MTracker | AMSJob::MAll))
-  AMSTrIdCalib::offmonhist();    
-
+  if(isMonitoring() & (AMSJob::MTracker | AMSJob::MAll)){
+   AMSTrIdCalib::offmonhist();    
+  }
 }
 
 //------------------------------------------------------------------
