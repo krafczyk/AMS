@@ -65,7 +65,7 @@ integer AMSParticle::build(integer refit){
           emomentum=err*rid*rid*charge;
           number beta=pbeta->getbeta();
           number ebeta=pbeta->getebeta()*beta*beta;
-          if(fabs(beta)>=1){
+          if(fabs(beta)>=1.99){
            mass=0;
            emass=FLT_MAX;
           }
@@ -74,13 +74,22 @@ integer AMSParticle::build(integer refit){
            mass=FLT_MAX;
            emass=FLT_MAX;
           }
-          else{
+          else if(fabs(beta)<1.){
            number one=1;
            number gamma=sqrt(one/(one-beta*beta)); 
            mass=fabs(momentum/gamma/beta);
 //           emass=mass*sqrt(pow(emomentum/momentum,2.)+pow(gamma,4)*
 //           pow(ebeta/beta,2));
            emass=mass*sqrt((emomentum/momentum)*(emomentum/momentum)+
+           (gamma*gamma*ebeta/beta)*(gamma*gamma*ebeta/beta));
+          }
+          else{
+           number one=1;
+           if(beta>0)beta=2-beta;
+           else beta=-2-beta;
+           number gamma=sqrt(one/(one-beta*beta)); 
+           mass=-fabs(momentum/gamma/beta);
+           emass=fabs(mass)*sqrt((emomentum/momentum)*(emomentum/momentum)+
            (gamma*gamma*ebeta/beta)*(gamma*gamma*ebeta/beta));
           }
           if(beta<0)momentum=-momentum;
