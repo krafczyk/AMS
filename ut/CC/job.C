@@ -253,7 +253,8 @@ TRMCFFKEY.delta[0]=0.67;
 TRMCFFKEY.delta[1]=1.0;
 TRMCFFKEY.gammaA[0]=0.3;
 TRMCFFKEY.gammaA[1]=0.1;
-
+TRMCFFKEY.NonGaussianPart[0]=0;
+TRMCFFKEY.NonGaussianPart[1]=0.1;
 
 
 TRMCFFKEY.cmn[0]=10;
@@ -278,7 +279,7 @@ TRMCFFKEY.thr1R[0]=2.75;
 TRMCFFKEY.thr1R[1]=3.5;
 TRMCFFKEY.thr2R[0]=1;
 TRMCFFKEY.thr2R[1]=1;
-TRMCFFKEY.neib[0]=1;
+TRMCFFKEY.neib[0]=0;
 TRMCFFKEY.neib[1]=1;
 TRMCFFKEY.CalcCmnNoise[0]=1;
 TRMCFFKEY.CalcCmnNoise[1]=0;
@@ -1081,6 +1082,13 @@ void AMSJob::_sitkinitjob(){
      }
   }
 else TRMCFFKEY.year[1]=TRMCFFKEY.year[0]-1;
+
+   for(int l=0;l<2;l++){
+   // book noise prob
+    geant a=TRMCFFKEY.thr1R[l]-AMSTrMCCluster::step()/2.;
+    geant b=a+AMSTrMCCluster::ncha()*AMSTrMCCluster::step();
+    HBOOK1(AMSTrMCCluster::hid(l),"x prob",AMSTrMCCluster::ncha(),a,b,0.);
+   }
 
      AMSgObj::BookTimer.book("GEANTTRACKING");
      AMSgObj::BookTimer.book("SITKHITS");
@@ -1915,8 +1923,6 @@ void AMSJob::uhinit(integer run, integer eventno){
   }
    HBOOK1(200101,"Number of Nois Hits x",100,-0.5,99.5,0.);
    HBOOK1(200102,"Number of Nois Hits y",100,-0.5,99.5,0.);
-   HBOOK1(200103,"Normal Spectrum  x",200,-50.5,49.5,0.);
-   HBOOK1(200104,"Normal Spectrum y",200,-50.5,49.5,0.);
    HBOOK1(200105,"Above threshold spectrum x",200,-0.5,49.5,0.);
    HBOOK1(200106,"Above threshold spectrum y",200,-0.5,49.5,0.);
 

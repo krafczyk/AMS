@@ -160,7 +160,10 @@ protected:
  void _copyEl();
 
  static integer Out(integer);
-  
+ static integer _hid[2];
+ static integer _ncha;
+ static geant _step; 
+ static integer _NoiseMarker;
 public:
  // Constructor for noise &crosstalk
  AMSTrMCCluster(const AMSTrIdGeom & id,integer side,integer nel, number ss[],
@@ -173,8 +176,13 @@ public:
  AMSTrMCCluster(){_next=0;};
  ~AMSTrMCCluster(){};
   AMSTrIdGeom getid();
+  static integer noisemarker(){return _NoiseMarker;}
+  static geant step(){return _step;}
+  static integer ncha(){return _ncha;}
+  static integer hid(integer l){return l<2?_hid[l]:0;}
+  
   AMSTrMCCluster *  next(){return (AMSTrMCCluster*)_next;}
-  void addcontent(char xy, geant ** p);
+  void addcontent(char xy, geant ** p, integer noise=0);
   void addcontent(const AMSTrIdSoft & id, geant *adc);
   static integer debug;
  static void 
@@ -183,8 +191,8 @@ public:
  static void sitkcrosstalk();
  static void sitknoise();
  static number sitknoiseprob(const AMSTrIdSoft & id, number threshold);
- static void sitknoisespectrum(const AMSTrIdSoft & id,integer nch,
- number ss[]);
+ static number sitknoiseprobU(number threshold, number step);
+ static void sitknoisespectrum(const AMSTrIdSoft & id, number ss[], number prob);
 //+
 #ifdef __DB__
    friend class AMSTrMCClusterD;

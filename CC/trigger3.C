@@ -655,8 +655,8 @@ void TriggerLVL3::addtof(int16 plane, int16 paddle){
   //TriggerExpertLVL3::pExpert->update(plvl3);        
   tt2=HighResTime();
        }
-       if((plvl3->TrackerTrigger())%32 >= LVL3FFKEY.Accept || 
-          (LVL3FFKEY.Accept>31 && plvl3->TrackerTrigger()>=LVL3FFKEY.Accept)){ 
+       if((plvl3->TrackerTriggerS())%32 >= LVL3FFKEY.Accept || 
+          (LVL3FFKEY.Accept>31 && plvl3->TrackerTriggerS()>=LVL3FFKEY.Accept)){ 
          plvl3->settime(tt2-tt1);
          AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",0),plvl3);
        }
@@ -877,7 +877,8 @@ void TriggerLVL3::builddaq(integer i, integer n, int16u *p){
   getheadC("TriggerLVL3",i);
   *p=getdaqid(i);
   if(ptr){
-    *(p+1)=int16u(ptr->_TrackerTrigger);
+    uinteger tra=ptr->TrackerTriggerS();
+    *(p+1)=int16u(tra);
     *(p+2)=(ptr->_TOFTrigger) | ((ptr->_AntiTrigger)<<8);
     int16 res=int16(ptr->_Residual[0]*1000);
     *(p+3)=int16u(res);
@@ -907,9 +908,6 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  pat[1]=-1;
  //tra=(*(p+1)%32);   // tmp probg
  tra=(*(p+1));   // tmp probg
- // swap 1 <-> 3
- if(tra%8==1)tra=tra+2; 
- else if(tra%8==3)tra=tra-2; 
  tof=(*(p+2))&255;
  anti=((*(p+2))>>8)&255;
  res[0]=int16(*(p+3))/1000.;
@@ -928,11 +926,21 @@ void TriggerLVL3::buildraw(integer n, int16u *p){
  //   }
  
 if(tra%32 >= LVL3FFKEY.Accept || 
-(LVL3FFKEY.Accept>31 && tra >=LVL3FFKEY.Accept))
+(LVL3FFKEY.Accept>31 && tra >=LVL3FFKEY.Accept)){
+ // swap 1 <-> 3
+  if(tra%8==1)tra=tra+2; 
+  else if(tra%8==3)tra=tra-2; 
   AMSEvent::gethead()->addnext(AMSID("TriggerLVL3",ic), new
  TriggerLVL3( tra,  tof,  anti, ntr,  npat,
   pat,  res,  time, eloss));
+}
+}
 
+TriggerLVL3::TrackerTriggerS(){
+ // swap 1 <-> 3
+ if(_TrackerTrigger%8==1)return _TrackerTrigger+2; 
+ else if(_TrackerTrigger%8==3)return _TrackerTrigger-2; 
+ else return _TrackerTrigger; 
 }
 
 

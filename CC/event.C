@@ -89,7 +89,7 @@ void AMSEvent::_init(){
    // get rid of crazy runs
    if(_run<TRMFFKEY.OKAY/10 && AMSJob::gethead()->isRealData()){
      cerr<<"AMSEvent::_init-S-CrazyRunFound "<<_run<<endl;
-     raise(SIGTERM);
+     //raise(SIGTERM);
    }
    DAQEvent::initO(_run);
    
@@ -1258,7 +1258,20 @@ void AMSEvent::_sitkinitrun(){
          }
        }
      }
+     // Fill the histos
+     for(l=0;l<2;l++){
+      geant p0=AMSTrMCCluster::sitknoiseprobU(TRMCFFKEY.thr1R[l],AMSTrMCCluster::step());
+      for(int i=0;i<AMSTrMCCluster::ncha();i++){
+        geant x=TRMCFFKEY.thr1R[l]+i*AMSTrMCCluster::step();
+        geant prob=AMSTrMCCluster::sitknoiseprobU(x,AMSTrMCCluster::step());
+        HF1(AMSTrMCCluster::hid(l),x,prob/p0);
+      }
+#ifdef __AMSDEBUG__
+      HPRINT(AMSTrMCCluster::hid(l));
+#endif
+     }
 }
+
 
 
 

@@ -17,7 +17,7 @@ integer AMSTrRawCluster::TestRawMode(){
 
 }
 
-integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic){
+integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic, integer matchedonly){
   //
   // convert my stupid format to lvl3 one for shuttle flight (mb also stupid)
   //
@@ -26,14 +26,18 @@ integer AMSTrRawCluster::lvl3format(int16 * adc, integer nmax, integer pedantic)
    AMSTrIdSoft id(_address);
   int16 pos =0;
   id.upd(_strip);
-  if (nmax-pos < 2+_nelem || _nelem > 63 || _nelem==0) return pos;
+//  if(id.getside()==0 && matchedonly && !checkstatus(MATCHED)){
+//   cout << "notmatched K found "<<endl;
+//  }
+  if (nmax-pos < 2+_nelem || _nelem > 63 || _nelem==0 ||
+  (id.getside()==0 && matchedonly && !checkstatus(MATCHED))) return pos;
   adc[pos+1]=id.gethaddr(pedantic);
   integer imax=0;
   geant rmax=-1000000;
   int16 sn;
   for (int i=0;i<_nelem;i++){
    id.upd(_strip+i);
-   if(id.getsig() && _array[i]/id.getsig() > rmax){
+   if(id.getsig() && _array[i]/id.getsig() > rmax ){
      rmax=_array[i]/id.getsig();
      sn=(rmax+0.5);
      if(sn>63)sn=63;
@@ -107,7 +111,8 @@ while(ptr){
 AMSgObj::BookTimer.stop("SITKDIGIa");
 
 int i,j,k,l;
-if(TRMCFFKEY.CalcCmnNoise[0]){
+//if(TRMCFFKEY.CalcCmnNoise[0]){
+if(1){
   //
   // add sigmas & calculate properly cmnnoise
   //
@@ -142,6 +147,16 @@ if(TRMCFFKEY.CalcCmnNoise[0]){
   }
  }
 
+// Add noise now
+  ptr=(AMSTrMCCluster*)AMSEvent::gethead()->getheadC("AMSTrMCCluster",0);
+while(ptr){
+   ptr->addcontent('x',ida,1);
+   ptr->addcontent('y',ida,1);
+   ptr=ptr->next();
+}
+
+
+
 AMSgObj::BookTimer.stop("SITKDIGIb");
 
 }
@@ -154,7 +169,7 @@ for ( i=0;i<ms;i++){
      AMSTrRawCluster *pcl;
      int side=idd.getside();
       pcl=0;
-      integer nlmin;
+      integer nlmin,nlf,nrt;
       integer nleft=0;
       integer nright=0;
       for (j=0;j<AMSDBc::NStripsDrp(ilay,side);j++){
@@ -162,25 +177,30 @@ for ( i=0;i<ms;i++){
         idd.upd(j);
         if(idd.getsig()>0 && *(ida[i]+j)> TRMCFFKEY.thr1R[side]*idd.getsig()){
           s2n= *(ida[i]+j)/idd.getsig();
-          nlmin = nright==0?0:nright+1; 
-          nleft=max(j-TRMCFFKEY.neib[side],nlmin);
-          idd.upd(nleft);
-          while(nleft >nlmin && 
-          *(ida[i]+nleft)> TRMCFFKEY.thr2R[side]*idd.getsig())idd.upd(--nleft);
+          nlmin = nright==0?0:nright+1;
+          nleft=max(j-TRMCFFKEY.neib[side],nlmin); 
+          for (nlf=nleft;nlf>nlmin;--nlf){
+            idd.upd(nlf);
+            if(*(ida[i]+nlf)<= TRMCFFKEY.thr2R[side]*idd.getsig())break;
+            else nleft=nlf;
+          }
           nright=min(j+TRMCFFKEY.neib[side],AMSDBc::NStripsDrp(ilay,side)-1);
-          idd.upd(nright);
-          while(nright < AMSDBc::NStripsDrp(ilay,side)-1 && 
-          *(ida[i]+nright)> TRMCFFKEY.thr2R[side]*idd.getsig())idd.upd(++nright);
+          for (nrt=nright;nrt<AMSDBc::NStripsDrp(ilay,side)-1;++nrt){
+            idd.upd(nrt);
+            if(*(ida[i]+nrt)<= TRMCFFKEY.thr2R[side]*idd.getsig())break;
+            else nright=nrt;
+          }
           for (int k=nleft;k<=nright;k++){
             *(ida[i]+k)=idd.getgain()*(
-            *(ida[i]+k)+(TRMCFFKEY.CalcCmnNoise[0]==0?idd.getsig()*rnormx():0));
+//            *(ida[i]+k)+(TRMCFFKEY.CalcCmnNoise[0]==0?idd.getsig()*rnormx():0));
+            *(ida[i]+k)+(1==0?idd.getsig()*rnormx():0));
             if(*(ida[i]+k) > TRMCFFKEY.adcoverflow)*(ida[i]+k)=TRMCFFKEY.adcoverflow;
             if(*(ida[i]+k) < -TRMCFFKEY.adcoverflow)*(ida[i]+k)=-TRMCFFKEY.adcoverflow;
           }
            pcl= new
            AMSTrRawCluster(i,nleft,nright,ida[i]+nleft,s2n);
             AMSEvent::gethead()->addnext(AMSID("AMSTrRawCluster",half),pcl);
-            //            cout <<"si- "<<half<<" "<<i<<" "<<nleft<<" "<<
+            //            cout <<"si- "<<side<<" "<<i<<" "<<nleft<<" "<<
             //              nright-nleft<<" "<<integer(*(ida[i]+nleft))<<endl;
             j=nright+1;           
         }
@@ -189,8 +209,15 @@ for ( i=0;i<ms;i++){
   }
 }
 
+  matchKS(0);
+  matchKS(1);
 AMSgObj::BookTimer.stop("SITKDIGIc");
 
+}
+integer AMSTrRawCluster::_matched(){
+  AMSTrIdSoft id(_address);
+  if(id.getside()==1 || checkstatus(MATCHED)) return 1;
+  else return 0;
 }
 
 void AMSTrRawCluster::_writeEl(){
@@ -290,14 +317,13 @@ integer AMSTrRawCluster::GetTrCrate(int16u id){
 
 
 void AMSTrRawCluster::builddaq(integer i, integer n, int16u *p){
-
   AMSTrRawCluster *ptr=(AMSTrRawCluster*)AMSEvent::gethead()->
   getheadC("AMSTrRawCluster",i);
   integer ltr=0;
   *p=getdaqid(i);
   int16 * p16=(int16*)p;
   while (ptr){
-   if(!(ptr->TestRawMode()))ltr+=ptr->lvl3format(p16+1+ltr,n-1-ltr,1);
+   if(!(ptr->TestRawMode()))ltr+=ptr->lvl3format(p16+1+ltr,n-1-ltr,1,1);
    ptr=ptr->next();
   }
 
@@ -362,7 +388,7 @@ integer AMSTrRawCluster::calcdaqlength(integer i){
   integer l=0;
   if(ptr)l=1;
   while (ptr){
-   if(!(ptr->TestRawMode()))l+=ptr->_nelem+2;
+   if(!(ptr->TestRawMode()) && ptr->_matched())l+=ptr->_nelem+2;
    ptr=ptr->next();
   }
   return l;
@@ -457,11 +483,12 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
 }
 #endif
 
-
-
+   matchKS(0);
+   matchKS(1);
+}
+ void AMSTrRawCluster::matchKS(int crate){
   // Get rid of K without S 
 
-  for (int crate=0;crate<2;crate++){
    AMSTrRawCluster *pk=(AMSTrRawCluster*)AMSEvent::gethead()->
     getheadC("AMSTrRawCluster",crate);
    AMSTrRawCluster *pb=pk;
@@ -477,10 +504,8 @@ void AMSTrRawCluster::buildraw(integer n, int16u *p){
           }
           ps=ps->next();
         }          
-       } 
+       }
        pk=pk->next();
-    }             
-
   }
          
 
@@ -741,28 +766,8 @@ void AMSTrRawCluster::buildrawRawB(integer n, int16u *p){
 
   // Get rid of K without S 
 
-  for (int crate=0;crate<2;crate++){
-   AMSTrRawCluster *pk=(AMSTrRawCluster*)AMSEvent::gethead()->
-    getheadC("AMSTrRawCluster",crate);
-   AMSTrRawCluster *pb=pk;
-    while(pk){
-       AMSTrIdSoft idk(pk->_address);
-       if(idk.getside()==0){
-        AMSTrRawCluster *ps=pb;
-        while(ps){
-          AMSTrIdSoft ids(ps->_address);
-          if(ids.getside()==1 && ids.getdrp()==idk.getdrp()&& ids.getlayer()==idk.getlayer()){
-            pk->setstatus(AMSTrRawCluster::MATCHED);
-            break;
-          }
-          ps=ps->next();
-        }          
-       } 
-       pk=pk->next();
-    }             
-
-  }
-         
+  matchKS(0);         
+  matchKS(1);         
 
 
 }
@@ -953,28 +958,8 @@ void AMSTrRawCluster::buildrawMixed(integer n, int16u *p){
 
   // Get rid of K without S 
 
-  for (int crate=0;crate<2;crate++){
-   AMSTrRawCluster *pk=(AMSTrRawCluster*)AMSEvent::gethead()->
-    getheadC("AMSTrRawCluster",crate);
-   AMSTrRawCluster *pb=pk;
-    while(pk){
-       AMSTrIdSoft idk(pk->_address);
-       if(idk.getside()==0){
-        AMSTrRawCluster *ps=pb;
-        while(ps){
-          AMSTrIdSoft ids(ps->_address);
-          if(ids.getside()==1 && ids.getdrp()==idk.getdrp()&& ids.getlayer()==idk.getlayer()){
-            pk->setstatus(AMSTrRawCluster::MATCHED);
-            break;
-          }
-          ps=ps->next();
-        }          
-       } 
-       pk=pk->next();
-    }             
-
-  }
-         
+   matchKS(0);         
+   matchKS(1);         
 
 
 }
@@ -1065,28 +1050,8 @@ void AMSTrRawCluster::buildrawCompressed(integer n, int16u *p){
 
   // Get rid of K without S 
 
-  for (int crate=0;crate<2;crate++){
-   AMSTrRawCluster *pk=(AMSTrRawCluster*)AMSEvent::gethead()->
-    getheadC("AMSTrRawCluster",crate);
-   AMSTrRawCluster *pb=pk;
-    while(pk){
-       AMSTrIdSoft idk(pk->_address);
-       if(idk.getside()==0){
-        AMSTrRawCluster *ps=pb;
-        while(ps){
-          AMSTrIdSoft ids(ps->_address);
-          if(ids.getside()==1 && ids.getdrp()==idk.getdrp()&& ids.getlayer()==idk.getlayer()){
-            pk->setstatus(AMSTrRawCluster::MATCHED);
-            break;
-          }
-          ps=ps->next();
-        }          
-       } 
-       pk=pk->next();
-    }             
-
-  }
-         
+     matchKS(0);         
+     matchKS(1);         
 
 
 }

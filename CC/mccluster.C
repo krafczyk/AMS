@@ -12,7 +12,10 @@
 #include <ntuple.h>
 
 integer AMSTrMCCluster::debug(1);
-  
+integer AMSTrMCCluster::_ncha(100);
+geant   AMSTrMCCluster::_step(0.05);
+integer AMSTrMCCluster::_hid[2]={200103,200104};  
+integer AMSTrMCCluster::_NoiseMarker(555);
 AMSTrMCCluster::AMSTrMCCluster
 (const AMSTrIdGeom & id,integer side,integer nel, number ss[], integer itra){
 _next=0;
@@ -24,12 +27,13 @@ _itra=itra;
 _sum=0;
 if(nel>5)nel=5;
 VZERO(_ss,10*sizeof(geant)/4);
-_left[0]=max(0,id.getstrip(0)-nel/2); 
-_left[1]=max(0,id.getstrip(1)-nel/2); 
-_right[0]=min(id.getstrip(0)+nel/2,id.getmaxstrips(0)-1); 
-_right[1]=min(id.getstrip(1)+nel/2,id.getmaxstrips(1)-1); 
-_center[0]=id.getstrip(0);
-_center[1]=id.getstrip(1);
+ integer cside= side==0?1:0;
+_left[side]=max(0,id.getstrip(side)-nel/2); 
+_right[cside]=0; 
+_right[side]=min(id.getstrip(side)+nel/2,id.getmaxstrips(side)-1); 
+_left[cside]=1;
+_center[side]=id.getstrip(side);
+_center[cside]=0;
 for(int i=_left[side];i<_right[side]+1;i++)
  _ss[side][i-_left[side]]=ss[i+nel-_right[side]-1];
 }
@@ -55,27 +59,28 @@ else {
 }
 }
 
-void AMSTrMCCluster::addcontent(char xy, geant ** p){
+void AMSTrMCCluster::addcontent(char xy, geant ** p, integer noise){
  integer i;
+ if(noise && _itra!=_NoiseMarker)return;
  if(xy=='x'){
-   for(i=_left[0];i<=_right[0];i++){
-    AMSTrIdSoft id(AMSTrIdGeom(_idsoft,i,0),0);
-    if(id.dead()){
-     continue;
-    }
-    if(p[id.getaddr()]==0){
-     integer isize=sizeof(geant)*id.getmaxstrips();
-     p[id.getaddr()]=(geant*)UPool.insert(isize);
-     if(p[id.getaddr()]==0){
-       cerr <<" AMSTrMCCLUSTER-S-Memory Alloc Failure"<<endl;
-       return;
+     for(i=_left[0];i<=_right[0];i++){
+     AMSTrIdSoft id(AMSTrIdGeom(_idsoft,i,0),0);
+     if(id.dead()){
+      continue;
      }
-     VZERO(p[id.getaddr()],isize/4);
+     if(p[id.getaddr()]==0){
+      integer isize=sizeof(geant)*id.getmaxstrips();
+      p[id.getaddr()]=(geant*)UPool.insert(isize);
+      if(p[id.getaddr()]==0){
+        cerr <<" AMSTrMCCLUSTER-S-Memory Alloc Failure"<<endl;
+        return;
+      }
+      VZERO(p[id.getaddr()],isize/4);
+     }
+     if(_itra!=_NoiseMarker)(*(p[id.getaddr()]+id.getstrip()))+= _ss[0][i-_left[0]];
+     else if(noise)(*(p[id.getaddr()]+id.getstrip()))=_ss[0][i-_left[0]];
+     //    cout <<id<<" side 0 adc + "<<id.getstrip()<<" "<<_ss[0][i-_left[0]]<< endl;
     }
-    *(p[id.getaddr()]+id.getstrip())= *(p[id.getaddr()]+id.getstrip())+
-    _ss[0][i-_left[0]];
-    //    cout <<id<<" side 0 adc + "<<id.getstrip()<<" "<<_ss[0][i-_left[0]]<< endl;
-   }
  }
  else{
    for(i=_left[1];i<=_right[1];i++){
@@ -92,8 +97,8 @@ void AMSTrMCCluster::addcontent(char xy, geant ** p){
      }
      VZERO(p[id.getaddr()],isize/4);
     }
-    *(p[id.getaddr()]+id.getstrip())= *(p[id.getaddr()]+id.getstrip())+
-    _ss[1][i-_left[1]];
+     if(_itra!=_NoiseMarker)(*(p[id.getaddr()]+id.getstrip()))+= _ss[1][i-_left[1]];
+     else if(noise) (*(p[id.getaddr()]+id.getstrip()))=_ss[1][i-_left[1]];
     //    cout <<id <<" side 1 adc + "<<id.getstrip()<<" "<<_ss[1][i-_left[1]]<< endl;
    }
  }
@@ -232,13 +237,15 @@ return DERFC(z)/2;
 
 }
 
-void  AMSTrMCCluster::sitknoisespectrum(
-const AMSTrIdSoft & id,integer nch,number ss[]){
-  for(int i=0;i<nch;i++){
-   ss[i]=id.getsig()*rnormx();
-   if(i==nch/2) ss[i]=fabs(ss[i])+id.getsig()*TRMCFFKEY.thr1R[id.getside()];
-  }
- 
+number AMSTrMCCluster::sitknoiseprobU(number threshold, number step){
+ return 0.5*(DERFC(threshold)-DERFC(threshold+step));  
+}
+
+void  AMSTrMCCluster::sitknoisespectrum(const AMSTrIdSoft & id, number ss[],
+                                        number prob){
+   geant d;
+   if(RNDM(d)>=prob)ss[0]=id.getsig()*HRNDM1(hid(id.getside()));
+   else  ss[0]=id.getsig()*rnormx();
 }
 
 
@@ -277,7 +284,7 @@ void AMSTrMCCluster::sitknoise(){
   AMSgObj::BookTimer.start("SITKNOISE");
    geant dummy;
    number noise,oldone=0;
-   integer itra=555;
+   integer itra=_NoiseMarker;
    number ss[5];
    number const probthr=0.05;
    float totn[2]={0,0};
@@ -311,19 +318,15 @@ void AMSTrMCCluster::sitknoise(){
               integer nambig;
               AMSTrIdGeom *pid=idx.ambig(idy,nambig);
               if(pid){
-                 sitknoisespectrum(id,5,ss);
-#ifdef __AMSDEBUG__
-                 //                  static integer i14(0);
-                 //                 cout << i14++<<" "<<ss[2]<<endl;
-                 //                 cout <<id<<endl;    
-                 HF1(200103+id.getside(),ss[0],1.);
-                 HF1(200103+id.getside(),ss[1],1.);
-                 HF1(200103+id.getside(),ss[3],1.);
-                 HF1(200103+id.getside(),ss[4],1.);
-                 HF1(200105+id.getside(),ss[2],1.);
-#endif
+                 // calculate prob to avoid double counitng
+                 number prob=(1+TRMCFFKEY.NonGaussianPart[l])*
+                 exp(-id.getmaxstrips()*
+                 sitknoiseprob(id,TRMCFFKEY.thr1R[l]*id.getsig()));
+
+                 sitknoisespectrum(id,ss,1-prob);
+                 HF1(200105+id.getside(),ss[0],1.);
                   AMSEvent::gethead()->addnext(AMSID("AMSTrMCCluster",0),
-                  new AMSTrMCCluster(*pid,id.getside(),5,ss,itra));
+                  new AMSTrMCCluster(*pid,id.getside(),1,ss,itra));
               }
              }
             }

@@ -25,6 +25,7 @@ AMSTrRawCluster(const AMSTrRawCluster &){_next=0;};
 void _copyEl();
 void _printEl(ostream & stream);
 void _writeEl();
+integer _matched();
 public:
     static const integer MATCHED;
 
@@ -48,7 +49,7 @@ _array(0),_s2n(0){}
 AMSTrRawCluster(integer id,  integer nleft, integer nright,geant *p, geant s2n);
 AMSTrRawCluster(integer id,  integer nleft, integer nright,int16 *p, geant s2n);
 void expand( number *p) const ;
-integer lvl3format(int16 * ptr, integer nmax, integer pedantic=0);
+integer lvl3format(int16 * ptr, integer nmax, integer pedantic=0, integer matchedonly=0);
 static void sitkdigi();
   AMSTrRawCluster *  next(){return (AMSTrRawCluster*)_next;}
 
@@ -74,6 +75,7 @@ static void sitkdigi();
  static integer getmaxblocksRaw(){return 2;}
  static void builddaq(integer i, integer n, int16u *p);
  static void buildraw(integer n, int16u *p);
+ static void matchKS(integer crate);
  static void builddaqRaw(integer i, integer n, int16u *p);
  static void buildrawRaw(integer n, int16u *p);
  static void buildrawRawA(integer n, int16u *p);
