@@ -114,7 +114,7 @@ ooStatus AMScommonsD::CmpConstants(integer Write) {
   ld = tofmcffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TOFMCFFKEY and tofmcffkeyD size are"
-        <<" not the same"<<endl;
+        <<" not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    goto tofrecffkey;
   }
   buff = new integer[lm/4];
@@ -133,7 +133,7 @@ tofrecffkey:
   ld = tofrecffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TOFRECFFKEY and tofrecffkeyD size are"
-        <<" not the same"<<endl;
+        <<" not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    goto ctcmcffkey;
   }
   buff = new integer[lm/4];
@@ -152,7 +152,7 @@ ctcmcffkey:
   ld = ctcmcffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- CTCMCFFKEY and ctcmcffkeyD size are"
-        <<" not the same"<<endl;
+        <<" not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    goto ctcgeomffkey;
   }
   buff = new integer[lm/4];
@@ -172,7 +172,7 @@ ctcgeomffkey:
   ld = ctcgeomffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -E- CTCGEOMFFKEY and ctcgeomffkeyD size"
-        <<"  are not the same"<<endl;
+        <<"  are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    return oocError;
   }
 
@@ -209,7 +209,7 @@ ctcrecffkey:
   ld = trmcffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TRMCFFKEY and trmcffkeyD size are"
-        <<" not the same"<<endl;
+        <<" not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    goto betafitffkey;
   }
   buff = new integer[lm/4];
@@ -228,7 +228,7 @@ betafitffkey:
   ld = betafitffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- BETAFITFFKEY and betafitffkeyD "
-        <<" size are not the same"<<endl;
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    goto trfitffkey;
   }
   buff = new integer[lm/4];
@@ -247,7 +247,7 @@ trfitffkey:
   ld = trfitffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TRFITFFKEY and trfitffkeyD "
-        <<" size are not the same"<<endl;
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    goto ccffkey;
   }
   buff = new integer[lm/4];
@@ -266,7 +266,7 @@ ccffkey:
   ld = ccffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- CCFFKEY and ccffkeyD "
-        <<" size are not the same"<<endl;
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    goto trclffkey;
   }
   buff = new integer[lm/4];
@@ -285,7 +285,7 @@ trclffkey:
   ld = trclffkeyD.size();
   if (lm/4 != ld) {
    cout <<"AMScommonsD::CmpConstants -W- TRCLFFKEY and trclffkeyD "
-        <<" size are not the same"<<endl;
+        <<" size are not the same. Ld (integer) "<<ld<<", Lm "<<lm/4<<endl;
    goto cmpend;
   }
   buff = new integer[lm/4];
