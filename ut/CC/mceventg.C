@@ -253,16 +253,21 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
       integer nchan=200;
       geant binw;
       if(mass < 0.938)binw=100;
-      else  binw=100*mass/0.938;
+      else  binw=100*mass/0.938/abs(charge);
       geant al=binw/2;
+      
       geant bl=binw/2+nchan*binw;
       HBOOK1(_hid,"Spectrum",nchan,al,bl,0.);
       for(int i=0;i<nchan;i++){
         geant xm=i*binw+al+binw/2;
+        number xmom=xm/1000;
         number xr=xm/1000/abs(charge);
-        geant y=exp(-3.5*xr);
-        HF1(_hid,xm,y);
+        number xkin=(sqrt(xmom*xmom+mass*mass)-mass)*1000;
+        geant y=10*exp(-3.5*xr);
+        if(xkin>5*charge*charge)HF1(_hid,xm,y);
      }
+          
+//          HPRINT(_hid);
     }
     else {
       integer nchan=1000;
