@@ -2,7 +2,7 @@
 // TOF parts changed 25-sep-1996 by E.Choumilov.
 // add TDV/dbase version October 1, 1997. a.k.
 //
-// Last Edit : Nov 26, 1997. ak.
+// Last Edit : Sep 2, 1998. ak.
 //
 #include <trrawcluster.h>
 #include <typedefs.h> 
