@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.362 2001/03/08 13:54:37 choumilo Exp $
+// $Id: job.C,v 1.363 2001/03/09 16:42:24 choutko Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -3037,6 +3037,7 @@ throw (amsglobalerror){
     if(_pntuple)_pntuple->initR(filename);
     else{
         _pntuple = new AMSNtuple(filename);
+        _pntuple->initR(filename);
     }
 #ifdef __CORBA__
       AMSProducer::gethead()->sendNtupleStart(DPS::Producer::RootFile,filename,run,eventno,tt);

@@ -1,4 +1,4 @@
-//  $Id: client.C,v 1.17 2001/03/02 10:40:52 choutko Exp $
+//  $Id: client.C,v 1.18 2001/03/09 16:42:24 choutko Exp $
 #include <client.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -45,10 +45,11 @@ else fnam=logdir;
      IMessage((const char *) a);
  }
 }
-
+/*
 extern "C" pid_t getpid();
 extern "C" pid_t getppid();
 extern "C" int gethostname(char*, int);
+*/
 bool AMSClient::_getpidhost(uinteger uid, const char * iface){
  _pid.uid=uid;
  _pid.pid=getpid();

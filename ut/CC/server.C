@@ -1,4 +1,4 @@
-//  $Id: server.C,v 1.55 2001/03/02 10:40:53 choutko Exp $
+//  $Id: server.C,v 1.56 2001/03/09 16:42:25 choutko Exp $
 #include <stdlib.h>
 #include <server.h>
 #include <fstream.h>
@@ -180,6 +180,7 @@ else _pid.Interface= (const char *)"default";
      strcpy(AMSDBc::amsdatabase,(const char *)amsdatadir);
      cout <<"amsdatadir  "<<AMSDBc::amsdatabase<<endl;
 if(niface){
+ bool match=false;
  ifstream fbin;
  fbin.open(niface);
  if(fbin){
@@ -198,6 +199,12 @@ if(niface){
    if(strstr(tmpbuf,"default"))e._orb=CORBA::ORB_init(argc,argv);
    else {
     AString a=(const char*)_pid.HostName;
+     for (int i=0;i<a.length();i++){
+      if(a[i]=='.'){
+       for (int j=i;j<a.length();j++)a[j]='\0';
+       break;
+      }
+     }
     a+=".";
     a+=tmpbuf;
        e._orb=CORBA::ORB_init(argc,argv,(const char *)a);
@@ -216,11 +223,12 @@ if(niface){
    e._mgr->activate();
    AString a(tmpbuf);
    _orbmap[a]=e;
+   if(!strcmp((const char*)a,(const char *)_pid.Interface))match=true;
    }   
   catch (CORBA::SystemException &ex){
    cerr <<"AMSServer::AMSServer-E-CorbaSysExeceptionOnInit "<<tmpbuf<<endl;
   }
-  }  
+  }
   }
  }
  else{
@@ -229,6 +237,9 @@ if(niface){
  }
  if(_orbmap.size()<1){
    FMessage("AMSServer::AMSServer-F-NoInterfacesOpen ",DPS::Client::CInAbort);
+ }
+ if(!match){
+  FMessage("AMSServer::AMSServer-F-UnableToMatchInterace ",DPS::Client::CInAbort);
  }
 }
 else{
@@ -593,8 +604,10 @@ if(NH){
    fbin>>tmpbuf;
    nh.Interface=(const char*)tmpbuf;
    AString hn((const char*)(nh.HostName));
-   hn+=".";
-   hn+=(const char*)nh.Interface;
+   if(strcmp((const char*)nh.Interface,"default")){
+    hn+=".";
+    hn+=(const char*)nh.Interface;
+   }
    nh.HostName=(const char *)hn;
    fbin>>tmpbuf;
    nh.OS= (const char*)tmpbuf;
