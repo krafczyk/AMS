@@ -1,4 +1,4 @@
-//  $Id: mceventg.h,v 1.40 2003/06/19 15:25:00 isevilla Exp $
+//  $Id: mceventg.h,v 1.41 2004/02/26 07:18:16 choutko Exp $
 // Author V. Choutko 24-may-1996
 // 
 // Oct 02, 1996. ak. add set/getNumbers, rearrange class member functions
@@ -92,6 +92,10 @@ static integer _fixedmom;
 static number _albedorate;
 static number _albedocz;
 static number _planesw[6];
+static number _flux[30];
+static geant* _spectra[30];
+static int _particle[30];
+static int _nucleons[30];
 integer operator < (AMSlink & o) const {
  return dynamic_cast<AMSmceventg*>(&o) ? _mom> ((AMSmceventg*)(&o))->_mom:0;
 }

@@ -1,4 +1,4 @@
-//  $Id: commons.h,v 1.197 2003/12/18 16:12:50 mdelgado Exp $
+//  $Id: commons.h,v 1.198 2004/02/26 07:18:16 choutko Exp $
 //  Author V. Choutko 24-may-1996
 //
 //  To developpers:
@@ -690,6 +690,7 @@ public:
   geant   StrMass; 
   integer SpecialCut;     // special cut to accept
                           //  1:  focus on ecal 
+  integer FluxFile[40];   // FluxFile 
   integer curtime;        // current event time
 };
 //
