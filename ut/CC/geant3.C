@@ -372,7 +372,6 @@ GDCXYZ();
 }
 //-----------------------------------------------------------------------
 extern "C" void guout_(){
-
 #ifdef __DB__
    if (dbg_prtout != 0 && eventR > DBWriteGeom) {
      cout <<"guout_: read event of type "<<AMSJob::gethead() -> eventRtype()
@@ -511,7 +510,14 @@ extern "C" void guout_(){
    AMSEvent::sethead(0);
    UPool.erase(2000000);
    AMSgObj::BookTimer.stop("GUOUT");
-
+// allow termination via time via datacard
+{  
+   float xx;
+   TIMEX(xx);   
+   if(GCTIME.TIMEND < xx){
+    GCTIME.ITIME=1;
+   }
+}
 }
 
 extern "C" void abinelclear_();

@@ -25,7 +25,7 @@ LD=xlC
 BIN=../bin/aix/
 EXE=/exe/aix
 LIB=/lib/aix
-TIMEL=../bin/aix/timel.o
+TIMEL=
 endif
 ifeq  "$(shell uname)"  "OSF1" 
 SHLDFLAGS = ld -L/usr/lib/cmplrs/cxx -rpath /usr/lib/cmplrs/cxx -expect_unresolved -g shared /usr/lib/cmplrs/cc/crt0.o /usr/lib/cmplrs/cxx/_main.o -lcxxstd -lcxx -lexc -lots -lc

@@ -114,9 +114,12 @@ LMS*                   lms;
 
 #endif
 
+extern "C" void timest_(float & t);
 
 void gams::UGINIT(){
- cout.sync_with_stdio();   
+  float zero=0;
+  timest_(zero);
+  cout.sync_with_stdio();   
   GINIT();
   new AMSJob();
   AMSJob::gethead()->data();

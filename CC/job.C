@@ -134,7 +134,9 @@ void AMSJob::data(){
 #endif  
 
 
-
+  GCTIME.TIMINT=10000000;
+  GCTIME.TIMEND=10;
+  GCTIME.ITIME=0;
   SELECTFFKEY.Run=0;
   SELECTFFKEY.Event=0;
   SELECTFFKEY.RunE=0;
@@ -1261,6 +1263,8 @@ void AMSJob::_resrddata(){
 
 
 void AMSJob::udata(){
+GCTIME.TIMEND=GCTIME.TIMINT;
+GCTIME.ITIME=0;
 if(!MISCFFKEY.G4On && !MISCFFKEY.G3On){
 cerr<<"AMSJob::udata-F-NeitherGeant3NorGeant4Selected"<<endl;
 exit(1);

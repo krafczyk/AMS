@@ -133,13 +133,20 @@
          endif                                                               
          idummy = 1                                                          
       endif   
-* --- extrapolation                                                          
+* --- extrapolation 
+      if(cooctc(3,1,1).ne.cooctc(3,2,1))then                                                         
       a(1) = (cooctc(1,1,1)-cooctc(1,2,1))/                                  
      +       (cooctc(3,1,1)-cooctc(3,2,1))                                   
       b(1) =  cooctc(1,1,1) - a(1)*cooctc(3,1,1)                             
       a(2) = (cooctc(2,1,1)-cooctc(2,2,1))/                                  
      +       (cooctc(3,1,1)-cooctc(3,2,1))                                   
       b(2) =  cooctc(2,1,1) - a(2)*cooctc(3,1,1)                             
+      else
+       a(1)=0
+       a(2)=0
+       b(1)=1000000
+       b(2)=1000000
+      endif
 * --- cells acrossed                                                         
       nbcel1 = 0                                                             
       icelldum = 0
