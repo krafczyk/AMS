@@ -629,9 +629,9 @@ sub getcontrolthings{
          $#text=-1;
          my $hash=$Monitor::Singleton->{nsl}[$i];
          
-         push @text, $hash->{Type},$hash->{MaxClients}, 
+         push @text,  $hash->{uid},$hash->{Type},$hash->{MaxClients}, 
 int($hash->{CPUNeeded}*10)/10,
-         $hash->{MemoryNeeded}, $hash->{WholeScriptPath}, $hash->{LogPath}, 
+        $hash->{MemoryNeeded}, $hash->{WholeScriptPath}, $hash->{LogPath}, 
          $hash->{SubmitCommand}, $hash->{HostName}, $hash->{LogInTheEnd},$hash;
          push @output, [@text];   
      }
@@ -643,5 +643,10 @@ int($hash->{CPUNeeded}*10)/10,
     }elsif( $name eq "Killer"){        
     }
     return @output;
+
+}
+
+sub sendback{
+    my ($name, $action, @data) =@_;
 
 }

@@ -669,16 +669,15 @@ sub notebook_create_pages {
                   my $abutton= new Gtk::Button("Add");
                   my $rbutton= new Gtk::Button("Remove");
                   my $ebutton= new Gtk::Button("Replace");
-                  my $sbutton = new Gtk::Button("Send");
                   $abutton->signal_connect( 'clicked', \&ares,"Add",$scrolled_win);
                   $ebutton->signal_connect( 'clicked', \&ares,"Replace",$scrolled_win);
                   $rbutton->signal_connect( 'clicked', \&ares,"Remove",$scrolled_win);
-                  $sbutton->signal_connect( 'clicked', \&ares,"Send",$scrolled_win);
+#                  $sbutton->signal_connect( 'clicked', \&ares,"Send",$scrolled_win);
                   my $ahbox=new Gtk::HBox(1,10);
     $ahbox->pack_start($abutton,1,1,0);
     $ahbox->pack_start($ebutton,1,1,0);
     $ahbox->pack_start($rbutton,1,1,0);
-    $ahbox->pack_start($sbutton,1,1,0);
+#    $ahbox->pack_start($sbutton,1,1,0);
                   $aframe->add($ahbox);
 
               }
@@ -982,6 +981,7 @@ sub show_sample{
     if( $name eq "ServerClient"){
         $#titles=-1;
         @titles=(
+          "Uid",
           "Type",
           "MaxClients",
           "CPU",
@@ -995,6 +995,7 @@ sub show_sample{
     }elsif( $name eq "ProducerClient"){
         $#titles=-1;
         @titles=(
+          "Uid",
           "Type",
           "MaxClients",
           "CPU",
@@ -1063,6 +1064,8 @@ sub show_sample{
 		my $clist = new_with_titles Gtk::CList(@titles);
 		$clist->set_row_height(20);
                 $scr->{clist}=$clist;
+                $scr->{name}=$name;
+                $scr->{columns}=$#titles; 
 		$clist->signal_connect('select_row', \&select_clist);
 		$clist->signal_connect('unselect_row', \&unselect_clist);      
 
@@ -1145,5 +1148,15 @@ my $window  =   new Gtk::Widget    "Gtk::Window",
 sub ares{
     my ($widget,$action,$scr)=@_;
     if(defined $scr->{clist}){    
+        if (defined      $scr->{clist}->{row}){
+            warn $scr->{clist}->{row};
+            my @data=();
+            if($name eq   "ServerClient"){
+                for my $i( 0...$scr->{columns}){
+                    push @data,$scr->{clist}->get_text($scr->{clist}->{row},$i);
+                }
+            }
+          Monitor::sendback($name,@data,$action);
+        }
     }
 }
