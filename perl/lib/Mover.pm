@@ -255,6 +255,9 @@ sub doCopy {
     my $cmdstatus=>undef;
     my @cpntuples=(); # full path to input directory files
     my @mvntuples=(); # full path to output directory files
+
+    my @cmplruns =(); # runs 
+
     my $ntvalid  = 0; # number of validated ntuples
     my $ntproblem= 0; # number of ntuples not found/not validated
     my $self = shift;
@@ -317,6 +320,8 @@ sub doCopy {
                           }
                         $sql = "UPDATE ntuples SET path='$outputpath', status='Validated', timestamp=$time 
                                 WHERE path='$newfile'";
+                        push @cmplruns, $jid;
+
                         my $dbh=$self->{dbhandler};
                         my $sth=$dbh->prepare($sql)  or die "Cannot prepare $sql ".$dbh->errstr();
                         $sth->execute or die "Cannot execute $sql ".$dbh->errstr();
@@ -340,11 +345,21 @@ sub doCopy {
           }
          }
          if ($ntvalid > 0) {
+             my $sql;
+             my $sth;
+             my $dbh;
              print "doCopy - ntuples validated :  $ntvalid  \n";
              print "doCopy - not validated and not copied : $ntproblem  \n";
-             my $sql = "commit";
-             my $dbh=$self->{dbhandler};
-             my $sth=$dbh->prepare($sql)  or die "Cannot prepare $sql ".$dbh->errstr();
+
+             foreach my $run (@cmplruns) {
+                 $sql = "UPDATE runs SET status='Completed' WHERE run=$run";
+                 $dbh=$self->{dbhandler};
+                 $sth=$dbh->prepare($sql)  or die "Cannot prepare $sql ".$dbh->errstr();
+                 $sth->execute or die "Cannot execute $sql ".$dbh->errstr();
+             }
+             $sql = "commit";
+             $dbh=$self->{dbhandler};
+             $sth=$dbh->prepare($sql)  or die "Cannot prepare $sql ".$dbh->errstr();
              $sth->execute or die "Cannot execute $sql ".$dbh->errstr();
 
              doRemove(@mvntuples);

@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.128 2003/04/25 11:20:12 choutko Exp $
+# $Id: RemoteClient.pm,v 1.129 2003/04/25 12:05:17 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -4414,7 +4414,8 @@ sub checkJobsTimeout {
          my $mid          = $job->[3];
          $sql="SELECT runs.run, mails.address FROM runs, mails 
                WHERE runs.jid = $jid AND 
-                     runs.status != 'Completed' AND
+                     runs.status != 'Completed' AND 
+                     runs.status != 'TimeOut' AND 
                      mails.mid = $mid";
          my $r4=$self->{sqlserver}->Query($sql); 
          if (defined $r4->[0][0]) {
@@ -4429,6 +4430,8 @@ sub checkJobsTimeout {
               my $message    = "Job $jid, Submitted : $submittime, Timeout : $timeout sec. \n Job will be removed from database : $timeouttime. MC Production Team \n";
               $self->sendmailmessage($address,$sujet,$message);
 #              print "$address : $sujet : $message ";
+              $sql= "UPDATE runs SET status='TimeOut' WHERE run=$jid";
+              $self->{sqlserver}->Update($sql); 
           }
      }
  }
@@ -4690,10 +4693,10 @@ sub listStat {
           $r3=$self->{sqlserver}->Query($sql);
           if (defined $r3->[0][0]) {
               my $status = $r3->[0][0];
-              if ($status eq 'Finished') { 
+              if ($status eq 'Finished' || $status eq 'Completed') { 
                   $jobsdone++;
                   $trigdone = $trigdone + $trig;}
-              if ($status eq 'Failed')   { $jobsfailed++;}
+              if ($status eq 'Failed' || $status eq 'TimeOut')   { $jobsfailed++;}
           }
       }
  
@@ -5527,6 +5530,9 @@ sub statusColor {
 
     if ($status eq "Finished" or $status eq "OK" or $status eq "Validated" or $status eq "Completed") {
                $color  = "green";
+    }
+    elsif ($status eq "TimeOut") {
+         $color="magenta";
     }
     elsif ($status eq "Success") {
         $color  = "green";
