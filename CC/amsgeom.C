@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.140 2002/09/04 09:11:09 choumilo Exp $
+//  $Id: amsgeom.C,v 1.141 2002/09/09 08:28:30 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -438,13 +438,17 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
       pard[1]=0.;//the
       pard[2]=0.;//phi
       pard[3]=ocyc/2;//dy1(-Z)
-      pard[4]=0;//dx1l
+      pard[4]=0.;//dx1l
       pard[5]=ocxc/2;//dx1h
       pard[6]=-AMSDBc::raddeg*atan(ocxc/ocyc/2);//alp1
       pard[7]=pard[3];//dy2 (+Z)
-      pard[8]=0;//dx2l
+      pard[8]=0.;//dx2l
       pard[9]=pard[5];//dx2h
       pard[10]=pard[6];//alp2
+#ifdef __G4AMS__
+      pard[4]=0.001;// to bypass G4 bug
+      pard[8]=0.001;// ................
+#endif            
       cow[0]=ocwd/2-ocxc/4;//in paddle RefSyst
       cow[1]=brlen/2-ocyc/2;
       cow[2]=0.;

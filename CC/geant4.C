@@ -1,4 +1,4 @@
-//  $Id: geant4.C,v 1.50 2002/09/04 09:11:10 choumilo Exp $
+//  $Id: geant4.C,v 1.51 2002/09/09 08:28:36 choumilo Exp $
 #include <job.h>
 #include <event.h>
 #include <trrec.h>
@@ -636,9 +636,11 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
     if(PostPV && PrePV){
 //      cout << "Stepping Pre "<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
 //      cout << "Stepping  Post"<<" "<<PostPV->GetName()<<" "<<PostPV->GetCopyNo()<<" "<<PostPoint->GetPosition()<<" "<<PostPoint->GetKineticEnergy()/GeV<<" "<<Step->GetStepLength()/cm<<endl;
+
     GCTMED.isvol=PostPV->GetLogicalVolume()->GetSensitiveDetector()!=0 ||
                  PrePV->GetLogicalVolume()->GetSensitiveDetector()!=0;
      GCTRAK.destep=Step->GetTotalEnergyDeposit()/GeV;
+     
 //   if(PrePoint->GetProcessDefinedStep())cout<<" b "<<PrePoint->GetProcessDefinedStep()->GetProcessName()<<endl;
 //   if(PostPoint->GetProcessDefinedStep())cout<<"a "<<PostPoint->GetProcessDefinedStep()->GetProcessName()<<endl;
      G4Track * Track = Step->GetTrack();
@@ -669,7 +671,8 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 
         
 
-    if(GCTMED.isvol){
+    if(GCTMED.isvol){// <========== we are in sensitive volume !!!
+//
 //      cout << "Stepping  sensitive"<<" "<<PrePV->GetName()<<" "<<PrePV->GetCopyNo()<<" "<<PrePoint->GetPosition()<<endl;
      // gothering some info and put it into geant3 commons
 
@@ -768,7 +771,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
   // Now one has decide based on the names of volumes (or their parents)
      G4VPhysicalVolume * Mother=PrePV->GetMother();
      G4VPhysicalVolume * GrandMother= Mother?Mother->GetMother():0;
-//---------
+//-------------------------------------------------------------
 // TRD
      if(GCTRAK.destep && PrePV->GetName()(0)=='T' && PrePV->GetName()(1)=='R' 
      &&  PrePV->GetName()(2)=='D' && PrePV->GetName()(3)=='T'){
@@ -779,7 +782,7 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
 
 
 
-//-----------------------      
+//------------------------------------------------------------      
 //  Tracker
      if(GCTRAK.destep && GrandMother && GrandMother->GetName()(0)=='S' 
      &&  GrandMother->GetName()(1)=='T' && GrandMother->GetName()(2)=='K'){
@@ -787,88 +790,176 @@ void SetControlFlag(G4SteppingControl StepControlFlag)
       AMSTrMCCluster::sitkhits(PrePV->GetCopyNo(),GCTRAK.vect,
       GCTRAK.destep,GCTRAK.step,GCKINE.ipart);   
      }
-//-----------------------
-//    TOF:
+//------------------------------------------------------------
+//    TOF: (imply here that Pre or Post volume is sensitive as defined by above check !!!)
 //
-      geant t,x,y,z;
-      char name[5]="dumm";
-      char media[21]="dummy_media         ";
-      geant de,dee,dtr2,div,tof;
-      static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
-      geant trcut2(0.25);// Max. transv.shift (0.5cm)**2
-      geant vect[3],dx,dy,dz,dt;
-      int i,nd,numv,iprt,numl,numvp;
-      static int numvo(-999),iprto(-999);
-
-     if(GCTMED.isvol != 0 && PrePV->GetName()(0)== 'T' && PrePV->GetName()(1)=='F'){ // step starts in TFnn
-       numv=PrePV->GetCopyNo();
-       iprt=GCKINE.ipart;
-       x=GCTRAK.vect[0];
-       y=GCTRAK.vect[1];
-       z=GCTRAK.vect[2];
-       t=GCTRAK.tofg;
-       de=GCTRAK.destep;
-       if(iprt==iprto && numv==numvo && de!=0.){// same part. in the same volume
-        dx=(x-xpr);
-        dy=(y-ypr);
-        dz=(z-zpr);
-        dt=(t-tpr);
-        dtr2=dx*dx+dy*dy;
+     geant t,x,y,z;
+     char name[5]="dumm";
+     char media[21]="dummy_media         ";
+     geant de,dee,dtr2,div,tof,prtq,pstep;
+     static geant xpr(0.),ypr(0.),zpr(0.),tpr(0.);
+     static geant stepsum(0.),estepsum(0.);
+     static geant sscoo[3]={0.,0.,0.};
+     static geant sstime(0.);
+     static int nsmstps(0);
+     geant trcut2(0.25);// Max. transv.shift (0.5cm)**2
+     geant stepmin(0.25);//(cm) min. step/cumul.step to store hit(0.5cm/2)
+     geant estepmin(1.e-5);
+     geant coo[3],dx,dy,dz,dt;
+     geant wvect[6],snext,safety;
+     int i,nd,numv,iprt,numl,numvp,tfprf(0);
+     static int numvo(-999),iprto(-999);
+     integer tbegtof(0);
+     integer tendtof(0);
+     integer intof(0);
+     if(PrePV->GetName()(0)== 'T' && PrePV->GetName()(1)=='F')tbegtof=1;
+     if(PostPV->GetName()(0)== 'T' && PostPV->GetName()(1)=='F')tendtof=1;
+     if(tbegtof==1 || tendtof==1)intof=1;
 //
-        if(dtr2>trcut2){// too big transv. shift: subdivide step
-          nd=integer(sqrt(dtr2/trcut2));
-          nd+=1;
-          dx=dx/geant(nd);
-          dy=dy/geant(nd);
-          dz=dz/geant(nd);
-          dt=dt/geant(nd);
-          GCTRAK.destep=de/geant(nd);
-          for(i=1;i<=nd;i++){//loop over subdivisions
-            vect[0]=xpr+dx*(i-0.5);
-            vect[1]=ypr+dy*(i-0.5);
-            vect[2]=zpr+dz*(i-0.5);
-            tof=tpr+dt*(i-0.5);
-            dee=GCTRAK.destep;
-            //if(TOFMCFFKEY.birks)GBIRK(dee);
-            AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
-          }
-        }
-        else{
-          vect[0]=xpr+0.5*dx;
-          vect[1]=ypr+0.5*dy;
-          vect[2]=zpr+0.5*dz;
-          tof=tpr+0.5*dt;
-          dee=GCTRAK.destep;
-          //if(TOFMCFFKEY.birks)GBIRK(dee);
-          AMSTOFMCCluster::sitofhits(numv,vect,dee,tof);
-        }// end of "big step" test
-//
-        xpr=x;
-        ypr=y;
-        zpr=z;
-        tpr=t;
-       }// end of "same part/vol, de>0"
-     }// <--- end of "in TOFS-pre"
-
-
-     if(GCTMED.isvol != 0 && PostPV->GetName()(0)== 'T' && PostPV->GetName()(1)=='F'){ // step ends in TFnn
+     if(tendtof==1 && GCTRAK.inwvol==1){// just enter TFnn : store/reset param.
        numv=PostPV->GetCopyNo();
        iprt=GCKINE.ipart;
        x=GCTRAK.vect[0];
        y=GCTRAK.vect[1];
        z=GCTRAK.vect[2];
        t=GCTRAK.tofg;
+       iprto=iprt;
+       numvo=numv;
+       stepsum=0.;
+       estepsum=0.;
+       nsmstps=0;
+       sstime=0;
+       sscoo[0]=0;
+       sscoo[1]=0;
+       sscoo[2]=0;
+       xpr=x;
+       ypr=y;
+       zpr=z;
+       tpr=t;
+     }// ---> endof "just enter TOF"
+//
+     if(tbegtof==1){// <====== step starts in TOF
+       numv=PrePV->GetCopyNo();
+       iprt=GCKINE.ipart;
+       prtq=GCKINE.charge;
+       pstep=GCTRAK.step;
+       x=GCTRAK.vect[0];
+       y=GCTRAK.vect[1];
+       z=GCTRAK.vect[2];
+       t=GCTRAK.tofg;
        de=GCTRAK.destep;
-       if(GCTRAK.inwvol==1){// new volume or track : store param.
-        iprto=iprt;
-        numvo=numv;
-        xpr=x;
-        ypr=y;
-        zpr=z;
-        tpr=t;
-       }
-     }// <--- end of "in TOFS-post"
-//-------------------------------
+//
+       if(iprt==iprto && numv==numvo && de!=0.){// <--- same part. in the same volume
+         dx=(x-xpr);
+         dy=(y-ypr);
+         dz=(z-zpr);
+         dt=(t-tpr);
+         dtr2=dx*dx+dy*dy;
+//----
+         if(prtq!=0.){// <--- charged part.
+//
+           if(pstep>=stepmin){// <---- big step
+//
+             if(dtr2>trcut2){// <--- big transv. shift: subdivide step
+               nd=integer(sqrt(dtr2/trcut2));
+               nd+=1;
+               dx=dx/geant(nd);
+               dy=dy/geant(nd);
+               dz=dz/geant(nd);
+               dt=dt/geant(nd);
+               GCTRAK.destep=de/geant(nd);
+               for(i=1;i<=nd;i++){//loop over subdivisions
+                 coo[0]=xpr+dx*(i-0.5);
+                 coo[1]=ypr+dy*(i-0.5);
+                 coo[2]=zpr+dz*(i-0.5);
+                 tof=tpr+dt*(i-0.5);
+                 dee=GCTRAK.destep;
+                 //if(TOFMCFFKEY.birks)GBIRK(dee);
+                 AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
+               }
+             }
+             else{// <--- small transv. shift: take step as it is
+               coo[0]=xpr+0.5*dx;
+               coo[1]=ypr+0.5*dy;
+               coo[2]=zpr+0.5*dz;
+               tof=tpr+0.5*dt;
+               dee=GCTRAK.destep;
+               //if(TOFMCFFKEY.birks)GBIRK(dee);
+               AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
+             }// ---> endof "small transv.shift"
+//
+             if(estepsum>estepmin){// <--- After BigStep write previous "small steps" buffer if any
+	       sscoo[0]/=geant(nsmstps);
+	       sscoo[1]/=geant(nsmstps);
+	       sscoo[2]/=geant(nsmstps);
+	       sstime/=geant(nsmstps);
+               //if(TFMCFFKEY.birks)GBIRK(estepsum);
+               AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
+	       stepsum=0.;
+	       estepsum=0.;
+               nsmstps=0;
+               sstime=0;
+               sscoo[0]=0;
+               sscoo[1]=0;
+               sscoo[2]=0;
+	     }//---> endof "store prev. small steps"
+//
+           }// ---> endof "big step"
+//
+	   else{//      <--- small step
+	     stepsum+=pstep;
+	     estepsum+=GCTRAK.destep;
+	     nsmstps+=1;
+	     sscoo[0]+=x;
+	     sscoo[1]+=y;
+	     sscoo[2]+=z;
+	     sstime+=t;
+	     if(stepsum>=stepmin){// <--- "small steps" sum is already big: write it
+	       sscoo[0]/=geant(nsmstps);
+	       sscoo[1]/=geant(nsmstps);
+	       sscoo[2]/=geant(nsmstps);
+	       sstime/=geant(nsmstps);
+               //if(TFMCFFKEY.birks)GBIRK(estepsum);
+               AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
+	       stepsum=0.;
+	       estepsum=0.;
+               nsmstps=0;
+               sstime=0;
+               sscoo[0]=0;
+               sscoo[1]=0;
+               sscoo[2]=0;
+	     }
+	   }//---> endof "small step" 
+//
+           if(GCTRAK.inwvol==1 && estepsum>estepmin){// leaving TOF: write "small steps" buffer if any
+	     sscoo[0]/=geant(nsmstps);
+	     sscoo[1]/=geant(nsmstps);
+	     sscoo[2]/=geant(nsmstps);
+	     sstime/=geant(nsmstps);
+             //if(TFMCFFKEY.birks)GBIRK(estepsum);
+             AMSTOFMCCluster::sitofhits(numv,sscoo,estepsum,sstime);
+	   }//---> endof "leaving TOF"
+//
+         }// ---> endof "charged part"
+//---- 
+	 else{//<--- neutral part(use end-of-step coo)
+           coo[0]=x;
+           coo[1]=y;
+           coo[2]=z;
+           tof=t;
+           dee=GCTRAK.destep;
+           //if(TFMCFFKEY.birks)GBIRK(dee);
+           AMSTOFMCCluster::sitofhits(numv,coo,dee,tof);
+	 }// ---> endof "neutral part" 
+//----
+         xpr=x;
+         ypr=y;
+         zpr=z;
+         tpr=t;
+       }// ---> end of "same part/vol, de>0"
+//
+     }// ======> endof "step starts in TOF"
+//------------------------------------------------------------------
 //  ANTI :
 //
      if(PrePV->GetName()(0)== 'A' && PrePV->GetName()(1)=='N' &&
