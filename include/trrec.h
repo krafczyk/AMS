@@ -1,4 +1,4 @@
-// Author V. Choutko 24-may-1996
+ // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
 //                   _addnext is public now (though not neccessary)
