@@ -1,4 +1,4 @@
-# $Id: DBSQLServer.pm,v 1.31 2002/08/09 12:38:15 alexei Exp $
+# $Id: DBSQLServer.pm,v 1.32 2003/03/25 15:04:15 choutko Exp $
 
 #
 #
@@ -124,7 +124,7 @@ sub Create{
     my $dbh=$self->{dbhandler};
 
 
-    my @tables=("Filesystems", "Cites","Mails" ,"Jobs", "Servers", "Runs","Ntuples","DataSets", "Environment");
+    my @tables=("Filesystems", "Cites","Mails" ,"Jobs", "RNDM","Servers", "Runs","Ntuples","DataSets", "Environment");
     my @createtables=("    CREATE TABLE Filesystems
      (fid         CHAR(4) NOT NULL,   
      host    VARCHAR(40),            
@@ -171,6 +171,10 @@ sub Create{
        content TEXT,
        timestamp INT,
        nickname VARCHAR(80))",
+      "CREATE TABLE RNDM
+      (rid     INT NOT NULL,
+       rndm1   INT,
+       rndm2   INT)",
       "CREATE TABLE Servers
        (dbfilename VARCHAR(255) NOT NULL,
         IORS   TEXT NOT NULL,
@@ -252,9 +256,31 @@ sub Create{
  }
 
 #
+
+# initialize rndm table;
+
+my $RNDMTable="/afs/cern.ch/user/b/biland/public/AMS/rndm.seeds";
+open(FILEI,"<".$RNDMTable) or die "Unable to open file $RNDMTable\n";
+
+    my $line;
+while ( $line = <FILEI>){
+    my @pat=split / /,$line;
+    my @arr;
+    foreach my $chop (@pat){
+        if($chop  =~/^\d/){
+            $arr[$#arr+1]=$chop;
+        }
+    }
+     $dbh->do("insert into RNDM values($arr[0],$arr[1],$arr[2])") or die "cannot do: ".$dbh->errstr();     
+    
+}
+    close(FILEI);
+
     my $cntr = 0;
     my $cnt  = 0;
     my $sql;
+
+
 # initialize 
      if($self->{dbdriver} =~ m/Oracle/){
     $sql="SELECT COUNT(mykey) FROM Environment";
