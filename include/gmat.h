@@ -90,7 +90,7 @@ class AMSgtmed : public AMSNode
   AMSgtmed (): AMSNode(0){};
   AMSgtmed (integer itmed,const char name[],integer itmat, 
               integer isvol=0 , char yb='N', geant birks[3]=0,
-              integer ifield=1, geant fieldm=5, 
+              integer ifield=1, geant fieldm=20, 
             geant tmaxfd=10, geant stemax=1000, 
             geant deemax=-1, geant epsil=0.001,
             geant stmin=-1 ):
