@@ -154,7 +154,7 @@ return o<<a.HostName<<" "<<a.Interface<<"  UID "<<a.uid<<" PID "<<a.pid<<" "<<a.
 
 char * AMSClient::print(const DPS::Client::ActiveHost & a,const char * mes){
 _ost.seekp(0);
-_ost<<mes <<" AH "<<a.HostName<<" "<<a.Interface<<" Status  "<<HS2string(a.Status)<< " CRun "<<a.ClientsRunning<<" CAll "<<a.ClientsAllowed<<" CProcessed "<<a.ClientsProcessed<<" CFailed "<<a.ClientsFailed<<" CKilled "<<a.ClientsKilled<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<ends;
+_ost<<mes <<" AH "<<a.HostName<<" "<<a.Interface<<" Status  "<<HS2string(a.Status)<< " CRun "<<a.ClientsRunning<<" CAll "<<a.ClientsAllowed<<" CProcessed "<<a.ClientsProcessed<<" CFailed "<<a.ClientsFailed<<" CKilled "<<a.ClientsKilled<<" LastUpdate "<<ctime((const time_t *)&a.LastUpdate)<<" Clock "<<a.Clock<<ends;
 return _streambuffer;
 }
 

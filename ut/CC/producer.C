@@ -148,6 +148,7 @@ else{
     ntpath+="/";
     AMSJob::gethead()->SetNtuplePath((const char *)ntpath);
     TIMEX(_T0);
+    if(_debug)cout <<"T0 "<<_T0<<endl;
     IMessage(AMSClient::print(_reinfo," get reinfo "));
     IMessage(AMSClient::print(_dstinfo," get dstinfo "));
     InitTDV(_reinfo->uid);
@@ -314,7 +315,7 @@ system(command);
 }
 _cinfo.Status= (res==DAQEvent::OK)?DPS::Producer::Finished: DPS::Producer::Failed;
 TIMEX(_cinfo.CPUTimeSpent);
-_cinfo.CPUTimeSpent+=-_T0;
+_cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
 UpdateARS();
  for( list<DPS::Producer_var>::iterator li = _plist.begin();li!=_plist.end();++li){
   try{
@@ -339,12 +340,12 @@ if(_cinfo.Run == AMSEvent::gethead()->getrun()){
 }
 if(!(AMSEvent::gethead()->HasNoCriticalErrors())){
   TIMEX(_cinfo.CPUTimeSpent);
-  _cinfo.CPUTimeSpent+=-_T0;
+  _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
   sendCurrentRunInfo();
 }
 else if(_cinfo.EventsProcessed%_dstinfo->UpdateFreq==1 ){
   TIMEX(_cinfo.CPUTimeSpent);
-  _cinfo.CPUTimeSpent+=-_T0;
+  _cinfo.CPUTimeSpent=_cinfo.CPUTimeSpent-_T0;
   sendCurrentRunInfo();
 }
 }

@@ -79,9 +79,11 @@ else return a.Status<b.Status;
 }
 
 bool operator ()(const DPS::Client::ActiveHost &a,const DPS::Client::ActiveHost &b){
-if(a.Status == b.Status || b.Status==DPS::Client::OK)return false;
+if(a.Status ==b.Status)return a.Clock>b.Clock;
+else if( b.Status==DPS::Client::OK)return false;
 else if(a.Status != DPS::Client::NoResponse)return true;
 else return false;
+
 
 }
 

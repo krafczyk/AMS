@@ -345,6 +345,30 @@ void AMSServerI::PropagateAC(DPS::Client::ActiveClient & ac,DPS::Client::RecordC
   } 
   }   
 
+void AMSServerI::PropagateAH(const DPS::Client::CID & pid,DPS::Client::ActiveHost & ah,DPS::Client::RecordChange rc,DPS::Client::AccessType type, uinteger uid){
+  Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
+  DPS::Client::CID cid;
+  cid.Type=_pser->getType();
+  cid.Interface= (const char *) " ";
+    DPS::Client::ARS * pars;
+    int length=_pser->getARS(cid,pars,type,uid);
+    DPS::Client::ARS_var arf=pars;
+  if(length==0){
+      _parent->EMessage(AMSClient::print(ah,"PropagateAC-getARS retrurns 0"));
+  }
+//  cout <<"propagateAC - getars returns "<<length<<endl;
+  for(int i=0;i<length;i++){
+  try{
+    CORBA::Object_var obj=_defaultorb->string_to_object(arf[i].IOR);
+    DPS::Server_var _pvar=DPS::Server::_narrow(obj);
+    _pvar->sendAH(pid,ah,rc);
+   }
+   catch (CORBA::SystemException &ex){
+     cerr<<"oops corba exc found for "<<i<<endl;
+   }
+  } 
+  }   
+
 void AMSServerI::RegisteredClientExists(){
   Server_impl* _pser=dynamic_cast<Server_impl*>(getServer()); 
 for(ACLI li= _pser->getacl().begin();li!=_pser->getacl().end();++li){
@@ -575,7 +599,7 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     // HereStartClient
    CORBA::String_var _refstring=_refmap.find((const char *)((*i)->Interface))->second;
 #ifdef __AMSDEBUG__
-//    cout <<((*i)->Interface)<<" "<<_refstring<<endl;
+    cout <<((*i)->Interface)<<" "<<_refstring<<endl;
 #endif
     NCLI cli=find_if(_ncl.begin(),_ncl.end(),NCL_find((const char *)(*i)->HostName)); 
     if(cli==_ncl.end())cli=_ncl.begin();
@@ -614,6 +638,9 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
     if(_parent->Debug())_parent->IMessage(submit);
     submit+=" &";
     int out=system(submit);
+     time_t tt;
+     time(&tt);
+     (*i)->LastUpdate=tt;     
     if(out==0){
      // Add New Active Client
      DPS::Client::ActiveClient ac;
@@ -634,6 +661,7 @@ if(!_pser->Lock(pid,StartClient,getType(),_StartTimeOut))return;
      _acl.push_back(ac);
      ((*i)->ClientsRunning)++;
 */
+    (*i)->Status=DPS::Client::OK; 
     DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(ac);
     PropagateAC(acv,DPS::Client::Create);
     }
@@ -739,6 +767,7 @@ if(_ahl.size())return;
    ah.ClientsProcessed=0;
    ah.ClientsFailed=0;
    ah.ClientsRunning=0;
+   ah.Clock=(*i)->Clock;  
    ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
  
    time_t tt;
@@ -952,10 +981,16 @@ return length;
 //          cout << " host found for deleteing "<<endl;
         ((*i)->ClientsRunning)--;
        ((*i)->ClientsProcessed)++; 
+     time_t tt;
+     time(&tt);
+     (*i)->LastUpdate=tt;     
+
        switch (((*li)->id).Status){
        case DPS::Client::CInExit: 
+            (*i)->Status=DPS::Client::OK; 
         break;
         case DPS::Client::SInExit:
+           (*i)->Status=DPS::Client::OK; 
             break;
        case DPS::Client::CInAbort:
         (*i)->Status=DPS::Client::LastClientFailed; 
@@ -990,6 +1025,31 @@ return length;
 }
          }
        }       
+       break;
+      }
+    break;
+    }
+}
+}
+   void Server_impl::sendAH(const DPS::Client::CID &  cid,  DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc)throw (CORBA::SystemException){
+  for (AMSServerI* pcur=this;pcur;pcur=pcur->next()?pcur->next():pcur->down()){
+    if(pcur->getType()==cid.Type){
+      AHLI li=find_if(pcur->getahl().begin(),pcur->getahl().end(),Eqs(ah));
+      switch (rc){
+       case DPS::Client::Update:
+       if(li==pcur->getahl().end())_parent->EMessage(AMSClient::print(cid,"Host not found for editing"));
+       else{
+        (*li)->Status=ah.Status;
+       }
+       break;
+       case DPS::Client::Delete:
+       if(li==pcur->getahl().end())_parent->EMessage(AMSClient::print(cid,"Host not found for deleting"));
+       else{
+        if(_parent->Debug())_parent->IMessage(AMSClient::print(ah,"Deleting Host "));
+        pcur->getahl().erase(li);
+       }
+       break;
+       case DPS::Client::Create:
        break;
       }
     break;
@@ -1425,6 +1485,7 @@ else{
    ah.ClientsFailed=0;
    ah.ClientsKilled=0;
    ah.ClientsRunning=0;
+   ah.Clock=(*i)->Clock;  
    ah.ClientsAllowed=min((*i)->CPUNumber/(*_ncl.begin())->CPUNeeded,(*i)->Memory/float((*_ncl.begin())->MemoryNeeded));
 
    time_t tt;
@@ -1503,6 +1564,9 @@ if(getServer()->InactiveClientExists())return;
 #endif
     submit+=" &";
     int out=system(submit);
+     time_t tt;
+     time(&tt);
+     (*i)->LastUpdate=tt;     
     if(out==0){
      // Add New Active Client
      DPS::Client::ActiveClient ac;
@@ -1521,6 +1585,7 @@ if(getServer()->InactiveClientExists())return;
      ((ac.ars)[0]).Interface=(const char *)("Dummy");
     DPS::Client::ActiveClient_var acv=new DPS::Client::ActiveClient(ac);
     PropagateAC(acv,DPS::Client::Create);
+    (*i)->Status=DPS::Client::OK; 
     }
     else{
      (*i)->Status=DPS::Client::LastClientFailed; 
@@ -1922,7 +1987,11 @@ if(li==_rl.end()){
 if(li==_rl.end())dv->DieHard=1;
 else if( find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid))!=_rl.end()){
  dv->DieHard=1;
-if(_parent->Debug())_parent->IMessage(AMSClient::print(cid,"Die HARD  !!!!!!!"));
+ if(_parent->Debug()){
+  _parent->EMessage(AMSClient::print(cid,"Die HARD  !!!!!!!"));
+  RLI rvi=find_if(_rl.begin(),_rl.end(),REInfo_EqsClient(cid));
+  _parent->EMessage(AMSClient::print(*rvi,"Run/Client Logic Problem:"));
+ }
 }
 else {
  rv=*li;

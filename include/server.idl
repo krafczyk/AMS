@@ -83,6 +83,7 @@ module DPS{
       long ClientsFailed;
       long ClientsKilled;
       time LastUpdate;
+      long    Clock;      
    };
 
     typedef sequence<ActiveHost> AHS;
@@ -220,6 +221,7 @@ module DPS{
     long getNHS(in CID id, out NHS nhs);
 
     long getAHS(in CID id, out AHS ahl);
+    void sendAH(in CID id, inout ActiveHost ah,in RecordChange rc);
 
    };
   interface Monitor: Client{

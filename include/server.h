@@ -68,9 +68,12 @@ virtual void _PurgeQueue()=0;
  public:
  class Eqs :public unary_function<DPS::Client::ActiveClient,bool>{
  DPS::Client::ActiveClient _a;
+ DPS::Client::ActiveHost _b;
  public:
  explicit Eqs( const  DPS::Client::ActiveClient & a):_a(a){}
+ explicit Eqs( const  DPS::Client::ActiveHost & b):_b(b){}
   bool operator () (const DPS::Client::ActiveClient_var & a){return _a.id.uid==a->id.uid;}
+  bool operator () (const DPS::Client::ActiveHost_var & b){return !strstr((const char*)b->HostName,(const char *)_b.HostName);}
 };
  class find :public unary_function<DPS::Client::ActiveClient,bool>{
  DPS::Client::ClientStatus _st;
@@ -105,6 +108,7 @@ public:
  virtual AMSServerI * getServer()=0;
 
   void PropagateAC( DPS::Client::ActiveClient & ac, DPS::Client::RecordChange rc, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
+  void PropagateAH(const DPS::Client::CID & cid, DPS::Client::ActiveHost & ah, DPS::Client::RecordChange rc, DPS::Client::AccessType type=DPS::Client::Any,uinteger id=0);
 
   bool InactiveClientExists();
   void RegisteredClientExists();
@@ -113,7 +117,7 @@ public:
   AMSServerI * up(){return   dynamic_cast<AMSServerI*>(AMSNode::up());}
   AMSServerI * down(){return dynamic_cast<AMSServerI*>(AMSNode::down());}
 
-  AMSServerI(AMSID id, AMSClient * parent=0,DPS::Client::ClientType type=DPS::Client::Generic):_Type(type),AMSNode(id),_Submit(0),_StartTimeOut(60),_KillTimeOut(120),_parent(parent),_ActivateQueue(false),_RecID(0){};
+  AMSServerI(AMSID id, AMSClient * parent=0,DPS::Client::ClientType type=DPS::Client::Generic):_Type(type),AMSNode(id),_Submit(0),_StartTimeOut(60),_KillTimeOut(180),_parent(parent),_ActivateQueue(false),_RecID(0){};
 };
 
 
@@ -179,6 +183,7 @@ void _PurgeQueue();
    bool ARSaux(DPS::Client::AccessType type,uinteger id,uinteger compare);
    int getACS(const DPS::Client::CID &cid, ACS_out acs, unsigned int & maxc)throw (CORBA::SystemException);
    void sendAC(const DPS::Client::CID &cid,  DPS::Client::ActiveClient & ac,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
+   void sendAH(const DPS::Client::CID &cid,  DPS::Client::ActiveHost & ah,DPS::Client::RecordChange rc)throw (CORBA::SystemException);
   void Exiting(const DPS::Client::CID& cid,const char * Error, DPS::Client::ClientExiting  Status)throw (CORBA::SystemException);
    int getNHS(const DPS::Client::CID &cid,NHS_out nhl)throw (CORBA::SystemException);
    int getAHS(const DPS::Client::CID &cid,AHS_out ahl)throw (CORBA::SystemException);
