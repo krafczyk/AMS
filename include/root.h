@@ -1,4 +1,4 @@
-//  $Id: root.h,v 1.144 2004/02/19 17:30:36 alcaraz Exp $
+//  $Id: root.h,v 1.145 2004/02/22 15:36:21 choutko Exp $
 
 //
 //  NB Please increase the version number in corr classdef 
@@ -21,6 +21,7 @@
 #include <vector>
 #include <iostream>
 #include <TStopwatch.h>
+#include <time.h>
 using namespace std;
 #ifndef __ROOTSHAREDLIBRARY__
 class AMSAntiCluster;
@@ -1832,7 +1833,9 @@ public:
  Int_t Fill();
  TFile* & OutputFile(){return fService._pOut;};
 
-#ifdef __CINT__
+#ifdef  __CINT__ 
+public:
+#elif  defined WIN32
 public:
 #else
 protected:

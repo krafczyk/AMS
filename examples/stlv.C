@@ -1,7 +1,7 @@
 ///   \example stlv.C
 ///
 #define stlv_cxx
-#include <root_RVS.h>
+#include "../include/root_RVS.h"
 #include "TF1.h"
 #include "TH2.h"
 #include "TStyle.h"
