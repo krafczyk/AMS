@@ -1,4 +1,4 @@
-//  $Id: amsgeom.C,v 1.145 2003/01/24 10:09:49 choumilo Exp $
+//  $Id: amsgeom.C,v 1.146 2003/02/14 15:18:12 choumilo Exp $
 // Author V. Choutko 24-may-1996
 // TOF Geometry E. Choumilov 22-jul-1996 
 // ANTI Geometry E. Choumilov 2-06-1997 
@@ -502,13 +502,14 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     brlen=TOF2DBc::brlen(0,3);//sc.length Plane-1, middle bar4
     lglen=TOF2DBc::lglen(0,3);//eff.lg.length ...........
     xbias=brlen/2+lglen;
-    zbias=TOF2DBc::plnstr(14);//wrt int.surf. of top honeycomb
+    zbias=TOF2DBc::plnstr(1)+TOF2DBc::plnstr(6)-
+          TOF2DBc::plnstr(13)/2;//box Z-"0" wrt int.surf. of top honeycomb
     par[0]=TOF2DBc::plnstr(11)/2.; // dx/2
     par[1]=TOF2DBc::plnstr(12)/2;  // dy/2
     par[2]=TOF2DBc::plnstr(13)/2;  // dz/2
     coo[0]=TOF2DBc::supstr(3)+xbias+TOF2DBc::plnstr(11)/2+0.1;//"0.1" for safety
     coo[1]=TOF2DBc::supstr(4);
-    coo[2]=TOF2DBc::supstr(1)+zbias-TOF2DBc::plnstr(13)/2;// z-center
+    coo[2]=TOF2DBc::supstr(1)-zbias;// box abs. z-center
     gid=1;
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
@@ -544,13 +545,14 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     brlen=TOF2DBc::brlen(3,3);//sc.length Plane-4, middle bar4
     lglen=TOF2DBc::lglen(3,3);//eff.lg.length ...........
     xbias=brlen/2+lglen;
-    zbias=TOF2DBc::plnstr(14);//wrt int.surf. of bot honeycomb
+    zbias=TOF2DBc::plnstr(1)+TOF2DBc::plnstr(6)-
+          TOF2DBc::plnstr(13)/2;//box Z-"0" wrt int.surf. of top honeycomb
     par[0]=TOF2DBc::plnstr(11)/2.; // dx/2
     par[1]=TOF2DBc::plnstr(12)/2;  // dy/2
     par[2]=TOF2DBc::plnstr(13)/2;  // dz/2
     coo[0]=TOF2DBc::supstr(5)+xbias+TOF2DBc::plnstr(11)/2+0.1;//"0.1" for safety
     coo[1]=TOF2DBc::supstr(6);
-    coo[2]=TOF2DBc::supstr(2)-zbias+TOF2DBc::plnstr(13)/2;// z-center
+    coo[2]=TOF2DBc::supstr(2)+zbias;// z-center
     gid=3;
     dau=mother.add(new AMSgvolume(
     "TOF_PMT_BOX",0,"TOPB","BOX",par,3,coo,nrm1,"ONLY",1,gid,1));
@@ -582,25 +584,45 @@ for (int ip=0;ip<TOF2DBc::getnplns();ip++){ //  <<<=============== loop over sc.
     "TOF_PMT_BOX",0,"TOPR","TUBS",par,5,coo,nrm1,"ONLY",1,gid,1));
 //
 //-----
-//          CarbFiber box(it is replaced by solid thin plate)
+//          CarbFiber envelops(replaced by solid thin plates betw.paddles of each sc.plane)
 // 
-    zbias=TOF2DBc::plnstr(2)+TOF2DBc::plnstr(3)+
-          TOF2DBc::plnstr(6)+TOF2DBc::plnstr(7);//wrt int.surf. of honeycomb
-    par[0]=0.; //                  rmin
-    par[1]=TOF2DBc::plnstr(9);  // rmax
-    par[2]=TOF2DBc::plnstr(8)/2;// dz/2
+  geant zbias1=TOF2DBc::plnstr(1)+0.5*(TOF2DBc::plnstr(6)+
+               TOF2DBc::plnstr(3));//plate-1 center wrt int.surf. of honeycomb
+//                                  (middle of the gap between even/odd paddles,L1(4))
+  geant zbias2=TOF2DBc::plnstr(2)+0.5*(TOF2DBc::plnstr(6)+
+               TOF2DBc::plnstr(3));//plate-2 center wrt int.surf. of honeycomb
+//                                  (middle of the gap between even/odd paddles,L2(3))
+  geant gap=TOF2DBc::plnstr(3)-TOF2DBc::plnstr(6);
+    if(gap <= TOF2DBc::plnstr(8)){
+      cout<<"AMSGEOM: Tof-covers immitators do not fit in the gap of even/odd paddles !!!"<<endl;
+      cout<<"Gap="<<gap<<endl;
+      exit(1);
+    }
+    par[0]=0.;// rmin
+    par[1]=TOF2DBc::plnstr(9);// rmax
+    par[2]=TOF2DBc::plnstr(8)/2.;// dz/2
     coo[0]=TOF2DBc::supstr(3);
     coo[1]=TOF2DBc::supstr(4);
-    coo[2]=TOF2DBc::supstr(1)-zbias-TOF2DBc::plnstr(8)/2;// z-center
+    coo[2]=TOF2DBc::supstr(1)-zbias1;// plate-1 z-center
     gid=1;
     dau=mother.add(new AMSgvolume(
-    "TOF_SC_COVER",0,"TOFB","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//top TOF
-    coo[0]=TOF2DBc::supstr(5);
-    coo[1]=TOF2DBc::supstr(6);
-    coo[2]=TOF2DBc::supstr(2)+zbias+TOF2DBc::plnstr(8)/2;// z-center
+    "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//topTOF,plt-1(outer)
+    coo[2]=TOF2DBc::supstr(1)-zbias2;// plate-2 z-center
     gid=2;
     dau=mother.add(new AMSgvolume(
-    "TOF_SC_COVER",0,"TOFB","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//bot TOF
+    "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//topTOF,plt-2(inner)
+//
+    coo[0]=TOF2DBc::supstr(5);
+    coo[1]=TOF2DBc::supstr(6);
+    coo[2]=TOF2DBc::supstr(2)+zbias1;// plate-1 z-center
+    gid=3;
+    dau=mother.add(new AMSgvolume(
+    "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//botTOF,plt-1
+    coo[2]=TOF2DBc::supstr(2)+zbias2;// plate-2 z-center
+    gid=4;
+    dau=mother.add(new AMSgvolume(
+    "TOF_SC_COVER",0,"TFEN","TUBE",par,3,coo,nrm1,"ONLY",1,gid,1));//botTOF,plt-2
+//
 //-----
   cout<<"AMSGEOM: Final TOF02-geometry(G3/G4-compatible) done!"<<endl;
   cout<<"         "<<TOF2DBc::getbppl(0)<<"/"<<TOF2DBc::getbppl(1)<<"/"
@@ -1002,8 +1024,9 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  AMSID amsid;
  geant par[15]={0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
  geant coo[3]={0.,0.,0.};
- number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
- number nrm0[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};
+ geant cro[3]={0.,0.,0.};
+ number nrm[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};//"no rotation" matrix
+ number nrm0[3][3]={1.,0.,0.,0.,1.,0.,0.,0.,1.};//working array
  int i,j,ii;
  char inum[11];
  char in[2]="0";
@@ -1015,7 +1038,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 // ----------------------------> Radiators:
 // -------------> #1(vertical at +Y(Wake)):
 //
- geant r13dx=184.5;//section 13(top) width(-0.4 wrt drawing! Should match to us1x1 !!!)
+ geant r13dx=184.9;//section 13(top) width(Should match to us1x1 !!!)
  geant r1dy=2.6;//thickness
  geant r13dz=58.;//height
  geant r1cy=(173.5+r1dy/2.);//Y0
@@ -1096,7 +1119,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  geant r3cz1=154.15;// top/inner corner z-pos(~ midd. of TRD top honeycomb)
  geant r3cy2=174.1;// bot/inner corner y-pos.
  geant r3cz2=112.6;//bot/inner corner z-pos
- geant r3dy=2.6;// thickness
+ geant r3dy=1.6;// thickness
  geant r3dx1=250.;// dx1(top edge)
  geant r3dx2=225.;// dx2(bot edge)
  geant alp3=atan((r3cz1-r3cz2)/(r3cy2-r3cy1));
@@ -1113,7 +1136,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  coo[2]=0.5*(r3cz1+r3cz2)+0.5*r3dy*cosa;
  gid=1;
  dau=mother.add(new AMSgvolume(
-     "RADMED1",1,"RA3T","TRD1",par,4,coo,nrm3,"ONLY",1,gid,1));//radiator #3,top.
+     "RADMED2",1,"RA3T","TRD1",par,4,coo,nrm3,"ONLY",1,gid,1));//radiator #3,top.
 //
 // ------------> #4(inclined at -Y):
 //
@@ -1122,7 +1145,7 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  coo[1]=-coo[1];
  gid=1;
  dau=mother.add(new AMSgvolume(
-     "RADMED1",1,"RA4T","TRD1",par,4,coo,nrm4,"ONLY",1,gid,1));//radiator #4,top.
+     "RADMED2",1,"RA4T","TRD1",par,4,coo,nrm4,"ONLY",1,gid,1));//radiator #4,top.
 //
 // -----------------------------> Crates:
 //
@@ -1187,15 +1210,15 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
 //
 //---------------
 //
-//----> small horizontal crates near ECAL:
+//----> small horizontal crates near ECAL(29.01.03. update):
 //
  geant cr2dx=134.;//for +Y crate
- geant cr2dy=28.;
- geant cr2dz=28.;
- geant cr2cy=99.5;//center y-pos
- cr2cy+=15.;//tempor solution of ISS overlaping problem
- geant cr2cz=-125.;//top wall z-pos
- cr2cz+=10.;//tempor solution of ISS overlaping problem
+ geant cr2dy=19.5;
+ geant cr2dz=24.3;
+ geant cr2cy=96.;//center y-pos
+// cr2cy+=15.;//tempor solution of ISS overlaping problem. Do not need now ??
+ geant cr2cz=-106.4;//top wall z-pos
+// cr2cz+=10.;//tempor solution of ISS overlaping problem. Do not need now ??
 //
  par[0]=cr2dx/2.;
  par[1]=cr2dy/2.;
@@ -1210,53 +1233,68 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  dau=mother.add(new AMSgvolume(
      "CRATEMED1",0,"CRS2","BOX",par,3,coo,nrm,"ONLY",1,gid,1));//small crate -Y
 //
-//------------> TOF/TRD-interfaces:
-// MSF
- geant msfr1=101.4;//(final) M-struct. frame (MSF) internal radious
- geant msfz1=93.64;//(final) MSF Z-pos 
- geant msfdz=6.;//(final) MSF z-thickness
- geant msfdr=6.;//(final) MSF radial thickness
-// MS
- geant msdy=6.;//(final) M-structure thickness (MS)
- geant msr2=112.;//(final) MS radial poc.(near bot.edge of TRD top honeyc)
- geant msz2=146.2;//(final) MS z-pos.(near bot.edge of TRD top honeyc)
- geant msdx1=msfr1-22.4;//(final) MS-dx on MSF-side(to fit whole "M" on the frame side)
- geant msdx2=12.6;//(final) MS dx on TRD_top_honeyc side
+//------------> TOF/TRD-interfaces(10.02.2003):
+//--- MSF
+ geant msfr1=101.2;// M-struct. frame (MSF) internal radious
+ geant msfz1=93.5;// MSF Z-pos 
+ geant msfdz=6.;// MSF z-thickness
+ geant msfdr=6.;// MSF radial thickness
+//--- MS
+ geant msdy=6.;// M-structure legs thickness (MSL)
+ geant msr2=112.;// MS-plane-top radial pos.(near bot.edge of TRD top honeyc)
+ geant msz2=146.1;// MS ...............z-pos.(near bot.edge of TRD top honeyc)
+ geant msdx1=93.1;// "M"-dx(outer half size) at Z-frame 
+ geant msdx2=47.7;// "M"-dx(outer half size) at Z-top
+ geant msdz=46.4;//  "M"-dz(height)
  geant msang1=atan((msr2-msfr1-msfdr)/(msz2-msfz1-msfdz));
- geant msdz=sqrt(pow(msfr1+msfdr-msr2,2)+pow(msfz1+msfdz-msz2,2)-pow(msdy,2));//MS dz 
- geant msang=atan(msdy/msdz)+msang1;//MS-plane slope angle(~13degr)
+ geant msang=atan(msdy/msdz)+msang1;//"M"-plane slope angle(~13.25degr)
+ geant msalp1=atan(msdz/(msdx1-msdx2));//outer "M"-leg angle wrt frame
+// hole-3
+ geant msh3dx2=36.;//hole-3 half size at top
+ geant msdz2=msdz-6.;// hole-3 height  
+ geant msalp2=atan(msdz/msh3dx2);//inner "M"-leg angle wrt frame
+ geant msh3dx1=(msdz-msdz2)*msh3dx2/msdz;//hole-3 half size at bot
+ geant msh3cy=(msdz-msdz2)/2.;//hole-3 "0" Y-pos in "M" ref.syst
+// hole-1
+ geant msh1dx1=msdx1-msdy/sin(msalp1)-msdy/sin(msalp2);//hole-1 size at bot
+ geant msdz1=msdz-6.;//hole-1 height
+ geant msh1dx2=msh1dx1-msdz1*(1./tan(msalp1)+1./tan(msalp2));//hole-1 size at top
+ geant msh1x1=msdy/sin(msalp2)+0.5*msh1dx1;//hole-1 bot base(center) x-pos
+ geant msh1x2=msdy/sin(msalp2)+msdz1/tan(msalp2)+0.5*msh1dx2;//hole-1 top base x-pos
+ geant msh1cx=0.5*(msh1x1+msh1x2);//hole-1(2) "0" |X-pos| in "M" ref.syst
+ geant msh1cy=-(msdz-msdz1)/2.;//hole-1(2) "0" Y-pos in "M" ref.syst
+ geant msgam=atan((msh1x1-msh1x2)/msdz1);//assim.angle of hole-1(2) trapezoid
+// 
  geant cosb=cos(msang);
  geant sinb=sin(msang);
- geant mscr=0.5*(msr2+msfr1+msfdr);//radial dist. of MS "0"
- geant msct=0.5*msdx1;//tang.dist. of MS "0"
- geant mscx[8]={mscr,mscr,msct,-msct,-mscr,-mscr,-msct,msct};//X-pos for 8 MS's
- geant mscy[8]={-msct,msct,mscr,mscr,msct,-msct,-mscr,-mscr};//Y-pos for 8 MS's
- geant mscz=0.5*(msfz1+msfdz+msz2);//Z-pos of MS
- number rmms1[3][3]={0.,cosb,sinb,-1.,0.,0.,0.,-sinb,cosb};//rot.matr.at +X
- number rmms2[3][3]={1.,0.,0.,0.,cosb,sinb,0.,-sinb,cosb};//rot.matr.at +Y
- number rmms3[3][3]={0.,-cosb,-sinb,1.,0.,0.,0.,-sinb,cosb};//rot.matr.at -X
- number rmms4[3][3]={-1.,0.,0.,0.,-cosb,-sinb,0.,-sinb,cosb};//rot.matr.at -Y
-// TFHS(TOF-hoheycomb support)
- geant tfsdy=3.;// TFHS thickness
- geant tfsr1=TOF2DBc::supstr(8)+tfsdy;//tof-honeyc.support(TFHS) "low end" radial pos.
- geant tfsz1=TOF2DBc::supstr(1)+0.5*TOF2DBc::supstr(7);//"low end" Z-pos(mid of TOF-hon.side)
- geant tfsr2=msfr1;//"high end" radial pos
- geant tfsdx1=15.;// TFHS dx on TOF-honeycomb side
- geant tfsdx2=35.;// TFHS dx on M-structure side
- geant tfsang1=atan((tfsr2-tfsr1)/(msfz1-tfsz1));
- geant tfsdz=sqrt(pow(tfsr2-tfsr1,2)+pow(msfz1-tfsz1,2)-pow(tfsdy,2));//MS dz 
- geant tfsang=atan(tfsdy/tfsdz)+tfsang1;//TFHS-plane slope angle
- geant cosc=cos(tfsang);
- geant sinc=sin(tfsang);
- geant tfscr=0.5*(tfsr1+tfsr2);//radial pos. of TFHS "0"
- geant tfsct=25.;//tang.dist. of TFHS "0"
- geant tfscx[8]={tfscr,tfscr,tfsct,-tfsct,-tfscr,-tfscr,-tfsct,tfsct};//X-pos for 8 TFHS's
- geant tfscy[8]={-tfsct,tfsct,tfscr,tfscr,tfsct,-tfsct,-tfscr,-tfscr};//Y-pos for 8 TFHS's
- geant tfscz=0.5*(tfsz1+msfz1);//Z-pos of TFHS "0"
- number rmtfs1[3][3]={0.,cosc,sinc,-1.,0.,0.,0.,-sinc,cosc};//rot.matr.at +X
- number rmtfs2[3][3]={1.,0.,0.,0.,cosc,sinc,0.,-sinc,cosc};//rot.matr.at +Y
- number rmtfs3[3][3]={0.,-cosc,-sinc,1.,0.,0.,0.,-sinc,cosc};//rot.matr.at -X
- number rmtfs4[3][3]={-1.,0.,0.,0.,-cosc,-sinc,0.,-sinc,cosc};//rot.matr.at -Y
+ geant mscr=0.5*(msr2+msfr1+msfdr);//radial dist. of "M" origin in AMS r.s.
+ geant mscz=0.5*(msfz1+msfdz+msz2);//Z-pos of "M" origin in AMS r.s.
+ geant mscx[4]={0.,-mscr,0.,mscr};//X-pos for 4 M's origines
+ geant mscy[4]={mscr,0.,-mscr,0.};//Y-pos for 4 M's origines
+ number rmms1[3][3]={-1.,0.,0.,0.,sinb,cosb,0.,cosb,-sinb};//M1-rot.matr.at +Y
+ number rmms2[3][3]={0.,-sinb,-cosb,-1.,0.,0.,0.,cosb,-sinb};//M2-rot.matr.at -X
+ number rmms3[3][3]={1.,0.,0.,0.,-sinb,-cosb,0.,cosb,-sinb};//M3-rot.matr.at -Y
+ number rmms4[3][3]={0.,sinb,cosb,1.,0.,0.,0.,cosb,-sinb};//M4-rot.matr.at +X
+//
+// TFHS(TOF-hoheycomb support,updated 30.01.03)
+//
+ geant thsdx1=47.8;//radial bot-size of TRAPezoid(in AMS-XY plane)
+ geant thsdx2=24.;//radial top-size of TRAP
+ geant thsdz=20.8;//"width" of TRAP(in AMS-XY plane)
+ geant thsdy=15.8;//"height" of TRAP(in AMS-Z direction)
+ geant thsr0=83.5;//radial position of internal(closer to AMS "0") edge of TRAP
+ geant thsdr=0.5*(1.5*thsdx1-thsdx2);//rad.dist. from int.edge of TRAP to its "0"
+ geant thsr=thsr0+thsdr;//rad.pos. of TRAP "0"
+ geant thsalp=atan(0.5*(thsdx1-thsdx2)/thsdy);//TRAP alpha-angle (rad)
+ geant thsfi=45;//phi-angle of 1st TRAP in xy-plane(degr)
+ geant sinfi=sin(thsfi/AMSDBc::raddeg);
+ geant cosfi=cos(thsfi/AMSDBc::raddeg);
+ geant thscx[4]={cosfi,-cosfi,-cosfi,cosfi};//TRAP "0" X-pos for 4 fi-positions
+ geant thscy[4]={sinfi,sinfi,-sinfi,-sinfi};//TRAP "0" Y-pos for 4 fi-positions
+ number rmtfs1[3][3]={cosfi,0.,sinfi,sinfi,0.,-cosfi,0.,1.,0.};//rot.matr.for pos-1(+x+y)
+ number rmtfs2[3][3]={-sinfi,0.,cosfi,cosfi,0.,sinfi,0.,1.,0.};//rot.matr.for pos-1(-x+y)
+ number rmtfs3[3][3]={-cosfi,0.,-sinfi,-sinfi,0.,cosfi,0.,1.,0.};//rot.matr.for pos-1(-x-y)
+ number rmtfs4[3][3]={sinfi,0.,-cosfi,-cosfi,0.,-sinfi,0.,1.,0.};//rot.matr.for pos-1(+x-y)
 //
 //----> Create MSF(M-structure frame,PGON):
 //
@@ -1277,73 +1315,143 @@ void amsgeom::ext1structure02(AMSgvolume & mother){
  dau=mother.add(new AMSgvolume(
      "MSFMED1",0,"MSFR","PGON",par,10,coo,nrm,"ONLY",1,gid,1));// M-structure frame
 //
-//----> create TFHS(TOF-honeycomb supports, TRD1 shape): tempor removed !!
+//----> create TFHS(TOF-honeycomb supports, TRAP shape): 
 //
- par[0]=tfsdx1/2.;
- par[1]=tfsdx2/2.;
- par[2]=tfsdy/2.;
- par[3]=tfsdz/2.-0.001;
- coo[2]=tfscz;
- for(int is=0;is<8;is++){
-   coo[0]=tfscx[is];
-   coo[1]=tfscy[is];
-   ii=is/2;
-   if(ii==0)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmtfs1[i][j];
-   if(ii==1)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmtfs2[i][j];
-   if(ii==2)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmtfs3[i][j];
-   if(ii==3)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmtfs4[i][j];
+ par[0]=thsdz/2.;//dz
+ par[1]=0.;//the
+ par[2]=0.;//phi
+ par[3]=thsdy/2.;//h1
+ par[4]=thsdx1/2.;//bl1
+ par[5]=thsdx2/2.;//tl1
+ par[6]=thsalp*AMSDBc::raddeg;//alp1
+ par[7]=par[3];//h2
+ par[8]=par[4];//bl2
+ par[9]=par[5];//tl2
+ par[10]=par[6];//alp2
+ coo[2]=TOF2DBc::supstr(1)+TOF2DBc::supstr(9)+0.5*thsdy+0.001;//Z of TRAP "0" in AMS r.s.
+ for(int is=0;is<4;is++){// loop over 4 supports
+   coo[0]=thsr*thscx[is];
+   coo[1]=thsr*thscy[is];
+   if(is==0)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmtfs1[i][j];
+   if(is==1)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmtfs2[i][j];
+   if(is==2)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmtfs3[i][j];
+   if(is==3)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmtfs4[i][j];
    gid=is+1;
-   nrot+=ii;
-//   dau=mother.add(new AMSgvolume(
-//     "TFSUPMED1",nrot,"TFHS","TRD1",par,4,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));//tempor TOF-honeyc.supp.
+   nrot+=is;
+   dau=mother.add(new AMSgvolume(
+     "TFSUPMED1",nrot,"TFHS","TRAP",par,11,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));//TOF-honeyc.supp.
  }
 //
-//----> create M-structure legs:
+//----> create M-structure(TRAP with 3 TRAP-holes) :
 //
- geant msalf=atan(2.*msdz/(msdx1-msdx2));// "M" triang.angle
- for(int is=0;is<8;is++){
-   par[0]=msdx1/2.;
-   par[1]=msdx2/2.;
-   par[2]=msdy/2.;
-   par[3]=msdz/2.-0.001;
+ for(int is=0;is<4;is++){//loop over 4 "M"-trapezoids
+   par[0]=msdy/2.;//dz
+   par[1]=0.;//the
+   par[2]=0.;//phi
+   par[3]=msdz/2.;//dy/2 at -z
+   par[4]=msdx1;//dx/2 at -y,-z
+   par[5]=msdx2;//dx/2 at +y,-z
+   par[6]=0.;//alp1
+   par[7]=par[3];//dy/2 at +z
+   par[8]=par[4];//dx/2 at -y,+z
+   par[9]=par[5];//dx/2 at +y,+z
+   par[10]=par[6];//alp2
+   coo[2]=mscz+0.001;//Z of TRAP-"0" in AMS r.s.
    coo[0]=mscx[is];
    coo[1]=mscy[is];
-   coo[2]=mscz;
-   ii=is/2;
-   if(ii==0)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmms1[i][j];
-   if(ii==1)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmms2[i][j];
-   if(ii==2)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmms3[i][j];
-   if(ii==3)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmms4[i][j];
+   if(is==0)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmms1[i][j];
+   if(is==1)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmms2[i][j];
+   if(is==2)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmms3[i][j];
+   if(is==3)for(i=0;i<3;i++)for(j=0;j<3;j++)nrm0[i][j]=rmms4[i][j];
    gid=is+1;
-   nrot+=ii;
+   nrot+=is;
    dau=mother.add(new AMSgvolume(
-     "MSFMED1",nrot,"MSBO","TRD1",par,4,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));//M-structure M-body
+     "MSFMED1",nrot,"MSMB","TRAP",par,11,coo,nrm0,"ONLY",gid==1?1:-1,gid,1));//M-structure M-body
 #ifndef __G4AMS__
    if(is==0){
 #else
    if(MISCFFKEY.G4On || (is==0)){
 #endif
-     par[0]=msdx1/2.-msdy/sin(msalf);// hole dx1/2
-     par[1]=msdy/tan(msalf);// hole dx2/2
-     par[2]=msdy/2.;
-     par[3]=(msdz-msdy)/2.;
-     coo[0]=0.;
-     coo[1]=0.;
-     coo[2]=-msdy/2.;
+     par[0]=msdy/2.;//dz
+     par[1]=0.;//the
+     par[2]=0.;//phi
+     par[3]=msdz1/2.;//dy/2 at -z
+     par[4]=msh1dx1/2.;//dx/2 at -y,-z
+     par[5]=msh1dx2/2.;//dx/2 at +y,-z
+     par[6]=msgam*AMSDBc::raddeg;//alp1
+     par[7]=par[3];//dy/2 at +z
+     par[8]=par[4];//dx/2 at -y,+z
+     par[9]=par[5];//dx/2 at +y,+z
+     par[10]=par[6];//alp2
+     cro[0]=-msh1cx;
+     cro[1]=msh1cy;
+     cro[2]=0.;
      cur=dau->add(new AMSgvolume(
-          "MVACMED",0,"MSHO","TRD1",par,4,coo,nrm,"ONLY",0,gid,1));// hole in it (vacuum)
+          "MVACMED",0,"MSH1","TRAP",par,11,cro,nrm,"ONLY",0,gid,1));// hole-1(vacuum)
+//
+     par[6]=-msgam*AMSDBc::raddeg;//alp1
+     par[10]=par[6];//alp2
+     cro[0]=msh1cx;
+     cur=dau->add(new AMSgvolume(
+          "MVACMED",0,"MSH2","TRAP",par,11,cro,nrm,"ONLY",0,gid,1));// hole-2(vacuum)
+//
+     par[0]=msdy/2.;//dz
+     par[1]=0.;//the
+     par[2]=0.;//phi
+     par[3]=msdz2/2.;//dy/2 at -z
+     par[4]=msh3dx1;//dx/2 at -y,-z
+     par[5]=msh3dx2;//dx/2 at +y,-z
+     par[6]=0.;//alp1
+     par[7]=par[3];//dy/2 at +z
+     par[8]=par[4];//dx/2 at -y,+z
+     par[9]=par[5];//dx/2 at +y,+z
+     par[10]=par[6];//alp2
+     cro[0]=0.;
+     cro[1]=msh3cy;
+     cur=dau->add(new AMSgvolume(
+          "MVACMED",0,"MSH3","TRAP",par,11,cro,nrm,"ONLY",0,gid,1));// hole-3(vacuum)
+//
 #ifdef __G4AMS__
      ((AMSgvolume*)cur )->Smartless()=-2;
 #endif            
    }
+ }//--->endof loop
+//
+//----> create M-struct. brackets, attached to TRD-honeycomb:
+//
+ geant msbrdr=4.;// dR
+ geant msbrzb=msz2+0.001;//Zbot
+ geant msbrdz=8.;//dZ
+ geant msbrdf=10.;//dphi(degr)
+ geant msbf1=360./16;//1st bracket phi-pos.
+ geant msbrmn=msr2/cos(msbf1/AMSDBc::raddeg);//bracket Rmin
+ geant msbfs=360./8;//phi spacing
+ geant msbfi;
+// 
+ par[0]=msbrmn;//rmin
+ par[1]=msbrmn+msbrdr;//rmax
+ par[2]=0.5*msbrdz;//dz/2
+//
+ coo[0]=0.;
+ coo[1]=0.;
+ coo[2]=msbrzb+0.5*msbrdz;//cz
+//
+ for(int ib=0;ib<8;ib++){//loop over 8 brackets
+   msbfi=msbf1+ib*msbfs;
+   par[3]=msbfi-0.5*msbrdf;
+   par[4]=msbfi+0.5*msbrdf;
+   gid=ib+1;
+   dau=mother.add(new AMSgvolume(
+     "MSBRMED",0,"MSBR","TUBS",par,5,coo,nrm,"ONLY",1,gid,1));//M-structure top-brackets
  }
+//------------------------------------------ 
 //
 //------------> USS :
 //
 //----> bar-1 type(attached to magnet top + TOF/TRD interface):
 //
  geant us1dz=18.4;//final
- geant us1dx=15.2;//final
+ geant us1dx=12.7;//final
  geant us1x1=99.9-us1dx/2.;//(final)inner(wrt AMS "0") edge x-pos
  geant us1y1=99.9;//(final) inner edge y-pos(with us1x1 are defined by attach to VC
 //                             at R=141.3cm and angle 45 degr.)                            

@@ -1,4 +1,4 @@
-//  $Id: gmat.C,v 1.78 2002/12/06 14:43:18 choumilo Exp $
+//  $Id: gmat.C,v 1.79 2003/02/14 15:18:13 choumilo Exp $
 // Author V.Choutko.
 // modified by E.Choumilov 20.06.96. - add some TOF materials.
 // modified by E.Choumilov 1.10.99. - add some ECAL materials.
@@ -449,18 +449,28 @@ mat.add (new AMSgmat("TRDFoam", 12.01, 6., rho , 42.7/rho, 86.3/rho));
 //--------------------------------
 //  Radiator+shield/crates/TOF-TRD_interf/USS materials:
 {
-  geant rraden=0.379/2.7;//relat(to norm.AL) density of radiator(with embedded tubes)
-  mat.add (new AMSgmat("RADALUMIN",26.98, 13., 2.7*rraden,
-                                   8.9/rraden, 39.4/rraden));// low dens.AL for rad.
+  geant rraden=0.33/2.7;//relat(to norm.AL) density of radiator(with embedded tubes)
+  mat.add (new AMSgmat("RADALUMIN1",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL for crate-rad.
 }
 {
-  geant rraden=0.2;//relat(to norm.AL) density of TOF honeycomb supports
+  geant rraden=0.51/2.7;//relat(to norm.AL) density of radiator(with embedded tubes)
+  mat.add (new AMSgmat("RADALUMIN2",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL for tracker-rad.
+}
+{
+  geant rraden=0.34;//relat(to norm.AL) density of TOF honeycomb support legs
   mat.add (new AMSgmat("TFSUPALUMIN",26.98, 13., 2.7*rraden,
                                    8.9/rraden, 39.4/rraden));// low dens.AL for supports
 }
 {
-  geant rraden=0.4;//(final) Relat(to norm.AL) density of M-structure frame and M-legs
+  geant rraden=0.68/2.7;//(final) Relat(to norm.AL) density of M-structure frame and M-legs
   mat.add (new AMSgmat("MSFALUMIN",26.98, 13., 2.7*rraden,
+                                   8.9/rraden, 39.4/rraden));// low dens.AL 
+}
+{
+  geant rraden=1.27/2.7;//(final) Relat(to norm.AL) density of M-structure top-brackets
+  mat.add (new AMSgmat("MSBRALUMIN",26.98, 13., 2.7*rraden,
                                    8.9/rraden, 39.4/rraden));// low dens.AL 
 }
 {
@@ -890,7 +900,10 @@ magmed=(AMSgtmed*)tmed.add (new AMSgtmed("MLHEMED","HELIUM",0));
 // ---> AMS02 Radiator+shield/crate/TOF-TRD_interf/USS Media:
 //
 geant cutge=MAGSFFKEY.ecutge;// increased EgammaEelectron cut
-AMSgtmed * radmed=(AMSgtmed*)tmed.add (new AMSgtmed("RADMED1","RADALUMIN",0));
+AMSgtmed * radmed=(AMSgtmed*)tmed.add (new AMSgtmed("RADMED1","RADALUMIN1",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("RADMED2","RADALUMIN2",0));
   radmed->CUTGAM(cutge);
   radmed->CUTELE(cutge);
 //
@@ -903,6 +916,10 @@ radmed=(AMSgtmed*)tmed.add (new AMSgtmed("TFSUPMED1","TFSUPALUMIN",0));
   radmed->CUTELE(cutge);
 //
 radmed=(AMSgtmed*)tmed.add (new AMSgtmed("MSFMED1","MSFALUMIN",0));
+  radmed->CUTGAM(cutge);
+  radmed->CUTELE(cutge);
+//
+radmed=(AMSgtmed*)tmed.add (new AMSgtmed("MSBRMED","MSBRALUMIN",0));
   radmed->CUTGAM(cutge);
   radmed->CUTELE(cutge);
 //

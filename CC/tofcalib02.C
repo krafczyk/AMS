@@ -1,4 +1,4 @@
-//  $Id: tofcalib02.C,v 1.7 2002/12/06 14:43:19 choumilo Exp $
+//  $Id: tofcalib02.C,v 1.8 2003/02/14 15:18:13 choumilo Exp $
 #include <tofdbc02.h>
 #include <point.h>
 #include <typedefs.h>
@@ -419,14 +419,14 @@ void TOF2TZSLcalib::select(){  // calibr. event selection
       ptr->getadca(ama);
       TOF2Brcal::scbrcal[ilay][ibar].adc2q(0,ama,am);// convert anode-adc to charge
       qtotl[ilay]=am[0]+am[1];
-      qsd1[ilay]=am[0];
+      qsd1[ilay]=am[0];//side q(pC)
       qsd2[ilay]=am[1];
       ptr->getadcd(amd);
       ptr->getsdtm(tm);// raw side-times(A-noncorrected)
       ltim[ilay]=ptr->gettime();// get ampl-corrected time
       nbrl[ilay]+=1;
       brnl[ilay]=ibar;
-      trp1[ilay]=tm[0];
+      trp1[ilay]=tm[0];//side raw time(noncorrected by q)
       trp2[ilay]=tm[1];
       arp1[ilay]=ama[0];
       arp2[ilay]=ama[1];
