@@ -14,11 +14,13 @@ LIBS=-L$(ROOTSYS)/lib -lCore -lCint -lHist -lTree -lMatrix -lMinuit \
 $(AMSWD)/bin/linux/icc/rootdict_s.o
 PYTHONLIB=$(PREF)/lib/python2.2/lib-dynload/_$(file).so
 PYTHONPY=$(PREF)/lib/python2.2/$(file).py
+PYTHONPYC=$(PREF)/lib/python2.2/$(file).pyc
 
 all : $(file).py _$(file).so
+	python2.2 -c "import py_compile; py_compile.compile('$(file).py')"
       
 install : $(PYTHONLIB) $(PYTHONPY)
-	python2.2 $(PREF)/lib/python2.2/compileall.py
+	cp -f $(file).pyc $(PYTHONPYC)
 
 $(PYTHONLIB) : _$(file).so
 	cp -f _$(file).so $(PYTHONLIB)

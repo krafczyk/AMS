@@ -1,4 +1,4 @@
-gmake // builds the _AMS.so module library and the AMS.py file
+gmake // builds the _AMS.so module library and the AMS.py, AMS.pyc files
 
 gmake install // installs _AMS.so, AMS.py and the compiled module AMS.pyc 
               // in the system 
