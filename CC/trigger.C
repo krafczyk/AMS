@@ -2,7 +2,7 @@
 #include <event.h>
 #include <mccluster.h>
 void Trigger::build(){
-  // Trigger mode 1 : 3 out of 4 TOF layers fired + Anti < 0.2 MeV
+  // Trigger mode 1 : TRIGFKEY.ntof out of 4 TOF layers fired + Anti < TRIGFFKEY.anti MeV
   int i;
   integer tof=0;
   for(i=0;i<4;i++){
@@ -21,7 +21,7 @@ void Trigger::build(){
 #else
           // xxx code here
 #endif
-  if (tof >=3 && sumanti < 1.)    // Hardwired here
+  if (tof >=TRIGFFKEY.ntof && sumanti < TRIGFFKEY.anti)    // Hardwired here
 AMSEvent::gethead()->addnext(AMSID("Trigger",0),new Trigger(1));
  
 

@@ -152,9 +152,12 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
   Orbit.End.tm_sec=(endtime)%100;
   Orbit.End.tm_isdst = Orbit.End.tm_mon>=3 &&  Orbit.End.tm_mon<=8;
   Orbit.FlightTime=difftime(mktime(&Orbit.End),mktime(&Orbit.Begin));
-  
+  if(Orbit.FlightTime < 0){
+    cerr <<"AMSmceventg::setspectra-F-FlighTime < 0 "<<Orbit.FlightTime<<endl;
+    exit(1);
+  }  
   Orbit.ThetaI=CCFFKEY.theta/AMSDBc::raddeg;
-  Orbit.PhiI=CCFFKEY.phi/AMSDBc::raddeg;
+  Orbit.PhiI=fmod(CCFFKEY.phi/AMSDBc::raddeg+AMSDBc::twopi,AMSDBc::twopi);
   Orbit.AlphaTanThetaMax=tan(MIR/AMSDBc::raddeg);
   number r= tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
   if(r > 1 || r < -1){
@@ -164,7 +167,7 @@ void AMSmceventg::setspectra(integer begindate, integer begintime,
     cerr <<"AMSMCEVENTG::setspectra-ThetaI brought to "<<Orbit.ThetaI<<endl;
     r=tan(Orbit.ThetaI)/Orbit.AlphaTanThetaMax;
   }
-  Orbit.PhiZero=Orbit.PhiI+CCFFKEY.sdir*fabs(acos(r));
+  Orbit.PhiZero=Orbit.PhiI-atan2(r,CCFFKEY.sdir*sqrt(1-r*r));
 
   Orbit.AlphaSpeed=AMSDBc::twopi/92.36/60.;
   Orbit.EarthSpeed=AMSDBc::twopi/24/3600;
@@ -290,7 +293,6 @@ integer AMSmceventg::EarthModulation(){
   // Get current station position from event bank
   number polephi,theta,phi;
   AMSEvent::gethead()->GetGeographicCoo(polephi, theta, phi);
-
   number um=sin(AMSDBc::pi/2-Orbit.PoleTheta)*cos(polephi);
   number vm=sin(AMSDBc::pi/2-Orbit.PoleTheta)*sin(polephi);
   number wm=cos(AMSDBc::pi/2-Orbit.PoleTheta);
@@ -312,7 +314,8 @@ integer AMSmceventg::EarthModulation(){
   number mom=52.5*pow(cl,4)/pow(sqrt(1.-cth*pow(cl,3))+1,2)*fabs(_charge);
   if (_mom > mom)return 1;
   else {
-   _nskip=++Orbit.Nskip;
+    _nskip=++Orbit.Nskip;
+   
    return 0;
   }
 }

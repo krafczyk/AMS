@@ -33,6 +33,14 @@ integer Event;
 #define SELECTFFKEY COMMON_BLOCK(SELECTFFKEY,selectffkey)
 COMMON_BLOCK_DEF(SELECTFFKEY_DEF,SELECTFFKEY);
 
+class TRIGFFKEY_DEF {
+public:
+integer ntof;
+geant anti;
+};
+#define TRIGFFKEY COMMON_BLOCK(TRIGFFKEY,trigffkey)
+COMMON_BLOCK_DEF(TRIGFFKEY_DEF,TRIGFFKEY);
+
 class AMSFFKEY_DEF {
 public:
 integer Simulation;

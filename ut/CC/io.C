@@ -154,6 +154,9 @@ void AMSIO::init(integer mode,integer format){
       cerr<<"AMSIO::init-F-cannot open file "<<fnam<<" in mode "<<mode<<endl;
       exit(1);
     }
+    // Associate buffer
+    static char buffer[32*sizeof(AMSIO)+1];
+    fbin.setbuf(buffer,32*sizeof(AMSIO));
   }
   else {
     cerr <<"AMSIO::init-F-no file to init "<<endl;
@@ -161,8 +164,19 @@ void AMSIO::init(integer mode,integer format){
   }
 }
 void AMSIO::write(){
+    
    convert();
    fbin.write((char*)this,sizeof(*this));
+    //
+    // Stupid DEC has no setbuf,
+    // but stupid global buffer about 1 kbytes
+   // 
+#ifdef __ALPHA__
+   static integer counter=0;
+   static integer nb=1000/sizeof(AMSIO);
+   counter=(counter+1)%nb;
+   if(!counter)fbin.flush();   
+#endif
 }
 integer AMSIO::read(){
    if(fbin.good() && !fbin.eof()){

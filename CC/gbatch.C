@@ -22,6 +22,7 @@ main(){
      *signal(SIGINT, handler);
      *signal(SIGQUIT, handler);
     AMSgvolume::debug=0;
+    cout.sync_with_stdio();
     GZEBRA(NWGEAN);
     HLIMIT(-NWPAW);
     UGINIT();

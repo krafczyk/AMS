@@ -59,6 +59,12 @@ void AMSJob::data(){
   AMSgObj::GVolMap= *(new  AMSNodeMap() );
   AMSgObj::BookTimer= *(new AMSStat() );
 #endif  
+  TRIGFFKEY.ntof=3;
+  TRIGFFKEY.anti=1000000.;
+  FFKEY("LVL1",(float*)&TRIGFFKEY,sizeof(TRIGFFKEY_DEF)/sizeof(integer),"MIXED");
+
+
+
   SELECTFFKEY.Run=0;
   SELECTFFKEY.Event=0;
   FFKEY("SELECT",(float*)&SELECTFFKEY,sizeof(SELECTFFKEY_DEF)/sizeof(integer),"MIXED");
@@ -184,11 +190,11 @@ CCFFKEY.npat=1;
 CCFFKEY.run=100;
 CCFFKEY.low=0;
 CCFFKEY.earth=1;
-CCFFKEY.theta=51.65;
+CCFFKEY.theta=51.;
 CCFFKEY.phi=290.;
 CCFFKEY.polephi=290.;
-CCFFKEY.begindate=2041998;
-CCFFKEY.enddate=  6041998;
+CCFFKEY.begindate=22051998;
+CCFFKEY.enddate=  26051998;
 CCFFKEY.begintime=80000;
 CCFFKEY.endtime=120000;
 CCFFKEY.oldformat=0;
@@ -1073,6 +1079,7 @@ _dbendjob();
 _axendjob();
 
 if(IOPA.hlun){
+  cout <<"Trying to close ntuple ... "<<endl;
         char hpawc[256]="//PAWC";
         HCDIR (hpawc, " ");
         char houtput[9]="//output";

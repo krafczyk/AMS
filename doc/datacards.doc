@@ -174,9 +174,9 @@ I21 earth(1)                      // Earth magnetic field modulation on (1) off(
 R22 theta(51.65)                  //Station Theta(deg) at begin
 R23 phi(290.)                     //Station Phi(deg) at begin
 R24 pole(290.)                    // Pole phi at begin 
-I25 begindate(02041998)           // start date (ddmmyyyy)
+I25 begindate(22051998)           // start date (ddmmyyyy)
 I26 begintime(080000)             // start time (hhmmss)
-I27 enddate(06041998)             // end date   (ddmmyyyy)
+I27 enddate(26051998)             // end date   (ddmmyyyy)
 I28 endtime(120000)               // end time   (hhmmss)
 I29 dir(1)                        // direction +1 to higher theta (-1 to lower)
 I30 oldformat(0)                  // 1 if oldformat for io read is used
@@ -332,3 +332,19 @@ R15 Chi2Cut[2](3.,3.)                 // chi2 ---------------
 R17 InitialCoo[6][3](0)               // Coordinates displacement
 R35 InitialRM[6][3][3](0)             // Rot Matrix --------
 };
+
+
+
+LVL1    // Trigger conditions
+
+I 1 ntof                            // min number of tof planes in trig
+R 2 anti                            // max energy deposition in anti in mrv 
+
+
+SELECT   // Choose run & event
+
+I 1 run number                      // Run number
+I 2 event(position) number          // Event (if > 0) Position(<0)
+
+
+
