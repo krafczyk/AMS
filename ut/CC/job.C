@@ -1,4 +1,4 @@
-// $Id: job.C,v 1.459 2003/11/07 17:35:06 alcaraz Exp $
+// $Id: job.C,v 1.460 2003/12/04 11:10:50 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 // TOF,CTC codes added 29-sep-1996 by E.Choumilov 
 // ANTI codes added 5.08.97 E.Choumilov
@@ -998,7 +998,7 @@ TRFITFFKEY.ResCutFastFit=0.5;
 TRFITFFKEY.ResCutStrLine=0.5;
 TRFITFFKEY.ResCutCircle=0.5;
 TRFITFFKEY.SearchRegFastFit=1;
-TRFITFFKEY.SearchRegStrLine=0.5;
+TRFITFFKEY.SearchRegStrLine=1.5;
 TRFITFFKEY.SearchRegCircle=10.;
 TRFITFFKEY.RidgidityMin=0.02;
 TRFITFFKEY.FullReco=0;

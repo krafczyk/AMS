@@ -1,4 +1,4 @@
-//  $Id: trrec.C,v 1.157 2003/12/04 10:42:17 alcaraz Exp $
+//  $Id: trrec.C,v 1.158 2003/12/04 11:10:50 alcaraz Exp $
 // Author V. Choutko 24-may-1996
 //
 // Mar 20, 1997. ak. check if Pthit != NULL in AMSTrTrack::Fit
@@ -1750,8 +1750,8 @@ integer AMSTrTrack::_addnextFalseX(integer pat, integer nhit, AMSTrRecHit* pthit
                         AMSPoint loc=pls->gl2loc(P1);
                         id.R2Gy(idy.getstrip());
                         AMSPoint hit=pls->str2pnt(loc[0]+PS[0],py->getcofg(&id)); 
-                        AMSPoint Err(TRFITFFKEY.SearchRegStrLine,
-                                     TRFITFFKEY.SearchRegStrLine,TRFITFFKEY.SearchRegStrLine);
+                        AMSPoint Err(TRFITFFKEY.ResCutStrLine,
+                                     TRFITFFKEY.ResCutStrLine,TRFITFFKEY.ResCutStrLine);
                         if((hit-P1).abs() < Err){
 //                          cout <<id.getlayer()<<" "<<P1<<"  " <<hit<<" "<<idy.gethalf()<<endl;
                           AMSTrRecHit::_addnext(pls,AMSDBc::FalseX,id.getlayer(),-1,-1,0,py,hit,

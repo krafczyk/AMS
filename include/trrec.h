@@ -1,4 +1,4 @@
-//  $Id: trrec.h,v 1.72 2003/12/03 16:14:21 alcaraz Exp $
+//  $Id: trrec.h,v 1.73 2003/12/04 11:10:53 alcaraz Exp $
  // Author V. Choutko 24-may-1996
 //
 // May 27, 1996. ak. add functions to AMSTrRecHit
@@ -190,7 +190,7 @@ static AMSTrRecHit* firstgood_path(integer pattern, integer index, number par[2]
 AMSTrRecHit* nextgood_path(number par[2][3]);
 static integer markAwayTOFHits();
 integer is_in_path(number par[2][3]){
-   return fabs(par[0][1]+par[0][0]*_Hit[2]-_Hit[0]) < 3.*TRFITFFKEY.SearchRegStrLine*par[0][2]
+   return fabs(par[0][1]+par[0][0]*_Hit[2]-_Hit[0]) < TRFITFFKEY.SearchRegStrLine*par[0][2]
        && fabs(par[1][1]+par[1][0]*_Hit[2]-_Hit[1]) < TRFITFFKEY.SearchRegCircle*par[1][2];
 }
 
@@ -333,7 +333,7 @@ static integer _addnext(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static void   _addnextR(AMSTrTrack* ptr, integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer _addnextFalseX(integer pat, integer nhits, AMSTrRecHit* phit[]);
 static integer Distance(number par[2][3], AMSTrRecHit *ptr){
-   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > 3.*TRFITFFKEY.SearchRegStrLine*par[0][2] ||
+   return fabs(par[0][1]+par[0][0]*ptr->getHit()[2]-ptr->getHit()[0]) > TRFITFFKEY.SearchRegStrLine*par[0][2] ||
           fabs(par[1][1]+par[1][0]*ptr->getHit()[2]-ptr->getHit()[1])
            > TRFITFFKEY.SearchRegCircle*par[1][2];
 
