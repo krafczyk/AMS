@@ -1,4 +1,4 @@
-# $Id: RemoteClient.pm,v 1.244 2004/02/16 09:47:29 alexei Exp $
+# $Id: RemoteClient.pm,v 1.245 2004/02/18 10:38:56 alexei Exp $
 #
 # Apr , 2003 . ak. Default DST file transfer is set to 'NO' for all modes
 #
@@ -20,15 +20,19 @@
 #                 validateRuns is modified - add clock for local hosts
 # Dec 4 2003    : increase number of cites to 32 (16/32, 27/26)
 #
-# Jan  6 2004    : queryDB changed drastically -> queryDB04
-# Jan 16 2004    : parsejournalfile : closedst block, do nothing if DST file status ne "Validated"
-# Jan 30 2004    : NFS, Web, CASTOR files access mode
+# Jan    2004    : queryDB changed drastically -> queryDB04
+#                : parsejournalfile : closedst block, do nothing if DST file status ne "Validated"
+#                : NFS, Web, CASTOR files access mode
 #                  TriggerLVl1 - default trigger type
 #                : sub checkDB -d   DirectoryPath
 #                              -p   DBPath
 #                              -crc do CRC check
 #                              -u   update DB
 #                              -o   print output to file
+# Feb 18, 2004   : $webmode, subs : printParserStat and amsprint 
+#                  print statistics for each cite
+#                  parser : verbose, cmd, web modes
+#                           username and nFailedCopiesInRow check
 #
 # ToDo : checkJobsTimeout - reduce number of SQLs
 #
@@ -53,11 +57,39 @@ use File::Find;
 
 @RemoteClient::EXPORT= qw(new  Connect Warning ConnectDB checkDB listAll listAllDisks listMin queryDB04 DownloadSA calculateMips checkJobsTimeout deleteTimeOutJobs getHostsPerSite updateHostInfo parseJournalFiles ValidateRuns updateAllRunCatalog printMC02GammaTest set_root_env);
 
-my     $bluebar      = '/AMS/icons/bar_blue.gif';
-my     $maroonbullet = '/AMS/icons/bullet_maroon.gif';
-my     $bluebullet   = '/AMS/icons/bullet_blue.gif';
-my     $silverbullet = '/AMS/icons/bullet_silver.gif';
-my     $purplebullet = '/AMS/icons/bullet_purple.gif';
+
+my     $webmode         = 1; # 1- cgi is executed from Web interface and 
+                             # expects Web like output
+                             # 0- cgi is executed from command line
+my     $verbose         = 0; # verbose mode
+
+#+ parser Statistics
+ my $parserStartTime=0;# start jopurnal files check
+ my $nCheckedCite = 0;  # cites dirs checked
+ my $nActiveCites = 0;  # cites with new dsts 
+ my @JouDirPath   = [];
+ my @JouLastCheck = [];
+ my @JournalFiles = [];  # number of journal files
+ my @CheckedRuns  = [];  # runs processed
+ my @FailedRuns   = [];  # failed runs
+ my @GoodRuns     = [];  # marked as 'Completed'
+ my @BadRuns      = [];  # marked as 'Unckecked' or 'Failed'
+ my @CheckedDSTs  = [];  # dsts checked
+ my @GoodDSTs     = [];  # copied to final destination
+ my @BadDSTs      = [];  # marked as bad because of different reasons
+                       # in particular :
+ my @BadDSTCopy   = [];  #                 doCopy failed to copy DST
+ my @BadCRCi      = [];  #                 dsts with crc error (before copying)
+ my @BadCRCo      = [];  #                 dsts with crc error (after copying)
+#-
+ my $nBadCopiesInRow = 0;   # counter of doCopy errors
+ my $MAX_FAILED_COPIES = 5; # max number of allowed errors (in row)
+#
+my     $bluebar      = 'http://ams.cern.ch/AMS/icons/bar_blue.gif';
+my     $maroonbullet = 'http://ams.cern.ch/AMS/icons/bullet_maroon.gif';
+my     $bluebullet   = 'http://ams.cern.ch/AMS/icons/bullet_blue.gif';
+my     $silverbullet = 'http://ams.cern.ch/AMS/icons/bullet_silver.gif';
+my     $purplebullet = 'http://ams.cern.ch/AMS/icons/bullet_purple.gif';
 
 my     $srvtimeout = 30; # server timeout 30 seconds
 my     @colors=("red","green","blue","magenta","orange","cyan","tomato");
@@ -685,10 +717,10 @@ foreach my $file (@allfiles){
         }        
     } 
 
- print "-I- get IOR from Server or DB \n";
+ if ($webmode == 0) {print "-I- get IOR from Server or DB \n";}
  my $ior=$self->getior();
 if(not defined $ior){ 
-  print "-I- IOR not defined \n"; 
+    if ($webmode == 0) {print "-I- IOR not defined \n";}
 
   foreach my $chop  (@ARGV){
     if($chop =~/^-I/){
@@ -697,7 +729,7 @@ if(not defined $ior){
   }
 }
     if(defined $ior ){
-      print "-I- IOR got it \n"; 
+      if ($webmode ==0) {print "-I- IOR got it \n";}
       chomp $ior;
       if($self->{IOR} ne $ior){
         $self->{IOR}=$ior;
@@ -1080,6 +1112,7 @@ sub ValidateRuns {
                               push @mvntuples, $outputpath; 
                           }
                            if ($rstatus == 1) {
+                            $nBadCopiesInRow = 0;
                             $self->insertNtuple(
                                                 $run->{Run},
                                                 $ntuple->{Version},
@@ -1103,6 +1136,14 @@ sub ValidateRuns {
                          } else {
                              print FILE "failed to copy $fpath\n";
                              $copyfailed = 1;
+                             $nBadCopiesInRow++;
+                             if ($nBadCopiesInRow > $MAX_FAILED_COPIES) {
+                              $self->amsprint("Too many doCopy failures : $nBadCopiesInRow. Quit",0);
+                              $self->amsprint("Check $outputpath  free blocks and availability. Quit",0);
+                              print FILE "Too many doCopy failures : $nBadCopiesInRow. \n";
+                              print FILE "Check $outputpath. Quit\n";
+                              die "Bye";
+                             }
                              last;
                          }
                        }  # ntuple status 'OK'
@@ -1194,7 +1235,7 @@ sub doCopy {
      my $filesize = 0;
      $filesize    = (stat($inputfile))[7];
      if ($filesize > 0) {
-      $filesize = 1+$filesize/1000000/1000;
+      $filesize = 10+$filesize/1000000/1000;
       my $mtime = 0;
       my $pset  => undef;
       my $sql   => undef;
@@ -1206,6 +1247,7 @@ sub doCopy {
 # find disk
          $sql = "SELECT disk, path FROM filesystems WHERE AVAILABLE > $filesize 
                    ORDER BY priority DESC, available DESC";
+#         print "$sql \n";
          my $ret = $self->{sqlserver}->Query($sql);
          foreach my $disk (@{$ret}) {
            $outputdisk = trimblanks($disk->[0]);
@@ -1242,7 +1284,10 @@ sub doCopy {
                $outputpath = $outputpath."/".$file;
                $cmd = "cp -pi -d -v $inputfile  $outputpath >> $logfile";
                $cmdstatus = system($cmd);
-               print "********* docopy - $cmd \n";
+               if ($verbose == 1)  {
+                $self->amsprint("********* docopy - ",666);
+                $self->amsprint($cmd,0);
+               }
                if ($cmdstatus == 0 ) {
                  my $crccmd  = "$self->{AMSSoftwareDir}/exe/linux/crc $outputpath $crc";
                  my $rstatus = system($crccmd);
@@ -1250,32 +1295,41 @@ sub doCopy {
                  if ($rstatus == 1) {
                    return $outputpath,1;
                  } else {
-                  print "********* docopy - crc status : $rstatus \n";
-                  htmlWarning("doCopy","$crccmd");
-                  htmlWarning("doCopy","crc calculation failed for $outputpath");
-                  htmlWarning("doCopy","crc calculation failed status $rstatus");
+                  $self->amsprint("********* docopy - ERROR- crc status :",666);
+                  $self->amsprint($rstatus,0);
+                  $BadCRCo[$nCheckedCite]++;
+                  if ($webmode == 1) {
+                   htmlWarning("doCopy","$crccmd");
+                   htmlWarning("doCopy","crc calculation failed for $outputpath");
+                   htmlWarning("doCopy","crc calculation failed status $rstatus");
+                  }
                   return $outputpath,0;
                  }
                }
-               print "********* docopy - cmd status : $cmdstatus \n";
+               $BadDSTCopy[$nCheckedCite]++;
+               $self->amsprint("********* docopy - cmd status : ",666);
+               $self->amsprint($cmdstatus,0);
                return $outputpath,0;
               } else {
-               htmlWarning("doCopy","failed $cmd");
+                  if ($webmode == 1) {htmlWarning("doCopy","failed $cmd");}
+                  $BadDSTCopy[$nCheckedCite]++;
              }
             } else {
-             htmlWarning("doCopy","cannot find dataset for JID=$jid");
+                if ($webmode == 1) {htmlWarning("doCopy","cannot find dataset for JID=$jid");}
             }
            } else {
-            htmlWarning("doCopy","cannot get info for JID=$jid");
+              if ($webmode == 1) {htmlWarning("doCopy","cannot get info for JID=$jid");}
            }
         } else {
-         htmlWarning("doCopy","cannot stat disk ($outputpath) from Filesystems");
+          if ($webmode == 1) {htmlWarning("doCopy","cannot stat disk ($outputpath) from Filesystems");}
+          $BadDSTs[$nCheckedCite]++;
         } 
       } else {
-       htmlWarning("doCopy","cannot get ProductionSet status=Active");
+          if ($webmode == 1) {htmlWarning("doCopy","cannot get ProductionSet status=Active");}
      }
   } else {
-    htmlWarning("doCopy","cannot stat $inputfile");
+      if ($webmode == 1) {htmlWarning("doCopy","cannot stat $inputfile");}
+      $BadDSTs[$nCheckedCite]++;
   } 
   return undef,0;
  }
@@ -5725,6 +5779,16 @@ sub listStat {
                 $nntuples= $ret->[0][0];
                 $nsizegb = sprintf("%.1f",$ret->[0][1]/1000);
                }
+# GB on CASTOR
+               $sql="SELECT COUNT(run), SUM(SIZEMB) from ntuples where castortime !=0";
+               $ret=$self->{sqlserver}->Query($sql);
+               my $cntuples=0;
+               my $csizegb =0;
+               if(defined $ret->[0][0]){
+                $cntuples= $ret->[0][0];
+                $csizegb = sprintf("%.1f",$ret->[0][1]/1000);
+               }
+#
                my $timenow = time();
                my $timepassed = sprintf("%.1f",($timenow - $timestart)/60/60/24);
                
@@ -5737,6 +5801,8 @@ sub listStat {
                print "<td align=center><b><font color=\"blue\" >Events </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Total </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Size </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >CASTOR </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >CASTOR </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >Last Update </font></b></td>";
               print "</tr>\n";
                print "<td align=center><b><font color=\"blue\">Started </font></b></td>";
@@ -5747,22 +5813,20 @@ sub listStat {
                print "<td align=center><b><font color=\"blue\" >Processed </font></b></td>";
                print "<td align=center><b><font color=\"blue\" >NTuples</font></b></td>";
                print "<td align=center><b><font color=\"blue\" > [GB]     </font></b></td>";
+               print "<td align=center><b><font color=\"blue\" >NTuples</font></b></td>";
+               print "<td align=center><b><font color=\"blue\" > [GB]     </font></b></td>";
                print "<td align=center><b><font color=\"green\" > $timepassed days</font></b></td>";
               print "</tr>\n";
            my $color="black";
-           my $reqevents = 0;
-           if ($trigreq < 1000) {
-	       $reqevents = $trigreq;
-           } elsif ($trigreq => 1000 && $trigreq <= 1000000) {
+           my $reqevents = $trigreq;
+           if ($trigreq => 1000 && $trigreq <= 1000000) {
                $reqevents = sprintf("%.2fK",$trigreq/1000.);
 	   } else {
                $reqevents = sprintf("%.2fM",$trigreq/1000000.);
 	   }
 
-           my $donevents = 0;
-           if ($trigdone< 1000) {
-	       $donevents = $trigdone;
-           } elsif ($trigdone=> 1000 && $trigdone<= 1000000) {
+           my $donevents = $trigdone;
+           if ($trigdone=> 1000 && $trigdone<= 1000000) {
                $donevents = sprintf("%.2fK",$trigdone/1000.);
  	   } else {
                $donevents = sprintf("%.2fM",$trigdone/1000000.);
@@ -5778,6 +5842,8 @@ sub listStat {
                   <td align=center><b><font color=$color> $donevents </font></b></td>
                   <td align=center><b><font color=$color> $nntuples </font></b></td>
                   <td align=center><b><font color=$color> $nsizegb </font></b></td>
+                  <td align=center><b><font color=$color> $cntuples </font></b></td>
+                  <td align=center><b><font color=$color> $csizegb </font></b></td>
                   <td align=center><b><font color=$color> $lastupd </font></b></td>\n";
 
           print "</font></tr>\n";
@@ -6835,24 +6901,54 @@ sub parseJournalFiles {
 
  my $self = shift;
 
+
  my $firstjobtime = 0;      # first job order time
  my $lastjobtime  = 0;      # last
  my $cid          = undef;
  my $sql          = undef;
  my $ret          = undef;
- my $html         = 1;      # print output in html format
+
+ my $HelpTxt = "
+     parseJournalFiles check journal file directory for all cites 
+     -c    - output will be produced as ASCII page (default)
+     -h    - print help
+     -v    - verbose mode
+     -w    - output will be produced as HTML page
+     ./parseJournalFile -c
+";
+
+  foreach my $chop  (@ARGV){
+    if ($chop =~/^-c/) {
+        $webmode = 0;
+    }
+    if ($chop =~/^-v/) {
+        $verbose = 1;
+    }
+    if ($chop =~/^-w/) {
+     $webmode = 1;
+    }
+    if ($chop =~/^-h/) {
+      print "$HelpTxt \n";
+      return 1;
+    }
+   }
  
     if( not $self->Init()){
-        die "parseJournalFiles -F- Unable To Init";
-        
+      die "parseJournalFiles -F- Unable To Init";
     } else {
-        print "parseJournalFiles -I- Init done \n";
+        if ($verbose == 1) {$self->amsprint("parseJournalFiles -I- Init done ",0);}
     }
-    print "parseJournalFiles -I- connect to server \n";
+    if ($verbose == 1) {$self ->amsprint ("parseJournalFiles -I- connect to server",0);}
     if (not $self->ServerConnect()){
         die "parseJournalFiles -F- Unable To Connect To Server";
     } else {
-     print "parseJournalFiles -I- connected to server. done \n";
+        if ($verbose == 1) {$self->amsprint("parseJournalFiles -I- connected to server. done",0);}
+    }
+
+    my $whoami = getlogin();
+    if ($whoami != 'ams') {
+      $self->amsprint("parseJournalFiles -ERROR- script cannot be run from account : $whoami",0);
+      die "bye";
     }
     $self->set_root_env();
 
@@ -6861,16 +6957,45 @@ sub parseJournalFiles {
  $sql = "SELECT begin FROM productionset WHERE STATUS='Active'";
  $ret = $self->{sqlserver}->Query($sql);
  if(not defined $ret->[0][0]){
-     print "parseJournalFiles - cannot find 'Active' production set\n";
+     $self->amsprint("parseJournalFiles -ERROR- cannot find 'Active' production set",0);
      die "exit\n";
  } 
 
  $firstjobtime = $ret->[0][0] - 24*60*60;
  $lastjobtime  = time() + 24*60*60;
 
- htmlTop();
- htmlTable("Parse Journal Files");
-
+ if ($webmode == 1) {
+  htmlTop();
+  htmlTable("Parse Journal Files");
+ }
+ $sql = "SELECT MAX(CID) FROM Cites";
+ $ret = $self->{sqlserver}->Query($sql);
+ if (not defined $ret->[0][0] || $ret->[0][0]<1) {
+     $self->amsprint("parseJournalFiles - ERROR - wrong MAX(CID)",0);
+     die "exit\n";
+ } 
+ $nCheckedCite  = -1;
+ $nActiveCites  = 0;  # cites with new dsts 
+ for (my $i=0; $i<$ret->[0][0]; $i++) {
+#+ parser statistics
+ $JournalFiles[$i] = 0;  # number of journal files
+ $JouLastCheck[$i] = 0;
+ $JouDirPath[$i]   = 'xyz';
+ $CheckedRuns[$i]  = 0;  # runs processed
+ $FailedRuns[$i]   = 0;  # failed runs
+ $GoodRuns[$i]     = 0;  # marked as 'Completed'
+ $BadRuns[$i]      = 0;  # marked as 'Unckecked' or 'Failed'
+ $CheckedDSTs[$i]  = 0;  # dsts checked
+ $GoodDSTs[$i]     = 0;  # copied to final destination
+ $BadDSTs[$i]      = 0;
+ $BadDSTCopy[$i]   = 0;  # doCopy failed to copy DST
+ $BadCRCi[$i]      = 0;  # dsts with crc error (before copying)
+ $BadCRCo[$i]      = 0;  # dsts with crc error (after copying)
+#-
+}
+ $parserStartTime=time();# start jopurnal files check
+ 
+ 
 
  $sql = "SELECT dirpath,journals.timelast,name,journals.cid  
               FROM journals,cites WHERE journals.cid=cites.cid";
@@ -6879,14 +7004,21 @@ sub parseJournalFiles {
 
  if(defined $ret->[0][0]){
   foreach my $jou (@{$ret}){
+   $nCheckedCite++;
    my $timenow    = time();
    my $dir        = trimblanks($jou->[0]);  # journal file's path
    my $timestamp  = trimblanks($jou->[1]);  # time of latest processed file
    my $cite       = trimblanks($jou->[2]);  # cite
       $cid        = $jou->[3];
    my $lastcheck  = EpochToDDMMYYHHMMSS($timestamp);
+   $JouDirPath[$nCheckedCite]=$cite;
+   $JouLastCheck[$nCheckedCite] = $lastcheck;
    my $title  = "Cite : ".$cite.", Directory : ".$dir." Last Check ".$lastcheck;
-   htmlTable($title);
+   if ($webmode == 1) {
+    htmlTable($title);
+   } else {
+       if ($verbose == 1) {$self->amsprint($title,0);}
+   }  
    my $newfile   = "./";
    my $lastfile  = "./";
    my $writelast = 0;
@@ -6896,11 +7028,13 @@ sub parseJournalFiles {
       opendir THISDIR ,$joudir or die "unable to open $joudir";
       my @allfiles= readdir THISDIR;
       closedir THISDIR;
-      print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
-      print "<td><b><font color=\"blue\">File </font></b></td>";
-      print "<td><b><font color=\"blue\" >Write Time</font></b></td>";
-      print "<td><b><font color=\"blue\" >Status</font></b></td>";
-      print "</tr>\n";
+      if ($webmode == 1) {
+       print "<table border=0 width=\"100%\" cellpadding=0 cellspacing=0>\n";
+       print "<td><b><font color=\"blue\">File </font></b></td>";
+       print "<td><b><font color=\"blue\" >Write Time</font></b></td>";
+       print "<td><b><font color=\"blue\" >Status</font></b></td>";
+       print "</tr>\n";
+     } 
       foreach my $file (@allfiles) {
        if ($file =~/^\./){
          next;
@@ -6915,7 +7049,8 @@ sub parseJournalFiles {
         }
        }
        $newfile=$joudir."/".$file;
-       my $writetime = (stat($newfile)) [9];
+       my $writetime = 0;
+       $writetime = (stat($newfile)) [9];
        if ($writetime > $writelast) {
            $writelast = $writetime;
            $lastfile = $newfile;
@@ -6925,10 +7060,12 @@ sub parseJournalFiles {
        if ($writetime < $timestamp) { $color   = "magenta";
                                       $fstatus = "AlreadyChecked"}
        my $wtime = EpochToDDMMYYHHMMSS($writetime);
-       print "<td><b><font color=$color>$file </font></b></td>";
-       print "<td><b><font color=$color >$wtime</font></b></td>";
-       print "<td><b><font color=$color >$fstatus</font></b></td>";
-       print "</tr>\n";
+       if ($webmode == 0) {$color = 666;} # no CR
+       $self->amsprint($file, $color);
+       $self->amsprint($wtime, $color);
+       $self->amsprint($fstatus,$color);
+       $self->amsprint(" ",0);
+       if ($webmode == 1) {print "</tr>\n";}
 #
 # $timestamp - latest time of journal file during previous validation
 # all files produced $timestamp- 24h -> pass automatic validation
@@ -6941,10 +7078,13 @@ sub parseJournalFiles {
                                  $logdir,
                                  $newfile,
                                  $ntdir);
+         $JournalFiles[$nCheckedCite]++;
        }
    }
-   htmlTableEnd();
-   htmlTableEnd();
+   if ($webmode == 1) {
+    htmlTableEnd();
+    htmlTableEnd();
+   }
    if (defined $cid) {
     if ($writelast > 0) {
      $sql = "UPDATE journals 
@@ -6952,6 +7092,7 @@ sub parseJournalFiles {
                  timelast=$writelast, 
                  lastfile = '$lastfile' 
               WHERE cid=$cid";
+      $nActiveCites++;
      } else {
       $sql = "UPDATE journals SET timestamp=$timenow WHERE cid=$cid";
      }
@@ -6959,11 +7100,15 @@ sub parseJournalFiles {
    }
   }
  } else {
-     print "Warning - table Journals is empty \n";
+     $self->amsprint("parseJournalFile - Warning - table Journals is empty",0);
  }
-
+ if ($webmode == 1) {
    htmlTableEnd();
- htmlBottom();
+  htmlBottom();
+ } else {
+     $self -> printParserStat();
+ }
+ return 1;
 }
 
 
@@ -6984,8 +7129,6 @@ sub parseJournalFile {
  my $tevents      = 0;
  my $terrors      = 0;
 
- my $jobnotfound  = 0;       # check that job exists in database
-                             # quit if not
  my $jobid        = -1;
 
  my $sql       = undef;
@@ -7166,7 +7309,6 @@ foreach my $block (@blocks) {
 
    $jobid = $startingjob[2];
    if ($self->findJob($jobid) != $jobid) {
-       $jobnotfound = 1;
        print FILE "Fatal - cannot find JobInfo for $jobid \n";
        system("mv $inputfile $inputfile.0"); 
        return;
@@ -7217,9 +7359,9 @@ foreach my $block (@blocks) {
 
    $jobid = $startingjob[2];
    if ($self->findJob($jobid) != $jobid) {
-       $jobnotfound = 1;
        print FILE "Fatal - cannot find JobInfo for $jobid \n";
        system("mv $inputfile $inputfile.0"); 
+       $BadRuns[$nCheckedCite]++;
        return;
    }
    if ($patternsmatched == $#StartingJobPatterns || $patternsmatched == $#StartingJobPatterns-1) { 
@@ -7268,6 +7410,7 @@ foreach my $block (@blocks) {
     $startingrun[0] = "StartingRun";
     $startingrunR   = 1;
 # insert run : run #, $jid, $fevent, $levent, $fetime, $letime, $submit, $status;
+    $CheckedRuns[$nCheckedCite]++;
     $self->insertRun(
              $startingrun[2],
              $lastjobid,
@@ -7321,6 +7464,7 @@ foreach my $block (@blocks) {
     }
    if ($patternsmatched == $#OpenDSTPatterns) { #OpenDST has no pair
     $opendst[0] = "OpenDST";
+    $CheckedDSTs[$nCheckedCite]++;
    } else  {
      print FILE "OpenDST - cannot find all patterns \n";
    }
@@ -7389,9 +7533,11 @@ foreach my $block (@blocks) {
 # Jan 19, 2004, set error flag, from now skip DST if version doesn't match
 #
      if ($self->checkDSTVersion($version) != 1) {
-      print "------------ Check DST; Version : $version / Min production version : $self->{Version} \n";
+      $self->amsprint ("------------ Check DST; Version : $version / Min production version :",666);
+      $self->amsprint($self->{Version},0);
       $unchecked++;
       $copyfailed = 1;
+      $BadDSTs[$nCheckedCite]++;
       last;
      }
       $levent += $closedst[12]-$closedst[11]+1;
@@ -7403,6 +7549,7 @@ foreach my $block (@blocks) {
       if ($i != 1) {
           $unchecked++;
           $copyfailed = 1;
+          $BadCRCi[$nCheckedCite]++;
           last;
       }
       $i=0;
@@ -7465,8 +7612,8 @@ foreach my $block (@blocks) {
 
            print FILE "insert ntuple : $run, $outputpath, $closedst[1]\n";
           push @cpntuples, $dstfile;
-       } else {
-           print FILE "***** Error in doCopy for : $dstpath \n";
+        } else {
+          print FILE "***** Error in doCopy for : $outputpath\n";
         }
        }
       }
@@ -7525,9 +7672,10 @@ foreach my $block (@blocks) {
    # 
    }
   } else {
+    $BadRuns[$nCheckedCite]++;
     print FILE "*********** wrong timestamp : $utime ($firstjobtime,$lastjobtime)\n";
-    $copyfailed = 1;
-    last;
+    system("mv $inputfile $inputfile.0"); 
+    return; 
    }
   } #if defined $utime 
  }
@@ -7542,10 +7690,12 @@ foreach my $block (@blocks) {
       print FILE "$cmd\n";
       system($cmd);
       print FILE "Validation done : system command rm -i $ntuple \n";
+      $GoodDSTs[$nCheckedCite]++;
     }
    if ($#cpntuples >= 0) { 
     $status = 'Completed';
     $inputfileLink = $inputfile.".1";
+    $GoodRuns[$nCheckedCite]++;
     if ($runfinishedR != 1) {
       print FILE "End of Run not found update Jobs \n";
       $sql = "UPDATE Jobs SET 
@@ -7557,11 +7707,14 @@ foreach my $block (@blocks) {
       print FILE "$sql \n";
       $self->{sqlserver}->Update($sql);
      }
-  }
+ } else {
+     $BadRuns[$nCheckedCite]++;
+ }
 }
   else{
    print FILE "Validation/copy failed = $copyfailed for  Run =$run \n";
    $status='Unchecked';
+   $BadRuns[$nCheckedCite]++;
    foreach my $ntuple (@mvntuples) {
      $cmd = "rm  $ntuple";
      print FILE "Validation failed : system command rm -i $ntuple \n";
@@ -7594,11 +7747,10 @@ foreach my $block (@blocks) {
   print FILE "mv $inputfile $inputfileLink\n";
   if ($status eq "Completed") {
     $self->updateRunCatalog($run);
-    print "Update RunCatalog table : $run\n";
+    if ($verbose == 1) {print "Update RunCatalog table : $run\n";}
   }
 }
  close FILE;
- 
 }
 
 sub updateAllRunCatalog {
@@ -7930,7 +8082,7 @@ sub insertRun {
                     $submit,
                     '$status')";
         $self->{sqlserver}->Update($sql);
-        print "$sql \n";
+        if ($verbose == 1) {print "$sql \n";}
         if ($status eq "Completed") {
           $self->updateRunCatalog($run);
           print "Update RunCatalog table : $run->{Run}\n";
@@ -8283,7 +8435,6 @@ sub checkDB {
   my $outputfile = undef;
   my $checkCRC = 0; # check CRC for files
   my $updateDB = 0; # set last crc check time
-  my $verbose  = 0; # verbose mode
 
   my $HelpTxt = "
      checkDB compares DB and directories contents
@@ -8294,7 +8445,7 @@ sub checkDB {
      -h    - print help
      -u    - update DB (valid only with -crc)
      -v    - verbose mode
-     checkDB -d:/f2dah1/MC/AMS02/2004A/protons -crc
+     ./checkdb.cgi -d:/f2dah1/MC/AMS02/2004A/protons -crc
 ";
 #
 
@@ -8306,7 +8457,7 @@ sub checkDB {
   my $nfiles     = 0;
 
   $nTopDirFiles = 0;
-
+  
   foreach my $chop  (@ARGV){
     if($chop =~/^-d:/){
        $topdir=unpack("x3 A*",$chop);
@@ -8465,4 +8616,41 @@ sub calculateCRC {
   my $rstatus   = system($crccmd);
   $rstatus=($rstatus>>8);
   return $rstatus;
+}
+
+sub amsprint {
+   my $self      = shift;
+   my $msg       = shift;
+   my $txt       = $msg;
+   my $color     = shift;
+
+   if ($webmode==1) {
+    $txt = "<td><b><font color=$color>".$txt."</font></b></td>";
+    print $txt;
+   } else {
+       if ($color != 666) {$txt =$txt."\n";}
+       print "$txt ";
+   }
+}
+
+sub printParserStat {
+   my $self      = shift;
+   my $timenow = time();
+   my $ltime   = localtime($timenow);
+   print "Parser Stat : $ltime \n";
+   my $stime   = localtime($parserStartTime);
+   print "Start Time : $stime \n";
+   print "End   Time : $ltime \n";
+   print "Cites      : $nCheckedCite , active : $nActiveCites \n";
+   for (my $i=0; $i<$nCheckedCite; $i++) {
+     if ($JournalFiles[$i] > 0) {
+      print "Cite : $JouDirPath[$i] Last Check : $ltime\n";
+      print "Journal Files : $JournalFiles[$i] \n";
+      print "Runs (Checked, Good, Bad, Failed) :  $CheckedRuns[$i], $GoodRuns[$i],  $BadRuns[$i], $FailedRuns[$i] \n";
+      print "DSTs (Checked, Good, Bad, CRCi, CopyFail, CRCo) :  ";
+      print "$CheckedDSTs[$i],  $GoodDSTs[$i], $BadDSTs[$i], $BadCRCi[$i], $BadDSTCopy[$i], $BadCRCo[$i]\n";
+   } else {
+     print "Cite : $JouDirPath[$i] Last Check : $JouLastCheck[$i]\n";
+  }
+ }
 }
