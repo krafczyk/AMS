@@ -1,4 +1,4 @@
-//  $Id: ins_dummy.C,v 1.4 2001/01/22 17:32:20 choutko Exp $
+//  $Id: ins_dummy.C,v 1.5 2001/12/10 20:03:04 choutko Exp $
 #include <stdlib.h>
 #ifdef  __IBMAIX__    
 extern "C" void setkey(const char* a);
@@ -17,5 +17,15 @@ extern "C" void __encrypt(char* a, int n){
             encrypt(a,n);
 }
 
+#endif
+#ifdef sun
+extern "C" void dlopen(){
+};
+extern "C" void dlclose(){
+};
+extern "C" void dlsym(){
+};
+extern "C" void dlerror(){
+};
 #endif
 
