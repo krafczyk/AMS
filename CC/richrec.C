@@ -1,4 +1,4 @@
-//  $Id: richrec.C,v 1.18 2001/03/06 14:09:58 mdelgado Exp $
+//  $Id: richrec.C,v 1.19 2001/04/24 17:20:54 mdelgado Exp $
 #include <stdio.h>
 #include <typedefs.h>
 #include <cern.h>
@@ -343,36 +343,49 @@ void AMSRichRing::build(){
       // This should be done better
       if(point[0]*point[0]+point[1]*point[1]>RICGEOM.top_radius*RICGEOM.top_radius)
 	continue;   
-      
-      
-      //============================================================
-      // PARAMETRISATION OF THE RECONSTRUCCION HEIGHT
-      // Parametrisation optimised in absence of magnetic field,
-      // mirror top radius 58.6 cm, and aerogel according (including 
-      // rayleigh scattering).
-      // TODO: Parametrise it using the AMS simulation
-      //============================================================
-      
-      const geant fd=exp(.78-1.23*RICHDB::rad_height+
-			 .131*RICHDB::rad_height*RICHDB::rad_height);
-      const geant fr=exp(.90-1.19*RICHDB::rad_height+
-			 .130*RICHDB::rad_height*RICHDB::rad_height);
-      
-      // Distance from the bottom plane of radiator of the optimum 
-      // reconstruction point. THIS SHOULD BE REOPTIMISED
-      
-      geant height_direct=1/fd-RICHDB::rad_height/fabs(cos(theta))/
-	(exp(RICHDB::rad_height*fd/fabs(cos(theta)))-1);
-      geant height_reflected=1/fr-RICHDB::rad_height/fabs(cos(theta))/
-	(exp(RICHDB::rad_height*fr/fabs(cos(theta)))-1);
-      
-      // Fine tunning
-      
-      height_direct+=-.047+.14*RICHDB::rad_height-.073*
-	RICHDB::rad_height*RICHDB::rad_height;
-      height_reflected+=-.048+.06*RICHDB::rad_height-.071*
-	RICHDB::rad_height*RICHDB::rad_height;
-      
+
+
+      //================================================
+      // Compute the best emition point:
+      //   -Try numeric integration (only one time). 
+      //   -If it fails use old parametrization
+      //================================================
+
+      geant height_direct=RICHDB::mean_height();
+      geant height_reflected=height_direct-0.1; // 0.2 if NaF
+
+      if(height_direct==-1.){   // Error in the computation
+
+	//============================================================
+	// PARAMETRISATION OF THE RECONSTRUCCION HEIGHT
+	// Parametrisation optimised in absence of magnetic field,
+	// mirror top radius 58.6 cm, and aerogel according (including 
+	// rayleigh scattering).
+	// TODO: Parametrise it using the AMS simulation
+	//============================================================
+	
+	const geant fd=exp(.78-1.23*RICHDB::rad_height+
+			   .131*RICHDB::rad_height*RICHDB::rad_height);
+	const geant fr=exp(.90-1.19*RICHDB::rad_height+
+			   .130*RICHDB::rad_height*RICHDB::rad_height);
+	
+	// Distance from the bottom plane of radiator of the optimum 
+	// reconstruction point. THIS SHOULD BE REOPTIMISED
+	
+	height_direct=1/fd-RICHDB::rad_height/fabs(cos(theta))/
+	  (exp(RICHDB::rad_height*fd/fabs(cos(theta)))-1);
+	height_reflected=1/fr-RICHDB::rad_height/fabs(cos(theta))/
+	  (exp(RICHDB::rad_height*fr/fabs(cos(theta)))-1);
+	
+	// Fine tunning
+	
+	height_direct+=-.047+.14*RICHDB::rad_height-.073*
+	  RICHDB::rad_height*RICHDB::rad_height;
+	height_reflected+=-.048+.06*RICHDB::rad_height-.071*
+	  RICHDB::rad_height*RICHDB::rad_height;
+    }
+
+
       //============================================================
       // PARAMETRISATION OF THE HIT ERROR
       // Obtained using the same conditions as the reconstruction 
@@ -453,8 +466,7 @@ void AMSRichRing::build(){
       // Look for clusters
       integer best_cluster[2]={0,0};
       geant best_prob=-1;
-      
-      
+
       
       for(integer i=0;i<actual;i++){
 	if(recs[i][0]==-2.) continue; // Jump if direct is below threshold
@@ -510,6 +522,7 @@ void AMSRichRing::build(){
 	
 	integer beta_used=size[best_cluster[0]][best_cluster[1]];
 	beta_track=mean[best_cluster[0]][best_cluster[1]]/geant(beta_used);
+
 	
 	// Event quality numbers:
 	// 0-> Number of used hits

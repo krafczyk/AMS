@@ -1,4 +1,4 @@
-//  $Id: richdbc.C,v 1.19 2001/01/22 17:32:21 choutko Exp $
+//  $Id: richdbc.C,v 1.20 2001/04/24 17:20:54 mdelgado Exp $
 #include<richdbc.h>
 #include<cern.h>
 #include<math.h>
@@ -317,4 +317,56 @@ geant RICHDB::max_step(){
   cout << "Max step "<<max<<" cm"<<RICmaxphotons<<endl;
 #endif
   return max;
+}
+
+
+geant RICHDB::mean_height(){
+  // Computes the mean emission point inside the radiator
+  // of the detected photons.
+  // The credits go to .... Elisa Lanciotti
+
+  static geant value=0.0;
+#ifdef __AMSDEBUG__
+  cout<<"Present mean height value:"<<value<<endl;
+#endif
+
+  if(value) return value;
+
+#ifdef __AMSDEBUG__
+  cout<<"Computing mean height value"<<endl;  
+#endif
+  
+  const integer steps=100;    // Number of steps for the approximation
+  geant lambda,qeff,n,dl,l_scat=0,l_abs_rad,l_abs_lg;
+  geant sum=0,densum=0;
+
+  for(integer i=0;i<RICmaxentries-1;i++){ // Integration in wave length
+    lambda=(RICHDB::wave_length[i]+RICHDB::wave_length[i+1])/2.;
+    qeff=(RICHDB::eff[i]+RICHDB::eff[i+1])/2.;
+    n=(RICHDB::index[i]+RICHDB::index[i+1])/2.;
+    dl=RICHDB::wave_length[i]-RICHDB::wave_length[i+1];
+    if(rad_clarity==0. && l_scat!=1e6){
+      cout <<"RICHDB::mean_height : radiador clarity is zero."<<endl;
+      l_scat=1e6;
+    }else
+      l_scat=(lambda/1000.)*(lambda/1000.)*(lambda/1000.)*(lambda/1000.)/
+	rad_clarity;
+    l_abs_rad=(RICHDB::abs_length[i]+RICHDB::abs_length[i+1])/2.;
+    l_abs_lg=(RICHDB::lg_abs[i]+RICHDB::lg_abs[i+1])/2.;
+    for(integer j=0;j<steps;j++){ // Integration in radiador thicknes
+      geant x=RICGEOM.radiator_height*(geant(j)+0.5)/geant(steps);
+      geant g=qeff/lambda/lambda/exp((RICGEOM.radiator_height-x)*
+				     (1/l_scat+1/l_abs_rad))/
+	exp(RICGEOM.light_guides_height/l_abs_lg);
+      sum+=dl*g*x;
+      densum+=dl*g;
+    }
+  }
+  if(!densum){
+    cout<<"RICHDB::mean_height : Error"<<endl;
+  }else{
+    value=RICGEOM.radiator_height-sum/densum;
+    return value;
+  }
+  return -1;  // Codigo de error
 }
