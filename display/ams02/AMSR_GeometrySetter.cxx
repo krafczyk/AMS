@@ -1,4 +1,4 @@
-//  $Id: AMSR_GeometrySetter.cxx,v 1.3 2001/01/24 09:33:16 choutko Exp $
+//  $Id: AMSR_GeometrySetter.cxx,v 1.4 2002/12/31 21:31:45 schol Exp $
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -32,23 +32,34 @@ AMSR_GeometrySetter::AMSR_GeometrySetter()
 AMSR_GeoToggle AMSR_GeometrySetter::m_Toggle[] = {
   { "AMSG1",              kDrawSonsOnly, NULL },
   { "FMOT1",              kDrawSonsOnly, NULL },
-  { "MAGN1",              kDrawNone,     NULL },
-  { "ALT12",              kDrawNone,     NULL },
+  { "CRB11231",                kDrawNone, NULL },
+  { "CRB21241",                kDrawNone, NULL },
+  { "CRB31251",                kDrawNone, NULL },
+  { "CRB41261",                kDrawNone, NULL },
+  { "CRB41261",                kDrawNone, NULL },
+  { "CRS11271",                kDrawNone, NULL },
+  { "CRS21281",                kDrawNone, NULL },
+  { "MMOT11",               kDrawNone, NULL },
+  { "MSBO1301",             kDrawNone, NULL },
+  { "MSBO1312",             kDrawNone, NULL },
+  { "MSBO1323",             kDrawNone, NULL },
+  { "MSBO1334",             kDrawNone, NULL },
+  { "MSBO1345",             kDrawNone, NULL },
+  { "MSBO1356",             kDrawNone, NULL },
+  { "MSBO1367",             kDrawNone, NULL },
+  { "MSBO1378",             kDrawNone, NULL },
+  { "MSFR1291",             kDrawNone, NULL },
+  { "RA1B1161",             kDrawNone, NULL },
+  { "RA1T1172",             kDrawNone, NULL },
+  { "RA2B1181",             kDrawNone, NULL },
+  { "RA2M1192",             kDrawNone, NULL },
+  { "RA2T1203",             kDrawNone, NULL },
+  { "RA3T1211",             kDrawNone, NULL },
+  { "RA4T1221",             kDrawNone, NULL },
   { "ASTB100",              kDrawNone,     NULL },
-  { "PLA1821",              kDrawNone,     NULL },
   { "PLA2632",              kDrawNone,     NULL },
-  { "PLA3633",              kDrawNone,     NULL },
-  { "PLA4634",              kDrawNone,     NULL },
-  { "PLA5635",              kDrawNone,     NULL },
-  { "PLA6636",              kDrawNone,     NULL },
   { "PLA7637",              kDrawNone,     NULL },
-  { "PLA8828",              kDrawNone,     NULL },
   { "AMOT200",               kDrawNone, NULL },
-  { "TOFH31",               kDrawNone, NULL },
-  { "TOFH42",               kDrawNone, NULL },
-  { "TRD01591",              kDrawNone, NULL },
-  { "TRD11602",              kDrawSonsOnly, NULL },
-  { "TRD21613",              kDrawNone, NULL },
   { "RICH1",              kDrawImmediateSonsOnly, NULL },
   { "ECMO1",              kDrawImmediateSonsOnly, NULL },
   { "ECEB31",              kDrawNone,     NULL },
@@ -57,7 +68,6 @@ AMSR_GeoToggle AMSR_GeometrySetter::m_Toggle[] = {
   { "ECEB64",              kDrawNone,     NULL },
   { "ECHN11",              kDrawNone,     NULL },
   { "ECHN22",              kDrawNone,     NULL },
-  { "ECRD100",              kDrawImmediateSonsOnly, NULL },
   { "STK11",              kDrawImmediateSonsOnly, NULL },
   { "STK22",              kDrawImmediateSonsOnly, NULL },
   { "STK33",              kDrawImmediateSonsOnly, NULL },
@@ -66,6 +76,21 @@ AMSR_GeoToggle AMSR_GeometrySetter::m_Toggle[] = {
   { "STK66",              kDrawImmediateSonsOnly, NULL },
   { "STK77",              kDrawImmediateSonsOnly, NULL },
   { "STK88",              kDrawImmediateSonsOnly, NULL },
+  { "US1B1381",              kDrawNone,     NULL },
+  { "US1B1392",              kDrawNone,     NULL },
+  { "US1B1403",              kDrawNone,     NULL },
+  { "US1B1414",              kDrawNone,     NULL },
+  { "US2B1421",              kDrawNone,     NULL },
+  { "US2B1432",              kDrawNone,     NULL },
+  { "US2B1443",              kDrawNone,     NULL },
+  { "US2B1454",              kDrawNone,     NULL },
+  { "US4B1461",              kDrawNone,     NULL },
+  { "US4B1472",              kDrawNone,     NULL },
+  { "US4B1483",              kDrawNone,     NULL },
+  { "US4B1494",              kDrawNone,     NULL },
+  { "USLF1",              kDrawNone,     NULL },
+  { "USS23",              kDrawNone,     NULL },
+  { "USS32",              kDrawNone,     NULL },
   { 0,                    kDrawNone,     NULL }
 };
 
@@ -80,7 +105,7 @@ AMSR_GeometrySetter::AMSR_GeometrySetter(TGeometry * geo)
    Int_t i = 0;
    while ( m_Toggle[i].name != 0 ) {
      node = m_Geometry->GetNode(m_Toggle[i].name);
-//   debugger.Print("got node %lx\n", node);
+   debugger.Print("Looking for node %s\n", m_Toggle[i].name);
      if (node) node->SetVisibility(m_Toggle[i].vis);
      else cerr<<"No Node "<<m_Toggle[i].name<<endl;
      i++;

@@ -1,4 +1,4 @@
-//  $Id: AMSR_Display.cxx,v 1.15 2002/11/29 20:06:11 choutko Exp $
+//  $Id: AMSR_Display.cxx,v 1.16 2002/12/31 21:31:42 schol Exp $
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
 // AMSR_Display                                                           //
@@ -118,7 +118,7 @@ AMSR_Display::AMSR_Display(const char *title, TGeometry * geo, int resx, int res
 //   m_DrawClusters  = kTRUE;
    m_View = kFrontView;
    m_DrawParticles = kTRUE;
-   m_DrawGeometry  = kTRUE;
+   m_DrawGeometry  = kFALSE;
    m_DrawMoreGeometry  = kFALSE;
 
    // Create display canvas
