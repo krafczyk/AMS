@@ -257,7 +257,8 @@ void AMSEvent::SetTimeCoo(){
          AMSmceventg::Orbit.AlphaTanThetaMax;
        if(r > 1 || r < -1){
          cerr <<"AMSEvent::SetTimeCoo-ThetaI too high "<<
-           Array[hint].StationTheta<<endl;
+           Array[hint].StationTheta*AMSDBc::raddeg<<endl;
+           AMSmceventg::Orbit.AlphaTanThetaMax=tan(fabs(Array[hint].StationTheta));
          if(r < 0 )r=-1;
          else r=1;
        }

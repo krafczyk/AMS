@@ -38,7 +38,7 @@ PROTOCCALLSFSUB0(UGLAST,uglast)
 //
 void (handler)(int);
 main(){
-     *signal(SIGFPE, handler);
+//     *signal(SIGFPE, handler);
      *signal(SIGCONT, handler);
      *signal(SIGTERM, handler);
      *signal(SIGINT, handler);

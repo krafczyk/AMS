@@ -1315,7 +1315,7 @@ void AMSTrIdCalib::buildSigmaPedA(integer n, int16u *p){
 
 time_t AMSTrIdCalib::_BeginTime=0;
 time_t AMSTrIdCalib::_CurTime=0;
-uinteger AMSTrIdCalib::_CurRun=-1;
+uinteger AMSTrIdCalib::_CurRun=0;
 
 
 

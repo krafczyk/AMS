@@ -392,7 +392,8 @@ return strstr(entry->d_name,(char*)*_selectEntry)!=NULL;
 }
 
 void AMSTimeID::_fillDB(const char *dir){
-for( int i=0;i<5;i++)_pDataBaseEntries[i]=0;
+int i;
+for( i=0;i<5;i++)_pDataBaseEntries[i]=0;
     _DataBaseSize=0;
     AString fmap(dir);
     fmap+=getname();
