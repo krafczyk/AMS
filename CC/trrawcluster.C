@@ -66,7 +66,7 @@ AMSTrRawCluster::AMSTrRawCluster(integer ad, integer left, integer right,
                                  geant *p):_address(ad),_strip(left),
                                  _nelem(right-left+1){
     _array=(integer*)UPool.insert(sizeof(_array[0])*_nelem);
-    for(int k=0;k<_nelem;k++)_array[k]=*(p+k);  
+    for(int k=0;k<_nelem;k++)_array[k]=integer(*(p+k));  
 }
 
 AMSTrRawCluster::AMSTrRawCluster(integer ad, integer left, integer right, 
@@ -102,7 +102,7 @@ if(TRMCFFKEY.CalcCmnNoise[0]){
   // add sigmas & calculate properly cmnnoise
   //
  AMSgObj::BookTimer.start("SITKDIGIb");
- for(int i=0;i<ms;i++){
+ for(i=0;i<ms;i++){
   if(ida[i]){
     AMSTrIdSoft idd(i);
     integer ilay=idd.getlayer();
@@ -140,12 +140,12 @@ for ( i=0;i<ms;i++){
      AMSTrIdSoft idd(i);
      integer ilay=idd.getlayer();
      AMSTrRawCluster *pcl;
-     integer k=idd.getside();
+     k=idd.getside();
       pcl=0;
       integer nlmin;
       integer nleft=0;
       integer nright=0;
-      for (int j=0;j<AMSDBc::NStripsDrp(ilay,k);j++){
+      for (j=0;j<AMSDBc::NStripsDrp(ilay,k);j++){
         idd.upd(j);
         if(*(ida[i]+j)> TRMCFFKEY.thr1R[k]*idd.getsig()){
           nlmin = nright==0?0:nright+1; 

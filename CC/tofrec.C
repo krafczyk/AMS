@@ -256,7 +256,7 @@ void AMSTOFRawCluster::sitofdigi(int &status){
   number enshar,ylon,edp[2];
   number ts1,ts2;
   for(integer kk=0;kk<SCLRS;kk++){
-  for(integer i=0;i<SCMXBR;i++){
+  for(i=0;i<SCMXBR;i++){
     if(xplane[kk][i]>TOFMCFFKEY.Thr){
      xtime[kk][i]=xtime[kk][i]/xplane[kk][i];
      xtimed[kk][i]=xtimed[kk][i]/xplane[kk][i];

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+extern "C" void setkey(const char* a);
 extern "C" void encrypt(char* a, int n);
 extern "C" char* crypt(const char* a, const char* b);
 extern "C"   void __setkey(const char* s){

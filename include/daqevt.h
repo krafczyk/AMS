@@ -7,6 +7,7 @@
 #include <iostream.h>
 #include <link.h>
 #include <fstream.h>
+#include <time.h>
 typedef AMSID (*pid)();
 typedef void  (*pgetput)(integer n, uinteger* data);
 typedef integer (*pgetl)();

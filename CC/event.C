@@ -122,7 +122,7 @@ void AMSEvent::SetTimeCoo(){
    if(phi < 0)phi=phi+AMSDBc::twopi;
    theta=atan(AMSmceventg::Orbit.AlphaTanThetaMax*
         sin(phi));
-   _time=mktime(&AMSmceventg::Orbit.Begin)+curtime+0.5;
+   _time=integer(mktime(&AMSmceventg::Orbit.Begin)+curtime+0.5);
    _NorthPolePhi=pole;
    _StationTheta=theta;
    _StationPhi=fmod(phi+AMSmceventg::Orbit.PhiZero,AMSDBc::twopi);
